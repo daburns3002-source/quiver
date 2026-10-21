@@ -11,9 +11,11 @@
 	would be the single biggest source of frame hitches.
 ]]
 
+local Debris = game:GetService("Debris")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
 local Workspace = game:GetService("Workspace")
 
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
@@ -46,6 +48,11 @@ local folder: Folder? = nil
 local pool: { BasePart } = {}
 local live: { Visual } = {}
 local connection: RBXScriptConnection? = nil
+
+--[[ Seconds an impact spark lives, and how many may exist at once. Short and
+     capped: it is a punctuation mark, not an effect. ]]
+local IMPACT_DURATION = 0.18
+local impacts = 0
 
 --[[
 	One filter per faction, mirroring ProjectileSystem.
@@ -164,6 +171,51 @@ local function placeAt(position: Vector3, direction: Vector3): CFrame
 	return CFrame.lookAt(position, position + direction)
 end
 
+--[[
+	A small spark where a shot stops against the arena.
+
+	Being blocked by cover is a rule of this game, not a malfunction, but an
+	arrow that disappears silently into a pillar looks exactly like one that
+	failed. This is the cheapest possible way to say "that was the wall" —
+	and it is deliberately not a hit effect, so it reads as *nothing
+	happened to anything* rather than as damage.
+]]
+local function spawnImpact(position: Vector3, normal: Vector3, faction: Faction)
+	local tier = Device.tier()
+
+	if impacts >= tier.maxDamageNumbers then
+		return
+	end
+
+	impacts += 1
+
+	local spark = Instance.new("Part")
+	spark.Name = "Impact"
+	spark.Shape = Enum.PartType.Ball
+	spark.Size = Vector3.one * (Balance.Projectile.radius * 2)
+	spark.Position = position + normal * 0.1
+	spark.Anchored = true
+	spark.CanCollide = false
+	spark.CanQuery = false
+	spark.CanTouch = false
+	spark.CastShadow = false
+	spark.Material = Enum.Material.Neon
+	spark.Color = if faction == "Enemy" then ENEMY_COLOUR else PLAYER_COLOUR
+	spark.Transparency = 0.2
+	spark.Parent = folder
+
+	TweenService:Create(spark, TweenInfo.new(IMPACT_DURATION, Enum.EasingStyle.Quad), {
+		Size = Vector3.one * (Balance.Projectile.radius * 5),
+		Transparency = 1,
+	}):Play()
+
+	task.delay(IMPACT_DURATION, function()
+		impacts -= 1
+	end)
+
+	Debris:AddItem(spark, IMPACT_DURATION)
+end
+
 local function step(deltaTime: number)
 	local now = os.clock()
 
@@ -175,10 +227,6 @@ local function step(deltaTime: number)
 		local finished = now >= visual.expiresAt
 
 		if not finished and params then
-			--[[ Sphere, not ray, and of the same radius the server simulates.
-			     A zero-width ray here would sail past edges the server counts
-			     as hits, so an arrow would visibly pass through an enemy that
-			     took damage from it. ]]
 			--[[ The same box the server sweeps, so a shot that stops on screen
 			     is a shot that stopped on the server. ]]
 			local result = Workspace:Blockcast(
@@ -191,6 +239,14 @@ local function step(deltaTime: number)
 			if result then
 				visual.position = result.Position
 				finished = true
+
+				--[[ Only arena geometry gets a spark. An enemy hit already has
+				     a flash and a damage number; a wall had nothing at all,
+				     so a blocked arrow simply vanished and read as the game
+				     failing rather than as cover working. ]]
+				if not result.Instance:FindFirstAncestorOfClass("Model") then
+					spawnImpact(result.Position, result.Normal, visual.faction)
+				end
 			end
 		end
 

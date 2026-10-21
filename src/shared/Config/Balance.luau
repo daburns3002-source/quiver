@@ -294,30 +294,25 @@ export type RoomConfig = {
 ]]
 local rooms: { RoomConfig } = {
 	{
-		name = "First Cover",
+		name = "Open Ground",
 		--[[
-			A screen straight across the spawn's sight-line.
+			Deliberately empty, and this one cost a playtest to learn.
 
-			The opener used to be bare ground, and bare ground is the one shape
-			that teaches nothing: the archer out-ranges the room from where it
-			arrives, so four enemies died in about five seconds without the
-			player taking a step. A room that never asks you to move is a poor
-			way to introduce a game about deciding when to stand still.
+			The opener used to be a screen across the spawn's sight-line, put
+			there so the room could not be won standing still. It worked far
+			too well: the player spawns behind it every time, auto-aim picks
+			targets through it, and 41 of 45 shots went into the wall. The
+			first thing a new player experienced was firing continuously at
+			nothing, with no feedback explaining why.
 
-			This screen is wide enough that shooting past it means walking
-			clear of it — but enemy shots fly over it, so standing behind it
-			costs damage and buys no safety. That is the asymmetry the whole
-			game rests on, stated in the first room rather than discovered in
-			the fourth.
+			A tutorial room's job is to prove the verb works. Stand still, the
+			archer fires, the thing dies. Cover arrives in room two, where the
+			player already trusts that shooting does something — and where
+			being blocked reads as a wall rather than as a broken game.
 		]]
-		obstacles = {
-			{ offset = Vector2.new(0, 18), size = Vector3.new(34, 10, 6) },
-		},
-		--[[ Three, not four. Playtest 2 found the opener too hard: it is the
-		     room where a player is still learning that stopping is a choice,
-		     and it should not also be the room that punishes them hardest for
-		     getting it wrong. ]]
-		--[[ Chargers only. The first room teaches one thing: stopping is a choice. ]]
+		obstacles = {},
+		--[[ Two chargers, which walk straight at you and die. Nothing here is
+		     trying to be interesting. ]]
 		enemyCount = 2,
 		roster = { meleeCharger },
 	},

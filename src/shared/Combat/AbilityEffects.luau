@@ -43,12 +43,26 @@ export type ServerStats = {
 	attackCooldown: number,
 }
 
---[[ What the client needs in order to predict correctly. Replicated, and
-     deliberately small — anything that decides an outcome does not belong
-     here. ]]
+--[[
+	What the client needs in order to predict correctly.
+
+	Still not "the player's stats" — nothing that decides an outcome is here.
+	But prediction is not only movement: the client draws its own volley and
+	skips the server's copy to avoid double-drawing, so if it does not know
+	the loadout it draws one unbuffed arrow for ever while the server fires
+	the real ones somewhere else. The player then watches an arrow that does
+	not exist sail through an enemy that a different, invisible arrow is busy
+	killing.
+
+	`abilities` is the stack counts, not a stage list. Stages are functions
+	and do not replicate; counts do, and `AbilityEffects.stages` rebuilds the
+	identical pipeline from them on either side.
+]]
 export type ClientStats = {
 	moveSpeed: number,
 	dashCooldown: number,
+	attackCooldown: number,
+	abilities: Counts,
 }
 
 local function stacks(counts: Counts, id: string): number
@@ -152,6 +166,11 @@ end
 function AbilityEffects.clientStats(counts: Counts): ClientStats
 	local player = Balance.Player
 
+	--[[ Copied rather than passed by reference: the server goes on mutating
+	     its own counts, and a client-side pipeline rebuilt from a table that
+	     changes underneath it would be a very hard bug to see. ]]
+	local copy: Counts = table.clone(counts)
+
 	return {
 		moveSpeed = compounded(
 			player.moveSpeed,
@@ -160,6 +179,11 @@ function AbilityEffects.clientStats(counts: Counts): ClientStats
 		),
 		dashCooldown = player.dash.cooldown
 			/ (1 + Abilities.byId.Lightfoot.value) ^ stacks(counts, "Lightfoot"),
+		--[[ The same number `serverStats` computes. The client predicts *when*
+		     it fires as well as what, so Precision has to reach both or the
+		     prediction drifts a little further apart with every volley. ]]
+		attackCooldown = AbilityEffects.serverStats(counts).attackCooldown,
+		abilities = copy,
 	}
 end
 

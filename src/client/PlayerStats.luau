@@ -21,14 +21,28 @@ local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 export type Stats = {
 	moveSpeed: number,
 	dashCooldown: number,
+	attackCooldown: number,
+	--[[ Stack counts, not stages. Stages are functions and do not replicate;
+	     `AbilityEffects.stages` rebuilds the identical pipeline from these. ]]
+	abilities: { [string]: number },
 }
 
 local PlayerStats = {}
 
-local current: Stats = {
-	moveSpeed = Balance.Player.moveSpeed,
-	dashCooldown = Balance.Player.dash.cooldown,
-}
+local function defaults(): Stats
+	return {
+		moveSpeed = Balance.Player.moveSpeed,
+		dashCooldown = Balance.Player.dash.cooldown,
+		attackCooldown = Balance.Player.attackCooldown,
+		abilities = {},
+	}
+end
+
+local current: Stats = defaults()
+
+--[[ Fired whenever the block is replaced, so the firing prediction can
+     rebuild its pipeline instead of polling a table every frame. ]]
+local changed = Instance.new("BindableEvent")
 
 function PlayerStats.get(): Stats
 	return current
@@ -44,23 +58,31 @@ function PlayerStats.set(stats: Stats)
 
 	local moveSpeed = tonumber(stats.moveSpeed)
 	local dashCooldown = tonumber(stats.dashCooldown)
+	local attackCooldown = tonumber(stats.attackCooldown)
 
-	if not moveSpeed or not dashCooldown then
+	if not moveSpeed or not dashCooldown or not attackCooldown then
 		return
 	end
 
 	current = {
 		moveSpeed = moveSpeed,
 		dashCooldown = math.max(dashCooldown, 0),
+		attackCooldown = math.max(attackCooldown, 1 / 60),
+		abilities = if typeof(stats.abilities) == "table" then stats.abilities else {},
 	}
+
+	changed:Fire()
+end
+
+--[[ Subscribe to rebuilds. Returns the connection so a caller can drop it. ]]
+function PlayerStats.onChanged(callback: () -> ()): RBXScriptConnection
+	return changed.Event:Connect(callback)
 end
 
 --[[ Back to the configured defaults, for a fresh run. ]]
 function PlayerStats.reset()
-	current = {
-		moveSpeed = Balance.Player.moveSpeed,
-		dashCooldown = Balance.Player.dash.cooldown,
-	}
+	current = defaults()
+	changed:Fire()
 end
 
 return PlayerStats

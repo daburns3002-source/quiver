@@ -143,6 +143,12 @@ function ShotPipeline.build(self: ShotPipeline, request: ShotRequest): { ShotSpe
 			speed = request.speed,
 			lifetime = request.lifetime,
 			pierce = 0,
+			--[[ No crit until an OnHit stage says otherwise. A multiplier of
+			     2 is the resting value rather than 1, so an ability that only
+			     grants *chance* does not also have to remember to set the
+			     payoff. ]]
+			critChance = 0,
+			critMultiplier = 2,
 		},
 	}
 

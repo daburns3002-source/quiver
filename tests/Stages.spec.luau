@@ -23,6 +23,8 @@ local function baseSpec(): Types.ShotSpec
 		speed = 20,
 		lifetime = 3,
 		pierce = 0,
+		critChance = 0,
+		critMultiplier = 2,
 	}
 end
 

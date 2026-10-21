@@ -16,6 +16,55 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## All three draft cards drawn on top of each other
+
+**Symptom** — a level-up offered what looked like one card. The other two were
+behind it, exactly aligned.
+
+**Cause** — `clearCards` used `ClearAllChildren` on the card holder, which
+destroyed the `UIListLayout` along with the cards. `show` clears before it
+builds, so this bit on the *first* offer and every one after: with no layout,
+three cards sized `UDim2.new(1, 0, 0, 108)` all resolve to the same position.
+
+**Fix** — clear only the `TextButton`s and leave the layout alone.
+
+**Measured** — before: 3 cards, 1 distinct Y position, no layout present.
+After: 3 cards at y = 296 / 418 / 540, spaced by exactly the card height plus
+the configured padding, layout intact. Confirmed on a *second* consecutive
+offer, since that is the path that clears an existing screen.
+
+**Watch for** — any Roblox UI built once and refilled later. `ClearAllChildren`
+takes the constraints, layouts and corners with it, and the result is not an
+error — it is a layout that silently stops applying.
+
+---
+
+## A passing test run against code Studio was not running
+
+**Symptom** — the in-Roblox suite passed with a plausible test count while
+newly added specs were silently not running at all.
+
+**Cause** — `rojo serve` keeps its process alive after the Studio plugin has
+stopped being connected to it; branch switching triggers this. Studio then
+goes on running whatever it had when the link broke. Nothing reports an error
+at any layer: the suite runs, the old specs pass, and the count only looks
+wrong if you already know what it should be.
+
+**Fix** — none in code; this is a procedure. After any branch switch or
+`rojo serve` restart, verify the link before trusting an in-Roblox result:
+read the `.Source` of a file you just changed and check the change is in it.
+Restarting `rojo serve` drops the plugin and reconnecting is a manual click in
+Studio.
+
+**Measured** — a suite reporting `PASS — 89 tests` while two new specs worth
+31 tests were absent from `ServerStorage.Tests` entirely. The same probe after
+reconnecting reported 120.
+
+**Watch for** — any in-Roblox result that does not change when you expect it
+to. The stale read is the default failure here, not the exception.
+
+---
+
 ## Lurker surfaced outside its own warning marker
 
 **Symptom** — "im not sure when it is disappearing and when it is coming back".

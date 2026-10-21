@@ -11,7 +11,9 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local AbilityEffects = require(ReplicatedStorage.Shared.Combat.AbilityEffects)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
+local Loadout = require(script.Parent.Loadout)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local ShotPipeline = require(ReplicatedStorage.Shared.Combat.ShotPipeline)
@@ -33,6 +35,16 @@ export type Session = {
 		is why it can never be shared or global.
 	]]
 	pipeline: ShotPipeline.ShotPipeline,
+
+	--[[ What this run has drafted. Per-session, never shared — two players
+	     drawing from one pool is the first thing that breaks in co-op. ]]
+	loadout: Loadout.State,
+	--[[ Recomputed from the loadout on every grant rather than nudged, so a
+	     stat cannot drift out of step with the abilities that produced it. ]]
+	attackCooldown: number,
+	--[[ Its own Random, so one player's draft cannot shift another's rolls,
+	     and a run is reproducible from a seed if that is ever wanted. ]]
+	random: Random,
 
 	lastFiredAt: number,
 	--[[
@@ -58,6 +70,9 @@ local sessions: { [Player]: Session } = {}
 RunSession.onDeath = nil :: ((Session) -> ())?
 
 local healthChanged = Remotes.event(Remotes.HealthChanged)
+local xpChanged = Remotes.event(Remotes.XpChanged)
+local abilityOffer = Remotes.event(Remotes.AbilityOffer)
+local playerStats = Remotes.event(Remotes.PlayerStats)
 local playerDamaged = Remotes.event(Remotes.PlayerDamaged)
 
 function RunSession.create(player: Player): Session
@@ -72,6 +87,9 @@ function RunSession.create(player: Player): Session
 		damage = Balance.Player.baseDamage,
 
 		pipeline = ShotPipeline.new(),
+		loadout = Loadout.new(),
+		attackCooldown = Balance.Player.attackCooldown,
+		random = Random.new(),
 
 		lastFiredAt = 0,
 		stationarySince = nil,
@@ -80,9 +98,147 @@ function RunSession.create(player: Player): Session
 	}
 
 	sessions[player] = session
+	RunSession.applyLoadout(session)
 	log.info("session created for %s", player.Name)
 
 	return session
+end
+
+--[[
+	Rebuilds everything the loadout decides, from the stack counts alone.
+
+	Called after every grant and on session creation. A full rebuild rather
+	than an incremental nudge, because the failure mode of nudging is a stat
+	that is subtly wrong after the fourth copy of something and no way to tell
+	which copy did it.
+
+	`keepRatio` carries health across a max-health change instead of topping
+	the player up: gaining Vitality should not be a full heal, or it would be
+	strictly better than the card that *is* a heal.
+]]
+function RunSession.applyLoadout(session: Session)
+	local counts = session.loadout.counts
+	local stats = AbilityEffects.serverStats(counts)
+
+	local ratio = if session.maxHealth > 0 then session.health / session.maxHealth else 1
+
+	session.damage = stats.damage
+	session.maxHealth = stats.maxHealth
+	session.health = math.clamp(stats.maxHealth * ratio, 1, stats.maxHealth)
+	session.attackCooldown = stats.attackCooldown
+
+	session.pipeline:clear()
+	for _, stage in AbilityEffects.stages(counts) do
+		session.pipeline:addStage(stage)
+	end
+
+	playerStats:FireClient(session.player, AbilityEffects.clientStats(counts))
+	healthChanged:FireClient(session.player, session.health, session.maxHealth)
+end
+
+--[[ Whether a card screen is open for this player. The run pauses while it
+     is, so this is read every frame by the server loop. ]]
+function RunSession.isChoosing(session: Session): boolean
+	return session.loadout.offer ~= nil
+end
+
+--[[
+	Whether anyone is mid-draft.
+
+	The run pauses for everybody, which is the honest single-player answer and
+	a deliberate placeholder for co-op: freezing the world for four players
+	because one is reading three cards will not survive Phase 9. The decision
+	of what to do instead — per-player time, or a draft that does not stop the
+	fight — belongs with co-op rather than ahead of it.
+]]
+function RunSession.anyChoosing(): boolean
+	for _, session in sessions do
+		if session.loadout.offer ~= nil then
+			return true
+		end
+	end
+
+	return false
+end
+
+local function sendXp(session: Session)
+	local loadout = session.loadout
+	xpChanged:FireClient(session.player, loadout.xp, loadout.xpToNext, loadout.level)
+end
+
+--[[ Opens a card screen if one is owed and none is open. Safe to call every
+     frame; it does nothing until there is something to show. ]]
+function RunSession.offerIfOwed(session: Session)
+	if not session.alive then
+		return
+	end
+
+	local atFullHealth = session.health >= session.maxHealth - 1e-3
+	local offer = Loadout.openOffer(session.loadout, atFullHealth, session.random)
+
+	if offer then
+		abilityOffer:FireClient(session.player, offer, session.loadout.level)
+	end
+end
+
+--[[
+	Credits XP for something this player killed.
+
+	Takes the session rather than the player so a caller has already had to
+	answer "whose kill was it", which is the question that quietly becomes
+	wrong in co-op.
+]]
+function RunSession.awardXp(session: Session, amount: number)
+	if amount <= 0 or not session.alive then
+		return
+	end
+
+	Loadout.addXp(session.loadout, amount)
+	sendXp(session)
+	RunSession.offerIfOwed(session)
+end
+
+--[[
+	Applies the player's choice of card.
+
+	Returns whether it was legal. Everything about trusting the client stops
+	here: `Loadout.choose` validates the index against the offer the server
+	itself sent, and an invalid one changes nothing at all.
+]]
+function RunSession.chooseAbility(session: Session, index: number): boolean
+	local ability = Loadout.choose(session.loadout, index)
+	if not ability then
+		return false
+	end
+
+	RunSession.applyLoadout(session)
+
+	--[[ After the rebuild, so a heal measured as a fraction of max health uses
+	     the max health the card itself may have just raised. ]]
+	local heal = AbilityEffects.instantHeal(ability.id, session.maxHealth)
+	if heal > 0 then
+		session.health = math.min(session.maxHealth, session.health + heal)
+		healthChanged:FireClient(session.player, session.health, session.maxHealth)
+	end
+
+	log.info("%s drafted %s (level %d)", session.player.Name, ability.id, session.loadout.level)
+
+	sendXp(session)
+	--[[ A player can level twice from one kill, so the next card opens as soon
+	     as this one closes rather than waiting for another kill. ]]
+	RunSession.offerIfOwed(session)
+	return true
+end
+
+--[[ Clears the draft for a fresh run. Levels and abilities are run-local by
+     design: the meta loop is Phase 6, and until then a death costs the build
+     and nothing else. ]]
+function RunSession.resetRun(session: Session)
+	session.loadout = Loadout.new()
+	RunSession.applyLoadout(session)
+	session.health = session.maxHealth
+	sendXp(session)
+	healthChanged:FireClient(session.player, session.health, session.maxHealth)
 end
 
 function RunSession.get(player: Player): Session?

@@ -67,6 +67,38 @@ Remotes.PlayerDamaged = "PlayerDamaged"
 --[[ Server → one client. Health changed for any reason, including spawn. ]]
 Remotes.HealthChanged = "HealthChanged"
 
+--[[ Server → one client. Run XP and level, for the bar under the health. ]]
+Remotes.XpChanged = "XpChanged"
+
+--[[
+	Server → one client. Here are the cards you may choose from.
+
+	Ability *ids*, because the client has the same Config and can render names
+	and descriptions itself. The server keeps the authoritative copy of what it
+	offered, so the reply below can be checked rather than believed.
+]]
+Remotes.AbilityOffer = "AbilityOffer"
+
+--[[
+	Client → server. "I pick the nth card."
+
+	An index into the offer the server itself just sent, and nothing else. A
+	client that lies can only pick a different one of the three cards it was
+	already going to be allowed to pick — it cannot name an ability, a stack
+	count or a stat. See CLAUDE.md, non-negotiable 2.
+]]
+Remotes.AbilityChosen = "AbilityChosen"
+
+--[[
+	Server → one client. The stats the client needs in order to predict.
+
+	Deliberately tiny, and deliberately not "the player's stats": the client
+	pins WalkSpeed every frame and runs the dash timer locally, so those two
+	numbers have to live there or prediction fights the server. Nothing that
+	decides an outcome is ever sent here.
+]]
+Remotes.PlayerStats = "PlayerStats"
+
 local function getFolder(): Folder
 	if RunService:IsServer() then
 		local existing = ReplicatedStorage:FindFirstChild(FOLDER_NAME)

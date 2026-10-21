@@ -114,6 +114,15 @@ function RoomController.step(now: number)
 	if state == "Dead" then
 		if resumeAt and now >= resumeAt then
 			log.info("restarting the run")
+
+			--[[ Levels and abilities are run-local by design: a death costs
+			     the build and nothing else, because the meta loop that would
+			     soften that is Phase 6. Reset before the room is built, so the
+			     first wave meets a level-one archer. ]]
+			for _, session in RunSession.all() do
+				RunSession.resetRun(session)
+			end
+
 			enterRoom(1)
 		end
 

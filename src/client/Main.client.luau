@@ -14,6 +14,7 @@ local Workspace = game:GetService("Workspace")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 
+local AbilityCards = require(script.Parent.UI.AbilityCards)
 local Device = require(script.Parent.Device)
 local Game = require(Shared.Config.Game)
 local HealthBar = require(script.Parent.UI.HealthBar)
@@ -21,6 +22,7 @@ local HitFeedback = require(script.Parent.Fx.HitFeedback)
 local LocalFiring = require(script.Parent.Combat.LocalFiring)
 local Log = require(Shared.Util.Log)
 local MoveController = require(script.Parent.Input.MoveController)
+local PlayerStats = require(script.Parent.PlayerStats)
 local ProjectileRenderer = require(script.Parent.Fx.ProjectileRenderer)
 local Remotes = require(Shared.Net.Remotes)
 local RunBanner = require(script.Parent.UI.RunBanner)
@@ -116,5 +118,37 @@ Remotes.event(Remotes.EnemyDied).OnClientEvent:Connect(HitFeedback.onEnemyDied)
 Remotes.event(Remotes.PlayerDamaged).OnClientEvent:Connect(HitFeedback.onPlayerDamaged)
 Remotes.event(Remotes.HealthChanged).OnClientEvent:Connect(HealthBar.update)
 Remotes.event(Remotes.RunStateChanged).OnClientEvent:Connect(RunBanner.onRunStateChanged)
+
+--[[ Prediction inputs only — move speed and dash cooldown. Nothing that
+     decides an outcome arrives here. ]]
+Remotes.event(Remotes.PlayerStats).OnClientEvent:Connect(PlayerStats.set)
+
+--[[
+	The draft.
+
+	The screen reports an index and nothing else, and the server validates even
+	that against the offer it is holding. Hiding on send rather than waiting
+	for a confirmation is deliberate: the run is paused behind this, and a
+	screen that lingered for a round trip would feel like the tap was missed.
+	A rejected choice simply leaves the offer open and the server re-sends it.
+]]
+AbilityCards.start(function(index: number)
+	AbilityCards.hide()
+	Remotes.event(Remotes.AbilityChosen):FireServer(index)
+end)
+
+Remotes.event(Remotes.AbilityOffer).OnClientEvent:Connect(function(offer: { string }, level: number)
+	AbilityCards.show(offer, level)
+end)
+
+Remotes.event(Remotes.XpChanged).OnClientEvent:Connect(RunBanner.onXpChanged)
+
+--[[ A death ends the draft with it. Without this a card screen owed by the
+     run that just ended would still be up when the next one starts, pausing a
+     room the player cannot see. ]]
+player.CharacterRemoving:Connect(function()
+	AbilityCards.hide()
+	PlayerStats.reset()
+end)
 
 log.info("client ready")

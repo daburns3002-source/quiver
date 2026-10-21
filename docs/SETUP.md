@@ -1,6 +1,6 @@
 # Setup — current state
 
-Repo: https://github.com/daburns3002-source/quiver (private)
+Repo: https://github.com/daburns3002-source/quiver (public)
 Local: `C:\Dev\ArcheroRoblox`
 
 ## Done
@@ -9,6 +9,7 @@ Local: `C:\Dev\ArcheroRoblox`
 - Rokit pins Rojo 7.7.1, Wally 0.3.2, Selene 0.32.0, StyLua 2.6.0
 - Rojo project maps `src/{shared,server,client}` into the DataModel; `rojo build` succeeds
 - GitHub Actions CI green on first run: Selene, StyLua `--check`, `rojo build`, artifact upload
+- Branch protection on `main`, enforced for admins too — verified by a rejected direct push
 - `CLAUDE.md` / `AGENTS.md` written — builder and reviewer share one rulebook
 - PR template points the reviewer at exploitability, the projectile pipeline and run state
 - `.gitattributes` pins LF so local and CI format checks agree
@@ -17,6 +18,29 @@ Local: `C:\Dev\ArcheroRoblox`
 Already on the machine and verified: Git 2.55, GitHub CLI 2.102 (authenticated as
 `daburns3002-source`), Node 24.20, Python 3.12.10, uv 0.13.1, Roblox Studio,
 `%LOCALAPPDATA%\Roblox\mcp.bat`.
+
+## Branch protection on `main`
+
+| Rule | Setting |
+|---|---|
+| Changes must go through a PR | yes |
+| Required approving reviews | 0 — Codex reviews by comment, and GitHub won't let you approve your own PR |
+| Required status check | `Lint, format and build`, strict (branch must be up to date) |
+| Conversation resolution | required — **Codex's comments must be resolved before merge** |
+| Linear history | required |
+| Force pushes / deletions | blocked |
+| Applies to admins | **yes** — verified by a rejected direct push as the repo owner |
+
+Merges are squash-only and the branch is deleted on merge.
+
+This means *you cannot push to `main` directly*, by design — it's what keeps Codex in the loop.
+To bypass in an emergency:
+
+```bash
+gh api -X DELETE repos/daburns3002-source/quiver/branches/main/protection/enforce_admins
+```
+
+Re-enable it with `-X POST` on the same path.
 
 ## Blocked on you
 
@@ -44,17 +68,7 @@ Manual fallback if Quick connect does not list Claude Code:
 }
 ```
 
-### 2. Decide: private or public
-
-Branch protection on a private repo needs GitHub Pro — the API refused it with
-*"Upgrade to GitHub Pro or make this repository public to enable this feature."*
-
-Options: make the repo public (free branch protection, and Codex's GitHub integration is
-simpler), pay for Pro, or run without protection and rely on the PR workflow by convention.
-Running without protection is survivable for now; CI still runs on every PR, it just is not
-enforced as a merge gate.
-
-### 3. Codex
+### 2. Codex
 
 Confirm access, and whether you will run the CLI locally or connect Codex to the GitHub repo.
 The GitHub route is better — reviews land as PR comments I can read and act on directly.

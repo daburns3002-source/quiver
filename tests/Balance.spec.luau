@@ -338,4 +338,43 @@ return function(t: TestRunner.Helper)
 			"the stationary threshold must sit between idle noise and a full stick"
 		)
 	end)
+
+	--[[
+		Turning, which is presentation but not decoration.
+
+		Every enemy used to snap to face the player every frame, and on the
+		Bulwark — whose shield is wider than its body — that made the whole
+		slab swing in step with the player and read as it copying them. A turn
+		rate fixes that, and the relationship worth holding is the one that
+		makes weight legible: nothing bigger turns faster than something
+		smaller.
+	]]
+	t.test("every enemy turns, and none instantly", function()
+		for _, value in Balance.Enemies do
+			local config = value :: Balance.EnemyConfig
+			t.isTrue(config.turnRate > 0, `{config.displayName} cannot turn at all`)
+			--[[ At 60 frames, anything over about 1800 a second is a snap. ]]
+			t.isTrue(config.turnRate < 1800, `{config.displayName} effectively snaps to face`)
+		end
+	end)
+
+	t.test("bigger enemies never turn faster than smaller ones", function()
+		local list: { Balance.EnemyConfig } = {}
+		for _, value in Balance.Enemies do
+			table.insert(list, value :: Balance.EnemyConfig)
+		end
+
+		for _, a in list do
+			for _, b in list do
+				local aSize = math.max(a.hitboxSize.X, a.hitboxSize.Z)
+				local bSize = math.max(b.hitboxSize.X, b.hitboxSize.Z)
+				if aSize > bSize then
+					t.isTrue(
+						a.turnRate <= b.turnRate,
+						`{a.displayName} is bigger than {b.displayName} but turns faster`
+					)
+				end
+			end
+		end
+	end)
 end

@@ -94,12 +94,28 @@ export type EnemyConfig = {
 	hitboxSize: Vector3,
 	color: Color3,
 	xpReward: number,
+	--[[
+		Degrees per second the enemy can turn to face its target.
+
+		Without a limit every enemy snapped to face the player every frame,
+		which on a three-stud Charger is invisible and on a Bulwark with a
+		shield wider than its body looks like the whole slab is copying the
+		player's movements — it swung 315 degrees in three seconds while the
+		player strafed past it. A turn rate is also what makes weight read:
+		big things should come round slowly.
+
+		Facing is presentation only. Every shot is aimed separately at the
+		target, so this never makes an enemy easier or harder to dodge.
+	]]
+	turnRate: number,
 	shot: EnemyShot?,
 	burrow: EnemyBurrow?,
 }
 
 local meleeCharger: EnemyConfig = {
 	displayName = "Charger",
+	--[[ Quick: it commits to a direction and turns hard to keep it. ]]
+	turnRate = 540,
 	health = 30,
 	moveSpeed = 7.5,
 	-- Studs from the player at which it lands a hit.
@@ -125,6 +141,8 @@ local meleeCharger: EnemyConfig = {
 ]]
 local spreadShooter: EnemyConfig = {
 	displayName = "Spitter",
+	--[[ Moderate: it stands off and tracks. ]]
+	turnRate = 360,
 	health = 24,
 	moveSpeed = 5,
 	--[[ Ranged enemies treat attackRange as the distance they want to hold,
@@ -166,6 +184,8 @@ local spreadShooter: EnemyConfig = {
 ]]
 local lineSniper: EnemyConfig = {
 	displayName = "Lancer",
+	--[[ Deliberate: it swings round to line the lance up. ]]
+	turnRate = 240,
 	health = 20,
 	moveSpeed = 4.25,
 	attackRange = 48,
@@ -198,6 +218,8 @@ local lineSniper: EnemyConfig = {
 ]]
 local tank: EnemyConfig = {
 	displayName = "Bulwark",
+	--[[ Ponderous. A quarter-turn takes a full second, which is what makes it read as heavy rather than as copying the player. ]]
+	turnRate = 90,
 	health = 120,
 	moveSpeed = 3.5,
 	attackRange = 5,
@@ -227,6 +249,8 @@ local tank: EnemyConfig = {
 ]]
 local burrower: EnemyConfig = {
 	displayName = "Lurker",
+	--[[ Moderate, and only ever seen turning above ground. ]]
+	turnRate = 360,
 	health = 26,
 	moveSpeed = 6,
 	attackRange = 26,
@@ -537,6 +561,17 @@ local Balance = {
 			at, which is the bug this replaced.
 		]]
 		parallelSpacing = 0.85,
+		--[[
+			Diameter of an enemy shot, which is a round orb rather than an
+			arrow — that is what the reference footage shows, and it means a
+			player can tell incoming fire from their own by shape alone.
+
+			Swept as a cube of this size on the server, so the hitbox is the
+			orb on screen. Larger than an arrow is wide on purpose: enemy fire
+			is slow, and the thing that has to be readable at a glance on a
+			phone is what is coming at you.
+		]]
+		enemyOrbDiameter = 1.2,
 		-- Hard cap on live server projectiles. Phase 3 abilities multiply volley
 		-- size aggressively; this is the backstop.
 		maxActive = 400,

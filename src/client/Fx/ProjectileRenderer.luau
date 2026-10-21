@@ -52,7 +52,11 @@ type Visual = {
 local ProjectileRenderer = {}
 
 local folder: Folder? = nil
-local pool: { BasePart } = {}
+--[[ One pool per faction, because the two are different shapes. A shared pool
+     handed an orb to an arrow and an arrow to an orb, and resizing a part
+     on every reuse is exactly the allocation-shaped cost the pool exists to
+     avoid. ]]
+local pools: { [Faction]: { BasePart } } = { Player = {}, Enemy = {} }
 local live: { Visual } = {}
 local connection: RBXScriptConnection? = nil
 
@@ -81,20 +85,35 @@ local enemyFilter: RaycastParams? = nil
 local playerOverlap: OverlapParams? = nil
 local enemyOverlap: OverlapParams? = nil
 
---[[ The arrow's dimensions, read from the same config the server sweeps, so
-     the shape drawn and the shape simulated cannot drift apart. ]]
-local function projectileSize(): Vector3
+--[[
+	Each faction's projectile dimensions, read from the same config the server
+	sweeps, so the shape drawn and the shape simulated cannot drift apart.
+
+	The player fires long arrows; enemies fire round orbs. That is what the
+	reference footage shows, and it is also the single most useful thing a
+	player can be told about a projectile at a glance — whose it is — told by
+	silhouette rather than by asking them to read a hue mid-dodge.
+]]
+local function projectileSize(faction: Faction): Vector3
+	if faction == "Enemy" then
+		return Vector3.one * Balance.Projectile.enemyOrbDiameter
+	end
+
 	local width = Balance.Projectile.radius * 2
 	return Vector3.new(width, width, Balance.Projectile.length)
 end
 
-local function createPart(): BasePart
+local function createPart(faction: Faction): BasePart
 	local tier = Device.tier()
+	local isOrb = faction == "Enemy"
 
 	local part = Instance.new("Part")
 	part.Name = "Projectile"
-	part.Size = projectileSize()
-	part.Shape = if tier.projectileIsRound then Enum.PartType.Cylinder else Enum.PartType.Block
+	part.Size = projectileSize(faction)
+	part.Shape = if isOrb
+		then Enum.PartType.Ball
+		elseif tier.projectileIsRound then Enum.PartType.Cylinder
+		else Enum.PartType.Block
 	part.Anchored = true
 	part.CanCollide = false
 	part.CanQuery = false
@@ -108,9 +127,12 @@ local function createPart(): BasePart
 		exists precisely to avoid allocating per shot. The two attachments sit
 		across the nose rather than along the body, so the ribbon is the width
 		of the arrow and streams out behind it as it travels.
+
+		Arrows only. An enemy orb in the footage does not streak, and a trail
+		on something that slow reads as a smear rather than as speed.
 	]]
-	if tier.projectileTrails then
-		local size = projectileSize()
+	if tier.projectileTrails and not isOrb then
+		local size = projectileSize(faction)
 		local nose = size.Z / 2
 
 		local left = Instance.new("Attachment")
@@ -145,13 +167,13 @@ local function createPart(): BasePart
 	return part
 end
 
---[[ Colour is set on acquire rather than on create: the pool is shared across
-     factions, so a recycled part still carries the last shooter's colour. ]]
-local function acquire(colour: Color3): BasePart
-	local part = table.remove(pool)
+--[[ Colour is still set on acquire rather than on create, so retuning a
+     faction colour does not need the pool emptied first. ]]
+local function acquire(faction: Faction, colour: Color3): BasePart
+	local part = table.remove(pools[faction])
 
 	if not part then
-		part = createPart()
+		part = createPart(faction)
 	end
 
 	local resolved = part :: BasePart
@@ -169,9 +191,9 @@ local function acquire(colour: Color3): BasePart
 	return resolved
 end
 
-local function release(part: BasePart)
+local function release(part: BasePart, faction: Faction)
 	part.Parent = nil
-	table.insert(pool, part)
+	table.insert(pools[faction], part)
 end
 
 local function makeFilter(instances: { Instance }): RaycastParams
@@ -298,7 +320,7 @@ local function step(deltaTime: number)
 		local overlap = if isEnemy then enemyOverlap else playerOverlap
 		local travel = visual.speed * deltaTime
 		local segment = visual.direction * travel
-		local size = projectileSize()
+		local size = projectileSize(visual.faction)
 		local pose = CFrame.lookAt(visual.position, visual.position + visual.direction)
 		local finished = now >= visual.expiresAt
 
@@ -347,7 +369,7 @@ local function step(deltaTime: number)
 		visual.part.CFrame = placeAt(visual.position, visual.direction)
 
 		if finished then
-			release(visual.part)
+			release(visual.part, visual.faction)
 
 			local last = #live
 			live[index] = live[last]
@@ -380,7 +402,7 @@ function ProjectileRenderer.spawnVolley(
 		local aim = ShotPipeline.aim(direction, spec)
 		local headStart = math.clamp(elapsed, 0, spec.lifetime)
 
-		local part = acquire(colour)
+		local part = acquire(faction, colour)
 		--[[ The same sideways offset the server spawns at, from the same
 		     helper, so a lane of arrows is a lane in both places. ]]
 		local start = ShotPipeline.spawnPoint(origin, aim, spec)

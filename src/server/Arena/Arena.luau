@@ -48,6 +48,27 @@ local function makePart(name: string, size: Vector3, position: Vector3, colour: 
 end
 
 --[[
+	Drops the place's default baseplate.
+
+	The arena lays its own floor with the top surface at exactly y = 0, and
+	Roblox's template baseplate sits at exactly the same height. Two opaque
+	coplanar surfaces z-fight across the whole play area, which reads as the
+	ground shimmering — and only while the camera is moving, so it looks like a
+	movement bug rather than a rendering one.
+
+	The arena owns its ground plane, so the baseplate goes. A room built from
+	code cannot rely on what a place file happens to contain.
+]]
+local function clearDefaultBaseplate(parent: Instance)
+	local baseplate = parent:FindFirstChild("Baseplate")
+
+	if baseplate and baseplate:IsA("BasePart") then
+		baseplate:Destroy()
+		log.info("removed the default baseplate; the arena owns the ground plane")
+	end
+end
+
+--[[
 	Builds the room under `parent` and returns the folder holding everything that
 	blocks a projectile.
 ]]
@@ -58,6 +79,8 @@ function Arena.build(parent: Instance): Folder
 	if existing then
 		existing:Destroy()
 	end
+
+	clearDefaultBaseplate(parent)
 
 	local root = Instance.new("Folder")
 	root.Name = "Arena"

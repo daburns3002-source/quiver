@@ -107,6 +107,23 @@ function ProjectileRenderer.refreshFilter()
 	raycastParams = params
 end
 
+--[[
+	Draws the arrow so its *tip* sits where the server's sphere front is,
+	rather than its centre sitting on the simulated point.
+
+	The part is over three studs long, so centring it on the simulated
+	position put its nose more than a stud ahead of anything the server would
+	register — the arrow looked like it had already reached an enemy while the
+	shot was still short of it. Aligning the leading edge makes "the tip
+	touched it" and "the server counted it" the same moment.
+]]
+local function placeAt(position: Vector3, direction: Vector3): CFrame
+	local lead = PROJECTILE_LENGTH / 2 - Balance.Projectile.radius
+	local centre = position - direction * lead
+
+	return CFrame.lookAt(centre, centre + direction)
+end
+
 local function step(deltaTime: number)
 	local params = raycastParams
 	local now = os.clock()
@@ -118,7 +135,13 @@ local function step(deltaTime: number)
 		local finished = now >= visual.expiresAt
 
 		if not finished and params then
-			local result = Workspace:Raycast(visual.position, segment, params)
+			--[[ Sphere, not ray, and of the same radius the server simulates.
+			     A zero-width ray here would sail past edges the server counts
+			     as hits, so an arrow would visibly pass through an enemy that
+			     took damage from it. ]]
+			local result =
+				Workspace:Spherecast(visual.position, Balance.Projectile.radius, segment, params)
+
 			if result then
 				visual.position = result.Position
 				finished = true
@@ -129,7 +152,7 @@ local function step(deltaTime: number)
 			visual.position += segment
 		end
 
-		visual.part.CFrame = CFrame.lookAt(visual.position, visual.position + visual.direction)
+		visual.part.CFrame = placeAt(visual.position, visual.direction)
 
 		if finished then
 			release(visual.part)
@@ -167,7 +190,7 @@ function ProjectileRenderer.spawnVolley(
 
 		local part = acquire(colour)
 		local position = origin + aim * spec.speed * headStart
-		part.CFrame = CFrame.lookAt(position, position + aim)
+		part.CFrame = placeAt(position, aim)
 
 		table.insert(live, {
 			part = part,

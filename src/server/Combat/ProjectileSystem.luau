@@ -43,6 +43,11 @@ type Projectile = {
 	     contact. Raised by Piercing Shot in Phase 3. ]]
 	pierce: number,
 	expiresAt: number,
+	--[[ Whether this has been checked against bodies it was created inside.
+	     Once, on its first step: a cast never reports the thing its origin is
+	     already within, so a point-blank shot would otherwise pass straight
+	     through whatever it was fired into. ]]
+	spawnChecked: boolean,
 	--[[ Guards against a single projectile hitting the same enemy on
 	     consecutive steps while it is still inside the hitbox. ]]
 	hitModels: { [Model]: boolean },
@@ -62,6 +67,11 @@ local active: { Projectile } = {}
 local playerFilter: RaycastParams? = nil
 local enemyFilter: RaycastParams? = nil
 
+--[[ The same two include-lists again, for the overlap test that catches
+     bodies a projectile is created inside. ]]
+local playerOverlap: OverlapParams? = nil
+local enemyOverlap: OverlapParams? = nil
+
 --[[
 	Cap-warning throttle. Counted since the last warning rather than since the
 	server started, and gated on elapsed time, so the line fires once per
@@ -76,6 +86,13 @@ local function makeFilter(instances: { Instance }): RaycastParams
 	params.FilterType = Enum.RaycastFilterType.Include
 	params.FilterDescendantsInstances = instances
 	params.IgnoreWater = true
+	return params
+end
+
+local function makeOverlap(instances: { Instance }): OverlapParams
+	local params = OverlapParams.new()
+	params.FilterType = Enum.RaycastFilterType.Include
+	params.FilterDescendantsInstances = instances
 	return params
 end
 
@@ -111,6 +128,8 @@ function ProjectileSystem.refreshFilters()
 
 	playerFilter = makeFilter(playerTargets)
 	enemyFilter = makeFilter(enemyTargets)
+	playerOverlap = makeOverlap(playerTargets)
+	enemyOverlap = makeOverlap(enemyTargets)
 end
 
 --[[
@@ -162,6 +181,7 @@ function ProjectileSystem.spawn(
 
 	table.insert(active, {
 		faction = faction,
+		spawnChecked = false,
 		position = origin,
 		direction = direction,
 		speed = speed,
@@ -201,13 +221,67 @@ local function applyHit(projectile: Projectile, model: Model): boolean
 end
 
 --[[
+	Resolves anything the projectile was created already inside.
+
+	Neither a ray nor a sphere cast reports a body its origin sits within, so
+	a shot fired at point-blank range — which this game produces constantly,
+	because enemies close to melee — would pass straight through the thing it
+	was aimed at. Run once per projectile, on its first step.
+
+	Returns whether the projectile survives.
+]]
+local function resolveSpawnOverlap(projectile: Projectile, overlap: OverlapParams): boolean
+	projectile.spawnChecked = true
+
+	local touching =
+		workspace:GetPartBoundsInRadius(projectile.position, Balance.Projectile.radius, overlap)
+
+	for _, part in touching do
+		local model = part:FindFirstAncestorOfClass("Model")
+
+		if not model or projectile.hitModels[model] then
+			continue
+		end
+
+		projectile.hitModels[model] = true
+
+		if not applyHit(projectile, model) then
+			continue
+		end
+
+		if projectile.pierce <= 0 then
+			return false
+		end
+
+		projectile.pierce -= 1
+	end
+
+	return true
+end
+
+--[[
 	Walks a projectile along this step's segment, resolving every target it
 	passes through in order rather than only the first. Without the loop a
 	piercing shot at high speed would skip targets between frames.
+
+	Cast as a sphere of the projectile's own radius rather than as a line. The
+	radius was previously only used to size the part the client draws, so the
+	arrow on screen had width while the one the server simulated had none —
+	any shot that visually clipped an enemy's edge missed.
 ]]
-local function advance(projectile: Projectile, deltaTime: number, params: RaycastParams): boolean
+local function advance(
+	projectile: Projectile,
+	deltaTime: number,
+	params: RaycastParams,
+	overlap: OverlapParams
+): boolean
+	if not projectile.spawnChecked and not resolveSpawnOverlap(projectile, overlap) then
+		return false
+	end
+
 	local remaining = projectile.speed * deltaTime
 	local steps = 0
+	local radius = Balance.Projectile.radius
 
 	while remaining > 1e-3 do
 		steps += 1
@@ -217,7 +291,7 @@ local function advance(projectile: Projectile, deltaTime: number, params: Raycas
 		end
 
 		local segment = projectile.direction * remaining
-		local result = workspace:Raycast(projectile.position, segment, params)
+		local result = workspace:Spherecast(projectile.position, radius, segment, params)
 
 		if not result then
 			projectile.position += segment
@@ -269,11 +343,14 @@ function ProjectileSystem.step(deltaTime: number, now: number)
 		local projectile = active[index]
 		--[[ Picked per projectile, not per step: a volley can hold shots of
 		     both factions at once. ]]
-		local params = if projectile.faction == "Player" then playerFilter else enemyFilter
-		local alive = params ~= nil and now < projectile.expiresAt
+		local isPlayer = projectile.faction == "Player"
+		local params = if isPlayer then playerFilter else enemyFilter
+		local overlap = if isPlayer then playerOverlap else enemyOverlap
 
-		if alive and params then
-			alive = advance(projectile, deltaTime, params)
+		local alive = params ~= nil and overlap ~= nil and now < projectile.expiresAt
+
+		if alive and params and overlap then
+			alive = advance(projectile, deltaTime, params, overlap)
 		end
 
 		if not alive then

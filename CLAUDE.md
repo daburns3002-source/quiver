@@ -1,7 +1,10 @@
 # Quiver — builder rulebook
 
-An Archero-like roguelike for Roblox. Low poly, cross-platform, co-op-shaped.
-Design reference: `docs/RESEARCH-archero.md`. Phase plan: `docs/ROADMAP.md`.
+**Archero's combat inside a Pet Simulator / Steal an Egg progression shell.**
+Low poly, cross-platform, co-op-shaped.
+
+Run loop: `docs/RESEARCH-archero.md`. Meta loop: `docs/PROGRESSION.md`.
+Phase plan: `docs/ROADMAP.md`. Lobby spec: `docs/LOBBY.md`.
 
 ## Commands
 
@@ -32,6 +35,10 @@ an ability name in combat logic, stop and extend the pipeline instead.
 Damage, death, currency, loot, ability grants, progression. The client predicts movement and
 renders projectiles; the server owns every outcome. Never trust a client-reported hit.
 
+Collection games are exploit magnets far more than roguelikes are. **Hatch RNG is rolled on the
+server, always.** The client never reports a coin total, a hatch result, a fusion or an area
+clear — it asks, and the server decides.
+
 **3. Co-op-shaped from day one.**
 Run state, ability stacks and enemy aggro are per-player-aware even while only one player
 exists. No singleton run state, ever.
@@ -47,6 +54,17 @@ Phone and desktop run the same code with different numbers.
 **6. Feel beats correctness in the input path.**
 Fire must resume within one frame of the stick being released. If a design choice trades
 responsiveness for tidiness, responsiveness wins.
+
+**7. Saved data is sacred.**
+Area unlocks, pets, coins and gear are a player's whole investment. Session locking, schema
+versioning and a migration path from day one of persistence. A wipe in a collection game is
+fatal in a way it is not in a pure roguelike. Never ship a save-schema change without a
+migration.
+
+**8. Numbers inflate; difficulty does not.**
+Permanent multipliers scale exponentially per area while drafted abilities stay fixed. Enemy
+stats scale off *expected player power at that area*, never flat values. Players outgrowing
+old areas is the product, not a bug.
 
 ## Code conventions
 

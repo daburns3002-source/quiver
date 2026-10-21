@@ -43,11 +43,6 @@ type Projectile = {
 	     contact. Raised by Piercing Shot in Phase 3. ]]
 	pierce: number,
 	expiresAt: number,
-	--[[ Whether this has been checked against bodies it was created inside.
-	     Once, on its first step: a cast never reports the thing its origin is
-	     already within, so a point-blank shot would otherwise pass straight
-	     through whatever it was fired into. ]]
-	spawnChecked: boolean,
 	--[[ Guards against a single projectile hitting the same enemy on
 	     consecutive steps while it is still inside the hitbox. ]]
 	hitModels: { [Model]: boolean },
@@ -181,7 +176,6 @@ function ProjectileSystem.spawn(
 
 	table.insert(active, {
 		faction = faction,
-		spawnChecked = false,
 		position = origin,
 		direction = direction,
 		speed = speed,
@@ -202,8 +196,11 @@ end
 ]]
 local function applyHit(projectile: Projectile, model: Model): boolean
 	if projectile.faction == "Player" then
-		EnemyManager.damage(model, projectile.damage, projectile.position)
-		return true
+		--[[ Returned, not discarded. A model inside the enemy folder is not
+		     necessarily a live enemy — it can be one killed earlier in this
+		     same step — and an arrow that stopped dead on one of those looked
+		     exactly like a hit that failed to register. ]]
+		return EnemyManager.damage(model, projectile.damage, projectile.position)
 	end
 
 	local player = Players:GetPlayerFromCharacter(model)
@@ -240,18 +237,37 @@ local function projectileCFrame(projectile: Projectile): CFrame
 end
 
 --[[
-	Resolves anything the projectile was created already inside.
+	Resolves everything the arrow is intersecting *right now*.
 
-	Neither a ray nor a sphere cast reports a body its origin sits within, so
-	a shot fired at point-blank range — which this game produces constantly,
-	because enemies close to melee — would pass straight through the thing it
-	was aimed at. Run once per projectile, on its first step.
+	This runs every step, not once at spawn, and it is the only reason hits
+	land reliably. A shape cast ignores anything it already overlaps when it
+	starts. Measured in Studio against the live arrow (0.7 x 0.7 x 4.2) with
+	one frame of travel (0.93 studs at 56 studs/s), a target overlapping the
+	box reports a clean miss at every depth tried — 0.1 studs, 0.6 studs, and
+	dead centre. It then stays missed for as long as it is inside, because the
+	box carries it along with it.
+
+	So the arrow has a dead zone 2.1 studs deep in front of the simulated
+	point, and nothing the sweep does can see into it.
+
+	Static geometry cannot get in there: a pillar's gap to the arrow shrinks by
+	exactly one frame of travel per frame, so the sweep always catches it on
+	the way in. A *moving* target can, and routinely does — a Charger closes at
+	63.5 studs/s against a sweep that only covers the arrow's own 0.93, so the
+	gap can go from comfortably positive to deep inside the box between two
+	frames. That is the whole bug, and this pass is the fix.
+
+	Which is also why this only resolves models. Arena blockers are left to the
+	sweep deliberately: the arrow's box straddles the shooter at spawn, so
+	stopping on overlapped geometry here would kill every shot fired by a
+	player standing with their back to a wall.
 
 	Returns whether the projectile survives.
 ]]
-local function resolveSpawnOverlap(projectile: Projectile, overlap: OverlapParams): boolean
-	projectile.spawnChecked = true
-
+local function resolveOverlaps(projectile: Projectile, overlap: OverlapParams): boolean
+	--[[ Bounds, not exact geometry, so this is marginally generous at the
+	     corners of a hitbox. That favours the player, which is the right way
+	     for it to be wrong. ]]
 	local touching =
 		workspace:GetPartBoundsInBox(projectileCFrame(projectile), projectileSize(), overlap)
 
@@ -279,14 +295,16 @@ local function resolveSpawnOverlap(projectile: Projectile, overlap: OverlapParam
 end
 
 --[[
-	Walks a projectile along this step's segment, resolving every target it
-	passes through in order rather than only the first. Without the loop a
-	piercing shot at high speed would skip targets between frames.
+	Advances a projectile by one step.
 
-	Cast as a sphere of the projectile's own radius rather than as a line. The
-	radius was previously only used to size the part the client draws, so the
-	arrow on screen had width while the one the server simulated had none —
-	any shot that visually clipped an enemy's edge missed.
+	Two passes, and both are needed. `resolveOverlaps` handles everything the
+	arrow is already touching, which the sweep is structurally blind to; the
+	sweep below then covers the gap the arrow would otherwise tunnel across
+	between frames. Neither one alone is sufficient.
+
+	The sweep loops rather than taking the first hit so that a piercing shot at
+	high speed resolves every target along the segment in order, instead of
+	skipping the ones between frames.
 ]]
 local function advance(
 	projectile: Projectile,
@@ -294,7 +312,7 @@ local function advance(
 	params: RaycastParams,
 	overlap: OverlapParams
 ): boolean
-	if not projectile.spawnChecked and not resolveSpawnOverlap(projectile, overlap) then
+	if not resolveOverlaps(projectile, overlap) then
 		return false
 	end
 

@@ -74,6 +74,13 @@ local impacts = 0
 local playerFilter: RaycastParams? = nil
 local enemyFilter: RaycastParams? = nil
 
+--[[ The same two include-lists again for the overlap pass, mirroring
+     ProjectileSystem. Without it the drawn arrow sails on through the enemy
+     the server already stopped it on, so a hit registers, a damage number
+     appears, and the arrow that caused it keeps flying. ]]
+local playerOverlap: OverlapParams? = nil
+local enemyOverlap: OverlapParams? = nil
+
 --[[ The arrow's dimensions, read from the same config the server sweeps, so
      the shape drawn and the shape simulated cannot drift apart. ]]
 local function projectileSize(): Vector3
@@ -175,6 +182,13 @@ local function makeFilter(instances: { Instance }): RaycastParams
 	return params
 end
 
+local function makeOverlap(instances: { Instance }): OverlapParams
+	local params = OverlapParams.new()
+	params.FilterType = Enum.RaycastFilterType.Include
+	params.FilterDescendantsInstances = instances
+	return params
+end
+
 function ProjectileRenderer.refreshFilters()
 	local playerTargets: { Instance } = {}
 
@@ -202,6 +216,8 @@ function ProjectileRenderer.refreshFilters()
 
 	playerFilter = makeFilter(playerTargets)
 	enemyFilter = makeFilter(enemyTargets)
+	playerOverlap = makeOverlap(playerTargets)
+	enemyOverlap = makeOverlap(enemyTargets)
 end
 
 --[[
@@ -277,20 +293,38 @@ local function step(deltaTime: number)
 
 	for index = #live, 1, -1 do
 		local visual = live[index]
-		local params = if visual.faction == "Enemy" then enemyFilter else playerFilter
+		local isEnemy = visual.faction == "Enemy"
+		local params = if isEnemy then enemyFilter else playerFilter
+		local overlap = if isEnemy then enemyOverlap else playerOverlap
 		local travel = visual.speed * deltaTime
 		local segment = visual.direction * travel
+		local size = projectileSize()
+		local pose = CFrame.lookAt(visual.position, visual.position + visual.direction)
 		local finished = now >= visual.expiresAt
+
+		--[[
+			Bodies the arrow is already inside, which the sweep below is
+			structurally blind to. ProjectileSystem runs this same pass for the
+			same reason, and the two have to agree: without it the server stops
+			the shot and the client does not, so a damage number appears while
+			the arrow that caused it sails on through.
+
+			Models only, matching the server — arena geometry is the sweep's
+			job on both sides.
+		]]
+		if not finished and overlap then
+			for _, part in Workspace:GetPartBoundsInBox(pose, size, overlap) do
+				if part:FindFirstAncestorOfClass("Model") then
+					finished = true
+					break
+				end
+			end
+		end
 
 		if not finished and params then
 			--[[ The same box the server sweeps, so a shot that stops on screen
 			     is a shot that stopped on the server. ]]
-			local result = Workspace:Blockcast(
-				CFrame.lookAt(visual.position, visual.position + visual.direction),
-				projectileSize(),
-				segment,
-				params
-			)
+			local result = Workspace:Blockcast(pose, size, segment, params)
 
 			if result then
 				visual.position = result.Position

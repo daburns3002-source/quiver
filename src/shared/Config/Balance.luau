@@ -459,11 +459,16 @@ local Balance = {
 			shape the player is looking at.
 
 			Long, because Archero reads its shots as beams rather than as
-			pellets and a short dart is almost invisible at phone size. This
-			costs nothing in fairness: the cast is a *swept* box, so the path
-			is already covered end to end and only `radius` decides how
-			laterally forgiving a shot is. Lengthening makes the shot louder
-			without making it sloppier.
+			pellets and a short dart is almost invisible at phone size.
+
+			This number is not free, whatever an earlier version of this
+			comment claimed. A shape cast ignores anything it already
+			intersects when it starts, so the arrow's forward half is a dead
+			zone the sweep cannot see into — and raising this from 2.2 to 4.2
+			took that zone from 1.1 studs to 2.1, which is more than twice the
+			0.93 studs the arrow travels in a frame. ProjectileSystem pays for
+			that with a per-step overlap pass; without it, lengthening the
+			arrow silently makes it miss more.
 		]]
 		length = 4.2,
 		-- Hard cap on live server projectiles. Phase 3 abilities multiply volley

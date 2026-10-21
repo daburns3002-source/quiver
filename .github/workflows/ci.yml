@@ -29,10 +29,10 @@ jobs:
         run: selene generate-roblox-std
 
       - name: Lint (Selene)
-        run: selene src
+        run: selene src tests
 
       - name: Format check (StyLua)
-        run: stylua --check src
+        run: stylua --check src tests
 
       - name: Build (Rojo)
         run: rojo build -o build.rbxl
@@ -48,11 +48,11 @@ jobs:
           https://raw.githubusercontent.com/JohnnyMorganz/luau-lsp/main/scripts/globalTypes.d.luau
 
       - name: Type check (luau-lsp)
-        run: luau-lsp analyze --sourcemap=sourcemap.json --defs=globalTypes.d.luau src
+        run: luau-lsp analyze --sourcemap=sourcemap.json --defs=globalTypes.d.luau src tests
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: quiver-place
+          name: arrow-legends-place
           path: build.rbxl
           retention-days: 7

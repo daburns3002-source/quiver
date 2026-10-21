@@ -448,7 +448,14 @@ end
 	it. A sphere here meant only the arrow's nose could ever register a hit,
 	which is what made shots along a visibly-connecting shaft do nothing.
 ]]
-local function projectileSize(): Vector3
+local function projectileSize(faction: Faction): Vector3
+	--[[ Enemy shots are orbs, swept as the orb the player sees. A long arrow
+	     box on something drawn as a ball would hit the player along a length
+	     that is not on screen. ]]
+	if faction == "Enemy" then
+		return Vector3.one * Balance.Projectile.enemyOrbDiameter
+	end
+
 	local width = Balance.Projectile.radius * 2
 	return Vector3.new(width, width, Balance.Projectile.length)
 end
@@ -491,8 +498,11 @@ local function resolveOverlaps(projectile: Projectile, overlap: OverlapParams): 
 	--[[ Bounds, not exact geometry, so this is marginally generous at the
 	     corners of a hitbox. That favours the player, which is the right way
 	     for it to be wrong. ]]
-	local touching =
-		workspace:GetPartBoundsInBox(projectileCFrame(projectile), projectileSize(), overlap)
+	local touching = workspace:GetPartBoundsInBox(
+		projectileCFrame(projectile),
+		projectileSize(projectile.faction),
+		overlap
+	)
 
 	for _, part in touching do
 		local model = part:FindFirstAncestorOfClass("Model")
@@ -541,7 +551,7 @@ local function advance(
 
 	local remaining = projectile.speed * deltaTime
 	local steps = 0
-	local size = projectileSize()
+	local size = projectileSize(projectile.faction)
 
 	while remaining > 1e-3 do
 		steps += 1

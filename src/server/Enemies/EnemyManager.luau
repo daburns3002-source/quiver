@@ -48,6 +48,10 @@ type Enemy = {
 	     sees, and only the first of those is allowed to matter to combat. ]]
 	skin: EnemyModel.Skin,
 	config: EnemyConfig,
+	--[[ Radians about Y that the body currently faces, or nil before its first
+	     step. Turned towards the target at the archetype's `turnRate` rather
+	     than snapped, so a big enemy comes round slowly. ]]
+	yaw: number?,
 	health: number,
 	maxHealth: number,
 	position: Vector3,
@@ -690,7 +694,19 @@ local function stepEnemy(enemy: Enemy, deltaTime: number, now: number)
 		enemy.slideSign = nil
 	end
 
-	-- Face the player regardless of whether it is closing or swinging.
+	--[[
+		Turn towards the player, at the archetype's own rate.
+
+		This used to snap straight at the player every frame. On a Bulwark,
+		whose shield is wider than its body, that meant the whole slab swung
+		in step with every move the player made — 315 degrees in three seconds
+		of strafing, up to 30 in a single frame — and read as the enemy
+		copying them. A player standing inside its hitbox, which they can,
+		flipped it round completely as they crossed its centre.
+
+		Facing is presentation only: every shot is aimed separately, so a
+		slow turn never makes an enemy easier to dodge.
+	]]
 	local facing = Vector3.new(
 		targetRoot.Position.X - enemy.position.X,
 		0,
@@ -698,10 +714,23 @@ local function stepEnemy(enemy: Enemy, deltaTime: number, now: number)
 	)
 
 	if facing.Magnitude > 1e-3 then
-		enemy.hitbox.CFrame = CFrame.lookAt(enemy.position, enemy.position + facing.Unit)
-	else
-		enemy.hitbox.Position = enemy.position
+		--[[ The yaw at which LookVector points along `facing`. ]]
+		local target = math.atan2(-facing.X, -facing.Z)
+		local current = enemy.yaw
+
+		if current == nil then
+			--[[ First step: face the player outright. Turning in from an
+			     arbitrary spawn orientation would show a newly arrived enemy
+			     spinning on the spot for no reason. ]]
+			enemy.yaw = target
+		else
+			local delta = ((target - current + math.pi) % (2 * math.pi)) - math.pi
+			local maxStep = math.rad(config.turnRate) * deltaTime
+			enemy.yaw = current + math.clamp(delta, -maxStep, maxStep)
+		end
 	end
+
+	enemy.hitbox.CFrame = CFrame.new(enemy.position) * CFrame.Angles(0, enemy.yaw or 0, 0)
 
 	--[[
 		A wind-up already in flight resolves wherever the enemy now is, even if

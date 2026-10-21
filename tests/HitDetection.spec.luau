@@ -153,4 +153,33 @@ return function(t: TestRunner.Helper)
 			`a nose reach of {noseReach} studs is within one frame's travel of {frameTravel}`
 		)
 	end)
+
+	--[[
+		The same rule for enemy orbs, against the fastest enemy shot there is.
+
+		An orb is far shorter than an arrow, so it has far less body to land a
+		frame boundary inside. If the quickest enemy shot covers more than its
+		own diameter in a frame it can step clean over a player between two
+		frames, and the overlap pass — which only sees what the shot is
+		touching *on* a frame — never fires.
+	]]
+	t.test("no enemy orb can step clean over its own body in one frame", function()
+		local fastest = 0
+		local fastestName = ""
+
+		for _, value in Balance.Enemies do
+			local config = value :: Balance.EnemyConfig
+			local shot = config.shot
+			if shot and shot.speed > fastest then
+				fastest = shot.speed
+				fastestName = config.displayName
+			end
+		end
+
+		local perFrame = fastest / 60
+		t.isTrue(
+			perFrame < Balance.Projectile.enemyOrbDiameter,
+			`{fastestName}'s orb travels {perFrame} studs a frame but is only {Balance.Projectile.enemyOrbDiameter} across`
+		)
+	end)
 end

@@ -16,6 +16,37 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## The Bulwark copied the player's movements
+
+**Symptom** — "there is a bug on level 4 where the giant enemy mirrors the
+movement of the player". Room 4 is the first room with a Bulwark in it.
+
+**Cause** — not its movement. Measured: at range it chases normally, two to
+three studs a second, loosely towards the player. The problem was *facing*.
+Every enemy snapped to face the player every frame with `CFrame.lookAt`, and
+the Bulwark's shield is wider than its body — so the whole slab swung in
+exact step with every move the player made. Strafing past it at six studs, it
+turned up to 30.7° in a single frame and 315° in three seconds. The player
+could also walk inside its hitbox, since enemies deliberately do not collide
+with the player, and crossing its centre flipped it straight round.
+
+**Fix** — a `turnRate` per archetype in `Balance`, and facing turns towards
+the player by at most that much per second instead of snapping. The Bulwark
+turns at 90°/s; a Charger at 540. Facing is presentation only — every shot is
+aimed separately — so this changes how an enemy looks, never how hard it is
+to dodge.
+
+**Measured** — the same close-range strafe, before and after: largest
+single-frame turn **30.7° → 3.1°**, the remainder being two server frames
+arriving together over replication. It now trails the player at its cap
+rather than tracking them exactly.
+
+**Watch for** — any enemy that seems to copy the player. Check the facing
+before the steering. `tests/Balance.spec.luau` requires every archetype to
+turn and none to snap, and no bigger enemy to turn faster than a smaller one.
+
+---
+
 ## Front Arrow's extra arrows missed the target they were aimed at
 
 **Symptom** — "the front arrow upgrade should not go out in a v shape it

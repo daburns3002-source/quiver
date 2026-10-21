@@ -58,10 +58,24 @@ Phase plan: `docs/ROADMAP.md`. Lobby spec: `docs/LOBBY.md`.
   Restart it for those; script edits live-sync fine.
 
 **Still blocked on the user:** lobby reference images, which belong in
-`assets/reference/lobby/` and are the spec for `docs/LOBBY.md`. Also whether
-Codex reviews via the GitHub integration or a local CLI — PR #3 was merged
-with zero reviews and zero comments on it, so the rule in Workflow below has
-never actually fired. Wire it up before Phase 2 or it will keep not firing.
+`assets/reference/lobby/` and are the spec for `docs/LOBBY.md`.
+
+**Codex is not reviewing this project.** That was the Phase 0 plan and it was
+dropped — PR #3 merged with zero reviews and zero comments. **Claude
+self-reviews instead**, against the priorities in `AGENTS.md`.
+
+Self-review is weaker than a second pair of eyes and should be treated that
+way. It catches what a careful reread catches: exploitable client trust,
+unchecked assumptions, dead paths. It does not catch a bad idea that was bad
+when it was written, because the same reasoning that wrote it is checking it.
+So bias the pass toward the things in `AGENTS.md` that are mechanical to
+verify — server authority, remote validation, `if` branches that should be
+pipeline stages — and raise anything that needs real judgement to the user
+instead of ruling on it.
+
+Note that branch protection was configured around Codex (`docs/SETUP.md` sets
+required approving reviews to 0 and relies on conversation resolution), so
+nothing in GitHub enforces this. It holds only because it is written here.
 
 **Settled design decisions, so they do not get relitigated:**
 
@@ -161,7 +175,9 @@ old areas is the product, not a bug.
   a renderer and a test harness.
 - One branch and one PR per feature. Branch names: `phase-N/short-description`.
 - CI must be green before review: Selene, StyLua, `rojo build`.
-- Codex reviews every PR. Read its comments and act on them before merging.
+- Every PR gets a self-review pass against the priorities in `AGENTS.md`,
+  exploitability first, before it is merged. Report what the pass found — "no
+  findings" is a result worth stating, and silence is not the same as clean.
 - No phase starts before the previous phase's playtest question gets a yes from the user.
 
 ## Repo layout

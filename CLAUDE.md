@@ -1,4 +1,4 @@
-# Quiver — builder rulebook
+# Arrow Legends — builder rulebook
 
 **Archero's combat inside a Pet Simulator / Steal an Egg progression shell.**
 Low poly, cross-platform, co-op-shaped.
@@ -14,7 +14,7 @@ Phase plan: `docs/ROADMAP.md`. Lobby spec: `docs/LOBBY.md`.
   `rojo build`, and `luau-lsp analyze` under strict mode.
 - **No part of Phase 1 has ever run.** It is lint, format, type and build
   clean, which is not the same as working. Expect real bugs on first Play.
-- `Quiver-Phase1.rbxl` in the repo root is a built place for testing
+- `ArrowLegends-Phase1.rbxl` in the repo root is a built place for testing
   (gitignored, rebuild with `rojo build default.project.json -o <name>.rbxl`).
   It looks empty in edit mode — the arena is built at runtime by the server.
 - The Rojo Studio plugin is installed.

@@ -284,9 +284,25 @@ export type RoomConfig = {
 ]]
 local rooms: { RoomConfig } = {
 	{
-		name = "Open Ground",
-		-- Nothing to hide behind, nothing blocking your arrows either.
-		obstacles = {},
+		name = "First Cover",
+		--[[
+			A screen straight across the spawn's sight-line.
+
+			The opener used to be bare ground, and bare ground is the one shape
+			that teaches nothing: the archer out-ranges the room from where it
+			arrives, so four enemies died in about five seconds without the
+			player taking a step. A room that never asks you to move is a poor
+			way to introduce a game about deciding when to stand still.
+
+			This screen is wide enough that shooting past it means walking
+			clear of it — but enemy shots fly over it, so standing behind it
+			costs damage and buys no safety. That is the asymmetry the whole
+			game rests on, stated in the first room rather than discovered in
+			the fourth.
+		]]
+		obstacles = {
+			{ offset = Vector2.new(0, 18), size = Vector3.new(34, 10, 6) },
+		},
 		enemyCount = 4,
 	},
 	{

@@ -16,6 +16,28 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## A shot enemy could be knocked into another for a frame
+
+**Symptom** — found while verifying the larger room, not reported: four
+overlap frames in one run, one of them 1.8 studs deep.
+
+**Cause** — frame order. Separation ran at the end of the enemy step, but
+projectiles resolve *after* that, and a hit knocks its enemy back two studs —
+often into whatever is behind it. The overlap then stood until the next
+frame's separation.
+
+**Fix** — separation moved to its own call, `EnemyManager.resolveOverlaps`,
+run last in the server loop after everything that can move a body.
+
+**Measured** — before: 4 overlap frames, worst 1.8 studs. After: 0 overlap
+frames across 1,921 with 12 knockback hits in the run. Not a controlled A/B —
+the hit count before was not recorded — but consistent with the cause.
+
+**Watch for** — anything new that moves an enemy (a pull, a push, a
+teleport). If it runs after `resolveOverlaps`, it reopens this.
+
+---
+
 ## Enemies spawned standing inside each other
 
 **Symptom** — found while verifying the move to Archero's proportions, not

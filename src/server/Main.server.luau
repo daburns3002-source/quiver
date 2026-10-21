@@ -138,6 +138,10 @@ RunService.Heartbeat:Connect(function(deltaTime: number)
 	EnemyFiring.step(now)
 	FiringSystem.step(deltaTime, now)
 	ProjectileSystem.step(deltaTime, now)
+	--[[ After projectiles, because a hit's knockback moves its enemy and can
+	     push it into another. Overlaps are resolved once everything that can
+	     move a body this frame has done so. ]]
+	EnemyManager.resolveOverlaps()
 
 	--[[ Last, so a room is only ever declared clear after everything that
 	     could still kill something has had its turn this frame. ]]

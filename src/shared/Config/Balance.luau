@@ -7,11 +7,11 @@
 	**Scaled to Archero 2's proportions.** Measured from 1080x1920 footage: a
 	room there is about thirteen player-widths across and taller than it is
 	wide, and the camera always shows its full width. Ours was a 90x90 square
-	— forty-five player-widths — which no portrait camera could fit. The room
-	is now 28 x 46, and every *room-sized* number below was scaled by the
-	same 28/90 so that the pace of the game, measured in room-widths per
-	second, did not change: it already matched the footage at 0.20 against
-	their 0.19.
+	— forty-five player-widths — which no portrait camera could fit. It was
+	rebuilt at 28 x 46 with every *room-sized* number scaled to match, then
+	enlarged after playtest to 35 x 58 — about seventeen player-widths, a
+	little roomier than the footage by choice. Pace in room-widths per second
+	still matches theirs: 6.5 studs/s across 35 is 0.19, the footage's 0.19.
 
 	*Body-sized* numbers were deliberately not scaled — hitboxes, melee reach,
 	the arrow's width, the orb's size, enemy separation. Those are measured
@@ -161,7 +161,7 @@ local spreadShooter: EnemyConfig = {
 	moveSpeed = 1.6,
 	--[[ Ranged enemies treat attackRange as the distance they want to hold,
 	     not the distance they close to. ]]
-	attackRange = 10.6,
+	attackRange = 13.3,
 	attackDamage = 8,
 	attackCooldown = 2.2,
 	knockback = 2,
@@ -202,7 +202,7 @@ local lineSniper: EnemyConfig = {
 	turnRate = 240,
 	health = 20,
 	moveSpeed = 1.3,
-	attackRange = 15,
+	attackRange = 18.8,
 	attackDamage = 16,
 	attackCooldown = 3,
 	knockback = 2,
@@ -267,7 +267,7 @@ local burrower: EnemyConfig = {
 	turnRate = 360,
 	health = 26,
 	moveSpeed = 1.9,
-	attackRange = 8.1,
+	attackRange = 10.1,
 	attackDamage = 10,
 	attackCooldown = 2.4,
 	knockback = 2,
@@ -368,8 +368,8 @@ local rooms: { RoomConfig } = {
 	{
 		name = "Two Pillars",
 		obstacles = {
-			{ offset = Vector2.new(-4.4, 0), size = Vector3.new(2.5, 10, 4.1) },
-			{ offset = Vector2.new(4.4, 0), size = Vector3.new(2.5, 10, 4.1) },
+			{ offset = Vector2.new(-5.5, 0), size = Vector3.new(3.1, 10, 5.2) },
+			{ offset = Vector2.new(5.5, 0), size = Vector3.new(3.1, 10, 5.2) },
 		},
 		--[[ Adds the spitter. A fan you walk through the gaps of. ]]
 		enemyCount = 3,
@@ -380,7 +380,7 @@ local rooms: { RoomConfig } = {
 		-- One long wall across the middle: every fight is decided by which
 		-- side of it you choose.
 		obstacles = {
-			{ offset = Vector2.new(0, 0), size = Vector3.new(2, 10, 23.5) },
+			{ offset = Vector2.new(0, 0), size = Vector3.new(2.5, 10, 29.6) },
 		},
 		--[[ No new archetype. Room three is for practising room two in a worse shape. ]]
 		enemyCount = 3,
@@ -389,11 +389,11 @@ local rooms: { RoomConfig } = {
 	{
 		name = "Scatter",
 		obstacles = {
-			{ offset = Vector2.new(-6.2, -7.2), size = Vector3.new(2.5, 10, 4.1) },
-			{ offset = Vector2.new(6.8, -9.2), size = Vector3.new(2, 10, 7.2) },
-			{ offset = Vector2.new(-7.5, 10.2), size = Vector3.new(3.7, 10, 3.1) },
-			{ offset = Vector2.new(5, 9.2), size = Vector3.new(2.5, 10, 4.1) },
-			{ offset = Vector2.new(0, 0), size = Vector3.new(2, 10, 3.1) },
+			{ offset = Vector2.new(-7.8, -9.1), size = Vector3.new(3.1, 10, 5.2) },
+			{ offset = Vector2.new(8.5, -11.6), size = Vector3.new(2.5, 10, 9.1) },
+			{ offset = Vector2.new(-9.4, 12.9), size = Vector3.new(4.6, 10, 3.9) },
+			{ offset = Vector2.new(6.2, 11.6), size = Vector3.new(3.1, 10, 5.2) },
+			{ offset = Vector2.new(0, 0), size = Vector3.new(2.5, 10, 3.9) },
 		},
 		--[[ Adds the bulwark, which is really a piece of terrain that hits back. ]]
 		enemyCount = 4,
@@ -403,8 +403,8 @@ local rooms: { RoomConfig } = {
 		name = "The Gauntlet",
 		-- Two corridors. Ranged enemies at the far end own the lanes.
 		obstacles = {
-			{ offset = Vector2.new(-3.7, 0), size = Vector3.new(2, 10, 30.7) },
-			{ offset = Vector2.new(3.7, 0), size = Vector3.new(2, 10, 30.7) },
+			{ offset = Vector2.new(-4.6, 0), size = Vector3.new(2.5, 10, 38.7) },
+			{ offset = Vector2.new(4.6, 0), size = Vector3.new(2.5, 10, 38.7) },
 		},
 		--[[ Adds the lancer. A drawn line to step out of, in the room with lanes. ]]
 		enemyCount = 4,
@@ -413,8 +413,8 @@ local rooms: { RoomConfig } = {
 	{
 		name = "Quarters",
 		obstacles = {
-			{ offset = Vector2.new(0, -10.2), size = Vector3.new(12.4, 10, 3.1) },
-			{ offset = Vector2.new(0, 10.2), size = Vector3.new(12.4, 10, 3.1) },
+			{ offset = Vector2.new(0, -12.9), size = Vector3.new(15.5, 10, 3.9) },
+			{ offset = Vector2.new(0, 12.9), size = Vector3.new(15.5, 10, 3.9) },
 		},
 		--[[ No new archetype. Four of them at once instead. ]]
 		enemyCount = 5,
@@ -425,10 +425,10 @@ local rooms: { RoomConfig } = {
 		-- A ring of cover around a bare centre. Standing in the middle is the
 		-- worst possible place to stop, which is where the fight pulls you.
 		obstacles = {
-			{ offset = Vector2.new(-7.5, -12.3), size = Vector3.new(3.1, 10, 5.1) },
-			{ offset = Vector2.new(7.5, -12.3), size = Vector3.new(3.1, 10, 5.1) },
-			{ offset = Vector2.new(-7.5, 12.3), size = Vector3.new(3.1, 10, 5.1) },
-			{ offset = Vector2.new(7.5, 12.3), size = Vector3.new(3.1, 10, 5.1) },
+			{ offset = Vector2.new(-9.4, -15.5), size = Vector3.new(3.9, 10, 6.4) },
+			{ offset = Vector2.new(9.4, -15.5), size = Vector3.new(3.9, 10, 6.4) },
+			{ offset = Vector2.new(-9.4, 15.5), size = Vector3.new(3.9, 10, 6.4) },
+			{ offset = Vector2.new(9.4, 15.5), size = Vector3.new(3.9, 10, 6.4) },
 		},
 		--[[ Adds the lurker, last because it is the only one that stops being a target. ]]
 		enemyCount = 5,
@@ -437,10 +437,10 @@ local rooms: { RoomConfig } = {
 	{
 		name = "Teeth",
 		obstacles = {
-			{ offset = Vector2.new(-8.7, 0), size = Vector3.new(2, 10, 15.3) },
-			{ offset = Vector2.new(0, -9.2), size = Vector3.new(2, 10, 15.3) },
-			{ offset = Vector2.new(8.7, 0), size = Vector3.new(2, 10, 15.3) },
-			{ offset = Vector2.new(0, 9.2), size = Vector3.new(2, 10, 15.3) },
+			{ offset = Vector2.new(-10.9, 0), size = Vector3.new(2.5, 10, 19.3) },
+			{ offset = Vector2.new(0, -11.6), size = Vector3.new(2.5, 10, 19.3) },
+			{ offset = Vector2.new(10.9, 0), size = Vector3.new(2.5, 10, 19.3) },
+			{ offset = Vector2.new(0, 11.6), size = Vector3.new(2.5, 10, 19.3) },
 		},
 		--[[ All five, and from here the count is the only thing still rising. ]]
 		enemyCount = 6,
@@ -449,7 +449,7 @@ local rooms: { RoomConfig } = {
 	{
 		name = "Last Cover",
 		obstacles = {
-			{ offset = Vector2.new(0, 0), size = Vector3.new(4.4, 10, 7.2) },
+			{ offset = Vector2.new(0, 0), size = Vector3.new(5.5, 10, 9.1) },
 		},
 		--[[ All five. ]]
 		enemyCount = 6,
@@ -473,12 +473,12 @@ local Balance = {
 		     costs something, but raised after Playtest 2: repositioning out of
 		     cover has to be affordable, or the answer to every threat is to
 		     stand still and hope. ]]
-		moveSpeed = 5.6,
+		moveSpeed = 6.5,
 		baseDamage = 10,
 		-- Seconds between volleys while stationary.
 		attackCooldown = 0.45,
 		-- Studs. Past this the archer holds fire rather than shooting at nothing.
-		attackRange = 40,
+		attackRange = 50,
 		-- MoveDirection magnitude below which the archer counts as stationary.
 		-- Not zero: thumbsticks idle noisy, and a dead archer is an unfair one.
 		stationaryThreshold = 0.05,
@@ -501,10 +501,10 @@ local Balance = {
 			firing needed changing for that; it falls out of driving the
 			Humanoid rather than teleporting.
 
-			Five studs — two and a half player-widths, about a sixth of the
-			room's width — scaled with the room from the original sixteen, so
-			it still clears a fan by the same margin and still cannot cross
-			the room. The duration is the shortest that still reads as travel
+			Four studs — two player-widths, about a ninth of the room's
+			width. Scaled down with the room from the original sixteen, then
+			shortened a step further after playtest: it still clears a fan,
+			but it is an escape now rather than a way across the room. The duration is the shortest that still reads as travel
 			rather than as a blink, which matters because a player who cannot
 			see where they went cannot aim the next one.
 		]]
@@ -514,7 +514,7 @@ local Balance = {
 		momentumRamp = 2.5,
 
 		dash = {
-			distance = 5,
+			distance = 4,
 			duration = 0.18,
 			--[[
 				Long enough that it is a decision rather than a second
@@ -536,7 +536,7 @@ local Balance = {
 		     something the player watches land rather than an instant line,
 		     which is what gives standing still a visible cost. ]]
 		speed = 17.4,
-		lifetime = 2.5,
+		lifetime = 3.2,
 		--[[
 			Half the width of the drawn arrow, and half the width of the box
 			the server sweeps. These two numbers are the hitbox *and* the
@@ -608,7 +608,7 @@ local Balance = {
 	     distance. ]]
 	Telegraph = {
 		lineThickness = 0.35,
-		lineOvershoot = 4,
+		lineOvershoot = 5,
 		lineColor = Color3.fromRGB(236, 92, 84),
 		--[[ Radius of the marker showing where something is about to surface.
 		     Wider than the enemy so stepping to its edge is not enough. ]]
@@ -649,14 +649,14 @@ local Balance = {
 	TelegraphColor = Color3.fromRGB(255, 226, 150),
 
 	Arena = {
-		size = Vector3.new(28, 1, 46),
+		size = Vector3.new(35, 1, 58),
 		wallHeight = 8,
 		wallThickness = 2,
 		--[[ Where a player stands at the start of a room. Near the south wall,
 		     the full length of the arena from the exit pad, so clearing a room
 		     always means crossing it. Raised clear of the floor because
 		     characters are placed here by CFrame, not dropped. ]]
-		spawnPosition = Vector3.new(0, 4, 18),
+		spawnPosition = Vector3.new(0, 4, 23),
 		floorColor = Color3.fromRGB(96, 104, 120),
 		wallColor = Color3.fromRGB(62, 68, 82),
 		obstacleColor = Color3.fromRGB(78, 86, 102),
@@ -664,11 +664,11 @@ local Balance = {
 		-- These block the player's arrows but NOT enemy attacks, which is the
 		-- asymmetry the whole game rests on. See docs/RESEARCH-archero.md.
 		obstacles = {
-			{ offset = Vector2.new(-6.2, -7.2), size = Vector3.new(2.5, 10, 4.1) },
-			{ offset = Vector2.new(6.8, -9.2), size = Vector3.new(2, 10, 7.2) },
-			{ offset = Vector2.new(-7.5, 10.2), size = Vector3.new(3.7, 10, 3.1) },
-			{ offset = Vector2.new(5, 9.2), size = Vector3.new(2.5, 10, 4.1) },
-			{ offset = Vector2.new(0, 0), size = Vector3.new(2, 10, 3.1) },
+			{ offset = Vector2.new(-7.8, -9.1), size = Vector3.new(3.1, 10, 5.2) },
+			{ offset = Vector2.new(8.5, -11.6), size = Vector3.new(2.5, 10, 9.1) },
+			{ offset = Vector2.new(-9.4, 12.9), size = Vector3.new(4.6, 10, 3.9) },
+			{ offset = Vector2.new(6.2, 11.6), size = Vector3.new(3.1, 10, 5.2) },
+			{ offset = Vector2.new(0, 0), size = Vector3.new(2.5, 10, 3.9) },
 		},
 	},
 
@@ -678,7 +678,7 @@ local Balance = {
 		--[[ The pad that appears when a room is cleared. Walking onto it is
 		     the only way forward, so it has to be unmissable and far enough
 		     from the spawn that clearing a room still means crossing it. ]]
-		doorOffset = Vector2.new(0, -18),
+		doorOffset = Vector2.new(0, -23),
 		doorSize = Vector3.new(6, 0.4, 6),
 		doorColor = Color3.fromRGB(120, 220, 160),
 		--[[ Studs from the pad's centre that count as stepping on it. ]]
@@ -696,13 +696,13 @@ local Balance = {
 
 			Scaled with the room from the original fifty-six, which was set
 			after Playtest 2 because enemies arriving close enough felt like
-			they appeared on top of the player. Seventeen keeps that same
+			they appeared on top of the player. Twenty-one keeps that same
 			share of the room. Archero 2 also marks where each enemy will
 			appear before it does, so a wave reads as something arriving
 			rather than something already there. See the spawn-placement note
 			in EnemyManager.
 		]]
-		minSpawnDistance = 17,
+		minSpawnDistance = 21,
 
 		--[[
 			Seconds an enemy's spawn marker shows before the enemy appears.
@@ -776,7 +776,8 @@ local Balance = {
 
 		Measured from 1080x1920 footage: their camera never moves sideways and
 		always shows the room's full width — the floor fills about 85% of the
-		screen across — while following the player up and down a room that is
+		screen across, and ours sits a little wider than that by choice —
+		while following the player up and down a room that is
 		taller than the screen. Ours used to sit at a fixed offset with a wide
 		lens, which on a phone showed about 38% of the room's width and a long
 		stretched-out depth behind it.
@@ -791,16 +792,17 @@ local Balance = {
 		--[[ Narrow, so distance does the zooming and perspective stays mild.
 		     A wide lens close in is what made far enemies tiny before. ]]
 		fieldOfView = 40,
-		--[[ Studs of ground the screen spans side to side at the focus: the
-		     28-stud floor plus a little wall either side, so the floor comes
-		     out near the 85% of screen width the footage shows. ]]
-		fitWidth = 33,
+		--[[ Studs of ground the screen spans side to side at the focus. The
+		     35-stud floor fills about 78% of it — zoomed out a little past the
+		     footage's 85% after playtest, so more of the room's edges and
+		     what is coming in from them is in view. ]]
+		fitWidth = 45,
 		--[[ On a landscape screen, fitting the width alone would zoom right in
 		     and show almost no depth; this is the least depth it may show. ]]
-		minVisibleDepth = 30,
+		minVisibleDepth = 36,
 		--[[ Studs the focus is kept inside the room's back and front walls, so
 		     the view stops at the room's edge instead of scrolling past it. ]]
-		edgeMargin = 9,
+		edgeMargin = 11,
 		-- How fast the camera catches up, as a per-second lerp factor.
 		followSharpness = 12,
 	},

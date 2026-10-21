@@ -488,9 +488,24 @@ local function stepEnemy(enemy: Enemy, deltaTime: number, now: number)
 		if surfacesAt then
 			if not enemy.surfaceTold and now >= surfacesAt - burrow.surfaceTell then
 				enemy.surfaceTold = true
-				--[[ Sent from where it will actually come up, which is where it
-				     is now — it keeps travelling during the tell, so the marker
-				     is a prediction the player can still beat on foot. ]]
+
+				--[[
+					The marker is a promise, so the trip ends here.
+
+					This used to send the marker and then let the enemy carry
+					on travelling for the whole tell — about ten studs at
+					burrow speed, against a marker six and a half across — so
+					it routinely came up outside its own warning. A player who
+					steps off the circle and is hit anyway learns to ignore
+					the circle, which costs this archetype its entire
+					counterplay.
+
+					Resolved out of any obstacle *before* the marker is drawn
+					rather than after it surfaces, or the push out of a pillar
+					would move it off the spot it just promised.
+				]]
+				enemy.position = Arena.resolve(enemy.position, radius)
+
 				enemyTelegraph:FireAllClients(
 					enemy.position,
 					Vector3.zAxis,
@@ -505,10 +520,11 @@ local function stepEnemy(enemy: Enemy, deltaTime: number, now: number)
 				enemy.surfaceTold = false
 				enemy.lastSurfacedAt = now
 
-				--[[ It ignored obstacles on the way, so it can be standing
-				     inside one now. Pushed out before it becomes solid again,
-				     or it would surface embedded in a pillar and be shot at
-				     through geometry. ]]
+				--[[ A no-op in the normal case, because the position was
+				     already resolved and frozen when the marker went out. Kept
+				     as the backstop for a dive that somehow surfaces without
+				     having told anyone: coming up inside a pillar means being
+				     shot at through geometry. ]]
 				enemy.position = Arena.resolve(enemy.position, radius)
 				setSubmerged(enemy, false)
 
@@ -575,7 +591,10 @@ local function stepEnemy(enemy: Enemy, deltaTime: number, now: number)
 		and not enemy.submerged
 		and distance < config.attackRange * HOLD_FRACTION
 
-	if tooFar or tooClose then
+	--[[ Once the surface marker is out, the spot under it is committed and the
+	     enemy stops travelling. This freeze is what makes stepping off the
+	     circle actually work. ]]
+	if (tooFar or tooClose) and not enemy.surfaceTold then
 		local toTarget = Vector3.new(
 			targetRoot.Position.X - enemy.position.X,
 			0,
@@ -755,10 +774,91 @@ local function stepEnemy(enemy: Enemy, deltaTime: number, now: number)
 	RunSession.applyDamage(session, config.attackDamage)
 end
 
+--[[
+	Pushes overlapping enemies apart.
+
+	Nothing stopped two enemies occupying the same ground: collision is
+	resolved analytically against the arena, and the arena is the only thing
+	that was ever considered. While every archetype was an identical box this
+	was merely untidy. Now that they have bodies it is visible clipping, and
+	two merged silhouettes read as one target — which matters, because
+	choosing what to shoot first is most of the decision in a mixed room.
+
+	This is **not** the same thing as the separation steering above, and does
+	not replace it. That is a soft force folded into an enemy's desired
+	heading, so it only applies while the enemy is moving — and it uses a flat
+	3.5 studs, which is less than a Bulwark's own width. Once an enemy reaches
+	its hold distance it stops moving, the steering stops being applied, and
+	nothing ever pushes it back out of whatever it has drifted into.
+
+	So: that one keeps a moving group loose, this one guarantees bodies never
+	intersect, including when everything is standing still, and it measures
+	against real hitbox sizes rather than one constant.
+
+	Measured before this existed: 348 frames out of 1801 had at least one
+	overlapping pair.
+
+	Deliberately a nudge rather than a hard constraint. Each pass moves the
+	pair a fraction of the way out, so a crowd settles over several frames
+	instead of snapping, and a Charger can still press right up against the
+	player without being shoved off its line by the enemy behind it. Submerged
+	enemies are skipped: they are underground, where sharing ground with
+	something above it is not a collision.
+]]
+local OVERLAP_PUSH = 0.5
+
+local function separate()
+	local live: { Enemy } = {}
+	for _, enemy in enemies do
+		if not enemy.submerged then
+			table.insert(live, enemy)
+		end
+	end
+
+	for i = 1, #live do
+		local a = live[i]
+		local aRadius = math.max(a.config.hitboxSize.X, a.config.hitboxSize.Z) / 2
+
+		for j = i + 1, #live do
+			local b = live[j]
+			local bRadius = math.max(b.config.hitboxSize.X, b.config.hitboxSize.Z) / 2
+			local minimum = aRadius + bRadius
+
+			local offset = Vector3.new(b.position.X - a.position.X, 0, b.position.Z - a.position.Z)
+			local gap = offset.Magnitude
+
+			if gap >= minimum then
+				continue
+			end
+
+			--[[ Exactly coincident, which a shared spawn cell can produce.
+			     Any direction will do, so long as it is the same one for both
+			     halves of the pair. ]]
+			local direction = if gap > 1e-3
+				then offset.Unit
+				else Vector3.new(math.cos(i * 2.4), 0, math.sin(i * 2.4))
+
+			local push = (minimum - gap) * 0.5 * OVERLAP_PUSH
+
+			--[[ Back through the arena, or a pair pressed against a wall would
+			     be separated straight through it. ]]
+			a.position = Arena.resolve(a.position - direction * push, aRadius)
+			b.position = Arena.resolve(b.position + direction * push, bRadius)
+
+			a.hitbox.Position = a.position
+			b.hitbox.Position = b.position
+			positions[a.model] = a.position
+			positions[b.model] = b.position
+		end
+	end
+end
+
 function EnemyManager.step(deltaTime: number, now: number)
 	for _, enemy in enemies do
 		stepEnemy(enemy, deltaTime, now)
 	end
+
+	separate()
 end
 
 --[[

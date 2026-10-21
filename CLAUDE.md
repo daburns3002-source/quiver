@@ -6,6 +6,10 @@ Low poly, cross-platform, co-op-shaped.
 Run loop: `docs/RESEARCH-archero.md`. Meta loop: `docs/PROGRESSION.md`.
 Phase plan: `docs/ROADMAP.md`. Lobby spec: `docs/LOBBY.md`.
 
+**Bugs that shipped, and what fixed them: `docs/FIXES.md`.** Written to be
+found by symptom. Read it before debugging anything that sounds familiar, and
+add to it in the same PR as every fix — the same classes of bug recur here.
+
 ## Where we are
 
 **Phase 0 done. Phase 1 merged, and Playtest 1 passed.**

@@ -18,6 +18,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Arena = require(script.Parent.Parent.Arena.Arena)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local EnemyManager = require(script.Parent.Parent.Enemies.EnemyManager)
+local Loadout = require(script.Parent.Loadout)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
 local ProjectileSystem = require(script.Parent.Parent.Combat.ProjectileSystem)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
@@ -30,6 +31,7 @@ local RoomController = {}
 export type State = "Fighting" | "Cleared" | "Dead" | "Complete"
 
 local runStateChanged = Remotes.event(Remotes.RunStateChanged)
+local runSummary = Remotes.event(Remotes.RunSummary)
 
 local roomIndex = 1
 local state: State = "Fighting"
@@ -86,6 +88,42 @@ end
 
 --[[ Called when a player dies. The run ends; it does not continue without
      them, because a run that carries on after death has no stakes. ]]
+--[[
+	Tells each player what they built.
+
+	Sent at the end of a run rather than accumulated as it goes, because the
+	only moment the summary is worth anything is the one where the player is
+	deciding whether to go again. Held abilities only: a heal they drank is
+	not part of the build, and `Loadout.held` already draws that line.
+]]
+local function sendSummary(won: boolean)
+	for _, session in RunSession.all() do
+		local held = Loadout.held(session.loadout)
+
+		local lines: { { id: string, count: number } } = {}
+		for id, count in held do
+			table.insert(lines, { id = id, count = count })
+		end
+
+		--[[ Sorted here so every client shows the same order, and so a build
+		     reads as a list rather than as whatever order a hash landed in. ]]
+		table.sort(lines, function(a, b)
+			if a.count ~= b.count then
+				return a.count > b.count
+			end
+			return a.id < b.id
+		end)
+
+		runSummary:FireClient(session.player, {
+			won = won,
+			roomsReached = roomIndex,
+			totalRooms = #Balance.Rooms,
+			level = session.loadout.level,
+			abilities = lines,
+		})
+	end
+end
+
 function RoomController.onPlayerDied()
 	if state == "Dead" then
 		return
@@ -97,6 +135,7 @@ function RoomController.onPlayerDied()
 
 	log.info("run ended in room %d/%d", roomIndex, #Balance.Rooms)
 	broadcast()
+	sendSummary(false)
 end
 
 local function anyPlayerAtDoor(): boolean
@@ -172,6 +211,7 @@ function RoomController.step(now: number)
 		Arena.setDoorOpen(false)
 		log.info("run complete")
 		broadcast()
+		sendSummary(true)
 
 		return
 	end

@@ -6,6 +6,15 @@
 ]]
 
 --[[
+	How a wind-up is shown to the player.
+
+	`Flash` recolours the enemy: enough for a fan you dodge by moving at all.
+	`Line` draws the actual path the shot will take, which only means anything
+	if that path is honest — see `locksAim`.
+]]
+export type EnemyTell = "Flash" | "Line"
+
+--[[
 	A ranged enemy's attack. Melee archetypes leave `shot` unset and swing at
 	`attackRange` instead.
 ]]
@@ -15,6 +24,18 @@ export type EnemyShot = {
 	speed: number,
 	lifetime: number,
 	telegraph: number,
+	tell: EnemyTell,
+	--[[
+		Whether the aim is fixed when the wind-up starts rather than when the
+		shot leaves.
+
+		This is the difference between the two ranged counterplays. An unlocked
+		shot re-aims at the last moment, so the answer is to never stop moving.
+		A locked shot commits, so the answer is to read where it is pointed and
+		step out of that line. A `Line` tell must lock, or the line it draws is
+		a lie and the player learns to ignore it.
+	]]
+	locksAim: boolean,
 }
 
 --[[
@@ -87,7 +108,67 @@ local spreadShooter: EnemyConfig = {
 		--[[ Seconds of wind-up before the volley leaves, so the player reacts
 		     to the tell rather than to the projectile. ]]
 		telegraph = 0.45,
+		tell = "Flash",
+		--[[ Re-aims as it fires. Against a fan the counterplay is to keep
+		     moving, so letting it track rewards exactly that. ]]
+		locksAim = false,
 	},
+}
+
+--[[
+	Line ranged. Telegraphs with a drawn line, then fires one fast shot down
+	it. The counterplay is not "move" but "read the line and step off it" —
+	which only works because the aim locks when the wind-up begins.
+
+	Low health and slow movement on purpose: it is a threat you answer by
+	repositioning, and it should die quickly once you have closed on it.
+]]
+local lineSniper: EnemyConfig = {
+	displayName = "Lancer",
+	health = 20,
+	moveSpeed = 5,
+	attackRange = 48,
+	attackDamage = 16,
+	attackCooldown = 3,
+	knockback = 2,
+	hitboxSize = Vector3.new(3, 5, 3),
+	color = Color3.fromRGB(96, 150, 214),
+	xpReward = 16,
+	shot = {
+		count = 1,
+		spread = 0,
+		--[[ Fast, unlike the Spitter. The telegraph is the counterplay here,
+		     not the flight time — once it fires, it has already hit. ]]
+		speed = 80,
+		lifetime = 2,
+		--[[ Long, because the whole fight is the player reading this window
+		     and moving out of the line inside it. ]]
+		telegraph = 0.9,
+		tell = "Line",
+		locksAim = true,
+	},
+}
+
+--[[
+	Tank. Large, slow and placed to deny space rather than to chase. The
+	teardown's note is to treat it as terrain and kill it last, so its job is
+	to make a region of the room expensive to stand in — which is a direct tax
+	on move-or-shoot.
+]]
+local tank: EnemyConfig = {
+	displayName = "Bulwark",
+	health = 120,
+	moveSpeed = 4,
+	attackRange = 5,
+	attackDamage = 18,
+	attackCooldown = 1.6,
+	--[[ Barely flinches. Knockback on something this heavy would let a player
+	     stall it indefinitely with chip damage. ]]
+	knockback = 0.4,
+	hitboxSize = Vector3.new(6, 8, 6),
+	color = Color3.fromRGB(120, 124, 138),
+	xpReward = 30,
+	shot = nil,
 }
 
 local Balance = {
@@ -121,6 +202,17 @@ local Balance = {
 	Enemies = {
 		MeleeCharger = meleeCharger,
 		SpreadShooter = spreadShooter,
+		LineSniper = lineSniper,
+		Tank = tank,
+	},
+
+	--[[ Drawn tell for a `Line` shot: how thick the line is, and how far past
+	     the target it reaches so the player can see it is a line rather than a
+	     distance. ]]
+	Telegraph = {
+		lineThickness = 0.35,
+		lineOvershoot = 12,
+		lineColor = Color3.fromRGB(236, 92, 84),
 	},
 
 	--[[ Colour an enemy flashes to while winding up a telegraphed shot. The

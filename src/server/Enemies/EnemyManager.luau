@@ -50,6 +50,9 @@ type Enemy = {
 	--[[ `os.clock()` at which a telegraphed volley actually leaves, or nil
 	     when this enemy is not winding one up. ]]
 	volleyAt: number?,
+	--[[ The direction a locked shot committed to when its wind-up began. Nil
+	     for shots that re-aim as they fire. ]]
+	volleyDirection: Vector3?,
 	--[[
 		Which way round an obstacle this enemy committed to, or nil when it has
 		a clear path. Held rather than recomputed: see the steering block in
@@ -72,6 +75,7 @@ local aliveCount = 0
 
 local enemyHit = Remotes.event(Remotes.EnemyHit)
 local enemyDied = Remotes.event(Remotes.EnemyDied)
+local enemyTelegraph = Remotes.event(Remotes.EnemyTelegraph)
 
 --[[ Studs enemies try to keep between each other, so a wave reads as a group
      rather than one overlapping blob. ]]
@@ -203,6 +207,7 @@ function EnemyManager.spawn(config: EnemyConfig): Model?
 		position = position,
 		lastAttackAt = 0,
 		volleyAt = nil,
+		volleyDirection = nil,
 		slideSign = nil,
 	}
 	positions[model] = position
@@ -220,12 +225,23 @@ end
 	system lands, which is where a biome's identity will actually live.
 ]]
 function EnemyManager.spawnWave(count: number)
-	for index = 1, count do
-		local config = if index % 3 == 0
-			then Balance.Enemies.SpreadShooter
-			else Balance.Enemies.MeleeCharger
+	--[[
+		Cycled rather than randomised so a wave always contains one of each
+		pressure — something that closes, something that makes you move,
+		something that makes you reposition, and something that denies space —
+		and so a playtest is comparing the same fight each run.
+	]]
+	local roster = {
+		Balance.Enemies.MeleeCharger,
+		Balance.Enemies.SpreadShooter,
+		Balance.Enemies.MeleeCharger,
+		Balance.Enemies.LineSniper,
+		Balance.Enemies.MeleeCharger,
+		Balance.Enemies.Tank,
+	}
 
-		EnemyManager.spawn(config)
+	for index = 1, count do
+		EnemyManager.spawn(roster[(index - 1) % #roster + 1])
 	end
 
 	log.info("spawned wave of %d", count)
@@ -302,17 +318,31 @@ end
 	move; aiming at the old position would hand them a free dodge and make the
 	tell meaningless.
 ]]
-local function queueVolley(enemy: Enemy, targetRoot: BasePart, shot: Balance.EnemyShot)
-	local from = enemy.position
+local function aimAt(from: Vector3, targetRoot: BasePart): Vector3?
 	local flat = Vector3.new(targetRoot.Position.X - from.X, 0, targetRoot.Position.Z - from.Z)
 
 	if flat.Magnitude < 1e-3 then
+		return nil
+	end
+
+	return flat.Unit
+end
+
+local function queueVolley(enemy: Enemy, targetRoot: BasePart, shot: Balance.EnemyShot)
+	--[[
+		A locked shot fires down the direction it committed to when the wind-up
+		began — the same one the player was shown. An unlocked shot re-aims
+		now, so standing still through the tell is punished.
+	]]
+	local direction = enemy.volleyDirection or aimAt(enemy.position, targetRoot)
+
+	if not direction then
 		return
 	end
 
 	table.insert(pendingVolleys, {
-		origin = from,
-		direction = flat.Unit,
+		origin = enemy.position,
+		direction = direction,
 		damage = enemy.config.attackDamage,
 		shot = shot,
 	})
@@ -446,6 +476,7 @@ local function stepEnemy(enemy: Enemy, deltaTime: number, now: number)
 			enemy.volleyAt = nil
 			enemy.hitbox.Color = config.color
 			queueVolley(enemy, targetRoot, shot)
+			enemy.volleyDirection = nil
 		end
 
 		return
@@ -464,8 +495,27 @@ local function stepEnemy(enemy: Enemy, deltaTime: number, now: number)
 	enemy.lastAttackAt = now
 
 	if shot then
+		local aim = aimAt(enemy.position, targetRoot)
+		if not aim then
+			return
+		end
+
 		enemy.volleyAt = now + shot.telegraph
+		enemy.volleyDirection = if shot.locksAim then aim else nil
+
+		--[[ The flash stays on for both tells: it marks *which* enemy is
+		     winding up, which a line alone does not, since a line drawn across
+		     a busy room is hard to trace back to its owner. ]]
 		enemy.hitbox.Color = Balance.TelegraphColor
+
+		enemyTelegraph:FireAllClients(
+			enemy.position,
+			aim,
+			shot.telegraph,
+			shot.tell,
+			config.attackRange
+		)
+
 		return
 	end
 

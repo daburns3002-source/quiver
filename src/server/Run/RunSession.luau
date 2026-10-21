@@ -48,6 +48,15 @@ local RunSession = {}
 
 local sessions: { [Player]: Session } = {}
 
+--[[
+	Called when a player's run health reaches zero.
+
+	A hook rather than a require, because the run controller already requires
+	this module and the two calling each other would be a cycle. Set once at
+	boot; nothing else should reach for it.
+]]
+RunSession.onDeath = nil :: ((Session) -> ())?
+
 local healthChanged = Remotes.event(Remotes.HealthChanged)
 local playerDamaged = Remotes.event(Remotes.PlayerDamaged)
 
@@ -171,6 +180,11 @@ function RunSession.applyDamage(session: Session, amount: number)
 	local humanoid = session.humanoid
 	if humanoid then
 		humanoid.Health = 0
+	end
+
+	local handler = RunSession.onDeath
+	if handler then
+		handler(session)
 	end
 end
 

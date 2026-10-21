@@ -114,6 +114,21 @@ function ProjectileSystem.refreshFilters()
 end
 
 --[[
+	Drops every projectile still in the air.
+
+	Called when a room is torn down. Without it an arrow fired at the last
+	enemy of one room arrives in the next one, where it either hits nothing or
+	hits whatever happens to be standing where its old target was — and an
+	enemy volley crossing a room boundary would damage a player who never saw
+	it fired.
+]]
+function ProjectileSystem.clear()
+	table.clear(active)
+	droppedSinceWarning = 0
+	lastWarnedAt = -math.huge
+end
+
+--[[
 	Queues one projectile. Called once per spec in a volley by the firing
 	system, never by anything a client can reach.
 ]]

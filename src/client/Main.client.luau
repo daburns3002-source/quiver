@@ -23,6 +23,7 @@ local Log = require(Shared.Util.Log)
 local MoveController = require(script.Parent.Input.MoveController)
 local ProjectileRenderer = require(script.Parent.Fx.ProjectileRenderer)
 local Remotes = require(Shared.Net.Remotes)
+local RunBanner = require(script.Parent.UI.RunBanner)
 local TelegraphRenderer = require(script.Parent.Fx.TelegraphRenderer)
 local TopDownCamera = require(script.Parent.Camera.TopDownCamera)
 local Types = require(Shared.Types)
@@ -69,6 +70,7 @@ local function currentRoot(): BasePart?
 end
 
 HealthBar.start()
+RunBanner.start()
 ProjectileRenderer.start(Workspace)
 HitFeedback.start(Workspace)
 TelegraphRenderer.start(Workspace)
@@ -113,5 +115,6 @@ Remotes.event(Remotes.EnemyHit).OnClientEvent:Connect(HitFeedback.onEnemyHit)
 Remotes.event(Remotes.EnemyDied).OnClientEvent:Connect(HitFeedback.onEnemyDied)
 Remotes.event(Remotes.PlayerDamaged).OnClientEvent:Connect(HitFeedback.onPlayerDamaged)
 Remotes.event(Remotes.HealthChanged).OnClientEvent:Connect(HealthBar.update)
+Remotes.event(Remotes.RunStateChanged).OnClientEvent:Connect(RunBanner.onRunStateChanged)
 
 log.info("client ready")

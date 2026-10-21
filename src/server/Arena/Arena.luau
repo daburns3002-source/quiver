@@ -29,6 +29,7 @@ local Arena = {}
 	Walls and pillars both block the player's arrows.
 ]]
 local blockersFolder: Folder? = nil
+local doorPart: BasePart? = nil
 local boxes: { Box } = {}
 local halfSize = Vector2.zero
 
@@ -71,8 +72,12 @@ end
 --[[
 	Builds the room under `parent` and returns the folder holding everything that
 	blocks a projectile.
+
+	`obstacles` is the room's layout. The walls, floor and door are the same in
+	every room; the pillars are what make one room a different fight from the
+	last, which is why they are the only thing passed in.
 ]]
-function Arena.build(parent: Instance): Folder
+function Arena.build(parent: Instance, obstacles: { Balance.Obstacle }): Folder
 	local config = Balance.Arena
 
 	local existing = parent:FindFirstChild("Arena")
@@ -131,7 +136,7 @@ function Arena.build(parent: Instance): Folder
 		wall.Parent = blockers
 	end
 
-	for index, obstacle in config.obstacles do
+	for index, obstacle in obstacles do
 		local part = makePart(
 			`Obstacle{index}`,
 			obstacle.size,
@@ -146,8 +151,29 @@ function Arena.build(parent: Instance): Folder
 		})
 	end
 
+	--[[
+		The exit pad. Built with the room but dark and inert until the wave is
+		cleared, so the player can see where they are going to have to get to
+		for the whole fight rather than discovering it afterwards.
+
+		Not a blocker: it is flat on the floor and must never stop an arrow.
+	]]
+	local run = Balance.Run
+	local door = makePart(
+		"Door",
+		run.doorSize,
+		Vector3.new(run.doorOffset.X, run.doorSize.Y / 2, run.doorOffset.Y),
+		config.obstacleColor
+	)
+	door.CanCollide = false
+	door.CanQuery = false
+	door.Transparency = 0.4
+	door.Parent = root
+
 	root.Parent = parent
 	blockersFolder = blockers
+	doorPart = door
+	Arena.setDoorOpen(false)
 
 	log.info("built arena with %d obstacles", #boxes)
 
@@ -156,6 +182,32 @@ end
 
 function Arena.blockers(): Folder?
 	return blockersFolder
+end
+
+--[[
+	Lights the exit pad, or puts it out.
+
+	Appearance only — whether standing on it actually advances the run is
+	decided by the server, which never trusts the pad's own state.
+]]
+function Arena.setDoorOpen(open: boolean)
+	local door = doorPart
+	if not door then
+		return
+	end
+
+	local run = Balance.Run
+	door.Color = if open then run.doorColor else Balance.Arena.obstacleColor
+	door.Material = if open then Enum.Material.Neon else Enum.Material.SmoothPlastic
+	door.Transparency = if open then 0 else 0.4
+end
+
+--[[ True when `position` is standing on the exit pad. ]]
+function Arena.isAtDoor(position: Vector3): boolean
+	local run = Balance.Run
+	local flat = Vector2.new(position.X - run.doorOffset.X, position.Z - run.doorOffset.Y)
+
+	return flat.Magnitude <= run.doorRadius
 end
 
 --[[

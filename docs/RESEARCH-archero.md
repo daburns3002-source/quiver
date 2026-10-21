@@ -198,14 +198,14 @@ the red rings are **spawn markers**, not static floor features.
 
 | | measured | ours |
 |---|---|---|
-| room width on screen | ~915 of 1080 px — **~85%**, always the full width | 84.8% in portrait, by construction |
-| room shape | taller than wide, **≥ 1.5:1** | 28 × 46 studs (1.64:1) |
+| room width on screen | ~915 of 1080 px — **~85%**, always the full width | ~78% in portrait — zoomed out a little by choice |
+| room shape | taller than wide, **≥ 1.5:1** | 35 × 58 studs (1.66:1) |
 | camera | **fixed sideways**, follows the player up and down | the same |
-| room width / player width | **~13** | 14 |
+| room width / player width | **~13** | ~17, roomier by choice |
 | enemy / player width | ~1.4 | 1.5 |
 | enemy orb / player width | ~0.64 | 0.6 |
 | enemy orb tail | ~3–4× the orb | 0.6 s comet trail |
-| player pace | **0.19 room-widths/s** | 0.20 |
+| player pace | **0.19 room-widths/s** | 0.19 |
 | spawn warning | red ring per enemy, **~0.8–1.0 s** ahead, staggered, waves in triangles of three | 0.9 s + 0.08 s stagger; no clusters yet |
 | multishot | a **parallel lane**, not a fan | parallel lane |
 

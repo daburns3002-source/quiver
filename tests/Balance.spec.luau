@@ -431,9 +431,11 @@ return function(t: TestRunner.Helper)
 		t.isTrue(last < 2.5, `the last of a {largest}-enemy wave takes {last}s to arrive`)
 	end)
 
-	--[[ The camera fits a band wider than the floor so the walls show, and
-	     the floor comes out near the 85% of screen width the footage
-	     measured. Outside that band it stops looking like the reference. ]]
+	--[[ The camera fits a band wider than the floor so the walls show. The
+	     footage measured the floor at 85% of the screen's width; playtest
+	     zoomed ours out a little past that. Far below three quarters it
+	     stops reading as a room seen up close, and the characters shrink to
+	     specks on a phone. ]]
 	t.test("the camera frames the room the way the footage does", function()
 		local share = Balance.Arena.size.X / Balance.Camera.fitWidth
 		t.isTrue(share < 1, "the camera crops the room's own walls")

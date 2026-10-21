@@ -987,7 +987,20 @@ function EnemyManager.step(deltaTime: number, now: number)
 	for _, enemy in enemies do
 		stepEnemy(enemy, deltaTime, now)
 	end
+end
 
+--[[
+	Pushes overlapping bodies apart. Called once per frame, *last*, by the
+	server loop.
+
+	It used to run at the end of `step`, before projectiles were resolved.
+	But a hit knocks its enemy back two studs, into whatever stands behind
+	it, and that happened after separation had already run for the frame —
+	so the overlap stood until the next one. One playtest caught a body 1.8
+	studs inside another. Running this after everything that can move an
+	enemy means nothing is left overlapping at the end of a frame.
+]]
+function EnemyManager.resolveOverlaps()
 	separate()
 end
 

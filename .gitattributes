@@ -12,4 +12,8 @@
 *.rbxm   binary
 *.blend  binary
 *.png    binary
+*.jpg    binary
+*.jpeg   binary
 *.fbx    binary
+*.gltf   binary
+*.glb    binary

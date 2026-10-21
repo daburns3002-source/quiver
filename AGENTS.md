@@ -7,9 +7,15 @@ Design reference: `docs/RESEARCH-archero.md`. Phase plan: `docs/ROADMAP.md`.
 
 ## What this project is
 
-An Archero-like top-down roguelike for Roblox. The defining mechanic is **move-or-shoot**: the
-player auto-fires at the nearest enemy while stationary and stops firing the instant they move.
-Runs are room-to-room; abilities are drafted 1-of-3 on level-up and lost on death.
+**Archero's combat inside a Pet Simulator / Steal an Egg progression shell.**
+
+The defining mechanic is **move-or-shoot**: the player auto-fires at the nearest enemy while
+stationary and stops firing the instant they move. Runs are room-to-room; abilities are drafted
+1-of-3 on level-up and lost on death.
+
+Around that sits a persistent meta loop — a lobby, area portals that unlock permanently when
+you beat an area's boss, coins, eggs and collectable pets that are both damage multipliers and
+combat companions. See `docs/PROGRESSION.md`.
 
 ## Review priorities, in order
 
@@ -17,6 +23,10 @@ Runs are room-to-room; abilities are drafted 1-of-3 on level-up and lost on deat
 Flag any path where a client can influence damage, health, currency, loot, ability grants or
 progression. Remotes must validate every argument, including type, range and ownership. Assume
 every client is hostile.
+
+The progression shell raises the stakes: **hatch RNG, fusion results, coin grants and area
+unlocks must be server-decided.** A client that reports its own hatch result, coin total or
+clear is a blocking finding, every time.
 
 **2. Pipeline violations.** Abilities must be data inserted into the projectile modifier
 pipeline, never `if abilityName == ...` branches in combat code. A special case in the shooting
@@ -33,7 +43,11 @@ uncleaned connections, and anything O(n²) over enemies or projectiles.
 **5. Memory and connection leaks.** Every `:Connect` needs a disconnect path. Every instance
 created during a run needs a destroy path on run end.
 
-**6. Correctness and clarity.** Normal code review.
+**6. Save-schema safety.** Any change to persisted data needs a version bump and a migration
+path. Players' pets, coins and unlocks are their whole investment — an unmigrated schema change
+is a blocking finding.
+
+**7. Correctness and clarity.** Normal code review.
 
 ## Conventions to enforce
 

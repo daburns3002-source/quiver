@@ -19,6 +19,7 @@ local Types = require(ReplicatedStorage.Shared.Types)
 local function baseSpec(): Types.ShotSpec
 	return {
 		angleOffset = 0,
+		lateralOffset = 0,
 		damageScale = 1,
 		speed = 20,
 		lifetime = 3,

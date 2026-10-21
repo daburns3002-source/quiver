@@ -34,6 +34,7 @@ local log = Log.forTag("Projectiles")
 local MAX_SEGMENT_STEPS = 8
 
 local shotFired = Remotes.event(Remotes.ShotFired)
+local explosion = Remotes.event(Remotes.Explosion)
 
 --[[ Studs a reflected arrow is nudged off the surface it bounced from, so the
      next cast does not begin inside the wall it just left. ]]
@@ -292,6 +293,11 @@ local function applySplash(projectile: Projectile, centre: Vector3, damage: numb
 		return
 	end
 
+	--[[ Announced before anything is damaged, so the blast is on screen in
+	     the same frame as the damage numbers it caused rather than after
+	     them. ]]
+	explosion:FireAllClients(centre, projectile.splashRadius)
+
 	local nearby: { { model: Model, position: Vector3 } } = {}
 	for model, position in EnemyManager.positions() do
 		if model ~= hit then
@@ -359,6 +365,7 @@ local function fireChain(projectile: Projectile, from: Vector3)
 
 		table.insert(specs, {
 			angleOffset = 0,
+			lateralOffset = 0,
 			damageScale = 1,
 			speed = Balance.Projectile.speed,
 			lifetime = Balance.Projectile.lifetime,

@@ -140,6 +140,7 @@ return function(t: TestRunner.Helper)
 		local direction = Vector3.new(0, 0, 1)
 		local aimed = ShotPipeline.aim(direction, {
 			angleOffset = 0,
+			lateralOffset = 0,
 			damageScale = 1,
 			speed = 1,
 			lifetime = 1,
@@ -155,9 +156,59 @@ return function(t: TestRunner.Helper)
 		t.near((aimed - direction).Magnitude, 0, 1e-9)
 	end)
 
+	--[[ The helper every consumer of a volley uses to place an arrow. Three
+	     hand-rolled copies of this perpendicular would be three chances to
+	     disagree about which way is left. ]]
+	t.test("spawnPoint leaves an arrow alone when it has no offset", function()
+		local origin = Vector3.new(5, 3, -2)
+		local moved = ShotPipeline.spawnPoint(origin, Vector3.new(0, 0, -1), {
+			angleOffset = 0,
+			lateralOffset = 0,
+			damageScale = 1,
+			speed = 1,
+			lifetime = 1,
+			pierce = 0,
+			critChance = 0,
+			critMultiplier = 2,
+			splashRadius = 0,
+			splashScale = 0,
+			bounces = 0,
+			chainOnKill = 0,
+		})
+
+		t.near((moved - origin).Magnitude, 0, 1e-9)
+	end)
+
+	t.test("spawnPoint steps sideways, never along the aim", function()
+		local origin = Vector3.zero
+		local aim = Vector3.new(0, 0, -1)
+		local moved = ShotPipeline.spawnPoint(origin, aim, {
+			angleOffset = 0,
+			lateralOffset = 2,
+			damageScale = 1,
+			speed = 1,
+			lifetime = 1,
+			pierce = 0,
+			critChance = 0,
+			critMultiplier = 2,
+			splashRadius = 0,
+			splashScale = 0,
+			bounces = 0,
+			chainOnKill = 0,
+		})
+
+		--[[ Exactly the offset, and none of it forwards: an arrow that
+		     started ahead of the others would reach the target first and the
+		     volley would stop reading as one shot. ]]
+		t.near(moved.Magnitude, 2, 1e-6, "the arrow did not move the distance asked for")
+		t.near(moved:Dot(aim), 0, 1e-9, "the offset leaked into the aim direction")
+		t.near(moved.Y, 0, 1e-9, "the offset left the floor plane")
+	end)
+
 	t.test("aim rotates in the plane and preserves length", function()
 		local aimed = ShotPipeline.aim(Vector3.new(0, 0, 1), {
 			angleOffset = math.rad(90),
+			lateralOffset = 0,
 			damageScale = 1,
 			speed = 1,
 			lifetime = 1,

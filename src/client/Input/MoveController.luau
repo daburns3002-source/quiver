@@ -22,6 +22,7 @@ local UserInputService = game:GetService("UserInputService")
 local Dash = require(script.Parent.Dash)
 local DashButton = require(script.Parent.DashButton)
 local PlayerStats = require(script.Parent.Parent.PlayerStats)
+local RunPaused = require(script.Parent.Parent.RunPaused)
 local Thumbstick = require(script.Parent.Thumbstick)
 
 local MoveController = {}
@@ -103,6 +104,12 @@ end
 	ask for, and at 89 studs a second that is very visible.
 ]]
 local function requestDash()
+	--[[ No dashing out from behind the cards either. The dash is the one
+	     input that would move the player far enough to matter. ]]
+	if RunPaused.get() then
+		return
+	end
+
 	local character = player.Character
 	if not character then
 		return
@@ -124,6 +131,21 @@ local function step()
 
 	local humanoid = character:FindFirstChildOfClass("Humanoid")
 	if not humanoid or humanoid.Health <= 0 then
+		return
+	end
+
+	--[[
+		Frozen while a card screen is up.
+
+		The server has already stopped the world, so walking here moves the
+		player through a room nothing else in is running — they reappear
+		somewhere else when they choose, having crossed ground that was never
+		contested. `Move(zero)` rather than an early return, so the Humanoid
+		is actively told to stop instead of coasting on its last direction.
+	]]
+	if RunPaused.get() then
+		humanoid.WalkSpeed = PlayerStats.get().moveSpeed
+		humanoid:Move(Vector3.zero, false)
 		return
 	end
 

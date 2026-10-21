@@ -26,6 +26,16 @@ export type Faction = "Player" | "Enemy"
 export type ShotSpec = {
 	-- Radians, clockwise around Y, relative to the shooter's aim direction.
 	angleOffset: number,
+	--[[
+		Studs sideways from the shooter, perpendicular to this arrow's own
+		aim. This is what makes extra arrows fly in a *lane* rather than a
+		fan: they share a heading and start beside each other, so a volley
+		aimed at one enemy puts every arrow into that enemy.
+
+		A fan spreads with distance and misses everything but the centre
+		arrow at range. An offset does not.
+	]]
+	lateralOffset: number,
 	-- Multiplied into the shooter's damage. Extra-arrow abilities pay for
 	-- themselves here rather than by editing base damage.
 	damageScale: number,

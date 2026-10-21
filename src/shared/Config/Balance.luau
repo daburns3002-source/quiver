@@ -523,6 +523,20 @@ local Balance = {
 			arrow silently makes it miss more.
 		]]
 		length = 4.2,
+		--[[
+			Studs between neighbouring arrows in a multi-arrow volley.
+
+			Tight on purpose. Extra arrows fly in a lane beside each other,
+			not in a fan, so that a volley aimed at one enemy puts *all* of
+			it into that enemy — which is the thing a fan stops doing the
+			moment the target is more than a few studs away.
+
+			`tests/AbilityEffects.spec.luau` holds this to the width of the
+			narrowest enemy: widen it far enough and the outer arrows of a
+			full-stack volley start sailing past the thing they were aimed
+			at, which is the bug this replaced.
+		]]
+		parallelSpacing = 0.85,
 		-- Hard cap on live server projectiles. Phase 3 abilities multiply volley
 		-- size aggressively; this is the backstop.
 		maxActive = 400,
@@ -666,6 +680,20 @@ local Balance = {
 		vignetteReach = 0.16,
 		vignetteDuration = 0.34,
 		vignetteColor = Color3.fromRGB(216, 40, 36),
+
+		--[[
+			The blast from Blast Arrows.
+
+			Loud on purpose. An explosion the player cannot see is an upgrade
+			they cannot tell is working — three enemies die and two of them
+			for no visible reason. It is drawn at the real radius so the
+			player learns the shape of the thing they bought, and the ground
+			ring snaps to full size immediately because the area is the
+			information; only the fade is animated.
+		]]
+		explosionDuration = 0.32,
+		explosionColor = Color3.fromRGB(255, 170, 70),
+		explosionCoreColor = Color3.fromRGB(255, 244, 214),
 	},
 
 	Camera = {

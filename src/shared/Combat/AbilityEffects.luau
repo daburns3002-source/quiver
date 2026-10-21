@@ -86,19 +86,20 @@ end
 	The stages this loadout contributes, in no particular order — the pipeline
 	sorts them into buckets itself.
 
-	Front Arrow widens the fan rather than adding a parallel arrow, because a
-	second arrow on the identical heading is invisible: it occupies the same
-	space as the first and reads as nothing having happened.
+	Front Arrow puts extra arrows *beside* the first rather than fanning them
+	outwards. They share a heading and start a fraction of a stud apart, so
+	the whole volley arrives in the enemy the player aimed at — which is the
+	thing a fan stops doing as soon as the target is any distance away.
 ]]
 function AbilityEffects.stages(counts: Counts): { ShotStage }
 	local out: { ShotStage } = {}
 
 	local front = stacks(counts, "FrontArrow")
 	if front > 0 then
-		--[[ One base arrow plus one per stack. The angle is tight enough that
-		     the fan still reads as a single shot aimed at one enemy rather
-		     than as crowd control. ]]
-		table.insert(out, Stages.spread(1 + front, math.rad(11)))
+		--[[ One base arrow plus one per stack, side by side rather than
+		     fanned. A fan separates with distance and lands one arrow on a
+		     target the player aimed every arrow at; a lane does not. ]]
+		table.insert(out, Stages.parallel(1 + front, Balance.Projectile.parallelSpacing))
 	end
 
 	if stacks(counts, "RearArrow") > 0 then

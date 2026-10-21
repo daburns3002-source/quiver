@@ -108,6 +108,16 @@ Remotes.PlayerStats = "PlayerStats"
 ]]
 Remotes.RunSummary = "RunSummary"
 
+--[[
+	Server → all clients. Something exploded here, this wide.
+
+	The radius travels with it rather than being looked up, because what the
+	player needs to learn from the effect is exactly how far the blast
+	reaches — and that is a number the loadout changes. An effect drawn at a
+	fixed size would teach them the wrong one.
+]]
+Remotes.Explosion = "Explosion"
+
 local function getFolder(): Folder
 	if RunService:IsServer() then
 		local existing = ReplicatedStorage:FindFirstChild(FOLDER_NAME)

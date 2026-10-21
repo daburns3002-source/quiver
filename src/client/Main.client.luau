@@ -27,6 +27,7 @@ local PlayerStats = require(script.Parent.PlayerStats)
 local ProjectileRenderer = require(script.Parent.Fx.ProjectileRenderer)
 local Remotes = require(Shared.Net.Remotes)
 local RunBanner = require(script.Parent.UI.RunBanner)
+local RunPaused = require(script.Parent.RunPaused)
 local RunSummary = require(script.Parent.UI.RunSummary)
 local TelegraphRenderer = require(script.Parent.Fx.TelegraphRenderer)
 local TopDownCamera = require(script.Parent.Camera.TopDownCamera)
@@ -125,6 +126,7 @@ end)
 Remotes.event(Remotes.EnemyTelegraph).OnClientEvent:Connect(TelegraphRenderer.onTelegraph)
 Remotes.event(Remotes.EnemyHit).OnClientEvent:Connect(HitFeedback.onEnemyHit)
 Remotes.event(Remotes.EnemyDied).OnClientEvent:Connect(HitFeedback.onEnemyDied)
+Remotes.event(Remotes.Explosion).OnClientEvent:Connect(HitFeedback.onExplosion)
 Remotes.event(Remotes.PlayerDamaged).OnClientEvent:Connect(HitFeedback.onPlayerDamaged)
 Remotes.event(Remotes.HealthChanged).OnClientEvent:Connect(HealthBar.update)
 Remotes.event(Remotes.RunStateChanged).OnClientEvent:Connect(function(index, total, state, name)
@@ -154,7 +156,7 @@ Remotes.event(Remotes.PlayerStats).OnClientEvent:Connect(function(stats)
 		any reason, and prediction stays frozen for the rest of the run while
 		the server fires arrows nobody can see.
 	]]
-	LocalFiring.setPaused(false)
+	RunPaused.set(false)
 end)
 
 --[[
@@ -168,7 +170,7 @@ end)
 ]]
 AbilityCards.start(function(index: number)
 	AbilityCards.hide()
-	LocalFiring.setPaused(false)
+	RunPaused.set(false)
 	Remotes.event(Remotes.AbilityChosen):FireServer(index)
 end)
 
@@ -176,7 +178,7 @@ Remotes.event(Remotes.AbilityOffer).OnClientEvent:Connect(function(offer: { stri
 	--[[ Paused alongside the server, which stops the run for a draft. Without
 	     this the prediction draws volleys across a frozen room that the server
 	     never fired. ]]
-	LocalFiring.setPaused(true)
+	RunPaused.set(true)
 	AbilityCards.show(offer, level)
 end)
 
@@ -187,7 +189,7 @@ Remotes.event(Remotes.XpChanged).OnClientEvent:Connect(RunBanner.onXpChanged)
      room the player cannot see. ]]
 player.CharacterRemoving:Connect(function()
 	AbilityCards.hide()
-	LocalFiring.setPaused(false)
+	RunPaused.set(false)
 	PlayerStats.reset()
 end)
 

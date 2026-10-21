@@ -92,10 +92,47 @@ nothing in GitHub enforces this. It holds only because it is written here.
 rojo serve                      # live-sync into Studio
 rojo build -o build.rbxl        # smoke-test the build
 wally install                   # fetch packages
-selene src                      # lint
-stylua src                      # format
-stylua --check src              # CI-style format check
+selene src tests                # lint
+stylua src tests                # format
+stylua --check src tests        # CI-style format check
 ```
+
+## Tests
+
+`tests/` syncs to `ServerStorage.Tests` and runs **inside** Roblox, because the
+code under test speaks `Vector3` and `CFrame` and there is no honest way to
+stub those. Driven over MCP in one call, with the game playing:
+
+```lua
+local tests = game:GetService("ServerStorage").Tests
+local TestRunner = require(tests.TestRunner)
+local result = TestRunner.runAll(tests)
+return { TestRunner.summarise(result), result.failures }
+```
+
+They exist because the four gates cannot catch what this project actually
+gets wrong. Selene, StyLua, `rojo build` and `luau-lsp` were all green on a
+charger that deadlocked against a pillar, a burrower that dived exactly once,
+a telegraph that drew a line its shot did not follow, and a wave that spawned
+on top of the player. Every one was geometry or state.
+
+A spec returns a function taking the `t` helper:
+
+```lua
+return function(t)
+    t.test("three shots keep one on centre", function()
+        t.near(out[2].angleOffset, 0, 1e-9)
+    end)
+end
+```
+
+Assert *relationships*, not values — retuning a number must never fail a test,
+but tuning it into a shape that cannot work should. `Balance.spec` is the model
+for this.
+
+**Changing `default.project.json` needs `rojo serve` restarted.** It does not
+reload structural project changes, and a restart drops the Studio plugin, so
+reconnecting is a manual click.
 
 Type check — the only thing that catches strict-mode errors without opening Studio:
 

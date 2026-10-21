@@ -161,6 +161,43 @@ local function buildModel(config: EnemyConfig, position: Vector3): (Model, BaseP
 	return model, hitbox
 end
 
+--[[
+	Everything a spawn has to keep its distance from.
+
+	Live players, and — when there are none yet — the place players arrive at.
+	That fallback is not a nicety: a room is built and populated before anyone
+	has a character, so measuring only against live roots meant the first wave
+	of every run measured against nothing and could spawn on top of the player.
+]]
+local function spawnKeepAwayPoints(): { Vector3 }
+	local points: { Vector3 } = {}
+
+	for _, session in RunSession.all() do
+		local root = session.root
+		if root and session.alive then
+			table.insert(points, root.Position)
+		end
+	end
+
+	if #points == 0 then
+		table.insert(points, Balance.Arena.spawnPosition)
+	end
+
+	return points
+end
+
+--[[ Flat distance from `candidate` to the nearest thing it must avoid. ]]
+local function distanceToNearest(candidate: Vector3, points: { Vector3 }): number
+	local nearest = math.huge
+
+	for _, point in points do
+		local flat = Vector3.new(candidate.X - point.X, 0, candidate.Z - point.Z)
+		nearest = math.min(nearest, flat.Magnitude)
+	end
+
+	return nearest
+end
+
 --[[ A spawn point inside the arena, clear of geometry and away from players. ]]
 local function findSpawnPosition(config: EnemyConfig): Vector3
 	local arena = Balance.Arena
@@ -168,6 +205,14 @@ local function findSpawnPosition(config: EnemyConfig): Vector3
 	local limitX = arena.size.X / 2 - radius - 2
 	local limitZ = arena.size.Z / 2 - radius - 2
 	local y = config.hitboxSize.Y / 2
+
+	local keepAway = spawnKeepAwayPoints()
+
+	--[[ Best clear candidate seen so far, used only if nothing ever satisfies
+	     the minimum. Far better than the old fixed corner, which in a tight
+	     layout could itself be next to the player. ]]
+	local bestPosition: Vector3? = nil
+	local bestDistance = -1
 
 	for _ = 1, 40 do
 		local candidate =
@@ -177,27 +222,21 @@ local function findSpawnPosition(config: EnemyConfig): Vector3
 			continue
 		end
 
-		local tooClose = false
+		local distance = distanceToNearest(candidate, keepAway)
 
-		for _, session in RunSession.all() do
-			local root = session.root
-			if root and session.alive then
-				local flat =
-					Vector3.new(candidate.X - root.Position.X, 0, candidate.Z - root.Position.Z)
-				if flat.Magnitude < Balance.Spawning.minSpawnDistance then
-					tooClose = true
-					break
-				end
-			end
+		if distance >= Balance.Spawning.minSpawnDistance then
+			return candidate
 		end
 
-		if not tooClose then
-			return candidate
+		if distance > bestDistance then
+			bestPosition = candidate
+			bestDistance = distance
 		end
 	end
 
-	-- Fell through: take a corner rather than failing to spawn.
-	return Vector3.new(limitX, y, limitZ)
+	--[[ Nothing cleared the bar — a small room, or players spread across it.
+	     Take the furthest clear spot found rather than failing to spawn. ]]
+	return bestPosition or Vector3.new(limitX, y, limitZ)
 end
 
 function EnemyManager.spawn(config: EnemyConfig): Model?

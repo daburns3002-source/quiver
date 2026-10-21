@@ -41,6 +41,12 @@ export type ServerStats = {
 	damage: number,
 	maxHealth: number,
 	attackCooldown: number,
+	--[[ Health restored per enemy killed. ]]
+	healPerKill: number,
+	--[[ Whether this run may survive one killing blow. ]]
+	secondWind: boolean,
+	--[[ Extra damage at full Momentum charge, as a fraction. Zero without it. ]]
+	momentumBonus: number,
 }
 
 --[[
@@ -128,6 +134,23 @@ function AbilityEffects.stages(counts: Counts): { ShotStage }
 		)
 	end
 
+	local blast = stacks(counts, "BlastArrows")
+	if blast > 0 then
+		--[[ Radius grows per stack; the fraction does not. A splash that also
+		     scaled its damage would overtake the arrow that delivered it. ]]
+		table.insert(out, Stages.splash(Abilities.byId.BlastArrows.value * blast, 0.5))
+	end
+
+	local ricochet = stacks(counts, "Ricochet")
+	if ricochet > 0 then
+		table.insert(out, Stages.bounce(Abilities.byId.Ricochet.value * ricochet))
+	end
+
+	local chain = stacks(counts, "SoulChain")
+	if chain > 0 then
+		table.insert(out, Stages.chainOnKill(Abilities.byId.SoulChain.value * chain))
+	end
+
 	--[[ Crit is one stage carrying the whole loadout's totals rather than one
 	     per stack, because chance and multiplier have to be resolved together
 	     before the spec leaves the pipeline. ]]
@@ -160,6 +183,12 @@ function AbilityEffects.serverStats(counts: Counts): ServerStats
 		     and the number it acts on is the gap between volleys. ]]
 		attackCooldown = player.attackCooldown
 			/ (1 + Abilities.byId.Precision.value) ^ stacks(counts, "Precision"),
+		healPerKill = Abilities.byId.Bloodthirst.value * stacks(counts, "Bloodthirst"),
+		secondWind = stacks(counts, "SecondWind") > 0,
+		--[[ Additive across stacks rather than compounding. Momentum is
+		     already multiplied by the ramp, and compounding a multiplier that
+		     is itself scaled by time gets unreadable fast. ]]
+		momentumBonus = Abilities.byId.Momentum.value * stacks(counts, "Momentum"),
 	}
 end
 

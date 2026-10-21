@@ -15,6 +15,7 @@ local Workspace = game:GetService("Workspace")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 
 local AbilityCards = require(script.Parent.UI.AbilityCards)
+local DashBar = require(script.Parent.UI.DashBar)
 local Device = require(script.Parent.Device)
 local Game = require(Shared.Config.Game)
 local HealthBar = require(script.Parent.UI.HealthBar)
@@ -72,6 +73,7 @@ local function currentRoot(): BasePart?
 end
 
 HealthBar.start()
+DashBar.start()
 RunBanner.start()
 ProjectileRenderer.start(Workspace)
 HitFeedback.start(Workspace)
@@ -104,8 +106,14 @@ Remotes.event(Remotes.ShotFired).OnClientEvent:Connect(function(event: ShotEvent
 		happen. Drawing the server's copy too would double every arrow. Only
 		player volleys carry a real shooterId, so the faction check keeps an
 		enemy volley from ever matching a UserId of 0.
+
+		`predicted` separates "you already drew this" from "the server
+		invented this on your behalf". A chain shot off a kill belongs to the
+		player and carries their id, but no client saw it coming — skipping it
+		on ownership alone would make the one ability that fires free arrows
+		fire invisible ones.
 	]]
-	if event.faction == "Player" and event.shooterId == player.UserId then
+	if event.faction == "Player" and event.shooterId == player.UserId and event.predicted then
 		return
 	end
 

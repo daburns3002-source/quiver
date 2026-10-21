@@ -14,6 +14,7 @@
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local Abilities = require(ReplicatedStorage.Shared.Config.Abilities)
 local AbilityEffects = require(ReplicatedStorage.Shared.Combat.AbilityEffects)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local ShotPipeline = require(ReplicatedStorage.Shared.Combat.ShotPipeline)
@@ -237,6 +238,81 @@ return function(t: TestRunner.Helper)
 		counts.FrontArrow = 4
 
 		t.equal(sent.FrontArrow, 1, "the client's copy changed underneath it")
+	end)
+
+	--[[ The abilities that change what a room asks of the player, rather than
+	     how fast its numbers go up. Each asserts the spec field the server
+	     actually reads, because that is the only thing that reaches the
+	     game. ]]
+	t.test("Blast Arrows gives every arrow a real explosion", function()
+		local plain = volley({})
+		t.near(plain[1].splashRadius, 0, 1e-9, "arrows explode without the card")
+
+		local blast = volley({ BlastArrows = 1 })
+		t.isTrue(blast[1].splashRadius > 0, "Blast Arrows set no radius")
+		t.isTrue(blast[1].splashScale > 0, "Blast Arrows set no damage")
+
+		local more = volley({ BlastArrows = 3 })
+		t.isTrue(more[1].splashRadius > blast[1].splashRadius, "stacking did not widen it")
+	end)
+
+	--[[ A splash that matched the arrow would overtake the thing delivering
+	     it, and shooting the floor beside a crowd would beat aiming. ]]
+	t.test("splash never hits as hard as the arrow", function()
+		t.isTrue(volley({ BlastArrows = 3 })[1].splashScale < 1, "splash matches a direct hit")
+	end)
+
+	t.test("Ricochet lets arrows bounce, and stacks", function()
+		t.equal(volley({})[1].bounces, 0)
+		t.isTrue(volley({ Ricochet = 1 })[1].bounces > 0, "Ricochet granted no bounces")
+		t.isTrue(
+			volley({ Ricochet = 2 })[1].bounces > volley({ Ricochet = 1 })[1].bounces,
+			"a second Ricochet added nothing"
+		)
+	end)
+
+	t.test("Soul Chain arms a kill, and stacks", function()
+		t.equal(volley({})[1].chainOnKill, 0)
+		t.isTrue(volley({ SoulChain = 1 })[1].chainOnKill > 0, "Soul Chain armed nothing")
+		t.isTrue(
+			volley({ SoulChain = 2 })[1].chainOnKill > volley({ SoulChain = 1 })[1].chainOnKill,
+			"a second Soul Chain added nothing"
+		)
+	end)
+
+	t.test("the behaviour cards reach every arrow in a wide volley", function()
+		local specs = volley({ FrontArrow = 2, RearArrow = 1, BlastArrows = 1, Ricochet = 1 })
+		t.isTrue(#specs > 3, "the volley did not widen")
+
+		for index, spec in specs do
+			t.isTrue(spec.splashRadius > 0, `arrow {index} does not explode`)
+			t.isTrue(spec.bounces > 0, `arrow {index} does not bounce`)
+		end
+	end)
+
+	t.test("Bloodthirst, Second Wind and Momentum reach the server stats", function()
+		local none = AbilityEffects.serverStats({})
+		t.equal(none.healPerKill, 0)
+		t.isFalse(none.secondWind, "a fresh run starts with a free life")
+		t.equal(none.momentumBonus, 0)
+
+		local some = AbilityEffects.serverStats({
+			Bloodthirst = 2,
+			SecondWind = 1,
+			Momentum = 2,
+		})
+		t.isTrue(some.healPerKill > 0, "Bloodthirst heals nothing")
+		t.isTrue(some.secondWind, "Second Wind was not granted")
+		t.isTrue(some.momentumBonus > 0, "Momentum adds nothing")
+	end)
+
+	--[[ Momentum multiplies damage by `1 + bonus` at full charge, so a bonus
+	     at or above 1 means standing still doubles output — past that it stops
+	     being a reward and becomes the only way to play. ]]
+	t.test("Momentum at full stacks is a bonus, not a requirement", function()
+		local capped = Abilities.byId.Momentum.maxStacks
+		local bonus = AbilityEffects.serverStats({ Momentum = capped }).momentumBonus
+		t.isTrue(bonus < 1.5, `standing still would multiply damage by {1 + bonus}`)
 	end)
 
 	t.test("count runs before pattern", function()

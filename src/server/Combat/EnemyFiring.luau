@@ -80,6 +80,13 @@ function EnemyFiring.step(now: number)
 				     on or build towards. ]]
 				critChance = 0,
 				critMultiplier = 1,
+				--[[ None of the draft's projectile behaviour belongs to
+				     enemies. An exploding or bouncing enemy shot is a
+				     different design decision, not a free one. ]]
+				splashRadius = 0,
+				splashScale = 0,
+				bounces = 0,
+				chainOnKill = 0,
 				owner = nil,
 				now = now,
 			})
@@ -94,6 +101,9 @@ function EnemyFiring.step(now: number)
 			direction = volley.direction,
 			specs = specs,
 			firedAt = now,
+			--[[ Nobody predicts an enemy volley; every client draws it from
+			     this event. ]]
+			predicted = false,
 		} :: Types.ShotEvent)
 	end
 end

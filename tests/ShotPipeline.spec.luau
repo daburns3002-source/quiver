@@ -146,6 +146,10 @@ return function(t: TestRunner.Helper)
 			pierce = 0,
 			critChance = 0,
 			critMultiplier = 2,
+			splashRadius = 0,
+			splashScale = 0,
+			bounces = 0,
+			chainOnKill = 0,
 		})
 
 		t.near((aimed - direction).Magnitude, 0, 1e-9)
@@ -160,6 +164,10 @@ return function(t: TestRunner.Helper)
 			pierce = 0,
 			critChance = 0,
 			critMultiplier = 2,
+			splashRadius = 0,
+			splashScale = 0,
+			bounces = 0,
+			chainOnKill = 0,
 		})
 
 		t.near(aimed.Magnitude, 1, 1e-6, "rotation must not change length")

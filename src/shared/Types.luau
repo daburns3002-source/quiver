@@ -45,6 +45,23 @@ export type ShotSpec = {
 	]]
 	critChance: number,
 	critMultiplier: number,
+	--[[
+		Studs of splash around a hit, and what fraction of the arrow's damage
+		it deals. Zero radius means no splash at all.
+
+		Splash is resolved by the server at the moment of contact, like crit,
+		because what is standing near the target is not knowable when the
+		volley is built.
+	]]
+	splashRadius: number,
+	splashScale: number,
+	--[[ How many times the arrow reflects off arena geometry before it dies.
+	     0 means it stops at the first wall, which is the base behaviour. ]]
+	bounces: number,
+	--[[ How many free arrows a kill by this projectile fires at whatever is
+	     nearest. The chain shot inherits nothing — it is a plain arrow, or a
+	     stack of these would multiply without limit. ]]
+	chainOnKill: number,
 }
 
 --[[
@@ -87,6 +104,15 @@ export type ShotEvent = {
 	direction: Vector3,
 	specs: { ShotSpec },
 	firedAt: number,
+	--[[
+		Whether the shooter's own client already drew this volley itself.
+
+		True for a volley a player's input produced, which their client
+		predicted and must not draw twice. False for one the *server* invented
+		— a chain shot off a kill, say — which no client saw coming and which
+		would otherwise never be drawn at all.
+	]]
+	predicted: boolean,
 }
 
 return {}

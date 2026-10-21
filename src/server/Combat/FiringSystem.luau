@@ -30,6 +30,29 @@ local FiringSystem = {}
 
 local shotFired = Remotes.event(Remotes.ShotFired)
 
+--[[
+	How much Momentum is paying out right now.
+
+	Charges from the moment the player stopped moving, which is the same
+	instant the archer starts its settle timer — so the ability rewards
+	exactly the decision this whole game is built on: staying still when
+	staying still is dangerous. Returns 1 without the ability, so the caller
+	never needs to know whether it was drafted.
+]]
+local function momentumScale(session: Session, now: number): number
+	if session.momentumBonus <= 0 then
+		return 1
+	end
+
+	local since = session.stationarySince
+	if not since then
+		return 1
+	end
+
+	local charge = math.clamp((now - since) / Balance.Player.momentumRamp, 0, 1)
+	return 1 + session.momentumBonus * charge
+end
+
 local function fire(session: Session, root: BasePart, now: number)
 	local target =
 		Targeting.nearest(root.Position, EnemyManager.positions(), Balance.Player.attackRange)
@@ -45,8 +68,10 @@ local function fire(session: Session, root: BasePart, now: number)
 
 	local origin = Vector3.new(root.Position.X, root.Position.Y, root.Position.Z)
 
+	local momentum = momentumScale(session, now)
+
 	local specs = session.pipeline:build({
-		damage = session.damage,
+		damage = session.damage * momentum,
 		speed = Balance.Projectile.speed,
 		lifetime = Balance.Projectile.lifetime,
 		origin = origin,
@@ -60,10 +85,14 @@ local function fire(session: Session, root: BasePart, now: number)
 			direction = ShotPipeline.aim(direction, spec),
 			speed = spec.speed,
 			lifetime = spec.lifetime,
-			damage = session.damage * spec.damageScale,
+			damage = session.damage * spec.damageScale * momentum,
 			pierce = spec.pierce,
 			critChance = spec.critChance,
 			critMultiplier = spec.critMultiplier,
+			splashRadius = spec.splashRadius,
+			splashScale = spec.splashScale,
+			bounces = spec.bounces,
+			chainOnKill = spec.chainOnKill,
 			--[[ The run that fired it, so the kill credits the right player's
 			     draft even if the arrow outlives their current session. ]]
 			owner = session.player,
@@ -85,6 +114,9 @@ local function fire(session: Session, root: BasePart, now: number)
 		direction = direction,
 		specs = specs,
 		firedAt = now,
+		--[[ The shooter's own client drew this the moment their input asked
+		     for it, so that client must skip this copy. ]]
+		predicted = true,
 	} :: Types.ShotEvent)
 end
 

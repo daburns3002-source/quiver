@@ -25,7 +25,7 @@
 	abilities that need them.
 ]]
 
-export type Category = "Count" | "Pattern" | "Flight" | "OnHit" | "Stats" | "Defensive"
+export type Category = "Count" | "Pattern" | "Flight" | "OnHit" | "OnKill" | "Stats" | "Defensive"
 
 export type Ability = {
 	id: string,
@@ -186,6 +186,72 @@ local abilities: { Ability } = {
 		description = "Dash recharges 20% sooner.",
 		category = "Defensive",
 		value = 0.2,
+		maxStacks = 3,
+	},
+
+	--[[
+		The ones that change how a room is fought rather than how fast the
+		numbers go up.
+
+		A draft made entirely of percentages is a draft where every run plays
+		identically and only the clear speed differs. These each give the
+		player a new thing to *do* — a reason to shoot a wall, to prefer the
+		enemy in the crowd, to push for the kill rather than retreat — and
+		that is what makes two runs feel different.
+	]]
+	{
+		id = "BlastArrows",
+		name = "Blast Arrows",
+		description = "Arrows explode, damaging everything close by.",
+		category = "OnHit",
+		--[[ Studs of radius per stack. Half damage to the splash, so a crowd
+		     is worth shooting into without single targets becoming free. ]]
+		value = 5,
+		maxStacks = 3,
+	},
+	{
+		id = "Ricochet",
+		name = "Ricochet",
+		description = "Arrows bounce off walls instead of stopping.",
+		category = "Flight",
+		value = 1,
+		maxStacks = 2,
+	},
+	{
+		id = "SoulChain",
+		name = "Soul Chain",
+		description = "A kill fires a free arrow at the next enemy.",
+		category = "OnKill",
+		value = 1,
+		maxStacks = 2,
+	},
+	{
+		id = "Bloodthirst",
+		name = "Bloodthirst",
+		description = "Heal 3 health for every enemy you kill.",
+		category = "Defensive",
+		value = 3,
+		maxStacks = 4,
+	},
+	{
+		id = "SecondWind",
+		name = "Second Wind",
+		description = "Survive one killing blow each run.",
+		category = "Defensive",
+		--[[ One, and only one. A second copy would make death optional, and a
+		     run that cannot end is not a run. ]]
+		value = 1,
+		maxStacks = 1,
+	},
+	{
+		id = "Momentum",
+		name = "Momentum",
+		description = "Damage builds the longer you stand and shoot.",
+		category = "Stats",
+		--[[ Fraction of extra damage at full charge, per stack. Deliberately
+		     the one ability that rewards the thing the whole game is about:
+		     choosing to stay still when staying still is dangerous. ]]
+		value = 0.35,
 		maxStacks = 3,
 	},
 }

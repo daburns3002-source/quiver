@@ -468,13 +468,25 @@ local Balance = {
 			a blink, which matters because a player who cannot see where they
 			went cannot aim the next one.
 		]]
+		--[[ Seconds of standing still before Momentum reaches its full bonus.
+		     Long enough that it is a commitment, short enough that it pays
+		     inside a single volley exchange. ]]
+		momentumRamp = 2.5,
+
 		dash = {
 			distance = 16,
 			duration = 0.18,
-			--[[ Long enough that it is a decision rather than a second
-			     movement speed. Tuning this down is how the game gets easier;
-			     it should go up, not down, as areas progress. ]]
-			cooldown = 1.2,
+			--[[
+				Long enough that it is a decision rather than a second
+				movement speed.
+
+				Raised from 1.2 after playtest. At just over a second the dash
+				was close enough to always-available that it stopped being a
+				resource and started being how you walked. At four it is the
+				thing you save for the fan you did not see coming — which only
+				works because `DashBar` shows the player where it is.
+			]]
+			cooldown = 4,
 		},
 	},
 

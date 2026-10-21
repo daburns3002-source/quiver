@@ -12,7 +12,7 @@
 	`Line` draws the actual path the shot will take, which only means anything
 	if that path is honest — see `locksAim`.
 ]]
-export type EnemyTell = "Flash" | "Line"
+export type EnemyTell = "Flash" | "Line" | "Ground"
 
 --[[
 	A ranged enemy's attack. Melee archetypes leave `shot` unset and swing at
@@ -43,6 +43,35 @@ export type EnemyShot = {
 	the way DeviceTiers does. Phase 2 adds five of these and a typo in one
 	should be a type error, not a nil at runtime.
 ]]
+--[[
+	Going underground to close distance untouched.
+
+	The counterplay the teardown asks for is "pre-move before they land", so
+	the marker that shows where it will surface has to appear far enough ahead
+	for a player to walk out of it. `surfaceTell` is that window, and it is the
+	only defence against something that cannot be shot while it travels.
+]]
+export type EnemyBurrow = {
+	duration: number,
+	surfaceTell: number,
+	--[[
+		How close it tries to get before coming up.
+
+		Deliberately *not* `attackRange`. A ranged enemy parks itself at
+		attackRange, so gating the dive on being further than that would let it
+		dive exactly once and then sit on the boundary for ever. Underground it
+		is closing to knife range, which is a different number and a different
+		intent.
+	]]
+	surfaceDistance: number,
+	--[[ Movement multiplier while under. Faster than walking, or burrowing
+	     would be a worse way to cross the room than walking. ]]
+	speedScale: number,
+	--[[ Seconds above ground before it may dive again, so it cannot chain
+	     dives and spend the whole fight untargetable. ]]
+	cooldown: number,
+}
+
 export type EnemyConfig = {
 	displayName: string,
 	health: number,
@@ -55,6 +84,7 @@ export type EnemyConfig = {
 	color: Color3,
 	xpReward: number,
 	shot: EnemyShot?,
+	burrow: EnemyBurrow?,
 }
 
 local meleeCharger: EnemyConfig = {
@@ -169,6 +199,57 @@ local tank: EnemyConfig = {
 	color = Color3.fromRGB(120, 124, 138),
 	xpReward = 30,
 	shot = nil,
+	burrow = nil,
+}
+
+--[[
+	Hidden. Dives, crosses the room untargetable, and comes up next to the
+	player with a wide fan.
+
+	The pressure it applies is specific: every other archetype can be answered
+	by shooting it, and this one cannot while it is moving. It forces the
+	player to give up their firing position pre-emptively, on a marker, which
+	is the most expensive thing move-or-shoot can ask of them.
+
+	Low health, because it earns its damage by arriving rather than by
+	surviving — once it is above ground it should die fast.
+]]
+local burrower: EnemyConfig = {
+	displayName = "Lurker",
+	health = 26,
+	moveSpeed = 7,
+	attackRange = 26,
+	attackDamage = 10,
+	attackCooldown = 2.4,
+	knockback = 2,
+	hitboxSize = Vector3.new(3, 5, 3),
+	color = Color3.fromRGB(110, 190, 140),
+	xpReward = 20,
+	shot = {
+		--[[ Wider and denser than the Spitter's: it surfaces at close range,
+		     so the fan has to threaten the space around the player rather than
+		     a lane across the room. ]]
+		count = 5,
+		spread = math.rad(24),
+		speed = 18,
+		lifetime = 3,
+		--[[ Short. Surfacing *is* the telegraph, and the player has already
+		     been given the ground marker to act on. ]]
+		telegraph = 0.25,
+		tell = "Flash",
+		locksAim = false,
+	},
+	burrow = {
+		duration = 2.2,
+		--[[ Long enough to walk out of at base move speed, which is what makes
+		     the marker a decision rather than a notification. ]]
+		surfaceTell = 0.75,
+		--[[ Close, but not inside them. It comes up beside the player so the
+		     fan covers the space they are standing in. ]]
+		surfaceDistance = 8,
+		speedScale = 2.2,
+		cooldown = 3.5,
+	},
 }
 
 local Balance = {
@@ -204,6 +285,7 @@ local Balance = {
 		SpreadShooter = spreadShooter,
 		LineSniper = lineSniper,
 		Tank = tank,
+		Burrower = burrower,
 	},
 
 	--[[ Drawn tell for a `Line` shot: how thick the line is, and how far past
@@ -213,6 +295,10 @@ local Balance = {
 		lineThickness = 0.35,
 		lineOvershoot = 12,
 		lineColor = Color3.fromRGB(236, 92, 84),
+		--[[ Radius of the marker showing where something is about to surface.
+		     Wider than the enemy so stepping to its edge is not enough. ]]
+		groundRadius = 5,
+		groundColor = Color3.fromRGB(236, 140, 84),
 	},
 
 	--[[ Colour an enemy flashes to while winding up a telegraphed shot. The

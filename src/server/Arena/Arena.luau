@@ -192,6 +192,25 @@ function Arena.resolve(position: Vector3, radius: number): Vector3
 	return Vector3.new(point.X, position.Y, point.Y)
 end
 
+--[[
+	Keeps a circle inside the outer walls while ignoring obstacles entirely.
+
+	For things that are not travelling through the room so much as under it. A
+	burrowing enemy that still had to walk around pillars would spend its whole
+	dive steering and surface no closer than it started, which makes the dive
+	pointless — but it still must not leave the arena.
+]]
+function Arena.clampToWalls(position: Vector3, radius: number): Vector3
+	local limitX = math.max(halfSize.X - radius, 0)
+	local limitZ = math.max(halfSize.Y - radius, 0)
+
+	return Vector3.new(
+		math.clamp(position.X, -limitX, limitX),
+		position.Y,
+		math.clamp(position.Z, -limitZ, limitZ)
+	)
+end
+
 --[[ True if a circle at this point would be clear of obstacles and walls. ]]
 function Arena.isClear(position: Vector3, radius: number): boolean
 	local resolved = Arena.resolve(position, radius)

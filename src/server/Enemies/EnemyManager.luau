@@ -53,6 +53,18 @@ type Enemy = {
 	--[[ The direction a locked shot committed to when its wind-up began. Nil
 	     for shots that re-aim as they fire. ]]
 	volleyDirection: Vector3?,
+	--[[ `os.clock()` at which a burrowed enemy comes up, or nil while it is
+	     above ground. ]]
+	surfacesAt: number?,
+	--[[ Whether the ground marker for the current dive has gone out. One per
+	     dive, not one per frame. ]]
+	surfaceTold: boolean,
+	--[[ `os.clock()` it last came up, which the burrow cooldown counts from. ]]
+	lastSurfacedAt: number,
+	--[[ Mirrors `surfacesAt ~= nil`, kept as its own field so the movement
+	     code can skip republishing a position for something that is not
+	     currently a target. ]]
+	submerged: boolean,
 	--[[
 		Which way round an obstacle this enemy committed to, or nil when it has
 		a clear path. Held rather than recomputed: see the steering block in
@@ -208,6 +220,10 @@ function EnemyManager.spawn(config: EnemyConfig): Model?
 		lastAttackAt = 0,
 		volleyAt = nil,
 		volleyDirection = nil,
+		surfacesAt = nil,
+		surfaceTold = false,
+		lastSurfacedAt = 0,
+		submerged = false,
 		slideSign = nil,
 	}
 	positions[model] = position
@@ -234,7 +250,7 @@ function EnemyManager.spawnWave(count: number)
 	local roster = {
 		Balance.Enemies.MeleeCharger,
 		Balance.Enemies.SpreadShooter,
-		Balance.Enemies.MeleeCharger,
+		Balance.Enemies.Burrower,
 		Balance.Enemies.LineSniper,
 		Balance.Enemies.MeleeCharger,
 		Balance.Enemies.Tank,
@@ -318,6 +334,29 @@ end
 	move; aiming at the old position would hand them a free dodge and make the
 	tell meaningless.
 ]]
+--[[
+	Takes an enemy out of play as a target, or puts it back.
+
+	Three things have to agree or the illusion breaks in a way players read as
+	a bug rather than a mechanic: it must vanish from `positions`, which is
+	what server targeting iterates; its hitbox must stop answering raycasts, or
+	arrows would still stop dead in mid-air on something invisible; and the
+	model carries an attribute so the client's own targeting and prediction
+	agree with the server about what is shootable.
+]]
+local function setSubmerged(enemy: Enemy, submerged: boolean)
+	enemy.submerged = submerged
+	enemy.hitbox.CanQuery = not submerged
+	enemy.hitbox.Transparency = if submerged then 1 else 0
+	enemy.model:SetAttribute("Targetable", not submerged)
+
+	if submerged then
+		positions[enemy.model] = nil
+	else
+		positions[enemy.model] = enemy.position
+	end
+end
+
 local function aimAt(from: Vector3, targetRoot: BasePart): Vector3?
 	local flat = Vector3.new(targetRoot.Position.X - from.X, 0, targetRoot.Position.Z - from.Z)
 
@@ -364,16 +403,85 @@ local function stepEnemy(enemy: Enemy, deltaTime: number, now: number)
 
 	local config = enemy.config
 	local shot = config.shot
+	local burrow = config.burrow
 	local radius = math.max(config.hitboxSize.X, config.hitboxSize.Z) / 2
+
+	--[[
+		Dive and surface. A burrower spends the trip untargetable, which is the
+		whole threat, so the two things that bound it are the marker that warns
+		where it comes up and the cooldown that stops it chaining dives.
+	]]
+	if burrow then
+		local surfacesAt = enemy.surfacesAt
+
+		if surfacesAt then
+			if not enemy.surfaceTold and now >= surfacesAt - burrow.surfaceTell then
+				enemy.surfaceTold = true
+				--[[ Sent from where it will actually come up, which is where it
+				     is now — it keeps travelling during the tell, so the marker
+				     is a prediction the player can still beat on foot. ]]
+				enemyTelegraph:FireAllClients(
+					enemy.position,
+					Vector3.zAxis,
+					burrow.surfaceTell,
+					"Ground",
+					0
+				)
+			end
+
+			if now >= surfacesAt then
+				enemy.surfacesAt = nil
+				enemy.surfaceTold = false
+				enemy.lastSurfacedAt = now
+
+				--[[ It ignored obstacles on the way, so it can be standing
+				     inside one now. Pushed out before it becomes solid again,
+				     or it would surface embedded in a pillar and be shot at
+				     through geometry. ]]
+				enemy.position = Arena.resolve(enemy.position, radius)
+				setSubmerged(enemy, false)
+
+				--[[ Comes up already attacking. Surfacing is itself the tell,
+				     and the player was warned by the marker. ]]
+				enemy.lastAttackAt = now
+				if shot then
+					enemy.volleyAt = now + shot.telegraph
+					enemy.volleyDirection = if shot.locksAim
+						then aimAt(enemy.position, targetRoot)
+						else nil
+					enemy.hitbox.Color = Balance.TelegraphColor
+				end
+			end
+		elseif now - enemy.lastSurfacedAt >= burrow.cooldown and not enemy.volleyAt then
+			--[[
+				Deliberately not gated on distance. A ranged enemy holds at
+				`attackRange`, so requiring "further than attackRange" to dive
+				meant it dived once on spawn and then sat on that boundary for
+				ever. Diving is this archetype's rhythm, not an escape from
+				being too far away.
+			]]
+			enemy.surfacesAt = now + burrow.duration
+			enemy.surfaceTold = false
+			setSubmerged(enemy, true)
+		end
+	end
 
 	--[[ Whether the obstacle steering below committed to a side this step. The
 	     commitment must not outlive the block that caused it. ]]
 	local steering = false
 
-	--[[ A ranged enemy also moves when it is *too close*, backing off to
-	     recover its shooting lane. A melee one never does. ]]
-	local tooFar = distance > config.attackRange
-	local tooClose = shot ~= nil and distance < config.attackRange * HOLD_FRACTION
+	--[[
+		Underground it closes to `surfaceDistance` instead of holding a firing
+		lane: the whole point of the trip is to come up beside the player.
+		Above ground a ranged enemy also moves when it is *too close*, backing
+		off to recover that lane. A melee one never does.
+	]]
+	local holdAt = if enemy.submerged and burrow then burrow.surfaceDistance else config.attackRange
+
+	local tooFar = distance > holdAt
+	local tooClose = shot ~= nil
+		and not enemy.submerged
+		and distance < config.attackRange * HOLD_FRACTION
 
 	if tooFar or tooClose then
 		local toTarget = Vector3.new(
@@ -392,7 +500,7 @@ local function stepEnemy(enemy: Enemy, deltaTime: number, now: number)
 			Arena.resolve returns it to the same spot every frame, and the room
 			deadlocks with the player's arrows blocked by that same pillar.
 		]]
-		if desired.Magnitude > 1e-3 then
+		if desired.Magnitude > 1e-3 and not enemy.submerged then
 			local probe = enemy.position + desired * (radius + OBSTACLE_PROBE)
 			local normal = Arena.deflectionNormal(enemy.position, probe, radius)
 
@@ -435,9 +543,26 @@ local function stepEnemy(enemy: Enemy, deltaTime: number, now: number)
 			move = move.Unit
 		end
 
-		local nextPosition = enemy.position + move * enemy.config.moveSpeed * deltaTime
-		enemy.position = Arena.resolve(nextPosition, radius)
-		positions[enemy.model] = enemy.position
+		--[[ Faster underground, or diving would be a slower way to cross the
+		     room than walking and no player would ever have to respect it. ]]
+		local speed = config.moveSpeed
+			* (if enemy.submerged and burrow then burrow.speedScale else 1)
+
+		local nextPosition = enemy.position + move * speed * deltaTime
+
+		--[[ Underground it passes beneath obstacles and only the outer walls
+		     still apply. Steering around pillars on a dive would burn the
+		     whole trip and surface it no closer than it started. ]]
+		enemy.position = if enemy.submerged
+			then Arena.clampToWalls(nextPosition, radius)
+			else Arena.resolve(nextPosition, radius)
+
+		--[[ Not republished while submerged: `positions` is what targeting
+		     iterates, so writing here would put an untargetable enemy straight
+		     back into the list `setSubmerged` just removed it from. ]]
+		if not enemy.submerged then
+			positions[enemy.model] = enemy.position
+		end
 	end
 
 	--[[
@@ -469,6 +594,12 @@ local function stepEnemy(enemy: Enemy, deltaTime: number, now: number)
 		let a player cancel every shot by stepping back during the tell, which
 		turns the telegraph from a window into an exploit.
 	]]
+	--[[ Nothing underground attacks. Its entire turn is the trip and the
+	     marker; the volley belongs to the moment it comes up. ]]
+	if enemy.submerged then
+		return
+	end
+
 	local volleyAt = enemy.volleyAt
 
 	if volleyAt and shot then

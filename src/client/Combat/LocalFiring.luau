@@ -57,6 +57,17 @@ local function nearestEnemyPosition(origin: Vector3): Vector3?
 			continue
 		end
 
+		--[[
+			Prediction has to agree with the server about what is shootable, or
+			a burrowed enemy would pull the archer's aim underground and draw
+			arrows at something the server will not fire at. The server sets
+			this attribute when an enemy submerges; absent means targetable,
+			so archetypes that never burrow need no attribute at all.
+		]]
+		if model:GetAttribute("Targetable") == false then
+			continue
+		end
+
 		local delta = Vector3.new(primary.Position.X - origin.X, 0, primary.Position.Z - origin.Z)
 		local distance = delta.Magnitude
 

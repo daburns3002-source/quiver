@@ -90,6 +90,55 @@ local function drawLine(origin: Vector3, direction: Vector3, duration: number, r
 	Debris:AddItem(line, duration)
 end
 
+--[[
+	Draws where something is about to come up through the floor.
+
+	It grows outward over the whole warning rather than appearing at full size,
+	so the marker reads as a countdown: how much of it is drawn is how much
+	time is left to walk off it.
+]]
+local function drawGroundMarker(origin: Vector3, duration: number)
+	local tier = Device.tier()
+
+	if activeLines >= tier.maxDamageNumbers then
+		return
+	end
+
+	activeLines += 1
+
+	local config = Balance.Telegraph
+	local radius = config.groundRadius
+
+	local marker = Instance.new("Part")
+	marker.Name = "TelegraphGround"
+	marker.Shape = Enum.PartType.Cylinder
+	marker.Anchored = true
+	marker.CanCollide = false
+	marker.CanQuery = false
+	marker.CanTouch = false
+	marker.CastShadow = false
+	marker.Material = Enum.Material.Neon
+	marker.Color = config.groundColor
+	marker.Transparency = 0.6
+	marker.Size = Vector3.new(0.2, 1, 1)
+	--[[ A cylinder's length runs down its X axis, so it has to be laid on its
+	     side to sit flat against the floor. ]]
+	marker.CFrame = CFrame.new(origin.X, 0.15, origin.Z) * CFrame.Angles(0, 0, math.rad(90))
+	marker.Parent = folder
+
+	local grow = TweenInfo.new(duration, Enum.EasingStyle.Linear)
+	TweenService:Create(marker, grow, {
+		Size = Vector3.new(0.2, radius * 2, radius * 2),
+		Transparency = 0.35,
+	}):Play()
+
+	task.delay(duration, function()
+		activeLines -= 1
+	end)
+
+	Debris:AddItem(marker, duration)
+end
+
 --[[ `tell` and `reach` come straight off the enemy's config on the server; the
      client never decides whether a warning is owed, only how to show it. ]]
 function TelegraphRenderer.onTelegraph(
@@ -99,13 +148,18 @@ function TelegraphRenderer.onTelegraph(
 	tell: string,
 	reach: number
 )
-	if tell ~= "Line" then
-		--[[ A `Flash` tell is the enemy's own recolour, which the server
-		     already replicated. Nothing to draw. ]]
+	if duration <= 0 then
 		return
 	end
 
-	if duration <= 0 or direction.Magnitude < 1e-3 then
+	if tell == "Ground" then
+		drawGroundMarker(origin, duration)
+		return
+	end
+
+	if tell ~= "Line" or direction.Magnitude < 1e-3 then
+		--[[ A `Flash` tell is the enemy's own recolour, which the server
+		     already replicated. Nothing to draw. ]]
 		return
 	end
 

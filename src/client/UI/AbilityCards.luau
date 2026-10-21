@@ -55,8 +55,21 @@ local function clearCards()
 	end
 	table.clear(connections)
 
+	--[[
+		Only the cards.
+
+		`ClearAllChildren` took the UIListLayout with them, so every offer
+		after the first — and the first one too, since `show` clears before it
+		builds — laid all three cards at the same position, one on top of
+		another. The player saw a single card and two invisible ones stacked
+		behind it.
+	]]
 	if cardHolder then
-		cardHolder:ClearAllChildren()
+		for _, child in cardHolder:GetChildren() do
+			if child:IsA("TextButton") then
+				child:Destroy()
+			end
+		end
 	end
 end
 

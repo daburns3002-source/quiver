@@ -16,6 +16,29 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## All three draft cards drawn on top of each other
+
+**Symptom** — a level-up offered what looked like one card. The other two were
+behind it, exactly aligned.
+
+**Cause** — `clearCards` used `ClearAllChildren` on the card holder, which
+destroyed the `UIListLayout` along with the cards. `show` clears before it
+builds, so this bit on the *first* offer and every one after: with no layout,
+three cards sized `UDim2.new(1, 0, 0, 108)` all resolve to the same position.
+
+**Fix** — clear only the `TextButton`s and leave the layout alone.
+
+**Measured** — before: 3 cards, 1 distinct Y position, no layout present.
+After: 3 cards at y = 296 / 418 / 540, spaced by exactly the card height plus
+the configured padding, layout intact. Confirmed on a *second* consecutive
+offer, since that is the path that clears an existing screen.
+
+**Watch for** — any Roblox UI built once and refilled later. `ClearAllChildren`
+takes the constraints, layouts and corners with it, and the result is not an
+error — it is a layout that silently stops applying.
+
+---
+
 ## A passing test run against code Studio was not running
 
 **Symptom** — the in-Roblox suite passed with a plausible test count while

@@ -6,6 +6,37 @@ Low poly, cross-platform, co-op-shaped.
 Run loop: `docs/RESEARCH-archero.md`. Meta loop: `docs/PROGRESSION.md`.
 Phase plan: `docs/ROADMAP.md`. Lobby spec: `docs/LOBBY.md`.
 
+## Where we are
+
+**Phase 0 done. Phase 1 written but never executed.**
+
+- Branch `phase-1/move-or-shoot`, open as PR #3. CI green: Selene, StyLua,
+  `rojo build`, and `luau-lsp analyze` under strict mode.
+- **No part of Phase 1 has ever run.** It is lint, format, type and build
+  clean, which is not the same as working. Expect real bugs on first Play.
+- `Quiver-Phase1.rbxl` in the repo root is a built place for testing
+  (gitignored, rebuild with `rojo build default.project.json -o <name>.rbxl`).
+  It looks empty in edit mode — the arena is built at runtime by the server.
+- The Rojo Studio plugin is installed.
+
+**Immediate next step:** confirm the Roblox Studio MCP connection, run
+`rojo serve`, press Play, read the console, fix what breaks. Then hand the
+user Playtest 1, which asks one question: *does standing still to shoot feel
+like a real decision, or like a chore?*
+
+**Still blocked on the user:** lobby reference images, which belong in
+`assets/reference/lobby/` and are the spec for `docs/LOBBY.md`. Also whether
+Codex reviews via the GitHub integration or a local CLI.
+
+**Settled design decisions, so they do not get relitigated:**
+
+- Area gating is on **beating the boss**, not on a coin price, so the run loop
+  stays load-bearing.
+- **No raiding and no PvP.** Raiding was discussed and explicitly rejected.
+- **No energy gate.**
+- Rebirth is in scope but late; the save schema must not preclude it.
+- Co-op is Phase 9, but state is per-player from day one regardless.
+
 ## Commands
 
 ```bash

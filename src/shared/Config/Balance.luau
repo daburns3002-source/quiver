@@ -15,6 +15,17 @@
 export type EnemyTell = "Flash" | "Line" | "Ground"
 
 --[[
+	What the telegraph channel is allowed to carry.
+
+	Wider than `EnemyTell`, and deliberately a separate type: a shot's tell is
+	a warning about something that has not happened yet, while a dive has
+	already happened by the time it is drawn. They share a channel because
+	they are the same thing to render — a mark at a point, for a moment — but
+	`EnemyShot.tell` must not be allowed to name one.
+]]
+export type TelegraphTell = EnemyTell | "Dive"
+
+--[[
 	A ranged enemy's attack. Melee archetypes leave `shot` unset and swing at
 	`attackRange` instead.
 ]]
@@ -493,8 +504,29 @@ local Balance = {
 		lineColor = Color3.fromRGB(236, 92, 84),
 		--[[ Radius of the marker showing where something is about to surface.
 		     Wider than the enemy so stepping to its edge is not enough. ]]
-		groundRadius = 5,
-		groundColor = Color3.fromRGB(236, 140, 84),
+		groundRadius = 6.5,
+		groundColor = Color3.fromRGB(255, 150, 60),
+		--[[
+			The footprint, drawn instantly at full size and left there.
+
+			The growing disc is a countdown and has to stay one, but on its own
+			it spends the first third of a 0.75s warning as almost nothing —
+			which is most of the time the player had. This says *where* at
+			once, and the fill still says *when*.
+		]]
+		groundOutlineTransparency = 0.76,
+
+		--[[
+			The dive, which is the opposite event and is drawn as the opposite
+			shape: a disc that collapses inward rather than growing outward.
+
+			Growing means something is coming up here. Shrinking means
+			something went down here. Two events that used to be one silent
+			pop now read as a pair without the player being taught anything.
+		]]
+		diveDuration = 0.45,
+		diveRadius = 7,
+		diveColor = Color3.fromRGB(150, 230, 180),
 	},
 
 	--[[ Colour an enemy flashes to while winding up a telegraphed shot. The

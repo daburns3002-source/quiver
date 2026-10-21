@@ -97,6 +97,27 @@ end
 	so the marker reads as a countdown: how much of it is drawn is how much
 	time is left to walk off it.
 ]]
+--[[ A flat disc on the floor. Both ground cues are one of these; what
+     separates them is which way the tween runs. ]]
+local function groundDisc(origin: Vector3, name: string, colour: Color3, diameter: number): BasePart
+	local disc = Instance.new("Part")
+	disc.Name = name
+	disc.Shape = Enum.PartType.Cylinder
+	disc.Anchored = true
+	disc.CanCollide = false
+	disc.CanQuery = false
+	disc.CanTouch = false
+	disc.CastShadow = false
+	disc.Material = Enum.Material.Neon
+	disc.Color = colour
+	disc.Size = Vector3.new(0.2, diameter, diameter)
+	--[[ A cylinder's length runs down its X axis, so it has to be laid on its
+	     side to sit flat against the floor. ]]
+	disc.CFrame = CFrame.new(origin.X, 0.15, origin.Z) * CFrame.Angles(0, 0, math.rad(90))
+	disc.Parent = folder
+	return disc
+end
+
 local function drawGroundMarker(origin: Vector3, duration: number)
 	local tier = Device.tier()
 
@@ -109,27 +130,20 @@ local function drawGroundMarker(origin: Vector3, duration: number)
 	local config = Balance.Telegraph
 	local radius = config.groundRadius
 
-	local marker = Instance.new("Part")
-	marker.Name = "TelegraphGround"
-	marker.Shape = Enum.PartType.Cylinder
-	marker.Anchored = true
-	marker.CanCollide = false
-	marker.CanQuery = false
-	marker.CanTouch = false
-	marker.CastShadow = false
-	marker.Material = Enum.Material.Neon
-	marker.Color = config.groundColor
-	marker.Transparency = 0.6
-	marker.Size = Vector3.new(0.2, 1, 1)
-	--[[ A cylinder's length runs down its X axis, so it has to be laid on its
-	     side to sit flat against the floor. ]]
-	marker.CFrame = CFrame.new(origin.X, 0.15, origin.Z) * CFrame.Angles(0, 0, math.rad(90))
-	marker.Parent = folder
+	--[[ The footprint: full size from the first frame, so *where* costs the
+	     player no part of their warning. It does not animate. ]]
+	local outline = groundDisc(origin, "TelegraphFootprint", config.groundColor, radius * 2)
+	outline.Transparency = config.groundOutlineTransparency
+
+	--[[ The countdown, on top of it: how much is filled is how much time is
+	     left. This is the part that was always here. ]]
+	local marker = groundDisc(origin, "TelegraphGround", config.groundColor, 1)
+	marker.Transparency = 0.5
 
 	local grow = TweenInfo.new(duration, Enum.EasingStyle.Linear)
 	TweenService:Create(marker, grow, {
-		Size = Vector3.new(0.2, radius * 2, radius * 2),
-		Transparency = 0.35,
+		Size = Vector3.new(0.25, radius * 2, radius * 2),
+		Transparency = 0.15,
 	}):Play()
 
 	task.delay(duration, function()
@@ -137,6 +151,46 @@ local function drawGroundMarker(origin: Vector3, duration: number)
 	end)
 
 	Debris:AddItem(marker, duration)
+	Debris:AddItem(outline, duration)
+end
+
+--[[
+	Draws where something has just gone under.
+
+	The inverse of the marker above, on purpose: this collapses inward where
+	that one grows outward. A player never has to be told which is which,
+	because the two shapes are opposites and so are the events.
+
+	Not a warning — by the time this is drawn the enemy is already gone and
+	already untargetable. It exists because vanishing silently reads as a
+	despawn, and a despawned enemy is not something you keep watching for.
+]]
+local function drawDiveMarker(origin: Vector3)
+	local tier = Device.tier()
+
+	if activeLines >= tier.maxDamageNumbers then
+		return
+	end
+
+	activeLines += 1
+
+	local config = Balance.Telegraph
+	local duration = config.diveDuration
+
+	local disc = groundDisc(origin, "TelegraphDive", config.diveColor, config.diveRadius * 2)
+	disc.Transparency = 0.25
+
+	local collapse = TweenInfo.new(duration, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
+	TweenService:Create(disc, collapse, {
+		Size = Vector3.new(0.2, 0.5, 0.5),
+		Transparency = 0.85,
+	}):Play()
+
+	task.delay(duration, function()
+		activeLines -= 1
+	end)
+
+	Debris:AddItem(disc, duration)
 end
 
 --[[ `tell` and `reach` come straight off the enemy's config on the server; the
@@ -154,6 +208,11 @@ function TelegraphRenderer.onTelegraph(
 
 	if tell == "Ground" then
 		drawGroundMarker(origin, duration)
+		return
+	end
+
+	if tell == "Dive" then
+		drawDiveMarker(origin)
 		return
 	end
 

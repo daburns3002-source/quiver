@@ -534,6 +534,27 @@ local function stepEnemy(enemy: Enemy, deltaTime: number, now: number)
 			enemy.surfacesAt = now + burrow.duration
 			enemy.surfaceTold = false
 			setSubmerged(enemy, true)
+
+			--[[
+				Announced, because going under used to be completely silent.
+
+				The enemy simply stopped existing on screen, which reads as a
+				despawn rather than as a threat that has gone mobile — and a
+				player who thinks something despawned stops watching for it,
+				which is exactly backwards for the one archetype whose whole
+				pressure is arriving somewhere else.
+
+				No wind-up, unlike every other use of this channel: the dive
+				has already happened. The duration is how long the mark takes
+				to clear, not a window to act in.
+			]]
+			enemyTelegraph:FireAllClients(
+				enemy.position,
+				Vector3.zAxis,
+				Balance.Telegraph.diveDuration,
+				"Dive",
+				0
+			)
 		end
 	end
 

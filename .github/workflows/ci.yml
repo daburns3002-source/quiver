@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Lint, format and build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install Rokit toolchain
+        uses: CompeyDev/setup-rokit@v0.1.2
+        with:
+          cache: true
+
+      - name: Install Wally packages
+        run: wally install
+
+      - name: Generate Selene Roblox std
+        run: selene generate-roblox-std
+
+      - name: Lint (Selene)
+        run: selene src
+
+      - name: Format check (StyLua)
+        run: stylua --check src
+
+      - name: Build (Rojo)
+        run: rojo build -o build.rbxl
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: quiver-place
+          path: build.rbxl
+          retention-days: 7

@@ -29,8 +29,15 @@ type Faction = Types.Faction
 --[[ Whose shot it is has to be legible at a glance and from the edge of the
      screen, because the player's whole decision is whether they can afford to
      stand where they are. Warm is yours, violet is incoming. ]]
-local PLAYER_COLOUR = Color3.fromRGB(255, 226, 150)
-local ENEMY_COLOUR = Color3.fromRGB(198, 140, 255)
+--[[ Brightened towards white at the core. Archero reads its shots as light
+     rather than as objects, and at phone size a merely-coloured dart against a
+     lit floor is close to invisible. ]]
+local PLAYER_COLOUR = Color3.fromRGB(255, 244, 196)
+local ENEMY_COLOUR = Color3.fromRGB(226, 182, 255)
+
+--[[ Seconds of trail behind a shot. Short: it is there to make the line of
+     travel legible at a glance, not to leave the room full of ribbons. ]]
+local TRAIL_LIFETIME = 0.14
 
 type Visual = {
 	part: BasePart,
@@ -88,6 +95,46 @@ local function createPart(): BasePart
 	part.CastShadow = false
 	part.Material = Enum.Material.Neon
 	part.Color = PLAYER_COLOUR
+
+	--[[
+		Built once with the part and recoloured on reuse, because the pool
+		exists precisely to avoid allocating per shot. The two attachments sit
+		across the nose rather than along the body, so the ribbon is the width
+		of the arrow and streams out behind it as it travels.
+	]]
+	if tier.projectileTrails then
+		local size = projectileSize()
+		local nose = size.Z / 2
+
+		local left = Instance.new("Attachment")
+		left.Name = "TrailLeft"
+		left.Position = Vector3.new(-size.X / 2, 0, nose)
+		left.Parent = part
+
+		local right = Instance.new("Attachment")
+		right.Name = "TrailRight"
+		right.Position = Vector3.new(size.X / 2, 0, nose)
+		right.Parent = part
+
+		local trail = Instance.new("Trail")
+		trail.Name = "Trail"
+		trail.Attachment0 = left
+		trail.Attachment1 = right
+		trail.Lifetime = TRAIL_LIFETIME
+		trail.LightEmission = 1
+		trail.LightInfluence = 0
+		trail.FaceCamera = true
+		trail.Transparency = NumberSequence.new({
+			NumberSequenceKeypoint.new(0, 0.25),
+			NumberSequenceKeypoint.new(1, 1),
+		})
+		trail.WidthScale = NumberSequence.new({
+			NumberSequenceKeypoint.new(0, 1),
+			NumberSequenceKeypoint.new(1, 0),
+		})
+		trail.Parent = part
+	end
+
 	return part
 end
 
@@ -102,6 +149,15 @@ local function acquire(colour: Color3): BasePart
 
 	local resolved = part :: BasePart
 	resolved.Color = colour
+
+	local trail = resolved:FindFirstChildOfClass("Trail")
+	if trail then
+		trail.Color = ColorSequence.new(colour)
+		--[[ Cleared on reuse, or a recycled part draws a ribbon from wherever
+		     the last shot died to wherever this one starts. ]]
+		trail.Enabled = false
+	end
+
 	resolved.Parent = folder
 	return resolved
 end
@@ -293,6 +349,13 @@ function ProjectileRenderer.spawnVolley(
 		local part = acquire(colour)
 		local position = origin + aim * spec.speed * headStart
 		part.CFrame = placeAt(position, aim)
+
+		--[[ Enabled only once the part is sitting at its start, so a recycled
+		     one does not draw a ribbon from where the last shot expired. ]]
+		local trail = part:FindFirstChildOfClass("Trail")
+		if trail then
+			trail.Enabled = true
+		end
 
 		table.insert(live, {
 			part = part,

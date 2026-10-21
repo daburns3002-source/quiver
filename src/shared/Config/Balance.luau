@@ -453,10 +453,19 @@ local Balance = {
 			shots that plainly connected along the shaft did nothing.
 		]]
 		radius = 0.35,
-		--[[ Length of that arrow, along its direction of travel. Shared rather
-		     than a client constant, because the server has to sweep the same
-		     shape the player is looking at. ]]
-		length = 2.2,
+		--[[
+			Length of that arrow, along its direction of travel. Shared rather
+			than a client constant, because the server has to sweep the same
+			shape the player is looking at.
+
+			Long, because Archero reads its shots as beams rather than as
+			pellets and a short dart is almost invisible at phone size. This
+			costs nothing in fairness: the cast is a *swept* box, so the path
+			is already covered end to end and only `radius` decides how
+			laterally forgiving a shot is. Lengthening makes the shot louder
+			without making it sloppier.
+		]]
+		length = 4.2,
 		-- Hard cap on live server projectiles. Phase 3 abilities multiply volley
 		-- size aggressively; this is the backstop.
 		maxActive = 400,

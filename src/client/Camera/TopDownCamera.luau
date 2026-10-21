@@ -96,20 +96,38 @@ function TopDownCamera.stop()
 	end
 
 	currentFocus = nil
+	shakeMagnitude = 0
+	shakeDecay = 0
 end
 
 --[[ Snaps the camera to the character, for respawns. ]]
 function TopDownCamera.reset()
 	currentFocus = nil
+	--[[ Dropped too: a shake still running from the hit that killed the player
+	     would otherwise carry into the respawn. ]]
+	shakeMagnitude = 0
+	shakeDecay = 0
 end
 
 function TopDownCamera.shake(magnitude: number, duration: number)
-	if duration <= 0 then
+	if duration <= 0 or magnitude <= 0 then
 		return
 	end
 
 	shakeMagnitude = math.max(shakeMagnitude, magnitude)
-	shakeDecay = magnitude / duration
+
+	--[[
+		Derived from the magnitude actually in play, not the incoming one. A
+		weaker shake landing part way through a stronger one used to overwrite
+		the rate with its own, far smaller, value — which stretched the
+		stronger shake's tail instead of shortening it. Deriving it from the
+		result guarantees whatever is on screen clears within `duration`.
+
+		`magnitude <= 0` returns early for the same reason: a zero-magnitude
+		call produced a zero decay rate, and any shake already running then
+		never decayed at all.
+	]]
+	shakeDecay = shakeMagnitude / duration
 end
 
 return TopDownCamera

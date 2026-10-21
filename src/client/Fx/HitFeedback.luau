@@ -115,7 +115,10 @@ function HitFeedback.onEnemyHit(model: Model, amount: number, position: Vector3)
 	spawnDamageNumber(position, amount)
 end
 
-function HitFeedback.onEnemyDied(_model: Model, position: Vector3)
+--[[ Takes the position rather than the model: the enemy instance is destroyed
+     on the server in the same step the remote fires, so no reference to it
+     would reliably survive the trip. ]]
+function HitFeedback.onEnemyDied(position: Vector3)
 	local burst = Instance.new("Part")
 	burst.Name = "DeathBurst"
 	burst.Shape = Enum.PartType.Ball

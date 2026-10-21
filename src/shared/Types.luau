@@ -7,6 +7,18 @@
 ]]
 
 --[[
+	Who fired a projectile, which decides both what it can damage and what
+	stops it.
+
+	This is not cosmetic. Obstacles block the player's arrows but enemy shots
+	fly over them — cover is a damage penalty, never a safety net, and that one
+	asymmetry is what turns every room into a positioning puzzle. See
+	docs/RESEARCH-archero.md §1. So faction selects the raycast filter, not
+	just the damage target.
+]]
+export type Faction = "Player" | "Enemy"
+
+--[[
 	One projectile, fully resolved. The shot pipeline turns a single ShotRequest
 	into a list of these; nothing downstream needs to know which abilities
 	produced them.
@@ -56,6 +68,9 @@ export type ShotStage = {
 	volley instead of one per frame.
 ]]
 export type ShotEvent = {
+	faction: Faction,
+	--[[ UserId of the shooting player, or 0 when the shooter is not one. The
+	     client uses it to skip its own volleys, which prediction already drew. ]]
 	shooterId: number,
 	origin: Vector3,
 	direction: Vector3,

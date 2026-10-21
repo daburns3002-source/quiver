@@ -23,7 +23,21 @@ local RunSession = require(script.Parent.Parent.Run.RunSession)
 
 local log = Log.forTag("Enemies")
 
-type EnemyConfig = typeof(Balance.Enemies.MeleeCharger)
+type EnemyConfig = Balance.EnemyConfig
+
+--[[
+	A volley an enemy has decided to fire. Queued rather than fired here
+	because spawning a projectile needs ProjectileSystem, and ProjectileSystem
+	needs this module to resolve damage — requiring each other would be a
+	cycle. EnemyFiring drains these, exactly as FiringSystem sits beside
+	RunSession rather than inside it.
+]]
+export type Volley = {
+	origin: Vector3,
+	direction: Vector3,
+	damage: number,
+	shot: Balance.EnemyShot,
+}
 
 type Enemy = {
 	model: Model,
@@ -33,6 +47,9 @@ type Enemy = {
 	maxHealth: number,
 	position: Vector3,
 	lastAttackAt: number,
+	--[[ `os.clock()` at which a telegraphed volley actually leaves, or nil
+	     when this enemy is not winding one up. ]]
+	volleyAt: number?,
 	--[[
 		Which way round an obstacle this enemy committed to, or nil when it has
 		a clear path. Held rather than recomputed: see the steering block in
@@ -65,6 +82,14 @@ local SEPARATION_STRENGTH = 6
      step. A charger has no pathfinding, so without this it walks into an
      obstacle face and Arena.resolve pins it there for ever. ]]
 local OBSTACLE_PROBE = 1.25
+
+--[[ Fraction of its attackRange a ranged enemy backs away below, so it keeps a
+     shooting lane instead of being walked over and turned into a melee enemy
+     with a worse attack. ]]
+local HOLD_FRACTION = 0.6
+
+--[[ Volleys decided this step, drained by EnemyFiring. ]]
+local pendingVolleys: { Volley } = {}
 
 function EnemyManager.init(parent: Instance)
 	local existing = parent:FindFirstChild("Enemies")
@@ -177,6 +202,7 @@ function EnemyManager.spawn(config: EnemyConfig): Model?
 		maxHealth = config.health,
 		position = position,
 		lastAttackAt = 0,
+		volleyAt = nil,
 		slideSign = nil,
 	}
 	positions[model] = position
@@ -187,9 +213,19 @@ function EnemyManager.spawn(config: EnemyConfig): Model?
 	return model
 end
 
+--[[
+	Phase 1 shipped one archetype; this mixes two so both counterplays — keep
+	your distance, and find the gap — are exercised in the same room. A fixed
+	ratio is a placeholder: room-authored rosters replace it when the room
+	system lands, which is where a biome's identity will actually live.
+]]
 function EnemyManager.spawnWave(count: number)
-	for _ = 1, count do
-		EnemyManager.spawn(Balance.Enemies.MeleeCharger)
+	for index = 1, count do
+		local config = if index % 3 == 0
+			then Balance.Enemies.SpreadShooter
+			else Balance.Enemies.MeleeCharger
+
+		EnemyManager.spawn(config)
 	end
 
 	log.info("spawned wave of %d", count)
@@ -261,9 +297,34 @@ local function nearestAlivePlayerRoot(position: Vector3): (BasePart?, number)
 end
 
 --[[
-	Melee charger behaviour: walk at the nearest living player, hit them on
-	cooldown when close enough. No pathfinding — Archero rooms are open, and a
-	charger that beelines is readable in a way one that navigates is not.
+	Queues a volley aimed where the target is *now*, at the end of the wind-up
+	rather than at the start of it. The telegraph is the player's window to
+	move; aiming at the old position would hand them a free dodge and make the
+	tell meaningless.
+]]
+local function queueVolley(enemy: Enemy, targetRoot: BasePart, shot: Balance.EnemyShot)
+	local from = enemy.position
+	local flat = Vector3.new(targetRoot.Position.X - from.X, 0, targetRoot.Position.Z - from.Z)
+
+	if flat.Magnitude < 1e-3 then
+		return
+	end
+
+	table.insert(pendingVolleys, {
+		origin = from,
+		direction = flat.Unit,
+		damage = enemy.config.attackDamage,
+		shot = shot,
+	})
+end
+
+--[[
+	One behaviour for both archetypes, because they differ in data rather than
+	in kind: a melee charger closes to `attackRange` and swings, a ranged enemy
+	treats the same number as the distance it wants to *hold* and fires a
+	telegraphed volley from there. No pathfinding either way — Archero rooms
+	are open, and an enemy that beelines is readable in a way one that
+	navigates is not.
 ]]
 local function stepEnemy(enemy: Enemy, deltaTime: number, now: number)
 	local targetRoot, distance = nearestAlivePlayerRoot(enemy.position)
@@ -271,20 +332,28 @@ local function stepEnemy(enemy: Enemy, deltaTime: number, now: number)
 		return
 	end
 
-	local radius = math.max(enemy.config.hitboxSize.X, enemy.config.hitboxSize.Z) / 2
+	local config = enemy.config
+	local shot = config.shot
+	local radius = math.max(config.hitboxSize.X, config.hitboxSize.Z) / 2
 
 	--[[ Whether the obstacle steering below committed to a side this step. The
 	     commitment must not outlive the block that caused it. ]]
 	local steering = false
 
-	if distance > enemy.config.attackRange then
+	--[[ A ranged enemy also moves when it is *too close*, backing off to
+	     recover its shooting lane. A melee one never does. ]]
+	local tooFar = distance > config.attackRange
+	local tooClose = shot ~= nil and distance < config.attackRange * HOLD_FRACTION
+
+	if tooFar or tooClose then
 		local toTarget = Vector3.new(
 			targetRoot.Position.X - enemy.position.X,
 			0,
 			targetRoot.Position.Z - enemy.position.Z
 		)
 
-		local desired = if toTarget.Magnitude > 1e-3 then toTarget.Unit else Vector3.zero
+		local heading = if toTarget.Magnitude > 1e-3 then toTarget.Unit else Vector3.zero
+		local desired = if tooClose then -heading else heading
 
 		--[[
 			Steer along a pillar face rather than into it. Targeting
@@ -364,11 +433,39 @@ local function stepEnemy(enemy: Enemy, deltaTime: number, now: number)
 		enemy.hitbox.Position = enemy.position
 	end
 
-	if distance > enemy.config.attackRange then
+	--[[
+		A wind-up already in flight resolves wherever the enemy now is, even if
+		the player has since walked out of range. Cancelling it on range would
+		let a player cancel every shot by stepping back during the tell, which
+		turns the telegraph from a window into an exploit.
+	]]
+	local volleyAt = enemy.volleyAt
+
+	if volleyAt and shot then
+		if now >= volleyAt then
+			enemy.volleyAt = nil
+			enemy.hitbox.Color = config.color
+			queueVolley(enemy, targetRoot, shot)
+		end
+
 		return
 	end
 
-	if now - enemy.lastAttackAt < enemy.config.attackCooldown then
+	if distance > config.attackRange then
+		return
+	end
+
+	if now - enemy.lastAttackAt < config.attackCooldown then
+		return
+	end
+
+	--[[ Cooldown starts at the wind-up, not at the shot, so the telegraph is
+	     paid for out of the enemy's own rhythm rather than added to it. ]]
+	enemy.lastAttackAt = now
+
+	if shot then
+		enemy.volleyAt = now + shot.telegraph
+		enemy.hitbox.Color = Balance.TelegraphColor
 		return
 	end
 
@@ -382,14 +479,28 @@ local function stepEnemy(enemy: Enemy, deltaTime: number, now: number)
 		return
 	end
 
-	enemy.lastAttackAt = now
-	RunSession.applyDamage(session, enemy.config.attackDamage)
+	RunSession.applyDamage(session, config.attackDamage)
 end
 
 function EnemyManager.step(deltaTime: number, now: number)
 	for _, enemy in enemies do
 		stepEnemy(enemy, deltaTime, now)
 	end
+end
+
+--[[
+	Hands over the volleys decided this step and clears the queue. Drained once
+	per frame by EnemyFiring; anything left undrained would fire late rather
+	than twice.
+]]
+function EnemyManager.takeVolleys(): { Volley }
+	if #pendingVolleys == 0 then
+		return {}
+	end
+
+	local drained = pendingVolleys
+	pendingVolleys = {}
+	return drained
 end
 
 return EnemyManager

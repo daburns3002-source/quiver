@@ -153,6 +153,30 @@ function ShotPipeline.build(self: ShotPipeline, request: ShotRequest): { ShotSpe
 	return specs
 end
 
+--[[
+	Turns a spec's `angleOffset` into a world direction.
+
+	Lives here beside the thing that produced the offsets, because every
+	consumer of a built volley needs exactly this and three hand-rolled copies
+	of the same rotation is three chances to disagree about the sign.
+]]
+function ShotPipeline.aim(direction: Vector3, spec: ShotSpec): Vector3
+	local radians = spec.angleOffset
+
+	if radians == 0 then
+		return direction
+	end
+
+	local cos = math.cos(radians)
+	local sin = math.sin(radians)
+
+	return Vector3.new(
+		direction.X * cos - direction.Z * sin,
+		0,
+		direction.X * sin + direction.Z * cos
+	)
+end
+
 export type ShotPipeline = typeof(setmetatable({} :: Fields, ShotPipeline))
 
 return ShotPipeline

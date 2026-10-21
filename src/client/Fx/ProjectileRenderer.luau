@@ -17,9 +17,17 @@ local Workspace = game:GetService("Workspace")
 
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Device = require(script.Parent.Parent.Device)
+local ShotPipeline = require(ReplicatedStorage.Shared.Combat.ShotPipeline)
 local Types = require(ReplicatedStorage.Shared.Types)
 
 type ShotSpec = Types.ShotSpec
+type Faction = Types.Faction
+
+--[[ Whose shot it is has to be legible at a glance and from the edge of the
+     screen, because the player's whole decision is whether they can afford to
+     stand where they are. Warm is yours, violet is incoming. ]]
+local PLAYER_COLOUR = Color3.fromRGB(255, 226, 150)
+local ENEMY_COLOUR = Color3.fromRGB(198, 140, 255)
 
 type Visual = {
 	part: BasePart,
@@ -53,11 +61,13 @@ local function createPart(): BasePart
 	part.CanTouch = false
 	part.CastShadow = false
 	part.Material = Enum.Material.Neon
-	part.Color = Color3.fromRGB(255, 226, 150)
+	part.Color = PLAYER_COLOUR
 	return part
 end
 
-local function acquire(): BasePart
+--[[ Colour is set on acquire rather than on create: the pool is shared across
+     factions, so a recycled part still carries the last shooter's colour. ]]
+local function acquire(colour: Color3): BasePart
 	local part = table.remove(pool)
 
 	if not part then
@@ -65,6 +75,7 @@ local function acquire(): BasePart
 	end
 
 	local resolved = part :: BasePart
+	resolved.Color = colour
 	resolved.Parent = folder
 	return resolved
 end
@@ -130,23 +141,13 @@ local function step(deltaTime: number)
 	end
 end
 
-local function rotateY(direction: Vector3, radians: number): Vector3
-	local cos = math.cos(radians)
-	local sin = math.sin(radians)
-
-	return Vector3.new(
-		direction.X * cos - direction.Z * sin,
-		0,
-		direction.X * sin + direction.Z * cos
-	)
-end
-
 --[[
 	Draws one volley. `elapsed` lets a replicated shot start partway along its
 	flight so a remote player's arrows are not drawn lagging behind where the
 	server already has them.
 ]]
 function ProjectileRenderer.spawnVolley(
+	faction: Faction,
 	origin: Vector3,
 	direction: Vector3,
 	specs: { ShotSpec },
@@ -154,16 +155,17 @@ function ProjectileRenderer.spawnVolley(
 )
 	local tier = Device.tier()
 	local now = os.clock()
+	local colour = if faction == "Enemy" then ENEMY_COLOUR else PLAYER_COLOUR
 
 	for _, spec in specs do
 		if #live >= tier.maxRenderedProjectiles then
 			break
 		end
 
-		local aim = rotateY(direction, spec.angleOffset)
+		local aim = ShotPipeline.aim(direction, spec)
 		local headStart = math.clamp(elapsed, 0, spec.lifetime)
 
-		local part = acquire()
+		local part = acquire(colour)
 		local position = origin + aim * spec.speed * headStart
 		part.CFrame = CFrame.lookAt(position, position + aim)
 

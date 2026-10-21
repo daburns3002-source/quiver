@@ -12,12 +12,17 @@
 	projectile wherever it likes; it cannot make one deal damage.
 ]]
 
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Arena = require(script.Parent.Parent.Arena.Arena)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local EnemyManager = require(script.Parent.Parent.Enemies.EnemyManager)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
+local RunSession = require(script.Parent.Parent.Run.RunSession)
+local Types = require(ReplicatedStorage.Shared.Types)
+
+type Faction = Types.Faction
 
 local log = Log.forTag("Projectiles")
 
@@ -27,6 +32,9 @@ local log = Log.forTag("Projectiles")
 local MAX_SEGMENT_STEPS = 8
 
 type Projectile = {
+	--[[ Decides both what this can damage and what stops it. See
+	     Types.Faction — the blocking asymmetry is load-bearing. ]]
+	faction: Faction,
 	position: Vector3,
 	direction: Vector3,
 	speed: number,
@@ -43,7 +51,16 @@ type Projectile = {
 local ProjectileSystem = {}
 
 local active: { Projectile } = {}
-local raycastParams: RaycastParams? = nil
+
+--[[
+	One filter per faction, because the two factions are stopped by different
+	things. The player's shots are stopped by obstacles and hit enemies; enemy
+	shots ignore obstacles entirely and hit players. Keeping these as separate
+	include-lists means the asymmetry is a data difference rather than a branch
+	inside the hit loop.
+]]
+local playerFilter: RaycastParams? = nil
+local enemyFilter: RaycastParams? = nil
 
 --[[
 	Cap-warning throttle. Counted since the last warning rather than since the
@@ -54,28 +71,46 @@ local droppedSinceWarning = 0
 local lastWarnedAt = -math.huge
 local WARN_INTERVAL = 5
 
---[[
-	Rebuilt whenever the arena or enemy folder is recreated. Include-list rather
-	than exclude-list so a stray part in Workspace can never block a shot.
-]]
-function ProjectileSystem.refreshFilter()
-	local blockers = Arena.blockers()
-	local enemyFolder = EnemyManager.folder()
-
-	local instances: { Instance } = {}
-	if blockers then
-		table.insert(instances, blockers)
-	end
-	if enemyFolder then
-		table.insert(instances, enemyFolder)
-	end
-
+local function makeFilter(instances: { Instance }): RaycastParams
 	local params = RaycastParams.new()
 	params.FilterType = Enum.RaycastFilterType.Include
 	params.FilterDescendantsInstances = instances
 	params.IgnoreWater = true
+	return params
+end
 
-	raycastParams = params
+--[[
+	Rebuilt whenever the arena, the enemy folder or a character is recreated.
+	Include-lists rather than exclude-lists, so a stray part in Workspace can
+	never block a shot.
+
+	Note what is deliberately absent from the enemy filter: the arena blockers.
+	An enemy projectile is not stopped by a pillar. That is the asymmetry the
+	whole game rests on, and it lives here as an omission rather than as a
+	special case somewhere hotter.
+]]
+function ProjectileSystem.refreshFilters()
+	local blockers = Arena.blockers()
+	local enemyFolder = EnemyManager.folder()
+
+	local playerTargets: { Instance } = {}
+	if blockers then
+		table.insert(playerTargets, blockers)
+	end
+	if enemyFolder then
+		table.insert(playerTargets, enemyFolder)
+	end
+
+	local enemyTargets: { Instance } = {}
+	for _, session in RunSession.all() do
+		local character = session.character
+		if character then
+			table.insert(enemyTargets, character)
+		end
+	end
+
+	playerFilter = makeFilter(playerTargets)
+	enemyFilter = makeFilter(enemyTargets)
 end
 
 --[[
@@ -83,6 +118,7 @@ end
 	system, never by anything a client can reach.
 ]]
 function ProjectileSystem.spawn(
+	faction: Faction,
 	origin: Vector3,
 	direction: Vector3,
 	speed: number,
@@ -110,6 +146,7 @@ function ProjectileSystem.spawn(
 	end
 
 	table.insert(active, {
+		faction = faction,
 		position = origin,
 		direction = direction,
 		speed = speed,
@@ -121,7 +158,35 @@ function ProjectileSystem.spawn(
 end
 
 --[[
-	Walks a projectile along this step's segment, resolving every enemy it
+	Applies a projectile's damage to the model it reached, routed by faction.
+	Returns whether anything was actually damaged, so the caller knows whether
+	to spend pierce on the contact.
+
+	Both branches stay server-authoritative: the damage amount comes off the
+	projectile the server itself queued, never from anything a client said.
+]]
+local function applyHit(projectile: Projectile, model: Model): boolean
+	if projectile.faction == "Player" then
+		EnemyManager.damage(model, projectile.damage, projectile.position)
+		return true
+	end
+
+	local player = Players:GetPlayerFromCharacter(model)
+	if not player then
+		return false
+	end
+
+	local session = RunSession.get(player)
+	if not session then
+		return false
+	end
+
+	RunSession.applyDamage(session, projectile.damage)
+	return true
+end
+
+--[[
+	Walks a projectile along this step's segment, resolving every target it
 	passes through in order rather than only the first. Without the loop a
 	piercing shot at high speed would skip targets between frames.
 ]]
@@ -147,8 +212,8 @@ local function advance(projectile: Projectile, deltaTime: number, params: Raycas
 		local hitInstance = result.Instance
 		local model = hitInstance:FindFirstAncestorOfClass("Model")
 
-		-- A blocker, not an enemy: the arrow stops. Enemy projectiles will
-		-- ignore these in Phase 2; the player's never do.
+		--[[ Something in the filter with no Model above it is arena geometry,
+		     which only ever appears in the player's filter. The shot stops. ]]
 		if not model then
 			return false
 		end
@@ -162,7 +227,12 @@ local function advance(projectile: Projectile, deltaTime: number, params: Raycas
 		end
 
 		projectile.hitModels[model] = true
-		EnemyManager.damage(model, projectile.damage, projectile.position)
+
+		if not applyHit(projectile, model) then
+			--[[ Nothing valid was there — a nested model inside a character,
+			     say. Keep flying rather than spending pierce on it. ]]
+			continue
+		end
 
 		if projectile.pierce <= 0 then
 			return false
@@ -175,17 +245,19 @@ local function advance(projectile: Projectile, deltaTime: number, params: Raycas
 end
 
 function ProjectileSystem.step(deltaTime: number, now: number)
-	local params = raycastParams
-	if not params or #active == 0 then
+	if #active == 0 then
 		return
 	end
 
 	-- Reverse iteration so removals do not skip entries.
 	for index = #active, 1, -1 do
 		local projectile = active[index]
-		local alive = now < projectile.expiresAt
+		--[[ Picked per projectile, not per step: a volley can hold shots of
+		     both factions at once. ]]
+		local params = if projectile.faction == "Player" then playerFilter else enemyFilter
+		local alive = params ~= nil and now < projectile.expiresAt
 
-		if alive then
+		if alive and params then
 			alive = advance(projectile, deltaTime, params)
 		end
 

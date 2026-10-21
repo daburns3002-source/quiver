@@ -95,13 +95,15 @@ end)
 Remotes.event(Remotes.ShotFired).OnClientEvent:Connect(function(event: ShotEvent)
 	--[[
 		The local player's own volleys are drawn by prediction the moment they
-		happen. Drawing the server's copy too would double every arrow.
+		happen. Drawing the server's copy too would double every arrow. Only
+		player volleys carry a real shooterId, so the faction check keeps an
+		enemy volley from ever matching a UserId of 0.
 	]]
-	if event.shooterId == player.UserId then
+	if event.faction == "Player" and event.shooterId == player.UserId then
 		return
 	end
 
-	ProjectileRenderer.spawnVolley(event.origin, event.direction, event.specs, 0)
+	ProjectileRenderer.spawnVolley(event.faction, event.origin, event.direction, event.specs, 0)
 end)
 
 Remotes.event(Remotes.EnemyHit).OnClientEvent:Connect(HitFeedback.onEnemyHit)

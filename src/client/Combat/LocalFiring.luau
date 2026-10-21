@@ -145,7 +145,7 @@ local function step()
 		direction = aim.Unit,
 	})
 
-	ProjectileRenderer.spawnVolley(root.Position, aim.Unit, specs, 0)
+	ProjectileRenderer.spawnVolley("Player", root.Position, aim.Unit, specs, 0)
 end
 
 function LocalFiring.start()

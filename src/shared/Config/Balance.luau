@@ -5,6 +5,91 @@
 	If a gameplay constant is written inline anywhere else, it is a bug.
 ]]
 
+--[[
+	A ranged enemy's attack. Melee archetypes leave `shot` unset and swing at
+	`attackRange` instead.
+]]
+export type EnemyShot = {
+	count: number,
+	spread: number,
+	speed: number,
+	lifetime: number,
+	telegraph: number,
+}
+
+--[[
+	Declared as a type so every archetype is checked against the same shape,
+	the way DeviceTiers does. Phase 2 adds five of these and a typo in one
+	should be a type error, not a nil at runtime.
+]]
+export type EnemyConfig = {
+	displayName: string,
+	health: number,
+	moveSpeed: number,
+	attackRange: number,
+	attackDamage: number,
+	attackCooldown: number,
+	knockback: number,
+	hitboxSize: Vector3,
+	color: Color3,
+	xpReward: number,
+	shot: EnemyShot?,
+}
+
+local meleeCharger: EnemyConfig = {
+	displayName = "Charger",
+	health = 30,
+	moveSpeed = 9,
+	-- Studs from the player at which it lands a hit.
+	attackRange = 4,
+	attackDamage = 10,
+	attackCooldown = 1,
+	-- Studs the enemy is shoved back per hit taken.
+	knockback = 2,
+	hitboxSize = Vector3.new(3, 5, 3),
+	color = Color3.fromRGB(214, 96, 86),
+	xpReward = 10,
+	--[[ Melee: closes to attackRange and swings. A ranged archetype sets
+	     `shot` instead and keeps its distance. ]]
+	shot = nil,
+}
+
+--[[
+	Spread ranged. Stands off and fires a fan of slow projectiles, which the
+	player walks through the gaps of. The counterplay it teaches is "find the
+	gap, move through it" — so the arc stays wide enough to read and the
+	projectiles slow enough to dodge on a phone.
+	See docs/RESEARCH-archero.md §4.
+]]
+local spreadShooter: EnemyConfig = {
+	displayName = "Spitter",
+	health = 24,
+	moveSpeed = 6,
+	--[[ Ranged enemies treat attackRange as the distance they want to hold,
+	     not the distance they close to. ]]
+	attackRange = 34,
+	attackDamage = 8,
+	attackCooldown = 2.2,
+	knockback = 2,
+	hitboxSize = Vector3.new(3, 5, 3),
+	color = Color3.fromRGB(150, 110, 200),
+	xpReward = 14,
+	shot = {
+		-- Odd count so one projectile always runs down the centre.
+		count = 3,
+		-- Radians between neighbouring projectiles in the fan.
+		spread = math.rad(18),
+		--[[ Slow on purpose. Enemy projectiles have to be readable and
+		     dodgeable on a small screen; 8–20 studs/s is the band the teardown
+		     calls for. ]]
+		speed = 16,
+		lifetime = 4,
+		--[[ Seconds of wind-up before the volley leaves, so the player reacts
+		     to the tell rather than to the projectile. ]]
+		telegraph = 0.45,
+	},
+}
+
 local Balance = {
 	Player = {
 		maxHealth = 100,
@@ -34,21 +119,14 @@ local Balance = {
 	},
 
 	Enemies = {
-		MeleeCharger = {
-			displayName = "Charger",
-			health = 30,
-			moveSpeed = 9,
-			-- Studs from the player at which it lands a hit.
-			attackRange = 4,
-			attackDamage = 10,
-			attackCooldown = 1,
-			-- Studs the enemy is shoved back per hit taken.
-			knockback = 2,
-			hitboxSize = Vector3.new(3, 5, 3),
-			color = Color3.fromRGB(214, 96, 86),
-			xpReward = 10,
-		},
+		MeleeCharger = meleeCharger,
+		SpreadShooter = spreadShooter,
 	},
+
+	--[[ Colour an enemy flashes to while winding up a telegraphed shot. The
+	     tell has to be visible before the projectile exists, or the telegraph
+	     is decoration. ]]
+	TelegraphColor = Color3.fromRGB(255, 226, 150),
 
 	Arena = {
 		size = Vector3.new(90, 1, 90),

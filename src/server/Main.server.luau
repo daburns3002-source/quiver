@@ -20,6 +20,7 @@ local RunService = game:GetService("RunService")
 
 local Arena = require(script.Parent.Arena.Arena)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
+local EnemyFiring = require(script.Parent.Combat.EnemyFiring)
 local EnemyManager = require(script.Parent.Enemies.EnemyManager)
 local FiringSystem = require(script.Parent.Combat.FiringSystem)
 local Game = require(ReplicatedStorage.Shared.Config.Game)
@@ -57,12 +58,16 @@ end
 Arena.build(workspace)
 buildSpawn(workspace)
 EnemyManager.init(workspace)
-ProjectileSystem.refreshFilter()
+ProjectileSystem.refreshFilters()
 EnemyManager.spawnWave(Balance.Spawning.enemyCount)
 
 local function onCharacterAdded(player: Player, character: Model)
 	local session = RunSession.get(player) or RunSession.create(player)
 	RunSession.bindCharacter(session, character)
+	--[[ Enemy projectiles raycast against player characters, so the filter has
+	     to learn about each new body. Without this a respawned player is
+	     invisible to every enemy shot. ]]
+	ProjectileSystem.refreshFilters()
 end
 
 local function onPlayerAdded(player: Player)
@@ -98,6 +103,9 @@ RunService.Heartbeat:Connect(function(deltaTime: number)
 	local now = os.clock()
 
 	EnemyManager.step(deltaTime, now)
+	--[[ Straight after the enemies decide, so a volley never waits a frame
+	     between its telegraph ending and the projectiles existing. ]]
+	EnemyFiring.step(now)
 	FiringSystem.step(deltaTime, now)
 	ProjectileSystem.step(deltaTime, now)
 

@@ -9,17 +9,96 @@
 ]]
 
 local Debris = game:GetService("Debris")
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
 
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Device = require(script.Parent.Parent.Device)
+local EnemyDesigns = require(ReplicatedStorage.Shared.Config.EnemyDesigns)
 local TopDownCamera = require(script.Parent.Parent.Camera.TopDownCamera)
 
 local HitFeedback = {}
 
 local folder: Folder? = nil
 local activeNumbers = 0
+
+--[[ The screen-edge flare, built once and reused. Four gradient bands rather
+     than one radial image, because a radial vignette needs an uploaded asset
+     and this needs none. ]]
+local vignette: { Frame } = {}
+
+--[[
+	Guards the character flash against overlapping hits.
+
+	Two projectiles landing inside one flash would otherwise have the second
+	one record the *flashed* colour as the character's original and restore to
+	red permanently. Only the newest flash is allowed to restore, and only the
+	first one captures.
+]]
+local flashToken = 0
+local originalColors: { [BasePart]: Color3 } = {}
+
+local function buildVignette()
+	local playerGui = Players.LocalPlayer:WaitForChild("PlayerGui")
+
+	local existing = playerGui:FindFirstChild("HitVignette")
+	if existing then
+		existing:Destroy()
+	end
+
+	local gui = Instance.new("ScreenGui")
+	gui.Name = "HitVignette"
+	gui.IgnoreGuiInset = true
+	gui.ResetOnSpawn = false
+	--[[ Above the HUD: it is a reaction to something happening now, and the
+	     health bar it is reporting on sits underneath it. ]]
+	gui.DisplayOrder = 50
+	gui.Parent = playerGui
+
+	local reach = Balance.Feedback.vignetteReach
+	local edges = {
+		{ size = UDim2.fromScale(1, reach), position = UDim2.fromScale(0, 0), rotation = 90 },
+		{
+			size = UDim2.fromScale(1, reach),
+			position = UDim2.fromScale(0, 1 - reach),
+			rotation = 270,
+		},
+		{ size = UDim2.fromScale(reach, 1), position = UDim2.fromScale(0, 0), rotation = 0 },
+		{
+			size = UDim2.fromScale(reach, 1),
+			position = UDim2.fromScale(1 - reach, 0),
+			rotation = 180,
+		},
+	}
+
+	table.clear(vignette)
+
+	for _, edge in edges do
+		local frame = Instance.new("Frame")
+		frame.Size = edge.size
+		frame.Position = edge.position
+		frame.BackgroundColor3 = Balance.Feedback.vignetteColor
+		--[[ Starts invisible rather than hidden, so a hit only ever has to
+		     tween one property on an object that is already laid out. ]]
+		frame.BackgroundTransparency = 1
+		frame.BorderSizePixel = 0
+		frame.ZIndex = 1
+		frame.Parent = gui
+
+		local gradient = Instance.new("UIGradient")
+		--[[ Opaque at the screen edge, gone by the inner lip. Rotation picks
+		     which edge keypoint 0 sits on. ]]
+		gradient.Rotation = edge.rotation
+		gradient.Transparency = NumberSequence.new({
+			NumberSequenceKeypoint.new(0, 0),
+			NumberSequenceKeypoint.new(1, 1),
+		})
+		gradient.Parent = frame
+
+		table.insert(vignette, frame)
+	end
+end
 
 function HitFeedback.start(parent: Instance)
 	local existing = parent:FindFirstChild("HitFeedback")
@@ -32,6 +111,11 @@ function HitFeedback.start(parent: Instance)
 	created.Parent = parent
 	folder = created
 	activeNumbers = 0
+
+	table.clear(originalColors)
+	flashToken = 0
+
+	buildVignette()
 end
 
 local function spawnDamageNumber(position: Vector3, amount: number)
@@ -91,18 +175,39 @@ local function spawnDamageNumber(position: Vector3, amount: number)
 	Debris:AddItem(anchor, duration)
 end
 
+--[[
+	Whites out an enemy for a frame or two.
+
+	Walks the tagged skin rather than the PrimaryPart. The PrimaryPart is the
+	hitbox, and the hitbox is invisible — flashing it lit up nothing at all
+	once the archetypes got bodies. The tag is set by EnemyModel on the server
+	and replicates with the part, so the client needs to know nothing about
+	which archetype it is looking at.
+]]
 local function flash(model: Model)
-	local primary = model.PrimaryPart
-	if not primary then
+	local painted: { [BasePart]: Color3 } = {}
+	local any = false
+
+	for _, descendant in model:GetDescendants() do
+		if descendant:IsA("BasePart") and descendant:GetAttribute(EnemyDesigns.TintTag) then
+			painted[descendant] = descendant.Color
+			any = true
+			descendant.Color = Balance.Feedback.hitFlashColor
+		end
+	end
+
+	if not any then
 		return
 	end
 
-	local original = primary.Color
-	primary.Color = Balance.Feedback.hitFlashColor
-
 	task.delay(Balance.Feedback.hitFlashDuration, function()
-		if primary.Parent then
-			primary.Color = original
+		for part, original in painted do
+			--[[ Restores to what was there when the flash began, which may be
+			     the telegraph colour rather than the design's. A hit landing
+			     mid-wind-up must not cancel the tell. ]]
+			if part.Parent then
+				part.Color = original
+			end
 		end
 	end)
 end
@@ -142,7 +247,113 @@ function HitFeedback.onEnemyDied(position: Vector3)
 	Debris:AddItem(burst, 0.3)
 end
 
+--[[
+	Turns the whole character red for a beat.
+
+	Every BasePart, not just the root: the character is read as a silhouette
+	from a fixed overhead camera, and tinting one part of it reads as a
+	rendering glitch rather than as damage.
+]]
+local function flashCharacter(character: Model)
+	flashToken += 1
+	local token = flashToken
+
+	local parts: { BasePart } = {}
+	for _, descendant in character:GetDescendants() do
+		if descendant:IsA("BasePart") and descendant.Transparency < 1 then
+			table.insert(parts, descendant)
+			--[[ Only the first flash of a sequence records the real colour.
+			     See `flashToken`. ]]
+			if not originalColors[descendant] then
+				originalColors[descendant] = descendant.Color
+			end
+		end
+	end
+
+	for _, part in parts do
+		part.Color = Balance.Feedback.playerHitColor
+	end
+
+	task.delay(Balance.Feedback.playerHitDuration, function()
+		--[[ A later hit owns the restore now. Bailing out here is what stops
+		     two hits in quick succession from ending the first one early and
+		     leaving the character lit for the remainder of the second. ]]
+		if token ~= flashToken then
+			return
+		end
+
+		for part, colour in originalColors do
+			if part.Parent then
+				part.Color = colour
+			end
+		end
+		table.clear(originalColors)
+	end)
+end
+
+--[[ A ring thrown off the character. The flash says *you*, this says *now* —
+     it is still legible when the character itself is buried under projectiles
+     and damage numbers. ]]
+local function spawnPlayerBurst(position: Vector3)
+	local ring = Instance.new("Part")
+	ring.Name = "PlayerHitBurst"
+	ring.Shape = Enum.PartType.Ball
+	ring.Size = Vector3.one * 2
+	ring.Position = position
+	ring.Anchored = true
+	ring.CanCollide = false
+	ring.CanQuery = false
+	ring.CanTouch = false
+	ring.CastShadow = false
+	ring.Material = Enum.Material.Neon
+	ring.Color = Balance.Feedback.playerHitColor
+	ring.Transparency = 0.3
+	ring.Parent = folder
+
+	local duration = Balance.Feedback.playerHitBurstDuration
+	TweenService:Create(ring, TweenInfo.new(duration, Enum.EasingStyle.Quad), {
+		Size = Vector3.one * Balance.Feedback.playerHitBurstRadius,
+		Transparency = 1,
+	}):Play()
+
+	Debris:AddItem(ring, duration)
+end
+
+local function flashVignette()
+	local duration = Balance.Feedback.vignetteDuration
+	local info = TweenInfo.new(duration, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+
+	for _, frame in vignette do
+		--[[ Snapped on, tweened off. A hit that fades *in* has already stopped
+		     being news by the time the player sees it. ]]
+		frame.BackgroundTransparency = 0.25
+		TweenService:Create(frame, info, { BackgroundTransparency = 1 }):Play()
+	end
+end
+
+--[[
+	The player has been hit by something.
+
+	Three cues, because one is not enough on a phone: the character turns red,
+	a ring leaves it, and the screen edges flare. None of them is gated on a
+	device tier — between them they are a handful of property writes and one
+	part, and the one genuinely expensive cue here is the camera shake, which
+	was already gated.
+]]
 function HitFeedback.onPlayerDamaged(_amount: number)
+	local character = Players.LocalPlayer.Character
+
+	if character then
+		flashCharacter(character)
+
+		local root = character:FindFirstChild("HumanoidRootPart")
+		if root and root:IsA("BasePart") then
+			spawnPlayerBurst(root.Position)
+		end
+	end
+
+	flashVignette()
+
 	if not Device.tier().enableScreenShake then
 		return
 	end

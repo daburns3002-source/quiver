@@ -564,6 +564,35 @@ local Balance = {
 		damageNumberDuration = 0.7,
 		shakeOnDamageMagnitude = 1.6,
 		shakeOnDamageDuration = 0.25,
+
+		--[[
+			What happens to the player's own character when something lands on
+			it. Deliberately separate numbers from the enemy flash above, and
+			deliberately louder.
+
+			An enemy flash confirms something the player chose to do. This one
+			reports something done *to* them, while they were busy reading the
+			room — so it has to survive not being looked at directly. It runs
+			twice as long, in a colour nothing else in the game uses.
+		]]
+		playerHitColor = Color3.fromRGB(255, 86, 74),
+		playerHitDuration = 0.18,
+		--[[ A ring thrown off the character, so a hit is legible from the
+		     silhouette alone when the character itself is behind a projectile
+		     or under a damage number. ]]
+		playerHitBurstRadius = 5.5,
+		playerHitBurstDuration = 0.28,
+		--[[
+			Screen-edge flare: how far in from each edge the glow reaches, as a
+			fraction of that axis, and how long it takes to clear.
+
+			Kept shallow on purpose. The player is being asked to find a gap in
+			a fan of projectiles at the moment this fires, and a vignette deep
+			enough to be dramatic is a blindfold on a phone.
+		]]
+		vignetteReach = 0.16,
+		vignetteDuration = 0.34,
+		vignetteColor = Color3.fromRGB(216, 40, 36),
 	},
 
 	Camera = {

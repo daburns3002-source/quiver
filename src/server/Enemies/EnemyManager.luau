@@ -17,6 +17,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Arena = require(script.Parent.Parent.Arena.Arena)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
+local EnemyModel = require(script.Parent.EnemyModel)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local RunSession = require(script.Parent.Parent.Run.RunSession)
@@ -42,6 +43,10 @@ export type Volley = {
 type Enemy = {
 	model: Model,
 	hitbox: BasePart,
+	--[[ Everything drawn for this enemy. Separate from `hitbox` on purpose:
+	     the hitbox is what the server sweeps and the skin is what the player
+	     sees, and only the first of those is allowed to matter to combat. ]]
+	skin: EnemyModel.Skin,
 	config: EnemyConfig,
 	health: number,
 	maxHealth: number,
@@ -138,32 +143,6 @@ end
 
 function EnemyManager.folder(): Folder?
 	return folder
-end
-
-local function buildModel(config: EnemyConfig, position: Vector3): (Model, BasePart)
-	local model = Instance.new("Model")
-	model.Name = config.displayName
-
-	local hitbox = Instance.new("Part")
-	hitbox.Name = "Hitbox"
-	hitbox.Size = config.hitboxSize
-	hitbox.Position = position
-	hitbox.Anchored = true
-	--[[
-		Collision is resolved analytically in Arena.resolve, so the hitbox is
-		only ever a raycast target. Leaving CanCollide on would let enemies shove
-		the player's character around, which move-or-shoot cannot survive.
-	]]
-	hitbox.CanCollide = false
-	hitbox.CanTouch = false
-	hitbox.CastShadow = false
-	hitbox.Color = config.color
-	hitbox.Material = Enum.Material.SmoothPlastic
-	hitbox.Parent = model
-
-	model.PrimaryPart = hitbox
-
-	return model, hitbox
 end
 
 --[[
@@ -291,11 +270,12 @@ function EnemyManager.spawn(config: EnemyConfig): Model?
 	end
 
 	local position = findSpawnPosition(config)
-	local model, hitbox = buildModel(config, position)
+	local model, hitbox, skin = EnemyModel.build(config, position)
 
 	enemies[model] = {
 		model = model,
 		hitbox = hitbox,
+		skin = skin,
 		config = config,
 		health = config.health,
 		maxHealth = config.health,
@@ -438,7 +418,7 @@ end
 local function setSubmerged(enemy: Enemy, submerged: boolean)
 	enemy.submerged = submerged
 	enemy.hitbox.CanQuery = not submerged
-	enemy.hitbox.Transparency = if submerged then 1 else 0
+	EnemyModel.setHidden(enemy.skin, submerged)
 	enemy.model:SetAttribute("Targetable", not submerged)
 
 	if submerged then
@@ -540,7 +520,7 @@ local function stepEnemy(enemy: Enemy, deltaTime: number, now: number)
 					enemy.volleyDirection = if shot.locksAim
 						then aimAt(enemy.position, targetRoot)
 						else nil
-					enemy.hitbox.Color = Balance.TelegraphColor
+					EnemyModel.tint(enemy.skin, Balance.TelegraphColor)
 				end
 			end
 		elseif now - enemy.lastSurfacedAt >= burrow.cooldown and not enemy.volleyAt then
@@ -696,7 +676,7 @@ local function stepEnemy(enemy: Enemy, deltaTime: number, now: number)
 	if volleyAt and shot then
 		if now >= volleyAt then
 			enemy.volleyAt = nil
-			enemy.hitbox.Color = config.color
+			EnemyModel.restore(enemy.skin, config)
 			queueVolley(enemy, targetRoot, shot)
 			enemy.volleyDirection = nil
 		end
@@ -728,7 +708,7 @@ local function stepEnemy(enemy: Enemy, deltaTime: number, now: number)
 		--[[ The flash stays on for both tells: it marks *which* enemy is
 		     winding up, which a line alone does not, since a line drawn across
 		     a busy room is hard to trace back to its owner. ]]
-		enemy.hitbox.Color = Balance.TelegraphColor
+		EnemyModel.tint(enemy.skin, Balance.TelegraphColor)
 
 		enemyTelegraph:FireAllClients(
 			enemy.position,

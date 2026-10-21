@@ -60,15 +60,19 @@ local connection: RBXScriptConnection? = nil
 local playerFilter: RaycastParams? = nil
 local enemyFilter: RaycastParams? = nil
 
-local PROJECTILE_LENGTH = 2.2
+--[[ The arrow's dimensions, read from the same config the server sweeps, so
+     the shape drawn and the shape simulated cannot drift apart. ]]
+local function projectileSize(): Vector3
+	local width = Balance.Projectile.radius * 2
+	return Vector3.new(width, width, Balance.Projectile.length)
+end
 
 local function createPart(): BasePart
 	local tier = Device.tier()
 
 	local part = Instance.new("Part")
 	part.Name = "Projectile"
-	part.Size =
-		Vector3.new(Balance.Projectile.radius * 2, Balance.Projectile.radius * 2, PROJECTILE_LENGTH)
+	part.Size = projectileSize()
 	part.Shape = if tier.projectileIsRound then Enum.PartType.Cylinder else Enum.PartType.Block
 	part.Anchored = true
 	part.CanCollide = false
@@ -147,11 +151,17 @@ end
 	shot was still short of it. Aligning the leading edge makes "the tip
 	touched it" and "the server counted it" the same moment.
 ]]
-local function placeAt(position: Vector3, direction: Vector3): CFrame
-	local lead = PROJECTILE_LENGTH / 2 - Balance.Projectile.radius
-	local centre = position - direction * lead
+--[[
+	Centred on the simulated position, which is now also the centre of the box
+	the server sweeps.
 
-	return CFrame.lookAt(centre, centre + direction)
+	This used to offset the part backwards so its nose sat where a much
+	smaller sphere's front was. With the server sweeping the whole arrow there
+	is nothing left to compensate for: the drawn part and the hitbox are the
+	same box in the same place.
+]]
+local function placeAt(position: Vector3, direction: Vector3): CFrame
+	return CFrame.lookAt(position, position + direction)
 end
 
 local function step(deltaTime: number)
@@ -169,8 +179,14 @@ local function step(deltaTime: number)
 			     A zero-width ray here would sail past edges the server counts
 			     as hits, so an arrow would visibly pass through an enemy that
 			     took damage from it. ]]
-			local result =
-				Workspace:Spherecast(visual.position, Balance.Projectile.radius, segment, params)
+			--[[ The same box the server sweeps, so a shot that stops on screen
+			     is a shot that stopped on the server. ]]
+			local result = Workspace:Blockcast(
+				CFrame.lookAt(visual.position, visual.position + visual.direction),
+				projectileSize(),
+				segment,
+				params
+			)
 
 			if result then
 				visual.position = result.Position

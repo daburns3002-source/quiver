@@ -221,6 +221,25 @@ local function applyHit(projectile: Projectile, model: Model): boolean
 end
 
 --[[
+	The box the server sweeps: exactly the arrow the client draws.
+
+	Width and length both come from config rather than being a server-side
+	approximation, so there is one shape and both halves of the game agree on
+	it. A sphere here meant only the arrow's nose could ever register a hit,
+	which is what made shots along a visibly-connecting shaft do nothing.
+]]
+local function projectileSize(): Vector3
+	local width = Balance.Projectile.radius * 2
+	return Vector3.new(width, width, Balance.Projectile.length)
+end
+
+--[[ Centred on the projectile's position and pointed down its travel, which
+     is how the client orients the drawn part. ]]
+local function projectileCFrame(projectile: Projectile): CFrame
+	return CFrame.lookAt(projectile.position, projectile.position + projectile.direction)
+end
+
+--[[
 	Resolves anything the projectile was created already inside.
 
 	Neither a ray nor a sphere cast reports a body its origin sits within, so
@@ -234,7 +253,7 @@ local function resolveSpawnOverlap(projectile: Projectile, overlap: OverlapParam
 	projectile.spawnChecked = true
 
 	local touching =
-		workspace:GetPartBoundsInRadius(projectile.position, Balance.Projectile.radius, overlap)
+		workspace:GetPartBoundsInBox(projectileCFrame(projectile), projectileSize(), overlap)
 
 	for _, part in touching do
 		local model = part:FindFirstAncestorOfClass("Model")
@@ -281,7 +300,7 @@ local function advance(
 
 	local remaining = projectile.speed * deltaTime
 	local steps = 0
-	local radius = Balance.Projectile.radius
+	local size = projectileSize()
 
 	while remaining > 1e-3 do
 		steps += 1
@@ -291,7 +310,7 @@ local function advance(
 		end
 
 		local segment = projectile.direction * remaining
-		local result = workspace:Spherecast(projectile.position, radius, segment, params)
+		local result = workspace:Blockcast(projectileCFrame(projectile), size, segment, params)
 
 		if not result then
 			projectile.position += segment

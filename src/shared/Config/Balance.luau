@@ -169,7 +169,7 @@ local lineSniper: EnemyConfig = {
 		spread = 0,
 		--[[ Fast, unlike the Spitter. The telegraph is the counterplay here,
 		     not the flight time — once it fires, it has already hit. ]]
-		speed = 64,
+		speed = 45,
 		lifetime = 2,
 		--[[ Long, because the whole fight is the player reading this window
 		     and moving out of the line inside it. ]]
@@ -318,7 +318,7 @@ local rooms: { RoomConfig } = {
 		     and it should not also be the room that punishes them hardest for
 		     getting it wrong. ]]
 		--[[ Chargers only. The first room teaches one thing: stopping is a choice. ]]
-		enemyCount = 3,
+		enemyCount = 2,
 		roster = { meleeCharger },
 	},
 	{
@@ -328,7 +328,7 @@ local rooms: { RoomConfig } = {
 			{ offset = Vector2.new(14, 0), size = Vector3.new(8, 10, 8) },
 		},
 		--[[ Adds the spitter. A fan you walk through the gaps of. ]]
-		enemyCount = 4,
+		enemyCount = 3,
 		roster = { meleeCharger, meleeCharger, spreadShooter },
 	},
 	{
@@ -339,7 +339,7 @@ local rooms: { RoomConfig } = {
 			{ offset = Vector2.new(0, 0), size = Vector3.new(6, 10, 46) },
 		},
 		--[[ No new archetype. Room three is for practising room two in a worse shape. ]]
-		enemyCount = 4,
+		enemyCount = 3,
 		roster = { meleeCharger, spreadShooter },
 	},
 	{
@@ -352,7 +352,7 @@ local rooms: { RoomConfig } = {
 			{ offset = Vector2.new(0, 0), size = Vector3.new(6, 10, 6) },
 		},
 		--[[ Adds the bulwark, which is really a piece of terrain that hits back. ]]
-		enemyCount = 5,
+		enemyCount = 4,
 		roster = { meleeCharger, spreadShooter, meleeCharger, tank },
 	},
 	{
@@ -363,7 +363,7 @@ local rooms: { RoomConfig } = {
 			{ offset = Vector2.new(12, 0), size = Vector3.new(6, 10, 60) },
 		},
 		--[[ Adds the lancer. A drawn line to step out of, in the room with lanes. ]]
-		enemyCount = 5,
+		enemyCount = 4,
 		roster = { meleeCharger, spreadShooter, lineSniper },
 	},
 	{
@@ -373,7 +373,7 @@ local rooms: { RoomConfig } = {
 			{ offset = Vector2.new(0, 20), size = Vector3.new(40, 10, 6) },
 		},
 		--[[ No new archetype. Four of them at once instead. ]]
-		enemyCount = 6,
+		enemyCount = 5,
 		roster = { meleeCharger, spreadShooter, lineSniper, tank },
 	},
 	{
@@ -387,7 +387,7 @@ local rooms: { RoomConfig } = {
 			{ offset = Vector2.new(24, 24), size = Vector3.new(10, 10, 10) },
 		},
 		--[[ Adds the lurker, last because it is the only one that stops being a target. ]]
-		enemyCount = 6,
+		enemyCount = 5,
 		roster = { meleeCharger, spreadShooter, burrower, tank },
 	},
 	{
@@ -399,7 +399,7 @@ local rooms: { RoomConfig } = {
 			{ offset = Vector2.new(0, 18), size = Vector3.new(6, 10, 30) },
 		},
 		--[[ All five, and from here the count is the only thing still rising. ]]
-		enemyCount = 7,
+		enemyCount = 6,
 		roster = { meleeCharger, spreadShooter, lineSniper, burrower, tank },
 	},
 	{
@@ -408,7 +408,7 @@ local rooms: { RoomConfig } = {
 			{ offset = Vector2.new(0, 0), size = Vector3.new(14, 10, 14) },
 		},
 		--[[ All five. ]]
-		enemyCount = 7,
+		enemyCount = 6,
 		roster = { meleeCharger, lineSniper, spreadShooter, burrower, tank },
 	},
 	{
@@ -417,7 +417,7 @@ local rooms: { RoomConfig } = {
 		-- works, this is the room the player wants a rematch with.
 		obstacles = {},
 		--[[ All five, at the most this run ever throws at once. ]]
-		enemyCount = 8,
+		enemyCount = 7,
 		roster = { meleeCharger, spreadShooter, lineSniper, burrower, tank },
 	},
 }
@@ -450,7 +450,18 @@ local Balance = {
 		     which is what gives standing still a visible cost. ]]
 		speed = 56,
 		lifetime = 2.5,
+		--[[
+			Half the width of the drawn arrow, and half the width of the box
+			the server sweeps. These two numbers are the hitbox *and* the
+			visual, which is the point: a projectile that is shown as a long
+			dart but simulated as a tiny sphere only counts from its nose, so
+			shots that plainly connected along the shaft did nothing.
+		]]
 		radius = 0.35,
+		--[[ Length of that arrow, along its direction of travel. Shared rather
+		     than a client constant, because the server has to sweep the same
+		     shape the player is looking at. ]]
+		length = 2.2,
 		-- Hard cap on live server projectiles. Phase 3 abilities multiply volley
 		-- size aggressively; this is the backstop.
 		maxActive = 400,

@@ -282,10 +282,12 @@ return function(t: TestRunner.Helper)
 		hit is one. It used to size only the drawn part while the server cast
 		a zero-width ray, which is how arrows passed through enemies.
 	]]
-	t.test("projectiles have a width the server can cast with", function()
+	t.test("projectiles have a shape the server can sweep", function()
 		local radius = Balance.Projectile.radius
+		local length = Balance.Projectile.length
 
 		t.isTrue(radius > 0, "a zero-width projectile cannot graze anything")
+		t.isTrue(length > 0, "a zero-length projectile is not the arrow being drawn")
 
 		for name, config in archetypes() do
 			local halfWidth = math.min(config.hitboxSize.X, config.hitboxSize.Z) / 2
@@ -294,6 +296,33 @@ return function(t: TestRunner.Helper)
 				radius < halfWidth,
 				`a projectile is wider than half of {name}, so near-misses would register`
 			)
+		end
+	end)
+
+	--[[
+		An arrow that travels further in one step than its own length can pass
+		clean through a target between frames, because each step sweeps from
+		where it was to where it will be and nothing in between is checked
+		twice. Worth an assertion: it is the kind of thing a speed increase
+		reintroduces silently.
+	]]
+	t.test("no projectile outruns its own length in a frame", function()
+		local step = 1 / 30
+		local length = Balance.Projectile.length
+
+		t.isTrue(
+			Balance.Projectile.speed * step < length + Balance.Projectile.radius * 2,
+			"the player's arrow moves more than its own length per frame at 30fps"
+		)
+
+		for name, config in archetypes() do
+			local shot = config.shot
+			if shot then
+				t.isTrue(
+					shot.speed * step < length + Balance.Projectile.radius * 2,
+					`{name} fires faster than its shot is long, so it can skip a target`
+				)
+			end
 		end
 	end)
 

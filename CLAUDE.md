@@ -113,8 +113,20 @@ return { TestRunner.summarise(result), result.failures }
 They exist because the four gates cannot catch what this project actually
 gets wrong. Selene, StyLua, `rojo build` and `luau-lsp` were all green on a
 charger that deadlocked against a pillar, a burrower that dived exactly once,
-a telegraph that drew a line its shot did not follow, and a wave that spawned
-on top of the player. Every one was geometry or state.
+a telegraph that drew a line its shot did not follow, a wave that spawned on
+top of the player, and an arrow that flew straight through the enemy it was
+aimed at. Every one was geometry or state.
+
+**Shape casts ignore what they already overlap.** `Blockcast`, `Spherecast`
+and `Raycast` all decline to report a body the shape is intersecting at the
+moment the cast starts — measured, not assumed: a 4.2-stud arrow box reports
+a clean miss against a target it overlaps by 0.1 studs, by 0.6, and dead
+centre. So any swept shape has a dead zone its own size, and anything that
+*moves into* that zone is invisible for as long as it stays there. Static
+geometry cannot do this; enemies do it constantly. `ProjectileSystem` pays
+for it with a `GetPartBoundsInBox` pass every step, and
+`tests/HitDetection.spec.luau` pins the behaviour so a future engine change
+surfaces as a failing test rather than as a worse game.
 
 A spec returns a function taking the `t` helper:
 

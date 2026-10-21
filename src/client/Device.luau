@@ -1,0 +1,64 @@
+--!strict
+--[[
+	Device tier resolution.
+
+	Roblox will not tell us what hardware we are on, so this infers a tier from
+	input capabilities and screen size. It is a presentation budget only —
+	nothing gameplay-affecting may read it, or two players on different phones
+	would be playing different games.
+]]
+
+local GuiService = game:GetService("GuiService")
+local UserInputService = game:GetService("UserInputService")
+local Workspace = game:GetService("Workspace")
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local DeviceTiers = require(ReplicatedStorage.Shared.Config.DeviceTiers)
+local Log = require(ReplicatedStorage.Shared.Util.Log)
+
+local log = Log.forTag("Device")
+
+local Device = {}
+
+local resolved: DeviceTiers.Tier? = nil
+
+local function detect(): DeviceTiers.Tier
+	if GuiService:IsTenFootInterface() then
+		return DeviceTiers.Medium
+	end
+
+	local touchOnly = UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
+
+	if not touchOnly then
+		return DeviceTiers.High
+	end
+
+	--[[
+		Touch device. Split phones from tablets by viewport size: a tablet has
+		the pixels and usually the thermal headroom for the middle tier.
+	]]
+	local camera = Workspace.CurrentCamera
+	local viewport = if camera then camera.ViewportSize else Vector2.new(1280, 720)
+	local smallestEdge = math.min(viewport.X, viewport.Y)
+
+	if smallestEdge >= 700 then
+		return DeviceTiers.Medium
+	end
+
+	return DeviceTiers.Low
+end
+
+function Device.tier(): DeviceTiers.Tier
+	if resolved then
+		return resolved :: DeviceTiers.Tier
+	end
+
+	local tier = detect()
+	resolved = tier
+	log.info("resolved tier %s", tier.name)
+
+	return tier
+end
+
+return Device

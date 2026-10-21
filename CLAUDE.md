@@ -17,7 +17,19 @@ stylua src                      # format
 stylua --check src              # CI-style format check
 ```
 
-Run `selene generate-roblox-std` once per clone — `roblox.yml` is gitignored.
+Type check — the only thing that catches strict-mode errors without opening Studio:
+
+```bash
+rojo sourcemap default.project.json -o sourcemap.json
+luau-lsp analyze --sourcemap=sourcemap.json --defs=globalTypes.d.luau src
+```
+
+Once per clone (all three outputs are gitignored):
+
+```bash
+selene generate-roblox-std
+curl -sfL -o globalTypes.d.luau https://raw.githubusercontent.com/JohnnyMorganz/luau-lsp/main/scripts/globalTypes.d.luau
+```
 
 ## Non-negotiables
 

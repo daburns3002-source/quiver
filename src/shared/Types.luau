@@ -1,0 +1,66 @@
+--!strict
+--[[
+	Shared types.
+
+	Kept in one module so the shot pipeline, the server systems and the client
+	renderer all agree on the same shapes without circular requires.
+]]
+
+--[[
+	One projectile, fully resolved. The shot pipeline turns a single ShotRequest
+	into a list of these; nothing downstream needs to know which abilities
+	produced them.
+]]
+export type ShotSpec = {
+	-- Radians, clockwise around Y, relative to the shooter's aim direction.
+	angleOffset: number,
+	-- Multiplied into the shooter's damage. Extra-arrow abilities pay for
+	-- themselves here rather than by editing base damage.
+	damageScale: number,
+	speed: number,
+	lifetime: number,
+	-- How many enemies the projectile passes through before dying. 0 = stops on
+	-- the first one it hits.
+	pierce: number,
+}
+
+--[[
+	Everything the pipeline needs to resolve a shot. Passed in rather than read
+	from a global so the same pipeline can serve a player, a pet or a turret.
+]]
+export type ShotRequest = {
+	damage: number,
+	speed: number,
+	lifetime: number,
+	origin: Vector3,
+	direction: Vector3,
+}
+
+--[[
+	A pipeline stage. `order` places it in one of the Stage buckets in
+	ShotPipeline; stages within a bucket run in insertion order.
+
+	A stage receives the specs produced so far and returns the new list. Stages
+	must not mutate the input.
+]]
+export type ShotStage = {
+	name: string,
+	order: number,
+	apply: (specs: { ShotSpec }, request: ShotRequest) -> { ShotSpec },
+}
+
+--[[
+	Replicated to clients so they can render a volley. Deliberately describes the
+	shot rather than streaming positions: Phase 1 projectiles travel in straight
+	lines, so origin + direction + speed + time is exact and costs one packet per
+	volley instead of one per frame.
+]]
+export type ShotEvent = {
+	shooterId: number,
+	origin: Vector3,
+	direction: Vector3,
+	specs: { ShotSpec },
+	firedAt: number,
+}
+
+return {}

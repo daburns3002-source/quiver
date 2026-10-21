@@ -33,6 +33,12 @@
       }
     },
 
+    "StarterGui": {
+      "$properties": {
+        "ScreenOrientation": "Portrait"
+      }
+    },
+
     "Workspace": {
       "$properties": {
         "FilteringEnabled": true,

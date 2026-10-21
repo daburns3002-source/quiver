@@ -19,6 +19,8 @@ local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
+local Thumbstick = require(script.Parent.Thumbstick)
+
 local MoveController = {}
 
 local player = Players.LocalPlayer
@@ -67,6 +69,14 @@ local function desiredDirection(): Vector3
 		axis += stick
 	end
 
+	--[[ Already dead-zoned and rescaled in pixel space by Thumbstick, so it is
+	     added as it comes rather than gated a second time here. ]]
+	local touch = Thumbstick.direction()
+
+	if touch.Magnitude > 0 then
+		axis += touch
+	end
+
 	if axis.Magnitude < 1e-3 then
 		return Vector3.zero
 	end
@@ -105,6 +115,8 @@ end
 
 function MoveController.start()
 	MoveController.stop()
+
+	Thumbstick.start()
 
 	table.insert(
 		connections,
@@ -154,15 +166,17 @@ function MoveController.stop()
 	end
 
 	table.clear(connections)
+	Thumbstick.stop()
 	releaseAll()
 end
 
---[[ True when this device has no way to drive the controller above. Phase 1
-     ships keyboard and gamepad; the on-screen thumbstick a phone needs is not
-     built yet, so the caller logs rather than silently shipping a player who
-     cannot move. ]]
+--[[ Whether this device has any way to drive the controller above: keyboard,
+     gamepad, or the on-screen thumbstick. Kept so the caller can say so out
+     loud rather than silently shipping a player who cannot move. ]]
 function MoveController.hasSupportedInput(): boolean
-	return UserInputService.KeyboardEnabled or UserInputService.GamepadEnabled
+	return UserInputService.KeyboardEnabled
+		or UserInputService.GamepadEnabled
+		or UserInputService.TouchEnabled
 end
 
 return MoveController

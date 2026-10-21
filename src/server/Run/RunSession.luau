@@ -133,6 +133,27 @@ function RunSession.bindCharacter(session: Session, character: Model)
 	humanoid.MaxHealth = math.huge
 	humanoid.Health = math.huge
 
+	--[[
+		No jumping inside a run.
+
+		Walking is the only defensive verb this game has — no dodge, no dash,
+		no block (docs/RESEARCH-archero.md §1). A jump is a dodge that costs no
+		ground, so it would answer the one question move-or-shoot exists to
+		ask: can you afford to stop where you are? Letting a player hop a
+		telegraphed line without giving up their firing position deletes the
+		decision rather than testing it.
+
+		Set three ways on purpose. `UseJumpPower` decides which of the two
+		height properties the engine reads, so zeroing only one leaves the
+		other live, and disabling the state stops the jump animation and the
+		freefall transition firing from anything that bypasses both.
+
+		The lobby is not a run and is free to re-enable all of this.
+	]]
+	humanoid.JumpPower = 0
+	humanoid.JumpHeight = 0
+	humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping, false)
+
 	session.character = character
 	session.humanoid = humanoid
 	session.root = root

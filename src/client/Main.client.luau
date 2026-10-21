@@ -121,7 +121,21 @@ Remotes.event(Remotes.RunStateChanged).OnClientEvent:Connect(RunBanner.onRunStat
 
 --[[ Prediction inputs only — move speed and dash cooldown. Nothing that
      decides an outcome arrives here. ]]
-Remotes.event(Remotes.PlayerStats).OnClientEvent:Connect(PlayerStats.set)
+Remotes.event(Remotes.PlayerStats).OnClientEvent:Connect(function(stats)
+	PlayerStats.set(stats)
+
+	--[[
+		The authoritative end of a draft.
+
+		The server sends this on every grant and on every run reset, so it is
+		the one signal that means "the world is running again" regardless of
+		how the choice was made. Resuming on the card button alone tied the
+		player's ability to shoot to a UI callback — miss that click once, for
+		any reason, and prediction stays frozen for the rest of the run while
+		the server fires arrows nobody can see.
+	]]
+	LocalFiring.setPaused(false)
+end)
 
 --[[
 	The draft.
@@ -134,10 +148,15 @@ Remotes.event(Remotes.PlayerStats).OnClientEvent:Connect(PlayerStats.set)
 ]]
 AbilityCards.start(function(index: number)
 	AbilityCards.hide()
+	LocalFiring.setPaused(false)
 	Remotes.event(Remotes.AbilityChosen):FireServer(index)
 end)
 
 Remotes.event(Remotes.AbilityOffer).OnClientEvent:Connect(function(offer: { string }, level: number)
+	--[[ Paused alongside the server, which stops the run for a draft. Without
+	     this the prediction draws volleys across a frozen room that the server
+	     never fired. ]]
+	LocalFiring.setPaused(true)
 	AbilityCards.show(offer, level)
 end)
 
@@ -148,6 +167,7 @@ Remotes.event(Remotes.XpChanged).OnClientEvent:Connect(RunBanner.onXpChanged)
      room the player cannot see. ]]
 player.CharacterRemoving:Connect(function()
 	AbilityCards.hide()
+	LocalFiring.setPaused(false)
 	PlayerStats.reset()
 end)
 

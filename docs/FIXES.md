@@ -16,6 +16,62 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## Abilities did nothing, and arrows stopped connecting
+
+**Symptom** — two complaints, one cause: "the player projectiles are missing
+again" and "the abilities dont actually change what is happening".
+
+**Cause** — the client draws its own predicted volley and deliberately skips
+the server's copy to avoid double-drawing. Its pipeline was never given the
+loadout, so it drew **one unbuffed arrow for the whole run** while the server
+fired the real ones at angles nothing on screen reflected. The arrow the
+player watched was not one of the arrows that existed — so abilities appeared
+to do nothing, and shots appeared to pass through enemies that a different,
+invisible arrow was busy killing.
+
+`LocalFiring` had carried a comment since Phase 1 saying precisely this would
+happen if Phase 3 did not replicate the stage list. Phase 3 did not.
+
+**Fix** — `ClientStats` now carries the ability stack counts and the attack
+cooldown. Stages are functions and cannot replicate; counts can, and
+`AbilityEffects.stages` rebuilds the identical pipeline on either side. The
+prediction rebuilds on every grant rather than per volley.
+
+**Measured** — server arrows fired versus arrows actually drawn, over one
+window with Front Arrow taken: **99 fired / 21 drawn (21%) → 112 fired / 112
+drawn (100%)**, every volley two-arrow.
+
+**Watch for** — anything the client predicts. Movement, firing rate and volley
+shape are all predicted here, so every one of them needs its inputs
+replicated. `tests/AbilityEffects.spec.luau` now pins the contract: whatever
+`clientStats` carries must rebuild the server's volley exactly.
+
+---
+
+## Prediction froze for the rest of the run after one draft
+
+**Symptom** — found while verifying the fix above, not reported: after a card
+screen, the client drew almost nothing.
+
+**Cause** — the pause that stops the client predicting during a draft was
+lifted in the card button's own callback. Any choice that did not go through
+that click — and any click that was missed — left prediction paused for ever,
+while the server went on firing arrows nobody could see.
+
+**Fix** — resume on the next `PlayerStats` from the server instead. The server
+sends it on every grant and every run reset, so it means "the world is running
+again" however the choice was made. The button still clears it too.
+
+**Measured** — choosing by remote without touching the button: 21% agreement
+before, 100% after, with 0 phantom arrows drawn during a deliberate one-second
+pause on the card screen.
+
+**Watch for** — any client state whose *exit* depends on a UI callback. The
+entry can be a UI event; the exit has to be something authoritative, or a
+single missed input strands the player.
+
+---
+
 ## All three draft cards drawn on top of each other
 
 **Symptom** — a level-up offered what looked like one card. The other two were

@@ -21,7 +21,9 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
 
+local AbilityEffects = require(ReplicatedStorage.Shared.Combat.AbilityEffects)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
+local PlayerStats = require(script.Parent.Parent.PlayerStats)
 local ProjectileRenderer = require(script.Parent.Parent.Fx.ProjectileRenderer)
 local ShotPipeline = require(ReplicatedStorage.Shared.Combat.ShotPipeline)
 
@@ -30,16 +32,40 @@ local LocalFiring = {}
 local player = Players.LocalPlayer
 
 --[[
-	The client's mirror of the local player's pipeline. Empty in Phase 1, which
-	is why prediction matches the server exactly. When Phase 3 grants abilities,
-	the server must replicate the stage list to this pipeline or prediction will
-	silently diverge — that replication is part of Phase 3, not an afterthought.
+	The client's mirror of the local player's pipeline.
+
+	Rebuilt from the replicated stack counts every time the loadout changes.
+	It has to be: this client draws its own volley and deliberately skips the
+	server's copy of it, so an empty pipeline here means the player watches a
+	single unbuffed arrow for the whole run while the server fires the real
+	ones at angles nothing on screen reflects. Abilities then appear to do
+	nothing, and shots appear to pass through enemies — because the arrow
+	being watched is not one of the arrows that exists.
 ]]
 local pipeline = ShotPipeline.new()
+
+local function rebuildPipeline()
+	pipeline:clear()
+
+	for _, stage in AbilityEffects.stages(PlayerStats.get().abilities) do
+		pipeline:addStage(stage)
+	end
+end
 
 local lastFiredAt = 0
 local stationarySince: number? = nil
 local connection: RBXScriptConnection? = nil
+local loadoutConnection: RBXScriptConnection? = nil
+
+--[[
+	Set while a card screen is open.
+
+	The server stops the whole run during a draft, but this prediction lives
+	on RenderStepped and would happily go on drawing volleys the server is
+	not firing — phantom arrows that cross a frozen room and kill nothing.
+	Prediction is only honest while the thing it predicts is still running.
+]]
+local paused = false
 
 local function nearestEnemyPosition(origin: Vector3): Vector3?
 	local folder = Workspace:FindFirstChild("Enemies")
@@ -94,6 +120,12 @@ local function face(root: BasePart, direction: Vector3)
 end
 
 local function step()
+	--[[ Nothing is being simulated behind the cards, so nothing should be
+	     drawn either. ]]
+	if paused then
+		return
+	end
+
 	local character = player.Character
 	if not character then
 		return
@@ -131,7 +163,10 @@ local function step()
 		return
 	end
 
-	if now - lastFiredAt < Balance.Player.attackCooldown then
+	--[[ Replicated, so Precision shortens the predicted rhythm too. A client
+	     predicting the base rate drifts further from the server with every
+	     volley it draws. ]]
+	if now - lastFiredAt < PlayerStats.get().attackCooldown then
 		return
 	end
 
@@ -164,12 +199,36 @@ function LocalFiring.start()
 		connection:Disconnect()
 	end
 
+	if loadoutConnection then
+		loadoutConnection:Disconnect()
+	end
+
+	--[[ Built once now and again on every grant. Subscribing rather than
+	     rebuilding per volley keeps the cost on the level-up, which happens
+	     a dozen times a run, instead of on the shot, which happens hundreds. ]]
+	rebuildPipeline()
+	loadoutConnection = PlayerStats.onChanged(rebuildPipeline)
+
 	connection = RunService.RenderStepped:Connect(step)
 end
 
 function LocalFiring.reset()
 	lastFiredAt = 0
 	stationarySince = nil
+	paused = false
+	rebuildPipeline()
+end
+
+--[[ Called when a card screen opens and closes. Clearing the settle timer on
+     resume matters: the player has been standing still behind the cards, and
+     letting that count would hand them a free volley the moment they choose. ]]
+function LocalFiring.setPaused(value: boolean)
+	paused = value
+
+	if not value then
+		stationarySince = nil
+		lastFiredAt = os.clock()
+	end
 end
 
 return LocalFiring

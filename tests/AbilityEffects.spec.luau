@@ -182,6 +182,63 @@ return function(t: TestRunner.Helper)
 		end
 	end)
 
+	--[[
+		The prediction contract, and the bug it exists to stop.
+
+		The client draws its own volley and skips the server's copy, so if the
+		loadout does not reach it the player watches one unbuffed arrow for the
+		whole run while the server fires the real ones elsewhere. Abilities
+		then look like they do nothing and shots look like they miss — one
+		cause, two complaints, and neither is visible to the type checker.
+
+		So: whatever `clientStats` carries must rebuild the identical volley.
+	]]
+	t.test("the replicated loadout rebuilds the server's volley exactly", function()
+		local counts = {
+			FrontArrow = 2,
+			RearArrow = 1,
+			PiercingShot = 1,
+			SwiftArrows = 1,
+			DeadlyStrike = 1,
+		}
+
+		local server = volley(counts)
+		local client = volley(AbilityEffects.clientStats(counts).abilities)
+
+		t.equal(#client, #server, "the client would draw a different number of arrows")
+
+		for index, spec in server do
+			t.near(client[index].angleOffset, spec.angleOffset, 1e-9, "an arrow aims elsewhere")
+			t.near(client[index].speed, spec.speed, 1e-9, "an arrow travels at a different speed")
+			t.near(
+				client[index].lifetime,
+				spec.lifetime,
+				1e-9,
+				"an arrow fades at a different time"
+			)
+		end
+	end)
+
+	t.test("the client predicts the same firing rhythm as the server", function()
+		local counts = { Precision = 3 }
+		t.near(
+			AbilityEffects.clientStats(counts).attackCooldown,
+			AbilityEffects.serverStats(counts).attackCooldown,
+			1e-9,
+			"the client would fire at a different rate from the server"
+		)
+	end)
+
+	--[[ The server goes on mutating its own counts after sending them. ]]
+	t.test("the replicated loadout is a copy", function()
+		local counts = { FrontArrow = 1 }
+		local sent = AbilityEffects.clientStats(counts).abilities
+
+		counts.FrontArrow = 4
+
+		t.equal(sent.FrontArrow, 1, "the client's copy changed underneath it")
+	end)
+
 	t.test("count runs before pattern", function()
 		t.isTrue(
 			AbilityEffects.Stage.Count < AbilityEffects.Stage.Pattern,

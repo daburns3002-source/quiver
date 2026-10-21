@@ -174,4 +174,74 @@ function Stages.crit(chance: number, multiplier: number): ShotStage
 	}
 end
 
+--[[
+	Gives every arrow an explosion on contact.
+
+	Radius and scale together, because a splash with no radius and a splash
+	for no damage are both just a slower way of writing "off", and splitting
+	them across two stages would let a loadout produce either.
+]]
+function Stages.splash(radius: number, scale: number): ShotStage
+	return {
+		name = "Splash",
+		order = ShotPipeline.Stage.OnHit,
+
+		apply = function(specs: { ShotSpec }, _request: ShotRequest): { ShotSpec }
+			local out: { ShotSpec } = {}
+
+			for _, spec in specs do
+				local copy = table.clone(spec)
+				copy.splashRadius = radius
+				copy.splashScale = scale
+				table.insert(out, copy)
+			end
+
+			return out
+		end,
+	}
+end
+
+--[[ Lets arrows reflect off the arena instead of stopping at it. Flight
+     rather than OnHit: it changes where the arrow goes, not what it does when
+     it arrives. ]]
+function Stages.bounce(count: number): ShotStage
+	return {
+		name = "Bounce",
+		order = ShotPipeline.Stage.Flight,
+
+		apply = function(specs: { ShotSpec }, _request: ShotRequest): { ShotSpec }
+			local out: { ShotSpec } = {}
+
+			for _, spec in specs do
+				local copy = table.clone(spec)
+				copy.bounces = spec.bounces + count
+				table.insert(out, copy)
+			end
+
+			return out
+		end,
+	}
+end
+
+--[[ Fires free arrows at whatever is nearest when this one kills something.
+     The only stage in the OnKill bucket, and the reason the bucket exists. ]]
+function Stages.chainOnKill(count: number): ShotStage
+	return {
+		name = "ChainOnKill",
+		order = ShotPipeline.Stage.OnKill,
+
+		apply = function(specs: { ShotSpec }, _request: ShotRequest): { ShotSpec }
+			local out: { ShotSpec } = {}
+
+			for _, spec in specs do
+				local copy = table.clone(spec)
+				copy.chainOnKill = spec.chainOnKill + count
+				table.insert(out, copy)
+			end
+
+			return out
+		end,
+	}
+end
+
 return Stages

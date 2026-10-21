@@ -149,6 +149,10 @@ function ShotPipeline.build(self: ShotPipeline, request: ShotRequest): { ShotSpe
 			     payoff. ]]
 			critChance = 0,
 			critMultiplier = 2,
+			splashRadius = 0,
+			splashScale = 0,
+			bounces = 0,
+			chainOnKill = 0,
 		},
 	}
 

@@ -19,7 +19,9 @@ local Arena = require(script.Parent.Parent.Arena.Arena)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local EnemyManager = require(script.Parent.Parent.Enemies.EnemyManager)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
+local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local RunSession = require(script.Parent.Parent.Run.RunSession)
+local Targeting = require(script.Parent.Targeting)
 local Types = require(ReplicatedStorage.Shared.Types)
 
 type Faction = Types.Faction
@@ -30,6 +32,20 @@ local log = Log.forTag("Projectiles")
      already decrements `remaining` by at least a hundredth of a stud each
      pass, so it cannot spin; this also bounds its raycast cost in one frame. ]]
 local MAX_SEGMENT_STEPS = 8
+
+local shotFired = Remotes.event(Remotes.ShotFired)
+
+--[[ Studs a reflected arrow is nudged off the surface it bounced from, so the
+     next cast does not begin inside the wall it just left. ]]
+local BOUNCE_CLEARANCE = 0.15
+
+--[[ How far a chain shot looks for its next target. Generous, because a chain
+     that finds nothing is a card that did nothing. ]]
+local CHAIN_RANGE = 70
+
+--[[ `os.clock()` for the step currently running. Chain shots are created deep
+     inside the hit path, which has no reason to be handed the time. ]]
+local currentNow = 0
 
 type Projectile = {
 	--[[ Decides both what this can damage and what stops it. See
@@ -56,6 +72,15 @@ type Projectile = {
 	     its second target and not its first. ]]
 	critChance: number,
 	critMultiplier: number,
+	--[[ Studs of splash around a hit and the fraction of this arrow's damage
+	     it deals. A radius of zero means no splash. ]]
+	splashRadius: number,
+	splashScale: number,
+	--[[ Reflections off arena geometry left before this one dies. Spent, so a
+	     projectile is its own counter. ]]
+	bounces: number,
+	--[[ Free arrows a kill by this one fires at whatever is nearest. ]]
+	chainOnKill: number,
 	--[[ Guards against a single projectile hitting the same enemy on
 	     consecutive steps while it is still inside the hitbox. ]]
 	hitModels: { [Model]: boolean },
@@ -169,6 +194,10 @@ export type SpawnParams = {
 	pierce: number,
 	critChance: number,
 	critMultiplier: number,
+	splashRadius: number,
+	splashScale: number,
+	bounces: number,
+	chainOnKill: number,
 	owner: Player?,
 	now: number,
 }
@@ -211,6 +240,10 @@ function ProjectileSystem.spawn(params: SpawnParams)
 		owner = params.owner,
 		critChance = params.critChance,
 		critMultiplier = params.critMultiplier,
+		splashRadius = params.splashRadius,
+		splashScale = params.splashScale,
+		bounces = params.bounces,
+		chainOnKill = params.chainOnKill,
 		expiresAt = now + params.lifetime,
 		hitModels = {},
 	})
@@ -224,6 +257,134 @@ end
 	Both branches stay server-authoritative: the damage amount comes off the
 	projectile the server itself queued, never from anything a client said.
 ]]
+--[[ Credits a kill to the run that fired the arrow, which may no longer be
+     that player's current one. A session replaced since simply does not get
+     it. ]]
+local function creditXp(owner: Player?, xp: number)
+	if xp <= 0 or not owner then
+		return
+	end
+
+	local session = RunSession.get(owner)
+	if session then
+		--[[ The kill's rewards before its XP: levelling opens a card screen
+		     and pauses the run, and a heal that landed after that would be
+		     applied to a player already reading cards. ]]
+		RunSession.onEnemyKilled(session)
+		RunSession.awardXp(session, xp)
+	end
+end
+
+--[[
+	Damages everything standing near a hit.
+
+	Snapshotted before anything is damaged, because killing an enemy removes
+	it from the very table being iterated. The enemy that was hit directly is
+	excluded rather than taking a second, smaller hit.
+]]
+local function applySplash(projectile: Projectile, centre: Vector3, damage: number, hit: Model)
+	if projectile.splashRadius <= 0 or projectile.splashScale <= 0 then
+		return
+	end
+
+	local splashDamage = damage * projectile.splashScale
+	if splashDamage <= 0 then
+		return
+	end
+
+	local nearby: { { model: Model, position: Vector3 } } = {}
+	for model, position in EnemyManager.positions() do
+		if model ~= hit then
+			table.insert(nearby, { model = model, position = position })
+		end
+	end
+
+	local flatCentre = Vector3.new(centre.X, 0, centre.Z)
+
+	for _, entry in nearby do
+		local flat = Vector3.new(entry.position.X, 0, entry.position.Z)
+		if (flat - flatCentre).Magnitude <= projectile.splashRadius then
+			local _, xp = EnemyManager.damage(entry.model, splashDamage, centre)
+			creditXp(projectile.owner, xp)
+		end
+	end
+end
+
+--[[
+	Fires free arrows at whatever is nearest, when this one kills something.
+
+	The chain shot carries no `chainOnKill` of its own. Without that, a kill
+	that chains into a kill chains again and one arrow clears the room, which
+	is a different game.
+
+	Announced on the shot channel as *not predicted*: the client draws its own
+	volleys and skips the server's copy of them, so a shot the server invented
+	has to be marked as one the client has not already drawn.
+]]
+local function fireChain(projectile: Projectile, from: Vector3)
+	if projectile.chainOnKill <= 0 then
+		return
+	end
+
+	local target = Targeting.nearest(from, EnemyManager.positions(), CHAIN_RANGE)
+	if not target then
+		return
+	end
+
+	local direction = Targeting.flatDirection(from, target.position)
+	if not direction then
+		return
+	end
+
+	local specs: { Types.ShotSpec } = {}
+
+	for _ = 1, projectile.chainOnKill do
+		ProjectileSystem.spawn({
+			faction = "Player" :: Faction,
+			origin = from,
+			direction = direction,
+			speed = Balance.Projectile.speed,
+			lifetime = Balance.Projectile.lifetime,
+			damage = projectile.damage,
+			pierce = 0,
+			critChance = projectile.critChance,
+			critMultiplier = projectile.critMultiplier,
+			splashRadius = projectile.splashRadius,
+			splashScale = projectile.splashScale,
+			bounces = 0,
+			chainOnKill = 0,
+			owner = projectile.owner,
+			now = currentNow,
+		})
+
+		table.insert(specs, {
+			angleOffset = 0,
+			damageScale = 1,
+			speed = Balance.Projectile.speed,
+			lifetime = Balance.Projectile.lifetime,
+			pierce = 0,
+			critChance = projectile.critChance,
+			critMultiplier = projectile.critMultiplier,
+			splashRadius = projectile.splashRadius,
+			splashScale = projectile.splashScale,
+			bounces = 0,
+			chainOnKill = 0,
+		})
+	end
+
+	local owner = projectile.owner
+
+	shotFired:FireAllClients({
+		faction = "Player" :: Faction,
+		shooterId = if owner then owner.UserId else 0,
+		origin = from,
+		direction = direction,
+		specs = specs,
+		firedAt = currentNow,
+		predicted = false,
+	} :: Types.ShotEvent)
+end
+
 local function applyHit(projectile: Projectile, model: Model): boolean
 	if projectile.faction == "Player" then
 		--[[
@@ -243,15 +404,16 @@ local function applyHit(projectile: Projectile, model: Model): boolean
 		     exactly like a hit that failed to register. ]]
 		local landed, xp = EnemyManager.damage(model, damage, projectile.position)
 
-		--[[ Credited to the run that fired the arrow, which may no longer be
-		     the player's current one. A session that has been replaced since
-		     simply does not get it. ]]
-		local owner = projectile.owner
-		if landed and xp > 0 and owner then
-			local session = RunSession.get(owner)
-			if session then
-				RunSession.awardXp(session, xp)
-			end
+		if landed then
+			--[[ Splash before the chain, so an explosion that finishes a
+			     second enemy has already happened by the time the chain looks
+			     for what is nearest. ]]
+			applySplash(projectile, projectile.position, damage, model)
+		end
+
+		if xp > 0 then
+			creditXp(projectile.owner, xp)
+			fireChain(projectile, projectile.position)
 		end
 
 		return landed
@@ -393,9 +555,40 @@ local function advance(
 		local model = hitInstance:FindFirstAncestorOfClass("Model")
 
 		--[[ Something in the filter with no Model above it is arena geometry,
-		     which only ever appears in the player's filter. The shot stops. ]]
+		     which only ever appears in the player's filter. ]]
 		if not model then
-			return false
+			if projectile.bounces <= 0 then
+				return false
+			end
+
+			--[[
+				Reflected and sent back out.
+
+				Flattened to the floor plane afterwards. The arena's walls are
+				vertical and its floor is not in the filter, so a reflection
+				should never gain height — but a glancing hit on a corner can
+				produce one, and an arrow that leaves the ground is an arrow
+				that silently stops hitting anything.
+			]]
+			projectile.bounces -= 1
+
+			local normal = result.Normal
+			local reflected = projectile.direction - 2 * projectile.direction:Dot(normal) * normal
+			local flat = Vector3.new(reflected.X, 0, reflected.Z)
+
+			if flat.Magnitude < 1e-3 then
+				return false
+			end
+
+			local travelledToWall = (result.Position - projectile.position).Magnitude
+			projectile.direction = flat.Unit
+			projectile.position = result.Position + projectile.direction * BOUNCE_CLEARANCE
+			remaining -= math.max(travelledToWall, 1e-2)
+
+			--[[ A bounced arrow is a new threat, so it may hit things it has
+			     already passed through on the way out. ]]
+			table.clear(projectile.hitModels)
+			continue
 		end
 
 		local travelled = (result.Position - projectile.position).Magnitude
@@ -425,6 +618,8 @@ local function advance(
 end
 
 function ProjectileSystem.step(deltaTime: number, now: number)
+	currentNow = now
+
 	if #active == 0 then
 		return
 	end

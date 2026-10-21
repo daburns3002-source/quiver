@@ -25,6 +25,10 @@ local function baseSpec(): Types.ShotSpec
 		pierce = 0,
 		critChance = 0,
 		critMultiplier = 2,
+		splashRadius = 0,
+		splashScale = 0,
+		bounces = 0,
+		chainOnKill = 0,
 	}
 end
 

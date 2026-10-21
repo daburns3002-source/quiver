@@ -42,6 +42,14 @@ export type Session = {
 	--[[ Recomputed from the loadout on every grant rather than nudged, so a
 	     stat cannot drift out of step with the abilities that produced it. ]]
 	attackCooldown: number,
+	--[[ Health restored per kill, and the damage ramp for standing still.
+	     Recomputed from the loadout on every grant, like everything else. ]]
+	healPerKill: number,
+	momentumBonus: number,
+	--[[ Whether this run may survive a killing blow, and whether it already
+	     has. The ability is held; the charge is spent. ]]
+	secondWind: boolean,
+	secondWindUsed: boolean,
 	--[[ Its own Random, so one player's draft cannot shift another's rolls,
 	     and a run is reproducible from a seed if that is ever wanted. ]]
 	random: Random,
@@ -89,6 +97,10 @@ function RunSession.create(player: Player): Session
 		pipeline = ShotPipeline.new(),
 		loadout = Loadout.new(),
 		attackCooldown = Balance.Player.attackCooldown,
+		healPerKill = 0,
+		momentumBonus = 0,
+		secondWind = false,
+		secondWindUsed = false,
 		random = Random.new(),
 
 		lastFiredAt = 0,
@@ -126,6 +138,9 @@ function RunSession.applyLoadout(session: Session)
 	session.maxHealth = stats.maxHealth
 	session.health = math.clamp(stats.maxHealth * ratio, 1, stats.maxHealth)
 	session.attackCooldown = stats.attackCooldown
+	session.healPerKill = stats.healPerKill
+	session.momentumBonus = stats.momentumBonus
+	session.secondWind = stats.secondWind
 
 	session.pipeline:clear()
 	for _, stage in AbilityEffects.stages(counts) do
@@ -199,6 +214,27 @@ function RunSession.awardXp(session: Session, amount: number)
 end
 
 --[[
+	Everything a kill is worth beyond the XP.
+
+	Separate from `awardXp` because they answer different questions — one is
+	progression, the other is a drafted ability paying out — and folding the
+	heal into the XP call would make a future "XP without a kill" source heal
+	the player for no reason.
+]]
+function RunSession.onEnemyKilled(session: Session)
+	if not session.alive or session.healPerKill <= 0 then
+		return
+	end
+
+	if session.health >= session.maxHealth then
+		return
+	end
+
+	session.health = math.min(session.maxHealth, session.health + session.healPerKill)
+	healthChanged:FireClient(session.player, session.health, session.maxHealth)
+end
+
+--[[
 	Applies the player's choice of card.
 
 	Returns whether it was legal. Everything about trusting the client stops
@@ -235,6 +271,7 @@ end
      and nothing else. ]]
 function RunSession.resetRun(session: Session)
 	session.loadout = Loadout.new()
+	session.secondWindUsed = false
 	RunSession.applyLoadout(session)
 	session.health = session.maxHealth
 	sendXp(session)
@@ -339,6 +376,21 @@ function RunSession.applyDamage(session: Session, amount: number)
 	end
 
 	session.health = math.max(0, session.health - amount)
+
+	--[[
+		Second Wind, spent here rather than at the death check below, so the
+		player is never briefly at zero. It leaves them at one health: enough
+		to act on, not enough to ignore, and the moment reads as a save rather
+		than as a hit that did nothing.
+
+		Once per run, tracked on the session rather than the loadout — the
+		ability is still held, it is the *charge* that is gone.
+	]]
+	if session.health <= 0 and session.secondWind and not session.secondWindUsed then
+		session.secondWindUsed = true
+		session.health = 1
+		log.info("%s survived on Second Wind", session.player.Name)
+	end
 
 	playerDamaged:FireClient(session.player, amount)
 	healthChanged:FireClient(session.player, session.health, session.maxHealth)

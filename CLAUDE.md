@@ -8,21 +8,54 @@ Phase plan: `docs/ROADMAP.md`. Lobby spec: `docs/LOBBY.md`.
 
 ## Where we are
 
-**Phase 0 done. Phase 1 written but never executed.**
+**Phase 0 done. Phase 1 runs, and Playtest 1 passed.**
 
 - Branch `phase-1/move-or-shoot`, open as PR #3. CI green: Selene, StyLua,
   `rojo build`, and `luau-lsp analyze` under strict mode.
-- **No part of Phase 1 has ever run.** It is lint, format, type and build
-  clean, which is not the same as working. Expect real bugs on first Play.
+- **Phase 1 has been played in Studio.** It booted clean on the first Play —
+  every bug was behavioural, not structural, and is fixed on the branch.
+- **Playtest 1 answered: standing still to shoot is fine.** That satisfies the
+  gate in Workflow below, so Phase 2 is next per `docs/ROADMAP.md`.
 - `ArrowLegends-Phase1.rbxl` in the repo root is a built place for testing
   (gitignored, rebuild with `rojo build default.project.json -o <name>.rbxl`).
   It looks empty in edit mode — the arena is built at runtime by the server.
 - The Rojo Studio plugin is installed.
 
-**Immediate next step:** confirm the Roblox Studio MCP connection, run
-`rojo serve`, press Play, read the console, fix what breaks. Then hand the
-user Playtest 1, which asks one question: *does standing still to shoot feel
-like a real decision, or like a chore?*
+**What first run fixed, so it does not get re-broken:**
+
+- Chargers deadlocked against pillars, which soft-locked the room. Fixed by
+  `Arena.deflectionNormal` plus a committed `slideSign`. Measure the normal at
+  the body, not the probe, and never re-derive the slide side per frame — an
+  enemy level with its target flips it and jitters on the spot for ever.
+- `FiringSystem` must call `RunSession.isStationary` every frame and *before*
+  the cooldown check: that call is what advances the settle timer.
+- `TopDownCamera` re-asserts `CameraType = Scriptable` every frame, because
+  Roblox's camera script resets it to Custom on each character spawn.
+- `Arena.build` deletes the place's default baseplate. Its top surface sits at
+  exactly y = 0, the same plane as the arena floor, and the two z-fight.
+- The place has no `PlayerModule`, so `src/client/Input/` owns movement:
+  world-space, keyboard, gamepad and a dynamic on-screen thumbstick. Roblox's
+  default controller is camera-relative and fights a fixed-yaw camera anyway.
+
+**Known rough edges, deliberately not addressed:**
+
+- Portrait shows only ~34 of the arena's 90 studs across while `attackRange` is
+  60, so the archer targets enemies the player cannot see. These are balance
+  numbers and portrait-shaped rooms are Phase 2 work.
+- A blocked arrow has no feedback, so the cover penalty reads as a bug.
+- `Arena.deflectionNormal` handles obstacles but not the outer walls.
+
+**Testing over MCP, learned the hard way:**
+
+- `execute_luau` does **not** share the module `require` cache with the running
+  game. A probe calling `EnemyManager.aliveCount()` gets a fresh, empty module
+  and returns zeros. Probe the DataModel, never module state.
+- `screen_capture` in play mode returns the GUI layer over a black 3D viewport.
+  That is a capture limitation, not a render fault — verify geometry instead.
+- `VirtualInputManager:SendKeyEvent` and `Lighting.Technology` are capability
+  blocked from `execute_luau`, so synthetic key input is not available.
+- `rojo serve` does not reload structural changes to `default.project.json`.
+  Restart it for those; script edits live-sync fine.
 
 **Still blocked on the user:** lobby reference images, which belong in
 `assets/reference/lobby/` and are the spec for `docs/LOBBY.md`. Also whether

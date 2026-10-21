@@ -20,6 +20,10 @@ export type Tier = {
 	enableScreenShake: boolean,
 	-- Projectile mesh detail. Low tier uses blocks.
 	projectileIsRound: boolean,
+	--[[ Whether projectiles stream a trail behind them. A trail is one extra
+	     rendered object per live shot, which is the last thing a phone needs
+	     once Phase 3 multiplies volley sizes. ]]
+	projectileTrails: boolean,
 }
 
 --[[
@@ -34,6 +38,7 @@ local low: Tier = {
 	enableShadows = false,
 	enableScreenShake = true,
 	projectileIsRound = false,
+	projectileTrails = false,
 }
 
 local medium: Tier = {
@@ -43,6 +48,7 @@ local medium: Tier = {
 	enableShadows = false,
 	enableScreenShake = true,
 	projectileIsRound = true,
+	projectileTrails = true,
 }
 
 local high: Tier = {
@@ -52,6 +58,7 @@ local high: Tier = {
 	enableShadows = true,
 	enableScreenShake = true,
 	projectileIsRound = true,
+	projectileTrails = true,
 }
 
 local DeviceTiers = {

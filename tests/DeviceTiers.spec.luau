@@ -66,6 +66,13 @@ return function(t: TestRunner.Helper)
 		end
 	end)
 
+	--[[ A trail is one more rendered object per live shot, so the tier that
+	     draws the fewest projectiles must not also be the one paying for
+	     ribbons on all of them. ]]
+	t.test("the lowest tier does not pay for projectile trails", function()
+		t.isFalse(low.projectileTrails, "a low tier should not stream trails")
+	end)
+
 	t.test("shadows are only ever enabled at the top tier", function()
 		t.isFalse(low.enableShadows, "a low tier should not pay for shadows")
 		t.isTrue(high.enableShadows, "the high tier should be allowed them")

@@ -19,6 +19,7 @@ local EnemyManager = require(script.Parent.Parent.Enemies.EnemyManager)
 local ProjectileSystem = require(script.Parent.ProjectileSystem)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local RunSession = require(script.Parent.Parent.Run.RunSession)
+local ShotPipeline = require(ReplicatedStorage.Shared.Combat.ShotPipeline)
 local Targeting = require(script.Parent.Targeting)
 local Types = require(ReplicatedStorage.Shared.Types)
 
@@ -28,18 +29,6 @@ type ShotSpec = Types.ShotSpec
 local FiringSystem = {}
 
 local shotFired = Remotes.event(Remotes.ShotFired)
-
---[[ Rotates a flat direction around Y. ]]
-local function rotateY(direction: Vector3, radians: number): Vector3
-	local cos = math.cos(radians)
-	local sin = math.sin(radians)
-
-	return Vector3.new(
-		direction.X * cos - direction.Z * sin,
-		0,
-		direction.X * sin + direction.Z * cos
-	)
-end
 
 local function fire(session: Session, root: BasePart, now: number)
 	local target =
@@ -66,8 +55,9 @@ local function fire(session: Session, root: BasePart, now: number)
 
 	for _, spec in specs do
 		ProjectileSystem.spawn(
+			"Player",
 			origin,
-			rotateY(direction, spec.angleOffset),
+			ShotPipeline.aim(direction, spec),
 			spec.speed,
 			spec.lifetime,
 			session.damage * spec.damageScale,
@@ -84,6 +74,7 @@ local function fire(session: Session, root: BasePart, now: number)
 		than the bytes. Revisit when Phase 3 makes volleys large.
 	]]
 	shotFired:FireAllClients({
+		faction = "Player",
 		shooterId = session.player.UserId,
 		origin = origin,
 		direction = direction,

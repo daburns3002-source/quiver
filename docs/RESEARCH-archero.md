@@ -205,7 +205,7 @@ the red rings are **spawn markers**, not static floor features.
 | enemy / player width | ~1.4 | 1.5 |
 | enemy orb / player width | ~0.64 | 0.6 |
 | enemy orb tail | ~3–4× the orb | 0.6 s comet trail |
-| player pace | **0.19 room-widths/s** | 0.19 |
+| player pace | **0.19 room-widths/s** | 0.26, brisker by choice |
 | spawn warning | red ring per enemy, **~0.8–1.0 s** ahead, staggered, waves in triangles of three | 0.9 s + 0.08 s stagger; no clusters yet |
 | multishot | a **parallel lane**, not a fan | parallel lane |
 

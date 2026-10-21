@@ -473,4 +473,31 @@ return function(t: TestRunner.Helper)
 			"the spawn exclusion leaves almost nowhere to spawn"
 		)
 	end)
+
+	--[[
+		The archer only targets what its arrows can reach.
+
+		Two playtests apart, this was broken in both directions: arrows
+		dying short of a longer room while the archer kept firing at targets
+		out of reach, then arrows flying far past everything. The two numbers
+		are tuned separately, so the relationship has to be held here or it
+		drifts the next time either one moves.
+	]]
+	t.test("an arrow reaches anything the archer will target", function()
+		local reach = Balance.Projectile.speed * Balance.Projectile.lifetime
+		t.isTrue(
+			reach >= Balance.Player.attackRange,
+			`arrows fly {reach} studs but the archer targets out to {Balance.Player.attackRange}`
+		)
+	end)
+
+	--[[ And not absurdly further: past this the arrow is mostly flying after
+	     the fight it was fired into, which is what read as "too far". ]]
+	t.test("an arrow does not fly far beyond its targeting range", function()
+		local reach = Balance.Projectile.speed * Balance.Projectile.lifetime
+		t.isTrue(
+			reach <= Balance.Player.attackRange * 1.25,
+			`arrows fly {reach} studs, well past the {Balance.Player.attackRange}-stud targeting range`
+		)
+	end)
 end

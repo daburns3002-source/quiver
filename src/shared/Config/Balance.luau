@@ -130,7 +130,7 @@ local meleeCharger: EnemyConfig = {
 	displayName = "Charger",
 	--[[ Quick: it commits to a direction and turns hard to keep it. ]]
 	turnRate = 540,
-	health = 30,
+	health = 45,
 	moveSpeed = 2.3,
 	-- Studs from the player at which it lands a hit.
 	attackRange = 4,
@@ -157,7 +157,7 @@ local spreadShooter: EnemyConfig = {
 	displayName = "Spitter",
 	--[[ Moderate: it stands off and tracks. ]]
 	turnRate = 360,
-	health = 24,
+	health = 36,
 	moveSpeed = 1.6,
 	--[[ Ranged enemies treat attackRange as the distance they want to hold,
 	     not the distance they close to. ]]
@@ -200,7 +200,7 @@ local lineSniper: EnemyConfig = {
 	displayName = "Lancer",
 	--[[ Deliberate: it swings round to line the lance up. ]]
 	turnRate = 240,
-	health = 20,
+	health = 30,
 	moveSpeed = 1.3,
 	attackRange = 18.8,
 	attackDamage = 16,
@@ -234,7 +234,7 @@ local tank: EnemyConfig = {
 	displayName = "Bulwark",
 	--[[ Ponderous. A quarter-turn takes a full second, which is what makes it read as heavy rather than as copying the player. ]]
 	turnRate = 90,
-	health = 120,
+	health = 180,
 	moveSpeed = 1.1,
 	attackRange = 5,
 	attackDamage = 18,
@@ -265,7 +265,7 @@ local burrower: EnemyConfig = {
 	displayName = "Lurker",
 	--[[ Moderate, and only ever seen turning above ground. ]]
 	turnRate = 360,
-	health = 26,
+	health = 39,
 	moveSpeed = 1.9,
 	attackRange = 10.1,
 	attackDamage = 10,
@@ -469,16 +469,22 @@ local rooms: { RoomConfig } = {
 local Balance = {
 	Player = {
 		maxHealth = 100,
-		--[[ Studs per second. Still slow enough that committing to a direction
-		     costs something, but raised after Playtest 2: repositioning out of
-		     cover has to be affordable, or the answer to every threat is to
-		     stand still and hope. ]]
-		moveSpeed = 6.5,
+		--[[ Studs per second. Raised in steps over several playtests:
+		     repositioning has to be affordable, or the answer to every threat
+		     is to stand still and hope. 9 across a 35-stud room is 0.26
+		     room-widths a second, brisker than the footage's 0.19 by choice. ]]
+		moveSpeed = 9,
 		baseDamage = 10,
-		-- Seconds between volleys while stationary.
-		attackCooldown = 0.45,
-		-- Studs. Past this the archer holds fire rather than shooting at nothing.
-		attackRange = 50,
+		--[[ Seconds between volleys while stationary. Slowed from 0.45 over
+		     playtests: at that pace standing still paid so well that moving
+		     stopped being worth it, which hollows out move-or-shoot from the
+		     other side. Precision shortens it from here. ]]
+		attackCooldown = 0.7,
+		--[[ Studs. Past this the archer holds fire rather than shooting at
+		     nothing. Must stay inside how far an arrow actually flies, or the
+		     archer locks onto enemies its arrows fade before reaching —
+		     `tests/Balance.spec.luau` holds that. ]]
+		attackRange = 42,
 		-- MoveDirection magnitude below which the archer counts as stationary.
 		-- Not zero: thumbsticks idle noisy, and a dead archer is an unfair one.
 		stationaryThreshold = 0.05,
@@ -536,7 +542,11 @@ local Balance = {
 		     something the player watches land rather than an instant line,
 		     which is what gives standing still a visible cost. ]]
 		speed = 17.4,
-		lifetime = 3.2,
+		--[[ 45 studs of flight. Shortened from 55.7 after playtest: arrows
+		     sailing on long past their target read as stray rather than as
+		     reach. Still a little over `Player.attackRange`, so a shot at
+		     the edge of range arrives. ]]
+		lifetime = 2.6,
 		--[[
 			Half the width of the drawn arrow, and half the width of the box
 			the server sweeps. These two numbers are the hitbox *and* the

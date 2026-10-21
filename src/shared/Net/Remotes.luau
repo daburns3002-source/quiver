@@ -51,6 +51,16 @@ Remotes.EnemyDied = "EnemyDied"
 ]]
 Remotes.EnemyTelegraph = "EnemyTelegraph"
 
+--[[
+	Server → clients. The run moved on: which room, how many there are, and
+	what state it is in ("Fighting", "Cleared", "Dead", "Complete").
+
+	The client renders this and decides nothing. Room progress is exactly the
+	kind of thing a client must never report — it is the gate the whole meta
+	loop will hang off in Phase 5.
+]]
+Remotes.RunStateChanged = "RunStateChanged"
+
 --[[ Server → one client. The local player took damage, for shake and vignette. ]]
 Remotes.PlayerDamaged = "PlayerDamaged"
 

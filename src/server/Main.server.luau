@@ -18,7 +18,6 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
-local Arena = require(script.Parent.Arena.Arena)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local EnemyFiring = require(script.Parent.Combat.EnemyFiring)
 local EnemyManager = require(script.Parent.Enemies.EnemyManager)
@@ -26,6 +25,7 @@ local FiringSystem = require(script.Parent.Combat.FiringSystem)
 local Game = require(ReplicatedStorage.Shared.Config.Game)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
 local ProjectileSystem = require(script.Parent.Combat.ProjectileSystem)
+local RoomController = require(script.Parent.Run.RoomController)
 local RunSession = require(script.Parent.Run.RunSession)
 
 local log = Log.forTag("Server")
@@ -33,8 +33,12 @@ local log = Log.forTag("Server")
 log.info("%s v%s booting", Game.Name, Game.Version)
 
 --[[
-	Players spawn at the arena centre. Phase 2 replaces this with a room
-	entrance.
+	Where Roblox drops a character on join and on respawn.
+
+	Reads the same `spawnPosition` the run controller uses when it moves
+	players into a new room, so arriving and advancing put you in the same
+	place. Two sources of truth for "the start of a room" would drift the first
+	time either moved.
 ]]
 local function buildSpawn(parent: Instance)
 	local existing = parent:FindFirstChild("ArenaSpawn")
@@ -45,7 +49,7 @@ local function buildSpawn(parent: Instance)
 	local spawnLocation = Instance.new("SpawnLocation")
 	spawnLocation.Name = "ArenaSpawn"
 	spawnLocation.Size = Vector3.new(8, 1, 8)
-	spawnLocation.Position = Vector3.new(0, 0.5, 30)
+	spawnLocation.Position = Balance.Arena.spawnPosition
 	spawnLocation.Anchored = true
 	spawnLocation.CanCollide = false
 	spawnLocation.CastShadow = false
@@ -55,11 +59,15 @@ local function buildSpawn(parent: Instance)
 	spawnLocation.Parent = parent
 end
 
-Arena.build(workspace)
 buildSpawn(workspace)
-EnemyManager.init(workspace)
-ProjectileSystem.refreshFilters()
-EnemyManager.spawnWave(Balance.Spawning.enemyCount)
+
+--[[ The run controller owns the arena now: it builds a room on entry, so
+     there is nothing to build here. ]]
+RunSession.onDeath = function()
+	RoomController.onPlayerDied()
+end
+
+RoomController.start()
 
 local function onCharacterAdded(player: Player, character: Model)
 	local session = RunSession.get(player) or RunSession.create(player)
@@ -92,13 +100,6 @@ end
 
 Players.PlayerAdded:Connect(onPlayerAdded)
 
---[[
-	Phase 1 has no room progression, so a cleared wave simply comes back. It
-	exists only so the slice can be played for more than one fight; Phase 2
-	deletes it.
-]]
-local respawnAt: number? = nil
-
 RunService.Heartbeat:Connect(function(deltaTime: number)
 	local now = os.clock()
 
@@ -109,20 +110,9 @@ RunService.Heartbeat:Connect(function(deltaTime: number)
 	FiringSystem.step(deltaTime, now)
 	ProjectileSystem.step(deltaTime, now)
 
-	if EnemyManager.aliveCount() > 0 then
-		respawnAt = nil
-		return
-	end
-
-	if not respawnAt then
-		respawnAt = now + Balance.Spawning.respawnDelay
-		return
-	end
-
-	if now >= (respawnAt :: number) then
-		respawnAt = nil
-		EnemyManager.spawnWave(Balance.Spawning.enemyCount)
-	end
+	--[[ Last, so a room is only ever declared clear after everything that
+	     could still kill something has had its turn this frame. ]]
+	RoomController.step(now)
 end)
 
 log.info("ready")

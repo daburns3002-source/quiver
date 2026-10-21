@@ -252,6 +252,126 @@ local burrower: EnemyConfig = {
 	},
 }
 
+--[[ An obstacle footprint, as an XZ offset from the arena centre. ]]
+export type Obstacle = {
+	offset: Vector2,
+	size: Vector3,
+}
+
+--[[
+	One room: what it is shaped like and what is in it.
+
+	Layout is listed first on purpose. Where the pillars are changes
+	move-or-shoot more than any enemy stat does, because it decides where the
+	player can afford to stand still — which is the only decision the game
+	asks. A room with no cover and a room that is mostly corridor are
+	different fights with identical enemies.
+]]
+export type RoomConfig = {
+	name: string,
+	obstacles: { Obstacle },
+	enemyCount: number,
+}
+
+--[[
+	Ten grey-box rooms. Deliberately hand-authored rather than generated: the
+	Phase 2 question is whether a room-to-room loop holds up, and a generator
+	would be answering a different question with more variables.
+
+	They alternate deliberately — open, broken, tight, open — so the player
+	keeps having to re-learn where standing still is safe rather than settling
+	into one position that always works.
+]]
+local rooms: { RoomConfig } = {
+	{
+		name = "Open Ground",
+		-- Nothing to hide behind, nothing blocking your arrows either.
+		obstacles = {},
+		enemyCount = 4,
+	},
+	{
+		name = "Two Pillars",
+		obstacles = {
+			{ offset = Vector2.new(-14, 0), size = Vector3.new(8, 10, 8) },
+			{ offset = Vector2.new(14, 0), size = Vector3.new(8, 10, 8) },
+		},
+		enemyCount = 5,
+	},
+	{
+		name = "The Spine",
+		-- One long wall across the middle: every fight is decided by which
+		-- side of it you choose.
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(6, 10, 46) },
+		},
+		enemyCount = 5,
+	},
+	{
+		name = "Scatter",
+		obstacles = {
+			{ offset = Vector2.new(-20, -14), size = Vector3.new(8, 10, 8) },
+			{ offset = Vector2.new(22, -18), size = Vector3.new(6, 10, 14) },
+			{ offset = Vector2.new(-24, 20), size = Vector3.new(12, 10, 6) },
+			{ offset = Vector2.new(16, 18), size = Vector3.new(8, 10, 8) },
+			{ offset = Vector2.new(0, 0), size = Vector3.new(6, 10, 6) },
+		},
+		enemyCount = 6,
+	},
+	{
+		name = "The Gauntlet",
+		-- Two corridors. Ranged enemies at the far end own the lanes.
+		obstacles = {
+			{ offset = Vector2.new(-12, 0), size = Vector3.new(6, 10, 60) },
+			{ offset = Vector2.new(12, 0), size = Vector3.new(6, 10, 60) },
+		},
+		enemyCount = 6,
+	},
+	{
+		name = "Quarters",
+		obstacles = {
+			{ offset = Vector2.new(0, -20), size = Vector3.new(40, 10, 6) },
+			{ offset = Vector2.new(0, 20), size = Vector3.new(40, 10, 6) },
+		},
+		enemyCount = 7,
+	},
+	{
+		name = "The Pit",
+		-- A ring of cover around a bare centre. Standing in the middle is the
+		-- worst possible place to stop, which is where the fight pulls you.
+		obstacles = {
+			{ offset = Vector2.new(-24, -24), size = Vector3.new(10, 10, 10) },
+			{ offset = Vector2.new(24, -24), size = Vector3.new(10, 10, 10) },
+			{ offset = Vector2.new(-24, 24), size = Vector3.new(10, 10, 10) },
+			{ offset = Vector2.new(24, 24), size = Vector3.new(10, 10, 10) },
+		},
+		enemyCount = 7,
+	},
+	{
+		name = "Teeth",
+		obstacles = {
+			{ offset = Vector2.new(-28, 0), size = Vector3.new(6, 10, 30) },
+			{ offset = Vector2.new(0, -18), size = Vector3.new(6, 10, 30) },
+			{ offset = Vector2.new(28, 0), size = Vector3.new(6, 10, 30) },
+			{ offset = Vector2.new(0, 18), size = Vector3.new(6, 10, 30) },
+		},
+		enemyCount = 8,
+	},
+	{
+		name = "Last Cover",
+		obstacles = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(14, 10, 14) },
+		},
+		enemyCount = 8,
+	},
+	{
+		name = "Nowhere To Stand",
+		-- Ends where it began, open, but with the most enemies. If the loop
+		-- works, this is the room the player wants a rematch with.
+		obstacles = {},
+		enemyCount = 9,
+	},
+}
+
 local Balance = {
 	Player = {
 		maxHealth = 100,
@@ -310,6 +430,11 @@ local Balance = {
 		size = Vector3.new(90, 1, 90),
 		wallHeight = 14,
 		wallThickness = 2,
+		--[[ Where a player stands at the start of a room. Near the south wall,
+		     the full length of the arena from the exit pad, so clearing a room
+		     always means crossing it. Raised clear of the floor because
+		     characters are placed here by CFrame, not dropped. ]]
+		spawnPosition = Vector3.new(0, 4, 34),
 		floorColor = Color3.fromRGB(96, 104, 120),
 		wallColor = Color3.fromRGB(62, 68, 82),
 		obstacleColor = Color3.fromRGB(78, 86, 102),
@@ -323,6 +448,24 @@ local Balance = {
 			{ offset = Vector2.new(16, 18), size = Vector3.new(8, 10, 8) },
 			{ offset = Vector2.new(0, 0), size = Vector3.new(6, 10, 6) },
 		},
+	},
+
+	Rooms = rooms,
+
+	Run = {
+		--[[ The pad that appears when a room is cleared. Walking onto it is
+		     the only way forward, so it has to be unmissable and far enough
+		     from the spawn that clearing a room still means crossing it. ]]
+		doorOffset = Vector2.new(0, -38),
+		doorSize = Vector3.new(14, 0.4, 14),
+		doorColor = Color3.fromRGB(120, 220, 160),
+		--[[ Studs from the pad's centre that count as stepping on it. ]]
+		doorRadius = 8,
+		--[[ Seconds between a room clearing and the door opening, so a kill
+		     gets its own beat instead of being swallowed by the next room. ]]
+		clearPause = 0.8,
+		--[[ Seconds the run-over message holds before the run restarts. ]]
+		deathPause = 2.5,
 	},
 
 	Spawning = {

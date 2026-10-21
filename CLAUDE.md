@@ -60,6 +60,12 @@ add to it in the same PR as every fix — the same classes of bug recur here.
   blocked from `execute_luau`, so synthetic key input is not available.
 - `rojo serve` does not reload structural changes to `default.project.json`.
   Restart it for those; script edits live-sync fine.
+- **In the Edit datamodel, `require` caches persist between probes.** Studio
+  can hold the current source while a module you required earlier in the
+  session keeps returning its old table — so `Balance.Player.dash` reads as
+  nil minutes after the field shipped. Play mode is unaffected; it builds a
+  fresh datamodel with fresh caches. **Check `.Source`, never a required
+  value**, when the question is "did this reach Studio".
 - **A dead sync looks exactly like a passing test run.** `rojo serve` can keep
   its process alive while the Studio plugin is no longer connected — branch
   switching does it — and then Studio quietly runs the code from whenever the

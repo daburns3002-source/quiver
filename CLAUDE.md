@@ -8,12 +8,12 @@ Phase plan: `docs/ROADMAP.md`. Lobby spec: `docs/LOBBY.md`.
 
 ## Where we are
 
-**Phase 0 done. Phase 1 runs, and Playtest 1 passed.**
+**Phase 0 done. Phase 1 merged, and Playtest 1 passed.**
 
-- Branch `phase-1/move-or-shoot`, open as PR #3. CI green: Selene, StyLua,
+- Merged to `main` as `ef4457b` via PR #3. CI green: Selene, StyLua,
   `rojo build`, and `luau-lsp analyze` under strict mode.
 - **Phase 1 has been played in Studio.** It booted clean on the first Play —
-  every bug was behavioural, not structural, and is fixed on the branch.
+  every bug was behavioural, not structural, and is fixed on `main`.
 - **Playtest 1 answered: standing still to shoot is fine.** That satisfies the
   gate in Workflow below, so Phase 2 is next per `docs/ROADMAP.md`.
 - `ArrowLegends-Phase1.rbxl` in the repo root is a built place for testing
@@ -59,7 +59,9 @@ Phase plan: `docs/ROADMAP.md`. Lobby spec: `docs/LOBBY.md`.
 
 **Still blocked on the user:** lobby reference images, which belong in
 `assets/reference/lobby/` and are the spec for `docs/LOBBY.md`. Also whether
-Codex reviews via the GitHub integration or a local CLI.
+Codex reviews via the GitHub integration or a local CLI — PR #3 was merged
+with zero reviews and zero comments on it, so the rule in Workflow below has
+never actually fired. Wire it up before Phase 2 or it will keep not firing.
 
 **Settled design decisions, so they do not get relitigated:**
 

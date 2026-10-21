@@ -137,6 +137,33 @@ return function(t: TestRunner.Helper)
 		end
 	end)
 
+	--[[
+		A layout that put a pillar on either fixed point would wall the player
+		into it or make the room unfinishable. Both are easy to do by accident
+		when hand-authoring offsets, and neither is visible until the room is
+		played.
+	]]
+	t.test("no room blocks the player start or the exit pad", function()
+		local start = Balance.Arena.spawnPosition
+		local door = Balance.Run.doorOffset
+
+		local fixed = {
+			{ label = "the player start", x = start.X, z = start.Z },
+			{ label = "the exit pad", x = door.X, z = door.Y },
+		}
+
+		for index, room in Balance.Rooms do
+			for _, obstacle in room.obstacles do
+				for _, point in fixed do
+					local insideX = math.abs(point.x - obstacle.offset.X) < obstacle.size.X / 2
+					local insideZ = math.abs(point.z - obstacle.offset.Y) < obstacle.size.Z / 2
+
+					t.isFalse(insideX and insideZ, `room {index} puts an obstacle on {point.label}`)
+				end
+			end
+		end
+	end)
+
 	t.test("the exit pad and the player start are both inside the arena", function()
 		local halfX = Balance.Arena.size.X / 2
 		local halfZ = Balance.Arena.size.Z / 2

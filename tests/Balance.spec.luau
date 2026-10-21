@@ -184,16 +184,35 @@ return function(t: TestRunner.Helper)
 	     they have taken a step — which is the bug this suite was written
 	     alongside. ]]
 	t.test("the spawn exclusion is smaller than the arena can satisfy", function()
-		local halfDiagonal =
-			Vector2.new(Balance.Arena.size.X / 2, Balance.Arena.size.Z / 2).Magnitude
+		--[[
+			Measured from the player start rather than the arena centre,
+			because that is where players are when a wave is placed — and it
+			sits near a wall, so the reachable distance is far larger than a
+			centre-based figure suggests. Using the centre would make a
+			workable exclusion look impossible.
+		]]
+		local start = Balance.Arena.spawnPosition
+		local halfX = Balance.Arena.size.X / 2
+		local halfZ = Balance.Arena.size.Z / 2
+		local corners = {
+			Vector2.new(halfX, halfZ),
+			Vector2.new(-halfX, halfZ),
+			Vector2.new(halfX, -halfZ),
+			Vector2.new(-halfX, -halfZ),
+		}
+
+		local furthest = 0
+		for _, corner in corners do
+			furthest = math.max(furthest, (corner - Vector2.new(start.X, start.Z)).Magnitude)
+		end
 
 		t.isTrue(
 			Balance.Spawning.minSpawnDistance > 0,
 			"enemies need a minimum distance from the player"
 		)
 		t.isTrue(
-			Balance.Spawning.minSpawnDistance < halfDiagonal,
-			"no point in the arena could ever satisfy the spawn exclusion"
+			Balance.Spawning.minSpawnDistance < furthest,
+			`nothing in the arena sits {Balance.Spawning.minSpawnDistance} studs from the start`
 		)
 	end)
 

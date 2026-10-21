@@ -104,6 +104,11 @@ local OBSTACLE_PROBE = 1.25
      with a worse attack. ]]
 local HOLD_FRACTION = 0.6
 
+--[[ Studs between candidate spawn points when scanning the floor. Fine enough
+     that a valid gap is never missed, coarse enough that the whole scan is a
+     few hundred box tests. ]]
+local SPAWN_GRID_STEP = 4
+
 --[[ Volleys decided this step, drained by EnemyFiring. ]]
 local pendingVolleys: { Volley } = {}
 
@@ -208,57 +213,73 @@ local function findSpawnPosition(config: EnemyConfig): Vector3
 
 	local keepAway = spawnKeepAwayPoints()
 	local minimum = Balance.Spawning.minSpawnDistance
-	local reach = Vector2.new(limitX, limitZ).Magnitude
 
-	--[[ Best clear candidate seen so far, used only if nothing ever satisfies
-	     the minimum. Far better than the old fixed corner, which in a tight
-	     layout could itself be next to the player. ]]
+	--[[
+		Every cell of a coarse grid over the floor, rather than a run of random
+		guesses.
+
+		Random sampling cannot promise anything. Two versions of it failed
+		here: uniform sampling checked the distance last, so in a room with
+		heavy cover the attempts ran out and the fallback handed back something
+		near the player; sampling on a ring instead put most candidates outside
+		the arena, where clamping them back inside destroyed the very distance
+		they were placed to have. A 56-stud exclusion was still producing
+		25-stud spawns.
+
+		A scan is exhaustive, so if any valid cell exists it is found, and the
+		cost is bounded and paid once per enemy at room entry rather than
+		scaling with how awkward the room is.
+	]]
+	local viable: { Vector3 } = {}
 	local bestPosition: Vector3? = nil
 	local bestDistance = -1
 
-	for _ = 1, 60 do
-		--[[
-			Sampled on a ring around a point to avoid, rather than uniformly
-			over the floor.
+	local x = -limitX
+	while x <= limitX do
+		local z = -limitZ
+		while z <= limitZ do
+			local candidate = Vector3.new(x, y, z)
 
-			Uniform sampling picks the distance last, so in a room with heavy
-			cover most candidates land either inside an obstacle or too close,
-			the search exhausts its attempts, and the fallback quietly hands
-			back something near the player — which is how enemies kept
-			appearing on top of them. Choosing the distance first and the
-			angle second makes the minimum the starting condition instead of a
-			filter.
-		]]
-		local anchor = keepAway[math.random(#keepAway)]
-		local angle = math.random() * math.pi * 2
-		local span = minimum + math.random() * math.max(reach - minimum, 1)
+			if Arena.isClear(candidate, radius) then
+				local distance = distanceToNearest(candidate, keepAway)
 
-		local candidate = Vector3.new(
-			math.clamp(anchor.X + math.cos(angle) * span, -limitX, limitX),
-			y,
-			math.clamp(anchor.Z + math.sin(angle) * span, -limitZ, limitZ)
-		)
+				if distance >= minimum then
+					table.insert(viable, candidate)
+				elseif distance > bestDistance then
+					bestPosition = candidate
+					bestDistance = distance
+				end
+			end
 
-		if not Arena.isClear(candidate, radius) then
-			continue
+			z += SPAWN_GRID_STEP
 		end
 
-		--[[ Re-measured after clamping, which can drag a point back towards
-		     the anchor it was placed away from. ]]
-		local distance = distanceToNearest(candidate, keepAway)
-
-		if distance >= minimum then
-			return candidate
-		end
-
-		if distance > bestDistance then
-			bestPosition = candidate
-			bestDistance = distance
-		end
+		x += SPAWN_GRID_STEP
 	end
 
-	--[[ Nothing cleared the bar — a small room, or players spread across it.
-	     Take the furthest clear spot found rather than failing to spawn. ]]
+	if #viable > 0 then
+		local chosen = viable[math.random(#viable)]
+
+		--[[ Nudged off the lattice so a wave does not visibly line up, by less
+		     than half a cell so it cannot cross into a neighbour that was
+		     rejected. ]]
+		local jitter = SPAWN_GRID_STEP / 2 - 0.5
+		local nudged = Vector3.new(
+			chosen.X + (math.random() * 2 - 1) * jitter,
+			y,
+			chosen.Z + (math.random() * 2 - 1) * jitter
+		)
+
+		if Arena.isClear(nudged, radius) and distanceToNearest(nudged, keepAway) >= minimum then
+			return nudged
+		end
+
+		return chosen
+	end
+
+	--[[ No cell anywhere satisfies the minimum — too many players spread
+	     across a small room. Take the furthest clear spot rather than refusing
+	     to spawn, and accept that this wave starts closer than it should. ]]
 	return bestPosition or Vector3.new(limitX, y, limitZ)
 end
 

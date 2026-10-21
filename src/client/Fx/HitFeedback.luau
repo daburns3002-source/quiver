@@ -332,6 +332,89 @@ local function flashVignette()
 end
 
 --[[
+	A blast from Blast Arrows.
+
+	Two parts, because they answer different questions. The ground ring snaps
+	to the real radius immediately and only fades — the *area* is the
+	information, and animating it outwards would mean the player reads the
+	wrong size for most of the effect. The core flash expands, which is what
+	makes it read as a detonation rather than as a decal appearing.
+
+	Drawn at the radius the server sent, so a player who stacks Blast Arrows
+	sees the thing they bought get bigger.
+]]
+function HitFeedback.onExplosion(position: Vector3, radius: number)
+	local tier = Device.tier()
+
+	if activeNumbers >= tier.maxDamageNumbers or radius <= 0 then
+		return
+	end
+
+	activeNumbers += 1
+
+	local duration = Balance.Feedback.explosionDuration
+
+	--[[ Flat against the floor, which is the only orientation that reads as
+	     an area from a fixed overhead camera. ]]
+	local ring = Instance.new("Part")
+	ring.Name = "ExplosionRing"
+	ring.Shape = Enum.PartType.Cylinder
+	ring.Size = Vector3.new(0.2, radius * 2, radius * 2)
+	ring.CFrame = CFrame.new(position.X, 0.2, position.Z) * CFrame.Angles(0, 0, math.rad(90))
+	ring.Anchored = true
+	ring.CanCollide = false
+	ring.CanQuery = false
+	ring.CanTouch = false
+	ring.CastShadow = false
+	ring.Material = Enum.Material.Neon
+	ring.Color = Balance.Feedback.explosionColor
+	ring.Transparency = 0.25
+	ring.Parent = folder
+
+	TweenService:Create(ring, TweenInfo.new(duration, Enum.EasingStyle.Quad), {
+		Transparency = 1,
+	}):Play()
+
+	local core = Instance.new("Part")
+	core.Name = "ExplosionCore"
+	core.Shape = Enum.PartType.Ball
+	core.Size = Vector3.one * (radius * 0.5)
+	core.Position = position
+	core.Anchored = true
+	core.CanCollide = false
+	core.CanQuery = false
+	core.CanTouch = false
+	core.CastShadow = false
+	core.Material = Enum.Material.Neon
+	core.Color = Balance.Feedback.explosionCoreColor
+	core.Transparency = 0.1
+	core.Parent = folder
+
+	TweenService
+		:Create(core, TweenInfo.new(duration, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+			Size = Vector3.one * (radius * 1.6),
+			Transparency = 1,
+		})
+		:Play()
+
+	--[[ A blast is a bigger event than an arrow landing, so it gets the shake
+	     an arrow does not — gated on the tier, like every other shake. ]]
+	if tier.enableScreenShake then
+		TopDownCamera.shake(
+			Balance.Feedback.shakeOnDamageMagnitude * 0.5,
+			Balance.Feedback.shakeOnDamageDuration * 0.6
+		)
+	end
+
+	task.delay(duration, function()
+		activeNumbers -= 1
+	end)
+
+	Debris:AddItem(ring, duration)
+	Debris:AddItem(core, duration)
+end
+
+--[[
 	The player has been hit by something.
 
 	Three cues, because one is not enough on a phone: the character turns red,

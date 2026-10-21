@@ -79,10 +79,15 @@ local function fire(session: Session, root: BasePart, now: number)
 	})
 
 	for _, spec in specs do
+		local aim = ShotPipeline.aim(direction, spec)
+
 		ProjectileSystem.spawn({
 			faction = "Player" :: Types.Faction,
-			origin = origin,
-			direction = ShotPipeline.aim(direction, spec),
+			--[[ Offset sideways so parallel arrows start beside each other
+			     rather than on top of one another. The renderer calls the
+			     same helper, so what is drawn starts where this does. ]]
+			origin = ShotPipeline.spawnPoint(origin, aim, spec),
+			direction = aim,
 			speed = spec.speed,
 			lifetime = spec.lifetime,
 			damage = session.damage * spec.damageScale * momentum,

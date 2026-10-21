@@ -16,6 +16,69 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## Front Arrow's extra arrows missed the target they were aimed at
+
+**Symptom** — "the front arrow upgrade should not go out in a v shape it
+should be one next to the other in a straight line parallel, make sure they
+are close enough so both will hit the target".
+
+**Cause** — Front Arrow was built on `Stages.spread`, an angular fan. A fan
+separates with distance, so at range only the centre arrow reaches the enemy
+every arrow was aimed at. Archero 2 renders the same upgrade as a tight
+parallel lane, confirmed from the reference footage.
+
+**Fix** — a `lateralOffset` on the spec and a `Stages.parallel` that offsets
+extra arrows sideways on the same heading. `ShotPipeline.spawnPoint` places
+them, and the server, the client's prediction and the renderer all call it,
+so the lane is a lane in the simulation *and* on screen.
+
+**Measured** — live, one stack: two arrows both on angle 0, starting 0.84–0.85
+studs apart against a configured 0.85, centred on the aim line.
+`tests/AbilityEffects.spec.luau` holds the full four-stack lane inside the
+narrowest enemy's hitbox, so widening the spacing far enough to miss again
+fails a test.
+
+---
+
+## Blast Arrows exploded invisibly
+
+**Symptom** — "the bomb upgrade needs to be more pronounced so the player
+knows that the bomb is exploding".
+
+**Cause** — splash damage was applied server-side with no event at all, so
+enemies near the target simply died for no visible reason.
+
+**Fix** — an `Explosion` remote carrying the real radius, and a client effect
+in two parts: a ground ring that snaps to the true radius and only fades,
+because the area *is* the information, and a core flash that expands so it
+reads as a detonation. Light shake, gated on tier.
+
+**Measured** — 17 explosions fired, 17 rings drawn, at the radius one stack
+grants.
+
+---
+
+## The player could walk around behind the upgrade screen
+
+**Symptom** — "make sure when the player levels up and unlocks an upgrade
+that they cant move when the upgrade screen is there".
+
+**Cause** — the server froze the world and the client froze firing
+prediction, but movement and the dash read neither. The player crossed a room
+nothing else was running in, and reappeared elsewhere on choosing.
+
+**Fix** — one `RunPaused` flag on the client, read by movement, prediction and
+the dash, rather than three copies of it. Movement is actively told
+`Move(zero)` so the Humanoid does not coast.
+
+**Measured** — partially. `tests/RunPaused.spec.luau` pins the flag, but the
+movement half needs real input and `VirtualInputManager` is capability-blocked
+over MCP, so walking behind the cards has been reasoned about rather than
+driven. If it still happens, the wiring in `MoveController.step` is where to
+look.
+
+---
+
 ## Abilities did nothing, and arrows stopped connecting
 
 **Symptom** — two complaints, one cause: "the player projectiles are missing

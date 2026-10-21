@@ -25,6 +25,7 @@ local AbilityEffects = require(ReplicatedStorage.Shared.Combat.AbilityEffects)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local PlayerStats = require(script.Parent.Parent.PlayerStats)
 local ProjectileRenderer = require(script.Parent.Parent.Fx.ProjectileRenderer)
+local RunPaused = require(script.Parent.Parent.RunPaused)
 local ShotPipeline = require(ReplicatedStorage.Shared.Combat.ShotPipeline)
 
 local LocalFiring = {}
@@ -57,15 +58,9 @@ local stationarySince: number? = nil
 local connection: RBXScriptConnection? = nil
 local loadoutConnection: RBXScriptConnection? = nil
 
---[[
-	Set while a card screen is open.
-
-	The server stops the whole run during a draft, but this prediction lives
-	on RenderStepped and would happily go on drawing volleys the server is
-	not firing — phantom arrows that cross a frozen room and kill nothing.
-	Prediction is only honest while the thing it predicts is still running.
-]]
-local paused = false
+--[[ Shared with movement and the dash. Prediction is only honest while the
+     thing it predicts is still running. ]]
+local pauseConnection: RBXScriptConnection? = nil
 
 local function nearestEnemyPosition(origin: Vector3): Vector3?
 	local folder = Workspace:FindFirstChild("Enemies")
@@ -122,7 +117,7 @@ end
 local function step()
 	--[[ Nothing is being simulated behind the cards, so nothing should be
 	     drawn either. ]]
-	if paused then
+	if RunPaused.get() then
 		return
 	end
 
@@ -209,26 +204,27 @@ function LocalFiring.start()
 	rebuildPipeline()
 	loadoutConnection = PlayerStats.onChanged(rebuildPipeline)
 
+	if pauseConnection then
+		pauseConnection:Disconnect()
+	end
+
+	--[[ Clearing the settle timer on resume matters: the player has been
+	     standing still behind the cards, and letting that count would hand
+	     them a free volley the instant they choose. ]]
+	pauseConnection = RunPaused.onChanged(function(value: boolean)
+		if not value then
+			stationarySince = nil
+			lastFiredAt = os.clock()
+		end
+	end)
+
 	connection = RunService.RenderStepped:Connect(step)
 end
 
 function LocalFiring.reset()
 	lastFiredAt = 0
 	stationarySince = nil
-	paused = false
 	rebuildPipeline()
-end
-
---[[ Called when a card screen opens and closes. Clearing the settle timer on
-     resume matters: the player has been standing still behind the cards, and
-     letting that count would hand them a free volley the moment they choose. ]]
-function LocalFiring.setPaused(value: boolean)
-	paused = value
-
-	if not value then
-		stationarySince = nil
-		lastFiredAt = os.clock()
-	end
 end
 
 return LocalFiring

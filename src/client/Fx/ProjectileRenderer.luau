@@ -381,7 +381,10 @@ function ProjectileRenderer.spawnVolley(
 		local headStart = math.clamp(elapsed, 0, spec.lifetime)
 
 		local part = acquire(colour)
-		local position = origin + aim * spec.speed * headStart
+		--[[ The same sideways offset the server spawns at, from the same
+		     helper, so a lane of arrows is a lane in both places. ]]
+		local start = ShotPipeline.spawnPoint(origin, aim, spec)
+		local position = start + aim * spec.speed * headStart
 		part.CFrame = placeAt(position, aim)
 
 		--[[ Enabled only once the part is sitting at its start, so a recycled

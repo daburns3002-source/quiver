@@ -244,4 +244,42 @@ function Stages.chainOnKill(count: number): ShotStage
 	}
 end
 
+--[[
+	Widens a volley into `count` arrows flying side by side.
+
+	The Count-bucket counterpart to `spread`. Both make more arrows; this one
+	keeps them on the same heading and offsets them sideways instead, so they
+	stay a lane all the way to the target rather than separating with
+	distance. That is what an extra-arrow upgrade should do — more damage into
+	the thing you aimed at, not a wider miss.
+
+	Centred, so an odd count keeps one arrow exactly on the line the player
+	aimed along and an even one straddles it evenly.
+]]
+function Stages.parallel(count: number, spacing: number): ShotStage
+	return {
+		name = "Parallel",
+		order = ShotPipeline.Stage.Count,
+
+		apply = function(specs: { ShotSpec }, _request: ShotRequest): { ShotSpec }
+			if count <= 1 then
+				return specs
+			end
+
+			local out: { ShotSpec } = {}
+			local first = -(count - 1) / 2 * spacing
+
+			for _, spec in specs do
+				for index = 0, count - 1 do
+					local copy = table.clone(spec)
+					copy.lateralOffset = spec.lateralOffset + first + index * spacing
+					table.insert(out, copy)
+				end
+			end
+
+			return out
+		end,
+	}
+end
+
 return Stages

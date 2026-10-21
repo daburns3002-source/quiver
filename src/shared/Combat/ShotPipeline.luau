@@ -139,6 +139,7 @@ function ShotPipeline.build(self: ShotPipeline, request: ShotRequest): { ShotSpe
 	local specs: { ShotSpec } = {
 		{
 			angleOffset = 0,
+			lateralOffset = 0,
 			damageScale = 1,
 			speed = request.speed,
 			lifetime = request.lifetime,
@@ -185,6 +186,31 @@ function ShotPipeline.aim(direction: Vector3, spec: ShotSpec): Vector3
 		0,
 		direction.X * sin + direction.Z * cos
 	)
+end
+
+--[[
+	Where an arrow actually starts.
+
+	Lives beside `aim` for the same reason: every consumer of a built volley
+	needs exactly this, and three hand-rolled copies of the same perpendicular
+	is three chances to disagree about which way is left. The server, the
+	client's prediction and the renderer all call it, which is what keeps a
+	parallel volley parallel on screen *and* in the simulation.
+
+	Perpendicular to the arrow's own aim rather than the volley's, so a
+	mirrored copy fired backwards offsets along its own lane.
+]]
+function ShotPipeline.spawnPoint(origin: Vector3, aim: Vector3, spec: ShotSpec): Vector3
+	if spec.lateralOffset == 0 then
+		return origin
+	end
+
+	local right = Vector3.new(aim.Z, 0, -aim.X)
+	if right.Magnitude < 1e-3 then
+		return origin
+	end
+
+	return origin + right.Unit * spec.lateralOffset
 end
 
 export type ShotPipeline = typeof(setmetatable({} :: Fields, ShotPipeline))

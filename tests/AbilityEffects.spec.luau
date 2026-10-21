@@ -57,18 +57,71 @@ return function(t: TestRunner.Helper)
 		t.isTrue(two > one, "a second stack of Front Arrow added nothing")
 	end)
 
-	t.test("Front Arrow keeps the fan centred on the target", function()
-		--[[ An even fan with nothing down the middle means a player aiming
-		     straight at something misses it, which is the opposite of what
-		     the card promises. ]]
-		local specs = volley({ FrontArrow = 2 })
-		local total = 0
+	--[[
+		The shape of a multi-arrow volley, which is the whole point of the
+		card.
+
+		Extra arrows fly in a lane beside each other, not fanned outwards. A
+		fan separates with distance, so a player who aims every arrow at one
+		enemy lands only the middle one — which is exactly the complaint this
+		replaced.
+	]]
+	t.test("Front Arrow adds arrows beside the first, not fanned out", function()
+		local specs = volley({ FrontArrow = 3 })
+		t.isTrue(#specs > 1, "Front Arrow added nothing")
+
+		local offsets: { number } = {}
 
 		for _, spec in specs do
-			total += spec.angleOffset
+			t.near(spec.angleOffset, 0, 1e-9, "an extra arrow was aimed off the target")
+			table.insert(offsets, spec.lateralOffset)
 		end
 
-		t.near(total, 0, 1e-6, "the fan is not balanced around the aim")
+		--[[ Distinct, or two arrows occupy the same space and one of them is
+		     invisible. ]]
+		table.sort(offsets)
+		for index = 2, #offsets do
+			t.isTrue(
+				offsets[index] - offsets[index - 1] > 1e-6,
+				"two arrows start in the same place"
+			)
+		end
+	end)
+
+	t.test("a volley stays centred on the line the player aimed along", function()
+		for _, stacks in { 1, 2, 3, 4 } do
+			local total = 0
+			for _, spec in volley({ FrontArrow = stacks }) do
+				total += spec.lateralOffset
+			end
+			t.near(total, 0, 1e-6, `a volley of {stacks + 1} arrows is lopsided`)
+		end
+	end)
+
+	--[[
+		The relationship the spacing has to keep.
+
+		Widen it far enough and the outer arrows of a full-stack volley sail
+		past the thing every one of them was aimed at. This holds the whole
+		lane inside the narrowest enemy in the game, which is the only target
+		that can miss.
+	]]
+	t.test("every arrow of a full volley still hits the narrowest enemy", function()
+		local narrowest = math.huge
+		for _, value in Balance.Enemies do
+			local config = value :: Balance.EnemyConfig
+			narrowest = math.min(narrowest, config.hitboxSize.X, config.hitboxSize.Z)
+		end
+
+		local reach = narrowest / 2 + Balance.Projectile.radius
+		local capped = Abilities.byId.FrontArrow.maxStacks
+
+		for _, spec in volley({ FrontArrow = capped }) do
+			t.isTrue(
+				math.abs(spec.lateralOffset) <= reach,
+				`an arrow {math.abs(spec.lateralOffset)} studs out misses a {narrowest}-wide enemy`
+			)
+		end
 	end)
 
 	t.test("each pattern ability aims arrows somewhere new", function()
@@ -89,6 +142,24 @@ return function(t: TestRunner.Helper)
 
 	--[[ The compounding test: patterns multiply the whole volley rather than
 	     adding one arrow, which is why Front Arrow is capped low. ]]
+	--[[ Pattern abilities mirror whole volleys, so a lane fired backwards has
+	     to stay a lane rather than collapsing onto one line. ]]
+	t.test("a mirrored volley keeps its lane", function()
+		local specs = volley({ FrontArrow = 2, RearArrow = 1 })
+
+		local behind: { number } = {}
+		for _, spec in specs do
+			if math.abs(spec.angleOffset) > 1e-6 then
+				table.insert(behind, spec.lateralOffset)
+			end
+		end
+
+		t.isTrue(#behind > 1, "the rear volley lost its extra arrows")
+
+		table.sort(behind)
+		t.isTrue(behind[#behind] - behind[1] > 1e-6, "the rear arrows collapsed onto one line")
+	end)
+
 	t.test("count and pattern compound", function()
 		local front = #volley({ FrontArrow = 2 })
 		local both = #volley({ FrontArrow = 2, RearArrow = 1 })

@@ -1,4 +1,4 @@
-# Quiver — reviewer rulebook
+# Arrow Legends — reviewer rulebook
 
 This repo is built by Claude and reviewed by Codex. This file is the review contract.
 The builder's rulebook is `CLAUDE.md`; the two must not contradict each other.

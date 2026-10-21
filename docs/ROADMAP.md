@@ -1,4 +1,4 @@
-# Roadmap — Quiver
+# Roadmap — Arrow Legends
 
 **Archero's combat inside a Pet Simulator / Steal an Egg progression shell.**
 Run loop: `docs/RESEARCH-archero.md`. Meta loop: `docs/PROGRESSION.md`.

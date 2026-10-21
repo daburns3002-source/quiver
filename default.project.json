@@ -1,5 +1,5 @@
 {
-  "name": "Quiver",
+  "name": "Arrow Legends",
   "globIgnorePaths": ["**/.package-lock.json"],
   "tree": {
     "$className": "DataModel",
@@ -30,6 +30,12 @@
       },
       "StarterCharacterScripts": {
         "$className": "StarterCharacterScripts"
+      }
+    },
+
+    "StarterGui": {
+      "$properties": {
+        "ScreenOrientation": "Portrait"
       }
     },
 

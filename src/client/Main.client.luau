@@ -23,6 +23,7 @@ local Log = require(Shared.Util.Log)
 local MoveController = require(script.Parent.Input.MoveController)
 local ProjectileRenderer = require(script.Parent.Fx.ProjectileRenderer)
 local Remotes = require(Shared.Net.Remotes)
+local TelegraphRenderer = require(script.Parent.Fx.TelegraphRenderer)
 local TopDownCamera = require(script.Parent.Camera.TopDownCamera)
 local Types = require(Shared.Types)
 
@@ -70,6 +71,7 @@ end
 HealthBar.start()
 ProjectileRenderer.start(Workspace)
 HitFeedback.start(Workspace)
+TelegraphRenderer.start(Workspace)
 TopDownCamera.start(currentRoot)
 LocalFiring.start()
 MoveController.start()
@@ -106,6 +108,7 @@ Remotes.event(Remotes.ShotFired).OnClientEvent:Connect(function(event: ShotEvent
 	ProjectileRenderer.spawnVolley(event.faction, event.origin, event.direction, event.specs, 0)
 end)
 
+Remotes.event(Remotes.EnemyTelegraph).OnClientEvent:Connect(TelegraphRenderer.onTelegraph)
 Remotes.event(Remotes.EnemyHit).OnClientEvent:Connect(HitFeedback.onEnemyHit)
 Remotes.event(Remotes.EnemyDied).OnClientEvent:Connect(HitFeedback.onEnemyDied)
 Remotes.event(Remotes.PlayerDamaged).OnClientEvent:Connect(HitFeedback.onPlayerDamaged)

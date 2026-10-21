@@ -39,6 +39,18 @@ Remotes.EnemyHit = "EnemyHit"
 ]]
 Remotes.EnemyDied = "EnemyDied"
 
+--[[
+	Server → clients. An enemy began winding up a shot: origin, the direction
+	it is committed to (or currently pointed), how long the wind-up lasts, and
+	which tell to draw.
+
+	Sent as data rather than as a part the server builds, for the same reason
+	projectiles are: the client decides how to draw a warning, the server only
+	decides that there is one. A `Line` tell is only truthful because the
+	matching shot locks its aim — see Balance.EnemyShot.locksAim.
+]]
+Remotes.EnemyTelegraph = "EnemyTelegraph"
+
 --[[ Server → one client. The local player took damage, for shake and vignette. ]]
 Remotes.PlayerDamaged = "PlayerDamaged"
 

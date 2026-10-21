@@ -447,6 +447,35 @@ local Balance = {
 		-- Seconds the archer must be still before firing resumes. Small, but
 		-- non-zero stops a player machine-gunning by tapping the stick.
 		stationaryDelay = 0.1,
+
+		--[[
+			The dash.
+
+			Move-or-shoot gives the player exactly one answer to a volley
+			already in the air: walk out of it, at 18 studs a second, which
+			against a Lancer's 45-stud shot is no answer at all. The dash is
+			the escape that makes a bad position recoverable instead of fatal.
+
+			It costs what it is worth. Dashing is moving, so the stationary
+			timer resets and the archer stops firing — the way out of a fan is
+			paid for in the shots not taken while leaving. Nothing about
+			firing needed changing for that; it falls out of driving the
+			Humanoid rather than teleporting.
+
+			16 studs is a little over two body-lengths of a Bulwark: far enough
+			to clear a fan, short enough that it cannot cross the arena. The
+			duration is the shortest that still reads as travel rather than as
+			a blink, which matters because a player who cannot see where they
+			went cannot aim the next one.
+		]]
+		dash = {
+			distance = 16,
+			duration = 0.18,
+			--[[ Long enough that it is a decision rather than a second
+			     movement speed. Tuning this down is how the game gets easier;
+			     it should go up, not down, as areas progress. ]]
+			cooldown = 1.2,
+		},
 	},
 
 	Projectile = {

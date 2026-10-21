@@ -19,6 +19,9 @@ local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
+local Balance = require(game:GetService("ReplicatedStorage").Shared.Config.Balance)
+local Dash = require(script.Parent.Dash)
+local DashButton = require(script.Parent.DashButton)
 local Thumbstick = require(script.Parent.Thumbstick)
 
 local MoveController = {}
@@ -90,6 +93,29 @@ local function desiredDirection(): Vector3
 	return if flat.Magnitude > 1e-3 then flat.Unit else Vector3.zero
 end
 
+--[[
+	Asks for a dash in whichever direction the player is currently expressing,
+	falling back to where the character is pointed.
+
+	Reads input at the moment of the press rather than being handed a
+	direction, because the press and the input read have to be the same frame
+	— a dash that uses last frame's heading goes somewhere the player did not
+	ask for, and at 89 studs a second that is very visible.
+]]
+local function requestDash()
+	local character = player.Character
+	if not character then
+		return
+	end
+
+	local root = character:FindFirstChild("HumanoidRootPart")
+	if not root or not root:IsA("BasePart") then
+		return
+	end
+
+	Dash.request(os.clock(), desiredDirection(), root.CFrame.LookVector)
+end
+
 local function step()
 	local character = player.Character
 	if not character then
@@ -100,6 +126,27 @@ local function step()
 	if not humanoid or humanoid.Health <= 0 then
 		return
 	end
+
+	local heading, speed = Dash.current(os.clock())
+
+	--[[
+		A dash drives the same Humanoid at a higher speed rather than moving
+		the character directly.
+
+		That is the whole reason it cannot clip: walls, pillars and the arena
+		boundary are already solved for walking, and a dash that teleported or
+		set CFrame would have to solve them again and would get it wrong at
+		89 studs a second. It also means the server sees a dash as ordinary
+		movement, so the archer stops firing while it happens without anything
+		being taught about dashing.
+	]]
+	if heading then
+		humanoid.WalkSpeed = speed
+		humanoid:Move(heading, false)
+		return
+	end
+
+	humanoid.WalkSpeed = Balance.Player.moveSpeed
 
 	-- World space, not camera-relative: the second argument must stay false.
 	humanoid:Move(desiredDirection(), false)
@@ -117,6 +164,17 @@ function MoveController.start()
 	MoveController.stop()
 
 	Thumbstick.start()
+	DashButton.start(requestDash)
+
+	--[[ A dash in flight must not survive a death: the cooldown belongs to the
+	     life that spent it, and a heading captured before a respawn points
+	     somewhere that no longer means anything. ]]
+	table.insert(
+		connections,
+		player.CharacterAdded:Connect(function()
+			Dash.reset()
+		end)
+	)
 
 	table.insert(
 		connections,
@@ -127,6 +185,14 @@ function MoveController.start()
 
 			if KEY_VECTORS[input.KeyCode] then
 				held[input.KeyCode] = true
+				return
+			end
+
+			--[[ Space and the gamepad's bottom face button. Jumping was taken
+			     out of the run, which is what leaves space free — it is the
+			     key every player already reaches for to get out of the way. ]]
+			if input.KeyCode == Enum.KeyCode.Space or input.KeyCode == Enum.KeyCode.ButtonA then
+				requestDash()
 			end
 		end)
 	)
@@ -167,6 +233,8 @@ function MoveController.stop()
 
 	table.clear(connections)
 	Thumbstick.stop()
+	DashButton.stop()
+	Dash.reset()
 	releaseAll()
 end
 

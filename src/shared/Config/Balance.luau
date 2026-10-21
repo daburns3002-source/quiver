@@ -90,7 +90,7 @@ export type EnemyConfig = {
 local meleeCharger: EnemyConfig = {
 	displayName = "Charger",
 	health = 30,
-	moveSpeed = 9,
+	moveSpeed = 7.5,
 	-- Studs from the player at which it lands a hit.
 	attackRange = 4,
 	attackDamage = 10,
@@ -115,7 +115,7 @@ local meleeCharger: EnemyConfig = {
 local spreadShooter: EnemyConfig = {
 	displayName = "Spitter",
 	health = 24,
-	moveSpeed = 6,
+	moveSpeed = 5,
 	--[[ Ranged enemies treat attackRange as the distance they want to hold,
 	     not the distance they close to. ]]
 	attackRange = 34,
@@ -133,7 +133,7 @@ local spreadShooter: EnemyConfig = {
 		--[[ Slow on purpose. Enemy projectiles have to be readable and
 		     dodgeable on a small screen; 8–20 studs/s is the band the teardown
 		     calls for. ]]
-		speed = 16,
+		speed = 13,
 		lifetime = 4,
 		--[[ Seconds of wind-up before the volley leaves, so the player reacts
 		     to the tell rather than to the projectile. ]]
@@ -156,7 +156,7 @@ local spreadShooter: EnemyConfig = {
 local lineSniper: EnemyConfig = {
 	displayName = "Lancer",
 	health = 20,
-	moveSpeed = 5,
+	moveSpeed = 4.25,
 	attackRange = 48,
 	attackDamage = 16,
 	attackCooldown = 3,
@@ -169,7 +169,7 @@ local lineSniper: EnemyConfig = {
 		spread = 0,
 		--[[ Fast, unlike the Spitter. The telegraph is the counterplay here,
 		     not the flight time — once it fires, it has already hit. ]]
-		speed = 80,
+		speed = 64,
 		lifetime = 2,
 		--[[ Long, because the whole fight is the player reading this window
 		     and moving out of the line inside it. ]]
@@ -188,7 +188,7 @@ local lineSniper: EnemyConfig = {
 local tank: EnemyConfig = {
 	displayName = "Bulwark",
 	health = 120,
-	moveSpeed = 4,
+	moveSpeed = 3.5,
 	attackRange = 5,
 	attackDamage = 18,
 	attackCooldown = 1.6,
@@ -217,7 +217,7 @@ local tank: EnemyConfig = {
 local burrower: EnemyConfig = {
 	displayName = "Lurker",
 	health = 26,
-	moveSpeed = 7,
+	moveSpeed = 6,
 	attackRange = 26,
 	attackDamage = 10,
 	attackCooldown = 2.4,
@@ -231,7 +231,7 @@ local burrower: EnemyConfig = {
 		     a lane across the room. ]]
 		count = 5,
 		spread = math.rad(24),
-		speed = 18,
+		speed = 14,
 		lifetime = 3,
 		--[[ Short. Surfacing *is* the telegraph, and the player has already
 		     been given the ground marker to act on. ]]
@@ -303,7 +303,11 @@ local rooms: { RoomConfig } = {
 		obstacles = {
 			{ offset = Vector2.new(0, 18), size = Vector3.new(34, 10, 6) },
 		},
-		enemyCount = 4,
+		--[[ Three, not four. Playtest 2 found the opener too hard: it is the
+		     room where a player is still learning that stopping is a choice,
+		     and it should not also be the room that punishes them hardest for
+		     getting it wrong. ]]
+		enemyCount = 3,
 	},
 	{
 		name = "Two Pillars",
@@ -391,9 +395,11 @@ local rooms: { RoomConfig } = {
 local Balance = {
 	Player = {
 		maxHealth = 100,
-		-- Studs per second. Archero's archer is slow enough that committing to a
-		-- direction costs something.
-		moveSpeed = 16,
+		--[[ Studs per second. Still slow enough that committing to a direction
+		     costs something, but raised after Playtest 2: repositioning out of
+		     cover has to be affordable, or the answer to every threat is to
+		     stand still and hope. ]]
+		moveSpeed = 18,
 		baseDamage = 10,
 		-- Seconds between volleys while stationary.
 		attackCooldown = 0.45,
@@ -408,7 +414,11 @@ local Balance = {
 	},
 
 	Projectile = {
-		speed = 70,
+		--[[ Dropped a fifth after Playtest 2, along with every enemy shot, so
+		     the ratio between them is unchanged. Slower arrows make a volley
+		     something the player watches land rather than an instant line,
+		     which is what gives standing still a visible cost. ]]
+		speed = 56,
 		lifetime = 2.5,
 		radius = 0.35,
 		-- Hard cap on live server projectiles. Phase 3 abilities multiply volley
@@ -488,7 +498,12 @@ local Balance = {
 		-- Phase 1 is one room with a fixed wave. Room flow arrives in Phase 2.
 		enemyCount = 6,
 		-- Minimum studs between a spawn point and the player.
-		minSpawnDistance = 28,
+		--[[ Doubled after Playtest 2. Enemies were still arriving close enough
+		     to feel like they appeared on top of the player, so the exclusion
+		     is now most of the arena's width — far enough that a wave reads as
+		     something approaching rather than something that was already
+		     there. See the spawn-placement note in EnemyManager. ]]
+		minSpawnDistance = 56,
 		-- Seconds after the wave clears before it respawns, so the slice can be
 		-- played for longer than one fight.
 		respawnDelay = 3,

@@ -49,9 +49,16 @@ local BASE_TRANSPARENCY = 0.72
 local KNOB_TRANSPARENCY = 0.35
 local FADE_DURATION = 0.12
 
+--[[ Knob diameter as a fraction of the ring's. ]]
+local KNOB_SCALE = 0.42
+
 local gui: ScreenGui? = nil
 local base: Frame? = nil
 local knob: Frame? = nil
+
+--[[ The radius the rings are currently drawn at. Tracked so the visual can
+     follow a viewport change rather than keeping whatever `start` measured. ]]
+local drawnRadius = 0
 
 local activeTouch: InputObject? = nil
 local origin = Vector2.zero
@@ -131,6 +138,21 @@ local function layout(current: Vector2)
 	end
 
 	local limit = radius()
+
+	--[[
+		Resized here rather than only in `start`, because the viewport can
+		change under us — an orientation change, a device-simulator switch, a
+		desktop window resize. `limit` below is recomputed every move, so a
+		ring left at the radius measured at startup would no longer match where
+		the knob actually clamps: it would escape the ring, and full tilt would
+		sit outside the visual.
+	]]
+	if limit ~= drawnRadius then
+		drawnRadius = limit
+		baseFrame.Size = UDim2.fromOffset(limit * 2, limit * 2)
+		knobFrame.Size = UDim2.fromOffset(limit * 2 * KNOB_SCALE, limit * 2 * KNOB_SCALE)
+	end
+
 	local delta = current - origin
 	local distance = delta.Magnitude
 
@@ -192,11 +214,13 @@ function Thumbstick.start()
 	-- Below the HUD: the health bar must stay readable through a drag.
 	created.DisplayOrder = -1
 
-	local diameter = radius() * 2
+	drawnRadius = radius()
+
+	local diameter = drawnRadius * 2
 	local baseFrame = circle("Base", diameter, BASE_COLOUR, BASE_TRANSPARENCY)
 	baseFrame.Parent = created
 
-	local knobFrame = circle("Knob", diameter * 0.42, KNOB_COLOUR, KNOB_TRANSPARENCY)
+	local knobFrame = circle("Knob", diameter * KNOB_SCALE, KNOB_COLOUR, KNOB_TRANSPARENCY)
 	knobFrame.Parent = created
 
 	created.Parent = playerGui
@@ -264,6 +288,7 @@ function Thumbstick.stop()
 
 	activeTouch = nil
 	direction = Vector2.zero
+	drawnRadius = 0
 
 	if gui then
 		gui:Destroy()

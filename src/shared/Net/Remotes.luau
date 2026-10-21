@@ -30,7 +30,13 @@ Remotes.ShotFired = "ShotFired"
 ]]
 Remotes.EnemyHit = "EnemyHit"
 
---[[ Server → clients. An enemy died, for the death effect. ]]
+--[[
+	Server → clients. An enemy died, for the death effect. Carries the position
+	and nothing else: the enemy instance is destroyed in the same step, so a
+	reference to it would not reliably survive the trip. Anything a future
+	effect needs — archetype, rarity, loot — travels as data, never as the
+	instance it describes.
+]]
 Remotes.EnemyDied = "EnemyDied"
 
 --[[ Server → one client. The local player took damage, for shake and vignette. ]]

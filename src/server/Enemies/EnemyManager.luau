@@ -225,7 +225,14 @@ function EnemyManager.damage(model: Model, amount: number, fromPosition: Vector3
 	positions[model] = nil
 	aliveCount -= 1
 
-	enemyDied:FireAllClients(model, enemy.position)
+	--[[
+		Position only, deliberately. Passing `model` here raced the `Destroy`
+		on the next line: whether the client received a usable reference or nil
+		depended on replication ordering within the frame. Anything the client
+		needs about a dead enemy has to travel as data, because the instance it
+		would describe is already gone.
+	]]
+	enemyDied:FireAllClients(enemy.position)
 	model:Destroy()
 
 	return true
@@ -266,6 +273,10 @@ local function stepEnemy(enemy: Enemy, deltaTime: number, now: number)
 
 	local radius = math.max(enemy.config.hitboxSize.X, enemy.config.hitboxSize.Z) / 2
 
+	--[[ Whether the obstacle steering below committed to a side this step. The
+	     commitment must not outlive the block that caused it. ]]
+	local steering = false
+
 	if distance > enemy.config.attackRange then
 		local toTarget = Vector3.new(
 			targetRoot.Position.X - enemy.position.X,
@@ -301,8 +312,7 @@ local function stepEnemy(enemy: Enemy, deltaTime: number, now: number)
 
 				enemy.slideSign = side
 				desired = tangent * side
-			else
-				enemy.slideSign = nil
+				steering = true
 			end
 		end
 
@@ -329,6 +339,16 @@ local function stepEnemy(enemy: Enemy, deltaTime: number, now: number)
 		local nextPosition = enemy.position + move * enemy.config.moveSpeed * deltaTime
 		enemy.position = Arena.resolve(nextPosition, radius)
 		positions[enemy.model] = enemy.position
+	end
+
+	--[[
+		Cleared whenever the steering above did not run this step — including
+		when the enemy is inside attack range, which the old placement never
+		reached. A commitment that outlived its obstacle sent the enemy the
+		long way round the next time anything blocked it.
+	]]
+	if not steering then
+		enemy.slideSign = nil
 	end
 
 	-- Face the player regardless of whether it is closing or swinging.

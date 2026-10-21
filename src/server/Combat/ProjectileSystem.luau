@@ -44,7 +44,15 @@ local ProjectileSystem = {}
 
 local active: { Projectile } = {}
 local raycastParams: RaycastParams? = nil
-local droppedThisRun = 0
+
+--[[
+	Cap-warning throttle. Counted since the last warning rather than since the
+	server started, and gated on elapsed time, so the line fires once per
+	incident however long the process has been up.
+]]
+local droppedSinceWarning = 0
+local lastWarnedAt = -math.huge
+local WARN_INTERVAL = 5
 
 --[[
 	Rebuilt whenever the arena or enemy folder is recreated. Include-list rather
@@ -70,15 +78,6 @@ function ProjectileSystem.refreshFilter()
 	raycastParams = params
 end
 
-function ProjectileSystem.clear()
-	table.clear(active)
-	droppedThisRun = 0
-end
-
-function ProjectileSystem.activeCount(): number
-	return #active
-end
-
 --[[
 	Queues one projectile. Called once per spec in a volley by the firing
 	system, never by anything a client can reach.
@@ -93,15 +92,18 @@ function ProjectileSystem.spawn(
 	now: number
 )
 	if #active >= Balance.Projectile.maxActive then
-		droppedThisRun += 1
+		droppedSinceWarning += 1
 
-		-- One line per hundred, so a runaway build is visible without spamming.
-		if droppedThisRun % 100 == 1 then
+		-- One line per interval, so a runaway build is visible without spamming.
+		if now - lastWarnedAt >= WARN_INTERVAL then
 			log.warn(
-				"projectile cap of %d reached, dropped %d so far",
+				"projectile cap of %d reached, dropped %d in the last %ds",
 				Balance.Projectile.maxActive,
-				droppedThisRun
+				droppedSinceWarning,
+				WARN_INTERVAL
 			)
+			lastWarnedAt = now
+			droppedSinceWarning = 0
 		end
 
 		return

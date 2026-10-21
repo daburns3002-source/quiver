@@ -349,6 +349,15 @@ end
 	Server-authoritative damage. Nothing on the client can reach this; the
 	projectile system is the only caller.
 ]]
+--[[
+	Applies damage and reports whether it *landed* — not whether it killed.
+
+	The caller needs one thing from this: did the projectile connect with a
+	live enemy, and should it therefore stop. Reporting the kill instead made
+	every non-fatal hit indistinguishable from a miss, which is the wrong
+	question asked of the wrong function. Death is handled here and announced
+	on `enemyDied`; nothing outside needs to be told about it.
+]]
 function EnemyManager.damage(model: Model, amount: number, fromPosition: Vector3): boolean
 	local enemy = enemies[model]
 	if not enemy or amount <= 0 then
@@ -368,7 +377,7 @@ function EnemyManager.damage(model: Model, amount: number, fromPosition: Vector3
 
 	if enemy.health > 0 then
 		enemyHit:FireAllClients(model, amount, enemy.position)
-		return false
+		return true
 	end
 
 	enemies[model] = nil

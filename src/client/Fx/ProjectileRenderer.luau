@@ -11,6 +11,7 @@
 	would be the single biggest source of frame hitches.
 ]]
 
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
@@ -31,6 +32,8 @@ local ENEMY_COLOUR = Color3.fromRGB(198, 140, 255)
 
 type Visual = {
 	part: BasePart,
+	--[[ Decides what stops this one, exactly as it does on the server. ]]
+	faction: Faction,
 	position: Vector3,
 	direction: Vector3,
 	speed: number,
@@ -42,8 +45,20 @@ local ProjectileRenderer = {}
 local folder: Folder? = nil
 local pool: { BasePart } = {}
 local live: { Visual } = {}
-local raycastParams: RaycastParams? = nil
 local connection: RBXScriptConnection? = nil
+
+--[[
+	One filter per faction, mirroring ProjectileSystem.
+
+	A single filter containing the arena blockers stopped *every* drawn
+	projectile at a wall, including enemy shots — which the server flies
+	straight over them. The player watched incoming fire vanish into a pillar
+	and then take damage from it anyway. The asymmetry has to be drawn as well
+	as simulated, or the player is being shown a different game from the one
+	being played.
+]]
+local playerFilter: RaycastParams? = nil
+local enemyFilter: RaycastParams? = nil
 
 local PROJECTILE_LENGTH = 2.2
 
@@ -85,26 +100,41 @@ local function release(part: BasePart)
 	table.insert(pool, part)
 end
 
-function ProjectileRenderer.refreshFilter()
-	local instances: { Instance } = {}
-
-	local arena = Workspace:FindFirstChild("Arena")
-	local blockers = if arena then arena:FindFirstChild("Blockers") else nil
-	if blockers then
-		table.insert(instances, blockers)
-	end
-
-	local enemies = Workspace:FindFirstChild("Enemies")
-	if enemies then
-		table.insert(instances, enemies)
-	end
-
+local function makeFilter(instances: { Instance }): RaycastParams
 	local params = RaycastParams.new()
 	params.FilterType = Enum.RaycastFilterType.Include
 	params.FilterDescendantsInstances = instances
 	params.IgnoreWater = true
+	return params
+end
 
-	raycastParams = params
+function ProjectileRenderer.refreshFilters()
+	local playerTargets: { Instance } = {}
+
+	local arena = Workspace:FindFirstChild("Arena")
+	local blockers = if arena then arena:FindFirstChild("Blockers") else nil
+	if blockers then
+		table.insert(playerTargets, blockers)
+	end
+
+	local enemies = Workspace:FindFirstChild("Enemies")
+	if enemies then
+		table.insert(playerTargets, enemies)
+	end
+
+	--[[ Characters only, and deliberately no blockers: an enemy shot is
+	     stopped by the person it was aimed at and by nothing else, so it stays
+	     visible across the room until it leaves or expires. ]]
+	local enemyTargets: { Instance } = {}
+	for _, player in Players:GetPlayers() do
+		local character = player.Character
+		if character then
+			table.insert(enemyTargets, character)
+		end
+	end
+
+	playerFilter = makeFilter(playerTargets)
+	enemyFilter = makeFilter(enemyTargets)
 end
 
 --[[
@@ -125,11 +155,11 @@ local function placeAt(position: Vector3, direction: Vector3): CFrame
 end
 
 local function step(deltaTime: number)
-	local params = raycastParams
 	local now = os.clock()
 
 	for index = #live, 1, -1 do
 		local visual = live[index]
+		local params = if visual.faction == "Enemy" then enemyFilter else playerFilter
 		local travel = visual.speed * deltaTime
 		local segment = visual.direction * travel
 		local finished = now >= visual.expiresAt
@@ -194,6 +224,7 @@ function ProjectileRenderer.spawnVolley(
 
 		table.insert(live, {
 			part = part,
+			faction = faction,
 			position = position,
 			direction = aim,
 			speed = spec.speed,
@@ -213,7 +244,7 @@ function ProjectileRenderer.start(parent: Instance)
 	created.Parent = parent
 	folder = created
 
-	ProjectileRenderer.refreshFilter()
+	ProjectileRenderer.refreshFilters()
 
 	if connection then
 		connection:Disconnect()

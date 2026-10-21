@@ -271,6 +271,16 @@ export type RoomConfig = {
 	name: string,
 	obstacles: { Obstacle },
 	enemyCount: number,
+	--[[
+		Which archetypes this room draws from, cycled to fill `enemyCount`.
+
+		Per-room rather than one global order, because the order *is* the
+		tutorial. A single cycle shared by every room put a charger, a spitter
+		and a burrower in the opening fight — three mechanics at once, one of
+		them the hardest of the five to read — which is a teaching failure
+		dressed up as difficulty.
+	]]
+	roster: { EnemyConfig },
 }
 
 --[[
@@ -307,7 +317,9 @@ local rooms: { RoomConfig } = {
 		     room where a player is still learning that stopping is a choice,
 		     and it should not also be the room that punishes them hardest for
 		     getting it wrong. ]]
+		--[[ Chargers only. The first room teaches one thing: stopping is a choice. ]]
 		enemyCount = 3,
+		roster = { meleeCharger },
 	},
 	{
 		name = "Two Pillars",
@@ -315,7 +327,9 @@ local rooms: { RoomConfig } = {
 			{ offset = Vector2.new(-14, 0), size = Vector3.new(8, 10, 8) },
 			{ offset = Vector2.new(14, 0), size = Vector3.new(8, 10, 8) },
 		},
-		enemyCount = 5,
+		--[[ Adds the spitter. A fan you walk through the gaps of. ]]
+		enemyCount = 4,
+		roster = { meleeCharger, meleeCharger, spreadShooter },
 	},
 	{
 		name = "The Spine",
@@ -324,7 +338,9 @@ local rooms: { RoomConfig } = {
 		obstacles = {
 			{ offset = Vector2.new(0, 0), size = Vector3.new(6, 10, 46) },
 		},
-		enemyCount = 5,
+		--[[ No new archetype. Room three is for practising room two in a worse shape. ]]
+		enemyCount = 4,
+		roster = { meleeCharger, spreadShooter },
 	},
 	{
 		name = "Scatter",
@@ -335,7 +351,9 @@ local rooms: { RoomConfig } = {
 			{ offset = Vector2.new(16, 18), size = Vector3.new(8, 10, 8) },
 			{ offset = Vector2.new(0, 0), size = Vector3.new(6, 10, 6) },
 		},
-		enemyCount = 6,
+		--[[ Adds the bulwark, which is really a piece of terrain that hits back. ]]
+		enemyCount = 5,
+		roster = { meleeCharger, spreadShooter, meleeCharger, tank },
 	},
 	{
 		name = "The Gauntlet",
@@ -344,7 +362,9 @@ local rooms: { RoomConfig } = {
 			{ offset = Vector2.new(-12, 0), size = Vector3.new(6, 10, 60) },
 			{ offset = Vector2.new(12, 0), size = Vector3.new(6, 10, 60) },
 		},
-		enemyCount = 6,
+		--[[ Adds the lancer. A drawn line to step out of, in the room with lanes. ]]
+		enemyCount = 5,
+		roster = { meleeCharger, spreadShooter, lineSniper },
 	},
 	{
 		name = "Quarters",
@@ -352,7 +372,9 @@ local rooms: { RoomConfig } = {
 			{ offset = Vector2.new(0, -20), size = Vector3.new(40, 10, 6) },
 			{ offset = Vector2.new(0, 20), size = Vector3.new(40, 10, 6) },
 		},
-		enemyCount = 7,
+		--[[ No new archetype. Four of them at once instead. ]]
+		enemyCount = 6,
+		roster = { meleeCharger, spreadShooter, lineSniper, tank },
 	},
 	{
 		name = "The Pit",
@@ -364,7 +386,9 @@ local rooms: { RoomConfig } = {
 			{ offset = Vector2.new(-24, 24), size = Vector3.new(10, 10, 10) },
 			{ offset = Vector2.new(24, 24), size = Vector3.new(10, 10, 10) },
 		},
-		enemyCount = 7,
+		--[[ Adds the lurker, last because it is the only one that stops being a target. ]]
+		enemyCount = 6,
+		roster = { meleeCharger, spreadShooter, burrower, tank },
 	},
 	{
 		name = "Teeth",
@@ -374,21 +398,27 @@ local rooms: { RoomConfig } = {
 			{ offset = Vector2.new(28, 0), size = Vector3.new(6, 10, 30) },
 			{ offset = Vector2.new(0, 18), size = Vector3.new(6, 10, 30) },
 		},
-		enemyCount = 8,
+		--[[ All five, and from here the count is the only thing still rising. ]]
+		enemyCount = 7,
+		roster = { meleeCharger, spreadShooter, lineSniper, burrower, tank },
 	},
 	{
 		name = "Last Cover",
 		obstacles = {
 			{ offset = Vector2.new(0, 0), size = Vector3.new(14, 10, 14) },
 		},
-		enemyCount = 8,
+		--[[ All five. ]]
+		enemyCount = 7,
+		roster = { meleeCharger, lineSniper, spreadShooter, burrower, tank },
 	},
 	{
 		name = "Nowhere To Stand",
 		-- Ends where it began, open, but with the most enemies. If the loop
 		-- works, this is the room the player wants a rematch with.
 		obstacles = {},
-		enemyCount = 9,
+		--[[ All five, at the most this run ever throws at once. ]]
+		enemyCount = 8,
+		roster = { meleeCharger, spreadShooter, lineSniper, burrower, tank },
 	},
 }
 
@@ -495,18 +525,16 @@ local Balance = {
 	},
 
 	Spawning = {
-		-- Phase 1 is one room with a fixed wave. Room flow arrives in Phase 2.
-		enemyCount = 6,
-		-- Minimum studs between a spawn point and the player.
-		--[[ Doubled after Playtest 2. Enemies were still arriving close enough
-		     to feel like they appeared on top of the player, so the exclusion
-		     is now most of the arena's width — far enough that a wave reads as
-		     something approaching rather than something that was already
-		     there. See the spawn-placement note in EnemyManager. ]]
+		--[[
+			Minimum studs between a spawn point and the player.
+
+			Doubled after Playtest 2. Enemies were still arriving close enough
+			to feel like they appeared on top of the player, so the exclusion
+			is now most of the arena's width — far enough that a wave reads as
+			something approaching rather than something that was already
+			there. See the spawn-placement note in EnemyManager.
+		]]
 		minSpawnDistance = 56,
-		-- Seconds after the wave clears before it respawns, so the slice can be
-		-- played for longer than one fight.
-		respawnDelay = 3,
 	},
 
 	Feedback = {

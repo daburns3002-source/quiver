@@ -87,12 +87,12 @@ player.CharacterAdded:Connect(function()
 	LocalFiring.reset()
 	--[[ The server rebuilds the enemy folder between rooms, so both raycast
 	     filters have to be rebuilt against the new instances. ]]
-	ProjectileRenderer.refreshFilter()
+	ProjectileRenderer.refreshFilters()
 end)
 
 Workspace.ChildAdded:Connect(function(child)
 	if child.Name == "Enemies" or child.Name == "Arena" then
-		ProjectileRenderer.refreshFilter()
+		ProjectileRenderer.refreshFilters()
 	end
 end)
 

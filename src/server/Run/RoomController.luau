@@ -74,7 +74,7 @@ local function enterRoom(index: number)
 		end
 	end
 
-	EnemyManager.spawnWave(room.enemyCount)
+	EnemyManager.spawnWave(room.enemyCount, room.roster)
 
 	log.info("entered room %d/%d — %s", index, #Balance.Rooms, room.name)
 	broadcast()

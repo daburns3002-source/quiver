@@ -99,6 +99,15 @@ Remotes.AbilityChosen = "AbilityChosen"
 ]]
 Remotes.PlayerStats = "PlayerStats"
 
+--[[
+	Server → one client. The run is over; here is what you built.
+
+	Sent on death and on finishing the last room. Carries the held abilities
+	rather than a rendered string, so the client can show them however it
+	likes and the server never has to know what a card looks like.
+]]
+Remotes.RunSummary = "RunSummary"
+
 local function getFolder(): Folder
 	if RunService:IsServer() then
 		local existing = ReplicatedStorage:FindFirstChild(FOLDER_NAME)

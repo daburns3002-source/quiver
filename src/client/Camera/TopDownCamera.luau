@@ -23,6 +23,35 @@ local currentFocus: Vector3? = nil
 local shakeMagnitude = 0
 local shakeDecay = 0
 
+--[[
+	Where the camera sits relative to its focus, solved for this screen.
+
+	The distance is whatever makes `fitWidth` studs of ground span the screen
+	side to side, from the screen's own aspect — so a tall phone, a short
+	phone and a tablet all show the room's full width, which a fixed offset
+	can only do for one of them. On a landscape screen that would zoom right
+	in, so it never shows less depth than `minVisibleDepth`.
+
+	Recomputed every frame rather than cached, because the viewport changes
+	when a phone rotates or a window is resized, and the maths is four trig
+	calls.
+]]
+local function cameraOffset(camera: Camera): Vector3
+	local config = Balance.Camera
+	local viewport = camera.ViewportSize
+	local aspect = if viewport.Y > 0 then viewport.X / viewport.Y else 9 / 16
+
+	local halfVertical = math.rad(config.fieldOfView) / 2
+	local tanHalfHorizontal = math.tan(halfVertical) * aspect
+
+	local toFitWidth = (config.fitWidth / 2) / tanHalfHorizontal
+	local toFitDepth = (config.minVisibleDepth / 2) / math.tan(halfVertical)
+	local distance = math.max(toFitWidth, toFitDepth)
+
+	local pitch = math.rad(config.pitch)
+	return Vector3.new(0, math.sin(pitch), math.cos(pitch)) * distance
+end
+
 local function step(deltaTime: number, getRoot: () -> BasePart?)
 	local camera = Workspace.CurrentCamera
 	if not camera then
@@ -43,7 +72,18 @@ local function step(deltaTime: number, getRoot: () -> BasePart?)
 		return
 	end
 
-	local target = root.Position
+	--[[
+		Locked to the room's centre line sideways, and following the player
+		only in depth, clamped short of the back and front walls.
+
+		That is Archero 2's camera, measured: the wall lamp posts in the
+		footage shift together up and down as the player moves and never
+		sideways. Locking X is also what keeps the room's full width framed —
+		a camera that followed the player left would push the far wall off the
+		screen, which is precisely what fitting the width exists to prevent.
+	]]
+	local limit = math.max(0, Balance.Arena.size.Z / 2 - Balance.Camera.edgeMargin)
+	local target = Vector3.new(0, 0, math.clamp(root.Position.Z, -limit, limit))
 
 	if not currentFocus then
 		currentFocus = target
@@ -58,7 +98,7 @@ local function step(deltaTime: number, getRoot: () -> BasePart?)
 	local focus = (currentFocus :: Vector3):Lerp(target, alpha)
 	currentFocus = focus
 
-	local offset = Balance.Camera.offset
+	local offset = cameraOffset(camera)
 
 	if shakeMagnitude > 0 then
 		shakeMagnitude = math.max(0, shakeMagnitude - shakeDecay * deltaTime)

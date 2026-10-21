@@ -155,6 +155,48 @@ local function drawGroundMarker(origin: Vector3, duration: number)
 end
 
 --[[
+	Draws where an enemy is about to appear.
+
+	Archero 2 marks every arrival on the floor before the enemy exists. A ring
+	at full size from the first frame says *where*, and a fill growing inside
+	it says *how long* — the same grammar as the Lurker's surface marker, in a
+	colour that says "enemy" rather than "ground", so a player who has learned
+	one reads the other.
+
+	Sized from the arriving body, so the warning for a Bulwark is visibly
+	bigger than the warning for a Charger.
+]]
+local function drawSpawnMarker(origin: Vector3, duration: number, bodyRadius: number)
+	local tier = Device.tier()
+
+	if activeLines >= tier.maxDamageNumbers then
+		return
+	end
+
+	activeLines += 1
+
+	local config = Balance.Telegraph
+	local diameter = math.max(bodyRadius, 0.5) * 2 * config.spawnMarkerScale
+
+	local ring = groundDisc(origin, "TelegraphSpawnRing", config.spawnColor, diameter)
+	ring.Transparency = 0.55
+
+	local fill = groundDisc(origin, "TelegraphSpawnFill", config.spawnColor, 0.4)
+	fill.Transparency = 0.25
+
+	TweenService:Create(fill, TweenInfo.new(duration, Enum.EasingStyle.Linear), {
+		Size = Vector3.new(0.25, diameter * 0.85, diameter * 0.85),
+	}):Play()
+
+	task.delay(duration, function()
+		activeLines -= 1
+	end)
+
+	Debris:AddItem(ring, duration)
+	Debris:AddItem(fill, duration)
+end
+
+--[[
 	Draws where something has just gone under.
 
 	The inverse of the marker above, on purpose: this collapses inward where
@@ -213,6 +255,13 @@ function TelegraphRenderer.onTelegraph(
 
 	if tell == "Dive" then
 		drawDiveMarker(origin)
+		return
+	end
+
+	if tell == "Spawn" then
+		--[[ `reach` carries the arriving body's radius for this tell: the
+		     channel's last argument is "how big", whatever is being marked. ]]
+		drawSpawnMarker(origin, duration, reach)
 		return
 	end
 

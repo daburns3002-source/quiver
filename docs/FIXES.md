@@ -16,6 +16,33 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## Enemies spawned standing inside each other
+
+**Symptom** — found while verifying the move to Archero's proportions, not
+reported: 102 overlapping enemy-pair frames in one run, where the old room
+showed almost none.
+
+**Cause** — the spawn scan kept new enemies away from *players* and nothing
+else, so two members of one wave could be picked from neighbouring grid cells
+and arrive inside each other. In a ninety-stud room that was rare enough to
+hide. At 28 studs wide it happened every wave. A second cause sat behind it:
+the separation pass only closed a quarter of an overlap per side per frame,
+and in a small room where everything converges on the player, steering
+pushed bodies back together faster than that.
+
+**Fix** — `clearOfEnemies` in the spawn scan, so a wave's members are placed
+apart from each other as well as from the player; and separation now
+resolves the whole overlap each frame, leaving bodies exactly touching.
+
+**Measured** — one run: 260 brushing frames, worst 0.66 studs deep. After:
+worst **0.014 studs** — floating-point touching — and 0 frames reaching even
+a quarter-stud.
+
+**Watch for** — any change that makes rooms smaller or more crowded. Density
+is what exposes this, not code.
+
+---
+
 ## The Bulwark copied the player's movements
 
 **Symptom** — "there is a bug on level 4 where the giant enemy mirrors the

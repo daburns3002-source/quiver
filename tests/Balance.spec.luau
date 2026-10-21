@@ -377,4 +377,98 @@ return function(t: TestRunner.Helper)
 			end
 		end
 	end)
+
+	--[[
+		Relationships the move to Archero 2's proportions created.
+
+		Most numbers scaled together with the room and kept their ratios for
+		free. These are the ones that sit between room-sized and body-sized,
+		where scaling one side and not the other could quietly produce a
+		shape that cannot work.
+	]]
+
+	--[[ The Lurker's surface marker is a promise the player can keep: it has
+	     to be wider than the Lurker, or stepping to its edge is enough, and
+	     narrow enough to walk out of from its centre inside the warning, or
+	     the counterplay is impossible. Slowing the player to the new pace
+	     made the second half of that genuinely tight. ]]
+	t.test("the Lurker's warning can be walked out of in time", function()
+		local lurker = (Balance.Enemies :: any).Burrower :: Balance.EnemyConfig
+		local burrow = lurker.burrow :: Balance.EnemyBurrow
+		local radius = Balance.Telegraph.groundRadius
+		local body = math.max(lurker.hitboxSize.X, lurker.hitboxSize.Z) / 2
+		local reach = Balance.Player.moveSpeed * burrow.surfaceTell
+
+		t.isTrue(radius > body, `a {radius}-stud marker is no wider than the {body}-stud Lurker`)
+		t.isTrue(
+			radius <= reach,
+			`a {radius}-stud marker cannot be walked out of in {burrow.surfaceTell}s at {Balance.Player.moveSpeed} studs/s`
+		)
+	end)
+
+	--[[ It surfaces beside the player, not inside them. ]]
+	t.test("the Lurker surfaces outside the player's body", function()
+		local lurker = (Balance.Enemies :: any).Burrower :: Balance.EnemyConfig
+		local burrow = lurker.burrow :: Balance.EnemyBurrow
+		local body = math.max(lurker.hitboxSize.X, lurker.hitboxSize.Z) / 2
+		--[[ A Roblox character is about two studs across. ]]
+		t.isTrue(burrow.surfaceDistance > body + 1, "the Lurker would surface inside the player")
+	end)
+
+	t.test("an arrival marker is bigger than what it marks", function()
+		t.isTrue(Balance.Telegraph.spawnMarkerScale > 1, "a spawn marker hides under its own enemy")
+	end)
+
+	--[[ A wave whose last marker is still counting down long after the first
+	     enemy has arrived reads as two waves, not one. ]]
+	t.test("a whole wave arrives inside a couple of seconds", function()
+		local largest = 0
+		for _, room in Balance.Rooms do
+			largest = math.max(largest, room.enemyCount)
+		end
+
+		local last = Balance.Spawning.arrivalTell + Balance.Spawning.arrivalStagger * (largest - 1)
+		t.isTrue(last < 2.5, `the last of a {largest}-enemy wave takes {last}s to arrive`)
+	end)
+
+	--[[ The camera fits a band wider than the floor so the walls show, and
+	     the floor comes out near the 85% of screen width the footage
+	     measured. Outside that band it stops looking like the reference. ]]
+	t.test("the camera frames the room the way the footage does", function()
+		local share = Balance.Arena.size.X / Balance.Camera.fitWidth
+		t.isTrue(share < 1, "the camera crops the room's own walls")
+		t.isTrue(share > 0.75, `the floor fills only {share * 100}% of the screen width`)
+		t.isTrue(share < 0.95, `the floor fills {share * 100}% — the walls have no room`)
+	end)
+
+	--[[ Archero's rooms are taller than wide; ours have to be too, or the
+	     vertical-follow camera has nothing to follow. ]]
+	t.test("rooms are taller than they are wide", function()
+		t.isTrue(
+			Balance.Arena.size.Z > Balance.Arena.size.X * 1.3,
+			"the room is not portrait-shaped"
+		)
+	end)
+
+	--[[ Everything must fit the room it is in. Spawn and exit sit inside the
+	     floor, and the exclusion around the player must leave somewhere to
+	     spawn. ]]
+	t.test("the room's fixtures sit inside the room", function()
+		local halfX, halfZ = Balance.Arena.size.X / 2, Balance.Arena.size.Z / 2
+		local spawn = Balance.Arena.spawnPosition
+		local door = Balance.Run.doorOffset
+
+		t.isTrue(
+			math.abs(spawn.X) < halfX and math.abs(spawn.Z) < halfZ,
+			"the player spawns outside"
+		)
+		t.isTrue(math.abs(door.X) < halfX and math.abs(door.Y) < halfZ, "the exit is outside")
+
+		local farthest =
+			math.sqrt((halfX + math.abs(spawn.X)) ^ 2 + (halfZ + math.abs(spawn.Z)) ^ 2)
+		t.isTrue(
+			Balance.Spawning.minSpawnDistance < farthest * 0.6,
+			"the spawn exclusion leaves almost nowhere to spawn"
+		)
+	end)
 end

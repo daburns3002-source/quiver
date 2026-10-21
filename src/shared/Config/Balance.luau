@@ -1,8 +1,22 @@
 --!strict
 --[[
-	Every tunable number in Phase 1. Pure data — no logic, no requires.
+	Every tunable number in the game. Pure data — no logic, no requires.
 
 	If a gameplay constant is written inline anywhere else, it is a bug.
+
+	**Scaled to Archero 2's proportions.** Measured from 1080x1920 footage: a
+	room there is about thirteen player-widths across and taller than it is
+	wide, and the camera always shows its full width. Ours was a 90x90 square
+	— forty-five player-widths — which no portrait camera could fit. The room
+	is now 28 x 46, and every *room-sized* number below was scaled by the
+	same 28/90 so that the pace of the game, measured in room-widths per
+	second, did not change: it already matched the footage at 0.20 against
+	their 0.19.
+
+	*Body-sized* numbers were deliberately not scaled — hitboxes, melee reach,
+	the arrow's width, the orb's size, enemy separation. Those are measured
+	against the characters, and the characters did not change size. Where a
+	number sits between the two, its comment says which way it went and why.
 ]]
 
 --[[
@@ -23,7 +37,7 @@ export type EnemyTell = "Flash" | "Line" | "Ground"
 	they are the same thing to render — a mark at a point, for a moment — but
 	`EnemyShot.tell` must not be allowed to name one.
 ]]
-export type TelegraphTell = EnemyTell | "Dive"
+export type TelegraphTell = EnemyTell | "Dive" | "Spawn"
 
 --[[
 	A ranged enemy's attack. Melee archetypes leave `shot` unset and swing at
@@ -117,7 +131,7 @@ local meleeCharger: EnemyConfig = {
 	--[[ Quick: it commits to a direction and turns hard to keep it. ]]
 	turnRate = 540,
 	health = 30,
-	moveSpeed = 7.5,
+	moveSpeed = 2.3,
 	-- Studs from the player at which it lands a hit.
 	attackRange = 4,
 	attackDamage = 10,
@@ -144,10 +158,10 @@ local spreadShooter: EnemyConfig = {
 	--[[ Moderate: it stands off and tracks. ]]
 	turnRate = 360,
 	health = 24,
-	moveSpeed = 5,
+	moveSpeed = 1.6,
 	--[[ Ranged enemies treat attackRange as the distance they want to hold,
 	     not the distance they close to. ]]
-	attackRange = 34,
+	attackRange = 10.6,
 	attackDamage = 8,
 	attackCooldown = 2.2,
 	knockback = 2,
@@ -162,7 +176,7 @@ local spreadShooter: EnemyConfig = {
 		--[[ Slow on purpose. Enemy projectiles have to be readable and
 		     dodgeable on a small screen; 8–20 studs/s is the band the teardown
 		     calls for. ]]
-		speed = 13,
+		speed = 4,
 		lifetime = 4,
 		--[[ Seconds of wind-up before the volley leaves, so the player reacts
 		     to the tell rather than to the projectile. ]]
@@ -187,8 +201,8 @@ local lineSniper: EnemyConfig = {
 	--[[ Deliberate: it swings round to line the lance up. ]]
 	turnRate = 240,
 	health = 20,
-	moveSpeed = 4.25,
-	attackRange = 48,
+	moveSpeed = 1.3,
+	attackRange = 15,
 	attackDamage = 16,
 	attackCooldown = 3,
 	knockback = 2,
@@ -200,7 +214,7 @@ local lineSniper: EnemyConfig = {
 		spread = 0,
 		--[[ Fast, unlike the Spitter. The telegraph is the counterplay here,
 		     not the flight time — once it fires, it has already hit. ]]
-		speed = 45,
+		speed = 14,
 		lifetime = 2,
 		--[[ Long, because the whole fight is the player reading this window
 		     and moving out of the line inside it. ]]
@@ -221,7 +235,7 @@ local tank: EnemyConfig = {
 	--[[ Ponderous. A quarter-turn takes a full second, which is what makes it read as heavy rather than as copying the player. ]]
 	turnRate = 90,
 	health = 120,
-	moveSpeed = 3.5,
+	moveSpeed = 1.1,
 	attackRange = 5,
 	attackDamage = 18,
 	attackCooldown = 1.6,
@@ -252,8 +266,8 @@ local burrower: EnemyConfig = {
 	--[[ Moderate, and only ever seen turning above ground. ]]
 	turnRate = 360,
 	health = 26,
-	moveSpeed = 6,
-	attackRange = 26,
+	moveSpeed = 1.9,
+	attackRange = 8.1,
 	attackDamage = 10,
 	attackCooldown = 2.4,
 	knockback = 2,
@@ -266,7 +280,7 @@ local burrower: EnemyConfig = {
 		     a lane across the room. ]]
 		count = 5,
 		spread = math.rad(24),
-		speed = 14,
+		speed = 4.4,
 		lifetime = 3,
 		--[[ Short. Surfacing *is* the telegraph, and the player has already
 		     been given the ground marker to act on. ]]
@@ -281,7 +295,7 @@ local burrower: EnemyConfig = {
 		surfaceTell = 0.75,
 		--[[ Close, but not inside them. It comes up beside the player so the
 		     fan covers the space they are standing in. ]]
-		surfaceDistance = 8,
+		surfaceDistance = 3.5,
 		speedScale = 2.2,
 		cooldown = 3.5,
 	},
@@ -354,8 +368,8 @@ local rooms: { RoomConfig } = {
 	{
 		name = "Two Pillars",
 		obstacles = {
-			{ offset = Vector2.new(-14, 0), size = Vector3.new(8, 10, 8) },
-			{ offset = Vector2.new(14, 0), size = Vector3.new(8, 10, 8) },
+			{ offset = Vector2.new(-4.4, 0), size = Vector3.new(2.5, 10, 4.1) },
+			{ offset = Vector2.new(4.4, 0), size = Vector3.new(2.5, 10, 4.1) },
 		},
 		--[[ Adds the spitter. A fan you walk through the gaps of. ]]
 		enemyCount = 3,
@@ -366,7 +380,7 @@ local rooms: { RoomConfig } = {
 		-- One long wall across the middle: every fight is decided by which
 		-- side of it you choose.
 		obstacles = {
-			{ offset = Vector2.new(0, 0), size = Vector3.new(6, 10, 46) },
+			{ offset = Vector2.new(0, 0), size = Vector3.new(2, 10, 23.5) },
 		},
 		--[[ No new archetype. Room three is for practising room two in a worse shape. ]]
 		enemyCount = 3,
@@ -375,11 +389,11 @@ local rooms: { RoomConfig } = {
 	{
 		name = "Scatter",
 		obstacles = {
-			{ offset = Vector2.new(-20, -14), size = Vector3.new(8, 10, 8) },
-			{ offset = Vector2.new(22, -18), size = Vector3.new(6, 10, 14) },
-			{ offset = Vector2.new(-24, 20), size = Vector3.new(12, 10, 6) },
-			{ offset = Vector2.new(16, 18), size = Vector3.new(8, 10, 8) },
-			{ offset = Vector2.new(0, 0), size = Vector3.new(6, 10, 6) },
+			{ offset = Vector2.new(-6.2, -7.2), size = Vector3.new(2.5, 10, 4.1) },
+			{ offset = Vector2.new(6.8, -9.2), size = Vector3.new(2, 10, 7.2) },
+			{ offset = Vector2.new(-7.5, 10.2), size = Vector3.new(3.7, 10, 3.1) },
+			{ offset = Vector2.new(5, 9.2), size = Vector3.new(2.5, 10, 4.1) },
+			{ offset = Vector2.new(0, 0), size = Vector3.new(2, 10, 3.1) },
 		},
 		--[[ Adds the bulwark, which is really a piece of terrain that hits back. ]]
 		enemyCount = 4,
@@ -389,8 +403,8 @@ local rooms: { RoomConfig } = {
 		name = "The Gauntlet",
 		-- Two corridors. Ranged enemies at the far end own the lanes.
 		obstacles = {
-			{ offset = Vector2.new(-12, 0), size = Vector3.new(6, 10, 60) },
-			{ offset = Vector2.new(12, 0), size = Vector3.new(6, 10, 60) },
+			{ offset = Vector2.new(-3.7, 0), size = Vector3.new(2, 10, 30.7) },
+			{ offset = Vector2.new(3.7, 0), size = Vector3.new(2, 10, 30.7) },
 		},
 		--[[ Adds the lancer. A drawn line to step out of, in the room with lanes. ]]
 		enemyCount = 4,
@@ -399,8 +413,8 @@ local rooms: { RoomConfig } = {
 	{
 		name = "Quarters",
 		obstacles = {
-			{ offset = Vector2.new(0, -20), size = Vector3.new(40, 10, 6) },
-			{ offset = Vector2.new(0, 20), size = Vector3.new(40, 10, 6) },
+			{ offset = Vector2.new(0, -10.2), size = Vector3.new(12.4, 10, 3.1) },
+			{ offset = Vector2.new(0, 10.2), size = Vector3.new(12.4, 10, 3.1) },
 		},
 		--[[ No new archetype. Four of them at once instead. ]]
 		enemyCount = 5,
@@ -411,10 +425,10 @@ local rooms: { RoomConfig } = {
 		-- A ring of cover around a bare centre. Standing in the middle is the
 		-- worst possible place to stop, which is where the fight pulls you.
 		obstacles = {
-			{ offset = Vector2.new(-24, -24), size = Vector3.new(10, 10, 10) },
-			{ offset = Vector2.new(24, -24), size = Vector3.new(10, 10, 10) },
-			{ offset = Vector2.new(-24, 24), size = Vector3.new(10, 10, 10) },
-			{ offset = Vector2.new(24, 24), size = Vector3.new(10, 10, 10) },
+			{ offset = Vector2.new(-7.5, -12.3), size = Vector3.new(3.1, 10, 5.1) },
+			{ offset = Vector2.new(7.5, -12.3), size = Vector3.new(3.1, 10, 5.1) },
+			{ offset = Vector2.new(-7.5, 12.3), size = Vector3.new(3.1, 10, 5.1) },
+			{ offset = Vector2.new(7.5, 12.3), size = Vector3.new(3.1, 10, 5.1) },
 		},
 		--[[ Adds the lurker, last because it is the only one that stops being a target. ]]
 		enemyCount = 5,
@@ -423,10 +437,10 @@ local rooms: { RoomConfig } = {
 	{
 		name = "Teeth",
 		obstacles = {
-			{ offset = Vector2.new(-28, 0), size = Vector3.new(6, 10, 30) },
-			{ offset = Vector2.new(0, -18), size = Vector3.new(6, 10, 30) },
-			{ offset = Vector2.new(28, 0), size = Vector3.new(6, 10, 30) },
-			{ offset = Vector2.new(0, 18), size = Vector3.new(6, 10, 30) },
+			{ offset = Vector2.new(-8.7, 0), size = Vector3.new(2, 10, 15.3) },
+			{ offset = Vector2.new(0, -9.2), size = Vector3.new(2, 10, 15.3) },
+			{ offset = Vector2.new(8.7, 0), size = Vector3.new(2, 10, 15.3) },
+			{ offset = Vector2.new(0, 9.2), size = Vector3.new(2, 10, 15.3) },
 		},
 		--[[ All five, and from here the count is the only thing still rising. ]]
 		enemyCount = 6,
@@ -435,7 +449,7 @@ local rooms: { RoomConfig } = {
 	{
 		name = "Last Cover",
 		obstacles = {
-			{ offset = Vector2.new(0, 0), size = Vector3.new(14, 10, 14) },
+			{ offset = Vector2.new(0, 0), size = Vector3.new(4.4, 10, 7.2) },
 		},
 		--[[ All five. ]]
 		enemyCount = 6,
@@ -459,12 +473,12 @@ local Balance = {
 		     costs something, but raised after Playtest 2: repositioning out of
 		     cover has to be affordable, or the answer to every threat is to
 		     stand still and hope. ]]
-		moveSpeed = 18,
+		moveSpeed = 5.6,
 		baseDamage = 10,
 		-- Seconds between volleys while stationary.
 		attackCooldown = 0.45,
 		-- Studs. Past this the archer holds fire rather than shooting at nothing.
-		attackRange = 60,
+		attackRange = 40,
 		-- MoveDirection magnitude below which the archer counts as stationary.
 		-- Not zero: thumbsticks idle noisy, and a dead archer is an unfair one.
 		stationaryThreshold = 0.05,
@@ -476,9 +490,10 @@ local Balance = {
 			The dash.
 
 			Move-or-shoot gives the player exactly one answer to a volley
-			already in the air: walk out of it, at 18 studs a second, which
-			against a Lancer's 45-stud shot is no answer at all. The dash is
-			the escape that makes a bad position recoverable instead of fatal.
+			already in the air: walk out of it, which against a Lancer's shot
+			— two and a half times walking speed — is no answer at all. The
+			dash is the escape that makes a bad position recoverable instead
+			of fatal.
 
 			It costs what it is worth. Dashing is moving, so the stationary
 			timer resets and the archer stops firing — the way out of a fan is
@@ -486,11 +501,12 @@ local Balance = {
 			firing needed changing for that; it falls out of driving the
 			Humanoid rather than teleporting.
 
-			16 studs is a little over two body-lengths of a Bulwark: far enough
-			to clear a fan, short enough that it cannot cross the arena. The
-			duration is the shortest that still reads as travel rather than as
-			a blink, which matters because a player who cannot see where they
-			went cannot aim the next one.
+			Five studs — two and a half player-widths, about a sixth of the
+			room's width — scaled with the room from the original sixteen, so
+			it still clears a fan by the same margin and still cannot cross
+			the room. The duration is the shortest that still reads as travel
+			rather than as a blink, which matters because a player who cannot
+			see where they went cannot aim the next one.
 		]]
 		--[[ Seconds of standing still before Momentum reaches its full bonus.
 		     Long enough that it is a commitment, short enough that it pays
@@ -498,7 +514,7 @@ local Balance = {
 		momentumRamp = 2.5,
 
 		dash = {
-			distance = 16,
+			distance = 5,
 			duration = 0.18,
 			--[[
 				Long enough that it is a decision rather than a second
@@ -519,7 +535,7 @@ local Balance = {
 		     the ratio between them is unchanged. Slower arrows make a volley
 		     something the player watches land rather than an instant line,
 		     which is what gives standing still a visible cost. ]]
-		speed = 56,
+		speed = 17.4,
 		lifetime = 2.5,
 		--[[
 			Half the width of the drawn arrow, and half the width of the box
@@ -537,16 +553,18 @@ local Balance = {
 			Long, because Archero reads its shots as beams rather than as
 			pellets and a short dart is almost invisible at phone size.
 
-			This number is not free, whatever an earlier version of this
-			comment claimed. A shape cast ignores anything it already
+			Three studs, about one and a half player-widths, matching the
+			arrow-to-body proportion in the footage. Body-sized, so it did not
+			scale with the room the way speed did.
+
+			This number is not free. A shape cast ignores anything it already
 			intersects when it starts, so the arrow's forward half is a dead
-			zone the sweep cannot see into — and raising this from 2.2 to 4.2
-			took that zone from 1.1 studs to 2.1, which is more than twice the
-			0.93 studs the arrow travels in a frame. ProjectileSystem pays for
-			that with a per-step overlap pass; without it, lengthening the
-			arrow silently makes it miss more.
+			zone the sweep cannot see into — 1.5 studs here, against about a
+			third of a stud of travel per frame. ProjectileSystem pays for
+			that with a per-step overlap pass; without it, a target that walks
+			into the arrow's front half is never hit.
 		]]
-		length = 4.2,
+		length = 3,
 		--[[
 			Studs between neighbouring arrows in a multi-arrow volley.
 
@@ -590,11 +608,11 @@ local Balance = {
 	     distance. ]]
 	Telegraph = {
 		lineThickness = 0.35,
-		lineOvershoot = 12,
+		lineOvershoot = 4,
 		lineColor = Color3.fromRGB(236, 92, 84),
 		--[[ Radius of the marker showing where something is about to surface.
 		     Wider than the enemy so stepping to its edge is not enough. ]]
-		groundRadius = 6.5,
+		groundRadius = 3,
 		groundColor = Color3.fromRGB(255, 150, 60),
 		--[[
 			The footprint, drawn instantly at full size and left there.
@@ -615,8 +633,14 @@ local Balance = {
 			pop now read as a pair without the player being taught anything.
 		]]
 		diveDuration = 0.45,
-		diveRadius = 7,
+		diveRadius = 3,
 		diveColor = Color3.fromRGB(150, 230, 180),
+
+		--[[ Where an enemy is about to appear. Red, and drawn at the arriving
+		     body's own size times this, so a Bulwark's warning is visibly
+		     bigger than a Charger's before either exists. ]]
+		spawnColor = Color3.fromRGB(226, 70, 70),
+		spawnMarkerScale = 1.35,
 	},
 
 	--[[ Colour an enemy flashes to while winding up a telegraphed shot. The
@@ -625,14 +649,14 @@ local Balance = {
 	TelegraphColor = Color3.fromRGB(255, 226, 150),
 
 	Arena = {
-		size = Vector3.new(90, 1, 90),
-		wallHeight = 14,
+		size = Vector3.new(28, 1, 46),
+		wallHeight = 8,
 		wallThickness = 2,
 		--[[ Where a player stands at the start of a room. Near the south wall,
 		     the full length of the arena from the exit pad, so clearing a room
 		     always means crossing it. Raised clear of the floor because
 		     characters are placed here by CFrame, not dropped. ]]
-		spawnPosition = Vector3.new(0, 4, 34),
+		spawnPosition = Vector3.new(0, 4, 18),
 		floorColor = Color3.fromRGB(96, 104, 120),
 		wallColor = Color3.fromRGB(62, 68, 82),
 		obstacleColor = Color3.fromRGB(78, 86, 102),
@@ -640,11 +664,11 @@ local Balance = {
 		-- These block the player's arrows but NOT enemy attacks, which is the
 		-- asymmetry the whole game rests on. See docs/RESEARCH-archero.md.
 		obstacles = {
-			{ offset = Vector2.new(-20, -14), size = Vector3.new(8, 10, 8) },
-			{ offset = Vector2.new(22, -18), size = Vector3.new(6, 10, 14) },
-			{ offset = Vector2.new(-24, 20), size = Vector3.new(12, 10, 6) },
-			{ offset = Vector2.new(16, 18), size = Vector3.new(8, 10, 8) },
-			{ offset = Vector2.new(0, 0), size = Vector3.new(6, 10, 6) },
+			{ offset = Vector2.new(-6.2, -7.2), size = Vector3.new(2.5, 10, 4.1) },
+			{ offset = Vector2.new(6.8, -9.2), size = Vector3.new(2, 10, 7.2) },
+			{ offset = Vector2.new(-7.5, 10.2), size = Vector3.new(3.7, 10, 3.1) },
+			{ offset = Vector2.new(5, 9.2), size = Vector3.new(2.5, 10, 4.1) },
+			{ offset = Vector2.new(0, 0), size = Vector3.new(2, 10, 3.1) },
 		},
 	},
 
@@ -654,11 +678,11 @@ local Balance = {
 		--[[ The pad that appears when a room is cleared. Walking onto it is
 		     the only way forward, so it has to be unmissable and far enough
 		     from the spawn that clearing a room still means crossing it. ]]
-		doorOffset = Vector2.new(0, -38),
-		doorSize = Vector3.new(14, 0.4, 14),
+		doorOffset = Vector2.new(0, -18),
+		doorSize = Vector3.new(6, 0.4, 6),
 		doorColor = Color3.fromRGB(120, 220, 160),
 		--[[ Studs from the pad's centre that count as stepping on it. ]]
-		doorRadius = 8,
+		doorRadius = 3.5,
 		--[[ Seconds between a room clearing and the door opening, so a kill
 		     gets its own beat instead of being swallowed by the next room. ]]
 		clearPause = 0.8,
@@ -670,13 +694,29 @@ local Balance = {
 		--[[
 			Minimum studs between a spawn point and the player.
 
-			Doubled after Playtest 2. Enemies were still arriving close enough
-			to feel like they appeared on top of the player, so the exclusion
-			is now most of the arena's width — far enough that a wave reads as
-			something approaching rather than something that was already
-			there. See the spawn-placement note in EnemyManager.
+			Scaled with the room from the original fifty-six, which was set
+			after Playtest 2 because enemies arriving close enough felt like
+			they appeared on top of the player. Seventeen keeps that same
+			share of the room. Archero 2 also marks where each enemy will
+			appear before it does, so a wave reads as something arriving
+			rather than something already there. See the spawn-placement note
+			in EnemyManager.
 		]]
-		minSpawnDistance = 56,
+		minSpawnDistance = 17,
+
+		--[[
+			Seconds an enemy's spawn marker shows before the enemy appears.
+
+			Measured from the footage: markers start appearing about 0.8 to
+			1.0 seconds before the wave, and the wave lands all together. The
+			marker is the player's chance to decide where to stand before a
+			room that is about to fill — without it, a wave reads as having
+			been there all along.
+		]]
+		arrivalTell = 0.9,
+		--[[ Extra seconds per enemy after the first, so markers come up a few
+		     at a time, as they do in the footage, rather than on one frame. ]]
+		arrivalStagger = 0.08,
 	},
 
 	Feedback = {
@@ -731,13 +771,38 @@ local Balance = {
 		explosionCoreColor = Color3.fromRGB(255, 244, 214),
 	},
 
+	--[[
+		The camera, matched to Archero 2.
+
+		Measured from 1080x1920 footage: their camera never moves sideways and
+		always shows the room's full width — the floor fills about 85% of the
+		screen across — while following the player up and down a room that is
+		taller than the screen. Ours used to sit at a fixed offset with a wide
+		lens, which on a phone showed about 38% of the room's width and a long
+		stretched-out depth behind it.
+
+		So instead of an offset, the distance is *solved* each frame from the
+		screen's shape, so the room's width fits on any phone. A steep pitch and
+		a narrow lens keep it close to flat, which is how theirs reads.
+	]]
 	Camera = {
-		-- Offset from the character, in studs. A high, slightly-behind angle so
-		-- the player can read incoming projectiles early.
-		offset = Vector3.new(0, 58, 34),
+		-- Degrees below the horizon. Steep, so it reads as nearly top-down.
+		pitch = 68,
+		--[[ Narrow, so distance does the zooming and perspective stays mild.
+		     A wide lens close in is what made far enemies tiny before. ]]
+		fieldOfView = 40,
+		--[[ Studs of ground the screen spans side to side at the focus: the
+		     28-stud floor plus a little wall either side, so the floor comes
+		     out near the 85% of screen width the footage shows. ]]
+		fitWidth = 33,
+		--[[ On a landscape screen, fitting the width alone would zoom right in
+		     and show almost no depth; this is the least depth it may show. ]]
+		minVisibleDepth = 30,
+		--[[ Studs the focus is kept inside the room's back and front walls, so
+		     the view stops at the room's edge instead of scrolling past it. ]]
+		edgeMargin = 9,
 		-- How fast the camera catches up, as a per-second lerp factor.
 		followSharpness = 12,
-		fieldOfView = 55,
 	},
 }
 

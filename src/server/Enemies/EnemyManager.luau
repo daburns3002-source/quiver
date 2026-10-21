@@ -52,6 +52,11 @@ type Enemy = {
 	     step. Turned towards the target at the archetype's `turnRate` rather
 	     than snapped, so a big enemy comes round slowly. ]]
 	yaw: number?,
+	--[[ `os.clock()` at which this enemy finishes arriving, or nil once it
+	     has. Until then it is marked on the floor, cannot be seen, hit or
+	     targeted, and does nothing — Archero 2 shows where a wave will appear
+	     before it does. ]]
+	arrivesAt: number?,
 	health: number,
 	maxHealth: number,
 	position: Vector3,
@@ -116,7 +121,7 @@ local HOLD_FRACTION = 0.6
 --[[ Studs between candidate spawn points when scanning the floor. Fine enough
      that a valid gap is never missed, coarse enough that the whole scan is a
      few hundred box tests. ]]
-local SPAWN_GRID_STEP = 4
+local SPAWN_GRID_STEP = 2
 
 --[[ Volleys decided this step, drained by EnemyFiring. ]]
 local pendingVolleys: { Volley } = {}
@@ -187,6 +192,32 @@ local function distanceToNearest(candidate: Vector3, points: { Vector3 }): numbe
 end
 
 --[[ A spawn point inside the arena, clear of geometry and away from players. ]]
+--[[
+	Whether a body of `radius` standing at `candidate` would overlap any enemy
+	already in the room.
+
+	The spawn scan kept new enemies away from *players* and nothing else, so
+	two members of one wave could be picked from neighbouring cells and arrive
+	standing inside each other. In the original ninety-stud room that was rare
+	enough to go unnoticed; at Archero's proportions the floor is a third the
+	width and it happened constantly — 102 overlapping pair-frames in one
+	playtest, with the separation pass spending its first few frames of every
+	wave prising bodies apart.
+]]
+local SPAWN_BODY_GAP = 0.75
+
+local function clearOfEnemies(candidate: Vector3, radius: number): boolean
+	for _, enemy in enemies do
+		local other = math.max(enemy.config.hitboxSize.X, enemy.config.hitboxSize.Z) / 2
+		local flat = Vector3.new(candidate.X - enemy.position.X, 0, candidate.Z - enemy.position.Z)
+		if flat.Magnitude < radius + other + SPAWN_BODY_GAP then
+			return false
+		end
+	end
+
+	return true
+end
+
 local function findSpawnPosition(config: EnemyConfig): Vector3
 	local arena = Balance.Arena
 	local radius = math.max(config.hitboxSize.X, config.hitboxSize.Z) / 2
@@ -223,7 +254,7 @@ local function findSpawnPosition(config: EnemyConfig): Vector3
 		while z <= limitZ do
 			local candidate = Vector3.new(x, y, z)
 
-			if Arena.isClear(candidate, radius) then
+			if Arena.isClear(candidate, radius) and clearOfEnemies(candidate, radius) then
 				local distance = distanceToNearest(candidate, keepAway)
 
 				if distance >= minimum then
@@ -253,7 +284,11 @@ local function findSpawnPosition(config: EnemyConfig): Vector3
 			chosen.Z + (math.random() * 2 - 1) * jitter
 		)
 
-		if Arena.isClear(nudged, radius) and distanceToNearest(nudged, keepAway) >= minimum then
+		if
+			Arena.isClear(nudged, radius)
+			and clearOfEnemies(nudged, radius)
+			and distanceToNearest(nudged, keepAway) >= minimum
+		then
 			return nudged
 		end
 
@@ -266,7 +301,28 @@ local function findSpawnPosition(config: EnemyConfig): Vector3
 	return bestPosition or Vector3.new(limitX, y, limitZ)
 end
 
-function EnemyManager.spawn(config: EnemyConfig): Model?
+--[[
+	Takes an enemy out of play while its spawn marker is up, or puts it in.
+
+	The same four things `setSubmerged` keeps in agreement — query, skin,
+	targeting attribute and `positions` — for the same reason: an enemy the
+	player can see but not hit, or hit but not see, reads as a bug. Kept as
+	its own flag rather than reusing `submerged`, because an arriving Lurker
+	must not trip the burrow logic into thinking it is mid-dive.
+]]
+local function setArriving(enemy: Enemy, arriving: boolean)
+	enemy.hitbox.CanQuery = not arriving
+	EnemyModel.setHidden(enemy.skin, arriving)
+	enemy.model:SetAttribute("Targetable", not arriving)
+
+	if arriving then
+		positions[enemy.model] = nil
+	else
+		positions[enemy.model] = enemy.position
+	end
+end
+
+function EnemyManager.spawn(config: EnemyConfig, extraDelay: number?): Model?
 	local parent = folder
 	if not parent then
 		log.warn("spawn before init")
@@ -292,11 +348,28 @@ function EnemyManager.spawn(config: EnemyConfig): Model?
 		lastSurfacedAt = 0,
 		submerged = false,
 		slideSign = nil,
+		arrivesAt = nil,
 	}
 	positions[model] = position
 	aliveCount += 1
 
 	model.Parent = parent
+
+	--[[
+		Marked on the floor before it exists, the way Archero 2 does it.
+
+		Counted as alive from this moment, so a room cannot read as cleared
+		during the warning. The marker carries the body's own radius, so a
+		Bulwark's warning is visibly bigger than a Charger's — which is the
+		first thing worth knowing about what is about to arrive.
+	]]
+	local enemy = enemies[model]
+	local tell = Balance.Spawning.arrivalTell + (extraDelay or 0)
+	enemy.arrivesAt = os.clock() + tell
+	setArriving(enemy, true)
+
+	local radius = math.max(config.hitboxSize.X, config.hitboxSize.Z) / 2
+	enemyTelegraph:FireAllClients(position, Vector3.zAxis, tell, "Spawn", radius)
 
 	return model
 end
@@ -323,7 +396,13 @@ function EnemyManager.spawnWave(count: number, roster: { EnemyConfig })
 	end
 
 	for index = 1, count do
-		EnemyManager.spawn(roster[(index - 1) % #roster + 1])
+		--[[ Staggered by a beat each, as the footage shows: markers appear a
+		     few at a time rather than all on one frame, which reads as a wave
+		     arriving rather than a level loading. ]]
+		EnemyManager.spawn(
+			roster[(index - 1) % #roster + 1],
+			(index - 1) * Balance.Spawning.arrivalStagger
+		)
 	end
 
 	log.info("spawned wave of %d from %d archetypes", count, #roster)
@@ -423,6 +502,7 @@ end
 	model carries an attribute so the client's own targeting and prediction
 	agree with the server about what is shootable.
 ]]
+
 local function setSubmerged(enemy: Enemy, submerged: boolean)
 	enemy.submerged = submerged
 	enemy.hitbox.CanQuery = not submerged
@@ -475,6 +555,16 @@ end
 	navigates is not.
 ]]
 local function stepEnemy(enemy: Enemy, deltaTime: number, now: number)
+	local arrivesAt = enemy.arrivesAt
+	if arrivesAt then
+		if now < arrivesAt then
+			return
+		end
+
+		enemy.arrivesAt = nil
+		setArriving(enemy, false)
+	end
+
 	local targetRoot, distance = nearestAlivePlayerRoot(enemy.position)
 	if not targetRoot then
 		return
@@ -838,12 +928,19 @@ end
 	enemies are skipped: they are underground, where sharing ground with
 	something above it is not a collision.
 ]]
-local OVERLAP_PUSH = 0.5
+--[[ The whole overlap, resolved each frame: each half of a pair moves half
+     of it. It used to close a quarter per side per frame, which in the
+     original ninety-stud room was plenty; at Archero's proportions every
+     enemy closes on the player in a room a third the width, steering pushed
+     bodies back together every frame, and they spent 260 frames of one
+     playtest brushing into each other. A full projection leaves them exactly
+     touching instead. ]]
+local OVERLAP_PUSH = 1
 
 local function separate()
 	local live: { Enemy } = {}
 	for _, enemy in enemies do
-		if not enemy.submerged then
+		if not enemy.submerged and not enemy.arrivesAt then
 			table.insert(live, enemy)
 		end
 	end

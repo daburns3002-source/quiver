@@ -39,6 +39,12 @@ local ENEMY_COLOUR = Color3.fromRGB(226, 182, 255)
      travel legible at a glance, not to leave the room full of ribbons. ]]
 local TRAIL_LIFETIME = 0.14
 
+--[[ The enemy orb's comet tail. Longer than an arrow's, because an orb is
+     slow and a tail is how a slow thing shows which way it is going: at a
+     Spitter's speed this draws about two orb-widths of tail, and a Lancer's
+     fast shot stretches into a streak on its own. ]]
+local ORB_TRAIL_LIFETIME = 0.6
+
 type Visual = {
 	part: BasePart,
 	--[[ Decides what stops this one, exactly as it does on the server. ]]
@@ -128,12 +134,14 @@ local function createPart(faction: Faction): BasePart
 		across the nose rather than along the body, so the ribbon is the width
 		of the arrow and streams out behind it as it travels.
 
-		Arrows only. An enemy orb in the footage does not streak, and a trail
-		on something that slow reads as a smear rather than as speed.
+		Orbs get one too. Earlier footage was too low-resolution to show it,
+		but at 1080 pixels across every enemy orb plainly trails a red comet
+		tail three or four times its own size. An orb's tail streams from its
+		middle rather than a nose, since a ball has no front.
 	]]
-	if tier.projectileTrails and not isOrb then
+	if tier.projectileTrails then
 		local size = projectileSize(faction)
-		local nose = size.Z / 2
+		local nose = if isOrb then 0 else size.Z / 2
 
 		local left = Instance.new("Attachment")
 		left.Name = "TrailLeft"
@@ -149,7 +157,7 @@ local function createPart(faction: Faction): BasePart
 		trail.Name = "Trail"
 		trail.Attachment0 = left
 		trail.Attachment1 = right
-		trail.Lifetime = TRAIL_LIFETIME
+		trail.Lifetime = if isOrb then ORB_TRAIL_LIFETIME else TRAIL_LIFETIME
 		trail.LightEmission = 1
 		trail.LightInfluence = 0
 		trail.FaceCamera = true

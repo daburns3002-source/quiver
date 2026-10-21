@@ -43,9 +43,6 @@ add to it in the same PR as every fix — the same classes of bug recur here.
 
 **Known rough edges, deliberately not addressed:**
 
-- Portrait shows only ~34 of the arena's 90 studs across while `attackRange` is
-  60, so the archer targets enemies the player cannot see. These are balance
-  numbers and portrait-shaped rooms are Phase 2 work.
 - A blocked arrow has no feedback, so the cover penalty reads as a bug.
 - `Arena.deflectionNormal` handles obstacles but not the outer walls.
 

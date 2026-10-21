@@ -40,9 +40,9 @@ local explosion = Remotes.event(Remotes.Explosion)
      next cast does not begin inside the wall it just left. ]]
 local BOUNCE_CLEARANCE = 0.15
 
---[[ How far a chain shot looks for its next target. Generous, because a chain
-     that finds nothing is a card that did nothing. ]]
-local CHAIN_RANGE = 70
+--[[ How far a chain shot looks for its next target. Generous — most of the
+     room — because a chain that finds nothing is a card that did nothing. ]]
+local CHAIN_RANGE = 22
 
 --[[ `os.clock()` for the step currently running. Chain shots are created deep
      inside the hit path, which has no reason to be handed the time. ]]

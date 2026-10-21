@@ -206,7 +206,7 @@ local abilities: { Ability } = {
 		category = "OnHit",
 		--[[ Studs of radius per stack. Half damage to the splash, so a crowd
 		     is worth shooting into without single targets becoming free. ]]
-		value = 5,
+		value = 3,
 		maxStacks = 3,
 	},
 	{

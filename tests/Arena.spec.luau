@@ -36,10 +36,19 @@ return function(t: TestRunner.Helper)
 		{ offset = Vector2.new(0, 0), size = Vector3.new(6, 10, 6) },
 	}
 
+	--[[ A point well inside the floor and well clear of the centre pillar,
+	     derived from the arena rather than written as a number — these used
+	     hard-coded coordinates that were only inside the room while it was
+	     ninety studs square. ]]
+	local function insideFloor(fractionX: number, fractionZ: number): Vector3
+		local size = Balance.Arena.size
+		return Vector3.new(size.X / 2 * fractionX, 2.5, size.Z / 2 * fractionZ)
+	end
+
 	t.test("resolve leaves a clear point untouched", function()
 		buildLayout(centrePillar)
 
-		local clear = Vector3.new(30, 2.5, 30)
+		local clear = insideFloor(0.6, 0.6)
 		local resolved = Arena.resolve(clear, RADIUS)
 
 		t.near((resolved - clear).Magnitude, 0, 1e-4)
@@ -60,10 +69,17 @@ return function(t: TestRunner.Helper)
 
 		local outside = Vector3.new(500, 2.5, -500)
 		local resolved = Arena.resolve(outside, RADIUS)
-		local limit = Balance.Arena.size.X / 2
 
-		t.isTrue(math.abs(resolved.X) <= limit, "X should be clamped inside the arena")
-		t.isTrue(math.abs(resolved.Z) <= limit, "Z should be clamped inside the arena")
+		--[[ Each axis against its own half-extent. This compared Z with the
+		     arena's *width*, which only passed while the room was square. ]]
+		t.isTrue(
+			math.abs(resolved.X) <= Balance.Arena.size.X / 2,
+			"X should be clamped inside the arena"
+		)
+		t.isTrue(
+			math.abs(resolved.Z) <= Balance.Arena.size.Z / 2,
+			"Z should be clamped inside the arena"
+		)
 	end)
 
 	t.test("clampToWalls ignores obstacles but still bounds the arena", function()
@@ -151,6 +167,6 @@ return function(t: TestRunner.Helper)
 		buildLayout({})
 
 		t.isTrue(Arena.isClear(Vector3.new(0, 2.5, 0), RADIUS))
-		t.isTrue(Arena.isClear(Vector3.new(20, 2.5, -20), RADIUS))
+		t.isTrue(Arena.isClear(insideFloor(0.7, -0.7), RADIUS))
 	end)
 end

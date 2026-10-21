@@ -181,6 +181,55 @@ interesting. A weapon is just a base entry in the same modifier pipeline the abi
 
 ---
 
+## 7. Measured from Archero 2 footage
+
+Everything above is teardown — what the game *is*. This section is what it
+*measures as*, so the numbers in `Config/Balance` trace back to something.
+Taken frame by frame from a 1080×1920, 30 fps full-screen capture
+([youtube.com/watch?v=r4lsAXa6Trs](https://www.youtube.com/watch?v=r4lsAXa6Trs)),
+reading pixel data in code rather than eyeballing screenshots, which the
+browser downscales by about a fifth.
+
+Earlier passes used a 1280×720 walkthrough where the game is a 257-pixel
+column with blurred bars either side. Three things read from that were
+wrong, and are worth knowing so nobody repeats them: enemy orbs **do** trail
+a comet tail; the teal hexagon is **floor decoration**, not a telegraph; and
+the red rings are **spawn markers**, not static floor features.
+
+| | measured | ours |
+|---|---|---|
+| room width on screen | ~915 of 1080 px — **~85%**, always the full width | 84.8% in portrait, by construction |
+| room shape | taller than wide, **≥ 1.5:1** | 28 × 46 studs (1.64:1) |
+| camera | **fixed sideways**, follows the player up and down | the same |
+| room width / player width | **~13** | 14 |
+| enemy / player width | ~1.4 | 1.5 |
+| enemy orb / player width | ~0.64 | 0.6 |
+| enemy orb tail | ~3–4× the orb | 0.6 s comet trail |
+| player pace | **0.19 room-widths/s** | 0.20 |
+| spawn warning | red ring per enemy, **~0.8–1.0 s** ahead, staggered, waves in triangles of three | 0.9 s + 0.08 s stagger; no clusters yet |
+| multishot | a **parallel lane**, not a fan | parallel lane |
+
+**How the camera was measured.** The lamp posts on the side walls sit about
+858 px apart and move together vertically between frames and never
+horizontally, so the camera follows depth only. Over the clip it scrolled at
+least 270 px, which is how the room is known to be taller than the screen.
+
+**How pace was measured.** Horizontally, since the camera never moves that
+way and there is no scroll to subtract: the player's health bar moved from
+x≈330 to x≈227 in 0.6 s.
+
+**What could not be measured.** Projectile speeds, fire rate and enemy
+movement speeds. Colour tracking is too noisy with this many teal and green
+things on screen — a health-bar detector reported widths between 134 and
+664 px on one bar — and single manual samples are not worth building on.
+Those numbers are therefore our own tuned values scaled with the room, not
+measurements, and should not be described as matching.
+
+**Not built yet:** XP gems (blue cubes dropped on the floor by kills) and
+triangle-cluster spawning.
+
+---
+
 ## Sources
 
 - [How to play Archero — Pocket Gamer](https://www.pocketgamer.com/archero/how-to-play-archero-the-latest-free-mobile-rogueli/)

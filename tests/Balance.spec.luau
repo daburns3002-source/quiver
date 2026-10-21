@@ -109,12 +109,72 @@ return function(t: TestRunner.Helper)
 		end
 	end)
 
+	--[[
+		The order archetypes appear in is the tutorial, and it is the kind of
+		thing that regresses silently: one shared roster across all ten rooms
+		put a charger, a spitter and a burrower in the opening fight, which
+		reads as the game being too hard rather than as three mechanics
+		arriving at once.
+	]]
+	t.test("no room introduces more than one new archetype", function()
+		local met: { [string]: boolean } = {}
+
+		for index, room in Balance.Rooms do
+			local introduced = {}
+
+			for _, config in room.roster do
+				if not met[config.displayName] then
+					met[config.displayName] = true
+					table.insert(introduced, config.displayName)
+				end
+			end
+
+			t.isTrue(
+				#introduced <= 1,
+				`room {index} introduces {#introduced} new archetypes at once: {table.concat(
+					introduced,
+					", "
+				)}`
+			)
+		end
+	end)
+
+	t.test("the first room teaches exactly one thing", function()
+		local first = Balance.Rooms[1]
+		local names: { [string]: boolean } = {}
+		local distinct = 0
+
+		for _, config in first.roster do
+			if not names[config.displayName] then
+				names[config.displayName] = true
+				distinct += 1
+			end
+		end
+
+		t.equal(distinct, 1, "the opener should hold a single archetype")
+	end)
+
+	t.test("every archetype is introduced somewhere in the run", function()
+		local used: { [string]: boolean } = {}
+
+		for _, room in Balance.Rooms do
+			for _, config in room.roster do
+				used[config.displayName] = true
+			end
+		end
+
+		for name, config in archetypes() do
+			t.isTrue(used[config.displayName], `{name} never appears in any room`)
+		end
+	end)
+
 	t.test("every room is playable", function()
 		t.isTrue(#Balance.Rooms > 0, "there must be at least one room")
 
 		for index, room in Balance.Rooms do
 			t.isTrue(#room.name > 0, `room {index} needs a name`)
 			t.isTrue(room.enemyCount > 0, `room {index} needs enemies`)
+			t.isTrue(#room.roster > 0, `room {index} has nothing to spawn`)
 
 			for _, obstacle in room.obstacles do
 				t.isTrue(

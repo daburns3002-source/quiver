@@ -323,27 +323,26 @@ end
 	ratio is a placeholder: room-authored rosters replace it when the room
 	system lands, which is where a biome's identity will actually live.
 ]]
-function EnemyManager.spawnWave(count: number)
-	--[[
-		Cycled rather than randomised so a wave always contains one of each
-		pressure — something that closes, something that makes you move,
-		something that makes you reposition, and something that denies space —
-		and so a playtest is comparing the same fight each run.
-	]]
-	local roster = {
-		Balance.Enemies.MeleeCharger,
-		Balance.Enemies.SpreadShooter,
-		Balance.Enemies.Burrower,
-		Balance.Enemies.LineSniper,
-		Balance.Enemies.MeleeCharger,
-		Balance.Enemies.Tank,
-	}
+--[[
+	Fills a wave from the room's own roster, cycled in order.
+
+	Cycled rather than randomised so a room is the same fight every run, which
+	is what makes it teachable and what makes a playtest comparable. The roster
+	comes from the room because the order archetypes appear in *is* the
+	tutorial — one shared order for every room put three different mechanics in
+	the opening fight.
+]]
+function EnemyManager.spawnWave(count: number, roster: { EnemyConfig })
+	if #roster == 0 then
+		log.warn("room has no roster, nothing to spawn")
+		return
+	end
 
 	for index = 1, count do
 		EnemyManager.spawn(roster[(index - 1) % #roster + 1])
 	end
 
-	log.info("spawned wave of %d", count)
+	log.info("spawned wave of %d from %d archetypes", count, #roster)
 end
 
 --[[

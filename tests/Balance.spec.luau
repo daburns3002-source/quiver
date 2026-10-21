@@ -197,6 +197,27 @@ return function(t: TestRunner.Helper)
 		)
 	end)
 
+	--[[
+		The radius is what the server casts with *and* what the client draws,
+		so it is the one number that decides whether a shot that looks like a
+		hit is one. It used to size only the drawn part while the server cast
+		a zero-width ray, which is how arrows passed through enemies.
+	]]
+	t.test("projectiles have a width the server can cast with", function()
+		local radius = Balance.Projectile.radius
+
+		t.isTrue(radius > 0, "a zero-width projectile cannot graze anything")
+
+		for name, config in archetypes() do
+			local halfWidth = math.min(config.hitboxSize.X, config.hitboxSize.Z) / 2
+
+			t.isTrue(
+				radius < halfWidth,
+				`a projectile is wider than half of {name}, so near-misses would register`
+			)
+		end
+	end)
+
 	t.test("the player out-ranges nothing by accident", function()
 		t.isTrue(Balance.Player.attackRange > 0)
 		t.isTrue(Balance.Player.attackCooldown > 0)

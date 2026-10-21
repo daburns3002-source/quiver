@@ -207,6 +207,8 @@ local function findSpawnPosition(config: EnemyConfig): Vector3
 	local y = config.hitboxSize.Y / 2
 
 	local keepAway = spawnKeepAwayPoints()
+	local minimum = Balance.Spawning.minSpawnDistance
+	local reach = Vector2.new(limitX, limitZ).Magnitude
 
 	--[[ Best clear candidate seen so far, used only if nothing ever satisfies
 	     the minimum. Far better than the old fixed corner, which in a tight
@@ -214,17 +216,38 @@ local function findSpawnPosition(config: EnemyConfig): Vector3
 	local bestPosition: Vector3? = nil
 	local bestDistance = -1
 
-	for _ = 1, 40 do
-		local candidate =
-			Vector3.new(math.random() * limitX * 2 - limitX, y, math.random() * limitZ * 2 - limitZ)
+	for _ = 1, 60 do
+		--[[
+			Sampled on a ring around a point to avoid, rather than uniformly
+			over the floor.
+
+			Uniform sampling picks the distance last, so in a room with heavy
+			cover most candidates land either inside an obstacle or too close,
+			the search exhausts its attempts, and the fallback quietly hands
+			back something near the player — which is how enemies kept
+			appearing on top of them. Choosing the distance first and the
+			angle second makes the minimum the starting condition instead of a
+			filter.
+		]]
+		local anchor = keepAway[math.random(#keepAway)]
+		local angle = math.random() * math.pi * 2
+		local span = minimum + math.random() * math.max(reach - minimum, 1)
+
+		local candidate = Vector3.new(
+			math.clamp(anchor.X + math.cos(angle) * span, -limitX, limitX),
+			y,
+			math.clamp(anchor.Z + math.sin(angle) * span, -limitZ, limitZ)
+		)
 
 		if not Arena.isClear(candidate, radius) then
 			continue
 		end
 
+		--[[ Re-measured after clamping, which can drag a point back towards
+		     the anchor it was placed away from. ]]
 		local distance = distanceToNearest(candidate, keepAway)
 
-		if distance >= Balance.Spawning.minSpawnDistance then
+		if distance >= minimum then
 			return candidate
 		end
 

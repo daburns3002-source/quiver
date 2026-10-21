@@ -16,6 +16,32 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## A passing test run against code Studio was not running
+
+**Symptom** — the in-Roblox suite passed with a plausible test count while
+newly added specs were silently not running at all.
+
+**Cause** — `rojo serve` keeps its process alive after the Studio plugin has
+stopped being connected to it; branch switching triggers this. Studio then
+goes on running whatever it had when the link broke. Nothing reports an error
+at any layer: the suite runs, the old specs pass, and the count only looks
+wrong if you already know what it should be.
+
+**Fix** — none in code; this is a procedure. After any branch switch or
+`rojo serve` restart, verify the link before trusting an in-Roblox result:
+read the `.Source` of a file you just changed and check the change is in it.
+Restarting `rojo serve` drops the plugin and reconnecting is a manual click in
+Studio.
+
+**Measured** — a suite reporting `PASS — 89 tests` while two new specs worth
+31 tests were absent from `ServerStorage.Tests` entirely. The same probe after
+reconnecting reported 120.
+
+**Watch for** — any in-Roblox result that does not change when you expect it
+to. The stale read is the default failure here, not the exception.
+
+---
+
 ## Lurker surfaced outside its own warning marker
 
 **Symptom** — "im not sure when it is disappearing and when it is coming back".

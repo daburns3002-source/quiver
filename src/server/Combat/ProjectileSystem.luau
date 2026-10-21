@@ -43,6 +43,19 @@ type Projectile = {
 	     contact. Raised by Piercing Shot in Phase 3. ]]
 	pierce: number,
 	expiresAt: number,
+	--[[
+		Who fired it, or nil for an enemy shot.
+
+		Carried on the projectile rather than looked up at impact, because by
+		the time an arrow lands the player who fired it may have died, left, or
+		started a new run — and XP for a kill belongs to the run that earned
+		it. Single-player makes this look unnecessary; co-op is what it is for.
+	]]
+	owner: Player?,
+	--[[ Rolled per contact, not per volley, so a piercing arrow can crit on
+	     its second target and not its first. ]]
+	critChance: number,
+	critMultiplier: number,
 	--[[ Guards against a single projectile hitting the same enemy on
 	     consecutive steps while it is still inside the hitbox. ]]
 	hitModels: { [Model]: boolean },
@@ -146,7 +159,7 @@ end
 	Queues one projectile. Called once per spec in a volley by the firing
 	system, never by anything a client can reach.
 ]]
-function ProjectileSystem.spawn(
+export type SpawnParams = {
 	faction: Faction,
 	origin: Vector3,
 	direction: Vector3,
@@ -154,8 +167,22 @@ function ProjectileSystem.spawn(
 	lifetime: number,
 	damage: number,
 	pierce: number,
-	now: number
-)
+	critChance: number,
+	critMultiplier: number,
+	owner: Player?,
+	now: number,
+}
+
+--[[
+	Queues one projectile.
+
+	Takes a table rather than a positional list: this grew to eleven fields as
+	abilities arrived, and eleven positional arguments is a bug waiting for
+	someone to swap two numbers of the same type.
+]]
+function ProjectileSystem.spawn(params: SpawnParams)
+	local faction: Faction = params.faction
+	local now = params.now
 	if #active >= Balance.Projectile.maxActive then
 		droppedSinceWarning += 1
 
@@ -176,12 +203,15 @@ function ProjectileSystem.spawn(
 
 	table.insert(active, {
 		faction = faction,
-		position = origin,
-		direction = direction,
-		speed = speed,
-		damage = damage,
-		pierce = pierce,
-		expiresAt = now + lifetime,
+		position = params.origin,
+		direction = params.direction,
+		speed = params.speed,
+		damage = params.damage,
+		pierce = params.pierce,
+		owner = params.owner,
+		critChance = params.critChance,
+		critMultiplier = params.critMultiplier,
+		expiresAt = now + params.lifetime,
 		hitModels = {},
 	})
 end
@@ -196,11 +226,35 @@ end
 ]]
 local function applyHit(projectile: Projectile, model: Model): boolean
 	if projectile.faction == "Player" then
+		--[[
+			Crit is rolled here, at the moment of contact, which is the whole
+			reason the OnHit bucket exists. Everything else a stage does is
+			decided before the arrow is in the air; this cannot be, or a
+			piercing arrow would crit on all of its targets or none.
+		]]
+		local damage = projectile.damage
+		if projectile.critChance > 0 and math.random() < projectile.critChance then
+			damage *= projectile.critMultiplier
+		end
+
 		--[[ Returned, not discarded. A model inside the enemy folder is not
 		     necessarily a live enemy — it can be one killed earlier in this
 		     same step — and an arrow that stopped dead on one of those looked
 		     exactly like a hit that failed to register. ]]
-		return EnemyManager.damage(model, projectile.damage, projectile.position)
+		local landed, xp = EnemyManager.damage(model, damage, projectile.position)
+
+		--[[ Credited to the run that fired the arrow, which may no longer be
+		     the player's current one. A session that has been replaced since
+		     simply does not get it. ]]
+		local owner = projectile.owner
+		if landed and xp > 0 and owner then
+			local session = RunSession.get(owner)
+			if session then
+				RunSession.awardXp(session, xp)
+			end
+		end
+
+		return landed
 	end
 
 	local player = Players:GetPlayerFromCharacter(model)

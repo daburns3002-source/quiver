@@ -34,6 +34,17 @@ export type ShotSpec = {
 	-- How many enemies the projectile passes through before dying. 0 = stops on
 	-- the first one it hits.
 	pierce: number,
+	--[[
+		Chance, 0 to 1, that a hit strikes for `critMultiplier` instead.
+
+		Rolled by the server at the moment of contact rather than when the
+		volley is built, so a piercing arrow can crit on its second target and
+		not its first. That is the only reason the OnHit bucket needs to exist
+		at all: everything else a stage does is decided before the arrow is in
+		the air.
+	]]
+	critChance: number,
+	critMultiplier: number,
 }
 
 --[[

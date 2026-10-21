@@ -54,16 +54,21 @@ local function fire(session: Session, root: BasePart, now: number)
 	})
 
 	for _, spec in specs do
-		ProjectileSystem.spawn(
-			"Player",
-			origin,
-			ShotPipeline.aim(direction, spec),
-			spec.speed,
-			spec.lifetime,
-			session.damage * spec.damageScale,
-			spec.pierce,
-			now
-		)
+		ProjectileSystem.spawn({
+			faction = "Player" :: Types.Faction,
+			origin = origin,
+			direction = ShotPipeline.aim(direction, spec),
+			speed = spec.speed,
+			lifetime = spec.lifetime,
+			damage = session.damage * spec.damageScale,
+			pierce = spec.pierce,
+			critChance = spec.critChance,
+			critMultiplier = spec.critMultiplier,
+			--[[ The run that fired it, so the kill credits the right player's
+			     draft even if the arrow outlives their current session. ]]
+			owner = session.player,
+			now = now,
+		})
 	end
 
 	session.lastFiredAt = now
@@ -74,7 +79,7 @@ local function fire(session: Session, root: BasePart, now: number)
 		than the bytes. Revisit when Phase 3 makes volleys large.
 	]]
 	shotFired:FireAllClients({
-		faction = "Player",
+		faction = "Player" :: Types.Faction,
 		shooterId = session.player.UserId,
 		origin = origin,
 		direction = direction,
@@ -104,7 +109,9 @@ function FiringSystem.step(_deltaTime: number, now: number)
 			continue
 		end
 
-		if now - session.lastFiredAt < Balance.Player.attackCooldown then
+		--[[ From the session, not from Balance: Precision shortens it, and the
+		     loadout recomputes it on every grant. ]]
+		if now - session.lastFiredAt < session.attackCooldown then
 			continue
 		end
 

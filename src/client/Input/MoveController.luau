@@ -19,9 +19,9 @@ local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
-local Balance = require(game:GetService("ReplicatedStorage").Shared.Config.Balance)
 local Dash = require(script.Parent.Dash)
 local DashButton = require(script.Parent.DashButton)
+local PlayerStats = require(script.Parent.Parent.PlayerStats)
 local Thumbstick = require(script.Parent.Thumbstick)
 
 local MoveController = {}
@@ -146,7 +146,10 @@ local function step()
 		return
 	end
 
-	humanoid.WalkSpeed = Balance.Player.moveSpeed
+	--[[ From the replicated stats, not from config: Agility raises it, and
+	     this line runs every frame so it would otherwise undo the ability
+	     the moment it was drafted. ]]
+	humanoid.WalkSpeed = PlayerStats.get().moveSpeed
 
 	-- World space, not camera-relative: the second argument must stay false.
 	humanoid:Move(desiredDirection(), false)

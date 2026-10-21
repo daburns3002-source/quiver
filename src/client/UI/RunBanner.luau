@@ -18,6 +18,8 @@ local TweenService = game:GetService("TweenService")
 local RunBanner = {}
 
 local roomLabel: TextLabel? = nil
+local xpFillBar: Frame? = nil
+local levelLabel: TextLabel? = nil
 local stateLabel: TextLabel? = nil
 
 local NEUTRAL = Color3.fromRGB(236, 240, 248)
@@ -78,10 +80,72 @@ function RunBanner.start()
 	status.Text = ""
 	status.Parent = container
 
+	--[[
+		The draft's progress bar.
+
+		Without it a card screen arrives out of nowhere, and a player who
+		cannot see one coming cannot decide whether to push for one more kill
+		before stepping through a door. It sits under the room line because
+		that is where the eye already goes between fights.
+	]]
+	local xpTrack = Instance.new("Frame")
+	xpTrack.Name = "XpTrack"
+	xpTrack.LayoutOrder = 3
+	xpTrack.Size = UDim2.new(1, 0, 0, 6)
+	xpTrack.BackgroundColor3 = Color3.fromRGB(28, 32, 44)
+	xpTrack.BackgroundTransparency = 0.25
+	xpTrack.BorderSizePixel = 0
+	xpTrack.Parent = container
+
+	local trackCorner = Instance.new("UICorner")
+	trackCorner.CornerRadius = UDim.new(1, 0)
+	trackCorner.Parent = xpTrack
+
+	local xpFill = Instance.new("Frame")
+	xpFill.Name = "Fill"
+	xpFill.Size = UDim2.fromScale(0, 1)
+	xpFill.BackgroundColor3 = Color3.fromRGB(255, 212, 120)
+	xpFill.BorderSizePixel = 0
+	xpFill.Parent = xpTrack
+
+	local fillCorner = Instance.new("UICorner")
+	fillCorner.CornerRadius = UDim.new(1, 0)
+	fillCorner.Parent = xpFill
+
+	local levelText = Instance.new("TextLabel")
+	levelText.Name = "Level"
+	levelText.LayoutOrder = 4
+	levelText.Size = UDim2.new(1, 0, 0, 14)
+	levelText.BackgroundTransparency = 1
+	levelText.Font = Enum.Font.Gotham
+	levelText.TextScaled = true
+	levelText.TextColor3 = Color3.fromRGB(226, 206, 170)
+	levelText.TextStrokeTransparency = 0.7
+	levelText.Text = "Level 1"
+	levelText.Parent = container
+
 	gui.Parent = playerGui
 
 	roomLabel = room
 	stateLabel = status
+	xpFillBar = xpFill
+	levelLabel = levelText
+end
+
+--[[ Argument order matches the remote. `toNext` is what is still owed, not the
+     level's total cost, so the bar is drawn from the two numbers the server
+     already had rather than from a third it would have to derive. ]]
+function RunBanner.onXpChanged(xp: number, toNext: number, level: number)
+	local fill = xpFillBar
+	local label = levelLabel
+
+	if not fill or not label then
+		return
+	end
+
+	local total = xp + toNext
+	fill.Size = UDim2.fromScale(if total > 0 then math.clamp(xp / total, 0, 1) else 0, 1)
+	label.Text = `Level {level}`
 end
 
 --[[ Argument order matches the remote: the server sends what it knows and the

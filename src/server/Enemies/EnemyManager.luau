@@ -335,13 +335,17 @@ end
 	The caller needs one thing from this: did the projectile connect with a
 	live enemy, and should it therefore stop. Reporting the kill instead made
 	every non-fatal hit indistinguishable from a miss, which is the wrong
-	question asked of the wrong function. Death is handled here and announced
-	on `enemyDied`; nothing outside needs to be told about it.
+	question asked of the wrong function.
+
+	The second return is the XP this hit earned, which is non-zero only on the
+	blow that kills. It is returned rather than awarded here because this
+	module has no idea whose arrow it was, and guessing is exactly how XP ends
+	up credited to the wrong player the moment there are two of them.
 ]]
-function EnemyManager.damage(model: Model, amount: number, fromPosition: Vector3): boolean
+function EnemyManager.damage(model: Model, amount: number, fromPosition: Vector3): (boolean, number)
 	local enemy = enemies[model]
 	if not enemy or amount <= 0 then
-		return false
+		return false, 0
 	end
 
 	enemy.health -= amount
@@ -357,7 +361,7 @@ function EnemyManager.damage(model: Model, amount: number, fromPosition: Vector3
 
 	if enemy.health > 0 then
 		enemyHit:FireAllClients(model, amount, enemy.position)
-		return true
+		return true, 0
 	end
 
 	enemies[model] = nil
@@ -374,7 +378,7 @@ function EnemyManager.damage(model: Model, amount: number, fromPosition: Vector3
 	enemyDied:FireAllClients(enemy.position)
 	model:Destroy()
 
-	return true
+	return true, enemy.config.xpReward
 end
 
 local function nearestAlivePlayerRoot(position: Vector3): (BasePart?, number)

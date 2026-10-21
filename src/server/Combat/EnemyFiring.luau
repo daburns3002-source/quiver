@@ -65,24 +65,30 @@ function EnemyFiring.step(now: number)
 		})
 
 		for _, spec in specs do
-			ProjectileSystem.spawn(
-				"Enemy",
-				volley.origin,
-				ShotPipeline.aim(volley.direction, spec),
-				spec.speed,
-				spec.lifetime,
-				volley.damage * spec.damageScale,
+			ProjectileSystem.spawn({
+				faction = "Enemy" :: Types.Faction,
+				origin = volley.origin,
+				direction = ShotPipeline.aim(volley.direction, spec),
+				speed = spec.speed,
+				lifetime = spec.lifetime,
+				damage = volley.damage * spec.damageScale,
 				--[[ Enemy shots never pierce. One projectile, one player: a
 				     piercing enemy shot would hit the same person twice. ]]
-				0,
-				now
-			)
+				pierce = 0,
+				--[[ And they never crit. Crit is a draft reward; an enemy
+				     landing a surprise double is noise the player cannot act
+				     on or build towards. ]]
+				critChance = 0,
+				critMultiplier = 1,
+				owner = nil,
+				now = now,
+			})
 		end
 
 		--[[ shooterId 0: the shooter is not a player, so no client should
 		     treat this volley as one of its own and skip drawing it. ]]
 		shotFired:FireAllClients({
-			faction = "Enemy",
+			faction = "Enemy" :: Types.Faction,
 			shooterId = 0,
 			origin = volley.origin,
 			direction = volley.direction,

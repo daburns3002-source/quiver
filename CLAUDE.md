@@ -60,6 +60,15 @@ add to it in the same PR as every fix — the same classes of bug recur here.
   blocked from `execute_luau`, so synthetic key input is not available.
 - `rojo serve` does not reload structural changes to `default.project.json`.
   Restart it for those; script edits live-sync fine.
+- **A dead sync looks exactly like a passing test run.** `rojo serve` can keep
+  its process alive while the Studio plugin is no longer connected — branch
+  switching does it — and then Studio quietly runs the code from whenever the
+  link broke. The suite still passes, on the old code, and reports a count
+  that looks plausible. Before trusting any in-Roblox result after a branch
+  switch or a `rojo serve` restart, check that a file you just changed is
+  actually in Studio: read `.Source` and look for the change. A restart drops
+  the plugin and reconnecting is a manual click in Studio, which nothing
+  automated can do for you.
 
 **Still blocked on the user:** lobby reference images, which belong in
 `assets/reference/lobby/` and are the spec for `docs/LOBBY.md`.

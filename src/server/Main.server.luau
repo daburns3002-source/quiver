@@ -25,6 +25,7 @@ local FiringSystem = require(script.Parent.Combat.FiringSystem)
 local Game = require(ReplicatedStorage.Shared.Config.Game)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
 local ProjectileSystem = require(script.Parent.Combat.ProjectileSystem)
+local Remotes = require(game:GetService("ReplicatedStorage").Shared.Net.Remotes)
 local RoomController = require(script.Parent.Run.RoomController)
 local RunSession = require(script.Parent.Run.RunSession)
 
@@ -100,8 +101,36 @@ end
 
 Players.PlayerAdded:Connect(onPlayerAdded)
 
+--[[
+	The client picks a card.
+
+	The only thing it is trusted with is an index into an offer this server
+	sent it moments ago, and `Loadout.choose` checks even that. Anything else
+	arriving here — a string, a float, an index out of range, a choice with no
+	offer open — changes nothing.
+]]
+Remotes.event(Remotes.AbilityChosen).OnServerEvent:Connect(function(player, index)
+	if typeof(index) ~= "number" then
+		return
+	end
+
+	local session = RunSession.get(player)
+	if not session then
+		return
+	end
+
+	RunSession.chooseAbility(session, index)
+end)
+
 RunService.Heartbeat:Connect(function(deltaTime: number)
 	local now = os.clock()
+
+	--[[ The world holds still while a card screen is up. A draft read under
+	     fire is not a choice, and a player who takes damage while reading one
+	     will stop reading them. ]]
+	if RunSession.anyChoosing() then
+		return
+	end
 
 	EnemyManager.step(deltaTime, now)
 	--[[ Straight after the enemies decide, so a volley never waits a frame

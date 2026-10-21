@@ -23,6 +23,7 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
+local PlayerStats = require(script.Parent.Parent.PlayerStats)
 
 local Dash = {}
 
@@ -75,8 +76,9 @@ function Dash.request(now: number, desired: Vector3, facing: Vector3): boolean
 	heading = direction
 	endsAt = now + Balance.Player.dash.duration
 	--[[ Measured from the start, not the end, so the cooldown a player feels
-	     is the number in the config rather than that plus the duration. ]]
-	readyAt = now + Balance.Player.dash.cooldown
+	     is the number in the config rather than that plus the duration.
+	     Taken from the replicated stats so Lightfoot shortens it. ]]
+	readyAt = now + PlayerStats.get().dashCooldown
 	return true
 end
 
@@ -102,7 +104,7 @@ end
 	phone without reading a number. 1 means ready.
 ]]
 function Dash.readiness(now: number): number
-	local cooldown = Balance.Player.dash.cooldown
+	local cooldown = PlayerStats.get().dashCooldown
 	if cooldown <= 0 then
 		return 1
 	end

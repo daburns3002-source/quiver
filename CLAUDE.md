@@ -12,18 +12,38 @@ add to it in the same PR as every fix — the same classes of bug recur here.
 
 ## Where we are
 
-**Phase 0 done. Phase 1 merged, and Playtest 1 passed.**
+**Paused on 2026-10-21, mid Phase 3, at `c9ceffd` on `main`.** The owner
+moved to another project. Everything is merged and pushed; there are no open
+PRs and no unmerged branches with work on them.
 
-- Merged to `main` as `ef4457b` via PR #3. CI green: Selene, StyLua,
-  `rojo build`, and `luau-lsp analyze` under strict mode.
-- **Phase 1 has been played in Studio.** It booted clean on the first Play —
-  every bug was behavioural, not structural, and is fixed on `main`.
-- **Playtest 1 answered: standing still to shoot is fine.** That satisfies the
-  gate in Workflow below, so Phase 2 is next per `docs/ROADMAP.md`.
-- `ArrowLegends-Phase1.rbxl` in the repo root is a built place for testing
-  (gitignored, rebuild with `rojo build default.project.json -o <name>.rbxl`).
-  It looks empty in edit mode — the arena is built at runtime by the server.
-- The Rojo Studio plugin is installed.
+What exists and works, all verified in Studio rather than only by the gates:
+
+- **Phases 1 and 2:** move-or-shoot, five enemy archetypes, ten-room runs,
+  death and restart. Playtest 1 passed. Playtest 2's question — *after five
+  rooms, do you want a sixth?* — was never formally answered.
+- **Phase 3, mostly:** the shot pipeline with 21 abilities as data, XP and a
+  choose-one-of-three draft that pauses the world, crit, splash, ricochet,
+  chain-on-kill, Momentum, Second Wind, a run summary, and the client's
+  prediction replicated from the server so what is drawn is what fires.
+- **The dash** (4-second cooldown, readiness bar), player hit feedback, and
+  draft enemy bodies.
+- **Archero 2 proportions,** measured from footage — see
+  `docs/RESEARCH-archero.md` §7: a portrait 35 × 58 room, a camera that fits
+  the room's width and follows depth only, spawn markers, orb enemy shots.
+
+Where it was left, and why: the last stretch was rapid tuning against
+playtest feel — fire rate, move speed, arrow reach, enemy health — and the
+owner judged it was not coming together. The numbers in `Config/Balance` are
+the last ones asked for, not settled ones. Untested by any real player: the
+final fire rate (0.7 s) and enemy health (×1.5).
+
+Not done: Phase 3's last four abilities and mutual exclusions; XP gems and
+triangle-cluster spawns from the footage; projectile speeds and fire rate
+were never *measured* from Archero 2, only scaled.
+
+To resume: `rojo serve`, connect the Studio plugin, Play. Read
+`docs/FIXES.md` before debugging anything — most of what can go wrong here
+already has.
 
 **What first run fixed, so it does not get re-broken:**
 

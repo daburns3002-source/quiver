@@ -100,11 +100,20 @@ function FiringSystem.step(_deltaTime: number, now: number)
 			continue
 		end
 
-		if now - session.lastFiredAt < Balance.Player.attackCooldown then
+		--[[
+			Evaluated every frame, and before the cooldown check, because this
+			call is what advances the settle timer. Gating it behind the
+			cooldown would stop the timer starting until the cooldown expired,
+			so firing would resume a whole cooldown late — and the server would
+			disagree with the client, whose prediction already settles first.
+		]]
+		local stationary = RunSession.isStationary(session, now)
+
+		if not stationary then
 			continue
 		end
 
-		if not RunSession.isStationary(session, now) then
+		if now - session.lastFiredAt < Balance.Player.attackCooldown then
 			continue
 		end
 

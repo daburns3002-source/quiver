@@ -175,4 +175,44 @@ function Arena.isClear(position: Vector3, radius: number): boolean
 	return (resolved - position).Magnitude < 1e-3
 end
 
+--[[
+	The outward normal of the obstacle that would block a circle of `radius`
+	travelling from `from` towards `probe`, or nil if nothing is in the way.
+
+	The blocking box is found at `probe`, but the normal is measured at `from`,
+	because those can name different faces: a body flush against a pillar's
+	east face probes into the span of its north face. Taking the normal at the
+	probe would then hand the caller a tangent pointing straight into the
+	pillar, and `resolve` would shove it back to the same spot every frame.
+
+	Axis choice mirrors `resolve`, so the face returned is the one `resolve`
+	would push out of.
+]]
+function Arena.deflectionNormal(from: Vector3, probe: Vector3, radius: number): Vector3?
+	local probePoint = Vector2.new(probe.X, probe.Z)
+	local fromPoint = Vector2.new(from.X, from.Z)
+
+	for _, box in boxes do
+		local delta = probePoint - box.centre
+		local overlapX = (box.halfExtents.X + radius) - math.abs(delta.X)
+		local overlapZ = (box.halfExtents.Y + radius) - math.abs(delta.Y)
+
+		if overlapX > 0 and overlapZ > 0 then
+			-- Smaller clearance wins: that is the face the body is nearest to
+			-- being outside of, and so the one it is really held against.
+			local at = fromPoint - box.centre
+			local faceX = (box.halfExtents.X + radius) - math.abs(at.X)
+			local faceZ = (box.halfExtents.Y + radius) - math.abs(at.Y)
+
+			if faceX < faceZ then
+				return Vector3.new(if at.X >= 0 then 1 else -1, 0, 0)
+			end
+
+			return Vector3.new(0, 0, if at.Y >= 0 then 1 else -1)
+		end
+	end
+
+	return nil
+end
+
 return Arena

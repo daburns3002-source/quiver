@@ -33,6 +33,12 @@ type Enemy = {
 	maxHealth: number,
 	position: Vector3,
 	lastAttackAt: number,
+	--[[
+		Which way round an obstacle this enemy committed to, or nil when it has
+		a clear path. Held rather than recomputed: see the steering block in
+		`stepEnemy` for why re-deciding every frame deadlocks.
+	]]
+	slideSign: number?,
 }
 
 local EnemyManager = {}
@@ -54,6 +60,11 @@ local enemyDied = Remotes.event(Remotes.EnemyDied)
      rather than one overlapping blob. ]]
 local SEPARATION_DISTANCE = 3.5
 local SEPARATION_STRENGTH = 6
+
+--[[ Studs ahead of itself an enemy checks for a pillar before committing to a
+     step. A charger has no pathfinding, so without this it walks into an
+     obstacle face and Arena.resolve pins it there for ever. ]]
+local OBSTACLE_PROBE = 1.25
 
 function EnemyManager.init(parent: Instance)
 	local existing = parent:FindFirstChild("Enemies")
@@ -166,6 +177,7 @@ function EnemyManager.spawn(config: EnemyConfig): Model?
 		maxHealth = config.health,
 		position = position,
 		lastAttackAt = 0,
+		slideSign = nil,
 	}
 	positions[model] = position
 	aliveCount += 1
@@ -262,6 +274,38 @@ local function stepEnemy(enemy: Enemy, deltaTime: number, now: number)
 		)
 
 		local desired = if toTarget.Magnitude > 1e-3 then toTarget.Unit else Vector3.zero
+
+		--[[
+			Steer along a pillar face rather than into it. Targeting
+			deliberately ignores line of sight, so a charger is routinely sent
+			straight at an obstacle; without this it presses against the face,
+			Arena.resolve returns it to the same spot every frame, and the room
+			deadlocks with the player's arrows blocked by that same pillar.
+		]]
+		if desired.Magnitude > 1e-3 then
+			local probe = enemy.position + desired * (radius + OBSTACLE_PROBE)
+			local normal = Arena.deflectionNormal(enemy.position, probe, radius)
+
+			if normal then
+				local tangent = Vector3.new(-normal.Z, 0, normal.X)
+
+				--[[
+					Commit to one side for as long as the obstacle keeps
+					blocking. Either tangent walks around the pillar, but
+					re-deciding each frame makes an enemy level with its target
+					jitter on the spot for ever: the side it picks depends on
+					which way the target lies, and sliding across flips that,
+					which flips the choice straight back.
+				]]
+				local side = enemy.slideSign or (if tangent:Dot(desired) < 0 then -1 else 1)
+
+				enemy.slideSign = side
+				desired = tangent * side
+			else
+				enemy.slideSign = nil
+			end
+		end
+
 		local separation = Vector3.zero
 
 		for otherModel, otherPosition in positions do

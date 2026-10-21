@@ -21,6 +21,11 @@ local Log = require(ReplicatedStorage.Shared.Util.Log)
 
 local log = Log.forTag("Projectiles")
 
+--[[ Ceiling on segment-walk iterations per projectile per step. The loop
+     already decrements `remaining` by at least a hundredth of a stud each
+     pass, so it cannot spin; this also bounds its raycast cost in one frame. ]]
+local MAX_SEGMENT_STEPS = 8
+
 type Projectile = {
 	position: Vector3,
 	direction: Vector3,
@@ -120,8 +125,15 @@ end
 ]]
 local function advance(projectile: Projectile, deltaTime: number, params: RaycastParams): boolean
 	local remaining = projectile.speed * deltaTime
+	local steps = 0
 
 	while remaining > 1e-3 do
+		steps += 1
+		if steps > MAX_SEGMENT_STEPS then
+			-- Out of budget, not out of life: it resumes on the next step.
+			return true
+		end
+
 		local segment = projectile.direction * remaining
 		local result = workspace:Raycast(projectile.position, segment, params)
 

@@ -20,6 +20,7 @@ local HealthBar = require(script.Parent.UI.HealthBar)
 local HitFeedback = require(script.Parent.Fx.HitFeedback)
 local LocalFiring = require(script.Parent.Combat.LocalFiring)
 local Log = require(Shared.Util.Log)
+local MoveController = require(script.Parent.Input.MoveController)
 local ProjectileRenderer = require(script.Parent.Fx.ProjectileRenderer)
 local Remotes = require(Shared.Net.Remotes)
 local TopDownCamera = require(script.Parent.Camera.TopDownCamera)
@@ -71,6 +72,11 @@ ProjectileRenderer.start(Workspace)
 HitFeedback.start(Workspace)
 TopDownCamera.start(currentRoot)
 LocalFiring.start()
+MoveController.start()
+
+if not MoveController.hasSupportedInput() then
+	log.warn("no keyboard or gamepad: this device has no movement input yet")
+end
 
 player.CharacterAdded:Connect(function()
 	TopDownCamera.reset()

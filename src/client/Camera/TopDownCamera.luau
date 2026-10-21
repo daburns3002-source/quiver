@@ -29,6 +29,15 @@ local function step(deltaTime: number, getRoot: () -> BasePart?)
 		return
 	end
 
+	--[[
+		Re-asserted every frame rather than once in start(). Roblox's default
+		camera script sets CameraType back to Custom when a character spawns,
+		which would hand the player the over-the-shoulder camera mid-run.
+	]]
+	if camera.CameraType ~= Enum.CameraType.Scriptable then
+		camera.CameraType = Enum.CameraType.Scriptable
+	end
+
 	local root = getRoot()
 	if not root then
 		return

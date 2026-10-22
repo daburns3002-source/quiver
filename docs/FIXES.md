@@ -16,6 +16,30 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## Enemy orbs crawled at a third of the reference's speed
+
+**Symptom** — measured, not reported: Spitter and Lurker orbs at 4–4.4
+studs/s, against 0.27–0.40 room-widths a second (~12 studs/s) in the
+footage. The Spitter's own comment asked for the teardown's 8–20 band.
+
+**Cause** — the same as the arrows: scaled down with the room rather than
+measured, twice over.
+
+**Fix** — Spitter and Lurker 12, Lancer 14 → 28 (the footage's fast red
+shot, one sample). Each lifetime adjusted so reach is unchanged: only speed
+moved.
+
+**Measured** — tracked in the footage with camera drift removed (static
+objects read 2–10 px/s, so the correction holds). In Studio, the Lancer's
+drawn orbs measured 27.5–27.8 studs/s, and none was drawn overlapping
+the player across 162 orb frames.
+
+**Watch for** — difficulty. These are the biggest single jump enemy fire
+has had, and the Lurker's point-blank fan now arrives about 0.15 s after
+its tell instead of 0.45 s.
+
+---
+
 ## Arrows did not stop at the enemy's hitbox
 
 **Symptom** — "make the projectiles stop when they hit the hitbox of the

@@ -212,7 +212,9 @@ the red rings are **spawn markers**, not static floor features.
 | fire interval | **0.6 s** between volleys | 0.7 s, by playtest choice |
 | Diagonal Arrows | **±30°** either side of the aim | ±30° |
 | Ricochet | bounces **between enemies**, not walls | between enemies |
-| enemy orb speed | ~0.4–0.6 room-widths/s | 4–14 studs/s, slower — not yet matched |
+| slow enemy orbs | **0.27–0.40 room-widths/s**, tracked with camera drift removed | 12 studs/s (Spitter, Lurker) |
+| fireballs | 0.35–0.75 room-widths/s | — no fireball enemy yet |
+| fast enemy shot | ~0.8 room-widths/s, one sample | 28 studs/s (Lancer) |
 
 **How the camera was measured.** The lamp posts on the side walls sit about
 858 px apart and move together vertically between frames and never
@@ -231,9 +233,12 @@ three arrow tips across consecutive frames, the fire interval from volley
 frames, and the player's pace at 0.2 room-widths/s — which matches the
 other footage and confirms the clip is real-time.
 
-**What could not be measured.** Enemy movement speeds, and enemy orb
-speeds only roughly — from a few hand-read samples, which is why the table
-gives a range. Automatic colour tracking is too noisy with this many teal
+**Enemy orbs, tracked.** Orbs are found by colour every 2/60 s and
+followed frame to frame, with the camera's vertical drift measured off the
+side wall and subtracted; static objects then read 2–10 px/s, which is the
+check that the correction is right. Ranges are across several orbs.
+
+**What could not be measured.** Enemy movement speeds. Automatic colour tracking is too noisy with this many teal
 and green things on screen: a health-bar detector reported widths between
 134 and 664 px on one bar. Enemy speeds are therefore our own tuned values
 scaled with the room, and should not be described as matching.

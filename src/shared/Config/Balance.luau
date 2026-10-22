@@ -173,11 +173,18 @@ local spreadShooter: EnemyConfig = {
 		count = 3,
 		-- Radians between neighbouring projectiles in the fan.
 		spread = math.rad(18),
-		--[[ Slow on purpose. Enemy projectiles have to be readable and
-		     dodgeable on a small screen; 8–20 studs/s is the band the teardown
-		     calls for. ]]
-		speed = 4,
-		lifetime = 4,
+		--[[
+			Measured: Archero 2's slow purple orbs, tracked across 1.5 s of
+			footage with the camera's drift taken out, travel 0.27–0.40
+			room-widths a second — about 12 studs/s here, inside the 8–20
+			band the teardown asks for. Rescaling with the room had pushed
+			this down to 4, where an orb crawled.
+
+			Lifetime keeps the reach it had (16 studs), so the speed is the
+			only thing that changed.
+		]]
+		speed = 12,
+		lifetime = 16 / 12,
 		--[[ Seconds of wind-up before the volley leaves, so the player reacts
 		     to the tell rather than to the projectile. ]]
 		telegraph = 0.45,
@@ -213,9 +220,12 @@ local lineSniper: EnemyConfig = {
 		count = 1,
 		spread = 0,
 		--[[ Fast, unlike the Spitter. The telegraph is the counterplay here,
-		     not the flight time — once it fires, it has already hit. ]]
-		speed = 14,
-		lifetime = 2,
+		     not the flight time — once it fires, it has already hit.
+		     Measured against the footage's fast red shot, ~0.8 room-widths
+		     a second; one sample, so the least certain number here. Reach
+		     held at 28 studs. ]]
+		speed = 28,
+		lifetime = 1,
 		--[[ Long, because the whole fight is the player reading this window
 		     and moving out of the line inside it. ]]
 		telegraph = 0.9,
@@ -280,8 +290,10 @@ local burrower: EnemyConfig = {
 		     a lane across the room. ]]
 		count = 5,
 		spread = math.rad(24),
-		speed = 4.4,
-		lifetime = 3,
+		--[[ The same slow-orb family as the Spitter's, measured the same
+		     way. Reach held at 13.2 studs. ]]
+		speed = 12,
+		lifetime = 13.2 / 12,
 		--[[ Short. Surfacing *is* the telegraph, and the player has already
 		     been given the ground marker to act on. ]]
 		telegraph = 0.25,

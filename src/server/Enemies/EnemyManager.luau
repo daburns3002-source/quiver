@@ -609,6 +609,20 @@ end
 	navigates is not.
 ]]
 --[[
+	Puts an enemy's hitbox, and the body welded to it, where the enemy is.
+
+	Always by CFrame, never by Position. A WeldConstraint only drags its
+	other parts along when a part's CFrame is set; setting Position moves the
+	hitbox alone and quietly re-welds the body at the new offset. That is how
+	a knocked-back enemy's ring slid away while its body stayed put — and
+	then stayed apart, leaving arrows to hit an invisible box beside the
+	visible enemy.
+]]
+local function placeHitbox(enemy: Enemy)
+	enemy.hitbox.CFrame = CFrame.new(enemy.position) * CFrame.Angles(0, enemy.yaw or 0, 0)
+end
+
+--[[
 	Moves an enemy along whatever shove it is carrying and lets it decay.
 	Integrated exactly for exponential decay, so the distance a hit pushes is
 	the same at 30 fps as at 144.
@@ -627,7 +641,7 @@ local function slide(enemy: Enemy, deltaTime: number)
 	enemy.knockbackVelocity = velocity * decay
 	enemy.position = Arena.resolveBox(enemy.position + moved, footprint(enemy.config, enemy.yaw))
 	positions[enemy.model] = enemy.position
-	enemy.hitbox.Position = enemy.position
+	placeHitbox(enemy)
 end
 
 local function stepEnemy(enemy: Enemy, deltaTime: number, now: number)
@@ -908,7 +922,7 @@ local function stepEnemy(enemy: Enemy, deltaTime: number, now: number)
 		positions[enemy.model] = enemy.position
 	end
 
-	enemy.hitbox.CFrame = CFrame.new(enemy.position) * CFrame.Angles(0, enemy.yaw or 0, 0)
+	placeHitbox(enemy)
 
 	--[[
 		A wind-up already in flight resolves wherever the enemy now is, even if
@@ -1065,8 +1079,8 @@ local function separate()
 			a.position = Arena.resolveBox(a.position - direction * push, footprint(a.config, a.yaw))
 			b.position = Arena.resolveBox(b.position + direction * push, footprint(b.config, b.yaw))
 
-			a.hitbox.Position = a.position
-			b.hitbox.Position = b.position
+			placeHitbox(a)
+			placeHitbox(b)
 			positions[a.model] = a.position
 			positions[b.model] = b.position
 		end

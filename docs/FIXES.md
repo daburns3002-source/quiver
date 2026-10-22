@@ -16,6 +16,31 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## Knocked-back enemies left their bodies behind
+
+**Symptom** — "the enemy models are not following the ring that is getting
+knocked back". The target ring slid away with the hit; the body stayed put.
+
+**Cause** — the knockback slide and the end-of-frame separation moved the
+hitbox with `hitbox.Position = …`. A WeldConstraint only carries its other
+parts when a part's **CFrame** is set; a Position write moves the hitbox
+alone and silently re-welds the body at the new offset. So the body stayed
+offset for the rest of the enemy's life, and arrows struck an invisible box
+beside the visible enemy. The old instant knockback had the same bug, just
+too fast to notice.
+
+**Fix** — every move goes through `placeHitbox`, which sets the CFrame
+(position plus the enemy's turn). Knockback back to 3 studs at the same
+time (owner's call).
+
+**Measured** — 0.000 studs of drift between body and hitbox across 38,320
+body-part samples with 12 knockback hits. `tests/EnemyModel.spec.luau` pins
+both that CFrame carries the body and that Position does not.
+
+**Watch for** — any new `hitbox.Position =` on an enemy. Set CFrame.
+
+---
+
 ## The killing blow showed no damage number
 
 **Symptom** — found while restyling damage numbers: the hit that finished an

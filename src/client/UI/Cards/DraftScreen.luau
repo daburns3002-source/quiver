@@ -64,10 +64,11 @@ type Slot = {
 	scale: UIScale,
 	base: Vector2,
 	hovered: boolean,
-	pointer: number,
+	--[[ Balatro's "juice": a scale pop and a wobble that die away, started
+	     on hover, select and confirm. ]]
+	juice: { at: number, scale: number, rot: number }?,
 	scaleSpring: Motion.Spring,
 	liftSpring: Motion.Spring,
-	jiggle: Motion.Spring,
 	dealAt: number,
 	--[[ A Mythic is dealt face down: its back, when its reveal starts, and
 	     the lightning round its face once it is up. ]]
@@ -233,13 +234,27 @@ local function setChooseEnabled(enabled: boolean)
 	end
 end
 
+--[[ Starts a card's juice: a scale pop of `scale` and a wobble of `rot`
+     degrees, both dying away over `JUICE_TIME`. ]]
+local JUICE_TIME = 0.4
+local function juiceUp(slot: Slot, scale: number, rot: number)
+	slot.juice = { at = os.clock(), scale = scale, rot = rot }
+end
+
 local function pick(index: number?)
+	local previous = selected
 	selected = index
 	for _, slot in slots do
 		local on = slot.index == index
 		slot.card.setSelected(on)
-		slot.scaleSpring.target = if on then 1.1 elseif slot.hovered then 1.07 else 1
-		slot.liftSpring.target = if on then -28 elseif slot.hovered then -10 else 0
+		slot.scaleSpring.target = if on then 1.1 elseif slot.hovered then 1.05 else 1
+		slot.liftSpring.target = if on then -28 elseif slot.hovered then -8 else 0
+		--[[ A card taken up pops and wobbles; one put back down, a little. ]]
+		if on and previous ~= slot.index then
+			juiceUp(slot, 0.12, 6)
+		elseif not on and previous == slot.index then
+			juiceUp(slot, 0.05, 3)
+		end
 	end
 	setChooseEnabled(index ~= nil)
 end
@@ -251,6 +266,10 @@ local function confirm()
 	end
 
 	locked = true
+	local chosen = slots[index]
+	if chosen then
+		juiceUp(chosen, 0.18, 8)
+	end
 
 	--[[ On a phone the pick is a celebration: the card takes the stage, and
 	     its icon flies into the skill bar before the pick is applied. ]]
@@ -396,10 +415,9 @@ local function buildSlot(index: number, id: string, count: number, now: number):
 		scale = scale,
 		base = base,
 		hovered = false,
-		pointer = 0.5,
+		juice = nil,
 		scaleSpring = Motion.spring(1, 0.2, 0.7),
 		liftSpring = Motion.spring(0, 0.14, 0.72),
-		jiggle = Motion.spring(0, 0.12, 0.84),
 		dealAt = dealAt,
 		mythic = mythic,
 	}
@@ -420,17 +438,12 @@ local function buildSlot(index: number, id: string, count: number, now: number):
 			return
 		end
 		slot.hovered = true
-		slot.jiggle.v += if math.random() < 0.5 then -4.5 else 4.5
+		juiceUp(slot, 0.05, 2.5)
 		pick(selected)
 	end)
 	hit.MouseLeave:Connect(function()
 		slot.hovered = false
 		pick(selected)
-	end)
-	hit.MouseMoved:Connect(function(mouseX: number)
-		local left = hit.AbsolutePosition.X
-		local width = math.max(hit.AbsoluteSize.X, 1)
-		slot.pointer = math.clamp((mouseX - left) / width, 0, 1)
 	end)
 	--[[ On a touch screen, holding a card opens its detail as a sheet, with
 	     a white bar filling under the card while the finger is down. ]]
@@ -671,17 +684,30 @@ local function step(deltaTime: number)
 
 	for _, slot in slots do
 		local i = slot.index
-		local calm = if slot.hovered or selected == i then 0.25 else 1
+		--[[ A card under the pointer, or picked, holds still, so its words
+		     can be read; only the cards left alone float. ]]
+		local calm = if slot.hovered or selected == i then 0 else 1
 
 		Motion.step(slot.scaleSpring, deltaTime)
 		Motion.step(slot.liftSpring, deltaTime)
-		Motion.step(slot.jiggle, deltaTime)
 
-		local tilt = if slot.hovered then (slot.pointer - 0.5) * 8 else 0
-		local rotation = math.sin(now * 1.3 + i * 1.7) * 1.8 * calm + tilt + slot.jiggle.x
-		local offset =
-			Vector2.new(0, math.sin(now * 1.8 + i * 1.1) * 3.5 * calm + slot.liftSpring.x)
+		local rotation = math.sin(now * 1.3 + i * 1.7) * 1.4 * calm
+		local offset = Vector2.new(0, math.sin(now * 1.8 + i * 1.1) * 3 * calm + slot.liftSpring.x)
 		local scale = slot.scaleSpring.x
+
+		--[[ Balatro's juice: the pop on a cubic fall-off at about 8 Hz, the
+		     wobble on a square one a little slower. ]]
+		local juice = slot.juice
+		if juice then
+			local e = now - juice.at
+			if e >= JUICE_TIME then
+				slot.juice = nil
+			else
+				local left = 1 - e / JUICE_TIME
+				scale += juice.scale * math.sin(50.8 * e) * left ^ 3
+				rotation += juice.rot * math.sin(40.8 * e) * left ^ 2
+			end
+		end
 		local transparency = 0
 
 		-- Dealt in: from down and to the right, turned, settling with a kick.
@@ -787,11 +813,8 @@ local function step(deltaTime: number)
 		slot.group.GroupTransparency = transparency
 		slot.scale.Scale = scale
 
-		if slot.hovered then
-			slot.card.setShine((0.5 - slot.pointer) * 0.6, 1)
-		else
-			slot.card.setShine(0, 0.3)
-		end
+		-- The shine brightens on hover but stays put, like the card.
+		slot.card.setShine(0, if slot.hovered or selected == i then 0.8 else 0.3)
 		slot.card.step(now)
 	end
 

@@ -506,6 +506,11 @@ function EnemyManager.spawn(config: EnemyConfig, extraDelay: number?, at: Vector
 	positions[model] = position
 	aliveCount += 1
 
+	--[[ Health travels as attributes so each client can draw the enemy's
+	     bar. Read for drawing only; the server's own number is the truth. ]]
+	model:SetAttribute("MaxHealth", config.health)
+	model:SetAttribute("Health", config.health)
+
 	model.Parent = parent
 
 	--[[
@@ -643,6 +648,7 @@ function EnemyManager.damage(
 	end
 
 	if enemy.health > 0 then
+		model:SetAttribute("Health", enemy.health)
 		enemyHit:FireAllClients(model, amount, enemy.position, kind or "Hit")
 		return true, 0, nil
 	end

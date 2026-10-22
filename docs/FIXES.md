@@ -16,6 +16,26 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## Card text kept moving while a card was hovered
+
+**Symptom** — "the card text keeps moving whenever they are hovered over".
+
+**Cause** — the draft screen tilted a hovered card toward the pointer every
+frame (`(pointer − 0.5) · 8°`) and kept a quarter of its idle sway, so the
+whole card, words included, never stopped turning under the mouse.
+
+**Fix** — after Balatro: a hovered or picked card holds still. No sway, no
+pointer tilt; it lifts, grows a little, and gives one short "juice" — a
+scale pop and a wobble dying away over 0.4 s (`sin(50.8t)` with cubic
+fall-off, `sin(40.8t)` with square) — on hover, select, deselect and
+confirm, then stops.
+
+**Measured** — live, with the mouse resting on a card: rotation range 0°
+and vertical drift 1 px over its last 0.6 s, while the unhovered card beside
+it still floated ±1°.
+
+---
+
 ## Arrows blocked by cover looked like they failed
 
 **Symptom** — a long-standing rough edge: an arrow that hit a pillar or a

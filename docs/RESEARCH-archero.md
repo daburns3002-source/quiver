@@ -206,7 +206,7 @@ the red rings are **spawn markers**, not static floor features.
 | enemy orb / player width | ~0.64 | 0.6 |
 | enemy orb tail | ~3–4× the orb | 0.6 s comet trail |
 | player pace | **0.19 room-widths/s** | 0.26, brisker by choice |
-| spawn warning | red ring per enemy, **~0.8–1.0 s** ahead, staggered, waves in triangles of three | 0.9 s + 0.08 s stagger; no clusters yet |
+| spawn warning | red ring per enemy, **~0.8–1.0 s** ahead, staggered, waves in triangles of three | 0.9 s + 0.08 s stagger, triangles of three |
 | multishot | a **parallel lane**, not a fan | parallel lane |
 | arrow speed | **~5.5 room-widths/s** (~1,840 px/s, ref. video below) | 110 studs/s (~58%), slowed at playtest |
 | fire interval | **0.6 s** between volleys | 0.7 s, by playtest choice |
@@ -243,8 +243,8 @@ and green things on screen: a health-bar detector reported widths between
 134 and 664 px on one bar. Enemy speeds are therefore our own tuned values
 scaled with the room, and should not be described as matching.
 
-**Not built yet:** triangle-cluster spawning. (XP gems are built as
-crystals; see `docs/RESEARCH-archero2.md`.)
+Triangle clusters and XP gems (as crystals, see `docs/RESEARCH-archero2.md`)
+are both built.
 
 ---
 

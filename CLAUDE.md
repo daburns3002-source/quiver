@@ -70,8 +70,11 @@ within 12 studs cleared.
 
 Not done: real bosses (the owner wants to think about them first — do not
 start); Phase 3's playtest question — *did two runs in a row feel
-meaningfully different?* — which needs the owner; triangle-cluster spawns
-from the footage.
+meaningfully different?* — which needs the owner.
+
+**Enemies arrive in triangles of three** (`Balance.Spawning.clusterSize`),
+the tip pointing at the player; the row swings round the tip when a wall is
+behind it. Blocked arrows stick in the wall for a moment.
 
 To resume: `rojo serve`, connect the Studio plugin, Play. Read
 `docs/FIXES.md` before debugging anything — most of what can go wrong here
@@ -172,6 +175,8 @@ nothing in GitHub enforces this. It holds only because it is written here.
 - **No energy gate.**
 - Rebirth is in scope but late; the save schema must not preclude it.
 - Co-op is Phase 9, but state is per-player from day one regardless.
+- **Drafted abilities stack** (with caps), unlike Archero 2's one-copy rule
+  (owner, 2026-10-22).
 
 ## Commands
 

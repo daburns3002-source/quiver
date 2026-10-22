@@ -971,6 +971,12 @@ local Balance = {
 		--[[ Extra seconds per enemy after the first, so markers come up a few
 		     at a time, as they do in the footage, rather than on one frame. ]]
 		arrivalStagger = 0.08,
+		--[[ Enemies arrive in triangles of this many, as in the footage: the
+		     first at a spawn point found the usual way, pointing at the
+		     player, the rest in a row behind it. ]]
+		clusterSize = 3,
+		--[[ Studs of floor between neighbours in a cluster, edge to edge. ]]
+		clusterGap = 1.4,
 	},
 
 	Feedback = {

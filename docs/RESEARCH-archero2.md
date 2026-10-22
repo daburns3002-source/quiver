@@ -197,7 +197,7 @@ reverse earlier tuning.
 4. **XP crystals** — blue cubes dropped by kills, collected at wave end.
 5. **Hearts** — rare drops that heal and wait on the floor.
 6. **Skills don't stack** — Archero 2 gives one copy of each; ours stack with
-   caps. A design call.
+   caps. **Decided (owner, 2026-10-22): ours stack.**
 7. **Camera tilt** — lower than our 68°, so walls show faces. Measure first.
 8. **Art pass** — soft, rounded, saturated characters on a cool floor;
    segmented player HP bar; blue ring under the player, red under enemies;

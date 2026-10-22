@@ -2,6 +2,9 @@
 
 **Archero's combat inside a Pet Simulator / Steal an Egg progression shell.**
 Run loop: `docs/RESEARCH-archero.md`. Meta loop: `docs/PROGRESSION.md`.
+Classes and the fifteen areas: `docs/WORLD.md` (owner, 2026-10-22) — the
+game is no longer archer-only, and where the Arcanist and the melee class
+land in these phases is still to be decided.
 
 Ten phases. Each one ends in a **playtest with a single question**. If the answer is no, we fix
 that phase rather than building on top of it.

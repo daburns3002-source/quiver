@@ -111,7 +111,8 @@ function AbilityEffects.stages(counts: Counts): { ShotStage }
 	end
 
 	if stacks(counts, "DiagonalArrows") > 0 then
-		table.insert(out, Stages.mirror("DiagonalArrows", { math.pi / 4, -math.pi / 4 }))
+		local angle = Balance.Projectile.diagonalAngle
+		table.insert(out, Stages.mirror("DiagonalArrows", { angle, -angle }))
 	end
 
 	local pierce = stacks(counts, "PiercingShot")
@@ -144,7 +145,12 @@ function AbilityEffects.stages(counts: Counts): { ShotStage }
 
 	local ricochet = stacks(counts, "Ricochet")
 	if ricochet > 0 then
-		table.insert(out, Stages.bounce(Abilities.byId.Ricochet.value * ricochet))
+		table.insert(out, Stages.ricochet(Abilities.byId.Ricochet.value * ricochet))
+	end
+
+	local bouncyWall = stacks(counts, "BouncyWall")
+	if bouncyWall > 0 then
+		table.insert(out, Stages.bounce(Abilities.byId.BouncyWall.value * bouncyWall))
 	end
 
 	local chain = stacks(counts, "SoulChain")

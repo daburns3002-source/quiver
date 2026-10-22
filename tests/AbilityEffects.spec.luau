@@ -333,12 +333,54 @@ return function(t: TestRunner.Helper)
 		t.isTrue(volley({ BlastArrows = 3 })[1].splashScale < 1, "splash matches a direct hit")
 	end)
 
-	t.test("Ricochet lets arrows bounce, and stacks", function()
-		t.equal(volley({})[1].bounces, 0)
-		t.isTrue(volley({ Ricochet = 1 })[1].bounces > 0, "Ricochet granted no bounces")
+	t.test("Ricochet bounces between enemies, and stacks", function()
+		t.equal(volley({})[1].ricochet, 0)
+		t.isTrue(volley({ Ricochet = 1 })[1].ricochet > 0, "Ricochet granted no ricochets")
 		t.isTrue(
-			volley({ Ricochet = 2 })[1].bounces > volley({ Ricochet = 1 })[1].bounces,
+			volley({ Ricochet = 2 })[1].ricochet > volley({ Ricochet = 1 })[1].ricochet,
 			"a second Ricochet added nothing"
+		)
+	end)
+
+	--[[ Two different abilities that used to be one. Archero 2's Ricochet
+	     goes enemy to enemy; off the walls is Bouncy Wall. Neither should
+	     quietly grant the other. ]]
+	t.test("Ricochet and Bouncy Wall do not grant each other", function()
+		t.equal(volley({ Ricochet = 1 })[1].bounces, 0, "Ricochet bounces off walls")
+		t.equal(volley({ BouncyWall = 1 })[1].ricochet, 0, "Bouncy Wall ricochets")
+	end)
+
+	t.test("Bouncy Wall lets arrows bounce off walls, and stacks", function()
+		t.equal(volley({})[1].bounces, 0)
+		t.isTrue(volley({ BouncyWall = 1 })[1].bounces > 0, "Bouncy Wall granted no bounces")
+		t.isTrue(
+			volley({ BouncyWall = 2 })[1].bounces > volley({ BouncyWall = 1 })[1].bounces,
+			"a second Bouncy Wall added nothing"
+		)
+	end)
+
+	--[[ The footage's fan is about ±30°. Held as a shape rather than a value:
+	     diagonals that reach the sides are Side Arrows, and diagonals that
+	     collapse onto the aim are Front Arrow. ]]
+	t.test("Diagonal Arrows fan between straight ahead and the sides", function()
+		local specs = volley({ DiagonalArrows = 1 })
+		t.equal(#specs, 3, "Diagonal Arrows should add exactly two arrows")
+
+		local left, right = false, false
+		for _, spec in specs do
+			local offset = spec.angleOffset
+			if offset > 0 then
+				left = true
+			elseif offset < 0 then
+				right = true
+			end
+			t.isTrue(math.abs(offset) < math.pi / 2, "a diagonal arrow fires to the side")
+		end
+
+		t.isTrue(left and right, "the diagonals are not either side of the aim")
+		t.isTrue(
+			math.abs(specs[2].angleOffset) > math.rad(10),
+			"diagonals so narrow they land on the same enemy"
 		)
 	end)
 
@@ -352,11 +394,18 @@ return function(t: TestRunner.Helper)
 	end)
 
 	t.test("the behaviour cards reach every arrow in a wide volley", function()
-		local specs = volley({ FrontArrow = 2, RearArrow = 1, BlastArrows = 1, Ricochet = 1 })
+		local specs = volley({
+			FrontArrow = 2,
+			RearArrow = 1,
+			BlastArrows = 1,
+			Ricochet = 1,
+			BouncyWall = 1,
+		})
 		t.isTrue(#specs > 3, "the volley did not widen")
 
 		for index, spec in specs do
 			t.isTrue(spec.splashRadius > 0, `arrow {index} does not explode`)
+			t.isTrue(spec.ricochet > 0, `arrow {index} does not ricochet`)
 			t.isTrue(spec.bounces > 0, `arrow {index} does not bounce`)
 		end
 	end)

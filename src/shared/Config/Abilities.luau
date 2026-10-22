@@ -209,9 +209,20 @@ local abilities: { Ability } = {
 		value = 3,
 		maxStacks = 3,
 	},
+	--[[ Archero 2's Ricocheting Arrow, worded as its card is: "Bullets can
+	     bounce between monsters, +1 bounce". It used to bounce off walls,
+	     which is a different ability — that one is Bouncy Wall below. ]]
 	{
 		id = "Ricochet",
 		name = "Ricochet",
+		description = "After a hit, arrows bounce on to another enemy.",
+		category = "OnHit",
+		value = 1,
+		maxStacks = 3,
+	},
+	{
+		id = "BouncyWall",
+		name = "Bouncy Wall",
 		description = "Arrows bounce off walls instead of stopping.",
 		category = "Flight",
 		value = 1,

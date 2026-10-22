@@ -68,6 +68,11 @@ export type ShotSpec = {
 	--[[ How many times the arrow reflects off arena geometry before it dies.
 	     0 means it stops at the first wall, which is the base behaviour. ]]
 	bounces: number,
+	--[[ How many times a hit sends the arrow on to the nearest other enemy.
+	     Archero 2's Ricochet: between monsters, not off walls. Resolved by
+	     the server at contact, like splash, since what is nearby is not
+	     knowable when the volley is built. ]]
+	ricochet: number,
 	--[[ How many free arrows a kill by this projectile fires at whatever is
 	     nearest. The chain shot inherits nothing — it is a plain arrow, or a
 	     stack of these would multiply without limit. ]]
@@ -123,6 +128,11 @@ export type ShotEvent = {
 		would otherwise never be drawn at all.
 	]]
 	predicted: boolean,
+	--[[ The body a server-invented shot leaves from — the enemy a ricochet
+	     bounced off — which the drawn arrow must pass out of rather than
+	     stop in, exactly as the simulated one does. Nil for everything a
+	     shooter fired. ]]
+	from: Model?,
 }
 
 return {}

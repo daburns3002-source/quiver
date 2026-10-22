@@ -19,6 +19,7 @@ local Arena = require(script.Parent.Parent.Arena.Arena)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local EnemyManager = require(script.Parent.Parent.Enemies.EnemyManager)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
+local ProjectileFlight = require(ReplicatedStorage.Shared.Combat.ProjectileFlight)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local RunSession = require(script.Parent.Parent.Run.RunSession)
 local Targeting = require(script.Parent.Targeting)
@@ -28,17 +29,8 @@ type Faction = Types.Faction
 
 local log = Log.forTag("Projectiles")
 
---[[ Ceiling on segment-walk iterations per projectile per step. The loop
-     already decrements `remaining` by at least a hundredth of a stud each
-     pass, so it cannot spin; this also bounds its raycast cost in one frame. ]]
-local MAX_SEGMENT_STEPS = 8
-
 local shotFired = Remotes.event(Remotes.ShotFired)
 local explosion = Remotes.event(Remotes.Explosion)
-
---[[ Studs a reflected arrow is nudged off the surface it bounced from, so the
-     next cast does not begin inside the wall it just left. ]]
-local BOUNCE_CLEARANCE = 0.15
 
 --[[ How far a chain shot looks for its next target. Generous — most of the
      room — because a chain that finds nothing is a card that did nothing. ]]
@@ -80,6 +72,8 @@ type Projectile = {
 	--[[ Reflections off arena geometry left before this one dies. Spent, so a
 	     projectile is its own counter. ]]
 	bounces: number,
+	--[[ Hits left that send it on to the nearest other enemy. ]]
+	ricochet: number,
 	--[[ Free arrows a kill by this one fires at whatever is nearest. ]]
 	chainOnKill: number,
 	--[[ Guards against a single projectile hitting the same enemy on
@@ -198,9 +192,14 @@ export type SpawnParams = {
 	splashRadius: number,
 	splashScale: number,
 	bounces: number,
+	ricochet: number,
 	chainOnKill: number,
 	owner: Player?,
 	now: number,
+	--[[ A body this projectile starts inside and must not strike: the enemy
+	     a ricochet leaves from, which would otherwise be hit again by the
+	     very first overlap pass. ]]
+	ignore: Model?,
 }
 
 --[[
@@ -244,9 +243,10 @@ function ProjectileSystem.spawn(params: SpawnParams)
 		splashRadius = params.splashRadius,
 		splashScale = params.splashScale,
 		bounces = params.bounces,
+		ricochet = params.ricochet,
 		chainOnKill = params.chainOnKill,
 		expiresAt = now + params.lifetime,
-		hitModels = {},
+		hitModels = if params.ignore then { [params.ignore] = true } else {},
 	})
 end
 
@@ -317,15 +317,86 @@ local function applySplash(projectile: Projectile, centre: Vector3, damage: numb
 end
 
 --[[
+	Launches arrows the server invented — a chain off a kill, a ricochet off a
+	hit — and tells every client to draw them.
+
+	Announced on the shot channel as *not predicted*: the client draws its own
+	volleys and skips the server's copy of them, so a shot the server invented
+	has to be marked as one the client has not already drawn. `from` goes with
+	it, so the drawn arrow ignores the body it leaves just as this one does.
+]]
+type Onward = {
+	origin: Vector3,
+	direction: Vector3,
+	count: number,
+	speed: number,
+	damage: number,
+	ricochet: number,
+	chainOnKill: number,
+	from: Model?,
+}
+
+local function fireOnward(projectile: Projectile, onward: Onward)
+	local specs: { Types.ShotSpec } = {}
+
+	for _ = 1, onward.count do
+		ProjectileSystem.spawn({
+			faction = "Player" :: Faction,
+			origin = onward.origin,
+			direction = onward.direction,
+			speed = onward.speed,
+			lifetime = Balance.Projectile.lifetime,
+			damage = onward.damage,
+			pierce = 0,
+			critChance = projectile.critChance,
+			critMultiplier = projectile.critMultiplier,
+			splashRadius = projectile.splashRadius,
+			splashScale = projectile.splashScale,
+			bounces = 0,
+			ricochet = onward.ricochet,
+			chainOnKill = onward.chainOnKill,
+			owner = projectile.owner,
+			now = currentNow,
+			ignore = onward.from,
+		})
+
+		table.insert(specs, {
+			angleOffset = 0,
+			lateralOffset = 0,
+			damageScale = 1,
+			speed = onward.speed,
+			lifetime = Balance.Projectile.lifetime,
+			pierce = 0,
+			critChance = projectile.critChance,
+			critMultiplier = projectile.critMultiplier,
+			splashRadius = projectile.splashRadius,
+			splashScale = projectile.splashScale,
+			bounces = 0,
+			ricochet = onward.ricochet,
+			chainOnKill = onward.chainOnKill,
+		})
+	end
+
+	local owner = projectile.owner
+
+	shotFired:FireAllClients({
+		faction = "Player" :: Faction,
+		shooterId = if owner then owner.UserId else 0,
+		origin = onward.origin,
+		direction = onward.direction,
+		specs = specs,
+		firedAt = currentNow,
+		predicted = false,
+		from = onward.from,
+	} :: Types.ShotEvent)
+end
+
+--[[
 	Fires free arrows at whatever is nearest, when this one kills something.
 
 	The chain shot carries no `chainOnKill` of its own. Without that, a kill
 	that chains into a kill chains again and one arrow clears the room, which
 	is a different game.
-
-	Announced on the shot channel as *not predicted*: the client draws its own
-	volleys and skips the server's copy of them, so a shot the server invented
-	has to be marked as one the client has not already drawn.
 ]]
 local function fireChain(projectile: Projectile, from: Vector3)
 	if projectile.chainOnKill <= 0 then
@@ -342,54 +413,61 @@ local function fireChain(projectile: Projectile, from: Vector3)
 		return
 	end
 
-	local specs: { Types.ShotSpec } = {}
-
-	for _ = 1, projectile.chainOnKill do
-		ProjectileSystem.spawn({
-			faction = "Player" :: Faction,
-			origin = from,
-			direction = direction,
-			speed = Balance.Projectile.speed,
-			lifetime = Balance.Projectile.lifetime,
-			damage = projectile.damage,
-			pierce = 0,
-			critChance = projectile.critChance,
-			critMultiplier = projectile.critMultiplier,
-			splashRadius = projectile.splashRadius,
-			splashScale = projectile.splashScale,
-			bounces = 0,
-			chainOnKill = 0,
-			owner = projectile.owner,
-			now = currentNow,
-		})
-
-		table.insert(specs, {
-			angleOffset = 0,
-			lateralOffset = 0,
-			damageScale = 1,
-			speed = Balance.Projectile.speed,
-			lifetime = Balance.Projectile.lifetime,
-			pierce = 0,
-			critChance = projectile.critChance,
-			critMultiplier = projectile.critMultiplier,
-			splashRadius = projectile.splashRadius,
-			splashScale = projectile.splashScale,
-			bounces = 0,
-			chainOnKill = 0,
-		})
-	end
-
-	local owner = projectile.owner
-
-	shotFired:FireAllClients({
-		faction = "Player" :: Faction,
-		shooterId = if owner then owner.UserId else 0,
+	fireOnward(projectile, {
 		origin = from,
 		direction = direction,
-		specs = specs,
-		firedAt = currentNow,
-		predicted = false,
-	} :: Types.ShotEvent)
+		count = projectile.chainOnKill,
+		speed = Balance.Projectile.speed,
+		damage = projectile.damage,
+		ricochet = 0,
+		chainOnKill = 0,
+		from = nil,
+	})
+end
+
+--[[
+	Sends the arrow on from the enemy it just hit to the nearest one it has
+	not, which is Archero 2's Ricochet.
+
+	Not a turn in mid-air but a new arrow from the point of contact: the one
+	that hit stops there as any arrow does, and the client is told about the
+	new one the way it is told about a chain. Every body this arrow has struck
+	is skipped, so a ricochet never bounces straight back.
+]]
+local function fireRicochet(projectile: Projectile, hit: Model)
+	if projectile.ricochet <= 0 then
+		return
+	end
+
+	local from = projectile.position
+	local candidates: { [Model]: Vector3 } = {}
+
+	for model, position in EnemyManager.positions() do
+		if model ~= hit and not projectile.hitModels[model] then
+			candidates[model] = position
+		end
+	end
+
+	local target = Targeting.nearest(from, candidates, Balance.Projectile.ricochetRange)
+	if not target then
+		return
+	end
+
+	local direction = Targeting.flatDirection(from, target.position)
+	if not direction then
+		return
+	end
+
+	fireOnward(projectile, {
+		origin = Vector3.new(from.X, from.Y, from.Z),
+		direction = direction,
+		count = 1,
+		speed = projectile.speed,
+		damage = projectile.damage * Balance.Projectile.ricochetDamageScale,
+		ricochet = projectile.ricochet - 1,
+		chainOnKill = projectile.chainOnKill,
+		from = hit,
+	})
 end
 
 local function applyHit(projectile: Projectile, model: Model): boolean
@@ -423,6 +501,10 @@ local function applyHit(projectile: Projectile, model: Model): boolean
 			fireChain(projectile, projectile.position)
 		end
 
+		if landed then
+			fireRicochet(projectile, model)
+		end
+
 		return landed
 	end
 
@@ -440,199 +522,13 @@ local function applyHit(projectile: Projectile, model: Model): boolean
 	return true
 end
 
---[[
-	The box the server sweeps: exactly the arrow the client draws.
-
-	Width and length both come from config rather than being a server-side
-	approximation, so there is one shape and both halves of the game agree on
-	it. A sphere here meant only the arrow's nose could ever register a hit,
-	which is what made shots along a visibly-connecting shaft do nothing.
-]]
-local function projectileSize(faction: Faction): Vector3
-	--[[ Enemy shots are orbs, swept as the orb the player sees. A long arrow
-	     box on something drawn as a ball would hit the player along a length
-	     that is not on screen. ]]
-	if faction == "Enemy" then
-		return Vector3.one * Balance.Projectile.enemyOrbDiameter
-	end
-
-	local width = Balance.Projectile.radius * 2
-	return Vector3.new(width, width, Balance.Projectile.length)
-end
-
---[[ Centred on the projectile's position and pointed down its travel, which
-     is how the client orients the drawn part. ]]
-local function projectileCFrame(projectile: Projectile): CFrame
-	return CFrame.lookAt(projectile.position, projectile.position + projectile.direction)
-end
-
---[[
-	Resolves everything the arrow is intersecting *right now*.
-
-	This runs every step, not once at spawn, and it is the only reason hits
-	land reliably. A shape cast ignores anything it already overlaps when it
-	starts. Measured in Studio against the live arrow (0.7 x 0.7 x 4.2) with
-	one frame of travel (0.93 studs at 56 studs/s), a target overlapping the
-	box reports a clean miss at every depth tried — 0.1 studs, 0.6 studs, and
-	dead centre. It then stays missed for as long as it is inside, because the
-	box carries it along with it.
-
-	So the arrow has a dead zone 2.1 studs deep in front of the simulated
-	point, and nothing the sweep does can see into it.
-
-	Static geometry cannot get in there: a pillar's gap to the arrow shrinks by
-	exactly one frame of travel per frame, so the sweep always catches it on
-	the way in. A *moving* target can, and routinely does — a Charger closes at
-	63.5 studs/s against a sweep that only covers the arrow's own 0.93, so the
-	gap can go from comfortably positive to deep inside the box between two
-	frames. That is the whole bug, and this pass is the fix.
-
-	Which is also why this only resolves models. Arena blockers are left to the
-	sweep deliberately: the arrow's box straddles the shooter at spawn, so
-	stopping on overlapped geometry here would kill every shot fired by a
-	player standing with their back to a wall.
-
-	Returns whether the projectile survives.
-]]
-local function resolveOverlaps(projectile: Projectile, overlap: OverlapParams): boolean
-	--[[ Bounds, not exact geometry, so this is marginally generous at the
-	     corners of a hitbox. That favours the player, which is the right way
-	     for it to be wrong. ]]
-	local touching = workspace:GetPartBoundsInBox(
-		projectileCFrame(projectile),
-		projectileSize(projectile.faction),
-		overlap
-	)
-
-	for _, part in touching do
-		local model = part:FindFirstAncestorOfClass("Model")
-
-		if not model or projectile.hitModels[model] then
-			continue
-		end
-
-		projectile.hitModels[model] = true
-
-		if not applyHit(projectile, model) then
-			continue
-		end
-
-		if projectile.pierce <= 0 then
-			return false
-		end
-
-		projectile.pierce -= 1
-	end
-
-	return true
-end
-
---[[
-	Advances a projectile by one step.
-
-	Two passes, and both are needed. `resolveOverlaps` handles everything the
-	arrow is already touching, which the sweep is structurally blind to; the
-	sweep below then covers the gap the arrow would otherwise tunnel across
-	between frames. Neither one alone is sufficient.
-
-	The sweep loops rather than taking the first hit so that a piercing shot at
-	high speed resolves every target along the segment in order, instead of
-	skipping the ones between frames.
-]]
-local function advance(
-	projectile: Projectile,
-	deltaTime: number,
-	params: RaycastParams,
-	overlap: OverlapParams
-): boolean
-	if not resolveOverlaps(projectile, overlap) then
-		return false
-	end
-
-	local remaining = projectile.speed * deltaTime
-	local steps = 0
-	local size = projectileSize(projectile.faction)
-
-	while remaining > 1e-3 do
-		steps += 1
-		if steps > MAX_SEGMENT_STEPS then
-			-- Out of budget, not out of life: it resumes on the next step.
-			return true
-		end
-
-		local segment = projectile.direction * remaining
-		local result = workspace:Blockcast(projectileCFrame(projectile), size, segment, params)
-
-		if not result then
-			projectile.position += segment
-			return true
-		end
-
-		local hitInstance = result.Instance
-		local model = hitInstance:FindFirstAncestorOfClass("Model")
-
-		--[[ Something in the filter with no Model above it is arena geometry,
-		     which only ever appears in the player's filter. ]]
-		if not model then
-			if projectile.bounces <= 0 then
-				return false
-			end
-
-			--[[
-				Reflected and sent back out.
-
-				Flattened to the floor plane afterwards. The arena's walls are
-				vertical and its floor is not in the filter, so a reflection
-				should never gain height — but a glancing hit on a corner can
-				produce one, and an arrow that leaves the ground is an arrow
-				that silently stops hitting anything.
-			]]
-			projectile.bounces -= 1
-
-			local normal = result.Normal
-			local reflected = projectile.direction - 2 * projectile.direction:Dot(normal) * normal
-			local flat = Vector3.new(reflected.X, 0, reflected.Z)
-
-			if flat.Magnitude < 1e-3 then
-				return false
-			end
-
-			local travelledToWall = (result.Position - projectile.position).Magnitude
-			projectile.direction = flat.Unit
-			projectile.position = result.Position + projectile.direction * BOUNCE_CLEARANCE
-			remaining -= math.max(travelledToWall, 1e-2)
-
-			--[[ A bounced arrow is a new threat, so it may hit things it has
-			     already passed through on the way out. ]]
-			table.clear(projectile.hitModels)
-			continue
-		end
-
-		local travelled = (result.Position - projectile.position).Magnitude
-		projectile.position = result.Position + projectile.direction * 1e-2
-		remaining -= math.max(travelled, 1e-2)
-
-		if projectile.hitModels[model] then
-			continue
-		end
-
-		projectile.hitModels[model] = true
-
-		if not applyHit(projectile, model) then
-			--[[ Nothing valid was there — a nested model inside a character,
-			     say. Keep flying rather than spending pierce on it. ]]
-			continue
-		end
-
-		if projectile.pierce <= 0 then
-			return false
-		end
-
-		projectile.pierce -= 1
-	end
-
-	return true
-end
+--[[ How the shared flight reaches this side's outcomes. One table for every
+     projectile, rather than a closure per projectile per frame. ]]
+local contact: ProjectileFlight.Contact = {
+	onModel = function(flight: ProjectileFlight.Flight, model: Model): boolean
+		return applyHit(flight :: any, model)
+	end,
+}
 
 function ProjectileSystem.step(deltaTime: number, now: number)
 	currentNow = now
@@ -653,7 +549,7 @@ function ProjectileSystem.step(deltaTime: number, now: number)
 		local alive = params ~= nil and overlap ~= nil and now < projectile.expiresAt
 
 		if alive and params and overlap then
-			alive = advance(projectile, deltaTime, params, overlap)
+			alive = ProjectileFlight.advance(projectile, deltaTime, params, overlap, contact)
 		end
 
 		if not alive then

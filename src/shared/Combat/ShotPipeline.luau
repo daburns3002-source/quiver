@@ -153,6 +153,7 @@ function ShotPipeline.build(self: ShotPipeline, request: ShotRequest): { ShotSpe
 			splashRadius = 0,
 			splashScale = 0,
 			bounces = 0,
+			ricochet = 0,
 			chainOnKill = 0,
 		},
 	}

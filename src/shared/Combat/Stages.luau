@@ -223,6 +223,28 @@ function Stages.bounce(count: number): ShotStage
 	}
 end
 
+--[[ Sends an arrow on to the nearest other enemy after each hit. OnHit
+     rather than Flight: where it goes next is decided by what it struck,
+     which is only known at the moment of contact. ]]
+function Stages.ricochet(count: number): ShotStage
+	return {
+		name = "Ricochet",
+		order = ShotPipeline.Stage.OnHit,
+
+		apply = function(specs: { ShotSpec }, _request: ShotRequest): { ShotSpec }
+			local out: { ShotSpec } = {}
+
+			for _, spec in specs do
+				local copy = table.clone(spec)
+				copy.ricochet = spec.ricochet + count
+				table.insert(out, copy)
+			end
+
+			return out
+		end,
+	}
+end
+
 --[[ Fires free arrows at whatever is nearest when this one kills something.
      The only stage in the OnKill bucket, and the reason the bucket exists. ]]
 function Stages.chainOnKill(count: number): ShotStage

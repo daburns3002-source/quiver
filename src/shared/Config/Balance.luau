@@ -518,10 +518,8 @@ local Balance = {
 		--[[ Seconds between volleys while stationary. Slowed from 0.45 over
 		     playtests: at that pace standing still paid so well that moving
 		     stopped being worth it, which hollows out move-or-shoot from the
-		     other side. 0.7 then 0.85 after the damage rescale, when 100-damage
-		     arrows made the opening waves melt — "fires too fast initially".
-		     Precision shortens it from here. ]]
-		attackCooldown = 0.85,
+		     other side. Precision shortens it from here. ]]
+		attackCooldown = 0.7,
 		--[[ Studs. Past this the archer holds fire rather than shooting at
 		     nothing. Must stay inside how far an arrow actually flies, or the
 		     archer locks onto enemies its arrows fade before reaching —
@@ -590,13 +588,17 @@ local Balance = {
 			something you watched travel; in the reference it is all but
 			instant, and the cost of standing still is the enemy fire you are
 			not dodging, not the wait for your own arrow.
+
+			Then slowed to 110 at playtest — about 58% of the footage — because
+			at full footage speed the arrows read as flying too fast. Still
+			fast enough to land before most targets can step aside.
 		]]
-		speed = 190,
+		speed = 110,
 		--[[ 45 studs of flight, the reach playtesting settled on: a little
 		     over `Player.attackRange`, so a shot at the edge of range
 		     arrives, and not so far that arrows sail on after the fight.
 		     Held as a distance by `Balance.spec`, so this follows `speed`. ]]
-		lifetime = 45 / 190,
+		lifetime = 45 / 110,
 		--[[
 			The longest a projectile moves before its hit tests run again.
 
@@ -965,11 +967,15 @@ local Balance = {
 		fitWidth = 52,
 		--[[ On a landscape screen, fitting the width alone would zoom right in
 		     and show almost no depth; this is the least depth it may show.
-		     Raised with `fitWidth` to keep their ratio. ]]
-		minVisibleDepth = 42,
-		--[[ Studs the focus is kept inside the room's back and front walls, so
-		     the view stops at the room's edge instead of scrolling past it. ]]
-		edgeMargin = 11,
+		     54 puts about the whole 58-stud room on a landscape screen at
+		     once — "I want to see most of the arena at once". A portrait
+		     phone, fitted by width, already shows all of it. ]]
+		minVisibleDepth = 54,
+		--[[ Studs of ground past each end of the room the view may show, so the
+		     end walls are in frame. The camera works out how far its view
+		     reaches from the focus and keeps that inside the room plus this;
+		     a view longer than the room centres it instead of following. ]]
+		wallMargin = 3,
 		-- How fast the camera catches up, as a per-second lerp factor.
 		followSharpness = 12,
 	},

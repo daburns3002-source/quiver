@@ -29,9 +29,10 @@ local TARGET_DISC = Color3.fromRGB(30, 10, 16)
 local PLAYER_BLUE = Color3.fromRGB(46, 150, 255)
 local PLAYER_DISC = Color3.fromRGB(16, 34, 74)
 
---[[ The floor's top surface, and how far above it the marks float so they
+--[[ The top of the floor's flagstones (Arena's dressing lays them 0.03
+     above the true floor), and how far above that the marks float so they
      never z-fight with it. ]]
-local FLOOR_Y = 0
+local FLOOR_Y = 0.03
 local LIFT = 0.06
 
 --[[ Segments in the target ring and how they group: three arcs, each this

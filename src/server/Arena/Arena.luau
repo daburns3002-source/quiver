@@ -69,6 +69,164 @@ local function clearDefaultBaseplate(parent: Instance)
 	end
 end
 
+--[[ A piece of dressing: seen, never touched. It must not collide, answer a
+     raycast or stop an arrow, or decoration would quietly become level
+     geometry. ]]
+local function decor(
+	name: string,
+	size: Vector3,
+	cframe: CFrame,
+	colour: Color3,
+	parent: Instance
+): Part
+	local part = Instance.new("Part")
+	part.Name = name
+	part.Size = size
+	part.CFrame = cframe
+	part.Anchored = true
+	part.CanCollide = false
+	part.CanQuery = false
+	part.CanTouch = false
+	part.CastShadow = false
+	part.Color = colour
+	part.Material = Enum.Material.SmoothPlastic
+	part.TopSurface = Enum.SurfaceType.Smooth
+	part.BottomSurface = Enum.SurfaceType.Smooth
+	part.Parent = parent
+	return part
+end
+
+local function varied(colour: Color3, amount: number): Color3
+	return Color3.new(
+		math.clamp(colour.R * amount, 0, 1),
+		math.clamp(colour.G * amount, 0, 1),
+		math.clamp(colour.B * amount, 0, 1)
+	)
+end
+
+--[[
+	Dresses the room in Archero 2's first-chapter look (docs/ART-archero2.md
+	§2, §5). Flagstones laid over darker grout, caps on the walls and
+	pillars, orb lamps along the side walls, a grass edge at the back, and
+	something past the walls other than sky.
+
+	The flagstones come from a fixed seed, so every room is laid the same and
+	a rebuild never shimmers between patterns. They sit three hundredths of a
+	stud above the true floor, which stays the ground everything stands on.
+]]
+local function dress(root: Instance, obstacles: { Balance.Obstacle })
+	local config = Balance.Arena
+	local folder = Instance.new("Folder")
+	folder.Name = "Decor"
+	folder.Parent = root
+
+	local extentX = config.size.X / 2
+	local extentZ = config.size.Z / 2
+	local random = Random.new(20261022)
+	local gap = 0.14
+	local tileHeight = 0.03
+
+	local z = -extentZ
+	while z < extentZ - 0.5 do
+		local depth = math.min(random:NextNumber(2.6, 4.4), extentZ - z)
+		local x = -extentX
+
+		while x < extentX - 0.5 do
+			local width = math.min(random:NextNumber(2.6, 5.0), extentX - x)
+			local shade = random:NextNumber(0.93, 1.07)
+			decor(
+				"Tile",
+				Vector3.new(width - gap, tileHeight, depth - gap),
+				CFrame.new(x + width / 2, tileHeight / 2, z + depth / 2),
+				varied(config.tileColor, shade),
+				folder
+			)
+			x += width
+		end
+
+		z += depth
+	end
+
+	-- A grass edge along the back wall, where Archero 2's courtyards meet the garden.
+	decor(
+		"Grass",
+		Vector3.new(config.size.X, 0.04, 2.4),
+		CFrame.new(0, 0.02 + tileHeight, -extentZ + 1.2),
+		config.grassColor,
+		folder
+	)
+
+	-- Wall caps: a lighter bevel along the top of every wall.
+	local thickness = config.wallThickness
+	local height = config.wallHeight
+	local caps = {
+		{
+			Vector3.new(config.size.X + thickness * 2 + 0.3, 0.5, thickness + 0.3),
+			Vector3.new(0, height + 0.25, -extentZ - thickness / 2),
+		},
+		{
+			Vector3.new(config.size.X + thickness * 2 + 0.3, 0.5, thickness + 0.3),
+			Vector3.new(0, height + 0.25, extentZ + thickness / 2),
+		},
+		{
+			Vector3.new(thickness + 0.3, 0.5, config.size.Z),
+			Vector3.new(-extentX - thickness / 2, height + 0.25, 0),
+		},
+		{
+			Vector3.new(thickness + 0.3, 0.5, config.size.Z),
+			Vector3.new(extentX + thickness / 2, height + 0.25, 0),
+		},
+	}
+	for _, cap in caps do
+		decor("WallCap", cap[1], CFrame.new(cap[2]), config.wallCapColor, folder)
+	end
+
+	-- Orb lamps on columns along both side walls, inside the wall's own footprint.
+	local spacing = config.lampSpacing
+	local count = math.floor(config.size.Z / spacing)
+	for index = 0, count do
+		local lampZ = -extentZ + spacing / 2 + index * spacing
+		if lampZ > extentZ - 1 then
+			continue
+		end
+
+		for _, side in { -1, 1 } do
+			local columnX = side * (extentX + thickness / 2)
+			decor(
+				"LampColumn",
+				Vector3.new(thickness, height + 1.4, 1.8),
+				CFrame.new(columnX, (height + 1.4) / 2, lampZ),
+				config.wallCapColor,
+				folder
+			)
+			local orb = decor(
+				"LampOrb",
+				Vector3.one * 1.3,
+				CFrame.new(columnX, height + 1.4 + 0.55, lampZ),
+				config.lampColor,
+				folder
+			)
+			orb.Shape = Enum.PartType.Ball
+			orb.Material = Enum.Material.Neon
+		end
+	end
+
+	-- Caps on the pillars, the same bevel as the walls.
+	for _, obstacle in obstacles do
+		decor(
+			"ObstacleCap",
+			Vector3.new(obstacle.size.X + 0.25, 0.45, obstacle.size.Z + 0.25),
+			CFrame.new(obstacle.offset.X, obstacle.size.Y + 0.22, obstacle.offset.Y),
+			config.obstacleCapColor,
+			folder
+		)
+	end
+
+	-- The world past the walls: a dark, cool plane below the floor, so the
+	-- edges of the screen are a place rather than the sky.
+	decor("Outside", Vector3.new(400, 1, 400), CFrame.new(0, -1.2, 0), config.outsideColor, folder)
+end
+
 --[[
 	Builds the room under `parent` and returns the folder holding everything that
 	blocks a projectile.
@@ -169,6 +327,8 @@ function Arena.build(parent: Instance, obstacles: { Balance.Obstacle }): Folder
 	door.CanQuery = false
 	door.Transparency = 0.4
 	door.Parent = root
+
+	dress(root, obstacles)
 
 	root.Parent = parent
 	blockersFolder = blockers

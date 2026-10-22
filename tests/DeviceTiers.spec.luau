@@ -80,6 +80,13 @@ return function(t: TestRunner.Helper)
 		)
 	end)
 
+	t.test("bloom is never on where a weaker tier has it off", function()
+		t.isFalse(low.enableBloom, "the lowest tier pays for a full-screen bloom")
+		if medium.enableBloom then
+			t.isTrue(high.enableBloom, "Medium has bloom but High does not")
+		end
+	end)
+
 	t.test("the lowest tier does not pay for projectile trails", function()
 		t.isFalse(low.projectileTrails, "a low tier should not stream trails")
 	end)

@@ -784,9 +784,22 @@ local Balance = {
 		     always means crossing it. Raised clear of the floor because
 		     characters are placed here by CFrame, not dropped. ]]
 		spawnPosition = Vector3.new(0, 4, 23),
-		floorColor = Color3.fromRGB(96, 104, 120),
-		wallColor = Color3.fromRGB(62, 68, 82),
-		obstacleColor = Color3.fromRGB(78, 86, 102),
+		--[[ The arena's dressing, after Archero 2's first chapter
+		     (docs/ART-archero2.md §2): blue-violet flagstones over darker
+		     grout, purple bevelled stone, pink orb lamps, a grass edge, and
+		     the world going on past the walls. All decoration — none of it
+		     collides, blocks a shot or moves the floor plane. ]]
+		floorColor = Color3.fromRGB(52, 56, 104),
+		tileColor = Color3.fromRGB(98, 108, 182),
+		wallColor = Color3.fromRGB(88, 80, 140),
+		wallCapColor = Color3.fromRGB(132, 124, 190),
+		obstacleColor = Color3.fromRGB(104, 98, 160),
+		obstacleCapColor = Color3.fromRGB(146, 140, 204),
+		lampColor = Color3.fromRGB(255, 120, 200),
+		grassColor = Color3.fromRGB(70, 160, 104),
+		outsideColor = Color3.fromRGB(30, 70, 92),
+		--[[ Studs between orb lamps along each side wall. ]]
+		lampSpacing = 11,
 		-- Grey-box pillars. Positions are XZ offsets from arena centre.
 		-- These block the player's arrows but NOT enemy attacks, which is the
 		-- asymmetry the whole game rests on. See docs/RESEARCH-archero.md.
@@ -800,6 +813,21 @@ local Balance = {
 	},
 
 	Rooms = rooms,
+
+	--[[ Global light, after the footage: bright and even, nothing important
+	     ever in shadow, and a soft bloom so glowing things glow. The bloom is
+	     switched off on the lowest device tier. ]]
+	Lighting = {
+		ambient = Color3.fromRGB(124, 122, 156),
+		outdoorAmbient = Color3.fromRGB(150, 150, 184),
+		brightness = 2.2,
+		clockTime = 14,
+		bloomIntensity = 0.55,
+		bloomSize = 26,
+		bloomThreshold = 1.15,
+		saturation = 0.15,
+		contrast = 0.05,
+	},
 
 	Stages = {
 		{

@@ -179,6 +179,104 @@ local function corner(parent: Instance, radius: number)
 end
 
 --[[ A chunky button with an ink outline and a hard shadow five pixels down. ]]
+--[[
+	A button's feel, Balatro-style: it rises a little and brightens under the
+	pointer, sinks into its shadow while held, and springs back with a small
+	wobble when it fires. One that cannot be pressed shakes its head instead.
+	Nothing is scaled, so its label never reflows.
+]]
+type ButtonFeel = {
+	button: TextButton,
+	hovered: boolean,
+	pressed: boolean,
+	lift: number,
+	wobbleAt: number?,
+	wobbleAmp: number,
+	shakeAt: number?,
+}
+
+local buttonFeels: { ButtonFeel } = {}
+
+local REST_LIFT = -5
+local HOVER_LIFT = -8
+local PRESS_LIFT = -1
+
+local function feelOf(b: TextButton): ButtonFeel?
+	for _, feel in buttonFeels do
+		if feel.button == b then
+			return feel
+		end
+	end
+	return nil
+end
+
+--[[ Sets a button's colour and whether it can be pressed. The colour is
+     kept as an attribute so hover and press can shade it each frame. ]]
+local function setButton(b: TextButton, enabled: boolean, colour: Color3)
+	b:SetAttribute("BaseColor", colour)
+	b.Active = enabled
+	b.AutoButtonColor = false
+end
+
+local function wobble(b: TextButton, amp: number)
+	local feel = feelOf(b)
+	if feel then
+		feel.wobbleAt = os.clock()
+		feel.wobbleAmp = amp
+	end
+end
+
+local function stepButtons(deltaTime: number)
+	local now = os.clock()
+	local blend = math.min(1, deltaTime * 22)
+	for _, feel in buttonFeels do
+		local b = feel.button
+		local enabled = b.Active
+		local target = if feel.pressed and enabled
+			then PRESS_LIFT
+			elseif feel.hovered and enabled then HOVER_LIFT
+			else REST_LIFT
+		feel.lift += (target - feel.lift) * blend
+
+		local x, rotation = 0, 0
+		local w = feel.wobbleAt
+		if w then
+			local e = now - w
+			if e > 0.4 then
+				feel.wobbleAt = nil
+			else
+				rotation = feel.wobbleAmp * math.sin(40.8 * e) * (1 - e / 0.4) ^ 2
+			end
+		end
+		local sh = feel.shakeAt
+		if sh then
+			local e = now - sh
+			if e > 0.3 then
+				feel.shakeAt = nil
+			else
+				x = 6 * math.sin(60 * e) * (1 - e / 0.3)
+			end
+		end
+
+		b.Position = UDim2.fromOffset(x, feel.lift)
+		b.Rotation = rotation
+
+		local base = b:GetAttribute("BaseColor")
+		if typeof(base) == "Color3" then
+			local shade = if not enabled
+				then 1
+				elseif feel.pressed then 0.86
+				elseif feel.hovered then 1.12
+				else 1
+			b.BackgroundColor3 = Color3.new(
+				math.clamp(base.R * shade, 0, 1),
+				math.clamp(base.G * shade, 0, 1),
+				math.clamp(base.B * shade, 0, 1)
+			)
+		end
+	end
+end
+
 local function button(
 	parent: Instance,
 	name: string,
@@ -218,6 +316,49 @@ local function button(
 	textEdge.ApplyStrokeMode = Enum.ApplyStrokeMode.Contextual
 	textEdge.Parent = b
 
+	setButton(b, true, colour)
+	local feel: ButtonFeel = {
+		button = b,
+		hovered = false,
+		pressed = false,
+		lift = REST_LIFT,
+		wobbleAt = nil,
+		wobbleAmp = 0,
+		shakeAt = nil,
+	}
+	table.insert(buttonFeels, feel)
+
+	b.MouseEnter:Connect(function()
+		feel.hovered = true
+	end)
+	b.MouseLeave:Connect(function()
+		feel.hovered = false
+		feel.pressed = false
+	end)
+	b.InputBegan:Connect(function(input: InputObject)
+		local kind = input.UserInputType
+		if kind ~= Enum.UserInputType.MouseButton1 and kind ~= Enum.UserInputType.Touch then
+			return
+		end
+		if b.Active then
+			feel.pressed = true
+		else
+			-- Not yet: a quick shake rather than a press that does nothing.
+			feel.shakeAt = os.clock()
+		end
+	end)
+	b.InputEnded:Connect(function(input: InputObject)
+		local kind = input.UserInputType
+		if kind == Enum.UserInputType.MouseButton1 or kind == Enum.UserInputType.Touch then
+			feel.pressed = false
+		end
+	end)
+	b.Activated:Connect(function()
+		if b.Active then
+			wobble(b, 5)
+		end
+	end)
+
 	return b
 end
 
@@ -232,8 +373,16 @@ end
 local function setChooseEnabled(enabled: boolean)
 	local b = chooseButton
 	if b then
-		b.BackgroundColor3 = if enabled then CardTheme.colors.choose else CardTheme.colors.disabled
-		b.Active = enabled
+		local was = b.Active
+		setButton(
+			b,
+			enabled,
+			if enabled then CardTheme.colors.choose else CardTheme.colors.disabled
+		)
+		-- Lighting up gets a wiggle, so the eye goes to it.
+		if enabled and not was then
+			wobble(b, 6)
+		end
 	end
 end
 
@@ -826,10 +975,12 @@ local function step(deltaTime: number)
 	end
 
 	stepOverlay(now)
+	stepButtons(deltaTime)
 end
 
 function DraftScreen.stop()
 	clearSlots()
+	table.clear(buttonFeels)
 	if connection then
 		connection:Disconnect()
 		connection = nil
@@ -1184,10 +1335,11 @@ function DraftScreen.show(offer: { string }, level: number, source: string?, rer
 	if rerollB then
 		local shadow = rerollB.Parent :: Frame
 		shadow.Visible = source ~= "Angel"
-		rerollB.Active = left > 0
-		rerollB.BackgroundColor3 = if left > 0
-			then CardTheme.colors.reroll
-			else CardTheme.colors.disabled
+		setButton(
+			rerollB,
+			left > 0,
+			if left > 0 then CardTheme.colors.reroll else CardTheme.colors.disabled
+		)
 		rerollB.Text = `Reroll {left}`
 	end
 

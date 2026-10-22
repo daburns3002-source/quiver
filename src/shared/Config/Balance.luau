@@ -130,11 +130,11 @@ local meleeCharger: EnemyConfig = {
 	displayName = "Charger",
 	--[[ Quick: it commits to a direction and turns hard to keep it. ]]
 	turnRate = 540,
-	health = 45,
+	health = 300,
 	moveSpeed = 2.3,
 	-- Studs from the player at which it lands a hit.
 	attackRange = 4,
-	attackDamage = 10,
+	attackDamage = 56,
 	attackCooldown = 1,
 	-- Studs the enemy is shoved back per hit taken.
 	knockback = 2,
@@ -157,12 +157,12 @@ local spreadShooter: EnemyConfig = {
 	displayName = "Spitter",
 	--[[ Moderate: it stands off and tracks. ]]
 	turnRate = 360,
-	health = 36,
+	health = 240,
 	moveSpeed = 1.6,
 	--[[ Ranged enemies treat attackRange as the distance they want to hold,
 	     not the distance they close to. ]]
 	attackRange = 13.3,
-	attackDamage = 8,
+	attackDamage = 45,
 	attackCooldown = 2.2,
 	knockback = 2,
 	hitboxSize = Vector3.new(3, 5, 3),
@@ -207,10 +207,10 @@ local lineSniper: EnemyConfig = {
 	displayName = "Lancer",
 	--[[ Deliberate: it swings round to line the lance up. ]]
 	turnRate = 240,
-	health = 30,
+	health = 200,
 	moveSpeed = 1.3,
 	attackRange = 18.8,
-	attackDamage = 16,
+	attackDamage = 90,
 	attackCooldown = 3,
 	knockback = 2,
 	hitboxSize = Vector3.new(3, 5, 3),
@@ -244,10 +244,10 @@ local tank: EnemyConfig = {
 	displayName = "Bulwark",
 	--[[ Ponderous. A quarter-turn takes a full second, which is what makes it read as heavy rather than as copying the player. ]]
 	turnRate = 90,
-	health = 180,
+	health = 1200,
 	moveSpeed = 1.1,
 	attackRange = 5,
-	attackDamage = 18,
+	attackDamage = 100,
 	attackCooldown = 1.6,
 	--[[ Barely flinches. Knockback on something this heavy would let a player
 	     stall it indefinitely with chip damage. ]]
@@ -275,10 +275,10 @@ local burrower: EnemyConfig = {
 	displayName = "Lurker",
 	--[[ Moderate, and only ever seen turning above ground. ]]
 	turnRate = 360,
-	health = 39,
+	health = 260,
 	moveSpeed = 1.9,
 	attackRange = 10.1,
-	attackDamage = 10,
+	attackDamage = 56,
 	attackCooldown = 2.4,
 	knockback = 2,
 	hitboxSize = Vector3.new(3, 5, 3),
@@ -480,13 +480,13 @@ local rooms: { RoomConfig } = {
 
 local Balance = {
 	Player = {
-		maxHealth = 100,
+		maxHealth = 225,
 		--[[ Studs per second. Raised in steps over several playtests:
 		     repositioning has to be affordable, or the answer to every threat
 		     is to stand still and hope. 9 across a 35-stud room is 0.26
 		     room-widths a second, brisker than the footage's 0.19 by choice. ]]
 		moveSpeed = 9,
-		baseDamage = 10,
+		baseDamage = 100,
 		--[[ Seconds between volleys while stationary. Slowed from 0.45 over
 		     playtests: at that pace standing still paid so well that moving
 		     stopped being worth it, which hollows out move-or-shoot from the
@@ -671,6 +671,18 @@ local Balance = {
 		tick = 0.5,
 	},
 
+	--[[
+		Damage scale, from Archero 2 (docs/RESEARCH-archero2.md §3). A fresh
+		hero there has 225 HP and hits for 100; a first-wave grunt dies in
+		three hits; about four enemy hits kill the hero. So: player numbers
+		are set to exactly those, enemy health keeps the ratios playtesting
+		gave the archetypes with the Charger at three hits, and enemy damage
+		is a quarter of the player for the common hit, more for the
+		archetypes whose whole threat is one heavy blow.
+
+		`Balance.spec` holds these as relationships, so a retune that keeps
+		the shape passes and one that loses it fails.
+	]]
 	Enemies = {
 		MeleeCharger = meleeCharger,
 		SpreadShooter = spreadShooter,
@@ -800,6 +812,14 @@ local Balance = {
 		hitFlashColor = Color3.fromRGB(255, 255, 255),
 		damageNumberRise = 4,
 		damageNumberDuration = 0.7,
+		--[[ How each kind of hit is drawn, after Archero 2: a plain hit in
+		     white with a dark outline, a crit larger and red, fire smaller
+		     and orange. `scale` multiplies the number's size. ]]
+		damageNumberStyles = {
+			Hit = { color = Color3.fromRGB(255, 255, 255), scale = 1 },
+			Crit = { color = Color3.fromRGB(255, 64, 40), scale = 1.6 },
+			Burn = { color = Color3.fromRGB(255, 150, 40), scale = 0.75 },
+		},
 		shakeOnDamageMagnitude = 1.6,
 		shakeOnDamageDuration = 0.25,
 

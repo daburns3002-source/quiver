@@ -483,15 +483,17 @@ local function applyHit(projectile: Projectile, model: Model): boolean
 			piercing arrow would crit on all of its targets or none.
 		]]
 		local damage = projectile.damage
+		local kind: Types.HitKind = "Hit"
 		if projectile.critChance > 0 and math.random() < projectile.critChance then
 			damage *= projectile.critMultiplier
+			kind = "Crit"
 		end
 
 		--[[ Returned, not discarded. A model inside the enemy folder is not
 		     necessarily a live enemy — it can be one killed earlier in this
 		     same step — and an arrow that stopped dead on one of those looked
 		     exactly like a hit that failed to register. ]]
-		local landed, xp = EnemyManager.damage(model, damage, projectile.position)
+		local landed, xp = EnemyManager.damage(model, damage, projectile.position, kind)
 
 		if landed then
 			--[[ Splash before the chain, so an explosion that finishes a

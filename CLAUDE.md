@@ -40,7 +40,10 @@ What exists and works, all verified in Studio rather than only by the gates:
   room's width and follows depth only, spawn markers, orb enemy shots.
 
 The numbers in `Config/Balance` are the last ones asked for or measured, not
-settled ones. Untested by the owner: the measured speeds, and enemy health ×1.5.
+settled ones. **Damage is on Archero 2's scale** (docs/RESEARCH-archero2.md
+§3): player 225 HP hitting for 100, grunts die in three hits, about four
+enemy hits kill the player — which replaced the owner's earlier "enemy
+health ×1.5". Damage numbers are white, red crits, orange burns.
 
 Not done: Phase 3's playtest question — *did two runs in a row feel
 meaningfully different?* — which needs the owner; XP gems and triangle-cluster spawns from the

@@ -92,6 +92,19 @@ return function(t: TestRunner.Helper)
 		t.isTrue(medium.orbSparkleRate <= high.orbSparkleRate, "Medium sparkles more than High")
 	end)
 
+	t.test("end screen particles thin out on weaker devices, never to nothing", function()
+		t.isTrue(low.endScreenParticleShare > 0, "the lowest tier's Victory has no confetti")
+		t.isTrue(
+			low.endScreenParticleShare <= medium.endScreenParticleShare,
+			"Low draws more than Medium"
+		)
+		t.isTrue(
+			medium.endScreenParticleShare <= high.endScreenParticleShare,
+			"Medium draws more than High"
+		)
+		t.isTrue(high.endScreenParticleShare <= 1, "High draws more than the design asks for")
+	end)
+
 	t.test("the lowest tier does not pay for projectile trails", function()
 		t.isFalse(low.projectileTrails, "a low tier should not stream trails")
 	end)

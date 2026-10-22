@@ -86,6 +86,9 @@ What exists and works, all verified in Studio rather than only by the gates:
   draft enemy bodies.
 - **Archero 2 proportions:** a portrait 35 × 58 room, a camera that fits the
   room's width and follows depth only, spawn markers, orb enemy shots.
+  **Phones are framed closer** (`Balance.Camera.phone`, `Util/CameraFit`):
+  1.6× closer held sideways, 1.3× upright, still showing the floor's full
+  width. Studio cannot emulate a phone over MCP, so `CameraFit.spec` pins it.
 
 The numbers in `Config/Balance` are the last ones asked for or measured, not
 settled ones. **Damage is on Archero 2's scale** (docs/RESEARCH-archero2.md

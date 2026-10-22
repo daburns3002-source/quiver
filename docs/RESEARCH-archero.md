@@ -208,7 +208,7 @@ the red rings are **spawn markers**, not static floor features.
 | player pace | **0.19 room-widths/s** | 0.26, brisker by choice |
 | spawn warning | red ring per enemy, **~0.8–1.0 s** ahead, staggered, waves in triangles of three | 0.9 s + 0.08 s stagger; no clusters yet |
 | multishot | a **parallel lane**, not a fan | parallel lane |
-| arrow speed | **~5.5 room-widths/s** (~1,840 px/s, ref. video below) | 110 studs/s (~58%), slowed at playtest |
+| arrow speed | **~5.5 room-widths/s** (~1,840 px/s, ref. video below) | 90 studs/s (~47%), slowed at playtest |
 | fire interval | **0.6 s** between volleys | 0.7 s, by playtest choice |
 | Diagonal Arrows | **±30°** either side of the aim | ±30° |
 | Ricochet | bounces **between enemies**, not walls | between enemies |

@@ -22,6 +22,13 @@ local TestRunner = require(script.Parent.TestRunner)
 
 local PROBE_HEIGHT = 2100
 
+--[[ Archero 2's measured arrow speed, studs a second. The sub-stepping these
+     tests exercise exists for arrows this fast; playtest slowed ours below
+     it, but the flight has to stay sound if a weapon or an ability ever
+     brings it back. Pinned here rather than read from config so slowing
+     the default arrow cannot quietly stop the test testing anything. ]]
+local FOOTAGE_SPEED = 190
+
 type Rig = {
 	params: RaycastParams,
 	overlap: OverlapParams,
@@ -274,9 +281,9 @@ return function(t: TestRunner.Helper)
 		local target = r.body(5)
 		local contact, struck = recorder()
 
-		local f = flight(0, Balance.Projectile.speed)
+		local f = flight(0, FOOTAGE_SPEED)
 		t.isTrue(
-			Balance.Projectile.speed / 30 > Balance.Projectile.length,
+			FOOTAGE_SPEED / 30 > Balance.Projectile.length,
 			"arrows are slow enough that this test no longer exercises sub-steps"
 		)
 		fly(f, r, contact, 3, 1 / 30)
@@ -291,7 +298,7 @@ return function(t: TestRunner.Helper)
 	     body that appears inside the arrow between frames. ]]
 	t.test("a body that appears inside a fast arrow is struck", function()
 		local r = rig()
-		local f = flight(0, Balance.Projectile.speed)
+		local f = flight(0, FOOTAGE_SPEED)
 		local contact, struck = recorder()
 
 		r.body(0)

@@ -589,16 +589,17 @@ local Balance = {
 			instant, and the cost of standing still is the enemy fire you are
 			not dodging, not the wait for your own arrow.
 
-			Then slowed to 110 at playtest — about 58% of the footage — because
-			at full footage speed the arrows read as flying too fast. Still
-			fast enough to land before most targets can step aside.
+			Then slowed at playtest, twice: to 110, then "a tad slower" to 90 —
+			under half the footage — because at footage speed the arrows read
+			as flying too fast. Still fast enough to land before most targets
+			can step aside.
 		]]
-		speed = 110,
+		speed = 90,
 		--[[ 45 studs of flight, the reach playtesting settled on: a little
 		     over `Player.attackRange`, so a shot at the edge of range
 		     arrives, and not so far that arrows sail on after the fight.
 		     Held as a distance by `Balance.spec`, so this follows `speed`. ]]
-		lifetime = 45 / 110,
+		lifetime = 45 / 90,
 		--[[
 			The longest a projectile moves before its hit tests run again.
 

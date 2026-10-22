@@ -289,6 +289,44 @@ function Stages.chainOnKill(count: number): ShotStage
 end
 
 --[[
+	Fires the whole volley again `extra` more times, `interval` seconds apart.
+
+	Count rather than Pattern: it makes more arrows. But where `parallel`
+	puts them beside each other, this puts them *behind* — same aim, same
+	lane, a moment later — so a target that sidestepped the first volley
+	walks into the second. Copies keep every other field, so a lane of Front
+	Arrows is repeated as a lane.
+]]
+function Stages.repeatVolley(extra: number, interval: number): ShotStage
+	return {
+		name = "RepeatVolley",
+		order = ShotPipeline.Stage.Count,
+
+		apply = function(specs: { ShotSpec }, _request: ShotRequest): { ShotSpec }
+			if extra <= 0 then
+				return specs
+			end
+
+			local out: { ShotSpec } = {}
+
+			for _, spec in specs do
+				table.insert(out, spec)
+			end
+
+			for round = 1, extra do
+				for _, spec in specs do
+					local copy = table.clone(spec)
+					copy.delay = spec.delay + round * interval
+					table.insert(out, copy)
+				end
+			end
+
+			return out
+		end,
+	}
+end
+
+--[[
 	Widens a volley into `count` arrows flying side by side.
 
 	The Count-bucket counterpart to `spread`. Both make more arrows; this one

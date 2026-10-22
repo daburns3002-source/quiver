@@ -595,6 +595,12 @@ local Balance = {
 		     towards. Under the archer's targeting range, so it bends shots
 		     at the fight rather than hunting across the room. ]]
 		homingRange = 20,
+		--[[ Seconds between Double Shot's volleys. Our number, not the
+		     footage's — Double Shot is never drafted in the reference video.
+		     Short enough that the pair reads as one attack; long enough
+		     that the second arrow is a second chance at a target that
+		     moved. Held under the fastest fire rate by `Balance.spec`. ]]
+		doubleShotInterval = 0.12,
 		--[[
 			Half the width of the drawn arrow, and half the width of the box
 			the server sweeps. These two numbers are the hitbox *and* the

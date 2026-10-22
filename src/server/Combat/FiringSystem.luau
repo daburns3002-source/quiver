@@ -99,6 +99,7 @@ local function fire(session: Session, root: BasePart, now: number)
 			bounces = spec.bounces,
 			ricochet = spec.ricochet,
 			homing = spec.homing,
+			delay = spec.delay,
 			chainOnKill = spec.chainOnKill,
 			--[[ The run that fired it, so the kill credits the right player's
 			     draft even if the arrow outlives their current session. ]]

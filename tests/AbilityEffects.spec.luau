@@ -350,6 +350,36 @@ return function(t: TestRunner.Helper)
 		t.equal(volley({ BouncyWall = 1 })[1].ricochet, 0, "Bouncy Wall ricochets")
 	end)
 
+	--[[ Double Shot repeats a volley in time, not in space: the copies share
+	     the first volley's aim and lane and differ only in when they leave. ]]
+	t.test("Double Shot repeats the volley later, along the same aim", function()
+		local plain = volley({ FrontArrow = 1 })
+		local doubled = volley({ FrontArrow = 1, DoubleShot = 1 })
+		t.equal(#doubled, #plain * 2, "Double Shot did not repeat every arrow")
+
+		local now, later = 0, 0
+		for _, spec in doubled do
+			if spec.delay > 0 then
+				later += 1
+			else
+				now += 1
+			end
+		end
+		t.equal(now, #plain, "the first volley was delayed")
+		t.equal(later, #plain, "the repeat was not delayed")
+
+		for index, spec in plain do
+			local copy = doubled[#plain + index]
+			t.near(copy.angleOffset, spec.angleOffset, 1e-9, "a repeat was re-aimed")
+			t.near(copy.lateralOffset, spec.lateralOffset, 1e-9, "a repeat left its lane")
+		end
+
+		t.isTrue(
+			#volley({ DoubleShot = 2 }) > #volley({ DoubleShot = 1 }),
+			"a second stack added nothing"
+		)
+	end)
+
 	t.test("Tracking Eye makes arrows home, and nothing else does", function()
 		t.equal(volley({})[1].homing, 0)
 		t.isTrue(volley({ TrackingEye = 1 })[1].homing > 0, "Tracking Eye granted no homing")

@@ -73,6 +73,16 @@ local folder: Folder? = nil
      avoid. ]]
 local pools: { [Faction]: { BasePart } } = { Player = {}, Enemy = {} }
 local live: { Visual } = {}
+--[[ Arrows queued behind their volley (Double Shot), launched when due. ]]
+type Pending = {
+	at: number,
+	faction: Faction,
+	origin: Vector3,
+	aim: Vector3,
+	spec: ShotSpec,
+	from: Model?,
+}
+local pending: { Pending } = {}
 local connection: RBXScriptConnection? = nil
 
 --[[ Seconds an impact spark lives, and how many may exist at once. Short and
@@ -343,8 +353,65 @@ local contact: ProjectileFlight.Contact = {
 	end,
 }
 
+--[[ One arrow onto the screen, at `headStart` seconds into its flight. ]]
+local function launch(
+	faction: Faction,
+	origin: Vector3,
+	aim: Vector3,
+	spec: ShotSpec,
+	headStart: number,
+	from: Model?
+)
+	local colour = if faction == "Enemy" then ENEMY_COLOUR else PLAYER_COLOUR
+	local part = acquire(faction, colour)
+	--[[ The same sideways offset the server spawns at, from the same
+	     helper, so a lane of arrows is a lane in both places. ]]
+	local start = ShotPipeline.spawnPoint(origin, aim, spec)
+	local position = start + aim * spec.speed * headStart
+	part.CFrame = placeAt(position, aim)
+
+	--[[ Enabled only once the part is sitting at its start, so a recycled
+	     one does not draw a ribbon from where the last shot expired. ]]
+	local trail = part:FindFirstChildOfClass("Trail")
+	if trail then
+		if faction == "Player" then
+			trail.Lifetime = ARROW_TRAIL_STUDS / math.max(spec.speed, 1e-3)
+		end
+		trail.Enabled = true
+	end
+
+	table.insert(live, {
+		part = part,
+		faction = faction,
+		position = position,
+		direction = aim,
+		speed = spec.speed,
+		pierce = spec.pierce,
+		bounces = spec.bounces,
+		homing = spec.homing,
+		hitModels = if from then { [from] = true } else {},
+		expiresAt = os.clock() + (spec.lifetime - headStart),
+		stopped = false,
+	})
+end
+
 local function step(deltaTime: number)
 	local now = os.clock()
+
+	for index = #pending, 1, -1 do
+		local queued = pending[index]
+		if now >= queued.at then
+			table.remove(pending, index)
+			launch(
+				queued.faction,
+				queued.origin,
+				queued.aim,
+				queued.spec,
+				now - queued.at,
+				queued.from
+			)
+		end
+	end
 
 	for index = #live, 1, -1 do
 		local visual = live[index]
@@ -377,6 +444,9 @@ end
 	flight so a remote player's arrows are not drawn lagging behind where the
 	server already has them. `from` is a body the shot leaves from and must
 	not stop in: the enemy a ricochet bounced off.
+
+	An arrow with a `delay` — Double Shot's copies — waits in `pending` and is
+	launched by `step` when it is due, mirroring how the server holds it.
 ]]
 function ProjectileRenderer.spawnVolley(
 	faction: Faction,
@@ -388,46 +458,27 @@ function ProjectileRenderer.spawnVolley(
 )
 	local tier = Device.tier()
 	local now = os.clock()
-	local colour = if faction == "Enemy" then ENEMY_COLOUR else PLAYER_COLOUR
 
 	for _, spec in specs do
-		if #live >= tier.maxRenderedProjectiles then
+		if #live + #pending >= tier.maxRenderedProjectiles then
 			break
 		end
 
 		local aim = ShotPipeline.aim(direction, spec)
-		local headStart = math.clamp(elapsed, 0, spec.lifetime)
+		local wait = spec.delay - elapsed
 
-		local part = acquire(faction, colour)
-		--[[ The same sideways offset the server spawns at, from the same
-		     helper, so a lane of arrows is a lane in both places. ]]
-		local start = ShotPipeline.spawnPoint(origin, aim, spec)
-		local position = start + aim * spec.speed * headStart
-		part.CFrame = placeAt(position, aim)
-
-		--[[ Enabled only once the part is sitting at its start, so a recycled
-		     one does not draw a ribbon from where the last shot expired. ]]
-		local trail = part:FindFirstChildOfClass("Trail")
-		if trail then
-			if faction == "Player" then
-				trail.Lifetime = ARROW_TRAIL_STUDS / math.max(spec.speed, 1e-3)
-			end
-			trail.Enabled = true
+		if wait > 0 then
+			table.insert(pending, {
+				at = now + wait,
+				faction = faction,
+				origin = origin,
+				aim = aim,
+				spec = spec,
+				from = from,
+			})
+		else
+			launch(faction, origin, aim, spec, math.clamp(-wait, 0, spec.lifetime), from)
 		end
-
-		table.insert(live, {
-			part = part,
-			faction = faction,
-			position = position,
-			direction = aim,
-			speed = spec.speed,
-			pierce = spec.pierce,
-			bounces = spec.bounces,
-			homing = spec.homing,
-			hitModels = if from then { [from] = true } else {},
-			expiresAt = now + (spec.lifetime - headStart),
-			stopped = false,
-		})
 	end
 end
 

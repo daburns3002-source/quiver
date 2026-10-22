@@ -31,6 +31,7 @@ local function baseSpec(): Types.ShotSpec
 		bounces = 0,
 		ricochet = 0,
 		homing = 0,
+		delay = 0,
 		chainOnKill = 0,
 	}
 end

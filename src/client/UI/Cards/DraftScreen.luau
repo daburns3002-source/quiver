@@ -71,7 +71,14 @@ type Slot = {
 	     the card settles rather than snapping straight. ]]
 	float: number,
 	scaleSpring: Motion.Spring,
-	liftSpring: Motion.Spring,
+	--[[ Balatro's follow: where the card is and how fast it is going, in
+	     row pixels, chasing where it wants to be on a spring; and the lean
+	     that speed puts on it. ]]
+	pos: Vector2,
+	vel: Vector2,
+	lean: number,
+	--[[ Its soft shadow on the table, which falls away as the card rises. ]]
+	shadow: Frame,
 	dealAt: number,
 	--[[ A Mythic is dealt face down: its back, when its reveal starts, and
 	     the lightning round its face once it is up. ]]
@@ -372,6 +379,7 @@ end
 local function clearSlots()
 	for _, slot in slots do
 		slot.group:Destroy()
+		slot.shadow:Destroy()
 	end
 	table.clear(slots)
 	selected = nil
@@ -393,6 +401,27 @@ local function setChooseEnabled(enabled: boolean)
 	end
 end
 
+--[[
+	Balatro's hand. Cards chase their places on a spring per 60 Hz frame
+	(`v = (v + (target − x)·K)·D; x += v`), and lean into their sideways
+	speed, so a dealt card swings in and rights itself and a lifted card
+	settles with a little give. Sizes never spring — a card's words must
+	not throb — only places and leans do.
+]]
+local FOLLOW_K = 0.16
+local FOLLOW_D = 0.64
+--[[ Degrees of lean per pixel a frame of sideways speed, and its cap. ]]
+local LEAN_PER_PX = 0.55
+local LEAN_MAX = 18
+--[[ The fan: degrees each card turns per place from the middle, and pixels
+     it drops per place squared, so the hand curves like one held. ]]
+local FAN_TURN = 3
+local FAN_DROP = 7
+local CARD_HOVER_LIFT = -10
+local CARD_SELECT_LIFT = -28
+--[[ How dark a card's shadow on the table is while the card lies on it. ]]
+local SHADOW_OPACITY = 0.35
+
 --[[ Starts a card's juice: a scale pop of `scale` and a wobble of `rot`
      degrees, both dying away over `JUICE_TIME`. ]]
 local JUICE_TIME = 0.4
@@ -409,7 +438,6 @@ local function pick(index: number?)
 		--[[ Hover only lifts the card: it is not scaled or turned, so not a
 		     word on it moves relative to the card. ]]
 		slot.scaleSpring.target = if on then 1.1 else 1
-		slot.liftSpring.target = if on then -28 elseif slot.hovered then -10 else 0
 		--[[ A card taken up pops and wobbles; one put back down, a little. ]]
 		if on and previous ~= slot.index then
 			juiceUp(slot, 0, 6)
@@ -553,6 +581,21 @@ local function buildSlot(index: number, id: string, count: number, now: number):
 
 	local x = (index - 1) * (CARD.X + gap()) - ((count - 1) * (CARD.X + gap())) / 2
 	local base = Vector2.new(x, 0)
+
+	-- Its soft shadow on the table, under every card.
+	local shadow = Instance.new("Frame")
+	shadow.Name = `Shadow{index}`
+	shadow.AnchorPoint = Vector2.new(0.5, 0.5)
+	shadow.Size = UDim2.fromOffset(CARD.X, CARD.Y)
+	shadow.BackgroundColor3 = Color3.new(0, 0, 0)
+	shadow.BackgroundTransparency = 1
+	shadow.BorderSizePixel = 0
+	shadow.ZIndex = 0
+	shadow.Parent = row
+	corner(shadow, CardTheme.card.corner)
+
+	-- Dealt from the deck: off to the right, or from below on a phone.
+	local deck = if mode == "Touch" then Vector2.new(0, 420) else Vector2.new(560, 120)
 	local dealAt = now + (index - 1) * TIMING.dealStagger
 
 	local mythic = nil
@@ -578,7 +621,10 @@ local function buildSlot(index: number, id: string, count: number, now: number):
 		juice = nil,
 		float = 1,
 		scaleSpring = Motion.spring(1, 0.2, 0.7),
-		liftSpring = Motion.spring(0, 0.14, 0.72),
+		pos = base + deck,
+		vel = Vector2.zero,
+		lean = 0,
+		shadow = shadow,
 		dealAt = dealAt,
 		mythic = mythic,
 	}
@@ -856,14 +902,35 @@ local function step(deltaTime: number)
 		local sizeTarget = slot.scaleSpring.target
 		slot.scaleSpring.x += (sizeTarget - slot.scaleSpring.x) * math.min(1, deltaTime * 16)
 		slot.scaleSpring.v = 0
-		Motion.step(slot.liftSpring, deltaTime)
 
-		local rotation = math.sin(now * 1.3 + i * 1.7) * 1.4 * calm
-		local offset = Vector2.new(0, math.sin(now * 1.8 + i * 1.1) * 3 * calm + slot.liftSpring.x)
+		-- Where the card wants to be: its place in the fanned hand, lifted
+		-- under the pointer or when picked, floating a little when let be.
+		local fan = i - (#slots + 1) / 2
+		local raise = if selected == i
+			then CARD_SELECT_LIFT
+			elseif slot.hovered then CARD_HOVER_LIFT
+			else 0
+		local bob = math.sin(now * 1.8 + i * 1.1) * 3 * calm
+		local table_ = slot.base + Vector2.new(0, fan * fan * FAN_DROP)
+		local target = table_ + Vector2.new(0, raise + bob)
+
+		-- Held in the deck until dealt, then chasing its place.
+		if now >= slot.dealAt then
+			local frames = math.clamp(math.floor(deltaTime * 60 + 0.5), 1, 4)
+			for _ = 1, frames do
+				slot.vel = (slot.vel + (target - slot.pos) * FOLLOW_K) * FOLLOW_D
+				slot.pos += slot.vel
+			end
+		end
+		local leanTarget = math.clamp(slot.vel.X * LEAN_PER_PX, -LEAN_MAX, LEAN_MAX)
+		slot.lean += (leanTarget - slot.lean) * math.min(1, deltaTime * 14)
+
+		local rotation = fan * FAN_TURN + math.sin(now * 1.3 + i * 1.7) * 1.4 * calm + slot.lean
+		local offset = slot.pos - slot.base
 		local scale = slot.scaleSpring.x
 
-		--[[ Balatro's juice: the pop on a cubic fall-off at about 8 Hz, the
-		     wobble on a square one a little slower. ]]
+		--[[ Balatro's juice, the wobble only: a turn on a square fall-off.
+		     No size pop — the owner found the card's words pulsing. ]]
 		local juice = slot.juice
 		if juice then
 			local e = now - juice.at
@@ -871,27 +938,10 @@ local function step(deltaTime: number)
 				slot.juice = nil
 			else
 				local left = 1 - e / JUICE_TIME
-				scale += juice.scale * math.sin(50.8 * e) * left ^ 3
 				rotation += juice.rot * math.sin(40.8 * e) * left ^ 2
 			end
 		end
-		local transparency = 0
-
-		-- Dealt in: from down and to the right, turned, settling with a kick.
-		local dealt = (now - slot.dealAt) / TIMING.dealDuration
-		if dealt < 0 then
-			transparency = 1
-		elseif dealt < 1 then
-			local e = Motion.backOut(dealt)
-			--[[ A phone's next hand rises from below; otherwise cards are
-			     dealt in from the right. ]]
-			if mode == "Touch" then
-				offset += Vector2.new(0, 420) * (1 - e)
-			else
-				offset += Vector2.new(560, 120) * (1 - e)
-				rotation += 28 * (1 - e)
-			end
-		end
+		local transparency = if now < slot.dealAt then 1 else 0
 
 		-- A gamepad's focused card stands forward; the others step back.
 		if mode == "Gamepad" and not away then
@@ -968,6 +1018,19 @@ local function step(deltaTime: number)
 		slot.group.Rotation = rotation
 		slot.group.GroupTransparency = transparency
 		slot.scale.Scale = scale
+
+		--[[ The shadow stays on the table while the card rises: it falls
+		     further below and to the side, and fades, the higher the card
+		     is. Off while the hand is leaving or the card is off the table. ]]
+		local height = math.max(0, table_.Y - slot.pos.Y)
+		local shadowAt = Vector2.new(slot.pos.X + height * 0.15, table_.Y + 10 + height * 0.45)
+		local shade = SHADOW_OPACITY * (1 - math.min(0.6, height * 0.012))
+		slot.shadow.Position = UDim2.fromOffset(shadowAt.X + rowWidth / 2, CARD.Y / 2 + shadowAt.Y)
+		slot.shadow.Rotation = rotation
+		slot.shadow.Size = UDim2.fromOffset(CARD.X * scale, CARD.Y * scale)
+		slot.shadow.BackgroundTransparency = if away or slot.mythic
+			then 1
+			else 1 - shade * (1 - transparency)
 
 		-- The shine brightens on hover but stays put, like the card.
 		slot.card.setShine(0, if slot.hovered or selected == i then 0.8 else 0.3)

@@ -26,6 +26,11 @@ What exists and works, all verified in Studio rather than only by the gates:
   level (`Config/Abilities`, `Config/Rarities`), dealt weighted by rarity with
   2 rerolls a run, and a Heal filler card. Momentum is banked by moving and
   spent on the 2 s of shooting after; every archer crits 5% of the time.
+- **The owner's card UI** (`client/UI/Cards`, `Config/Card*`): the draft
+  screen, skill bar, hold-for-detail panel, phone celebration, gamepad focus
+  and the Mythic reveal, from `design_handoff_upgrade_cards`. `CardFrames` is
+  generated from the design's `frames.json` by script — regenerate, never
+  hand-edit. Images are uploaded; ids in `CardAssets`.
 - **Phase 3, mostly:** the shot pipeline with its abilities as data, XP and a
   choose-one-of-three draft that pauses the world, crit, splash, Ricochet
   (enemy to enemy), Bouncy Wall, Tracking Eye (homing), Double Shot
@@ -137,6 +142,13 @@ already has.
   against the Edit scene's stale `Balance` cache, and logs errors under
   `StarterPlayer.StarterPlayerScripts…` until Studio restarts. Build the
   parts once and capture instead.
+- **Threads spawned by an `execute_luau` probe die when it returns.** A
+  background sampler started in one call records nothing; sample inside the
+  call that waits, or time a `screen_capture`.
+- **`user_mouse_input` drives the GUI for real**: `moveTo` an
+  `instance_path` such as `LocalPlayer.PlayerGui.DraftScreen.Panel...`,
+  then click, or `mouseButtonDown` / wait / `mouseButtonUp` for a hold.
+  Play-mode captures do show the GUI (and the 3D view, these days).
 - To move the character from a probe, call `Humanoid:Move` from
   `RunService.Stepped`: `MoveController` resets it every RenderStepped, and
   a teleport does not count as moving for the move-or-shoot rule.

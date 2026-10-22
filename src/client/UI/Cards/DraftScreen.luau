@@ -263,6 +263,7 @@ local function confirm()
 	if celebrate and slot and words and tag and icon then
 		local ability = Abilities.byId[slot.id]
 		local level = (PlayerStats.get().abilities[slot.id] or 0) + 1
+		words.TextSize = 40
 		words.Text = if level > 1 then "UPGRADED!" else "NEW SKILL!"
 		words.TextColor3 = CardTheme.colors.choose
 		tag.Text = `{ability.name} · LVL {level}`
@@ -520,6 +521,7 @@ stepOverlay = function(now: number)
 	end
 
 	local raysAlpha, flashAlpha, ringP, wordsAlpha, wordsPop = 0, 0, -1, 0, 0
+	local mythicTitle = false
 	local centre: Vector2? = nil
 
 	if away and away.kind == "Celebrate" and away.picked then
@@ -594,10 +596,14 @@ stepOverlay = function(now: number)
 				raysAlpha *= math.max(0, 1 - (t - MythicReveal.settleEnd - 1) / 0.5)
 			end
 			wordsPop = Motion.backOut(math.clamp((t - MythicReveal.titleAt) / 0.45, 0, 1))
+			--[[ Across the card itself, briefly: above it would sit on the
+			     panel's own title. ]]
 			wordsAlpha = if t < MythicReveal.titleAt
 				then 0
-				elseif t < MythicReveal.settleEnd + 1 then 1
-				else math.max(0, 1 - (t - MythicReveal.settleEnd - 1) / 0.5)
+				elseif t < MythicReveal.settleEnd + 0.3 then 1
+				else math.max(0, 1 - (t - MythicReveal.settleEnd - 0.3) / 0.4)
+			mythicTitle = true
+			words.TextSize = 64
 			words.Text = "MYTHIC!"
 			words.TextColor3 = CardTheme.colors.mythicTitle
 			tag.Text = ""
@@ -608,7 +614,8 @@ stepOverlay = function(now: number)
 	if centre then
 		raysImage.Position = UDim2.fromOffset(centre.X, centre.Y)
 		ring.Position = UDim2.fromOffset(centre.X, centre.Y)
-		words.Position = UDim2.fromOffset(centre.X, centre.Y - 230)
+		words.Position =
+			UDim2.fromOffset(centre.X, if mythicTitle then centre.Y else centre.Y - 230)
 		tag.Position = UDim2.fromOffset(centre.X, centre.Y - 184)
 	end
 	raysImage.ImageTransparency = 1 - raysAlpha * 0.9
@@ -620,7 +627,17 @@ stepOverlay = function(now: number)
 		ring.Size = UDim2.fromOffset(size, size);
 		(ring:FindFirstChildOfClass("UIStroke") :: UIStroke).Transparency = ringP
 	end
-	words.TextTransparency = 1 - wordsAlpha;
+	words.TextTransparency = 1 - wordsAlpha
+	-- The panel's own title steps aside while a celebration's words are up.
+	local heading, sub = title, subtitle
+	local celebrating = away ~= nil and away.kind == "Celebrate"
+	for _, label in { heading, sub } do
+		if label then
+			local hidden = if celebrating then wordsAlpha else 0
+			label.TextTransparency = hidden;
+			(label:FindFirstChildOfClass("UIStroke") :: UIStroke).Transparency = hidden
+		end
+	end
 	(words:FindFirstChildOfClass("UIStroke") :: UIStroke).Transparency = 1 - wordsAlpha;
 	(words:FindFirstChildOfClass("UIScale") :: UIScale).Scale = math.max(wordsPop, 0.01)
 	tag.TextTransparency = 1 - wordsAlpha
@@ -1185,13 +1202,25 @@ end
 --[[ Hides the screen. Called once a pick is sent, and on death, so a draft
      can never outlive the run that owed it. ]]
 function DraftScreen.hide()
+	--[[ After a phone's celebration the bar stays up a moment, so the icon
+	     landing and its slot popping are seen rather than cut off. ]]
+	local celebrated = leaving ~= nil and (leaving :: any).kind == "Celebrate"
 	locked = true
 	leaving = nil
 	clearSlots()
 	if gui then
 		gui.Enabled = false
 	end
-	SkillBar.setVisible(false)
+	if celebrated then
+		local token = dealToken
+		task.delay(0.8, function()
+			if dealToken == token and not (gui and gui.Enabled) then
+				SkillBar.setVisible(false)
+			end
+		end)
+	else
+		SkillBar.setVisible(false)
+	end
 	unbindGamepad()
 	if flyer then
 		flyer.Visible = false

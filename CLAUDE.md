@@ -91,7 +91,6 @@ already has.
 
 **Known rough edges, deliberately not addressed:**
 
-- A blocked arrow has no feedback, so the cover penalty reads as a bug.
 - `Arena.deflectionNormal` handles obstacles but not the outer walls.
 - **Enemy visuals may still overlap pillars slightly.** Hitboxes are now
   resolved by their turned footprint (`Arena.resolveBox`) and measured 0 of

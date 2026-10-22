@@ -17,6 +17,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Arena = require(script.Parent.Parent.Arena.Arena)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
+local Burning = require(script.Parent.Parent.Combat.Burning)
 local EnemyManager = require(script.Parent.Parent.Enemies.EnemyManager)
 local Loadout = require(script.Parent.Loadout)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
@@ -64,6 +65,7 @@ local function enterRoom(index: number)
 	     the old room would otherwise arrive in the new one, and both filters
 	     point at folders that have just been destroyed. ]]
 	ProjectileSystem.clear()
+	Burning.clear()
 	ProjectileSystem.refreshFilters()
 
 	--[[ Players are put back at the start of the new room. Without this they

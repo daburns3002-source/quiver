@@ -24,6 +24,10 @@ export type Tier = {
 	     rendered object per live shot, which is the last thing a phone needs
 	     once Phase 3 multiplies volley sizes. ]]
 	projectileTrails: boolean,
+	--[[ Flame particles a second on a burning enemy. Never zero: on the
+	     lowest tier a burning enemy still has to look different from one
+	     that is not, or Blaze is invisible there. ]]
+	burnParticleRate: number,
 }
 
 --[[
@@ -39,6 +43,7 @@ local low: Tier = {
 	enableScreenShake = true,
 	projectileIsRound = false,
 	projectileTrails = false,
+	burnParticleRate = 4,
 }
 
 local medium: Tier = {
@@ -49,6 +54,7 @@ local medium: Tier = {
 	enableScreenShake = true,
 	projectileIsRound = true,
 	projectileTrails = true,
+	burnParticleRate = 10,
 }
 
 local high: Tier = {
@@ -59,6 +65,7 @@ local high: Tier = {
 	enableScreenShake = true,
 	projectileIsRound = true,
 	projectileTrails = true,
+	burnParticleRate = 20,
 }
 
 local DeviceTiers = {

@@ -506,6 +506,21 @@ return function(t: TestRunner.Helper)
 		)
 	end)
 
+	--[[ Blaze is a bonus on a hit, never a second weapon: a whole burn at
+	     full stacks has to be worth less than the hit that lit it. And a burn
+	     must last long enough to tick at all. ]]
+	t.test("a whole burn is worth less than the hit that lit it", function()
+		local blaze = Abilities.byId.Blaze
+		local perHit = blaze.value * blaze.maxStacks * Balance.Burn.duration
+
+		t.isTrue(perHit < 1, `a full-stack burn deals {perHit}x the arrow that lit it`)
+		t.isTrue(Balance.Burn.tick > 0, "a burn needs a positive tick")
+		t.isTrue(
+			Balance.Burn.tick <= Balance.Burn.duration,
+			"a burn runs out before its first tick"
+		)
+	end)
+
 	t.test("an arrow reaches anything the archer will target", function()
 		local reach = Balance.Projectile.speed * Balance.Projectile.lifetime
 		t.isTrue(

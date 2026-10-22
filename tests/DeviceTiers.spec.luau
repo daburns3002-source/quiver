@@ -69,6 +69,17 @@ return function(t: TestRunner.Helper)
 	--[[ A trail is one more rendered object per live shot, so the tier that
 	     draws the fewest projectiles must not also be the one paying for
 	     ribbons on all of them. ]]
+	--[[ Never zero: on the lowest tier a burning enemy still has to look
+	     different from one that is not, or Blaze is invisible there. ]]
+	t.test("every tier shows a burn, and never more on a weaker device", function()
+		t.isTrue(low.burnParticleRate > 0, "a burning enemy shows nothing on the lowest tier")
+		t.isTrue(low.burnParticleRate <= medium.burnParticleRate, "Low burns brighter than Medium")
+		t.isTrue(
+			medium.burnParticleRate <= high.burnParticleRate,
+			"Medium burns brighter than High"
+		)
+	end)
+
 	t.test("the lowest tier does not pay for projectile trails", function()
 		t.isFalse(low.projectileTrails, "a low tier should not stream trails")
 	end)

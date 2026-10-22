@@ -267,6 +267,28 @@ function Stages.ricochet(count: number): ShotStage
 	}
 end
 
+--[[ Sets every arrow to burn what it hits for `fraction` of its damage a
+     second. Set rather than accumulated, like crit: the caller passes the
+     loadout's total. OnHit, because only contact decides what burns. ]]
+function Stages.burn(fraction: number): ShotStage
+	return {
+		name = "Burn",
+		order = ShotPipeline.Stage.OnHit,
+
+		apply = function(specs: { ShotSpec }, _request: ShotRequest): { ShotSpec }
+			local out: { ShotSpec } = {}
+
+			for _, spec in specs do
+				local copy = table.clone(spec)
+				copy.burn = fraction
+				table.insert(out, copy)
+			end
+
+			return out
+		end,
+	}
+end
+
 --[[ Fires free arrows at whatever is nearest when this one kills something.
      The only stage in the OnKill bucket, and the reason the bucket exists. ]]
 function Stages.chainOnKill(count: number): ShotStage

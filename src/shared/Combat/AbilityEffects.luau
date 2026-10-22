@@ -170,6 +170,11 @@ function AbilityEffects.stages(counts: Counts): { ShotStage }
 		table.insert(out, Stages.bounce(Abilities.byId.BouncyWall.value * bouncyWall))
 	end
 
+	local blaze = stacks(counts, "Blaze")
+	if blaze > 0 then
+		table.insert(out, Stages.burn(Abilities.byId.Blaze.value * blaze))
+	end
+
 	local chain = stacks(counts, "SoulChain")
 	if chain > 0 then
 		table.insert(out, Stages.chainOnKill(Abilities.byId.SoulChain.value * chain))

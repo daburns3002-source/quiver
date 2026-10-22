@@ -19,6 +19,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
+local Burning = require(script.Parent.Combat.Burning)
 local EnemyFiring = require(script.Parent.Combat.EnemyFiring)
 local EnemyManager = require(script.Parent.Enemies.EnemyManager)
 local FiringSystem = require(script.Parent.Combat.FiringSystem)
@@ -138,6 +139,8 @@ RunService.Heartbeat:Connect(function(deltaTime: number)
 	EnemyFiring.step(now)
 	FiringSystem.step(deltaTime, now)
 	ProjectileSystem.step(deltaTime, now)
+	--[[ After projectiles, so a burn lit this frame does not tick in it. ]]
+	Burning.step(now)
 	--[[ After projectiles, because a hit's knockback moves its enemy and can
 	     push it into another. Overlaps are resolved once everything that can
 	     move a body this frame has done so. ]]

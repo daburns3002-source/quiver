@@ -17,6 +17,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Arena = require(script.Parent.Parent.Arena.Arena)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
+local Burning = require(script.Parent.Burning)
 local EnemyManager = require(script.Parent.Parent.Enemies.EnemyManager)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
 local ProjectileFlight = require(ReplicatedStorage.Shared.Combat.ProjectileFlight)
@@ -80,6 +81,8 @@ type Projectile = {
 	ricochet: number,
 	--[[ Radians a second it turns towards the nearest enemy ahead. ]]
 	homing: number,
+	--[[ Fraction of its damage a hit sets burning per second. ]]
+	burn: number,
 	--[[ Free arrows a kill by this one fires at whatever is nearest. ]]
 	chainOnKill: number,
 	--[[ Guards against a single projectile hitting the same enemy on
@@ -205,6 +208,8 @@ export type SpawnParams = {
 	now: number,
 	--[[ Seconds before it leaves. Omitted means at once. ]]
 	delay: number?,
+	--[[ Blaze's burn fraction. Omitted means none. ]]
+	burn: number?,
 	--[[ A body this projectile starts inside and must not strike: the enemy
 	     a ricochet leaves from, which would otherwise be hit again by the
 	     very first overlap pass. ]]
@@ -254,6 +259,7 @@ function ProjectileSystem.spawn(params: SpawnParams)
 		bounces = params.bounces,
 		ricochet = params.ricochet,
 		homing = params.homing,
+		burn = params.burn or 0,
 		chainOnKill = params.chainOnKill,
 		startsAt = now + (params.delay or 0),
 		expiresAt = now + (params.delay or 0) + params.lifetime,
@@ -269,24 +275,6 @@ end
 	Both branches stay server-authoritative: the damage amount comes off the
 	projectile the server itself queued, never from anything a client said.
 ]]
---[[ Credits a kill to the run that fired the arrow, which may no longer be
-     that player's current one. A session replaced since simply does not get
-     it. ]]
-local function creditXp(owner: Player?, xp: number)
-	if xp <= 0 or not owner then
-		return
-	end
-
-	local session = RunSession.get(owner)
-	if session then
-		--[[ The kill's rewards before its XP: levelling opens a card screen
-		     and pauses the run, and a heal that landed after that would be
-		     applied to a player already reading cards. ]]
-		RunSession.onEnemyKilled(session)
-		RunSession.awardXp(session, xp)
-	end
-end
-
 --[[
 	Damages everything standing near a hit.
 
@@ -322,7 +310,7 @@ local function applySplash(projectile: Projectile, centre: Vector3, damage: numb
 		local flat = Vector3.new(entry.position.X, 0, entry.position.Z)
 		if (flat - flatCentre).Magnitude <= projectile.splashRadius then
 			local _, xp = EnemyManager.damage(entry.model, splashDamage, centre)
-			creditXp(projectile.owner, xp)
+			RunSession.creditKill(projectile.owner, xp)
 		end
 	end
 end
@@ -366,6 +354,7 @@ local function fireOnward(projectile: Projectile, onward: Onward)
 			bounces = 0,
 			ricochet = onward.ricochet,
 			homing = projectile.homing,
+			burn = projectile.burn,
 			chainOnKill = onward.chainOnKill,
 			owner = projectile.owner,
 			now = currentNow,
@@ -387,6 +376,7 @@ local function fireOnward(projectile: Projectile, onward: Onward)
 			ricochet = onward.ricochet,
 			homing = projectile.homing,
 			delay = 0,
+			burn = projectile.burn,
 			chainOnKill = onward.chainOnKill,
 		})
 	end
@@ -511,11 +501,15 @@ local function applyHit(projectile: Projectile, model: Model): boolean
 		end
 
 		if xp > 0 then
-			creditXp(projectile.owner, xp)
+			RunSession.creditKill(projectile.owner, xp)
 			fireChain(projectile, projectile.position)
 		end
 
 		if landed then
+			--[[ From the arrow's base damage, not a crit: Blaze is a bonus on
+			     the hit, and a crit that also doubled the burn would make
+			     two abilities one. ]]
+			Burning.ignite(model, projectile.damage * projectile.burn, projectile.owner, currentNow)
 			fireRicochet(projectile, model)
 		end
 

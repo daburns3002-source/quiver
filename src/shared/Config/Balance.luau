@@ -659,6 +659,18 @@ local Balance = {
 		maxActive = 400,
 	},
 
+	--[[
+		What Blaze sets alight. A hit burns for `duration` seconds, ticking
+		every `tick`, and a fresh hit *refreshes* the burn at the stronger of
+		the two rates rather than adding to it — so Front Arrow and Double
+		Shot cannot stack it into a second weapon. `Balance.spec` holds a
+		whole burn under the hit that lit it.
+	]]
+	Burn = {
+		duration = 2,
+		tick = 0.5,
+	},
+
 	Enemies = {
 		MeleeCharger = meleeCharger,
 		SpreadShooter = spreadShooter,

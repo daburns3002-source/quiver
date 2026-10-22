@@ -136,6 +136,18 @@ local abilities: { Ability } = {
 		value = 0.15,
 		maxStacks = 4,
 	},
+	--[[ The teardown's Blaze: "burn damage over time on contact". Value is
+	     the fraction of an arrow's damage it burns for, per second, per
+	     stack; how long is `Balance.Burn`. Numbers are ours — Blaze is never
+	     drafted in the reference video. ]]
+	{
+		id = "Blaze",
+		name = "Blaze",
+		description = "Arrows set enemies on fire.",
+		category = "OnHit",
+		value = 0.2,
+		maxStacks = 2,
+	},
 	{
 		id = "Overdraw",
 		name = "Overdraw",

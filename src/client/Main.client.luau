@@ -15,11 +15,11 @@ local Workspace = game:GetService("Workspace")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 
-local AbilityCards = require(script.Parent.UI.AbilityCards)
 local BurnFx = require(script.Parent.Fx.BurnFx)
 local CombatMarkers = require(script.Parent.Fx.CombatMarkers)
 local DashBar = require(script.Parent.UI.DashBar)
 local Device = require(script.Parent.Device)
+local DraftScreen = require(script.Parent.UI.Cards.DraftScreen)
 local Game = require(Shared.Config.Game)
 local HealthBar = require(script.Parent.UI.HealthBar)
 local HitFeedback = require(script.Parent.Fx.HitFeedback)
@@ -199,8 +199,8 @@ end)
 	screen that lingered for a round trip would feel like the tap was missed.
 	A rejected choice simply leaves the offer open and the server re-sends it.
 ]]
-AbilityCards.start(function(index: number)
-	AbilityCards.hide()
+DraftScreen.start(function(index: number)
+	DraftScreen.hide()
 	RunPaused.set(false)
 	Remotes.event(Remotes.AbilityChosen):FireServer(index)
 end, function()
@@ -215,7 +215,7 @@ Remotes.event(Remotes.AbilityOffer).OnClientEvent
 	     this the prediction draws volleys across a frozen room that the server
 	     never fired. ]]
 		RunPaused.set(true)
-		AbilityCards.show(offer, level, source, rerolls)
+		DraftScreen.show(offer, level, source, rerolls)
 	end)
 
 Remotes.event(Remotes.XpChanged).OnClientEvent:Connect(RunBanner.onXpChanged)
@@ -224,7 +224,7 @@ Remotes.event(Remotes.XpChanged).OnClientEvent:Connect(RunBanner.onXpChanged)
      run that just ended would still be up when the next one starts, pausing a
      room the player cannot see. ]]
 player.CharacterRemoving:Connect(function()
-	AbilityCards.hide()
+	DraftScreen.hide()
 	RunPaused.set(false)
 	PlayerStats.reset()
 end)

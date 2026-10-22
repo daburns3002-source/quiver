@@ -95,7 +95,8 @@ function Burning.step(now: number)
 
 		burn.nextTickAt += Balance.Burn.tick
 
-		local landed, xp = EnemyManager.damage(model, burn.rate * Balance.Burn.tick, nil, "Burn")
+		local landed, xp, fell =
+			EnemyManager.damage(model, burn.rate * Balance.Burn.tick, nil, "Burn")
 
 		if not landed then
 			extinguish(model)
@@ -104,7 +105,7 @@ function Burning.step(now: number)
 
 		if xp > 0 then
 			burns[model] = nil
-			RunSession.creditKill(burn.owner, xp)
+			RunSession.creditKill(burn.owner, xp, fell)
 		end
 	end
 end

@@ -867,6 +867,46 @@ local Balance = {
 		--[[ A boss wave, until Phase 4 brings bosses: the stage's heaviest
 		     body with an escort. ]]
 		bossRoster = { tank, meleeCharger, spreadShooter, meleeCharger },
+		--[[ Hearts a Valkyrie wave leaves on the floor, as Archero 2's does. ]]
+		valkyrieHearts = 1,
+	},
+
+	--[[
+		What kills leave on the floor (docs/RESEARCH-archero2.md, "XP" and
+		"Healing").
+
+		**XP crystals.** A kill's XP is not credited when it dies. It drops as
+		crystals, which lie where the enemy fell and are all drawn in to their
+		owner when the wave or room clears, so the level-up comes between
+		fights rather than in the middle of one.
+
+		**Hearts.** A rare drop that waits on the floor until a player walks
+		over it, full health or not, and heals a share of max health.
+	]]
+	Pickups = {
+		--[[ XP one crystal stands for, and the most a single kill drops: a
+		     Charger's 10 is two crystals, a Bulwark's 30 is four. ]]
+		xpPerCrystal = 8,
+		maxCrystalsPerKill = 4,
+		--[[ How far from the body crystals scatter, in studs. ]]
+		crystalScatter = 2.2,
+		--[[ Seconds after a clear before the crystals are drawn in, so the
+		     last kill's crystals are seen landing first. ]]
+		collectDelay = 0.3,
+		--[[ Seconds a crystal takes to fly to its owner. Presentation; the XP
+		     is credited when the flight starts. ]]
+		collectFlight = 0.45,
+
+		--[[ Chance a kill drops a heart. ]]
+		heartChance = 0.05,
+		--[[ Share of max health one heart restores. ]]
+		heartHeal = 0.2,
+		--[[ Studs from a heart's centre to the player's that count as
+		     walking over it. ]]
+		heartRadius = 2.5,
+
+		crystalColor = Color3.fromRGB(70, 210, 255),
+		heartColor = Color3.fromRGB(255, 60, 90),
 	},
 
 	Run = {

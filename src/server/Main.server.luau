@@ -147,6 +147,9 @@ RunService.Heartbeat:Connect(function(deltaTime: number)
 	     push it into another. Overlaps are resolved once everything that can
 	     move a body this frame has done so. ]]
 	EnemyManager.resolveOverlaps()
+	--[[ Hearts are taken by walking over them, so after everything that moves
+	     the player this frame. ]]
+	RunSession.pickUpHearts()
 
 	--[[ Last, so a room is only ever declared clear after everything that
 	     could still kill something has had its turn this frame. ]]

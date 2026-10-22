@@ -2,11 +2,11 @@
 --[[
 	Target selection.
 
-	Archero auto-aims at the nearest enemy and does not care whether an obstacle
-	is in the way — the arrow is simply blocked. That is intentional: it means
-	cover is a damage penalty rather than a safety net, which is the asymmetry
-	the whole game rests on. So this picks by distance only. Do not add a
-	line-of-sight check here.
+	Plain nearest-by-distance, for what has no line of fire to worry about:
+	a ricochet or a chain picking its next enemy. The archer's own aim is
+	`Shared/Combat/Aim`, which prefers an enemy it can actually hit — the
+	owner changed that rule after playtest footage of arrows striking a pillar
+	beside a plainly visible enemy (2026-10-22).
 ]]
 
 export type Target = {

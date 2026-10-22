@@ -1120,6 +1120,17 @@ local Balance = {
 		wallMargin = 3,
 		-- How fast the camera catches up, as a per-second lerp factor.
 		followSharpness = 12,
+		--[[ A phone's framing, closer: "everything needs to be zoomed in on
+		     the phone" (owner, 2026-10-22). The desktop's numbers put the
+		     whole room on a six-inch screen. Held sideways, a phone shows 34
+		     studs of depth rather than 54 — 1.6× closer — and follows the
+		     player up and down the room for the rest; held upright, the
+		     floor fills about 87% of its width, the Archero 2 footage's
+		     framing, rather than 67%. ]]
+		phone = {
+			fitWidth = 40,
+			minVisibleDepth = 34,
+		},
 	},
 }
 

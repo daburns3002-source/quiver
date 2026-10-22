@@ -11,9 +11,11 @@
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
 local Workspace = game:GetService("Workspace")
 
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
+local CameraFit = require(ReplicatedStorage.Shared.Util.CameraFit)
 
 local TopDownCamera = {}
 
@@ -24,32 +26,22 @@ local shakeMagnitude = 0
 local shakeDecay = 0
 
 --[[
-	Where the camera sits relative to its focus, solved for this screen.
-
-	The distance is whatever makes `fitWidth` studs of ground span the screen
-	side to side, from the screen's own aspect — so a tall phone, a short
-	phone and a tablet all show the room's full width, which a fixed offset
-	can only do for one of them. On a landscape screen that would zoom right
-	in, so it never shows less depth than `minVisibleDepth`.
-
-	Recomputed every frame rather than cached, because the viewport changes
-	when a phone rotates or a window is resized, and the maths is four trig
-	calls.
+	Where the camera sits relative to its focus, solved for this screen by
+	`CameraFit` — a phone with its own, closer numbers. Recomputed every
+	frame rather than cached, because the viewport changes when a phone
+	rotates or a window is resized, and the maths is four trig calls.
 ]]
 local function cameraOffset(camera: Camera): Vector3
 	local config = Balance.Camera
 	local viewport = camera.ViewportSize
-	local aspect = if viewport.Y > 0 then viewport.X / viewport.Y else 9 / 16
-
-	local halfVertical = math.rad(config.fieldOfView) / 2
-	local tanHalfHorizontal = math.tan(halfVertical) * aspect
-
-	local toFitWidth = (config.fitWidth / 2) / tanHalfHorizontal
-	local toFitDepth = (config.minVisibleDepth / 2) / math.tan(halfVertical)
-	local distance = math.max(toFitWidth, toFitDepth)
-
-	local pitch = math.rad(config.pitch)
-	return Vector3.new(0, math.sin(pitch), math.cos(pitch)) * distance
+	local touchOnly = UserInputService.TouchEnabled and not UserInputService.MouseEnabled
+	local phone = CameraFit.isPhone(viewport, touchOnly)
+	return CameraFit.offset(viewport, {
+		pitch = config.pitch,
+		fieldOfView = config.fieldOfView,
+		fitWidth = if phone then config.phone.fitWidth else config.fitWidth,
+		minVisibleDepth = if phone then config.phone.minVisibleDepth else config.minVisibleDepth,
+	})
 end
 
 --[[

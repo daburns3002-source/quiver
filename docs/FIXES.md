@@ -16,6 +16,25 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## Arrows blocked by cover looked like they failed
+
+**Symptom** — a long-standing rough edge: an arrow that hit a pillar or a
+wall just vanished, so cover read as a bug rather than a rule.
+
+**Cause** — the only feedback was a ball the arrow's own width that faded in
+0.18 s — too small and too quick to notice in a busy fight.
+
+**Fix** — `ProjectileRenderer.spawnImpact`: a blocked player arrow now sticks
+in the surface for about half a second, quivering to a stop, with its tip
+buried 0.3 studs in. A ring flashes flat on the surface, and four chips fly
+back off it. Bounces get the ring and chips without the arrow. It is still
+not a hit effect: no number, nothing flashes.
+
+**Measured** — in 20 s of live play, 12 of 12 stuck arrows had the tip
+inside a blocker and the fletching outside it.
+
+---
+
 ## The walls flickered while moving
 
 **Symptom** — "the walls is clipping when moving". The side walls and the

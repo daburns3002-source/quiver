@@ -23,7 +23,6 @@ local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 local Workspace = game:GetService("Workspace")
 
-local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Device = require(script.Parent.Parent.Device)
 local ProjectileFlight = require(ReplicatedStorage.Shared.Combat.ProjectileFlight)
 local ShotPipeline = require(ReplicatedStorage.Shared.Combat.ShotPipeline)
@@ -88,9 +87,8 @@ type Pending = {
 local pending: { Pending } = {}
 local connection: RBXScriptConnection? = nil
 
---[[ Seconds an impact spark lives, and how many may exist at once. Short and
-     capped: it is a punctuation mark, not an effect. ]]
-local IMPACT_DURATION = 0.18
+--[[ How many wall impacts may be on screen at once. Capped: it is a
+     punctuation mark, not an effect. ]]
 local impacts = 0
 
 --[[
@@ -302,15 +300,48 @@ local function placeAt(position: Vector3, direction: Vector3): CFrame
 end
 
 --[[
-	A small spark where a shot stops against the arena.
+	What a shot does where it meets the arena.
 
 	Being blocked by cover is a rule of this game, not a malfunction, but an
 	arrow that disappears silently into a pillar looks exactly like one that
-	failed. This is the cheapest possible way to say "that was the wall" —
-	and it is deliberately not a hit effect, so it reads as *nothing
-	happened to anything* rather than as damage.
+	failed. A small fading ball here was not enough: playtest read cover as
+	a bug. So a blocked arrow now **sticks in the wall** for a moment, a ring
+	flashes flat on the surface it met, and a few chips fly off it. A bounce
+	gets the ring and chips but no arrow, because the arrow went on.
+
+	Deliberately not a hit effect: no number, no flash on anything, so it
+	reads as *the wall stopped it* rather than as damage.
 ]]
-local function spawnImpact(position: Vector3, normal: Vector3, faction: Faction)
+local STUCK_TIME = 0.55
+local STUCK_FADE = 0.25
+local RING_TIME = 0.3
+local CHIP_TIME = 0.28
+local CHIPS = 4
+local SHAFT_COLOUR = Color3.fromRGB(92, 60, 44)
+local FLETCH_COLOUR = Color3.fromRGB(226, 52, 60)
+
+local function effectPart(name: string, size: Vector3, colour: Color3): Part
+	local part = Instance.new("Part")
+	part.Name = name
+	part.Size = size
+	part.Anchored = true
+	part.CanCollide = false
+	part.CanQuery = false
+	part.CanTouch = false
+	part.CastShadow = false
+	part.Color = colour
+	part.Material = Enum.Material.SmoothPlastic
+	part.Parent = folder
+	return part
+end
+
+local function spawnImpact(
+	position: Vector3,
+	normal: Vector3,
+	direction: Vector3,
+	faction: Faction,
+	bounced: boolean
+)
 	local tier = Device.tier()
 
 	if impacts >= tier.maxDamageNumbers then
@@ -318,32 +349,91 @@ local function spawnImpact(position: Vector3, normal: Vector3, faction: Faction)
 	end
 
 	impacts += 1
-
-	local spark = Instance.new("Part")
-	spark.Name = "Impact"
-	spark.Shape = Enum.PartType.Ball
-	spark.Size = Vector3.one * (Balance.Projectile.radius * 2)
-	spark.Position = position + normal * 0.1
-	spark.Anchored = true
-	spark.CanCollide = false
-	spark.CanQuery = false
-	spark.CanTouch = false
-	spark.CastShadow = false
-	spark.Material = Enum.Material.Neon
-	spark.Color = if faction == "Enemy" then ENEMY_COLOUR else PLAYER_COLOUR
-	spark.Transparency = 0.2
-	spark.Parent = folder
-
-	TweenService:Create(spark, TweenInfo.new(IMPACT_DURATION, Enum.EasingStyle.Quad), {
-		Size = Vector3.one * (Balance.Projectile.radius * 5),
-		Transparency = 1,
-	}):Play()
-
-	task.delay(IMPACT_DURATION, function()
+	task.delay(STUCK_TIME + STUCK_FADE, function()
 		impacts -= 1
 	end)
 
-	Debris:AddItem(spark, IMPACT_DURATION)
+	local colour = if faction == "Enemy" then ENEMY_COLOUR else PLAYER_COLOUR
+	local surface = position + normal * 0.05
+
+	-- A ring flat on the surface: a thin cylinder whose axis is the normal.
+	local ring = effectPart("Impact", Vector3.new(0.05, 0.7, 0.7), colour)
+	ring.Shape = Enum.PartType.Cylinder
+	ring.Material = Enum.Material.Neon
+	ring.Transparency = 0.1
+	ring.CFrame = CFrame.lookAt(surface, surface + normal) * CFrame.Angles(0, math.rad(90), 0)
+	TweenService:Create(ring, TweenInfo.new(RING_TIME, Enum.EasingStyle.Quad), {
+		Size = Vector3.new(0.05, 2.4, 2.4),
+		Transparency = 1,
+	}):Play()
+	Debris:AddItem(ring, RING_TIME)
+
+	-- Chips thrown off the surface, back towards where the shot came from.
+	local across = normal:Cross(Vector3.yAxis)
+	if across.Magnitude < 1e-3 then
+		across = Vector3.xAxis
+	end
+	across = across.Unit
+	local up = across:Cross(normal).Unit
+
+	for index = 1, CHIPS do
+		local angle = (index / CHIPS) * 2 * math.pi + math.random() * 0.8
+		local spread = across * math.cos(angle) + up * math.sin(angle)
+		local chip = effectPart("Impact", Vector3.one * 0.22, colour)
+		chip.Material = Enum.Material.Neon
+		chip.CFrame = CFrame.new(surface)
+		local landing = surface + (normal * 1.1 + spread * 0.9) * (0.8 + math.random() * 0.6)
+		TweenService
+			:Create(
+				chip,
+				TweenInfo.new(CHIP_TIME, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+				{
+					CFrame = CFrame.new(landing)
+						* CFrame.Angles(math.random() * 3, math.random() * 3, 0),
+					Size = Vector3.one * 0.05,
+					Transparency = 1,
+				}
+			)
+			:Play()
+		Debris:AddItem(chip, CHIP_TIME)
+	end
+
+	--[[ The arrow itself, its tip buried a little way into the surface and
+	     quivering to a stop. Player arrows only: an orb has nothing to
+	     stick. ]]
+	if bounced or faction == "Enemy" or direction.Magnitude < 1e-3 then
+		return
+	end
+
+	local heading = direction.Unit
+	local length = 1.6
+	local nose = position + heading * 0.3
+	local shaft = effectPart("StuckArrow", Vector3.new(0.16, 0.16, length), SHAFT_COLOUR)
+	local fletch = effectPart("StuckArrow", Vector3.new(0.42, 0.06, 0.4), FLETCH_COLOUR)
+	local function place(wobble: number)
+		local tilt = CFrame.Angles(wobble, wobble * 0.6, 0)
+		local frame = CFrame.lookAt(nose, nose + heading) * tilt
+		shaft.CFrame = frame * CFrame.new(0, 0, length / 2)
+		fletch.CFrame = frame * CFrame.new(0, 0, length - 0.2)
+	end
+	place(0)
+
+	local started = os.clock()
+	local quiver: RBXScriptConnection
+	quiver = RunService.RenderStepped:Connect(function()
+		local age = os.clock() - started
+		if age > STUCK_TIME + STUCK_FADE or not shaft.Parent then
+			quiver:Disconnect()
+			shaft:Destroy()
+			fletch:Destroy()
+			return
+		end
+
+		place(math.sin(age * 55) * math.rad(7) * math.exp(-age * 9))
+		local fade = math.clamp((age - STUCK_TIME) / STUCK_FADE, 0, 1)
+		shaft.Transparency = fade
+		fletch.Transparency = fade
+	end)
 end
 
 --[[ What the drawn flight does at a contact. Every body counts — the client
@@ -357,9 +447,9 @@ local contact: ProjectileFlight.Contact = {
 		flight: ProjectileFlight.Flight,
 		position: Vector3,
 		normal: Vector3,
-		_bounced: boolean
+		bounced: boolean
 	)
-		spawnImpact(position, normal, flight.faction)
+		spawnImpact(position, normal, flight.direction, flight.faction, bounced)
 	end,
 	--[[ The same choice the server makes, from the models it can see. ]]
 	seek = function(flight: ProjectileFlight.Flight): Vector3?

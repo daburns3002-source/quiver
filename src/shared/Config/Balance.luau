@@ -131,7 +131,7 @@ local meleeCharger: EnemyConfig = {
 	--[[ Quick: it commits to a direction and turns hard to keep it. ]]
 	turnRate = 540,
 	health = 300,
-	moveSpeed = 2.3,
+	moveSpeed = 4.6,
 	-- Studs from the player at which it lands a hit.
 	attackRange = 4,
 	attackDamage = 56,
@@ -158,7 +158,7 @@ local spreadShooter: EnemyConfig = {
 	--[[ Moderate: it stands off and tracks. ]]
 	turnRate = 360,
 	health = 240,
-	moveSpeed = 1.6,
+	moveSpeed = 3.2,
 	--[[ Ranged enemies treat attackRange as the distance they want to hold,
 	     not the distance they close to. ]]
 	attackRange = 13.3,
@@ -208,7 +208,7 @@ local lineSniper: EnemyConfig = {
 	--[[ Deliberate: it swings round to line the lance up. ]]
 	turnRate = 240,
 	health = 200,
-	moveSpeed = 1.3,
+	moveSpeed = 2.6,
 	attackRange = 18.8,
 	attackDamage = 90,
 	attackCooldown = 3,
@@ -245,7 +245,7 @@ local tank: EnemyConfig = {
 	--[[ Ponderous. A quarter-turn takes a full second, which is what makes it read as heavy rather than as copying the player. ]]
 	turnRate = 90,
 	health = 1200,
-	moveSpeed = 1.1,
+	moveSpeed = 2.2,
 	attackRange = 5,
 	attackDamage = 100,
 	attackCooldown = 1.6,
@@ -276,7 +276,7 @@ local burrower: EnemyConfig = {
 	--[[ Moderate, and only ever seen turning above ground. ]]
 	turnRate = 360,
 	health = 260,
-	moveSpeed = 1.9,
+	moveSpeed = 3.8,
 	attackRange = 10.1,
 	attackDamage = 56,
 	attackCooldown = 2.4,

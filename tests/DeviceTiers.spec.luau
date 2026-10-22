@@ -87,6 +87,11 @@ return function(t: TestRunner.Helper)
 		end
 	end)
 
+	t.test("orb sparkles never rise on a weaker device", function()
+		t.isTrue(low.orbSparkleRate <= medium.orbSparkleRate, "Low sparkles more than Medium")
+		t.isTrue(medium.orbSparkleRate <= high.orbSparkleRate, "Medium sparkles more than High")
+	end)
+
 	t.test("the lowest tier does not pay for projectile trails", function()
 		t.isFalse(low.projectileTrails, "a low tier should not stream trails")
 	end)

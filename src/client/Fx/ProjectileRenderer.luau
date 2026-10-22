@@ -39,7 +39,10 @@ type Faction = Types.Faction
      rather than as objects, and at phone size a merely-coloured dart against a
      lit floor is close to invisible. ]]
 local PLAYER_COLOUR = Color3.fromRGB(255, 244, 196)
-local ENEMY_COLOUR = Color3.fromRGB(226, 182, 255)
+--[[ Archero 2's enemy orb: a saturated magenta that no floor in the game
+     shares, so incoming fire is the loudest colour on screen
+     (docs/ART-archero2.md §4). ]]
+local ENEMY_COLOUR = Color3.fromRGB(255, 72, 206)
 
 --[[ Studs of streak behind an arrow. Set as a length and turned into a
      lifetime per arrow, because at footage speed a fixed lifetime draws a
@@ -140,6 +143,29 @@ local function createPart(faction: Faction): BasePart
 		tail three or four times its own size. An orb's tail streams from its
 		middle rather than a nose, since a ball has no front.
 	]]
+	--[[ The footage's orbs shed small sparkles as they fly, which is half of
+	     what makes a slow shot readable as moving. Rate from the device
+	     tier; none at all on the lowest. ]]
+	if isOrb and tier.orbSparkleRate > 0 then
+		local sparkles = Instance.new("ParticleEmitter")
+		sparkles.Name = "Sparkles"
+		sparkles.Rate = tier.orbSparkleRate
+		sparkles.Lifetime = NumberRange.new(0.25, 0.45)
+		sparkles.Speed = NumberRange.new(0.5, 1.5)
+		sparkles.SpreadAngle = Vector2.new(180, 180)
+		sparkles.LightEmission = 1
+		sparkles.Color = ColorSequence.new(Color3.fromRGB(255, 200, 240))
+		sparkles.Size = NumberSequence.new({
+			NumberSequenceKeypoint.new(0, 0.28),
+			NumberSequenceKeypoint.new(1, 0),
+		})
+		sparkles.Transparency = NumberSequence.new({
+			NumberSequenceKeypoint.new(0, 0.1),
+			NumberSequenceKeypoint.new(1, 1),
+		})
+		sparkles.Parent = part
+	end
+
 	if tier.projectileTrails then
 		local size = ProjectileFlight.size(faction)
 		local nose = if isOrb then 0 else size.Z / 2

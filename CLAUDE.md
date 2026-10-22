@@ -5,6 +5,11 @@ Low poly, cross-platform, co-op-shaped.
 
 Run loop: `docs/RESEARCH-archero.md`. Meta loop: `docs/PROGRESSION.md`.
 Phase plan: `docs/ROADMAP.md`. Lobby spec: `docs/LOBBY.md`.
+**Classes and world: `docs/WORLD.md`** — since 2026-10-22 the game is three
+classes (Ranger, Arcanist, an unlockable melee class) across fifteen areas
+in five acts. A new title is being chosen; until then it stays "Arrow
+Legends". Nothing of it is built yet, and its open decisions are the
+owner's.
 
 **Bugs that shipped, and what fixed them: `docs/FIXES.md`.** Written to be
 found by symptom. Read it before debugging anything that sounds familiar, and

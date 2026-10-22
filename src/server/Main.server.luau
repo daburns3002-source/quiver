@@ -133,14 +133,17 @@ end)
      hand to redeal and a reroll to spend is the server's to decide. ]]
 --[[ Testing only: the next hand includes a Mythic. Honoured only when the
      game is running in Studio, so nothing a live client sends can use it. ]]
-Remotes.event(Remotes.DebugForceMythic).OnServerEvent:Connect(function(player)
+local FORCEABLE = { Mythic = true, Legendary = true }
+
+Remotes.event(Remotes.DebugForceMythic).OnServerEvent:Connect(function(player, rarity)
 	if not RunService:IsStudio() then
 		return
 	end
+	local wanted = if typeof(rarity) == "string" and FORCEABLE[rarity] then rarity else "Mythic"
 	local session = RunSession.get(player)
 	if session then
-		session.loadout.forceRarity = "Mythic"
-		log.info("%s queued a Mythic for the next hand (Studio)", player.Name)
+		session.loadout.forceRarity = wanted
+		log.info("%s queued a %s for the next hand (Studio)", player.Name, wanted)
 	end
 end)
 

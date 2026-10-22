@@ -121,6 +121,13 @@ local prompts: Frame? = nil
 
 local ACTIONS = { "DraftLeft", "DraftRight", "DraftChoose", "DraftReroll" }
 
+--[[ The panel's colour for this hand: blue, or gold when a Legendary is
+     dealt, or red when a Mythic is — the rarest card in the hand sets it,
+     so a big card announces itself before it is read. ]]
+local PANEL_LEGENDARY = Color3.fromRGB(226, 160, 34)
+local PANEL_MYTHIC = Color3.fromRGB(196, 32, 48)
+local panelBase = CardTheme.colors.panel
+
 local stepOverlay: (now: number) -> ()
 
 local onChosen: ((number) -> ())? = nil
@@ -828,7 +835,7 @@ stepOverlay = function(now: number)
 				)
 			end
 		end
-		p.BackgroundColor3 = CardTheme.colors.panel:Lerp(Color3.fromRGB(58, 8, 18), crimson)
+		p.BackgroundColor3 = panelBase:Lerp(Color3.fromRGB(58, 8, 18), crimson)
 	end
 end
 
@@ -1353,6 +1360,19 @@ function DraftScreen.show(offer: { string }, level: number, source: string?, rer
 	end
 
 	pick(nil)
+
+	local rarest = 0
+	for _, id in offer do
+		local ability = Abilities.byId[id]
+		local rarity = if ability then Rarities.byName[ability.rarity] else nil
+		if rarity then
+			rarest = math.max(rarest, rarity.tier)
+		end
+	end
+	panelBase = if rarest >= 6
+		then PANEL_MYTHIC
+		elseif rarest == 5 then PANEL_LEGENDARY
+		else CardTheme.colors.panel
 
 	local isPad = mode == "Gamepad"
 	if strip then

@@ -147,7 +147,8 @@ Remotes.PlayerDodged = "PlayerDodged"
 Remotes.AbilityReroll = "AbilityReroll"
 
 --[[ Client → server, testing only. Asks that the next hand include a
-     Mythic, so its reveal can be seen. The server ignores it outside Studio. ]]
+     Mythic (or a Legendary, if that is the one string sent), so its look
+     can be seen. The server ignores it outside Studio. ]]
 Remotes.DebugForceMythic = "DebugForceMythic"
 
 local function getFolder(): Folder

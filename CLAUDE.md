@@ -117,6 +117,12 @@ already has.
   ground rings drawn under enemies, not bodies. Unconfirmed — check which
   parts before fixing anything.
 
+**Studio test keys** (`client/DevKeys`, honoured by the server only in
+Studio): **M** — the next card hand includes a Mythic; **L** — a Legendary.
+From a probe, `Remotes.DebugForceMythic:FireServer("Legendary")` does the
+same without the MCP keyboard tool, which reports as a gamepad and flips the
+draft into its controller layout.
+
 **Testing over MCP, learned the hard way:**
 
 - `execute_luau` does **not** share the module `require` cache with the running

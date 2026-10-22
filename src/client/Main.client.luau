@@ -206,6 +206,8 @@ end)
 	A rejected choice simply leaves the offer open and the server re-sends it.
 ]]
 SkillBar.start()
+-- On screen through the whole run, not only under the draft.
+SkillBar.toCombat()
 DevKeys.start()
 
 DraftScreen.start(function(index: number)

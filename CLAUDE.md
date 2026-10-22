@@ -31,6 +31,10 @@ What exists and works, all verified in Studio rather than only by the gates:
   and the Mythic reveal, from `design_handoff_upgrade_cards`. `CardFrames` is
   generated from the design's `frames.json` by script — regenerate, never
   hand-edit. Images are uploaded; ids in `CardAssets`.
+  The skill bar stays at the bottom through the whole run (small in a
+  fight, `CardTheme.skillBar.combatScale`, full size under the draft), and
+  every pick plays the celebration — the card's icon flies into its slot —
+  on every device, not only phones (owner, 2026-10-22).
 - **The owner's end screens** (`client/UI/EndScreen`, `Config/EndScreen*`):
   Victory when the stage is finished, Defeat on death, from
   `design_handoff_end_screens` (2026-10-22). Stage, kills, time, health and

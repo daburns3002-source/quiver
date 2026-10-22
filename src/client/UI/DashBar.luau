@@ -63,7 +63,7 @@ function DashBar.start()
 	     other. ]]
 	local container = Instance.new("Frame")
 	container.AnchorPoint = Vector2.new(0.5, 1)
-	container.Position = UDim2.new(0.5, 0, 1, -52)
+	container.Position = UDim2.new(0.5, 0, 1, -114)
 	container.Size = UDim2.new(0.34, 0, 0, 12)
 	container.BackgroundColor3 = Color3.fromRGB(24, 26, 32)
 	container.BackgroundTransparency = 0.25

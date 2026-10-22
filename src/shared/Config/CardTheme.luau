@@ -57,6 +57,17 @@ local CardTheme = {
 		pipGap = 4,
 	},
 
+	skillBar = {
+		--[[ The tray's size during a fight, against its full size under the
+		     draft: about 62 px tall either way (104 px full on desktop, 86 on
+		     a phone), which is what the health and dash bars are lifted to
+		     clear (`HealthBar`, `DashBar`). ]]
+		combatScale = {
+			desktop = 0.6,
+			phone = 0.72,
+		},
+	},
+
 	--[[ The whole card's scale per input layout. ]]
 	scale = {
 		desktop = 1,
@@ -67,12 +78,10 @@ local CardTheme = {
 	timing = {
 		dealStagger = 0.095,
 		dealDuration = 0.56,
-		chooseDuration = 0.42,
-		chooseApplyAt = 0.44,
 		rerollDuration = 0.4,
 		holdToOpen = 0.48,
 		tooltipTime = 1.3,
-		touchChooseApplyAt = 1.56,
+		pickApplyAt = 1.56,
 		slotPop = 0.65,
 		mythicShake = 1.0,
 		mythicFlip = 0.6,

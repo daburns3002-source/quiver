@@ -3,7 +3,8 @@
 	The skills this run holds, in the order they were first taken
 	(design_handoff_upgrade_cards; README "Skill bar + long-press detail").
 
-	A dark tray of slots under the draft: each held skill as its icon in a
+	A dark tray of slots at the bottom of the screen, through the fight and
+	larger under the draft: each held skill as its icon in a
 	ring of its rarity, with its level beneath; the rest empty. Tap a slot
 	for its name; hold it to open its whole story in the detail panel. A
 	slot pops whenever its skill is taken or levelled.
@@ -380,6 +381,13 @@ function SkillBar.setVisible(visible: boolean, scale: number?)
 	if not visible then
 		DetailPanel.close()
 	end
+end
+
+--[[ Back at the bottom of the screen at its small fighting size, as it sits
+     between drafts. ]]
+function SkillBar.toCombat()
+	local sizes = CardTheme.skillBar.combatScale
+	SkillBar.setVisible(true, if isTouch() then sizes.phone else sizes.desktop)
 end
 
 --[[ Where a slot sits on screen, for a pick flying into it. ]]

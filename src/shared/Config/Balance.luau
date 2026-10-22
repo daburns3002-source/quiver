@@ -876,9 +876,9 @@ local Balance = {
 		"Healing").
 
 		**XP crystals.** A kill's XP is not credited when it dies. It drops as
-		crystals, which lie where the enemy fell and are all drawn in to their
-		owner when the wave or room clears, so the level-up comes between
-		fights rather than in the middle of one.
+		crystals, which lie where the enemy fell. Walk over your own to take
+		them early; whatever is left is drawn in to its owner when the wave or
+		room clears, so no XP is ever lost to where an enemy happened to die.
 
 		**Hearts.** A rare drop that waits on the floor until a player walks
 		over it, full health or not, and heals a share of max health.
@@ -888,6 +888,9 @@ local Balance = {
 		     Charger's 10 is two crystals, a Bulwark's 30 is four. ]]
 		xpPerCrystal = 8,
 		maxCrystalsPerKill = 4,
+		--[[ Studs from a crystal to the player that count as walking over
+		     it. Generous: crystals are small and the fight is busy. ]]
+		crystalRadius = 3,
 		--[[ How far from the body crystals scatter, in studs. ]]
 		crystalScatter = 2.2,
 		--[[ Seconds after a clear before the crystals are drawn in, so the

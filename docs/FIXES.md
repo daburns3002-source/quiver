@@ -16,6 +16,29 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## The walls flickered while moving
+
+**Symptom** — "the walls is clipping when moving". The side walls and the
+wall-top corners shimmered, only while the camera moved.
+
+**Cause** — z-fighting from the art pass's dressing. The lamp columns were
+exactly as thick as the side walls and centred on them, so each column's
+faces lay in the same planes as the wall's faces, in a different colour. The
+side wall caps ran the full room length and overlapped the end caps at all
+four corners, with their tops in one plane. Two opaque coplanar faces have no
+front; the renderer's answer flips as the view changes. (The default
+baseplate did the same to the floor in Phase 1 — see `clearDefaultBaseplate`.)
+
+**Fix** — the columns stand 0.2 studs proud of the wall on both faces, as
+pilasters, and the side caps stop where the end caps begin.
+
+**Measured** — a probe of the live arena for overlapping coplanar visible
+faces found 28 before (both faces of all ten columns against their walls,
+and the cap tops and ends at the corners) and 0 after.
+`Arena.spec` now fails if any two visible arena parts share a face.
+
+---
+
 ## Knocked-back enemies left their bodies behind
 
 **Symptom** — "the enemy models are not following the ring that is getting

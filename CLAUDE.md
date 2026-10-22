@@ -59,8 +59,8 @@ enemy hits kill the player — which replaced the owner's earlier "enemy
 health ×1.5". Damage numbers are white, red crits, orange burns.
 
 **XP crystals and hearts** (`Run/Pickups`, `Fx/PickupFx`): a kill's XP
-drops as cyan crystals that are drawn in when the wave or room clears, so
-level-ups come between fights. Hearts drop on 5% of kills and on every
+drops as cyan crystals; walk over your own to take them mid-fight, and any
+left are drawn in when the wave or room clears. Hearts drop on 5% of kills and on every
 Valkyrie wave, wait on the floor, and heal 20% of max health when walked
 over, full health or not.
 

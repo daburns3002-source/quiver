@@ -3,7 +3,8 @@
 	XP crystals and hearts on the floor (docs/ART-archero2.md §4).
 
 	Crystals are small cyan faceted gems that pop out of a kill, lie bobbing
-	where they land, and all fly into their owner when the fight clears.
+	where they land, and fly into their owner when walked over or, for any
+	left, when the fight clears.
 	Hearts are fat red hearts tilted to face the camera, waiting until someone
 	walks over them.
 

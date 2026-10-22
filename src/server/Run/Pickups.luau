@@ -159,6 +159,33 @@ function Pickups.collectCrystals(): { [Player]: number }
 	return owed
 end
 
+--[[ Takes `player`'s own crystals within reach of `position`, and returns
+     the XP they carried. Someone else's crystals stay where they are. ]]
+function Pickups.takeCrystals(player: Player, position: Vector3): number
+	local reach = Balance.Pickups.crystalRadius
+	local ids: { number } = {}
+	local xp = 0
+
+	for id, pickup in pickups do
+		if pickup.kind ~= "Crystal" or pickup.owner ~= player then
+			continue
+		end
+
+		local offset = pickup.position - position
+		if Vector2.new(offset.X, offset.Z).Magnitude <= reach then
+			pickups[id] = nil
+			table.insert(ids, id)
+			xp += pickup.xp
+		end
+	end
+
+	if #ids > 0 then
+		pickupsTaken:FireAllClients(ids, player)
+	end
+
+	return xp
+end
+
 --[[ Takes every heart within reach of `position` for `player`, and returns
      how many. ]]
 function Pickups.takeHearts(player: Player, position: Vector3): number

@@ -156,9 +156,12 @@ local function dress(root: Instance, obstacles: { Balance.Obstacle })
 		folder
 	)
 
-	-- Wall caps: a lighter bevel along the top of every wall.
+	-- Wall caps: a lighter bevel along the top of every wall. The side caps
+	-- stop where the end caps begin: overlapping at the corners, their tops
+	-- were one plane in two parts, which z-fights while the camera moves.
 	local thickness = config.wallThickness
 	local height = config.wallHeight
+	local sideCapLength = config.size.Z - 0.3
 	local caps = {
 		{
 			Vector3.new(config.size.X + thickness * 2 + 0.3, 0.5, thickness + 0.3),
@@ -169,11 +172,11 @@ local function dress(root: Instance, obstacles: { Balance.Obstacle })
 			Vector3.new(0, height + 0.25, extentZ + thickness / 2),
 		},
 		{
-			Vector3.new(thickness + 0.3, 0.5, config.size.Z),
+			Vector3.new(thickness + 0.3, 0.5, sideCapLength),
 			Vector3.new(-extentX - thickness / 2, height + 0.25, 0),
 		},
 		{
-			Vector3.new(thickness + 0.3, 0.5, config.size.Z),
+			Vector3.new(thickness + 0.3, 0.5, sideCapLength),
 			Vector3.new(extentX + thickness / 2, height + 0.25, 0),
 		},
 	}
@@ -181,7 +184,10 @@ local function dress(root: Instance, obstacles: { Balance.Obstacle })
 		decor("WallCap", cap[1], CFrame.new(cap[2]), config.wallCapColor, folder)
 	end
 
-	-- Orb lamps on columns along both side walls, inside the wall's own footprint.
+	-- Orb lamps on columns along both side walls: pilasters standing a little
+	-- proud of the wall on both faces. A column exactly as thick as the wall
+	-- shared its faces with it, and two coplanar faces in two colours flicker
+	-- whenever the camera moves.
 	local spacing = config.lampSpacing
 	local count = math.floor(config.size.Z / spacing)
 	for index = 0, count do
@@ -194,7 +200,7 @@ local function dress(root: Instance, obstacles: { Balance.Obstacle })
 			local columnX = side * (extentX + thickness / 2)
 			decor(
 				"LampColumn",
-				Vector3.new(thickness, height + 1.4, 1.8),
+				Vector3.new(thickness + 0.4, height + 1.4, 1.8),
 				CFrame.new(columnX, (height + 1.4) / 2, lampZ),
 				config.wallCapColor,
 				folder

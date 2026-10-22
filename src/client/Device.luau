@@ -14,6 +14,7 @@ local Workspace = game:GetService("Workspace")
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local CameraFit = require(ReplicatedStorage.Shared.Util.CameraFit)
 local DeviceTiers = require(ReplicatedStorage.Shared.Config.DeviceTiers)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
 
@@ -47,6 +48,19 @@ local function detect(): DeviceTiers.Tier
 	end
 
 	return DeviceTiers.Low
+end
+
+--[[ A phone, not a tablet or a computer: a touch screen whose short side is
+     small. Phones get their own, larger HUD and a closer camera.
+
+	 Read from the screen's size, not from which inputs are present: a phone
+	 reports none of mouse or keyboard, but Studio's phone emulator reports
+	 both as soon as the window has focus, and a check on them flipped the
+	 HUD back to the computer layout mid-run. ]]
+function Device.isPhone(): boolean
+	local camera = Workspace.CurrentCamera
+	local viewport = if camera then camera.ViewportSize else Vector2.new(1280, 720)
+	return CameraFit.isPhone(viewport, UserInputService.TouchEnabled)
 end
 
 function Device.tier(): DeviceTiers.Tier

@@ -22,6 +22,7 @@ local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 
 local Dash = require(script.Parent.Parent.Input.Dash)
+local HudLayout = require(script.Parent.HudLayout)
 
 local DashBar = {}
 
@@ -62,9 +63,6 @@ function DashBar.start()
 	     rather than as two unrelated widgets that happen to be near each
 	     other. ]]
 	local container = Instance.new("Frame")
-	container.AnchorPoint = Vector2.new(0.5, 1)
-	container.Position = UDim2.new(0.5, 0, 1, -114)
-	container.Size = UDim2.new(0.34, 0, 0, 12)
 	container.BackgroundColor3 = Color3.fromRGB(24, 26, 32)
 	container.BackgroundTransparency = 0.25
 	container.BorderSizePixel = 0
@@ -76,8 +74,14 @@ function DashBar.start()
 
 	local constraint = Instance.new("UISizeConstraint")
 	constraint.MinSize = Vector2.new(180, 10)
-	constraint.MaxSize = Vector2.new(460, 16)
 	constraint.Parent = container
+	HudLayout.bind(function(layout)
+		local place = layout.dash
+		container.AnchorPoint = place.anchor
+		container.Position = place.position
+		container.Size = place.size
+		constraint.MaxSize = Vector2.new(460, place.maxHeight)
+	end)
 
 	local bar = Instance.new("Frame")
 	bar.Name = "Fill"

@@ -29,6 +29,7 @@ local CardAssets = require(ReplicatedStorage.Shared.Config.CardAssets)
 local CardBuilder = require(script.Parent.CardBuilder)
 local CardTheme = require(ReplicatedStorage.Shared.Config.CardTheme)
 local DetailPanel = require(script.Parent.DetailPanel)
+local Device = require(script.Parent.Parent.Parent.Device)
 local Motion = require(script.Parent.Motion)
 local MythicReveal = require(script.Parent.MythicReveal)
 local PlayerStats = require(script.Parent.Parent.Parent.PlayerStats)
@@ -92,6 +93,14 @@ type Mode = "Mouse" | "Touch" | "Gamepad"
 local gui: ScreenGui? = nil
 local panel: Frame? = nil
 local panelScale: UIScale? = nil
+local buttonsFrame: Frame? = nil
+local buttonsList: UIListLayout? = nil
+--[[ On a phone the Choose and Reroll buttons stand to the right of the
+     hand, not under it, and the skill bar stays off the draft until a pick
+     is confirmed: a phone held sideways has width to spare and no height,
+     and both of those were costing the cards their size. ]]
+local PHONE_BUTTON_COLUMN = 210
+local PHONE_MARGIN = 8
 local cardRow: Frame? = nil
 local title: TextLabel? = nil
 local subtitle: TextLabel? = nil
@@ -464,6 +473,10 @@ local function confirm()
 	     flies into the skill bar before the pick is applied. The design drew
 	     this for phones; the owner asked for it on every device. ]]
 	leaving = { kind = "Celebrate", at = os.clock(), picked = index }
+	-- A phone's bar was kept off the draft; it comes up now for the icon.
+	if Device.isPhone() then
+		SkillBar.toCombat()
+	end
 
 	local slot = slots[index]
 	local words, tag, icon = headline, tagline, flyer
@@ -533,25 +546,58 @@ local function layoutPanel(count: number)
 		return
 	end
 
-	local width = count * CARD.X + (count - 1) * gap() + 2 * 70
-	local height = 40 + 70 + CROWN_ROOM + CARD.Y + 50 + 76 + 30
-	p.Size = UDim2.fromOffset(math.max(width, 460), height)
-	row.Size = UDim2.fromOffset(width, CARD.Y)
-	rowWidth = width
-
-	-- Fit the whole panel to the screen, never above design size.
 	local camera = Workspace.CurrentCamera
 	local viewport = if camera then camera.ViewportSize else Vector2.new(1280, 720)
+	local phone = Device.isPhone()
+	--[[ Held sideways the buttons go beside the hand, for height; held
+	     upright they stay under it, for width. ]]
+	local column = phone and viewport.X >= viewport.Y
+	-- A phone keeps little padding at the panel's sides (room for the NEW
+	-- sticker over the last card); a computer 70.
+	local sidePad = if phone then 36 else 70
+	local width = count * CARD.X + (count - 1) * gap() + 2 * sidePad
+	local panelWidth = math.max(width, if phone then 400 else 460)
+		+ (if column then PHONE_BUTTON_COLUMN else 0)
+	local height = 40 + 70 + CROWN_ROOM + CARD.Y + (if column then 40 else 50 + 76 + 30)
+	p.Size = UDim2.fromOffset(panelWidth, height)
+	row.Size = UDim2.fromOffset(width, CARD.Y)
+	row.Position =
+		UDim2.new(0.5, if column then -PHONE_BUTTON_COLUMN / 2 else 0, 0, 40 + 70 + CROWN_ROOM)
+	rowWidth = width
+
+	local b, list = buttonsFrame, buttonsList
+	if b and list then
+		if column then
+			b.AnchorPoint = Vector2.new(1, 0.5)
+			b.Position = UDim2.new(1, -30, 0, 40 + 70 + CROWN_ROOM + CARD.Y / 2)
+			b.Size = UDim2.fromOffset(170, 52 * 2 + 20)
+			list.FillDirection = Enum.FillDirection.Vertical
+			list.VerticalAlignment = Enum.VerticalAlignment.Center
+		else
+			b.AnchorPoint = Vector2.new(0.5, 1)
+			b.Position = UDim2.new(0.5, 0, 1, -30)
+			b.Size = UDim2.fromOffset(400, 52)
+			list.FillDirection = Enum.FillDirection.Horizontal
+		end
+	end
+
+	-- Fit the whole panel to the screen, never above design size.
+	local margin = if phone then PHONE_MARGIN else 32
+	local barRoom = if phone then 0 else BAR_ROOM
 	local scale =
-		math.min(1, (viewport.X - 32) / math.max(width, 460), (viewport.Y - 32 - BAR_ROOM) / height)
+		math.min(1, (viewport.X - margin) / panelWidth, (viewport.Y - margin - barRoom) / height)
 	scale = math.max(scale, 0.3)
 	local s = panelScale
 	if s then
 		s.Scale = scale
 	end
-	-- Lifted clear of the skill bar beneath it.
-	p.Position = UDim2.new(0.5, 0, 0.5, -BAR_ROOM * scale / 2)
-	SkillBar.setVisible(true, scale)
+	-- Lifted clear of the skill bar beneath it, where there is one.
+	p.Position = UDim2.new(0.5, 0, 0.5, -barRoom * scale / 2)
+	if phone then
+		SkillBar.setVisible(false)
+	else
+		SkillBar.setVisible(true, scale)
+	end
 end
 
 local function buildSlot(index: number, id: string, count: number, now: number): Slot
@@ -1123,6 +1169,7 @@ function DraftScreen.start(chosen: (number) -> (), rerolled: () -> ())
 	cardRow = row
 
 	local buttons = Instance.new("Frame")
+	buttonsFrame = buttons
 	buttons.Name = "Buttons"
 	buttons.BackgroundTransparency = 1
 	buttons.AnchorPoint = Vector2.new(0.5, 1)
@@ -1135,6 +1182,7 @@ function DraftScreen.start(chosen: (number) -> (), rerolled: () -> ())
 	list.SortOrder = Enum.SortOrder.LayoutOrder
 	list.Padding = UDim.new(0, 20)
 	list.Parent = buttons
+	buttonsList = list
 
 	local rerollB = button(buttons, "Reroll", "Reroll 2", CardTheme.colors.reroll, 150);
 	(rerollB.Parent :: Frame).LayoutOrder = 1

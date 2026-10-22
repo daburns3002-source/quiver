@@ -16,6 +16,27 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## Phone layout flipped back to the computer one mid-run
+
+**Symptom** — in Studio's phone emulator the HUD came up in its phone
+layout, then a draft opened at the computer's size and the health bar
+jumped back to the bottom centre.
+
+**Cause** — "is this a phone" read the input flags: touch and no mouse,
+then touch and no keyboard. The emulator reports touch only at first, then
+mouse *and* keyboard as soon as the Studio window has focus, so the answer
+changed under a running game.
+
+**Fix** — `Device.isPhone` is a touch screen whose short side is under 600
+points (`CameraFit.isPhone`): the screen's size, which the emulator and a
+real phone agree on.
+
+**Measured** — in the emulator at 401 × 778, the phone layout held through
+a whole draft: health 300 × 30, skill bar 307 × 77, cards 82 × 202 against
+67 × 165 before.
+
+---
+
 ## Player killed again behind the end screen
 
 **Symptom** — the server log read "died" twice for one death, the second

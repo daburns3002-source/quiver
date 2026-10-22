@@ -23,13 +23,13 @@ export type Framing = {
 	minVisibleDepth: number,
 }
 
---[[ A phone, not a tablet or a computer: touch first, and a short side
+--[[ A phone, not a tablet or a computer: a touch screen with a short side
      under this many points. Roblox reports phone screens around 390 tall in
      landscape and tablets from about 768. ]]
 CameraFit.PHONE_SHORT_SIDE = 600
 
-function CameraFit.isPhone(viewport: Vector2, touchOnly: boolean): boolean
-	return touchOnly and math.min(viewport.X, viewport.Y) < CameraFit.PHONE_SHORT_SIDE
+function CameraFit.isPhone(viewport: Vector2, touch: boolean): boolean
+	return touch and math.min(viewport.X, viewport.Y) < CameraFit.PHONE_SHORT_SIDE
 end
 
 --[[ The camera's offset from its focus, for `framing` on a `viewport`. ]]

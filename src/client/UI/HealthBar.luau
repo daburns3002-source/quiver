@@ -11,6 +11,8 @@
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 
+local HudLayout = require(script.Parent.HudLayout)
+
 local HealthBar = {}
 
 local fill: Frame? = nil
@@ -35,16 +37,8 @@ function HealthBar.start()
 	gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
 	local container = Instance.new("Frame")
-	--[[
-		Anchored to the bottom centre and sized in scale, so it lands in the
-		same place on a phone and a desktop without a per-device branch. Sits
-		above the mobile thumbstick rather than under the player's thumb, and
-		above the skill bar, which takes the bottom 78 px through a fight
-		(16 margin + its ~62 px combat size, `CardTheme.skillBar`).
-	]]
-	container.AnchorPoint = Vector2.new(0.5, 1)
-	container.Position = UDim2.new(0.5, 0, 1, -86)
-	container.Size = UDim2.new(0.34, 0, 0, 22)
+	--[[ Placed by `HudLayout` for this screen (`Config/Hud`): above the
+	     skill bar on a computer, beside it on a phone held sideways. ]]
 	container.BackgroundColor3 = Color3.fromRGB(24, 26, 32)
 	container.BackgroundTransparency = 0.25
 	container.BorderSizePixel = 0
@@ -56,8 +50,14 @@ function HealthBar.start()
 
 	local constraint = Instance.new("UISizeConstraint")
 	constraint.MinSize = Vector2.new(180, 18)
-	constraint.MaxSize = Vector2.new(460, 28)
 	constraint.Parent = container
+	HudLayout.bind(function(layout)
+		local place = layout.health
+		container.AnchorPoint = place.anchor
+		container.Position = place.position
+		container.Size = place.size
+		constraint.MaxSize = Vector2.new(460, place.maxHeight)
+	end)
 
 	local bar = Instance.new("Frame")
 	bar.Name = "Fill"

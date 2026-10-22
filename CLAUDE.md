@@ -37,7 +37,7 @@ What exists and works, all verified in Studio rather than only by the gates:
   generated from the design's `frames.json` by script — regenerate, never
   hand-edit. Images are uploaded; ids in `CardAssets`.
   The skill bar stays at the bottom through the whole run (small in a
-  fight, `CardTheme.skillBar.combatScale`, full size under the draft), and
+  fight, `Config/Hud`, full size under the draft), and
   every pick plays the celebration — the card's icon flies into its slot —
   on every device, not only phones (owner, 2026-10-22).
   Card motion follows Balatro (`DraftScreen`, `FOLLOW_K`/`FOLLOW_D`):
@@ -89,6 +89,12 @@ What exists and works, all verified in Studio rather than only by the gates:
   **Phones are framed closer** (`Balance.Camera.phone`, `Util/CameraFit`):
   1.6× closer held sideways, 1.3× upright, still showing the floor's full
   width. Studio cannot emulate a phone over MCP, so `CameraFit.spec` pins it.
+  **The phone UI is larger too** (`Device.isPhone`, `Config/Hud`,
+  `UI/HudLayout`): held sideways, health, dash and a 0.9× skill bar share
+  one bottom row and the draft puts Choose and Reroll beside the hand;
+  held upright they stack, fitted to the width, above the thumbstick and
+  dash button. The draft keeps the skill bar off until a pick is confirmed,
+  and end screens take 97% of the height and 98% of the width.
 
 The numbers in `Config/Balance` are the last ones asked for or measured, not
 settled ones. **Damage is on Archero 2's scale** (docs/RESEARCH-archero2.md
@@ -187,6 +193,10 @@ draft into its controller layout.
 - To move the character from a probe, call `Humanoid:Move` from
   `RunService.Stepped`: `MoveController` resets it every RenderStepped, and
   a teleport does not count as moving for the move-or-shoot rule.
+- **Studio's phone emulator can be used for layout checks**, but its input
+  flags lie: touch only at first, then mouse and keyboard too once the
+  window has focus. Detect a phone by screen size (`Device.isPhone`), never
+  by which inputs are present. It cannot be rotated over MCP.
 - `VirtualInputManager:SendKeyEvent` and `Lighting.Technology` are capability
   blocked from `execute_luau`, so synthetic key input is not available.
 - `rojo serve` does not reload structural changes to `default.project.json`.

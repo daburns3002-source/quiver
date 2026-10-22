@@ -61,6 +61,10 @@ type Enemy = {
 	health: number,
 	maxHealth: number,
 	position: Vector3,
+	--[[ Studs a second this enemy is being shoved, by hits. Decays to rest
+	     over `Balance.Knockback.slideTime`, so a hit reads as a push rather
+	     than the one-frame jump it used to be. ]]
+	knockbackVelocity: Vector3,
 	lastAttackAt: number,
 	--[[ `os.clock()` at which a telegraphed volley actually leaves, or nil
 	     when this enemy is not winding one up. ]]
@@ -123,6 +127,10 @@ local enemyTelegraph = Remotes.event(Remotes.EnemyTelegraph)
 
 --[[ Studs enemies try to keep between each other, so a wave reads as a group
      rather than one overlapping blob. ]]
+--[[ How many time constants fit in `Balance.Knockback.slideTime`: three, so
+     a shove is 95% spent by the end of it. ]]
+local KNOCKBACK_SETTLE = 3
+
 local SEPARATION_DISTANCE = 3.5
 local SEPARATION_STRENGTH = 6
 
@@ -358,6 +366,7 @@ function EnemyManager.spawn(config: EnemyConfig, extraDelay: number?): Model?
 		health = config.health,
 		maxHealth = config.health,
 		position = position,
+		knockbackVelocity = Vector3.zero,
 		lastAttackAt = 0,
 		volleyAt = nil,
 		volleyDirection = nil,
@@ -459,15 +468,24 @@ function EnemyManager.damage(
 
 	enemy.health -= amount
 
+	--[[ The shove is a velocity that slides off over `slideTime`, not a
+	     jump: an instant two-stud teleport was too quick to see, which made
+	     hits read as weightless. Started at `distance · k` so the slide covers
+	     exactly the archetype's `knockback` before it rests. Further hits add
+	     to it, up to twice one hit's worth, so a volley pushes harder without
+	     flinging anything across the room. ]]
 	local knockbackDirection = if fromPosition then enemy.position - fromPosition else Vector3.zero
 	if knockbackDirection.Magnitude > 1e-3 then
 		local flat = Vector3.new(knockbackDirection.X, 0, knockbackDirection.Z).Unit
-		enemy.position = Arena.resolveBox(
-			enemy.position + flat * enemy.config.knockback,
-			footprint(enemy.config, enemy.yaw)
-		)
-		positions[model] = enemy.position
-		enemy.hitbox.Position = enemy.position
+		local rate = KNOCKBACK_SETTLE / Balance.Knockback.slideTime
+		local impulse = enemy.config.knockback * rate
+		local combined = enemy.knockbackVelocity + flat * impulse
+
+		if combined.Magnitude > impulse * 2 then
+			combined = combined.Unit * impulse * 2
+		end
+
+		enemy.knockbackVelocity = combined
 	end
 
 	if enemy.health > 0 then
@@ -585,6 +603,28 @@ end
 	are open, and an enemy that beelines is readable in a way one that
 	navigates is not.
 ]]
+--[[
+	Moves an enemy along whatever shove it is carrying and lets it decay.
+	Integrated exactly for exponential decay, so the distance a hit pushes is
+	the same at 30 fps as at 144.
+]]
+local function slide(enemy: Enemy, deltaTime: number)
+	local velocity = enemy.knockbackVelocity
+	if velocity.Magnitude < 1e-2 or enemy.submerged then
+		enemy.knockbackVelocity = Vector3.zero
+		return
+	end
+
+	local rate = KNOCKBACK_SETTLE / Balance.Knockback.slideTime
+	local decay = math.exp(-rate * deltaTime)
+	local moved = velocity * (1 - decay) / rate
+
+	enemy.knockbackVelocity = velocity * decay
+	enemy.position = Arena.resolveBox(enemy.position + moved, footprint(enemy.config, enemy.yaw))
+	positions[enemy.model] = enemy.position
+	enemy.hitbox.Position = enemy.position
+end
+
 local function stepEnemy(enemy: Enemy, deltaTime: number, now: number)
 	local arrivesAt = enemy.arrivesAt
 	if arrivesAt then
@@ -595,6 +635,8 @@ local function stepEnemy(enemy: Enemy, deltaTime: number, now: number)
 		enemy.arrivesAt = nil
 		setArriving(enemy, false)
 	end
+
+	slide(enemy, deltaTime)
 
 	local targetRoot, distance = nearestAlivePlayerRoot(enemy.position)
 	if not targetRoot then
@@ -1034,8 +1076,8 @@ end
 	server loop.
 
 	It used to run at the end of `step`, before projectiles were resolved.
-	But a hit knocks its enemy back two studs, into whatever stands behind
-	it, and that happened after separation had already run for the frame —
+	But a hit shoves its enemy back, into whatever stands behind it, and that
+	happened after separation had already run for the frame —
 	so the overlap stood until the next one. One playtest caught a body 1.8
 	studs inside another. Running this after everything that can move an
 	enemy means nothing is left overlapping at the end of a frame.

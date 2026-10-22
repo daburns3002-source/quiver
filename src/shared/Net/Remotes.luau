@@ -135,6 +135,17 @@ Remotes.PickupsCleared = "PickupsCleared"
      for this many seconds. ]]
 Remotes.PlayerRevived = "PlayerRevived"
 
+--[[ Server → all clients. A Soul Chain link: from the enemy hit, to each of
+     these. ]]
+Remotes.SoulLink = "SoulLink"
+
+--[[ Server → one client. A hit on this player missed: Agility. ]]
+Remotes.PlayerDodged = "PlayerDodged"
+
+--[[ Client → server. Redeal the open hand. The server checks there is a
+     hand and a reroll left; the client says nothing else. ]]
+Remotes.AbilityReroll = "AbilityReroll"
+
 local function getFolder(): Folder
 	if RunService:IsServer() then
 		local existing = ReplicatedStorage:FindFirstChild(FOLDER_NAME)

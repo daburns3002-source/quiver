@@ -154,7 +154,9 @@ return function(t: TestRunner.Helper)
 			homing = 0,
 			delay = 0,
 			burn = 0,
-			chainOnKill = 0,
+			burnDuration = 0,
+			farBonus = 0,
+			link = 0,
 		})
 
 		t.near((aimed - direction).Magnitude, 0, 1e-9)
@@ -181,7 +183,9 @@ return function(t: TestRunner.Helper)
 			homing = 0,
 			delay = 0,
 			burn = 0,
-			chainOnKill = 0,
+			burnDuration = 0,
+			farBonus = 0,
+			link = 0,
 		})
 
 		t.near((moved - origin).Magnitude, 0, 1e-9)
@@ -206,7 +210,9 @@ return function(t: TestRunner.Helper)
 			homing = 0,
 			delay = 0,
 			burn = 0,
-			chainOnKill = 0,
+			burnDuration = 0,
+			farBonus = 0,
+			link = 0,
 		})
 
 		--[[ Exactly the offset, and none of it forwards: an arrow that
@@ -234,7 +240,9 @@ return function(t: TestRunner.Helper)
 			homing = 0,
 			delay = 0,
 			burn = 0,
-			chainOnKill = 0,
+			burnDuration = 0,
+			farBonus = 0,
+			link = 0,
 		})
 
 		t.near(aimed.Magnitude, 1, 1e-6, "rotation must not change length")

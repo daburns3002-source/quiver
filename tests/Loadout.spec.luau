@@ -121,7 +121,7 @@ return function(t: TestRunner.Helper)
 	t.test("an ability at its cap stops being offered", function()
 		local state = Loadout.new()
 		local capped = Abilities.byId.RearArrow
-		state.counts[capped.id] = capped.maxStacks
+		state.counts[capped.id] = #capped.levels
 
 		t.equal(Loadout.remaining(state, capped), 0)
 
@@ -184,11 +184,11 @@ return function(t: TestRunner.Helper)
 	     shows it would be lying about what the player assembled. ]]
 	t.test("instant abilities are not held", function()
 		local state = Loadout.new()
-		state.counts.Mending = 2
+		state.counts.Heal = 2
 		state.counts.Strength = 1
 
 		local held = Loadout.held(state)
-		t.isNil(held.Mending, "a consumed heal is being held")
+		t.isNil(held.Heal, "a consumed heal is being held")
 		t.equal(held.Strength, 1)
 	end)
 
@@ -275,7 +275,7 @@ return function(t: TestRunner.Helper)
 
 		local heal, stat = false, false
 		for _, id in offer :: { string } do
-			if id == "Mending" then
+			if id == "Heal" then
 				heal = true
 			elseif Abilities.byId[id] and Abilities.byId[id].category == "Stats" then
 				stat = true
@@ -298,5 +298,71 @@ return function(t: TestRunner.Helper)
 			#Abilities.all >= Progression.offerCount,
 			"fewer abilities exist than a single draft offers"
 		)
+	end)
+	--[[ Weighted by rarity: over many hands a Common turns up far more
+	     often than a Mythic. Counted, not computed, so the test holds the
+	     draw itself rather than restating its formula. ]]
+	t.test("common cards are dealt more often than mythic ones", function()
+		local seen: { [string]: number } = {}
+		local random = Random.new(11)
+		for _ = 1, 400 do
+			for _, id in Loadout.rollOffer(Loadout.new(), true, random) do
+				local rarity = Abilities.byId[id].rarity
+				seen[rarity] = (seen[rarity] or 0) + 1
+			end
+		end
+
+		t.isTrue(
+			(seen.Common or 0) > (seen.Mythic or 0) * 3,
+			"Mythic cards come up as often as Common"
+		)
+	end)
+
+	t.test("a hand never holds the same card twice, nor a filler card", function()
+		local random = Random.new(5)
+		for _ = 1, 200 do
+			local hand = Loadout.rollOffer(Loadout.new(), true, random)
+			local seen: { [string]: boolean } = {}
+			for _, id in hand do
+				t.isNil(seen[id], `{id} was dealt twice in one hand`)
+				t.isFalse(Abilities.byId[id].filler == true, `{id} is filler, dealt by rarity`)
+				seen[id] = true
+			end
+		end
+	end)
+
+	t.test("a reroll redeals the hand and spends one reroll", function()
+		local state = Loadout.new()
+		levelUp(state)
+		t.notNil(Loadout.openOffer(state, false, dice()))
+		local before = state.rerolls
+
+		t.notNil(Loadout.reroll(state, false, dice()))
+		t.equal(state.rerolls, before - 1)
+		t.equal(#(state.offer :: { string }), Progression.offerCount)
+	end)
+
+	t.test("no reroll without a hand, or with none left", function()
+		local state = Loadout.new()
+		t.isNil(Loadout.reroll(state, false, dice()), "rerolled with no hand open")
+
+		levelUp(state)
+		Loadout.openOffer(state, false, dice())
+		state.rerolls = 0
+		t.isNil(Loadout.reroll(state, false, dice()), "rerolled with none left")
+	end)
+
+	t.test("a short hand is topped up with a heal only when hurt", function()
+		local state = Loadout.new()
+		for _, ability in Abilities.all do
+			if not ability.filler then
+				state.counts[ability.id] = #ability.levels
+			end
+		end
+
+		t.equal(#Loadout.rollOffer(state, true, dice()), 0, "a heal was dealt at full health")
+		local hurt = Loadout.rollOffer(state, false, dice())
+		t.equal(#hurt, 1)
+		t.equal(hurt[1], "Heal")
 	end)
 end

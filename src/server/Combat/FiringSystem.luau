@@ -14,6 +14,7 @@
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local AbilityEffects = require(ReplicatedStorage.Shared.Combat.AbilityEffects)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local EnemyManager = require(script.Parent.Parent.Enemies.EnemyManager)
 local ProjectileSystem = require(script.Parent.ProjectileSystem)
@@ -31,7 +32,7 @@ local FiringSystem = {}
 local shotFired = Remotes.event(Remotes.ShotFired)
 
 --[[
-	How much Momentum is paying out right now.
+	How much Overdraw is paying out right now.
 
 	Charges from the moment the player stopped moving, which is the same
 	instant the archer starts its settle timer — so the ability rewards
@@ -39,8 +40,8 @@ local shotFired = Remotes.event(Remotes.ShotFired)
 	staying still is dangerous. Returns 1 without the ability, so the caller
 	never needs to know whether it was drafted.
 ]]
-local function momentumScale(session: Session, now: number): number
-	if session.momentumBonus <= 0 then
+local function overdrawScale(session: Session, now: number): number
+	if session.overdrawBonus <= 0 then
 		return 1
 	end
 
@@ -49,8 +50,8 @@ local function momentumScale(session: Session, now: number): number
 		return 1
 	end
 
-	local charge = math.clamp((now - since) / Balance.Player.momentumRamp, 0, 1)
-	return 1 + session.momentumBonus * charge
+	local charge = math.clamp((now - since) / Balance.Player.overdrawRamp, 0, 1)
+	return 1 + session.overdrawBonus * charge
 end
 
 local function fire(session: Session, root: BasePart, now: number)
@@ -68,10 +69,10 @@ local function fire(session: Session, root: BasePart, now: number)
 
 	local origin = Vector3.new(root.Position.X, root.Position.Y, root.Position.Z)
 
-	local momentum = momentumScale(session, now)
+	local overdraw = overdrawScale(session, now)
 
 	local specs = session.pipeline:build({
-		damage = session.damage * momentum,
+		damage = session.damage * overdraw,
 		speed = Balance.Projectile.speed,
 		lifetime = Balance.Projectile.lifetime,
 		origin = origin,
@@ -90,7 +91,7 @@ local function fire(session: Session, root: BasePart, now: number)
 			direction = aim,
 			speed = spec.speed,
 			lifetime = spec.lifetime,
-			damage = session.damage * spec.damageScale * momentum,
+			damage = session.damage * spec.damageScale * overdraw,
 			pierce = spec.pierce,
 			critChance = spec.critChance,
 			critMultiplier = spec.critMultiplier,
@@ -101,7 +102,9 @@ local function fire(session: Session, root: BasePart, now: number)
 			homing = spec.homing,
 			delay = spec.delay,
 			burn = spec.burn,
-			chainOnKill = spec.chainOnKill,
+			burnDuration = spec.burnDuration,
+			farBonus = spec.farBonus,
+			link = spec.link,
 			--[[ The run that fired it, so the kill credits the right player's
 			     draft even if the arrow outlives their current session. ]]
 			owner = session.player,
@@ -150,9 +153,16 @@ function FiringSystem.step(_deltaTime: number, now: number)
 			continue
 		end
 
-		--[[ From the session, not from Balance: Precision shortens it, and the
-		     loadout recomputes it on every grant. ]]
-		if now - session.lastFiredAt < session.attackCooldown then
+		--[[ From the session, and through Momentum, which shortens it for a
+		     while after the player stops. The client asks the same question
+		     of `AbilityEffects.cooldownAt`, so its prediction keeps time. ]]
+		local cooldown = AbilityEffects.cooldownAt(
+			session.attackCooldown,
+			session.momentumBonus,
+			session.movedFor,
+			now - (session.stationarySince or now)
+		)
+		if now - session.lastFiredAt < cooldown then
 			continue
 		end
 

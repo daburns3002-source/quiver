@@ -554,10 +554,27 @@ local Balance = {
 			rather than as a blink, which matters because a player who cannot
 			see where they went cannot aim the next one.
 		]]
-		--[[ Seconds of standing still before Momentum reaches its full bonus.
+		--[[ Seconds of standing still before Overdraw reaches its full bonus.
 		     Long enough that it is a commitment, short enough that it pays
 		     inside a single volley exchange. ]]
-		momentumRamp = 2.5,
+		overdrawRamp = 2.5,
+
+		--[[ Every archer crits sometimes, so Deadly Strike (crit damage) is
+		     worth something before Precision (crit chance) is drafted. ]]
+		critChance = 0.05,
+		critMultiplier = 2,
+
+		--[[
+			Momentum: "attack speed rises while moving". Nothing fires on the
+			move here, so the speed is banked by moving and spent after:
+			having moved for at least `windup` seconds, the first `duration`
+			seconds of shooting after you stop fire faster. Rewards stepping
+			out of a shot and answering straight back.
+		]]
+		momentum = {
+			windup = 0.5,
+			duration = 2,
+		},
 
 		dash = {
 			distance = 4,
@@ -627,12 +644,24 @@ local Balance = {
 		     towards. Under the archer's targeting range, so it bends shots
 		     at the fight rather than hunting across the room. ]]
 		homingRange = 20,
-		--[[ Seconds between Double Shot's volleys. Our number, not the
-		     footage's — Double Shot is never drafted in the reference video.
-		     Short enough that the pair reads as one attack; long enough
-		     that the second arrow is a second chance at a target that
-		     moved. Held under the fastest fire rate by `Balance.spec`. ]]
-		doubleShotInterval = 0.12,
+		--[[ Seconds between Multishot's volleys. Short enough that they read
+		     as one attack; long enough that the next arrow is a second chance
+		     at a target that moved. Held under the fastest fire rate by
+		     `Balance.spec`. ]]
+		multishotInterval = 0.12,
+		--[[ Radians between the arrows of Double Shot's narrow spread. ]]
+		doubleShotSpread = math.rad(9),
+		--[[ Radians between the arrows of a second Rear or Side arrow. ]]
+		extraArrowSpread = math.rad(12),
+		--[[ Where Diagonal Arrows' second pair flies, from the aim. ]]
+		wideDiagonalAngle = math.rad(45),
+		--[[ Studs an arrow must travel for Long Shot's full bonus. About half
+		     the room's length: point-blank shots get nothing extra. ]]
+		farRange = 30,
+		--[[ Soul Chain: the share of a hit each linked enemy takes, and how
+		     far from the one hit a link reaches. ]]
+		linkShare = 0.5,
+		linkRange = 10,
 		--[[
 			Half the width of the drawn arrow, and half the width of the box
 			the server sweeps. These two numbers are the hitbox *and* the
@@ -705,9 +734,18 @@ local Balance = {
 		slideTime = 0.25,
 	},
 
+	--[[ Blaze. How long a burn lasts is the card's level; `rate` is the
+	     share of the arrow's damage it burns for each second. ]]
 	Burn = {
-		duration = 2,
+		rate = 0.2,
 		tick = 0.5,
+	},
+
+	--[[ The draft (docs/RESEARCH-archero2.md; the upgrade card design).
+	     Cards are dealt weighted by rarity (`Config/Rarities`), and a run
+	     may redeal a hand this many times. ]]
+	Draft = {
+		rerollsPerRun = 2,
 	},
 
 	--[[

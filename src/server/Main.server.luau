@@ -129,6 +129,15 @@ Remotes.event(Remotes.AbilityChosen).OnServerEvent:Connect(function(player, inde
 	RunSession.chooseAbility(session, index)
 end)
 
+--[[ The client asks for a redeal. It sends nothing else: whether there is a
+     hand to redeal and a reroll to spend is the server's to decide. ]]
+Remotes.event(Remotes.AbilityReroll).OnServerEvent:Connect(function(player)
+	local session = RunSession.get(player)
+	if session then
+		RunSession.reroll(session)
+	end
+end)
+
 RunService.Heartbeat:Connect(function(deltaTime: number)
 	local now = os.clock()
 
@@ -154,6 +163,8 @@ RunService.Heartbeat:Connect(function(deltaTime: number)
 	--[[ Crystals and hearts are taken by walking over them, so after
 	     everything that moves the player this frame. ]]
 	RunSession.pickUpFloor()
+	--[[ Mending. ]]
+	RunSession.regenerate(deltaTime, now)
 
 	--[[ Last, so a room is only ever declared clear after everything that
 	     could still kill something has had its turn this frame. ]]

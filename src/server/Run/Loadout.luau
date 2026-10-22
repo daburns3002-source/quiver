@@ -17,7 +17,9 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Abilities = require(ReplicatedStorage.Shared.Config.Abilities)
+local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Progression = require(ReplicatedStorage.Shared.Config.Progression)
+local Rarities = require(ReplicatedStorage.Shared.Config.Rarities)
 
 type Ability = Abilities.Ability
 
@@ -44,6 +46,8 @@ export type State = {
 	--[[ Levels gained but not yet offered. A player who levels twice from one
 	     kill gets two cards in sequence, not one card and a lost level. ]]
 	pendingLevels: number,
+	--[[ Redeals left this run. ]]
+	rerolls: number,
 }
 
 local function costForLevel(level: number): number
@@ -59,6 +63,7 @@ function Loadout.new(): State
 		offer = nil,
 		offerSource = nil,
 		pendingLevels = 0,
+		rerolls = Balance.Draft.rerollsPerRun,
 	}
 end
 
@@ -90,9 +95,9 @@ function Loadout.excluded(state: State, ability: Ability): boolean
 	return false
 end
 
---[[ How many more copies of an ability this run may still take. ]]
+--[[ How many more levels of an ability this run may still take. ]]
 function Loadout.remaining(state: State, ability: Ability): number
-	return ability.maxStacks - (state.counts[ability.id] or 0)
+	return #ability.levels - (state.counts[ability.id] or 0)
 end
 
 --[[
@@ -127,21 +132,18 @@ function Loadout.addXp(state: State, amount: number): number
 end
 
 --[[
-	The abilities that may legally be offered right now.
-
-	`atFullHealth` suppresses the pure heal. A card that does nothing is worse
-	than a card that is merely bad — it makes the draft feel like it is not
-	paying attention, which is exactly when a player stops reading it.
+	The skills that may legally be dealt right now: under their cap, not
+	excluded by something held, and not a filler card.
 ]]
-local function candidates(state: State, atFullHealth: boolean): { Ability }
+local function candidates(state: State): { Ability }
 	local out: { Ability } = {}
 
 	for _, ability in Abilities.all do
-		if Loadout.remaining(state, ability) <= 0 then
+		if ability.filler then
 			continue
 		end
 
-		if ability.instant and atFullHealth then
+		if Loadout.remaining(state, ability) <= 0 then
 			continue
 		end
 
@@ -155,16 +157,22 @@ local function candidates(state: State, atFullHealth: boolean): { Ability }
 	return out
 end
 
+--[[ A card's chance of being dealt, relative to the others: its rarity's
+     weight. ]]
+function Loadout.weight(ability: Ability): number
+	local rarity = Rarities.byName[ability.rarity]
+	return if rarity then rarity.weight else 0
+end
+
 --[[
-	Rolls the cards for one level.
+	Deals the cards for one hand: `size` different skills, each drawn with a
+	chance in proportion to its rarity's weight, so Commons come up most and
+	a Mythic rarely.
 
-	Variety is preferred but never enforced: the roll takes one ability per
-	category first, and only then fills from whatever is left. A hard rule
-	would be worse — late in a run most categories are capped out, and refusing
-	to offer anything is a far bigger failure than offering two of a kind.
-
-	Returns an empty list when nothing can legally be offered, which the caller
-	must treat as "no card this level" rather than as an error.
+	A hand the pool cannot fill is topped up with the Heal card, unless the
+	player is at full health — a card that does nothing is worse than a
+	smaller hand. Returns an empty list when nothing at all can be dealt,
+	which the caller treats as "no card this level", not as an error.
 ]]
 function Loadout.rollOffer(
 	state: State,
@@ -173,43 +181,31 @@ function Loadout.rollOffer(
 	size: number?
 ): { string }
 	local wanted = size or Progression.offerCount
-	local pool = candidates(state, atFullHealth)
-
-	if #pool == 0 then
-		return {}
-	end
-
-	--[[ Shuffled once, then read in order. Drawing randomly with retries can
-	     loop for a long time when the pool is nearly exhausted. ]]
-	for index = #pool, 2, -1 do
-		local swap = random:NextInteger(1, index)
-		pool[index], pool[swap] = pool[swap], pool[index]
-	end
-
+	local pool = candidates(state)
 	local picked: { string } = {}
-	local usedCategory: { [string]: boolean } = {}
 
-	for _, ability in pool do
-		if #picked >= wanted then
-			break
-		end
-		if usedCategory[ability.category] then
-			continue
+	while #picked < wanted and #pool > 0 do
+		local total = 0
+		for _, ability in pool do
+			total += Loadout.weight(ability)
 		end
 
-		usedCategory[ability.category] = true
-		table.insert(picked, ability.id)
+		local roll = random:NextNumber() * total
+		local chosen = #pool
+		for index, ability in pool do
+			roll -= Loadout.weight(ability)
+			if roll <= 0 then
+				chosen = index
+				break
+			end
+		end
+
+		table.insert(picked, pool[chosen].id)
+		table.remove(pool, chosen)
 	end
 
-	for _, ability in pool do
-		if #picked >= wanted then
-			break
-		end
-		if table.find(picked, ability.id) then
-			continue
-		end
-
-		table.insert(picked, ability.id)
+	if #picked < wanted and not atFullHealth then
+		table.insert(picked, Abilities.byId.Heal.id)
 	end
 
 	return picked
@@ -264,8 +260,8 @@ end
 --[[
 	An Angel's offer, as Archero 2 has it: a minor stat boost or a heal. The
 	stat is any Stats ability still under its cap and not excluded; the heal
-	is Mending. Either side may be missing late in a run — the other is still
-	offered alone rather than nothing at all.
+	is the Heal card. The stat may be missing late in a run — the heal is
+	still offered alone rather than nothing at all.
 ]]
 function Loadout.openAngel(state: State, random: Random): { string }?
 	if state.offer then
@@ -286,10 +282,7 @@ function Loadout.openAngel(state: State, random: Random): { string }?
 		table.insert(offer, stats[random:NextInteger(1, #stats)])
 	end
 
-	local heal = Abilities.byId.Mending
-	if heal and Loadout.remaining(state, heal) > 0 then
-		table.insert(offer, heal.id)
-	end
+	table.insert(offer, Abilities.byId.Heal.id)
 
 	if #offer == 0 then
 		return nil
@@ -298,6 +291,30 @@ function Loadout.openAngel(state: State, random: Random): { string }?
 	state.offer = offer
 	state.offerSource = "Angel"
 	return offer
+end
+
+--[[
+	Redeals the open hand, spending one of the run's rerolls. Returns the new
+	hand, or nil when there is no hand open or no reroll left — the client
+	asks, and this is where the asking stops.
+
+	Only a dealt hand redeals. An Angel's stat-or-heal is a fixed choice, so
+	it stays what it is.
+]]
+function Loadout.reroll(state: State, atFullHealth: boolean, random: Random): { string }?
+	local offer = state.offer
+	if not offer or state.rerolls <= 0 or state.offerSource == "Angel" then
+		return nil
+	end
+
+	local hand = Loadout.rollOffer(state, atFullHealth, random, #offer)
+	if #hand == 0 then
+		return nil
+	end
+
+	state.rerolls -= 1
+	state.offer = hand
+	return hand
 end
 
 --[[

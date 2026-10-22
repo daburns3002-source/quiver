@@ -33,7 +33,9 @@ local function baseSpec(): Types.ShotSpec
 		homing = 0,
 		delay = 0,
 		burn = 0,
-		chainOnKill = 0,
+		burnDuration = 0,
+		farBonus = 0,
+		link = 0,
 	}
 end
 

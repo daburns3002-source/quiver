@@ -114,7 +114,7 @@ return function(t: TestRunner.Helper)
 		end
 
 		local reach = narrowest / 2 + Balance.Projectile.radius
-		local capped = Abilities.byId.FrontArrow.maxStacks
+		local capped = #Abilities.byId.FrontArrow.levels
 
 		for _, spec in volley({ FrontArrow = capped }) do
 			t.isTrue(
@@ -173,61 +173,59 @@ return function(t: TestRunner.Helper)
 		end
 	end)
 
-	t.test("Swift Arrows and Long Shot change flight, not count", function()
+	t.test("Swift Arrows and Long Shot change flight and payoff, not count", function()
 		local plain = volley({})
 		local swift = volley({ SwiftArrows = 1 })
 		local long = volley({ LongShot = 1 })
 
 		t.equal(#swift, #plain, "Swift Arrows changed the arrow count")
 		t.isTrue(swift[1].speed > plain[1].speed, "Swift Arrows did not speed anything up")
-		t.isTrue(long[1].lifetime > plain[1].lifetime, "Long Shot did not extend anything")
+		t.equal(plain[1].farBonus, 0)
+		t.isTrue(long[1].farBonus > 0, "Long Shot set no bonus for range")
+		t.isTrue(volley({ LongShot = 2 })[1].farBonus > long[1].farBonus, "level 2 added nothing")
 	end)
 
-	t.test("crit only exists once a chance has been drafted", function()
-		t.near(volley({})[1].critChance, 0, 1e-9)
-
-		local deadly = volley({ DeadlyStrike = 1 })
-		t.isTrue(deadly[1].critChance > 0, "Deadly Strike granted no chance to crit")
-	end)
-
-	--[[ Overdraw is deliberately worthless on its own. That is the trap, and
-	     it is only fair if the card that enables it is also offered. ]]
-	t.test("Overdraw does nothing without a chance to crit", function()
-		t.near(volley({ Overdraw = 3 })[1].critChance, 0, 1e-9)
-
-		local both = volley({ DeadlyStrike = 1, Overdraw = 2 })
-		local alone = volley({ DeadlyStrike = 1 })
+	t.test("every arrow can crit a little, and Precision raises the chance", function()
+		local plain = volley({})[1]
+		t.near(plain.critChance, Balance.Player.critChance, 1e-9)
 
 		t.isTrue(
-			both[1].critMultiplier > alone[1].critMultiplier,
-			"Overdraw did not raise the payoff"
+			volley({ Precision = 1 })[1].critChance > plain.critChance,
+			"Precision granted no extra chance"
 		)
 	end)
 
+	t.test("Deadly Strike raises what a crit is worth, not how often", function()
+		local plain = volley({})[1]
+		local deadly = volley({ DeadlyStrike = 2 })[1]
+
+		t.near(deadly.critChance, plain.critChance, 1e-9, "Deadly Strike changed the chance")
+		t.isTrue(deadly.critMultiplier > plain.critMultiplier, "Deadly Strike raised nothing")
+	end)
+
 	t.test("crit chance never exceeds certainty", function()
-		local specs = volley({ DeadlyStrike = 99 })
+		local specs = volley({ Precision = 99 })
 		t.isTrue(specs[1].critChance <= 1, "crit chance went above 1")
 	end)
 
-	t.test("stats compound and never go backwards", function()
+	t.test("stats grow and never go backwards", function()
 		local none = AbilityEffects.serverStats({})
-		local some = AbilityEffects.serverStats({ Strength = 2, Vitality = 2, Precision = 2 })
+		local some = AbilityEffects.serverStats({ Strength = 2, Vitality = 2 })
 
 		t.isTrue(some.damage > none.damage, "Strength did not raise damage")
 		t.isTrue(some.maxHealth > none.maxHealth, "Vitality did not raise health")
-		t.isTrue(some.attackCooldown < none.attackCooldown, "Precision did not shorten the gap")
 	end)
 
-	t.test("client stats compound and never go backwards", function()
+	t.test("Lightfoot makes the archer faster", function()
 		local none = AbilityEffects.clientStats({})
-		local some = AbilityEffects.clientStats({ Agility = 2, Lightfoot = 2 })
+		local some = AbilityEffects.clientStats({ Lightfoot = 2 })
 
-		t.isTrue(some.moveSpeed > none.moveSpeed, "Agility did not raise move speed")
-		t.isTrue(some.dashCooldown < none.dashCooldown, "Lightfoot did not shorten the dash")
+		t.isTrue(some.moveSpeed > none.moveSpeed, "Lightfoot did not raise move speed")
 	end)
 
-	t.test("only Mending heals", function()
-		t.isTrue(AbilityEffects.instantHeal("Mending", 100) > 0, "Mending healed nothing")
+	t.test("only the Heal card heals on the spot", function()
+		t.isTrue(AbilityEffects.instantHeal("Heal", 100) > 0, "Heal healed nothing")
+		t.equal(AbilityEffects.instantHeal("Mending", 100), 0)
 		t.equal(AbilityEffects.instantHeal("Strength", 100), 0)
 	end)
 
@@ -292,13 +290,11 @@ return function(t: TestRunner.Helper)
 	end)
 
 	t.test("the client predicts the same firing rhythm as the server", function()
-		local counts = { Precision = 3 }
-		t.near(
-			AbilityEffects.clientStats(counts).attackCooldown,
-			AbilityEffects.serverStats(counts).attackCooldown,
-			1e-9,
-			"the client would fire at a different rate from the server"
-		)
+		local counts = { Momentum = 2 }
+		local client = AbilityEffects.clientStats(counts)
+		local server = AbilityEffects.serverStats(counts)
+		t.near(client.attackCooldown, server.attackCooldown, 1e-9, "a different base rate")
+		t.near(client.momentumBonus, server.momentumBonus, 1e-9, "a different Momentum")
 	end)
 
 	--[[ The server goes on mutating its own counts after sending them. ]]
@@ -350,12 +346,12 @@ return function(t: TestRunner.Helper)
 		t.equal(volley({ BouncyWall = 1 })[1].ricochet, 0, "Bouncy Wall ricochets")
 	end)
 
-	--[[ Double Shot repeats a volley in time, not in space: the copies share
+	--[[ Multishot repeats a volley in time, not in space: the copies share
 	     the first volley's aim and lane and differ only in when they leave. ]]
-	t.test("Double Shot repeats the volley later, along the same aim", function()
+	t.test("Multishot repeats the volley later, along the same aim", function()
 		local plain = volley({ FrontArrow = 1 })
-		local doubled = volley({ FrontArrow = 1, DoubleShot = 1 })
-		t.equal(#doubled, #plain * 2, "Double Shot did not repeat every arrow")
+		local doubled = volley({ FrontArrow = 1, Multishot = 1 })
+		t.equal(#doubled, #plain * 2, "Multishot did not repeat every arrow")
 
 		local now, later = 0, 0
 		for _, spec in doubled do
@@ -375,9 +371,25 @@ return function(t: TestRunner.Helper)
 		end
 
 		t.isTrue(
-			#volley({ DoubleShot = 2 }) > #volley({ DoubleShot = 1 }),
-			"a second stack added nothing"
+			#volley({ Multishot = 2 }) > #volley({ Multishot = 1 }),
+			"a second level added nothing"
 		)
+	end)
+
+	--[[ Double Shot is a narrow fan: the arrows leave together, at small
+	     angles either side of the aim. ]]
+	t.test("Double Shot fans arrows narrowly around the aim", function()
+		local specs = volley({ DoubleShot = 1 })
+		t.equal(#specs, Abilities.byId.DoubleShot.levels[1], "the spread has the wrong count")
+
+		local total = 0
+		for _, spec in specs do
+			t.equal(spec.delay, 0, "a spread arrow left late")
+			t.isTrue(math.abs(spec.angleOffset) < math.rad(20), "the spread is not narrow")
+			total += spec.angleOffset
+		end
+		t.near(total, 0, 1e-9, "the spread is lopsided")
+		t.isTrue(#volley({ DoubleShot = 2 }) > #specs, "a second level added nothing")
 	end)
 
 	t.test("Blaze sets every arrow burning, and nothing else does", function()
@@ -385,11 +397,12 @@ return function(t: TestRunner.Helper)
 
 		for index, spec in volley({ FrontArrow = 2, DiagonalArrows = 1, Blaze = 1 }) do
 			t.isTrue(spec.burn > 0, `arrow {index} does not burn`)
+			t.isTrue(spec.burnDuration > 0, `arrow {index} burns for no time`)
 		end
 
 		t.isTrue(
-			volley({ Blaze = 2 })[1].burn > volley({ Blaze = 1 })[1].burn,
-			"a second Blaze added nothing"
+			volley({ Blaze = 2 })[1].burnDuration > volley({ Blaze = 1 })[1].burnDuration,
+			"a second level burned no longer"
 		)
 
 		for _, ability in Abilities.all do
@@ -446,15 +459,18 @@ return function(t: TestRunner.Helper)
 			math.abs(specs[2].angleOffset) > math.rad(10),
 			"diagonals so narrow they land on the same enemy"
 		)
+
+		t.equal(#volley({ DiagonalArrows = 2 }), 5, "the second level should add two more")
 	end)
 
-	t.test("Soul Chain arms a kill, and stacks", function()
-		t.equal(volley({})[1].chainOnKill, 0)
-		t.isTrue(volley({ SoulChain = 1 })[1].chainOnKill > 0, "Soul Chain armed nothing")
+	t.test("Soul Chain links more enemies each level", function()
+		t.equal(volley({})[1].link, 0)
+		t.isTrue(volley({ SoulChain = 1 })[1].link > 0, "Soul Chain linked nothing")
 		t.isTrue(
-			volley({ SoulChain = 2 })[1].chainOnKill > volley({ SoulChain = 1 })[1].chainOnKill,
-			"a second Soul Chain added nothing"
+			volley({ SoulChain = 2 })[1].link > volley({ SoulChain = 1 })[1].link,
+			"a second level linked no more"
 		)
+		t.isTrue(Balance.Projectile.linkShare < 1, "a linked enemy takes the whole hit")
 	end)
 
 	t.test("the behaviour cards reach every arrow in a wide volley", function()
@@ -474,29 +490,75 @@ return function(t: TestRunner.Helper)
 		end
 	end)
 
-	t.test("Bloodthirst, Second Wind and Momentum reach the server stats", function()
+	t.test("the vital and power cards reach the server stats", function()
 		local none = AbilityEffects.serverStats({})
 		t.equal(none.healPerKill, 0)
-		t.isFalse(none.secondWind, "a fresh run starts with a free life")
+		t.equal(none.regenPerSecond, 0)
+		t.equal(none.dodgeChance, 0)
+		t.equal(none.secondWind, 0, "a fresh run starts with a free life")
+		t.equal(none.overdrawBonus, 0)
 		t.equal(none.momentumBonus, 0)
 
 		local some = AbilityEffects.serverStats({
 			Bloodthirst = 2,
+			Mending = 1,
+			Agility = 1,
 			SecondWind = 1,
+			Overdraw = 2,
 			Momentum = 2,
 		})
 		t.isTrue(some.healPerKill > 0, "Bloodthirst heals nothing")
-		t.isTrue(some.secondWind, "Second Wind was not granted")
+		t.isTrue(some.regenPerSecond > 0, "Mending regenerates nothing")
+		t.isTrue(some.dodgeChance > 0, "Agility dodges nothing")
+		t.isTrue(some.secondWind > 0 and some.secondWind < 1, "Second Wind revives at no share")
+		t.isTrue(some.overdrawBonus > 0, "Overdraw adds nothing")
 		t.isTrue(some.momentumBonus > 0, "Momentum adds nothing")
 	end)
 
-	--[[ Momentum multiplies damage by `1 + bonus` at full charge, so a bonus
-	     at or above 1 means standing still doubles output — past that it stops
-	     being a reward and becomes the only way to play. ]]
-	t.test("Momentum at full stacks is a bonus, not a requirement", function()
-		local capped = Abilities.byId.Momentum.maxStacks
-		local bonus = AbilityEffects.serverStats({ Momentum = capped }).momentumBonus
+	--[[ Overdraw multiplies damage by `1 + bonus` at full charge. Past
+	     about doubling, standing still stops being a reward and becomes the
+	     only way to play. ]]
+	t.test("Overdraw at its top level is a bonus, not a requirement", function()
+		local levels = Abilities.byId.Overdraw.levels
+		local bonus = AbilityEffects.serverStats({ Overdraw = #levels }).overdrawBonus
 		t.isTrue(bonus < 1.5, `standing still would multiply damage by {1 + bonus}`)
+	end)
+
+	--[[ Momentum pays only after real movement, and only for a while after
+	     stopping — banked by moving, spent on the shots after. ]]
+	t.test("Momentum quickens fire only after moving, and only for a while", function()
+		local cooldown = Balance.Player.attackCooldown
+		local bonus = Abilities.byId.Momentum.levels[1]
+		local momentum = Balance.Player.momentum
+
+		t.equal(AbilityEffects.cooldownAt(cooldown, 0, 99, 0), cooldown, "no card, no change")
+		t.isTrue(
+			AbilityEffects.cooldownAt(cooldown, bonus, momentum.windup + 0.1, 0) < cooldown,
+			"moving then stopping did not quicken fire"
+		)
+		t.equal(
+			AbilityEffects.cooldownAt(cooldown, bonus, momentum.windup * 0.5, 0),
+			cooldown,
+			"a twitch counted as moving"
+		)
+		t.equal(
+			AbilityEffects.cooldownAt(cooldown, bonus, 99, momentum.duration + 0.1),
+			cooldown,
+			"Momentum never ran out"
+		)
+	end)
+
+	t.test("every card's level count matches its stat lines", function()
+		for _, ability in Abilities.all do
+			t.equal(#ability.stats, #ability.levels, `{ability.id} has stats for the wrong levels`)
+			t.isTrue(#ability.levels >= 1, `{ability.id} has no levels`)
+			for index = 2, #ability.levels do
+				t.isTrue(
+					ability.levels[index] > ability.levels[index - 1],
+					`{ability.id} level {index} is no better than level {index - 1}`
+				)
+			end
+		end
 	end)
 
 	t.test("count runs before pattern", function()

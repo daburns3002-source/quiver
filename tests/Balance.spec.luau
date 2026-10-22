@@ -489,20 +489,19 @@ return function(t: TestRunner.Helper)
 		are tuned separately, so the relationship has to be held here or it
 		drifts the next time either one moves.
 	]]
-	--[[ Double Shot's last repeat has to leave before the next volley does,
-	     at the fastest fire rate Precision allows, or the volleys overlap and
-	     the pair stops reading as one attack. ]]
-	t.test("Double Shot finishes before the next volley at full Precision", function()
-		local fastest = AbilityEffects.serverStats({
-			Precision = Abilities.byId.Precision.maxStacks,
-		}).attackCooldown
-		local lastRepeat = Balance.Projectile.doubleShotInterval
-			* Abilities.byId.DoubleShot.value
-			* Abilities.byId.DoubleShot.maxStacks
+	--[[ Multishot's last repeat has to leave before the next volley does,
+	     at the fastest fire rate Momentum allows, or the volleys overlap and
+	     the repeats stop reading as one attack. ]]
+	t.test("Multishot finishes before the next volley at full Momentum", function()
+		local counts = { Momentum = #Abilities.byId.Momentum.levels }
+		local stats = AbilityEffects.serverStats(counts)
+		local fastest = AbilityEffects.cooldownAt(stats.attackCooldown, stats.momentumBonus, 99, 0)
+		local multishot = Abilities.byId.Multishot.levels
+		local lastRepeat = Balance.Projectile.multishotInterval * multishot[#multishot]
 
 		t.isTrue(
 			lastRepeat < fastest,
-			`Double Shot's last repeat leaves at {lastRepeat}s, after the next volley at {fastest}s`
+			`Multishot's last repeat leaves at {lastRepeat}s, after the next volley at {fastest}s`
 		)
 	end)
 
@@ -510,15 +509,12 @@ return function(t: TestRunner.Helper)
 	     full stacks has to be worth less than the hit that lit it. And a burn
 	     must last long enough to tick at all. ]]
 	t.test("a whole burn is worth less than the hit that lit it", function()
-		local blaze = Abilities.byId.Blaze
-		local perHit = blaze.value * blaze.maxStacks * Balance.Burn.duration
+		local levels = Abilities.byId.Blaze.levels
+		local perHit = Balance.Burn.rate * levels[#levels]
 
-		t.isTrue(perHit < 1, `a full-stack burn deals {perHit}x the arrow that lit it`)
+		t.isTrue(perHit < 1, `a full-level burn deals {perHit}x the arrow that lit it`)
 		t.isTrue(Balance.Burn.tick > 0, "a burn needs a positive tick")
-		t.isTrue(
-			Balance.Burn.tick <= Balance.Burn.duration,
-			"a burn runs out before its first tick"
-		)
+		t.isTrue(Balance.Burn.tick <= levels[1], "a burn runs out before its first tick")
 	end)
 
 	--[[

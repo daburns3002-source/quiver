@@ -425,6 +425,94 @@ function HitFeedback.onExplosion(position: Vector3, radius: number)
 end
 
 --[[
+	Soul Chain: a glowing link from the enemy hit to each enemy sharing the
+	hit, gone in a moment. Drawn as thin neon bars at body height, so it
+	reads as a chain between bodies rather than a mark on the floor.
+]]
+local LINK_COLOUR = Color3.fromRGB(190, 120, 255)
+local LINK_DURATION = 0.28
+
+function HitFeedback.onSoulLink(from: Vector3, reached: { Vector3 })
+	if typeof(reached) ~= "table" then
+		return
+	end
+
+	for _, to in reached do
+		if typeof(to) ~= "Vector3" then
+			continue
+		end
+
+		local a = Vector3.new(from.X, 1.6, from.Z)
+		local b = Vector3.new(to.X, 1.6, to.Z)
+		local length = (b - a).Magnitude
+		if length < 1e-3 then
+			continue
+		end
+
+		local bar = Instance.new("Part")
+		bar.Name = "SoulLink"
+		bar.Size = Vector3.new(0.22, 0.22, length)
+		bar.CFrame = CFrame.lookAt((a + b) / 2, b)
+		bar.Anchored = true
+		bar.CanCollide = false
+		bar.CanQuery = false
+		bar.CanTouch = false
+		bar.CastShadow = false
+		bar.Material = Enum.Material.Neon
+		bar.Color = LINK_COLOUR
+		bar.Parent = folder
+
+		TweenService:Create(bar, TweenInfo.new(LINK_DURATION, Enum.EasingStyle.Quad), {
+			Size = Vector3.new(0.05, 0.05, length),
+			Transparency = 1,
+		}):Play()
+		Debris:AddItem(bar, LINK_DURATION)
+	end
+end
+
+--[[ Agility: a hit missed. A word over the player, so a dodge reads as the
+     card working rather than as the enemy missing by luck. ]]
+function HitFeedback.onPlayerDodged()
+	local character = Players.LocalPlayer.Character
+	local root = character and character:FindFirstChild("HumanoidRootPart")
+	if not root or not root:IsA("BasePart") then
+		return
+	end
+
+	local billboard = Instance.new("BillboardGui")
+	billboard.Name = "Dodge"
+	billboard.Adornee = root
+	billboard.AlwaysOnTop = true
+	billboard.LightInfluence = 0
+	billboard.Size = UDim2.fromScale(4, 1)
+	billboard.StudsOffset = Vector3.new(0, 3, 0)
+
+	local label = Instance.new("TextLabel")
+	label.Size = UDim2.fromScale(1, 1)
+	label.BackgroundTransparency = 1
+	label.Font = Enum.Font.GothamBlack
+	label.Text = "DODGE!"
+	label.TextScaled = true
+	label.TextColor3 = Color3.fromRGB(150, 230, 255)
+	label.TextStrokeTransparency = 0
+	label.Parent = billboard
+	billboard.Parent = root
+
+	TweenService:Create(billboard, TweenInfo.new(0.6, Enum.EasingStyle.Quad), {
+		StudsOffset = Vector3.new(0, 5, 0),
+	}):Play()
+	TweenService:Create(
+		label,
+		TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In, 0, false, 0.3),
+		{
+			TextTransparency = 1,
+			TextStrokeTransparency = 1,
+		}
+	):Play()
+	Debris:AddItem(billboard, 0.6)
+end
+
+--[[
 	The player has been hit by something.
 
 	Three cues, because one is not enough on a phone: the character turns red,

@@ -151,6 +151,8 @@ Remotes.event(Remotes.EnemyTelegraph).OnClientEvent:Connect(TelegraphRenderer.on
 Remotes.event(Remotes.EnemyHit).OnClientEvent:Connect(HitFeedback.onEnemyHit)
 Remotes.event(Remotes.EnemyDied).OnClientEvent:Connect(HitFeedback.onEnemyDied)
 Remotes.event(Remotes.Explosion).OnClientEvent:Connect(HitFeedback.onExplosion)
+Remotes.event(Remotes.SoulLink).OnClientEvent:Connect(HitFeedback.onSoulLink)
+Remotes.event(Remotes.PlayerDodged).OnClientEvent:Connect(HitFeedback.onPlayerDodged)
 Remotes.event(Remotes.PickupDropped).OnClientEvent:Connect(PickupFx.onDropped)
 Remotes.event(Remotes.PickupsTaken).OnClientEvent:Connect(PickupFx.onTaken)
 Remotes.event(Remotes.PickupsCleared).OnClientEvent:Connect(PickupFx.onCleared)
@@ -201,15 +203,19 @@ AbilityCards.start(function(index: number)
 	AbilityCards.hide()
 	RunPaused.set(false)
 	Remotes.event(Remotes.AbilityChosen):FireServer(index)
+end, function()
+	--[[ Asks only. The server decides whether a reroll is left and sends the
+	     new hand as an ordinary offer. ]]
+	Remotes.event(Remotes.AbilityReroll):FireServer()
 end)
 
 Remotes.event(Remotes.AbilityOffer).OnClientEvent
-	:Connect(function(offer: { string }, level: number, source: string?)
+	:Connect(function(offer: { string }, level: number, source: string?, rerolls: number?)
 		--[[ Paused alongside the server, which stops the run for a draft. Without
 	     this the prediction draws volleys across a frozen room that the server
 	     never fired. ]]
 		RunPaused.set(true)
-		AbilityCards.show(offer, level, source)
+		AbilityCards.show(offer, level, source, rerolls)
 	end)
 
 Remotes.event(Remotes.XpChanged).OnClientEvent:Connect(RunBanner.onXpChanged)

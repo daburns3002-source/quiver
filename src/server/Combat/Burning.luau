@@ -44,8 +44,8 @@ local burns: { [Model]: Burn } = {}
 	Double Shot, would stack its own burn and Blaze would become a second weapon
 	rather than a bonus on the first.
 ]]
-function Burning.ignite(model: Model, rate: number, owner: Player?, now: number)
-	if rate <= 0 then
+function Burning.ignite(model: Model, rate: number, duration: number, owner: Player?, now: number)
+	if rate <= 0 or duration <= 0 then
 		return
 	end
 
@@ -53,14 +53,14 @@ function Burning.ignite(model: Model, rate: number, owner: Player?, now: number)
 
 	if existing then
 		existing.rate = math.max(existing.rate, rate)
-		existing.expiresAt = now + Balance.Burn.duration
+		existing.expiresAt = math.max(existing.expiresAt, now + duration)
 		existing.owner = owner or existing.owner
 		return
 	end
 
 	burns[model] = {
 		rate = rate,
-		expiresAt = now + Balance.Burn.duration,
+		expiresAt = now + duration,
 		nextTickAt = now + Balance.Burn.tick,
 		owner = owner,
 	}

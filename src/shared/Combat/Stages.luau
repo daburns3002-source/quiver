@@ -268,9 +268,10 @@ function Stages.ricochet(count: number): ShotStage
 end
 
 --[[ Sets every arrow to burn what it hits for `fraction` of its damage a
-     second. Set rather than accumulated, like crit: the caller passes the
-     loadout's total. OnHit, because only contact decides what burns. ]]
-function Stages.burn(fraction: number): ShotStage
+     second, for `duration` seconds. Set rather than accumulated, like crit:
+     the caller passes the loadout's total. OnHit, because only contact
+     decides what burns. ]]
+function Stages.burn(fraction: number, duration: number): ShotStage
 	return {
 		name = "Burn",
 		order = ShotPipeline.Stage.OnHit,
@@ -281,6 +282,7 @@ function Stages.burn(fraction: number): ShotStage
 			for _, spec in specs do
 				local copy = table.clone(spec)
 				copy.burn = fraction
+				copy.burnDuration = duration
 				table.insert(out, copy)
 			end
 
@@ -289,19 +291,40 @@ function Stages.burn(fraction: number): ShotStage
 	}
 end
 
---[[ Fires free arrows at whatever is nearest when this one kills something.
-     The only stage in the OnKill bucket, and the reason the bucket exists. ]]
-function Stages.chainOnKill(count: number): ShotStage
+--[[ Sets the extra damage a hit earns for distance flown. OnHit: how far
+     the arrow went is only known when it arrives. ]]
+function Stages.farDamage(bonus: number): ShotStage
 	return {
-		name = "ChainOnKill",
-		order = ShotPipeline.Stage.OnKill,
+		name = "FarDamage",
+		order = ShotPipeline.Stage.OnHit,
 
 		apply = function(specs: { ShotSpec }, _request: ShotRequest): { ShotSpec }
 			local out: { ShotSpec } = {}
 
 			for _, spec in specs do
 				local copy = table.clone(spec)
-				copy.chainOnKill = spec.chainOnKill + count
+				copy.farBonus = bonus
+				table.insert(out, copy)
+			end
+
+			return out
+		end,
+	}
+end
+
+--[[ Links up to `others` enemies near whatever an arrow hits, to share in
+     the hit. OnHit, because who is nearby is only known on contact. ]]
+function Stages.link(others: number): ShotStage
+	return {
+		name = "Link",
+		order = ShotPipeline.Stage.OnHit,
+
+		apply = function(specs: { ShotSpec }, _request: ShotRequest): { ShotSpec }
+			local out: { ShotSpec } = {}
+
+			for _, spec in specs do
+				local copy = table.clone(spec)
+				copy.link = others
 				table.insert(out, copy)
 			end
 

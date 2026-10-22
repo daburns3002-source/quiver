@@ -754,7 +754,7 @@ function CardBuilder.build(abilityId: string, options: Options): Card
 	pips(pipsHolder, ability, level, maxed)
 
 	-- A new skill wears a NEW! sticker.
-	if level == 0 and state == "Default" then
+	if level == 0 and state == "Default" and not ability.filler then
 		local sticker = label(root, "New", "NEW!", CardTheme.fonts.display, 13, WHITE, 0)
 		sticker.ZIndex = Z.sticker
 		sticker.AnchorPoint = Vector2.new(1, 0)

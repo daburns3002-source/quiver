@@ -24,6 +24,7 @@ local TweenService = game:GetService("TweenService")
 local Workspace = game:GetService("Workspace")
 
 local Device = require(script.Parent.Parent.Device)
+local HitFeedback = require(script.Parent.HitFeedback)
 local ProjectileFlight = require(ReplicatedStorage.Shared.Combat.ProjectileFlight)
 local ShotPipeline = require(ReplicatedStorage.Shared.Combat.ShotPipeline)
 local Types = require(ReplicatedStorage.Shared.Types)
@@ -440,7 +441,12 @@ end
      cannot know which hits the server will say landed, and drawing the arrow
      stopping is the answer that is almost always right. ]]
 local contact: ProjectileFlight.Contact = {
-	onModel = function(_flight: ProjectileFlight.Flight, _model: Model): boolean
+	onModel = function(flight: ProjectileFlight.Flight, _model: Model): boolean
+		--[[ An arrow striking a body throws sparks where it lands. Enemy
+		     orbs reaching the player have their own hit feedback. ]]
+		if flight.faction == "Player" then
+			HitFeedback.onArrowContact(flight.position, flight.direction)
+		end
 		return true
 	end,
 	onWall = function(

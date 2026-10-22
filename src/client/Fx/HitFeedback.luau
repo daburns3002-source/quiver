@@ -146,8 +146,13 @@ local function spawnDamageNumber(position: Vector3, amount: number, kind: string
 	local styles = Balance.Feedback.damageNumberStyles
 	local style = (styles :: any)[kind or "Hit"] or styles.Hit
 
+	--[[ As Archero 2 draws them (docs/ART-archero2.md §4, measured frame by
+	     frame): chunky rounded type with a heavy dark edge, appearing a
+	     little small, popping past full size within a twentieth of a
+	     second, settling, drifting up, and only fading in its last stretch. ]]
+	local width, height = 4 * style.scale, 2 * style.scale
 	local billboard = Instance.new("BillboardGui")
-	billboard.Size = UDim2.fromScale(4 * style.scale, 2 * style.scale)
+	billboard.Size = UDim2.fromScale(width * 0.6, height * 0.6)
 	billboard.AlwaysOnTop = true
 	billboard.LightInfluence = 0
 	billboard.Parent = anchor
@@ -155,24 +160,48 @@ local function spawnDamageNumber(position: Vector3, amount: number, kind: string
 	local label = Instance.new("TextLabel")
 	label.Size = UDim2.fromScale(1, 1)
 	label.BackgroundTransparency = 1
-	label.Font = Enum.Font.GothamBold
+	label.Font = Enum.Font.FredokaOne
 	label.TextScaled = true
 	label.TextColor3 = style.color
-	label.TextStrokeColor3 = Color3.fromRGB(20, 16, 24)
-	label.TextStrokeTransparency = 0
-	label.Text = tostring(math.floor(amount + 0.5))
+	label.Text = "-" .. tostring(math.floor(amount + 0.5))
 	label.Parent = billboard
+	local edge = Instance.new("UIStroke")
+	edge.Color = Color3.fromRGB(20, 16, 24)
+	edge.Thickness = 2.5 * style.scale
+	edge.Parent = label
 
 	anchor.Parent = folder
 
 	local duration = Balance.Feedback.damageNumberDuration
-	local info = TweenInfo.new(duration, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+	TweenService:Create(
+		billboard,
+		TweenInfo.new(0.06, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+		{ Size = UDim2.fromScale(width * 1.15, height * 1.15) }
+	):Play()
+	task.delay(0.06, function()
+		TweenService:Create(
+			billboard,
+			TweenInfo.new(0.08, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+			{ Size = UDim2.fromScale(width, height) }
+		):Play()
+	end)
 
-	TweenService:Create(anchor, info, {
-		Position = anchor.Position + Vector3.new(0, Balance.Feedback.damageNumberRise, 0),
-	}):Play()
+	TweenService:Create(
+		anchor,
+		TweenInfo.new(duration, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+		{ Position = anchor.Position + Vector3.new(0, Balance.Feedback.damageNumberRise, 0) }
+	):Play()
 
-	TweenService:Create(label, info, { TextTransparency = 1, TextStrokeTransparency = 1 }):Play()
+	local fade = TweenInfo.new(
+		duration * 0.4,
+		Enum.EasingStyle.Quad,
+		Enum.EasingDirection.In,
+		0,
+		false,
+		duration * 0.6
+	)
+	TweenService:Create(label, fade, { TextTransparency = 1 }):Play()
+	TweenService:Create(edge, fade, { Transparency = 1 }):Play()
 
 	task.delay(duration, function()
 		activeNumbers -= 1
@@ -191,6 +220,36 @@ end
 	which archetype it is looking at.
 ]]
 local function flash(model: Model)
+	--[[ The footage's hit is a white wash over the whole body with a bright
+	     white rim, not just a recolour. A Highlight draws both, fading out
+	     over the flash. One per enemy, reused, since Roblox caps how many
+	     can be drawn at once. ]]
+	local highlight = model:FindFirstChild("HitFlash")
+	if not highlight then
+		local created = Instance.new("Highlight")
+		created.Name = "HitFlash"
+		created.FillColor = Color3.new(1, 1, 1)
+		created.OutlineColor = Color3.new(1, 1, 1)
+		created.DepthMode = Enum.HighlightDepthMode.Occluded
+		created.Parent = model
+		highlight = created
+	end
+	local h = highlight :: Highlight
+	h.FillTransparency = 0.35
+	h.OutlineTransparency = 0
+	TweenService:Create(
+		h,
+		TweenInfo.new(
+			Balance.Feedback.hitFlashDuration * 1.6,
+			Enum.EasingStyle.Quad,
+			Enum.EasingDirection.In
+		),
+		{
+			FillTransparency = 1,
+			OutlineTransparency = 1,
+		}
+	):Play()
+
 	local painted: { [BasePart]: Color3 } = {}
 	local any = false
 
@@ -234,27 +293,136 @@ function HitFeedback.onEnemyDied(position: Vector3, amount: number?, kind: strin
 		spawnDamageNumber(position, amount, kind)
 	end
 
-	local burst = Instance.new("Part")
-	burst.Name = "DeathBurst"
-	burst.Shape = Enum.PartType.Ball
-	burst.Size = Vector3.one * 2
-	burst.Position = position
-	burst.Anchored = true
-	burst.CanCollide = false
-	burst.CanQuery = false
-	burst.CanTouch = false
-	burst.CastShadow = false
-	burst.Material = Enum.Material.Neon
-	burst.Color = Color3.fromRGB(255, 196, 140)
-	burst.Parent = folder
+	--[[ As the footage shows a kill: the body bursts into soft white puffs
+	     that swell and thin out, with a few yellow stars thrown clear. ]]
+	local function piece(name: string, size: number, colour: Color3, neon: boolean): Part
+		local part = Instance.new("Part")
+		part.Name = name
+		part.Shape = Enum.PartType.Ball
+		part.Size = Vector3.one * size
+		part.Anchored = true
+		part.CanCollide = false
+		part.CanQuery = false
+		part.CanTouch = false
+		part.CastShadow = false
+		part.Material = if neon then Enum.Material.Neon else Enum.Material.SmoothPlastic
+		part.Color = colour
+		part.Parent = folder
+		return part
+	end
 
-	local info = TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-	TweenService:Create(burst, info, {
-		Size = Vector3.one * 7,
-		Transparency = 1,
-	}):Play()
+	local puffs = 6
+	for index = 1, puffs do
+		local angle = (index / puffs) * math.pi * 2 + math.random() * 0.5
+		local out = Vector3.new(math.cos(angle), 0, math.sin(angle))
+		local puff =
+			piece("DeathPuff", 1.2 + math.random() * 0.5, Color3.fromRGB(250, 250, 255), false)
+		puff.Position = position + out * 0.4 + Vector3.new(0, 0.6, 0)
+		TweenService
+			:Create(puff, TweenInfo.new(0.38, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+				Position = position + out * 1.8 + Vector3.new(0, 1.2 + math.random(), 0),
+				Size = Vector3.one * (2.4 + math.random() * 0.8),
+				Transparency = 1,
+			})
+			:Play()
+		Debris:AddItem(puff, 0.4)
+	end
 
-	Debris:AddItem(burst, 0.3)
+	for index = 1, 4 do
+		local angle = (index / 4) * math.pi * 2 + math.random()
+		local out = Vector3.new(math.cos(angle), 0.6, math.sin(angle))
+		local star = Instance.new("Part")
+		star.Name = "DeathStar"
+		star.Size = Vector3.new(0.45, 0.45, 0.12)
+		star.Anchored = true
+		star.CanCollide = false
+		star.CanQuery = false
+		star.CanTouch = false
+		star.CastShadow = false
+		star.Material = Enum.Material.Neon
+		star.Color = Color3.fromRGB(255, 226, 90)
+		star.CFrame = CFrame.new(position + Vector3.new(0, 1, 0))
+			* CFrame.Angles(0, 0, math.rad(45))
+		star.Parent = folder
+		TweenService
+			:Create(star, TweenInfo.new(0.32, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+				CFrame = CFrame.new(position + Vector3.new(0, 1, 0) + out * 2.4)
+					* CFrame.Angles(0, 0, math.rad(135)),
+				Size = Vector3.new(0.1, 0.1, 0.05),
+			})
+			:Play()
+		Debris:AddItem(star, 0.34)
+	end
+end
+
+--[[
+	Where an arrow strikes a body: a few short bright streaks thrown back
+	from the point of contact and a quick white pop, as the footage shows.
+	Drawn at the drawn arrow's own contact, so it lands where the arrow does.
+]]
+function HitFeedback.onArrowContact(position: Vector3, direction: Vector3)
+	if activeNumbers >= Device.tier().maxDamageNumbers then
+		return
+	end
+
+	local back = if direction.Magnitude > 1e-3 then -direction.Unit else Vector3.zAxis
+	local across = back:Cross(Vector3.yAxis)
+	across = if across.Magnitude > 1e-3 then across.Unit else Vector3.xAxis
+
+	local pop = Instance.new("Part")
+	pop.Name = "HitPop"
+	pop.Shape = Enum.PartType.Ball
+	pop.Size = Vector3.one * 0.6
+	pop.Position = position
+	pop.Anchored = true
+	pop.CanCollide = false
+	pop.CanQuery = false
+	pop.CanTouch = false
+	pop.CastShadow = false
+	pop.Material = Enum.Material.Neon
+	pop.Color = Color3.fromRGB(255, 250, 230)
+	pop.Parent = folder
+	TweenService
+		:Create(pop, TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+			Size = Vector3.one * 1.8,
+			Transparency = 1,
+		})
+		:Play()
+	Debris:AddItem(pop, 0.13)
+
+	for index = 1, 5 do
+		local spread = (index - 3) * 0.45 + (math.random() - 0.5) * 0.3
+		local heading = (back * math.cos(spread) + across * math.sin(spread) + Vector3.new(
+			0,
+			0.25,
+			0
+		)).Unit
+		local length = 0.9 + math.random() * 0.6
+		local streak = Instance.new("Part")
+		streak.Name = "HitSpark"
+		streak.Size = Vector3.new(0.09, 0.09, length)
+		streak.Anchored = true
+		streak.CanCollide = false
+		streak.CanQuery = false
+		streak.CanTouch = false
+		streak.CastShadow = false
+		streak.Material = Enum.Material.Neon
+		streak.Color = if index % 2 == 0
+			then Color3.fromRGB(255, 214, 90)
+			else Color3.fromRGB(255, 255, 240)
+		local from = position + heading * 0.3
+		streak.CFrame = CFrame.lookAt(from + heading * length / 2, from + heading * length)
+		streak.Parent = folder
+		local to = from + heading * 1.4
+		TweenService
+			:Create(streak, TweenInfo.new(0.14, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+				CFrame = CFrame.lookAt(to + heading * length / 2, to + heading * length),
+				Size = Vector3.new(0.03, 0.03, length * 0.4),
+				Transparency = 1,
+			})
+			:Play()
+		Debris:AddItem(streak, 0.15)
+	end
 end
 
 --[[

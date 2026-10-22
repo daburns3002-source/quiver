@@ -16,6 +16,25 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## The killing blow showed no damage number
+
+**Symptom** — found while restyling damage numbers: the hit that finished an
+enemy drew no number, so the strongest moment of a fight was the invisible
+one.
+
+**Cause** — `EnemyManager.damage` fires `EnemyHit` only while the enemy
+survives; a killing blow fires `EnemyDied` instead, which carried only a
+position.
+
+**Fix** — `EnemyDied` carries the blow's amount and kind, and the client
+draws it like any other hit.
+
+**Measured** — 10 of 10 kills drew a number in a clean run; with crits and
+burns on, killing blows arrived as Hit 2, Crit 7, Burn 2 and every one was
+drawn in its own style.
+
+---
+
 ## Turned enemies' hitbox corners poked into pillars
 
 **Symptom** — found by a clipping probe, not reported: hitbox corners up to

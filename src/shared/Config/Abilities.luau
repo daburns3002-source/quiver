@@ -181,9 +181,9 @@ local abilities: { Ability } = {
 	{
 		id = "Vitality",
 		name = "Vitality",
-		description = "25 more health, and heal it now.",
+		description = "56 more health, and heal it now.",
 		category = "Defensive",
-		value = 25,
+		value = 56,
 		maxStacks = 4,
 	},
 	{
@@ -283,9 +283,9 @@ local abilities: { Ability } = {
 	{
 		id = "Bloodthirst",
 		name = "Bloodthirst",
-		description = "Heal 3 health for every enemy you kill.",
+		description = "Heal 7 health for every enemy you kill.",
 		category = "Defensive",
-		value = 3,
+		value = 7,
 		maxStacks = 4,
 	},
 	{

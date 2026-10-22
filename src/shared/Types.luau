@@ -18,6 +18,12 @@
 ]]
 export type Faction = "Player" | "Enemy"
 
+--[[ What kind of damage a number on screen is, so the client can draw it the
+     way Archero 2 does: white for a plain hit, larger and red for a crit,
+     orange for fire. Decided by the server, which is the only side that
+     knows whether a hit crit. ]]
+export type HitKind = "Hit" | "Crit" | "Burn"
+
 --[[
 	One projectile, fully resolved. The shot pipeline turns a single ShotRequest
 	into a list of these; nothing downstream needs to know which abilities

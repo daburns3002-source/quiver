@@ -21,6 +21,7 @@ local EnemyModel = require(script.Parent.EnemyModel)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local RunSession = require(script.Parent.Parent.Run.RunSession)
+local Types = require(ReplicatedStorage.Shared.Types)
 
 local log = Log.forTag("Enemies")
 
@@ -443,11 +444,13 @@ end
 	up credited to the wrong player the moment there are two of them.
 ]]
 --[[ `fromPosition` is where the blow came from, for knockback; nil for
-     damage that does not push, like a burn ticking. ]]
+     damage that does not push, like a burn ticking. `kind` is how the
+     number is drawn; omitted is a plain hit. ]]
 function EnemyManager.damage(
 	model: Model,
 	amount: number,
-	fromPosition: Vector3?
+	fromPosition: Vector3?,
+	kind: Types.HitKind?
 ): (boolean, number)
 	local enemy = enemies[model]
 	if not enemy or amount <= 0 then
@@ -468,7 +471,7 @@ function EnemyManager.damage(
 	end
 
 	if enemy.health > 0 then
-		enemyHit:FireAllClients(model, amount, enemy.position)
+		enemyHit:FireAllClients(model, amount, enemy.position, kind or "Hit")
 		return true, 0
 	end
 
@@ -483,7 +486,10 @@ function EnemyManager.damage(
 		needs about a dead enemy has to travel as data, because the instance it
 		would describe is already gone.
 	]]
-	enemyDied:FireAllClients(enemy.position)
+	--[[ The killing blow's number travels with the death, so the hit that
+	     finishes an enemy is shown like every other — it used to show
+	     nothing, which made the strongest hit of a fight the invisible one. ]]
+	enemyDied:FireAllClients(enemy.position, amount, kind or "Hit")
 	model:Destroy()
 
 	return true, enemy.config.xpReward

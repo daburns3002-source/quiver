@@ -118,7 +118,7 @@ function HitFeedback.start(parent: Instance)
 	buildVignette()
 end
 
-local function spawnDamageNumber(position: Vector3, amount: number)
+local function spawnDamageNumber(position: Vector3, amount: number, kind: string?)
 	local tier = Device.tier()
 
 	if activeNumbers >= tier.maxDamageNumbers then
@@ -141,8 +141,13 @@ local function spawnDamageNumber(position: Vector3, amount: number)
 	anchor.Position = position
 		+ Vector3.new((math.random() - 0.5) * 2, 2.5, (math.random() - 0.5) * 2)
 
+	--[[ Anything the server did not name is drawn as a plain hit rather
+	     than not at all. ]]
+	local styles = Balance.Feedback.damageNumberStyles
+	local style = (styles :: any)[kind or "Hit"] or styles.Hit
+
 	local billboard = Instance.new("BillboardGui")
-	billboard.Size = UDim2.fromScale(4, 2)
+	billboard.Size = UDim2.fromScale(4 * style.scale, 2 * style.scale)
 	billboard.AlwaysOnTop = true
 	billboard.LightInfluence = 0
 	billboard.Parent = anchor
@@ -152,8 +157,9 @@ local function spawnDamageNumber(position: Vector3, amount: number)
 	label.BackgroundTransparency = 1
 	label.Font = Enum.Font.GothamBold
 	label.TextScaled = true
-	label.TextColor3 = Color3.fromRGB(255, 244, 214)
-	label.TextStrokeTransparency = 0.4
+	label.TextColor3 = style.color
+	label.TextStrokeColor3 = Color3.fromRGB(20, 16, 24)
+	label.TextStrokeTransparency = 0
 	label.Text = tostring(math.floor(amount + 0.5))
 	label.Parent = billboard
 
@@ -212,18 +218,22 @@ local function flash(model: Model)
 	end)
 end
 
-function HitFeedback.onEnemyHit(model: Model, amount: number, position: Vector3)
+function HitFeedback.onEnemyHit(model: Model, amount: number, position: Vector3, kind: string?)
 	if typeof(model) == "Instance" and model:IsA("Model") then
 		flash(model)
 	end
 
-	spawnDamageNumber(position, amount)
+	spawnDamageNumber(position, amount, kind)
 end
 
 --[[ Takes the position rather than the model: the enemy instance is destroyed
      on the server in the same step the remote fires, so no reference to it
      would reliably survive the trip. ]]
-function HitFeedback.onEnemyDied(position: Vector3)
+function HitFeedback.onEnemyDied(position: Vector3, amount: number?, kind: string?)
+	if amount and amount > 0 then
+		spawnDamageNumber(position, amount, kind)
+	end
+
 	local burst = Instance.new("Part")
 	burst.Name = "DeathBurst"
 	burst.Shape = Enum.PartType.Ball

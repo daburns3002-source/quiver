@@ -95,7 +95,7 @@ function Burning.step(now: number)
 
 		burn.nextTickAt += Balance.Burn.tick
 
-		local landed, xp = EnemyManager.damage(model, burn.rate * Balance.Burn.tick, nil)
+		local landed, xp = EnemyManager.damage(model, burn.rate * Balance.Burn.tick, nil, "Burn")
 
 		if not landed then
 			extinguish(model)

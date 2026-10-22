@@ -521,6 +521,38 @@ return function(t: TestRunner.Helper)
 		)
 	end)
 
+	--[[
+		The damage scale's shape, from Archero 2: a grunt dies in about three
+		hits and about four enemy hits kill the hero. Held as ranges so the
+		numbers can be tuned, but not tuned back into a game where enemies
+		soak a dozen arrows and the player shrugs off a dozen hits.
+	]]
+	t.test("a Charger dies in about three arrows", function()
+		local hits = Balance.Enemies.MeleeCharger.health / Balance.Player.baseDamage
+		t.isTrue(hits > 2 and hits <= 4, `a Charger takes {hits} plain hits`)
+	end)
+
+	t.test("nothing dies to one arrow, and nothing soaks a quiver", function()
+		for name, config in archetypes() do
+			local hits = config.health / Balance.Player.baseDamage
+			t.isTrue(hits > 1, `{name} dies to a single arrow`)
+			t.isTrue(hits <= 15, `{name} takes {hits} arrows`)
+		end
+	end)
+
+	t.test("enemy hits are lethal in a handful, never in one", function()
+		local commonest = Balance.Enemies.MeleeCharger.attackDamage
+		local survives = Balance.Player.maxHealth / commonest
+		t.isTrue(survives >= 3 and survives <= 6, `the player survives {survives} Charger hits`)
+
+		for name, config in archetypes() do
+			t.isTrue(
+				config.attackDamage < Balance.Player.maxHealth / 2,
+				`one {name} hit takes half the player's health or more`
+			)
+		end
+	end)
+
 	t.test("an arrow reaches anything the archer will target", function()
 		local reach = Balance.Projectile.speed * Balance.Projectile.lifetime
 		t.isTrue(

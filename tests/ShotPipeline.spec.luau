@@ -153,6 +153,7 @@ return function(t: TestRunner.Helper)
 			ricochet = 0,
 			homing = 0,
 			delay = 0,
+			burn = 0,
 			chainOnKill = 0,
 		})
 
@@ -179,6 +180,7 @@ return function(t: TestRunner.Helper)
 			ricochet = 0,
 			homing = 0,
 			delay = 0,
+			burn = 0,
 			chainOnKill = 0,
 		})
 
@@ -203,6 +205,7 @@ return function(t: TestRunner.Helper)
 			ricochet = 0,
 			homing = 0,
 			delay = 0,
+			burn = 0,
 			chainOnKill = 0,
 		})
 
@@ -230,6 +233,7 @@ return function(t: TestRunner.Helper)
 			ricochet = 0,
 			homing = 0,
 			delay = 0,
+			burn = 0,
 			chainOnKill = 0,
 		})
 

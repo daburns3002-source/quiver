@@ -80,6 +80,10 @@ export type ShotSpec = {
 	     Double Shot's copies, which follow the first volley along the same
 	     aim — a second chance at a target that stepped, not a wider net. ]]
 	delay: number,
+	--[[ Fraction of the arrow's damage a hit then burns for, per second.
+	     0 sets nothing alight. Blaze. Resolved by the server at contact,
+	     like splash: what burns is whatever the arrow reached. ]]
+	burn: number,
 	--[[ How many free arrows a kill by this projectile fires at whatever is
 	     nearest. The chain shot inherits nothing — it is a plain arrow, or a
 	     stack of these would multiply without limit. ]]

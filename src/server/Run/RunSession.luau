@@ -235,6 +235,27 @@ function RunSession.onEnemyKilled(session: Session)
 end
 
 --[[
+	Credits a kill to the run of the player who made it, which may no longer
+	be that player's current one — an arrow or a burn can outlive the run it
+	came from. A session replaced since simply does not get it.
+
+	The kill's rewards before its XP: levelling opens a card screen and
+	pauses the run, and a heal that landed after that would be applied to a
+	player already reading cards.
+]]
+function RunSession.creditKill(owner: Player?, xp: number)
+	if xp <= 0 or not owner then
+		return
+	end
+
+	local session = RunSession.get(owner)
+	if session then
+		RunSession.onEnemyKilled(session)
+		RunSession.awardXp(session, xp)
+	end
+end
+
+--[[
 	Applies the player's choice of card.
 
 	Returns whether it was legal. Everything about trusting the client stops

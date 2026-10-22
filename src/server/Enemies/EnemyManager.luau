@@ -425,7 +425,13 @@ end
 	module has no idea whose arrow it was, and guessing is exactly how XP ends
 	up credited to the wrong player the moment there are two of them.
 ]]
-function EnemyManager.damage(model: Model, amount: number, fromPosition: Vector3): (boolean, number)
+--[[ `fromPosition` is where the blow came from, for knockback; nil for
+     damage that does not push, like a burn ticking. ]]
+function EnemyManager.damage(
+	model: Model,
+	amount: number,
+	fromPosition: Vector3?
+): (boolean, number)
 	local enemy = enemies[model]
 	if not enemy or amount <= 0 then
 		return false, 0
@@ -433,7 +439,7 @@ function EnemyManager.damage(model: Model, amount: number, fromPosition: Vector3
 
 	enemy.health -= amount
 
-	local knockbackDirection = enemy.position - fromPosition
+	local knockbackDirection = if fromPosition then enemy.position - fromPosition else Vector3.zero
 	if knockbackDirection.Magnitude > 1e-3 then
 		local flat = Vector3.new(knockbackDirection.X, 0, knockbackDirection.Z).Unit
 		local radius = math.max(enemy.config.hitboxSize.X, enemy.config.hitboxSize.Z) / 2

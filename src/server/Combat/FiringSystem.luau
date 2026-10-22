@@ -100,6 +100,7 @@ local function fire(session: Session, root: BasePart, now: number)
 			ricochet = spec.ricochet,
 			homing = spec.homing,
 			delay = spec.delay,
+			burn = spec.burn,
 			chainOnKill = spec.chainOnKill,
 			--[[ The run that fired it, so the kill credits the right player's
 			     draft even if the arrow outlives their current session. ]]

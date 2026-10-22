@@ -21,10 +21,11 @@ What exists and works, all verified in Studio rather than only by the gates:
 - **Phases 1 and 2:** move-or-shoot, five enemy archetypes, ten-room runs,
   death and restart. Playtest 1 passed. Playtest 2's question — *after five
   rooms, do you want a sixth?* — was never formally answered.
-- **Phase 3, mostly:** the shot pipeline with 24 abilities as data, XP and a
+- **Phase 3, mostly:** the shot pipeline with 25 abilities as data, XP and a
   choose-one-of-three draft that pauses the world, crit, splash, Ricochet
   (enemy to enemy), Bouncy Wall, Tracking Eye (homing), Double Shot
-  (the volley again 0.12 s later), chain-on-kill,
+  (the volley again 0.12 s later), Blaze (burns, server-side in
+  `Combat/Burning`), chain-on-kill,
   Momentum, Second Wind, exclusions (`Abilities.excludes`, read both ways),
   a run summary, and the client's prediction replicated from the server.
 - **One flight for both sides.** `Shared/Combat/ProjectileFlight` steps every
@@ -41,8 +42,8 @@ What exists and works, all verified in Studio rather than only by the gates:
 The numbers in `Config/Balance` are the last ones asked for or measured, not
 settled ones. Untested by the owner: the measured speeds, and enemy health ×1.5.
 
-Not done: Phase 3's last planned ability (Blaze)
-and its playtest question; XP gems and triangle-cluster spawns from the
+Not done: Phase 3's playtest question — *did two runs in a row feel
+meaningfully different?* — which needs the owner; XP gems and triangle-cluster spawns from the
 footage.
 
 To resume: `rojo serve`, connect the Studio plugin, Play. Read
@@ -69,6 +70,13 @@ already has.
 
 - A blocked arrow has no feedback, so the cover penalty reads as a bug.
 - `Arena.deflectionNormal` handles obstacles but not the outer walls.
+- **Turned enemies' hitbox corners reach up to 0.62 studs into pillars.**
+  `Arena.resolve` keeps the *centre* half a hitbox from a face, which is exact
+  only while the square hitbox is axis-aligned; it turns with the enemy, and
+  a 45° turn puts a corner 2.12 studs out. The visible body measured clear in
+  one run, so it is mostly the invisible box — but it is real, measured on
+  2026-10-22, and wants a fix (keep the hitbox axis-aligned, or resolve by
+  the turned footprint).
 
 **Testing over MCP, learned the hard way:**
 
@@ -80,9 +88,10 @@ already has.
   already open stays open and the next probe records zero shots. Fire
   `AbilityChosen` once at the start of every probe.
 - **`GetPartBoundsInBox` reports a rotated part by its axis-aligned bounds**,
-  which swell as it turns. A clipping probe built on it reported a Charger
-  "inside" a pillar 77 times; measuring the footprint's real corners found
-  3 samples, none deeper than 0.1 studs. Measure corners for clipping.
+  which swell as it turns, so it over-reports clipping. Measure a part's real
+  corners instead — and over several rooms: one quiet run read 0.1 studs at
+  most, the next found turned hitbox corners 0.62 studs into pillars. That
+  one is real and unfixed — see "Known rough edges".
 - **Arrow impact sparks are round parts named `Impact`** in
   `ProjectileVisuals`, beside the enemy orbs. Filter orbs by
   `Name == "Projectile"`, not by shape, or stationary sparks read as orbs that

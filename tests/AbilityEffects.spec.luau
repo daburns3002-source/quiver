@@ -380,6 +380,27 @@ return function(t: TestRunner.Helper)
 		)
 	end)
 
+	t.test("Blaze sets every arrow burning, and nothing else does", function()
+		t.equal(volley({})[1].burn, 0)
+
+		for index, spec in volley({ FrontArrow = 2, DiagonalArrows = 1, Blaze = 1 }) do
+			t.isTrue(spec.burn > 0, `arrow {index} does not burn`)
+		end
+
+		t.isTrue(
+			volley({ Blaze = 2 })[1].burn > volley({ Blaze = 1 })[1].burn,
+			"a second Blaze added nothing"
+		)
+
+		for _, ability in Abilities.all do
+			if ability.id ~= "Blaze" then
+				for _, spec in volley({ [ability.id] = 1 }) do
+					t.equal(spec.burn, 0, `{ability.id} sets arrows burning`)
+				end
+			end
+		end
+	end)
+
 	t.test("Tracking Eye makes arrows home, and nothing else does", function()
 		t.equal(volley({})[1].homing, 0)
 		t.isTrue(volley({ TrackingEye = 1 })[1].homing > 0, "Tracking Eye granted no homing")

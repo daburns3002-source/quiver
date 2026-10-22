@@ -28,6 +28,9 @@ export type Tier = {
 	     lowest tier a burning enemy still has to look different from one
 	     that is not, or Blaze is invisible there. ]]
 	burnParticleRate: number,
+	--[[ Whether the soft bloom over glowing things is on. Off on the lowest
+	     tier, where a full-screen post effect is the first thing to cut. ]]
+	enableBloom: boolean,
 }
 
 --[[
@@ -44,6 +47,7 @@ local low: Tier = {
 	projectileIsRound = false,
 	projectileTrails = false,
 	burnParticleRate = 4,
+	enableBloom = false,
 }
 
 local medium: Tier = {
@@ -55,6 +59,7 @@ local medium: Tier = {
 	projectileIsRound = true,
 	projectileTrails = true,
 	burnParticleRate = 10,
+	enableBloom = true,
 }
 
 local high: Tier = {
@@ -66,6 +71,7 @@ local high: Tier = {
 	projectileIsRound = true,
 	projectileTrails = true,
 	burnParticleRate = 20,
+	enableBloom = true,
 }
 
 local DeviceTiers = {

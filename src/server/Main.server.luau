@@ -18,6 +18,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
+local Atmosphere = require(script.Parent.Arena.Atmosphere)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Burning = require(script.Parent.Combat.Burning)
 local EnemyFiring = require(script.Parent.Combat.EnemyFiring)
@@ -69,6 +70,7 @@ RunSession.onDeath = function()
 	RoomController.onPlayerDied()
 end
 
+Atmosphere.apply()
 RoomController.start()
 
 local function onCharacterAdded(player: Player, character: Model)

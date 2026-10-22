@@ -7,6 +7,7 @@
 	is what to draw.
 ]]
 
+local Lighting = game:GetService("Lighting")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local StarterGui = game:GetService("StarterGui")
@@ -41,6 +42,15 @@ local log = Log.forTag("Client")
 local player = Players.LocalPlayer
 
 log.info("%s v%s client starting on tier %s", Game.Name, Game.Version, Device.tier().name)
+
+--[[ The server lights the scene for everyone; a device whose tier cannot
+     afford a full-screen bloom turns its own copy off. ]]
+task.spawn(function()
+	local bloom = Lighting:WaitForChild("ArenaBloom", 10)
+	if bloom and bloom:IsA("BloomEffect") then
+		bloom.Enabled = Device.tier().enableBloom
+	end
+end)
 
 --[[
 	Health lives on the run session, not the Humanoid, so the built-in bar would

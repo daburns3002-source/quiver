@@ -212,4 +212,65 @@ return function(t: TestRunner.Helper)
 		t.isTrue(Arena.isClear(Vector3.new(0, 2.5, 0), RADIUS))
 		t.isTrue(Arena.isClear(insideFloor(0.7, -0.7), RADIUS))
 	end)
+	--[[
+		Two opaque faces in one plane, overlapping, z-fight: the renderer
+		cannot tell which is in front, and the answer flips as the camera
+		moves. It reads as the walls flickering while the player walks, which
+		is how lamp columns exactly as thick as the wall shipped. Floor tiles
+		lie flat on the floor by design and face up where it faces up, so
+		only their tops are compared, against nothing that shares them.
+	]]
+	t.test("no two arena parts share a visible face", function()
+		local scratch = buildLayout(centrePillar)
+		local parts: { BasePart } = {}
+		for _, child in scratch:GetDescendants() do
+			if
+				child:IsA("BasePart")
+				and child.Transparency < 1
+				and child.Name ~= "Tile"
+				and child.Name ~= "Outside"
+				and child.Name ~= "Floor"
+				and child.Name ~= "Door"
+			then
+				table.insert(parts, child)
+			end
+		end
+
+		local axes = { "X", "Y", "Z" }
+		for i = 1, #parts do
+			for j = i + 1, #parts do
+				local a, b = parts[i], parts[j]
+				local aMin, aMax = a.Position - a.Size / 2, a.Position + a.Size / 2
+				local bMin, bMax = b.Position - b.Size / 2, b.Position + b.Size / 2
+
+				for index, axis in axes do
+					for _, high in { false, true } do
+						local faceA = if high then (aMax :: any)[axis] else (aMin :: any)[axis]
+						local faceB = if high then (bMax :: any)[axis] else (bMin :: any)[axis]
+						if math.abs(faceA - faceB) > 1e-3 then
+							continue
+						end
+
+						local overlapping = true
+						for other, across in axes do
+							if other ~= index then
+								local low = math.max((aMin :: any)[across], (bMin :: any)[across])
+								local top = math.min((aMax :: any)[across], (bMax :: any)[across])
+								overlapping = overlapping and top - low > 1e-3
+							end
+						end
+
+						--[[ A face pointing down at the floor is never seen. ]]
+						local hidden = axis == "Y" and not high
+						t.isFalse(
+							overlapping and not hidden,
+							`{a.Name} and {b.Name} share a face on {axis}`
+						)
+					end
+				end
+			end
+		end
+
+		scratch:Destroy()
+	end)
 end

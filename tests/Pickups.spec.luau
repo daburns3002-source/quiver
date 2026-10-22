@@ -93,6 +93,27 @@ return function(t: TestRunner.Helper)
 		Pickups.clear()
 	end)
 
+	t.test("walking over crystals takes them and their XP, and only in reach", function()
+		local player = Players:GetPlayers()[1]
+		if not player then
+			return
+		end
+
+		Pickups.clear()
+		Pickups.dropForKill(player, FAR, 30, Random.new(3), unchanged)
+		local far = Balance.Pickups.crystalRadius + Balance.Pickups.crystalScatter + 1
+
+		t.equal(Pickups.takeCrystals(player, FAR + Vector3.new(far, 0, 0)), 0)
+		t.equal(Pickups.count("Crystal"), #Pickups.split(30))
+
+		--[[ Standing on the body reaches every crystal it scattered. ]]
+		t.isTrue(Balance.Pickups.crystalRadius >= Balance.Pickups.crystalScatter)
+		t.equal(Pickups.takeCrystals(player, FAR), 30)
+		t.equal(Pickups.count("Crystal"), 0)
+		t.isNil(Pickups.collectCrystals()[player], "taken crystals paid again at the clear")
+		Pickups.clear()
+	end)
+
 	t.test("a heart is taken by standing on it, and only then", function()
 		local player = Players:GetPlayers()[1]
 		if not player then

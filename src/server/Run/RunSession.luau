@@ -266,9 +266,9 @@ end
 	came from. A session replaced since simply does not get it.
 
 	The XP does not arrive here. It drops at `position` as crystals, which
-	are drawn in when the fight clears (`collectCrystals`), so a level-up
-	comes between fights rather than in the middle of one. Without a
-	position there is nowhere to drop them, and the XP is credited at once.
+	the player can walk over (`pickUpFloor`) and which are otherwise drawn
+	in when the fight clears (`collectCrystals`). Without a position there
+	is nowhere to drop them, and the XP is credited at once.
 ]]
 function RunSession.creditKill(owner: Player?, xp: number, position: Vector3?)
 	if xp <= 0 or not owner then
@@ -313,11 +313,14 @@ function RunSession.heal(session: Session, amount: number)
 end
 
 --[[
-	Hands each living player the hearts they are standing on. Read from the
-	server's own copy of where the player is, so a heart is taken by being
-	walked over and by nothing a client can say.
+	Hands each living player what they are standing on: their own crystals
+	and any heart. Read from the server's own copy of where the player is,
+	so a pickup is taken by being walked over and by nothing a client says.
+
+	Hearts before crystals, because crystals can level the player up, and a
+	card screen opening pauses the run before a heal would land.
 ]]
-function RunSession.pickUpHearts()
+function RunSession.pickUpFloor()
 	for _, session in sessions do
 		local root = session.root
 		if not root or not session.alive then
@@ -327,6 +330,11 @@ function RunSession.pickUpHearts()
 		local taken = Pickups.takeHearts(session.player, root.Position)
 		if taken > 0 then
 			RunSession.heal(session, taken * Balance.Pickups.heartHeal * session.maxHealth)
+		end
+
+		local xp = Pickups.takeCrystals(session.player, root.Position)
+		if xp > 0 then
+			RunSession.awardXp(session, xp)
 		end
 	end
 end

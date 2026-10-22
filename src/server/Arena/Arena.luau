@@ -211,37 +211,49 @@ function Arena.isAtDoor(position: Vector3): boolean
 end
 
 --[[
-	Pushes a circle of `radius` out of any obstacle it overlaps and back inside
-	the walls. Analytic rather than physics-driven: enemies are anchored and
-	moved by CFrame, which is far cheaper than a Humanoid each and avoids them
-	shoving each other into geometry.
+	Pushes a footprint of `half` (half-widths along X and Z) out of any
+	obstacle it overlaps and back inside the walls. Analytic rather than
+	physics-driven: enemies are anchored and moved by CFrame, which is far
+	cheaper than a Humanoid each and avoids them shoving each other into
+	geometry.
+
+	Per-axis because an enemy's hitbox is a square that turns with it. Kept
+	clear by a single radius, a turned square's corners reached 0.62 studs
+	into pillars; a footprint measured at its current turn keeps the whole
+	box out.
 ]]
-function Arena.resolve(position: Vector3, radius: number): Vector3
+function Arena.resolveBox(position: Vector3, half: Vector2): Vector3
 	local point = Vector2.new(position.X, position.Z)
 
 	for _, box in boxes do
 		local delta = point - box.centre
-		local overlapX = (box.halfExtents.X + radius) - math.abs(delta.X)
-		local overlapZ = (box.halfExtents.Y + radius) - math.abs(delta.Y)
+		local overlapX = (box.halfExtents.X + half.X) - math.abs(delta.X)
+		local overlapZ = (box.halfExtents.Y + half.Y) - math.abs(delta.Y)
 
 		if overlapX > 0 and overlapZ > 0 then
 			-- Push out along the shallower axis, which is the nearest way out.
 			if overlapX < overlapZ then
 				local sign = if delta.X >= 0 then 1 else -1
-				point = Vector2.new(box.centre.X + sign * (box.halfExtents.X + radius), point.Y)
+				point = Vector2.new(box.centre.X + sign * (box.halfExtents.X + half.X), point.Y)
 			else
 				local sign = if delta.Y >= 0 then 1 else -1
-				point = Vector2.new(point.X, box.centre.Y + sign * (box.halfExtents.Y + radius))
+				point = Vector2.new(point.X, box.centre.Y + sign * (box.halfExtents.Y + half.Y))
 			end
 		end
 	end
 
-	local limitX = math.max(halfSize.X - radius, 0)
-	local limitZ = math.max(halfSize.Y - radius, 0)
+	local limitX = math.max(halfSize.X - half.X, 0)
+	local limitZ = math.max(halfSize.Y - half.Y, 0)
 
 	point = Vector2.new(math.clamp(point.X, -limitX, limitX), math.clamp(point.Y, -limitZ, limitZ))
 
 	return Vector3.new(point.X, position.Y, point.Y)
+end
+
+--[[ `resolveBox` for something the same width on both axes — a body that
+     does not turn, or a probe. ]]
+function Arena.resolve(position: Vector3, radius: number): Vector3
+	return Arena.resolveBox(position, Vector2.new(radius, radius))
 end
 
 --[[

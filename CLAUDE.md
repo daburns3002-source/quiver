@@ -70,13 +70,13 @@ already has.
 
 - A blocked arrow has no feedback, so the cover penalty reads as a bug.
 - `Arena.deflectionNormal` handles obstacles but not the outer walls.
-- **Turned enemies' hitbox corners reach up to 0.62 studs into pillars.**
-  `Arena.resolve` keeps the *centre* half a hitbox from a face, which is exact
-  only while the square hitbox is axis-aligned; it turns with the enemy, and
-  a 45° turn puts a corner 2.12 studs out. The visible body measured clear in
-  one run, so it is mostly the invisible box — but it is real, measured on
-  2026-10-22, and wants a fix (keep the hitbox axis-aligned, or resolve by
-  the turned footprint).
+- **Enemy visuals may still overlap pillars slightly.** Hitboxes are now
+  resolved by their turned footprint (`Arena.resolveBox`) and measured 0 of
+  2,819 samples inside a pillar. A probe of *visible* parts still found
+  corners up to 0.59 studs in, but it counted every non-transparent part,
+  and the "widest" parts it named (a Base 8 studs across) look like the
+  ground rings drawn under enemies, not bodies. Unconfirmed — check which
+  parts before fixing anything.
 
 **Testing over MCP, learned the hard way:**
 

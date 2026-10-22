@@ -16,6 +16,29 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## Turned enemies' hitbox corners poked into pillars
+
+**Symptom** — found by a clipping probe, not reported: hitbox corners up to
+0.62 studs inside pillars.
+
+**Cause** — `Arena.resolve` kept an enemy's *centre* half a hitbox from a
+face, which is exact only while the square hitbox is square-on. It turns
+with the enemy, and at 45° a corner sits 2.12 studs from the centre.
+
+**Fix** — `Arena.resolveBox` takes per-axis half-widths; enemies resolve by
+their footprint at their current turn, again after turning each frame, and
+in knockback and the end-of-frame separation.
+
+**Measured** — 0 hitbox corners inside a pillar across 2,819 enemy samples
+in 5 rooms (was up to 0.62 studs). 173 tests pass, including a turned square
+at 0/20/45/70° ending clear of a pillar.
+
+**Watch for** — the Bulwark in Teeth: turned 45° it needs 8.49 studs and one
+channel there is 8.4. It is squeezed, never unshootable. And probes: see the
+`GetPartBoundsInBox` note in `CLAUDE.md`.
+
+---
+
 ## Enemy orbs crawled at a third of the reference's speed
 
 **Symptom** — measured, not reported: Spitter and Lurker orbs at 4–4.4

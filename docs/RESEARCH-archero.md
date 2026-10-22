@@ -208,6 +208,11 @@ the red rings are **spawn markers**, not static floor features.
 | player pace | **0.19 room-widths/s** | 0.26, brisker by choice |
 | spawn warning | red ring per enemy, **~0.8–1.0 s** ahead, staggered, waves in triangles of three | 0.9 s + 0.08 s stagger; no clusters yet |
 | multishot | a **parallel lane**, not a fan | parallel lane |
+| arrow speed | **~5.5 room-widths/s** (~1,840 px/s, ref. video below) | 190 studs/s |
+| fire interval | **0.6 s** between volleys | 0.7 s, by playtest choice |
+| Diagonal Arrows | **±30°** either side of the aim | ±30° |
+| Ricochet | bounces **between enemies**, not walls | between enemies |
+| enemy orb speed | ~0.4–0.6 room-widths/s | 4–14 studs/s, slower — not yet matched |
 
 **How the camera was measured.** The lamp posts on the side walls sit about
 858 px apart and move together vertically between frames and never
@@ -218,12 +223,20 @@ least 270 px, which is how the room is known to be taller than the screen.
 way and there is no scroll to subtract: the player's health bar moved from
 x≈330 to x≈227 in 0.6 s.
 
-**What could not be measured.** Projectile speeds, fire rate and enemy
-movement speeds. Colour tracking is too noisy with this many teal and green
-things on screen — a health-bar detector reported widths between 134 and
-664 px on one bar — and single manual samples are not worth building on.
-Those numbers are therefore our own tuned values scaled with the room, not
-measurements, and should not be described as matching.
+**Speeds, from a second video.** The ability walkthrough
+([youtube.com/watch?v=cb0fRO72R_g](https://www.youtube.com/watch?v=cb0fRO72R_g))
+plays at 1080p and 60 fps with the game in a 400 px column and a 336 px
+floor. Its pixels can be read in code, which gave arrow speed by tracking
+three arrow tips across consecutive frames, the fire interval from volley
+frames, and the player's pace at 0.2 room-widths/s — which matches the
+other footage and confirms the clip is real-time.
+
+**What could not be measured.** Enemy movement speeds, and enemy orb
+speeds only roughly — from a few hand-read samples, which is why the table
+gives a range. Automatic colour tracking is too noisy with this many teal
+and green things on screen: a health-bar detector reported widths between
+134 and 664 px on one bar. Enemy speeds are therefore our own tuned values
+scaled with the room, and should not be described as matching.
 
 **Not built yet:** XP gems (blue cubes dropped on the floor by kills) and
 triangle-cluster spawning.

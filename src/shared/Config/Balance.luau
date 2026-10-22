@@ -537,16 +537,48 @@ local Balance = {
 	},
 
 	Projectile = {
-		--[[ Dropped a fifth after Playtest 2, along with every enemy shot, so
-		     the ratio between them is unchanged. Slower arrows make a volley
-		     something the player watches land rather than an instant line,
-		     which is what gives standing still a visible cost. ]]
-		speed = 17.4,
-		--[[ 45 studs of flight. Shortened from 55.7 after playtest: arrows
-		     sailing on long past their target read as stray rather than as
-		     reach. Still a little over `Player.attackRange`, so a shot at
-		     the edge of range arrives. ]]
-		lifetime = 2.6,
+		--[[
+			Measured, not tuned: Archero 2's arrows cross about 5.5 room-widths
+			a second (1080p footage at 60 fps, ~1,840 px/s against a 336 px
+			floor — see docs/RESEARCH-archero.md §7). Across our 35-stud room
+			that is about 190.
+
+			This was 17.4 for a long stretch, a number that came from scaling
+			an older, slower value down with the room. It made a volley
+			something you watched travel; in the reference it is all but
+			instant, and the cost of standing still is the enemy fire you are
+			not dodging, not the wait for your own arrow.
+		]]
+		speed = 190,
+		--[[ 45 studs of flight, the reach playtesting settled on: a little
+		     over `Player.attackRange`, so a shot at the edge of range
+		     arrives, and not so far that arrows sail on after the fight.
+		     Held as a distance by `Balance.spec`, so this follows `speed`. ]]
+		lifetime = 45 / 190,
+		--[[
+			The longest a projectile moves before its hit tests run again.
+
+			At footage speed an arrow covers about three studs a frame — more
+			than its own length — and the overlap pass only sees what the
+			arrow is touching on the moment it runs. So flight is cut into
+			sub-steps no longer than this, each with its own overlap pass and
+			sweep. Under half the arrow's length keeps the dead-zone argument
+			in `tests/HitDetection.spec.luau` true however fast arrows go.
+		]]
+		maxStepTravel = 1.2,
+		--[[ Diagonal Arrows' two extra arrows, either side of the aim. The
+		     footage's fan measures about ±30°, not the ±45° of the original
+		     Archero. ]]
+		diagonalAngle = math.rad(30),
+		--[[
+			Ricochet, as Archero 2's card has it: "Bullets can bounce between
+			monsters". After a hit the arrow leaves for the nearest *other*
+			enemy within `ricochetRange`, at `ricochetDamageScale` of the
+			damage it arrived with. The scale is the original game's roughly
+			-30% per bounce, from the teardown; the footage shows no number.
+		]]
+		ricochetRange = 14,
+		ricochetDamageScale = 0.7,
 		--[[
 			Half the width of the drawn arrow, and half the width of the box
 			the server sweeps. These two numbers are the hitbox *and* the
@@ -569,8 +601,8 @@ local Balance = {
 
 			This number is not free. A shape cast ignores anything it already
 			intersects when it starts, so the arrow's forward half is a dead
-			zone the sweep cannot see into — 1.5 studs here, against about a
-			third of a stud of travel per frame. ProjectileSystem pays for
+			zone the sweep cannot see into — 1.5 studs here, against
+			`maxStepTravel` of travel per sub-step. ProjectileFlight pays for
 			that with a per-step overlap pass; without it, a target that walks
 			into the arrow's front half is never hit.
 		]]

@@ -2,10 +2,15 @@
 --[[
 	Projectile visuals.
 
-	Draws straight-line flights from a volley description. Nothing here decides
-	anything: the server has already resolved who got hit. These parts exist so
-	the player can read the shot, and they despawn on contact purely so arrows
-	do not visibly pass through a wall.
+	Draws flights from a volley description. Nothing here decides anything:
+	the server has already resolved who got hit. These parts exist so the
+	player can read the shot.
+
+	They fly through `ProjectileFlight`, the module the server simulates
+	with, so a drawn arrow bounces off the walls, passes through the enemies
+	and stops in the body that the simulated one does. It used to stop at the
+	first thing it touched whatever the loadout said, which hid Bouncy Wall
+	and Piercing Shot entirely.
 
 	Parts are pooled. At Phase 3 volley sizes, allocating a Part per projectile
 	would be the single biggest source of frame hitches.
@@ -20,6 +25,7 @@ local Workspace = game:GetService("Workspace")
 
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Device = require(script.Parent.Parent.Device)
+local ProjectileFlight = require(ReplicatedStorage.Shared.Combat.ProjectileFlight)
 local ShotPipeline = require(ReplicatedStorage.Shared.Combat.ShotPipeline)
 local Types = require(ReplicatedStorage.Shared.Types)
 
@@ -35,9 +41,11 @@ type Faction = Types.Faction
 local PLAYER_COLOUR = Color3.fromRGB(255, 244, 196)
 local ENEMY_COLOUR = Color3.fromRGB(226, 182, 255)
 
---[[ Seconds of trail behind a shot. Short: it is there to make the line of
-     travel legible at a glance, not to leave the room full of ribbons. ]]
-local TRAIL_LIFETIME = 0.14
+--[[ Studs of streak behind an arrow. Set as a length and turned into a
+     lifetime per arrow, because at footage speed a fixed lifetime draws a
+     ribbon across half the room. The reference's streak, arrow and all, is
+     about a fifth of the room's width. ]]
+local ARROW_TRAIL_STUDS = 4
 
 --[[ The enemy orb's comet tail. Longer than an arrow's, because an orb is
      slow and a tail is how a slow thing shows which way it is going: at a
@@ -45,13 +53,9 @@ local TRAIL_LIFETIME = 0.14
      fast shot stretches into a streak on its own. ]]
 local ORB_TRAIL_LIFETIME = 0.6
 
-type Visual = {
+--[[ A drawn flight: the shared `Flight`, plus the part that shows it. ]]
+type Visual = ProjectileFlight.Flight & {
 	part: BasePart,
-	--[[ Decides what stops this one, exactly as it does on the server. ]]
-	faction: Faction,
-	position: Vector3,
-	direction: Vector3,
-	speed: number,
 	expiresAt: number,
 }
 
@@ -91,31 +95,13 @@ local enemyFilter: RaycastParams? = nil
 local playerOverlap: OverlapParams? = nil
 local enemyOverlap: OverlapParams? = nil
 
---[[
-	Each faction's projectile dimensions, read from the same config the server
-	sweeps, so the shape drawn and the shape simulated cannot drift apart.
-
-	The player fires long arrows; enemies fire round orbs. That is what the
-	reference footage shows, and it is also the single most useful thing a
-	player can be told about a projectile at a glance — whose it is — told by
-	silhouette rather than by asking them to read a hue mid-dodge.
-]]
-local function projectileSize(faction: Faction): Vector3
-	if faction == "Enemy" then
-		return Vector3.one * Balance.Projectile.enemyOrbDiameter
-	end
-
-	local width = Balance.Projectile.radius * 2
-	return Vector3.new(width, width, Balance.Projectile.length)
-end
-
 local function createPart(faction: Faction): BasePart
 	local tier = Device.tier()
 	local isOrb = faction == "Enemy"
 
 	local part = Instance.new("Part")
 	part.Name = "Projectile"
-	part.Size = projectileSize(faction)
+	part.Size = ProjectileFlight.size(faction)
 	part.Shape = if isOrb
 		then Enum.PartType.Ball
 		elseif tier.projectileIsRound then Enum.PartType.Cylinder
@@ -140,7 +126,7 @@ local function createPart(faction: Faction): BasePart
 		middle rather than a nose, since a ball has no front.
 	]]
 	if tier.projectileTrails then
-		local size = projectileSize(faction)
+		local size = ProjectileFlight.size(faction)
 		local nose = if isOrb then 0 else size.Z / 2
 
 		local left = Instance.new("Attachment")
@@ -157,7 +143,8 @@ local function createPart(faction: Faction): BasePart
 		trail.Name = "Trail"
 		trail.Attachment0 = left
 		trail.Attachment1 = right
-		trail.Lifetime = if isOrb then ORB_TRAIL_LIFETIME else TRAIL_LIFETIME
+		--[[ An arrow's is set per shot in `spawnVolley`, from its speed. ]]
+		trail.Lifetime = ORB_TRAIL_LIFETIME
 		trail.LightEmission = 1
 		trail.LightInfluence = 0
 		trail.FaceCamera = true
@@ -318,6 +305,23 @@ local function spawnImpact(position: Vector3, normal: Vector3, faction: Faction)
 	Debris:AddItem(spark, IMPACT_DURATION)
 end
 
+--[[ What the drawn flight does at a contact. Every body counts — the client
+     cannot know which hits the server will say landed, and drawing the arrow
+     stopping is the answer that is almost always right. ]]
+local contact: ProjectileFlight.Contact = {
+	onModel = function(_flight: ProjectileFlight.Flight, _model: Model): boolean
+		return true
+	end,
+	onWall = function(
+		flight: ProjectileFlight.Flight,
+		position: Vector3,
+		normal: Vector3,
+		_bounced: boolean
+	)
+		spawnImpact(position, normal, flight.faction)
+	end,
+}
+
 local function step(deltaTime: number)
 	local now = os.clock()
 
@@ -326,57 +330,15 @@ local function step(deltaTime: number)
 		local isEnemy = visual.faction == "Enemy"
 		local params = if isEnemy then enemyFilter else playerFilter
 		local overlap = if isEnemy then enemyOverlap else playerOverlap
-		local travel = visual.speed * deltaTime
-		local segment = visual.direction * travel
-		local size = projectileSize(visual.faction)
-		local pose = CFrame.lookAt(visual.position, visual.position + visual.direction)
-		local finished = now >= visual.expiresAt
+		local alive = now < visual.expiresAt
 
-		--[[
-			Bodies the arrow is already inside, which the sweep below is
-			structurally blind to. ProjectileSystem runs this same pass for the
-			same reason, and the two have to agree: without it the server stops
-			the shot and the client does not, so a damage number appears while
-			the arrow that caused it sails on through.
-
-			Models only, matching the server — arena geometry is the sweep's
-			job on both sides.
-		]]
-		if not finished and overlap then
-			for _, part in Workspace:GetPartBoundsInBox(pose, size, overlap) do
-				if part:FindFirstAncestorOfClass("Model") then
-					finished = true
-					break
-				end
-			end
-		end
-
-		if not finished and params then
-			--[[ The same box the server sweeps, so a shot that stops on screen
-			     is a shot that stopped on the server. ]]
-			local result = Workspace:Blockcast(pose, size, segment, params)
-
-			if result then
-				visual.position = result.Position
-				finished = true
-
-				--[[ Only arena geometry gets a spark. An enemy hit already has
-				     a flash and a damage number; a wall had nothing at all,
-				     so a blocked arrow simply vanished and read as the game
-				     failing rather than as cover working. ]]
-				if not result.Instance:FindFirstAncestorOfClass("Model") then
-					spawnImpact(result.Position, result.Normal, visual.faction)
-				end
-			end
-		end
-
-		if not finished then
-			visual.position += segment
+		if alive and params and overlap then
+			alive = ProjectileFlight.advance(visual, deltaTime, params, overlap, contact)
 		end
 
 		visual.part.CFrame = placeAt(visual.position, visual.direction)
 
-		if finished then
+		if not alive then
 			release(visual.part, visual.faction)
 
 			local last = #live
@@ -389,14 +351,16 @@ end
 --[[
 	Draws one volley. `elapsed` lets a replicated shot start partway along its
 	flight so a remote player's arrows are not drawn lagging behind where the
-	server already has them.
+	server already has them. `from` is a body the shot leaves from and must
+	not stop in: the enemy a ricochet bounced off.
 ]]
 function ProjectileRenderer.spawnVolley(
 	faction: Faction,
 	origin: Vector3,
 	direction: Vector3,
 	specs: { ShotSpec },
-	elapsed: number
+	elapsed: number,
+	from: Model?
 )
 	local tier = Device.tier()
 	local now = os.clock()
@@ -421,6 +385,9 @@ function ProjectileRenderer.spawnVolley(
 		     one does not draw a ribbon from where the last shot expired. ]]
 		local trail = part:FindFirstChildOfClass("Trail")
 		if trail then
+			if faction == "Player" then
+				trail.Lifetime = ARROW_TRAIL_STUDS / math.max(spec.speed, 1e-3)
+			end
 			trail.Enabled = true
 		end
 
@@ -430,6 +397,9 @@ function ProjectileRenderer.spawnVolley(
 			position = position,
 			direction = aim,
 			speed = spec.speed,
+			pierce = spec.pierce,
+			bounces = spec.bounces,
+			hitModels = if from then { [from] = true } else {},
 			expiresAt = now + (spec.lifetime - headStart),
 		})
 	end

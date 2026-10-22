@@ -120,7 +120,14 @@ Remotes.event(Remotes.ShotFired).OnClientEvent:Connect(function(event: ShotEvent
 		return
 	end
 
-	ProjectileRenderer.spawnVolley(event.faction, event.origin, event.direction, event.specs, 0)
+	ProjectileRenderer.spawnVolley(
+		event.faction,
+		event.origin,
+		event.direction,
+		event.specs,
+		0,
+		event.from
+	)
 end)
 
 Remotes.event(Remotes.EnemyTelegraph).OnClientEvent:Connect(TelegraphRenderer.onTelegraph)

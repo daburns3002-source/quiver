@@ -16,6 +16,74 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## Bouncing and piercing arrows stopped dead on screen
+
+**Symptom** — found auditing the projectile code against the reference video,
+not reported. With Ricochet (then a wall bounce) or Piercing Shot, drawn
+arrows stopped at the first wall or enemy, while damage kept landing further
+on with nothing visible causing it.
+
+**Cause** — two flights. `ProjectileSystem` bounced and pierced;
+`ProjectileRenderer` had its own simpler step that stopped every arrow at its
+first contact, whatever the loadout. The same class of bug as #25: the client
+showing a different shot from the one the server fired.
+
+**Fix** — one flight. `Shared/Combat/ProjectileFlight` holds the sweep, the
+overlap pass, bounces and pierce, and both sides step through it, answering
+contacts through a `Contact` table: damage on the server, a spark on the
+client. Server-invented shots (chain, ricochet) carry the body they leave
+from, so the drawn arrow does not stop inside it.
+
+**Measured** — loadout of Ricochet 2, Bouncy Wall 2, Piercing Shot 1 and
+Diagonal Arrows: 185 drawn wall bounces and 13 drawn ricochets in 2,838 arrow
+frames. In a clean run, 0 of 98 arrow frames inside an enemy, with 48 hits
+from 63 volleys. `tests/ProjectileFlight.spec.luau` pins bounce, pierce,
+the ignored source body and footage-speed hits.
+
+**Watch for** — any change to how a projectile moves made in
+`ProjectileSystem` or `ProjectileRenderer` instead of `ProjectileFlight`.
+
+---
+
+## Arrows ten times slower than the reference
+
+**Symptom** — "make sure that projectiles are reacting the same as the video".
+Measured at 1080p, 60 fps: Archero 2's arrows cross about 5.5 room-widths a
+second. Ours did 0.5.
+
+**Cause** — the speed was scaled down with the room when the room was rebuilt
+to Archero 2's proportions, rather than measured. Speed was never in the
+measurements table, so nothing caught it.
+
+**Fix** — `Projectile.speed` 17.4 → 190, lifetime held at 45 studs of reach.
+At that speed an arrow covers more than its own length a frame, which breaks
+the overlap pass's assumption, so `ProjectileFlight` sub-steps flight at
+`maxStepTravel` (1.2 studs, under half an arrow). The arrow trail became a
+length (4 studs) rather than a lifetime, or it draws across half the room.
+
+**Measured** — 160 tests pass, including a 190-studs/s arrow at 30 fps
+landing on a body in its path and a body appearing inside a fast arrow.
+
+**Watch for** — `maxStepTravel` reaching half the arrow's length:
+`HitDetection.spec` fails at exactly 1.5, and it should.
+
+---
+
+## Ricochet bounced off walls; Archero 2's bounces between enemies
+
+**Symptom** — the video's card reads "Bullets can bounce between monsters,
++1 bounce". Ours bounced off walls.
+
+**Fix** — Ricochet now fires a new arrow from the point of contact to the
+nearest enemy this chain has not struck, within `ricochetRange` (14), at
+`ricochetDamageScale` (0.7). The wall bounce survives as its own card,
+Bouncy Wall. Diagonal Arrows narrowed from ±45° to the footage's ±30°.
+
+**Measured** — 19 ricochets announced in one run, each leaving 3.4–4.4 studs
+from the centre of the enemy it hit, which is the surface of a 3-stud body.
+
+---
+
 ## A shot enemy could be knocked into another for a frame
 
 **Symptom** — found while verifying the larger room, not reported: four

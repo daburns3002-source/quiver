@@ -300,19 +300,23 @@ return function(t: TestRunner.Helper)
 	end)
 
 	--[[
-		An arrow that travels further in one step than its own length can pass
-		clean through a target between frames, because each step sweeps from
-		where it was to where it will be and nothing in between is checked
-		twice. Worth an assertion: it is the kind of thing a speed increase
-		reintroduces silently.
+		A projectile that travels further between hit tests than its own
+		length can pass clean through a target, because the overlap pass only
+		sees what it touches when it runs. Arrows now outrun their length every
+		frame — that is the footage's speed — so ProjectileFlight cuts each
+		frame into sub-steps no longer than `maxStepTravel`, and that is the
+		number held to the arrow here.
+
+		Enemy shots are held per frame at 30fps as before: they are slow, and
+		an orb is short.
 	]]
-	t.test("no projectile outruns its own length in a frame", function()
+	t.test("no projectile outruns its own length between hit tests", function()
 		local step = 1 / 30
 		local length = Balance.Projectile.length
 
 		t.isTrue(
-			Balance.Projectile.speed * step < length + Balance.Projectile.radius * 2,
-			"the player's arrow moves more than its own length per frame at 30fps"
+			Balance.Projectile.maxStepTravel < length / 2,
+			"an arrow's sub-step reaches past its own nose"
 		)
 
 		for name, config in archetypes() do

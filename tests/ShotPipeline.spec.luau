@@ -150,6 +150,7 @@ return function(t: TestRunner.Helper)
 			splashRadius = 0,
 			splashScale = 0,
 			bounces = 0,
+			ricochet = 0,
 			chainOnKill = 0,
 		})
 
@@ -173,6 +174,7 @@ return function(t: TestRunner.Helper)
 			splashRadius = 0,
 			splashScale = 0,
 			bounces = 0,
+			ricochet = 0,
 			chainOnKill = 0,
 		})
 
@@ -194,6 +196,7 @@ return function(t: TestRunner.Helper)
 			splashRadius = 0,
 			splashScale = 0,
 			bounces = 0,
+			ricochet = 0,
 			chainOnKill = 0,
 		})
 
@@ -218,6 +221,7 @@ return function(t: TestRunner.Helper)
 			splashRadius = 0,
 			splashScale = 0,
 			bounces = 0,
+			ricochet = 0,
 			chainOnKill = 0,
 		})
 

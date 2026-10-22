@@ -97,6 +97,7 @@ local function fire(session: Session, root: BasePart, now: number)
 			splashRadius = spec.splashRadius,
 			splashScale = spec.splashScale,
 			bounces = spec.bounces,
+			ricochet = spec.ricochet,
 			chainOnKill = spec.chainOnKill,
 			--[[ The run that fired it, so the kill credits the right player's
 			     draft even if the arrow outlives their current session. ]]

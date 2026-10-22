@@ -75,9 +75,11 @@ local function withTarget(size: Vector3): { [string]: any }
 end
 
 return function(t: TestRunner.Helper)
-	--[[ One frame of travel at the configured speed, which is the distance the
-	     sweep is responsible for covering. ]]
-	local frameTravel = Balance.Projectile.speed / 60
+	--[[ The most an arrow moves between hit tests: one frame at the
+	     configured speed, or one sub-step once that is longer, since
+	     ProjectileFlight cuts a long frame into sub-steps no longer than
+	     `maxStepTravel`. ]]
+	local frameTravel = math.min(Balance.Projectile.speed / 60, Balance.Projectile.maxStepTravel)
 	local noseReach = Balance.Projectile.length / 2
 
 	--[[

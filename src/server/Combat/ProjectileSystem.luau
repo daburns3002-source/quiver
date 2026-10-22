@@ -74,6 +74,8 @@ type Projectile = {
 	bounces: number,
 	--[[ Hits left that send it on to the nearest other enemy. ]]
 	ricochet: number,
+	--[[ Radians a second it turns towards the nearest enemy ahead. ]]
+	homing: number,
 	--[[ Free arrows a kill by this one fires at whatever is nearest. ]]
 	chainOnKill: number,
 	--[[ Guards against a single projectile hitting the same enemy on
@@ -193,6 +195,7 @@ export type SpawnParams = {
 	splashScale: number,
 	bounces: number,
 	ricochet: number,
+	homing: number,
 	chainOnKill: number,
 	owner: Player?,
 	now: number,
@@ -244,6 +247,7 @@ function ProjectileSystem.spawn(params: SpawnParams)
 		splashScale = params.splashScale,
 		bounces = params.bounces,
 		ricochet = params.ricochet,
+		homing = params.homing,
 		chainOnKill = params.chainOnKill,
 		expiresAt = now + params.lifetime,
 		hitModels = if params.ignore then { [params.ignore] = true } else {},
@@ -354,6 +358,7 @@ local function fireOnward(projectile: Projectile, onward: Onward)
 			splashScale = projectile.splashScale,
 			bounces = 0,
 			ricochet = onward.ricochet,
+			homing = projectile.homing,
 			chainOnKill = onward.chainOnKill,
 			owner = projectile.owner,
 			now = currentNow,
@@ -373,6 +378,7 @@ local function fireOnward(projectile: Projectile, onward: Onward)
 			splashScale = projectile.splashScale,
 			bounces = 0,
 			ricochet = onward.ricochet,
+			homing = projectile.homing,
 			chainOnKill = onward.chainOnKill,
 		})
 	end
@@ -527,6 +533,9 @@ end
 local contact: ProjectileFlight.Contact = {
 	onModel = function(flight: ProjectileFlight.Flight, model: Model): boolean
 		return applyHit(flight :: any, model)
+	end,
+	seek = function(flight: ProjectileFlight.Flight): Vector3?
+		return ProjectileFlight.seekAhead(flight, EnemyManager.positions())
 	end,
 }
 

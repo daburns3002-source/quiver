@@ -12,34 +12,37 @@ add to it in the same PR as every fix — the same classes of bug recur here.
 
 ## Where we are
 
-**Paused on 2026-10-21, mid Phase 3, at `c9ceffd` on `main`.** The owner
-moved to another project. Everything is merged and pushed; there are no open
-PRs and no unmerged branches with work on them.
+**Active again, mid Phase 3.** Paused on 2026-10-21 and resumed the same
+day; the focus since has been making projectiles behave like the Archero 2
+footage, measured rather than eyeballed.
 
 What exists and works, all verified in Studio rather than only by the gates:
 
 - **Phases 1 and 2:** move-or-shoot, five enemy archetypes, ten-room runs,
   death and restart. Playtest 1 passed. Playtest 2's question — *after five
   rooms, do you want a sixth?* — was never formally answered.
-- **Phase 3, mostly:** the shot pipeline with 21 abilities as data, XP and a
-  choose-one-of-three draft that pauses the world, crit, splash, ricochet,
-  chain-on-kill, Momentum, Second Wind, a run summary, and the client's
-  prediction replicated from the server so what is drawn is what fires.
+- **Phase 3, mostly:** the shot pipeline with 23 abilities as data, XP and a
+  choose-one-of-three draft that pauses the world, crit, splash, Ricochet
+  (enemy to enemy), Bouncy Wall, Tracking Eye (homing), chain-on-kill,
+  Momentum, Second Wind, exclusions (`Abilities.excludes`, read both ways),
+  a run summary, and the client's prediction replicated from the server.
+- **One flight for both sides.** `Shared/Combat/ProjectileFlight` steps every
+  projectile on the server *and* in the renderer — sweep, overlap pass,
+  sub-steps, bounce, pierce, homing — so what is drawn is what fires. Change
+  how projectiles move there and only there.
+- **Measured speeds** (`docs/RESEARCH-archero.md` §7): arrows 190 studs/s,
+  slow enemy orbs 12, the Lancer 28, Diagonal Arrows ±30°.
 - **The dash** (4-second cooldown, readiness bar), player hit feedback, and
   draft enemy bodies.
-- **Archero 2 proportions,** measured from footage — see
-  `docs/RESEARCH-archero.md` §7: a portrait 35 × 58 room, a camera that fits
-  the room's width and follows depth only, spawn markers, orb enemy shots.
+- **Archero 2 proportions:** a portrait 35 × 58 room, a camera that fits the
+  room's width and follows depth only, spawn markers, orb enemy shots.
 
-Where it was left, and why: the last stretch was rapid tuning against
-playtest feel — fire rate, move speed, arrow reach, enemy health — and the
-owner judged it was not coming together. The numbers in `Config/Balance` are
-the last ones asked for, not settled ones. Untested by any real player: the
-final fire rate (0.7 s) and enemy health (×1.5).
+The numbers in `Config/Balance` are the last ones asked for or measured, not
+settled ones. Untested by the owner: the measured speeds, and enemy health ×1.5.
 
-Not done: Phase 3's last four abilities and mutual exclusions; XP gems and
-triangle-cluster spawns from the footage; projectile speeds and fire rate
-were never *measured* from Archero 2, only scaled.
+Not done: Phase 3's last two abilities (Double Shot and Blaze are planned)
+and its playtest question; XP gems and triangle-cluster spawns from the
+footage.
 
 To resume: `rojo serve`, connect the Studio plugin, Play. Read
 `docs/FIXES.md` before debugging anything — most of what can go wrong here
@@ -71,6 +74,14 @@ already has.
 - `execute_luau` does **not** share the module `require` cache with the running
   game. A probe calling `EnemyManager.aliveCount()` gets a fresh, empty module
   and returns zeros. Probe the DataModel, never module state.
+- **A card screen opened between probes pauses the run silently.** A probe
+  that listens for `AbilityOffer` only answers offers made while it runs; one
+  already open stays open and the next probe records zero shots. Fire
+  `AbilityChosen` once at the start of every probe.
+- **Arrow impact sparks are round parts named `Impact`** in
+  `ProjectileVisuals`, beside the enemy orbs. Filter orbs by
+  `Name == "Projectile"`, not by shape, or stationary sparks read as orbs that
+  have stopped moving.
 - `screen_capture` in play mode returns the GUI layer over a black 3D viewport.
   That is a capture limitation, not a render fault — verify geometry instead.
 - `VirtualInputManager:SendKeyEvent` and `Lighting.Technology` are capability

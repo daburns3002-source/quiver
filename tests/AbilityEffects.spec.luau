@@ -350,6 +350,19 @@ return function(t: TestRunner.Helper)
 		t.equal(volley({ BouncyWall = 1 })[1].ricochet, 0, "Bouncy Wall ricochets")
 	end)
 
+	t.test("Tracking Eye makes arrows home, and nothing else does", function()
+		t.equal(volley({})[1].homing, 0)
+		t.isTrue(volley({ TrackingEye = 1 })[1].homing > 0, "Tracking Eye granted no homing")
+
+		for _, ability in Abilities.all do
+			if ability.id ~= "TrackingEye" then
+				for _, spec in volley({ [ability.id] = 1 }) do
+					t.equal(spec.homing, 0, `{ability.id} makes arrows home`)
+				end
+			end
+		end
+	end)
+
 	t.test("Bouncy Wall lets arrows bounce off walls, and stacks", function()
 		t.equal(volley({})[1].bounces, 0)
 		t.isTrue(volley({ BouncyWall = 1 })[1].bounces > 0, "Bouncy Wall granted no bounces")

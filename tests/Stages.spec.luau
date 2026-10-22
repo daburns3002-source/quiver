@@ -30,6 +30,7 @@ local function baseSpec(): Types.ShotSpec
 		splashScale = 0,
 		bounces = 0,
 		ricochet = 0,
+		homing = 0,
 		chainOnKill = 0,
 	}
 end

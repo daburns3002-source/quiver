@@ -82,6 +82,7 @@ local function flight(z: number, speed: number): ProjectileFlight.Flight
 		speed = speed,
 		pierce = 0,
 		bounces = 0,
+		homing = 0,
 		hitModels = {},
 	}
 end
@@ -196,6 +197,52 @@ return function(t: TestRunner.Helper)
 
 		local nose = f.position.Z + Balance.Projectile.length / 2
 		t.near(nose, 5, 0.05, `the arrow stopped with its tip at z = {nose}, not on the face at 5`)
+
+		r.destroy()
+	end)
+
+	--[[ Tracking Eye. A body beside the line of flight: a straight arrow
+	     passes it, a homing one curves in. The same body *behind* the arrow
+	     must not turn it round. ]]
+	t.test("a homing arrow curves onto a body beside its path", function()
+		local r = rig()
+		local aside = r.body(12)
+		aside:PivotTo(CFrame.new(4, PROBE_HEIGHT, 12))
+
+		local function seek(f: ProjectileFlight.Flight): Vector3?
+			return ProjectileFlight.seekAhead(f, { [aside] = aside:GetPivot().Position })
+		end
+
+		local plain = flight(0, 20)
+		local plainContact, plainHits = recorder()
+		plainContact.seek = seek
+		fly(plain, r, plainContact, 60, 1 / 60)
+		t.equal(#plainHits, 0, "a straight arrow hit a body four studs off its line")
+
+		local homing = flight(0, 20)
+		homing.homing = math.rad(540)
+		local homingContact, homingHits = recorder()
+		homingContact.seek = seek
+		fly(homing, r, homingContact, 60, 1 / 60)
+		t.equal(#homingHits, 1, "a homing arrow did not curve onto the body")
+
+		r.destroy()
+	end)
+
+	t.test("a homing arrow does not turn round for a body behind it", function()
+		local r = rig()
+		local behind = r.body(-6)
+		local contact, struck = recorder()
+		contact.seek = function(f: ProjectileFlight.Flight): Vector3?
+			return ProjectileFlight.seekAhead(f, { [behind] = behind:GetPivot().Position })
+		end
+
+		local f = flight(0, 20)
+		f.homing = math.rad(540)
+		fly(f, r, contact, 30, 1 / 60)
+
+		t.equal(#struck, 0, "the arrow turned round")
+		t.isTrue(f.direction.Z > 0.99, "the arrow changed heading for a body behind it")
 
 		r.destroy()
 	end)

@@ -151,6 +151,7 @@ return function(t: TestRunner.Helper)
 			splashScale = 0,
 			bounces = 0,
 			ricochet = 0,
+			homing = 0,
 			chainOnKill = 0,
 		})
 
@@ -175,6 +176,7 @@ return function(t: TestRunner.Helper)
 			splashScale = 0,
 			bounces = 0,
 			ricochet = 0,
+			homing = 0,
 			chainOnKill = 0,
 		})
 
@@ -197,6 +199,7 @@ return function(t: TestRunner.Helper)
 			splashScale = 0,
 			bounces = 0,
 			ricochet = 0,
+			homing = 0,
 			chainOnKill = 0,
 		})
 
@@ -222,6 +225,7 @@ return function(t: TestRunner.Helper)
 			splashScale = 0,
 			bounces = 0,
 			ricochet = 0,
+			homing = 0,
 			chainOnKill = 0,
 		})
 

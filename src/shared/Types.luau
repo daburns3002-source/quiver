@@ -73,6 +73,9 @@ export type ShotSpec = {
 	     the server at contact, like splash, since what is nearby is not
 	     knowable when the volley is built. ]]
 	ricochet: number,
+	--[[ Radians a second the arrow may turn towards the nearest enemy ahead
+	     of it. 0 flies straight. Tracking Eye. ]]
+	homing: number,
 	--[[ How many free arrows a kill by this projectile fires at whatever is
 	     nearest. The chain shot inherits nothing — it is a plain arrow, or a
 	     stack of these would multiply without limit. ]]

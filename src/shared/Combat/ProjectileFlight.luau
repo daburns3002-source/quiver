@@ -48,6 +48,9 @@ export type Flight = {
 	--[[ Reflections off arena geometry left. Spent, so a projectile is its
 	     own counter. ]]
 	bounces: number,
+	--[[ Radians a second it may turn towards what `Contact.seek` finds.
+	     0 flies straight, which is every projectile but Tracking Eye's. ]]
+	homing: number,
 	--[[ Models already reached, so one body is not hit on consecutive steps
 	     while the projectile is still inside it. ]]
 	hitModels: { [Model]: boolean },
@@ -60,6 +63,11 @@ export type Contact = {
 	onModel: (flight: Flight, model: Model) -> boolean,
 	--[[ Arena geometry, and whether the flight bounced off it or died. ]]
 	onWall: ((flight: Flight, position: Vector3, normal: Vector3, bounced: boolean) -> ())?,
+	--[[ Where a homing flight should steer, or nil for nowhere. Each side
+	     answers from what it can see — the server from `EnemyManager`, the
+	     client from the enemy models — and both pick the same way, so the
+	     drawn arrow curves the way the simulated one does. ]]
+	seek: ((flight: Flight) -> Vector3?)?,
 }
 
 local ProjectileFlight = {}
@@ -100,6 +108,69 @@ function ProjectileFlight.reflect(direction: Vector3, normal: Vector3): Vector3?
 	end
 
 	return flat.Unit
+end
+
+--[[
+	The nearest body in front of a flight that it has not already struck,
+	within `Balance.Projectile.homingRange`, or nil.
+
+	Shared so the server, answering from `EnemyManager.positions()`, and the
+	client, answering from the enemy models, choose by the same rule. In
+	front only: an arrow that turned round for something behind it would read
+	as a malfunction, not as tracking.
+]]
+function ProjectileFlight.seekAhead(flight: Flight, candidates: { [Model]: Vector3 }): Vector3?
+	local best: Vector3? = nil
+	local bestDistance = Balance.Projectile.homingRange
+
+	for model, position in candidates do
+		if flight.hitModels[model] then
+			continue
+		end
+
+		local offset =
+			Vector3.new(position.X - flight.position.X, 0, position.Z - flight.position.Z)
+		local distance = offset.Magnitude
+
+		if distance < bestDistance and offset:Dot(flight.direction) > 0 then
+			best = position
+			bestDistance = distance
+		end
+	end
+
+	return best
+end
+
+--[[
+	Turns a homing flight towards its target by at most `homing * dt`
+	radians, in the floor plane. A cap rather than a snap: an arrow that
+	pointed straight at its target every step would never miss, and Tracking
+	Eye is meant to forgive bad aim, not remove aim.
+]]
+local function steer(flight: Flight, dt: number, contact: Contact)
+	if flight.homing <= 0 or not contact.seek then
+		return
+	end
+
+	local target = contact.seek(flight)
+	if not target then
+		return
+	end
+
+	local want = Vector3.new(target.X - flight.position.X, 0, target.Z - flight.position.Z)
+	if want.Magnitude < 1e-3 then
+		return
+	end
+
+	local heading = math.atan2(flight.direction.Z, flight.direction.X)
+	local desired = math.atan2(want.Z, want.X)
+	--[[ The signed difference, wrapped into (-pi, pi], so the turn goes the
+	     short way round. ]]
+	local delta = (desired - heading + math.pi) % (2 * math.pi) - math.pi
+	local limit = flight.homing * dt
+	local turned = heading + math.clamp(delta, -limit, limit)
+
+	flight.direction = Vector3.new(math.cos(turned), 0, math.sin(turned))
 end
 
 --[[
@@ -276,6 +347,8 @@ function ProjectileFlight.advance(
 	local each = total / substeps
 
 	for _ = 1, substeps do
+		steer(flight, deltaTime / substeps, contact)
+
 		if not resolveOverlaps(flight, size, overlap, contact) then
 			return false
 		end

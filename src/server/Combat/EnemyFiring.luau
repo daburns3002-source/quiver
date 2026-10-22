@@ -87,6 +87,7 @@ function EnemyFiring.step(now: number)
 				splashScale = 0,
 				bounces = 0,
 				ricochet = 0,
+				homing = 0,
 				chainOnKill = 0,
 				owner = nil,
 				now = now,

@@ -139,7 +139,7 @@ local meleeCharger: EnemyConfig = {
 	-- Studs the enemy is shoved back per hit taken.
 	knockback = 6,
 	hitboxSize = Vector3.new(3, 5, 3),
-	color = Color3.fromRGB(214, 96, 86),
+	color = Color3.fromRGB(226, 52, 56),
 	xpReward = 10,
 	--[[ Melee: closes to attackRange and swings. A ranged archetype sets
 	     `shot` instead and keeps its distance. ]]
@@ -166,7 +166,7 @@ local spreadShooter: EnemyConfig = {
 	attackCooldown = 2.2,
 	knockback = 6,
 	hitboxSize = Vector3.new(3, 5, 3),
-	color = Color3.fromRGB(150, 110, 200),
+	color = Color3.fromRGB(70, 206, 236),
 	xpReward = 14,
 	shot = {
 		-- Odd count so one projectile always runs down the centre.
@@ -214,7 +214,7 @@ local lineSniper: EnemyConfig = {
 	attackCooldown = 3,
 	knockback = 6,
 	hitboxSize = Vector3.new(3, 5, 3),
-	color = Color3.fromRGB(96, 150, 214),
+	color = Color3.fromRGB(140, 82, 210),
 	xpReward = 16,
 	shot = {
 		count = 1,
@@ -253,7 +253,7 @@ local tank: EnemyConfig = {
 	     stall it indefinitely with chip damage. ]]
 	knockback = 1.2,
 	hitboxSize = Vector3.new(6, 8, 6),
-	color = Color3.fromRGB(120, 124, 138),
+	color = Color3.fromRGB(124, 134, 160),
 	xpReward = 30,
 	shot = nil,
 	burrow = nil,
@@ -282,7 +282,7 @@ local burrower: EnemyConfig = {
 	attackCooldown = 2.4,
 	knockback = 6,
 	hitboxSize = Vector3.new(3, 5, 3),
-	color = Color3.fromRGB(110, 190, 140),
+	color = Color3.fromRGB(124, 62, 178),
 	xpReward = 20,
 	shot = {
 		--[[ Wider and denser than the Spitter's: it surfaces at close range,

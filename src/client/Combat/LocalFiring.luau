@@ -62,12 +62,15 @@ local loadoutConnection: RBXScriptConnection? = nil
      thing it predicts is still running. ]]
 local pauseConnection: RBXScriptConnection? = nil
 
-local function nearestEnemyPosition(origin: Vector3): Vector3?
+--[[ The enemy the archer would shoot from `origin`, and where it is: the
+     nearest targetable one in range, by the same rule the server uses. ]]
+local function nearestEnemy(origin: Vector3): (Model?, Vector3?)
 	local folder = Workspace:FindFirstChild("Enemies")
 	if not folder then
-		return nil
+		return nil, nil
 	end
 
+	local bestModel: Model? = nil
 	local bestPosition: Vector3? = nil
 	local bestDistance = Balance.Player.attackRange
 
@@ -93,12 +96,32 @@ local function nearestEnemyPosition(origin: Vector3): Vector3?
 		local distance = delta.Magnitude
 
 		if distance <= bestDistance then
+			bestModel = model
 			bestPosition = primary.Position
 			bestDistance = distance
 		end
 	end
 
-	return bestPosition
+	return bestModel, bestPosition
+end
+
+local function nearestEnemyPosition(origin: Vector3): Vector3?
+	local _, position = nearestEnemy(origin)
+	return position
+end
+
+--[[ The enemy the local archer is aiming at right now, for drawing the
+     target ring under it. Presentation only: the server picks what it
+     actually shoots, by the same rule. ]]
+function LocalFiring.currentTarget(): Model?
+	local character = player.Character
+	local root = character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
+	if not root then
+		return nil
+	end
+
+	local model = nearestEnemy(root.Position)
+	return model
 end
 
 local function face(root: BasePart, direction: Vector3)

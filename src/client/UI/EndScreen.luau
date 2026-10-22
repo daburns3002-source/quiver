@@ -9,8 +9,9 @@
 	was won, and every number shown; the button only asks it for the next
 	run, and the server ignores that unless the run has ended.
 
-	This is the layout pass: everything is drawn where the design puts it,
-	at rest. The motion in `Config/EndScreenTimeline` comes next.
+	The motion lives in `EndScreenMotion`, posed from the timeline in
+	`Config/EndScreenTimeline`. A tap anywhere jumps to the end of it; the
+	button only takes a press once its own entrance has finished.
 
 	Not shown yet, by the owner's choice: the REWARDS box (there are no coins
 	or gems until the meta loop) and HOME (there is no lobby). The stats
@@ -21,12 +22,16 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TextService = game:GetService("TextService")
+local UserInputService = game:GetService("UserInputService")
 local Workspace = game:GetService("Workspace")
 
+local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local CardAssets = require(ReplicatedStorage.Shared.Config.CardAssets)
 local EndScreenAssets = require(ReplicatedStorage.Shared.Config.EndScreenAssets)
 local EndScreenLayout = require(ReplicatedStorage.Shared.Config.EndScreenLayout)
 local EndScreenTheme = require(ReplicatedStorage.Shared.Config.EndScreenTheme)
+
+local EndScreenMotion = require(script.Parent.EndScreenMotion)
 
 local EndScreen = {}
 
@@ -53,14 +58,13 @@ local BODY = Theme.fonts.body
      width is the tighter fit. ]]
 local HEIGHT_SHARE = 0.85
 local WIDTH_SHARE = 0.94
---[[ Seconds after the screen appears before its button takes a press, so a
-     tap meant for the fight does not skip straight past the result. ]]
-local BUTTON_GUARD = 1
 
 local gui: ScreenGui? = nil
 local scaler: UIScale? = nil
 local panelHeight = Theme.panelSize.Y
 local viewportConnection: RBXScriptConnection? = nil
+local inputConnection: RBXScriptConnection? = nil
+local motion: EndScreenMotion.Motion? = nil
 local onRestart: (() -> ())? = nil
 
 --[[ A top-to-bottom gradient over `target`, which is drawn white so the
@@ -167,6 +171,17 @@ local function shadow(parent: Instance, b: Box, z: number, radius: number, drop:
 	corner(s, radius)
 end
 
+--[[ Re-anchors `obj` on its own centre without moving it, and gives it a
+     UIScale, so the motion can pop, drop and turn it about its middle. ]]
+local function pivot(obj: GuiObject): UIScale
+	local size = obj.Size
+	obj.AnchorPoint = Vector2.new(0.5, 0.5)
+	obj.Position = obj.Position + UDim2.fromOffset(size.X.Offset / 2, size.Y.Offset / 2)
+	local scale = Instance.new("UIScale")
+	scale.Parent = obj
+	return scale
+end
+
 --[[ A white shape image tinted by a gradient, with an ink copy behind it
      `pad` larger all round: how the design outlines its ribbon pieces. ]]
 local function shape(
@@ -186,7 +201,7 @@ local function shape(
 	gradient(front, stops)
 end
 
-local function buildRibbon(parent: Instance, look: any, won: boolean)
+local function buildRibbon(parent: Instance, look: any, won: boolean): (Frame, Frame)
 	local b = Layout.banner
 	local ribbon = frame(parent, "Ribbon", b, 20)
 
@@ -263,13 +278,18 @@ local function buildRibbon(parent: Instance, look: any, won: boolean)
 		WHITE,
 		Theme.text.subStroke
 	)
+
+	pivot(ribbon)
+	pivot(sub)
+	return ribbon, sub
 end
 
-local function buildHero(parent: Instance, look: any, won: boolean)
+local function buildHero(parent: Instance, look: any, won: boolean): CanvasGroup
 	if won then
 		local rays = image(parent, "Rays", Layout.rays, 3, CardAssets.rays)
 		rays.ImageColor3 = look.rays
 		rays.ImageTransparency = look.raysTransparency
+		pivot(rays)
 		local glow = image(
 			parent,
 			"Glow",
@@ -277,6 +297,7 @@ local function buildHero(parent: Instance, look: any, won: boolean)
 			4,
 			CardAssets.glow
 		)
+		pivot(glow)
 		glow.ImageColor3 = look.glow
 		glow.ImageTransparency = 0.25
 	else
@@ -290,17 +311,37 @@ local function buildHero(parent: Instance, look: any, won: boolean)
 		glow.ScaleType = Enum.ScaleType.Stretch
 		glow.ImageColor3 = look.glow
 		glow.ImageTransparency = 0
+		pivot(glow)
 	end
 
-	local hero = image(
-		parent,
-		"Hero",
-		if won then Layout.heroVictory else Layout.heroDefeat,
+	--[[ The art in a CanvasGroup, so its bottom edge can be faded as well as
+	     its sides: the art was cut from the reference without its edges
+	     quite faded out (alpha ~0.3 at mid-edge), which drew a pale box
+	     round it, and the bottom shows while the stats panel slides in. ]]
+	local box = if won then Layout.heroVictory else Layout.heroDefeat
+	local hero = Instance.new("CanvasGroup")
+	hero.Name = "Hero"
+	hero.Position = UDim2.fromOffset(box.x, box.y)
+	hero.Size = UDim2.fromOffset(box.w, box.h)
+	hero.BackgroundTransparency = 1
+	hero.ZIndex = 6
+	hero.Parent = parent
+	local down = Instance.new("UIGradient")
+	down.Rotation = 90
+	down.Transparency = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, 0),
+		NumberSequenceKeypoint.new(0.82, 0),
+		NumberSequenceKeypoint.new(1, 1),
+	})
+	down.Parent = hero
+
+	local art = image(
+		hero,
+		"Art",
+		{ x = 0, y = 0, w = box.w, h = box.h },
 		6,
 		if won then EndScreenAssets.victoryHero else EndScreenAssets.defeatHero
 	)
-	--[[ The art was cut from the reference with its sides not quite faded
-	     out (alpha ~0.3 at mid-edge), which drew a pale box round it. ]]
 	local feather = Instance.new("UIGradient")
 	feather.Transparency = NumberSequence.new({
 		NumberSequenceKeypoint.new(0, 1),
@@ -308,7 +349,10 @@ local function buildHero(parent: Instance, look: any, won: boolean)
 		NumberSequenceKeypoint.new(0.88, 0),
 		NumberSequenceKeypoint.new(1, 1),
 	})
-	feather.Parent = hero
+	feather.Parent = art
+
+	pivot(hero)
+	return hero
 end
 
 local function row(
@@ -359,7 +403,7 @@ local function row(
 end
 
 --[[ Defeat's third row: a label, a bar and a percentage. ]]
-local function progressRow(panel: Instance, index: number, percent: number)
+local function progressRow(panel: Instance, index: number, percent: number): Frame
 	local r = row(panel, index, EndScreenAssets.chart, "", string.format("%d%%", percent))
 	local l = r:FindFirstChild("Label") :: TextLabel
 	l.Font = DISPLAY
@@ -383,9 +427,29 @@ local function progressRow(panel: Instance, index: number, percent: number)
 	fillBar.BackgroundTransparency = 0
 	corner(fillBar, 7)
 	gradient(fillBar, Theme.progress.fill)
+	return fillBar
 end
 
-local function buildStats(parent: Instance, summary: Summary): number
+export type Count = { label: TextLabel, kind: "Count" | "Clock" | "Percent", target: number }
+
+export type Stats = {
+	group: Frame,
+	rows: { Frame },
+	counts: { Count },
+	fill: Frame?,
+	percent: number,
+	shiftUp: number,
+}
+
+local function buildStats(content: Instance, summary: Summary): Stats
+	--[[ Everything on the stats panel in one group, so it can slide in as
+	     one piece. ]]
+	local parent = frame(
+		content,
+		"StatsGroup",
+		{ x = 0, y = 0, w = Theme.panelSize.X, h = Theme.panelSize.Y },
+		30
+	)
 	local pb = Layout.panel
 	local rowsBottom = Layout.rowsOrigin.Y + 3 * Theme.row.height + 2 * Theme.row.gap
 	-- Closed up to the rows while the rewards box is not shown.
@@ -435,28 +499,72 @@ local function buildStats(parent: Instance, summary: Summary): number
 		outline(accent, INK, 2)
 	end
 
-	if summary.won then
-		row(panel, 1, EndScreenAssets.skull, "Enemies defeated", tostring(summary.kills))
-		row(panel, 2, EndScreenAssets.hourglass, "Time", clock(summary.seconds))
-		row(
-			panel,
-			3,
-			EndScreenAssets.heart,
-			"Health remaining",
-			string.format("%d%%", summary.healthPercent)
+	local rows: { Frame } = {}
+	local counts: { Count } = {}
+	local fill: Frame? = nil
+	local function add(r: Frame, kind: "Count" | "Clock" | "Percent", target: number)
+		table.insert(rows, r)
+		table.insert(
+			counts,
+			{ label = r:FindFirstChild("Value") :: TextLabel, kind = kind, target = target }
 		)
-	else
-		row(panel, 1, EndScreenAssets.skull, "Enemies defeated", tostring(summary.kills))
-		row(panel, 2, EndScreenAssets.hourglass, "Time survived", clock(summary.seconds))
-		progressRow(panel, 3, summary.progressPercent)
 	end
 
-	return pb.h - height
+	add(
+		row(panel, 1, EndScreenAssets.skull, "Enemies defeated", tostring(summary.kills)),
+		"Count",
+		summary.kills
+	)
+	if summary.won then
+		add(
+			row(panel, 2, EndScreenAssets.hourglass, "Time", clock(summary.seconds)),
+			"Clock",
+			summary.seconds
+		)
+		add(
+			row(
+				panel,
+				3,
+				EndScreenAssets.heart,
+				"Health remaining",
+				string.format("%d%%", summary.healthPercent)
+			),
+			"Percent",
+			summary.healthPercent
+		)
+	else
+		add(
+			row(panel, 2, EndScreenAssets.hourglass, "Time survived", clock(summary.seconds)),
+			"Clock",
+			summary.seconds
+		)
+		fill = progressRow(panel, 3, summary.progressPercent)
+		add(panel:FindFirstChild("Row3") :: Frame, "Percent", summary.progressPercent)
+	end
+
+	return {
+		group = parent,
+		rows = rows,
+		counts = counts,
+		fill = fill,
+		percent = summary.progressPercent,
+		shiftUp = pb.h - height,
+	}
 end
 
-local function buildButton(parent: Instance, look: any, won: boolean, shiftUp: number): TextButton
+export type ButtonParts = {
+	group: Frame,
+	button: TextButton,
+	icon: ImageLabel,
+	shine: Frame,
+}
+
+local function buildButton(content: Instance, look: any, won: boolean, shiftUp: number): ButtonParts
 	local lb = Layout.button
-	local b = { x = lb.x, y = lb.y - shiftUp, w = lb.w, h = lb.h }
+	-- The button and its shadow in one group, pivoted on the button's centre.
+	local parent =
+		frame(content, "ButtonGroup", { x = lb.x, y = lb.y - shiftUp, w = lb.w, h = lb.h }, 50)
+	local b = { x = 0, y = 0, w = lb.w, h = lb.h }
 	shadow(parent, b, 50, 22, 6)
 
 	local button = Instance.new("TextButton")
@@ -472,23 +580,43 @@ local function buildButton(parent: Instance, look: any, won: boolean, shiftUp: n
 	corner(button, 22)
 	outline(button, INK, 4)
 	gradient(button, look.button)
+	--[[ The shine that sweeps across it: a soft white band, slanted by its
+	     gradient, in a rounded CanvasGroup so it is clipped to the button's
+	     own rounded ends rather than to a rectangle. ]]
+	local shineClip = Instance.new("CanvasGroup")
+	shineClip.Name = "ShineClip"
+	shineClip.Size = UDim2.fromScale(1, 1)
+	shineClip.BackgroundTransparency = 1
+	shineClip.ZIndex = 52
+	shineClip.Parent = button
+	corner(shineClip, 22)
+	local shine = frame(shineClip, "Shine", { x = -120, y = 0, w = 70, h = b.h }, 55)
+	shine.BackgroundTransparency = 0
+	local band = Instance.new("UIGradient")
+	band.Rotation = 18
+	band.Transparency = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, 1),
+		NumberSequenceKeypoint.new(0.5, 0.4),
+		NumberSequenceKeypoint.new(1, 1),
+	})
+	band.Parent = shine
 
 	local highlight = frame(button, "Highlight", { x = 14, y = 3, w = b.w - 28, h = 3 }, 52)
 	highlight.BackgroundTransparency = 0.5
 	corner(highlight, 2)
 
-	local content = frame(button, "Content", { x = 0, y = 0, w = b.w, h = b.h }, 53)
+	local inner = frame(button, "Content", { x = 0, y = 0, w = b.w, h = b.h }, 53)
 	local list = Instance.new("UIListLayout")
 	list.FillDirection = Enum.FillDirection.Horizontal
 	list.HorizontalAlignment = Enum.HorizontalAlignment.Center
 	list.VerticalAlignment = Enum.VerticalAlignment.Center
 	list.Padding = UDim.new(0, 14)
 	list.SortOrder = Enum.SortOrder.LayoutOrder
-	list.Parent = content
+	list.Parent = inner
 
 	local words = look.buttonText
 	local label = text(
-		content,
+		inner,
 		"Text",
 		{ x = 0, y = 0, w = width(words, DISPLAY, Theme.text.button) + 8, h = b.h },
 		54,
@@ -503,19 +631,21 @@ local function buildButton(parent: Instance, look: any, won: boolean, shiftUp: n
 	pad.PaddingTop = UDim.new(0, 6)
 	pad.Parent = label
 
+	local icon: ImageLabel
 	if won then
 		label.LayoutOrder = 1
-		local chevron =
-			image(content, "Chevron", { x = 0, y = 0, w = 26, h = 26 }, 54, EndScreenAssets.chevron)
-		chevron.LayoutOrder = 2
+		icon =
+			image(inner, "Chevron", { x = 0, y = 0, w = 26, h = 26 }, 54, EndScreenAssets.chevron)
+		icon.LayoutOrder = 2
 	else
-		local icon =
-			image(content, "Refresh", { x = 0, y = 0, w = 36, h = 36 }, 54, EndScreenAssets.refresh)
+		icon =
+			image(inner, "Refresh", { x = 0, y = 0, w = 36, h = 36 }, 54, EndScreenAssets.refresh)
 		icon.LayoutOrder = 1
 		label.LayoutOrder = 2
 	end
 
-	return button
+	pivot(parent)
+	return { group = parent, button = button, icon = icon, shine = shine }
 end
 
 local function fit()
@@ -541,6 +671,14 @@ function EndScreen.hide()
 		viewportConnection:Disconnect()
 		viewportConnection = nil
 	end
+	if inputConnection then
+		inputConnection:Disconnect()
+		inputConnection = nil
+	end
+	if motion then
+		motion.stop()
+		motion = nil
+	end
 end
 
 function EndScreen.show(summary: Summary)
@@ -553,7 +691,11 @@ function EndScreen.show(summary: Summary)
 	screen.Name = "EndScreen"
 	screen.ResetOnSpawn = false
 	screen.IgnoreGuiInset = true
-	screen.DisplayOrder = 60
+	--[[ Over the card screens and the skill bar (100–120). A run cannot end
+	     while a hand is open — the world is frozen — so this only matters
+	     for the Studio preview, but the skill bar would otherwise sit on
+	     top of the button. ]]
+	screen.DisplayOrder = 130
 	--[[ Sibling, not Global: under Global the background's CanvasGroup
 	     stopped clipping, and the rays spilled out past the panel. ]]
 	screen.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
@@ -581,10 +723,12 @@ function EndScreen.show(summary: Summary)
 
 	local content =
 		frame(root, "Content", { x = 0, y = 0, w = Theme.panelSize.X, h = Theme.panelSize.Y }, 10)
-	buildRibbon(content, look, won)
-	buildHero(content, look, won)
-	local shiftUp = buildStats(content, summary)
-	local button = buildButton(content, look, won, shiftUp)
+	local ribbon, sub = buildRibbon(content, look, won)
+	local hero = buildHero(content, look, won)
+	local stats = buildStats(content, summary)
+	local shiftUp = stats.shiftUp
+	local buttonParts = buildButton(content, look, won, shiftUp)
+	local button = buttonParts.button
 
 	local lb = Layout.button
 	panelHeight = lb.y - shiftUp + lb.h + 6 + 22
@@ -615,20 +759,74 @@ function EndScreen.show(summary: Summary)
 			piece.Parent = glows
 		end
 	end
+	--[[ Flash, sparks, confetti, rocks and the vignette: over the content,
+	     under the ink edge, clipped to the panel like the rays. ]]
+	local over = Instance.new("CanvasGroup")
+	over.Name = "Over"
+	over.Size = UDim2.fromOffset(size.X, size.Y)
+	over.BackgroundTransparency = 1
+	over.ZIndex = 80
+	over.Parent = root
+	corner(over, 24)
+
 	local edge = frame(root, "Edge", { x = 0, y = 0, w = size.X, h = size.Y }, 90)
 	corner(edge, 24)
 	outline(edge, INK, 5)
 
+	local played = EndScreenMotion.play({
+		won = won,
+		root = root,
+		size = size,
+		ribbon = ribbon,
+		sub = sub,
+		hero = hero,
+		rays = glows:FindFirstChild("Rays") :: ImageLabel?,
+		glow = glows:FindFirstChild("Glow") :: ImageLabel?,
+		behind = glows,
+		over = over,
+		statsGroup = stats.group,
+		rows = stats.rows,
+		counts = stats.counts,
+		fill = stats.fill,
+		percent = stats.percent,
+		buttonGroup = buttonParts.group,
+		icon = buttonParts.icon,
+		shine = buttonParts.shine,
+	})
+	motion = played
+
+	--[[ A tap anywhere jumps the entrance to its end. Whether the button was
+	     ready is read before the jump, so the tap that skips is never also
+	     taken as a press. ]]
+	local readyAtTap = false
+	inputConnection = UserInputService.InputBegan:Connect(function(input: InputObject)
+		local kind = input.UserInputType
+		if
+			kind == Enum.UserInputType.MouseButton1
+			or kind == Enum.UserInputType.Touch
+			or input.KeyCode == Enum.KeyCode.ButtonA
+		then
+			readyAtTap = played.ready()
+			played.skip()
+		end
+	end)
+
 	local shownAt = os.clock()
 	local pressed = false
 	button.Activated:Connect(function()
-		if pressed or os.clock() - shownAt < BUTTON_GUARD then
+		if pressed or not readyAtTap then
 			return
 		end
 		pressed = true
-		if onRestart then
-			onRestart()
-		end
+		--[[ The server takes the request only once the run has been over for
+		     `deathPause`; after a skip the button can be ready sooner, so the
+		     request waits out the difference rather than being refused. ]]
+		local wait = Balance.Run.deathPause + 0.1 - (os.clock() - shownAt)
+		task.delay(math.max(0, wait), function()
+			if onRestart and gui == screen then
+				onRestart()
+			end
+		end)
 	end)
 
 	fit()
@@ -638,6 +836,14 @@ function EndScreen.show(summary: Summary)
 	end
 
 	screen.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
+end
+
+--[[ Holds the showing screen's motion at `ms` milliseconds, or releases it
+     with nil: for looking at one moment of it in Studio. ]]
+function EndScreen.hold(ms: number?)
+	if motion then
+		motion.hold(ms)
+	end
 end
 
 --[[ `restart` is called when the player presses the button; the caller asks

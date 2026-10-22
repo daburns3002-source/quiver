@@ -37,8 +37,10 @@ What exists and works, all verified in Studio rather than only by the gates:
   progress come from the server; the button asks for the next run
   (`Remotes.RunRestart`), which the server grants only once the run is over
   — there is no restart timer any more, and the world holds still behind
-  the screen. Layout pass only so far: the motion in `EndScreenTimeline` is
-  next. REWARDS and HOME are left out until currency and a lobby exist
+  the screen. Fully animated from `EndScreenTimeline` by
+  `UI/EndScreenMotion` (posed from one clock, so a tap skips by moving the
+  clock); `EndScreen.hold(ms)` freezes it at one moment for a Studio
+  capture. REWARDS and HOME are left out until currency and a lobby exist
   (owner's choice).
 - **Phase 3, mostly:** the shot pipeline with its abilities as data, XP and a
   choose-one-of-three draft that pauses the world, crit, splash, Ricochet

@@ -33,6 +33,9 @@ export type Tier = {
 	enableBloom: boolean,
 	--[[ Sparkles a second shed by each enemy orb. Zero turns them off. ]]
 	orbSparkleRate: number,
+	--[[ Share of the end screens' confetti, sparks and embers drawn. Never
+	     zero: a Victory with no confetti at all reads as broken. ]]
+	endScreenParticleShare: number,
 }
 
 --[[
@@ -51,6 +54,7 @@ local low: Tier = {
 	burnParticleRate = 4,
 	enableBloom = false,
 	orbSparkleRate = 0,
+	endScreenParticleShare = 0.5,
 }
 
 local medium: Tier = {
@@ -64,6 +68,7 @@ local medium: Tier = {
 	burnParticleRate = 10,
 	enableBloom = true,
 	orbSparkleRate = 8,
+	endScreenParticleShare = 0.75,
 }
 
 local high: Tier = {
@@ -77,6 +82,7 @@ local high: Tier = {
 	burnParticleRate = 20,
 	enableBloom = true,
 	orbSparkleRate = 16,
+	endScreenParticleShare = 1,
 }
 
 local DeviceTiers = {

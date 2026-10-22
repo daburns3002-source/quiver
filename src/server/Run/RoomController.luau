@@ -26,7 +26,6 @@ local Arena = require(script.Parent.Parent.Arena.Arena)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Burning = require(script.Parent.Parent.Combat.Burning)
 local EnemyManager = require(script.Parent.Parent.Enemies.EnemyManager)
-local Loadout = require(script.Parent.Loadout)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
 local Pickups = require(script.Parent.Pickups)
 local ProjectileSystem = require(script.Parent.Parent.Combat.ProjectileSystem)
@@ -186,38 +185,28 @@ function RoomController.start()
 end
 
 --[[
-	Tells each player what they built.
-
-	Sent at the end of a run rather than accumulated as it goes, because the
-	only moment the summary is worth anything is the one where the player is
-	deciding whether to go again. Held abilities only: a heal they drank is
-	not part of the build, and `Loadout.held` already draws that line.
+	Tells each player how the stage went, for the end screen: won or lost,
+	which stage, this stage's kills and time, health left, and how far
+	through it they got. Sent at the moment the run ends, so the time and
+	health are the ones the player finished with.
 ]]
 local function sendSummary(won: boolean)
+	local finished = if won then progress else progress - 1
+	local progressPercent =
+		math.clamp(math.floor(finished / math.max(total(), 1) * 100 + 0.5), 0, 100)
+
 	for _, session in RunSession.all() do
-		local held = Loadout.held(session.loadout)
-
-		local lines: { { id: string, count: number } } = {}
-		for id, count in held do
-			table.insert(lines, { id = id, count = count })
-		end
-
-		--[[ Sorted here so every client shows the same order, and so a build
-		     reads as a list rather than as whatever order a hash landed in. ]]
-		table.sort(lines, function(a, b)
-			if a.count ~= b.count then
-				return a.count > b.count
-			end
-			return a.id < b.id
-		end)
+		local healthPercent = if session.maxHealth > 0
+			then math.clamp(math.floor(session.health / session.maxHealth * 100 + 0.5), 0, 100)
+			else 0
 
 		runSummary:FireClient(session.player, {
 			won = won,
-			reached = progress,
-			total = total(),
-			unit = unit(),
-			level = session.loadout.level,
-			abilities = lines,
+			stage = Balance.stage,
+			kills = session.stageKills,
+			seconds = math.floor(os.clock() - session.stageStartedAt),
+			healthPercent = healthPercent,
+			progressPercent = progressPercent,
 		})
 	end
 end
@@ -297,24 +286,46 @@ local function stepWaves(now: number)
 	startWave(progress + 1)
 end
 
-function RoomController.step(now: number)
-	if state == "Dead" or state == "Complete" then
-		if resumeAt and now >= resumeAt then
-			if state == "Dead" then
-				log.info("restarting the run")
+--[[
+	A player pressed the end screen's button. Honoured only once the run has
+	ended and the end screen's guard time has passed, so a request sent at
+	any other moment — or by a client that never showed the screen — does
+	nothing. A loss costs the build; a win keeps it into the next run.
+]]
+--[[ Whether the run has ended and is waiting on the end screen. ]]
+function RoomController.isOver(): boolean
+	return state == "Dead" or state == "Complete"
+end
 
-				--[[ Levels and abilities are run-local by design: a death
-				     costs the build and nothing else, because the meta loop
-				     that would soften that is Phase 6. Reset before the stage
-				     is built, so the first wave meets a level-one archer. ]]
-				for _, session in RunSession.all() do
-					RunSession.resetRun(session)
-				end
-			end
+function RoomController.requestRestart(): boolean
+	if not RoomController.isOver() then
+		return false
+	end
+	if resumeAt and os.clock() < resumeAt then
+		return false
+	end
 
-			startStage()
+	if state == "Dead" then
+		log.info("restarting the run")
+
+		--[[ Levels and abilities are run-local by design: a death costs the
+		     build and nothing else, because the meta loop that would soften
+		     that is Phase 6. Reset before the stage is built, so the first
+		     wave meets a level-one archer. ]]
+		for _, session in RunSession.all() do
+			RunSession.resetRun(session)
 		end
+	end
 
+	resumeAt = nil
+	startStage()
+	return true
+end
+
+function RoomController.step(now: number)
+	--[[ Over: the end screen is up, and the next run starts when a player
+	     asks for it (`requestRestart`), not on a timer. ]]
+	if state == "Dead" or state == "Complete" then
 		return
 	end
 

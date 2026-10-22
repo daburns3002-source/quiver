@@ -21,6 +21,7 @@ local DashBar = require(script.Parent.UI.DashBar)
 local DevKeys = require(script.Parent.DevKeys)
 local Device = require(script.Parent.Device)
 local DraftScreen = require(script.Parent.UI.Cards.DraftScreen)
+local EndScreen = require(script.Parent.UI.EndScreen)
 local EnemyHealthBars = require(script.Parent.Fx.EnemyHealthBars)
 local Game = require(Shared.Config.Game)
 local HealthBar = require(script.Parent.UI.HealthBar)
@@ -35,7 +36,6 @@ local Remotes = require(Shared.Net.Remotes)
 local ReviveFx = require(script.Parent.Fx.ReviveFx)
 local RunBanner = require(script.Parent.UI.RunBanner)
 local RunPaused = require(script.Parent.RunPaused)
-local RunSummary = require(script.Parent.UI.RunSummary)
 local SkillBar = require(script.Parent.UI.Cards.SkillBar)
 local TelegraphRenderer = require(script.Parent.Fx.TelegraphRenderer)
 local TopDownCamera = require(script.Parent.Camera.TopDownCamera)
@@ -93,7 +93,9 @@ end
 
 HealthBar.start()
 DashBar.start()
-RunSummary.start()
+EndScreen.start(function()
+	Remotes.event(Remotes.RunRestart):FireServer()
+end)
 RunBanner.start()
 ProjectileRenderer.start(Workspace)
 HitFeedback.start(Workspace)
@@ -167,14 +169,14 @@ Remotes.event(Remotes.RunStateChanged).OnClientEvent
 	:Connect(function(index, total, state, name, unit)
 		RunBanner.onRunStateChanged(index, total, state, name, unit)
 
-		--[[ The summary belongs to the run that ended, so it clears the moment
-	     the next one starts fighting rather than on a timer of its own. ]]
+		--[[ The end screen belongs to the run that ended, so it clears the
+		     moment the next one starts fighting. ]]
 		if state == "Fighting" then
-			RunSummary.hide()
+			EndScreen.hide()
 		end
 	end)
 
-Remotes.event(Remotes.RunSummary).OnClientEvent:Connect(RunSummary.show)
+Remotes.event(Remotes.RunSummary).OnClientEvent:Connect(EndScreen.show)
 
 --[[ Prediction inputs only — move speed and dash cooldown. Nothing that
      decides an outcome arrives here. ]]

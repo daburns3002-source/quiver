@@ -412,9 +412,9 @@ local function pick(index: number?)
 		slot.liftSpring.target = if on then -28 elseif slot.hovered then -10 else 0
 		--[[ A card taken up pops and wobbles; one put back down, a little. ]]
 		if on and previous ~= slot.index then
-			juiceUp(slot, 0.12, 6)
+			juiceUp(slot, 0, 6)
 		elseif not on and previous == slot.index then
-			juiceUp(slot, 0.05, 3)
+			juiceUp(slot, 0, 3)
 		end
 	end
 	setChooseEnabled(index ~= nil)
@@ -429,7 +429,7 @@ local function confirm()
 	locked = true
 	local chosen = slots[index]
 	if chosen then
-		juiceUp(chosen, 0.18, 8)
+		juiceUp(chosen, 0, 8)
 	end
 
 	--[[ On a phone the pick is a celebration: the card takes the stage, and
@@ -851,7 +851,12 @@ local function step(deltaTime: number)
 		slot.float += ((if still then 0 else 1) - slot.float) * math.min(1, deltaTime * 14)
 		local calm = slot.float
 
-		Motion.step(slot.scaleSpring, deltaTime)
+		--[[ Size eases to where it is going and stops — no spring, no pop.
+		     A size that overshoots and settles throbs the card's words,
+		     which read as the text pulsing for a second after a click. ]]
+		local sizeTarget = slot.scaleSpring.target
+		slot.scaleSpring.x += (sizeTarget - slot.scaleSpring.x) * math.min(1, deltaTime * 16)
+		slot.scaleSpring.v = 0
 		Motion.step(slot.liftSpring, deltaTime)
 
 		local rotation = math.sin(now * 1.3 + i * 1.7) * 1.4 * calm

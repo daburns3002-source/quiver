@@ -16,6 +16,26 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## Card text pulsed big and small for a second after a click
+
+**Symptom** — "when you click on one of the upgrade cards the text still pops
+big and small over and over for about a second".
+
+**Cause** — two springs stacked on the card's size. Selecting a card fired a
+Balatro-style juice whose scale term was a decaying sine (about eight swings
+in 0.4 s), and the selection size itself (1.0 → 1.1) ran on an underdamped
+spring that overshot and rang. Text inside a scaled card swells and shrinks
+with it, so the whole card read as throbbing.
+
+**Fix** — `UI/Cards/DraftScreen`: the juice on select, deselect and confirm
+keeps only its rotation wobble (scale amount 0), and the selection size eases
+exponentially toward its target with no velocity, so it cannot overshoot.
+
+**Measured** — a probe counted every change of direction in the card's
+`UIScale` from click to rest: 0 reversals, peak exactly 1.10, the target.
+
+---
+
 ## Arrows hit a pillar beside an enemy in plain view
 
 **Symptom** — "some of the hits did not hit the enemies". Playtest clip

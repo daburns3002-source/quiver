@@ -17,6 +17,7 @@
 	wings tuck behind their neighbours.
 ]]
 
+local ContextActionService = game:GetService("ContextActionService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -24,11 +25,15 @@ local UserInputService = game:GetService("UserInputService")
 local Workspace = game:GetService("Workspace")
 
 local Abilities = require(ReplicatedStorage.Shared.Config.Abilities)
+local CardAssets = require(ReplicatedStorage.Shared.Config.CardAssets)
 local CardBuilder = require(script.Parent.CardBuilder)
 local CardTheme = require(ReplicatedStorage.Shared.Config.CardTheme)
+local DetailPanel = require(script.Parent.DetailPanel)
 local Motion = require(script.Parent.Motion)
+local MythicReveal = require(script.Parent.MythicReveal)
 local PlayerStats = require(script.Parent.Parent.Parent.PlayerStats)
 local Rarities = require(ReplicatedStorage.Shared.Config.Rarities)
+local SkillBar = require(script.Parent.SkillBar)
 
 local DraftScreen = {}
 
@@ -42,6 +47,8 @@ local TIMING = CardTheme.timing
 local BLEED = 120
 --[[ Space above the cards for the tallest crown. ]]
 local CROWN_ROOM = 96
+--[[ Screen kept clear at the bottom for the skill bar. ]]
+local BAR_ROOM = 110
 
 local TITLES = {
 	Level = { "LEVEL UP!", "Level %d · choose one skill" },
@@ -62,7 +69,14 @@ type Slot = {
 	liftSpring: Motion.Spring,
 	jiggle: Motion.Spring,
 	dealAt: number,
+	--[[ A Mythic is dealt face down: its back, when its reveal starts, and
+	     the lightning round its face once it is up. ]]
+	mythic: { back: Frame, start: number, lightning: MythicReveal.Lightning? }?,
 }
+
+--[[ How the player is pointing: a mouse, a finger, or a gamepad. Decided
+     when a hand is dealt, from the input they last used. ]]
+type Mode = "Mouse" | "Touch" | "Gamepad"
 
 local gui: ScreenGui? = nil
 local panel: Frame? = nil
@@ -82,8 +96,28 @@ local dealToken = 0
 local slots: { Slot } = {}
 local selected: number? = nil
 --[[ While cards are flying off, nothing else may be pressed. ]]
-local leaving: { kind: "Choose" | "Reroll", at: number, picked: number? }? = nil
+local leaving: { kind: "Choose" | "Reroll" | "Celebrate", at: number, picked: number? }? = nil
 local locked = false
+local mode: Mode = "Mouse"
+--[[ With a gamepad, the card the stick is on. ]]
+local focused = 1
+
+--[[ Full-screen effects over the panel: the rays, flash, ring and words of
+     a celebration or a reveal, and the strip and prompts for a gamepad. ]]
+local rays: ImageLabel? = nil
+local flash: Frame? = nil
+local shockwave: Frame? = nil
+local headline: TextLabel? = nil
+local tagline: TextLabel? = nil
+local flyer: Frame? = nil
+local ghosts: { Frame } = {}
+local strip: Frame? = nil
+local stripText: TextLabel? = nil
+local prompts: Frame? = nil
+
+local ACTIONS = { "DraftLeft", "DraftRight", "DraftChoose", "DraftReroll" }
+
+local stepOverlay: (now: number) -> ()
 
 local onChosen: ((number) -> ())? = nil
 local onReroll: (() -> ())? = nil
@@ -92,8 +126,22 @@ local function isTouch(): boolean
 	return UserInputService.TouchEnabled and not UserInputService.MouseEnabled
 end
 
+local GAMEPADS = {
+	[Enum.UserInputType.Gamepad1] = true,
+	[Enum.UserInputType.Gamepad2] = true,
+	[Enum.UserInputType.Gamepad3] = true,
+	[Enum.UserInputType.Gamepad4] = true,
+}
+
+local function currentMode(): Mode
+	if GAMEPADS[UserInputService:GetLastInputType()] then
+		return "Gamepad"
+	end
+	return if isTouch() then "Touch" else "Mouse"
+end
+
 local function gap(): number
-	return if isTouch() then 12 else 96
+	return if mode == "Touch" then 12 else 96
 end
 
 local function stroked(
@@ -203,11 +251,35 @@ local function confirm()
 	end
 
 	locked = true
-	leaving = { kind = "Choose", at = os.clock(), picked = index }
+
+	--[[ On a phone the pick is a celebration: the card takes the stage, and
+	     its icon flies into the skill bar before the pick is applied. ]]
+	local celebrate = mode == "Touch"
+	leaving =
+		{ kind = if celebrate then "Celebrate" else "Choose", at = os.clock(), picked = index }
+
+	local slot = slots[index]
+	local words, tag, icon = headline, tagline, flyer
+	if celebrate and slot and words and tag and icon then
+		local ability = Abilities.byId[slot.id]
+		local level = (PlayerStats.get().abilities[slot.id] or 0) + 1
+		words.TextSize = 40
+		words.Text = if level > 1 then "UPGRADED!" else "NEW SKILL!"
+		words.TextColor3 = CardTheme.colors.choose
+		tag.Text = `{ability.name} · LVL {level}`
+		for _, child in icon:GetChildren() do
+			if child:IsA("GuiObject") then
+				child:Destroy()
+			end
+		end
+		local medallion = DetailPanel.medallion(icon, ability, 72)
+		medallion.AnchorPoint = Vector2.new(0.5, 0.5)
+		medallion.Position = UDim2.fromScale(0.5, 0.5)
+	end
 
 	--[[ The pick is applied as the cards finish leaving, as the design
 	     times it, so the screen never closes on a frame still moving. ]]
-	task.delay(TIMING.chooseApplyAt, function()
+	task.delay(if celebrate then TIMING.touchChooseApplyAt else TIMING.chooseApplyAt, function()
 		local handler = onChosen
 		if handler then
 			handler(index)
@@ -263,11 +335,16 @@ local function layoutPanel(count: number)
 	-- Fit the whole panel to the screen, never above design size.
 	local camera = Workspace.CurrentCamera
 	local viewport = if camera then camera.ViewportSize else Vector2.new(1280, 720)
-	local scale = math.min(1, (viewport.X - 32) / math.max(width, 460), (viewport.Y - 32) / height)
+	local scale =
+		math.min(1, (viewport.X - 32) / math.max(width, 460), (viewport.Y - 32 - BAR_ROOM) / height)
+	scale = math.max(scale, 0.3)
 	local s = panelScale
 	if s then
-		s.Scale = math.max(scale, 0.3)
+		s.Scale = scale
 	end
+	-- Lifted clear of the skill bar beneath it.
+	p.Position = UDim2.new(0.5, 0, 0.5, -BAR_ROOM * scale / 2)
+	SkillBar.setVisible(true, scale)
 end
 
 local function buildSlot(index: number, id: string, count: number, now: number): Slot
@@ -297,6 +374,19 @@ local function buildSlot(index: number, id: string, count: number, now: number):
 
 	local x = (index - 1) * (CARD.X + gap()) - ((count - 1) * (CARD.X + gap())) / 2
 	local base = Vector2.new(x, 0)
+	local dealAt = now + (index - 1) * TIMING.dealStagger
+
+	local mythic = nil
+	if ability and ability.rarity == "Mythic" then
+		local back = MythicReveal.buildBack()
+		back.AnchorPoint = Vector2.new(0.5, 0.5)
+		back.Position = UDim2.fromScale(0.5, 0.5)
+		back.Parent = group
+		local backScale = Instance.new("UIScale")
+		backScale.Parent = back
+		card.root.Visible = false
+		mythic = { back = back, start = dealAt + TIMING.dealDuration + 0.2, lightning = nil }
+	end
 
 	local slot: Slot = {
 		index = index,
@@ -310,7 +400,8 @@ local function buildSlot(index: number, id: string, count: number, now: number):
 		scaleSpring = Motion.spring(1, 0.2, 0.7),
 		liftSpring = Motion.spring(0, 0.14, 0.72),
 		jiggle = Motion.spring(0, 0.12, 0.84),
-		dealAt = now + (index - 1) * TIMING.dealStagger,
+		dealAt = dealAt,
+		mythic = mythic,
 	}
 
 	-- The whole card is the press target.
@@ -325,7 +416,7 @@ local function buildSlot(index: number, id: string, count: number, now: number):
 	hit.Parent = group
 
 	hit.MouseEnter:Connect(function()
-		if isTouch() or locked then
+		if mode ~= "Mouse" or locked then
 			return
 		end
 		slot.hovered = true
@@ -341,14 +432,59 @@ local function buildSlot(index: number, id: string, count: number, now: number):
 		local width = math.max(hit.AbsoluteSize.X, 1)
 		slot.pointer = math.clamp((mouseX - left) / width, 0, 1)
 	end)
+	--[[ On a touch screen, holding a card opens its detail as a sheet, with
+	     a white bar filling under the card while the finger is down. ]]
+	local holdBar = Instance.new("Frame")
+	holdBar.Name = "HoldBar"
+	holdBar.AnchorPoint = Vector2.new(0, 0)
+	holdBar.Position = UDim2.new(0.5, -CARD.X / 2, 0.5, CARD.Y / 2 + 14)
+	holdBar.Size = UDim2.fromOffset(0, 6)
+	holdBar.BackgroundColor3 = WHITE
+	holdBar.BorderSizePixel = 0
+	holdBar.Parent = group
+	corner(holdBar, 3)
+
+	local holding: number? = nil
+	local heldOpen = false
+	hit.InputBegan:Connect(function(input: InputObject)
+		if input.UserInputType ~= Enum.UserInputType.Touch or locked then
+			return
+		end
+		local started = os.clock()
+		holding = started
+		heldOpen = false
+		task.spawn(function()
+			while holding == started do
+				local p = math.clamp((os.clock() - started) / TIMING.holdToOpen, 0, 1)
+				holdBar.Size = UDim2.fromOffset(CARD.X * p, 6)
+				if p >= 1 then
+					heldOpen = true
+					holding = nil
+					DetailPanel.show(id, PlayerStats.get().abilities[id] or 0, true)
+					break
+				end
+				RunService.RenderStepped:Wait()
+			end
+			holdBar.Size = UDim2.fromOffset(0, 6)
+		end)
+	end)
+	hit.InputEnded:Connect(function(input: InputObject)
+		if input.UserInputType == Enum.UserInputType.Touch then
+			holding = nil
+		end
+	end)
+
 	hit.Activated:Connect(function()
-		if locked then
+		local hidden = slot.mythic ~= nil
+			and os.clock() < (slot.mythic :: any).start + MythicReveal.flipEnd
+		if locked or heldOpen or hidden then
+			heldOpen = false
 			return
 		end
 		--[[ With a mouse, clicking the selected card again confirms it. On
 		     a touch screen only Choose! confirms: a tap is too easy to
 		     land twice by accident. ]]
-		if selected == index and not isTouch() then
+		if selected == index and mode == "Mouse" then
 			confirm()
 		else
 			pick(index)
@@ -356,6 +492,177 @@ local function buildSlot(index: number, id: string, count: number, now: number):
 	end)
 
 	return slot
+end
+
+local function setFocus(index: number)
+	focused = math.clamp(index, 1, math.max(#slots, 1))
+	pick(focused)
+	local slot = slots[focused]
+	local label = stripText
+	if slot and label then
+		local ability = Abilities.byId[slot.id]
+		local level = PlayerStats.get().abilities[slot.id] or 0
+		local top = #ability.levels
+		label.Text = `{ability.name}  ·  {ability.rarity}  ·  {if level > 0
+			then `LVL {level} → {level + 1}`
+			else "NEW"}  ·  {ability.stats[math.min(level + 1, top)]}\n{ability.description}`
+	end
+end
+
+--[[ The overlay's moments: a phone's celebration of a pick, or a Mythic
+     being revealed. Everything here is drawn over the panel in screen
+     space. ]]
+stepOverlay = function(now: number)
+	local away = leaving
+	local raysImage, flashFrame, ring, words, tag, icon =
+		rays, flash, shockwave, headline, tagline, flyer
+	if not raysImage or not flashFrame or not ring or not words or not tag or not icon then
+		return
+	end
+
+	local raysAlpha, flashAlpha, ringP, wordsAlpha, wordsPop = 0, 0, -1, 0, 0
+	local mythicTitle = false
+	local centre: Vector2? = nil
+
+	if away and away.kind == "Celebrate" and away.picked then
+		local t = now - away.at
+		local slot = slots[away.picked]
+		if slot then
+			centre = slot.group.AbsolutePosition + slot.group.AbsoluteSize / 2
+		end
+
+		raysAlpha = if t < 0.3
+			then 0
+			elseif t < 0.5 then (t - 0.3) / 0.2
+			elseif t < 1.0 then 1
+			elseif t < 1.3 then 1 - (t - 1.0) / 0.3
+			else 0
+		flashAlpha = math.max(0, 0.65 * (1 - math.abs(t - 0.33) / 0.22))
+		ringP = if t >= 0.3 and t <= 0.75 then (t - 0.3) / 0.45 else -1
+		wordsPop = Motion.backOut(math.clamp((t - 0.42) / 0.36, 0, 1))
+		wordsAlpha = if t < 0.42
+			then 0
+			elseif t < 1.05 then 1
+			else math.max(0, 1 - (t - 1.05) / 0.25)
+
+		-- The icon's flight into the bar.
+		local f = (t - 1.04) / 0.5
+		if slot and centre and f >= 0 and f <= 1 then
+			local target = SkillBar.slotPosition(slot.id) or centre
+			local e = Motion.quadInOut(f)
+			local control =
+				Vector2.new((centre.X + target.X) / 2 + 60, math.min(centre.Y, target.Y) - 150)
+			local point = centre:Lerp(control, e):Lerp(control:Lerp(target, e), e)
+			icon.Visible = true
+			icon.Position = UDim2.fromOffset(point.X, point.Y)
+			icon.Rotation = 540 * e;
+			(icon:FindFirstChildOfClass("UIScale") :: UIScale).Scale = 1.7 + (0.6 - 1.7) * e
+			for index, ghost in ghosts do
+				local g = math.clamp(f - index * 0.09, 0, 1)
+				local ge = Motion.quadInOut(g)
+				local gp = centre:Lerp(control, ge):Lerp(control:Lerp(target, ge), ge)
+				ghost.Visible = g > 0 and g < 1
+				ghost.Position = UDim2.fromOffset(gp.X, gp.Y)
+				ghost.BackgroundTransparency = 1 - ({ 0.45, 0.35, 0.25 })[index]
+			end
+		else
+			icon.Visible = false
+			for _, ghost in ghosts do
+				ghost.Visible = false
+			end
+		end
+	else
+		icon.Visible = false
+		for _, ghost in ghosts do
+			ghost.Visible = false
+		end
+
+		-- A Mythic reveal's flash, rays and title.
+		for _, slot in slots do
+			local mythic = slot.mythic
+			if not mythic then
+				continue
+			end
+			local t = now - mythic.start
+			if t < 0 or t > MythicReveal.settleEnd + 1.5 then
+				continue
+			end
+			centre = slot.group.AbsolutePosition + slot.group.AbsoluteSize / 2
+			flashAlpha = math.max(0, 0.8 * (1 - math.abs(t - MythicReveal.flashAt) / 0.28))
+			raysAlpha = if t < MythicReveal.raysAt
+				then 0
+				else math.min(0.9, (t - MythicReveal.raysAt) / 0.3)
+			if t > MythicReveal.settleEnd + 1 then
+				raysAlpha *= math.max(0, 1 - (t - MythicReveal.settleEnd - 1) / 0.5)
+			end
+			wordsPop = Motion.backOut(math.clamp((t - MythicReveal.titleAt) / 0.45, 0, 1))
+			--[[ Across the card itself, briefly: above it would sit on the
+			     panel's own title. ]]
+			wordsAlpha = if t < MythicReveal.titleAt
+				then 0
+				elseif t < MythicReveal.settleEnd + 0.3 then 1
+				else math.max(0, 1 - (t - MythicReveal.settleEnd - 0.3) / 0.4)
+			mythicTitle = true
+			words.TextSize = 64
+			words.Text = "MYTHIC!"
+			words.TextColor3 = CardTheme.colors.mythicTitle
+			tag.Text = ""
+			break
+		end
+	end
+
+	if centre then
+		raysImage.Position = UDim2.fromOffset(centre.X, centre.Y)
+		ring.Position = UDim2.fromOffset(centre.X, centre.Y)
+		words.Position =
+			UDim2.fromOffset(centre.X, if mythicTitle then centre.Y else centre.Y - 230)
+		tag.Position = UDim2.fromOffset(centre.X, centre.Y - 184)
+	end
+	raysImage.ImageTransparency = 1 - raysAlpha * 0.9
+	raysImage.Rotation = (now * 30) % 360
+	flashFrame.BackgroundTransparency = 1 - flashAlpha
+	ring.Visible = ringP >= 0
+	if ringP >= 0 then
+		local size = 160 * (0.3 + 2.2 * ringP)
+		ring.Size = UDim2.fromOffset(size, size);
+		(ring:FindFirstChildOfClass("UIStroke") :: UIStroke).Transparency = ringP
+	end
+	words.TextTransparency = 1 - wordsAlpha
+	-- The panel's own title steps aside while a celebration's words are up.
+	local heading, sub = title, subtitle
+	local celebrating = away ~= nil and away.kind == "Celebrate"
+	for _, label in { heading, sub } do
+		if label then
+			local hidden = if celebrating then wordsAlpha else 0
+			label.TextTransparency = hidden;
+			(label:FindFirstChildOfClass("UIStroke") :: UIStroke).Transparency = hidden
+		end
+	end
+	(words:FindFirstChildOfClass("UIStroke") :: UIStroke).Transparency = 1 - wordsAlpha;
+	(words:FindFirstChildOfClass("UIScale") :: UIScale).Scale = math.max(wordsPop, 0.01)
+	tag.TextTransparency = 1 - wordsAlpha
+	tag.BackgroundTransparency = if tag.Text == "" then 1 else 1 - wordsAlpha;
+	(tag:FindFirstChildOfClass("UIScale") :: UIScale).Scale = math.max(wordsPop, 0.01)
+
+	-- The panel darkens to crimson while a Mythic is revealed.
+	local p = panel
+	if p then
+		local crimson = 0
+		for _, slot in slots do
+			local mythic = slot.mythic
+			if mythic then
+				local t = now - mythic.start
+				crimson = math.max(
+					crimson,
+					if t < 0
+						then 0
+						elseif t < MythicReveal.settleEnd + 1 then math.min(t / 0.6, 1)
+						else math.max(0, 1 - (t - MythicReveal.settleEnd - 1) / 0.6)
+				)
+			end
+		end
+		p.BackgroundColor3 = CardTheme.colors.panel:Lerp(Color3.fromRGB(58, 8, 18), crimson)
+	end
 end
 
 local function step(deltaTime: number)
@@ -383,12 +690,79 @@ local function step(deltaTime: number)
 			transparency = 1
 		elseif dealt < 1 then
 			local e = Motion.backOut(dealt)
-			offset += Vector2.new(560, 120) * (1 - e)
-			rotation += 28 * (1 - e)
+			--[[ A phone's next hand rises from below; otherwise cards are
+			     dealt in from the right. ]]
+			if mode == "Touch" then
+				offset += Vector2.new(0, 420) * (1 - e)
+			else
+				offset += Vector2.new(560, 120) * (1 - e)
+				rotation += 28 * (1 - e)
+			end
+		end
+
+		-- A gamepad's focused card stands forward; the others step back.
+		if mode == "Gamepad" and not away then
+			if focused == i then
+				scale += 0.07
+				offset += Vector2.new(0, -16)
+			else
+				scale -= 0.06
+				transparency = math.max(transparency, 0.18)
+			end
+		end
+
+		-- A Mythic's reveal: shake, the squeeze through its swap, a settle.
+		local mythic = slot.mythic
+		if mythic then
+			local t = now - mythic.start
+			if t < 0 then
+				mythic.back.Visible = true
+				slot.card.root.Visible = false
+			else
+				local shake, swell, lift, faceUp = MythicReveal.pose(t)
+				offset += shake + Vector2.new(0, lift)
+				scale *= swell
+				mythic.back.Visible = not faceUp
+				slot.card.root.Visible = faceUp;
+				(mythic.back:FindFirstChildOfClass("UIScale") :: UIScale).Scale = scale
+
+				if
+					t >= MythicReveal.lightningStart
+					and not mythic.lightning
+					and t < MythicReveal.lightningEnd
+				then
+					mythic.lightning = MythicReveal.lightning(slot.card.root)
+				end
+				local bolts = mythic.lightning
+				if bolts then
+					if t >= MythicReveal.lightningEnd then
+						bolts.destroy()
+						mythic.lightning = nil
+					else
+						bolts.step(t - MythicReveal.lightningStart)
+					end
+				end
+			end
 		end
 
 		if away then
-			if away.kind == "Choose" then
+			if away.kind == "Celebrate" then
+				local t = now - away.at
+				if away.picked == i then
+					-- To the middle, bigger, then into its icon.
+					local e = Motion.backOut(math.clamp(t / 0.38, 0, 1))
+					offset += Vector2.new(-slot.base.X * e, -24 * e)
+					scale += 0.38 * e
+					local shrink = math.clamp((t - 1.0) / 0.14, 0, 1)
+					scale *= 1 - 0.7 * shrink
+					transparency = math.max(transparency, shrink)
+				else
+					local e = Motion.quadIn(math.clamp(t / 0.42, 0, 1))
+					offset += Vector2.new(0, 520 * e)
+					rotation += (if i < (away.picked or 0) then -40 else 40) * e
+					transparency = math.max(transparency, e)
+				end
+			elseif away.kind == "Choose" then
 				local e = Motion.quadIn(math.clamp((now - away.at) / TIMING.chooseDuration, 0, 1))
 				if away.picked == i then
 					offset += Vector2.new(0, -420 * e)
@@ -420,6 +794,8 @@ local function step(deltaTime: number)
 		end
 		slot.card.step(now)
 	end
+
+	stepOverlay(now)
 end
 
 function DraftScreen.stop()
@@ -526,7 +902,228 @@ function DraftScreen.start(chosen: (number) -> (), rerolled: () -> ())
 	chooseB.Activated:Connect(confirm)
 	chooseButton = chooseB
 
+	-- The overlay: rays, a flash, a shockwave ring, words and a flying icon.
+	local over = Instance.new("Frame")
+	over.Name = "Overlay"
+	over.BackgroundTransparency = 1
+	over.Size = UDim2.fromScale(1, 1)
+	over.ZIndex = 50
+	over.Parent = created
+
+	local rayImage = Instance.new("ImageLabel")
+	rayImage.Name = "Rays"
+	rayImage.BackgroundTransparency = 1
+	rayImage.Image = CardAssets.rays
+	rayImage.ImageColor3 = CardTheme.colors.paleGold
+	rayImage.ImageTransparency = 1
+	rayImage.AnchorPoint = Vector2.new(0.5, 0.5)
+	rayImage.Size = UDim2.fromOffset(720, 720)
+	rayImage.ZIndex = 1
+	rayImage.Parent = created
+	rays = rayImage
+
+	local flashFrame = Instance.new("Frame")
+	flashFrame.Name = "Flash"
+	flashFrame.BackgroundColor3 = WHITE
+	flashFrame.BackgroundTransparency = 1
+	flashFrame.BorderSizePixel = 0
+	flashFrame.Size = UDim2.fromScale(1, 1)
+	flashFrame.ZIndex = 60
+	flashFrame.Parent = over
+	flash = flashFrame
+
+	local ring = Instance.new("Frame")
+	ring.Name = "Shockwave"
+	ring.BackgroundTransparency = 1
+	ring.AnchorPoint = Vector2.new(0.5, 0.5)
+	ring.Visible = false
+	ring.ZIndex = 55
+	ring.Parent = over
+	corner(ring, 999)
+	local ringStroke = Instance.new("UIStroke")
+	ringStroke.Color = WHITE
+	ringStroke.Thickness = 6
+	ringStroke.Parent = ring
+	shockwave = ring
+
+	local words =
+		stroked(over, "UPGRADED!", CardTheme.fonts.display, 40, CardTheme.colors.choose, 7)
+	words.Name = "Headline"
+	words.AnchorPoint = Vector2.new(0.5, 0.5)
+	words.Size = UDim2.fromOffset(420, 52)
+	words.TextTransparency = 1
+	words.ZIndex = 58
+	Instance.new("UIScale").Parent = words
+	headline = words
+
+	local tag = stroked(over, "", CardTheme.fonts.display, 16, WHITE, 3)
+	tag.Name = "Tag"
+	tag.AnchorPoint = Vector2.new(0.5, 0.5)
+	tag.AutomaticSize = Enum.AutomaticSize.X
+	tag.Size = UDim2.fromOffset(0, 28)
+	tag.BackgroundColor3 = INK
+	tag.BackgroundTransparency = 1
+	tag.TextTransparency = 1
+	tag.ZIndex = 58
+	corner(tag, 14)
+	local tagPad = Instance.new("UIPadding")
+	tagPad.PaddingLeft = UDim.new(0, 12)
+	tagPad.PaddingRight = UDim.new(0, 12)
+	tagPad.Parent = tag
+	Instance.new("UIScale").Parent = tag
+	tagline = tag
+
+	local flying = Instance.new("Frame")
+	flying.Name = "Flyer"
+	flying.BackgroundTransparency = 1
+	flying.AnchorPoint = Vector2.new(0.5, 0.5)
+	flying.Size = UDim2.fromOffset(72, 72)
+	flying.Visible = false
+	flying.ZIndex = 59
+	flying.Parent = over
+	Instance.new("UIScale").Parent = flying
+	flyer = flying
+
+	table.clear(ghosts)
+	for index = 1, 3 do
+		local ghost = Instance.new("Frame")
+		ghost.Name = `Ghost{index}`
+		ghost.AnchorPoint = Vector2.new(0.5, 0.5)
+		ghost.Size = UDim2.fromOffset(56, 56)
+		ghost.BackgroundColor3 = WHITE
+		ghost.Visible = false
+		ghost.ZIndex = 57
+		ghost.Parent = over
+		corner(ghost, 999)
+		ghosts[index] = ghost
+	end
+
+	-- The gamepad's strip: the focused card's name, level, stat and words,
+	-- and the button prompts.
+	local band = Instance.new("Frame")
+	band.Name = "Strip"
+	band.AnchorPoint = Vector2.new(0.5, 1)
+	band.Position = UDim2.new(0.5, 0, 1, -100)
+	band.Size = UDim2.new(1, -60, 0, 34)
+	band.BackgroundColor3 = INK
+	band.BackgroundTransparency = 0.2
+	band.Visible = false
+	band.Parent = root
+	corner(band, 12)
+	local bandText = stroked(band, "", CardTheme.fonts.body, 13, WHITE, 0)
+	bandText.Size = UDim2.fromScale(1, 1)
+	bandText.TextWrapped = true
+	strip = band
+	stripText = bandText
+
+	local promptRow = Instance.new("Frame")
+	promptRow.Name = "Prompts"
+	promptRow.BackgroundTransparency = 1
+	promptRow.AnchorPoint = Vector2.new(0.5, 1)
+	promptRow.Position = UDim2.new(0.5, 0, 1, -8)
+	promptRow.Size = UDim2.fromOffset(420, 22)
+	promptRow.Visible = false
+	promptRow.Parent = root
+	local promptList = Instance.new("UIListLayout")
+	promptList.FillDirection = Enum.FillDirection.Horizontal
+	promptList.HorizontalAlignment = Enum.HorizontalAlignment.Center
+	promptList.VerticalAlignment = Enum.VerticalAlignment.Center
+	promptList.SortOrder = Enum.SortOrder.LayoutOrder
+	promptList.Padding = UDim.new(0, 6)
+	promptList.Parent = promptRow
+	local keys = {
+		Enum.KeyCode.DPadLeft,
+		Enum.KeyCode.DPadRight,
+		Enum.KeyCode.ButtonA,
+		Enum.KeyCode.ButtonX,
+	}
+	local captions = { "", "Move", "Choose", "Reroll" }
+	for index, key in keys do
+		local glyph = Instance.new("ImageLabel")
+		glyph.BackgroundTransparency = 1
+		glyph.LayoutOrder = index * 2 - 1
+		glyph.Size = UDim2.fromOffset(22, 22)
+		glyph.Image = UserInputService:GetImageForKeyCode(key)
+		glyph.Parent = promptRow
+		if captions[index] ~= "" then
+			local word = stroked(promptRow, captions[index], CardTheme.fonts.display, 14, WHITE, 3)
+			word.LayoutOrder = index * 2
+			word.AutomaticSize = Enum.AutomaticSize.X
+			word.Size = UDim2.fromOffset(0, 22)
+		end
+	end
+	prompts = promptRow
+
 	connection = RunService.RenderStepped:Connect(step)
+end
+
+local function unbindGamepad()
+	for _, name in ACTIONS do
+		ContextActionService:UnbindAction(name)
+	end
+end
+
+--[[ While a hand is up on a gamepad: left and right move the focus, A
+     chooses the focused card and X rerolls. ]]
+local function bindGamepad()
+	unbindGamepad()
+	local function onMove(
+		_name: string,
+		state: Enum.UserInputState,
+		input: InputObject
+	): Enum.ContextActionResult
+		if state ~= Enum.UserInputState.Begin or locked then
+			return Enum.ContextActionResult.Sink
+		end
+		local left = input.KeyCode == Enum.KeyCode.DPadLeft
+			or (input.KeyCode == Enum.KeyCode.Thumbstick1 and input.Position.X < -0.5)
+		local right = input.KeyCode == Enum.KeyCode.DPadRight
+			or (input.KeyCode == Enum.KeyCode.Thumbstick1 and input.Position.X > 0.5)
+		if left then
+			setFocus(focused - 1)
+		elseif right then
+			setFocus(focused + 1)
+		end
+		return Enum.ContextActionResult.Sink
+	end
+	ContextActionService:BindActionAtPriority(
+		"DraftLeft",
+		onMove,
+		false,
+		3000,
+		Enum.KeyCode.DPadLeft
+	)
+	ContextActionService:BindActionAtPriority(
+		"DraftRight",
+		onMove,
+		false,
+		3000,
+		Enum.KeyCode.DPadRight
+	)
+	ContextActionService:BindActionAtPriority(
+		"DraftChoose",
+		function(_name: string, state: Enum.UserInputState): Enum.ContextActionResult
+			if state == Enum.UserInputState.Begin then
+				confirm()
+			end
+			return Enum.ContextActionResult.Sink
+		end,
+		false,
+		3000,
+		Enum.KeyCode.ButtonA
+	)
+	ContextActionService:BindActionAtPriority(
+		"DraftReroll",
+		function(_name: string, state: Enum.UserInputState): Enum.ContextActionResult
+			if state == Enum.UserInputState.Begin then
+				reroll()
+			end
+			return Enum.ContextActionResult.Sink
+		end,
+		false,
+		3000,
+		Enum.KeyCode.ButtonX
+	)
 end
 
 --[[ Shows a hand the server dealt. `level` is the level just reached;
@@ -541,6 +1138,7 @@ function DraftScreen.show(offer: { string }, level: number, source: string?, rer
 	leaving = nil
 	locked = false
 	dealToken += 1
+	mode = currentMode()
 	shown = { offer = offer, level = level, source = source, rerolls = rerolls }
 
 	local words = TITLES[source or "Level"] or TITLES.Level
@@ -573,17 +1171,59 @@ function DraftScreen.show(offer: { string }, level: number, source: string?, rer
 	end
 
 	pick(nil)
+
+	local isPad = mode == "Gamepad"
+	if strip then
+		strip.Visible = isPad
+	end
+	if prompts then
+		prompts.Visible = isPad
+	end
+	if isPad then
+		bindGamepad()
+		setFocus(math.min(2, #slots))
+	else
+		unbindGamepad()
+	end
+
+	-- The overlay's words belong to whoever uses them next.
+	local banner, tag = headline, tagline
+	if banner then
+		banner.Text = "UPGRADED!"
+		banner.TextColor3 = CardTheme.colors.choose
+	end
+	if tag then
+		tag.Text = ""
+	end
+
 	created.Enabled = true
 end
 
 --[[ Hides the screen. Called once a pick is sent, and on death, so a draft
      can never outlive the run that owed it. ]]
 function DraftScreen.hide()
+	--[[ After a phone's celebration the bar stays up a moment, so the icon
+	     landing and its slot popping are seen rather than cut off. ]]
+	local celebrated = leaving ~= nil and (leaving :: any).kind == "Celebrate"
 	locked = true
 	leaving = nil
 	clearSlots()
 	if gui then
 		gui.Enabled = false
+	end
+	if celebrated then
+		local token = dealToken
+		task.delay(0.8, function()
+			if dealToken == token and not (gui and gui.Enabled) then
+				SkillBar.setVisible(false)
+			end
+		end)
+	else
+		SkillBar.setVisible(false)
+	end
+	unbindGamepad()
+	if flyer then
+		flyer.Visible = false
 	end
 end
 

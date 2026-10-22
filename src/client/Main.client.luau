@@ -34,6 +34,7 @@ local ReviveFx = require(script.Parent.Fx.ReviveFx)
 local RunBanner = require(script.Parent.UI.RunBanner)
 local RunPaused = require(script.Parent.RunPaused)
 local RunSummary = require(script.Parent.UI.RunSummary)
+local SkillBar = require(script.Parent.UI.Cards.SkillBar)
 local TelegraphRenderer = require(script.Parent.Fx.TelegraphRenderer)
 local TopDownCamera = require(script.Parent.Camera.TopDownCamera)
 local Types = require(Shared.Types)
@@ -199,6 +200,8 @@ end)
 	screen that lingered for a round trip would feel like the tap was missed.
 	A rejected choice simply leaves the offer open and the server re-sends it.
 ]]
+SkillBar.start()
+
 DraftScreen.start(function(index: number)
 	DraftScreen.hide()
 	RunPaused.set(false)

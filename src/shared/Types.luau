@@ -86,14 +86,19 @@ export type ShotSpec = {
 	     Double Shot's copies, which follow the first volley along the same
 	     aim — a second chance at a target that stepped, not a wider net. ]]
 	delay: number,
-	--[[ Fraction of the arrow's damage a hit then burns for, per second.
-	     0 sets nothing alight. Blaze. Resolved by the server at contact,
-	     like splash: what burns is whatever the arrow reached. ]]
+	--[[ Fraction of the arrow's damage a hit then burns for, per second,
+	     and for how many seconds. 0 sets nothing alight. Blaze. Resolved by
+	     the server at contact, like splash: what burns is whatever the
+	     arrow reached. ]]
 	burn: number,
-	--[[ How many free arrows a kill by this projectile fires at whatever is
-	     nearest. The chain shot inherits nothing — it is a plain arrow, or a
-	     stack of these would multiply without limit. ]]
-	chainOnKill: number,
+	burnDuration: number,
+	--[[ Extra damage, as a fraction, for a hit after a long flight: the
+	     full amount at `Balance.Projectile.farRange`, less the closer the
+	     hit. Long Shot. ]]
+	farBonus: number,
+	--[[ Other enemies near the one hit that share in the hit — Soul Chain's
+	     link. 0 links nothing. Resolved at contact, like splash. ]]
+	link: number,
 }
 
 --[[

@@ -21,7 +21,12 @@ What exists and works, all verified in Studio rather than only by the gates:
 - **Phases 1 and 2:** move-or-shoot, five enemy archetypes, ten-room runs,
   death and restart. Playtest 1 passed. Playtest 2's question — *after five
   rooms, do you want a sixth?* — was never formally answered.
-- **Phase 3, mostly:** the shot pipeline with 25 abilities as data, XP and a
+- **Upgrades follow the owner's card design** (`design_handoff_upgrade_cards`,
+  chosen 2026-10-22): 26 skills, each with levels, a rarity and a stat line per
+  level (`Config/Abilities`, `Config/Rarities`), dealt weighted by rarity with
+  2 rerolls a run, and a Heal filler card. Momentum is banked by moving and
+  spent on the 2 s of shooting after; every archer crits 5% of the time.
+- **Phase 3, mostly:** the shot pipeline with its abilities as data, XP and a
   choose-one-of-three draft that pauses the world, crit, splash, Ricochet
   (enemy to enemy), Bouncy Wall, Tracking Eye (homing), Double Shot
   (the volley again 0.12 s later), Blaze (burns, server-side in
@@ -127,6 +132,14 @@ already has.
   have stopped moving.
 - `screen_capture` in play mode returns the GUI layer over a black 3D viewport.
   That is a capture limitation, not a render fault — verify geometry instead.
+- **Never call a client Fx module's `start()` in the Edit datamodel** to
+  preview it. Its RenderStepped connection outlives the probe, keeps running
+  against the Edit scene's stale `Balance` cache, and logs errors under
+  `StarterPlayer.StarterPlayerScripts…` until Studio restarts. Build the
+  parts once and capture instead.
+- To move the character from a probe, call `Humanoid:Move` from
+  `RunService.Stepped`: `MoveController` resets it every RenderStepped, and
+  a teleport does not count as moving for the move-or-shoot rule.
 - `VirtualInputManager:SendKeyEvent` and `Lighting.Technology` are capability
   blocked from `execute_luau`, so synthetic key input is not available.
 - `rojo serve` does not reload structural changes to `default.project.json`.

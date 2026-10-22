@@ -56,12 +56,12 @@ return function(t: TestRunner.Helper)
 		t.isFalse(session.alive, "a revive was spent twice")
 	end)
 
-	t.test("Second Wind is spent before the revive", function()
+	t.test("Second Wind is spent before the revive, at its share of health", function()
 		local session = fresh()
-		session.secondWind = true
+		session.secondWind = 0.5
 		RunSession.applyDamage(session, session.maxHealth * 10)
 
-		t.equal(session.health, 1)
+		t.near(session.health, session.maxHealth * 0.5, 1e-6)
 		t.isTrue(session.secondWindUsed)
 		t.equal(session.revivesLeft, Balance.Revive.perStage)
 	end)

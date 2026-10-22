@@ -22,6 +22,9 @@ export type Stats = {
 	moveSpeed: number,
 	dashCooldown: number,
 	attackCooldown: number,
+	--[[ Momentum's extra attack speed, for predicting when the archer
+	     fires. ]]
+	momentumBonus: number,
 	--[[ Stack counts, not stages. Stages are functions and do not replicate;
 	     `AbilityEffects.stages` rebuilds the identical pipeline from these. ]]
 	abilities: { [string]: number },
@@ -34,6 +37,7 @@ local function defaults(): Stats
 		moveSpeed = Balance.Player.moveSpeed,
 		dashCooldown = Balance.Player.dash.cooldown,
 		attackCooldown = Balance.Player.attackCooldown,
+		momentumBonus = 0,
 		abilities = {},
 	}
 end
@@ -68,6 +72,7 @@ function PlayerStats.set(stats: Stats)
 		moveSpeed = moveSpeed,
 		dashCooldown = math.max(dashCooldown, 0),
 		attackCooldown = math.max(attackCooldown, 1 / 60),
+		momentumBonus = math.max(tonumber(stats.momentumBonus) or 0, 0),
 		abilities = if typeof(stats.abilities) == "table" then stats.abilities else {},
 	}
 

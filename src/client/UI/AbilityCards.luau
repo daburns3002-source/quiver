@@ -22,27 +22,23 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Abilities = require(ReplicatedStorage.Shared.Config.Abilities)
+local PlayerStats = require(script.Parent.Parent.PlayerStats)
+local Rarities = require(ReplicatedStorage.Shared.Config.Rarities)
 
 local AbilityCards = {}
 
---[[ One per category. Not decoration: a player who has seen Front Arrow twice
-     should recognise it by colour before reading the name, which is most of
-     what makes a draft fast after the first few. ]]
-local CATEGORY_COLOURS: { [string]: Color3 } = {
-	Count = Color3.fromRGB(255, 196, 92),
-	Pattern = Color3.fromRGB(140, 190, 255),
-	Flight = Color3.fromRGB(150, 230, 180),
-	OnHit = Color3.fromRGB(255, 130, 120),
-	Stats = Color3.fromRGB(226, 182, 255),
-	Defensive = Color3.fromRGB(120, 230, 230),
-}
+--[[ An interim screen: the upgrade card design replaces it. Until then each
+     card is coloured by its rarity and shows the stat it would give. ]]
 
 local gui: ScreenGui? = nil
 local cardHolder: Frame? = nil
 local connections: { RBXScriptConnection } = {}
 
---[[ Set by `start`. Called with the index the player tapped. ]]
+--[[ Set by `start`. Called with the index the player tapped, and when the
+     player asks for a redeal. ]]
 local onChosen: ((number) -> ())? = nil
+local onReroll: (() -> ())? = nil
+local rerollButton: TextButton? = nil
 
 --[[ Guards against a double tap sending two choices for one offer. The server
      would reject the second, but the screen would already have closed and the
@@ -83,11 +79,14 @@ function AbilityCards.stop()
 
 	cardHolder = nil
 	onChosen = nil
+	onReroll = nil
+	rerollButton = nil
 end
 
-function AbilityCards.start(chosen: (number) -> ())
+function AbilityCards.start(chosen: (number) -> (), rerolled: () -> ())
 	AbilityCards.stop()
 	onChosen = chosen
+	onReroll = rerolled
 
 	local playerGui = Players.LocalPlayer:WaitForChild("PlayerGui")
 
@@ -139,6 +138,27 @@ function AbilityCards.start(chosen: (number) -> ())
 	layout.VerticalAlignment = Enum.VerticalAlignment.Center
 	layout.Padding = UDim.new(0, 14)
 	layout.Parent = holder
+
+	local reroll = Instance.new("TextButton")
+	reroll.Name = "Reroll"
+	reroll.AnchorPoint = Vector2.new(0.5, 1)
+	reroll.Position = UDim2.fromScale(0.5, 0.96)
+	reroll.Size = UDim2.fromOffset(200, 48)
+	reroll.BackgroundColor3 = Color3.fromRGB(255, 176, 46)
+	reroll.Font = Enum.Font.GothamBold
+	reroll.TextScaled = true
+	reroll.TextColor3 = Color3.fromRGB(27, 27, 43)
+	reroll.Parent = created
+	local rerollCorner = Instance.new("UICorner")
+	rerollCorner.CornerRadius = UDim.new(0, 14)
+	rerollCorner.Parent = reroll
+	reroll.MouseButton1Click:Connect(function()
+		local handler = onReroll
+		if handler and not resolved and reroll.Active then
+			handler()
+		end
+	end)
+	rerollButton = reroll
 end
 
 local function buildCard(index: number, id: string, holder: Frame)
@@ -146,7 +166,9 @@ local function buildCard(index: number, id: string, holder: Frame)
 	     Config. Draw a usable card anyway: refusing to render would strand the
 	     player behind a screen they cannot dismiss. ]]
 	local ability = Abilities.byId[id]
-	local colour = if ability then CATEGORY_COLOURS[ability.category] else nil
+	local rarity = if ability then Rarities.byName[ability.rarity] else nil
+	local colour = if rarity then rarity.color else nil
+	local level = PlayerStats.get().abilities[id] or 0
 
 	local card = Instance.new("TextButton")
 	card.Name = `Card{index}`
@@ -189,7 +211,11 @@ local function buildCard(index: number, id: string, holder: Frame)
 	name.TextScaled = true
 	name.TextXAlignment = Enum.TextXAlignment.Left
 	name.TextColor3 = Color3.fromRGB(255, 250, 240)
-	name.Text = if ability then ability.name else id
+	name.Text = if ability
+		then `{ability.name}  ·  {ability.rarity}{if level > 0
+			then `  ·  LVL {level} → {level + 1}`
+			else ""}`
+		else id
 	name.Parent = card
 
 	local description = Instance.new("TextLabel")
@@ -201,7 +227,9 @@ local function buildCard(index: number, id: string, holder: Frame)
 	description.TextWrapped = true
 	description.TextXAlignment = Enum.TextXAlignment.Left
 	description.TextColor3 = Color3.fromRGB(198, 206, 220)
-	description.Text = if ability then ability.description else "Unknown ability."
+	description.Text = if ability
+		then `{ability.stats[math.min(level + 1, #ability.stats)]} — {ability.description}`
+		else "Unknown ability."
 	description.Parent = card
 
 	local descriptionSize = Instance.new("UITextSizeConstraint")
@@ -237,7 +265,7 @@ local TITLES = {
 	Angel = "An Angel offers a gift",
 }
 
-function AbilityCards.show(offer: { string }, level: number, source: string?)
+function AbilityCards.show(offer: { string }, level: number, source: string?, rerolls: number?)
 	local created = gui
 	local holder = cardHolder
 
@@ -255,6 +283,18 @@ function AbilityCards.show(offer: { string }, level: number, source: string?)
 
 	for index, id in offer do
 		buildCard(index, id, holder)
+	end
+
+	local button = rerollButton
+	if button then
+		local left = rerolls or 0
+		button.Visible = source ~= "Angel"
+		button.Active = left > 0
+		button.AutoButtonColor = left > 0
+		button.BackgroundColor3 = if left > 0
+			then Color3.fromRGB(255, 176, 46)
+			else Color3.fromRGB(154, 163, 173)
+		button.Text = `Reroll {left}`
 	end
 
 	--[[ Shown fully formed, with no entrance animation. Dealing the cards in

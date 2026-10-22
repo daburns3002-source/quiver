@@ -32,10 +32,7 @@ local log = Log.forTag("Projectiles")
 
 local shotFired = Remotes.event(Remotes.ShotFired)
 local explosion = Remotes.event(Remotes.Explosion)
-
---[[ How far a chain shot looks for its next target. Generous — most of the
-     room — because a chain that finds nothing is a card that did nothing. ]]
-local CHAIN_RANGE = 27
+local soulLink = Remotes.event(Remotes.SoulLink)
 
 --[[ `os.clock()` for the step currently running. Chain shots are created deep
      inside the hit path, which has no reason to be handed the time. ]]
@@ -81,10 +78,16 @@ type Projectile = {
 	ricochet: number,
 	--[[ Radians a second it turns towards the nearest enemy ahead. ]]
 	homing: number,
-	--[[ Fraction of its damage a hit sets burning per second. ]]
+	--[[ Fraction of its damage a hit sets burning per second, and for how
+	     long. ]]
 	burn: number,
-	--[[ Free arrows a kill by this one fires at whatever is nearest. ]]
-	chainOnKill: number,
+	burnDuration: number,
+	--[[ Long Shot's extra damage at full range, and where the flight began,
+	     which is what "range" is measured from. ]]
+	farBonus: number,
+	origin: Vector3,
+	--[[ Other enemies near a hit that share in it. Soul Chain. ]]
+	link: number,
 	--[[ Guards against a single projectile hitting the same enemy on
 	     consecutive steps while it is still inside the hitbox. ]]
 	hitModels: { [Model]: boolean },
@@ -219,13 +222,16 @@ export type SpawnParams = {
 	bounces: number,
 	ricochet: number,
 	homing: number,
-	chainOnKill: number,
 	owner: Player?,
 	now: number,
 	--[[ Seconds before it leaves. Omitted means at once. ]]
 	delay: number?,
-	--[[ Blaze's burn fraction. Omitted means none. ]]
+	--[[ Blaze's burn fraction and duration. Omitted means none. ]]
 	burn: number?,
+	burnDuration: number?,
+	--[[ Long Shot and Soul Chain. Omitted means none. ]]
+	farBonus: number?,
+	link: number?,
 	--[[ A body this projectile starts inside and must not strike: the enemy
 	     a ricochet leaves from, which would otherwise be hit again by the
 	     very first overlap pass. ]]
@@ -276,7 +282,10 @@ function ProjectileSystem.spawn(params: SpawnParams)
 		ricochet = params.ricochet,
 		homing = params.homing,
 		burn = params.burn or 0,
-		chainOnKill = params.chainOnKill,
+		burnDuration = params.burnDuration or 0,
+		farBonus = params.farBonus or 0,
+		origin = params.origin,
+		link = params.link or 0,
 		startsAt = now + (params.delay or 0),
 		expiresAt = now + (params.delay or 0) + params.lifetime,
 		hitModels = if params.ignore then { [params.ignore] = true } else {},
@@ -332,8 +341,58 @@ local function applySplash(projectile: Projectile, centre: Vector3, damage: numb
 end
 
 --[[
-	Launches arrows the server invented — a chain off a kill, a ricochet off a
-	hit — and tells every client to draw them.
+	Soul Chain: the enemies nearest the one hit share in the hit.
+
+	The nearest `link` others within `linkRange` each take `linkShare` of
+	the damage — no knockback, since nothing struck them — and every client
+	is told to draw the link. Snapshotted first, for the same reason as
+	splash: a kill removes its enemy from the table being read.
+]]
+local function applyLink(projectile: Projectile, hit: Model, centre: Vector3, damage: number)
+	if projectile.link <= 0 then
+		return
+	end
+
+	local config = Balance.Projectile
+	local flatCentre = Vector3.new(centre.X, 0, centre.Z)
+	local nearby: { { model: Model, position: Vector3, distance: number } } = {}
+
+	for model, position in EnemyManager.positions() do
+		if model == hit then
+			continue
+		end
+
+		local distance = (Vector3.new(position.X, 0, position.Z) - flatCentre).Magnitude
+		if distance <= config.linkRange then
+			table.insert(nearby, { model = model, position = position, distance = distance })
+		end
+	end
+
+	if #nearby == 0 then
+		return
+	end
+
+	table.sort(nearby, function(a, b)
+		return a.distance < b.distance
+	end)
+
+	local reached: { Vector3 } = {}
+	for index = 1, math.min(projectile.link, #nearby) do
+		table.insert(reached, nearby[index].position)
+	end
+
+	soulLink:FireAllClients(centre, reached)
+
+	for index = 1, #reached do
+		local entry = nearby[index]
+		local _, xp, fell = EnemyManager.damage(entry.model, damage * config.linkShare)
+		RunSession.creditKill(projectile.owner, xp, fell)
+	end
+end
+
+--[[
+	Launches arrows the server invented — a ricochet off a hit — and tells
+	every client to draw them.
 
 	Announced on the shot channel as *not predicted*: the client draws its own
 	volleys and skips the server's copy of them, so a shot the server invented
@@ -347,7 +406,6 @@ type Onward = {
 	speed: number,
 	damage: number,
 	ricochet: number,
-	chainOnKill: number,
 	from: Model?,
 }
 
@@ -371,7 +429,9 @@ local function fireOnward(projectile: Projectile, onward: Onward)
 			ricochet = onward.ricochet,
 			homing = projectile.homing,
 			burn = projectile.burn,
-			chainOnKill = onward.chainOnKill,
+			burnDuration = projectile.burnDuration,
+			farBonus = projectile.farBonus,
+			link = projectile.link,
 			owner = projectile.owner,
 			now = currentNow,
 			ignore = onward.from,
@@ -393,7 +453,9 @@ local function fireOnward(projectile: Projectile, onward: Onward)
 			homing = projectile.homing,
 			delay = 0,
 			burn = projectile.burn,
-			chainOnKill = onward.chainOnKill,
+			burnDuration = projectile.burnDuration,
+			farBonus = projectile.farBonus,
+			link = projectile.link,
 		})
 	end
 
@@ -409,40 +471,6 @@ local function fireOnward(projectile: Projectile, onward: Onward)
 		predicted = false,
 		from = onward.from,
 	} :: Types.ShotEvent)
-end
-
---[[
-	Fires free arrows at whatever is nearest, when this one kills something.
-
-	The chain shot carries no `chainOnKill` of its own. Without that, a kill
-	that chains into a kill chains again and one arrow clears the room, which
-	is a different game.
-]]
-local function fireChain(projectile: Projectile, from: Vector3)
-	if projectile.chainOnKill <= 0 then
-		return
-	end
-
-	local target = Targeting.nearest(from, EnemyManager.positions(), CHAIN_RANGE)
-	if not target then
-		return
-	end
-
-	local direction = Targeting.flatDirection(from, target.position)
-	if not direction then
-		return
-	end
-
-	fireOnward(projectile, {
-		origin = from,
-		direction = direction,
-		count = projectile.chainOnKill,
-		speed = Balance.Projectile.speed,
-		damage = projectile.damage,
-		ricochet = 0,
-		chainOnKill = 0,
-		from = nil,
-	})
 end
 
 --[[
@@ -485,7 +513,6 @@ local function fireRicochet(projectile: Projectile, hit: Model)
 		speed = projectile.speed,
 		damage = projectile.damage * Balance.Projectile.ricochetDamageScale,
 		ricochet = projectile.ricochet - 1,
-		chainOnKill = projectile.chainOnKill,
 		from = hit,
 	})
 end
@@ -499,6 +526,20 @@ local function applyHit(projectile: Projectile, model: Model): boolean
 			piercing arrow would crit on all of its targets or none.
 		]]
 		local damage = projectile.damage
+
+		--[[ Long Shot: more for a longer flight, rising evenly to its full
+		     bonus at `farRange`. Measured flat from where this arrow began,
+		     so a ricochet's range starts at the enemy it left. ]]
+		if projectile.farBonus > 0 then
+			local flown = Vector3.new(
+				projectile.position.X - projectile.origin.X,
+				0,
+				projectile.position.Z - projectile.origin.Z
+			).Magnitude
+			local reach = math.clamp(flown / Balance.Projectile.farRange, 0, 1)
+			damage *= 1 + projectile.farBonus * reach
+		end
+
 		local kind: Types.HitKind = "Hit"
 		if projectile.critChance > 0 and math.random() < projectile.critChance then
 			damage *= projectile.critMultiplier
@@ -516,18 +557,24 @@ local function applyHit(projectile: Projectile, model: Model): boolean
 			     second enemy has already happened by the time the chain looks
 			     for what is nearest. ]]
 			applySplash(projectile, projectile.position, damage, model)
+			applyLink(projectile, model, projectile.position, damage)
 		end
 
 		if xp > 0 then
 			RunSession.creditKill(projectile.owner, xp, fell)
-			fireChain(projectile, projectile.position)
 		end
 
 		if landed then
 			--[[ From the arrow's base damage, not a crit: Blaze is a bonus on
 			     the hit, and a crit that also doubled the burn would make
 			     two abilities one. ]]
-			Burning.ignite(model, projectile.damage * projectile.burn, projectile.owner, currentNow)
+			Burning.ignite(
+				model,
+				projectile.damage * projectile.burn,
+				projectile.burnDuration,
+				projectile.owner,
+				currentNow
+			)
 			fireRicochet(projectile, model)
 		end
 

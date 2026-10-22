@@ -44,14 +44,21 @@ export type Session = {
 	--[[ Recomputed from the loadout on every grant rather than nudged, so a
 	     stat cannot drift out of step with the abilities that produced it. ]]
 	attackCooldown: number,
-	--[[ Health restored per kill, and the damage ramp for standing still.
-	     Recomputed from the loadout on every grant, like everything else. ]]
+	--[[ What the drafted abilities pay out, recomputed from the loadout on
+	     every grant like everything else. Shares of max health for the
+	     heals; fractions for the rest. ]]
 	healPerKill: number,
+	regenPerSecond: number,
+	dodgeChance: number,
+	overdrawBonus: number,
 	momentumBonus: number,
-	--[[ Whether this run may survive a killing blow, and whether it already
-	     has. The ability is held; the charge is spent. ]]
-	secondWind: boolean,
+	--[[ Share of max health Second Wind revives with (0 without it), and
+	     whether it has been spent. The ability is held; the charge is spent. ]]
+	secondWind: number,
 	secondWindUsed: boolean,
+	--[[ Regen accrues every frame but is only told to the client a few
+	     times a second. ]]
+	healthSentAt: number,
 	--[[ Revives left this stage, and `os.clock()` until which nothing hurts
 	     the player — set by a revive. ]]
 	revivesLeft: number,
@@ -66,6 +73,10 @@ export type Session = {
 		moving. The firing system uses it to enforce the settle delay.
 	]]
 	stationarySince: number?,
+	--[[ When the player started moving, while they are; and how long their
+	     last stretch of moving lasted. Momentum reads both. ]]
+	movingSince: number?,
+	movedFor: number,
 
 	alive: boolean,
 }
@@ -93,6 +104,10 @@ local abilityOffer = Remotes.event(Remotes.AbilityOffer)
 local playerStats = Remotes.event(Remotes.PlayerStats)
 local playerDamaged = Remotes.event(Remotes.PlayerDamaged)
 local playerRevived = Remotes.event(Remotes.PlayerRevived)
+local playerDodged = Remotes.event(Remotes.PlayerDodged)
+
+--[[ Seconds between health updates sent for regeneration alone. ]]
+local REGEN_SEND_INTERVAL = 0.25
 
 function RunSession.create(player: Player): Session
 	local session: Session = {
@@ -109,15 +124,21 @@ function RunSession.create(player: Player): Session
 		loadout = Loadout.new(),
 		attackCooldown = Balance.Player.attackCooldown,
 		healPerKill = 0,
+		regenPerSecond = 0,
+		dodgeChance = 0,
+		overdrawBonus = 0,
 		momentumBonus = 0,
-		secondWind = false,
+		secondWind = 0,
 		secondWindUsed = false,
+		healthSentAt = 0,
 		revivesLeft = Balance.Revive.perStage,
 		invulnerableUntil = 0,
 		random = Random.new(),
 
 		lastFiredAt = 0,
 		stationarySince = nil,
+		movingSince = nil,
+		movedFor = 0,
 
 		alive = false,
 	}
@@ -152,6 +173,9 @@ function RunSession.applyLoadout(session: Session)
 	session.health = math.clamp(stats.maxHealth * ratio, 1, stats.maxHealth)
 	session.attackCooldown = stats.attackCooldown
 	session.healPerKill = stats.healPerKill
+	session.regenPerSecond = stats.regenPerSecond
+	session.dodgeChance = stats.dodgeChance
+	session.overdrawBonus = stats.overdrawBonus
 	session.momentumBonus = stats.momentumBonus
 	session.secondWind = stats.secondWind
 
@@ -205,7 +229,13 @@ function RunSession.offerIfOwed(session: Session)
 	local offer = Loadout.openOffer(session.loadout, atFullHealth, session.random)
 
 	if offer then
-		abilityOffer:FireClient(session.player, offer, session.loadout.level, "Level")
+		abilityOffer:FireClient(
+			session.player,
+			offer,
+			session.loadout.level,
+			"Level",
+			session.loadout.rerolls
+		)
 	end
 end
 
@@ -229,7 +259,13 @@ function RunSession.offerEncounter(session: Session, source: "Valkyrie" | "Angel
 		else Loadout.openAngel(session.loadout, session.random)
 
 	if offer then
-		abilityOffer:FireClient(session.player, offer, session.loadout.level, source)
+		abilityOffer:FireClient(
+			session.player,
+			offer,
+			session.loadout.level,
+			source,
+			session.loadout.rerolls
+		)
 	end
 end
 
@@ -267,8 +303,31 @@ function RunSession.onEnemyKilled(session: Session)
 		return
 	end
 
-	session.health = math.min(session.maxHealth, session.health + session.healPerKill)
-	healthChanged:FireClient(session.player, session.health, session.maxHealth)
+	RunSession.heal(session, session.healPerKill * session.maxHealth)
+end
+
+--[[ Mending: a share of max health back every second, while alive and
+     hurt. Sent to the client a few times a second, not every frame. ]]
+function RunSession.regenerate(deltaTime: number, now: number)
+	for _, session in sessions do
+		if not session.alive or session.regenPerSecond <= 0 then
+			continue
+		end
+
+		if session.health >= session.maxHealth then
+			continue
+		end
+
+		session.health = math.min(
+			session.maxHealth,
+			session.health + session.regenPerSecond * session.maxHealth * deltaTime
+		)
+
+		if now - session.healthSentAt >= REGEN_SEND_INTERVAL then
+			session.healthSentAt = now
+			healthChanged:FireClient(session.player, session.health, session.maxHealth)
+		end
+	end
 end
 
 --[[
@@ -348,6 +407,27 @@ function RunSession.pickUpFloor()
 			RunSession.awardXp(session, xp)
 		end
 	end
+end
+
+--[[
+	Redeals the open hand, if a reroll is left. The client asks; whether it
+	may is decided here, by `Loadout.reroll`.
+]]
+function RunSession.reroll(session: Session): boolean
+	local atFullHealth = session.health >= session.maxHealth - 1e-3
+	local offer = Loadout.reroll(session.loadout, atFullHealth, session.random)
+	if not offer then
+		return false
+	end
+
+	abilityOffer:FireClient(
+		session.player,
+		offer,
+		session.loadout.level,
+		session.loadout.offerSource or "Level",
+		session.loadout.rerolls
+	)
+	return true
 end
 
 --[[
@@ -494,6 +574,21 @@ function RunSession.unbindCharacter(session: Session)
 	session.stationarySince = nil
 end
 
+--[[ Brings a player back from a killing blow at `health`, untouchable for
+     a moment, with the enemy shots around them cleared. ]]
+local function revive(session: Session, health: number)
+	session.health = math.max(1, health)
+	session.invulnerableUntil = os.clock() + Balance.Revive.invulnerable
+
+	local position = if session.root then session.root.Position else Vector3.zero
+	local handler = RunSession.onRevive
+	if handler then
+		handler(session, position)
+	end
+
+	playerRevived:FireAllClients(session.player, position, Balance.Revive.invulnerable)
+end
+
 --[[
 	Applies damage. Server-only: there is no client path into this function, and
 	the amount is never supplied by a client.
@@ -503,44 +598,32 @@ function RunSession.applyDamage(session: Session, amount: number)
 		return
 	end
 
-	session.health = math.max(0, session.health - amount)
-
-	--[[
-		Second Wind, spent here rather than at the death check below, so the
-		player is never briefly at zero. It leaves them at one health: enough
-		to act on, not enough to ignore, and the moment reads as a save rather
-		than as a hit that did nothing.
-
-		Once per run, tracked on the session rather than the loadout — the
-		ability is still held, it is the *charge* that is gone.
-	]]
-	if session.health <= 0 and session.secondWind and not session.secondWindUsed then
-		session.secondWindUsed = true
-		session.health = 1
-		log.info("%s survived on Second Wind", session.player.Name)
+	--[[ Agility: rolled on the session's own Random, by the server. ]]
+	if session.dodgeChance > 0 and session.random:NextNumber() < session.dodgeChance then
+		playerDodged:FireClient(session.player)
+		return
 	end
 
+	session.health = math.max(0, session.health - amount)
 	playerDamaged:FireClient(session.player, amount)
 
 	--[[
-		The stage's revive, after Second Wind: a drafted ability is the
-		player's own save and is spent first, and the revive is the last line.
-		Full health and a moment untouchable, and the shots around them
-		cleared, or the volley that killed them would kill them again.
+		A killing blow is undone, if anything can: Second Wind first — a
+		drafted ability is the player's own save — at its share of max
+		health, once a run; then the stage's revive, at full health. Either
+		way a moment untouchable and the shots around them cleared, or the
+		volley that killed them would kill them again.
 	]]
-	if session.health <= 0 and session.revivesLeft > 0 then
-		session.revivesLeft -= 1
-		session.health = session.maxHealth
-		session.invulnerableUntil = os.clock() + Balance.Revive.invulnerable
-
-		local position = if session.root then session.root.Position else Vector3.zero
-		local handler = RunSession.onRevive
-		if handler then
-			handler(session, position)
+	if session.health <= 0 then
+		if session.secondWind > 0 and not session.secondWindUsed then
+			session.secondWindUsed = true
+			revive(session, session.maxHealth * session.secondWind)
+			log.info("%s survived on Second Wind", session.player.Name)
+		elseif session.revivesLeft > 0 then
+			session.revivesLeft -= 1
+			revive(session, session.maxHealth)
+			log.info("%s revived (%d left)", session.player.Name, session.revivesLeft)
 		end
-
-		playerRevived:FireAllClients(session.player, position, Balance.Revive.invulnerable)
-		log.info("%s revived (%d left)", session.player.Name, session.revivesLeft)
 	end
 
 	healthChanged:FireClient(session.player, session.health, session.maxHealth)
@@ -577,12 +660,17 @@ function RunSession.isStationary(session: Session, now: number): boolean
 
 	if moving then
 		session.stationarySince = nil
+		session.movingSince = session.movingSince or now
 		return false
 	end
 
 	local since = session.stationarySince
 	if not since then
 		session.stationarySince = now
+		--[[ How long the stretch of moving that just ended lasted, for
+		     Momentum. ]]
+		session.movedFor = if session.movingSince then now - session.movingSince else 0
+		session.movingSince = nil
 		return false
 	end
 

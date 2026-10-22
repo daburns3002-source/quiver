@@ -55,6 +55,10 @@ end
 
 local lastFiredAt = 0
 local stationarySince: number? = nil
+--[[ For Momentum: when the current stretch of moving began, and how long
+     the last one lasted. Tracked exactly as `RunSession.isStationary` does. ]]
+local movingSince: number? = nil
+local movedFor = 0
 local connection: RBXScriptConnection? = nil
 local loadoutConnection: RBXScriptConnection? = nil
 
@@ -162,6 +166,7 @@ local function step()
 
 	if moving then
 		stationarySince = nil
+		movingSince = movingSince or now
 		face(root, moveDirection)
 		return
 	end
@@ -174,6 +179,8 @@ local function step()
 
 	if not stationarySince then
 		stationarySince = now
+		movedFor = if movingSince then now - movingSince else 0
+		movingSince = nil
 		return
 	end
 
@@ -181,10 +188,17 @@ local function step()
 		return
 	end
 
-	--[[ Replicated, so Precision shortens the predicted rhythm too. A client
-	     predicting the base rate drifts further from the server with every
-	     volley it draws. ]]
-	if now - lastFiredAt < PlayerStats.get().attackCooldown then
+	--[[ Replicated, and through the same `cooldownAt` the server asks, so
+	     Momentum quickens the predicted rhythm too. A client predicting the
+	     base rate drifts further from the server with every volley it draws. ]]
+	local stats = PlayerStats.get()
+	local cooldown = AbilityEffects.cooldownAt(
+		stats.attackCooldown,
+		stats.momentumBonus,
+		movedFor,
+		now - (stationarySince :: number)
+	)
+	if now - lastFiredAt < cooldown then
 		return
 	end
 

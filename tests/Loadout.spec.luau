@@ -251,6 +251,48 @@ return function(t: TestRunner.Helper)
 		end
 	end)
 
+	--[[ A Valkyrie or an Angel is a gift. Taking its card must not spend a
+	     level the player is owed, or every encounter would quietly cost
+	     them their next draft. ]]
+	t.test("a Valkyrie's card is a gift, not a level", function()
+		local state = Loadout.new()
+		levelUp(state)
+		local owed = state.pendingLevels
+
+		local offer = Loadout.openValkyrie(state, false, dice(), 2)
+		t.notNil(offer)
+		t.equal(#(offer :: { string }), 2, "a Valkyrie should offer two cards")
+		t.isTrue((offer :: { string })[1] ~= (offer :: { string })[2], "the two cards are the same")
+
+		t.notNil(Loadout.choose(state, 1))
+		t.equal(state.pendingLevels, owed, "the Valkyrie's card spent a level")
+	end)
+
+	t.test("an Angel offers a stat or a heal", function()
+		local state = Loadout.new()
+		local offer = Loadout.openAngel(state, dice())
+		t.notNil(offer)
+
+		local heal, stat = false, false
+		for _, id in offer :: { string } do
+			if id == "Mending" then
+				heal = true
+			elseif Abilities.byId[id] and Abilities.byId[id].category == "Stats" then
+				stat = true
+			end
+		end
+		t.isTrue(heal, "an Angel offered no heal")
+		t.isTrue(stat, "an Angel offered no stat")
+	end)
+
+	t.test("an encounter cannot open over an open card screen", function()
+		local state = Loadout.new()
+		levelUp(state)
+		t.notNil(Loadout.openOffer(state, false, dice()))
+		t.isNil(Loadout.openValkyrie(state, false, dice(), 2))
+		t.isNil(Loadout.openAngel(state, dice()))
+	end)
+
 	t.test("there are enough abilities to fill an offer", function()
 		t.isTrue(
 			#Abilities.all >= Progression.offerCount,

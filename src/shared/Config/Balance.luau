@@ -328,6 +328,34 @@ export type Obstacle = {
 	asks. A room with no cover and a room that is mostly corridor are
 	different fights with identical enemies.
 ]]
+--[[
+	A stage: one run, from its first fight to the end.
+
+	Archero 2 has two kinds, and which one a stage is belongs to the place in
+	the game it sits, so it is data here rather than a branch in the run code:
+
+	- **Rooms** — fight, clear, the door opens, walk through to the next room.
+	  `rooms` lists which `Rooms` entries, in order.
+	- **Waves** — one arena for the whole stage. Waves arrive in place; every
+	  `Waves.valkyrieAt` a Valkyrie offers one of two skills, every
+	  `Waves.angelAt` an Angel offers a stat or a heal, and every
+	  `Waves.bossAt` is a boss wave. `arena` names the `Rooms` entry whose
+	  layout is the arena; `waves` is how many there are.
+
+	Wave content is read off the same `Rooms` list a Rooms stage walks: wave
+	`w` of `n` fights the roster and count of room ⌈w / n · #Rooms⌉. The
+	tutorial order those rooms encode carries over unchanged.
+]]
+export type StageMode = "Rooms" | "Waves"
+
+export type StageConfig = {
+	name: string,
+	mode: StageMode,
+	rooms: { number }?,
+	arena: number?,
+	waves: number?,
+}
+
 export type RoomConfig = {
 	name: string,
 	obstacles: { Obstacle },
@@ -761,6 +789,46 @@ local Balance = {
 	},
 
 	Rooms = rooms,
+
+	Stages = {
+		{
+			name = "The Courtyards",
+			mode = "Rooms",
+			rooms = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 },
+		},
+		{
+			name = "Moonlit Arena",
+			mode = "Waves",
+			--[[ Two Pillars: a little cover, open enough that a wave arriving
+			     anywhere can be fought. ]]
+			arena = 2,
+			waves = 30,
+		},
+	} :: { StageConfig },
+
+	--[[ Which stage a run plays. Set per point in the game; one index here
+	     until there is a stage select. ]]
+	stage = 2,
+
+	--[[ The Waves-mode schedule, as Archero 2 numbers it within each block
+	     of ten: a Valkyrie on the 5th, an Angel on the 9th, a boss on the
+	     10th. Positions, not frequencies — wave 15 is a Valkyrie because
+	     15 is 5 into its block. ]]
+	Waves = {
+		blockSize = 10,
+		valkyrieAt = 5,
+		angelAt = 9,
+		bossAt = 10,
+		--[[ Cards a Valkyrie offers. ]]
+		valkyrieOffer = 2,
+		--[[ Seconds between a wave clearing and the next arriving: long
+		     enough that a clear is its own moment, short enough that the
+		     stage keeps its rhythm. ]]
+		pause = 1.2,
+		--[[ A boss wave, until Phase 4 brings bosses: the stage's heaviest
+		     body with an escort. ]]
+		bossRoster = { tank, meleeCharger, spreadShooter, meleeCharger },
+	},
 
 	Run = {
 		--[[ The pad that appears when a room is cleared. Walking onto it is

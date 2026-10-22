@@ -26,8 +26,10 @@ export type Entry = { id: string, count: number }
 
 export type Summary = {
 	won: boolean,
-	roomsReached: number,
-	totalRooms: number,
+	reached: number,
+	total: number,
+	--[[ "Room" or "Wave", after the stage's mode. ]]
+	unit: string,
 	level: number,
 	abilities: { Entry },
 }
@@ -175,7 +177,7 @@ function RunSummary.show(summary: Summary)
 
 	title.Text = if summary.won then "Run Complete" else "Run Over"
 	title.TextColor3 = if summary.won then WON_COLOUR else DIED_COLOUR
-	sub.Text = `Room {summary.roomsReached} of {summary.totalRooms}   ·   Level {summary.level}`
+	sub.Text = `{summary.unit} {summary.reached} of {summary.total}   ·   Level {summary.level}`
 
 	if #summary.abilities == 0 then
 		--[[ A run that ended before its first card still gets a summary. Left

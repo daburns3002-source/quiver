@@ -230,7 +230,14 @@ local function buildCard(index: number, id: string, holder: Frame)
 end
 
 --[[ Shows an offer. `level` is the level just reached, purely as a heading. ]]
-function AbilityCards.show(offer: { string }, level: number)
+--[[ What the card screen is titled, by who is offering: a level-up, or
+     Archero 2's Valkyrie and Angel encounters. ]]
+local TITLES = {
+	Valkyrie = "A Valkyrie offers a blessing",
+	Angel = "An Angel offers a gift",
+}
+
+function AbilityCards.show(offer: { string }, level: number, source: string?)
 	local created = gui
 	local holder = cardHolder
 
@@ -243,7 +250,7 @@ function AbilityCards.show(offer: { string }, level: number)
 
 	local title = created:FindFirstChild("Title")
 	if title and title:IsA("TextLabel") then
-		title.Text = `Level {level}`
+		title.Text = (TITLES :: { [string]: string })[source or ""] or `Level {level}`
 	end
 
 	for index, id in offer do

@@ -1,15 +1,22 @@
 --!strict
 --[[
-	The room-to-room loop.
+	The run loop, in either of Archero 2's two stage shapes.
 
-	Fight → clear → the door opens → walk onto it → the next room is built.
-	Die, and the run goes back to room one. That cycle is the entire Phase 2
-	question: after five rooms, do you want a sixth?
+	- **Rooms:** fight → clear → the door opens → walk onto it → the next room
+	  is built. The Phase 2 loop, unchanged.
+	- **Waves:** one arena for the whole stage. A wave clears, a beat passes,
+	  the next arrives in place. Some waves are not fights: a Valkyrie offers
+	  one of two skills, an Angel a stat or a heal, and a boss wave closes each
+	  block of ten. See `Waves` for the schedule.
 
-	The server owns every part of it. The client is told which room it is in
-	and what state the run is in; it never reports either. Room progress is the
-	gate the whole meta loop hangs off in Phase 5 — an area unlocks by clearing
-	its last room — so a client that could claim a room could claim an area.
+	Which shape a run takes is `Balance.Stages[Balance.stage].mode` — data,
+	because it depends on where in the game a stage sits, not on anything the
+	code should decide.
+
+	Die, and the run goes back to the start of the stage. The server owns all
+	of it: the client is told where it is and what state the run is in, and
+	never reports either. Stage progress is what areas unlock on in Phase 5,
+	so a client that could claim a wave could claim an area.
 ]]
 
 local Players = game:GetService("Players")
@@ -24,72 +31,141 @@ local Log = require(ReplicatedStorage.Shared.Util.Log)
 local ProjectileSystem = require(script.Parent.Parent.Combat.ProjectileSystem)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local RunSession = require(script.Parent.RunSession)
+local Waves = require(script.Parent.Waves)
 
 local log = Log.forTag("Run")
 
 local RoomController = {}
 
-export type State = "Fighting" | "Cleared" | "Dead" | "Complete"
+export type State = "Fighting" | "Cleared" | "Choosing" | "Dead" | "Complete"
 
 local runStateChanged = Remotes.event(Remotes.RunStateChanged)
 local runSummary = Remotes.event(Remotes.RunSummary)
 
-local roomIndex = 1
+local function stage(): Balance.StageConfig
+	return Balance.Stages[Balance.stage]
+end
+
+--[[ How far through the stage the run is: a position in its room list, or a
+     wave number. One counter for both, because the HUD, the summary and the
+     death message all only ever want "how far, out of how many". ]]
+local progress = 1
 local state: State = "Fighting"
 --[[ `os.clock()` at which the pending transition fires, or nil when the run is
      waiting on the player rather than on a clock. ]]
 local resumeAt: number? = nil
 
+local function total(): number
+	local current = stage()
+	if current.mode == "Waves" then
+		return current.waves or 1
+	end
+	return #(current.rooms or {})
+end
+
+local function unit(): string
+	return if stage().mode == "Waves" then "Wave" else "Room"
+end
+
+--[[ What the HUD prints beside the counter: the room's name, or what kind
+     of wave this is. ]]
+local function label(): string
+	local current = stage()
+	if current.mode == "Waves" then
+		local kind = Waves.kind(progress)
+		return if kind == "Fight" then current.name else kind
+	end
+	local rooms = current.rooms or {}
+	return Balance.Rooms[rooms[progress]].name
+end
+
 local function broadcast()
-	runStateChanged:FireAllClients(roomIndex, #Balance.Rooms, state, Balance.Rooms[roomIndex].name)
+	runStateChanged:FireAllClients(progress, total(), state, label(), unit())
 end
 
 --[[
-	Tears the current room down and builds the next one.
+	Tears the arena down and builds `layout` in its place.
 
-	The arena is rebuilt rather than edited, so a room can never inherit a
-	pillar from the last one, and the raycast filters are refreshed because
-	both of them point at folders that no longer exist after this.
+	Rebuilt rather than edited, so a room can never inherit a pillar from the
+	last one, and the raycast filters are refreshed because both of them point
+	at folders that no longer exist after this. Nothing in flight survives:
+	an arrow fired at the last enemy of the old room would otherwise arrive in
+	the new one.
 ]]
-local function enterRoom(index: number)
-	roomIndex = index
-	state = "Fighting"
-	resumeAt = nil
-
-	local room = Balance.Rooms[index]
-
-	Arena.build(workspace, room.obstacles)
+local function buildArena(layout: Balance.RoomConfig)
+	Arena.build(workspace, layout.obstacles)
 	EnemyManager.init(workspace)
 
-	--[[ Nothing survives a room boundary. An arrow fired at the last enemy of
-	     the old room would otherwise arrive in the new one, and both filters
-	     point at folders that have just been destroyed. ]]
 	ProjectileSystem.clear()
 	Burning.clear()
 	ProjectileSystem.refreshFilters()
 
-	--[[ Players are put back at the start of the new room. Without this they
-	     would begin the next fight standing on what used to be the door, which
-	     is the far end of the room from where its enemies spawn. ]]
+	--[[ Players are put back at the start. Without this they would begin the
+	     next fight standing on what used to be the door, the far end of the
+	     room from where its enemies spawn. ]]
 	for _, session in RunSession.all() do
 		local root = session.root
 		if root then
 			root.CFrame = CFrame.new(Balance.Arena.spawnPosition)
 		end
 	end
+end
 
+local function enterRoom(position: number)
+	progress = position
+	state = "Fighting"
+	resumeAt = nil
+
+	local rooms = stage().rooms or {}
+	local room = Balance.Rooms[rooms[position]]
+
+	buildArena(room)
 	EnemyManager.spawnWave(room.enemyCount, room.roster)
 
-	log.info("entered room %d/%d — %s", index, #Balance.Rooms, room.name)
+	log.info("entered room %d/%d — %s", position, total(), room.name)
 	broadcast()
 end
 
-function RoomController.start()
-	enterRoom(1)
+--[[
+	Starts wave `wave` in the arena already standing. A fight spawns its
+	roster behind the usual markers; a Valkyrie or an Angel opens its offer to
+	every player and the run waits on their choice, paused like a level-up.
+]]
+local function startWave(wave: number)
+	progress = wave
+	resumeAt = nil
+
+	local description = Waves.describe(wave, total())
+
+	if description.kind == "Valkyrie" or description.kind == "Angel" then
+		state = "Choosing"
+		for _, session in RunSession.all() do
+			RunSession.offerEncounter(session, description.kind)
+		end
+	else
+		state = "Fighting"
+		EnemyManager.spawnWave(description.count, description.roster)
+	end
+
+	log.info("wave %d/%d — %s", wave, total(), description.kind)
+	broadcast()
 end
 
---[[ Called when a player dies. The run ends; it does not continue without
-     them, because a run that carries on after death has no stakes. ]]
+local function startStage()
+	local current = stage()
+
+	if current.mode == "Waves" then
+		buildArena(Balance.Rooms[current.arena or 1])
+		startWave(1)
+	else
+		enterRoom(1)
+	end
+end
+
+function RoomController.start()
+	startStage()
+end
+
 --[[
 	Tells each player what they built.
 
@@ -118,14 +194,17 @@ local function sendSummary(won: boolean)
 
 		runSummary:FireClient(session.player, {
 			won = won,
-			roomsReached = roomIndex,
-			totalRooms = #Balance.Rooms,
+			reached = progress,
+			total = total(),
+			unit = unit(),
 			level = session.loadout.level,
 			abilities = lines,
 		})
 	end
 end
 
+--[[ Called when a player dies. The run ends; it does not continue without
+     them, because a run that carries on after death has no stakes. ]]
 function RoomController.onPlayerDied()
 	if state == "Dead" then
 		return
@@ -135,7 +214,7 @@ function RoomController.onPlayerDied()
 	resumeAt = os.clock() + Balance.Run.deathPause
 	Arena.setDoorOpen(false)
 
-	log.info("run ended in room %d/%d", roomIndex, #Balance.Rooms)
+	log.info("run ended at %s %d/%d", unit():lower(), progress, total())
 	broadcast()
 	sendSummary(false)
 end
@@ -151,49 +230,18 @@ local function anyPlayerAtDoor(): boolean
 	return false
 end
 
-function RoomController.step(now: number)
-	if state == "Dead" then
-		if resumeAt and now >= resumeAt then
-			log.info("restarting the run")
+local function complete(now: number)
+	state = "Complete"
+	resumeAt = now + Balance.Run.deathPause
+	Arena.setDoorOpen(false)
+	log.info("run complete")
+	broadcast()
+	sendSummary(true)
+end
 
-			--[[ Levels and abilities are run-local by design: a death costs
-			     the build and nothing else, because the meta loop that would
-			     soften that is Phase 6. Reset before the room is built, so the
-			     first wave meets a level-one archer. ]]
-			for _, session in RunSession.all() do
-				RunSession.resetRun(session)
-			end
-
-			enterRoom(1)
-		end
-
-		return
-	end
-
-	if state == "Complete" then
-		if resumeAt and now >= resumeAt then
-			enterRoom(1)
-		end
-
-		return
-	end
-
-	if state == "Fighting" then
-		if EnemyManager.aliveCount() > 0 then
-			return
-		end
-
-		state = "Cleared"
-		--[[ The door is held shut for a beat after the last kill, so clearing
-		     a room reads as its own moment rather than being swallowed by the
-		     next one opening underneath it. ]]
-		resumeAt = now + Balance.Run.clearPause
-		broadcast()
-
-		return
-	end
-
-	-- Cleared: hold the pause, then light the door and wait for a player.
+--[[ Rooms: hold the pause after a clear, light the door, wait for a player
+     to step on it. ]]
+local function stepRooms(now: number)
 	if resumeAt then
 		if now < resumeAt then
 			return
@@ -207,29 +255,88 @@ function RoomController.step(now: number)
 		return
 	end
 
-	if roomIndex >= #Balance.Rooms then
-		state = "Complete"
-		resumeAt = now + Balance.Run.deathPause
-		Arena.setDoorOpen(false)
-		log.info("run complete")
-		broadcast()
-		sendSummary(true)
+	if progress >= total() then
+		complete(now)
+		return
+	end
+
+	enterRoom(progress + 1)
+end
+
+--[[ Waves: hold the pause after a clear, then bring the next wave in place —
+     or finish, after the last. ]]
+local function stepWaves(now: number)
+	if resumeAt and now < resumeAt then
+		return
+	end
+
+	if progress >= total() then
+		complete(now)
+		return
+	end
+
+	startWave(progress + 1)
+end
+
+function RoomController.step(now: number)
+	if state == "Dead" or state == "Complete" then
+		if resumeAt and now >= resumeAt then
+			if state == "Dead" then
+				log.info("restarting the run")
+
+				--[[ Levels and abilities are run-local by design: a death
+				     costs the build and nothing else, because the meta loop
+				     that would soften that is Phase 6. Reset before the stage
+				     is built, so the first wave meets a level-one archer. ]]
+				for _, session in RunSession.all() do
+					RunSession.resetRun(session)
+				end
+			end
+
+			startStage()
+		end
 
 		return
 	end
 
-	enterRoom(roomIndex + 1)
+	--[[ A Valkyrie or an Angel. The world is already frozen while anyone is
+	     choosing; once nobody is, the encounter counts as cleared. ]]
+	if state == "Choosing" then
+		if RunSession.anyChoosing() then
+			return
+		end
+
+		state = "Cleared"
+		resumeAt = now + Balance.Waves.pause
+		broadcast()
+		return
+	end
+
+	if state == "Fighting" then
+		if EnemyManager.aliveCount() > 0 then
+			return
+		end
+
+		state = "Cleared"
+		--[[ Held for a beat after the last kill, so a clear reads as its own
+		     moment rather than being swallowed by what comes next. ]]
+		resumeAt = now
+			+ (if stage().mode == "Waves" then Balance.Waves.pause else Balance.Run.clearPause)
+		broadcast()
+
+		return
+	end
+
+	if stage().mode == "Waves" then
+		stepWaves(now)
+	else
+		stepRooms(now)
+	end
 end
 
 --[[ So a client joining mid-run is not left with an empty HUD. ]]
 function RoomController.sendStateTo(player: Player)
-	runStateChanged:FireClient(
-		player,
-		roomIndex,
-		#Balance.Rooms,
-		state,
-		Balance.Rooms[roomIndex].name
-	)
+	runStateChanged:FireClient(player, progress, total(), state, label(), unit())
 end
 
 Players.PlayerAdded:Connect(RoomController.sendStateTo)

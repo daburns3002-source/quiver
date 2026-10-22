@@ -527,6 +527,33 @@ return function(t: TestRunner.Helper)
 		numbers can be tuned, but not tuned back into a game where enemies
 		soak a dozen arrows and the player shrugs off a dozen hits.
 	]]
+	--[[ A stage that names a room that is not there fails when it is
+	     played, not when it is written. These catch that at test time. ]]
+	t.test("every stage names a real mode and real rooms", function()
+		t.notNil(Balance.Stages[Balance.stage], "the run plays a stage that does not exist")
+
+		for index, stage in Balance.Stages do
+			if stage.mode == "Rooms" then
+				local rooms = stage.rooms
+				t.isTrue(
+					rooms ~= nil and #rooms > 0,
+					`stage {index} is a Rooms stage with no rooms`
+				)
+				for _, room in rooms or ({} :: { number }) do
+					t.notNil(
+						Balance.Rooms[room],
+						`stage {index} names room {room}, which does not exist`
+					)
+				end
+			elseif stage.mode == "Waves" then
+				t.notNil(Balance.Rooms[stage.arena or 0], `stage {index} has no arena`)
+				t.isTrue((stage.waves or 0) >= 1, `stage {index} has no waves`)
+			else
+				t.isTrue(false, `stage {index} has an unknown mode`)
+			end
+		end
+	end)
+
 	t.test("a Charger dies in about three arrows", function()
 		local hits = Balance.Enemies.MeleeCharger.health / Balance.Player.baseDamage
 		t.isTrue(hits > 2 and hits <= 4, `a Charger takes {hits} plain hits`)

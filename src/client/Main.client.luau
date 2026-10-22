@@ -138,15 +138,16 @@ Remotes.event(Remotes.EnemyDied).OnClientEvent:Connect(HitFeedback.onEnemyDied)
 Remotes.event(Remotes.Explosion).OnClientEvent:Connect(HitFeedback.onExplosion)
 Remotes.event(Remotes.PlayerDamaged).OnClientEvent:Connect(HitFeedback.onPlayerDamaged)
 Remotes.event(Remotes.HealthChanged).OnClientEvent:Connect(HealthBar.update)
-Remotes.event(Remotes.RunStateChanged).OnClientEvent:Connect(function(index, total, state, name)
-	RunBanner.onRunStateChanged(index, total, state, name)
+Remotes.event(Remotes.RunStateChanged).OnClientEvent
+	:Connect(function(index, total, state, name, unit)
+		RunBanner.onRunStateChanged(index, total, state, name, unit)
 
-	--[[ The summary belongs to the run that ended, so it clears the moment
+		--[[ The summary belongs to the run that ended, so it clears the moment
 	     the next one starts fighting rather than on a timer of its own. ]]
-	if state == "Fighting" then
-		RunSummary.hide()
-	end
-end)
+		if state == "Fighting" then
+			RunSummary.hide()
+		end
+	end)
 
 Remotes.event(Remotes.RunSummary).OnClientEvent:Connect(RunSummary.show)
 
@@ -183,13 +184,14 @@ AbilityCards.start(function(index: number)
 	Remotes.event(Remotes.AbilityChosen):FireServer(index)
 end)
 
-Remotes.event(Remotes.AbilityOffer).OnClientEvent:Connect(function(offer: { string }, level: number)
-	--[[ Paused alongside the server, which stops the run for a draft. Without
+Remotes.event(Remotes.AbilityOffer).OnClientEvent
+	:Connect(function(offer: { string }, level: number, source: string?)
+		--[[ Paused alongside the server, which stops the run for a draft. Without
 	     this the prediction draws volleys across a frozen room that the server
 	     never fired. ]]
-	RunPaused.set(true)
-	AbilityCards.show(offer, level)
-end)
+		RunPaused.set(true)
+		AbilityCards.show(offer, level, source)
+	end)
 
 Remotes.event(Remotes.XpChanged).OnClientEvent:Connect(RunBanner.onXpChanged)
 

@@ -192,7 +192,31 @@ function RunSession.offerIfOwed(session: Session)
 	local offer = Loadout.openOffer(session.loadout, atFullHealth, session.random)
 
 	if offer then
-		abilityOffer:FireClient(session.player, offer, session.loadout.level)
+		abilityOffer:FireClient(session.player, offer, session.loadout.level, "Level")
+	end
+end
+
+--[[
+	A Valkyrie or an Angel, from a Waves stage. Pauses the run exactly as a
+	level-up does — the offer being open is what `anyChoosing` reads — and
+	is chosen through the same validated `chooseAbility`.
+]]
+function RunSession.offerEncounter(session: Session, source: "Valkyrie" | "Angel")
+	if not session.alive then
+		return
+	end
+
+	local offer = if source == "Valkyrie"
+		then Loadout.openValkyrie(
+			session.loadout,
+			session.health >= session.maxHealth - 1e-3,
+			session.random,
+			Balance.Waves.valkyrieOffer
+		)
+		else Loadout.openAngel(session.loadout, session.random)
+
+	if offer then
+		abilityOffer:FireClient(session.player, offer, session.loadout.level, source)
 	end
 end
 

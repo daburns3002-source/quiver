@@ -38,10 +38,12 @@ function HealthBar.start()
 	--[[
 		Anchored to the bottom centre and sized in scale, so it lands in the
 		same place on a phone and a desktop without a per-device branch. Sits
-		above the mobile thumbstick rather than under the player's thumb.
+		above the mobile thumbstick rather than under the player's thumb, and
+		above the skill bar, which takes the bottom 78 px through a fight
+		(16 margin + its ~62 px combat size, `CardTheme.skillBar`).
 	]]
 	container.AnchorPoint = Vector2.new(0.5, 1)
-	container.Position = UDim2.new(0.5, 0, 1, -24)
+	container.Position = UDim2.new(0.5, 0, 1, -86)
 	container.Size = UDim2.new(0.34, 0, 0, 22)
 	container.BackgroundColor3 = Color3.fromRGB(24, 26, 32)
 	container.BackgroundTransparency = 0.25

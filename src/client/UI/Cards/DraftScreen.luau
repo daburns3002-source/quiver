@@ -100,7 +100,7 @@ local dealToken = 0
 local slots: { Slot } = {}
 local selected: number? = nil
 --[[ While cards are flying off, nothing else may be pressed. ]]
-local leaving: { kind: "Choose" | "Reroll" | "Celebrate", at: number, picked: number? }? = nil
+local leaving: { kind: "Reroll" | "Celebrate", at: number, picked: number? }? = nil
 local locked = false
 local mode: Mode = "Mouse"
 --[[ With a gamepad, the card the stick is on. ]]
@@ -432,15 +432,14 @@ local function confirm()
 		juiceUp(chosen, 0, 8)
 	end
 
-	--[[ On a phone the pick is a celebration: the card takes the stage, and
-	     its icon flies into the skill bar before the pick is applied. ]]
-	local celebrate = mode == "Touch"
-	leaving =
-		{ kind = if celebrate then "Celebrate" else "Choose", at = os.clock(), picked = index }
+	--[[ Every pick is a celebration: the card takes the stage, and its icon
+	     flies into the skill bar before the pick is applied. The design drew
+	     this for phones; the owner asked for it on every device. ]]
+	leaving = { kind = "Celebrate", at = os.clock(), picked = index }
 
 	local slot = slots[index]
 	local words, tag, icon = headline, tagline, flyer
-	if celebrate and slot and words and tag and icon then
+	if slot and words and tag and icon then
 		local ability = Abilities.byId[slot.id]
 		local level = (PlayerStats.get().abilities[slot.id] or 0) + 1
 		words.TextSize = 40
@@ -459,7 +458,7 @@ local function confirm()
 
 	--[[ The pick is applied as the cards finish leaving, as the design
 	     times it, so the screen never closes on a frame still moving. ]]
-	task.delay(if celebrate then TIMING.touchChooseApplyAt else TIMING.chooseApplyAt, function()
+	task.delay(TIMING.pickApplyAt, function()
 		local handler = onChosen
 		if handler then
 			handler(index)
@@ -956,17 +955,6 @@ local function step(deltaTime: number)
 					rotation += (if i < (away.picked or 0) then -40 else 40) * e
 					transparency = math.max(transparency, e)
 				end
-			elseif away.kind == "Choose" then
-				local e = Motion.quadIn(math.clamp((now - away.at) / TIMING.chooseDuration, 0, 1))
-				if away.picked == i then
-					offset += Vector2.new(0, -420 * e)
-					scale += 0.2 * e
-					rotation -= 8 * e
-				else
-					offset += Vector2.new(0, 460 * e)
-					rotation += (if i < (away.picked or 0) then -34 else 34) * e
-				end
-				transparency = math.max(transparency, e)
 			else
 				local e = Motion.quadIn(math.clamp((now - away.at) / TIMING.rerollDuration, 0, 1))
 				offset += Vector2.new(-760 * e, 0)
@@ -1409,25 +1397,21 @@ end
 --[[ Hides the screen. Called once a pick is sent, and on death, so a draft
      can never outlive the run that owed it. ]]
 function DraftScreen.hide()
-	--[[ After a phone's celebration the bar stays up a moment, so the icon
-	     landing and its slot popping are seen rather than cut off. ]]
-	local celebrated = leaving ~= nil and (leaving :: any).kind == "Celebrate"
 	locked = true
 	leaving = nil
 	clearSlots()
 	if gui then
 		gui.Enabled = false
 	end
-	if celebrated then
-		local token = dealToken
-		task.delay(0.8, function()
-			if dealToken == token and not (gui and gui.Enabled) then
-				SkillBar.setVisible(false)
-			end
-		end)
-	else
-		SkillBar.setVisible(false)
-	end
+	--[[ The bar stays up through the fight, back at its combat size; after
+	     a pick it waits a moment first, so the icon landing and its slot
+	     popping are seen at the size they were aimed at. ]]
+	local token = dealToken
+	task.delay(0.8, function()
+		if dealToken == token and not (gui and gui.Enabled) then
+			SkillBar.toCombat()
+		end
+	end)
 	unbindGamepad()
 	if flyer then
 		flyer.Visible = false

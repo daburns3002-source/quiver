@@ -28,6 +28,7 @@ local Burning = require(script.Parent.Parent.Combat.Burning)
 local EnemyManager = require(script.Parent.Parent.Enemies.EnemyManager)
 local Loadout = require(script.Parent.Loadout)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
+local Pickups = require(script.Parent.Pickups)
 local ProjectileSystem = require(script.Parent.Parent.Combat.ProjectileSystem)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local RunSession = require(script.Parent.RunSession)
@@ -54,6 +55,9 @@ local state: State = "Fighting"
 --[[ `os.clock()` at which the pending transition fires, or nil when the run is
      waiting on the player rather than on a clock. ]]
 local resumeAt: number? = nil
+--[[ `os.clock()` at which the crystals on the floor are drawn in, set when a
+     fight clears. ]]
+local collectAt: number? = nil
 
 local function total(): number
 	local current = stage()
@@ -98,6 +102,8 @@ local function buildArena(layout: Balance.RoomConfig)
 
 	ProjectileSystem.clear()
 	Burning.clear()
+	Pickups.clear()
+	collectAt = nil
 	ProjectileSystem.refreshFilters()
 
 	--[[ Players are put back at the start. Without this they would begin the
@@ -141,6 +147,15 @@ local function startWave(wave: number)
 		state = "Choosing"
 		for _, session in RunSession.all() do
 			RunSession.offerEncounter(session, description.kind)
+		end
+
+		--[[ A Valkyrie leaves hearts behind, in the middle of the arena where
+		     whoever wants one has to go and get it. ]]
+		if description.kind == "Valkyrie" then
+			for index = 1, Balance.Waves.valkyrieHearts do
+				local offset = Vector3.new((index - 1) * 3, 0, 0)
+				Pickups.dropHeart(Arena.resolve(offset, 1))
+			end
 		end
 	else
 		state = "Fighting"
@@ -322,8 +337,23 @@ function RoomController.step(now: number)
 		     moment rather than being swallowed by what comes next. ]]
 		resumeAt = now
 			+ (if stage().mode == "Waves" then Balance.Waves.pause else Balance.Run.clearPause)
+		collectAt = now + Balance.Pickups.collectDelay
 		broadcast()
 
+		return
+	end
+
+	--[[ The fight's crystals, drawn in during the pause after it. Ahead of
+	     everything that moves the run on, because the level-up they may bring
+	     opens a card screen and pauses the world, and the next wave must wait
+	     for it rather than arrive under it. ]]
+	if collectAt then
+		if now < collectAt then
+			return
+		end
+
+		collectAt = nil
+		RunSession.collectCrystals()
 		return
 	end
 

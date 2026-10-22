@@ -243,8 +243,8 @@ and green things on screen: a health-bar detector reported widths between
 134 and 664 px on one bar. Enemy speeds are therefore our own tuned values
 scaled with the room, and should not be described as matching.
 
-**Not built yet:** XP gems (blue cubes dropped on the floor by kills) and
-triangle-cluster spawning.
+**Not built yet:** triangle-cluster spawning. (XP gems are built as
+crystals; see `docs/RESEARCH-archero2.md`.)
 
 ---
 

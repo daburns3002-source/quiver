@@ -455,7 +455,9 @@ end
 	The second return is the XP this hit earned, which is non-zero only on the
 	blow that kills. It is returned rather than awarded here because this
 	module has no idea whose arrow it was, and guessing is exactly how XP ends
-	up credited to the wrong player the moment there are two of them.
+	up credited to the wrong player the moment there are two of them. The
+	third is where the enemy fell, on the killing blow only: it is where the
+	kill's crystals drop, and the model is gone by the time anyone asks.
 ]]
 --[[ `fromPosition` is where the blow came from, for knockback; nil for
      damage that does not push, like a burn ticking. `kind` is how the
@@ -465,10 +467,10 @@ function EnemyManager.damage(
 	amount: number,
 	fromPosition: Vector3?,
 	kind: Types.HitKind?
-): (boolean, number)
+): (boolean, number, Vector3?)
 	local enemy = enemies[model]
 	if not enemy or amount <= 0 then
-		return false, 0
+		return false, 0, nil
 	end
 
 	enemy.health -= amount
@@ -495,7 +497,7 @@ function EnemyManager.damage(
 
 	if enemy.health > 0 then
 		enemyHit:FireAllClients(model, amount, enemy.position, kind or "Hit")
-		return true, 0
+		return true, 0, nil
 	end
 
 	enemies[model] = nil
@@ -515,7 +517,7 @@ function EnemyManager.damage(
 	enemyDied:FireAllClients(enemy.position, amount, kind or "Hit")
 	model:Destroy()
 
-	return true, enemy.config.xpReward
+	return true, enemy.config.xpReward, enemy.position
 end
 
 local function nearestAlivePlayerRoot(position: Vector3): (BasePart?, number)

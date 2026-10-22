@@ -309,8 +309,8 @@ local function applySplash(projectile: Projectile, centre: Vector3, damage: numb
 	for _, entry in nearby do
 		local flat = Vector3.new(entry.position.X, 0, entry.position.Z)
 		if (flat - flatCentre).Magnitude <= projectile.splashRadius then
-			local _, xp = EnemyManager.damage(entry.model, splashDamage, centre)
-			RunSession.creditKill(projectile.owner, xp)
+			local _, xp, fell = EnemyManager.damage(entry.model, splashDamage, centre)
+			RunSession.creditKill(projectile.owner, xp, fell)
 		end
 	end
 end
@@ -493,7 +493,7 @@ local function applyHit(projectile: Projectile, model: Model): boolean
 		     necessarily a live enemy — it can be one killed earlier in this
 		     same step — and an arrow that stopped dead on one of those looked
 		     exactly like a hit that failed to register. ]]
-		local landed, xp = EnemyManager.damage(model, damage, projectile.position, kind)
+		local landed, xp, fell = EnemyManager.damage(model, damage, projectile.position, kind)
 
 		if landed then
 			--[[ Splash before the chain, so an explosion that finishes a
@@ -503,7 +503,7 @@ local function applyHit(projectile: Projectile, model: Model): boolean
 		end
 
 		if xp > 0 then
-			RunSession.creditKill(projectile.owner, xp)
+			RunSession.creditKill(projectile.owner, xp, fell)
 			fireChain(projectile, projectile.position)
 		end
 

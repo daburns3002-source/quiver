@@ -58,10 +58,16 @@ settled ones. **Damage is on Archero 2's scale** (docs/RESEARCH-archero2.md
 enemy hits kill the player — which replaced the owner's earlier "enemy
 health ×1.5". Damage numbers are white, red crits, orange burns.
 
-Not done: real bosses, XP crystals and hearts (docs/RESEARCH-archero2.md §4);
-Phase 3's playtest question — *did two runs in a row feel
-meaningfully different?* — which needs the owner; XP gems and triangle-cluster spawns from the
-footage.
+**XP crystals and hearts** (`Run/Pickups`, `Fx/PickupFx`): a kill's XP
+drops as cyan crystals that are drawn in when the wave or room clears, so
+level-ups come between fights. Hearts drop on 5% of kills and on every
+Valkyrie wave, wait on the floor, and heal 20% of max health when walked
+over, full health or not.
+
+Not done: real bosses (the owner wants to think about them first — do not
+start); Phase 3's playtest question — *did two runs in a row feel
+meaningfully different?* — which needs the owner; triangle-cluster spawns
+from the footage.
 
 To resume: `rojo serve`, connect the Studio plugin, Play. Read
 `docs/FIXES.md` before debugging anything — most of what can go wrong here

@@ -118,6 +118,19 @@ Remotes.RunSummary = "RunSummary"
 ]]
 Remotes.Explosion = "Explosion"
 
+--[[
+	Server → all clients. Something dropped on the floor: an id, its kind
+	("Crystal" or "Heart"), where it rests, and where it popped out from.
+]]
+Remotes.PickupDropped = "PickupDropped"
+
+--[[ Server → all clients. These pickups were taken by this player; fly them
+     to the player and drop them. ]]
+Remotes.PickupsTaken = "PickupsTaken"
+
+--[[ Server → all clients. The floor is bare: a new arena was built. ]]
+Remotes.PickupsCleared = "PickupsCleared"
+
 local function getFolder(): Folder
 	if RunService:IsServer() then
 		local existing = ReplicatedStorage:FindFirstChild(FOLDER_NAME)

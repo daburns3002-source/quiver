@@ -103,13 +103,14 @@ enemies stream in. Not needed yet.
 are collected **at the end of the wave**, not by walking over them. A full
 bar opens a choice of **3 skills**, with rarity shown by colour: green Fine,
 blue Rare, purple Epic, orange Legendary. **Skills don't level up:**
-picking one twice does nothing. [ours: stacking abilities with caps; no
-crystals.]
+picking one twice does nothing. [ours: stacking abilities with caps;
+crystals collected when a wave or room clears.]
 
 **Healing.** [guide] Mainly **hearts**, dropped rarely by enemies and by
 special waves. They stay on the floor until picked up. One revive per stage
-(full HP plus brief invulnerability). [ours: Mending card, Bloodthirst, no
-hearts.]
+(full HP plus brief invulnerability). [ours: Mending card, Bloodthirst;
+hearts on 5% of kills and every Valkyrie wave, 20% of max HP each. No
+revive yet.]
 
 **Enemies.** [guide] Enemy attacks have **no area markers**; damage comes
 from projectiles or collision. [ours: we telegraph with lines, flashes and

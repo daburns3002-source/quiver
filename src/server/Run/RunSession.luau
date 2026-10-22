@@ -12,9 +12,11 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local AbilityEffects = require(ReplicatedStorage.Shared.Combat.AbilityEffects)
+local Arena = require(script.Parent.Parent.Arena.Arena)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Loadout = require(script.Parent.Loadout)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
+local Pickups = require(script.Parent.Pickups)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local ShotPipeline = require(ReplicatedStorage.Shared.Combat.ShotPipeline)
 
@@ -263,19 +265,69 @@ end
 	be that player's current one — an arrow or a burn can outlive the run it
 	came from. A session replaced since simply does not get it.
 
-	The kill's rewards before its XP: levelling opens a card screen and
-	pauses the run, and a heal that landed after that would be applied to a
-	player already reading cards.
+	The XP does not arrive here. It drops at `position` as crystals, which
+	are drawn in when the fight clears (`collectCrystals`), so a level-up
+	comes between fights rather than in the middle of one. Without a
+	position there is nowhere to drop them, and the XP is credited at once.
 ]]
-function RunSession.creditKill(owner: Player?, xp: number)
+function RunSession.creditKill(owner: Player?, xp: number, position: Vector3?)
 	if xp <= 0 or not owner then
 		return
 	end
 
 	local session = RunSession.get(owner)
-	if session then
-		RunSession.onEnemyKilled(session)
+	if not session then
+		return
+	end
+
+	RunSession.onEnemyKilled(session)
+
+	if position then
+		Pickups.dropForKill(owner, position, xp, session.random, function(point)
+			return Arena.clampToWalls(Arena.resolve(point, 0.6), 0.6)
+		end)
+	else
 		RunSession.awardXp(session, xp)
+	end
+end
+
+--[[ Draws in every crystal on the floor and credits each player the XP of
+     their own. Called when a wave or a room clears. ]]
+function RunSession.collectCrystals()
+	for player, xp in Pickups.collectCrystals() do
+		local session = RunSession.get(player)
+		if session then
+			RunSession.awardXp(session, xp)
+		end
+	end
+end
+
+--[[ Restores a share of max health. Server-only, like damage. ]]
+function RunSession.heal(session: Session, amount: number)
+	if not session.alive or amount <= 0 then
+		return
+	end
+
+	session.health = math.min(session.maxHealth, session.health + amount)
+	healthChanged:FireClient(session.player, session.health, session.maxHealth)
+end
+
+--[[
+	Hands each living player the hearts they are standing on. Read from the
+	server's own copy of where the player is, so a heart is taken by being
+	walked over and by nothing a client can say.
+]]
+function RunSession.pickUpHearts()
+	for _, session in sessions do
+		local root = session.root
+		if not root or not session.alive then
+			continue
+		end
+
+		local taken = Pickups.takeHearts(session.player, root.Position)
+		if taken > 0 then
+			RunSession.heal(session, taken * Balance.Pickups.heartHeal * session.maxHealth)
+		end
 	end
 end
 

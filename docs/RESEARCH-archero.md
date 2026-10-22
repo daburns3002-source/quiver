@@ -198,7 +198,7 @@ the red rings are **spawn markers**, not static floor features.
 
 | | measured | ours |
 |---|---|---|
-| room width on screen | ~915 of 1080 px — **~85%**, always the full width | ~78% in portrait — zoomed out a little by choice |
+| room width on screen | ~915 of 1080 px — **~85%**, always the full width | ~67% in portrait — zoomed out by the owner's choice |
 | room shape | taller than wide, **≥ 1.5:1** | 35 × 58 studs (1.66:1) |
 | camera | **fixed sideways**, follows the player up and down | the same |
 | room width / player width | **~13** | ~17, roomier by choice |
@@ -208,7 +208,7 @@ the red rings are **spawn markers**, not static floor features.
 | player pace | **0.19 room-widths/s** | 0.26, brisker by choice |
 | spawn warning | red ring per enemy, **~0.8–1.0 s** ahead, staggered, waves in triangles of three | 0.9 s + 0.08 s stagger; no clusters yet |
 | multishot | a **parallel lane**, not a fan | parallel lane |
-| arrow speed | **~5.5 room-widths/s** (~1,840 px/s, ref. video below) | 190 studs/s |
+| arrow speed | **~5.5 room-widths/s** (~1,840 px/s, ref. video below) | 110 studs/s (~58%), slowed at playtest |
 | fire interval | **0.6 s** between volleys | 0.7 s, by playtest choice |
 | Diagonal Arrows | **±30°** either side of the aim | ±30° |
 | Ricochet | bounces **between enemies**, not walls | between enemies |

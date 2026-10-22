@@ -588,13 +588,17 @@ local Balance = {
 			something you watched travel; in the reference it is all but
 			instant, and the cost of standing still is the enemy fire you are
 			not dodging, not the wait for your own arrow.
+
+			Then slowed to 110 at playtest — about 58% of the footage — because
+			at full footage speed the arrows read as flying too fast. Still
+			fast enough to land before most targets can step aside.
 		]]
-		speed = 190,
+		speed = 110,
 		--[[ 45 studs of flight, the reach playtesting settled on: a little
 		     over `Player.attackRange`, so a shot at the edge of range
 		     arrives, and not so far that arrows sail on after the fight.
 		     Held as a distance by `Balance.spec`, so this follows `speed`. ]]
-		lifetime = 45 / 190,
+		lifetime = 45 / 110,
 		--[[
 			The longest a projectile moves before its hit tests run again.
 
@@ -957,16 +961,21 @@ local Balance = {
 		     A wide lens close in is what made far enemies tiny before. ]]
 		fieldOfView = 40,
 		--[[ Studs of ground the screen spans side to side at the focus. The
-		     35-stud floor fills about 78% of it — zoomed out a little past the
-		     footage's 85% after playtest, so more of the room's edges and
-		     what is coming in from them is in view. ]]
-		fitWidth = 45,
+		     35-stud floor fills about 67% of it — zoomed out past the
+		     footage's 85% over two playtests, so more of the room and what is
+		     coming in from its edges is in view. ]]
+		fitWidth = 52,
 		--[[ On a landscape screen, fitting the width alone would zoom right in
-		     and show almost no depth; this is the least depth it may show. ]]
-		minVisibleDepth = 36,
-		--[[ Studs the focus is kept inside the room's back and front walls, so
-		     the view stops at the room's edge instead of scrolling past it. ]]
-		edgeMargin = 11,
+		     and show almost no depth; this is the least depth it may show.
+		     54 puts about the whole 58-stud room on a landscape screen at
+		     once — "I want to see most of the arena at once". A portrait
+		     phone, fitted by width, already shows all of it. ]]
+		minVisibleDepth = 54,
+		--[[ Studs of ground past each end of the room the view may show, so the
+		     end walls are in frame. The camera works out how far its view
+		     reaches from the focus and keeps that inside the room plus this;
+		     a view longer than the room centres it instead of following. ]]
+		wallMargin = 3,
 		-- How fast the camera catches up, as a per-second lerp factor.
 		followSharpness = 12,
 	},

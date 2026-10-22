@@ -52,6 +52,27 @@ local function cameraOffset(camera: Camera): Vector3
 	return Vector3.new(0, math.sin(pitch), math.cos(pitch)) * distance
 end
 
+--[[
+	How far the view reaches along the floor, ahead of and behind its focus,
+	for a camera `offset` from it. The screen's top and bottom edges are rays
+	at the pitch plus and minus half the vertical field of view; where they
+	meet the floor is where the view ends. Ahead is negative Z, the way the
+	camera faces.
+]]
+local function viewSpan(camera: Camera, offset: Vector3): (number, number)
+	local height = offset.Y
+	local back = offset.Z
+	local pitch = math.atan2(height, back)
+	local half = math.rad(camera.FieldOfView) / 2
+
+	local near = back - height / math.tan(pitch + half)
+	--[[ A top edge at or above the horizon never meets the floor; treat the
+	     view as reaching arbitrarily far. ]]
+	local far = if pitch - half > 1e-3 then back - height / math.tan(pitch - half) else -math.huge
+
+	return far, near
+end
+
 local function step(deltaTime: number, getRoot: () -> BasePart?)
 	local camera = Workspace.CurrentCamera
 	if not camera then
@@ -82,8 +103,18 @@ local function step(deltaTime: number, getRoot: () -> BasePart?)
 		a camera that followed the player left would push the far wall off the
 		screen, which is precisely what fitting the width exists to prevent.
 	]]
-	local limit = math.max(0, Balance.Arena.size.Z / 2 - Balance.Camera.edgeMargin)
-	local target = Vector3.new(0, 0, math.clamp(root.Position.Z, -limit, limit))
+	--[[ Bounded so the view stays inside the room and its end walls: the
+	     focus may go no nearer an end than the view reaches past it. When
+	     the view is longer than the room there is nowhere to follow to, and
+	     the room is centred instead. ]]
+	local offset = cameraOffset(camera)
+	local far, near = viewSpan(camera, offset)
+	local reach = Balance.Arena.size.Z / 2 + Balance.Camera.wallMargin
+	local lowest = -reach - far
+	local highest = reach - near
+	local target = if lowest > highest
+		then Vector3.new(0, 0, (lowest + highest) / 2)
+		else Vector3.new(0, 0, math.clamp(root.Position.Z, lowest, highest))
 
 	if not currentFocus then
 		currentFocus = target
@@ -97,8 +128,6 @@ local function step(deltaTime: number, getRoot: () -> BasePart?)
 	local alpha = 1 - math.exp(-Balance.Camera.followSharpness * deltaTime)
 	local focus = (currentFocus :: Vector3):Lerp(target, alpha)
 	currentFocus = focus
-
-	local offset = cameraOffset(camera)
 
 	if shakeMagnitude > 0 then
 		shakeMagnitude = math.max(0, shakeMagnitude - shakeDecay * deltaTime)

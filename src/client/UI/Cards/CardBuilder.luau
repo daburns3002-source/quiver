@@ -20,6 +20,7 @@
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TextService = game:GetService("TextService")
 
 local Abilities = require(ReplicatedStorage.Shared.Config.Abilities)
 local CardAssets = require(ReplicatedStorage.Shared.Config.CardAssets)
@@ -192,6 +193,34 @@ local function label(
 	end
 
 	return t
+end
+
+--[[
+	Breaks `text` into lines once, at the card's own size, and returns them
+	joined with newlines.
+
+	The card is scaled when it is picked, and Roblox re-wraps scaled text:
+	at 1.05 the same description fell onto different lines than at 1.
+	Breaking the lines here, and turning wrapping off, keeps every card's
+	words exactly where they were printed whatever the card is doing.
+]]
+local function lines(text: string, font: Enum.Font, size: number, width: number): string
+	local out: { string } = {}
+	local current = ""
+	for word in string.gmatch(text, "%S+") do
+		local trial = if current == "" then word else current .. " " .. word
+		local measured = TextService:GetTextSize(trial, size, font, Vector2.new(10000, 1000))
+		if measured.X > width and current ~= "" then
+			table.insert(out, current)
+			current = word
+		else
+			current = trial
+		end
+	end
+	if current ~= "" then
+		table.insert(out, current)
+	end
+	return table.concat(out, "\n")
 end
 
 --[[
@@ -696,12 +725,13 @@ function CardBuilder.build(abilityId: string, options: Options): Card
 	local name = label(
 		content,
 		"Name",
-		ability.name,
+		lines(ability.name, CardTheme.fonts.display, CardTheme.card.nameText, inner - 6),
 		CardTheme.fonts.display,
 		CardTheme.card.nameText,
 		WHITE,
 		CardTheme.card.nameStroke
 	)
+	name.TextWrapped = false
 	name.LayoutOrder = 4
 	name.Size = UDim2.fromOffset(inner, 46)
 
@@ -734,13 +764,14 @@ function CardBuilder.build(abilityId: string, options: Options): Card
 	local description = label(
 		content,
 		"Description",
-		ability.description,
+		lines(ability.description, CardTheme.fonts.body, CardTheme.card.descText, 112),
 		CardTheme.fonts.body,
 		CardTheme.card.descText,
 		WHITE,
 		CardTheme.card.descStroke,
 		0.15
 	)
+	description.TextWrapped = false
 	description.LayoutOrder = 6
 	description.Size = UDim2.fromOffset(118, 64)
 	description.TextYAlignment = Enum.TextYAlignment.Top

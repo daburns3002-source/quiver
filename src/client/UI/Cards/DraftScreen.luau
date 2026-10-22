@@ -67,6 +67,9 @@ type Slot = {
 	--[[ Balatro's "juice": a scale pop and a wobble that die away, started
 	     on hover, select and confirm. ]]
 	juice: { at: number, scale: number, rot: number }?,
+	--[[ How much of the idle float is on, easing to 0 under the pointer so
+	     the card settles rather than snapping straight. ]]
+	float: number,
 	scaleSpring: Motion.Spring,
 	liftSpring: Motion.Spring,
 	dealAt: number,
@@ -247,8 +250,10 @@ local function pick(index: number?)
 	for _, slot in slots do
 		local on = slot.index == index
 		slot.card.setSelected(on)
-		slot.scaleSpring.target = if on then 1.1 elseif slot.hovered then 1.05 else 1
-		slot.liftSpring.target = if on then -28 elseif slot.hovered then -8 else 0
+		--[[ Hover only lifts the card: it is not scaled or turned, so not a
+		     word on it moves relative to the card. ]]
+		slot.scaleSpring.target = if on then 1.1 else 1
+		slot.liftSpring.target = if on then -28 elseif slot.hovered then -10 else 0
 		--[[ A card taken up pops and wobbles; one put back down, a little. ]]
 		if on and previous ~= slot.index then
 			juiceUp(slot, 0.12, 6)
@@ -416,6 +421,7 @@ local function buildSlot(index: number, id: string, count: number, now: number):
 		base = base,
 		hovered = false,
 		juice = nil,
+		float = 1,
 		scaleSpring = Motion.spring(1, 0.2, 0.7),
 		liftSpring = Motion.spring(0, 0.14, 0.72),
 		dealAt = dealAt,
@@ -438,7 +444,6 @@ local function buildSlot(index: number, id: string, count: number, now: number):
 			return
 		end
 		slot.hovered = true
-		juiceUp(slot, 0.05, 2.5)
 		pick(selected)
 	end)
 	hit.MouseLeave:Connect(function()
@@ -686,7 +691,9 @@ local function step(deltaTime: number)
 		local i = slot.index
 		--[[ A card under the pointer, or picked, holds still, so its words
 		     can be read; only the cards left alone float. ]]
-		local calm = if slot.hovered or selected == i then 0 else 1
+		local still = slot.hovered or selected == i
+		slot.float += ((if still then 0 else 1) - slot.float) * math.min(1, deltaTime * 14)
+		local calm = slot.float
 
 		Motion.step(slot.scaleSpring, deltaTime)
 		Motion.step(slot.liftSpring, deltaTime)

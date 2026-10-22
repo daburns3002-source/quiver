@@ -15,6 +15,8 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local AbilityEffects = require(ReplicatedStorage.Shared.Combat.AbilityEffects)
+local Aim = require(ReplicatedStorage.Shared.Combat.Aim)
+local Arena = require(script.Parent.Parent.Arena.Arena)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local EnemyManager = require(script.Parent.Parent.Enemies.EnemyManager)
 local ProjectileSystem = require(script.Parent.ProjectileSystem)
@@ -55,14 +57,28 @@ local function overdrawScale(session: Session, now: number): number
 end
 
 local function fire(session: Session, root: BasePart, now: number)
-	local target =
-		Targeting.nearest(root.Position, EnemyManager.positions(), Balance.Player.attackRange)
+	--[[ The nearest enemy with a clear line of fire, aimed at the part of it
+	     that can be hit; see `Shared/Combat/Aim`. The client predicts with
+	     the same rule. ]]
+	local candidates: { Aim.Candidate } = {}
+	for model, position in EnemyManager.positions() do
+		local body = model.PrimaryPart
+		local half = if body then math.max(body.Size.X, body.Size.Z) / 2 else 1
+		table.insert(candidates, { model = model, position = position, halfWidth = half })
+	end
+
+	local target = Aim.choose(
+		root.Position,
+		candidates,
+		Balance.Player.attackRange,
+		Aim.clearTest(Arena.blockers(), Balance.Projectile.radius)
+	)
 
 	if not target then
 		return
 	end
 
-	local direction = Targeting.flatDirection(root.Position, target.position)
+	local direction = Targeting.flatDirection(root.Position, target.aimPoint)
 	if not direction then
 		return
 	end

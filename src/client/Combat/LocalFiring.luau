@@ -22,6 +22,7 @@ local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
 
 local AbilityEffects = require(ReplicatedStorage.Shared.Combat.AbilityEffects)
+local Aim = require(ReplicatedStorage.Shared.Combat.Aim)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local PlayerStats = require(script.Parent.Parent.PlayerStats)
 local ProjectileRenderer = require(script.Parent.Parent.Fx.ProjectileRenderer)
@@ -66,18 +67,31 @@ local loadoutConnection: RBXScriptConnection? = nil
      thing it predicts is still running. ]]
 local pauseConnection: RBXScriptConnection? = nil
 
---[[ The enemy the archer would shoot from `origin`, and where it is: the
-     nearest targetable one in range, by the same rule the server uses. ]]
+--[[ The last answer, reused for a moment: the aim is asked for every frame
+     (to face the target and draw its ring), and each ask sweeps the arena. ]]
+local AIM_REUSE = 0.08
+local cachedAt = -math.huge
+local cachedOrigin = Vector3.zero
+local cachedModel: Model? = nil
+local cachedAim: Vector3? = nil
+
+--[[ The enemy the archer would shoot from `origin`, and the point it would
+     fire at: the nearest targetable one with a clear line, aimed at the part
+     of it that can be hit — `Shared/Combat/Aim`, the rule the server uses. ]]
 local function nearestEnemy(origin: Vector3): (Model?, Vector3?)
+	local now = os.clock()
+	if now - cachedAt < AIM_REUSE and (origin - cachedOrigin).Magnitude < 0.5 then
+		if cachedModel == nil or cachedModel.Parent then
+			return cachedModel, cachedAim
+		end
+	end
+
 	local folder = Workspace:FindFirstChild("Enemies")
 	if not folder then
 		return nil, nil
 	end
 
-	local bestModel: Model? = nil
-	local bestPosition: Vector3? = nil
-	local bestDistance = Balance.Player.attackRange
-
+	local candidates: { Aim.Candidate } = {}
 	for _, child in folder:GetChildren() do
 		local model = child :: Model
 		local primary = model.PrimaryPart
@@ -96,17 +110,27 @@ local function nearestEnemy(origin: Vector3): (Model?, Vector3?)
 			continue
 		end
 
-		local delta = Vector3.new(primary.Position.X - origin.X, 0, primary.Position.Z - origin.Z)
-		local distance = delta.Magnitude
-
-		if distance <= bestDistance then
-			bestModel = model
-			bestPosition = primary.Position
-			bestDistance = distance
-		end
+		table.insert(candidates, {
+			model = model,
+			position = primary.Position,
+			halfWidth = math.max(primary.Size.X, primary.Size.Z) / 2,
+		})
 	end
 
-	return bestModel, bestPosition
+	local arena = Workspace:FindFirstChild("Arena")
+	local blockers = arena and arena:FindFirstChild("Blockers")
+	local choice = Aim.choose(
+		origin,
+		candidates,
+		Balance.Player.attackRange,
+		Aim.clearTest(blockers, Balance.Projectile.radius)
+	)
+
+	cachedAt = now
+	cachedOrigin = origin
+	cachedModel = if choice then choice.model else nil
+	cachedAim = if choice then choice.aimPoint else nil
+	return cachedModel, cachedAim
 end
 
 local function nearestEnemyPosition(origin: Vector3): Vector3?

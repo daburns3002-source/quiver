@@ -16,6 +16,30 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## Arrows hit a pillar beside an enemy in plain view
+
+**Symptom** — "some of the hits did not hit the enemies". Playtest clip
+(2026-10-22, 1:49–1:52): a beetle half out from behind a pillar, fully
+visible, and three seconds of arrows thudding into the pillar's corner.
+
+**Cause** — by design, the archer aimed at the nearest enemy's *centre*
+whatever stood in the way ("cover is a damage penalty"). The centre was just
+behind the corner, so every arrow struck it, while the half of the enemy the
+player could see was never aimed at.
+
+**Fix** — `Shared/Combat/Aim`, used by the server's firing and the client's
+prediction alike: nearest enemy with a clear line of fire (a box the arrow's
+width swept against the arena's blockers), trying its centre and then each
+edge, so a half-hidden enemy is shot in the half that shows. Only if no
+enemy has a clear line does it aim at the nearest anyway. The owner asked
+for the change; `Targeting.nearest` remains for ricochets.
+
+**Measured** — `Aim.spec` rebuilds the clip's scene with a real pillar:
+the centre line blocked, the edge line clear, and the edge chosen. Live, 59
+of 60 arrows landed over a minute of play.
+
+---
+
 ## Card text kept moving while a card was hovered
 
 **Symptom** — "the card text keeps moving whenever they are hovered over".
@@ -33,6 +57,13 @@ confirm, then stops.
 **Measured** — live, with the mouse resting on a card: rotation range 0°
 and vertical drift 1 px over its last 0.6 s, while the unhovered card beside
 it still floated ±1°.
+
+**Then** — "do not change the text layout at all": scaling a card made
+Roblox re-wrap its words (Diagonal Arrows' description jumped from 91 to
+110 px wide at 1.05). Hover now only lifts the card — no scale, no turn,
+no juice — and `CardBuilder` breaks the name and description into lines
+once at the card's own size with wrapping off, so even the select pop
+scales the same lines rather than reflowing them.
 
 ---
 

@@ -131,6 +131,11 @@ local enemyTelegraph = Remotes.event(Remotes.EnemyTelegraph)
      a shove is 95% spent by the end of it. ]]
 local KNOCKBACK_SETTLE = 3
 
+--[[ Set on an enemy's model while it winds up a shot, for the client's "!"
+     warning — Archero 2's tell above an enemy about to attack. Presentation
+     only; the wind-up itself is decided here as before. ]]
+local WINDING_UP = "WindingUp"
+
 local SEPARATION_DISTANCE = 3.5
 local SEPARATION_STRENGTH = 6
 
@@ -708,6 +713,7 @@ local function stepEnemy(enemy: Enemy, deltaTime: number, now: number)
 						then aimAt(enemy.position, targetRoot)
 						else nil
 					EnemyModel.tint(enemy.skin, Balance.TelegraphColor)
+					enemy.model:SetAttribute(WINDING_UP, true)
 				end
 			end
 		elseif now - enemy.lastSurfacedAt >= burrow.cooldown and not enemy.volleyAt then
@@ -922,6 +928,7 @@ local function stepEnemy(enemy: Enemy, deltaTime: number, now: number)
 		if now >= volleyAt then
 			enemy.volleyAt = nil
 			EnemyModel.restore(enemy.skin, config)
+			enemy.model:SetAttribute(WINDING_UP, nil)
 			queueVolley(enemy, targetRoot, shot)
 			enemy.volleyDirection = nil
 		end
@@ -954,6 +961,7 @@ local function stepEnemy(enemy: Enemy, deltaTime: number, now: number)
 		     winding up, which a line alone does not, since a line drawn across
 		     a busy room is hard to trace back to its owner. ]]
 		EnemyModel.tint(enemy.skin, Balance.TelegraphColor)
+		enemy.model:SetAttribute(WINDING_UP, true)
 
 		enemyTelegraph:FireAllClients(
 			enemy.position,

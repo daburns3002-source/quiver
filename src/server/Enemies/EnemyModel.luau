@@ -61,11 +61,31 @@ local function shaded(base: Color3, shade: number): Color3
 	)
 end
 
+--[[ The colour a part rests at: its fixed colour if the design gives one,
+     otherwise its shade of the archetype's. ]]
+local function restingColour(spec: DesignPart, config: EnemyConfig): Color3
+	return spec.color or shaded(config.color, spec.shade)
+end
+
+--[[ Attribute holding a part's resting transparency, so hiding and showing
+     an enemy can put a jelly body back to see-through rather than solid. ]]
+local RESTING_TRANSPARENCY = "RestingTransparency"
+
 local function buildPart(spec: DesignPart, config: EnemyConfig): BasePart
 	local part: BasePart
 
 	if spec.shape == "Wedge" then
 		part = Instance.new("WedgePart")
+	elseif spec.shape == "Ellipsoid" then
+		--[[ A Ball part is always a perfect sphere; a sphere mesh stretches
+		     to whatever size the part is given, which is what a domed shell
+		     or a squat slime needs. ]]
+		local block = Instance.new("Part")
+		block.Shape = Enum.PartType.Block
+		local mesh = Instance.new("SpecialMesh")
+		mesh.MeshType = Enum.MeshType.Sphere
+		mesh.Parent = block
+		part = block
 	else
 		local block = Instance.new("Part")
 		block.Shape = if spec.shape == "Ball"
@@ -77,8 +97,10 @@ local function buildPart(spec: DesignPart, config: EnemyConfig): BasePart
 
 	part.Name = spec.name
 	part.Size = spec.size
-	part.Color = shaded(config.color, spec.shade)
+	part.Color = restingColour(spec, config)
 	part.Material = spec.material or Enum.Material.SmoothPlastic
+	part.Transparency = spec.transparency or 0
+	part:SetAttribute(RESTING_TRANSPARENCY, spec.transparency or 0)
 
 	--[[ Decoration, and nothing more. A skin part that answered queries would
 	     silently widen the hitbox the whole combat system is built around. ]]
@@ -193,7 +215,7 @@ function EnemyModel.restore(skin: Skin, config: EnemyConfig)
 	for index, spec in design do
 		local part = skin.all[index]
 		if part then
-			part.Color = shaded(config.color, spec.shade)
+			part.Color = restingColour(spec, config)
 		end
 	end
 end
@@ -203,7 +225,8 @@ end
      the submerged state lives. ]]
 function EnemyModel.setHidden(skin: Skin, hidden: boolean)
 	for _, part in skin.all do
-		part.Transparency = if hidden then 1 else 0
+		local resting = part:GetAttribute(RESTING_TRANSPARENCY)
+		part.Transparency = if hidden then 1 else (if type(resting) == "number" then resting else 0)
 	end
 end
 

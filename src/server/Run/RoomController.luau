@@ -169,6 +169,10 @@ end
 local function startStage()
 	local current = stage()
 
+	for _, session in RunSession.all() do
+		RunSession.newStage(session)
+	end
+
 	if current.mode == "Waves" then
 		buildArena(Balance.Rooms[current.arena or 1])
 		startWave(1)

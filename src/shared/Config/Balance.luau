@@ -912,6 +912,22 @@ local Balance = {
 		heartColor = Color3.fromRGB(255, 60, 90),
 	},
 
+	--[[
+		Archero 2's revive (docs/RESEARCH-archero2.md, "Healing"): once per
+		stage, a death is undone — full health and a moment untouchable, so
+		the hit that killed you cannot simply happen again. Automatic for
+		now; Archero 2 asks first and charges for it, and that belongs with
+		currency in a later phase.
+	]]
+	Revive = {
+		perStage = 1,
+		--[[ Seconds nothing can hurt the player after reviving. ]]
+		invulnerable = 2.5,
+		--[[ Studs around the player swept clear of enemy shots on revive,
+		     so the volley that killed them does not kill them twice. ]]
+		clearRadius = 12,
+	},
+
 	Run = {
 		--[[ The pad that appears when a room is cleared. Walking onto it is
 		     the only way forward, so it has to be unmissable and far enough

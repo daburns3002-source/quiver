@@ -555,6 +555,18 @@ local function step(deltaTime: number)
 	end
 end
 
+--[[ Drops every drawn enemy shot within `radius` of `centre`: the server
+     has just removed them for a revive, and they must not be seen to hit. ]]
+function ProjectileRenderer.clearEnemyNear(centre: Vector3, radius: number)
+	for _, visual in live do
+		local offset = visual.position - centre
+		if visual.faction == "Enemy" and Vector2.new(offset.X, offset.Z).Magnitude <= radius then
+			visual.part.CFrame = CFrame.new(0, -500, 0)
+			visual.stopped = true
+		end
+	end
+end
+
 --[[
 	Draws one volley. `elapsed` lets a replicated shot start partway along its
 	flight so a remote player's arrows are not drawn lagging behind where the

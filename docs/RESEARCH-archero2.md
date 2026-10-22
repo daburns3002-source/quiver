@@ -109,8 +109,10 @@ crystals collected when a wave or room clears.]
 **Healing.** [guide] Mainly **hearts**, dropped rarely by enemies and by
 special waves. They stay on the floor until picked up. One revive per stage
 (full HP plus brief invulnerability). [ours: Mending card, Bloodthirst;
-hearts on 5% of kills and every Valkyrie wave, 20% of max HP each. No
-revive yet.]
+hearts on 5% of kills and every Valkyrie wave, 20% of max HP each. One
+automatic revive per stage: full HP, 2.5 s invulnerable, enemy shots within
+12 studs cleared. Archero 2 asks first and charges; ours is free until
+there is a currency.]
 
 **Enemies.** [guide] Enemy attacks have **no area markers**; damage comes
 from projectiles or collision. [ours: we telegraph with lines, flashes and

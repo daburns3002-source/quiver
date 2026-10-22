@@ -42,8 +42,8 @@ What exists and works, all verified in Studio rather than only by the gates:
   projectile on the server *and* in the renderer — sweep, overlap pass,
   sub-steps, bounce, pierce, homing — so what is drawn is what fires. Change
   how projectiles move there and only there.
-- **Measured speeds** (`docs/RESEARCH-archero.md` §7): arrows 110 studs/s (footage 190, slowed at playtest),
-  slow enemy orbs 12, the Lancer 28, Diagonal Arrows ±30°.
+- **Measured speeds** (`docs/RESEARCH-archero.md` §7): arrows 165 studs/s (footage 190; slowed to 110 at playtest, then every speed ×1.5 on 2026-10-22),
+  slow enemy orbs 18, the Lancer 42, Diagonal Arrows ±30°.
 - **Two stage shapes, chosen per stage** (`Balance.Stages`, `Balance.stage`):
   *Rooms* (rooms joined by doors) and *Waves* (one arena; a Valkyrie offers
   one of two skills on every 5th wave, an Angel a stat or heal on every 9th,

@@ -205,16 +205,16 @@ the red rings are **spawn markers**, not static floor features.
 | enemy / player width | ~1.4 | 1.5 |
 | enemy orb / player width | ~0.64 | 0.6 |
 | enemy orb tail | ~3–4× the orb | 0.6 s comet trail |
-| player pace | **0.19 room-widths/s** | 0.26, brisker by choice |
+| player pace | **0.19 room-widths/s** | 0.39 (13.5 studs/s): 0.26 by choice, then ×1.5 |
 | spawn warning | red ring per enemy, **~0.8–1.0 s** ahead, staggered, waves in triangles of three | 0.9 s + 0.08 s stagger, triangles of three |
 | multishot | a **parallel lane**, not a fan | parallel lane |
-| arrow speed | **~5.5 room-widths/s** (~1,840 px/s, ref. video below) | 110 studs/s (~58%), slowed at playtest |
+| arrow speed | **~5.5 room-widths/s** (~1,840 px/s, ref. video below) | 165 studs/s (~87%): slowed to 110 at playtest, then ×1.5 with every speed |
 | fire interval | **0.6 s** between volleys | 0.7 s, by playtest choice |
 | Diagonal Arrows | **±30°** either side of the aim | ±30° |
 | Ricochet | bounces **between enemies**, not walls | between enemies |
-| slow enemy orbs | **0.27–0.40 room-widths/s**, tracked with camera drift removed | 12 studs/s (Spitter, Lurker) |
+| slow enemy orbs | **0.27–0.40 room-widths/s**, tracked with camera drift removed | 18 studs/s (Spitter, Lurker), after ×1.5 |
 | fireballs | 0.35–0.75 room-widths/s | — no fireball enemy yet |
-| fast enemy shot | ~0.8 room-widths/s, one sample | 28 studs/s (Lancer) |
+| fast enemy shot | ~0.8 room-widths/s, one sample | 42 studs/s (Lancer), after ×1.5 |
 
 **How the camera was measured.** The lamp posts on the side walls sit about
 858 px apart and move together vertically between frames and never

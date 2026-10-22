@@ -48,6 +48,9 @@ export type State = {
 	pendingLevels: number,
 	--[[ Redeals left this run. ]]
 	rerolls: number,
+	--[[ A rarity the next hand must include, once. Testing only: set by the
+	     Studio-only "show me a Mythic" key, never in a live game. ]]
+	forceRarity: string?,
 }
 
 local function costForLevel(level: number): number
@@ -64,6 +67,7 @@ function Loadout.new(): State
 		offerSource = nil,
 		pendingLevels = 0,
 		rerolls = Balance.Draft.rerollsPerRun,
+		forceRarity = nil,
 	}
 end
 
@@ -202,6 +206,23 @@ function Loadout.rollOffer(
 
 		table.insert(picked, pool[chosen].id)
 		table.remove(pool, chosen)
+	end
+
+	--[[ A hand asked to include a rarity (testing only) puts one first, if
+	     any skill of it can still be dealt. Asked for once, then forgotten. ]]
+	local forced = state.forceRarity
+	if forced then
+		state.forceRarity = nil
+		for _, ability in candidates(state) do
+			if ability.rarity == forced and not table.find(picked, ability.id) then
+				if #picked >= wanted then
+					picked[1] = ability.id
+				else
+					table.insert(picked, 1, ability.id)
+				end
+				break
+			end
+		end
 	end
 
 	if #picked < wanted and not atFullHealth then

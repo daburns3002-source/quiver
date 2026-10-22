@@ -365,4 +365,20 @@ return function(t: TestRunner.Helper)
 		t.equal(#hurt, 1)
 		t.equal(hurt[1], "Heal")
 	end)
+	--[[ The Studio-only "show me a Mythic" request: the next hand has one,
+	     the one after is dealt normally again. ]]
+	t.test("a forced rarity lands in the next hand once", function()
+		local state = Loadout.new()
+		state.forceRarity = "Mythic"
+		local hand = Loadout.rollOffer(state, true, dice())
+		local found = false
+		for _, id in hand do
+			if Abilities.byId[id].rarity == "Mythic" then
+				found = true
+			end
+		end
+		t.isTrue(found, "no Mythic in the forced hand")
+		t.equal(#hand, Progression.offerCount)
+		t.isNil(state.forceRarity, "the request was not forgotten")
+	end)
 end

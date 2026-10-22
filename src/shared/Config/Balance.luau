@@ -137,7 +137,7 @@ local meleeCharger: EnemyConfig = {
 	attackDamage = 56,
 	attackCooldown = 1,
 	-- Studs the enemy is shoved back per hit taken.
-	knockback = 2,
+	knockback = 3,
 	hitboxSize = Vector3.new(3, 5, 3),
 	color = Color3.fromRGB(214, 96, 86),
 	xpReward = 10,
@@ -164,7 +164,7 @@ local spreadShooter: EnemyConfig = {
 	attackRange = 13.3,
 	attackDamage = 45,
 	attackCooldown = 2.2,
-	knockback = 2,
+	knockback = 3,
 	hitboxSize = Vector3.new(3, 5, 3),
 	color = Color3.fromRGB(150, 110, 200),
 	xpReward = 14,
@@ -212,7 +212,7 @@ local lineSniper: EnemyConfig = {
 	attackRange = 18.8,
 	attackDamage = 90,
 	attackCooldown = 3,
-	knockback = 2,
+	knockback = 3,
 	hitboxSize = Vector3.new(3, 5, 3),
 	color = Color3.fromRGB(96, 150, 214),
 	xpReward = 16,
@@ -251,7 +251,7 @@ local tank: EnemyConfig = {
 	attackCooldown = 1.6,
 	--[[ Barely flinches. Knockback on something this heavy would let a player
 	     stall it indefinitely with chip damage. ]]
-	knockback = 0.4,
+	knockback = 0.6,
 	hitboxSize = Vector3.new(6, 8, 6),
 	color = Color3.fromRGB(120, 124, 138),
 	xpReward = 30,
@@ -280,7 +280,7 @@ local burrower: EnemyConfig = {
 	attackRange = 10.1,
 	attackDamage = 56,
 	attackCooldown = 2.4,
-	knockback = 2,
+	knockback = 3,
 	hitboxSize = Vector3.new(3, 5, 3),
 	color = Color3.fromRGB(110, 190, 140),
 	xpReward = 20,
@@ -698,6 +698,13 @@ local Balance = {
 		Shot cannot stack it into a second weapon. `Balance.spec` holds a
 		whole burn under the hit that lit it.
 	]]
+	--[[ How a hit shoves an enemy. Each archetype's `knockback` is how far;
+	     this is how long the slide takes to come to rest. Short enough to
+	     read as an impact, long enough to be seen at all. ]]
+	Knockback = {
+		slideTime = 0.25,
+	},
+
 	Burn = {
 		duration = 2,
 		tick = 0.5,

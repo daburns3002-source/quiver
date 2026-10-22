@@ -554,6 +554,25 @@ return function(t: TestRunner.Helper)
 		end
 	end)
 
+	--[[ A shove that resolves in one frame is invisible, which is what the
+	     old instant knockback was; one that takes half a second reads as
+	     the enemy drifting. And no shove should carry a melee enemy so far
+	     it can never reach the player between hits. ]]
+	t.test("knockback is a visible slide, not a jump or a drift", function()
+		local slideTime = Balance.Knockback.slideTime
+		t.isTrue(slideTime > 1 / 30, "knockback resolves inside one frame, so it cannot be seen")
+		t.isTrue(slideTime <= 0.3, `knockback takes {slideTime}s to settle and reads as drifting`)
+
+		for name, config in archetypes() do
+			t.isTrue(config.knockback >= 0, `{name} is pulled towards its attacker`)
+		end
+		local charger = Balance.Enemies.MeleeCharger
+		t.isTrue(
+			charger.knockback < charger.attackRange,
+			"one hit shoves a Charger out of its own reach"
+		)
+	end)
+
 	t.test("a Charger dies in about three arrows", function()
 		local hits = Balance.Enemies.MeleeCharger.health / Balance.Player.baseDamage
 		t.isTrue(hits > 2 and hits <= 4, `a Charger takes {hits} plain hits`)

@@ -197,7 +197,7 @@ Type check — the only thing that catches strict-mode errors without opening St
 
 ```bash
 rojo sourcemap default.project.json -o sourcemap.json
-luau-lsp analyze --sourcemap=sourcemap.json --defs=globalTypes.d.luau src
+luau-lsp analyze --sourcemap=sourcemap.json --defs=globalTypes.d.luau src tests
 ```
 
 Once per clone (all three outputs are gitignored):

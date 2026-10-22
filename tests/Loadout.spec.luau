@@ -236,7 +236,12 @@ return function(t: TestRunner.Helper)
 
 	t.test("every exclusion names a real ability, and not itself", function()
 		for _, ability in Abilities.all do
-			for _, id in ability.excludes or {} do
+			local excludes = ability.excludes
+			if not excludes then
+				continue
+			end
+
+			for _, id in excludes do
 				t.notNil(Abilities.byId[id], `{ability.id} excludes unknown ability {id}`)
 				t.isTrue(
 					id ~= ability.id,

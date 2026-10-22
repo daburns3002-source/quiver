@@ -31,6 +31,8 @@ export type Tier = {
 	--[[ Whether the soft bloom over glowing things is on. Off on the lowest
 	     tier, where a full-screen post effect is the first thing to cut. ]]
 	enableBloom: boolean,
+	--[[ Sparkles a second shed by each enemy orb. Zero turns them off. ]]
+	orbSparkleRate: number,
 }
 
 --[[
@@ -48,6 +50,7 @@ local low: Tier = {
 	projectileTrails = false,
 	burnParticleRate = 4,
 	enableBloom = false,
+	orbSparkleRate = 0,
 }
 
 local medium: Tier = {
@@ -60,6 +63,7 @@ local medium: Tier = {
 	projectileTrails = true,
 	burnParticleRate = 10,
 	enableBloom = true,
+	orbSparkleRate = 8,
 }
 
 local high: Tier = {
@@ -72,6 +76,7 @@ local high: Tier = {
 	projectileTrails = true,
 	burnParticleRate = 20,
 	enableBloom = true,
+	orbSparkleRate = 16,
 }
 
 local DeviceTiers = {

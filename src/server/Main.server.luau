@@ -70,6 +70,10 @@ RunSession.onDeath = function()
 	RoomController.onPlayerDied()
 end
 
+RunSession.onRevive = function(_session, position: Vector3)
+	ProjectileSystem.clearEnemyShotsNear(position, Balance.Revive.clearRadius)
+end
+
 Atmosphere.apply()
 RoomController.start()
 

@@ -131,6 +131,10 @@ Remotes.PickupsTaken = "PickupsTaken"
 --[[ Server → all clients. The floor is bare: a new arena was built. ]]
 Remotes.PickupsCleared = "PickupsCleared"
 
+--[[ Server → all clients. This player was revived here, and cannot be hurt
+     for this many seconds. ]]
+Remotes.PlayerRevived = "PlayerRevived"
+
 local function getFolder(): Folder
 	if RunService:IsServer() then
 		local existing = ReplicatedStorage:FindFirstChild(FOLDER_NAME)

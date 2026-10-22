@@ -52,6 +52,10 @@ export type Session = {
 	     has. The ability is held; the charge is spent. ]]
 	secondWind: boolean,
 	secondWindUsed: boolean,
+	--[[ Revives left this stage, and `os.clock()` until which nothing hurts
+	     the player — set by a revive. ]]
+	revivesLeft: number,
+	invulnerableUntil: number,
 	--[[ Its own Random, so one player's draft cannot shift another's rolls,
 	     and a run is reproducible from a seed if that is ever wanted. ]]
 	random: Random,
@@ -79,11 +83,16 @@ local sessions: { [Player]: Session } = {}
 ]]
 RunSession.onDeath = nil :: ((Session) -> ())?
 
+--[[ Called when a player is revived, with where they stand. A hook for the
+     same reason as `onDeath`: the projectile system requires this module. ]]
+RunSession.onRevive = nil :: ((Session, Vector3) -> ())?
+
 local healthChanged = Remotes.event(Remotes.HealthChanged)
 local xpChanged = Remotes.event(Remotes.XpChanged)
 local abilityOffer = Remotes.event(Remotes.AbilityOffer)
 local playerStats = Remotes.event(Remotes.PlayerStats)
 local playerDamaged = Remotes.event(Remotes.PlayerDamaged)
+local playerRevived = Remotes.event(Remotes.PlayerRevived)
 
 function RunSession.create(player: Player): Session
 	local session: Session = {
@@ -103,6 +112,8 @@ function RunSession.create(player: Player): Session
 		momentumBonus = 0,
 		secondWind = false,
 		secondWindUsed = false,
+		revivesLeft = Balance.Revive.perStage,
+		invulnerableUntil = 0,
 		random = Random.new(),
 
 		lastFiredAt = 0,
@@ -377,10 +388,22 @@ end
 function RunSession.resetRun(session: Session)
 	session.loadout = Loadout.new()
 	session.secondWindUsed = false
+	RunSession.newStage(session)
 	RunSession.applyLoadout(session)
 	session.health = session.maxHealth
 	sendXp(session)
 	healthChanged:FireClient(session.player, session.health, session.maxHealth)
+end
+
+--[[ A stage is starting: its revives are full again. ]]
+function RunSession.newStage(session: Session)
+	session.revivesLeft = Balance.Revive.perStage
+	session.invulnerableUntil = 0
+end
+
+--[[ Whether nothing can hurt this player right now. ]]
+function RunSession.isInvulnerable(session: Session): boolean
+	return os.clock() < session.invulnerableUntil
 end
 
 function RunSession.get(player: Player): Session?
@@ -476,7 +499,7 @@ end
 	the amount is never supplied by a client.
 ]]
 function RunSession.applyDamage(session: Session, amount: number)
-	if not session.alive or amount <= 0 then
+	if not session.alive or amount <= 0 or RunSession.isInvulnerable(session) then
 		return
 	end
 
@@ -498,6 +521,28 @@ function RunSession.applyDamage(session: Session, amount: number)
 	end
 
 	playerDamaged:FireClient(session.player, amount)
+
+	--[[
+		The stage's revive, after Second Wind: a drafted ability is the
+		player's own save and is spent first, and the revive is the last line.
+		Full health and a moment untouchable, and the shots around them
+		cleared, or the volley that killed them would kill them again.
+	]]
+	if session.health <= 0 and session.revivesLeft > 0 then
+		session.revivesLeft -= 1
+		session.health = session.maxHealth
+		session.invulnerableUntil = os.clock() + Balance.Revive.invulnerable
+
+		local position = if session.root then session.root.Position else Vector3.zero
+		local handler = RunSession.onRevive
+		if handler then
+			handler(session, position)
+		end
+
+		playerRevived:FireAllClients(session.player, position, Balance.Revive.invulnerable)
+		log.info("%s revived (%d left)", session.player.Name, session.revivesLeft)
+	end
+
 	healthChanged:FireClient(session.player, session.health, session.maxHealth)
 
 	if session.health > 0 then

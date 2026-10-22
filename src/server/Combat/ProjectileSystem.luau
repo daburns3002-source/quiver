@@ -184,6 +184,22 @@ function ProjectileSystem.clear()
 	lastWarnedAt = -math.huge
 end
 
+--[[ Removes every enemy shot within `radius` of `centre`, measured flat.
+     For a revive: the volley that killed the player must not land again. ]]
+function ProjectileSystem.clearEnemyShotsNear(centre: Vector3, radius: number)
+	for index = #active, 1, -1 do
+		local projectile = active[index]
+		local offset = projectile.position - centre
+		if
+			projectile.faction == "Enemy"
+			and Vector2.new(offset.X, offset.Z).Magnitude <= radius
+		then
+			active[index] = active[#active]
+			active[#active] = nil
+		end
+	end
+end
+
 --[[
 	Queues one projectile. Called once per spec in a volley by the firing
 	system, never by anything a client can reach.

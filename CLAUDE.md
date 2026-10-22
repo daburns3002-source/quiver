@@ -64,6 +64,10 @@ left are drawn in when the wave or room clears. Hearts drop on 5% of kills and o
 Valkyrie wave, wait on the floor, and heal 20% of max health when walked
 over, full health or not.
 
+**Revive** (`Balance.Revive`): once per stage, automatically, after Second
+Wind — full health, 2.5 s untouchable behind a gold shield, and enemy shots
+within 12 studs cleared.
+
 Not done: real bosses (the owner wants to think about them first — do not
 start); Phase 3's playtest question — *did two runs in a row feel
 meaningfully different?* — which needs the owner; triangle-cluster spawns

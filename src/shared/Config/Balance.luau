@@ -518,8 +518,10 @@ local Balance = {
 		--[[ Seconds between volleys while stationary. Slowed from 0.45 over
 		     playtests: at that pace standing still paid so well that moving
 		     stopped being worth it, which hollows out move-or-shoot from the
-		     other side. Precision shortens it from here. ]]
-		attackCooldown = 0.7,
+		     other side. 0.7 then 0.85 after the damage rescale, when 100-damage
+		     arrows made the opening waves melt — "fires too fast initially".
+		     Precision shortens it from here. ]]
+		attackCooldown = 0.85,
 		--[[ Studs. Past this the archer holds fire rather than shooting at
 		     nothing. Must stay inside how far an arrow actually flies, or the
 		     archer locks onto enemies its arrows fade before reaching —
@@ -957,13 +959,14 @@ local Balance = {
 		     A wide lens close in is what made far enemies tiny before. ]]
 		fieldOfView = 40,
 		--[[ Studs of ground the screen spans side to side at the focus. The
-		     35-stud floor fills about 78% of it — zoomed out a little past the
-		     footage's 85% after playtest, so more of the room's edges and
-		     what is coming in from them is in view. ]]
-		fitWidth = 45,
+		     35-stud floor fills about 67% of it — zoomed out past the
+		     footage's 85% over two playtests, so more of the room and what is
+		     coming in from its edges is in view. ]]
+		fitWidth = 52,
 		--[[ On a landscape screen, fitting the width alone would zoom right in
-		     and show almost no depth; this is the least depth it may show. ]]
-		minVisibleDepth = 36,
+		     and show almost no depth; this is the least depth it may show.
+		     Raised with `fitWidth` to keep their ratio. ]]
+		minVisibleDepth = 42,
 		--[[ Studs the focus is kept inside the room's back and front walls, so
 		     the view stops at the room's edge instead of scrolling past it. ]]
 		edgeMargin = 11,

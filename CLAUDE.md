@@ -40,6 +40,11 @@ What exists and works, all verified in Studio rather than only by the gates:
   fight, `CardTheme.skillBar.combatScale`, full size under the draft), and
   every pick plays the celebration — the card's icon flies into its slot —
   on every device, not only phones (owner, 2026-10-22).
+  Card motion follows Balatro (`DraftScreen`, `FOLLOW_K`/`FOLLOW_D`):
+  cards chase their places on a spring and lean into their sideways
+  speed, the hand is fanned, and each card's shadow stays on the table as
+  it rises. **Card sizes never spring or pop** — the owner found that read
+  as the text pulsing; only places, leans and turns move.
 - **The owner's end screens** (`client/UI/EndScreen`, `Config/EndScreen*`):
   Victory when the stage is finished, Defeat on death, from
   `design_handoff_end_screens` (2026-10-22). Stage, kills, time, health and

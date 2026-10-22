@@ -591,6 +591,10 @@ local Balance = {
 		]]
 		ricochetRange = 14,
 		ricochetDamageScale = 0.7,
+		--[[ How far ahead a Tracking Eye arrow looks for something to curve
+		     towards. Under the archer's targeting range, so it bends shots
+		     at the fight rather than hunting across the room. ]]
+		homingRange = 20,
 		--[[
 			Half the width of the drawn arrow, and half the width of the box
 			the server sweeps. These two numbers are the hitbox *and* the

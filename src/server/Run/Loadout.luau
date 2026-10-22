@@ -56,6 +56,34 @@ function Loadout.new(): State
 	}
 end
 
+--[[
+	Whether `ability` fights something already held. Read both ways — an
+	exclusion written on either ability counts — so a pair is declared once
+	and cannot be half-declared.
+]]
+function Loadout.excluded(state: State, ability: Ability): boolean
+	for id, count in state.counts do
+		if count <= 0 then
+			continue
+		end
+
+		local held = Abilities.byId[id]
+		if not held then
+			continue
+		end
+
+		if ability.excludes and table.find(ability.excludes, id) then
+			return true
+		end
+
+		if held.excludes and table.find(held.excludes, ability.id) then
+			return true
+		end
+	end
+
+	return false
+end
+
 --[[ How many more copies of an ability this run may still take. ]]
 function Loadout.remaining(state: State, ability: Ability): number
 	return ability.maxStacks - (state.counts[ability.id] or 0)
@@ -108,6 +136,10 @@ local function candidates(state: State, atFullHealth: boolean): { Ability }
 		end
 
 		if ability.instant and atFullHealth then
+			continue
+		end
+
+		if Loadout.excluded(state, ability) then
 			continue
 		end
 

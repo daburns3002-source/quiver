@@ -325,6 +325,22 @@ local contact: ProjectileFlight.Contact = {
 	)
 		spawnImpact(position, normal, flight.faction)
 	end,
+	--[[ The same choice the server makes, from the models it can see. ]]
+	seek = function(flight: ProjectileFlight.Flight): Vector3?
+		local enemies = Workspace:FindFirstChild("Enemies")
+		if not enemies then
+			return nil
+		end
+
+		local positions: { [Model]: Vector3 } = {}
+		for _, child in enemies:GetChildren() do
+			if child:IsA("Model") then
+				positions[child] = child:GetPivot().Position
+			end
+		end
+
+		return ProjectileFlight.seekAhead(flight, positions)
+	end,
 }
 
 local function step(deltaTime: number)
@@ -407,6 +423,7 @@ function ProjectileRenderer.spawnVolley(
 			speed = spec.speed,
 			pierce = spec.pierce,
 			bounces = spec.bounces,
+			homing = spec.homing,
 			hitModels = if from then { [from] = true } else {},
 			expiresAt = now + (spec.lifetime - headStart),
 			stopped = false,

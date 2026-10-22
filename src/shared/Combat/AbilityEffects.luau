@@ -148,6 +148,10 @@ function AbilityEffects.stages(counts: Counts): { ShotStage }
 		table.insert(out, Stages.ricochet(Abilities.byId.Ricochet.value * ricochet))
 	end
 
+	if stacks(counts, "TrackingEye") > 0 then
+		table.insert(out, Stages.homing(math.rad(Abilities.byId.TrackingEye.value)))
+	end
+
 	local bouncyWall = stacks(counts, "BouncyWall")
 	if bouncyWall > 0 then
 		table.insert(out, Stages.bounce(Abilities.byId.BouncyWall.value * bouncyWall))

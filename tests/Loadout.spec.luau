@@ -205,6 +205,52 @@ return function(t: TestRunner.Helper)
 		end
 	end)
 
+	--[[ Exclusions are read both ways, so holding either side of a pair must
+	     keep the other out of every offer — whichever ability the rule was
+	     written on. Many seeded rolls, so a rule that only sometimes applied
+	     would show. ]]
+	t.test("an excluded ability is never offered, from either side", function()
+		for _, pair in { { "TrackingEye", "BouncyWall" }, { "BouncyWall", "TrackingEye" } } do
+			local held, barred = pair[1], pair[2]
+			local state = Loadout.new()
+			state.counts[held] = 1
+			Loadout.addXp(state, 1e9)
+
+			t.isTrue(
+				Loadout.excluded(state, Abilities.byId[barred]),
+				`{held} does not bar {barred}`
+			)
+
+			local random = dice()
+			for _ = 1, 60 do
+				state.offer = nil
+				state.pendingLevels = math.max(state.pendingLevels, 1)
+
+				local offer = Loadout.openOffer(state, false, random)
+				if offer then
+					t.isNil(table.find(offer, barred), `{barred} was offered while holding {held}`)
+				end
+			end
+		end
+	end)
+
+	t.test("every exclusion names a real ability, and not itself", function()
+		for _, ability in Abilities.all do
+			local excludes = ability.excludes
+			if not excludes then
+				continue
+			end
+
+			for _, id in excludes do
+				t.notNil(Abilities.byId[id], `{ability.id} excludes unknown ability {id}`)
+				t.isTrue(
+					id ~= ability.id,
+					`{ability.id} excludes itself and could never be offered`
+				)
+			end
+		end
+	end)
+
 	t.test("there are enough abilities to fill an offer", function()
 		t.isTrue(
 			#Abilities.all >= Progression.offerCount,

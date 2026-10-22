@@ -223,6 +223,28 @@ function Stages.bounce(count: number): ShotStage
 	}
 end
 
+--[[ Lets arrows curve towards the nearest enemy ahead of them, at `rate`
+     radians a second. Flight: it changes where an arrow goes, and the
+     turning itself happens in ProjectileFlight on both sides. ]]
+function Stages.homing(rate: number): ShotStage
+	return {
+		name = "Homing",
+		order = ShotPipeline.Stage.Flight,
+
+		apply = function(specs: { ShotSpec }, _request: ShotRequest): { ShotSpec }
+			local out: { ShotSpec } = {}
+
+			for _, spec in specs do
+				local copy = table.clone(spec)
+				copy.homing = spec.homing + rate
+				table.insert(out, copy)
+			end
+
+			return out
+		end,
+	}
+end
+
 --[[ Sends an arrow on to the nearest other enemy after each hit. OnHit
      rather than Flight: where it goes next is decided by what it struck,
      which is only known at the moment of contact. ]]

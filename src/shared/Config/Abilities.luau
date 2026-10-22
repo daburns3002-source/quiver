@@ -18,11 +18,11 @@
 	number, and the effect is the only thing that should know which. What this
 	table owns is *how much*, so a balance pass is a readable diff.
 
-	`maxStacks` is the only exclusion rule there is so far. It is enough: an
-	ability at its cap stops being offered, so a run cannot pour every card
-	into one stat and the draft keeps presenting new decisions. Genuine
-	mutual exclusions (two incompatible flight behaviours, say) arrive with the
-	abilities that need them.
+	`maxStacks` stops a run pouring every card into one stat: an ability at
+	its cap stops being offered. `excludes` is the other rule, for two
+	abilities that fight each other rather than stack — holding either one
+	stops the other being offered. It is read both ways, so it only needs
+	writing on one side.
 ]]
 
 export type Category = "Count" | "Pattern" | "Flight" | "OnHit" | "OnKill" | "Stats" | "Defensive"
@@ -41,6 +41,8 @@ export type Ability = {
 	     is consumed rather than kept, so it never appears in the run summary
 	     as a thing you "have". ]]
 	instant: boolean?,
+	--[[ Ids this cannot be held alongside, in either direction. ]]
+	excludes: { string }?,
 }
 
 local abilities: { Ability } = {
@@ -227,6 +229,23 @@ local abilities: { Ability } = {
 		category = "Flight",
 		value = 1,
 		maxStacks = 2,
+	},
+	--[[ Archero 2's Tracking Eye: "Bullets can track enemies". Value is the
+	     turn rate in degrees a second — enough to bend a shot onto a target
+	     that stepped aside, not enough to turn one round.
+
+	     Excludes Bouncy Wall. A homing arrow fights a bounce: it curves back
+	     at the wall it just left, or round towards an enemy the bounce was
+	     carrying it away from, and either way neither card does what it
+	     says. ]]
+	{
+		id = "TrackingEye",
+		name = "Tracking Eye",
+		description = "Arrows curve towards enemies.",
+		category = "Flight",
+		value = 540,
+		maxStacks = 1,
+		excludes = { "BouncyWall" },
 	},
 	{
 		id = "SoulChain",

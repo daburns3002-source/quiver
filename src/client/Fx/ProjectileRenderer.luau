@@ -57,6 +57,11 @@ local ORB_TRAIL_LIFETIME = 0.6
 type Visual = ProjectileFlight.Flight & {
 	part: BasePart,
 	expiresAt: number,
+	--[[ Set on the frame the flight ends, and released on the next. Without
+	     that frame the part is gone before it is ever drawn where it
+	     stopped, so at footage speed an arrow vanished up to three studs
+	     short of the enemy it hit. ]]
+	stopped: boolean,
 }
 
 local ProjectileRenderer = {}
@@ -327,6 +332,16 @@ local function step(deltaTime: number)
 
 	for index = #live, 1, -1 do
 		local visual = live[index]
+
+		if visual.stopped then
+			release(visual.part, visual.faction)
+
+			local last = #live
+			live[index] = live[last]
+			live[last] = nil
+			continue
+		end
+
 		local isEnemy = visual.faction == "Enemy"
 		local params = if isEnemy then enemyFilter else playerFilter
 		local overlap = if isEnemy then enemyOverlap else playerOverlap
@@ -337,14 +352,7 @@ local function step(deltaTime: number)
 		end
 
 		visual.part.CFrame = placeAt(visual.position, visual.direction)
-
-		if not alive then
-			release(visual.part, visual.faction)
-
-			local last = #live
-			live[index] = live[last]
-			live[last] = nil
-		end
+		visual.stopped = not alive
 	end
 end
 
@@ -401,6 +409,7 @@ function ProjectileRenderer.spawnVolley(
 			bounces = spec.bounces,
 			hitModels = if from then { [from] = true } else {},
 			expiresAt = now + (spec.lifetime - headStart),
+			stopped = false,
 		})
 	end
 end

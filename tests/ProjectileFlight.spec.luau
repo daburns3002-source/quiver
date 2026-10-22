@@ -181,6 +181,25 @@ return function(t: TestRunner.Helper)
 		r.destroy()
 	end)
 
+	--[[ "Make the projectiles stop when they hit the hitbox." The arrow used
+	     to be left with its centre on the contact point, half its length
+	     inside the body. Its nose belongs on the surface — the body here is
+	     two studs deep at z = 6, so its near face is z = 5. At footage speed,
+	     so a whole frame's travel is in play. ]]
+	t.test("an arrow stops with its tip on the hitbox, not inside it", function()
+		local r = rig()
+		r.body(6)
+		local contact = recorder()
+
+		local f = flight(0, Balance.Projectile.speed)
+		t.isFalse(fly(f, r, contact, 10, 1 / 60), "the arrow never stopped")
+
+		local nose = f.position.Z + Balance.Projectile.length / 2
+		t.near(nose, 5, 0.05, `the arrow stopped with its tip at z = {nose}, not on the face at 5`)
+
+		r.destroy()
+	end)
+
 	--[[ A ricochet leaves from inside the enemy it bounced off. Without the
 	     seed, the very first overlap pass strikes that enemy again and the
 	     bounce dies where it started — on screen and on the server. ]]

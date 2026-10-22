@@ -189,6 +189,22 @@ local function sweep(
 
 		local model = result.Instance:FindFirstAncestorOfClass("Model")
 
+		--[[
+			Where the box is at the moment it touches: its centre moved
+			`Distance` along the cast, so its nose sits on the surface it hit.
+			That is where a projectile that *stops* is left.
+
+			One that carries on — a bounce, a pierce, a body it already
+			struck — is moved on to the contact point instead, half a box
+			deeper, so the next cast starts inside what it is leaving and the
+			engine ignores it. Left merely touching, every following cast
+			finds the same body a hundredth of a stud ahead and the
+			projectile stalls on its surface.
+		]]
+		local touching = flight.position + flight.direction * result.Distance
+		local passing = result.Position + flight.direction * 1e-2
+		remaining -= math.max((passing - flight.position).Magnitude, 1e-2)
+
 		--[[ Something in the filter with no Model above it is arena geometry,
 		     which only ever appears in the player's filter. ]]
 		if not model then
@@ -201,15 +217,13 @@ local function sweep(
 			end
 
 			if not reflected then
+				flight.position = touching
 				return false
 			end
 
 			flight.bounces -= 1
-
-			local travelledToWall = (result.Position - flight.position).Magnitude
 			flight.direction = reflected
 			flight.position = result.Position + reflected * BOUNCE_CLEARANCE
-			remaining -= math.max(travelledToWall, 1e-2)
 
 			--[[ A bounced projectile is a new threat, so it may hit things it
 			     already passed through on the way out. ]]
@@ -217,17 +231,21 @@ local function sweep(
 			continue
 		end
 
-		local travelled = (result.Position - flight.position).Magnitude
-		flight.position = result.Position + flight.direction * 1e-2
-		remaining -= math.max(travelled, 1e-2)
-
 		if flight.hitModels[model] then
+			flight.position = passing
 			continue
 		end
+
+		--[[ At the surface while the contact resolves, so the server's hit
+		     point — where splash centres and a ricochet leaves from — is the
+		     outside of the body rather than half an arrow into it. ]]
+		flight.position = touching
 
 		if not strike(flight, model, contact) then
 			return false
 		end
+
+		flight.position = passing
 	end
 
 	return true

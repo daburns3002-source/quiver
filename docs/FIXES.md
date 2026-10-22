@@ -16,6 +16,28 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## Arrows did not stop at the enemy's hitbox
+
+**Symptom** — "make the projectiles stop when they hit the hitbox of the
+enemy". Mostly the arrow vanished before it reached the enemy it hit.
+
+**Cause** — two halves. The flight left a stopped arrow with its *centre* on
+the contact point, half its length inside the body. And the renderer released
+the part on the same frame the flight ended, so the stop was never drawn: at
+190 studs/s the last frame shown could be three studs short.
+
+**Fix** — a projectile that stops is left where its box first touches, with
+its tip on the surface (`RaycastResult.Distance` along the cast). One that
+carries on (pierce, bounce, a body already struck) still moves to the contact
+point, inside, because left merely touching, every following cast finds the
+same body again and the arrow stalls on its surface. The renderer draws a
+stopped arrow for one more frame before releasing it.
+
+**Measured** — `ProjectileFlight.spec` checks that a 190 studs/s arrow stops
+with its tip within 0.05 studs of the body's face.
+
+---
+
 ## Bouncing and piercing arrows stopped dead on screen
 
 **Symptom** — found auditing the projectile code against the reference video,

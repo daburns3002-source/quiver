@@ -89,6 +89,23 @@ type Enemy = {
 
 local EnemyManager = {}
 
+--[[
+	Half the room an enemy's hitbox covers along X and along Z, at its current
+	turn. The hitbox turns with the enemy, and a square turned 45° is 1.41
+	times as wide across as it is square-on; resolving it as if it never
+	turned is what let its corners into pillars. Exact against the arena's
+	axis-aligned faces; at a pillar's corner it is a little generous, which
+	errs on the side of a gap rather than an overlap.
+]]
+local function footprint(config: Balance.EnemyConfig, yaw: number?): Vector2
+	local half = config.hitboxSize / 2
+	local angle = yaw or 0
+	local c = math.abs(math.cos(angle))
+	local s = math.abs(math.sin(angle))
+
+	return Vector2.new(half.X * c + half.Z * s, half.X * s + half.Z * c)
+end
+
 local enemies: { [Model]: Enemy } = {}
 --[[
 	Mirror of enemy positions for Targeting, kept in step with `enemies` so the
@@ -442,8 +459,10 @@ function EnemyManager.damage(
 	local knockbackDirection = if fromPosition then enemy.position - fromPosition else Vector3.zero
 	if knockbackDirection.Magnitude > 1e-3 then
 		local flat = Vector3.new(knockbackDirection.X, 0, knockbackDirection.Z).Unit
-		local radius = math.max(enemy.config.hitboxSize.X, enemy.config.hitboxSize.Z) / 2
-		enemy.position = Arena.resolve(enemy.position + flat * enemy.config.knockback, radius)
+		enemy.position = Arena.resolveBox(
+			enemy.position + flat * enemy.config.knockback,
+			footprint(enemy.config, enemy.yaw)
+		)
 		positions[model] = enemy.position
 		enemy.hitbox.Position = enemy.position
 	end
@@ -770,7 +789,7 @@ local function stepEnemy(enemy: Enemy, deltaTime: number, now: number)
 		     whole trip and surface it no closer than it started. ]]
 		enemy.position = if enemy.submerged
 			then Arena.clampToWalls(nextPosition, radius)
-			else Arena.resolve(nextPosition, radius)
+			else Arena.resolveBox(nextPosition, footprint(config, enemy.yaw))
 
 		--[[ Not republished while submerged: `positions` is what targeting
 		     iterates, so writing here would put an untargetable enemy straight
@@ -824,6 +843,15 @@ local function stepEnemy(enemy: Enemy, deltaTime: number, now: number)
 			local maxStep = math.rad(config.turnRate) * deltaTime
 			enemy.yaw = current + math.clamp(delta, -maxStep, maxStep)
 		end
+	end
+
+	--[[ Resolved again at the new turn: turning in place beside a pillar
+	     swings the hitbox's corners as surely as walking into it does.
+	     Underground there is nothing to hit, and the walls are the only
+	     limit. ]]
+	if not enemy.submerged then
+		enemy.position = Arena.resolveBox(enemy.position, footprint(config, enemy.yaw))
+		positions[enemy.model] = enemy.position
 	end
 
 	enemy.hitbox.CFrame = CFrame.new(enemy.position) * CFrame.Angles(0, enemy.yaw or 0, 0)
@@ -978,8 +1006,8 @@ local function separate()
 
 			--[[ Back through the arena, or a pair pressed against a wall would
 			     be separated straight through it. ]]
-			a.position = Arena.resolve(a.position - direction * push, aRadius)
-			b.position = Arena.resolve(b.position + direction * push, bRadius)
+			a.position = Arena.resolveBox(a.position - direction * push, footprint(a.config, a.yaw))
+			b.position = Arena.resolveBox(b.position + direction * push, footprint(b.config, b.yaw))
 
 			a.hitbox.Position = a.position
 			b.hitbox.Position = b.position

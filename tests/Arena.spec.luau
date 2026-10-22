@@ -45,6 +45,49 @@ return function(t: TestRunner.Helper)
 		return Vector3.new(size.X / 2 * fractionX, 2.5, size.Z / 2 * fractionZ)
 	end
 
+	--[[ An enemy's hitbox is a square that turns with it. Resolved by its
+	     footprint at that turn, none of its corners may end inside a pillar;
+	     resolved by a single radius, a 45° turn left them 0.62 studs in. ]]
+	t.test("a turned square resolved by its footprint keeps every corner out", function()
+		buildLayout(centrePillar)
+
+		local half = 1.5
+		for _, degrees in { 0, 20, 45, 70 } do
+			local yaw = math.rad(degrees)
+			local c, s = math.abs(math.cos(yaw)), math.abs(math.sin(yaw))
+			local footprint = Vector2.new(half * c + half * s, half * s + half * c)
+
+			-- Pressed into the pillar's +X face, the way a charger arrives.
+			local resolved = Arena.resolveBox(Vector3.new(3.5, 2.5, 0.4), footprint)
+			local pose = CFrame.new(resolved) * CFrame.Angles(0, yaw, 0)
+
+			for _, corner in
+				{
+					Vector3.new(half, 0, half),
+					Vector3.new(half, 0, -half),
+					Vector3.new(-half, 0, half),
+					Vector3.new(-half, 0, -half),
+				}
+			do
+				local point = pose * corner
+				local inside = math.abs(point.X) < 3 - 1e-3 and math.abs(point.Z) < 3 - 1e-3
+				t.isFalse(
+					inside,
+					`a corner of a square turned {degrees}° ended inside the pillar at {point}`
+				)
+			end
+		end
+	end)
+
+	t.test("resolve is resolveBox with the same width on both axes", function()
+		buildLayout(centrePillar)
+
+		local point = Vector3.new(2, 2.5, 1)
+		local a = Arena.resolve(point, RADIUS)
+		local b = Arena.resolveBox(point, Vector2.new(RADIUS, RADIUS))
+		t.near((a - b).Magnitude, 0, 1e-9)
+	end)
+
 	t.test("resolve leaves a clear point untouched", function()
 		buildLayout(centrePillar)
 

@@ -100,13 +100,21 @@ Remotes.AbilityChosen = "AbilityChosen"
 Remotes.PlayerStats = "PlayerStats"
 
 --[[
-	Server → one client. The run is over; here is what you built.
+	Server → one client. The run is over: won or lost, and the numbers the
+	end screen shows (stage, kills, time, health, progress).
 
-	Sent on death and on finishing the last room. Carries the held abilities
-	rather than a rendered string, so the client can show them however it
-	likes and the server never has to know what a card looks like.
+	Sent on death and on finishing the stage. Plain numbers, so the client
+	can draw them however it likes and the server never has to know what an
+	end screen looks like.
 ]]
 Remotes.RunSummary = "RunSummary"
+
+--[[
+	Client → server. The end screen's button: start the next run. Carries
+	nothing; whether a run has ended and may restart is the server's to
+	decide, and a request at any other time is ignored.
+]]
+Remotes.RunRestart = "RunRestart"
 
 --[[
 	Server → all clients. Something exploded here, this wide.

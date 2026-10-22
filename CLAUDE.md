@@ -31,6 +31,15 @@ What exists and works, all verified in Studio rather than only by the gates:
   and the Mythic reveal, from `design_handoff_upgrade_cards`. `CardFrames` is
   generated from the design's `frames.json` by script — regenerate, never
   hand-edit. Images are uploaded; ids in `CardAssets`.
+- **The owner's end screens** (`client/UI/EndScreen`, `Config/EndScreen*`):
+  Victory when the stage is finished, Defeat on death, from
+  `design_handoff_end_screens` (2026-10-22). Stage, kills, time, health and
+  progress come from the server; the button asks for the next run
+  (`Remotes.RunRestart`), which the server grants only once the run is over
+  — there is no restart timer any more, and the world holds still behind
+  the screen. Layout pass only so far: the motion in `EndScreenTimeline` is
+  next. REWARDS and HOME are left out until currency and a lobby exist
+  (owner's choice).
 - **Phase 3, mostly:** the shot pipeline with its abilities as data, XP and a
   choose-one-of-three draft that pauses the world, crit, splash, Ricochet
   (enemy to enemy), Bouncy Wall, Tracking Eye (homing), Double Shot
@@ -118,7 +127,8 @@ already has.
   parts before fixing anything.
 
 **Studio test keys** (`client/DevKeys`, honoured by the server only in
-Studio): **M** — the next card hand includes a Mythic; **L** — a Legendary.
+Studio): **M** — the next card hand includes a Mythic; **L** — a Legendary;
+**V** / **B** — preview the Victory / Defeat end screen, on this client only.
 From a probe, `Remotes.DebugForceMythic:FireServer("Legendary")` does the
 same without the MCP keyboard tool, which reports as a gamepad and flips the
 draft into its controller layout.

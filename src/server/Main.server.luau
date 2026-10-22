@@ -154,6 +154,14 @@ Remotes.event(Remotes.AbilityReroll).OnServerEvent:Connect(function(player)
 	end
 end)
 
+--[[ The end screen's button. Only a player in the run may ask, and
+     `requestRestart` ignores the request unless the run is over. ]]
+Remotes.event(Remotes.RunRestart).OnServerEvent:Connect(function(player)
+	if RunSession.get(player) then
+		RoomController.requestRestart()
+	end
+end)
+
 RunService.Heartbeat:Connect(function(deltaTime: number)
 	local now = os.clock()
 
@@ -161,6 +169,13 @@ RunService.Heartbeat:Connect(function(deltaTime: number)
 	     fire is not a choice, and a player who takes damage while reading one
 	     will stop reading them. ]]
 	if RunSession.anyChoosing() then
+		return
+	end
+
+	--[[ And behind the end screen, which now waits for its button rather
+	     than a 2.5 s timer. A character respawns after five seconds; left
+	     running, the arena killed it again behind the screen, every time. ]]
+	if RoomController.isOver() then
 		return
 	end
 

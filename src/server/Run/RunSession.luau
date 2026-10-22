@@ -56,6 +56,9 @@ export type Session = {
 	     whether it has been spent. The ability is held; the charge is spent. ]]
 	secondWind: number,
 	secondWindUsed: boolean,
+	--[[ This stage's kills and when it began, for the end screen. ]]
+	stageKills: number,
+	stageStartedAt: number,
 	--[[ Regen accrues every frame but is only told to the client a few
 	     times a second. ]]
 	healthSentAt: number,
@@ -130,6 +133,8 @@ function RunSession.create(player: Player): Session
 		momentumBonus = 0,
 		secondWind = 0,
 		secondWindUsed = false,
+		stageKills = 0,
+		stageStartedAt = os.clock(),
 		healthSentAt = 0,
 		revivesLeft = Balance.Revive.perStage,
 		invulnerableUntil = 0,
@@ -295,6 +300,7 @@ end
 	the player for no reason.
 ]]
 function RunSession.onEnemyKilled(session: Session)
+	session.stageKills += 1
 	if not session.alive or session.healPerKill <= 0 then
 		return
 	end
@@ -482,6 +488,8 @@ end
 --[[ A stage is starting: its revives are full again. ]]
 function RunSession.newStage(session: Session)
 	session.revivesLeft = Balance.Revive.perStage
+	session.stageKills = 0
+	session.stageStartedAt = os.clock()
 	session.invulnerableUntil = 0
 end
 

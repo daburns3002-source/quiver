@@ -16,6 +16,44 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## Player killed again behind the end screen
+
+**Symptom** — the server log read "died" twice for one death, the second
+while the Defeat screen was up.
+
+**Cause** — the end screen made the run wait for its button instead of
+restarting after 2.5 s. Roblox respawns a character after 5 s, binding it
+at full health, and the arena behind the screen was still running: enemies
+walked over and killed the new character, again and again for as long as
+the screen stayed up. The old timer had always beaten the respawn.
+
+**Fix** — `RoomController.isOver()`, and the server's Heartbeat holds the
+world still while it is true, exactly as it does behind a card screen.
+
+**Measured** — walking into enemies for 8 s behind the Defeat screen: one
+"died" in the log, then a clean restart on TRY AGAIN.
+
+---
+
+## End screen rays spilled out past the panel
+
+**Symptom** — the Victory screen's sun rays carried on across the dimmed
+game beside the panel.
+
+**Cause** — the rays sit in a CanvasGroup that should clip them to the
+panel's rounded edge, and the ScreenGui used `ZIndexBehavior.Global`.
+Under Global the CanvasGroup did not clip; a test group under Sibling did.
+
+**Fix** — `UI/EndScreen` uses Sibling. The background gradient is also on a
+plain frame now, with only the rays and glow in the CanvasGroup.
+
+**Measured** — capture with Sibling: no ray outside the panel. Also found:
+a hard horizontal seam across a capture is not necessarily on screen. One
+here was red 17 → 0 with green and blue unchanged, at y = 688, a 16 px
+JPEG block boundary — the capture's compression, not the UI.
+
+---
+
 ## Card text pulsed big and small for a second after a click
 
 **Symptom** — "when you click on one of the upgrade cards the text still pops

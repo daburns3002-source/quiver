@@ -5,6 +5,9 @@
 	M — the next card hand includes a Mythic, so its flip reveal can be seen
 	without waiting for the roughly one-in-forty hand that deals one.
 	L — the next card hand includes a Legendary.
+	V / B — preview the Victory / Defeat end screen with sample numbers.
+	Drawn on this client only; the server is not told, so the run carries
+	on underneath. Press the same key again, or the other, to swap it.
 
 	Bound only when the game runs in Studio; the server checks the same
 	thing before honouring the request, so a live client gains nothing.
@@ -16,6 +19,7 @@ local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 
+local EndScreen = require(script.Parent.UI.EndScreen)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 
 local DevKeys = {}
@@ -70,6 +74,17 @@ function DevKeys.start()
 		elseif input.KeyCode == Enum.KeyCode.L then
 			Remotes.event(Remotes.DebugForceMythic):FireServer("Legendary")
 			toast("Studio: next hand includes a Legendary")
+		elseif input.KeyCode == Enum.KeyCode.V or input.KeyCode == Enum.KeyCode.B then
+			local won = input.KeyCode == Enum.KeyCode.V
+			EndScreen.show({
+				won = won,
+				stage = 12,
+				kills = if won then 48 else 37,
+				seconds = if won then 154 else 128,
+				healthPercent = 65,
+				progressPercent = 77,
+			})
+			toast(if won then "Studio: Victory preview" else "Studio: Defeat preview")
 		end
 	end)
 end

@@ -131,7 +131,7 @@ local meleeCharger: EnemyConfig = {
 	--[[ Quick: it commits to a direction and turns hard to keep it. ]]
 	turnRate = 540,
 	health = 300,
-	moveSpeed = 4.6,
+	moveSpeed = 6.9,
 	-- Studs from the player at which it lands a hit.
 	attackRange = 4,
 	attackDamage = 56,
@@ -158,7 +158,7 @@ local spreadShooter: EnemyConfig = {
 	--[[ Moderate: it stands off and tracks. ]]
 	turnRate = 360,
 	health = 240,
-	moveSpeed = 3.2,
+	moveSpeed = 4.8,
 	--[[ Ranged enemies treat attackRange as the distance they want to hold,
 	     not the distance they close to. ]]
 	attackRange = 13.3,
@@ -181,10 +181,11 @@ local spreadShooter: EnemyConfig = {
 			this down to 4, where an orb crawled.
 
 			Lifetime keeps the reach it had (16 studs), so the speed is the
-			only thing that changed.
+			only thing that changed. Then ×1.5 with everything else on the
+			owner's ask (2026-10-22), reach still 16.
 		]]
-		speed = 12,
-		lifetime = 16 / 12,
+		speed = 18,
+		lifetime = 16 / 18,
 		--[[ Seconds of wind-up before the volley leaves, so the player reacts
 		     to the tell rather than to the projectile. ]]
 		telegraph = 0.45,
@@ -208,7 +209,7 @@ local lineSniper: EnemyConfig = {
 	--[[ Deliberate: it swings round to line the lance up. ]]
 	turnRate = 240,
 	health = 200,
-	moveSpeed = 2.6,
+	moveSpeed = 3.9,
 	attackRange = 18.8,
 	attackDamage = 90,
 	attackCooldown = 3,
@@ -222,10 +223,10 @@ local lineSniper: EnemyConfig = {
 		--[[ Fast, unlike the Spitter. The telegraph is the counterplay here,
 		     not the flight time — once it fires, it has already hit.
 		     Measured against the footage's fast red shot, ~0.8 room-widths
-		     a second; one sample, so the least certain number here. Reach
-		     held at 28 studs. ]]
-		speed = 28,
-		lifetime = 1,
+		     a second; one sample, so the least certain number here. ×1.5
+		     with everything else (2026-10-22); reach held at 28 studs. ]]
+		speed = 42,
+		lifetime = 28 / 42,
 		--[[ Long, because the whole fight is the player reading this window
 		     and moving out of the line inside it. ]]
 		telegraph = 0.9,
@@ -245,7 +246,7 @@ local tank: EnemyConfig = {
 	--[[ Ponderous. A quarter-turn takes a full second, which is what makes it read as heavy rather than as copying the player. ]]
 	turnRate = 90,
 	health = 1200,
-	moveSpeed = 2.2,
+	moveSpeed = 3.3,
 	attackRange = 5,
 	attackDamage = 100,
 	attackCooldown = 1.6,
@@ -276,7 +277,7 @@ local burrower: EnemyConfig = {
 	--[[ Moderate, and only ever seen turning above ground. ]]
 	turnRate = 360,
 	health = 260,
-	moveSpeed = 3.8,
+	moveSpeed = 5.7,
 	attackRange = 10.1,
 	attackDamage = 56,
 	attackCooldown = 2.4,
@@ -292,8 +293,8 @@ local burrower: EnemyConfig = {
 		spread = math.rad(24),
 		--[[ The same slow-orb family as the Spitter's, measured the same
 		     way. Reach held at 13.2 studs. ]]
-		speed = 12,
-		lifetime = 13.2 / 12,
+		speed = 18,
+		lifetime = 13.2 / 18,
 		--[[ Short. Surfacing *is* the telegraph, and the player has already
 		     been given the ground marker to act on. ]]
 		telegraph = 0.25,
@@ -511,9 +512,10 @@ local Balance = {
 		maxHealth = 225,
 		--[[ Studs per second. Raised in steps over several playtests:
 		     repositioning has to be affordable, or the answer to every threat
-		     is to stand still and hope. 9 across a 35-stud room is 0.26
-		     room-widths a second, brisker than the footage's 0.19 by choice. ]]
-		moveSpeed = 9,
+		     is to stand still and hope. Was 9 — 0.26 room-widths a second,
+		     brisker than the footage's 0.19 by choice — then every speed in
+		     the game went up by half on the owner's ask (2026-10-22). ]]
+		moveSpeed = 13.5,
 		baseDamage = 100,
 		--[[ Seconds between volleys while stationary. Slowed from 0.45 over
 		     playtests: at that pace standing still paid so well that moving
@@ -578,7 +580,7 @@ local Balance = {
 
 		dash = {
 			distance = 4,
-			duration = 0.18,
+			duration = 0.12,
 			--[[
 				Long enough that it is a decision rather than a second
 				movement speed.
@@ -608,14 +610,16 @@ local Balance = {
 
 			Then slowed to 110 at playtest — about 58% of the footage — because
 			at full footage speed the arrows read as flying too fast. Still
-			fast enough to land before most targets can step aside.
+			fast enough to land before most targets can step aside. Then
+			×1.5 with every other speed (2026-10-22), to 165: still under
+			the footage's 190.
 		]]
-		speed = 110,
+		speed = 165,
 		--[[ 45 studs of flight, the reach playtesting settled on: a little
 		     over `Player.attackRange`, so a shot at the edge of range
 		     arrives, and not so far that arrows sail on after the fight.
 		     Held as a distance by `Balance.spec`, so this follows `speed`. ]]
-		lifetime = 45 / 110,
+		lifetime = 45 / 165,
 		--[[
 			The longest a projectile moves before its hit tests run again.
 

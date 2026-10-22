@@ -15,6 +15,8 @@
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local Abilities = require(ReplicatedStorage.Shared.Config.Abilities)
+local AbilityEffects = require(ReplicatedStorage.Shared.Combat.AbilityEffects)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local TestRunner = require(script.Parent.TestRunner)
 
@@ -487,6 +489,23 @@ return function(t: TestRunner.Helper)
 		are tuned separately, so the relationship has to be held here or it
 		drifts the next time either one moves.
 	]]
+	--[[ Double Shot's last repeat has to leave before the next volley does,
+	     at the fastest fire rate Precision allows, or the volleys overlap and
+	     the pair stops reading as one attack. ]]
+	t.test("Double Shot finishes before the next volley at full Precision", function()
+		local fastest = AbilityEffects.serverStats({
+			Precision = Abilities.byId.Precision.maxStacks,
+		}).attackCooldown
+		local lastRepeat = Balance.Projectile.doubleShotInterval
+			* Abilities.byId.DoubleShot.value
+			* Abilities.byId.DoubleShot.maxStacks
+
+		t.isTrue(
+			lastRepeat < fastest,
+			`Double Shot's last repeat leaves at {lastRepeat}s, after the next volley at {fastest}s`
+		)
+	end)
+
 	t.test("an arrow reaches anything the archer will target", function()
 		local reach = Balance.Projectile.speed * Balance.Projectile.lifetime
 		t.isTrue(

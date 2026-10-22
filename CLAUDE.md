@@ -21,9 +21,10 @@ What exists and works, all verified in Studio rather than only by the gates:
 - **Phases 1 and 2:** move-or-shoot, five enemy archetypes, ten-room runs,
   death and restart. Playtest 1 passed. Playtest 2's question — *after five
   rooms, do you want a sixth?* — was never formally answered.
-- **Phase 3, mostly:** the shot pipeline with 23 abilities as data, XP and a
+- **Phase 3, mostly:** the shot pipeline with 24 abilities as data, XP and a
   choose-one-of-three draft that pauses the world, crit, splash, Ricochet
-  (enemy to enemy), Bouncy Wall, Tracking Eye (homing), chain-on-kill,
+  (enemy to enemy), Bouncy Wall, Tracking Eye (homing), Double Shot
+  (the volley again 0.12 s later), chain-on-kill,
   Momentum, Second Wind, exclusions (`Abilities.excludes`, read both ways),
   a run summary, and the client's prediction replicated from the server.
 - **One flight for both sides.** `Shared/Combat/ProjectileFlight` steps every
@@ -40,7 +41,7 @@ What exists and works, all verified in Studio rather than only by the gates:
 The numbers in `Config/Balance` are the last ones asked for or measured, not
 settled ones. Untested by the owner: the measured speeds, and enemy health ×1.5.
 
-Not done: Phase 3's last two abilities (Double Shot and Blaze are planned)
+Not done: Phase 3's last planned ability (Blaze)
 and its playtest question; XP gems and triangle-cluster spawns from the
 footage.
 
@@ -78,6 +79,10 @@ already has.
   that listens for `AbilityOffer` only answers offers made while it runs; one
   already open stays open and the next probe records zero shots. Fire
   `AbilityChosen` once at the start of every probe.
+- **`GetPartBoundsInBox` reports a rotated part by its axis-aligned bounds**,
+  which swell as it turns. A clipping probe built on it reported a Charger
+  "inside" a pillar 77 times; measuring the footprint's real corners found
+  3 samples, none deeper than 0.1 studs. Measure corners for clipping.
 - **Arrow impact sparks are round parts named `Impact`** in
   `ProjectileVisuals`, beside the enemy orbs. Filter orbs by
   `Name == "Projectile"`, not by shape, or stationary sparks read as orbs that

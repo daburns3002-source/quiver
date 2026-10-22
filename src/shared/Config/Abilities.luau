@@ -58,6 +58,19 @@ local abilities: { Ability } = {
 		maxStacks = 4,
 	},
 
+	--[[ The teardown's Multishot / Double Shot: the volley again, a moment
+	     later, along the same aim. Count, because it is more arrows; but
+	     unlike Front Arrow it adds them in time rather than in space, which
+	     is what catches an enemy that sidestepped the first. ]]
+	{
+		id = "DoubleShot",
+		name = "Double Shot",
+		description = "Every volley fires twice.",
+		category = "Count",
+		value = 1,
+		maxStacks = 2,
+	},
+
 	--[[ Pattern. Each of these is a pure positional change: same arrows,
 	     aimed elsewhere. They are what turn standing still from a cost into a
 	     choice about which way to face. ]]

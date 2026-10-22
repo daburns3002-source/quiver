@@ -52,6 +52,10 @@ type Projectile = {
 	     contact. Raised by Piercing Shot in Phase 3. ]]
 	pierce: number,
 	expiresAt: number,
+	--[[ When it leaves. In the future only for Double Shot's copies, which
+	     are queued with the volley and wait here rather than in a timer, so
+	     clearing a room drops them along with everything already flying. ]]
+	startsAt: number,
 	--[[
 		Who fired it, or nil for an enemy shot.
 
@@ -199,6 +203,8 @@ export type SpawnParams = {
 	chainOnKill: number,
 	owner: Player?,
 	now: number,
+	--[[ Seconds before it leaves. Omitted means at once. ]]
+	delay: number?,
 	--[[ A body this projectile starts inside and must not strike: the enemy
 	     a ricochet leaves from, which would otherwise be hit again by the
 	     very first overlap pass. ]]
@@ -249,7 +255,8 @@ function ProjectileSystem.spawn(params: SpawnParams)
 		ricochet = params.ricochet,
 		homing = params.homing,
 		chainOnKill = params.chainOnKill,
-		expiresAt = now + params.lifetime,
+		startsAt = now + (params.delay or 0),
+		expiresAt = now + (params.delay or 0) + params.lifetime,
 		hitModels = if params.ignore then { [params.ignore] = true } else {},
 	})
 end
@@ -379,6 +386,7 @@ local function fireOnward(projectile: Projectile, onward: Onward)
 			bounces = 0,
 			ricochet = onward.ricochet,
 			homing = projectile.homing,
+			delay = 0,
 			chainOnKill = onward.chainOnKill,
 		})
 	end
@@ -554,6 +562,12 @@ function ProjectileSystem.step(deltaTime: number, now: number)
 		local isPlayer = projectile.faction == "Player"
 		local params = if isPlayer then playerFilter else enemyFilter
 		local overlap = if isPlayer then playerOverlap else enemyOverlap
+
+		--[[ Queued but not yet fired: it neither moves nor hits anything,
+		     and it must not be culled as if it had expired. ]]
+		if now < projectile.startsAt then
+			continue
+		end
 
 		local alive = params ~= nil and overlap ~= nil and now < projectile.expiresAt
 

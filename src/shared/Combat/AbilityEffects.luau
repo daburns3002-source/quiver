@@ -102,6 +102,19 @@ function AbilityEffects.stages(counts: Counts): { ShotStage }
 		table.insert(out, Stages.parallel(1 + front, Balance.Projectile.parallelSpacing))
 	end
 
+	local double = stacks(counts, "DoubleShot")
+	if double > 0 then
+		--[[ After Front Arrow, so a lane is repeated as a lane; and Count,
+		     so every Pattern stage copies the repeats too. ]]
+		table.insert(
+			out,
+			Stages.repeatVolley(
+				Abilities.byId.DoubleShot.value * double,
+				Balance.Projectile.doubleShotInterval
+			)
+		)
+	end
+
 	if stacks(counts, "RearArrow") > 0 then
 		table.insert(out, Stages.mirror("RearArrow", { math.pi }))
 	end

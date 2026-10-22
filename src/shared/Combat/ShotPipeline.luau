@@ -155,6 +155,7 @@ function ShotPipeline.build(self: ShotPipeline, request: ShotRequest): { ShotSpe
 			bounces = 0,
 			ricochet = 0,
 			homing = 0,
+			delay = 0,
 			chainOnKill = 0,
 		},
 	}

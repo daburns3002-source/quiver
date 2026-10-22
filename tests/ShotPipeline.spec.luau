@@ -152,6 +152,7 @@ return function(t: TestRunner.Helper)
 			bounces = 0,
 			ricochet = 0,
 			homing = 0,
+			delay = 0,
 			chainOnKill = 0,
 		})
 
@@ -177,6 +178,7 @@ return function(t: TestRunner.Helper)
 			bounces = 0,
 			ricochet = 0,
 			homing = 0,
+			delay = 0,
 			chainOnKill = 0,
 		})
 
@@ -200,6 +202,7 @@ return function(t: TestRunner.Helper)
 			bounces = 0,
 			ricochet = 0,
 			homing = 0,
+			delay = 0,
 			chainOnKill = 0,
 		})
 
@@ -226,6 +229,7 @@ return function(t: TestRunner.Helper)
 			bounces = 0,
 			ricochet = 0,
 			homing = 0,
+			delay = 0,
 			chainOnKill = 0,
 		})
 

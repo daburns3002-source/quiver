@@ -131,6 +131,19 @@ end)
 
 --[[ The client asks for a redeal. It sends nothing else: whether there is a
      hand to redeal and a reroll to spend is the server's to decide. ]]
+--[[ Testing only: the next hand includes a Mythic. Honoured only when the
+     game is running in Studio, so nothing a live client sends can use it. ]]
+Remotes.event(Remotes.DebugForceMythic).OnServerEvent:Connect(function(player)
+	if not RunService:IsStudio() then
+		return
+	end
+	local session = RunSession.get(player)
+	if session then
+		session.loadout.forceRarity = "Mythic"
+		log.info("%s queued a Mythic for the next hand (Studio)", player.Name)
+	end
+end)
+
 Remotes.event(Remotes.AbilityReroll).OnServerEvent:Connect(function(player)
 	local session = RunSession.get(player)
 	if session then

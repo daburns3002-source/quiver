@@ -18,6 +18,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local BurnFx = require(script.Parent.Fx.BurnFx)
 local CombatMarkers = require(script.Parent.Fx.CombatMarkers)
 local DashBar = require(script.Parent.UI.DashBar)
+local DevKeys = require(script.Parent.DevKeys)
 local Device = require(script.Parent.Device)
 local DraftScreen = require(script.Parent.UI.Cards.DraftScreen)
 local EnemyHealthBars = require(script.Parent.Fx.EnemyHealthBars)
@@ -203,6 +204,7 @@ end)
 	A rejected choice simply leaves the offer open and the server re-sends it.
 ]]
 SkillBar.start()
+DevKeys.start()
 
 DraftScreen.start(function(index: number)
 	DraftScreen.hide()

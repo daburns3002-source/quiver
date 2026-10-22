@@ -146,6 +146,10 @@ Remotes.PlayerDodged = "PlayerDodged"
      hand and a reroll left; the client says nothing else. ]]
 Remotes.AbilityReroll = "AbilityReroll"
 
+--[[ Client → server, testing only. Asks that the next hand include a
+     Mythic, so its reveal can be seen. The server ignores it outside Studio. ]]
+Remotes.DebugForceMythic = "DebugForceMythic"
+
 local function getFolder(): Folder
 	if RunService:IsServer() then
 		local existing = ReplicatedStorage:FindFirstChild(FOLDER_NAME)

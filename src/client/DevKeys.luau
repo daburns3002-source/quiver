@@ -4,6 +4,7 @@
 
 	M — the next card hand includes a Mythic, so its flip reveal can be seen
 	without waiting for the roughly one-in-forty hand that deals one.
+	L — the next card hand includes a Legendary.
 
 	Bound only when the game runs in Studio; the server checks the same
 	thing before honouring the request, so a live client gains nothing.
@@ -64,8 +65,11 @@ function DevKeys.start()
 			return
 		end
 		if input.KeyCode == Enum.KeyCode.M then
-			Remotes.event(Remotes.DebugForceMythic):FireServer()
+			Remotes.event(Remotes.DebugForceMythic):FireServer("Mythic")
 			toast("Studio: next hand includes a Mythic")
+		elseif input.KeyCode == Enum.KeyCode.L then
+			Remotes.event(Remotes.DebugForceMythic):FireServer("Legendary")
+			toast("Studio: next hand includes a Legendary")
 		end
 	end)
 end

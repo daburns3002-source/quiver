@@ -353,14 +353,135 @@ local function setArriving(enemy: Enemy, arriving: boolean)
 	end
 end
 
-function EnemyManager.spawn(config: EnemyConfig, extraDelay: number?): Model?
+--[[
+	Where the members of a triangle stand, given its tip.
+
+	The tip is the member nearest the player; the others stand in a row
+	behind it, away from the player, so a cluster reads as a group arriving
+	together and pointing at you. Spacing is from the widest member, so no
+	two bodies in a cluster can touch.
+
+	Returns spots for every member after the first. `turn` swings the row
+	round the tip, in radians, for when the floor behind it is blocked — a
+	tip found far from the player is often against the far wall.
+]]
+function EnemyManager.triangle(
+	tip: Vector3,
+	toward: Vector3,
+	widest: number,
+	count: number,
+	turn: number?
+): { Vector3 }
+	local flat = Vector3.new(tip.X - toward.X, 0, tip.Z - toward.Z)
+	local back = if flat.Magnitude > 1e-3 then flat.Unit else Vector3.zAxis * -1
+	back = CFrame.Angles(0, turn or 0, 0):VectorToWorldSpace(back)
+	local across = Vector3.new(-back.Z, 0, back.X)
+
+	local spacing = widest * 2 + Balance.Spawning.clusterGap
+	--[[ An even row has no member straight behind the tip, so it can sit at
+	     the height that makes equilateral triangles; an odd one has, and
+	     must sit a full spacing back. ]]
+	local rowIsOdd = (count - 1) % 2 == 1
+	local height = if rowIsOdd then spacing else spacing * math.sqrt(3) / 2
+
+	local spots: { Vector3 } = {}
+	local rowCount = count - 1
+	for index = 1, rowCount do
+		local side = (index - 1) - (rowCount - 1) / 2
+		table.insert(spots, tip + back * height + across * side * spacing)
+	end
+	return spots
+end
+
+--[[ `spot`, if an enemy of `config` may stand there: inside the walls, off
+     the obstacles, clear of every other enemy, and not on top of a player. ]]
+local function clusterSpot(config: EnemyConfig, spot: Vector3): Vector3?
+	local arena = Balance.Arena
+	local radius = math.max(config.hitboxSize.X, config.hitboxSize.Z) / 2
+	local limitX = arena.size.X / 2 - radius - 2
+	local limitZ = arena.size.Z / 2 - radius - 2
+	local position = Vector3.new(spot.X, config.hitboxSize.Y / 2, spot.Z)
+
+	if math.abs(position.X) > limitX or math.abs(position.Z) > limitZ then
+		return nil
+	end
+
+	if not Arena.isClear(position, radius) or not clearOfEnemies(position, radius) then
+		return nil
+	end
+
+	if distanceToNearest(position, spawnKeepAwayPoints()) < Balance.Spawning.minSpawnDistance then
+		return nil
+	end
+
+	return position
+end
+
+--[[ The player nearest `point`, or the room's start when nobody is in it. ]]
+local function nearestKeepAway(point: Vector3): Vector3
+	local best = Balance.Arena.spawnPosition
+	local bestDistance = math.huge
+	for _, candidate in spawnKeepAwayPoints() do
+		local distance = (Vector3.new(candidate.X, 0, candidate.Z) - Vector3.new(
+			point.X,
+			0,
+			point.Z
+		)).Magnitude
+		if distance < bestDistance then
+			best = candidate
+			bestDistance = distance
+		end
+	end
+	return best
+end
+
+--[[ The turns a cluster's row tries, in order: straight behind the tip
+     first, then swung further and further round it. ]]
+local CLUSTER_TURNS = { 0, math.rad(60), math.rad(-60), math.rad(120), math.rad(-120), math.pi }
+
+--[[
+	The spots for a cluster's members after its tip: the first turn of the
+	row where every one of them fits, or failing that the turn that fits the
+	most. A member whose spot does not fit gets nil, and an ordinary spawn
+	search.
+]]
+local function arrange(members: { EnemyConfig }, tip: Vector3, widest: number): { Vector3? }
+	local toward = nearestKeepAway(tip)
+	local best: { Vector3? } = {}
+	local bestFits = -1
+
+	for _, turn in CLUSTER_TURNS do
+		local spots: { Vector3? } = {}
+		local fits = 0
+		for index, spot in EnemyManager.triangle(tip, toward, widest, #members, turn) do
+			local placed = clusterSpot(members[index + 1], spot)
+			spots[index] = placed
+			if placed then
+				fits += 1
+			end
+		end
+
+		if fits == #members - 1 then
+			return spots
+		elseif fits > bestFits then
+			best = spots
+			bestFits = fits
+		end
+	end
+
+	return best
+end
+
+--[[ `at` places the enemy there instead of searching; the caller has
+     already checked the spot (see `clusterSpot`). ]]
+function EnemyManager.spawn(config: EnemyConfig, extraDelay: number?, at: Vector3?): Model?
 	local parent = folder
 	if not parent then
 		log.warn("spawn before init")
 		return nil
 	end
 
-	local position = findSpawnPosition(config)
+	local position = at or findSpawnPosition(config)
 	local model, hitbox, skin = EnemyModel.build(config, position)
 
 	enemies[model] = {
@@ -427,14 +548,40 @@ function EnemyManager.spawnWave(count: number, roster: { EnemyConfig })
 		return
 	end
 
-	for index = 1, count do
-		--[[ Staggered by a beat each, as the footage shows: markers appear a
-		     few at a time rather than all on one frame, which reads as a wave
-		     arriving rather than a level loading. ]]
-		EnemyManager.spawn(
-			roster[(index - 1) % #roster + 1],
-			(index - 1) * Balance.Spawning.arrivalStagger
-		)
+	local clusterSize = math.max(Balance.Spawning.clusterSize, 1)
+	local index = 0
+
+	--[[ In triangles, as the footage shows. Members are spawned one at a
+	     time, so each later spot is checked against the bodies already
+	     placed — including the rest of its own cluster. ]]
+	while index < count do
+		local members: { EnemyConfig } = {}
+		for offset = 1, math.min(clusterSize, count - index) do
+			members[offset] = roster[(index + offset - 1) % #roster + 1]
+		end
+
+		local widest = 0
+		for _, config in members do
+			widest = math.max(widest, math.max(config.hitboxSize.X, config.hitboxSize.Z) / 2)
+		end
+
+		local spots: { Vector3? } = {}
+		for offset, config in members do
+			--[[ Staggered by a beat each, as the footage shows: markers appear
+			     a few at a time rather than all on one frame, which reads as a
+			     wave arriving rather than a level loading. ]]
+			local delay = (index + offset - 1) * Balance.Spawning.arrivalStagger
+			--[[ Checked again at its turn, against the bodies placed since. ]]
+			local spot = spots[offset - 1]
+			local at = if spot then clusterSpot(config, spot) else nil
+			local model = EnemyManager.spawn(config, delay, at)
+
+			if offset == 1 and model then
+				spots = arrange(members, enemies[model].position, widest)
+			end
+		end
+
+		index += #members
 	end
 
 	log.info("spawned wave of %d from %d archetypes", count, #roster)

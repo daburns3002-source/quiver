@@ -150,7 +150,13 @@ end
 
 --[[ Argument order matches the remote: the server sends what it knows and the
      client does not reorder or reinterpret it. ]]
-function RunBanner.onRunStateChanged(index: number, total: number, state: string, name: string)
+function RunBanner.onRunStateChanged(
+	index: number,
+	total: number,
+	state: string,
+	name: string,
+	unit: string?
+)
 	local room = roomLabel
 	local status = stateLabel
 
@@ -158,10 +164,14 @@ function RunBanner.onRunStateChanged(index: number, total: number, state: string
 		return
 	end
 
-	room.Text = `Room {index} / {total}  ·  {name}`
+	room.Text = `{unit or "Room"} {index} / {total}  ·  {name}`
 
 	if state == "Cleared" then
-		status.Text = "Cleared — take the exit"
+		--[[ Only a Rooms stage has an exit; a Waves stage brings the next
+		     wave to you. ]]
+		status.Text = if unit == "Wave"
+			then "Cleared — next wave incoming"
+			else "Cleared — take the exit"
 		status.TextColor3 = CLEARED
 	elseif state == "Dead" then
 		status.Text = "You died — restarting"

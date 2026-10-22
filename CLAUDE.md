@@ -34,6 +34,12 @@ What exists and works, all verified in Studio rather than only by the gates:
   how projectiles move there and only there.
 - **Measured speeds** (`docs/RESEARCH-archero.md` §7): arrows 190 studs/s,
   slow enemy orbs 12, the Lancer 28, Diagonal Arrows ±30°.
+- **Two stage shapes, chosen per stage** (`Balance.Stages`, `Balance.stage`):
+  *Rooms* (rooms joined by doors) and *Waves* (one arena; a Valkyrie offers
+  one of two skills on every 5th wave, an Angel a stat or heal on every 9th,
+  a boss wave every 10th). The owner sets which shape each stage is,
+  depending on where in the game it sits. Boss waves are a Bulwark with an
+  escort until Phase 4 brings real bosses.
 - **The dash** (4-second cooldown, readiness bar), player hit feedback, and
   draft enemy bodies.
 - **Archero 2 proportions:** a portrait 35 × 58 room, a camera that fits the
@@ -45,7 +51,8 @@ settled ones. **Damage is on Archero 2's scale** (docs/RESEARCH-archero2.md
 enemy hits kill the player — which replaced the owner's earlier "enemy
 health ×1.5". Damage numbers are white, red crits, orange burns.
 
-Not done: Phase 3's playtest question — *did two runs in a row feel
+Not done: real bosses, XP crystals and hearts (docs/RESEARCH-archero2.md §4);
+Phase 3's playtest question — *did two runs in a row feel
 meaningfully different?* — which needs the owner; XP gems and triangle-cluster spawns from the
 footage.
 

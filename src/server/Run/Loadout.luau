@@ -23,6 +23,10 @@ type Ability = Abilities.Ability
 
 local Loadout = {}
 
+--[[ Who is offering the cards on screen. A level-up spends a level it was
+     owed; a Valkyrie or an Angel is a gift, and spends nothing. ]]
+export type OfferSource = "Level" | "Valkyrie" | "Angel"
+
 export type State = {
 	--[[ Ability id to how many copies have been taken. Instant abilities are
 	     counted too, purely so the offer roll can respect their cap. ]]
@@ -36,6 +40,7 @@ export type State = {
 	     Its presence is what pauses the run, and what makes a client's choice
 	     verifiable rather than trusted. ]]
 	offer: { string }?,
+	offerSource: OfferSource?,
 	--[[ Levels gained but not yet offered. A player who levels twice from one
 	     kill gets two cards in sequence, not one card and a lost level. ]]
 	pendingLevels: number,
@@ -52,6 +57,7 @@ function Loadout.new(): State
 		xp = 0,
 		xpToNext = costForLevel(1),
 		offer = nil,
+		offerSource = nil,
 		pendingLevels = 0,
 	}
 end
@@ -160,7 +166,13 @@ end
 	Returns an empty list when nothing can legally be offered, which the caller
 	must treat as "no card this level" rather than as an error.
 ]]
-function Loadout.rollOffer(state: State, atFullHealth: boolean, random: Random): { string }
+function Loadout.rollOffer(
+	state: State,
+	atFullHealth: boolean,
+	random: Random,
+	size: number?
+): { string }
+	local wanted = size or Progression.offerCount
 	local pool = candidates(state, atFullHealth)
 
 	if #pool == 0 then
@@ -178,7 +190,7 @@ function Loadout.rollOffer(state: State, atFullHealth: boolean, random: Random):
 	local usedCategory: { [string]: boolean } = {}
 
 	for _, ability in pool do
-		if #picked >= Progression.offerCount then
+		if #picked >= wanted then
 			break
 		end
 		if usedCategory[ability.category] then
@@ -190,7 +202,7 @@ function Loadout.rollOffer(state: State, atFullHealth: boolean, random: Random):
 	end
 
 	for _, ability in pool do
-		if #picked >= Progression.offerCount then
+		if #picked >= wanted then
 			break
 		end
 		if table.find(picked, ability.id) then
@@ -220,6 +232,71 @@ function Loadout.openOffer(state: State, atFullHealth: boolean, random: Random):
 	end
 
 	state.offer = offer
+	state.offerSource = "Level"
+	return offer
+end
+
+--[[
+	A Valkyrie's offer: `size` cards from the ordinary pool, chosen the same
+	way as a level-up's. Opens nothing if a screen is already up or nothing
+	can be offered.
+]]
+function Loadout.openValkyrie(
+	state: State,
+	atFullHealth: boolean,
+	random: Random,
+	size: number
+): { string }?
+	if state.offer then
+		return nil
+	end
+
+	local offer = Loadout.rollOffer(state, atFullHealth, random, size)
+	if #offer == 0 then
+		return nil
+	end
+
+	state.offer = offer
+	state.offerSource = "Valkyrie"
+	return offer
+end
+
+--[[
+	An Angel's offer, as Archero 2 has it: a minor stat boost or a heal. The
+	stat is any Stats ability still under its cap and not excluded; the heal
+	is Mending. Either side may be missing late in a run — the other is still
+	offered alone rather than nothing at all.
+]]
+function Loadout.openAngel(state: State, random: Random): { string }?
+	if state.offer then
+		return nil
+	end
+
+	local stats: { string } = {}
+	for _, ability in Abilities.all do
+		if ability.category == "Stats" and Loadout.remaining(state, ability) > 0 then
+			if not Loadout.excluded(state, ability) then
+				table.insert(stats, ability.id)
+			end
+		end
+	end
+
+	local offer: { string } = {}
+	if #stats > 0 then
+		table.insert(offer, stats[random:NextInteger(1, #stats)])
+	end
+
+	local heal = Abilities.byId.Mending
+	if heal and Loadout.remaining(state, heal) > 0 then
+		table.insert(offer, heal.id)
+	end
+
+	if #offer == 0 then
+		return nil
+	end
+
+	state.offer = offer
+	state.offerSource = "Angel"
 	return offer
 end
 
@@ -251,8 +328,14 @@ function Loadout.choose(state: State, index: number): Ability?
 	--[[ Instant abilities are resolved by the caller and never recorded as
 	     held, but they still count towards their own cap. ]]
 	state.counts[ability.id] = (state.counts[ability.id] or 0) + 1
+	--[[ Only a level-up spends a level. A Valkyrie's or an Angel's card is
+	     a gift, and charging it to a level would quietly cost the player
+	     their next draft. ]]
+	if state.offerSource == "Level" then
+		state.pendingLevels -= 1
+	end
 	state.offer = nil
-	state.pendingLevels -= 1
+	state.offerSource = nil
 
 	return ability
 end

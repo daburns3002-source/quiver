@@ -38,7 +38,10 @@ ARENAS = {
             "Bushes": {"Bushes_1": (1, 2200), "Bushes_2": (1, 2200), "Bushes_3": (1, 2200),
                        "Bushes_4": (1, 900)},
             "Trees": {f"Trees_{i}": (1, 1700) for i in range(1, 7)} | {"TreeTrunks": (1, 1200)},
-            "Props": {"Log": (1, 1400), "Stumps": (1, 1800), "Mushrooms": (1, 600),
+            # Stumps at about 1,600 triangles each, as the other glades'
+            # come out: at 600 each their ringed tops collapsed into domes and
+            # room 1's stumps stopped matching the rest (owner, 2026-10-22).
+            "Props": {"Log": (1, 1400), "Stumps": (1, 4800), "Mushrooms": (1, 600),
                       "MushroomStems": (1, 500)},
             "Glow": {"GlowMushrooms": (1, 1600)},
         },

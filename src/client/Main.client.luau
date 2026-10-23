@@ -109,7 +109,9 @@ CombatMarkers.start(Workspace)
 TelegraphRenderer.start(Workspace)
 TopDownCamera.start(currentRoot)
 LocalFiring.start()
-ArcherPose.start()
+ArcherPose.start(function()
+	return LocalFiring.currentTarget() ~= nil
+end)
 LocalFiring.onFired(ArcherPose.release)
 MoveController.start()
 

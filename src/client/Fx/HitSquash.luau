@@ -14,6 +14,10 @@
 	each part's weld is switched off here and the part is placed every frame
 	relative to the hitbox, which keeps it following the enemy. At the end
 	each part is put back exactly where it was and re-welded.
+
+	A slime's body is placed every frame by its hop (`Fx/SlimeHop`), which
+	claims it (`HitSquash.claim`); then the squash is only timed here, and
+	the hop folds it into its own pose (`HitSquash.tall`).
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -44,6 +48,8 @@ type Squash = {
 export type Kind = "Hit" | "Land"
 
 local active: { [Model]: Squash } = {}
+--[[ Bodies another module places, which only borrow the squash's timing. ]]
+local claimed: { [Model]: true } = {}
 local connection: RBXScriptConnection? = nil
 
 local function finish(model: Model, squash: Squash)
@@ -141,7 +147,8 @@ function HitSquash.play(model: Model, kind: Kind?)
 	end
 
 	local pieces: { Piece } = {}
-	for _, child in model:GetChildren() do
+	local children: { Instance } = if claimed[model] then {} else model:GetChildren()
+	for _, child in children do
 		if
 			child:IsA("BasePart")
 			and child ~= hitbox
@@ -156,7 +163,7 @@ function HitSquash.play(model: Model, kind: Kind?)
 			})
 		end
 	end
-	if #pieces == 0 then
+	if #pieces == 0 and not claimed[model] then
 		return
 	end
 
@@ -177,6 +184,30 @@ function HitSquash.play(model: Model, kind: Kind?)
 	if not connection then
 		connection = RunService.RenderStepped:Connect(step)
 	end
+end
+
+--[[ `model`'s body is placed by someone else from now on: its squashes
+     are timed but not drawn here. ]]
+function HitSquash.claim(model: Model)
+	claimed[model] = true
+	model.Destroying:Connect(function()
+		claimed[model] = nil
+	end)
+end
+
+--[[ How tall `model` is right now as a share of its height, for a body
+     that draws its own squash: 1 when it is not squashed. The width is
+     `1 / math.sqrt` of it. ]]
+function HitSquash.tall(model: Model): number
+	local squash = active[model]
+	if not squash then
+		return 1
+	end
+	local t = os.clock() - squash.began
+	if t >= squash.duration then
+		return 1
+	end
+	return 1 + amount(t, squash.strength, squash.duration)
 end
 
 --[[ Watches every enemy that arrives and lands it with a squash the moment

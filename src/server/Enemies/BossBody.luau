@@ -11,8 +11,10 @@
 	server sweeps.
 
 	The blob shadow stays on the floor whatever the body does, and shrinks
-	as the body rises. A thrown arm gets a stretched jelly tube from its
-	shoulder to the fist.
+	as the body rises. A thrown arm is a jelly tube from its shoulder to
+	the fist, as the design builds it: a chain of cylinders with balls at
+	the joints, laid along an arc with a ripple running down it, thinning
+	as it stretches, a lump of goo riding out to the fist.
 ]]
 
 local BossMoves = require(script.Parent.BossMoves)
@@ -26,14 +28,25 @@ type Rest = {
 	offset: CFrame,
 }
 
---[[ Studs across the thrown arm's jelly tube, before it stretches. ]]
+--[[ Studs across the thrown arm's jelly tube at the shoulder, before it
+     stretches. ]]
 local ARM_THICKNESS = 2.8
+
+--[[ Segments in the tube, as the design's. ]]
+local SEGMENTS = 12
+
+--[[ The tube's radius at the shoulder, as a share of its `thin`: the
+     design's profile is 0.88 there. ]]
+local SHOULDER_SHARE = 0.88
+
+local TUBE_TRANSPARENCY = 0.15
 
 export type Body = {
 	rests: { Rest },
 	arms: { [string]: Rest },
 	shadow: Rest?,
-	tube: BasePart,
+	cylinders: { BasePart },
+	balls: { BasePart },
 	height: number,
 }
 
@@ -47,7 +60,8 @@ function BossBody.new(model: Model, hitbox: BasePart, parts: { BasePart }): Body
 		rests = {},
 		arms = {},
 		shadow = nil,
-		tube = nil :: any,
+		cylinders = {},
+		balls = {},
 		height = height,
 	}
 
@@ -73,20 +87,30 @@ function BossBody.new(model: Model, hitbox: BasePart, parts: { BasePart }): Body
 		end
 	end
 
-	local tube = Instance.new("Part")
-	body.tube = tube
+	local tube = Instance.new("Folder")
 	tube.Name = "ArmTube"
-	tube.Shape = Enum.PartType.Cylinder
-	tube.Anchored = true
-	tube.CanCollide = false
-	tube.CanQuery = false
-	tube.CanTouch = false
-	tube.CastShadow = false
-	tube.Material = Enum.Material.Glass
-	tube.Color = JELLY
-	tube.Transparency = 1
-	tube.Size = Vector3.new(0.1, 0.1, 0.1)
 	tube.Parent = model
+	local function jelly(shape: Enum.PartType): BasePart
+		local part = Instance.new("Part")
+		part.Shape = shape
+		part.Anchored = true
+		part.CanCollide = false
+		part.CanQuery = false
+		part.CanTouch = false
+		part.CastShadow = false
+		part.Material = Enum.Material.Glass
+		part.Color = JELLY
+		part.Transparency = 1
+		part.Size = Vector3.one * 0.1
+		part.Parent = tube
+		return part
+	end
+	for _ = 1, SEGMENTS do
+		table.insert(body.cylinders, jelly(Enum.PartType.Cylinder))
+	end
+	for _ = 0, SEGMENTS do
+		table.insert(body.balls, jelly(Enum.PartType.Ball))
+	end
 
 	return body
 end
@@ -104,9 +128,67 @@ local function scaled(rest: Rest, squash: number, spread: number): Vector3
 	)
 end
 
+local function hideTube(body: Body)
+	for _, part in body.cylinders do
+		part.Transparency = 1
+	end
+	for _, part in body.balls do
+		part.Transparency = 1
+	end
+end
+
+--[[ The design's `drawArm`: a quadratic curve from the shoulder to the
+     fist, lifted `arc` studs at its middle, with a sideways ripple that
+     is still at both ends, and a radius that is thickest at the shoulder,
+     thinnest along the stretch, swelling a little into the fist and
+     around the lump of goo. ]]
+local function drawTube(body: Body, shoulder: Vector3, fist: Vector3, pose: BossMoves.Pose)
+	local span = fist - shoulder
+	local length = span.Magnitude
+	if length < 0.6 then
+		hideTube(body)
+		return
+	end
+	local sideways = span:Cross(Vector3.yAxis)
+	sideways = if sideways.Magnitude > 1e-3 then sideways.Unit else Vector3.xAxis
+	local middle = (shoulder + fist) / 2 + Vector3.new(0, pose.tubeArc, 0)
+	--[[ As thick as the owner asked (2026-10-23: "his arms ... are super
+	     thin"), thinning the further it stretches as jelly would, by the
+	     design's own rule (its 4 units are 8 studs here). ]]
+	local thin = ARM_THICKNESS / (2 * SHOULDER_SHARE) / math.sqrt(math.max(1, length / 8))
+
+	local points: { Vector3 } = {}
+	local radii: { number } = {}
+	for i = 0, SEGMENTS do
+		local s = i / SEGMENTS
+		local point = shoulder * (1 - s) ^ 2 + middle * (2 * s * (1 - s)) + fist * (s * s)
+		point += sideways * pose.tubeWave * math.sin(2 * math.pi * (1.5 * s - pose.tubePhase)) * math.sin(
+			math.pi * s
+		)
+		points[i + 1] = point
+		radii[i + 1] = thin * (0.5 + 0.38 * (1 - s) ^ 2 + 0.22 * s ^ 3)
+			+ 0.45 * thin * math.exp(-(((s - pose.tubeBulge) / 0.07) ^ 2))
+	end
+	for i, ball in body.balls do
+		ball.Size = Vector3.one * radii[i] * 2
+		ball.CFrame = CFrame.new(points[i])
+		ball.Transparency = TUBE_TRANSPARENCY
+	end
+	for i, cylinder in body.cylinders do
+		local from, to = points[i], points[i + 1]
+		local across = radii[i] + radii[i + 1]
+		cylinder.Size = Vector3.new(math.max(0.05, (to - from).Magnitude), across, across)
+		cylinder.CFrame = CFrame.lookAt((from + to) / 2, to) * CFrame.Angles(0, math.pi / 2, 0)
+		cylinder.Transparency = TUBE_TRANSPARENCY
+	end
+end
+
 function BossBody.pose(body: Body, pose: BossMoves.Pose)
 	local ground = CFrame.new(pose.feet) * CFrame.Angles(0, pose.yaw, 0)
-	local base = ground * CFrame.new(0, pose.lift, -pose.lean) * CFrame.Angles(-pose.pitch, 0, 0)
+	local base = ground
+		* CFrame.Angles(0, pose.twist, 0)
+		* CFrame.new(0, pose.lift, -pose.lean)
+		* CFrame.Angles(-pose.pitch, 0, 0)
 
 	for _, rest in body.rests do
 		local r = rest.offset
@@ -115,12 +197,13 @@ function BossBody.pose(body: Body, pose: BossMoves.Pose)
 		rest.part.Size = scaled(rest, pose.squash, pose.spread)
 	end
 
-	--[[ Both arms up for a bounce; the throwing arm pulled back (+Z is
-	     behind him) before a lash. ]]
+	--[[ Both arms up for a bounce; the throwing arm balled up behind the
+	     shoulder before a lash (+Z is behind him), swelling as it coils. ]]
 	for name, arm in body.arms do
 		local raise = Vector3.new(0, pose.armsLift, 0)
-		if name == pose.arm and pose.armPull > 0 then
-			raise += Vector3.new(0, 0.5 * pose.armPull, 1.8 * pose.armPull)
+		if name == pose.arm then
+			raise += pose.armOffset
+			arm.part.Size *= pose.armSwell
 		end
 		if raise.Magnitude > 0 then
 			arm.part.CFrame = arm.part.CFrame + base:VectorToWorldSpace(raise)
@@ -139,38 +222,27 @@ function BossBody.pose(body: Body, pose: BossMoves.Pose)
 	end
 
 	local arm = if pose.arm then body.arms[pose.arm] else nil
-	local tube = body.tube
 	local held = pose.held
 	if not arm or (pose.armReach <= 0.02 and not held) then
-		tube.Transparency = 1
+		hideTube(body)
 		return
 	end
 
-	--[[ The fist flies from the shoulder to the lane's end and down onto
-	     the floor there, or stays on whoever it holds. ]]
+	--[[ The fist flies from the shoulder out to the lane's end, arcing up
+	     on the way, or stays on whoever it holds. ]]
 	local shoulder = arm.part.Position
 	local fist = if held
 		then Vector3.new(held.X, pose.fistLift, held.Z)
 		else shoulder:Lerp(
 			pose.feet + pose.direction * pose.length + Vector3.new(0, pose.fistLift, 0),
-			math.clamp(pose.armReach, 0, 1)
-		)
-	arm.part.Size = arm.size * pose.fistScale
+			pose.armReach
+		) + Vector3.new(0, pose.fistArc, 0)
+	arm.part.Size = arm.size * pose.fistScale * pose.fistShape
+	--[[ Never into the floor, however big the fist swells or flat it
+	     splats: the design rests it on its own half height. ]]
+	fist = Vector3.new(fist.X, math.max(fist.Y, arm.part.Size.Y / 2), fist.Z)
 	arm.part.CFrame = CFrame.lookAt(fist, fist + pose.direction)
-
-	local span = fist - shoulder
-	if span.Magnitude < 0.6 then
-		tube.Transparency = 1
-		return
-	end
-	--[[ As thick as the design's (owner, 2026-10-23: "his arms ... are super
-	     thin"): its tube is 0.55 to 0.85 across in the model's units, about
-	     2.8 studs at this size, thinning the further it stretches as jelly
-	     would, by the design's own rule (its 4 units are 8 studs here). ]]
-	local thick = ARM_THICKNESS / math.sqrt(math.max(1, span.Magnitude / 8))
-	tube.Size = Vector3.new(span.Magnitude, thick, thick)
-	tube.CFrame = CFrame.lookAt((shoulder + fist) / 2, fist) * CFrame.Angles(0, math.pi / 2, 0)
-	tube.Transparency = 0.15
+	drawTube(body, shoulder, fist, pose)
 end
 
 return BossBody

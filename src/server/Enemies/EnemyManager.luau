@@ -1054,6 +1054,14 @@ local function resolveBossEvent(
 		)
 	elseif e.kind == "Shake" then
 		enemyTelegraph:FireAllClients(Vector3.zero, Vector3.zAxis, e.duration, "Shake", e.radius)
+	elseif e.kind == "Goo" then
+		enemyTelegraph:FireAllClients(
+			e.at,
+			e.direction,
+			Balance.Telegraph.gooDuration,
+			"Goo",
+			Balance.Telegraph.gooDroplets
+		)
 	elseif e.kind == "LaneHit" then
 		local side = Vector3.new(-e.direction.Z, 0, e.direction.X)
 		local held: Vector3? = nil

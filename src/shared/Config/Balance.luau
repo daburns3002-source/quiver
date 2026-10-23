@@ -1351,6 +1351,10 @@ local Balance = {
 		bossColor = Color3.fromRGB(255, 70, 40),
 		shockColor = Color3.fromRGB(190, 240, 120),
 		shockDuration = 0.45,
+		--[[ Goo flung off the Slime King's fist as it splats (the design's
+		     lash): this many droplets, gone after this many seconds. ]]
+		gooDroplets = 8,
+		gooDuration = 1.1,
 		--[[ The player's own area attacks (the Mythics): the Meteor's circle,
 		     rock and blast, and Earthbreaker's slam and glowing cracks. Warm,
 		     so they never read as an enemy's red. ]]
@@ -1661,6 +1665,75 @@ local Balance = {
 		clusterSize = 3,
 		--[[ Studs of floor between neighbours in a cluster, edge to edge. ]]
 		clusterGap = 1.4,
+	},
+
+	--[[
+		The slimes hop (the owner's design_handoff_slime_movement, 2026-10-23):
+		every `hop` studs travelled a slime crouches, lurches forward with a
+		small hop `height` studs high, lands with a squash and jiggles back;
+		standing still it breathes. Drawn on each client from the hitbox the
+		server moves (`Fx/SlimeHop`), so the hitbox and every hit stay where
+		they were. Keyed by enemy `displayName`; the Slime King is left out,
+		his moves animate him.
+	]]
+	SlimeHop = {
+		kinds = {
+			-- The Moss Slime: about 2.3 hops a second at its speed.
+			Charger = { hop = 3, height = 0.8 },
+			-- Heavier, longer and lower.
+			BroodSlime = { hop = 3.6, height = 0.6 },
+			-- A quick skitter.
+			BabySlime = { hop = 1.6, height = 0.5 },
+		},
+		--[[ The breath when standing: this share of height, over this many
+		     seconds. ]]
+		idleAmount = 0.025,
+		idlePeriod = 1.6,
+		--[[ Seconds a slime stands before it breathes. ]]
+		idleAfter = 0.15,
+		--[[ Slimes further than this from the camera are not animated. ]]
+		maxDistance = 250,
+		--[[ One hop, from the handoff's KEYS: at share `at` of the hop, the
+		     body's height, width and depth scale; its tilt in radians
+		     (+ leans forward); its lift as a share of the hop's height; and
+		     how far through the hop's distance it has got (`ease`), so it
+		     hangs back while crouching and catches up in the lurch. ]]
+		keys = {
+			{ at = 0, tall = 1, wide = 1, deep = 1, tilt = 0, lift = 0, ease = 0 },
+			{ at = 0.12, tall = 0.9, wide = 1.06, deep = 1.05, tilt = -0.04, lift = 0, ease = 0 },
+			{
+				at = 0.3,
+				tall = 0.74,
+				wide = 1.16,
+				deep = 1.12,
+				tilt = -0.12,
+				lift = 0,
+				ease = 0.02,
+			},
+			{
+				at = 0.4,
+				tall = 1.22,
+				wide = 0.88,
+				deep = 0.92,
+				tilt = 0.14,
+				lift = 0.55,
+				ease = 0.3,
+			},
+			{ at = 0.5, tall = 1.08, wide = 0.94, deep = 1.06, tilt = 0.08, lift = 1, ease = 0.62 },
+			{ at = 0.62, tall = 0.78, wide = 1.15, deep = 1.12, tilt = 0, lift = 0, ease = 0.95 },
+			{ at = 0.72, tall = 1.1, wide = 0.95, deep = 0.95, tilt = -0.05, lift = 0, ease = 1 },
+			{ at = 0.82, tall = 0.95, wide = 1.03, deep = 1.03, tilt = 0.03, lift = 0, ease = 1 },
+			{
+				at = 0.91,
+				tall = 1.03,
+				wide = 0.985,
+				deep = 0.985,
+				tilt = -0.01,
+				lift = 0,
+				ease = 1,
+			},
+			{ at = 1, tall = 1, wide = 1, deep = 1, tilt = 0, lift = 0, ease = 1 },
+		},
 	},
 
 	Feedback = {

@@ -100,7 +100,7 @@ local Sounds: { [string]: Sound } = {
 	},
 	level_up = { id = "rbxassetid://118857075181229", volume = 0.7, pitchJitter = 0, minGap = 0.2 },
 	card_pick = { id = "rbxassetid://96268156590681", volume = 0.7, pitchJitter = 0, minGap = 0.1 },
-	gate_open = { id = "", volume = 0.7, pitchJitter = 0, minGap = 0.5 },
+	gate_open = { id = "rbxassetid://120317924961388", volume = 0.7, pitchJitter = 0, minGap = 0.5 },
 }
 
 return table.freeze(Sounds)

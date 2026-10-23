@@ -192,43 +192,52 @@ local charger: Design = {
 }
 
 --[[
-	Spread ranged: a one-eyed slime. A glossy, slightly see-through teardrop
-	of jelly with one big eye, the creature Archero 2 opens its first chapter
-	with. It lobs its fan of blobs from that eye.
+	Spread ranged: the Sprout Spitter, Act 1's seed-spitter (the "Sprout
+	Slime" of docs/ENEMIES-AND-ARENAS.md) — a lime jelly with a two-leaf
+	sprout, a mossy cap, little mushrooms, amber eye sockets and a round
+	spout of a mouth it lobs its fan of seeds from.
+
+	From `assets/models/enemies/sprout_spitter_roblox.glb` (Claude Design,
+	slimmed by `optimise_enemy.py`, imported 2026-10-22). Turned 180° like
+	the Moss Slime, scaled ×2.45 into a hitbox cut to fit it, 3 × 3.6 × 3.
 ]]
+local SPROUT_TURN = Vector3.new(0, 180, 0)
 local spitter: Design = {
-	shadow(2.9, 2.9, 5),
+	shadow(2.9, 2.9, 3.6),
 	{
 		name = "Body",
-		shape = "Ellipsoid",
-		size = Vector3.new(3, 2.6, 3),
-		offset = Vector3.new(0, -1.2, 0),
+		shape = "Mesh",
+		meshId = "rbxassetid://125655555170241",
+		size = Vector3.new(2.747, 2.475, 2.603),
+		offset = Vector3.new(-0.060, -0.563, 0.192),
+		rotation = SPROUT_TURN,
 		shade = 1,
-		material = Enum.Material.Glass,
-		transparency = 0.15,
+		color = WHITE,
 	},
 	{
-		name = "Crown",
-		shape = "Ball",
-		size = Vector3.one * 1.9,
-		offset = Vector3.new(0, -0.15, 0.15),
-		shade = 1.05,
-		material = Enum.Material.Glass,
-		transparency = 0.15,
+		name = "Decor",
+		shape = "Mesh",
+		meshId = "rbxassetid://86695498504200",
+		size = Vector3.new(2.803, 3.188, 2.851),
+		offset = Vector3.new(0.032, 0.108, -0.068),
+		rotation = SPROUT_TURN,
+		shade = 1,
+		color = WHITE,
+		tint = false,
 	},
 	{
-		name = "Drip",
-		shape = "Ball",
-		size = Vector3.one * 0.8,
-		offset = Vector3.new(0, 0.75, 0.3),
-		shade = 1.1,
-		material = Enum.Material.Glass,
-		transparency = 0.15,
+		name = "Eyes",
+		shape = "Mesh",
+		meshId = "rbxassetid://110667629055549",
+		size = Vector3.new(1.688, 0.700, 0.487),
+		offset = Vector3.new(-0.039, -0.720, -0.880),
+		rotation = SPROUT_TURN,
+		shade = 1,
+		-- Act 1's eye colour (amber), glowing.
+		color = Color3.fromRGB(255, 176, 32),
+		material = Enum.Material.Neon,
+		tint = false,
 	},
-	mark("EyeWhite", "Ball", Vector3.one * 1.7, Vector3.new(0, -0.9, -0.62), WHITE),
-	glow("Iris", 0.95, Vector3.new(0, -0.9, -0.98), EYE_YELLOW),
-	mark("Pupil", "Ball", Vector3.one * 0.45, Vector3.new(0, -0.9, -1.25), BLACK),
-	glow("Shine", 0.45, Vector3.new(-0.8, -0.2, -0.55), WHITE),
 }
 
 --[[

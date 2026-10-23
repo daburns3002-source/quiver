@@ -1,16 +1,21 @@
-"""Slim the Claude Design moss slime to a Roblox enemy budget.
+"""Slim a Claude Design enemy model to a Roblox enemy budget.
+
+Usage: optimise_enemy.py <in.glb> <out.glb> <enemy>
 
 Three meshes out: Body (jelly), Eyes (recoloured per act by the game) and
-Decor (moss, plants, mushrooms, catchlights, keeping vertex colours).
-Turned 180 degrees about Y so the face looks down -Z (the game's forward),
-centred on X/Z with its base at y = 0.
+Decor (everything else). Colours become vertex colours either way: a
+vertex-coloured part keeps COLOR_0 (linear -> sRGB), a textured part has
+its texture sampled onto its vertices. Eye sockets are cut where the eyes
+sit behind the body. Turned 180 degrees about Y so the face looks down -Z,
+centred on X/Z with its base at y = 0. Per-enemy budgets and tweaks are in
+ENEMIES below. First used for the Moss Slime, then the Sprout Spitter.
 """
 import sys
 import numpy as np
 import trimesh
 import pymeshlab
 
-SRC, OUT = sys.argv[1], sys.argv[2]
+SRC, OUT, ENEMY = sys.argv[1], sys.argv[2], sys.argv[3]
 scene = trimesh.load(SRC, process=False)
 
 def world(node):
@@ -20,9 +25,13 @@ def world(node):
     T, gname = scene.graph[node]
     src = scene.geometry[gname]
     colour = getattr(src.visual, "vertex_attributes", {}).get("color")
+    srgb = None
+    if colour is None and getattr(src.visual, "uv", None) is not None:
+        # textured: sample the texture at each vertex (already sRGB)
+        srgb = np.asarray(src.visual.to_color().vertex_colors, dtype=np.float64)[:, :3] / 255.0
     g = trimesh.Trimesh(vertices=trimesh.transform_points(src.vertices, T), faces=src.faces, process=False)
     g.visual = trimesh.visual.ColorVisuals(g)
-    g.visual.vertex_attributes = {"color": colour}
+    g.visual.vertex_attributes = {"color": colour, "srgb": srgb}
     return g
 
 parts = {node: world(node) for node in scene.graph.nodes_geometry}
@@ -30,9 +39,13 @@ parts = {node: world(node) for node in scene.graph.nodes_geometry}
 def colours(g):
     """COLOR_0 as sRGB 0..255. glTF stores it linear; trimesh keeps it in
     visual.vertex_attributes['color'] when the mesh also has a material."""
-    attr = getattr(g.visual, "vertex_attributes", {}).get("color")
+    attrs = getattr(g.visual, "vertex_attributes", {})
+    if attrs.get("srgb") is not None:
+        srgb = np.clip(attrs["srgb"], 0, 1)
+        return np.hstack([srgb * 255.0, np.full((len(srgb), 1), 255.0)])
+    attr = attrs.get("color")
     if attr is None:
-        raise SystemExit("no COLOR_0 on a part - colours would be lost")
+        raise SystemExit("a part has neither COLOR_0 nor a texture - colours would be lost")
     lin = np.clip(np.asarray(attr, dtype=np.float64)[:, :3], 0, 1)
     srgb = np.where(lin <= 0.0031308, lin * 12.92, 1.055 * np.power(lin, 1 / 2.4) - 0.055)
     return np.hstack([srgb * 255.0, np.full((len(srgb), 1), 255.0)])
@@ -70,7 +83,10 @@ def cut_sockets(body, eyes):
     print("socket faces removed:", int((~keep).sum()))
     cut = trimesh.Trimesh(vertices=body.vertices, faces=body.faces[keep], process=False)
     cut.visual = trimesh.visual.ColorVisuals(cut)
-    cut.visual.vertex_attributes = {"color": body.visual.vertex_attributes["color"]}
+    cut.visual.vertex_attributes = dict(body.visual.vertex_attributes)
+    for k, v in list(cut.visual.vertex_attributes.items()):
+        if v is not None:
+            cut.visual.vertex_attributes[k] = v
     return cut
 
 parts["Body"] = cut_sockets(parts["Body"], parts["Eyes"])
@@ -83,12 +99,27 @@ def shrink(part, factor):
     base = np.array([v[low, 0].mean(), v[:, 1].min(), v[low, 2].mean()])
     part.vertices = base + (v - base) * factor
 
-shrink(parts["Mushroom_1"], 0.4)
-
-budget = {
-    "Body": 1500, "Eyes": 300, "Eye_Catchlights": 60, "Moss": 2500, "Plants": 400,
-    "Mushroom_1": 320, "Mushroom_2": 420, "Mushroom_3": 320, "Mushroom_4": 320, "Mushroom_5": 320, "Mushroom_6": 320,
+ENEMIES = {
+    # The owner shrank the slime's big top mushroom ("make it a little one").
+    "moss_slime": {
+        "shrink": {"Mushroom_1": 0.4},
+        "budget": {
+            "Body": 1500, "Eyes": 300, "Eye_Catchlights": 60, "Moss": 2500, "Plants": 400,
+            "Mushroom_1": 320, "Mushroom_2": 420, "Mushroom_3": 320, "Mushroom_4": 320, "Mushroom_5": 320, "Mushroom_6": 320,
+        },
+    },
+    "sprout_spitter": {
+        "shrink": {},
+        "budget": {
+            "Body": 1500, "Eyes": 300, "Eye_Catchlights": 72, "Moss": 2500, "Plants": 620,
+            "Mushroom_1": 424, "Mushroom_2": 424, "Mushroom_3": 424, "Sprout": 708, "Spout": 544,
+        },
+    },
 }
+settings = ENEMIES[ENEMY]
+for name, factor in settings["shrink"].items():
+    shrink(parts[name], factor)
+budget = settings["budget"]
 slim = {}
 for name, g in parts.items():
     if name not in budget:

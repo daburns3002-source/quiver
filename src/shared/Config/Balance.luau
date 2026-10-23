@@ -1338,8 +1338,10 @@ local Balance = {
 		--[[ An enemy hit squashes onto its feet and springs back
 		     (`Fx/HitSquash`): flattened by this share at the hit, settled
 		     by `hitSquashDuration` seconds. Not on burn ticks. ]]
-		hitSquash = 0.2,
-		hitSquashDuration = 0.32,
+		--[[ 0.2 at first; the owner asked for it "a little more
+		     noticeable" (2026-10-22). ]]
+		hitSquash = 0.3,
+		hitSquashDuration = 0.36,
 		hitFlashColor = Color3.fromRGB(255, 255, 255),
 		damageNumberRise = 4,
 		damageNumberDuration = 0.7,

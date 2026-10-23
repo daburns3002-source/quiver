@@ -119,6 +119,15 @@ local function mark(
 	}
 end
 
+--[[ An enemy's blob shadow, matched to Archero 2's (owner, 2026-10-22, from
+     footage): one flat dark blob as wide as the body, a touch towards the
+     camera, darkening the floor to about 60% (measured 81 against 134). ]]
+local SHADOW_SPREAD = 1
+local SHADOW_TOWARDS_CAMERA = 0.12
+local SHADOW_COLOR = Color3.fromRGB(0, 0, 0)
+--[[ 0.3 measures 59% on the lawn in Studio; 0.6 only reached 83%. ]]
+local SHADOW_TRANSPARENCY = 0.3
+
 --[[
 	A soft dark disc on the floor under the body, which is how Archero 2
 	grounds every character: a blob shadow rather than a cast one, so it
@@ -129,11 +138,14 @@ local function shadow(width: number, depth: number, height: number): DesignPart
 	return {
 		name = "Shadow",
 		shape = "Ellipsoid",
-		size = Vector3.new(width, 0.08, depth),
-		offset = Vector3.new(0, -height / 2 + 0.05, 0),
+		size = Vector3.new(width * SHADOW_SPREAD, 0.08, depth * SHADOW_SPREAD),
+		offset = Vector3.new(0, -height / 2 + 0.05, depth * SHADOW_TOWARDS_CAMERA),
 		shade = 1,
-		color = BLACK,
-		transparency = 0.55,
+		--[[ Matte: black plastic caught the sun and read as a flat grey disc
+		     on the lawn. ]]
+		color = SHADOW_COLOR,
+		material = Enum.Material.Fabric,
+		transparency = SHADOW_TRANSPARENCY,
 		tint = false,
 	}
 end

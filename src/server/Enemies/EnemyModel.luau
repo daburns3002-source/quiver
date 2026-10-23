@@ -144,6 +144,8 @@ local function buildPart(spec: DesignPart, config: EnemyConfig): BasePart
 	part.CanQuery = false
 	part.CanCollide = false
 	part.CanTouch = false
+	--[[ No cast shadow: an enemy is grounded by its blob shadow alone, as in
+	     Archero 2's footage (`EnemyDesigns`). ]]
 	part.CastShadow = false
 	part.Anchored = false
 

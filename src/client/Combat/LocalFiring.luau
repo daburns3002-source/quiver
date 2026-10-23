@@ -165,6 +165,8 @@ local function face(root: BasePart, direction: Vector3)
 	root.CFrame = CFrame.lookAt(root.Position, root.Position + flat)
 end
 
+local firedListeners: { () -> () } = {}
+
 local function step()
 	--[[ Nothing is being simulated behind the cards, so nothing should be
 	     drawn either. ]]
@@ -249,6 +251,14 @@ local function step()
 	})
 
 	ProjectileRenderer.spawnVolley("Player", origin, aim.Unit, specs, 0)
+	for _, listener in firedListeners do
+		listener()
+	end
+end
+
+--[[ Called on every volley this client fires, for the archer's release. ]]
+function LocalFiring.onFired(listener: () -> ())
+	table.insert(firedListeners, listener)
 end
 
 function LocalFiring.start()

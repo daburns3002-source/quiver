@@ -37,6 +37,13 @@ local CardTheme = {
 
 	card = {
 		size = Vector2.new(134, 330),
+		--[[ No crystals along the card's left and right edges (owner,
+		     2026-10-22: "delete the crystals coming off of the sides of all
+		     of the cards"). A shard whose base sits further than this from
+		     both the top and the bottom edge is a side crystal and is not
+		     drawn; the crowns at the top and bottom stay. `CardFrames` is
+		     generated from the design and keeps them all. ]]
+		sideCrystalMargin = 20,
 		corner = 18,
 		stroke = 4,
 		shadowOffset = 7,

@@ -3,8 +3,7 @@
 	The exit: a stone gatehouse in the gap of the north wall, after Archero 2's
 	(owner, 2026-10-22, from footage). While enemies remain its doorway is a
 	dark purple haze; when the room is cleared it blazes white-gold, throws
-	light and sparkles into the room, and a GO arrow on the floor points the
-	way. A plaque over the doorway carries the next room's number.
+	light and sparkles into the room, and an arrow on the floor points the way. A plaque over the doorway carries the next room's number.
 
 	Presentation only. Whether a player has reached the exit is still
 	`Arena.isAtDoor`, against `Balance.Run.doorOffset`, which sits in front
@@ -113,7 +112,7 @@ function ExitGate.build(root: Instance): Gate
 	-- The plaque with the next room's number, facing into the room.
 	local plaque = piece(
 		"Plaque",
-		Vector3.new(2.4, 1.3, 0.3),
+		Vector3.new(3.2, 1.7, 0.3),
 		CFrame.new(0, lintelY, front + 0.25),
 		config.plaqueColor,
 		folder
@@ -175,12 +174,15 @@ function ExitGate.build(root: Instance): Gate
 	glow.Material = Enum.Material.Neon
 	glow.CastShadow = false
 
-	-- GO: an arrow on the floor pointing into the doorway.
-	local arrowZ = Balance.Run.doorOffset.Y + 3
+	-- An arrow on the floor pointing into the doorway.
+	--[[ Clear of the doorway's glare, and above the lawn and its grass
+	     tufts: at floor height the model's ground hid it. ]]
+	local arrowZ = Balance.Run.doorOffset.Y + 6.5
+	local arrowY = 0.9
 	local shaft = piece(
 		"ArrowShaft",
 		Vector3.new(1.1, 0.08, 2.4),
-		CFrame.new(0, 0.08, arrowZ + 1.2),
+		CFrame.new(0, arrowY, arrowZ + 1.2),
 		Color3.new(1, 1, 1),
 		folder
 	)
@@ -192,41 +194,20 @@ function ExitGate.build(root: Instance): Gate
 			piece(
 				"ArrowHead",
 				Vector3.new(1.1, 0.08, 2.6),
-				CFrame.new(side * 0.8, 0.08, arrowZ - 0.55)
+				CFrame.new(side * 0.8, arrowY, arrowZ - 0.55)
 					* CFrame.Angles(0, side * math.rad(45), 0),
 				Color3.new(1, 1, 1),
 				folder
 			)
 		)
 	end
-	local word = piece(
-		"ArrowWord",
-		Vector3.new(4, 0.08, 1.6),
-		CFrame.new(0, 0.08, arrowZ + 3.3),
-		Color3.new(1, 1, 1),
-		folder
-	)
-	word.Transparency = 1
-	local wordGui = Instance.new("SurfaceGui")
-	wordGui.Face = Enum.NormalId.Top
-	wordGui.CanvasSize = Vector2.new(400, 160)
-	wordGui.LightInfluence = 0
-	wordGui.Parent = word
-	local wordLabel = Instance.new("TextLabel")
-	wordLabel.Size = UDim2.fromScale(1, 1)
-	wordLabel.BackgroundTransparency = 1
-	wordLabel.Font = Enum.Font.FredokaOne
-	wordLabel.TextScaled = true
-	wordLabel.TextColor3 = Color3.new(1, 1, 1)
-	wordLabel.Text = "GO"
-	wordLabel.Parent = wordGui
 
 	local gate: Gate = {
 		fill = fill,
 		light = light,
 		sparkles = sparkles,
 		glow = glow,
-		arrow = { shaft, heads[1], heads[2], word },
+		arrow = { shaft, heads[1], heads[2] },
 		label = label,
 	}
 	ExitGate.setOpen(gate, false)
@@ -243,13 +224,8 @@ function ExitGate.setOpen(gate: Gate, open: boolean)
 	gate.sparkles.Enabled = open
 	gate.glow.Transparency = if open then 0.55 else 1
 	for _, part in gate.arrow do
-		if part.Name ~= "ArrowWord" then
-			part.Transparency = if open then 0.1 else 1
-		end
-		local gui = part:FindFirstChildOfClass("SurfaceGui")
-		if gui then
-			gui.Enabled = open
-		end
+		part.Transparency = if open then 0.05 else 1
+		part.Material = Enum.Material.Neon
 	end
 end
 

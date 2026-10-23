@@ -1403,6 +1403,10 @@ local Balance = {
 		     reaches from the focus and keeps that inside the room plus this;
 		     a view longer than the room centres it instead of following. ]]
 		wallMargin = 3,
+		--[[ The same past the north wall, where the exit gate stands: enough
+		     to show the whole gatehouse as the player nears it. At 3 the
+		     camera stopped at the wall and the gate never came into view. ]]
+		gateMargin = 12,
 		-- How fast the camera catches up, as a per-second lerp factor.
 		followSharpness = 12,
 		--[[ A phone's framing, closer: "everything needs to be zoomed in on

@@ -101,9 +101,10 @@ local function step(deltaTime: number, getRoot: () -> BasePart?)
 	     the room is centred instead. ]]
 	local offset = cameraOffset(camera)
 	local far, near = viewSpan(camera, offset)
-	local reach = Balance.Arena.size.Z / 2 + Balance.Camera.wallMargin
-	local lowest = -reach - far
-	local highest = reach - near
+	local half = Balance.Arena.size.Z / 2
+	-- Further past the north wall (−Z), where the exit gate stands.
+	local lowest = -(half + Balance.Camera.gateMargin) - far
+	local highest = half + Balance.Camera.wallMargin - near
 	local target = if lowest > highest
 		then Vector3.new(0, 0, (lowest + highest) / 2)
 		else Vector3.new(0, 0, math.clamp(root.Position.Z, lowest, highest))

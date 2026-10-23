@@ -161,6 +161,9 @@ Remotes.DebugForceMythic = "DebugForceMythic"
 --[[ Client → server, Studio only: switch to the next class (`Config/Classes`).
      Stands in for a lobby's class choice until one exists. ]]
 Remotes.DebugNextClass = "DebugNextClass"
+--[[ Client → server, Studio only: grant one level of the named card, so a
+     probe can test its effect without drafting it by luck. ]]
+Remotes.DebugGrant = "DebugGrant"
 
 local function getFolder(): Folder
 	if RunService:IsServer() then

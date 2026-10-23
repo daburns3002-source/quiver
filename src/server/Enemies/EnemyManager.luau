@@ -204,6 +204,16 @@ function EnemyManager.aliveCount(): number
 	return aliveCount
 end
 
+--[[ How much of its health a live enemy has left, 0 to 1, or nil for
+     anything that is not one. For damage that cares (Execute). ]]
+function EnemyManager.healthFraction(model: Model): number?
+	local enemy = enemies[model]
+	if not enemy or enemy.maxHealth <= 0 then
+		return nil
+	end
+	return enemy.health / enemy.maxHealth
+end
+
 function EnemyManager.folder(): Folder?
 	return folder
 end

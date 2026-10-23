@@ -43,6 +43,33 @@ local CardAssets = {
 		-- Made with ChatGPT Codex, 2026-10-22, in the set's style.
 		["dual-bows"] = "rbxassetid://96411221480106",
 		["vitality"] = "rbxassetid://105469716205818",
+		-- The Warden's and the Arcanist's (docs/CLASS-CARDS.md), made with
+		-- ChatGPT Codex, 2026-10-23; wave 2's are uploaded ahead of their cards.
+		["arcane-echo"] = "rbxassetid://90588307285736",
+		["arcane-shield"] = "rbxassetid://85692218732116",
+		["bigger-orbs"] = "rbxassetid://116872321095051",
+		["bloodletting"] = "rbxassetid://128956614203627",
+		["chain-lightning"] = "rbxassetid://112742787905269",
+		["cleave"] = "rbxassetid://127068859568378",
+		["echo-slash"] = "rbxassetid://95427916516058",
+		["execute"] = "rbxassetid://109941305433406",
+		["frost-orb"] = "rbxassetid://72901595082363",
+		["gravity-well"] = "rbxassetid://118320781003408",
+		["heavy-blade"] = "rbxassetid://128237282788788",
+		["homing-orbs"] = "rbxassetid://114694066346379",
+		["iron-skin"] = "rbxassetid://93001041210721",
+		["long-reach"] = "rbxassetid://97359475363028",
+		["mana-flow"] = "rbxassetid://136541389511713",
+		["orbiting-orb"] = "rbxassetid://119377800870931",
+		["quick-hands"] = "rbxassetid://98957508570560",
+		["riposte"] = "rbxassetid://128707586600529",
+		["shockwave"] = "rbxassetid://83761779681549",
+		["spell-pierce"] = "rbxassetid://112032922952756",
+		["split-orb"] = "rbxassetid://139036184880574",
+		["steadfast"] = "rbxassetid://112892799886425",
+		["sunder"] = "rbxassetid://77038560427871",
+		["twin-cast"] = "rbxassetid://97768121123027",
+		["whirlwind"] = "rbxassetid://113837535310183",
 	},
 }
 

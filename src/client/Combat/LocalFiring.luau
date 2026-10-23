@@ -126,7 +126,9 @@ local function nearestEnemy(origin: Vector3): (Model?, Vector3?)
 	local choice = Aim.choose(
 		origin,
 		candidates,
-		if class and class.reach then class.reach else Balance.Player.attackRange,
+		if class and class.reach
+			then class.reach + PlayerStats.get().reachBonus
+			else Balance.Player.attackRange,
 		Aim.clearTest(blockers, Balance.Projectile.radius)
 	)
 

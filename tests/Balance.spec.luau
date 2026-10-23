@@ -635,4 +635,13 @@ return function(t: TestRunner.Helper)
 			)
 		end
 	end)
+
+	--[[ A stage's difficulty multipliers ease or harden it; zero or less
+	     would make enemies unkillable or harmless, a typo, not a setting. ]]
+	t.test("every stage's enemy multipliers are positive", function()
+		for index, stage in Balance.Stages do
+			t.isTrue((stage.enemyDamage or 1) > 0, `stage {index} has no enemy damage`)
+			t.isTrue((stage.enemyHealth or 1) > 0, `stage {index} has no enemy health`)
+		end
+	end)
 end

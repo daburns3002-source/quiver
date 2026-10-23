@@ -32,8 +32,11 @@ export type Progression = {
 }
 
 local Progression: Progression = {
-	baseLevelCost = 40,
-	levelCostGrowth = 1.35,
+	--[[ 40 and ×1.35 until the owner asked for faster levelling
+	     (2026-10-22): the first level now costs 28 XP and each costs ×1.25
+	     the last, so level 5 comes at 162 XP in all rather than 265. ]]
+	baseLevelCost = 28,
+	levelCostGrowth = 1.25,
 	offerCount = 3,
 	maxLevel = 20,
 }

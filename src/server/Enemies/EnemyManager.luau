@@ -154,6 +154,15 @@ local HOLD_FRACTION = 0.6
      few hundred box tests. ]]
 local SPAWN_GRID_STEP = 2
 
+--[[ The stage's multipliers on enemy damage and health (`StageConfig`). ]]
+local function difficulty(): { damage: number, health: number }
+	local stage = Balance.Stages[Balance.stage]
+	return {
+		damage = stage and stage.enemyDamage or 1,
+		health = stage and stage.enemyHealth or 1,
+	}
+end
+
 --[[ Volleys decided this step, drained by EnemyFiring. ]]
 local pendingVolleys: { Volley } = {}
 
@@ -496,8 +505,8 @@ function EnemyManager.spawn(
 		hitbox = hitbox,
 		skin = skin,
 		config = config,
-		health = config.health,
-		maxHealth = config.health,
+		health = config.health * difficulty().health,
+		maxHealth = config.health * difficulty().health,
 		position = position,
 		knockbackVelocity = Vector3.zero,
 		lastAttackAt = 0,
@@ -515,8 +524,8 @@ function EnemyManager.spawn(
 
 	--[[ Health travels as attributes so each client can draw the enemy's
 	     bar. Read for drawing only; the server's own number is the truth. ]]
-	model:SetAttribute("MaxHealth", config.health)
-	model:SetAttribute("Health", config.health)
+	model:SetAttribute("MaxHealth", config.health * difficulty().health)
+	model:SetAttribute("Health", config.health * difficulty().health)
 
 	model.Parent = parent
 
@@ -647,7 +656,15 @@ local function spawnSplit(split: Balance.EnemySplit, origin: Vector3)
 	local first = math.random() * math.pi * 2
 	for index = 1, split.count do
 		local angle = first + (index - 1) / split.count * math.pi * 2
-		EnemyManager.spawn(split.into, nil, splitSpot(split.into, origin, angle), origin)
+		local model =
+			EnemyManager.spawn(split.into, nil, splitSpot(split.into, origin, angle), origin)
+		local piece = model and enemies[model]
+		if piece then
+			piece.health *= split.health
+			piece.maxHealth *= split.health
+			piece.model:SetAttribute("MaxHealth", piece.maxHealth)
+			piece.model:SetAttribute("Health", piece.health)
+		end
 	end
 end
 
@@ -816,7 +833,7 @@ local function queueVolley(enemy: Enemy, targetRoot: BasePart, shot: Balance.Ene
 	table.insert(pendingVolleys, {
 		origin = enemy.position,
 		direction = direction,
-		damage = enemy.config.attackDamage,
+		damage = enemy.config.attackDamage * difficulty().damage,
 		shot = shot,
 	})
 end
@@ -1221,7 +1238,7 @@ local function stepEnemy(enemy: Enemy, deltaTime: number, now: number)
 		return
 	end
 
-	RunSession.applyDamage(session, config.attackDamage)
+	RunSession.applyDamage(session, config.attackDamage * difficulty().damage)
 end
 
 --[[

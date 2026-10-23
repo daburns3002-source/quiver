@@ -40,6 +40,10 @@ return function(t: TestRunner.Helper)
 					`{config.displayName} splits into an unlisted archetype`
 				)
 				t.isTrue(split.count >= 1, `{config.displayName} splits into nothing`)
+				t.isTrue(
+					split.health > 0 and split.health <= 1,
+					`{config.displayName}'s pieces have {split.health} of their health`
+				)
 				t.isTrue(split.into.split == nil, `{config.displayName}'s pieces split again`)
 				t.isTrue(
 					radius(split.into) < radius(config),

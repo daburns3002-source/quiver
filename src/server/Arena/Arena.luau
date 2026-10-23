@@ -295,6 +295,27 @@ local function placeModel(root: Instance, model: ArenaModels.ArenaModel)
 		part.Material = if spec.glow then Enum.Material.Neon else Enum.Material.SmoothPlastic
 		part.CastShadow = not spec.glow
 		part.Parent = folder
+
+		--[[ Again to either side, so the forest runs past the screen's edges. ]]
+		local spacing = model.surroundSpacing
+		if spacing and model.surround and table.find(model.surround, spec.name) then
+			for _, side in { -1, 1 } do
+				local copy = part:Clone()
+				copy.Name = `{spec.name}Surround`
+				copy.CFrame = CFrame.new(spec.offset + Vector3.new(side * spacing, 0, 0)) * turn
+				copy.Parent = folder
+			end
+		end
+	end
+
+	--[[ A forest floor under everything, just below the model's own ground
+	     so the two never share a plane and flicker. ]]
+	local outside = model.outsideColor
+	if outside then
+		local floor =
+			decor("Outside", Vector3.new(600, 1, 600), CFrame.new(0, -0.55, 0), outside, folder)
+		--[[ Matte: plastic catches the sun at a glance and paled to grey. ]]
+		floor.Material = Enum.Material.Fabric
 	end
 end
 

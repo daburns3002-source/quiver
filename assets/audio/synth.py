@@ -1183,8 +1183,76 @@ ROUND7 = {
 }
 
 
+# ---------- round 8: the Warden's greatsword. A swing for the sweep and the
+# backswing, and a slam for the combo's third blow. Heavy, but kept clean
+# and soft at the edges like the owner's other picks. ----------
+
+def r8_swing_a():  # A heavy, low whoosh
+    return whoosh(0.26, 380, 1500, q=1.1, attack=0.05, decay=4)
+
+
+def r8_swing_b():  # A whoosh with a faint blade ring ("shing")
+    ring = tone(2300, 0.3, 9, ((1, 1.0), (1.5, 0.3), (2.7, 0.15)), attack=0.02)
+    return room(mix((whoosh(0.24, 600, 2400, q=1.3, attack=0.04, decay=4.5), 0.8), (at(ring, 0.05), 0.12)), 0.12, 0.15)
+
+
+def r8_swing_c():  # Two layers: low air under a quick mid swish
+    low = whoosh(0.24, 250, 900, q=1.0, attack=0.05, decay=4)
+    mid = whoosh(0.14, 1200, 3500, q=1.5, attack=0.02, decay=5)
+    return mix((low, 0.7), (at(mid, 0.06), 0.45))
+
+
+def r8_swing_d():  # A whoosh that ends in a soft contact thump
+    thump = chirp(0.08, 150, 80) * env_ad(int(SR * 0.08), 0.002, 6)
+    return mix((whoosh(0.22, 500, 1800, q=1.2, attack=0.05, decay=4), 0.75), (at(thump, 0.18), 0.5))
+
+
+def r8_slam_a():  # A low thud and a little dust
+    thud = chirp(0.22, 120, 55) * env_ad(int(SR * 0.22), 0.002, 4.5)
+    dust = lowpass(noise(0.25), 900) * env_ad(int(SR * 0.25), 0.01, 5)
+    return room(mix((thud, 1.0), (dust, 0.3)), 0.15, 0.18)
+
+
+def r8_slam_b():  # A heavy "thoom" with a short ground rumble
+    thoom = chirp(0.3, 100, 45) * env_ad(int(SR * 0.3), 0.003, 3.5)
+    rumble = lowpass(noise(0.4), 160) * env_ad(int(SR * 0.4), 0.02, 4)
+    return room(mix((thoom, 1.0), (rumble, 0.6)), 0.18, 0.2)
+
+
+def r8_slam_c():  # A soft clang over the thud
+    clang = tone(620, 0.4, 6, ((1, 1.0), (2.76, 0.35), (5.1, 0.12)), attack=0.001)
+    thud = chirp(0.18, 130, 60) * env_ad(int(SR * 0.18), 0.002, 5)
+    return room(mix((thud, 0.9), (clang, 0.25)), 0.15, 0.2)
+
+
+def r8_slam_d():  # The blade coming down, into the thump
+    down = whoosh(0.18, 1600, 400, q=1.2, attack=0.04, decay=3)
+    thud = chirp(0.2, 120, 55) * env_ad(int(SR * 0.2), 0.002, 4.5)
+    return room(mix((down, 0.6), (at(thud, 0.16), 1.0)), 0.15, 0.18)
+
+
+ROUND8 = {
+    "sword_swing": [
+        ("a", r8_swing_a, "A heavy, low whoosh."),
+        ("b", r8_swing_b, "A whoosh with a faint ring of the blade."),
+        ("c", r8_swing_c, "Low air under a quick swish."),
+        ("d", r8_swing_d, "A whoosh that ends in a soft contact thump."),
+    ],
+    "sword_slam": [
+        ("a", r8_slam_a, "A low thud and a little dust."),
+        ("b", r8_slam_b, "A heavy \"thoom\" with a short ground rumble."),
+        ("c", r8_slam_c, "A soft clang over the thud."),
+        ("d", r8_slam_d, "The blade whooshing down into the thump."),
+    ],
+}
+
+LEVEL8 = {"sword_swing": 0.12, "sword_slam": 0.16}
+
+
+LEVEL.update(LEVEL8)
+
 # The audition rounds, kept so any take can be rendered again exactly.
-ROUNDS = {"1": ROUND1, "2": ROUND2, "3": ROUND3, "4": ROUND4, "5": ROUND5, "6": ROUND6, "7": ROUND7}
+ROUNDS = {"1": ROUND1, "2": ROUND2, "3": ROUND3, "4": ROUND4, "5": ROUND5, "6": ROUND6, "7": ROUND7, "8": ROUND8}
 
 if __name__ == "__main__":
     out = sys.argv[1]

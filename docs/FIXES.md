@@ -16,6 +16,23 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## The pond was a dark hole with no water
+
+**Symptom** — in Studio, the Mossy Pond room's pond drew as a dark hole
+ringed by its stones.
+
+**Cause** — the model's water is one flat sheet with no thickness (0.001
+studs as imported). Roblox drew nothing for it. Placed at its own depth it
+would also have sat under the pond's dark basin.
+
+**Fix** — a part flagged `water` in `ArenaModels` is drawn as a flattened
+sphere mesh (a cylinder mesh stays round whatever its size) of the water's
+size and place, in the model's teal, flush with the lawn.
+
+**Measured** — capture: the pond is filled to its ring of stones.
+
+---
+
 ## Grey space past the arena, and the grass outside the walls read grey
 
 **Symptom** — "make sure the camera cant see any gray space", then "i need

@@ -1,9 +1,12 @@
 --!strict
 --[[
 	The exit: a stone gatehouse in the gap of the north wall, after Archero 2's
-	(owner, 2026-10-22, from footage). While enemies remain its doorway is a
-	dark purple haze; when the room is cleared it blazes white-gold, throws
-	light and sparkles into the room, and an arrow on the floor points the way. A plaque over the doorway carries the next room's number.
+	(owner, 2026-10-22, from footage). While enemies remain it is shut by two
+	wooden doors over a dark purple haze; when the room is cleared the doors
+	swing open towards the room (owner, 2026-10-23: "a semblance of an actual
+	door opening"), the doorway behind blazes white-gold, throws light and
+	sparkles into the room, and an arrow on the floor points the way. A
+	plaque over the doorway carries the next room's number.
 
 	Presentation only. Whether a player has reached the exit is still
 	`Arena.isAtDoor`, against `Balance.Run.doorOffset`, which sits in front
@@ -12,12 +15,24 @@
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TweenService = game:GetService("TweenService")
 
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 
 local ExitGate = {}
 
+--[[ One door leaf: everything on it is welded to an invisible hinge part
+     on the pillar's edge, which is all that turns, so the leaf sweeps an
+     arc about its hinge rather than sliding. ]]
+type Leaf = {
+	hinge: Part,
+	shut: CFrame,
+	--[[ -1 for the left leaf, 1 for the right: which way it turns open. ]]
+	side: number,
+}
+
 export type Gate = {
+	leaves: { Leaf },
 	fill: Part,
 	light: PointLight,
 	sparkles: ParticleEmitter,
@@ -47,6 +62,100 @@ local function piece(
 	part.BottomSurface = Enum.SurfaceType.Smooth
 	part.Parent = parent
 	return part
+end
+
+--[[ One leaf of the double door, shut, hinged on the inner edge of the
+     pillar on `side` (-1 left, 1 right): vertical planks, two iron bands
+     and a ring handle near the middle, facing the room. ]]
+local function buildLeaf(
+	folder: Instance,
+	side: number,
+	width: number,
+	height: number,
+	front: number
+): Leaf
+	local config = Balance.Run.gate
+	local leafWidth = width / 2
+	local thickness = 0.3
+	local z = front + 0.05
+	--[[ The leaf runs from its hinge towards the middle: +X for the left
+	     leaf, -X for the right. ]]
+	local inward = -side
+	local hingeAt = CFrame.new(side * width / 2, height / 2, z)
+
+	local hinge = piece("DoorHinge", Vector3.new(0.2, 0.2, 0.2), hingeAt, config.doorColor, folder)
+	hinge.Transparency = 1
+
+	local function attach(
+		name: string,
+		size: Vector3,
+		offset: Vector3,
+		colour: Color3,
+		material: Enum.Material?,
+		turn: CFrame?
+	): Part
+		local part = piece(
+			name,
+			size,
+			hingeAt * CFrame.new(offset) * (turn or CFrame.identity),
+			colour,
+			folder
+		)
+		part.Anchored = false
+		part.Massless = true
+		if material then
+			part.Material = material
+		end
+		local weld = Instance.new("WeldConstraint")
+		weld.Part0 = hinge
+		weld.Part1 = part
+		weld.Parent = part
+		return part
+	end
+
+	--[[ A hair short of the middle and the floor, so the two leaves and
+	     the ground never share a face. ]]
+	local span = leafWidth - 0.05
+	attach(
+		"Door",
+		Vector3.new(span, height - 0.1, thickness),
+		Vector3.new(inward * span / 2, 0.05, 0),
+		config.doorColor,
+		Enum.Material.Wood
+	)
+	-- Plank seams, standing a little proud of the face.
+	for i = 1, 2 do
+		attach(
+			"DoorSeam",
+			Vector3.new(0.08, height - 0.3, 0.06),
+			Vector3.new(inward * span * i / 3, 0.05, thickness / 2 + 0.02),
+			config.doorPlankColor
+		)
+	end
+	-- Two iron bands across the leaf.
+	for _, y in { height * 0.28, -height * 0.28 } do
+		attach(
+			"DoorBand",
+			Vector3.new(span, 0.32, 0.08),
+			Vector3.new(inward * span / 2, y, thickness / 2 + 0.04),
+			config.doorBandColor,
+			Enum.Material.Metal
+		)
+	end
+	-- A ring handle near the meeting edge.
+	--[[ A cylinder's axis is its X, so it is turned to stand out of the
+	     door like a ring seen face-on. ]]
+	local ring = attach(
+		"DoorRing",
+		Vector3.new(0.12, 0.7, 0.7),
+		Vector3.new(inward * (span - 0.45), -0.2, thickness / 2 + 0.12),
+		config.doorRingColor,
+		Enum.Material.Metal,
+		CFrame.Angles(0, math.rad(90), 0)
+	)
+	ring.Shape = Enum.PartType.Cylinder
+
+	return { hinge = hinge, shut = hingeAt, side = side }
 end
 
 --[[ Builds the gate under `root`, closed. Its front sits on the inner face
@@ -202,7 +311,13 @@ function ExitGate.build(root: Instance): Gate
 		)
 	end
 
+	local leaves = {}
+	for _, side in { -1, 1 } do
+		table.insert(leaves, buildLeaf(folder, side, width, height, front))
+	end
+
 	local gate: Gate = {
+		leaves = leaves,
 		fill = fill,
 		light = light,
 		sparkles = sparkles,
@@ -210,13 +325,29 @@ function ExitGate.build(root: Instance): Gate
 		arrow = { shaft, heads[1], heads[2] },
 		label = label,
 	}
-	ExitGate.setOpen(gate, false)
+	ExitGate.setOpen(gate, false, true)
 	return gate
 end
 
---[[ Closed: dark haze, no light, no arrow. Open: the doorway blazes. ]]
-function ExitGate.setOpen(gate: Gate, open: boolean)
+--[[ Closed: the doors shut over a dark haze, no light, no arrow. Open: the
+     doors swing wide and the doorway blazes. `instant` skips the swing, for
+     a gate being built shut. ]]
+function ExitGate.setOpen(gate: Gate, open: boolean, instant: boolean?)
 	local config = Balance.Run.gate
+	for _, leaf in gate.leaves do
+		local target = if open
+			then leaf.shut * CFrame.Angles(0, leaf.side * math.rad(config.doorOpenAngle), 0)
+			else leaf.shut
+		if instant then
+			leaf.hinge.CFrame = target
+		else
+			TweenService:Create(
+				leaf.hinge,
+				TweenInfo.new(config.doorOpenTime, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
+				{ CFrame = target }
+			):Play()
+		end
+	end
 	gate.fill.Color = if open then config.openColor else config.closedColor
 	gate.fill.Material = if open then Enum.Material.Neon else Enum.Material.SmoothPlastic
 	gate.fill.Transparency = if open then 0 else 0.15

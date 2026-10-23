@@ -127,19 +127,25 @@ local SHADOW_TOWARDS_CAMERA = 0.12
 local SHADOW_COLOR = Color3.fromRGB(0, 0, 0)
 --[[ 0.3 measures 59% on the lawn in Studio; 0.6 only reached 83%. ]]
 local SHADOW_TRANSPARENCY = 0.3
+--[[ Studs above the floor the blob is drawn at: over the ground and what
+     lies on it — path stones, moss, the pond, low grass, which rise a few
+     tenths of a stud and used to hide it — and still under the body, whose
+     round base is widest well above this (owner, 2026-10-23: shadows over
+     everything but the enemies and players). ]]
+local SHADOW_LIFT = 0.4
 
 --[[
 	A soft dark disc on the floor under the body, which is how Archero 2
 	grounds every character: a blob shadow rather than a cast one, so it
-	reads the same on every device tier. Sits at the floor of a hitbox
-	`height` tall, and never flashes.
+	reads the same on every device tier. Sits just above the floor of a
+	hitbox `height` tall (`SHADOW_LIFT`), and never flashes.
 ]]
 local function shadow(width: number, depth: number, height: number): DesignPart
 	return {
 		name = "Shadow",
 		shape = "Ellipsoid",
 		size = Vector3.new(width * SHADOW_SPREAD, 0.08, depth * SHADOW_SPREAD),
-		offset = Vector3.new(0, -height / 2 + 0.05, depth * SHADOW_TOWARDS_CAMERA),
+		offset = Vector3.new(0, -height / 2 + SHADOW_LIFT, depth * SHADOW_TOWARDS_CAMERA),
 		shade = 1,
 		--[[ Matte: black plastic caught the sun and read as a flat grey disc
 		     on the lawn. ]]

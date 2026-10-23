@@ -37,6 +37,23 @@ local AbilityEffects = {}
 
 export type Counts = { [string]: number }
 
+--[[ A melee class's swing, as its cards change it (`Combat/MeleeSystem`). ]]
+export type MeleeStats = {
+	--[[ Multiplier on the swing box's width. Cleave. ]]
+	widthScale: number,
+	--[[ Studs added to reach and to the box's depth. Long Reach. ]]
+	reachBonus: number,
+	--[[ Seconds the guard lasts past the end of a swing. Steadfast. ]]
+	guardLinger: number,
+	--[[ Extra damage on the combo's last blow, as a fraction. Heavy Blade. ]]
+	slamBonus: number,
+	--[[ Share of a blow's damage healed. Bloodletting. ]]
+	lifesteal: number,
+	--[[ Extra damage to enemies under `Balance.Player.executeBelow` of their
+	     health, as a fraction. Execute. ]]
+	executeBonus: number,
+}
+
 --[[ What the server applies. ]]
 export type ServerStats = {
 	damage: number,
@@ -57,6 +74,9 @@ export type ServerStats = {
 	--[[ The class's shot speed and lifetime (`Config/Classes`). ]]
 	projectileSpeed: number,
 	projectileLifetime: number,
+	--[[ Multiplier on damage the player takes. Iron Skin. ]]
+	damageTaken: number,
+	melee: MeleeStats,
 }
 
 --[[
@@ -81,6 +101,9 @@ export type ClientStats = {
 	momentumBonus: number,
 	projectileSpeed: number,
 	projectileLifetime: number,
+	--[[ Studs added to a melee class's reach, so the client picks the same
+	     targets the server does. Long Reach. ]]
+	reachBonus: number,
 	--[[ The player's class, so the client builds the same pipeline. ]]
 	class: string,
 	abilities: Counts,
@@ -141,7 +164,8 @@ function AbilityEffects.stages(drafted: Counts, class: string?): { ShotStage }
 
 	--[[ Front Arrow puts extra arrows *beside* the first rather than fanning
 	     them, so the whole volley lands in the enemy the player aimed at. ]]
-	local front = at(counts, "FrontArrow")
+	--[[ Twin Cast is the Arcanist's Front Arrow: orbs side by side. ]]
+	local front = at(counts, "FrontArrow") + at(counts, "TwinCast")
 	if front > 0 then
 		table.insert(out, Stages.parallel(1 + front, projectile.parallelSpacing))
 	end
@@ -151,6 +175,13 @@ function AbilityEffects.stages(drafted: Counts, class: string?): { ShotStage }
 	local multishot = at(counts, "Multishot")
 	if multishot > 0 then
 		table.insert(out, Stages.repeatVolley(multishot, projectile.multishotInterval))
+	end
+
+	--[[ Arcane Echo: the cast again, a moment later, as Multishot repeats
+	     an arrow. ]]
+	local echo = at(counts, "ArcaneEcho")
+	if echo > 0 then
+		table.insert(out, Stages.repeatVolley(echo, projectile.echoInterval))
 	end
 
 	--[[ The narrow fan goes first in Pattern, so the rear, side and
@@ -188,7 +219,7 @@ function AbilityEffects.stages(drafted: Counts, class: string?): { ShotStage }
 		table.insert(out, Stages.mirror("DiagonalArrows", offsets))
 	end
 
-	local pierce = at(counts, "PiercingShot")
+	local pierce = at(counts, "PiercingShot") + at(counts, "SpellPierce")
 	if pierce > 0 then
 		table.insert(out, Stages.pierce(pierce))
 	end
@@ -205,12 +236,13 @@ function AbilityEffects.stages(drafted: Counts, class: string?): { ShotStage }
 
 	--[[ Radius grows with the level; the share does not. A splash that also
 	     scaled its damage would overtake the arrow that delivered it. ]]
-	local blast = at(counts, "BlastArrows")
+	local blast = at(counts, "BlastArrows") * (1 + at(counts, "BiggerOrbs"))
 	if blast > 0 then
 		table.insert(out, Stages.splash(blast, 0.5))
 	end
 
-	local ricochet = at(counts, "Ricochet")
+	--[[ Chain Lightning arcs an orb on as Ricochet bounces an arrow. ]]
+	local ricochet = at(counts, "Ricochet") + at(counts, "ChainLightning")
 	if ricochet > 0 then
 		table.insert(out, Stages.ricochet(ricochet))
 	end
@@ -248,6 +280,14 @@ function AbilityEffects.stages(drafted: Counts, class: string?): { ShotStage }
 	return out
 end
 
+--[[ Extra attack speed from every card that gives it, as a fraction: Dual
+     Bows (the Ranger's), Quick Hands (the Warden's), Mana Flow (the
+     Arcanist's). Server and client must agree, or prediction attacks on a
+     different beat from the attacks that count. ]]
+local function attackSpeed(counts: Counts): number
+	return at(counts, "DualBows") + at(counts, "QuickHands") + at(counts, "ManaFlow")
+end
+
 function AbilityEffects.serverStats(drafted: Counts, class: string?): ServerStats
 	local player = Balance.Player
 	local counts = withClass(drafted, class)
@@ -261,9 +301,18 @@ function AbilityEffects.serverStats(drafted: Counts, class: string?): ServerStat
 		--[[ Dual Bows: attack speed ×(1 + level), so its 1 halves the
 		     cooldown. Server and client must agree, or prediction fires
 		     on a different beat from the shots that count. ]]
-		attackCooldown = player.attackCooldown * kind.cooldownScale / (1 + at(counts, "DualBows")),
+		attackCooldown = player.attackCooldown * kind.cooldownScale / (1 + attackSpeed(counts)),
 		projectileSpeed = Balance.Projectile.speed * kind.speedScale,
 		projectileLifetime = Balance.Projectile.lifetime / kind.speedScale,
+		damageTaken = 1 - at(counts, "IronSkin"),
+		melee = {
+			widthScale = 1 + at(counts, "Cleave"),
+			reachBonus = at(counts, "LongReach"),
+			guardLinger = at(counts, "Steadfast"),
+			slamBonus = at(counts, "HeavyBlade"),
+			lifesteal = at(counts, "Bloodletting"),
+			executeBonus = at(counts, "Execute"),
+		},
 		healPerKill = at(counts, "Bloodthirst"),
 		regenPerSecond = at(counts, "Mending"),
 		dodgeChance = at(counts, "Agility"),
@@ -310,10 +359,11 @@ function AbilityEffects.clientStats(counts: Counts, class: string?): ClientStats
 	return {
 		moveSpeed = player.moveSpeed * (1 + at(merged, "Lightfoot")),
 		dashCooldown = player.dash.cooldown,
-		attackCooldown = player.attackCooldown * kind.cooldownScale / (1 + at(merged, "DualBows")),
+		attackCooldown = player.attackCooldown * kind.cooldownScale / (1 + attackSpeed(merged)),
 		momentumBonus = at(merged, "Momentum"),
 		projectileSpeed = Balance.Projectile.speed * kind.speedScale,
 		projectileLifetime = Balance.Projectile.lifetime / kind.speedScale,
+		reachBonus = at(merged, "LongReach"),
 		class = class or "Ranger",
 		abilities = copy,
 	}

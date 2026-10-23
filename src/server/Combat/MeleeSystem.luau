@@ -75,7 +75,7 @@ function MeleeSystem.swing(session: Session, root: BasePart, now: number, cooldo
 	local target = Aim.choose(
 		origin,
 		candidates(),
-		class.reach or Balance.Player.attackRange,
+		(class.reach or Balance.Player.attackRange) + session.melee.reachBonus,
 		Aim.clearTest(Arena.blockers(), Balance.Projectile.radius)
 	)
 	if not target then
@@ -98,10 +98,11 @@ function MeleeSystem.swing(session: Session, root: BasePart, now: number, cooldo
 	session.swingEndsAt = now + clip.length / speed
 	session.lastFiredAt = now
 
-	--[[ Untouchable for the whole swing. ]]
+	--[[ Untouchable for the whole swing, and for a while after with
+	     Steadfast. ]]
 	if class.swing.guard then
 		session.guardFrom = now
-		session.guardUntil = session.swingEndsAt
+		session.guardUntil = session.swingEndsAt + session.melee.guardLinger
 	end
 
 	table.insert(pending, {
@@ -146,15 +147,20 @@ local function land(swing: Pending, now: number)
 		origin = root.Position,
 		direction = swing.direction,
 	})[1]
+	local melee = session.melee
 	local blow = session.damage * (config.damage[swing.index] or 1)
+	--[[ Heavy Blade: the combo's last blow, the slam, hits harder. ]]
+	if swing.index == #config.damage then
+		blow *= 1 + melee.slamBonus
+	end
 
 	for _, enemy in candidates() do
 		if
 			not SwingBox.contains(
 				root.Position,
 				swing.direction,
-				config.width,
-				config.depth,
+				config.width * melee.widthScale,
+				config.depth + melee.reachBonus,
 				enemy.position,
 				enemy.halfWidth
 			)
@@ -163,6 +169,11 @@ local function land(swing: Pending, now: number)
 		end
 
 		local damage = blow
+		--[[ Execute: more against an enemy already badly hurt. ]]
+		local left = EnemyManager.healthFraction(enemy.model)
+		if melee.executeBonus > 0 and left and left < Balance.Player.executeBelow then
+			damage *= 1 + melee.executeBonus
+		end
 		local kind: Types.HitKind = "Hit"
 		if lead and lead.critChance > 0 and math.random() < lead.critChance then
 			damage *= lead.critMultiplier
@@ -170,6 +181,10 @@ local function land(swing: Pending, now: number)
 		end
 
 		local landed, xp, fell = EnemyManager.damage(enemy.model, damage, root.Position, kind)
+		--[[ Bloodletting: a share of the blow comes back as health. ]]
+		if landed and melee.lifesteal > 0 then
+			RunSession.heal(session, damage * melee.lifesteal)
+		end
 		if xp > 0 then
 			RunSession.creditKill(session.player, xp, fell)
 		end

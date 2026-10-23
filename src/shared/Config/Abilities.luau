@@ -31,7 +31,7 @@
 local Rarities = require(script.Parent.Rarities)
 
 export type Category = "Count" | "Pattern" | "Flight" | "OnHit" | "OnKill" | "Stats" | "Defensive"
-export type Group = "arrow" | "power" | "element" | "mobility" | "vital"
+export type Group = "arrow" | "power" | "element" | "mobility" | "vital" | "blade" | "spell"
 
 export type Ability = {
 	id: string,
@@ -59,6 +59,11 @@ export type Ability = {
 	weapon: string?,
 }
 
+--[[ Who a class card belongs to (`Ability.classes`). ]]
+local RANGER = { "Ranger" }
+local WARDEN = { "Warden" }
+local ARCANIST = { "Arcanist" }
+
 local abilities: { Ability } = {
 	--[[ Arrow skills: how many arrows, where they go, how they fly. ]]
 	{
@@ -72,6 +77,7 @@ local abilities: { Ability } = {
 		levels = { 1, 2, 3 },
 		stats = { "+1 arrow", "+2 arrows", "+3 arrows" },
 		icon = "multishot",
+		classes = RANGER,
 	},
 	{
 		id = "Ricochet",
@@ -83,6 +89,7 @@ local abilities: { Ability } = {
 		levels = { 2, 3, 4 },
 		stats = { "2 bounces", "3 bounces", "4 bounces" },
 		icon = "ricochet",
+		classes = RANGER,
 	},
 	{
 		id = "FrontArrow",
@@ -95,6 +102,7 @@ local abilities: { Ability } = {
 		levels = { 1, 2, 3 },
 		stats = { "+1 front", "+2 front", "+3 front" },
 		icon = "front-arrow",
+		classes = RANGER,
 	},
 	{
 		id = "DoubleShot",
@@ -107,6 +115,7 @@ local abilities: { Ability } = {
 		levels = { 2, 3 },
 		stats = { "2-way spread", "3-way spread" },
 		icon = "double-shot",
+		classes = RANGER,
 	},
 	{
 		id = "RearArrow",
@@ -118,6 +127,7 @@ local abilities: { Ability } = {
 		levels = { 1, 2 },
 		stats = { "+1 rear", "+2 rear" },
 		icon = "rear-arrow",
+		classes = RANGER,
 	},
 	{
 		id = "SideArrows",
@@ -130,6 +140,7 @@ local abilities: { Ability } = {
 		levels = { 1, 2 },
 		stats = { "+1 each side", "+2 each side" },
 		icon = "side-arrow",
+		classes = RANGER,
 	},
 	{
 		id = "DiagonalArrows",
@@ -144,6 +155,7 @@ local abilities: { Ability } = {
 		levels = { 2, 4 },
 		stats = { "+2 diagonal", "+4 diagonal" },
 		icon = "diagonal-arrows",
+		classes = RANGER,
 	},
 	{
 		id = "PiercingShot",
@@ -156,6 +168,7 @@ local abilities: { Ability } = {
 		levels = { 1, 2, 99 },
 		stats = { "Pierce 1", "Pierce 2", "Pierce all" },
 		icon = "piercing-shot",
+		classes = RANGER,
 	},
 	{
 		id = "SwiftArrows",
@@ -167,6 +180,7 @@ local abilities: { Ability } = {
 		levels = { 0.15, 0.3, 0.45, 0.6, 0.75 },
 		stats = { "+15% speed", "+30% speed", "+45% speed", "+60% speed", "+75% speed" },
 		icon = "swift-arrows",
+		classes = RANGER,
 	},
 	{
 		id = "LongShot",
@@ -180,6 +194,7 @@ local abilities: { Ability } = {
 		levels = { 0.08, 0.16, 0.24 },
 		stats = { "+8% far dmg", "+16% far dmg", "+24% far dmg" },
 		icon = "long-shot",
+		classes = RANGER,
 	},
 	{
 		id = "BouncyWall",
@@ -191,23 +206,24 @@ local abilities: { Ability } = {
 		levels = { 1, 2 },
 		stats = { "1 wall bounce", "2 wall bounces" },
 		icon = "bouncy-wall",
+		classes = RANGER,
 	},
 	--[[ Turn rate in degrees a second: enough to bend a shot onto a target
 	     that stepped aside, not enough to turn one round. Excludes Bouncy
 	     Wall — a homing arrow curves back at the wall it just left. ]]
 	{
 		id = "TrackingEye",
-		name = "Tracking Eye",
-		description = "Arrows curve toward the nearest enemy.",
+		name = "Homing Orbs",
+		description = "Orbs curve toward the nearest enemy.",
 		category = "Flight",
-		group = "arrow",
+		group = "spell",
 		rarity = "Mythic",
 		levels = { 540 },
 		stats = { "Homing" },
-		icon = "tracking-eye",
+		icon = "homing-orbs",
 		excludes = { "BouncyWall" },
-		--[[ Homing is the Arcanist's Mythic now ("Homing Orbs"); held back
-		     from the Ranger, and dealt to nobody until the Arcanist exists. ]]
+		--[[ The Arcanist's Mythic, as "Homing Orbs" (2026-10-23); its id stays
+		     Tracking Eye's, the mechanic it always was. ]]
 		classes = { "Arcanist" },
 	},
 	--[[ The Ranger's Mythic: a second bow, so twice the shots. The level is
@@ -259,6 +275,7 @@ local abilities: { Ability } = {
 		levels = { 0.35, 0.7, 1.05 },
 		stats = { "+35% charged", "+70% charged", "+105% charged" },
 		icon = "overdraw",
+		classes = RANGER,
 	},
 	{
 		id = "Strength",
@@ -308,6 +325,7 @@ local abilities: { Ability } = {
 		levels = { 3, 4.5, 6 },
 		stats = { "Small blast", "Medium blast", "Large blast" },
 		icon = "blast-arrows",
+		classes = RANGER,
 	},
 	{
 		id = "SoulChain",
@@ -321,6 +339,7 @@ local abilities: { Ability } = {
 		levels = { 2, 3, 4 },
 		stats = { "Link 2", "Link 3", "Link 4" },
 		icon = "soul-chain",
+		classes = RANGER,
 	},
 
 	--[[ Mobility skills. ]]
@@ -425,6 +444,180 @@ local abilities: { Ability } = {
 		icon = "mending",
 		instant = true,
 		filler = true,
+	},
+
+	--[[ The Warden's cards (docs/CLASS-CARDS.md, 2026-10-23): its greatsword
+	     and its guard. Built on `Combat/MeleeSystem`. ]]
+	{
+		id = "QuickHands",
+		name = "Quick Hands",
+		description = "Swing faster.",
+		category = "Stats",
+		group = "blade",
+		rarity = "Common",
+		levels = { 0.1, 0.2, 0.3 },
+		stats = { "+10% atk spd", "+20% atk spd", "+30% atk spd" },
+		icon = "quick-hands",
+		classes = WARDEN,
+	},
+	{
+		id = "IronSkin",
+		name = "Iron Skin",
+		description = "Take less damage.",
+		category = "Defensive",
+		group = "vital",
+		rarity = "Common",
+		levels = { 0.08, 0.16, 0.24 },
+		stats = { "-8% dmg taken", "-16% dmg taken", "-24% dmg taken" },
+		icon = "iron-skin",
+		classes = WARDEN,
+	},
+	{
+		id = "Cleave",
+		name = "Cleave",
+		description = "Your swing is wider.",
+		category = "Stats",
+		group = "blade",
+		rarity = "Uncommon",
+		levels = { 0.15, 0.3, 0.45 },
+		stats = { "+15% width", "+30% width", "+45% width" },
+		icon = "cleave",
+		classes = WARDEN,
+	},
+	{
+		id = "LongReach",
+		name = "Long Reach",
+		description = "Strike from further away.",
+		category = "Stats",
+		group = "blade",
+		rarity = "Uncommon",
+		levels = { 1.5, 3, 4.5 },
+		stats = { "+1.5 reach", "+3 reach", "+4.5 reach" },
+		icon = "long-reach",
+		classes = WARDEN,
+	},
+	{
+		id = "Steadfast",
+		name = "Steadfast",
+		description = "Your guard lingers after each swing.",
+		category = "Defensive",
+		group = "vital",
+		rarity = "Uncommon",
+		levels = { 0.3, 0.6 },
+		stats = { "+0.3s guard", "+0.6s guard" },
+		icon = "steadfast",
+		classes = WARDEN,
+	},
+	{
+		id = "HeavyBlade",
+		name = "Heavy Blade",
+		description = "Your slam, the third blow, hits harder.",
+		category = "Stats",
+		group = "blade",
+		rarity = "Rare",
+		levels = { 0.4, 0.8, 1.2 },
+		stats = { "+40% slam", "+80% slam", "+120% slam" },
+		icon = "heavy-blade",
+		classes = WARDEN,
+	},
+	{
+		id = "Bloodletting",
+		name = "Bloodletting",
+		description = "Your blows heal you.",
+		category = "Defensive",
+		group = "vital",
+		rarity = "Rare",
+		levels = { 0.03, 0.06, 0.09 },
+		stats = { "3% lifesteal", "6% lifesteal", "9% lifesteal" },
+		icon = "bloodletting",
+		classes = WARDEN,
+	},
+	{
+		id = "Execute",
+		name = "Execute",
+		description = "Blows hit harder on badly hurt enemies.",
+		category = "Stats",
+		group = "blade",
+		rarity = "Legendary",
+		levels = { 0.5, 1 },
+		stats = { "+50% under 30% HP", "+100% under 30% HP" },
+		icon = "execute",
+		classes = WARDEN,
+	},
+
+	--[[ The Arcanist's cards (docs/CLASS-CARDS.md, 2026-10-23): its orbs.
+	     Several are a Ranger mechanic under a spell's name. ]]
+	{
+		id = "BiggerOrbs",
+		name = "Bigger Orbs",
+		description = "Your orbs' blast is larger.",
+		category = "OnHit",
+		group = "spell",
+		rarity = "Common",
+		levels = { 0.15, 0.3, 0.45 },
+		stats = { "+15% blast", "+30% blast", "+45% blast" },
+		icon = "bigger-orbs",
+		classes = ARCANIST,
+	},
+	{
+		id = "ManaFlow",
+		name = "Mana Flow",
+		description = "Cast faster.",
+		category = "Stats",
+		group = "spell",
+		rarity = "Common",
+		levels = { 0.1, 0.2, 0.3 },
+		stats = { "+10% atk spd", "+20% atk spd", "+30% atk spd" },
+		icon = "mana-flow",
+		classes = ARCANIST,
+	},
+	{
+		id = "TwinCast",
+		name = "Twin Cast",
+		description = "An extra orb beside each cast.",
+		category = "Count",
+		group = "spell",
+		rarity = "Rare",
+		levels = { 1, 2 },
+		stats = { "+1 orb", "+2 orbs" },
+		icon = "twin-cast",
+		classes = ARCANIST,
+	},
+	{
+		id = "ArcaneEcho",
+		name = "Arcane Echo",
+		description = "Each cast repeats a moment later.",
+		category = "Count",
+		group = "spell",
+		rarity = "Rare",
+		levels = { 1, 2 },
+		stats = { "+1 echo", "+2 echoes" },
+		icon = "arcane-echo",
+		classes = ARCANIST,
+	},
+	{
+		id = "SpellPierce",
+		name = "Spell Pierce",
+		description = "Orbs pass through enemies.",
+		category = "Flight",
+		group = "spell",
+		rarity = "Rare",
+		levels = { 1, 2 },
+		stats = { "Pierce 1", "Pierce 2" },
+		icon = "spell-pierce",
+		classes = ARCANIST,
+	},
+	{
+		id = "ChainLightning",
+		name = "Chain Lightning",
+		description = "A hit arcs on to the next enemy.",
+		category = "OnHit",
+		group = "spell",
+		rarity = "Epic",
+		levels = { 2, 3 },
+		stats = { "Arcs to 2", "Arcs to 3" },
+		icon = "chain-lightning",
+		classes = ARCANIST,
 	},
 }
 

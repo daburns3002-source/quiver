@@ -140,9 +140,10 @@ Arcanist (arcane staff: slow, heavy orbs with Blast Arrows built in) and
 the Warden (ruby greatsword, melee: `Combat/MeleeSystem` lands each blow of
 a three-hit combo on the server, in `Shared/Combat/SwingBox`). Each weapon
 is the owner's Claude Design kit, its animations generated into
-`Config/WeaponAnimations` and played in code by `Fx/WeaponPose`. 15 of the
-28 cards do nothing for the Warden yet; options in `docs/WARDEN-CARDS.md`,
-the owner's to decide.
+`Config/WeaponAnimations` and played in code by `Fx/WeaponPose`. Each class
+drafts its own cards plus a shared twelve (`Ability.classes`,
+`docs/CLASS-CARDS.md`): wave 1 of the Warden's and the Arcanist's is built,
+wave 2 is designed and has its icons.
 
 **XP crystals and hearts** (`Run/Pickups`, `Fx/PickupFx`): a kill's XP
 drops as cyan crystals; walk over your own to take them mid-fight, and any
@@ -213,6 +214,8 @@ Studio): **M** — the next card hand includes a Mythic; **L** — a Legendary;
 **V** / **B** — preview the Victory / Defeat end screen, on this client only.
 **C** — switch class (Ranger → Arcanist → Warden, `Config/Classes`): the loadout
 and the weapon in hand change at once.
+From a probe, `Remotes.DebugGrant:FireServer("Cleave")` grants one level of
+any card (Studio only), to test a card's effect without drafting it.
 From a probe, `Remotes.DebugForceMythic:FireServer("Legendary")` does the
 same without the MCP keyboard tool, which reports as a gamepad and flips the
 draft into its controller layout.

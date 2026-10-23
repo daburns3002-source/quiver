@@ -18,6 +18,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
+local Abilities = require(ReplicatedStorage.Shared.Config.Abilities)
 local Arena = require(script.Parent.Arena.Arena)
 local Atmosphere = require(script.Parent.Arena.Atmosphere)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
@@ -197,6 +198,23 @@ Remotes.event(Remotes.DebugNextClass).OnServerEvent:Connect(function(player)
 	session.loadout.class = class
 	RunSession.applyLoadout(session)
 	log.info("%s is now a %s (Studio)", player.Name, class)
+end)
+
+--[[ Testing only: one more level of a named card, within its levels.
+     Honoured only in Studio, like the keys above. ]]
+Remotes.event(Remotes.DebugGrant).OnServerEvent:Connect(function(player, id)
+	if not RunService:IsStudio() or typeof(id) ~= "string" then
+		return
+	end
+	local session = RunSession.get(player)
+	local ability = Abilities.byId[id]
+	if not session or not ability then
+		return
+	end
+	local counts = session.loadout.counts
+	counts[id] = math.min((counts[id] or 0) + 1, #ability.levels)
+	RunSession.applyLoadout(session)
+	log.info("%s was granted %s (Studio)", player.Name, id)
 end)
 
 Remotes.event(Remotes.AbilityReroll).OnServerEvent:Connect(function(player)

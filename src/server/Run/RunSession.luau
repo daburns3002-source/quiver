@@ -57,6 +57,10 @@ export type Session = {
 	dodgeChance: number,
 	overdrawBonus: number,
 	momentumBonus: number,
+	--[[ Multiplier on damage taken (Iron Skin), and a melee class's swing
+	     as its cards change it (`AbilityEffects.MeleeStats`). ]]
+	damageTaken: number,
+	melee: AbilityEffects.MeleeStats,
 	--[[ Share of max health Second Wind revives with (0 without it), and
 	     whether it has been spent. The ability is held; the charge is spent. ]]
 	secondWind: number,
@@ -146,6 +150,15 @@ function RunSession.create(player: Player): Session
 		dodgeChance = 0,
 		overdrawBonus = 0,
 		momentumBonus = 0,
+		damageTaken = 1,
+		melee = {
+			widthScale = 1,
+			reachBonus = 0,
+			guardLinger = 0,
+			slamBonus = 0,
+			lifesteal = 0,
+			executeBonus = 0,
+		},
 		secondWind = 0,
 		secondWindUsed = false,
 		stageKills = 0,
@@ -205,6 +218,8 @@ function RunSession.applyLoadout(session: Session)
 	session.overdrawBonus = stats.overdrawBonus
 	session.momentumBonus = stats.momentumBonus
 	session.secondWind = stats.secondWind
+	session.damageTaken = stats.damageTaken
+	session.melee = stats.melee
 
 	session.pipeline:clear()
 	for _, stage in AbilityEffects.stages(counts, class) do
@@ -657,6 +672,7 @@ function RunSession.applyDamage(session: Session, amount: number)
 		return
 	end
 
+	amount *= session.damageTaken
 	session.health = math.max(0, session.health - amount)
 	playerDamaged:FireClient(session.player, amount)
 

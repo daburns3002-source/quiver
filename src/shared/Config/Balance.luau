@@ -805,6 +805,8 @@ local Balance = {
 		     worth something before Precision (crit chance) is drafted. ]]
 		critChance = 0.05,
 		critMultiplier = 2,
+		--[[ Share of an enemy's health under which Execute's bonus applies. ]]
+		executeBelow = 0.3,
 
 		--[[
 			Momentum: "attack speed rises while moving". Nothing fires on the
@@ -893,6 +895,9 @@ local Balance = {
 		     at a target that moved. Held under the fastest fire rate by
 		     `Balance.spec`. ]]
 		multishotInterval = 0.12,
+		--[[ Seconds before Arcane Echo casts again: longer than Multishot's
+		     gap, so a slow orb's echo reads as a second cast. ]]
+		echoInterval = 0.2,
 		--[[ Radians between the arrows of Double Shot's narrow spread. ]]
 		doubleShotSpread = math.rad(9),
 		--[[ Radians between the arrows of a second Rear or Side arrow. ]]

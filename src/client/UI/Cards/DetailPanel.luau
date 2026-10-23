@@ -32,6 +32,8 @@ local GROUP_NAMES = {
 	element = "Element",
 	mobility = "Mobility",
 	vital = "Vital",
+	blade = "Blade",
+	spell = "Spell",
 }
 
 local gui: ScreenGui? = nil

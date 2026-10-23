@@ -29,6 +29,8 @@ export type Stats = {
 	     prediction builds and flies the same shots the server does. ]]
 	projectileSpeed: number,
 	projectileLifetime: number,
+	--[[ Studs a melee class's cards add to its reach (Long Reach). ]]
+	reachBonus: number,
 	class: string,
 	--[[ Stack counts, not stages. Stages are functions and do not replicate;
 	     `AbilityEffects.stages` rebuilds the identical pipeline from these. ]]
@@ -45,6 +47,7 @@ local function defaults(): Stats
 		momentumBonus = 0,
 		projectileSpeed = Balance.Projectile.speed,
 		projectileLifetime = Balance.Projectile.lifetime,
+		reachBonus = 0,
 		class = "Ranger",
 		abilities = {},
 	}
@@ -83,6 +86,7 @@ function PlayerStats.set(stats: Stats)
 		momentumBonus = math.max(tonumber(stats.momentumBonus) or 0, 0),
 		projectileSpeed = tonumber(stats.projectileSpeed) or Balance.Projectile.speed,
 		projectileLifetime = tonumber(stats.projectileLifetime) or Balance.Projectile.lifetime,
+		reachBonus = math.max(tonumber(stats.reachBonus) or 0, 0),
 		class = if typeof(stats.class) == "string" then stats.class else "Ranger",
 		abilities = if typeof(stats.abilities) == "table" then stats.abilities else {},
 	}

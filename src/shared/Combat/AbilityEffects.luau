@@ -104,6 +104,9 @@ export type ClientStats = {
 	--[[ Studs added to a melee class's reach, so the client picks the same
 	     targets the server does. Long Reach. ]]
 	reachBonus: number,
+	--[[ Multiplier on a melee swing's width, so the swing drawn is the box
+	     the server checks. Cleave. ]]
+	widthScale: number,
 	--[[ The player's class, so the client builds the same pipeline. ]]
 	class: string,
 	abilities: Counts,
@@ -364,6 +367,7 @@ function AbilityEffects.clientStats(counts: Counts, class: string?): ClientStats
 		projectileSpeed = Balance.Projectile.speed * kind.speedScale,
 		projectileLifetime = Balance.Projectile.lifetime / kind.speedScale,
 		reachBonus = at(merged, "LongReach"),
+		widthScale = 1 + at(merged, "Cleave"),
 		class = class or "Ranger",
 		abilities = copy,
 	}

@@ -159,11 +159,21 @@ return function(t: TestRunner.Helper)
 		local aims = only(timed, "LaneAim")
 		local lanes = only(timed, "Lane")
 		local hits = only(timed, "LaneHit")
-		t.equal(#aims, #l.arms)
 		t.equal(#lanes, #l.arms)
 		t.equal(#hits, #l.arms)
 		for index, hit in hits do
-			t.near(lanes[index].at - aims[index].at, l.track, FRAME * 2)
+			--[[ The lane is redrawn as it follows the target: this arm's
+			     tracking began with the first one after the last arm locked. ]]
+			local after = if index > 1 then lanes[index - 1].at else -1
+			local first: Timed? = nil
+			for _, aim in aims do
+				if aim.at > after then
+					first = aim
+					break
+				end
+			end
+			t.notNil(first, "an arm never tracked")
+			t.near(lanes[index].at - (first :: Timed).at, l.track, FRAME * 2)
 			t.near(hit.at - lanes[index].at, (l.wind - l.track) + l.strike, FRAME * 2)
 		end
 	end)

@@ -1027,6 +1027,16 @@ local function resolveBossEvent(
 		end
 	elseif e.kind == "LaneAim" or e.kind == "Lane" then
 		enemyTelegraph:FireAllClients(e.at, e.direction, e.duration, e.kind, e.length, e.width)
+	elseif e.kind == "Shock" then
+		enemyTelegraph:FireAllClients(
+			e.at,
+			Vector3.zAxis,
+			Balance.Telegraph.shockDuration,
+			"Shockwave",
+			e.radius
+		)
+	elseif e.kind == "Shake" then
+		enemyTelegraph:FireAllClients(Vector3.zero, Vector3.zAxis, e.duration, "Shake", e.radius)
 	elseif e.kind == "LaneHit" then
 		local side = Vector3.new(-e.direction.Z, 0, e.direction.X)
 		local held: Vector3? = nil

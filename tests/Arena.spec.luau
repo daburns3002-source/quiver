@@ -45,6 +45,32 @@ return function(t: TestRunner.Helper)
 		return Vector3.new(size.X / 2 * fractionX, 2.5, size.Z / 2 * fractionZ)
 	end
 
+	--[[ Low cover (owner, 2026-10-23): a pond a few tenths of a stud deep
+	     could be stepped onto and walked across. Every piece of cover gets
+	     a wall as tall as the room's that the player bumps into, and that
+	     no sweep or raycast sees, so arrows still fly over the low ones. ]]
+	t.test("the player cannot walk over cover, and arrows still fly over low cover", function()
+		local low: { Balance.Obstacle } = {
+			{ offset = Vector2.new(0, 0), size = Vector3.new(14, 0.4, 10) },
+			{ offset = Vector2.new(8, 12), size = Vector3.new(12, 2.8, 3.5) },
+		}
+		local scratch = buildLayout(low)
+		local walls = scratch:FindFirstChild("PlayerWalls", true)
+		t.notNil(walls, "no player walls")
+		local count = 0
+		for _, wall in (walls :: Instance):GetChildren() do
+			local part = wall :: BasePart
+			count += 1
+			t.isTrue(part.CanCollide, `{part.Name} does not stop the player`)
+			t.isTrue(not part.CanQuery, `{part.Name} would stop arrows`)
+			t.isTrue(
+				part.Size.Y >= Balance.Arena.wallHeight,
+				`{part.Name} is low enough to step onto`
+			)
+		end
+		t.equal(count, #low)
+	end)
+
 	--[[ An enemy's hitbox is a square that turns with it. Resolved by its
 	     footprint at that turn, none of its corners may end inside a pillar;
 	     resolved by a single radius, a 45° turn left them 0.62 studs in. ]]

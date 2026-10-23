@@ -39,7 +39,9 @@ over the same invisible floor, walls and obstacle boxes as the grey box
 (nil, or a model not imported yet, is the grey box). Arena models follow the
 enemy pipeline through `assets/models/arenas/optimise_arena.py`, scaled ×2.7
 into the 35 × 58 room. Cover under `Projectile.height` (pond, thorns) blocks
-walking but not arrows. The exit is a gate in the north wall
+walking but not arrows. Every piece of cover has a full-height invisible
+`PlayerWall` over it that only the player meets, so nobody walks over a log
+or across the pond. The exit is a gate in the north wall
 (`Arena/ExitGate`, `Balance.Run.gate`): dark purple haze until the room is
 cleared, then glowing white-gold with a GO arrow, after Archero 2. Moonlit
 Arena's waves draw from the first
@@ -140,7 +142,9 @@ health ×1.5". Damage numbers are white, red crits, orange burns.
 **Classes** (`Config/Classes`, 2026-10-23): the Ranger (leaf bow), the
 Arcanist (arcane staff: slow, heavy orbs with Blast Arrows built in) and
 the Warden (ruby greatsword, melee: `Combat/MeleeSystem` lands each blow of
-a three-hit combo on the server, in `Shared/Combat/SwingBox`). Each weapon
+a three-hit combo on the server, in `Shared/Combat/SwingBox`). The red of
+his swing is drawn on exactly that box (`Fx/SwingTrail`,
+`Shared/Combat/SwingSweep`), so it grows with Cleave and Long Reach. Each weapon
 is the owner's Claude Design kit, its animations generated into
 `Config/WeaponAnimations` and played in code by `Fx/WeaponPose`. Each class
 drafts its own cards plus a shared twelve (`Ability.classes`,
@@ -176,10 +180,9 @@ move as a pure timeline (pinned by `tests/BossMoves.spec.luau`),
 client draws the slam circle, the lash lane and the shockwave
 (`TelegraphRenderer`), the boss bar (`UI/BossBar`), and obeys shoves and
 the grab (`Input/Shove`, via `Remotes.PlayerShoved` / `PlayerGrabbed`).
-His body is primitives until the owner imports
-`assets/models/bosses/king_bloblin/slime_king_roblox.glb` (Body, Eyes,
-Decor, Arm_L, Arm_R); then only the mesh ids go into
-`EnemyDesigns.SlimeKing`. Sounds for his moves are not made yet.
+His body is the owner's imported model (Body, Eyes, Decor, Arm_L, Arm_R;
+`EnemyDesigns.SlimeKing`), and his motion follows the design's preview
+(`Slime King Attacks.html`). Sounds for his moves are not made yet.
 
 Not done: the other nine bosses — designed (`docs/BOSSES.md`, two per
 act, one per area, with Codex concept art) but not built; Phase 3's

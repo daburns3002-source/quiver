@@ -14,11 +14,13 @@
 
 local Debris = game:GetService("Debris")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Device = require(script.Parent.Parent.Device)
 local SplitFx = require(script.Parent.SplitFx)
+local TopDownCamera = require(script.Parent.Parent.Camera.TopDownCamera)
 
 local TelegraphRenderer = {}
 
@@ -241,15 +243,33 @@ end
 	will land, at full size from the first frame, and a disc filling it
 	that is full at the moment of impact.
 ]]
+--[[ As the design draws it: the ring fades in over the wind-up, then
+     pulses as the fall nears. ]]
+local SLAM_FADE_IN = 0.37
 local function drawSlam(origin: Vector3, duration: number, radius: number)
 	local colour = Balance.Telegraph.bossColor
 	local ring = groundDisc(origin, "TelegraphSlam", colour, radius * 2)
-	ring.Transparency = 0.55
+	ring.Transparency = 0.85
 	local fill = groundDisc(origin, "TelegraphSlamFill", colour, 0.2)
-	fill.Transparency = 0.35
+	fill.Transparency = 0.6
 	TweenService:Create(fill, TweenInfo.new(duration, Enum.EasingStyle.Linear), {
 		Size = Vector3.new(0.25, radius * 2, radius * 2),
 	}):Play()
+	local started = os.clock()
+	local pulse: RBXScriptConnection
+	pulse = RunService.Heartbeat:Connect(function()
+		local share = (os.clock() - started) / duration
+		if share >= 1 or not ring.Parent then
+			pulse:Disconnect()
+			return
+		end
+		if share < SLAM_FADE_IN then
+			ring.Transparency = 0.85 - 0.6 * (share / SLAM_FADE_IN)
+		else
+			local fall = (share - SLAM_FADE_IN) / (1 - SLAM_FADE_IN)
+			ring.Transparency = 0.25 - 0.25 * math.sin(os.clock() * 18) * fall
+		end
+	end)
 	Debris:AddItem(ring, duration)
 	Debris:AddItem(fill, duration)
 end
@@ -305,11 +325,20 @@ local function drawLane(
 	locked: boolean
 )
 	local lane = laneStrip(origin, direction, length, width, "TelegraphLane")
-	lane.Transparency = if locked then 0.4 else 0.75
+	lane.Transparency = if locked then 0.3 else 0.75
 	Debris:AddItem(lane, duration)
 	if not locked then
 		return
 	end
+	--[[ Locked, it pulses, as the design's does. ]]
+	local pulse: RBXScriptConnection
+	pulse = RunService.Heartbeat:Connect(function()
+		if not lane.Parent then
+			pulse:Disconnect()
+			return
+		end
+		lane.Transparency = 0.2 - 0.15 * math.sin(os.clock() * 20)
+	end)
 	local fill = laneStrip(origin, direction, 0.05, width, "TelegraphLaneFill")
 	fill.Transparency = 0.45
 	local start = Vector3.new(origin.X, 0.14, origin.Z)
@@ -345,6 +374,11 @@ function TelegraphRenderer.onTelegraph(
 
 	if tell == "Shockwave" then
 		drawShockwave(origin, duration, reach)
+		return
+	end
+
+	if tell == "Shake" then
+		TopDownCamera.shake(reach, duration)
 		return
 	end
 

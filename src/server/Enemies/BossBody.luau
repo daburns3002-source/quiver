@@ -37,9 +37,6 @@ export type Body = {
 --[[ The jelly the thrown arm stretches into. ]]
 local JELLY = Color3.fromRGB(127, 203, 36)
 
---[[ How much bigger the fist grows at full reach (the handoff's 1.7×). ]]
-local FIST_GROWTH = 0.7
-
 function BossBody.new(model: Model, hitbox: BasePart, parts: { BasePart }): Body
 	local height = hitbox.Size.Y
 	local feet = hitbox.CFrame * CFrame.new(0, -height / 2, 0)
@@ -106,16 +103,25 @@ end
 
 function BossBody.pose(body: Body, pose: BossMoves.Pose)
 	local ground = CFrame.new(pose.feet) * CFrame.Angles(0, pose.yaw, 0)
-	local base = ground
-		* CFrame.new(0, pose.lift, 0)
-		* CFrame.new(0, 0, -1.4 * pose.lean)
-		* CFrame.Angles(-0.28 * pose.lean, 0, 0)
+	local base = ground * CFrame.new(0, pose.lift, -pose.lean) * CFrame.Angles(-pose.pitch, 0, 0)
 
 	for _, rest in body.rests do
 		local r = rest.offset
 		local moved = Vector3.new(r.X * pose.spread, r.Y * pose.squash, r.Z * pose.spread)
 		rest.part.CFrame = base * (CFrame.new(moved) * r.Rotation)
 		rest.part.Size = scaled(rest, pose.squash, pose.spread)
+	end
+
+	--[[ Both arms up for a bounce; the throwing arm pulled back (+Z is
+	     behind him) before a lash. ]]
+	for name, arm in body.arms do
+		local raise = Vector3.new(0, pose.armsLift, 0)
+		if name == pose.arm and pose.armPull > 0 then
+			raise += Vector3.new(0, 0.5 * pose.armPull, 1.8 * pose.armPull)
+		end
+		if raise.Magnitude > 0 then
+			arm.part.CFrame = arm.part.CFrame + base:VectorToWorldSpace(raise)
+		end
 	end
 
 	local shadow = body.shadow
@@ -131,16 +137,22 @@ function BossBody.pose(body: Body, pose: BossMoves.Pose)
 
 	local arm = if pose.arm then body.arms[pose.arm] else nil
 	local tube = body.tube
-	if not arm or pose.armReach <= 0.02 then
+	local held = pose.held
+	if not arm or (pose.armReach <= 0.02 and not held) then
 		tube.Transparency = 1
 		return
 	end
 
-	--[[ The fist flies from the shoulder to the lane's end, along the floor. ]]
+	--[[ The fist flies from the shoulder to the lane's end and down onto
+	     the floor there, or stays on whoever it holds. ]]
 	local shoulder = arm.part.Position
-	local tip = pose.feet + pose.direction * pose.length + Vector3.new(0, arm.size.Y * 0.5, 0)
-	local fist = shoulder:Lerp(tip, math.clamp(pose.armReach, 0, 1))
-	arm.part.Size = arm.size * (1 + FIST_GROWTH * pose.armReach)
+	local fist = if held
+		then Vector3.new(held.X, pose.fistLift, held.Z)
+		else shoulder:Lerp(
+			pose.feet + pose.direction * pose.length + Vector3.new(0, pose.fistLift, 0),
+			math.clamp(pose.armReach, 0, 1)
+		)
+	arm.part.Size = arm.size * pose.fistScale
 	arm.part.CFrame = CFrame.lookAt(fist, fist + pose.direction)
 
 	local span = fist - shoulder

@@ -31,6 +31,12 @@ local LAUNCH_HEIGHT = 1.4
      covering the replication of the enemy becoming visible. ]]
 local HANDOVER = 0.15
 
+--[[ A flying piece's shadow, the same as the enemies' (`EnemyDesigns`):
+     matte black at 0.3, just off the floor. ]]
+local SHADOW_COLOR = Color3.new(0, 0, 0)
+local SHADOW_TRANSPARENCY = 0.3
+local SHADOW_HEIGHT = 0.1
+
 --[[ When each origin last burst, so the pieces of one death draw one puddle
      between them rather than one each. ]]
 local lastBurst: { [Vector3]: number } = {}
@@ -146,6 +152,13 @@ function SplitFx.piece(
 	body.Transparency = 0.08
 	body.Size = Vector3.one * diameter * 0.5
 
+	--[[ Its shadow on the floor from the moment it leaves the body, so a
+	     piece in the air can be tracked to where it will land (owner,
+	     2026-10-22: the split is "hard to see"). Small and faint while the
+	     piece is high, the enemies' own full shadow once it lands. ]]
+	local shadow = blob("SplitShadow", SHADOW_COLOR, parent)
+	shadow.Material = Enum.Material.Fabric
+
 	local began = os.clock()
 	local landed = false
 	local connection: RBXScriptConnection? = nil
@@ -166,6 +179,12 @@ function SplitFx.piece(
 			local width = grown / math.sqrt(stretch)
 			body.Size = Vector3.new(width, width, grown * stretch)
 			body.CFrame = CFrame.lookAt(position, position + velocity)
+
+			local lift = math.clamp(arc.Y / split.arcHeight, 0, 1)
+			local spread = diameter * (1 - 0.45 * lift)
+			shadow.Size = Vector3.new(spread, 0.08, spread)
+			shadow.CFrame = CFrame.new(position.X, SHADOW_HEIGHT, position.Z)
+			shadow.Transparency = SHADOW_TRANSPARENCY + (1 - SHADOW_TRANSPARENCY) * 0.6 * lift
 			return
 		end
 
@@ -181,9 +200,15 @@ function SplitFx.piece(
 		local width = diameter / math.sqrt(squash)
 		body.Size = Vector3.new(width, height, width)
 		body.CFrame = CFrame.new(finish.X, height / 2, finish.Z)
+		shadow.Size = Vector3.new(width, 0.08, width)
+		shadow.CFrame = CFrame.new(finish.X, SHADOW_HEIGHT, finish.Z)
+		shadow.Transparency = SHADOW_TRANSPARENCY
 
 		if elapsed >= duration then
-			body.Transparency = 0.08 + 0.92 * math.min((elapsed - duration) / HANDOVER, 1)
+			local fade = math.min((elapsed - duration) / HANDOVER, 1)
+			body.Transparency = 0.08 + 0.92 * fade
+			-- The enemy brings its own shadow; this one hands over to it.
+			shadow.Transparency = SHADOW_TRANSPARENCY + (1 - SHADOW_TRANSPARENCY) * fade
 		end
 
 		if elapsed >= duration + HANDOVER then
@@ -191,6 +216,7 @@ function SplitFx.piece(
 				connection:Disconnect()
 			end
 			body:Destroy()
+			shadow:Destroy()
 		end
 	end)
 end

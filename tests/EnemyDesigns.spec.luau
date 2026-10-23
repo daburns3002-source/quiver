@@ -35,6 +35,10 @@ local OVERFLOW_TOLERANCE = 1e-3
      the loosest, because a creature that crouches is a legitimate silhouette
      and a creature only half as wide as its box is not. ]]
 local MINIMUM_FILL = Vector3.new(0.6, 0.7, 0.6)
+--[[ For designs in `EnemyDesigns.squat`: the same width and depth, a low
+     body allowed. Still not a sliver — a design half again shorter than
+     this would be a different hitbox, not a squat creature. ]]
+local SQUAT_FILL = Vector3.new(0.6, 0.4, 0.6)
 
 --[[ Union of every part's rotated bounding box, in hitbox local space. Corners
      rather than sizes, so a rotated wedge is measured where it really is. ]]
@@ -139,11 +143,14 @@ return function(t: TestRunner.Helper)
 			local min, max = designBounds(design)
 			local span = max - min
 			local size = entry.config.hitboxSize
+			local minimum = if (EnemyDesigns.squat :: any)[entry.name]
+				then SQUAT_FILL
+				else MINIMUM_FILL
 
 			for _, axis in { "X", "Y", "Z" } do
 				local fill = (span :: any)[axis] / (size :: any)[axis]
 				t.isTrue(
-					fill >= (MINIMUM_FILL :: any)[axis],
+					fill >= (minimum :: any)[axis],
 					`{entry.name} fills only {math.floor(fill * 100)}% of its hitbox on {axis}`
 				)
 			end
@@ -181,8 +188,8 @@ return function(t: TestRunner.Helper)
 
 		for key, value in EnemyDesigns do
 			--[[ Tables are the designs; the two tag strings beside them are
-			     not, and are skipped rather than listed as exceptions. ]]
-			if typeof(value) == "table" then
+			     not, and nor is the `squat` list of which designs stand low. ]]
+			if typeof(value) == "table" and key ~= "squat" then
 				local name = key :: string
 				t.isTrue(known[name], `EnemyDesigns.{name} matches no archetype`)
 			end

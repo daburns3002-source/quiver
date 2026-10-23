@@ -17,6 +17,7 @@
 	and `EnemyManager` goes on moving an enemy by writing one CFrame.
 ]]
 
+local AssetService = game:GetService("AssetService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
@@ -71,12 +72,48 @@ end
      an enemy can put a jelly body back to see-through rather than solid. ]]
 local RESTING_TRANSPARENCY = "RestingTransparency"
 
+--[[ One template per uploaded mesh, made once and cloned for every enemy:
+     CreateMeshPartAsync yields and fetches, which a spawn must not wait on. ]]
+local meshTemplates: { [string]: MeshPart } = {}
+
+--[[ Makes the mesh templates every design asks for. Called once at server
+     start, before anything spawns; a mesh that fails to load leaves its
+     part to fall back to a plain ellipsoid rather than breaking a spawn. ]]
+function EnemyModel.preload()
+	for _, design in EnemyDesigns :: any do
+		if type(design) ~= "table" then
+			continue
+		end
+		for _, spec in design do
+			local id = type(spec) == "table" and spec.meshId
+			if type(id) == "string" and not meshTemplates[id] then
+				local ok, result = pcall(function()
+					return AssetService:CreateMeshPartAsync(id, {
+						CollisionFidelity = Enum.CollisionFidelity.Box,
+						RenderFidelity = Enum.RenderFidelity.Automatic,
+					})
+				end)
+				if ok and result then
+					meshTemplates[id] = result
+				else
+					warn(`[EnemyModel] mesh {id} did not load: {result}`)
+				end
+			end
+		end
+	end
+end
+
 local function buildPart(spec: DesignPart, config: EnemyConfig): BasePart
 	local part: BasePart
 
-	if spec.shape == "Wedge" then
+	local template = if spec.shape == "Mesh" and spec.meshId
+		then meshTemplates[spec.meshId]
+		else nil
+	if template then
+		part = template:Clone()
+	elseif spec.shape == "Wedge" then
 		part = Instance.new("WedgePart")
-	elseif spec.shape == "Ellipsoid" then
+	elseif spec.shape == "Ellipsoid" or spec.shape == "Mesh" then
 		--[[ A Ball part is always a perfect sphere; a sphere mesh stretches
 		     to whatever size the part is given, which is what a domed shell
 		     or a squat slime needs. ]]

@@ -53,10 +53,20 @@ ROUND_3 = [
     }),
 ]
 
+ROUND_4 = [
+    ("Round 4 · the staff without its shimmer, a better poof, and new tries", {
+        "staff_cast": ROUND_1_2[1][1]["staff_cast"],
+        "enemy_death": ROUND_1_2[0][1]["enemy_death"],
+        "arrow_fire": ROUND_1_2[0][1]["arrow_fire"],
+        "gate_open": ROUND_1_2[1][1]["gate_open"],
+    }),
+]
+
 # page: (rounds, picks collection, sounds already chosen, shown for context)
 PAGES = {
     "1-2": (ROUND_1_2, "picks", []),
     "3": (ROUND_3, "picks3", ["Player hurt A", "XP crystal D", "Heart D", "Level up A"]),
+    "4": (ROUND_4, "picks4", ["Player hurt", "XP crystal", "Heart", "Level up", "Enemy hit", "Dash", "Card pick"]),
 }
 ROUNDS, COLLECTION, CHOSEN = PAGES[PAGE]
 

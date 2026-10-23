@@ -154,13 +154,17 @@ local function land(swing: Pending, now: number)
 		blow *= 1 + melee.slamBonus
 	end
 
+	--[[ An arc for the side-to-side blows, a circle for the slam, grown by
+	     Cleave and Long Reach (`Shared/Combat/SwingBox`). ]]
+	local shape =
+		SwingBox.shape(config, swing.index, #config.damage, melee.widthScale, melee.reachBonus)
+
 	for _, enemy in candidates() do
 		if
-			not SwingBox.contains(
+			not SwingBox.hits(
+				shape,
 				root.Position,
 				swing.direction,
-				config.width * melee.widthScale,
-				config.depth + melee.reachBonus,
 				enemy.position,
 				enemy.halfWidth
 			)

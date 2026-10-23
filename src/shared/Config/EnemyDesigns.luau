@@ -263,7 +263,7 @@ local spitter: Design = {
 	class of thing at a glance, a dark face with one glowing eye under the
 	hood, and a staff whose orb glows the colour of its single shot.
 ]]
-local lancer: Design = {
+local _lancer: Design = {
 	shadow(2.6, 2.6, 5),
 	{
 		name = "Robe",
@@ -518,119 +518,54 @@ local slimeKing: Design = {
 }
 
 --[[
-	The Ember Wolf (owner, 2026-10-23), after the owner's dog: a ginger body
-	and ruff, cream chest, muzzle and tail tip, upright ears, amber eyes, and
-	a tail curled up over its back. Its front legs differ, as the dog's do:
-	the right (its own right, +X while it faces -Z) is cream all the way up,
-	the left is ginger with only a cream paw. Primitives until its model is
-	imported (`assets/models/enemies/ember_wolf_roblox.glb`, the owner's
-	round pup), in its 2.2 × 3 × 3.3 hitbox (`Balance`).
+	The Ember Wolf (owner, 2026-10-23), after the owner's dog: a round
+	ginger pup with a cream chest, muzzle and paws.
+
+	From `assets/models/enemies/ember_wolf_roblox.glb` (one mesh, slimmed by
+	`optimise_enemy.py ember_wolf`), imported by the owner (model
+	117724324166248). Turned 180° like the slimes, ×2.6 into its
+	2.2 × 3 × 3.3 hitbox (`Balance`). The mesh carries its own colours, so it
+	is white.
+
+	The eyes are painted into that one mesh, so they cannot glow on their
+	own: two Neon discs in the slimes' amber sit over them (owner: "make
+	sure the wolf's eyes glow like the slimes eyes bright orange"), placed
+	where the mesh paints them, measured from its vertex colours.
 ]]
-local CREAM = Color3.fromRGB(250, 232, 205)
-local function wolfLeg(name: string, x: number, z: number): DesignPart
-	return {
-		name = name,
-		shape = "Block",
-		size = Vector3.new(0.355, 0.865, 0.301),
-		offset = Vector3.new(x, -0.831, z),
-		shade = 0.92,
-	}
-end
+local WOLF_TURN = Vector3.new(0, 180, 0)
+local WOLF_EYES = Color3.fromRGB(255, 176, 32)
 local wolf: Design = {
 	shadow(2.2, 3.3, 3),
 	{
 		name = "Body",
-		shape = "Ellipsoid",
-		size = Vector3.new(1.692, 1.615, 2.152),
-		offset = Vector3.new(0, -0.058, 0.251),
+		shape = "Mesh",
+		meshId = "rbxassetid://126878330603727",
+		size = Vector3.new(2.19, 2.992, 3.216),
+		offset = Vector3.new(0, -0.004, 0),
+		rotation = WOLF_TURN,
 		shade = 1,
+		color = WHITE,
 	},
 	{
-		name = "Ruff",
-		shape = "Ball",
-		size = Vector3.new(1.269, 1.731, 1.076),
-		offset = Vector3.new(0, 0.288, -0.61),
-		shade = 1.08,
-	},
-	mark(
-		"Chest",
-		"Ellipsoid",
-		Vector3.new(0.846, 1.038, 0.359),
-		Vector3.new(0, -0.115, -0.897),
-		CREAM
-	),
-	{
-		name = "Head",
-		shape = "Ball",
-		size = Vector3.new(1.1, 1.5, 0.933),
-		offset = Vector3.new(0, 0.577, -1.04),
-		shade = 1,
-	},
-	mark(
-		"Muzzle",
-		"Ellipsoid",
-		Vector3.new(0.592, 0.577, 0.43),
-		Vector3.new(0, 0.288, -1.363),
-		CREAM
-	),
-	mark("Nose", "Ball", Vector3.new(0.186, 0.254, 0.158), Vector3.new(0, 0.415, -1.542), BLACK),
-	glow("EyeLeft", 0.24, Vector3.new(-0.254, 0.785, -1.42), EYE_ORANGE),
-	glow("EyeRight", 0.24, Vector3.new(0.254, 0.785, -1.42), EYE_ORANGE),
-	{
-		name = "EarLeft",
-		shape = "Wedge",
-		size = Vector3.new(0.186, 0.577, 0.287),
-		offset = Vector3.new(-0.355, 1.177, -0.968),
-		shade = 0.9,
-	},
-	{
-		name = "EarRight",
-		shape = "Wedge",
-		size = Vector3.new(0.186, 0.577, 0.287),
-		offset = Vector3.new(0.355, 1.177, -0.968),
-		shade = 0.9,
-	},
-	-- Right front: cream all the way up. Left front: ginger, cream paw.
-	mark(
-		"LegFrontRight",
-		"Block",
-		Vector3.new(0.355, 1.096, 0.301),
-		Vector3.new(0.508, -0.946, -0.538),
-		CREAM
-	),
-	wolfLeg("LegFrontLeft", -0.508, -0.538),
-	mark(
-		"PawFrontLeft",
-		"Block",
-		Vector3.new(0.372, 0.254, 0.33),
-		Vector3.new(-0.508, -1.373, -0.538),
-		CREAM
-	),
-	wolfLeg("LegBackLeft", -0.508, 0.861),
-	wolfLeg("LegBackRight", 0.508, 0.861),
-	mark(
-		"PawBackLeft",
-		"Block",
-		Vector3.new(0.372, 0.254, 0.33),
-		Vector3.new(-0.508, -1.373, 0.861),
-		CREAM
-	),
-	mark(
-		"PawBackRight",
-		"Block",
-		Vector3.new(0.372, 0.254, 0.33),
-		Vector3.new(0.508, -1.373, 0.861),
-		CREAM
-	),
-	{
-		name = "Tail",
+		name = "EyeLeft",
 		shape = "Ellipsoid",
-		size = Vector3.new(0.719, 0.981, 0.717),
-		offset = Vector3.new(0, 0.519, 1.0),
-		rotation = Vector3.new(-35, 0, 0),
-		shade = 1.05,
+		size = Vector3.new(0.36, 0.3, 0.12),
+		offset = Vector3.new(-0.39, 0.37, -1.28),
+		shade = 1,
+		color = WOLF_EYES,
+		material = Enum.Material.Neon,
+		tint = false,
 	},
-	mark("TailTip", "Ball", Vector3.new(0.465, 0.635, 0.395), Vector3.new(0, 1.038, 1.399), CREAM),
+	{
+		name = "EyeRight",
+		shape = "Ellipsoid",
+		size = Vector3.new(0.36, 0.3, 0.12),
+		offset = Vector3.new(0.39, 0.37, -1.28),
+		shade = 1,
+		color = WOLF_EYES,
+		material = Enum.Material.Neon,
+		tint = false,
+	},
 }
 
 --[[ Keyed by `EnemyConfig.displayName`, which is what the model is named and
@@ -641,7 +576,7 @@ local EnemyDesigns = {
 
 	Charger = charger,
 	Spitter = spitter,
-	Lancer = lancer,
+	-- The Lancer is benched while the Ember Wolf stands in for it (`Balance`).
 	Bulwark = bulwark,
 	Lurker = lurker,
 	BroodSlime = broodSlime,

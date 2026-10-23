@@ -16,9 +16,14 @@ export type ProjectileLook = "Arrow" | "Orb"
      its target, is struck. `damage` multiplies each blow of the weapon's
      combo in turn (`Config/Weapons.clips.fire`), so a slam can land
      harder than a sweep. ]]
+--[[ Where a blow lands (`Shared/Combat/SwingBox`): the side-to-side blows
+     hit an arc, `reach` studs out and `arc` degrees wide; the combo's last
+     blow, the slam, a circle `slamRadius` across, `slamAhead` in front. ]]
 export type Swing = {
-	width: number,
-	depth: number,
+	reach: number,
+	arc: number,
+	slamRadius: number,
+	slamAhead: number,
 	damage: { number },
 	--[[ Untouchable for the whole swing, from its start until its clip
 	     ends (owner, 2026-10-23: "if the warden is mid swing of his sword
@@ -92,7 +97,17 @@ local Classes: { [string]: Class } = {
 		--[[ Was 7, then 8 deep and 9 wide: "that is too close" (owner,
 		     2026-10-23). ]]
 		reach = 10,
-		swing = { width = 10, depth = 11, damage = { 1, 1, 1.5 }, guard = true },
+		--[[ About the old 10 × 11 box's ground: an arc 11 out and 100°
+		     wide, and a slam circle 5 across, 5.5 in front, reaching 10.5,
+		     past `reach`. ]]
+		swing = {
+			reach = 11,
+			arc = 100,
+			slamRadius = 5,
+			slamAhead = 5.5,
+			damage = { 1, 1, 1.5 },
+			guard = true,
+		},
 	},
 }
 

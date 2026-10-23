@@ -1,7 +1,8 @@
 --!strict
 --[[
-	A blade's swing, drawn as exactly the box it hits (owner, 2026-10-23:
-	"the red on the swing should be exactly the hitbox of the sword").
+	A blade's swing, drawn as exactly the shape it hits (owner, 2026-10-23:
+	"the red on the swing should be exactly the hitbox of the sword", then
+	an arc for the side-to-side blows and a circle for the slam).
 
 	The same red ribbon as before (`Config/Weapons.swingTrail` colours), but
 	its two ends no longer ride the blade, whose arc paints wherever the
@@ -9,7 +10,7 @@
 	`Shared/Combat/SwingSweep`, between a slash's `TrailOn` and `TrailOff`
 	markers (`Fx/WeaponPose`), so the red ends up covering exactly the
 	ground the server checks (`Combat/MeleeSystem`, `Shared/Combat/SwingBox`):
-	the class's `swing` box, Cleave's width and Long Reach's depth included.
+	the class's `swing` shape, grown by Cleave and Long Reach.
 
 	Drawn low over the floor, from where the swinger stood when the slash
 	began, facing the way it faced. Presentation only, and local: other
@@ -21,6 +22,7 @@ local Workspace = game:GetService("Workspace")
 
 local Classes = require(ReplicatedStorage.Shared.Config.Classes)
 local PlayerStats = require(script.Parent.Parent.PlayerStats)
+local SwingBox = require(ReplicatedStorage.Shared.Combat.SwingBox)
 local SwingSweep = require(ReplicatedStorage.Shared.Combat.SwingSweep)
 
 local SwingTrail = {}
@@ -33,8 +35,7 @@ local HOLD = 0.12
 
 type Active = {
 	origin: CFrame,
-	width: number,
-	depth: number,
+	shape: SwingBox.Shape,
 	sweep: SwingSweep.Sweep,
 	--[[ Whether the far edge has been held for its frame. ]]
 	finished: boolean,
@@ -83,7 +84,7 @@ local function build(colours: { Color3 })
 end
 
 local function place(swing: Active, progress: number)
-	local a, b = SwingSweep.edge(swing.width, swing.depth, swing.sweep, progress)
+	local a, b = SwingSweep.edge(swing.shape, swing.sweep, progress)
 	ends[1].Position = a
 	ends[2].Position = b
 end
@@ -144,8 +145,7 @@ function SwingTrail.step(
 	local at = Vector3.new(root.Position.X, HEIGHT, root.Position.Z)
 	local fresh: Active = {
 		origin = CFrame.lookAt(at, at + forward),
-		width = box.width * stats.widthScale,
-		depth = box.depth + stats.reachBonus,
+		shape = SwingBox.shape(box, blow, blows, stats.widthScale, stats.reachBonus),
 		sweep = SwingSweep.forBlow(blow, blows),
 		finished = false,
 	}

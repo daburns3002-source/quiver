@@ -77,7 +77,7 @@ the act that teaches the game.
 | **Moss Slime** | Charger, slow · reskin | Hops straight at you | Move or shoot |
 | **Sprout Slime** | Spitter · reskin | Lobs one slow seed | Dodging a shot |
 | **Glade Wolf** | Charger, fast · twist: comes in packs of 3 that circle before lunging | Circles, then dashes in | Reading a lunge |
-| *Elite:* **Brood Slime** (built 2026-10-22) | Charger · twist: splits into 2 Moss Slimes on death, thrown out like Zac's Cell Division | A slow wall that becomes two threats | Finishing what you start |
+| *Elite:* **Brood Slime** (built 2026-10-22) | Charger · twist: splits into 4 Moss Slimes (owner, like Zac) on death, thrown out like Zac's Cell Division | A slow wall that becomes four threats | Finishing what you start |
 
 **Arenas.** *Clearing* — open grass, two mossy stumps. *Fairy Ring* — a ring
 of mushrooms (low cover) round an open centre. *Fallen Log* — one long log

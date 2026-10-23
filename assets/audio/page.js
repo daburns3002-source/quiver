@@ -37,7 +37,7 @@ document.addEventListener("click", (e) => {
   setTimeout(() => btn.classList.remove("on"), 150);
 });
 
-// Picks live in the page's database (picks/<sound>), so Claude reads them
+// Picks live in the page's database (COLLECTION/<sound>), so Claude reads them
 // back. localStorage keeps them for this browser too, and the copy button
 // is the fallback when the database is not available.
 let db = null;
@@ -64,7 +64,7 @@ function render() {
   const count = Object.keys(out).length;
   const total = Object.keys(NAMES).length;
   document.getElementById("summary").textContent = count ? `${count} of ${total} picked` : "No picks yet.";
-  try { localStorage.setItem("picks", JSON.stringify(out)); } catch (e) {}
+  try { localStorage.setItem(COLLECTION, JSON.stringify(out)); } catch (e) {}
 }
 
 function restore(picks) {
@@ -84,7 +84,7 @@ function note(text) {
 async function save(key, value) {
   if (!db) return;
   try {
-    await db.doc("picks/" + key).set({ variant: value, sound: NAMES[key] });
+    await db.doc(COLLECTION + "/" + key).set({ variant: value, sound: NAMES[key] });
     note("Saved. I'll read your picks from here.");
   } catch (e) {
     note("Couldn't save here; use Copy my picks and paste them to me.");
@@ -117,7 +117,7 @@ document.getElementById("copy").addEventListener("click", async () => {
 });
 
 let local = {};
-try { local = JSON.parse(localStorage.getItem("picks") || "{}") || {}; } catch (e) {}
+try { local = JSON.parse(localStorage.getItem(COLLECTION) || "{}") || {}; } catch (e) {}
 restore(local);
 
 (async () => {
@@ -128,7 +128,7 @@ restore(local);
   }
   if (!db) return;
   try {
-    const snap = await db.collection("picks").get();
+    const snap = await db.collection(COLLECTION).get();
     const picks = {};
     snap.docs.forEach((d) => {
       const body = d.data();

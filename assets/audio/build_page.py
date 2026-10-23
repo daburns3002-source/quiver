@@ -1,9 +1,12 @@
 """Builds the sound audition page from a render's manifest and MP3s.
 
-    python -I build_page.py <render_dir> <out.html>
+    python -I build_page.py <render_dir> <out.html> [page]
 
-Picks are saved to the published page's database (`picks/<sound>`), so
-Claude reads them back directly; the copy button is the fallback.
+`page` is one of PAGES (default "1-2"). Picks are saved to the published
+page's database, in the page's own collection (`picks` for rounds 1 and 2,
+`picks3` for round 3), so Claude reads them back directly and a round's
+picks never preselect another round's takes; the copy button is the
+fallback.
 """
 import base64
 import html
@@ -16,10 +19,11 @@ from scipy.io import wavfile
 
 RENDER = sys.argv[1]
 OUT = sys.argv[2]
+PAGE = sys.argv[3] if len(sys.argv) > 3 else "1-2"
 manifest = json.load(open(os.path.join(RENDER, "manifest.json")))
 
 # sound: (title, what it is for, (gap seconds, repeats) to hear it in game rhythm)
-ROUNDS = [
+ROUND_1_2 = [
     ("Round 1 · the three you hear most", {
         "arrow_fire": ("Arrow fire", "Every arrow the archer looses, about once a second, more with Multishot. Short and light, so it never wears on you.", (0.7, 5)),
         "enemy_hit": ("Enemy hit", "An arrow landing on an enemy. Mostly slimes, so a soft, jelly-ish impact suits them.", (0.32, 5)),
@@ -36,6 +40,25 @@ ROUNDS = [
         "gate_open": ("Exit gate opens", "The room is clear and the glowing gate opens.", None),
     }),
 ]
+
+ROUND_3 = [
+    ("Round 3 · new takes on everything not yet chosen", {
+        "arrow_fire": ROUND_1_2[0][1]["arrow_fire"],
+        "enemy_hit": ROUND_1_2[0][1]["enemy_hit"],
+        "enemy_death": ROUND_1_2[0][1]["enemy_death"],
+        "staff_cast": ROUND_1_2[1][1]["staff_cast"],
+        "dash": ROUND_1_2[1][1]["dash"],
+        "card_pick": ROUND_1_2[1][1]["card_pick"],
+        "gate_open": ROUND_1_2[1][1]["gate_open"],
+    }),
+]
+
+# page: (rounds, picks collection, sounds already chosen, shown for context)
+PAGES = {
+    "1-2": (ROUND_1_2, "picks", []),
+    "3": (ROUND_3, "picks3", ["Player hurt A", "XP crystal D", "Heart D", "Level up A"]),
+}
+ROUNDS, COLLECTION, CHOSEN = PAGES[PAGE]
 
 
 def wave_path(wav, width=240, height=44):
@@ -90,6 +113,7 @@ page = f"""<title>Arrow Legends Sound Audition</title>
   <header class="top-head">
     <h1>Sound Audition</h1>
     <p class="intro">Tap a take to hear it and pick a favourite in each group. Your picks save as you go, and I read them from here, so there is nothing to send. Notes like "C but punchier" are still welcome in chat.</p>
+    {f'<p class="chosen-list">Already chosen and going in: {html.escape(", ".join(CHOSEN))}.</p>' if CHOSEN else ""}
     <p class="saved" id="saved" hidden></p>
   </header>
   {"".join(blocks)}
@@ -98,7 +122,7 @@ page = f"""<title>Arrow Legends Sound Audition</title>
     <button type="button" id="copy">Copy my picks</button>
   </footer>
 </main>
-<script>const SOUNDS = {json.dumps(data)}; const NAMES = {json.dumps(names)};</script>
+<script>const SOUNDS = {json.dumps(data)}; const NAMES = {json.dumps(names)}; const COLLECTION = {json.dumps(COLLECTION)};</script>
 <script>{js}</script>"""
 open(OUT, "w", encoding="utf-8").write(page)
 print(len(page) // 1024, "KB")

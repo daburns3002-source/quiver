@@ -70,10 +70,19 @@ ROUND_5 = [
     }),
 ]
 
+ROUND_6 = [
+    ("Round 6 · your gate B in four versions, a new staff cast, a softer poof", {
+        "gate_open": ROUND_5[0][1]["gate_open"],
+        "staff_cast": ROUND_1_2[1][1]["staff_cast"],
+        "enemy_death": ROUND_1_2[0][1]["enemy_death"],
+    }),
+]
+
 # page: (rounds, picks collection, sounds already chosen, shown for context)
 PAGES = {
     "1-2": (ROUND_1_2, "picks", []),
     "3": (ROUND_3, "picks3", ["Player hurt A", "XP crystal D", "Heart D", "Level up A"]),
+    "6": (ROUND_6, "picks6", ["Player hurt", "XP crystal", "Heart", "Level up", "Enemy hit", "Dash", "Card pick", "Arrow fire"]),
     "5": (ROUND_5, "picks5", ["Player hurt", "XP crystal", "Heart", "Level up", "Enemy hit", "Dash", "Card pick", "Arrow fire"]),
     "4": (ROUND_4, "picks4", ["Player hurt", "XP crystal", "Heart", "Level up", "Enemy hit", "Dash", "Card pick"]),
 }

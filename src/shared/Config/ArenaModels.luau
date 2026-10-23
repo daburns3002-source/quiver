@@ -35,17 +35,13 @@ export type ArenaModel = {
 	--[[
 		What fills the screen past the model's edges, so the camera never
 		sees the grey void (owner, 2026-10-22). The model is about 81 studs
-		wide and a desktop screen sees about 124: `surround` names parts
-		(trees, bushes, grass) drawn again `surroundSpacing` studs to either side,
+		wide and a desktop screen sees about 124: `surround` is parts (trees,
+		bushes, grass) drawn again `surroundSpacing` studs to either side,
 		and `outsideColor` is a forest floor laid under everything, the
 		model's own outer ground colour.
 	]]
-	surround: { string }?,
+	surround: { ArenaPart }?,
 	surroundSpacing: number?,
-	--[[ Draw the surround from another model's parts (an `ArenaModels`
-	     key) instead of this one's, when this one's forest is too narrow
-	     to tile without gaps. ]]
-	surroundFrom: string?,
 	outsideColor: Color3?,
 }
 
@@ -62,20 +58,64 @@ export type ArenaModel = {
      to match it as seen in the trees' shade rather than in full sun. ]]
 local GLADE_FLOOR = Color3.fromRGB(34, 62, 30)
 
---[[ A glade variant: its parts, with its forest and grass drawn again
-     either side, one ground's width (`spacing`) away. ]]
-local function glade(spacing: number, parts: { ArenaPart }, surroundFrom: string?): ArenaModel
+--[[ The boss arena's own bushes and trees. Squeezed to fit the room, they
+     stand right up against its walls, a dense shaded forest the owner chose
+     for every glade (2026-10-22: "copy that to the rest"). ]]
+local BOSS_FOREST: { ArenaPart } = {
+	{
+		name = "Bushes",
+		meshId = "rbxassetid://80762864267370",
+		size = Vector3.new(65.941, 4.088, 101.221),
+		offset = Vector3.new(-0.031, 1.658, -7.685),
+	},
+	{
+		name = "Trees",
+		meshId = "rbxassetid://82996110055874",
+		size = Vector3.new(74.834, 13.063, 114.270),
+		offset = Vector3.new(-0.561, 6.966, -6.824),
+	},
+}
+
+--[[ The log glade's wider forest and grass, drawn again either side past the
+     boss forest so the screen's edges are trees too. ]]
+local WIDE_FOREST: { ArenaPart } = {
+	{
+		name = "Trees",
+		meshId = "rbxassetid://104769390455997",
+		size = Vector3.new(96.184, 15.779, 128.239),
+		offset = Vector3.new(0.250, 8.306, -6.803),
+	},
+	{
+		name = "Bushes",
+		meshId = "rbxassetid://129899405699443",
+		size = Vector3.new(81.689, 4.153, 115.584),
+		offset = Vector3.new(1.126, 1.498, -5.756),
+	},
+	{
+		name = "Grass",
+		meshId = "rbxassetid://114418367398398",
+		size = Vector3.new(80.737, 1.773, 115.843),
+		offset = Vector3.new(-0.200, 0.859, -7.078),
+	},
+}
+
+--[[ A glade variant: its own ground, walls, cover and lights, inside the boss
+     arena's forest, with the wide forest either side. ]]
+local function glade(parts: { ArenaPart }): ArenaModel
+	local all = table.clone(parts)
+	for _, part in BOSS_FOREST do
+		table.insert(all, part)
+	end
 	return {
-		surround = { "Trees", "Bushes", "Grass" },
-		surroundSpacing = spacing,
-		surroundFrom = surroundFrom,
+		parts = all,
+		surround = WIDE_FOREST,
+		surroundSpacing = 81,
 		outsideColor = GLADE_FLOOR,
-		parts = parts,
 	}
 end
 
 --[[ The fallen log and three stumps. ]]
-local gladeLogs = glade(81.0, {
+local gladeLogs = glade({
 	{
 		name = "Ground",
 		meshId = "rbxassetid://79573309014324",
@@ -102,18 +142,6 @@ local gladeLogs = glade(81.0, {
 		offset = Vector3.new(0.022, 1.772, 0.005),
 	},
 	{
-		name = "Bushes",
-		meshId = "rbxassetid://129899405699443",
-		size = Vector3.new(81.689, 4.153, 115.584),
-		offset = Vector3.new(1.126, 1.498, -5.756),
-	},
-	{
-		name = "Trees",
-		meshId = "rbxassetid://104769390455997",
-		size = Vector3.new(96.184, 15.779, 128.239),
-		offset = Vector3.new(0.250, 8.306, -6.803),
-	},
-	{
 		name = "Props",
 		meshId = "rbxassetid://81904816103162",
 		size = Vector3.new(52.382, 3.304, 79.496),
@@ -129,7 +157,7 @@ local gladeLogs = glade(81.0, {
 })
 
 --[[ A pond with lily pads, which blocks walking but not arrows. ]]
-local gladePond = glade(81.1, {
+local gladePond = glade({
 	{
 		name = "Ground",
 		meshId = "rbxassetid://86065768773594",
@@ -156,18 +184,6 @@ local gladePond = glade(81.1, {
 		offset = Vector3.new(0.003, 1.555, 0.004),
 	},
 	{
-		name = "Bushes",
-		meshId = "rbxassetid://99608952937586",
-		size = Vector3.new(78.463, 4.799, 117.129),
-		offset = Vector3.new(0.546, 1.840, -7.223),
-	},
-	{
-		name = "Trees",
-		meshId = "rbxassetid://91393123108553",
-		size = Vector3.new(95.161, 15.601, 127.173),
-		offset = Vector3.new(-0.045, 8.231, -7.072),
-	},
-	{
 		name = "Props",
 		meshId = "rbxassetid://82449654213912",
 		size = Vector3.new(55.330, 2.251, 77.322),
@@ -189,7 +205,7 @@ local gladePond = glade(81.1, {
 })
 
 --[[ Mossy boulders. ]]
-local gladeBoulders = glade(81.1, {
+local gladeBoulders = glade({
 	{
 		name = "Ground",
 		meshId = "rbxassetid://87544021234113",
@@ -216,18 +232,6 @@ local gladeBoulders = glade(81.1, {
 		offset = Vector3.new(0.003, 1.770, -0.008),
 	},
 	{
-		name = "Bushes",
-		meshId = "rbxassetid://76535628294148",
-		size = Vector3.new(82.548, 4.900, 117.935),
-		offset = Vector3.new(0.589, 1.976, -6.992),
-	},
-	{
-		name = "Trees",
-		meshId = "rbxassetid://105250776230127",
-		size = Vector3.new(95.633, 15.577, 126.525),
-		offset = Vector3.new(0.029, 8.295, -4.552),
-	},
-	{
 		name = "Props",
 		meshId = "rbxassetid://76425193248274",
 		size = Vector3.new(57.281, 2.170, 79.593),
@@ -243,7 +247,7 @@ local gladeBoulders = glade(81.1, {
 })
 
 --[[ Two bramble patches, which block walking but not arrows. ]]
-local gladeThorns = glade(81.0, {
+local gladeThorns = glade({
 	{
 		name = "Ground",
 		meshId = "rbxassetid://131721094417580",
@@ -270,18 +274,6 @@ local gladeThorns = glade(81.0, {
 		offset = Vector3.new(0.014, 1.754, -0.014),
 	},
 	{
-		name = "Bushes",
-		meshId = "rbxassetid://99333281352844",
-		size = Vector3.new(81.221, 5.146, 113.969),
-		offset = Vector3.new(0.979, 2.007, -5.561),
-	},
-	{
-		name = "Trees",
-		meshId = "rbxassetid://117634822354120",
-		size = Vector3.new(94.112, 15.115, 126.373),
-		offset = Vector3.new(-0.294, 7.843, -7.078),
-	},
-	{
 		name = "Props",
 		meshId = "rbxassetid://93578772158527",
 		size = Vector3.new(59.035, 2.049, 79.785),
@@ -304,9 +296,8 @@ local gladeThorns = glade(81.0, {
 
 --[[ A stone circle ringed by four mushroom-topped pillars. Its walls are drawn
      bigger than the other glades', so it is scaled to the same footprint
-     (×2.11 across, ×2.38 deep) rather than ×2.7. Squeezed, its own forest
-     is too narrow to tile, so the log glade's stands either side of it. ]]
-local gladeBoss = glade(81, {
+     (×2.11 across, ×2.38 deep) rather than ×2.7. ]]
+local gladeBoss = glade({
 	{
 		name = "Ground",
 		meshId = "rbxassetid://122682985654357",
@@ -333,18 +324,6 @@ local gladeBoss = glade(81, {
 		offset = Vector3.new(0.008, 2.669, 0.025),
 	},
 	{
-		name = "Bushes",
-		meshId = "rbxassetid://80762864267370",
-		size = Vector3.new(65.941, 4.088, 101.221),
-		offset = Vector3.new(-0.031, 1.658, -7.685),
-	},
-	{
-		name = "Trees",
-		meshId = "rbxassetid://82996110055874",
-		size = Vector3.new(74.834, 13.063, 114.270),
-		offset = Vector3.new(-0.561, 6.966, -6.824),
-	},
-	{
 		name = "Props",
 		meshId = "rbxassetid://104156248621067",
 		size = Vector3.new(53.197, 4.053, 73.999),
@@ -363,7 +342,7 @@ local gladeBoss = glade(81, {
 		offset = Vector3.new(1.558, 1.674, 1.781),
 		glow = true,
 	},
-}, "GladeLogs")
+})
 
 local ArenaModels = {
 	GladeLogs = gladeLogs,

@@ -33,6 +33,10 @@ export type ArenaPart = {
 	     thickness, which Roblox does not draw (the pond showed as a dark
 	     hole). ]]
 	water: Color3?,
+	--[[ For water: the darker lawn the model paints in a ring round it, in
+	     low-poly steps. Drawn as a smooth ellipse instead, so the pond's
+	     edge is round (owner, 2026-10-23). ]]
+	bank: Color3?,
 }
 
 export type ArenaModel = {
@@ -203,6 +207,8 @@ local gladePond = glade({
 		offset = Vector3.new(-4.055, -0.243, -4.317),
 		-- The model's own teal, from its vertex colours.
 		water = Color3.fromRGB(70, 168, 176),
+		-- The lawn's darker ring round the pond, measured from the mesh.
+		bank = Color3.fromRGB(98, 155, 50),
 	},
 	{
 		name = "Glow",

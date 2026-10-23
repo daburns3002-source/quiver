@@ -51,6 +51,14 @@ return function(t: TestRunner.Helper)
 				t.isTrue(shot.count >= 1, `{name} must fire at least one projectile`)
 				t.isTrue(shot.speed > 0, `{name} needs a positive projectile speed`)
 				t.isTrue(shot.lifetime > 0, `{name} needs a positive projectile lifetime`)
+
+				--[[ Its shots reach as far as it is allowed to fire from, or
+				     it opens fire at players its shots can never touch. ]]
+				local fireRange = shot.range or config.attackRange
+				t.isTrue(
+					shot.speed * shot.lifetime >= fireRange - 1e-6,
+					`{name} fires from {fireRange} studs but its shots die at {shot.speed * shot.lifetime}`
+				)
 			end
 		end
 	end)

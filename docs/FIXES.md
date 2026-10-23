@@ -16,6 +16,29 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## The Spitter walked in silence, and its seeds never reached the player
+
+**Symptom** — "make sure the spitter projectiles can reach the player and
+that it fires from when it spawns".
+
+**Cause** — one number doing two jobs. A ranged enemy's `attackRange` was
+both the distance it holds and the distance it may fire from. The Spitter's
+was 13.3, it spawned at least 21 studs from the player, and its seeds died
+after 16 — so a fresh Spitter walked in before its first shot, and a player
+who kept back was out of reach of everything it fired.
+
+**Fix** — `EnemyShot.range`, the distance it may fire from, separate from
+the distance it holds. The Spitter's is 70 and its seeds live 70 / 18 s, the
+whole room corner to corner. Its attack timer already starts ready, so it
+winds up the moment it lands. `Balance.spec` now holds every ranged enemy's
+reach at or beyond the range it fires from.
+
+**Measured** — live, Level 1 room 2: first wind-up 0.50 s after spawning,
+at the instant it landed, from 27.4 studs; with the player in the far
+corner, seeds flew up to 75.8 studs and passed within 2.4 of them.
+
+---
+
 ## The pond was a dark hole with no water
 
 **Symptom** — in Studio, the Mossy Pond room's pond drew as a dark hole

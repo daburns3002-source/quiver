@@ -1171,7 +1171,9 @@ local function stepEnemy(enemy: Enemy, deltaTime: number, now: number)
 		return
 	end
 
-	if distance > config.attackRange then
+	--[[ A shot may fire from further out than the enemy holds (`shot.range`). ]]
+	local fireRange = if shot and shot.range then shot.range else config.attackRange
+	if distance > fireRange then
 		return
 	end
 

@@ -930,9 +930,11 @@ local Balance = {
 		     Charger's 10 is two crystals, a Bulwark's 30 is four. ]]
 		xpPerCrystal = 8,
 		maxCrystalsPerKill = 4,
-		--[[ Studs from a crystal to the player that count as walking over
-		     it. Generous: crystals are small and the fight is busy. ]]
-		crystalRadius = 3,
+		--[[ Studs from a crystal to the player at which it is taken and
+		     flies to them — the magnet. Raised from 3 on the owner's ask
+		     (2026-10-22, "the magnet range ... to be bigger"): passing near
+		     is enough. ]]
+		crystalRadius = 7,
 		--[[ How far from the body crystals scatter, in studs. ]]
 		crystalScatter = 2.2,
 		--[[ Seconds after a clear before the crystals are drawn in, so the
@@ -946,9 +948,9 @@ local Balance = {
 		heartChance = 0.05,
 		--[[ Share of max health one heart restores. ]]
 		heartHeal = 0.2,
-		--[[ Studs from a heart's centre to the player's that count as
-		     walking over it. ]]
-		heartRadius = 2.5,
+		--[[ Studs from a heart's centre to the player's at which it is taken
+		     — the magnet. Raised from 2.5 with the crystals' (2026-10-22). ]]
+		heartRadius = 6,
 
 		crystalColor = Color3.fromRGB(70, 210, 255),
 		heartColor = Color3.fromRGB(255, 60, 90),

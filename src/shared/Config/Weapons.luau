@@ -1,11 +1,13 @@
 --!strict
 --[[
-	Held weapons: the model each class carries and how its arms move.
+	Held weapons: the model each class carries and the animations its arms
+	play.
 
 	Presentation only. Built on the server so every player sees it
 	(`Combat/HeldWeapon`), welded to a hand, never colliding, answering a
 	raycast or stopping a shot. The arms are posed on each client
-	(`Fx/ArcherPose`), the bow's string drawn there too (`Fx/BowString`).
+	(`Fx/WeaponPose`, from `Config/WeaponAnimations`), the bow's string and
+	the staff's orb drawn there too (`Fx/BowString`, `Fx/StaffOrb`).
 
 	Models follow the enemy pipeline: GLB from Claude Design →
 	`assets/models/weapons/optimise_weapon.py` → imported in Studio → mesh ids
@@ -26,6 +28,22 @@ export type WeaponPart = {
 	nocked: boolean?,
 	--[[ Hidden for the local player, who sees the live string instead. ]]
 	liveString: boolean?,
+	--[[ A staff's orb, and the ring of small orbs round it: hidden for the
+	     local player, who sees copies that swell, glow and spin as a cast
+	     charges (`Fx/StaffOrb`). ]]
+	orb: boolean?,
+	orbit: boolean?,
+}
+
+--[[ Which of the weapon's `Config/WeaponAnimations` clips plays when:
+     `hold` while moving or with nothing to shoot, `ready` on stopping with
+     a target (drawing, charging), `aim` looping after it, and `fire` on
+     each shot, after which `ready` plays again. ]]
+export type Clips = {
+	hold: string,
+	ready: string,
+	aim: string,
+	fire: string,
 }
 
 export type Weapon = {
@@ -35,6 +53,9 @@ export type Weapon = {
 	scale: number,
 	--[[ Where the grip sits in the hand's own frame, studs. ]]
 	grip: Vector3,
+	clips: Clips,
+	--[[ A staff's orbit ring axis, in the model's units through the orb. ]]
+	orbitAxis: Vector3?,
 	--[[ A bow's string, in model units from the grip: where it is tied top
 	     and bottom, its centre at rest (the nock), and where the arrow rests
 	     on the riser. ]]
@@ -55,6 +76,7 @@ local Weapons = {
 		hand = "LeftHand",
 		scale = 3.8,
 		grip = Vector3.new(0, -0.15, 0),
+		clips = { hold = "Hold", ready = "Draw", aim = "Aim", fire = "Fire" },
 		--[[ From the kit's README, turned into this model's frame (the
 		     arrow points +Z here, −Z in the kit). ]]
 		bowString = {
@@ -106,56 +128,54 @@ local Weapons = {
 		},
 	} :: Weapon,
 
-	--[[ The Arcanist's staff (`assets/models/weapons/arcane_staff_roblox.glb`),
-	     held upright in the right hand, about 5 studs tall, gripped a
-	     little over a third of the way up (imported 2026-10-23). ]]
+	--[[ The Arcanist's staff (`assets/models/weapons/arcane_staff_roblox.glb`,
+	     imported 2026-10-23), held upright in the right hand where the
+	     owner's kit holds it (`assets/models/weapons/arcane_staff_r15/`):
+	     gripped mid-shaft, about 4.7 studs tall. ]]
 	ArcaneStaff = {
 		hand = "RightHand",
-		scale = 3.6,
-		grip = Vector3.new(0, -0.25, 0),
+		scale = 3.4,
+		grip = Vector3.new(0, -0.1, 0),
+		clips = { hold = "Hold", ready = "Charge", aim = "Channel", fire = "Cast" },
+		--[[ The kit's, turned into this model's frame. ]]
+		orbitAxis = Vector3.new(0, -0.3146, -0.9492),
 		parts = {
 			{
 				name = "Staff",
 				meshId = "rbxassetid://107891163169138",
 				size = Vector3.new(0.2404, 1.1307, 0.1341),
-				offset = Vector3.new(-0.0002, 0.2443, 0.0000),
+				offset = Vector3.new(-0.0002, 0.1962, 0.0000),
 			},
 			{
 				name = "Trim",
 				meshId = "rbxassetid://90469048167793",
 				size = Vector3.new(0.2191, 1.3088, 0.1501),
-				offset = Vector3.new(-0.0002, 0.1486, 0.0031),
+				offset = Vector3.new(-0.0002, 0.1005, 0.0031),
 			},
 			{
 				name = "Gems",
 				meshId = "rbxassetid://78968569678522",
 				size = Vector3.new(0.0654, 1.1079, 0.7694),
-				offset = Vector3.new(-0.0016, 0.0220, 0.3539),
+				offset = Vector3.new(-0.0016, -0.0261, 0.3539),
 				glow = true,
 			},
 			{
 				name = "Orb",
 				meshId = "rbxassetid://130121013734391",
 				size = Vector3.new(0.1449, 0.1451, 0.1449),
-				offset = Vector3.new(-0.0015, 0.6916, 0.0000),
+				offset = Vector3.new(-0.0015, 0.6435, 0.0000),
 				glow = true,
+				orb = true,
 			},
 			{
 				name = "Orbits",
 				meshId = "rbxassetid://123851869923567",
 				size = Vector3.new(0.2915, 0.2871, 0.1095),
-				offset = Vector3.new(0.0000, 0.6837, 0.0082),
+				offset = Vector3.new(0.0000, 0.6356, 0.0082),
+				orbit = true,
 			},
 		},
 	} :: Weapon,
-
-	--[[ The Arcanist's right arm, in degrees, holding the staff upright
-	     before it, forearm level (owner, 2026-10-23: "hold it with one hand",
-	     until its animations arrive). The left arm is left to Roblox. ]]
-	casterPose = {
-		holdShoulder = Vector3.new(40, 10, 0),
-		holdElbow = Vector3.new(50, 0, 0),
-	},
 }
 
 return table.freeze(Weapons)

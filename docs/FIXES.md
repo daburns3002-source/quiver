@@ -16,6 +16,27 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## A picked skill flew to the middle of the bar, and too high
+
+**Symptom** — "when the animation plays for the upgrade to the upgrade bar
+make sure it goes into the next open slot, not just the middle of the bar".
+
+**Cause** — two. A skill not yet held has no slot, so `SkillBar.slotPosition`
+fell back to the tray's centre. And the celebration overlay placed things at
+raw screen positions (`AbsolutePosition`), but the overlay itself starts
+above the GUI inset — its own AbsolutePosition is (0, −58) on a Studio
+desktop — so the icon, rays and flash were all drawn 58 px too high.
+
+**Fix** — a new skill aims at the first open slot (the one it will take), a
+held one at its own slot, both at the icon disc rather than the slot's
+middle; and `stepOverlay` subtracts the overlay's AbsolutePosition from
+every screen position it places.
+
+**Measured** — the icon's last frame at (841, 863) against the open slot's
+disc at (842, 865); before, (1166, …) for the bar's centre and 58 px high.
+
+---
+
 ## Phone layout flipped back to the computer one mid-run
 
 **Symptom** — in Studio's phone emulator the HUD came up in its phone

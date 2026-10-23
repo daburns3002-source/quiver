@@ -785,6 +785,13 @@ stepOverlay = function(now: number)
 		return
 	end
 
+	--[[ Screen positions (AbsolutePosition) are turned into the overlay's
+	     own: the overlay starts at the top of the screen, above the GUI
+	     inset, so its AbsolutePosition is not zero (−58 on a desktop in
+	     Studio). Placing things at raw screen positions drew the whole
+	     celebration that far too high, and the icon landed above its slot. ]]
+	local origin = (icon.Parent :: GuiObject).AbsolutePosition
+
 	local raysAlpha, flashAlpha, ringP, wordsAlpha, wordsPop = 0, 0, -1, 0, 0
 	local mythicTitle = false
 	local centre: Vector2? = nil
@@ -793,7 +800,7 @@ stepOverlay = function(now: number)
 		local t = now - away.at
 		local slot = slots[away.picked]
 		if slot then
-			centre = slot.group.AbsolutePosition + slot.group.AbsoluteSize / 2
+			centre = slot.group.AbsolutePosition + slot.group.AbsoluteSize / 2 - origin
 		end
 
 		raysAlpha = if t < 0.3
@@ -813,7 +820,8 @@ stepOverlay = function(now: number)
 		-- The icon's flight into the bar.
 		local f = (t - 1.04) / 0.5
 		if slot and centre and f >= 0 and f <= 1 then
-			local target = SkillBar.slotPosition(slot.id) or centre
+			local slotAt = SkillBar.slotPosition(slot.id)
+			local target = if slotAt then slotAt - origin else centre
 			local e = Motion.quadInOut(f)
 			local control =
 				Vector2.new((centre.X + target.X) / 2 + 60, math.min(centre.Y, target.Y) - 150)
@@ -852,7 +860,7 @@ stepOverlay = function(now: number)
 			if t < 0 or t > MythicReveal.settleEnd + 1.5 then
 				continue
 			end
-			centre = slot.group.AbsolutePosition + slot.group.AbsoluteSize / 2
+			centre = slot.group.AbsolutePosition + slot.group.AbsoluteSize / 2 - origin
 			flashAlpha = math.max(0, 0.8 * (1 - math.abs(t - MythicReveal.flashAt) / 0.28))
 			raysAlpha = if t < MythicReveal.raysAt
 				then 0

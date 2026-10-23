@@ -414,17 +414,43 @@ function SkillBar.toCombat()
 	placeForCombat(HudLayout.current())
 end
 
---[[ Where a slot sits on screen, for a pick flying into it. ]]
+--[[ The centre of a slot's icon disc on screen: the slot is square over
+     its level badge, so the disc sits half a width down. ]]
+local function discCentre(slot: GuiObject): Vector2
+	local size = slot.AbsoluteSize
+	return slot.AbsolutePosition + Vector2.new(size.X / 2, size.X / 2)
+end
+
+--[[
+	Where a pick flies to: the skill's own slot when it is already held, or
+	the next open slot when it is new — the one it will take, since a new
+	skill joins the end of the bar. Never the middle of the bar, which a new
+	skill used to aim at, landing between slots ("make sure it goes into the
+	next open slot").
+]]
 function SkillBar.slotPosition(id: string): Vector2?
 	local slot = slotFrames[id]
 	if slot then
-		return slot.AbsolutePosition + slot.AbsoluteSize / 2
+		return discCentre(slot)
 	end
 	local t = tray
-	if t then
-		return t.AbsolutePosition + t.AbsoluteSize / 2
+	if not t then
+		return nil
 	end
-	return nil
+	local open: GuiObject? = nil
+	for _, child in t:GetChildren() do
+		if
+			child:IsA("GuiObject")
+			and child.Name == "Empty"
+			and (open == nil or child.LayoutOrder < (open :: GuiObject).LayoutOrder)
+		then
+			open = child
+		end
+	end
+	if open then
+		return discCentre(open)
+	end
+	return t.AbsolutePosition + t.AbsoluteSize / 2
 end
 
 return SkillBar

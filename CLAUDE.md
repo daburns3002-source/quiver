@@ -70,6 +70,20 @@ cleared, then glowing white-gold with a GO arrow, after Archero 2. Moonlit
 Arena's waves draw from the first
 `Balance.Waves.rooms` (10) rooms only.
 
+**How new things get in, and what is in flight** (owner, 2026-10-23: "keep
+track of all of the steps … automate things so when i want to add something
+new to the game, I can"): `docs/PIPELINES.md` is every pipeline step by step
+— enemy, rigged enemy, boss, arena, weapon kit, card, sound, art — with the
+owner's steps and Claude's; `docs/TRACKER.md` is everything started and not
+finished and who it waits on, **updated in the same PR as the work**. Start
+every file the owner sends with `python -I tools/intake.py <file>` (what is
+new against the repo, clip by clip), finish every change with
+`tools/check.sh` and `tools/ship.sh`, and trust no Studio test before
+`tools/sync_probe.py`'s probe reads all true. After any import,
+`tools/studio/dump_imports.luau` gives the mesh ids and bones. Project
+skills run these: `/intake`, `/add-enemy`, `/add-arena`, `/add-weapon`,
+`/add-sound`, `/ship`, `/status`.
+
 **Bugs that shipped, and what fixed them: `docs/FIXES.md`.** Written to be
 found by symptom. Read it before debugging anything that sounds familiar, and
 add to it in the same PR as every fix — the same classes of bug recur here.

@@ -53,6 +53,11 @@ function Atmosphere.apply()
 	bloom.Size = config.bloomSize
 	bloom.Threshold = config.bloomThreshold
 
+	local haze: Atmosphere = ensure("Atmosphere", "Atmosphere")
+	haze.Density = config.hazeDensity
+	haze.Color = config.hazeColor
+	haze.Decay = config.hazeDecay
+
 	local grade: ColorCorrectionEffect = ensure("ColorCorrectionEffect", Atmosphere.GradeName)
 	grade.Saturation = config.saturation
 	grade.Contrast = config.contrast

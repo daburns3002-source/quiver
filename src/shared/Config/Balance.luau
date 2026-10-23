@@ -1081,6 +1081,12 @@ local Balance = {
 		bloomThreshold = 1.15,
 		saturation = 0.15,
 		contrast = 0.05,
+		--[[ The distance haze. The place's default is grey, which read as
+		     grey space at the edges of the screen (owner, 2026-10-22); a
+		     forest green reads as the glade going on into mist. ]]
+		hazeDensity = 0.3,
+		hazeColor = Color3.fromRGB(70, 110, 60),
+		hazeDecay = Color3.fromRGB(30, 60, 30),
 	},
 
 	Stages = {

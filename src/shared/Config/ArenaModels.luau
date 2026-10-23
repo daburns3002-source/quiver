@@ -28,6 +28,17 @@ export type ArenaPart = {
 
 export type ArenaModel = {
 	parts: { ArenaPart },
+	--[[
+		What fills the screen past the model's edges, so the camera never
+		sees the grey void (owner, 2026-10-22). The model is about 81 studs
+		wide and a desktop screen sees about 124: `surround` names parts
+		(trees, bushes) drawn again `surroundSpacing` studs to either side,
+		and `outsideColor` is a forest floor laid under everything, the
+		model's own outer ground colour.
+	]]
+	surround: { string }?,
+	surroundSpacing: number?,
+	outsideColor: Color3?,
 }
 
 --[[
@@ -37,7 +48,14 @@ export type ArenaModel = {
 	room's do; the gap in its north wall is the exit. Its log and three
 	stumps are cover — see Level 1's rooms in `Balance`.
 ]]
+--[[ Every glade's outer ground (53, 89, 41 in its vertex colours), darkened
+     to match it as seen in the trees' shade rather than in full sun. ]]
+local GLADE_FLOOR = Color3.fromRGB(34, 62, 30)
+
 local gladeLogs: ArenaModel = {
+	surround = { "Trees", "Bushes" },
+	surroundSpacing = 81,
+	outsideColor = GLADE_FLOOR,
 	parts = {
 		{
 			name = "Ground",

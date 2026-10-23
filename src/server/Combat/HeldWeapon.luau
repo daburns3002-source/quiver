@@ -20,7 +20,7 @@ local templates: { [string]: MeshPart } = {}
 
 function HeldWeapon.preload()
 	local ids: { string } = {}
-	for _, name in { "LeafBow", "ArcaneStaff" } do
+	for _, name in { "LeafBow", "ArcaneStaff", "RubyGreatsword" } do
 		local weapon = (Weapons :: any)[name] :: Weapons.Weapon
 		for _, part in weapon.parts do
 			table.insert(ids, part.meshId)
@@ -60,7 +60,7 @@ function HeldWeapon.equip(character: Model, weaponName: string)
 	local model = Instance.new("Model")
 	model.Name = "HeldWeapon"
 
-	local frame = hand.CFrame * CFrame.new(weapon.grip) * IN_HAND
+	local frame = hand.CFrame * CFrame.new(weapon.grip) * (weapon.inHand or IN_HAND)
 	for _, spec in weapon.parts do
 		local template = templates[spec.meshId]
 		if not template then
@@ -76,8 +76,12 @@ function HeldWeapon.equip(character: Model, weaponName: string)
 		part.CanQuery = false
 		part.CanTouch = false
 		part.CastShadow = false
-		--[[ White, so the model's own vertex colours show. ]]
-		part.Color = Color3.new(1, 1, 1)
+		--[[ White, so the model's own vertex colours or texture show,
+		     unless the part names a colour of its own. ]]
+		part.Color = spec.colour or Color3.new(1, 1, 1)
+		if spec.textureId then
+			part.TextureID = spec.textureId
+		end
 		part.Material = if spec.glow then Enum.Material.Neon else Enum.Material.SmoothPlastic
 		if spec.nocked then
 			part.Transparency = 1

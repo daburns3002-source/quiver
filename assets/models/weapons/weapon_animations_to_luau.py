@@ -18,6 +18,7 @@ OUT = HERE.parents[2] / "src" / "shared" / "Config" / "WeaponAnimations.luau"
 KITS = {
     "LeafBow": HERE / "leaf_bow_r15" / "leaf_bow_animations.json",
     "ArcaneStaff": HERE / "arcane_staff_r15" / "arcane_staff_animations.json",
+    "RubyGreatsword": HERE / "ruby_greatsword_r15" / "ruby_greatsword_animations.json",
 }
 
 
@@ -39,7 +40,8 @@ lines = [
     "\tleaves out stay with Roblox's own animation (Hold moves the arms only,",
     "\tso the legs still walk). Keys ease Cubic InOut. Markers are seconds",
     "\tinto the clip: the bow's Draw `Nock` (the hand reaches the string) and",
-    "\tFire `Release`, the staff's Cast `Cast`.",
+    "\tFire `Release`, the staff's Cast `Cast`, the greatsword's slashes",
+    "\t`TrailOn`, `Hit` and `TrailOff`.",
     "]]",
     "",
     "export type Key = { t: number, joints: { [string]: CFrame } }",

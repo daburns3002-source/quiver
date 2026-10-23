@@ -74,6 +74,10 @@ export type Session = {
 	random: Random,
 
 	lastFiredAt: number,
+	--[[ A melee class's combo: the blow it swung last (0 for none yet), and
+	     when that swing's clip ends (`Combat/MeleeSystem`). ]]
+	swingIndex: number,
+	swingEndsAt: number,
 	--[[
 		`os.clock()` at which the player last became stationary, or nil while
 		moving. The firing system uses it to enforce the settle delay.
@@ -146,6 +150,8 @@ function RunSession.create(player: Player): Session
 		random = Random.new(),
 
 		lastFiredAt = 0,
+		swingIndex = 0,
+		swingEndsAt = 0,
 		stationarySince = nil,
 		movingSince = nil,
 		movedFor = 0,
@@ -585,6 +591,7 @@ function RunSession.bindCharacter(session: Session, character: Model)
 	session.health = session.maxHealth
 	session.alive = true
 	session.lastFiredAt = 0
+	session.swingIndex = 0
 	session.stationarySince = nil
 
 	healthChanged:FireClient(session.player, session.health, session.maxHealth)

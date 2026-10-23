@@ -18,6 +18,7 @@ local TweenService = game:GetService("TweenService")
 
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Device = require(script.Parent.Parent.Device)
+local SplitFx = require(script.Parent.SplitFx)
 
 local TelegraphRenderer = {}
 
@@ -255,6 +256,16 @@ function TelegraphRenderer.onTelegraph(
 
 	if tell == "Dive" then
 		drawDiveMarker(origin)
+		return
+	end
+
+	if tell == "Split" then
+		--[[ `direction` is the whole throw for this tell, landing minus where
+		     the body fell; `reach` is the piece's body radius. ]]
+		local parent = folder
+		if parent then
+			SplitFx.piece(origin - direction, origin, duration, reach, parent)
+		end
 		return
 	end
 

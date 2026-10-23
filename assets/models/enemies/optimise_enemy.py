@@ -8,7 +8,7 @@ vertex-coloured part keeps COLOR_0 (linear -> sRGB), a textured part has
 its texture sampled onto its vertices. Eye sockets are cut where the eyes
 sit behind the body. Turned 180 degrees about Y so the face looks down -Z,
 centred on X/Z with its base at y = 0. Per-enemy budgets and tweaks are in
-ENEMIES below. First used for the Moss Slime, then the Sprout Spitter.
+ENEMIES below. First used for the Moss Slime, then the Sprout Spitter and the Brood Slime.
 """
 import sys
 import numpy as np
@@ -113,6 +113,16 @@ ENEMIES = {
         "budget": {
             "Body": 1500, "Eyes": 300, "Eye_Catchlights": 72, "Moss": 2500, "Plants": 620,
             "Mushroom_1": 424, "Mushroom_2": 424, "Mushroom_3": 424, "Sprout": 708, "Spout": 544,
+        },
+    },
+    # Four babies ride in its moss; their own eyes stay in Decor, uncoloured.
+    "brood_slime": {
+        "shrink": {},
+        "budget": {
+            "Body": 1500, "Eyes": 300, "Eye_Catchlights": 72, "Moss": 2500, "Plants": 500,
+            "Mouth": 48, "Bubbles": 500,
+            "Baby_1": 300, "Baby_2": 300, "Baby_3": 300, "Baby_4": 300,
+            "Baby_1_Eyes": 96, "Baby_2_Eyes": 96, "Baby_3_Eyes": 96, "Baby_4_Eyes": 96,
         },
     },
 }

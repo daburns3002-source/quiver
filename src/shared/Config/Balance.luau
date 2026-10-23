@@ -37,7 +37,18 @@ export type EnemyTell = "Flash" | "Line" | "Ground"
 	they are the same thing to render — a mark at a point, for a moment — but
 	`EnemyShot.tell` must not be allowed to name one.
 ]]
-export type TelegraphTell = EnemyTell | "Dive" | "Spawn"
+export type TelegraphTell = EnemyTell | "Dive" | "Spawn" | "Split"
+
+--[[
+	What an enemy becomes when it dies, if anything: `count` of `into`,
+	thrown clear of where it fell (`Balance.Split` has how far and how fast).
+	The pieces are ordinary enemies of their own archetype, spawned by the
+	server, so they count towards the room and drop their own XP.
+]]
+export type EnemySplit = {
+	into: EnemyConfig,
+	count: number,
+}
 
 --[[
 	A ranged enemy's attack. Melee archetypes leave `shot` unset and swing at
@@ -124,6 +135,7 @@ export type EnemyConfig = {
 	turnRate: number,
 	shot: EnemyShot?,
 	burrow: EnemyBurrow?,
+	split: EnemySplit?,
 }
 
 local meleeCharger: EnemyConfig = {
@@ -147,6 +159,32 @@ local meleeCharger: EnemyConfig = {
 	--[[ Melee: closes to attackRange and swings. A ranged archetype sets
 	     `shot` instead and keeps its distance. ]]
 	shot = nil,
+}
+
+--[[
+	Elite melee: the Brood Slime (docs/ENEMIES-AND-ARENAS.md's Act 1 elite).
+	A big, slow Moss Slime with four babies riding in its moss, and when it
+	dies it splits like Zac's Cell Division — into Moss Slimes, thrown clear
+	in arcs (`Balance.Split`). A slow body that becomes two quick threats:
+	the lesson is finishing what you start.
+]]
+local broodSlime: EnemyConfig = {
+	displayName = "BroodSlime",
+	--[[ Heavier than a Moss Slime, lighter than a Bulwark. ]]
+	turnRate = 240,
+	--[[ Six arrows, then the two slimes it becomes. ]]
+	health = 600,
+	moveSpeed = 4.5,
+	attackRange = 4.6,
+	attackDamage = 56,
+	attackCooldown = 1.3,
+	knockback = 1.5,
+	--[[ Its model's own shape, 4.1 × 3.4 × 4.1. ]]
+	hitboxSize = Vector3.new(4.1, 3.4, 4.1),
+	color = Color3.fromRGB(226, 52, 56),
+	xpReward = 20,
+	shot = nil,
+	split = { into = meleeCharger, count = 2 },
 }
 
 --[[
@@ -428,9 +466,10 @@ local rooms: { RoomConfig } = {
 		obstacles = {
 			{ offset = Vector2.new(0, 0), size = Vector3.new(2.5, 10, 29.6) },
 		},
-		--[[ No new archetype. Room three is for practising room two in a worse shape. ]]
+		--[[ Adds the Brood Slime: room two's fight, and one body that has to
+		     be killed twice. ]]
 		enemyCount = 3,
-		roster = { meleeCharger, spreadShooter },
+		roster = { meleeCharger, spreadShooter, broodSlime },
 	},
 	{
 		name = "Scatter",
@@ -462,9 +501,9 @@ local rooms: { RoomConfig } = {
 			{ offset = Vector2.new(0, -12.9), size = Vector3.new(15.5, 10, 3.9) },
 			{ offset = Vector2.new(0, 12.9), size = Vector3.new(15.5, 10, 3.9) },
 		},
-		--[[ No new archetype. Four of them at once instead. ]]
+		--[[ No new archetype. Four of them at once instead, and a brood. ]]
 		enemyCount = 5,
-		roster = { meleeCharger, spreadShooter, lineSniper, tank },
+		roster = { meleeCharger, spreadShooter, lineSniper, broodSlime },
 	},
 	{
 		name = "The Pit",
@@ -781,6 +820,24 @@ local Balance = {
 		LineSniper = lineSniper,
 		Tank = tank,
 		Burrower = burrower,
+		BroodSlime = broodSlime,
+	},
+
+	--[[
+		How a splitting enemy's pieces leave it, after Zac's Cell Division
+		in League of Legends: the body bursts and its pieces are flung out in
+		arcs, land with a squash, and only then are enemies. Until they land
+		they are untargetable and harmless — a piece in the air is a warning,
+		not a threat.
+	]]
+	Split = {
+		--[[ Studs from where it fell to where a piece lands. ]]
+		reach = 5,
+		--[[ Seconds in the air, and how high the arc peaks. ]]
+		flight = 0.5,
+		arcHeight = 3.5,
+		--[[ Seconds a landed piece wobbles before it becomes an enemy. ]]
+		settle = 0.25,
 	},
 
 	--[[ Drawn tell for a `Line` shot: how thick the line is, and how far past

@@ -59,9 +59,11 @@ export type ArenaModel = {
 	in Level 1's rooms in `Balance`, at the model's own positions.
 ]]
 
---[[ Every glade's outer ground (53, 89, 41 in its vertex colours), darkened
-     to match it as seen in the trees' shade rather than in full sun. ]]
-local GLADE_FLOOR = Color3.fromRGB(34, 62, 30)
+--[[ Every glade's outer ground, exactly its vertex colour, so the forest
+     floor past the model's edge is the same green as the model's own ground
+     (owner, 2026-10-22: "it should not be two different shades of green").
+     Both are drawn matte, so the same colour reads the same. ]]
+local GLADE_FLOOR = Color3.fromRGB(53, 88, 41)
 
 --[[ The boss arena's own bushes and trees. Squeezed to fit the room, they
      stand right up against its walls, a dense shaded forest the owner chose

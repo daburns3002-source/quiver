@@ -100,10 +100,19 @@ ROUND_9 = [
     }),
 ]
 
+ROUND_10 = [
+    ("Round 10 · licensed sword sounds, picked to match your clip", {
+        "sword_swing": ("Blow 1 · the sweep", "Real recordings, all CC0 (public domain, free for commercial games), chosen by measuring each against your clip's first swing; A measured closest. 10% quicker, as before.", (1.0, 3)),
+        "sword_swing_2": ("Blow 2 · the backswing", "The same search against the clip's second swing; A measured closest.", (1.0, 3)),
+        "sword_slam": ("Blow 3 · the slam", "No single recording had the clip's whoosh-into-impact, so each is a CC0 whoosh with a CC0 impact laid in at the clip's timing; A measured closest.", None),
+    }),
+]
+
 # page: (rounds, picks collection, sounds already chosen, shown for context)
 PAGES = {
     "1-2": (ROUND_1_2, "picks", []),
     "3": (ROUND_3, "picks3", ["Player hurt A", "XP crystal D", "Heart D", "Level up A"]),
+    "10": (ROUND_10, "picks10", ["Player hurt", "XP crystal", "Heart", "Level up", "Enemy hit", "Dash", "Card pick", "Arrow fire", "Staff cast", "Enemy death", "Gate"]),
     "9": (ROUND_9, "picks9", ["Player hurt", "XP crystal", "Heart", "Level up", "Enemy hit", "Dash", "Card pick", "Arrow fire", "Staff cast", "Enemy death", "Gate"]),
     "8": (ROUND_8, "picks8", ["Player hurt", "XP crystal", "Heart", "Level up", "Enemy hit", "Dash", "Card pick", "Arrow fire", "Staff cast", "Enemy death", "Gate (round 6 B)"]),
     "7": (ROUND_7, "picks7", ["Player hurt", "XP crystal", "Heart", "Level up", "Enemy hit", "Dash", "Card pick", "Arrow fire"]),

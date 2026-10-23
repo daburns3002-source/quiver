@@ -76,7 +76,7 @@ tight corridors the Warden), so the class chosen matters across a run.
 
 | # | Area | Act | Enemies | Hazards and shape | Boss |
 |---|---|---|---|---|---|
-| 1 | Mossy Glade | 1 · The Wilds | slimes, wolves | tutorial-friendly forest | King Bloblin |
+| 1 | Mossy Glade | 1 · The Wilds | slimes, wilfs | tutorial-friendly forest | King Bloblin |
 | 2 | Thornwood | 1 | bramble boars, thistles | brambles that make choke points | the Broodmother |
 | 3 | Drowned Village | 2 · The Lowlands | zombies, eels | ruined houses | Old Tollcrab |
 | 4 | Bogheart Caverns | 2 | spore puffs, glowcaps | glowing fungus, poison vents | Grandmother Gulp |

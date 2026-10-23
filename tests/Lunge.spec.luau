@@ -1,6 +1,6 @@
 --!strict
 --[[
-	Lunging archetypes (`EnemyConfig.lunges`; the Ember Wolf's charge and
+	Lunging archetypes (`EnemyConfig.lunges`; the Ember Wilf's charge and
 	dash), as `EnemyManager` runs them. Relationships, not values: a lunge
 	that is slower than walking is not a lunge, one with no wind-up cannot be
 	dodged, and an archetype that walks in to a distance none of its lunges
@@ -78,7 +78,7 @@ return function(t: TestRunner.Helper)
 		end
 	end)
 
-	--[[ An `Eyes` tell is the eyes alone turning red (the Ember Wolf's
+	--[[ An `Eyes` tell is the eyes alone turning red (the Ember Wilf's
 	     charge, owner 2026-10-23): an enemy with one and no eyes in its
 	     design would wind up with no warning at all. ]]
 	t.test("every eye-flash wind-up has eyes to flash", function()

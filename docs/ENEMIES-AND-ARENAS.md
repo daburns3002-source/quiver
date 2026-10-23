@@ -36,7 +36,7 @@ directly above on a phone, glowing eyes, and a telegraph before any hit.
 
 ## Design language — themed, with a touch of Hollow Knight
 
-Enemies belong to their arena: forest slimes, wolves and bramble boars,
+Enemies belong to their arena: forest slimes, wilfs and bramble boars,
 marsh frogs, toads and eels, mountain yetis and goats, forge imps and golems,
 castle knights — in the same Archero 2 toy style as the arenas
 (`ART-archero2.md`). **No spiders in Act 1 and no ghost in Act 2** (owner,
@@ -53,7 +53,7 @@ keep the arena theme" — an earlier all-insect pass went too far):
 - **Hollow, glowing eyes**, in each act's colour: amber in the Wilds, pale
   green in the Lowlands, white-blue in the Heights, ember orange in the
   Depths, violet at the End.
-- **A small pale mask or face plate on *some* creatures** — the Glade Wolf's
+- **A small pale mask or face plate on *some* creatures** — the Glade Wilf's
   skull mask, the Corrupted Monk's hollow mask, the Void Wisp that is only a
   mask — not on all of them, so it stays a signature rather than a uniform.
 - **The odd slender limb or little tattered cloak**, and a slightly wistful
@@ -76,7 +76,7 @@ the act that teaches the game.
 |---|---|---|---|
 | **Moss Slime** | Charger, slow · reskin | Hops straight at you | Move or shoot |
 | **Sprout Slime** | Spitter · reskin | Lobs one slow seed | Dodging a shot |
-| **Glade Wolf** | Charger, fast · twist: comes in packs of 3 that circle before lunging | Circles, then dashes in | Reading a lunge |
+| **Glade Wilf** | Charger, fast · twist: comes in packs of 3 that circle before lunging | Circles, then dashes in | Reading a lunge |
 | *Elite:* **Brood Slime** (built 2026-10-22) | Charger · twist: splits into 4 Moss Slimes (owner, like Zac) on death, thrown out like Zac's Cell Division | A slow wall that becomes four threats | Finishing what you start |
 
 **Arenas.** *Clearing* — open grass, two mossy stumps. *Fairy Ring* — a ring
@@ -359,7 +359,7 @@ pieces one by one, and material swatches.
 **Enemies** — 54 pages. Pages marked *(cut area)* belong to areas cut in the
 move to ten; they are kept in case those enemies come back.
 
-- **Act 1** (`assets/concepts/enemies/act1/`, all on `act1_pages.jpg`): bandit_archer *(cut area)*, bomb_tosser *(cut area)*, bramble_boar, bramble_lurker, bramble_sow, brute *(cut area)*, burr_thistle, cutthroat *(cut area)*, glade_wolf, moss_slime, mother_slime, sprout_slime
+- **Act 1** (`assets/concepts/enemies/act1/`, all on `act1_pages.jpg`): bandit_archer *(cut area)*, bomb_tosser *(cut area)*, bramble_boar, bramble_lurker, bramble_sow, brute *(cut area)*, burr_thistle, cutthroat *(cut area)*, glade_wilf, moss_slime, mother_slime, sprout_slime
 - **Act 2** (`assets/concepts/enemies/act2/`, all on `act2_pages.jpg`): bell_ringer, bog_frog *(cut area)*, cave_crawler, ditch_eel, drowned_zombie, glowcap, hollow_fisherman, shellback, spore_puff, swamp_lurker *(cut area)*, toxic_toad *(cut area)*
 - **Act 3** (`assets/concepts/enemies/act3/`, all on `act3_pages.jpg`): bell_guardian *(cut area)*, chanting_acolyte *(cut area)*, cliff_goat, corrupted_monk *(cut area)*, frost_golem, gust_shaman, harpy, ice_lurker, lantern_spirit *(cut area)*, snow_sprite, storm_roc, yeti
 - **Act 4** (`assets/concepts/enemies/act4/`, all on `act4_pages.jpg`): anvil_golem, dwarven_construct, ember_bat, ember_mage *(cut area)*, fire_imp, forge_turret, lava_slime *(cut area)*, magma_lurker, mine_cart_bomber, obsidian_brute *(cut area)*, spark_drone

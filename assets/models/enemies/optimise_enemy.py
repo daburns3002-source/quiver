@@ -118,9 +118,9 @@ def cut_sockets(body, eyes):
             cut.visual.vertex_attributes[k] = v
     return cut
 
-# A model made as one mesh (the Ember Wolf) has no eyes of its own to cut
+# A model made as one mesh (the Ember Wilf) has no eyes of its own to cut
 # sockets for: its single part is the Body, and nothing else comes out.
-SINGLE = {"ember_wolf": "EmberWolf_1"}
+SINGLE = {"ember_wilf": "EmberWilf_1"}
 if ENEMY in SINGLE:
     parts = {"Body": parts[SINGLE[ENEMY]]}
 else:
@@ -172,8 +172,8 @@ ENEMIES = {
     },
     # The boss (owner's design_handoff_slime_king, 2026-10-23): 95k triangles
     # in, about 10k out. The arms stay separate for the Slime Lash.
-    # The owner's wolf (2026-10-23), one textured mesh: 16.8k triangles in.
-    "ember_wolf": {
+    # The owner's wilf (2026-10-23), one textured mesh: 16.8k triangles in.
+    "ember_wilf": {
         "shrink": {},
         "budget": {"Body": 3500},
     },

@@ -240,8 +240,8 @@ local abilities: { Ability } = {
 		stats = { "x2 atk spd" },
 		icon = "dual-bows",
 		classes = { "Ranger" },
-		--[[ A bow in each hand, held as the owner's posed rig holds them
-		     (2026-10-23). ]]
+		--[[ A bow in each hand, firing in turn, from the owner's Dual Bows
+		     kit (2026-10-23). ]]
 		weapon = "LeafBowDual",
 	},
 

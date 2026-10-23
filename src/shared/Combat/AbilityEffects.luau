@@ -257,7 +257,7 @@ function AbilityEffects.serverStats(drafted: Counts, class: string?): ServerStat
 		--[[ Additive across levels, as the cards read: "+30% ATK" is thirty
 		     percent of the base, not of the last level. ]]
 		damage = player.baseDamage * kind.damageScale * (1 + at(counts, "Strength")),
-		maxHealth = player.maxHealth * (1 + at(counts, "Vitality")),
+		maxHealth = player.maxHealth * kind.healthScale * (1 + at(counts, "Vitality")),
 		--[[ Dual Bows: attack speed ×(1 + level), so its 1 halves the
 		     cooldown. Server and client must agree, or prediction fires
 		     on a different beat from the shots that count. ]]

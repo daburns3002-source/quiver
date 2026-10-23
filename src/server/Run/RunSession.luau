@@ -69,6 +69,10 @@ export type Session = {
 	     the player — set by a revive. ]]
 	revivesLeft: number,
 	invulnerableUntil: number,
+	--[[ A melee class's guard: untouchable from `guardFrom` until
+	     `guardUntil`, while its blade is moving (`Combat/MeleeSystem`). ]]
+	guardFrom: number,
+	guardUntil: number,
 	--[[ Its own Random, so one player's draft cannot shift another's rolls,
 	     and a run is reproducible from a seed if that is ever wanted. ]]
 	random: Random,
@@ -147,6 +151,8 @@ function RunSession.create(player: Player): Session
 		healthSentAt = 0,
 		revivesLeft = Balance.Revive.perStage,
 		invulnerableUntil = 0,
+		guardFrom = 0,
+		guardUntil = 0,
 		random = Random.new(),
 
 		lastFiredAt = 0,
@@ -511,9 +517,12 @@ function RunSession.newStage(session: Session)
 	session.invulnerableUntil = 0
 end
 
---[[ Whether nothing can hurt this player right now. ]]
+--[[ Whether nothing can hurt this player right now: a revive's shield, or
+     a melee class mid-swing. ]]
 function RunSession.isInvulnerable(session: Session): boolean
-	return os.clock() < session.invulnerableUntil
+	local now = os.clock()
+	return now < session.invulnerableUntil
+		or (now >= session.guardFrom and now < session.guardUntil)
 end
 
 function RunSession.get(player: Player): Session?

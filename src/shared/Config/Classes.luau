@@ -20,14 +20,20 @@ export type Swing = {
 	width: number,
 	depth: number,
 	damage: { number },
+	--[[ Untouchable while the blade is moving: from each slash's
+	     `TrailOn` marker to its `TrailOff` (owner, 2026-10-23: "if the
+	     warden is mid swing of his sword he should be invulnerable"). ]]
+	guard: boolean?,
 }
 
 export type Class = {
 	--[[ The `Config/Weapons` entry held in hand. ]]
 	weapon: string,
-	--[[ Multipliers on `Balance.Player.baseDamage` and `attackCooldown`. ]]
+	--[[ Multipliers on `Balance.Player.baseDamage`, `attackCooldown` and
+	     `maxHealth`. ]]
 	damageScale: number,
 	cooldownScale: number,
+	healthScale: number,
 	--[[ Multiplier on `Balance.Projectile.speed`. The shot lives longer to
 	     match, so its reach is the same however fast it flies. ]]
 	speedScale: number,
@@ -48,6 +54,7 @@ local Classes: { [string]: Class } = {
 		weapon = "LeafBow",
 		damageScale = 1,
 		cooldownScale = 1,
+		healthScale = 1,
 		speedScale = 1,
 		innate = {},
 		look = "Arrow",
@@ -60,6 +67,7 @@ local Classes: { [string]: Class } = {
 		weapon = "ArcaneStaff",
 		damageScale = 2,
 		cooldownScale = 2,
+		healthScale = 1,
 		speedScale = 0.6,
 		innate = { BlastArrows = 1 },
 		look = "Orb",
@@ -74,11 +82,16 @@ local Classes: { [string]: Class } = {
 		weapon = "RubyGreatsword",
 		damageScale = 1.6,
 		cooldownScale = 1.2,
+		--[[ It has to stand among the enemies, so it can take more of them
+		     (owner, 2026-10-23: "the warden needs to be tankier"). ]]
+		healthScale = 1.6,
 		speedScale = 1,
 		innate = {},
 		look = "Arrow",
-		reach = 7,
-		swing = { width = 9, depth = 8, damage = { 1, 1, 1.5 } },
+		--[[ Was 7, then 8 deep and 9 wide: "that is too close" (owner,
+		     2026-10-23). ]]
+		reach = 10,
+		swing = { width = 10, depth = 11, damage = { 1, 1, 1.5 }, guard = true },
 	},
 }
 

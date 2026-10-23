@@ -11,7 +11,8 @@
 	before then cancels it, as moving cancels a draw.
 
 	Each blow of the weapon's combo has its own damage (`swing.damage`); the
-	combo starts over after a pause. A swing takes crit and Blaze from the
+	combo starts over after a pause. A class with `swing.guard` cannot be
+	hurt while its blade is moving (`RunSession.isInvulnerable`). A swing takes crit and Blaze from the
 	player's draft, read off the lead shot of the volley the pipeline would
 	build, so a drafted ability means the same thing on any class. The
 	server decides every hit; the client only plays the swing.
@@ -92,6 +93,13 @@ function MeleeSystem.swing(session: Session, root: BasePart, now: number, cooldo
 	session.swingIndex = index
 	session.swingEndsAt = now + clip.length / speed
 	session.lastFiredAt = now
+
+	--[[ Untouchable while the blade moves, as the client draws its trail. ]]
+	local guardFrom, guardUntil = clip.markers.TrailOn, clip.markers.TrailOff
+	if class.swing.guard and guardFrom and guardUntil then
+		session.guardFrom = now + guardFrom / speed
+		session.guardUntil = now + guardUntil / speed
+	end
 
 	table.insert(pending, {
 		session = session,

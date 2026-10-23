@@ -12,6 +12,7 @@ local Abilities = require(ReplicatedStorage.Shared.Config.Abilities)
 local AbilityEffects = require(ReplicatedStorage.Shared.Combat.AbilityEffects)
 local Classes = require(ReplicatedStorage.Shared.Config.Classes)
 local TestRunner = require(script.Parent.TestRunner)
+local WeaponAnimations = require(ReplicatedStorage.Shared.Config.WeaponAnimations)
 local Weapons = require(ReplicatedStorage.Shared.Config.Weapons)
 
 return function(t: TestRunner.Helper)
@@ -94,6 +95,39 @@ return function(t: TestRunner.Helper)
 					#class.swing.damage == #weapon.clips.fire,
 					`{name} has {#class.swing.damage} blow damages for {#weapon.clips.fire} blows`
 				)
+			end
+		end
+	end)
+
+	t.test("every class has a health scale, and a melee class outlasts the Ranger", function()
+		local ranger = AbilityEffects.serverStats({}, "Ranger")
+		for name, class in Classes do
+			t.isTrue(class.healthScale > 0, `{name}'s health scale is not positive`)
+			if class.swing then
+				local stats = AbilityEffects.serverStats({}, name)
+				t.isTrue(
+					stats.maxHealth > ranger.maxHealth,
+					`{name} fights up close with no more health`
+				)
+			end
+		end
+	end)
+
+	--[[ The guard runs from a slash's TrailOn to its TrailOff; a blow
+	     without both would leave the swinger open with no sign of it. ]]
+	t.test("every blow of a guarded swing marks when the blade moves", function()
+		for name, class in Classes do
+			if class.swing and class.swing.guard then
+				local weapon = (Weapons :: any)[class.weapon]
+				for _, clipName in weapon.clips.fire do
+					local markers = WeaponAnimations[class.weapon][clipName].markers
+					t.isTrue(
+						markers.TrailOn ~= nil
+							and markers.TrailOff ~= nil
+							and markers.TrailOn < markers.TrailOff,
+						`{name}'s {clipName} has no guard window`
+					)
+				end
 			end
 		end
 	end)

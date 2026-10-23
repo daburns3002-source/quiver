@@ -39,10 +39,11 @@ all); Second Wind stays a Mythic every class can draw.
 
 **Weapon concept sheets** (Codex, 2026-10-23), in `assets/concepts/weapons/`,
 each a model sheet (hero render, front / side / back / top, details,
-palette) to be built as a 3D model: `ranger_bow` (leaf-tipped longbow and
-arrow), `arcanist_staff` (crescent staff with a cyan orb and three orbiting
-orbs, for Homing Orbs), and both melee options while the class is open —
-`warden_sword_shield` and `duelist_daggers`.
+palette) to be built as a 3D model. Each class has its colour (owner):
+`ranger_bow` green (leaf-tipped longbow and arrow), `arcanist_staff` blue
+(crescent staff with a cyan orb and three orbiting orbs, for Homing Orbs),
+and both melee options while the class is open — `warden_greatsword` red
+(no shield) and `duelist_daggers` purple.
 
 **Alternative to the Warden:** a **Duelist** — fast dagger strikes, crits,
 evasion — if the unlockable melee class should play faster. *Open.*

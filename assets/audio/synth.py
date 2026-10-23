@@ -2,7 +2,7 @@
 lightly after Archero 2. Every sound is built from scratch here (tones,
 noise, filters, envelopes), so all of it is ours to ship.
 
-Usage: synth.py <out_dir>
+Usage: synth.py <out_dir> [round ...]   (rounds 1 2 by default; 3 alone)
 Writes <out_dir>/<sound>_<variant>.wav (44.1 kHz, 16-bit mono) and a
 manifest.json describing each variant.
 """
@@ -526,7 +526,7 @@ LEVEL2 = {
 }
 
 
-SOUNDS = {
+ROUND1 = {
     "arrow_fire": [
         ("a", arrow_a, "Classic bow twang with a whoosh behind it."),
         ("b", arrow_b, "Bright, snappy twang; the shortest and lightest."),
@@ -554,19 +554,237 @@ SOUNDS = {
 # fairly; the families sit at different levels the way they would in game.
 LEVEL = {"arrow_fire": 0.10, "enemy_hit": 0.16, "enemy_death": 0.14}
 
-SOUNDS.update(ROUND2)
+# ---------- round 3: soft, musical and clean, after the owner's round 2
+# picks (a warm thud, a soft chime, a ding and sparkle, a rising
+# arpeggio). Everything unpicked is redone, and the enemy death again
+# around the pick, C. ----------
+
+# arrow fire
+
+def r3_arrow_a():  # Soft "fft": an air puff over a low pluck
+    puff = bandpass(noise(0.09), 900, 3500) * env_ad(int(SR * 0.09), 0.004, 6)
+    pl = pluck(147, 0.12, brightness=0.3, bend=0.1) * env_ad(int(SR * 0.12), 0.001, 8)
+    return mix((puff, 0.6), (lowpass(pl, 1500), 0.7))
+
+
+def r3_arrow_b():  # Muted bow thump with a soft click
+    pl = pluck(110, 0.14, brightness=0.25, bend=0.2) * env_ad(int(SR * 0.14), 0.001, 7)
+    click = bandpass(noise(0.008), 1500, 4000) * env_ad(int(SR * 0.008), 0.0005, 6)
+    return mix((lowpass(pl, 1200), 0.9), (click, 0.3))
+
+
+def r3_arrow_c():  # Musical "pew": a soft falling tone with air
+    pew = chirp(0.08, 950, 620) * env_ad(int(SR * 0.08), 0.002, 6)
+    air = bandpass(noise(0.07), 2500, 6000) * env_ad(int(SR * 0.07), 0.005, 6)
+    return mix((pew, 0.6), (air, 0.2))
+
+
+def r3_arrow_d():  # Whisper whoosh with a quiet string snap
+    wh = whoosh(0.12, 1500, 4500, q=1.5, attack=0.006, decay=6)
+    snap = bandpass(pluck(262, 0.08, brightness=0.6), 400, 2500) * env_ad(int(SR * 0.08), 0.001, 9)
+    return mix((wh, 0.6), (snap, 0.45))
+
+
+# enemy hit
+
+def r3_hit_a():  # Soft muted thump
+    th = chirp(0.07, 190, 110) * env_ad(int(SR * 0.07), 0.001, 6)
+    pat = lowpass(noise(0.03), 1200) * env_ad(int(SR * 0.03), 0.001, 7)
+    return mix((th, 1.0), (pat, 0.3))
+
+
+def r3_hit_b():  # Rounded "plop"
+    plop = chirp(0.09, 520, 240) * env_ad(int(SR * 0.09), 0.002, 6)
+    return mix((plop, 0.9), (lowpass(noise(0.02), 2000) * env_ad(int(SR * 0.02), 0.001, 6), 0.2))
+
+
+def r3_hit_c():  # Soft woodblock tick
+    return tone(780, 0.08, 18, ((1, 1.0), (2.6, 0.3), (4.1, 0.1)), attack=0.0008)
+
+
+def r3_hit_d():  # Squishy pat
+    sq = lowpass(noise(0.07), 450) * env_ad(int(SR * 0.07), 0.002, 6)
+    body = tone(150, 0.08, 9)
+    return mix((sq, 0.8), (body, 0.6))
+
+
+# enemy death, around C (a falling "bwoop" and a poof)
+
+def r3_death_a():  # C, shorter and rounder
+    bwoop = chirp(0.2, 620, 160) * env_ad(int(SR * 0.2), 0.004, 4)
+    poof = lowpass(noise(0.18), 1200) * env_ad(int(SR * 0.18), 0.02, 5)
+    return room(mix((bwoop, 0.8), (at(poof, 0.08), 0.45)), 0.1, 0.12)
+
+
+def r3_death_b():  # Bwoop down, sparkle up
+    bwoop = chirp(0.22, 650, 170, wave="tri") * env_ad(int(SR * 0.22), 0.004, 4)
+    sp = sparkle(0.3, [1568, 2093, 2637], spacing=0.04, decay=10)
+    return room(mix((bwoop, 0.75), (at(sp, 0.14), 0.35)), 0.14, 0.18)
+
+
+def r3_death_c():  # Soft poof with a gentle bell
+    poof = sweep_filter(noise(0.25), 1600, 400, q=1.0) * env_ad(int(SR * 0.25), 0.01, 5)
+    bell = tone(880, 0.4, 6, BELL)
+    return room(mix((poof, 0.8), (at(bell, 0.03), 0.35)), 0.15, 0.2)
+
+
+def r3_death_d():  # Pop-pop, then a poof
+    pops = mix(*[(at(chirp(0.04, f, f * 2.2) * env_ad(int(SR * 0.04), 0.001, 6), d), 0.6)
+                 for f, d in ((420, 0), (560, 0.06))])
+    poof = lowpass(noise(0.2), 1400) * env_ad(int(SR * 0.2), 0.02, 5)
+    return room(mix((pops, 0.8), (at(poof, 0.1), 0.5)), 0.12, 0.15)
+
+
+# staff cast
+
+def r3_cast_a():  # Bell ping with a gentle whoosh
+    return room(mix((tone(1175, 0.4, 6, BELL), 0.55), (whoosh(0.22, 800, 3500, q=1.2, attack=0.02, decay=5), 0.5)), 0.15, 0.2)
+
+
+def r3_cast_b():  # Warm "vwoom" with a wobble
+    tt = t_of(0.3)
+    f = 300 + 300 * tt / 0.3 + 12 * np.sin(2 * np.pi * 9 * tt)
+    vw = np.sin(2 * np.pi * np.cumsum(f) / SR) * env_ad(len(tt), 0.02, 4)
+    return room(mix((vw, 0.7), (lowpass(noise(0.3), 1500) * env_ad(len(tt), 0.03, 5), 0.25)), 0.15, 0.2)
+
+
+def r3_cast_c():  # Quick three-note twinkle up
+    return room(mix((arp([1319, 1568, 2093], 0.03, 0.25, GLASS, 9), 0.6), (whoosh(0.18, 1500, 5000, q=1.5), 0.35)), 0.12, 0.18)
+
+
+def r3_cast_d():  # Soft deep orb launch with shimmer
+    th = chirp(0.22, 230, 120) * env_ad(int(SR * 0.22), 0.004, 5)
+    sh = sparkle(0.25, [2093, 2637], spacing=0.03, decay=12)
+    return room(mix((th, 0.9), (at(sh, 0.02), 0.25)), 0.15, 0.2)
+
+
+# dash
+
+def r3_dash_a():  # Short soft swish
+    return whoosh(0.13, 1200, 3500, q=1.4, attack=0.01, decay=6)
+
+
+def r3_dash_b():  # Swish with a small rising chime
+    return mix((whoosh(0.15, 1000, 4000, q=1.4, attack=0.01, decay=5), 0.7),
+               (at(arp([1319, 1760], 0.04, 0.2, WARM, 10), 0.03), 0.3))
+
+
+def r3_dash_c():  # Double "fwip"
+    one = whoosh(0.07, 1800, 5000, q=1.6, attack=0.005, decay=6)
+    return mix((one, 0.6), (at(one, 0.07), 0.45))
+
+
+def r3_dash_d():  # Low, short air puff
+    return mix((whoosh(0.14, 400, 1500, q=1.0, attack=0.01, decay=6), 0.9),
+               (tone(110, 0.1, 8), 0.3))
+
+
+# card pick
+
+def r3_card_a():  # A single soft bell ding
+    return room(tone(1319, 0.45, 6, BELL), 0.15, 0.2)
+
+
+def r3_card_b():  # Card slide into two warm notes up
+    slide = bandpass(noise(0.06), 1500, 4500) * env_ad(int(SR * 0.06), 0.02, 4)
+    return room(mix((slide, 0.35), (at(arp([784, 1175], 0.06, 0.35, WARM, 7), 0.04), 0.6)), 0.15, 0.2)
+
+
+def r3_card_c():  # A short sparkle cascade
+    return room(sparkle(0.35, [3136, 2637, 2093, 1568], spacing=0.035, decay=9), 0.15, 0.2)
+
+
+def r3_card_d():  # Woody tap and a ding
+    tap = tone(520, 0.05, 20, ((1, 1.0), (2.6, 0.3)), attack=0.0008)
+    return room(mix((tap, 0.6), (at(tone(1568, 0.35, 7, BELL), 0.04), 0.5)), 0.15, 0.2)
+
+
+# gate open
+
+def r3_gate_a():  # A slower, lower rising arpeggio
+    return room(arp([392, 523, 659, 784, 1047], 0.09, 0.6, BELL, 4), 0.25, 0.28)
+
+
+def r3_gate_b():  # Soft chord bloom with sparkle
+    chord = sum(tone(f, 0.8, 3, WARM, attack=0.08) for f in [523, 659, 784]) / 2
+    return room(mix((chord, 0.7), (at(sparkle(0.4, [2093, 2637, 3136, 4186], spacing=0.05), 0.15), 0.35)), 0.25, 0.28)
+
+
+def r3_gate_c():  # Chimes falling into a sparkle
+    return room(mix((arp([1568, 1319, 1047, 784], 0.07, 0.5, BELL, 5), 0.6),
+                    (at(sparkle(0.3, [2637, 3136]), 0.3), 0.3)), 0.25, 0.28)
+
+
+def r3_gate_d():  # Warm bell and a short airy swell
+    swell = sweep_filter(noise(0.6), 600, 3000, q=2) * env_ad(int(SR * 0.6), 0.15, 4)
+    return room(mix((tone(659, 0.7, 4, BELL), 0.6), (swell, 0.35)), 0.25, 0.28)
+
+
+ROUND3 = {
+    "arrow_fire": [
+        ("a", r3_arrow_a, "Soft \"fft\": an air puff over a low, muted pluck."),
+        ("b", r3_arrow_b, "Muted bow thump with a soft click."),
+        ("c", r3_arrow_c, "Musical \"pew\": a soft falling tone."),
+        ("d", r3_arrow_d, "A whisper of whoosh with a quiet string snap."),
+    ],
+    "enemy_hit": [
+        ("a", r3_hit_a, "Soft, muted thump."),
+        ("b", r3_hit_b, "A rounded \"plop\"."),
+        ("c", r3_hit_c, "A soft woodblock tick."),
+        ("d", r3_hit_d, "A squishy pat."),
+    ],
+    "enemy_death": [
+        ("a", r3_death_a, "Your pick C, shorter and rounder."),
+        ("b", r3_death_b, "C's falling bwoop, then a sparkle rising."),
+        ("c", r3_death_c, "A soft poof with a gentle bell."),
+        ("d", r3_death_d, "Pop-pop, then a poof."),
+    ],
+    "staff_cast": [
+        ("a", r3_cast_a, "A bell ping with a gentle whoosh."),
+        ("b", r3_cast_b, "A warm \"vwoom\" with a little wobble."),
+        ("c", r3_cast_c, "A quick three-note twinkle going up."),
+        ("d", r3_cast_d, "A soft, deep orb launch with a shimmer."),
+    ],
+    "dash": [
+        ("a", r3_dash_a, "A short, soft swish."),
+        ("b", r3_dash_b, "A swish with a small rising chime."),
+        ("c", r3_dash_c, "A double \"fwip\"."),
+        ("d", r3_dash_d, "A low, short puff of air."),
+    ],
+    "card_pick": [
+        ("a", r3_card_a, "A single soft bell ding."),
+        ("b", r3_card_b, "A card slide into two warm notes going up."),
+        ("c", r3_card_c, "A short sparkle cascading down."),
+        ("d", r3_card_d, "A woody tap and a ding."),
+    ],
+    "gate_open": [
+        ("a", r3_gate_a, "A slower, lower rising arpeggio, like your level-up pick."),
+        ("b", r3_gate_b, "A soft chord blooming, with a sparkle."),
+        ("c", r3_gate_c, "Chimes falling into a sparkle."),
+        ("d", r3_gate_d, "A warm bell and a short airy swell."),
+    ],
+}
+
+
 LEVEL.update(LEVEL2)
+# The audition rounds, kept so any take can be rendered again exactly.
+ROUNDS = {"1": ROUND1, "2": ROUND2, "3": ROUND3}
 
 if __name__ == "__main__":
     out = sys.argv[1]
+    # Rounds render in order from one seed, so a round renders the same
+    # takes only alongside the rounds it was first rendered with (1 and 2
+    # together; 3 alone).
+    wanted = sys.argv[2:] or ["1", "2"]
     os.makedirs(out, exist_ok=True)
     manifest = {}
-    for name, variants in SOUNDS.items():
-        manifest[name] = []
-        for letter, fn, note in variants:
-            x = finish(fn(), target_rms=LEVEL[name])
-            path = os.path.join(out, f"{name}_{letter}.wav")
-            wavfile.write(path, SR, (np.clip(x, -1, 1) * 32767).astype(np.int16))
-            manifest[name].append({"variant": letter, "file": os.path.basename(path), "note": note, "ms": round(len(x) / SR * 1000)})
-            print(name, letter, round(len(x) / SR * 1000), "ms")
+    for r in wanted:
+        for name, variants in ROUNDS[r].items():
+            manifest[name] = []
+            for letter, fn, note in variants:
+                x = finish(fn(), target_rms=LEVEL[name])
+                path = os.path.join(out, f"{name}_{letter}.wav")
+                wavfile.write(path, SR, (np.clip(x, -1, 1) * 32767).astype(np.int16))
+                manifest[name].append({"variant": letter, "file": os.path.basename(path), "note": note, "ms": round(len(x) / SR * 1000)})
+                print(name, letter, round(len(x) / SR * 1000), "ms")
     json.dump(manifest, open(os.path.join(out, "manifest.json"), "w"), indent=1)

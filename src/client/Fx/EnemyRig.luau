@@ -32,10 +32,14 @@ local EnemyRig = {}
 local STILL_SPEED = 0.5
 --[[ How fast the Run fades in and out, per second. ]]
 local BLEND_RATE = 6
+--[[ An `Eyes` tell's pulse: the eyes swell by this share, this many
+     times a second. ]]
+local EYE_PULSE = 0.6
+local EYE_FLASHES = 4
 --[[ A bone at rest: what the Run fades out to. ]]
 local REST = CFrame.new()
 
-type Rider = { part: BasePart, bone: Bone, offset: CFrame }
+type Rider = { part: BasePart, bone: Bone, offset: CFrame, size: Vector3 }
 
 type Body = {
 	rig: EnemyRigs.Rig,
@@ -124,6 +128,7 @@ local function setup(model: Model)
 				part = child,
 				bone = bone,
 				offset = bone.TransformedWorldCFrame:ToObjectSpace(child.CFrame),
+				size = child.Size,
 			})
 		end
 	end
@@ -203,8 +208,20 @@ local function step(dt: number)
 			bone.Transform = poses[name] or CFrame.identity
 		end
 
+		--[[ An `Eyes` tell: the eyes, already red from the server, pulse
+		     while it winds up (owner, 2026-10-23: "the eyes just flash red
+		     before he charges"). ]]
+		local flashing = winding and model:GetAttribute("LungeTell") == "Eyes"
+		local pulse = if flashing
+			then 1 + EYE_PULSE * math.abs(
+				math.sin((now - (body.dashAt or now)) * math.pi * EYE_FLASHES)
+			)
+			else 1
 		for _, rider in body.riders do
 			rider.part.CFrame = rider.bone.TransformedWorldCFrame * rider.offset
+			if rider.part:GetAttribute(EnemyDesigns.EyeTag) then
+				rider.part.Size = rider.size * pulse
+			end
 		end
 	end
 end

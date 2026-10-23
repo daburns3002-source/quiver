@@ -25,8 +25,11 @@
 	`Flash` recolours the enemy: enough for a fan you dodge by moving at all.
 	`Line` draws the actual path the shot will take, which only means anything
 	if that path is honest — see `locksAim`.
+	`Eyes` turns only the eyes red, pulsing, and draws nothing on the floor:
+	the Ember Wolf's charge (owner, 2026-10-23: "no line and the eyes just
+	flash red before he charges").
 ]]
-export type EnemyTell = "Flash" | "Line" | "Ground"
+export type EnemyTell = "Flash" | "Line" | "Ground" | "Eyes"
 
 --[[
 	What the telegraph channel is allowed to carry.
@@ -331,7 +334,7 @@ local broodSlime: EnemyConfig = {
 	The Ember Wolf (owner, 2026-10-23: "a wolf enemy that has a charge and
 	dash attack ... modeled after this dog"): a fluffy ginger wolf, quick
 	and low, that never just walks up and bites. From across the room it
-	charges, a long locked line drawn on the floor first; up close it dashes,
+	charges, its eyes flashing red first; up close it dashes,
 	a short pounce on a quick flash. Both are lunges (`EnemyLunge`), so the
 	answer to both is the same — see where it is pointed and get out of the
 	line. Its body is primitives in the dog's colours until its model exists
@@ -369,12 +372,14 @@ local wolf: EnemyConfig = {
 			speed = 32,
 			damageScale = 0.8,
 		},
-		--[[ Charge: from across the room, on a long line, and it hurts. ]]
+		--[[ Charge: from across the room, on a long line, and it hurts. Its
+		     eyes flash red as it winds up, with no line drawn (owner,
+		     2026-10-23). ]]
 		{
 			minRange = 8,
 			maxRange = 20,
 			telegraph = 0.75,
-			tell = "Line" :: EnemyTell,
+			tell = "Eyes" :: EnemyTell,
 			distance = 18,
 			speed = 26,
 			damageScale = 1.3,
@@ -1402,6 +1407,8 @@ local Balance = {
 	     tell has to be visible before the projectile exists, or the telegraph
 	     is decoration. ]]
 	TelegraphColor = Color3.fromRGB(255, 226, 150),
+	--[[ The eyes of an `Eyes` tell, as it winds up. ]]
+	EyeTellColor = Color3.fromRGB(255, 36, 24),
 
 	Arena = {
 		size = Vector3.new(35, 1, 58),

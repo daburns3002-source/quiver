@@ -45,7 +45,7 @@ and carries the eyes on the head bone.
 **Level 1** (`Balance.stage = 3`, owner 2026-10-22): ten Mossy Glade
 rooms — logs, pond, boulders, thorns, boss arena, twice. **Slimes**
 (Moss Slimes and Brood Slimes), the **Ember Wolf** from room 6 (lunges:
-a long charge on a drawn line, a quick dash up close; `EnemyConfig.lunges`),
+a long charge warned by its eyes flashing red, a quick dash up close; `EnemyConfig.lunges`),
 and room 10 is the **Slime King alone** (`tests/Level1.spec.luau` pins all
 three; owner, 2026-10-23). Each room names
 its look in `RoomConfig.arena`, an `ArenaModels` entry drawn by `Arena.build`

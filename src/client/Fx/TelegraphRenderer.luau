@@ -578,8 +578,8 @@ function TelegraphRenderer.onTelegraph(
 	end
 
 	if tell ~= "Line" or direction.Magnitude < 1e-3 then
-		--[[ A `Flash` tell is the enemy's own recolour, which the server
-		     already replicated. Nothing to draw. ]]
+		--[[ A `Flash` or `Eyes` tell is the enemy's own recolour, which the
+		     server already replicated. Nothing to draw. ]]
 		return
 	end
 

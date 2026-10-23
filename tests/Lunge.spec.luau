@@ -11,6 +11,7 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
+local EnemyDesigns = require(ReplicatedStorage.Shared.Config.EnemyDesigns)
 local TestRunner = require(script.Parent.TestRunner)
 
 local function lungers(): { [string]: Balance.EnemyConfig }
@@ -73,6 +74,28 @@ return function(t: TestRunner.Helper)
 						`{name}'s lunges {i} and {j} both claim the same distance`
 					)
 				end
+			end
+		end
+	end)
+
+	--[[ An `Eyes` tell is the eyes alone turning red (the Ember Wolf's
+	     charge, owner 2026-10-23): an enemy with one and no eyes in its
+	     design would wind up with no warning at all. ]]
+	t.test("every eye-flash wind-up has eyes to flash", function()
+		for name, config in Balance.Enemies :: { [string]: Balance.EnemyConfig } do
+			local lunges: { Balance.EnemyLunge } = config.lunges or {}
+			for _, lunge in lunges do
+				if lunge.tell ~= "Eyes" then
+					continue
+				end
+				local design = (EnemyDesigns :: any)[config.displayName]
+				local eyes = 0
+				for _, spec in design or {} do
+					if spec.eye then
+						eyes += 1
+					end
+				end
+				t.isTrue(eyes > 0, name .. " flashes its eyes but has none")
 			end
 		end
 	end)

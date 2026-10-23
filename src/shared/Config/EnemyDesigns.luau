@@ -74,6 +74,8 @@ export type DesignPart = {
 	--[[ A bone of the rigged body this part rides on, so it follows the
 	     animation: eyes on the head. ]]
 	bone: string?,
+	--[[ An eye: what an `Eyes` tell turns red (`EnemyModel.tintEyes`). ]]
+	eye: boolean?,
 }
 
 export type Design = { DesignPart }
@@ -567,6 +569,7 @@ local wolf: Design = {
 		material = Enum.Material.Neon,
 		tint = false,
 		bone = "Head",
+		eye = true,
 	},
 	{
 		name = "EyeRight",
@@ -578,6 +581,7 @@ local wolf: Design = {
 		material = Enum.Material.Neon,
 		tint = false,
 		bone = "Head",
+		eye = true,
 	},
 }
 
@@ -615,6 +619,7 @@ local EnemyDesigns = {
 	SkinTag = SKIN_TAG,
 	TintTag = TINT_TAG,
 	BoneTag = "RidesBone",
+	EyeTag = "Eye",
 
 	Charger = charger,
 	Spitter = spitter,

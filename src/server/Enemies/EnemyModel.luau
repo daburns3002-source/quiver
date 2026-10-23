@@ -34,6 +34,8 @@ local EnemyModel = {}
 export type Skin = {
 	all: { BasePart },
 	tintable: { BasePart },
+	--[[ The parts an `Eyes` tell recolours. ]]
+	eyes: { BasePart },
 }
 
 --[[
@@ -229,7 +231,7 @@ function EnemyModel.build(config: EnemyConfig, position: Vector3): (Model, BaseP
 	model.PrimaryPart = hitbox
 
 	local design = (EnemyDesigns :: any)[config.displayName] :: { DesignPart }?
-	local skin: Skin = { all = {}, tintable = {} }
+	local skin: Skin = { all = {}, tintable = {}, eyes = {} }
 
 	--[[ An archetype with no design is a draft that has not been done yet, not
 	     an error. It falls back to a visible hitbox, which is what every
@@ -255,9 +257,21 @@ function EnemyModel.build(config: EnemyConfig, position: Vector3): (Model, BaseP
 		if part:GetAttribute(EnemyDesigns.TintTag) then
 			table.insert(skin.tintable, part)
 		end
+		if spec.eye then
+			part:SetAttribute(EnemyDesigns.EyeTag, true)
+			table.insert(skin.eyes, part)
+		end
 	end
 
 	return model, hitbox, skin
+end
+
+--[[ Turns only the eyes one colour, for an `Eyes` tell; `restore` puts
+     them back with the rest. ]]
+function EnemyModel.tintEyes(skin: Skin, colour: Color3)
+	for _, part in skin.eyes do
+		part.Color = colour
+	end
 end
 
 --[[ Floods the body with one colour, for a telegraph. Trim parts opt out, so

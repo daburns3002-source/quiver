@@ -1219,7 +1219,14 @@ local function stepLunge(
 			enemy.lastAttackAt = now
 			enemy.yaw = math.atan2(-aim.X, -aim.Z)
 			placeHitbox(enemy)
-			EnemyModel.tint(enemy.skin, Balance.TelegraphColor)
+			--[[ An `Eyes` tell lights only the eyes, red; the client pulses
+			     them (`Fx/EnemyRig`). Any other recolours the body. ]]
+			if lunge.tell == "Eyes" then
+				EnemyModel.tintEyes(enemy.skin, Balance.EyeTellColor)
+			else
+				EnemyModel.tint(enemy.skin, Balance.TelegraphColor)
+			end
+			enemy.model:SetAttribute("LungeTell", lunge.tell)
 			--[[ How long the wind-up and the bolt take, so a rigged body
 			     can fit its dash to them (`Fx/EnemyRig`). Set before the
 			     wind-up flag that starts it. ]]

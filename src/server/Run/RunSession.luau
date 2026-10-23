@@ -44,6 +44,9 @@ export type Session = {
 	--[[ Recomputed from the loadout on every grant rather than nudged, so a
 	     stat cannot drift out of step with the abilities that produced it. ]]
 	attackCooldown: number,
+	--[[ The class's shot speed and lifetime. ]]
+	projectileSpeed: number,
+	projectileLifetime: number,
 	--[[ What the drafted abilities pay out, recomputed from the loadout on
 	     every grant like everything else. Shares of max health for the
 	     heals; fractions for the rest. ]]
@@ -126,6 +129,8 @@ function RunSession.create(player: Player): Session
 		pipeline = ShotPipeline.new(),
 		loadout = Loadout.new(),
 		attackCooldown = Balance.Player.attackCooldown,
+		projectileSpeed = Balance.Projectile.speed,
+		projectileLifetime = Balance.Projectile.lifetime,
 		healPerKill = 0,
 		regenPerSecond = 0,
 		dodgeChance = 0,
@@ -169,7 +174,8 @@ end
 ]]
 function RunSession.applyLoadout(session: Session)
 	local counts = session.loadout.counts
-	local stats = AbilityEffects.serverStats(counts)
+	local class = session.loadout.class
+	local stats = AbilityEffects.serverStats(counts, class)
 
 	local ratio = if session.maxHealth > 0 then session.health / session.maxHealth else 1
 
@@ -177,6 +183,8 @@ function RunSession.applyLoadout(session: Session)
 	session.maxHealth = stats.maxHealth
 	session.health = math.clamp(stats.maxHealth * ratio, 1, stats.maxHealth)
 	session.attackCooldown = stats.attackCooldown
+	session.projectileSpeed = stats.projectileSpeed
+	session.projectileLifetime = stats.projectileLifetime
 	session.healPerKill = stats.healPerKill
 	session.regenPerSecond = stats.regenPerSecond
 	session.dodgeChance = stats.dodgeChance
@@ -185,11 +193,12 @@ function RunSession.applyLoadout(session: Session)
 	session.secondWind = stats.secondWind
 
 	session.pipeline:clear()
-	for _, stage in AbilityEffects.stages(counts) do
+	for _, stage in AbilityEffects.stages(counts, class) do
 		session.pipeline:addStage(stage)
 	end
 
-	playerStats:FireClient(session.player, AbilityEffects.clientStats(counts))
+	playerStats:FireClient(session.player, AbilityEffects.clientStats(counts, class))
+	session.player:SetAttribute("Class", class)
 	healthChanged:FireClient(session.player, session.health, session.maxHealth)
 end
 

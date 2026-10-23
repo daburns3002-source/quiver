@@ -24,6 +24,7 @@ local Workspace = game:GetService("Workspace")
 local AbilityEffects = require(ReplicatedStorage.Shared.Combat.AbilityEffects)
 local Aim = require(ReplicatedStorage.Shared.Combat.Aim)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
+local Classes = require(ReplicatedStorage.Shared.Config.Classes)
 local PlayerStats = require(script.Parent.Parent.PlayerStats)
 local ProjectileRenderer = require(script.Parent.Parent.Fx.ProjectileRenderer)
 local RunPaused = require(script.Parent.Parent.RunPaused)
@@ -49,7 +50,8 @@ local pipeline = ShotPipeline.new()
 local function rebuildPipeline()
 	pipeline:clear()
 
-	for _, stage in AbilityEffects.stages(PlayerStats.get().abilities) do
+	local stats = PlayerStats.get()
+	for _, stage in AbilityEffects.stages(stats.abilities, stats.class) do
 		pipeline:addStage(stage)
 	end
 end
@@ -244,13 +246,14 @@ local function step()
 	local origin = Aim.shotOrigin(root.Position)
 	local specs = pipeline:build({
 		damage = Balance.Player.baseDamage,
-		speed = Balance.Projectile.speed,
-		lifetime = Balance.Projectile.lifetime,
+		speed = stats.projectileSpeed,
+		lifetime = stats.projectileLifetime,
 		origin = origin,
 		direction = aim.Unit,
 	})
 
-	ProjectileRenderer.spawnVolley("Player", origin, aim.Unit, specs, 0)
+	local look = Classes[stats.class] and Classes[stats.class].look or "Arrow"
+	ProjectileRenderer.spawnVolley("Player", origin, aim.Unit, specs, 0, nil, look)
 	for _, listener in firedListeners do
 		listener()
 	end

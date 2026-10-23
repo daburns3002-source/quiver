@@ -141,6 +141,9 @@ export type ShotEvent = {
 	direction: Vector3,
 	specs: { ShotSpec },
 	firedAt: number,
+	--[[ How a player's shot is drawn: an arrow, or an Arcanist's orb
+	     (`Config/Classes.look`). Nil for enemy shots. ]]
+	look: string?,
 	--[[
 		Whether the shooter's own client already drew this volley itself.
 

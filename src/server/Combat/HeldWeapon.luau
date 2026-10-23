@@ -5,8 +5,7 @@
 	Built on the server, so every player in a co-op run sees it. Each part is
 	a clone of a mesh template welded to the hand: massless, never colliding,
 	answering a raycast, or touching, so it cannot change how the body moves
-	or catch an enemy shot. The nocked arrow starts hidden; the client shows
-	it while drawing (`Fx/ArcherPose`).
+	or catch an enemy shot. The arms are posed on the client (`Fx/ArcherPose`).
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -20,8 +19,11 @@ local templates: { [string]: MeshPart } = {}
 
 function HeldWeapon.preload()
 	local ids: { string } = {}
-	for _, part in Weapons.LeafBow.parts do
-		table.insert(ids, part.meshId)
+	for _, name in { "LeafBow", "ArcaneStaff" } do
+		local weapon = (Weapons :: any)[name] :: Weapons.Weapon
+		for _, part in weapon.parts do
+			table.insert(ids, part.meshId)
+		end
 	end
 	templates = MeshTemplates.load(ids)
 end
@@ -37,12 +39,13 @@ local IN_HAND = CFrame.fromMatrix(
 	Vector3.new(0, -1, 0)
 )
 
---[[ Where the grip sits in the hand: a little below its centre, in the
-     palm. ]]
-local GRIP = CFrame.new(0, -0.25, 0)
-
-function HeldWeapon.equip(character: Model)
-	local weapon = Weapons.LeafBow
+--[[ Puts `weaponName` (a `Config/Weapons` entry) in the character's hand,
+     replacing whatever it held. ]]
+function HeldWeapon.equip(character: Model, weaponName: string)
+	local weapon = (Weapons :: any)[weaponName] :: Weapons.Weapon?
+	if not weapon then
+		return
+	end
 	local hand = character:WaitForChild(weapon.hand, 10) :: BasePart?
 	if not hand then
 		return
@@ -56,7 +59,7 @@ function HeldWeapon.equip(character: Model)
 	local model = Instance.new("Model")
 	model.Name = "HeldWeapon"
 
-	local frame = hand.CFrame * GRIP * IN_HAND
+	local frame = hand.CFrame * CFrame.new(weapon.grip) * IN_HAND
 	for _, spec in weapon.parts do
 		local template = templates[spec.meshId]
 		if not template then
@@ -75,10 +78,6 @@ function HeldWeapon.equip(character: Model)
 		--[[ White, so the model's own vertex colours show. ]]
 		part.Color = Color3.new(1, 1, 1)
 		part.Material = if spec.glow then Enum.Material.Neon else Enum.Material.SmoothPlastic
-		if spec.nocked then
-			part.Transparency = 1
-			part:SetAttribute("Nocked", true)
-		end
 
 		local weld = Instance.new("WeldConstraint")
 		weld.Part0 = hand

@@ -154,7 +154,8 @@ Remotes.event(Remotes.ShotFired).OnClientEvent:Connect(function(event: ShotEvent
 		event.direction,
 		event.specs,
 		0,
-		event.from
+		event.from,
+		event.look
 	)
 end)
 

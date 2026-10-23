@@ -22,6 +22,7 @@ local Arena = require(script.Parent.Arena.Arena)
 local Atmosphere = require(script.Parent.Arena.Atmosphere)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Burning = require(script.Parent.Combat.Burning)
+local Classes = require(ReplicatedStorage.Shared.Config.Classes)
 local EnemyFiring = require(script.Parent.Combat.EnemyFiring)
 local EnemyManager = require(script.Parent.Enemies.EnemyManager)
 local EnemyModel = require(script.Parent.Enemies.EnemyModel)
@@ -89,7 +90,7 @@ RoomController.start()
 local function onCharacterAdded(player: Player, character: Model)
 	local session = RunSession.get(player) or RunSession.create(player)
 	RunSession.bindCharacter(session, character)
-	HeldWeapon.equip(character)
+	HeldWeapon.equip(character, Classes[session.loadout.class].weapon)
 	--[[ Enemy projectiles raycast against player characters, so the filter has
 	     to learn about each new body. Without this a respawned player is
 	     invisible to every enemy shot. ]]
@@ -155,6 +156,29 @@ Remotes.event(Remotes.DebugForceMythic).OnServerEvent:Connect(function(player, r
 		session.loadout.forceRarity = wanted
 		log.info("%s queued a %s for the next hand (Studio)", player.Name, wanted)
 	end
+end)
+
+--[[ Testing only: switch class, the order fixed so the key cycles. Honoured
+     only in Studio, like the Mythic key. The run's drafted skills stay; a
+     skill the new class cannot be dealt keeps working if already held. ]]
+local CLASS_ORDER = { "Ranger", "Arcanist" }
+
+Remotes.event(Remotes.DebugNextClass).OnServerEvent:Connect(function(player)
+	if not RunService:IsStudio() then
+		return
+	end
+	local session = RunSession.get(player)
+	if not session then
+		return
+	end
+	local at = table.find(CLASS_ORDER, session.loadout.class) or 0
+	local class = CLASS_ORDER[at % #CLASS_ORDER + 1]
+	session.loadout.class = class
+	RunSession.applyLoadout(session)
+	if player.Character then
+		HeldWeapon.equip(player.Character, Classes[class].weapon)
+	end
+	log.info("%s is now a %s (Studio)", player.Name, class)
 end)
 
 Remotes.event(Remotes.AbilityReroll).OnServerEvent:Connect(function(player)

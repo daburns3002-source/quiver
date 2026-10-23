@@ -61,6 +61,13 @@ export type Session = {
 	     as its cards change it (`AbilityEffects.MeleeStats`). ]]
 	damageTaken: number,
 	melee: AbilityEffects.MeleeStats,
+	--[[ The area-attack Mythics held (`AbilityEffects.ServerStats`); the
+	     casts counted towards the next meteor; and when the last dash the
+	     server accepted began, which Earthbreaker's cooldown counts from. ]]
+	meteor: number,
+	earthbreaker: number,
+	casts: number,
+	lastDashAt: number,
 	--[[ Share of max health Second Wind revives with (0 without it), and
 	     whether it has been spent. The ability is held; the charge is spent. ]]
 	secondWind: number,
@@ -151,6 +158,10 @@ function RunSession.create(player: Player): Session
 		overdrawBonus = 0,
 		momentumBonus = 0,
 		damageTaken = 1,
+		meteor = 0,
+		earthbreaker = 0,
+		casts = 0,
+		lastDashAt = -math.huge,
 		melee = {
 			widthScale = 1,
 			reachBonus = 0,
@@ -219,6 +230,8 @@ function RunSession.applyLoadout(session: Session)
 	session.momentumBonus = stats.momentumBonus
 	session.secondWind = stats.secondWind
 	session.damageTaken = stats.damageTaken
+	session.meteor = stats.meteor
+	session.earthbreaker = stats.earthbreaker
 	session.melee = stats.melee
 
 	session.pipeline:clear()

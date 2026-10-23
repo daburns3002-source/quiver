@@ -43,6 +43,10 @@ local CardAssets = {
 		-- Made with ChatGPT Codex, 2026-10-22, in the set's style.
 		["dual-bows"] = "rbxassetid://96411221480106",
 		["vitality"] = "rbxassetid://105469716205818",
+		-- The Arcanist's and the Warden's Mythics, made with ChatGPT Codex,
+		-- 2026-10-23.
+		["meteor"] = "rbxassetid://95522718590052",
+		["earthbreaker"] = "rbxassetid://71863988341294",
 		-- The Warden's and the Arcanist's (docs/CLASS-CARDS.md), made with
 		-- ChatGPT Codex, 2026-10-23; wave 2's are uploaded ahead of their cards.
 		["arcane-echo"] = "rbxassetid://90588307285736",

@@ -47,6 +47,11 @@ export type TelegraphTell =
 	| "LaneAim"
 	| "Lane"
 	| "Shake"
+	| "Meteor"
+	| "MeteorImpact"
+	| "GroundSlam"
+	| "Cracks"
+	| "Erupt"
 
 --[[
 	What an enemy becomes when it dies, if anything: `count` of `into`,
@@ -188,6 +193,30 @@ export type EnemyBoss = {
 	opening: number,
 }
 
+--[[
+	A lunge: the enemy winds up where it stands, locks the direction to its
+	target, then bolts down that line at `speed` for `distance` studs,
+	striking the player once if it touches them on the way. Stopped short
+	by cover. The counterplay is the same as a locked shot's: read the tell
+	and step out of the line before it goes.
+
+	An archetype can have several, chosen by how far away the player is
+	(`minRange`..`maxRange`); they share its `attackCooldown`, which starts
+	when the wind-up does.
+]]
+export type EnemyLunge = {
+	minRange: number,
+	maxRange: number,
+	--[[ Seconds of wind-up, standing still, before it goes. ]]
+	telegraph: number,
+	tell: EnemyTell,
+	distance: number,
+	--[[ Studs a second while lunging. ]]
+	speed: number,
+	--[[ Multiplier on `attackDamage` for a hit during this lunge. ]]
+	damageScale: number,
+}
+
 export type EnemyConfig = {
 	displayName: string,
 	health: number,
@@ -217,6 +246,8 @@ export type EnemyConfig = {
 	burrow: EnemyBurrow?,
 	split: EnemySplit?,
 	boss: EnemyBoss?,
+	--[[ Lunging attacks, in place of the plain melee hit. ]]
+	lunges: { EnemyLunge }?,
 }
 
 local meleeCharger: EnemyConfig = {
@@ -268,6 +299,61 @@ local broodSlime: EnemyConfig = {
 	--[[ Four, one per baby, like Zac; at half a Moss Slime's health each
 	     (owner, 2026-10-22: Level 1 was too hard). ]]
 	split = { into = meleeCharger, count = 4, health = 0.5 },
+}
+
+--[[
+	The Ember Wolf (owner, 2026-10-23: "a wolf enemy that has a charge and
+	dash attack ... modeled after this dog"): a fluffy ginger wolf, quick
+	and low, that never just walks up and bites. From across the room it
+	charges, a long locked line drawn on the floor first; up close it dashes,
+	a short pounce on a quick flash. Both are lunges (`EnemyLunge`), so the
+	answer to both is the same — see where it is pointed and get out of the
+	line. Its body is primitives in the dog's colours until its model exists
+	(`assets/concepts/models/ember_wolf_sheet.png`).
+]]
+local wolf: EnemyConfig = {
+	displayName = "Wolf",
+	--[[ As slow to turn as anything its size (it is the longest of the
+	     grunts); its lunges snap it onto their line regardless, so this only
+	     shapes how it walks. ]]
+	turnRate = 240,
+	health = 260,
+	moveSpeed = 6.3,
+	--[[ It closes to here, inside the dash, then lunges; it has no plain
+	     bite. ]]
+	attackRange = 5,
+	attackDamage = 60,
+	attackCooldown = 1.8,
+	knockback = 2.5,
+	--[[ The owner's model's own shape, ×2.6 (`assets/models/enemies/
+	     ember_wolf_roblox.glb`, a round pup): 2.2 across, 3 tall, 3.3 nose
+	     to tail. Arrows at `Projectile.height` meet it. ]]
+	hitboxSize = Vector3.new(2.2, 3, 3.3),
+	color = Color3.fromRGB(214, 116, 48),
+	xpReward = 16,
+	shot = nil,
+	lunges = {
+		--[[ Dash: close, quick, and lighter. ]]
+		{
+			minRange = 0,
+			maxRange = 8,
+			telegraph = 0.4,
+			tell = "Flash" :: EnemyTell,
+			distance = 7,
+			speed = 32,
+			damageScale = 0.8,
+		},
+		--[[ Charge: from across the room, on a long line, and it hurts. ]]
+		{
+			minRange = 8,
+			maxRange = 20,
+			telegraph = 0.75,
+			tell = "Line" :: EnemyTell,
+			distance = 18,
+			speed = 26,
+			damageScale = 1.3,
+		},
+	},
 }
 
 --[[
@@ -832,7 +918,10 @@ local rooms: { RoomConfig } = {
 			{ offset = Vector2.new(-6.21, 19.71), size = Vector3.new(2.7, 1.2, 2.7) },
 		},
 		enemyCount = 4,
-		roster = { meleeCharger, meleeCharger, broodSlime },
+		--[[ The Ember Wolf's debut (owner, 2026-10-23: "here is another enemy
+		     design going into area 1"): from room 6, so the first five stay
+		     the slime tutorial. It is the one new thing to learn here. ]]
+		roster = { meleeCharger, meleeCharger, broodSlime, wolf },
 	},
 	{
 		name = "Mossy Pond II",
@@ -843,7 +932,7 @@ local rooms: { RoomConfig } = {
 			{ offset = Vector2.new(8.1, 14.31), size = Vector3.new(3.6, 1.6, 3.6) },
 		},
 		enemyCount = 4,
-		roster = { meleeCharger, broodSlime },
+		roster = { meleeCharger, broodSlime, wolf },
 	},
 	{
 		name = "Mossy Boulders II",
@@ -863,7 +952,7 @@ local rooms: { RoomConfig } = {
 			{ offset = Vector2.new(-5.8, 19.06), size = Vector3.new(2, 1.5, 2) },
 		},
 		enemyCount = 5,
-		roster = { meleeCharger, meleeCharger, broodSlime },
+		roster = { meleeCharger, meleeCharger, broodSlime, wolf },
 	},
 	{
 		name = "Mossy Thorns II",
@@ -874,7 +963,7 @@ local rooms: { RoomConfig } = {
 			{ offset = Vector2.new(-8.64, 15.93), size = Vector3.new(3.3, 1.4, 3.3) },
 		},
 		enemyCount = 5,
-		roster = { meleeCharger, broodSlime },
+		roster = { meleeCharger, broodSlime, wolf },
 	},
 	{
 		name = "Glade Heart II",
@@ -952,6 +1041,27 @@ local Balance = {
 		critMultiplier = 2,
 		--[[ Share of an enemy's health under which Execute's bonus applies. ]]
 		executeBelow = 0.3,
+
+		--[[ Meteor, the Arcanist's Mythic: every `every`th cast a meteor
+		     falls on that cast's target, its circle shown for `delay`
+		     seconds, hitting everything within `radius` for `damage` times
+		     the caster's damage. ]]
+		meteor = { every = 5, delay = 0.9, radius = 6, damage = 4 },
+		--[[ Earthbreaker, the Warden's Mythic: a dash ends in a hop
+		     (`hop` studs a second up, `leap` seconds in the air), then a
+		     slam (`slamRadius`, `slamDamage` times his damage) that leaves
+		     cracked ground erupting every `crackEvery` seconds for
+		     `crackDuration`, for `crackDamage` times his damage. ]]
+		earthbreaker = {
+			hop = 30,
+			leap = 0.3,
+			slamRadius = 5.5,
+			slamDamage = 2.5,
+			crackRadius = 5,
+			crackEvery = 0.5,
+			crackDamage = 0.5,
+			crackDuration = 3,
+		},
 
 		--[[
 			Momentum: "attack speed rises while moving". Nothing fires on the
@@ -1168,6 +1278,7 @@ local Balance = {
 		Burrower = burrower,
 		BroodSlime = broodSlime,
 		SlimeKing = slimeKing,
+		Wolf = wolf,
 	},
 
 	--[[
@@ -1208,6 +1319,13 @@ local Balance = {
 		bossColor = Color3.fromRGB(255, 70, 40),
 		shockColor = Color3.fromRGB(190, 240, 120),
 		shockDuration = 0.45,
+		--[[ The player's own area attacks (the Mythics): the Meteor's circle,
+		     rock and blast, and Earthbreaker's slam and glowing cracks. Warm,
+		     so they never read as an enemy's red. ]]
+		meteorColor = Color3.fromRGB(255, 150, 60),
+		meteorHeight = 45,
+		quakeColor = Color3.fromRGB(255, 190, 90),
+		crackColor = Color3.fromRGB(255, 110, 40),
 		lineThickness = 0.35,
 		lineOvershoot = 5,
 		lineColor = Color3.fromRGB(236, 92, 84),

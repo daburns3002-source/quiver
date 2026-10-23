@@ -217,13 +217,14 @@ local abilities: { Ability } = {
 		description = "Orbs curve toward the nearest enemy.",
 		category = "Flight",
 		group = "spell",
-		rarity = "Mythic",
+		rarity = "Legendary",
 		levels = { 540 },
 		stats = { "Homing" },
 		icon = "homing-orbs",
 		excludes = { "BouncyWall" },
-		--[[ The Arcanist's Mythic, as "Homing Orbs" (2026-10-23); its id stays
-		     Tracking Eye's, the mechanic it always was. ]]
+		--[[ The Arcanist's, as "Homing Orbs" (2026-10-23); its id stays
+		     Tracking Eye's, the mechanic it always was. Legendary since
+		     Meteor became his Mythic. ]]
 		classes = { "Arcanist" },
 	},
 	--[[ The Ranger's Mythic: a second bow, so twice the shots. The level is
@@ -618,6 +619,36 @@ local abilities: { Ability } = {
 		stats = { "Arcs to 2", "Arcs to 3" },
 		icon = "chain-lightning",
 		classes = ARCANIST,
+	},
+	--[[ The Arcanist's Mythic (owner, 2026-10-23): every fifth cast also
+	     calls a meteor down on its target (`Balance.Player.meteor`,
+	     `Combat/AreaStrikes`). ]]
+	{
+		id = "Meteor",
+		name = "Meteor",
+		description = "Every 5th cast calls down a meteor on the target.",
+		category = "OnHit",
+		group = "spell",
+		rarity = "Mythic",
+		levels = { 1 },
+		stats = { "Meteor every 5th cast" },
+		icon = "meteor",
+		classes = ARCANIST,
+	},
+	--[[ The Warden's Mythic (owner, 2026-10-23: "Your dash ends in a
+	     leaping slam that leaves cracked ground, which erupts for damage
+	     for 3s"; `Balance.Player.earthbreaker`). ]]
+	{
+		id = "Earthbreaker",
+		name = "Earthbreaker",
+		description = "Your dash ends in a leaping slam; the cracked ground erupts for 3s.",
+		category = "Defensive",
+		group = "blade",
+		rarity = "Mythic",
+		levels = { 1 },
+		stats = { "Dash slam + cracks" },
+		icon = "earthbreaker",
+		classes = WARDEN,
 	},
 }
 

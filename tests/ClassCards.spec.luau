@@ -128,4 +128,37 @@ return function(t: TestRunner.Helper)
 			"the client never hears of Long Reach"
 		)
 	end)
+
+	--[[ Each class has one Mythic of its own (owner, 2026-10-23): Dual Bows,
+	     Meteor, Earthbreaker. ]]
+	t.test("every class has exactly one Mythic, its own", function()
+		for name in Classes do
+			local mythics = {}
+			for _, ability in Abilities.all do
+				local classes: { string } = ability.classes or {}
+				if ability.rarity == "Mythic" and table.find(classes, name) then
+					table.insert(mythics, ability.id)
+				end
+			end
+			t.equal(#mythics, 1)
+		end
+	end)
+
+	t.test("Meteor and Earthbreaker switch their area attacks on", function()
+		t.equal(AbilityEffects.serverStats({}, "Arcanist").meteor, 0)
+		t.isTrue(AbilityEffects.serverStats(max("Meteor"), "Arcanist").meteor > 0, "Meteor")
+		t.equal(AbilityEffects.serverStats({}, "Warden").earthbreaker, 0)
+		t.isTrue(
+			AbilityEffects.serverStats(max("Earthbreaker"), "Warden").earthbreaker > 0,
+			"Earthbreaker"
+		)
+		local meteor = Balance.Player.meteor
+		t.isTrue(meteor.every >= 2, "a meteor on every cast is just a bigger orb")
+		t.isTrue(
+			meteor.damage > 1 and meteor.delay > 0,
+			"a meteor should hit hard, after a warning"
+		)
+		local quake = Balance.Player.earthbreaker
+		t.isTrue(quake.crackDuration > quake.crackEvery, "the cracks never erupt")
+	end)
 end

@@ -517,6 +517,122 @@ local slimeKing: Design = {
 	},
 }
 
+--[[
+	The Ember Wolf (owner, 2026-10-23), after the owner's dog: a ginger body
+	and ruff, cream chest, muzzle and tail tip, upright ears, amber eyes, and
+	a tail curled up over its back. Its front legs differ, as the dog's do:
+	the right (its own right, +X while it faces -Z) is cream all the way up,
+	the left is ginger with only a cream paw. Primitives until its model is
+	imported (`assets/models/enemies/ember_wolf_roblox.glb`, the owner's
+	round pup), in its 2.2 × 3 × 3.3 hitbox (`Balance`).
+]]
+local CREAM = Color3.fromRGB(250, 232, 205)
+local function wolfLeg(name: string, x: number, z: number): DesignPart
+	return {
+		name = name,
+		shape = "Block",
+		size = Vector3.new(0.355, 0.865, 0.301),
+		offset = Vector3.new(x, -0.831, z),
+		shade = 0.92,
+	}
+end
+local wolf: Design = {
+	shadow(2.2, 3.3, 3),
+	{
+		name = "Body",
+		shape = "Ellipsoid",
+		size = Vector3.new(1.692, 1.615, 2.152),
+		offset = Vector3.new(0, -0.058, 0.251),
+		shade = 1,
+	},
+	{
+		name = "Ruff",
+		shape = "Ball",
+		size = Vector3.new(1.269, 1.731, 1.076),
+		offset = Vector3.new(0, 0.288, -0.61),
+		shade = 1.08,
+	},
+	mark(
+		"Chest",
+		"Ellipsoid",
+		Vector3.new(0.846, 1.038, 0.359),
+		Vector3.new(0, -0.115, -0.897),
+		CREAM
+	),
+	{
+		name = "Head",
+		shape = "Ball",
+		size = Vector3.new(1.1, 1.5, 0.933),
+		offset = Vector3.new(0, 0.577, -1.04),
+		shade = 1,
+	},
+	mark(
+		"Muzzle",
+		"Ellipsoid",
+		Vector3.new(0.592, 0.577, 0.43),
+		Vector3.new(0, 0.288, -1.363),
+		CREAM
+	),
+	mark("Nose", "Ball", Vector3.new(0.186, 0.254, 0.158), Vector3.new(0, 0.415, -1.542), BLACK),
+	glow("EyeLeft", 0.24, Vector3.new(-0.254, 0.785, -1.42), EYE_ORANGE),
+	glow("EyeRight", 0.24, Vector3.new(0.254, 0.785, -1.42), EYE_ORANGE),
+	{
+		name = "EarLeft",
+		shape = "Wedge",
+		size = Vector3.new(0.186, 0.577, 0.287),
+		offset = Vector3.new(-0.355, 1.177, -0.968),
+		shade = 0.9,
+	},
+	{
+		name = "EarRight",
+		shape = "Wedge",
+		size = Vector3.new(0.186, 0.577, 0.287),
+		offset = Vector3.new(0.355, 1.177, -0.968),
+		shade = 0.9,
+	},
+	-- Right front: cream all the way up. Left front: ginger, cream paw.
+	mark(
+		"LegFrontRight",
+		"Block",
+		Vector3.new(0.355, 1.096, 0.301),
+		Vector3.new(0.508, -0.946, -0.538),
+		CREAM
+	),
+	wolfLeg("LegFrontLeft", -0.508, -0.538),
+	mark(
+		"PawFrontLeft",
+		"Block",
+		Vector3.new(0.372, 0.254, 0.33),
+		Vector3.new(-0.508, -1.373, -0.538),
+		CREAM
+	),
+	wolfLeg("LegBackLeft", -0.508, 0.861),
+	wolfLeg("LegBackRight", 0.508, 0.861),
+	mark(
+		"PawBackLeft",
+		"Block",
+		Vector3.new(0.372, 0.254, 0.33),
+		Vector3.new(-0.508, -1.373, 0.861),
+		CREAM
+	),
+	mark(
+		"PawBackRight",
+		"Block",
+		Vector3.new(0.372, 0.254, 0.33),
+		Vector3.new(0.508, -1.373, 0.861),
+		CREAM
+	),
+	{
+		name = "Tail",
+		shape = "Ellipsoid",
+		size = Vector3.new(0.719, 0.981, 0.717),
+		offset = Vector3.new(0, 0.519, 1.0),
+		rotation = Vector3.new(-35, 0, 0),
+		shade = 1.05,
+	},
+	mark("TailTip", "Ball", Vector3.new(0.465, 0.635, 0.395), Vector3.new(0, 1.038, 1.399), CREAM),
+}
+
 --[[ Keyed by `EnemyConfig.displayName`, which is what the model is named and
      the only identifier an archetype actually carries. ]]
 local EnemyDesigns = {
@@ -530,6 +646,7 @@ local EnemyDesigns = {
 	Lurker = lurker,
 	BroodSlime = broodSlime,
 	SlimeKing = slimeKing,
+	Wolf = wolf,
 }
 
 return table.freeze(EnemyDesigns)

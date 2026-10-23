@@ -112,6 +112,17 @@ type Enemy = {
 	]]
 	slideSign: number?,
 	boss: BossState?,
+	--[[ The lunge under way (`EnemyConfig.lunges`), by index, or nil. It
+	     winds up until `lungeGoesAt`, then travels `lungeDirection`, locked
+	     when the wind-up began, until it has covered its distance or cover
+	     stops it. `lungeHit` holds the players it has already struck, once
+	     each per lunge. ]]
+	lungeIndex: number?,
+	lungeGoesAt: number,
+	lungeDirection: Vector3,
+	lungeTravelled: number,
+	lungeMoving: boolean,
+	lungeHit: { [Player]: boolean },
 }
 
 local EnemyManager = {}
@@ -557,6 +568,12 @@ function EnemyManager.spawn(
 		surfaceTold = false,
 		lastSurfacedAt = 0,
 		submerged = false,
+		lungeIndex = nil,
+		lungeGoesAt = 0,
+		lungeDirection = Vector3.zAxis,
+		lungeTravelled = 0,
+		lungeMoving = false,
+		lungeHit = {},
 		slideSign = nil,
 		arrivesAt = nil,
 		route = nil,
@@ -1138,6 +1155,126 @@ local function stepBoss(enemy: Enemy, state: BossState, now: number)
 	end
 end
 
+--[[ Studs a player's body reaches out from its centre, for a lunge's touch. ]]
+local PLAYER_REACH = 1
+
+--[[
+	A lunging enemy's turn (`EnemyConfig.lunges`). Returns whether the lunge
+	took the turn, so walking and the plain attack wait.
+
+	Off cooldown, with the target inside one lunge's range and nothing in
+	the way, it winds up where it stands: aim locked, the tell shown (a line
+	as long as the lunge for `Line`, the recolour for `Flash`). Then it bolts
+	down that line, striking each player it touches once, and stops at the
+	end of its distance or against cover. The line it showed is the line it
+	takes, so stepping off it works.
+]]
+local function stepLunge(
+	enemy: Enemy,
+	targetRoot: BasePart,
+	distance: number,
+	deltaTime: number,
+	now: number
+): boolean
+	local config = enemy.config
+	local lunges = config.lunges :: { Balance.EnemyLunge }
+	local index = enemy.lungeIndex
+
+	if not index then
+		if now - enemy.lastAttackAt < config.attackCooldown then
+			return false
+		end
+		local radius = math.max(config.hitboxSize.X, config.hitboxSize.Z) / 2
+		for i, lunge in lunges do
+			if distance < lunge.minRange or distance >= lunge.maxRange then
+				continue
+			end
+			if
+				not Arena.isSegmentClear(
+					enemy.position,
+					targetRoot.Position,
+					config.hitboxSize.X / 2
+				)
+			then
+				continue
+			end
+			local aim = aimAt(enemy.position, targetRoot)
+			if not aim then
+				continue
+			end
+			enemy.lungeIndex = i
+			enemy.lungeGoesAt = now + lunge.telegraph
+			enemy.lungeDirection = aim
+			enemy.lungeTravelled = 0
+			enemy.lungeMoving = false
+			enemy.lungeHit = {}
+			enemy.lastAttackAt = now
+			enemy.yaw = math.atan2(-aim.X, -aim.Z)
+			placeHitbox(enemy)
+			EnemyModel.tint(enemy.skin, Balance.TelegraphColor)
+			enemy.model:SetAttribute(WINDING_UP, true)
+			enemyTelegraph:FireAllClients(
+				enemy.position,
+				aim,
+				lunge.telegraph,
+				lunge.tell,
+				lunge.distance + radius
+			)
+			return true
+		end
+		return false
+	end
+
+	local lunge = lunges[index]
+	if now < enemy.lungeGoesAt then
+		-- Winding up: it holds still, pointed down its line.
+		return true
+	end
+
+	if not enemy.lungeMoving then
+		enemy.lungeMoving = true
+		EnemyModel.restore(enemy.skin, config)
+		enemy.model:SetAttribute(WINDING_UP, nil)
+	end
+
+	local step = math.min(lunge.speed * deltaTime, lunge.distance - enemy.lungeTravelled)
+	local wanted = enemy.position + enemy.lungeDirection * step
+	local reached = Arena.resolveBox(wanted, footprint(config, enemy.yaw))
+	local moved =
+		Vector3.new(reached.X - enemy.position.X, 0, reached.Z - enemy.position.Z).Magnitude
+	enemy.position = reached
+	enemy.lungeTravelled += step
+	positions[enemy.model] = enemy.position
+	placeHitbox(enemy)
+
+	--[[ Each player it touches on the way, once. The body is long, so the
+	     touch is measured against its box, turned with it, not a circle. ]]
+	local half = config.hitboxSize / 2
+	local frame = CFrame.new(enemy.position) * CFrame.Angles(0, enemy.yaw or 0, 0)
+	for _, session in RunSession.all() do
+		local root = session.root
+		if not root or not session.alive or enemy.lungeHit[session.player] then
+			continue
+		end
+		local at = frame:PointToObjectSpace(root.Position)
+		if math.abs(at.X) <= half.X + PLAYER_REACH and math.abs(at.Z) <= half.Z + PLAYER_REACH then
+			enemy.lungeHit[session.player] = true
+			RunSession.applyDamage(
+				session,
+				config.attackDamage * lunge.damageScale * difficulty().damage
+			)
+		end
+	end
+
+	if enemy.lungeTravelled >= lunge.distance - 1e-3 or moved < step * 0.3 then
+		enemy.lungeIndex = nil
+		enemy.lungeMoving = false
+		-- The cooldown runs from the end of the lunge, not its wind-up.
+		enemy.lastAttackAt = now
+	end
+	return true
+end
+
 local function stepEnemy(enemy: Enemy, deltaTime: number, now: number)
 	local arrivesAt = enemy.arrivesAt
 	if arrivesAt then
@@ -1166,6 +1303,10 @@ local function stepEnemy(enemy: Enemy, deltaTime: number, now: number)
 	local shot = config.shot
 	local burrow = config.burrow
 	local radius = math.max(config.hitboxSize.X, config.hitboxSize.Z) / 2
+
+	if config.lunges and stepLunge(enemy, targetRoot, distance, deltaTime, now) then
+		return
+	end
 
 	--[[
 		Dive and surface. A burrower spends the trip untargetable, which is the
@@ -1551,6 +1692,11 @@ local function stepEnemy(enemy: Enemy, deltaTime: number, now: number)
 			config.attackRange
 		)
 
+		return
+	end
+
+	--[[ A lunging archetype has no plain bite: its lunges are its attacks. ]]
+	if config.lunges then
 		return
 	end
 

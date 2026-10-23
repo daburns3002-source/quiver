@@ -92,7 +92,13 @@ def cut_sockets(body, eyes):
             cut.visual.vertex_attributes[k] = v
     return cut
 
-parts["Body"] = cut_sockets(parts["Body"], parts["Eyes"])
+# A model made as one mesh (the Ember Wolf) has no eyes of its own to cut
+# sockets for: its single part is the Body, and nothing else comes out.
+SINGLE = {"ember_wolf": "EmberWolf_1"}
+if ENEMY in SINGLE:
+    parts = {"Body": parts[SINGLE[ENEMY]]}
+else:
+    parts["Body"] = cut_sockets(parts["Body"], parts["Eyes"])
 
 def shrink(part, factor):
     """Scale a part about the bottom of its stem, so it stays rooted in the
@@ -130,6 +136,11 @@ ENEMIES = {
     },
     # The boss (owner's design_handoff_slime_king, 2026-10-23): 95k triangles
     # in, about 10k out. The arms stay separate for the Slime Lash.
+    # The owner's wolf (2026-10-23), one textured mesh: 16.8k triangles in.
+    "ember_wolf": {
+        "shrink": {},
+        "budget": {"Body": 3500},
+    },
     "slime_king": {
         "shrink": {},
         "separate": ["Arm_L", "Arm_R"],
@@ -153,6 +164,16 @@ for name, g in parts.items():
     print(f"{name:16s} {len(g.faces):6d} -> {len(slim[name].faces):5d}")
 
 body = slim["Body"]
+if ENEMY in SINGLE:
+    lo, hi = body.bounds
+    centre = np.array([(lo[0] + hi[0]) / 2, lo[1], (lo[2] + hi[2]) / 2])
+    body.apply_translation(-centre)
+    body.apply_transform(trimesh.transformations.rotation_matrix(np.pi, [0, 1, 0]))
+    out = trimesh.Scene()
+    out.add_geometry(body, node_name="Body", geom_name="Body")
+    out.export(OUT)
+    print("total tris", len(body.faces), "bounds", np.round(body.bounds, 3).tolist())
+    sys.exit(0)
 eyes = slim["Eyes"]
 separate = settings.get("separate", [])
 loose = {n: slim[n] for n in separate}

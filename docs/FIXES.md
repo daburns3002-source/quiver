@@ -16,6 +16,35 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## Enemies got stuck on cover instead of going round it
+
+**Symptom** — "make sure the ai for the enemies finds a way around an
+obstacle, they are getting stuck".
+
+**Cause** — the only steering was sliding along whichever face an enemy
+bumped into (`Arena.deflectionNormal` plus a committed side). It held for a
+lone pillar and failed wherever cover made a corner: a boulder against a
+boulder, a pillar against a wall, the long edge of the pond. Big bodies had
+a second problem: their square hitbox turns to face the player and is 1.41
+times as wide on the diagonal, so a route sized to their straight width
+caught on corners, and the old slide then fought the route.
+
+**Fix** — `Enemies/Pathing`: a walkable grid per body size over each room,
+from `Arena.isClear`, rebuilt when a room is built; A* with no corner
+cutting; the route pulled tight to clear straight legs. An enemy that cannot
+walk straight at its target follows the route (refreshed every 0.4 s),
+planned first for its widest turn, then a tight fit, then flush; the slide
+is off while it does.
+
+**Measured** — the same enemy code stepped in a private world, every Level 1
+room, enemies spawned across the floor chasing a player parked behind the
+room's cover. Moss Slimes 28/165 → 165/165; Brood Slimes 45/63 → 63/63;
+Bulwarks 6/36 → 34/36 (the two left squeeze its turned corners through a
+gap barely its width, in rooms Bulwarks never spawn in). `Pathing.spec`
+pins the planner against the real layouts.
+
+---
+
 ## On a phone the skill bar was cut off at both sides and covered the health number
 
 **Symptom** — "the upgrade bar is not fully visible".

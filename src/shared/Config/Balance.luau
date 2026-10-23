@@ -165,14 +165,14 @@ local meleeCharger: EnemyConfig = {
 	Elite melee: the Brood Slime (docs/ENEMIES-AND-ARENAS.md's Act 1 elite).
 	A big, slow Moss Slime with four babies riding in its moss, and when it
 	dies it splits like Zac's Cell Division — into Moss Slimes, thrown clear
-	in arcs (`Balance.Split`). A slow body that becomes two quick threats:
+	in arcs (`Balance.Split`). A slow body that becomes four quick threats:
 	the lesson is finishing what you start.
 ]]
 local broodSlime: EnemyConfig = {
 	displayName = "BroodSlime",
 	--[[ Heavier than a Moss Slime, lighter than a Bulwark. ]]
 	turnRate = 240,
-	--[[ Six arrows, then the two slimes it becomes. ]]
+	--[[ Six arrows, then the four slimes it becomes, one per baby. ]]
 	health = 600,
 	moveSpeed = 4.5,
 	attackRange = 4.6,
@@ -184,7 +184,7 @@ local broodSlime: EnemyConfig = {
 	color = Color3.fromRGB(226, 52, 56),
 	xpReward = 20,
 	shot = nil,
-	split = { into = meleeCharger, count = 2 },
+	split = { into = meleeCharger, count = 4 },
 }
 
 --[[

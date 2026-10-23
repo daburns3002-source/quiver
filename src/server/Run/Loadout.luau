@@ -51,6 +51,9 @@ export type State = {
 	--[[ A rarity the next hand must include, once. Testing only: set by the
 	     Studio-only "show me a Mythic" key, never in a live game. ]]
 	forceRarity: string?,
+	--[[ This player's class, which decides the skills that can be dealt
+	     (`Ability.classes`). Everyone is a Ranger until classes are built. ]]
+	class: string,
 }
 
 local function costForLevel(level: number): number
@@ -68,6 +71,7 @@ function Loadout.new(): State
 		pendingLevels = 0,
 		rerolls = Balance.Draft.rerollsPerRun,
 		forceRarity = nil,
+		class = "Ranger",
 	}
 end
 
@@ -152,6 +156,12 @@ local function candidates(state: State): { Ability }
 		end
 
 		if Loadout.excluded(state, ability) then
+			continue
+		end
+
+		-- Another class's skill.
+		local classes = ability.classes
+		if classes and not table.find(classes, state.class) then
 			continue
 		end
 

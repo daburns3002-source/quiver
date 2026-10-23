@@ -567,4 +567,14 @@ return function(t: TestRunner.Helper)
 			"pattern would widen a fan that does not exist yet"
 		)
 	end)
+
+	--[[ Server and client must agree, or prediction fires on a different
+	     beat from the shots that count. ]]
+	t.test("Dual Bows doubles attack speed on both sides", function()
+		local server = AbilityEffects.serverStats({ DualBows = 1 })
+		local client = AbilityEffects.clientStats({ DualBows = 1 })
+		local base = AbilityEffects.serverStats({})
+		t.near(server.attackCooldown, base.attackCooldown / 2, 1e-9)
+		t.near(client.attackCooldown, server.attackCooldown, 1e-9)
+	end)
 end

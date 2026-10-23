@@ -30,7 +30,7 @@ What exists and works, all verified in Studio rather than only by the gates:
   death and restart. Playtest 1 passed. Playtest 2's question — *after five
   rooms, do you want a sixth?* — was never formally answered.
 - **Upgrades follow the owner's card design** (`design_handoff_upgrade_cards`,
-  chosen 2026-10-22): 26 skills, each with levels, a rarity and a stat line per
+  chosen 2026-10-22): 27 skills (Dual Bows added 2026-10-22), each with levels, a rarity and a stat line per
   level (`Config/Abilities`, `Config/Rarities`), dealt weighted by rarity with
   2 rerolls a run, and a Heal filler card. Momentum is banked by moving and
   spent on the 2 s of shooting after; every archer crits 5% of the time.

@@ -49,6 +49,11 @@ export type Ability = {
 	instant: boolean?,
 	filler: boolean?,
 	excludes: { string }?,
+	--[[ The classes that can be dealt it; every class when absent. Each
+	     class has its own Mythic (owner, 2026-10-22): the Ranger's is Dual
+	     Bows, the Arcanist's homing (Tracking Eye, to become Homing Orbs
+	     with the class). ]]
+	classes: { string }?,
 }
 
 local abilities: { Ability } = {
@@ -198,6 +203,23 @@ local abilities: { Ability } = {
 		stats = { "Homing" },
 		icon = "tracking-eye",
 		excludes = { "BouncyWall" },
+		--[[ Homing is the Arcanist's Mythic now ("Homing Orbs"); held back
+		     from the Ranger, and dealt to nobody until the Arcanist exists. ]]
+		classes = { "Arcanist" },
+	},
+	--[[ The Ranger's Mythic: a second bow, so twice the shots. The level is
+	     the extra attack speed as a fraction — 1 halves the cooldown. ]]
+	{
+		id = "DualBows",
+		name = "Dual Bows",
+		description = "A second bow. Twice the attack speed.",
+		category = "Stats",
+		group = "arrow",
+		rarity = "Mythic",
+		levels = { 1 },
+		stats = { "x2 atk spd" },
+		icon = "dual-bows",
+		classes = { "Ranger" },
 	},
 
 	--[[ Power skills. ]]

@@ -33,3 +33,4 @@ Thumbs.db
 
 # Python caches (assets/ scripts)
 __pycache__/
+.intake/

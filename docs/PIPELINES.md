@@ -1,0 +1,100 @@
+# Pipelines: how a new thing gets into the game
+
+Every kind of thing the owner adds, step by step: what **the owner** does
+(Claude Design, Codex, Studio imports, Roblox uploads — the parts nothing
+automated can do) and what **Claude** does. The project skills
+(`.claude/skills/`) run these; ask for one by name (`/intake`,
+`/add-enemy`, …) or just send the file and say what it is.
+
+What is in flight right now is in [TRACKER.md](TRACKER.md).
+
+## The tools
+
+| Tool | What it does |
+|---|---|
+| `python -I tools/intake.py <file>…` | Unpacks a handoff zip into `.intake/` (never the repo), says which files are NEW, CHANGED or already in, which animation clips are new or changed, spots duplicate zips, shows the README, and names the likely pipeline. Start every handoff here. |
+| `tools/studio/dump_imports.luau` | Run in Studio (Edit) after an import: every imported MeshPart's mesh id, texture, size and bones, as JSON. Feeds the generators. |
+| `python -I tools/sync_probe.py` | Prints a Studio probe that checks every changed script really reached Studio. Run before trusting any test. |
+| `tools/studio/run_tests.luau` | Runs the in-Roblox suite (Server, playing). |
+| `tools/check.sh` | Every gate: StyLua, Selene, strict types, `rojo build`. |
+| `tools/ship.sh "<title>" <body.md>` | Gates, push, PR, waits for CI, updates the branch if main moved, merges. |
+
+## 0. The loop every change goes through
+
+1. **Intake** (if something was sent): `tools/intake.py`. Decide the pipeline below.
+2. **Branch** off an up-to-date main: `phase-N/short-name`.
+3. **Build** it. Config is data in `src/shared/Config`; generated files are regenerated, never hand-edited.
+4. **Gates**: `tools/check.sh`.
+5. **Studio**: stop Play, run `tools/sync_probe.py`'s probe (all true, or reconnect Rojo), start Play, answer any open card screen, `run_tests.luau`, then playtest the change itself by probe and capture (CLAUDE.md, "Testing over MCP"). Black capture: focus Studio (`focus_studio.ps1`).
+6. **Record**: a bug fixed goes in `docs/FIXES.md`; open or finished work in `docs/TRACKER.md`; a new system or rule in `CLAUDE.md`.
+7. **Self-review** against `AGENTS.md`, exploitability first; say what it found.
+8. **Ship**: `tools/ship.sh`.
+
+## 1. An enemy model (static mesh)
+
+**Owner:** Claude Design model → GLB (or a handoff zip). Later, Studio: File → Import 3D the slimmed GLB.
+
+**Claude:**
+1. `optimise_enemy.py <in.glb> <out.glb> <enemy> [model]` (`uv run --with trimesh --with numpy --with pymeshlab --with scipy --with networkx --with pillow python -I …`). Add the enemy to `ENEMIES` in the script: triangle budgets, any part kept `separate` (the King's arms). Output: `assets/models/enemies/<enemy>_roblox.glb` with Body / Eyes / Decor, facing −Z, base at y = 0.
+2. Preview it (matplotlib render; the front is azimuth −90) before handing it over.
+3. Ask the owner to import it. After: `dump_imports.luau` → mesh ids.
+4. `EnemyDesigns`: `shape = "Mesh"` parts, white (vertex colours show), eyes Neon in the act's colour, turned 180° (the importer turns models), the shadow from `shadow(...)`. Fit the archetype's `hitboxSize` in `Balance` to the model; `Balance.spec` keeps arrow height inside every hitbox.
+5. A new archetype: its `EnemyConfig` in `Balance` (health on Archero 2's scale, `docs/RESEARCH-archero2.md` §3), into a level's roster, and `EnemyDesigns` under the same `displayName`. Slimes hop if listed in `Balance.SlimeHop`.
+6. Playtest: spawn it (`Remotes.DebugSpawnEnemy:FireServer("<Balance.Enemies key>")`), measure that its meshes stay out of cover, and that arrows hit it.
+
+**Pitfalls seen:** colours lost when re-exporting (read the combined file with its root); the face pointing the wrong way (turned by its eyes); a model taller than its hitbox; the Edit datamodel's stale `require` cache (check `.Source`).
+
+## 2. A rigged enemy (skinned mesh with animations)
+
+**Owner:** the rigged GLB → Studio: File → Import 3D with **Rig: Custom** (and animations, if offered). Leave it in Workspace.
+
+**Claude:**
+1. `tools/intake.py` the handoff; keep its `.rbxmx` of KeyframeSequences in `assets/models/enemies/<enemy>/` (force-add: `*.rbxmx` is gitignored).
+2. After the import: `dump_imports.luau` → the skinned MeshPart's mesh id, texture and bones → `assets/models/enemies/<enemy>/rig.json`.
+3. Its generator (copy `ember_wilf/rig_to_luau.py`) → `Config/EnemyRigs.luau`: bones and clips as data. `EnemyModel` builds the bones; `Fx/EnemyRig` plays Run by the hitbox's pace and a Dash fitted to each lunge.
+4. Its `EnemyDesigns` body: `meshId`, `textureId`, `rig`, scaled to the hitbox; eyes ride a bone (`bone = "Head"`, `eye = true`).
+5. Check in Studio that the bones are built, the legs swing, the eyes stay on the head.
+
+**Pitfalls seen:** a skinned mesh resized without its bones crushes the head into the body (`EnemyRig` scales the bones with every squash); the importer may not bring the clips (use the `.rbxmx`); a tween played twice on one property cancels the first.
+
+## 3. A boss
+
+As an enemy model (1), with its moves: a `boss` block in its `EnemyConfig`, each move a pure timeline in `Enemies/BossMoves` (pinned by `BossMoves.spec`), its body posed by `Enemies/BossBody`, every hit resolved in `EnemyManager` through `RunSession.applyDamage`, and every warning drawn by `TelegraphRenderer`. Port the handoff's motion numbers (its studs × the size ratio), never its `wait()`-based scripts. Room 10 of its level holds it alone (`Level1.spec` is the model).
+
+## 4. An arena
+
+**Owner:** Claude Design arena GLB → later imports the slimmed one.
+
+**Claude:**
+1. `optimise_arena.py <in> <out> <arena>`: textures to vertex colours, scattered tufts thinned, merged into a few groups under 20,000 triangles each, scaled ×2.7 into the 35 × 58 room.
+2. After the import: `ArenaModels` entry (parts, `surround`, `outsideColor`, `ambience`), cover as obstacle boxes in the level's rooms (`Balance`) at the model's positions, a `PlayerWall` over every piece of cover.
+3. **Swaying trees:** `split_trees.py` splits a forest's merged `Trees` mesh into single trees by trunk; owner imports `*_trees_roblox.glb` (Merge Meshes off); `dump_imports.luau` → `tree_ids.json` → `trees_to_luau.py` → `Config/ArenaTrees`. `ArenaTrees.spec` keeps every tree out of the room.
+4. Check: the camera never sees the void, cover blocks walking but low cover not arrows, nothing flickers (two surfaces on one plane).
+
+## 5. A weapon (model and R15 animation kit)
+
+**Owner:** the weapon GLB and its R15 kit (`*_R15_Kit.rbxmx`, KeyframeSequences) from Claude Design.
+
+**Claude:**
+1. `optimise_weapon.py` for the model; owner imports it; part ids into `Config/Weapons`.
+2. `kit_to_json.py <kit.rbxmx> <Prefix_> <out.json>` → the weapon's `*_animations.json` (kit beside it, force-added). Layer one-clip-at-a-time fixes in a small script if the kit layers clips (`leaf_bow_dual_r15/layer_clips.py`).
+3. `weapon_animations_to_luau.py` → `Config/WeaponAnimations.luau`; its clips named in `Config/Weapons.clips` (`hold`, `ready`, `aim`, `fire`, `legs`, `special`, `afterFire`).
+4. Check in Studio: the joints move as the kit's markers say (`Hit`, `Release`, `Cast`), and the server's timing lands on them (`WeaponTiming`, `ClassCards.spec`).
+
+## 6. A card or Mythic
+
+`Config/Abilities` (data: rarity, levels, stat lines, `classes`, `weapon` for a held-weapon change), its effect as a pipeline stage or an `AbilityEffects` stat — never an `if` on the card's name in combat code — and an area attack through `Combat/AreaStrikes` with its look in `Fx/MythicFx`. Icon: Codex art, uploaded, id in `CardAssets`. `ClassCards.spec` checks the pools.
+
+## 7. A sound
+
+1. Make takes: `assets/audio/synth.py` (from scratch) or `freesound.py` (CC0 only, licence checked per sound; a game's ripped audio is never used, only measured against).
+2. Audition page: `build_page.py` → published artifact; the owner's picks save to its database (`ArtifactData`).
+3. Owner uploads the picks to Roblox; Claude finds the ids (`search_asset`, scope user) and puts them in `Config/Sounds`. An empty id is silent, so hooks are wired first.
+
+## 8. Concept art and images
+
+Codex image generation, always (owner's rule): `codex exec` with the prompt on stdin and `-i` for reference images, signed in with the owner's account. Sheets go in `assets/concepts/`. The look is the **blocky** style (owner, 2026-10-23) for everything new.
+
+## 9. A UI handoff (cards, end screens)
+
+Claude Design's handoff → its frames and assets generated into `Config/Card*` / `Config/EndScreen*` by script (regenerate, never hand-edit), images uploaded and ids in `CardAssets` / `EndScreenAssets`, motion in code from its timeline.

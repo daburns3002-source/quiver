@@ -9,7 +9,10 @@ Phase plan: `docs/ROADMAP.md`. Lobby spec: `docs/LOBBY.md`.
 classes (Ranger, Arcanist, an unlockable melee class) across fifteen areas
 in five acts. A new title is being chosen; until then it stays "Arrow
 Legends". Nothing of it is built yet, and its open decisions are the
-owner's.
+owner's. Enemy and arena ideas per area: `docs/ENEMIES-AND-ARENAS.md`, with
+concept art in `assets/concepts/`. **Images and models are made with
+ChatGPT Codex** (owner's rule): `codex exec` with its image generation,
+signed in with the owner's ChatGPT account.
 
 **Bugs that shipped, and what fixed them: `docs/FIXES.md`.** Written to be
 found by symptom. Read it before debugging anything that sounds familiar, and

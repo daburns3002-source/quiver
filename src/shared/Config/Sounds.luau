@@ -38,28 +38,24 @@ local Sounds: { [string]: Sound } = {
 		minGap = 0.03,
 	},
 	--[[ The Warden's three blows (`Config/Weapons.RubyGreatsword.comboSounds`):
-	     made to the measured shape of the owner's reference clip, 10% quicker
-	     (2026-10-23; `assets/audio/final/sword_*.mp3`). Until they are
-	     uploaded, Roblox's own classic sword sounds stand in, `swordslash` and
-	     `swordlunge`, which Roblox uploaded for any experience. ]]
+	     CC0 recordings from Freesound picked by the owner (2026-10-23;
+	     rounds 10 C, 10 D and 11 D, `assets/audio/freesound.py`), already
+	     10% quicker in the files themselves, so they play at speed 1. ]]
 	sword_swing = {
-		id = "rbxassetid://12222216",
+		id = "rbxassetid://87235506154920",
 		volume = 0.7,
-		speed = 1.1,
 		pitchJitter = 0.04,
 		minGap = 0.05,
 	},
 	sword_swing_2 = {
-		id = "rbxassetid://12222216",
+		id = "rbxassetid://83559699463378",
 		volume = 0.7,
-		speed = 1.1,
 		pitchJitter = 0.04,
 		minGap = 0.05,
 	},
 	sword_slam = {
-		id = "rbxassetid://12222208",
+		id = "rbxassetid://79504183116158",
 		volume = 0.8,
-		speed = 1.1,
 		pitchJitter = 0.02,
 		minGap = 0.05,
 	},

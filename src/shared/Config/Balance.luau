@@ -564,7 +564,8 @@ local rooms: { RoomConfig } = {
 		tall: they stop the player's arrows as well as bodies. The pond and
 		the thorns are low: nobody walks through them, but arrows fly over
 		(a box under `Projectile.height` blocks movement, not shots).
-		Positions are the models' own, ×2.7.
+		Positions are the models' own, ×2.7 (the boss arena ×2.11 across
+		and ×2.38 deep: `ArenaModels`).
 	]]
 	{
 		name = "Mossy Glade",
@@ -601,6 +602,12 @@ local rooms: { RoomConfig } = {
 			{ offset = Vector2.new(10.96, 9.02), size = Vector3.new(3.5, 2.6, 3) },
 			{ offset = Vector2.new(-7.29, 18.12), size = Vector3.new(2.9, 2.3, 3) },
 			{ offset = Vector2.new(9.18, -19.44), size = Vector3.new(3, 1.3, 3) },
+			-- The small boulders beside the big ones.
+			{ offset = Vector2.new(-10.34, -8.15), size = Vector3.new(2.7, 2, 2.5) },
+			{ offset = Vector2.new(-7.13, -13.2), size = Vector3.new(2.2, 1.8, 2.35) },
+			{ offset = Vector2.new(6.18, 9.29), size = Vector3.new(2.5, 2, 2.5) },
+			{ offset = Vector2.new(9.32, 4.54), size = Vector3.new(1.9, 1.7, 2.1) },
+			{ offset = Vector2.new(-5.8, 19.06), size = Vector3.new(2, 1.5, 2) },
 		},
 		--[[ Adds the Brood Slime. ]]
 		enemyCount = 4,
@@ -622,10 +629,10 @@ local rooms: { RoomConfig } = {
 		name = "Glade Heart",
 		arena = "GladeBoss",
 		obstacles = {
-			{ offset = Vector2.new(-14.58, -18.36), size = Vector3.new(5, 4.6, 5) },
-			{ offset = Vector2.new(14.58, -18.36), size = Vector3.new(5, 4.6, 5) },
-			{ offset = Vector2.new(-14.58, 18.36), size = Vector3.new(5, 4.6, 5) },
-			{ offset = Vector2.new(14.58, 18.36), size = Vector3.new(5, 4.6, 5) },
+			{ offset = Vector2.new(-11.42, -16.18), size = Vector3.new(3.9, 3.8, 4.4) },
+			{ offset = Vector2.new(11.42, -16.18), size = Vector3.new(3.9, 3.8, 4.4) },
+			{ offset = Vector2.new(-11.42, 16.18), size = Vector3.new(3.9, 3.8, 4.4) },
+			{ offset = Vector2.new(11.42, 16.18), size = Vector3.new(3.9, 3.8, 4.4) },
 		},
 		--[[ A boss room, until Act 1's bosses are built (docs/BOSSES.md): the
 		     heaviest body with an escort, as a Waves boss wave is. ]]
@@ -666,6 +673,12 @@ local rooms: { RoomConfig } = {
 			{ offset = Vector2.new(10.96, 9.02), size = Vector3.new(3.5, 2.6, 3) },
 			{ offset = Vector2.new(-7.29, 18.12), size = Vector3.new(2.9, 2.3, 3) },
 			{ offset = Vector2.new(9.18, -19.44), size = Vector3.new(3, 1.3, 3) },
+			-- The small boulders beside the big ones.
+			{ offset = Vector2.new(-10.34, -8.15), size = Vector3.new(2.7, 2, 2.5) },
+			{ offset = Vector2.new(-7.13, -13.2), size = Vector3.new(2.2, 1.8, 2.35) },
+			{ offset = Vector2.new(6.18, 9.29), size = Vector3.new(2.5, 2, 2.5) },
+			{ offset = Vector2.new(9.32, 4.54), size = Vector3.new(1.9, 1.7, 2.1) },
+			{ offset = Vector2.new(-5.8, 19.06), size = Vector3.new(2, 1.5, 2) },
 		},
 		enemyCount = 6,
 		roster = { meleeCharger, spreadShooter, lineSniper, burrower, broodSlime },
@@ -685,10 +698,10 @@ local rooms: { RoomConfig } = {
 		name = "Glade Heart II",
 		arena = "GladeBoss",
 		obstacles = {
-			{ offset = Vector2.new(-14.58, -18.36), size = Vector3.new(5, 4.6, 5) },
-			{ offset = Vector2.new(14.58, -18.36), size = Vector3.new(5, 4.6, 5) },
-			{ offset = Vector2.new(-14.58, 18.36), size = Vector3.new(5, 4.6, 5) },
-			{ offset = Vector2.new(14.58, 18.36), size = Vector3.new(5, 4.6, 5) },
+			{ offset = Vector2.new(-11.42, -16.18), size = Vector3.new(3.9, 3.8, 4.4) },
+			{ offset = Vector2.new(11.42, -16.18), size = Vector3.new(3.9, 3.8, 4.4) },
+			{ offset = Vector2.new(-11.42, 16.18), size = Vector3.new(3.9, 3.8, 4.4) },
+			{ offset = Vector2.new(11.42, 16.18), size = Vector3.new(3.9, 3.8, 4.4) },
 		},
 		enemyCount = 5,
 		roster = { tank, broodSlime, spreadShooter, meleeCharger, lineSniper },

@@ -292,17 +292,41 @@ local function placeModel(root: Instance, model: ArenaModels.ArenaModel)
 		part.CanTouch = false
 		--[[ White, so the model's own vertex colours show unchanged. ]]
 		part.Color = Color3.new(1, 1, 1)
-		part.Material = if spec.glow then Enum.Material.Neon else Enum.Material.SmoothPlastic
+		part.Material = if spec.glow
+			then Enum.Material.Neon
+			elseif spec.matte then Enum.Material.Fabric
+			else Enum.Material.SmoothPlastic
 		part.CastShadow = not spec.glow
 		part.Parent = folder
+	end
 
-		--[[ Again to either side, so the forest runs past the screen's edges. ]]
-		local spacing = model.surroundSpacing
-		if spacing and model.surround and table.find(model.surround, spec.name) then
+	--[[ The forest again to either side, so it runs past the screen's edges:
+	     this model's own, or another's (`surroundFrom`) when its own would
+	     leave gaps. ]]
+	local spacing = model.surroundSpacing
+	local surround = model.surround
+	local source = if model.surroundFrom
+		then (ArenaModels :: any)[model.surroundFrom] :: ArenaModels.ArenaModel?
+		else model
+	if spacing and surround and source then
+		for _, spec in source.parts do
+			local template = meshTemplates[spec.meshId]
+			if not template or not table.find(surround, spec.name) then
+				continue
+			end
 			for _, side in { -1, 1 } do
-				local copy = part:Clone()
+				local copy = template:Clone()
 				copy.Name = `{spec.name}Surround`
+				copy.Size = spec.size
 				copy.CFrame = CFrame.new(spec.offset + Vector3.new(side * spacing, 0, 0)) * turn
+				copy.Anchored = true
+				copy.CanCollide = false
+				copy.CanQuery = false
+				copy.CanTouch = false
+				copy.Color = Color3.new(1, 1, 1)
+				copy.Material = if spec.matte
+					then Enum.Material.Fabric
+					else Enum.Material.SmoothPlastic
 				copy.Parent = folder
 			end
 		end

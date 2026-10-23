@@ -244,7 +244,12 @@ local meshTemplates: { [string]: MeshPart } = {}
      shows the invisible-walled floor rather than failing to build. ]]
 function Arena.preload()
 	for _, model in ArenaModels :: { [string]: ArenaModels.ArenaModel } do
-		for _, spec in model.parts do
+		local specs = table.clone(model.parts)
+		local surround: { ArenaModels.ArenaPart } = model.surround or {}
+		for _, spec in surround do
+			table.insert(specs, spec)
+		end
+		for _, spec in specs do
 			if meshTemplates[spec.meshId] then
 				continue
 			end
@@ -277,15 +282,15 @@ local function placeModel(root: Instance, model: ArenaModels.ArenaModel)
 	     the way Claude Design shows it. Offsets are already turned. ]]
 	local turn = CFrame.Angles(0, math.pi, 0)
 
-	for _, spec in model.parts do
+	local function place(spec: ArenaModels.ArenaPart, shift: Vector3, name: string)
 		local template = meshTemplates[spec.meshId]
 		if not template then
-			continue
+			return
 		end
 		local part = template:Clone()
-		part.Name = spec.name
+		part.Name = name
 		part.Size = spec.size
-		part.CFrame = CFrame.new(spec.offset) * turn
+		part.CFrame = CFrame.new(spec.offset + shift) * turn
 		part.Anchored = true
 		part.CanCollide = false
 		part.CanQuery = false
@@ -300,34 +305,16 @@ local function placeModel(root: Instance, model: ArenaModels.ArenaModel)
 		part.Parent = folder
 	end
 
-	--[[ The forest again to either side, so it runs past the screen's edges:
-	     this model's own, or another's (`surroundFrom`) when its own would
-	     leave gaps. ]]
+	for _, spec in model.parts do
+		place(spec, Vector3.zero, spec.name)
+	end
+
+	--[[ The forest again to either side, so it runs past the screen's edges. ]]
 	local spacing = model.surroundSpacing
-	local surround = model.surround
-	local source = if model.surroundFrom
-		then (ArenaModels :: any)[model.surroundFrom] :: ArenaModels.ArenaModel?
-		else model
-	if spacing and surround and source then
-		for _, spec in source.parts do
-			local template = meshTemplates[spec.meshId]
-			if not template or not table.find(surround, spec.name) then
-				continue
-			end
+	if spacing and model.surround then
+		for _, spec in model.surround do
 			for _, side in { -1, 1 } do
-				local copy = template:Clone()
-				copy.Name = `{spec.name}Surround`
-				copy.Size = spec.size
-				copy.CFrame = CFrame.new(spec.offset + Vector3.new(side * spacing, 0, 0)) * turn
-				copy.Anchored = true
-				copy.CanCollide = false
-				copy.CanQuery = false
-				copy.CanTouch = false
-				copy.Color = Color3.new(1, 1, 1)
-				copy.Material = if spec.matte
-					then Enum.Material.Fabric
-					else Enum.Material.SmoothPlastic
-				copy.Parent = folder
+				place(spec, Vector3.new(side * spacing, 0, 0), `{spec.name}Surround`)
 			end
 		end
 	end

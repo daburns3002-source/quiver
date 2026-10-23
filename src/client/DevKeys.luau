@@ -75,8 +75,8 @@ function DevKeys.start()
 			Remotes.event(Remotes.DebugNextClass):FireServer()
 			toast("Studio: switching class")
 		elseif input.KeyCode == Enum.KeyCode.K then
-			Remotes.event(Remotes.DebugSpawnEnemy):FireServer("Wolf")
-			toast("Studio: a wolf")
+			Remotes.event(Remotes.DebugSpawnEnemy):FireServer("Wilf")
+			toast("Studio: a wilf")
 		elseif input.KeyCode == Enum.KeyCode.L then
 			Remotes.event(Remotes.DebugForceMythic):FireServer("Legendary")
 			toast("Studio: next hand includes a Legendary")

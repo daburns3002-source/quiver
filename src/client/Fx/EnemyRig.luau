@@ -1,7 +1,7 @@
 --!strict
 --[[
-	Animates a rigged enemy's skinned body on this client (the Ember Wolf:
-	the owner's design_handoff_ember_wolf, 2026-10-23): it runs as it
+	Animates a rigged enemy's skinned body on this client (the Ember Wilf:
+	the owner's design_handoff_ember_wilf, 2026-10-23): it runs as it
 	moves and dashes as it lunges, from its own clips (`Config/EnemyRigs`,
 	played by `Shared/Util/RigClip`).
 

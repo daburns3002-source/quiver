@@ -1,7 +1,7 @@
 --!strict
 --[[
 	Rigged enemies' animation (`Config/EnemyRigs`, `Shared/Util/RigClip`,
-	the owner's design_handoff_ember_wolf). What is pinned: every clip
+	the owner's design_handoff_ember_wilf). What is pinned: every clip
 	drives only bones the rig has, at every key; a looping clip meets
 	itself, so the run never hitches; and a dash is fitted to its lunge —
 	crouched until the server launches it, in the air for exactly the
@@ -69,7 +69,7 @@ return function(t: TestRunner.Helper)
 	end)
 
 	t.test("a dash crouches until launched, leaps for the bolt, then skids", function()
-		local dash = EnemyRigs.Wolf.clips.Dash
+		local dash = EnemyRigs.Wilf.clips.Dash
 		local launch = dash.markers.Launch
 		local land = dash.markers.Land
 		t.isTrue(launch ~= nil and land ~= nil and launch < land, "the dash lacks its markers")

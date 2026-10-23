@@ -1,6 +1,6 @@
 --!strict
 --[[
-	Level 1 (`Balance.Stages[3]`, the Mossy Glade): slimes, the Ember Wolf
+	Level 1 (`Balance.Stages[3]`, the Mossy Glade): slimes, the Ember Wilf
 	from room 6 on, and the Slime King alone in its last room (owner,
 	2026-10-23).
 ]]
@@ -15,12 +15,12 @@ local SLIMES = {
 	[Balance.Enemies.BroodSlime] = true,
 	[Balance.Enemies.BabySlime] = true,
 	[Balance.Enemies.SlimeKing] = true,
-	[Balance.Enemies.Wolf] = true,
+	[Balance.Enemies.Wilf] = true,
 }
 
---[[ The first room the wolf may appear in: the first five are the slime
+--[[ The first room the wilf may appear in: the first five are the slime
      tutorial. ]]
-local WOLF_FROM = 6
+local WILF_FROM = 6
 
 local function level(): { Balance.RoomConfig }
 	local indices: { number } = Balance.Stages[3].rooms or {}
@@ -37,7 +37,7 @@ return function(t: TestRunner.Helper)
 		t.equal(#level(), 10)
 	end)
 
-	t.test("every Level 1 enemy is a slime or the wolf", function()
+	t.test("every Level 1 enemy is a slime or the wilf", function()
 		for _, room in level() do
 			for _, config in room.roster do
 				t.isTrue(SLIMES[config] == true, `{room.name} has a {config.displayName}`)
@@ -45,11 +45,11 @@ return function(t: TestRunner.Helper)
 		end
 	end)
 
-	t.test("the wolf only comes from room 6", function()
+	t.test("the wilf only comes from room 6", function()
 		for index, room in level() do
 			for _, config in room.roster do
-				if config == Balance.Enemies.Wolf then
-					t.isTrue(index >= WOLF_FROM, `the wolf is in room {index}`)
+				if config == Balance.Enemies.Wilf then
+					t.isTrue(index >= WILF_FROM, `the wilf is in room {index}`)
 				end
 			end
 		end

@@ -26,7 +26,7 @@
 	`Line` draws the actual path the shot will take, which only means anything
 	if that path is honest — see `locksAim`.
 	`Eyes` turns only the eyes red, pulsing, and draws nothing on the floor:
-	the Ember Wolf's charge (owner, 2026-10-23: "no line and the eyes just
+	the Ember Wilf's charge (owner, 2026-10-23: "no line and the eyes just
 	flash red before he charges").
 ]]
 export type EnemyTell = "Flash" | "Line" | "Ground" | "Eyes"
@@ -331,17 +331,17 @@ local broodSlime: EnemyConfig = {
 }
 
 --[[
-	The Ember Wolf (owner, 2026-10-23: "a wolf enemy that has a charge and
-	dash attack ... modeled after this dog"): a fluffy ginger wolf, quick
+	The Ember Wilf (owner, 2026-10-23: "a wilf enemy that has a charge and
+	dash attack ... modeled after this dog"): a fluffy ginger wilf, quick
 	and low, that never just walks up and bites. From across the room it
 	charges, its eyes flashing red first; up close it dashes,
 	a short pounce on a quick flash. Both are lunges (`EnemyLunge`), so the
 	answer to both is the same — see where it is pointed and get out of the
 	line. Its body is primitives in the dog's colours until its model exists
-	(`assets/concepts/models/ember_wolf_sheet.png`).
+	(`assets/concepts/models/ember_wilf_sheet.png`).
 ]]
-local wolf: EnemyConfig = {
-	displayName = "Wolf",
+local wilf: EnemyConfig = {
+	displayName = "Wilf",
 	--[[ As slow to turn as anything its size (it is the longest of the
 	     grunts); its lunges snap it onto their line regardless, so this only
 	     shapes how it walks. ]]
@@ -355,7 +355,7 @@ local wolf: EnemyConfig = {
 	attackCooldown = 1.8,
 	knockback = 2.5,
 	--[[ The owner's model's own shape, ×2.6 (`assets/models/enemies/
-	     ember_wolf_roblox.glb`, a round pup): 2.2 across, 3 tall, 3.3 nose
+	     ember_wilf_roblox.glb`, a round pup): 2.2 across, 3 tall, 3.3 nose
 	     to tail. Arrows at `Projectile.height` meet it. ]]
 	hitboxSize = Vector3.new(2.2, 3, 3.3),
 	color = Color3.fromRGB(214, 116, 48),
@@ -791,10 +791,10 @@ local rooms: { RoomConfig } = {
 			{ offset = Vector2.new(4.6, 0), size = Vector3.new(2.5, 10, 38.7) },
 		},
 		--[[ Adds the lancer: a drawn line to step out of, in the room with
-		     lanes. The Ember Wolf stands in for the Lancer everywhere for now
+		     lanes. The Ember Wilf stands in for the Lancer everywhere for now
 		     (owner, 2026-10-23); its charge is a drawn line too. ]]
 		enemyCount = 4,
-		roster = { meleeCharger, spreadShooter, wolf },
+		roster = { meleeCharger, spreadShooter, wilf },
 	},
 	{
 		name = "Quarters",
@@ -804,7 +804,7 @@ local rooms: { RoomConfig } = {
 		},
 		--[[ No new archetype. Four of them at once instead, and a brood. ]]
 		enemyCount = 5,
-		roster = { meleeCharger, spreadShooter, wolf, broodSlime },
+		roster = { meleeCharger, spreadShooter, wilf, broodSlime },
 	},
 	{
 		name = "The Pit",
@@ -830,7 +830,7 @@ local rooms: { RoomConfig } = {
 		},
 		--[[ All five, and from here the count is the only thing still rising. ]]
 		enemyCount = 6,
-		roster = { meleeCharger, spreadShooter, wolf, burrower, tank },
+		roster = { meleeCharger, spreadShooter, wilf, burrower, tank },
 	},
 	{
 		name = "Last Cover",
@@ -839,7 +839,7 @@ local rooms: { RoomConfig } = {
 		},
 		--[[ All five. ]]
 		enemyCount = 6,
-		roster = { meleeCharger, wolf, spreadShooter, burrower, tank },
+		roster = { meleeCharger, wilf, spreadShooter, burrower, tank },
 	},
 	{
 		name = "Nowhere To Stand",
@@ -848,7 +848,7 @@ local rooms: { RoomConfig } = {
 		obstacles = {},
 		--[[ All five, at the most this run ever throws at once. ]]
 		enemyCount = 7,
-		roster = { meleeCharger, spreadShooter, wolf, burrower, tank },
+		roster = { meleeCharger, spreadShooter, wilf, burrower, tank },
 	},
 
 	--[[
@@ -951,10 +951,10 @@ local rooms: { RoomConfig } = {
 			{ offset = Vector2.new(-6.21, 19.71), size = Vector3.new(2.7, 1.2, 2.7) },
 		},
 		enemyCount = 4,
-		--[[ The Ember Wolf's debut (owner, 2026-10-23: "here is another enemy
+		--[[ The Ember Wilf's debut (owner, 2026-10-23: "here is another enemy
 		     design going into area 1"): from room 6, so the first five stay
 		     the slime tutorial. It is the one new thing to learn here. ]]
-		roster = { meleeCharger, meleeCharger, broodSlime, wolf },
+		roster = { meleeCharger, meleeCharger, broodSlime, wilf },
 	},
 	{
 		name = "Mossy Pond II",
@@ -965,7 +965,7 @@ local rooms: { RoomConfig } = {
 			{ offset = Vector2.new(8.1, 14.31), size = Vector3.new(3.6, 1.6, 3.6) },
 		},
 		enemyCount = 4,
-		roster = { meleeCharger, broodSlime, wolf },
+		roster = { meleeCharger, broodSlime, wilf },
 	},
 	{
 		name = "Mossy Boulders II",
@@ -985,7 +985,7 @@ local rooms: { RoomConfig } = {
 			{ offset = Vector2.new(-5.8, 19.06), size = Vector3.new(2, 1.5, 2) },
 		},
 		enemyCount = 5,
-		roster = { meleeCharger, meleeCharger, broodSlime, wolf },
+		roster = { meleeCharger, meleeCharger, broodSlime, wilf },
 	},
 	{
 		name = "Mossy Thorns II",
@@ -996,7 +996,7 @@ local rooms: { RoomConfig } = {
 			{ offset = Vector2.new(-8.64, 15.93), size = Vector3.new(3.3, 1.4, 3.3) },
 		},
 		enemyCount = 5,
-		roster = { meleeCharger, broodSlime, wolf },
+		roster = { meleeCharger, broodSlime, wilf },
 	},
 	{
 		name = "Glade Heart II",
@@ -1306,7 +1306,7 @@ local Balance = {
 	Enemies = {
 		MeleeCharger = meleeCharger,
 		SpreadShooter = spreadShooter,
-		--[[ The Lancer is benched while the Ember Wolf stands in for it
+		--[[ The Lancer is benched while the Ember Wilf stands in for it
 		     (owner, 2026-10-23: "have that replace the sniper enemy for
 		     now"). Its config stays below; put it back here and in the
 		     rosters to bring it back. ]]
@@ -1315,7 +1315,7 @@ local Balance = {
 		BroodSlime = broodSlime,
 		BabySlime = babySlime,
 		SlimeKing = slimeKing,
-		Wolf = wolf,
+		Wilf = wilf,
 	},
 
 	--[[

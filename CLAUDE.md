@@ -3,6 +3,10 @@
 **Archero's combat inside a Pet Simulator / Steal an Egg progression shell.**
 Low poly, cross-platform, co-op-shaped.
 
+**There are no wolves in this game, only Wilfs** (owner, 2026-10-23): every
+wolf is named "Wilf" — the Ember Wilf, plural Wilfs — in names, code, docs
+and files. Every area gets a Wilf pet.
+
 Run loop: `docs/RESEARCH-archero.md`. Meta loop: `docs/PROGRESSION.md`.
 Phase plan: `docs/ROADMAP.md`. Lobby spec: `docs/LOBBY.md`.
 **Classes and world: `docs/WORLD.md`** — since 2026-10-22 the game is three
@@ -34,9 +38,9 @@ design_handoff_slime_movement): client-only, phased by the distance the
 hitbox travels, folding in `HitSquash` (which a hopping body is claimed
 from). The Slime King's lash is the design's Zac-Q motion: a twist, a
 12-segment jelly tube (`BossBody`), a splat and goo droplets (`Goo` tell).
-**Rigged enemies** (the Ember Wolf, 2026-10-23): a skinned mesh imported
+**Rigged enemies** (the Ember Wilf, 2026-10-23): a skinned mesh imported
 with its rig; its bones and clips are data in `Config/EnemyRigs`, generated
-by `assets/models/enemies/ember_wolf/rig_to_luau.py` from `rig.json` (bones
+by `assets/models/enemies/ember_wilf/rig_to_luau.py` from `rig.json` (bones
 dumped from Studio) and the kit's `.rbxmx`. `EnemyModel` builds the bones;
 `Fx/EnemyRig` runs it at the hitbox's pace, fits the Dash to each lunge
 (`LungeWindup`, `LungeTravel`, `WindingUp`), squashes bones with the body
@@ -44,7 +48,7 @@ and carries the eyes on the head bone.
 
 **Level 1** (`Balance.stage = 3`, owner 2026-10-22): ten Mossy Glade
 rooms — logs, pond, boulders, thorns, boss arena, twice. **Slimes**
-(Moss Slimes and Brood Slimes), the **Ember Wolf** from room 6 (lunges:
+(Moss Slimes and Brood Slimes), the **Ember Wilf** from room 6 (lunges:
 a long charge warned by its eyes flashing red, a quick dash up close; `EnemyConfig.lunges`),
 and room 10 is the **Slime King alone** (`tests/Level1.spec.luau` pins all
 three; owner, 2026-10-23). Each room names
@@ -267,7 +271,7 @@ From a probe, `Remotes.DebugRoom:FireServer(10)` jumps the run to a room
 (Studio only), to test the boss without fighting through the level.
 From a probe, `Remotes.DebugGrant:FireServer("Cleave")` grants one level of
 any card (Studio only), to test a card's effect without drafting it.
-**K** — spawn a wolf (`Remotes.DebugSpawnEnemy`, any `Balance.Enemies` key from a probe).
+**K** — spawn a wilf (`Remotes.DebugSpawnEnemy`, any `Balance.Enemies` key from a probe).
 From a probe, `Remotes.DebugForceMythic:FireServer("Legendary")` does the
 same without the MCP keyboard tool, which reports as a gamepad and flips the
 draft into its controller layout.

@@ -135,6 +135,15 @@ settled ones. **Damage is on Archero 2's scale** (docs/RESEARCH-archero2.md
 enemy hits kill the player — which replaced the owner's earlier "enemy
 health ×1.5". Damage numbers are white, red crits, orange burns.
 
+**Classes** (`Config/Classes`, 2026-10-23): the Ranger (leaf bow), the
+Arcanist (arcane staff: slow, heavy orbs with Blast Arrows built in) and
+the Warden (ruby greatsword, melee: `Combat/MeleeSystem` lands each blow of
+a three-hit combo on the server, in `Shared/Combat/SwingBox`). Each weapon
+is the owner's Claude Design kit, its animations generated into
+`Config/WeaponAnimations` and played in code by `Fx/WeaponPose`. 15 of the
+28 cards do nothing for the Warden yet; options in `docs/WARDEN-CARDS.md`,
+the owner's to decide.
+
 **XP crystals and hearts** (`Run/Pickups`, `Fx/PickupFx`): a kill's XP
 drops as cyan crystals; walk over your own to take them mid-fight, and any
 left are drawn in when the wave or room clears. Hearts drop on 5% of kills and on every

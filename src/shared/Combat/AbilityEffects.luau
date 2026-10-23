@@ -229,7 +229,10 @@ function AbilityEffects.serverStats(counts: Counts): ServerStats
 		     percent of the base, not of the last level. ]]
 		damage = player.baseDamage * (1 + at(counts, "Strength")),
 		maxHealth = player.maxHealth * (1 + at(counts, "Vitality")),
-		attackCooldown = player.attackCooldown,
+		--[[ Dual Bows: attack speed ×(1 + level), so its 1 halves the
+		     cooldown. Server and client must agree, or prediction fires
+		     on a different beat from the shots that count. ]]
+		attackCooldown = player.attackCooldown / (1 + at(counts, "DualBows")),
 		healPerKill = at(counts, "Bloodthirst"),
 		regenPerSecond = at(counts, "Mending"),
 		dodgeChance = at(counts, "Agility"),
@@ -272,7 +275,7 @@ function AbilityEffects.clientStats(counts: Counts): ClientStats
 	return {
 		moveSpeed = player.moveSpeed * (1 + at(counts, "Lightfoot")),
 		dashCooldown = player.dash.cooldown,
-		attackCooldown = player.attackCooldown,
+		attackCooldown = player.attackCooldown / (1 + at(counts, "DualBows")),
 		momentumBonus = at(counts, "Momentum"),
 		abilities = copy,
 	}

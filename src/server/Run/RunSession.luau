@@ -475,8 +475,11 @@ function RunSession.resetRun(session: Session)
 	--[[ A Studio test request for a rarity outlives the run it was made in,
 	     so dying before the next hand does not swallow it. ]]
 	local forced = session.loadout.forceRarity
+	local class = session.loadout.class
 	session.loadout = Loadout.new()
 	session.loadout.forceRarity = forced
+	-- A new run is the same class.
+	session.loadout.class = class
 	session.secondWindUsed = false
 	RunSession.newStage(session)
 	RunSession.applyLoadout(session)

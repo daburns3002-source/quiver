@@ -25,6 +25,18 @@ decisions at the end.* Until one is chosen the code, repo and docs keep
 | **Arcanist** (mage) | slow attacks that hit hard | medium | AoE; burn, freeze, shock |
 | **Warden** (melee, **unlockable**) | tanky | close, sweeping arcs | dash, lifesteal, knockback, thorns |
 
+**Each class's Mythic** (owner, 2026-10-22):
+
+- **Ranger — Dual Bows.** A second bow: twice the attack speed. Built
+  (`Abilities.DualBows`, dealt only to the Ranger).
+- **Arcanist — Homing Orbs.** Shots home on the nearest enemy. The homing is
+  built as Tracking Eye, now held back from the Ranger; it becomes Homing
+  Orbs, with its own art, when the Arcanist is built.
+- **Warden / Duelist** — not chosen yet.
+
+Skills say which classes can draw them (`Ability.classes`, none named means
+all); Second Wind stays a Mythic every class can draw.
+
 **Alternative to the Warden:** a **Duelist** — fast dagger strikes, crits,
 evasion — if the unlockable melee class should play faster. *Open.*
 

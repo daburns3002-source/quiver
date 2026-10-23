@@ -40,6 +40,8 @@ local CardAssets = {
 		["strength"] = "rbxassetid://119080746415552",
 		["swift-arrows"] = "rbxassetid://78284342672182",
 		["tracking-eye"] = "rbxassetid://126521418656928",
+		-- Made with ChatGPT Codex, 2026-10-22, in the set's style.
+		["dual-bows"] = "rbxassetid://96411221480106",
 		["vitality"] = "rbxassetid://105469716205818",
 	},
 }

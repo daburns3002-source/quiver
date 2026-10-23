@@ -381,4 +381,35 @@ return function(t: TestRunner.Helper)
 		t.equal(#hand, Progression.offerCount)
 		t.isNil(state.forceRarity, "the request was not forgotten")
 	end)
+
+	--[[ Each class has its own Mythic: a skill names the classes that may be
+	     dealt it, and a hand never strays outside the player's class. ]]
+	t.test("a hand only deals the player's own class's skills", function()
+		local random = Random.new(23)
+		for _ = 1, 300 do
+			local state = Loadout.new()
+			for _, id in Loadout.rollOffer(state, true, random) do
+				local classes = Abilities.byId[id].classes
+				t.isTrue(
+					classes == nil or table.find(classes, state.class) ~= nil,
+					`{id} was dealt to a {state.class}`
+				)
+			end
+		end
+	end)
+
+	t.test("the Ranger's Mythic is Dual Bows, and homing is not a Ranger skill", function()
+		local state = Loadout.new()
+		state.class = "Ranger"
+		local seenDual = false
+		local random = Random.new(29)
+		for _ = 1, 400 do
+			state.forceRarity = "Mythic"
+			for _, id in Loadout.rollOffer(state, true, random) do
+				t.isTrue(id ~= "TrackingEye", "a Ranger was dealt homing")
+				seenDual = seenDual or id == "DualBows"
+			end
+		end
+		t.isTrue(seenDual, "Dual Bows never came up in forced Mythic hands")
+	end)
 end

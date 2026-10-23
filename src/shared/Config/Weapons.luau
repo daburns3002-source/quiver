@@ -48,7 +48,8 @@ export type WeaponPart = {
      charging) and `aim` looping after it, and `fire` on each shot, after
      which `ready` plays again. A weapon without `ready` holds until its
      first shot. `fire` is a combo: each shot plays the next, round and
-     round, back to the first after a pause (`Fx/WeaponPose`). ]]
+     round, keeping its place however long the wielder moves between
+     shots (`Shared/Combat/WeaponTiming`). ]]
 export type Clips = {
 	hold: string,
 	move: string?,

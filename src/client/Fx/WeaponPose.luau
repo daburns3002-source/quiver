@@ -86,10 +86,15 @@ local weaponName = ""
 local role = "hold"
 local phase = 0
 local roleSpeed = 1
---[[ The combo: which `fire` clip played last (0 for none), and when the
-     last one ended. ]]
+--[[ The combo: which `fire` clip played last (0 for none). It keeps its
+     place between attacks, and starts over with a new character, as the
+     server's does (`Combat/MeleeSystem`). ]]
 local comboIndex = 0
-local comboEndedAt = -math.huge
+local comboCharacter: Model? = nil
+--[[ The place before the attack playing now, and whether its blow has
+     landed: moving before it lands gives the place back. ]]
+local comboPrevious = 0
+local blowLanded = false
 local engaged = false
 local lastStep = os.clock()
 
@@ -184,6 +189,9 @@ local function stepPose(character: Model, now: number, dt: number)
 	     only moving cuts it short. ]]
 	if moving then
 		local want = if weapon.clips.move then "move" else "hold"
+		if role == "fire" and not blowLanded then
+			comboIndex = comboPrevious
+		end
 		if role ~= want then
 			play(want, 1, now)
 		end
@@ -215,13 +223,13 @@ local function stepPose(character: Model, now: number, dt: number)
 	     damage lands then too (`Shared/Combat/WeaponTiming`). ]]
 	local hit = clip.markers.Hit
 	if role == "fire" and hit and before < hit and phase >= hit then
+		blowLanded = true
 		BladeFx.impact(character, weapon, comboIndex == #weapon.clips.fire)
 	end
 
 	if not clip.loop and phase >= clip.length then
 		local nextRole
 		if role == "fire" then
-			comboEndedAt = now
 			nextRole = if aiming and weapon.clips.ready then "ready" else "hold"
 		else
 			nextRole = "aim"
@@ -284,6 +292,10 @@ local function step()
 	local dt = now - lastStep
 	lastStep = now
 	local character = player.Character
+	if character ~= comboCharacter then
+		comboCharacter = character
+		comboIndex = 0
+	end
 	if character then
 		stepPose(character, now, dt)
 	end
@@ -292,9 +304,10 @@ end
 --[[ An attack left the weapon: the next clip of its combo plays. ]]
 function WeaponPose.release()
 	local now = os.clock()
-	local name = currentWeapon()
-	local sinceLast = if role == "fire" then 0 else now - comboEndedAt
-	comboIndex = WeaponTiming.nextInCombo(name, comboIndex, sinceLast)
+	local name, weapon = currentWeapon()
+	comboPrevious = comboIndex
+	comboIndex = WeaponTiming.nextInCombo(name, comboIndex)
+	blowLanded = WeaponAnimations[name][weapon.clips.fire[comboIndex]].markers.Hit == nil
 	play("fire", cycleSpeed(), now)
 	StaffOrb.spend()
 end

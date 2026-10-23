@@ -2,7 +2,7 @@
 lightly after Archero 2. Every sound is built from scratch here (tones,
 noise, filters, envelopes), so all of it is ours to ship.
 
-Usage: synth.py <out_dir> [round ...]   (rounds 1 2 by default; 3 alone)
+Usage: synth.py <out_dir> [round ...]   (rounds 1 2 by default; 3 and 4 alone)
 Writes <out_dir>/<sound>_<variant>.wav (44.1 kHz, 16-bit mono) and a
 manifest.json describing each variant.
 """
@@ -767,14 +767,153 @@ ROUND3 = {
 
 
 LEVEL.update(LEVEL2)
+# ---------- round 4: the staff's deep orb launch without its shimmer, the
+# enemy death's pop-pop with a better poof, and new directions for the
+# arrow and the gate (owner, 2026-10-23). ----------
+
+# staff cast, around round 3's D (a soft, deep orb launch), no shimmer
+
+def r4_cast_a():  # Round 3's D, shimmer removed
+    th = chirp(0.22, 230, 120) * env_ad(int(SR * 0.22), 0.004, 5)
+    return room(th, 0.15, 0.2)
+
+
+def r4_cast_b():  # Deeper and a little longer, with soft air
+    th = chirp(0.28, 200, 95) * env_ad(int(SR * 0.28), 0.004, 4.5)
+    air = lowpass(noise(0.2), 1800) * env_ad(int(SR * 0.2), 0.01, 6)
+    return room(mix((th, 0.9), (air, 0.2)), 0.15, 0.2)
+
+
+def r4_cast_c():  # A rounder "whomp": the drop with a soft body
+    th = chirp(0.24, 240, 115) * env_ad(int(SR * 0.24), 0.006, 5)
+    body = sweep_filter(noise(0.22), 900, 250, q=1.0) * env_ad(int(SR * 0.22), 0.01, 5)
+    return room(mix((th, 0.85), (body, 0.4)), 0.15, 0.2)
+
+
+def r4_cast_d():  # Punchier: a quicker drop with a soft click
+    th = chirp(0.16, 260, 110) * env_ad(int(SR * 0.16), 0.002, 6)
+    click = bandpass(noise(0.006), 1500, 4000) * env_ad(int(SR * 0.006), 0.0005, 6)
+    return room(mix((th, 1.0), (click, 0.25)), 0.12, 0.15)
+
+
+# enemy death: round 3's D (pop-pop, then a poof) with a better poof
+
+def _pops():
+    return mix(*[(at(chirp(0.04, f, f * 2.2) * env_ad(int(SR * 0.04), 0.001, 6), d), 0.6)
+                 for f, d in ((420, 0), (560, 0.06))])
+
+
+def r4_death_a():  # A fuller, breathy poof over a low thump
+    poof = sweep_filter(noise(0.32), 2600, 300, q=0.9) * env_ad(int(SR * 0.32), 0.03, 4.5)
+    thump = chirp(0.12, 140, 70) * env_ad(int(SR * 0.12), 0.003, 5)
+    return room(mix((_pops(), 0.75), (at(poof, 0.09), 0.75), (at(thump, 0.09), 0.4)), 0.15, 0.2)
+
+
+def r4_death_b():  # A puff of smoke: soft, darkening as it fades
+    puff = sweep_filter(noise(0.4), 1800, 200, q=0.7, kind="low") * env_ad(int(SR * 0.4), 0.05, 4)
+    return room(mix((_pops(), 0.75), (at(puff, 0.08), 0.9)), 0.2, 0.25)
+
+
+def r4_death_c():  # A bubbly "pff": the poof with a little tone in it
+    pff = sweep_filter(noise(0.28), 900, 350, q=4) * env_ad(int(SR * 0.28), 0.02, 5)
+    air = lowpass(noise(0.25), 2000) * env_ad(int(SR * 0.25), 0.02, 5)
+    return room(mix((_pops(), 0.75), (at(pff, 0.09), 0.6), (at(air, 0.09), 0.35)), 0.15, 0.2)
+
+
+def r4_death_d():  # An airy poof with a tiny sparkle tail
+    poof = sweep_filter(noise(0.3), 3000, 600, q=1.0) * env_ad(int(SR * 0.3), 0.02, 4.5)
+    sp = sparkle(0.25, [2637, 3136], spacing=0.04, decay=12)
+    return room(mix((_pops(), 0.75), (at(poof, 0.08), 0.7), (at(sp, 0.25), 0.2)), 0.15, 0.2)
+
+
+# arrow fire, new directions (every earlier take passed over)
+
+def r4_arrow_a():  # A light "swip", the arrow cutting past
+    swip = sweep_filter(noise(0.07), 2800, 6500, q=2.5) * env_ad(int(SR * 0.07), 0.004, 5)
+    tail = pluck(330, 0.06, brightness=0.5) * env_ad(int(SR * 0.06), 0.001, 10)
+    return mix((swip, 0.8), (lowpass(tail, 3000), 0.25))
+
+
+def r4_arrow_b():  # A soft wooden "tok" with air behind it
+    tok = tone(420, 0.06, 22, ((1, 1.0), (2.6, 0.25)), attack=0.0008)
+    air = bandpass(noise(0.08), 2000, 5500) * env_ad(int(SR * 0.08), 0.006, 6)
+    return mix((tok, 0.7), (at(air, 0.005), 0.35))
+
+
+def r4_arrow_c():  # A high, musical "tink" of string
+    pl = pluck(392, 0.09, brightness=0.8, bend=0.04) * env_ad(int(SR * 0.09), 0.0008, 9)
+    return lowpass(pl, 5000)
+
+
+def r4_arrow_d():  # A breathy "fsh" over a low tick
+    fsh = lowpass(whoosh(0.1, 1500, 4000, q=1.2, attack=0.006, decay=6), 5000)
+    tick = tone(90, 0.05, 14)
+    return mix((fsh, 0.75), (tick, 0.45))
+
+
+# gate open, new directions (every earlier take passed over)
+
+def r4_gate_a():  # A rising portal whoosh with a soft shimmer pad
+    sweep = whoosh(0.9, 300, 5000, q=2.5, attack=0.4, decay=3)
+    pad = sum(tone(f, 0.9, 2.5, WARM, attack=0.35) for f in [523, 784]) / 3
+    return room(mix((sweep, 0.6), (pad, 0.35)), 0.3, 0.3)
+
+
+def r4_gate_b():  # A warm swell rising in pitch, with a sparkle
+    tt = t_of(0.8)
+    f = 220 * (1 + 1.0 * (tt / 0.8) ** 2)
+    sw = np.sin(2 * np.pi * np.cumsum(f) / SR) * env_ad(len(tt), 0.3, 3)
+    return room(mix((sw, 0.6), (at(sparkle(0.35, [2093, 2637, 3136], spacing=0.05), 0.5), 0.35)), 0.3, 0.3)
+
+
+def r4_gate_c():  # A soft "ta-da": two warm chords
+    one = sum(tone(f, 0.25, 7, WARM) for f in [392, 494, 587]) / 2
+    two = sum(tone(f, 0.7, 3.5, WARM) for f in [523, 659, 784]) / 2
+    return room(mix((one, 0.6), (at(two, 0.16), 0.7)), 0.25, 0.28)
+
+
+def r4_gate_d():  # A quick harp run upward
+    run = mix(*[(at(pluck(f, 0.6, brightness=0.6) * env_ad(int(SR * 0.6), 0.001, 4), i * 0.035), 0.5)
+                for i, f in enumerate([392, 440, 494, 587, 659, 784, 880, 988])])
+    return room(lowpass(run, 6000), 0.25, 0.3)
+
+
+ROUND4 = {
+    "staff_cast": [
+        ("a", r4_cast_a, "Round 3's D exactly, with the shimmer taken out."),
+        ("b", r4_cast_b, "Deeper and a little longer, with soft air."),
+        ("c", r4_cast_c, "A rounder \"whomp\": the drop with a soft body to it."),
+        ("d", r4_cast_d, "Punchier: a quicker drop with a soft click."),
+    ],
+    "enemy_death": [
+        ("a", r4_death_a, "Pop-pop, then a fuller, breathy poof over a low thump."),
+        ("b", r4_death_b, "Pop-pop, then a puff of smoke that darkens as it fades."),
+        ("c", r4_death_c, "Pop-pop, then a bubbly \"pff\" with a little tone in it."),
+        ("d", r4_death_d, "Pop-pop, then an airy poof with a tiny sparkle tail."),
+    ],
+    "arrow_fire": [
+        ("a", r4_arrow_a, "A light \"swip\", the arrow cutting past."),
+        ("b", r4_arrow_b, "A soft wooden \"tok\" with air behind it."),
+        ("c", r4_arrow_c, "A high, musical \"tink\" of string."),
+        ("d", r4_arrow_d, "A breathy \"fsh\" over a low tick."),
+    ],
+    "gate_open": [
+        ("a", r4_gate_a, "A rising portal whoosh over a soft pad. No bells."),
+        ("b", r4_gate_b, "A warm swell rising in pitch, then a sparkle."),
+        ("c", r4_gate_c, "A soft \"ta-da\": two warm chords."),
+        ("d", r4_gate_d, "A quick harp run upward."),
+    ],
+}
+
+
 # The audition rounds, kept so any take can be rendered again exactly.
-ROUNDS = {"1": ROUND1, "2": ROUND2, "3": ROUND3}
+ROUNDS = {"1": ROUND1, "2": ROUND2, "3": ROUND3, "4": ROUND4}
 
 if __name__ == "__main__":
     out = sys.argv[1]
     # Rounds render in order from one seed, so a round renders the same
     # takes only alongside the rounds it was first rendered with (1 and 2
-    # together; 3 alone).
+    # together; 3 and 4 each alone).
     wanted = sys.argv[2:] or ["1", "2"]
     os.makedirs(out, exist_ok=True)
     manifest = {}

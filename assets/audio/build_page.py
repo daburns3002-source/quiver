@@ -78,10 +78,18 @@ ROUND_6 = [
     }),
 ]
 
+ROUND_7 = [
+    ("Round 7 · the staff cast from your clip, and just the pops", {
+        "staff_cast": ("Staff cast", "The Arcanist's bolt, about every 1.4 seconds, cut from the clip you chose (The Audio Horizon SFX, royalty free). The longer takes overlap at that pace; the rhythm button lets you hear it.", (1.4, 4)),
+        "enemy_death": ROUND_1_2[0][1]["enemy_death"],
+    }),
+]
+
 # page: (rounds, picks collection, sounds already chosen, shown for context)
 PAGES = {
     "1-2": (ROUND_1_2, "picks", []),
     "3": (ROUND_3, "picks3", ["Player hurt A", "XP crystal D", "Heart D", "Level up A"]),
+    "7": (ROUND_7, "picks7", ["Player hurt", "XP crystal", "Heart", "Level up", "Enemy hit", "Dash", "Card pick", "Arrow fire"]),
     "6": (ROUND_6, "picks6", ["Player hurt", "XP crystal", "Heart", "Level up", "Enemy hit", "Dash", "Card pick", "Arrow fire"]),
     "5": (ROUND_5, "picks5", ["Player hurt", "XP crystal", "Heart", "Level up", "Enemy hit", "Dash", "Card pick", "Arrow fire"]),
     "4": (ROUND_4, "picks4", ["Player hurt", "XP crystal", "Heart", "Level up", "Enemy hit", "Dash", "Card pick"]),

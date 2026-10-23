@@ -1148,8 +1148,43 @@ ROUND6 = {
 }
 
 
+# ---------- round 7 (owner, 2026-10-23): the enemy death is just its
+# pop-pop, a little faster, with no puff after. The staff cast this round
+# is cut from a royalty-free recording (clips.py). ----------
+
+def _pops_only(gap, low=420, high=560, gain=0.6):
+    return mix(*[(at(chirp(0.04, f, f * 2.2) * env_ad(int(SR * 0.04), 0.001, 6), d), gain)
+                 for f, d in ((low, 0), (high, gap))])
+
+
+def r7_death_a():  # The pops a little faster
+    return room(_pops_only(0.045), 0.1, 0.12)
+
+
+def r7_death_b():  # Faster still
+    return room(_pops_only(0.035), 0.1, 0.12)
+
+
+def r7_death_c():  # A little faster, and a little brighter
+    return room(_pops_only(0.045, 480, 640), 0.1, 0.12)
+
+
+def r7_death_d():  # Nearly together: one double "pop"
+    return room(_pops_only(0.025), 0.1, 0.12)
+
+
+ROUND7 = {
+    "enemy_death": [
+        ("a", r7_death_a, "Just the pop-pop, a little faster (45 ms apart, from 60)."),
+        ("b", r7_death_b, "Faster still (35 ms apart)."),
+        ("c", r7_death_c, "A little faster and a little brighter."),
+        ("d", r7_death_d, "Nearly together: one quick double pop (25 ms apart)."),
+    ],
+}
+
+
 # The audition rounds, kept so any take can be rendered again exactly.
-ROUNDS = {"1": ROUND1, "2": ROUND2, "3": ROUND3, "4": ROUND4, "5": ROUND5, "6": ROUND6}
+ROUNDS = {"1": ROUND1, "2": ROUND2, "3": ROUND3, "4": ROUND4, "5": ROUND5, "6": ROUND6, "7": ROUND7}
 
 if __name__ == "__main__":
     out = sys.argv[1]

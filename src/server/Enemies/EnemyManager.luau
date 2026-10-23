@@ -474,7 +474,14 @@ end
 
 --[[ `at` places the enemy there instead of searching; the caller has
      already checked the spot (see `clusterSpot`). ]]
-function EnemyManager.spawn(config: EnemyConfig, extraDelay: number?, at: Vector3?): Model?
+--[[ `splitFrom` is where the enemy this one split out of fell: it arrives
+     when its piece lands (`Balance.Split`) instead of after a spawn marker. ]]
+function EnemyManager.spawn(
+	config: EnemyConfig,
+	extraDelay: number?,
+	at: Vector3?,
+	splitFrom: Vector3?
+): Model?
 	local parent = folder
 	if not parent then
 		log.warn("spawn before init")
@@ -522,11 +529,23 @@ function EnemyManager.spawn(config: EnemyConfig, extraDelay: number?, at: Vector
 		first thing worth knowing about what is about to arrive.
 	]]
 	local enemy = enemies[model]
+	local radius = math.max(config.hitboxSize.X, config.hitboxSize.Z) / 2
+
+	if splitFrom then
+		--[[ No marker: the piece flying out is the warning. The direction
+		     carries the whole throw, landing minus origin, so the client can
+		     draw the arc from where it fell. ]]
+		local tell = Balance.Split.flight + Balance.Split.settle
+		enemy.arrivesAt = os.clock() + tell
+		setArriving(enemy, true)
+		enemyTelegraph:FireAllClients(position, position - splitFrom, tell, "Split", radius)
+		return model
+	end
+
 	local tell = Balance.Spawning.arrivalTell + (extraDelay or 0)
 	enemy.arrivesAt = os.clock() + tell
 	setArriving(enemy, true)
 
-	local radius = math.max(config.hitboxSize.X, config.hitboxSize.Z) / 2
 	enemyTelegraph:FireAllClients(position, Vector3.zAxis, tell, "Spawn", radius)
 
 	return model
@@ -590,6 +609,46 @@ function EnemyManager.spawnWave(count: number, roster: { EnemyConfig })
 	end
 
 	log.info("spawned wave of %d from %d archetypes", count, #roster)
+end
+
+--[[
+	Where a piece of a split lands: `reach` out along `angle`, or nearer if
+	that is in a wall, a pillar or another enemy. Unlike a wave's spawn it
+	does not keep away from players — the pieces land where the body fell,
+	and that is usually beside one. Falls back to the spot it fell on.
+]]
+local function splitSpot(config: EnemyConfig, origin: Vector3, angle: number): Vector3
+	local arena = Balance.Arena
+	local radius = math.max(config.hitboxSize.X, config.hitboxSize.Z) / 2
+	local limitX = arena.size.X / 2 - radius - 1
+	local limitZ = arena.size.Z / 2 - radius - 1
+	local y = config.hitboxSize.Y / 2
+	local direction = Vector3.new(math.cos(angle), 0, math.sin(angle))
+
+	for _, share in { 1, 0.75, 0.5, 0.25 } do
+		local spot = origin + direction * Balance.Split.reach * share
+		local candidate =
+			Vector3.new(math.clamp(spot.X, -limitX, limitX), y, math.clamp(spot.Z, -limitZ, limitZ))
+		if Arena.isClear(candidate, radius) and clearOfEnemies(candidate, radius) then
+			return candidate
+		end
+	end
+
+	return Vector3.new(
+		math.clamp(origin.X, -limitX, limitX),
+		y,
+		math.clamp(origin.Z, -limitZ, limitZ)
+	)
+end
+
+--[[ Spawns what a dead enemy splits into, spread evenly round where it fell
+     from a random first angle, so two splits never look the same. ]]
+local function spawnSplit(split: Balance.EnemySplit, origin: Vector3)
+	local first = math.random() * math.pi * 2
+	for index = 1, split.count do
+		local angle = first + (index - 1) / split.count * math.pi * 2
+		EnemyManager.spawn(split.into, nil, splitSpot(split.into, origin, angle), origin)
+	end
 end
 
 --[[
@@ -669,6 +728,13 @@ function EnemyManager.damage(
 	     nothing, which made the strongest hit of a fight the invisible one. ]]
 	enemyDied:FireAllClients(enemy.position, amount, kind or "Hit")
 	model:Destroy()
+
+	--[[ Spawned before this returns, so the room never reads as clear in
+	     the moment between the body dying and its pieces existing. ]]
+	local split = enemy.config.split
+	if split then
+		spawnSplit(split, enemy.position)
+	end
 
 	return true, enemy.config.xpReward, enemy.position
 end

@@ -374,6 +374,53 @@ local lurker: Design = {
 	},
 }
 
+--[[
+	Elite melee: the Brood Slime — a big Moss Slime, four babies riding in
+	its moss, a little mouth. Splits into Moss Slimes when it dies.
+
+	From `assets/models/enemies/brood_slime_roblox.glb` (Claude Design,
+	slimmed by `optimise_enemy.py`, imported 2026-10-22). Turned 180° like
+	the Moss Slime, scaled ×2.05 into its 4.1 × 3.4 × 4.1 hitbox.
+]]
+local BROOD_TURN = Vector3.new(0, 180, 0)
+local broodSlime: Design = {
+	shadow(4, 4, 3.4),
+	{
+		name = "Body",
+		shape = "Mesh",
+		meshId = "rbxassetid://106787142698337",
+		size = Vector3.new(4.000, 2.970, 4.017),
+		offset = Vector3.new(0, -0.215, 0),
+		rotation = BROOD_TURN,
+		shade = 1,
+		color = WHITE,
+	},
+	{
+		name = "Decor",
+		shape = "Mesh",
+		meshId = "rbxassetid://117695519355503",
+		size = Vector3.new(3.142, 3.150, 3.145),
+		offset = Vector3.new(0.060, 0.025, 0.011),
+		rotation = BROOD_TURN,
+		shade = 1,
+		color = WHITE,
+		tint = false,
+	},
+	{
+		name = "Eyes",
+		shape = "Mesh",
+		meshId = "rbxassetid://137720523915862",
+		size = Vector3.new(1.161, 0.677, 0.225),
+		offset = Vector3.new(0.052, -0.034, -1.418),
+		rotation = BROOD_TURN,
+		shade = 1,
+		-- Act 1's eye colour (amber), glowing.
+		color = Color3.fromRGB(255, 176, 32),
+		material = Enum.Material.Neon,
+		tint = false,
+	},
+}
+
 --[[ Keyed by `EnemyConfig.displayName`, which is what the model is named and
      the only identifier an archetype actually carries. ]]
 local EnemyDesigns = {
@@ -385,6 +432,7 @@ local EnemyDesigns = {
 	Lancer = lancer,
 	Bulwark = bulwark,
 	Lurker = lurker,
+	BroodSlime = broodSlime,
 }
 
 return table.freeze(EnemyDesigns)

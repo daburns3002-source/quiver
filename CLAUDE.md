@@ -15,7 +15,8 @@ ChatGPT Codex** (owner's rule): `codex exec` with its image generation,
 signed in with the owner's ChatGPT account.
 
 **Enemy models, the pipeline** (the Moss Slime as the Charger, the Sprout
-Spitter as the Spitter):
+Spitter as the Spitter, the Brood Slime as its own elite, which splits into
+Moss Slimes on death — `EnemyConfig.split`, drawn by `Fx/SplitFx`):
 GLB from Claude Design → `assets/models/enemies/optimise_enemy.py <in>
 <out> <enemy>` (slims to a few thousand triangles, keeps vertex colours or
 samples textures onto vertices, cuts eye sockets, turns it to face −Z, splits

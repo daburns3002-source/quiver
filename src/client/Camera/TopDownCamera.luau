@@ -97,16 +97,20 @@ local function step(deltaTime: number, getRoot: () -> BasePart?)
 	]]
 	--[[ Bounded so the view stays inside the room and its end walls: the
 	     focus may go no nearer an end than the view reaches past it. When
-	     the view is longer than the room there is nowhere to follow to, and
-	     the room is centred instead. ]]
+	     the view is longer than the room — an upright phone — it still
+	     follows, about the room's middle and no further than
+	     `Camera.longViewFollow` either way, showing the forest past the end
+	     the player is not at (owner, 2026-10-22: "the camera should move to
+	     follow the player just like it does on the desktop version"). ]]
 	local offset = cameraOffset(camera)
 	local far, near = viewSpan(camera, offset)
 	local half = Balance.Arena.size.Z / 2
 	-- Further past the north wall (−Z), where the exit gate stands.
 	local lowest = -(half + Balance.Camera.gateMargin) - far
 	local highest = half + Balance.Camera.wallMargin - near
+	local reach = Balance.Camera.longViewFollow
 	local target = if lowest > highest
-		then Vector3.new(0, 0, (lowest + highest) / 2)
+		then Vector3.new(0, 0, (lowest + highest) / 2 + math.clamp(root.Position.Z, -reach, reach))
 		else Vector3.new(0, 0, math.clamp(root.Position.Z, lowest, highest))
 
 	if not currentFocus then

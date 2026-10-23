@@ -52,6 +52,9 @@ export type ArenaModel = {
 	surround: { ArenaPart }?,
 	surroundSpacing: number?,
 	outsideColor: Color3?,
+	--[[ The life drawn in the scenery past the walls, a `Balance.Ambience`
+	     entry (`Fx/ForestAmbience`): leaves, fireflies, mist, birds. ]]
+	ambience: string?,
 }
 
 --[[
@@ -122,6 +125,7 @@ local function glade(parts: { ArenaPart }): ArenaModel
 		surround = WIDE_FOREST,
 		surroundSpacing = 81,
 		outsideColor = GLADE_FLOOR,
+		ambience = "Forest",
 	}
 end
 

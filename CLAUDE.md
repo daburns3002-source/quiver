@@ -59,7 +59,12 @@ enemy pipeline through `assets/models/arenas/optimise_arena.py`, scaled ×2.7
 into the 35 × 58 room. Cover under `Projectile.height` (pond, thorns) blocks
 walking but not arrows. Every piece of cover has a full-height invisible
 `PlayerWall` over it that only the player meets, so nobody walks over a log
-or across the pond. The exit is a gate in the north wall
+or across the pond. Past the walls the forest lives
+(`Fx/ForestAmbience`, `Balance.Ambience`, the owner's forest ambience
+handoff): leaves, fireflies, mist, butterflies, birds and light shafts, on
+top of the canopy because the camera looks down onto it, never inside the
+room (`AmbienceVolumes.spec`). Per-tree sway waits on the trees being split
+out of their merged mesh. The exit is a gate in the north wall
 (`Arena/ExitGate`, `Balance.Run.gate`): dark purple haze until the room is
 cleared, then glowing white-gold with a GO arrow, after Archero 2. Moonlit
 Arena's waves draw from the first

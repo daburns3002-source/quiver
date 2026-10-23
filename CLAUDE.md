@@ -14,9 +14,11 @@ concept art in `assets/concepts/`. **Images and models are made with
 ChatGPT Codex** (owner's rule): `codex exec` with its image generation,
 signed in with the owner's ChatGPT account.
 
-**Enemy models, the pipeline** (first: the Moss Slime, as the Charger):
-GLB from Claude Design → `assets/models/enemies/optimise_*.py` (slims to a
-few thousand triangles, keeps vertex colours, turns it to face −Z, splits
+**Enemy models, the pipeline** (the Moss Slime as the Charger, the Sprout
+Spitter as the Spitter):
+GLB from Claude Design → `assets/models/enemies/optimise_enemy.py <in>
+<out> <enemy>` (slims to a few thousand triangles, keeps vertex colours or
+samples textures onto vertices, cuts eye sockets, turns it to face −Z, splits
 Body / Eyes / Decor) → the owner imports it in Studio (File → Import 3D;
 uploading a mesh is not something we can do over MCP) → the mesh ids go
 into `EnemyDesigns` as `shape = "Mesh"` parts, built by `EnemyModel` from

@@ -168,7 +168,9 @@ local spreadShooter: EnemyConfig = {
 	attackDamage = 45,
 	attackCooldown = 2.2,
 	knockback = 3,
-	hitboxSize = Vector3.new(3, 5, 3),
+	--[[ The Sprout Spitter's own shape (its model, 3 × 3.6 × 3), not the
+	     shared 5-stud box; arrows at `Projectile.height` meet it. ]]
+	hitboxSize = Vector3.new(3, 3.6, 3),
 	color = Color3.fromRGB(70, 206, 236),
 	xpReward = 14,
 	shot = {

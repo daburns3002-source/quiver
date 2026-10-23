@@ -578,8 +578,12 @@ function CardBuilder.build(abilityId: string, options: Options): Card
 
 	local animated: { any } = {}
 
+	local margin = CardTheme.card.sideCrystalMargin
 	for _, spec in tier.shards do
-		shard(root, spec)
+		local onSide = spec.baseY > margin and spec.baseY < SIZE.Y - margin
+		if not onSide then
+			shard(root, spec)
+		end
 	end
 
 	-- The hard shadow: the card's shape in ink, seven pixels down.

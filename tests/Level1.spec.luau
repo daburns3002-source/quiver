@@ -1,7 +1,8 @@
 --!strict
 --[[
-	Level 1 (`Balance.Stages[3]`, the Mossy Glade): slimes only, and the
-	Slime King alone in its last room (owner, 2026-10-23).
+	Level 1 (`Balance.Stages[3]`, the Mossy Glade): slimes, the Ember Wolf
+	from room 6 on, and the Slime King alone in its last room (owner,
+	2026-10-23).
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -13,7 +14,12 @@ local SLIMES = {
 	[Balance.Enemies.MeleeCharger] = true,
 	[Balance.Enemies.BroodSlime] = true,
 	[Balance.Enemies.SlimeKing] = true,
+	[Balance.Enemies.Wolf] = true,
 }
+
+--[[ The first room the wolf may appear in: the first five are the slime
+     tutorial. ]]
+local WOLF_FROM = 6
 
 local function level(): { Balance.RoomConfig }
 	local indices: { number } = Balance.Stages[3].rooms or {}
@@ -30,10 +36,20 @@ return function(t: TestRunner.Helper)
 		t.equal(#level(), 10)
 	end)
 
-	t.test("every Level 1 enemy is a slime", function()
+	t.test("every Level 1 enemy is a slime or the wolf", function()
 		for _, room in level() do
 			for _, config in room.roster do
 				t.isTrue(SLIMES[config] == true, `{room.name} has a {config.displayName}`)
+			end
+		end
+	end)
+
+	t.test("the wolf only comes from room 6", function()
+		for index, room in level() do
+			for _, config in room.roster do
+				if config == Balance.Enemies.Wolf then
+					t.isTrue(index >= WOLF_FROM, `the wolf is in room {index}`)
+				end
 			end
 		end
 	end)

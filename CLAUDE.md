@@ -244,6 +244,7 @@ From a probe, `Remotes.DebugRoom:FireServer(10)` jumps the run to a room
 (Studio only), to test the boss without fighting through the level.
 From a probe, `Remotes.DebugGrant:FireServer("Cleave")` grants one level of
 any card (Studio only), to test a card's effect without drafting it.
+**K** — spawn a wolf (`Remotes.DebugSpawnEnemy`, any `Balance.Enemies` key from a probe).
 From a probe, `Remotes.DebugForceMythic:FireServer("Legendary")` does the
 same without the MCP keyboard tool, which reports as a gamepad and flips the
 draft into its controller layout.

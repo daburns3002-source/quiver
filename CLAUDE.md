@@ -14,6 +14,17 @@ concept art in `assets/concepts/`. **Images and models are made with
 ChatGPT Codex** (owner's rule): `codex exec` with its image generation,
 signed in with the owner's ChatGPT account.
 
+**Enemy models, the pipeline** (first: the Moss Slime, as the Charger):
+GLB from Claude Design → `assets/models/enemies/optimise_*.py` (slims to a
+few thousand triangles, keeps vertex colours, turns it to face −Z, splits
+Body / Eyes / Decor) → the owner imports it in Studio (File → Import 3D;
+uploading a mesh is not something we can do over MCP) → the mesh ids go
+into `EnemyDesigns` as `shape = "Mesh"` parts, built by `EnemyModel` from
+templates made once in `EnemyModel.preload()`. The importer turns models
+to face +Z, so designs rotate them 180°. Roblox shows vertex colours, so
+mesh parts are white; eyes are Neon in the act's colour. Low bodies go in
+`EnemyDesigns.squat` (the hitbox stays tall for arrows at root height).
+
 **Bugs that shipped, and what fixed them: `docs/FIXES.md`.** Written to be
 found by symptom. Read it before debugging anything that sounds familiar, and
 add to it in the same PR as every fix — the same classes of bug recur here.

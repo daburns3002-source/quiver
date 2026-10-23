@@ -35,7 +35,7 @@
 
 --[[ Which primitive a part is drawn with. `Wedge` builds a WedgePart; the
      rest are PartTypes. ]]
-export type DesignShape = "Block" | "Ball" | "Cylinder" | "Wedge" | "Ellipsoid"
+export type DesignShape = "Block" | "Ball" | "Cylinder" | "Wedge" | "Ellipsoid" | "Mesh"
 
 export type DesignPart = {
 	name: string,
@@ -62,7 +62,9 @@ export type DesignPart = {
 	color: Color3?,
 	--[[ How see-through the part is at rest, for a jelly body. Hiding and
 	     showing the enemy returns to this rather than to solid. ]]
-	transparency: number?,
+	transparency: number?, --[[ For `shape = "Mesh"`: the uploaded mesh. Built by `EnemyModel` from
+	     a template made once with AssetService:CreateMeshPartAsync. ]]
+	meshId: string?,
 }
 
 export type Design = { DesignPart }
@@ -137,54 +139,56 @@ local function shadow(width: number, depth: number, height: number): DesignPart
 end
 
 --[[
-	Melee rush: a ladybug beetle. A red dome with a black centre line and
-	spots, a black head leading, glowing yellow eyes. Read from above it is
-	a shell with a face pointed at you.
+	Melee rush: the Moss Slime, Act 1's grunt (docs/ENEMIES-AND-ARENAS.md) —
+	the first enemy built from a real model rather than primitives: a jelly
+	dome under a shaggy moss cap, little mushrooms, two amber eye sockets.
+
+	From `assets/models/enemies/moss_slime_roblox.glb` (made in Claude Design,
+	slimmed by `optimise_moss_slime.py`, imported 2026-10-22). The model faces
+	+Z after import, so every part is turned 180° and its offset mirrored.
+	Scaled ×1.89, the most that keeps it inside the 3-stud-wide hitbox; it
+	stands 2.1 studs tall in a 5-stud box — see `EnemyDesigns.squat`.
+
+	Body and Decor carry the model's own vertex colours, so they are white
+	(colour × white = the painted colour). The eyes glow the act's colour.
 ]]
+local MOSS_SLIME_TURN = Vector3.new(0, 180, 0)
 local charger: Design = {
 	shadow(2.9, 2.9, 5),
 	{
-		name = "Shell",
-		shape = "Ellipsoid",
-		size = Vector3.new(3, 2.6, 3),
-		offset = Vector3.new(0, -0.95, 0),
+		name = "Body",
+		shape = "Mesh",
+		meshId = "rbxassetid://78283705651192",
+		size = Vector3.new(2.460, 1.881, 2.236),
+		offset = Vector3.new(-0.077, -1.560, -0.024),
+		rotation = MOSS_SLIME_TURN,
 		shade = 1,
+		color = WHITE,
 	},
-	mark("ShellLine", "Block", Vector3.new(0.16, 2.0, 2.6), Vector3.new(0, -0.6, 0.15), BLACK),
-	mark("SpotFrontLeft", "Ball", Vector3.one * 0.6, Vector3.new(-0.7, 0.05, -0.15), BLACK),
-	mark("SpotFrontRight", "Ball", Vector3.one * 0.6, Vector3.new(0.7, 0.05, -0.15), BLACK),
-	mark("SpotBackLeft", "Ball", Vector3.one * 0.55, Vector3.new(-0.8, -0.25, 0.85), BLACK),
-	mark("SpotBackRight", "Ball", Vector3.one * 0.55, Vector3.new(0.8, -0.25, 0.85), BLACK),
 	{
-		name = "Head",
-		shape = "Ball",
-		size = Vector3.one * 1.8,
-		offset = Vector3.new(0, 0.55, -0.55),
+		name = "Decor",
+		shape = "Mesh",
+		meshId = "rbxassetid://122593286662953",
+		size = Vector3.new(2.986, 1.896, 2.244),
+		offset = Vector3.new(0, -1.313, 0.020),
+		rotation = MOSS_SLIME_TURN,
 		shade = 1,
-		color = BLACK,
+		color = WHITE,
+		tint = false,
 	},
-	glow("EyeLeft", 0.5, Vector3.new(-0.4, 0.75, -1.2), EYE_YELLOW),
-	glow("EyeRight", 0.5, Vector3.new(0.4, 0.75, -1.2), EYE_YELLOW),
-	mark(
-		"AntennaLeft",
-		"Block",
-		Vector3.new(0.14, 1.0, 0.14),
-		Vector3.new(-0.4, 1.75, -0.6),
-		BLACK,
-		Vector3.new(0, 0, 18)
-	),
-	mark(
-		"AntennaRight",
-		"Block",
-		Vector3.new(0.14, 1.0, 0.14),
-		Vector3.new(0.4, 1.75, -0.6),
-		BLACK,
-		Vector3.new(0, 0, -18)
-	),
-	mark("LegFrontLeft", "Block", Vector3.new(0.3, 0.4, 0.3), Vector3.new(-1.1, -2.3, -0.6), BLACK),
-	mark("LegFrontRight", "Block", Vector3.new(0.3, 0.4, 0.3), Vector3.new(1.1, -2.3, -0.6), BLACK),
-	mark("LegBackLeft", "Block", Vector3.new(0.3, 0.4, 0.3), Vector3.new(-1.1, -2.3, 0.7), BLACK),
-	mark("LegBackRight", "Block", Vector3.new(0.3, 0.4, 0.3), Vector3.new(1.1, -2.3, 0.7), BLACK),
+	{
+		name = "Eyes",
+		shape = "Mesh",
+		meshId = "rbxassetid://137939916650483",
+		size = Vector3.new(1.467, 0.644, 0.335),
+		offset = Vector3.new(-0.119, -1.672, -0.950),
+		rotation = MOSS_SLIME_TURN,
+		shade = 1,
+		-- Act 1's eye colour (amber), glowing.
+		color = Color3.fromRGB(255, 176, 32),
+		material = Enum.Material.Neon,
+		tint = false,
+	},
 }
 
 --[[
@@ -366,6 +370,13 @@ local lurker: Design = {
 local EnemyDesigns = {
 	SkinTag = SKIN_TAG,
 	TintTag = TINT_TAG,
+
+	--[[ Designs allowed to stand lower in their hitbox than the usual 70%
+	     of its height. The hitbox stays tall because arrows fly at the
+	     archer's root height (about 3 studs); a creature lower than that
+	     is still struck on the box's top, which from the steep camera reads
+	     as a hit on its back. Width and depth must still fill properly. ]]
+	squat = { Charger = true },
 
 	Charger = charger,
 	Spitter = spitter,

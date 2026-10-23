@@ -23,6 +23,7 @@ local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Burning = require(script.Parent.Combat.Burning)
 local EnemyFiring = require(script.Parent.Combat.EnemyFiring)
 local EnemyManager = require(script.Parent.Enemies.EnemyManager)
+local EnemyModel = require(script.Parent.Enemies.EnemyModel)
 local FiringSystem = require(script.Parent.Combat.FiringSystem)
 local Game = require(ReplicatedStorage.Shared.Config.Game)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
@@ -75,6 +76,8 @@ RunSession.onRevive = function(_session, position: Vector3)
 end
 
 Atmosphere.apply()
+-- Uploaded enemy meshes, made once before anything spawns.
+EnemyModel.preload()
 RoomController.start()
 
 local function onCharacterAdded(player: Player, character: Model)

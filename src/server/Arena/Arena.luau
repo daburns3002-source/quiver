@@ -9,13 +9,13 @@
 	Phase 2 replaces this with a room library and a layout generator.
 ]]
 
-local AssetService = game:GetService("AssetService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local ArenaModels = require(ReplicatedStorage.Shared.Config.ArenaModels)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local ExitGate = require(script.Parent.ExitGate)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
+local MeshTemplates = require(script.Parent.Parent.Util.MeshTemplates)
 
 local log = Log.forTag("Arena")
 
@@ -244,29 +244,16 @@ local meshTemplates: { [string]: MeshPart } = {}
      start; a mesh that fails to load is left out of its room, which then
      shows the invisible-walled floor rather than failing to build. ]]
 function Arena.preload()
+	local ids: { string } = {}
 	for _, model in ArenaModels :: { [string]: ArenaModels.ArenaModel } do
-		local specs = table.clone(model.parts)
 		local surround: { ArenaModels.ArenaPart } = model.surround or {}
-		for _, spec in surround do
-			table.insert(specs, spec)
-		end
-		for _, spec in specs do
-			if meshTemplates[spec.meshId] then
-				continue
-			end
-			local ok, result = pcall(function()
-				return AssetService:CreateMeshPartAsync(spec.meshId, {
-					CollisionFidelity = Enum.CollisionFidelity.Box,
-					RenderFidelity = Enum.RenderFidelity.Automatic,
-				})
-			end)
-			if ok and result then
-				meshTemplates[spec.meshId] = result
-			else
-				log.warn("arena mesh %s did not load: %s", spec.meshId, tostring(result))
+		for _, list in { model.parts, surround } do
+			for _, spec in list do
+				table.insert(ids, spec.meshId)
 			end
 		end
 	end
+	meshTemplates = MeshTemplates.load(ids)
 end
 
 --[[

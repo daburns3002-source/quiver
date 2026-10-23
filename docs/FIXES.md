@@ -16,6 +16,26 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## Playtests took about 10 seconds to start
+
+**Symptom** — "why when i start the playtest it takes like 10 seconds to
+load everything, will that happen in game". It would: every new server.
+
+**Cause** — `EnemyModel.preload` and `Arena.preload` called
+`CreateMeshPartAsync` one mesh at a time, and each call waits for its
+download. Level 1 has 47 meshes (37 arena, 10 enemy), at about 0.2 s each,
+all before the first room is built.
+
+**Fix** — `Server/Util/MeshTemplates.load` starts every request at once and
+waits for them together, so a batch costs about as much as its slowest mesh.
+
+**Measured** — loading the 37 arena meshes in parallel took 0.53 s in a
+probe; after the fix the first room was built 1.2 s after Play started.
+Studio caches downloads, so a cold server will be somewhat slower, but no
+longer 47 round trips in a row.
+
+---
+
 ## The Spitter walked in silence, and its seeds never reached the player
 
 **Symptom** — "make sure the spitter projectiles can reach the player and

@@ -15,6 +15,7 @@ local Classes = require(ReplicatedStorage.Shared.Config.Classes)
 local ShotPipeline = require(ReplicatedStorage.Shared.Combat.ShotPipeline)
 local TestRunner = require(script.Parent.TestRunner)
 local Types = require(ReplicatedStorage.Shared.Types)
+local WeaponAnimations = require(ReplicatedStorage.Shared.Config.WeaponAnimations)
 
 local HAND = 3
 
@@ -160,5 +161,13 @@ return function(t: TestRunner.Helper)
 		)
 		local quake = Balance.Player.earthbreaker
 		t.isTrue(quake.crackDuration > quake.crackEvery, "the cracks never erupt")
+	end)
+
+	--[[ The server's slam lands when the Warden's leap animation shows it
+	     landing (the RubySword kit's Earthbreaker clip, `Impact`). ]]
+	t.test("Earthbreaker's slam lands on its animation's impact", function()
+		local clip = WeaponAnimations.RubyGreatsword.Earthbreaker
+		t.notNil(clip, "the greatsword has no Earthbreaker clip")
+		t.near(Balance.Player.earthbreaker.leap, clip.markers.Impact, 1e-3)
 	end)
 end

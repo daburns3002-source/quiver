@@ -150,10 +150,13 @@ Cleave and Long Reach. The red of his swing sweeps exactly that shape
 (`Fx/SwingTrail`, `Shared/Combat/SwingSweep`). Each weapon
 is the owner's Claude Design kit, its animations generated into
 `Config/WeaponAnimations` and played in code by `Fx/WeaponPose`. The
-Ranger's come from the owner's `LeafBow_R15_Kit.rbxmx` (KeyframeSequences,
-converted by `assets/models/weapons/leaf_bow_r15/kit_to_json.py`), with a
-legs layer (`clips.legs`: Idle standing, Walk at the character's pace) under
-the upper-body Hold. Each class
+Ranger's and the Warden's come from the owner's R15 kits
+(`LeafBow_R15_Kit.rbxmx`, `RubySword_R15_Kit.rbxmx`: KeyframeSequences,
+converted by `assets/models/weapons/leaf_bow_r15/kit_to_json.py <kit>
+<prefix> <out>`). The bow has a legs layer (`clips.legs`: Idle standing,
+Walk at the character's pace) under the upper-body Hold; the sword a
+`special` clip, Earthbreaker's leap, played as a dash ends
+(`WeaponPose.playSpecial`), whose Impact marker times the server's slam. Each class
 drafts its own cards plus a shared twelve (`Ability.classes`,
 `docs/CLASS-CARDS.md`): wave 1 of the Warden's and the Arcanist's is built,
 wave 2 is designed and has its icons. Each class has one Mythic: Dual Bows,

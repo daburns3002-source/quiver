@@ -29,6 +29,7 @@ local RunPaused = require(script.Parent.Parent.RunPaused)
 local Shove = require(script.Parent.Shove)
 local SoundFx = require(script.Parent.Parent.Fx.SoundFx)
 local Thumbstick = require(script.Parent.Thumbstick)
+local WeaponPose = require(script.Parent.Parent.Fx.WeaponPose)
 
 local MoveController = {}
 
@@ -132,15 +133,10 @@ local function requestDash()
 		     the dash began, and decides for itself whether it counts. ]]
 		dashStarted:FireServer()
 		if (PlayerStats.get().abilities.Earthbreaker or 0) > 0 then
-			--[[ A leap at the end of the dash, so the slam lands from the air,
-			     as the card says. ]]
-			task.delay(Balance.Player.dash.duration, function()
-				if root.Parent then
-					local v = root.AssemblyLinearVelocity
-					root.AssemblyLinearVelocity =
-						Vector3.new(v.X, Balance.Player.earthbreaker.hop, v.Z)
-				end
-			end)
+			--[[ The leap and slam (the owner's RubySword kit), as the dash
+			     ends; its arc is in the animation, and the server's slam lands
+			     on its Impact marker. ]]
+			task.delay(Balance.Player.dash.duration, WeaponPose.playSpecial, "earthbreaker")
 		end
 	end
 end

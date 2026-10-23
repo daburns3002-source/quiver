@@ -1075,14 +1075,14 @@ local Balance = {
 		     seconds, hitting everything within `radius` for `damage` times
 		     the caster's damage. ]]
 		meteor = { every = 5, delay = 0.9, radius = 6, damage = 4 },
-		--[[ Earthbreaker, the Warden's Mythic: a dash ends in a hop
-		     (`hop` studs a second up, `leap` seconds in the air), then a
-		     slam (`slamRadius`, `slamDamage` times his damage) that leaves
+		--[[ Earthbreaker, the Warden's Mythic: a dash ends in a leap,
+		     `leap` seconds from its end to the slam (the RubySword kit's
+		     Earthbreaker clip's Impact marker; `ClassCards.spec` holds them
+		     together), then a slam (`slamRadius`, `slamDamage` times his damage) that leaves
 		     cracked ground erupting every `crackEvery` seconds for
 		     `crackDuration`, for `crackDamage` times his damage. ]]
 		earthbreaker = {
-			hop = 30,
-			leap = 0.3,
+			leap = 0.56,
 			slamRadius = 5.5,
 			slamDamage = 2.5,
 			crackRadius = 5,

@@ -1,9 +1,13 @@
-"""Turn the owner's LeafBow R15 kit (a Roblox .rbxmx of KeyframeSequences)
-into leaf_bow_animations.json, the format weapon_animations_to_luau.py reads.
+"""Turn one of the owner's R15 weapon kits (a Roblox .rbxmx of
+KeyframeSequences) into the animation JSON weapon_animations_to_luau.py
+reads.
 
-    python -I kit_to_json.py LeafBow_R15_Kit.rbxmx
+    python -I kit_to_json.py <kit.rbxmx> [prefix] [out.json]
 
-Each `Bow_<Name>` KeyframeSequence becomes clip `<Name>`. A Pose's CFrame is
+Each `<prefix><Name>` KeyframeSequence becomes clip `<Name>`. The prefix
+defaults to `Bow_` and the output to leaf_bow_animations.json beside this
+script (the LeafBow kit); the RubySword kit is `Sword_`, into
+../ruby_greatsword_r15/ruby_greatsword_animations.json. A Pose's CFrame is
 the Motor6D Transform of the joint whose Part1 is the pose's part, so the
 part names map to joints below. Poses with Weight 0 only carry the
 hierarchy and drive nothing; a joint a clip drives but a keyframe leaves out
@@ -17,7 +21,8 @@ import sys
 import xml.etree.ElementTree as ET
 
 HERE = pathlib.Path(__file__).parent
-OUT = HERE / "leaf_bow_animations.json"
+PREFIX = sys.argv[2] if len(sys.argv) > 2 else "Bow_"
+OUT = pathlib.Path(sys.argv[3]) if len(sys.argv) > 3 else HERE / "leaf_bow_animations.json"
 
 JOINTS = {
     "LowerTorso": "Root",
@@ -130,7 +135,7 @@ def main():
     for item in root.iter("Item"):
         if item.get("class") == "KeyframeSequence":
             name = prop(item, "Name").text
-            clips[name.removeprefix("Bow_")] = clip(item)
+            clips[name.removeprefix(PREFIX)] = clip(item)
     OUT.write_text(json.dumps(clips, indent=1), encoding="utf-8")
     for name, c in clips.items():
         print(name, c["length"], "loop" if c["loop"] else "once", len(c["keys"]), "keys", c["joints"])

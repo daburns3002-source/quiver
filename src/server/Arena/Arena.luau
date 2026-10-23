@@ -9,8 +9,10 @@
 	Phase 2 replaces this with a room library and a layout generator.
 ]]
 
+local AssetService = game:GetService("AssetService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local ArenaModels = require(ReplicatedStorage.Shared.Config.ArenaModels)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
 
@@ -233,6 +235,69 @@ local function dress(root: Instance, obstacles: { Balance.Obstacle })
 	decor("Outside", Vector3.new(400, 1, 400), CFrame.new(0, -1.2, 0), config.outsideColor, folder)
 end
 
+--[[ One template per uploaded arena mesh, made once and cloned per room:
+     CreateMeshPartAsync yields, which building a room must not wait on. ]]
+local meshTemplates: { [string]: MeshPart } = {}
+
+--[[ Makes the templates every arena model needs. Called once at server
+     start; a mesh that fails to load is left out of its room, which then
+     shows the invisible-walled floor rather than failing to build. ]]
+function Arena.preload()
+	for _, model in ArenaModels :: { [string]: ArenaModels.ArenaModel } do
+		for _, spec in model.parts do
+			if meshTemplates[spec.meshId] then
+				continue
+			end
+			local ok, result = pcall(function()
+				return AssetService:CreateMeshPartAsync(spec.meshId, {
+					CollisionFidelity = Enum.CollisionFidelity.Box,
+					RenderFidelity = Enum.RenderFidelity.Automatic,
+				})
+			end)
+			if ok and result then
+				meshTemplates[spec.meshId] = result
+			else
+				log.warn("arena mesh %s did not load: %s", spec.meshId, tostring(result))
+			end
+		end
+	end
+end
+
+--[[
+	Draws a room with its area's model instead of the grey-box dressing.
+	Every part is scenery: it never collides, answers a raycast or stops an
+	arrow. The room's own invisible walls and obstacle boxes still do.
+]]
+local function placeModel(root: Instance, model: ArenaModels.ArenaModel)
+	local folder = Instance.new("Folder")
+	folder.Name = "Model"
+	folder.Parent = root
+
+	--[[ The importer turns models 180° about Y; turned back, the room faces
+	     the way Claude Design shows it. Offsets are already turned. ]]
+	local turn = CFrame.Angles(0, math.pi, 0)
+
+	for _, spec in model.parts do
+		local template = meshTemplates[spec.meshId]
+		if not template then
+			continue
+		end
+		local part = template:Clone()
+		part.Name = spec.name
+		part.Size = spec.size
+		part.CFrame = CFrame.new(spec.offset) * turn
+		part.Anchored = true
+		part.CanCollide = false
+		part.CanQuery = false
+		part.CanTouch = false
+		--[[ White, so the model's own vertex colours show unchanged. ]]
+		part.Color = Color3.new(1, 1, 1)
+		part.Material = if spec.glow then Enum.Material.Neon else Enum.Material.SmoothPlastic
+		part.CastShadow = not spec.glow
+		part.Parent = folder
+	end
+end
+
 --[[
 	Builds the room under `parent` and returns the folder holding everything that
 	blocks a projectile.
@@ -241,7 +306,9 @@ end
 	every room; the pillars are what make one room a different fight from the
 	last, which is why they are the only thing passed in.
 ]]
-function Arena.build(parent: Instance, obstacles: { Balance.Obstacle }): Folder
+--[[ `arena` names the `ArenaModels` entry that dresses the room; nil, or a
+     name with no model, is the grey box. ]]
+function Arena.build(parent: Instance, obstacles: { Balance.Obstacle }, arena: string?): Folder
 	local config = Balance.Arena
 
 	local existing = parent:FindFirstChild("Arena")
@@ -334,7 +401,20 @@ function Arena.build(parent: Instance, obstacles: { Balance.Obstacle }): Folder
 	door.Transparency = 0.4
 	door.Parent = root
 
-	dress(root, obstacles)
+	local model = if arena then (ArenaModels :: any)[arena] :: ArenaModels.ArenaModel? else nil
+	if model then
+		--[[ The model draws the room, so the grey box's floor, walls and
+		     cover boxes go invisible. They still collide and stop arrows. ]]
+		floor.Transparency = 1
+		for _, part in blockers:GetChildren() do
+			if part:IsA("BasePart") then
+				part.Transparency = 1
+			end
+		end
+		placeModel(root, model)
+	else
+		dress(root, obstacles)
+	end
 
 	root.Parent = parent
 	blockersFolder = blockers

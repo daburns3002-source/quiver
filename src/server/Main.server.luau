@@ -18,6 +18,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
+local Arena = require(script.Parent.Arena.Arena)
 local Atmosphere = require(script.Parent.Arena.Atmosphere)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Burning = require(script.Parent.Combat.Burning)
@@ -78,6 +79,8 @@ end
 Atmosphere.apply()
 -- Uploaded enemy meshes, made once before anything spawns.
 EnemyModel.preload()
+-- Uploaded arena meshes, likewise, before the first room is built.
+Arena.preload()
 RoomController.start()
 
 local function onCharacterAdded(player: Player, character: Model)

@@ -58,7 +58,7 @@ return function(t: TestRunner.Helper)
 	t.test("waves walk the rooms' difficulty in order", function()
 		local total = 30
 		t.equal(Waves.tier(1, total), 1)
-		t.equal(Waves.tier(total, total), #Balance.Rooms)
+		t.equal(Waves.tier(total, total), Balance.Waves.rooms)
 
 		local previous = 0
 		for wave = 1, total do

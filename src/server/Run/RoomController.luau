@@ -96,7 +96,7 @@ end
 	the new one.
 ]]
 local function buildArena(layout: Balance.RoomConfig)
-	Arena.build(workspace, layout.obstacles)
+	Arena.build(workspace, layout.obstacles, layout.arena)
 	EnemyManager.init(workspace)
 
 	ProjectileSystem.clear()

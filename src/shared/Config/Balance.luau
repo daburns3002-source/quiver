@@ -414,6 +414,10 @@ export type RoomConfig = {
 		dressed up as difficulty.
 	]]
 	roster: { EnemyConfig },
+	--[[ The `ArenaModels` entry that dresses this room, in place of the
+	     grey-box look. Presentation only: what collides is still the room's
+	     walls and `obstacles`. Nil is the grey box. ]]
+	arena: string?,
 }
 
 --[[
@@ -548,6 +552,146 @@ local rooms: { RoomConfig } = {
 		--[[ All five, at the most this run ever throws at once. ]]
 		enemyCount = 7,
 		roster = { meleeCharger, spreadShooter, lineSniper, burrower, tank },
+	},
+
+	--[[
+		Level 1 (owner, 2026-10-22): ten rooms, all Mossy Glade, in the
+		owner's order — logs, pond, boulders, thorns, then a boss arena, and
+		the same again. Each is drawn by its own model (`ArenaModels`); a
+		room whose model is not imported yet is the grey box until it is.
+
+		Cover comes in two kinds. The log, stumps, boulders and pillars are
+		tall: they stop the player's arrows as well as bodies. The pond and
+		the thorns are low: nobody walks through them, but arrows fly over
+		(a box under `Projectile.height` blocks movement, not shots).
+		Positions are the models' own, ×2.7.
+	]]
+	{
+		name = "Mossy Glade",
+		arena = "GladeLogs",
+		obstacles = {
+			{ offset = Vector2.new(-2.43, -11.56), size = Vector3.new(12, 2.8, 3.5) },
+			{ offset = Vector2.new(-8.91, 5.13), size = Vector3.new(3.75, 1.5, 3.75) },
+			{ offset = Vector2.new(8.64, 13.23), size = Vector3.new(3.3, 1.5, 3.3) },
+			{ offset = Vector2.new(-6.21, 19.71), size = Vector3.new(2.7, 1.2, 2.7) },
+		},
+		--[[ Moss Slimes, which walk straight at you and die. ]]
+		enemyCount = 3,
+		roster = { meleeCharger },
+	},
+	{
+		name = "Mossy Pond",
+		arena = "GladePond",
+		obstacles = {
+			{ offset = Vector2.new(-4.05, -4.32), size = Vector3.new(14, 0.4, 10) },
+			{ offset = Vector2.new(9.18, -16.2), size = Vector3.new(3.3, 1.4, 3.3) },
+			{ offset = Vector2.new(8.1, 14.31), size = Vector3.new(3.6, 1.6, 3.6) },
+		},
+		--[[ Adds the Sprout Spitter, across the water. ]]
+		enemyCount = 4,
+		roster = { meleeCharger, meleeCharger, spreadShooter },
+	},
+	{
+		name = "Mossy Boulders",
+		arena = "GladeBoulders",
+		obstacles = {
+			{ offset = Vector2.new(-8.13, -10.31), size = Vector3.new(5.3, 4.2, 5.6) },
+			{ offset = Vector2.new(-5.35, -8.45), size = Vector3.new(3.6, 2.7, 3.6) },
+			{ offset = Vector2.new(8.37, 7.32), size = Vector3.new(5, 4, 5.4) },
+			{ offset = Vector2.new(10.96, 9.02), size = Vector3.new(3.5, 2.6, 3) },
+			{ offset = Vector2.new(-7.29, 18.12), size = Vector3.new(2.9, 2.3, 3) },
+			{ offset = Vector2.new(9.18, -19.44), size = Vector3.new(3, 1.3, 3) },
+		},
+		--[[ Adds the Brood Slime. ]]
+		enemyCount = 4,
+		roster = { meleeCharger, spreadShooter, broodSlime },
+	},
+	{
+		name = "Mossy Thorns",
+		arena = "GladeThorns",
+		obstacles = {
+			{ offset = Vector2.new(-7.16, -11.6), size = Vector3.new(7.8, 0.4, 7) },
+			{ offset = Vector2.new(7.83, 6.48), size = Vector3.new(9.4, 0.4, 7) },
+			{ offset = Vector2.new(-8.64, 15.93), size = Vector3.new(3.3, 1.4, 3.3) },
+		},
+		--[[ Adds the Lancer, whose line crosses the brambles. ]]
+		enemyCount = 5,
+		roster = { meleeCharger, spreadShooter, broodSlime, lineSniper },
+	},
+	{
+		name = "Glade Heart",
+		arena = "GladeBoss",
+		obstacles = {
+			{ offset = Vector2.new(-14.58, -18.36), size = Vector3.new(5, 4.6, 5) },
+			{ offset = Vector2.new(14.58, -18.36), size = Vector3.new(5, 4.6, 5) },
+			{ offset = Vector2.new(-14.58, 18.36), size = Vector3.new(5, 4.6, 5) },
+			{ offset = Vector2.new(14.58, 18.36), size = Vector3.new(5, 4.6, 5) },
+		},
+		--[[ A boss room, until Act 1's bosses are built (docs/BOSSES.md): the
+		     heaviest body with an escort, as a Waves boss wave is. ]]
+		enemyCount = 4,
+		roster = { tank, meleeCharger, spreadShooter, meleeCharger },
+	},
+	{
+		name = "Mossy Glade II",
+		arena = "GladeLogs",
+		obstacles = {
+			{ offset = Vector2.new(-2.43, -11.56), size = Vector3.new(12, 2.8, 3.5) },
+			{ offset = Vector2.new(-8.91, 5.13), size = Vector3.new(3.75, 1.5, 3.75) },
+			{ offset = Vector2.new(8.64, 13.23), size = Vector3.new(3.3, 1.5, 3.3) },
+			{ offset = Vector2.new(-6.21, 19.71), size = Vector3.new(2.7, 1.2, 2.7) },
+		},
+		enemyCount = 5,
+		roster = { meleeCharger, spreadShooter, broodSlime, lineSniper },
+	},
+	{
+		name = "Mossy Pond II",
+		arena = "GladePond",
+		obstacles = {
+			{ offset = Vector2.new(-4.05, -4.32), size = Vector3.new(14, 0.4, 10) },
+			{ offset = Vector2.new(9.18, -16.2), size = Vector3.new(3.3, 1.4, 3.3) },
+			{ offset = Vector2.new(8.1, 14.31), size = Vector3.new(3.6, 1.6, 3.6) },
+		},
+		--[[ Adds the Lurker, last because it stops being a target. ]]
+		enemyCount = 5,
+		roster = { meleeCharger, spreadShooter, burrower, broodSlime },
+	},
+	{
+		name = "Mossy Boulders II",
+		arena = "GladeBoulders",
+		obstacles = {
+			{ offset = Vector2.new(-8.13, -10.31), size = Vector3.new(5.3, 4.2, 5.6) },
+			{ offset = Vector2.new(-5.35, -8.45), size = Vector3.new(3.6, 2.7, 3.6) },
+			{ offset = Vector2.new(8.37, 7.32), size = Vector3.new(5, 4, 5.4) },
+			{ offset = Vector2.new(10.96, 9.02), size = Vector3.new(3.5, 2.6, 3) },
+			{ offset = Vector2.new(-7.29, 18.12), size = Vector3.new(2.9, 2.3, 3) },
+			{ offset = Vector2.new(9.18, -19.44), size = Vector3.new(3, 1.3, 3) },
+		},
+		enemyCount = 6,
+		roster = { meleeCharger, spreadShooter, lineSniper, burrower, broodSlime },
+	},
+	{
+		name = "Mossy Thorns II",
+		arena = "GladeThorns",
+		obstacles = {
+			{ offset = Vector2.new(-7.16, -11.6), size = Vector3.new(7.8, 0.4, 7) },
+			{ offset = Vector2.new(7.83, 6.48), size = Vector3.new(9.4, 0.4, 7) },
+			{ offset = Vector2.new(-8.64, 15.93), size = Vector3.new(3.3, 1.4, 3.3) },
+		},
+		enemyCount = 6,
+		roster = { meleeCharger, spreadShooter, lineSniper, burrower, broodSlime },
+	},
+	{
+		name = "Glade Heart II",
+		arena = "GladeBoss",
+		obstacles = {
+			{ offset = Vector2.new(-14.58, -18.36), size = Vector3.new(5, 4.6, 5) },
+			{ offset = Vector2.new(14.58, -18.36), size = Vector3.new(5, 4.6, 5) },
+			{ offset = Vector2.new(-14.58, 18.36), size = Vector3.new(5, 4.6, 5) },
+			{ offset = Vector2.new(14.58, 18.36), size = Vector3.new(5, 4.6, 5) },
+		},
+		enemyCount = 5,
+		roster = { tank, broodSlime, spreadShooter, meleeCharger, lineSniper },
 	},
 }
 
@@ -953,11 +1097,17 @@ local Balance = {
 			arena = 2,
 			waves = 30,
 		},
+		{
+			--[[ Ten Mossy Glade rooms: logs, pond, boulders, thorns, boss, twice. ]]
+			name = "Level 1",
+			mode = "Rooms",
+			rooms = { 11, 12, 13, 14, 15, 16, 17, 18, 19, 20 },
+		},
 	} :: { StageConfig },
 
 	--[[ Which stage a run plays. Set per point in the game; one index here
 	     until there is a stage select. ]]
-	stage = 2,
+	stage = 3,
 
 	--[[ The Waves-mode schedule, as Archero 2 numbers it within each block
 	     of ten: a Valkyrie on the 5th, an Angel on the 9th, a boss on the
@@ -979,6 +1129,10 @@ local Balance = {
 		bossRoster = { tank, meleeCharger, spreadShooter, meleeCharger },
 		--[[ Hearts a Valkyrie wave leaves on the floor, as Archero 2's does. ]]
 		valkyrieHearts = 1,
+		--[[ How many of the first `Rooms` a Waves stage's fights are drawn
+		     from: the Courtyards' ten, whose tutorial order carries into
+		     waves. Later rooms belong to their own levels. ]]
+		rooms = 10,
 	},
 
 	--[[

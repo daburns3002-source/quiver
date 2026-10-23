@@ -26,6 +26,7 @@ local Burning = require(script.Parent.Burning)
 local Classes = require(ReplicatedStorage.Shared.Config.Classes)
 local EnemyManager = require(script.Parent.Parent.Enemies.EnemyManager)
 local RunSession = require(script.Parent.Parent.Run.RunSession)
+local SwingBox = require(ReplicatedStorage.Shared.Combat.SwingBox)
 local Targeting = require(script.Parent.Targeting)
 local Types = require(ReplicatedStorage.Shared.Types)
 local WeaponAnimations = require(ReplicatedStorage.Shared.Config.WeaponAnimations)
@@ -127,16 +128,17 @@ local function land(swing: Pending, now: number)
 	})[1]
 	local blow = session.damage * (config.damage[swing.index] or 1)
 
-	local flat = Vector3.new(root.Position.X, 0, root.Position.Z)
-	local frame = CFrame.lookAt(flat, flat + swing.direction)
 	for _, enemy in candidates() do
-		local at = frame:PointToObjectSpace(Vector3.new(enemy.position.X, 0, enemy.position.Z))
-		local half = enemy.halfWidth
-		local ahead = -at.Z
-		local inside = math.abs(at.X) <= config.width / 2 + half
-			and ahead >= -half
-			and ahead <= config.depth + half
-		if not inside then
+		if
+			not SwingBox.contains(
+				root.Position,
+				swing.direction,
+				config.width,
+				config.depth,
+				enemy.position,
+				enemy.halfWidth
+			)
+		then
 			continue
 		end
 

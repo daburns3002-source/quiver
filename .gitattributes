@@ -17,3 +17,5 @@
 *.fbx    binary
 *.gltf   binary
 *.glb    binary
+# Shell scripts must keep LF endings or bash fails on the  (tools/*.sh).
+*.sh text eol=lf

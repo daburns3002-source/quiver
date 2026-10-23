@@ -156,11 +156,9 @@ local function stepArcher(character: Model, now: number)
 		t = 0
 	end
 
-	if clipName == "Hold" then
-		nocked = false
-	elseif clipName == "Draw" and t >= (clip.markers.Nock or 0) then
+	if clipName == "Draw" and t >= (clip.markers.Nock or 0) then
 		nocked = true
-	elseif clipName == "Fire" and t >= (clip.markers.Release or 0) then
+	elseif clipName == "Hold" or (clipName == "Fire" and t >= (clip.markers.Release or 0)) then
 		nocked = false
 	end
 

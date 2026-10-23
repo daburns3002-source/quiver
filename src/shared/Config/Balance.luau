@@ -1335,6 +1335,11 @@ local Balance = {
 
 	Feedback = {
 		hitFlashDuration = 0.08,
+		--[[ An enemy hit squashes onto its feet and springs back
+		     (`Fx/HitSquash`): flattened by this share at the hit, settled
+		     by `hitSquashDuration` seconds. Not on burn ticks. ]]
+		hitSquash = 0.2,
+		hitSquashDuration = 0.32,
 		hitFlashColor = Color3.fromRGB(255, 255, 255),
 		damageNumberRise = 4,
 		damageNumberDuration = 0.7,

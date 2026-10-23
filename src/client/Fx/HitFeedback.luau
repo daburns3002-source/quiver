@@ -16,6 +16,7 @@ local TweenService = game:GetService("TweenService")
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Device = require(script.Parent.Parent.Device)
 local EnemyDesigns = require(ReplicatedStorage.Shared.Config.EnemyDesigns)
+local HitSquash = require(script.Parent.HitSquash)
 local TopDownCamera = require(script.Parent.Parent.Camera.TopDownCamera)
 
 local HitFeedback = {}
@@ -280,6 +281,11 @@ end
 function HitFeedback.onEnemyHit(model: Model, amount: number, position: Vector3, kind: string?)
 	if typeof(model) == "Instance" and model:IsA("Model") then
 		flash(model)
+		--[[ A burn ticks several times a second; squashing on each would
+		     keep the body wobbling the whole time it burns. ]]
+		if kind ~= "Burn" then
+			HitSquash.play(model)
+		end
 	end
 
 	spawnDamageNumber(position, amount, kind)

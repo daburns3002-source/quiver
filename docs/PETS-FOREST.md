@@ -2,7 +2,7 @@
 
 The first egg's pet pool. Design only; nothing here is built. The meta loop
 these pets live in is `PROGRESSION.md` ("Pets"), the area is `WORLD.md`
-(area 1, slimes and wolves, boss King Bloblin / the Slime King).
+(area 1, slimes and Wilfs, boss King Bloblin / the Slime King).
 
 **Style: blocky** (owner, 2026-10-23). Every pet is built from a few chunky
 bevelled boxes like Roblox parts, the way pets look in Pet Simulator and
@@ -11,7 +11,7 @@ short block legs, ears, tails and wings as flat slabs and wedges, flat
 colours, and the face as a flat decal (two big shiny eyes and a small
 mouth). Those games are a reference for proportions and rarity treatment
 only; nothing is copied from them. Colours come from Mossy Glade's own
-enemies (`assets/concepts/enemies/act1/`, the Ember Wolf sheet) so the pets
+enemies (`assets/concepts/enemies/act1/`, the Ember Wilf sheet) so the pets
 read as the same forest. A blocky pet also suits the pipeline: a handful of
 boxes is a tiny triangle count, which helps when several players each trail
 three pets through the lobby (`PROGRESSION.md`, "The lobby is a real place").
@@ -21,6 +21,9 @@ one per pet (front, three-quarter, side, back, an action pose, in-game size,
 palette), plus `13_variants.png` (Normal, Golden, Rainbow) and
 `14_mossy_egg.png` (the egg, its stand, the hatch, a golden egg).
 `contact_sheet.png` puts every pet side by side.
+
+**Wolves are Wilfs** (owner, 2026-10-23): every wolf in the game is named
+a Wilf (plural Wilfs), so the Ember Wolf is the Ember Wilf, enemy and pet.
 
 ---
 
@@ -65,10 +68,10 @@ rainbow glow and star sparkles (`13_variants.png`).
 | 5 | **Mossback Snail** | Uncommon | a mint box snail carrying a mossy stone-cube shell | the boulders room |
 | 6 | **Firefly Bun** | Rare | a navy-and-teal block firefly with a glowing yellow cube lantern | the glade's orb lamps |
 | 7 | **Stumpy** | Rare | a square tree stump with growth rings, a sapling and glowing teal fungus | the logs room |
-| 8 | **Glade Fox** | Epic | a moss-green box fox with a leaf-slab tail and glowing cheek runes | a forest cousin of the wolves |
+| 8 | **Glade Fox** | Epic | a moss-green box fox with a leaf-slab tail and glowing cheek runes | a forest cousin of the Wilfs |
 | 9 | **Hootmoss** | Epic | a tall box owl, mushroom ear tufts, glowing amber eyes | night in the glade |
 | 10 | **Slime Prince** | Legendary | a glowing emerald jelly cube with a gold crown and a leaf cape | heir to the area's boss, the Slime King |
-| 11 | **Ember Pup** | Legendary | the Ember Wolf as a blocky pup, ear and tail tips glowing like embers | the area's wolf, from room 6 |
+| 11 | **Ember Wilf** | Legendary | the Ember Wilf as a blocky pup, ear and tail tips glowing like embers | the area's Wilf, from room 6; the first of the ten area Wilfs (`PETS-WILFS.md`) |
 | 12 | **Glimmerhorn** | Mythic | a floating block fawn with branch antlers and rainbow-glowing spots | the spirit of the glade |
 
 Three Commons, then two per tier up to Legendary, and one Mythic, so most
@@ -98,7 +101,7 @@ the owner decides otherwise.
 ## Open decisions (the owner's)
 
 1. **Which pets go to 3D first.** The Mosslet, the Slime Prince and the
-   Ember Pup tie most closely to the area; the Glimmerhorn shows the top of
+   Ember Wilf tie most closely to the area; the Glimmerhorn shows the top of
    the ladder.
 2. **The Golden Mossy Egg**: a second egg, or only a look.
 3. **Combat behaviour per pet** (`PROGRESSION.md`: each pet shoots, heals,

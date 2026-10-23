@@ -16,6 +16,51 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## The player walked across the pond, the thorns and the logs
+
+**Symptom** — owner, 2026-10-23: "the player should not be able to walk over
+any obstacles, including the logs and the pond."
+
+**Cause** — each piece of cover's collision box is its own height (the pond
+0.4 studs, the thorns 0.4, a stump 1.5, the log 2.8), so the boxes stop
+arrows at the right height. But a Roblox character steps up onto anything
+that low and walks across the top.
+
+**Fix** — `Arena.build` puts a second, invisible wall over every obstacle,
+`wallHeight` tall, in its own `PlayerWalls` folder. It has `CanCollide` on
+and `CanQuery` off: it stops the character, and no raycast, sweep or
+`GetPartBoundsInBox` sees it, so arrows still fly over low cover. Enemies are
+kept out of cover analytically and never touch it either.
+`tests/Arena.spec.luau` pins all three properties.
+
+**Measured** — in room 2, driven into the pond at walking speed for 2 s, the
+player stopped at z = 1.64 against the pond's edge at 0.68 (one body
+half-width). Driven into a 1.4-stud stump, the player stopped 1.06 studs short
+at floor height (y 3.89).
+
+---
+
+## The Slime King looked nothing like his model
+
+**Symptom** — owner, 2026-10-23: "the king slime model looks nothing like
+what it should. did you use the models that were imported."
+
+**Cause** — the boss shipped with primitive stand-in parts (green ellipsoids
+and a gold cylinder crown) "until the owner imports" the meshes. The owner
+had already imported them, as model `slime_king_roblox` (83216994830889),
+into the inventory rather than the place. A search of the place's tree found
+nothing, and the inventory was never checked.
+
+**Fix** — `EnemyDesigns.SlimeKing` now uses the imported meshes (Body,
+Decor, Eyes, Arm_L, Arm_R), read from `InsertService:LoadAsset` of that
+model: sizes and offsets ×2, mirrored for the importer's 180° turn, all white
+so the vertex colours show (the eyes too: they are painted dark with amber
+glints, not a glowing act colour).
+
+**Next time** — before saying a model is not imported, list the owner's
+inventory: `search_asset` with `assetType = "Mesh"` or `"Model"`, `scope =
+"user"` and an empty query. Imports land there under the GLB's part names.
+
 ## The Arcanist's shots drew a beam across the room
 
 **Symptom** — in a Studio capture, each Arcanist shot showed as a tiny dot at

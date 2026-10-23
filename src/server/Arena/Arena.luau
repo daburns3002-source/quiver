@@ -374,6 +374,12 @@ function Arena.build(parent: Instance, obstacles: { Balance.Obstacle }, arena: s
 	blockers.Name = "Blockers"
 	blockers.Parent = root
 
+	--[[ Outside `Blockers`, which the projectile filters list: these stop
+	     the player and nothing else. ]]
+	local playerWalls = Instance.new("Folder")
+	playerWalls.Name = "PlayerWalls"
+	playerWalls.Parent = root
+
 	-- Floor sits with its top surface exactly at y = 0.
 	local floor =
 		makePart("Floor", config.size, Vector3.new(0, -config.size.Y / 2, 0), config.floorColor)
@@ -425,6 +431,26 @@ function Arena.build(parent: Instance, obstacles: { Balance.Obstacle }, arena: s
 			config.obstacleColor
 		)
 		part.Parent = blockers
+
+		--[[
+			A wall over the cover, as tall as the room's walls, that only the
+			player meets. Low cover — the pond, the thorns, a log or a stump —
+			was short enough for a character to step up onto and walk across
+			(owner, 2026-10-23: "the player should not be able to walk over any
+			obstacles"). Not queryable, so arrows still fly over low cover and
+			nothing that sweeps or targets ever sees it; enemies are kept out
+			of cover analytically and never touch it either.
+		]]
+		local wall = makePart(
+			`PlayerWall{index}`,
+			Vector3.new(obstacle.size.X, height, obstacle.size.Z),
+			Vector3.new(obstacle.offset.X, height / 2, obstacle.offset.Y),
+			config.obstacleColor
+		)
+		wall.CanQuery = false
+		wall.CanTouch = false
+		wall.Transparency = 1
+		wall.Parent = playerWalls
 
 		table.insert(boxes, {
 			centre = obstacle.offset,

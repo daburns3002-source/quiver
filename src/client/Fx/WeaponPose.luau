@@ -286,10 +286,23 @@ local function stepPose(character: Model, now: number, dt: number)
 	local trailOn = clip.markers.TrailOn
 	local trailOff = clip.markers.TrailOff
 	BladeFx.step(character, weapon, role == "move")
+	--[[ How far through the slash's trail window, for the red drawn on the
+	     swing's box. ]]
+	local trailProgress: number? = nil
+	local trailSeconds = 0
+	if role == "fire" and trailOn and trailOff and trailOff > trailOn then
+		if t >= trailOn and t < trailOff then
+			trailProgress = (t - trailOn) / (trailOff - trailOn)
+		end
+		trailSeconds = (trailOff - trailOn) / math.max(roleSpeed, 1e-3)
+	end
 	SwingTrail.step(
 		character,
 		weapon,
-		role == "fire" and trailOn ~= nil and trailOff ~= nil and t >= trailOn and t < trailOff
+		trailProgress,
+		math.max(comboIndex, 1),
+		#weapon.clips.fire,
+		trailSeconds
 	)
 end
 

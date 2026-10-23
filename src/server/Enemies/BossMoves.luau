@@ -11,10 +11,17 @@
 	against the players. So the whole of a move can be run in a spec, and
 	who gets hit is decided where every other hit is.
 
-	Poses are about the feet, as the handoff's are: `squash` scales height,
-	`spread` the width, `lift` raises the body off the floor, `lean` tips it
-	forward for the chest bump, and an arm reaching down a lane says how far
-	along it the fist is.
+	The motion is the design's own (`source/Slime King Attacks.html`): the
+	squash and stretch of each phase, the arms lifting for a bounce, the arm
+	pulled back before a lash and the fist arcing down onto the lane, the
+	pull, the chest bump and its wobble. The design draws the king at his
+	model's own size, 4.9 studs tall; here he is twice that, so its small
+	offsets are doubled (`SIZE`). Its timings, ranges and the slam's circle
+	are the handoff's numbers in studs, from `Balance`.
+
+	Poses are about the feet: `squash` scales height, `spread` the width,
+	`lift` raises the body off the floor, `lean` pushes it forward and
+	`pitch` tips it.
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -36,11 +43,21 @@ export type Pose = {
 	lift: number,
 	squash: number,
 	spread: number,
+	--[[ Studs the body is pushed forward, and radians it tips forward. ]]
 	lean: number,
-	--[[ The arm thrown down a lane, and how far along it the fist is (0 at
-	     the shoulder, 1 at the lane's end). ]]
+	pitch: number,
+	--[[ Studs both arms are raised (a bounce's wind-up and flight). ]]
+	armsLift: number,
+	--[[ The arm a lash is throwing; how far it is pulled back first (0 to
+	     1); how far along the lane its fist is (0 at the shoulder, 1 at the
+	     lane's end), how high the fist flies there, and how big it is. ]]
 	arm: string?,
+	armPull: number,
 	armReach: number,
+	fistLift: number,
+	fistScale: number,
+	--[[ Where the fist is held, when it has grabbed someone. ]]
+	held: Vector3?,
 	direction: Vector3,
 	length: number,
 	--[[ In the air, where nothing on the floor can reach it. ]]
@@ -53,12 +70,15 @@ export type Pose = {
 	- `SlamTell` — the circle a slam will land in (`at`, `radius`), for
 	  `duration` seconds before it does.
 	- `Slam` — it landed: hit everyone within `radius` of `at`.
-	- `LaneAim` — the lane a lash is tracking along, pale, for `duration`.
+	- `LaneAim` — the lane a lash is tracking along, pale, for `duration`;
+	  sent again as it follows the target.
 	- `Lane` — the lane has locked; the hit lands `duration` later.
-	- `LaneHit` — the fist landed: hit everyone in the lane, and grab the
-	  first (`BossMoves.grab`).
+	- `LaneHit` — the fist landed at `at` + `direction` × `length`: hit
+	  everyone in the lane, and grab the first (`BossMoves.grab`).
 	- `Bump` — the chest bump: release whoever is held, pushed along
 	  `direction`.
+	- `Shock` — a small shockwave on the floor at `at`, of `radius`.
+	- `Shake` — shake the camera by `radius` for `duration`.
 ]]
 export type Event = {
 	kind: string,
@@ -84,22 +104,40 @@ export type Move = {
 	--[[ A bounce's takeoff and landing. ]]
 	from: Vector3,
 	land: Vector3,
-	--[[ A lash's lane, from the feet. ]]
+	--[[ A lash's lane, from the feet, and when its tracking lane was last
+	     sent. ]]
 	direction: Vector3,
 	length: number,
+	aimSentAt: number,
 	--[[ A grab: where the held player stands, and where the boss is pulled
 	     to. ]]
 	held: Vector3?,
 	pullTo: Vector3?,
 }
 
---[[ The landing squash, from the handoff: down to 32% tall and 48% wider at
+--[[ The design's king is 4.9 studs tall; this one is twice that. ]]
+local SIZE = 2
+
+--[[ The landing squash, from the design: down to 32% tall and 48% wider at
      its peak, then a damped wobble back. ]]
 local LAND_SQUASH = 0.68
 local LAND_SPREAD = 0.48
 
 --[[ A bump releases its hold this far into the lean, at the lean's peak. ]]
 local BUMP_RELEASE = 0.45
+
+--[[ How often a tracking lane is redrawn as it follows the target. ]]
+local AIM_REFRESH = 0.1
+
+--[[ The small shockwave of a fist slapping the floor and of a chest bump. ]]
+local SHOCK_RADIUS = 5
+
+--[[ Camera shakes, from the design (slam 0.5, slap 0.25, bump 0.45),
+     on the sword slam's scale (`Config/Weapons`, 0.35). ]]
+local SHAKE_SLAM = 0.6
+local SHAKE_SLAP = 0.3
+local SHAKE_BUMP = 0.5
+local SHAKE_TIME = 0.3
 
 local function ease(t: number): number
 	return t * t * (3 - 2 * t)
@@ -134,6 +172,20 @@ local function event(kind: string): Event
 	}
 end
 
+local function shake(magnitude: number): Event
+	local e = event("Shake")
+	e.radius = magnitude
+	e.duration = SHAKE_TIME
+	return e
+end
+
+local function shock(at: Vector3): Event
+	local e = event("Shock")
+	e.at = at
+	e.radius = SHOCK_RADIUS
+	return e
+end
+
 local function rest(move: Move): Pose
 	return {
 		feet = move.feet,
@@ -142,8 +194,14 @@ local function rest(move: Move): Pose
 		squash = 1,
 		spread = 1,
 		lean = 0,
+		pitch = 0,
+		armsLift = 0,
 		arm = nil,
+		armPull = 0,
 		armReach = 0,
+		fistLift = 0,
+		fistScale = 1,
+		held = nil,
 		direction = move.direction,
 		length = move.length,
 		airborne = false,
@@ -189,6 +247,7 @@ function BossMoves.start(kind: Kind, now: number, feet: Vector3, yaw: number): M
 		land = flat(feet),
 		direction = Vector3.new(-math.sin(yaw), 0, -math.cos(yaw)),
 		length = 0,
+		aimSentAt = -math.huge,
 		held = nil,
 		pullTo = nil,
 	}
@@ -202,6 +261,16 @@ local function aimLane(move: Move, lash: Balance.BossLash, target: Vector3)
 	end
 	move.length = math.clamp(toward.Magnitude + 2, lash.minReach, lash.reach)
 	move.toYaw = yawOf(move.direction, move.yaw)
+end
+
+local function laneEvent(kind: string, move: Move, lash: Balance.BossLash, seconds: number): Event
+	local e = event(kind)
+	e.at = move.feet
+	e.direction = move.direction
+	e.length = move.length
+	e.width = lash.width
+	e.duration = seconds
+	return e
 end
 
 --[[
@@ -249,6 +318,7 @@ local function enter(
 			slam.at = move.land
 			slam.radius = b.radius
 			table.insert(events, slam)
+			table.insert(events, shake(SHAKE_SLAM))
 		end
 		return events
 	end
@@ -258,36 +328,24 @@ local function enter(
 		move.index += 1
 		move.fromYaw = move.yaw
 		aimLane(move, l, target)
-		local aim = event("LaneAim")
-		aim.at = move.feet
-		aim.direction = move.direction
-		aim.length = move.length
-		aim.width = l.width
-		aim.duration = l.track
-		table.insert(events, aim)
+		move.aimSentAt = at
+		table.insert(events, laneEvent("LaneAim", move, l, AIM_REFRESH * 1.5))
 	elseif phase == "aimed" then
 		--[[ Locks: the lane brightens and the hit lands where it points. ]]
 		aimLane(move, l, target)
 		move.yaw = move.toYaw
-		local lane = event("Lane")
-		lane.at = move.feet
-		lane.direction = move.direction
-		lane.length = move.length
-		lane.width = l.width
-		lane.duration = (l.wind - l.track) + l.strike
-		table.insert(events, lane)
+		table.insert(events, laneEvent("Lane", move, l, (l.wind - l.track) + l.strike))
 	elseif phase == "slap" then
-		local hit = event("LaneHit")
-		hit.at = move.feet
-		hit.direction = move.direction
-		hit.length = move.length
-		hit.width = l.width
-		table.insert(events, hit)
+		table.insert(events, laneEvent("LaneHit", move, l, 0))
+		table.insert(events, shock(move.feet + move.direction * move.length))
+		table.insert(events, shake(SHAKE_SLAP))
 	elseif phase == "release" then
 		local bump = event("Bump")
 		bump.at = move.feet
 		bump.direction = move.direction
 		table.insert(events, bump)
+		table.insert(events, shock(move.held or move.feet))
+		table.insert(events, shake(SHAKE_BUMP))
 	elseif phase == "settle" then
 		local to = move.pullTo
 		if to then
@@ -363,16 +421,19 @@ local function pose(move: Move, boss: EnemyBoss, t: number): Pose
 			p.yaw = lerpAngle(move.fromYaw, move.toYaw, e)
 			p.squash = 1 - 0.3 * e
 			p.spread = 1 + 0.18 * e
+			p.armsLift = 0.35 * SIZE * e
 		elseif phase == "launch" then
 			p.lift = b.height * 0.08 * t
 			p.squash = 0.7 + 0.55 * t
 			p.spread = 1.18 - 0.3 * t
+			p.armsLift = 0.35 * SIZE
 		elseif phase == "air" then
 			p.feet = move.from:Lerp(move.land, t)
 			p.lift = b.height * 4 * t * (1 - t) + b.height * 0.08 * (1 - t)
 			local s = if t < 0.5 then 1.25 - 0.5 * t else 1 + 0.3 * (t - 0.5)
 			p.squash = s
 			p.spread = 1 / math.sqrt(s)
+			p.armsLift = 0.35 * SIZE * (1 - t)
 			p.airborne = true
 		elseif phase == "recover" then
 			local w = math.exp(-t * 4.2) * math.cos(t * 13)
@@ -391,31 +452,54 @@ local function pose(move: Move, boss: EnemyBoss, t: number): Pose
 	if phase == "track" or phase == "aimed" then
 		local into = (if phase == "track" then t * l.track else l.track + t * (l.wind - l.track))
 			/ l.wind
+		local back = ease(into)
 		p.yaw = lerpAngle(move.fromYaw, move.toYaw, math.min(1, into * 6))
-		p.armReach = -0.08 * ease(into)
-	elseif phase == "strike" then
-		p.armReach = 1 - (1 - t) ^ 3
-	elseif phase == "slap" then
-		p.armReach = 1
-	elseif phase == "retract" then
-		p.armReach = 1 - ease(t)
+		p.armPull = back
+		p.squash = 1 - 0.06 * back
+		p.spread = 1 + 0.04 * back
+	elseif phase == "strike" or phase == "slap" or phase == "retract" then
+		local extension = if phase == "strike"
+			then 1 - (1 - t) ^ 3
+			elseif phase == "slap" then 1
+			else 1 - ease(t)
+		local wobble = if phase == "retract" then math.sin(t * 20) * (1 - t) * 0.15 * SIZE else 0
+		p.armReach = extension
+		--[[ The fist arcs down onto the floor at the lane's end as it
+		     strikes, and lies there for the slap. ]]
+		p.fistLift = 0.9 * SIZE
+			+ (if phase == "strike" then 1.2 * SIZE * (1 - extension) else 0)
+			+ wobble
+		p.fistScale = 1 + 0.7 * extension
+		p.squash = 1 + 0.05 * extension
+		p.spread = 1 - 0.03 * extension
 	elseif phase == "pull" then
 		local to = move.pullTo or move.feet
+		local hop = math.sin(math.pi * t)
 		p.feet = move.from:Lerp(to, ease(t))
-		p.lift = 1.6 * math.sin(math.pi * t)
+		p.lift = 1.6 * SIZE * hop
+		local s = 1 + 0.35 * hop
+		p.squash = s * 0.85 + 0.15
+		p.spread = 1 / math.sqrt(s)
 		--[[ The fist stays on the held player while the arm contracts and
 		     the body is hauled in after it. ]]
-		local held = move.held or to
-		p.length = (held - p.feet).Magnitude
-		p.armReach = 1
+		p.held = move.held
+		p.fistLift = 1.6 * SIZE
+		p.fistScale = 1.7 - 0.7 * t
 	elseif phase == "lean" or phase == "release" then
-		p.feet = move.pullTo or move.feet
 		local u = if phase == "lean"
 			then t * BUMP_RELEASE
 			else BUMP_RELEASE + t * (1 - BUMP_RELEASE)
-		p.lean = math.sin(math.pi * math.min(1, u * 1.6))
+		local lean = math.sin(math.pi * math.min(1, u * 1.6))
+		p.feet = move.pullTo or move.feet
+		p.lean = 1.4 * SIZE * lean
+		p.pitch = 0.28 * lean
+		p.squash = 1 + 0.08 * lean
+		p.spread = 1 + 0.12 * lean
 	elseif phase == "settle" then
-		p.lean = math.exp(-t * 5) * math.cos(t * 9) * (1 - t)
+		local w = math.exp(-t * 5) * math.cos(t * 12)
+		p.pitch = 0.28 * (1 - ease(t)) * math.cos(t * 9)
+		p.squash = 1 - 0.12 * w
+		p.spread = 1 + 0.08 * w
 	end
 	return p
 end
@@ -456,9 +540,13 @@ function BossMoves.step(
 		end
 	end
 
-	--[[ The lane follows the target until it locks. ]]
+	--[[ The lane follows the target until it locks, redrawn as it goes. ]]
 	if move.kind == "Lash" and move.phase == "track" then
 		aimLane(move, boss.lash, target)
+		if now - move.aimSentAt >= AIM_REFRESH then
+			move.aimSentAt = now
+			table.insert(events, laneEvent("LaneAim", move, boss.lash, AIM_REFRESH * 1.5))
+		end
 	end
 
 	local length = duration(move, boss)
@@ -478,8 +566,14 @@ function BossMoves.idle(feet: Vector3, yaw: number, now: number): Pose
 		squash = 1 + breath,
 		spread = 1 - breath * 0.5,
 		lean = 0,
+		pitch = 0,
+		armsLift = 0,
 		arm = nil,
+		armPull = 0,
 		armReach = 0,
+		fistLift = 0,
+		fistScale = 1,
+		held = nil,
 		direction = Vector3.new(-math.sin(yaw), 0, -math.cos(yaw)),
 		length = 0,
 		airborne = false,

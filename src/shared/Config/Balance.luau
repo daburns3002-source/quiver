@@ -46,6 +46,7 @@ export type TelegraphTell =
 	| "Shockwave"
 	| "LaneAim"
 	| "Lane"
+	| "Shake"
 
 --[[
 	What an enemy becomes when it dies, if anything: `count` of `into`,

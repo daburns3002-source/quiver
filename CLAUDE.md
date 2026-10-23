@@ -37,7 +37,10 @@ over the same invisible floor, walls and obstacle boxes as the grey box
 (nil, or a model not imported yet, is the grey box). Arena models follow the
 enemy pipeline through `assets/models/arenas/optimise_arena.py`, scaled ×2.7
 into the 35 × 58 room. Cover under `Projectile.height` (pond, thorns) blocks
-walking but not arrows. Moonlit Arena's waves draw from the first
+walking but not arrows. The exit is a gate in the north wall
+(`Arena/ExitGate`, `Balance.Run.gate`): dark purple haze until the room is
+cleared, then glowing white-gold with a GO arrow, after Archero 2. Moonlit
+Arena's waves draw from the first
 `Balance.Waves.rooms` (10) rooms only.
 
 **Bugs that shipped, and what fixed them: `docs/FIXES.md`.** Written to be

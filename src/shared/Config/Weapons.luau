@@ -91,6 +91,9 @@ export type Weapon = {
 	clips: Clips,
 	--[[ The `Config/Sounds` entry each shot plays. ]]
 	fireSound: string,
+	--[[ A sound for each blow of a combo (`clips.fire`), when they differ:
+	     played instead of `fireSound`. ]]
+	comboSounds: { string }?,
 	--[[ A staff's orbit ring axis, in the model's units through the orb. ]]
 	orbitAxis: Vector3?,
 	--[[ What the class's shots are drawn as, when not the plain arrow or
@@ -250,6 +253,9 @@ local Weapons = {
 			fire = { "Slash_A", "Slash_B", "Slash_C" },
 		},
 		fireSound = "sword_swing",
+		--[[ The sweep and the backswing swish; the slam lunges (owner,
+		     2026-10-23: Roblox's classic sword sounds, from a clip). ]]
+		comboSounds = { "sword_swing", "sword_swing", "sword_slam" },
 		swingTrail = {
 			base = Vector3.new(0, 0.44 - 0.062, 0),
 			tip = Vector3.new(0, 1.0216 - 0.062, 0),

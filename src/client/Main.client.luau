@@ -119,7 +119,11 @@ end)
 LocalFiring.onFired(WeaponPose.release)
 LocalFiring.onFired(function()
 	local class = Classes[player:GetAttribute("Class") :: string? or "Ranger"] or Classes.Ranger
-	SoundFx.play(((Weapons :: any)[class.weapon] :: Weapons.Weapon).fireSound)
+	local weapon = (Weapons :: any)[class.weapon] :: Weapons.Weapon
+	--[[ After `WeaponPose.release`, registered first, so the combo has
+	     already moved on to the blow this is. ]]
+	local blow = weapon.comboSounds and weapon.comboSounds[WeaponPose.comboIndex()]
+	SoundFx.play(blow or weapon.fireSound)
 end)
 SoundFx.preload()
 MoveController.start()

@@ -312,6 +312,12 @@ function WeaponPose.release()
 	StaffOrb.spend()
 end
 
+--[[ Which blow of the weapon's combo played last (0 for none), for
+     anything that follows the combo, such as each blow's sound. ]]
+function WeaponPose.comboIndex(): number
+	return comboIndex
+end
+
 --[[ `aimHasTarget` says whether there is anything to shoot, so the weapon
      is readied only when a shot can follow. ]]
 function WeaponPose.start(aimHasTarget: () -> boolean)

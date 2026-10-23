@@ -54,7 +54,8 @@ function SoundFx.play(name: string)
 	lastPlayed[name] = now
 
 	local sound = instanceFor(name, config)
-	sound.PlaybackSpeed = 1 + random:NextNumber(-config.pitchJitter, config.pitchJitter)
+	sound.PlaybackSpeed = (config.speed or 1)
+		* (1 + random:NextNumber(-config.pitchJitter, config.pitchJitter))
 	SoundService:PlayLocalSound(sound)
 end
 

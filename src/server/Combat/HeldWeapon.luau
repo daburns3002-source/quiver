@@ -21,6 +21,7 @@ local templates: { [string]: MeshPart } = {}
 function HeldWeapon.preload()
 	local ids: { string } = {}
 	for _, name in { "LeafBow", "ArcaneStaff", "RubyGreatsword" } do
+		-- LeafBowDual reuses the leaf bow's meshes.
 		local weapon = (Weapons :: any)[name] :: Weapons.Weapon
 		for _, part in weapon.parts do
 			table.insert(ids, part.meshId)
@@ -60,57 +61,72 @@ function HeldWeapon.equip(character: Model, weaponName: string)
 	local model = Instance.new("Model")
 	model.Name = "HeldWeapon"
 
-	local frame = hand.CFrame * CFrame.new(weapon.grip) * (weapon.inHand or IN_HAND)
-	for _, spec in weapon.parts do
-		local template = templates[spec.meshId]
-		if not template then
-			continue
-		end
-		local part = template:Clone()
-		part.Name = spec.name
-		part.Size = spec.size * weapon.scale
-		part.CFrame = frame * CFrame.new(spec.offset * weapon.scale)
-		part.Anchored = false
-		part.Massless = true
-		part.CanCollide = false
-		part.CanQuery = false
-		part.CanTouch = false
-		part.CastShadow = false
-		--[[ White, so the model's own vertex colours or texture show,
-		     unless the part names a colour of its own. ]]
-		part.Color = spec.colour or Color3.new(1, 1, 1)
-		if spec.textureId then
-			part.TextureID = spec.textureId
-		end
-		part.Material = if spec.glow then Enum.Material.Neon else Enum.Material.SmoothPlastic
-		if spec.nocked then
-			part.Transparency = 1
-			part:SetAttribute("Nocked", true)
-		end
-		if spec.liveString then
-			part:SetAttribute("LiveString", true)
-		end
-		if spec.orb then
-			part:SetAttribute("Orb", true)
-		end
-		if spec.orbit then
-			part:SetAttribute("Orbit", true)
-		end
+	--[[ Builds the weapon's parts in one hand. The off hand's copy (a second
+	     bow) is the same model, but only the main hand's carries the
+	     nocked arrow, the live string and the origin the client draws them
+	     from. ]]
+	local function build(holder: BasePart, grip: Vector3, turn: CFrame, main: boolean)
+		local frame = holder.CFrame * CFrame.new(grip) * turn
+		for _, spec in weapon.parts do
+			local template = templates[spec.meshId]
+			if not template or (spec.nocked and not main) then
+				continue
+			end
+			local part = template:Clone()
+			part.Name = spec.name
+			part.Size = spec.size * weapon.scale
+			part.CFrame = frame * CFrame.new(spec.offset * weapon.scale)
+			part.Anchored = false
+			part.Massless = true
+			part.CanCollide = false
+			part.CanQuery = false
+			part.CanTouch = false
+			part.CastShadow = false
+			--[[ White, so the model's own vertex colours or texture show,
+			     unless the part names a colour of its own. ]]
+			part.Color = spec.colour or Color3.new(1, 1, 1)
+			if spec.textureId then
+				part.TextureID = spec.textureId
+			end
+			part.Material = if spec.glow then Enum.Material.Neon else Enum.Material.SmoothPlastic
+			if spec.nocked then
+				part.Transparency = 1
+				part:SetAttribute("Nocked", true)
+			end
+			if spec.liveString and main then
+				part:SetAttribute("LiveString", true)
+			end
+			if spec.orb then
+				part:SetAttribute("Orb", true)
+			end
+			if spec.orbit then
+				part:SetAttribute("Orbit", true)
+			end
 
-		local weld = Instance.new("WeldConstraint")
-		weld.Part0 = hand
-		weld.Part1 = part
-		weld.Parent = part
-		part.Parent = model
+			local weld = Instance.new("WeldConstraint")
+			weld.Part0 = holder
+			weld.Part1 = part
+			weld.Parent = part
+			part.Parent = model
 
-		--[[ The model's origin, the grip, so the client can place the live
-		     string and the nocked arrow in the bow's own units. ]]
-		if not model:FindFirstChild("WeaponOrigin", true) then
-			local origin = Instance.new("Attachment")
-			origin.Name = "WeaponOrigin"
-			origin.CFrame = part.CFrame:ToObjectSpace(frame)
-			origin:SetAttribute("Scale", weapon.scale)
-			origin.Parent = part
+			--[[ The model's origin, the grip, so the client can place the
+			     live string and the nocked arrow in the bow's own units. ]]
+			if main and not model:FindFirstChild("WeaponOrigin", true) then
+				local origin = Instance.new("Attachment")
+				origin.Name = "WeaponOrigin"
+				origin.CFrame = part.CFrame:ToObjectSpace(frame)
+				origin:SetAttribute("Scale", weapon.scale)
+				origin.Parent = part
+			end
+		end
+	end
+
+	build(hand, weapon.grip, weapon.inHand or IN_HAND, true)
+	local offhand = weapon.offhand
+	if offhand then
+		local other = character:FindFirstChild(offhand.hand) :: BasePart?
+		if other then
+			build(other, offhand.grip, offhand.inHand or IN_HAND, false)
 		end
 	end
 

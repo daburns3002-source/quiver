@@ -119,7 +119,11 @@ end)
 LocalFiring.onFired(WeaponPose.release)
 LocalFiring.onFired(function()
 	local class = Classes[player:GetAttribute("Class") :: string? or "Ranger"] or Classes.Ranger
-	local weapon = (Weapons :: any)[class.weapon] :: Weapons.Weapon
+	local recorded = player:GetAttribute("Weapon")
+	local weapon = (
+		(Weapons :: any)[if type(recorded) == "string" then recorded else class.weapon]
+		or (Weapons :: any)[class.weapon]
+	) :: Weapons.Weapon
 	--[[ After `WeaponPose.release`, registered first, so the combo has
 	     already moved on to the blow this is. ]]
 	local blow = weapon.comboSounds and weapon.comboSounds[WeaponPose.comboIndex()]

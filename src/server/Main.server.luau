@@ -88,10 +88,22 @@ Arena.preload()
 HeldWeapon.preload()
 RoomController.start()
 
+--[[ The weapon in the player's hand: the one `RunSession.applyLoadout`
+     recorded, which a drafted card can change (the Dual Bows Mythic), or
+     the class's own before any loadout has been applied. ]]
+local function weaponFor(player: Player): string
+	local recorded = player:GetAttribute("Weapon")
+	if type(recorded) == "string" then
+		return recorded
+	end
+	local session = RunSession.get(player)
+	return Classes[if session then session.loadout.class else "Ranger"].weapon
+end
+
 local function onCharacterAdded(player: Player, character: Model)
 	local session = RunSession.get(player) or RunSession.create(player)
 	RunSession.bindCharacter(session, character)
-	HeldWeapon.equip(character, Classes[session.loadout.class].weapon)
+	HeldWeapon.equip(character, weaponFor(player))
 	--[[ Enemy projectiles raycast against player characters, so the filter has
 	     to learn about each new body. Without this a respawned player is
 	     invisible to every enemy shot. ]]
@@ -107,6 +119,14 @@ local function onPlayerAdded(player: Player)
 
 	player.CharacterRemoving:Connect(function()
 		RunSession.unbindCharacter(session)
+	end)
+
+	--[[ A drafted card (the Dual Bows Mythic) or a class change can swap
+	     the weapon mid-run. ]]
+	player:GetAttributeChangedSignal("Weapon"):Connect(function()
+		if player.Character then
+			HeldWeapon.equip(player.Character, weaponFor(player))
+		end
 	end)
 
 	if player.Character then
@@ -176,9 +196,6 @@ Remotes.event(Remotes.DebugNextClass).OnServerEvent:Connect(function(player)
 	local class = CLASS_ORDER[at % #CLASS_ORDER + 1]
 	session.loadout.class = class
 	RunSession.applyLoadout(session)
-	if player.Character then
-		HeldWeapon.equip(player.Character, Classes[class].weapon)
-	end
 	log.info("%s is now a %s (Studio)", player.Name, class)
 end)
 

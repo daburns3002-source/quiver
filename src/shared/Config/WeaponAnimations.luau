@@ -1040,6 +1040,66 @@ local WeaponAnimations: { [string]: { [string]: Clip } } = {
 			},
 		},
 	},
+	LeafBowDual = {
+		Hold = {
+			length = 2.4,
+			loop = true,
+			markers = {},
+			keys = {
+				{
+					t = 0,
+					joints = {
+						LeftShoulder = CFrame.new(0, 0, 0, 0.1826, 0.5675, 0.0935, 0.7974),
+						LeftElbow = CFrame.new(0, 0, 0, -0.0022, 0, 0, 1),
+						LeftWrist = CFrame.new(0, 0, 0, 0.2953, -0.3959, 0.2645, 0.8283),
+						RightShoulder = CFrame.new(0, 0, 0, 0.086, -0.2062, -0.0948, 0.9701),
+						RightElbow = CFrame.new(0, 0, 0, 0.0292, 0, 0, 0.9996),
+						RightWrist = CFrame.new(0, 0, 0, 0.465, 0.1331, -0.0617, 0.8731),
+					},
+				},
+				{
+					t = 2.4,
+					joints = {
+						LeftShoulder = CFrame.new(0, 0, 0, 0.1826, 0.5675, 0.0935, 0.7974),
+						LeftElbow = CFrame.new(0, 0, 0, -0.0022, 0, 0, 1),
+						LeftWrist = CFrame.new(0, 0, 0, 0.2953, -0.3959, 0.2645, 0.8283),
+						RightShoulder = CFrame.new(0, 0, 0, 0.086, -0.2062, -0.0948, 0.9701),
+						RightElbow = CFrame.new(0, 0, 0, 0.0292, 0, 0, 0.9996),
+						RightWrist = CFrame.new(0, 0, 0, 0.465, 0.1331, -0.0617, 0.8731),
+					},
+				},
+			},
+		},
+		Fire = {
+			length = 0.2,
+			loop = false,
+			markers = { Release = 0 },
+			keys = {
+				{
+					t = 0,
+					joints = {
+						LeftShoulder = CFrame.new(0, 0, 0, 0.1826, 0.5675, 0.0935, 0.7974),
+						LeftElbow = CFrame.new(0, 0, 0, -0.0022, 0, 0, 1),
+						LeftWrist = CFrame.new(0, 0, 0, 0.2953, -0.3959, 0.2645, 0.8283),
+						RightShoulder = CFrame.new(0, 0, 0, 0.086, -0.2062, -0.0948, 0.9701),
+						RightElbow = CFrame.new(0, 0, 0, 0.0292, 0, 0, 0.9996),
+						RightWrist = CFrame.new(0, 0, 0, 0.465, 0.1331, -0.0617, 0.8731),
+					},
+				},
+				{
+					t = 0.2,
+					joints = {
+						LeftShoulder = CFrame.new(0, 0, 0, 0.1826, 0.5675, 0.0935, 0.7974),
+						LeftElbow = CFrame.new(0, 0, 0, -0.0022, 0, 0, 1),
+						LeftWrist = CFrame.new(0, 0, 0, 0.2953, -0.3959, 0.2645, 0.8283),
+						RightShoulder = CFrame.new(0, 0, 0, 0.086, -0.2062, -0.0948, 0.9701),
+						RightElbow = CFrame.new(0, 0, 0, 0.0292, 0, 0, 0.9996),
+						RightWrist = CFrame.new(0, 0, 0, 0.465, 0.1331, -0.0617, 0.8731),
+					},
+				},
+			},
+		},
+	},
 }
 
 return table.freeze(WeaponAnimations)

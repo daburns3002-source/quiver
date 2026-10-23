@@ -145,9 +145,15 @@ local function firstMarker(clip: WeaponAnimations.Clip): number
 	return if earliest == math.huge then 0 else earliest
 end
 
+--[[ The weapon in hand, as the server recorded it (`RunSession`): the
+     class's own, or one a drafted card put there (the Dual Bows Mythic). ]]
 local function currentWeapon(): (string, Weapons.Weapon)
 	local class = Classes[player:GetAttribute("Class") :: string? or "Ranger"] or Classes.Ranger
-	return class.weapon, (Weapons :: any)[class.weapon] :: Weapons.Weapon
+	local recorded = player:GetAttribute("Weapon")
+	local name = if type(recorded) == "string" and (Weapons :: any)[recorded]
+		then recorded
+		else class.weapon
+	return name, (Weapons :: any)[name] :: Weapons.Weapon
 end
 
 --[[ The clip a role plays on this weapon, or nil when it has none. ]]

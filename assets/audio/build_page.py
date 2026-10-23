@@ -108,10 +108,17 @@ ROUND_10 = [
     }),
 ]
 
+ROUND_11 = [
+    ("Round 11 · new slams, to go with your blows", {
+        "sword_slam": ("Blow 3 · the slam", "Every whoosh comes from the same recordings as your blow 1 and 2 picks, so the combo sounds like one sword; each lands on a different kind of impact. All CC0, 10% quicker; A measured closest to your clip.", None),
+    }),
+]
+
 # page: (rounds, picks collection, sounds already chosen, shown for context)
 PAGES = {
     "1-2": (ROUND_1_2, "picks", []),
     "3": (ROUND_3, "picks3", ["Player hurt A", "XP crystal D", "Heart D", "Level up A"]),
+    "11": (ROUND_11, "picks11", ["Player hurt", "XP crystal", "Heart", "Level up", "Enemy hit", "Dash", "Card pick", "Arrow fire", "Staff cast", "Enemy death", "Gate", "Blow 1 (10 C)", "Blow 2 (10 D)"]),
     "10": (ROUND_10, "picks10", ["Player hurt", "XP crystal", "Heart", "Level up", "Enemy hit", "Dash", "Card pick", "Arrow fire", "Staff cast", "Enemy death", "Gate"]),
     "9": (ROUND_9, "picks9", ["Player hurt", "XP crystal", "Heart", "Level up", "Enemy hit", "Dash", "Card pick", "Arrow fire", "Staff cast", "Enemy death", "Gate"]),
     "8": (ROUND_8, "picks8", ["Player hurt", "XP crystal", "Heart", "Level up", "Enemy hit", "Dash", "Card pick", "Arrow fire", "Staff cast", "Enemy death", "Gate (round 6 B)"]),

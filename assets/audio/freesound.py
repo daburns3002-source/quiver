@@ -43,6 +43,11 @@ SOURCES = {
     "672569": ("Teaganbear", "Swoosh Slam.wav"),
     "682143": ("HenKonen", "Metal swoosh 1.wav"),
     "547042": ("CogFireStudios", "Hit Impact Sword 3"),
+    "693581": ("rottako", "drop-item-heavy1.mp3"),
+    "553886": ("sukondi", "Smash Sound Effect | Smash/knock wood"),
+    "531862": ("magnuswaker", "Seismic Slam"),
+    "614063": ("magnuswaker", "Heavy Metal Impact 2"),
+    "827570": ("AudioPapkin", "Sound Design Elements Impact SFX PS 111"),
 }
 
 # The slam's whoosh sits under its impact, as in the clip.
@@ -68,6 +73,21 @@ ROUNDS = {
             ("c", [("782966", 1.51, 1.99, 0, WHOOSH), ("672569", 0.08, 0.95, 0.5, IMPACT)], "An edgier swing into the swoosh slam (GrayEpic + Teaganbear)."),
             ("d", [("380488", 2.43, 2.84, 0, WHOOSH), ("672569", 0.08, 0.95, 0.5, IMPACT)], "A lighter swipe into the swoosh slam (Sword Swipes + Teaganbear)."),
             ("e", [("667419", 0.00, 0.44, 0, WHOOSH), ("547042", 0.00, 0.75, 0.5, IMPACT)], "The bright swish into a metal sword impact, more clang (hz37 + CogFireStudios)."),
+        ],
+    },
+    # Round 11 (owner, 2026-10-23): blows 1 and 2 picked (10 C and 10 D), "i
+    # dont like the 3rd ones". New slams: whooshes from the same two
+    # recordings as the picked blows, so the combo is one sword, each into a
+    # different kind of impact from a wider CC0 search (thud, wood, boom,
+    # clang, designed).
+    "11": {
+        "sword_slam": [
+            ("a", [("481954", 17.74, 18.10, 0, WHOOSH), ("693581", 0.04, 0.74, 0.5, IMPACT)], "Closest to the clip: the large sword whoosh into a heavy thud (craigsmith + rottako)."),
+            ("b", [("380488", 1.07, 1.46, 0, WHOOSH), ("693581", 0.04, 0.74, 0.5, IMPACT)], "Blow 2's lighter swipe into the same heavy thud (Sword Swipes + rottako)."),
+            ("c", [("481954", 17.74, 18.10, 0, WHOOSH), ("553886", 0.88, 1.41, 0.5, IMPACT)], "The large whoosh into a hard wooden smash (craigsmith + sukondi)."),
+            ("d", [("481954", 5.89, 6.33, 0, WHOOSH), ("531862", 0.00, 1.35, 0.5, IMPACT)], "The large whoosh into a deep seismic boom, the biggest (craigsmith + magnuswaker)."),
+            ("e", [("481954", 17.74, 18.10, 0, WHOOSH), ("614063", 0.00, 0.71, 0.5, IMPACT)], "The large whoosh into a heavy metal clang (craigsmith + magnuswaker)."),
+            ("f", [("481954", 17.74, 18.10, 0, WHOOSH), ("827570", 0.00, 1.33, 0.5, IMPACT)], "The large whoosh into a designed game impact with a tail (craigsmith + AudioPapkin)."),
         ],
     },
 }

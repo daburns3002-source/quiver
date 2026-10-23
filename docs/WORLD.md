@@ -3,7 +3,8 @@
 The owner's direction of 2026-10-22: the game is **no longer archer-only**.
 Three classes, fifteen areas in five acts. This is the plan of record for
 content; `PROGRESSION.md` still owns the meta loop and `ROADMAP.md` the order
-things are built in. Nothing here is built yet.
+things are built in. Nothing here is built yet. The enemies and arenas for
+each area, with concept art, are in `ENEMIES-AND-ARENAS.md`.
 
 ---
 

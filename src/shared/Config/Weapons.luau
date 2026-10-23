@@ -56,6 +56,13 @@ export type Weapon = {
 	clips: Clips,
 	--[[ A staff's orbit ring axis, in the model's units through the orb. ]]
 	orbitAxis: Vector3?,
+	--[[ What the class's shots are drawn as, when not the plain arrow or
+	     orb (`Fx/ProjectileRenderer`): a mesh, drawn Neon in the class's
+	     colour as the kit does, and its own size in studs as imported. ]]
+	bolt: {
+		meshId: string,
+		size: Vector3,
+	}?,
 	--[[ A bow's string, in model units from the grip: where it is tied top
 	     and bottom, its centre at rest (the nock), and where the arrow rests
 	     on the riser. ]]
@@ -139,6 +146,12 @@ local Weapons = {
 		clips = { hold = "Hold", ready = "Charge", aim = "Channel", fire = "Cast" },
 		--[[ The kit's, turned into this model's frame. ]]
 		orbitAxis = Vector3.new(0, -0.3146, -0.9492),
+		--[[ The kit's bolt (`assets/models/weapons/arcane_bolt_roblox.glb`,
+		     imported 2026-10-23): a faceted blue ball. ]]
+		bolt = {
+			meshId = "rbxassetid://126459524560740",
+			size = Vector3.new(0.098, 0.1, 0.099),
+		},
 		parts = {
 			{
 				name = "Staff",

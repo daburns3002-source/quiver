@@ -16,6 +16,7 @@
 	would be the single biggest source of frame hitches.
 ]]
 
+local AssetService = game:GetService("AssetService")
 local Debris = game:GetService("Debris")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -28,6 +29,7 @@ local HitFeedback = require(script.Parent.HitFeedback)
 local ProjectileFlight = require(ReplicatedStorage.Shared.Combat.ProjectileFlight)
 local ShotPipeline = require(ReplicatedStorage.Shared.Combat.ShotPipeline)
 local Types = require(ReplicatedStorage.Shared.Types)
+local Weapons = require(ReplicatedStorage.Shared.Config.Weapons)
 
 type ShotSpec = Types.ShotSpec
 type Faction = Types.Faction
@@ -43,10 +45,20 @@ local PLAYER_COLOUR = Color3.fromRGB(255, 244, 196)
      shares, so incoming fire is the loudest colour on screen
      (docs/ART-archero2.md §4). ]]
 local ENEMY_COLOUR = Color3.fromRGB(255, 72, 206)
---[[ The Arcanist's orb (`Config/Classes.look`): its class's blue, and
-     about three times an arrow's width, so it reads as magic at a glance. ]]
+--[[ The Arcanist's orb (`Config/Classes.look`): the staff kit's bolt
+     (`Config/Weapons.ArcaneStaff.bolt`), drawn about three times an arrow's
+     width so it reads as magic at a glance, lit in its class's blue. ]]
 local PLAYER_ORB_COLOUR = Color3.fromRGB(90, 200, 255)
 local PLAYER_ORB_SIZE = Vector3.one * 1.1
+local PLAYER_ORB_LIGHT = Color3.fromRGB(80, 170, 255)
+--[[ Studs of tail behind the Arcanist's shot. Set as a length, like an
+     arrow's, because it flies far faster than the enemy orbs whose tail is
+     set in seconds; on their 0.6 s it drew a beam across the room. ]]
+local PLAYER_ORB_TRAIL_STUDS = 6
+
+--[[ The bolt's mesh, loaded once at start (`ProjectileRenderer.start`).
+     Shots drawn before it arrives are plain balls. ]]
+local boltTemplate: MeshPart? = nil
 
 --[[ What a drawn shot is: an arrow, an enemy orb, or a player's orb. One
      pool each, since each is its own shape. ]]
@@ -128,13 +140,19 @@ local function createPart(pool: Pool): BasePart
 	local faction: Faction = if pool == "Enemy" then "Enemy" else "Player"
 	local partSize = if pool == "PlayerOrb" then PLAYER_ORB_SIZE else ProjectileFlight.size(faction)
 
-	local part = Instance.new("Part")
+	local part: BasePart
+	if pool == "PlayerOrb" and boltTemplate then
+		part = boltTemplate:Clone()
+	else
+		local plain = Instance.new("Part")
+		plain.Shape = if isOrb
+			then Enum.PartType.Ball
+			elseif tier.projectileIsRound then Enum.PartType.Cylinder
+			else Enum.PartType.Block
+		part = plain
+	end
 	part.Name = "Projectile"
 	part.Size = partSize
-	part.Shape = if isOrb
-		then Enum.PartType.Ball
-		elseif tier.projectileIsRound then Enum.PartType.Cylinder
-		else Enum.PartType.Block
 	part.Anchored = true
 	part.CanCollide = false
 	part.CanQuery = false
@@ -142,6 +160,15 @@ local function createPart(pool: Pool): BasePart
 	part.CastShadow = false
 	part.Material = Enum.Material.Neon
 	part.Color = PLAYER_COLOUR
+
+	if pool == "PlayerOrb" and tier.projectileTrails then
+		local light = Instance.new("PointLight")
+		light.Color = PLAYER_ORB_LIGHT
+		light.Brightness = 2
+		light.Range = 8
+		light.Shadows = false
+		light.Parent = part
+	end
 
 	--[[
 		Built once with the part and recoloured on reuse, because the pool
@@ -525,6 +552,8 @@ local function launch(
 	if trail then
 		if pool == "Player" then
 			trail.Lifetime = ARROW_TRAIL_STUDS / math.max(spec.speed, 1e-3)
+		elseif pool == "PlayerOrb" then
+			trail.Lifetime = PLAYER_ORB_TRAIL_STUDS / math.max(spec.speed, 1e-3)
 		end
 		trail.Enabled = true
 	end
@@ -659,6 +688,23 @@ function ProjectileRenderer.start(parent: Instance)
 	folder = created
 
 	ProjectileRenderer.refreshFilters()
+
+	local bolt = Weapons.ArcaneStaff.bolt
+	if bolt and not boltTemplate then
+		task.spawn(function()
+			local ok, result = pcall(function()
+				return AssetService:CreateMeshPartAsync(Content.fromUri(bolt.meshId), {
+					CollisionFidelity = Enum.CollisionFidelity.Box,
+					RenderFidelity = Enum.RenderFidelity.Automatic,
+				})
+			end)
+			if ok then
+				boltTemplate = result
+				--[[ Shots pooled as plain balls before it arrived. ]]
+				table.clear(pools["PlayerOrb" :: Pool])
+			end
+		end)
+	end
 
 	if connection then
 		connection:Disconnect()

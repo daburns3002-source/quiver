@@ -19,6 +19,12 @@ share one model and one rig with a recoloured mesh and swapped accessories.
 Style as in `PETS-FOREST.md`: blocky, after Pet Simulator and Steal an Egg,
 copying nothing from them.
 
+**The Wilf marking** (owner, 2026-10-23): every Wilf model has a long sock
+on its **front right leg** (the Wilf's own right; +X, since models face
+−Z), running in its light paw colour from the foot up to the body. The
+front left leg has only a short paw at the foot. This applies to every Wilf
+model, pet or enemy.
+
 Concept sheets (Codex, 2026-10-23) are in `assets/concepts/pets/wilfs/`, one
 per Wilf (front, three-quarter, side, back, an action pose, in-game size,
 palette), and `contact_sheet.png` shows all ten.

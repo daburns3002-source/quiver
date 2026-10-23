@@ -15,7 +15,6 @@ local Workspace = game:GetService("Workspace")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 
-local ArcherPose = require(script.Parent.Fx.ArcherPose)
 local BurnFx = require(script.Parent.Fx.BurnFx)
 local CombatMarkers = require(script.Parent.Fx.CombatMarkers)
 local DashBar = require(script.Parent.UI.DashBar)
@@ -42,6 +41,7 @@ local SkillBar = require(script.Parent.UI.Cards.SkillBar)
 local TelegraphRenderer = require(script.Parent.Fx.TelegraphRenderer)
 local TopDownCamera = require(script.Parent.Camera.TopDownCamera)
 local Types = require(Shared.Types)
+local WeaponPose = require(script.Parent.Fx.WeaponPose)
 
 type ShotEvent = Types.ShotEvent
 
@@ -109,10 +109,10 @@ CombatMarkers.start(Workspace)
 TelegraphRenderer.start(Workspace)
 TopDownCamera.start(currentRoot)
 LocalFiring.start()
-ArcherPose.start(function()
+WeaponPose.start(function()
 	return LocalFiring.currentTarget() ~= nil
 end)
-LocalFiring.onFired(ArcherPose.release)
+LocalFiring.onFired(WeaponPose.release)
 MoveController.start()
 
 if not MoveController.hasSupportedInput() then

@@ -5,7 +5,7 @@
 	Built on the server, so every player in a co-op run sees it. Each part is
 	a clone of a mesh template welded to the hand: massless, never colliding,
 	answering a raycast, or touching, so it cannot change how the body moves
-	or catch an enemy shot. The arms are posed on the client (`Fx/ArcherPose`),
+	or catch an enemy shot. The arms are posed on the client (`Fx/WeaponPose`),
 	which also draws a bow's live string and nocked arrow (`Fx/BowString`).
 ]]
 
@@ -85,6 +85,12 @@ function HeldWeapon.equip(character: Model, weaponName: string)
 		end
 		if spec.liveString then
 			part:SetAttribute("LiveString", true)
+		end
+		if spec.orb then
+			part:SetAttribute("Orb", true)
+		end
+		if spec.orbit then
+			part:SetAttribute("Orbit", true)
 		end
 
 		local weld = Instance.new("WeldConstraint")

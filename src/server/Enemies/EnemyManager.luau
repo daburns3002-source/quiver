@@ -19,6 +19,7 @@ local Arena = require(script.Parent.Parent.Arena.Arena)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local EnemyModel = require(script.Parent.EnemyModel)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
+local Pathing = require(script.Parent.Pathing)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local RunSession = require(script.Parent.Parent.Run.RunSession)
 local Types = require(ReplicatedStorage.Shared.Types)
@@ -58,6 +59,12 @@ type Enemy = {
 	     targeted, and does nothing — Archero 2 shows where a wave will appear
 	     before it does. ]]
 	arrivesAt: number?,
+	--[[ Waypoints round the cover to its target (`Pathing`), and when they
+	     were found; nil while it can walk straight at it. ]]
+	route: { Vector3 }?,
+	routeAt: number,
+	--[[ The room the current route was planned with. ]]
+	routeClearance: number?,
 	health: number,
 	maxHealth: number,
 	position: Vector3,
@@ -143,6 +150,13 @@ local SEPARATION_STRENGTH = 6
      step. A charger has no pathfinding, so without this it walks into an
      obstacle face and Arena.resolve pins it there for ever. ]]
 local OBSTACLE_PROBE = 1.25
+
+--[[ Pathing: studs of room left round a body when planning its route, so
+     it does not graze every corner; seconds between fresh routes as the
+     target moves; and how near a waypoint counts as reached. ]]
+local PATH_CLEARANCE = 0.3
+local REPATH_INTERVAL = 0.4
+local WAYPOINT_REACHED = 0.75
 
 --[[ Fraction of its attackRange a ranged enemy backs away below, so it keeps a
      shooting lane instead of being walked over and turned into a melee enemy
@@ -518,6 +532,9 @@ function EnemyManager.spawn(
 		submerged = false,
 		slideSign = nil,
 		arrivesAt = nil,
+		route = nil,
+		routeAt = 0,
+		routeClearance = nil,
 	}
 	positions[model] = position
 	aliveCount += 1
@@ -1031,6 +1048,67 @@ local function stepEnemy(enemy: Enemy, deltaTime: number, now: number)
 		)
 
 		local heading = if toTarget.Magnitude > 1e-3 then toTarget.Unit else Vector3.zero
+
+		--[[ Round the cover rather than into it. Walking at the target is
+		     the default; when cover stands in the straight line, follow
+		     the route `Pathing` finds, refreshed a few times a second as
+		     the target moves and cut short whenever a later waypoint comes
+		     into a clear line. Only when closing in: backing away to hold a
+		     lane never needs a route. ]]
+		if not tooClose and not enemy.submerged then
+			--[[ Room for the body at its widest: the hitbox is a square that
+			     turns to face its target, and turned diagonally it is 1.41
+			     times as wide. Planned for that first, so a big body never
+			     catches a corner; then a tight fit, then flush, only where
+			     nothing wider gets through. ]]
+			local wide = radius * math.sqrt(2) + 0.1
+			local tight = radius + PATH_CLEARANCE
+			local clearance = enemy.routeClearance or wide
+			if Arena.isSegmentClear(enemy.position, targetRoot.Position, clearance) then
+				enemy.route = nil
+				enemy.routeClearance = nil
+			else
+				local route = enemy.route
+				if not route or now - enemy.routeAt >= REPATH_INTERVAL then
+					clearance = wide
+					route = Pathing.find(enemy.position, targetRoot.Position, wide)
+					if not route then
+						clearance = tight
+						route = Pathing.find(enemy.position, targetRoot.Position, tight)
+					end
+					if not route then
+						-- A gap barely its own width: flush with the sides.
+						clearance = radius
+						route = Pathing.find(enemy.position, targetRoot.Position, radius)
+					end
+					enemy.route = route
+					enemy.routeClearance = if route then clearance else nil
+					enemy.routeAt = now
+				end
+				if route then
+					while
+						#route > 1
+						and (
+							Vector3.new(
+									route[1].X - enemy.position.X,
+									0,
+									route[1].Z - enemy.position.Z
+								).Magnitude
+								< WAYPOINT_REACHED
+							or Arena.isSegmentClear(enemy.position, route[2], clearance)
+						)
+					do
+						table.remove(route, 1)
+					end
+					local leg =
+						Vector3.new(route[1].X - enemy.position.X, 0, route[1].Z - enemy.position.Z)
+					if leg.Magnitude > 1e-3 then
+						heading = leg.Unit
+					end
+				end
+			end
+		end
+
 		local desired = if tooClose then -heading else heading
 
 		--[[
@@ -1040,7 +1118,10 @@ local function stepEnemy(enemy: Enemy, deltaTime: number, now: number)
 			Arena.resolve returns it to the same spot every frame, and the room
 			deadlocks with the player's arrows blocked by that same pillar.
 		]]
-		if desired.Magnitude > 1e-3 and not enemy.submerged then
+		--[[ Not while following a route: its legs are already clear, and a
+		     big body's probe reaches past the corner it is rounding, so the
+		     slide fought the route and stalled it. ]]
+		if desired.Magnitude > 1e-3 and not enemy.submerged and not enemy.route then
 			local probe = enemy.position + desired * (radius + OBSTACLE_PROBE)
 			local normal = Arena.deflectionNormal(enemy.position, probe, radius)
 

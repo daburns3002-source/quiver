@@ -35,6 +35,9 @@ local blockersFolder: Folder? = nil
 local exitGate: ExitGate.Gate? = nil
 local boxes: { Box } = {}
 local halfSize = Vector2.zero
+--[[ Bumped every time a room is built, so anything cached against the
+     layout (`Enemies/Pathing`'s grids) knows to rebuild. ]]
+local layoutVersion = 0
 
 local function makePart(name: string, size: Vector3, position: Vector3, colour: Color3): Part
 	local part = Instance.new("Part")
@@ -383,6 +386,7 @@ function Arena.build(parent: Instance, obstacles: { Balance.Obstacle }, arena: s
 
 	halfSize = Vector2.new(extentX, extentZ)
 	table.clear(boxes)
+	layoutVersion += 1
 
 	local wallDefinitions = {
 		{
@@ -557,6 +561,34 @@ end
 function Arena.isClear(position: Vector3, radius: number): boolean
 	local resolved = Arena.resolve(position, radius)
 	return (resolved - position).Magnitude < 1e-3
+end
+
+--[[ Studs between samples along a segment: well under any body's radius, so
+     no obstacle corner can slip between two of them. ]]
+local SEGMENT_STEP = 0.5
+
+--[[ True if a body of `radius` could travel in a straight line from `from`
+     to `to` without touching an obstacle or wall. ]]
+function Arena.isSegmentClear(from: Vector3, to: Vector3, radius: number): boolean
+	local flat = Vector3.new(to.X - from.X, 0, to.Z - from.Z)
+	local steps = math.max(1, math.ceil(flat.Magnitude / SEGMENT_STEP))
+	for index = 0, steps do
+		local point = from + flat * (index / steps)
+		if not Arena.isClear(Vector3.new(point.X, 0, point.Z), radius) then
+			return false
+		end
+	end
+	return true
+end
+
+--[[ The floor's half-size, for anything laying a grid over it. ]]
+function Arena.halfSize(): Vector2
+	return halfSize
+end
+
+--[[ Changes whenever a new room is built. ]]
+function Arena.layoutVersion(): number
+	return layoutVersion
 end
 
 --[[

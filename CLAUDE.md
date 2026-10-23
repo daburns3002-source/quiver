@@ -158,6 +158,11 @@ To resume: `rojo serve`, connect the Studio plugin, Play. Read
 `docs/FIXES.md` before debugging anything — most of what can go wrong here
 already has.
 
+**Enemies path round cover** (`Enemies/Pathing`, 2026-10-23): when cover
+stands between an enemy and its target it follows an A* route over a grid
+built per body size from `Arena.isClear`, planned for its widest turn first.
+The face-slide below is now only the fallback when walking straight.
+
 **What first run fixed, so it does not get re-broken:**
 
 - Chargers deadlocked against pillars, which soft-locked the room. Fixed by

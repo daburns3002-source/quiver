@@ -15,6 +15,7 @@ local Workspace = game:GetService("Workspace")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 
+local Balance = require(Shared.Config.Balance)
 local BurnFx = require(script.Parent.Fx.BurnFx)
 local Classes = require(Shared.Config.Classes)
 local CombatMarkers = require(script.Parent.Fx.CombatMarkers)
@@ -198,8 +199,11 @@ Remotes.event(Remotes.RunStateChanged).OnClientEvent
 		     moment the next one starts fighting. ]]
 		if state == "Fighting" then
 			EndScreen.hide()
-		elseif state == "Cleared" then
-			SoundFx.play("gate_open")
+		elseif state == "Cleared" and unit ~= "Wave" then
+			--[[ With the doors, which start to swing once the clear's
+			     own beat has passed (`Arena/ExitGate`). Only a Rooms stage
+			     has an exit to open. ]]
+			task.delay(Balance.Run.clearPause, SoundFx.play, "gate_open")
 		end
 	end)
 

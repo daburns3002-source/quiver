@@ -2,7 +2,7 @@
 lightly after Archero 2. Every sound is built from scratch here (tones,
 noise, filters, envelopes), so all of it is ours to ship.
 
-Usage: synth.py <out_dir> [round ...]   (rounds 1 2 by default; 3 and 4 alone)
+Usage: synth.py <out_dir> [round ...]   (rounds 1 2 by default; later rounds alone)
 Writes <out_dir>/<sound>_<variant>.wav (44.1 kHz, 16-bit mono) and a
 manifest.json describing each variant.
 """
@@ -906,14 +906,142 @@ ROUND4 = {
 }
 
 
+# ---------- round 5 (owner, 2026-10-23): the staff cast in a completely
+# new direction; the enemy death's pop-pop ending in a big cartoon "POOF"
+# of a dust cloud (an original, in the spirit of a goal-explosion poof);
+# round 4's gate C with the doors in it. ----------
+
+# staff cast: new directions
+
+def r5_cast_a():  # A magic bubble "bloop"
+    tt = t_of(0.18)
+    f = 300 + 900 * (1 - np.exp(-tt * 40)) - 500 * (tt / 0.18) ** 2
+    bloop = np.sin(2 * np.pi * np.cumsum(f) / SR) * env_ad(len(tt), 0.003, 5)
+    return room(bloop, 0.12, 0.15)
+
+
+def r5_cast_b():  # A soft synth stab, filter opening and closing
+    tt = t_of(0.28)
+    saw = sum(np.sin(2 * np.pi * f * k * tt) / k for f in (220, 330) for k in range(1, 8))
+    stab = sweep_filter(saw, 2400, 500, q=1.5, kind="low") * env_ad(len(tt), 0.004, 5)
+    return room(stab, 0.15, 0.2)
+
+
+def r5_cast_c():  # A kalimba pluck, two notes
+    def tine(f, s):
+        return tone(f, s, 9, ((1, 1.0), (5.4, 0.18), (8.9, 0.05)), attack=0.001)
+    return room(mix((tine(784, 0.35), 0.7), (at(tine(1175, 0.3), 0.06), 0.55)), 0.15, 0.2)
+
+
+def r5_cast_d():  # An airy flute "hoo" swelling quickly
+    tt = t_of(0.3)
+    f = 660 * (1 + 0.01 * np.sin(2 * np.pi * 6 * tt))
+    body = np.sin(2 * np.pi * np.cumsum(f) / SR) + 0.2 * np.sin(2 * np.pi * 2 * np.cumsum(f) / SR)
+    breath = bandpass(noise(0.3), 1200, 4000) * 0.35
+    e = env_ad(len(tt), 0.06, 4)
+    return room((body + breath) * e, 0.18, 0.22)
+
+
+# enemy death: pop-pop, then a big cartoon dust-cloud POOF
+
+def _r5_pops():
+    return mix(*[(at(chirp(0.04, f, f * 2.2) * env_ad(int(SR * 0.04), 0.001, 6), d), 0.6)
+                 for f, d in ((420, 0), (560, 0.06))])
+
+
+def _poof(seconds=0.45, top=2400, bottom=180, thump=110):
+    cloud = sweep_filter(noise(seconds), top, bottom, q=0.8, kind="low") * env_ad(int(SR * seconds), 0.008, 4)
+    low = chirp(0.18, thump, thump * 0.5) * env_ad(int(SR * 0.18), 0.002, 5)
+    return mix((cloud, 1.0), (low, 0.6))
+
+
+def r5_death_a():  # A big, round POOF
+    return room(mix((_r5_pops(), 0.6), (at(_poof(), 0.1), 0.95)), 0.2, 0.22)
+
+
+def r5_death_b():  # A POOF with a cartoon "pff" whistle down through it
+    whistle = chirp(0.25, 1400, 400) * env_ad(int(SR * 0.25), 0.005, 5)
+    return room(mix((_r5_pops(), 0.6), (at(_poof(0.4), 0.1), 0.9), (at(whistle, 0.1), 0.2)), 0.2, 0.22)
+
+
+def r5_death_c():  # A punchier POOF, a little confetti sparkle after
+    sp = sparkle(0.35, [2093, 2637, 3136, 3520], spacing=0.035, decay=10)
+    return room(mix((_r5_pops(), 0.6), (at(_poof(0.35, 3000, 250, 130), 0.1), 1.0), (at(sp, 0.25), 0.22)), 0.2, 0.22)
+
+
+def r5_death_d():  # A softer, bigger cloud: POOF that lingers
+    return room(mix((_r5_pops(), 0.55), (at(_poof(0.65, 1800, 120, 90), 0.1), 0.95)), 0.28, 0.28)
+
+
+# gate open: round 4's C (two warm chords) with the doors in it
+
+def _r4c():
+    one = sum(tone(f, 0.25, 7, WARM) for f in [392, 494, 587]) / 2
+    two = sum(tone(f, 0.7, 3.5, WARM) for f in [523, 659, 784]) / 2
+    return mix((one, 0.6), (at(two, 0.16), 0.7))
+
+
+def _creak(seconds=0.7):
+    tt = t_of(seconds)
+    rate = 18 + 10 * np.sin(2 * np.pi * 1.3 * tt)
+    pulses = (np.sin(2 * np.pi * np.cumsum(rate) / SR) > 0.92).astype(float)
+    grit = bandpass(noise(seconds), 500, 1600) * pulses
+    return lowpass(grit, 2200) * env_ad(len(tt), 0.1, 2)
+
+
+def _thud(f=95):
+    return mix((chirp(0.12, f, f * 0.6) * env_ad(int(SR * 0.12), 0.002, 6), 1.0),
+               (lowpass(noise(0.05), 600) * env_ad(int(SR * 0.05), 0.001, 6), 0.4))
+
+
+def r5_gate_a():  # A wooden creak as the doors swing, then C
+    return room(mix((_creak(), 0.6), (at(_r4c(), 0.65), 0.75)), 0.25, 0.28)
+
+
+def r5_gate_b():  # A latch click and the doors' soft thud, then C
+    latch = tone(1800, 0.04, 30, ((1, 1.0), (2.4, 0.4)), attack=0.0005)
+    return room(mix((latch, 0.4), (at(_thud(), 0.7), 0.7), (at(_r4c(), 0.75), 0.7)), 0.25, 0.28)
+
+
+def r5_gate_c():  # C over the creak, together
+    return room(mix((_creak(0.9), 0.45), (at(_r4c(), 0.15), 0.75)), 0.25, 0.28)
+
+
+def r5_gate_d():  # The doors swing and bounce to a stop (thunk-thunk), then C
+    return room(mix((whoosh(0.6, 300, 1200, q=1.0, attack=0.2, decay=3), 0.35),
+                    (at(_thud(), 0.6), 0.8), (at(_thud(120), 0.78), 0.45), (at(_r4c(), 0.85), 0.7)), 0.25, 0.28)
+
+
+ROUND5 = {
+    "staff_cast": [
+        ("a", r5_cast_a, "A magic bubble \"bloop\"."),
+        ("b", r5_cast_b, "A soft synth stab, its tone opening and closing."),
+        ("c", r5_cast_c, "A kalimba pluck, two notes."),
+        ("d", r5_cast_d, "An airy flute \"hoo\" swelling quickly."),
+    ],
+    "enemy_death": [
+        ("a", r5_death_a, "Pop-pop, then a big round POOF."),
+        ("b", r5_death_b, "Pop-pop, then a POOF with a cartoon whistle down through it."),
+        ("c", r5_death_c, "Pop-pop, then a punchier POOF and a little confetti sparkle."),
+        ("d", r5_death_d, "Pop-pop, then a softer, bigger cloud that lingers."),
+    ],
+    "gate_open": [
+        ("a", r5_gate_a, "The doors creak open, then your C."),
+        ("b", r5_gate_b, "A latch click, the doors' soft thud, then your C."),
+        ("c", r5_gate_c, "Your C over the creaking doors, together."),
+        ("d", r5_gate_d, "The doors swing and bounce to a stop (thunk-thunk), then your C."),
+    ],
+}
+
+
 # The audition rounds, kept so any take can be rendered again exactly.
-ROUNDS = {"1": ROUND1, "2": ROUND2, "3": ROUND3, "4": ROUND4}
+ROUNDS = {"1": ROUND1, "2": ROUND2, "3": ROUND3, "4": ROUND4, "5": ROUND5}
 
 if __name__ == "__main__":
     out = sys.argv[1]
     # Rounds render in order from one seed, so a round renders the same
     # takes only alongside the rounds it was first rendered with (1 and 2
-    # together; 3 and 4 each alone).
+    # together; each later round alone).
     wanted = sys.argv[2:] or ["1", "2"]
     os.makedirs(out, exist_ok=True)
     manifest = {}

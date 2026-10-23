@@ -27,6 +27,7 @@ local EnemyManager = require(script.Parent.Enemies.EnemyManager)
 local EnemyModel = require(script.Parent.Enemies.EnemyModel)
 local FiringSystem = require(script.Parent.Combat.FiringSystem)
 local Game = require(ReplicatedStorage.Shared.Config.Game)
+local HeldWeapon = require(script.Parent.Combat.HeldWeapon)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
 local ProjectileSystem = require(script.Parent.Combat.ProjectileSystem)
 local Remotes = require(game:GetService("ReplicatedStorage").Shared.Net.Remotes)
@@ -81,11 +82,14 @@ Atmosphere.apply()
 EnemyModel.preload()
 -- Uploaded arena meshes, likewise, before the first room is built.
 Arena.preload()
+-- The archer's bow.
+HeldWeapon.preload()
 RoomController.start()
 
 local function onCharacterAdded(player: Player, character: Model)
 	local session = RunSession.get(player) or RunSession.create(player)
 	RunSession.bindCharacter(session, character)
+	HeldWeapon.equip(character)
 	--[[ Enemy projectiles raycast against player characters, so the filter has
 	     to learn about each new body. Without this a respawned player is
 	     invisible to every enemy shot. ]]

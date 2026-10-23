@@ -15,6 +15,7 @@ local Workspace = game:GetService("Workspace")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 
+local ArcherPose = require(script.Parent.Fx.ArcherPose)
 local BurnFx = require(script.Parent.Fx.BurnFx)
 local CombatMarkers = require(script.Parent.Fx.CombatMarkers)
 local DashBar = require(script.Parent.UI.DashBar)
@@ -108,6 +109,8 @@ CombatMarkers.start(Workspace)
 TelegraphRenderer.start(Workspace)
 TopDownCamera.start(currentRoot)
 LocalFiring.start()
+ArcherPose.start()
+LocalFiring.onFired(ArcherPose.release)
 MoveController.start()
 
 if not MoveController.hasSupportedInput() then

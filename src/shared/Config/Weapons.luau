@@ -6,8 +6,9 @@
 	Presentation only. Built on the server so every player sees it
 	(`Combat/HeldWeapon`), welded to a hand, never colliding, answering a
 	raycast or stopping a shot. The arms are posed on each client
-	(`Fx/WeaponPose`, from `Config/WeaponAnimations`), the bow's string and
-	the staff's orb drawn there too (`Fx/BowString`, `Fx/StaffOrb`).
+	(`Fx/WeaponPose`, from `Config/WeaponAnimations`), the bow's string, the
+	staff's orb and the sword's swing trail drawn there too (`Fx/BowString`,
+	`Fx/StaffOrb`, `Fx/SwingTrail`).
 
 	Models follow the enemy pipeline: GLB from Claude Design →
 	`assets/models/weapons/optimise_weapon.py` → imported in Studio → mesh ids
@@ -23,6 +24,12 @@ export type WeaponPart = {
 	offset: Vector3,
 	--[[ Drawn Neon, for a gem. ]]
 	glow: boolean?,
+	--[[ A colour map, for a model whose colours are baked into textures
+	     rather than its vertices (the greatsword kit's). ]]
+	textureId: string?,
+	--[[ The part's colour, when not white (which lets the model's own
+	     colours show). Neon shows this colour and nothing else. ]]
+	colour: Color3?,
 	--[[ Hidden on the weapon; the client draws its own copy on the string
 	     while an arrow is nocked (`Fx/BowString`). ]]
 	nocked: boolean?,
@@ -36,14 +43,21 @@ export type WeaponPart = {
 }
 
 --[[ Which of the weapon's `Config/WeaponAnimations` clips plays when:
-     `hold` while moving or with nothing to shoot, `ready` on stopping with
-     a target (drawing, charging), `aim` looping after it, and `fire` on
-     each shot, after which `ready` plays again. ]]
+     `hold` with nothing to shoot (and while moving, unless the weapon has
+     a `move` clip of its own), `ready` on stopping with a target (drawing,
+     charging) and `aim` looping after it, and `fire` on each shot, after
+     which `ready` plays again. A weapon without `ready` holds until its
+     first shot. `fire` is a combo: each shot plays the next, round and
+     round, back to the first after a pause (`Fx/WeaponPose`). ]]
 export type Clips = {
 	hold: string,
-	ready: string,
-	aim: string,
-	fire: string,
+	move: string?,
+	--[[ Studs a second the `move` clip was made for; it plays faster or
+	     slower to match how fast the character goes. ]]
+	moveSpeed: number?,
+	ready: string?,
+	aim: string?,
+	fire: { string },
 }
 
 export type Weapon = {
@@ -53,6 +67,13 @@ export type Weapon = {
 	scale: number,
 	--[[ Where the grip sits in the hand's own frame, studs. ]]
 	grip: Vector3,
+	--[[ How the model is turned in the hand, when not the bow's and the
+	     staff's (upright, pointing where the fingers do). ]]
+	inHand: CFrame?,
+	--[[ A swing trail, between two heights up the blade in model units
+	     (`Fx/SwingTrail`), shown between a slash's `TrailOn` and
+	     `TrailOff` markers. ]]
+	swingTrail: { base: Vector3, tip: Vector3, colour: { Color3 } }?,
 	clips: Clips,
 	--[[ The `Config/Sounds` entry each shot plays. ]]
 	fireSound: string,
@@ -85,7 +106,7 @@ local Weapons = {
 		hand = "LeftHand",
 		scale = 3.8,
 		grip = Vector3.new(0, -0.15, 0),
-		clips = { hold = "Hold", ready = "Draw", aim = "Aim", fire = "Fire" },
+		clips = { hold = "Hold", ready = "Draw", aim = "Aim", fire = { "Fire" } },
 		fireSound = "arrow_fire",
 		--[[ From the kit's README, turned into this model's frame (the
 		     arrow points +Z here, −Z in the kit). ]]
@@ -146,7 +167,7 @@ local Weapons = {
 		hand = "RightHand",
 		scale = 3.4,
 		grip = Vector3.new(0, -0.1, 0),
-		clips = { hold = "Hold", ready = "Charge", aim = "Channel", fire = "Cast" },
+		clips = { hold = "Hold", ready = "Charge", aim = "Channel", fire = { "Cast" } },
 		fireSound = "staff_cast",
 		--[[ The kit's, turned into this model's frame. ]]
 		orbitAxis = Vector3.new(0, -0.3146, -0.9492),
@@ -190,6 +211,93 @@ local Weapons = {
 				size = Vector3.new(0.2915, 0.2871, 0.1095),
 				offset = Vector3.new(0.0000, 0.6356, 0.0082),
 				orbit = true,
+			},
+		},
+	} :: Weapon,
+
+	--[[ The Warden's ruby greatsword (`assets/models/weapons/
+	     ruby_greatsword_roblox.glb`, the owner's kit in
+	     `ruby_greatsword_r15/`, imported 2026-10-23): two-handed, the right
+	     hand on the upper grip and the left placed by the animations on the
+	     lower, about 5 studs from pommel to tip. Offsets are from the upper
+	     grip, model Y 0.062; the kit's weld turns the blade along the hand's
+	     −Z with the edge down. Its colours are baked textures, so each part
+	     names its colour map. Its Walk drags the blade; its three slashes
+	     are a combo, the third an overhead slam. ]]
+	RubyGreatsword = {
+		hand = "RightHand",
+		scale = 4.0,
+		grip = Vector3.new(0, -0.1, 0),
+		inHand = CFrame.Angles(-math.pi / 2, 0, 0) * CFrame.Angles(0, math.pi / 2, 0),
+		clips = {
+			hold = "Hold",
+			move = "Walk",
+			moveSpeed = 6,
+			fire = { "Slash_A", "Slash_B", "Slash_C" },
+		},
+		fireSound = "sword_swing",
+		swingTrail = {
+			base = Vector3.new(0, 0.44 - 0.062, 0),
+			tip = Vector3.new(0, 1.0216 - 0.062, 0),
+			colour = { Color3.fromRGB(255, 120, 100), Color3.fromRGB(216, 35, 47) },
+		},
+		parts = {
+			{
+				name = "Blade",
+				meshId = "rbxassetid://81177474115791",
+				size = Vector3.new(0.2024, 0.7754, 0.0410),
+				offset = Vector3.new(0.0000, 0.5719, 0.0000),
+				textureId = "rbxassetid://109422005464586",
+			},
+			{
+				name = "Fuller",
+				meshId = "rbxassetid://94721709561581",
+				size = Vector3.new(0.0438, 0.6715, 0.0533),
+				offset = Vector3.new(0.0000, 0.5199, 0.0000),
+				textureId = "rbxassetid://94166397640483",
+			},
+			{
+				name = "Gold_Trim",
+				meshId = "rbxassetid://93771149745639",
+				size = Vector3.new(0.3593, 1.1834, 0.0793),
+				offset = Vector3.new(0.0000, 0.2876, 0.0000),
+				textureId = "rbxassetid://106699129882172",
+			},
+			{
+				name = "Guard",
+				meshId = "rbxassetid://110968987767753",
+				size = Vector3.new(0.2530, 0.1801, 0.0656),
+				offset = Vector3.new(0.0000, 0.1333, 0.0000),
+				textureId = "rbxassetid://128210431219594",
+			},
+			{
+				name = "Horns",
+				meshId = "rbxassetid://85156262532772",
+				size = Vector3.new(0.4762, 0.1960, 0.0656),
+				offset = Vector3.new(0.0000, 0.1530, 0.0000),
+				textureId = "rbxassetid://106246437883710",
+			},
+			{
+				name = "Grip",
+				meshId = "rbxassetid://82245855764564",
+				size = Vector3.new(0.0539, 0.1833, 0.0539),
+				offset = Vector3.new(0.0000, -0.0661, 0.0000),
+				textureId = "rbxassetid://123206334207297",
+			},
+			{
+				name = "Pommel",
+				meshId = "rbxassetid://105635285530014",
+				size = Vector3.new(0.1253, 0.3282, 0.0602),
+				offset = Vector3.new(0.0000, -0.1331, 0.0000),
+				textureId = "rbxassetid://85691278304365",
+			},
+			{
+				name = "Gems",
+				meshId = "rbxassetid://111607416746563",
+				size = Vector3.new(0.0684, 0.4158, 0.0903),
+				offset = Vector3.new(0.0000, -0.0593, 0.0000),
+				glow = true,
+				colour = Color3.fromRGB(216, 35, 47),
 			},
 		},
 	} :: Weapon,

@@ -121,10 +121,12 @@ local function nearestEnemy(origin: Vector3): (Model?, Vector3?)
 
 	local arena = Workspace:FindFirstChild("Arena")
 	local blockers = arena and arena:FindFirstChild("Blockers")
+	--[[ A melee class picks only what it can reach, as the server does. ]]
+	local class = Classes[PlayerStats.get().class]
 	local choice = Aim.choose(
 		origin,
 		candidates,
-		Balance.Player.attackRange,
+		if class and class.reach then class.reach else Balance.Player.attackRange,
 		Aim.clearTest(blockers, Balance.Projectile.radius)
 	)
 
@@ -243,6 +245,16 @@ local function step()
 
 	lastFiredAt = now
 
+	--[[ A melee class's swing is the server's to land (`Combat/MeleeSystem`);
+	     this client only plays it. ]]
+	local class = Classes[stats.class]
+	if class and class.swing then
+		for _, listener in firedListeners do
+			listener()
+		end
+		return
+	end
+
 	local origin = Aim.shotOrigin(root.Position)
 	local specs = pipeline:build({
 		damage = Balance.Player.baseDamage,
@@ -252,7 +264,7 @@ local function step()
 		direction = aim.Unit,
 	})
 
-	local look = Classes[stats.class] and Classes[stats.class].look or "Arrow"
+	local look = if class then class.look else "Arrow"
 	ProjectileRenderer.spawnVolley("Player", origin, aim.Unit, specs, 0, nil, look)
 	for _, listener in firedListeners do
 		listener()

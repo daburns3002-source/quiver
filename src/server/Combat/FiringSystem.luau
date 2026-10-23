@@ -20,6 +20,7 @@ local Arena = require(script.Parent.Parent.Arena.Arena)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Classes = require(ReplicatedStorage.Shared.Config.Classes)
 local EnemyManager = require(script.Parent.Parent.Enemies.EnemyManager)
+local MeleeSystem = require(script.Parent.MeleeSystem)
 local ProjectileSystem = require(script.Parent.ProjectileSystem)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local RunSession = require(script.Parent.Parent.Run.RunSession)
@@ -181,6 +182,13 @@ function FiringSystem.step(_deltaTime: number, now: number)
 			now - (session.stationarySince or now)
 		)
 		if now - session.lastFiredAt < cooldown then
+			continue
+		end
+
+		--[[ A melee class swings instead (`Config/Classes.swing`): the same
+		     rule decides when, and `MeleeSystem` decides what it hits. ]]
+		if Classes[session.loadout.class].swing then
+			MeleeSystem.swing(session, root, now, cooldown)
 			continue
 		end
 

@@ -29,6 +29,8 @@ local Sounds: { [string]: Sound } = {
 	--[[ The Ranger's every arrow (`Config/Weapons.LeafBow.fireSound`). ]]
 	arrow_fire = { id = "", volume = 0.6, pitchJitter = 0.06, minGap = 0.03 },
 	--[[ The Arcanist's every bolt (`Config/Weapons.ArcaneStaff.fireSound`). ]]
+	--[[ The Warden's every swing (`Config/Weapons.RubyGreatsword.fireSound`). ]]
+	sword_swing = { id = "", volume = 0.7, pitchJitter = 0.05, minGap = 0.05 },
 	staff_cast = { id = "", volume = 0.6, pitchJitter = 0.04, minGap = 0.03 },
 	enemy_hit = { id = "", volume = 0.6, pitchJitter = 0.08, minGap = 0.04 },
 	enemy_death = { id = "", volume = 0.7, pitchJitter = 0.06, minGap = 0.05 },

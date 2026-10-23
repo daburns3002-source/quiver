@@ -200,7 +200,7 @@ The face-slide below is now only the fallback when walking straight.
 **Studio test keys** (`client/DevKeys`, honoured by the server only in
 Studio): **M** — the next card hand includes a Mythic; **L** — a Legendary;
 **V** / **B** — preview the Victory / Defeat end screen, on this client only.
-**C** — switch class (Ranger → Arcanist, `Config/Classes`): the loadout
+**C** — switch class (Ranger → Arcanist → Warden, `Config/Classes`): the loadout
 and the weapon in hand change at once.
 From a probe, `Remotes.DebugForceMythic:FireServer("Legendary")` does the
 same without the MCP keyboard tool, which reports as a gamepad and flips the

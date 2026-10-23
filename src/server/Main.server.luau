@@ -30,6 +30,7 @@ local FiringSystem = require(script.Parent.Combat.FiringSystem)
 local Game = require(ReplicatedStorage.Shared.Config.Game)
 local HeldWeapon = require(script.Parent.Combat.HeldWeapon)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
+local MeleeSystem = require(script.Parent.Combat.MeleeSystem)
 local ProjectileSystem = require(script.Parent.Combat.ProjectileSystem)
 local Remotes = require(game:GetService("ReplicatedStorage").Shared.Net.Remotes)
 local RoomController = require(script.Parent.Run.RoomController)
@@ -161,7 +162,7 @@ end)
 --[[ Testing only: switch class, the order fixed so the key cycles. Honoured
      only in Studio, like the Mythic key. The run's drafted skills stay; a
      skill the new class cannot be dealt keeps working if already held. ]]
-local CLASS_ORDER = { "Ranger", "Arcanist" }
+local CLASS_ORDER = { "Ranger", "Arcanist", "Warden" }
 
 Remotes.event(Remotes.DebugNextClass).OnServerEvent:Connect(function(player)
 	if not RunService:IsStudio() then
@@ -218,6 +219,7 @@ RunService.Heartbeat:Connect(function(deltaTime: number)
 	     between its telegraph ending and the projectiles existing. ]]
 	EnemyFiring.step(now)
 	FiringSystem.step(deltaTime, now)
+	MeleeSystem.step(now)
 	ProjectileSystem.step(deltaTime, now)
 	--[[ After projectiles, so a burn lit this frame does not tick in it. ]]
 	Burning.step(now)

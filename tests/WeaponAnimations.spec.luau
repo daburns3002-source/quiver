@@ -13,8 +13,6 @@ local TestRunner = require(script.Parent.TestRunner)
 local WeaponAnimations = require(ReplicatedStorage.Shared.Config.WeaponAnimations)
 local Weapons = require(ReplicatedStorage.Shared.Config.Weapons)
 
-local ROLES = { "hold", "ready", "aim", "fire" }
-
 local function eachWeapon(): { [string]: Weapons.Weapon }
 	local out = {}
 	for name, entry in Weapons :: any do
@@ -30,10 +28,24 @@ return function(t: TestRunner.Helper)
 		for name, weapon in eachWeapon() do
 			local clips = WeaponAnimations[name]
 			t.notNil(clips, `{name} has no animations`)
-			for _, role in ROLES do
-				local clip = (weapon.clips :: any)[role]
-				t.notNil(clips and clips[clip], `{name}'s {role} clip {clip} is missing`)
+			local named: { string } = { weapon.clips.hold }
+			for _, optional in { "move", "ready", "aim" } do
+				local clip = (weapon.clips :: any)[optional]
+				if clip then
+					table.insert(named, clip)
+				end
 			end
+			for _, clip in weapon.clips.fire do
+				table.insert(named, clip)
+			end
+			for _, clip in named do
+				t.notNil(clips and clips[clip], `{name}'s clip {clip} is missing`)
+			end
+			t.isTrue(#weapon.clips.fire >= 1, `{name} has no fire clip`)
+			t.isTrue(
+				(weapon.clips.ready == nil) == (weapon.clips.aim == nil),
+				`{name} has a ready clip without an aim, or the other way round`
+			)
 		end
 	end)
 
@@ -66,12 +78,28 @@ return function(t: TestRunner.Helper)
 		end
 	end)
 
-	--[[ The shot leaves at the fire marker; a fire clip without one would
-	     never let go of the arrow. ]]
+	--[[ The attack leaves at the fire clip's marker; a fire clip without
+	     one would never let go of the arrow or land the blow. ]]
 	t.test("every fire clip has a marker", function()
 		for name, weapon in eachWeapon() do
-			local clip = WeaponAnimations[name][weapon.clips.fire]
-			t.isTrue(next(clip.markers) ~= nil, `{name}'s fire clip has no marker`)
+			for _, clipName in weapon.clips.fire do
+				local clip = WeaponAnimations[name][clipName]
+				t.isTrue(next(clip.markers) ~= nil, `{name}'s {clipName} has no marker`)
+			end
+		end
+	end)
+
+	--[[ A swing's damage lands on its Hit marker, and its trail shows
+	     between TrailOn and TrailOff: in that order, or the blow lands with
+	     no blade drawn. ]]
+	t.test("a slash's trail is on when its blow lands", function()
+		for weapon, clips in WeaponAnimations do
+			for name, clip in clips do
+				local on, hit, off = clip.markers.TrailOn, clip.markers.Hit, clip.markers.TrailOff
+				if hit and on and off then
+					t.isTrue(on <= hit and hit <= off, `{weapon} {name} lands outside its trail`)
+				end
+			end
 		end
 	end)
 

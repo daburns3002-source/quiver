@@ -119,6 +119,30 @@ export type EnemyBurrow = {
 	cooldown: number,
 }
 
+--[[
+	A lunge: the enemy winds up where it stands, locks the direction to its
+	target, then bolts down that line at `speed` for `distance` studs,
+	striking the player once if it touches them on the way. Stopped short
+	by cover. The counterplay is the same as a locked shot's: read the tell
+	and step out of the line before it goes.
+
+	An archetype can have several, chosen by how far away the player is
+	(`minRange`..`maxRange`); they share its `attackCooldown`, which starts
+	when the wind-up does.
+]]
+export type EnemyLunge = {
+	minRange: number,
+	maxRange: number,
+	--[[ Seconds of wind-up, standing still, before it goes. ]]
+	telegraph: number,
+	tell: EnemyTell,
+	distance: number,
+	--[[ Studs a second while lunging. ]]
+	speed: number,
+	--[[ Multiplier on `attackDamage` for a hit during this lunge. ]]
+	damageScale: number,
+}
+
 export type EnemyConfig = {
 	displayName: string,
 	health: number,
@@ -147,6 +171,8 @@ export type EnemyConfig = {
 	shot: EnemyShot?,
 	burrow: EnemyBurrow?,
 	split: EnemySplit?,
+	--[[ Lunging attacks, in place of the plain melee hit. ]]
+	lunges: { EnemyLunge }?,
 }
 
 local meleeCharger: EnemyConfig = {
@@ -198,6 +224,58 @@ local broodSlime: EnemyConfig = {
 	--[[ Four, one per baby, like Zac; at half a Moss Slime's health each
 	     (owner, 2026-10-22: Level 1 was too hard). ]]
 	split = { into = meleeCharger, count = 4, health = 0.5 },
+}
+
+--[[
+	The Ember Wolf (owner, 2026-10-23: "a wolf enemy that has a charge and
+	dash attack ... modeled after this dog"): a fluffy ginger wolf, quick
+	and low, that never just walks up and bites. From across the room it
+	charges, a long locked line drawn on the floor first; up close it dashes,
+	a short pounce on a quick flash. Both are lunges (`EnemyLunge`), so the
+	answer to both is the same — see where it is pointed and get out of the
+	line. Its body is primitives in the dog's colours until its model exists
+	(`assets/concepts/models/ember_wolf_sheet.png`).
+]]
+local wolf: EnemyConfig = {
+	displayName = "Wolf",
+	--[[ Nimble: it whips round to line up the next lunge. ]]
+	turnRate = 600,
+	health = 260,
+	moveSpeed = 6.3,
+	--[[ It closes to here, inside the dash, then lunges; it has no plain
+	     bite. ]]
+	attackRange = 5,
+	attackDamage = 60,
+	attackCooldown = 1.8,
+	knockback = 2.5,
+	--[[ Long and low: 2.6 across, 2.6 tall, 4.6 nose to tail, so its body
+	     fits (`EnemyDesigns.Wolf`) and arrows at `Projectile.height` meet it. ]]
+	hitboxSize = Vector3.new(2.6, 2.6, 4.6),
+	color = Color3.fromRGB(214, 116, 48),
+	xpReward = 16,
+	shot = nil,
+	lunges = {
+		--[[ Dash: close, quick, and lighter. ]]
+		{
+			minRange = 0,
+			maxRange = 8,
+			telegraph = 0.4,
+			tell = "Flash" :: EnemyTell,
+			distance = 7,
+			speed = 32,
+			damageScale = 0.8,
+		},
+		--[[ Charge: from across the room, on a long line, and it hurts. ]]
+		{
+			minRange = 8,
+			maxRange = 20,
+			telegraph = 0.75,
+			tell = "Line" :: EnemyTell,
+			distance = 18,
+			speed = 26,
+			damageScale = 1.3,
+		},
+	},
 }
 
 --[[
@@ -688,7 +766,9 @@ local rooms: { RoomConfig } = {
 			{ offset = Vector2.new(-6.21, 19.71), size = Vector3.new(2.7, 1.2, 2.7) },
 		},
 		enemyCount = 4,
-		roster = { meleeCharger, spreadShooter, broodSlime, lineSniper },
+		--[[ The wolf's debut (2026-10-23): the first room that brings
+		     nothing else new, so it is the one thing to learn here. ]]
+		roster = { meleeCharger, spreadShooter, broodSlime, lineSniper, wolf },
 	},
 	{
 		name = "Mossy Pond II",
@@ -720,7 +800,7 @@ local rooms: { RoomConfig } = {
 			{ offset = Vector2.new(-5.8, 19.06), size = Vector3.new(2, 1.5, 2) },
 		},
 		enemyCount = 5,
-		roster = { meleeCharger, spreadShooter, lineSniper, burrower, broodSlime },
+		roster = { meleeCharger, spreadShooter, lineSniper, burrower, broodSlime, wolf },
 	},
 	{
 		name = "Mossy Thorns II",
@@ -1017,6 +1097,7 @@ local Balance = {
 		Tank = tank,
 		Burrower = burrower,
 		BroodSlime = broodSlime,
+		Wolf = wolf,
 	},
 
 	--[[

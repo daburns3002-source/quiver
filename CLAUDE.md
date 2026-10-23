@@ -213,6 +213,7 @@ Studio): **M** — the next card hand includes a Mythic; **L** — a Legendary;
 **V** / **B** — preview the Victory / Defeat end screen, on this client only.
 **C** — switch class (Ranger → Arcanist → Warden, `Config/Classes`): the loadout
 and the weapon in hand change at once.
+**K** — spawn a wolf (`Remotes.DebugSpawnEnemy`, any `Balance.Enemies` key from a probe).
 From a probe, `Remotes.DebugForceMythic:FireServer("Legendary")` does the
 same without the MCP keyboard tool, which reports as a gamepad and flips the
 draft into its controller layout.

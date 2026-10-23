@@ -182,6 +182,16 @@ Remotes.event(Remotes.DebugNextClass).OnServerEvent:Connect(function(player)
 	log.info("%s is now a %s (Studio)", player.Name, class)
 end)
 
+Remotes.event(Remotes.DebugSpawnEnemy).OnServerEvent:Connect(function(_player, name)
+	if not RunService:IsStudio() or type(name) ~= "string" then
+		return
+	end
+	local config = (Balance.Enemies :: any)[name]
+	if config then
+		EnemyManager.spawn(config)
+	end
+end)
+
 Remotes.event(Remotes.AbilityReroll).OnServerEvent:Connect(function(player)
 	local session = RunSession.get(player)
 	if session then

@@ -161,6 +161,9 @@ Remotes.DebugForceMythic = "DebugForceMythic"
 --[[ Client → server, Studio only: switch to the next class (`Config/Classes`).
      Stands in for a lobby's class choice until one exists. ]]
 Remotes.DebugNextClass = "DebugNextClass"
+--[[ Client → server, Studio only: spawn one enemy of the named archetype
+     (a `Balance.Enemies` key), to test it without reaching its room. ]]
+Remotes.DebugSpawnEnemy = "DebugSpawnEnemy"
 
 local function getFolder(): Folder
 	if RunService:IsServer() then

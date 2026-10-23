@@ -59,6 +59,12 @@ export type Clips = {
 	ready: string?,
 	aim: string?,
 	fire: { string },
+	--[[ A layer under all of these for the joints a clip leaves out: `idle`
+	     standing, `walk` moving, played faster or slower to match the
+	     character's speed against `walkSpeed`, the studs a second it was
+	     made for. The bow's Hold moves only the upper body, and these give
+	     it the owner's stance and stride (`LeafBow_R15_Kit`). ]]
+	legs: { idle: string, walk: string, walkSpeed: number }?,
 }
 
 export type Weapon = {
@@ -126,7 +132,17 @@ local Weapons = {
 		hand = "LeftHand",
 		scale = 3.8,
 		grip = Vector3.new(0, -0.15, 0),
-		clips = { hold = "Hold", ready = "Draw", aim = "Aim", fire = { "Fire" } },
+		--[[ The owner's LeafBow R15 kit (2026-10-23,
+		     `assets/models/weapons/leaf_bow_r15/LeafBow_R15_Kit.rbxmx`):
+		     Hold for the upper body over the Idle or Walk legs, Draw, Aim
+		     and Fire for the whole body. ]]
+		clips = {
+			hold = "Hold",
+			ready = "Draw",
+			aim = "Aim",
+			fire = { "Fire" },
+			legs = { idle = "Idle", walk = "Walk", walkSpeed = 5.351651 },
+		},
 		fireSound = "arrow_fire",
 		--[[ From the kit's README, turned into this model's frame (the
 		     arrow points +Z here, −Z in the kit). ]]

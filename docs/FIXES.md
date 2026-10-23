@@ -16,6 +16,54 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## Grey space past the arena, and the grass outside the walls read grey
+
+**Symptom** — "make sure the camera cant see any gray space", then "i need
+the grass on the outside and to match".
+
+**Cause** — three, stacked. The glade model is 81 studs wide and a desktop
+screen sees about 124, so the void showed past both sides. The place's
+default `Atmosphere` haze is grey (199, 199, 199 at density 0.3), and
+nothing in code set it. And the glade's ground — one mesh, bright lawn
+inside and dark grass (53, 88, 41) outside — rendered its outside pale
+grey-green as SmoothPlastic. Turning the haze off and the environment
+reflection off (`EnvironmentSpecularScale = 0`) both left it pale; only the
+material mattered.
+
+**Fix** — the glade's trees, bushes and grass are drawn again 81 studs to
+either side over a matte forest floor (`ArenaModels.surround`); the haze is
+set from `Balance.Lighting`, forest green; the ground is drawn matte
+(`ArenaPart.matte`, Fabric), which keeps the lawn its own bright green.
+
+**Measured** — Studio captures at spawn on all five glades: forest and dark
+grass to both screen edges, lawn bright. Hiding the ground mesh alone showed
+the pale band was the ground, not the floor plane under it.
+
+**Watch for** — a Studio window in the background drops its render quality
+and its shadows, which washes out ground colours and looks like this bug.
+Restart Play before judging colour from a capture.
+
+---
+
+## The boss arena's walls stood outside the room
+
+**Symptom** — in Studio, the boss glade's lawn was a third wider than every
+other room's, and its walls were 5 studs past where the player was stopped.
+
+**Cause** — the Claude Design boss arena draws its walls bigger (18.5 × 25.5
+before scaling, against 14.5 × 22.5), and every glade was scaled ×2.7.
+
+**Fix** — each glade is scaled so its walls land on the log glade's
+footprint, which is the room's: ×2.70 for four of them, ×2.11 across and
+×2.38 deep for the boss. Its pillar cover moved with it, and since squeezing
+narrowed its own forest into gaps, it borrows the log glade's beside it
+(`surroundFrom`).
+
+**Measured** — capture with cover boxes shown: boss walls on the room's
+edges, all four pillars inside their boxes, forest to both edges.
+
+---
+
 ## A picked skill flew to the middle of the bar, and too high
 
 **Symptom** — "when the animation plays for the upgrade to the upgrade bar

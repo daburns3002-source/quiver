@@ -36,6 +36,10 @@ export type Tier = {
 	--[[ Share of the end screens' confetti, sparks and embers drawn. Never
 	     zero: a Victory with no confetti at all reads as broken. ]]
 	endScreenParticleShare: number,
+	--[[ Share of the Mythics' debris, embers and rock spikes drawn
+	     (`Fx/MythicFx`). Never zero: a meteor that lands with nothing
+	     thrown up reads as a miss. ]]
+	mythicFxShare: number,
 }
 
 --[[
@@ -55,6 +59,7 @@ local low: Tier = {
 	enableBloom = false,
 	orbSparkleRate = 0,
 	endScreenParticleShare = 0.5,
+	mythicFxShare = 0.5,
 }
 
 local medium: Tier = {
@@ -69,6 +74,7 @@ local medium: Tier = {
 	enableBloom = true,
 	orbSparkleRate = 8,
 	endScreenParticleShare = 0.75,
+	mythicFxShare = 0.75,
 }
 
 local high: Tier = {
@@ -83,6 +89,7 @@ local high: Tier = {
 	enableBloom = true,
 	orbSparkleRate = 16,
 	endScreenParticleShare = 1,
+	mythicFxShare = 1,
 }
 
 local DeviceTiers = {

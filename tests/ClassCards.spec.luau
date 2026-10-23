@@ -170,4 +170,16 @@ return function(t: TestRunner.Helper)
 		t.notNil(clip, "the greatsword has no Earthbreaker clip")
 		t.near(Balance.Player.earthbreaker.leap, clip.markers.Impact, 1e-3)
 	end)
+
+	--[[ The staff's Meteor cast (the ArcaneStaff kit) summons the meteor,
+	     then points the staff at its target as it lands: the point must
+	     come after the summon and no later than the strike, or the staff
+	     slams down at nothing after the explosion. ]]
+	t.test("the Meteor cast points as the meteor lands", function()
+		local clip = WeaponAnimations.ArcaneStaff.Meteor
+		t.notNil(clip, "the staff has no Meteor clip")
+		local summon, point = clip.markers.Summon, clip.markers.Point
+		t.isTrue(summon ~= nil and point ~= nil and summon < point, "the cast lacks its markers")
+		t.isTrue(point <= Balance.Player.meteor.delay, "the staff points after the meteor lands")
+	end)
 end

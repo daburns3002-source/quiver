@@ -41,6 +41,26 @@ export function bakeStaffAnimations(THREE, rig) {
       { t: 0.2, body: stance(1, 6), R: { rel: [0.17, -0.55, -1.3], ...staff([0, 1, -0.85]), elbowRel: [0.5, -0.45, -0.45] }, L: { relL: [0.3, -0.4, -1.3] } },
       { t: 0.45, ...hold(0), body: stance(0.4) }] },
   };
+  // Mythic — Meteor (extreme): deep crouch → explosive arch with the staff thrust skyward (Summon) → trembling hold →
+  // violent lunge slamming the staff at the target (Point) → recoil → recover
+  { const pose = (k, lean, rootY, legs = {}) => { const s = stance(k, lean); s.Root = { r: [['Y', 12 * k]], p: [0, rootY, 0] }; return Object.assign(s, legs); };
+    const crouchLegs = { LeftHip: { r: [['X', 48], ['Z', -10]] }, LeftKnee: { r: [['X', -80]] }, LeftAnkle: { r: [['X', 32]] }, RightHip: { r: [['X', 30], ['Z', 10]] }, RightKnee: { r: [['X', -70]] }, RightAnkle: { r: [['X', 40]] } };
+    const toesLegs = { LeftHip: { r: [['X', 6], ['Z', -8]] }, LeftKnee: { r: [['X', -4]] }, LeftAnkle: { r: [['X', -24]] }, RightHip: { r: [['X', -16], ['Z', 8]] }, RightKnee: { r: [['X', -6]] }, RightAnkle: { r: [['X', -10]] } };
+    const lungeLegs = { LeftHip: { r: [['X', 72], ['Z', -8]] }, LeftKnee: { r: [['X', -88]] }, LeftAnkle: { r: [['X', 18]] }, RightHip: { r: [['X', -34], ['Z', 10]] }, RightKnee: { r: [['X', -38]] }, RightAnkle: { r: [['X', 52]] } };
+    const sky = (dy = 0, lean = -24) => ({ body: pose(1, lean, 0.22, toesLegs), R: { rel: [0.0, 1.4 + dy, 0.15], ...staff([0, 1, 0.4]), elbowRel: [0.55, 0.65, 0.15] }, L: { relL: [0.6, 1.3 + dy, 0.05] } });
+    const slam = (dy = 0, lean = 40, rootY = -0.42) => ({ body: pose(1.2, lean, rootY, lungeLegs), R: { rel: [0.1, -0.85 + dy, -1.65], ...staff([0, 0.25, -1]), elbowRel: [0.55, -0.35, -0.65] }, L: { relL: [0.45, -0.95 + dy, -1.55] } });
+    defs.Meteor = { loop: false, priority: 4, joints: ALL, keys: [
+      { t: 0, ...hold(0), body: stance(0.3) },
+      { t: 0.2, body: pose(1.2, 22, -0.4, crouchLegs), R: { rel: [0.35, -1.35, -0.15], ...staff([0.25, 1, 0.7]), elbowRel: [0.55, -0.8, 0.2] }, L: { relL: [0.35, -1.15, -0.6] } },
+      { t: 0.36, ...sky(0.08, -28), marker: 'Summon' },
+      { t: 0.5, ...sky(-0.04, -22) },
+      { t: 0.62, ...sky(0.06, -27) },
+      { t: 0.72, ...sky(0.1, -32) },
+      { t: 0.82, ...slam(), marker: 'Point' },
+      { t: 0.9, ...slam(0.12, 34, -0.34) },
+      { t: 1.02, ...slam(-0.04, 42, -0.46) },
+      { t: 1.15, ...slam(0, 38, -0.4) },
+      { t: 1.6, ...hold(0), body: stance(0.4) }] }; }
   const out = {}; let lastL = null, lastR = null; const errs = [];
   for (const [name, def] of Object.entries(defs)) {
     const keys = [];
@@ -134,7 +154,7 @@ local ContextActionService = game:GetService("ContextActionService")
 
 -- Paste published animation ids here (rbxassetid://...). Leave "" to use the
 -- KeyframeSequences in ReplicatedStorage.ArcaneStaffAnimations (Studio play-testing only).
-local ANIM_IDS = { Hold = "", Charge = "", Channel = "", Cast = "" }
+local ANIM_IDS = { Hold = "", Charge = "", Channel = "", Cast = "", Meteor = "" }
 
 local AUTO_CAST = true      -- Archero style: keep casting while standing still
 local CHANNEL_TIME = 0.15   -- seconds fully charged before an auto release
@@ -176,7 +196,7 @@ local function loadTrack(name)
 	return animator:LoadAnimation(anim)
 end
 local tracks = {}
-for _, name in { "Hold", "Charge", "Channel", "Cast" } do
+for _, name in { "Hold", "Charge", "Channel", "Cast", "Meteor" } do
 	tracks[name] = loadTrack(name)
 end
 tracks.Hold.Priority = Enum.AnimationPriority.Action
@@ -343,6 +363,29 @@ end)
 
 humanoid.Died:Connect(function()
 	render:Disconnect()
+end)
+
+-- ── Mythic: Meteor ────────────────────────────────────────────────────────────
+-- Call character.CastMeteor:Fire(targetPosition) when the mythic triggers (e.g. every Nth cast, or on its own cooldown).
+-- The warning circle appears on "Summon"; the meteor lands 0.9 s later (server: 4x damage, radius 6).
+local MythicRemotes = game:GetService("ReplicatedStorage"):WaitForChild("MythicRemotes")
+local mtTrack = tracks.Meteor
+mtTrack.Priority = Enum.AnimationPriority.Action4
+mtTrack.Looped = false
+local meteorEvent = Instance.new("BindableEvent")
+meteorEvent.Name = "CastMeteor"
+meteorEvent.Parent = character
+local meteorTarget = nil
+meteorEvent.Event:Connect(function(target)
+	if mtTrack.IsPlaying then return end
+	local root = character.HumanoidRootPart
+	meteorTarget = target or (root.Position + root.CFrame.LookVector * 10)
+	local flat = Vector3.new(meteorTarget.X, root.Position.Y, meteorTarget.Z)
+	if (flat - root.Position).Magnitude > 0.5 then root.CFrame = CFrame.lookAt(root.Position, flat) end
+	mtTrack:Play(0.08)
+end)
+mtTrack:GetMarkerReachedSignal("Summon"):Connect(function()
+	MythicRemotes.Meteor:FireServer(meteorTarget)
 end)
 `;
   return { server, client };

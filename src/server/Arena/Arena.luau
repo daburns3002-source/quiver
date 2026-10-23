@@ -523,6 +523,9 @@ function Arena.build(parent: Instance, obstacles: { Balance.Obstacle }, arena: s
 			end
 		end
 		placeModel(root, model)
+		--[[ The client draws the scenery's life from this
+		     (`Fx/ForestAmbience`). ]]
+		root:SetAttribute("Ambience", model.ambience)
 	else
 		dress(root, obstacles)
 	end

@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Forest Ambience</title>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.184.0/build/three.module.js",
+    "three/addons/controls/OrbitControls.js": "https://unpkg.com/three@0.184.0/examples/jsm/controls/OrbitControls.js",
+    "three/addons/exporters/OBJExporter.js": "https://unpkg.com/three@0.184.0/examples/jsm/exporters/OBJExporter.js",
+    "three/addons/exporters/GLTFExporter.js": "https://unpkg.com/three@0.184.0/examples/jsm/exporters/GLTFExporter.js"
+  },
+  "integrity": {
+    "https://unpkg.com/three@0.184.0/build/three.module.js": "sha384-8FCZ1eVO6it4+pbec2aDtnTrwjWXZLJRC+MAGCIPDgsYnUrl/E0A2YlF8ioMKI/J",
+    "https://unpkg.com/three@0.184.0/build/three.core.js": "sha384-dw2ooPewaEIrAgl6oFDBmmBWCE9oW9LxRGcfwZ0hLvEprzo202wXl7vCYHRlSnOT",
+    "https://unpkg.com/three@0.184.0/examples/jsm/controls/OrbitControls.js": "sha384-4rziNxOBZKQ69i+w+f89KJ55TCYquwchVbByQwmaOeIOXdOU2PLDn3kOfXHwIJC9",
+    "https://unpkg.com/three@0.184.0/examples/jsm/exporters/OBJExporter.js": "sha384-nbwtoZENJD3Vq+ACK0CuGQdPMuDWHkamC2KJD70EV5nfg6jQjfppKOea07YJN+N3",
+    "https://unpkg.com/three@0.184.0/examples/jsm/exporters/GLTFExporter.js": "sha384-VofkvpG6HERhFCYbsUOHeNXBCqID2nfqkQqnVzE1jc/oPcz+qJ13ADdXH08hE+cQ"
+  }
+}
+</script>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#b9c7ae;font:13px/1.3 system-ui,-apple-system,"Segoe UI",sans-serif;color:#222}
+a{color:#3f7a1e}a:hover{color:#2c5a12}
+canvas{display:block}
+#ui{position:fixed;top:14px;left:14px;right:14px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;z-index:5}
+#ui h1{font-size:15px;margin:0 8px 0 0}
+#ui button{font:inherit;padding:8px 12px;border-radius:10px;border:1px solid #b8bfae;background:#fff;cursor:pointer}
+#ui button:hover{background:#f2f4ee}
+#ui button[aria-pressed="true"]{background:#2f3b26;color:#fff;border-color:#2f3b26}
+#ui .sep{width:1px;height:24px;background:#9aa58e;margin:0 4px}
+#note{position:fixed;left:14px;bottom:14px;max-width:460px;background:#fffd;border-radius:12px;padding:10px 12px;z-index:5;color:#333}
+</style></head><body>
+<div id="ui">
+  <h1>Forest ambience · arena edge</h1>
+  <button data-fx="sway" aria-pressed="true">Tree sway + gusts</button>
+  <button data-fx="grass" aria-pressed="true">Grass + bushes</button>
+  <button data-fx="leaves" aria-pressed="true">Falling leaves</button>
+  <button data-fx="motes" aria-pressed="true">Fireflies</button>
+  <button data-fx="mist" aria-pressed="true">Ground mist</button>
+  <button data-fx="shafts" aria-pressed="true">Light shafts</button>
+  <button data-fx="birds" aria-pressed="true">Birds</button>
+  <button data-fx="butterflies" aria-pressed="true">Butterflies</button>
+  <span class="sep"></span>
+  <button data-v="game">Game camera</button><button data-v="edge">At the treeline</button>
+</div>
+<div id="note">The trees, bushes and stones are stand-ins for your forest assets. Every effect runs only outside the arena ring, so the fighting area stays clean. The column in the middle is a 5-stud player, for scale.</div>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+const V = THREE.Vector3, rnd = (a, b) => a + Math.random() * (b - a);
+const R = new THREE.WebGLRenderer({ antialias: true }); R.setPixelRatio(Math.min(2, devicePixelRatio)); R.setSize(innerWidth, innerHeight);
+R.shadowMap.enabled = true; R.toneMapping = THREE.NeutralToneMapping; document.body.appendChild(R.domElement);
+const S = new THREE.Scene(); S.background = new THREE.Color('#b9c7ae'); S.fog = new THREE.Fog('#b9c7ae', 45, 110);
+const cam = new THREE.PerspectiveCamera(40, innerWidth / innerHeight, 0.1, 400), ctl = new OrbitControls(cam, R.domElement); ctl.enableDamping = true;
+addEventListener('resize', () => { cam.aspect = innerWidth / innerHeight; cam.updateProjectionMatrix(); R.setSize(innerWidth, innerHeight); });
+S.add(new THREE.HemisphereLight('#f4f8e8', '#4f6a3a', 1.4));
+const sun = new THREE.DirectionalLight('#fff3d6', 2.2); sun.position.set(-30, 50, 20); sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048);
+Object.assign(sun.shadow.camera, { left: -55, right: 55, top: 55, bottom: -55, far: 150 }); S.add(sun);
+const ARENA = 18, FX = { sway: true, grass: true, leaves: true, motes: true, mist: true, shafts: true, birds: true, butterflies: true };
+const soft = (stops, n = 128) => { const c = document.createElement('canvas'); c.width = c.height = n; const x = c.getContext('2d'), g = x.createRadialGradient(n / 2, n / 2, 0, n / 2, n / 2, n / 2); stops.forEach(([o, col]) => g.addColorStop(o, col)); x.fillStyle = g; x.fillRect(0, 0, n, n); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t; };
+
+// ground: arena moss disc, stone ring, forest floor
+const ground = new THREE.Mesh(new THREE.CircleGeometry(120, 64), new THREE.MeshStandardMaterial({ color: '#5f7f3e', roughness: 1 })); ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; S.add(ground);
+const arena = new THREE.Mesh(new THREE.CircleGeometry(ARENA, 64), new THREE.MeshStandardMaterial({ color: '#8fae5a', roughness: 1 })); arena.rotation.x = -Math.PI / 2; arena.position.y = 0.02; arena.receiveShadow = true; S.add(arena);
+{ const n = 56, g = new THREE.BoxGeometry(1.9, 0.6, 1.2), m = new THREE.MeshStandardMaterial({ color: '#9a9a8c', roughness: 0.9, flatShading: true }), st = new THREE.InstancedMesh(g, m, n), o = new THREE.Object3D();
+  for (let i = 0; i < n; i++) { const a = i / n * Math.PI * 2; o.position.set(Math.cos(a) * (ARENA + 0.4), 0.25, Math.sin(a) * (ARENA + 0.4)); o.rotation.set(rnd(-0.08, 0.08), -a + rnd(-0.1, 0.1), rnd(-0.08, 0.08)); o.scale.set(rnd(0.8, 1.15), rnd(0.8, 1.3), 1); o.updateMatrix(); st.setMatrixAt(i, o.matrix); }
+  st.castShadow = st.receiveShadow = true; S.add(st); }
+const player = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 5, 20), new THREE.MeshStandardMaterial({ color: '#5C6F8F' })); player.position.y = 2.5; player.castShadow = true; S.add(player);
+
+// trees: trunk + canopy blobs; canopy pivots at the trunk top
+const greens = ['#3f6b2a', '#4c7d30', '#5a8c36', '#36602a'].map(c => new THREE.MeshStandardMaterial({ color: c, roughness: 0.95, flatShading: true }));
+const barkM = new THREE.MeshStandardMaterial({ color: '#6b4a32', roughness: 1 }), blob = new THREE.IcosahedronGeometry(1, 1), trunkG = new THREE.CylinderGeometry(0.35, 0.55, 1, 8);
+const trees = [];
+for (let i = 0; i < 90; i++) {
+  const a = rnd(0, Math.PI * 2), r = rnd(ARENA + 5, 48), x = Math.cos(a) * r, z = Math.sin(a) * r, h = rnd(5, 9), s = rnd(0.85, 1.35);
+  const tree = new THREE.Group(); tree.position.set(x, 0, z); tree.rotation.y = rnd(0, 6.28);
+  const trunk = new THREE.Mesh(trunkG, barkM); trunk.scale.set(s, h, s); trunk.position.y = h / 2; trunk.castShadow = true; tree.add(trunk);
+  const canopy = new THREE.Group(); canopy.position.y = h; tree.add(canopy);
+  for (let k = 0; k < 4; k++) { const b = new THREE.Mesh(blob, greens[(i + k) % 4]); const bs = rnd(2.0, 3.0) * s; b.scale.set(bs, bs * 0.85, bs); b.position.set(rnd(-1.4, 1.4) * s, rnd(0.3, 2.4) * s, rnd(-1.4, 1.4) * s); b.castShadow = true; canopy.add(b); }
+  S.add(tree); trees.push({ tree, canopy, x, z, h, ph: rnd(0, 6.28), f: rnd(0.45, 0.7), top: new V(x, h + 1.5 * s, z), rad: 2.6 * s });
+}
+// bushes + mushrooms just outside the ring
+const bushes = [];
+for (let i = 0; i < 70; i++) { const a = rnd(0, Math.PI * 2), r = rnd(ARENA + 1.6, ARENA + 7), g = new THREE.Group(); g.position.set(Math.cos(a) * r, 0, Math.sin(a) * r);
+  for (let k = 0; k < 3; k++) { const b = new THREE.Mesh(blob, greens[(i + k + 1) % 4]); const bs = rnd(0.6, 1.1); b.scale.set(bs, bs * 0.8, bs); b.position.set(rnd(-0.7, 0.7), bs * 0.55, rnd(-0.7, 0.7)); b.castShadow = true; g.add(b); }
+  S.add(g); bushes.push({ g, ph: rnd(0, 6.28) }); }
+
+// grass: instanced blades, wind in the vertex shader (stronger toward the tip)
+const windU = { uTime: { value: 0 }, uGust: { value: 1 } };
+let grass;
+{ const bg = new THREE.ConeGeometry(0.07, 0.9, 3, 1); bg.translate(0, 0.45, 0);
+  const gm = new THREE.MeshStandardMaterial({ color: '#7aa344', roughness: 1 });
+  gm.onBeforeCompile = sh => { Object.assign(sh.uniforms, windU);
+    sh.vertexShader = 'uniform float uTime; uniform float uGust;\n' + sh.vertexShader.replace('#include <begin_vertex>', `#include <begin_vertex>
+      vec3 ip = (instanceMatrix * vec4(0.,0.,0.,1.)).xyz; float k = position.y * position.y;
+      float g = pow(max(0., sin(ip.x * 0.08 + ip.z * 0.05 - uTime * 0.6)), 4.) * uGust;
+      transformed.x += k * (0.10 * sin(uTime * 1.7 + ip.x * 0.6 + ip.z * 0.4) + 0.35 * g);
+      transformed.z += k * (0.08 * cos(uTime * 1.3 + ip.z * 0.7) + 0.2 * g);`); };
+  const N = 5000; grass = new THREE.InstancedMesh(bg, gm, N); const o = new THREE.Object3D(), col = new THREE.Color();
+  for (let i = 0; i < N; i++) { const a = rnd(0, Math.PI * 2), r = ARENA + 1 + Math.pow(Math.random(), 1.6) * 22; o.position.set(Math.cos(a) * r, 0, Math.sin(a) * r); o.rotation.set(rnd(-0.2, 0.2), rnd(0, 6.28), rnd(-0.2, 0.2)); const sc = rnd(0.6, 1.4); o.scale.set(sc, sc * rnd(0.7, 1.3), sc); o.updateMatrix(); grass.setMatrixAt(i, o.matrix); grass.setColorAt(i, col.set('#7aa344').offsetHSL(rnd(-0.03, 0.03), 0, rnd(-0.12, 0.08))); }
+  S.add(grass); }
+
+// falling leaves: pooled, flutter + spin, settle and fade
+const leafG = new THREE.PlaneGeometry(0.35, 0.22); leafG.translate(0.1, 0, 0);
+const leafCols = ['#6f9a36', '#86a83c', '#c9a53a', '#d07a2c', '#5d8a2e'];
+const leaves = Array.from({ length: 70 }, () => { const m = new THREE.Mesh(leafG, new THREE.MeshStandardMaterial({ color: leafCols[Math.floor(Math.random() * 5)], side: THREE.DoubleSide, transparent: true })); m.visible = false; S.add(m); return { m, live: false }; });
+function spawnLeaf(L) { const t = trees[Math.floor(Math.random() * trees.length)]; L.m.position.set(t.x + rnd(-t.rad, t.rad), t.top.y + rnd(-1, 1), t.z + rnd(-t.rad, t.rad)); L.v = rnd(0.5, 0.9); L.ph = rnd(0, 6.28); L.sp = new V(rnd(-3, 3), rnd(-3, 3), rnd(-3, 3)); L.rest = 0; L.live = true; L.m.visible = true; L.m.material.opacity = 1; }
+// fireflies / light motes
+const moteTex = soft([[0, 'rgba(255,250,200,1)'], [0.2, 'rgba(240,255,150,0.8)'], [1, 'rgba(200,255,120,0)']]);
+const motes = Array.from({ length: 60 }, () => { const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: moteTex, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })); const a = rnd(0, 6.28), r = rnd(ARENA + 2, ARENA + 14);
+  sp.position.set(Math.cos(a) * r, rnd(0.6, 3.5), Math.sin(a) * r); sp.scale.setScalar(rnd(0.35, 0.6)); S.add(sp); return { sp, home: sp.position.clone(), ph: rnd(0, 6.28), f: rnd(0.3, 0.6) }; });
+// ground mist
+const mistTex = soft([[0, 'rgba(255,255,255,0.9)'], [0.5, 'rgba(255,255,255,0.35)'], [1, 'rgba(255,255,255,0)']], 256);
+const mists = Array.from({ length: 22 }, () => { const m = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: mistTex, transparent: true, depthWrite: false, opacity: 0.2, color: '#eef3e6' })); m.rotation.x = -Math.PI / 2; const s = rnd(10, 18); m.scale.set(s, s * 0.6, 1); S.add(m); return { m, a: rnd(0, 6.28), r: rnd(ARENA + 4, 40), y: rnd(0.3, 1.2), sp: rnd(0.006, 0.014) * (Math.random() < 0.5 ? 1 : -1), ph: rnd(0, 6.28) }; });
+// light shafts through the canopy
+const shaftTex = (() => { const c = document.createElement('canvas'); c.width = 4; c.height = 128; const x = c.getContext('2d'), g = x.createLinearGradient(0, 0, 0, 128); g.addColorStop(0, '#000'); g.addColorStop(0.25, '#fff'); g.addColorStop(0.7, '#888'); g.addColorStop(1, '#000'); x.fillStyle = g; x.fillRect(0, 0, 4, 128); return new THREE.CanvasTexture(c); })();
+const shaftM = () => new THREE.MeshBasicMaterial({ color: '#fff4c8', alphaMap: shaftTex, transparent: true, opacity: 0.1, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide });
+const shafts = Array.from({ length: 7 }, () => { const g = new THREE.CylinderGeometry(0.8, 2.6, 16, 20, 1, true); g.translate(0, -8, 0); const m = new THREE.Mesh(g, shaftM()); const a = rnd(0, 6.28), r = rnd(ARENA + 9, 36); m.position.set(Math.cos(a) * r, 15, Math.sin(a) * r); m.rotation.set(Math.sin(a) * 0.25, 0, -Math.cos(a) * 0.25); S.add(m); return { m, ph: rnd(0, 6.28) }; });
+// birds: occasional small flock crossing high over the canopy
+const wingG = new THREE.BufferGeometry(); wingG.setAttribute('position', new THREE.Float32BufferAttribute([0, 0, 0.25, 0, 0, -0.25, 1, 0, 0], 3)); wingG.computeVertexNormals();
+const birdM = new THREE.MeshBasicMaterial({ color: '#2d3328', side: THREE.DoubleSide });
+let flock = null, nextFlock = 3;
+function makeFlock() { const a = rnd(0, 6.28), from = new V(Math.cos(a) * 70, rnd(16, 20), Math.sin(a) * 70), to = from.clone().multiplyScalar(-1).add(new V(rnd(-20, 20), 0, rnd(-20, 20))); to.y = from.y + rnd(-2, 2);
+  const g = new THREE.Group(), dir = to.clone().sub(from).normalize(), birds = [];
+  for (let i = 0; i < 6; i++) { const b = new THREE.Group(), wl = new THREE.Mesh(wingG, birdM), wr = new THREE.Mesh(wingG, birdM); wr.scale.x = -1; b.add(wl, wr); b.position.set((i % 2 ? 1 : -1) * Math.ceil(i / 2) * 1.6, rnd(-0.4, 0.4), -Math.ceil(i / 2) * 1.6); b.userData = { wl, wr, ph: rnd(0, 6.28) }; g.add(b); birds.push(b); }
+  g.position.copy(from); g.lookAt(to); S.add(g); return { g, birds, from, to, t: 0, dur: from.distanceTo(to) / 9 }; }
+// butterflies near the bushes
+const bfCols = ['#f2d14a', '#f5f1e6', '#e88a3a'];
+const flies = Array.from({ length: 7 }, (_, i) => { const g = new THREE.Group(), m = new THREE.MeshBasicMaterial({ color: bfCols[i % 3], side: THREE.DoubleSide }), wg = new THREE.PlaneGeometry(0.28, 0.22); wg.translate(0.14, 0, 0);
+  const wl = new THREE.Mesh(wg, m), wr = new THREE.Mesh(wg, m); wr.scale.x = -1; g.add(wl, wr); S.add(g); const a = rnd(0, 6.28); return { g, wl, wr, a, r: rnd(ARENA + 2, ARENA + 6), ph: rnd(0, 6.28), sp: rnd(0.04, 0.08) * (Math.random() < 0.5 ? 1 : -1) }; });
+
+const views = { game: [[0, 46, 34], [0, 0, 2]], edge: [[0, 3.2, ARENA - 4], [0, 3, ARENA + 12]] };
+const setView = k => { cam.position.set(...views[k][0]); ctl.target.set(...views[k][1]); ctl.update(); };
+setView('game');
+document.querySelectorAll('[data-v]').forEach(b => b.onclick = () => setView(b.dataset.v));
+document.querySelectorAll('[data-fx]').forEach(b => b.onclick = () => { const k = b.dataset.fx; FX[k] = !FX[k]; b.setAttribute('aria-pressed', String(FX[k])); });
+
+let T = 0, last = performance.now(), leafAcc = 0;
+const gustAt = (x, z, t) => Math.pow(Math.max(0, Math.sin(x * 0.08 + z * 0.05 - t * 0.6)), 4);
+function step(ms) {
+  const dt = Math.min(0.05, (ms - last) / 1000); last = ms; T += dt; windU.uTime.value = T; windU.uGust.value = FX.grass ? 1 : 0;
+  for (const t of trees) { if (!FX.sway) { t.canopy.rotation.set(0, 0, 0); t.tree.rotation.x = t.tree.rotation.z = 0; continue; }
+    const g = gustAt(t.x, t.z, T), sx = 0.018 * Math.sin(T * t.f + t.ph) + 0.05 * g, sz = 0.014 * Math.cos(T * t.f * 0.8 + t.ph) + 0.025 * g;
+    t.canopy.rotation.x = sx; t.canopy.rotation.z = sz; t.tree.rotation.x = sx * 0.25; t.tree.rotation.z = sz * 0.25; }
+  for (const b of bushes) { const g = FX.grass ? gustAt(b.g.position.x, b.g.position.z, T) : 0, s = FX.grass ? 0.025 * Math.sin(T * 1.4 + b.ph) : 0; b.g.rotation.x = s + 0.06 * g; b.g.scale.y = 1 + 0.02 * Math.sin(T * 1.1 + b.ph); }
+  grass.visible = true;
+  // leaves: ~3 per second across the whole ring, a few extra during a gust
+  if (FX.leaves) { leafAcc += dt * 3; while (leafAcc > 1) { leafAcc--; const L = leaves.find(l => !l.live); if (L) spawnLeaf(L); } }
+  for (const L of leaves) { if (!L.live) continue; const m = L.m;
+    if (m.position.y > 0.05) { const g = gustAt(m.position.x, m.position.z, T); m.position.y -= L.v * dt * (0.8 + 0.4 * Math.sin(T * 3 + L.ph)); m.position.x += (Math.sin(T * 1.6 + L.ph) * 0.9 + 2.2 * g) * dt; m.position.z += Math.cos(T * 1.3 + L.ph) * 0.7 * dt;
+      m.rotation.x += L.sp.x * dt; m.rotation.y += L.sp.y * dt; m.rotation.z += L.sp.z * dt; }
+    else { if (!L.rest) { m.position.y = 0.04; m.rotation.set(-Math.PI / 2, 0, rnd(0, 6.28)); } L.rest += dt; m.material.opacity = Math.max(0, 1 - Math.max(0, L.rest - 2.5) / 1.5); if (L.rest > 4) { L.live = false; m.visible = false; } } }
+  for (const f of motes) { f.sp.visible = FX.motes; if (!FX.motes) continue; const p = f.home, w = T * f.f + f.ph;
+    f.sp.position.set(p.x + Math.sin(w) * 1.2 + Math.sin(w * 2.3) * 0.4, p.y + Math.sin(w * 1.7) * 0.5, p.z + Math.cos(w * 0.9) * 1.2); f.sp.material.opacity = 0.25 + 0.6 * Math.max(0, Math.sin(T * 1.8 + f.ph * 3)) ** 3; }
+  for (const m of mists) { m.m.visible = FX.mist; if (!FX.mist) continue; m.a += m.sp * dt; m.m.position.set(Math.cos(m.a) * m.r, m.y + 0.2 * Math.sin(T * 0.3 + m.ph), Math.sin(m.a) * m.r); m.m.rotation.z += 0.02 * dt; m.m.material.opacity = 0.12 + 0.08 * Math.sin(T * 0.25 + m.ph); }
+  for (const s of shafts) { s.m.visible = FX.shafts; s.m.material.opacity = 0.07 + 0.06 * (0.5 + 0.5 * Math.sin(T * 0.4 + s.ph)) + 0.04 * gustAt(s.m.position.x, s.m.position.z, T); }
+  if (FX.birds) { nextFlock -= dt; if (!flock && nextFlock <= 0) flock = makeFlock(); }
+  if (flock) { flock.t += dt; flock.g.position.lerpVectors(flock.from, flock.to, flock.t / flock.dur);
+    for (const b of flock.birds) { const fl = Math.sin(T * 9 + b.userData.ph), glide = (Math.sin(T * 0.7 + b.userData.ph) > 0.3) ? 0.15 : 1; b.userData.wl.rotation.z = 0.6 * fl * glide; b.userData.wr.rotation.z = -0.6 * fl * glide; }
+    if (flock.t > flock.dur || !FX.birds) { S.remove(flock.g); flock = null; nextFlock = rnd(12, 25); } }
+  for (const b of flies) { b.g.visible = FX.butterflies; if (!FX.butterflies) continue; b.a += b.sp * dt * (1 + 0.6 * Math.sin(T * 0.9 + b.ph));
+    const x = Math.cos(b.a) * (b.r + Math.sin(T * 0.5 + b.ph)), z = Math.sin(b.a) * (b.r + Math.sin(T * 0.5 + b.ph)), y = 0.9 + 0.5 * Math.sin(T * 1.3 + b.ph) + 0.15 * Math.sin(T * 7 + b.ph);
+    b.g.lookAt(x * 1.01 - b.g.position.x + x, y, z * 1.01 - b.g.position.z + z); b.g.position.set(x, y, z); const fl = Math.sin(T * 16 + b.ph); b.wl.rotation.y = 1.1 * fl; b.wr.rotation.y = -1.1 * fl; }
+  ctl.update(); R.render(S, cam);
+}
+(function loop(ms) { try { step(ms); } catch (e) { window.__err = String(e.stack || e); } requestAnimationFrame(loop); })(performance.now());
+window.__view = setView;
+</script>
+</body></html>

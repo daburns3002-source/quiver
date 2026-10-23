@@ -125,7 +125,7 @@ end
 local gladeLogs = glade({
 	{
 		name = "Ground",
-		meshId = "rbxassetid://79573309014324",
+		meshId = "rbxassetid://107325794931629",
 		size = Vector3.new(81.000, 1.809, 116.100),
 		offset = Vector3.new(-0.000, 0.784, -6.750),
 		matte = true,
@@ -150,7 +150,7 @@ local gladeLogs = glade({
 	},
 	{
 		name = "Props",
-		meshId = "rbxassetid://81904816103162",
+		meshId = "rbxassetid://88563771824910",
 		size = Vector3.new(52.382, 3.304, 79.496),
 		offset = Vector3.new(-4.033, 1.421, 0.649),
 	},

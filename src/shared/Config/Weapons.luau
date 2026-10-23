@@ -74,6 +74,19 @@ export type Weapon = {
 	     (`Fx/SwingTrail`), shown between a slash's `TrailOn` and
 	     `TrailOff` markers. ]]
 	swingTrail: { base: Vector3, tip: Vector3, colour: { Color3 } }?,
+	--[[ A blade's effects (`Fx/BladeFx`): sparks off its tip while the
+	     `move` clip drags it, a burst of sparks in front of the wielder as
+	     each blow lands, more for the combo's last blow, which also shakes
+	     the camera. ]]
+	blade: {
+		sparkColour: Color3,
+		dragRate: number,
+		burst: number,
+		heavyBurst: number,
+		reach: number,
+		shake: number,
+		shakeTime: number,
+	}?,
 	clips: Clips,
 	--[[ The `Config/Sounds` entry each shot plays. ]]
 	fireSound: string,
@@ -240,6 +253,19 @@ local Weapons = {
 			base = Vector3.new(0, 0.44 - 0.062, 0),
 			tip = Vector3.new(0, 1.0216 - 0.062, 0),
 			colour = { Color3.fromRGB(255, 120, 100), Color3.fromRGB(216, 35, 47) },
+		},
+		--[[ After the kit's drag sparks (orange, rate 45) and its notes on
+		     an impact burst and a shake on the slam. `reach` is how far in
+		     front the burst lands, studs; `shake` is studs of camera
+		     shake over `shakeTime` seconds. ]]
+		blade = {
+			sparkColour = Color3.fromRGB(255, 170, 70),
+			dragRate = 45,
+			burst = 12,
+			heavyBurst = 30,
+			reach = 4,
+			shake = 0.35,
+			shakeTime = 0.25,
 		},
 		parts = {
 			{

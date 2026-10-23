@@ -23,7 +23,8 @@
 	`ready`'s first marker (the bow's Nock; the staff's Charge has none, so
 	from its start) until `fire`'s (Release, Cast). `Fx/BowString` and
 	`Fx/StaffOrb` draw from that; `Fx/SwingTrail` shows a blade's trail
-	between a slash's TrailOn and TrailOff.
+	between a slash's TrailOn and TrailOff, and `Fx/BladeFx` its sparks as
+	the walk drags it and as each blow lands.
 
 	Every change of clip blends from the last pose over `FADE` seconds.
 	Joints a clip leaves out stay with Roblox's own animation. Written to the
@@ -37,6 +38,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
+local BladeFx = require(script.Parent.BladeFx)
 local BowString = require(script.Parent.BowString)
 local Classes = require(ReplicatedStorage.Shared.Config.Classes)
 local PlayerStats = require(script.Parent.Parent.PlayerStats)
@@ -205,8 +207,17 @@ local function stepPose(character: Model, now: number, dt: number)
 		roleSpeed = math.clamp(planar / (weapon.clips.moveSpeed or planar), 0.6, 2.2)
 	end
 
+	local before = phase
 	phase += dt * roleSpeed
 	local clip = clips[clipFor(weapon, role) :: string]
+
+	--[[ The blow lands as the slash passes its Hit marker: the server's
+	     damage lands then too (`Shared/Combat/WeaponTiming`). ]]
+	local hit = clip.markers.Hit
+	if role == "fire" and hit and before < hit and phase >= hit then
+		BladeFx.impact(character, weapon, comboIndex == #weapon.clips.fire)
+	end
+
 	if not clip.loop and phase >= clip.length then
 		local nextRole
 		if role == "fire" then
@@ -260,6 +271,7 @@ local function stepPose(character: Model, now: number, dt: number)
 	end
 	local trailOn = clip.markers.TrailOn
 	local trailOff = clip.markers.TrailOff
+	BladeFx.step(character, weapon, role == "move")
 	SwingTrail.step(
 		character,
 		weapon,

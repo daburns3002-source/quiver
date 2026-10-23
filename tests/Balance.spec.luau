@@ -611,4 +611,20 @@ return function(t: TestRunner.Helper)
 			`arrows fly {reach} studs, well past the {Balance.Player.attackRange}-stud targeting range`
 		)
 	end)
+
+	--[[ Player arrows fly at one height, low, for every enemy: each hitbox
+	     sits on the floor, so the arrow's whole width must fit inside the
+	     shortest one, or a squat enemy is shot over. ]]
+	t.test("arrows fly through every enemy's hitbox height", function()
+		local height = Balance.Projectile.height
+		local radius = Balance.Projectile.radius
+		t.isTrue(height - radius >= 0, "arrows fly through the floor")
+		for _, value in Balance.Enemies do
+			local config = value :: Balance.EnemyConfig
+			t.isTrue(
+				height + radius <= config.hitboxSize.Y,
+				`arrows at {height} pass over the {config.displayName}'s {config.hitboxSize.Y}-stud hitbox`
+			)
+		end
+	end)
 end

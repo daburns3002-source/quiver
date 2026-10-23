@@ -22,8 +22,10 @@ uploading a mesh is not something we can do over MCP) → the mesh ids go
 into `EnemyDesigns` as `shape = "Mesh"` parts, built by `EnemyModel` from
 templates made once in `EnemyModel.preload()`. The importer turns models
 to face +Z, so designs rotate them 180°. Roblox shows vertex colours, so
-mesh parts are white; eyes are Neon in the act's colour. Low bodies go in
-`EnemyDesigns.squat` (the hitbox stays tall for arrows at root height).
+mesh parts are white; eyes are Neon in the act's colour. Each archetype's
+hitbox fits its model (the slime's is 3 × 2.2 × 3), so player arrows fly
+low, at `Balance.Projectile.height` (1.1), from `Aim.shotOrigin` on both
+sides; `Balance.spec` keeps that height inside every enemy's hitbox.
 
 **Bugs that shipped, and what fixed them: `docs/FIXES.md`.** Written to be
 found by symptom. Read it before debugging anything that sounds familiar, and

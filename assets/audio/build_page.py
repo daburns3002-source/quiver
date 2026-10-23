@@ -90,16 +90,13 @@ ROUND_8 = [
         "sword_swing": ("Sword swing", "The Warden's sweep and backswing: the first two blows of its combo, about once a second.", (1.0, 4)),
         "sword_slam": ("Sword slam", "The combo's third blow: the greatsword brought down overhead.", None),
     }),
-    ("Still to choose from round 6 · the gate", {
-        "gate_open": ROUND_5[0][1]["gate_open"],
-    }),
 ]
 
 # page: (rounds, picks collection, sounds already chosen, shown for context)
 PAGES = {
     "1-2": (ROUND_1_2, "picks", []),
     "3": (ROUND_3, "picks3", ["Player hurt A", "XP crystal D", "Heart D", "Level up A"]),
-    "8": (ROUND_8, "picks8", ["Player hurt", "XP crystal", "Heart", "Level up", "Enemy hit", "Dash", "Card pick", "Arrow fire", "Staff cast", "Enemy death"]),
+    "8": (ROUND_8, "picks8", ["Player hurt", "XP crystal", "Heart", "Level up", "Enemy hit", "Dash", "Card pick", "Arrow fire", "Staff cast", "Enemy death", "Gate (round 6 B)"]),
     "7": (ROUND_7, "picks7", ["Player hurt", "XP crystal", "Heart", "Level up", "Enemy hit", "Dash", "Card pick", "Arrow fire"]),
     "6": (ROUND_6, "picks6", ["Player hurt", "XP crystal", "Heart", "Level up", "Enemy hit", "Dash", "Card pick", "Arrow fire"]),
     "5": (ROUND_5, "picks5", ["Player hurt", "XP crystal", "Heart", "Level up", "Enemy hit", "Dash", "Card pick", "Arrow fire"]),

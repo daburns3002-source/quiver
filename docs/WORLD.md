@@ -87,8 +87,8 @@ that **an area is unlocked by beating its boss** (`PROGRESSION.md`, "Area
 gating") needs a boss in every area to gate on. So the reading that fits
 what is settled is **every area ends in a boss, and the act-ending areas'
 bosses are the big set pieces** (the giant toad, the fire elemental, the
-Hollow Throne). *Open — the owner is still thinking about bosses, and this
-doc does not start them.*
+Hollow Throne). **Settled** (2026-10-22): the owner asked for a boss for
+each area; all fifteen are designed in `BOSSES.md` — not built yet.
 
 ---
 
@@ -96,7 +96,7 @@ doc does not start them.*
 
 1. **The title** — one of the five, or keep "Arrow Legends".
 2. **The unlockable melee class** — Warden or Duelist.
-3. **Boss cadence** — every area (fits the boss gate) or every act.
+3. ~~**Boss cadence**~~ — settled: every area (`BOSSES.md`).
 4. **When classes land in the roadmap** — the Arcanist is cheap (projectile
    pipeline); the melee class needs the attack-pipeline change first.
 5. **How the melee class is unlocked** — clearing an area, a currency, or

@@ -7,8 +7,8 @@ pass for the owner to cut, keep and rename — nothing here is settled or built.
 Concept art for each act, generated with ChatGPT Codex, is in
 `assets/concepts/` (see the table at the end).
 
-**Bosses are not designed here.** The owner is still thinking about them;
-each area keeps an empty boss slot.
+**Bosses are in `BOSSES.md`** — one for every area, the act-enders as
+three-phase set pieces.
 
 ---
 
@@ -79,7 +79,7 @@ scattered bramble clumps; touching one slows (a soft hazard).
 two raised platforms an archer stands on (it can only be reached by shots).
 *Wagon Circle* — wagons ring the middle; the fight is around the outside.
 
-**Boss slot** — empty (owner).
+**Boss** — Captain Redscarf (`BOSSES.md`).
 
 ---
 
@@ -127,7 +127,7 @@ gaps between roofs are drops (void edges, a light preview of Act 5).
 *Underground Lake* — a lake splits the room; a bridge crosses it. *Spore
 Vents* — vents puff poison on a timer (patterned hazard).
 
-**Boss slot** — empty (the outline in `WORLD.md` says a giant toad).
+**Boss** — Grandmother Gulp (`BOSSES.md`).
 
 ---
 
@@ -175,7 +175,7 @@ fall on marked spots on a timer. *Snowbound Pass* — snowdrifts as low cover.
 up in a pattern (checkerboard, sweeping row) that the room shows a beat
 ahead. *Rotating Blades* — two blades sweep round fixed posts.
 
-**Boss slot** — empty.
+**Boss** — the Thousand-Palm Abbot (`BOSSES.md`).
 
 ---
 
@@ -222,7 +222,7 @@ sections crumble after you've stood on them for a moment.
 shrinking the safe floor. *Basalt Islands* — islands over lava joined by
 bridges. *The Crucible* — a ring round a lava pit.
 
-**Boss slot** — empty (the outline says a fire elemental).
+**Boss** — Ignar, the Living Flame (`BOSSES.md`).
 
 ---
 
@@ -260,7 +260,8 @@ cycle. *Shifting Platforms* — platforms that blink out on a pattern.
 ### 15. The Hollow Throne — final arena · lean: all · final boss slot
 
 Mixes one hazard from each act: a bramble choke, a poison ring, a wind gust,
-lava cracks and void edges, cycled through the fight. **Boss slot** — empty.
+lava cracks and void edges, cycled through the fight. **Boss** — the Hollow
+Crown (`BOSSES.md`).
 
 ---
 

@@ -34,40 +34,29 @@ directly above on a phone, glowing eyes, and a telegraph before any hit.
 
 ---
 
-## Design language — an insect kingdom
+## Design language — themed, with a touch of Hollow Knight
 
-The owner, 2026-10-22: keep the arenas, and "take inspiration from the enemy
-design from Hollow Knight and Hollow Knight Silksong". So every enemy is an
-**original** creature of an insect kingdom, built to the same rules those
-games' bestiaries follow — not a copy of any of their characters:
+Enemies belong to their arena: forest slimes and wolves, marsh frogs and
+toads, mountain yetis and goats, forge imps and golems, castle knights and
+ghosts — in the same Archero 2 toy style as the arenas (`ART-archero2.md`).
 
-- **Bugs, all of them.** Chitin shells, slender spindly legs, wings, horns,
-  mandibles. The roles are unchanged — a Charger is still a Charger — only
-  the body is new.
-- **A pale mask.** Each creature wears a bone-white face plate with two big
-  hollow eye sockets. From our steep top-down camera the mask is what a
-  player sees first, so it carries the silhouette.
-- **Eyes glow in the act's colour.** It keeps our readability rule (glowing
-  eyes, nothing important dark) and ties each act together: amber in the
-  Wilds, pale green in the Lowlands, cold white-blue in the Heights, ember
-  orange in the Depths, void violet at the End.
-- **One silhouette idea per creature.** A shield, a bell, a horn, a hood —
-  the rest stays quiet, so a busy room on a phone still reads.
-- **Muted bodies, bright danger.** Shells in dusty, desaturated tones;
-  shots, telegraphs and the eyes carry the colour.
-- **Charming, not grim.** Odd, a little sad, never gory — the kingdom has
-  fallen, and its bugs carry on.
+On top of that, a light touch of what makes Hollow Knight's and Silksong's
+creatures memorable (owner, 2026-10-22: "take some inspiration but still
+keep the arena theme" — an earlier all-insect pass went too far):
 
-In game they become low-poly 3D models in the toy style the arenas use
-(`ART-archero2.md`); the concept sheets are painted to settle the design.
+- **Bold, simple silhouettes** — one idea per creature, readable from our
+  steep top-down camera on a phone.
+- **Hollow, glowing eyes**, in each act's colour: amber in the Wilds, pale
+  green in the Lowlands, white-blue in the Heights, ember orange in the
+  Depths, violet at the End.
+- **A small pale mask or face plate on *some* creatures** — the Glade Wolf's
+  skull mask, the Corrupted Monk's hollow mask, the Void Wisp that is only a
+  mask — not on all of them, so it stays a signature rather than a uniform.
+- **The odd slender limb or little tattered cloak**, and a slightly wistful
+  charm — never gory.
 
-| Act | Accent | New names (old role name) |
-|---|---|---|
-| 1 | amber | Mossgrub (Moss Slime) · Seedspitter (Sprout Slime) · Thicket Hound (Glade Wolf) · Broodbelly (Mother Slime) · Briar Skitter (Thorn Spider) · Silk Spinner (Web Spitter) · Root Lurker (Bramble Lurker) · Weaver Matron (Broodmother) · Mantis Archer (Bandit Archer) · Shellguard (Brute) · Needle Rogue (Cutthroat) · Spore Lobber (Bomb Tosser) |
-| 2 | pale green | Mire Flea (Bog Frog) · Bloatfly (Toxic Toad) · Mire Leech (Swamp Lurker) · Flea Swarm (Croaking Chorus) · Sodden Shell (Drowned Zombie) · Lantern Moth (Wisp Ghost) · Bell Snail (Bell Ringer) · Angler Mantis (Hollow Fisherman) · Puffshroom Crawler (Spore Puff) · Glowcap · Blind Centipede (Cave Crawler) · Shellback |
-| 3 | white-blue | Gale Moth (Harpy) · Chime Mantis (Gust Shaman) · Ram Beetle (Cliff Goat) · Thunder Moth (Storm Roc) · Frost Bulk (Yeti) · Rime Scarab (Frost Golem) · Frost Mite (Snow Sprite) · Crystal Tick (Ice Lurker) · Masked Pilgrim (Corrupted Monk) · Censer Acolyte (Chanting Acolyte) · Lantern Wisp (Lantern Spirit) · Bellkeeper Beetle (Bell Guardian) |
-| 4 | ember orange | Ember Mite (Fire Imp) · Cinder Moth (Ember Bat) · Rail Weevil (Mine Cart Bomber) · Magma Grub (Magma Lurker) · Forge Shell (Dwarven Construct) · Mortar Snail (Forge Turret) · Anvil Rhino Beetle (Anvil Golem) · Spark Firefly (Spark Drone) · Magma Larva (Lava Slime) · Ember Mantis (Ember Mage) · Obsidian Stag (Obsidian Brute) |
-| 5 | void violet | Lost Sentinel (Undead Knight) · Shade Archer (Skeleton Archer) · Wailing Moth (Banshee) · Stone Stag (Gargoyle) · Void Mote (Void Wisp) · Rift Mantis (Rift Stalker) · Gravity Orb · Echo |
+These are original designs; the prompts that made the concept art describe
+the style without naming either game.
 
 ---
 
@@ -81,10 +70,10 @@ the act that teaches the game.
 
 | Enemy | Made from | What it does | Teaches |
 |---|---|---|---|
-| **Mossgrub** | Charger, slow · reskin | Hops straight at you | Move or shoot |
-| **Seedspitter** | Spitter · reskin | Lobs one slow seed | Dodging a shot |
-| **Thicket Hound** | Charger, fast · twist: comes in packs of 3 that circle before lunging | Circles, then dashes in | Reading a lunge |
-| *Elite:* **Broodbelly** | Bulwark · twist: bursts into 2 Mossgrubs on death | A slow wall that becomes two threats | Finishing what you start |
+| **Moss Slime** | Charger, slow · reskin | Hops straight at you | Move or shoot |
+| **Sprout Slime** | Spitter · reskin | Lobs one slow seed | Dodging a shot |
+| **Glade Wolf** | Charger, fast · twist: comes in packs of 3 that circle before lunging | Circles, then dashes in | Reading a lunge |
+| *Elite:* **Mother Slime** | Bulwark · twist: splits into 2 Moss Slimes on death | A slow wall that becomes two threats | Finishing what you start |
 
 **Arenas.** *Clearing* — open grass, two mossy stumps. *Fairy Ring* — a ring
 of mushrooms (low cover) round an open centre. *Fallen Log* — one long log
@@ -94,10 +83,10 @@ across the middle with a gap at each end.
 
 | Enemy | Made from | What it does |
 |---|---|---|
-| **Briar Skitter** | Charger · twist: leaves a short sticky web patch where it dies (slows) | Fast skitter, web on death |
-| **Silk Spinner** | Spitter · twist: its orbs leave slow patches | Area denial |
-| **Root Lurker** | Lurker · reskin (vine bulb) | Surfaces under you with a ring of thorns |
-| *Elite:* **Weaver Matron** | Bulwark · twist: drops 2 Briar Skitters every few seconds | Must be pushed through |
+| **Thorn Spider** | Charger · twist: leaves a short sticky web patch where it dies (slows) | Fast skitter, web on death |
+| **Web Spitter** | Spitter · twist: its orbs leave slow patches | Area denial |
+| **Bramble Lurker** | Lurker · reskin (vine bulb) | Surfaces under you with a ring of thorns |
+| *Elite:* **Broodmother** | Bulwark · twist: drops 2 Thorn Spiders every few seconds | Must be pushed through |
 
 **Arenas.** *Bramble Maze* — brambles carve the room into lanes with gaps.
 *The Funnel* — the room narrows to a single gap halfway up. *Briar Patch* —
@@ -107,10 +96,10 @@ scattered bramble clumps; touching one slows (a soft hazard).
 
 | Enemy | Made from | What it does |
 |---|---|---|
-| **Mantis Archer** | Lancer · reskin (hooded bandit, bow) | Telegraphed aimed shot |
-| **Shellguard** | Bulwark · reskin (big club, wooden shield) | Blocks, swings when close |
-| **Needle Rogue** | Charger · twist: dashes in, strikes, then retreats | Hit-and-run |
-| **Spore Lobber** | Spitter · twist: one arcing bomb that bursts in a ring after a fuse | A delayed area |
+| **Bandit Archer** | Lancer · reskin (hooded bandit, bow) | Telegraphed aimed shot |
+| **Brute** | Bulwark · reskin (big club, wooden shield) | Blocks, swings when close |
+| **Cutthroat** | Charger · twist: dashes in, strikes, then retreats | Hit-and-run |
+| **Bomb Tosser** | Spitter · twist: one arcing bomb that bursts in a ring after a fuse | A delayed area |
 
 **Arenas.** *Canyon Floor* — long open room, crates as cover. *Watchtowers* —
 two raised platforms an archer stands on (it can only be reached by shots).
@@ -129,10 +118,10 @@ that slows — the act where standing still in the wrong place costs you.
 
 | Enemy | Made from | What it does |
 |---|---|---|
-| **Mire Flea** | **New: leaper** — jumps to a marked spot, lands with a splash ring | Telegraphed leaps |
-| **Bloatfly** | Spitter · twist: shots leave a poison puddle | Poisons the ground |
-| **Mire Leech** | Lurker · reskin (eyes on stalks) | Pops up out of the water |
-| *Elite:* **Flea Swarm** | 4 Mire Fleas that leap together on a beat | Rhythm dodging |
+| **Bog Frog** | **New: leaper** — jumps to a marked spot, lands with a splash ring | Telegraphed leaps |
+| **Toxic Toad** | Spitter · twist: shots leave a poison puddle | Poisons the ground |
+| **Swamp Lurker** | Lurker · reskin (eyes on stalks) | Pops up out of the water |
+| *Elite:* **Croaking Chorus** | 4 Bog Frogs that leap together on a beat | Rhythm dodging |
 
 **Arenas.** *Lily Pads* — the floor is water with pad "islands"; water is a
 slow zone. *Poison Ring* — a poison pool in the middle, fight round its edge.
@@ -142,10 +131,10 @@ slow zone. *Poison Ring* — a poison pool in the middle, fight round its edge.
 
 | Enemy | Made from | What it does |
 |---|---|---|
-| **Sodden Shell** | Charger, slow · twist: rises once more after death unless it burns | Slow, relentless |
-| **Lantern Moth** | **New: phaser** — drifts through walls and obstacles, fades in and out | Can't be hidden from |
-| **Bell Snail** | Lancer · twist: its shot is a sound wave cone, not a line | A wide telegraph |
-| *Elite:* **Angler Mantis** | Bulwark · twist: hooks you toward it (pull) | Being pulled |
+| **Drowned Zombie** | Charger, slow · twist: rises once more after death unless it burns | Slow, relentless |
+| **Wisp Ghost** | **New: phaser** — drifts through walls and obstacles, fades in and out | Can't be hidden from |
+| **Bell Ringer** | Lancer · twist: its shot is a sound wave cone, not a line | A wide telegraph |
+| *Elite:* **Hollow Fisherman** | Bulwark · twist: hooks you toward it (pull) | Being pulled |
 
 **Arenas.** *Flooded Street* — two rows of broken houses, a lane between.
 *The Square* — a well in the middle, houses round the edge. *Rooftops* —
@@ -155,9 +144,9 @@ gaps between roofs are drops (void edges, a light preview of Act 5).
 
 | Enemy | Made from | What it does |
 |---|---|---|
-| **Puffshroom Crawler** | Charger · twist: bursts into a poison cloud when killed close | Kill it from range |
+| **Spore Puff** | Charger · twist: bursts into a poison cloud when killed close | Kill it from range |
 | **Glowcap** | **New: stationary** — a mushroom turret that sprays spores in a spiral | A rotating hazard |
-| **Blind Centipede** | Lurker · reskin (blind cave worm) | Surfaces under you |
+| **Cave Crawler** | Lurker · reskin (blind cave worm) | Surfaces under you |
 | **Shellback** | Bulwark · reskin (beetle) | The wall between you and the turrets |
 
 **Arenas.** *Fungus Grove* — giant mushrooms as pillars; their caps glow.
@@ -177,10 +166,10 @@ you stop — the act where your position is not fully yours.
 
 | Enemy | Made from | What it does |
 |---|---|---|
-| **Gale Moth** | **New: flyer** — crosses walls and gaps, dives at a marked spot | Threat from anywhere |
-| **Chime Mantis** | Lancer · twist: shot knocks you back instead of only hurting | Positional danger |
-| **Ram Beetle** | Charger · twist: charge knocks back hard | Don't stand near edges |
-| *Elite:* **Thunder Moth** | Gale Moth, big · sheds scales in a fan as it dives | — |
+| **Harpy** | **New: flyer** — crosses walls and gaps, dives at a marked spot | Threat from anywhere |
+| **Gust Shaman** | Lancer · twist: shot knocks you back instead of only hurting | Positional danger |
+| **Cliff Goat** | Charger · twist: charge knocks back hard | Don't stand near edges |
+| *Elite:* **Storm Roc** | Harpy, big · drops feathers in a fan as it dives | — |
 
 **Arenas.** *Ledge Path* — a narrow walkway with drops each side (void
 edges). *Wind Tunnel* — gusts push everything one way on a cycle (shown by
@@ -190,10 +179,10 @@ streaks first). *Twin Peaks* — two plateaus joined by a bridge.
 
 | Enemy | Made from | What it does |
 |---|---|---|
-| **Frost Bulk** | Bulwark · twist: throws a big snowball (slow, arcing, splash) | Heavy, slow |
-| **Rime Scarab** | Bulwark · twist: freezes the ground in a ring when it stomps | Makes ice |
-| **Frost Mite** | Spitter · twist: shots chill (slow you) | Speed drain |
-| **Crystal Tick** | Lurker · reskin (crystal) | Surfaces under you |
+| **Yeti** | Bulwark · twist: throws a big snowball (slow, arcing, splash) | Heavy, slow |
+| **Frost Golem** | Bulwark · twist: freezes the ground in a ring when it stomps | Makes ice |
+| **Snow Sprite** | Spitter · twist: shots chill (slow you) | Speed drain |
+| **Ice Lurker** | Lurker · reskin (crystal) | Surfaces under you |
 
 **Arenas.** *Frozen Lake* — most of the floor is ice: you slide, you can't
 stop dead (a movement change, the act's real test). *Icicle Gorge* — icicles
@@ -203,10 +192,10 @@ fall on marked spots on a timer. *Snowbound Pass* — snowdrifts as low cover.
 
 | Enemy | Made from | What it does |
 |---|---|---|
-| **Masked Pilgrim** | Charger · twist: a 3-hit combo, then pauses | Wait for the opening |
-| **Censer Acolyte** | Spitter · twist: fires in rotating spirals | Bullet patterns |
-| **Lantern Wisp** | **New: phaser** (shared with Lantern Moth) | — |
-| **Bellkeeper Beetle** | Bulwark · twist: rings a shockwave ring every few seconds | Ring timing |
+| **Corrupted Monk** | Charger · twist: a 3-hit combo, then pauses | Wait for the opening |
+| **Chanting Acolyte** | Spitter · twist: fires in rotating spirals | Bullet patterns |
+| **Lantern Spirit** | **New: phaser** (shared with Wisp Ghost) | — |
+| **Bell Guardian** | Bulwark · twist: rings a shockwave ring every few seconds | Ring timing |
 
 **Arenas.** *Prayer Hall* — rows of pillars. *Spike Floor* — floor tiles spike
 up in a pattern (checkerboard, sweeping row) that the room shows a beat
@@ -225,10 +214,10 @@ where the arena itself is the most dangerous enemy.
 
 | Enemy | Made from | What it does |
 |---|---|---|
-| **Ember Mite** | Charger, fast · twist: leaves a short fire trail | Don't follow its path |
-| **Cinder Moth** | **New: flyer** (shared with Gale Moth) | Swoops over the cracks |
-| **Rail Weevil** | **New: rider** — rides fixed rails, drops bombs | Rails are lanes to avoid |
-| **Magma Grub** | Lurker · reskin | Surfaces under you |
+| **Fire Imp** | Charger, fast · twist: leaves a short fire trail | Don't follow its path |
+| **Ember Bat** | **New: flyer** (shared with Harpy) | Swoops over the cracks |
+| **Mine Cart Bomber** | **New: rider** — rides fixed rails, drops bombs | Rails are lanes to avoid |
+| **Magma Lurker** | Lurker · reskin | Surfaces under you |
 
 **Arenas.** *Mine Shafts* — narrow tunnels. *Lava Cracks* — glowing cracks
 that erupt on a timer (warning glow first). *Collapsing Tunnel* — floor
@@ -238,10 +227,10 @@ sections crumble after you've stood on them for a moment.
 
 | Enemy | Made from | What it does |
 |---|---|---|
-| **Forge Shell** | Bulwark · reskin (stone and brass) | The wall |
-| **Mortar Snail** | **New: stationary** (shared with Glowcap) — aimed bursts | Stationary threat |
-| **Anvil Rhino Beetle** | Charger, slow · twist: slam leaves a burning ring | Big telegraph |
-| **Spark Firefly** | Spitter · twist: hovers, sprays a short fan | Pressure |
+| **Dwarven Construct** | Bulwark · reskin (stone and brass) | The wall |
+| **Forge Turret** | **New: stationary** (shared with Glowcap) — aimed bursts | Stationary threat |
+| **Anvil Golem** | Charger, slow · twist: slam leaves a burning ring | Big telegraph |
+| **Spark Drone** | Spitter · twist: hovers, sprays a short fan | Pressure |
 
 **Arenas.** *Assembly Line* — conveyor belts move you (and enemies) along.
 *Forge Floor* — open, with furnaces that vent fire on a timer. *Turret Gallery*
@@ -251,9 +240,9 @@ sections crumble after you've stood on them for a moment.
 
 | Enemy | Made from | What it does |
 |---|---|---|
-| **Magma Larva** | Charger · twist: bursts into 2 small Magma Larvae (Act 1's lesson, harder) | — |
-| **Ember Mantis** | Lancer · twist: fires three lines in a fan | Wider telegraph |
-| **Obsidian Stag** | Bulwark · twist: immune from the front | Flank it |
+| **Lava Slime** | Charger · twist: splits into 2 small lava slimes (Act 1's lesson, harder) | — |
+| **Ember Mage** | Lancer · twist: fires three lines in a fan | Wider telegraph |
+| **Obsidian Brute** | Bulwark · twist: immune from the front | Flank it |
 
 **Arenas.** *Rising Lava* — the room's edges flood with lava over the fight,
 shrinking the safe floor. *Basalt Islands* — islands over lava joined by
@@ -272,21 +261,21 @@ shifts — the act where the rules of the room change.
 
 | Enemy | Made from | What it does |
 |---|---|---|
-| **Lost Sentinel** | Bulwark · twist: blocks from the front, lunges | Patience |
-| **Shade Archer** | Lancer · reskin | — |
-| **Wailing Moth** | **New: phaser** (shared) · twist: shriek cone slows | — |
-| **Stone Stag** | **New: perch** — a statue (untargetable) until you come near | Ambush |
+| **Undead Knight** | Bulwark · twist: blocks from the front, lunges | Patience |
+| **Skeleton Archer** | Lancer · reskin | — |
+| **Banshee** | **New: phaser** (shared) · twist: shriek cone slows | — |
+| **Gargoyle** | **New: perch** — a statue (untargetable) until you come near | Ambush |
 
 **Arenas.** *Throne Hall* — pillars and a long carpet. *Broken Battlements* —
-wall walk with gaps (void edges). *Courtyard of Statues* — stag-beetle statues
+wall walk with gaps (void edges). *Courtyard of Statues* — gargoyle statues
 everywhere; some wake.
 
 ### 14. Void Rift — floating platforms · lean: Ranger (open)
 
 | Enemy | Made from | What it does |
 |---|---|---|
-| **Void Mote** | **New: blinker** — teleports to a marked spot near you, then fires | Watch the mark |
-| **Rift Mantis** | Charger · twist: blinks the last few studs of its charge | Late dodge |
+| **Void Wisp** | **New: blinker** — teleports to a marked spot near you, then fires | Watch the mark |
+| **Rift Stalker** | Charger · twist: blinks the last few studs of its charge | Late dodge |
 | **Gravity Orb** | **New: stationary** · pulls you toward it | Fight the pull |
 | *Elite:* **Echo** | A copy of the player's own class, weaker | Fight yourself |
 
@@ -330,9 +319,9 @@ have.
 
 ## Concept art
 
-Made with ChatGPT Codex (owner's choice for images and models). The arenas
-are in the Archero 2 toy style of `ART-archero2.md`; the enemy line-ups were
-redone in the insect-kingdom design language above (2026-10-22).
+Made with ChatGPT Codex (owner's choice for images and models), in the
+Archero 2 toy style of `ART-archero2.md`. Each act has an enemy line-up —
+redone 2026-10-22 with the design language above — and an arena sheet.
 
 | Act | Enemies | Arena |
 |---|---|---|

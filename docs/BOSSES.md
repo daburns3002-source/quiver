@@ -43,7 +43,7 @@ clearly.
 - **Phase 1 — Royal Hop.** Hops toward you; a ring marks where it lands; the
   landing sends out a slow ripple. Between hops it sits still — the window.
 - **Phase 2 (50%) — Divided Court.** Splits into two half-size Bloblins that
-  hop in turn, then, below 25% each, into Mossgrubs.
+  hop in turn, then, below 25% each, into Moss Slimes.
 - *Teaches:* watch the landing mark; finish what you start (Mother Slime,
   bigger). *Class notes:* Ranger kites easily; Warden must dodge the ripple
   to stay close.
@@ -91,7 +91,7 @@ clearly.
 - **Phase 1 — Toll.** Rings the bell: a shockwave ring expands from it,
   jump-free — you must be outside it or between two rings. Drifts through
   houses (phaser).
-- **Phase 2 (50%) — The Drowned Rise.** Each toll raises Sodden Shells; the
+- **Phase 2 (50%) — The Drowned Rise.** Each toll raises Drowned Zombies; the
   bell's rings now come in pairs.
 - *Teaches:* ring timing; nothing can hide behind a wall here. *Class notes:*
   Warden can stand inside the ring's gap; Ranger must keep line of sight.
@@ -103,7 +103,7 @@ clearly.
 - **Phase 2 (66%) — Belly Flop.** Leaps to a marked spot (leaper); the landing
   sends a shockwave ring and splashes poison.
 - **Phase 3 (33%) — The Bog Rises.** Poison floods the room's edges, shrinking
-  the dry floor; she swallows Puffshroom Crawlers and spits them as bursting clouds.
+  the dry floor; she swallows Spore Puffs and spits them as bursting clouds.
 - *Arena:* an underground lake ringed by glowing mushrooms. *Teaches:* every
   Lowlands lesson at once. *Class notes:* Ranger has the safest tongue
   windows; Arcanist's freeze can hold her mid-leap.
@@ -163,7 +163,7 @@ clearly.
 *A towering dwarven war-construct with a hammer and a furnace core.*
 
 - **Phase 1 — Hammer.** Slams in a marked cone and a shockwave line; deploys
-  Mortar Snails on the walls.
+  Forge Turrets on the walls.
 - **Phase 2 (50%) — Overheat.** Vents fire in a ring after every few slams,
   then stalls with its core exposed — the big damage window.
 - *Teaches:* stationary threats and windows. *Class notes:* Ranger clears
@@ -190,7 +190,7 @@ clearly.
 *A giant undead knight with a tower shield and a greatsword.*
 
 - **Phase 1 — Shield Wall.** Blocks everything from the front; sweeping sword
-  arcs; summons Shade Archers. Flank him.
+  arcs; summons Skeleton Archers. Flank him.
 - **Phase 2 (50%) — Broken Oath.** Drops the shield; throws his sword in a
   spinning arc that returns, and lunges after it.
 - *Teaches:* patience and flanking. *Class notes:* Warden's knockback turns

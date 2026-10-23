@@ -86,11 +86,6 @@ Signature hazards by act, as suggested: slow (Lowlands — poison and slow
 zones), knockback (Heights), lava (Depths), void (The End); the Wilds' is
 open — brambles' choke points are the nearest candidate.
 
-The enemies named in this table are the owner's first outline; the
-designed roster is an insect kingdom in the spirit of Hollow Knight and
-Silksong (original creatures, pale masks, eyes in each act's colour) — see
-`ENEMIES-AND-ARENAS.md`, "Design language".
-
 New enemy types are built the way `PROGRESSION.md` already says: from the
 five archetypes (charger, spitter, lancer, bulwark, lurker) with new art and
 stats where they fit, and new archetypes only where a behaviour is genuinely

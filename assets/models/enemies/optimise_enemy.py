@@ -1,6 +1,9 @@
 """Slim a Claude Design enemy model to a Roblox enemy budget.
 
-Usage: optimise_enemy.py <in.glb> <out.glb> <enemy>
+Usage: optimise_enemy.py <in.glb> <out.glb> <enemy> [model]
+
+`model` takes one model out of a file that holds several (the node it sits
+under, e.g. BroodSlime).
 
 Three meshes out: Body (jelly), Eyes (recoloured per act by the game) and
 Decor (everything else), plus any part an enemy lists in `separate`, kept
@@ -37,7 +40,30 @@ def world(node):
     g.visual.vertex_attributes = {"color": colour, "srgb": srgb}
     return g
 
-parts = {node: world(node) for node in scene.graph.nodes_geometry}
+# A file holding several models (the owner's updated slimes, 2026-10-23,
+# all in one export) names the one to take: only parts under that node,
+# with the "_1", "_2" the exporter adds to repeated names taken off again.
+ROOT = sys.argv[4] if len(sys.argv) > 4 else None
+SHARED = {"Body", "Eyes", "Eye_Catchlights", "Moss", "Plants", "Mouth"}
+
+
+def under(node, root):
+    while node is not None:
+        if node == root:
+            return True
+        node = scene.graph.transforms.parents.get(node)
+    return False
+
+
+def plain(name):
+    head, _, tail = name.rpartition("_")
+    return head if tail.isdigit() and head in SHARED else name
+
+
+if ROOT:
+    parts = {plain(str(n)): world(n) for n in scene.graph.nodes_geometry if under(n, ROOT)}
+else:
+    parts = {node: world(node) for node in scene.graph.nodes_geometry}
 
 def colours(g):
     """COLOR_0 as sRGB 0..255. glTF stores it linear; trimesh keeps it in
@@ -115,6 +141,8 @@ ENEMIES = {
         "budget": {
             "Body": 1500, "Eyes": 300, "Eye_Catchlights": 60, "Moss": 2500, "Plants": 400,
             "Mushroom_1": 320, "Mushroom_2": 420, "Mushroom_3": 320, "Mushroom_4": 320, "Mushroom_5": 320, "Mushroom_6": 320,
+            # Added in the owner's updated model (2026-10-23).
+            "Droplets": 200,
         },
     },
     "sprout_spitter": {
@@ -132,6 +160,14 @@ ENEMIES = {
             "Mouth": 48, "Bubbles": 500,
             "Baby_1": 300, "Baby_2": 300, "Baby_3": 300, "Baby_4": 300,
             "Baby_1_Eyes": 96, "Baby_2_Eyes": 96, "Baby_3_Eyes": 96, "Baby_4_Eyes": 96,
+        },
+    },
+    # A Brood Slime's baby, on its own (owner, 2026-10-23): what the Brood
+    # Slime splits into.
+    "baby_slime": {
+        "shrink": {},
+        "budget": {
+            "Body": 1200, "Eyes": 240, "Eye_Catchlights": 60, "Mouth": 48, "Moss": 1500, "Plants": 300,
         },
     },
     # The boss (owner's design_handoff_slime_king, 2026-10-23): 95k triangles
@@ -184,6 +220,12 @@ everything = trimesh.util.concatenate([body, eyes, decor, *loose.values()])
 lo, hi = everything.bounds
 centre = np.array([(lo[0] + hi[0]) / 2, lo[1], (lo[2] + hi[2]) / 2])
 R = trimesh.transformations.rotation_matrix(np.pi, [0, 1, 0])
+if ROOT:
+    # A model out of a shared scene can stand at any angle there; turn it
+    # so its eyes look down -Z, wherever they pointed.
+    look = eyes.vertices.mean(axis=0) - centre
+    fx, fz = look[0], look[2]
+    R = trimesh.transformations.rotation_matrix(np.arctan2(fx, -fz), [0, 1, 0])
 for m in (body, eyes, decor, *loose.values()):
     m.apply_translation(-centre)
     m.apply_transform(R)

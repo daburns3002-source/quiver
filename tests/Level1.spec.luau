@@ -13,6 +13,7 @@ local TestRunner = require(script.Parent.TestRunner)
 local SLIMES = {
 	[Balance.Enemies.MeleeCharger] = true,
 	[Balance.Enemies.BroodSlime] = true,
+	[Balance.Enemies.BabySlime] = true,
 	[Balance.Enemies.SlimeKing] = true,
 	[Balance.Enemies.Wolf] = true,
 }

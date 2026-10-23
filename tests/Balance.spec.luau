@@ -190,6 +190,12 @@ return function(t: TestRunner.Helper)
 		for _, room in Balance.Rooms do
 			for _, config in room.roster do
 				used[config.displayName] = true
+				--[[ What it splits into arrives with it (the Brood Slime's
+				     babies). ]]
+				local split = config.split
+				if split then
+					used[split.into.displayName] = true
+				end
 			end
 		end
 

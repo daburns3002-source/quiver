@@ -29,6 +29,16 @@ WEAPONS = {
         "String": {"String_Upper": 24, "String_Lower": 24},
         "Arrow": {"Shaft": 112, "Arrowhead": 8, "Fletching": 300, "Nock": 136, "Arrow_Wraps": 160},
     },
+    # The Arcanist's staff (owner's Claude Design model, 86.8k triangles).
+    # The orb and gems glow; the ring of orbiting orbs is one mesh, so the
+    # game can spin it round the head.
+    "arcane_staff": {
+        "Staff": {"Shaft": 900, "Spiral": 700, "Head_Cup": 1200},
+        "Trim": {"Silver_Trim": 1600},
+        "Gems": {"Gems": 600},
+        "Orb": {"Orb": 700},
+        "Orbits": {"Orbit_Ring": 500, "Orbit_Orb_1": 250, "Orbit_Orb_2": 250, "Orbit_Orb_3": 250},
+    },
 }
 
 scene = trimesh.load(SRC, process=False)

@@ -60,9 +60,10 @@ return function(t: TestRunner.Helper)
 		end
 	end)
 
-	--[[ An arc's ribbon starts on one edge and ends on the other, the
-	     arc's full length the whole time; the slam's spins a whole turn. ]]
-	t.test("the swing's red covers the whole hitbox", function()
+	--[[ The blade's tip runs the arc's full reach across its whole angle,
+	     or right round the slam's circle at its edge, so the slash traces
+	     the blow's whole shape. ]]
+	t.test("the swing's tip traces the whole hitbox", function()
 		for _, entry in shapes() do
 			local shape = entry.shape
 			local sweep: SwingSweep.Sweep =
@@ -70,14 +71,18 @@ return function(t: TestRunner.Helper)
 			local a0, b0 = SwingSweep.edge(shape, sweep, 0)
 			local a1, b1 = SwingSweep.edge(shape, sweep, 1)
 			if shape.kind == "Arc" then
-				t.near((b0 - a0).Magnitude, shape.reach, 1e-6)
+				t.near(b0.Magnitude, shape.reach, 1e-6)
+				t.near((b0 - a0).Magnitude, shape.reach * (1 - SwingSweep.INNER), 1e-6)
 				local turned = math.deg(math.acos(math.clamp(b0.Unit:Dot(b1.Unit), -1, 1)))
 				t.near(turned, math.min(shape.arc, 360 - shape.arc), 1e-3)
 			else
-				t.near((b0 - a0).Magnitude, shape.radius, 1e-6)
+				local centre = Vector3.new(0, 0, -shape.ahead)
+				t.near((b0 - centre).Magnitude, shape.radius, 1e-6)
+				t.near((b0 - a0).Magnitude, shape.radius * (1 - SwingSweep.INNER), 1e-6)
 				t.near((b0 - b1).Magnitude, 0, 1e-6)
 				local _, half = SwingSweep.edge(shape, sweep, 0.5)
-				t.near((half - a1).Magnitude, shape.radius, 1e-6)
+				t.near((half - centre).Magnitude, shape.radius, 1e-6)
+				t.isTrue((a1 - centre).Magnitude < shape.radius, "the streak leaves the circle")
 			end
 		end
 	end)

@@ -27,11 +27,12 @@ local SwingSweep = require(ReplicatedStorage.Shared.Combat.SwingSweep)
 
 local SwingTrail = {}
 
---[[ Studs above the floor the ribbon is drawn at: under a body, over the
-     grass. ]]
-local HEIGHT = 0.6
---[[ Seconds the finished box stays before it fades. ]]
-local HOLD = 0.12
+--[[ Studs above the floor the streak is drawn at: about where the blade
+     is as it swings. ]]
+local HEIGHT = 1.4
+--[[ Seconds the streak lasts behind the tip: a slash's tail, not the whole
+     shape held. ]]
+local TAIL = 0.16
 
 type Active = {
 	origin: CFrame,
@@ -70,10 +71,17 @@ local function build(colours: { Color3 })
 	trail.LightEmission = 0
 	trail.LightInfluence = 0
 	trail.Color = ColorSequence.new(colours[1], colours[#colours])
+	--[[ Bright at the blade and fading, narrowing towards the tail, as a
+	     sword's slash streaks behind it. ]]
+	trail.Lifetime = TAIL
 	trail.Transparency = NumberSequence.new({
-		NumberSequenceKeypoint.new(0, 0.25),
-		NumberSequenceKeypoint.new(0.75, 0.45),
+		NumberSequenceKeypoint.new(0, 0.05),
+		NumberSequenceKeypoint.new(0.5, 0.35),
 		NumberSequenceKeypoint.new(1, 1),
+	})
+	trail.WidthScale = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, 1),
+		NumberSequenceKeypoint.new(1, 0.25),
 	})
 	trail.Enabled = false
 	trail.Parent = part
@@ -92,8 +100,8 @@ end
 --[[
 	Called every frame by `Fx/WeaponPose`. `progress` is how far through
 	the slash's `TrailOn`–`TrailOff` window it is, or nil outside it;
-	`blow` is which blow of `blows`, and `seconds` how long the window lasts
-	at the swing's speed.
+	`blow` is which blow of `blows`. (`_seconds`, the window's length, is
+	unused since the streak has a fixed tail.)
 ]]
 function SwingTrail.step(
 	character: Model,
@@ -101,7 +109,7 @@ function SwingTrail.step(
 	progress: number?,
 	blow: number,
 	blows: number,
-	seconds: number
+	_seconds: number
 )
 	local config = weapon.swingTrail
 	local class = Classes[PlayerStats.get().class]
@@ -152,9 +160,6 @@ function SwingTrail.step(
 	active = fresh
 
 	local trail = ribbon :: Trail
-	--[[ Long enough that the whole box is still showing as the sweep
-	     finishes, then it fades. ]]
-	trail.Lifetime = math.max(seconds, 0.05) + HOLD
 	trail.Enabled = false
 	local part = holder :: Part
 	part.CFrame = fresh.origin

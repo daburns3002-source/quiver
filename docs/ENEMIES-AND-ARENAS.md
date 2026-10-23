@@ -7,6 +7,12 @@ pass for the owner to cut, keep and rename — nothing here is settled or built.
 Concept art for each act, generated with ChatGPT Codex, is in
 `assets/concepts/` (see the table at the end).
 
+**The art is blocky now** (owner, 2026-10-23: everything recreated in the
+blocky Pet Simulator / Steal an Egg style of the pets). Every enemy, arena
+and act page below has a blocky redraw at the same path under
+`assets/concepts/blocky/` (as `.jpg`, in the same layout as the original).
+The blocky set is the reference; the originals stay for comparison.
+
 **Bosses are in `BOSSES.md`** — two per act, one ending each area; the
 second closes its act.
 

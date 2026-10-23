@@ -4,7 +4,9 @@ Ten bosses, two per act, one ending each area (owner, 2026-10-22: "only 2
 bosses per arena" — five were cut, and their areas with them). Design only
 — nothing here is built. The areas, enemies and arenas are in
 `ENEMIES-AND-ARENAS.md`; the world in `WORLD.md`. Concept art, made with
-ChatGPT Codex, is in `assets/concepts/` (table at the end).
+ChatGPT Codex, is in `assets/concepts/` (table at the end). **The blocky
+redraws are the reference** (owner, 2026-10-23): each boss has one at the
+same path under `assets/concepts/blocky/`, the cut bosses included.
 
 **Every area ends in a boss**, which is what the settled gate needs: an
 area unlocks the next when its boss is beaten (`PROGRESSION.md`). Each act
@@ -59,7 +61,8 @@ clearly.
 *A spider queen with bramble legs and a glowing abdomen.* (Was "Thornweaver".)
 Act 1's regular enemies have no spiders (owner, 2026-10-22); her
 **Thornlings** — little thorn spiders — exist only in her fight, which is
-what makes it hers.
+what makes it hers. **Her model has no webs on it** (owner, 2026-10-23); webs
+appear only as her attacks, the lanes below.
 
 - **Phase 1 — Web Lanes.** Shoots web lines across the room that become slow
   strips, cutting the arena into lanes, and summons Thornlings in clutches.

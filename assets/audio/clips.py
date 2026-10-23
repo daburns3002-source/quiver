@@ -30,6 +30,9 @@ ROUNDS = {
         ("b", 10.0, 12.8, 1.0, "From 10 seconds to the natural end of the spell's ring."),
         ("c", 11.5, 12.8, 1.0, "Just the spell's hit and its ring, for a cast every 1.4 s."),
         ("d", 10.0, 12.8, 2.0, "All of it, played twice as fast at the same pitch."),
+        # The owner's choice (2026-10-23): "do D but not the wind up just
+        # the end". From the hit's rise at 11.59 s, at D's double speed.
+        ("e", 11.59, 12.8, 2.0, "D without the wind-up: the hit and its ring at double speed."),
     ]),
 }
 

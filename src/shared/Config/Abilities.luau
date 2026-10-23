@@ -54,6 +54,9 @@ export type Ability = {
 	     Bows, the Arcanist's homing (Tracking Eye, to become Homing Orbs
 	     with the class). ]]
 	classes: { string }?,
+	--[[ A `Config/Weapons` entry held in place of the class's own while this
+	     is drafted: the Dual Bows Mythic puts a bow in each hand. ]]
+	weapon: string?,
 }
 
 local abilities: { Ability } = {
@@ -220,6 +223,9 @@ local abilities: { Ability } = {
 		stats = { "x2 atk spd" },
 		icon = "dual-bows",
 		classes = { "Ranger" },
+		--[[ A bow in each hand, held as the owner's posed rig holds them
+		     (2026-10-23). ]]
+		weapon = "LeafBowDual",
 	},
 
 	--[[ Power skills. ]]

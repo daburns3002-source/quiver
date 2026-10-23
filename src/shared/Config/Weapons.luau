@@ -71,6 +71,9 @@ export type Weapon = {
 	--[[ How the model is turned in the hand, when not the bow's and the
 	     staff's (upright, pointing where the fingers do). ]]
 	inHand: CFrame?,
+	--[[ A second copy of the model in another hand (a bow in each), at its
+	     own grip; turned like the first unless it says otherwise. ]]
+	offhand: { hand: string, grip: Vector3, inHand: CFrame? }?,
 	--[[ A swing trail, between two heights up the blade in model units
 	     (`Fx/SwingTrail`), shown between a slash's `TrailOn` and
 	     `TrailOff` markers. ]]
@@ -335,5 +338,21 @@ local Weapons = {
 		},
 	} :: Weapon,
 }
+
+--[[ The Dual Bows Mythic (`Config/Abilities.DualBows.weapon`): the leaf bow
+     in each hand, held up as the owner's posed rig holds them
+     (`assets/models/weapons/leaf_bow_dual_r15/`, 2026-10-23). The same
+     meshes at the same grip in either hand. It holds that pose while it
+     fires, so it has no draw and no live string. ]]
+local leafBow = Weapons.LeafBow;
+(Weapons :: any).LeafBowDual = {
+	hand = leafBow.hand,
+	scale = leafBow.scale,
+	grip = leafBow.grip,
+	clips = { hold = "Hold", fire = { "Fire" } },
+	fireSound = leafBow.fireSound,
+	offhand = { hand = "RightHand", grip = leafBow.grip },
+	parts = leafBow.parts,
+} :: Weapon
 
 return table.freeze(Weapons)

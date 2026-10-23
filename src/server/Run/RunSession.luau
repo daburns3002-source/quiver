@@ -11,9 +11,11 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local Abilities = require(ReplicatedStorage.Shared.Config.Abilities)
 local AbilityEffects = require(ReplicatedStorage.Shared.Combat.AbilityEffects)
 local Arena = require(script.Parent.Parent.Arena.Arena)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
+local Classes = require(ReplicatedStorage.Shared.Config.Classes)
 local Loadout = require(script.Parent.Loadout)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
 local Pickups = require(script.Parent.Pickups)
@@ -210,6 +212,17 @@ function RunSession.applyLoadout(session: Session)
 	end
 
 	playerStats:FireClient(session.player, AbilityEffects.clientStats(counts, class))
+	--[[ The weapon in hand: the class's own, unless a drafted card puts
+	     another there (`Ability.weapon`, the Dual Bows Mythic). `Main`
+	     re-equips when it changes, and the client poses whatever it is. ]]
+	local weapon = Classes[class].weapon
+	for id, level in counts do
+		local ability = Abilities.byId[id]
+		if level > 0 and ability and ability.weapon then
+			weapon = ability.weapon
+		end
+	end
+	session.player:SetAttribute("Weapon", weapon)
 	session.player:SetAttribute("Class", class)
 	healthChanged:FireClient(session.player, session.health, session.maxHealth)
 end

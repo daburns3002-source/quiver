@@ -10,8 +10,8 @@
 
 	Chosen and uploaded so far (2026-10-23, `assets/audio/final/`): player
 	hurt, XP crystal, heart, level up, enemy hit, dash, card pick, arrow
-	fire, staff cast and enemy death. Still to choose: the gate opening and
-	the Warden's swing.
+	fire, staff cast and enemy death; the Warden's swing and slam are
+	Roblox's own. Still to upload: the gate opening.
 
 	`volume` is 0–1 on top of the file's own level (the audition levels each
 	sound for its job already). `pitchJitter` varies each play by up to that
@@ -23,6 +23,8 @@
 export type Sound = {
 	id: string,
 	volume: number,
+	--[[ Playback speed, when not 1: above it plays faster and higher. ]]
+	speed: number?,
 	pitchJitter: number,
 	minGap: number,
 }
@@ -35,9 +37,26 @@ local Sounds: { [string]: Sound } = {
 		pitchJitter = 0.06,
 		minGap = 0.03,
 	},
+	--[[ The Warden's sweep and backswing, and its slam
+	     (`Config/Weapons.RubyGreatsword.comboSounds`): Roblox's own classic
+	     sword sounds, `swordslash.wav` and `swordlunge.wav`, uploaded by
+	     Roblox for any experience to use, a little sped up (owner,
+	     2026-10-23, from a clip of them). ]]
+	sword_swing = {
+		id = "rbxassetid://12222216",
+		volume = 0.7,
+		speed = 1.1,
+		pitchJitter = 0.04,
+		minGap = 0.05,
+	},
+	sword_slam = {
+		id = "rbxassetid://12222208",
+		volume = 0.8,
+		speed = 1.1,
+		pitchJitter = 0.02,
+		minGap = 0.05,
+	},
 	--[[ The Arcanist's every bolt (`Config/Weapons.ArcaneStaff.fireSound`). ]]
-	--[[ The Warden's every swing (`Config/Weapons.RubyGreatsword.fireSound`). ]]
-	sword_swing = { id = "", volume = 0.7, pitchJitter = 0.05, minGap = 0.05 },
 	staff_cast = {
 		id = "rbxassetid://94842415130560",
 		volume = 0.6,

@@ -16,6 +16,7 @@ local Workspace = game:GetService("Workspace")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 
 local BurnFx = require(script.Parent.Fx.BurnFx)
+local Classes = require(Shared.Config.Classes)
 local CombatMarkers = require(script.Parent.Fx.CombatMarkers)
 local DashBar = require(script.Parent.UI.DashBar)
 local DevKeys = require(script.Parent.DevKeys)
@@ -38,10 +39,12 @@ local ReviveFx = require(script.Parent.Fx.ReviveFx)
 local RunBanner = require(script.Parent.UI.RunBanner)
 local RunPaused = require(script.Parent.RunPaused)
 local SkillBar = require(script.Parent.UI.Cards.SkillBar)
+local SoundFx = require(script.Parent.Fx.SoundFx)
 local TelegraphRenderer = require(script.Parent.Fx.TelegraphRenderer)
 local TopDownCamera = require(script.Parent.Camera.TopDownCamera)
 local Types = require(Shared.Types)
 local WeaponPose = require(script.Parent.Fx.WeaponPose)
+local Weapons = require(Shared.Config.Weapons)
 
 type ShotEvent = Types.ShotEvent
 
@@ -113,6 +116,11 @@ WeaponPose.start(function()
 	return LocalFiring.currentTarget() ~= nil
 end)
 LocalFiring.onFired(WeaponPose.release)
+LocalFiring.onFired(function()
+	local class = Classes[player:GetAttribute("Class") :: string? or "Ranger"] or Classes.Ranger
+	SoundFx.play(((Weapons :: any)[class.weapon] :: Weapons.Weapon).fireSound)
+end)
+SoundFx.preload()
 MoveController.start()
 
 if not MoveController.hasSupportedInput() then
@@ -164,6 +172,15 @@ end)
 Remotes.event(Remotes.EnemyTelegraph).OnClientEvent:Connect(TelegraphRenderer.onTelegraph)
 Remotes.event(Remotes.EnemyHit).OnClientEvent:Connect(HitFeedback.onEnemyHit)
 Remotes.event(Remotes.EnemyDied).OnClientEvent:Connect(HitFeedback.onEnemyDied)
+Remotes.event(Remotes.EnemyHit).OnClientEvent:Connect(function()
+	SoundFx.play("enemy_hit")
+end)
+Remotes.event(Remotes.EnemyDied).OnClientEvent:Connect(function()
+	SoundFx.play("enemy_death")
+end)
+Remotes.event(Remotes.PlayerDamaged).OnClientEvent:Connect(function()
+	SoundFx.play("player_hurt")
+end)
 Remotes.event(Remotes.Explosion).OnClientEvent:Connect(HitFeedback.onExplosion)
 Remotes.event(Remotes.SoulLink).OnClientEvent:Connect(HitFeedback.onSoulLink)
 Remotes.event(Remotes.PlayerDodged).OnClientEvent:Connect(HitFeedback.onPlayerDodged)
@@ -181,6 +198,8 @@ Remotes.event(Remotes.RunStateChanged).OnClientEvent
 		     moment the next one starts fighting. ]]
 		if state == "Fighting" then
 			EndScreen.hide()
+		elseif state == "Cleared" then
+			SoundFx.play("gate_open")
 		end
 	end)
 
@@ -221,6 +240,7 @@ DevKeys.start()
 DraftScreen.start(function(index: number)
 	DraftScreen.hide()
 	RunPaused.set(false)
+	SoundFx.play("card_pick")
 	Remotes.event(Remotes.AbilityChosen):FireServer(index)
 end, function()
 	--[[ Asks only. The server decides whether a reroll is left and sends the
@@ -233,6 +253,11 @@ Remotes.event(Remotes.AbilityOffer).OnClientEvent
 		--[[ Paused alongside the server, which stops the run for a draft. Without
 	     this the prediction draws volleys across a frozen room that the server
 	     never fired. ]]
+		--[[ A reroll re-sends the offer to an open draft; the chime is for
+		     the draft opening. ]]
+		if not RunPaused.get() then
+			SoundFx.play("level_up")
+		end
 		RunPaused.set(true)
 		DraftScreen.show(offer, level, source, rerolls)
 	end)

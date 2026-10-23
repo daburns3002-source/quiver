@@ -141,6 +141,13 @@ left are drawn in when the wave or room clears. Hearts drop on 5% of kills and o
 Valkyrie wave, wait on the floor, and heal 20% of max health when walked
 over, full health or not.
 
+**Sounds** (`Config/Sounds`, `Fx/SoundFx`): made from scratch in
+`assets/audio/synth.py`, auditioned on a page whose picks save to its own
+database (`assets/audio/build_page.py`, artifact E53Pu8d5UbwLKnyKYEDo2K,
+read with `ArtifactData` `picks`), uploaded to Roblox by the owner, and the
+ids go in `Config/Sounds`. A sound with an empty id is silent, so every hook
+is wired before its audio exists.
+
 **Revive** (`Balance.Revive`): once per stage, automatically, after Second
 Wind — full health, 2.5 s untouchable behind a gold shield, and enemy shots
 within 12 studs cleared.

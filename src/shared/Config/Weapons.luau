@@ -54,6 +54,8 @@ export type Weapon = {
 	--[[ Where the grip sits in the hand's own frame, studs. ]]
 	grip: Vector3,
 	clips: Clips,
+	--[[ The `Config/Sounds` entry each shot plays. ]]
+	fireSound: string,
 	--[[ A staff's orbit ring axis, in the model's units through the orb. ]]
 	orbitAxis: Vector3?,
 	--[[ What the class's shots are drawn as, when not the plain arrow or
@@ -84,6 +86,7 @@ local Weapons = {
 		scale = 3.8,
 		grip = Vector3.new(0, -0.15, 0),
 		clips = { hold = "Hold", ready = "Draw", aim = "Aim", fire = "Fire" },
+		fireSound = "arrow_fire",
 		--[[ From the kit's README, turned into this model's frame (the
 		     arrow points +Z here, −Z in the kit). ]]
 		bowString = {
@@ -144,6 +147,7 @@ local Weapons = {
 		scale = 3.4,
 		grip = Vector3.new(0, -0.1, 0),
 		clips = { hold = "Hold", ready = "Charge", aim = "Channel", fire = "Cast" },
+		fireSound = "staff_cast",
 		--[[ The kit's, turned into this model's frame. ]]
 		orbitAxis = Vector3.new(0, -0.3146, -0.9492),
 		--[[ The kit's bolt (`assets/models/weapons/arcane_bolt_roblox.glb`,

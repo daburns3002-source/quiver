@@ -23,6 +23,7 @@ local Dash = require(script.Parent.Dash)
 local DashButton = require(script.Parent.DashButton)
 local PlayerStats = require(script.Parent.Parent.PlayerStats)
 local RunPaused = require(script.Parent.Parent.RunPaused)
+local SoundFx = require(script.Parent.Parent.Fx.SoundFx)
 local Thumbstick = require(script.Parent.Thumbstick)
 
 local MoveController = {}
@@ -120,7 +121,9 @@ local function requestDash()
 		return
 	end
 
-	Dash.request(os.clock(), desiredDirection(), root.CFrame.LookVector)
+	if Dash.request(os.clock(), desiredDirection(), root.CFrame.LookVector) then
+		SoundFx.play("dash")
+	end
 end
 
 local function step()

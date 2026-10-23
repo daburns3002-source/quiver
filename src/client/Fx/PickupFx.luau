@@ -13,10 +13,12 @@
 	simply not drawn, and nothing here can take one.
 ]]
 
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
+local SoundFx = require(script.Parent.SoundFx)
 
 local PickupFx = {}
 
@@ -221,10 +223,14 @@ end
 
 function PickupFx.onTaken(ids: { number }, collector: Player)
 	local now = os.clock()
+	local mine = collector == Players.LocalPlayer
 
 	for _, id in ids do
 		local visual = visuals[id]
 		if visual and not visual.takenAt then
+			if mine then
+				SoundFx.play(if visual.kind == "Heart" then "heart_pickup" else "xp_pickup")
+			end
 			--[[ From wherever it is drawn now, mid-bob or mid-pop. ]]
 			local primary = visual.model:FindFirstChildWhichIsA("BasePart")
 			visual.takenFrom = if primary then primary.Position else visual.rest

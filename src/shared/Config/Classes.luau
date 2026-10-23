@@ -20,9 +20,9 @@ export type Swing = {
 	width: number,
 	depth: number,
 	damage: { number },
-	--[[ Untouchable while the blade is moving: from each slash's
-	     `TrailOn` marker to its `TrailOff` (owner, 2026-10-23: "if the
-	     warden is mid swing of his sword he should be invulnerable"). ]]
+	--[[ Untouchable for the whole swing, from its start until its clip
+	     ends (owner, 2026-10-23: "if the warden is mid swing of his sword
+	     he should be invulnerable", then "keep it to the whole swing"). ]]
 	guard: boolean?,
 }
 
@@ -83,8 +83,9 @@ local Classes: { [string]: Class } = {
 		damageScale = 1.6,
 		cooldownScale = 1.2,
 		--[[ It has to stand among the enemies, so it can take more of them
-		     (owner, 2026-10-23: "the warden needs to be tankier"). ]]
-		healthScale = 1.6,
+		     (owner, 2026-10-23: "the warden needs to be tankier", twice: 1.6,
+		     then this). ]]
+		healthScale = 2.2,
 		speedScale = 1,
 		innate = {},
 		look = "Arrow",

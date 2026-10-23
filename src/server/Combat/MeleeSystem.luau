@@ -11,8 +11,9 @@
 	before then cancels it, as moving cancels a draw.
 
 	Each blow of the weapon's combo has its own damage (`swing.damage`); the
-	combo starts over after a pause. A class with `swing.guard` cannot be
-	hurt while its blade is moving (`RunSession.isInvulnerable`). A swing takes crit and Blaze from the
+	combo keeps its place between swings, however long the swinger moves in
+	between. A class with `swing.guard` cannot be hurt for the whole swing
+	(`RunSession.isInvulnerable`). A swing takes crit and Blaze from the
 	player's draft, read off the lead shot of the volley the pipeline would
 	build, so a drafted ability means the same thing on any class. The
 	server decides every hit; the client only plays the swing.
@@ -45,6 +46,9 @@ type Pending = {
 	hitAt: number,
 	direction: Vector3,
 	index: number,
+	--[[ The combo's place before this swing, given back if it never
+	     lands. ]]
+	previous: number,
 }
 
 local pending: { Pending } = {}
@@ -82,23 +86,22 @@ function MeleeSystem.swing(session: Session, root: BasePart, now: number, cooldo
 		return false
 	end
 
-	--[[ The combo goes on while swings follow one another, and starts over
-	     after a pause, as the client plays it. ]]
-	local index =
-		WeaponTiming.nextInCombo(class.weapon, session.swingIndex, now - session.swingEndsAt)
+	--[[ The combo keeps its place between swings, however long the
+	     Warden moves in between, as the client plays it. ]]
+	local index = WeaponTiming.nextInCombo(class.weapon, session.swingIndex)
 	local weapon = (Weapons :: any)[class.weapon] :: Weapons.Weapon
 	local clip = WeaponAnimations[class.weapon][weapon.clips.fire[index]]
 	local speed = WeaponTiming.cycleSpeed(class.weapon, index, cooldown)
 
+	local previous = session.swingIndex
 	session.swingIndex = index
 	session.swingEndsAt = now + clip.length / speed
 	session.lastFiredAt = now
 
-	--[[ Untouchable while the blade moves, as the client draws its trail. ]]
-	local guardFrom, guardUntil = clip.markers.TrailOn, clip.markers.TrailOff
-	if class.swing.guard and guardFrom and guardUntil then
-		session.guardFrom = now + guardFrom / speed
-		session.guardUntil = now + guardUntil / speed
+	--[[ Untouchable for the whole swing. ]]
+	if class.swing.guard then
+		session.guardFrom = now
+		session.guardUntil = session.swingEndsAt
 	end
 
 	table.insert(pending, {
@@ -107,6 +110,7 @@ function MeleeSystem.swing(session: Session, root: BasePart, now: number, cooldo
 		hitAt = now + WeaponTiming.hitDelay(class.weapon, index, cooldown),
 		direction = direction,
 		index = index,
+		previous = previous,
 	})
 	return true
 end
@@ -121,11 +125,19 @@ local function land(swing: Pending, now: number)
 		return
 	end
 
-	--[[ Moving since the swing began cancels it. ]]
+	--[[ Moving since the swing began cancels it, and a swing that never
+	     landed does not spend its place in the combo: the slam is still to
+	     come. The client gives the place back the same way. ]]
 	local still = session.stationarySince
 	if not still or still > swing.startedAt then
+		if session.swingIndex == swing.index then
+			session.swingIndex = swing.previous
+		end
 		return
 	end
+	--[[ Which blow of the combo landed last, for anything that wants to
+	     show or check it. ]]
+	session.player:SetAttribute("ComboBlow", swing.index)
 
 	local lead = session.pipeline:build({
 		damage = session.damage,

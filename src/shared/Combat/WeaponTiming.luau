@@ -21,10 +21,6 @@ local WeaponTiming = {}
      attack. ]]
 WeaponTiming.CYCLE_SHARE = 0.9
 
---[[ Seconds after a combo's last attack ends before the next one starts
-     the combo over. ]]
-WeaponTiming.COMBO_RESET = 0.6
-
 local function weaponOf(name: string): Weapons.Weapon
 	return (Weapons :: any)[name] :: Weapons.Weapon
 end
@@ -53,13 +49,12 @@ function WeaponTiming.hitDelay(weaponName: string, index: number, cooldown: numb
 	return hit / WeaponTiming.cycleSpeed(weaponName, index, cooldown)
 end
 
---[[ The combo's next attack after `index` (0 for none yet), and whether the
-     pause since the last one has reset it. ]]
-function WeaponTiming.nextInCombo(weaponName: string, index: number, sinceLast: number): number
+--[[ The combo's next attack after `index` (0 for none yet). A combo keeps
+     its place however long the wielder moves between attacks (owner,
+     2026-10-23: "stand still, first attack, move around, second attack,
+     move around, 3rd attack"); only a new run starts it over. ]]
+function WeaponTiming.nextInCombo(weaponName: string, index: number): number
 	local count = #weaponOf(weaponName).clips.fire
-	if index == 0 or sinceLast > WeaponTiming.COMBO_RESET then
-		return 1
-	end
 	return index % count + 1
 end
 

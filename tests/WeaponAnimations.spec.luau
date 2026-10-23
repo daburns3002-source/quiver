@@ -11,6 +11,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local TestRunner = require(script.Parent.TestRunner)
 local WeaponAnimations = require(ReplicatedStorage.Shared.Config.WeaponAnimations)
+local WeaponTiming = require(ReplicatedStorage.Shared.Combat.WeaponTiming)
 local Weapons = require(ReplicatedStorage.Shared.Config.Weapons)
 
 local function eachWeapon(): { [string]: Weapons.Weapon }
@@ -113,6 +114,19 @@ return function(t: TestRunner.Helper)
 						or string.find(joint, "Wrist") ~= nil,
 					`{name}'s hold moves {joint}`
 				)
+			end
+		end
+	end)
+
+	--[[ A combo keeps its place between attacks, however long the wielder
+	     moves, and comes round to its first blow after its last. ]]
+	t.test("a combo cycles through every blow in order", function()
+		for name, weapon in eachWeapon() do
+			local count = #weapon.clips.fire
+			local index = 0
+			for expected = 1, count * 2 do
+				index = WeaponTiming.nextInCombo(name, index)
+				t.isTrue(index == (expected - 1) % count + 1, `{name}'s combo skipped to {index}`)
 			end
 		end
 	end)

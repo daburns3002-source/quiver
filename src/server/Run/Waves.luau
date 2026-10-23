@@ -49,11 +49,11 @@ end
 
 --[[
 	The room whose roster a fight wave borrows: the stage's waves spread
-	evenly across the Rooms list, so wave 1 fights room one's tutorial pair
+	evenly across the first `Balance.Waves.rooms` of the Rooms list, so wave 1 fights room one's tutorial pair
 	and the last wave fights the last room.
 ]]
 function Waves.tier(wave: number, total: number): number
-	local rooms = #Balance.Rooms
+	local rooms = math.min(Balance.Waves.rooms, #Balance.Rooms)
 	return math.clamp(math.ceil(wave / total * rooms), 1, rooms)
 end
 

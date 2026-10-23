@@ -30,6 +30,16 @@ hitbox fits its model (the slime's is 3 × 2.2 × 3), so player arrows fly
 low, at `Balance.Projectile.height` (1.1), from `Aim.shotOrigin` on both
 sides; `Balance.spec` keeps that height inside every enemy's hitbox.
 
+**Level 1** (`Balance.stage = 3`, owner 2026-10-22): ten Mossy Glade
+rooms — logs, pond, boulders, thorns, boss arena, twice. Each room names
+its look in `RoomConfig.arena`, an `ArenaModels` entry drawn by `Arena.build`
+over the same invisible floor, walls and obstacle boxes as the grey box
+(nil, or a model not imported yet, is the grey box). Arena models follow the
+enemy pipeline through `assets/models/arenas/optimise_arena.py`, scaled ×2.7
+into the 35 × 58 room. Cover under `Projectile.height` (pond, thorns) blocks
+walking but not arrows. Moonlit Arena's waves draw from the first
+`Balance.Waves.rooms` (10) rooms only.
+
 **Bugs that shipped, and what fixed them: `docs/FIXES.md`.** Written to be
 found by symptom. Read it before debugging anything that sounds familiar, and
 add to it in the same PR as every fix — the same classes of bug recur here.

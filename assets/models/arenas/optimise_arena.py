@@ -13,6 +13,7 @@ decimated lightly. Parts are merged into a few groups, each under Roblox's
 per-mesh triangle limit, and the whole sits centred on X/Z with its floor
 at y = 0, unturned (an arena has no face to point).
 """
+import re
 import sys
 import numpy as np
 import trimesh
@@ -43,6 +44,31 @@ ARENAS = {
         },
     },
 }
+
+# The glade's variants (owner, 2026-10-22: Level 1's rooms) differ in which
+# parts they have, so they match parts by name: (pattern, group, share of
+# tufts kept, total budget shared by every part it matches, by size - or a
+# grid cell, as above). First match wins.
+GLADE_RULES = [
+    (r"Ground_\d+", "Ground", 1, 0.55),
+    (r"Paths", "Ground", 1, 1200),
+    (r"Pebbles", "Ground", 1, 600),
+    (r"Water", "Water", 1, 400),
+    (r"Walls(_\d+)?", "Walls", 1, 5200),
+    (r"WallMoss", "Walls", 1, 2400),
+    (r"Grass_\d+", "Grass", 0.3, 15300),
+    (r"Clover", "Groundcover", 0.4, 1600),
+    (r"Flowers(_\d+)?", "Groundcover", 0.5, 2400),
+    (r"Ferns", "Groundcover", 0.7, 2000),
+    (r"Bushes_\d+", "Bushes", 1, 7500),
+    (r"Trees_\d+", "Trees", 1, 12000),
+    (r"TreeTrunks", "Trees", 1, 1200),
+    (r"Thorns", "Thorns", 1, 3000),
+    (r"Log|Stumps|Mushrooms|MushroomStems|LilyPads", "Props", 1, 4300),
+    (r"GlowMushrooms(_\d+)?", "Glow", 1, 1600),
+]
+for variant in ("boulders", "pond", "thorns", "boss"):
+    ARENAS[f"mossy_glade_{variant}"] = {"rules": GLADE_RULES}
 
 settings = ARENAS[ARENA]
 scene = trimesh.load(SRC, process=False)
@@ -111,6 +137,21 @@ def cluster(g, srgb, cell):
 
 
 parts = {node: world(node) for node in scene.graph.nodes_geometry}
+
+if "rules" in settings:
+    # Expand name patterns into the explicit form, splitting each rule's
+    # budget across the parts it matches by their size.
+    explicit: dict = {}
+    taken = set()
+    for pattern, group, share, budget in settings["rules"]:
+        matched = [n for n in parts if n not in taken and re.fullmatch(pattern, n)]
+        taken.update(matched)
+        faces = sum(len(parts[n][0].faces) * share for n in matched)
+        for n in matched:
+            part_budget = budget if budget < 1 else max(60, int(budget * len(parts[n][0].faces) * share / faces))
+            explicit.setdefault(group, {})[n] = (share, part_budget)
+    settings = {"groups": explicit}
+
 groups = {}
 claimed = set()
 for group, members in settings["groups"].items():

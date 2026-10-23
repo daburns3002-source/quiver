@@ -148,6 +148,10 @@ local function fire(session: Session, root: BasePart, now: number)
 				warning = "Meteor",
 				impact = "MeteorImpact",
 			})
+			--[[ Counted on the player, so their own client plays the
+			     staff's Meteor cast (`Fx/WeaponPose`). ]]
+			local player = session.player
+			player:SetAttribute("Meteors", ((player:GetAttribute("Meteors") :: number?) or 0) + 1)
 		end
 	end
 

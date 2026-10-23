@@ -95,3 +95,42 @@ Gold has metalness 0.7. The Blade has metalness 0.3. Guard and Pommel have metal
 
 ## Regenerating
 Open `source/Ruby Sword R15.html` in a browser (serve the folder over http) and use **Download Roblox kit (.rbxmx)**. `source/Ruby Sword.html` re-exports the `.glb`. To change poses, edit `defs` in `r15-sword-anims.js → bakeSwordAnimations()`. Right-hand targets are offsets from the right shoulder in studs, blade/edge directions are vectors, and body angles are in degrees. The left hand is always re-solved onto the lower grip.
+
+## Mythic upgrades (Earthbreaker + Meteor)
+`roblox/MythicAbilities.server.lua` is the same file in the Greatsword and Arcane Staff bundles. Install it once, as a Script in ServerScriptService. It creates `ReplicatedStorage.MythicRemotes`, then validates and applies damage and VFX for both abilities.
+- **Ownership:** `ownsMythic(player, name)` checks the player attribute `Mythic_Earthbreaker` / `Mythic_Meteor`.
+- **Damage:** `baseDamage(player)` reads the player attribute `BaseDamage` (default 10).
+- **Targets:** `isEnemy(model)` counts any non-player Humanoid.
+- **Swap these three helpers for your own systems.**
+
+**Earthbreaker (Greatsword):** `Sword_Earthbreaker`, 1.3 s, Action4, with markers `Leap` 0.20, `TrailOn` 0.50, `Impact` 0.56 and `TrailOff` 0.62.
+1. When a dash ends, your dash code fires `character.EarthbreakerSlam:Fire(dashEndPosition)`.
+2. The animator plays the slam. On `Leap` it pushes the HumanoidRootPart to the end point over 0.36 s. The vertical arc is in the animation.
+3. On `Impact` it fires `MythicRemotes.Earthbreaker`.
+4. The server then deals 1.5× base damage in radius 7 and leaves glowing cracks. Rock spikes erupt every 0.5 s for 3 s, each tick dealing 0.4× base damage in the same radius.
+
+**Meteor (Arcanist):** `Staff_Meteor`, 1.25 s, Action4, with markers `Summon` 0.30 and `Point` 0.70.
+1. Fire `character.CastMeteor:Fire(targetPosition)` when the mythic triggers.
+2. The animator turns to the target and plays the cast. On `Summon` it fires `MythicRemotes.Meteor`.
+3. The server shows a red warning circle (radius 6) that fills over **0.9 s** while the meteor falls.
+4. On impact it deals **4× base damage** in radius 6, with a flash, shockwave and fading scorch.
+
+**Preview:** the **Earthbreaker (mythic)** button in `source/Ruby Sword R15.html`, and the **Meteor (mythic)** button in `source/Arcane Staff R15.html`.
+**Not specified, so I picked values:** Earthbreaker radius 7, slam 1.5×, ticks 0.4×. All are in the `EARTHBREAKER` table.
+
+## Red slash VFX + reworked combo
+**The combo was reworked so every swing has more weight:**
+- **Slash_A** (0.85 s): coils and holds before swinging, steps in fast for the strike, overshoots and settles.
+- **Slash_B** (0.82 s): coils low, then makes a rising backswing with a step, overshooting high.
+- **Slash_C** (1.05 s): raises the sword and hangs at the top, steps into the slam and crouches, recoils with a bounce, then recovers.
+
+The markers are still `TrailOn`, `Hit` and `TrailOff`. If you already saved the animations to Roblox, re-publish them.
+
+**Slash crescents:** `assets/ruby_slash_fx.glb` has three crescent MeshParts (`Slash_A`, `Slash_B`, `Slash_C`). Each one is shaped to its swing's blade path, using a red gradient texture (also included separately as `ruby_slash_texture.png`).
+
+**Setup:**
+1. Import the .glb.
+2. Put the three parts in a Folder or Model named **`RubySlashFX`** in ReplicatedStorage.
+3. Check that each part kept its texture. If it didn't, set TextureID to the uploaded PNG.
+
+**In game:** on each swing's `Hit` marker, `RubySwordAnimator` clones the matching crescent and places it at `HumanoidRootPart.CFrame * centre`. It sets the size from the `SLASH` table, adds a red PointLight, and fades it out over 0.26 s while it grows 8%. In the browser preview, the crescent instead builds along with the blade from `TrailOn` to `TrailOff`.

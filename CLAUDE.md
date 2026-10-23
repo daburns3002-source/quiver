@@ -173,7 +173,10 @@ drafts its own cards plus a shared twelve (`Ability.classes`,
 `docs/CLASS-CARDS.md`): wave 1 of the Warden's and the Arcanist's is built,
 wave 2 is designed and has its icons. Each class has one Mythic: Dual Bows,
 **Meteor** (every 5th cast) and **Earthbreaker** (the dash ends in a slam
-and erupting cracks), both resolved by `Combat/AreaStrikes`.
+and erupting cracks), both resolved by `Combat/AreaStrikes`. They look as the
+owner's mythic-fx.js draws them (`Fx/MythicFx`, `Balance.MythicFx`, budgeted
+by `DeviceTiers.mythicFxShare`), and the staff plays the kit's Meteor cast
+when the server counts one on the player (`Meteors` attribute).
 
 **XP crystals and hearts** (`Run/Pickups`, `Fx/PickupFx`): a kill's XP
 drops as cyan crystals; walk over your own to take them mid-fight, and any

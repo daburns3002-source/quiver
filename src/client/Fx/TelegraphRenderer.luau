@@ -19,6 +19,7 @@ local TweenService = game:GetService("TweenService")
 
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Device = require(script.Parent.Parent.Device)
+local MythicFx = require(script.Parent.MythicFx)
 local SplitFx = require(script.Parent.SplitFx)
 local TopDownCamera = require(script.Parent.Parent.Camera.TopDownCamera)
 
@@ -354,6 +355,7 @@ local function drawMeteor(origin: Vector3, duration: number, radius: number)
 	local ground = Vector3.new(origin.X, 1, origin.Z)
 	rock.Position = ground + Vector3.new(4, config.meteorHeight, -6)
 	rock.Parent = folder
+	MythicFx.meteorRock(rock)
 	TweenService
 		:Create(rock, TweenInfo.new(duration, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
 			Position = ground,
@@ -518,6 +520,9 @@ function TelegraphRenderer.onTelegraph(
 	end
 	if tell == "MeteorImpact" then
 		drawShockwave(origin, duration, reach, Balance.Telegraph.meteorColor)
+		if folder then
+			MythicFx.meteorImpact(folder, origin, reach)
+		end
 		TopDownCamera.shake(0.5, 0.3)
 		return
 	end
@@ -532,6 +537,9 @@ function TelegraphRenderer.onTelegraph(
 	end
 	if tell == "Erupt" then
 		drawShockwave(origin, duration, reach * 0.8, Balance.Telegraph.crackColor)
+		if folder then
+			MythicFx.erupt(folder, origin, reach)
+		end
 		return
 	end
 

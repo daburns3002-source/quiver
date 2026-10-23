@@ -210,7 +210,17 @@ local Weapons = {
 		hand = "RightHand",
 		scale = 3.4,
 		grip = Vector3.new(0, -0.1, 0),
-		clips = { hold = "Hold", ready = "Charge", aim = "Channel", fire = { "Cast" } },
+		clips = {
+			hold = "Hold",
+			ready = "Charge",
+			aim = "Channel",
+			fire = { "Cast" },
+			--[[ The Meteor Mythic's cast (the owner's ArcaneStaff kit,
+			     2026-10-23): crouch, rise with the staff to the sky on
+			     Summon, and slam it at the target on Point, about as the
+			     meteor lands. ]]
+			special = { meteor = "Meteor" },
+		},
 		fireSound = "staff_cast",
 		--[[ The kit's, turned into this model's frame. ]]
 		orbitAxis = Vector3.new(0, -0.3146, -0.9492),

@@ -380,7 +380,7 @@ end
      anything that follows the combo, such as each blow's sound. ]]
 --[[ Plays a weapon's one-off clip (`Config/Weapons.clips.special`) once,
      through to its end, then back to Hold: the Earthbreaker Mythic's leap
-     and slam as a dash ends. Nothing for a weapon without it. ]]
+     and slam as a dash ends, the Meteor Mythic's cast as one is called. Nothing for a weapon without it. ]]
 function WeaponPose.playSpecial(key: string)
 	local _, weapon = currentWeapon()
 	local special = weapon.clips.special
@@ -404,6 +404,11 @@ function WeaponPose.start(aimHasTarget: () -> boolean)
 		connection:Disconnect()
 	end
 	connection = RunService.Stepped:Connect(step)
+	--[[ The server counts each meteor this player calls down
+	     (`Combat/FiringSystem`); the staff casts it. ]]
+	Players.LocalPlayer:GetAttributeChangedSignal("Meteors"):Connect(function()
+		WeaponPose.playSpecial("meteor")
+	end)
 end
 
 return WeaponPose

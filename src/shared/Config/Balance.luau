@@ -1736,6 +1736,37 @@ local Balance = {
 		},
 	},
 
+	--[[ How the Mythics' area attacks look (`Fx/MythicFx`), from the owner's
+	     mythic-fx.js (design_handoff_ruby_greatsword_r15 and
+	     design_handoff_arcane_staff_r15, 2026-10-23). Counts are at the High
+	     tier; lower tiers draw a share (`DeviceTiers.mythicFxShare`). ]]
+	MythicFx = {
+		--[[ The falling meteor: a hot halo round the rock, and embers shed
+		     a second behind it. ]]
+		meteorHalo = 1.5,
+		meteorEmbers = 40,
+		--[[ Its landing: a fireball out to the strike's radius over
+		     `fireballTime`; a scorch `scorchShare` of the radius across, held
+		     `scorchHold` seconds then fading over `scorchFade`; and
+		     `debris` rocks thrown out. ]]
+		fireballTime = 0.35,
+		scorchShare = 0.8,
+		scorchHold = 1.2,
+		scorchFade = 1,
+		debris = 14,
+		debrisLife = 1.6,
+		--[[ Each Earthbreaker eruption: `spikes` rock spikes out of the
+		     cracks, each rising, holding and sinking over `spikeLife`, over
+		     a lava glow. ]]
+		spikes = 5,
+		spikeLife = 0.65,
+		spikeHeight = { 1.2, 2.4 },
+		rockColor = Color3.fromRGB(122, 90, 68),
+		lavaColor = Color3.fromRGB(255, 138, 42),
+		fireColor = Color3.fromRGB(255, 179, 71),
+		scorchColor = Color3.fromRGB(42, 26, 20),
+	},
+
 	Feedback = {
 		hitFlashDuration = 0.08,
 		--[[ An enemy hit squashes onto its feet and springs back

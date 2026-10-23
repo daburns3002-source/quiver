@@ -264,6 +264,14 @@ end
 	Every part is scenery: it never collides, answers a raycast or stops an
 	arrow. The room's own invisible walls and obstacle boxes still do.
 ]]
+--[[ How high a pond's water sheet sits, clear of the lawn's lip; and how
+     much wider than the water its dark rim is. ]]
+local WATER_HEIGHT = 0.1
+local WATER_RIM = 1.08
+--[[ The bank covers the lawn's stepped darker ring, which reaches about
+     1.15 times the water's size. ]]
+local WATER_BANK = 1.18
+
 local function placeModel(root: Instance, model: ArenaModels.ArenaModel)
 	local folder = Instance.new("Folder")
 	folder.Name = "Model"
@@ -276,13 +284,56 @@ local function placeModel(root: Instance, model: ArenaModels.ArenaModel)
 	local function place(spec: ArenaModels.ArenaPart, shift: Vector3, name: string)
 		local water = spec.water
 		if water then
+			local at = spec.offset + shift
+			--[[
+				A soft, round shadow at the pond's edge (owner, 2026-10-23:
+				"fix the shadows of the pond, it should be circular"). The
+				lawn's low-poly lip used to shade the water in jagged steps;
+				the water now sits just above that lip, and this darker
+				ellipse a little wider than it, under it, is its edge.
+			]]
+			local bank = spec.bank
+			if bank then
+				local ring = Instance.new("Part")
+				ring.Name = `{name}Bank`
+				ring.Size = Vector3.new(spec.size.X * WATER_BANK, 0.04, spec.size.Z * WATER_BANK)
+				ring.CFrame = CFrame.new(at.X, WATER_HEIGHT - 0.04, at.Z)
+				ring.Anchored = true
+				ring.CanCollide = false
+				ring.CanQuery = false
+				ring.CanTouch = false
+				ring.CastShadow = false
+				ring.Color = bank
+				ring.Material = Enum.Material.Fabric
+				local ringMesh = Instance.new("SpecialMesh")
+				ringMesh.MeshType = Enum.MeshType.Sphere
+				ringMesh.Parent = ring
+				ring.Parent = folder
+			end
+
+			local rim = Instance.new("Part")
+			rim.Name = `{name}Rim`
+			rim.Size = Vector3.new(spec.size.X * WATER_RIM, 0.04, spec.size.Z * WATER_RIM)
+			rim.CFrame = CFrame.new(at.X, WATER_HEIGHT - 0.02, at.Z)
+			rim.Anchored = true
+			rim.CanCollide = false
+			rim.CanQuery = false
+			rim.CanTouch = false
+			rim.CastShadow = false
+			rim.Color = water:Lerp(Color3.new(0, 0, 0), 0.55)
+			rim.Material = Enum.Material.SmoothPlastic
+			local rimMesh = Instance.new("SpecialMesh")
+			rimMesh.MeshType = Enum.MeshType.Sphere
+			rimMesh.Parent = rim
+			rim.Parent = folder
+
 			local sheet = Instance.new("Part")
 			sheet.Name = name
 			sheet.Size = Vector3.new(spec.size.X, 0.06, spec.size.Z)
-			--[[ Flush with the lawn, not at the mesh's own depth: the pond's
-			     dark basin is drawn above that and hid it. ]]
-			local at = spec.offset + shift
-			sheet.CFrame = CFrame.new(at.X, 0.03, at.Z)
+			--[[ Just above the lawn, not at the mesh's own depth: the pond's
+			     dark basin is drawn above that and hid it, and the lawn's lip
+			     shaded it. ]]
+			sheet.CFrame = CFrame.new(at.X, WATER_HEIGHT, at.Z)
 			sheet.Anchored = true
 			sheet.CanCollide = false
 			sheet.CanQuery = false

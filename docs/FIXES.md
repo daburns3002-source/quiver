@@ -16,6 +16,24 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## The pond's edge was jagged
+
+**Symptom** — owner, 2026-10-23: "fix the shadows of the pond, it should be
+circular." Round the oval of water ran a dark, stair-stepped band.
+
+**Cause** — two low-poly edges showed round a smooth ellipse. The water
+sheet sat at y 0.03, under the lawn's lip, which shaded it in steps. And the
+lawn mesh paints a darker green ring round the basin in triangles, out to
+about 1.15× the pond's size (measured from the mesh's vertex colours:
+98, 155, 50 against a lawn of about 140, 165, 95).
+
+**Fix** — `placeModel` raises the water to y 0.1, clear of the lip, and lays
+two smooth ellipses under it: a dark rim 1.08× the water, and the bank, in
+the ring's own green (`ArenaPart.bank`), at 1.18×, covering the stepped ring.
+
+**Measured** — in Studio, room 2: the stepped band is gone, and the edge is
+two smooth concentric ellipses.
+
 ## The player walked across the pond, the thorns and the logs
 
 **Symptom** — owner, 2026-10-23: "the player should not be able to walk over

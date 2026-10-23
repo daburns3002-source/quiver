@@ -34,6 +34,13 @@ design_handoff_slime_movement): client-only, phased by the distance the
 hitbox travels, folding in `HitSquash` (which a hopping body is claimed
 from). The Slime King's lash is the design's Zac-Q motion: a twist, a
 12-segment jelly tube (`BossBody`), a splat and goo droplets (`Goo` tell).
+**Rigged enemies** (the Ember Wolf, 2026-10-23): a skinned mesh imported
+with its rig; its bones and clips are data in `Config/EnemyRigs`, generated
+by `assets/models/enemies/ember_wolf/rig_to_luau.py` from `rig.json` (bones
+dumped from Studio) and the kit's `.rbxmx`. `EnemyModel` builds the bones;
+`Fx/EnemyRig` runs it at the hitbox's pace, fits the Dash to each lunge
+(`LungeWindup`, `LungeTravel`, `WindingUp`), squashes bones with the body
+and carries the eyes on the head bone.
 
 **Level 1** (`Balance.stage = 3`, owner 2026-10-22): ten Mossy Glade
 rooms — logs, pond, boulders, thorns, boss arena, twice. **Slimes**

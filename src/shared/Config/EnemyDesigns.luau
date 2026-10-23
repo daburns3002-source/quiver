@@ -65,6 +65,15 @@ export type DesignPart = {
 	transparency: number?, --[[ For `shape = "Mesh"`: the uploaded mesh. Built by `EnemyModel` from
 	     a template made once with AssetService:CreateMeshPartAsync. ]]
 	meshId: string?,
+	--[[ For a mesh: the image painted over it, for a mesh that carries a
+	     texture instead of vertex colours. ]]
+	textureId: string?,
+	--[[ For a skinned mesh: its `Config/EnemyRigs` entry, whose bones are
+	     built into it and which `Fx/EnemyRig` animates. ]]
+	rig: string?,
+	--[[ A bone of the rigged body this part rides on, so it follows the
+	     animation: eyes on the head. ]]
+	bone: string?,
 }
 
 export type Design = { DesignPart }
@@ -521,28 +530,30 @@ local slimeKing: Design = {
 	The Ember Wolf (owner, 2026-10-23), after the owner's dog: a round
 	ginger pup with a cream chest, muzzle and paws.
 
-	From `assets/models/enemies/ember_wolf_roblox.glb` (one mesh, slimmed by
-	`optimise_enemy.py ember_wolf`), imported by the owner (model
-	117724324166248). Turned 180° like the slimes, ×2.6 into its
-	2.2 × 3 × 3.3 hitbox (`Balance`). The mesh carries its own colours, so it
-	is white.
+	From the owner's design_handoff_ember_wolf: `ember_wolf_rigged.glb`,
+	skinned to 19 bones, imported by the owner with its rig (2026-10-23).
+	It already faces forward, and is shrunk to 0.65 of the import into its
+	2.2 × 3 × 3.3 hitbox (`Balance`). The texture carries its colours, so it
+	is white. It runs and dashes by its own animations (`Config/EnemyRigs`,
+	`Fx/EnemyRig`).
 
 	The eyes are painted into that one mesh, so they cannot glow on their
 	own: two Neon discs in the slimes' amber sit over them (owner: "make
 	sure the wolf's eyes glow like the slimes eyes bright orange"), placed
-	where the mesh paints them, measured from its vertex colours.
+	where the mesh paints them, measured from its vertex colours, and
+	riding on its head bone so they bob with it.
 ]]
-local WOLF_TURN = Vector3.new(0, 180, 0)
 local WOLF_EYES = Color3.fromRGB(255, 176, 32)
 local wolf: Design = {
 	shadow(2.2, 3.3, 3),
 	{
 		name = "Body",
 		shape = "Mesh",
-		meshId = "rbxassetid://126878330603727",
-		size = Vector3.new(2.19, 2.992, 3.216),
-		offset = Vector3.new(0, -0.004, 0),
-		rotation = WOLF_TURN,
+		meshId = "rbxassetid://131900046053757",
+		textureId = "rbxassetid://106053882267208",
+		rig = "Wolf",
+		size = Vector3.new(2.189, 2.99, 3.222),
+		offset = Vector3.new(0, -0.005, 0),
 		shade = 1,
 		color = WHITE,
 	},
@@ -555,6 +566,7 @@ local wolf: Design = {
 		color = WOLF_EYES,
 		material = Enum.Material.Neon,
 		tint = false,
+		bone = "Head",
 	},
 	{
 		name = "EyeRight",
@@ -565,6 +577,7 @@ local wolf: Design = {
 		color = WOLF_EYES,
 		material = Enum.Material.Neon,
 		tint = false,
+		bone = "Head",
 	},
 }
 
@@ -601,6 +614,7 @@ local babySlime: Design = {
 local EnemyDesigns = {
 	SkinTag = SKIN_TAG,
 	TintTag = TINT_TAG,
+	BoneTag = "RidesBone",
 
 	Charger = charger,
 	Spitter = spitter,

@@ -1220,6 +1220,11 @@ local function stepLunge(
 			enemy.yaw = math.atan2(-aim.X, -aim.Z)
 			placeHitbox(enemy)
 			EnemyModel.tint(enemy.skin, Balance.TelegraphColor)
+			--[[ How long the wind-up and the bolt take, so a rigged body
+			     can fit its dash to them (`Fx/EnemyRig`). Set before the
+			     wind-up flag that starts it. ]]
+			enemy.model:SetAttribute("LungeWindup", lunge.telegraph)
+			enemy.model:SetAttribute("LungeTravel", lunge.distance / lunge.speed)
 			enemy.model:SetAttribute(WINDING_UP, true)
 			enemyTelegraph:FireAllClients(
 				enemy.position,

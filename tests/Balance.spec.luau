@@ -32,11 +32,31 @@ return function(t: TestRunner.Helper)
 	t.test("every archetype has sane core stats", function()
 		for name, config in archetypes() do
 			t.isTrue(config.health > 0, `{name} needs positive health`)
+			t.isTrue(#config.displayName > 0, `{name} needs a display name`)
+			--[[ A boss does not walk and swing: its moves carry it and do its
+			     damage (`EnemyConfig.boss`, checked below). ]]
+			if config.boss then
+				continue
+			end
 			t.isTrue(config.moveSpeed > 0, `{name} needs positive move speed`)
 			t.isTrue(config.attackRange > 0, `{name} needs positive attack range`)
 			t.isTrue(config.attackDamage > 0, `{name} needs positive damage`)
 			t.isTrue(config.attackCooldown > 0, `{name} needs a positive cooldown`)
-			t.isTrue(#config.displayName > 0, `{name} needs a display name`)
+		end
+	end)
+
+	--[[ A boss's moves hurt in a handful, never in one: not a slam, and not
+	     a whole grab (the lash and the chest bump after it). ]]
+	t.test("a boss's hits are lethal in a handful, never in one", function()
+		for name, config in archetypes() do
+			local boss = config.boss
+			if not boss then
+				continue
+			end
+			local half = Balance.Player.maxHealth / 2
+			t.isTrue(boss.bounce.damage > 0 and boss.bounce.damage < half, `{name}'s slam`)
+			local grab = boss.lash.damage + boss.lash.bumpDamage
+			t.isTrue(boss.lash.damage > 0 and grab < half, `{name}'s grab`)
 		end
 	end)
 
@@ -585,7 +605,27 @@ return function(t: TestRunner.Helper)
 		for name, config in archetypes() do
 			local hits = config.health / Balance.Player.baseDamage
 			t.isTrue(hits > 1, `{name} dies to a single arrow`)
-			t.isTrue(hits <= 15, `{name} takes {hits} arrows`)
+			if not config.boss then
+				t.isTrue(hits <= 15, `{name} takes {hits} arrows`)
+			end
+		end
+	end)
+
+	--[[ A boss is a fight of its own: tougher than anything else, but not a
+	     wall of health nobody finishes. ]]
+	t.test("a boss outlasts every grunt, within reason", function()
+		local toughest = 0
+		for _, config in archetypes() do
+			if not config.boss then
+				toughest = math.max(toughest, config.health)
+			end
+		end
+		for name, config in archetypes() do
+			if config.boss then
+				t.isTrue(config.health > toughest * 2, `{name} is barely tougher than a grunt`)
+				local hits = config.health / Balance.Player.baseDamage
+				t.isTrue(hits <= 120, `{name} takes {hits} plain arrows`)
+			end
 		end
 	end)
 

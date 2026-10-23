@@ -217,6 +217,15 @@ Remotes.event(Remotes.DebugGrant).OnServerEvent:Connect(function(player, id)
 	log.info("%s was granted %s (Studio)", player.Name, id)
 end)
 
+--[[ Testing only: straight into a room. Honoured only in Studio. ]]
+Remotes.event(Remotes.DebugRoom).OnServerEvent:Connect(function(player, position)
+	if not RunService:IsStudio() or type(position) ~= "number" or not RunSession.get(player) then
+		return
+	end
+	RoomController.debugEnterRoom(math.floor(position))
+	log.info("%s jumped to room %d (Studio)", player.Name, math.floor(position))
+end)
+
 Remotes.event(Remotes.AbilityReroll).OnServerEvent:Connect(function(player)
 	local session = RunSession.get(player)
 	if session then

@@ -118,6 +118,11 @@ function HitSquash.play(model: Model, kind: Kind?)
 	if not hitbox then
 		return
 	end
+	--[[ A boss's body is posed by the server every frame (`BossBody`); a
+	     squash here would fight it and snap it back to a stale shape. ]]
+	if model:GetAttribute("Boss") then
+		return
+	end
 
 	local which: Kind = kind or "Hit"
 	local feedback = Balance.Feedback

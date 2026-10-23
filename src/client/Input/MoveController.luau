@@ -23,6 +23,7 @@ local Dash = require(script.Parent.Dash)
 local DashButton = require(script.Parent.DashButton)
 local PlayerStats = require(script.Parent.Parent.PlayerStats)
 local RunPaused = require(script.Parent.Parent.RunPaused)
+local Shove = require(script.Parent.Shove)
 local SoundFx = require(script.Parent.Parent.Fx.SoundFx)
 local Thumbstick = require(script.Parent.Thumbstick)
 
@@ -152,7 +153,22 @@ local function step()
 		return
 	end
 
-	local heading, speed = Dash.current(os.clock())
+	--[[ A boss's grab holds the player still, and its shove carries them,
+	     ahead of anything they or a dash ask for: being hit is not optional.
+	     Driven through the Humanoid like the dash, so walls still stop it. ]]
+	local now = os.clock()
+	if Shove.isHeld(now) then
+		humanoid:Move(Vector3.zero, false)
+		return
+	end
+	local pushed, pushSpeed = Shove.current(now)
+	if pushed then
+		humanoid.WalkSpeed = pushSpeed
+		humanoid:Move(pushed, false)
+		return
+	end
+
+	local heading, speed = Dash.current(now)
 
 	--[[
 		A dash drives the same Humanoid at a higher speed rather than moving
@@ -201,6 +217,7 @@ function MoveController.start()
 		connections,
 		player.CharacterAdded:Connect(function()
 			Dash.reset()
+			Shove.reset()
 		end)
 	)
 
@@ -263,6 +280,7 @@ function MoveController.stop()
 	Thumbstick.stop()
 	DashButton.stop()
 	Dash.reset()
+	Shove.reset()
 	releaseAll()
 end
 

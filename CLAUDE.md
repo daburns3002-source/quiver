@@ -31,7 +31,9 @@ low, at `Balance.Projectile.height` (1.1), from `Aim.shotOrigin` on both
 sides; `Balance.spec` keeps that height inside every enemy's hitbox.
 
 **Level 1** (`Balance.stage = 3`, owner 2026-10-22): ten Mossy Glade
-rooms — logs, pond, boulders, thorns, boss arena, twice. Each room names
+rooms — logs, pond, boulders, thorns, boss arena, twice. **Slimes only**
+(Moss Slimes and Brood Slimes, owner 2026-10-23), and room 10 is the
+**Slime King alone** (`tests/Level1.spec.luau` pins both). Each room names
 its look in `RoomConfig.arena`, an `ArenaModels` entry drawn by `Arena.build`
 over the same invisible floor, walls and obstacle boxes as the grey box
 (nil, or a model not imported yet, is the grey box). Arena models follow the
@@ -164,8 +166,23 @@ is wired before its audio exists.
 Wind — full health, 2.5 s untouchable behind a gold shield, and enemy shots
 within 12 studs cleared.
 
-Not done: real bosses — ten are **designed** (`docs/BOSSES.md`, two per
-act, one per area, with Codex concept art) but none is built; Phase 3's
+**The Slime King** (Mossy Glade's boss, the owner's
+`design_handoff_slime_king`, 2026-10-23) is the first boss built. A boss
+is an `EnemyConfig` with `boss` set: it does not walk and swing but loops
+its moves, Royal Bounce then Slime Lash. `Enemies/BossMoves` runs each
+move as a pure timeline (pinned by `tests/BossMoves.spec.luau`),
+`EnemyManager` resolves what lands through `RunSession.applyDamage`,
+`Enemies/BossBody` squashes and stretches the unwelded body, and the
+client draws the slam circle, the lash lane and the shockwave
+(`TelegraphRenderer`), the boss bar (`UI/BossBar`), and obeys shoves and
+the grab (`Input/Shove`, via `Remotes.PlayerShoved` / `PlayerGrabbed`).
+His body is primitives until the owner imports
+`assets/models/bosses/king_bloblin/slime_king_roblox.glb` (Body, Eyes,
+Decor, Arm_L, Arm_R); then only the mesh ids go into
+`EnemyDesigns.SlimeKing`. Sounds for his moves are not made yet.
+
+Not done: the other nine bosses — designed (`docs/BOSSES.md`, two per
+act, one per area, with Codex concept art) but not built; Phase 3's
 playtest question — *did two runs in a row feel
 meaningfully different?* — which needs the owner.
 
@@ -216,6 +233,8 @@ Studio): **M** — the next card hand includes a Mythic; **L** — a Legendary;
 **V** / **B** — preview the Victory / Defeat end screen, on this client only.
 **C** — switch class (Ranger → Arcanist → Warden, `Config/Classes`): the loadout
 and the weapon in hand change at once.
+From a probe, `Remotes.DebugRoom:FireServer(10)` jumps the run to a room
+(Studio only), to test the boss without fighting through the level.
 From a probe, `Remotes.DebugGrant:FireServer("Cleave")` grants one level of
 any card (Studio only), to test a card's effect without drafting it.
 From a probe, `Remotes.DebugForceMythic:FireServer("Legendary")` does the

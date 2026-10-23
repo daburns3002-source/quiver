@@ -85,8 +85,10 @@ local EndScreenTimeline = {
 			idleRadPerSec = 1.3,
 		},
 		glow = { start = 900, dur = 500, pulseRadPerSec = 3 },
-		vignette = { start = 500, dur = 600, opacity = { 0.22, 0.54 }, pulseRadPerSec = 2.5 },
-		flash = { peak = 1200, halfWidth = 220, maxOpacity = 0.9 },
+		--[[ Toned right down from the reference's 0.22–0.54 and 0.9: the owner
+		     found the red "too much" (2026-10-22). ]]
+		vignette = { start = 500, dur = 600, opacity = { 0.06, 0.14 }, pulseRadPerSec = 2.5 },
+		flash = { peak = 1200, halfWidth = 220, maxOpacity = 0.45 },
 		rocks = { start = 1180, life = 1500, count = 9, gravityPxPerSec2 = 900 },
 		embers = { start = 900, count = 20, risePxPerSec = { 35, 75 }, sway = { 8, 26 } },
 		panel = { start = 1350, dur = 450, ease = "CubicOut", fromOffsetY = 60 },

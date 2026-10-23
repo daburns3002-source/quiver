@@ -167,7 +167,9 @@ local function edge(parent: Instance, side: string, size: Vector2): Frame
 	f.BackgroundColor3 = Color3.fromRGB(255, 30, 60)
 	f.BorderSizePixel = 0
 	f.ZIndex = 1
-	local depth = 130
+	-- How far in from the edge the red reaches; thinner since the owner
+	-- found the tint too strong.
+	local depth = 80
 	local g = Instance.new("UIGradient")
 	g.Transparency = NumberSequence.new(0, 1)
 	if side == "Top" then
@@ -484,7 +486,8 @@ function EndScreenMotion.play(parts: Parts): Motion
 			if glow then
 				local gp = clamp01((t - g.start) / g.dur)
 				local pulse = math.sin(seconds * g.pulseRadPerSec)
-				glow.ImageTransparency = 1 - clamp01(gp * (0.7 + 0.3 * pulse))
+				-- Softer than the reference (0.7 ± 0.3): the red was too much.
+				glow.ImageTransparency = 1 - clamp01(gp * (0.45 + 0.15 * pulse))
 				scaleOf(glow).Scale = 1 + 0.06 * pulse
 			end
 			local v = key.vignette

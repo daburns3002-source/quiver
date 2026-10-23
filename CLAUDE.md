@@ -6,7 +6,7 @@ Low poly, cross-platform, co-op-shaped.
 Run loop: `docs/RESEARCH-archero.md`. Meta loop: `docs/PROGRESSION.md`.
 Phase plan: `docs/ROADMAP.md`. Lobby spec: `docs/LOBBY.md`.
 **Classes and world: `docs/WORLD.md`** — since 2026-10-22 the game is three
-classes (Ranger, Arcanist, an unlockable melee class) across fifteen areas
+classes (Ranger, Arcanist, an unlockable melee class) across ten areas
 in five acts. A new title is being chosen; until then it stays "Arrow
 Legends". Nothing of it is built yet, and its open decisions are the
 owner's. Enemy and arena ideas per area: `docs/ENEMIES-AND-ARENAS.md`, with
@@ -115,8 +115,8 @@ over, full health or not.
 Wind — full health, 2.5 s untouchable behind a gold shield, and enemy shots
 within 12 studs cleared.
 
-Not done: real bosses — all fifteen are **designed** (`docs/BOSSES.md`,
-one per area, with Codex concept art) but none is built; Phase 3's
+Not done: real bosses — ten are **designed** (`docs/BOSSES.md`, two per
+act, one per area, with Codex concept art) but none is built; Phase 3's
 playtest question — *did two runs in a row feel
 meaningfully different?* — which needs the owner.
 

@@ -1,7 +1,7 @@
 # World — classes and areas
 
 The owner's direction of 2026-10-22: the game is **no longer archer-only**.
-Three classes, fifteen areas in five acts. This is the plan of record for
+Three classes, ten areas in five acts of two. This is the plan of record for
 content; `PROGRESSION.md` still owns the meta loop and `ROADMAP.md` the order
 things are built in. Nothing here is built yet. The enemies and arenas for
 each area, with concept art, are in `ENEMIES-AND-ARENAS.md`.
@@ -59,28 +59,25 @@ ability are built for it. How the others fit the pipeline:
 
 ## Areas
 
-Five acts of three. Each act has **one signature hazard**, so the acts feel
-distinct, and the areas lean toward different classes (open arenas suit the
-Ranger, crowded rooms the Arcanist, tight corridors the Warden), so the class
-chosen matters across a run.
+Five acts of **two** — ten areas, each ending in its boss (owner,
+2026-10-22: two bosses per act; five areas were cut with their bosses and
+are kept in `ENEMIES-AND-ARENAS.md`, "Cut areas"). Each act has **one
+signature hazard**, so the acts feel distinct, and the areas lean toward
+different classes (open arenas suit the Ranger, crowded rooms the Arcanist,
+tight corridors the Warden), so the class chosen matters across a run.
 
-| # | Area | Act | Enemies | Hazards and shape |
-|---|---|---|---|---|
-| 1 | Mossy Glade | 1 · The Wilds | slimes, wolves | tutorial-friendly forest |
-| 2 | Thornwood | 1 | spiders | brambles that make choke points |
-| 3 | Bandit Hollow | 1 | humanoid archers, brutes | canyon camp |
-| 4 | Sunken Marsh | 2 · The Lowlands | frogs | poison pools, slow zones |
-| 5 | Drowned Village | 2 | zombies, ghosts | ruined houses |
-| 6 | Bogheart Caverns | 2 | — | glowing fungus; **giant toad boss** |
-| 7 | Windswept Cliffs | 3 · The Heights | harpies | narrow paths, knockback hazards |
-| 8 | Frostpeak Pass | 3 | yetis, frozen golems | ice that slows |
-| 9 | Skyreach Monastery | 3 | corrupted monks | traps in patterns |
-| 10 | Ember Mines | 4 · The Depths | fire imps | lava cracks, collapsing tunnels |
-| 11 | Obsidian Forge | 4 | dwarven constructs, turrets | — |
-| 12 | Molten Core | 4 | — | rising lava; **fire elemental boss** |
-| 13 | Shattered Kingdom | 5 · The End | undead knights | ruined castle |
-| 14 | Void Rift | 5 | teleporting enemies | floating platforms, gravity shifts |
-| 15 | The Hollow Throne | 5 | — | **final boss**, mixing earlier mechanics |
+| # | Area | Act | Enemies | Hazards and shape | Boss |
+|---|---|---|---|---|---|
+| 1 | Mossy Glade | 1 · The Wilds | slimes, wolves | tutorial-friendly forest | King Bloblin |
+| 2 | Thornwood | 1 | bramble boars, thistles | brambles that make choke points | the Broodmother |
+| 3 | Drowned Village | 2 · The Lowlands | zombies, eels | ruined houses | Old Tollcrab |
+| 4 | Bogheart Caverns | 2 | spore puffs, glowcaps | glowing fungus, poison vents | Grandmother Gulp |
+| 5 | Windswept Cliffs | 3 · The Heights | harpies, goats | narrow paths, knockback | the Tempest Roc |
+| 6 | Frostpeak Pass | 3 | yetis, frost golems | ice that slows | Rimeheart |
+| 7 | Ember Mines | 4 · The Depths | fire imps, ember bats | lava cracks, collapsing tunnels | Cindertusk |
+| 8 | Obsidian Forge | 4 | constructs, turrets | furnaces, conveyors | the Forgewarden |
+| 9 | Shattered Kingdom | 5 · The End | undead knights, gargoyles | ruined castle | Sir Gravemourne |
+| 10 | Void Rift | 5 | void wisps, rift stalkers | floating platforms, gravity | the Riftwalker (final) |
 
 Signature hazards by act, as suggested: slow (Lowlands — poison and slow
 zones), knockback (Heights), lava (Depths), void (The End); the Wilds' is
@@ -93,14 +90,9 @@ new (teleporting, turrets).
 
 ### Bosses
 
-Two cadences were suggested: a boss at the end of each act (areas 3, 6, 9,
-12, 15), or one ending every area, as Archero does. The settled decision
-that **an area is unlocked by beating its boss** (`PROGRESSION.md`, "Area
-gating") needs a boss in every area to gate on. So the reading that fits
-what is settled is **every area ends in a boss, and the act-ending areas'
-bosses are the big set pieces** (the giant toad, the fire elemental, the
-Hollow Throne). **Settled** (2026-10-22): the owner asked for a boss for
-each area; all fifteen are designed in `BOSSES.md` — not built yet.
+**Settled** (2026-10-22): **two bosses per act**, one ending each area, so
+an area is still unlocked by beating its boss (`PROGRESSION.md`). Ten in
+`BOSSES.md`; the Riftwalker is the final boss. Not built yet.
 
 ---
 
@@ -108,7 +100,7 @@ each area; all fifteen are designed in `BOSSES.md` — not built yet.
 
 1. **The title** — one of the five, or keep "Arrow Legends".
 2. **The unlockable melee class** — Warden or Duelist.
-3. ~~**Boss cadence**~~ — settled: every area (`BOSSES.md`).
+3. ~~**Boss cadence**~~ — settled: two bosses per act, one per area (`BOSSES.md`).
 4. **When classes land in the roadmap** — the Arcanist is cheap (projectile
    pipeline); the melee class needs the attack-pipeline change first.
 5. **How the melee class is unlocked** — clearing an area, a currency, or

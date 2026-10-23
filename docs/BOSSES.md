@@ -1,15 +1,15 @@
-# Bosses — one per area
+# Bosses — two per act
 
-A first pass at all fifteen, asked for by the owner on 2026-10-22 ("give me
-bosses for each of the areas"). Design only — nothing here is built. The
-areas, their enemies and arenas are in `ENEMIES-AND-ARENAS.md`; the world in
-`WORLD.md`. Concept art for every boss, made with ChatGPT Codex, is in
-`assets/concepts/boss01_…` to `boss15_…` (table at the end).
+Ten bosses, two per act, one ending each area (owner, 2026-10-22: "only 2
+bosses per arena" — five were cut, and their areas with them). Design only
+— nothing here is built. The areas, enemies and arenas are in
+`ENEMIES-AND-ARENAS.md`; the world in `WORLD.md`. Concept art, made with
+ChatGPT Codex, is in `assets/concepts/` (table at the end).
 
 **Every area ends in a boss**, which is what the settled gate needs: an
-area unlocks the next when its boss is beaten (`PROGRESSION.md`). The bosses
-that close an act (areas 3, 6, 9, 12, 15) are the set pieces — three phases,
-their own arena — and the rest are two-phase bosses in the area's own arena.
+area unlocks the next when its boss is beaten (`PROGRESSION.md`). Each act
+has two areas; its second boss closes the act and is the bigger set piece,
+and the Riftwalker is the final boss.
 
 ---
 
@@ -48,55 +48,37 @@ clearly.
   bigger). *Class notes:* Ranger kites easily; Warden must dodge the ripple
   to stay close.
 
-### 2 · Thornweaver — Thornwood
-*A spider queen with bramble legs and a glowing abdomen.*
+### 2 · The Broodmother — Thornwood · *Act 1 boss*
+*A spider queen with bramble legs and a glowing abdomen.* (Was "Thornweaver".)
+Act 1's regular enemies have no spiders (owner, 2026-10-22); her
+**Thornlings** — little thorn spiders — exist only in her fight, which is
+what makes it hers.
 
 - **Phase 1 — Web Lanes.** Shoots web lines across the room that become slow
-  strips, cutting the arena into lanes; spiderlings drop from the ceiling.
+  strips, cutting the arena into lanes, and summons Thornlings in clutches.
 - **Phase 2 (50%) — From Above.** Climbs out of reach (untargetable) and
-  drops onto a marked spot near you, breaking every web in a ring.
+  drops onto a marked spot near you, breaking every web in a ring; each drop
+  hatches another clutch.
 - *Teaches:* choke points — the room keeps narrowing. *Class notes:* Arcanist
-  clears spiderlings well; Ranger must not get trapped in a lane.
-
-### 3 · Captain Redscarf — Bandit Hollow · *Act 1 boss*
-*A stout bandit chief with a red scarf, dagger bandolier and powder kegs.*
-
-- **Phase 1 — Knives Out.** Throws a fan of daggers, then charges along a
-  marked line.
-- **Phase 2 (66%) — Volley!** Whistles; marked circles rain arrows from the
-  canyon rim. Keeps throwing daggers between volleys.
-- **Phase 3 (33%) — Powder Kegs.** Rolls lit kegs that burst in rings after a
-  fuse. Shoot a keg next to him and it hurts him.
-- *Arena:* the canyon camp, crates as cover that his charge smashes.
-  *Teaches:* reading three telegraphs at once. *Class notes:* Ranger can
-  detonate kegs from range; Warden gets the charge's recovery window.
+  clears Thornlings well; Ranger must not get trapped in a lane.
 
 ---
 
 ## Act 2 — The Lowlands
 
-### 4 · The Bog Hydra — Sunken Marsh
-*Three serpent heads rising from poison pools.*
+### 3 · Old Tollcrab — Drowned Village
+*A giant hermit crab living in a sunken bronze church bell.* (Replaced the
+ghost Drowned Bellkeeper, 2026-10-22: no ghost in Act 2.)
 
-- **Phase 1.** Three heads, each its own health bar, surface from pools in
-  turn (Lurker-style) and spit poison that pools where it lands.
-- **Phase 2 (two heads left).** The survivors surface together and spit in
-  crossing lines. The last head, alone, thrashes in a ring.
-- *Teaches:* poison ground and priorities — which head first. *Class notes:*
-  Arcanist's area damage hits two heads at once; Warden must reach the pools.
-
-### 5 · The Drowned Bellkeeper — Drowned Village
-*A ghost fisherman carrying a huge rusted bell.*
-
-- **Phase 1 — Toll.** Rings the bell: a shockwave ring expands from it,
-  jump-free — you must be outside it or between two rings. Drifts through
-  houses (phaser).
+- **Phase 1 — Toll.** Rings its bell shell: a shockwave ring expands from it,
+  jump-free — you must be outside it or between two rings. Smashes through
+  the ruined houses rather than going round them.
 - **Phase 2 (50%) — The Drowned Rise.** Each toll raises Drowned Zombies; the
   bell's rings now come in pairs.
 - *Teaches:* ring timing; nothing can hide behind a wall here. *Class notes:*
   Warden can stand inside the ring's gap; Ranger must keep line of sight.
 
-### 6 · Grandmother Gulp — Bogheart Caverns · *Act 2 boss*
+### 4 · Grandmother Gulp — Bogheart Caverns · *Act 2 boss*
 *An enormous warty toad with glowing fungus on her back.*
 
 - **Phase 1 — Tongue.** A tongue lash down a long marked line, then a pause.
@@ -112,7 +94,7 @@ clearly.
 
 ## Act 3 — The Heights
 
-### 7 · The Tempest Roc — Windswept Cliffs
+### 5 · The Tempest Roc — Windswept Cliffs
 *A giant storm bird with lightning on its wingtips.*
 
 - **Phase 1 — Dive.** Crosses the arena in a marked dive line (flyer), then
@@ -122,7 +104,7 @@ clearly.
 - *Teaches:* knockback near edges. *Class notes:* Ranger hits it between dives;
   Warden waits for its landing after each dive.
 
-### 8 · Rimeheart, the Yeti King — Frostpeak Pass
+### 6 · Rimeheart, the Yeti King — Frostpeak Pass · *Act 3 boss*
 *A massive yeti with an ice crown and a glowing frozen heart.*
 
 - **Phase 1 — Avalanche.** Rolls a snowball that grows as it goes, along a
@@ -132,7 +114,109 @@ clearly.
 - *Teaches:* moving on ice. *Class notes:* the ice favours whoever keeps
   distance; Warden must commit through the pound's recovery.
 
-### 9 · The Thousand-Palm Abbot — Skyreach Monastery · *Act 3 boss*
+---
+
+## Act 4 — The Depths
+
+### 7 · Cindertusk — Ember Mines
+*A giant armoured mole miner with a drill arm and lava in its hide.*
+
+- **Phase 1 — Tunnel.** Burrows (untargetable) along a marked path; lava
+  cracks erupt along its tunnel line a moment later; surfaces and drills.
+- **Phase 2 (50%) — Cave-in.** Each surfacing collapses floor sections nearby;
+  mine carts it knocks loose roll down the rails.
+- *Teaches:* reading the ground. *Class notes:* Warden owns the surfacing
+  window; Ranger must track its tunnel.
+
+### 8 · The Forgewarden — Obsidian Forge · *Act 4 boss*
+*A towering dwarven war-construct with a hammer and a furnace core.*
+
+- **Phase 1 — Hammer.** Slams in a marked cone and a shockwave line; deploys
+  Forge Turrets on the walls.
+- **Phase 2 (50%) — Overheat.** Vents fire in a ring after every few slams,
+  then stalls with its core exposed — the big damage window.
+- *Teaches:* stationary threats and windows. *Class notes:* Ranger clears
+  turrets; Warden lives for the overheat stall.
+
+---
+
+## Act 5 — The End
+
+### 9 · Sir Gravemourne — Shattered Kingdom
+*A giant undead knight with a tower shield and a greatsword.*
+
+- **Phase 1 — Shield Wall.** Blocks everything from the front; sweeping sword
+  arcs; summons Skeleton Archers. Flank him.
+- **Phase 2 (50%) — Broken Oath.** Drops the shield; throws his sword in a
+  spinning arc that returns, and lunges after it.
+- *Teaches:* patience and flanking. *Class notes:* Warden's knockback turns
+  him; Ranger's ricochet can reach behind the shield.
+
+### 10 · The Riftwalker — Void Rift · *Final boss*
+*A masked void sorcerer with mirror-image clones.*
+
+- **Phase 1 — Blink.** Teleports to marked spots (blinker) and fires void
+  bolts; platforms blink out in a pattern.
+- **Phase 2 (50%) — Mirrors.** Splits into three; only the real one casts a
+  shadow — the tell. Gravity pulls toward the real one on a cycle.
+- **Phase 3 (15%) — Every Act.** As the final boss, its last stretch cycles
+  one attack from each act's bosses — Bloblin's landing ring, Gulp's flood,
+  Rimeheart's icefall, the Forgewarden's slam — between blinks. (Borrowed
+  from the cut Hollow Crown.)
+- *Teaches:* watching marks and tells, then everything. *Class notes:*
+  Arcanist's area damage hits the clones to reveal the real one; Duelist's
+  evasion shines.
+
+---
+
+## What bosses ask the engine for
+
+Built once, shared by all ten:
+
+| Piece | Used by |
+|---|---|
+| Boss health bar with phase notches; phase change at a threshold with a pause | all |
+| Untargetable windows (burrowed, airborne, out of reach) | 2, 5, 7 |
+| Weak point / damage window | 6, 8, 9 |
+| Summons (adds) | 2, 3, 4, 8, 9 |
+| Split | 1 |
+| Arena change mid-fight (rising flood, ice walls, cave-ins) | 4, 6, 7 |
+| Clones with one real body | 10 |
+
+Most attacks reuse the enemy behaviours from `ENEMIES-AND-ARENAS.md` (leaper,
+phaser, flyer, blinker, burrow, stationary) at boss scale, which is why those
+are worth building well first.
+
+---
+
+## Cut bosses (2026-10-22)
+
+Cut with "only 2 bosses per arena"; kept for reference.
+
+### Cut — Captain Redscarf — Bandit Hollow · *Act 1 boss*
+*A stout bandit chief with a red scarf, dagger bandolier and powder kegs.*
+
+- **Phase 1 — Knives Out.** Throws a fan of daggers, then charges along a
+  marked line.
+- **Phase 2 (66%) — Volley!** Whistles; marked circles rain arrows from the
+  canyon rim. Keeps throwing daggers between volleys.
+- **Phase 3 (33%) — Powder Kegs.** Rolls lit kegs that burst in rings after a
+  fuse. Shoot a keg next to him and it hurts him.
+- *Arena:* the canyon camp, crates as cover that his charge smashes.
+  *Teaches:* reading three telegraphs at once. *Class notes:* Ranger can
+  detonate kegs from range; Warden gets the charge's recovery window.
+
+### Cut — The Bog Hydra — Sunken Marsh
+*Three serpent heads rising from poison pools.*
+
+- **Phase 1.** Three heads, each its own health bar, surface from pools in
+  turn (Lurker-style) and spit poison that pools where it lands.
+- **Phase 2 (two heads left).** The survivors surface together and spit in
+  crossing lines. The last head, alone, thrashes in a ring.
+- *Teaches:* poison ground and priorities — which head first. *Class notes:*
+  Arcanist's area damage hits two heads at once; Warden must reach the pools.
+
+### Cut — The Thousand-Palm Abbot — Skyreach Monastery · *Act 3 boss*
 *A floating monk master with a halo of spectral hands.*
 
 - **Phase 1 — Palms.** Fires spiral patterns of palm strikes (bullet
@@ -145,31 +229,7 @@ clearly.
   Arcanist's area damage punishes his teleport landings; Ranger reads spirals
   best from range.
 
----
-
-## Act 4 — The Depths
-
-### 10 · Cindertusk — Ember Mines
-*A giant armoured mole miner with a drill arm and lava in its hide.*
-
-- **Phase 1 — Tunnel.** Burrows (untargetable) along a marked path; lava
-  cracks erupt along its tunnel line a moment later; surfaces and drills.
-- **Phase 2 (50%) — Cave-in.** Each surfacing collapses floor sections nearby;
-  mine carts it knocks loose roll down the rails.
-- *Teaches:* reading the ground. *Class notes:* Warden owns the surfacing
-  window; Ranger must track its tunnel.
-
-### 11 · The Forgewarden — Obsidian Forge
-*A towering dwarven war-construct with a hammer and a furnace core.*
-
-- **Phase 1 — Hammer.** Slams in a marked cone and a shockwave line; deploys
-  Forge Turrets on the walls.
-- **Phase 2 (50%) — Overheat.** Vents fire in a ring after every few slams,
-  then stalls with its core exposed — the big damage window.
-- *Teaches:* stationary threats and windows. *Class notes:* Ranger clears
-  turrets; Warden lives for the overheat stall.
-
-### 12 · Ignar, the Living Flame — Molten Core · *Act 4 boss*
+### Cut — Ignar, the Living Flame — Molten Core · *Act 4 boss*
 *A fire elemental with molten fists and an obsidian crown.*
 
 - **Phase 1 — Volley.** Fireball fans and slam rings; lava fills the room's
@@ -182,35 +242,11 @@ clearly.
   *Class notes:* Arcanist's freeze is strongest here; burn does nothing to
   him (he is immune to fire).
 
----
-
-## Act 5 — The End
-
-### 13 · Sir Gravemourne — Shattered Kingdom
-*A giant undead knight with a tower shield and a greatsword.*
-
-- **Phase 1 — Shield Wall.** Blocks everything from the front; sweeping sword
-  arcs; summons Skeleton Archers. Flank him.
-- **Phase 2 (50%) — Broken Oath.** Drops the shield; throws his sword in a
-  spinning arc that returns, and lunges after it.
-- *Teaches:* patience and flanking. *Class notes:* Warden's knockback turns
-  him; Ranger's ricochet can reach behind the shield.
-
-### 14 · The Riftwalker — Void Rift
-*A masked void sorcerer with mirror-image clones.*
-
-- **Phase 1 — Blink.** Teleports to marked spots (blinker) and fires void
-  bolts; platforms blink out in a pattern.
-- **Phase 2 (50%) — Mirrors.** Splits into three; only the real one casts a
-  shadow — the tell. Gravity pulls toward the real one on a cycle.
-- *Teaches:* watching marks and tells. *Class notes:* Arcanist's area damage
-  hits the clones to reveal the real one; Duelist's evasion shines.
-
-### 15 · The Hollow Crown — The Hollow Throne · *Final boss*
+### Cut — The Hollow Crown — The Hollow Throne · *Final boss*
 *An empty suit of ornate armour under a floating crown, orbited by five
 glowing orbs — one for each act.*
 
-- **Phase 1 — The Wilds.** Brambles close the room (Thornweaver's web lanes)
+- **Phase 1 — The Wilds.** Webs close the room (the Broodmother's web lanes)
   and the Crown hops with Bloblin's landing ring.
 - **Phase 2 — The Lowlands.** Poison rises at the edges and the Crown
   belly-flops (Gulp).
@@ -224,28 +260,6 @@ glowing orbs — one for each act.*
 
 ---
 
-## What bosses ask the engine for
-
-Built once, shared by all fifteen:
-
-| Piece | Used by |
-|---|---|
-| Boss health bar with phase notches; phase change at a threshold with a pause | all |
-| Untargetable windows (burrowed, airborne, out of reach) | 2, 7, 10 |
-| Multi-part boss (separate health per part) | 4, 15 |
-| Weak point / damage window | 8, 11, 13 |
-| Summons (adds) | 2, 3, 5, 6, 11, 13 |
-| Split and re-merge | 1, 12 |
-| Arena change mid-fight (rising hazard, walls, islands) | 3, 6, 8, 10, 12, 15 |
-| Clones with one real body | 14, 15 |
-| Damage-type immunity (fire) | 12 |
-
-Most attacks reuse the enemy behaviours from `ENEMIES-AND-ARENAS.md` (leaper,
-phaser, flyer, blinker, burrow, stationary) at boss scale, which is why those
-are worth building well first.
-
----
-
 ## Concept art
 
 Made with ChatGPT Codex, Archero 2 toy style, one per boss.
@@ -253,19 +267,16 @@ Made with ChatGPT Codex, Archero 2 toy style, one per boss.
 | # | Boss | Art |
 |---|---|---|
 | 1 | King Bloblin | `assets/concepts/boss01_king_bloblin.jpg` |
-| 2 | Thornweaver | `assets/concepts/boss02_thornweaver.jpg` |
-| 3 | Captain Redscarf | `assets/concepts/boss03_captain_redscarf.jpg` |
-| 4 | The Bog Hydra | `assets/concepts/boss04_bog_hydra.jpg` |
-| 5 | The Drowned Bellkeeper | `assets/concepts/boss05_drowned_bellkeeper.jpg` |
-| 6 | Grandmother Gulp | `assets/concepts/boss06_grandmother_gulp.jpg` |
-| 7 | The Tempest Roc | `assets/concepts/boss07_tempest_roc.jpg` |
-| 8 | Rimeheart, the Yeti King | `assets/concepts/boss08_rimeheart.jpg` |
-| 9 | The Thousand-Palm Abbot | `assets/concepts/boss09_thousand_palm_abbot.jpg` |
-| 10 | Cindertusk | `assets/concepts/boss10_cindertusk.jpg` |
-| 11 | The Forgewarden | `assets/concepts/boss11_forgewarden.jpg` |
-| 12 | Ignar, the Living Flame | `assets/concepts/boss12_ignar.jpg` |
-| 13 | Sir Gravemourne | `assets/concepts/boss13_sir_gravemourne.jpg` |
-| 14 | The Riftwalker | `assets/concepts/boss14_riftwalker.jpg` |
-| 15 | The Hollow Crown | `assets/concepts/boss15_hollow_crown.jpg` |
+| 2 | The Broodmother | `assets/concepts/boss02_thornweaver.jpg` |
+| 3 | Old Tollcrab | `assets/concepts/boss05_old_tollcrab.jpg` |
+| 4 | Grandmother Gulp | `assets/concepts/boss06_grandmother_gulp.jpg` |
+| 5 | The Tempest Roc | `assets/concepts/boss07_tempest_roc.jpg` |
+| 6 | Rimeheart, the Yeti King | `assets/concepts/boss08_rimeheart.jpg` |
+| 7 | Cindertusk | `assets/concepts/boss10_cindertusk.jpg` |
+| 8 | The Forgewarden | `assets/concepts/boss11_forgewarden.jpg` |
+| 9 | Sir Gravemourne | `assets/concepts/boss13_sir_gravemourne.jpg` |
+| 10 | The Riftwalker | `assets/concepts/boss14_riftwalker.jpg` |
 
-All fifteen on one page: `assets/concepts/bosses_overview.jpg`.
+File names keep their first numbering. All ten on one page: `assets/concepts/bosses_overview.jpg`; with the enemies
+and arenas, `assets/concepts/world_overview.jpg`. Art for the cut bosses is
+in `assets/concepts/cut/`.

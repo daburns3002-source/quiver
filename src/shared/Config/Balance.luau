@@ -1290,6 +1290,18 @@ local Balance = {
 			sparkleRate = 14,
 			--[[ Studs of light spilled onto the floor in front of it. ]]
 			spillLength = 5,
+			--[[ The doors (owner, 2026-10-23: "a semblance of an actual
+			     door opening"): two wooden leaves, banded in iron, hinged
+			     at the pillars. They swing open towards the room, where
+			     the top-down camera can see them, by `doorOpenAngle`
+			     degrees over `doorOpenTime` seconds, and are shut again
+			     in each new room. ]]
+			doorColor = Color3.fromRGB(128, 84, 50),
+			doorPlankColor = Color3.fromRGB(102, 64, 38),
+			doorBandColor = Color3.fromRGB(64, 64, 72),
+			doorRingColor = Color3.fromRGB(214, 178, 92),
+			doorOpenAngle = 105,
+			doorOpenTime = 0.9,
 		},
 		--[[ Seconds between a room clearing and the door opening, so a kill
 		     gets its own beat instead of being swallowed by the next room. ]]

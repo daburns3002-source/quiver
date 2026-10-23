@@ -43,6 +43,14 @@ local PLAYER_COLOUR = Color3.fromRGB(255, 244, 196)
      shares, so incoming fire is the loudest colour on screen
      (docs/ART-archero2.md §4). ]]
 local ENEMY_COLOUR = Color3.fromRGB(255, 72, 206)
+--[[ The Arcanist's orb (`Config/Classes.look`): its class's blue, and
+     about three times an arrow's width, so it reads as magic at a glance. ]]
+local PLAYER_ORB_COLOUR = Color3.fromRGB(90, 200, 255)
+local PLAYER_ORB_SIZE = Vector3.one * 1.1
+
+--[[ What a drawn shot is: an arrow, an enemy orb, or a player's orb. One
+     pool each, since each is its own shape. ]]
+type Pool = "Player" | "Enemy" | "PlayerOrb"
 
 --[[ Studs of streak behind an arrow. Set as a length and turned into a
      lifetime per arrow, because at footage speed a fixed lifetime draws a
@@ -59,6 +67,7 @@ local ORB_TRAIL_LIFETIME = 0.6
 --[[ A drawn flight: the shared `Flight`, plus the part that shows it. ]]
 type Visual = ProjectileFlight.Flight & {
 	part: BasePart,
+	pool: Pool,
 	expiresAt: number,
 	--[[ Set on the frame the flight ends, and released on the next. Without
 	     that frame the part is gone before it is ever drawn where it
@@ -74,12 +83,13 @@ local folder: Folder? = nil
      handed an orb to an arrow and an arrow to an orb, and resizing a part
      on every reuse is exactly the allocation-shaped cost the pool exists to
      avoid. ]]
-local pools: { [Faction]: { BasePart } } = { Player = {}, Enemy = {} }
+local pools: { [Pool]: { BasePart } } = { Player = {}, Enemy = {}, PlayerOrb = {} }
 local live: { Visual } = {}
 --[[ Arrows queued behind their volley (Double Shot), launched when due. ]]
 type Pending = {
 	at: number,
 	faction: Faction,
+	look: string?,
 	origin: Vector3,
 	aim: Vector3,
 	spec: ShotSpec,
@@ -112,13 +122,15 @@ local enemyFilter: RaycastParams? = nil
 local playerOverlap: OverlapParams? = nil
 local enemyOverlap: OverlapParams? = nil
 
-local function createPart(faction: Faction): BasePart
+local function createPart(pool: Pool): BasePart
 	local tier = Device.tier()
-	local isOrb = faction == "Enemy"
+	local isOrb = pool ~= "Player"
+	local faction: Faction = if pool == "Enemy" then "Enemy" else "Player"
+	local partSize = if pool == "PlayerOrb" then PLAYER_ORB_SIZE else ProjectileFlight.size(faction)
 
 	local part = Instance.new("Part")
 	part.Name = "Projectile"
-	part.Size = ProjectileFlight.size(faction)
+	part.Size = partSize
 	part.Shape = if isOrb
 		then Enum.PartType.Ball
 		elseif tier.projectileIsRound then Enum.PartType.Cylinder
@@ -153,7 +165,11 @@ local function createPart(faction: Faction): BasePart
 		sparkles.Speed = NumberRange.new(0.5, 1.5)
 		sparkles.SpreadAngle = Vector2.new(180, 180)
 		sparkles.LightEmission = 1
-		sparkles.Color = ColorSequence.new(Color3.fromRGB(255, 200, 240))
+		sparkles.Color = ColorSequence.new(
+			if pool == "PlayerOrb"
+				then Color3.fromRGB(200, 240, 255)
+				else Color3.fromRGB(255, 200, 240)
+		)
 		sparkles.Size = NumberSequence.new({
 			NumberSequenceKeypoint.new(0, 0.28),
 			NumberSequenceKeypoint.new(1, 0),
@@ -166,7 +182,7 @@ local function createPart(faction: Faction): BasePart
 	end
 
 	if tier.projectileTrails then
-		local size = ProjectileFlight.size(faction)
+		local size = partSize
 		local nose = if isOrb then 0 else size.Z / 2
 
 		local left = Instance.new("Attachment")
@@ -204,11 +220,11 @@ end
 
 --[[ Colour is still set on acquire rather than on create, so retuning a
      faction colour does not need the pool emptied first. ]]
-local function acquire(faction: Faction, colour: Color3): BasePart
-	local part = table.remove(pools[faction])
+local function acquire(pool: Pool, colour: Color3): BasePart
+	local part = table.remove(pools[pool])
 
 	if not part then
-		part = createPart(faction)
+		part = createPart(pool)
 	end
 
 	local resolved = part :: BasePart
@@ -226,9 +242,9 @@ local function acquire(faction: Faction, colour: Color3): BasePart
 	return resolved
 end
 
-local function release(part: BasePart, faction: Faction)
+local function release(part: BasePart, pool: Pool)
 	part.Parent = nil
-	table.insert(pools[faction], part)
+	table.insert(pools[pool], part)
 end
 
 local function makeFilter(instances: { Instance }): RaycastParams
@@ -455,7 +471,10 @@ local contact: ProjectileFlight.Contact = {
 		normal: Vector3,
 		bounced: boolean
 	)
-		spawnImpact(position, normal, flight.direction, flight.faction, bounced)
+		--[[ An orb bursts like an enemy orb; only an arrow sticks in the wall. ]]
+		local pool = (flight :: any).pool
+		local style: Faction = if pool == "PlayerOrb" then "Enemy" else flight.faction
+		spawnImpact(position, normal, flight.direction, style, bounced)
 	end,
 	--[[ The same choice the server makes, from the models it can see. ]]
 	seek = function(flight: ProjectileFlight.Flight): Vector3?
@@ -482,10 +501,18 @@ local function launch(
 	aim: Vector3,
 	spec: ShotSpec,
 	headStart: number,
-	from: Model?
+	from: Model?,
+	look: string?
 )
-	local colour = if faction == "Enemy" then ENEMY_COLOUR else PLAYER_COLOUR
-	local part = acquire(faction, colour)
+	local pool: Pool = if faction == "Enemy"
+		then "Enemy"
+		elseif look == "Orb" then "PlayerOrb"
+		else "Player"
+	local colour = if pool == "Enemy"
+		then ENEMY_COLOUR
+		elseif pool == "PlayerOrb" then PLAYER_ORB_COLOUR
+		else PLAYER_COLOUR
+	local part = acquire(pool, colour)
 	--[[ The same sideways offset the server spawns at, from the same
 	     helper, so a lane of arrows is a lane in both places. ]]
 	local start = ShotPipeline.spawnPoint(origin, aim, spec)
@@ -496,7 +523,7 @@ local function launch(
 	     one does not draw a ribbon from where the last shot expired. ]]
 	local trail = part:FindFirstChildOfClass("Trail")
 	if trail then
-		if faction == "Player" then
+		if pool == "Player" then
 			trail.Lifetime = ARROW_TRAIL_STUDS / math.max(spec.speed, 1e-3)
 		end
 		trail.Enabled = true
@@ -504,6 +531,7 @@ local function launch(
 
 	table.insert(live, {
 		part = part,
+		pool = pool,
 		faction = faction,
 		position = position,
 		direction = aim,
@@ -530,7 +558,8 @@ local function step(deltaTime: number)
 				queued.aim,
 				queued.spec,
 				now - queued.at,
-				queued.from
+				queued.from,
+				queued.look
 			)
 		end
 	end
@@ -539,7 +568,7 @@ local function step(deltaTime: number)
 		local visual = live[index]
 
 		if visual.stopped then
-			release(visual.part, visual.faction)
+			release(visual.part, visual.pool)
 
 			local last = #live
 			live[index] = live[last]
@@ -588,7 +617,8 @@ function ProjectileRenderer.spawnVolley(
 	direction: Vector3,
 	specs: { ShotSpec },
 	elapsed: number,
-	from: Model?
+	from: Model?,
+	look: string?
 )
 	local tier = Device.tier()
 	local now = os.clock()
@@ -609,9 +639,10 @@ function ProjectileRenderer.spawnVolley(
 				aim = aim,
 				spec = spec,
 				from = from,
+				look = look,
 			})
 		else
-			launch(faction, origin, aim, spec, math.clamp(-wait, 0, spec.lifetime), from)
+			launch(faction, origin, aim, spec, math.clamp(-wait, 0, spec.lifetime), from, look)
 		end
 	end
 end

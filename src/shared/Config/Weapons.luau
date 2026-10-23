@@ -21,8 +21,6 @@ export type WeaponPart = {
 	offset: Vector3,
 	--[[ Drawn Neon, for a gem. ]]
 	glow: boolean?,
-	--[[ Shown only while an arrow is drawn: the nocked arrow. ]]
-	nocked: boolean?,
 }
 
 export type Weapon = {
@@ -30,15 +28,19 @@ export type Weapon = {
 	hand: string,
 	--[[ Studs per model unit. ]]
 	scale: number,
+	--[[ Where the grip sits in the hand's own frame, studs. ]]
+	grip: Vector3,
 	parts: { WeaponPart },
 }
 
 local Weapons = {
 	--[[ The Ranger's bow (`assets/models/weapons/leaf_bow_roblox.glb`,
-	     imported 2026-10-23), held in the left hand. About 3.5 studs tall. ]]
+	     imported 2026-10-23), held in the left hand where the owner's
+	     posed rig holds it. About 4 studs tall. ]]
 	LeafBow = {
 		hand = "LeftHand",
-		scale = 3.2,
+		scale = 3.8,
+		grip = Vector3.new(0, -0.15, 0),
 		parts = {
 			{
 				name = "Bow",
@@ -71,41 +73,84 @@ local Weapons = {
 				offset = Vector3.new(0.0000, 0.1565, -0.0029),
 				glow = true,
 			},
-			{
-				name = "Arrow",
-				meshId = "rbxassetid://101205850995018",
-				size = Vector3.new(0.0754, 0.0653, 0.8640),
-				offset = Vector3.new(0.0450, 0.1148, 0.2605),
-				nocked = true,
-			},
 		},
 	} :: Weapon,
 
-	--[[
-		The archer's arms, in degrees on the R15 shoulder and elbow joints.
+	--[[ The Arcanist's staff (`assets/models/weapons/arcane_staff_roblox.glb`),
+	     held upright in the right hand, about 5 studs tall. Parts are filled
+	     in from the Studio import; until then the Arcanist holds nothing. ]]
+	ArcaneStaff = {
+		hand = "RightHand",
+		scale = 3.6,
+		grip = Vector3.new(0, -0.25, 0),
+		parts = {},
+	} :: Weapon,
 
-		The bow arm is held out in front the whole time, bow upright. The
-		string hand sits at full draw by the chin: the upper arm raised
-		forward and out to the right, turned so the elbow folds sideways, the
-		forearm folded back across to the face. The R15 elbow bends at most
-		120°, which is why the arm is turned rather than simply bent. On each shot (owner, 2026-10-23: "an
-		animation for shooting") it flicks back past the cheek for `release`
-		seconds, reaches forward to the string, and draws again over `draw`
-		seconds; the nocked arrow shows once the draw begins.
+	--[[
+		The Arcanist's casting arm (right), in degrees. It
+		holds the staff upright before it, forearm level; each cast thrusts
+		the arm out straight for `thrust` seconds and eases back over
+		`recover`. The left arm is left to Roblox's own animation.
 	]]
-	archerPose = {
-		bowShoulder = Vector3.new(90, 0, -10),
-		bowElbow = Vector3.new(0, 0, 0),
-		stringShoulderRest = Vector3.new(90, 35, 0),
-		stringShoulderDrawn = Vector3.new(90, -35, 90),
-		stringElbowRest = Vector3.new(10, 0, 0),
-		stringElbowDrawn = Vector3.new(120, 0, 0),
-		release = 0.08,
-		draw = 0.32,
-		--[[ The share of `draw` spent reaching forward to the string. ]]
-		reach = 0.35,
-		--[[ How far the bow arm kicks back on a release, degrees. ]]
-		recoil = 6,
+	casterPose = {
+		holdShoulder = Vector3.new(40, 10, 0),
+		holdElbow = Vector3.new(50, 0, 0),
+		castShoulder = Vector3.new(85, 0, 0),
+		castElbow = Vector3.new(5, 0, 0),
+		thrust = 0.07,
+		recover = 0.35,
+	},
+
+	--[[
+		The archer's arms: held still in the owner's pose
+		(`assets/models/weapons/leaf_bow_r15.glb`, 2026-10-23: "scrap the bow
+		animations and use this instead"), bow in the left hand. Each entry
+		is a joint's rotation (its `Transform`) on the R15 rig, read straight
+		from that file; joints not listed are left to Roblox's animation.
+	]]
+	archerHold = {
+		{
+			part = "LeftUpperArm",
+			joint = "LeftShoulder",
+			rotation = CFrame.fromMatrix(
+				Vector3.zero,
+				Vector3.new(0.6360, 0.3006, -0.7108),
+				Vector3.new(0.0315, 0.9102, 0.4131),
+				Vector3.new(0.7711, -0.2851, 0.5694)
+			),
+		},
+		{ part = "LeftLowerArm", joint = "LeftElbow", rotation = CFrame.identity },
+		{
+			part = "LeftHand",
+			joint = "LeftWrist",
+			rotation = CFrame.fromMatrix(
+				Vector3.zero,
+				Vector3.new(0.6056, 0.1593, 0.7796),
+				Vector3.new(-0.7030, 0.5662, 0.4304),
+				Vector3.new(-0.3729, -0.8087, 0.4549)
+			),
+		},
+		{
+			part = "RightUpperArm",
+			joint = "RightShoulder",
+			rotation = CFrame.fromMatrix(
+				Vector3.zero,
+				Vector3.new(-0.7679, -0.5269, 0.3643),
+				Vector3.new(-0.1311, 0.6859, 0.7157),
+				Vector3.new(-0.6270, 0.5019, -0.5958)
+			),
+		},
+		{
+			part = "RightLowerArm",
+			joint = "RightElbow",
+			rotation = CFrame.fromMatrix(
+				Vector3.zero,
+				Vector3.new(1, 0, 0),
+				Vector3.new(0, 0.5154, 0.8570),
+				Vector3.new(0, -0.8570, 0.5154)
+			),
+		},
+		{ part = "RightHand", joint = "RightWrist", rotation = CFrame.identity },
 	},
 }
 

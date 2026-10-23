@@ -18,6 +18,7 @@ local AbilityEffects = require(ReplicatedStorage.Shared.Combat.AbilityEffects)
 local Aim = require(ReplicatedStorage.Shared.Combat.Aim)
 local Arena = require(script.Parent.Parent.Arena.Arena)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
+local Classes = require(ReplicatedStorage.Shared.Config.Classes)
 local EnemyManager = require(script.Parent.Parent.Enemies.EnemyManager)
 local ProjectileSystem = require(script.Parent.ProjectileSystem)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
@@ -89,8 +90,8 @@ local function fire(session: Session, root: BasePart, now: number)
 
 	local specs = session.pipeline:build({
 		damage = session.damage * overdraw,
-		speed = Balance.Projectile.speed,
-		lifetime = Balance.Projectile.lifetime,
+		speed = session.projectileSpeed,
+		lifetime = session.projectileLifetime,
 		origin = origin,
 		direction = direction,
 	})
@@ -142,6 +143,7 @@ local function fire(session: Session, root: BasePart, now: number)
 		direction = direction,
 		specs = specs,
 		firedAt = now,
+		look = Classes[session.loadout.class].look,
 		--[[ The shooter's own client drew this the moment their input asked
 		     for it, so that client must skip this copy. ]]
 		predicted = true,

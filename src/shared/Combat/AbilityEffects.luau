@@ -26,6 +26,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Abilities = require(ReplicatedStorage.Shared.Config.Abilities)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
+local Classes = require(ReplicatedStorage.Shared.Config.Classes)
 local ShotPipeline = require(ReplicatedStorage.Shared.Combat.ShotPipeline)
 local Stages = require(ReplicatedStorage.Shared.Combat.Stages)
 local Types = require(ReplicatedStorage.Shared.Types)
@@ -53,6 +54,9 @@ export type ServerStats = {
 	overdrawBonus: number,
 	--[[ Extra attack speed, as a fraction, while Momentum is paying out. ]]
 	momentumBonus: number,
+	--[[ The class's shot speed and lifetime (`Config/Classes`). ]]
+	projectileSpeed: number,
+	projectileLifetime: number,
 }
 
 --[[
@@ -75,12 +79,34 @@ export type ClientStats = {
 	dashCooldown: number,
 	attackCooldown: number,
 	momentumBonus: number,
+	projectileSpeed: number,
+	projectileLifetime: number,
+	--[[ The player's class, so the client builds the same pipeline. ]]
+	class: string,
 	abilities: Counts,
 }
 
 --[[ The ability's total at the level held, or 0 when it is not held. The
      cards say what each level is worth, so a level is looked up rather
      than multiplied. ]]
+--[[ The class's innate skills added to the drafted ones, so a drafted copy
+     of an innate skill raises its level. `class` nil is the Ranger. ]]
+local function withClass(counts: Counts, class: string?): Counts
+	local innate = Classes[class or "Ranger"].innate
+	if next(innate) == nil then
+		return counts
+	end
+	local merged = table.clone(counts)
+	for id, level in innate do
+		merged[id] = (merged[id] or 0) + level
+	end
+	return merged
+end
+
+local function classOf(class: string?): Classes.Class
+	return Classes[class or "Ranger"]
+end
+
 local function at(counts: Counts, id: string): number
 	local level = counts[id] or 0
 	if level <= 0 then
@@ -107,7 +133,8 @@ end
 	sorts them into buckets itself; within a bucket they run in the order
 	they are added here.
 ]]
-function AbilityEffects.stages(counts: Counts): { ShotStage }
+function AbilityEffects.stages(drafted: Counts, class: string?): { ShotStage }
+	local counts = withClass(drafted, class)
 	local out: { ShotStage } = {}
 	local projectile = Balance.Projectile
 	local player = Balance.Player
@@ -221,18 +248,22 @@ function AbilityEffects.stages(counts: Counts): { ShotStage }
 	return out
 end
 
-function AbilityEffects.serverStats(counts: Counts): ServerStats
+function AbilityEffects.serverStats(drafted: Counts, class: string?): ServerStats
 	local player = Balance.Player
+	local counts = withClass(drafted, class)
+	local kind = classOf(class)
 
 	return {
 		--[[ Additive across levels, as the cards read: "+30% ATK" is thirty
 		     percent of the base, not of the last level. ]]
-		damage = player.baseDamage * (1 + at(counts, "Strength")),
+		damage = player.baseDamage * kind.damageScale * (1 + at(counts, "Strength")),
 		maxHealth = player.maxHealth * (1 + at(counts, "Vitality")),
 		--[[ Dual Bows: attack speed ×(1 + level), so its 1 halves the
 		     cooldown. Server and client must agree, or prediction fires
 		     on a different beat from the shots that count. ]]
-		attackCooldown = player.attackCooldown / (1 + at(counts, "DualBows")),
+		attackCooldown = player.attackCooldown * kind.cooldownScale / (1 + at(counts, "DualBows")),
+		projectileSpeed = Balance.Projectile.speed * kind.speedScale,
+		projectileLifetime = Balance.Projectile.lifetime / kind.speedScale,
 		healPerKill = at(counts, "Bloodthirst"),
 		regenPerSecond = at(counts, "Mending"),
 		dodgeChance = at(counts, "Agility"),
@@ -264,19 +295,26 @@ function AbilityEffects.cooldownAt(
 	return cooldown / (1 + momentumBonus)
 end
 
-function AbilityEffects.clientStats(counts: Counts): ClientStats
+function AbilityEffects.clientStats(counts: Counts, class: string?): ClientStats
 	local player = Balance.Player
+	local merged = withClass(counts, class)
+	local kind = classOf(class)
 
 	--[[ Copied rather than passed by reference: the server goes on mutating
 	     its own counts, and a client-side pipeline rebuilt from a table that
-	     changes underneath it would be a very hard bug to see. ]]
+	     changes underneath it would be a very hard bug to see. The drafted
+	     counts only: the client adds the class's innate skills itself, from
+	     `class`, so the skill bar never shows a skill nobody drafted. ]]
 	local copy: Counts = table.clone(counts)
 
 	return {
-		moveSpeed = player.moveSpeed * (1 + at(counts, "Lightfoot")),
+		moveSpeed = player.moveSpeed * (1 + at(merged, "Lightfoot")),
 		dashCooldown = player.dash.cooldown,
-		attackCooldown = player.attackCooldown / (1 + at(counts, "DualBows")),
-		momentumBonus = at(counts, "Momentum"),
+		attackCooldown = player.attackCooldown * kind.cooldownScale / (1 + at(merged, "DualBows")),
+		momentumBonus = at(merged, "Momentum"),
+		projectileSpeed = Balance.Projectile.speed * kind.speedScale,
+		projectileLifetime = Balance.Projectile.lifetime / kind.speedScale,
+		class = class or "Ranger",
 		abilities = copy,
 	}
 end

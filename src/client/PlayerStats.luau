@@ -25,6 +25,11 @@ export type Stats = {
 	--[[ Momentum's extra attack speed, for predicting when the archer
 	     fires. ]]
 	momentumBonus: number,
+	--[[ The class's shot speed and lifetime, and the class itself, so the
+	     prediction builds and flies the same shots the server does. ]]
+	projectileSpeed: number,
+	projectileLifetime: number,
+	class: string,
 	--[[ Stack counts, not stages. Stages are functions and do not replicate;
 	     `AbilityEffects.stages` rebuilds the identical pipeline from these. ]]
 	abilities: { [string]: number },
@@ -38,6 +43,9 @@ local function defaults(): Stats
 		dashCooldown = Balance.Player.dash.cooldown,
 		attackCooldown = Balance.Player.attackCooldown,
 		momentumBonus = 0,
+		projectileSpeed = Balance.Projectile.speed,
+		projectileLifetime = Balance.Projectile.lifetime,
+		class = "Ranger",
 		abilities = {},
 	}
 end
@@ -73,6 +81,9 @@ function PlayerStats.set(stats: Stats)
 		dashCooldown = math.max(dashCooldown, 0),
 		attackCooldown = math.max(attackCooldown, 1 / 60),
 		momentumBonus = math.max(tonumber(stats.momentumBonus) or 0, 0),
+		projectileSpeed = tonumber(stats.projectileSpeed) or Balance.Projectile.speed,
+		projectileLifetime = tonumber(stats.projectileLifetime) or Balance.Projectile.lifetime,
+		class = if typeof(stats.class) == "string" then stats.class else "Ranger",
 		abilities = if typeof(stats.abilities) == "table" then stats.abilities else {},
 	}
 

@@ -158,6 +158,9 @@ Remotes.AbilityReroll = "AbilityReroll"
      Mythic (or a Legendary, if that is the one string sent), so its look
      can be seen. The server ignores it outside Studio. ]]
 Remotes.DebugForceMythic = "DebugForceMythic"
+--[[ Client → server, Studio only: switch to the next class (`Config/Classes`).
+     Stands in for a lobby's class choice until one exists. ]]
+Remotes.DebugNextClass = "DebugNextClass"
 
 local function getFolder(): Folder
 	if RunService:IsServer() then

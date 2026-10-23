@@ -37,6 +37,10 @@ export type ArenaPart = {
 	     low-poly steps. Drawn as a smooth ellipse instead, so the pond's
 	     edge is round (owner, 2026-10-23). ]]
 	bank: Color3?,
+	--[[ For a merged forest: its single trees (`Config/ArenaTrees`), drawn
+	     in its place once every one has its own mesh, so each can sway in
+	     the gusts (`Fx/ForestAmbience`). ]]
+	trees: string?,
 }
 
 export type ArenaModel = {
@@ -87,6 +91,7 @@ local BOSS_FOREST: { ArenaPart } = {
 		meshId = "rbxassetid://82996110055874",
 		size = Vector3.new(74.834, 13.063, 114.270),
 		offset = Vector3.new(-0.561, 6.966, -6.824),
+		trees = "Boss",
 	},
 }
 
@@ -98,6 +103,7 @@ local WIDE_FOREST: { ArenaPart } = {
 		meshId = "rbxassetid://104769390455997",
 		size = Vector3.new(96.184, 15.779, 128.239),
 		offset = Vector3.new(0.250, 8.306, -6.803),
+		trees = "Wide",
 	},
 	{
 		name = "Bushes",

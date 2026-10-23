@@ -16,8 +16,9 @@
 	device tier's share (`DeviceTiers.ambienceShare`). Numbers:
 	`Balance.Ambience`.
 
-	The handoff also sways each tree in the gusts. The glades' trees are
-	one merged mesh, so that waits until they are split into trees.
+	Each tree sways from the foot of its trunk as the gusts pass, once the
+	room's forest is drawn as single trees (`Arena.build` marks each with
+	its `SwayBase`, from `Config/ArenaTrees`).
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -54,12 +55,15 @@ type Bird = { left: Part, right: Part, offset: Vector3, phase: number }
 type Flock = { birds: { Bird }, from: Vector3, to: Vector3, t: number, duration: number }
 type Butterfly = { left: Part, right: Part, phase: number, home: Volume?, centre: Vector3 }
 type Shaft = { part: Part, rest: number, phase: number }
+type Tree = { part: BasePart, base: CFrame, offset: CFrame, phase: number, pace: number }
 
 local folder: Folder? = nil
 local volumes: { Volume } = {}
 local leaves: { Leaf } = {}
 local butterflies: { Butterfly } = {}
 local shafts: { Shaft } = {}
+local trees: { Tree } = {}
+local swayDebt = 0
 local flock: Flock? = nil
 local nextFlock = 5
 local clock = 0
@@ -191,7 +195,26 @@ local function addEmitters(parent: Instance, volume: Volume)
 	mist.Parent = box
 end
 
-local function build()
+--[[ The room's single trees, each to sway from the foot of its trunk. ]]
+local function gatherTrees(arena: Instance)
+	trees = {}
+	for _, part in arena:GetDescendants() do
+		local base = part:GetAttribute("SwayBase")
+		if part:IsA("BasePart") and typeof(base) == "Vector3" then
+			local foot = CFrame.new(base)
+			table.insert(trees, {
+				part = part,
+				base = foot,
+				offset = foot:ToObjectSpace(part.CFrame),
+				phase = math.random() * math.pi * 2,
+				pace = 0.45 + math.random() * 0.25,
+			})
+		end
+	end
+end
+
+local function build(arena: Instance)
+	gatherTrees(arena)
 	local c = config()
 	local made = Instance.new("Folder")
 	made.Name = "ForestAmbience"
@@ -261,6 +284,12 @@ local function teardown()
 		folder:Destroy()
 		folder = nil
 	end
+	for _, tree in trees do
+		if tree.part.Parent then
+			tree.part.CFrame = tree.base * tree.offset
+		end
+	end
+	trees = {}
 	flock = nil
 end
 
@@ -318,6 +347,25 @@ local function step(dt: number)
 	end
 	local c = config()
 	clock += dt
+
+	--[[ The trees lean from their feet, idly and further as a gust passes. ]]
+	swayDebt += dt
+	if swayDebt >= 1 / c.swayRate then
+		swayDebt = 0
+		local camera = Workspace.CurrentCamera
+		local eye = if camera then camera.CFrame.Position else Vector3.zero
+		for _, tree in trees do
+			local foot = tree.base.Position
+			if (foot - eye).Magnitude > c.swayDistance then
+				continue
+			end
+			local push = gust(foot)
+			local across = c.treeSway * math.sin(clock * tree.pace + tree.phase) + c.treeGust * push
+			local along = c.treeSway * 0.8 * math.cos(clock * tree.pace * 0.8 + tree.phase)
+				+ c.treeGust * 0.5 * push
+			tree.part.CFrame = tree.base * CFrame.Angles(across * 0.5, 0, along * 0.5) * tree.offset
+		end
+	end
 
 	for _, shaft in shafts do
 		shaft.part.Transparency =
@@ -422,7 +470,7 @@ function ForestAmbience.start()
 		teardown()
 		if arena and arena:GetAttribute("Ambience") == "Forest" then
 			if Device.tier().ambienceShare > 0 then
-				build()
+				build(arena)
 			end
 		end
 	end

@@ -12,6 +12,7 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local ArenaModels = require(ReplicatedStorage.Shared.Config.ArenaModels)
+local ArenaTrees = require(ReplicatedStorage.Shared.Config.ArenaTrees)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local ExitGate = require(script.Parent.ExitGate)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
@@ -256,6 +257,13 @@ function Arena.preload()
 			end
 		end
 	end
+	for _, forest in ArenaTrees do
+		for _, tree in forest do
+			if tree.meshId ~= "" then
+				table.insert(ids, tree.meshId)
+			end
+		end
+	end
 	meshTemplates = MeshTemplates.load(ids)
 end
 
@@ -271,6 +279,21 @@ local WATER_RIM = 1.08
 --[[ The bank covers the lawn's stepped darker ring, which reaches about
      1.15 times the water's size. ]]
 local WATER_BANK = 1.18
+
+--[[ A forest's single trees, when every one has its mesh loaded; nil
+     otherwise, and the forest is drawn merged. ]]
+local function singleTrees(name: string?): { ArenaTrees.Tree }?
+	local forest = if name then ArenaTrees[name] else nil
+	if not forest then
+		return nil
+	end
+	for _, tree in forest do
+		if tree.meshId == "" or not meshTemplates[tree.meshId] then
+			return nil
+		end
+	end
+	return forest
+end
 
 local function placeModel(root: Instance, model: ArenaModels.ArenaModel)
 	local folder = Instance.new("Folder")
@@ -348,6 +371,28 @@ local function placeModel(root: Instance, model: ArenaModels.ArenaModel)
 			mesh.MeshType = Enum.MeshType.Sphere
 			mesh.Parent = sheet
 			sheet.Parent = folder
+			return
+		end
+
+		--[[ A merged forest drawn as its single trees, each marked with
+		     the foot of its trunk so the client can sway it from there. ]]
+		local trees = singleTrees(spec.trees)
+		if trees then
+			for _, tree in trees do
+				local piece = meshTemplates[tree.meshId]:Clone()
+				piece.Name = "Tree"
+				piece.Size = tree.size
+				piece.CFrame = CFrame.new(tree.offset + shift) * turn
+				piece.Anchored = true
+				piece.CanCollide = false
+				piece.CanQuery = false
+				piece.CanTouch = false
+				piece.Color = Color3.new(1, 1, 1)
+				piece.Material = Enum.Material.SmoothPlastic
+				piece.CastShadow = true
+				piece:SetAttribute("SwayBase", tree.base + shift)
+				piece.Parent = folder
+			end
 			return
 		end
 

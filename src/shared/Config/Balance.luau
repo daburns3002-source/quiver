@@ -1748,8 +1748,8 @@ local Balance = {
 		(the owner's design_handoff_forest_ambience, 2026-10-23), drawn on
 		each client by `Fx/ForestAmbience` and never inside the room.
 		Counts are at the High tier; lower tiers draw `DeviceTiers.
-		ambienceShare` of them. The glades' trees are one merged mesh, so the
-		handoff's per-tree sway is left out until they are split into trees.
+		ambienceShare` of them. Each tree sways once the glades' forests are
+		drawn as single trees (`Config/ArenaTrees`).
 	]]
 	Ambience = {
 		Forest = {
@@ -1783,6 +1783,14 @@ local Balance = {
 			--[[ The wind: a band of gusts sweeping across, radians of phase a
 			     second, pushing leaves along. ]]
 			gustSpeed = 0.6,
+			--[[ Each tree leans from the foot of its trunk: `treeSway`
+			     radians idly, `treeGust` more as a gust passes, redrawn
+			     `swayRate` times a second, out to `swayDistance` studs from
+			     the camera. ]]
+			treeSway = 0.018,
+			treeGust = 0.05,
+			swayRate = 30,
+			swayDistance = 220,
 			--[[ Fireflies a second per 60 square studs of floor, and mist
 			     puffs per 400. ]]
 			fireflyDensity = 1,

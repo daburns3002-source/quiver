@@ -16,6 +16,29 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## The Arcanist's shots drew a beam across the room
+
+**Symptom** — in a Studio capture, each Arcanist shot showed as a tiny dot at
+the head of a cyan line about 60 studs long, reading as a laser rather than a
+bolt.
+
+**Cause** — the Arcanist's orb took the enemy orbs' trail, whose length is
+set in seconds (0.6 s) because enemy orbs are slow. The Arcanist's shot flies
+at about 100 studs/s, so 0.6 s of tail is about 60 studs. Separately, a
+`SpecialMesh` pointed at the imported bolt mesh drew nothing at all, so only
+the trail and the light showed.
+
+**Fix** — the Arcanist's tail is a length, like an arrow's
+(`PLAYER_ORB_TRAIL_STUDS`, 6 studs, turned into a lifetime from the shot's
+speed). The bolt is loaded once on the client with
+`AssetService:CreateMeshPartAsync` and cloned per shot, the way the server
+loads every other mesh.
+
+**Measured** — the shot is a `MeshPart` in flight, and a game-view capture
+shows a bolt with a short comet tail.
+
+---
+
 ## Enemies got stuck on cover instead of going round it
 
 **Symptom** — "make sure the ai for the enemies finds a way around an

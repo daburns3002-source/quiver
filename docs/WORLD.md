@@ -37,6 +37,13 @@ decisions at the end.* Until one is chosen the code, repo and docs keep
 Skills say which classes can draw them (`Ability.classes`, none named means
 all); Second Wind stays a Mythic every class can draw.
 
+**Weapon concept sheets** (Codex, 2026-10-23), in `assets/concepts/weapons/`,
+each a model sheet (hero render, front / side / back / top, details,
+palette) to be built as a 3D model: `ranger_bow` (leaf-tipped longbow and
+arrow), `arcanist_staff` (crescent staff with a cyan orb and three orbiting
+orbs, for Homing Orbs), and both melee options while the class is open —
+`warden_sword_shield` and `duelist_daggers`.
+
 **Alternative to the Warden:** a **Duelist** — fast dagger strikes, crits,
 evasion — if the unlockable melee class should play faster. *Open.*
 

@@ -105,3 +105,23 @@ the owner decides otherwise.
    collects or tanks a hit). Not assigned here, since none of those
    behaviours is designed yet.
 4. **How weapon skins are earned**, and which go to 3D first.
+
+## 3D: the Mosslet, Codex beside Claude Design
+
+The owner asked for one model made both ways, with the same animations, to
+choose a pipeline for the rest (2026-10-23).
+
+- **Codex:** `assets/models/pets/forest/mosslet.py` builds
+  `mosslet.glb` (Body and Eyes meshes, vertex coloured, 338 triangles; face
+  down −Z, base at y = 0) from the blocky-part library
+  `assets/models/blocky/blocky.py`. `mosslet_anim.py` holds the clips as data
+  (`mosslet_anim.json`) and draws `mosslet_anim.gif`.
+- **Claude Design:** a Design canvas (artifact AK2tH1RQtWNwKHJYkxgCvT) builds
+  the same pet live in three.js, plays the same clips, and exports a GLB with
+  vertex colours.
+
+Both use one animation spec: Idle (1.6 s breathe, leaves sway), Hop (0.6 s
+squash, stretch to 0.6 high, land squash) and Follow (0.8 s, two small hops
+pitched 8° forward). Neither is in the game yet: a GLB goes through the
+owner's Studio import, and the clips would be played in code, as
+`Fx/WeaponPose` plays the weapons'.

@@ -1,0 +1,492 @@
+{
+  "version": 1,
+  "units": "model units, seconds, degrees",
+  "up": "+Y",
+  "forward": "-Z",
+  "pivot": [
+    0,
+    0,
+    0
+  ],
+  "leaf_pivot": [
+    -0.22,
+    1.14,
+    0.07
+  ],
+  "leaf_angle_axes": [
+    "Z sway",
+    "X trailing tilt"
+  ],
+  "interpolation": "weight = 0.5 - 0.5*cos(pi*u) between adjacent keys",
+  "transform_order": [
+    "leaf rotation about leaf_pivot / mushroom local offset",
+    "body scale about pivot",
+    "body pitch toward -Z",
+    "lift lowest vertex to Y=0",
+    "body offset"
+  ],
+  "group_source": "GLB mesh extras.animation_groups: [first face, exclusive last face, group]",
+  "clips": {
+    "IDLE": {
+      "duration": 1.6,
+      "loop": true,
+      "body_pitch": 0,
+      "keyframes": [
+        {
+          "time": 0,
+          "body_offset": [
+            0,
+            0,
+            0
+          ],
+          "body_scale": [
+            1,
+            1,
+            1
+          ],
+          "leaf_angle": [
+            8,
+            0
+          ],
+          "mushroom_offset": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "time": 0.4,
+          "body_offset": [
+            0,
+            0,
+            0
+          ],
+          "body_scale": [
+            0.99,
+            1.02,
+            0.99
+          ],
+          "leaf_angle": [
+            0,
+            0
+          ],
+          "mushroom_offset": [
+            0,
+            0.02,
+            0
+          ]
+        },
+        {
+          "time": 0.8,
+          "body_offset": [
+            0,
+            0,
+            0
+          ],
+          "body_scale": [
+            0.98,
+            1.04,
+            0.98
+          ],
+          "leaf_angle": [
+            -8,
+            0
+          ],
+          "mushroom_offset": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "time": 1.2,
+          "body_offset": [
+            0,
+            0,
+            0
+          ],
+          "body_scale": [
+            0.99,
+            1.02,
+            0.99
+          ],
+          "leaf_angle": [
+            0,
+            0
+          ],
+          "mushroom_offset": [
+            0,
+            -0.02,
+            0
+          ]
+        },
+        {
+          "time": 1.6,
+          "body_offset": [
+            0,
+            0,
+            0
+          ],
+          "body_scale": [
+            1,
+            1,
+            1
+          ],
+          "leaf_angle": [
+            8,
+            0
+          ],
+          "mushroom_offset": [
+            0,
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    "HOP": {
+      "duration": 0.6,
+      "loop": false,
+      "body_pitch": 0,
+      "keyframes": [
+        {
+          "time": 0,
+          "body_offset": [
+            0,
+            0,
+            0
+          ],
+          "body_scale": [
+            1,
+            1,
+            1
+          ],
+          "leaf_angle": [
+            0,
+            0
+          ],
+          "mushroom_offset": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "time": 0.12,
+          "body_offset": [
+            0,
+            0,
+            0
+          ],
+          "body_scale": [
+            1.12,
+            0.8,
+            1.12
+          ],
+          "leaf_angle": [
+            0,
+            0
+          ],
+          "mushroom_offset": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "time": 0.3,
+          "body_offset": [
+            0,
+            0.6,
+            0
+          ],
+          "body_scale": [
+            0.92,
+            1.15,
+            0.92
+          ],
+          "leaf_angle": [
+            0,
+            -15
+          ],
+          "mushroom_offset": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "time": 0.45,
+          "body_offset": [
+            0,
+            0,
+            0
+          ],
+          "body_scale": [
+            1,
+            1,
+            1
+          ],
+          "leaf_angle": [
+            0,
+            10
+          ],
+          "mushroom_offset": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "time": 0.52,
+          "body_offset": [
+            0,
+            0,
+            0
+          ],
+          "body_scale": [
+            1.1,
+            0.82,
+            1.1
+          ],
+          "leaf_angle": [
+            0,
+            10
+          ],
+          "mushroom_offset": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "time": 0.6,
+          "body_offset": [
+            0,
+            0,
+            0
+          ],
+          "body_scale": [
+            1,
+            1,
+            1
+          ],
+          "leaf_angle": [
+            0,
+            0
+          ],
+          "mushroom_offset": [
+            0,
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    "FOLLOW": {
+      "duration": 0.8,
+      "loop": true,
+      "body_pitch": 8,
+      "keyframes": [
+        {
+          "time": 0,
+          "body_offset": [
+            0,
+            0,
+            0
+          ],
+          "body_scale": [
+            1.06,
+            0.88,
+            1.06
+          ],
+          "leaf_angle": [
+            0,
+            10
+          ],
+          "mushroom_offset": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "time": 0.1,
+          "body_offset": [
+            0,
+            0.15,
+            -0.035
+          ],
+          "body_scale": [
+            1,
+            1,
+            1
+          ],
+          "leaf_angle": [
+            0,
+            -8
+          ],
+          "mushroom_offset": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "time": 0.2,
+          "body_offset": [
+            0,
+            0.3,
+            -0.07
+          ],
+          "body_scale": [
+            1,
+            1,
+            1
+          ],
+          "leaf_angle": [
+            0,
+            -8
+          ],
+          "mushroom_offset": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "time": 0.3,
+          "body_offset": [
+            0,
+            0.15,
+            -0.035
+          ],
+          "body_scale": [
+            1,
+            1,
+            1
+          ],
+          "leaf_angle": [
+            0,
+            0
+          ],
+          "mushroom_offset": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "time": 0.4,
+          "body_offset": [
+            0,
+            0,
+            0
+          ],
+          "body_scale": [
+            1.06,
+            0.88,
+            1.06
+          ],
+          "leaf_angle": [
+            0,
+            10
+          ],
+          "mushroom_offset": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "time": 0.5,
+          "body_offset": [
+            0,
+            0.15,
+            -0.035
+          ],
+          "body_scale": [
+            1,
+            1,
+            1
+          ],
+          "leaf_angle": [
+            0,
+            -8
+          ],
+          "mushroom_offset": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "time": 0.6,
+          "body_offset": [
+            0,
+            0.3,
+            -0.07
+          ],
+          "body_scale": [
+            1,
+            1,
+            1
+          ],
+          "leaf_angle": [
+            0,
+            -8
+          ],
+          "mushroom_offset": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "time": 0.7,
+          "body_offset": [
+            0,
+            0.15,
+            -0.035
+          ],
+          "body_scale": [
+            1,
+            1,
+            1
+          ],
+          "leaf_angle": [
+            0,
+            0
+          ],
+          "mushroom_offset": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "time": 0.8,
+          "body_offset": [
+            0,
+            0,
+            0
+          ],
+          "body_scale": [
+            1.06,
+            0.88,
+            1.06
+          ],
+          "leaf_angle": [
+            0,
+            10
+          ],
+          "mushroom_offset": [
+            0,
+            0,
+            0
+          ]
+        }
+      ]
+    }
+  }
+}

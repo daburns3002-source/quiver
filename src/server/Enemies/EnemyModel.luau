@@ -17,11 +17,11 @@
 	and `EnemyManager` goes on moving an enemy by writing one CFrame.
 ]]
 
-local AssetService = game:GetService("AssetService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local EnemyDesigns = require(ReplicatedStorage.Shared.Config.EnemyDesigns)
+local MeshTemplates = require(script.Parent.Parent.Util.MeshTemplates)
 
 type EnemyConfig = Balance.EnemyConfig
 type DesignPart = EnemyDesigns.DesignPart
@@ -80,27 +80,19 @@ local meshTemplates: { [string]: MeshPart } = {}
      start, before anything spawns; a mesh that fails to load leaves its
      part to fall back to a plain ellipsoid rather than breaking a spawn. ]]
 function EnemyModel.preload()
+	local ids: { string } = {}
 	for _, design in EnemyDesigns :: any do
 		if type(design) ~= "table" then
 			continue
 		end
 		for _, spec in design do
 			local id = type(spec) == "table" and spec.meshId
-			if type(id) == "string" and not meshTemplates[id] then
-				local ok, result = pcall(function()
-					return AssetService:CreateMeshPartAsync(id, {
-						CollisionFidelity = Enum.CollisionFidelity.Box,
-						RenderFidelity = Enum.RenderFidelity.Automatic,
-					})
-				end)
-				if ok and result then
-					meshTemplates[id] = result
-				else
-					warn(`[EnemyModel] mesh {id} did not load: {result}`)
-				end
+			if type(id) == "string" then
+				table.insert(ids, id)
 			end
 		end
 	end
+	meshTemplates = MeshTemplates.load(ids)
 end
 
 local function buildPart(spec: DesignPart, config: EnemyConfig): BasePart

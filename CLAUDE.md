@@ -189,13 +189,15 @@ The face-slide below is now only the fallback when walking straight.
 **Known rough edges, deliberately not addressed:**
 
 - `Arena.deflectionNormal` handles obstacles but not the outer walls.
-- **Enemy visuals may still overlap pillars slightly.** Hitboxes are now
-  resolved by their turned footprint (`Arena.resolveBox`) and measured 0 of
-  2,819 samples inside a pillar. A probe of *visible* parts still found
-  corners up to 0.59 studs in, but it counted every non-transparent part,
-  and the "widest" parts it named (a Base 8 studs across) look like the
-  ground rings drawn under enemies, not bodies. Unconfirmed — check which
-  parts before fixing anything.
+- **Enemy overlap with cover: measured clean, with limits** (2026-10-23).
+  Over rooms 1–4 of Level 1 (every archetype there), enemies' visible
+  meshes (Body, Decor, Eyes; not the Shadow disc or the invisible Hitbox)
+  never reached into an obstacle's box: 0 of about 13,000 samples by
+  their box corners, an upper bound for round bodies, and hitbox corners
+  0 of 5,180. The earlier 0.59–0.62 stud readings predate the arena art
+  and counted ground rings. Not measured: rooms 5–10, and the arena art
+  itself, which can be larger or smaller than its obstacle box. Measure
+  per part, client-side, answering the card screen, before fixing.
 
 **Studio test keys** (`client/DevKeys`, honoured by the server only in
 Studio): **M** — the next card hand includes a Mythic; **L** — a Legendary;
@@ -218,8 +220,8 @@ draft into its controller layout.
 - **`GetPartBoundsInBox` reports a rotated part by its axis-aligned bounds**,
   which swell as it turns, so it over-reports clipping. Measure a part's real
   corners instead — and over several rooms: one quiet run read 0.1 studs at
-  most, the next found turned hitbox corners 0.62 studs into pillars. That
-  one is real and unfixed — see "Known rough edges".
+  most, the next found turned hitbox corners 0.62 studs into pillars. A
+  later sweep of rooms 1–4 found none — see "Known rough edges".
 - **Arrow impact sparks are round parts named `Impact`** in
   `ProjectileVisuals`, beside the enemy orbs. Filter orbs by
   `Name == "Projectile"`, not by shape, or stationary sparks read as orbs that

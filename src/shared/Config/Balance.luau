@@ -48,6 +48,8 @@ export type TelegraphTell = EnemyTell | "Dive" | "Spawn" | "Split"
 export type EnemySplit = {
 	into: EnemyConfig,
 	count: number,
+	--[[ The pieces' health as a share of their archetype's. ]]
+	health: number,
 }
 
 --[[
@@ -193,7 +195,9 @@ local broodSlime: EnemyConfig = {
 	color = Color3.fromRGB(226, 52, 56),
 	xpReward = 20,
 	shot = nil,
-	split = { into = meleeCharger, count = 4 },
+	--[[ Four, one per baby, like Zac; at half a Moss Slime's health each
+	     (owner, 2026-10-22: Level 1 was too hard). ]]
+	split = { into = meleeCharger, count = 4, health = 0.5 },
 }
 
 --[[
@@ -213,7 +217,9 @@ local spreadShooter: EnemyConfig = {
 	     not the distance they close to. ]]
 	attackRange = 13.3,
 	attackDamage = 45,
-	attackCooldown = 2.2,
+	--[[ 2.2, then 3 (owner, 2026-10-22: "make the spitter fire every 3
+	     seconds"). ]]
+	attackCooldown = 3,
 	knockback = 3,
 	--[[ The Sprout Spitter's own shape (its model, 3 × 3.6 × 3), not the
 	     shared 5-stud box; arrows at `Projectile.height` meet it. ]]
@@ -221,8 +227,11 @@ local spreadShooter: EnemyConfig = {
 	color = Color3.fromRGB(70, 206, 236),
 	xpReward = 14,
 	shot = {
-		-- Odd count so one projectile always runs down the centre.
-		count = 3,
+		--[[ Two, either side of the aim (owner, 2026-10-22: "only fire two
+		     projectiles"). Was three, one down the centre; standing still
+		     in its line is now safe for a moment, moving through the gap is
+		     the answer. ]]
+		count = 2,
 		-- Radians between neighbouring projectiles in the fan.
 		spread = math.rad(18),
 		--[[
@@ -419,6 +428,12 @@ export type StageConfig = {
 	rooms: { number }?,
 	arena: number?,
 	waves: number?,
+	--[[ How hard this stage's enemies are, as multipliers on every
+	     archetype's `attackDamage` and `health`: the per-area scaling
+	     non-negotiable 8 calls for, set by where the stage sits in the game.
+	     Nil is 1. ]]
+	enemyDamage: number?,
+	enemyHealth: number?,
 }
 
 export type RoomConfig = {
@@ -1145,6 +1160,12 @@ local Balance = {
 			name = "Level 1",
 			mode = "Rooms",
 			rooms = { 11, 12, 13, 14, 15, 16, 17, 18, 19, 20 },
+			--[[ The game's first level, eased after playtests (owner,
+			     2026-10-22: "the difficulty is still too high"): enemies hit
+			     at 0.7 and have 0.8 of their health, so the player takes
+			     about six hits rather than four. ]]
+			enemyDamage = 0.7,
+			enemyHealth = 0.8,
 		},
 	} :: { StageConfig },
 

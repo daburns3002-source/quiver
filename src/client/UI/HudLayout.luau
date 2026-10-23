@@ -81,25 +81,28 @@ function HudLayout.current(): Layout
 	end
 
 	local u = Hud.phoneUpright
-	local room = view.X - u.edge * 2
+	--[[ The strip left of the dash button, where the skill bar and the
+	     bars above it are centred. ]]
+	local room = view.X - u.edge - u.dashClear
+	local centre = u.edge + room / 2
 	local scale = math.min(u.skillBarScale, room / Hud.touchTray.X)
 	local barsWidth = math.min(u.barsWidth, room)
 	local healthBottom = u.skillBarBottom + Hud.touchTray.Y * scale + u.barsGap
 	return {
 		health = {
 			anchor = Vector2.new(0.5, 1),
-			position = UDim2.new(0.5, 0, 1, -healthBottom),
+			position = UDim2.new(0, centre, 1, -healthBottom),
 			size = UDim2.fromOffset(barsWidth, u.healthHeight),
 			maxHeight = u.healthHeight,
 		},
 		dash = {
 			anchor = Vector2.new(0.5, 1),
-			position = UDim2.new(0.5, 0, 1, -(healthBottom + u.healthHeight + u.barsGap)),
+			position = UDim2.new(0, centre, 1, -(healthBottom + u.healthHeight + u.barsGap)),
 			size = UDim2.fromOffset(barsWidth, u.dashHeight),
 			maxHeight = u.dashHeight,
 		},
 		skillBarScale = scale,
-		skillBarPosition = UDim2.new(0.5, 0, 1, -u.skillBarBottom),
+		skillBarPosition = UDim2.new(0, centre, 1, -u.skillBarBottom),
 	}
 end
 

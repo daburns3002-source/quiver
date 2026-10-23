@@ -14,8 +14,8 @@
 	them in one row: health and dash on the left, a larger skill bar on the
 	right, clear of the dash button in the corner.
 
-	A phone held upright has height and no width: the stack again, fitted
-	to the width, lifted clear of the thumbstick and dash button.
+	A phone held upright has height and no width: the stack again, at the
+	bottom of the screen in the room left of the dash button.
 ]]
 
 local Hud = {
@@ -51,11 +51,15 @@ local Hud = {
 	phoneUpright = {
 		-- As large as sideways, unless the screen is too narrow for it.
 		skillBarScale = 0.9,
-		--[[ Above the dash button (92 points, 28 from the bottom) and the
-		     thumbstick, so a thumb on either never covers it. ]]
-		skillBarBottom = 128,
+		--[[ At the bottom of the screen (owner, 2026-10-22: "on mobile the
+		     upgrade bar needs to be lower like near the bottom"), beside the
+		     dash button rather than above it. Was 128. ]]
+		skillBarBottom = 10,
 		-- Points kept clear at each side of the screen.
 		edge = 12,
+		--[[ Points kept clear at the right for the dash button: 92 wide,
+		     28 from the edge, and a gap. ]]
+		dashClear = 128,
 		barsWidth = 300,
 		healthHeight = 30,
 		dashHeight = 16,

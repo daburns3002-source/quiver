@@ -16,6 +16,27 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## On a phone the skill bar was cut off at both sides and covered the health number
+
+**Symptom** — "the upgrade bar is not fully visible".
+
+**Cause** — two. The skill bar chose its tray by inputs (`TouchEnabled and
+not MouseEnabled`), and Studio's phone emulator — like some phones —
+reports a mouse too, so it built the ten-slot computer tray, 738 points
+wide, on a 401-point screen. That is the same lie CLAUDE.md warns about:
+detect a phone by screen size. And the HUD's ScreenGuis ignored every
+inset, so on a real phone its bottom would run under the home bar.
+
+**Fix** — the tray is the phone's six-slot one whenever `Device.isPhone()`;
+the skill bar, health, dash bars and dash button use
+`ScreenInsets.DeviceSafeInsets`. The phone layout is one centred stack, the
+dash button lifted above it when the screen is too narrow.
+
+**Measured** — emulator, upright 401 × 778: tray x 47–354 (was −132 to
+533), health and dash directly above it, dash button above the stack.
+
+---
+
 ## Playtests took about 10 seconds to start
 
 **Symptom** — "why when i start the playtest it takes like 10 seconds to

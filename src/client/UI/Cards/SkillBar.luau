@@ -22,6 +22,7 @@ local UserInputService = game:GetService("UserInputService")
 local Abilities = require(ReplicatedStorage.Shared.Config.Abilities)
 local CardTheme = require(ReplicatedStorage.Shared.Config.CardTheme)
 local DetailPanel = require(script.Parent.DetailPanel)
+local Device = require(script.Parent.Parent.Parent.Device)
 local HudLayout = require(script.Parent.Parent.HudLayout)
 local PlayerStats = require(script.Parent.Parent.Parent.PlayerStats)
 
@@ -235,7 +236,11 @@ local function rebuild()
 	end
 	table.clear(slotFrames)
 
-	local touch = isTouch()
+	--[[ The phone's tray by screen size, not by which inputs exist: Studio's
+	     phone emulator, and some phones, report a mouse too, and the
+	     ten-slot computer tray (738 points) then overflowed a 401-point
+	     screen on both sides (owner, 2026-10-22: "not fully visible"). ]]
+	local touch = Device.isPhone() or isTouch()
 	local count = if touch then 6 else 10
 	local size = if touch then 44 else 62
 	local held = PlayerStats.get().abilities
@@ -325,7 +330,10 @@ function SkillBar.start()
 
 	local created = Instance.new("ScreenGui")
 	created.Name = "SkillBar"
-	created.IgnoreGuiInset = true
+	--[[ Inside the phone's safe area, clear of the home bar and rounded
+	     corners: ignoring it, the bottom of the HUD ran under them and was
+	     cut off (owner, 2026-10-22). ]]
+	created.ScreenInsets = Enum.ScreenInsets.DeviceSafeInsets
 	created.ResetOnSpawn = false
 	created.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 	created.DisplayOrder = 101

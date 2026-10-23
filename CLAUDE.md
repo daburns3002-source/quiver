@@ -119,13 +119,14 @@ What exists and works, all verified in Studio rather than only by the gates:
 - **Archero 2 proportions:** a portrait 35 × 58 room, a camera that fits the
   room's width and follows depth only, spawn markers, orb enemy shots.
   **Phones are framed closer** (`Balance.Camera.phone`, `Util/CameraFit`):
-  1.6× closer held sideways, 1.3× upright, still showing the floor's full
-  width. Studio cannot emulate a phone over MCP, so `CameraFit.spec` pins it.
+  about 1.8× closer held sideways and the floor at ~97% of an upright
+  phone's width, still all of it. Studio cannot emulate a phone over MCP, so `CameraFit.spec` pins it.
   **The phone UI is larger too** (`Device.isPhone`, `Config/Hud`,
-  `UI/HudLayout`): held sideways, health, dash and a 0.9× skill bar share
-  one bottom row and the draft puts Choose and Reroll beside the hand;
-  held upright they stack, fitted to the width, above the thumbstick and
-  dash button. The draft keeps the skill bar off until a pick is confirmed,
+  `UI/HudLayout`): either way it is held, the skill bar is centred at the
+  bottom with health and dash right above it, inside the device's safe area
+  (`ScreenInsets.DeviceSafeInsets`), and the dash button lifts above that
+  stack when the screen is too narrow for it to keep its corner. The draft
+  keeps the skill bar off until a pick is confirmed,
   and end screens take 97% of the height and 98% of the width.
 
 The numbers in `Config/Balance` are the last ones asked for or measured, not

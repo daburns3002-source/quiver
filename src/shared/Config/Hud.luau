@@ -9,13 +9,9 @@
 	A computer stacks them in the bottom centre: the skill bar, then health,
 	then dash.
 
-	A phone held sideways has too little height for that stack at a size a
-	thumb can read — it would take over a third of the screen — so it puts
-	them in one row: health and dash on the left, a larger skill bar on the
-	right, clear of the dash button in the corner.
-
-	A phone held upright has height and no width: the stack again, at the
-	bottom of the screen in the room left of the dash button.
+	A phone, held either way, stacks them centred at the bottom of the
+	screen too, larger, inside the phone's safe area; the dash button moves
+	up above the stack when it would otherwise sit on it.
 ]]
 
 local Hud = {
@@ -31,39 +27,27 @@ local Hud = {
 		healthBottom = 86,
 		dashBottom = 114,
 	},
-	phoneSideways = {
-		-- ~77 points tall (86 full), against 62 before.
+	--[[ A phone, either way it is held (owner, 2026-10-22: "the health and
+	     dash bar should be right above it and all of them should be
+	     centered"): the skill bar centred at the bottom, health and dash
+	     right above it, the dash button lifted clear when the stack would
+	     reach under it. ]]
+	phone = {
+		-- ~77 points tall (86 full), unless the screen is too narrow.
 		skillBarScale = 0.9,
-		skillBarBottom = 10,
-		--[[ The skill bar's centre, right of the screen's: room for the
-		     health and dash bars to its left. ]]
-		skillBarShiftX = 130,
-		--[[ The health and dash block: its right edge this far left of the
-		     screen's centre, and its width. ]]
-		barsRight = -36,
-		barsWidth = 240,
-		healthHeight = 30,
-		dashHeight = 16,
-		barsGap = 6,
-		-- Lifts the block to sit level with the middle of the skill bar.
-		barsBottom = 22,
-	},
-	phoneUpright = {
-		-- As large as sideways, unless the screen is too narrow for it.
-		skillBarScale = 0.9,
-		--[[ At the bottom of the screen (owner, 2026-10-22: "on mobile the
-		     upgrade bar needs to be lower like near the bottom"), beside the
-		     dash button rather than above it. Was 128. ]]
 		skillBarBottom = 10,
 		-- Points kept clear at each side of the screen.
 		edge = 12,
-		--[[ Points kept clear at the right for the dash button: 92 wide,
-		     28 from the edge, and a gap. ]]
-		dashClear = 128,
 		barsWidth = 300,
 		healthHeight = 30,
 		dashHeight = 16,
 		barsGap = 6,
+		--[[ The dash button: 92 points, this far from the right and bottom
+		     edges, or this far above the stack when the stack would reach
+		     under it. ]]
+		dashButtonSize = 92,
+		dashButtonMargin = 28,
+		dashButtonAboveStack = 14,
 	},
 	--[[ The skill bar's full width and height on a touch screen: six 44-point
 	     slots, 10 apart, 14 of padding a side; 44 + 18 + 24 tall. ]]

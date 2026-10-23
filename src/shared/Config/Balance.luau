@@ -47,6 +47,11 @@ export type TelegraphTell =
 	| "LaneAim"
 	| "Lane"
 	| "Shake"
+	| "Meteor"
+	| "MeteorImpact"
+	| "GroundSlam"
+	| "Cracks"
+	| "Erupt"
 
 --[[
 	What an enemy becomes when it dies, if anything: `count` of `into`,
@@ -308,8 +313,10 @@ local broodSlime: EnemyConfig = {
 ]]
 local wolf: EnemyConfig = {
 	displayName = "Wolf",
-	--[[ Nimble: it whips round to line up the next lunge. ]]
-	turnRate = 600,
+	--[[ As slow to turn as anything its size (it is the longest of the
+	     grunts); its lunges snap it onto their line regardless, so this only
+	     shapes how it walks. ]]
+	turnRate = 240,
 	health = 260,
 	moveSpeed = 6.3,
 	--[[ It closes to here, inside the dash, then lunges; it has no plain
@@ -318,9 +325,10 @@ local wolf: EnemyConfig = {
 	attackDamage = 60,
 	attackCooldown = 1.8,
 	knockback = 2.5,
-	--[[ Long and low: 2.6 across, 2.6 tall, 4.6 nose to tail, so its body
-	     fits (`EnemyDesigns.Wolf`) and arrows at `Projectile.height` meet it. ]]
-	hitboxSize = Vector3.new(2.6, 2.6, 4.6),
+	--[[ The owner's model's own shape, ×2.6 (`assets/models/enemies/
+	     ember_wolf_roblox.glb`, a round pup): 2.2 across, 3 tall, 3.3 nose
+	     to tail. Arrows at `Projectile.height` meet it. ]]
+	hitboxSize = Vector3.new(2.2, 3, 3.3),
 	color = Color3.fromRGB(214, 116, 48),
 	xpReward = 16,
 	shot = nil,
@@ -1034,6 +1042,27 @@ local Balance = {
 		--[[ Share of an enemy's health under which Execute's bonus applies. ]]
 		executeBelow = 0.3,
 
+		--[[ Meteor, the Arcanist's Mythic: every `every`th cast a meteor
+		     falls on that cast's target, its circle shown for `delay`
+		     seconds, hitting everything within `radius` for `damage` times
+		     the caster's damage. ]]
+		meteor = { every = 5, delay = 0.9, radius = 6, damage = 4 },
+		--[[ Earthbreaker, the Warden's Mythic: a dash ends in a hop
+		     (`hop` studs a second up, `leap` seconds in the air), then a
+		     slam (`slamRadius`, `slamDamage` times his damage) that leaves
+		     cracked ground erupting every `crackEvery` seconds for
+		     `crackDuration`, for `crackDamage` times his damage. ]]
+		earthbreaker = {
+			hop = 30,
+			leap = 0.3,
+			slamRadius = 5.5,
+			slamDamage = 2.5,
+			crackRadius = 5,
+			crackEvery = 0.5,
+			crackDamage = 0.5,
+			crackDuration = 3,
+		},
+
 		--[[
 			Momentum: "attack speed rises while moving". Nothing fires on the
 			move here, so the speed is banked by moving and spent after:
@@ -1290,6 +1319,13 @@ local Balance = {
 		bossColor = Color3.fromRGB(255, 70, 40),
 		shockColor = Color3.fromRGB(190, 240, 120),
 		shockDuration = 0.45,
+		--[[ The player's own area attacks (the Mythics): the Meteor's circle,
+		     rock and blast, and Earthbreaker's slam and glowing cracks. Warm,
+		     so they never read as an enemy's red. ]]
+		meteorColor = Color3.fromRGB(255, 150, 60),
+		meteorHeight = 45,
+		quakeColor = Color3.fromRGB(255, 190, 90),
+		crackColor = Color3.fromRGB(255, 110, 40),
 		lineThickness = 0.35,
 		lineOvershoot = 5,
 		lineColor = Color3.fromRGB(236, 92, 84),

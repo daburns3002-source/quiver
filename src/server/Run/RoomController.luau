@@ -22,6 +22,7 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local AreaStrikes = require(script.Parent.Parent.Combat.AreaStrikes)
 local Arena = require(script.Parent.Parent.Arena.Arena)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Burning = require(script.Parent.Parent.Combat.Burning)
@@ -103,6 +104,7 @@ local function buildArena(layout: Balance.RoomConfig)
 	ProjectileSystem.clear()
 	MeleeSystem.clear()
 	Burning.clear()
+	AreaStrikes.clear()
 	Pickups.clear()
 	collectAt = nil
 	ProjectileSystem.refreshFilters()

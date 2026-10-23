@@ -16,6 +16,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local AbilityEffects = require(ReplicatedStorage.Shared.Combat.AbilityEffects)
 local Aim = require(ReplicatedStorage.Shared.Combat.Aim)
+local AreaStrikes = require(script.Parent.AreaStrikes)
 local Arena = require(script.Parent.Parent.Arena.Arena)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Classes = require(ReplicatedStorage.Shared.Config.Classes)
@@ -131,6 +132,24 @@ local function fire(session: Session, root: BasePart, now: number)
 	end
 
 	session.lastFiredAt = now
+
+	--[[ Meteor: every few casts, one falls on the cast's target as well. ]]
+	if session.meteor > 0 then
+		local meteor = Balance.Player.meteor
+		session.casts += 1
+		if session.casts % meteor.every == 0 then
+			AreaStrikes.strike({
+				owner = session.player,
+				at = target.position,
+				radius = meteor.radius,
+				damage = session.damage * meteor.damage,
+				delay = meteor.delay,
+				now = now,
+				warning = "Meteor",
+				impact = "MeteorImpact",
+			})
+		end
+	end
 
 	--[[
 		One packet per volley. Specs go over whole rather than packed: Phase 1

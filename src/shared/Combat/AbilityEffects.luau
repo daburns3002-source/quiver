@@ -77,6 +77,11 @@ export type ServerStats = {
 	--[[ Multiplier on damage the player takes. Iron Skin. ]]
 	damageTaken: number,
 	melee: MeleeStats,
+	--[[ The Mythics that add an area attack (`Combat/AreaStrikes`): Meteor
+	     on the Arcanist's casts, Earthbreaker on the Warden's dash. 1 when
+	     held. ]]
+	meteor: number,
+	earthbreaker: number,
 }
 
 --[[
@@ -308,6 +313,8 @@ function AbilityEffects.serverStats(drafted: Counts, class: string?): ServerStat
 		projectileSpeed = Balance.Projectile.speed * kind.speedScale,
 		projectileLifetime = Balance.Projectile.lifetime / kind.speedScale,
 		damageTaken = 1 - at(counts, "IronSkin"),
+		meteor = at(counts, "Meteor"),
+		earthbreaker = at(counts, "Earthbreaker"),
 		melee = {
 			widthScale = 1 + at(counts, "Cleave"),
 			reachBonus = at(counts, "LongReach"),

@@ -274,9 +274,10 @@ local function drawSlam(origin: Vector3, duration: number, radius: number)
 	Debris:AddItem(fill, duration)
 end
 
---[[ The slam landing: a green ring rushing out and fading. ]]
-local function drawShockwave(origin: Vector3, duration: number, radius: number)
-	local ring = groundDisc(origin, "Shockwave", Balance.Telegraph.shockColor, radius * 0.6)
+--[[ The slam landing: a green ring rushing out and fading, or `colour`'s. ]]
+local function drawShockwave(origin: Vector3, duration: number, radius: number, colour: Color3?)
+	local ring =
+		groundDisc(origin, "Shockwave", colour or Balance.Telegraph.shockColor, radius * 0.6)
 	ring.Transparency = 0.3
 	TweenService
 		:Create(ring, TweenInfo.new(duration, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
@@ -285,6 +286,92 @@ local function drawShockwave(origin: Vector3, duration: number, radius: number)
 		})
 		:Play()
 	Debris:AddItem(ring, duration)
+end
+
+--[[
+	The Arcanist's Meteor: where it will land, as a warm ring with a fill
+	that is full as it hits, and the rock itself falling out of the sky onto
+	it over the same time.
+]]
+local function drawMeteor(origin: Vector3, duration: number, radius: number)
+	local config = Balance.Telegraph
+	local ring = groundDisc(origin, "MeteorRing", config.meteorColor, radius * 2)
+	ring.Transparency = 0.45
+	local fill = groundDisc(origin, "MeteorFill", config.meteorColor, 0.2)
+	fill.Transparency = 0.55
+	TweenService:Create(fill, TweenInfo.new(duration, Enum.EasingStyle.Linear), {
+		Size = Vector3.new(0.25, radius * 2, radius * 2),
+	}):Play()
+
+	local rock = Instance.new("Part")
+	rock.Name = "Meteor"
+	rock.Shape = Enum.PartType.Ball
+	rock.Size = Vector3.one * 3
+	rock.Material = Enum.Material.Neon
+	rock.Color = config.meteorColor
+	rock.Anchored = true
+	rock.CanCollide = false
+	rock.CanQuery = false
+	rock.CanTouch = false
+	rock.CastShadow = false
+	local ground = Vector3.new(origin.X, 1, origin.Z)
+	rock.Position = ground + Vector3.new(4, config.meteorHeight, -6)
+	rock.Parent = folder
+	TweenService
+		:Create(rock, TweenInfo.new(duration, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
+			Position = ground,
+		})
+		:Play()
+
+	Debris:AddItem(ring, duration)
+	Debris:AddItem(fill, duration)
+	Debris:AddItem(rock, duration)
+end
+
+--[[ Earthbreaker's cracked ground: dark, with glowing cracks running out
+     from where he landed, for as long as it erupts, fading at the end. ]]
+local function drawCracks(origin: Vector3, duration: number, radius: number)
+	local config = Balance.Telegraph
+	local scorch = groundDisc(origin, "Cracks", Color3.fromRGB(40, 28, 20), radius * 2)
+	scorch.Material = Enum.Material.Fabric
+	scorch.Transparency = 0.45
+	local parts: { BasePart } = { scorch }
+	local count = 7
+	local turn = math.random() * math.pi * 2
+	for index = 1, count do
+		local angle = turn + (index - 1) / count * math.pi * 2 + (math.random() - 0.5) * 0.4
+		local length = radius * (0.65 + math.random() * 0.35)
+		local direction = Vector3.new(math.cos(angle), 0, math.sin(angle))
+		local mid = Vector3.new(origin.X, 0.2, origin.Z) + direction * (length / 2)
+		local crack = Instance.new("Part")
+		crack.Name = "Crack"
+		crack.Anchored = true
+		crack.CanCollide = false
+		crack.CanQuery = false
+		crack.CanTouch = false
+		crack.CastShadow = false
+		crack.Material = Enum.Material.Neon
+		crack.Color = config.crackColor
+		crack.Size = Vector3.new(0.3, 0.08, length)
+		crack.CFrame = CFrame.lookAt(mid, mid + direction)
+		crack.Parent = folder
+		table.insert(parts, crack)
+	end
+	for _, part in parts do
+		TweenService:Create(
+			part,
+			TweenInfo.new(
+				0.4,
+				Enum.EasingStyle.Linear,
+				Enum.EasingDirection.In,
+				0,
+				false,
+				duration - 0.4
+			),
+			{ Transparency = 1 }
+		):Play()
+		Debris:AddItem(part, duration)
+	end
 end
 
 --[[ A flat strip on the floor from `origin` along `direction`. ]]
@@ -379,6 +466,30 @@ function TelegraphRenderer.onTelegraph(
 
 	if tell == "Shake" then
 		TopDownCamera.shake(reach, duration)
+		return
+	end
+
+	--[[ The Mythics' area attacks (`Combat/AreaStrikes`). ]]
+	if tell == "Meteor" then
+		drawMeteor(origin, duration, reach)
+		return
+	end
+	if tell == "MeteorImpact" then
+		drawShockwave(origin, duration, reach, Balance.Telegraph.meteorColor)
+		TopDownCamera.shake(0.5, 0.3)
+		return
+	end
+	if tell == "GroundSlam" then
+		drawShockwave(origin, duration, reach, Balance.Telegraph.quakeColor)
+		TopDownCamera.shake(0.45, 0.3)
+		return
+	end
+	if tell == "Cracks" then
+		drawCracks(origin, duration, reach)
+		return
+	end
+	if tell == "Erupt" then
+		drawShockwave(origin, duration, reach * 0.8, Balance.Telegraph.crackColor)
 		return
 	end
 

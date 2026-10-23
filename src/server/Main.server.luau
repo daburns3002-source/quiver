@@ -19,6 +19,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
 local Abilities = require(ReplicatedStorage.Shared.Config.Abilities)
+local AreaStrikes = require(script.Parent.Combat.AreaStrikes)
 local Arena = require(script.Parent.Arena.Arena)
 local Atmosphere = require(script.Parent.Arena.Atmosphere)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
@@ -236,6 +237,51 @@ Remotes.event(Remotes.DebugSpawnEnemy).OnServerEvent:Connect(function(_player, n
 	end
 end)
 
+--[[
+	Earthbreaker (the Warden's Mythic): a dash ends in a leap and a slam
+	where he comes down, and the ground there erupts for a while. Only for
+	a session holding the card, and no sooner than the dash's own cooldown
+	allows (less a little for the trip), so a client cannot fire slams at
+	will. Where he lands is his character's, as every position is.
+]]
+Remotes.event(Remotes.DashStarted).OnServerEvent:Connect(function(player)
+	local session = RunSession.get(player)
+	local root = session and session.root
+	if not session or not root or not session.alive or session.earthbreaker <= 0 then
+		return
+	end
+	local now = os.clock()
+	local dash = Balance.Player.dash
+	if now - session.lastDashAt < dash.cooldown * 0.8 then
+		return
+	end
+	session.lastDashAt = now
+	local quake = Balance.Player.earthbreaker
+	local damage = session.damage
+	AreaStrikes.strike({
+		owner = player,
+		at = root.Position,
+		follow = root,
+		radius = quake.slamRadius,
+		damage = damage * quake.slamDamage,
+		delay = dash.duration + quake.leap,
+		now = now,
+		impact = "GroundSlam",
+		landed = function(at: Vector3)
+			AreaStrikes.zone(
+				player,
+				at,
+				quake.crackRadius,
+				damage * quake.crackDamage,
+				quake.crackEvery,
+				quake.crackDuration,
+				os.clock(),
+				"Cracks"
+			)
+		end,
+	})
+end)
+
 Remotes.event(Remotes.AbilityReroll).OnServerEvent:Connect(function(player)
 	local session = RunSession.get(player)
 	if session then
@@ -277,6 +323,8 @@ RunService.Heartbeat:Connect(function(deltaTime: number)
 	ProjectileSystem.step(deltaTime, now)
 	--[[ After projectiles, so a burn lit this frame does not tick in it. ]]
 	Burning.step(now)
+	--[[ Meteors landing and cracked ground erupting (the Mythics). ]]
+	AreaStrikes.step(now)
 	--[[ After projectiles, because a hit's knockback moves its enemy and can
 	     push it into another. Overlaps are resolved once everything that can
 	     move a body this frame has done so. ]]

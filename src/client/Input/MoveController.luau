@@ -16,12 +16,15 @@
 ]]
 
 local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
+local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Dash = require(script.Parent.Dash)
 local DashButton = require(script.Parent.DashButton)
 local PlayerStats = require(script.Parent.Parent.PlayerStats)
+local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local RunPaused = require(script.Parent.Parent.RunPaused)
 local Shove = require(script.Parent.Shove)
 local SoundFx = require(script.Parent.Parent.Fx.SoundFx)
@@ -30,6 +33,7 @@ local Thumbstick = require(script.Parent.Thumbstick)
 local MoveController = {}
 
 local player = Players.LocalPlayer
+local dashStarted = Remotes.event(Remotes.DashStarted)
 
 --[[
 	World-space screen axes. The camera's yaw never changes, so -Z is always
@@ -124,6 +128,20 @@ local function requestDash()
 
 	if Dash.request(os.clock(), desiredDirection(), root.CFrame.LookVector) then
 		SoundFx.play("dash")
+		--[[ The server's Earthbreaker slams where this dash ends; it is told
+		     the dash began, and decides for itself whether it counts. ]]
+		dashStarted:FireServer()
+		if (PlayerStats.get().abilities.Earthbreaker or 0) > 0 then
+			--[[ A leap at the end of the dash, so the slam lands from the air,
+			     as the card says. ]]
+			task.delay(Balance.Player.dash.duration, function()
+				if root.Parent then
+					local v = root.AssemblyLinearVelocity
+					root.AssemblyLinearVelocity =
+						Vector3.new(v.X, Balance.Player.earthbreaker.hop, v.Z)
+				end
+			end)
+		end
 	end
 end
 

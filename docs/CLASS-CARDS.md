@@ -38,7 +38,8 @@ cards, the Warden 25, the Arcanist 24.
 | Echo Slash | Epic | 2 | Every blow strikes again 0.15 s later, at 40% / 60% damage. *Wave 2.* |
 | Whirlwind | Legendary | 1 | The slam spins: it strikes all around the Warden, not just in front. *Wave 2.* |
 | Execute | Legendary | 2 | Blows deal +50% / +100% to enemies under 30% health. |
-| **Riposte** | **Mythic** | 1 | Enemy shots that hit the Warden mid-swing are thrown back at their shooter, at full damage. *Wave 2.* |
+| Riposte | Legendary | 1 | Enemy shots that hit the Warden mid-swing are thrown back at their shooter, at full damage. *Wave 2.* |
+| **Earthbreaker** | **Mythic** | 1 | His dash ends in a leaping slam (2.5× damage); the cracked ground erupts every 0.5 s for 3 s (0.5×). Built. |
 
 ## The Arcanist (arcane staff, slow heavy orbs)
 
@@ -55,7 +56,8 @@ cards, the Warden 25, the Arcanist 24.
 | Split Orb | Epic | 2 | An orb bursts into 3 / 5 shards on hit, 30% each. *Wave 2.* |
 | Gravity Well | Legendary | 1 | Each blast pulls nearby enemies in toward its centre. *Wave 2.* |
 | Orbiting Orb | Legendary | 2 | An orb circles the Arcanist, striking enemies it touches (one, then two). *Wave 2.* |
-| **Homing Orbs** | **Mythic** | 1 | Orbs seek the nearest enemy (the Arcanist's Tracking Eye). |
+| Homing Orbs | Legendary | 1 | Orbs seek the nearest enemy (the Arcanist's Tracking Eye). |
+| **Meteor** | **Mythic** | 1 | Every 5th cast calls a meteor down on the target: a warning circle, then a 4× blast in 6 studs. Built. |
 
 ## How they are built
 

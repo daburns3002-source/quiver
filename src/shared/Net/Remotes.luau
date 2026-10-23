@@ -160,6 +160,11 @@ Remotes.PlayerShoved = "PlayerShoved"
      that dies mid-grab cannot leave anyone stuck. ]]
 Remotes.PlayerGrabbed = "PlayerGrabbed"
 
+--[[ Client → server. This player's dash began (the dash itself is the
+     client's movement). Only Earthbreaker cares; the server ignores it for
+     anyone without the card and any sooner than the dash's cooldown. ]]
+Remotes.DashStarted = "DashStarted"
+
 --[[ Client → server. Redeal the open hand. The server checks there is a
      hand and a reroll left; the client says nothing else. ]]
 Remotes.AbilityReroll = "AbilityReroll"

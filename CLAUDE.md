@@ -31,9 +31,11 @@ low, at `Balance.Projectile.height` (1.1), from `Aim.shotOrigin` on both
 sides; `Balance.spec` keeps that height inside every enemy's hitbox.
 
 **Level 1** (`Balance.stage = 3`, owner 2026-10-22): ten Mossy Glade
-rooms — logs, pond, boulders, thorns, boss arena, twice. **Slimes only**
-(Moss Slimes and Brood Slimes, owner 2026-10-23), and room 10 is the
-**Slime King alone** (`tests/Level1.spec.luau` pins both). Each room names
+rooms — logs, pond, boulders, thorns, boss arena, twice. **Slimes**
+(Moss Slimes and Brood Slimes), the **Ember Wolf** from room 6 (lunges:
+a long charge on a drawn line, a quick dash up close; `EnemyConfig.lunges`),
+and room 10 is the **Slime King alone** (`tests/Level1.spec.luau` pins all
+three; owner, 2026-10-23). Each room names
 its look in `RoomConfig.arena`, an `ArenaModels` entry drawn by `Arena.build`
 over the same invisible floor, walls and obstacle boxes as the grey box
 (nil, or a model not imported yet, is the grey box). Arena models follow the
@@ -153,7 +155,9 @@ legs layer (`clips.legs`: Idle standing, Walk at the character's pace) under
 the upper-body Hold. Each class
 drafts its own cards plus a shared twelve (`Ability.classes`,
 `docs/CLASS-CARDS.md`): wave 1 of the Warden's and the Arcanist's is built,
-wave 2 is designed and has its icons.
+wave 2 is designed and has its icons. Each class has one Mythic: Dual Bows,
+**Meteor** (every 5th cast) and **Earthbreaker** (the dash ends in a slam
+and erupting cracks), both resolved by `Combat/AreaStrikes`.
 
 **XP crystals and hearts** (`Run/Pickups`, `Fx/PickupFx`): a kill's XP
 drops as cyan crystals; walk over your own to take them mid-fight, and any

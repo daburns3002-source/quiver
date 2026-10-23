@@ -28,6 +28,11 @@ export type ArenaPart = {
 	     grass caught the light and read pale grey (owner, 2026-10-22). Its
 	     bright lawn keeps its own colour either way. ]]
 	matte: boolean?,
+	--[[ Drawn as a flat ellipse of water this size, at this place on the
+	     lawn, not as its mesh: the pond's water is a single sheet with no
+	     thickness, which Roblox does not draw (the pond showed as a dark
+	     hole). ]]
+	water: Color3?,
 }
 
 export type ArenaModel = {
@@ -194,6 +199,8 @@ local gladePond = glade({
 		meshId = "rbxassetid://95763915370445",
 		size = Vector3.new(16.352, 0.003, 11.656),
 		offset = Vector3.new(-4.055, -0.243, -4.317),
+		-- The model's own teal, from its vertex colours.
+		water = Color3.fromRGB(70, 168, 176),
 	},
 	{
 		name = "Glow",

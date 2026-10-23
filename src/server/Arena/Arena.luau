@@ -283,6 +283,32 @@ local function placeModel(root: Instance, model: ArenaModels.ArenaModel)
 	local turn = CFrame.Angles(0, math.pi, 0)
 
 	local function place(spec: ArenaModels.ArenaPart, shift: Vector3, name: string)
+		local water = spec.water
+		if water then
+			local sheet = Instance.new("Part")
+			sheet.Name = name
+			sheet.Size = Vector3.new(spec.size.X, 0.06, spec.size.Z)
+			--[[ Flush with the lawn, not at the mesh's own depth: the pond's
+			     dark basin is drawn above that and hid it. ]]
+			local at = spec.offset + shift
+			sheet.CFrame = CFrame.new(at.X, 0.03, at.Z)
+			sheet.Anchored = true
+			sheet.CanCollide = false
+			sheet.CanQuery = false
+			sheet.CanTouch = false
+			sheet.CastShadow = false
+			sheet.Color = water
+			sheet.Material = Enum.Material.SmoothPlastic
+			sheet.Reflectance = 0.15
+			--[[ An ellipse: a sphere mesh flattened to the sheet. A cylinder
+			     mesh stays round, whatever the part's size. ]]
+			local mesh = Instance.new("SpecialMesh")
+			mesh.MeshType = Enum.MeshType.Sphere
+			mesh.Parent = sheet
+			sheet.Parent = folder
+			return
+		end
+
 		local template = meshTemplates[spec.meshId]
 		if not template then
 			return

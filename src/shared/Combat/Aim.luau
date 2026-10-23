@@ -21,9 +21,20 @@
 	its own copy of the arena.
 ]]
 
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 
+local Balance = require(ReplicatedStorage.Shared.Config.Balance)
+
 local Aim = {}
+
+--[[ Where a player's arrows leave from: under the archer, at the arrow
+     height (`Balance.Projectile.height`) rather than at the body's chest.
+     The server fires from here and the client predicts from here, so the
+     drawn volley and the counted one fly the same line. ]]
+function Aim.shotOrigin(rootPosition: Vector3): Vector3
+	return Vector3.new(rootPosition.X, Balance.Projectile.height, rootPosition.Z)
+end
 
 export type Candidate = {
 	model: Model,

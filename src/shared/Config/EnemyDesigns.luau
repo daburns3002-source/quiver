@@ -146,21 +146,21 @@ end
 	From `assets/models/enemies/moss_slime_roblox.glb` (made in Claude Design,
 	slimmed by `optimise_moss_slime.py`, imported 2026-10-22). The model faces
 	+Z after import, so every part is turned 180° and its offset mirrored.
-	Scaled ×1.89, the most that keeps it inside the 3-stud-wide hitbox; it
-	stands 2.1 studs tall in a 5-stud box — see `EnemyDesigns.squat`.
+	Scaled ×1.89, the most that keeps it inside the 3-stud-wide hitbox, and
+	the hitbox is cut to fit it: 3 × 2.2 × 3 (`Balance`).
 
 	Body and Decor carry the model's own vertex colours, so they are white
 	(colour × white = the painted colour). The eyes glow the act's colour.
 ]]
 local MOSS_SLIME_TURN = Vector3.new(0, 180, 0)
 local charger: Design = {
-	shadow(2.9, 2.9, 5),
+	shadow(2.9, 2.9, 2.2),
 	{
 		name = "Body",
 		shape = "Mesh",
 		meshId = "rbxassetid://78283705651192",
 		size = Vector3.new(2.460, 1.881, 2.236),
-		offset = Vector3.new(-0.077, -1.560, -0.024),
+		offset = Vector3.new(-0.077, -0.160, -0.024),
 		rotation = MOSS_SLIME_TURN,
 		shade = 1,
 		color = WHITE,
@@ -170,7 +170,7 @@ local charger: Design = {
 		shape = "Mesh",
 		meshId = "rbxassetid://122593286662953",
 		size = Vector3.new(2.986, 1.896, 2.244),
-		offset = Vector3.new(0, -1.313, 0.020),
+		offset = Vector3.new(0, 0.087, 0.020),
 		rotation = MOSS_SLIME_TURN,
 		shade = 1,
 		color = WHITE,
@@ -181,7 +181,7 @@ local charger: Design = {
 		shape = "Mesh",
 		meshId = "rbxassetid://137939916650483",
 		size = Vector3.new(1.467, 0.644, 0.335),
-		offset = Vector3.new(-0.119, -1.672, -0.950),
+		offset = Vector3.new(-0.119, -0.272, -0.950),
 		rotation = MOSS_SLIME_TURN,
 		shade = 1,
 		-- Act 1's eye colour (amber), glowing.
@@ -370,13 +370,6 @@ local lurker: Design = {
 local EnemyDesigns = {
 	SkinTag = SKIN_TAG,
 	TintTag = TINT_TAG,
-
-	--[[ Designs allowed to stand lower in their hitbox than the usual 70%
-	     of its height. The hitbox stays tall because arrows fly at the
-	     archer's root height (about 3 studs); a creature lower than that
-	     is still struck on the box's top, which from the steep camera reads
-	     as a hit on its back. Width and depth must still fill properly. ]]
-	squat = { Charger = true },
 
 	Charger = charger,
 	Spitter = spitter,

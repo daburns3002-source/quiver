@@ -138,7 +138,10 @@ local meleeCharger: EnemyConfig = {
 	attackCooldown = 1,
 	-- Studs the enemy is shoved back per hit taken.
 	knockback = 3,
-	hitboxSize = Vector3.new(3, 5, 3),
+	--[[ The Moss Slime's own shape: 3 wide and deep, 2.2 tall — a squat
+	     jelly, not the 5-stud box every archetype used to share. Arrows fly
+	     low enough to meet it (`Projectile.height`). ]]
+	hitboxSize = Vector3.new(3, 2.2, 3),
 	color = Color3.fromRGB(226, 52, 56),
 	xpReward = 10,
 	--[[ Melee: closes to attackRange and swings. A ranged archetype sets
@@ -674,6 +677,12 @@ local Balance = {
 			shots that plainly connected along the shaft did nothing.
 		]]
 		radius = 0.35,
+		--[[ Studs above the floor every player arrow flies at, wherever the
+		     archer's body is. Low, so it passes through every enemy's hitbox:
+		     the shortest is the Moss Slime's 2.2 (owner, 2026-10-22: "make the
+		     Charger's hitbox fit the slime ... and lower the arrow height to
+		     match"). `Balance.spec` holds it inside every hitbox. ]]
+		height = 1.1,
 		--[[
 			Length of that arrow, along its direction of travel. Shared rather
 			than a client constant, because the server has to sweep the same

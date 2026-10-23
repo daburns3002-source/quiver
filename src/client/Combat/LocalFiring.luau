@@ -239,15 +239,16 @@ local function step()
 
 	lastFiredAt = now
 
+	local origin = Aim.shotOrigin(root.Position)
 	local specs = pipeline:build({
 		damage = Balance.Player.baseDamage,
 		speed = Balance.Projectile.speed,
 		lifetime = Balance.Projectile.lifetime,
-		origin = root.Position,
+		origin = origin,
 		direction = aim.Unit,
 	})
 
-	ProjectileRenderer.spawnVolley("Player", root.Position, aim.Unit, specs, 0)
+	ProjectileRenderer.spawnVolley("Player", origin, aim.Unit, specs, 0)
 end
 
 function LocalFiring.start()

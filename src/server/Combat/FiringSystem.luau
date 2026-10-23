@@ -67,8 +67,10 @@ local function fire(session: Session, root: BasePart, now: number)
 		table.insert(candidates, { model = model, position = position, halfWidth = half })
 	end
 
+	local origin = Aim.shotOrigin(root.Position)
+
 	local target = Aim.choose(
-		root.Position,
+		origin,
 		candidates,
 		Balance.Player.attackRange,
 		Aim.clearTest(Arena.blockers(), Balance.Projectile.radius)
@@ -82,8 +84,6 @@ local function fire(session: Session, root: BasePart, now: number)
 	if not direction then
 		return
 	end
-
-	local origin = Vector3.new(root.Position.X, root.Position.Y, root.Position.Z)
 
 	local overdraw = overdrawScale(session, now)
 

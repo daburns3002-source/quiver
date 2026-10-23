@@ -253,9 +253,9 @@ local Weapons = {
 			fire = { "Slash_A", "Slash_B", "Slash_C" },
 		},
 		fireSound = "sword_swing",
-		--[[ The sweep and the backswing swish; the slam lunges (owner,
-		     2026-10-23: Roblox's classic sword sounds, from a clip). ]]
-		comboSounds = { "sword_swing", "sword_swing", "sword_slam" },
+		--[[ A sound for each blow, made to the shape of the owner's
+		     reference clip (2026-10-23, `assets/audio/synth.py` round 9). ]]
+		comboSounds = { "sword_swing", "sword_swing_2", "sword_slam" },
 		swingTrail = {
 			base = Vector3.new(0, 0.44 - 0.062, 0),
 			tip = Vector3.new(0, 1.0216 - 0.062, 0),

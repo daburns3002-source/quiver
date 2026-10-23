@@ -144,9 +144,10 @@ health ×1.5". Damage numbers are white, red crits, orange burns.
 **Classes** (`Config/Classes`, 2026-10-23): the Ranger (leaf bow), the
 Arcanist (arcane staff: slow, heavy orbs with Blast Arrows built in) and
 the Warden (ruby greatsword, melee: `Combat/MeleeSystem` lands each blow of
-a three-hit combo on the server, in `Shared/Combat/SwingBox`). The red of
-his swing is drawn on exactly that box (`Fx/SwingTrail`,
-`Shared/Combat/SwingSweep`), so it grows with Cleave and Long Reach. Each weapon
+a three-hit combo on the server, in `Shared/Combat/SwingBox`): an arc in
+front for the first two blows, a circle in front for the slam, both grown by
+Cleave and Long Reach. The red of his swing sweeps exactly that shape
+(`Fx/SwingTrail`, `Shared/Combat/SwingSweep`). Each weapon
 is the owner's Claude Design kit, its animations generated into
 `Config/WeaponAnimations` and played in code by `Fx/WeaponPose`. The
 Ranger's come from the owner's `LeafBow_R15_Kit.rbxmx` (KeyframeSequences,

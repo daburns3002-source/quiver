@@ -2,93 +2,90 @@
 --[[
 	The red of a melee swing is drawn on its hitbox (`Shared/Combat/
 	SwingSweep`, owner 2026-10-23): over a swing the ribbon's ends must stay
-	inside the box `SwingBox` checks, start on one of its edges and finish
-	on the opposite one, so what is painted is exactly that box. The box is
-	built the way `MeleeSystem` builds it, cards included.
+	inside the shape `SwingBox` hits, and sweep all of it, so what is
+	painted is exactly that shape. The shapes are built the way
+	`MeleeSystem` builds them, cards included.
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local AbilityEffects = require(ReplicatedStorage.Shared.Combat.AbilityEffects)
 local Classes = require(ReplicatedStorage.Shared.Config.Classes)
+local SwingBox = require(ReplicatedStorage.Shared.Combat.SwingBox)
 local SwingSweep = require(ReplicatedStorage.Shared.Combat.SwingSweep)
 local TestRunner = require(script.Parent.TestRunner)
 
-local EPSILON = 1e-6
+local swing = Classes.Warden.swing :: Classes.Swing
+local BLOWS = #swing.damage
+local ORIGIN = Vector3.zero
+local FORWARD = Vector3.new(0, 0, -1)
+local STEPS = 24
 
-local LEFT_TO_RIGHT: SwingSweep.Sweep = "LeftToRight"
-local RIGHT_TO_LEFT: SwingSweep.Sweep = "RightToLeft"
-local OUTWARD: SwingSweep.Sweep = "Outward"
-local SWEEPS: { SwingSweep.Sweep } = { LEFT_TO_RIGHT, RIGHT_TO_LEFT, OUTWARD }
-local SIDEWAYS: { SwingSweep.Sweep } = { LEFT_TO_RIGHT, RIGHT_TO_LEFT }
-
---[[ The Warden's box, with and without his size cards at their highest. ]]
-local function boxes(): { { width: number, depth: number } }
-	local swing = Classes.Warden.swing :: any
+--[[ Every blow's shape, with and without the size cards at their highest. ]]
+local function shapes(): { { blow: number, shape: SwingBox.Shape } }
 	local out = {}
 	for _, counts in { {}, { Cleave = 3, LongReach = 3 } } do
 		local stats = AbilityEffects.clientStats(counts, "Warden")
-		table.insert(
-			out,
-			{ width = swing.width * stats.widthScale, depth = swing.depth + stats.reachBonus }
-		)
+		for blow = 1, BLOWS do
+			table.insert(out, {
+				blow = blow,
+				shape = SwingBox.shape(swing, blow, BLOWS, stats.widthScale, stats.reachBonus),
+			})
+		end
 	end
 	return out
 end
 
-local function inside(point: Vector3, width: number, depth: number): boolean
-	return math.abs(point.X) <= width / 2 + EPSILON
-		and point.Z <= EPSILON
-		and point.Z >= -depth - EPSILON
-end
-
 return function(t: TestRunner.Helper)
 	t.test("the swing's red never leaves its hitbox", function()
-		for _, box in boxes() do
-			for _, sweep in SWEEPS do
-				for step = 0, 20 do
-					local a, b =
-						SwingSweep.edge(box.width, box.depth, sweep :: SwingSweep.Sweep, step / 20)
-					t.isTrue(
-						inside(a, box.width, box.depth),
-						"the sweep strays out at " .. step / 20
-					)
-					t.isTrue(
-						inside(b, box.width, box.depth),
-						"the sweep strays out at " .. step / 20
-					)
-				end
+		for _, entry in shapes() do
+			local sweep: SwingSweep.Sweep =
+				SwingSweep.forBlow(entry.blow, BLOWS) :: SwingSweep.Sweep
+			for step = 0, STEPS do
+				local a, b = SwingSweep.edge(entry.shape, sweep, step / STEPS)
+				-- A hair inside, so a point exactly on the edge counts.
+				local inA = a:Lerp(b, 0.001)
+				local inB = b:Lerp(a, 0.001)
+				--[[ A thousandth of a stud of width, so a point exactly on
+				     the arc's edge is not lost to rounding. ]]
+				t.isTrue(
+					SwingBox.hits(entry.shape, ORIGIN, FORWARD, inA, 1e-3),
+					"a ribbon end strays out"
+				)
+				t.isTrue(
+					SwingBox.hits(entry.shape, ORIGIN, FORWARD, inB, 1e-3),
+					"a ribbon end strays out"
+				)
 			end
 		end
 	end)
 
-	--[[ Start on one edge, finish on the opposite one, spanning the box the
-	     other way the whole time: the swept ribbon is the whole box. ]]
+	--[[ An arc's ribbon starts on one edge and ends on the other, the
+	     arc's full length the whole time; the slam's spins a whole turn. ]]
 	t.test("the swing's red covers the whole hitbox", function()
-		for _, box in boxes() do
-			for _, sweep in SIDEWAYS do
-				local a0, b0 = SwingSweep.edge(box.width, box.depth, sweep :: SwingSweep.Sweep, 0)
-				local a1 = SwingSweep.edge(box.width, box.depth, sweep :: SwingSweep.Sweep, 1)
-				t.near(math.abs(a1.X - a0.X), box.width, EPSILON)
-				t.near((a0 - b0).Magnitude, box.depth, EPSILON)
+		for _, entry in shapes() do
+			local shape = entry.shape
+			local sweep: SwingSweep.Sweep =
+				SwingSweep.forBlow(entry.blow, BLOWS) :: SwingSweep.Sweep
+			local a0, b0 = SwingSweep.edge(shape, sweep, 0)
+			local a1, b1 = SwingSweep.edge(shape, sweep, 1)
+			if shape.kind == "Arc" then
+				t.near((b0 - a0).Magnitude, shape.reach, 1e-6)
+				local turned = math.deg(math.acos(math.clamp(b0.Unit:Dot(b1.Unit), -1, 1)))
+				t.near(turned, math.min(shape.arc, 360 - shape.arc), 1e-3)
+			else
+				t.near((b0 - a0).Magnitude, shape.radius, 1e-6)
+				t.near((b0 - b1).Magnitude, 0, 1e-6)
+				local _, half = SwingSweep.edge(shape, sweep, 0.5)
+				t.near((half - a1).Magnitude, shape.radius, 1e-6)
 			end
-			local a0, b0 = SwingSweep.edge(box.width, box.depth, OUTWARD, 0)
-			local a1 = SwingSweep.edge(box.width, box.depth, OUTWARD, 1)
-			t.near(math.abs(a1.Z - a0.Z), box.depth, EPSILON)
-			t.near((a0 - b0).Magnitude, box.width, EPSILON)
 		end
 	end)
 
-	t.test("Cleave and Long Reach grow the red with the hitbox", function()
-		local plain, carded = table.unpack(boxes())
-		t.isTrue(carded.width > plain.width, "Cleave does not widen it")
-		t.isTrue(carded.depth > plain.depth, "Long Reach does not lengthen it")
-	end)
-
-	t.test("the combo's last blow sweeps outward, the others side to side", function()
-		t.equal(SwingSweep.forBlow(3, 3), "Outward")
+	t.test("the side blows sweep opposite ways, and the slam spins", function()
+		t.equal(SwingSweep.forBlow(BLOWS, BLOWS), "Spin")
 		t.isTrue(
-			SwingSweep.forBlow(1, 3) ~= SwingSweep.forBlow(2, 3),
+			SwingSweep.forBlow(1, BLOWS) ~= SwingSweep.forBlow(2, BLOWS),
 			"the side blows sweep the same way"
 		)
 	end)

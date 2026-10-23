@@ -26,6 +26,9 @@ type Rest = {
 	offset: CFrame,
 }
 
+--[[ Studs across the thrown arm's jelly tube, before it stretches. ]]
+local ARM_THICKNESS = 2.8
+
 export type Body = {
 	rests: { Rest },
 	arms: { [string]: Rest },
@@ -160,8 +163,11 @@ function BossBody.pose(body: Body, pose: BossMoves.Pose)
 		tube.Transparency = 1
 		return
 	end
-	--[[ Thinner the further it stretches, as jelly would. ]]
-	local thick = arm.size.Y * 0.7 / math.sqrt(math.max(1, span.Magnitude / 4))
+	--[[ As thick as the design's (owner, 2026-10-23: "his arms ... are super
+	     thin"): its tube is 0.55 to 0.85 across in the model's units, about
+	     2.8 studs at this size, thinning the further it stretches as jelly
+	     would, by the design's own rule (its 4 units are 8 studs here). ]]
+	local thick = ARM_THICKNESS / math.sqrt(math.max(1, span.Magnitude / 8))
 	tube.Size = Vector3.new(span.Magnitude, thick, thick)
 	tube.CFrame = CFrame.lookAt((shoulder + fist) / 2, fist) * CFrame.Angles(0, math.pi / 2, 0)
 	tube.Transparency = 0.15

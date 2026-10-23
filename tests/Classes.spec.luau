@@ -70,17 +70,19 @@ return function(t: TestRunner.Helper)
 		t.isTrue(next(client.abilities) == nil, "innate skills were sent as drafted")
 	end)
 
-	--[[ A melee class picks targets within its reach and strikes a box in
-	     front of it; a target it could pick but its blow could not touch
-	     would be swung at for ever. ]]
+	--[[ A melee class picks targets within its reach and strikes an arc, or
+	     the slam's circle, in front of it; a target it could pick but its
+	     blow could not touch would be swung at for ever. ]]
 	t.test("a melee class's swing reaches every target it picks", function()
 		for name, class in Classes do
 			local swing = class.swing
 			if swing then
 				t.notNil(class.reach, `{name} swings with no reach`)
+				local reach = class.reach :: number
+				t.isTrue(reach <= swing.reach, `{name} picks targets past its arc`)
 				t.isTrue(
-					(class.reach :: number) <= swing.depth,
-					`{name} picks targets past its blow`
+					reach <= swing.slamAhead + swing.slamRadius,
+					`{name} picks targets past its slam`
 				)
 			end
 		end

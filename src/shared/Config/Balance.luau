@@ -433,7 +433,7 @@ local spreadShooter: EnemyConfig = {
 	Low health and slow movement on purpose: it is a threat you answer by
 	repositioning, and it should die quickly once you have closed on it.
 ]]
-local lineSniper: EnemyConfig = {
+local _lineSniper: EnemyConfig = {
 	displayName = "Lancer",
 	--[[ Deliberate: it swings round to line the lance up. ]]
 	turnRate = 240,
@@ -759,9 +759,11 @@ local rooms: { RoomConfig } = {
 			{ offset = Vector2.new(-4.6, 0), size = Vector3.new(2.5, 10, 38.7) },
 			{ offset = Vector2.new(4.6, 0), size = Vector3.new(2.5, 10, 38.7) },
 		},
-		--[[ Adds the lancer. A drawn line to step out of, in the room with lanes. ]]
+		--[[ Adds the lancer: a drawn line to step out of, in the room with
+		     lanes. The Ember Wolf stands in for the Lancer everywhere for now
+		     (owner, 2026-10-23); its charge is a drawn line too. ]]
 		enemyCount = 4,
-		roster = { meleeCharger, spreadShooter, lineSniper },
+		roster = { meleeCharger, spreadShooter, wolf },
 	},
 	{
 		name = "Quarters",
@@ -771,7 +773,7 @@ local rooms: { RoomConfig } = {
 		},
 		--[[ No new archetype. Four of them at once instead, and a brood. ]]
 		enemyCount = 5,
-		roster = { meleeCharger, spreadShooter, lineSniper, broodSlime },
+		roster = { meleeCharger, spreadShooter, wolf, broodSlime },
 	},
 	{
 		name = "The Pit",
@@ -797,7 +799,7 @@ local rooms: { RoomConfig } = {
 		},
 		--[[ All five, and from here the count is the only thing still rising. ]]
 		enemyCount = 6,
-		roster = { meleeCharger, spreadShooter, lineSniper, burrower, tank },
+		roster = { meleeCharger, spreadShooter, wolf, burrower, tank },
 	},
 	{
 		name = "Last Cover",
@@ -806,7 +808,7 @@ local rooms: { RoomConfig } = {
 		},
 		--[[ All five. ]]
 		enemyCount = 6,
-		roster = { meleeCharger, lineSniper, spreadShooter, burrower, tank },
+		roster = { meleeCharger, wolf, spreadShooter, burrower, tank },
 	},
 	{
 		name = "Nowhere To Stand",
@@ -815,7 +817,7 @@ local rooms: { RoomConfig } = {
 		obstacles = {},
 		--[[ All five, at the most this run ever throws at once. ]]
 		enemyCount = 7,
-		roster = { meleeCharger, spreadShooter, lineSniper, burrower, tank },
+		roster = { meleeCharger, spreadShooter, wolf, burrower, tank },
 	},
 
 	--[[
@@ -1273,7 +1275,10 @@ local Balance = {
 	Enemies = {
 		MeleeCharger = meleeCharger,
 		SpreadShooter = spreadShooter,
-		LineSniper = lineSniper,
+		--[[ The Lancer is benched while the Ember Wolf stands in for it
+		     (owner, 2026-10-23: "have that replace the sniper enemy for
+		     now"). Its config stays below; put it back here and in the
+		     rosters to bring it back. ]]
 		Tank = tank,
 		Burrower = burrower,
 		BroodSlime = broodSlime,

@@ -92,10 +92,19 @@ ROUND_8 = [
     }),
 ]
 
+ROUND_9 = [
+    ("Round 9 · the Warden's three blows, made to your clip's shape", {
+        "sword_swing": ("Blow 1 · the sweep", "Made from scratch to the clip's first swing: its swell, its fade and its falling pitch, 10% quicker. The clip's own sounds come from a game, so they can't be used.", None),
+        "sword_swing_2": ("Blow 2 · the backswing", "The clip's second swing: a rise to a bright peak and back, 10% quicker.", None),
+        "sword_slam": ("Blow 3 · the slam", "The clip's third: a bright whoosh straight into a heavy impact that rings out, 10% quicker.", None),
+    }),
+]
+
 # page: (rounds, picks collection, sounds already chosen, shown for context)
 PAGES = {
     "1-2": (ROUND_1_2, "picks", []),
     "3": (ROUND_3, "picks3", ["Player hurt A", "XP crystal D", "Heart D", "Level up A"]),
+    "9": (ROUND_9, "picks9", ["Player hurt", "XP crystal", "Heart", "Level up", "Enemy hit", "Dash", "Card pick", "Arrow fire", "Staff cast", "Enemy death", "Gate"]),
     "8": (ROUND_8, "picks8", ["Player hurt", "XP crystal", "Heart", "Level up", "Enemy hit", "Dash", "Card pick", "Arrow fire", "Staff cast", "Enemy death", "Gate (round 6 B)"]),
     "7": (ROUND_7, "picks7", ["Player hurt", "XP crystal", "Heart", "Level up", "Enemy hit", "Dash", "Card pick", "Arrow fire"]),
     "6": (ROUND_6, "picks6", ["Player hurt", "XP crystal", "Heart", "Level up", "Enemy hit", "Dash", "Card pick", "Arrow fire"]),

@@ -1251,8 +1251,96 @@ LEVEL8 = {"sword_swing": 0.12, "sword_slam": 0.16}
 
 LEVEL.update(LEVEL8)
 
+# ---------- round 9 (owner, 2026-10-23): the Warden's three blows, made to
+# the measured shape of a reference clip whose sounds come from a game, so
+# they are original sounds, not cuts of it. Each is ~10% quicker than the
+# reference, as asked. Measurements (attack / decay / where the pitch goes):
+#   1  190 / 200 ms, falling 2.9 -> 1.6 kHz, over a low body
+#   2  240 / 140 ms, rising 2.4 -> 4.3 kHz and back
+#   3  217 / 150 ms bright whoosh ~3.3 kHz, into an impact: 110 ms crack
+#      falling 5.5 kHz -> 160 Hz, a deep boom ringing ~600 ms ----------
+
+QUICK = 1.1
+
+
+def _shaped(seconds, attack, decay_share=4.0):
+    n = int(SR * seconds)
+    a = int(SR * attack)
+    env = np.ones(n)
+    env[:a] = np.linspace(0.1, 1, a)
+    env[a:] = np.exp(-decay_share * np.linspace(0, 1, n - a))
+    return env
+
+
+def _sweep_path(x, path, q):
+    """A band filter following `path`, a list of (share of the sound, Hz)."""
+    out = np.zeros_like(x)
+    block = 256
+    n_blocks = int(np.ceil(len(x) / block))
+    zi = None
+    shares = [p for p, _ in path]
+    freqs = [f for _, f in path]
+    for b in range(n_blocks):
+        frac = b / max(1, n_blocks - 1)
+        f = float(np.exp(np.interp(frac, shares, np.log(freqs))))
+        bw = f / q
+        sos = signal.butter(2, [max(40, f - bw / 2), min(SR / 2 - 200, f + bw / 2)], btype="band", fs=SR, output="sos")
+        seg = x[b * block:(b + 1) * block]
+        if zi is None:
+            zi = signal.sosfilt_zi(sos) * 0
+        y, zi = signal.sosfilt(sos, seg, zi=zi)
+        out[b * block:b * block + len(seg)] = y
+    return out
+
+
+def r9_blow_1():  # The sweep: swells, then falls in pitch over a low body
+    s = (0.19 + 0.2) / QUICK
+    air = lowpass(_sweep_path(noise(s), [(0, 2100), (0.5, 1850), (1, 1150)], q=1.4), 4000)
+    body = lowpass(noise(s), 180)
+    env = _shaped(s, 0.2 / QUICK, 2.3)
+    return mix((air * env, 0.9), (body * env, 0.6))
+
+
+def r9_blow_2():  # The backswing: rises to a bright peak and comes back
+    s = (0.24 + 0.14) / QUICK
+    air = lowpass(_sweep_path(noise(s), [(0, 1750), (0.62, 3300), (1, 1800)], q=1.4), 6000)
+    body = lowpass(noise(s), 200)
+    env = _shaped(s, 0.25 / QUICK, 2.3)
+    return mix((air * env, 0.9), (body * env, 0.45))
+
+
+def r9_blow_3():  # The slam: a bright whoosh straight into a heavy impact
+    w = (0.217 + 0.15) / QUICK
+    air = lowpass(_sweep_path(noise(w), [(0, 2600), (0.5, 2300), (1, 2500)], q=1.4), 6000)
+    whoosh = air * _shaped(w, 0.22 / QUICK, 2.5)
+    hit = 0.48 / QUICK
+    crack_s = 0.18
+    crack = _sweep_path(noise(crack_s), [(0, 5500), (1, 900)], q=1.0) * env_ad(int(SR * crack_s), 0.002, 7)
+    boom_s = 0.75 / QUICK
+    boom = chirp(boom_s, 95, 38) * env_ad(int(SR * boom_s), 0.004, 3.1)
+    rumble = lowpass(noise(boom_s), 120) * env_ad(int(SR * boom_s), 0.01, 3.1)
+    return mix((whoosh, 0.7), (at(crack, hit), 0.6), (at(boom, hit), 1.0), (at(rumble, hit), 0.5))
+
+
+ROUND9 = {
+    "sword_swing": [
+        ("a", r9_blow_1, "Blow 1, the sweep: swells, then falls in pitch over a low body."),
+    ],
+    "sword_swing_2": [
+        ("a", r9_blow_2, "Blow 2, the backswing: rises to a bright peak and comes back."),
+    ],
+    "sword_slam": [
+        ("a", r9_blow_3, "Blow 3, the slam: a bright whoosh straight into a heavy impact."),
+    ],
+}
+
+LEVEL9 = {"sword_swing": 0.12, "sword_swing_2": 0.12, "sword_slam": 0.16}
+
+
+LEVEL.update(LEVEL9)
+
 # The audition rounds, kept so any take can be rendered again exactly.
-ROUNDS = {"1": ROUND1, "2": ROUND2, "3": ROUND3, "4": ROUND4, "5": ROUND5, "6": ROUND6, "7": ROUND7, "8": ROUND8}
+ROUNDS = {"1": ROUND1, "2": ROUND2, "3": ROUND3, "4": ROUND4, "5": ROUND5, "6": ROUND6, "7": ROUND7, "8": ROUND8, "9": ROUND9}
 
 if __name__ == "__main__":
     out = sys.argv[1]

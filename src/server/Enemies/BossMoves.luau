@@ -46,16 +46,33 @@ export type Pose = {
 	--[[ Studs the body is pushed forward, and radians it tips forward. ]]
 	lean: number,
 	pitch: number,
+	--[[ Radians the body is twisted round from `yaw`, as a lash winds up
+	     and whips through; never part of the way it faces. ]]
+	twist: number,
 	--[[ Studs both arms are raised (a bounce's wind-up and flight). ]]
 	armsLift: number,
-	--[[ The arm a lash is throwing; how far it is pulled back first (0 to
-	     1); how far along the lane its fist is (0 at the shoulder, 1 at the
-	     lane's end), how high the fist flies there, and how big it is. ]]
+	--[[ The arm a lash is throwing; where it is balled up behind the
+	     shoulder before the throw (studs, in the body's frame: +Z is
+	     behind) and how it swells there; how far along the lane its fist
+	     is (0 at the shoulder, 1 at the lane's end, a little past it as it
+	     overshoots), how high the fist sits at the lane's end and how high
+	     it arcs on the way, and how big it is, then squashed or stretched
+	     along its own axes (Z along the lane). ]]
 	arm: string?,
-	armPull: number,
+	armOffset: Vector3,
+	armSwell: Vector3,
 	armReach: number,
 	fistLift: number,
+	fistArc: number,
 	fistScale: number,
+	fistShape: Vector3,
+	--[[ The thrown arm's jelly tube: studs it arcs up between shoulder
+	     and fist, studs it ripples sideways and the ripple's phase, and
+	     where along it (0 to 1) a lump of goo rides, or below 0 for none. ]]
+	tubeArc: number,
+	tubeWave: number,
+	tubePhase: number,
+	tubeBulge: number,
 	--[[ Where the fist is held, when it has grabbed someone. ]]
 	held: Vector3?,
 	direction: Vector3,
@@ -79,6 +96,7 @@ export type Pose = {
 	  `direction`.
 	- `Shock` — a small shockwave on the floor at `at`, of `radius`.
 	- `Shake` — shake the camera by `radius` for `duration`.
+	- `Goo` — droplets flung off a fist that splatted at `at`.
 ]]
 export type Event = {
 	kind: string,
@@ -125,6 +143,13 @@ local LAND_SPREAD = 0.48
 
 --[[ A bump releases its hold this far into the lean, at the lean's peak. ]]
 local BUMP_RELEASE = 0.45
+
+--[[ How high the fist sits on the floor at the lane's end. ]]
+local FIST_REST = 0.9 * SIZE
+
+--[[ A lash winds up for this share of its wind, then coils tighter for
+     the rest, the signal that it is about to throw. ]]
+local COIL_AT = 0.85
 
 --[[ How often a tracking lane is redrawn as it follows the target. ]]
 local AIM_REFRESH = 0.1
@@ -195,12 +220,20 @@ local function rest(move: Move): Pose
 		spread = 1,
 		lean = 0,
 		pitch = 0,
+		twist = 0,
 		armsLift = 0,
 		arm = nil,
-		armPull = 0,
+		armOffset = Vector3.zero,
+		armSwell = Vector3.one,
 		armReach = 0,
 		fistLift = 0,
+		fistArc = 0,
 		fistScale = 1,
+		fistShape = Vector3.one,
+		tubeArc = 0,
+		tubeWave = 0,
+		tubePhase = 0,
+		tubeBulge = -1,
 		held = nil,
 		direction = move.direction,
 		length = move.length,
@@ -337,7 +370,12 @@ local function enter(
 		table.insert(events, laneEvent("Lane", move, l, (l.wind - l.track) + l.strike))
 	elseif phase == "slap" then
 		table.insert(events, laneEvent("LaneHit", move, l, 0))
-		table.insert(events, shock(move.feet + move.direction * move.length))
+		local splat = move.feet + move.direction * move.length
+		table.insert(events, shock(splat))
+		local goo = event("Goo")
+		goo.at = splat + Vector3.new(0, FIST_REST, 0)
+		goo.direction = move.direction
+		table.insert(events, goo)
 		table.insert(events, shake(SHAKE_SLAP))
 	elseif phase == "release" then
 		local bump = event("Bump")
@@ -447,31 +485,94 @@ local function pose(move: Move, boss: EnemyBoss, t: number): Pose
 		return p
 	end
 
+	--[[ The design's Zac-Q lash (design_handoff_slime_king's update): the
+	     body twists away from the throwing arm and leans back while the
+	     fist balls up behind the shoulder, then whips through as the arm
+	     flies out as a rippling jelly tube, overshoots, splats and reels
+	     back in. The design's numbers are studs on its king, so the
+	     offsets are doubled (`SIZE`); angles are as they are. ]]
 	local l = boss.lash
-	p.arm = l.arms[math.clamp(move.index, 1, #l.arms)]
+	local arm = l.arms[math.clamp(move.index, 1, #l.arms)]
+	p.arm = arm
+	--[[ Which side throws: the right arm twists the body clockwise first. ]]
+	local side = if string.find(arm, "_R") then 1 else -1
 	if phase == "track" or phase == "aimed" then
 		local into = (if phase == "track" then t * l.track else l.track + t * (l.wind - l.track))
 			/ l.wind
-		local back = ease(into)
-		p.yaw = lerpAngle(move.fromYaw, move.toYaw, math.min(1, into * 6))
-		p.armPull = back
+		local seconds = into * l.wind
+		local back = ease(math.min(1, into / COIL_AT))
+		local coil = if into > COIL_AT then ease((into - COIL_AT) / (1 - COIL_AT)) else 0
+		p.yaw = lerpAngle(move.fromYaw, move.toYaw, math.min(1, seconds * 8))
+		p.twist = -side * (0.38 * back + 0.08 * coil)
+		p.pitch = -(0.13 * back + 0.05 * coil)
+		local swell = 1 + 0.45 * back + 0.15 * coil + math.sin(seconds * 28) * 0.05 * back
+		p.armSwell =
+			Vector3.new(swell * 1.05, swell * (0.95 - 0.12 * coil), swell * (1.05 + 0.1 * coil))
+		p.armOffset = Vector3.new(
+			0.15 * side * back,
+			0.45 * back + 0.1 * coil,
+			1.15 * back + 0.25 * coil
+		) * SIZE
 		p.squash = 1 - 0.06 * back
 		p.spread = 1 + 0.04 * back
-	elseif phase == "strike" or phase == "slap" or phase == "retract" then
-		local extension = if phase == "strike"
-			then 1 - (1 - t) ^ 3
-			elseif phase == "slap" then 1
-			else 1 - ease(t)
-		local wobble = if phase == "retract" then math.sin(t * 20) * (1 - t) * 0.15 * SIZE else 0
+	elseif phase == "strike" then
+		--[[ Out past the lane's end by 8%, then back onto it. ]]
+		local extension = if t < 0.72
+			then 1.08 * (1 - (1 - t / 0.72) ^ 3)
+			else 1.08 - 0.08 * ease((t - 0.72) / 0.28)
+		local whip = ease(t)
+		local stretch = 0.25 * math.sin(math.pi * t)
+		p.twist = -side * (0.46 - 0.66 * whip)
+		p.pitch = -(0.18 - 0.36 * whip)
 		p.armReach = extension
-		--[[ The fist arcs down onto the floor at the lane's end as it
-		     strikes, and lies there for the slap. ]]
-		p.fistLift = 0.9 * SIZE
-			+ (if phase == "strike" then 1.2 * SIZE * (1 - extension) else 0)
-			+ wobble
-		p.fistScale = 1 + 0.7 * extension
+		p.fistLift = FIST_REST
+		p.fistArc = 1.6 * SIZE * math.sin(math.pi * math.min(1, extension)) * (1 - t * 0.6)
+		p.fistScale = 1 + 0.7 * math.min(1, extension)
+		p.fistShape = Vector3.new(1 - 0.1 * stretch, 1 - 0.1 * stretch, 1 + stretch)
+		p.tubeArc = 1.2 * SIZE * math.sin(math.pi * t)
+		p.tubeWave = 0.55 * SIZE * math.sin(math.pi * t)
+		p.tubePhase = t * 2.2
+		p.tubeBulge = 0.1 + 0.9 * t
 		p.squash = 1 + 0.05 * extension
 		p.spread = 1 - 0.03 * extension
+	elseif phase == "slap" then
+		--[[ The fist splats flat and wobbles back; the tube sags as its
+		     ripples die. ]]
+		local seconds = t * l.hold
+		local settle = 1 - ease(t)
+		local splat = math.exp(-seconds * 9) * math.cos(seconds * 26)
+		p.twist = side * 0.2 * settle
+		p.pitch = 0.18 * settle
+		p.armReach = 1
+		p.fistLift = FIST_REST
+		p.fistScale = 1.7
+		p.fistShape = Vector3.new(1 + 0.35 * splat, 1 - 0.45 * splat, 1 + 0.3 * splat)
+		p.tubeArc = (-0.35 * (1 - math.min(1, seconds / 0.18)) + 0.25 * splat) * SIZE
+		p.tubeWave = 0.3 * SIZE * math.exp(-seconds * 7)
+		p.tubePhase = seconds * 5
+		p.squash = 1.05
+		p.spread = 0.97
+	elseif phase == "retract" then
+		--[[ Reeled in with a whip, a little elastic overshoot, and the body
+		     bulging as it slurps the arm back in. ]]
+		local extension = math.max(
+			0,
+			1 - ease(math.min(1, t / 0.8)) - 0.06 * math.sin(math.pi * math.max(0, (t - 0.8) / 0.2))
+		)
+		local absorb = if t > 0.78 then math.sin(math.pi * (t - 0.78) / 0.22) else 0
+		p.twist = -side * 0.06 * math.sin(math.pi * t) * (1 - t)
+		p.pitch = -0.06 * math.sin(math.pi * t)
+		p.armReach = extension
+		p.fistLift = FIST_REST
+		p.fistArc = (0.9 * math.sin(math.pi * extension) + math.sin(t * 20) * (1 - t) * 0.15) * SIZE
+		p.fistScale = 1 + 0.7 * extension
+		p.fistShape = Vector3.new(1 + 0.1 * absorb, 1 - 0.1 * absorb, 1)
+		p.tubeArc = 0.8 * SIZE * math.sin(math.pi * t)
+		p.tubeWave = 0.65 * SIZE * math.sin(math.pi * t) * (1 - t * 0.5)
+		p.tubePhase = -t * 3
+		p.tubeBulge = 1 - t
+		p.squash = 1 + 0.05 * extension - 0.04 * absorb
+		p.spread = 1 - 0.03 * extension + 0.06 * absorb
 	elseif phase == "pull" then
 		local to = move.pullTo or move.feet
 		local hop = math.sin(math.pi * t)
@@ -485,6 +586,10 @@ local function pose(move: Move, boss: EnemyBoss, t: number): Pose
 		p.held = move.held
 		p.fistLift = 1.6 * SIZE
 		p.fistScale = 1.7 - 0.7 * t
+		p.tubeArc = 0.5 * SIZE * hop
+		p.tubeWave = 0.12 * SIZE * (1 - t)
+		p.tubePhase = t * 3
+		p.tubeBulge = 1 - t
 	elseif phase == "lean" or phase == "release" then
 		local u = if phase == "lean"
 			then t * BUMP_RELEASE
@@ -567,12 +672,20 @@ function BossMoves.idle(feet: Vector3, yaw: number, now: number): Pose
 		spread = 1 - breath * 0.5,
 		lean = 0,
 		pitch = 0,
+		twist = 0,
 		armsLift = 0,
 		arm = nil,
-		armPull = 0,
+		armOffset = Vector3.zero,
+		armSwell = Vector3.one,
 		armReach = 0,
 		fistLift = 0,
+		fistArc = 0,
 		fistScale = 1,
+		fistShape = Vector3.one,
+		tubeArc = 0,
+		tubeWave = 0,
+		tubePhase = 0,
+		tubeBulge = -1,
 		held = nil,
 		direction = Vector3.new(-math.sin(yaw), 0, -math.cos(yaw)),
 		length = 0,

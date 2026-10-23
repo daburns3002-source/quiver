@@ -274,6 +274,43 @@ local function drawSlam(origin: Vector3, duration: number, radius: number)
 	Debris:AddItem(fill, duration)
 end
 
+--[[ The Slime King's jelly, for the goo his fist flings. ]]
+local JELLY = Color3.fromRGB(127, 203, 36)
+
+--[[ Droplets of jelly flung up off a fist that splatted at `origin`, a
+     little along `direction`, as the design's lash throws them: thrown up
+     and out at random, falling away under gravity, gone after `duration`. ]]
+local function drawGoo(origin: Vector3, direction: Vector3, duration: number, count: number)
+	local parent = folder
+	if not parent then
+		return
+	end
+	local along = if direction.Magnitude > 1e-3 then direction.Unit else Vector3.zero
+	for _ = 1, math.floor(count) do
+		local drop = Instance.new("Part")
+		drop.Name = "Goo"
+		drop.Shape = Enum.PartType.Ball
+		drop.Size = Vector3.one * (0.3 + math.random() * 0.4)
+		drop.Material = Enum.Material.Glass
+		drop.Color = JELLY
+		drop.Transparency = 0.15
+		drop.CanCollide = false
+		drop.CanQuery = false
+		drop.CanTouch = false
+		drop.CastShadow = false
+		drop.CFrame = CFrame.new(origin)
+		drop.Parent = parent
+		local angle = math.random() * math.pi * 2
+		local out = 2 + math.random() * 3
+		drop.AssemblyLinearVelocity = Vector3.new(
+			math.cos(angle) * out,
+			8 + math.random() * 6,
+			math.sin(angle) * out
+		) + along * 2
+		Debris:AddItem(drop, duration)
+	end
+end
+
 --[[ The slam landing: a green ring rushing out and fading, or `colour`'s. ]]
 local function drawShockwave(origin: Vector3, duration: number, radius: number, colour: Color3?)
 	local ring =
@@ -461,6 +498,11 @@ function TelegraphRenderer.onTelegraph(
 
 	if tell == "Shockwave" then
 		drawShockwave(origin, duration, reach)
+		return
+	end
+
+	if tell == "Goo" then
+		drawGoo(origin, direction, duration, reach)
 		return
 	end
 

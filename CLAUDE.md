@@ -29,6 +29,11 @@ mesh parts are white; eyes are Neon in the act's colour. Each archetype's
 hitbox fits its model (the slime's is 3 × 2.2 × 3), so player arrows fly
 low, at `Balance.Projectile.height` (1.1), from `Aim.shotOrigin` on both
 sides; `Balance.spec` keeps that height inside every enemy's hitbox.
+The slimes hop (`Fx/SlimeHop`, `Balance.SlimeHop`, owner's
+design_handoff_slime_movement): client-only, phased by the distance the
+hitbox travels, folding in `HitSquash` (which a hopping body is claimed
+from). The Slime King's lash is the design's Zac-Q motion: a twist, a
+12-segment jelly tube (`BossBody`), a splat and goo droplets (`Goo` tell).
 
 **Level 1** (`Balance.stage = 3`, owner 2026-10-22): ten Mossy Glade
 rooms — logs, pond, boulders, thorns, boss arena, twice. **Slimes**

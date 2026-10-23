@@ -199,6 +199,31 @@ return function(t: TestRunner.Helper)
 		t.near(hit.direction.Z, -1, 1e-3)
 	end)
 
+	--[[ The design's lash motion: the fist arcs over the floor and never
+	     into it, is thrown out no further than a little past the lane's
+	     end, and the body untwists and lets go of the arm by the end. ]]
+	t.test("a lash's fist stays over the floor and the body comes back round", function()
+		local _, poses = play("Lash", function()
+			return Vector3.new(0, 0, -12)
+		end, FRAME)
+		local twisted = false
+		for _, pose in poses do
+			t.isTrue(
+				pose.fistLift + math.min(0, pose.fistArc) >= 0,
+				"the fist sinks into the floor"
+			)
+			t.isTrue(pose.armReach <= 1.1, "the fist flies far past the lane")
+			t.isTrue(pose.fistShape.Y > 0.3, "the fist is squashed flat to nothing")
+			if math.abs(pose.twist) > 0.3 then
+				twisted = true
+			end
+		end
+		t.isTrue(twisted, "the body never twists into the throw")
+		local last = poses[#poses]
+		t.near(last.twist, 0, 1e-6)
+		t.near(last.armOffset.Magnitude, 0, 1e-6)
+	end)
+
 	t.test("a grab pulls the boss in and ends in a chest bump", function()
 		local held = Vector3.new(0, 0, -12)
 		local grabbed = false

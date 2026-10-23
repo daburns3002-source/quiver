@@ -30,3 +30,6 @@ Thumbs.db
 
 # Local-only agent state
 .claude/settings.local.json
+
+# Python caches (assets/ scripts)
+__pycache__/

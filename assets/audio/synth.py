@@ -1034,8 +1034,122 @@ ROUND5 = {
 }
 
 
+# ---------- round 6 (owner, 2026-10-23): iterations on round 5's gate B (a
+# latch, the doors' thud, then round 4's two warm chords); the staff cast
+# reworked from scratch again; the enemy death's pop-pop with a softer
+# poof. ----------
+
+# gate open: iterations on round 5's B
+
+def _latch(f=1800):
+    return tone(f, 0.04, 30, ((1, 1.0), (2.4, 0.4)), attack=0.0005)
+
+
+def r6_gate_a():  # B with a softer, wooden latch
+    latch = tone(700, 0.05, 26, ((1, 1.0), (2.6, 0.3)), attack=0.0008)
+    return room(mix((latch, 0.5), (at(_thud(), 0.7), 0.7), (at(_r4c(), 0.75), 0.7)), 0.25, 0.28)
+
+
+def r6_gate_b():  # B tighter: the thud sooner, the chords right on it
+    return room(mix((_latch(), 0.4), (at(_thud(), 0.42), 0.75), (at(_r4c(), 0.44), 0.7)), 0.25, 0.28)
+
+
+def r6_gate_c():  # B with both doors thudding, deeper, and warmer chords
+    warm = mix(*[(at(sum(tone(f, d, k, WARM) for f in notes) / 2, start), g)
+                 for notes, d, k, start, g in (([330, 392, 494], 0.25, 7, 0.0, 0.6),
+                                               ([440, 523, 659], 0.8, 3.2, 0.16, 0.7))])
+    return room(mix((_latch(1500), 0.35), (at(_thud(80), 0.68), 0.8), (at(_thud(90), 0.74), 0.55),
+                    (at(warm, 0.8), 0.7)), 0.25, 0.28)
+
+
+def r6_gate_d():  # B with a little creak between the latch and the thud
+    return room(mix((_latch(), 0.4), (at(_creak(0.45), 0.08), 0.35), (at(_thud(), 0.6), 0.7),
+                    (at(_r4c(), 0.65), 0.7)), 0.25, 0.28)
+
+
+# staff cast: reworked from scratch
+
+def r6_cast_a():  # A toy cannon's cork "foomp"
+    pop = chirp(0.05, 300, 900) * env_ad(int(SR * 0.05), 0.001, 6)
+    air = lowpass(noise(0.18), 1400) * env_ad(int(SR * 0.18), 0.003, 5)
+    body = chirp(0.12, 180, 90) * env_ad(int(SR * 0.12), 0.002, 6)
+    return room(mix((pop, 0.5), (air, 0.6), (body, 0.6)), 0.1, 0.12)
+
+
+def r6_cast_b():  # A vowel-like "wub": the tone opening from "oo" to "ah"
+    tt = t_of(0.22)
+    saw = sum(np.sin(2 * np.pi * 150 * k * tt) / k for k in range(1, 14))
+    wub = sweep_filter(saw, 400, 1300, q=3) * env_ad(len(tt), 0.01, 5)
+    return room(wub, 0.12, 0.15)
+
+
+def r6_cast_c():  # A soft drum "dum" with an airy tail
+    dum = chirp(0.2, 140, 95) * env_ad(int(SR * 0.2), 0.002, 5)
+    skin = bandpass(noise(0.05), 200, 900) * env_ad(int(SR * 0.05), 0.001, 7)
+    tail = bandpass(noise(0.25), 2000, 5000) * env_ad(int(SR * 0.25), 0.02, 5)
+    return room(mix((dum, 0.9), (skin, 0.35), (at(tail, 0.03), 0.15)), 0.15, 0.18)
+
+
+def r6_cast_d():  # A springy rubber-band "thwong"
+    tt = t_of(0.3)
+    f = 110 + 160 * np.exp(-tt * 18)
+    wob = 1 + 0.04 * np.sin(2 * np.pi * 14 * tt) * np.exp(-tt * 6)
+    thwong = np.tanh(1.5 * np.sin(2 * np.pi * np.cumsum(f * wob) / SR)) * env_ad(len(tt), 0.002, 5)
+    return lowpass(thwong, 2500)
+
+
+# enemy death: the pop-pop with a softer poof
+
+def _soft_poof(seconds, top, bottom, attack, decay):
+    return sweep_filter(noise(seconds), top, bottom, q=0.7, kind="low") * env_ad(int(SR * seconds), attack, decay)
+
+
+def _soft_pops(gain=0.6):
+    return mix(*[(at(chirp(0.04, f, f * 2.2) * env_ad(int(SR * 0.04), 0.001, 6), d), gain)
+                 for f, d in ((420, 0), (560, 0.06))])
+
+
+def r6_death_a():  # A gentle, airy puff
+    return room(mix((_soft_pops(), 0.6), (at(_soft_poof(0.4, 1400, 250, 0.04, 4.5), 0.09), 0.7)), 0.18, 0.2)
+
+
+def r6_death_b():  # A soft cotton poof, no low thump
+    cotton = _soft_poof(0.32, 1100, 300, 0.02, 5)
+    return room(mix((_soft_pops(), 0.6), (at(cotton, 0.09), 0.75)), 0.15, 0.18)
+
+
+def r6_death_c():  # Softer pops, a small breathy puff
+    return room(mix((_soft_pops(0.45), 0.6), (at(_soft_poof(0.22, 1800, 400, 0.015, 5.5), 0.08), 0.6)), 0.12, 0.15)
+
+
+def r6_death_d():  # A quiet cloud that drifts away
+    return room(mix((_soft_pops(), 0.6), (at(_soft_poof(0.6, 1200, 150, 0.06, 3.5), 0.1), 0.6)), 0.25, 0.25)
+
+
+ROUND6 = {
+    "gate_open": [
+        ("a", r6_gate_a, "Your B with a softer, wooden latch."),
+        ("b", r6_gate_b, "Your B tighter: the thud sooner, the chords right on it."),
+        ("c", r6_gate_c, "Your B with both doors thudding, deeper, and warmer chords."),
+        ("d", r6_gate_d, "Your B with a little creak between the latch and the thud."),
+    ],
+    "staff_cast": [
+        ("a", r6_cast_a, "A toy cannon's cork \"foomp\"."),
+        ("b", r6_cast_b, "A vowel-like \"wub\", opening from \"oo\" to \"ah\"."),
+        ("c", r6_cast_c, "A soft drum \"dum\" with an airy tail."),
+        ("d", r6_cast_d, "A springy rubber-band \"thwong\"."),
+    ],
+    "enemy_death": [
+        ("a", r6_death_a, "Pop-pop, then a gentle, airy puff."),
+        ("b", r6_death_b, "Pop-pop, then a soft cotton poof with no low thump."),
+        ("c", r6_death_c, "Softer pops, then a small breathy puff."),
+        ("d", r6_death_d, "Pop-pop, then a quiet cloud that drifts away."),
+    ],
+}
+
+
 # The audition rounds, kept so any take can be rendered again exactly.
-ROUNDS = {"1": ROUND1, "2": ROUND2, "3": ROUND3, "4": ROUND4, "5": ROUND5}
+ROUNDS = {"1": ROUND1, "2": ROUND2, "3": ROUND3, "4": ROUND4, "5": ROUND5, "6": ROUND6}
 
 if __name__ == "__main__":
     out = sys.argv[1]

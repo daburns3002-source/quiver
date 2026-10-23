@@ -8,8 +8,10 @@
 	then `id` is empty and the sound is silent, so the game runs the same
 	with or without its audio.
 
-	Chosen and uploaded so far (2026-10-23): player hurt, XP crystal, heart and
-	level up (`assets/audio/final/`).
+	Chosen and uploaded so far (2026-10-23, `assets/audio/final/`): player
+	hurt, XP crystal, heart, level up, enemy hit, dash, card pick, arrow
+	fire, staff cast and enemy death. Still to choose: the gate opening and
+	the Warden's swing.
 
 	`volume` is 0–1 on top of the file's own level (the audition levels each
 	sound for its job already). `pitchJitter` varies each play by up to that
@@ -27,20 +29,40 @@ export type Sound = {
 
 local Sounds: { [string]: Sound } = {
 	--[[ The Ranger's every arrow (`Config/Weapons.LeafBow.fireSound`). ]]
-	arrow_fire = { id = "", volume = 0.6, pitchJitter = 0.06, minGap = 0.03 },
+	arrow_fire = {
+		id = "rbxassetid://87054967937419",
+		volume = 0.6,
+		pitchJitter = 0.06,
+		minGap = 0.03,
+	},
 	--[[ The Arcanist's every bolt (`Config/Weapons.ArcaneStaff.fireSound`). ]]
 	--[[ The Warden's every swing (`Config/Weapons.RubyGreatsword.fireSound`). ]]
 	sword_swing = { id = "", volume = 0.7, pitchJitter = 0.05, minGap = 0.05 },
-	staff_cast = { id = "", volume = 0.6, pitchJitter = 0.04, minGap = 0.03 },
-	enemy_hit = { id = "", volume = 0.6, pitchJitter = 0.08, minGap = 0.04 },
-	enemy_death = { id = "", volume = 0.7, pitchJitter = 0.06, minGap = 0.05 },
+	staff_cast = {
+		id = "rbxassetid://94842415130560",
+		volume = 0.6,
+		pitchJitter = 0.04,
+		minGap = 0.03,
+	},
+	enemy_hit = {
+		id = "rbxassetid://119984023706957",
+		volume = 0.6,
+		pitchJitter = 0.08,
+		minGap = 0.04,
+	},
+	enemy_death = {
+		id = "rbxassetid://79343537900984",
+		volume = 0.7,
+		pitchJitter = 0.06,
+		minGap = 0.05,
+	},
 	player_hurt = {
 		id = "rbxassetid://108553026094545",
 		volume = 0.8,
 		pitchJitter = 0.03,
 		minGap = 0.1,
 	},
-	dash = { id = "", volume = 0.6, pitchJitter = 0.05, minGap = 0.1 },
+	dash = { id = "rbxassetid://71620593977891", volume = 0.6, pitchJitter = 0.05, minGap = 0.1 },
 	--[[ A cleared room draws every crystal in at once: one ping per gap. ]]
 	xp_pickup = {
 		id = "rbxassetid://74242296300145",
@@ -55,7 +77,7 @@ local Sounds: { [string]: Sound } = {
 		minGap = 0.1,
 	},
 	level_up = { id = "rbxassetid://118857075181229", volume = 0.7, pitchJitter = 0, minGap = 0.2 },
-	card_pick = { id = "", volume = 0.7, pitchJitter = 0, minGap = 0.1 },
+	card_pick = { id = "rbxassetid://96268156590681", volume = 0.7, pitchJitter = 0, minGap = 0.1 },
 	gate_open = { id = "", volume = 0.7, pitchJitter = 0, minGap = 0.5 },
 }
 

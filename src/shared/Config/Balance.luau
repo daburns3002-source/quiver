@@ -72,6 +72,15 @@ export type EnemyShot = {
 		a lie and the player learns to ignore it.
 	]]
 	locksAim: boolean,
+	--[[
+		Studs from the player it may open fire at, when that is not the
+		distance it holds (`attackRange`). A ranged enemy that may only shoot
+		from where it wants to stand has to walk there first — the Spitter
+		spawned 21+ studs out, fired from 13 and its seeds died at 16, so it
+		walked in silence and its shots never reached a player who kept back.
+		Nil is `attackRange`.
+	]]
+	range: number?,
 }
 
 --[[
@@ -228,7 +237,11 @@ local spreadShooter: EnemyConfig = {
 			owner's ask (2026-10-22), reach still 16.
 		]]
 		speed = 18,
-		lifetime = 16 / 18,
+		--[[ Reach: the whole room, corner to corner (35 × 58, about 68
+		     studs), so a seed reaches the player wherever they stand
+		     (owner, 2026-10-22: "make sure the spitter projectiles can
+		     reach the player"). Was 16. ]]
+		lifetime = 70 / 18,
 		--[[ Seconds of wind-up before the volley leaves, so the player reacts
 		     to the tell rather than to the projectile. ]]
 		telegraph = 0.45,
@@ -236,6 +249,11 @@ local spreadShooter: EnemyConfig = {
 		--[[ Re-aims as it fires. Against a fan the counterplay is to keep
 		     moving, so letting it track rewards exactly that. ]]
 		locksAim = false,
+		--[[ Fires from anywhere in the room, so it opens up as soon as it
+		     has landed (owner: "it fires from when it spawns") rather than
+		     after walking in to `attackRange`, which is still where it
+		     holds. ]]
+		range = 70,
 	},
 }
 

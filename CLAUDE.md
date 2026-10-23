@@ -115,8 +115,9 @@ over, full health or not.
 Wind — full health, 2.5 s untouchable behind a gold shield, and enemy shots
 within 12 studs cleared.
 
-Not done: real bosses (the owner wants to think about them first — do not
-start); Phase 3's playtest question — *did two runs in a row feel
+Not done: real bosses — all fifteen are **designed** (`docs/BOSSES.md`,
+one per area, with Codex concept art) but none is built; Phase 3's
+playtest question — *did two runs in a row feel
 meaningfully different?* — which needs the owner.
 
 **Enemies arrive in triangles of three** (`Balance.Spawning.clusterSize`),

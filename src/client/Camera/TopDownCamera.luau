@@ -11,11 +11,12 @@
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
 local Workspace = game:GetService("Workspace")
 
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local CameraFit = require(ReplicatedStorage.Shared.Util.CameraFit)
+
+local Device = require(script.Parent.Parent.Device)
 
 local TopDownCamera = {}
 
@@ -34,8 +35,7 @@ local shakeDecay = 0
 local function cameraOffset(camera: Camera): Vector3
 	local config = Balance.Camera
 	local viewport = camera.ViewportSize
-	local touchOnly = UserInputService.TouchEnabled and not UserInputService.MouseEnabled
-	local phone = CameraFit.isPhone(viewport, touchOnly)
+	local phone = Device.isPhone()
 	return CameraFit.offset(viewport, {
 		pitch = config.pitch,
 		fieldOfView = config.fieldOfView,

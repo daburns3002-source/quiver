@@ -57,17 +57,6 @@ local CardTheme = {
 		pipGap = 4,
 	},
 
-	skillBar = {
-		--[[ The tray's size during a fight, against its full size under the
-		     draft: about 62 px tall either way (104 px full on desktop, 86 on
-		     a phone), which is what the health and dash bars are lifted to
-		     clear (`HealthBar`, `DashBar`). ]]
-		combatScale = {
-			desktop = 0.6,
-			phone = 0.72,
-		},
-	},
-
 	--[[ The whole card's scale per input layout. ]]
 	scale = {
 		desktop = 1,

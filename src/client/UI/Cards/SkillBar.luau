@@ -22,6 +22,7 @@ local UserInputService = game:GetService("UserInputService")
 local Abilities = require(ReplicatedStorage.Shared.Config.Abilities)
 local CardTheme = require(ReplicatedStorage.Shared.Config.CardTheme)
 local DetailPanel = require(script.Parent.DetailPanel)
+local HudLayout = require(script.Parent.Parent.HudLayout)
 local PlayerStats = require(script.Parent.Parent.Parent.PlayerStats)
 
 local SkillBar = {}
@@ -36,6 +37,17 @@ end
 local gui: ScreenGui? = nil
 local tray: Frame? = nil
 local trayScale: UIScale? = nil
+--[[ Whether the bar is in its fight place (`HudLayout`), rather than under
+     the draft. ]]
+local inCombat = false
+
+local function placeForCombat(layout: HudLayout.Layout)
+	local t, s = tray, trayScale
+	if inCombat and t and s then
+		s.Scale = layout.skillBarScale
+		t.Position = layout.skillBarPosition
+	end
+end
 local connections: { RBXScriptConnection } = {}
 
 --[[ First-pick order, and the level each skill was at last time. ]]
@@ -367,12 +379,23 @@ function SkillBar.start()
 	onLoadout()
 	table.insert(connections, PlayerStats.onChanged(onLoadout))
 	table.insert(connections, RunService.RenderStepped:Connect(step))
+	-- Re-placed when a phone turns mid-fight.
+	local turned = HudLayout.bind(placeForCombat)
+	if turned then
+		table.insert(connections, turned)
+	end
 end
 
---[[ Shown under the draft, scaled to match it. ]]
+--[[ Shown under the draft, scaled to match it, in the bottom centre. ]]
 function SkillBar.setVisible(visible: boolean, scale: number?)
 	if gui then
 		gui.Enabled = visible
+	end
+	local t = tray
+	if t and scale then
+		-- Under the draft: bottom centre, at the draft's scale.
+		inCombat = false
+		t.Position = UDim2.new(0.5, 0, 1, -16)
 	end
 	local s = trayScale
 	if s and scale then
@@ -386,8 +409,9 @@ end
 --[[ Back at the bottom of the screen at its small fighting size, as it sits
      between drafts. ]]
 function SkillBar.toCombat()
-	local sizes = CardTheme.skillBar.combatScale
-	SkillBar.setVisible(true, if isTouch() then sizes.phone else sizes.desktop)
+	inCombat = true
+	SkillBar.setVisible(true)
+	placeForCombat(HudLayout.current())
 end
 
 --[[ Where a slot sits on screen, for a pick flying into it. ]]

@@ -31,6 +31,7 @@ local EndScreenAssets = require(ReplicatedStorage.Shared.Config.EndScreenAssets)
 local EndScreenLayout = require(ReplicatedStorage.Shared.Config.EndScreenLayout)
 local EndScreenTheme = require(ReplicatedStorage.Shared.Config.EndScreenTheme)
 
+local Device = require(script.Parent.Parent.Device)
 local EndScreenMotion = require(script.Parent.EndScreenMotion)
 
 local EndScreen = {}
@@ -57,6 +58,10 @@ local BODY = Theme.fonts.body
 --[[ Share of the screen's height the panel fills, and of its width when the
      width is the tighter fit. ]]
 local HEIGHT_SHARE = 0.85
+--[[ A phone held sideways is all height-bound, so it gets nearly the whole
+     of it: "make the phone UI bigger". ]]
+local PHONE_HEIGHT_SHARE = 0.97
+local PHONE_WIDTH_SHARE = 0.98
 local WIDTH_SHARE = 0.94
 
 local gui: ScreenGui? = nil
@@ -657,8 +662,10 @@ local function fit()
 		return
 	end
 	local view = camera.ViewportSize
-	scaler.Scale =
-		math.min(view.Y * HEIGHT_SHARE / panelHeight, view.X * WIDTH_SHARE / Theme.panelSize.X)
+	scaler.Scale = math.min(
+		view.Y * (if Device.isPhone() then PHONE_HEIGHT_SHARE else HEIGHT_SHARE) / panelHeight,
+		view.X * (if Device.isPhone() then PHONE_WIDTH_SHARE else WIDTH_SHARE) / Theme.panelSize.X
+	)
 end
 
 function EndScreen.hide()

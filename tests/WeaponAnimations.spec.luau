@@ -104,16 +104,44 @@ return function(t: TestRunner.Helper)
 		end
 	end)
 
-	--[[ `hold` plays while moving; a leg in it would freeze the walk. ]]
-	t.test("every hold clip moves the arms only", function()
+	--[[ `hold` plays while moving; a leg in it would freeze the walk. The
+	     upper body is its own (the owner's LeafBow kit turns the waist and
+	     the head too). ]]
+	local UPPER = { "Shoulder", "Elbow", "Wrist", "Waist", "Neck" }
+	local LOWER = { "Root", "Hip", "Knee", "Ankle" }
+	local function isAny(joint: string, names: { string }): boolean
+		for _, part in names do
+			if string.find(joint, part) then
+				return true
+			end
+		end
+		return false
+	end
+
+	t.test("every hold clip leaves the legs free", function()
 		for name, weapon in eachWeapon() do
 			for joint in WeaponAnimations[name][weapon.clips.hold].keys[1].joints do
-				t.isTrue(
-					string.find(joint, "Shoulder") ~= nil
-						or string.find(joint, "Elbow") ~= nil
-						or string.find(joint, "Wrist") ~= nil,
-					`{name}'s hold moves {joint}`
-				)
+				t.isTrue(isAny(joint, UPPER), `{name}'s hold moves {joint}`)
+			end
+		end
+	end)
+
+	--[[ A legs layer (`clips.legs`) is under every clip, so it drives the
+	     hips and legs alone and loops, standing and walking. ]]
+	t.test("a legs layer moves the legs only, and loops", function()
+		for name, weapon in eachWeapon() do
+			local legs = weapon.clips.legs
+			if not legs then
+				continue
+			end
+			t.isTrue(legs.walkSpeed > 0, `{name}'s walk has no speed`)
+			for _, clipName in { legs.idle, legs.walk } do
+				local clip = WeaponAnimations[name][clipName]
+				t.notNil(clip, `{name} has no {clipName}`)
+				t.isTrue(clip.loop, `{name}'s {clipName} does not loop`)
+				for joint in clip.keys[1].joints do
+					t.isTrue(isAny(joint, LOWER), `{name}'s {clipName} moves {joint}`)
+				end
 			end
 		end
 	end)

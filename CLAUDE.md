@@ -146,7 +146,11 @@ a three-hit combo on the server, in `Shared/Combat/SwingBox`). The red of
 his swing is drawn on exactly that box (`Fx/SwingTrail`,
 `Shared/Combat/SwingSweep`), so it grows with Cleave and Long Reach. Each weapon
 is the owner's Claude Design kit, its animations generated into
-`Config/WeaponAnimations` and played in code by `Fx/WeaponPose`. Each class
+`Config/WeaponAnimations` and played in code by `Fx/WeaponPose`. The
+Ranger's come from the owner's `LeafBow_R15_Kit.rbxmx` (KeyframeSequences,
+converted by `assets/models/weapons/leaf_bow_r15/kit_to_json.py`), with a
+legs layer (`clips.legs`: Idle standing, Walk at the character's pace) under
+the upper-body Hold. Each class
 drafts its own cards plus a shared twelve (`Ability.classes`,
 `docs/CLASS-CARDS.md`): wave 1 of the Warden's and the Arcanist's is built,
 wave 2 is designed and has its icons.

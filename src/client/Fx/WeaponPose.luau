@@ -26,8 +26,11 @@
 	between a slash's TrailOn and TrailOff, and `Fx/BladeFx` its sparks as
 	the walk drags it and as each blow lands.
 
-	Every change of clip blends from the last pose over `FADE` seconds.
-	Joints a clip leaves out stay with Roblox's own animation. Written to the
+	A weapon may have a `legs` layer (the bow's, from the owner's LeafBow R15
+	kit): its Idle standing, its Walk moving at the character's pace, for
+	the joints the playing clip leaves out — the bow's Hold moves only the
+	upper body. Every change of clip blends from the last pose over `FADE`
+	seconds. Joints no clip drives stay with Roblox's own animation. Written to the
 	joints' `Transform` in RunService.Stepped, after the Animator has run.
 
 	Presentation only, on this client.
@@ -97,6 +100,9 @@ local comboPrevious = 0
 local blowLanded = false
 local engaged = false
 local lastStep = os.clock()
+--[[ The legs layer: which clip, and how far into it. ]]
+local legsClip: string? = nil
+local legsPhase = 0
 
 --[[ The last pose written to each joint, and the pose a blend starts from. ]]
 local written: { [string]: CFrame } = {}
@@ -252,6 +258,31 @@ local function stepPose(character: Model, now: number, dt: number)
 	end
 
 	local target = sample(clip, t)
+
+	--[[ The legs layer, under the clip: standing or walking, the walk kept
+	     in step with the feet, as the owner's kit plays it. ]]
+	local legs = weapon.clips.legs
+	local under: { [string]: CFrame }? = nil
+	if legs then
+		local want = if moving then legs.walk else legs.idle
+		if want ~= legsClip then
+			legsClip = want
+			legsPhase = 0
+			fadeFrom = table.clone(written)
+			fadeStarted = now
+		end
+		local pace = 1
+		if moving then
+			local root = character:FindFirstChild("HumanoidRootPart") :: BasePart?
+			local velocity = if root then root.AssemblyLinearVelocity else Vector3.zero
+			local planar = Vector3.new(velocity.X, 0, velocity.Z).Magnitude
+			pace = math.clamp(planar / legs.walkSpeed, 0.5, 2.5)
+		end
+		legsPhase += dt * pace
+		under = sample(clips[want], legsPhase)
+	else
+		legsClip = nil
+	end
 	local blend = math.clamp((now - fadeStarted) / FADE, 0, 1)
 	for jointName, part in JOINT_PARTS do
 		local j = joint(character, part, jointName)
@@ -259,7 +290,7 @@ local function stepPose(character: Model, now: number, dt: number)
 			continue
 		end
 		local from: CFrame? = fadeFrom[jointName]
-		local goal: CFrame? = target[jointName]
+		local goal: CFrame? = target[jointName] or (if under then under[jointName] else nil)
 		if goal == nil and (from == nil or blend >= 1) then
 			--[[ Left to Roblox's own animation. ]]
 			written[jointName] = nil

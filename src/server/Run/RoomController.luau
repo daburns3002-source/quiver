@@ -125,6 +125,7 @@ local function enterRoom(position: number)
 	local room = Balance.Rooms[rooms[position]]
 
 	buildArena(room)
+	Arena.setDoorLabel(if position < total() then tostring(position + 1) else "")
 	EnemyManager.spawnWave(room.enemyCount, room.roster)
 
 	log.info("entered room %d/%d — %s", position, total(), room.name)

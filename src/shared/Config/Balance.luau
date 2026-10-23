@@ -1232,14 +1232,38 @@ local Balance = {
 	},
 
 	Run = {
-		--[[ The pad that appears when a room is cleared. Walking onto it is
-		     the only way forward, so it has to be unmissable and far enough
-		     from the spawn that clearing a room still means crossing it. ]]
-		doorOffset = Vector2.new(0, -23),
-		doorSize = Vector3.new(6, 0.4, 6),
-		doorColor = Color3.fromRGB(120, 220, 160),
-		--[[ Studs from the pad's centre that count as stepping on it. ]]
+		--[[ Where the exit is: just inside the gate in the north wall
+		     (`Arena/ExitGate`). Walking into its light is the only way
+		     forward, and it is the full length of the room from the spawn,
+		     so clearing a room still means crossing it. ]]
+		doorOffset = Vector2.new(0, -26.5),
+		--[[ Studs from that point that count as reaching the exit. ]]
 		doorRadius = 3.5,
+		--[[
+			The exit gate, after Archero 2's (owner, 2026-10-22, from
+			footage): a gatehouse in the gap of the north wall whose doorway
+			is a dark purple haze until the room is cleared, then blazes
+			white-gold with light, sparkles and a GO arrow on the floor.
+			Mossy stone, for the glade.
+		]]
+		gate = {
+			width = 6,
+			height = 6.5,
+			depth = 3,
+			pillarWidth = 2.2,
+			stoneColor = Color3.fromRGB(150, 156, 168),
+			mossColor = Color3.fromRGB(104, 168, 64),
+			roofColor = Color3.fromRGB(86, 140, 58),
+			plaqueColor = Color3.fromRGB(196, 200, 210),
+			plaqueTextColor = Color3.fromRGB(70, 74, 86),
+			closedColor = Color3.fromRGB(58, 28, 86),
+			openColor = Color3.fromRGB(255, 238, 186),
+			lightRange = 18,
+			lightBrightness = 3,
+			sparkleRate = 14,
+			--[[ Studs of light spilled onto the floor in front of it. ]]
+			spillLength = 5,
+		},
 		--[[ Seconds between a room clearing and the door opening, so a kill
 		     gets its own beat instead of being swallowed by the next room. ]]
 		clearPause = 0.8,

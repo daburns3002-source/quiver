@@ -14,6 +14,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local ArenaModels = require(ReplicatedStorage.Shared.Config.ArenaModels)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
+local ExitGate = require(script.Parent.ExitGate)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
 
 local log = Log.forTag("Arena")
@@ -31,7 +32,7 @@ local Arena = {}
 	Walls and pillars both block the player's arrows.
 ]]
 local blockersFolder: Folder? = nil
-local doorPart: BasePart? = nil
+local exitGate: ExitGate.Gate? = nil
 local boxes: { Box } = {}
 local halfSize = Vector2.zero
 
@@ -440,24 +441,8 @@ function Arena.build(parent: Instance, obstacles: { Balance.Obstacle }, arena: s
 		})
 	end
 
-	--[[
-		The exit pad. Built with the room but dark and inert until the wave is
-		cleared, so the player can see where they are going to have to get to
-		for the whole fight rather than discovering it afterwards.
-
-		Not a blocker: it is flat on the floor and must never stop an arrow.
-	]]
-	local run = Balance.Run
-	local door = makePart(
-		"Door",
-		run.doorSize,
-		Vector3.new(run.doorOffset.X, run.doorSize.Y / 2, run.doorOffset.Y),
-		config.obstacleColor
-	)
-	door.CanCollide = false
-	door.CanQuery = false
-	door.Transparency = 0.4
-	door.Parent = root
+	--[[ The exit gate in the north wall: dark until the room is cleared. ]]
+	local gate = ExitGate.build(root)
 
 	local model = if arena then (ArenaModels :: any)[arena] :: ArenaModels.ArenaModel? else nil
 	if model then
@@ -476,8 +461,7 @@ function Arena.build(parent: Instance, obstacles: { Balance.Obstacle }, arena: s
 
 	root.Parent = parent
 	blockersFolder = blockers
-	doorPart = door
-	Arena.setDoorOpen(false)
+	exitGate = gate
 
 	log.info("built arena with %d obstacles", #boxes)
 
@@ -495,18 +479,21 @@ end
 	decided by the server, which never trusts the pad's own state.
 ]]
 function Arena.setDoorOpen(open: boolean)
-	local door = doorPart
-	if not door then
-		return
+	local gate = exitGate
+	if gate then
+		ExitGate.setOpen(gate, open)
 	end
-
-	local run = Balance.Run
-	door.Color = if open then run.doorColor else Balance.Arena.obstacleColor
-	door.Material = if open then Enum.Material.Neon else Enum.Material.SmoothPlastic
-	door.Transparency = if open then 0 else 0.4
 end
 
---[[ True when `position` is standing on the exit pad. ]]
+--[[ The number over the gate: the room it leads to. ]]
+function Arena.setDoorLabel(text: string)
+	local gate = exitGate
+	if gate then
+		ExitGate.setLabel(gate, text)
+	end
+end
+
+--[[ True when `position` has reached the exit, in front of the gate. ]]
 function Arena.isAtDoor(position: Vector3): boolean
 	local run = Balance.Run
 	local flat = Vector2.new(position.X - run.doorOffset.X, position.Z - run.doorOffset.Y)

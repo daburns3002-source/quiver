@@ -21,6 +21,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local EnemyDesigns = require(ReplicatedStorage.Shared.Config.EnemyDesigns)
+local EnemyRigs = require(ReplicatedStorage.Shared.Config.EnemyRigs)
 local MeshTemplates = require(script.Parent.Parent.Util.MeshTemplates)
 
 type EnemyConfig = Balance.EnemyConfig
@@ -95,6 +96,38 @@ function EnemyModel.preload()
 	meshTemplates = MeshTemplates.load(ids)
 end
 
+--[[ A skinned mesh's bones, from its rig (`Config/EnemyRigs`), shrunk to
+     the size the body is drawn at: a skinned mesh binds its vertices to
+     bones by name, so these are what bend it. ]]
+local function addBones(part: BasePart, rigName: string)
+	local rig = EnemyRigs[rigName]
+	if not rig then
+		return
+	end
+	local made: { [string]: Bone } = {}
+	for _, spec in rig.bones do
+		local c = spec.cframe
+		local bone = Instance.new("Bone")
+		bone.Name = spec.name
+		bone.CFrame = CFrame.new(
+			c[1] * rig.scale,
+			c[2] * rig.scale,
+			c[3] * rig.scale,
+			c[4],
+			c[5],
+			c[6],
+			c[7],
+			c[8],
+			c[9],
+			c[10],
+			c[11],
+			c[12]
+		)
+		bone.Parent = made[spec.parent] or part
+		made[spec.name] = bone
+	end
+end
+
 local function buildPart(spec: DesignPart, config: EnemyConfig): BasePart
 	local part: BasePart
 
@@ -103,6 +136,12 @@ local function buildPart(spec: DesignPart, config: EnemyConfig): BasePart
 		else nil
 	if template then
 		part = template:Clone()
+		if spec.textureId then
+			(part :: MeshPart).TextureID = spec.textureId
+		end
+		if spec.rig then
+			addBones(part, spec.rig)
+		end
 	elseif spec.shape == "Wedge" then
 		part = Instance.new("WedgePart")
 	elseif spec.shape == "Ellipsoid" or spec.shape == "Mesh" then
@@ -142,6 +181,10 @@ local function buildPart(spec: DesignPart, config: EnemyConfig): BasePart
 	part.Anchored = false
 
 	part:SetAttribute(EnemyDesigns.SkinTag, true)
+	--[[ Rides a bone of the rigged body (`Fx/EnemyRig`). ]]
+	if spec.bone then
+		part:SetAttribute(EnemyDesigns.BoneTag, spec.bone)
+	end
 
 	--[[ Trim opts out, so a telegraph reads as the body lighting up behind
 	     fixed markings rather than the whole thing turning one flat colour. ]]

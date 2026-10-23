@@ -65,6 +65,9 @@ export type Clips = {
 	     made for. The bow's Hold moves only the upper body, and these give
 	     it the owner's stance and stride (`LeafBow_R15_Kit`). ]]
 	legs: { idle: string, walk: string, walkSpeed: number }?,
+	--[[ One-off clips a card plays on its own, by name (`WeaponPose.playSpecial`):
+	     the greatsword's Earthbreaker leap and slam. ]]
+	special: { [string]: string }?,
 }
 
 export type Weapon = {
@@ -270,6 +273,8 @@ local Weapons = {
 			move = "Walk",
 			moveSpeed = 6,
 			fire = { "Slash_A", "Slash_B", "Slash_C" },
+			--[[ The Earthbreaker Mythic's leap and slam, as a dash ends. ]]
+			special = { earthbreaker = "Earthbreaker" },
 		},
 		fireSound = "sword_swing",
 		--[[ A sound for each blow, made to the shape of the owner's

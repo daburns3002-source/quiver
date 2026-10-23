@@ -163,9 +163,15 @@ local function currentWeapon(): (string, Weapons.Weapon)
 end
 
 --[[ The clip a role plays on this weapon, or nil when it has none. ]]
+--[[ The one-off clip playing in the `special` role. ]]
+local specialClip: string? = nil
+
 local function clipFor(weapon: Weapons.Weapon, which: string): string?
 	if which == "fire" then
 		return weapon.clips.fire[math.max(comboIndex, 1)]
+	end
+	if which == "special" then
+		return specialClip
 	end
 	return (weapon.clips :: any)[which]
 end
@@ -198,24 +204,27 @@ local function stepPose(character: Model, now: number, dt: number)
 	local aiming = not moving and hasTarget()
 
 	--[[ A swing or a release plays out even if its target died mid-way;
-	     only moving cuts it short. ]]
-	if moving then
-		local want = if weapon.clips.move then "move" else "hold"
-		if role == "fire" and not blowLanded then
-			comboIndex = comboPrevious
-		end
-		if role ~= want then
-			play(want, 1, now)
-		end
-	elseif role ~= "fire" and not aiming then
-		if role ~= "hold" then
-			play("hold", 1, now)
-		end
-	elseif role == "hold" or role == "move" then
-		if weapon.clips.ready then
-			play("ready", cycleSpeed(), now)
-		elseif role == "move" then
-			play("hold", 1, now)
+	     only moving cuts it short. A special clip (`playSpecial`) plays out
+	     whatever happens. ]]
+	if role ~= "special" then
+		if moving then
+			local want = if weapon.clips.move then "move" else "hold"
+			if role == "fire" and not blowLanded then
+				comboIndex = comboPrevious
+			end
+			if role ~= want then
+				play(want, 1, now)
+			end
+		elseif role ~= "fire" and not aiming then
+			if role ~= "hold" then
+				play("hold", 1, now)
+			end
+		elseif role == "hold" or role == "move" then
+			if weapon.clips.ready then
+				play("ready", cycleSpeed(), now)
+			elseif role == "move" then
+				play("hold", 1, now)
+			end
 		end
 	end
 
@@ -243,6 +252,8 @@ local function stepPose(character: Model, now: number, dt: number)
 		local nextRole
 		if role == "fire" then
 			nextRole = if aiming and weapon.clips.ready then "ready" else "hold"
+		elseif role == "special" then
+			nextRole = "hold"
 		else
 			nextRole = "aim"
 		end
@@ -364,6 +375,20 @@ end
 
 --[[ Which blow of the weapon's combo played last (0 for none), for
      anything that follows the combo, such as each blow's sound. ]]
+--[[ Plays a weapon's one-off clip (`Config/Weapons.clips.special`) once,
+     through to its end, then back to Hold: the Earthbreaker Mythic's leap
+     and slam as a dash ends. Nothing for a weapon without it. ]]
+function WeaponPose.playSpecial(key: string)
+	local _, weapon = currentWeapon()
+	local special = weapon.clips.special
+	local name = special and special[key]
+	if not name then
+		return
+	end
+	specialClip = name
+	play("special", 1, os.clock())
+end
+
 function WeaponPose.comboIndex(): number
 	return comboIndex
 end

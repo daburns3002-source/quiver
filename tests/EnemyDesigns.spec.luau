@@ -43,6 +43,11 @@ local function designBounds(design: { EnemyDesigns.DesignPart }): (Vector3, Vect
 	local max = Vector3.new(-math.huge, -math.huge, -math.huge)
 
 	for _, spec in design do
+		--[[ The blob shadow is a mark on the floor, not body: it is meant
+		     to spread past the hitbox. ]]
+		if spec.name == "Shadow" then
+			continue
+		end
 		local cf = EnemyModel.localCFrame(spec)
 		local half = spec.size / 2
 

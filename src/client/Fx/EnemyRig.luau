@@ -32,6 +32,8 @@ local EnemyRig = {}
 local STILL_SPEED = 0.5
 --[[ How fast the Run fades in and out, per second. ]]
 local BLEND_RATE = 6
+--[[ A bone at rest: what the Run fades out to. ]]
+local REST = CFrame.new()
 
 type Rider = { part: BasePart, bone: Bone, offset: CFrame }
 
@@ -183,7 +185,7 @@ local function step(dt: number)
 			poses = RigClip.sample(run, body.runTime, rig.scale)
 			if body.runWeight < 1 then
 				for name, pose in poses do
-					poses[name] = CFrame.identity:Lerp(pose, body.runWeight)
+					poses[name] = REST:Lerp(pose, body.runWeight)
 				end
 			end
 		end

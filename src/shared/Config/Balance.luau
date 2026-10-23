@@ -236,12 +236,15 @@ local spreadShooter: EnemyConfig = {
 			only thing that changed. Then ×1.5 with everything else on the
 			owner's ask (2026-10-22), reach still 16.
 		]]
-		speed = 18,
+		--[[ 18 after the ×1.5, then three quarters of that at playtest
+		     (owner, 2026-10-22: "the spitter's projectiles are a bit too
+		     fast"). ]]
+		speed = 13.5,
 		--[[ Reach: the whole room, corner to corner (35 × 58, about 68
 		     studs), so a seed reaches the player wherever they stand
 		     (owner, 2026-10-22: "make sure the spitter projectiles can
 		     reach the player"). Was 16. ]]
-		lifetime = 70 / 18,
+		lifetime = 70 / 13.5,
 		--[[ Seconds of wind-up before the volley leaves, so the player reacts
 		     to the tell rather than to the projectile. ]]
 		telegraph = 0.45,
@@ -584,6 +587,9 @@ local rooms: { RoomConfig } = {
 		(a box under `Projectile.height` blocks movement, not shots).
 		Positions are the models' own, ×2.7 (the boss arena ×2.11 across
 		and ×2.38 deep: `ArenaModels`).
+
+		Counts are one fewer than first set (owner, 2026-10-22, after a
+		playtest: "one less enemy per room").
 	]]
 	{
 		name = "Mossy Glade",
@@ -595,7 +601,7 @@ local rooms: { RoomConfig } = {
 			{ offset = Vector2.new(-6.21, 19.71), size = Vector3.new(2.7, 1.2, 2.7) },
 		},
 		--[[ Moss Slimes, which walk straight at you and die. ]]
-		enemyCount = 3,
+		enemyCount = 2,
 		roster = { meleeCharger },
 	},
 	{
@@ -607,7 +613,7 @@ local rooms: { RoomConfig } = {
 			{ offset = Vector2.new(8.1, 14.31), size = Vector3.new(3.6, 1.6, 3.6) },
 		},
 		--[[ Adds the Sprout Spitter, across the water. ]]
-		enemyCount = 4,
+		enemyCount = 3,
 		roster = { meleeCharger, meleeCharger, spreadShooter },
 	},
 	{
@@ -628,7 +634,7 @@ local rooms: { RoomConfig } = {
 			{ offset = Vector2.new(-5.8, 19.06), size = Vector3.new(2, 1.5, 2) },
 		},
 		--[[ Adds the Brood Slime. ]]
-		enemyCount = 4,
+		enemyCount = 3,
 		roster = { meleeCharger, spreadShooter, broodSlime },
 	},
 	{
@@ -640,7 +646,7 @@ local rooms: { RoomConfig } = {
 			{ offset = Vector2.new(-8.64, 15.93), size = Vector3.new(3.3, 1.4, 3.3) },
 		},
 		--[[ Adds the Lancer, whose line crosses the brambles. ]]
-		enemyCount = 5,
+		enemyCount = 4,
 		roster = { meleeCharger, spreadShooter, broodSlime, lineSniper },
 	},
 	{
@@ -654,7 +660,7 @@ local rooms: { RoomConfig } = {
 		},
 		--[[ A boss room, until Act 1's bosses are built (docs/BOSSES.md): the
 		     heaviest body with an escort, as a Waves boss wave is. ]]
-		enemyCount = 4,
+		enemyCount = 3,
 		roster = { tank, meleeCharger, spreadShooter, meleeCharger },
 	},
 	{
@@ -666,7 +672,7 @@ local rooms: { RoomConfig } = {
 			{ offset = Vector2.new(8.64, 13.23), size = Vector3.new(3.3, 1.5, 3.3) },
 			{ offset = Vector2.new(-6.21, 19.71), size = Vector3.new(2.7, 1.2, 2.7) },
 		},
-		enemyCount = 5,
+		enemyCount = 4,
 		roster = { meleeCharger, spreadShooter, broodSlime, lineSniper },
 	},
 	{
@@ -678,7 +684,7 @@ local rooms: { RoomConfig } = {
 			{ offset = Vector2.new(8.1, 14.31), size = Vector3.new(3.6, 1.6, 3.6) },
 		},
 		--[[ Adds the Lurker, last because it stops being a target. ]]
-		enemyCount = 5,
+		enemyCount = 4,
 		roster = { meleeCharger, spreadShooter, burrower, broodSlime },
 	},
 	{
@@ -698,7 +704,7 @@ local rooms: { RoomConfig } = {
 			{ offset = Vector2.new(9.32, 4.54), size = Vector3.new(1.9, 1.7, 2.1) },
 			{ offset = Vector2.new(-5.8, 19.06), size = Vector3.new(2, 1.5, 2) },
 		},
-		enemyCount = 6,
+		enemyCount = 5,
 		roster = { meleeCharger, spreadShooter, lineSniper, burrower, broodSlime },
 	},
 	{
@@ -709,7 +715,7 @@ local rooms: { RoomConfig } = {
 			{ offset = Vector2.new(7.83, 6.48), size = Vector3.new(9.4, 0.4, 7) },
 			{ offset = Vector2.new(-8.64, 15.93), size = Vector3.new(3.3, 1.4, 3.3) },
 		},
-		enemyCount = 6,
+		enemyCount = 5,
 		roster = { meleeCharger, spreadShooter, lineSniper, burrower, broodSlime },
 	},
 	{
@@ -721,7 +727,7 @@ local rooms: { RoomConfig } = {
 			{ offset = Vector2.new(-11.42, 16.18), size = Vector3.new(3.9, 3.8, 4.4) },
 			{ offset = Vector2.new(11.42, 16.18), size = Vector3.new(3.9, 3.8, 4.4) },
 		},
-		enemyCount = 5,
+		enemyCount = 4,
 		roster = { tank, broodSlime, spreadShooter, meleeCharger, lineSniper },
 	},
 }

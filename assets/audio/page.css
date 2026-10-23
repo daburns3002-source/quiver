@@ -1,0 +1,43 @@
+/* Layout: a single column of sound groups, each a list of takes you tap to hear; a sticky bar at the bottom collects your picks. Styled after the game's own card UI. */
+:root {
+  --bg: #e9eef8; --panel: #ffffff; --fg: #1b1b2b; --muted: #5a6078; --line: #d3d9e8;
+  --accent: #3a7bd5; --accent-ink: #ffffff; --pick: #4cd137; --wave: #3a7bd5;
+  --display: "Luckiest Guy", "Arial Black", system-ui, sans-serif;
+  --body: "Fredoka", "Nunito", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #12131c; --panel: #1c1e2c; --fg: #eceef8; --muted: #a3a8c2; --line: #2d3045; --accent: #5b96e8; --wave: #7aaaf0; color-scheme: dark } }
+:root[data-theme="dark"] { --bg: #12131c; --panel: #1c1e2c; --fg: #eceef8; --muted: #a3a8c2; --line: #2d3045; --accent: #5b96e8; --wave: #7aaaf0; color-scheme: dark }
+body { background: var(--bg); color: var(--fg); font-family: var(--body); }
+.wrap { max-width: 760px; margin: 0 auto; padding-block: 28px 120px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 28px; }
+.top-head h1 { font-family: var(--display); font-weight: 400; font-size: clamp(32px, 6vw, 46px); margin: 0; letter-spacing: .5px; }
+.round { margin: 12px 0 -14px; font-weight: 600; color: var(--accent); text-transform: uppercase; letter-spacing: .08em; font-size: 13px; }
+.saved { margin: 8px 0 0; color: var(--muted); font-size: 13px; }
+.intro { margin: 8px 0 0; color: var(--muted); line-height: 1.45; max-width: 60ch; }
+section { display: grid; gap: 10px; }
+section header h2 { font-family: var(--display); font-weight: 400; font-size: 24px; margin: 0; letter-spacing: .4px; }
+section header p { margin: 4px 0 0; color: var(--muted); line-height: 1.4; max-width: 62ch; }
+.opts { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.opt { display: grid; grid-template-columns: auto 1fr auto; gap: 14px; align-items: center; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 10px 14px; }
+.opt.chosen { border-color: var(--pick); box-shadow: 0 0 0 2px var(--pick) inset; }
+.play { width: 48px; height: 48px; border-radius: 50%; border: 0; background: var(--accent); cursor: pointer; display: grid; place-items: center; flex: none; }
+.play:focus-visible, .rep:focus-visible, .pick input:focus-visible + span, #copy:focus-visible { outline: 3px solid var(--fg); outline-offset: 2px; }
+.play.on { transform: scale(.94); }
+.tri { width: 0; height: 0; border-left: 15px solid var(--accent-ink); border-top: 9px solid transparent; border-bottom: 9px solid transparent; margin-left: 4px; }
+.meta { min-width: 0; }
+.meta .top { display: flex; gap: 10px; align-items: baseline; }
+.meta b { font-family: var(--display); font-weight: 400; font-size: 20px; }
+.ms { color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; }
+.meta p { margin: 2px 0 4px; line-height: 1.35; }
+.wave { width: 100%; max-width: 260px; height: 30px; display: block; }
+.wave polygon { fill: var(--wave); opacity: .55; }
+.acts { display: flex; flex-direction: column; gap: 6px; align-items: stretch; }
+.rep { font: 500 12.5px var(--body); background: transparent; color: var(--accent); border: 1px solid var(--accent); border-radius: 999px; padding: 5px 10px; cursor: pointer; white-space: nowrap; }
+.pick { display: flex; }
+.pick input { position: absolute; opacity: 0; pointer-events: none; }
+.pick span { flex: 1; text-align: center; font-weight: 600; font-size: 14px; border-radius: 999px; padding: 6px 14px; border: 1px solid var(--line); cursor: pointer; }
+.pick input:checked + span { background: var(--pick); border-color: var(--pick); color: #10220c; }
+.picks { position: fixed; left: 0; right: 0; bottom: 0; background: var(--panel); border-top: 1px solid var(--line); display: flex; gap: 12px; align-items: center; justify-content: space-between; padding-block: 12px calc(12px + env(safe-area-inset-bottom, 0px)); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.picks p { margin: 0; font-weight: 500; min-width: 0; }
+#copy { font: 600 14px var(--body); background: var(--accent); color: var(--accent-ink); border: 0; border-radius: 999px; padding: 10px 16px; cursor: pointer; white-space: nowrap; }
+@media (max-width: 520px) { .opt { grid-template-columns: auto 1fr; } .acts { grid-column: 1 / -1; flex-direction: row; } .rep { flex: 1; } }
+@media (prefers-reduced-motion: reduce) { .play.on { transform: none; } }

@@ -1,0 +1,572 @@
+"""Procedural sound effects for Arrow Legends: bright, punchy, cartoony,
+lightly after Archero 2. Every sound is built from scratch here (tones,
+noise, filters, envelopes), so all of it is ours to ship.
+
+Usage: synth.py <out_dir>
+Writes <out_dir>/<sound>_<variant>.wav (44.1 kHz, 16-bit mono) and a
+manifest.json describing each variant.
+"""
+import json
+import os
+import sys
+
+import numpy as np
+from scipy import signal
+from scipy.io import wavfile
+
+SR = 44100
+rng = np.random.default_rng(20261023)
+
+
+# ---------- building blocks ----------
+
+def t_of(seconds):
+    return np.arange(int(SR * seconds)) / SR
+
+
+def env_ad(n, attack, decay_curve=6.0):
+    """Fast attack, exponential decay over the rest of n samples."""
+    a = max(1, int(SR * attack))
+    e = np.ones(n)
+    e[:a] = np.linspace(0, 1, a)
+    rest = n - a
+    if rest > 0:
+        e[a:] = np.exp(-decay_curve * np.linspace(0, 1, rest))
+    return e
+
+
+def noise(seconds):
+    return rng.standard_normal(int(SR * seconds))
+
+
+def bandpass(x, lo, hi, order=2):
+    sos = signal.butter(order, [lo, hi], btype="band", fs=SR, output="sos")
+    return signal.sosfilt(sos, x)
+
+
+def lowpass(x, cutoff, order=2):
+    sos = signal.butter(order, cutoff, btype="low", fs=SR, output="sos")
+    return signal.sosfilt(sos, x)
+
+
+def highpass(x, cutoff, order=2):
+    sos = signal.butter(order, cutoff, btype="high", fs=SR, output="sos")
+    return signal.sosfilt(sos, x)
+
+
+def sweep_filter(x, f0, f1, q=2.0, kind="band"):
+    """A filter whose centre glides from f0 to f1 across x (block-wise)."""
+    out = np.zeros_like(x)
+    block = 256
+    zi = None
+    n_blocks = int(np.ceil(len(x) / block))
+    for b in range(n_blocks):
+        frac = b / max(1, n_blocks - 1)
+        f = f0 * (f1 / f0) ** frac
+        bw = f / q
+        lo, hi = max(30, f - bw / 2), min(SR / 2 - 100, f + bw / 2)
+        sos = signal.butter(2, [lo, hi], btype="band", fs=SR, output="sos") if kind == "band" else \
+            signal.butter(2, min(f, SR / 2 - 100), btype="low", fs=SR, output="sos")
+        seg = x[b * block:(b + 1) * block]
+        if zi is None:
+            zi = signal.sosfilt_zi(sos) * 0
+        y, zi = signal.sosfilt(sos, seg, zi=zi)
+        out[b * block:b * block + len(seg)] = y
+    return out
+
+
+def chirp(seconds, f0, f1, shape="exp", wave="sine"):
+    t = t_of(seconds)
+    if shape == "exp":
+        k = np.log(f1 / f0) / seconds
+        phase = 2 * np.pi * f0 * (np.exp(k * t) - 1) / k
+    else:
+        phase = 2 * np.pi * (f0 * t + (f1 - f0) * t * t / (2 * seconds))
+    if wave == "sine":
+        return np.sin(phase)
+    if wave == "tri":
+        return 2 / np.pi * np.arcsin(np.sin(phase))
+    if wave == "square":
+        return np.tanh(4 * np.sin(phase))
+    return np.sin(phase)
+
+
+def pluck(freq, seconds, brightness=0.5, bend=0.0):
+    """Karplus-Strong plucked string; `bend` drops pitch by that ratio."""
+    n = int(SR * seconds)
+    out = np.zeros(n)
+    period = SR / freq
+    buf_len = int(period)
+    buf = rng.uniform(-1, 1, buf_len)
+    buf = lowpass(buf, 2000 + 8000 * brightness)
+    idx = 0
+    damp = 0.996
+    for i in range(n):
+        out[i] = buf[idx]
+        nxt = (idx + 1) % buf_len
+        buf[idx] = damp * 0.5 * (buf[idx] + buf[nxt])
+        idx = nxt
+    if bend:
+        # Resample to bend pitch downward over time.
+        warp = np.cumsum(1 - bend * np.linspace(0, 1, n))
+        warp = warp / warp[-1] * (n - 1)
+        out = np.interp(warp, np.arange(n), out)
+    return out
+
+
+def room(x, size=0.12, mix=0.18):
+    """A small, bright room: convolve with a short decaying noise burst."""
+    ir_n = int(SR * size)
+    ir = rng.standard_normal(ir_n) * np.exp(-np.linspace(0, 7, ir_n))
+    ir = highpass(ir, 400)
+    ir /= np.sqrt(np.sum(ir ** 2)) + 1e-9
+    wet = signal.fftconvolve(x, ir)
+    dry = np.concatenate([x, np.zeros(len(wet) - len(x))])
+    return (1 - mix) * dry + mix * wet * 0.6
+
+
+def mix(*parts):
+    n = max(len(p) for p, _ in parts)
+    out = np.zeros(n)
+    for p, gain in parts:
+        out[: len(p)] += p * gain
+    return out
+
+
+def at(x, delay):
+    return np.concatenate([np.zeros(int(SR * delay)), x])
+
+
+def sparkle(seconds, notes, spacing=0.035, decay=10):
+    """Tiny bell pings rising through `notes` (Hz)."""
+    parts = []
+    for i, f in enumerate(notes):
+        tt = t_of(seconds)
+        bell = (np.sin(2 * np.pi * f * tt) + 0.4 * np.sin(2 * np.pi * f * 2.76 * tt)) * np.exp(-decay * tt)
+        parts.append((at(bell, i * spacing), 1.0 / len(notes) ** 0.5))
+    return mix(*parts)
+
+
+def finish(x, peak_db=-1.0, fade_ms=4, target_rms=None):
+    x = x - np.mean(x)
+    f = int(SR * fade_ms / 1000)
+    x[-f:] *= np.linspace(1, 0, f)
+    x[:2] *= np.linspace(0, 1, 2)
+    # Trim trailing near-silence.
+    above = np.where(np.abs(x) > 1e-3 * np.max(np.abs(x)))[0]
+    if len(above):
+        x = x[: above[-1] + int(SR * 0.01)]
+    if target_rms:
+        x *= target_rms / (np.sqrt(np.mean(x ** 2)) + 1e-9)
+    peak = np.max(np.abs(x)) + 1e-9
+    limit = 10 ** (peak_db / 20)
+    if peak > limit:
+        x *= limit / peak
+    return x
+
+
+# ---------- arrow fire: short, light, heard ~once a second ----------
+
+def arrow_a():  # Classic twang + whoosh
+    tw = pluck(196, 0.22, brightness=0.6, bend=0.25) * env_ad(int(SR * 0.22), 0.001, 7)
+    wh = sweep_filter(noise(0.16), 1800, 6500, q=1.5) * env_ad(int(SR * 0.16), 0.02, 5)
+    return room(mix((tw, 0.9), (at(wh, 0.01), 0.55)), 0.08, 0.12)
+
+
+def arrow_b():  # Bright snap, short tail
+    tw = pluck(330, 0.12, brightness=0.9, bend=0.15) * env_ad(int(SR * 0.12), 0.0005, 9)
+    click = highpass(noise(0.012), 3000) * env_ad(int(SR * 0.012), 0.0005, 8)
+    wh = sweep_filter(noise(0.1), 3000, 8000, q=2) * env_ad(int(SR * 0.1), 0.01, 6)
+    return mix((tw, 0.8), (click, 0.4), (at(wh, 0.008), 0.45))
+
+
+def arrow_c():  # Cartoony "thwip"
+    zip_ = chirp(0.09, 1400, 380) * env_ad(int(SR * 0.09), 0.002, 5)
+    air = bandpass(noise(0.09), 2500, 7000) * env_ad(int(SR * 0.09), 0.005, 6)
+    return mix((zip_, 0.7), (air, 0.35))
+
+
+def arrow_d():  # Airy whoosh with a soft click
+    click = lowpass(noise(0.008), 4000) * env_ad(int(SR * 0.008), 0.0005, 6)
+    wh = sweep_filter(noise(0.2), 1200, 5000, q=1.2) * env_ad(int(SR * 0.2), 0.03, 4)
+    return room(mix((click, 0.6), (wh, 0.8)), 0.1, 0.15)
+
+
+def arrow_e():  # Heavier: low thunk twang + whoosh
+    tw = pluck(130, 0.25, brightness=0.4, bend=0.3) * env_ad(int(SR * 0.25), 0.001, 6)
+    thunk = chirp(0.06, 160, 70) * env_ad(int(SR * 0.06), 0.001, 6)
+    wh = sweep_filter(noise(0.15), 1500, 5000, q=1.5) * env_ad(int(SR * 0.15), 0.015, 5)
+    return room(mix((tw, 0.8), (thunk, 0.5), (at(wh, 0.012), 0.5)), 0.08, 0.12)
+
+
+# ---------- enemy hit: soft jelly impact ----------
+
+def hit_a():  # Wet squish
+    body = lowpass(noise(0.12), 900) * env_ad(int(SR * 0.12), 0.001, 7)
+    blip = chirp(0.07, 420, 140) * env_ad(int(SR * 0.07), 0.001, 6)
+    return mix((body, 0.8), (blip, 0.6))
+
+
+def hit_b():  # Punchy "thock"
+    thump = chirp(0.09, 220, 90) * env_ad(int(SR * 0.09), 0.0005, 7)
+    click = highpass(noise(0.01), 2500) * env_ad(int(SR * 0.01), 0.0005, 8)
+    return mix((thump, 1.0), (click, 0.5))
+
+
+def hit_c():  # Cartoony pop-boing
+    pop = chirp(0.06, 300, 900) * env_ad(int(SR * 0.06), 0.001, 5)
+    wob = np.sin(2 * np.pi * 520 * t_of(0.12) + 3 * np.sin(2 * np.pi * 30 * t_of(0.12))) * env_ad(int(SR * 0.12), 0.002, 6)
+    return mix((pop, 0.6), (at(wob, 0.02), 0.45))
+
+
+def hit_d():  # Crunchy impact
+    crunch = bandpass(noise(0.08), 1500, 6000) * env_ad(int(SR * 0.08), 0.0005, 8)
+    thump = chirp(0.08, 180, 70) * env_ad(int(SR * 0.08), 0.0005, 7)
+    return mix((np.tanh(3 * crunch), 0.5), (thump, 0.8))
+
+
+def hit_e():  # Soft jelly bloop
+    tt = t_of(0.15)
+    f = 260 * (1 + 0.25 * np.exp(-25 * tt) * np.sin(2 * np.pi * 18 * tt))
+    bloop = np.sin(2 * np.pi * np.cumsum(f) / SR) * env_ad(len(tt), 0.003, 6)
+    squish = lowpass(noise(0.05), 1200) * env_ad(int(SR * 0.05), 0.001, 6)
+    return mix((bloop, 0.9), (squish, 0.35))
+
+
+# ---------- enemy death: a rewarding poof ----------
+
+def death_a():  # Soft poof + rising sparkle
+    poof = sweep_filter(noise(0.35), 2500, 400, q=1.0) * env_ad(int(SR * 0.35), 0.01, 5)
+    sp = sparkle(0.3, [1568, 2093, 2637, 3136])
+    return room(mix((poof, 0.9), (at(sp, 0.05), 0.35)), 0.15, 0.2)
+
+
+def death_b():  # Pop! then a falling tone
+    pop = chirp(0.03, 600, 1800) * env_ad(int(SR * 0.03), 0.0005, 5)
+    burst = bandpass(noise(0.06), 800, 4000) * env_ad(int(SR * 0.06), 0.0005, 7)
+    fall = chirp(0.22, 900, 220, wave="tri") * env_ad(int(SR * 0.22), 0.005, 4)
+    return room(mix((pop, 0.6), (burst, 0.5), (at(fall, 0.03), 0.55)), 0.12, 0.15)
+
+
+def death_c():  # Comic "bwoop" down + poof
+    bwoop = chirp(0.28, 700, 120, wave="tri") * env_ad(int(SR * 0.28), 0.005, 3.5)
+    poof = lowpass(noise(0.25), 1500) * env_ad(int(SR * 0.25), 0.02, 5)
+    return room(mix((bwoop, 0.8), (at(poof, 0.12), 0.5)), 0.12, 0.15)
+
+
+def death_d():  # Bright shatter-poof with bells
+    shards = highpass(noise(0.12), 3500) * env_ad(int(SR * 0.12), 0.0005, 6)
+    poof = sweep_filter(noise(0.3), 2000, 500, q=1.0) * env_ad(int(SR * 0.3), 0.01, 5)
+    bells = sparkle(0.45, [2093, 2637, 3136, 4186], spacing=0.05, decay=7)
+    return room(mix((shards, 0.4), (poof, 0.7), (at(bells, 0.03), 0.45)), 0.2, 0.22)
+
+
+def death_e():  # Deep slime splat-poof
+    splat = lowpass(noise(0.2), 700) * env_ad(int(SR * 0.2), 0.002, 5)
+    drop = chirp(0.2, 260, 70) * env_ad(int(SR * 0.2), 0.002, 4)
+    sp = sparkle(0.25, [1047, 1319, 1568], spacing=0.04)
+    return room(mix((splat, 0.9), (drop, 0.6), (at(sp, 0.08), 0.25)), 0.14, 0.18)
+
+
+# ---------- round 2 helpers ----------
+
+def tone(freq, seconds, decay=6.0, partials=((1, 1.0),), attack=0.002):
+    """A struck tone: sine partials at freq * ratio, decaying together."""
+    tt = t_of(seconds)
+    x = sum(g * np.sin(2 * np.pi * freq * r * tt) for r, g in partials)
+    return x * env_ad(len(tt), attack, decay)
+
+
+BELL = ((1, 1.0), (2.76, 0.4), (5.4, 0.15))
+GLASS = ((1, 1.0), (3.0, 0.25), (6.2, 0.08))
+WARM = ((1, 1.0), (2, 0.35), (3, 0.12))
+
+
+def arp(notes, spacing, seconds, partials=BELL, decay=6.0):
+    """Notes struck one after another, each ringing on."""
+    return mix(*[(at(tone(f, seconds, decay, partials), i * spacing), 1.0) for i, f in enumerate(notes)])
+
+
+def whoosh(seconds, f0, f1, q=1.3, attack=0.02, decay=4.0):
+    return sweep_filter(noise(seconds), f0, f1, q=q) * env_ad(int(SR * seconds), attack, decay)
+
+
+# ---------- staff cast: the Arcanist's bolt, every 1.4 s ----------
+
+def cast_a():  # Shimmering rising zap
+    zap = chirp(0.18, 500, 1800, wave="tri") * env_ad(int(SR * 0.18), 0.003, 4)
+    shim = sparkle(0.25, [2093, 2637, 3136], spacing=0.025, decay=12)
+    return room(mix((zap, 0.6), (whoosh(0.2, 1500, 6000), 0.5), (shim, 0.3)), 0.12, 0.18)
+
+
+def cast_b():  # Soft magic fwoom
+    body = sweep_filter(noise(0.3), 300, 2200, q=1.0) * env_ad(int(SR * 0.3), 0.03, 4)
+    hum = chirp(0.3, 180, 360) * env_ad(int(SR * 0.3), 0.02, 4)
+    return room(mix((body, 0.9), (hum, 0.5)), 0.15, 0.2)
+
+
+def cast_c():  # Crystal ping, then a whoosh
+    ping = tone(1568, 0.35, 7, GLASS)
+    return room(mix((ping, 0.6), (at(whoosh(0.18, 2000, 7000, q=1.6), 0.02), 0.6)), 0.14, 0.2)
+
+
+def cast_d():  # Electric crackle bolt
+    n = int(SR * 0.16)
+    buzz = np.sign(np.sin(2 * np.pi * 95 * t_of(0.16))) * env_ad(n, 0.002, 5)
+    crack = highpass(noise(0.16), 2500) * (rng.random(n) > 0.85) * env_ad(n, 0.001, 4)
+    zap = chirp(0.12, 2400, 600) * env_ad(int(SR * 0.12), 0.001, 5)
+    return mix((lowpass(buzz, 1800), 0.35), (crack, 0.6), (zap, 0.5))
+
+
+# ---------- player hurt: has to cut through a fight ----------
+
+def hurt_a():  # Dull thud with a low tone
+    thud = chirp(0.14, 160, 55) * env_ad(int(SR * 0.14), 0.001, 6)
+    body = lowpass(noise(0.1), 700) * env_ad(int(SR * 0.1), 0.001, 7)
+    return mix((thud, 1.0), (body, 0.5))
+
+
+def hurt_b():  # Sharp crack, falling tone
+    crack = highpass(noise(0.03), 2000) * env_ad(int(SR * 0.03), 0.0005, 7)
+    fall = chirp(0.22, 700, 180, wave="square") * env_ad(int(SR * 0.22), 0.002, 5)
+    return mix((crack, 0.7), (lowpass(fall, 2500), 0.5))
+
+
+def hurt_c():  # Muffled punch that rings
+    punch = chirp(0.08, 200, 80) * env_ad(int(SR * 0.08), 0.0005, 6)
+    ring = tone(440, 0.3, 8, ((1, 1.0), (1.5, 0.5)))
+    return mix((punch, 1.0), (ring, 0.3))
+
+
+def hurt_d():  # Cartoony bonk
+    bonk = tone(620, 0.18, 9, ((1, 1.0), (2.3, 0.4)))
+    knock = lowpass(noise(0.02), 3000) * env_ad(int(SR * 0.02), 0.0005, 6)
+    return mix((bonk, 0.8), (knock, 0.6))
+
+
+# ---------- dash: every 4 s at most ----------
+
+def dash_a():  # Quick whoosh
+    return whoosh(0.22, 900, 4500, q=1.2, attack=0.01, decay=5)
+
+
+def dash_b():  # Whoosh rising in pitch
+    return mix((whoosh(0.25, 600, 6000, q=2.0, attack=0.02, decay=4), 0.9),
+               (chirp(0.2, 300, 900) * env_ad(int(SR * 0.2), 0.02, 5), 0.25))
+
+
+def dash_c():  # Airy swish with a sparkle
+    return room(mix((whoosh(0.2, 2000, 7000, q=1.5, attack=0.005, decay=5), 0.8),
+                    (at(sparkle(0.2, [2637, 3520], spacing=0.04, decay=14), 0.06), 0.25)), 0.1, 0.15)
+
+
+def dash_d():  # Low, heavy woosh
+    return mix((whoosh(0.3, 250, 1600, q=1.0, attack=0.02, decay=4), 1.0),
+               (chirp(0.25, 90, 60) * env_ad(int(SR * 0.25), 0.02, 4), 0.4))
+
+
+# ---------- XP crystal: many at once, so tiny ----------
+
+def xp_a():  # Tiny high ping
+    return tone(2637, 0.12, 14, GLASS)
+
+
+def xp_b():  # Glassy tick
+    return mix((tone(3520, 0.06, 20, GLASS), 0.8), (highpass(noise(0.006), 5000), 0.2))
+
+
+def xp_c():  # Two-note blip up
+    return arp([1760, 2349], 0.04, 0.09, GLASS, 14)
+
+
+def xp_d():  # Soft chime
+    return tone(1976, 0.2, 9, BELL)
+
+
+# ---------- heart: heals 20% ----------
+
+def heart_a():  # Warm two notes up
+    return room(arp([659, 988], 0.08, 0.35, WARM, 6), 0.15, 0.2)
+
+
+def heart_b():  # Bubbly healing shimmer
+    bubbles = mix(*[(at(chirp(0.05, f, f * 1.8) * env_ad(int(SR * 0.05), 0.003, 5), i * 0.035), 0.5)
+                    for i, f in enumerate([500, 650, 800, 1000, 1250])])
+    return room(mix((bubbles, 0.8), (at(sparkle(0.3, [1568, 2093]), 0.12), 0.3)), 0.15, 0.2)
+
+
+def heart_c():  # Bell chord
+    return room(mix((tone(784, 0.5, 5, BELL), 0.6), (tone(988, 0.5, 5, BELL), 0.5),
+                    (tone(1175, 0.5, 5, BELL), 0.4)), 0.2, 0.22)
+
+
+def heart_d():  # Soft ding and sparkle
+    return room(mix((tone(1319, 0.4, 6, WARM), 0.7), (at(sparkle(0.3, [2093, 2637, 3136]), 0.05), 0.3)), 0.15, 0.2)
+
+
+# ---------- level up: the draft is about to open ----------
+
+def level_a():  # Rising arpeggio
+    return room(arp([523, 659, 784, 1047], 0.07, 0.5, BELL, 5), 0.2, 0.25)
+
+
+def level_b():  # Little fanfare
+    return room(mix((arp([523, 784], 0.1, 0.25, WARM, 7), 0.7), (at(tone(1047, 0.6, 3.5, WARM), 0.2), 0.7)), 0.2, 0.25)
+
+
+def level_c():  # Shimmer sweeping up
+    sweep = sweep_filter(noise(0.6), 800, 8000, q=4) * env_ad(int(SR * 0.6), 0.2, 3)
+    return room(mix((sweep, 0.6), (at(sparkle(0.4, [1568, 2093, 2637, 3136, 4186], spacing=0.05), 0.25), 0.5)), 0.25, 0.3)
+
+
+def level_d():  # Magic chord swelling in
+    chord = sum(tone(f, 0.8, 3, BELL, attack=0.12) for f in [523, 659, 784, 1047]) / 2
+    return room(chord, 0.3, 0.3)
+
+
+# ---------- card pick ----------
+
+def card_a():  # Flick and a ding
+    flick = bandpass(noise(0.03), 1500, 6000) * env_ad(int(SR * 0.03), 0.001, 7)
+    return mix((flick, 0.6), (at(tone(1568, 0.35, 7, BELL), 0.02), 0.6))
+
+
+def card_b():  # Whoosh into a thump
+    return mix((whoosh(0.15, 1200, 4000, q=1.5, attack=0.02, decay=4), 0.6),
+               (at(chirp(0.08, 200, 90) * env_ad(int(SR * 0.08), 0.001, 6), 0.12), 0.8))
+
+
+def card_c():  # Bright chime
+    return room(arp([1319, 1976], 0.05, 0.4, GLASS, 6), 0.15, 0.2)
+
+
+def card_d():  # Paper snap
+    snap = highpass(noise(0.025), 1800) * env_ad(int(SR * 0.025), 0.0005, 9)
+    return mix((np.tanh(2 * snap), 0.8), (at(tone(880, 0.12, 12, WARM), 0.005), 0.3))
+
+
+# ---------- exit gate opens ----------
+
+def gate_a():  # Magic swell
+    swell = sweep_filter(noise(0.9), 400, 3000, q=2) * env_ad(int(SR * 0.9), 0.3, 3)
+    return room(mix((swell, 0.6), (tone(392, 0.9, 3, BELL, attack=0.25), 0.4),
+                    (tone(587, 0.9, 3, BELL, attack=0.3), 0.3)), 0.3, 0.3)
+
+
+def gate_b():  # Stone rumble then a chime
+    rumble = lowpass(noise(0.5), 180) * env_ad(int(SR * 0.5), 0.05, 4)
+    return room(mix((rumble, 1.0), (at(arp([784, 1175], 0.08, 0.5, BELL, 5), 0.3), 0.5)), 0.25, 0.25)
+
+
+def gate_c():  # Whoosh open and a bell
+    return room(mix((whoosh(0.5, 300, 4000, q=1.2, attack=0.15, decay=3), 0.7),
+                    (at(tone(1047, 0.7, 4, BELL), 0.25), 0.5)), 0.3, 0.3)
+
+
+def gate_d():  # Airy chord
+    chord = sum(tone(f, 1.0, 2.5, WARM, attack=0.2) for f in [392, 494, 587, 784]) / 2
+    air = sweep_filter(noise(1.0), 2000, 6000, q=3) * env_ad(int(SR * 1.0), 0.3, 3)
+    return room(mix((chord, 0.7), (air, 0.25)), 0.3, 0.3)
+
+
+ROUND2 = {
+    "staff_cast": [
+        ("a", cast_a, "Shimmering zap rising, with a whoosh and a sparkle."),
+        ("b", cast_b, "Soft magic \"fwoom\": warm and low."),
+        ("c", cast_c, "A crystal ping, then a bright whoosh."),
+        ("d", cast_d, "Electric crackle: a buzzing, snapping bolt."),
+    ],
+    "player_hurt": [
+        ("a", hurt_a, "Dull thud with a low tone."),
+        ("b", hurt_b, "Sharp crack and a falling tone; the most alarming."),
+        ("c", hurt_c, "Muffled punch that rings a little."),
+        ("d", hurt_d, "Cartoony \"bonk\"."),
+    ],
+    "dash": [
+        ("a", dash_a, "A quick whoosh."),
+        ("b", dash_b, "A whoosh that rises in pitch."),
+        ("c", dash_c, "Airy swish with a sparkle."),
+        ("d", dash_d, "Low, heavy woosh."),
+    ],
+    "xp_pickup": [
+        ("a", xp_a, "Tiny high ping."),
+        ("b", xp_b, "Glassy tick; the shortest."),
+        ("c", xp_c, "Two-note blip up."),
+        ("d", xp_d, "Soft chime."),
+    ],
+    "heart_pickup": [
+        ("a", heart_a, "Two warm notes going up."),
+        ("b", heart_b, "Bubbly healing shimmer."),
+        ("c", heart_c, "A bell chord."),
+        ("d", heart_d, "A soft ding and a sparkle."),
+    ],
+    "level_up": [
+        ("a", level_a, "Rising four-note arpeggio."),
+        ("b", level_b, "A little fanfare."),
+        ("c", level_c, "A shimmer sweeping up into sparkles."),
+        ("d", level_d, "A magic chord swelling in."),
+    ],
+    "card_pick": [
+        ("a", card_a, "A card flick and a ding."),
+        ("b", card_b, "A whoosh landing in a thump."),
+        ("c", card_c, "A bright two-note chime."),
+        ("d", card_d, "A crisp paper snap."),
+    ],
+    "gate_open": [
+        ("a", gate_a, "A magic swell with two bells."),
+        ("b", gate_b, "Stone rumble, then a chime."),
+        ("c", gate_c, "A whoosh opening into a bell."),
+        ("d", gate_d, "An airy chord."),
+    ],
+}
+
+LEVEL2 = {
+    "staff_cast": 0.12, "player_hurt": 0.18, "dash": 0.11, "xp_pickup": 0.07,
+    "heart_pickup": 0.12, "level_up": 0.13, "card_pick": 0.12, "gate_open": 0.12,
+}
+
+
+SOUNDS = {
+    "arrow_fire": [
+        ("a", arrow_a, "Classic bow twang with a whoosh behind it."),
+        ("b", arrow_b, "Bright, snappy twang; the shortest and lightest."),
+        ("c", arrow_c, "Cartoony \"thwip\": a quick falling zip, no string."),
+        ("d", arrow_d, "Mostly air: a soft click and a whoosh."),
+        ("e", arrow_e, "Heavier: a low twang with a thunk."),
+    ],
+    "enemy_hit": [
+        ("a", hit_a, "Wet squish, suits the slimes."),
+        ("b", hit_b, "Punchy \"thock\": a tight thump and a click."),
+        ("c", hit_c, "Cartoony pop with a little wobble."),
+        ("d", hit_d, "Crunchy impact with weight."),
+        ("e", hit_e, "Soft jelly bloop that wobbles in pitch."),
+    ],
+    "enemy_death": [
+        ("a", death_a, "Soft poof with a rising sparkle."),
+        ("b", death_b, "Pop! then a falling tone."),
+        ("c", death_c, "Comic \"bwoop\" falling, then a poof."),
+        ("d", death_d, "Bright shatter-poof with bells."),
+        ("e", death_e, "Deep slime splat with a small sparkle."),
+    ],
+}
+
+# Each sound family is levelled to the same loudness, so variants compare
+# fairly; the families sit at different levels the way they would in game.
+LEVEL = {"arrow_fire": 0.10, "enemy_hit": 0.16, "enemy_death": 0.14}
+
+SOUNDS.update(ROUND2)
+LEVEL.update(LEVEL2)
+
+if __name__ == "__main__":
+    out = sys.argv[1]
+    os.makedirs(out, exist_ok=True)
+    manifest = {}
+    for name, variants in SOUNDS.items():
+        manifest[name] = []
+        for letter, fn, note in variants:
+            x = finish(fn(), target_rms=LEVEL[name])
+            path = os.path.join(out, f"{name}_{letter}.wav")
+            wavfile.write(path, SR, (np.clip(x, -1, 1) * 32767).astype(np.int16))
+            manifest[name].append({"variant": letter, "file": os.path.basename(path), "note": note, "ms": round(len(x) / SR * 1000)})
+            print(name, letter, round(len(x) / SR * 1000), "ms")
+    json.dump(manifest, open(os.path.join(out, "manifest.json"), "w"), indent=1)

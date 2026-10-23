@@ -1460,8 +1460,13 @@ local Balance = {
 		     floor fills about 87% of its width, the Archero 2 footage's
 		     framing, rather than 67%. ]]
 		phone = {
-			fitWidth = 40,
-			minVisibleDepth = 34,
+			--[[ 40 and 34 until "the camera view also needs to be zoomed in
+			     a little more on the phone" (owner, 2026-10-22): the floor
+			     now fills about 97% of an upright phone's width, still all
+			     of it (CameraFit.spec), and sideways shows 30 studs of
+			     depth. ]]
+			fitWidth = 36,
+			minVisibleDepth = 30,
 		},
 	},
 }

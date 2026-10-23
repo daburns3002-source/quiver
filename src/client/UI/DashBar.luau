@@ -56,7 +56,10 @@ function DashBar.start()
 	local gui = Instance.new("ScreenGui")
 	gui.Name = "DashBar"
 	gui.ResetOnSpawn = false
-	gui.IgnoreGuiInset = true
+	--[[ Inside the phone's safe area, clear of the home bar and rounded
+	     corners: ignoring it, the bottom of the HUD ran under them and was
+	     cut off (owner, 2026-10-22). ]]
+	gui.ScreenInsets = Enum.ScreenInsets.DeviceSafeInsets
 	gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
 	--[[ Same anchor and width as the health bar so the two read as one block

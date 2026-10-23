@@ -22,6 +22,7 @@ local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
 local Dash = require(script.Parent.Dash)
+local HudLayout = require(script.Parent.Parent.UI.HudLayout)
 
 local DashButton = {}
 
@@ -71,7 +72,10 @@ function DashButton.start(pressed: () -> ())
 
 	local created = Instance.new("ScreenGui")
 	created.Name = "DashButton"
-	created.IgnoreGuiInset = true
+	--[[ Inside the phone's safe area, clear of the home bar and rounded
+	     corners: ignoring it, the bottom of the HUD ran under them and was
+	     cut off (owner, 2026-10-22). ]]
+	created.ScreenInsets = Enum.ScreenInsets.DeviceSafeInsets
 	created.ResetOnSpawn = false
 	--[[ Under the hit vignette, which is a full-screen flash, and over the
 	     world. ]]
@@ -84,6 +88,14 @@ function DashButton.start(pressed: () -> ())
 	button.Size = UDim2.fromOffset(SIZE, SIZE)
 	button.AnchorPoint = Vector2.new(1, 1)
 	button.Position = UDim2.new(1, -MARGIN, 1, -MARGIN)
+	--[[ Lifted above the HUD stack on a narrow phone, where the stack
+	     reaches under the corner. ]]
+	local layoutConnection = HudLayout.bind(function(layout)
+		button.Position = layout.dashButtonPosition
+	end)
+	if layoutConnection then
+		table.insert(connections, layoutConnection)
+	end
 	button.BackgroundColor3 = COOLING_COLOUR
 	button.BackgroundTransparency = 0.25
 	button.AutoButtonColor = false

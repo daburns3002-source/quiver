@@ -5,7 +5,8 @@
 	Built on the server, so every player in a co-op run sees it. Each part is
 	a clone of a mesh template welded to the hand: massless, never colliding,
 	answering a raycast, or touching, so it cannot change how the body moves
-	or catch an enemy shot. The arms are posed on the client (`Fx/ArcherPose`).
+	or catch an enemy shot. The arms are posed on the client (`Fx/ArcherPose`),
+	which also draws a bow's live string and nocked arrow (`Fx/BowString`).
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -78,12 +79,29 @@ function HeldWeapon.equip(character: Model, weaponName: string)
 		--[[ White, so the model's own vertex colours show. ]]
 		part.Color = Color3.new(1, 1, 1)
 		part.Material = if spec.glow then Enum.Material.Neon else Enum.Material.SmoothPlastic
+		if spec.nocked then
+			part.Transparency = 1
+			part:SetAttribute("Nocked", true)
+		end
+		if spec.liveString then
+			part:SetAttribute("LiveString", true)
+		end
 
 		local weld = Instance.new("WeldConstraint")
 		weld.Part0 = hand
 		weld.Part1 = part
 		weld.Parent = part
 		part.Parent = model
+
+		--[[ The model's origin, the grip, so the client can place the live
+		     string and the nocked arrow in the bow's own units. ]]
+		if not model:FindFirstChild("WeaponOrigin", true) then
+			local origin = Instance.new("Attachment")
+			origin.Name = "WeaponOrigin"
+			origin.CFrame = part.CFrame:ToObjectSpace(frame)
+			origin:SetAttribute("Scale", weapon.scale)
+			origin.Parent = part
+		end
 	end
 
 	model.Parent = character

@@ -433,6 +433,80 @@ local broodSlime: Design = {
 	},
 }
 
+--[[
+	The Slime King, Mossy Glade's boss (the owner's
+	design_handoff_slime_king, 2026-10-23): a crowned jelly in a mantle, two
+	arms the Slime Lash throws.
+
+	From `assets/models/bosses/king_bloblin/slime_king_roblox.glb`, slimmed
+	by `optimise_enemy.py slime_king` to Body, Eyes, Decor and the two arms,
+	×2 so he stands 9.8 studs tall. Sizes and offsets are the meshes' own,
+	measured in the optimised file. **Until the owner imports it** the parts
+	have no `meshId` and `EnemyModel` draws them as ellipsoids: a green jelly
+	with amber eyes and a gold crown standing in for Decor (crown, mantle,
+	collar, brooch). Once imported, Body and the arms go white (vertex
+	colours) and `Decor` replaces `Crown`.
+
+	The parts are posed by the server while he moves (`BossBody`), so the
+	arms must be named `Arm_L` and `Arm_R`, as the lash looks them up.
+]]
+local KING_TURN = Vector3.new(0, 180, 0)
+local KING_JELLY = Color3.fromRGB(127, 203, 36)
+local slimeKing: Design = {
+	shadow(7.6, 6, 9.8),
+	{
+		name = "Body",
+		shape = "Mesh",
+		size = Vector3.new(6.50, 7.64, 5.21),
+		offset = Vector3.new(0.02, -0.49, -1.02),
+		rotation = KING_TURN,
+		shade = 1,
+		color = KING_JELLY,
+	},
+	{
+		name = "Eyes",
+		shape = "Mesh",
+		size = Vector3.new(2.65, 1.17, 0.51),
+		--[[ Out on the jelly's face while it is an ellipsoid; the mesh's own
+		     place is (0.03, 2.11, -2.46), in its cut sockets. ]]
+		offset = Vector3.new(0.03, 2.11, -2.75),
+		rotation = KING_TURN,
+		shade = 1,
+		-- Act 1's eye colour (amber), glowing.
+		color = Color3.fromRGB(255, 176, 32),
+		material = Enum.Material.Neon,
+		tint = false,
+	},
+	{
+		name = "Arm_L",
+		shape = "Mesh",
+		size = Vector3.new(2.04, 2.22, 2.04),
+		offset = Vector3.new(3.71, -0.82, -1.29),
+		rotation = KING_TURN,
+		shade = 1,
+		color = KING_JELLY,
+	},
+	{
+		name = "Arm_R",
+		shape = "Mesh",
+		size = Vector3.new(2.04, 2.22, 2.04),
+		offset = Vector3.new(-3.66, -0.83, -1.29),
+		rotation = KING_TURN,
+		shade = 1,
+		color = KING_JELLY,
+	},
+	{
+		name = "Crown",
+		shape = "Cylinder",
+		size = Vector3.new(1.9, 3.2, 3.2),
+		offset = Vector3.new(0, 3.93, -0.1),
+		rotation = Vector3.new(0, 0, 90),
+		shade = 1,
+		color = Color3.fromRGB(255, 196, 60),
+		tint = false,
+	},
+}
+
 --[[ Keyed by `EnemyConfig.displayName`, which is what the model is named and
      the only identifier an archetype actually carries. ]]
 local EnemyDesigns = {
@@ -445,6 +519,7 @@ local EnemyDesigns = {
 	Bulwark = bulwark,
 	Lurker = lurker,
 	BroodSlime = broodSlime,
+	SlimeKing = slimeKing,
 }
 
 return table.freeze(EnemyDesigns)

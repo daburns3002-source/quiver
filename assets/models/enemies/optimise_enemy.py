@@ -3,12 +3,15 @@
 Usage: optimise_enemy.py <in.glb> <out.glb> <enemy>
 
 Three meshes out: Body (jelly), Eyes (recoloured per act by the game) and
-Decor (everything else). Colours become vertex colours either way: a
+Decor (everything else), plus any part an enemy lists in `separate`, kept
+as its own mesh because the game moves it on its own (the Slime King's
+arms, which the Slime Lash throws). Colours become vertex colours either way: a
 vertex-coloured part keeps COLOR_0 (linear -> sRGB), a textured part has
 its texture sampled onto its vertices. Eye sockets are cut where the eyes
 sit behind the body. Turned 180 degrees about Y so the face looks down -Z,
 centred on X/Z with its base at y = 0. Per-enemy budgets and tweaks are in
-ENEMIES below. First used for the Moss Slime, then the Sprout Spitter and the Brood Slime.
+ENEMIES below. First used for the Moss Slime, then the Sprout Spitter, the Brood Slime and
+the Slime King (Mossy Glade's boss).
 """
 import sys
 import numpy as np
@@ -125,6 +128,17 @@ ENEMIES = {
             "Baby_1_Eyes": 96, "Baby_2_Eyes": 96, "Baby_3_Eyes": 96, "Baby_4_Eyes": 96,
         },
     },
+    # The boss (owner's design_handoff_slime_king, 2026-10-23): 95k triangles
+    # in, about 10k out. The arms stay separate for the Slime Lash.
+    "slime_king": {
+        "shrink": {},
+        "separate": ["Arm_L", "Arm_R"],
+        "budget": {
+            "Body": 3000, "Eyes": 400, "Eye_Catchlights": 80, "Arm_L": 700, "Arm_R": 700,
+            "Feet": 600, "Brows": 240, "Crown": 1400, "Brooch": 108, "Emeralds": 12,
+            "Collar": 900, "Mantle": 1800,
+        },
+    },
 }
 settings = ENEMIES[ENEMY]
 for name, factor in settings["shrink"].items():
@@ -140,14 +154,16 @@ for name, g in parts.items():
 
 body = slim["Body"]
 eyes = slim["Eyes"]
-decor = trimesh.util.concatenate([slim[n] for n in slim if n not in ("Body", "Eyes")])
+separate = settings.get("separate", [])
+loose = {n: slim[n] for n in separate}
+decor = trimesh.util.concatenate([slim[n] for n in slim if n not in ("Body", "Eyes", *separate)])
 
 # turn to face -Z, centre on X/Z, base at y = 0
-everything = trimesh.util.concatenate([body, eyes, decor])
+everything = trimesh.util.concatenate([body, eyes, decor, *loose.values()])
 lo, hi = everything.bounds
 centre = np.array([(lo[0] + hi[0]) / 2, lo[1], (lo[2] + hi[2]) / 2])
 R = trimesh.transformations.rotation_matrix(np.pi, [0, 1, 0])
-for m in (body, eyes, decor):
+for m in (body, eyes, decor, *loose.values()):
     m.apply_translation(-centre)
     m.apply_transform(R)
 
@@ -155,8 +171,12 @@ out = trimesh.Scene()
 out.add_geometry(body, node_name="Body", geom_name="Body")
 out.add_geometry(eyes, node_name="Eyes", geom_name="Eyes")
 out.add_geometry(decor, node_name="Decor", geom_name="Decor")
+for name, m in loose.items():
+    out.add_geometry(m, node_name=name, geom_name=name)
 out.export(OUT)
-total = len(body.faces) + len(eyes.faces) + len(decor.faces)
-b = trimesh.util.concatenate([body, eyes, decor]).bounds
+total = len(everything.faces)
+b = trimesh.util.concatenate([body, eyes, decor, *loose.values()]).bounds
+for name, m in {"Body": body, "Eyes": eyes, "Decor": decor, **loose}.items():
+    print(f"  {name:8s} lo {np.round(m.bounds[0], 3).tolist()} hi {np.round(m.bounds[1], 3).tolist()}")
 print("total tris", total, "bounds", np.round(b, 3).tolist())
 print("eyes centre z", round(float(eyes.bounds.mean(axis=0)[2]), 3), "(negative = facing -Z)")

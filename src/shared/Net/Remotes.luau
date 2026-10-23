@@ -150,6 +150,16 @@ Remotes.SoulLink = "SoulLink"
 --[[ Server → one client. A hit on this player missed: Agility. ]]
 Remotes.PlayerDodged = "PlayerDodged"
 
+--[[ Server → one client. A boss's hit pushes this player: a flat
+     direction and a distance in studs. The client drives its own character
+     there over `Balance.Shove.duration`, as it does a dash, so walls stop it. ]]
+Remotes.PlayerShoved = "PlayerShoved"
+
+--[[ Server → one client. A boss holds this player still for the given
+     seconds (the Slime Lash's grab); 0 lets go. Time-limited, so a boss
+     that dies mid-grab cannot leave anyone stuck. ]]
+Remotes.PlayerGrabbed = "PlayerGrabbed"
+
 --[[ Client → server. Redeal the open hand. The server checks there is a
      hand and a reroll left; the client says nothing else. ]]
 Remotes.AbilityReroll = "AbilityReroll"
@@ -164,6 +174,8 @@ Remotes.DebugNextClass = "DebugNextClass"
 --[[ Client → server, Studio only: grant one level of the named card, so a
      probe can test its effect without drafting it by luck. ]]
 Remotes.DebugGrant = "DebugGrant"
+--[[ Client → server, Studio only: jump to a room of a Rooms stage. ]]
+Remotes.DebugRoom = "DebugRoom"
 
 local function getFolder(): Folder
 	if RunService:IsServer() then

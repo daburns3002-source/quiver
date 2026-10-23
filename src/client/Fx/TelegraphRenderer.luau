@@ -236,16 +236,122 @@ local function drawDiveMarker(origin: Vector3)
 	Debris:AddItem(disc, duration)
 end
 
+--[[
+	A boss's slam (the Slime King's Royal Bounce): a red circle where it
+	will land, at full size from the first frame, and a disc filling it
+	that is full at the moment of impact.
+]]
+local function drawSlam(origin: Vector3, duration: number, radius: number)
+	local colour = Balance.Telegraph.bossColor
+	local ring = groundDisc(origin, "TelegraphSlam", colour, radius * 2)
+	ring.Transparency = 0.55
+	local fill = groundDisc(origin, "TelegraphSlamFill", colour, 0.2)
+	fill.Transparency = 0.35
+	TweenService:Create(fill, TweenInfo.new(duration, Enum.EasingStyle.Linear), {
+		Size = Vector3.new(0.25, radius * 2, radius * 2),
+	}):Play()
+	Debris:AddItem(ring, duration)
+	Debris:AddItem(fill, duration)
+end
+
+--[[ The slam landing: a green ring rushing out and fading. ]]
+local function drawShockwave(origin: Vector3, duration: number, radius: number)
+	local ring = groundDisc(origin, "Shockwave", Balance.Telegraph.shockColor, radius * 0.6)
+	ring.Transparency = 0.3
+	TweenService
+		:Create(ring, TweenInfo.new(duration, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+			Size = Vector3.new(0.2, radius * 2, radius * 2),
+			Transparency = 1,
+		})
+		:Play()
+	Debris:AddItem(ring, duration)
+end
+
+--[[ A flat strip on the floor from `origin` along `direction`. ]]
+local function laneStrip(
+	origin: Vector3,
+	direction: Vector3,
+	length: number,
+	width: number,
+	name: string
+): BasePart
+	local strip = Instance.new("Part")
+	strip.Name = name
+	strip.Anchored = true
+	strip.CanCollide = false
+	strip.CanQuery = false
+	strip.CanTouch = false
+	strip.CastShadow = false
+	strip.Material = Enum.Material.Neon
+	strip.Color = Balance.Telegraph.bossColor
+	strip.Size = Vector3.new(width, 0.1, math.max(length, 0.05))
+	local mid = Vector3.new(origin.X, 0.12, origin.Z) + direction * (length / 2)
+	strip.CFrame = CFrame.lookAt(mid, mid + direction)
+	strip.Parent = folder
+	return strip
+end
+
+--[[
+	A boss's lash lane (the Slime Lash). Pale while it is still following
+	the player (`LaneAim`); once it locks (`Lane`) it brightens and a fill
+	runs down it, reaching the end as the fist lands.
+]]
+local function drawLane(
+	origin: Vector3,
+	direction: Vector3,
+	duration: number,
+	length: number,
+	width: number,
+	locked: boolean
+)
+	local lane = laneStrip(origin, direction, length, width, "TelegraphLane")
+	lane.Transparency = if locked then 0.4 else 0.75
+	Debris:AddItem(lane, duration)
+	if not locked then
+		return
+	end
+	local fill = laneStrip(origin, direction, 0.05, width, "TelegraphLaneFill")
+	fill.Transparency = 0.45
+	local start = Vector3.new(origin.X, 0.14, origin.Z)
+	TweenService:Create(fill, TweenInfo.new(duration, Enum.EasingStyle.Linear), {
+		Size = Vector3.new(width, 0.12, length),
+		CFrame = CFrame.lookAt(
+			start + direction * (length / 2),
+			start + direction * (length / 2 + 1)
+		),
+	}):Play()
+	Debris:AddItem(fill, duration)
+end
+
 --[[ `tell` and `reach` come straight off the enemy's config on the server; the
-     client never decides whether a warning is owed, only how to show it. ]]
+     client never decides whether a warning is owed, only how to show it.
+     `width` is sent only for a lane. ]]
 function TelegraphRenderer.onTelegraph(
 	origin: Vector3,
 	direction: Vector3,
 	duration: number,
 	tell: string,
-	reach: number
+	reach: number,
+	width: number?
 )
 	if duration <= 0 then
+		return
+	end
+
+	if tell == "Slam" then
+		drawSlam(origin, duration, reach)
+		return
+	end
+
+	if tell == "Shockwave" then
+		drawShockwave(origin, duration, reach)
+		return
+	end
+
+	if tell == "LaneAim" or tell == "Lane" then
+		if direction.Magnitude > 1e-3 then
+			drawLane(origin, direction.Unit, duration, reach, width or 3, tell == "Lane")
+		end
 		return
 	end
 

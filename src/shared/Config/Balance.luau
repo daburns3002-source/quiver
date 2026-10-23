@@ -37,7 +37,15 @@ export type EnemyTell = "Flash" | "Line" | "Ground"
 	they are the same thing to render — a mark at a point, for a moment — but
 	`EnemyShot.tell` must not be allowed to name one.
 ]]
-export type TelegraphTell = EnemyTell | "Dive" | "Spawn" | "Split"
+export type TelegraphTell =
+	EnemyTell
+	| "Dive"
+	| "Spawn"
+	| "Split"
+	| "Slam"
+	| "Shockwave"
+	| "LaneAim"
+	| "Lane"
 
 --[[
 	What an enemy becomes when it dies, if anything: `count` of `into`,
@@ -119,6 +127,66 @@ export type EnemyBurrow = {
 	cooldown: number,
 }
 
+--[[
+	A boss's moves (docs/BOSSES.md; the Slime King's from the owner's
+	design_handoff_slime_king, 2026-10-23). A boss does not walk and swing:
+	it plays its moves in a loop, `Enemies/BossMoves` running each one as a
+	timeline and `EnemyManager` resolving what lands. Times are seconds,
+	distances studs; `shove` is how far a hit pushes the player.
+]]
+--[[ Royal Bounce: a telegraphed hop, slam and shockwave, `bounces` times,
+     each landing where the target stood at takeoff (no homing), then a
+     winded pause that is the punish window. ]]
+export type BossBounce = {
+	bounces: number,
+	windup: number,
+	launch: number,
+	air: number,
+	recover: number,
+	winded: number,
+	height: number,
+	maxRange: number,
+	radius: number,
+	damage: number,
+	shove: number,
+	shockRadius: number,
+}
+
+--[[ Slime Lash: an arm thrown down a lane that tracks the target for
+     `track`, then locks; a hit grabs the first player in it, pulls the boss
+     to them and ends in a chest bump. One lash per arm in `arms`. ]]
+export type BossLash = {
+	arms: { string },
+	wind: number,
+	track: number,
+	strike: number,
+	hold: number,
+	retract: number,
+	reach: number,
+	minReach: number,
+	width: number,
+	damage: number,
+	shove: number,
+	pull: number,
+	bump: number,
+	bumpDamage: number,
+	bumpShove: number,
+	recover: number,
+	stopDistance: number,
+}
+
+export type EnemyBoss = {
+	--[[ What the boss bar calls it. ]]
+	title: string,
+	bounce: BossBounce,
+	lash: BossLash,
+	--[[ Seconds it rests after each move; the moves loop Bounce, Lash. ]]
+	restAfterBounce: number,
+	restAfterLash: number,
+	--[[ Seconds before its first move, once it has arrived. ]]
+	opening: number,
+}
+
 export type EnemyConfig = {
 	displayName: string,
 	health: number,
@@ -147,6 +215,7 @@ export type EnemyConfig = {
 	shot: EnemyShot?,
 	burrow: EnemyBurrow?,
 	split: EnemySplit?,
+	boss: EnemyBoss?,
 }
 
 local meleeCharger: EnemyConfig = {
@@ -384,6 +453,78 @@ local burrower: EnemyConfig = {
 		surfaceDistance = 3.5,
 		speedScale = 2.2,
 		cooldown = 3.5,
+	},
+}
+
+--[[
+	The Slime King, Mossy Glade's boss (docs/BOSSES.md §1, the owner's
+	design_handoff_slime_king, 2026-10-23). Alone in Level 1's last room.
+	His moves are the handoff's, timings as given; damage is rescaled from
+	its 100-health Roblox character to this game's 225 (×2.25, then the
+	stage's 0.7), and its knockback speeds become `shove` distances.
+
+	About 9.8 studs tall, as the handoff asks: its model ×2, and the
+	hitbox fits it (`EnemyDesigns.SlimeKing`). He takes no knockback and
+	does not walk; every move he makes is a move.
+]]
+local slimeKing: EnemyConfig = {
+	displayName = "SlimeKing",
+	--[[ Turned by his moves, not by walking; as slow as the Bulwark, as
+	     big things are. ]]
+	turnRate = 90,
+	--[[ Twenty Moss Slimes' worth (4,800 at Level 1's 0.8). ]]
+	health = 6000,
+	moveSpeed = 0,
+	attackRange = 0,
+	attackDamage = 0,
+	attackCooldown = 0,
+	knockback = 0,
+	hitboxSize = Vector3.new(9.6, 9.8, 7.3),
+	color = Color3.fromRGB(127, 203, 36),
+	xpReward = 100,
+	boss = {
+		title = "Slime King",
+		bounce = {
+			bounces = 3,
+			--[[ The red circle shows from the start of the wind-up: 2.45 s
+			     of warning before each slam. ]]
+			windup = 0.9,
+			launch = 0.15,
+			air = 1.4,
+			recover = 0.55,
+			winded = 1.4,
+			height = 14,
+			maxRange = 22,
+			radius = 7,
+			damage = 56,
+			shove = 7,
+			shockRadius = 12,
+		},
+		lash = {
+			arms = { "Arm_R", "Arm_L" },
+			wind = 0.8,
+			track = 0.4,
+			strike = 0.2,
+			hold = 0.35,
+			retract = 0.45,
+			reach = 18,
+			minReach = 6,
+			width = 3.5,
+			damage = 45,
+			--[[ Anyone else in the lane is knocked sideways out of it. ]]
+			shove = 4,
+			pull = 0.38,
+			bump = 0.22,
+			bumpDamage = 34,
+			bumpShove = 9,
+			recover = 0.6,
+			--[[ The handoff's 5.5, plus the extra half-depth of a king twice
+			     its size. ]]
+			stopDistance = 7,
+		},
+		restAfterBounce = 1.5,
+		restAfterLash = 1,
+		opening = 1,
 	},
 }
 
@@ -627,9 +768,11 @@ local rooms: { RoomConfig } = {
 			{ offset = Vector2.new(9.18, -16.2), size = Vector3.new(3.3, 1.4, 3.3) },
 			{ offset = Vector2.new(8.1, 14.31), size = Vector3.new(3.6, 1.6, 3.6) },
 		},
-		--[[ Adds the Sprout Spitter, across the water. ]]
+		--[[ More Moss Slimes, round the water. Level 1 is slimes only
+		     (owner, 2026-10-23: "take out any enemies that are not slime
+		     enemies"). ]]
 		enemyCount = 3,
-		roster = { meleeCharger, meleeCharger, spreadShooter },
+		roster = { meleeCharger },
 	},
 	{
 		name = "Mossy Boulders",
@@ -650,7 +793,7 @@ local rooms: { RoomConfig } = {
 		},
 		--[[ Adds the Brood Slime. ]]
 		enemyCount = 3,
-		roster = { meleeCharger, spreadShooter, broodSlime },
+		roster = { meleeCharger, meleeCharger, broodSlime },
 	},
 	{
 		name = "Mossy Thorns",
@@ -660,9 +803,8 @@ local rooms: { RoomConfig } = {
 			{ offset = Vector2.new(7.83, 6.48), size = Vector3.new(9.4, 0.4, 7) },
 			{ offset = Vector2.new(-8.64, 15.93), size = Vector3.new(3.3, 1.4, 3.3) },
 		},
-		--[[ Adds the Lancer, whose line crosses the brambles. ]]
 		enemyCount = 4,
-		roster = { meleeCharger, spreadShooter, broodSlime, lineSniper },
+		roster = { meleeCharger, broodSlime },
 	},
 	{
 		name = "Glade Heart",
@@ -673,10 +815,11 @@ local rooms: { RoomConfig } = {
 			{ offset = Vector2.new(-11.42, 16.18), size = Vector3.new(3.9, 3.8, 4.4) },
 			{ offset = Vector2.new(11.42, 16.18), size = Vector3.new(3.9, 3.8, 4.4) },
 		},
-		--[[ A boss room, until Act 1's bosses are built (docs/BOSSES.md): the
-		     heaviest body with an escort, as a Waves boss wave is. ]]
-		enemyCount = 3,
-		roster = { tank, meleeCharger, spreadShooter, meleeCharger },
+		--[[ The boss arena, halfway: two Brood Slimes and their escort, a
+		     taste of the room the level ends in. The Slime King waits for
+		     the second visit. ]]
+		enemyCount = 4,
+		roster = { broodSlime, meleeCharger },
 	},
 	{
 		name = "Mossy Glade II",
@@ -688,7 +831,7 @@ local rooms: { RoomConfig } = {
 			{ offset = Vector2.new(-6.21, 19.71), size = Vector3.new(2.7, 1.2, 2.7) },
 		},
 		enemyCount = 4,
-		roster = { meleeCharger, spreadShooter, broodSlime, lineSniper },
+		roster = { meleeCharger, meleeCharger, broodSlime },
 	},
 	{
 		name = "Mossy Pond II",
@@ -698,9 +841,8 @@ local rooms: { RoomConfig } = {
 			{ offset = Vector2.new(9.18, -16.2), size = Vector3.new(3.3, 1.4, 3.3) },
 			{ offset = Vector2.new(8.1, 14.31), size = Vector3.new(3.6, 1.6, 3.6) },
 		},
-		--[[ Adds the Lurker, last because it stops being a target. ]]
 		enemyCount = 4,
-		roster = { meleeCharger, spreadShooter, burrower, broodSlime },
+		roster = { meleeCharger, broodSlime },
 	},
 	{
 		name = "Mossy Boulders II",
@@ -720,7 +862,7 @@ local rooms: { RoomConfig } = {
 			{ offset = Vector2.new(-5.8, 19.06), size = Vector3.new(2, 1.5, 2) },
 		},
 		enemyCount = 5,
-		roster = { meleeCharger, spreadShooter, lineSniper, burrower, broodSlime },
+		roster = { meleeCharger, meleeCharger, broodSlime },
 	},
 	{
 		name = "Mossy Thorns II",
@@ -731,7 +873,7 @@ local rooms: { RoomConfig } = {
 			{ offset = Vector2.new(-8.64, 15.93), size = Vector3.new(3.3, 1.4, 3.3) },
 		},
 		enemyCount = 5,
-		roster = { meleeCharger, spreadShooter, lineSniper, burrower, broodSlime },
+		roster = { meleeCharger, broodSlime },
 	},
 	{
 		name = "Glade Heart II",
@@ -742,8 +884,10 @@ local rooms: { RoomConfig } = {
 			{ offset = Vector2.new(-11.42, 16.18), size = Vector3.new(3.9, 3.8, 4.4) },
 			{ offset = Vector2.new(11.42, 16.18), size = Vector3.new(3.9, 3.8, 4.4) },
 		},
-		enemyCount = 4,
-		roster = { tank, broodSlime, spreadShooter, meleeCharger, lineSniper },
+		--[[ The Slime King, by himself (owner, 2026-10-23: "this is going
+		     to be room 10 and the boss will be by itself"). ]]
+		enemyCount = 1,
+		roster = { slimeKing },
 	},
 }
 
@@ -1022,6 +1166,7 @@ local Balance = {
 		Tank = tank,
 		Burrower = burrower,
 		BroodSlime = broodSlime,
+		SlimeKing = slimeKing,
 	},
 
 	--[[
@@ -1044,7 +1189,24 @@ local Balance = {
 	--[[ Drawn tell for a `Line` shot: how thick the line is, and how far past
 	     the target it reaches so the player can see it is a line rather than a
 	     distance. ]]
+	--[[
+		A boss's hit pushing the player (the Slime King's slam, lash and chest
+		bump). The client drives its own character for `duration`, as the
+		dash does, so walls stop it the way they stop walking; the server
+		says only which way and how far.
+	]]
+	Shove = {
+		duration = 0.22,
+	},
+
 	Telegraph = {
+		--[[ A boss's warnings (the Slime King's handoff): red where a slam
+		     or a lash will land, and a green shockwave ring when a slam hits.
+		     A lane's width is the lash's own (`EnemyBoss.lash.width`), sent
+		     with it. ]]
+		bossColor = Color3.fromRGB(255, 70, 40),
+		shockColor = Color3.fromRGB(190, 240, 120),
+		shockDuration = 0.45,
 		lineThickness = 0.35,
 		lineOvershoot = 5,
 		lineColor = Color3.fromRGB(236, 92, 84),

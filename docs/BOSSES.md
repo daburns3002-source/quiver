@@ -37,6 +37,13 @@ the same rules:
 ## Act 1 — The Wilds
 
 ### 1 · King Bloblin — Mossy Glade
+
+**Built (2026-10-23), as the owner's handoff "Slime King":** his moves are
+the handoff's Royal Bounce (three telegraphed slams, then winded) and Slime
+Lash (an arm down a locked lane that grabs, pulls and chest-bumps), in
+place of the Royal Hop and Divided Court below. He is alone in Level 1's
+room 10. Numbers in `Balance` (`slimeKing`); code in
+`src/server/Enemies/BossMoves.luau` and `BossBody.luau`.
 *A huge moss slime wearing a tiny crown.* The tutorial boss: one idea, shown
 clearly.
 

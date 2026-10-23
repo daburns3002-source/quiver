@@ -187,6 +187,16 @@ function RoomController.start()
 	startStage()
 end
 
+--[[ Testing only, from `Remotes.DebugRoom` in Studio: straight into room
+     `position` of a Rooms stage, so a late room (the boss) can be tested
+     without fighting through the rest. ]]
+function RoomController.debugEnterRoom(position: number)
+	if stage().mode ~= "Rooms" or position < 1 or position > total() then
+		return
+	end
+	enterRoom(position)
+end
+
 --[[
 	Tells each player how the stage went, for the end screen: won or lost,
 	which stage, this stage's kills and time, health left, and how far

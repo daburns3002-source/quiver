@@ -17,6 +17,8 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Arena = require(script.Parent.Parent.Arena.Arena)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
+local BossBody = require(script.Parent.BossBody)
+local BossMoves = require(script.Parent.BossMoves)
 local EnemyModel = require(script.Parent.EnemyModel)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
 local Pathing = require(script.Parent.Pathing)
@@ -40,6 +42,18 @@ export type Volley = {
 	direction: Vector3,
 	damage: number,
 	shot: Balance.EnemyShot,
+}
+
+--[[ A boss's own state (`EnemyConfig.boss`): the move it is playing, or
+     when it may start the next, which one that is, its posed body, and
+     whom it is holding. ]]
+type BossState = {
+	move: BossMoves.Move?,
+	restUntil: number,
+	next: number,
+	body: BossBody.Body,
+	holding: Player?,
+	airborne: boolean,
 }
 
 type Enemy = {
@@ -97,6 +111,7 @@ type Enemy = {
 		`stepEnemy` for why re-deciding every frame deadlocks.
 	]]
 	slideSign: number?,
+	boss: BossState?,
 }
 
 local EnemyManager = {}
@@ -131,6 +146,8 @@ local aliveCount = 0
 local enemyHit = Remotes.event(Remotes.EnemyHit)
 local enemyDied = Remotes.event(Remotes.EnemyDied)
 local enemyTelegraph = Remotes.event(Remotes.EnemyTelegraph)
+local playerShoved = Remotes.event(Remotes.PlayerShoved)
+local playerGrabbed = Remotes.event(Remotes.PlayerGrabbed)
 
 --[[ Studs enemies try to keep between each other, so a wave reads as a group
      rather than one overlapping blob. ]]
@@ -549,6 +566,26 @@ function EnemyManager.spawn(
 	positions[model] = position
 	aliveCount += 1
 
+	if config.boss then
+		local parts: { BasePart } = {}
+		for _, child in model:GetChildren() do
+			if child:IsA("BasePart") then
+				table.insert(parts, child)
+			end
+		end
+		enemies[model].boss = {
+			move = nil,
+			restUntil = 0,
+			next = 1,
+			body = BossBody.new(model, hitbox, parts),
+			holding = nil,
+			airborne = false,
+		}
+		--[[ For the client: the boss bar, and no hit squash on a body the
+		     server is posing. ]]
+		model:SetAttribute("Boss", config.boss.title)
+	end
+
 	--[[ Health travels as attributes so each client can draw the enemy's
 	     bar. Read for drawing only; the server's own number is the truth. ]]
 	model:SetAttribute("MaxHealth", config.health * difficulty().health)
@@ -760,6 +797,12 @@ function EnemyManager.damage(
 	positions[model] = nil
 	aliveCount -= 1
 
+	--[[ A boss killed mid-grab lets go at once. ]]
+	local holding = enemy.boss and enemy.boss.holding
+	if holding then
+		playerGrabbed:FireClient(holding, 0)
+	end
+
 	--[[
 		Position only, deliberately. Passing `model` here raced the `Destroy`
 		on the next line: whether the client received a usable reference or nil
@@ -909,6 +952,182 @@ local function slide(enemy: Enemy, deltaTime: number)
 	placeHitbox(enemy)
 end
 
+--[[
+	A boss in the air (a Royal Bounce) is out of reach of everything on the
+	floor, and nothing should try: off the target list and out of the sweep,
+	as a dive is, but still drawn.
+]]
+local function setAirborne(enemy: Enemy, state: BossState, airborne: boolean)
+	if state.airborne == airborne then
+		return
+	end
+	state.airborne = airborne
+	enemy.hitbox.CanQuery = not airborne
+	enemy.model:SetAttribute("Targetable", not airborne)
+	if airborne then
+		positions[enemy.model] = nil
+	else
+		positions[enemy.model] = enemy.position
+	end
+end
+
+--[[ Tells a player's client to push its character `distance` studs along
+     `direction`. The client moves it, as it does a dash. ]]
+local function shove(session: RunSession.Session, direction: Vector3, distance: number)
+	local along = Vector3.new(direction.X, 0, direction.Z)
+	if along.Magnitude < 1e-3 or distance <= 0 then
+		return
+	end
+	playerShoved:FireClient(session.player, along.Unit, distance)
+end
+
+--[[ Damage that reports whether it landed: a dodge (Agility) or a shield
+     takes nothing, and a lash that took nothing grabs nobody. ]]
+local function hurt(session: RunSession.Session, amount: number): boolean
+	local before = session.health
+	RunSession.applyDamage(session, amount)
+	return session.health < before or not session.alive
+end
+
+--[[ Resolves what a boss's move did this step: draws its warnings, and
+     hits, shoves, grabs and releases players. ]]
+local function resolveBossEvent(
+	state: BossState,
+	boss: Balance.EnemyBoss,
+	e: BossMoves.Event,
+	now: number,
+	clamp: (Vector3) -> Vector3
+)
+	local scale = difficulty().damage
+
+	if e.kind == "SlamTell" then
+		enemyTelegraph:FireAllClients(e.at, Vector3.zAxis, e.duration, "Slam", e.radius)
+	elseif e.kind == "Slam" then
+		enemyTelegraph:FireAllClients(
+			e.at,
+			Vector3.zAxis,
+			Balance.Telegraph.shockDuration,
+			"Shockwave",
+			boss.bounce.shockRadius
+		)
+		for _, session in RunSession.all() do
+			local root = session.root
+			if not root or not session.alive then
+				continue
+			end
+			local away = Vector3.new(root.Position.X - e.at.X, 0, root.Position.Z - e.at.Z)
+			if away.Magnitude <= e.radius then
+				hurt(session, boss.bounce.damage * scale)
+				shove(
+					session,
+					if away.Magnitude > 0.1 then away else Vector3.zAxis,
+					boss.bounce.shove
+				)
+			end
+		end
+	elseif e.kind == "LaneAim" or e.kind == "Lane" then
+		enemyTelegraph:FireAllClients(e.at, e.direction, e.duration, e.kind, e.length, e.width)
+	elseif e.kind == "LaneHit" then
+		local side = Vector3.new(-e.direction.Z, 0, e.direction.X)
+		local held: Vector3? = nil
+		for _, session in RunSession.all() do
+			local root = session.root
+			if not root or not session.alive then
+				continue
+			end
+			local offset = Vector3.new(root.Position.X - e.at.X, 0, root.Position.Z - e.at.Z)
+			local along = offset:Dot(e.direction)
+			local across = offset:Dot(side)
+			if along <= 0 or along >= e.length + 1 or math.abs(across) >= e.width / 2 + 1 then
+				continue
+			end
+			local landed = hurt(session, boss.lash.damage * scale)
+			if landed and not held and session.alive then
+				--[[ The first one caught is held, long enough for the pull
+				     and the bump; the bump lets go sooner. ]]
+				held = root.Position
+				state.holding = session.player
+				playerGrabbed:FireClient(session.player, boss.lash.pull + boss.lash.bump + 0.1)
+			elseif landed then
+				shove(session, side * (if across >= 0 then 1 else -1), boss.lash.shove)
+			end
+		end
+		local move = state.move
+		if held and move then
+			BossMoves.grab(move, boss, now, held, clamp)
+		end
+	elseif e.kind == "Bump" then
+		local player = state.holding
+		state.holding = nil
+		if player then
+			playerGrabbed:FireClient(player, 0)
+			local session = RunSession.get(player)
+			if session and session.alive then
+				hurt(session, boss.lash.bumpDamage * scale)
+				shove(session, e.direction, boss.lash.bumpShove)
+			end
+		end
+	end
+end
+
+--[[
+	A boss's turn: rest, then the next move in `BossMoves.LOOP`, played to
+	its end. It does not walk; every step it takes is part of a move.
+]]
+local function stepBoss(enemy: Enemy, state: BossState, now: number)
+	local config = enemy.config
+	local boss = config.boss :: Balance.EnemyBoss
+	local half = config.hitboxSize.Y / 2
+	local radius = math.max(config.hitboxSize.X, config.hitboxSize.Z) / 2
+
+	--[[ Inside the room and clear of cover: where a slam may land or a
+	     pull may end. ]]
+	local function clamp(point: Vector3): Vector3
+		local resolved = Arena.resolve(Vector3.new(point.X, half, point.Z), radius)
+		return Vector3.new(resolved.X, 0, resolved.Z)
+	end
+
+	if state.restUntil == 0 then
+		state.restUntil = now + boss.opening
+	end
+
+	local feet = Vector3.new(enemy.position.X, 0, enemy.position.Z)
+	local targetRoot = nearestAlivePlayerRoot(feet)
+	local move = state.move
+
+	if not move then
+		if now < state.restUntil or not targetRoot then
+			BossBody.pose(state.body, BossMoves.idle(feet, enemy.yaw or 0, now))
+			return
+		end
+		move = BossMoves.start(BossMoves.LOOP[state.next], now, feet, enemy.yaw or 0)
+		state.move = move
+	end
+	assert(move, "a boss move")
+
+	local target = if targetRoot then targetRoot.Position else feet
+	local pose, events, done = BossMoves.step(move, boss, now, target, clamp)
+
+	enemy.position = pose.feet + Vector3.new(0, half + pose.lift, 0)
+	enemy.yaw = pose.yaw
+	setAirborne(enemy, state, pose.airborne)
+	if not state.airborne then
+		positions[enemy.model] = enemy.position
+	end
+	placeHitbox(enemy)
+	BossBody.pose(state.body, pose)
+
+	for _, e in events do
+		resolveBossEvent(state, boss, e, now, clamp)
+	end
+
+	if done then
+		state.move = nil
+		state.restUntil = now + BossMoves.restAfter(move.kind, boss)
+		state.next = state.next % #BossMoves.LOOP + 1
+	end
+end
+
 local function stepEnemy(enemy: Enemy, deltaTime: number, now: number)
 	local arrivesAt = enemy.arrivesAt
 	if arrivesAt then
@@ -918,6 +1137,12 @@ local function stepEnemy(enemy: Enemy, deltaTime: number, now: number)
 
 		enemy.arrivesAt = nil
 		setArriving(enemy, false)
+	end
+
+	local boss = enemy.boss
+	if boss then
+		stepBoss(enemy, boss, now)
+		return
 	end
 
 	slide(enemy, deltaTime)

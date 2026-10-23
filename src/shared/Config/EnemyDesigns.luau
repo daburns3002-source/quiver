@@ -568,6 +568,34 @@ local wolf: Design = {
 	},
 }
 
+--[[
+	The Baby Slime (the owner's updated slimes, 2026-10-23): a small green
+	jelly dome with a tuft of moss. A stand-in of primitives in its model's
+	proportions (×2, in its 2.5 × 1.5 hitbox) until the owner imports
+	`assets/models/enemies/baby_slime_roblox.glb`.
+]]
+local BABY_GREEN = Color3.fromRGB(127, 203, 36)
+local babySlime: Design = {
+	shadow(2.5, 2.5, 1.5),
+	{
+		name = "Body",
+		shape = "Ellipsoid",
+		size = Vector3.new(2.5, 1.2, 2.4),
+		offset = Vector3.new(0, -0.15, 0),
+		shade = 1,
+		color = BABY_GREEN,
+	},
+	mark(
+		"Moss",
+		"Ellipsoid",
+		Vector3.new(1.4, 0.35, 1.6),
+		Vector3.new(0, 0.38, 0.1),
+		Color3.fromRGB(70, 120, 40)
+	),
+	glow("EyeLeft", 0.32, Vector3.new(-0.3, 0.02, -0.95), Color3.fromRGB(255, 176, 32)),
+	glow("EyeRight", 0.32, Vector3.new(0.3, 0.02, -0.95), Color3.fromRGB(255, 176, 32)),
+}
+
 --[[ Keyed by `EnemyConfig.displayName`, which is what the model is named and
      the only identifier an archetype actually carries. ]]
 local EnemyDesigns = {
@@ -580,6 +608,7 @@ local EnemyDesigns = {
 	Bulwark = bulwark,
 	Lurker = lurker,
 	BroodSlime = broodSlime,
+	BabySlime = babySlime,
 	SlimeKing = slimeKing,
 	Wolf = wolf,
 }

@@ -274,6 +274,30 @@ local meleeCharger: EnemyConfig = {
 }
 
 --[[
+	The Baby Slime (the owner's updated slimes, 2026-10-23): one of the four
+	babies that ride in a Brood Slime's moss, on its own. Small, quick and
+	frail; it only ever arrives by a Brood Slime splitting.
+]]
+local babySlime: EnemyConfig = {
+	displayName = "BabySlime",
+	--[[ Small, so it turns quickest of all. ]]
+	turnRate = 600,
+	--[[ Half a Moss Slime's: two arrows. ]]
+	health = 150,
+	moveSpeed = 7.8,
+	attackRange = 3.4,
+	attackDamage = 40,
+	attackCooldown = 1,
+	knockback = 3.5,
+	--[[ Its model ×2 is 2.5 across and 1.24 tall; the box is 1.5 tall so
+	     arrows at `Projectile.height` meet it. ]]
+	hitboxSize = Vector3.new(2.5, 1.5, 2.5),
+	color = Color3.fromRGB(127, 203, 36),
+	xpReward = 5,
+	shot = nil,
+}
+
+--[[
 	Elite melee: the Brood Slime (docs/ENEMIES-AND-ARENAS.md's Act 1 elite).
 	A big, slow Moss Slime with four babies riding in its moss, and when it
 	dies it splits like Zac's Cell Division — into Moss Slimes, thrown clear
@@ -298,7 +322,9 @@ local broodSlime: EnemyConfig = {
 	shot = nil,
 	--[[ Four, one per baby, like Zac; at half a Moss Slime's health each
 	     (owner, 2026-10-22: Level 1 was too hard). ]]
-	split = { into = meleeCharger, count = 4, health = 0.5 },
+	--[[ Four Baby Slimes, one per baby in its moss (owner's updated model,
+	     2026-10-23); they were Moss Slimes at half health. ]]
+	split = { into = babySlime, count = 4, health = 1 },
 }
 
 --[[
@@ -1282,6 +1308,7 @@ local Balance = {
 		Tank = tank,
 		Burrower = burrower,
 		BroodSlime = broodSlime,
+		BabySlime = babySlime,
 		SlimeKing = slimeKing,
 		Wolf = wolf,
 	},

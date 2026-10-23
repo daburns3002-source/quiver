@@ -1342,6 +1342,15 @@ local Balance = {
 		     noticeable" (2026-10-22). ]]
 		hitSquash = 0.3,
 		hitSquashDuration = 0.36,
+		--[[ Studs a hit flattens a body by, so small enemies squash as
+		     visibly as the Brood Slime (3.4 tall at 0.3): a share of
+		     `hitSquashStuds / height`, from `hitSquash` up to `hitSquashMax`. ]]
+		hitSquashStuds = 1,
+		hitSquashMax = 0.45,
+		--[[ The squash an enemy lands with as it appears, like the Brood
+		     Slime's pieces landing. ]]
+		landSquash = 0.5,
+		landSquashDuration = 0.45,
 		hitFlashColor = Color3.fromRGB(255, 255, 255),
 		damageNumberRise = 4,
 		damageNumberDuration = 0.7,

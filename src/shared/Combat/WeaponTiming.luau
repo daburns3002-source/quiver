@@ -32,7 +32,10 @@ function WeaponTiming.cycleSpeed(weaponName: string, index: number, cooldown: nu
 	local weapon = weaponOf(weaponName)
 	local clips = WeaponAnimations[weaponName]
 	local fire = clips[weapon.clips.fire[index]]
-	local ready = if weapon.clips.ready then clips[weapon.clips.ready] else nil
+	--[[ A weapon that goes back to aiming after a shot draws only once,
+	     so its shots are only the fire clip. ]]
+	local redraws = weapon.clips.ready ~= nil and weapon.clips.afterFire ~= "aim"
+	local ready = if redraws then clips[weapon.clips.ready :: string] else nil
 	local natural = fire.length + (if ready then ready.length else 0)
 	return math.max(1, natural / (cooldown * WeaponTiming.CYCLE_SHARE))
 end

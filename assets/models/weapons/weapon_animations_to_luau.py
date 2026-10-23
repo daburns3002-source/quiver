@@ -19,7 +19,7 @@ KITS = {
     "LeafBow": HERE / "leaf_bow_r15" / "leaf_bow_animations.json",
     "ArcaneStaff": HERE / "arcane_staff_r15" / "arcane_staff_animations.json",
     "RubyGreatsword": HERE / "ruby_greatsword_r15" / "ruby_greatsword_animations.json",
-    # A still pose, turned into keyframes by leaf_bow_dual_r15/pose_to_json.py.
+    # The Dual Bows kit, finished by leaf_bow_dual_r15/layer_clips.py.
     "LeafBowDual": HERE / "leaf_bow_dual_r15" / "leaf_bow_dual_animations.json",
 }
 

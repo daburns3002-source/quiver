@@ -59,6 +59,10 @@ export type Clips = {
 	ready: string?,
 	aim: string?,
 	fire: { string },
+	--[[ The role after a shot while still aiming: `ready` (the default)
+	     draws again, as the single bow nocks each arrow; `aim` holds up
+	     and fires again, as the dual bows raise once and take turns. ]]
+	afterFire: ("ready" | "aim")?,
 	--[[ A layer under all of these for the joints a clip leaves out: `idle`
 	     standing, `walk` moving, played faster or slower to match the
 	     character's speed against `walkSpeed`, the studs a second it was
@@ -144,7 +148,7 @@ local Weapons = {
 			ready = "Draw",
 			aim = "Aim",
 			fire = { "Fire" },
-			legs = { idle = "Idle", walk = "Walk", walkSpeed = 5.351651 },
+			legs = { idle = "Idle", walk = "Walk", walkSpeed = 5.197825 },
 		},
 		fireSound = "arrow_fire",
 		--[[ From the kit's README, turned into this model's frame (the
@@ -361,16 +365,25 @@ local Weapons = {
 }
 
 --[[ The Dual Bows Mythic (`Config/Abilities.DualBows.weapon`): the leaf bow
-     in each hand, held up as the owner's posed rig holds them
-     (`assets/models/weapons/leaf_bow_dual_r15/`, 2026-10-23). The same
-     meshes at the same grip in either hand. It holds that pose while it
-     fires, so it has no draw and no live string. ]]
+     in each hand, the same meshes at the same grip in either hand, played
+     from the owner's Dual Bows kit (`assets/models/weapons/
+     leaf_bow_dual_r15/LeafBow_Dual_R15_Kit.rbxmx`, 2026-10-23): both bows
+     low while moving, raised square, then held up at chest height, the
+     right and left firing in turn. The strings draw themselves in the kit,
+     so neither has a live string here. ]]
 local leafBow = Weapons.LeafBow;
 (Weapons :: any).LeafBowDual = {
 	hand = leafBow.hand,
 	scale = leafBow.scale,
 	grip = leafBow.grip,
-	clips = { hold = "Hold", fire = { "Fire" } },
+	clips = {
+		hold = "Hold",
+		ready = "Raise",
+		aim = "Aim",
+		fire = { "Fire_R", "Fire_L" },
+		afterFire = "aim",
+		legs = leafBow.clips.legs,
+	},
 	fireSound = leafBow.fireSound,
 	offhand = { hand = "RightHand", grip = leafBow.grip },
 	parts = leafBow.parts,

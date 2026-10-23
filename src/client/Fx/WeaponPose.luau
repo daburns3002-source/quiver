@@ -13,7 +13,8 @@
 	  and holds until it swings.
 	- `fire` on every attack this client predicts (`LocalFiring.onFired`),
 	  the next clip of the weapon's combo each time (the greatsword's three
-	  slashes), then `ready` again. They are sped up to fit inside the
+	  slashes), then `ready` again (or straight back to `aim` for a weapon
+	  whose `afterFire` says so: the dual bows raise once and take turns). They are sped up to fit inside the
 	  attack cooldown (`Shared/Combat/WeaponTiming`, which the server uses
 	  to land a swing on its `Hit` marker), so a faster attacker draws
 	  faster rather than skipping the draw. An attack plays out even if its
@@ -251,7 +252,9 @@ local function stepPose(character: Model, now: number, dt: number)
 	if not clip.loop and phase >= clip.length then
 		local nextRole
 		if role == "fire" then
-			nextRole = if aiming and weapon.clips.ready then "ready" else "hold"
+			nextRole = if aiming and weapon.clips.ready
+				then (weapon.clips.afterFire or "ready")
+				else "hold"
 		elseif role == "special" then
 			nextRole = "hold"
 		else

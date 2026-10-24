@@ -1,6 +1,6 @@
 """Takes for the card screen's two big moments, made with synth.py's tools.
 
-    python -I reveal_synth.py <out_dir>
+    python -I reveal_synth.py <out_dir> [round]
 
 Round 15 (owner, 2026-10-24): "sound auditions for the mythic reveal and
 for if there is a legendary in the upgrade banner".
@@ -9,6 +9,10 @@ for if there is a legendary in the upgrade banner".
   one file timed to its beats: the shake builds over the first second
   (`CardTheme.timing.mythicShake`), the card flips by 1.6 s, the flash is
   at 1.35 and "MYTHIC!" lands at 1.65. Every take hits on FLASH.
+- Round 16 (owner, 2026-10-24: "redo the mythic sounds"): round 15's
+  builds were near silent for their first second, so these build loud
+  enough to hear the shake, hit harder on the flash, and celebrate on the
+  title rather than brood.
 - card_legendary plays as a hand with a Legendary in it is dealt, when the
   panel turns gold: a short golden flourish.
 """
@@ -137,6 +141,107 @@ def legendary_swell():
     return s.room(s.mix((swell, 0.6), (s.at(held, 0.38), 0.6), (s.at(bell, 0.38), 0.3)), 0.15, 0.25)
 
 
+def saw(seconds, f0, f1=None):
+    """A bright buzzy tone, gliding from f0 to f1, for brass and charge."""
+    f1 = f1 or f0
+    tt = s.t_of(seconds)
+    phase = (f0 * tt + (f1 - f0) * tt * tt / (2 * seconds)) % 1.0
+    return 2 * phase - 1
+
+
+def brass(notes, seconds, attack=0.04, decay=1.4):
+    """A brassy chord: detuned saws through a low-pass that opens and closes."""
+    n = int(SR * seconds)
+    body = sum(saw(seconds, f) + saw(seconds, f * 1.004) for f in notes) / (2 * len(notes))
+    return s.lowpass(body, 2600) * s.env_ad(n, attack, decay)
+
+
+def snare_roll(seconds, rate0=6, rate1=48):
+    """A drum roll that speeds up and swells over the shake."""
+    n = int(SR * seconds)
+    out = np.zeros(n)
+    t = 0.0
+    while t < seconds:
+        k = t / seconds
+        hit = s.bandpass(s.noise(0.06), 1500, 7000) * s.env_ad(int(SR * 0.06), 0.001, 7)
+        body = s.tone(190, 0.06, 20)
+        j = int(t * SR)
+        x = (hit + 0.5 * body) * (0.35 + 0.65 * k ** 1.2)
+        out[j : j + len(x)] += x[: n - j]
+        t += 1 / (rate0 + (rate1 - rate0) * k ** 1.5)
+    return out
+
+
+def crash(seconds=1.6):
+    """A cymbal crash: bright noise with a long shimmering tail."""
+    return s.highpass(s.noise(seconds), 4000) * s.env_ad(int(SR * seconds), 0.001, 3.2)
+
+
+def heartbeat(at_times):
+    n = int(SR * (max(at_times) + 0.4))
+    out = np.zeros(n)
+    for i, t in enumerate(at_times):
+        for dt, g in ((0, 1.0), (0.13, 0.7)):
+            beat = s.chirp(0.16, 85, 45) * s.env_ad(int(SR * 0.16), 0.003, 7)
+            j = int((t + dt) * SR)
+            out[j : j + len(beat)] += beat[: n - j] * g * (0.5 + 0.5 * i / len(at_times))
+    return out
+
+
+# A bright, heroic chord for the payoff: D major with the ninth.
+D_MAJOR = (293.7, 370.0, 440.0, 587.3)
+
+
+def mythic_drumroll():
+    """A drum roll swelling over the shake, a crash and boom on the flash, brass on MYTHIC!"""
+    roll = snare_roll(FLASH)
+    hit = s.mix((crash(), 0.6), (boom(1.2, 120, 38), 1.0))
+    horns = brass(D_MAJOR, 1.8, 0.03, 1.6)
+    return s.room(s.mix((roll, 0.7), (s.at(hit, FLASH), 1.0), (s.at(horns, TITLE - 0.05), 0.55)), 0.2, 0.25)
+
+
+def mythic_heartbeat():
+    """Heartbeats racing through the shake, a huge hit on the flash, a rising chord after."""
+    beats = heartbeat([0.0, 0.42, 0.78, 1.04, 1.22])
+    hiss = s.sweep_filter(s.noise(FLASH), 500, 6000, q=1.4) * ramp(FLASH, 2.5)
+    hit = s.mix((boom(1.4, 140, 34), 1.0), (crash(1.3), 0.5),
+                (s.bandpass(s.noise(0.1), 800, 5000) * s.env_ad(int(SR * 0.1), 0.0005, 8), 0.7))
+    rise = s.mix(*[(s.chirp(1.6, f * 0.5, f, wave="tri") * s.env_ad(int(SR * 1.6), 0.15, 1.6), 0.3) for f in D_MAJOR])
+    return s.room(s.mix((beats, 0.9), (hiss, 0.35), (s.at(hit, FLASH), 1.0), (s.at(rise, FLASH + 0.05), 0.6)), 0.22, 0.25)
+
+
+def mythic_charge():
+    """Power charging louder and higher through the shake, a blast, sparks raining after."""
+    charge = s.lowpass(saw(FLASH, 70, 520), 1800) * ramp(FLASH, 1.3)
+    wobble = 0.6 + 0.4 * np.sin(2 * np.pi * np.linspace(4, 22, int(SR * FLASH)).cumsum() / SR)
+    zap = s.sweep_filter(s.noise(FLASH), 400, 7000, q=3) * ramp(FLASH, 2)
+    blast = s.mix((boom(1.3, 150, 36), 1.0), (s.whoosh(0.9, 6000, 500, q=0.9, attack=0.002, decay=3.5), 0.8))
+    sparks = s.sparkle(1.4, [1760, 2349, 2093, 2794, 3136, 2637, 3520], spacing=0.06, decay=5)
+    return s.mix((charge * wobble, 1.0), (zap, 0.7), (s.at(blast, FLASH), 1.0), (s.at(sparks, TITLE - 0.1), 0.5))
+
+
+def mythic_anthem():
+    """Rising bell strikes through the shake, a gong and choir-like chord on the flash, a bright fanfare on the title."""
+    strikes = s.mix(*[(s.at(s.tone(f, 0.5, 6, s.BELL), t), 0.35 + 0.15 * i)
+                      for i, (t, f) in enumerate(((0.0, 293.7), (0.35, 370.0), (0.65, 440.0), (0.9, 587.3), (1.1, 740.0)))])
+    roll = snare_roll(FLASH, 10, 40) * 0.5
+    gong = s.tone(146.8, 2.4, 1.4, ((1, 1.0), (2.1, 0.5), (3.4, 0.3), (4.9, 0.15)))
+    pad = chord(D_MAJOR + (880.0,), 2.0, partials=s.WARM, decay=1.1, attack=0.06)
+    fanfare = s.arp([587.3, 740.0, 880.0, 1174.7], 0.08, 1.0, s.WARM, 3.5)
+    return s.room(s.mix((strikes, 0.7), (roll, 0.5), (s.at(boom(1.0), FLASH), 0.8), (s.at(gong, FLASH), 0.6),
+                        (s.at(pad, FLASH), 0.4), (s.at(fanfare, TITLE), 0.55)), 0.25, 0.28)
+
+
+ROUND_16 = {
+    "card_mythic": [
+        (mythic_drumroll, "A drum roll swelling over the shake, a cymbal crash and boom on the flash, brass on MYTHIC!"),
+        (mythic_heartbeat, "Heartbeats racing through the shake, a huge hit on the flash, a rising bright chord"),
+        (mythic_charge, "Power charging louder and higher, a blast on the flash, sparks raining on the title"),
+        (mythic_anthem, "Bells rising through the shake, a gong and chord on the flash, a fanfare on MYTHIC!"),
+    ],
+}
+
+
 TAKES = {
     "card_mythic": [
         (mythic_thunder, "A rumble under the shake, a thunder crack on the flash, a dark chord on MYTHIC!"),
@@ -155,9 +260,10 @@ TAKES = {
 
 def main():
     out = sys.argv[1]
+    rounds = {"15": TAKES, "16": ROUND_16}
     os.makedirs(out, exist_ok=True)
     manifest = {}
-    for name, takes in TAKES.items():
+    for name, takes in rounds[sys.argv[2] if len(sys.argv) > 2 else "15"].items():
         manifest[name] = []
         for letter, (fn, note) in zip("abcd", takes):
             base = os.path.join(out, f"{name}_{letter}")

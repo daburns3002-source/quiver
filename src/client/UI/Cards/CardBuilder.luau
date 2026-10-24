@@ -223,6 +223,12 @@ end
 --[[ The pips along the bottom: one per level, owned white, the one this card
      would give half white, the rest dark. A skill with a single level says
      "UNIQUE" instead. ]]
+--[[ A description broken into the lines a card draws it in. Exposed so a
+     spec can check every card's text fits its box. ]]
+function CardBuilder.wrap(text: string): string
+	return lines(text, CardTheme.fonts.body, CardTheme.card.descText, CardTheme.card.descWrap)
+end
+
 local function pips(parent: Instance, ability: Abilities.Ability, level: number, maxed: boolean)
 	local row = frame(parent, "Pips", Z.content)
 	row.LayoutOrder = 99
@@ -419,7 +425,7 @@ function CardBuilder.build(abilityId: string, options: Options): Card
 	-- The stat pill: what the next level gives.
 	local statHolder = frame(content, "StatHolder", Z.content)
 	statHolder.LayoutOrder = 5
-	statHolder.Size = UDim2.fromOffset(inner, 26)
+	statHolder.Size = UDim2.fromOffset(inner, CardTheme.card.statHeight + 4)
 	local stat = label(
 		statHolder,
 		"Stat",
@@ -432,7 +438,7 @@ function CardBuilder.build(abilityId: string, options: Options): Card
 	stat.AnchorPoint = Vector2.new(0.5, 0.5)
 	stat.Position = UDim2.fromScale(0.5, 0.5)
 	stat.AutomaticSize = Enum.AutomaticSize.X
-	stat.Size = UDim2.fromOffset(0, 22)
+	stat.Size = UDim2.fromOffset(0, CardTheme.card.statHeight)
 	stat.TextWrapped = false
 	stat.BackgroundTransparency = 0
 	stat.BackgroundColor3 = INK
@@ -445,7 +451,7 @@ function CardBuilder.build(abilityId: string, options: Options): Card
 	local description = label(
 		content,
 		"Description",
-		lines(ability.description, CardTheme.fonts.body, CardTheme.card.descText, 112),
+		CardBuilder.wrap(ability.description),
 		CardTheme.fonts.body,
 		CardTheme.card.descText,
 		WHITE,
@@ -454,7 +460,7 @@ function CardBuilder.build(abilityId: string, options: Options): Card
 	)
 	description.TextWrapped = false
 	description.LayoutOrder = 6
-	description.Size = UDim2.fromOffset(118, 64)
+	description.Size = UDim2.fromOffset(CardTheme.card.descBox.X, CardTheme.card.descBox.Y)
 	description.TextYAlignment = Enum.TextYAlignment.Top
 	description.LineHeight = 1.15
 

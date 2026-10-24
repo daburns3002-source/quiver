@@ -39,10 +39,16 @@ async function play(id, offset) {
   const src = c.createBufferSource();
   src.buffer = b;
   src.loop = true;
+  const region = TRACKS[id].loop; // an intro: once from the top, then round the region
+  if (region) {
+    src.loopStart = region[0];
+    src.loopEnd = region[1];
+  }
   src.connect(c.destination);
   const at = c.currentTime + 0.03;
   src.start(at, Math.max(0, offset));
-  playing = { id, src, startedAt: at, offset: Math.max(0, offset), length: b.duration };
+  const [from, to] = region || [0, b.duration];
+  playing = { id, src, startedAt: at, offset: Math.max(0, offset), from, to };
   document.querySelector(`[data-loop="${id}"]`).classList.add("playing");
 }
 
@@ -50,8 +56,9 @@ function tick() {
   document.querySelectorAll("[data-head]").forEach((el) => {
     let w = 0;
     if (playing && playing.id === el.dataset.head) {
-      const t = (context().currentTime - playing.startedAt + playing.offset) % playing.length;
-      w = (Math.max(0, t) / playing.length) * 100;
+      let t = Math.max(0, context().currentTime - playing.startedAt + playing.offset);
+      if (t >= playing.to) t = playing.from + ((t - playing.from) % (playing.to - playing.from));
+      w = (t / playing.to) * 100;
     }
     el.style.width = w + "%";
   });
@@ -71,7 +78,8 @@ document.addEventListener("click", async (e) => {
   if (seam) {
     const id = seam.dataset.seam;
     const b = await buffer(id).catch(() => null);
-    if (b) play(id, b.duration - 4).catch(() => {});
+    const end = TRACKS[id].loop ? TRACKS[id].loop[1] : b && b.duration;
+    if (b) play(id, end - 4).catch(() => {});
   }
 });
 

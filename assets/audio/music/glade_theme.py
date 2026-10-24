@@ -506,8 +506,34 @@ def write_wav(path, x):
     wavfile.write(path, SR, (np.clip(x, -1, 1) * 32767).astype(np.int16))
 
 
-def master(take, out_dir, arrange_fn=None, buses=None, trims=None, name="glade", beat=BEAT):
-    """Mix, master and encode one take; other tracks pass their own arrangement."""
+def echoed(x, beat):
+    """Dotted-eighth ping-pong, quiet. np.roll wraps, which a loop wants and
+    an intro's silent tail doesn't notice."""
+    d = int(round(0.75 * beat * SR))
+    e = np.zeros_like(x)
+    for k, (gain, ch) in enumerate(((0.22, 1), (0.12, 0), (0.06, 1)), start=1):
+        e[:, ch] += np.roll(x.sum(1) * 0.5, d * k) * gain
+    return x + e
+
+
+def tone(y):
+    y = highpass(y.T, 30, 2).T
+    # a little air on top
+    sos = signal.butter(1, 6000, "high", fs=SR, output="sos")
+    return y + 0.12 * signal.sosfilt(sos, y.T).T
+
+
+def encode(path, y):
+    write_wav(path, y)
+    subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", path, "-c:a", "libvorbis", "-q:a", "5", path[:-4] + ".ogg"], check=True)
+    subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", path, "-c:a", "libmp3lame", "-b:a", "192k", path[:-4] + ".mp3"], check=True)
+
+
+def master(take, out_dir, arrange_fn=None, buses=None, trims=None, name="glade", beat=BEAT, intros=None):
+    """Mix, master and encode one take; other tracks pass their own arrangement.
+    `intros` ({name: take -> unfolded Mix}, built after the loop so the loop's
+    random draws stay as they were) are each mastered with the loop's levels
+    into <name>_<take>_<intro>: the intro once, then the loop in a loop region."""
     mix = (arrange_fn or arrange)(take)
     buses = buses or BUSES
     trims = BUS_TRIM if trims is None else trims
@@ -516,29 +542,20 @@ def master(take, out_dir, arrange_fn=None, buses=None, trims=None, name="glade",
     dry = np.zeros((n, 2))
     send = np.zeros((n, 2))
     levels = {}
+    gains = {}
     for bus, x in mix.buses.items():
         target, rev, echo = buses[bus]
         target += trims.get(take, {}).get(bus, 0)
         x = fold(x, n)
-        x *= 10 ** ((target - rms_db(x)) / 20)
-        if echo:  # dotted-eighth ping-pong, quiet
-            d = int(round(0.75 * beat * SR))
-            e = np.zeros_like(x)
-            for k, (gain, ch) in enumerate(((0.22, 1), (0.12, 0), (0.06, 1)), start=1):
-                e[:, ch] += np.roll(x.sum(1) * 0.5, d * k) * gain
-            x = x + e
+        gains[bus] = 10 ** ((target - rms_db(x)) / 20)
+        x *= gains[bus]
+        if echo:
+            x = echoed(x, beat)
         levels[bus] = round(rms_db(x), 1)
         dry += x
         send += rev * x
     wet = np.stack([signal.fftconvolve(send[:, c], ir[:, c]) for c in range(2)], axis=1)
     mixed = dry + 0.55 * fold(wet, n)
-
-    def tone(y):
-        y = highpass(y.T, 30, 2).T
-        # a little air on top
-        sos = signal.butter(1, 6000, "high", fs=SR, output="sos")
-        return y + 0.12 * signal.sosfilt(sos, y.T).T
-
     mixed = circular(tone, mixed)
     gain_db = 0.0
     path = os.path.join(out_dir, f"{name}_{take}.wav")
@@ -549,12 +566,46 @@ def master(take, out_dir, arrange_fn=None, buses=None, trims=None, name="glade",
         if abs(i - TARGET_LUFS) < 0.2:
             break
         gain_db += TARGET_LUFS - i
-    ogg = path[:-4] + ".ogg"
-    mp3 = path[:-4] + ".mp3"
-    subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", path, "-c:a", "libvorbis", "-q:a", "5", ogg], check=True)
-    subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", path, "-c:a", "libmp3lame", "-b:a", "192k", mp3], check=True)
-    return {"take": take, "seconds": round(n / SR, 2), "samples": n, "lufs": i, "true_peak_db": tp,
+    encode(path, y)
+    info = {"take": take, "seconds": round(n / SR, 2), "samples": n, "lufs": i, "true_peak_db": tp,
             "bus_rms_db": levels, "seam": seam_check(y)}
+    for key, build in (intros or {}).items():
+        info.setdefault("intros", {})[key] = with_intro(build(take), y, gains, buses, beat, gain_db, ir,
+                                                        path[:-4] + f"_{key}.wav")
+    return info
+
+
+def with_intro(intro, loop, gains, buses, beat, gain_db, ir, path):
+    """The intro, then the loop. The intro's ringing tail spills into the
+    loop's first pass, so the loop region starts after it has died away
+    (`settle` in): the file is intro + loop + the loop's first `settle`
+    seconds again, and the region [start, start + loop) is the loop rotated,
+    every sample as clean as the loop file's own."""
+    n_i = intro.n
+    m = n_i + intro.tail
+    settle = intro.tail
+    dry = np.zeros((m, 2))
+    send = np.zeros((m, 2))
+    for bus, x in intro.buses.items():
+        target, rev, echo = buses[bus]
+        x = x * gains.get(bus, 10 ** ((target - rms_db(x)) / 20))
+        if echo:
+            x = echoed(x, beat)
+        dry += x
+        send += rev * x
+    wet = np.stack([signal.fftconvolve(send[:, c], ir[:, c])[:m] for c in range(2)], axis=1)
+    head = tone(dry + 0.55 * wet) * 10 ** (gain_db / 20)
+    pad = SR // 2  # past the region's end, so the decoder never runs dry at the turn
+    full = np.concatenate([np.zeros((n_i, 2)), loop, loop[: settle + pad]])
+    full[:m] += head
+    start = n_i + settle
+    full[:start] = limiter(full[: start + SR])[:start]  # the loop is limited already; only the intro needs it
+    assert np.array_equal(full[start:start + len(loop)], np.roll(loop, -settle, axis=0))
+    encode(path, full)
+    i, tp = lufs(path)
+    return {"intro_seconds": round(n_i / SR, 3), "loop_start": round(start / SR, 6),
+            "loop_end": round((start + len(loop)) / SR, 6), "seconds": round(len(full) / SR, 3),
+            "lufs": i, "true_peak_db": tp}
 
 
 def seam_check(y):

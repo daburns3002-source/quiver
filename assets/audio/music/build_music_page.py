@@ -19,8 +19,9 @@ TRACKS = {
     "glade": ("Mossy Glade", "Area 1's music, under every room: a sunny forest clearing. "
               "F major, 104 BPM, 92 seconds, then it loops: a short harp intro, the tune twice, "
               "a minor middle on the ocarina, a quiet harp-and-bells bridge, and the tune once more."),
-    "boss": ("King Bloblin", "Area 1's boss fight, while the king is in the room. D minor, 152 BPM, 76 seconds, "
-             "then it loops: stabs and a drum fill, the battle tune twice, a heroic major-key middle, a bouncy "
+    "boss": ("King Bloblin", "Area 1's boss fight, take B (Chip + Brass), now with a battle intro that plays once as "
+             "the king appears, like a trainer battle's: pick the intro. After it comes the 76-second loop "
+             "(D minor, 152 BPM): stabs and a drum fill, the battle tune twice, a heroic major-key middle, a bouncy "
              "half-time breakdown for the slime's wobble, a snare-roll build, and the tune once more."),
 }
 manifest = json.load(open(os.path.join(RENDER, "manifest.json")))  # as the theme script writes it
@@ -30,19 +31,28 @@ js = open(os.path.join(here, "music_page.js"), encoding="utf-8").read()
 
 data = {}
 rows = []
+# A take with battle intros is shown as its intros: each plays once, then the loop round its region.
+entries = []
 for v in manifest:
-    sid = f"{TRACK}_{v['take']}"
+    for key, it in (v.get("intros") or {}).items():
+        entries.append((f"{TRACK}_{v['take']}_{key}", f"{v['take'].upper()} · {key.title()}", key.upper(),
+                        f"{it['intro_seconds']:.1f} s intro, then the loop", it["note"], [it["loop_start"], it["loop_end"]]))
+if not entries:
+    entries = [(f"{TRACK}_{v['take']}", v["take"].upper(), v["take"].upper(), f"{v['seconds']} s · {v['lufs']} LUFS",
+                v["note"], None) for v in manifest]
+for sid, label, value, sub, note, loop in entries:
     data[sid] = {ext: base64.b64encode(open(os.path.join(RENDER, f"{sid}.{ext}"), "rb").read()).decode()
                  for ext in ("ogg", "mp3")}
-    label = v["take"].upper()
+    if loop:
+        data[sid]["loop"] = loop
     rows.append(f"""<li class="opt">
-  <button class="play" type="button" data-loop="{sid}" aria-label="Play take {label} on loop"><span class="tri"></span></button>
+  <button class="play" type="button" data-loop="{sid}" aria-label="Play {label} on loop"><span class="tri"></span></button>
   <div class="meta">
-    <div class="top"><b>{label}</b><span class="ms">{v['seconds']} s · {v['lufs']} LUFS</span></div>
-    <p>{html.escape(v['note'])}</p>
+    <div class="top"><b>{label}</b><span class="ms">{sub}</span></div>
+    <p>{html.escape(note)}</p>
     <div class="bar" aria-hidden="true"><i data-head="{sid}"></i></div>
   </div>
-  <div class="acts"><button class="rep" type="button" data-seam="{sid}">Hear the seam</button><label class="pick"><input type="radio" name="{TRACK}" value="{label}"><span>Pick</span></label></div>
+  <div class="acts"><button class="rep" type="button" data-seam="{sid}">Hear the seam</button><label class="pick"><input type="radio" name="{TRACK}" value="{value}"><span>Pick</span></label></div>
 </li>""")
 
 title, blurb = TRACKS[TRACK]

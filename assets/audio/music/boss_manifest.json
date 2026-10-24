@@ -53,6 +53,26 @@
    "p99_inside": 0.13496,
    "max_inside": 0.52782
   },
+  "intros": {
+   "dive": {
+    "intro_seconds": 4.737,
+    "loop_start": 10.736848,
+    "loop_end": 86.526327,
+    "seconds": 87.026,
+    "lufs": -16.0,
+    "true_peak_db": -2.3,
+    "note": "Dive: a chromatic run tumbling down two octaves, three hits on D minor, then a flourish up to a held high A."
+   },
+   "flash": {
+    "intro_seconds": 4.737,
+    "loop_start": 10.736848,
+    "loop_end": 86.526327,
+    "seconds": 87.026,
+    "lufs": -16.0,
+    "true_peak_db": -2.3,
+    "note": "Flash: high As flickering an octave apart like the screen flashing, arpeggios sweeping down, then the band charging on A."
+   }
+  },
   "note": "Chip + Brass: the same tune with a brass section under the pulse lead, a string ostinato and orchestral stabs, the chip still on top."
  }
 ]

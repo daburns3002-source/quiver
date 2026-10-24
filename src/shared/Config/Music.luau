@@ -13,7 +13,9 @@
 	audition page saves the owner's picks for Claude to put here.
 ]]
 
-export type Track = { id: string, name: string }
+--[[ `loopStart`/`loopEnd` (seconds): the track plays once from the top (a
+	boss's battle intro), then loops round that region (`Sound.LoopRegion`). ]]
+export type Track = { id: string, name: string, loopStart: number?, loopEnd: number? }
 
 local Music = {
 	--[[ Loudness under the sound effects, which carry the fight. ]]

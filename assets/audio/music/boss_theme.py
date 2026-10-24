@@ -4,7 +4,11 @@ from scratch with that theme's voices and mixing (`glade_theme.py`).
 
     python -I boss_theme.py <out_dir> [take ...]      (takes: a b; both by default)
 
-Writes <out_dir>/boss_<take>.wav, .ogg and .mp3, plus manifest.json.
+Writes <out_dir>/boss_<take>.wav, .ogg and .mp3, plus manifest.json. Take b,
+the owner's pick, also gets boss_b_<intro> for each battle intro (INTROS):
+the intro once, then the loop in a loop region (`Sound.LoopRegion`). Takes
+render in order a, b: each draws on one seeded generator, so rendering b
+alone would change it.
 D minor, 152 BPM, 48 bars (75.8 s), seamless the same way as the glade's.
 
   a  "Chip Battle": the glade B sound turned up: pulse lead over the flute,
@@ -256,6 +260,95 @@ def arrange(take):
     return mix
 
 
+# ---------- the battle intro ----------
+# Played once as the boss appears, like a trainer battle's opening: a rush,
+# then a charge up on the dominant (A7) that lands on the loop's first bar.
+# 3 bars each; chords as SECTIONS, drums as DRUMS (one pattern per bar).
+g.PC.update({"G#": 8, "D#": 3, "A#": 10})
+INTROS = {
+    "dive": {
+        "note": "Dive: a chromatic run tumbling down two octaves, three hits on D minor, then a flourish up to a held high A.",
+        "chords": "A7 | Dm Bb | A7",
+        "lead": "A6:.25 G#6:.25 G6:.25 F#6:.25 F6:.25 E6:.25 D#6:.25 D6:.25 C#6:.25 C6:.25 B5:.25 Bb5:.25 A5:.25 G#5:.25 G5:.25 F#5:.25 | "
+                "D5:.75 D5:.75 F5:.5 r:.5 Bb5:.75 A5:.75 | "
+                "A4:.25 C#5:.25 E5:.25 G5:.25 A5:.25 C#6:.25 E6:.25 G6:.25 A6:2",
+        "stabs": [(1, 0), (1, 1.5), (1, 3), (2, 0)],
+        "drums": [
+            {"snare": "xxxxxxxxxxxxxxxx", "taiko": "x..............."},
+            {"taiko": "x.....x.....x...", "snare": "....x.......x..."},
+            {"snare": "xxxxxxxxxxxxxxxx", "taiko": "x.......x.x.x.x."},
+        ],
+        "rolls": {0, 2},
+    },
+    "flash": {
+        "note": "Flash: high As flickering an octave apart like the screen flashing, arpeggios sweeping down, then the band charging on A.",
+        "chords": "A7 | Bb A | A7",
+        "lead": "A6:.25 A5:.25 A6:.25 A5:.25 A6:.25 A5:.25 A6:.25 A5:.25 A6:.25 A5:.25 A6:.25 A5:.25 A6:.25 A5:.25 A6:.25 A5:.25 | "
+                "D6:.25 Bb5:.25 F5:.25 D5:.25 Bb4:.25 D5:.25 F5:.25 Bb5:.25 C#6:.25 A5:.25 E5:.25 C#5:.25 A4:.25 C#5:.25 E5:.25 A5:.25 | "
+                "A5:.5 r:.25 A5:.25 C#6:.5 r:.25 C#6:.25 E6:.5 G6:.5 A6:1",
+        "stabs": [(1, 0), (1, 2), (2, 0), (2, 1), (2, 2), (2, 3)],
+        "drums": [
+            {"hat": "xxxxxxxxxxxxxxxx", "taiko": "x..............."},
+            {"kick": "x.......x.......", "snare": "....x.......xxxx"},
+            {"kick": "x.x.x.x.x.x.x.x.", "snare": "x.x.x.x.xxxxxxxx"},
+        ],
+        "rolls": {2},
+    },
+}
+
+
+def intro_arrange(take, which):
+    spec = INTROS[which]
+    cells = [c.split() for c in spec["chords"].split("|")]
+    mix = g.Mix(len(cells) * BAR)
+    add = mix.add
+    for b, parts in enumerate(cells):
+        t0 = b * BAR
+        each = 4 / len(parts)
+        for j, c in enumerate(parts):
+            root, ivs, bass = g.parse_chord(c)
+            start = t0 + j * each * BEAT
+            bm = 38 + (bass - 38) % 12
+            for k in range(int(each * 2)):  # the bass pumps eighths, octave on the offbeat
+                m = bm + (12 if k % 2 else 0)
+                add("bass", start + k * 0.5 * BEAT, g.triangle(g.hz(m), 0.45 * BEAT, 1.0 if k % 2 == 0 else 0.8), jitter=0)
+                add("bass", start + k * 0.5 * BEAT, g.pizz(g.hz(m), 0.4 * BEAT, 0.6), jitter=0.002)
+                if take == "b":
+                    add("ostinato", start + k * 0.5 * BEAT, ostinato(g.hz(m + 12), 0.45 * BEAT, 1.0), pan=-0.25, jitter=0.003)
+            for v, m in enumerate(g.pad_voicing(ivs, root)):
+                add("pad", start, g.strings(g.hz(m), each * BEAT, 0.9), pan=(-0.45, 0.45)[v % 2], jitter=0)
+            for bar, off in spec["stabs"]:
+                if bar == b and j * each <= off < (j + 1) * each:
+                    for m in g.pad_voicing(ivs, root):
+                        add("stabs", t0 + off * BEAT, brass(g.hz(m), 0.35 * BEAT, 0.9), pan=0.1, jitter=0.002)
+        for part, steps in spec["drums"][b].items():
+            for k, c in enumerate(steps):
+                if c != "x":
+                    continue
+                if part == "snare" and b in spec["rolls"]:
+                    v = 0.3 + 0.7 * k / 15  # the roll swells into the next bar
+                elif part == "hat":
+                    v = 0.8 if k % 2 == 0 else 0.55
+                else:
+                    v = 1.0 if k % 4 == 0 else 0.8
+                add({"hat": "perc"}.get(part, part), t0 + k * 0.25 * BEAT, DRUM_VOICES[part](v * g.rng.uniform(0.9, 1.0)),
+                    pan={"hat": 0.35}.get(part, 0.0), jitter=0.002)
+    add("crash", 0, crash(1.0), pan=-0.3, jitter=0)
+    for bi, bar in enumerate(g.parse_melody(spec["lead"])):
+        beat = 0.0
+        for m, beats in bar:
+            if m is not None:
+                at = (bi * 4 + beat) * BEAT
+                dur = beats * BEAT * 0.95
+                v = (1.0 if beat % 1 == 0 else 0.85) * g.rng.uniform(0.92, 1.0)
+                add("chiplead", at, g.pulse(g.hz(m), dur, v, duty=0.25), jitter=0)
+                add("lead", at, g.flute(g.hz(m - 12), dur, 0.55 * v), pan=-0.15, jitter=0.004)
+                if take == "b":
+                    add("brass", at, brass(g.hz(m - 12), dur, v), pan=0.15, jitter=0.003)
+            beat += beats
+    return mix
+
+
 # bus: (level dB RMS while playing, reverb send, echo)
 BUSES = {
     "chiplead": (-19.5, 0.14, True),
@@ -286,7 +379,10 @@ if __name__ == "__main__":
     os.makedirs(out_dir, exist_ok=True)
     manifest = []
     for take in takes:
-        info = g.master(take, out_dir, arrange_fn=arrange, buses=BUSES, trims=TRIMS, name="boss", beat=BEAT)
+        intros = {k: (lambda t, k=k: intro_arrange(t, k)) for k in INTROS} if take == "b" else None
+        info = g.master(take, out_dir, arrange_fn=arrange, buses=BUSES, trims=TRIMS, name="boss", beat=BEAT, intros=intros)
+        for k, v in (info.get("intros") or {}).items():
+            v["note"] = INTROS[k]["note"]
         info["note"] = NOTES[take]
         manifest.append(info)
         print(json.dumps(info))

@@ -145,8 +145,16 @@ ROUND_14 = [
     }),
 ]
 
+ROUND_15 = [
+    ("Round 15 · the card screen's big moments, designed for them", {
+        "card_mythic": ("Mythic reveal", "Plays as a face-down Mythic starts its reveal: the shake builds for a second, the card flips, the flash hits at 1.35 s and MYTHIC! lands at 1.65 s. Every take hits on the flash.", None),
+        "card_legendary": ("Legendary in the hand", "Plays as a hand with a Legendary in it is dealt, when the frame turns gold.", None),
+    }),
+]
+
 # page: (rounds, picks collection, sounds already chosen, shown for context)
 PAGES = {
+    "15": (ROUND_15, "picks15", ["All ten upgrade effects (Blaze C)"]),
     "14": (ROUND_14, "picks14", ["Heal", "Blast Arrows", "Bloodletting", "Chain Lightning", "Meteor", "Overdraw", "Heavy Blade", "Earthbreaker", "Soul Chain (an octave lower)"]),
     "13": (ROUND_13, "picks13", ["Heal (quieter, lower)", "Blast Arrows B", "Bloodletting D", "Chain Lightning C", "Meteor A"]),
     "12": (ROUND_12, "picks12", []),

@@ -115,6 +115,12 @@ local Sounds: { [string]: Sound } = {
 	card_click = { id = "rbxassetid://10128760939", volume = 0.6, pitchJitter = 0, minGap = 0.05 },
 	card_reroll = { id = "rbxassetid://10128766965", volume = 0.6, pitchJitter = 0, minGap = 0.2 },
 	card_choose = { id = "rbxassetid://10066947742", volume = 0.7, pitchJitter = 0, minGap = 0.2 },
+	--[[ The card screen's big moments, auditioned as round 15
+	     (assets/audio/reveal_synth.py): a Mythic's reveal, one file timed to
+	     its shake, flip, flash and title, and a hand with a Legendary in it
+	     being dealt. Silent until the owner's picks are uploaded. ]]
+	card_mythic = { id = "", volume = 0.8, pitchJitter = 0, minGap = 1 },
+	card_legendary = { id = "", volume = 0.7, pitchJitter = 0, minGap = 0.5 },
 	--[[ The upgrade effects' sounds (owner, 2026-10-24), auditioned as round
 	     12 (assets/audio/effect_sounds.py): silent until the owner's picks
 	     are uploaded and their ids go here. Played by `Fx/Upgrades/*` where

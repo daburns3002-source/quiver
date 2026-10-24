@@ -4,11 +4,15 @@
 	boss music's battle intro, like a trainer battle's flash (`Config/
 	BossBanners`; the owner's pick, style A "Slash", 2026-10-24).
 
-	A white flash; a slanted band in the boss's deep colour tears across
+	A white flash over a dark ground in the boss's colour that hides the
+	arena (owner, 2026-10-24: "i dont want the arena to be seen when the
+	animation is playing"); a slanted band in the boss's deep colour tears across
 	from the left with speed lines running through it; the boss's icon
 	rushes in from the right and plays its attack (a 2x2 sheet of frames,
 	shaking on each strike); the name slams down, a BOSS tag pops and the
-	boss's title fades in under it. Then it all leaves to the sides.
+	boss's title fades in under it. Then it all leaves to the sides and the
+	ground fades, showing the arena. Until then the player is held still
+	(`RunPaused.setIntro`), as the server holds the world.
 
 	One RenderStepped loop poses every piece from the time since the banner
 	appeared (as `UI/EndScreenMotion` does), so it can be frozen at any
@@ -23,6 +27,7 @@ local RunService = game:GetService("RunService")
 local BossBanners = require(ReplicatedStorage.Shared.Config.BossBanners)
 
 local BossWatch = require(script.Parent.Parent.Fx.BossWatch)
+local RunPaused = require(script.Parent.Parent.RunPaused)
 
 local BossBanner = {}
 
@@ -36,6 +41,7 @@ local LINES = 9
 
 type Parts = {
 	gui: ScreenGui,
+	ground: Frame,
 	flash: Frame,
 	band: Frame,
 	edges: { Frame },
@@ -94,8 +100,21 @@ local function build(playerGui: PlayerGui): Parts
 	gui.Name = "BossBanner"
 	gui.ResetOnSpawn = false
 	gui.IgnoreGuiInset = true
-	gui.DisplayOrder = 4
+	--[[ Over the whole HUD (the skill bar is 101, the card screen 100): for
+	     its 4.7 s nothing of the room shows. ]]
+	gui.DisplayOrder = 102
 	gui.Enabled = false
+
+	--[[ Covers the arena: the boss's deep colour, darkening to the edges. ]]
+	local ground = Instance.new("Frame")
+	ground.Name = "Ground"
+	ground.Size = UDim2.fromScale(1, 1)
+	ground.BorderSizePixel = 0
+	ground.BackgroundColor3 = Color3.new(1, 1, 1)
+	ground.Parent = gui
+	local shade = Instance.new("UIGradient")
+	shade.Rotation = 90
+	shade.Parent = ground
 
 	local band = Instance.new("Frame")
 	band.Name = "Band"
@@ -175,6 +194,7 @@ local function build(playerGui: PlayerGui): Parts
 	gui.Parent = playerGui
 	return {
 		gui = gui,
+		ground = ground,
 		flash = flash,
 		band = band,
 		edges = edges,
@@ -206,6 +226,17 @@ local function pose(p: Parts, banner: BossBanners.Banner, t: number)
 	local upright = size.Y > size.X
 
 	p.flash.BackgroundTransparency = if t < 0.06 then 1 - t / 0.06 else span(t, 0.06, 0.5)
+
+	-- the ground: there from the first frame (under the flash), gone as the band leaves
+	local rim = banner.deep:Lerp(Color3.new(0, 0, 0), 0.75)
+	local middle = banner.deep:Lerp(Color3.new(0, 0, 0), 0.35)
+	local shade = p.ground:FindFirstChildOfClass("UIGradient") :: UIGradient
+	shade.Color = ColorSequence.new({
+		ColorSequenceKeypoint.new(0, rim),
+		ColorSequenceKeypoint.new(0.5, middle),
+		ColorSequenceKeypoint.new(1, rim),
+	})
+	p.ground.BackgroundTransparency = span(t, 4.35, 4.7)
 
 	-- the band: in from the left, out to the right
 	local bandIn = outCubic(span(t, 0.12, 0.44))
@@ -284,6 +315,7 @@ local function show(title: string?)
 	if parts then
 		parts.gui.Enabled = banner ~= nil
 	end
+	RunPaused.setIntro(banner ~= nil)
 end
 
 --[[ For a Studio capture (a probe cannot reach this module's state, only
@@ -325,6 +357,7 @@ function BossBanner.start()
 		if t >= BossBanners.duration then
 			shown = nil
 			made.gui.Enabled = false
+			RunPaused.setIntro(false)
 			return
 		end
 		pose(made, banner, t)

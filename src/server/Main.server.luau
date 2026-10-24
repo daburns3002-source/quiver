@@ -321,6 +321,12 @@ RunService.Heartbeat:Connect(function(deltaTime: number)
 		return
 	end
 
+	--[[ And while a boss's entry banner plays: nobody moves or attacks until
+	     it has gone (`EnemyManager.introHolding`). ]]
+	if EnemyManager.introHolding(now) then
+		return
+	end
+
 	--[[ And behind the end screen, which now waits for its button rather
 	     than a 2.5 s timer. A character respawns after five seconds; left
 	     running, the arena killed it again behind the screen, every time. ]]

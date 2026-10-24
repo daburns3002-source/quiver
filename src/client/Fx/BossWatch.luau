@@ -14,8 +14,11 @@ local Workspace = game:GetService("Workspace")
 
 local BossWatch = {}
 
---[[ Seconds between looks; a boss's arrival is felt within this. ]]
-local POLL = 0.5
+--[[ Seconds between looks; a boss's arrival is felt within this. Every
+     frame, since the server holds the run from the boss's arrival for the
+     banner's length (`BossBanners.hold`), and a late look would let the
+     banner run past the hold. ]]
+local POLL = 0
 
 local title: string? = nil
 local listeners: { (title: string?) -> () } = {}

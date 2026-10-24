@@ -76,9 +76,33 @@ export type DesignPart = {
 	bone: string?,
 	--[[ An eye: what an `Eyes` tell turns red (`EnemyModel.tintEyes`). ]]
 	eye: boolean?,
+	--[[ For a part of an imported model (`Imported`): its true size where
+	     Roblox would clamp it to 0.001 (a lash link tucked away until a clip
+	     scales it up), and its GLB material's name, which a flash looks for
+	     (a boss's gems). ]]
+	restSize: Vector3?,
+	surface: string?,
 }
 
 export type Design = { DesignPart }
+
+--[[
+	An archetype whose body is a model the owner imported whole (a Claude
+	Design rig that plays its own clips), on top of its `Design` (a shadow).
+	`model` names its `Config/ImportedModels` entry (from
+	tools/imports_to_luau.py) and `clips` its `Config/ModelClips` one. It is
+	scaled to fill the hitbox and stood on its floor. Parts whose names
+	match `eyes` (a Lua pattern) are its eyes: Neon in `eyeColor`. `stretch`
+	names the joint a lash's length stretches (`ModelClipStretch`) and the
+	joints under it that keep their own size.
+]]
+export type ImportedDesign = {
+	model: string,
+	clips: string,
+	eyes: string,
+	eyeColor: Color3,
+	stretch: { joint: string, keep: { string } }?,
+}
 
 --[[ Set on every part `EnemyModel` builds, so the client can find a body to
      flash without knowing anything about these tables. ]]
@@ -434,72 +458,17 @@ local broodSlime: Design = {
 }
 
 --[[
-	The Slime King, Mossy Glade's boss (the owner's
-	design_handoff_slime_king, 2026-10-23): a crowned jelly in a mantle, two
-	arms the Slime Lash throws.
-
-	From `assets/models/bosses/king_bloblin/slime_king_roblox.glb`, slimmed
-	by `optimise_enemy.py slime_king` to Body, Eyes, Decor (crown, mantle,
-	collar, brooch, gems, feet, brows) and the two arms, imported by the
-	owner (model 83216994830889). The importer turns it to face +Z, so every
-	part is turned 180° and its offset mirrored; ×2, so he stands 9.8 studs
-	tall. Sizes and offsets are the imported parts' own.
-
-	Every part carries the model's own vertex colours, so all are white,
-	the eyes included, in their cut sockets. The parts
-	are posed by the server while he moves (`BossBody`), so the arms must be
-	named `Arm_L` and `Arm_R`, as the lash looks them up.
+	The Slime King, King Bloblin (the owner's King Bloblin Fight, Claude
+	Design, 2026-10-24): one blocky rig with all 22 of his clips, from
+	`assets/models/bosses/king_bloblin_blocky/KingBloblin_Fight.glb`,
+	imported whole by the owner. His body is that import (`Imported`,
+	below), built by `EnemyModel` from `Config/ImportedModels/KingBloblin`
+	and scaled to fill his 9.6 × 9.6 × 8 hitbox; only his shadow is drawn
+	from here. His clips play on the beats of his moves (`Balance` boss
+	`clips`, `Fx/ModelAnimator`), his lash chain stretched to the lane.
 ]]
---[[ Since 2026-10-23: the blocky King Bloblin (Claude Design, 2026-10-23); his arms are their own parts, `Arm_L` and `Arm_R`, so the Royal Bounce and Slime Lash play on him as before. From
-     `assets/models/enemies/blocky/` through `optimise_blocky_enemy.py`, imported
-     by the owner: Body with the model's colours on its vertices, glowing
-     Eyes in the act's amber. Turned 180° like every import, scaled to fill
-     its hitbox. ]]
 local slimeKing: Design = {
 	shadow(9.6, 8.0, 9.6),
-	{
-		name = "Body",
-		shape = "Mesh",
-		meshId = "rbxassetid://106509827724816",
-		size = Vector3.new(9.539, 9.552, 7.582),
-		offset = Vector3.new(0, -0.024, 0.165),
-		rotation = BLOCKY_TURN,
-		shade = 1,
-		color = WHITE,
-	},
-	{
-		name = "Eyes",
-		shape = "Mesh",
-		meshId = "rbxassetid://92717168273716",
-		size = Vector3.new(8.887, 6.667, 2.615),
-		offset = Vector3.new(-0.224, -1.025, -1.937),
-		rotation = BLOCKY_TURN,
-		shade = 1,
-		-- Act 1's eye colour (amber), glowing.
-		color = EYE_AMBER,
-		material = Enum.Material.Neon,
-		tint = false,
-	},
-	{
-		name = "Arm_R",
-		shape = "Mesh",
-		meshId = "rbxassetid://102351808227777",
-		size = Vector3.new(2.635, 2.767, 2.635),
-		offset = Vector3.new(2.899, -1.803, -2.642),
-		rotation = BLOCKY_TURN,
-		shade = 1,
-		color = WHITE,
-	},
-	{
-		name = "Arm_L",
-		shape = "Mesh",
-		meshId = "rbxassetid://72647186962911",
-		size = Vector3.new(2.108, 2.372, 2.240),
-		offset = Vector3.new(-2.240, -1.901, 0.455),
-		rotation = BLOCKY_TURN,
-		shade = 1,
-		color = WHITE,
-	},
 }
 
 --[[
@@ -604,6 +573,18 @@ local EnemyDesigns = {
 	BabySlime = babySlime,
 	SlimeKing = slimeKing,
 	Wilf = wilf,
+
+	--[[ Archetypes built from an imported model, by display name. ]]
+	Imported = {
+		SlimeKing = {
+			model = "KingBloblin",
+			clips = "KingBloblin",
+			-- Eye_L, Eye_R and every Eye_Baby*_L / _R: Act 1's amber, glowing
+			eyes = "^Eye_",
+			eyeColor = EYE_AMBER,
+			stretch = { joint = "LashRoot", keep = { "LashFist_Joint" } },
+		} :: ImportedDesign,
+	},
 }
 
 return table.freeze(EnemyDesigns)

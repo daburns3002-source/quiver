@@ -12,13 +12,16 @@
 	want is readable, deterministic charging.
 ]]
 
+local CollectionService = game:GetService("CollectionService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
 
 local Arena = require(script.Parent.Parent.Arena.Arena)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local BossBody = require(script.Parent.BossBody)
 local BossMoves = require(script.Parent.BossMoves)
+local EnemyDesigns = require(ReplicatedStorage.Shared.Config.EnemyDesigns)
 local EnemyModel = require(script.Parent.EnemyModel)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
 local Pathing = require(script.Parent.Pathing)
@@ -54,6 +57,10 @@ type BossState = {
 	body: BossBody.Body,
 	holding: Player?,
 	airborne: boolean,
+	--[[ The clip its body is playing, for a body that plays its own
+	     (`EnemyBoss.clips`), and the time it began on `os.clock()`. ]]
+	clip: string?,
+	clipAt: number,
 }
 
 type Enemy = {
@@ -590,13 +597,29 @@ function EnemyManager.spawn(
 				table.insert(parts, child)
 			end
 		end
+		--[[ A body that plays its own clips (King Bloblin's rig) is drawn by
+		     each client (`Fx/ModelAnimator`), timed from here; only its
+		     shadow is placed on the server. ]]
+		local imported = (EnemyDesigns.Imported :: any)[config.displayName] :: EnemyDesigns.ImportedDesign?
+		local clipped = config.boss.clips ~= nil and imported ~= nil
+		if clipped and imported then
+			model:SetAttribute("ModelClips", imported.clips)
+			local stretch = imported.stretch
+			if stretch then
+				model:SetAttribute("ModelClipStretchJoint", stretch.joint)
+				model:SetAttribute("ModelClipStretchKeep", table.concat(stretch.keep, ","))
+			end
+			CollectionService:AddTag(model, "ModelClips")
+		end
 		enemies[model].boss = {
 			move = nil,
 			restUntil = 0,
 			next = 1,
-			body = BossBody.new(model, hitbox, parts),
+			body = BossBody.new(model, hitbox, parts, clipped),
 			holding = nil,
 			airborne = false,
+			clip = if clipped then "" else nil,
+			clipAt = 0,
 		}
 		--[[ For the client: the boss bar, and no hit squash on a body the
 		     server is posing. ]]
@@ -1030,12 +1053,15 @@ local function resolveBossEvent(
 	if e.kind == "SlamTell" then
 		enemyTelegraph:FireAllClients(e.at, Vector3.zAxis, e.duration, "Slam", e.radius)
 	elseif e.kind == "Slam" then
+		--[[ The landing: its flash, debris and dust on the circle, and the
+		     shockwave out from its edge (`radius`) to `shockRadius`. ]]
 		enemyTelegraph:FireAllClients(
 			e.at,
 			Vector3.zAxis,
 			Balance.Telegraph.shockDuration,
-			"Shockwave",
-			boss.bounce.shockRadius
+			"SlamImpact",
+			boss.bounce.shockRadius,
+			e.radius
 		)
 		for _, session in RunSession.all() do
 			local root = session.root
@@ -1054,12 +1080,14 @@ local function resolveBossEvent(
 		end
 	elseif e.kind == "LaneAim" or e.kind == "Lane" then
 		enemyTelegraph:FireAllClients(e.at, e.direction, e.duration, e.kind, e.length, e.width)
-	elseif e.kind == "Shock" then
+	elseif e.kind == "Splat" then
+		enemyTelegraph:FireAllClients(e.at, e.direction, boss.lash.hold, "Splat", e.radius)
+	elseif e.kind == "BumpShock" then
 		enemyTelegraph:FireAllClients(
 			e.at,
-			Vector3.zAxis,
+			e.direction,
 			Balance.Telegraph.shockDuration,
-			"Shockwave",
+			"BumpShock",
 			e.radius
 		)
 	elseif e.kind == "Shake" then
@@ -1093,6 +1121,14 @@ local function resolveBossEvent(
 				held = root.Position
 				state.holding = session.player
 				playerGrabbed:FireClient(session.player, boss.lash.pull + boss.lash.bump + 0.1)
+				--[[ Everyone sees the grab: a flash where the fist closed. ]]
+				enemyTelegraph:FireAllClients(
+					root.Position,
+					e.direction,
+					Balance.Telegraph.grabDuration,
+					"Grab",
+					Balance.Telegraph.grabSize
+				)
 			elseif landed then
 				shove(session, side * (if across >= 0 then 1 else -1), boss.lash.shove)
 			end
@@ -1113,6 +1149,31 @@ local function resolveBossEvent(
 			end
 		end
 	end
+end
+
+--[[
+	Tells the clients which clip a boss's body is playing (`Fx/ModelAnimator`):
+	its name, the server time it began (`ModelClipAt`), and the seconds it
+	is to last (`ModelClipSpan`, which fits its pace to the phases), set
+	only when the clip changes. Nothing for a body the server poses.
+]]
+local function showClip(
+	enemy: Enemy,
+	state: BossState,
+	clip: string,
+	clipAt: number,
+	now: number,
+	span: number
+)
+	if state.clip == nil or (clip == state.clip and clipAt == state.clipAt) then
+		return
+	end
+	state.clip = clip
+	state.clipAt = clipAt
+	local model = enemy.model
+	model:SetAttribute("ModelClipAt", Workspace:GetServerTimeNow() - (now - clipAt))
+	model:SetAttribute("ModelClipSpan", if span > 0 then span else nil)
+	model:SetAttribute("ModelClip", if clip ~= "" then clip else nil)
 end
 
 --[[
@@ -1143,6 +1204,8 @@ local function stepBoss(enemy: Enemy, state: BossState, now: number)
 	if not move then
 		if now < state.restUntil or not targetRoot then
 			BossBody.pose(state.body, BossMoves.idle(feet, enemy.yaw or 0, now))
+			local idle = if boss.clips then boss.clips.idle else ""
+			showClip(enemy, state, idle, if state.clip == idle then state.clipAt else now, now, 0)
 			return
 		end
 		move = BossMoves.start(BossMoves.LOOP[state.next], now, feet, enemy.yaw or 0)
@@ -1164,6 +1227,14 @@ local function stepBoss(enemy: Enemy, state: BossState, now: number)
 
 	for _, e in events do
 		resolveBossEvent(state, boss, e, now, clamp)
+	end
+
+	--[[ After the events: a grab switches the clip to the pull. ]]
+	local clip, clipAt, span = BossMoves.clip(move, boss)
+	showClip(enemy, state, clip, clipAt, now, span)
+	if state.clip and move.kind == "Lash" and move.length > 0 then
+		local stretch = BossMoves.chainScale(move.length, boss.lash)
+		enemy.model:SetAttribute("ModelClipStretch", Vector3.new(1, 1, stretch))
 	end
 
 	if done then

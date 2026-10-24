@@ -15,6 +15,13 @@
 	Skin parts are welded to the hitbox rather than anchored and moved. The
 	hitbox is anchored, so the assembly is kinematic and costs no simulation,
 	and `EnemyManager` goes on moving an enemy by writing one CFrame.
+
+	An archetype built from an imported model (`EnemyDesigns.Imported`:
+	King Bloblin) adds that model's parts to its design (`designFor`),
+	scaled to fill the hitbox and stood on its floor, each named after its
+	GLB node so `Fx/ModelAnimator` can play the model's clips on it. They
+	are welded like any skin, so a client that does not animate them still
+	draws him where the server has him; one that does unwelds them locally.
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -26,6 +33,22 @@ local MeshTemplates = require(script.Parent.Parent.Util.MeshTemplates)
 
 type EnemyConfig = Balance.EnemyConfig
 type DesignPart = EnemyDesigns.DesignPart
+
+--[[ A part of an imported model (`Config/ImportedModels/<Model>`). ]]
+type ImportedPart = {
+	name: string,
+	meshId: string,
+	textureId: string,
+	color: { number },
+	material: string,
+	transparency: number,
+	size: { number },
+	cframe: { number },
+	surface: string?,
+}
+
+--[[ A part as built: a design's, or one from an import. ]]
+export type BuiltPart = DesignPart
 
 local EnemyModel = {}
 
@@ -79,6 +102,135 @@ local RESTING_TRANSPARENCY = "RestingTransparency"
      CreateMeshPartAsync yields and fetches, which a spawn must not wait on. ]]
 local meshTemplates: { [string]: MeshPart } = {}
 
+--[[ Roblox's smallest part size. ]]
+local SMALLEST = 0.001
+--[[ A part this much smaller than the biggest is tucked away, not body. ]]
+local TUCKED_SHARE = 0.01
+--[[ Studs under which a built part is tucked away (`EnemyModel.tucked`). ]]
+local TUCKED_STUDS = 0.05
+
+--[[ Whether a design part is tucked away at rest, too small to see: a
+     lash link waiting for its clip to scale it up. Not body, for bounds. ]]
+function EnemyModel.tucked(part: DesignPart): boolean
+	local size = part.restSize or part.size
+	return math.max(size.X, size.Y, size.Z) < TUCKED_STUDS
+end
+
+local function importedParts(model: string): { ImportedPart }?
+	local folder = ReplicatedStorage.Shared.Config:FindFirstChild("ImportedModels")
+	local module = folder and folder:FindFirstChild(model)
+	if not module or not module:IsA("ModuleScript") then
+		return nil
+	end
+	return (require :: any)(module) :: { ImportedPart }
+end
+
+local function rowCFrame(c: { number }): CFrame
+	return CFrame.new(c[1], c[2], c[3], c[4], c[5], c[6], c[7], c[8], c[9], c[10], c[11], c[12])
+end
+
+--[[
+	An imported model's parts as design parts: scaled by the most that keeps
+	every part inside `box` (the hitbox's size), centred on it across, and
+	stood on its floor. Pure, so the bounds spec measures what is built.
+]]
+function EnemyModel.importedDesign(
+	imported: EnemyDesigns.ImportedDesign,
+	box: Vector3
+): { BuiltPart }
+	local rows = importedParts(imported.model)
+	if not rows then
+		return {}
+	end
+	--[[ Parts tucked away at rest (a lash chain at a thousandth of its
+	     size, laid out down the lane it will fly along) are not body: they
+	     are left out of the bounds, or he would shrink to fit them. ]]
+	local largest = 0
+	for _, row in rows do
+		largest = math.max(largest, row.size[1], row.size[2], row.size[3])
+	end
+	local low = Vector3.new(math.huge, math.huge, math.huge)
+	local high = -low
+	for _, row in rows do
+		if math.max(row.size[1], row.size[2], row.size[3]) < largest * TUCKED_SHARE then
+			continue
+		end
+		local cf = rowCFrame(row.cframe)
+		local half = Vector3.new(row.size[1], row.size[2], row.size[3]) / 2
+		for x = -1, 1, 2 do
+			for y = -1, 1, 2 do
+				for z = -1, 1, 2 do
+					local corner = cf * (half * Vector3.new(x, y, z))
+					low = low:Min(corner)
+					high = high:Max(corner)
+				end
+			end
+		end
+	end
+	local span = high - low
+	local scale = math.min(box.X / span.X, box.Y / span.Y, box.Z / span.Z)
+	local centre = (low + high) / 2
+	--[[ Model space to hitbox space: centred across, its floor on the box's. ]]
+	local origin = Vector3.new(centre.X, low.Y, centre.Z)
+	local floor = Vector3.new(0, -box.Y / 2, 0)
+
+	local out: { BuiltPart } = {}
+	for _, row in rows do
+		local cf = rowCFrame(row.cframe)
+		local size = Vector3.new(row.size[1], row.size[2], row.size[3]) * scale
+		local rx, ry, rz = cf:ToEulerAnglesXYZ()
+		local eye = string.match(row.name, imported.eyes) ~= nil
+		local part: BuiltPart = {
+			name = row.name,
+			shape = "Mesh" :: EnemyDesigns.DesignShape,
+			meshId = row.meshId,
+			textureId = if row.textureId ~= "" then row.textureId else nil,
+			size = size:Max(Vector3.one * SMALLEST),
+			restSize = if math.min(size.X, size.Y, size.Z) < SMALLEST then size else nil,
+			offset = floor + (cf.Position - origin) * scale,
+			rotation = Vector3.new(math.deg(rx), math.deg(ry), math.deg(rz)),
+			shade = 1,
+			color = if eye
+				then imported.eyeColor
+				else Color3.new(row.color[1], row.color[2], row.color[3]),
+			material = if eye
+				then Enum.Material.Neon
+				else (Enum.Material :: any)[row.material] or Enum.Material.SmoothPlastic,
+			transparency = row.transparency,
+			tint = not eye,
+			eye = eye or nil,
+			surface = row.surface,
+		}
+		table.insert(out, part)
+	end
+	return out
+end
+
+local designs: { [string]: { BuiltPart } } = {}
+
+--[[ Every part an archetype is built from, in order: its design's, then
+     its imported model's (`EnemyDesigns.Imported`). nil for an archetype
+     with no design. ]]
+function EnemyModel.designFor(config: EnemyConfig): { BuiltPart }?
+	local cached = designs[config.displayName]
+	if cached then
+		return cached
+	end
+	local design = (EnemyDesigns :: any)[config.displayName] :: { DesignPart }?
+	if not design then
+		return nil
+	end
+	local out: { BuiltPart } = table.clone(design) :: any
+	local imported = (EnemyDesigns.Imported :: any)[config.displayName] :: EnemyDesigns.ImportedDesign?
+	if imported then
+		for _, part in EnemyModel.importedDesign(imported, config.hitboxSize) do
+			table.insert(out, part)
+		end
+	end
+	designs[config.displayName] = out
+	return out
+end
+
 --[[ Makes the mesh templates every design asks for. Called once at server
      start, before anything spawns; a mesh that fails to load leaves its
      part to fall back to a plain ellipsoid rather than breaking a spawn. ]]
@@ -93,6 +245,12 @@ function EnemyModel.preload()
 			if type(id) == "string" then
 				table.insert(ids, id)
 			end
+		end
+	end
+	for _, imported in EnemyDesigns.Imported :: any do
+		local rows: { ImportedPart } = importedParts(imported.model) or {}
+		for _, row in rows do
+			table.insert(ids, row.meshId)
 		end
 	end
 	meshTemplates = MeshTemplates.load(ids)
@@ -130,7 +288,7 @@ local function addBones(part: BasePart, rigName: string)
 	end
 end
 
-local function buildPart(spec: DesignPart, config: EnemyConfig): BasePart
+local function buildPart(spec: BuiltPart, config: EnemyConfig): BasePart
 	local part: BasePart
 
 	local template = if spec.shape == "Mesh" and spec.meshId
@@ -183,6 +341,15 @@ local function buildPart(spec: DesignPart, config: EnemyConfig): BasePart
 	part.Anchored = false
 
 	part:SetAttribute(EnemyDesigns.SkinTag, true)
+	--[[ An imported part's true size where Roblox clamps it, which its
+	     clips scale (`Fx/ModelAnimator`), and its GLB material, which a
+	     flash looks for (a boss's gems, `Fx/BossGlow`). ]]
+	if spec.restSize then
+		part:SetAttribute("RestSize", spec.restSize)
+	end
+	if spec.surface then
+		part:SetAttribute("Surface", spec.surface)
+	end
 	--[[ Rides a bone of the rigged body (`Fx/EnemyRig`). ]]
 	if spec.bone then
 		part:SetAttribute(EnemyDesigns.BoneTag, spec.bone)
@@ -230,7 +397,7 @@ function EnemyModel.build(config: EnemyConfig, position: Vector3): (Model, BaseP
 
 	model.PrimaryPart = hitbox
 
-	local design = (EnemyDesigns :: any)[config.displayName] :: { DesignPart }?
+	local design = EnemyModel.designFor(config)
 	local skin: Skin = { all = {}, tintable = {}, eyes = {} }
 
 	--[[ An archetype with no design is a draft that has not been done yet, not
@@ -291,7 +458,7 @@ end
 	times it flashes.
 ]]
 function EnemyModel.restore(skin: Skin, config: EnemyConfig)
-	local design = (EnemyDesigns :: any)[config.displayName] :: { DesignPart }?
+	local design = EnemyModel.designFor(config)
 
 	if not design then
 		for _, part in skin.all do

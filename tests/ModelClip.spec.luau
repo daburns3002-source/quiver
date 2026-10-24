@@ -210,4 +210,40 @@ return function(t: TestRunner.Helper)
 		t.near(stretch.Y, 1, 1e-6)
 		t.near(stretch.Z, 1, 1e-6)
 	end)
+
+	--[[ A boss's lash: a joint stretched along Z carries what rides it
+	     further out and longer; a joint under it kept at its size cancels
+	     the stretch for its own parts. ]]
+	t.test("a stretched joint carries its parts out; a kept joint keeps its size", function()
+		local model = toy()
+		local fit =
+			ModelClip.fit(model, observe(model, CFrame.new(), 1, Vector3.zero)) :: ModelClip.Fit
+		local restInverse = ModelClip.restInverse(model)
+		local head = CFrame.new(0, 1, 0.5)
+
+		local out = ModelClip.deltas(model, nil, 0, restInverse, { root = Vector3.new(1, 1, 2) })
+		local placed, size = ModelClip.place(head, out.neck, fit)
+		t.near(placed.Position.Z, 1, 1e-6)
+		t.near(size.Z, 2, 1e-6)
+
+		local kept = ModelClip.deltas(
+			model,
+			nil,
+			0,
+			restInverse,
+			{ root = Vector3.new(1, 1, 2), neck = Vector3.new(1, 1, 0.5) }
+		)
+		local keptPlace, keptSize = ModelClip.place(head, kept.neck, fit)
+		t.near(keptPlace.Position.Z, 0.5, 1e-6)
+		t.near(keptSize.Z, 1, 1e-6)
+	end)
+
+	t.test("a clip that plays once holds its last frame; a loop wraps", function()
+		local once: ModelClip.Clip = { length = 2, loops = false, joints = {} }
+		local loop: ModelClip.Clip = { length = 2, joints = {} }
+		t.near(ModelClip.clipTime(once, 5), 2, 1e-9)
+		t.near(ModelClip.clipTime(once, -1), 0, 1e-9)
+		t.near(ModelClip.clipTime(loop, 5), 1, 1e-9)
+		t.near(ModelClip.clipTime(nil, 5), 0, 1e-9)
+	end)
 end

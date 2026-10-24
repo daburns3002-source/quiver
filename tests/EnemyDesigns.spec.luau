@@ -45,7 +45,7 @@ local function designBounds(design: { EnemyDesigns.DesignPart }): (Vector3, Vect
 	for _, spec in design do
 		--[[ The blob shadow is a mark on the floor, not body: it is meant
 		     to spread past the hitbox. ]]
-		if spec.name == "Shadow" then
+		if spec.name == "Shadow" or EnemyModel.tucked(spec) then
 			continue
 		end
 		local cf = EnemyModel.localCFrame(spec)
@@ -90,7 +90,8 @@ local function archetypes(): {
 		table.insert(out, {
 			name = config.displayName,
 			config = config,
-			design = (EnemyDesigns :: any)[config.displayName],
+			-- as built: its design's parts and any imported model's
+			design = EnemyModel.designFor(config),
 		})
 	end
 
@@ -184,10 +185,17 @@ return function(t: TestRunner.Helper)
 			known[config.displayName] = true
 		end
 
+		local function check(designs: any)
+			for key in designs do
+				local name = key :: string
+				t.isTrue(known[name], `EnemyDesigns.{name} matches no archetype`)
+			end
+		end
+		check(EnemyDesigns.Imported)
 		for key, value in EnemyDesigns do
-			--[[ Tables are the designs; the two tag strings beside them are
-			     not, and are skipped rather than listed as exceptions. ]]
-			if typeof(value) == "table" then
+			--[[ Tables are the designs; the tag strings beside them are
+			     not, and the imported models are checked above. ]]
+			if typeof(value) == "table" and key ~= "Imported" then
 				local name = key :: string
 				t.isTrue(known[name], `EnemyDesigns.{name} matches no archetype`)
 			end

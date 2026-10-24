@@ -541,9 +541,13 @@ Owner's rule, restated 2026-10-24. The pipeline is `docs/PIPELINES.md` §8.
 **10. 3D models are designed in the browser, through Claude Design.**
 The route is: the owner supplies reference images → Claude Design is opened in the
 browser → separate agents there build the 3D models. That is how the enemies, pets and
-weapons were made, and it is the route for new models. Do **not** build models by writing
-geometry in code, and do not spin up in-repo "design agents" to invent a look — that was
-tried for the forest ambience on 2026-10-24 and scratched. Owner's rule, 2026-10-24.
+weapons were made.
+
+**Every 3D model goes this way — ambience and arenas included, not just those three**
+(owner, 2026-10-24). Do **not** build models by writing geometry in code, and do not spin
+up in-repo "design agents" to invent a look: that was tried for the forest ambience on
+2026-10-24 and scratched. Reference sheets come first, from Codex (rule 9); the models
+follow in the browser.
 
 ## Code conventions
 

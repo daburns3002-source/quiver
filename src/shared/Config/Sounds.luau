@@ -157,7 +157,7 @@ local Sounds: { [string]: Sound } = {
 		minGap = 0.12,
 	},
 	fx_soul_chain = {
-		id = "rbxassetid://134986337476762",
+		id = "rbxassetid://110377398425919",
 		volume = 0.5,
 		pitchJitter = 0.08,
 		minGap = 0.2,

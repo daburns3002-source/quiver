@@ -74,14 +74,6 @@ local function corner(parent: Instance, radius: number)
 	c.Parent = parent
 end
 
-local function stroke(parent: Instance, colour: Color3, thickness: number, transparency: number?)
-	local s = Instance.new("UIStroke")
-	s.Color = colour
-	s.Thickness = thickness
-	s.Transparency = transparency or 0
-	s.Parent = parent
-end
-
 local tooltip: TextLabel? = nil
 local tooltipToken = 0
 

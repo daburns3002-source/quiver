@@ -35,6 +35,7 @@ local MythicReveal = require(script.Parent.MythicReveal)
 local PlayerStats = require(script.Parent.Parent.Parent.PlayerStats)
 local Rarities = require(ReplicatedStorage.Shared.Config.Rarities)
 local SkillBar = require(script.Parent.SkillBar)
+local SoundFx = require(script.Parent.Parent.Parent.Fx.SoundFx)
 
 local DraftScreen = {}
 
@@ -464,6 +465,7 @@ local function confirm()
 	end
 
 	locked = true
+	SoundFx.play("card_choose")
 	local chosen = slots[index]
 	if chosen then
 		juiceUp(chosen, 0, 8)
@@ -518,6 +520,7 @@ local function reroll()
 	end
 
 	locked = true
+	SoundFx.play("card_reroll")
 	leaving = { kind = "Reroll", at = os.clock(), picked = nil }
 
 	local token = dealToken
@@ -691,6 +694,7 @@ local function buildSlot(index: number, id: string, count: number, now: number):
 			return
 		end
 		slot.hovered = true
+		SoundFx.play("card_hover")
 		pick(selected)
 	end)
 	hit.MouseLeave:Connect(function()
@@ -752,6 +756,9 @@ local function buildSlot(index: number, id: string, count: number, now: number):
 		if selected == index and mode == "Mouse" then
 			confirm()
 		else
+			if selected ~= index then
+				SoundFx.play("card_click")
+			end
 			pick(index)
 		end
 	end)
@@ -760,7 +767,12 @@ local function buildSlot(index: number, id: string, count: number, now: number):
 end
 
 local function setFocus(index: number)
+	local before = focused
 	focused = math.clamp(index, 1, math.max(#slots, 1))
+	--[[ A gamepad's focus is its hover. ]]
+	if focused ~= before then
+		SoundFx.play("card_hover")
+	end
 	pick(focused)
 	local slot = slots[focused]
 	local label = stripText

@@ -2227,6 +2227,95 @@ local Balance = {
 			minVisibleDepth = 30,
 		},
 	},
+	--[[ The upgrade cards' effects (`Fx/Upgrades`, docs/effects/). Phones
+	     first (owner, 2026-10-24): each is a few merged parts, pooled, and
+	     capped here per effect; all one-shots together are capped by
+	     `DeviceTiers.maxUpgradeFx`. ]]
+	UpgradeFx = {
+		-- most copies of one effect alive at once, unless `caps` says
+		defaultCap = 4,
+		caps = {
+			-- trails ride arrows, which come in volleys
+			FxSwiftArrows = 12,
+			FxLongShot = 12,
+			FxSoulChain = 6,
+			FxBlaze = 6,
+			FxDeadlyStrike = 3,
+			FxBloodletting = 3,
+			FxLightfoot = 4,
+			FxExecute = 6,
+		},
+		-- the stepped pop of an effect with no clip: each step's length, and
+		-- how long it takes to shrink away at the end
+		popStep = 0.05,
+		popOut = 0.15,
+		-- studs above the floor a flat effect lies, clear of the grass
+		floorLift = 0.08,
+		-- seconds between checks of held cards and burning enemies
+		poll = 0.2,
+		-- Deadly Strike: the skull, this far above the hit, for its 0.45 s clip
+		critLift = 1.5,
+		critLife = 0.5,
+		-- Strength: where the cuffs sit from the upper torso, and when the
+		-- Flex follows the Settle on a pick
+		strengthOffset = CFrame.new(0, -0.6, 0),
+		strengthFlexAfter = 0.35,
+		-- Blaze: the tuft's height up the burning body (0 feet, 1 head)
+		blazeHeight = 0.9,
+		-- Precision: how long the Lock beat holds before tracking again
+		precisionLock = 0.3,
+		-- Agility: the after-image's 0.4 s Dodge
+		dodgeLife = 0.45,
+		-- the chest's height above the root, and over the head, for effects
+		-- that fly into or pop above the player
+		chest = 0.6,
+		overHead = 3.6,
+		-- Lightfoot: a puff per this many studs moved (divided by the card's
+		-- level), this far behind and above the floor, for its 0.4 s clip
+		puffEvery = 7,
+		puffBehind = 1.2,
+		puffLift = 0.4,
+		puffLife = 0.45,
+		-- Mending: a mote a second while hurt, off a shoulder
+		moteEvery = 1,
+		moteShoulder = 0.9,
+		moteLift = 1.2,
+		moteLife = 1.05,
+		-- Bloodthirst: the drop leaves the corpse after the death pop, in a
+		-- short arc this high
+		dropDelay = 0.12,
+		dropLift = 1,
+		dropArc = 1.5,
+		dropLife = 0.85,
+		-- Second Wind: the winged heart rises this high over this long
+		windLife = 1.65,
+		windRise = 0.6,
+		windHeight = 2.5,
+		-- Vitality's heart and Heal's flask, over the head
+		heartLife = 1.25,
+		flaskLife = 1.05,
+		-- Ranger: flares at the bow sit this far ahead of the archer
+		bowAhead = 1.4,
+		flareLife = 0.32,
+		rearLife = 0.85,
+		-- Dual Bows' burst, the loud one: at most once in this many seconds
+		dualBowsEvery = 2,
+		dualBowsLife = 0.7,
+		-- Swift Arrows' and Long Shot's trails ride an arrow at most this
+		-- long; Long Shot starts this small and grows to full by `farRange`
+		trailLife = 2,
+		longShotMin = 0.35,
+		pierceLife = 0.3,
+		bounceLife = 0.35,
+		-- Blast Arrows' starburst is this wide in its own studs; it is drawn
+		-- at the blast's real radius
+		blastRadius = 2.5,
+		blastLife = 0.45,
+		-- Soul Chain: the chain's own length, its lift off the floor, its life
+		chainLength = 10,
+		chainLift = 1.1,
+		chainLife = 0.35,
+	},
 }
 
 return table.freeze(Balance)

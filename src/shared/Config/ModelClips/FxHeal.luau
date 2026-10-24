@@ -113,112 +113,102 @@ return table.freeze({
 		},
 	},
 	parts = {
-		["heal_cork_Glow1"] = {
+		["heal_cork_Mesh1"] = {
 			joint = "cork",
 			cframe = { 0, 3.25, 0, 0, 0, 0, 1 },
 			size = { 0.75, 0.5, 0.75 },
 		},
-		["heal_flask_Glow1"] = {
+		["heal_flask_Mesh1"] = {
 			joint = "flask",
-			cframe = { 0, 1.375, 0, 0, 0, 0, 1 },
-			size = { 1.75, 2.75, 1.75 },
+			cframe = { 0, 1.5, 0, 0, 0, 0, 1 },
+			size = { 1.75, 3, 1.75 },
 		},
-		["heal_flask_Glow2"] = {
-			joint = "flask",
-			cframe = { -0.125, 1.75, 0.25, 0, 0, 0, 1 },
-			size = { 1, 2.5, 1.25 },
-		},
-		["heal_flask_Glow3"] = {
-			joint = "flask",
-			cframe = { 0, 0.75, 0, 0, 0, 0, 1 },
-			size = { 1.75, 1, 1.75 },
-		},
-		["heal_pour_01_Glow1"] = {
+		["heal_pour_01_Mesh1"] = {
 			joint = "pour_01",
 			cframe = { 1.5792, 1.4962, 0, 0, 0, 0, 1 },
 			size = { 0.225, 0.225, 0.225 },
 		},
-		["heal_pour_02_Glow1"] = {
+		["heal_pour_02_Mesh1"] = {
 			joint = "pour_02",
 			cframe = { 1.5791, 1.498, 0, 0, 0, 0, 1 },
 			size = { 0.225, 0.225, 0.225 },
 		},
-		["heal_pour_03_Glow1"] = {
+		["heal_pour_03_Mesh1"] = {
 			joint = "pour_03",
 			cframe = { 1.5785, 1.5012, 0, 0, 0, 0, 1 },
 			size = { 0.225, 0.225, 0.225 },
 		},
-		["heal_pour_04_Glow1"] = {
+		["heal_pour_04_Mesh1"] = {
 			joint = "pour_04",
 			cframe = { 1.5769, 1.5059, 0, 0, 0, 0, 1 },
 			size = { 0.225, 0.225, 0.225 },
 		},
-		["heal_pour_05_Glow1"] = {
+		["heal_pour_05_Mesh1"] = {
 			joint = "pour_05",
 			cframe = { 1.5736, 1.5117, 0, 0, 0, 0, 1 },
 			size = { 0.225, 0.225, 0.225 },
 		},
-		["heal_pour_06_Glow1"] = {
+		["heal_pour_06_Mesh1"] = {
 			joint = "pour_06",
 			cframe = { 1.5682, 1.5187, 0, 0, 0, 0, 1 },
 			size = { 0.225, 0.225, 0.225 },
 		},
-		["heal_pour_07_Glow1"] = {
+		["heal_pour_07_Mesh1"] = {
 			joint = "pour_07",
 			cframe = { 1.5602, 1.5201, 0, 0, 0, 0, 1 },
 			size = { 0.225, 0.225, 0.225 },
 		},
-		["heal_pour_08_Glow1"] = {
+		["heal_pour_08_Mesh1"] = {
 			joint = "pour_08",
 			cframe = { 1.5536, 1.5189, 0, 0, 0, 0, 1 },
 			size = { 0.225, 0.225, 0.225 },
 		},
-		["heal_pour_09_Glow1"] = {
+		["heal_pour_09_Mesh1"] = {
 			joint = "pour_09",
 			cframe = { 1.5494, 1.5181, 0, 0, 0, 0, 1 },
 			size = { 0.225, 0.225, 0.225 },
 		},
-		["heal_pour_10_Glow1"] = {
+		["heal_pour_10_Mesh1"] = {
 			joint = "pour_10",
 			cframe = { 1.547, 1.5177, 0, 0, 0, 0, 1 },
 			size = { 0.225, 0.225, 0.225 },
 		},
-		["heal_shard_01_Glow1"] = {
+		["heal_shard_01_Mesh1"] = {
 			joint = "shard_01",
 			cframe = { -0.1951, 1.707, 0.1632, 0, 0, 0, 1 },
 			size = { 0.3364, 0.3791, 0.3226 },
 		},
-		["heal_shard_02_Glow1"] = {
+		["heal_shard_02_Mesh1"] = {
 			joint = "shard_02",
 			cframe = { -0.5898, 2.8715, -0.1173, 0, 0, 0, 1 },
 			size = { 0.2926, 0.2621, 0.236 },
 		},
-		["heal_shard_03_Glow1"] = {
+		["heal_shard_03_Mesh1"] = {
 			joint = "shard_03",
 			cframe = { -0.344, 1.9531, 0.4879, 0, 0, 0, 1 },
 			size = { 0.329, 0.3231, 0.3552 },
 		},
-		["heal_shard_04_Glow1"] = {
+		["heal_shard_04_Mesh1"] = {
 			joint = "shard_04",
 			cframe = { 0.3283, 2.9062, 0.4443, 0, 0, 0, 1 },
 			size = { 0.4292, 0.4135, 0.3917 },
 		},
-		["heal_shard_05_Glow1"] = {
+		["heal_shard_05_Mesh1"] = {
 			joint = "shard_05",
 			cframe = { -0.3462, 2.4311, 0.0783, 0, 0, 0, 1 },
 			size = { 0.3794, 0.3831, 0.4291 },
 		},
-		["heal_shard_06_Glow1"] = {
+		["heal_shard_06_Mesh1"] = {
 			joint = "shard_06",
 			cframe = { 0.2129, 2.717, -0.2956, 0, 0, 0, 1 },
 			size = { 0.3315, 0.339, 0.3799 },
 		},
-		["heal_shard_07_Glow1"] = {
+		["heal_shard_07_Mesh1"] = {
 			joint = "shard_07",
 			cframe = { -0.5316, 2.0823, -0.2363, 0, 0, 0, 1 },
 			size = { 0.2815, 0.2664, 0.3127 },
 		},
-		["heal_shard_08_Glow1"] = {
+		["heal_shard_08_Mesh1"] = {
 			joint = "shard_08",
 			cframe = { -0.7083, 2.3159, -0.026, 0, 0, 0, 1 },
 			size = { 0.4026, 0.3667, 0.3641 },

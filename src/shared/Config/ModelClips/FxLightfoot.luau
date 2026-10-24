@@ -32,35 +32,20 @@ return table.freeze({
 		},
 	},
 	parts = {
-		["lightfoot_chevron_back_Glow1"] = {
+		["lightfoot_chevron_back_Mesh1"] = {
 			joint = "chevron_back",
-			cframe = { -1, 1.625, 0, 0, 0, 0, 1 },
-			size = { 1.25, 2.25, 0.75 },
+			cframe = { -1.25, 1.625, 0, 0, 0, 0, 1 },
+			size = { 1.75, 2.25, 0.75 },
 		},
-		["lightfoot_chevron_back_Glow2"] = {
-			joint = "chevron_back",
-			cframe = { -1.375, 1.625, 0, 0, 0, 0, 1 },
-			size = { 1.5, 2.25, 0.75 },
-		},
-		["lightfoot_chevron_front_Glow1"] = {
+		["lightfoot_chevron_front_Mesh1"] = {
 			joint = "chevron_front",
-			cframe = { 0.625, 1.625, 0, 0, 0, 0, 1 },
-			size = { 1.5, 2.75, 0.75 },
+			cframe = { 0.375, 1.625, 0, 0, 0, 0, 1 },
+			size = { 2, 2.75, 0.75 },
 		},
-		["lightfoot_chevron_front_Glow2"] = {
-			joint = "chevron_front",
-			cframe = { 0.25, 1.625, 0, 0, 0, 0, 1 },
-			size = { 1.75, 2.75, 0.75 },
-		},
-		["lightfoot_wing_Glow1"] = {
+		["lightfoot_wing_Mesh1"] = {
 			joint = "wing",
-			cframe = { -0.25, 3.625, 0, 0, 0, 0, 1 },
-			size = { 2.25, 0.75, 0.25 },
-		},
-		["lightfoot_wing_Glow2"] = {
-			joint = "wing",
-			cframe = { -0.25, 3.875, 0, 0, 0, 0, 1 },
-			size = { 2.25, 0.75, 0.25 },
+			cframe = { -0.25, 3.75, 0, 0, 0, 0, 1 },
+			size = { 2.25, 1, 0.25 },
 		},
 	},
 	clips = {

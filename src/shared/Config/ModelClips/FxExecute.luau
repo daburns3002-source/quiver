@@ -15,87 +15,32 @@
 return table.freeze({
 	joints = {},
 	parts = {
-		["execute_A_the_mark_Glow1"] = {
+		["execute_A_the_mark_Mesh1"] = {
 			joint = "",
-			cframe = { -2.4, 3.2998, 0, 0, 0, 0, 1 },
-			size = { 0.84, 0.6, 0.36 },
+			cframe = { -2.1643, 2.2998, 0, 0, 0, 0, 1 },
+			size = { 2.0487, 4.28, 1.5773 },
 		},
-		["execute_A_the_mark_Glow2"] = {
+		["execute_B_the_drop_Mesh1"] = {
 			joint = "",
-			cframe = { -2.4, 2.8798, 0, 0, 0, 0, 1 },
-			size = { 0.84, 0.24, 0.36 },
+			cframe = { 2.7342, 1.5059, -0.0019, 0, 0, 0, 1 },
+			size = { 5.8084, 3.0118, 4.6202 },
 		},
-		["execute_A_the_mark_Glow3"] = {
-			joint = "",
-			cframe = { -2.4, 2.8198, 0, 0, 0, 0, 1 },
-			size = { 0.12, 0.12, 0.36 },
-		},
-		["execute_A_the_mark_Glow4"] = {
-			joint = "",
-			cframe = { -2.16, 2.2998, 0, 0, 0, 0, 1 },
-			size = { 2.04, 4.28, 1.56 },
-		},
-		["execute_A_the_mark_Glow5"] = {
-			joint = "",
-			cframe = { -1.62, 3.9598, 0, 0, 0, 0, 1 },
-			size = { 0.72, 0.72, 0.12 },
-		},
-		["execute_A_the_mark_Glow6"] = {
-			joint = "",
-			cframe = { -2.4, 1.3448, 0, 0, 0, 0, 1 },
-			size = { 1.5773, 2.37, 1.5773 },
-		},
-		["execute_B_the_drop_Glow1"] = {
-			joint = "",
-			cframe = { 2.7342, 1.567, -0.0019, 0, 0, 0, 1 },
-			size = { 5.8084, 2.8896, 4.6202 },
-		},
-		["execute_B_the_drop_Glow2"] = {
+		["execute_B_the_drop_Mesh2"] = {
 			joint = "",
 			cframe = { 2.59, 3.2018, 0, 0, 0, 0, 1 },
 			size = { 1.12, 0.58, 0.1 },
 		},
-		["execute_B_the_drop_Glow3"] = {
+		["execute_B_the_drop_Mesh3"] = {
 			joint = "",
 			cframe = { 2.59, 3.5918, 0, 0, 0, 0, 1 },
 			size = { 1.12, 0.76, 0.1 },
 		},
-		["execute_B_the_drop_Glow4"] = {
+		["execute_drop_cleaver_Mesh1"] = {
 			joint = "",
-			cframe = { 2.6854, 0.8944, 0, 0, 0, 0, 1 },
-			size = { 2.7009, 1.4693, 2.53 },
+			cframe = { 3.356, 2.4718, 0, 0, 0, 0, 1 },
+			size = { 3.024, 3.024, 0.648 },
 		},
-		["execute_B_the_drop_Glow5"] = {
-			joint = "",
-			cframe = { 2.6, 1.1431, 0, 0, 0, 0, 1 },
-			size = { 3.6063, 2.2862, 3.6063 },
-		},
-		["execute_B_the_drop_Glow6"] = {
-			joint = "",
-			cframe = { 2.6, 0.3073, 0, 0, 0, 0, 1 },
-			size = { 3.6063, 0.3216, 3.6063 },
-		},
-		["execute_drop_cleaver_Glow1"] = {
-			joint = "",
-			cframe = { 3.356, 2.7958, 0, 0, 0, 0, 1 },
-			size = { 3.024, 2.376, 0.648 },
-		},
-		["execute_drop_cleaver_Glow2"] = {
-			joint = "",
-			cframe = { 2.6, 1.3918, 0, 0, 0, 0, 1 },
-			size = { 1.512, 0.432, 0.432 },
-		},
-		["execute_drop_cleaver_Glow3"] = {
-			joint = "",
-			cframe = { 2.6, 1.0678, 0, 0, 0, 0, 1 },
-			size = { 1.08, 0.216, 0.216 },
-		},
-		["execute_drop_cleaver_Glow4"] = {
-			joint = "",
-			cframe = { 4.004, 3.1198, 0, 0, 0, 0, 1 },
-			size = { 1.296, 1.296, 0.216 },
-		},
-		["execute_mark_clock_ring_Glow1"] = {
+		["execute_mark_clock_ring_Mesh1"] = {
 			joint = "",
 			cframe = { -2.4, 3.1798, -0.3, 0, 0, 0, 1 },
 			size = { 1.83, 1.83, 0.13 },

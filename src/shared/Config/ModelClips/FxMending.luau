@@ -26,42 +26,22 @@ return table.freeze({
 		{ name = "leaf_left", parent = "sprout", rest = { -0.25, 0.875, 0, 0, 0, 0, 1, 1, 1, 1 } },
 	},
 	parts = {
-		["mending_leaf_left_Glow1"] = {
+		["mending_leaf_left_Mesh1"] = {
 			joint = "leaf_left",
-			cframe = { -1.375, 2, 0.125, 0, 0, 0, 1 },
-			size = { 2.5, 1.5, 0.5 },
+			cframe = { -1.375, 1.875, 0.125, 0, 0, 0, 1 },
+			size = { 2.5, 1.75, 0.5 },
 		},
-		["mending_leaf_left_Glow2"] = {
-			joint = "leaf_left",
-			cframe = { -1.375, 1.625, 0.125, 0, 0, 0, 1 },
-			size = { 2.5, 1.25, 0.5 },
-		},
-		["mending_leaf_left_Glow3"] = {
-			joint = "leaf_left",
-			cframe = { -1.5, 1.875, 0.125, 0, 0, 0, 1 },
-			size = { 2.25, 1.25, 0.5 },
-		},
-		["mending_leaf_right_Glow1"] = {
+		["mending_leaf_right_Mesh1"] = {
 			joint = "leaf_right",
-			cframe = { 1.625, 2, 0.125, 0, 0, 0, 1 },
-			size = { 2.5, 1.5, 0.5 },
+			cframe = { 1.625, 1.875, 0.125, 0, 0, 0, 1 },
+			size = { 2.5, 1.75, 0.5 },
 		},
-		["mending_leaf_right_Glow2"] = {
-			joint = "leaf_right",
-			cframe = { 1.625, 1.625, 0.125, 0, 0, 0, 1 },
-			size = { 2.5, 1.25, 0.5 },
-		},
-		["mending_leaf_right_Glow3"] = {
-			joint = "leaf_right",
-			cframe = { 1.75, 1.875, 0.125, 0, 0, 0, 1 },
-			size = { 2.25, 1.25, 0.5 },
-		},
-		["mending_soil_Glow1"] = {
+		["mending_soil_Mesh1"] = {
 			joint = "soil",
 			cframe = { 0.125, 0.125, 0.125, 0, 0, 0, 1 },
 			size = { 2.5, 0.25, 1 },
 		},
-		["mending_sprout_Glow1"] = {
+		["mending_sprout_Mesh1"] = {
 			joint = "sprout",
 			cframe = { 0.125, 0.875, 0.125, 0, 0, 0, 1 },
 			size = { 0.5, 1.25, 0.5 },

@@ -23,6 +23,11 @@
 	on the joints `ModelClipStretchKeep` lists (comma separated), so a
 	chain stretches to its lane and the fist at its end does not.
 
+	`ModelClipScale` (a number) scales the whole model about its pivot on top
+	of everything, without rebuilding it: an upgrade effect drawn at the
+	radius it stands for. A model outside the Workspace (a pooled copy, parked)
+	is not posed at all.
+
 	A part welded to the model (an enemy's skin, welded to its hitbox so
 	it still follows the server where no client animates it) is unwelded on
 	this client while it is animated. A part whose `RestSize` attribute is
@@ -60,6 +65,12 @@ local SPAN_ATTRIBUTE = "ModelClipSpan"
 local STRETCH_ATTRIBUTE = "ModelClipStretch"
 local STRETCH_JOINT_ATTRIBUTE = "ModelClipStretchJoint"
 local STRETCH_KEEP_ATTRIBUTE = "ModelClipStretchKeep"
+local SCALE_ATTRIBUTE = "ModelClipScale"
+--[[ Set before a model is tagged: its parts that ride no joint ride the
+     pivot instead (an effect with no clip, still placed and scaled). Off,
+     they are left where they are, as the King's and the pets' are. ]]
+local RIGID_ATTRIBUTE = "ModelClipRigid"
+local STILL: ModelClip.Affine = { m = { 1, 0, 0, 0, 1, 0, 0, 0, 1 }, t = Vector3.zero }
 local REST_SIZE_ATTRIBUTE = "RestSize"
 local REST_CFRAME_ATTRIBUTE = "RestCFrame"
 --[[ A fit whose parts sit further than this share of the model's spread
@@ -85,6 +96,7 @@ type Animator = {
 	driven: { Driven },
 	pivotRest: CFrame,
 	time: number,
+	rigid: boolean,
 	--[[ Where a part rests in the pivot's space (see `attach`). ]]
 	restOf: (BasePart) -> CFrame,
 }
@@ -176,6 +188,7 @@ function ModelAnimator.attach(model: Model, key: string): boolean
 		driven = {},
 		pivotRest = pivot,
 		time = 0,
+		rigid = model:GetAttribute(RIGID_ATTRIBUTE) == true,
 		restOf = restOf,
 	}
 	for _, part in parts do
@@ -235,10 +248,16 @@ function ModelAnimator.pose(model: Model, time: number)
 	local clip = if type(name) == "string" then a.data.clips[name] else nil
 	local deltas = ModelClip.deltas(a.data, clip, time, a.restInverse, stretchOf(model))
 	local pivot = model:GetPivot()
+	local scaleValue = model:GetAttribute(SCALE_ATTRIBUTE)
+	local scale = if type(scaleValue) == "number" then scaleValue else 1
 	for _, d in a.driven do
-		local delta = deltas[d.joint]
+		local delta = deltas[d.joint] or (if a.rigid then STILL else nil)
 		if delta then
 			local cframe, stretch = ModelClip.place(d.rest, delta, a.fit)
+			if scale ~= 1 then
+				cframe = CFrame.new(cframe.Position * scale) * cframe.Rotation
+				stretch *= scale
+			end
 			d.part.CFrame = pivot * cframe
 			local size = d.size * stretch
 			if (size - d.part.Size).Magnitude > SIZE_EPSILON then
@@ -253,6 +272,9 @@ local function step(dt: number)
 		if not model.Parent then
 			animators[model] = nil
 			continue
+		end
+		if not model:IsDescendantOf(Workspace) then
+			continue -- parked: a pooled copy waiting to be used
 		end
 		local speed = model:GetAttribute(SPEED_ATTRIBUTE)
 		local pace = if type(speed) == "number" then speed else 1

@@ -57,12 +57,7 @@ return table.freeze({
 		},
 	},
 	parts = {
-		["trackingeye_Crosshair_Lock_Glow1"] = {
-			joint = "Crosshair_Lock",
-			cframe = { 6.84, -0.9, -0.78, -0.2171, -0.4442, -0.2387, 0.8358 },
-			size = { 1.66, 1.66, 0.18 },
-		},
-		["trackingeye_Crosshair_Lock_Mesh2"] = {
+		["trackingeye_Crosshair_Lock_Mesh1"] = {
 			joint = "Crosshair_Lock",
 			cframe = { 6.84, -0.9, -0.78, -0.2171, -0.4442, -0.2387, 0.8358 },
 			size = { 1.73, 1.73, 0.25 },
@@ -72,62 +67,32 @@ return table.freeze({
 			cframe = { 5.0468, -0.6661, 0.4455, -0.559, 0.1391, 0.0141, 0.8173 },
 			size = { 0.0829, 0.1106, 0.1106 },
 		},
-		["trackingeye_Tail_1_Glow1"] = {
-			joint = "Tail_1",
-			cframe = { 4.1087, -0.5373, 0.6544, 0.3741, 0.0636, -0.0982, 0.92 },
-			size = { 0.72, 0.3536, 0.3536 },
-		},
-		["trackingeye_Tail_1_Mesh2"] = {
+		["trackingeye_Tail_1_Mesh1"] = {
 			joint = "Tail_1",
 			cframe = { 4.1087, -0.5373, 0.6544, 0.3741, 0.0636, -0.0982, 0.92 },
 			size = { 0.764, 0.3976, 0.3976 },
 		},
-		["trackingeye_Tail_2_Glow1"] = {
-			joint = "Tail_2",
-			cframe = { 3.8301, -0.4996, 0.6833, -0.0047, 0.0707, -0.0667, 0.9953 },
-			size = { 0.684, 0.3111, 0.3111 },
-		},
-		["trackingeye_Tail_2_Mesh2"] = {
+		["trackingeye_Tail_2_Mesh1"] = {
 			joint = "Tail_2",
 			cframe = { 3.8301, -0.4996, 0.6833, -0.0047, 0.0707, -0.0667, 0.9953 },
 			size = { 0.728, 0.3551, 0.3551 },
 		},
-		["trackingeye_Tail_3_Glow1"] = {
-			joint = "Tail_3",
-			cframe = { 3.5507, -0.462, 0.7001, 0.3785, 0.0174, -0.0795, 0.922 },
-			size = { 0.648, 0.2687, 0.2687 },
-		},
-		["trackingeye_Tail_3_Mesh2"] = {
+		["trackingeye_Tail_3_Mesh1"] = {
 			joint = "Tail_3",
 			cframe = { 3.5507, -0.462, 0.7001, 0.3785, 0.0174, -0.0795, 0.922 },
 			size = { 0.692, 0.3127, 0.3127 },
 		},
-		["trackingeye_Tail_4_Glow1"] = {
-			joint = "Tail_4",
-			cframe = { 3.2709, -0.4246, 0.7052, -0.0016, 0.0235, -0.0666, 0.9975 },
-			size = { 0.612, 0.2263, 0.2263 },
-		},
-		["trackingeye_Tail_4_Mesh2"] = {
+		["trackingeye_Tail_4_Mesh1"] = {
 			joint = "Tail_4",
 			cframe = { 3.2709, -0.4246, 0.7052, -0.0016, 0.0235, -0.0666, 0.9975 },
 			size = { 0.656, 0.2703, 0.2703 },
 		},
-		["trackingeye_Tail_5_Glow1"] = {
-			joint = "Tail_5",
-			cframe = { 2.9892, -0.3871, 0.6992, 0.3817, -0.024, -0.0619, 0.9219 },
-			size = { 0.58, 0.1838, 0.1838 },
-		},
-		["trackingeye_Tail_5_Mesh2"] = {
+		["trackingeye_Tail_5_Mesh1"] = {
 			joint = "Tail_5",
 			cframe = { 2.9892, -0.3871, 0.6992, 0.3817, -0.024, -0.0619, 0.9219 },
 			size = { 0.624, 0.2278, 0.2278 },
 		},
-		["trackingeye_Tail_6_Glow1"] = {
-			joint = "Tail_6",
-			cframe = { 2.692, -0.3477, 0.6817, 0.0013, -0.0195, -0.0659, 0.9976 },
-			size = { 0.58, 0.1414, 0.1414 },
-		},
-		["trackingeye_Tail_6_Mesh2"] = {
+		["trackingeye_Tail_6_Mesh1"] = {
 			joint = "Tail_6",
 			cframe = { 2.692, -0.3477, 0.6817, 0.0013, -0.0195, -0.0659, 0.9976 },
 			size = { 0.624, 0.1854, 0.1854 },

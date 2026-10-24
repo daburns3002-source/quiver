@@ -37,62 +37,32 @@ return table.freeze({
 		},
 	},
 	parts = {
-		["twincast_Orb_Twin_L_Glow1"] = {
-			joint = "Orb_Twin_L",
-			cframe = { 1.3299, -0.19, -0.7253, 0, 0, 0, 1 },
-			size = { 0.6, 0.6, 0.6 },
-		},
-		["twincast_Orb_Twin_L_Glow3"] = {
-			joint = "Orb_Twin_L",
-			cframe = { 1.4199, -0.06, -0.5653, 0, 0, 0, 1 },
-			size = { 0.1701, 0.1701, 0.1701 },
-		},
-		["twincast_Orb_Twin_L_Glow4"] = {
+		["twincast_Orb_Twin_L_Glow2"] = {
 			joint = "Orb_Twin_L",
 			cframe = { 1.3799, 0.01, -0.5153, 0, 0, 0, 1 },
 			size = { 0.0851, 0.0851, 0.0851 },
 		},
-		["twincast_Orb_Twin_L_Mesh2"] = {
+		["twincast_Orb_Twin_L_Mesh1"] = {
 			joint = "Orb_Twin_L",
 			cframe = { 1.3299, -0.19, -0.7253, 0, 0, 0, 1 },
 			size = { 0.67, 0.67, 0.67 },
 		},
-		["twincast_Orb_Twin_R_Glow1"] = {
-			joint = "Orb_Twin_R",
-			cframe = { 1.4701, -0.19, 0.3653, 0, 0, 0, 1 },
-			size = { 0.6, 0.6, 0.6 },
-		},
-		["twincast_Orb_Twin_R_Glow3"] = {
-			joint = "Orb_Twin_R",
-			cframe = { 1.5601, -0.06, 0.5253, 0, 0, 0, 1 },
-			size = { 0.1701, 0.1701, 0.1701 },
-		},
-		["twincast_Orb_Twin_R_Glow4"] = {
+		["twincast_Orb_Twin_R_Glow2"] = {
 			joint = "Orb_Twin_R",
 			cframe = { 1.5201, 0.01, 0.5753, 0, 0, 0, 1 },
 			size = { 0.0851, 0.0851, 0.0851 },
 		},
-		["twincast_Orb_Twin_R_Mesh2"] = {
+		["twincast_Orb_Twin_R_Mesh1"] = {
 			joint = "Orb_Twin_R",
 			cframe = { 1.4701, -0.19, 0.3653, 0, 0, 0, 1 },
 			size = { 0.67, 0.67, 0.67 },
 		},
-		["twincast_TwinLink_L_Glow1"] = {
-			joint = "TwinLink_L",
-			cframe = { 1.3649, -0.19, -0.4527, -0.0043, 0.0637, -0.0667, 0.9957 },
-			size = { 0.0679, 0.0784, 0.5498 },
-		},
-		["twincast_TwinLink_L_Mesh2"] = {
+		["twincast_TwinLink_L_Mesh1"] = {
 			joint = "TwinLink_L",
 			cframe = { 1.3649, -0.19, -0.4527, -0.0043, 0.0637, -0.0667, 0.9957 },
 			size = { 0.0903, 0.1008, 0.5718 },
 		},
-		["twincast_TwinLink_R_Glow1"] = {
-			joint = "TwinLink_R",
-			cframe = { 1.4351, -0.19, 0.0927, -0.0043, 0.0637, -0.0667, 0.9957 },
-			size = { 0.0679, 0.0784, 0.5498 },
-		},
-		["twincast_TwinLink_R_Mesh2"] = {
+		["twincast_TwinLink_R_Mesh1"] = {
 			joint = "TwinLink_R",
 			cframe = { 1.4351, -0.19, 0.0927, -0.0043, 0.0637, -0.0667, 0.9957 },
 			size = { 0.0903, 0.1008, 0.5718 },

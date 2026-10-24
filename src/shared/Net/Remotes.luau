@@ -140,14 +140,15 @@ Remotes.PickupsTaken = "PickupsTaken"
 Remotes.PickupsCleared = "PickupsCleared"
 
 --[[ Server → all clients. This player was revived here, and cannot be hurt
-     for this many seconds. ]]
+     for this many seconds; and by what ("SecondWind" or "Revive"). ]]
 Remotes.PlayerRevived = "PlayerRevived"
 
 --[[ Server → all clients. A Soul Chain link: from the enemy hit, to each of
      these. ]]
 Remotes.SoulLink = "SoulLink"
 
---[[ Server → one client. A hit on this player missed: Agility. ]]
+--[[ Server → one client. A hit on this player missed, and why: "Agility"
+     (a dodge) or "Guard" (a swing's guard caught it). ]]
 Remotes.PlayerDodged = "PlayerDodged"
 
 --[[ Server → one client. A boss's hit pushes this player: a flat

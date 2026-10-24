@@ -22,8 +22,8 @@ return table.freeze({
 		},
 		["earthbreaker_ground_slam_burst_Glow2"] = {
 			joint = "",
-			cframe = { 0, 0.6268, 0, 0, 0, 0, 1 },
-			size = { 6.2854, 1.2536, 6.2854 },
+			cframe = { 0.0123, 0.6559, -0.0333, 0, 0, 0, 1 },
+			size = { 2.2381, 1.1952, 1.2038 },
 		},
 		["earthbreaker_ground_slam_burst_Glow3"] = {
 			joint = "",

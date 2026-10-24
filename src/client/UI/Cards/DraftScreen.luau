@@ -31,6 +31,7 @@ local CardPanel = require(ReplicatedStorage.Shared.Config.CardPanel)
 local CardTheme = require(ReplicatedStorage.Shared.Config.CardTheme)
 local DetailPanel = require(script.Parent.DetailPanel)
 local Device = require(script.Parent.Parent.Parent.Device)
+local FxEvents = require(script.Parent.Parent.Parent.Fx.Upgrades.FxEvents)
 local Motion = require(script.Parent.Motion)
 local MythicReveal = require(script.Parent.MythicReveal)
 local PlayerStats = require(script.Parent.Parent.Parent.PlayerStats)
@@ -524,6 +525,9 @@ local function confirm()
 	end
 
 	local slot = slots[index]
+	if slot then
+		FxEvents.picked:fire(slot.id)
+	end
 	local words, tag, icon = headline, tagline, flyer
 	if slot and words and tag and icon then
 		local ability = Abilities.byId[slot.id]

@@ -73,6 +73,9 @@ ALPHA_STEP = 0.1
 BUDGET = 2000
 #: Glow colours are grouped to 1/GLOW_STEPS: each glowing colour is its own part.
 GLOW_STEPS = 6
+#: Glow (emissive times strength, linear) from which a part is Neon: the
+#: same line as tools/imports_to_luau.py's NEON_GLOW.
+NEON_GLOW = 0.6
 #: A rest scale under this is "hidden until a clip grows it".
 TINY = 0.01
 
@@ -329,17 +332,21 @@ def optimise(src, out, effect):
             mat = materials[prim["material"]] if "material" in prim else {}
             pbr = mat.get("pbrMetallicRoughness", {})
             base = np.array(pbr.get("baseColorFactor", [1, 1, 1, 1]), dtype=float)
-            emissive = np.array(mat.get("emissiveFactor", [0, 0, 0]), dtype=float)
+            strength = mat.get("extensions", {}).get("KHR_materials_emissive_strength", {}).get("emissiveStrength", 1)
+            emissive = np.array(mat.get("emissiveFactor", [0, 0, 0]), dtype=float) * strength
             colour = np.tile(base, (len(pos), 1))
             if "COLOR_0" in attrs:
                 vc = read(gltf, binary, attrs["COLOR_0"])
                 if vc.shape[1] == 3:
                     vc = np.hstack([vc, np.ones((len(vc), 1))])
                 colour = colour * vc
+            # the glow is added to the colour, as tools/imports_to_luau.py does
+            colour[:, :3] = np.minimum(colour[:, :3] + emissive, 1)
             alpha = float(np.round(colour[:, 3].mean() / ALPHA_STEP) * ALPHA_STEP) if mat.get("alphaMode") == "BLEND" else 1.0
-            glow = emissive.max() > 1e-3
+            # Neon by the importer's own rule (NEON_GLOW); a faint tint is just colour
+            glow = emissive.max() >= NEON_GLOW
             if glow:
-                tint = tuple(np.round(np.maximum(colour[:, :3].mean(axis=0), emissive) * GLOW_STEPS) / GLOW_STEPS)
+                tint = tuple(np.round(colour[:, :3].mean(axis=0) * GLOW_STEPS) / GLOW_STEPS)
                 key = (owner, "glow", tint, alpha)
             else:
                 key = (owner, "plain", None, alpha)
@@ -456,7 +463,9 @@ def optimise(src, out, effect):
             attrs["NORMAL"] = add(nrm, 5126, "VEC3", 34962)
         material = {"pbrMetallicRoughness": {"metallicFactor": 0, "roughnessFactor": 1}}
         if kind == "glow":
-            material["pbrMetallicRoughness"]["baseColorFactor"] = [*tint, alpha]
+            # base black and the whole colour as emission, so the importer's
+            # base + glow comes back to the colour, and reads as Neon
+            material["pbrMetallicRoughness"]["baseColorFactor"] = [0, 0, 0, alpha]
             material["emissiveFactor"] = list(tint)
         else:
             col[:, 3] = 1

@@ -25,12 +25,7 @@ return table.freeze({
 			cframe = { 0, 0, 0, 0, 0, 0, 1 },
 			size = { 0.4966, 0.3823, 0.4891 },
 		},
-		["chainlightning_FX_ChainLightning_Node_Glow3"] = {
-			joint = "",
-			cframe = { 0, 0, 0, 0, 0, 0, 1 },
-			size = { 3.0616, 2.6868, 1.4678 },
-		},
-		["chainlightning_FX_ChainLightning_Node_Glow4"] = {
+		["chainlightning_FX_ChainLightning_Node_Mesh3"] = {
 			joint = "",
 			cframe = { 0, 0, 0, 0, 0, 0, 1 },
 			size = { 3.3006, 2.8966, 1.5824 },

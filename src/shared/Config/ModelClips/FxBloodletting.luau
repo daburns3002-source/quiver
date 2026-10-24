@@ -15,52 +15,17 @@
 return table.freeze({
 	joints = {},
 	parts = {
-		["bloodletting_bloodletting_vfx_Glow1"] = {
+		["bloodletting_bloodletting_vfx_Mesh1"] = {
 			joint = "",
-			cframe = { 2.7112, 2.266, 0.1166, 0, 0, 0, 1 },
-			size = { 3.1379, 2.0517, 1.1056 },
+			cframe = { 0.6103, 1.8265, 0.117, 0, 0, 0, 1 },
+			size = { 7.3396, 3.0363, 1.1064 },
 		},
-		["bloodletting_bloodletting_vfx_Glow2"] = {
-			joint = "",
-			cframe = { 0.1927, 1.8265, 0.3428, 0, 0, 0, 1 },
-			size = { 2.3746, 3.0363, 0.6548 },
-		},
-		["bloodletting_bloodletting_vfx_Glow3"] = {
-			joint = "",
-			cframe = { -0.198, 2.8924, 0.3401, 0, 0, 0, 1 },
-			size = { 1.0866, 0.72, 0.5579 },
-		},
-		["bloodletting_bloodletting_vfx_Glow4"] = {
-			joint = "",
-			cframe = { -1.0905, 2.5696, 0.2807, 0, 0, 0, 1 },
-			size = { 0.8631, 0.6852, 0.5234 },
-		},
-		["bloodletting_bloodletting_vfx_Glow5"] = {
-			joint = "",
-			cframe = { -2.3053, 1.761, 0.1367, 0, 0, 0, 1 },
-			size = { 1.5084, 1.2819, 0.5233 },
-		},
-		["bloodletting_bloodletting_vfx_Glow6"] = {
-			joint = "",
-			cframe = { -1.15, 0.7, 0.15, 0, 0, 0, 1 },
-			size = { 0.2305, 0.2392, 0.2269 },
-		},
-		["bloodletting_heart_Glow1"] = {
-			joint = "",
-			cframe = { -3.6, 1.2, 0.05, -0.4616, 0.0115, 0.0222, 0.8867 },
-			size = { 1.75, 1.5, 0.5 },
-		},
-		["bloodletting_heart_Glow2"] = {
-			joint = "",
-			cframe = { -3.9933, 1.5065, -0.1697, -0.4616, 0.0115, 0.0222, 0.8867 },
-			size = { 0.5, 0.75, 0.25 },
-		},
-		["bloodletting_heart_Glow3"] = {
+		["bloodletting_heart_Mesh1"] = {
 			joint = "",
 			cframe = { -3.6, 1.2, 0.05, -0.4616, 0.0115, 0.0222, 0.8867 },
 			size = { 2.25, 2, 0.5 },
 		},
-		["bloodletting_tear_off_burst_Glow1"] = {
+		["bloodletting_tear_off_burst_Mesh1"] = {
 			joint = "",
 			cframe = { 5.9397, 2.7949, 0.0007, 0, 0, 0, 1 },
 			size = { 3.5117, 4.2473, 1.5121 },

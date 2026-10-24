@@ -32,17 +32,12 @@ return table.freeze({
 		},
 	},
 	parts = {
-		["bloodthirst_droplet_Glow1"] = {
+		["bloodthirst_droplet_Mesh1"] = {
 			joint = "droplet",
 			cframe = { 0, 1.375, 0, 0, 0, 0, 1 },
 			size = { 1.75, 2.75, 1.75 },
 		},
-		["bloodthirst_droplet_Glow2"] = {
-			joint = "droplet",
-			cframe = { -0.375, 1.5, 0.375, 0, 0, 0, 1 },
-			size = { 0.5, 1, 0.5 },
-		},
-		["bloodthirst_plus_Glow1"] = {
+		["bloodthirst_plus_Mesh1"] = {
 			joint = "plus",
 			cframe = { 1.75, 2.125, -0.125, 0, 0, 0, 1 },
 			size = { 1.25, 1.25, 0.5 },

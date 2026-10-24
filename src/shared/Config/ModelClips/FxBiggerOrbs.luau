@@ -42,7 +42,7 @@ return table.freeze({
 		},
 	},
 	parts = {
-		["biggerorbs_BiggerOrbs_BlastShell_Glow1"] = {
+		["biggerorbs_BiggerOrbs_BlastShell_Mesh1"] = {
 			joint = "BiggerOrbs_BlastShell",
 			cframe = { 0, 0.6154, 0, 0, 0, 0, 1 },
 			size = { 1.9291, 1.2307, 2.0283 },
@@ -52,42 +52,22 @@ return table.freeze({
 			cframe = { 0, 0.6154, 0, 0, 0, 0, 1 },
 			size = { 1.9971, 1.2987, 2.0964 },
 		},
-		["biggerorbs_BiggerOrbs_Chevron_E_Glow1"] = {
-			joint = "BiggerOrbs_Chevron_E",
-			cframe = { 1.1588, 0.12, 0, 0, 0, 0, 1 },
-			size = { 0.425, 0.119, 0.51 },
-		},
-		["biggerorbs_BiggerOrbs_Chevron_E_Mesh2"] = {
+		["biggerorbs_BiggerOrbs_Chevron_E_Mesh1"] = {
 			joint = "BiggerOrbs_Chevron_E",
 			cframe = { 1.1588, 0.12, 0, 0, 0, 0, 1 },
 			size = { 0.476, 0.17, 0.561 },
 		},
-		["biggerorbs_BiggerOrbs_Chevron_N_Glow1"] = {
-			joint = "BiggerOrbs_Chevron_N",
-			cframe = { 0, 0.12, -1.1588, 0, 0.7071, 0, 0.7071 },
-			size = { 0.425, 0.119, 0.51 },
-		},
-		["biggerorbs_BiggerOrbs_Chevron_N_Mesh2"] = {
+		["biggerorbs_BiggerOrbs_Chevron_N_Mesh1"] = {
 			joint = "BiggerOrbs_Chevron_N",
 			cframe = { 0, 0.12, -1.1588, 0, 0.7071, 0, 0.7071 },
 			size = { 0.476, 0.17, 0.561 },
 		},
-		["biggerorbs_BiggerOrbs_Chevron_S_Glow1"] = {
-			joint = "BiggerOrbs_Chevron_S",
-			cframe = { 0, 0.12, 1.1588, 0, -0.7071, 0, 0.7071 },
-			size = { 0.425, 0.119, 0.51 },
-		},
-		["biggerorbs_BiggerOrbs_Chevron_S_Mesh2"] = {
+		["biggerorbs_BiggerOrbs_Chevron_S_Mesh1"] = {
 			joint = "BiggerOrbs_Chevron_S",
 			cframe = { 0, 0.12, 1.1588, 0, -0.7071, 0, 0.7071 },
 			size = { 0.476, 0.17, 0.561 },
 		},
-		["biggerorbs_BiggerOrbs_Chevron_W_Glow1"] = {
-			joint = "BiggerOrbs_Chevron_W",
-			cframe = { -1.1588, 0.12, 0, 0, 1, 0, 0 },
-			size = { 0.425, 0.119, 0.51 },
-		},
-		["biggerorbs_BiggerOrbs_Chevron_W_Mesh2"] = {
+		["biggerorbs_BiggerOrbs_Chevron_W_Mesh1"] = {
 			joint = "BiggerOrbs_Chevron_W",
 			cframe = { -1.1588, 0.12, 0, 0, 1, 0, 0 },
 			size = { 0.476, 0.17, 0.561 },

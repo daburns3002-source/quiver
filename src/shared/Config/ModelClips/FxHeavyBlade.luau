@@ -15,20 +15,10 @@
 return table.freeze({
 	joints = {},
 	parts = {
-		["heavyblade_heavy_blade_impact_Glow2"] = {
-			joint = "",
-			cframe = { -0.0824, 1.1647, 0, 0, 0, 0, 1 },
-			size = { 10, 1.5242, 9.6832 },
-		},
-		["heavyblade_heavy_blade_impact_Glow3"] = {
-			joint = "",
-			cframe = { 0, 0.6226, 0, 0, 0, 0, 1 },
-			size = { 3.1696, 1.2452, 3.1696 },
-		},
 		["heavyblade_heavy_blade_impact_Mesh1"] = {
 			joint = "",
-			cframe = { 0, 0.4293, 0, 0, 0, 0, 1 },
-			size = { 8.5807, 0.8586, 9.7774 },
+			cframe = { -0.0824, 0.9634, 0, 0, 0, 0, 1 },
+			size = { 10, 1.9268, 9.7774 },
 		},
 	},
 	clips = {},

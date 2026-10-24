@@ -38,6 +38,7 @@ local ProjectileSystem = require(script.Parent.Combat.ProjectileSystem)
 local Remotes = require(game:GetService("ReplicatedStorage").Shared.Net.Remotes)
 local RoomController = require(script.Parent.Run.RoomController)
 local RunSession = require(script.Parent.Run.RunSession)
+local UpgradeEffects = require(script.Parent.Fx.UpgradeEffects)
 
 local log = Log.forTag("Server")
 
@@ -89,6 +90,8 @@ EnemyModel.preload()
 Arena.preload()
 -- The archer's bow.
 HeldWeapon.preload()
+-- The upgrade cards' effects, built in the background for clients to copy.
+UpgradeEffects.start()
 RoomController.start()
 
 --[[ The weapon in the player's hand: the one `RunSession.applyLoadout`

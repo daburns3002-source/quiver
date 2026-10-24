@@ -37,32 +37,17 @@ return table.freeze({
 		},
 	},
 	parts = {
-		["manaflow_ManaFlow_Droplet_1_Glow1"] = {
-			joint = "ManaFlow_Droplet_1",
-			cframe = { -0.1738, 0.0475, -0.2342, 0.0258, 0.9611, 0.0964, 0.2575 },
-			size = { 0.1819, 0.21, 0.44 },
-		},
-		["manaflow_ManaFlow_Droplet_1_Mesh2"] = {
+		["manaflow_ManaFlow_Droplet_1_Mesh1"] = {
 			joint = "ManaFlow_Droplet_1",
 			cframe = { -0.1753, 0.047, -0.2316, 0.0258, 0.9611, 0.0964, 0.2575 },
 			size = { 0.2259, 0.254, 0.478 },
 		},
-		["manaflow_ManaFlow_FlickDrop_Glow1"] = {
-			joint = "ManaFlow_FlickDrop",
-			cframe = { 1.05, 0.28, 0, 0, -0.7071, 0, 0.7071 },
-			size = { 0.1819, 0.21, 0.44 },
-		},
-		["manaflow_ManaFlow_FlickDrop_Mesh2"] = {
+		["manaflow_ManaFlow_FlickDrop_Mesh1"] = {
 			joint = "ManaFlow_FlickDrop",
 			cframe = { 1.053, 0.28, 0, 0, -0.7071, 0, 0.7071 },
 			size = { 0.2259, 0.254, 0.478 },
 		},
-		["manaflow_ManaFlow_Orbit_Glow1"] = {
-			joint = "ManaFlow_Orbit",
-			cframe = { 0.0985, -0.0197, 0.0973, 0.0258, 0.9611, 0.0964, 0.2575 },
-			size = { 0.5889, 0.21, 0.7342 },
-		},
-		["manaflow_ManaFlow_Orbit_Mesh2"] = {
+		["manaflow_ManaFlow_Orbit_Mesh1"] = {
 			joint = "ManaFlow_Orbit",
 			cframe = { 0.1027, -0.0183, 0.0903, 0.0258, 0.9611, 0.0964, 0.2575 },
 			size = { 0.6166, 0.254, 0.7667 },

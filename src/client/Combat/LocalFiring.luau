@@ -25,6 +25,7 @@ local AbilityEffects = require(ReplicatedStorage.Shared.Combat.AbilityEffects)
 local Aim = require(ReplicatedStorage.Shared.Combat.Aim)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Classes = require(ReplicatedStorage.Shared.Config.Classes)
+local FxEvents = require(script.Parent.Parent.Fx.Upgrades.FxEvents)
 local PlayerStats = require(script.Parent.Parent.PlayerStats)
 local ProjectileRenderer = require(script.Parent.Parent.Fx.ProjectileRenderer)
 local RunPaused = require(script.Parent.Parent.RunPaused)
@@ -147,6 +148,14 @@ end
 --[[ The enemy the local archer is aiming at right now, for drawing the
      target ring under it. Presentation only: the server picks what it
      actually shoots, by the same rule. ]]
+--[[ How the player is moving, as the firing rhythm sees it: when they began
+     moving (nil while still), when they stopped (nil while moving), and how
+     long the last move lasted. For effects that show Momentum's bank and
+     Overdraw's charge; read-only. ]]
+function LocalFiring.motion(): (number?, number?, number)
+	return movingSince, stationarySince, movedFor
+end
+
 function LocalFiring.currentTarget(): Model?
 	local character = player.Character
 	local root = character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
@@ -254,6 +263,7 @@ local function step()
 		for _, listener in firedListeners do
 			listener()
 		end
+		FxEvents.fired:fire(aim.Unit)
 		return
 	end
 
@@ -271,6 +281,7 @@ local function step()
 	for _, listener in firedListeners do
 		listener()
 	end
+	FxEvents.fired:fire(aim.Unit)
 end
 
 --[[ Called on every volley this client fires, for the archer's release. ]]

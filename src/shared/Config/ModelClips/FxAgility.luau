@@ -37,32 +37,17 @@ return table.freeze({
 		},
 	},
 	parts = {
-		["agility_Afterimage_Glow1"] = {
-			joint = "Afterimage",
-			cframe = { 0.009, 1.1099, 0, 0, 0, 0, 1 },
-			size = { 0.862, 2.1802, 1.78 },
-		},
-		["agility_Afterimage_Glow2"] = {
+		["agility_Afterimage_Mesh1"] = {
 			joint = "Afterimage",
 			cframe = { 0, 1.1, 0, 0, 0, 0, 1 },
 			size = { 0.88, 2.2, 1.78 },
 		},
-		["agility_Trail_Large_Glow1"] = {
-			joint = "Trail_Large",
-			cframe = { -0.734, 1.006, 0.08, 0, 0, 0, 1 },
-			size = { 0.208, 0.208, 0.22 },
-		},
-		["agility_Trail_Large_Glow2"] = {
+		["agility_Trail_Large_Mesh1"] = {
 			joint = "Trail_Large",
 			cframe = { -0.74, 1, 0.08, 0, 0, 0, 1 },
 			size = { 0.22, 0.22, 0.22 },
 		},
-		["agility_Trail_Small_Glow1"] = {
-			joint = "Trail_Small",
-			cframe = { -1.014, 0.766, 0.08, 0, 0, 0, 1 },
-			size = { 0.138, 0.138, 0.15 },
-		},
-		["agility_Trail_Small_Glow2"] = {
+		["agility_Trail_Small_Mesh1"] = {
 			joint = "Trail_Small",
 			cframe = { -1.02, 0.76, 0.08, 0, 0, 0, 1 },
 			size = { 0.15, 0.15, 0.15 },

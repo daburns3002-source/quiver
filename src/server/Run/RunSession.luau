@@ -657,7 +657,7 @@ end
 
 --[[ Brings a player back from a killing blow at `health`, untouchable for
      a moment, with the enemy shots around them cleared. ]]
-local function revive(session: Session, health: number)
+local function revive(session: Session, health: number, kind: string)
 	session.health = math.max(1, health)
 	session.invulnerableUntil = os.clock() + Balance.Revive.invulnerable
 
@@ -667,7 +667,8 @@ local function revive(session: Session, health: number)
 		handler(session, position)
 	end
 
-	playerRevived:FireAllClients(session.player, position, Balance.Revive.invulnerable)
+	-- which save it was, so Second Wind can be drawn as itself
+	playerRevived:FireAllClients(session.player, position, Balance.Revive.invulnerable, kind)
 end
 
 --[[
@@ -675,13 +676,26 @@ end
 	the amount is never supplied by a client.
 ]]
 function RunSession.applyDamage(session: Session, amount: number)
-	if not session.alive or amount <= 0 or RunSession.isInvulnerable(session) then
+	if not session.alive or amount <= 0 then
+		return
+	end
+	if RunSession.isInvulnerable(session) then
+		--[[ A swing's guard caught it (Steadfast's plates flash); a revive's
+		     grace says nothing. ]]
+		local now = os.clock()
+		if
+			now >= session.invulnerableUntil
+			and now >= session.guardFrom
+			and now < session.guardUntil
+		then
+			playerDodged:FireClient(session.player, "Guard")
+		end
 		return
 	end
 
 	--[[ Agility: rolled on the session's own Random, by the server. ]]
 	if session.dodgeChance > 0 and session.random:NextNumber() < session.dodgeChance then
-		playerDodged:FireClient(session.player)
+		playerDodged:FireClient(session.player, "Agility")
 		return
 	end
 
@@ -699,11 +713,11 @@ function RunSession.applyDamage(session: Session, amount: number)
 	if session.health <= 0 then
 		if session.secondWind > 0 and not session.secondWindUsed then
 			session.secondWindUsed = true
-			revive(session, session.maxHealth * session.secondWind)
+			revive(session, session.maxHealth * session.secondWind, "SecondWind")
 			log.info("%s survived on Second Wind", session.player.Name)
 		elseif session.revivesLeft > 0 then
 			session.revivesLeft -= 1
-			revive(session, session.maxHealth)
+			revive(session, session.maxHealth, "Revive")
 			log.info("%s revived (%d left)", session.player.Name, session.revivesLeft)
 		end
 	end

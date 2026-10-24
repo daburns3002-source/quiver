@@ -1,0 +1,4 @@
+{
+  "_note": "The game's name for a model -> its Claude Design GLB. Run tools/glb_clips_to_luau.py after changing this.",
+  "EmberWilfPet": "assets/models/pets/forest/ember_wilf.glb"
+}

@@ -17,6 +17,7 @@ What is in flight right now is in [TRACKER.md](TRACKER.md).
 | `python -I tools/sync_probe.py` | Prints a Studio probe that checks every changed script really reached Studio. Run before trusting any test. |
 | `tools/studio/run_tests.luau` | Runs the in-Roblox suite (Server, playing). |
 | `tools/check.sh` | Every gate: StyLua, Selene, strict types, `rojo build`. |
+| `python -I tools/glb_clips_to_luau.py` | The clips inside the Claude Design GLBs listed in `assets/models/model_clips.json` → one data module each in `Config/ModelClips/`. See 10. |
 | `tools/ship.sh "<title>" <body.md>` | Gates, push, PR, waits for CI, updates the branch if main moved, merges. |
 
 ## 0. The loop every change goes through
@@ -98,3 +99,19 @@ Codex image generation, always (owner's rule): `codex exec` with the prompt on s
 ## 9. A UI handoff (cards, end screens)
 
 Claude Design's handoff → its frames and assets generated into `Config/Card*` / `Config/EndScreen*` by script (regenerate, never hand-edit), images uploaded and ids in `CardAssets` / `EndScreenAssets`, motion in code from its timeline.
+
+## 10. A Claude Design model's own animations (pets, enemies)
+
+Claude Design's 3D models carry their clips (Idle, Hop, Follow, an attack…) inside the GLB as moves of joint nodes. They have no skin, so Roblox's importer does not bring the clips: they travel as data and the client plays them.
+
+**Owner:** imports the model's GLB as usual (File → Import 3D), keeping its parts' names. No rig, no animation import needed.
+
+**Claude:**
+1. Keep the GLB in the repo (`assets/models/pets/forest/<name>.glb`, `assets/models/enemies/...`) and list it in `assets/models/model_clips.json` under the game's name for it (`EmberWilfPet`).
+2. `python -I tools/glb_clips_to_luau.py` → `Config/ModelClips/<Name>.luau`: the joints, each mesh's rest place and size, and every clip's keys (thinned to the keys a straight line cannot stand in for). Regenerate, never hand-edit.
+3. In the game, the model carries the CollectionService tag `ModelClips` and the attribute `ModelClips = "<Name>"`; its `ModelClip` attribute names the clip to play (the server can set it; it replicates), `ModelClipSpeed` its pace. `Fx/ModelAnimator` does the rest on the client.
+4. The animator reads how the import scaled and turned the model from its parts' rest places (`Shared/Util/ModelClip.fit`), so a re-import at another size needs no change. If the parts do not line up with the data (renamed, merged, another model) it leaves the model alone and logs `ModelAnimator` a warning.
+5. `tests/ModelClip.spec` pins the data's shape, the fit and how a joint's move reaches its parts.
+
+**Pitfalls seen:** a looping clip read at exactly its length is back at its start (`pose` wraps); a turn about an axis through a joint has no travel, so test travel with a lift, not a turn.
+

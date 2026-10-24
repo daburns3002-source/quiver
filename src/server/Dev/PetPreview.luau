@@ -115,10 +115,14 @@ function PetPreview.build(): number
 		if #model:GetChildren() > 0 then
 			-- built at its pivot's place: the origin
 			model.WorldPivot = CFrame.new()
+			-- how many parts a client must have before it copies the pet:
+			-- a model this size replicates over several frames
+			model:SetAttribute("Parts", #model:GetChildren())
 			model.Parent = out
 			count += 1
 		end
 	end
+	out:SetAttribute("Pets", count)
 	out.Parent = ReplicatedStorage
 	log.info("built %d preview pets (Studio)", count)
 	return count

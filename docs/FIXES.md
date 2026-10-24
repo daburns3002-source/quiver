@@ -16,6 +16,22 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## The pet preview showed two pets out of twelve
+
+**Symptom** — 2026-10-23, first P press in a Studio playtest: the Slime
+Prince and two thirds of the Mossback Snail followed the player; the server
+logged "built 12 preview pets".
+
+**Cause** — the client copied `ReplicatedStorage.PetPreview` as soon as
+`WaitForChild` saw the folder. Twelve models of 1,000 parts replicate over
+several frames, and the folder arrives before its contents.
+
+**Fix** — the server stamps the folder with `Pets` and each model with
+`Parts`; `Fx/PetPreview` waits (up to 20 s) until it holds them all.
+
+**Measured** — a moment later the client held all 12, every part count
+matching the server's (Glimmerhorn 262, Mossback Snail 137).
+
 ## Imported pets were grey, with flat leaves and mixed-up legs
 
 **Symptom** — 2026-10-23, the owner's import of the twelve forest pets:

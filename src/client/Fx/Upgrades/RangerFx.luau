@@ -1,19 +1,16 @@
 --!strict
 --[[
-	The Ranger's upgrades (docs/effects/ranger-power.md, ranger-spread.md,
-	ranger-shots.md). Ricochet, Front Arrow, Double Shot and Multishot have no
-	effect of their own: their arrows are the effect (owner, 2026-10-24).
+	The Ranger's upgrades with an effect (docs/effects/ranger-power.md).
+	Ricochet, Front Arrow, Double Shot and Multishot never had one, their
+	arrows being the effect; Side, Diagonal and Rear Arrow, Dual Bows, Swift
+	Arrows, Long Shot and Piercing Shot had theirs cut as clutter (owner,
+	2026-10-24).
 
-	- At the bow, as a volley leaves: Side Arrows' green bar, Diagonal
-	  Arrows' blue X, Rear Arrow's back flash, and Dual Bows' crossed burst
-	  (no more than once every `dualBowsEvery` seconds: it is the loud one).
 	- Overdraw: rings that grow while the archer stands and charges, punched
 	  out when the shot leaves.
-	- On the arrow: Swift Arrows' speed slabs, Long Shot's heating ladder,
-	  which grows with the distance flown.
-	- Where it lands: Piercing Shot's aperture at each body passed through,
-	  Bouncy Wall's yellow kick at each bounce, Blast Arrows' starburst at
-	  the blast's own radius, Soul Chain's chain between linked enemies.
+	- Bouncy Wall: a yellow kick on the wall at each bounce.
+	- Blast Arrows: a starburst at the blast's own radius.
+	- Soul Chain: a chain between linked enemies.
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -46,47 +43,18 @@ local function atBow(aim: Vector3): CFrame?
 	return CFrame.lookAt(at, at + heading)
 end
 
-local lastDualBows = -math.huge
 local overdraw: Model? = nil
 
 local function onFired(aim: Vector3)
-	if not ranger() then
+	if not overdraw or not ranger() then
 		return
 	end
+	-- the charge is spent: the rings punch out and go
+	local spent = overdraw
+	overdraw = nil
+	UpgradeFx.stop(spent)
 	local at = atBow(aim)
-	if not at then
-		return
-	end
-	if UpgradeFx.level("SideArrows") > 0 then
-		UpgradeFx.play("FxSideArrows", { at = at, life = K.flareLife, motion = UpgradeFx.pop(1) })
-	end
-	if UpgradeFx.level("DiagonalArrows") > 0 then
-		UpgradeFx.play(
-			"FxDiagonalArrows",
-			{ at = at, life = K.flareLife, motion = UpgradeFx.pop(1) }
-		)
-	end
-	if UpgradeFx.level("RearArrow") > 0 then
-		UpgradeFx.play("FxRearArrow", { at = at, clip = "RearArrow", life = K.rearLife })
-	end
-	local now = os.clock()
-	if UpgradeFx.level("DualBows") > 0 and now - lastDualBows >= K.dualBowsEvery then
-		lastDualBows = now
-		local root = UpgradeFx.root()
-		if root then
-			local flat = CFrame.lookAt(root.Position, root.Position + UpgradeFx.flat(aim))
-			UpgradeFx.play("FxDualBows", {
-				at = flat * CFrame.new(0, K.chest, 0),
-				life = K.dualBowsLife,
-				motion = UpgradeFx.pop(1, 0.25),
-			})
-		end
-	end
-	if overdraw then
-		-- the charge is spent: the rings punch out and go
-		local spent = overdraw
-		overdraw = nil
-		UpgradeFx.stop(spent)
+	if at then
 		UpgradeFx.play("FxOverdraw", { at = at, life = K.flareLife, motion = UpgradeFx.pop(1.3) })
 	end
 end
@@ -126,50 +94,6 @@ local function overdrawStep()
 			end,
 		})
 	end
-end
-
---[[ Trails that ride a player arrow while it flies. ]]
-local function onLaunched(part: BasePart, pool: string, _aim: Vector3, _chained: boolean)
-	if pool ~= "Player" then
-		return
-	end
-	local start = part.Position
-	local function riding(): CFrame?
-		if not part.Parent then
-			return nil
-		end
-		return part.CFrame
-	end
-	if UpgradeFx.level("SwiftArrows") > 0 then
-		UpgradeFx.play("FxSwiftArrows", { at = part.CFrame, life = K.trailLife, follow = riding })
-	end
-	if UpgradeFx.level("LongShot") > 0 then
-		UpgradeFx.play("FxLongShot", {
-			at = part.CFrame,
-			life = K.trailLife,
-			follow = riding,
-			motion = function(model: Model, _t: number, _life: number)
-				if not part.Parent then
-					return
-				end
-				-- it heats and grows as the shot earns its bonus
-				local flown = (part.Position - start).Magnitude
-				local u = math.clamp(flown / Balance.Projectile.farRange, 0, 1)
-				model:SetAttribute("ModelClipScale", K.longShotMin + (1 - K.longShotMin) * u)
-			end,
-		})
-	end
-end
-
-local function onContact(position: Vector3, heading: Vector3, pool: string, pierceLeft: number)
-	if pool ~= "Player" or pierceLeft <= 0 or UpgradeFx.level("PiercingShot") <= 0 then
-		return
-	end
-	UpgradeFx.play("FxPiercingShot", {
-		at = CFrame.lookAt(position, position + UpgradeFx.flat(heading)),
-		life = K.pierceLife,
-		motion = UpgradeFx.pop(1),
-	})
 end
 
 local function onWall(
@@ -227,8 +151,6 @@ end
 
 function RangerFx.start()
 	FxEvents.fired:connect(onFired)
-	FxEvents.launched:connect(onLaunched)
-	FxEvents.contact:connect(onContact)
 	FxEvents.wall:connect(onWall)
 	Remotes.event(Remotes.Explosion).OnClientEvent:Connect(onExplosion)
 	Remotes.event(Remotes.SoulLink).OnClientEvent:Connect(onSoulLink)

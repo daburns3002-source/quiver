@@ -6,8 +6,9 @@
 	where they land, and fly into their owner when walked over or, for any
 	left, when the fight clears.
 	Hearts are blocky pixel hearts in the game's voxel style (owner,
-	2026-10-24): they pop out facing the camera, then, once landed, spin on
-	the spot, leaned back to the camera, until someone walks over them.
+	2026-10-24): they pop out of the body, bounce once in a random direction,
+	and stand upright on the floor spinning on the spot until someone walks
+	over them.
 
 	Presentation only. The server decides what drops, where, and who took it;
 	this draws what it is told. A pickup the client never heard about is
@@ -26,6 +27,8 @@ local PickupFx = {}
 type Visual = {
 	model: Model,
 	kind: string,
+	--[[ Hearts: where the first arc lands, before the hop to `rest`. ]]
+	bounce: Vector3?,
 	--[[ Where it rests, and where it was thrown from. ]]
 	rest: Vector3,
 	from: Vector3,
@@ -47,6 +50,15 @@ local CRYSTAL_SPIN = math.rad(90)
 local HEART_SCALE = 2.2
 --[[ A landed heart's turn about the vertical, radians a second. ]]
 local HEART_SPIN = math.rad(150)
+--[[ A heart's bounce after it first lands: the hop's length, height and
+     time. The hop ends where the server put the heart, so it lands first a
+     hop away from there, in a direction of its own. ]]
+local HEART_HOP = 1.6
+local HEART_HOP_HEIGHT = 0.9
+local HEART_HOP_TIME = 0.25
+--[[ A heart stands on the floor: its middle this far above where the server
+     rests pickups (0.6), so its point touches the ground. ]]
+local HEART_LIFT = 0.35
 --[[ The pixel heart, top row first: each row's runs of pixels, as
      { first column, last column } in a 7 by 6 grid. Built as one bar per
      run, so a heart is seven parts, not twenty-seven cubes. ]]
@@ -63,8 +75,6 @@ local HEART_PIXEL = 1 / 7
      spun, under a camera looking steeply down; four, "a little thicker"
      than three (owner, 2026-10-24). ]]
 local HEART_DEPTH = 4
---[[ Hearts lean back to face the camera, which looks down at this pitch. ]]
-local HEART_TILT = math.rad(Balance.Camera.pitch)
 
 local folder: Folder? = nil
 local connection: RBXScriptConnection? = nil
@@ -208,10 +218,15 @@ local function step()
 			end
 		else
 			local age = now - visual.bornAt
+			local bounce = visual.bounce
 			if age < POP_TIME then
 				local alpha = age / POP_TIME
-				centre = visual.from:Lerp(visual.rest, alpha)
+				centre = visual.from:Lerp(bounce or visual.rest, alpha)
 					+ Vector3.new(0, math.sin(alpha * math.pi) * POP_HEIGHT, 0)
+			elseif bounce and age < POP_TIME + HEART_HOP_TIME then
+				local alpha = (age - POP_TIME) / HEART_HOP_TIME
+				centre = bounce:Lerp(visual.rest, alpha)
+					+ Vector3.new(0, math.sin(alpha * math.pi) * HEART_HOP_HEIGHT, 0)
 			else
 				centre = visual.rest
 					+ Vector3.new(0, BOB_HEIGHT * (1 + math.sin(now * BOB_SPEED + visual.phase)), 0)
@@ -220,16 +235,15 @@ local function step()
 
 		local turn
 		if visual.kind == "Heart" then
-			local landedFor = now - visual.bornAt - POP_TIME
+			local landedFor = now - visual.bornAt - POP_TIME - HEART_HOP_TIME
 			if landedFor < 0 or visual.takenAt then
-				-- in the air: leaning back to face the camera
-				turn = CFrame.Angles(-HEART_TILT, 0, 0)
+				-- in flight: upright
+				turn = CFrame.new()
 			else
-				-- landed: spinning on the spot about an axis leaned back to the
-				-- camera, so each turn shows its face square on
-				turn = CFrame.Angles(-HEART_TILT, 0, 0)
-					* CFrame.Angles(0, landedFor * HEART_SPIN, 0)
+				-- landed: upright on the floor, spinning on the spot
+				turn = CFrame.Angles(0, landedFor * HEART_SPIN, 0)
 			end
+			centre += Vector3.new(0, HEART_LIFT, 0)
 		else
 			turn = CFrame.Angles(0, now * CRYSTAL_SPIN + visual.phase, 0)
 		end
@@ -244,9 +258,15 @@ function PickupFx.onDropped(id: number, kind: string, rest: Vector3, from: Vecto
 	end
 
 	local model = if kind == "Heart" then buildHeart() else buildCrystal()
+	local bounce: Vector3? = nil
+	if kind == "Heart" then
+		local angle = Random.new(id):NextNumber() * 2 * math.pi
+		bounce = rest - Vector3.new(math.cos(angle), 0, math.sin(angle)) * HEART_HOP
+	end
 	visuals[id] = {
 		model = model,
 		kind = kind,
+		bounce = bounce,
 		rest = rest,
 		from = Vector3.new(from.X, rest.Y, from.Z),
 		bornAt = os.clock(),

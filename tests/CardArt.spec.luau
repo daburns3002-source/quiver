@@ -3,7 +3,8 @@
 	Every upgrade card is drawn from the owner's Glow Toy set
 	(`Config/CardAssets`, 2026-10-24): a card without its icon or its name
 	banner, or a rarity without its body, would draw a blank where the art
-	should be. A new card must bring its art.
+	should be. A new card must bring its art; so must the draft's buttons and
+	the skill bar.
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -29,5 +30,39 @@ return function(t: TestRunner.Helper)
 			t.isTrue(body ~= nil and body ~= "", `{name} has no card body`)
 		end
 		t.isTrue(CardAssets.mythicBack ~= "", "the Mythic has no back")
+	end)
+
+	t.test("Choose! and Reroll have every state, and the skill bar its art", function()
+		for _, state in
+			{
+				"choose",
+				"choosePressed",
+				"chooseDisabled",
+				"reroll",
+				"rerollPressed",
+				"rerollDisabled",
+			}
+		do
+			local id = (CardAssets.buttons :: any)[state]
+			t.isTrue(
+				type(id) == "string" and string.find(id, "^rbxassetid://%d+$") ~= nil,
+				`button {state} has no art`
+			)
+		end
+		local bar = CardAssets.skillBar
+		t.isTrue(string.find(bar.frame, "^rbxassetid://%d+$") ~= nil, "the skill bar has no frame")
+		t.isTrue(
+			string.find(bar.slotEmpty, "^rbxassetid://%d+$") ~= nil,
+			"the skill bar has no empty slot"
+		)
+		-- a badge for every level a card can reach
+		local top = 0
+		for _, ability in Abilities.all do
+			top = math.max(top, #ability.levels)
+		end
+		t.isTrue(
+			#bar.levels >= top,
+			`the skill bar has {#bar.levels} level badges; cards reach {top}`
+		)
 	end)
 end

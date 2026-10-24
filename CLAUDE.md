@@ -531,6 +531,20 @@ Permanent multipliers scale exponentially per area while drafted abilities stay 
 stats scale off *expected player power at that area*, never flat values. Players outgrowing
 old areas is the product, not a bug.
 
+**9. Every generated image goes through Codex.**
+Concept art, reference sheets, icons, card art, textures — anything generated. Always
+`codex exec`, with the prompt on stdin and `-i` for reference images, signed in with the
+owner's ChatGPT account. Never another image generator, and never hand-drawn SVG standing in
+for art. Sheets go in `assets/concepts/`; the look is the **blocky** style for everything new.
+Owner's rule, restated 2026-10-24. The pipeline is `docs/PIPELINES.md` §8.
+
+**10. 3D models are designed in the browser, through Claude Design.**
+The route is: the owner supplies reference images → Claude Design is opened in the
+browser → separate agents there build the 3D models. That is how the enemies, pets and
+weapons were made, and it is the route for new models. Do **not** build models by writing
+geometry in code, and do not spin up in-repo "design agents" to invent a look — that was
+tried for the forest ambience on 2026-10-24 and scratched. Owner's rule, 2026-10-24.
+
 ## Code conventions
 
 - `--!strict` at the top of every Luau file. No exceptions.

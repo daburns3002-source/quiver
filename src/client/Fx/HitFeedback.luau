@@ -241,8 +241,9 @@ local function flash(model: Model)
 		created.Parent = model
 		highlight = created
 	end
+	local boss = model:GetAttribute("Boss") ~= nil
 	local h = highlight :: Highlight
-	h.FillTransparency = 0.35
+	h.FillTransparency = if boss then Balance.Feedback.bossHitFill else 0.35
 	h.OutlineTransparency = 0
 	TweenService:Create(
 		h,
@@ -256,6 +257,11 @@ local function flash(model: Model)
 			OutlineTransparency = 1,
 		}
 	):Play()
+
+	--[[ A boss keeps its colours under fire (`Balance.Feedback.bossHitFill`). ]]
+	if boss then
+		return
+	end
 
 	local painted: { BasePart } = {}
 

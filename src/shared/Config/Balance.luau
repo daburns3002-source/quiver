@@ -2096,6 +2096,12 @@ local Balance = {
 		landSquash = 0.5,
 		landSquashDuration = 0.45,
 		hitFlashColor = Color3.fromRGB(255, 255, 255),
+		--[[ A boss is hit far faster than a flash lasts, so a full white-out
+		     on every hit left King Bloblin washed white the whole fight
+		     (owner, 2026-10-24: "the king is all white"). A boss keeps its
+		     colours and gets only this faint white wash over the body, as
+		     the Highlight's starting fill transparency (1 is none). ]]
+		bossHitFill = 0.85,
 		damageNumberRise = 4,
 		damageNumberDuration = 0.7,
 		--[[ How each kind of hit is drawn, after Archero 2: a plain hit in

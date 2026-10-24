@@ -104,7 +104,10 @@ hits hid it, and the old round king was white by design (vertex colours);
 the blocky King, hit faster than his flash lasts, stayed white.
 
 **Fix** — each part's colour is kept from its first flash and put back
-only when the last overlapping flash ends.
+only when the last overlapping flash ends. A boss also skips the white-out
+altogether and gets only a faint white wash (`Balance.Feedback.bossHitFill`):
+under steady fire the flash and its Highlight never faded, so even with his
+colours restored he still read pale.
 
 **Measured** — see the PR: room 10, his parts in their colours throughout
 a fight.

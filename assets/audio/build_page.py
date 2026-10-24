@@ -129,8 +129,19 @@ ROUND_12 = [
     }),
 ]
 
+ROUND_13 = [
+    ("Round 13 · new takes for the five you turned down: the best CC0 recordings, and sounds designed for each", {
+        "fx_blaze": ROUND_12[0][1]["fx_blaze"],
+        "fx_overdraw": ROUND_12[0][1]["fx_overdraw"],
+        "fx_soul_chain": ROUND_12[0][1]["fx_soul_chain"],
+        "fx_heavy_blade": ROUND_12[0][1]["fx_heavy_blade"],
+        "fx_earthbreaker": ROUND_12[0][1]["fx_earthbreaker"],
+    }),
+]
+
 # page: (rounds, picks collection, sounds already chosen, shown for context)
 PAGES = {
+    "13": (ROUND_13, "picks13", ["Heal (quieter, lower)", "Blast Arrows B", "Bloodletting D", "Chain Lightning C", "Meteor A"]),
     "12": (ROUND_12, "picks12", []),
     "1-2": (ROUND_1_2, "picks", []),
     "3": (ROUND_3, "picks3", ["Player hurt A", "XP crystal D", "Heart D", "Level up A"]),

@@ -89,7 +89,7 @@ return function(t: TestRunner.Helper)
 	end)
 
 	t.test("every cap names an effect that exists", function()
-		for key in K.caps do
+		for key: string in K.caps :: { [string]: number } do
 			t.notNil(clips[key], `a cap for {key}, which is not an effect`)
 		end
 	end)

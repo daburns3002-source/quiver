@@ -19,6 +19,7 @@ local Music = {
 	--[[ Seconds one playlist takes to fade into another. ]]
 	fade = 1.5,
 	playlists = {
+		-- Our own Mossy Glade theme goes here alone once uploaded (`assets/audio/music`), so it loops
 		Rooms = {
 			-- children's adventure bed, 116 s
 			{ id = "rbxassetid://1842185080", name = "Explore OL (a)" },

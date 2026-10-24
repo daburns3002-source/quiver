@@ -36,7 +36,9 @@ local function playerFor(name: string): Player?
 	sound.Volume = 0
 	sound.Parent = SoundService
 	local made: Player = { sound = sound, list = list, index = 0, level = 0 }
-	-- each track plays through, then the next
+	-- a lone track (ours are made to loop) loops in the engine, with no gap
+	sound.Looped = #list == 1
+	-- otherwise each track plays through, then the next
 	sound.Ended:Connect(function()
 		made.index = made.index % #made.list + 1
 		sound.SoundId = made.list[made.index].id

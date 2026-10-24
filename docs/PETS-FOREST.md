@@ -79,8 +79,13 @@ hatches are Commons and every tier has a choice in it.
 Asked for alongside the pets (owner, 2026-10-23): forest skins for each
 class's weapon, in the same blocky style and on the same rarity ladder.
 Every skin keeps its weapon's silhouette (`assets/concepts/weapons/`), so it
-fits the hand pose and animations the weapon already has
-(`Config/WeaponAnimations`). Sheets are in `assets/concepts/weapons/skins/forest/`.
+sits in the same hand. Sheets are in `assets/concepts/weapons/skins/forest/`.
+
+**Every weapon and every skin has its own animations** (owner,
+2026-10-23): its own R15 kit, with the class's clip names and markers so
+the game plays and times it the same way (`docs/PIPELINES.md` §5), but
+moving in its own manner. Never the base weapon's clips reused. **Epic and
+above also get their own projectile and projectile trail.**
 
 | Rarity | Ranger bow | Arcanist staff | Warden greatsword |
 |---|---|---|---|

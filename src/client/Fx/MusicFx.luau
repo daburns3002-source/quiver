@@ -7,15 +7,15 @@
 	from the top at full volume each time its playlist comes in, so the
 	intro lands like a trainer battle's, then loops round its region.
 
-	Presentation only: whether a boss is there is read from the enemies the
-	server put in the Workspace (a model with the `Boss` attribute).
+	Presentation only: whether a boss is there comes from `Fx/BossWatch`,
+	which the entry banner shares, so both land on the same tick.
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local SoundService = game:GetService("SoundService")
-local Workspace = game:GetService("Workspace")
 
+local BossWatch = require(script.Parent.BossWatch)
 local Music = require(ReplicatedStorage.Shared.Config.Music)
 
 local MusicFx = {}
@@ -61,19 +61,6 @@ local function playerFor(name: string): Player?
 	return made
 end
 
-local function bossHere(): boolean
-	local enemies = Workspace:FindFirstChild("Enemies")
-	if not enemies then
-		return false
-	end
-	for _, enemy in enemies:GetChildren() do
-		if enemy:GetAttribute("Boss") ~= nil then
-			return true
-		end
-	end
-	return false
-end
-
 -- A playlist coming in whose track has an intro restarts it at full volume.
 local function enter(name: string)
 	local p = playerFor(name)
@@ -91,17 +78,7 @@ local function enter(name: string)
 	p.sound:Play()
 end
 
-local polled = 0
 local function step(dt: number)
-	polled += dt
-	if polled >= 0.5 then
-		polled = 0
-		local was = current
-		current = if bossHere() then "Boss" else "Rooms"
-		if current ~= was then
-			enter(current)
-		end
-	end
 	local rate = dt / math.max(Music.fade, 1e-3)
 	for name: string in Music.playlists :: { [string]: any } do
 		local p = playerFor(name)
@@ -127,6 +104,14 @@ local function step(dt: number)
 end
 
 function MusicFx.start()
+	BossWatch.onChange(function(title: string?)
+		local was = current
+		current = if title then "Boss" else "Rooms"
+		if current ~= was then
+			enter(current)
+		end
+	end)
+	BossWatch.start()
 	RunService.Heartbeat:Connect(step)
 end
 

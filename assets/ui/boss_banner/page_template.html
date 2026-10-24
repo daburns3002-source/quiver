@@ -1,0 +1,399 @@
+<title>Boss Entry Banners</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Rubik:wght@400;500;700&display=swap">
+<style>
+/* Layout: a game screen up top that plays the banner, the five styles below as pickable rows, then the icons and notes. */
+:root {
+  --bg: #eef1ea;
+  --panel: #ffffff;
+  --fg: #1d2419;
+  --muted: #5d6857;
+  --line: #d3dacb;
+  --accent: #3f8a2e;
+  --accent-ink: #ffffff;
+  --chosen: #e6f3dc;
+  --display: "Lilita One", "Arial Black", Impact, sans-serif;
+  --body: "Rubik", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #141912; --panel: #1d241a; --fg: #e8eee2; --muted: #9daa94; --line: #333f2d;
+  --accent: #7cc95f; --accent-ink: #10180c; --chosen: #24331d; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #141912; --panel: #1d241a; --fg: #e8eee2; --muted: #9daa94; --line: #333f2d;
+  --accent: #7cc95f; --accent-ink: #10180c; --chosen: #24331d; color-scheme: dark }
+
+body { background: var(--bg); color: var(--fg); font-family: var(--body); line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 24px 48px; }
+main { max-width: 980px; margin: 0 auto; display: grid; gap: 28px; }
+h1, h2 { font-family: var(--display); font-weight: 400; letter-spacing: .01em; text-wrap: balance; margin: 0; }
+h1 { font-size: 2.1rem; line-height: 1.1; }
+h2 { font-size: 1.35rem; }
+p { margin: 0; max-width: 65ch; }
+.lede { color: var(--muted); }
+.eyebrow { text-transform: uppercase; letter-spacing: .12em; font-size: .72rem; font-weight: 700; color: var(--accent); }
+header { display: grid; gap: 8px; }
+
+/* ---- controls ---- */
+.controls { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; }
+.bosses { display: flex; flex-wrap: wrap; gap: 8px; }
+.bosses button { width: 58px; height: 58px; padding: 4px; border: 2px solid var(--line); background: var(--panel); border-radius: 6px; cursor: pointer; }
+.bosses button img { width: 100%; height: 100%; object-fit: contain; image-rendering: auto; }
+.bosses button[aria-pressed="true"] { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent); }
+.toggles { display: flex; gap: 8px; flex-wrap: wrap; }
+.chip { font: 500 .85rem var(--body); padding: 7px 12px; border: 1.5px solid var(--line); border-radius: 999px; background: var(--panel); color: var(--fg); cursor: pointer; }
+.chip[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+/* ---- the game screen ---- */
+.screen-wrap { display: grid; justify-items: center; gap: 8px; }
+.screen { position: relative; width: 100%; aspect-ratio: 16 / 9; overflow: hidden; border-radius: 10px; isolation: isolate;
+  background:
+    linear-gradient(rgba(0,0,0,.08) 2px, transparent 2px) 0 0 / 48px 48px,
+    linear-gradient(90deg, rgba(0,0,0,.08) 2px, transparent 2px) 0 0 / 48px 48px,
+    linear-gradient(#7cbf4f, #5fa33c);
+  box-shadow: inset 0 0 0 10px #4c3a24, inset 0 0 0 14px #2e2416, 0 6px 22px rgba(0,0,0,.25); max-width: 100%; }
+.screen.portrait { aspect-ratio: 9 / 16; width: min(340px, 100%); }
+.screen .hud { position: absolute; top: 18px; left: 50%; transform: translateX(-50%); font: 400 14px var(--display); color: #fff; text-shadow: 0 2px 0 rgba(0,0,0,.4); z-index: 0; }
+.screen .player { position: absolute; left: 50%; bottom: 16%; width: 26px; height: 26px; background: #3b7be0; border: 3px solid #fff; transform: translateX(-50%); box-shadow: 0 4px 0 rgba(0,0,0,.25); z-index: 0; }
+.screen .bossblock { position: absolute; left: 50%; top: 24%; width: 70px; height: 60px; transform: translateX(-50%); background: var(--tint); border: 4px solid rgba(0,0,0,.35); z-index: 0; }
+.stage { position: absolute; inset: 0; z-index: 2; pointer-events: none; container-type: size; }
+.timeline { width: 100%; max-width: 100%; height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; }
+.screen.portrait + .timeline { width: min(340px, 100%); }
+.timeline i { display: block; height: 100%; width: 0; background: var(--accent); }
+.caption { font-size: .82rem; color: var(--muted); }
+
+/* ---- the style list ---- */
+.styles { display: grid; gap: 12px; }
+.opt { display: grid; grid-template-columns: auto 1fr auto; gap: 14px; align-items: center; padding: 14px 16px; border: 1.5px solid var(--line); border-radius: 10px; background: var(--panel); }
+.opt.chosen { border-color: var(--accent); background: var(--chosen); }
+.opt .letter { font: 400 1.9rem/1 var(--display); width: 2ch; text-align: center; color: var(--accent); }
+.opt .text { min-width: 0; display: grid; gap: 2px; }
+.opt .name { font-weight: 700; }
+.opt .desc { font-size: .9rem; color: var(--muted); }
+.opt .acts { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+.play { font: 500 .9rem var(--body); padding: 8px 14px; border-radius: 6px; border: 0; background: var(--fg); color: var(--bg); cursor: pointer; }
+.pick { display: inline-flex; gap: 6px; align-items: center; font-size: .9rem; cursor: pointer; }
+.pick input { width: 18px; height: 18px; accent-color: var(--accent); }
+@media (max-width: 560px) { .opt { grid-template-columns: auto 1fr; } .opt .acts { grid-column: 1 / -1; justify-content: flex-start; } }
+
+/* ---- icons ---- */
+.icons { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+.icon-card { display: grid; gap: 8px; padding: 12px; border: 1.5px solid var(--line); border-radius: 10px; background: var(--panel); }
+.icon-card.redo { border-color: #c0563c; }
+.icon-card img { width: 100%; aspect-ratio: 1; object-fit: contain; background: repeating-conic-gradient(var(--line) 0 25%, transparent 0 50%) 0 0 / 16px 16px; border-radius: 6px; }
+.icon-card .who { font-weight: 700; font-size: .92rem; line-height: 1.25; }
+.icon-card .where { font-size: .8rem; color: var(--muted); }
+.icon-card label { display: inline-flex; gap: 6px; align-items: center; font-size: .85rem; cursor: pointer; }
+textarea { width: 100%; box-sizing: border-box; min-height: 90px; font: 400 .95rem var(--body); padding: 10px 12px; border-radius: 8px; border: 1.5px solid var(--line); background: var(--panel); color: var(--fg); }
+footer { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; padding: 14px 16px; border-radius: 10px; background: var(--panel); border: 1.5px solid var(--line); }
+#saved { font-size: .85rem; color: var(--accent); }
+
+/* ============ BANNERS (all sized from the stage, cqw/cqh) ============ */
+.bn { position: absolute; inset: 0; --tint: #6cc24a; --deep: #2c5a1d; }
+.bn .ttl { font-family: var(--display); color: #fff; line-height: .95; white-space: nowrap; }
+.bn img.ic { display: block; image-rendering: auto; filter: drop-shadow(0 .6cqh 0 rgba(0,0,0,.35)); }
+.flash { position: absolute; inset: 0; background: #fff; opacity: 0; animation: flash .5s ease-out both; }
+@keyframes flash { 0% { opacity: 0 } 12% { opacity: 1 } 100% { opacity: 0 } }
+
+/* A · Slash */
+.A .band { position: absolute; left: -10%; right: -10%; top: 30%; height: 40%; background: var(--deep); transform: skewY(-7deg) scaleX(0); transform-origin: left;
+  animation: aBandIn .32s cubic-bezier(.2,.9,.3,1) .12s forwards, aBandOut .35s ease-in 4.25s forwards; overflow: hidden;
+  box-shadow: 0 -1.2cqh 0 var(--tint), 0 1.2cqh 0 var(--tint); }
+.A .band::before { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(90deg, transparent 0 6cqw, rgba(255,255,255,.12) 6cqw 7cqw, transparent 7cqw 13cqw, rgba(255,255,255,.07) 13cqw 15cqw);
+  animation: lines .35s linear infinite; }
+@keyframes lines { to { background-position: -15cqw 0 } }
+@keyframes aBandIn { to { transform: skewY(-7deg) scaleX(1) } }
+@keyframes aBandOut { from { transform: skewY(-7deg) scaleX(1); transform-origin: right } to { transform: skewY(-7deg) scaleX(0); transform-origin: right } }
+.A .ic { position: absolute; height: 58cqh; top: 19%; left: 8%; transform: translateX(120cqw);
+  animation: aIcon .5s cubic-bezier(.2,1.4,.4,1) .35s forwards, aIconOut .3s ease-in 4.2s forwards; }
+@keyframes aIcon { to { transform: translateX(0) } }
+@keyframes aIconOut { from { transform: translateX(0) } to { transform: translateX(-120cqw) } }
+.A .words { position: absolute; left: 44%; top: 36%; display: grid; gap: 1.5cqh; }
+.A .tag { justify-self: start; font: 400 4.2cqh var(--display); color: #2a1c00; background: #ffd23f; padding: .5cqh 1.6cqw; transform: rotate(-4deg) scale(0); animation: pop .3s cubic-bezier(.3,1.8,.5,1) .9s forwards, fade .25s 4.25s forwards; }
+.A .ttl { font-size: 10cqh; text-shadow: 0 .7cqh 0 rgba(0,0,0,.45); transform: scale(2.4); opacity: 0; animation: slam .28s cubic-bezier(.5,0,.6,1) .65s forwards, fade .25s 4.25s forwards; }
+.A .sub { font: 500 3.6cqh var(--body); color: rgba(255,255,255,.85); opacity: 0; animation: fadeIn .4s 1.1s forwards, fade .25s 4.25s forwards; }
+@keyframes pop { to { transform: rotate(-4deg) scale(1) } }
+@keyframes slam { 0% { transform: scale(2.4); opacity: 0 } 70% { opacity: 1 } 100% { transform: scale(1); opacity: 1 } }
+@keyframes fadeIn { to { opacity: 1 } }
+@keyframes fade { to { opacity: 0 } }
+
+/* B · Split */
+.B .half { position: absolute; inset: 0; }
+.B .top { background: #1d2b4a; clip-path: polygon(0 0, 100% 0, 100% 0, 0 0); animation: bTop .35s cubic-bezier(.2,.9,.3,1) .1s forwards, bTopOut .3s ease-in 4.3s forwards; }
+.B .bot { background: var(--deep); clip-path: polygon(0 100%, 100% 100%, 100% 100%, 0 100%); animation: bBot .35s cubic-bezier(.2,.9,.3,1) .1s forwards, bBotOut .3s ease-in 4.3s forwards; }
+@keyframes bTop { to { clip-path: polygon(0 0, 100% 0, 100% 38%, 0 58%) } }
+@keyframes bBot { to { clip-path: polygon(0 58%, 100% 38%, 100% 100%, 0 100%) } }
+@keyframes bTopOut { from { clip-path: polygon(0 0, 100% 0, 100% 38%, 0 58%) } to { clip-path: polygon(0 0, 100% 0, 100% 0, 0 0) } }
+@keyframes bBotOut { from { clip-path: polygon(0 58%, 100% 38%, 100% 100%, 0 100%) } to { clip-path: polygon(0 100%, 100% 100%, 100% 100%, 0 100%) } }
+.B .seam { position: absolute; left: -5%; right: -5%; top: 48%; height: 2.2cqh; background: #ffd23f; transform: rotate(-6.5deg) scaleX(0); animation: bSeam .25s ease-out .4s forwards, fade .2s 4.3s forwards; box-shadow: 0 0 3cqh #ffd23f; }
+@keyframes bSeam { 0% { transform: rotate(-6.5deg) scaleX(0) } 100% { transform: rotate(-6.5deg) scaleX(1) } }
+.B .area { position: absolute; left: 6%; top: 12%; display: grid; gap: .6cqh; transform: translateX(-60cqw); animation: slideR .4s cubic-bezier(.2,1.3,.4,1) .45s forwards, fade .2s 4.25s forwards; }
+.B .area .act { font: 700 3.4cqh var(--body); letter-spacing: .2em; color: #9fc0ff; text-transform: uppercase; }
+.B .area .ttl { font-size: 7.5cqh; }
+.B .ic { position: absolute; right: 6%; bottom: 4%; height: 62cqh; transform: translateX(60cqw); animation: slideL .45s cubic-bezier(.2,1.3,.4,1) .55s forwards, fade .2s 4.25s forwards; }
+.B .boss { position: absolute; left: 6%; bottom: 10%; display: grid; gap: 1cqh; transform: translateX(-70cqw); animation: slideR .4s cubic-bezier(.2,1.3,.4,1) .75s forwards, fade .2s 4.25s forwards; }
+.B .boss .tag { justify-self: start; font: 400 4cqh var(--display); background: #ffd23f; color: #2a1c00; padding: .4cqh 1.4cqw; }
+.B .boss .ttl { font-size: 10cqh; text-shadow: 0 .7cqh 0 rgba(0,0,0,.4); }
+@keyframes slideR { to { transform: translateX(0) } }
+@keyframes slideL { to { transform: translateX(0) } }
+
+/* C · Block wipe */
+.C .tiles { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(8, 1fr); grid-template-rows: repeat(5, 1fr); }
+.C .tiles i { background: var(--deep); transform: scale(0); animation: tileIn .18s ease-out forwards, tileOut .2s ease-in forwards; box-shadow: inset 0 0 0 .5cqh rgba(0,0,0,.18); }
+@keyframes tileIn { to { transform: scale(1.02) } }
+@keyframes tileOut { from { transform: scale(1.02) } to { transform: scale(0) } }
+.C .card { position: absolute; left: 50%; top: 50%; width: 44cqh; display: grid; justify-items: center; transform: translate(-50%, -160cqh);
+  animation: cDrop .5s cubic-bezier(.3,1.5,.5,1) .65s forwards, cUp .35s ease-in 4.2s forwards; }
+@keyframes cDrop { to { transform: translate(-50%, -50%) } }
+@keyframes cUp { from { transform: translate(-50%, -50%) } to { transform: translate(-50%, -160cqh) } }
+.C .frame { width: 44cqh; height: 44cqh; background: var(--tint); border: 1.6cqh solid #2a2118; box-shadow: inset 0 0 0 1cqh rgba(255,255,255,.35), 0 1.6cqh 0 rgba(0,0,0,.35); display: grid; place-items: center; position: relative; }
+.C .frame .ic { width: 92%; height: 92%; object-fit: contain; }
+.C .ribbon { position: absolute; top: -4.5cqh; left: 50%; transform: translateX(-50%); font: 400 5cqh var(--display); background: #e0402f; color: #fff; padding: .4cqh 3cqh; border: .8cqh solid #2a2118; }
+.C .plate { margin-top: 2.6cqh; background: #2a2118; padding: 1.2cqh 3cqh; box-shadow: 0 1cqh 0 rgba(0,0,0,.3); display: grid; justify-items: center; }
+.C .plate .ttl { font-size: 7cqh; }
+.C .plate .sub { font: 500 2.8cqh var(--body); color: #e8d9b4; white-space: nowrap; }
+
+/* D · Hazard */
+.D .bar { position: absolute; left: 0; right: 0; height: 13cqh; overflow: hidden; display: flex; align-items: center;
+  background: repeating-linear-gradient(-45deg, #ffd23f 0 4cqh, #1b1b1b 4cqh 8cqh); }
+.D .bar.t { top: 0; transform: translateY(-100%); animation: dDown .25s ease-out .1s forwards, dUpOut .25s ease-in 4.35s forwards; }
+.D .bar.b { bottom: 0; transform: translateY(100%); animation: dUp .25s ease-out .1s forwards, dDownOut .25s ease-in 4.35s forwards; }
+@keyframes dDown { to { transform: translateY(0) } } @keyframes dUp { to { transform: translateY(0) } }
+@keyframes dUpOut { from { transform: translateY(0) } to { transform: translateY(-100%) } }
+@keyframes dDownOut { from { transform: translateY(0) } to { transform: translateY(100%) } }
+.D .marq { display: flex; gap: 4cqw; white-space: nowrap; font: 400 6cqh var(--display); color: #fff; background: #1b1b1b; padding: .6cqh 0; width: max-content; animation: marq 2.4s linear infinite; }
+.D .bar.b .marq { animation-direction: reverse; }
+@keyframes marq { to { transform: translateX(-50%) } }
+.D .pulse { position: absolute; inset: 0; box-shadow: inset 0 0 14cqh 4cqh rgba(220,30,30,.85); opacity: 0; animation: dPulse .55s ease-out .2s 4; }
+@keyframes dPulse { 0% { opacity: 0 } 25% { opacity: 1 } 100% { opacity: 0 } }
+.D .mid { position: absolute; inset: 13cqh 0; display: grid; grid-template-columns: auto auto; justify-content: center; align-items: center; gap: 4cqw; background: rgba(15,10,10,.55); opacity: 0; animation: fadeIn .2s .3s forwards, fade .25s 4.3s forwards; }
+.D .ic { height: 62cqh; transform: scale(.2); animation: dGrow .5s cubic-bezier(.3,1.6,.5,1) .45s forwards, shake .32s linear 1.05s 2; }
+@keyframes dGrow { to { transform: scale(1) } }
+@keyframes shake { 0%,100% { translate: 0 0 } 25% { translate: -1.2cqh .6cqh } 50% { translate: 1cqh -.6cqh } 75% { translate: -.6cqh -.4cqh } }
+.D .words { display: grid; gap: 1cqh; }
+.D .ttl { font-size: 10cqh; color: #ffd23f; text-shadow: 0 .7cqh 0 #000; opacity: 0; animation: fadeIn .1s .8s forwards; }
+.D .sub { font: 500 3.6cqh var(--body); color: #fff; opacity: 0; animation: fadeIn .3s 1.1s forwards; }
+
+/* E · Letterbox */
+.E .lb { position: absolute; left: 0; right: 0; height: 50%; background: #0b0b0e; }
+.E .lb.t { top: 0; transform: translateY(-100%); animation: eT .35s cubic-bezier(.3,0,.2,1) .05s forwards, eTOut .35s ease-in 4.3s forwards; }
+.E .lb.b { bottom: 0; transform: translateY(100%); animation: eB .35s cubic-bezier(.3,0,.2,1) .05s forwards, eBOut .35s ease-in 4.3s forwards; }
+@keyframes eT { to { transform: translateY(-36%) } } @keyframes eB { to { transform: translateY(36%) } }
+@keyframes eTOut { from { transform: translateY(-36%) } to { transform: translateY(-100%) } }
+@keyframes eBOut { from { transform: translateY(36%) } to { transform: translateY(100%) } }
+.E .strip { position: absolute; left: 0; right: 0; top: 18%; height: 64%; overflow: hidden; opacity: 0; animation: fadeIn .1s .35s forwards, fade .2s 4.3s forwards;
+  background: linear-gradient(90deg, var(--deep), color-mix(in srgb, var(--deep) 40%, #000)); }
+.E .strip::before { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(0deg, transparent 0 3cqh, rgba(255,255,255,.08) 3cqh 3.4cqh); }
+.E .streak { position: absolute; height: .6cqh; background: rgba(255,255,255,.7); width: 30cqw; right: -30cqw; animation: streak .45s linear infinite; }
+@keyframes streak { to { transform: translateX(-160cqw) } }
+.E .ic { position: absolute; right: 4%; top: 50%; height: 78cqh; transform: translate(80cqw, -50%) scale(1.3); animation: eIcon .7s cubic-bezier(.15,.9,.25,1) .45s forwards; }
+@keyframes eIcon { to { transform: translate(0, -50%) scale(1) } }
+.E .words { position: absolute; left: 6%; top: 50%; transform: translateY(-50%); display: grid; gap: 1.4cqh; }
+.E .tag { font: 700 3.2cqh var(--body); letter-spacing: .35em; color: #ff6a5a; opacity: 0; animation: fadeIn .2s .7s forwards; }
+.E .ttl { font-size: 10cqh; }
+.E .ttl span { opacity: 0; animation: fadeIn .01s forwards; }
+.E .sub { font: italic 500 3.4cqh var(--body); color: rgba(255,255,255,.8); opacity: 0; animation: fadeIn .4s 1.6s forwards; }
+.E .rule { height: .5cqh; background: #ff6a5a; width: 0; animation: grow .5s ease-out 1.4s forwards; }
+@keyframes grow { to { width: 100% } }
+
+/* portrait: stack the words under the icon */
+.portrait .A .ic { height: 30cqh; top: 28%; left: 50%; translate: -50% 0; }
+.portrait .A .words { left: 8%; right: 8%; top: 60%; }
+.portrait .A .band { top: 26%; height: 52%; }
+.portrait .A .ttl { font-size: 6cqh; white-space: normal; }
+.portrait .A .sub { font-size: 2.4cqh; }
+.portrait .B .ic { height: 34cqh; right: 50%; translate: 50% 0; bottom: 22%; }
+.portrait .B .boss { bottom: 6%; } .portrait .B .boss .ttl { font-size: 6cqh; white-space: normal; }
+.portrait .B .area .ttl { font-size: 5cqh; white-space: normal; }
+.portrait .C .card, .portrait .C .frame { width: 34cqh; } .portrait .C .frame { height: 34cqh; }
+.portrait .C .plate .ttl { font-size: 4.4cqh; } .portrait .C .plate .sub { font-size: 2cqh; }
+.portrait .D .mid { grid-template-columns: auto; justify-items: center; text-align: center; }
+.portrait .D .ic { height: 34cqh; } .portrait .D .ttl { font-size: 6cqh; white-space: normal; }
+.portrait .D .sub { font-size: 2.4cqh; } .portrait .D .bar { height: 8cqh; } .portrait .D .marq { font-size: 4cqh; }
+.portrait .E .ic { height: 36cqh; right: 50%; top: 36%; translate: 50% 0; }
+.portrait .E .words { left: 8%; right: 8%; top: 70%; } .portrait .E .ttl { font-size: 6cqh; white-space: normal; }
+.portrait .E .sub { font-size: 2.4cqh; } .portrait .E .lb.t { animation-name: eT, eTOut; }
+
+@media (prefers-reduced-motion: reduce) { .A .band::before, .D .marq, .E .streak { animation: none; } }
+</style>
+
+<main>
+  <header>
+    <span class="eyebrow">Arrow Legends · boss rooms, Acts 1–3</span>
+    <h1>Boss Entry Banners</h1>
+    <p class="lede">Each banner plays over the 4.7 s battle intro of the boss music, as you walk into a boss room. Pick a boss, press Play on a style (sound on to hear it with the intro), and pick your favourite. Picks save as you go and I read them from here.</p>
+  </header>
+
+  <section class="screen-wrap" aria-label="Preview">
+    <div class="controls">
+      <div class="bosses" id="bosses" role="group" aria-label="Boss"></div>
+      <div class="toggles">
+        <button type="button" class="chip" id="sound" aria-pressed="true">Sound on</button>
+        <button type="button" class="chip" id="orient" aria-pressed="false">Phone upright</button>
+      </div>
+    </div>
+    <div class="screen" id="screen">
+      <div class="hud">ROOM 10 / 10</div>
+      <div class="bossblock"></div>
+      <div class="player"></div>
+      <div class="stage" id="stage"></div>
+    </div>
+    <div class="timeline" aria-hidden="true"><i id="bar"></i></div>
+    <p class="caption" id="cap">Press Play on a style below.</p>
+  </section>
+
+  <section class="styles" aria-labelledby="h-styles">
+    <h2 id="h-styles">Banner styles</h2>
+    <div id="styles"></div>
+  </section>
+
+  <section aria-labelledby="h-icons" style="display:grid;gap:12px">
+    <h2 id="h-icons">The boss icons</h2>
+    <p class="lede">One 2D blocky portrait per boss, made with Codex from each boss's blocky concept art. Only King Bloblin is in the game so far; the other five are ready for when their fights are built. Tick any you want redrawn and say how in the notes.</p>
+    <div class="icons" id="icons"></div>
+  </section>
+
+  <section aria-labelledby="h-notes" style="display:grid;gap:8px">
+    <h2 id="h-notes">Notes</h2>
+    <textarea id="notes" placeholder="e.g. C, but with A's speed lines; redraw Old Tollcrab with a bigger bell"></textarea>
+  </section>
+
+  <footer>
+    <p id="summary">No style picked yet.</p>
+    <span id="saved" hidden></span>
+  </footer>
+</main>
+
+<audio id="intro" preload="auto" src="data:audio/mpeg;base64,__AUDIO__"></audio>
+<script>
+const BOSSES = __BOSSES__;
+const STYLES = [
+  { key: "A", name: "Slash", desc: "White flash, a slanted band in the boss's colour tears across with speed lines; the icon rushes in, the name slams down and a BOSS tag pops." },
+  { key: "B", name: "Split", desc: "The screen splits on a slanted gold seam, like a trainer-battle VS: the area on top, the boss below with its name, the icon sliding in from the side." },
+  { key: "C", name: "Block wipe", desc: "Square tiles fill the screen and clear again, then a chunky framed portrait drops in on a red BOSS ribbon with a nameplate. The blockiest." },
+  { key: "D", name: "Hazard", desc: "Black-and-yellow warning bars slide in with scrolling BOSS text, the edges pulse red on the beat, and the icon grows in and shakes." },
+  { key: "E", name: "Letterbox", desc: "Cinema bars close in, streaks rush past, the icon glides in large and the name types out under a red rule with the boss's title." },
+];
+const COLLECTION = "picks";
+let boss = BOSSES[0];
+let db = null;
+let state = { style: null, redo: {}, notes: "" };
+let timer = null, raf = null;
+
+const $ = (id) => document.getElementById(id);
+const esc = (s) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+function banner(key, b) {
+  const ic = `<img class="ic" src="${b.icon}" alt="">`;
+  const name = esc(b.name), sub = esc(b.title);
+  const style = `--tint:${b.tint};--deep:${b.deep}`;
+  if (key === "A") return `<div class="bn A" style="${style}"><div class="flash"></div><div class="band"></div>${ic}<div class="words"><span class="tag">BOSS</span><span class="ttl">${name}</span><span class="sub">${sub}</span></div></div>`;
+  if (key === "B") return `<div class="bn B" style="${style}"><div class="flash"></div><div class="half top"></div><div class="half bot"></div><div class="seam"></div><div class="area"><span class="act">${esc(b.act)}</span><span class="ttl">${esc(b.area)}</span></div>${ic}<div class="boss"><span class="tag">BOSS</span><span class="ttl">${name}</span></div></div>`;
+  if (key === "C") {
+    let tiles = "";
+    for (let r = 0; r < 5; r++) for (let c = 0; c < 8; c++) {
+      const d = (r + c) * 0.035, out = 0.5 + (Math.abs(c - 3.5) + Math.abs(r - 2)) * 0.03;
+      tiles += `<i style="animation-delay:${d.toFixed(3)}s,${out.toFixed(3)}s"></i>`;
+    }
+    return `<div class="bn C" style="${style}"><div class="tiles">${tiles}</div><div class="card"><div class="frame"><span class="ribbon">BOSS</span>${ic}</div><div class="plate"><span class="ttl">${name}</span><span class="sub">${sub}</span></div></div></div>`;
+  }
+  if (key === "D") {
+    const m = `<div class="marq">${"<span>WARNING ▲ BOSS APPROACHING ▲</span>".repeat(6)}</div>`;
+    return `<div class="bn D" style="${style}"><div class="pulse"></div><div class="mid">${ic}<div class="words"><span class="ttl">${name}</span><span class="sub">${sub}</span></div></div><div class="bar t">${m}</div><div class="bar b">${m}</div></div>`;
+  }
+  const letters = [...b.name].map((ch, i) => `<span style="animation-delay:${(0.75 + i * 0.045).toFixed(3)}s">${ch === " " ? "&nbsp;" : esc(ch)}</span>`).join("");
+  let streaks = "";
+  for (let i = 0; i < 7; i++) streaks += `<i class="streak" style="top:${8 + i * 13}%;animation-delay:${(i * 0.07).toFixed(2)}s"></i>`;
+  return `<div class="bn E" style="${style}"><div class="lb t"></div><div class="lb b"></div><div class="strip">${streaks}</div>${ic}<div class="words"><span class="tag">BOSS</span><span class="ttl">${letters}</span><div class="rule"></div><span class="sub">${sub}</span></div></div>`;
+}
+
+let lastKey = null;
+function play(key) {
+  lastKey = key;
+  const stage = $("stage");
+  stage.innerHTML = banner(key, boss);
+  $("screen").querySelector(".bossblock").style.setProperty("--tint", boss.tint);
+  const s = STYLES.find((x) => x.key === key);
+  $("cap").textContent = `${key} · ${s.name} — ${boss.name}`;
+  const a = $("intro");
+  if ($("sound").getAttribute("aria-pressed") === "true") { try { a.currentTime = 0; a.play().catch(() => {}); } catch (e) {} }
+  clearTimeout(timer); cancelAnimationFrame(raf);
+  const t0 = performance.now();
+  const tick = () => {
+    const t = (performance.now() - t0) / 4700;
+    $("bar").style.width = Math.min(100, t * 100) + "%";
+    if (t < 1) raf = requestAnimationFrame(tick);
+  };
+  tick();
+  timer = setTimeout(() => { stage.innerHTML = ""; try { a.pause(); } catch (e) {} }, 4800);
+}
+
+function renderBosses() {
+  $("bosses").innerHTML = BOSSES.map((b, i) => `<button type="button" data-boss="${i}" aria-pressed="${b === boss}" title="${esc(b.name)}"><img src="${b.icon}" alt="${esc(b.name)}"></button>`).join("");
+}
+function renderStyles() {
+  $("styles").innerHTML = STYLES.map((s) => `<div class="opt${state.style === s.key ? " chosen" : ""}">
+    <span class="letter">${s.key}</span>
+    <div class="text"><span class="name">${s.name}</span><span class="desc">${s.desc}</span></div>
+    <div class="acts"><button type="button" class="play" data-play="${s.key}">▶ Play</button>
+    <label class="pick"><input type="radio" name="style" id="style-${s.key}" value="${s.key}"${state.style === s.key ? " checked" : ""}> Pick</label></div></div>`).join("");
+}
+function renderIcons() {
+  $("icons").innerHTML = BOSSES.map((b) => `<div class="icon-card${state.redo[b.key] ? " redo" : ""}">
+    <img src="${b.icon}" alt="${esc(b.name)} icon">
+    <span class="who">${esc(b.name)}</span><span class="where">${esc(b.act)} · ${esc(b.area)}${b.built ? "" : " · not built yet"}</span>
+    <label><input type="checkbox" id="redo-${b.key}" data-redo="${b.key}"${state.redo[b.key] ? " checked" : ""}> Redraw this one</label></div>`).join("");
+}
+function summary() {
+  const s = STYLES.find((x) => x.key === state.style);
+  const redo = BOSSES.filter((b) => state.redo[b.key]).map((b) => b.name);
+  $("summary").textContent = (s ? `Style ${s.key} · ${s.name}` : "No style picked yet.") + (redo.length ? ` · redraw: ${redo.join(", ")}` : "");
+}
+function note(text) { const el = $("saved"); el.hidden = false; el.textContent = text; }
+async function save(doc, data) {
+  try { localStorage.setItem("bossBannerPicks", JSON.stringify(state)); } catch (e) {}
+  if (!db) return;
+  try { await db.doc(COLLECTION + "/" + doc).set(data); note("Saved"); } catch (e) { note("Could not save to the page; your picks stay in this browser."); }
+}
+
+document.addEventListener("click", (e) => {
+  const p = e.target.closest("[data-play]"); if (p) play(p.dataset.play);
+  const b = e.target.closest("[data-boss]");
+  if (b) { boss = BOSSES[Number(b.dataset.boss)]; renderBosses(); if (lastKey) play(lastKey); }
+  if (e.target.id === "sound") { const on = e.target.getAttribute("aria-pressed") !== "true"; e.target.setAttribute("aria-pressed", on); e.target.textContent = on ? "Sound on" : "Sound off"; if (!on) $("intro").pause(); }
+  if (e.target.id === "orient") { const on = e.target.getAttribute("aria-pressed") !== "true"; e.target.setAttribute("aria-pressed", on); $("screen").classList.toggle("portrait", on); if (lastKey) play(lastKey); }
+});
+document.addEventListener("change", (e) => {
+  if (e.target.name === "style") { state.style = e.target.value; renderStyles(); summary(); save("banner", { style: state.style, name: STYLES.find((x) => x.key === state.style).name }); }
+  if (e.target.dataset.redo) { state.redo[e.target.dataset.redo] = e.target.checked; renderIcons(); summary(); save("icons", { redo: BOSSES.filter((b) => state.redo[b.key]).map((b) => b.key) }); }
+});
+let noteTimer = null;
+$("notes").addEventListener("input", (e) => { state.notes = e.target.value; clearTimeout(noteTimer); noteTimer = setTimeout(() => save("notes", { text: state.notes }), 800); });
+
+function restore(s) {
+  if (s.style) state.style = s.style;
+  if (s.redo) state.redo = s.redo;
+  if (typeof s.notes === "string") { state.notes = s.notes; $("notes").value = s.notes; }
+  renderStyles(); renderIcons(); summary();
+}
+try { restore(JSON.parse(localStorage.getItem("bossBannerPicks") || "{}") || {}); } catch (e) { restore({}); }
+renderBosses();
+
+(async () => {
+  try { db = window.claude && window.claude.use ? await window.claude.use("db") : null; } catch (e) { db = null; }
+  if (!db) return;
+  try {
+    const snap = await db.collection(COLLECTION).get();
+    const got = {};
+    snap.docs.forEach((d) => {
+      const body = d.data() || {};
+      if (d.id === "banner" && typeof body.style === "string") got.style = body.style;
+      if (d.id === "icons" && Array.isArray(body.redo)) { got.redo = {}; body.redo.forEach((k) => (got.redo[k] = true)); }
+      if (d.id === "notes" && typeof body.text === "string") got.notes = body.text;
+    });
+    restore(got);
+    if (snap.size) note("Your saved picks are loaded.");
+  } catch (e) {}
+})();
+</script>

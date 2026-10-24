@@ -91,8 +91,8 @@ is made with its own projectile model, except the swords (melee).
 The Duelist's daggers (the open alternative to the Warden, `docs/WORLD.md`)
 have their Mossy Glade ladder too: blocky sheet
 `assets/concepts/blocky/weapons/skins/forest/w4_dagger_skins.png` (Codex,
-2026-10-23), each pair drawn with its thrown dagger and, from Rare up, its
-trail. Purple stays the Duelist's accent.
+2026-10-23), each pair drawn with its projectile, an **arcing slash** (a
+blocky crescent blade wave, owner), and, from Rare up, its trail. Purple stays the Duelist's accent.
 
 | Rarity | Ranger bow | Arcanist staff | Warden greatsword | Duelist daggers |
 |---|---|---|---|---|

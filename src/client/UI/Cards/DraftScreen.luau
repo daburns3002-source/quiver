@@ -1771,6 +1771,25 @@ function DraftScreen.show(offer: { string }, level: number, source: string?, rer
 		else CardTheme.colors.panel
 	paintPanel(panelBase)
 
+	-- The big cards announce themselves: a Mythic's sound is timed to its
+	-- reveal from its start, a Legendary's plays as the gold hand is dealt.
+	if rarest >= 6 then
+		local token = dealToken
+		for _, slot in slots do
+			local mythic = slot.mythic
+			if mythic then
+				task.delay(math.max(0, mythic.start - now), function()
+					if dealToken == token and gui and gui.Enabled then
+						SoundFx.play("card_mythic")
+					end
+				end)
+				break
+			end
+		end
+	elseif rarest == 5 then
+		SoundFx.play("card_legendary")
+	end
+
 	local isPad = mode == "Gamepad"
 	if strip then
 		strip.Visible = isPad

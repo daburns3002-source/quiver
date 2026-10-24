@@ -19,6 +19,7 @@ local Workspace = game:GetService("Workspace")
 
 local Arena = require(script.Parent.Parent.Arena.Arena)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
+local BossBanners = require(ReplicatedStorage.Shared.Config.BossBanners)
 local BossBody = require(script.Parent.BossBody)
 local BossMoves = require(script.Parent.BossMoves)
 local EnemyDesigns = require(ReplicatedStorage.Shared.Config.EnemyDesigns)
@@ -215,6 +216,9 @@ end
 --[[ Volleys decided this step, drained by EnemyFiring. ]]
 local pendingVolleys: { Volley } = {}
 
+--[[ Until when (os.clock) the run holds still for a boss's entry banner. ]]
+local introUntil = 0
+
 function EnemyManager.init(parent: Instance)
 	local existing = parent:FindFirstChild("Enemies")
 	if existing then
@@ -229,6 +233,19 @@ function EnemyManager.init(parent: Instance)
 	table.clear(enemies)
 	table.clear(positions)
 	aliveCount = 0
+	introUntil = 0
+end
+
+--[[
+	Whether the run is holding still for a boss's entry: its banner and the
+	music's battle intro (`Config/BossBanners`, owner 2026-10-24: "make sure
+	that the player and boss are frozen and not attacking until the intro
+	banner is fully stopped"). The server loop skips its step meanwhile, as
+	it does for a card screen; the client stops its own input from the same
+	banner (`UI/BossBanner`, `RunPaused`).
+]]
+function EnemyManager.introHolding(now: number): boolean
+	return now < introUntil
 end
 
 function EnemyManager.positions(): { [Model]: Vector3 }
@@ -624,6 +641,9 @@ function EnemyManager.spawn(
 		--[[ For the client: the boss bar, and no hit squash on a body the
 		     server is posing. ]]
 		model:SetAttribute("Boss", config.boss.title)
+		if BossBanners.bosses[config.boss.title] then
+			introUntil = os.clock() + BossBanners.hold
+		end
 	end
 
 	--[[ Health travels as attributes so each client can draw the enemy's

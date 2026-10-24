@@ -34,6 +34,11 @@ local BossBanners = {
 	--[[ Seconds on screen: the length of the boss music's battle intro
 	     (`Config/Music`), which starts on the same tick. ]]
 	duration = 4.7,
+	--[[ Seconds the run holds still from the boss's arrival, on the server:
+	     the banner's length plus room for the boss to reach the client, whose
+	     banner starts when it sees it (owner, 2026-10-24: frozen "until the
+	     intro banner is fully stopped"). ]]
+	hold = 4.9,
 	--[[ The icon sheet: `grid` x `grid` frames of `cell` pixels each, read
 	     left to right, top to bottom. ]]
 	sheet = { grid = 2, cell = 512 },

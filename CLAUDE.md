@@ -268,6 +268,12 @@ its name slams down — 4.7 s, over the boss music's battle intro. Both start
 from `Fx/BossWatch` on the same tick (measured 0.03 s apart). Keyed by the
 `Boss` attribute's title; the boss bar shows the banner's name. Icons for all
 six Act 1–3 bosses are uploaded.
+It plays over a dark ground in the boss's colour, above the whole HUD, so
+nothing of the room shows, and **the run holds still until it has gone**
+(owner, 2026-10-24): the server skips its step for `BossBanners.hold` from
+the boss's arrival (`EnemyManager.introHolding`, beside the card screen's
+pause) and the client stops input on `RunPaused.setIntro`, a flag apart from
+the draft's.
 
 Not done: the other nine bosses — designed (`docs/BOSSES.md`, two per
 act, one per area, with Codex concept art) but not built; Phase 3's

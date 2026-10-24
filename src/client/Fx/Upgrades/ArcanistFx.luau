@@ -21,6 +21,7 @@ local Workspace = game:GetService("Workspace")
 local Aim = require(ReplicatedStorage.Shared.Combat.Aim)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local FxEvents = require(script.Parent.FxEvents)
+local SoundFx = require(script.Parent.Parent.SoundFx)
 local UpgradeFx = require(script.Parent.UpgradeFx)
 
 local K = Balance.UpgradeFx
@@ -161,6 +162,7 @@ local function onLaunched(part: BasePart, pool: string, aim: Vector3, chained: b
 		local to = nearestEnemy(from, heading)
 			or (from + heading * Balance.Projectile.ricochetRange * 0.6)
 		bolt(from, to)
+		SoundFx.play("fx_chain_lightning")
 		for _, at in { from, to } do
 			UpgradeFx.play("FxChainLightning", {
 				at = CFrame.new(at + Vector3.new(0, K.nodeLift, 0)),
@@ -251,6 +253,7 @@ local function onMeteor(rock: BasePart)
 	--[[ Straight down, and steady: no tumble (owner, 2026-10-24: "the
 	     meteor should fall straight down instead of spinning in the air").
 	     The rock rides the ball's place with its trail straight up above. ]]
+	SoundFx.play("fx_meteor")
 	local hold = meteorHold()
 	UpgradeFx.play("FxMeteor", {
 		at = rock.CFrame,

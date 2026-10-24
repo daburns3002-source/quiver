@@ -114,8 +114,24 @@ ROUND_11 = [
     }),
 ]
 
+ROUND_12 = [
+    ("Round 12 · the upgrade effects (all CC0 recordings from Freesound, licence checked on each page)", {
+        "fx_blaze": ("Blaze", "An enemy catches fire from your arrow.", None),
+        "fx_heal": ("Heal", "The Heal card: the potion pours over you.", None),
+        "fx_overdraw": ("Overdraw", "The bow charges while you stand still, then lets loose.", None),
+        "fx_blast_arrows": ("Blast Arrows", "The starburst where an arrow explodes. Can come often, so short is good.", (0.45, 4)),
+        "fx_soul_chain": ("Soul Chain", "A chain snaps between linked enemies.", None),
+        "fx_heavy_blade": ("Heavy Blade", "The Warden's slam, the third blow, bursts in gold.", None),
+        "fx_bloodletting": ("Bloodletting", "Life drawn from a struck enemy into the Warden. Every blow, so it must stay quiet.", (0.5, 3)),
+        "fx_earthbreaker": ("Earthbreaker", "The Mythic's leaping slam: sod and stone thrown up.", None),
+        "fx_chain_lightning": ("Chain Lightning", "The zig-zag bolt jumping to the next enemy.", (0.3, 3)),
+        "fx_meteor": ("Meteor", "The Mythic meteor whooshing down before it lands.", None),
+    }),
+]
+
 # page: (rounds, picks collection, sounds already chosen, shown for context)
 PAGES = {
+    "12": (ROUND_12, "picks12", []),
     "1-2": (ROUND_1_2, "picks", []),
     "3": (ROUND_3, "picks3", ["Player hurt A", "XP crystal D", "Heart D", "Level up A"]),
     "11": (ROUND_11, "picks11", ["Player hurt", "XP crystal", "Heart", "Level up", "Enemy hit", "Dash", "Card pick", "Arrow fire", "Staff cast", "Enemy death", "Gate", "Blow 1 (10 C)", "Blow 2 (10 D)"]),

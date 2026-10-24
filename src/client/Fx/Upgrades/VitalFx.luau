@@ -17,6 +17,7 @@ local Workspace = game:GetService("Workspace")
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local FxEvents = require(script.Parent.FxEvents)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
+local SoundFx = require(script.Parent.Parent.SoundFx)
 local UpgradeFx = require(script.Parent.UpgradeFx)
 
 local K = Balance.UpgradeFx
@@ -97,6 +98,7 @@ local function onPicked(id: string)
 			follow = overHead(K.overHead),
 		})
 	elseif id == "Heal" then
+		SoundFx.play("fx_heal")
 		UpgradeFx.play("FxHeal", {
 			at = CFrame.new(),
 			clip = "AL_VFX_06_life_flask_play",

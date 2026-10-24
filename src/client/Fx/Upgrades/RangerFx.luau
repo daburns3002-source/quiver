@@ -21,6 +21,7 @@ local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local FxEvents = require(script.Parent.FxEvents)
 local LocalFiring = require(script.Parent.Parent.Parent.Combat.LocalFiring)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
+local SoundFx = require(script.Parent.Parent.SoundFx)
 local UpgradeFx = require(script.Parent.UpgradeFx)
 
 local K = Balance.UpgradeFx
@@ -50,6 +51,7 @@ local function onFired(aim: Vector3)
 		return
 	end
 	-- the charge is spent: the rings punch out and go
+	SoundFx.play("fx_overdraw")
 	local spent = overdraw
 	overdraw = nil
 	UpgradeFx.stop(spent)
@@ -120,6 +122,7 @@ local function onExplosion(centre: Vector3, radius: number)
 	if not ranger() or UpgradeFx.level("BlastArrows") <= 0 then
 		return
 	end
+	SoundFx.play("fx_blast_arrows")
 	UpgradeFx.play("FxBlastArrows", {
 		at = CFrame.new(UpgradeFx.floor(centre, 0)),
 		life = K.blastLife,
@@ -132,6 +135,7 @@ local function onSoulLink(centre: Vector3, reached: { Vector3 })
 	if UpgradeFx.level("SoulChain") <= 0 then
 		return
 	end
+	SoundFx.play("fx_soul_chain")
 	for _, to in reached do
 		local span = to - centre
 		if span.Magnitude < 1e-3 then

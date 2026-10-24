@@ -24,6 +24,7 @@ local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 local Workspace = game:GetService("Workspace")
 
+local Classes = require(ReplicatedStorage.Shared.Config.Classes)
 local Device = require(script.Parent.Parent.Device)
 local HitFeedback = require(script.Parent.HitFeedback)
 local ProjectileFlight = require(ReplicatedStorage.Shared.Combat.ProjectileFlight)
@@ -46,7 +47,7 @@ local PLAYER_COLOUR = Color3.fromRGB(255, 244, 196)
      (docs/ART-archero2.md §4). ]]
 local ENEMY_COLOUR = Color3.fromRGB(255, 72, 206)
 --[[ The Arcanist's orb (`Config/Classes.look`): the staff kit's bolt
-     (`Config/Weapons.ArcaneStaff.bolt`), drawn about three times an arrow's
+     (the Arcanist's weapon's `bolt`, `Config/Weapons`), drawn about three times an arrow's
      width so it reads as magic at a glance, lit in its class's blue. ]]
 local PLAYER_ORB_COLOUR = Color3.fromRGB(90, 200, 255)
 local PLAYER_ORB_SIZE = Vector3.one * 1.1
@@ -689,7 +690,11 @@ function ProjectileRenderer.start(parent: Instance)
 
 	ProjectileRenderer.refreshFilters()
 
-	local bolt = Weapons.ArcaneStaff.bolt
+	-- the shot of whatever the Arcanist holds
+	local bolt = (Weapons :: any)[Classes.Arcanist.weapon].bolt :: {
+		meshId: string,
+		size: Vector3,
+	}?
 	if bolt and not boltTemplate then
 		task.spawn(function()
 			local ok, result = pcall(function()

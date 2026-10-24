@@ -3,6 +3,12 @@
 **Archero's combat inside a Pet Simulator / Steal an Egg progression shell.**
 Low poly, cross-platform, co-op-shaped.
 
+**Scope: Acts 1–3 only** (owner, 2026-10-24: "we are only going to deal with
+acts 1-3 until i say so from now on"). Areas 1–6 — Mossy Glade, Thornwood,
+Drowned Village, Bogheart Caverns, Windswept Cliffs, Frostpeak Pass — and
+nothing for Acts 4–5 (enemies, bosses, arenas, pets, art) until the owner
+lifts it. Their designs stay on file, untouched.
+
 **There are no wolves in this game, only Wilfs** (owner, 2026-10-23): every
 wolf is named "Wilf" — the Ember Wilf, plural Wilfs — in names, code, docs
 and files. Every area gets a Wilf pet.
@@ -45,6 +51,13 @@ dumped from Studio) and the kit's `.rbxmx`. `EnemyModel` builds the bones;
 `Fx/EnemyRig` runs it at the hitbox's pace, fits the Dash to each lunge
 (`LungeWindup`, `LungeTravel`, `WindingUp`), squashes bones with the body
 and carries the eyes on the head bone.
+**Claude Design models' own clips** (pets, enemies, 2026-10-23): their GLBs
+animate joint nodes, with no skin, so Roblox's importer drops the clips.
+`tools/glb_clips_to_luau.py` turns the GLBs in `assets/models/model_clips.json`
+into `Config/ModelClips/<Name>`; a model tagged `ModelClips` (attribute of
+the same name = the data's name, `ModelClip` = the clip) is played by
+`Fx/ModelAnimator`, which reads the import's scale and turn from its parts
+(`Shared/Util/ModelClip`, pinned by `tests/ModelClip.spec`). PIPELINES.md §10.
 
 **Level 1** (`Balance.stage = 3`, owner 2026-10-22): ten Mossy Glade
 rooms — logs, pond, boulders, thorns, boss arena, twice. **Slimes**
@@ -59,11 +72,30 @@ enemy pipeline through `assets/models/arenas/optimise_arena.py`, scaled ×2.7
 into the 35 × 58 room. Cover under `Projectile.height` (pond, thorns) blocks
 walking but not arrows. Every piece of cover has a full-height invisible
 `PlayerWall` over it that only the player meets, so nobody walks over a log
-or across the pond. The exit is a gate in the north wall
+or across the pond. Past the walls the forest lives
+(`Fx/ForestAmbience`, `Balance.Ambience`, the owner's forest ambience
+handoff): leaves, fireflies, mist, butterflies, birds and light shafts, on
+top of the canopy because the camera looks down onto it, never inside the
+room (`AmbienceVolumes.spec`). Per-tree sway waits on the trees being split
+out of their merged mesh. The exit is a gate in the north wall
 (`Arena/ExitGate`, `Balance.Run.gate`): dark purple haze until the room is
 cleared, then glowing white-gold with a GO arrow, after Archero 2. Moonlit
 Arena's waves draw from the first
 `Balance.Waves.rooms` (10) rooms only.
+
+**How new things get in, and what is in flight** (owner, 2026-10-23: "keep
+track of all of the steps … automate things so when i want to add something
+new to the game, I can"): `docs/PIPELINES.md` is every pipeline step by step
+— enemy, rigged enemy, boss, arena, weapon kit, card, sound, art — with the
+owner's steps and Claude's; `docs/TRACKER.md` is everything started and not
+finished and who it waits on, **updated in the same PR as the work**. Start
+every file the owner sends with `python -I tools/intake.py <file>` (what is
+new against the repo, clip by clip), finish every change with
+`tools/check.sh` and `tools/ship.sh`, and trust no Studio test before
+`tools/sync_probe.py`'s probe reads all true. After any import,
+`tools/studio/dump_imports.luau` gives the mesh ids and bones. Project
+skills run these: `/intake`, `/add-enemy`, `/add-arena`, `/add-weapon`,
+`/add-sound`, `/ship`, `/status`.
 
 **Bugs that shipped, and what fixed them: `docs/FIXES.md`.** Written to be
 found by symptom. Read it before debugging anything that sounds familiar, and
@@ -272,6 +304,9 @@ From a probe, `Remotes.DebugRoom:FireServer(10)` jumps the run to a room
 From a probe, `Remotes.DebugGrant:FireServer("Cleave")` grants one level of
 any card (Studio only), to test a card's effect without drafting it.
 **K** — spawn a wilf (`Remotes.DebugSpawnEnemy`, any `Balance.Enemies` key from a probe).
+**P** — the pets the owner imported follow you, playing their own clips
+(`Fx/PetPreview`, built by `Server/Dev/PetPreview` from `Config/PetModels`); P again
+puts them away. A look only, until Phase 6's pet system.
 From a probe, `Remotes.DebugForceMythic:FireServer("Legendary")` does the
 same without the MCP keyboard tool, which reports as a gamepad and flips the
 draft into its controller layout.

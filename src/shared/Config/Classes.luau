@@ -56,7 +56,7 @@ export type Class = {
 local Classes: { [string]: Class } = {
 	--[[ Fast, fragile, long range: the base numbers as tuned. ]]
 	Ranger = {
-		weapon = "LeafBow",
+		weapon = "TwigBow",
 		damageScale = 1,
 		cooldownScale = 1,
 		healthScale = 1,
@@ -69,7 +69,7 @@ local Classes: { [string]: Class } = {
 	     slower glowing orb, and Blast Arrows' small blast on every shot.
 	     Its Mythic is homing (Tracking Eye, to be Homing Orbs). ]]
 	Arcanist = {
-		weapon = "ArcaneStaff",
+		weapon = "BranchStaff",
 		damageScale = 2,
 		cooldownScale = 2,
 		healthScale = 1,
@@ -84,7 +84,7 @@ local Classes: { [string]: Class } = {
 	     and Blaze from the draft; abilities that shape a volley (more
 	     arrows, spread, bounces) have nothing to shape. Numbers to tune. ]]
 	Warden = {
-		weapon = "RubyGreatsword",
+		weapon = "TimberBlade",
 		damageScale = 1.6,
 		cooldownScale = 1.2,
 		--[[ It has to stand among the enemies, so it can take more of them

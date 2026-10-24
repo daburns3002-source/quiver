@@ -268,7 +268,7 @@ local meleeCharger: EnemyConfig = {
 	--[[ The Moss Slime's own shape: 3 wide and deep, 2.2 tall — a squat
 	     jelly, not the 5-stud box every archetype used to share. Arrows fly
 	     low enough to meet it (`Projectile.height`). ]]
-	hitboxSize = Vector3.new(3, 2.2, 3),
+	hitboxSize = Vector3.new(3, 2.7, 2.6),
 	color = Color3.fromRGB(226, 52, 56),
 	xpReward = 10,
 	--[[ Melee: closes to attackRange and swings. A ranged archetype sets
@@ -319,7 +319,7 @@ local broodSlime: EnemyConfig = {
 	attackCooldown = 1.3,
 	knockback = 1.5,
 	--[[ Its model's own shape, 4.1 × 3.4 × 4.1. ]]
-	hitboxSize = Vector3.new(4.1, 3.4, 4.1),
+	hitboxSize = Vector3.new(4.0, 4.6, 3.5),
 	color = Color3.fromRGB(226, 52, 56),
 	xpReward = 20,
 	shot = nil,
@@ -410,7 +410,7 @@ local spreadShooter: EnemyConfig = {
 	knockback = 3,
 	--[[ The Sprout Spitter's own shape (its model, 3 × 3.6 × 3), not the
 	     shared 5-stud box; arrows at `Projectile.height` meet it. ]]
-	hitboxSize = Vector3.new(3, 3.6, 3),
+	hitboxSize = Vector3.new(3, 3.2, 3),
 	color = Color3.fromRGB(70, 206, 236),
 	xpReward = 14,
 	shot = {
@@ -597,7 +597,7 @@ local slimeKing: EnemyConfig = {
 	attackDamage = 0,
 	attackCooldown = 0,
 	knockback = 0,
-	hitboxSize = Vector3.new(9.6, 9.8, 7.3),
+	hitboxSize = Vector3.new(9.6, 9.6, 8.0),
 	color = Color3.fromRGB(127, 203, 36),
 	xpReward = 100,
 	boss = {
@@ -1740,6 +1740,72 @@ local Balance = {
 				ease = 1,
 			},
 			{ at = 1, tall = 1, wide = 1, deep = 1, tilt = 0, lift = 0, ease = 1 },
+		},
+	},
+
+	--[[
+		The life in the scenery past the walls, by `ArenaModels.ambience`
+		(the owner's design_handoff_forest_ambience, 2026-10-23), drawn on
+		each client by `Fx/ForestAmbience` and never inside the room.
+		Counts are at the High tier; lower tiers draw `DeviceTiers.
+		ambienceShare` of them. The glades' trees are one merged mesh, so the
+		handoff's per-tree sway is left out until they are split into trees.
+	]]
+	Ambience = {
+		Forest = {
+			--[[ Where it lives: strips of forest floor this far past the
+			     walls (studs), as far out as the screen shows, and this far
+			     past the room's ends. ]]
+			gap = 3,
+			reach = 46,
+			ends = 16,
+			--[[ The camera looks straight down onto the canopy, which hides
+			     the forest floor, so the life lives on top of the trees:
+			     leaves drift down from `leafFrom` studs up and settle on the
+			     canopy (`canopy`, its top's height) before fading; fireflies
+			     and butterflies hover over it, and the mist hangs in it. ]]
+			leafFrom = { 17, 21 },
+			canopy = { 13, 15.5 },
+			hover = 16,
+			leavesPerSecond = 3,
+			leafPool = 60,
+			leafFall = { 0.5, 0.9 },
+			--[[ Seconds a fallen leaf lies before it fades, and how long the
+			     fade takes. ]]
+			leafRest = 2.5,
+			leafFade = 1.5,
+			leafColors = {
+				Color3.fromRGB(111, 154, 54),
+				Color3.fromRGB(134, 168, 60),
+				Color3.fromRGB(201, 165, 58),
+				Color3.fromRGB(208, 122, 44),
+			},
+			--[[ The wind: a band of gusts sweeping across, radians of phase a
+			     second, pushing leaves along. ]]
+			gustSpeed = 0.6,
+			--[[ Fireflies a second per 60 square studs of floor, and mist
+			     puffs per 400. ]]
+			fireflyDensity = 1,
+			mistDensity = 1,
+			fireflyColor = Color3.fromRGB(235, 255, 150),
+			mistColor = Color3.fromRGB(238, 243, 230),
+			butterflies = 6,
+			butterflyColors = {
+				Color3.fromRGB(242, 209, 74),
+				Color3.fromRGB(245, 241, 230),
+				Color3.fromRGB(232, 138, 58),
+			},
+			--[[ A flock crosses every `birdGap` seconds, `birdHeight` studs up:
+			     over the canopy and under the top-down camera. ]]
+			birds = 6,
+			birdGap = { 12, 25 },
+			birdHeight = 22,
+			birdSpeed = 18,
+			birdColor = Color3.fromRGB(45, 51, 40),
+			--[[ Shafts of light slanting down between the trees, breathing. ]]
+			lightShafts = 4,
+			shaftColor = Color3.fromRGB(255, 244, 200),
+			shaftTransparency = 0.88,
 		},
 	},
 

@@ -16,6 +16,61 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## Preview pets walked backwards
+
+**Symptom** — 2026-10-23, Studio playtest of **P**: walking +X, every pet's
+look vector pointed −X (−0.85 to −1.00 across the twelve).
+
+**Cause** — `Fx/PetPreview` turned each pet half round more, assuming the
+GLB's +Z front. `Config/PetModels` is written in the import's frame, where
+the front is already the pivot's look vector (−Z).
+
+**Fix** — no extra turn: `CFrame.lookAt` alone.
+
+**Measured** — see the PR: walking +X, look vectors along +X.
+
+## The pet preview showed two pets out of twelve
+
+**Symptom** — 2026-10-23, first P press in a Studio playtest: the Slime
+Prince and two thirds of the Mossback Snail followed the player; the server
+logged "built 12 preview pets".
+
+**Cause** — the client copied `ReplicatedStorage.PetPreview` as soon as
+`WaitForChild` saw the folder. Twelve models of 1,000 parts replicate over
+several frames, and the folder arrives before its contents.
+
+**Fix** — the server stamps the folder with `Pets` and each model with
+`Parts`; `Fx/PetPreview` waits (up to 20 s) until it holds them all.
+
+**Measured** — a moment later the client held all 12, every part count
+matching the server's (Glimmerhorn 262, Mossback Snail 137).
+
+## Imported pets were grey, with flat leaves and mixed-up legs
+
+**Symptom** — 2026-10-23, the owner's import of the twelve forest pets:
+every part grey; the Mosslet's sprout leaves lying flat; Stumpy's four legs
+all named `Leg_L_front`. The pet preview built from that dump would have
+shown grey pets in the wrong pose, and the animator, which binds parts by
+name, would have moved one leg four times or refused the model.
+
+**Cause** — what Roblox's importer does to a Claude Design GLB: it drops
+material colours; it names a mesh that several nodes share after the first
+of them; and for a GLB with joint nodes it places each mesh as if no node
+were turned (the turns go to its InitialPoses and Motor6Ds). The clip fit
+also read the import's scale from part sizes, which a baked import reports
+turned: the Fern Frog read 1.197 for a true 1.
+
+**Fix** — `tools/imports_to_luau.py` trusts Studio only for mesh ids. It
+matches each import to its GLB by part names and each part to its primitive
+by place and size, then takes node names, colours and rest turns from the
+GLB. `ModelClip.fit` reads scale from how far the parts spread;
+`ModelAnimator` drives every part of a node.
+
+**Measured** — all twelve pets matched to their GLBs within 0.001 studs.
+Fitted against their clip data in Lune, every one came out at scale 1.000
+(Hootmoss 0.999), turned half round, with error under 0.3% of its spread
+(the Mosslet was 12% before multi-part names were left out of the fit).
+
 ## The pond's edge was jagged
 
 **Symptom** — owner, 2026-10-23: "fix the shadows of the pond, it should be

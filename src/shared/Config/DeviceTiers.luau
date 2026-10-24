@@ -40,6 +40,10 @@ export type Tier = {
 	     (`Fx/MythicFx`). Never zero: a meteor that lands with nothing
 	     thrown up reads as a miss. ]]
 	mythicFxShare: number,
+	--[[ Share of the scenery's life drawn past the walls (falling leaves,
+	     fireflies, butterflies, birds; `Fx/ForestAmbience`). Zero turns it
+	     off: it is background, the first thing a phone can spare. ]]
+	ambienceShare: number,
 }
 
 --[[
@@ -60,6 +64,7 @@ local low: Tier = {
 	orbSparkleRate = 0,
 	endScreenParticleShare = 0.5,
 	mythicFxShare = 0.5,
+	ambienceShare = 0.4,
 }
 
 local medium: Tier = {
@@ -75,6 +80,7 @@ local medium: Tier = {
 	orbSparkleRate = 8,
 	endScreenParticleShare = 0.75,
 	mythicFxShare = 0.75,
+	ambienceShare = 0.7,
 }
 
 local high: Tier = {
@@ -90,6 +96,7 @@ local high: Tier = {
 	orbSparkleRate = 16,
 	endScreenParticleShare = 1,
 	mythicFxShare = 1,
+	ambienceShare = 1,
 }
 
 local DeviceTiers = {

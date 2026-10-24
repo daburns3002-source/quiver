@@ -55,6 +55,21 @@ type Flock = { birds: { Bird }, from: Vector3, to: Vector3, t: number, duration:
 type Butterfly = { left: Part, right: Part, phase: number, home: Volume?, centre: Vector3 }
 type Shaft = { part: Part, rest: number, phase: number }
 
+--[[ The trees' crowns, read from the arena as it arrives: each a disc on
+     the map and the height of its top. Everything that lives on the canopy
+     sits on these rather than at a fixed height, so nothing passes through
+     a tree (owner, 2026-10-24: "there is a bit of clipping in the trees on
+     the outer arena when walking"). ]]
+type Crown = { x: number, z: number, radius: number, top: number }
+local CROWN_PREFIX = "CanopyMesh"
+--[[ A crown's footprint as a share of its narrower side: its corners are
+     leaves, not a canopy to settle on. ]]
+local CROWN_REACH = 0.45
+local crowns: { Crown } = {}
+local crownsTop = 0
+local crownsChanged = false
+local arenaConnection: RBXScriptConnection? = nil
+
 local folder: Folder? = nil
 local volumes: { Volume } = {}
 local leaves: { Leaf } = {}
@@ -96,6 +111,40 @@ local function effectPart(parent: Instance, size: Vector3, colour: Color3): Part
 	return part
 end
 
+local function addCrown(part: Instance)
+	if not part:IsA("BasePart") or string.sub(part.Name, 1, #CROWN_PREFIX) ~= CROWN_PREFIX then
+		return
+	end
+	local top = part.Position.Y + part.Size.Y / 2
+	table.insert(crowns, {
+		x = part.Position.X,
+		z = part.Position.Z,
+		radius = math.min(part.Size.X, part.Size.Z) * CROWN_REACH,
+		top = top,
+	})
+	crownsTop = math.max(crownsTop, top)
+	crownsChanged = true
+end
+
+--[[ The top of the crown over (x, z), or nil where no crown covers it. ]]
+local function crownAt(x: number, z: number): number?
+	local best: number? = nil
+	for _, crown in crowns do
+		local dx, dz = x - crown.x, z - crown.z
+		if dx * dx + dz * dz <= crown.radius * crown.radius and (not best or crown.top > best) then
+			best = crown.top
+		end
+	end
+	return best
+end
+
+--[[ How high the canopy life floats: clear of the tallest crown, or the
+     configured height where the arena has no crowns. ]]
+local function hoverHeight(): number
+	local c = config()
+	return if #crowns > 0 then crownsTop + c.clearance else c.hover
+end
+
 local function buildVolumes(): { Volume }
 	return AmbienceVolumes.strips(Balance.Arena, config())
 end
@@ -133,7 +182,8 @@ local function addEmitters(parent: Instance, volume: Volume)
 	local box = effectPart(parent, Vector3.new(volume.size.X, 3, volume.size.Z), Color3.new())
 	box.Name = "AmbienceVolume"
 	box.Transparency = 1
-	box.Position = volume.centre + Vector3.new(0, c.hover - 1.5, 0)
+	-- the box's floor clear of every crown, so nothing hangs inside a tree
+	box.Position = volume.centre + Vector3.new(0, hoverHeight() + 1.5 - c.clearance / 2, 0)
 
 	local fireflies = Instance.new("ParticleEmitter")
 	fireflies.Name = "Fireflies"
@@ -191,6 +241,28 @@ local function addEmitters(parent: Instance, volume: Volume)
 	mist.Parent = box
 end
 
+--[[ Each shaft slants up from the sun's side with its foot on a crown's
+     top, so it falls on the treetops rather than through them; with no
+     crowns, on the forest floor. ]]
+local function placeShafts()
+	for _, shaft in shafts do
+		local at: Vector3
+		if #crowns > 0 then
+			local crown = crowns[math.random(1, #crowns)]
+			local angle = math.random() * math.pi * 2
+			local r = math.random() * crown.radius * 0.6
+			at =
+				Vector3.new(crown.x + math.cos(angle) * r, crown.top, crown.z + math.sin(angle) * r)
+		else
+			at = pointIn(pickVolume(), 0)
+		end
+		shaft.part.CFrame = CFrame.new(at)
+			* CFrame.Angles(0, math.random() * math.pi * 2, math.rad(70))
+			* CFrame.new(13, 0, 0)
+	end
+	crownsChanged = false
+end
+
 local function build()
 	local c = config()
 	local made = Instance.new("Folder")
@@ -234,22 +306,17 @@ local function build()
 
 	shafts = {}
 	for _ = 1, share(c.lightShafts) do
-		local volume = pickVolume()
-		local at = pointIn(volume, 0)
 		local shaft = effectPart(made, Vector3.new(3, 26, 3), c.shaftColor)
 		shaft.Name = "LightShaft"
 		shaft.Shape = Enum.PartType.Cylinder
 		shaft.Material = Enum.Material.Neon
 		shaft.Transparency = c.shaftTransparency
-		--[[ Slanting down from the sun, its foot on the forest floor. ]]
-		shaft.CFrame = CFrame.new(at)
-			* CFrame.Angles(0, math.random() * math.pi * 2, math.rad(70))
-			* CFrame.new(13, 0, 0)
 		table.insert(
 			shafts,
 			{ part = shaft, rest = c.shaftTransparency, phase = math.random() * 6.28 }
 		)
 	end
+	placeShafts()
 
 	flock = nil
 	nextFlock = 5
@@ -269,7 +336,7 @@ local function spawnLeaf()
 	for _, leaf in leaves do
 		if not leaf.live then
 			leaf.position = pointIn(pickVolume(), between(c.leafFrom))
-			leaf.settle = between(c.canopy)
+			leaf.settle = if #crowns > 0 then 0 else between(c.canopy)
 			leaf.fall = between(c.leafFall)
 			leaf.phase = math.random() * 6.28
 			leaf.spin =
@@ -318,6 +385,20 @@ local function step(dt: number)
 	end
 	local c = config()
 	clock += dt
+	--[[ Crowns still arriving: the shafts and the hanging life follow them,
+	     no more than a few times a second. ]]
+	if crownsChanged and math.floor(clock * 4) ~= math.floor((clock - dt) * 4) then
+		placeShafts()
+		for _, box in parent:GetChildren() do
+			if box.Name == "AmbienceVolume" and box:IsA("BasePart") then
+				box.Position = Vector3.new(
+					box.Position.X,
+					hoverHeight() + 1.5 - c.clearance / 2,
+					box.Position.Z
+				)
+			end
+		end
+	end
 
 	for _, shaft in shafts do
 		shaft.part.Transparency =
@@ -342,7 +423,12 @@ local function step(dt: number)
 				math.cos(clock * 1.3 + leaf.phase) * 0.7 * dt
 			)
 			leaf.turn *= CFrame.Angles(leaf.spin.X * dt, leaf.spin.Y * dt, leaf.spin.Z * dt)
-			--[[ Settles on the canopy below it. ]]
+			--[[ Settles on the crown below it, or on the forest floor in a
+			     gap between trees; at a fixed height where there are no
+			     crowns. ]]
+			if #crowns > 0 then
+				leaf.settle = (crownAt(leaf.position.X, leaf.position.Z) or 0) + 0.05
+			end
 			if leaf.position.Y <= leaf.settle then
 				leaf.landed = true
 				leaf.part.CFrame = CFrame.new(leaf.position.X, leaf.settle, leaf.position.Z)
@@ -399,7 +485,7 @@ local function step(dt: number)
 		local at = fly.centre
 			+ Vector3.new(
 				math.cos(wander) * 3,
-				c.hover
+				hoverHeight()
 					+ 0.5 * math.sin(clock * 1.3 + fly.phase)
 					+ 0.15 * math.sin(clock * 7 + fly.phase),
 				math.sin(wander * 1.3) * 3
@@ -420,6 +506,19 @@ function ForestAmbience.start()
 	local function follow(arena: Instance?)
 		current = arena
 		teardown()
+		table.clear(crowns)
+		crownsTop = 0
+		if arenaConnection then
+			arenaConnection:Disconnect()
+			arenaConnection = nil
+		end
+		if arena then
+			for _, d in arena:GetDescendants() do
+				addCrown(d)
+			end
+			-- a big arena reaches a client over several frames
+			arenaConnection = arena.DescendantAdded:Connect(addCrown)
+		end
 		if arena and arena:GetAttribute("Ambience") == "Forest" then
 			if Device.tier().ambienceShare > 0 then
 				build()

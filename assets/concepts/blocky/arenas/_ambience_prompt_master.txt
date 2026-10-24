@@ -1,0 +1,44 @@
+Generate ONE image and save it to this exact path:
+
+  assets/concepts/blocky/arenas/area01_mossy_glade_ambience.jpg
+
+Reference image attached: the Mossy Glade arena concept for this game. Match its
+visual language EXACTLY — chunky voxel blocks, flat shading, hard edges, no
+textures, saturated colours, soft ambient light with a gentle drop shadow, plain
+light-grey studio backdrop.
+
+The reference shows only the INSIDE of the arena. This new sheet is about
+everything OUTSIDE its walls, which does not exist yet.
+
+Subject: the same walled Mossy Glade arena, small and centred, seen from a steep
+near-top-down three-quarter angle — the angle a mobile game's camera uses looking
+down at a room. The arena interior stays as the reference draws it (mossy grey
+block walls, green grass floor, stumps, a log, cyan glowing mushrooms, white and
+yellow cube flowers).
+
+Around it, filling most of the frame, a blocky forest in the same language:
+
+- Chunky cube tree trunks in two browns, with canopies built from clusters of
+  cubes in three distinct greens — dark, mid and a bright highlight green. Trees
+  as INDIVIDUAL objects with visible gaps between them, never one merged mass.
+- The canopy read from ABOVE is what matters most: the tops of the trees form a
+  stepped, chunky green surface at roughly the height of the arena walls, so the
+  room sits in a clearing cut out of the forest.
+- Blocky undergrowth between the trunks: cube ferns, cube bushes, grey mossy
+  boulders, a few fallen cube logs.
+- Scattered cyan glowing mushroom cubes, matching the ones inside the arena.
+
+The living ambience, all of it blocky and faceted, nothing soft or round:
+
+- Small flat leaf cubes in yellow-green and orange, tumbling down through the air
+  and settling on top of the canopy.
+- Tiny glowing yellow-green firefly cubes drifting over the treetops.
+- Small butterflies made of two flat angled cube wings, pale blue and white.
+- A loose flock of small dark bird shapes crossing above the canopy.
+- Thin low-lying mist as flat translucent white slabs caught between the trunks.
+- Two or three slanting shafts of pale warm light as angled translucent prisms
+  coming down through the canopy.
+
+Composition: the arena occupies about a third of the frame, the forest and its
+ambience the rest. Everything readable from directly above, because that is how
+the player sees it. No text, no labels, no UI, no characters.

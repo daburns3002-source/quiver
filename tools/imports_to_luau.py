@@ -1,6 +1,8 @@
-"""Turn the owner's Studio imports of Claude Design pets into
-src/shared/Config/PetModels/<Name>.luau, so the game can rebuild each pet
-from its mesh ids (the way enemy meshes are built) and play its clips.
+"""Turn the owner's Studio imports of Claude Design models into
+src/shared/Config/PetModels/<Name>.luau (a GLB under assets/models/pets/)
+or src/shared/Config/ImportedModels/<Name>.luau (any other: a boss, an
+enemy), so the game can rebuild each from its mesh ids (the way enemy
+meshes are built) and play its clips.
 
     python -I tools/imports_to_luau.py
 
@@ -21,6 +23,12 @@ everything else comes from the GLB, because the importer loses it:
   were turned, so a tilted leaf arrives flat. Each part is placed at its
   real rest pose. A GLB without joints imports with the turn baked into the
   mesh, and is placed as imported.
+- A part no bigger than Roblox's smallest size (0.001) was clamped to it: a
+  boss's lash links rest at a thousandth of their size, tucked inside his
+  arm, until a clip scales them up. A rigged import outside the pets takes
+  such a part's true size from the GLB, so a clip grows it to the size it
+  was drawn at. (Pets keep Studio's: their preview scales the whole model,
+  which a size held aside would not follow.)
 
 Writes one module per model found in both, each part holding its name, mesh
 id, colour, material, transparency, size and place relative to the model's
@@ -40,7 +48,16 @@ import glb_clips_to_luau as glb  # noqa: E402
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 DUMP = ROOT / "assets" / "models" / "model_imports.json"
 MANIFEST = ROOT / "assets" / "models" / "model_clips.json"
-OUT = ROOT / "src" / "shared" / "Config" / "PetModels"
+CONFIG = ROOT / "src" / "shared" / "Config"
+#: Pets (GLBs under this folder) go to PetModels; every other model to
+#: ImportedModels, which also names each part's GLB material (`surface`),
+#: for the colours a game flashes on it (a boss's gems, his eyes).
+PET_GLBS = "assets/models/pets/"
+OUT_PETS = CONFIG / "PetModels"
+OUT_OTHERS = CONFIG / "ImportedModels"
+#: A size at or under this on any axis was clamped to Roblox's smallest
+#: part size, 0.001.
+CLAMPED = 0.0011
 
 #: The importer's turn: half round about Y (its own inverse).
 TURN = np.diag([-1.0, 1.0, -1.0])
@@ -95,9 +112,9 @@ def to_srgb(c: float) -> float:
 
 
 def look(gltf, index):
-    """A material's colour (sRGB), Roblox material and transparency."""
+    """A material's colour (sRGB), Roblox material, transparency and name."""
     if index is None:
-        return [1.0, 1.0, 1.0], "SmoothPlastic", 0.0
+        return [1.0, 1.0, 1.0], "SmoothPlastic", 0.0, ""
     m = gltf["materials"][index]
     base = m.get("pbrMetallicRoughness", {}).get("baseColorFactor", [1, 1, 1, 1])
     strength = m.get("extensions", {}).get("KHR_materials_emissive_strength", {}).get("emissiveStrength", 1)
@@ -105,7 +122,7 @@ def look(gltf, index):
     colour = [to_srgb(c) for c in np.array(base[:3], float) + glow]
     material = "Neon" if glow.max() >= NEON_GLOW else "SmoothPlastic"
     alpha = base[3] if m.get("alphaMode") == "BLEND" else 1.0
-    return colour, material, round(1 - alpha, 3)
+    return colour, material, round(1 - alpha, 3), m.get("name", "")
 
 
 def primitives(path: pathlib.Path):
@@ -199,7 +216,7 @@ def match(parts, prims, mode):
     return pairs, offset, worst
 
 
-def render(key, scene, mode, rows) -> str:
+def render(key, scene, mode, rows, surfaces=False) -> str:
     lines = [
         "--!strict",
         "--[[",
@@ -209,7 +226,8 @@ def render(key, scene, mode, rows) -> str:
         "",
         "\tEach part: its GLB node's name (which Config/ModelClips keys on), mesh",
         "\tand texture ids, colour, material, transparency, size, and its rest",
-        "\tplace relative to the model's pivot (12 CFrame components).",
+        "\tplace relative to the model's pivot (12 CFrame components)"
+        + (", and the name of its GLB material (`surface`)." if surfaces else "."),
         "]]",
         "",
         "return table.freeze({",
@@ -221,6 +239,7 @@ def render(key, scene, mode, rows) -> str:
             + f"textureId = {lua_string(r['textureId'])}, color = {nums(r['color'])}, "
             + f"material = {lua_string(r['material'])}, transparency = {num(r['transparency'])}, "
             + f"size = {nums(r['size'])}, cframe = {nums(r['cframe'])}"
+            + (f", surface = {lua_string(r['surface'])}" if surfaces else "")
             + " },"
         )
     lines += ["})", ""]
@@ -230,11 +249,14 @@ def render(key, scene, mode, rows) -> str:
 def main():
     dump = json.loads(DUMP.read_text(encoding="utf-8"))
     manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
-    OUT.mkdir(parents=True, exist_ok=True)
     written = set()
-    for key, rel in manifest.items():
+    for key, value in manifest.items():
         if key.startswith("_"):
             continue
+        rel, _ = glb.entry(value)
+        pet = rel.startswith(PET_GLBS)
+        out = OUT_PETS if pet else OUT_OTHERS
+        out.mkdir(parents=True, exist_ok=True)
         prims = primitives(ROOT / rel)
         names = {q["node"] for q in prims}
         scene = max(dump, key=lambda s: len(names & {p["name"] for p in dump[s]["parts"]}))
@@ -251,12 +273,17 @@ def main():
         rows = []
         for a, b in sorted(pairs.items(), key=lambda ab: prims[ab[1]]["node"]):
             part, prim = parts[a], prims[b]
-            colour, material, transparency = prim["look"]
+            colour, material, transparency, surface = prim["look"]
+            size = part["size"]
             if mode == "baked":
                 cframe = part["cframe"]
             else:
                 centre, spin = prim["rest"]
                 cframe = list(centre + offset) + list(spin.reshape(-1))
+                if not pet and min(size) <= CLAMPED:
+                    # clamped to Roblox's smallest size: the GLB's own
+                    true = prim["rigged"][1]
+                    size = [float(t) if s <= CLAMPED else s for s, t in zip(size, true)]
             rows.append(
                 {
                     "name": prim["node"],
@@ -265,8 +292,9 @@ def main():
                     "color": colour,
                     "material": material,
                     "transparency": max(transparency, part["transparency"]),
-                    "size": part["size"],
+                    "size": size,
                     "cframe": cframe,
+                    "surface": surface,
                 }
             )
         missing = sorted({q["node"] for q in prims} - {r["name"] for r in rows})
@@ -274,12 +302,12 @@ def main():
             # a GLB re-exported with pieces the import predates: the pet
             # builds without them until the owner imports it again
             print(f"{key}: the import has no {', '.join(missing)}; re-import {rel} for them")
-        path = OUT / f"{key}.luau"
-        path.write_text(render(key, scene, mode, rows), encoding="utf-8", newline="\n")
-        written.add(path.name)
+        path = out / f"{key}.luau"
+        path.write_text(render(key, scene, mode, rows, not pet), encoding="utf-8", newline="\n")
+        written.add(path)
         print(f"{key}: {len(rows)} parts from {scene}, {mode}, matched within {worst:.5f}")
-    for old in OUT.glob("*.luau"):
-        if old.name not in written:
+    for old in [*OUT_PETS.glob("*.luau"), *OUT_OTHERS.glob("*.luau")]:
+        if old not in written:
             old.unlink()
             print(f"removed {old.name}")
 

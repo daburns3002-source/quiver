@@ -22,6 +22,12 @@
 	Poses are about the feet: `squash` scales height, `spread` the width,
 	`lift` raises the body off the floor, `lean` pushes it forward and
 	`pitch` tips it.
+
+	A boss whose body carries its own clips (`EnemyBoss.clips`, King
+	Bloblin's imported rig) is not posed from these: each phase names the
+	clip it plays (`BossMoves.clip`), and the client plays it on the beat.
+	The pose's feet, lift and yaw still place his hitbox; the rest of it is
+	only read for a body the server poses (`BossBody`).
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -94,7 +100,8 @@ export type Pose = {
 	  everyone in the lane, and grab the first (`BossMoves.grab`).
 	- `Bump` — the chest bump: release whoever is held, pushed along
 	  `direction`.
-	- `Shock` — a small shockwave on the floor at `at`, of `radius`.
+	- `Splat` — the fist slapping the floor at `at`, `radius` across.
+	- `BumpShock` — the chest bump's shock, out from `at` (the belly).
 	- `Shake` — shake the camera by `radius` for `duration`.
 	- `Goo` — droplets flung off a fist that splatted at `at`.
 ]]
@@ -131,6 +138,10 @@ export type Move = {
 	     to. ]]
 	held: Vector3?,
 	pullTo: Vector3?,
+	--[[ The clip the body is playing (`EnemyBoss.clips`), "" for none, and
+	     when it began: a clip shared by two phases runs from the first. ]]
+	clip: string,
+	clipAt: number,
 }
 
 --[[ The design's king is 4.9 studs tall; this one is twice that. ]]
@@ -204,8 +215,8 @@ local function shake(magnitude: number): Event
 	return e
 end
 
-local function shock(at: Vector3): Event
-	local e = event("Shock")
+local function shock(kind: string, at: Vector3): Event
+	local e = event(kind)
 	e.at = at
 	e.radius = SHOCK_RADIUS
 	return e
@@ -283,7 +294,39 @@ function BossMoves.start(kind: Kind, now: number, feet: Vector3, yaw: number): M
 		aimSentAt = -math.huge,
 		held = nil,
 		pullTo = nil,
+		clip = "",
+		clipAt = now,
 	}
+end
+
+--[[ The clip `boss`'s body plays in `phase` of a move of `kind`, the
+     `index`th (which bounce, or which arm), or "" when it plays none. ]]
+function BossMoves.clipName(boss: EnemyBoss, kind: Kind, phase: string, index: number): string
+	local clips = boss.clips
+	if not clips then
+		return ""
+	end
+	if kind == "Bounce" then
+		return clips.Bounce[phase] or ""
+	end
+	local arms = boss.lash.arms
+	local arm = arms[math.clamp(index, 1, #arms)]
+	local byPhase = clips.Lash[arm]
+	return if byPhase then byPhase[phase] or "" else ""
+end
+
+--[[
+	How far a lash's chain is stretched along its lane, as a share of how
+	the clips draw it (at `lash.reach`): from its root, so the fist lands as
+	near the lane's end as it does at full reach. 1 for a body without a
+	chain.
+]]
+function BossMoves.chainScale(length: number, lash: Balance.BossLash): number
+	local root, reach = lash.chainRoot, lash.chainReach
+	if not root or not reach then
+		return 1
+	end
+	return math.max(0.05, (length - root) / (lash.reach - root))
 end
 
 --[[ Aims a lash's lane at the target from where the boss stands. ]]
@@ -321,12 +364,20 @@ local function enter(
 ): { Event }
 	move.phase = phase
 	move.phaseAt = at
+	if phase == "track" or phase == "windup" then
+		-- the index this phase will carry (it is counted below)
+		move.index += 1
+	end
+	local clip = BossMoves.clipName(boss, move.kind, phase, move.index)
+	if clip ~= move.clip then
+		move.clip = clip
+		move.clipAt = at
+	end
 	local events: { Event } = {}
 
 	if move.kind == "Bounce" then
 		local b = boss.bounce
 		if phase == "windup" then
-			move.index += 1
 			move.from = move.feet
 			--[[ Locked here: the landing is where the target stood at the
 			     start of the wind-up, and the circle shows it from now. ]]
@@ -358,7 +409,6 @@ local function enter(
 
 	local l = boss.lash
 	if phase == "track" then
-		move.index += 1
 		move.fromYaw = move.yaw
 		aimLane(move, l, target)
 		move.aimSentAt = at
@@ -371,7 +421,7 @@ local function enter(
 	elseif phase == "slap" then
 		table.insert(events, laneEvent("LaneHit", move, l, 0))
 		local splat = move.feet + move.direction * move.length
-		table.insert(events, shock(splat))
+		table.insert(events, shock("Splat", splat))
 		local goo = event("Goo")
 		goo.at = splat + Vector3.new(0, FIST_REST, 0)
 		goo.direction = move.direction
@@ -382,7 +432,7 @@ local function enter(
 		bump.at = move.feet
 		bump.direction = move.direction
 		table.insert(events, bump)
-		table.insert(events, shock(move.held or move.feet))
+		table.insert(events, shock("BumpShock", move.held or move.feet))
 		table.insert(events, shake(SHAKE_BUMP))
 	elseif phase == "settle" then
 		local to = move.pullTo
@@ -445,6 +495,8 @@ function BossMoves.grab(
 	move.pullTo = flat(clamp(flat(held) - move.direction * boss.lash.stopDistance))
 	move.phase = "pull"
 	move.phaseAt = now
+	move.clip = BossMoves.clipName(boss, move.kind, "pull", move.index)
+	move.clipAt = now
 end
 
 --[[ The pose partway (`t`, 0 to 1) through the current phase. ]]
@@ -691,6 +743,34 @@ function BossMoves.idle(feet: Vector3, yaw: number, now: number): Pose
 		length = 0,
 		airborne = false,
 	}
+end
+
+--[[
+	The clip the body plays now, when it began, and how many seconds it
+	is to last: the phases that share it, played through as they will be
+	(a lash that has not hit plays on to its retract). "" with no move, or
+	for a body without clips.
+]]
+function BossMoves.clip(move: Move, boss: EnemyBoss): (string, number, number)
+	if move.clip == "" then
+		return "", move.clipAt, 0
+	end
+	--[[ From the clip's first phase, through this one, and on through each
+	     phase after it that shares the clip. ]]
+	local probe = table.clone(move)
+	local span = (move.phaseAt - move.clipAt) + duration(probe, boss)
+	for _ = 1, 16 do
+		local following = nextPhase(probe, boss)
+		if
+			following == ""
+			or BossMoves.clipName(boss, probe.kind, following, probe.index) ~= move.clip
+		then
+			break
+		end
+		probe.phase = following
+		span += duration(probe, boss)
+	end
+	return move.clip, move.clipAt, span
 end
 
 --[[ The seconds a boss rests after a move. ]]

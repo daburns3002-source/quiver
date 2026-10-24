@@ -15,6 +15,12 @@
 	the fist, as the design builds it: a chain of cylinders with balls at
 	the joints, laid along an arc with a ripple running down it, thinning
 	as it stretches, a lump of goo riding out to the fist.
+
+	A body that plays its own clips (`EnemyBoss.clips`: King Bloblin's
+	imported rig, animated on each client by `Fx/ModelAnimator`) is built
+	`shadowOnly`: its parts stay welded to the hitbox, which carries them
+	up a jump, and only the shadow is placed here, kept on the floor. No
+	jelly tube: his chain is part of his rig.
 ]]
 
 local BossMoves = require(script.Parent.BossMoves)
@@ -53,7 +59,12 @@ export type Body = {
 --[[ The jelly the thrown arm stretches into. ]]
 local JELLY = Color3.fromRGB(127, 203, 36)
 
-function BossBody.new(model: Model, hitbox: BasePart, parts: { BasePart }): Body
+function BossBody.new(
+	model: Model,
+	hitbox: BasePart,
+	parts: { BasePart },
+	shadowOnly: boolean?
+): Body
 	local height = hitbox.Size.Y
 	local feet = hitbox.CFrame * CFrame.new(0, -height / 2, 0)
 	local body: Body = {
@@ -66,7 +77,7 @@ function BossBody.new(model: Model, hitbox: BasePart, parts: { BasePart }): Body
 	}
 
 	for _, part in parts do
-		if part == hitbox then
+		if part == hitbox or (shadowOnly and part.Name ~= "Shadow") then
 			continue
 		end
 		for _, child in part:GetChildren() do
@@ -85,6 +96,10 @@ function BossBody.new(model: Model, hitbox: BasePart, parts: { BasePart }): Body
 		if part.Name:match("^Arm_") then
 			body.arms[part.Name] = rest
 		end
+	end
+
+	if shadowOnly then
+		return body
 	end
 
 	local tube = Instance.new("Folder")

@@ -11,5 +11,14 @@
   "Hootmoss": "assets/models/pets/forest/hootmoss.glb",
   "SlimePrince": "assets/models/pets/forest/slime_prince.glb",
   "EmberWilfPet": "assets/models/pets/forest/ember_wilf.glb",
-  "Glimmerhorn": "assets/models/pets/forest/glimmerhorn.glb"
+  "Glimmerhorn": "assets/models/pets/forest/glimmerhorn.glb",
+  "KingBloblin": {
+    "glb": "assets/models/bosses/king_bloblin_blocky/KingBloblin_Fight.glb",
+    "loops": [
+      "Idle",
+      "Move",
+      "Attack",
+      "Winded"
+    ]
+  }
 }

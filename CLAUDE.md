@@ -247,14 +247,19 @@ within 12 studs cleared.
 is an `EnemyConfig` with `boss` set: it does not walk and swing but loops
 its moves, Royal Bounce then Slime Lash. `Enemies/BossMoves` runs each
 move as a pure timeline (pinned by `tests/BossMoves.spec.luau`),
-`EnemyManager` resolves what lands through `RunSession.applyDamage`,
-`Enemies/BossBody` squashes and stretches the unwelded body, and the
-client draws the slam circle, the lash lane and the shockwave
-(`TelegraphRenderer`), the boss bar (`UI/BossBar`), and obeys shoves and
-the grab (`Input/Shove`, via `Remotes.PlayerShoved` / `PlayerGrabbed`).
-His body is the owner's imported model (Body, Eyes, Decor, Arm_L, Arm_R;
-`EnemyDesigns.SlimeKing`), and his motion follows the design's preview
-(`Slime King Attacks.html`). Sounds for his moves are not made yet.
+`EnemyManager` resolves what lands through `RunSession.applyDamage`, the
+client obeys shoves and the grab (`Input/Shove`, via `Remotes.PlayerShoved`
+/ `PlayerGrabbed`) and draws the boss bar (`UI/BossBar`). **Since
+2026-10-24 he is King Bloblin, blocky and clip-driven** (the owner's King
+Bloblin Fight): built from his imported rig (`EnemyDesigns.Imported`,
+`Config/ImportedModels/KingBloblin`, amber Neon eyes), his 22 clips played
+on each beat (`Balance` boss `clips` → `BossMoves.clip` → the `ModelClip`,
+`ModelClipAt`, `ModelClipSpan` attributes → `Fx/ModelAnimator`), his lash
+chain stretched to the lane (`BossMoves.chainScale`, `ModelClipStretch`),
+and every effect in cubes and tiles (`Fx/BossFx`, `Balance.Telegraph.king`;
+nothing round). `BossBody` only keeps his shadow on the floor; its jelly
+tube is for a server-posed body. `tests/BossClips.spec.luau` pins it.
+Sounds for his moves are not made yet.
 
 Not done: the other nine bosses — designed (`docs/BOSSES.md`, two per
 act, one per area, with Codex concept art) but not built; Phase 3's

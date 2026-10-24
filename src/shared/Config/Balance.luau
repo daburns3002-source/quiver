@@ -182,6 +182,23 @@ export type BossLash = {
 	bumpShove: number,
 	recover: number,
 	stopDistance: number,
+	--[[ For a body that plays clips (`BossClips`): studs from the feet to
+	     the chain's root (the shoulder it is thrown from), and to its fist
+	     when the lane is `reach` long, as the clips draw them. A shorter
+	     lane shortens the chain from its root (`BossMoves.chainScale`), so
+	     the fist always lands as near the lane's end as at full reach. ]]
+	chainRoot: number?,
+	chainReach: number?,
+}
+
+--[[ The clip a boss's body plays in each phase of a move, for a body that
+     carries its own clips (an imported Claude Design rig, `Config/
+     ModelClips`): `idle` between moves, `Bounce` by phase, `Lash` by arm
+     then phase. Phases that share a clip play it once across both. ]]
+export type BossClips = {
+	idle: string,
+	Bounce: { [string]: string },
+	Lash: { [string]: { [string]: string } },
 }
 
 export type EnemyBoss = {
@@ -194,6 +211,9 @@ export type EnemyBoss = {
 	restAfterLash: number,
 	--[[ Seconds before its first move, once it has arrived. ]]
 	opening: number,
+	--[[ Set when the body plays its own clips; nil for a body the server
+	     poses (`Enemies/BossBody`). ]]
+	clips: BossClips?,
 }
 
 --[[
@@ -639,10 +659,54 @@ local slimeKing: EnemyConfig = {
 			--[[ The handoff's 5.5, plus the extra half-depth of a king twice
 			     its size. ]]
 			stopDistance = 7,
+			--[[ King Bloblin's chain (`KingBloblin_Fight.glb`'s Lash_Hold), at
+			     his 9.6 studs: thrown from about 3.2 studs ahead of his feet,
+			     its fist lands 17.1 out down an 18-stud lane. `BossClips.spec`
+			     measures both off the clip data. ]]
+			chainRoot = 3.2,
+			chainReach = 17.1,
 		},
 		restAfterBounce = 1.5,
 		restAfterLash = 1,
 		opening = 1,
+		--[[ King Bloblin's 22 clips (the owner's King Bloblin Fight,
+		     2026-10-24), on the beats of the moves above. The wind-up plays
+		     across tracking and the lock; the chest bump across the lean and
+		     the release. ]]
+		clips = {
+			idle = "Idle",
+			Bounce = {
+				windup = "Bounce_Windup",
+				launch = "Bounce_Launch",
+				air = "Bounce_Air",
+				recover = "Bounce_Land",
+				winded = "Winded",
+			},
+			Lash = {
+				Arm_R = {
+					track = "Lash_Wind_R",
+					aimed = "Lash_Wind_R",
+					strike = "Lash_Strike",
+					slap = "Lash_Hold",
+					retract = "Lash_Retract",
+					pull = "Lash_Pull",
+					lean = "Lash_ChestBump",
+					release = "Lash_ChestBump",
+					settle = "Lash_Recover",
+				},
+				Arm_L = {
+					track = "Lash_Wind_L",
+					aimed = "Lash_Wind_L",
+					strike = "Lash_Strike_L",
+					slap = "Lash_Hold_L",
+					retract = "Lash_Retract_L",
+					pull = "Lash_Pull_L",
+					lean = "Lash_ChestBump_L",
+					release = "Lash_ChestBump_L",
+					settle = "Lash_Recover_L",
+				},
+			},
+		},
 	},
 }
 
@@ -1358,8 +1422,95 @@ local Balance = {
 		shockDuration = 0.45,
 		--[[ Goo flung off the Slime King's fist as it splats (the design's
 		     lash): this many droplets, gone after this many seconds. ]]
-		gooDroplets = 8,
-		gooDuration = 1.1,
+		gooDroplets = 12,
+		gooDuration = 0.8,
+		--[[ A lash's grab: a square flash where the fist closed, this many
+		     studs across, for this many seconds. ]]
+		grabDuration = 0.25,
+		grabSize = 2.6,
+		--[[
+			King Bloblin's effects, from the owner's design pages (Royal
+			Bounce's royal-bounce-fx.js and King Bloblin Fight's lash):
+			every one built of cubes and square tiles, nothing round. Sizes
+			are studs, times seconds. Decoration is scaled by the device
+			tier's `bossFxShare`; the warnings never are.
+		]]
+		king = {
+			--[[ The landing warning: one-stud tiles filling the circle, its
+			     edge tiles brighter, fading in, then pulsing faster (2 to 8
+			     beats a second) as the fall nears; a white-gold flash as he
+			     lands. ]]
+			tile = 1,
+			tileFadeIn = 0.37,
+			pulseFrom = 2,
+			pulseTo = 8,
+			flashColor = Color3.fromRGB(255, 244, 200),
+			flashTime = 0.3,
+			--[[ The shockwave: cubes in a ring from the circle's edge out to
+			     the shock radius, shrinking as they go, lime to gold. ]]
+			shockCubes = 40,
+			shockFrom = 1.6,
+			shockTo = 0.3,
+			shockLime = Color3.fromRGB(180, 221, 70),
+			shockGold = Color3.fromRGB(255, 200, 60),
+			--[[ Debris kicked up off the circle's edge on the far side from
+			     the camera, and dust thrown out across the floor. ]]
+			debrisCubes = 7,
+			debrisSize = { 1.0, 1.6 },
+			debrisRise = 2.2,
+			debrisTime = 0.6,
+			dustCubes = 18,
+			dustSize = { 0.5, 1.0 },
+			dustReach = { 6, 13 },
+			dustTime = 1.1,
+			moss = Color3.fromRGB(151, 201, 68),
+			tan = Color3.fromRGB(196, 164, 112),
+			gold = Color3.fromRGB(255, 200, 60),
+			--[[ The wind-up's tell: gold cubes popping off his crown from 0.15
+			     to 0.75 s in. ]]
+			crownCubes = 6,
+			crownCubeSize = 0.7,
+			crownFrom = 0.15,
+			crownTo = 0.75,
+			--[[ Winded: cube stars circling over his crown, twice a loop. ]]
+			stars = 4,
+			starSize = 0.9,
+			starRadius = 3.6,
+			starLift = 2,
+			starTurnsPerSecond = 2 / 1.4,
+			starWhite = Color3.fromRGB(255, 252, 230),
+			--[[ The lash lane: tiles this size, four across its 3.5, its
+			     ends stepped in; filling row by row over the lash's tracking
+			     (`laneFill`, its `track`), white as it locks, then pulsing
+			     to the impact. ]]
+			laneTile = 0.875,
+			laneFill = 0.4,
+			laneColor = Color3.fromRGB(255, 90, 42),
+			lanePulse = Color3.fromRGB(255, 194, 166),
+			lanePulseRate = 10,
+			laneLockFlash = 0.08,
+			--[[ The fist's splat: a stepped cross of slime tiles 5 across,
+			     and a ring of cubes thrown 3 out over the hold. ]]
+			splatTile = 1,
+			splatRing = 8,
+			splatRingSize = 0.6,
+			splatRingReach = 3,
+			slime = Color3.fromRGB(151, 201, 68),
+			slimeLight = Color3.fromRGB(180, 221, 70),
+			gooSize = { 0.3, 0.5 },
+			gooReach = 4,
+			--[[ The chest bump: a square of cubes out from his belly. ]]
+			bumpCubes = 24,
+			bumpFrom = 2,
+			bumpTo = 10,
+			--[[ Colour flashes the model cannot carry: his eyes flare in the
+			     wind-ups and dim when winded, his gems flash in the bounce's
+			     wind-up, and the lashing arm glows as it coils. ]]
+			eyeGlow = Color3.fromRGB(253, 253, 106),
+			eyeDim = 0.45,
+			armGlow = Color3.fromRGB(200, 245, 82),
+			glowRate = 8,
+		},
 		--[[ The player's own area attacks (the Mythics): the Meteor's circle,
 		     rock and blast, and Earthbreaker's slam and glowing cracks. Warm,
 		     so they never read as an enemy's red. ]]

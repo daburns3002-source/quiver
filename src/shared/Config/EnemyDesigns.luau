@@ -582,7 +582,25 @@ local EnemyDesigns = {
 			-- Eye_L, Eye_R and every Eye_Baby*_L / _R: Act 1's amber, glowing
 			eyes = "^Eye_",
 			eyeColor = EYE_AMBER,
-			stretch = { joint = "LashRoot", keep = { "LashFist_Joint" } },
+			stretch = {
+				joint = "LashRoot",
+				-- every link keeps its size: the lane spaces them, never flattens them
+				keep = {
+					"LashLink_1_Joint",
+					"LashLink_2_Joint",
+					"LashLink_3_Joint",
+					"LashLink_4_Joint",
+					"LashLink_5_Joint",
+					"LashLink_6_Joint",
+					"LashLink_7_Joint",
+					"LashLink_8_Joint",
+					"LashLink_9_Joint",
+					"LashLink_10_Joint",
+					"LashLink_11_Joint",
+					"LashLink_12_Joint",
+					"LashFist_Joint",
+				},
+			},
 		} :: ImportedDesign,
 	},
 }

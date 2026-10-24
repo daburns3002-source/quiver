@@ -1482,11 +1482,15 @@ local Balance = {
 			--[[ The lash lane: tiles this size, four across its 3.5, its
 			     ends stepped in; filling row by row over the lash's tracking
 			     (`laneFill`, its `track`), white as it locks, then pulsing
-			     to the impact. ]]
+			     to the impact. It starts `laneStart` out, at his edge, and is
+			     a solid red the player reads as "he strikes here". ]]
 			laneTile = 0.875,
+			laneStart = 3.3,
+			laneHeight = 0.2,
 			laneFill = 0.4,
-			laneColor = Color3.fromRGB(255, 90, 42),
-			lanePulse = Color3.fromRGB(255, 194, 166),
+			laneTracking = 0.25,
+			laneColor = Color3.fromRGB(225, 25, 25),
+			lanePulse = Color3.fromRGB(255, 105, 80),
 			lanePulseRate = 10,
 			laneLockFlash = 0.08,
 			--[[ The fist's splat: a stepped cross of slime tiles 5 across,

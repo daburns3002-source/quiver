@@ -320,6 +320,9 @@ local function placeLane(
 	length: number,
 	width: number
 )
+	-- from his edge, not his middle, where his body hid the first rows
+	local start = math.min(K.laneStart, length * 0.5)
+	length -= start
 	local cells = BossFx.laneCells(length, width, K.laneTile)
 	local side = Vector3.new(-direction.Z, 0, direction.X)
 	local rows = math.max(1, math.ceil(length / K.laneTile - 1e-6))
@@ -329,13 +332,15 @@ local function placeLane(
 		if not part then
 			part = cube(
 				current.holder,
-				Vector3.new(K.laneTile * 0.9, 0.12, K.laneTile * 0.9),
+				Vector3.new(K.laneTile * 0.96, K.laneHeight, K.laneTile * 0.96),
 				K.laneColor,
 				true
 			)
 			current.tiles[i] = part
 		end
-		local at = flatAt(origin, 0.14) + direction * cell.along + side * cell.across
+		local at = flatAt(origin, K.laneHeight / 2 + 0.04)
+			+ direction * (start + cell.along)
+			+ side * cell.across
 		part.CFrame = CFrame.lookAt(at, at + direction)
 		current.rows[i] = math.floor(cell.along / length * rows) + 1
 	end
@@ -399,10 +404,10 @@ function BossFx.lane(
 						local beat = 0.5 + 0.5 * math.sin(t * K.lanePulseRate * 2 * math.pi)
 						part.Color = K.laneColor:Lerp(K.lanePulse, beat)
 					end
-					part.Transparency = 0.1
+					part.Transparency = 0
 				else
 					part.Color = K.laneColor
-					part.Transparency = if made.rows[i] <= filled then 0.45 else 1
+					part.Transparency = if made.rows[i] <= filled then K.laneTracking else 1
 				end
 			end
 			return true

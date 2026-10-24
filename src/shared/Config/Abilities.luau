@@ -442,7 +442,7 @@ local abilities: { Ability } = {
 		rarity = "Common",
 		levels = { 0.3 },
 		stats = { "Heal 30%" },
-		icon = "mending",
+		icon = "heal",
 		instant = true,
 		filler = true,
 	},

@@ -126,6 +126,11 @@ What exists and works, all verified in Studio rather than only by the gates:
   and the Mythic reveal, from `design_handoff_upgrade_cards`. `CardFrames` is
   generated from the design's `frames.json` by script — regenerate, never
   hand-edit. Images are uploaded; ids in `CardAssets`.
+  **Since 2026-10-24 the cards are the owner's Glow Toy set**
+  (`assets/ui/glow_toy_cards/`): each card a crystal body per rarity, its
+  own name banner and its icon tile, with the stat, description, level chip
+  and pips drawn live from `Config/Abilities` (the set's stat lines are
+  placeholders). `CardArt.spec` makes every new card bring its art.
   The skill bar stays at the bottom through the whole run (small in a
   fight, `Config/Hud`, full size under the draft), and
   every pick plays the celebration — the card's icon flies into its slot —

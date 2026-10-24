@@ -1,7 +1,7 @@
 """Takes for the upgrade effects' sounds, pulled from CC0 recordings on
 Freesound, rendered like freesound.py's.
 
-    python -I effect_sounds.py <out_dir> <cache_dir>
+    python -I effect_sounds.py <out_dir> <cache_dir> [round] [used manifest]
 
 Round 12 (owner, 2026-10-24): sounds for ten upgrade effects. Each effect
 has search terms; the best-rated CC0 results (Freesound's own licence
@@ -50,6 +50,19 @@ EXCLUDE = {
     "fx_earthbreaker": ["flashlight", "plastic", "metal"],
     "fx_meteor": ["lighting a fire"],
 }
+
+
+# Round 13 (owner, 2026-10-24): "the others need reworked sounds". New
+# searches for the five whose round-12 takes were all turned down; nothing
+# already heard (the round-12 manifest's sources) is offered again.
+ROUND_13 = {
+    "fx_blaze": (["fire whoosh burst", "flame ignite magic", "fireball cast", "torch whoosh"], 1.2),
+    "fx_overdraw": (["bow string tension", "bow draw", "arrow nock draw", "string stretch creak"], 1.6),
+    "fx_soul_chain": (["magic chain link", "chain clank", "metal chain snap", "chain impact"], 1.0),
+    "fx_heavy_blade": (["sword impact ground", "heavy sword hit", "weapon impact heavy", "axe hit wood"], 1.3),
+    "fx_earthbreaker": (["ground pound", "earth slam", "boulder impact debris", "stone break explosion"], 2.0),
+}
+ROUNDS = {"12": EFFECTS, "13": ROUND_13}
 
 
 def get(url):
@@ -104,12 +117,17 @@ def cut(x, seconds):
 
 def main():
     out, cache = sys.argv[1], sys.argv[2]
+    effects = ROUNDS[sys.argv[3] if len(sys.argv) > 3 else "12"]
+    used = set()
+    if len(sys.argv) > 4:
+        for takes in json.load(open(sys.argv[4], encoding="utf-8")).values():
+            used.update(t.get("source") for t in takes)
     os.makedirs(out, exist_ok=True)
     os.makedirs(cache, exist_ok=True)
     manifest_path = os.path.join(out, "manifest.json")
     manifest = json.load(open(manifest_path)) if os.path.exists(manifest_path) else {}
-    for name, (terms, seconds) in EFFECTS.items():
-        takes, tried = [], set()
+    for name, (terms, seconds) in effects.items():
+        takes, tried = [], set(used)
         for term in terms:
             for sid in search(term)[:6]:
                 if len(takes) >= TAKES or sid in tried:

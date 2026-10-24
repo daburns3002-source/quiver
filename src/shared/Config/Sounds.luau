@@ -120,7 +120,9 @@ local Sounds: { [string]: Sound } = {
 	     are uploaded and their ids go here. Played by `Fx/Upgrades/*` where
 	     each effect fires; the frequent ones are spaced by `minGap`. ]]
 	fx_blaze = { id = "", volume = 0.5, pitchJitter = 0.08, minGap = 0.25 },
-	fx_heal = { id = "", volume = 0.7, pitchJitter = 0, minGap = 0.2 },
+	-- quieter and lower than the take (owner, 2026-10-24: "make the heal
+	-- a quieter and lower pitch")
+	fx_heal = { id = "", volume = 0.45, speed = 0.85, pitchJitter = 0, minGap = 0.2 },
 	fx_overdraw = { id = "", volume = 0.6, pitchJitter = 0.05, minGap = 0.3 },
 	fx_blast_arrows = { id = "", volume = 0.5, pitchJitter = 0.1, minGap = 0.12 },
 	fx_soul_chain = { id = "", volume = 0.5, pitchJitter = 0.08, minGap = 0.2 },

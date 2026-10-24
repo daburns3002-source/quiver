@@ -1744,6 +1744,92 @@ local Balance = {
 	},
 
 	--[[
+		Slime residue (owner, 2026-10-23: "each of the blocky slime enemies
+		as well should have some sort of blocky slime residue come off of
+		them each time they are hit"). Each hit throws a few little cubes of
+		the slime's own jelly out of the face the shot struck, in an arc
+		back the way it came; they tumble, land as flat splats, sit a moment
+		and shrink away. A crit throws more, a kill more again and all the
+		way round. Drawn on each client by `Fx/SlimeResidue` from the
+		server's hit and death; the cubes touch nothing. Keyed by enemy
+		`displayName`; an enemy not listed (the Ember Wilf) throws none.
+		How many can be alive at once is `DeviceTiers.maxSlimeResidue`.
+	]]
+	SlimeResidue = {
+		kinds = {
+			-- The Moss Slime: lime jelly, darker moss.
+			Charger = {
+				light = Color3.fromRGB(170, 222, 60),
+				dark = Color3.fromRGB(104, 156, 34),
+				moss = Color3.fromRGB(66, 104, 22),
+				size = 0.42,
+				count = 5,
+			},
+			-- Its babies: small and bright.
+			BabySlime = {
+				light = Color3.fromRGB(150, 218, 74),
+				dark = Color3.fromRGB(98, 178, 34),
+				moss = Color3.fromRGB(64, 104, 24),
+				size = 0.3,
+				count = 4,
+			},
+			-- The Mother Slime: bigger chunks, more of them.
+			BroodSlime = {
+				light = Color3.fromRGB(176, 232, 56),
+				dark = Color3.fromRGB(112, 164, 32),
+				moss = Color3.fromRGB(64, 92, 18),
+				size = 0.55,
+				count = 6,
+			},
+			-- The Sprout Slime: the palest lime.
+			Spitter = {
+				light = Color3.fromRGB(204, 242, 64),
+				dark = Color3.fromRGB(152, 202, 36),
+				moss = Color3.fromRGB(92, 160, 32),
+				size = 0.42,
+				count = 5,
+			},
+			-- King Bloblin throws chunks twice the size.
+			SlimeKing = {
+				light = Color3.fromRGB(170, 216, 70),
+				dark = Color3.fromRGB(96, 168, 52),
+				moss = Color3.fromRGB(44, 104, 56),
+				size = 1.0,
+				count = 7,
+			},
+		},
+		--[[ Share of the cubes that are moss rather than jelly. ]]
+		mossShare = 0.2,
+		--[[ Each cube's size varies by up to this share either way. ]]
+		sizeJitter = 0.35,
+		--[[ How many more a crit and a kill throw: multipliers on `count`,
+		     applied together on a critical killing blow. ]]
+		critScale = 1.6,
+		killScale = 2,
+		--[[ Degrees across the arc a hit throws into, centred on the way
+		     the shot came from. A kill throws all the way round. ]]
+		arc = 110,
+		--[[ Studs a second outwards and upwards as a cube leaves, picked
+		     between `min` and `max` per cube. ]]
+		speed = { min = 6, max = 11 },
+		rise = { min = 8, max = 13 },
+		--[[ Studs a second squared pulling them down: heavier than the
+		     world's, so a cube lands while the hit is still news. ]]
+		gravity = 70,
+		--[[ Radians a second a cube tumbles at, at most. ]]
+		spin = 14,
+		--[[ The splat it lands as: this much wider and this share as tall,
+		     resting on the floor `floorLift` studs above y = 0. ]]
+		splatWide = 1.4,
+		splatFlat = 0.3,
+		floorLift = 0.03,
+		--[[ Seconds a splat rests before it starts shrinking, and how long
+		     the shrink takes. ]]
+		rest = 0.6,
+		shrink = 0.9,
+	},
+
+	--[[
 		The life in the scenery past the walls, by `ArenaModels.ambience`
 		(the owner's design_handoff_forest_ambience, 2026-10-23), drawn on
 		each client by `Fx/ForestAmbience` and never inside the room.

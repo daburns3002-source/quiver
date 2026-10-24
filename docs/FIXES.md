@@ -1118,3 +1118,18 @@ fixed" and "Testing over MCP, learned the hard way":
 - **Enemy projectiles vanished into walls** on the client, because the
   renderer used one filter containing arena blockers for every faction, while
   the server flies enemy shots straight over them.
+
+## King Bloblin's lash arm had no substance, and no red line warned of it
+
+**Symptom:** the owner: "the arm that he throws has no substance and there is
+no red line that tells you where he is attacking next".
+**Cause:** two. The chain's stretch (`ModelClipStretch` on `LashRoot`) scaled
+every link along the lane, and only the fist was in `stretch.keep`, so the
+links were squashed to thin slabs (0.6 studs deep) when thrown. The lane was
+small, gapped tiles of pale salmon Neon (255, 90, 42 pulsing to 255, 194, 166),
+0.12 high and 45% clear, starting under his body, where nothing showed.
+**Fix:** every `LashLink_N_Joint` is in the King's `stretch.keep`, so the lane
+length spaces the links and never resizes them. The lane is strong red
+(`Balance` `laneColor` 225, 25, 25), its tiles nearly touching, 0.2 high, 25%
+clear while tracking and opaque once locked, and it starts `laneStart` (3.3)
+out, at his edge.

@@ -122,6 +122,31 @@ local CardAssets = {
 		Mythic = "rbxassetid://89130069446957",
 	},
 	mythicBack = "rbxassetid://126477872051221",
+	--[[ The draft screen's buttons in the Glow Toy set (804 x 324, the plate
+	     inside 45..758 x 48..278; pressed, it sits 30 lower), and the
+	     grey plate a Choose! that cannot be pressed yet wears. ]]
+	buttons = {
+		choose = "rbxassetid://90120405041151",
+		choosePressed = "rbxassetid://114066087538141",
+		chooseDisabled = "rbxassetid://101932680741168",
+		reroll = "rbxassetid://73253204045232",
+		rerollPressed = "rbxassetid://78433010161581",
+		rerollDisabled = "rbxassetid://123875979732838",
+	},
+	--[[ The skill bar in the Glow Toy set: its frame (892 x 232, drawn
+	     9-sliced so it fits any number of slots), an empty slot (256 x 256),
+	     and the LV1 to LV5 badges (276 x 150). ]]
+	skillBar = {
+		frame = "rbxassetid://106145703765733",
+		slotEmpty = "rbxassetid://118176482611632",
+		levels = {
+			"rbxassetid://97985655722472",
+			"rbxassetid://124419960656980",
+			"rbxassetid://107776677590024",
+			"rbxassetid://85445061249362",
+			"rbxassetid://84494525707261",
+		},
+	},
 }
 
 return table.freeze(CardAssets)

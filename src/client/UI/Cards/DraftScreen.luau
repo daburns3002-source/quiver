@@ -281,6 +281,78 @@ local function setButton(b: TextButton, enabled: boolean, colour: Color3)
 	b.AutoButtonColor = false
 end
 
+--[[ The Glow Toy buttons (`CardAssets.buttons`): the plate is 713 x 230 of
+     the 804 x 324 art, from (45, 48); the art is drawn so that plate fills
+     the button. Pressed art sits lower on its own; disabled is its own
+     plate, and a plate without words wears the button's live text. ]]
+local ART_SIZE = Vector2.new(804, 324)
+local PLATE_AT = Vector2.new(45, 48)
+local PLATE_SIZE = Vector2.new(713, 230)
+
+type ButtonArt = { normal: string, pressed: string, disabled: string, disabledText: string? }
+local buttonArt: { [TextButton]: ButtonArt } = {}
+
+local function dress(b: TextButton, art: ButtonArt)
+	buttonArt[b] = art
+	local size = b.Size
+	local scale = size.X.Offset / PLATE_SIZE.X
+	local image = Instance.new("ImageLabel")
+	image.Name = "Art"
+	image.BackgroundTransparency = 1
+	image.Size = UDim2.fromOffset(ART_SIZE.X * scale, ART_SIZE.Y * scale)
+	image.Position = UDim2.fromOffset(-PLATE_AT.X * scale, -PLATE_AT.Y * scale)
+	image.Image = art.normal
+	image.ZIndex = b.ZIndex
+	image.Parent = b
+	b.BackgroundTransparency = 1
+	b.TextTransparency = 1
+	b.ZIndex = b.ZIndex + 1
+	for _, child in b:GetChildren() do
+		if child:IsA("UIStroke") then
+			child.Enabled = false
+		end
+	end
+	local shadow = b.Parent
+	if shadow and shadow:IsA("Frame") then
+		shadow.BackgroundTransparency = 1
+	end
+	--[[ A child draws over its parent, so the words for a plate that has
+	     none are their own label above the art, not the button's text. ]]
+	if art.disabledText then
+		local words = Instance.new("TextLabel")
+		words.Name = "Words"
+		words.BackgroundTransparency = 1
+		words.Size = UDim2.fromScale(1, 1)
+		words.Font = b.Font
+		words.TextSize = b.TextSize
+		words.TextColor3 = b.TextColor3
+		words.Text = art.disabledText
+		words.Visible = false
+		words.ZIndex = b.ZIndex + 1
+		words.Parent = b
+		local edge = Instance.new("UIStroke")
+		edge.Color = INK
+		edge.Thickness = 4
+		edge.Parent = words
+	end
+end
+
+--[[ The art for a button's state, and its live words only on a plate that
+     has none of its own. ]]
+local function showArt(b: TextButton, pressed: boolean)
+	local art = buttonArt[b]
+	local image = b:FindFirstChild("Art") :: ImageLabel?
+	if not art or not image then
+		return
+	end
+	local enabled = b.Active
+	image.Image = if not enabled then art.disabled elseif pressed then art.pressed else art.normal
+	local words = b:FindFirstChild("Words") :: TextLabel?
+	if words then
+		words.Visible = not enabled
+	end
+end
+
 local function wobble(b: TextButton, amp: number)
 	local feel = feelOf(b)
 	if feel then
@@ -323,6 +395,7 @@ local function stepButtons(deltaTime: number)
 
 		b.Position = UDim2.fromOffset(x, feel.lift)
 		b.Rotation = rotation
+		showArt(b, feel.pressed and enabled)
 
 		local base = b:GetAttribute("BaseColor")
 		if typeof(base) == "Color3" then
@@ -1367,15 +1440,46 @@ function DraftScreen.start(chosen: (number) -> (), rerolled: () -> ())
 	list.Parent = buttons
 	buttonsList = list
 
-	local rerollB = button(buttons, "Reroll", "Reroll 2", CardTheme.colors.reroll, 150);
+	local rerollB = button(buttons, "Reroll", "Reroll 2", CardTheme.colors.reroll, 170);
 	(rerollB.Parent :: Frame).LayoutOrder = 1
 	rerollB.Activated:Connect(reroll)
 	rerollButton = rerollB
+	dress(rerollB, {
+		normal = CardAssets.buttons.reroll,
+		pressed = CardAssets.buttons.rerollPressed,
+		disabled = CardAssets.buttons.rerollDisabled,
+	})
+	--[[ How many rerolls are left, on a badge at the plate's corner: the
+	     art spells REROLL itself. ]]
+	local count = Instance.new("TextLabel")
+	count.Name = "Count"
+	count.AnchorPoint = Vector2.new(0.5, 0.5)
+	count.Position = UDim2.new(1, -4, 0, 4)
+	count.Size = UDim2.fromOffset(28, 28)
+	count.BackgroundColor3 = CardTheme.colors.danger
+	count.Font = CardTheme.fonts.display
+	count.TextSize = 18
+	count.TextColor3 = WHITE
+	count.Text = "2"
+	count.ZIndex = rerollB.ZIndex + 2
+	count.Parent = rerollB
+	corner(count, 14)
+	local countEdge = Instance.new("UIStroke")
+	countEdge.Color = INK
+	countEdge.Thickness = 3
+	countEdge.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	countEdge.Parent = count
 
 	local chooseB = button(buttons, "Choose", "Choose!", CardTheme.colors.disabled, 170);
 	(chooseB.Parent :: Frame).LayoutOrder = 2
 	chooseB.Activated:Connect(confirm)
 	chooseButton = chooseB
+	dress(chooseB, {
+		normal = CardAssets.buttons.choose,
+		pressed = CardAssets.buttons.choosePressed,
+		disabled = CardAssets.buttons.chooseDisabled,
+		disabledText = "Choose!",
+	})
 
 	-- The overlay: rays, a flash, a shockwave ring, words and a flying icon.
 	local over = Instance.new("Frame")
@@ -1635,6 +1739,11 @@ function DraftScreen.show(offer: { string }, level: number, source: string?, rer
 			if left > 0 then CardTheme.colors.reroll else CardTheme.colors.disabled
 		)
 		rerollB.Text = `Reroll {left}`
+		local count = rerollB:FindFirstChild("Count") :: TextLabel?
+		if count then
+			count.Text = tostring(left)
+			count.Visible = left > 0
+		end
 	end
 
 	layoutPanel(#offer)

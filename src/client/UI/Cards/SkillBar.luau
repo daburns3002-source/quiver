@@ -3,9 +3,10 @@
 	The skills this run holds, in the order they were first taken
 	(design_handoff_upgrade_cards; README "Skill bar + long-press detail").
 
-	A dark tray of slots at the bottom of the screen, through the fight and
-	larger under the draft: each held skill as its icon in a
-	ring of its rarity, with its level beneath; the rest empty. Tap a slot
+	The Glow Toy tray (`CardAssets.skillBar`) at the bottom of the screen,
+	through the fight and larger under the draft: each held skill as its
+	icon tile, framed in its rarity, with its LV plate beneath; the rest
+	empty sockets. Tap a slot
 	for its name; hold it to open its whole story in the detail panel. A
 	slot pops whenever its skill is taken or levelled.
 
@@ -20,6 +21,7 @@ local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
 local Abilities = require(ReplicatedStorage.Shared.Config.Abilities)
+local CardAssets = require(ReplicatedStorage.Shared.Config.CardAssets)
 local CardTheme = require(ReplicatedStorage.Shared.Config.CardTheme)
 local DetailPanel = require(script.Parent.DetailPanel)
 local Device = require(script.Parent.Parent.Parent.Device)
@@ -30,6 +32,12 @@ local SkillBar = {}
 
 --[[ How see-through the tray behind the icons is. ]]
 local TRAY_TRANSPARENCY = 0.35
+--[[ The tray art, 892 x 232, nine-sliced: its pixel corners stay square
+     however long the bar is drawn. ]]
+local FRAME_HEIGHT = 232
+local FRAME_SLICE = Rect.new(70, 60, 822, 172)
+--[[ The LV plate's art is 276 x 150. ]]
+local BADGE_ASPECT = 150 / 276
 local INK = CardTheme.colors.ink
 local WHITE = CardTheme.colors.white
 
@@ -38,7 +46,7 @@ local function isTouch(): boolean
 end
 
 local gui: ScreenGui? = nil
-local tray: Frame? = nil
+local tray: ImageLabel? = nil
 local trayScale: UIScale? = nil
 --[[ Whether the bar is in its fight place (`HudLayout`), rather than under
      the draft. ]]
@@ -97,7 +105,7 @@ end
 --[[ One held skill's slot. Holding it fills a white disc over the icon and
      sinks the slot a little; held long enough, the detail panel opens. ]]
 local function heldSlot(
-	parent: Frame,
+	parent: GuiObject,
 	id: string,
 	level: number,
 	size: number,
@@ -114,24 +122,54 @@ local function heldSlot(
 	local scale = Instance.new("UIScale")
 	scale.Parent = slot
 
-	local medallion = DetailPanel.medallion(slot, ability, size)
+	--[[ The icon tile wears its own rarity frame, so it is drawn square
+	     and whole. ]]
+	local medallion = Instance.new("ImageLabel")
+	medallion.Name = "Medallion"
+	medallion.BackgroundTransparency = 1
+	medallion.Image = CardAssets.icons[ability.icon] or ""
 	medallion.AnchorPoint = Vector2.new(0.5, 0)
-	medallion.Position = UDim2.new(0.5, 0, 0, 7)
+	medallion.Position = UDim2.new(0.5, 0, 0, 2)
+	medallion.Size = UDim2.fromOffset(size - 4, size - 4)
+	medallion.Parent = slot
 
+	--[[ LV1 to LV5 are the set's plates, a maxed skill's tinted gold; a
+	     level past five keeps a drawn plate. ]]
 	local maxed = level >= #ability.levels
-	local badge = Instance.new("TextLabel")
-	badge.Name = "Badge"
-	badge.AnchorPoint = Vector2.new(0.5, 0.5)
-	badge.Position = UDim2.new(0.5, 0, 0, size + 4)
-	badge.Size = UDim2.fromOffset(46, 18)
-	badge.BackgroundColor3 = if maxed then CardTheme.colors.gold else INK
-	badge.Font = CardTheme.fonts.body
-	badge.TextSize = 12
-	badge.TextColor3 = if maxed then INK else WHITE
-	badge.Text = if maxed then "MAX" else `LVL {level}`
-	badge.ZIndex = 5
-	badge.Parent = slot
-	corner(badge, 9)
+	local plate = CardAssets.skillBar.levels[level]
+	local badgeWidth = size * 0.78
+	local badgeSize = UDim2.fromOffset(badgeWidth, badgeWidth * BADGE_ASPECT)
+	local badgeAt = UDim2.new(0.5, 0, 0, size - 2)
+	if plate then
+		local badge = Instance.new("ImageLabel")
+		badge.Name = "Badge"
+		badge.AnchorPoint = Vector2.new(0.5, 0.5)
+		badge.Position = badgeAt
+		badge.Size = badgeSize
+		badge.BackgroundTransparency = 1
+		badge.Image = plate
+		badge.ImageColor3 = if maxed then CardTheme.colors.gold else WHITE
+		badge.ZIndex = 5
+		badge.Parent = slot
+	else
+		local badge = Instance.new("TextLabel")
+		badge.Name = "Badge"
+		badge.AnchorPoint = Vector2.new(0.5, 0.5)
+		badge.Position = badgeAt
+		badge.Size = badgeSize
+		badge.BackgroundColor3 = if maxed then CardTheme.colors.gold else WHITE
+		badge.Font = CardTheme.fonts.display
+		badge.TextScaled = true
+		badge.TextColor3 = INK
+		badge.Text = if maxed then "MAX" else `LV{level}`
+		badge.ZIndex = 5
+		badge.Parent = slot
+		local edge = Instance.new("UIStroke")
+		edge.Color = INK
+		edge.Thickness = 2
+		edge.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+		edge.Parent = badge
+	end
 
 	local fill = Instance.new("Frame")
 	fill.Name = "Hold"
@@ -195,7 +233,7 @@ local function heldSlot(
 	return slot
 end
 
-local function emptySlot(parent: Frame, size: number, index: number, overflow: number?)
+local function emptySlot(parent: GuiObject, size: number, index: number, overflow: number?)
 	local slot = Instance.new("Frame")
 	slot.Name = "Empty"
 	slot.BackgroundTransparency = 1
@@ -203,15 +241,13 @@ local function emptySlot(parent: Frame, size: number, index: number, overflow: n
 	slot.Size = UDim2.fromOffset(size, size + 18)
 	slot.Parent = parent
 
-	local disc = Instance.new("Frame")
+	local disc = Instance.new("ImageLabel")
 	disc.AnchorPoint = Vector2.new(0.5, 0)
-	disc.Position = UDim2.new(0.5, 0, 0, 7)
-	disc.Size = UDim2.fromOffset(size - 14, size - 14)
-	disc.BackgroundColor3 = WHITE
-	disc.BackgroundTransparency = 0.94
+	disc.Position = UDim2.new(0.5, 0, 0, 2)
+	disc.Size = UDim2.fromOffset(size - 4, size - 4)
+	disc.BackgroundTransparency = 1
+	disc.Image = CardAssets.skillBar.slotEmpty
 	disc.Parent = slot
-	corner(disc, 999)
-	stroke(disc, WHITE, 3, 0.82)
 
 	if overflow then
 		local more = Instance.new("TextLabel")
@@ -265,7 +301,9 @@ local function rebuild()
 	end
 
 	local gap = 10
-	t.Size = UDim2.fromOffset(count * size + (count - 1) * gap + 28, size + 18 + 24)
+	local height = size + 18 + 24
+	t.Size = UDim2.fromOffset(count * size + (count - 1) * gap + 28, height)
+	t.SliceScale = height / FRAME_HEIGHT
 end
 
 --[[ Notes what is new since the last loadout: a new skill joins the end of
@@ -343,18 +381,19 @@ function SkillBar.start()
 	created.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
 	gui = created
 
-	local t = Instance.new("Frame")
+	local t = Instance.new("ImageLabel")
 	t.Name = "Tray"
 	t.AnchorPoint = Vector2.new(0.5, 1)
 	t.Position = UDim2.new(0.5, 0, 1, -16)
-	t.BackgroundColor3 = INK
+	t.BackgroundTransparency = 1
+	t.Image = CardAssets.skillBar.frame
+	t.ScaleType = Enum.ScaleType.Slice
+	t.SliceCenter = FRAME_SLICE
 	--[[ A little see-through, so the room shows behind it (owner,
 	     2026-10-24: "make the skill bar have a little transparency"); the
 	     icons on it stay solid. ]]
-	t.BackgroundTransparency = TRAY_TRANSPARENCY
+	t.ImageTransparency = TRAY_TRANSPARENCY
 	t.Parent = created
-	corner(t, 22)
-	stroke(t, INK, 4, TRAY_TRANSPARENCY)
 	local padding = Instance.new("UIPadding")
 	padding.PaddingLeft = UDim.new(0, 14)
 	padding.PaddingRight = UDim.new(0, 14)

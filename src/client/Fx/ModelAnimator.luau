@@ -79,12 +79,22 @@ function ModelAnimator.attach(model: Model, key: string): boolean
 		return false
 	end
 	local pivot = model:GetPivot()
-	local observed: { [string]: { position: Vector3, size: Vector3 } } = {}
-	local parts: { [string]: BasePart } = {}
+	-- a node with several primitives imports as several parts of its name:
+	-- all ride its joint, but none of them is the node's whole box, so the
+	-- fit reads the import from the names that came in once
+	local parts: { BasePart } = {}
+	local count: { [string]: number } = {}
 	for _, d in model:GetDescendants() do
-		if d:IsA("BasePart") and data.parts[d.Name] and not parts[d.Name] then
-			parts[d.Name] = d
-			observed[d.Name] = { position = pivot:PointToObjectSpace(d.Position), size = d.Size }
+		if d:IsA("BasePart") and data.parts[d.Name] then
+			table.insert(parts, d)
+			count[d.Name] = (count[d.Name] or 0) + 1
+		end
+	end
+	local observed: { [string]: { position: Vector3, size: Vector3 } } = {}
+	for _, part in parts do
+		if count[part.Name] == 1 then
+			observed[part.Name] =
+				{ position = pivot:PointToObjectSpace(part.Position), size = part.Size }
 		end
 	end
 	local fit = ModelClip.fit(data, observed)
@@ -95,11 +105,11 @@ function ModelAnimator.attach(model: Model, key: string): boolean
 		return false
 	end
 	local driven: { Driven } = {}
-	for name, part in parts do
+	for _, part in parts do
 		part.Anchored = true
 		table.insert(driven, {
 			part = part,
-			joint = data.parts[name].joint,
+			joint = data.parts[part.Name].joint,
 			rest = pivot:ToObjectSpace(part.CFrame),
 			size = part.Size,
 		})

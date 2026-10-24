@@ -210,9 +210,11 @@ local TURNS = {
 --[[
 	How the import placed the model, from where its parts sit at rest.
 	`observed` maps part names to their rest centre in the imported model's
-	pivot space and their size. The scale is the median ratio of sizes (by
-	length, so a turn that swaps axes does not matter); the turn is the
-	candidate that best matches the parts' layout about their centroid.
+	pivot space and their size. The scale is how far the parts spread from
+	their centroid against how far the data's do: an import that bakes a
+	part's turn into its mesh reports that part's turned box as its size, so
+	sizes only stand in when there is one part. The turn is the candidate
+	that best matches the parts' layout about their centroid.
 ]]
 function ModelClip.fit(
 	model: Model,
@@ -241,14 +243,21 @@ function ModelClip.fit(
 	end
 	dataCentroid /= #names
 	seenCentroid /= #names
-	table.sort(ratios)
-	local scale = if #ratios > 0 then ratios[math.ceil(#ratios / 2)] else 1
 	-- how far, on average, the parts sit from their centroid: what `error` is judged against
-	local spread = 0
+	local spread, dataSpread = 0, 0
 	for _, name in names do
+		local c = model.parts[name].cframe
 		spread += (observed[name].position - seenCentroid).Magnitude
+		dataSpread += (Vector3.new(c[1], c[2], c[3]) - dataCentroid).Magnitude
 	end
-	spread = math.max(spread / #names, 1e-3)
+	spread /= #names
+	dataSpread /= #names
+	table.sort(ratios)
+	local scale = if dataSpread > 1e-6
+		then spread / dataSpread
+		elseif #ratios > 0 then ratios[math.ceil(#ratios / 2)]
+		else 1
+	spread = math.max(spread, 1e-3)
 	local best: Fit? = nil
 	for _, turn in TURNS do
 		local err = 0

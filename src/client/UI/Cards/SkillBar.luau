@@ -28,6 +28,8 @@ local PlayerStats = require(script.Parent.Parent.Parent.PlayerStats)
 
 local SkillBar = {}
 
+--[[ How see-through the tray behind the icons is. ]]
+local TRAY_TRANSPARENCY = 0.35
 local INK = CardTheme.colors.ink
 local WHITE = CardTheme.colors.white
 
@@ -346,10 +348,13 @@ function SkillBar.start()
 	t.AnchorPoint = Vector2.new(0.5, 1)
 	t.Position = UDim2.new(0.5, 0, 1, -16)
 	t.BackgroundColor3 = INK
-	t.BackgroundTransparency = 0.18
+	--[[ A little see-through, so the room shows behind it (owner,
+	     2026-10-24: "make the skill bar have a little transparency"); the
+	     icons on it stay solid. ]]
+	t.BackgroundTransparency = TRAY_TRANSPARENCY
 	t.Parent = created
 	corner(t, 22)
-	stroke(t, INK, 4)
+	stroke(t, INK, 4, TRAY_TRANSPARENCY)
 	local padding = Instance.new("UIPadding")
 	padding.PaddingLeft = UDim.new(0, 14)
 	padding.PaddingRight = UDim.new(0, 14)

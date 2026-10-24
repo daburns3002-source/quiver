@@ -283,7 +283,8 @@ local function drawMeteor(origin: Vector3, duration: number, radius: number)
 	rock.CanTouch = false
 	rock.CastShadow = false
 	local ground = Vector3.new(origin.X, 1, origin.Z)
-	rock.Position = ground + Vector3.new(4, config.meteorHeight, -6)
+	-- straight above where it lands, so it falls straight down
+	rock.Position = ground + Vector3.new(0, config.meteorHeight, 0)
 	rock.Parent = folder
 	MythicFx.meteorRock(rock)
 	FxEvents.meteor:fire(rock)

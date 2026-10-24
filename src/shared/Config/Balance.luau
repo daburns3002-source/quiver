@@ -2337,10 +2337,8 @@ local Balance = {
 		boltRim = Color3.fromRGB(60, 190, 255),
 		boltLife = 0.28,
 		nodeLift = 1.4,
-		-- Meteor: the rock rides the fall at most this long, turning a step
-		-- a frame
+		-- Meteor: the rock rides the fall at most this long
 		meteorLife = 2,
-		meteorTumble = 0.08,
 	},
 }
 

@@ -85,10 +85,34 @@ type Animator = {
 	driven: { Driven },
 	pivotRest: CFrame,
 	time: number,
+	--[[ Where a part rests in the pivot's space (see `attach`). ]]
+	restOf: (BasePart) -> CFrame,
 }
 
 local animators: { [Model]: Animator } = {}
 local folder: Instance? = nil
+
+--[[ Starts moving `part` with its joint: unwelded and anchored for as long
+     as it is animated. ]]
+local function drive(a: Animator, part: BasePart)
+	local welds: { WeldConstraint } = {}
+	for _, child in part:GetChildren() do
+		if child:IsA("WeldConstraint") and child.Enabled then
+			child.Enabled = false
+			table.insert(welds, child)
+		end
+	end
+	local restSize = part:GetAttribute(REST_SIZE_ATTRIBUTE)
+	table.insert(a.driven, {
+		part = part,
+		joint = a.data.parts[part.Name].joint,
+		rest = a.restOf(part),
+		size = if typeof(restSize) == "Vector3" then restSize else part.Size,
+		welds = welds,
+		anchored = part.Anchored,
+	})
+	part.Anchored = true
+end
 
 local function dataFor(key: string): ModelClip.Model?
 	local clips = folder or ReplicatedStorage.Shared.Config:FindFirstChild("ModelClips")
@@ -144,37 +168,20 @@ function ModelAnimator.attach(model: Model, key: string): boolean
 		)
 		return false
 	end
-	local driven: { Driven } = {}
-	for _, part in parts do
-		local welds: { WeldConstraint } = {}
-		for _, child in part:GetChildren() do
-			if child:IsA("WeldConstraint") and child.Enabled then
-				child.Enabled = false
-				table.insert(welds, child)
-			end
-		end
-		local anchored = part.Anchored
-		local restSize = part:GetAttribute(REST_SIZE_ATTRIBUTE)
-		local entry: Driven = {
-			part = part,
-			joint = data.parts[part.Name].joint,
-			rest = restOf(part),
-			size = if typeof(restSize) == "Vector3" then restSize else part.Size,
-			welds = welds,
-			anchored = anchored,
-		}
-		part.Anchored = true
-		table.insert(driven, entry)
-	end
-	animators[model] = {
+	local a: Animator = {
 		model = model,
 		data = data,
 		fit = fit,
 		restInverse = ModelClip.restInverse(data),
-		driven = driven,
+		driven = {},
 		pivotRest = pivot,
 		time = 0,
+		restOf = restOf,
 	}
+	for _, part in parts do
+		drive(a, part)
+	end
+	animators[model] = a
 	return true
 end
 
@@ -278,6 +285,22 @@ local function watch(model: Instance)
 		end
 	end
 	model:GetAttributeChangedSignal(KEY_ATTRIBUTE):Connect(check)
+	--[[ A big model reaches a client over several frames, and the tag can
+	     come first: King Bloblin's lash chain arrived after he was attached,
+	     was never driven, and stayed a heap of thousandth-size cubes. Any
+	     part of the model that arrives later joins in. ]]
+	model.DescendantAdded:Connect(function(added)
+		local a = animators[model]
+		if not (a and added:IsA("BasePart") and a.data.parts[added.Name]) then
+			return
+		end
+		for _, d in a.driven do
+			if d.part == added then
+				return
+			end
+		end
+		drive(a, added)
+	end)
 	model:GetAttributeChangedSignal(CLIP_ATTRIBUTE):Connect(function()
 		local a = animators[model]
 		if a then

@@ -220,6 +220,12 @@ end
 	and replicates with the part, so the client needs to know nothing about
 	which archetype it is looking at.
 ]]
+--[[ Each flashing part's colour before its first flash, and how many
+     flashes are still showing on it. Weak keys, so a part that dies
+     mid-flash is not kept alive. ]]
+local flashColour: { [BasePart]: Color3? } = setmetatable({} :: any, { __mode = "k" })
+local flashCount: { [BasePart]: number } = setmetatable({} :: any, { __mode = "k" })
+
 local function flash(model: Model)
 	--[[ The footage's hit is a white wash over the whole body with a bright
 	     white rim, not just a recolour. A Highlight draws both, fading out
@@ -251,29 +257,42 @@ local function flash(model: Model)
 		}
 	):Play()
 
-	local painted: { [BasePart]: Color3 } = {}
-	local any = false
+	local painted: { BasePart } = {}
 
 	for _, descendant in model:GetDescendants() do
 		if descendant:IsA("BasePart") and descendant:GetAttribute(EnemyDesigns.TintTag) then
-			painted[descendant] = descendant.Color
-			any = true
+			--[[ A second hit inside the flash must not take the flash's white
+			     for the part's colour: King Bloblin, hit faster than his flash
+			     lasts, was left white for good. The colour is kept from the
+			     first flash until the last one ends. ]]
+			if not flashColour[descendant] then
+				flashColour[descendant] = descendant.Color
+			end
+			flashCount[descendant] = (flashCount[descendant] or 0) + 1
+			table.insert(painted, descendant)
 			descendant.Color = Balance.Feedback.hitFlashColor
 		end
 	end
 
-	if not any then
+	if #painted == 0 then
 		return
 	end
 
 	task.delay(Balance.Feedback.hitFlashDuration, function()
-		for part, original in painted do
-			--[[ Restores to what was there when the flash began, which may be
-			     the telegraph colour rather than the design's. A hit landing
-			     mid-wind-up must not cancel the tell. ]]
-			if part.Parent then
-				part.Color = original
+		for _, part in painted do
+			local left = (flashCount[part] or 1) - 1
+			if left > 0 then
+				flashCount[part] = left
+				continue
 			end
+			--[[ Restores to what was there when the first flash began, which
+			     may be the telegraph colour rather than the design's. A hit
+			     landing mid-wind-up must not cancel the tell. ]]
+			if part.Parent then
+				part.Color = flashColour[part] or part.Color
+			end
+			flashColour[part] = nil
+			flashCount[part] = nil
 		end
 	end)
 end

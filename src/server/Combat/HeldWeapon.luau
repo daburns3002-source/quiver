@@ -20,11 +20,13 @@ local templates: { [string]: MeshPart } = {}
 
 function HeldWeapon.preload()
 	local ids: { string } = {}
-	for _, name in { "LeafBow", "ArcaneStaff", "RubyGreatsword" } do
-		-- LeafBowDual reuses the leaf bow's meshes.
-		local weapon = (Weapons :: any)[name] :: Weapons.Weapon
-		for _, part in weapon.parts do
-			table.insert(ids, part.meshId)
+	-- every weapon and skin, so switching class never waits on a fetch
+	-- (LeafBowDual's parts are the leaf bow's own, so its ids repeat)
+	for _, weapon in Weapons :: any do
+		for _, part in (weapon :: Weapons.Weapon).parts do
+			if not table.find(ids, part.meshId) then
+				table.insert(ids, part.meshId)
+			end
 		end
 	end
 	templates = MeshTemplates.load(ids)

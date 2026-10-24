@@ -435,6 +435,12 @@ local Weapons = {
 			special = { meteor = "Meteor" },
 		},
 		fireSound = "staff_cast",
+		--[[ The arcane staff's bolt until the kit's blocky stone bolt is
+		     imported. ]]
+		bolt = {
+			meshId = "rbxassetid://126459524560740",
+			size = Vector3.new(0.098, 0.1, 0.099),
+		},
 		parts = {
 			{
 				name = "Staff",
@@ -475,7 +481,8 @@ local Weapons = {
 		clips = {
 			hold = "Hold",
 			move = "Walk",
-			moveSpeed = 6,
+			--[[ Its kit's heavy trudge, made for 4.4 studs a second. ]]
+			moveSpeed = 4.4,
 			fire = { "Slash_A", "Slash_B", "Slash_C" },
 			special = { earthbreaker = "Earthbreaker" },
 		},

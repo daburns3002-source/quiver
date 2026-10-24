@@ -21,6 +21,10 @@ KITS = {
     "RubyGreatsword": HERE / "ruby_greatsword_r15" / "ruby_greatsword_animations.json",
     # The Dual Bows kit, finished by leaf_bow_dual_r15/layer_clips.py.
     "LeafBowDual": HERE / "leaf_bow_dual_r15" / "leaf_bow_dual_animations.json",
+    # The blocky Common skins, each with its own kit (Claude Design, 2026-10-23).
+    "TwigBow": HERE / "twig_bow_r15" / "twig_bow_animations.json",
+    "BranchStaff": HERE / "branch_staff_r15" / "branch_staff_animations.json",
+    "TimberBlade": HERE / "timber_blade_r15" / "timber_blade_animations.json",
 }
 
 

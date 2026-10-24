@@ -54,6 +54,16 @@ type Paint = { color: Color3, transparency: number }
 local INK = CardTheme.colors.ink
 local WHITE = CardTheme.colors.white
 local SIZE = CardTheme.card.size
+--[[ The face (banner, icon tile, stat, description, pips, stickers) was laid
+     out for a card this wide, and is built at that size and scaled up to the
+     card's: so its text grows with the card. The card grew from 168 to 218
+     wide and the face did not, which left the description small (owner,
+     2026-10-24: "make sure that the text description on the cards also gets
+     bigger to match"). The crystal body and its glow are drawn at the card's
+     own size. ]]
+local FACE_WIDTH = 168
+local FACE_SCALE = SIZE.X / FACE_WIDTH
+local FACE = SIZE / FACE_SCALE
 
 --[[ The Glow Toy art's own pixel sizes, and where it sits on a card (in
      the card's 134 x 330): the banner wider than the card, across its top;
@@ -216,7 +226,7 @@ end
 local function pips(parent: Instance, ability: Abilities.Ability, level: number, maxed: boolean)
 	local row = frame(parent, "Pips", Z.content)
 	row.LayoutOrder = 99
-	row.Size = UDim2.fromOffset(SIZE.X - 16, 14)
+	row.Size = UDim2.fromOffset(FACE.X - 16, 14)
 
 	local layout = Instance.new("UIListLayout")
 	layout.FillDirection = Enum.FillDirection.Horizontal
@@ -269,6 +279,13 @@ function CardBuilder.build(abilityId: string, options: Options): Card
 	local root = frame(nil :: any, "Card", 1)
 	root.Size = UDim2.fromOffset(SIZE.X, SIZE.Y)
 
+	-- the face: built at FACE, scaled to the card from its top-left corner
+	local face = frame(root, "Face", Z.content)
+	face.Size = UDim2.fromOffset(FACE.X, FACE.Y)
+	local faceScale = Instance.new("UIScale")
+	faceScale.Scale = FACE_SCALE
+	faceScale.Parent = face
+
 	local animated: { any } = {}
 
 	--[[ The owner's Glow Toy set (2026-10-24): the crystal body of the
@@ -299,7 +316,7 @@ function CardBuilder.build(abilityId: string, options: Options): Card
 	body.Size = UDim2.fromOffset(GLOW_TOY.body.X * bodyScale, GLOW_TOY.body.Y * bodyScale)
 
 	local banner = image(
-		root,
+		face,
 		"Banner",
 		Z.content + 1,
 		CardAssets.banners[ability.icon] or "",
@@ -308,7 +325,7 @@ function CardBuilder.build(abilityId: string, options: Options): Card
 	local bannerScale = GLOW_TOY.bannerRibbon / GLOW_TOY.ribbonWidth
 	banner.AnchorPoint = Vector2.new(0.5, 0.5)
 	banner.Position = UDim2.fromOffset(
-		SIZE.X / 2,
+		FACE.X / 2,
 		GLOW_TOY.bannerY + (GLOW_TOY.banner.Y / 2 - GLOW_TOY.ribbonMidY) * bannerScale
 	)
 	banner.Size = UDim2.fromOffset(GLOW_TOY.banner.X * bannerScale, GLOW_TOY.banner.Y * bannerScale)
@@ -330,7 +347,7 @@ function CardBuilder.build(abilityId: string, options: Options): Card
 	band.Parent = shine
 
 	-- Content, top to bottom.
-	local content = frame(root, "Content", Z.content)
+	local content = frame(face, "Content", Z.content)
 	content.Size = UDim2.fromScale(1, 1)
 	local padding = Instance.new("UIPadding")
 	padding.PaddingTop = UDim.new(0, CardTheme.card.paddingTop)
@@ -345,7 +362,7 @@ function CardBuilder.build(abilityId: string, options: Options): Card
 	list.Padding = UDim.new(0, 0)
 	list.Parent = content
 
-	local inner = SIZE.X - CardTheme.card.paddingSide * 2
+	local inner = FACE.X - CardTheme.card.paddingSide * 2
 
 	--[[ Room for the banner above the icon. ]]
 	local bannerRoom = frame(content, "BannerRoom", Z.content)
@@ -442,15 +459,15 @@ function CardBuilder.build(abilityId: string, options: Options): Card
 	description.LineHeight = 1.15
 
 	-- Pips sit on the bottom edge, whatever the text above them took.
-	local pipsHolder = frame(root, "PipsHolder", Z.content)
+	local pipsHolder = frame(face, "PipsHolder", Z.content)
 	pipsHolder.AnchorPoint = Vector2.new(0.5, 1)
 	pipsHolder.Position = UDim2.new(0.5, 0, 1, -CardTheme.card.paddingBottom + 2)
-	pipsHolder.Size = UDim2.fromOffset(SIZE.X - 16, 14)
+	pipsHolder.Size = UDim2.fromOffset(FACE.X - 16, 14)
 	pips(pipsHolder, ability, level, maxed)
 
 	-- A new skill wears a NEW! sticker.
 	if level == 0 and state == "Default" and not ability.filler then
-		local sticker = label(root, "New", "NEW!", CardTheme.fonts.display, 13, WHITE, 0)
+		local sticker = label(face, "New", "NEW!", CardTheme.fonts.display, 13, WHITE, 0)
 		sticker.ZIndex = Z.sticker
 		sticker.AnchorPoint = Vector2.new(1, 0)
 		sticker.Position = UDim2.new(1, 34, 0, -28)
@@ -463,7 +480,7 @@ function CardBuilder.build(abilityId: string, options: Options): Card
 	end
 
 	if state == "Maxed" then
-		local scrim = frame(root, "Maxed", Z.scrim)
+		local scrim = frame(face, "Maxed", Z.scrim)
 		scrim.Size = UDim2.fromScale(1, 1)
 		fill(scrim, { color = INK, transparency = 0.62 })
 		corner(scrim, 14)
@@ -478,7 +495,7 @@ function CardBuilder.build(abilityId: string, options: Options): Card
 		corner(stamp, 10)
 		stroke(stamp, INK, 4)
 	elseif state == "Locked" then
-		local scrim = frame(root, "Locked", Z.scrim)
+		local scrim = frame(face, "Locked", Z.scrim)
 		scrim.Size = UDim2.fromScale(1, 1)
 		fill(scrim, { color = Color3.fromRGB(20, 22, 40), transparency = 0.18 })
 		corner(scrim, 14)

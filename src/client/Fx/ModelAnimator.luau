@@ -28,7 +28,8 @@
 	this client while it is animated. A part whose `RestSize` attribute is
 	set rests smaller than Roblox's smallest part (a lash link tucked away
 	at a thousandth of its size): clips scale that size, not the clamped
-	one.
+	one. A part whose `RestCFrame` attribute is set rests there relative to
+	the model's pivot, wherever it stands when the animator starts.
 
 	Presentation only. The model's parts are moved relative to its pivot each
 	frame, so the model can be moved by anything else as usual. How the
@@ -60,6 +61,7 @@ local STRETCH_ATTRIBUTE = "ModelClipStretch"
 local STRETCH_JOINT_ATTRIBUTE = "ModelClipStretchJoint"
 local STRETCH_KEEP_ATTRIBUTE = "ModelClipStretchKeep"
 local REST_SIZE_ATTRIBUTE = "RestSize"
+local REST_CFRAME_ATTRIBUTE = "RestCFrame"
 --[[ A fit whose parts sit further than this share of the model's spread
      from where the data puts them means the parts do not belong to this
      data: the model is left alone rather than scrambled. ]]
@@ -121,11 +123,18 @@ function ModelAnimator.attach(model: Model, key: string): boolean
 			count[d.Name] = (count[d.Name] or 0) + 1
 		end
 	end
+	--[[ Where each part rests in the pivot's space: its `RestCFrame` when
+	     the builder gave one (an enemy's skin: a welded part lags its moving
+	     hitbox by a frame on a client, which read as a bad fit and left the
+	     King unanimated), else where it stands now. ]]
+	local function restOf(part: BasePart): CFrame
+		local given = part:GetAttribute(REST_CFRAME_ATTRIBUTE)
+		return if typeof(given) == "CFrame" then given else pivot:ToObjectSpace(part.CFrame)
+	end
 	local observed: { [string]: { position: Vector3, size: Vector3 } } = {}
 	for _, part in parts do
 		if count[part.Name] == 1 then
-			observed[part.Name] =
-				{ position = pivot:PointToObjectSpace(part.Position), size = part.Size }
+			observed[part.Name] = { position = restOf(part).Position, size = part.Size }
 		end
 	end
 	local fit = ModelClip.fit(data, observed)
@@ -149,7 +158,7 @@ function ModelAnimator.attach(model: Model, key: string): boolean
 		local entry: Driven = {
 			part = part,
 			joint = data.parts[part.Name].joint,
-			rest = pivot:ToObjectSpace(part.CFrame),
+			rest = restOf(part),
 			size = if typeof(restSize) == "Vector3" then restSize else part.Size,
 			welds = welds,
 			anchored = anchored,

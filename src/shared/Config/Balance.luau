@@ -917,7 +917,7 @@ local rooms: { RoomConfig } = {
 
 	--[[
 		Level 1 (owner, 2026-10-22): ten rooms, all Mossy Glade, in the
-		owner's order — logs, pond, boulders, thorns, then a boss arena, and
+		owner's order — logs, hollow, boulders, thorns, then a boss arena, and
 		the same again. Each is drawn by its own model (`ArenaModels`); a
 		room whose model is not imported yet is the grey box until it is.
 
@@ -945,14 +945,14 @@ local rooms: { RoomConfig } = {
 		roster = { meleeCharger },
 	},
 	{
-		name = "Mossy Pond",
-		arena = "GladePond",
+		name = "Mossy Hollow",
+		arena = "GladeHollow",
 		obstacles = {
 			{ offset = Vector2.new(-4.05, -4.32), size = Vector3.new(14, 0.4, 10) },
 			{ offset = Vector2.new(9.18, -16.2), size = Vector3.new(3.3, 1.4, 3.3) },
 			{ offset = Vector2.new(8.1, 14.31), size = Vector3.new(3.6, 1.6, 3.6) },
 		},
-		--[[ More Moss Slimes, round the water. Level 1 is slimes only
+		--[[ More Moss Slimes, round the hollow. Level 1 is slimes only
 		     (owner, 2026-10-23: "take out any enemies that are not slime
 		     enemies"). ]]
 		enemyCount = 3,
@@ -1021,8 +1021,8 @@ local rooms: { RoomConfig } = {
 		roster = { meleeCharger, meleeCharger, broodSlime, wilf },
 	},
 	{
-		name = "Mossy Pond II",
-		arena = "GladePond",
+		name = "Mossy Hollow II",
+		arena = "GladeHollow",
 		obstacles = {
 			{ offset = Vector2.new(-4.05, -4.32), size = Vector3.new(14, 0.4, 10) },
 			{ offset = Vector2.new(9.18, -16.2), size = Vector3.new(3.3, 1.4, 3.3) },
@@ -1636,7 +1636,7 @@ local Balance = {
 			waves = 30,
 		},
 		{
-			--[[ Ten Mossy Glade rooms: logs, pond, boulders, thorns, boss, twice. ]]
+			--[[ Ten Mossy Glade rooms: logs, hollow, boulders, thorns, boss, twice. ]]
 			name = "Level 1",
 			mode = "Rooms",
 			rooms = { 11, 12, 13, 14, 15, 16, 17, 18, 19, 20 },

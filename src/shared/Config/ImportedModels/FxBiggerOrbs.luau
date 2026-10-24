@@ -1,0 +1,123 @@
+--!strict
+--[[
+	FxBiggerOrbs as the owner imported it (AuxScene#83, a rigged import). Generated
+	by tools/imports_to_luau.py from tools/studio/dump_models.luau's output
+	and the GLB; regenerate after a re-import, never hand-edit.
+
+	Each part: its GLB node's name (which Config/ModelClips keys on), mesh
+	and texture ids, colour, material, transparency, size, and its rest
+	place relative to the model's pivot (12 CFrame components), and the name of its GLB material (`surface`).
+]]
+
+return table.freeze({
+	{
+		name = "BiggerOrbs_BlastShell",
+		meshId = "rbxassetid://124179661199398",
+		textureId = "",
+		color = { 0.16512, 0.79555, 1 },
+		material = "SmoothPlastic",
+		transparency = 0.3,
+		size = { 1.9291, 1.2307, 2.0283 },
+		cframe = { 0, 0.61536, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1 },
+		surface = "BlastShell_Cyan",
+	},
+	{
+		name = "BiggerOrbs_BlastShell_Outline",
+		meshId = "rbxassetid://99882888206927",
+		textureId = "",
+		color = { 0, 0.01569, 0.21176 },
+		material = "SmoothPlastic",
+		transparency = 0,
+		size = { 1.9971, 1.2988, 2.0964 },
+		cframe = { 0, 0.61536, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1 },
+		surface = "Outline_Navy_Blast",
+	},
+	{
+		name = "BiggerOrbs_Chevron_E",
+		meshId = "rbxassetid://118243513535694",
+		textureId = "",
+		color = { 0, 0.53615, 1 },
+		material = "SmoothPlastic",
+		transparency = 0,
+		size = { 0.425, 0.119, 0.51 },
+		cframe = { -1.15877, 0.12, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1 },
+		surface = "Bright_Blue",
+	},
+	{
+		name = "BiggerOrbs_Chevron_E_Outline",
+		meshId = "rbxassetid://77392473347536",
+		textureId = "",
+		color = { 0, 0.01569, 0.21176 },
+		material = "SmoothPlastic",
+		transparency = 0,
+		size = { 0.476, 0.17, 0.561 },
+		cframe = { -1.15877, 0.12, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1 },
+		surface = "Outline_Navy",
+	},
+	{
+		name = "BiggerOrbs_Chevron_N",
+		meshId = "rbxassetid://83856746657812",
+		textureId = "",
+		color = { 0, 0.53615, 1 },
+		material = "SmoothPlastic",
+		transparency = 0,
+		size = { 0.425, 0.119, 0.51 },
+		cframe = { 0, 0.12, 1.15877, 0, 0, 1, 0, 1, 0, -1, 0, 0 },
+		surface = "Bright_Blue",
+	},
+	{
+		name = "BiggerOrbs_Chevron_N_Outline",
+		meshId = "rbxassetid://96599601177519",
+		textureId = "",
+		color = { 0, 0.01569, 0.21176 },
+		material = "SmoothPlastic",
+		transparency = 0,
+		size = { 0.476, 0.17, 0.561 },
+		cframe = { 0, 0.12, 1.15877, 0, 0, 1, 0, 1, 0, -1, 0, 0 },
+		surface = "Outline_Navy",
+	},
+	{
+		name = "BiggerOrbs_Chevron_S",
+		meshId = "rbxassetid://139015326636809",
+		textureId = "",
+		color = { 0, 0.53615, 1 },
+		material = "SmoothPlastic",
+		transparency = 0,
+		size = { 0.425, 0.119, 0.51 },
+		cframe = { 0, 0.12, -1.15877, 0, 0, -1, 0, 1, 0, 1, 0, 0 },
+		surface = "Bright_Blue",
+	},
+	{
+		name = "BiggerOrbs_Chevron_S_Outline",
+		meshId = "rbxassetid://72762081750679",
+		textureId = "",
+		color = { 0, 0.01569, 0.21176 },
+		material = "SmoothPlastic",
+		transparency = 0,
+		size = { 0.476, 0.17, 0.561 },
+		cframe = { 0, 0.12, -1.15877, 0, 0, -1, 0, 1, 0, 1, 0, 0 },
+		surface = "Outline_Navy",
+	},
+	{
+		name = "BiggerOrbs_Chevron_W",
+		meshId = "rbxassetid://109489811274308",
+		textureId = "",
+		color = { 0, 0.53615, 1 },
+		material = "SmoothPlastic",
+		transparency = 0,
+		size = { 0.425, 0.119, 0.51 },
+		cframe = { 1.15877, 0.12, 0, -1, 0, 0, 0, 1, 0, 0, 0, -1 },
+		surface = "Bright_Blue",
+	},
+	{
+		name = "BiggerOrbs_Chevron_W_Outline",
+		meshId = "rbxassetid://120723279332599",
+		textureId = "",
+		color = { 0, 0.01569, 0.21176 },
+		material = "SmoothPlastic",
+		transparency = 0,
+		size = { 0.476, 0.17, 0.561 },
+		cframe = { 1.15877, 0.12, 0, -1, 0, 0, 0, 1, 0, 0, 0, -1 },
+		surface = "Outline_Navy",
+	},
+})

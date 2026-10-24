@@ -20,5 +20,198 @@
       "Attack",
       "Winded"
     ]
+  },
+  "FxAgility": {
+    "glb": "assets/models/effects/fx_agility.glb",
+    "loops": []
+  },
+  "FxArcaneEcho": {
+    "glb": "assets/models/effects/fx_arcaneecho.glb",
+    "loops": []
+  },
+  "FxBiggerOrbs": {
+    "glb": "assets/models/effects/fx_biggerorbs.glb",
+    "loops": []
+  },
+  "FxBlastArrows": {
+    "glb": "assets/models/effects/fx_blastarrows.glb",
+    "loops": []
+  },
+  "FxBlaze": {
+    "glb": "assets/models/effects/fx_blaze.glb",
+    "loops": [
+      "Flicker"
+    ]
+  },
+  "FxBloodletting": {
+    "glb": "assets/models/effects/fx_bloodletting.glb",
+    "loops": []
+  },
+  "FxBloodthirst": {
+    "glb": "assets/models/effects/fx_bloodthirst.glb",
+    "loops": []
+  },
+  "FxBouncyWall": {
+    "glb": "assets/models/effects/fx_bouncywall.glb",
+    "loops": []
+  },
+  "FxChainLightning": {
+    "glb": "assets/models/effects/fx_chainlightning.glb",
+    "loops": []
+  },
+  "FxCleave": {
+    "glb": "assets/models/effects/fx_cleave.glb",
+    "loops": []
+  },
+  "FxDeadlyStrike": {
+    "glb": "assets/models/effects/fx_deadlystrike.glb",
+    "loops": []
+  },
+  "FxDiagonalArrows": {
+    "glb": "assets/models/effects/fx_diagonalarrows.glb",
+    "loops": []
+  },
+  "FxDoubleShot": {
+    "glb": "assets/models/effects/fx_doubleshot.glb",
+    "loops": [
+      "DoubleShot"
+    ]
+  },
+  "FxDualBows": {
+    "glb": "assets/models/effects/fx_dualbows.glb",
+    "loops": []
+  },
+  "FxEarthbreaker": {
+    "glb": "assets/models/effects/fx_earthbreaker.glb",
+    "loops": []
+  },
+  "FxExecute": {
+    "glb": "assets/models/effects/fx_execute.glb",
+    "loops": []
+  },
+  "FxFrontArrow": {
+    "glb": "assets/models/effects/fx_frontarrow.glb",
+    "loops": [
+      "FrontArrow"
+    ]
+  },
+  "FxHeal": {
+    "glb": "assets/models/effects/fx_heal.glb",
+    "loops": []
+  },
+  "FxHeavyBlade": {
+    "glb": "assets/models/effects/fx_heavyblade.glb",
+    "loops": []
+  },
+  "FxIronSkin": {
+    "glb": "assets/models/effects/fx_ironskin.glb",
+    "loops": []
+  },
+  "FxLightfoot": {
+    "glb": "assets/models/effects/fx_lightfoot.glb",
+    "loops": []
+  },
+  "FxLongReach": {
+    "glb": "assets/models/effects/fx_longreach.glb",
+    "loops": []
+  },
+  "FxLongShot": {
+    "glb": "assets/models/effects/fx_longshot.glb",
+    "loops": []
+  },
+  "FxManaFlow": {
+    "glb": "assets/models/effects/fx_manaflow.glb",
+    "loops": []
+  },
+  "FxMending": {
+    "glb": "assets/models/effects/fx_mending.glb",
+    "loops": []
+  },
+  "FxMeteor": {
+    "glb": "assets/models/effects/fx_meteor.glb",
+    "loops": []
+  },
+  "FxMomentum": {
+    "glb": "assets/models/effects/fx_momentum.glb",
+    "loops": [
+      "Bank",
+      "Charged"
+    ]
+  },
+  "FxMultishot": {
+    "glb": "assets/models/effects/fx_multishot.glb",
+    "loops": [
+      "Multishot"
+    ]
+  },
+  "FxOverdraw": {
+    "glb": "assets/models/effects/fx_overdraw.glb",
+    "loops": []
+  },
+  "FxPiercingShot": {
+    "glb": "assets/models/effects/fx_piercingshot.glb",
+    "loops": []
+  },
+  "FxPrecision": {
+    "glb": "assets/models/effects/fx_precision.glb",
+    "loops": [
+      "Track"
+    ]
+  },
+  "FxQuickHands": {
+    "glb": "assets/models/effects/fx_quickhands.glb",
+    "loops": []
+  },
+  "FxRearArrow": {
+    "glb": "assets/models/effects/fx_reararrow.glb",
+    "loops": [
+      "RearArrow"
+    ]
+  },
+  "FxRicochet": {
+    "glb": "assets/models/effects/fx_ricochet.glb",
+    "loops": []
+  },
+  "FxSecondWind": {
+    "glb": "assets/models/effects/fx_secondwind.glb",
+    "loops": []
+  },
+  "FxSideArrows": {
+    "glb": "assets/models/effects/fx_sidearrows.glb",
+    "loops": []
+  },
+  "FxSoulChain": {
+    "glb": "assets/models/effects/fx_soulchain.glb",
+    "loops": []
+  },
+  "FxSpellPierce": {
+    "glb": "assets/models/effects/fx_spellpierce.glb",
+    "loops": []
+  },
+  "FxSteadfast": {
+    "glb": "assets/models/effects/fx_steadfast.glb",
+    "loops": []
+  },
+  "FxStrength": {
+    "glb": "assets/models/effects/fx_strength.glb",
+    "loops": []
+  },
+  "FxSwiftArrows": {
+    "glb": "assets/models/effects/fx_swiftarrows.glb",
+    "loops": []
+  },
+  "FxTrackingEye": {
+    "glb": "assets/models/effects/fx_trackingeye.glb",
+    "loops": [
+      "TrackingEye_Flight"
+    ]
+  },
+  "FxTwinCast": {
+    "glb": "assets/models/effects/fx_twincast.glb",
+    "loops": []
+  },
+  "FxVitality": {
+    "glb": "assets/models/effects/fx_vitality.glb",
+    "loops": []
   }
 }

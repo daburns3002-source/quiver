@@ -1,0 +1,123 @@
+--!strict
+--[[
+	FxLongReach as the owner imported it (AuxScene#58, a baked import). Generated
+	by tools/imports_to_luau.py from tools/studio/dump_models.luau's output
+	and the GLB; regenerate after a re-import, never hand-edit.
+
+	Each part: its GLB node's name (which Config/ModelClips keys on), mesh
+	and texture ids, colour, material, transparency, size, and its rest
+	place relative to the model's pivot (12 CFrame components), and the name of its GLB material (`surface`).
+]]
+
+return table.freeze({
+	{
+		name = "long_reach_ruler",
+		meshId = "rbxassetid://72806319579416",
+		textureId = "",
+		color = { 0.9098, 0.70196, 0.13725 },
+		material = "SmoothPlastic",
+		transparency = 0,
+		size = { 0.07, 0.07, 2.88 },
+		cframe = { -0.1225, 0.037, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1 },
+		surface = "gold_trim",
+	},
+	{
+		name = "long_reach_segment_L1",
+		meshId = "rbxassetid://131624150287405",
+		textureId = "",
+		color = { 0.82353, 0.12157, 0.23529 },
+		material = "SmoothPlastic",
+		transparency = 0,
+		size = { 0.16, 0.072, 0.86 },
+		cframe = { 0.0775, 0.056, 1.01, 1, 0, 0, 0, 1, 0, 0, 0, 1 },
+		surface = "blade_crimson",
+	},
+	{
+		name = "long_reach_segment_L1",
+		meshId = "rbxassetid://88600812218067",
+		textureId = "",
+		color = { 0.9098, 0.70196, 0.13725 },
+		material = "SmoothPlastic",
+		transparency = 0,
+		size = { 0.11, 0.1, 0.1 },
+		cframe = { 0.0775, 0.05, 0.53, 1, 0, 0, 0, 1, 0, 0, 0, 1 },
+		surface = "gold_trim",
+	},
+	{
+		name = "long_reach_segment_L1",
+		meshId = "rbxassetid://110726179842283",
+		textureId = "",
+		color = { 1, 0.70196, 0.76863 },
+		material = "SmoothPlastic",
+		transparency = 0,
+		size = { 0.06, 0.001, 0.86 },
+		cframe = { 0.1275, 0.092, 1.01, 1, 0, 0, 0, 1, 0, 0, 0, 1 },
+		surface = "blade_pink",
+	},
+	{
+		name = "long_reach_segment_L2",
+		meshId = "rbxassetid://78831758796615",
+		textureId = "",
+		color = { 0.82353, 0.12157, 0.23529 },
+		material = "SmoothPlastic",
+		transparency = 0,
+		size = { 0.16, 0.072, 0.86 },
+		cframe = { 0.0775, 0.056, 0.05, 1, 0, 0, 0, 1, 0, 0, 0, 1 },
+		surface = "blade_crimson",
+	},
+	{
+		name = "long_reach_segment_L2",
+		meshId = "rbxassetid://73099277553853",
+		textureId = "",
+		color = { 0.9098, 0.70196, 0.13725 },
+		material = "SmoothPlastic",
+		transparency = 0,
+		size = { 0.11, 0.1, 0.1 },
+		cframe = { 0.0775, 0.05, -0.43, 1, 0, 0, 0, 1, 0, 0, 0, 1 },
+		surface = "gold_trim",
+	},
+	{
+		name = "long_reach_segment_L2",
+		meshId = "rbxassetid://105448226835172",
+		textureId = "",
+		color = { 1, 0.70196, 0.76863 },
+		material = "SmoothPlastic",
+		transparency = 0,
+		size = { 0.06, 0.001, 0.86 },
+		cframe = { 0.1275, 0.092, 0.05, 1, 0, 0, 0, 1, 0, 0, 0, 1 },
+		surface = "blade_pink",
+	},
+	{
+		name = "long_reach_segment_L3",
+		meshId = "rbxassetid://100260730123782",
+		textureId = "",
+		color = { 0.82353, 0.12157, 0.23529 },
+		material = "SmoothPlastic",
+		transparency = 0,
+		size = { 0.16, 0.072, 0.86 },
+		cframe = { 0.0775, 0.056, -0.91, 1, 0, 0, 0, 1, 0, 0, 0, 1 },
+		surface = "blade_crimson",
+	},
+	{
+		name = "long_reach_segment_L3",
+		meshId = "rbxassetid://123760975594295",
+		textureId = "",
+		color = { 0.9098, 0.70196, 0.13725 },
+		material = "SmoothPlastic",
+		transparency = 0,
+		size = { 0.11, 0.1, 0.1 },
+		cframe = { 0.0775, 0.05, -1.39, 1, 0, 0, 0, 1, 0, 0, 0, 1 },
+		surface = "gold_trim",
+	},
+	{
+		name = "long_reach_segment_L3",
+		meshId = "rbxassetid://100408895106295",
+		textureId = "",
+		color = { 1, 0.70196, 0.76863 },
+		material = "SmoothPlastic",
+		transparency = 0,
+		size = { 0.06, 0.001, 0.86 },
+		cframe = { 0.1275, 0.092, -0.91, 1, 0, 0, 0, 1, 0, 0, 0, 1 },
+		surface = "blade_pink",
+	},
+})

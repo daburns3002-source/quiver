@@ -142,6 +142,16 @@ def primitives(path: pathlib.Path):
             cache[key] = world(parent[i], turned) @ m if i in parent else m
         return cache[key]
 
+    def turn_only(i):
+        """The node's world turn from its rotations alone, ignoring scale.
+        Only reached when a node rests at zero scale: an effect piece that
+        starts shrunk to nothing until its clip grows it. There the scale
+        divides out to nothing, so the turn has to come from the chain of
+        rotations instead."""
+        _, q, _ = glb.local_trs(nodes[i])
+        m = glb.affine(np.zeros(3), q, np.ones(3))[:3, :3]
+        return turn_only(parent[i]) @ m if i in parent else m
+
     out = []
     for i, n in enumerate(nodes):
         if "mesh" not in n:
@@ -154,9 +164,13 @@ def primitives(path: pathlib.Path):
             local_centre = (v.min(0) + v.max(0)) / 2
             # the turn a rigged import leaves out: the real world linear part
             # over the unturned one
-            spin = w[:3, :3] @ np.linalg.inv(flat[:3, :3])
-            u, _, vt = np.linalg.svd(spin)
-            spin = u @ vt
+            if abs(np.linalg.det(flat[:3, :3])) > 1e-12:
+                spin = w[:3, :3] @ np.linalg.inv(flat[:3, :3])
+                u, _, vt = np.linalg.svd(spin)
+                spin = u @ vt
+            else:
+                # zero scale somewhere on the chain: see turn_only
+                spin = turn_only(i)
             out.append(
                 {
                     "node": n.get("name") or f"node{i}",

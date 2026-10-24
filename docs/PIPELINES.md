@@ -120,6 +120,8 @@ Claude Design's 3D models carry their clips (Idle, Hop, Follow, an attack…) in
 - **Two primitives of one node become two parts**, each bounded by the vertices its own triangles use (they may share one vertex buffer).
 - **Colours are dropped**: every part arrives grey (0.64). They come from the GLB's materials: base colour plus emissive times strength, Neon from a glow of 0.6.
 - **A rigged import (joint nodes) places each mesh as if no node were turned**: the Mosslet's tilted leaves lie flat in Studio. Its InitialPoses folder and Motor6Ds hold the turns. A GLB without joints bakes the turn into the mesh instead. The script fits each import to both and places parts at their real rest.
+- **A Follow that walks a loop in the viewer** (the root travels and turns round) would circle on the spot in the game, which moves the pet itself. `glb_clips_to_luau.py` plays any clip whose root travels over 0.3 and turns over half round on the spot, dropping that root's sideways travel and its turn about Y. It names each one it stills.
+- **A re-export can regroup nodes** (the Glade Fox's runes moved under its tail joint) without moving anything. Parts are paired with nodes by name where the name is unique on both sides, checked by size; only the rest are paired by place. A re-export that adds meshes (open mouths) builds without them until the owner imports it again; the script names what is missing.
 - A looping clip read at exactly its length is back at its start (`pose` wraps).
 - A turn about an axis through a joint has no travel, so test travel with a lift, not a turn.
 

@@ -2023,8 +2023,14 @@ local Balance = {
 			     canopy (`canopy`, its top's height) before fading; fireflies
 			     and butterflies hover over it, and the mist hangs in it. ]]
 			leafFrom = { 17, 21 },
+			--[[ `canopy` and `hover` are for an arena whose trees the client
+			     cannot find: with crowns (parts named CanopyMesh*), leaves
+			     settle on the crown under them, and the hanging life floats
+			     `clearance` studs over the tallest crown, so none of it
+			     passes through a tree (owner, 2026-10-24). ]]
 			canopy = { 13, 15.5 },
 			hover = 16,
+			clearance = 1.5,
 			leavesPerSecond = 3,
 			leafPool = 60,
 			leafFall = { 0.5, 0.9 },

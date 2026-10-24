@@ -543,21 +543,18 @@ owner's ChatGPT account. Never another image generator, and never hand-drawn SVG
 for art. Sheets go in `assets/concepts/`; the look is the **blocky** style for everything new.
 Owner's rule, restated 2026-10-24. The pipeline is `docs/PIPELINES.md` §8.
 
-**10. 3D models are built in Blender, from reference sheets.**
-Since 2026-10-24 (owner: "start utilizing blender to cut down on the usage credits"), every
-new 3D model — enemies, pets, weapons, effects, arenas, ambience — is built in the owner's
-Blender through the Blender MCP (`mcp__blender__*`; set up in `~/.claude.json`, the
-`blender-mcp` add-on in Blender's Microsoft Store install). Reference sheets come first, from
-Codex (rule 9); the model is built from them in blocky cubes, colour in **vertex colours**
-(a `BYTE_COLOR` corner attribute: the importer drops materials), checked with `look` renders
-against the sheet until it matches, then exported as GLB (`export_scene.gltf`, GLB) into
-`assets/models/…` and through that kind's pipeline (`docs/PIPELINES.md`). Before 2026-10-24
-models were made in Claude Design in the browser (it retires on 2026-12-14); the models
-already made there stay as they are. Never invent a look without a reference sheet, and keep
-the add-on's online libraries, paid generators and telemetry off. If Blender is not
-answering, start it with `C:\Users\dabur\blender-mcp\start_mcp.py`
-(`blender-launcher.exe --python <that file>`), which enables the add-on and starts its server
-on port 9876.
+**10. 3D models are designed in the browser, through Claude Design.**
+The route: Codex reference sheets (rule 9) → Claude Design opened in the owner's Chrome
+(Claude in Chrome tools, `mcp__claude-in-chrome__*`, each agent in its own tab group) →
+one agent per model, building it until it matches its sheet 1:1 → GLB exported → that
+kind's pipeline (`docs/PIPELINES.md`). Every 3D model goes this way: enemies, pets,
+weapons, effects, arenas and ambience. Never invent a look without a reference sheet.
+
+Blender was tried for this on 2026-10-24 and **paused** the same day (owner: "scrap blender
+for now"): the Blender MCP stays set up (`~/.claude.json`, the `blender-mcp` add-on;
+`C:\Users\dabur\blender-mcp\start_mcp.py` restarts it), and its build scripts and render
+comparisons are on branch `phase-3/blender-swords`, but no model is made there until the
+owner says otherwise.
 
 ## Code conventions
 

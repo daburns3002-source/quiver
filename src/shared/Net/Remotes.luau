@@ -184,6 +184,10 @@ Remotes.DebugRoom = "DebugRoom"
 --[[ Client → server, Studio only: spawn one enemy of the named archetype
      (a `Balance.Enemies` key), to test it without reaching its room. ]]
 Remotes.DebugSpawnEnemy = "DebugSpawnEnemy"
+--[[ Client → server, Studio only: build the pet preview's models
+     (`Config/PetModels`) into ReplicatedStorage, so `Fx/PetPreview` can
+     set the pets following the player. ]]
+Remotes.DebugPetPreview = "DebugPetPreview"
 
 local function getFolder(): Folder
 	if RunService:IsServer() then

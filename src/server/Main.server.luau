@@ -33,6 +33,7 @@ local Game = require(ReplicatedStorage.Shared.Config.Game)
 local HeldWeapon = require(script.Parent.Combat.HeldWeapon)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
 local MeleeSystem = require(script.Parent.Combat.MeleeSystem)
+local PetPreview = require(script.Parent.Dev.PetPreview)
 local ProjectileSystem = require(script.Parent.Combat.ProjectileSystem)
 local Remotes = require(game:GetService("ReplicatedStorage").Shared.Net.Remotes)
 local RoomController = require(script.Parent.Run.RoomController)
@@ -235,6 +236,16 @@ Remotes.event(Remotes.DebugSpawnEnemy).OnServerEvent:Connect(function(_player, n
 	if config then
 		EnemyManager.spawn(config)
 	end
+end)
+
+--[[ Testing only: build the imported pets so the client can preview them
+     following the player. Honoured only in Studio. ]]
+Remotes.event(Remotes.DebugPetPreview).OnServerEvent:Connect(function(player)
+	if not RunService:IsStudio() then
+		return
+	end
+	local count = PetPreview.build()
+	log.info("%s previews %d pets (Studio)", player.Name, count)
 end)
 
 --[[

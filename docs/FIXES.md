@@ -1174,3 +1174,24 @@ the mesh keeps too little of its shape to draw as a block.
 `TUCKED_SHARE` of the model's largest part) as a plain block of its colour
 instead of its mesh; in the blocky style each link is a cube anyway. Look at
 `MeshSize`, not `Size`, when a mesh part draws smaller than it measures.
+
+## Upgrade effects imported as up to 771 parts, and ten with pieces crushed to specks
+
+**Symptom:** found before shipping. The 44 upgrade-card effects came out of
+Claude Design as 2,775 parts, one per cube (Heavy Blade alone was 771),
+which would have been cloned and posed on every hit. Ten imports also had
+pieces at a thousandth of a stud (Heal's pour, Precision's lit ring,
+Momentum's lit segments, and others), so they would have drawn as specks.
+**Cause:** Claude Design exports every cube as its own mesh. A piece hidden
+until its clip grows it rests at zero scale, and Roblox imports a mesh at its
+rest size (the same fault as King Bloblin's lash links).
+**Fix:** `assets/models/effects/optimise_effect.py` runs before import:
+- It merges what moves together, and bakes colour into vertices.
+- It splits Neon by the importer's own `NEON_GLOW`.
+- It rests hidden pieces at full size, with every clip that doesn't scale them
+  holding them at zero.
+- It culls buried faces. Strength's voxel cuffs are rebuilt rather than
+  decimated, because decimating melted them into a blob.
+
+The result is 1,952 parts down to 240. `tests/UpgradeFx.spec` holds every
+effect to `Balance.UpgradeFx.maxParts`.

@@ -29,10 +29,6 @@
     "glb": "assets/models/effects/fx_arcaneecho.glb",
     "loops": []
   },
-  "FxBiggerOrbs": {
-    "glb": "assets/models/effects/fx_biggerorbs.glb",
-    "loops": []
-  },
   "FxBlastArrows": {
     "glb": "assets/models/effects/fx_blastarrows.glb",
     "loops": []
@@ -67,20 +63,8 @@
     "glb": "assets/models/effects/fx_deadlystrike.glb",
     "loops": []
   },
-  "FxDiagonalArrows": {
-    "glb": "assets/models/effects/fx_diagonalarrows.glb",
-    "loops": []
-  },
-  "FxDualBows": {
-    "glb": "assets/models/effects/fx_dualbows.glb",
-    "loops": []
-  },
   "FxEarthbreaker": {
     "glb": "assets/models/effects/fx_earthbreaker.glb",
-    "loops": []
-  },
-  "FxExecute": {
-    "glb": "assets/models/effects/fx_execute.glb",
     "loops": []
   },
   "FxHeal": {
@@ -91,71 +75,16 @@
     "glb": "assets/models/effects/fx_heavyblade.glb",
     "loops": []
   },
-  "FxIronSkin": {
-    "glb": "assets/models/effects/fx_ironskin.glb",
-    "loops": []
-  },
-  "FxLightfoot": {
-    "glb": "assets/models/effects/fx_lightfoot.glb",
-    "loops": []
-  },
-  "FxLongReach": {
-    "glb": "assets/models/effects/fx_longreach.glb",
-    "loops": []
-  },
-  "FxLongShot": {
-    "glb": "assets/models/effects/fx_longshot.glb",
-    "loops": []
-  },
-  "FxManaFlow": {
-    "glb": "assets/models/effects/fx_manaflow.glb",
-    "loops": []
-  },
-  "FxMending": {
-    "glb": "assets/models/effects/fx_mending.glb",
-    "loops": []
-  },
   "FxMeteor": {
     "glb": "assets/models/effects/fx_meteor.glb",
     "loops": []
-  },
-  "FxMomentum": {
-    "glb": "assets/models/effects/fx_momentum.glb",
-    "loops": [
-      "Bank",
-      "Charged"
-    ]
   },
   "FxOverdraw": {
     "glb": "assets/models/effects/fx_overdraw.glb",
     "loops": []
   },
-  "FxPiercingShot": {
-    "glb": "assets/models/effects/fx_piercingshot.glb",
-    "loops": []
-  },
-  "FxPrecision": {
-    "glb": "assets/models/effects/fx_precision.glb",
-    "loops": [
-      "Track"
-    ]
-  },
-  "FxQuickHands": {
-    "glb": "assets/models/effects/fx_quickhands.glb",
-    "loops": []
-  },
-  "FxRearArrow": {
-    "glb": "assets/models/effects/fx_reararrow.glb",
-    "loops": [
-      "RearArrow"
-    ]
-  },
   "FxSecondWind": {
     "glb": "assets/models/effects/fx_secondwind.glb",
-    "loops": []
-  },
-  "FxSideArrows": {
-    "glb": "assets/models/effects/fx_sidearrows.glb",
     "loops": []
   },
   "FxSoulChain": {
@@ -165,24 +94,6 @@
   "FxSpellPierce": {
     "glb": "assets/models/effects/fx_spellpierce.glb",
     "loops": []
-  },
-  "FxSteadfast": {
-    "glb": "assets/models/effects/fx_steadfast.glb",
-    "loops": []
-  },
-  "FxStrength": {
-    "glb": "assets/models/effects/fx_strength.glb",
-    "loops": []
-  },
-  "FxSwiftArrows": {
-    "glb": "assets/models/effects/fx_swiftarrows.glb",
-    "loops": []
-  },
-  "FxTrackingEye": {
-    "glb": "assets/models/effects/fx_trackingeye.glb",
-    "loops": [
-      "TrackingEye_Flight"
-    ]
   },
   "FxTwinCast": {
     "glb": "assets/models/effects/fx_twincast.glb",

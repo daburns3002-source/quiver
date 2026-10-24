@@ -2238,17 +2238,11 @@ local Balance = {
 		-- parts are posed every frame
 		maxParts = 40,
 		caps = {
-			-- trails ride arrows, which come in volleys
-			FxSwiftArrows = 12,
-			FxLongShot = 12,
 			FxSoulChain = 6,
 			FxBlaze = 6,
 			FxDeadlyStrike = 3,
 			FxBloodletting = 3,
-			FxLightfoot = 4,
-			FxExecute = 6,
 			FxCleave = 3,
-			FxTrackingEye = 8,
 			FxChainLightning = 6,
 		},
 		-- the stepped pop of an effect with no clip: each step's length, and
@@ -2262,31 +2256,14 @@ local Balance = {
 		-- Deadly Strike: the skull, this far above the hit, for its 0.45 s clip
 		critLift = 1.5,
 		critLife = 0.5,
-		-- Strength: where the cuffs sit from the upper torso, and when the
-		-- Flex follows the Settle on a pick
-		strengthOffset = CFrame.new(0, -0.6, 0),
-		strengthFlexAfter = 0.35,
 		-- Blaze: the tuft's height up the burning body (0 feet, 1 head)
 		blazeHeight = 0.9,
-		-- Precision: how long the Lock beat holds before tracking again
-		precisionLock = 0.3,
 		-- Agility: the after-image's 0.4 s Dodge
 		dodgeLife = 0.45,
 		-- the chest's height above the root, and over the head, for effects
 		-- that fly into or pop above the player
 		chest = 0.6,
 		overHead = 3.6,
-		-- Lightfoot: a puff per this many studs moved (divided by the card's
-		-- level), this far behind and above the floor, for its 0.4 s clip
-		puffEvery = 7,
-		puffBehind = 1.2,
-		puffLift = 0.4,
-		puffLife = 0.45,
-		-- Mending: a mote a second while hurt, off a shoulder
-		moteEvery = 1,
-		moteShoulder = 0.9,
-		moteLift = 1.2,
-		moteLife = 1.05,
 		-- Bloodthirst: the drop leaves the corpse after the death pop, in a
 		-- short arc this high
 		dropDelay = 0.12,
@@ -2300,17 +2277,10 @@ local Balance = {
 		-- Vitality's heart and Heal's flask, over the head
 		heartLife = 1.25,
 		flaskLife = 1.05,
-		-- Ranger: flares at the bow sit this far ahead of the archer
+		-- what plays at the bow (Overdraw's release, Twin Cast, Arcane Echo)
+		-- sits this far ahead of the player
 		bowAhead = 1.4,
 		flareLife = 0.32,
-		rearLife = 0.85,
-		-- Dual Bows' burst, the loud one: at most once in this many seconds
-		dualBowsEvery = 2,
-		dualBowsLife = 0.7,
-		-- Swift Arrows' and Long Shot's trails ride an arrow at most this
-		-- long; Long Shot starts this small and grows to full by `farRange`
-		trailLife = 2,
-		longShotMin = 0.35,
 		pierceLife = 0.3,
 		bounceLife = 0.35,
 		-- Blast Arrows' starburst is this wide in its own studs; it is drawn
@@ -2321,22 +2291,6 @@ local Balance = {
 		chainLength = 10,
 		chainLift = 1.1,
 		chainLife = 0.35,
-		-- Warden: a plate's white flash
-		plateFlash = 0.1,
-		-- Iron Skin's plates: height on the body, turn (radians a second),
-		-- and how dim they rest (0 solid, 1 gone)
-		platesLift = 0.3,
-		platesTurn = 0.6,
-		platesDim = 0.45,
-		-- Quick Hands' chevrons, behind and above the Warden
-		chevronBehind = 1.5,
-		chevronLift = 1.5,
-		chevronLife = 0.3,
-		-- Long Reach's ghost blade, past the swing's reach
-		reachLift = 1,
-		reachLife = 0.3,
-		-- Steadfast: a swing's length for its first two plates
-		steadfastSwing = 0.5,
 		slamLife = 0.6,
 		cleaveLife = 0.4,
 		-- Bloodletting: its full length in studs, where its heart sits
@@ -2344,26 +2298,12 @@ local Balance = {
 		drainLength = 8,
 		drainHeart = 3.6,
 		drainLife = 0.5,
-		-- Execute: drawn ×1.9 so its ring fits a 3-stud enemy; the mark and
-		-- the drop sit this far either side of the model's middle
-		executeScale = 1.9,
-		executeMark = 2.4,
-		executeDrop = -2.6,
-		-- a death this close to a brand is the brand's kill
-		executeMatch = 2,
-		executeLife = 0.6,
 		-- Earthbreaker's debris, drawn at the slam's real radius
 		earthbreakerRadius = 5.5,
 		earthbreakerLife = 0.8,
 		-- Arcanist: Twin Cast's and Arcane Echo's beats at the staff
 		twinLife = 0.6,
 		echoLife = 0.9,
-		-- Homing Orbs' crosshair, above the target's middle
-		crosshairLift = 0.4,
-		-- Mana Flow's orbit, this far above the staff hand
-		staffHead = 2.2,
-		-- Bigger Orbs' shell plays its level's clip over this long
-		shellSpan = 0.5,
 		-- Chain Lightning's bolt: segments, width, how far each kink pushes
 		-- off the line, how often it re-kinks, its colours and life
 		boltSegments = 6,

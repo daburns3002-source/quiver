@@ -7,8 +7,10 @@
 	  (`Balance.UpgradeFx.maxParts`), because each copy's parts are posed
 	  every frame. A raw Claude Design export is one part per cube (Heavy
 	  Blade was 771); assets/models/effects/optimise_effect.py merges them.
-	- Ricochet, Front Arrow, Double Shot and Multishot keep their upgrades
-	  but have no effect: their arrows are the effect.
+	- Twenty-four upgrades have no effect, though the upgrades stay:
+	  Ricochet, Front Arrow, Double Shot and Multishot never had one (their
+	  arrows are the effect), and twenty more were cut as clutter
+	  (owner, 2026-10-24).
 
 	And the plumbing: every import has its clip data and every clip data its
 	import, every part rides a joint the data has, and every cap names an
@@ -81,8 +83,35 @@ return function(t: TestRunner.Helper)
 		end
 	end)
 
-	t.test("the four projectile cards have no effect of their own", function()
-		for _, id in { "Ricochet", "FrontArrow", "DoubleShot", "Multishot" } do
+	t.test("the cards the owner left without an effect have none", function()
+		for _, id in
+			{
+				"Ricochet",
+				"FrontArrow",
+				"DoubleShot",
+				"Multishot",
+				"Strength",
+				"Precision",
+				"Momentum",
+				"Lightfoot",
+				"Mending",
+				"SideArrows",
+				"DiagonalArrows",
+				"RearArrow",
+				"DualBows",
+				"SwiftArrows",
+				"LongShot",
+				"PiercingShot",
+				"QuickHands",
+				"IronSkin",
+				"LongReach",
+				"Steadfast",
+				"Execute",
+				"TrackingEye",
+				"BiggerOrbs",
+				"ManaFlow",
+			}
+		do
 			t.isTrue(imported[`Fx{id}`] == nil, `Fx{id} is imported`)
 			t.isTrue(clips[`Fx{id}`] == nil, `Fx{id} has clip data`)
 		end

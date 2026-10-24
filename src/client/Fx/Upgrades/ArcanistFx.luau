@@ -1,14 +1,9 @@
 --!strict
 --[[
-	The Arcanist's upgrades (docs/effects/arcanist-orbs.md,
-	arcanist-spells.md). The three that touch the orb sit on three different
-	axes so they stack: Twin Cast across the lane, Homing Orbs along it,
-	Arcane Echo behind it in time.
+	The Arcanist's upgrades with an effect (docs/effects/arcanist-orbs.md,
+	arcanist-spells.md). Homing Orbs, Bigger Orbs and Mana Flow had effects
+	too; the owner cut them as clutter (2026-10-24).
 
-	- Homing Orbs: a bending tail on each orb, and one crosshair on the
-	  target (once per target, never per orb).
-	- Bigger Orbs: the blast shell, a clip per level, where an orb bursts.
-	- Mana Flow: droplets orbiting the staff, faster per level.
 	- Twin Cast: the twin orbs and their link as the cast leaves.
 	- Arcane Echo: the pale ghost that follows the cast.
 	- Spell Pierce: lance, puncture and shards at each body passed through.
@@ -26,8 +21,6 @@ local Workspace = game:GetService("Workspace")
 local Aim = require(ReplicatedStorage.Shared.Combat.Aim)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local FxEvents = require(script.Parent.FxEvents)
-local LocalFiring = require(script.Parent.Parent.Parent.Combat.LocalFiring)
-local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local UpgradeFx = require(script.Parent.UpgradeFx)
 
 local K = Balance.UpgradeFx
@@ -36,17 +29,6 @@ local ArcanistFx = {}
 
 local function arcanist(): boolean
 	return UpgradeFx.class() == "Arcanist"
-end
-
-local function hide(model: Model?, word: string)
-	if not model then
-		return
-	end
-	for _, part in model:GetChildren() do
-		if part:IsA("BasePart") and string.find(part.Name, word, 1, true) then
-			part.Transparency = 1
-		end
-	end
 end
 
 local function atStaff(aim: Vector3): CFrame?
@@ -170,13 +152,10 @@ local function nearestEnemy(from: Vector3, heading: Vector3): Vector3?
 end
 
 local function onLaunched(part: BasePart, pool: string, aim: Vector3, chained: boolean)
-	if pool ~= "PlayerOrb" then
+	if pool ~= "PlayerOrb" or not chained or UpgradeFx.level("ChainLightning") <= 0 then
 		return
 	end
-	if chained then
-		if UpgradeFx.level("ChainLightning") <= 0 then
-			return
-		end
+	do
 		local from = part.Position
 		local heading = UpgradeFx.flat(aim)
 		local to = nearestEnemy(from, heading)
@@ -189,77 +168,6 @@ local function onLaunched(part: BasePart, pool: string, aim: Vector3, chained: b
 				motion = UpgradeFx.pop(1, 0.1),
 			})
 		end
-		return
-	end
-	if UpgradeFx.level("TrackingEye") > 0 then
-		local tail = UpgradeFx.play("FxTrackingEye", {
-			at = part.CFrame,
-			clip = "TrackingEye_Flight",
-			life = K.trailLife,
-			follow = function(): CFrame?
-				return if part.Parent then part.CFrame else nil
-			end,
-		})
-		-- the crosshair is drawn once per target, not per orb
-		hide(tail, "Crosshair")
-	end
-end
-
--- Homing Orbs' crosshair, on the target being aimed at
-local crosshair: Model? = nil
-local crosshairTarget: Model? = nil
-local function crosshairStep()
-	local target = if arcanist() and UpgradeFx.level("TrackingEye") > 0
-		then LocalFiring.currentTarget()
-		else nil
-	if target ~= crosshairTarget and crosshair then
-		UpgradeFx.stop(crosshair)
-		crosshair = nil
-	end
-	crosshairTarget = target
-	if target and not crosshair then
-		crosshair = UpgradeFx.play("FxTrackingEye", {
-			at = target:GetPivot(),
-			clip = "TrackingEye_Flight",
-			life = math.huge,
-			follow = function(): CFrame?
-				if not target.Parent then
-					return nil
-				end
-				return CFrame.new(target:GetPivot().Position + Vector3.new(0, K.crosshairLift, 0))
-			end,
-		})
-		hide(crosshair, "Tail")
-		hide(crosshair, "Spark")
-	end
-end
-
--- Mana Flow's droplets, round the staff
-local mana: Model? = nil
-local function manaStep()
-	local level = if arcanist() then UpgradeFx.level("ManaFlow") else 0
-	if level <= 0 then
-		if mana then
-			UpgradeFx.stop(mana)
-			mana = nil
-		end
-		return
-	end
-	if not mana then
-		mana = UpgradeFx.play("FxManaFlow", {
-			at = CFrame.new(),
-			clip = `ManaFlow_Cast_L{math.min(level, 3)}`,
-			life = math.huge,
-			follow = function(): CFrame?
-				local root = UpgradeFx.root()
-				local character = root and root.Parent
-				local hand = character and character:FindFirstChild("RightHand")
-				if hand and hand:IsA("BasePart") then
-					return CFrame.new(hand.Position + Vector3.new(0, K.staffHead, 0))
-				end
-				return if root then root.CFrame * CFrame.new(0.8, K.staffHead, 0) else nil
-			end,
-		})
 	end
 end
 
@@ -277,10 +185,6 @@ local function onFired(aim: Vector3)
 	if UpgradeFx.level("ArcaneEcho") > 0 then
 		UpgradeFx.play("FxArcaneEcho", { at = at, clip = "ArcaneEcho_Repeat", life = K.echoLife })
 	end
-	if mana then
-		local level = math.min(UpgradeFx.level("ManaFlow"), 3)
-		UpgradeFx.clip(mana, `ManaFlow_Cast_L{level}`)
-	end
 end
 
 local function onContact(position: Vector3, heading: Vector3, pool: string, pierceLeft: number)
@@ -291,19 +195,6 @@ local function onContact(position: Vector3, heading: Vector3, pool: string, pier
 		at = CFrame.lookAt(position, position + UpgradeFx.flat(heading)),
 		life = K.pierceLife,
 		motion = UpgradeFx.pop(1, 0.12),
-	})
-end
-
-local function onExplosion(centre: Vector3, _radius: number)
-	local level = if arcanist() then UpgradeFx.level("BiggerOrbs") else 0
-	if level <= 0 then
-		return
-	end
-	UpgradeFx.play("FxBiggerOrbs", {
-		at = CFrame.new(UpgradeFx.floor(centre, 0)),
-		clip = `BiggerOrbs_Impact_L{math.min(level, 3)}`,
-		span = K.shellSpan,
-		life = K.shellSpan + 0.05,
 	})
 end
 
@@ -346,11 +237,6 @@ function ArcanistFx.start(parent: Instance)
 	FxEvents.fired:connect(onFired)
 	FxEvents.contact:connect(onContact)
 	FxEvents.meteor:connect(onMeteor)
-	Remotes.event(Remotes.Explosion).OnClientEvent:Connect(onExplosion)
-	RunService.Heartbeat:Connect(function()
-		crosshairStep()
-		manaStep()
-	end)
 end
 
 return ArcanistFx

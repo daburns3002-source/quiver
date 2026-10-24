@@ -64,7 +64,7 @@ export type ArenaModel = {
 
 --[[
 	Act 1, area 1: the Mossy Glade, five arenas for Level 1's rooms (owner,
-	2026-10-22): logs, pond, boulders, thorns, boss. Since 2026-10-24 every
+	2026-10-22): logs, hollow, boulders, thorns, boss. Since 2026-10-24 every
 	one is built from the owner's blocky kit (`Config/ArenaKits`), laid out
 	to the room's own cover boxes in `Balance`; the forest round it is still
 	the round models' until a blocky forest exists.
@@ -136,7 +136,12 @@ end
 
 local ArenaModels = {
 	GladeLogs = glade("Thicket"),
-	GladePond = glade("Water"),
+	--[[ Was the pond, until the owner took the water out of the Mossy Glade
+	     (2026-10-24). The room keeps its shape — the wide low patch is now a
+	     bramble hollow, which blocks walking and lets arrows over exactly as
+	     the water did. `glade("Water")` still works and area 3, the Drowned
+	     Village, will want it. ]]
+	GladeHollow = glade("Thicket"),
 	GladeBoulders = glade("Thicket"),
 	GladeThorns = glade("Thicket"),
 	GladeBoss = glade("Thicket"),

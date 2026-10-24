@@ -19,7 +19,7 @@ local Pathing = require(ServerScriptService.Server.Enemies.Pathing)
 local TestRunner = require(script.Parent.TestRunner)
 
 --[[ A spot behind each room's main cover, as seen from the south where a
-     room's enemies arrive. Room order is Level 1's: logs, pond, boulders,
+     room's enemies arrive. Room order is Level 1's: logs, hollow, boulders,
      thorns, boss arena. ]]
 local BEHIND = {
 	Vector3.new(-2.4, 0, -16),

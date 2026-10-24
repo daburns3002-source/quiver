@@ -24,24 +24,25 @@ return table.freeze({
 		{
 			name = "wing_right",
 			parent = "winged_body",
-			rest = { 2.125, 0.625, -0.375, 0, 0, 0, 1, 1, 1, 1 },
+			rest = { 1.625, 1, -1, 0, 0, 0, 1, 1, 1, 1 },
 		},
 		{
 			name = "wing_right_tip",
 			parent = "wing_right",
-			rest = { 2.25, 0.375, 0, 0, 0, 0, 1, 1, 1, 1 },
+			rest = { 2.2063, 2.5609, -2.827, 0, 0, 0, 1, 1, 1, 1 },
 		},
 		{
 			name = "wing_left",
 			parent = "winged_body",
-			rest = { -2.125, 0.625, -0.375, 0, 0, 0, 1, 1, 1, 1 },
+			rest = { -1.625, 1, -1, 0, 0, 0, 1, 1, 1, 1 },
 		},
 		{
 			name = "wing_left_tip",
 			parent = "wing_left",
-			rest = { -2.25, 0.375, 0, 0, 0, 0, 1, 1, 1, 1 },
+			rest = { -2.2063, 2.5609, -2.827, 0, 0, 0, 1, 1, 1, 1 },
 		},
 		{ name = "halo", parent = "winged_body", rest = { 0, 2.75, 0, 0, 0, 0, 1, 1, 1, 1 } },
+		{ name = "heart_flare", parent = "winged_body", rest = { 0, 0, 0, 0, 0, 0, 1, 1, 1, 1 } },
 		{ name = "halo_spark_01", parent = "winged_body", rest = { 1, 3, 0, 0, 0, 0, 1, 1, 1, 1 } },
 		{
 			name = "halo_spark_02",
@@ -94,7 +95,6 @@ return table.freeze({
 			parent = "winged_body",
 			rest = { 0.866, 3, -0.5, 0, 0, 0, 1, 1, 1, 1 },
 		},
-		{ name = "heart_flare", parent = "winged_body", rest = { 0, 0, 0, 0, 0, 0, 1, 1, 1, 1 } },
 	},
 	parts = {
 		["secondwind_halo_Mesh1"] = {
@@ -174,23 +174,23 @@ return table.freeze({
 		},
 		["secondwind_wing_left_Mesh1"] = {
 			joint = "wing_left",
-			cframe = { -2.875, 2.5, -0.375, 0, 0, 0, 1 },
-			size = { 3, 2, 0.5 },
+			cframe = { -3.1244, 3.6777, -1.7496, 0, 0, 0, 1 },
+			size = { 4.6174, 4.9299, 4.5366 },
 		},
 		["secondwind_wing_left_tip_Mesh1"] = {
 			joint = "wing_left_tip",
-			cframe = { -5.5, 2.75, -0.375, 0, 0, 0, 1 },
-			size = { 2.25, 1.5, 0.5 },
+			cframe = { -6.2594, 4.2312, -3.4305, 0, 0, 0, 1 },
+			size = { 5.5702, 2.7457, 2.5758 },
 		},
 		["secondwind_wing_right_Mesh1"] = {
 			joint = "wing_right",
-			cframe = { 2.875, 2.5, -0.375, 0, 0, 0, 1 },
-			size = { 3, 2, 0.5 },
+			cframe = { 3.1244, 3.6777, -1.7496, 0, 0, 0, 1 },
+			size = { 4.6174, 4.9299, 4.5366 },
 		},
 		["secondwind_wing_right_tip_Mesh1"] = {
 			joint = "wing_right_tip",
-			cframe = { 5.5, 2.75, -0.375, 0, 0, 0, 1 },
-			size = { 2.25, 1.5, 0.5 },
+			cframe = { 6.2594, 4.2312, -3.4305, 0, 0, 0, 1 },
+			size = { 5.5702, 2.7457, 2.5758 },
 		},
 	},
 	clips = {

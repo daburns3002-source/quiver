@@ -115,6 +115,20 @@ local Sounds: { [string]: Sound } = {
 	card_click = { id = "rbxassetid://10128760939", volume = 0.6, pitchJitter = 0, minGap = 0.05 },
 	card_reroll = { id = "rbxassetid://10128766965", volume = 0.6, pitchJitter = 0, minGap = 0.2 },
 	card_choose = { id = "rbxassetid://10066947742", volume = 0.7, pitchJitter = 0, minGap = 0.2 },
+	--[[ The upgrade effects' sounds (owner, 2026-10-24), auditioned as round
+	     12 (assets/audio/effect_sounds.py): silent until the owner's picks
+	     are uploaded and their ids go here. Played by `Fx/Upgrades/*` where
+	     each effect fires; the frequent ones are spaced by `minGap`. ]]
+	fx_blaze = { id = "", volume = 0.5, pitchJitter = 0.08, minGap = 0.25 },
+	fx_heal = { id = "", volume = 0.7, pitchJitter = 0, minGap = 0.2 },
+	fx_overdraw = { id = "", volume = 0.6, pitchJitter = 0.05, minGap = 0.3 },
+	fx_blast_arrows = { id = "", volume = 0.5, pitchJitter = 0.1, minGap = 0.12 },
+	fx_soul_chain = { id = "", volume = 0.5, pitchJitter = 0.08, minGap = 0.2 },
+	fx_heavy_blade = { id = "", volume = 0.7, pitchJitter = 0.05, minGap = 0.3 },
+	fx_bloodletting = { id = "", volume = 0.4, pitchJitter = 0.1, minGap = 0.25 },
+	fx_earthbreaker = { id = "", volume = 0.8, pitchJitter = 0, minGap = 0.5 },
+	fx_chain_lightning = { id = "", volume = 0.5, pitchJitter = 0.12, minGap = 0.1 },
+	fx_meteor = { id = "", volume = 0.7, pitchJitter = 0.05, minGap = 0.3 },
 }
 
 return table.freeze(Sounds)

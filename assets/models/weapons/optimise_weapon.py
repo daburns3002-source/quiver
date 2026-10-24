@@ -10,6 +10,7 @@ a few named groups so the game can treat them apart (the gem glows; the
 arrow is drawn on its own). Centred on its bounds; not turned, since how a
 weapon is held is the game's to decide.
 """
+import json
 import sys
 
 import numpy as np
@@ -220,12 +221,59 @@ def claims(name, prefix):
     return name.startswith(prefix)
 
 
+def emissive_by_node():
+    """Each mesh node's glow as its design drew it: the strongest emissive
+    (factor times KHR_materials_emissive_strength) among its materials. Read
+    from the GLB itself, because trimesh drops the strength extension."""
+    with open(SRC, "rb") as f:
+        data = f.read()
+    length = int.from_bytes(data[12:16], "little")
+    gltf = json.loads(data[20 : 20 + length])
+    materials = gltf.get("materials", [])
+
+    def glow(index):
+        m = materials[index]
+        strength = m.get("extensions", {}).get("KHR_materials_emissive_strength", {}).get("emissiveStrength", 1)
+        return max(m.get("emissiveFactor", [0, 0, 0])) * strength
+
+    out = {}
+    for node in gltf.get("nodes", []):
+        if "mesh" in node:
+            prims = gltf["meshes"][node["mesh"]]["primitives"]
+            out[node.get("name", "")] = max((glow(p["material"]) for p in prims if "material" in p), default=0)
+    return out
+
+
+#: A part glows in the game (its weapon's glow group is drawn Neon) when its
+#: name says so (GLOWS) or when its material does: the design's glow at or
+#: above this. Names alone missed glowing parts named for what they are, not
+#: that they glow (the Broodsplit Blade's slime core, the Thorn Blade's
+#: mushrooms, the Firefly Fangs' lantern windows; owner, 2026-10-24: "make
+#: sure in game that the weapons that will have a glow, have their glows").
+GLOW_EMISSIVE = 0.45
+#: Never glow by name alone: the setting a gem sits in and a lantern's
+#: frame, not the gem or the light (a part whose material glows still does).
+NOT_GLOW = ("housing", "socket", "caps", "frame")
+EMISSIVE = emissive_by_node()
+
+
+def glows(name):
+    # a bow's string stays its own group, which the bow-string animation needs
+    return EMISSIVE.get(name, 0) >= GLOW_EMISSIVE and "string" not in name.lower()
+
+
 if WEAPON in BLOCKY:
     spec = BLOCKY[WEAPON]
     for group, prefixes in spec["groups"].items():
         pieces = []
+        glow_group = prefixes is GLOWS
         for name, (g, srgb) in parts.items():
-            if name not in claimed and any(claims(name, p) for p in prefixes):
+            if name in claimed:
+                continue
+            named = any(claims(name, p) for p in prefixes)
+            if glow_group:
+                named = (named and not any(w in name.lower() for w in NOT_GLOW)) or glows(name)
+            if named:
                 pieces.append(coloured(g, srgb))
                 claimed.add(name)
         if not pieces:

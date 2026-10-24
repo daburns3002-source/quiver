@@ -37,19 +37,15 @@ local BossBanners = {
 	     left to right, top to bottom. ]]
 	sheet = { grid = 2, cell = 512 },
 	--[[ Which frame shows from when (seconds): ready, then the attack
-	     twice — wind-up, strike, follow-through — and ready again. ]]
+	     once — wind-up, strike, follow-through, held to the end (owner,
+	     2026-10-24: "only play the 4 frame animation once"). ]]
 	frames = {
 		{ at = 0, frame = 1 },
-		{ at = 0.95, frame = 2 },
-		{ at = 1.2, frame = 3 },
-		{ at = 1.75, frame = 4 },
-		{ at = 2.3, frame = 1 },
-		{ at = 2.85, frame = 2 },
-		{ at = 3.1, frame = 3 },
-		{ at = 3.65, frame = 4 },
-		{ at = 4.05, frame = 1 },
+		{ at = 1.3, frame = 2 },
+		{ at = 1.7, frame = 3 },
+		{ at = 2.4, frame = 4 },
 	},
-	--[[ How long the icon shakes from each strike, and how far (a share of
+	--[[ How long the icon shakes from the strike, and how far (a share of
 	     the icon's height). ]]
 	shake = { time = 0.3, size = 0.025 },
 	bosses = {

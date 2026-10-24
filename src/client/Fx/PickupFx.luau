@@ -5,8 +5,9 @@
 	Crystals are small cyan faceted gems that pop out of a kill, lie bobbing
 	where they land, and fly into their owner when walked over or, for any
 	left, when the fight clears.
-	Hearts are fat red hearts tilted to face the camera, waiting until someone
-	walks over them.
+	Hearts are blocky pixel hearts in the game's voxel style (owner,
+	2026-10-24): they pop out facing the camera, then, once landed, stand up
+	and spin on the spot until someone walks over them.
 
 	Presentation only. The server decides what drops, where, and who took it;
 	this draws what it is told. A pickup the client never heard about is
@@ -43,7 +44,21 @@ local BOB_HEIGHT = 0.18
 local BOB_SPEED = 3
 local CRYSTAL_SPIN = math.rad(90)
 --[[ Hearts are built a unit across and drawn this much larger. ]]
-local HEART_SCALE = 1.25
+local HEART_SCALE = 1.5
+--[[ A landed heart's turn about the vertical, radians a second. ]]
+local HEART_SPIN = math.rad(150)
+--[[ The pixel heart, top row first: each row's runs of pixels, as
+     { first column, last column } in a 7 by 6 grid. Built as one bar per
+     run, so a heart is seven parts, not twenty-seven cubes. ]]
+local HEART_ROWS = {
+	{ { 2, 3 }, { 5, 6 } },
+	{ { 1, 7 } },
+	{ { 1, 7 } },
+	{ { 2, 6 } },
+	{ { 3, 5 } },
+	{ { 4, 4 } },
+}
+local HEART_PIXEL = 1 / 7
 --[[ Hearts lean back to face the camera, which looks down at this pitch. ]]
 local HEART_TILT = math.rad(Balance.Camera.pitch)
 
@@ -97,25 +112,31 @@ local function buildHeart(): Model
 	local model = Instance.new("Model")
 	model.Name = "Heart"
 	local colour = Balance.Pickups.heartColor
+	local px = HEART_PIXEL
+	local rows = #HEART_ROWS
 
-	--[[ Two lobes over a diamond, in the heart's own plane (X across, Y up),
-	     with a white shine on the left lobe. ]]
-	local left = part(model, Enum.PartType.Ball, Vector3.one, colour)
-	offset(left, CFrame.new(-0.29, 0.14, 0))
-	local right = part(model, Enum.PartType.Ball, Vector3.one, colour)
-	offset(right, CFrame.new(0.29, 0.14, 0))
-	local point = part(model, Enum.PartType.Block, Vector3.new(0.9, 0.9, 0.66), colour)
-	offset(point, CFrame.new(0, -0.17, 0) * CFrame.Angles(0, 0, math.rad(45)))
+	--[[ Each run of pixels one block, a pixel deep, centred on the grid's
+	     middle in the heart's own plane (X across, Y up). ]]
+	for row, runs in HEART_ROWS do
+		local y = ((rows + 1) / 2 - row) * px
+		for _, run in runs do
+			local first, last = run[1], run[2]
+			local bar = part(
+				model,
+				Enum.PartType.Block,
+				Vector3.new((last - first + 1) * px, px, px),
+				colour
+			)
+			offset(bar, CFrame.new(((first + last) / 2 - 4) * px, y, 0))
+		end
+	end
 
-	local shine = part(model, Enum.PartType.Ball, Vector3.one * 0.2, Color3.new(1, 1, 1))
-	shine.Material = Enum.Material.Neon
-	offset(shine, CFrame.new(-0.42, 0.34, 0.38))
-
-	--[[ A soft disc behind it, in its plane: a cylinder turned to face out. ]]
-	local glow = part(model, Enum.PartType.Cylinder, Vector3.new(0.1, 1.7, 1.7), colour)
-	glow.Material = Enum.Material.Neon
-	glow.Transparency = 0.86
-	offset(glow, CFrame.new(0, 0, -0.45) * CFrame.Angles(0, math.rad(90), 0))
+	--[[ The pixel shine, top left, on both faces so it shows as it turns. ]]
+	for _, side in { 1, -1 } do
+		local shine =
+			part(model, Enum.PartType.Block, Vector3.new(px, px, px * 0.2), Color3.new(1, 1, 1))
+		offset(shine, CFrame.new(-2 * px, ((rows + 1) / 2 - 2) * px, side * px * 0.55))
+	end
 
 	model:SetAttribute("Scale", HEART_SCALE)
 	model.Parent = folder
@@ -190,13 +211,19 @@ local function step()
 			end
 		end
 
-		local turn = if visual.kind == "Heart"
-			then CFrame.Angles(0, math.sin(now * 1.6 + visual.phase) * math.rad(10), 0) * CFrame.Angles(
-				-HEART_TILT,
-				0,
-				0
-			)
-			else CFrame.Angles(0, now * CRYSTAL_SPIN + visual.phase, 0)
+		local turn
+		if visual.kind == "Heart" then
+			local landedFor = now - visual.bornAt - POP_TIME
+			if landedFor < 0 or visual.takenAt then
+				-- in the air: leaning back to face the camera
+				turn = CFrame.Angles(-HEART_TILT, 0, 0)
+			else
+				-- landed: upright, spinning on the spot
+				turn = CFrame.Angles(0, landedFor * HEART_SPIN, 0)
+			end
+		else
+			turn = CFrame.Angles(0, now * CRYSTAL_SPIN + visual.phase, 0)
+		end
 
 		place(visual, centre, turn, scale)
 	end

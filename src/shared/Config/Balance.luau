@@ -1611,11 +1611,14 @@ local Balance = {
 	     pics"): a mid-afternoon sun with a golden cast, a warm ambient in
 	     place of the old blue-violet one so the shade under the trees reads
 	     green rather than black, softer shadows, and a tighter bloom, which
-	     at the old size swelled every glowing mushroom into a cyan blob. ]]
+	     at the old size swelled every glowing mushroom into a cyan blob.
+	     Then dimmed a step with a little more contrast, so the bright
+	     lawn stops washing everything out (owner, 2026-10-24: "darker
+	     lighting ... to make everything a little more readable"). ]]
 	Lighting = {
-		ambient = Color3.fromRGB(150, 150, 125),
-		outdoorAmbient = Color3.fromRGB(175, 178, 140),
-		brightness = 2.6,
+		ambient = Color3.fromRGB(118, 118, 98),
+		outdoorAmbient = Color3.fromRGB(140, 143, 112),
+		brightness = 2.1,
 		clockTime = 15.6,
 		geographicLatitude = 30,
 		sunTint = Color3.fromRGB(255, 225, 175),
@@ -1626,8 +1629,8 @@ local Balance = {
 		bloomSize = 10,
 		bloomThreshold = 1.1,
 		saturation = 0.05,
-		contrast = 0.06,
-		gradeBrightness = 0.02,
+		contrast = 0.12,
+		gradeBrightness = -0.04,
 		gradeTint = Color3.fromRGB(255, 247, 230),
 		--[[ The distance haze: a sunlit yellow-green, so the screen's edges
 		     read as the glade going on into warm mist, never grey space

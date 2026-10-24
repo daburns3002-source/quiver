@@ -28,7 +28,28 @@ local function round(v)
 	return math.floor(v * 1e5 + 0.5) / 1e5
 end
 
-local children = workspace:GetChildren()
+--[[
+	Imports are moved out of the Workspace into ServerStorage.Imports once
+	their ids are dumped: left in the world, every playtest replicates and
+	draws them, and 65 of them took a playtest from 60 FPS to 26 (docs/FIXES.md).
+	So a dump reads both places. One that read only the Workspace after the
+	move would miss every stored import, and imports_to_luau.py prunes any
+	module it does not regenerate — the pets and King Bloblin with them.
+	Stored imports are keyed "#S<n>" so they never collide with a Workspace one.
+]]
+local children, tags = {}, {}
+for _, child in workspace:GetChildren() do
+	table.insert(children, child)
+	table.insert(tags, "")
+end
+local stored = game:GetService("ServerStorage"):FindFirstChild("Imports")
+if stored then
+	for _, child in stored:GetChildren() do
+		table.insert(children, child)
+		table.insert(tags, "S")
+	end
+end
+
 local seen = {}
 for _, child in children do
 	seen[child.Name] = (seen[child.Name] or 0) + 1
@@ -42,7 +63,7 @@ for i, child in children do
 		and child:IsA("Model")
 		and (#NAMES == 0 or table.find(NAMES, child.Name))
 	then
-		local key = if seen[child.Name] > 1 then child.Name .. "#" .. i else child.Name
+		local key = if seen[child.Name] > 1 then child.Name .. "#" .. tags[i] .. i else child.Name
 		roots[key] = child
 	end
 end

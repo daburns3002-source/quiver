@@ -16,6 +16,18 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## The playtest lagged badly after a big import
+
+**Symptom**: 2026-10-24, owner: "the playtest is lagging a lot now", right after importing the 44 upgrade effects. Measured over 4 s of a fresh playtest: **26 FPS**, 38.7 ms average frame, 133.6 ms at the 95th percentile, a 323 ms worst frame. The client was drawing 4,826 parts.
+
+**Cause**: every Studio import lands in the Workspace and stays there. 65 of them had piled up — pets, King Bloblin, weapons and the 44 raw effects — **4,167 MeshParts**, Heavy Blade alone 771. The game never uses them (it builds every model from `Config`; no runtime code reads an import), but in the Workspace every playtest replicated and drew all of them.
+
+**Fix**: moved all 65 into `ServerStorage.Imports`, which is neither replicated nor drawn. Both dump scripts (`tools/studio/dump_models.luau`, `dump_imports.luau`) now read there as well as the Workspace — without that, the next dump would find none of them, and `imports_to_luau.py` would prune the pets' and King Bloblin's modules for not being regenerated. `docs/PIPELINES.md` now says to move an import there as soon as it is dumped.
+
+**Measured**: same playtest after the move: **60 FPS**, 16.7 ms average, 17.9 ms p95, 19.3 ms worst; the client draws 577 parts. Putting the imports back reproduced 26 FPS, so the move is the cause, not a coincidence.
+
+---
+
 ## King Bloblin stood frozen, or held his lash fist on the floor
 
 **Symptom**: 2026-10-24, Studio playtest of room 10 after #197.

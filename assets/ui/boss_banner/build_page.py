@@ -2,7 +2,7 @@
 
     python -I assets/ui/boss_banner/build_page.py <out.html>
 
-Embeds the cut-out icons (`cutout.py`) and the first 7 s of King Bloblin's
+Embeds the cut-out icons and attack sheets (`cutout.py`) and the first 7 s of King Bloblin's
 theme (its 4.7 s battle intro, cut with ffmpeg) into `page_template.html`,
 so each banner plays in time with the music. The owner's picks save to the
 published page's database, collection `picks`: `banner` {style},
@@ -34,8 +34,8 @@ BOSSES = [
 ]
 
 
-def icon_uri(key: str) -> str:
-    img = Image.open(HERE / "icons" / f"{key}.png").resize((320, 320), Image.LANCZOS)
+def icon_uri(key: str, size: int = 320) -> str:
+    img = Image.open(HERE / "icons" / f"{key}.png").resize((size, size), Image.LANCZOS)
     buf = io.BytesIO()
     img.save(buf, "PNG", optimize=True)
     return "data:image/png;base64," + base64.b64encode(buf.getvalue()).decode()
@@ -56,7 +56,7 @@ def main() -> None:
     out = pathlib.Path(sys.argv[1])
     bosses = [
         {"key": k, "name": n, "title": t, "area": a, "act": act, "tint": tint, "deep": deep,
-         "built": built, "icon": icon_uri(k)}
+         "built": built, "icon": icon_uri(k), "sheet": icon_uri(k + "_attack", 640)}
         for k, n, t, a, act, tint, deep, built in BOSSES
     ]
     page = (HERE / "page_template.html").read_text(encoding="utf-8")

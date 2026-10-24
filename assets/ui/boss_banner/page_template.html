@@ -93,6 +93,8 @@ footer { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify
 .bn { position: absolute; inset: 0; --tint: #6cc24a; --deep: #2c5a1d; }
 .bn .ttl { font-family: var(--display); color: #fff; line-height: .95; white-space: nowrap; }
 .bn img.ic { display: block; image-rendering: auto; filter: drop-shadow(0 .6cqh 0 rgba(0,0,0,.35)); }
+.bn .ic.sprite { aspect-ratio: 1; background-size: 200% 200%; background-repeat: no-repeat; filter: drop-shadow(0 .6cqh 0 rgba(0,0,0,.35)); }
+.sprite-wrap { translate: var(--sx, 0) var(--sy, 0); }
 .flash { position: absolute; inset: 0; background: #fff; opacity: 0; animation: flash .5s ease-out both; }
 @keyframes flash { 0% { opacity: 0 } 12% { opacity: 1 } 100% { opacity: 0 } }
 
@@ -222,7 +224,7 @@ footer { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify
   <header>
     <span class="eyebrow">Arrow Legends · boss rooms, Acts 1–3</span>
     <h1>Boss Entry Banners</h1>
-    <p class="lede">Each banner plays over the 4.7 s battle intro of the boss music, as you walk into a boss room. Pick a boss, press Play on a style (sound on to hear it with the intro), and pick your favourite. Picks save as you go and I read them from here.</p>
+    <p class="lede">Your pick, <strong>A · Slash</strong>, now with each boss playing an attack: ready, wind-up, strike (the icon shakes), follow-through, twice over the 4.7 s battle intro. Pick a boss and press Play (sound on to hear it with the intro). The other four styles are still here to compare. Tick any boss whose frames you want redrawn and say how in the notes; it saves as you go.</p>
   </header>
 
   <section class="screen-wrap" aria-label="Preview">
@@ -249,8 +251,8 @@ footer { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify
   </section>
 
   <section aria-labelledby="h-icons" style="display:grid;gap:12px">
-    <h2 id="h-icons">The boss icons</h2>
-    <p class="lede">One 2D blocky portrait per boss, made with Codex from each boss's blocky concept art. Only King Bloblin is in the game so far; the other five are ready for when their fights are built. Tick any you want redrawn and say how in the notes.</p>
+    <h2 id="h-icons">The attack frames</h2>
+    <p class="lede">Four 2D blocky frames per boss, made with Codex from each boss's icon: ready, wind-up, strike, follow-through, read left to right, top to bottom. Only King Bloblin is in the game so far; the other five are ready for when their fights are built. Tick any you want redrawn and say how in the notes.</p>
     <div class="icons" id="icons"></div>
   </section>
 
@@ -288,7 +290,7 @@ function banner(key, b) {
   const ic = `<img class="ic" src="${b.icon}" alt="">`;
   const name = esc(b.name), sub = esc(b.title);
   const style = `--tint:${b.tint};--deep:${b.deep}`;
-  if (key === "A") return `<div class="bn A" style="${style}"><div class="flash"></div><div class="band"></div>${ic}<div class="words"><span class="tag">BOSS</span><span class="ttl">${name}</span><span class="sub">${sub}</span></div></div>`;
+  if (key === "A") return `<div class="bn A" style="${style}"><div class="flash"></div><div class="band"></div><div class="ic sprite" style="background-image:url(${b.sheet})"></div><div class="words"><span class="tag">BOSS</span><span class="ttl">${name}</span><span class="sub">${sub}</span></div></div>`;
   if (key === "B") return `<div class="bn B" style="${style}"><div class="flash"></div><div class="half top"></div><div class="half bot"></div><div class="seam"></div><div class="area"><span class="act">${esc(b.act)}</span><span class="ttl">${esc(b.area)}</span></div>${ic}<div class="boss"><span class="tag">BOSS</span><span class="ttl">${name}</span></div></div>`;
   if (key === "C") {
     let tiles = "";
@@ -308,6 +310,17 @@ function banner(key, b) {
   return `<div class="bn E" style="${style}"><div class="lb t"></div><div class="lb b"></div><div class="strip">${streaks}</div>${ic}<div class="words"><span class="tag">BOSS</span><span class="ttl">${letters}</span><div class="rule"></div><span class="sub">${sub}</span></div></div>`;
 }
 
+const FRAMES = [[0, 1], [0.95, 2], [1.2, 3], [1.75, 4], [2.3, 1], [2.85, 2], [3.1, 3], [3.65, 4], [4.05, 1]];
+const SHAKE = { time: 0.3, size: 0.025 };
+function frameAt(t) { let f = 1, since = 0; for (const [at, fr] of FRAMES) if (t >= at) { f = fr; since = t - at; } return [f, since]; }
+function poseSprite(t) {
+  const el = document.querySelector(".A .sprite"); if (!el) return;
+  const [f, since] = frameAt(t);
+  el.style.backgroundPosition = `${(f - 1) % 2 * 100}% ${Math.floor((f - 1) / 2) * 100}%`;
+  let sh = 0;
+  if (f === 3 && since < SHAKE.time) sh = SHAKE.size * (1 - since / SHAKE.time) * Math.sin(since * 90);
+  el.style.translate = `${(sh * 100).toFixed(2)}cqh ${(sh * 50).toFixed(2)}cqh`;
+}
 let lastKey = null;
 function play(key) {
   lastKey = key;
@@ -323,6 +336,7 @@ function play(key) {
   const tick = () => {
     const t = (performance.now() - t0) / 4700;
     $("bar").style.width = Math.min(100, t * 100) + "%";
+    poseSprite(t * 4.7);
     if (t < 1) raf = requestAnimationFrame(tick);
   };
   tick();
@@ -341,9 +355,9 @@ function renderStyles() {
 }
 function renderIcons() {
   $("icons").innerHTML = BOSSES.map((b) => `<div class="icon-card${state.redo[b.key] ? " redo" : ""}">
-    <img src="${b.icon}" alt="${esc(b.name)} icon">
+    <img src="${b.sheet}" alt="${esc(b.name)}: ready, wind-up, strike, follow-through">
     <span class="who">${esc(b.name)}</span><span class="where">${esc(b.act)} · ${esc(b.area)}${b.built ? "" : " · not built yet"}</span>
-    <label><input type="checkbox" id="redo-${b.key}" data-redo="${b.key}"${state.redo[b.key] ? " checked" : ""}> Redraw this one</label></div>`).join("");
+    <label><input type="checkbox" id="redo-${b.key}" data-redo="${b.key}"${state.redo[b.key] ? " checked" : ""}> Redraw these</label></div>`).join("");
 }
 function summary() {
   const s = STYLES.find((x) => x.key === state.style);

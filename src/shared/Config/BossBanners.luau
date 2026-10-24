@@ -5,9 +5,14 @@
 	when you enter their boss room"), drawn by `UI/BossBanner` over the boss
 	music's battle intro.
 
+	The owner's pick is style A, Slash (audition page, 2026-10-24), with
+	each boss's icon playing an attack in a few frames ("have a couple
+	frames showing an attack animation that goes with the style of boss").
+
 	Keyed by the boss's title, the `Boss` attribute the server sets
-	(`Balance` boss `title`). Icons are Codex's 2D blocky portraits, cut out
-	by `assets/ui/boss_banner/cutout.py` and uploaded by the owner; an empty
+	(`Balance` boss `title`). Each icon is a 2x2 sheet of Codex's 2D blocky
+	frames (ready, wind-up, strike, follow-through), cut out by
+	`assets/ui/boss_banner/cutout.py` and uploaded by the owner; an empty
 	`icon` shows the banner without one. Acts 1–3's six bosses: only King
 	Bloblin is built, the rest wait under the titles docs/BOSSES.md gives them.
 ]]
@@ -28,6 +33,25 @@ local BossBanners = {
 	--[[ Seconds on screen: the length of the boss music's battle intro
 	     (`Config/Music`), which starts on the same tick. ]]
 	duration = 4.7,
+	--[[ The icon sheet: `grid` x `grid` frames of `cell` pixels each, read
+	     left to right, top to bottom. ]]
+	sheet = { grid = 2, cell = 512 },
+	--[[ Which frame shows from when (seconds): ready, then the attack
+	     twice — wind-up, strike, follow-through — and ready again. ]]
+	frames = {
+		{ at = 0, frame = 1 },
+		{ at = 0.95, frame = 2 },
+		{ at = 1.2, frame = 3 },
+		{ at = 1.75, frame = 4 },
+		{ at = 2.3, frame = 1 },
+		{ at = 2.85, frame = 2 },
+		{ at = 3.1, frame = 3 },
+		{ at = 3.65, frame = 4 },
+		{ at = 4.05, frame = 1 },
+	},
+	--[[ How long the icon shakes from each strike, and how far (a share of
+	     the icon's height). ]]
+	shake = { time = 0.3, size = 0.025 },
 	bosses = {
 		["Slime King"] = {
 			name = "King Bloblin",

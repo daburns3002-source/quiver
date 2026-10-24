@@ -19,6 +19,7 @@ local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Classes = require(ReplicatedStorage.Shared.Config.Classes)
 local FxEvents = require(script.Parent.FxEvents)
 local PlayerStats = require(script.Parent.Parent.Parent.PlayerStats)
+local SoundFx = require(script.Parent.Parent.SoundFx)
 local UpgradeFx = require(script.Parent.UpgradeFx)
 
 local K = Balance.UpgradeFx
@@ -45,6 +46,7 @@ local function onBlow(index: number, blows: number, heavy: boolean)
 	local slamAhead = if class and class.swing then class.swing.slamAhead else 5
 	local ahead = UpgradeFx.floor(root.Position, 0) + look * slamAhead
 	if heavy and UpgradeFx.level("HeavyBlade") > 0 then
+		SoundFx.play("fx_heavy_blade")
 		UpgradeFx.play("FxHeavyBlade", {
 			at = CFrame.lookAt(ahead, ahead + look),
 			life = K.slamLife,
@@ -76,6 +78,7 @@ local function onBlow(index: number, blows: number, heavy: boolean)
 			end
 		end
 		if struck then
+			SoundFx.play("fx_bloodletting")
 			local toward = UpgradeFx.flat(struck - root.Position)
 			-- the model's heart is at its -X end, the burst at +X
 			local chest = root.Position + Vector3.new(0, K.chest, 0)
@@ -96,6 +99,7 @@ local function onSlam(origin: Vector3, radius: number)
 	if UpgradeFx.level("Earthbreaker") <= 0 then
 		return
 	end
+	SoundFx.play("fx_earthbreaker")
 	local scale = radius / K.earthbreakerRadius
 	UpgradeFx.play("FxEarthbreaker", {
 		at = CFrame.new(UpgradeFx.floor(origin, 0)),

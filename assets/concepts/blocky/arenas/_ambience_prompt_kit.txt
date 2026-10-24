@@ -1,0 +1,46 @@
+Generate ONE image and save it to this exact path:
+
+  assets/concepts/blocky/arenas/area01_mossy_glade_ambience_kit.jpg
+
+Two reference images attached: the Mossy Glade arena kit sheet, and the new
+ambience view of the forest around that arena. Match their visual language
+EXACTLY — chunky voxel blocks, flat shading, hard edges, no textures, saturated
+colours, soft ambient light with a gentle drop shadow.
+
+This is a KIT SHEET, not a scene. Follow the layout of the first reference's
+right-hand side: individual objects laid out in neat rows on a plain light-grey
+studio backdrop, each piece isolated with space around it, lit the same way, all
+at a consistent three-quarter angle. No scene, no ground plane, no composition —
+a catalogue of parts.
+
+Lay out these pieces in labelled-looking rows (but draw NO text):
+
+Row 1 — trees, the big pieces, drawn as separate whole objects:
+- A tall blocky tree: cube trunk in two browns, canopy of stacked cubes in three
+  greens (dark, mid, bright highlight).
+- A shorter, wider tree of the same construction.
+- A bare cube stump with roots.
+- A single canopy cluster on its own, so its construction is readable.
+
+Row 2 — undergrowth:
+- A cube fern, a cube bush, a grey mossy boulder, a fallen mossy log, a clump of
+  cyan glowing mushroom cubes.
+
+Row 3 — the moving ambience, each drawn large and clearly faceted so its block
+construction is obvious:
+- A falling leaf: ONE small flat rectangular cube, slightly tilted, in
+  yellow-green; and a second in orange. Flat slabs, NOT stars, NOT curved.
+- A firefly: one tiny glowing yellow-green cube with a soft glow around it.
+- A butterfly: exactly two flat angled square wing-slabs meeting at a tiny body,
+  pale blue and white. Hard-edged slabs, NOT soft or rounded wings.
+- A bird: a small dark blocky silhouette, a chunky body cube with two flat
+  angled wing slabs.
+- A mist piece: one flat translucent white slab, low and wide.
+- A light shaft: one angled translucent pale-warm-yellow prism with flat sides.
+
+Row 4 — material swatches, as flat square tiles like the first reference's
+bottom row: bright canopy green, mid leaf green, dark shadow green, trunk brown,
+mossy grey stone, translucent mist white, glowing firefly yellow, cyan mushroom
+glow.
+
+No text, no labels, no numbers, no UI, no characters, no background scenery.

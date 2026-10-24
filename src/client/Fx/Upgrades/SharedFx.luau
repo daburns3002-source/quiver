@@ -17,6 +17,7 @@ local Workspace = game:GetService("Workspace")
 
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
+local SoundFx = require(script.Parent.Parent.SoundFx)
 local UpgradeFx = require(script.Parent.UpgradeFx)
 
 local K = Balance.UpgradeFx
@@ -68,6 +69,7 @@ local function blaze()
 				end,
 			})
 			if tuft then
+				SoundFx.play("fx_blaze")
 				tufts[enemy] = tuft
 			end
 		end

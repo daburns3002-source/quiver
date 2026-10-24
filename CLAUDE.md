@@ -536,6 +536,29 @@ Permanent multipliers scale exponentially per area while drafted abilities stay 
 stats scale off *expected player power at that area*, never flat values. Players outgrowing
 old areas is the product, not a bug.
 
+**9. Every generated image goes through Codex.**
+Concept art, reference sheets, icons, card art, textures — anything generated. Always
+`codex exec`, with the prompt on stdin and `-i` for reference images, signed in with the
+owner's ChatGPT account. Never another image generator, and never hand-drawn SVG standing in
+for art. Sheets go in `assets/concepts/`; the look is the **blocky** style for everything new.
+Owner's rule, restated 2026-10-24. The pipeline is `docs/PIPELINES.md` §8.
+
+**10. 3D models are built in Blender, from reference sheets.**
+Since 2026-10-24 (owner: "start utilizing blender to cut down on the usage credits"), every
+new 3D model — enemies, pets, weapons, effects, arenas, ambience — is built in the owner's
+Blender through the Blender MCP (`mcp__blender__*`; set up in `~/.claude.json`, the
+`blender-mcp` add-on in Blender's Microsoft Store install). Reference sheets come first, from
+Codex (rule 9); the model is built from them in blocky cubes, colour in **vertex colours**
+(a `BYTE_COLOR` corner attribute: the importer drops materials), checked with `look` renders
+against the sheet until it matches, then exported as GLB (`export_scene.gltf`, GLB) into
+`assets/models/…` and through that kind's pipeline (`docs/PIPELINES.md`). Before 2026-10-24
+models were made in Claude Design in the browser (it retires on 2026-12-14); the models
+already made there stay as they are. Never invent a look without a reference sheet, and keep
+the add-on's online libraries, paid generators and telemetry off. If Blender is not
+answering, start it with `C:\Users\dabur\blender-mcp\start_mcp.py`
+(`blender-launcher.exe --python <that file>`), which enables the add-on and starts its server
+on port 9876.
+
 ## Code conventions
 
 - `--!strict` at the top of every Luau file. No exceptions.

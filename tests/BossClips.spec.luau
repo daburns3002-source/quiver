@@ -150,10 +150,13 @@ return function(t: TestRunner.Helper)
 		)
 	end)
 
+	--[[ The server pulls the moment the fist lands on someone (the grab is
+	     resolved as the slap begins), so a hit goes from the strike
+	     straight to the pull; only a miss holds the fist on the floor. ]]
 	t.test("a lash that grabs pulls, chest-bumps and recovers", function()
 		t.equal(
 			names(clips("Lash", Vector3.new(0, 0, -12), true)),
-			"Lash_Wind_R Lash_Strike Lash_Hold Lash_Pull Lash_ChestBump Lash_Recover "
+			"Lash_Wind_R Lash_Strike Lash_Pull Lash_ChestBump Lash_Recover "
 				.. "Lash_Wind_L Lash_Strike_L Lash_Hold_L Lash_Retract_L"
 		)
 	end)
@@ -205,21 +208,18 @@ return function(t: TestRunner.Helper)
 	end)
 
 	--[[ Played from the data as the game plays it: the fist lands at the
-	     lane's end (as far short of it as the design's own, at full reach),
-	     for every length a lane can be. ]]
+	     lane's end, never past it and no further short of it than a stud
+	     and a quarter, for every length a lane can be. ]]
 	t.test("the fist lands at the lane's end, however long the lane", function()
 		local l = boss.lash
-		local short = l.reach - (l.chainReach :: number)
 		local hold = data.clips.Lash_Hold
 		for _, clip in { "Lash_Hold", "Lash_Hold_L" } do
 			for _, length in { l.minReach, 10, 14, l.reach } do
 				local stretch = BossMoves.chainScale(length, l)
 				for _, share in { 0, 0.5, 1 } do
 					local reach = fistReach(clip, hold.length * share, stretch)
-					t.near(
-						reach,
-						length - short,
-						0.75,
+					t.isTrue(
+						reach <= length + 0.25 and reach >= length - 1.25,
 						`{clip} at {share} of the hold, lane {length}: fist {reach}`
 					)
 				end

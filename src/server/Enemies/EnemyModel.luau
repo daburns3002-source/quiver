@@ -349,6 +349,9 @@ local function buildPart(spec: BuiltPart, config: EnemyConfig): BasePart
 	end
 	if spec.surface then
 		part:SetAttribute("Surface", spec.surface)
+		-- where it rests on the hitbox, which a client animating it reads
+		-- rather than where a lagging weld has it (`Fx/ModelAnimator`)
+		part:SetAttribute("RestCFrame", EnemyModel.localCFrame(spec))
 	end
 	--[[ Rides a bone of the rigged body (`Fx/EnemyRig`). ]]
 	if spec.bone then

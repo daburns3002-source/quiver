@@ -36,6 +36,8 @@ local FOLLOW_RATE = 6
 local WALKING = 1.5
 --[[ The importer turns a model to face +Z; Roblox looks down -Z. ]]
 local FACING = CFrame.Angles(0, math.pi, 0)
+--[[ How long to wait for the server's pets to replicate, in seconds. ]]
+local REPLICATION_WAIT = 20
 --[[ Clip names that read as walking, best first. ]]
 local MOVE_CLIPS = { "Follow", "Walk", "Trot", "Waddle", "Hop" }
 
@@ -74,6 +76,21 @@ local function ground(at: Vector3, ignore: { Instance }): number
 	params.FilterDescendantsInstances = ignore
 	local hit = Workspace:Raycast(at + Vector3.new(0, 6, 0), Vector3.new(0, -30, 0), params)
 	return if hit then hit.Position.Y else at.Y - 3
+end
+
+--[[ Whether every pet the server built, and every part of each, has
+     replicated: the folder arrives before its contents do. ]]
+local function arrived(source: Instance): boolean
+	local models = source:GetChildren()
+	if #models ~= source:GetAttribute("Pets") then
+		return false
+	end
+	for _, model in models do
+		if #model:GetChildren() ~= model:GetAttribute("Parts") then
+			return false
+		end
+	end
+	return true
 end
 
 local function spawnAll(source: Instance)
@@ -159,6 +176,10 @@ function PetPreview.toggle(): boolean
 	local source = ReplicatedStorage:WaitForChild("PetPreview", 30)
 	if not source then
 		return false
+	end
+	local deadline = os.clock() + REPLICATION_WAIT
+	while not arrived(source) and os.clock() < deadline do
+		task.wait(0.1)
 	end
 	spawnAll(source)
 	stepping = RunService.RenderStepped:Connect(step)

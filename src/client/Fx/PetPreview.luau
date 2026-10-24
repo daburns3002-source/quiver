@@ -34,8 +34,6 @@ local BEHIND = 4
      over which it counts as walking. ]]
 local FOLLOW_RATE = 6
 local WALKING = 1.5
---[[ The importer turns a model to face +Z; Roblox looks down -Z. ]]
-local FACING = CFrame.Angles(0, math.pi, 0)
 --[[ How long to wait for the server's pets to replicate, in seconds. ]]
 local REPLICATION_WAIT = 20
 --[[ Clip names that read as walking, best first. ]]
@@ -150,7 +148,9 @@ local function step(dt: number)
 		if facing.Magnitude < 1e-3 then
 			facing = Vector3.new(0, 0, -1)
 		end
-		pet.model:PivotTo(CFrame.lookAt(next, next + facing.Unit) * FACING)
+		-- Config/PetModels is already in Roblox's frame: the pet's front is its
+		-- pivot's look vector
+		pet.model:PivotTo(CFrame.lookAt(next, next + facing.Unit))
 		pet.last = next
 		local clip = if speed > WALKING then pet.move else pet.idle
 		if clip and pet.model:GetAttribute("ModelClip") ~= clip then

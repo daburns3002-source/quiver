@@ -44,6 +44,7 @@ local ProjectileRenderer = require(script.Parent.Fx.ProjectileRenderer)
 local RangerFx = require(script.Parent.Fx.Upgrades.RangerFx)
 local Remotes = require(Shared.Net.Remotes)
 local ReviveFx = require(script.Parent.Fx.ReviveFx)
+local RoomSign = require(script.Parent.UI.RoomSign)
 local RunBanner = require(script.Parent.UI.RunBanner)
 local RunPaused = require(script.Parent.RunPaused)
 local SharedFx = require(script.Parent.Fx.Upgrades.SharedFx)
@@ -117,6 +118,7 @@ EndScreen.start(function()
 	Remotes.event(Remotes.RunRestart):FireServer()
 end)
 RunBanner.start()
+RoomSign.start()
 ProjectileRenderer.start(Workspace)
 HitFeedback.start(Workspace)
 HitSquash.start(Workspace)
@@ -242,6 +244,7 @@ Remotes.event(Remotes.HealthChanged).OnClientEvent:Connect(HealthBar.update)
 Remotes.event(Remotes.RunStateChanged).OnClientEvent
 	:Connect(function(index, total, state, name, unit)
 		RunBanner.onRunStateChanged(index, total, state, name, unit)
+		RoomSign.onRunStateChanged(index, total, state, name, unit)
 
 		--[[ The end screen belongs to the run that ended, so it clears the
 		     moment the next one starts fighting. ]]

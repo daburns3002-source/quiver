@@ -44,8 +44,8 @@ lesson: brief it in numbers, not adjectives.
   `blade_tip`, `blade_moss_front`, `blade_moss_back`, `guard_bar`,
   `guard_end_l/r`, `guard_moss`, `housing`, `housing_gold`, `housing_gem`,
   `collar_upper`, `grip`, `band_pommel`, `pommel`, `pommel_gold`,
-  `pommel_moss`). 2,734 triangles, 1.26 tall, origin at the pommel bottom,
-  blade +Y, ruby on the +Z face. 0.51 wide: the guard is Timber's 0.48, plus
+  `pommel_moss`). 2,934 triangles, 1.26 tall, origin at the pommel bottom,
+  blade +Y, flat faces ±Z, a ruby on both faces. 0.51 wide: the guard is Timber's 0.48, plus
   the moss caps on the end blocks.
 - **Sheet:** `assets/concepts/blocky/weapons/skins/forest/mossstone_blade_views.png`.
 
@@ -55,14 +55,14 @@ The Timber Blade's frame and part list, made in stone: a straight-edged grey
 slab blade (no notches or fuller, as on the sheet) with a few large tone
 patches and jagged inset cracks, and a pyramid tip. The guard is a stone
 dumbbell with moss caps on the end blocks. The housing is two-tier slate with
-a gold hexagon around a faceted ruby on the front, and the same frame filled
-with slate on the back (the sheet's back view has no gem). The grip is ribbed
+a gold hexagon around a faceted ruby on **both** faces, like Timber's. The
+sheet's back view shows no gem, but the owner asked for the ruby on both sides. The grip is ribbed
 leather in 4 segments. The pommel is a stone octagon with 3 straight gold bars
 and a recessed slate centre holding a raised green plus. Over the blade, on
 each face, run two one-tile-wide vines of 0.025 tiles that climb as
 staircases from edge to edge, wrapping onto the sides. They cross twice, carry
 a few leaf clusters and end in a plus-shaped leaf near the tip, covering
-37–39% of each face. The vine tiles mix two greens, with darker sides, so the
+37–39% of each face. Moss tiles in the outer columns fold onto the side faces. The vine tiles mix two greens, with darker sides, so the
 moss reads as lumpy and lit, not as a decal.
 
 Rarity: it is one step up from the Timber Blade. It keeps the same build but

@@ -354,6 +354,11 @@ local function button(
 
 	b.MouseEnter:Connect(function()
 		feel.hovered = true
+		--[[ The cards' hover sound, on Choose! and Reroll too (owner,
+		     2026-10-24); not while the button cannot be pressed. ]]
+		if b.Active then
+			SoundFx.play("card_hover")
+		end
 	end)
 	b.MouseLeave:Connect(function()
 		feel.hovered = false

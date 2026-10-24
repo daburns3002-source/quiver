@@ -260,6 +260,14 @@ and every effect in cubes and tiles (`Fx/BossFx`, `Balance.Telegraph.king`;
 nothing round). `BossBody` only keeps his shadow on the floor; its jelly
 tube is for a server-posed body. `tests/BossClips.spec.luau` pins it.
 Sounds for his moves are not made yet.
+**The boss entry banner** (`UI/BossBanner`, `Config/BossBanners`, owner's
+pick 2026-10-24: style A, "Slash"): as a boss appears, a slanted band in its
+colour tears across, its 2D blocky icon rushes in and plays a four-frame
+attack once (a 2x2 sheet from Codex, `assets/ui/boss_banner/cutout.py`), and
+its name slams down — 4.7 s, over the boss music's battle intro. Both start
+from `Fx/BossWatch` on the same tick (measured 0.03 s apart). Keyed by the
+`Boss` attribute's title; the boss bar shows the banner's name. Icons for all
+six Act 1–3 bosses are uploaded.
 
 Not done: the other nine bosses — designed (`docs/BOSSES.md`, two per
 act, one per area, with Codex concept art) but not built; Phase 3's

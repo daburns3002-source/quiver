@@ -6,8 +6,8 @@
 	where they land, and fly into their owner when walked over or, for any
 	left, when the fight clears.
 	Hearts are blocky pixel hearts in the game's voxel style (owner,
-	2026-10-24): they pop out facing the camera, then, once landed, stand up
-	and spin on the spot until someone walks over them.
+	2026-10-24): they pop out facing the camera, then, once landed, spin on
+	the spot, leaned back to the camera, until someone walks over them.
 
 	Presentation only. The server decides what drops, where, and who took it;
 	this draws what it is told. A pickup the client never heard about is
@@ -44,7 +44,7 @@ local BOB_HEIGHT = 0.18
 local BOB_SPEED = 3
 local CRYSTAL_SPIN = math.rad(90)
 --[[ Hearts are built a unit across and drawn this much larger. ]]
-local HEART_SCALE = 1.5
+local HEART_SCALE = 2.2
 --[[ A landed heart's turn about the vertical, radians a second. ]]
 local HEART_SPIN = math.rad(150)
 --[[ The pixel heart, top row first: each row's runs of pixels, as
@@ -59,6 +59,9 @@ local HEART_ROWS = {
 	{ { 4, 4 } },
 }
 local HEART_PIXEL = 1 / 7
+--[[ Pixels deep: a heart one pixel deep all but vanished edge-on as it
+     spun, under a camera looking steeply down. ]]
+local HEART_DEPTH = 3
 --[[ Hearts lean back to face the camera, which looks down at this pitch. ]]
 local HEART_TILT = math.rad(Balance.Camera.pitch)
 
@@ -124,7 +127,7 @@ local function buildHeart(): Model
 			local bar = part(
 				model,
 				Enum.PartType.Block,
-				Vector3.new((last - first + 1) * px, px, px),
+				Vector3.new((last - first + 1) * px, px, px * HEART_DEPTH),
 				colour
 			)
 			offset(bar, CFrame.new(((first + last) / 2 - 4) * px, y, 0))
@@ -135,7 +138,10 @@ local function buildHeart(): Model
 	for _, side in { 1, -1 } do
 		local shine =
 			part(model, Enum.PartType.Block, Vector3.new(px, px, px * 0.2), Color3.new(1, 1, 1))
-		offset(shine, CFrame.new(-2 * px, ((rows + 1) / 2 - 2) * px, side * px * 0.55))
+		offset(
+			shine,
+			CFrame.new(-2 * px, ((rows + 1) / 2 - 2) * px, side * px * (HEART_DEPTH / 2 + 0.05))
+		)
 	end
 
 	model:SetAttribute("Scale", HEART_SCALE)
@@ -218,8 +224,10 @@ local function step()
 				-- in the air: leaning back to face the camera
 				turn = CFrame.Angles(-HEART_TILT, 0, 0)
 			else
-				-- landed: upright, spinning on the spot
-				turn = CFrame.Angles(0, landedFor * HEART_SPIN, 0)
+				-- landed: spinning on the spot about an axis leaned back to the
+				-- camera, so each turn shows its face square on
+				turn = CFrame.Angles(-HEART_TILT, 0, 0)
+					* CFrame.Angles(0, landedFor * HEART_SPIN, 0)
 			end
 		else
 			turn = CFrame.Angles(0, now * CRYSTAL_SPIN + visual.phase, 0)

@@ -180,10 +180,16 @@ function EnemyModel.importedDesign(
 		local size = Vector3.new(row.size[1], row.size[2], row.size[3]) * scale
 		local rx, ry, rz = cf:ToEulerAnglesXYZ()
 		local eye = string.match(row.name, imported.eyes) ~= nil
+		--[[ A part the GLB rests tucked away (a lash link at a thousandth of
+		     its size) imports its mesh at that size, and Roblox keeps too
+		     little of it: scaled back up, King Bloblin's links drew as pale
+		     specks, an arm with no substance. In the blocky style each is a
+		     cube anyway, so it is built as one. ]]
+		local tucked = math.max(row.size[1], row.size[2], row.size[3]) < largest * TUCKED_SHARE
 		local part: BuiltPart = {
 			name = row.name,
-			shape = "Mesh" :: EnemyDesigns.DesignShape,
-			meshId = row.meshId,
+			shape = (if tucked then "Block" else "Mesh") :: EnemyDesigns.DesignShape,
+			meshId = if tucked then nil else row.meshId,
 			textureId = if row.textureId ~= "" then row.textureId else nil,
 			size = size:Max(Vector3.one * SMALLEST),
 			restSize = if math.min(size.X, size.Y, size.Z) < SMALLEST then size else nil,

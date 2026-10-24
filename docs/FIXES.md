@@ -1148,3 +1148,17 @@ it because it lies along the chain.
 undone in the parent's axes, `S(1/s) · R · S`, which cancels exactly however
 it is turned. `ModelClip.spec` pins a link turned 45° at stretches of 0.001,
 0.3 and 4.
+
+## King Bloblin's lash arm drew as pale specks, though its parts were full size
+
+**Symptom:** the owner, again: "the arm that he throws has no substance". With
+the links placed and sized right (1.3 to 1.8 studs, spaced 1.2 to 1.5 from 3.5
+to 17 studs out), all that showed were small pale dots along the line.
+**Cause:** the GLB rests the chain tucked away at a thousandth of its size, so
+the importer uploaded each link's mesh at that size (`MeshSize` 0.001; sizes
+around 0.0003 in `ImportedModels/KingBloblin`). Scaled back up 1,500 times,
+the mesh keeps too little of its shape to draw as a block.
+**Fix:** `EnemyModel.importedDesign` builds a tucked part (under
+`TUCKED_SHARE` of the model's largest part) as a plain block of its colour
+instead of its mesh; in the blocky style each link is a cube anyway. Look at
+`MeshSize`, not `Size`, when a mesh part draws smaller than it measures.

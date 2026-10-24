@@ -16,6 +16,19 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## Preview pets walked backwards
+
+**Symptom** — 2026-10-23, Studio playtest of **P**: walking +X, every pet's
+look vector pointed −X (−0.85 to −1.00 across the twelve).
+
+**Cause** — `Fx/PetPreview` turned each pet half round more, assuming the
+GLB's +Z front. `Config/PetModels` is written in the import's frame, where
+the front is already the pivot's look vector (−Z).
+
+**Fix** — no extra turn: `CFrame.lookAt` alone.
+
+**Measured** — see the PR: walking +X, look vectors along +X.
+
 ## The pet preview showed two pets out of twelve
 
 **Symptom** — 2026-10-23, first P press in a Studio playtest: the Slime

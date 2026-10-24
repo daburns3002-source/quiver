@@ -12,7 +12,8 @@
 	Keyed by the boss's title, the `Boss` attribute the server sets
 	(`Balance` boss `title`). Each icon is a 2x2 sheet of Codex's 2D blocky
 	frames (ready, wind-up, strike, follow-through), cut out by
-	`assets/ui/boss_banner/cutout.py` and uploaded by the owner; an empty
+	`assets/ui/boss_banner/cutout.py` and uploaded through Studio's MCP
+	(`upload_image`, from a localhost server); an empty
 	`icon` shows the banner without one. Acts 1–3's six bosses: only King
 	Bloblin is built, the rest wait under the titles docs/BOSSES.md gives them.
 ]]
@@ -54,7 +55,7 @@ local BossBanners = {
 			subtitle = "Ruler of the Mossy Glade",
 			area = "Mossy Glade",
 			act = "Act 1 · Area 1",
-			icon = "",
+			icon = "rbxassetid://78460485194173",
 			tint = Color3.fromRGB(108, 194, 74),
 			deep = Color3.fromRGB(44, 90, 29),
 		},
@@ -63,7 +64,7 @@ local BossBanners = {
 			subtitle = "Queen of the Thornwood",
 			area = "Thornwood",
 			act = "Act 1 · Area 2",
-			icon = "",
+			icon = "rbxassetid://136663810724087",
 			tint = Color3.fromRGB(122, 79, 214),
 			deep = Color3.fromRGB(46, 29, 87),
 		},
@@ -72,7 +73,7 @@ local BossBanners = {
 			subtitle = "Bell of the Drowned Village",
 			area = "Drowned Village",
 			act = "Act 2 · Area 3",
-			icon = "",
+			icon = "rbxassetid://124607941375492",
 			tint = Color3.fromRGB(226, 103, 58),
 			deep = Color3.fromRGB(31, 85, 82),
 		},
@@ -81,7 +82,7 @@ local BossBanners = {
 			subtitle = "Hunger of Bogheart Caverns",
 			area = "Bogheart Caverns",
 			act = "Act 2 · Area 4",
-			icon = "",
+			icon = "rbxassetid://89932935592152",
 			tint = Color3.fromRGB(154, 79, 201),
 			deep = Color3.fromRGB(58, 31, 79),
 		},
@@ -90,7 +91,7 @@ local BossBanners = {
 			subtitle = "Storm of the Windswept Cliffs",
 			area = "Windswept Cliffs",
 			act = "Act 3 · Area 5",
-			icon = "",
+			icon = "rbxassetid://105286421915986",
 			tint = Color3.fromRGB(242, 194, 48),
 			deep = Color3.fromRGB(31, 58, 122),
 		},
@@ -99,7 +100,7 @@ local BossBanners = {
 			subtitle = "the Yeti King of Frostpeak Pass",
 			area = "Frostpeak Pass",
 			act = "Act 3 · Area 6",
-			icon = "",
+			icon = "rbxassetid://98889449308519",
 			tint = Color3.fromRGB(92, 200, 242),
 			deep = Color3.fromRGB(29, 74, 110),
 		},

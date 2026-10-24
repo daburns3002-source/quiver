@@ -113,13 +113,15 @@ local ArenaKits: { [string]: Kit } = {
 			},
 		},
 		tile = 3.5,
-		--[[ A warm, sunlit yellow-green, after the reference sheet, apart
-		     from the cooler, deeper moss on the pieces standing on it. Was
+		--[[ A warm yellow-green, after the reference sheet, apart from the
+		     cooler, deeper moss on the pieces standing on it; darkened a
+		     step (owner, 2026-10-24: "a little darker but still not as dark
+		     as the forest floor outside", which is (63, 107, 42)). Was
 		     (106, 176, 64) and its neighbours, the same green as the moss. ]]
 		lawn = {
-			Color3.fromRGB(150, 190, 78),
-			Color3.fromRGB(140, 180, 72),
-			Color3.fromRGB(160, 198, 84),
+			Color3.fromRGB(124, 164, 64),
+			Color3.fromRGB(116, 156, 59),
+			Color3.fromRGB(132, 172, 69),
 		},
 		water = Color3.fromRGB(70, 150, 190),
 		bank = Color3.fromRGB(70, 120, 48),

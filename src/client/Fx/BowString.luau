@@ -15,6 +15,7 @@
 	Presentation only, and local: other players see the bow's plain string.
 ]]
 
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 
@@ -67,7 +68,12 @@ end
 function BowString.step(character: Model, drawn: boolean)
 	local weapon = character:FindFirstChild("HeldWeapon")
 	local origin = weapon and weapon:FindFirstChild("WeaponOrigin", true) :: Attachment?
-	local bow = Weapons.LeafBow
+	-- the bow this character holds (the player's `Weapon`), its own string
+	local player = Players:GetPlayerFromCharacter(character)
+	local held = player and player:GetAttribute("Weapon")
+	local bow = (
+		type(held) == "string" and (Weapons :: any)[held] or Weapons.LeafBow
+	) :: Weapons.Weapon
 	local points = bow.bowString
 	if not (origin and points) then
 		hide()

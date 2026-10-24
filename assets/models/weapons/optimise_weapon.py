@@ -41,16 +41,63 @@ WEAPONS = {
     },
 }
 
+#: The blocky skins (docs/PETS-FOREST.md), Claude Design models of a few
+#: hundred to a few thousand triangles whose colours are flat materials.
+#: Nothing is decimated: parts are grouped by the start of their node name
+#: (trimesh adds a suffix per material, and a group claims what an earlier
+#: one left), and `turn` (degrees about Y) puts the model in the game's
+#: weapon frame as Studio imports it: long axis up, a bow's string behind
+#: (−Z) and its arrow pointing +Z.
+BLOCKY = {
+    "twig_bow": {
+        "turn": 90,
+        "groups": {
+            "Bow": ["limbs", "grip_", "band_", "nock_knot_", "string_wrap_"],
+            "Leaves": ["leaf_"],
+            "String": ["string"],
+        },
+    },
+    "branch_staff": {
+        "turn": 0,
+        "groups": {
+            "Staff": ["spike", "collar_", "shaft", "arm_"],
+            "Leaves": ["leaf_"],
+            "Gems": ["gem_plate_"],
+            "Stone": ["stone_cube"],
+        },
+    },
+    "timber_blade": {
+        "turn": 0,
+        "groups": {
+            "Gems": ["guard_gem_front", "guard_gem_back", "pommel_gem_"],
+            "Blade": ["blade_"],
+            "Guard": ["guard_", "collar_upper"],
+            "Grip": ["grip_", "band_pommel", "pommel"],
+        },
+    },
+}
+
 scene = trimesh.load(SRC, process=False)
+
+
+def linear_to_srgb(lin):
+    lin = np.clip(np.asarray(lin, dtype=np.float64), 0, 1)
+    return np.where(lin <= 0.0031308, lin * 12.92, 1.055 * np.power(lin, 1 / 2.4) - 0.055)
 
 
 def world(node):
     T, gname = scene.graph[node]
     src = scene.geometry[gname]
     colour = getattr(src.visual, "vertex_attributes", {}).get("color")
+    material = getattr(src.visual, "material", None)
     if colour is not None:
-        lin = np.clip(np.asarray(colour, dtype=np.float64)[:, :3], 0, 1)
-        srgb = np.where(lin <= 0.0031308, lin * 12.92, 1.055 * np.power(lin, 1 / 2.4) - 0.055)
+        srgb = linear_to_srgb(np.asarray(colour, dtype=np.float64)[:, :3])
+    elif material is not None and getattr(material, "baseColorTexture", None) is None and hasattr(
+        material, "baseColorFactor"
+    ):
+        # a flat material: its factor is linear, 0-255 as trimesh holds it
+        base = np.asarray(material.baseColorFactor, dtype=np.float64)[:3] / 255.0
+        srgb = np.tile(linear_to_srgb(base), (len(src.vertices), 1))
     else:
         srgb = np.asarray(src.visual.to_color().vertex_colors, dtype=np.float64)[:, :3] / 255.0
     g = trimesh.Trimesh(vertices=trimesh.transform_points(src.vertices, T), faces=src.faces, process=False)
@@ -76,7 +123,28 @@ def decimate(g, srgb, target):
 parts = {n: world(n) for n in scene.graph.nodes_geometry}
 groups = {}
 claimed = set()
-for group, members in WEAPONS[WEAPON].items():
+
+
+def coloured(g, srgb):
+    out = g.copy()
+    out.visual = trimesh.visual.ColorVisuals(out, vertex_colors=(np.clip(srgb, 0, 1) * 255).astype(np.uint8))
+    return out
+
+
+if WEAPON in BLOCKY:
+    spec = BLOCKY[WEAPON]
+    for group, prefixes in spec["groups"].items():
+        pieces = []
+        for name, (g, srgb) in parts.items():
+            if name not in claimed and any(name.startswith(p) for p in prefixes):
+                pieces.append(coloured(g, srgb))
+                claimed.add(name)
+        groups[group] = trimesh.util.concatenate(pieces)
+        print(f"{group:8s} {len(pieces):3d} pieces {len(groups[group].faces):5d} tris")
+    turn = trimesh.transformations.rotation_matrix(np.radians(spec["turn"]), [0, 1, 0])
+    for mesh in groups.values():
+        mesh.apply_transform(turn)
+for group, members in ({} if WEAPON in BLOCKY else WEAPONS[WEAPON]).items():
     pieces = []
     for name, budget in members.items():
         g, srgb = parts[name]

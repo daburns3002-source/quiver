@@ -40,6 +40,9 @@ export type Tier = {
 	     (`Fx/MythicFx`). Never zero: a meteor that lands with nothing
 	     thrown up reads as a miss. ]]
 	mythicFxShare: number,
+	--[[ Share of a boss's decorative cubes drawn (King Bloblin's debris,
+	     dust, shockwave, goo); never his warnings. ]]
+	bossFxShare: number,
 	--[[ Share of the scenery's life drawn past the walls (falling leaves,
 	     fireflies, butterflies, birds; `Fx/ForestAmbience`). Zero turns it
 	     off: it is background, the first thing a phone can spare. ]]
@@ -68,6 +71,7 @@ local low: Tier = {
 	orbSparkleRate = 0,
 	endScreenParticleShare = 0.5,
 	mythicFxShare = 0.5,
+	bossFxShare = 0.5,
 	ambienceShare = 0.4,
 	maxSlimeResidue = 24,
 }
@@ -85,6 +89,7 @@ local medium: Tier = {
 	orbSparkleRate = 8,
 	endScreenParticleShare = 0.75,
 	mythicFxShare = 0.75,
+	bossFxShare = 0.75,
 	ambienceShare = 0.7,
 	maxSlimeResidue = 64,
 }
@@ -102,6 +107,7 @@ local high: Tier = {
 	orbSparkleRate = 16,
 	endScreenParticleShare = 1,
 	mythicFxShare = 1,
+	bossFxShare = 1,
 	ambienceShare = 1,
 	maxSlimeResidue = 128,
 }

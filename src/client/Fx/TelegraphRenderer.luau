@@ -14,10 +14,10 @@
 
 local Debris = game:GetService("Debris")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
+local BossFx = require(script.Parent.BossFx)
 local Device = require(script.Parent.Parent.Device)
 local MythicFx = require(script.Parent.MythicFx)
 local SplitFx = require(script.Parent.SplitFx)
@@ -39,6 +39,7 @@ function TelegraphRenderer.start(parent: Instance)
 	created.Parent = parent
 	folder = created
 	activeLines = 0
+	BossFx.start(created)
 end
 
 --[[
@@ -239,80 +240,8 @@ local function drawDiveMarker(origin: Vector3)
 	Debris:AddItem(disc, duration)
 end
 
---[[
-	A boss's slam (the Slime King's Royal Bounce): a red circle where it
-	will land, at full size from the first frame, and a disc filling it
-	that is full at the moment of impact.
-]]
---[[ As the design draws it: the ring fades in over the wind-up, then
-     pulses as the fall nears. ]]
-local SLAM_FADE_IN = 0.37
-local function drawSlam(origin: Vector3, duration: number, radius: number)
-	local colour = Balance.Telegraph.bossColor
-	local ring = groundDisc(origin, "TelegraphSlam", colour, radius * 2)
-	ring.Transparency = 0.85
-	local fill = groundDisc(origin, "TelegraphSlamFill", colour, 0.2)
-	fill.Transparency = 0.6
-	TweenService:Create(fill, TweenInfo.new(duration, Enum.EasingStyle.Linear), {
-		Size = Vector3.new(0.25, radius * 2, radius * 2),
-	}):Play()
-	local started = os.clock()
-	local pulse: RBXScriptConnection
-	pulse = RunService.Heartbeat:Connect(function()
-		local share = (os.clock() - started) / duration
-		if share >= 1 or not ring.Parent then
-			pulse:Disconnect()
-			return
-		end
-		if share < SLAM_FADE_IN then
-			ring.Transparency = 0.85 - 0.6 * (share / SLAM_FADE_IN)
-		else
-			local fall = (share - SLAM_FADE_IN) / (1 - SLAM_FADE_IN)
-			ring.Transparency = 0.25 - 0.25 * math.sin(os.clock() * 18) * fall
-		end
-	end)
-	Debris:AddItem(ring, duration)
-	Debris:AddItem(fill, duration)
-end
-
---[[ The Slime King's jelly, for the goo his fist flings. ]]
-local JELLY = Color3.fromRGB(127, 203, 36)
-
---[[ Droplets of jelly flung up off a fist that splatted at `origin`, a
-     little along `direction`, as the design's lash throws them: thrown up
-     and out at random, falling away under gravity, gone after `duration`. ]]
-local function drawGoo(origin: Vector3, direction: Vector3, duration: number, count: number)
-	local parent = folder
-	if not parent then
-		return
-	end
-	local along = if direction.Magnitude > 1e-3 then direction.Unit else Vector3.zero
-	for _ = 1, math.floor(count) do
-		local drop = Instance.new("Part")
-		drop.Name = "Goo"
-		drop.Shape = Enum.PartType.Ball
-		drop.Size = Vector3.one * (0.3 + math.random() * 0.4)
-		drop.Material = Enum.Material.Glass
-		drop.Color = JELLY
-		drop.Transparency = 0.15
-		drop.CanCollide = false
-		drop.CanQuery = false
-		drop.CanTouch = false
-		drop.CastShadow = false
-		drop.CFrame = CFrame.new(origin)
-		drop.Parent = parent
-		local angle = math.random() * math.pi * 2
-		local out = 2 + math.random() * 3
-		drop.AssemblyLinearVelocity = Vector3.new(
-			math.cos(angle) * out,
-			8 + math.random() * 6,
-			math.sin(angle) * out
-		) + along * 2
-		Debris:AddItem(drop, duration)
-	end
-end
-
---[[ The slam landing: a green ring rushing out and fading, or `colour`'s. ]]
+--[[ A green ring rushing out and fading, or `colour`'s (the Mythics'
+     strikes; a boss's are cubes, `BossFx`). ]]
 local function drawShockwave(origin: Vector3, duration: number, radius: number, colour: Color3?)
 	local ring =
 		groundDisc(origin, "Shockwave", colour or Balance.Telegraph.shockColor, radius * 0.6)
@@ -413,71 +342,6 @@ local function drawCracks(origin: Vector3, duration: number, radius: number)
 	end
 end
 
---[[ A flat strip on the floor from `origin` along `direction`. ]]
-local function laneStrip(
-	origin: Vector3,
-	direction: Vector3,
-	length: number,
-	width: number,
-	name: string
-): BasePart
-	local strip = Instance.new("Part")
-	strip.Name = name
-	strip.Anchored = true
-	strip.CanCollide = false
-	strip.CanQuery = false
-	strip.CanTouch = false
-	strip.CastShadow = false
-	strip.Material = Enum.Material.Neon
-	strip.Color = Balance.Telegraph.bossColor
-	strip.Size = Vector3.new(width, 0.1, math.max(length, 0.05))
-	local mid = Vector3.new(origin.X, 0.12, origin.Z) + direction * (length / 2)
-	strip.CFrame = CFrame.lookAt(mid, mid + direction)
-	strip.Parent = folder
-	return strip
-end
-
---[[
-	A boss's lash lane (the Slime Lash). Pale while it is still following
-	the player (`LaneAim`); once it locks (`Lane`) it brightens and a fill
-	runs down it, reaching the end as the fist lands.
-]]
-local function drawLane(
-	origin: Vector3,
-	direction: Vector3,
-	duration: number,
-	length: number,
-	width: number,
-	locked: boolean
-)
-	local lane = laneStrip(origin, direction, length, width, "TelegraphLane")
-	lane.Transparency = if locked then 0.3 else 0.75
-	Debris:AddItem(lane, duration)
-	if not locked then
-		return
-	end
-	--[[ Locked, it pulses, as the design's does. ]]
-	local pulse: RBXScriptConnection
-	pulse = RunService.Heartbeat:Connect(function()
-		if not lane.Parent then
-			pulse:Disconnect()
-			return
-		end
-		lane.Transparency = 0.2 - 0.15 * math.sin(os.clock() * 20)
-	end)
-	local fill = laneStrip(origin, direction, 0.05, width, "TelegraphLaneFill")
-	fill.Transparency = 0.45
-	local start = Vector3.new(origin.X, 0.14, origin.Z)
-	TweenService:Create(fill, TweenInfo.new(duration, Enum.EasingStyle.Linear), {
-		Size = Vector3.new(width, 0.12, length),
-		CFrame = CFrame.lookAt(
-			start + direction * (length / 2),
-			start + direction * (length / 2 + 1)
-		),
-	}):Play()
-	Debris:AddItem(fill, duration)
-end
-
 --[[ `tell` and `reach` come straight off the enemy's config on the server; the
      client never decides whether a warning is owed, only how to show it.
      `width` is sent only for a lane. ]]
@@ -493,18 +357,45 @@ function TelegraphRenderer.onTelegraph(
 		return
 	end
 
-	if tell == "Slam" then
-		drawSlam(origin, duration, reach)
-		return
+	--[[ A boss's moves (King Bloblin's), drawn in cubes by `BossFx`. ]]
+	local parent = folder
+	if parent then
+		if tell == "Slam" then
+			BossFx.slamWarning(parent, origin, duration, reach)
+			return
+		elseif tell == "SlamImpact" then
+			BossFx.slamImpact(parent, origin, duration, reach, width or reach * 0.6)
+			return
+		elseif tell == "Splat" then
+			BossFx.splat(parent, origin, direction, duration, reach)
+			return
+		elseif tell == "Goo" then
+			BossFx.goo(parent, origin, direction, duration, reach)
+			return
+		elseif tell == "Grab" then
+			BossFx.grab(parent, origin, direction, duration, reach)
+			return
+		elseif tell == "BumpShock" then
+			BossFx.bump(parent, origin, direction, duration)
+			return
+		elseif tell == "LaneAim" or tell == "Lane" then
+			if direction.Magnitude > 1e-3 then
+				BossFx.lane(
+					parent,
+					origin,
+					direction.Unit,
+					duration,
+					reach,
+					width or 3,
+					tell == "Lane"
+				)
+			end
+			return
+		end
 	end
 
 	if tell == "Shockwave" then
 		drawShockwave(origin, duration, reach)
-		return
-	end
-
-	if tell == "Goo" then
-		drawGoo(origin, direction, duration, reach)
 		return
 	end
 
@@ -543,13 +434,6 @@ function TelegraphRenderer.onTelegraph(
 		return
 	end
 
-	if tell == "LaneAim" or tell == "Lane" then
-		if direction.Magnitude > 1e-3 then
-			drawLane(origin, direction.Unit, duration, reach, width or 3, tell == "Lane")
-		end
-		return
-	end
-
 	if tell == "Ground" then
 		drawGroundMarker(origin, duration)
 		return
@@ -563,7 +447,6 @@ function TelegraphRenderer.onTelegraph(
 	if tell == "Split" then
 		--[[ `direction` is the whole throw for this tell, landing minus where
 		     the body fell; `reach` is the piece's body radius. ]]
-		local parent = folder
 		if parent then
 			SplitFx.piece(origin - direction, origin, duration, reach, parent)
 		end

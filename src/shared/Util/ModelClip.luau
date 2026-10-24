@@ -19,7 +19,12 @@ local ModelClip = {}
 export type Affine = { m: { number }, t: Vector3 }
 export type Track = { times: { number }, values: { number } }
 export type JointTracks = { pos: Track?, rot: Track?, scale: Track? }
-export type Clip = { length: number, joints: { [string]: JointTracks } }
+--[[ `loops` false: played once and held on its last frame (a boss's beat);
+     nil or true: repeats. ]]
+export type Clip = { length: number, loops: boolean?, joints: { [string]: JointTracks } }
+--[[ Joints whose scale is multiplied, per axis, on top of the clip's: a
+     boss's lash chain stretched to its lane. ]]
+export type Stretch = { [string]: Vector3 }
 export type Joint = { name: string, parent: string, rest: { number } }
 export type Part = { joint: string, cframe: { number }, size: { number } }
 export type Model = { joints: { Joint }, parts: { [string]: Part }, clips: { [string]: Clip } }
@@ -143,10 +148,28 @@ function ModelClip.sample(track: Track, width: number, time: number): { number }
 	return out
 end
 
+--[[ Where `time` seconds into `clip` falls: wrapped for a looping clip,
+     held at its ends for one that plays once. ]]
+function ModelClip.clipTime(clip: Clip?, time: number): number
+	if not clip or clip.length <= 0 then
+		return 0
+	end
+	if clip.loops == false then
+		return math.clamp(time, 0, clip.length)
+	end
+	return time % clip.length
+end
+
 --[[ Every joint's transform in GLB space `time` seconds into `clip` (at
-     rest where the clip leaves it, or with no clip). Loops the clip. ]]
-function ModelClip.pose(model: Model, clip: Clip?, time: number): { [string]: Affine }
-	local t = if clip and clip.length > 0 then time % clip.length else 0
+     rest where the clip leaves it, or with no clip), with `stretch`'s
+     joints scaled on top. ]]
+function ModelClip.pose(
+	model: Model,
+	clip: Clip?,
+	time: number,
+	stretch: Stretch?
+): { [string]: Affine }
+	local t = ModelClip.clipTime(clip, time)
 	local world: { [string]: Affine } = {}
 	for _, joint in model.joints do
 		local r = joint.rest
@@ -168,6 +191,10 @@ function ModelClip.pose(model: Model, clip: Clip?, time: number): { [string]: Af
 				sx, sy, sz = v[1], v[2], v[3]
 			end
 		end
+		local extra = stretch and stretch[joint.name]
+		if extra then
+			sx, sy, sz = sx * extra.X, sy * extra.Y, sz * extra.Z
+		end
 		local here: Affine =
 			{ m = ModelClip.trs(qx, qy, qz, qw, sx, sy, sz), t = Vector3.new(px, py, pz) }
 		local parent = world[joint.parent]
@@ -181,9 +208,10 @@ function ModelClip.deltas(
 	model: Model,
 	clip: Clip?,
 	time: number,
-	restInverse: { [string]: Affine }
+	restInverse: { [string]: Affine },
+	stretch: Stretch?
 ): { [string]: Affine }
-	local now = ModelClip.pose(model, clip, time)
+	local now = ModelClip.pose(model, clip, time, stretch)
 	local out: { [string]: Affine } = {}
 	for name, w in now do
 		out[name] = ModelClip.compose(w, restInverse[name])

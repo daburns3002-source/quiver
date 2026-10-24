@@ -62,6 +62,21 @@ What is in flight right now is in [TRACKER.md](TRACKER.md).
 
 As an enemy model (1), with its moves: a `boss` block in its `EnemyConfig`, each move a pure timeline in `Enemies/BossMoves` (pinned by `BossMoves.spec`), its body posed by `Enemies/BossBody`, every hit resolved in `EnemyManager` through `RunSession.applyDamage`, and every warning drawn by `TelegraphRenderer`. Port the handoff's motion numbers (its studs × the size ratio), never its `wait()`-based scripts. Room 10 of its level holds it alone (`Level1.spec` is the model).
 
+**A boss whose body plays its own clips** (King Bloblin, 2026-10-24): one Claude Design rig carrying every clip of the fight, played on the beats the server keeps.
+
+**Owner:** imports the merged GLB (File → Import 3D, Merge Meshes off) with its parts separate.
+
+**Claude:**
+1. The GLB goes in `assets/models/bosses/<name>/` and into `assets/models/model_clips.json` as `{ "glb": ..., "loops": [...] }`: only the resting clips (Idle, Winded) loop; every beat plays once and holds its last frame. `python -I tools/glb_clips_to_luau.py` → `Config/ModelClips/<Name>`.
+2. Dump the import (`tools/studio/dump_models.luau` in Edit; a single import fits one return) into `assets/models/model_imports.json` under a key of its own (`KingBloblin_Fight#43`). `python -I tools/imports_to_luau.py` → `Config/ImportedModels/<Name>` (anything not under `assets/models/pets/`), each part with its GLB material's name (`surface`).
+3. `EnemyDesigns.Imported[<displayName>]` names the model and its clips, the eye pattern and colour, and the joint a lash stretches. `EnemyModel.designFor` builds it scaled to fill the hitbox; the design keeps only its shadow. `EnemyDesigns.spec` measures it as built.
+4. The boss's `clips` in `Balance` map each phase of each move to a clip (per arm for a lash). The server sets `ModelClip`, `ModelClipAt` (server time the clip began) and `ModelClipSpan` (the seconds it is to last) as each beat starts, and `ModelClipStretch` for the chain; `Fx/ModelAnimator` plays it on every client in step, `BossBody` only keeps the shadow on the floor. `BossClips.spec` pins the order of the clips, that each lasts its phases, and that the chain's fist lands at the lane's end.
+5. Effects the GLB cannot carry are code: the warnings and impacts in `Fx/BossFx` (cubes and tiles, numbers in `Balance.Telegraph.king`, decoration scaled by the tier's `bossFxShare`), and the colour beats (eyes, gems, the arm's glow) read off the clip being played.
+
+**Pitfalls seen:**
+- **A part tucked away at a thousandth of its size** (his lash links, laid out down the lane at rest) imports clamped to 0.001 studs. `imports_to_luau.py` takes its true size from the GLB, `EnemyModel` sets it as `RestSize`, and `ModelAnimator` scales that, not the clamped size. Left in the bounds, those parts would also shrink him to fit a lane 17 studs long: `EnemyModel` leaves tucked parts out.
+- **A node's second primitive imports with "2" on its name** (`Body2`, and `LashLink_1`'s arrives as `LashLink_12`, colliding with the real one). The matcher pairs them by place and size; never trust an import's names past the first primitive.
+
 ## 4. An arena
 
 **Owner:** Claude Design arena GLB → later imports the slimmed one.

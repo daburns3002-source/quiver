@@ -13,6 +13,23 @@
 	clip; the server can set it and it replicates. `ModelClipSpeed` scales
 	the clip's pace.
 
+	For a model the server times (a boss's beats): `ModelClipAt` is the
+	server time (`workspace:GetServerTimeNow()`) the clip started, so every
+	client is on the same frame of it however late the attribute arrived,
+	and `ModelClipSpan` the seconds it is to last, which sets its pace.
+	A clip the data marks `loops = false` plays once and holds its last
+	frame. `ModelClipStretch` (a Vector3) scales the joint named by
+	`ModelClipStretchJoint` on top of the clip, and the inverse is put back
+	on the joints `ModelClipStretchKeep` lists (comma separated), so a
+	chain stretches to its lane and the fist at its end does not.
+
+	A part welded to the model (an enemy's skin, welded to its hitbox so
+	it still follows the server where no client animates it) is unwelded on
+	this client while it is animated. A part whose `RestSize` attribute is
+	set rests smaller than Roblox's smallest part (a lash link tucked away
+	at a thousandth of its size): clips scale that size, not the clamped
+	one.
+
 	Presentation only. The model's parts are moved relative to its pivot each
 	frame, so the model can be moved by anything else as usual. How the
 	import scaled and turned the model is read from its parts' rest places
@@ -22,6 +39,7 @@
 local CollectionService = game:GetService("CollectionService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
+local Workspace = game:GetService("Workspace")
 
 local Log = require(ReplicatedStorage.Shared.Util.Log)
 local ModelClip = require(ReplicatedStorage.Shared.Util.ModelClip)
@@ -36,6 +54,12 @@ local TAG = "ModelClips"
 local KEY_ATTRIBUTE = "ModelClips"
 local CLIP_ATTRIBUTE = "ModelClip"
 local SPEED_ATTRIBUTE = "ModelClipSpeed"
+local AT_ATTRIBUTE = "ModelClipAt"
+local SPAN_ATTRIBUTE = "ModelClipSpan"
+local STRETCH_ATTRIBUTE = "ModelClipStretch"
+local STRETCH_JOINT_ATTRIBUTE = "ModelClipStretchJoint"
+local STRETCH_KEEP_ATTRIBUTE = "ModelClipStretchKeep"
+local REST_SIZE_ATTRIBUTE = "RestSize"
 --[[ A fit whose parts sit further than this share of the model's spread
      from where the data puts them means the parts do not belong to this
      data: the model is left alone rather than scrambled. ]]
@@ -43,7 +67,14 @@ local MAX_FIT_ERROR = 0.2
 --[[ A part's size is only rewritten when a joint scale moved it this much. ]]
 local SIZE_EPSILON = 1e-3
 
-type Driven = { part: BasePart, joint: string, rest: CFrame, size: Vector3 }
+type Driven = {
+	part: BasePart,
+	joint: string,
+	rest: CFrame,
+	size: Vector3,
+	welds: { WeldConstraint },
+	anchored: boolean,
+}
 type Animator = {
 	model: Model,
 	data: ModelClip.Model,
@@ -106,13 +137,25 @@ function ModelAnimator.attach(model: Model, key: string): boolean
 	end
 	local driven: { Driven } = {}
 	for _, part in parts do
-		part.Anchored = true
-		table.insert(driven, {
+		local welds: { WeldConstraint } = {}
+		for _, child in part:GetChildren() do
+			if child:IsA("WeldConstraint") and child.Enabled then
+				child.Enabled = false
+				table.insert(welds, child)
+			end
+		end
+		local anchored = part.Anchored
+		local restSize = part:GetAttribute(REST_SIZE_ATTRIBUTE)
+		local entry: Driven = {
 			part = part,
 			joint = data.parts[part.Name].joint,
 			rest = pivot:ToObjectSpace(part.CFrame),
-			size = part.Size,
-		})
+			size = if typeof(restSize) == "Vector3" then restSize else part.Size,
+			welds = welds,
+			anchored = anchored,
+		}
+		part.Anchored = true
+		table.insert(driven, entry)
 	end
 	animators[model] = {
 		model = model,
@@ -136,7 +179,33 @@ function ModelAnimator.detach(model: Model)
 	for _, d in a.driven do
 		d.part.CFrame = pivot * d.rest
 		d.part.Size = d.size
+		d.part.Anchored = d.anchored
+		for _, weld in d.welds do
+			weld.Enabled = true
+		end
 	end
+end
+
+--[[ The joints a model's stretch attributes scale, or nil for none. ]]
+local function stretchOf(model: Model): ModelClip.Stretch?
+	local amount = model:GetAttribute(STRETCH_ATTRIBUTE)
+	local joint = model:GetAttribute(STRETCH_JOINT_ATTRIBUTE)
+	if typeof(amount) ~= "Vector3" or type(joint) ~= "string" or amount == Vector3.one then
+		return nil
+	end
+	local out: ModelClip.Stretch = { [joint] = amount }
+	local keep = model:GetAttribute(STRETCH_KEEP_ATTRIBUTE)
+	if type(keep) == "string" then
+		local inverse = Vector3.new(
+			1 / math.max(amount.X, 1e-3),
+			1 / math.max(amount.Y, 1e-3),
+			1 / math.max(amount.Z, 1e-3)
+		)
+		for name in string.gmatch(keep, "[^,%s]+") do
+			out[name] = inverse
+		end
+	end
+	return out
 end
 
 --[[ Poses `model` `time` seconds into its current clip. Exposed so a probe
@@ -148,7 +217,7 @@ function ModelAnimator.pose(model: Model, time: number)
 	end
 	local name = model:GetAttribute(CLIP_ATTRIBUTE)
 	local clip = if type(name) == "string" then a.data.clips[name] else nil
-	local deltas = ModelClip.deltas(a.data, clip, time, a.restInverse)
+	local deltas = ModelClip.deltas(a.data, clip, time, a.restInverse, stretchOf(model))
 	local pivot = model:GetPivot()
 	for _, d in a.driven do
 		local delta = deltas[d.joint]
@@ -170,7 +239,19 @@ local function step(dt: number)
 			continue
 		end
 		local speed = model:GetAttribute(SPEED_ATTRIBUTE)
-		a.time += dt * (if type(speed) == "number" then speed else 1)
+		local pace = if type(speed) == "number" then speed else 1
+		local span = model:GetAttribute(SPAN_ATTRIBUTE)
+		local name = model:GetAttribute(CLIP_ATTRIBUTE)
+		local clip = if type(name) == "string" then a.data.clips[name] else nil
+		if type(span) == "number" and span > 0 and clip then
+			pace *= clip.length / span
+		end
+		local at = model:GetAttribute(AT_ATTRIBUTE)
+		if type(at) == "number" then
+			a.time = math.max(0, Workspace:GetServerTimeNow() - at) * pace
+		else
+			a.time += dt * pace
+		end
 		ModelAnimator.pose(model, a.time)
 	end
 end

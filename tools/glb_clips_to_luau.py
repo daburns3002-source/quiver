@@ -6,7 +6,8 @@ has no skin, and these have none: each part rides a joint node).
     python -I tools/glb_clips_to_luau.py
 
 Reads assets/models/model_clips.json, a map of the game's name for a model
-to its GLB (relative to the repo), and writes one module per model
+to its GLB (relative to the repo), or to { "glb": ..., "loops": [...] } for
+a model whose clips do not all loop, and writes one module per model
 (removing modules for models no longer listed):
 
 - joints: every animated node and its ancestors, parents first, with its
@@ -16,7 +17,9 @@ to its GLB (relative to the repo), and writes one module per model
   space, so the player can work out how the import was scaled and turned;
 - clips: per clip, per joint, the keys of whichever of position, rotation
   and scale it animates, thinned to the keys a straight line between its
-  neighbours cannot stand in for.
+  neighbours cannot stand in for. With a "loops" list, each clip carries
+  `loops`: whether it repeats, or plays once and holds its last frame (a
+  boss's beats). Without one, every clip loops (pets).
 
 Glb space is glTF's: Y up, the model's front toward +Z, metres as units.
 `Shared/Util/ModelClip` samples the clips; `Fx/ModelAnimator` plays them.
@@ -330,7 +333,14 @@ def convert(path: pathlib.Path):
     return joints, parts, clips
 
 
-def render(name, model) -> str:
+def entry(value):
+    """A manifest value: the GLB's path and the clips that loop (None: all)."""
+    if isinstance(value, str):
+        return value, None
+    return value["glb"], value.get("loops")
+
+
+def render(name, model, loops=None) -> str:
     joints, parts, clips = model
     lines = [
         "--!strict",
@@ -363,6 +373,8 @@ def render(name, model) -> str:
         length, tracks = clips[cn]
         lines.append(f'		["{cn}"] = {{')
         lines.append(f"			length = {num(length)},")
+        if loops is not None:
+            lines.append(f"			loops = {'true' if cn in loops else 'false'},")
         lines.append("			joints = {")
         for jn in sorted(tracks):
             lines.append(f'				["{jn}"] = {{')
@@ -385,10 +397,15 @@ def main():
     for name, rel in manifest.items():
         if name.startswith("_"):
             continue
+        rel, loops = entry(rel)
         model = convert(ROOT / rel)
         joints, parts, clips = model
+        if loops is not None:
+            unknown = sorted(set(loops) - set(clips))
+            if unknown:
+                raise SystemExit(f"{name}: loops names clips the GLB has not: {', '.join(unknown)}")
         path = OUT / f"{name}.luau"
-        path.write_text(render(name, model), encoding="utf-8", newline="\n")
+        path.write_text(render(name, model, loops), encoding="utf-8", newline="\n")
         written.add(path.name)
         keys = sum(len(t[0]) for c in clips.values() for jt in c[1].values() for t in jt.values())
         print(f"{name}: {len(joints)} joints, {len(parts)} parts, {sorted(clips)}, {keys} keys, {path.stat().st_size // 1024} KB")

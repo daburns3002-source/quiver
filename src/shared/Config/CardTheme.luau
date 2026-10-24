@@ -65,9 +65,18 @@ local CardTheme = {
 		rarityStroke = 4,
 		nameText = 18,
 		nameStroke = 5,
-		statText = 13,
-		descText = 11.5,
-		descStroke = 3,
+		--[[ The stat pill and the description, larger than the design's 13
+		     and 11.5 so the description fills the card's lower half (owner,
+		     2026-10-24: "make the card description text bigger still so it
+		     fills more of the card"). The description wraps at `descWrap`
+		     inside a `descBox`; `CardText.spec` keeps every card's text
+		     inside it. All in the face's 168-wide units. ]]
+		statText = 14,
+		statHeight = 26,
+		descText = 20,
+		descStroke = 4,
+		descWrap = 144,
+		descBox = Vector2.new(150, 156),
 		pip = Vector2.new(14, 9),
 		pipStroke = 2.5,
 		pipGap = 4,

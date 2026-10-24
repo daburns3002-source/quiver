@@ -20,7 +20,6 @@ Last brought up to date: 2026-10-23.
 | Mossy Glade blocky kit and room | Import the 8 kit GLBs in `assets/models/arenas/mossy_glade_kit/` when the room needs them (Merge Meshes off) | The room itself is being rebuilt in Claude Design from these pieces ("Mossy Glade Arena v3"); then its GLB through `optimise_arena.py` into `ArenaModels` | Kit downloaded 2026-10-23 (260–1,040 triangles each); room in progress |
 | Blocky restyle of the game's models | Make blocky models of the enemies, bosses, arenas and weapons in Claude Design from the new blocky concept sheets, and send them | Each through its pipeline, replacing the round one | Concept sheets: the pet-design session (PR #174 and after) |
 | The updated slimes (Moss, Brood, Baby; #163) | Import `moss_slime_roblox.glb`, `brood_slime_roblox.glb`, `baby_slime_roblox.glb` from `assets/models/enemies/` — or skip if the blocky slimes replace them | Mesh ids into `EnemyDesigns` (the Baby Slime is a primitive stand-in now; the Moss and Brood Slimes still use their first models) | — |
-| Enemy roster cut (too many per act) | Choose: drop the enemies of the already-cut areas (8 per act), and maybe the repeated Lurkers too (7 in Acts 2–3) | Update `docs/ENEMIES-AND-ARENAS.md`; tell the design session not to model the cut ones | — |
 | Phase 3 playtest question | Answer: *did two runs in a row feel meaningfully different?* | Phase 4 can start | ROADMAP.md |
 | Lobby reference images | Put them in `assets/reference/lobby/` | Spec `docs/LOBBY.md` from them | — |
 

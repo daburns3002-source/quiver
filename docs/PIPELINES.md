@@ -112,7 +112,14 @@ Claude Design's 3D models carry their clips (Idle, Hop, Follow, an attack…) in
 3. In the game, the model carries the CollectionService tag `ModelClips` and the attribute `ModelClips = "<Name>"`; its `ModelClip` attribute names the clip to play (the server can set it; it replicates), `ModelClipSpeed` its pace. `Fx/ModelAnimator` does the rest on the client.
 4. The animator reads how the import scaled and turned the model from its parts' rest places (`Shared/Util/ModelClip.fit`), so a re-import at another size needs no change. If the parts do not line up with the data (renamed, merged, another model) it leaves the model alone and logs `ModelAnimator` a warning.
 5. `tests/ModelClip.spec` pins the data's shape, the fit and how a joint's move reaches its parts.
-6. **Pets in Studio before Phase 6:** after the owner imports the pet GLBs (Merge Meshes **off**), run `tools/studio/dump_models.luau` (Edit) and save its JSON as `assets/models/model_imports.json`; `python -I tools/imports_to_luau.py` → `Config/PetModels/<Name>` (each part's mesh id, colour, material, size and place). In a Studio playtest, **P** builds them (`Server/Dev/PetPreview`, Studio only) and they follow the player playing Idle and Follow (`Fx/PetPreview`).
+6. **Pets in Studio before Phase 6:** after the owner imports the pet GLBs (Merge Meshes **off**), run `tools/studio/dump_models.luau` (Edit) and save its JSON as `assets/models/model_imports.json`. Its return can pass 100,000 characters, which a tool result cuts off: keep the JSON in `_G` and read it back in slices. `python -I tools/imports_to_luau.py` → `Config/PetModels/<Name>`. Studio is only trusted for the mesh ids; the script matches each import to its GLB and takes everything else from the GLB (see Pitfalls). In a Studio playtest, **P** builds them (`Server/Dev/PetPreview`, Studio only) and they follow the player playing Idle and Follow (`Fx/PetPreview`).
 
-**Pitfalls seen:** a looping clip read at exactly its length is back at its start (`pose` wraps); a turn about an axis through a joint has no travel, so test travel with a lift, not a turn.
+**Pitfalls seen:**
+- **Every Claude Design import is named `AuxScene`** (the GLB's scene name), not after its file. Imports are told apart by their part names.
+- **A mesh several nodes share imports once, under the first node's name**: Stumpy's four legs all arrive as `Leg_L_front`. Parts are matched to GLB primitives by place and size and renamed after their nodes.
+- **Two primitives of one node become two parts**, each bounded by the vertices its own triangles use (they may share one vertex buffer).
+- **Colours are dropped**: every part arrives grey (0.64). They come from the GLB's materials: base colour plus emissive times strength, Neon from a glow of 0.6.
+- **A rigged import (joint nodes) places each mesh as if no node were turned**: the Mosslet's tilted leaves lie flat in Studio. Its InitialPoses folder and Motor6Ds hold the turns. A GLB without joints bakes the turn into the mesh instead. The script fits each import to both and places parts at their real rest.
+- A looping clip read at exactly its length is back at its start (`pose` wraps).
+- A turn about an axis through a joint has no travel, so test travel with a lift, not a turn.
 

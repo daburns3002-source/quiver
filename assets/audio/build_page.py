@@ -152,8 +152,15 @@ ROUND_15 = [
     }),
 ]
 
+ROUND_16 = [
+    ("Round 16 · the Mythic reveal again: builds you can hear, a harder hit, a celebration", {
+        "card_mythic": ROUND_15[0][1]["card_mythic"],
+    }),
+]
+
 # page: (rounds, picks collection, sounds already chosen, shown for context)
 PAGES = {
+    "16": (ROUND_16, "picks16", ["All ten upgrade effects", "Legendary in the hand A"]),
     "15": (ROUND_15, "picks15", ["All ten upgrade effects (Blaze C)"]),
     "14": (ROUND_14, "picks14", ["Heal", "Blast Arrows", "Bloodletting", "Chain Lightning", "Meteor", "Overdraw", "Heavy Blade", "Earthbreaker", "Soul Chain (an octave lower)"]),
     "13": (ROUND_13, "picks13", ["Heal (quieter, lower)", "Blast Arrows B", "Bloodletting D", "Chain Lightning C", "Meteor A"]),

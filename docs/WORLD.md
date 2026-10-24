@@ -29,10 +29,12 @@ decisions at the end.* Until one is chosen the code, repo and docs keep
 
 - **Ranger — Dual Bows.** A second bow: twice the attack speed. Built
   (`Abilities.DualBows`, dealt only to the Ranger).
-- **Arcanist — Homing Orbs.** Shots home on the nearest enemy. The homing is
-  built as Tracking Eye, now held back from the Ranger; it becomes Homing
-  Orbs, with its own art, when the Arcanist is built.
-- **Warden / Duelist** — not chosen yet.
+- **Arcanist — Meteor.** Every 5th cast calls a meteor down on the target:
+  a warning circle, then a big blast. Built (`Combat/AreaStrikes`); it
+  replaced the earlier Homing Orbs idea (owner, 2026-10-23).
+- **Warden — Earthbreaker.** The dash ends in a leaping slam and erupting
+  cracks. Built (`Combat/AreaStrikes`, the kit's `special` clip).
+- **Duelist** — not chosen yet (the class itself is still open).
 
 Skills say which classes can draw them (`Ability.classes`, none named means
 all); Second Wind stays a Mythic every class can draw.
@@ -41,7 +43,7 @@ all); Second Wind stays a Mythic every class can draw.
 each a model sheet (hero render, front / side / back / top, details,
 palette) to be built as a 3D model. Each class has its colour (owner):
 `ranger_bow` green (leaf-tipped longbow and arrow), `arcanist_staff` blue
-(crescent staff with a cyan orb and three orbiting orbs, for Homing Orbs),
+(crescent staff with a cyan orb and three orbiting orbs),
 and both melee options while the class is open — `warden_greatsword` red
 (no shield) and `duelist_daggers` purple.
 

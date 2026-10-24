@@ -80,7 +80,7 @@ as written below.
 
 | Act | Area | Enemies (elite last) |
 |---|---|---|
-| 1 | Mossy Glade | Moss Slime, Sprout Slime, Glade Wilf, *Brood Slime* |
+| 1 | Mossy Glade | Moss Slime, Sprout Slime, Ember Wilf, *Brood Slime* |
 | 1 | Thornwood | Bramble Boar, Burr Thistle, Bramble Lurker, *Bramble Sow* |
 | 2 | Drowned Village | Drowned Zombie, Ditch Eel, Bell Ringer, *Hollow Fisherman* |
 | 2 | Bogheart Caverns | Spore Puff, Glowcap, Shellback |

@@ -101,6 +101,20 @@ local Sounds: { [string]: Sound } = {
 	level_up = { id = "rbxassetid://118857075181229", volume = 0.7, pitchJitter = 0, minGap = 0.2 },
 	card_pick = { id = "rbxassetid://96268156590681", volume = 0.7, pitchJitter = 0, minGap = 0.1 },
 	gate_open = { id = "rbxassetid://120317924961388", volume = 0.7, pitchJitter = 0, minGap = 0.5 },
+
+	--[[ The card screen (`UI/Cards/DraftScreen`), Roblox's own free UI
+	     sounds the owner picked on the Card Screen Sounds page
+	     (2026-10-24): a card hovered or focused, a card taken up, the hand
+	     redealt, and Choose! pressed. ]]
+	card_hover = {
+		id = "rbxassetid://10066931761",
+		volume = 0.35,
+		pitchJitter = 0.03,
+		minGap = 0.05,
+	},
+	card_click = { id = "rbxassetid://10128760939", volume = 0.6, pitchJitter = 0, minGap = 0.05 },
+	card_reroll = { id = "rbxassetid://10128766965", volume = 0.6, pitchJitter = 0, minGap = 0.2 },
+	card_choose = { id = "rbxassetid://10066947742", volume = 0.7, pitchJitter = 0, minGap = 0.2 },
 }
 
 return table.freeze(Sounds)

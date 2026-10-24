@@ -64,6 +64,25 @@ the style without naming either game.
 
 ---
 
+## The roster, after the cut (owner, 2026-10-24)
+
+Too many enemies per act, so: the enemies of the areas cut on 2026-10-22
+are dropped (not to be modelled), and the Lurker, which came back reskinned
+in nearly every area, stays only where it is taught, as Thornwood's Bramble
+Lurker. Work is on Acts 1–3 only for now (CLAUDE.md); Acts 4–5 are on hold
+as written below.
+
+| Act | Area | Enemies (elite last) |
+|---|---|---|
+| 1 | Mossy Glade | Moss Slime, Sprout Slime, Glade Wilf, *Brood Slime* |
+| 1 | Thornwood | Bramble Boar, Burr Thistle, Bramble Lurker, *Bramble Sow* |
+| 2 | Drowned Village | Drowned Zombie, Ditch Eel, Bell Ringer, *Hollow Fisherman* |
+| 2 | Bogheart Caverns | Spore Puff, Glowcap, Shellback |
+| 3 | Windswept Cliffs | Harpy, Gust Shaman, Cliff Goat, *Storm Roc* |
+| 3 | Frostpeak Pass | Yeti, Frost Golem, Snow Sprite |
+
+Act 1 has 8, Acts 2 and 3 have 7 each.
+
 ## Act 1 — The Wilds
 
 Signature hazard: **choke points.** Brambles and rocks that narrow the room
@@ -122,7 +141,7 @@ gaps between roofs are drops (void edges, a light preview of Act 5).
 |---|---|---|
 | **Spore Puff** | Charger · twist: bursts into a poison cloud when killed close | Kill it from range |
 | **Glowcap** | **New: stationary** — a mushroom turret that sprays spores in a spiral | A rotating hazard |
-| **Cave Crawler** | Lurker · reskin (blind cave worm) | Surfaces under you |
+| ~~**Cave Crawler**~~ | *Cut (owner, 2026-10-24): the Lurker again; only Thornwood's Bramble Lurker stays* | — |
 | **Shellback** | Bulwark · reskin (beetle) | The wall between you and the turrets |
 
 **Arenas.** *Fungus Grove* — giant mushrooms as pillars; their caps glow.
@@ -157,7 +176,7 @@ streaks first). *Twin Peaks* — two plateaus joined by a bridge.
 | **Yeti** | Bulwark · twist: throws a big snowball (slow, arcing, splash) | Heavy, slow |
 | **Frost Golem** | Bulwark · twist: freezes the ground in a ring when it stomps | Makes ice |
 | **Snow Sprite** | Spitter · twist: shots chill (slow you) | Speed drain |
-| **Ice Lurker** | Lurker · reskin (crystal) | Surfaces under you |
+| ~~**Ice Lurker**~~ | *Cut (owner, 2026-10-24): the Lurker again; only Thornwood's Bramble Lurker stays* | — |
 
 **Arenas.** *Frozen Lake* — most of the floor is ice: you slide, you can't
 stop dead (a movement change, the act's real test). *Icicle Gorge* — icicles
@@ -263,7 +282,9 @@ have.
 The owner set **two bosses per act**, and with them **two areas per act** —
 ten in all, each ending in its boss. These five areas went with the bosses
 that were cut; they are kept here, with their enemies and arenas, in case
-any of it is wanted back or folded into another area.
+any of it is wanted back or folded into another area. **Their enemies are
+dropped from the roster (owner, 2026-10-24) and are not to be modelled**,
+though their concept sheets were redrawn in the blocky pass.
 
 ### Cut — Bandit Hollow — canyon camp · lean: Ranger (open) · act boss slot
 

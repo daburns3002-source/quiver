@@ -37,6 +37,10 @@ export type ArenaPart = {
 	     low-poly steps. Drawn as a smooth ellipse instead, so the pond's
 	     edge is round (owner, 2026-10-23). ]]
 	bank: Color3?,
+	--[[ The part's colour, in place of white (which shows the mesh's own
+	     vertex colours). For glow whose colour was a material, which the
+	     importer drops: the outer forest's cyan mushroom caps. ]]
+	tint: Color3?,
 }
 
 export type ArenaModel = {
@@ -66,67 +70,30 @@ export type ArenaModel = {
 	Act 1, area 1: the Mossy Glade, five arenas for Level 1's rooms (owner,
 	2026-10-22): logs, hollow, boulders, thorns, boss. Since 2026-10-24 every
 	one is built from the owner's blocky kit (`Config/ArenaKits`), laid out
-	to the room's own cover boxes in `Balance`; the forest round it is still
-	the round models' until a blocky forest exists.
+	to the room's own cover boxes in `Balance`; the forest round it is the
+	blocky outer forest.
 ]]
 
---[[ Every glade's outer ground, exactly its vertex colour, so the forest
-     floor past the model's edge is the same green as the model's own ground
+local GladeForest = require(script.Parent.GladeForest)
+
+local GLADE_FOREST: { ArenaPart } = GladeForest
+
+--[[ The forest floor past the outer forest's own edge (75 studs out to
+     either side, 60 north and south): its ground's darkest green
+     (docs/arenas/mossy-glade-outer.md), so the two read as one floor
      (owner, 2026-10-22: "it should not be two different shades of green").
      Both are drawn matte, so the same colour reads the same. ]]
-local GLADE_FLOOR = Color3.fromRGB(53, 88, 41)
-
---[[ The boss arena's own bushes and trees. Squeezed to fit the room, they
-     stand right up against its walls, a dense shaded forest the owner chose
-     for every glade (2026-10-22: "copy that to the rest"). ]]
-local BOSS_FOREST: { ArenaPart } = {
-	{
-		name = "Bushes",
-		meshId = "rbxassetid://80762864267370",
-		size = Vector3.new(65.941, 4.088, 101.221),
-		offset = Vector3.new(-0.031, 1.658, -7.685),
-	},
-	{
-		name = "Trees",
-		meshId = "rbxassetid://82996110055874",
-		size = Vector3.new(74.834, 13.063, 114.270),
-		offset = Vector3.new(-0.561, 6.966, -6.824),
-	},
-}
-
---[[ The log glade's wider forest and grass, drawn again either side past the
-     boss forest so the screen's edges are trees too. ]]
-local WIDE_FOREST: { ArenaPart } = {
-	{
-		name = "Trees",
-		meshId = "rbxassetid://104769390455997",
-		size = Vector3.new(96.184, 15.779, 128.239),
-		offset = Vector3.new(0.250, 8.306, -6.803),
-	},
-	{
-		name = "Bushes",
-		meshId = "rbxassetid://129899405699443",
-		size = Vector3.new(81.689, 4.153, 115.584),
-		offset = Vector3.new(1.126, 1.498, -5.756),
-	},
-	{
-		name = "Grass",
-		meshId = "rbxassetid://114418367398398",
-		size = Vector3.new(80.737, 1.773, 115.843),
-		offset = Vector3.new(-0.200, 0.859, -7.078),
-	},
-}
+local GLADE_FLOOR = Color3.fromRGB(63, 107, 42)
 
 --[[ A blocky glade (the owner's Mossy Glade kit, 2026-10-24): every room
      built from the kit to its own size and cover (`Config/ArenaKits`),
-     inside the boss arena's forest, with the wide forest either side. The
-     round glade variants this replaces, one model per room, are in the
-     history (before #193). ]]
+     inside the blocky outer forest (`Config/GladeForest`, 2026-10-24),
+     which reaches past every screen's edges on its own. The round forest
+     it replaces, drawn again either side as `surround`, is in the history
+     (before the outer forest's PR). ]]
 local function glade(lowCover: "Water" | "Thicket"): ArenaModel
 	return {
-		parts = BOSS_FOREST,
-		surround = WIDE_FOREST,
-		surroundSpacing = 81,
+		parts = GLADE_FOREST,
 		outsideColor = GLADE_FLOOR,
 		ambience = "Forest",
 		kit = "Mossy",

@@ -331,7 +331,14 @@ local function placeKit(
 
 	--[[ The importer turns each mesh 180° about Y; turned back. ]]
 	local turn = CFrame.Angles(0, math.pi, 0)
-	local function mesh(meshId: string, name: string, size: Vector3, at: CFrame, glow: boolean)
+	local function mesh(
+		meshId: string,
+		name: string,
+		size: Vector3,
+		at: CFrame,
+		glow: boolean,
+		tint: Color3?
+	)
 		local template = meshTemplates[meshId]
 		if not template then
 			return
@@ -344,7 +351,7 @@ local function placeKit(
 		part.CanCollide = false
 		part.CanQuery = false
 		part.CanTouch = false
-		part.Color = Color3.new(1, 1, 1)
+		part.Color = tint or Color3.new(1, 1, 1)
 		part.Material = if glow then Enum.Material.Neon else Enum.Material.SmoothPlastic
 		part.CastShadow = not glow
 		part.Parent = folder
@@ -358,7 +365,8 @@ local function placeKit(
 			placed.piece,
 			placed.size,
 			CFrame.new(placed.base + Vector3.new(0, placed.size.Y / 2, 0)) * facing,
-			false
+			false,
+			piece.tint
 		)
 		local glow = piece.glow
 		if glow then
@@ -470,7 +478,7 @@ local function placeModel(
 		part.CanQuery = false
 		part.CanTouch = false
 		--[[ White, so the model's own vertex colours show unchanged. ]]
-		part.Color = Color3.new(1, 1, 1)
+		part.Color = spec.tint or Color3.new(1, 1, 1)
 		part.Material = if spec.glow
 			then Enum.Material.Neon
 			elseif spec.matte then Enum.Material.Fabric
@@ -498,12 +506,13 @@ local function placeModel(
 		end
 	end
 
-	--[[ A forest floor under everything, just below the model's own ground
-	     so the two never share a plane and flicker. ]]
+	--[[ A forest floor under everything, its top just below the outer
+	     forest's ground (Y -0.2) so the two never share a plane and flicker,
+	     and it shows only past the forest's edge. ]]
 	local outside = model.outsideColor
 	if outside then
 		local floor =
-			decor("Outside", Vector3.new(600, 1, 600), CFrame.new(0, -0.55, 0), outside, folder)
+			decor("Outside", Vector3.new(600, 1, 600), CFrame.new(0, -0.75, 0), outside, folder)
 		--[[ Matte: plastic catches the sun at a glance and paled to grey. ]]
 		floor.Material = Enum.Material.Fabric
 	end

@@ -27,6 +27,7 @@ id, colour, material, transparency, size and place relative to the model's
 pivot (12 CFrame components), in Roblox's frame: the importer turns a model
 half round so its front faces -Z.
 """
+import collections
 import json
 import pathlib
 import sys
@@ -152,27 +153,48 @@ def primitives(path: pathlib.Path):
 
 
 def match(parts, prims, mode):
-    """Pairs each imported part with a primitive, closest first. Returns the
-    pairs, the import's offset and the worst distance."""
+    """Pairs each imported part with a primitive. A part whose name is its
+    node's, once on each side, pairs by name and is checked by size alone:
+    a GLB re-exported with its nodes regrouped under a turned joint rests
+    where it did, but a rigged import of it would sit elsewhere. The rest
+    pair by place and size, closest first. Returns the pairs, the import's
+    offset and the worst distance."""
     seen = np.array([p["cframe"][:3] for p in parts], float)
     sizes = np.array([p["size"] for p in parts], float)
     centres = np.array([q[mode][0] for q in prims])
     extents = np.array([q[mode][1] for q in prims])
-    offset = np.median(seen, 0) - np.median(centres, 0)
+    part_count = collections.Counter(p["name"] for p in parts)
+    prim_index = collections.defaultdict(list)
+    for b, q in enumerate(prims):
+        prim_index[q["node"]].append(b)
+    named = {
+        a: prim_index[p["name"]][0]
+        for a, p in enumerate(parts)
+        if part_count[p["name"]] == 1 and len(prim_index[p["name"]]) == 1
+    }
+    offset = np.median([seen[a] - centres[b] for a, b in named.items()], 0) if named else (
+        np.median(seen, 0) - np.median(centres, 0)
+    )
+    rest_p = [a for a in range(len(parts)) if a not in named]
+    rest_q = [b for b in range(len(prims)) if b not in named.values()]
+    pairs = dict(named)
     for _ in range(2):
-        cost = np.abs(seen[:, None, :] - centres[None, :, :] - offset).max(2) + np.abs(
-            sizes[:, None, :] - extents[None, :, :]
-        ).max(2)
-        order = np.dstack(np.unravel_index(np.argsort(cost, axis=None), cost.shape))[0]
-        pairs, used_p, used_q = {}, set(), set()
-        for a, b in order:
-            if a not in used_p and b not in used_q:
-                pairs[a] = b
-                used_p.add(a)
-                used_q.add(b)
+        pairs = dict(named)
+        if rest_p:
+            cost = np.abs(seen[rest_p][:, None, :] - centres[rest_q][None, :, :] - offset).max(2) + np.abs(
+                sizes[rest_p][:, None, :] - extents[rest_q][None, :, :]
+            ).max(2)
+            order = np.dstack(np.unravel_index(np.argsort(cost, axis=None), cost.shape))[0]
+            used_p, used_q = set(), set()
+            for i, j in order:
+                if i not in used_p and j not in used_q:
+                    pairs[rest_p[i]] = rest_q[j]
+                    used_p.add(i)
+                    used_q.add(j)
         offset = np.median([seen[a] - centres[b] for a, b in pairs.items()], 0)
     worst = max(
-        np.abs(seen[a] - centres[b] - offset).max() + np.abs(sizes[a] - extents[b]).max() for a, b in pairs.items()
+        (0 if a in named else np.abs(seen[a] - centres[b] - offset).max()) + np.abs(sizes[a] - extents[b]).max()
+        for a, b in pairs.items()
     )
     return pairs, offset, worst
 
@@ -217,7 +239,7 @@ def main():
         names = {q["node"] for q in prims}
         scene = max(dump, key=lambda s: len(names & {p["name"] for p in dump[s]["parts"]}))
         parts = dump[scene]["parts"]
-        if not names & {p["name"] for p in parts} or len(parts) != len(prims):
+        if not names & {p["name"] for p in parts} or len(parts) > len(prims):
             print(f"skipped {key}: no import of {rel} ({len(prims)} meshes) in the dump")
             continue
         fits = {mode: match(parts, prims, mode) for mode in ("baked", "rigged")}
@@ -247,6 +269,11 @@ def main():
                     "cframe": cframe,
                 }
             )
+        missing = sorted({q["node"] for q in prims} - {r["name"] for r in rows})
+        if missing:
+            # a GLB re-exported with pieces the import predates: the pet
+            # builds without them until the owner imports it again
+            print(f"{key}: the import has no {', '.join(missing)}; re-import {rel} for them")
         path = OUT / f"{key}.luau"
         path.write_text(render(key, scene, mode, rows), encoding="utf-8", newline="\n")
         written.add(path.name)

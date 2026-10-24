@@ -38,6 +38,59 @@ POS_TOL = 0.004
 ROT_TOL = math.radians(0.6)
 SCALE_TOL = 0.004
 
+#: A clip whose root travels this far sideways (GLB units) and turns this
+#: far about Y walks a path in the viewer (a Follow trotting a loop). The
+#: game moves the model itself, so such a clip is played on the spot.
+PATH_TRAVEL = 0.3
+PATH_TURN = math.radians(180)
+
+
+def twist_y(q):
+    """The part of a rotation (x, y, z, w) that turns about Y."""
+    t = np.array([0.0, q[1], 0.0, q[3]])
+    n = np.linalg.norm(t)
+    return t / n if n > 1e-9 else np.array([0.0, 0.0, 0.0, 1.0])
+
+
+def quat_mul(a, b):
+    ax, ay, az, aw = a
+    bx, by, bz, bw = b
+    return np.array(
+        [
+            aw * bx + ax * bw + ay * bz - az * by,
+            aw * by - ax * bz + ay * bw + az * bx,
+            aw * bz + ax * by - ay * bx + az * bw,
+            aw * bw - ax * bx - ay * by - az * bz,
+        ]
+    )
+
+
+def on_the_spot(tracks, roots, rest):
+    """Drops the sideways travel and the turn about Y of a root that walks a
+    path, keeping its bob and tilt and everything below it. Returns the
+    roots it stilled."""
+    stilled = []
+    for name in roots:
+        t = tracks.get(name)
+        if not t or "pos" not in t or "rot" not in t:
+            continue
+        times, values = t["pos"]
+        pos = np.array(values).reshape(-1, 3)
+        rtimes, rvalues = t["rot"]
+        rot = np.array(rvalues).reshape(-1, 4)
+        yaw = [2 * math.atan2(twist_y(q)[1], twist_y(q)[3]) for q in rot]
+        yaw = np.unwrap(yaw)
+        if max(np.ptp(pos[:, 0]), np.ptp(pos[:, 2])) < PATH_TRAVEL or np.ptp(yaw) < PATH_TURN:
+            continue
+        base_t, base_q, _ = rest[name]
+        pos[:, 0], pos[:, 2] = base_t[0], base_t[2]
+        keep = twist_y(base_q)
+        rot = np.array([quat_mul(keep, quat_mul(twist_y(q) * [-1, -1, -1, 1], q)) for q in rot])
+        t["pos"] = (times, [float(x) for x in pos.reshape(-1)])
+        t["rot"] = (rtimes, [float(x) for x in rot.reshape(-1)])
+        stilled.append(name)
+    return stilled
+
 COMPONENTS = {5120: "b", 5121: "B", 5122: "h", 5123: "H", 5125: "I", 5126: "f"}
 WIDTH = {"SCALAR": 1, "VEC2": 2, "VEC3": 3, "VEC4": 4, "MAT4": 16}
 
@@ -230,6 +283,13 @@ def convert(path: pathlib.Path):
         size = (hi - lo) * scale
         parts[name_of[i]] = (joint_of(i), list(centre) + list(matrix_to_quat(rot)), list(size))
 
+    # the joints that can carry a whole model along a path: the top two levels
+    depth = {}
+    for jn, jp, _ in joints:
+        depth[jn] = depth.get(jp, -1) + 1
+    roots = [jn for jn, _, _ in joints if depth[jn] <= 1]
+    rest_by_name = {name_of[i]: rest[i] for i in keep}
+
     clips = {}
     for anim in gltf.get("animations", []):
         tracks = {}
@@ -262,7 +322,11 @@ def convert(path: pathlib.Path):
                 [float(times[k]) for k in idx],
                 [float(x) for k in idx for x in values[k]],
             )
-        clips[anim.get("name") or f"Clip{len(clips) + 1}"] = (length, tracks)
+        clip_name = anim.get("name") or f"Clip{len(clips) + 1}"
+        stilled = on_the_spot(tracks, roots, rest_by_name)
+        if stilled:
+            print(f"  {path.stem} {clip_name}: walks a path; played on the spot ({', '.join(stilled)})")
+        clips[clip_name] = (length, tracks)
     return joints, parts, clips
 
 

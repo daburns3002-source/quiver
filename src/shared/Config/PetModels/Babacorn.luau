@@ -42,9 +42,9 @@ return table.freeze({
 	},
 	{
 		name = "Cap",
-		meshId = "rbxassetid://123008065129310",
+		meshId = "rbxassetid://122629155206925",
 		textureId = "",
-		color = { 0.2902, 0.18431, 0.11373 },
+		color = { 0.35294, 0.22745, 0.14118 },
 		material = "SmoothPlastic",
 		transparency = 0,
 		size = { 0.565, 0.196, 0.4294 },
@@ -52,9 +52,9 @@ return table.freeze({
 	},
 	{
 		name = "Cap",
-		meshId = "rbxassetid://122629155206925",
+		meshId = "rbxassetid://123008065129310",
 		textureId = "",
-		color = { 0.35294, 0.22745, 0.14118 },
+		color = { 0.2902, 0.18431, 0.11373 },
 		material = "SmoothPlastic",
 		transparency = 0,
 		size = { 0.565, 0.196, 0.4294 },

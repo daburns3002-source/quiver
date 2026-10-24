@@ -11,7 +11,7 @@ Last brought up to date: 2026-10-23.
 
 | What | What the owner does | Then Claude | Where it is |
 |---|---|---|---|
-| Pet and enemy animations (Claude Design clips) | Import each finished pet and enemy GLB (names kept) | Their clips into `Config/ModelClips` with `tools/glb_clips_to_luau.py`; tag the models `ModelClips` so `Fx/ModelAnimator` plays them | Branch `phase-3/model-animations` |
+| Pet and enemy animations (Claude Design clips) | Pets: all 12 imported and in the **P** preview with their clips. Optional: re-import `glade_fox.glb` and `glimmerhorn.glb` from `assets/models/pets/forest/` for their open mouths (Pounce, Leap). Enemies: import each finished GLB | Enemies: their clips into `Config/ModelClips`, tag the models `ModelClips` | Pets done (PRs #179–#181 and the nine-clips PR); enemy GLBs not downloaded yet |
 | Swaying trees | Import `assets/models/arenas/mossy_glade_trees_roblox.glb` (Merge Meshes off, no rig) — or skip until the blocky glade exists | Dump the 160 mesh ids into `tree_ids.json`, regenerate `ArenaTrees`, playtest, merge | Branch `phase-3/swaying-trees` |
 | Blocky restyle of the game's models | Make blocky models of the enemies, bosses, arenas and weapons in Claude Design from the new blocky concept sheets, and send them | Each through its pipeline, replacing the round one | Concept sheets: the pet-design session (PR #174 and after) |
 | The updated slimes (Moss, Brood, Baby; #163) | Import `moss_slime_roblox.glb`, `brood_slime_roblox.glb`, `baby_slime_roblox.glb` from `assets/models/enemies/` — or skip if the blocky slimes replace them | Mesh ids into `EnemyDesigns` (the Baby Slime is a primitive stand-in now; the Moss and Brood Slimes still use their first models) | — |

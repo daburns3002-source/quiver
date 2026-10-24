@@ -19,6 +19,10 @@ async function buffer(id) {
   try {
     buffers[id] = await decode(TRACKS[id].ogg);
   } catch (e) {
+    if (!TRACKS[id].mp3) {
+      note("This browser can't play Ogg; open the page in Chrome or Edge.");
+      throw e;
+    }
     buffers[id] = await decode(TRACKS[id].mp3); // no Ogg in this browser; MP3 may add a tiny gap at the seam
   }
   return buffers[id];

@@ -61,7 +61,34 @@
     "seconds": 87.026,
     "lufs": -16.0,
     "true_peak_db": -2.3,
-    "note": "Dive: a chromatic run tumbling down two octaves, three hits on D minor, then a flourish up to a held high A."
+    "note": "Dive in A, as before: the runs on the fight's dominant, pulling straight into D minor."
+   },
+   "dive_bb": {
+    "intro_seconds": 4.737,
+    "loop_start": 10.736848,
+    "loop_end": 86.526327,
+    "seconds": 87.026,
+    "lufs": -16.0,
+    "true_peak_db": -2.3,
+    "note": "Dive in B flat: both runs a half step up, a tense, sideways lurch into the fight."
+   },
+   "dive_g": {
+    "intro_seconds": 4.737,
+    "loop_start": 10.736848,
+    "loop_end": 86.526327,
+    "seconds": 87.026,
+    "lufs": -16.0,
+    "true_peak_db": -2.3,
+    "note": "Dive in G: both runs a step down, brighter and bolder against the minor hits."
+   },
+   "dive_d": {
+    "intro_seconds": 4.737,
+    "loop_start": 10.736848,
+    "loop_end": 86.526327,
+    "seconds": 87.026,
+    "lufs": -16.0,
+    "true_peak_db": -2.3,
+    "note": "Dive in D major: both runs on the tune's own home note but major, flipping to minor as the fight starts."
    },
    "flash": {
     "intro_seconds": 4.737,

@@ -297,6 +297,44 @@ INTROS = {
 }
 
 
+NOTE_NAMES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
+
+
+def shifted(spec, semis, bars, note):
+    """The intro with the named bars' chords and lead moved by `semis`."""
+
+    def chord(c):
+        root = c[:2] if len(c) > 1 and c[1] in "b#" else c[:1]
+        return NOTE_NAMES[(g.PC[root] + semis) % 12] + c[len(root):]
+
+    def tune(bar):
+        out = []
+        for tok in bar.split():
+            name, beats = tok.split(":")
+            if name != "r":
+                m = g.midi(name) + semis
+                name = NOTE_NAMES[m % 12] + str(m // 12 - 1)
+            out.append(f"{name}:{beats}")
+        return " ".join(out)
+
+    cells = spec["chords"].split("|")
+    lead = spec["lead"].split("|")
+    for b in bars:
+        cells[b] = " ".join(chord(c) for c in cells[b].split())
+        lead[b] = tune(lead[b])
+    return {**spec, "chords": " | ".join(c.strip() for c in cells), "lead": " | ".join(lead), "note": note}
+
+
+# The owner liked Dive and asked for its run down and climb up in another key
+# (2026-10-24): the runs move, the D minor hits between them and the loop stay.
+INTROS["dive_bb"] = shifted(INTROS["dive"], 1, (0, 2), "Dive in B flat: both runs a half step up, a tense, sideways lurch into the fight.")
+INTROS["dive_g"] = shifted(INTROS["dive"], -2, (0, 2), "Dive in G: both runs a step down, brighter and bolder against the minor hits.")
+INTROS["dive_d"] = shifted(INTROS["dive"], -7, (0, 2), "Dive in D major: both runs on the tune's own home note but major, flipping to minor as the fight starts.")
+INTROS["dive"]["note"] = "Dive in A, as before: the runs on the fight's dominant, pulling straight into D minor."
+# the ones the music page offers this round
+INTRO_ROUND = ["dive", "dive_bb", "dive_g", "dive_d"]
+
+
 def intro_arrange(take, which):
     spec = INTROS[which]
     cells = [c.split() for c in spec["chords"].split("|")]
@@ -379,7 +417,7 @@ if __name__ == "__main__":
     os.makedirs(out_dir, exist_ok=True)
     manifest = []
     for take in takes:
-        intros = {k: (lambda t, k=k: intro_arrange(t, k)) for k in INTROS} if take == "b" else None
+        intros = {k: (lambda t, k=k: intro_arrange(t, k)) for k in INTRO_ROUND} if take == "b" else None
         info = g.master(take, out_dir, arrange_fn=arrange, buses=BUSES, trims=TRIMS, name="boss", beat=BEAT, intros=intros)
         for k, v in (info.get("intros") or {}).items():
             v["note"] = INTROS[k]["note"]

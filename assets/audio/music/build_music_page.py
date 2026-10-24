@@ -20,7 +20,7 @@ TRACKS = {
               "F major, 104 BPM, 92 seconds, then it loops: a short harp intro, the tune twice, "
               "a minor middle on the ocarina, a quiet harp-and-bells bridge, and the tune once more."),
     "boss": ("King Bloblin", "Area 1's boss fight, take B (Chip + Brass), now with a battle intro that plays once as "
-             "the king appears, like a trainer battle's: pick the intro. After it comes the 76-second loop "
+             "the king appears, like a trainer battle's. You liked Dive: here it is with its runs in four keys; pick one. After it comes the 76-second loop "
              "(D minor, 152 BPM): stabs and a drum fill, the battle tune twice, a heroic major-key middle, a bouncy "
              "half-time breakdown for the slime's wobble, a snare-roll build, and the tune once more."),
 }
@@ -35,14 +35,16 @@ rows = []
 entries = []
 for v in manifest:
     for key, it in (v.get("intros") or {}).items():
-        entries.append((f"{TRACK}_{v['take']}_{key}", f"{v['take'].upper()} · {key.title()}", key.upper(),
+        entries.append((f"{TRACK}_{v['take']}_{key}", f"{v['take'].upper()} · {key.replace('_', ' ').title()}", key.upper(),
                         f"{it['intro_seconds']:.1f} s intro, then the loop", it["note"], [it["loop_start"], it["loop_end"]]))
 if not entries:
     entries = [(f"{TRACK}_{v['take']}", v["take"].upper(), v["take"].upper(), f"{v['seconds']} s · {v['lufs']} LUFS",
                 v["note"], None) for v in manifest]
+# MP3 copies (for browsers without Ogg) only while the page stays well under the 16 MB limit
+formats = ("ogg", "mp3") if len(entries) <= 2 else ("ogg",)
 for sid, label, value, sub, note, loop in entries:
     data[sid] = {ext: base64.b64encode(open(os.path.join(RENDER, f"{sid}.{ext}"), "rb").read()).decode()
-                 for ext in ("ogg", "mp3")}
+                 for ext in formats}
     if loop:
         data[sid]["loop"] = loop
     rows.append(f"""<li class="opt">

@@ -509,7 +509,7 @@ return table.freeze({
 		meshId = "rbxassetid://75191527954998",
 		textureId = "",
 		color = { 1, 1, 1 },
-		material = "SmoothPlastic",
+		material = "Neon",
 		transparency = 0.15,
 		size = { 0.32, 0.018, 0.012 },
 		cframe = {
@@ -532,7 +532,7 @@ return table.freeze({
 		meshId = "rbxassetid://80965415474705",
 		textureId = "",
 		color = { 1, 1, 1 },
-		material = "SmoothPlastic",
+		material = "Neon",
 		transparency = 0.15,
 		size = { 0.32, 0.018, 0.012 },
 		cframe = {
@@ -555,7 +555,7 @@ return table.freeze({
 		meshId = "rbxassetid://126525669381164",
 		textureId = "",
 		color = { 1, 1, 1 },
-		material = "SmoothPlastic",
+		material = "Neon",
 		transparency = 0.15,
 		size = { 0.012, 0.018, 0.116 },
 		cframe = {
@@ -578,7 +578,7 @@ return table.freeze({
 		meshId = "rbxassetid://82722581007682",
 		textureId = "",
 		color = { 1, 1, 1 },
-		material = "SmoothPlastic",
+		material = "Neon",
 		transparency = 0.15,
 		size = { 0.012, 0.018, 0.116 },
 		cframe = {
@@ -624,7 +624,7 @@ return table.freeze({
 		meshId = "rbxassetid://118073272506002",
 		textureId = "",
 		color = { 1, 1, 1 },
-		material = "SmoothPlastic",
+		material = "Neon",
 		transparency = 0.15,
 		size = { 0.32, 0.018, 0.012 },
 		cframe = {
@@ -647,7 +647,7 @@ return table.freeze({
 		meshId = "rbxassetid://123603048612661",
 		textureId = "",
 		color = { 1, 1, 1 },
-		material = "SmoothPlastic",
+		material = "Neon",
 		transparency = 0.15,
 		size = { 0.32, 0.018, 0.012 },
 		cframe = {
@@ -670,7 +670,7 @@ return table.freeze({
 		meshId = "rbxassetid://118531211917098",
 		textureId = "",
 		color = { 1, 1, 1 },
-		material = "SmoothPlastic",
+		material = "Neon",
 		transparency = 0.15,
 		size = { 0.012, 0.018, 0.116 },
 		cframe = {
@@ -693,7 +693,7 @@ return table.freeze({
 		meshId = "rbxassetid://120500153873999",
 		textureId = "",
 		color = { 1, 1, 1 },
-		material = "SmoothPlastic",
+		material = "Neon",
 		transparency = 0.15,
 		size = { 0.012, 0.018, 0.116 },
 		cframe = {

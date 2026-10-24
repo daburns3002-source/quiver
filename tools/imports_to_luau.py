@@ -66,6 +66,11 @@ TURN = np.diag([-1.0, 1.0, -1.0])
 MATCH_TOLERANCE = 0.02
 #: Glow (emissive times strength, linear) from which a part is Neon.
 NEON_GLOW = 0.6
+#: A pet's, lower: its designs draw their glowing eyes, ear tips and
+#: crystals from about 0.44 (Ember Wilf's eyes 0.52, Stumpy's crystals 0.53,
+#: Glimmerhorn's eye glows 0.45), and at 0.6 they came out flat (owner,
+#: 2026-10-24: "make sure the pets glow where they need to in game").
+PET_NEON_GLOW = 0.44
 
 
 def num(v: float) -> str:
@@ -112,9 +117,10 @@ def to_srgb(c: float) -> float:
 
 
 def look(gltf, index):
-    """A material's colour (sRGB), Roblox material, transparency and name."""
+    """A material's colour (sRGB), Roblox material, transparency, name and
+    glow (emissive times strength)."""
     if index is None:
-        return [1.0, 1.0, 1.0], "SmoothPlastic", 0.0, ""
+        return [1.0, 1.0, 1.0], "SmoothPlastic", 0.0, "", 0.0
     m = gltf["materials"][index]
     base = m.get("pbrMetallicRoughness", {}).get("baseColorFactor", [1, 1, 1, 1])
     strength = m.get("extensions", {}).get("KHR_materials_emissive_strength", {}).get("emissiveStrength", 1)
@@ -122,7 +128,7 @@ def look(gltf, index):
     colour = [to_srgb(c) for c in np.array(base[:3], float) + glow]
     material = "Neon" if glow.max() >= NEON_GLOW else "SmoothPlastic"
     alpha = base[3] if m.get("alphaMode") == "BLEND" else 1.0
-    return colour, material, round(1 - alpha, 3), m.get("name", "")
+    return colour, material, round(1 - alpha, 3), m.get("name", ""), float(glow.max())
 
 
 def primitives(path: pathlib.Path):
@@ -287,7 +293,9 @@ def main():
         rows = []
         for a, b in sorted(pairs.items(), key=lambda ab: prims[ab[1]]["node"]):
             part, prim = parts[a], prims[b]
-            colour, material, transparency, surface = prim["look"]
+            colour, material, transparency, surface, glow = prim["look"]
+            if pet and glow >= PET_NEON_GLOW:
+                material = "Neon"
             size = part["size"]
             if mode == "baked":
                 cframe = part["cframe"]

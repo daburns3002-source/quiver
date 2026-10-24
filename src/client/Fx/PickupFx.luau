@@ -60,8 +60,9 @@ local HEART_ROWS = {
 }
 local HEART_PIXEL = 1 / 7
 --[[ Pixels deep: a heart one pixel deep all but vanished edge-on as it
-     spun, under a camera looking steeply down. ]]
-local HEART_DEPTH = 3
+     spun, under a camera looking steeply down; four, "a little thicker"
+     than three (owner, 2026-10-24). ]]
+local HEART_DEPTH = 4
 --[[ Hearts lean back to face the camera, which looks down at this pitch. ]]
 local HEART_TILT = math.rad(Balance.Camera.pitch)
 

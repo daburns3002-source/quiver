@@ -11,9 +11,11 @@
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local ArenaKits = require(ReplicatedStorage.Shared.Config.ArenaKits)
 local ArenaModels = require(ReplicatedStorage.Shared.Config.ArenaModels)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local ExitGate = require(script.Parent.ExitGate)
+local KitLayout = require(ReplicatedStorage.Shared.Util.KitLayout)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
 local MeshTemplates = require(script.Parent.Parent.Util.MeshTemplates)
 
@@ -256,6 +258,15 @@ function Arena.preload()
 			end
 		end
 	end
+	for _, kit in ArenaKits do
+		for _, piece in kit.pieces do
+			table.insert(ids, piece.meshId)
+			local glow = piece.glow
+			if glow then
+				table.insert(ids, glow.meshId)
+			end
+		end
+	end
 	meshTemplates = MeshTemplates.load(ids)
 end
 
@@ -272,7 +283,102 @@ local WATER_RIM = 1.08
      1.15 times the water's size. ]]
 local WATER_BANK = 1.18
 
-local function placeModel(root: Instance, model: ArenaModels.ArenaModel)
+--[[ A room built from a kit (`Shared/Util/KitLayout`): its lawn, water,
+     walls, cover and plants, each piece cloned from its imported mesh. A
+     piece whose mesh has not loaded is left out rather than failing the
+     room. ]]
+local function placeKit(
+	folder: Instance,
+	kitName: string,
+	obstacles: { Balance.Obstacle },
+	lowCover: KitLayout.LowCover,
+	seed: number
+)
+	local config = Balance.Arena
+	local kit = ArenaKits[kitName]
+	local layout = KitLayout.build(kitName, {
+		size = config.size,
+		wallThickness = config.wallThickness,
+		spawn = config.spawnPosition,
+		gateWidth = Balance.Run.gate.width + Balance.Run.gate.pillarWidth * 2,
+	}, obstacles, lowCover, seed)
+
+	for _, patch in layout.patches do
+		local part = Instance.new("Part")
+		part.Name = patch.kind
+		part.Anchored = true
+		part.CanCollide = false
+		part.CanQuery = false
+		part.CanTouch = false
+		part.CastShadow = false
+		part.Size = patch.size
+		part.Position = patch.centre
+		part.Color = patch.colour
+		part.Material = Enum.Material.Fabric
+		if patch.kind ~= "Tile" then
+			--[[ Water and its bank are round: a sphere mesh flattened to
+			     the patch, as the round glade's pond was. ]]
+			if patch.kind == "Water" then
+				part.Material = Enum.Material.SmoothPlastic
+				part.Reflectance = 0.15
+			end
+			local sphere = Instance.new("SpecialMesh")
+			sphere.MeshType = Enum.MeshType.Sphere
+			sphere.Parent = part
+		end
+		part.Parent = folder
+	end
+
+	--[[ The importer turns each mesh 180° about Y; turned back. ]]
+	local turn = CFrame.Angles(0, math.pi, 0)
+	local function mesh(meshId: string, name: string, size: Vector3, at: CFrame, glow: boolean)
+		local template = meshTemplates[meshId]
+		if not template then
+			return
+		end
+		local part = template:Clone()
+		part.Name = name
+		part.Size = size
+		part.CFrame = at * turn
+		part.Anchored = true
+		part.CanCollide = false
+		part.CanQuery = false
+		part.CanTouch = false
+		part.Color = Color3.new(1, 1, 1)
+		part.Material = if glow then Enum.Material.Neon else Enum.Material.SmoothPlastic
+		part.CastShadow = not glow
+		part.Parent = folder
+	end
+	for _, placed in layout.pieces do
+		local piece = kit.pieces[placed.piece]
+		local facing = CFrame.Angles(0, placed.yaw, 0)
+		local grown = placed.size / piece.size
+		mesh(
+			piece.meshId,
+			placed.piece,
+			placed.size,
+			CFrame.new(placed.base + Vector3.new(0, placed.size.Y / 2, 0)) * facing,
+			false
+		)
+		local glow = piece.glow
+		if glow then
+			mesh(
+				glow.meshId,
+				placed.piece .. "Glow",
+				glow.size * grown,
+				CFrame.new(placed.base + facing:VectorToWorldSpace(glow.centre * grown)) * facing,
+				true
+			)
+		end
+	end
+end
+
+local function placeModel(
+	root: Instance,
+	model: ArenaModels.ArenaModel,
+	obstacles: { Balance.Obstacle },
+	seed: number
+)
 	local folder = Instance.new("Folder")
 	folder.Name = "Model"
 	folder.Parent = root
@@ -375,6 +481,11 @@ local function placeModel(root: Instance, model: ArenaModels.ArenaModel)
 
 	for _, spec in model.parts do
 		place(spec, Vector3.zero, spec.name)
+	end
+
+	local kit = model.kit
+	if kit and ArenaKits[kit] then
+		placeKit(folder, kit, obstacles, model.lowCover or "Thicket", seed)
 	end
 
 	--[[ The forest again to either side, so it runs past the screen's edges. ]]
@@ -522,7 +633,7 @@ function Arena.build(parent: Instance, obstacles: { Balance.Obstacle }, arena: s
 				part.Transparency = 1
 			end
 		end
-		placeModel(root, model)
+		placeModel(root, model, obstacles, KitLayout.seed(arena or ""))
 		--[[ The client draws the scenery's life from this
 		     (`Fx/ForestAmbience`). ]]
 		root:SetAttribute("Ambience", model.ambience)

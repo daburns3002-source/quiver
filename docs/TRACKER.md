@@ -14,7 +14,6 @@ Last brought up to date: 2026-10-23.
 | What | What the owner does | Then Claude | Where it is |
 |---|---|---|---|
 | Pet and enemy animations (Claude Design clips) | Pets: all 12 imported and in the **P** preview with their clips. Optional: re-import `glade_fox.glb` and `glimmerhorn.glb` from `assets/models/pets/forest/` for their open mouths (Pounce, Leap). Enemies: import each finished GLB | Enemies: their clips into `Config/ModelClips`, tag the models `ModelClips` | Pets done (PRs #179–#181 and the nine-clips PR); enemy GLBs not downloaded yet |
-| Blocky Mossy Glade arena | Import `mossy_glade_kit_roblox.glb` (9 meshes, Merge Meshes off, no rig) | Dump ids, build each room from the kit (walls, pillars, cover, path, plants), playtest, merge | Branch `phase-3/blocky-mossy-glade` |
 | Swaying trees | Import `assets/models/arenas/mossy_glade_trees_roblox.glb` (Merge Meshes off, no rig) — or skip until the blocky glade exists | Dump the 160 mesh ids into `tree_ids.json`, regenerate `ArenaTrees`, playtest, merge | Branch `phase-3/swaying-trees` |
 | Blocky weapons replace the class weapons | Import `assets/models/weapons/blocky/twig_bow_roblox.glb`, `branch_staff_roblox.glb` and `timber_blade_roblox.glb` (File → Import 3D, Merge Meshes off) | Dump their mesh ids; `Config/Weapons` entries with their own animation kits (being made in Claude Design: Twig Bow, Branch Staff and Timber Blade R15 Kits); switch `Config/Classes`; the bow string follows the held bow | Optimised 2026-10-23; waits on the import and the kits |
 | Blocky enemies replace the round ones | Import each enemy's optimised GLB when it is ready | Moss Slime, Mother Slime (Brood Slime), Sprout Slime (Sprout Spitter) and King Bloblin (Slime King) through `optimise_enemy.py` once their glowing-eyes pass is done | Glowing-eyes pass running in Claude Design |
@@ -38,6 +37,8 @@ Last brought up to date: 2026-10-23.
 - Pets, eggs and weapon skins (`docs/PETS-FOREST.md`, the Wilf pets): design only, no pet system in the game yet.
 
 ## Known rough edges
+
+- The blocky Mossy Glade has no blocky forest or boulder yet: the trees past the walls are still the round models, and boulders are drawn as mossy stone pillars, whose moss tops read as lawn from above. A blocky tree and boulder in the kit would fix both.
 
 - Enemy overlap with cover is measured clean in rooms 1–4 only; rooms 5–10 and the arena art itself are unmeasured (CLAUDE.md, "Known rough edges").
 - A Wilf lunge stopped short by cover still plays its leap for the full time.

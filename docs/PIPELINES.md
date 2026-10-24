@@ -70,7 +70,8 @@ As an enemy model (1), with its moves: a `boss` block in its `EnemyConfig`, each
 1. `optimise_arena.py <in> <out> <arena>`: textures to vertex colours, scattered tufts thinned, merged into a few groups under 20,000 triangles each, scaled ×2.7 into the 35 × 58 room.
 2. After the import: `ArenaModels` entry (parts, `surround`, `outsideColor`, `ambience`), cover as obstacle boxes in the level's rooms (`Balance`) at the model's positions, a `PlayerWall` over every piece of cover.
 3. **Swaying trees:** `split_trees.py` splits a forest's merged `Trees` mesh into single trees by trunk; owner imports `*_trees_roblox.glb` (Merge Meshes off); `dump_imports.luau` → `tree_ids.json` → `trees_to_luau.py` → `Config/ArenaTrees`. `ArenaTrees.spec` keeps every tree out of the room.
-4. Check: the camera never sees the void, cover blocks walking but low cover not arrows, nothing flickers (two surfaces on one plane).
+4. **Or a kit** (the blocky Mossy Glade): the owner's pieces, one GLB each → `kit_bundle.py <folder> <out.glb>` merges each piece's parts into one mesh with its colours baked on (glowing parts apart) → the owner imports the one file → ids into `Config/ArenaKits` → an `ArenaModels` entry with `kit` and `lowCover`. `Shared/Util/KitLayout` builds every room from the kit to its own cover boxes; `KitLayout.spec` keeps paths and plants out of cover, the start and the gate.
+5. Check: the camera never sees the void, cover blocks walking but low cover not arrows, nothing flickers (two surfaces on one plane).
 
 ## 5. A weapon (model and R15 animation kit)
 

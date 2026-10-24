@@ -19,6 +19,10 @@ async function buffer(id) {
   try {
     buffers[id] = await decode(TRACKS[id].ogg);
   } catch (e) {
+    if (!TRACKS[id].mp3) {
+      note("This browser can't play Ogg; open the page in Chrome or Edge.");
+      throw e;
+    }
     buffers[id] = await decode(TRACKS[id].mp3); // no Ogg in this browser; MP3 may add a tiny gap at the seam
   }
   return buffers[id];
@@ -39,10 +43,16 @@ async function play(id, offset) {
   const src = c.createBufferSource();
   src.buffer = b;
   src.loop = true;
+  const region = TRACKS[id].loop; // an intro: once from the top, then round the region
+  if (region) {
+    src.loopStart = region[0];
+    src.loopEnd = region[1];
+  }
   src.connect(c.destination);
   const at = c.currentTime + 0.03;
   src.start(at, Math.max(0, offset));
-  playing = { id, src, startedAt: at, offset: Math.max(0, offset), length: b.duration };
+  const [from, to] = region || [0, b.duration];
+  playing = { id, src, startedAt: at, offset: Math.max(0, offset), from, to };
   document.querySelector(`[data-loop="${id}"]`).classList.add("playing");
 }
 
@@ -50,8 +60,9 @@ function tick() {
   document.querySelectorAll("[data-head]").forEach((el) => {
     let w = 0;
     if (playing && playing.id === el.dataset.head) {
-      const t = (context().currentTime - playing.startedAt + playing.offset) % playing.length;
-      w = (Math.max(0, t) / playing.length) * 100;
+      let t = Math.max(0, context().currentTime - playing.startedAt + playing.offset);
+      if (t >= playing.to) t = playing.from + ((t - playing.from) % (playing.to - playing.from));
+      w = (t / playing.to) * 100;
     }
     el.style.width = w + "%";
   });
@@ -71,11 +82,12 @@ document.addEventListener("click", async (e) => {
   if (seam) {
     const id = seam.dataset.seam;
     const b = await buffer(id).catch(() => null);
-    if (b) play(id, b.duration - 4).catch(() => {});
+    const end = TRACKS[id].loop ? TRACKS[id].loop[1] : b && b.duration;
+    if (b) play(id, end - 4).catch(() => {});
   }
 });
 
-// The pick lives in the page's database (COLLECTION/glade), so Claude reads
+// The pick lives in the page's database (COLLECTION/<track>), so Claude reads
 // it back; the copy button is the fallback.
 let db = null;
 
@@ -86,16 +98,16 @@ function note(text) {
 }
 
 function render() {
-  const chosen = document.querySelector('input[name="glade"]:checked');
-  document.querySelectorAll('input[name="glade"]').forEach((input) => {
+  const chosen = document.querySelector(`input[name="${TRACK}"]:checked`);
+  document.querySelectorAll(`input[name="${TRACK}"]`).forEach((input) => {
     input.closest(".opt").classList.toggle("chosen", input.checked);
   });
   document.getElementById("summary").textContent = chosen ? `Picked ${chosen.value}` : "No pick yet.";
-  try { localStorage.setItem(COLLECTION, chosen ? chosen.value : ""); } catch (e) {}
+  try { localStorage.setItem(COLLECTION + "/" + TRACK, chosen ? chosen.value : ""); } catch (e) {}
 }
 
 function restore(value) {
-  const input = value && document.querySelector(`input[name="glade"][value="${value}"]`);
+  const input = value && document.querySelector(`input[name="${TRACK}"][value="${value}"]`);
   if (input) input.checked = true;
   render();
 }
@@ -113,8 +125,8 @@ document.addEventListener("change", async (e) => {
 });
 
 document.getElementById("copy").addEventListener("click", async () => {
-  const chosen = document.querySelector('input[name="glade"]:checked');
-  const text = "Music pick — Mossy Glade: " + (chosen ? chosen.value : "none yet");
+  const chosen = document.querySelector(`input[name="${TRACK}"]:checked`);
+  const text = "Music pick — " + NAMES[TRACK] + ": " + (chosen ? chosen.value : "none yet");
   const button = document.getElementById("copy");
   try {
     await navigator.clipboard.writeText(text);
@@ -126,7 +138,7 @@ document.getElementById("copy").addEventListener("click", async () => {
   setTimeout(() => (button.textContent = "Copy my pick"), 1800);
 });
 
-try { restore(localStorage.getItem(COLLECTION) || ""); } catch (e) { render(); }
+try { restore(localStorage.getItem(COLLECTION + "/" + TRACK) || ""); } catch (e) { render(); }
 
 (async () => {
   try {
@@ -136,7 +148,7 @@ try { restore(localStorage.getItem(COLLECTION) || ""); } catch (e) { render(); }
   }
   if (!db) return;
   try {
-    const snap = await db.doc(COLLECTION + "/glade").get();
+    const snap = await db.doc(COLLECTION + "/" + TRACK).get();
     const body = snap && snap.exists ? snap.data() : null;
     if (body && typeof body.variant === "string") {
       restore(body.variant);

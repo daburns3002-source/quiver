@@ -3,6 +3,9 @@
 	Plays the background music (`Config/Music`) on this client: the Rooms
 	playlist, and the Boss playlist while a boss is in the room, fading
 	from one to the other. Each playlist plays its tracks in turn, looping.
+	A track with a loop region (a boss's battle intro, then its loop) starts
+	from the top at full volume each time its playlist comes in, so the
+	intro lands like a trainer battle's, then loops round its region.
 
 	Presentation only: whether a boss is there is read from the enemies the
 	server put in the Workspace (a model with the `Boss` attribute).
@@ -22,6 +25,19 @@ type Player = { sound: Sound, list: { Music.Track }, index: number, level: numbe
 local players: { [string]: Player } = {}
 local current = "Rooms"
 
+local function load(p: Player, index: number)
+	local track = p.list[index]
+	p.index = index
+	p.sound.SoundId = track.id
+	local start, finish = track.loopStart, track.loopEnd
+	p.sound.PlaybackRegionsEnabled = start ~= nil and finish ~= nil
+	if start and finish then
+		p.sound.LoopRegion = NumberRange.new(start, finish)
+	end
+	-- a lone track (ours are made to loop) or a looping region loops in the engine, with no gap
+	p.sound.Looped = p.sound.PlaybackRegionsEnabled or #p.list == 1
+end
+
 local function playerFor(name: string): Player?
 	local list = (Music.playlists :: any)[name] :: { Music.Track }?
 	if not list or #list == 0 then
@@ -36,12 +52,9 @@ local function playerFor(name: string): Player?
 	sound.Volume = 0
 	sound.Parent = SoundService
 	local made: Player = { sound = sound, list = list, index = 0, level = 0 }
-	-- a lone track (ours are made to loop) loops in the engine, with no gap
-	sound.Looped = #list == 1
-	-- otherwise each track plays through, then the next
+	-- each track plays through, then the next (a looping one never ends)
 	sound.Ended:Connect(function()
-		made.index = made.index % #made.list + 1
-		sound.SoundId = made.list[made.index].id
+		load(made, made.index % #made.list + 1)
 		sound:Play()
 	end)
 	players[name] = made
@@ -61,12 +74,33 @@ local function bossHere(): boolean
 	return false
 end
 
+-- A playlist coming in whose track has an intro restarts it at full volume.
+local function enter(name: string)
+	local p = playerFor(name)
+	if not p then
+		return
+	end
+	if p.index == 0 then
+		load(p, 1)
+	end
+	if p.list[p.index].loopStart == nil then
+		return
+	end
+	p.level = 1
+	p.sound.TimePosition = 0
+	p.sound:Play()
+end
+
 local polled = 0
 local function step(dt: number)
 	polled += dt
 	if polled >= 0.5 then
 		polled = 0
+		local was = current
 		current = if bossHere() then "Boss" else "Rooms"
+		if current ~= was then
+			enter(current)
+		end
 	end
 	local rate = dt / math.max(Music.fade, 1e-3)
 	for name: string in Music.playlists :: { [string]: any } do
@@ -78,8 +112,7 @@ local function step(dt: number)
 		p.level = math.clamp(p.level + (if target > p.level then rate else -rate), 0, 1)
 		if p.level > 0 and not p.sound.IsPlaying then
 			if p.index == 0 then
-				p.index = 1
-				p.sound.SoundId = p.list[1].id
+				load(p, 1)
 			end
 			p.sound:Resume()
 			if not p.sound.IsPlaying then

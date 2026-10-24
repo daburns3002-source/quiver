@@ -10,7 +10,10 @@
 ]]
 
 local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
+
+local BossBanners = require(ReplicatedStorage.Shared.Config.BossBanners)
 
 local BossBar = {}
 
@@ -99,7 +102,10 @@ function BossBar.start()
 			return
 		end
 		local name = boss:GetAttribute("Boss")
-		title.Text = if type(name) == "string" then string.upper(name) else "BOSS"
+		-- the name its entry banner gives it (the King's title is still "Slime King")
+		local banner = if type(name) == "string" then BossBanners.bosses[name] else nil
+		local shown = if banner then banner.name elseif type(name) == "string" then name else "BOSS"
+		title.Text = string.upper(shown)
 		local health = boss:GetAttribute("Health")
 		local maxHealth = boss:GetAttribute("MaxHealth")
 		if type(health) == "number" and type(maxHealth) == "number" and maxHealth > 0 then

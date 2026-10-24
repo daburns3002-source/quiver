@@ -1,22 +1,22 @@
 --!strict
 --[[
-	Builds one upgrade card, as the owner's card design draws it
-	(design_handoff_upgrade_cards; README "The card").
+	Builds one upgrade card from the owner's Glow Toy set (2026-10-24,
+	arrow-legends-upgrade-cards.zip, uploaded into `Config/CardAssets`).
 
-	Built at the design's own size, 134 x 330 pixels, and scaled as a whole
-	by whoever places it. Layers back to front:
+	Built at the card's design size, 134 x 330, and scaled as a whole by
+	whoever places it. Layers back to front:
 
-	1. the rarity's crystal shards, behind the card;
-	2. a glow, for Legendary and Mythic;
-	3. a hard shadow, then the body with its gradient and bevel;
-	4. the frame's parts — bezel, lines, diamonds, gems, sparkles;
-	5. a shine band;
-	6. the content: rarity, icon, level chip, name, stat, description, pips.
+	1. a pulsing glow behind Legendary and Mythic cards;
+	2. the crystal body of the card's rarity;
+	3. a shine band, faint until hovered;
+	4. the content: the icon on its rarity tile, the level chip, the stat
+	   and description from `Config/Abilities` (the set's own stat lines are
+	   placeholders), the level pips;
+	5. the card's name banner across the top, its name and rarity drawn in;
+	6. the NEW! sticker, the Maxed or Locked overlay, the selection ring.
 
-	The frame comes from `Config/CardFrames`, which is the design's own data,
-	so this file knows how to draw each *kind* of part and nothing about which
-	tier has which. Presentation only: a card does not know what an ability
-	does, only what it says.
+	Presentation only: a card does not know what an ability does, only what
+	it says.
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -24,7 +24,6 @@ local TextService = game:GetService("TextService")
 
 local Abilities = require(ReplicatedStorage.Shared.Config.Abilities)
 local CardAssets = require(ReplicatedStorage.Shared.Config.CardAssets)
-local CardFrames = require(ReplicatedStorage.Shared.Config.CardFrames)
 local CardTheme = require(ReplicatedStorage.Shared.Config.CardTheme)
 local Rarities = require(ReplicatedStorage.Shared.Config.Rarities)
 
@@ -55,6 +54,26 @@ type Paint = { color: Color3, transparency: number }
 local INK = CardTheme.colors.ink
 local WHITE = CardTheme.colors.white
 local SIZE = CardTheme.card.size
+
+--[[ The Glow Toy art's own pixel sizes, and where it sits on a card (in
+     the card's 134 x 330): the banner wider than the card, across its top;
+     room under it, then the icon tile. ]]
+local GLOW_TOY = {
+	--[[ The body art, and the crystal in it (measured from its alpha): it
+	     is that crystal that fills the card, its spikes standing proud. ]]
+	body = Vector2.new(398, 960),
+	crystalWidth = 326,
+	crystalMidY = 497.5,
+	--[[ The banner art, and its ribbon's width and middle. ]]
+	banner = Vector2.new(984, 558),
+	ribbonWidth = 726,
+	ribbonMidY = 298,
+	--[[ The ribbon this wide on the card, its middle this far down. ]]
+	bannerRibbon = 168,
+	bannerY = 34,
+	bannerRoom = 56,
+	tile = 104,
+}
 
 --[[ Z layers inside a card. Sibling ZIndex, so these only order a card's
      own pieces. ]]
@@ -110,23 +129,6 @@ local function fill(f: Frame, p: Paint)
 	f.BackgroundTransparency = p.transparency
 end
 
---[[ A frame centred on a point of the card, `size` across. ]]
-local function centred(
-	parent: Instance,
-	name: string,
-	z: number,
-	x: number,
-	y: number,
-	w: number,
-	h: number
-): Frame
-	local f = frame(parent, name, z)
-	f.AnchorPoint = Vector2.new(0.5, 0.5)
-	f.Position = UDim2.fromOffset(x, y)
-	f.Size = UDim2.fromOffset(w, h)
-	return f
-end
-
 local function image(parent: Instance, name: string, z: number, asset: string, p: Paint): ImageLabel
 	local i = Instance.new("ImageLabel")
 	i.Name = name
@@ -137,24 +139,6 @@ local function image(parent: Instance, name: string, z: number, asset: string, p
 	i.ZIndex = z
 	i.Parent = parent
 	return i
-end
-
---[[ A soft glow behind something: the radial image, tinted, `size` across. ]]
-local function glowAt(
-	parent: Instance,
-	z: number,
-	x: number,
-	y: number,
-	size: number,
-	colour: Color3,
-	transparency: number
-): ImageLabel
-	local g =
-		image(parent, "Glow", z, CardAssets.glow, { color = colour, transparency = transparency })
-	g.AnchorPoint = Vector2.new(0.5, 0.5)
-	g.Position = UDim2.fromOffset(x, y)
-	g.Size = UDim2.fromOffset(size, size)
-	return g
 end
 
 --[[
@@ -226,296 +210,6 @@ end
 --[[
 	A crystal shard behind the card.
 
-	Roblox turns a GuiObject about its own centre, but a shard turns about
-	its base. So each one sits in a transparent pivot frame twice its height,
-	centred on the base point, with the shard filling the top half: turning
-	the pivot then turns the shard about its base. An ink copy a little
-	larger behind it is the outline.
-]]
-local function shard(parent: Instance, spec: any)
-	local w, h = spec.w, spec.h
-	local pivot = centred(parent, "Shard", Z.shards, spec.baseX, spec.baseY, w + 7, (h + 7) * 2)
-	pivot.Rotation = spec.rot
-
-	local outline =
-		image(pivot, "Outline", Z.shards, CardAssets.shard, { color = INK, transparency = 0 })
-	outline.AnchorPoint = Vector2.new(0.5, 1)
-	outline.Position = UDim2.new(0.5, 0, 0.5, 4)
-	outline.Size = UDim2.fromOffset(w + 7, h + 7)
-
-	local body = image(pivot, "Fill", Z.shards, CardAssets.shard, spec.fill)
-	body.AnchorPoint = Vector2.new(0.5, 1)
-	body.Position = UDim2.fromScale(0.5, 0.5)
-	body.Size = UDim2.fromOffset(w, h)
-
-	local facet = image(pivot, "Facet", Z.shards, CardAssets.shardFacet, spec.facet)
-	facet.AnchorPoint = Vector2.new(0.5, 1)
-	facet.Position = UDim2.fromScale(0.5, 0.5)
-	facet.Size = UDim2.fromOffset(w, h)
-end
-
---[[ A ring `inset` pixels inside the card's edge (outside, if negative),
-     `thickness` wide: a frame on the ring's inner edge, stroked outward. ]]
-local function ring(
-	parent: Instance,
-	name: string,
-	z: number,
-	inset: number,
-	thickness: number,
-	radius: number,
-	p: Paint
-)
-	local inner = inset + thickness
-	local f = frame(parent, name, z)
-	f.Position = UDim2.fromOffset(inner, inner)
-	f.Size = UDim2.new(1, -inner * 2, 1, -inner * 2)
-	corner(f, math.max(radius - thickness, 2))
-	stroke(f, p.color, thickness, p.transparency)
-	return f
-end
-
-local function bezel(parent: Instance, part: any)
-	local inset, thickness, radius = part.inset, part.thickness, part.radius
-	-- Outer outline first, then the metal over it, then the inner outline.
-	ring(
-		parent,
-		"BezelOuter",
-		Z.frame,
-		inset - part.outerOutline.width,
-		thickness + part.outerOutline.width,
-		radius + 2,
-		part.outerOutline.paint
-	)
-	ring(parent, "Bezel", Z.frame + 1, inset, thickness, radius, part.color)
-	ring(
-		parent,
-		"BezelInner",
-		Z.frame + 1,
-		inset + thickness,
-		part.innerOutline.width,
-		radius - thickness,
-		part.innerOutline.paint
-	)
-end
-
---[[ A square turned 45°, `size` across corner to corner of its sides, with an
-     ink outline counted inside that size as the design's borders are. ]]
-local function diamond(
-	parent: Instance,
-	name: string,
-	z: number,
-	x: number,
-	y: number,
-	size: number,
-	paint: Paint,
-	outline: any?
-)
-	local width = if outline then outline.width else 0
-	local d = centred(parent, name, z, x, y, size - width * 2, size - width * 2)
-	fill(d, paint)
-	d.Rotation = 45
-	if outline then
-		stroke(d, outline.paint.color, outline.width, outline.paint.transparency)
-	end
-	return d
-end
-
-local function gem(
-	parent: Instance,
-	name: string,
-	z: number,
-	x: number,
-	y: number,
-	size: number,
-	part: any
-)
-	local width = if part.outline then part.outline.width else 0
-	local g = centred(parent, name, z, x, y, size - width * 2, size - width * 2)
-	fill(g, part.fill)
-	round(g)
-	if part.outline then
-		stroke(g, part.outline.paint.color, width, part.outline.paint.transparency)
-	end
-
-	--[[ The design's inner shade — darker toward the bottom right — as a
-	     gradient, since Roblox has no inset shadow. ]]
-	if part.innerShade then
-		local gradient = Instance.new("UIGradient")
-		gradient.Rotation = 45
-		gradient.Color = ColorSequence.new(WHITE, Color3.new(0.78, 0.78, 0.78))
-		gradient.Parent = g
-	end
-
-	if part.highlight then
-		local h = part.highlight
-		local spot = centred(
-			parent,
-			name .. "Highlight",
-			z + 1,
-			x + h.offset[1],
-			y - size / 4 + 2 + h.offset[2] + 2,
-			h.size,
-			h.size
-		)
-		fill(spot, h.color)
-		round(spot)
-	end
-
-	return g
-end
-
---[[ A diamond with a coloured ring inside its outline and a glowing dot at
-     its heart: the Mythic's corner and side jewels. ]]
-local function jewel(parent: Instance, name: string, x: number, y: number, part: any)
-	local d = diamond(parent, name, Z.frame + 2, x, y, part.size, part.fill, part.outline)
-	if part.ring then
-		local r = centred(parent, name .. "Ring", Z.frame + 3, x, y, part.size - 10, part.size - 10)
-		r.Rotation = 45
-		stroke(r, part.ring.paint.color, part.ring.width, part.ring.paint.transparency)
-	end
-	if part.innerDot then
-		local dot = part.innerDot
-		if dot.glow then
-			glowAt(parent, Z.frame + 2, x, y, dot.size * 2.6, dot.color.color, 0.35)
-		end
-		local inner = centred(parent, name .. "Dot", Z.frame + 4, x, y, dot.size, dot.size)
-		fill(inner, dot.color)
-		inner.Rotation = 45
-	end
-	return d
-end
-
-local CORNERS = { { 0, 0, -1, -1 }, { 1, 0, 1, -1 }, { 0, 1, -1, 1 }, { 1, 1, 1, 1 } }
-
---[[ Draws one frame part. Returns anything that animates. ]]
-local function drawPart(card: Frame, part: any, animated: { any })
-	local kind = part.kind
-	local w, h = SIZE.X, SIZE.Y
-
-	if kind == "bezel" then
-		bezel(card, part)
-	elseif kind == "line" then
-		ring(card, "Line", Z.frame + 1, part.inset, part.thickness, part.radius, part.color)
-	elseif kind == "cornerDiamonds" then
-		for _, c in CORNERS do
-			local x = c[1] * w + c[3] * -part.centerOffset
-			local y = c[2] * h + c[4] * -part.centerOffset
-			if part.ring or part.innerDot then
-				jewel(card, "CornerJewel", x, y, part)
-			else
-				diamond(
-					card,
-					"CornerDiamond",
-					Z.frame + 2,
-					x,
-					y,
-					part.size,
-					part.fill,
-					part.outline
-				)
-			end
-		end
-	elseif kind == "sideGems" then
-		for _, x in { 0, w } do
-			gem(card, "SideGem", Z.frame + 2, x + (part.centerOffset or 0), h / 2, part.size, part)
-		end
-	elseif kind == "sideDiamonds" then
-		for _, x in { 0, w } do
-			jewel(card, "SideJewel", x, h / 2, part)
-		end
-	elseif kind == "topGem" then
-		gem(card, "TopGem", Z.frame + 3, w / 2, part.centerY, part.size, part)
-	elseif kind == "bottomDiamond" then
-		if part.glow then
-			glowAt(
-				card,
-				Z.frame + 1,
-				w / 2,
-				part.centerY,
-				part.glow.width * 3,
-				part.glow.paint.color,
-				0.3
-			)
-		end
-		diamond(
-			card,
-			"BottomDiamond",
-			Z.frame + 2,
-			w / 2,
-			part.centerY,
-			part.size,
-			part.fill,
-			part.outline
-		)
-	elseif kind == "topEye" then
-		local x, y, s = w / 2, part.centerY, part.size
-		if part.glow then
-			glowAt(card, Z.frame + 1, x, y, s + part.glow.width * 2.5, part.glow.paint.color, 0.2)
-		end
-		-- Rings outermost first: ink, then red, then the dark eye itself.
-		local radius = s
-		for index = #part.rings, 1, -1 do
-			local r = part.rings[index]
-			local band = centred(card, "EyeRing", Z.frame + 2, x, y, radius, radius)
-			round(band)
-			stroke(band, r.paint.color, r.width, r.paint.transparency)
-			radius -= r.width * 2
-		end
-		local eye = centred(
-			card,
-			"Eye",
-			Z.frame + 3,
-			x,
-			y,
-			s - part.outline.width * 2,
-			s - part.outline.width * 2
-		)
-		fill(eye, part.fill)
-		round(eye)
-		stroke(eye, part.outline.paint.color, part.outline.width)
-		local iris = centred(card, "Iris", Z.frame + 4, x, y, part.iris.size, part.iris.size)
-		fill(iris, part.iris.color)
-		round(iris)
-		local pupil = centred(card, "Pupil", Z.frame + 5, x, y, part.pupil.w, part.pupil.h)
-		fill(pupil, part.pupil.color)
-		round(pupil)
-	elseif kind == "sparkles" then
-		for _, item in part.items do
-			local cx, cy = item.x + item.size / 2, item.y + item.size / 2
-			glowAt(card, Z.frame, cx, cy, item.size * 3, part.glow.color, 0.35)
-			local s = centred(card, "Sparkle", Z.frame + 1, cx, cy, item.size, item.size)
-			fill(s, part.fill)
-			s.Rotation = if part.rotated45 then 45 else 0
-		end
-	elseif kind == "cardGlow" then
-		local extend = part.extendsPx
-		local left = if extend then extend.left else 54
-		local right = if extend then extend.right else 54
-		local top = if extend then extend.top else 54
-		local bottom = if extend then extend.bottom else 54
-		local glow = image(card, "CardGlow", Z.backGlow, CardAssets.glow, {
-			color = part.color.color,
-			transparency = 0.25,
-		})
-		glow.Position = UDim2.fromOffset(-left, -top)
-		glow.Size = UDim2.new(1, left + right, 1, top + bottom)
-		if part.pulse then
-			table.insert(animated, { kind = "pulse", glow = glow })
-		end
-	elseif kind == "orbitEmbers" then
-		local embers = {}
-		for index = 1, part.count do
-			local size = if index % 3 == 1 then 12 else 8
-			local ember = centred(card, "Ember", Z.content + 1, 0, 0, size - 4, size - 4)
-			fill(ember, part.fill)
-			ember.Rotation = 45
-			stroke(ember, part.outline.paint.color, part.outline.width)
-			table.insert(embers, ember)
-		end
-		table.insert(animated, { kind = "embers", embers = embers, part = part })
-	end
-end
-
 --[[ The pips along the bottom: one per level, owned white, the one this card
      would give half white, the rest dark. A skill with a single level says
      "UNIQUE" instead. ]]
@@ -566,7 +260,6 @@ function CardBuilder.build(abilityId: string, options: Options): Card
 	assert(ability, `no ability {abilityId}`)
 
 	local rarity = Rarities.byName[ability.rarity]
-	local tier = CardFrames.tiers[ability.rarity]
 	local level = options.level
 	local state: State = options.state or "Default"
 	local top = #ability.levels
@@ -578,51 +271,47 @@ function CardBuilder.build(abilityId: string, options: Options): Card
 
 	local animated: { any } = {}
 
-	local margin = CardTheme.card.sideCrystalMargin
-	for _, spec in tier.shards do
-		local onSide = spec.baseY > margin and spec.baseY < SIZE.Y - margin
-		if not onSide then
-			shard(root, spec)
-		end
+	--[[ The owner's Glow Toy set (2026-10-24): the crystal body of the
+	     card's rarity, its own name banner across the top (its name and
+	     rarity drawn in), and its icon on its rarity tile. The art keeps
+	     its padding, so each piece is anchored at its centre. ]]
+	if ability.rarity == "Legendary" or ability.rarity == "Mythic" then
+		local glow = image(root, "CardGlow", Z.backGlow, CardAssets.glow, {
+			color = rarity.color,
+			transparency = 0.45,
+		})
+		glow.AnchorPoint = Vector2.new(0.5, 0.5)
+		glow.Position = UDim2.fromScale(0.5, 0.5)
+		glow.Size = UDim2.fromOffset(SIZE.X * 1.9, SIZE.Y * 1.35)
+		table.insert(animated, { kind = "pulse", glow = glow })
 	end
 
-	-- The hard shadow: the card's shape in ink, seven pixels down.
-	local shadow = frame(root, "Shadow", Z.shadow)
-	shadow.Position = UDim2.fromOffset(0, CardTheme.card.shadowOffset)
-	shadow.Size = UDim2.fromScale(1, 1)
-	fill(shadow, { color = INK, transparency = 0 })
-	corner(shadow, CardTheme.card.corner)
+	local body = image(
+		root,
+		"Body",
+		Z.body,
+		CardAssets.bodies[ability.rarity] or "",
+		{ color = WHITE, transparency = 0 }
+	)
+	local bodyScale = SIZE.X / GLOW_TOY.crystalWidth
+	body.AnchorPoint = Vector2.new(0.5, 0.5)
+	body.Position = UDim2.new(0.5, 0, 0.5, (GLOW_TOY.body.Y / 2 - GLOW_TOY.crystalMidY) * bodyScale)
+	body.Size = UDim2.fromOffset(GLOW_TOY.body.X * bodyScale, GLOW_TOY.body.Y * bodyScale)
 
-	local body = frame(root, "Body", Z.body)
-	body.Size = UDim2.fromScale(1, 1)
-	fill(body, { color = WHITE, transparency = 0 })
-	corner(body, CardTheme.card.corner)
-	stroke(body, INK, CardTheme.card.stroke)
-	local gradient = Instance.new("UIGradient")
-	gradient.Rotation = 90
-	gradient.Color = ColorSequence.new({
-		ColorSequenceKeypoint.new(0, rarity.light),
-		ColorSequenceKeypoint.new(0.45, rarity.color),
-		ColorSequenceKeypoint.new(1, rarity.dark),
-	})
-	gradient.Parent = body
-
-	-- The bevel: a lit top lip and a shaded bottom one.
-	local lip = frame(body, "TopLip", Z.body + 1)
-	lip.Position = UDim2.fromOffset(6, 0)
-	lip.Size = UDim2.new(1, -12, 0, 4)
-	fill(lip, { color = WHITE, transparency = 0.65 })
-	corner(lip, 2)
-	local base = frame(body, "BottomLip", Z.body + 1)
-	base.AnchorPoint = Vector2.new(0, 1)
-	base.Position = UDim2.new(0, 6, 1, 0)
-	base.Size = UDim2.new(1, -12, 0, 8)
-	fill(base, { color = Color3.new(0, 0, 0), transparency = 0.82 })
-	corner(base, 4)
-
-	for _, part in tier.parts do
-		drawPart(root, part, animated)
-	end
+	local banner = image(
+		root,
+		"Banner",
+		Z.content + 1,
+		CardAssets.banners[ability.icon] or "",
+		{ color = WHITE, transparency = 0 }
+	)
+	local bannerScale = GLOW_TOY.bannerRibbon / GLOW_TOY.ribbonWidth
+	banner.AnchorPoint = Vector2.new(0.5, 0.5)
+	banner.Position = UDim2.fromOffset(
+		SIZE.X / 2,
+		GLOW_TOY.bannerY + (GLOW_TOY.banner.Y / 2 - GLOW_TOY.ribbonMidY) * bannerScale
+	)
+	banner.Size = UDim2.fromOffset(GLOW_TOY.banner.X * bannerScale, GLOW_TOY.banner.Y * bannerScale)
 
 	-- The shine: a white band across the card at 115°, faint until hovered.
 	local shine = frame(root, "Shine", Z.shine)
@@ -658,40 +347,24 @@ function CardBuilder.build(abilityId: string, options: Options): Card
 
 	local inner = SIZE.X - CardTheme.card.paddingSide * 2
 
-	local rarityLabel = label(
-		content,
-		"Rarity",
-		string.upper(ability.rarity),
-		CardTheme.fonts.display,
-		CardTheme.card.rarityText,
-		WHITE,
-		CardTheme.card.rarityStroke
-	)
-	rarityLabel.LayoutOrder = 1
-	rarityLabel.Size = UDim2.fromOffset(inner, 18)
+	--[[ Room for the banner above the icon. ]]
+	local bannerRoom = frame(content, "BannerRoom", Z.content)
+	bannerRoom.LayoutOrder = 1
+	bannerRoom.Size = UDim2.fromOffset(inner, GLOW_TOY.bannerRoom)
 
-	-- The icon medallion: a white disc with an ink ring and the icon in it.
-	local medallionSize = CardTheme.card.medallion
-	local holder = frame(content, "MedallionHolder", Z.content)
+	-- The icon on its rarity tile.
+	local tileSize = GLOW_TOY.tile
+	local holder = frame(content, "TileHolder", Z.content)
 	holder.LayoutOrder = 2
-	holder.Size = UDim2.fromOffset(medallionSize, medallionSize + 8)
-	local medallion = frame(holder, "Medallion", Z.content)
-	medallion.AnchorPoint = Vector2.new(0.5, 1)
-	medallion.Position = UDim2.fromScale(0.5, 1)
-	local ringWidth = CardTheme.card.medallionStroke
-	medallion.Size = UDim2.fromOffset(medallionSize - ringWidth * 2, medallionSize - ringWidth * 2)
-	fill(medallion, { color = WHITE, transparency = 0 })
-	round(medallion)
-	stroke(medallion, INK, ringWidth)
+	holder.Size = UDim2.fromOffset(tileSize, tileSize)
 	local icon = image(
-		medallion,
+		holder,
 		"Icon",
-		Z.content + 1,
+		Z.content,
 		CardAssets.icons[ability.icon] or "",
 		{ color = WHITE, transparency = 0 }
 	)
 	icon.Size = UDim2.fromScale(1, 1)
-	round(icon)
 
 	--[[ The level chip, overlapping the medallion: what this pick takes you
 	     from and to. Gold on the last level. ]]
@@ -725,19 +398,6 @@ function CardBuilder.build(abilityId: string, options: Options): Card
 		chipPadding.PaddingRight = UDim.new(0, 8)
 		chipPadding.Parent = chip
 	end
-
-	local name = label(
-		content,
-		"Name",
-		lines(ability.name, CardTheme.fonts.display, CardTheme.card.nameText, inner - 6),
-		CardTheme.fonts.display,
-		CardTheme.card.nameText,
-		WHITE,
-		CardTheme.card.nameStroke
-	)
-	name.TextWrapped = false
-	name.LayoutOrder = 4
-	name.Size = UDim2.fromOffset(inner, 46)
 
 	-- The stat pill: what the next level gives.
 	local statHolder = frame(content, "StatHolder", Z.content)

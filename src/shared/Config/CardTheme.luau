@@ -36,14 +36,16 @@ local CardTheme = {
 	},
 
 	card = {
-		--[[ A quarter larger than the design's 134 x 330 (owner, 2026-10-24:
-		     "the upgrade cards themselves need to be bigger"). Everything on
+		--[[ The design's 134 x 330 made a quarter larger, then 30% larger
+		     again (owner, 2026-10-24, twice: "the upgrade cards themselves
+		     need to be bigger", "make the upgrade cards themselves bigger").
+		     Everything on
 		     a card is derived from this — the art scales by `SIZE.X`, and the
 		     panel's width and height are measured from it in `layoutPanel` —
 		     so this is the only number to change. The panel still shrinks to
 		     fit a small screen, so on a phone the gain shows as less empty
 		     frame rather than bigger cards. ]]
-		size = Vector2.new(168, 412),
+		size = Vector2.new(218, 536),
 		--[[ No crystals along the card's left and right edges (owner,
 		     2026-10-22: "delete the crystals coming off of the sides of all
 		     of the cards"). A shard whose base sits further than this from

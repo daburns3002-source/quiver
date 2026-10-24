@@ -412,4 +412,24 @@ return function(t: TestRunner.Helper)
 		end
 		t.isTrue(seenDual, "Dual Bows never came up in forced Mythic hands")
 	end)
+
+	--[[ The owner took Momentum out of rotation (2026-10-24). A benched card
+	     stays in `Abilities` for when it comes back, and is never dealt. ]]
+	t.test("a benched card is never dealt", function()
+		local benched = {}
+		for _, ability in Abilities.all do
+			if ability.benched then
+				benched[ability.id] = true
+			end
+		end
+		t.isTrue(benched.Momentum == true, "Momentum is back in rotation")
+
+		local random = dice()
+		for _ = 1, 400 do
+			local state = Loadout.new()
+			for _, id in Loadout.rollOffer(state, false, random) do
+				t.isNil(benched[id], `{id} is benched but was dealt`)
+			end
+		end
+	end)
 end

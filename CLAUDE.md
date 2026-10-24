@@ -67,7 +67,11 @@ and room 10 is the **Slime King alone** (`tests/Level1.spec.luau` pins all
 three; owner, 2026-10-23). Each room names
 its look in `RoomConfig.arena`, an `ArenaModels` entry drawn by `Arena.build`
 over the same invisible floor, walls and obstacle boxes as the grey box
-(nil, or a model not imported yet, is the grey box). Arena models follow the
+(nil, or a model not imported yet, is the grey box). Since 2026-10-24 the
+glade arenas are **built from the owner's blocky kit** (`Config/ArenaKits`,
+`Shared/Util/KitLayout`): walls, corner pillars, a log, stumps or stone
+pillars on each room's own cover boxes, water or fern thickets for flat
+cover, a stepping-stone path and plants, laid out per room. Arena models follow the
 enemy pipeline through `assets/models/arenas/optimise_arena.py`, scaled ×2.7
 into the 35 × 58 room. Cover under `Projectile.height` (pond, thorns) blocks
 walking but not arrows. Every piece of cover has a full-height invisible

@@ -38,6 +38,8 @@ Last brought up to date: 2026-10-23.
 
 ## Known rough edges
 
+- The blocky Mossy Glade has no blocky forest or boulder yet: the trees past the walls are still the round models, and boulders are drawn as mossy stone pillars, whose moss tops read as lawn from above. A blocky tree and boulder in the kit would fix both.
+
 - Enemy overlap with cover is measured clean in rooms 1–4 only; rooms 5–10 and the arena art itself are unmeasured (CLAUDE.md, "Known rough edges").
 - A Wilf lunge stopped short by cover still plays its leap for the full time.
 - The Slime King's moves have no sounds yet.

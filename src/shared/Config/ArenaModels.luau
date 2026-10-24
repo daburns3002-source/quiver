@@ -55,15 +55,19 @@ export type ArenaModel = {
 	--[[ The life drawn in the scenery past the walls, a `Balance.Ambience`
 	     entry (`Fx/ForestAmbience`): leaves, fireflies, mist, birds. ]]
 	ambience: string?,
+	--[[ An `ArenaKits` entry the room is built from, in place of `parts`'
+	     ground, walls and cover (`Shared/Util/KitLayout`), and what its
+	     flat, low cover is: water or a thicket. ]]
+	kit: string?,
+	lowCover: ("Water" | "Thicket")?,
 }
 
 --[[
-	Act 1, area 1: the Mossy Glade, in five variants for Level 1's rooms
-	(owner, 2026-10-22), each from `assets/models/arenas/mossy_glade_<variant>_roblox.glb`.
-	Scaled ×2.7, so the walled lawn (about 13 × 21 inside) fills the room's
-	35 × 58 floor and its walls stand where the room's do; the gap in the
-	north wall is the exit. Each variant's cover is listed as obstacle boxes
-	in Level 1's rooms in `Balance`, at the model's own positions.
+	Act 1, area 1: the Mossy Glade, five arenas for Level 1's rooms (owner,
+	2026-10-22): logs, pond, boulders, thorns, boss. Since 2026-10-24 every
+	one is built from the owner's blocky kit (`Config/ArenaKits`), laid out
+	to the room's own cover boxes in `Balance`; the forest round it is still
+	the round models' until a blocky forest exists.
 ]]
 
 --[[ Every glade's outer ground, exactly its vertex colour, so the forest
@@ -113,262 +117,29 @@ local WIDE_FOREST: { ArenaPart } = {
 	},
 }
 
---[[ A glade variant: its own ground, walls, cover and lights, inside the boss
-     arena's forest, with the wide forest either side. ]]
-local function glade(parts: { ArenaPart }): ArenaModel
-	local all = table.clone(parts)
-	for _, part in BOSS_FOREST do
-		table.insert(all, part)
-	end
+--[[ A blocky glade (the owner's Mossy Glade kit, 2026-10-24): every room
+     built from the kit to its own size and cover (`Config/ArenaKits`),
+     inside the boss arena's forest, with the wide forest either side. The
+     round glade variants this replaces, one model per room, are in the
+     history (before #193). ]]
+local function glade(lowCover: "Water" | "Thicket"): ArenaModel
 	return {
-		parts = all,
+		parts = BOSS_FOREST,
 		surround = WIDE_FOREST,
 		surroundSpacing = 81,
 		outsideColor = GLADE_FLOOR,
 		ambience = "Forest",
+		kit = "Mossy",
+		lowCover = lowCover,
 	}
 end
 
---[[ The fallen log and three stumps. ]]
-local gladeLogs = glade({
-	{
-		name = "Ground",
-		meshId = "rbxassetid://107325794931629",
-		size = Vector3.new(81.000, 1.809, 116.100),
-		offset = Vector3.new(-0.000, 0.784, -6.750),
-		matte = true,
-	},
-	{
-		name = "Grass",
-		meshId = "rbxassetid://114418367398398",
-		size = Vector3.new(80.737, 1.773, 115.843),
-		offset = Vector3.new(-0.200, 0.859, -7.078),
-	},
-	{
-		name = "Groundcover",
-		meshId = "rbxassetid://100913845054287",
-		size = Vector3.new(36.394, 3.775, 58.573),
-		offset = Vector3.new(-0.117, 1.888, 0.063),
-	},
-	{
-		name = "Walls",
-		meshId = "rbxassetid://81275874761423",
-		size = Vector3.new(39.100, 4.184, 60.717),
-		offset = Vector3.new(0.022, 1.772, 0.005),
-	},
-	{
-		name = "Props",
-		meshId = "rbxassetid://88563771824910",
-		size = Vector3.new(52.382, 3.304, 79.496),
-		offset = Vector3.new(-4.033, 1.421, 0.649),
-	},
-	{
-		name = "Glow",
-		meshId = "rbxassetid://124730172189661",
-		size = Vector3.new(52.661, 1.539, 79.860),
-		offset = Vector3.new(-4.000, 1.532, 0.647),
-		glow = true,
-	},
-})
-
---[[ A pond with lily pads, which blocks walking but not arrows. ]]
-local gladePond = glade({
-	{
-		name = "Ground",
-		meshId = "rbxassetid://86065768773594",
-		size = Vector3.new(81.109, 2.662, 116.019),
-		offset = Vector3.new(-0.000, 0.359, -6.745),
-		matte = true,
-	},
-	{
-		name = "Grass",
-		meshId = "rbxassetid://130358106087501",
-		size = Vector3.new(80.922, 1.792, 115.974),
-		offset = Vector3.new(-0.321, 0.869, -6.572),
-	},
-	{
-		name = "Groundcover",
-		meshId = "rbxassetid://82949599281315",
-		size = Vector3.new(36.878, 4.742, 58.064),
-		offset = Vector3.new(0.104, 1.395, -0.300),
-	},
-	{
-		name = "Walls",
-		meshId = "rbxassetid://93312987524489",
-		size = Vector3.new(39.100, 4.546, 60.717),
-		offset = Vector3.new(0.003, 1.555, 0.004),
-	},
-	{
-		name = "Props",
-		meshId = "rbxassetid://82449654213912",
-		size = Vector3.new(55.330, 2.251, 77.322),
-		offset = Vector3.new(-2.438, 0.923, -1.022),
-	},
-	{
-		name = "Water",
-		meshId = "rbxassetid://95763915370445",
-		size = Vector3.new(16.352, 0.003, 11.656),
-		offset = Vector3.new(-4.055, -0.243, -4.317),
-		-- The model's own teal, from its vertex colours.
-		water = Color3.fromRGB(70, 168, 176),
-		-- The lawn's darker ring round the pond, measured from the mesh.
-		bank = Color3.fromRGB(98, 155, 50),
-	},
-	{
-		name = "Glow",
-		meshId = "rbxassetid://86601335318185",
-		size = Vector3.new(55.610, 1.621, 77.590),
-		offset = Vector3.new(-2.433, 1.436, -1.002),
-		glow = true,
-	},
-})
-
---[[ Mossy boulders. ]]
-local gladeBoulders = glade({
-	{
-		name = "Ground",
-		meshId = "rbxassetid://87544021234113",
-		size = Vector3.new(81.067, 1.799, 116.066),
-		offset = Vector3.new(-0.000, 0.789, -6.748),
-		matte = true,
-	},
-	{
-		name = "Grass",
-		meshId = "rbxassetid://113840117651977",
-		size = Vector3.new(81.411, 1.954, 116.200),
-		offset = Vector3.new(-0.042, 0.950, -6.458),
-	},
-	{
-		name = "Groundcover",
-		meshId = "rbxassetid://113228258479441",
-		size = Vector3.new(36.776, 4.376, 57.644),
-		offset = Vector3.new(-0.048, 2.187, -0.053),
-	},
-	{
-		name = "Walls",
-		meshId = "rbxassetid://110460403370872",
-		size = Vector3.new(39.100, 4.424, 60.717),
-		offset = Vector3.new(0.003, 1.770, -0.008),
-	},
-	{
-		name = "Props",
-		meshId = "rbxassetid://76425193248274",
-		size = Vector3.new(57.281, 2.170, 79.593),
-		offset = Vector3.new(-1.335, 0.969, -1.084),
-	},
-	{
-		name = "Glow",
-		meshId = "rbxassetid://131374221665137",
-		size = Vector3.new(57.630, 1.534, 79.842),
-		offset = Vector3.new(-1.306, 1.512, -1.095),
-		glow = true,
-	},
-})
-
---[[ Two bramble patches, which block walking but not arrows. ]]
-local gladeThorns = glade({
-	{
-		name = "Ground",
-		meshId = "rbxassetid://131721094417580",
-		size = Vector3.new(81.030, 1.803, 116.125),
-		offset = Vector3.new(-0.000, 0.788, -6.751),
-		matte = true,
-	},
-	{
-		name = "Grass",
-		meshId = "rbxassetid://108458228629189",
-		size = Vector3.new(81.318, 1.840, 115.738),
-		offset = Vector3.new(-0.217, 0.893, -7.027),
-	},
-	{
-		name = "Groundcover",
-		meshId = "rbxassetid://75131274432252",
-		size = Vector3.new(36.043, 4.541, 58.347),
-		offset = Vector3.new(0.163, 2.271, -0.177),
-	},
-	{
-		name = "Walls",
-		meshId = "rbxassetid://111288317610393",
-		size = Vector3.new(39.100, 4.158, 60.717),
-		offset = Vector3.new(0.014, 1.754, -0.014),
-	},
-	{
-		name = "Props",
-		meshId = "rbxassetid://93578772158527",
-		size = Vector3.new(59.035, 2.049, 79.785),
-		offset = Vector3.new(-0.117, 0.878, -1.153),
-	},
-	{
-		name = "Thorns",
-		meshId = "rbxassetid://137637361947532",
-		size = Vector3.new(23.977, 2.088, 24.976),
-		offset = Vector3.new(0.583, 0.736, -2.639),
-	},
-	{
-		name = "Glow",
-		meshId = "rbxassetid://125636517497323",
-		size = Vector3.new(59.307, 1.569, 80.080),
-		offset = Vector3.new(-0.100, 1.322, -1.175),
-		glow = true,
-	},
-})
-
---[[ A stone circle ringed by four mushroom-topped pillars. Its walls are drawn
-     bigger than the other glades', so it is scaled to the same footprint
-     (×2.11 across, ×2.38 deep) rather than ×2.7. ]]
-local gladeBoss = glade({
-	{
-		name = "Ground",
-		meshId = "rbxassetid://122682985654357",
-		size = Vector3.new(63.420, 1.500, 102.331),
-		offset = Vector3.new(-0.000, 0.655, -5.949),
-		matte = true,
-	},
-	{
-		name = "Grass",
-		meshId = "rbxassetid://115451081705936",
-		size = Vector3.new(63.822, 1.524, 102.015),
-		offset = Vector3.new(0.118, 0.739, -6.267),
-	},
-	{
-		name = "Groundcover",
-		meshId = "rbxassetid://108614926673905",
-		size = Vector3.new(36.826, 2.705, 58.271),
-		offset = Vector3.new(-0.137, 1.352, -0.116),
-	},
-	{
-		name = "Walls",
-		meshId = "rbxassetid://97689327959182",
-		size = Vector3.new(39.100, 5.855, 60.717),
-		offset = Vector3.new(0.008, 2.669, 0.025),
-	},
-	{
-		name = "Props",
-		meshId = "rbxassetid://104156248621067",
-		size = Vector3.new(53.197, 4.053, 73.999),
-		offset = Vector3.new(1.554, 1.914, 1.749),
-	},
-	{
-		name = "Thorns",
-		meshId = "rbxassetid://93915321681512",
-		size = Vector3.new(6.450, 1.866, 0.382),
-		offset = Vector3.new(0.001, 1.846, -27.771),
-	},
-	{
-		name = "Glow",
-		meshId = "rbxassetid://72506264648190",
-		size = Vector3.new(53.496, 2.889, 74.271),
-		offset = Vector3.new(1.558, 1.674, 1.781),
-		glow = true,
-	},
-})
-
 local ArenaModels = {
-	GladeLogs = gladeLogs,
-	GladePond = gladePond,
-	GladeBoulders = gladeBoulders,
-	GladeThorns = gladeThorns,
-	GladeBoss = gladeBoss,
+	GladeLogs = glade("Thicket"),
+	GladePond = glade("Water"),
+	GladeBoulders = glade("Thicket"),
+	GladeThorns = glade("Thicket"),
+	GladeBoss = glade("Thicket"),
 }
 
 return table.freeze(ArenaModels)

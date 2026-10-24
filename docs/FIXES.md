@@ -1133,3 +1133,18 @@ length spaces the links and never resizes them. The lane is strong red
 (`Balance` `laneColor` 225, 25, 25), its tiles nearly touching, 0.2 high, 25%
 clear while tracking and opaque once locked, and it starts `laneStart` (3.3)
 out, at his edge.
+
+## King Bloblin's thrown arm vanished once every link was kept at its size
+
+**Symptom:** after the links joined `stretch.keep`, the lane locked and the
+strike landed with no arm at all; at the strike his `LashFist` measured some
+34,000 studs from him.
+**Cause:** `ModelClip.pose` undid the stretch on a kept joint in the joint's
+own axes. The links are turned against the chain, so `S(s) · R · S(1/s)` is
+not the identity but a shear by up to `1/s`, and a lash starts with the
+stretch near zero (`1/s` clamped at 1000). The fist alone had got away with
+it because it lies along the chain.
+**Fix:** a kept joint (listed in the stretch with its parent) has the stretch
+undone in the parent's axes, `S(1/s) · R · S`, which cancels exactly however
+it is turned. `ModelClip.spec` pins a link turned 45° at stretches of 0.001,
+0.3 and 4.

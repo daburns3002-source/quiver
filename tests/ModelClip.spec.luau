@@ -238,6 +238,34 @@ return function(t: TestRunner.Helper)
 		t.near(keptSize.Z, 1, 1e-6)
 	end)
 
+	--[[ King Bloblin's lash links are turned against the chain: a kept
+	     joint undone in its own axes was sheared a thousandfold as a lash
+	     began, and thrown out of sight. ]]
+	t.test("a kept joint turned against the stretch keeps its shape", function()
+		local s = math.sin(math.pi / 8)
+		local c = math.cos(math.pi / 8)
+		local model: ModelClip.Model = {
+			joints = {
+				{ name = "root", parent = "", rest = { 0, 0, 0, 0, 0, 0, 1, 1, 1, 1 } },
+				-- turned 45 degrees about Y from the root
+				{ name = "link", parent = "root", rest = { 0, 0, 2, 0, s, 0, c, 1, 1, 1 } },
+			},
+			parts = {},
+			clips = {},
+		}
+		local plain = ModelClip.pose(model, nil, 0)
+		for _, amount in { 1e-3, 0.3, 4 } do
+			local world = ModelClip.pose(model, nil, 0, {
+				root = Vector3.new(1, 1, amount),
+				link = Vector3.new(1, 1, 1 / amount),
+			})
+			for k = 1, 9 do
+				t.near(world.link.m[k], plain.link.m[k], 1e-6)
+			end
+			t.near(world.link.t.Z, 2 * amount, 1e-6)
+		end
+	end)
+
 	t.test("a clip that plays once holds its last frame; a loop wraps", function()
 		local once: ModelClip.Clip = { length = 2, loops = false, joints = {} }
 		local loop: ModelClip.Clip = { length = 2, joints = {} }

@@ -23,7 +23,12 @@ export type JointTracks = { pos: Track?, rot: Track?, scale: Track? }
      nil or true: repeats. ]]
 export type Clip = { length: number, loops: boolean?, joints: { [string]: JointTracks } }
 --[[ Joints whose scale is multiplied, per axis, on top of the clip's: a
-     boss's lash chain stretched to its lane. ]]
+     boss's lash chain stretched to its lane. A joint listed here whose
+     parent is listed too is a kept one: its scale is undone in the
+     parent's axes, not its own, so it keeps its size and shape however it
+     is turned, while its place still stretches. Undone in its own axes, a
+     link turned against the chain sheared by the inverse of the stretch,
+     a thousandfold as a lash began, and was thrown out of sight. ]]
 export type Stretch = { [string]: Vector3 }
 export type Joint = { name: string, parent: string, rest: { number } }
 export type Part = { joint: string, cframe: { number }, size: { number } }
@@ -192,11 +197,15 @@ function ModelClip.pose(
 			end
 		end
 		local extra = stretch and stretch[joint.name]
-		if extra then
+		local kept = stretch ~= nil and (stretch[joint.parent] :: Vector3?) ~= nil
+		if extra and not kept then
 			sx, sy, sz = sx * extra.X, sy * extra.Y, sz * extra.Z
 		end
 		local here: Affine =
 			{ m = ModelClip.trs(qx, qy, qz, qw, sx, sy, sz), t = Vector3.new(px, py, pz) }
+		if extra and kept then
+			here.m = mul({ extra.X, 0, 0, 0, extra.Y, 0, 0, 0, extra.Z }, here.m)
+		end
 		local parent = world[joint.parent]
 		world[joint.name] = if parent then ModelClip.compose(parent, here) else here
 	end

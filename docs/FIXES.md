@@ -16,6 +16,18 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## A model's lit or flash pieces came out as `nan`, or the converter crashed
+
+**Symptom**: 2026-10-24, bringing the 44 upgrade-effect GLBs in. `imports_to_luau.py` stopped at `FxMomentum` with `numpy.linalg.LinAlgError: Singular matrix`. Once past that, Selene reported 152 errors, all `` `nan` is not defined ``, in the generated `Config/ModelClips/FxMomentum`, `FxPrecision` and `FxStrength`. Every one was a part's rest `cframe` with a valid position and four `nan`s for its rotation: `Seg_00_Lit`, `Ring_Lit_Seg01`, `ArmBandLeft_GripFlash`. In game, a NaN rotation is a part that never appears.
+
+**Cause**: those pieces rest at **zero scale** — the lit and flash states of an effect, shrunk to nothing until a clip grows them. Both tools recover a node's turn by dividing its world matrix by its axis lengths, and with a zero length that is a division by zero. It happened in three places: `glb_clips_to_luau.local_trs` (a node given as a matrix), the part rest pose in `glb_clips_to_luau.convert`, and the rigged-import turn in `imports_to_luau.primitives` (`np.linalg.inv` of a singular matrix). Pets and King Bloblin never hit it: nothing of theirs rests at zero scale, so a fallback taken only in that case cannot change them.
+
+**Fix**: each of the three now checks for a zero-length axis first. When it finds one, the turn comes from the surviving axes (`rebuilt_turn`, each missing axis the cross product of the next two) or from the chain of node rotations alone (`turn_of`, `turn_only`), which a zero scale cannot break. Otherwise the old code runs unchanged.
+
+**Measured**: 0 `nan` across all 88 generated `Fx*` modules (was 152). All four gates clean. After StyLua, every existing `PetModels`, `ImportedModels` and `ModelClips` module was byte-identical to `main` (0 files changed), so the fallback touched nothing that worked before.
+
+---
+
 ## King Bloblin stood frozen, or held his lash fist on the floor
 
 **Symptom**: 2026-10-24, Studio playtest of room 10 after #197.
@@ -1162,3 +1174,24 @@ the mesh keeps too little of its shape to draw as a block.
 `TUCKED_SHARE` of the model's largest part) as a plain block of its colour
 instead of its mesh; in the blocky style each link is a cube anyway. Look at
 `MeshSize`, not `Size`, when a mesh part draws smaller than it measures.
+
+## Upgrade effects imported as up to 771 parts, and ten with pieces crushed to specks
+
+**Symptom:** found before shipping. The 44 upgrade-card effects came out of
+Claude Design as 2,775 parts, one per cube (Heavy Blade alone was 771),
+which would have been cloned and posed on every hit. Ten imports also had
+pieces at a thousandth of a stud (Heal's pour, Precision's lit ring,
+Momentum's lit segments, and others), so they would have drawn as specks.
+**Cause:** Claude Design exports every cube as its own mesh. A piece hidden
+until its clip grows it rests at zero scale, and Roblox imports a mesh at its
+rest size (the same fault as King Bloblin's lash links).
+**Fix:** `assets/models/effects/optimise_effect.py` runs before import:
+- It merges what moves together, and bakes colour into vertices.
+- It splits Neon by the importer's own `NEON_GLOW`.
+- It rests hidden pieces at full size, with every clip that doesn't scale them
+  holding them at zero.
+- It culls buried faces. Strength's voxel cuffs are rebuilt rather than
+  decimated, because decimating melted them into a blob.
+
+The result is 1,952 parts down to 240. `tests/UpgradeFx.spec` holds every
+effect to `Balance.UpgradeFx.maxParts`.

@@ -158,6 +158,34 @@ def matrix_to_quat(m):
     return q if q[3] >= 0 else -q
 
 
+def rebuilt_turn(linear, s):
+    """The turn of a node matrix that has a zero-scale axis: an effect piece
+    resting shrunk to nothing until its clip grows it. Dividing that axis by
+    its length divides by zero, and the NaN reaches the game as a part that
+    never appears. The surviving axes still fix the turn, so the missing ones
+    are rebuilt from them, right-handed (each axis is the cross product of
+    the next two)."""
+    ok = s > 1e-9
+    r = np.zeros((3, 3))
+    for k in range(3):
+        if ok[k]:
+            r[:, k] = linear[:, k] / s[k]
+    if ok.sum() == 2:
+        k = int(np.flatnonzero(~ok)[0])
+        r[:, k] = np.cross(r[:, (k + 1) % 3], r[:, (k + 2) % 3])
+    elif ok.sum() == 1:
+        k = int(np.flatnonzero(ok)[0])
+        v = r[:, k]
+        helper = np.array([1.0, 0.0, 0.0]) if abs(v[0]) < 0.9 else np.array([0.0, 1.0, 0.0])
+        a, b = (k + 1) % 3, (k + 2) % 3
+        r[:, a] = np.cross(v, helper)
+        r[:, a] /= np.linalg.norm(r[:, a])
+        r[:, b] = np.cross(v, r[:, a])
+    else:
+        r = np.eye(3)
+    return r
+
+
 def local_trs(node):
     """A node's rest transform relative to its parent: position, rotation
     quaternion, scale (a matrix is split, assuming no shear)."""
@@ -165,7 +193,9 @@ def local_trs(node):
         m = np.array(node["matrix"]).reshape(4, 4).T
         t = m[:3, 3]
         s = np.linalg.norm(m[:3, :3], axis=0)
-        return t, matrix_to_quat(m[:3, :3] / s), s
+        if (s > 1e-9).all():
+            return t, matrix_to_quat(m[:3, :3] / s), s
+        return t, matrix_to_quat(rebuilt_turn(m[:3, :3], s)), s
     return (
         np.array(node.get("translation", [0, 0, 0]), float),
         np.array(node.get("rotation", [0, 0, 0, 1]), float),
@@ -233,6 +263,14 @@ def convert(path: pathlib.Path):
             world[i] = world_of(parent[i]) @ m if i in parent else m
         return world[i]
 
+    def turn_of(i):
+        """A node's world turn from its rotations alone. Used only for a part
+        resting at zero size (an effect's lit or flash piece, hidden until a
+        clip grows it): its world matrix has no length left to divide out,
+        so the turn comes from the chain of rotations instead."""
+        m = quat_to_matrix(rest[i][1])
+        return turn_of(parent[i]) @ m if i in parent else m
+
     animated = set()
     for anim in gltf.get("animations", []):
         for ch in anim["channels"]:
@@ -281,7 +319,11 @@ def convert(path: pathlib.Path):
             hi = np.maximum(hi, acc["max"])
         w = world_of(i)
         scale = np.linalg.norm(w[:3, :3], axis=0)
-        rot = w[:3, :3] / scale
+        if (scale > 1e-9).all():
+            rot = w[:3, :3] / scale
+        else:
+            # zero size at rest: see turn_of
+            rot = turn_of(i)
         centre = (w @ np.append((lo + hi) / 2, 1))[:3]
         size = (hi - lo) * scale
         parts[name_of[i]] = (joint_of(i), list(centre) + list(matrix_to_quat(rot)), list(size))

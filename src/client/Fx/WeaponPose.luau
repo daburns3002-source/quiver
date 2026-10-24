@@ -45,6 +45,7 @@ local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local BladeFx = require(script.Parent.BladeFx)
 local BowString = require(script.Parent.BowString)
 local Classes = require(ReplicatedStorage.Shared.Config.Classes)
+local FxEvents = require(script.Parent.Upgrades.FxEvents)
 local PlayerStats = require(script.Parent.Parent.PlayerStats)
 local StaffOrb = require(script.Parent.StaffOrb)
 local SwingTrail = require(script.Parent.SwingTrail)
@@ -247,6 +248,7 @@ local function stepPose(character: Model, now: number, dt: number)
 	if role == "fire" and hit and before < hit and phase >= hit then
 		blowLanded = true
 		BladeFx.impact(character, weapon, comboIndex == #weapon.clips.fire)
+		FxEvents.blow:fire(comboIndex, #weapon.clips.fire, comboIndex == #weapon.clips.fire)
 	end
 
 	if not clip.loop and phase >= clip.length then
@@ -340,6 +342,9 @@ local function stepPose(character: Model, now: number, dt: number)
 			trailProgress = (t - trailOn) / (trailOff - trailOn)
 		end
 		trailSeconds = (trailOff - trailOn) / math.max(roleSpeed, 1e-3)
+	end
+	if role == "fire" and trailOn and trailOff then
+		FxEvents.slash:fire(math.max(comboIndex, 1), trailProgress)
 	end
 	SwingTrail.step(
 		character,

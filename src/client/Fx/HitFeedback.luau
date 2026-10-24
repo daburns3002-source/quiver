@@ -671,7 +671,10 @@ end
 
 --[[ Agility: a hit missed. A word over the player, so a dodge reads as the
      card working rather than as the enemy missing by luck. ]]
-function HitFeedback.onPlayerDodged()
+function HitFeedback.onPlayerDodged(kind: string?)
+	if kind == "Guard" then
+		return -- a swing's guard caught it: Steadfast's plates show that
+	end
 	local character = Players.LocalPlayer.Character
 	local root = character and character:FindFirstChild("HumanoidRootPart")
 	if not root or not root:IsA("BasePart") then

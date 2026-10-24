@@ -5,6 +5,8 @@
 	M — the next card hand includes a Mythic, so its flip reveal can be seen
 	without waiting for the roughly one-in-forty hand that deals one.
 	L — the next card hand includes a Legendary.
+	P — the pets the owner imported follow you, playing their own clips
+	(`Fx/PetPreview`); press again to put them away.
 	V / B — preview the Victory / Defeat end screen with sample numbers.
 	Drawn on this client only; the server is not told, so the run carries
 	on underneath. Press the same key again, or the other, to swap it.
@@ -20,6 +22,7 @@ local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 
 local EndScreen = require(script.Parent.UI.EndScreen)
+local PetPreview = require(script.Parent.Fx.PetPreview)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 
 local DevKeys = {}
@@ -77,6 +80,11 @@ function DevKeys.start()
 		elseif input.KeyCode == Enum.KeyCode.K then
 			Remotes.event(Remotes.DebugSpawnEnemy):FireServer("Wilf")
 			toast("Studio: a wilf")
+		elseif input.KeyCode == Enum.KeyCode.P then
+			task.spawn(function()
+				local on = PetPreview.toggle()
+				toast(if on then "Studio: pets follow you" else "Studio: pets put away")
+			end)
 		elseif input.KeyCode == Enum.KeyCode.L then
 			Remotes.event(Remotes.DebugForceMythic):FireServer("Legendary")
 			toast("Studio: next hand includes a Legendary")

@@ -45,6 +45,13 @@ dumped from Studio) and the kit's `.rbxmx`. `EnemyModel` builds the bones;
 `Fx/EnemyRig` runs it at the hitbox's pace, fits the Dash to each lunge
 (`LungeWindup`, `LungeTravel`, `WindingUp`), squashes bones with the body
 and carries the eyes on the head bone.
+**Claude Design models' own clips** (pets, enemies, 2026-10-23): their GLBs
+animate joint nodes, with no skin, so Roblox's importer drops the clips.
+`tools/glb_clips_to_luau.py` turns the GLBs in `assets/models/model_clips.json`
+into `Config/ModelClips/<Name>`; a model tagged `ModelClips` (attribute of
+the same name = the data's name, `ModelClip` = the clip) is played by
+`Fx/ModelAnimator`, which reads the import's scale and turn from its parts
+(`Shared/Util/ModelClip`, pinned by `tests/ModelClip.spec`). PIPELINES.md §10.
 
 **Level 1** (`Balance.stage = 3`, owner 2026-10-22): ten Mossy Glade
 rooms — logs, pond, boulders, thorns, boss arena, twice. **Slimes**
@@ -291,6 +298,9 @@ From a probe, `Remotes.DebugRoom:FireServer(10)` jumps the run to a room
 From a probe, `Remotes.DebugGrant:FireServer("Cleave")` grants one level of
 any card (Studio only), to test a card's effect without drafting it.
 **K** — spawn a wilf (`Remotes.DebugSpawnEnemy`, any `Balance.Enemies` key from a probe).
+**P** — the pets the owner imported follow you, playing their own clips
+(`Fx/PetPreview`, built by `Server/Dev/PetPreview` from `Config/PetModels`); P again
+puts them away. A look only, until Phase 6's pet system.
 From a probe, `Remotes.DebugForceMythic:FireServer("Legendary")` does the
 same without the MCP keyboard tool, which reports as a gamepad and flips the
 draft into its controller layout.

@@ -89,6 +89,10 @@ local TINT_TAG = "EnemyTint"
 
 local BLACK = Color3.fromRGB(28, 24, 36)
 local WHITE = Color3.fromRGB(250, 250, 255)
+--[[ Every blocky import faces +Z as Studio brings it in. ]]
+local BLOCKY_TURN = Vector3.new(0, 180, 0)
+--[[ Act 1's eye colour, the glow every Mossy Glade enemy's eyes share. ]]
+local EYE_AMBER = Color3.fromRGB(255, 176, 32)
 local EYE_YELLOW = Color3.fromRGB(255, 226, 64)
 local EYE_ORANGE = Color3.fromRGB(255, 150, 40)
 local EYE_PINK = Color3.fromRGB(255, 96, 196)
@@ -181,40 +185,33 @@ end
 	Body and Decor carry the model's own vertex colours, so they are white
 	(colour × white = the painted colour). The eyes glow the act's colour.
 ]]
-local MOSS_SLIME_TURN = Vector3.new(0, 180, 0)
+--[[ Since 2026-10-23: the blocky Moss Slime (Claude Design, 2026-10-23). From
+     `assets/models/enemies/blocky/` through `optimise_blocky_enemy.py`, imported
+     by the owner: Body with the model's colours on its vertices, glowing
+     Eyes in the act's amber. Turned 180° like every import, scaled to fill
+     its hitbox. ]]
 local charger: Design = {
-	shadow(2.9, 2.9, 2.2),
+	shadow(3, 2.6, 2.7),
 	{
 		name = "Body",
 		shape = "Mesh",
-		meshId = "rbxassetid://78283705651192",
-		size = Vector3.new(2.460, 1.881, 2.236),
-		offset = Vector3.new(-0.077, -0.160, -0.024),
-		rotation = MOSS_SLIME_TURN,
+		meshId = "rbxassetid://125178064043003",
+		size = Vector3.new(2.898, 2.687, 2.509),
+		offset = Vector3.new(0, -0.007, 0),
+		rotation = BLOCKY_TURN,
 		shade = 1,
 		color = WHITE,
-	},
-	{
-		name = "Decor",
-		shape = "Mesh",
-		meshId = "rbxassetid://122593286662953",
-		size = Vector3.new(2.986, 1.896, 2.244),
-		offset = Vector3.new(0, 0.087, 0.020),
-		rotation = MOSS_SLIME_TURN,
-		shade = 1,
-		color = WHITE,
-		tint = false,
 	},
 	{
 		name = "Eyes",
 		shape = "Mesh",
-		meshId = "rbxassetid://137939916650483",
-		size = Vector3.new(1.467, 0.644, 0.335),
-		offset = Vector3.new(-0.119, -0.272, -0.950),
-		rotation = MOSS_SLIME_TURN,
+		meshId = "rbxassetid://125381875352776",
+		size = Vector3.new(1.209, 0.297, 0.006),
+		offset = Vector3.new(-0.038, -0.642, -1.066),
+		rotation = BLOCKY_TURN,
 		shade = 1,
 		-- Act 1's eye colour (amber), glowing.
-		color = Color3.fromRGB(255, 176, 32),
+		color = EYE_AMBER,
 		material = Enum.Material.Neon,
 		tint = false,
 	},
@@ -230,40 +227,33 @@ local charger: Design = {
 	slimmed by `optimise_enemy.py`, imported 2026-10-22). Turned 180° like
 	the Moss Slime, scaled ×2.45 into a hitbox cut to fit it, 3 × 3.6 × 3.
 ]]
-local SPROUT_TURN = Vector3.new(0, 180, 0)
+--[[ Since 2026-10-23: the blocky Sprout Slime, a seed-nozzle face (Claude Design, 2026-10-23). From
+     `assets/models/enemies/blocky/` through `optimise_blocky_enemy.py`, imported
+     by the owner: Body with the model's colours on its vertices, glowing
+     Eyes in the act's amber. Turned 180° like every import, scaled to fill
+     its hitbox. ]]
 local spitter: Design = {
-	shadow(2.9, 2.9, 3.6),
+	shadow(3, 3, 3.2),
 	{
 		name = "Body",
 		shape = "Mesh",
-		meshId = "rbxassetid://125655555170241",
-		size = Vector3.new(2.747, 2.475, 2.603),
-		offset = Vector3.new(-0.060, -0.563, 0.192),
-		rotation = SPROUT_TURN,
+		meshId = "rbxassetid://76698920241435",
+		size = Vector3.new(2.968, 3.184, 2.971),
+		offset = Vector3.new(0, -0.007, 0),
+		rotation = BLOCKY_TURN,
 		shade = 1,
 		color = WHITE,
-	},
-	{
-		name = "Decor",
-		shape = "Mesh",
-		meshId = "rbxassetid://86695498504200",
-		size = Vector3.new(2.803, 3.188, 2.851),
-		offset = Vector3.new(0.032, 0.108, -0.068),
-		rotation = SPROUT_TURN,
-		shade = 1,
-		color = WHITE,
-		tint = false,
 	},
 	{
 		name = "Eyes",
 		shape = "Mesh",
-		meshId = "rbxassetid://110667629055549",
-		size = Vector3.new(1.688, 0.700, 0.487),
-		offset = Vector3.new(-0.039, -0.720, -0.880),
-		rotation = SPROUT_TURN,
+		meshId = "rbxassetid://123343390761433",
+		size = Vector3.new(1.428, 0.487, 0.014),
+		offset = Vector3.new(0, -0.265, -1.280),
+		rotation = BLOCKY_TURN,
 		shade = 1,
 		-- Act 1's eye colour (amber), glowing.
-		color = Color3.fromRGB(255, 176, 32),
+		color = EYE_AMBER,
 		material = Enum.Material.Neon,
 		tint = false,
 	},
@@ -411,40 +401,33 @@ local lurker: Design = {
 	slimmed by `optimise_enemy.py`, imported 2026-10-22). Turned 180° like
 	the Moss Slime, scaled ×2.05 into its 4.1 × 3.4 × 4.1 hitbox.
 ]]
-local BROOD_TURN = Vector3.new(0, 180, 0)
+--[[ Since 2026-10-23: the blocky Mother Slime, babies riding on it (Claude Design, 2026-10-23). From
+     `assets/models/enemies/blocky/` through `optimise_blocky_enemy.py`, imported
+     by the owner: Body with the model's colours on its vertices, glowing
+     Eyes in the act's amber. Turned 180° like every import, scaled to fill
+     its hitbox. ]]
 local broodSlime: Design = {
-	shadow(4, 4, 3.4),
+	shadow(4.0, 3.5, 4.6),
 	{
 		name = "Body",
 		shape = "Mesh",
-		meshId = "rbxassetid://106787142698337",
-		size = Vector3.new(4.000, 2.970, 4.017),
-		offset = Vector3.new(0, -0.215, 0),
-		rotation = BROOD_TURN,
+		meshId = "rbxassetid://78769820606735",
+		size = Vector3.new(3.953, 4.515, 3.469),
+		offset = Vector3.new(0, -0.041, 0.007),
+		rotation = BLOCKY_TURN,
 		shade = 1,
 		color = WHITE,
-	},
-	{
-		name = "Decor",
-		shape = "Mesh",
-		meshId = "rbxassetid://117695519355503",
-		size = Vector3.new(3.142, 3.150, 3.145),
-		offset = Vector3.new(0.060, 0.025, 0.011),
-		rotation = BROOD_TURN,
-		shade = 1,
-		color = WHITE,
-		tint = false,
 	},
 	{
 		name = "Eyes",
 		shape = "Mesh",
-		meshId = "rbxassetid://137720523915862",
-		size = Vector3.new(1.161, 0.677, 0.225),
-		offset = Vector3.new(0.052, -0.034, -1.418),
-		rotation = BROOD_TURN,
+		meshId = "rbxassetid://97009288373667",
+		size = Vector3.new(2.603, 1.789, 3.401),
+		offset = Vector3.new(0.024, -1.291, -0.041),
+		rotation = BLOCKY_TURN,
 		shade = 1,
 		-- Act 1's eye colour (amber), glowing.
-		color = Color3.fromRGB(255, 176, 32),
+		color = EYE_AMBER,
 		material = Enum.Material.Neon,
 		tint = false,
 	},
@@ -467,62 +450,53 @@ local broodSlime: Design = {
 	are posed by the server while he moves (`BossBody`), so the arms must be
 	named `Arm_L` and `Arm_R`, as the lash looks them up.
 ]]
-local KING_TURN = Vector3.new(0, 180, 0)
+--[[ Since 2026-10-23: the blocky King Bloblin (Claude Design, 2026-10-23); his arms are their own parts, `Arm_L` and `Arm_R`, so the Royal Bounce and Slime Lash play on him as before. From
+     `assets/models/enemies/blocky/` through `optimise_blocky_enemy.py`, imported
+     by the owner: Body with the model's colours on its vertices, glowing
+     Eyes in the act's amber. Turned 180° like every import, scaled to fill
+     its hitbox. ]]
 local slimeKing: Design = {
-	shadow(7.6, 6, 9.8),
+	shadow(9.6, 8.0, 9.6),
 	{
 		name = "Body",
 		shape = "Mesh",
-		meshId = "rbxassetid://134712175436166",
-		size = Vector3.new(6.503, 7.641, 5.206),
-		offset = Vector3.new(0.024, -0.492, -1.017),
-		rotation = KING_TURN,
+		meshId = "rbxassetid://106509827724816",
+		size = Vector3.new(9.539, 9.552, 7.582),
+		offset = Vector3.new(0, -0.024, 0.165),
+		rotation = BLOCKY_TURN,
 		shade = 1,
 		color = WHITE,
-	},
-	{
-		name = "Decor",
-		shape = "Mesh",
-		meshId = "rbxassetid://129228909981460",
-		size = Vector3.new(9.578, 9.784, 7.197),
-		offset = Vector3.new(0, -0.008, 0.022),
-		rotation = KING_TURN,
-		shade = 1,
-		color = WHITE,
-		tint = false,
 	},
 	{
 		name = "Eyes",
 		shape = "Mesh",
-		meshId = "rbxassetid://109019496517574",
-		size = Vector3.new(2.647, 1.171, 0.512),
-		offset = Vector3.new(0.025, 2.114, -2.464),
-		rotation = KING_TURN,
+		meshId = "rbxassetid://92717168273716",
+		size = Vector3.new(8.887, 6.667, 2.615),
+		offset = Vector3.new(-0.224, -1.025, -1.937),
+		rotation = BLOCKY_TURN,
 		shade = 1,
-		--[[ As painted: dark eyes with amber glints. Unlike the grunts'
-		     glowing act-coloured eyes, a flat glow would turn these into two
-		     orange blobs (owner, 2026-10-23: the king should look like his
-		     model). ]]
-		color = WHITE,
+		-- Act 1's eye colour (amber), glowing.
+		color = EYE_AMBER,
+		material = Enum.Material.Neon,
 		tint = false,
-	},
-	{
-		name = "Arm_L",
-		shape = "Mesh",
-		meshId = "rbxassetid://102422066700070",
-		size = Vector3.new(2.043, 2.225, 2.038),
-		offset = Vector3.new(3.707, -0.824, -1.292),
-		rotation = KING_TURN,
-		shade = 1,
-		color = WHITE,
 	},
 	{
 		name = "Arm_R",
 		shape = "Mesh",
-		meshId = "rbxassetid://137805889967490",
-		size = Vector3.new(2.043, 2.228, 2.038),
-		offset = Vector3.new(-3.656, -0.826, -1.292),
-		rotation = KING_TURN,
+		meshId = "rbxassetid://102351808227777",
+		size = Vector3.new(2.635, 2.767, 2.635),
+		offset = Vector3.new(2.899, -1.803, -2.642),
+		rotation = BLOCKY_TURN,
+		shade = 1,
+		color = WHITE,
+	},
+	{
+		name = "Arm_L",
+		shape = "Mesh",
+		meshId = "rbxassetid://72647186962911",
+		size = Vector3.new(2.108, 2.372, 2.240),
+		offset = Vector3.new(-2.240, -1.901, 0.455),
+		rotation = BLOCKY_TURN,
 		shade = 1,
 		color = WHITE,
 	},

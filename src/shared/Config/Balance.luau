@@ -268,7 +268,7 @@ local meleeCharger: EnemyConfig = {
 	--[[ The Moss Slime's own shape: 3 wide and deep, 2.2 tall — a squat
 	     jelly, not the 5-stud box every archetype used to share. Arrows fly
 	     low enough to meet it (`Projectile.height`). ]]
-	hitboxSize = Vector3.new(3, 2.2, 3),
+	hitboxSize = Vector3.new(3, 2.7, 2.6),
 	color = Color3.fromRGB(226, 52, 56),
 	xpReward = 10,
 	--[[ Melee: closes to attackRange and swings. A ranged archetype sets
@@ -319,7 +319,7 @@ local broodSlime: EnemyConfig = {
 	attackCooldown = 1.3,
 	knockback = 1.5,
 	--[[ Its model's own shape, 4.1 × 3.4 × 4.1. ]]
-	hitboxSize = Vector3.new(4.1, 3.4, 4.1),
+	hitboxSize = Vector3.new(4.0, 4.6, 3.5),
 	color = Color3.fromRGB(226, 52, 56),
 	xpReward = 20,
 	shot = nil,
@@ -410,7 +410,7 @@ local spreadShooter: EnemyConfig = {
 	knockback = 3,
 	--[[ The Sprout Spitter's own shape (its model, 3 × 3.6 × 3), not the
 	     shared 5-stud box; arrows at `Projectile.height` meet it. ]]
-	hitboxSize = Vector3.new(3, 3.6, 3),
+	hitboxSize = Vector3.new(3, 3.2, 3),
 	color = Color3.fromRGB(70, 206, 236),
 	xpReward = 14,
 	shot = {
@@ -597,7 +597,7 @@ local slimeKing: EnemyConfig = {
 	attackDamage = 0,
 	attackCooldown = 0,
 	knockback = 0,
-	hitboxSize = Vector3.new(9.6, 9.8, 7.3),
+	hitboxSize = Vector3.new(9.6, 9.6, 8.0),
 	color = Color3.fromRGB(127, 203, 36),
 	xpReward = 100,
 	boss = {

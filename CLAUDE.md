@@ -3,6 +3,12 @@
 **Archero's combat inside a Pet Simulator / Steal an Egg progression shell.**
 Low poly, cross-platform, co-op-shaped.
 
+**Scope: Acts 1–3 only** (owner, 2026-10-24: "we are only going to deal with
+acts 1-3 until i say so from now on"). Areas 1–6 — Mossy Glade, Thornwood,
+Drowned Village, Bogheart Caverns, Windswept Cliffs, Frostpeak Pass — and
+nothing for Acts 4–5 (enemies, bosses, arenas, pets, art) until the owner
+lifts it. Their designs stay on file, untouched.
+
 **There are no wolves in this game, only Wilfs** (owner, 2026-10-23): every
 wolf is named "Wilf" — the Ember Wilf, plural Wilfs — in names, code, docs
 and files. Every area gets a Wilf pet.

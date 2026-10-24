@@ -147,7 +147,7 @@ local function candidates(state: State): { Ability }
 	local out: { Ability } = {}
 
 	for _, ability in Abilities.all do
-		if ability.filler then
+		if ability.filler or ability.benched then
 			continue
 		end
 

@@ -1206,14 +1206,16 @@ local Balance = {
 			at full footage speed the arrows read as flying too fast. Still
 			fast enough to land before most targets can step aside. Then
 			×1.5 with every other speed (2026-10-22), to 165: still under
-			the footage's 190.
+			the footage's 190. Then halved (owner, 2026-10-24: "half both of
+			them", the arrow and the mage orb), to 82.5: the orb, at the
+			Arcanist's 0.6, flies 49.5.
 		]]
-		speed = 165,
+		speed = 82.5,
 		--[[ 45 studs of flight, the reach playtesting settled on: a little
 		     over `Player.attackRange`, so a shot at the edge of range
 		     arrives, and not so far that arrows sail on after the fight.
 		     Held as a distance by `Balance.spec`, so this follows `speed`. ]]
-		lifetime = 45 / 165,
+		lifetime = 45 / 82.5,
 		--[[
 			The longest a projectile moves before its hit tests run again.
 

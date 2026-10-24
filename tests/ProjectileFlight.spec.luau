@@ -266,17 +266,20 @@ return function(t: TestRunner.Helper)
 		r.destroy()
 	end)
 
-	--[[ The footage's speed, at the worst frame rate the game tolerates. An
-	     arrow covering more than its own length per frame is exactly what
-	     sub-stepping is for. ]]
+	--[[ The footage's speed (about 190, docs/RESEARCH-archero.md §7), at the
+	     worst frame rate the game tolerates. An arrow covering more than its
+	     own length per frame is exactly what sub-stepping is for. Held at the
+	     footage's speed, not the game's, which the owner has tuned below it:
+	     sub-stepping must hold for any speed a card or a tune reaches. ]]
 	t.test("a footage-speed arrow still lands on a body in its path", function()
 		local r = rig()
 		local target = r.body(5)
 		local contact, struck = recorder()
 
-		local f = flight(0, Balance.Projectile.speed)
+		local footage = 190
+		local f = flight(0, footage)
 		t.isTrue(
-			Balance.Projectile.speed / 30 > Balance.Projectile.length,
+			footage / 30 > Balance.Projectile.length,
 			"arrows are slow enough that this test no longer exercises sub-steps"
 		)
 		fly(f, r, contact, 3, 1 / 30)

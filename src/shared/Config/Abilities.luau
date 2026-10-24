@@ -26,6 +26,9 @@
 	`filler` marks a card that is not a skill: never dealt by rarity, only to
 	fill an Angel's offer or a hand the pool cannot fill. `instant` ones are
 	resolved on the spot and never held.
+
+	`benched` takes a card out of rotation: never dealt, its effect left in
+	place so un-benching brings it back whole.
 ]]
 
 local Rarities = require(script.Parent.Rarities)
@@ -48,6 +51,7 @@ export type Ability = {
 	icon: string,
 	instant: boolean?,
 	filler: boolean?,
+	benched: boolean?,
 	excludes: { string }?,
 	--[[ The classes that can be dealt it; every class when absent. Each
 	     class has its own Mythic (owner, 2026-10-22): the Ranger's is Dual
@@ -357,6 +361,9 @@ local abilities: { Ability } = {
 		levels = { 0.1, 0.2, 0.3 },
 		stats = { "+10% atk spd", "+20% atk spd", "+30% atk spd" },
 		icon = "momentum",
+		--[[ Out of rotation (owner, 2026-10-24: "take the momentum upgrade
+		     out of rotation"). ]]
+		benched = true,
 	},
 	{
 		id = "Agility",

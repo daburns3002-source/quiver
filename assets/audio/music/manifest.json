@@ -1,0 +1,53 @@
+[
+ {
+  "take": "a",
+  "seconds": 92.31,
+  "samples": 4070769,
+  "lufs": -16.0,
+  "true_peak_db": -3.2,
+  "bus_rms_db": {
+   "harp": -23.0,
+   "pad": -27.0,
+   "bass": -22.0,
+   "perc": -32.3,
+   "kick": -25.9,
+   "chip": -31.0,
+   "taiko": -24.9,
+   "bells": -27.0,
+   "lead": -19.1,
+   "chiplead": -23.9
+  },
+  "seam": {
+   "jump": 0.00486,
+   "p99_inside": 0.10991,
+   "max_inside": 0.57535
+  },
+  "note": "Woodland: flute lead, ocarina in the minor middle, harp, strings and pizzicato, chip arpeggios as sparkle."
+ },
+ {
+  "take": "b",
+  "seconds": 92.31,
+  "samples": 4070769,
+  "lufs": -16.0,
+  "true_peak_db": -2.6,
+  "bus_rms_db": {
+   "harp": -23.0,
+   "pad": -27.0,
+   "bass": -22.0,
+   "perc": -32.3,
+   "chipbass": -30.9,
+   "chip": -29.0,
+   "kick": -25.9,
+   "taiko": -24.9,
+   "bells": -27.0,
+   "chiplead": -19.8,
+   "lead": -22.1
+  },
+  "seam": {
+   "jump": 0.00485,
+   "p99_inside": 0.1078,
+   "max_inside": 0.45243
+  },
+  "note": "Route: the same tune on a pulse-wave lead with the flute an octave under, chip arpeggios throughout, a triangle bass."
+ }
+]

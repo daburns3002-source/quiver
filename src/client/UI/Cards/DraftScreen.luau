@@ -27,6 +27,7 @@ local Workspace = game:GetService("Workspace")
 local Abilities = require(ReplicatedStorage.Shared.Config.Abilities)
 local CardAssets = require(ReplicatedStorage.Shared.Config.CardAssets)
 local CardBuilder = require(script.Parent.CardBuilder)
+local CardPanel = require(ReplicatedStorage.Shared.Config.CardPanel)
 local CardTheme = require(ReplicatedStorage.Shared.Config.CardTheme)
 local DetailPanel = require(script.Parent.DetailPanel)
 local Device = require(script.Parent.Parent.Parent.Device)
@@ -144,6 +145,43 @@ local ACTIONS = { "DraftLeft", "DraftRight", "DraftChoose", "DraftReroll" }
 local PANEL_LEGENDARY = Color3.fromRGB(226, 160, 34)
 local PANEL_MYTHIC = Color3.fromRGB(196, 32, 48)
 local panelBase = CardTheme.colors.panel
+
+--[[
+	The 8c frame's other two faces are derived from whichever colour the hand
+	calls for, rather than listed per colour. The design only draws the blue
+	set, and these mixes reproduce it to within a few points — so gold and red
+	keep the same bevel without anyone picking three more colours by hand.
+]]
+local BEVEL_BASE_MIX = 0.45
+local BEVEL_TOP_MIX = 0.42
+
+--[[ Where the corner cubes sit, as fractions of the recess: on its corners. ]]
+local CUBE_SPOTS = {
+	Vector2.new(0, 0),
+	Vector2.new(1, 0),
+	Vector2.new(0, 1),
+	Vector2.new(1, 1),
+}
+
+local panelFace: Frame? = nil
+local panelTop: Frame? = nil
+
+--[[ Paints the frame's three faces from one colour. Called whenever the
+     hand's colour changes, and every frame while a Mythic is revealed. ]]
+local function paintPanel(front: Color3)
+	local p = panel
+	if p then
+		p.BackgroundColor3 = front:Lerp(CardPanel.colours.ink, BEVEL_BASE_MIX)
+	end
+	local face = panelFace
+	if face then
+		face.BackgroundColor3 = front
+	end
+	local top = panelTop
+	if top then
+		top.BackgroundColor3 = front:Lerp(WHITE, BEVEL_TOP_MIX)
+	end
+end
 
 local stepOverlay: (now: number) -> ()
 
@@ -951,7 +989,9 @@ stepOverlay = function(now: number)
 				)
 			end
 		end
-		p.BackgroundColor3 = panelBase:Lerp(Color3.fromRGB(58, 8, 18), crimson)
+		--[[ Repaints all three faces, so the bevel darkens with the panel
+		     rather than the base alone going crimson under a blue front. ]]
+		paintPanel(panelBase:Lerp(Color3.fromRGB(58, 8, 18), crimson))
 	end
 end
 
@@ -1153,22 +1193,136 @@ function DraftScreen.start(chosen: (number) -> (), rerolled: () -> ())
 	shade.BorderSizePixel = 0
 	shade.Parent = created
 
+	--[[
+		The 8c "Glow Recess" panel (`Config/CardPanel`): a bevelled blue frame
+		around a deep recess, with a glowing line just inside the recess and a
+		glowing cube on each of its corners.
+
+		Built as layers rather than a 9-slice image so the frame can be
+		recoloured per hand — the Legendary gold and Mythic red below tint the
+		three faces, which an uploaded image could not do without one upload
+		per colour.
+	]]
+	local metrics = CardPanel.metrics
+	local paints = CardPanel.colours
+
 	local root = Instance.new("Frame")
 	root.Name = "Panel"
 	root.AnchorPoint = Vector2.new(0.5, 0.5)
 	root.Position = UDim2.fromScale(0.5, 0.5)
-	root.BackgroundColor3 = CardTheme.colors.panel
+	root.BackgroundColor3 = panelBase:Lerp(paints.ink, BEVEL_BASE_MIX)
 	root.BorderSizePixel = 0
 	root.Parent = created
-	corner(root, 26)
+	corner(root, metrics.cornerRadius)
 	local edge = Instance.new("UIStroke")
-	edge.Color = INK
-	edge.Thickness = 5
+	edge.Color = paints.ink
+	edge.Thickness = metrics.inkThickness
 	edge.Parent = root
 	local fit = Instance.new("UIScale")
 	fit.Parent = root
 	panel = root
 	panelScale = fit
+
+	--[[ The front face, dropped from the top and stopping short of the
+	     bottom, which is what leaves the base showing as a lip. ]]
+	local front = Instance.new("Frame")
+	front.Name = "Face"
+	front.BackgroundColor3 = panelBase
+	front.BorderSizePixel = 0
+	front.Position = UDim2.fromOffset(0, metrics.bevelDrop)
+	front.Size = UDim2.new(1, 0, 1, -(metrics.bevelDrop + metrics.baseLip))
+	front.ZIndex = 0
+	front.Parent = root
+	corner(front, metrics.cornerRadius)
+	panelFace = front
+
+	--[[ The lit top face, a thin band along the top of the front face. ]]
+	local top = Instance.new("Frame")
+	top.Name = "TopFace"
+	top.BackgroundColor3 = panelBase:Lerp(WHITE, BEVEL_TOP_MIX)
+	top.BorderSizePixel = 0
+	top.Size = UDim2.new(1, 0, 0, metrics.bevelDrop * 2)
+	top.ZIndex = 0
+	top.Parent = front
+	corner(top, metrics.cornerRadius)
+	panelTop = top
+
+	--[[ The highlight streak the design runs across the top left. ]]
+	local gleam = Instance.new("Frame")
+	gleam.Name = "Highlight"
+	gleam.BackgroundColor3 = paints.highlight
+	gleam.BackgroundTransparency = CardPanel.transparency.highlight
+	gleam.BorderSizePixel = 0
+	gleam.AnchorPoint = Vector2.new(0.5, 0)
+	gleam.Position = UDim2.new(0.5, 0, 0, metrics.highlightTop)
+	gleam.Size = UDim2.new(metrics.highlightWidthScale, 0, 0, metrics.highlightHeight)
+	gleam.ZIndex = 1
+	gleam.Parent = root
+	corner(gleam, metrics.highlightHeight / 2)
+
+	--[[ The recess. Everything else on the panel is drawn inside it. ]]
+	local inset = metrics.recessInset
+	local well = Instance.new("Frame")
+	well.Name = "Recess"
+	well.BackgroundColor3 = paints.recess
+	well.BorderSizePixel = 0
+	well.Position = UDim2.fromOffset(inset.left, inset.top)
+	well.Size = UDim2.new(1, -(inset.left + inset.right), 1, -(inset.top + inset.bottom))
+	well.ZIndex = 1
+	well.Parent = root
+	corner(well, metrics.recessCornerRadius)
+	local wellEdge = Instance.new("UIStroke")
+	wellEdge.Color = paints.ink
+	wellEdge.Thickness = metrics.recessInkThickness
+	wellEdge.Parent = well
+
+	--[[ The glowing line: a wide, mostly-transparent pass standing in for the
+	     design's blur, under a crisp narrow one. ]]
+	local glow = Instance.new("Frame")
+	glow.Name = "GlowLine"
+	glow.BackgroundTransparency = 1
+	glow.Position = UDim2.fromOffset(metrics.glowInset, metrics.glowInset)
+	glow.Size = UDim2.new(1, -metrics.glowInset * 2, 1, -metrics.glowInset * 2)
+	glow.ZIndex = 2
+	glow.Parent = well
+	corner(glow, metrics.recessCornerRadius)
+	local soft = Instance.new("UIStroke")
+	soft.Color = paints.glowSoft
+	soft.Thickness = metrics.glowSoftThickness
+	soft.Transparency = CardPanel.transparency.glowSoft
+	soft.Parent = glow
+	local core = Instance.new("UIStroke")
+	core.Color = paints.glowCore
+	core.Thickness = metrics.glowCoreThickness
+	core.Parent = glow
+
+	--[[ A glowing cube centred on each corner of the recess, lit like the
+	     icon tiles: bright top, mid left, shaded right. ]]
+	for _, spot in CUBE_SPOTS do
+		local cube = Instance.new("Frame")
+		cube.Name = "CornerCube"
+		cube.AnchorPoint = Vector2.new(0.5, 0.5)
+		cube.Position = UDim2.fromScale(spot.X, spot.Y)
+		cube.Size = UDim2.fromOffset(metrics.cubeSize, metrics.cubeSize)
+		cube.BackgroundColor3 = paints.cubeLeft
+		cube.BorderSizePixel = 0
+		cube.Rotation = 45
+		cube.ZIndex = 3
+		cube.Parent = well
+
+		local halo = Instance.new("UIStroke")
+		halo.Color = paints.cubeTop
+		halo.Thickness = metrics.cubeGlowThickness
+		halo.Transparency = CardPanel.transparency.cubeGlow
+		halo.Parent = cube
+
+		--[[ The two lit faces, as a gradient across the turned square: the
+		     design's three-face cube read at this size. ]]
+		local cubeFaces = Instance.new("UIGradient")
+		cubeFaces.Color = ColorSequence.new(paints.cubeTop, paints.cubeRight)
+		cubeFaces.Rotation = 45
+		cubeFaces.Parent = cube
+	end
 
 	local heading =
 		stroked(root, "LEVEL UP!", CardTheme.fonts.display, 44, CardTheme.colors.titleYellow, 6)
@@ -1502,6 +1656,7 @@ function DraftScreen.show(offer: { string }, level: number, source: string?, rer
 		then PANEL_MYTHIC
 		elseif rarest == 5 then PANEL_LEGENDARY
 		else CardTheme.colors.panel
+	paintPanel(panelBase)
 
 	local isPad = mode == "Gamepad"
 	if strip then

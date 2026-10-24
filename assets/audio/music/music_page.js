@@ -75,7 +75,7 @@ document.addEventListener("click", async (e) => {
   }
 });
 
-// The pick lives in the page's database (COLLECTION/glade), so Claude reads
+// The pick lives in the page's database (COLLECTION/<track>), so Claude reads
 // it back; the copy button is the fallback.
 let db = null;
 
@@ -86,16 +86,16 @@ function note(text) {
 }
 
 function render() {
-  const chosen = document.querySelector('input[name="glade"]:checked');
-  document.querySelectorAll('input[name="glade"]').forEach((input) => {
+  const chosen = document.querySelector(`input[name="${TRACK}"]:checked`);
+  document.querySelectorAll(`input[name="${TRACK}"]`).forEach((input) => {
     input.closest(".opt").classList.toggle("chosen", input.checked);
   });
   document.getElementById("summary").textContent = chosen ? `Picked ${chosen.value}` : "No pick yet.";
-  try { localStorage.setItem(COLLECTION, chosen ? chosen.value : ""); } catch (e) {}
+  try { localStorage.setItem(COLLECTION + "/" + TRACK, chosen ? chosen.value : ""); } catch (e) {}
 }
 
 function restore(value) {
-  const input = value && document.querySelector(`input[name="glade"][value="${value}"]`);
+  const input = value && document.querySelector(`input[name="${TRACK}"][value="${value}"]`);
   if (input) input.checked = true;
   render();
 }
@@ -113,8 +113,8 @@ document.addEventListener("change", async (e) => {
 });
 
 document.getElementById("copy").addEventListener("click", async () => {
-  const chosen = document.querySelector('input[name="glade"]:checked');
-  const text = "Music pick — Mossy Glade: " + (chosen ? chosen.value : "none yet");
+  const chosen = document.querySelector(`input[name="${TRACK}"]:checked`);
+  const text = "Music pick — " + NAMES[TRACK] + ": " + (chosen ? chosen.value : "none yet");
   const button = document.getElementById("copy");
   try {
     await navigator.clipboard.writeText(text);
@@ -126,7 +126,7 @@ document.getElementById("copy").addEventListener("click", async () => {
   setTimeout(() => (button.textContent = "Copy my pick"), 1800);
 });
 
-try { restore(localStorage.getItem(COLLECTION) || ""); } catch (e) { render(); }
+try { restore(localStorage.getItem(COLLECTION + "/" + TRACK) || ""); } catch (e) { render(); }
 
 (async () => {
   try {
@@ -136,7 +136,7 @@ try { restore(localStorage.getItem(COLLECTION) || ""); } catch (e) { render(); }
   }
   if (!db) return;
   try {
-    const snap = await db.doc(COLLECTION + "/glade").get();
+    const snap = await db.doc(COLLECTION + "/" + TRACK).get();
     const body = snap && snap.exists ? snap.data() : null;
     if (body && typeof body.variant === "string") {
       restore(body.variant);

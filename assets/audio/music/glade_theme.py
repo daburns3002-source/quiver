@@ -506,25 +506,28 @@ def write_wav(path, x):
     wavfile.write(path, SR, (np.clip(x, -1, 1) * 32767).astype(np.int16))
 
 
-def master(take, out_dir):
-    mix = arrange(take)
+def master(take, out_dir, arrange_fn=None, buses=None, trims=None, name="glade", beat=BEAT):
+    """Mix, master and encode one take; other tracks pass their own arrangement."""
+    mix = (arrange_fn or arrange)(take)
+    buses = buses or BUSES
+    trims = BUS_TRIM if trims is None else trims
     n = mix.n
     ir = reverb_ir()
     dry = np.zeros((n, 2))
     send = np.zeros((n, 2))
     levels = {}
-    for name, x in mix.buses.items():
-        target, rev, echo = BUSES[name]
-        target += BUS_TRIM.get(take, {}).get(name, 0)
+    for bus, x in mix.buses.items():
+        target, rev, echo = buses[bus]
+        target += trims.get(take, {}).get(bus, 0)
         x = fold(x, n)
         x *= 10 ** ((target - rms_db(x)) / 20)
         if echo:  # dotted-eighth ping-pong, quiet
-            d = int(round(0.75 * BEAT * SR))
+            d = int(round(0.75 * beat * SR))
             e = np.zeros_like(x)
             for k, (gain, ch) in enumerate(((0.22, 1), (0.12, 0), (0.06, 1)), start=1):
                 e[:, ch] += np.roll(x.sum(1) * 0.5, d * k) * gain
             x = x + e
-        levels[name] = round(rms_db(x), 1)
+        levels[bus] = round(rms_db(x), 1)
         dry += x
         send += rev * x
     wet = np.stack([signal.fftconvolve(send[:, c], ir[:, c]) for c in range(2)], axis=1)
@@ -538,7 +541,7 @@ def master(take, out_dir):
 
     mixed = circular(tone, mixed)
     gain_db = 0.0
-    path = os.path.join(out_dir, f"glade_{take}.wav")
+    path = os.path.join(out_dir, f"{name}_{take}.wav")
     for _ in range(4):
         y = circular(limiter, mixed * 10 ** (gain_db / 20))
         write_wav(path, y)

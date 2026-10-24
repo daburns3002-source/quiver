@@ -6,10 +6,12 @@
 
 	Rooms play our own Mossy Glade theme (made from scratch by
 	`assets/audio/music/glade_theme.py`, take B, picked 2026-10-24), alone
-	so it loops seamlessly. The Boss tracks are from APMOfficial, the music
-	library Roblox licenses for any experience. Tracks from other uploaders
-	are left out: some are music ripped from other games, which this project
-	never uses (CLAUDE.md, Sounds). Swap ids here to change the music; the
+	so it loops seamlessly. Boss fights play King Bloblin's theme
+	(`boss_theme.py`, take B with the Dive intro, picked 2026-10-24): a
+	battle intro once as the boss appears, like a trainer battle's (owner:
+	"for every boss, i want an intro part"), then the loop. Music from other
+	uploaders is left out: some is ripped from other games, which this
+	project never uses (CLAUDE.md, Sounds). Swap ids here to change the music; the
 	audition page saves the owner's picks for Claude to put here.
 ]]
 
@@ -28,9 +30,13 @@ local Music = {
 			{ id = "rbxassetid://74156980070396", name = "Mossy Glade (B)" },
 		} :: { Track },
 		Boss = {
-			{ id = "rbxassetid://1848107874", name = "Fight For A Tomorrow" },
-			-- heroic orchestral, 110 s
-			{ id = "rbxassetid://9046503137", name = "Imminent Closure" },
+			-- ours, 87 s: a 4.7 s intro, then the 75.8 s loop from 10.74 s (after the intro's tail)
+			{
+				id = "rbxassetid://127708487537452",
+				name = "King Bloblin (B, Dive)",
+				loopStart = 10.736848,
+				loopEnd = 86.526327,
+			},
 		} :: { Track },
 	},
 }

@@ -85,16 +85,23 @@ sits in the same hand. Sheets are in `assets/concepts/weapons/skins/forest/`.
 2026-10-23): its own R15 kit, with the class's clip names and markers so
 the game plays and times it the same way (`docs/PIPELINES.md` §5), but
 moving in its own manner. Never the base weapon's clips reused. **Epic and
-above also get their own projectile and projectile trail.**
+above also get their own projectile and projectile trail.** Every weapon
+is made with its own projectile model, except the swords (melee).
 
-| Rarity | Ranger bow | Arcanist staff | Warden greatsword |
-|---|---|---|---|
-| Common | Twig Bow | Branch Staff | Timber Blade |
-| Uncommon | Acorn Bow | Toadstool Staff | Mossstone Blade |
-| Rare | Firefly Bow | Lantern Staff | Thorn Blade |
-| Epic | Moss Slime Bow | Hootmoss Staff | Broodsplit Blade |
-| Legendary | Ember Fang Bow | Slime Crown Staff | Emberfang Blade |
-| Mythic | Glade Spirit Bow | Worldroot Staff | Gladeheart Blade |
+The Duelist's daggers (the open alternative to the Warden, `docs/WORLD.md`)
+have their Mossy Glade ladder too: blocky sheet
+`assets/concepts/blocky/weapons/skins/forest/w4_dagger_skins.png` (Codex,
+2026-10-23), each pair drawn with its thrown dagger and, from Rare up, its
+trail. Purple stays the Duelist's accent.
+
+| Rarity | Ranger bow | Arcanist staff | Warden greatsword | Duelist daggers |
+|---|---|---|---|---|
+| Common | Twig Bow | Branch Staff | Timber Blade | Splinter Daggers |
+| Uncommon | Acorn Bow | Toadstool Staff | Mossstone Blade | Bramble Shivs |
+| Rare | Firefly Bow | Lantern Staff | Thorn Blade | Firefly Fangs |
+| Epic | Moss Slime Bow | Hootmoss Staff | Broodsplit Blade | Glade Fox Claws |
+| Legendary | Ember Fang Bow | Slime Crown Staff | Emberfang Blade | Ember Wilf Fangs |
+| Mythic | Glade Spirit Bow | Worldroot Staff | Gladeheart Blade | Glimmerhorn Daggers |
 
 How skins are earned (hatched, bought, boss drops) is *open*;
 `PROGRESSION.md` names "gear" but not skins. A skin is a look only unless

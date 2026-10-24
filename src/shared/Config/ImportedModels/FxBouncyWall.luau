@@ -1,6 +1,6 @@
 --!strict
 --[[
-	FxBouncyWall as the owner imported it (AuxScene#47, a baked import). Generated
+	FxBouncyWall as the owner imported it (fx_bouncywall, a baked import). Generated
 	by tools/imports_to_luau.py from tools/studio/dump_models.luau's output
 	and the GLB; regenerate after a re-import, never hand-edit.
 
@@ -11,58 +11,14 @@
 
 return table.freeze({
 	{
-		name = "chevron",
-		meshId = "rbxassetid://80503470594419",
+		name = "bouncywall_AL_FX_01_BouncyWall_Mesh1",
+		meshId = "rbxassetid://93256607951010",
 		textureId = "",
 		color = { 1, 1, 1 },
 		material = "SmoothPlastic",
 		transparency = 0,
-		size = { 1.25, 1.5, 0.375 },
-		cframe = { -0.5, 0.75, -0.1875, 1, 0, 0, 0, 1, 0, 0, 0, 1 },
-		surface = "AL_FX_VertexColor",
-	},
-	{
-		name = "core",
-		meshId = "rbxassetid://106514364816979",
-		textureId = "",
-		color = { 1, 1, 1 },
-		material = "SmoothPlastic",
-		transparency = 0,
-		size = { 0.5, 0.5, 0.5 },
-		cframe = { 0, 0.75, -0.25, 1, 0, 0, 0, 1, 0, 0, 0, 1 },
-		surface = "AL_FX_VertexColor",
-	},
-	{
-		name = "step_1",
-		meshId = "rbxassetid://88769820954206",
-		textureId = "",
-		color = { 1, 1, 1 },
-		material = "SmoothPlastic",
-		transparency = 0,
-		size = { 0.5, 0.5, 0.5 },
-		cframe = { -1.5, 1, -0.625, 1, 0, 0, 0, 1, 0, 0, 0, 1 },
-		surface = "AL_FX_VertexColor",
-	},
-	{
-		name = "step_2",
-		meshId = "rbxassetid://76734726611067",
-		textureId = "",
-		color = { 1, 1, 1 },
-		material = "SmoothPlastic",
-		transparency = 0,
-		size = { 0.375, 0.375, 0.375 },
-		cframe = { -2.0625, 1.3125, -1.1875, 1, 0, 0, 0, 1, 0, 0, 0, 1 },
-		surface = "AL_FX_VertexColor",
-	},
-	{
-		name = "step_3",
-		meshId = "rbxassetid://93208550163332",
-		textureId = "",
-		color = { 1, 1, 1 },
-		material = "SmoothPlastic",
-		transparency = 0,
-		size = { 0.25, 0.25, 0.25 },
-		cframe = { -2.5, 1.625, -1.625, 1, 0, 0, 0, 1, 0, 0, 0, 1 },
-		surface = "AL_FX_VertexColor",
+		size = { 2.875, 1.75, 1.75 },
+		cframe = { -1.1875, 0.875, -0.875, 1, 0, 0, 0, 1, 0, 0, 0, 1 },
+		surface = "",
 	},
 })

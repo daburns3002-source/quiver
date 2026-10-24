@@ -1,6 +1,6 @@
 --!strict
 --[[
-	FxSwiftArrows as the owner imported it (AuxScene#77, a baked import). Generated
+	FxSwiftArrows as the owner imported it (fx_swiftarrows, a baked import). Generated
 	by tools/imports_to_luau.py from tools/studio/dump_models.luau's output
 	and the GLB; regenerate after a re-import, never hand-edit.
 
@@ -11,36 +11,14 @@
 
 return table.freeze({
 	{
-		name = "slabs",
-		meshId = "rbxassetid://76970535951063",
+		name = "swiftarrows_fx_swiftarrows_Mesh1",
+		meshId = "rbxassetid://95843059110533",
 		textureId = "",
 		color = { 1, 1, 1 },
 		material = "SmoothPlastic",
 		transparency = 0,
-		size = { 5, 1, 10 },
+		size = { 9, 1, 10 },
 		cframe = { 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1 },
-		surface = "fx_voxel",
-	},
-	{
-		name = "streak_L",
-		meshId = "rbxassetid://88307811947275",
-		textureId = "",
-		color = { 1, 1, 1 },
-		material = "SmoothPlastic",
-		transparency = 0,
-		size = { 1, 1, 9 },
-		cframe = { 4, 0, -0.5, 1, 0, 0, 0, 1, 0, 0, 0, 1 },
-		surface = "fx_voxel",
-	},
-	{
-		name = "streak_R",
-		meshId = "rbxassetid://104320892521030",
-		textureId = "",
-		color = { 1, 1, 1 },
-		material = "SmoothPlastic",
-		transparency = 0,
-		size = { 1, 1, 9 },
-		cframe = { -4, 0, -0.5, 1, 0, 0, 0, 1, 0, 0, 0, 1 },
-		surface = "fx_voxel",
+		surface = "",
 	},
 })

@@ -1,6 +1,6 @@
 --!strict
 --[[
-	FxSideArrows as the owner imported it (AuxScene#75, a baked import). Generated
+	FxSideArrows as the owner imported it (fx_sidearrows, a baked import). Generated
 	by tools/imports_to_luau.py from tools/studio/dump_models.luau's output
 	and the GLB; regenerate after a re-import, never hand-edit.
 
@@ -11,36 +11,14 @@
 
 return table.freeze({
 	{
-		name = "core",
-		meshId = "rbxassetid://131982828754711",
+		name = "sidearrows_fx_sidearrows_Mesh1",
+		meshId = "rbxassetid://118904117476109",
 		textureId = "",
 		color = { 1, 1, 1 },
 		material = "SmoothPlastic",
 		transparency = 0,
-		size = { 3, 3, 3 },
-		cframe = { 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1 },
-		surface = "fx_voxel",
-	},
-	{
-		name = "wing_L",
-		meshId = "rbxassetid://131498886713890",
-		textureId = "",
-		color = { 1, 1, 1 },
-		material = "SmoothPlastic",
-		transparency = 0,
-		size = { 9, 1, 7 },
-		cframe = { 6, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1 },
-		surface = "fx_voxel",
-	},
-	{
-		name = "wing_R",
-		meshId = "rbxassetid://104518285352374",
-		textureId = "",
-		color = { 1, 1, 1 },
-		material = "SmoothPlastic",
-		transparency = 0,
-		size = { 9, 1, 7 },
-		cframe = { -6, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1 },
-		surface = "fx_voxel",
+		size = { 21, 3, 7 },
+		cframe = { 0, -0.00001, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1 },
+		surface = "",
 	},
 })

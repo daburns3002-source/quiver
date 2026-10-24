@@ -44572,7 +44572,7 @@
      1
     ],
     "transparency": 0,
-    "name": "secondwind_heart_Mesh1",
+    "name": "heart_mesh_heart_crimson",
     "size": [
      4.25,
      3.75,
@@ -44583,15 +44583,15 @@
      0.63529,
      0.64706
     ],
-    "meshId": "rbxassetid://125275813624637",
+    "meshId": "rbxassetid://139537731581684",
     "material": "Plastic",
     "textureId": ""
    },
    {
     "cframe": [
-     -2.875,
-     2.5,
-     0.375,
+     1.25,
+     3,
+     -0.75,
      1,
      0,
      0,
@@ -44603,26 +44603,26 @@
      1
     ],
     "transparency": 0,
-    "name": "secondwind_wing_right_Mesh1",
+    "name": "heart_mesh_heart_light",
     "size": [
-     3,
-     2,
-     0.5
+     0.75,
+     0.5,
+     0.25
     ],
     "color": [
      0.63922,
      0.63529,
      0.64706
     ],
-    "meshId": "rbxassetid://130692421181722",
+    "meshId": "rbxassetid://130444965586679",
     "material": "Plastic",
     "textureId": ""
    },
    {
     "cframe": [
-     2.875,
-     2.5,
-     0.375,
+     -3.20825,
+     3.63431,
+     1.7337,
      1,
      0,
      0,
@@ -44634,18 +44634,173 @@
      1
     ],
     "transparency": 0,
-    "name": "secondwind_wing_left_Mesh1",
+    "name": "wing_right_mesh_wing_blue",
     "size": [
-     3,
-     2,
-     0.5
+     4.44979,
+     4.84311,
+     4.50477
     ],
     "color": [
      0.63922,
      0.63529,
      0.64706
     ],
-    "meshId": "rbxassetid://94073188014317",
+    "meshId": "rbxassetid://88285586397366",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     -3.23721,
+     3.71862,
+     1.5889,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "wing_right_mesh_wing_white",
+    "size": [
+     4.39187,
+     4.6745,
+     4.21518
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://138760326160088",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     -2.27905,
+     4.51351,
+     2.22801,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "wing_right_mesh_wing_gold",
+    "size": [
+     2.92661,
+     3.25833,
+     3.57972
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://87902358662039",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     3.20825,
+     3.63431,
+     1.7337,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "wing_left_mesh_wing_blue",
+    "size": [
+     4.44979,
+     4.84311,
+     4.50477
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://121725148613728",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     3.23721,
+     3.71862,
+     1.5889,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "wing_left_mesh_wing_white",
+    "size": [
+     4.39187,
+     4.6745,
+     4.21518
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://122942748272055",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     2.27905,
+     4.51351,
+     2.22801,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "wing_left_mesh_wing_gold",
+    "size": [
+     2.92661,
+     3.25833,
+     3.57972
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://77912326068664",
     "material": "Plastic",
     "textureId": ""
    },
@@ -44665,7 +44820,7 @@
      1
     ],
     "transparency": 0,
-    "name": "secondwind_halo_Mesh1",
+    "name": "halo_mesh_halo_gold",
     "size": [
      2.75,
      0.25,
@@ -44676,379 +44831,7 @@
      0.63529,
      0.64706
     ],
-    "meshId": "rbxassetid://120485203513631",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     -1,
-     4.875,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "secondwind_halo_spark_01_Mesh1",
-    "size": [
-     0.28284,
-     0.2,
-     0.28284
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://112713198230546",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     -0.86603,
-     4.875,
-     -0.5,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "secondwind_halo_spark_02_Mesh1",
-    "size": [
-     0.24495,
-     0.2,
-     0.24495
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://114480899898115",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     -0.5,
-     4.875,
-     -0.86603,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "secondwind_halo_spark_03_Mesh1",
-    "size": [
-     0.24495,
-     0.2,
-     0.24495
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://134354645044376",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     0,
-     4.875,
-     -1,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "secondwind_halo_spark_04_Mesh1",
-    "size": [
-     0.28284,
-     0.2,
-     0.28284
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://81694346798009",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     0.5,
-     4.875,
-     -0.86603,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "secondwind_halo_spark_05_Mesh1",
-    "size": [
-     0.24495,
-     0.2,
-     0.24495
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://117173490474216",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     0.86603,
-     4.875,
-     -0.5,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "secondwind_halo_spark_06_Mesh1",
-    "size": [
-     0.24495,
-     0.2,
-     0.24495
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://90674214965458",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     1,
-     4.875,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "secondwind_halo_spark_07_Mesh1",
-    "size": [
-     0.28284,
-     0.2,
-     0.28284
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://92252892318468",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     0.86603,
-     4.875,
-     0.5,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "secondwind_halo_spark_08_Mesh1",
-    "size": [
-     0.24495,
-     0.2,
-     0.24495
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://90501378608148",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     0.5,
-     4.875,
-     0.86603,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "secondwind_halo_spark_09_Mesh1",
-    "size": [
-     0.24495,
-     0.2,
-     0.24495
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://86903179256247",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     0,
-     4.875,
-     1,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "secondwind_halo_spark_10_Mesh1",
-    "size": [
-     0.28284,
-     0.2,
-     0.28284
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://93952461166241",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     -0.5,
-     4.875,
-     0.86603,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "secondwind_halo_spark_11_Mesh1",
-    "size": [
-     0.24495,
-     0.2,
-     0.24495
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://87015976462226",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     -0.86603,
-     4.875,
-     0.5,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "secondwind_halo_spark_12_Mesh1",
-    "size": [
-     0.24495,
-     0.2,
-     0.24495
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://85820004565691",
+    "meshId": "rbxassetid://100163240583226",
     "material": "Plastic",
     "textureId": ""
    },
@@ -45068,26 +44851,26 @@
      1
     ],
     "transparency": 0,
-    "name": "secondwind_heart_flare_Mesh1",
+    "name": "heart_flare_mesh_wing_white",
     "size": [
-     4.75,
-     4.25,
-     0.25
+     0.00475,
+     0.00425,
+     0.001
     ],
     "color": [
      0.63922,
      0.63529,
      0.64706
     ],
-    "meshId": "rbxassetid://83916780317054",
+    "meshId": "rbxassetid://138487419368070",
     "material": "Plastic",
     "textureId": ""
    },
    {
     "cframe": [
-     -5.5,
-     2.75,
-     0.375,
+     -1,
+     4.875,
+     0,
      1,
      0,
      0,
@@ -45099,26 +44882,26 @@
      1
     ],
     "transparency": 0,
-    "name": "secondwind_wing_right_tip_Mesh1",
+    "name": "halo_spark_01_mesh_halo_gold",
     "size": [
-     2.25,
-     1.5,
-     0.5
+     0.28284,
+     0.2,
+     0.28284
     ],
     "color": [
      0.63922,
      0.63529,
      0.64706
     ],
-    "meshId": "rbxassetid://119383694634294",
+    "meshId": "rbxassetid://73565070418211",
     "material": "Plastic",
     "textureId": ""
    },
    {
     "cframe": [
-     5.5,
-     2.75,
-     0.375,
+     -0.86603,
+     4.875,
+     -0.5,
      1,
      0,
      0,
@@ -45130,18 +44913,514 @@
      1
     ],
     "transparency": 0,
-    "name": "secondwind_wing_left_tip_Mesh1",
+    "name": "halo_spark_02_mesh_halo_gold",
     "size": [
-     2.25,
-     1.5,
-     0.5
+     0.24495,
+     0.2,
+     0.24495
     ],
     "color": [
      0.63922,
      0.63529,
      0.64706
     ],
-    "meshId": "rbxassetid://140272424857091",
+    "meshId": "rbxassetid://126290775969892",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     -0.5,
+     4.875,
+     -0.86603,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "halo_spark_03_mesh_halo_gold",
+    "size": [
+     0.24495,
+     0.2,
+     0.24495
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://123248358154914",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0,
+     4.875,
+     -1,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "halo_spark_04_mesh_halo_gold",
+    "size": [
+     0.28284,
+     0.2,
+     0.28284
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://113920578953510",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0.5,
+     4.875,
+     -0.86603,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "halo_spark_05_mesh_halo_gold",
+    "size": [
+     0.24495,
+     0.2,
+     0.24495
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://99040553318958",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0.86603,
+     4.875,
+     -0.5,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "halo_spark_06_mesh_halo_gold",
+    "size": [
+     0.24495,
+     0.2,
+     0.24495
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://137088613027377",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     1,
+     4.875,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "halo_spark_07_mesh_halo_gold",
+    "size": [
+     0.28284,
+     0.2,
+     0.28284
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://117164761394648",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0.86603,
+     4.875,
+     0.5,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "halo_spark_08_mesh_halo_gold",
+    "size": [
+     0.24495,
+     0.2,
+     0.24495
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://137632349383986",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0.5,
+     4.875,
+     0.86603,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "halo_spark_09_mesh_halo_gold",
+    "size": [
+     0.24495,
+     0.2,
+     0.24495
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://124606321285371",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0,
+     4.875,
+     1,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "halo_spark_10_mesh_halo_gold",
+    "size": [
+     0.28284,
+     0.2,
+     0.28284
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://78091890142860",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     -0.5,
+     4.875,
+     0.86603,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "halo_spark_11_mesh_halo_gold",
+    "size": [
+     0.24495,
+     0.2,
+     0.24495
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://117403278764629",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     -0.86603,
+     4.875,
+     0.5,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "halo_spark_12_mesh_halo_gold",
+    "size": [
+     0.24495,
+     0.2,
+     0.24495
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://109582586011738",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     -6.25938,
+     4.18767,
+     3.42376,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "wing_right_tip_mesh_wing_blue",
+    "size": [
+     5.5702,
+     2.6586,
+     2.56219
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://82571332655803",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     -6.2811,
+     4.27198,
+     3.33326,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "wing_right_tip_mesh_wing_white",
+    "size": [
+     5.52676,
+     2.48998,
+     2.3812
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://82335961608427",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     -6.21497,
+     5.29501,
+     4.31059,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "wing_right_tip_mesh_wing_gold",
+    "size": [
+     3.45103,
+     0.61819,
+     0.81569
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://79109029520889",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     6.25938,
+     4.18767,
+     3.42376,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "wing_left_tip_mesh_wing_blue",
+    "size": [
+     5.5702,
+     2.6586,
+     2.56219
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://91689405583389",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     6.2811,
+     4.27198,
+     3.33326,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "wing_left_tip_mesh_wing_white",
+    "size": [
+     5.52676,
+     2.48998,
+     2.3812
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://124545917359026",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     6.21497,
+     5.29501,
+     4.31059,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "wing_left_tip_mesh_wing_gold",
+    "size": [
+     3.45103,
+     0.61819,
+     0.81568
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://76438227422179",
     "material": "Plastic",
     "textureId": ""
    }

@@ -42,7 +42,11 @@ return table.freeze({
 			rest = { -2.2063, 2.5609, -2.827, 0, 0, 0, 1, 1, 1, 1 },
 		},
 		{ name = "halo", parent = "winged_body", rest = { 0, 2.75, 0, 0, 0, 0, 1, 1, 1, 1 } },
-		{ name = "heart_flare", parent = "winged_body", rest = { 0, 0, 0, 0, 0, 0, 1, 1, 1, 1 } },
+		{
+			name = "heart_flare",
+			parent = "winged_body",
+			rest = { 0, 0, 0, 0, 0, 0, 1, 0.001, 0.001, 0.001 },
+		},
 		{ name = "halo_spark_01", parent = "winged_body", rest = { 1, 3, 0, 0, 0, 0, 1, 1, 1, 1 } },
 		{
 			name = "halo_spark_02",
@@ -97,100 +101,145 @@ return table.freeze({
 		},
 	},
 	parts = {
-		["secondwind_halo_Mesh1"] = {
+		["halo_mesh_halo_gold"] = {
 			joint = "halo",
 			cframe = { 0, 4.625, 0, 0, 0, 0, 1 },
 			size = { 2.75, 0.25, 2.75 },
 		},
-		["secondwind_halo_spark_01_Mesh1"] = {
+		["halo_spark_01_mesh_halo_gold"] = {
 			joint = "halo_spark_01",
 			cframe = { 1, 4.875, 0, 0, 0, 0, 1 },
 			size = { 0.2828, 0.2, 0.2828 },
 		},
-		["secondwind_halo_spark_02_Mesh1"] = {
+		["halo_spark_02_mesh_halo_gold"] = {
 			joint = "halo_spark_02",
 			cframe = { 0.866, 4.875, 0.5, 0, 0, 0, 1 },
 			size = { 0.2449, 0.2, 0.2449 },
 		},
-		["secondwind_halo_spark_03_Mesh1"] = {
+		["halo_spark_03_mesh_halo_gold"] = {
 			joint = "halo_spark_03",
 			cframe = { 0.5, 4.875, 0.866, 0, 0, 0, 1 },
 			size = { 0.2449, 0.2, 0.2449 },
 		},
-		["secondwind_halo_spark_04_Mesh1"] = {
+		["halo_spark_04_mesh_halo_gold"] = {
 			joint = "halo_spark_04",
 			cframe = { 0, 4.875, 1, 0, 0, 0, 1 },
 			size = { 0.2828, 0.2, 0.2828 },
 		},
-		["secondwind_halo_spark_05_Mesh1"] = {
+		["halo_spark_05_mesh_halo_gold"] = {
 			joint = "halo_spark_05",
 			cframe = { -0.5, 4.875, 0.866, 0, 0, 0, 1 },
 			size = { 0.2449, 0.2, 0.2449 },
 		},
-		["secondwind_halo_spark_06_Mesh1"] = {
+		["halo_spark_06_mesh_halo_gold"] = {
 			joint = "halo_spark_06",
 			cframe = { -0.866, 4.875, 0.5, 0, 0, 0, 1 },
 			size = { 0.2449, 0.2, 0.2449 },
 		},
-		["secondwind_halo_spark_07_Mesh1"] = {
+		["halo_spark_07_mesh_halo_gold"] = {
 			joint = "halo_spark_07",
 			cframe = { -1, 4.875, 0, 0, 0, 0, 1 },
 			size = { 0.2828, 0.2, 0.2828 },
 		},
-		["secondwind_halo_spark_08_Mesh1"] = {
+		["halo_spark_08_mesh_halo_gold"] = {
 			joint = "halo_spark_08",
 			cframe = { -0.866, 4.875, -0.5, 0, 0, 0, 1 },
 			size = { 0.2449, 0.2, 0.2449 },
 		},
-		["secondwind_halo_spark_09_Mesh1"] = {
+		["halo_spark_09_mesh_halo_gold"] = {
 			joint = "halo_spark_09",
 			cframe = { -0.5, 4.875, -0.866, 0, 0, 0, 1 },
 			size = { 0.2449, 0.2, 0.2449 },
 		},
-		["secondwind_halo_spark_10_Mesh1"] = {
+		["halo_spark_10_mesh_halo_gold"] = {
 			joint = "halo_spark_10",
 			cframe = { 0, 4.875, -1, 0, 0, 0, 1 },
 			size = { 0.2828, 0.2, 0.2828 },
 		},
-		["secondwind_halo_spark_11_Mesh1"] = {
+		["halo_spark_11_mesh_halo_gold"] = {
 			joint = "halo_spark_11",
 			cframe = { 0.5, 4.875, -0.866, 0, 0, 0, 1 },
 			size = { 0.2449, 0.2, 0.2449 },
 		},
-		["secondwind_halo_spark_12_Mesh1"] = {
+		["halo_spark_12_mesh_halo_gold"] = {
 			joint = "halo_spark_12",
 			cframe = { 0.866, 4.875, -0.5, 0, 0, 0, 1 },
 			size = { 0.2449, 0.2, 0.2449 },
 		},
-		["secondwind_heart_Mesh1"] = {
+		["heart_flare_mesh_wing_white"] = {
+			joint = "heart_flare",
+			cframe = { 0, 1.875, 0, 0, 0, 0, 1 },
+			size = { 0.0047, 0.0043, 0.0003 },
+		},
+		["heart_mesh_heart_crimson"] = {
 			joint = "heart",
 			cframe = { 0, 1.875, 0, 0, 0, 0, 1 },
 			size = { 4.25, 3.75, 1.75 },
 		},
-		["secondwind_heart_flare_Mesh1"] = {
-			joint = "heart_flare",
-			cframe = { 0, 1.875, 0, 0, 0, 0, 1 },
-			size = { 4.75, 4.25, 0.25 },
+		["heart_mesh_heart_light"] = {
+			joint = "heart",
+			cframe = { -1.25, 3, 0.75, 0, 0, 0, 1 },
+			size = { 0.75, 0.5, 0.25 },
 		},
-		["secondwind_wing_left_Mesh1"] = {
+		["wing_left_mesh_wing_blue"] = {
 			joint = "wing_left",
-			cframe = { -3.1244, 3.6777, -1.7496, 0, 0, 0, 1 },
-			size = { 4.6174, 4.9299, 4.5366 },
+			cframe = { -3.2082, 3.6343, -1.7337, 0, 0, 0, 1 },
+			size = { 4.4498, 4.8431, 4.5048 },
 		},
-		["secondwind_wing_left_tip_Mesh1"] = {
+		["wing_left_mesh_wing_gold"] = {
+			joint = "wing_left",
+			cframe = { -2.279, 4.5135, -2.228, 0, 0, 0, 1 },
+			size = { 2.9266, 3.2583, 3.5797 },
+		},
+		["wing_left_mesh_wing_white"] = {
+			joint = "wing_left",
+			cframe = { -3.2372, 3.7186, -1.5889, 0, 0, 0, 1 },
+			size = { 4.3919, 4.6745, 4.2152 },
+		},
+		["wing_left_tip_mesh_wing_blue"] = {
 			joint = "wing_left_tip",
-			cframe = { -6.2594, 4.2312, -3.4305, 0, 0, 0, 1 },
-			size = { 5.5702, 2.7457, 2.5758 },
+			cframe = { -6.2594, 4.1877, -3.4238, 0, 0, 0, 1 },
+			size = { 5.5702, 2.6586, 2.5622 },
 		},
-		["secondwind_wing_right_Mesh1"] = {
+		["wing_left_tip_mesh_wing_gold"] = {
+			joint = "wing_left_tip",
+			cframe = { -6.215, 5.295, -4.3106, 0, 0, 0, 1 },
+			size = { 3.451, 0.6182, 0.8157 },
+		},
+		["wing_left_tip_mesh_wing_white"] = {
+			joint = "wing_left_tip",
+			cframe = { -6.2811, 4.272, -3.3333, 0, 0, 0, 1 },
+			size = { 5.5268, 2.49, 2.3812 },
+		},
+		["wing_right_mesh_wing_blue"] = {
 			joint = "wing_right",
-			cframe = { 3.1244, 3.6777, -1.7496, 0, 0, 0, 1 },
-			size = { 4.6174, 4.9299, 4.5366 },
+			cframe = { 3.2082, 3.6343, -1.7337, 0, 0, 0, 1 },
+			size = { 4.4498, 4.8431, 4.5048 },
 		},
-		["secondwind_wing_right_tip_Mesh1"] = {
+		["wing_right_mesh_wing_gold"] = {
+			joint = "wing_right",
+			cframe = { 2.279, 4.5135, -2.228, 0, 0, 0, 1 },
+			size = { 2.9266, 3.2583, 3.5797 },
+		},
+		["wing_right_mesh_wing_white"] = {
+			joint = "wing_right",
+			cframe = { 3.2372, 3.7186, -1.5889, 0, 0, 0, 1 },
+			size = { 4.3919, 4.6745, 4.2152 },
+		},
+		["wing_right_tip_mesh_wing_blue"] = {
 			joint = "wing_right_tip",
-			cframe = { 6.2594, 4.2312, -3.4305, 0, 0, 0, 1 },
-			size = { 5.5702, 2.7457, 2.5758 },
+			cframe = { 6.2594, 4.1877, -3.4238, 0, 0, 0, 1 },
+			size = { 5.5702, 2.6586, 2.5622 },
+		},
+		["wing_right_tip_mesh_wing_gold"] = {
+			joint = "wing_right_tip",
+			cframe = { 6.215, 5.295, -4.3106, 0, 0, 0, 1 },
+			size = { 3.451, 0.6182, 0.8157 },
+		},
+		["wing_right_tip_mesh_wing_white"] = {
+			joint = "wing_right_tip",
+			cframe = { 6.2811, 4.272, -3.3333, 0, 0, 0, 1 },
+			size = { 5.5268, 2.49, 2.3812 },
 		},
 	},
 	clips = {

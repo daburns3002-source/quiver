@@ -77,6 +77,75 @@ BLOCKY = {
     },
 }
 
+#: The Mossy Glade skins from 2026-10-24 (docs/weapons/*.md). These are
+#: matched by keyword (`~`, see `claims`), each ending in a catch-all `""`
+#: so no part is dropped, since a skin can run to two hundred cubes.
+#:
+#: Every one is turn 0, measured rather than copied from its family: the
+#: bows were exported already in the weapon frame (thin across X, string at
+#: -Z), where the Twig Bow only gets after its 90; and every arrow and bolt
+#: rests head at -Z, as the arrows already in the game do (the renderer
+#: aims a projectile with CFrame.lookAt, which points -Z forward).
+#:
+#: Glow words name what should be lit. "core" and "light" are left out on
+#: purpose: they catch a blade's `blade_core` and every `Highlight` cube.
+GLOWS = ["~crystal", "~gem", "~lantern", "~firefly", "~rune", "~mote", "~rainbow", "~ember", "~eye"]
+LEAVES = ["~leaf", "~leaves", "~vine", "~moss", "~fern", "~blossom"]
+
+
+def bow():
+    return {"turn": 0, "groups": {"Gems": GLOWS, "String": ["~string"], "Leaves": LEAVES, "Bow": [""]}}
+
+
+def staff():
+    return {"turn": 0, "groups": {"Gems": GLOWS, "Leaves": LEAVES, "Staff": [""]}}
+
+
+def blade():
+    return {"turn": 0, "groups": {"Gems": GLOWS, "Blade": [""]}}
+
+
+def daggers():
+    return {"turn": 0, "groups": {"Gems": GLOWS, "Leaves": LEAVES, "Daggers": [""]}}
+
+
+def projectile(group):
+    return {"turn": 0, "groups": {"Gems": GLOWS, group: [""]}}
+
+
+BLOCKY.update({
+    "ember_fang_bow": bow(),
+    "firefly_bow": bow(),
+    "glade_spirit_bow": bow(),
+    "moss_slime_bow": bow(),
+    "ember_fang_arrow": projectile("Arrow"),
+    "firefly_dart": projectile("Arrow"),
+    "glade_spirit_arrow": projectile("Arrow"),
+    "moss_slime_arrow": projectile("Arrow"),
+    "hootmoss_staff": staff(),
+    "lantern_staff": staff(),
+    "slime_crown_staff": staff(),
+    "hootmoss_staff_bolt": projectile("Bolt"),
+    "lantern_staff_bolt": projectile("Bolt"),
+    "slime_crown_staff_bolt": projectile("Bolt"),
+    # The Mythic staff's glow is one fluorescent hue the game shifts over
+    # time (owner, 2026-10-24: "no actual rainbows ... just a fluorescent
+    # hue"). Its 17 Glow_ parts stay a group of their own so the code can
+    # find them; docs/weapons/worldroot-rainbow.md lists them.
+    "worldroot_staff": {"turn": 0, "groups": {"Glow": ["Glow"], "Leaves": LEAVES, "Staff": [""]}},
+    "worldroot_staff_bolt": {"turn": 0, "groups": {"Glow": ["Glow"], "Bolt": [""]}},
+    "broodsplit_blade": blade(),
+    "mossstone_blade": blade(),
+    "thorn_blade": blade(),
+    "emberfang_blade": blade(),
+    "gladeheart_blade": blade(),
+    "ember_wilf_fangs": daggers(),
+    "firefly_fangs": daggers(),
+    "glade_fox_claws": daggers(),
+    "glimmerhorn_daggers": daggers(),
+    "splinter_daggers": daggers(),
+})
+
 scene = trimesh.load(SRC, process=False)
 
 
@@ -92,6 +161,15 @@ def world(node):
     material = getattr(src.visual, "material", None)
     if colour is not None:
         srgb = linear_to_srgb(np.asarray(colour, dtype=np.float64)[:, :3])
+    elif (
+        material is not None
+        and getattr(material, "baseColorTexture", None) is None
+        and getattr(material, "baseColorFactor", None) is None
+    ):
+        # a material with no colour in it at all (the Slime Crown Staff's).
+        # glTF says a missing base colour is white, and trimesh's own
+        # fallback fails on it, so it is set here
+        srgb = np.ones((len(src.vertices), 3))
     elif material is not None and getattr(material, "baseColorTexture", None) is None and hasattr(
         material, "baseColorFactor"
     ):
@@ -131,14 +209,29 @@ def coloured(g, srgb):
     return out
 
 
+def claims(name, prefix):
+    """Whether a group's entry claims a part. A plain entry matches the start
+    of the node name. One starting with `~` matches anywhere in it, ignoring
+    case, so a skin of two hundred cubes can say "everything with crystal in
+    its name glows" instead of listing them. An empty entry matches
+    everything, and goes last as the catch-all."""
+    if prefix.startswith("~"):
+        return prefix[1:].lower() in name.lower()
+    return name.startswith(prefix)
+
+
 if WEAPON in BLOCKY:
     spec = BLOCKY[WEAPON]
     for group, prefixes in spec["groups"].items():
         pieces = []
         for name, (g, srgb) in parts.items():
-            if name not in claimed and any(name.startswith(p) for p in prefixes):
+            if name not in claimed and any(claims(name, p) for p in prefixes):
                 pieces.append(coloured(g, srgb))
                 claimed.add(name)
+        if not pieces:
+            # a keyword group this skin has nothing for (a bow with no gems)
+            print(f"{group:8s}   - none")
+            continue
         groups[group] = trimesh.util.concatenate(pieces)
         print(f"{group:8s} {len(pieces):3d} pieces {len(groups[group].faces):5d} tris")
     turn = trimesh.transformations.rotation_matrix(np.radians(spec["turn"]), [0, 1, 0])

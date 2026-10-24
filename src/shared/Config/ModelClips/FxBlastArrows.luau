@@ -15,21 +15,10 @@
 return table.freeze({
 	joints = {},
 	parts = {
-		["core"] = { joint = "", cframe = { 0, 1, 0, 0, 0, 0, 1 }, size = { 1, 1, 1 } },
-		["red_shards"] = {
+		["blastarrows_AL_FX_04_BlastArrows_Mesh1"] = {
 			joint = "",
-			cframe = { -0.0625, 1.125, 0.0625, 0, 0, 0, 1 },
-			size = { 6.375, 1, 5.625 },
-		},
-		["scorch_ring"] = {
-			joint = "",
-			cframe = { 0, 0.125, 0, 0, 0, 0, 1 },
-			size = { 4.75, 0.25, 4.75 },
-		},
-		["starburst"] = {
-			joint = "",
-			cframe = { 0, 0.75, 0, 0, 0, 0, 1 },
-			size = { 5.25, 1.5, 5.25 },
+			cframe = { -0.0625, 0.8125, 0.0625, 0, 0, 0, 1 },
+			size = { 6.375, 1.625, 5.625 },
 		},
 	},
 	clips = {},

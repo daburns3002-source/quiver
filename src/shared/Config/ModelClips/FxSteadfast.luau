@@ -15,42 +15,42 @@
 return table.freeze({
 	joints = {},
 	parts = {
-		["steadfast_plate_1"] = {
+		["steadfast_steadfast_plate_1_Mesh1"] = {
 			joint = "",
 			cframe = { 0.2901, 0.1472, 0.7004, 0.0637, 0.1947, -0.0127, 0.9787 },
 			size = { 0.4, 0.28, 0.13 },
 		},
-		["steadfast_plate_2"] = {
+		["steadfast_steadfast_plate_2_Mesh1"] = {
 			joint = "",
 			cframe = { 0.7004, 0.1472, 0.2901, 0.054, 0.5544, -0.0361, 0.8297 },
 			size = { 0.4, 0.28, 0.13 },
 		},
-		["steadfast_plate_3"] = {
+		["steadfast_steadfast_plate_3_Mesh1"] = {
 			joint = "",
 			cframe = { 0.7004, 0.1472, -0.2901, 0.0361, 0.8297, -0.054, 0.5544 },
 			size = { 0.4, 0.28, 0.13 },
 		},
-		["steadfast_plate_4"] = {
+		["steadfast_steadfast_plate_4_Mesh1"] = {
 			joint = "",
 			cframe = { 0.2901, 0.1472, -0.7004, 0.0127, 0.9787, -0.0637, 0.1947 },
 			size = { 0.4, 0.28, 0.13 },
 		},
-		["steadfast_plate_5"] = {
+		["steadfast_steadfast_plate_5_Mesh1"] = {
 			joint = "",
 			cframe = { -0.2901, 0.1472, -0.7004, 0.0127, -0.9787, 0.0637, 0.1947 },
 			size = { 0.4, 0.28, 0.13 },
 		},
-		["steadfast_plate_6"] = {
+		["steadfast_steadfast_plate_6_Mesh1"] = {
 			joint = "",
 			cframe = { -0.7004, 0.1472, -0.2901, 0.0361, -0.8297, 0.054, 0.5544 },
 			size = { 0.4, 0.28, 0.13 },
 		},
-		["steadfast_plate_7"] = {
+		["steadfast_steadfast_plate_7_Mesh1"] = {
 			joint = "",
 			cframe = { -0.7004, 0.1472, 0.2901, 0.054, -0.5544, 0.0361, 0.8297 },
 			size = { 0.4, 0.28, 0.13 },
 		},
-		["steadfast_plate_8"] = {
+		["steadfast_steadfast_plate_8_Mesh1"] = {
 			joint = "",
 			cframe = { -0.2901, 0.1472, 0.7004, 0.0637, -0.1947, 0.0127, 0.9787 },
 			size = { 0.4, 0.28, 0.13 },

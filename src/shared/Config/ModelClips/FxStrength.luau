@@ -23,7 +23,7 @@ return table.freeze({
 		{
 			name = "ArmBandLeft_GripFlash",
 			parent = "ArmBandLeft",
-			rest = { 0, 0, 0, 0, 0, 0, 1, 0, 0, 0 },
+			rest = { 0, 0, 0, 0, 0, 0, 1, 1, 1, 1 },
 		},
 		{
 			name = "ArmBandRight",
@@ -33,7 +33,7 @@ return table.freeze({
 		{
 			name = "ArmBandRight_GripFlash",
 			parent = "ArmBandRight",
-			rest = { 0, 0, 0, 0, 0, 0, 1, 0, 0, 0 },
+			rest = { 0, 0, 0, 0, 0, 0, 1, 1, 1, 1 },
 		},
 		{
 			name = "FlexRing",
@@ -82,72 +82,62 @@ return table.freeze({
 		},
 	},
 	parts = {
-		["ArmBandLeft_Cuff"] = {
-			joint = "ArmBandLeft",
-			cframe = { -0.8, 0.6, 0, 0, 0, 0, 1 },
-			size = { 0.4, 1.2, 1.2 },
-		},
-		["ArmBandLeft_Grip"] = {
-			joint = "ArmBandLeft",
-			cframe = { -0.7333, 0.6, 0.6667, 0, 0, 0, 1 },
-			size = { 0.2667, 0.1333, 0.1333 },
-		},
-		["ArmBandLeft_GripFlash"] = {
+		["strength_ArmBandLeft_GripFlash_Mesh1"] = {
 			joint = "ArmBandLeft_GripFlash",
-			cframe = { -0.8, 0, 0, 0, 0, 0, 1 },
-			size = { 0, 0, 0 },
+			cframe = { -0.7333, 0.6, 0.6667, 0, 0, 0, 1 },
+			size = { 0.2727, 0.1393, 0.1393 },
 		},
-		["ArmBandRight_Cuff"] = {
-			joint = "ArmBandRight",
-			cframe = { 0.8, 0.6, 0, 0, 0, 0, 1 },
-			size = { 0.4, 1.2, 1.2 },
+		["strength_ArmBandLeft_Mesh1"] = {
+			joint = "ArmBandLeft",
+			cframe = { -0.8, 0.6, 0.0667, 0, 0, 0, 1 },
+			size = { 0.4, 1.3333, 1.3333 },
 		},
-		["ArmBandRight_Grip"] = {
-			joint = "ArmBandRight",
-			cframe = { 0.7333, 0.6, 0.6667, 0, 0, 0, 1 },
-			size = { 0.2667, 0.1333, 0.1333 },
-		},
-		["ArmBandRight_GripFlash"] = {
+		["strength_ArmBandRight_GripFlash_Mesh1"] = {
 			joint = "ArmBandRight_GripFlash",
-			cframe = { 0.8, 0, 0, 0, 0, 0, 1 },
-			size = { 0, 0, 0 },
+			cframe = { 0.7333, 0.6, 0.6667, 0, 0, 0, 1 },
+			size = { 0.2727, 0.1393, 0.1393 },
 		},
-		["FlexRing_Seg0"] = {
+		["strength_ArmBandRight_Mesh1"] = {
+			joint = "ArmBandRight",
+			cframe = { 0.8, 0.6, 0.0667, 0, 0, 0, 1 },
+			size = { 0.4, 1.3333, 1.3333 },
+		},
+		["strength_FlexRing_Seg0_Mesh1"] = {
 			joint = "FlexRing_Seg0",
 			cframe = { 0.875, 0.125, 2.65, 0, 0, 0, 1 },
 			size = { 0.5, 0.25, 0.75 },
 		},
-		["FlexRing_Seg1"] = {
+		["strength_FlexRing_Seg1_Mesh1"] = {
 			joint = "FlexRing_Seg1",
 			cframe = { 0.5, 0.125, 3.275, 0, 0, 0, 1 },
 			size = { 0.75, 0.25, 0.5 },
 		},
-		["FlexRing_Seg2"] = {
+		["strength_FlexRing_Seg2_Mesh1"] = {
 			joint = "FlexRing_Seg2",
 			cframe = { -0.25, 0.125, 3.275, 0, 0, 0, 1 },
 			size = { 0.75, 0.25, 0.5 },
 		},
-		["FlexRing_Seg3"] = {
+		["strength_FlexRing_Seg3_Mesh1"] = {
 			joint = "FlexRing_Seg3",
 			cframe = { -0.875, 0.125, 2.9, 0, 0, 0, 1 },
 			size = { 0.5, 0.25, 0.75 },
 		},
-		["FlexRing_Seg4"] = {
+		["strength_FlexRing_Seg4_Mesh1"] = {
 			joint = "FlexRing_Seg4",
 			cframe = { -0.875, 0.125, 2.15, 0, 0, 0, 1 },
 			size = { 0.5, 0.25, 0.75 },
 		},
-		["FlexRing_Seg5"] = {
+		["strength_FlexRing_Seg5_Mesh1"] = {
 			joint = "FlexRing_Seg5",
 			cframe = { -0.5, 0.125, 1.525, 0, 0, 0, 1 },
 			size = { 0.75, 0.25, 0.5 },
 		},
-		["FlexRing_Seg6"] = {
+		["strength_FlexRing_Seg6_Mesh1"] = {
 			joint = "FlexRing_Seg6",
 			cframe = { 0.25, 0.125, 1.525, 0, 0, 0, 1 },
 			size = { 0.75, 0.25, 0.5 },
 		},
-		["FlexRing_Seg7"] = {
+		["strength_FlexRing_Seg7_Mesh1"] = {
 			joint = "FlexRing_Seg7",
 			cframe = { 0.875, 0.125, 1.9, 0, 0, 0, 1 },
 			size = { 0.5, 0.25, 0.75 },
@@ -158,6 +148,12 @@ return table.freeze({
 			length = 0.4,
 			loops = false,
 			joints = {
+				["ArmBandLeft_GripFlash"] = {
+					scale = { times = { 0 }, values = { 0, 0, 0 } },
+				},
+				["ArmBandRight_GripFlash"] = {
+					scale = { times = { 0 }, values = { 0, 0, 0 } },
+				},
 				["FlexRing"] = {
 					scale = {
 						times = { 0, 0.0667, 0.1, 0.1333, 0.1667, 0.2, 0.2333, 0.4 },

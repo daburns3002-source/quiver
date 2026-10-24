@@ -23,20 +23,20 @@ return table.freeze({
 		{ name = "cross", parent = "heart", rest = { 0, 0, 0.25, 0, 0, 0, 1, 1, 1, 1 } },
 	},
 	parts = {
-		["cross_mesh_heart_white"] = {
+		["vitality_cross_Glow1"] = {
 			joint = "cross",
 			cframe = { 0, 1.875, 0.25, 0, 0, 0, 1 },
 			size = { 1.75, 1.75, 0.25 },
 		},
-		["heart_mesh_heart_pink"] = {
-			joint = "heart",
-			cframe = { -1.125, 3, 0.625, 0, 0, 0, 1 },
-			size = { 0.5, 0.5, 0 },
-		},
-		["heart_mesh_heart_red"] = {
+		["vitality_heart_Glow1"] = {
 			joint = "heart",
 			cframe = { 0, 1.875, 0, 0, 0, 0, 1 },
 			size = { 4.25, 3.75, 1.25 },
+		},
+		["vitality_heart_Glow2"] = {
+			joint = "heart",
+			cframe = { -1.125, 3, 0.625, 0, 0, 0, 1 },
+			size = { 0.5, 0.5, 0 },
 		},
 	},
 	clips = {

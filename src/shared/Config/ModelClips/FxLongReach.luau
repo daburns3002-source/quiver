@@ -15,22 +15,22 @@
 return table.freeze({
 	joints = {},
 	parts = {
-		["long_reach_ruler"] = {
+		["longreach_long_reach_ruler_Mesh1"] = {
 			joint = "",
 			cframe = { 0.1225, 0.037, 0, 0, 1, 0, 0 },
 			size = { 0.07, 0.07, 2.88 },
 		},
-		["long_reach_segment_L1"] = {
+		["longreach_long_reach_segment_L1_Mesh1"] = {
 			joint = "",
 			cframe = { -0.0775, 0.05, -0.96, 0, 1, 0, 0 },
 			size = { 0.16, 0.1, 0.96 },
 		},
-		["long_reach_segment_L2"] = {
+		["longreach_long_reach_segment_L2_Mesh1"] = {
 			joint = "",
 			cframe = { -0.0775, 0.05, 0, 0, 1, 0, 0 },
 			size = { 0.16, 0.1, 0.96 },
 		},
-		["long_reach_segment_L3"] = {
+		["longreach_long_reach_segment_L3_Mesh1"] = {
 			joint = "",
 			cframe = { -0.0775, 0.05, 0.96, 0, 1, 0, 0 },
 			size = { 0.16, 0.1, 0.96 },

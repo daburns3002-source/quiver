@@ -15,9 +15,11 @@
 return table.freeze({
 	joints = {},
 	parts = {
-		["slabs"] = { joint = "", cframe = { 0, 0, 0, 0, 0, 0, 1 }, size = { 5, 1, 10 } },
-		["streak_L"] = { joint = "", cframe = { -4, 0, 0.5, 0, 0, 0, 1 }, size = { 1, 1, 9 } },
-		["streak_R"] = { joint = "", cframe = { 4, 0, 0.5, 0, 0, 0, 1 }, size = { 1, 1, 9 } },
+		["swiftarrows_fx_swiftarrows_Mesh1"] = {
+			joint = "",
+			cframe = { 0, 0, 0, 0, 0, 0, 1 },
+			size = { 9, 1, 10 },
+		},
 	},
 	clips = {},
 })

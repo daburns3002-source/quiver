@@ -71,12 +71,6 @@
     "glb": "assets/models/effects/fx_diagonalarrows.glb",
     "loops": []
   },
-  "FxDoubleShot": {
-    "glb": "assets/models/effects/fx_doubleshot.glb",
-    "loops": [
-      "DoubleShot"
-    ]
-  },
   "FxDualBows": {
     "glb": "assets/models/effects/fx_dualbows.glb",
     "loops": []
@@ -88,12 +82,6 @@
   "FxExecute": {
     "glb": "assets/models/effects/fx_execute.glb",
     "loops": []
-  },
-  "FxFrontArrow": {
-    "glb": "assets/models/effects/fx_frontarrow.glb",
-    "loops": [
-      "FrontArrow"
-    ]
   },
   "FxHeal": {
     "glb": "assets/models/effects/fx_heal.glb",
@@ -138,12 +126,6 @@
       "Charged"
     ]
   },
-  "FxMultishot": {
-    "glb": "assets/models/effects/fx_multishot.glb",
-    "loops": [
-      "Multishot"
-    ]
-  },
   "FxOverdraw": {
     "glb": "assets/models/effects/fx_overdraw.glb",
     "loops": []
@@ -167,10 +149,6 @@
     "loops": [
       "RearArrow"
     ]
-  },
-  "FxRicochet": {
-    "glb": "assets/models/effects/fx_ricochet.glb",
-    "loops": []
   },
   "FxSecondWind": {
     "glb": "assets/models/effects/fx_secondwind.glb",

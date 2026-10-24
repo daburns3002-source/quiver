@@ -28,94 +28,44 @@ return table.freeze({
 		{
 			name = "ManaFlow_Droplet_1",
 			parent = "ManaFlow_Orbit",
-			rest = { 0.27, 0, 0, 0, 0, 0, 1, 0.0001, 0.0001, 0.0001 },
+			rest = { 0.27, 0, 0, 0, 0, 0, 1, 1, 1, 1 },
 		},
 		{
 			name = "ManaFlow_FlickDrop",
 			parent = "FX_ManaFlow",
-			rest = { 1.17, 0.28, 0, 0, -0.7071, 0, 0.7071, 0.0001, 0.0001, 0.0001 },
+			rest = { 1.17, 0.28, 0, 0, -0.7071, 0, 0.7071, 1, 1, 1 },
 		},
 	},
 	parts = {
-		["ManaFlow_Droplet_1"] = {
+		["manaflow_ManaFlow_Droplet_1_Glow1"] = {
 			joint = "ManaFlow_Droplet_1",
-			cframe = { -0.2338, 0.0268, -0.1323, 0.0258, 0.9611, 0.0964, 0.2575 },
-			size = { 0, 0, 0 },
+			cframe = { -0.1738, 0.0475, -0.2342, 0.0258, 0.9611, 0.0964, 0.2575 },
+			size = { 0.1819, 0.21, 0.44 },
 		},
-		["ManaFlow_Droplet_1_Outline"] = {
+		["manaflow_ManaFlow_Droplet_1_Mesh2"] = {
 			joint = "ManaFlow_Droplet_1",
-			cframe = { -0.2338, 0.0268, -0.1323, 0.0258, 0.9611, 0.0964, 0.2575 },
-			size = { 0, 0, 0 },
+			cframe = { -0.1753, 0.047, -0.2316, 0.0258, 0.9611, 0.0964, 0.2575 },
+			size = { 0.2259, 0.254, 0.478 },
 		},
-		["ManaFlow_Droplet_2"] = {
-			joint = "ManaFlow_Orbit",
-			cframe = { -0.035, -0.0536, 0.2646, 0.0706, -0.7036, -0.0706, 0.7036 },
-			size = { 0.1819, 0.21, 0.27 },
-		},
-		["ManaFlow_Droplet_2_Outline"] = {
-			joint = "ManaFlow_Orbit",
-			cframe = { -0.035, -0.0536, 0.2646, 0.0706, -0.7036, -0.0706, 0.7036 },
-			size = { 0.2259, 0.254, 0.314 },
-		},
-		["ManaFlow_Droplet_3"] = {
-			joint = "ManaFlow_Orbit",
-			cframe = { 0.2513, 0.0208, -0.1026, 0.0964, 0.2575, 0.0258, 0.9611 },
-			size = { 0.1819, 0.21, 0.27 },
-		},
-		["ManaFlow_Droplet_3_Outline"] = {
-			joint = "ManaFlow_Orbit",
-			cframe = { 0.2513, 0.0208, -0.1026, 0.0964, 0.2575, 0.0258, 0.9611 },
-			size = { 0.2259, 0.254, 0.314 },
-		},
-		["ManaFlow_FlickDrop"] = {
+		["manaflow_ManaFlow_FlickDrop_Glow1"] = {
 			joint = "ManaFlow_FlickDrop",
-			cframe = { 1.17, 0.28, 0, 0, -0.7071, 0, 0.7071 },
-			size = { 0, 0, 0 },
+			cframe = { 1.05, 0.28, 0, 0, -0.7071, 0, 0.7071 },
+			size = { 0.1819, 0.21, 0.44 },
 		},
-		["ManaFlow_FlickDrop_Outline"] = {
+		["manaflow_ManaFlow_FlickDrop_Mesh2"] = {
 			joint = "ManaFlow_FlickDrop",
-			cframe = { 1.17, 0.28, 0, 0, -0.7071, 0, 0.7071 },
-			size = { 0, 0, 0 },
+			cframe = { 1.053, 0.28, 0, 0, -0.7071, 0, 0.7071 },
+			size = { 0.2259, 0.254, 0.478 },
 		},
-		["ManaFlow_Streak_1"] = {
-			joint = "ManaFlow_Droplet_1",
-			cframe = { -0.2338, 0.0268, -0.1323, 0.0258, 0.9611, 0.0964, 0.2575 },
-			size = { 0, 0, 0 },
-		},
-		["ManaFlow_Streak_1_Outline"] = {
-			joint = "ManaFlow_Droplet_1",
-			cframe = { -0.2338, 0.0268, -0.1323, 0.0258, 0.9611, 0.0964, 0.2575 },
-			size = { 0, 0, 0 },
-		},
-		["ManaFlow_Streak_2"] = {
+		["manaflow_ManaFlow_Orbit_Glow1"] = {
 			joint = "ManaFlow_Orbit",
-			cframe = { -0.22, -0.0536, 0.2646, 0.0706, -0.7036, -0.0706, 0.7036 },
-			size = { 0.15, 0.03, 0.24 },
+			cframe = { 0.0985, -0.0197, 0.0973, 0.0258, 0.9611, 0.0964, 0.2575 },
+			size = { 0.5889, 0.21, 0.7342 },
 		},
-		["ManaFlow_Streak_2_Outline"] = {
+		["manaflow_ManaFlow_Orbit_Mesh2"] = {
 			joint = "ManaFlow_Orbit",
-			cframe = { -0.22, -0.0536, 0.2646, 0.0706, -0.7036, -0.0706, 0.7036 },
-			size = { 0.182, 0.062, 0.272 },
-		},
-		["ManaFlow_Streak_3"] = {
-			joint = "ManaFlow_Orbit",
-			cframe = { 0.3438, -0.011, 0.0544, 0.0964, 0.2575, 0.0258, 0.9611 },
-			size = { 0.15, 0.03, 0.24 },
-		},
-		["ManaFlow_Streak_3_Outline"] = {
-			joint = "ManaFlow_Orbit",
-			cframe = { 0.3438, -0.011, 0.0544, 0.0964, 0.2575, 0.0258, 0.9611 },
-			size = { 0.182, 0.062, 0.272 },
-		},
-		["ManaFlow_Streak_Flick"] = {
-			joint = "ManaFlow_FlickDrop",
-			cframe = { 1.17, 0.28, 0, 0, -0.7071, 0, 0.7071 },
-			size = { 0, 0, 0 },
-		},
-		["ManaFlow_Streak_Flick_Outline"] = {
-			joint = "ManaFlow_FlickDrop",
-			cframe = { 1.17, 0.28, 0, 0, -0.7071, 0, 0.7071 },
-			size = { 0, 0, 0 },
+			cframe = { 0.1027, -0.0183, 0.0903, 0.0258, 0.9611, 0.0964, 0.2575 },
+			size = { 0.6166, 0.254, 0.7667 },
 		},
 	},
 	clips = {

@@ -31,57 +31,57 @@ return table.freeze({
 			parent = "BankRing",
 			rest = { 0, 0, 0, 0, -0.7071, 0, 0.7071, 1, 1, 1 },
 		},
-		{ name = "Seg_00_Lit", parent = "Seg_00", rest = { 0, 0, 0, 0, 0, 0, 1, 0, 0, 0 } },
+		{ name = "Seg_00_Lit", parent = "Seg_00", rest = { 0, 0, 0, 0, 0, 0, 1, 1, 1, 1 } },
 		{
 			name = "Seg_01",
 			parent = "BankRing",
 			rest = { 0, 0, 0, 0, -0.3827, 0, 0.9239, 1, 1, 1 },
 		},
-		{ name = "Seg_01_Lit", parent = "Seg_01", rest = { 0, 0, 0, 0, 0, 0, 1, 0, 0, 0 } },
+		{ name = "Seg_01_Lit", parent = "Seg_01", rest = { 0, 0, 0, 0, 0, 0, 1, 1, 1, 1 } },
 		{
 			name = "Seg_02",
 			parent = "BankRing",
 			rest = { 0, 0, 0, 0, -0.3827, 0, 0.9239, 1, 1, 1 },
 		},
-		{ name = "Seg_02_Lit", parent = "Seg_02", rest = { 0, 0, 0, 0, 0, 0, 1, 0, 0, 0 } },
+		{ name = "Seg_02_Lit", parent = "Seg_02", rest = { 0, 0, 0, 0, 0, 0, 1, 1, 1, 1 } },
 		{ name = "Seg_03", parent = "BankRing", rest = { 0, 0, 0, 0, 0, 0, 1, 1, 1, 1 } },
-		{ name = "Seg_03_Lit", parent = "Seg_03", rest = { 0, 0, 0, 0, 0, 0, 1, 0, 0, 0 } },
+		{ name = "Seg_03_Lit", parent = "Seg_03", rest = { 0, 0, 0, 0, 0, 0, 1, 1, 1, 1 } },
 		{ name = "Seg_04", parent = "BankRing", rest = { 0, 0, 0, 0, 0, 0, 1, 1, 1, 1 } },
-		{ name = "Seg_04_Lit", parent = "Seg_04", rest = { 0, 0, 0, 0, 0, 0, 1, 0, 0, 0 } },
+		{ name = "Seg_04_Lit", parent = "Seg_04", rest = { 0, 0, 0, 0, 0, 0, 1, 1, 1, 1 } },
 		{ name = "Seg_05", parent = "BankRing", rest = { 0, 0, 0, 0, 0.3827, 0, 0.9239, 1, 1, 1 } },
-		{ name = "Seg_05_Lit", parent = "Seg_05", rest = { 0, 0, 0, 0, 0, 0, 1, 0, 0, 0 } },
+		{ name = "Seg_05_Lit", parent = "Seg_05", rest = { 0, 0, 0, 0, 0, 0, 1, 1, 1, 1 } },
 		{ name = "Seg_06", parent = "BankRing", rest = { 0, 0, 0, 0, 0.3827, 0, 0.9239, 1, 1, 1 } },
-		{ name = "Seg_06_Lit", parent = "Seg_06", rest = { 0, 0, 0, 0, 0, 0, 1, 0, 0, 0 } },
+		{ name = "Seg_06_Lit", parent = "Seg_06", rest = { 0, 0, 0, 0, 0, 0, 1, 1, 1, 1 } },
 		{ name = "Seg_07", parent = "BankRing", rest = { 0, 0, 0, 0, 0.7071, 0, 0.7071, 1, 1, 1 } },
-		{ name = "Seg_07_Lit", parent = "Seg_07", rest = { 0, 0, 0, 0, 0, 0, 1, 0, 0, 0 } },
+		{ name = "Seg_07_Lit", parent = "Seg_07", rest = { 0, 0, 0, 0, 0, 0, 1, 1, 1, 1 } },
 		{ name = "Seg_08", parent = "BankRing", rest = { 0, 0, 0, 0, 0.7071, 0, 0.7071, 1, 1, 1 } },
-		{ name = "Seg_08_Lit", parent = "Seg_08", rest = { 0, 0, 0, 0, 0, 0, 1, 0, 0, 0 } },
+		{ name = "Seg_08_Lit", parent = "Seg_08", rest = { 0, 0, 0, 0, 0, 0, 1, 1, 1, 1 } },
 		{ name = "Seg_09", parent = "BankRing", rest = { 0, 0, 0, 0, 0.9239, 0, 0.3827, 1, 1, 1 } },
-		{ name = "Seg_09_Lit", parent = "Seg_09", rest = { 0, 0, 0, 0, 0, 0, 1, 0, 0, 0 } },
+		{ name = "Seg_09_Lit", parent = "Seg_09", rest = { 0, 0, 0, 0, 0, 0, 1, 1, 1, 1 } },
 		{ name = "Seg_10", parent = "BankRing", rest = { 0, 0, 0, 0, 0.9239, 0, 0.3827, 1, 1, 1 } },
-		{ name = "Seg_10_Lit", parent = "Seg_10", rest = { 0, 0, 0, 0, 0, 0, 1, 0, 0, 0 } },
+		{ name = "Seg_10_Lit", parent = "Seg_10", rest = { 0, 0, 0, 0, 0, 0, 1, 1, 1, 1 } },
 		{ name = "Seg_11", parent = "BankRing", rest = { 0, 0, 0, 0, 1, 0, 0, 1, 1, 1 } },
-		{ name = "Seg_11_Lit", parent = "Seg_11", rest = { 0, 0, 0, 0, 0, 0, 1, 0, 0, 0 } },
+		{ name = "Seg_11_Lit", parent = "Seg_11", rest = { 0, 0, 0, 0, 0, 0, 1, 1, 1, 1 } },
 		{ name = "Seg_12", parent = "BankRing", rest = { 0, 0, 0, 0, 1, 0, 0, 1, 1, 1 } },
-		{ name = "Seg_12_Lit", parent = "Seg_12", rest = { 0, 0, 0, 0, 0, 0, 1, 0, 0, 0 } },
+		{ name = "Seg_12_Lit", parent = "Seg_12", rest = { 0, 0, 0, 0, 0, 0, 1, 1, 1, 1 } },
 		{
 			name = "Seg_13",
 			parent = "BankRing",
 			rest = { 0, 0, 0, 0, 0.9239, 0, -0.3827, 1, 1, 1 },
 		},
-		{ name = "Seg_13_Lit", parent = "Seg_13", rest = { 0, 0, 0, 0, 0, 0, 1, 0, 0, 0 } },
+		{ name = "Seg_13_Lit", parent = "Seg_13", rest = { 0, 0, 0, 0, 0, 0, 1, 1, 1, 1 } },
 		{
 			name = "Seg_14",
 			parent = "BankRing",
 			rest = { 0, 0, 0, 0, 0.9239, 0, -0.3827, 1, 1, 1 },
 		},
-		{ name = "Seg_14_Lit", parent = "Seg_14", rest = { 0, 0, 0, 0, 0, 0, 1, 0, 0, 0 } },
+		{ name = "Seg_14_Lit", parent = "Seg_14", rest = { 0, 0, 0, 0, 0, 0, 1, 1, 1, 1 } },
 		{
 			name = "Seg_15",
 			parent = "BankRing",
 			rest = { 0, 0, 0, 0, -0.7071, 0, 0.7071, 1, 1, 1 },
 		},
-		{ name = "Seg_15_Lit", parent = "Seg_15", rest = { 0, 0, 0, 0, 0, 0, 1, 0, 0, 0 } },
+		{ name = "Seg_15_Lit", parent = "Seg_15", rest = { 0, 0, 0, 0, 0, 0, 1, 1, 1, 1 } },
 		{ name = "RingSlab_0", parent = "BankRing", rest = { 0, 1.26, 0, 0, 0, 0, 1, 1, 1, 1 } },
 		{
 			name = "RingSlab_0_Motion",
@@ -102,330 +102,185 @@ return table.freeze({
 		},
 	},
 	parts = {
-		["RingSlab_0_Cap_0"] = {
+		["momentum_RingSlab_0_Motion_Mesh1"] = {
 			joint = "RingSlab_0_Motion",
-			cframe = { 0.75, 1.53, 0, 0, 0, 0, 1 },
-			size = { 0.3, 0.06, 0.3 },
+			cframe = { 0.9, 1.41, 0, 0, 0, 0, 1 },
+			size = { 0.6, 0.3, 0.3 },
 		},
-		["RingSlab_0_Cap_1"] = {
-			joint = "RingSlab_0_Motion",
-			cframe = { 1.05, 1.53, 0, 0, 0, 0, 1 },
-			size = { 0.3, 0.06, 0.3 },
-		},
-		["RingSlab_0_Core_0"] = {
-			joint = "RingSlab_0_Motion",
-			cframe = { 0.75, 1.401, 0, 0, 0, 0, 1 },
-			size = { 0.3, 0.198, 0.3 },
-		},
-		["RingSlab_0_Core_1"] = {
-			joint = "RingSlab_0_Motion",
-			cframe = { 1.05, 1.401, 0, 0, 0, 0, 1 },
-			size = { 0.3, 0.198, 0.3 },
-		},
-		["RingSlab_0_Under_0"] = {
-			joint = "RingSlab_0_Motion",
-			cframe = { 0.75, 1.281, 0, 0, 0, 0, 1 },
-			size = { 0.3, 0.042, 0.3 },
-		},
-		["RingSlab_0_Under_1"] = {
-			joint = "RingSlab_0_Motion",
-			cframe = { 1.05, 1.281, 0, 0, 0, 0, 1 },
-			size = { 0.3, 0.042, 0.3 },
-		},
-		["RingSlab_1_Cap_0"] = {
+		["momentum_RingSlab_1_Motion_Mesh1"] = {
 			joint = "RingSlab_1_Motion",
-			cframe = { 0.6, 0.93, 0, 0, 0, 0, 1 },
-			size = { 0.3, 0.06, 0.3 },
+			cframe = { 0.9, 0.81, 0, 0, 0, 0, 1 },
+			size = { 0.9, 0.3, 0.3 },
 		},
-		["RingSlab_1_Cap_1"] = {
-			joint = "RingSlab_1_Motion",
-			cframe = { 0.9, 0.93, 0, 0, 0, 0, 1 },
-			size = { 0.3, 0.06, 0.3 },
-		},
-		["RingSlab_1_Cap_2"] = {
-			joint = "RingSlab_1_Motion",
-			cframe = { 1.2, 0.93, 0, 0, 0, 0, 1 },
-			size = { 0.3, 0.06, 0.3 },
-		},
-		["RingSlab_1_Core_0"] = {
-			joint = "RingSlab_1_Motion",
-			cframe = { 0.6, 0.801, 0, 0, 0, 0, 1 },
-			size = { 0.3, 0.198, 0.3 },
-		},
-		["RingSlab_1_Core_1"] = {
-			joint = "RingSlab_1_Motion",
-			cframe = { 0.9, 0.801, 0, 0, 0, 0, 1 },
-			size = { 0.3, 0.198, 0.3 },
-		},
-		["RingSlab_1_Core_2"] = {
-			joint = "RingSlab_1_Motion",
-			cframe = { 1.2, 0.801, 0, 0, 0, 0, 1 },
-			size = { 0.3, 0.198, 0.3 },
-		},
-		["RingSlab_1_Under_0"] = {
-			joint = "RingSlab_1_Motion",
-			cframe = { 0.6, 0.681, 0, 0, 0, 0, 1 },
-			size = { 0.3, 0.042, 0.3 },
-		},
-		["RingSlab_1_Under_1"] = {
-			joint = "RingSlab_1_Motion",
-			cframe = { 0.9, 0.681, 0, 0, 0, 0, 1 },
-			size = { 0.3, 0.042, 0.3 },
-		},
-		["RingSlab_1_Under_2"] = {
-			joint = "RingSlab_1_Motion",
-			cframe = { 1.2, 0.681, 0, 0, 0, 0, 1 },
-			size = { 0.3, 0.042, 0.3 },
-		},
-		["RingSlab_2_Cap_0"] = {
+		["momentum_RingSlab_2_Motion_Mesh1"] = {
 			joint = "RingSlab_2_Motion",
-			cframe = { 0.6, 0.33, 0, 0, 0, 0, 1 },
-			size = { 0.3, 0.06, 0.3 },
+			cframe = { 0.9, 0.21, 0, 0, 0, 0, 1 },
+			size = { 0.9, 0.3, 0.3 },
 		},
-		["RingSlab_2_Cap_1"] = {
-			joint = "RingSlab_2_Motion",
-			cframe = { 0.9, 0.33, 0, 0, 0, 0, 1 },
-			size = { 0.3, 0.06, 0.3 },
-		},
-		["RingSlab_2_Cap_2"] = {
-			joint = "RingSlab_2_Motion",
-			cframe = { 1.2, 0.33, 0, 0, 0, 0, 1 },
-			size = { 0.3, 0.06, 0.3 },
-		},
-		["RingSlab_2_Core_0"] = {
-			joint = "RingSlab_2_Motion",
-			cframe = { 0.6, 0.201, 0, 0, 0, 0, 1 },
-			size = { 0.3, 0.198, 0.3 },
-		},
-		["RingSlab_2_Core_1"] = {
-			joint = "RingSlab_2_Motion",
-			cframe = { 0.9, 0.201, 0, 0, 0, 0, 1 },
-			size = { 0.3, 0.198, 0.3 },
-		},
-		["RingSlab_2_Core_2"] = {
-			joint = "RingSlab_2_Motion",
-			cframe = { 1.2, 0.201, 0, 0, 0, 0, 1 },
-			size = { 0.3, 0.198, 0.3 },
-		},
-		["RingSlab_2_Under_0"] = {
-			joint = "RingSlab_2_Motion",
-			cframe = { 0.6, 0.081, 0, 0, 0, 0, 1 },
-			size = { 0.3, 0.042, 0.3 },
-		},
-		["RingSlab_2_Under_1"] = {
-			joint = "RingSlab_2_Motion",
-			cframe = { 0.9, 0.081, 0, 0, 0, 0, 1 },
-			size = { 0.3, 0.042, 0.3 },
-		},
-		["RingSlab_2_Under_2"] = {
-			joint = "RingSlab_2_Motion",
-			cframe = { 1.2, 0.081, 0, 0, 0, 0, 1 },
-			size = { 0.3, 0.042, 0.3 },
-		},
-		["Seg_00_Lit"] = {
+		["momentum_Seg_00_Lit_Mesh1"] = {
 			joint = "Seg_00_Lit",
-			cframe = { 0.9, 0, 0, 0, -0.7071, 0, 0.7071 },
-			size = { 0, 0, 0 },
+			cframe = { 2.03, 0.1682, -0.2694, 0, -0.7071, 0, 0.7071 },
+			size = { 0.5147, 0.3363, 0.346 },
 		},
-		["Seg_00_Slate"] = {
+		["momentum_Seg_00_Mesh1"] = {
 			joint = "Seg_00",
 			cframe = { 2.03, 0.1667, -0.2686, 0, -0.7071, 0, 0.7071 },
 			size = { 0.5072, 0.3333, 0.34 },
 		},
-		["Seg_01_Lit"] = {
+		["momentum_Seg_01_Lit_Mesh1"] = {
 			joint = "Seg_01_Lit",
-			cframe = { 0.9, 0, 0, 0, -0.3827, 0, 0.9239 },
-			size = { 0, 0, 0 },
+			cframe = { 1.8895, 0.1682, -0.6086, 0, -0.3827, 0, 0.9239 },
+			size = { 0.5147, 0.3363, 0.346 },
 		},
-		["Seg_01_Slate"] = {
+		["momentum_Seg_01_Mesh1"] = {
 			joint = "Seg_01",
 			cframe = { 1.889, 0.1667, -0.6091, 0, -0.3827, 0, 0.9239 },
 			size = { 0.5072, 0.3333, 0.34 },
 		},
-		["Seg_02_Lit"] = {
+		["momentum_Seg_02_Lit_Mesh1"] = {
 			joint = "Seg_02_Lit",
-			cframe = { 0.9, 0, 0, 0, -0.3827, 0, 0.9239 },
-			size = { 0, 0, 0 },
+			cframe = { 1.5086, 0.1682, -0.9895, 0, -0.3827, 0, 0.9239 },
+			size = { 0.5147, 0.3363, 0.346 },
 		},
-		["Seg_02_Slate"] = {
+		["momentum_Seg_02_Mesh1"] = {
 			joint = "Seg_02",
 			cframe = { 1.5091, 0.1667, -0.989, 0, -0.3827, 0, 0.9239 },
 			size = { 0.5072, 0.3333, 0.34 },
 		},
-		["Seg_03_Lit"] = {
+		["momentum_Seg_03_Lit_Mesh1"] = {
 			joint = "Seg_03_Lit",
-			cframe = { 0.9, 0, 0, 0, 0, 0, 1 },
-			size = { 0, 0, 0 },
+			cframe = { 1.1694, 0.1682, -1.13, 0, 0, 0, 1 },
+			size = { 0.5147, 0.3363, 0.346 },
 		},
-		["Seg_03_Slate"] = {
+		["momentum_Seg_03_Mesh1"] = {
 			joint = "Seg_03",
 			cframe = { 1.1686, 0.1667, -1.13, 0, 0, 0, 1 },
 			size = { 0.5072, 0.3333, 0.34 },
 		},
-		["Seg_04_Lit"] = {
+		["momentum_Seg_04_Lit_Mesh1"] = {
 			joint = "Seg_04_Lit",
-			cframe = { 0.9, 0, 0, 0, 0, 0, 1 },
-			size = { 0, 0, 0 },
+			cframe = { 0.6306, 0.1682, -1.13, 0, 0, 0, 1 },
+			size = { 0.5147, 0.3363, 0.346 },
 		},
-		["Seg_04_Slate"] = {
+		["momentum_Seg_04_Mesh1"] = {
 			joint = "Seg_04",
 			cframe = { 0.6314, 0.1667, -1.13, 0, 0, 0, 1 },
 			size = { 0.5072, 0.3333, 0.34 },
 		},
-		["Seg_05_Lit"] = {
+		["momentum_Seg_05_Lit_Mesh1"] = {
 			joint = "Seg_05_Lit",
-			cframe = { 0.9, 0, 0, 0, 0.3827, 0, 0.9239 },
-			size = { 0, 0, 0 },
+			cframe = { 0.2914, 0.1682, -0.9895, 0, 0.3827, 0, 0.9239 },
+			size = { 0.5147, 0.3363, 0.346 },
 		},
-		["Seg_05_Slate"] = {
+		["momentum_Seg_05_Mesh1"] = {
 			joint = "Seg_05",
 			cframe = { 0.2909, 0.1667, -0.989, 0, 0.3827, 0, 0.9239 },
 			size = { 0.5072, 0.3333, 0.34 },
 		},
-		["Seg_06_Lit"] = {
+		["momentum_Seg_06_Lit_Mesh1"] = {
 			joint = "Seg_06_Lit",
-			cframe = { 0.9, 0, 0, 0, 0.3827, 0, 0.9239 },
-			size = { 0, 0, 0 },
+			cframe = { -0.0895, 0.1682, -0.6086, 0, 0.3827, 0, 0.9239 },
+			size = { 0.5147, 0.3363, 0.346 },
 		},
-		["Seg_06_Slate"] = {
+		["momentum_Seg_06_Mesh1"] = {
 			joint = "Seg_06",
 			cframe = { -0.089, 0.1667, -0.6091, 0, 0.3827, 0, 0.9239 },
 			size = { 0.5072, 0.3333, 0.34 },
 		},
-		["Seg_07_Lit"] = {
+		["momentum_Seg_07_Lit_Mesh1"] = {
 			joint = "Seg_07_Lit",
-			cframe = { 0.9, 0, 0, 0, 0.7071, 0, 0.7071 },
-			size = { 0, 0, 0 },
+			cframe = { -0.23, 0.1682, -0.2694, 0, 0.7071, 0, 0.7071 },
+			size = { 0.5147, 0.3363, 0.346 },
 		},
-		["Seg_07_Slate"] = {
+		["momentum_Seg_07_Mesh1"] = {
 			joint = "Seg_07",
 			cframe = { -0.23, 0.1667, -0.2686, 0, 0.7071, 0, 0.7071 },
 			size = { 0.5072, 0.3333, 0.34 },
 		},
-		["Seg_08_Lit"] = {
+		["momentum_Seg_08_Lit_Mesh1"] = {
 			joint = "Seg_08_Lit",
-			cframe = { 0.9, 0, 0, 0, 0.7071, 0, 0.7071 },
-			size = { 0, 0, 0 },
+			cframe = { -0.23, 0.1682, 0.2694, 0, 0.7071, 0, 0.7071 },
+			size = { 0.5147, 0.3363, 0.346 },
 		},
-		["Seg_08_Slate"] = {
+		["momentum_Seg_08_Mesh1"] = {
 			joint = "Seg_08",
 			cframe = { -0.23, 0.1667, 0.2686, 0, 0.7071, 0, 0.7071 },
 			size = { 0.5072, 0.3333, 0.34 },
 		},
-		["Seg_09_Lit"] = {
+		["momentum_Seg_09_Lit_Mesh1"] = {
 			joint = "Seg_09_Lit",
-			cframe = { 0.9, 0, 0, 0, 0.9239, 0, 0.3827 },
-			size = { 0, 0, 0 },
+			cframe = { -0.0895, 0.1682, 0.6086, 0, 0.9239, 0, 0.3827 },
+			size = { 0.5147, 0.3363, 0.346 },
 		},
-		["Seg_09_Slate"] = {
+		["momentum_Seg_09_Mesh1"] = {
 			joint = "Seg_09",
 			cframe = { -0.089, 0.1667, 0.6091, 0, 0.9239, 0, 0.3827 },
 			size = { 0.5072, 0.3333, 0.34 },
 		},
-		["Seg_10_Lit"] = {
+		["momentum_Seg_10_Lit_Mesh1"] = {
 			joint = "Seg_10_Lit",
-			cframe = { 0.9, 0, 0, 0, 0.9239, 0, 0.3827 },
-			size = { 0, 0, 0 },
+			cframe = { 0.2914, 0.1682, 0.9895, 0, 0.9239, 0, 0.3827 },
+			size = { 0.5147, 0.3363, 0.346 },
 		},
-		["Seg_10_Slate"] = {
+		["momentum_Seg_10_Mesh1"] = {
 			joint = "Seg_10",
 			cframe = { 0.2909, 0.1667, 0.989, 0, 0.9239, 0, 0.3827 },
 			size = { 0.5072, 0.3333, 0.34 },
 		},
-		["Seg_11_Lit"] = {
+		["momentum_Seg_11_Lit_Mesh1"] = {
 			joint = "Seg_11_Lit",
-			cframe = { 0.9, 0, 0, 0, 1, 0, 0 },
-			size = { 0, 0, 0 },
+			cframe = { 0.6306, 0.1682, 1.13, 0, 1, 0, 0 },
+			size = { 0.5147, 0.3363, 0.346 },
 		},
-		["Seg_11_Slate"] = {
+		["momentum_Seg_11_Mesh1"] = {
 			joint = "Seg_11",
 			cframe = { 0.6314, 0.1667, 1.13, 0, 1, 0, 0 },
 			size = { 0.5072, 0.3333, 0.34 },
 		},
-		["Seg_12_Lit"] = {
+		["momentum_Seg_12_Lit_Mesh1"] = {
 			joint = "Seg_12_Lit",
-			cframe = { 0.9, 0, 0, 0, 1, 0, 0 },
-			size = { 0, 0, 0 },
+			cframe = { 1.1694, 0.1682, 1.13, 0, 1, 0, 0 },
+			size = { 0.5147, 0.3363, 0.346 },
 		},
-		["Seg_12_Slate"] = {
+		["momentum_Seg_12_Mesh1"] = {
 			joint = "Seg_12",
 			cframe = { 1.1686, 0.1667, 1.13, 0, 1, 0, 0 },
 			size = { 0.5072, 0.3333, 0.34 },
 		},
-		["Seg_13_Lit"] = {
+		["momentum_Seg_13_Lit_Mesh1"] = {
 			joint = "Seg_13_Lit",
-			cframe = { 0.9, 0, 0, 0, -0.9239, 0, 0.3827 },
-			size = { 0, 0, 0 },
+			cframe = { 1.5086, 0.1682, 0.9895, 0, -0.9239, 0, 0.3827 },
+			size = { 0.5147, 0.3363, 0.346 },
 		},
-		["Seg_13_Slate"] = {
+		["momentum_Seg_13_Mesh1"] = {
 			joint = "Seg_13",
 			cframe = { 1.5091, 0.1667, 0.989, 0, -0.9239, 0, 0.3827 },
 			size = { 0.5072, 0.3333, 0.34 },
 		},
-		["Seg_14_Lit"] = {
+		["momentum_Seg_14_Lit_Mesh1"] = {
 			joint = "Seg_14_Lit",
-			cframe = { 0.9, 0, 0, 0, -0.9239, 0, 0.3827 },
-			size = { 0, 0, 0 },
+			cframe = { 1.8895, 0.1682, 0.6086, 0, -0.9239, 0, 0.3827 },
+			size = { 0.5147, 0.3363, 0.346 },
 		},
-		["Seg_14_Slate"] = {
+		["momentum_Seg_14_Mesh1"] = {
 			joint = "Seg_14",
 			cframe = { 1.889, 0.1667, 0.6091, 0, -0.9239, 0, 0.3827 },
 			size = { 0.5072, 0.3333, 0.34 },
 		},
-		["Seg_15_Lit"] = {
+		["momentum_Seg_15_Lit_Mesh1"] = {
 			joint = "Seg_15_Lit",
-			cframe = { 0.9, 0, 0, 0, -0.7071, 0, 0.7071 },
-			size = { 0, 0, 0 },
+			cframe = { 2.03, 0.1682, 0.2694, 0, -0.7071, 0, 0.7071 },
+			size = { 0.5147, 0.3363, 0.346 },
 		},
-		["Seg_15_Slate"] = {
+		["momentum_Seg_15_Mesh1"] = {
 			joint = "Seg_15",
 			cframe = { 2.03, 0.1667, 0.2686, 0, -0.7071, 0, 0.7071 },
 			size = { 0.5072, 0.3333, 0.34 },
 		},
-		["SpeedSlab_Cap_0"] = {
+		["momentum_SpeedSlab_Motion_Mesh1"] = {
 			joint = "SpeedSlab_Motion",
-			cframe = { -1.9, 0.27, 0.6, 0, 0, 0, 1 },
-			size = { 0.3, 0.06, 0.3 },
-		},
-		["SpeedSlab_Cap_1"] = {
-			joint = "SpeedSlab_Motion",
-			cframe = { -1.6, 0.27, 0.6, 0, 0, 0, 1 },
-			size = { 0.3, 0.06, 0.3 },
-		},
-		["SpeedSlab_Cap_2"] = {
-			joint = "SpeedSlab_Motion",
-			cframe = { -1.3, 0.27, 0.6, 0, 0, 0, 1 },
-			size = { 0.3, 0.06, 0.3 },
-		},
-		["SpeedSlab_Core_0"] = {
-			joint = "SpeedSlab_Motion",
-			cframe = { -1.9, 0.141, 0.6, 0, 0, 0, 1 },
-			size = { 0.3, 0.198, 0.3 },
-		},
-		["SpeedSlab_Core_1"] = {
-			joint = "SpeedSlab_Motion",
-			cframe = { -1.6, 0.141, 0.6, 0, 0, 0, 1 },
-			size = { 0.3, 0.198, 0.3 },
-		},
-		["SpeedSlab_Core_2"] = {
-			joint = "SpeedSlab_Motion",
-			cframe = { -1.3, 0.141, 0.6, 0, 0, 0, 1 },
-			size = { 0.3, 0.198, 0.3 },
-		},
-		["SpeedSlab_Under_0"] = {
-			joint = "SpeedSlab_Motion",
-			cframe = { -1.9, 0.021, 0.6, 0, 0, 0, 1 },
-			size = { 0.3, 0.042, 0.3 },
-		},
-		["SpeedSlab_Under_1"] = {
-			joint = "SpeedSlab_Motion",
-			cframe = { -1.6, 0.021, 0.6, 0, 0, 0, 1 },
-			size = { 0.3, 0.042, 0.3 },
-		},
-		["SpeedSlab_Under_2"] = {
-			joint = "SpeedSlab_Motion",
-			cframe = { -1.3, 0.021, 0.6, 0, 0, 0, 1 },
-			size = { 0.3, 0.042, 0.3 },
+			cframe = { -1.6, 0.15, 0.6, 0, 0, 0, 1 },
+			size = { 0.9, 0.3, 0.3 },
 		},
 	},
 	clips = {
@@ -433,6 +288,54 @@ return table.freeze({
 			length = 0.5,
 			loops = true,
 			joints = {
+				["Seg_00_Lit"] = {
+					scale = { times = { 0 }, values = { 0, 0, 0 } },
+				},
+				["Seg_01_Lit"] = {
+					scale = { times = { 0 }, values = { 0, 0, 0 } },
+				},
+				["Seg_02_Lit"] = {
+					scale = { times = { 0 }, values = { 0, 0, 0 } },
+				},
+				["Seg_03_Lit"] = {
+					scale = { times = { 0 }, values = { 0, 0, 0 } },
+				},
+				["Seg_04_Lit"] = {
+					scale = { times = { 0 }, values = { 0, 0, 0 } },
+				},
+				["Seg_05_Lit"] = {
+					scale = { times = { 0 }, values = { 0, 0, 0 } },
+				},
+				["Seg_06_Lit"] = {
+					scale = { times = { 0 }, values = { 0, 0, 0 } },
+				},
+				["Seg_07_Lit"] = {
+					scale = { times = { 0 }, values = { 0, 0, 0 } },
+				},
+				["Seg_08_Lit"] = {
+					scale = { times = { 0 }, values = { 0, 0, 0 } },
+				},
+				["Seg_09_Lit"] = {
+					scale = { times = { 0 }, values = { 0, 0, 0 } },
+				},
+				["Seg_10_Lit"] = {
+					scale = { times = { 0 }, values = { 0, 0, 0 } },
+				},
+				["Seg_11_Lit"] = {
+					scale = { times = { 0 }, values = { 0, 0, 0 } },
+				},
+				["Seg_12_Lit"] = {
+					scale = { times = { 0 }, values = { 0, 0, 0 } },
+				},
+				["Seg_13_Lit"] = {
+					scale = { times = { 0 }, values = { 0, 0, 0 } },
+				},
+				["Seg_14_Lit"] = {
+					scale = { times = { 0 }, values = { 0, 0, 0 } },
+				},
+				["Seg_15_Lit"] = {
+					scale = { times = { 0 }, values = { 0, 0, 0 } },
+				},
 				["SpeedSlab_Motion"] = {
 					pos = {
 						times = { 0, 0.05, 0.1, 0.34, 0.5 },
@@ -474,17 +377,11 @@ return table.freeze({
 						values = { 0, 0.3333, 0, 0, 0.3333, 0, 0, 0, 0, 0, 0, 0, 0, 0.3333, 0 },
 					},
 				},
-				["Seg_00_Lit"] = {
-					scale = { times = { 0, 0.8 }, values = { 1, 1, 1, 1, 1, 1 } },
-				},
 				["Seg_01"] = {
 					pos = {
 						times = { 0, 0.05, 0.1, 0.15, 0.8 },
 						values = { 0, 0, 0, 0, 0.3333, 0, 0, 0.3333, 0, 0, 0, 0, 0, 0, 0 },
 					},
-				},
-				["Seg_01_Lit"] = {
-					scale = { times = { 0, 0.8 }, values = { 1, 1, 1, 1, 1, 1 } },
 				},
 				["Seg_02"] = {
 					pos = {
@@ -492,17 +389,11 @@ return table.freeze({
 						values = { 0, 0, 0, 0, 0, 0, 0, 0.3333, 0, 0, 0.3333, 0, 0, 0, 0, 0, 0, 0 },
 					},
 				},
-				["Seg_02_Lit"] = {
-					scale = { times = { 0, 0.8 }, values = { 1, 1, 1, 1, 1, 1 } },
-				},
 				["Seg_03"] = {
 					pos = {
 						times = { 0, 0.1, 0.15, 0.2, 0.25, 0.8 },
 						values = { 0, 0, 0, 0, 0, 0, 0, 0.3333, 0, 0, 0.3333, 0, 0, 0, 0, 0, 0, 0 },
 					},
-				},
-				["Seg_03_Lit"] = {
-					scale = { times = { 0, 0.8 }, values = { 1, 1, 1, 1, 1, 1 } },
 				},
 				["Seg_04"] = {
 					pos = {
@@ -510,17 +401,11 @@ return table.freeze({
 						values = { 0, 0, 0, 0, 0, 0, 0, 0.3333, 0, 0, 0.3333, 0, 0, 0, 0, 0, 0, 0 },
 					},
 				},
-				["Seg_04_Lit"] = {
-					scale = { times = { 0, 0.8 }, values = { 1, 1, 1, 1, 1, 1 } },
-				},
 				["Seg_05"] = {
 					pos = {
 						times = { 0, 0.2, 0.25, 0.3, 0.35, 0.8 },
 						values = { 0, 0, 0, 0, 0, 0, 0, 0.3333, 0, 0, 0.3333, 0, 0, 0, 0, 0, 0, 0 },
 					},
-				},
-				["Seg_05_Lit"] = {
-					scale = { times = { 0, 0.8 }, values = { 1, 1, 1, 1, 1, 1 } },
 				},
 				["Seg_06"] = {
 					pos = {
@@ -528,17 +413,11 @@ return table.freeze({
 						values = { 0, 0, 0, 0, 0, 0, 0, 0.3333, 0, 0, 0.3333, 0, 0, 0, 0, 0, 0, 0 },
 					},
 				},
-				["Seg_06_Lit"] = {
-					scale = { times = { 0, 0.8 }, values = { 1, 1, 1, 1, 1, 1 } },
-				},
 				["Seg_07"] = {
 					pos = {
 						times = { 0, 0.3, 0.35, 0.4, 0.45, 0.8 },
 						values = { 0, 0, 0, 0, 0, 0, 0, 0.3333, 0, 0, 0.3333, 0, 0, 0, 0, 0, 0, 0 },
 					},
-				},
-				["Seg_07_Lit"] = {
-					scale = { times = { 0, 0.8 }, values = { 1, 1, 1, 1, 1, 1 } },
 				},
 				["Seg_08"] = {
 					pos = {
@@ -546,17 +425,11 @@ return table.freeze({
 						values = { 0, 0, 0, 0, 0, 0, 0, 0.3333, 0, 0, 0.3333, 0, 0, 0, 0, 0, 0, 0 },
 					},
 				},
-				["Seg_08_Lit"] = {
-					scale = { times = { 0, 0.8 }, values = { 1, 1, 1, 1, 1, 1 } },
-				},
 				["Seg_09"] = {
 					pos = {
 						times = { 0, 0.4, 0.45, 0.5, 0.55, 0.8 },
 						values = { 0, 0, 0, 0, 0, 0, 0, 0.3333, 0, 0, 0.3333, 0, 0, 0, 0, 0, 0, 0 },
 					},
-				},
-				["Seg_09_Lit"] = {
-					scale = { times = { 0, 0.8 }, values = { 1, 1, 1, 1, 1, 1 } },
 				},
 				["Seg_10"] = {
 					pos = {
@@ -564,17 +437,11 @@ return table.freeze({
 						values = { 0, 0, 0, 0, 0, 0, 0, 0.3333, 0, 0, 0.3333, 0, 0, 0, 0, 0, 0, 0 },
 					},
 				},
-				["Seg_10_Lit"] = {
-					scale = { times = { 0, 0.8 }, values = { 1, 1, 1, 1, 1, 1 } },
-				},
 				["Seg_11"] = {
 					pos = {
 						times = { 0, 0.5, 0.55, 0.6, 0.65, 0.8 },
 						values = { 0, 0, 0, 0, 0, 0, 0, 0.3333, 0, 0, 0.3333, 0, 0, 0, 0, 0, 0, 0 },
 					},
-				},
-				["Seg_11_Lit"] = {
-					scale = { times = { 0, 0.8 }, values = { 1, 1, 1, 1, 1, 1 } },
 				},
 				["Seg_12"] = {
 					pos = {
@@ -582,17 +449,11 @@ return table.freeze({
 						values = { 0, 0, 0, 0, 0, 0, 0, 0.3333, 0, 0, 0.3333, 0, 0, 0, 0, 0, 0, 0 },
 					},
 				},
-				["Seg_12_Lit"] = {
-					scale = { times = { 0, 0.8 }, values = { 1, 1, 1, 1, 1, 1 } },
-				},
 				["Seg_13"] = {
 					pos = {
 						times = { 0, 0.6, 0.65, 0.7, 0.75, 0.8 },
 						values = { 0, 0, 0, 0, 0, 0, 0, 0.3333, 0, 0, 0.3333, 0, 0, 0, 0, 0, 0, 0 },
 					},
-				},
-				["Seg_13_Lit"] = {
-					scale = { times = { 0, 0.8 }, values = { 1, 1, 1, 1, 1, 1 } },
 				},
 				["Seg_14"] = {
 					pos = {
@@ -600,17 +461,11 @@ return table.freeze({
 						values = { 0, 0, 0, 0, 0, 0, 0, 0.3333, 0, 0, 0.3333, 0, 0, 0, 0 },
 					},
 				},
-				["Seg_14_Lit"] = {
-					scale = { times = { 0, 0.8 }, values = { 1, 1, 1, 1, 1, 1 } },
-				},
 				["Seg_15"] = {
 					pos = {
 						times = { 0, 0.05, 0.7, 0.75, 0.8 },
 						values = { 0, 0.3333, 0, 0, 0, 0, 0, 0, 0, 0, 0.3333, 0, 0, 0.3333, 0 },
 					},
-				},
-				["Seg_15_Lit"] = {
-					scale = { times = { 0, 0.8 }, values = { 1, 1, 1, 1, 1, 1 } },
 				},
 			},
 		},

@@ -15,10 +15,11 @@
 return table.freeze({
 	joints = {},
 	parts = {
-		["core"] = { joint = "", cframe = { 0, 0, 2.5, 0, 0, 0, 1 }, size = { 5, 5, 5 } },
-		["ring"] = { joint = "", cframe = { 0, 0, 3.5, 0, 0, 0, 1 }, size = { 11, 11, 3 } },
-		["ring_corners"] = { joint = "", cframe = { 0, 0, 5, 0, 0, 0, 1 }, size = { 13, 13, 2 } },
-		["shards"] = { joint = "", cframe = { 0, 0, -3, 0, 0, 0, 1 }, size = { 25, 25, 6 } },
+		["piercingshot_fx_piercingshot_Mesh1"] = {
+			joint = "",
+			cframe = { 0, 0, 0, 0, 0, 0, 1 },
+			size = { 25, 25, 12 },
+		},
 	},
 	clips = {},
 })

@@ -15,21 +15,11 @@
 return table.freeze({
 	joints = {},
 	parts = {
-		["head"] = { joint = "", cframe = { 0, -0.5, -13, 0, 0, 0, 1 }, size = { 7, 2, 7 } },
-		["rails"] = { joint = "", cframe = { 0, -1, 3, 0, 0, 0, 1 }, size = { 7, 1, 25 } },
-		["rung_01"] = { joint = "", cframe = { 0, -1, 16, 0, 0, 0, 1 }, size = { 1, 1, 1 } },
-		["rung_02"] = { joint = "", cframe = { 0, -1, 14, 0, 0, 0, 1 }, size = { 1, 1, 1 } },
-		["rung_03"] = { joint = "", cframe = { 0, -1, 12, 0, 0, 0, 1 }, size = { 3, 1, 1 } },
-		["rung_04"] = { joint = "", cframe = { 0, -0.5, 10, 0, 0, 0, 1 }, size = { 3, 2, 1 } },
-		["rung_05"] = { joint = "", cframe = { 0, -0.5, 8, 0, 0, 0, 1 }, size = { 3, 2, 1 } },
-		["rung_06"] = { joint = "", cframe = { 0, -0.5, 6, 0, 0, 0, 1 }, size = { 5, 2, 1 } },
-		["rung_07"] = { joint = "", cframe = { 0, -0.5, 4, 0, 0, 0, 1 }, size = { 5, 2, 1 } },
-		["rung_08"] = { joint = "", cframe = { 0, -0.5, 2, 0, 0, 0, 1 }, size = { 5, 2, 1 } },
-		["rung_09"] = { joint = "", cframe = { 0, -0.5, 0, 0, 0, 0, 1 }, size = { 5, 2, 1 } },
-		["rung_10"] = { joint = "", cframe = { 0, 0, -2, 0, 0, 0, 1 }, size = { 7, 3, 1 } },
-		["rung_11"] = { joint = "", cframe = { 0, 0, -4, 0, 0, 0, 1 }, size = { 7, 3, 1 } },
-		["rung_12"] = { joint = "", cframe = { 0, 0, -6, 0, 0, 0, 1 }, size = { 7, 3, 1 } },
-		["rung_13"] = { joint = "", cframe = { 0, 0, -8, 0, 0, 0, 1 }, size = { 7, 3, 1 } },
+		["longshot_fx_longshot_Mesh1"] = {
+			joint = "",
+			cframe = { 0, 0, 0, 0, 0, 0, 1 },
+			size = { 7, 3, 33 },
+		},
 	},
 	clips = {},
 })

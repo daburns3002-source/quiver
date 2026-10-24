@@ -29,69 +29,69 @@ return table.freeze({
 		{
 			name = "rear_chevron",
 			parent = "fx_reararrow",
-			rest = { 0, 1.55, -0.9, 0, 1, 0, 0, 0.001, 0.001, 0.001 },
+			rest = { 0, 1.55, -0.9, 0, 1, 0, 0, 1, 1, 1 },
 		},
 		{
 			name = "rear_dash_1",
 			parent = "fx_reararrow",
-			rest = { 0, 0, -0.5, 0, 0, 0, 1, 0.001, 0.001, 0.001 },
+			rest = { 0, 0, -0.5, 0, 0, 0, 1, 1, 1, 1 },
 		},
 		{
 			name = "rear_dash_2",
 			parent = "fx_reararrow",
-			rest = { 0, 0, -1.02, 0, 0, 0, 1, 0.001, 0.001, 0.001 },
+			rest = { 0, 0, -1.02, 0, 0, 0, 1, 1, 1, 1 },
 		},
 		{
 			name = "rear_dash_3",
 			parent = "fx_reararrow",
-			rest = { 0, 0, -1.54, 0, 0, 0, 1, 0.001, 0.001, 0.001 },
+			rest = { 0, 0, -1.54, 0, 0, 0, 1, 1, 1, 1 },
 		},
 		{
 			name = "rear_dash_4",
 			parent = "fx_reararrow",
-			rest = { 0, 0, -2.06, 0, 0, 0, 1, 0.001, 0.001, 0.001 },
+			rest = { 0, 0, -2.06, 0, 0, 0, 1, 1, 1, 1 },
 		},
 	},
 	parts = {
-		["arrow_back"] = {
+		["reararrow_arrow_back_Mesh1"] = {
 			joint = "arrow_back",
 			cframe = { 0, 1, -1.17, 0, 1, 0, 0 },
 			size = { 0.78, 0.26, 2.08 },
 		},
-		["arrow_forward"] = {
+		["reararrow_arrow_forward_Mesh1"] = {
 			joint = "arrow_forward",
 			cframe = { 0, 1, 1.17, 0, 0, 0, 1 },
 			size = { 0.78, 0.26, 2.08 },
 		},
-		["bow_block"] = {
+		["reararrow_bow_block_Mesh1"] = {
 			joint = "bow_block",
 			cframe = { 0, 1, 0, 0, 0, 0, 1 },
 			size = { 0.78, 0.26, 0.26 },
 		},
-		["rear_chevron"] = {
+		["reararrow_rear_chevron_Mesh1"] = {
 			joint = "rear_chevron",
 			cframe = { 0, 1.55, -0.9, 0, 1, 0, 0 },
-			size = { 0.0008, 0.0003, 0.0008 },
+			size = { 0.78, 0.26, 0.78 },
 		},
-		["rear_dash_1"] = {
+		["reararrow_rear_dash_1_Mesh1"] = {
 			joint = "rear_dash_1",
-			cframe = { 0, 0.0001, -0.5, 0, 0, 0, 1 },
-			size = { 0.0003, 0.0003, 0.0003 },
+			cframe = { 0, 0.13, -0.5, 0, 0, 0, 1 },
+			size = { 0.26, 0.26, 0.26 },
 		},
-		["rear_dash_2"] = {
+		["reararrow_rear_dash_2_Mesh1"] = {
 			joint = "rear_dash_2",
-			cframe = { 0, 0.0001, -1.02, 0, 0, 0, 1 },
-			size = { 0.0003, 0.0003, 0.0003 },
+			cframe = { 0, 0.13, -1.02, 0, 0, 0, 1 },
+			size = { 0.26, 0.26, 0.26 },
 		},
-		["rear_dash_3"] = {
+		["reararrow_rear_dash_3_Mesh1"] = {
 			joint = "rear_dash_3",
-			cframe = { 0, 0.0001, -1.54, 0, 0, 0, 1 },
-			size = { 0.0003, 0.0003, 0.0003 },
+			cframe = { 0, 0.13, -1.54, 0, 0, 0, 1 },
+			size = { 0.26, 0.26, 0.26 },
 		},
-		["rear_dash_4"] = {
+		["reararrow_rear_dash_4_Mesh1"] = {
 			joint = "rear_dash_4",
-			cframe = { 0, 0.0001, -2.06, 0, 0, 0, 1 },
-			size = { 0.0003, 0.0003, 0.0003 },
+			cframe = { 0, 0.13, -2.06, 0, 0, 0, 1 },
+			size = { 0.26, 0.26, 0.26 },
 		},
 	},
 	clips = {

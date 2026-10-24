@@ -50,212 +50,47 @@ return table.freeze({
 		},
 	},
 	parts = {
-		["FlameCentre_Cube00"] = {
+		["blaze_FlameCentre_Mesh1"] = {
 			joint = "FlameCentre",
-			cframe = { -0.25, 0.125, -0.025, 0, 0, 0, 1 },
-			size = { 0.25, 0.25, 0.25 },
+			cframe = { 0, 0.61, 0.1, 0, 0, 0, 1 },
+			size = { 0.75, 1.22, 0.5 },
 		},
-		["FlameCentre_Cube01"] = {
-			joint = "FlameCentre",
-			cframe = { -0.25, 0.125, 0.225, 0, 0, 0, 1 },
-			size = { 0.25, 0.25, 0.25 },
-		},
-		["FlameCentre_Cube02"] = {
-			joint = "FlameCentre",
-			cframe = { 0, 0.125, -0.025, 0, 0, 0, 1 },
-			size = { 0.25, 0.25, 0.25 },
-		},
-		["FlameCentre_Cube03"] = {
-			joint = "FlameCentre",
-			cframe = { 0, 0.125, 0.225, 0, 0, 0, 1 },
-			size = { 0.25, 0.25, 0.25 },
-		},
-		["FlameCentre_Cube04"] = {
-			joint = "FlameCentre",
-			cframe = { 0.25, 0.125, -0.025, 0, 0, 0, 1 },
-			size = { 0.25, 0.25, 0.25 },
-		},
-		["FlameCentre_Cube05"] = {
-			joint = "FlameCentre",
-			cframe = { 0.25, 0.125, 0.225, 0, 0, 0, 1 },
-			size = { 0.25, 0.25, 0.25 },
-		},
-		["FlameCentre_Cube06"] = {
-			joint = "FlameCentre",
-			cframe = { -0.25, 0.375, -0.025, 0, 0, 0, 1 },
-			size = { 0.25, 0.25, 0.25 },
-		},
-		["FlameCentre_Cube07"] = {
-			joint = "FlameCentre",
-			cframe = { -0.25, 0.375, 0.225, 0, 0, 0, 1 },
-			size = { 0.25, 0.25, 0.25 },
-		},
-		["FlameCentre_Cube08"] = {
-			joint = "FlameCentre",
-			cframe = { 0, 0.375, -0.025, 0, 0, 0, 1 },
-			size = { 0.25, 0.25, 0.25 },
-		},
-		["FlameCentre_Cube09"] = {
-			joint = "FlameCentre",
-			cframe = { 0, 0.375, 0.225, 0, 0, 0, 1 },
-			size = { 0.25, 0.25, 0.25 },
-		},
-		["FlameCentre_Cube10"] = {
-			joint = "FlameCentre",
-			cframe = { 0.25, 0.375, -0.025, 0, 0, 0, 1 },
-			size = { 0.25, 0.25, 0.25 },
-		},
-		["FlameCentre_Cube11"] = {
-			joint = "FlameCentre",
-			cframe = { 0.25, 0.375, 0.225, 0, 0, 0, 1 },
-			size = { 0.25, 0.25, 0.25 },
-		},
-		["FlameCentre_Cube12"] = {
-			joint = "FlameCentre",
-			cframe = { -0.125, 0.625, -0.025, 0, 0, 0, 1 },
-			size = { 0.25, 0.25, 0.25 },
-		},
-		["FlameCentre_Cube13"] = {
-			joint = "FlameCentre",
-			cframe = { -0.125, 0.625, 0.225, 0, 0, 0, 1 },
-			size = { 0.25, 0.25, 0.25 },
-		},
-		["FlameCentre_Cube14"] = {
-			joint = "FlameCentre",
-			cframe = { 0.125, 0.625, -0.025, 0, 0, 0, 1 },
-			size = { 0.25, 0.25, 0.25 },
-		},
-		["FlameCentre_Cube15"] = {
-			joint = "FlameCentre",
-			cframe = { 0.125, 0.625, 0.225, 0, 0, 0, 1 },
-			size = { 0.25, 0.25, 0.25 },
-		},
-		["FlameCentre_Cube16"] = {
-			joint = "FlameCentre",
-			cframe = { -0.125, 0.875, 0.1, 0, 0, 0, 1 },
-			size = { 0.25, 0.25, 0.25 },
-		},
-		["FlameCentre_Cube17"] = {
-			joint = "FlameCentre",
-			cframe = { 0.125, 0.875, 0.1, 0, 0, 0, 1 },
-			size = { 0.25, 0.25, 0.25 },
-		},
-		["FlameCentre_Cube18"] = {
-			joint = "FlameCentre",
-			cframe = { 0, 1.11, 0.1, 0, 0, 0, 1 },
-			size = { 0.22, 0.22, 0.22 },
-		},
-		["FlameCentre_Neck"] = {
+		["blaze_FlameCentre_Neck_Mesh1"] = {
 			joint = "FlameCentre_Neck",
 			cframe = { 0, 1.315, 0.1, 0, 0, 0, 1 },
 			size = { 0.19, 0.19, 0.19 },
 		},
-		["FlameCentre_Tip"] = {
+		["blaze_FlameCentre_Tip_Mesh1"] = {
 			joint = "FlameCentre_Tip",
 			cframe = { 0, 1.505, 0.1, 0, 0, 0, 1 },
 			size = { 0.19, 0.19, 0.19 },
 		},
-		["FlameLeft_Cube00"] = {
+		["blaze_FlameLeft_Mesh1"] = {
 			joint = "FlameLeft",
-			cframe = { -0.375, 0.125, -0.285, 0, 0, 0, 1 },
-			size = { 0.25, 0.25, 0.25 },
+			cframe = { -0.295, 0.33, -0.16, 0, 0, 0, 1 },
+			size = { 0.59, 0.66, 0.5 },
 		},
-		["FlameLeft_Cube01"] = {
-			joint = "FlameLeft",
-			cframe = { -0.375, 0.125, -0.035, 0, 0, 0, 1 },
-			size = { 0.25, 0.25, 0.25 },
-		},
-		["FlameLeft_Cube02"] = {
-			joint = "FlameLeft",
-			cframe = { -0.125, 0.125, -0.285, 0, 0, 0, 1 },
-			size = { 0.25, 0.25, 0.25 },
-		},
-		["FlameLeft_Cube03"] = {
-			joint = "FlameLeft",
-			cframe = { -0.125, 0.125, -0.035, 0, 0, 0, 1 },
-			size = { 0.25, 0.25, 0.25 },
-		},
-		["FlameLeft_Cube04"] = {
-			joint = "FlameLeft",
-			cframe = { -0.48, 0.36, -0.27, 0, 0, 0, 1 },
-			size = { 0.22, 0.22, 0.22 },
-		},
-		["FlameLeft_Cube05"] = {
-			joint = "FlameLeft",
-			cframe = { -0.48, 0.36, -0.05, 0, 0, 0, 1 },
-			size = { 0.22, 0.22, 0.22 },
-		},
-		["FlameLeft_Cube06"] = {
-			joint = "FlameLeft",
-			cframe = { -0.26, 0.36, -0.27, 0, 0, 0, 1 },
-			size = { 0.22, 0.22, 0.22 },
-		},
-		["FlameLeft_Cube07"] = {
-			joint = "FlameLeft",
-			cframe = { -0.26, 0.36, -0.05, 0, 0, 0, 1 },
-			size = { 0.22, 0.22, 0.22 },
-		},
-		["FlameLeft_Cube08"] = {
-			joint = "FlameLeft",
-			cframe = { -0.49, 0.565, -0.16, 0, 0, 0, 1 },
-			size = { 0.19, 0.19, 0.19 },
-		},
-		["FlameLeft_Neck"] = {
+		["blaze_FlameLeft_Neck_Mesh1"] = {
 			joint = "FlameLeft_Neck",
 			cframe = { -0.61, 0.74, -0.16, 0, 0, 0, 1 },
 			size = { 0.16, 0.16, 0.16 },
 		},
-		["FlameLeft_Tip"] = {
+		["blaze_FlameLeft_Tip_Mesh1"] = {
 			joint = "FlameLeft_Tip",
 			cframe = { -0.72, 0.9, -0.16, 0, 0, 0, 1 },
 			size = { 0.16, 0.16, 0.16 },
 		},
-		["FlameRight_Cube00"] = {
+		["blaze_FlameRight_Mesh1"] = {
 			joint = "FlameRight",
-			cframe = { 0.125, 0.125, -0.285, 0, 0, 0, 1 },
-			size = { 0.25, 0.25, 0.25 },
+			cframe = { 0.31, 0.235, -0.16, 0, 0, 0, 1 },
+			size = { 0.62, 0.47, 0.5 },
 		},
-		["FlameRight_Cube01"] = {
-			joint = "FlameRight",
-			cframe = { 0.125, 0.125, -0.035, 0, 0, 0, 1 },
-			size = { 0.25, 0.25, 0.25 },
-		},
-		["FlameRight_Cube02"] = {
-			joint = "FlameRight",
-			cframe = { 0.375, 0.125, -0.285, 0, 0, 0, 1 },
-			size = { 0.25, 0.25, 0.25 },
-		},
-		["FlameRight_Cube03"] = {
-			joint = "FlameRight",
-			cframe = { 0.375, 0.125, -0.035, 0, 0, 0, 1 },
-			size = { 0.25, 0.25, 0.25 },
-		},
-		["FlameRight_Cube04"] = {
-			joint = "FlameRight",
-			cframe = { 0.29, 0.36, -0.27, 0, 0, 0, 1 },
-			size = { 0.22, 0.22, 0.22 },
-		},
-		["FlameRight_Cube05"] = {
-			joint = "FlameRight",
-			cframe = { 0.29, 0.36, -0.05, 0, 0, 0, 1 },
-			size = { 0.22, 0.22, 0.22 },
-		},
-		["FlameRight_Cube06"] = {
-			joint = "FlameRight",
-			cframe = { 0.51, 0.36, -0.27, 0, 0, 0, 1 },
-			size = { 0.22, 0.22, 0.22 },
-		},
-		["FlameRight_Cube07"] = {
-			joint = "FlameRight",
-			cframe = { 0.51, 0.36, -0.05, 0, 0, 0, 1 },
-			size = { 0.22, 0.22, 0.22 },
-		},
-		["FlameRight_Neck"] = {
+		["blaze_FlameRight_Neck_Mesh1"] = {
 			joint = "FlameRight_Neck",
 			cframe = { 0.55, 0.565, -0.16, 0, 0, 0, 1 },
 			size = { 0.19, 0.19, 0.19 },
 		},
-		["FlameRight_Tip"] = {
+		["blaze_FlameRight_Tip_Mesh1"] = {
 			joint = "FlameRight_Tip",
 			cframe = { 0.69, 0.755, -0.16, 0, 0, 0, 1 },
 			size = { 0.19, 0.19, 0.19 },

@@ -15,22 +15,22 @@
 return table.freeze({
 	joints = {},
 	parts = {
-		["iron_skin_plate_back"] = {
+		["ironskin_iron_skin_plate_back_Mesh1"] = {
 			joint = "",
 			cframe = { 0, 0.325, -0.5, 0, 1, 0, 0 },
 			size = { 0.52, 0.65, 0.26 },
 		},
-		["iron_skin_plate_front"] = {
+		["ironskin_iron_skin_plate_front_Mesh1"] = {
 			joint = "",
 			cframe = { 0, 0.325, 0.5, 0, 0, 0, 1 },
 			size = { 0.52, 0.65, 0.26 },
 		},
-		["iron_skin_plate_left"] = {
+		["ironskin_iron_skin_plate_left_Mesh1"] = {
 			joint = "",
 			cframe = { -0.5, 0.325, 0, 0, -0.7071, 0, 0.7071 },
 			size = { 0.52, 0.65, 0.26 },
 		},
-		["iron_skin_plate_right"] = {
+		["ironskin_iron_skin_plate_right_Mesh1"] = {
 			joint = "",
 			cframe = { 0.5, 0.325, 0, 0, 0.7071, 0, 0.7071 },
 			size = { 0.52, 0.65, 0.26 },

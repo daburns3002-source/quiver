@@ -15,9 +15,11 @@
 return table.freeze({
 	joints = {},
 	parts = {
-		["core"] = { joint = "", cframe = { 0, 0, 0, 0, 0, 0, 1 }, size = { 3, 3, 3 } },
-		["wing_L"] = { joint = "", cframe = { -6, 0, 0, 0, 0, 0, 1 }, size = { 9, 1, 7 } },
-		["wing_R"] = { joint = "", cframe = { 6, 0, 0, 0, 0, 0, 1 }, size = { 9, 1, 7 } },
+		["sidearrows_fx_sidearrows_Mesh1"] = {
+			joint = "",
+			cframe = { 0, 0, 0, 0, 0, 0, 1 },
+			size = { 21, 3, 7 },
+		},
 	},
 	clips = {},
 })

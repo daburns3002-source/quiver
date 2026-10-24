@@ -15,41 +15,30 @@
 return table.freeze({
 	joints = {},
 	parts = {
-		["arrowhead"] = {
+		["overdraw_AL_FX_03_Overdraw_Mesh1"] = {
 			joint = "",
-			cframe = { 0, 1.5, 2.875, 0, 0, 0, 1 },
-			size = { 1.25, 0.75, 1 },
+			cframe = { 0, 1.5, 1.25, 0, 0, 0, 1 },
+			size = { 2.25, 2.25, 4.25 },
 		},
-		["crown"] = {
-			joint = "",
-			cframe = { 0, 1.5, 2.5625, 0, 0, 0, 1 },
-			size = { 1.75, 1.75, 0.625 },
-		},
-		["ring_large"] = {
+		["overdraw_ring_large_Mesh1"] = {
 			joint = "",
 			cframe = { 0, 1.5, 0.75, 0, 0, 0, 1 },
 			size = { 2.25, 2.25, 0.25 },
 		},
-		["ring_medium"] = {
+		["overdraw_ring_medium_Mesh1"] = {
 			joint = "",
 			cframe = { 0, 1.5, 1.375, 0, 0, 0, 1 },
 			size = { 1.75, 1.75, 0.25 },
 		},
-		["ring_small"] = {
+		["overdraw_ring_small_Mesh1"] = {
 			joint = "",
 			cframe = { 0, 1.5, 1.875, 0, 0, 0, 1 },
 			size = { 1.25, 1.25, 0.25 },
 		},
-		["shaft"] = { joint = "", cframe = { 0, 1.5, 0.75, 0, 0, 0, 1 }, size = { 0.5, 0.5, 3.25 } },
-		["shockwave"] = {
+		["overdraw_shockwave_Mesh1"] = {
 			joint = "",
 			cframe = { 0, 1.5, 0.125, 0, 0, 0, 1 },
 			size = { 2.75, 2.75, 0.25 },
-		},
-		["speed_chips"] = {
-			joint = "",
-			cframe = { 0, 1.5, 1, 0, 0, 0, 1 },
-			size = { 2.25, 2.25, 1.5 },
 		},
 	},
 	clips = {},

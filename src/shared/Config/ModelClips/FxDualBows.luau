@@ -15,26 +15,10 @@
 return table.freeze({
 	joints = {},
 	parts = {
-		["arrow_left"] = {
+		["dualbows_AL_FX_02_DualBows_Mesh1"] = {
 			joint = "",
-			cframe = { 0.1875, 1.875, 0.1875, 0, 0, 0, 1 },
-			size = { 7.125, 1.25, 7.125 },
-		},
-		["arrow_right"] = {
-			joint = "",
-			cframe = { -0.1875, 2.625, 0.1875, 0, 0, 0, 1 },
-			size = { 7.125, 1.25, 7.125 },
-		},
-		["core"] = { joint = "", cframe = { 0, 2.125, 0, 0, 0, 0, 1 }, size = { 1.75, 1.75, 1.75 } },
-		["motes"] = {
-			joint = "",
-			cframe = { 0.125, 2.1875, 0.25, 0, 0, 0, 1 },
-			size = { 9.5, 2.875, 10.5 },
-		},
-		["teal_ring"] = {
-			joint = "",
-			cframe = { 0, 0.125, 0, 0, 0, 0, 1 },
-			size = { 6.25, 0.25, 6.25 },
+			cframe = { 0.125, 1.8125, 0.25, 0, 0, 0, 1 },
+			size = { 9.5, 3.625, 10.5 },
 		},
 	},
 	clips = {},

@@ -27,22 +27,22 @@ return table.freeze({
 		},
 	},
 	parts = {
-		["Echo_Ghost_Body"] = {
+		["arcaneecho_Echo_Ghost_Glow1"] = {
 			joint = "Echo_Ghost",
 			cframe = { 1.4583, -0.1979, -0.1875, 0, 0, 0, 1 },
 			size = { 0.6, 0.6, 0.6 },
 		},
-		["Echo_Ghost_Body_Outline"] = {
+		["arcaneecho_Echo_Ghost_Mesh2"] = {
 			joint = "Echo_Ghost",
 			cframe = { 1.4583, -0.1979, -0.1875, 0, 0, 0, 1 },
 			size = { 0.636, 0.636, 0.636 },
 		},
-		["Echo_Ripple"] = {
+		["arcaneecho_Echo_Ripple_Glow1"] = {
 			joint = "Echo_Ripple",
 			cframe = { 0, 0, 0, 0.4511, 0.5997, 0.3226, 0.5768 },
 			size = { 0.2417, 0.2298, 0.0209 },
 		},
-		["Echo_Ripple_Outline"] = {
+		["arcaneecho_Echo_Ripple_Mesh2"] = {
 			joint = "Echo_Ripple",
 			cframe = { 0, 0, 0, 0.4511, 0.5997, 0.3226, 0.5768 },
 			size = { 0.2513, 0.2395, 0.0306 },

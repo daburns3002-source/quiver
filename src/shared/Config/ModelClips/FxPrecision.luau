@@ -17,7 +17,7 @@ return table.freeze({
 		{ name = "TargetReticle", parent = "", rest = { 0, 0, 0, 0, 0, 0, 1, 1, 1, 1 } },
 		{ name = "Ring", parent = "TargetReticle", rest = { 0, 0, 0, 0, 0, 0, 1, 1, 1, 1 } },
 		{ name = "Ring_Base", parent = "Ring", rest = { 0, 0, 0, 0, 0, 0, 1, 1, 1, 1 } },
-		{ name = "Ring_Lit", parent = "Ring", rest = { 0, 0, 0, 0, 0, 0, 1, 0, 0, 0 } },
+		{ name = "Ring_Lit", parent = "Ring", rest = { 0, 0, 0, 0, 0, 0, 1, 1, 1, 1 } },
 		{ name = "Pips", parent = "TargetReticle", rest = { 0, 0, 0, 0, 0, 0, 1, 1, 1, 1 } },
 		{ name = "Pip_N", parent = "Pips", rest = { 0, 0.3, -1.2, 0, 0, 0, 1, 1, 1, 1 } },
 		{ name = "Pip_E", parent = "Pips", rest = { 1.2, 0.3, 0, 0, 0, 0, 1, 1, 1, 1 } },
@@ -25,250 +25,40 @@ return table.freeze({
 		{ name = "Pip_W", parent = "Pips", rest = { -1.2, 0.3, 0, 0, 0, 0, 1, 1, 1, 1 } },
 	},
 	parts = {
-		["Core_C"] = {
-			joint = "TargetReticle",
-			cframe = { 0, 0.33, 0, 0, 0, 0, 1 },
-			size = { 0.22, 0.16, 0.22 },
-		},
-		["Core_E"] = {
-			joint = "TargetReticle",
-			cframe = { 0.22, 0.33, 0, 0, 0, 0, 1 },
-			size = { 0.22, 0.16, 0.22 },
-		},
-		["Core_N"] = {
-			joint = "TargetReticle",
-			cframe = { 0, 0.33, -0.22, 0, 0, 0, 1 },
-			size = { 0.22, 0.16, 0.22 },
-		},
-		["Core_S"] = {
-			joint = "TargetReticle",
-			cframe = { 0, 0.33, 0.22, 0, 0, 0, 1 },
-			size = { 0.22, 0.16, 0.22 },
-		},
-		["Core_W"] = {
-			joint = "TargetReticle",
-			cframe = { -0.22, 0.33, 0, 0, 0, 0, 1 },
-			size = { 0.22, 0.16, 0.22 },
-		},
-		["Pip_E"] = {
+		["precision_Pip_E_Mesh1"] = {
 			joint = "Pip_E",
 			cframe = { 1.2, 0.3, 0, 0, 0, 0, 1 },
 			size = { 0.3, 0.3, 0.3 },
 		},
-		["Pip_N"] = {
+		["precision_Pip_N_Mesh1"] = {
 			joint = "Pip_N",
 			cframe = { 0, 0.3, -1.2, 0, 0, 0, 1 },
 			size = { 0.3, 0.3, 0.3 },
 		},
-		["Pip_S"] = {
+		["precision_Pip_S_Mesh1"] = {
 			joint = "Pip_S",
 			cframe = { 0, 0.3, 1.2, 0, 0, 0, 1 },
 			size = { 0.3, 0.3, 0.3 },
 		},
-		["Pip_W"] = {
+		["precision_Pip_W_Mesh1"] = {
 			joint = "Pip_W",
 			cframe = { -1.2, 0.3, 0, 0, 0, 0, 1 },
 			size = { 0.3, 0.3, 0.3 },
 		},
-		["Ring_Lit_Seg01"] = {
-			joint = "Ring_Lit",
-			cframe = { 0, 0, 0, 0, 0, 0, 1 },
-			size = { 0, 0, 0 },
-		},
-		["Ring_Lit_Seg02"] = {
-			joint = "Ring_Lit",
-			cframe = { 0, 0, 0, 0, 0, 0, 1 },
-			size = { 0, 0, 0 },
-		},
-		["Ring_Lit_Seg03"] = {
-			joint = "Ring_Lit",
-			cframe = { 0, 0, 0, 0, 0, 0, 1 },
-			size = { 0, 0, 0 },
-		},
-		["Ring_Lit_Seg04"] = {
-			joint = "Ring_Lit",
-			cframe = { 0, 0, 0, 0, 0, 0, 1 },
-			size = { 0, 0, 0 },
-		},
-		["Ring_Lit_Seg05"] = {
-			joint = "Ring_Lit",
-			cframe = { 0, 0, 0, 0, 0, 0, 1 },
-			size = { 0, 0, 0 },
-		},
-		["Ring_Lit_Seg06"] = {
-			joint = "Ring_Lit",
-			cframe = { 0, 0, 0, 0, 0, 0, 1 },
-			size = { 0, 0, 0 },
-		},
-		["Ring_Lit_Seg07"] = {
-			joint = "Ring_Lit",
-			cframe = { 0, 0, 0, 0, 0, 0, 1 },
-			size = { 0, 0, 0 },
-		},
-		["Ring_Lit_Seg08"] = {
-			joint = "Ring_Lit",
-			cframe = { 0, 0, 0, 0, 0, 0, 1 },
-			size = { 0, 0, 0 },
-		},
-		["Ring_Lit_Seg09"] = {
-			joint = "Ring_Lit",
-			cframe = { 0, 0, 0, 0, 0, 0, 1 },
-			size = { 0, 0, 0 },
-		},
-		["Ring_Lit_Seg10"] = {
-			joint = "Ring_Lit",
-			cframe = { 0, 0, 0, 0, 0, 0, 1 },
-			size = { 0, 0, 0 },
-		},
-		["Ring_Lit_Seg11"] = {
-			joint = "Ring_Lit",
-			cframe = { 0, 0, 0, 0, 0, 0, 1 },
-			size = { 0, 0, 0 },
-		},
-		["Ring_Lit_Seg12"] = {
-			joint = "Ring_Lit",
-			cframe = { 0, 0, 0, 0, 0, 0, 1 },
-			size = { 0, 0, 0 },
-		},
-		["Ring_Lit_Seg13"] = {
-			joint = "Ring_Lit",
-			cframe = { 0, 0, 0, 0, 0, 0, 1 },
-			size = { 0, 0, 0 },
-		},
-		["Ring_Lit_Seg14"] = {
-			joint = "Ring_Lit",
-			cframe = { 0, 0, 0, 0, 0, 0, 1 },
-			size = { 0, 0, 0 },
-		},
-		["Ring_Lit_Seg15"] = {
-			joint = "Ring_Lit",
-			cframe = { 0, 0, 0, 0, 0, 0, 1 },
-			size = { 0, 0, 0 },
-		},
-		["Ring_Lit_Seg16"] = {
-			joint = "Ring_Lit",
-			cframe = { 0, 0, 0, 0, 0, 0, 1 },
-			size = { 0, 0, 0 },
-		},
-		["Ring_Lit_Seg17"] = {
-			joint = "Ring_Lit",
-			cframe = { 0, 0, 0, 0, 0, 0, 1 },
-			size = { 0, 0, 0 },
-		},
-		["Ring_Lit_Seg18"] = {
-			joint = "Ring_Lit",
-			cframe = { 0, 0, 0, 0, 0, 0, 1 },
-			size = { 0, 0, 0 },
-		},
-		["Ring_Lit_Seg19"] = {
-			joint = "Ring_Lit",
-			cframe = { 0, 0, 0, 0, 0, 0, 1 },
-			size = { 0, 0, 0 },
-		},
-		["Ring_Lit_Seg20"] = {
-			joint = "Ring_Lit",
-			cframe = { 0, 0, 0, 0, 0, 0, 1 },
-			size = { 0, 0, 0 },
-		},
-		["Ring_Seg01"] = {
+		["precision_Ring_Base_Mesh1"] = {
 			joint = "Ring_Base",
-			cframe = { 0.3, 0.15, -1.2, 0, 0, 0, 1 },
-			size = { 0.3, 0.3, 0.3 },
+			cframe = { 0, 0.15, 0, 0, 0, 0, 1 },
+			size = { 2.7, 0.3, 2.7 },
 		},
-		["Ring_Seg02"] = {
-			joint = "Ring_Base",
-			cframe = { 0.6, 0.15, -0.9, 0, 0, 0, 1 },
-			size = { 0.3, 0.3, 0.3 },
+		["precision_Ring_Lit_Mesh1"] = {
+			joint = "Ring_Lit",
+			cframe = { 0, 0.15, 0, 0, 0, 0, 1 },
+			size = { 2.7, 0.3, 2.7 },
 		},
-		["Ring_Seg03"] = {
-			joint = "Ring_Base",
-			cframe = { 0.9, 0.15, -0.9, 0, 0, 0, 1 },
-			size = { 0.3, 0.3, 0.3 },
-		},
-		["Ring_Seg04"] = {
-			joint = "Ring_Base",
-			cframe = { 0.9, 0.15, -0.6, 0, 0, 0, 1 },
-			size = { 0.3, 0.3, 0.3 },
-		},
-		["Ring_Seg05"] = {
-			joint = "Ring_Base",
-			cframe = { 1.2, 0.15, -0.3, 0, 0, 0, 1 },
-			size = { 0.3, 0.3, 0.3 },
-		},
-		["Ring_Seg06"] = {
-			joint = "Ring_Base",
-			cframe = { 1.2, 0.15, 0.3, 0, 0, 0, 1 },
-			size = { 0.3, 0.3, 0.3 },
-		},
-		["Ring_Seg07"] = {
-			joint = "Ring_Base",
-			cframe = { 0.9, 0.15, 0.6, 0, 0, 0, 1 },
-			size = { 0.3, 0.3, 0.3 },
-		},
-		["Ring_Seg08"] = {
-			joint = "Ring_Base",
-			cframe = { 0.9, 0.15, 0.9, 0, 0, 0, 1 },
-			size = { 0.3, 0.3, 0.3 },
-		},
-		["Ring_Seg09"] = {
-			joint = "Ring_Base",
-			cframe = { 0.6, 0.15, 0.9, 0, 0, 0, 1 },
-			size = { 0.3, 0.3, 0.3 },
-		},
-		["Ring_Seg10"] = {
-			joint = "Ring_Base",
-			cframe = { 0.3, 0.15, 1.2, 0, 0, 0, 1 },
-			size = { 0.3, 0.3, 0.3 },
-		},
-		["Ring_Seg11"] = {
-			joint = "Ring_Base",
-			cframe = { -0.3, 0.15, 1.2, 0, 0, 0, 1 },
-			size = { 0.3, 0.3, 0.3 },
-		},
-		["Ring_Seg12"] = {
-			joint = "Ring_Base",
-			cframe = { -0.6, 0.15, 0.9, 0, 0, 0, 1 },
-			size = { 0.3, 0.3, 0.3 },
-		},
-		["Ring_Seg13"] = {
-			joint = "Ring_Base",
-			cframe = { -0.9, 0.15, 0.9, 0, 0, 0, 1 },
-			size = { 0.3, 0.3, 0.3 },
-		},
-		["Ring_Seg14"] = {
-			joint = "Ring_Base",
-			cframe = { -0.9, 0.15, 0.6, 0, 0, 0, 1 },
-			size = { 0.3, 0.3, 0.3 },
-		},
-		["Ring_Seg15"] = {
-			joint = "Ring_Base",
-			cframe = { -1.2, 0.15, 0.3, 0, 0, 0, 1 },
-			size = { 0.3, 0.3, 0.3 },
-		},
-		["Ring_Seg16"] = {
-			joint = "Ring_Base",
-			cframe = { -1.2, 0.15, -0.3, 0, 0, 0, 1 },
-			size = { 0.3, 0.3, 0.3 },
-		},
-		["Ring_Seg17"] = {
-			joint = "Ring_Base",
-			cframe = { -0.9, 0.15, -0.6, 0, 0, 0, 1 },
-			size = { 0.3, 0.3, 0.3 },
-		},
-		["Ring_Seg18"] = {
-			joint = "Ring_Base",
-			cframe = { -0.9, 0.15, -0.9, 0, 0, 0, 1 },
-			size = { 0.3, 0.3, 0.3 },
-		},
-		["Ring_Seg19"] = {
-			joint = "Ring_Base",
-			cframe = { -0.6, 0.15, -0.9, 0, 0, 0, 1 },
-			size = { 0.3, 0.3, 0.3 },
-		},
-		["Ring_Seg20"] = {
-			joint = "Ring_Base",
-			cframe = { -0.3, 0.15, -1.2, 0, 0, 0, 1 },
-			size = { 0.3, 0.3, 0.3 },
+		["precision_TargetReticle_Mesh1"] = {
+			joint = "TargetReticle",
+			cframe = { 0, 0.33, 0, 0, 0, 0, 1 },
+			size = { 0.66, 0.16, 0.66 },
 		},
 	},
 	clips = {
@@ -395,6 +185,9 @@ return table.freeze({
 						times = { 0, 1.5, 2 },
 						values = { 0, 0, 0, 1, 0, -0.5556, 0, 0.8315, 0, -0.7071, 0, 0.7071 },
 					},
+				},
+				["Ring_Lit"] = {
+					scale = { times = { 0 }, values = { 0, 0, 0 } },
 				},
 			},
 		},

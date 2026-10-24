@@ -29,7 +29,7 @@ return table.freeze({
 		{
 			name = "EyeRedBright_L",
 			parent = "Plate_TL",
-			rest = { 0.0583, -0.2333, -0.04, 0, 0, 0, 1, 0.001, 0.001, 0.001 },
+			rest = { 0.0583, -0.2333, -0.04, 0, 0, 0, 1, 1, 1, 1 },
 		},
 		{
 			name = "Plate_TR",
@@ -44,7 +44,7 @@ return table.freeze({
 		{
 			name = "EyeRedBright_R",
 			parent = "Plate_TR",
-			rest = { -0.0583, -0.2333, -0.04, 0, 0, 0, 1, 0.001, 0.001, 0.001 },
+			rest = { -0.0583, -0.2333, -0.04, 0, 0, 0, 1, 1, 1, 1 },
 		},
 		{
 			name = "Plate_BL",
@@ -87,112 +87,82 @@ return table.freeze({
 		{ name = "Shard_7", parent = "Shards", rest = { 0.1, 0.745, -0.19, 0, 0, 0, 1, 1, 1, 1 } },
 	},
 	parts = {
-		["EyeRedBright_L"] = {
+		["deadlystrike_EyeRedBright_L_Mesh1"] = {
 			joint = "EyeRedBright_L",
 			cframe = { -0.2917, 0.0583, -0.04, 0, 0, 0, 1 },
-			size = { 0.0001, 0.0001, 0.0004 },
+			size = { 0.1167, 0.1167, 0.42 },
 		},
-		["EyeRedBright_R"] = {
+		["deadlystrike_EyeRedBright_R_Mesh1"] = {
 			joint = "EyeRedBright_R",
 			cframe = { 0.2917, 0.0583, -0.04, 0, 0, 0, 1 },
-			size = { 0.0001, 0.0001, 0.0004 },
+			size = { 0.1167, 0.1167, 0.42 },
 		},
-		["EyeRed_L"] = {
+		["deadlystrike_EyeRed_L_Mesh1"] = {
 			joint = "EyeRed_L",
 			cframe = { -0.2917, 0.0583, -0.04, 0, 0, 0, 1 },
 			size = { 0.1167, 0.1167, 0.42 },
 		},
-		["EyeRed_R"] = {
+		["deadlystrike_EyeRed_R_Mesh1"] = {
 			joint = "EyeRed_R",
 			cframe = { 0.2917, 0.0583, -0.04, 0, 0, 0, 1 },
 			size = { 0.1167, 0.1167, 0.42 },
 		},
-		["Plate_BL_Bone"] = {
+		["deadlystrike_Plate_BL_Mesh1"] = {
 			joint = "Plate_BL",
 			cframe = { -0.35, -0.4083, 0, 0, 0, 0, 1 },
 			size = { 0.7, 0.5833, 0.5 },
 		},
-		["Plate_BL_Socket"] = {
-			joint = "Plate_BL",
-			cframe = { -0.2333, -0.35, -0.08, 0, 0, 0, 1 },
-			size = { 0.4667, 0.4667, 0.34 },
-		},
-		["Plate_BR_Bone"] = {
+		["deadlystrike_Plate_BR_Mesh1"] = {
 			joint = "Plate_BR",
-			cframe = { 0.2917, -0.4083, 0, 0, 0, 0, 1 },
-			size = { 0.5833, 0.5833, 0.5 },
+			cframe = { 0.35, -0.4083, 0, 0, 0, 0, 1 },
+			size = { 0.7, 0.5833, 0.5 },
 		},
-		["Plate_BR_BoneShade"] = {
-			joint = "Plate_BR",
-			cframe = { 0.5833, -0.4083, 0, 0, 0, 0, 1 },
-			size = { 0.2333, 0.5833, 0.5 },
-		},
-		["Plate_BR_Socket"] = {
-			joint = "Plate_BR",
-			cframe = { 0.2333, -0.35, -0.08, 0, 0, 0, 1 },
-			size = { 0.4667, 0.4667, 0.34 },
-		},
-		["Plate_TL_Bone"] = {
+		["deadlystrike_Plate_TL_Mesh1"] = {
 			joint = "Plate_TL",
 			cframe = { -0.35, 0.2917, 0, 0, 0, 0, 1 },
 			size = { 0.7, 0.8167, 0.5 },
 		},
-		["Plate_TL_Socket"] = {
-			joint = "Plate_TL",
-			cframe = { -0.2917, 0.0583, -0.08, 0, 0, 0, 1 },
-			size = { 0.35, 0.35, 0.34 },
-		},
-		["Plate_TR_Bone"] = {
+		["deadlystrike_Plate_TR_Mesh1"] = {
 			joint = "Plate_TR",
-			cframe = { 0.2917, 0.2917, 0, 0, 0, 0, 1 },
-			size = { 0.5833, 0.8167, 0.5 },
+			cframe = { 0.35, 0.2917, 0, 0, 0, 0, 1 },
+			size = { 0.7, 0.8167, 0.5 },
 		},
-		["Plate_TR_BoneShade"] = {
-			joint = "Plate_TR",
-			cframe = { 0.525, 0.2917, 0, 0, 0, 0, 1 },
-			size = { 0.35, 0.8167, 0.5 },
-		},
-		["Plate_TR_Socket"] = {
-			joint = "Plate_TR",
-			cframe = { 0.2917, 0.0583, -0.08, 0, 0, 0, 1 },
-			size = { 0.35, 0.35, 0.34 },
-		},
-		["Shard_0"] = {
+		["deadlystrike_Shard_0_Mesh1"] = {
 			joint = "Shard_0",
 			cframe = { -0.557, 0.673, -0.185, 0, 0, 0, 1 },
 			size = { 0.18, 0.18, 0.13 },
 		},
-		["Shard_1"] = {
+		["deadlystrike_Shard_1_Mesh1"] = {
 			joint = "Shard_1",
 			cframe = { 0.527, 0.643, -0.205, 0, 0, 0, 1 },
 			size = { 0.12, 0.12, 0.09 },
 		},
-		["Shard_2"] = {
+		["deadlystrike_Shard_2_Mesh1"] = {
 			joint = "Shard_2",
 			cframe = { 0.81, 0.06, -0.17, 0, 0, 0, 1 },
 			size = { 0.22, 0.16, 0.16 },
 		},
-		["Shard_3"] = {
+		["deadlystrike_Shard_3_Mesh1"] = {
 			joint = "Shard_3",
 			cframe = { -0.77, -0.14, -0.18, 0, 0, 0, 1 },
 			size = { 0.14, 0.2, 0.14 },
 		},
-		["Shard_4"] = {
+		["deadlystrike_Shard_4_Mesh1"] = {
 			joint = "Shard_4",
 			cframe = { -0.633, -0.4, -0.215, 0, 0, 0, 1 },
 			size = { 0.1, 0.1, 0.07 },
 		},
-		["Shard_5"] = {
+		["deadlystrike_Shard_5_Mesh1"] = {
 			joint = "Shard_5",
 			cframe = { 0.12, -0.76, -0.17, 0, 0, 0, 1 },
 			size = { 0.16, 0.12, 0.16 },
 		},
-		["Shard_6"] = {
+		["deadlystrike_Shard_6_Mesh1"] = {
 			joint = "Shard_6",
 			cframe = { 0.648, -0.415, -0.2, 0, 0, 0, 1 },
 			size = { 0.13, 0.13, 0.1 },
 		},
-		["Shard_7"] = {
+		["deadlystrike_Shard_7_Mesh1"] = {
 			joint = "Shard_7",
 			cframe = { 0.1, 0.745, -0.19, 0, 0, 0, 1 },
 			size = { 0.12, 0.09, 0.12 },

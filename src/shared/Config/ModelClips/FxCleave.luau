@@ -15,7 +15,7 @@
 return table.freeze({
 	joints = {},
 	parts = {
-		["cleave_arc_shell"] = {
+		["cleave_fx_cleave_Mesh1"] = {
 			joint = "",
 			cframe = { 0, 0.0325, 0, 0, 0, 0, 1 },
 			size = { 1.7, 0.065, 0.8 },

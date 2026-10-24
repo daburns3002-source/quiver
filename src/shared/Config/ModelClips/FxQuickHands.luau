@@ -15,17 +15,17 @@
 return table.freeze({
 	joints = {},
 	parts = {
-		["quick_hands_chevron_1"] = {
+		["quickhands_quick_hands_chevron_1_Mesh1"] = {
 			joint = "",
 			cframe = { 0.0416, 0.1846, 0.4497, 0, -0.5896, 0, 0.8077 },
 			size = { 0.6708, 0.1092, 1.0816 },
 		},
-		["quick_hands_chevron_2"] = {
+		["quickhands_quick_hands_chevron_2_Mesh1"] = {
 			joint = "",
 			cframe = { -0.1512, 0.102, -0.1528, 0, -0.5896, 0, 0.8077 },
 			size = { 0.516, 0.084, 0.832 },
 		},
-		["quick_hands_chevron_3"] = {
+		["quickhands_quick_hands_chevron_3_Mesh1"] = {
 			joint = "",
 			cframe = { -0.3147, 0.0304, -0.6639, 0, -0.5896, 0, 0.8077 },
 			size = { 0.3741, 0.0609, 0.6032 },

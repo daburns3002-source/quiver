@@ -26,42 +26,42 @@ return table.freeze({
 		{ name = "leaf_left", parent = "sprout", rest = { -0.25, 0.875, 0, 0, 0, 0, 1, 1, 1, 1 } },
 	},
 	parts = {
-		["leaf_left_mesh_leaf_dark"] = {
-			joint = "leaf_left",
-			cframe = { -1.375, 1.625, 0.125, 0, 0, 0, 1 },
-			size = { 2.5, 1.25, 0.5 },
-		},
-		["leaf_left_mesh_leaf_green"] = {
-			joint = "leaf_left",
-			cframe = { -1.5, 1.875, 0.125, 0, 0, 0, 1 },
-			size = { 2.25, 1.25, 0.5 },
-		},
-		["leaf_left_mesh_leaf_light"] = {
+		["mending_leaf_left_Glow1"] = {
 			joint = "leaf_left",
 			cframe = { -1.375, 2, 0.125, 0, 0, 0, 1 },
 			size = { 2.5, 1.5, 0.5 },
 		},
-		["leaf_right_mesh_leaf_dark"] = {
-			joint = "leaf_right",
-			cframe = { 1.625, 1.625, 0.125, 0, 0, 0, 1 },
+		["mending_leaf_left_Glow2"] = {
+			joint = "leaf_left",
+			cframe = { -1.375, 1.625, 0.125, 0, 0, 0, 1 },
 			size = { 2.5, 1.25, 0.5 },
 		},
-		["leaf_right_mesh_leaf_green"] = {
-			joint = "leaf_right",
-			cframe = { 1.75, 1.875, 0.125, 0, 0, 0, 1 },
+		["mending_leaf_left_Glow3"] = {
+			joint = "leaf_left",
+			cframe = { -1.5, 1.875, 0.125, 0, 0, 0, 1 },
 			size = { 2.25, 1.25, 0.5 },
 		},
-		["leaf_right_mesh_leaf_light"] = {
+		["mending_leaf_right_Glow1"] = {
 			joint = "leaf_right",
 			cframe = { 1.625, 2, 0.125, 0, 0, 0, 1 },
 			size = { 2.5, 1.5, 0.5 },
 		},
-		["soil_mesh_soil_brown"] = {
+		["mending_leaf_right_Glow2"] = {
+			joint = "leaf_right",
+			cframe = { 1.625, 1.625, 0.125, 0, 0, 0, 1 },
+			size = { 2.5, 1.25, 0.5 },
+		},
+		["mending_leaf_right_Glow3"] = {
+			joint = "leaf_right",
+			cframe = { 1.75, 1.875, 0.125, 0, 0, 0, 1 },
+			size = { 2.25, 1.25, 0.5 },
+		},
+		["mending_soil_Glow1"] = {
 			joint = "soil",
 			cframe = { 0.125, 0.125, 0.125, 0, 0, 0, 1 },
 			size = { 2.5, 0.25, 1 },
 		},
-		["sprout_mesh_leaf_dark"] = {
+		["mending_sprout_Glow1"] = {
 			joint = "sprout",
 			cframe = { 0.125, 0.875, 0.125, 0, 0, 0, 1 },
 			size = { 0.5, 1.25, 0.5 },

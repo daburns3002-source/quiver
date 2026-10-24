@@ -28,29 +28,29 @@ return table.freeze({
 		{
 			name = "plus_flash",
 			parent = "AL_VFX_04_life_drop",
-			rest = { 1.75, 2.125, -0.125, 0, 0, 0, 1, 0.001, 0.001, 0.001 },
+			rest = { 1.75, 2.125, -0.125, 0, 0, 0, 1, 1, 1, 1 },
 		},
 	},
 	parts = {
-		["droplet_mesh_drop_crimson"] = {
+		["bloodthirst_droplet_Glow1"] = {
 			joint = "droplet",
 			cframe = { 0, 1.375, 0, 0, 0, 0, 1 },
 			size = { 1.75, 2.75, 1.75 },
 		},
-		["droplet_mesh_drop_light"] = {
+		["bloodthirst_droplet_Glow2"] = {
 			joint = "droplet",
 			cframe = { -0.375, 1.5, 0.375, 0, 0, 0, 1 },
 			size = { 0.5, 1, 0.5 },
 		},
-		["plus_flash_mesh_flash_white"] = {
-			joint = "plus_flash",
-			cframe = { 1.75, 2.125, -0.125, 0, 0, 0, 1 },
-			size = { 0.0018, 0.0018, 0.0005 },
-		},
-		["plus_mesh_plus_green"] = {
+		["bloodthirst_plus_Glow1"] = {
 			joint = "plus",
 			cframe = { 1.75, 2.125, -0.125, 0, 0, 0, 1 },
 			size = { 1.25, 1.25, 0.5 },
+		},
+		["bloodthirst_plus_flash_Glow1"] = {
+			joint = "plus_flash",
+			cframe = { 1.75, 2.125, -0.125, 0, 0, 0, 1 },
+			size = { 1.75, 1.75, 0.5 },
 		},
 	},
 	clips = {

@@ -112,6 +112,7 @@ Claude Design's 3D models carry their clips (Idle, Hop, Follow, an attack…) in
 3. In the game, the model carries the CollectionService tag `ModelClips` and the attribute `ModelClips = "<Name>"`; its `ModelClip` attribute names the clip to play (the server can set it; it replicates), `ModelClipSpeed` its pace. `Fx/ModelAnimator` does the rest on the client.
 4. The animator reads how the import scaled and turned the model from its parts' rest places (`Shared/Util/ModelClip.fit`), so a re-import at another size needs no change. If the parts do not line up with the data (renamed, merged, another model) it leaves the model alone and logs `ModelAnimator` a warning.
 5. `tests/ModelClip.spec` pins the data's shape, the fit and how a joint's move reaches its parts.
+6. **Pets in Studio before Phase 6:** after the owner imports the pet GLBs (Merge Meshes **off**), run `tools/studio/dump_models.luau` (Edit) and save its JSON as `assets/models/model_imports.json`; `python -I tools/imports_to_luau.py` → `Config/PetModels/<Name>` (each part's mesh id, colour, material, size and place). In a Studio playtest, **P** builds them (`Server/Dev/PetPreview`, Studio only) and they follow the player playing Idle and Follow (`Fx/PetPreview`).
 
 **Pitfalls seen:** a looping clip read at exactly its length is back at its start (`pose` wraps); a turn about an axis through a joint has no travel, so test travel with a lift, not a turn.
 

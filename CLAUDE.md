@@ -298,6 +298,9 @@ From a probe, `Remotes.DebugRoom:FireServer(10)` jumps the run to a room
 From a probe, `Remotes.DebugGrant:FireServer("Cleave")` grants one level of
 any card (Studio only), to test a card's effect without drafting it.
 **K** — spawn a wilf (`Remotes.DebugSpawnEnemy`, any `Balance.Enemies` key from a probe).
+**P** — the pets the owner imported follow you, playing their own clips
+(`Fx/PetPreview`, built by `Server/Dev/PetPreview` from `Config/PetModels`); P again
+puts them away. A look only, until Phase 6's pet system.
 From a probe, `Remotes.DebugForceMythic:FireServer("Legendary")` does the
 same without the MCP keyboard tool, which reports as a gamepad and flips the
 draft into its controller layout.

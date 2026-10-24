@@ -1604,25 +1604,39 @@ local Balance = {
 
 	Rooms = rooms,
 
-	--[[ Global light, after the footage: bright and even, nothing important
-	     ever in shadow, and a soft bloom so glowing things glow. The bloom is
-	     switched off on the lowest device tier. ]]
+	--[[ Global light. Bright and even after the footage, nothing important
+	     ever in shadow, and a soft bloom so glowing things glow (switched
+	     off on the lowest device tier). Warmed to the Mossy Glade's
+	     reference sheet (owner, 2026-10-24: "it doesnt look as good as the
+	     pics"): a mid-afternoon sun with a golden cast, a warm ambient in
+	     place of the old blue-violet one so the shade under the trees reads
+	     green rather than black, softer shadows, and a tighter bloom, which
+	     at the old size swelled every glowing mushroom into a cyan blob. ]]
 	Lighting = {
-		ambient = Color3.fromRGB(124, 122, 156),
-		outdoorAmbient = Color3.fromRGB(150, 150, 184),
-		brightness = 2.2,
-		clockTime = 14,
-		bloomIntensity = 0.55,
-		bloomSize = 26,
-		bloomThreshold = 1.15,
-		saturation = 0.15,
-		contrast = 0.05,
-		--[[ The distance haze. The place's default is grey, which read as
-		     grey space at the edges of the screen (owner, 2026-10-22); a
-		     forest green reads as the glade going on into mist. ]]
-		hazeDensity = 0.3,
-		hazeColor = Color3.fromRGB(70, 110, 60),
-		hazeDecay = Color3.fromRGB(30, 60, 30),
+		ambient = Color3.fromRGB(150, 150, 125),
+		outdoorAmbient = Color3.fromRGB(175, 178, 140),
+		brightness = 2.6,
+		clockTime = 15.6,
+		geographicLatitude = 30,
+		sunTint = Color3.fromRGB(255, 225, 175),
+		shadowSoftness = 0.6,
+		environmentDiffuse = 0.8,
+		environmentSpecular = 0.2,
+		bloomIntensity = 0.6,
+		bloomSize = 10,
+		bloomThreshold = 1.1,
+		saturation = 0.05,
+		contrast = 0.06,
+		gradeBrightness = 0.02,
+		gradeTint = Color3.fromRGB(255, 247, 230),
+		--[[ The distance haze: a sunlit yellow-green, so the screen's edges
+		     read as the glade going on into warm mist, never grey space
+		     (owner, 2026-10-22). ]]
+		hazeDensity = 0.25,
+		hazeColor = Color3.fromRGB(200, 215, 150),
+		hazeDecay = Color3.fromRGB(110, 140, 70),
+		hazeGlare = 0.3,
+		haze = 1.2,
 	},
 
 	Stages = {

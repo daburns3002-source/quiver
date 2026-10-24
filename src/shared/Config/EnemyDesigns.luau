@@ -563,6 +563,11 @@ local EnemyDesigns = {
 	TintTag = TINT_TAG,
 	BoneTag = "RidesBone",
 	EyeTag = "Eye",
+	--[[ Every enemy body is drawn this much darker than its design, Neon
+	     eyes and glow excepted, so it stands out against the bright lawn
+	     (owner, 2026-10-24: "make the enemies darker, there needs to be
+	     more contrast there"). A telegraph or hit flash is unaffected. ]]
+	BodyShade = 0.68,
 
 	Charger = charger,
 	Spitter = spitter,

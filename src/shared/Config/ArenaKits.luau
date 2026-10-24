@@ -20,6 +20,11 @@ export type Piece = {
 	size: Vector3,
 	centre: Vector3,
 	glow: { meshId: string, size: Vector3, centre: Vector3 }?,
+	--[[ The piece's colour in place of white, which multiplies its vertex
+	     colours: a deeper, cooler green on the mossy and grassy pieces, so
+	     they part from the lawn (owner, 2026-10-24: "make the objects that
+	     have grass or moss a different color than the floor"). ]]
+	tint: Color3?,
 }
 
 export type Kit = {
@@ -44,6 +49,13 @@ export type Kit = {
 	thicketSpacing: number,
 }
 
+--[[ Mossy Glade tints (see `Piece.tint`): stone and wood keep most of their
+     own colour; ferns and tufts, all green, go deepest. ]]
+local MOSS_STONE = Color3.fromRGB(150, 185, 150)
+local MOSS_WOOD = Color3.fromRGB(170, 195, 165)
+local FERN = Color3.fromRGB(110, 160, 120)
+local TUFT = Color3.fromRGB(130, 175, 135)
+
 local ArenaKits: { [string]: Kit } = {
 	Mossy = {
 		scale = 3.2,
@@ -52,21 +64,25 @@ local ArenaKits: { [string]: Kit } = {
 				meshId = "rbxassetid://133735089173602",
 				size = Vector3.new(1.104, 0.722, 0.492),
 				centre = Vector3.new(0, 0.361, 0),
+				tint = MOSS_STONE,
 			},
 			CornerPillar = {
 				meshId = "rbxassetid://95109128405834",
 				size = Vector3.new(0.86, 1.02, 0.77),
 				centre = Vector3.new(0, 0.51, 0),
+				tint = MOSS_STONE,
 			},
 			FallenLog = {
 				meshId = "rbxassetid://83798974084855",
 				size = Vector3.new(2.48, 0.8165, 1),
 				centre = Vector3.new(0, 0.4083, 0),
+				tint = MOSS_WOOD,
 			},
 			TreeStump = {
 				meshId = "rbxassetid://118180618895571",
 				size = Vector3.new(1.18, 0.75, 1.115),
 				centre = Vector3.new(0, 0.375, 0),
+				tint = MOSS_WOOD,
 			},
 			SteppingStone = {
 				meshId = "rbxassetid://109662616490392",
@@ -77,11 +93,13 @@ local ArenaKits: { [string]: Kit } = {
 				meshId = "rbxassetid://124658136550762",
 				size = Vector3.new(0.82, 0.75, 0.7754),
 				centre = Vector3.new(0, 0.375, 0),
+				tint = FERN,
 			},
 			FlowerTuft = {
 				meshId = "rbxassetid://77682975928453",
 				size = Vector3.new(0.5506, 0.48, 0.4644),
 				centre = Vector3.new(0, 0.24, 0),
+				tint = TUFT,
 			},
 			GlowMushroom = {
 				meshId = "rbxassetid://134249505947377",
@@ -95,10 +113,13 @@ local ArenaKits: { [string]: Kit } = {
 			},
 		},
 		tile = 3.5,
+		--[[ A warm, sunlit yellow-green, after the reference sheet, apart
+		     from the cooler, deeper moss on the pieces standing on it. Was
+		     (106, 176, 64) and its neighbours, the same green as the moss. ]]
 		lawn = {
-			Color3.fromRGB(106, 176, 64),
-			Color3.fromRGB(96, 166, 58),
-			Color3.fromRGB(116, 186, 70),
+			Color3.fromRGB(150, 190, 78),
+			Color3.fromRGB(140, 180, 72),
+			Color3.fromRGB(160, 198, 84),
 		},
 		water = Color3.fromRGB(70, 150, 190),
 		bank = Color3.fromRGB(70, 120, 48),

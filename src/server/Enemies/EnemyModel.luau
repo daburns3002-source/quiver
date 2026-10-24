@@ -91,7 +91,11 @@ end
 --[[ The colour a part rests at: its fixed colour if the design gives one,
      otherwise its shade of the archetype's. ]]
 local function restingColour(spec: DesignPart, config: EnemyConfig): Color3
-	return spec.color or shaded(config.color, spec.shade)
+	local colour = spec.color or shaded(config.color, spec.shade)
+	if spec.material == Enum.Material.Neon then
+		return colour
+	end
+	return shaded(colour, EnemyDesigns.BodyShade)
 end
 
 --[[ Attribute holding a part's resting transparency, so hiding and showing

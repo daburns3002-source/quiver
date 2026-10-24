@@ -47,6 +47,11 @@ function Atmosphere.apply()
 	Lighting.OutdoorAmbient = config.outdoorAmbient
 	Lighting.Brightness = config.brightness
 	Lighting.ClockTime = config.clockTime
+	Lighting.GeographicLatitude = config.geographicLatitude
+	Lighting.ColorShift_Top = config.sunTint
+	Lighting.ShadowSoftness = config.shadowSoftness
+	Lighting.EnvironmentDiffuseScale = config.environmentDiffuse
+	Lighting.EnvironmentSpecularScale = config.environmentSpecular
 
 	local bloom: BloomEffect = ensure("BloomEffect", Atmosphere.BloomName)
 	bloom.Intensity = config.bloomIntensity
@@ -57,10 +62,14 @@ function Atmosphere.apply()
 	haze.Density = config.hazeDensity
 	haze.Color = config.hazeColor
 	haze.Decay = config.hazeDecay
+	haze.Glare = config.hazeGlare
+	haze.Haze = config.haze
 
 	local grade: ColorCorrectionEffect = ensure("ColorCorrectionEffect", Atmosphere.GradeName)
 	grade.Saturation = config.saturation
 	grade.Contrast = config.contrast
+	grade.Brightness = config.gradeBrightness
+	grade.TintColor = config.gradeTint
 end
 
 return Atmosphere

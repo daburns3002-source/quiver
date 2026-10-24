@@ -62,7 +62,7 @@ rainbow glow and star sparkles (`13_variants.png`).
 | # | Pet | Rarity | Look | Ties to the area |
 |---|---|---|---|---|
 | 1 | **Mosslet** | Common | a lime jelly cube with a moss slab, one orange mushroom and a sprout | a baby Moss Slime |
-| 2 | **Acorn Pip** | Common | a brown cube in a blocky acorn-cap beanie, pink cheeks | the glade's oaks |
+| 2 | **Babacorn** | Common | a brown cube in a blocky acorn-cap beanie, pink cheeks | the glade's oaks |
 | 3 | **Fern Frog** | Common | a wide sage-green box frog, cube eyes on top, a fern frond cowlick | the pond room |
 | 4 | **Toadstool Tot** | Uncommon | a cream cube under an oversized red, white-spotted cap; leaf satchel | the mushrooms on every slime |
 | 5 | **Mossback Snail** | Uncommon | a mint box snail carrying a mossy stone-cube shell | the boulders room |

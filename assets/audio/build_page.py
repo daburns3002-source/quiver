@@ -139,8 +139,15 @@ ROUND_13 = [
     }),
 ]
 
+ROUND_14 = [
+    ("Round 14 · every Blaze take again, from rounds 12 and 13", {
+        "fx_blaze": ROUND_12[0][1]["fx_blaze"],
+    }),
+]
+
 # page: (rounds, picks collection, sounds already chosen, shown for context)
 PAGES = {
+    "14": (ROUND_14, "picks14", ["Heal", "Blast Arrows", "Bloodletting", "Chain Lightning", "Meteor", "Overdraw", "Heavy Blade", "Earthbreaker", "Soul Chain (an octave lower)"]),
     "13": (ROUND_13, "picks13", ["Heal (quieter, lower)", "Blast Arrows B", "Bloodletting D", "Chain Lightning C", "Meteor A"]),
     "12": (ROUND_12, "picks12", []),
     "1-2": (ROUND_1_2, "picks", []),

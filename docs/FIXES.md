@@ -1195,3 +1195,18 @@ rest size (the same fault as King Bloblin's lash links).
 
 The result is 1,952 parts down to 240. `tests/UpgradeFx.spec` holds every
 effect to `Balance.UpgradeFx.maxParts`.
+
+## Trees outside the arena clipped into each other as the camera moved
+
+**Symptom:** the owner: "the clipping is on the trees outside of the arena".
+After #240 moved the ambience clear of the crowns, the trees themselves still
+cut through one another as the view slid with the player.
+**Cause:** the imported forest had six pairs of neighbouring crowns running
+into each other (up to 0.82 studs), four trunks reaching into the next tree's
+crown, and one pair of trunks touching. An earlier check missed it: it
+measured each crown as a shrunken circle, not by its full blocky box.
+**Fix:** `tools/forest_to_luau.py` separates trees before writing
+`Config/GladeForest`. Each tree (trunk and crown together) is pushed apart
+from any tree it overlaps, along the smaller overlap, with a 0.3-stud gap,
+and the move goes to whichever tree it takes away from the room. 17 trees
+moved, at most 1.1 studs. Measure trees by their full boxes, not circles.

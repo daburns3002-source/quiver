@@ -198,6 +198,48 @@ local function onContact(position: Vector3, heading: Vector3, pool: string, pier
 	})
 end
 
+--[[ How the meteor model is held so it falls straight down: the model was
+     drawn with its rock off its pivot and its trail streaming off at a
+     slant, so both are measured from it (the rock is the part named Rock,
+     the trail every other part) and the model is turned until the trail
+     points straight up, with the rock where the falling ball is. ]]
+local meteorHoldCache: CFrame? = nil
+local function meteorHold(): CFrame
+	local cached = meteorHoldCache
+	if cached then
+		return cached
+	end
+	local folder = ReplicatedStorage:FindFirstChild("UpgradeEffects")
+	local model = folder and folder:FindFirstChild("FxMeteor")
+	if not model then
+		return CFrame.identity
+	end
+	local rockAt, trail, count = nil :: Vector3?, Vector3.zero, 0
+	for _, part in model:GetChildren() do
+		if part:IsA("BasePart") then
+			-- the template is built at the origin, so positions are the pivot's
+			if string.find(part.Name, "_Rock_", 1, true) then
+				rockAt = part.Position
+			else
+				trail += part.Position
+				count += 1
+			end
+		end
+	end
+	if not rockAt or count == 0 then
+		return CFrame.identity
+	end
+	local streams = (trail / count - rockAt).Unit
+	-- the turn that takes the trail's direction onto straight up
+	local axis = streams:Cross(Vector3.yAxis)
+	local turn = if axis.Magnitude > 1e-4
+		then CFrame.fromAxisAngle(axis.Unit, math.acos(math.clamp(streams.Y, -1, 1)))
+		else CFrame.identity
+	local hold = turn * CFrame.new(-rockAt)
+	meteorHoldCache = hold
+	return hold
+end
+
 local function onMeteor(rock: BasePart)
 	-- the ball and its halo give way to the faceted rock
 	rock.Transparency = 1
@@ -206,8 +248,10 @@ local function onMeteor(rock: BasePart)
 			d.Transparency = 1
 		end
 	end
-	local last = rock.Position
-	local spin = 0
+	--[[ Straight down, and steady: no tumble (owner, 2026-10-24: "the
+	     meteor should fall straight down instead of spinning in the air").
+	     The rock rides the ball's place with its trail straight up above. ]]
+	local hold = meteorHold()
 	UpgradeFx.play("FxMeteor", {
 		at = rock.CFrame,
 		life = K.meteorLife,
@@ -215,15 +259,7 @@ local function onMeteor(rock: BasePart)
 			if not rock.Parent then
 				return nil
 			end
-			local now = rock.Position
-			local fall = now - last
-			last = now
-			spin += K.meteorTumble
-			local heading = if fall.Magnitude > 1e-3
-				then fall.Unit
-				else Vector3.new(-0.4, -1, 0.6).Unit
-			-- the trail streams back up the way it came
-			return CFrame.lookAt(now, now + heading) * CFrame.Angles(0, 0, spin)
+			return CFrame.new(rock.Position) * hold
 		end,
 	})
 end

@@ -20,6 +20,21 @@ What is in flight right now is in [TRACKER.md](TRACKER.md).
 | `python -I tools/glb_clips_to_luau.py` | The clips inside the Claude Design GLBs listed in `assets/models/model_clips.json` → one data module each in `Config/ModelClips/`. See 10. |
 | `tools/ship.sh "<title>" <body.md>` | Gates, push, PR, waits for CI, updates the branch if main moved, merges. |
 
+## Imports leave the world once dumped
+
+An import only exists so its mesh ids can be read; the game builds every
+model from `Config`, never from the import. Left in the Workspace, though,
+every playtest replicates and draws it. On 2026-10-24, 65 imports (4,167
+parts) took a playtest from 60 FPS to 26, with a 323 ms worst frame
+(`docs/FIXES.md`).
+
+So the moment a dump has read an import, it moves to **`ServerStorage.Imports`**:
+not replicated, not drawn, and still there to dump again. Both dump scripts
+read `ServerStorage.Imports` as well as the Workspace, so a dump after the move
+still finds everything — which matters, because `imports_to_luau.py` prunes
+every module it does not regenerate. Only fresh, not-yet-dumped imports belong
+in the Workspace.
+
 ## 0. The loop every change goes through
 
 1. **Intake** (if something was sent): `tools/intake.py`. Decide the pipeline below.

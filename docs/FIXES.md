@@ -16,6 +16,26 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## King Bloblin stood frozen, or held his lash fist on the floor
+
+**Symptom**: 2026-10-24, Studio playtest of room 10 after #197.
+- Some jumps to the room left King Bloblin playing no clips at all. All 72 of his parts were still welded to his hitbox, and the client logged `ModelAnimator: SlimeKing's parts do not line up with KingBloblin (fit error 0.499)`.
+- On jumps where he did animate, a lash that grabbed went from Strike straight to Pull, never Hold, which `BossClips.spec` failed on.
+
+**Cause**:
+- His skin is welded to his anchored hitbox, and on a client a welded part lags the hitbox the server moves by a frame. `ModelAnimator` fit his rest pose from where the parts stood. When he replicated mid-jump, his eyes (the parts the fit reads) sat half a stud off, and the fit was refused.
+- The grab is not a bug: the server resolves it as the slap begins, so a hit has no Hold.
+
+**Fix**:
+- `EnemyModel` gives every imported part a `RestCFrame` attribute, its exact place on the hitbox. `ModelAnimator` fits and rests from that.
+- The spec now expects Strike → Pull on a hit.
+
+**Measured**:
+- Before: 1 jump in about 4 left him unanimated (`#197` in Studio).
+- With him animated: 3 bounces then Winded, both lashes (Wind, Strike, Hold, Retract on a miss; Pull, ChestBump, Recover on a grab), every clip switching on its beat.
+- The fist landed 0.3 studs short of a 9.4-stud lane, 0.2 off its centre line, 2.9 to 4.2 studs across, with all 24 link parts out. In the probe from the clip data, it landed at 5.5 to 6.0 on a 6-stud lane and 17.0 on an 18-stud lane.
+- The `RestCFrame` fix (#198) is not yet seen in Studio, because the synced checkout is on another branch.
+
 ## Preview pets walked backwards
 
 **Symptom** — 2026-10-23, Studio playtest of **P**: walking +X, every pet's

@@ -172,6 +172,7 @@ end
 
 local function startStage()
 	local current = stage()
+	RunSession.holdOffers(false)
 
 	for _, session in RunSession.all() do
 		RunSession.newStage(session)
@@ -196,6 +197,7 @@ function RoomController.debugEnterRoom(position: number)
 	if stage().mode ~= "Rooms" or position < 1 or position > total() then
 		return
 	end
+	RunSession.holdOffers(false)
 	enterRoom(position)
 end
 
@@ -363,6 +365,11 @@ function RoomController.step(now: number)
 		end
 
 		state = "Cleared"
+		--[[ The area's last fight (its boss) is won: no card for the levels
+		     its crystals bring; they are dealt in the next stage. ]]
+		if progress >= total() then
+			RunSession.holdOffers(true)
+		end
 		--[[ Held for a beat after the last kill, so a clear reads as its own
 		     moment rather than being swallowed by what comes next. ]]
 		resumeAt = now

@@ -112,6 +112,13 @@ local RunSession = {}
 
 local sessions: { [Player]: Session } = {}
 
+--[[ Whether level-up hands are held back: once a stage's last room or wave
+     is cleared, the area is done and a card would only stand between the
+     player and the end screen (owner, 2026-10-24: "no longer prompt the
+     player after the last boss of any area is defeated"). The levels are
+     kept, owed, and dealt in the next stage. Set by `RoomController`. ]]
+local offersHeld = false
+
 --[[
 	Called when a player's run health reaches zero.
 
@@ -288,7 +295,7 @@ end
 --[[ Opens a card screen if one is owed and none is open. Safe to call every
      frame; it does nothing until there is something to show. ]]
 function RunSession.offerIfOwed(session: Session)
-	if not session.alive then
+	if not session.alive or offersHeld then
 		return
 	end
 
@@ -304,6 +311,11 @@ function RunSession.offerIfOwed(session: Session)
 			session.loadout.rerolls
 		)
 	end
+end
+
+--[[ Holds level-up hands back, or lets them through again (`offersHeld`). ]]
+function RunSession.holdOffers(held: boolean)
+	offersHeld = held
 end
 
 --[[

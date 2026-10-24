@@ -2234,6 +2234,9 @@ local Balance = {
 	UpgradeFx = {
 		-- most copies of one effect alive at once, unless `caps` says
 		defaultCap = 4,
+		-- most parts an effect may be (tests/UpgradeFx.spec): each copy's
+		-- parts are posed every frame
+		maxParts = 40,
 		caps = {
 			-- trails ride arrows, which come in volleys
 			FxSwiftArrows = 12,
@@ -2244,6 +2247,9 @@ local Balance = {
 			FxBloodletting = 3,
 			FxLightfoot = 4,
 			FxExecute = 6,
+			FxCleave = 3,
+			FxTrackingEye = 8,
+			FxChainLightning = 6,
 		},
 		-- the stepped pop of an effect with no clip: each step's length, and
 		-- how long it takes to shrink away at the end
@@ -2315,6 +2321,63 @@ local Balance = {
 		chainLength = 10,
 		chainLift = 1.1,
 		chainLife = 0.35,
+		-- Warden: a plate's white flash
+		plateFlash = 0.1,
+		-- Iron Skin's plates: height on the body, turn (radians a second),
+		-- and how dim they rest (0 solid, 1 gone)
+		platesLift = 0.3,
+		platesTurn = 0.6,
+		platesDim = 0.45,
+		-- Quick Hands' chevrons, behind and above the Warden
+		chevronBehind = 1.5,
+		chevronLift = 1.5,
+		chevronLife = 0.3,
+		-- Long Reach's ghost blade, past the swing's reach
+		reachLift = 1,
+		reachLife = 0.3,
+		-- Steadfast: a swing's length for its first two plates
+		steadfastSwing = 0.5,
+		slamLife = 0.6,
+		cleaveLife = 0.4,
+		-- Bloodletting: its full length in studs, where its heart sits
+		-- along it, and its life
+		drainLength = 8,
+		drainHeart = 3.6,
+		drainLife = 0.5,
+		-- Execute: drawn ×1.9 so its ring fits a 3-stud enemy; the mark and
+		-- the drop sit this far either side of the model's middle
+		executeScale = 1.9,
+		executeMark = 2.4,
+		executeDrop = -2.6,
+		-- a death this close to a brand is the brand's kill
+		executeMatch = 2,
+		executeLife = 0.6,
+		-- Earthbreaker's debris, drawn at the slam's real radius
+		earthbreakerRadius = 5.5,
+		earthbreakerLife = 0.8,
+		-- Arcanist: Twin Cast's and Arcane Echo's beats at the staff
+		twinLife = 0.6,
+		echoLife = 0.9,
+		-- Homing Orbs' crosshair, above the target's middle
+		crosshairLift = 0.4,
+		-- Mana Flow's orbit, this far above the staff hand
+		staffHead = 2.2,
+		-- Bigger Orbs' shell plays its level's clip over this long
+		shellSpan = 0.5,
+		-- Chain Lightning's bolt: segments, width, how far each kink pushes
+		-- off the line, how often it re-kinks, its colours and life
+		boltSegments = 6,
+		boltWidth = 0.42,
+		boltKink = 0.9,
+		boltCrackle = 0.05,
+		boltCore = Color3.fromRGB(235, 250, 255),
+		boltRim = Color3.fromRGB(60, 190, 255),
+		boltLife = 0.28,
+		nodeLift = 1.4,
+		-- Meteor: the rock rides the fall at most this long, turning a step
+		-- a frame
+		meteorLife = 2,
+		meteorTumble = 0.08,
 	},
 }
 

@@ -17,37 +17,37 @@ return table.freeze({
 	parts = {
 		["spellpierce_FX_SpellPierce_Lance_Glow1"] = {
 			joint = "",
-			cframe = { -0.0733, 0, 0, 0, 0, 0, 1 },
+			cframe = { -0.0733, 0, 0.9, 0, 0, 0, 1 },
 			size = { 1.893, 0.1667, 0.1667 },
 		},
 		["spellpierce_FX_SpellPierce_Lance_Mesh2"] = {
 			joint = "",
-			cframe = { 0, 0, 0, 0, 0, 0, 1 },
+			cframe = { 0, 0, 0.9, 0, 0, 0, 1 },
 			size = { 2.0975, 0.56, 0.56 },
 		},
 		["spellpierce_FX_SpellPierce_Lance_Mesh3"] = {
 			joint = "",
-			cframe = { -0.0088, 0, 0, 0, 0, 0, 1 },
+			cframe = { -0.0088, 0, 0.9, 0, 0, 0, 1 },
 			size = { 2.02, 0.5, 0.5 },
 		},
 		["spellpierce_FX_SpellPierce_Puncture_Glow2"] = {
 			joint = "",
-			cframe = { 0.089, -0.1456, 0.001, 0, 0, 0, 1 },
+			cframe = { 0.089, -0.1456, -0.499, 0, 0, 0, 1 },
 			size = { 1.6712, 1.913, 0.04 },
 		},
 		["spellpierce_FX_SpellPierce_Puncture_Glow3"] = {
 			joint = "",
-			cframe = { 0, 0, 0.031, 0, 0, 0, 1 },
+			cframe = { 0, 0, -0.469, 0, 0, 0, 1 },
 			size = { 2.9416, 2.9416, 0.016 },
 		},
 		["spellpierce_FX_SpellPierce_Puncture_Mesh1"] = {
 			joint = "",
-			cframe = { 0.1015, -0.166, -0.0165, 0, 0, 0, 1 },
+			cframe = { 0.1015, -0.166, -0.5165, 0, 0, 0, 1 },
 			size = { 1.9059, 2.1816, 0.045 },
 		},
 		["spellpierce_FX_SpellPierce_Shards_Glow1"] = {
 			joint = "",
-			cframe = { 0, 0, 0, 0, 0, 0, 1 },
+			cframe = { 0, 0, 0.3, 0, 0, 0, 1 },
 			size = { 2.2971, 1.5241, 0.8968 },
 		},
 	},

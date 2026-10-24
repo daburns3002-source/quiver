@@ -56,14 +56,18 @@ EFFECTS = {
         "keep": {
             "Node": ["Node_2T_01_"],
             "Shard": ["Shard_2T_01"],
-        }
+        },
+        "offset": {"Shard": [0.9, 0.6, 0]},
     },
     "spellpierce": {
         "keep": {
             "Lance": ["Beauty_Lance_01"],
             "Puncture": ["Beauty_Puncture_01"],
             "Shards": ["Beauty_Shards"],
-        }
+        },
+        # laid out along the flight (+Z, the front once imported): the
+        # puncture on the body's entry face, the lance out of the far side
+        "offset": {"Lance": [0, 0, 0.9], "Puncture": [0, 0, -0.5], "Shards": [0, 0, 0.3]},
     },
 }
 
@@ -378,8 +382,9 @@ def optimise(src, out, effect):
                 continue
             allp = np.vstack([p for k in parts for p in groups[k]["pos"]])
             centre = (allp.min(axis=0) + allp.max(axis=0)) / 2
+            shift = np.array(config.get("offset", {}).get(piece, [0, 0, 0]), dtype=float)
             for k in parts:
-                groups[k]["pos"] = [p - centre for p in groups[k]["pos"]]
+                groups[k]["pos"] = [p - centre + shift for p in groups[k]["pos"]]
             owner_index[piece] = len(out_nodes)
             out_nodes[0]["children"].append(len(out_nodes))
             # part names must be unique across effects: imports are matched by them

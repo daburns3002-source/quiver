@@ -32,7 +32,7 @@ return table.freeze({
 		},
 		["chainlightning_FX_ChainLightning_Shard_Glow1"] = {
 			joint = "",
-			cframe = { 0, 0, 0, 0, 0, 0, 1 },
+			cframe = { 0.9, 0.6, 0, 0, 0, 0, 1 },
 			size = { 0.2952, 0.2474, 0.2488 },
 		},
 	},

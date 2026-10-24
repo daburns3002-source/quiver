@@ -91,6 +91,41 @@ Fitted against their clip data in Lune, every one came out at scale 1.000
 (Hootmoss 0.999), turned half round, with error under 0.3% of its spread
 (the Mosslet was 12% before multi-part names were left out of the fit).
 
+## King Bloblin turned all white in a fight
+
+**Symptom** — owner, 2026-10-24: "the king is all white". On the client, 60
+of his 72 parts read pure white (1, 1, 1), his eyes alone amber; the server
+had every colour right.
+
+**Cause** — the hit flash (`Fx/HitFeedback`) paints a hit enemy white and
+puts back the colour it saw when that flash began. A hit landing inside an
+earlier flash saw the white and put that back. Enemies that die in a few
+hits hid it, and the old round king was white by design (vertex colours);
+the blocky King, hit faster than his flash lasts, stayed white.
+
+**Fix** — each part's colour is kept from its first flash and put back
+only when the last overlapping flash ends.
+
+**Measured** — see the PR: room 10, his parts in their colours throughout
+a fight.
+
+## King Bloblin's lash chain never appeared
+
+**Symptom** — owner, 2026-10-24: "the lash attack is unfinished". Through a
+whole lash (Wind, Strike, Hold, Retract) all 24 chain parts stayed at a
+thousandth of a stud and never moved; his body animated fine.
+
+**Cause** — `Fx/ModelAnimator` gathered the parts it drives once, when the
+model was tagged. His 72 parts reach a client over several frames, and the
+chain arrived after the tag, so it was never driven: unanchored, at its
+tucked-away rest size.
+
+**Fix** — any part of an animated model that arrives later joins the
+animation (`DescendantAdded`).
+
+**Measured** — see the PR: the chain's parts grow and fly down the lane on
+the strike.
+
 ## The pond's edge was jagged
 
 **Symptom** — owner, 2026-10-23: "fix the shadows of the pond, it should be

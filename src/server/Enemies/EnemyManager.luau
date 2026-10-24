@@ -806,7 +806,9 @@ function EnemyManager.damage(
 
 	if enemy.health > 0 then
 		model:SetAttribute("Health", enemy.health)
-		enemyHit:FireAllClients(model, amount, enemy.position, kind or "Hit")
+		--[[ Where the blow came from travels too, for the client's slime
+		     residue to fly back out of the struck face. ]]
+		enemyHit:FireAllClients(model, amount, enemy.position, kind or "Hit", fromPosition)
 		return true, 0, nil
 	end
 
@@ -830,7 +832,15 @@ function EnemyManager.damage(
 	--[[ The killing blow's number travels with the death, so the hit that
 	     finishes an enemy is shown like every other — it used to show
 	     nothing, which made the strongest hit of a fight the invisible one. ]]
-	enemyDied:FireAllClients(enemy.position, amount, kind or "Hit")
+	--[[ Its archetype and where the blow came from travel as data too, for
+	     the client's slime residue (`Fx/SlimeResidue`). ]]
+	enemyDied:FireAllClients(
+		enemy.position,
+		amount,
+		kind or "Hit",
+		enemy.config.displayName,
+		fromPosition
+	)
 	model:Destroy()
 
 	--[[ Spawned before this returns, so the room never reads as clear in

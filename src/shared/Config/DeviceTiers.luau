@@ -44,6 +44,10 @@ export type Tier = {
 	     fireflies, butterflies, birds; `Fx/ForestAmbience`). Zero turns it
 	     off: it is background, the first thing a phone can spare. ]]
 	ambienceShare: number,
+	--[[ Most cubes of slime residue alive at once (`Fx/SlimeResidue`).
+	     The parts are built once at this count and reused, the oldest
+	     first, so a long fight never allocates more. ]]
+	maxSlimeResidue: number,
 }
 
 --[[
@@ -65,6 +69,7 @@ local low: Tier = {
 	endScreenParticleShare = 0.5,
 	mythicFxShare = 0.5,
 	ambienceShare = 0.4,
+	maxSlimeResidue = 24,
 }
 
 local medium: Tier = {
@@ -81,6 +86,7 @@ local medium: Tier = {
 	endScreenParticleShare = 0.75,
 	mythicFxShare = 0.75,
 	ambienceShare = 0.7,
+	maxSlimeResidue = 64,
 }
 
 local high: Tier = {
@@ -97,6 +103,7 @@ local high: Tier = {
 	endScreenParticleShare = 1,
 	mythicFxShare = 1,
 	ambienceShare = 1,
+	maxSlimeResidue = 128,
 }
 
 local DeviceTiers = {

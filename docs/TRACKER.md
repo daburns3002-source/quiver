@@ -42,6 +42,7 @@ Last brought up to date: 2026-10-23.
 - A Wilf lunge stopped short by cover still plays its leap for the full time.
 - The Slime King's moves have no sounds yet.
 - The Meteor cast (1.6 s) hides the staff's cast animation while it plays; shorten it if it feels long.
+- Slime residue (`Fx/SlimeResidue`, `Balance.SlimeResidue`) lands on the floor plane, y = 0: a cube thrown over a log, a boulder or the pond sinks into it instead of resting on top. Its colours are taken from the blocky models' vertex colours; the owner may want them tuned.
 
 ## Offered, not asked for
 

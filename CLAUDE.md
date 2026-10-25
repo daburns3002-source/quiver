@@ -585,6 +585,13 @@ of it (owner, 2026-10-24: "anywhere there is writing it should be in a blocky fo
 it as a rule going forward"). The room sign's own pixel font (`Config/PixelFont`) counts.
 `tools/check.sh` fails on any other font.
 
+**12. Every Legendary and Mythic glows.**
+Weapons, skins, pets, anything with a rarity (owner, 2026-10-24: "anything that is a legendary
+or a mythic NEEDS a glow to it"). A Mythic's glow cycles through the rainbow. Weapons: their
+glow parts are Neon with a light (`Combat/HeldWeapon`), a Mythic's turned round the hue wheel
+(`Fx/WeaponGlow`); `skins_to_luau.py` gives every Epic and up a glow. Pets: `Config/PetAuras`
+lists every Legendary and Mythic pet.
+
 ## Code conventions
 
 - `--!strict` at the top of every Luau file. No exceptions.

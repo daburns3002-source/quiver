@@ -123,6 +123,10 @@ type Pending = {
 	from: Model?,
 }
 local pending: { Pending } = {}
+--[[ Every live shot's place this frame, handed to the engine in one
+     `BulkMoveTo` rather than a property write per shot; reused. ]]
+local moveParts: { BasePart } = {}
+local moveFrames: { CFrame } = {}
 local connection: RBXScriptConnection? = nil
 
 --[[ How many wall impacts may be on screen at once. Capped: it is a
@@ -663,8 +667,15 @@ local function step(deltaTime: number)
 			alive = ProjectileFlight.advance(visual, deltaTime, params, overlap, contact)
 		end
 
-		visual.part.CFrame = pose(visual, now)
+		table.insert(moveParts, visual.part)
+		table.insert(moveFrames, pose(visual, now))
 		visual.stopped = not alive
+	end
+
+	if #moveParts > 0 then
+		Workspace:BulkMoveTo(moveParts, moveFrames, Enum.BulkMoveMode.FireCFrameChanged)
+		table.clear(moveParts)
+		table.clear(moveFrames)
 	end
 end
 

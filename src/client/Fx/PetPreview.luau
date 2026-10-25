@@ -21,6 +21,8 @@ local Workspace = game:GetService("Workspace")
 
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 
+local PetAura = require(script.Parent.PetAura)
+
 local PetPreview = {}
 
 --[[ How tall a pet stands, in studs. ]]
@@ -116,6 +118,8 @@ local function spawnAll(source: Instance, only: string?)
 		end
 		model.Parent = folder
 		CollectionService:AddTag(model, "ModelClips")
+		-- a Mythic or Legendary pet glows, sparkles and trails (`Config/PetAuras`)
+		PetAura.wear(model, template.Name)
 		table.insert(pets, {
 			model = model,
 			lift = lift,

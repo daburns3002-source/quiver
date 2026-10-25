@@ -10,6 +10,8 @@
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+local Workspace = game:GetService("Workspace")
 
 local Abilities = require(ReplicatedStorage.Shared.Config.Abilities)
 local AbilityEffects = require(ReplicatedStorage.Shared.Combat.AbilityEffects)
@@ -90,6 +92,9 @@ export type Session = {
 	--[[ This stage's kills and when it began, for the end screen. ]]
 	stageKills: number,
 	stageStartedAt: number,
+	--[[ Still on the intro's title screen: the run holds until they press
+	     BEGIN ADVENTURE (`Remotes.IntroBegin`). ]]
+	atTitle: boolean,
 	--[[ Regen accrues every frame but is only told to the client a few
 	     times a second. ]]
 	healthSentAt: number,
@@ -208,6 +213,8 @@ function RunSession.create(player: Player): Session
 		battleCryUntil = 0,
 		stageKills = 0,
 		stageStartedAt = os.clock(),
+		-- in Studio, `SkipIntro` on Workspace starts without the title (`Config/Intro`)
+		atTitle = not (RunService:IsStudio() and Workspace:GetAttribute("SkipIntro") == true),
 		healthSentAt = 0,
 		revivesLeft = Balance.Revive.perStage,
 		invulnerableUntil = 0,
@@ -318,6 +325,28 @@ function RunSession.anyChoosing(): boolean
 	end
 
 	return false
+end
+
+--[[ Whether anyone is still on the intro's title screen. The run holds for
+     them as it does for a draft (`anyChoosing`), with the same co-op caveat. ]]
+function RunSession.anyAtTitle(): boolean
+	for _, session in sessions do
+		if session.atTitle then
+			return true
+		end
+	end
+
+	return false
+end
+
+--[[ The player pressed BEGIN ADVENTURE. The stage's clock starts now, so
+     the end screen's time leaves out the title. Only ever clears the hold. ]]
+function RunSession.leaveTitle(session: Session)
+	if not session.atTitle then
+		return
+	end
+	session.atTitle = false
+	session.stageStartedAt = os.clock()
 end
 
 local function sendXp(session: Session)

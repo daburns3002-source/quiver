@@ -24,6 +24,8 @@ type Player = { sound: Sound, list: { Music.Track }, index: number, level: numbe
 
 local players: { [string]: Player } = {}
 local current = "Rooms"
+--[[ Everything faded out: the intro's title plays its own music. ]]
+local quiet = false
 
 local function load(p: Player, index: number)
 	local track = p.list[index]
@@ -85,7 +87,7 @@ local function step(dt: number)
 		if not p then
 			continue
 		end
-		local target = if name == current then 1 else 0
+		local target = if name == current and not quiet then 1 else 0
 		p.level = math.clamp(p.level + (if target > p.level then rate else -rate), 0, 1)
 		if p.level > 0 and not p.sound.IsPlaying then
 			if p.index == 0 then
@@ -101,6 +103,12 @@ local function step(dt: number)
 		end
 		p.sound.Volume = Music.volume * p.level
 	end
+end
+
+--[[ While the intro cutscene plays its own music (`UI/IntroCutscene`):
+     the run's music waits, then fades in when it ends. ]]
+function MusicFx.setQuiet(value: boolean)
+	quiet = value
 end
 
 function MusicFx.start()

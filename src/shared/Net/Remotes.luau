@@ -117,6 +117,13 @@ Remotes.RunSummary = "RunSummary"
 Remotes.RunRestart = "RunRestart"
 
 --[[
+	Client → server. The intro's BEGIN ADVENTURE button: this player has
+	left the title screen, so the run may move. Carries nothing; the server
+	only clears its own hold for this player (`RunSession.leaveTitle`).
+]]
+Remotes.IntroBegin = "IntroBegin"
+
+--[[
 	Server → all clients. Something exploded here, this wide.
 
 	The radius travels with it rather than being looked up, because what the

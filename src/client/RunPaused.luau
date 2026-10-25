@@ -19,10 +19,13 @@ local paused = false
 --[[ Held apart from the draft's flag, so the banner ending never clears a
      card screen's pause, nor a pick the banner's. ]]
 local intro = false
+--[[ And apart again: the title screen (`UI/IntroCutscene`), until BEGIN
+     ADVENTURE is pressed. ]]
+local title = false
 local changed = Instance.new("BindableEvent")
 
 function RunPaused.get(): boolean
-	return paused or intro
+	return paused or intro or title
 end
 
 --[[ Idempotent, so callers can set it from several places without having to
@@ -50,6 +53,20 @@ function RunPaused.setIntro(value: boolean)
 
 	local was = RunPaused.get()
 	intro = value
+	if RunPaused.get() ~= was then
+		changed:Fire(RunPaused.get())
+	end
+end
+
+--[[ While the intro's title screen waits for BEGIN ADVENTURE. The server
+     holds the world for it too (`RunSession.anyAtTitle`). ]]
+function RunPaused.setTitle(value: boolean)
+	if title == value then
+		return
+	end
+
+	local was = RunPaused.get()
+	title = value
 	if RunPaused.get() ~= was then
 		changed:Fire(RunPaused.get())
 	end

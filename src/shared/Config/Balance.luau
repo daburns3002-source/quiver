@@ -199,6 +199,35 @@ export type BossClips = {
 	idle: string,
 	Bounce: { [string]: string },
 	Lash: { [string]: { [string]: string } },
+	Spin: { [string]: string }?,
+}
+
+--[[ Web Walker (the Broodmother; owner, 2026-10-25, concept sheet
+     `assets/concepts/blocky/broodmother_web_walker_concept.png`): she
+     raises a web `radius` studs round her, warned for `windup`, that spins
+     clockwise once every `period` seconds for `spin`, then snaps and leaves
+     her slumped for `broken`. Under the web hurts; outside it `spokes` arms
+     `width` wide reach on to `reach` and sweep the floor, so the player
+     walks round with them, like a horse in a horse walker. A player is hit
+     at most every `hitEvery`, for `damage`, and pushed `shove` (out from
+     under the web, or on round with an arm). `holdSpan` is the length of
+     the clip she holds while it spins, so that loop keeps its own pace;
+     `height` is where the web hangs over the floor (drawn only). ]]
+export type BossSpin = {
+	windup: number,
+	spin: number,
+	broken: number,
+	recover: number,
+	spokes: number,
+	radius: number,
+	reach: number,
+	width: number,
+	period: number,
+	damage: number,
+	hitEvery: number,
+	shove: number,
+	holdSpan: number,
+	height: number,
 }
 
 export type EnemyBoss = {
@@ -206,9 +235,14 @@ export type EnemyBoss = {
 	title: string,
 	bounce: BossBounce,
 	lash: BossLash,
-	--[[ Seconds it rests after each move; the moves loop Bounce, Lash. ]]
+	--[[ Seconds it rests after each move; the moves loop Bounce, Lash
+	     unless `loop` names its own order. ]]
 	restAfterBounce: number,
 	restAfterLash: number,
+	restAfterSpin: number?,
+	loop: { string }?,
+	--[[ Web Walker, for a boss whose `loop` has "Spin". ]]
+	spin: BossSpin?,
 	--[[ Seconds before its first move, once it has arrived. ]]
 	opening: number,
 	--[[ Set when the body plays its own clips; nil for a body the server
@@ -903,11 +937,13 @@ local thornling: EnemyConfig = {
 --[[
 	The Broodmother, Thornwood's boss (docs/BOSSES.md §2, the owner's
 	Claude Design "Thornweaver", 2026-10-25). Alone in Level 2's last
-	room. Her fight runs on the Slime King's two moves, drawn with her own
-	clips: the climb (up her thread and down on the player, three times:
-	`ClimbUp`, `DropSlam`) and the web (a strand shot down a lane that drags
-	whoever it catches to her: `ShootWeb`). Her Thornling clutch (`Summon`)
-	waits on the Thornlings' model.
+	room. Her fight loops two moves, drawn with her own clips: Web Walker
+	(owner, 2026-10-25, in place of the Slime King's climb and drop: a web
+	nearly as wide as the room spins round her and the player walks the
+	edge with it, `spin`, `WebSpin_*`) and the Slime King's lash as a web
+	(a strand shot down a lane that drags whoever it catches to her:
+	`ShootWeb`). After every second move a Thornling clutch (`Summon`).
+	`bounce` is kept for the type and is not in her loop.
 ]]
 local broodmother: EnemyConfig = {
 	displayName = "Broodmother",
@@ -963,6 +999,29 @@ local broodmother: EnemyConfig = {
 		},
 		restAfterBounce = 1.5,
 		restAfterLash = 1,
+		restAfterSpin = 1.5,
+		loop = { "Spin", "Lash" },
+		--[[ The web covers all but a 4-stud track either side of a room 35
+		     wide when she stands mid-room; its arms reach the far corners
+		     (the room is 58 long). The arms cross the track at about 8
+		     studs a second, well under the player's 13.5, so walking with
+		     them is the answer and stopping is not. ]]
+		spin = {
+			windup = 1.6,
+			spin = 6,
+			broken = 1.6,
+			recover = 0.8,
+			spokes = 8,
+			radius = 13.5,
+			reach = 34,
+			width = 2.4,
+			period = 12,
+			damage = 45,
+			hitEvery = 0.8,
+			shove = 6,
+			holdSpan = 2,
+			height = 7,
+		},
 		opening = 1,
 		web = true,
 		--[[ Her clutch (owner, 2026-10-25): after every second move, three
@@ -989,6 +1048,12 @@ local broodmother: EnemyConfig = {
 					release = "Idle",
 					settle = "Idle",
 				},
+			},
+			Spin = {
+				windup = "WebSpin_Windup",
+				spin = "WebSpin_Hold",
+				broken = "WebSpin_End",
+				recover = "WebSpin_Recover",
 			},
 		},
 	},

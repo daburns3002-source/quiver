@@ -357,7 +357,10 @@ local function placeKit(
 		part.Parent = folder
 	end
 	for _, placed in layout.pieces do
-		local piece = kit.pieces[placed.piece]
+		local piece = KitLayout.piece(kit, placed.piece)
+		if not piece then
+			continue
+		end
 		local facing = CFrame.Angles(0, placed.yaw, 0)
 		local grown = placed.size / piece.size
 		mesh(

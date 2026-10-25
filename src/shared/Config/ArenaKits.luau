@@ -47,6 +47,17 @@ export type Kit = {
 	plants: { [string]: number },
 	--[[ Studs of a flat low cover box per fern bush when it is a thicket. ]]
 	thicketSpacing: number,
+	--[[ Which piece draws each of `Shared/Util/KitLayout`'s roles, where
+	     it is not the piece of that name: WallBlock, FallenLog,
+	     CornerPillar, TreeStump, TallCover (a tall box; the corner pillar
+	     where the kit has none), FernBush (a thicket), SteppingStone. ]]
+	roles: { [string]: string }?,
+	--[[ A kit with no stepping stones paths the room in dirt, in these
+	     shades. ]]
+	dirt: { Color3 }?,
+	--[[ A gap in the south wall too, for the door the player comes in by
+	     (owner, 2026-10-24: Thornwood). ]]
+	southGate: boolean?,
 }
 
 --[[ Mossy Glade tints (see `Piece.tint`): stone and wood keep most of their
@@ -131,6 +142,72 @@ local ArenaKits: { [string]: Kit } = {
 		edgeDepth = 2.6,
 		plants = { FernBush = 5, FlowerTuft = 5, GlowMushroom = 2 },
 		thicketSpacing = 2.4,
+	},
+	--[[ Act 1, area 2: the owner's blocky Thornwood (Claude Design,
+	     2026-10-24), five pieces drawn with their own vertex colours. The
+	     bramble hedge is both the wall and long cover, thorn trees stand at
+	     the corners, mossy boulders are the squat and tall cover, thorn
+	     bushes the thickets (which block walking, not arrows); a dirt trail
+	     runs to the gate, and both the north and south walls are open for
+	     their doors. ]]
+	Thornwood = {
+		scale = 2.6,
+		pieces = {
+			BrambleHedge = {
+				meshId = "rbxassetid://131412433375868",
+				size = Vector3.new(2, 0.988, 0.7581),
+				centre = Vector3.new(0, 0.494, 0),
+			},
+			ThornTree = {
+				meshId = "rbxassetid://111589575242394",
+				size = Vector3.new(1.6628, 2, 1.4856),
+				centre = Vector3.new(0, 1, 0),
+			},
+			MossyBoulder = {
+				meshId = "rbxassetid://140108563241728",
+				size = Vector3.new(1.225, 1.07, 1.08),
+				centre = Vector3.new(0, 0.535, 0),
+			},
+			ThornBush = {
+				meshId = "rbxassetid://123520313943150",
+				size = Vector3.new(1.04, 0.98, 1.04),
+				centre = Vector3.new(0, 0.49, 0),
+			},
+			RootSprout = {
+				meshId = "rbxassetid://95010626591606",
+				size = Vector3.new(0.9089, 1.05, 0.784),
+				centre = Vector3.new(0, 0.525, 0),
+			},
+		},
+		roles = {
+			WallBlock = "BrambleHedge",
+			FallenLog = "BrambleHedge",
+			CornerPillar = "ThornTree",
+			TreeStump = "MossyBoulder",
+			TallCover = "MossyBoulder",
+			FernBush = "ThornBush",
+		},
+		tile = 3.5,
+		--[[ A darker, browner green than the glade's, under the brambles. ]]
+		lawn = {
+			Color3.fromRGB(86, 116, 50),
+			Color3.fromRGB(80, 108, 46),
+			Color3.fromRGB(93, 123, 55),
+		},
+		--[[ The orange dirt of the reference sheet. ]]
+		dirt = {
+			Color3.fromRGB(176, 106, 54),
+			Color3.fromRGB(162, 96, 48),
+			Color3.fromRGB(186, 116, 60),
+		},
+		water = Color3.fromRGB(70, 130, 150),
+		bank = Color3.fromRGB(96, 80, 46),
+		pathSpacing = 3.2,
+		pathSway = 2.6,
+		edgeDepth = 2.8,
+		plants = { ThornBush = 3, RootSprout = 4 },
+		thicketSpacing = 2.6,
+		southGate = true,
 	},
 }
 

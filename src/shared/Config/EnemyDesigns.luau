@@ -471,6 +471,15 @@ local slimeKing: Design = {
 	shadow(9.6, 8.0, 9.6),
 }
 
+--[[ Thornwood's enemies (Level 2), every one an imported model that plays
+     its own clips (`Imported` below): their designs are only shadows. ]]
+local brambleBoar: Design = { shadow(3, 3.8, 2.7) }
+local burrThistle: Design = { shadow(3.2, 2.4, 3.8) }
+local brambleSow: Design = { shadow(3.9, 5.4, 4.1) }
+local boarlet: Design = { shadow(2.15, 3, 2.25) }
+local brambleLurker: Design = { shadow(4.5, 4.5, 3.3) }
+local broodmother: Design = { shadow(10.3, 6.2, 6.2) }
+
 --[[
 	The Ember Wilf (owner, 2026-10-23), after the owner's dog: a round
 	ginger pup with a cream chest, muzzle and paws.
@@ -573,6 +582,12 @@ local EnemyDesigns = {
 	BabySlime = babySlime,
 	SlimeKing = slimeKing,
 	Wilf = wilf,
+	BrambleBoar = brambleBoar,
+	BurrThistle = burrThistle,
+	BrambleSow = brambleSow,
+	Boarlet = boarlet,
+	BrambleLurker = brambleLurker,
+	Broodmother = broodmother,
 
 	--[[ Archetypes built from an imported model, by display name. ]]
 	Imported = {
@@ -602,6 +617,46 @@ local EnemyDesigns = {
 				},
 			},
 		} :: ImportedDesign,
+		--[[ Thornwood (Level 2): each its own model and clips, with Act 1's
+		     amber, glowing eyes (Eye_L, Eye_R and the Broodmother's
+		     Eye_Small_*; not the glints, pupils, sockets or rims). ]]
+		BrambleBoar = {
+			model = "BrambleBoar",
+			clips = "BrambleBoar",
+			eyes = "^Eye_[LR]$",
+			eyeColor = EYE_AMBER,
+		},
+		BurrThistle = {
+			model = "BurrThistle",
+			clips = "BurrThistle",
+			eyes = "^Eye_[LR]$",
+			eyeColor = EYE_AMBER,
+		},
+		BrambleSow = {
+			model = "BrambleSow",
+			clips = "BrambleSow",
+			eyes = "^Eye_[LR]$",
+			eyeColor = EYE_AMBER,
+		},
+		--[[ The Sow's own model, drawn to the Boarlet's smaller box. ]]
+		Boarlet = {
+			model = "BrambleSow",
+			clips = "BrambleSow",
+			eyes = "^Eye_[LR]$",
+			eyeColor = EYE_AMBER,
+		},
+		BrambleLurker = {
+			model = "BrambleLurker",
+			clips = "BrambleLurker",
+			eyes = "^Eye_[LR]$",
+			eyeColor = EYE_AMBER,
+		},
+		Broodmother = {
+			model = "Broodmother",
+			clips = "Broodmother",
+			eyes = "^Eye_[LRS][^G]*$",
+			eyeColor = EYE_AMBER,
+		},
 	},
 }
 

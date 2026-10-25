@@ -101,6 +101,19 @@ local function glade(lowCover: "Water" | "Thicket"): ArenaModel
 	}
 end
 
+--[[ Act 1, area 2: Thornwood (Level 2), built from the owner's blocky
+     Thornwood kit the same way, in the same outer forest until Thornwood
+     has its own. Thickets are thorn bushes. ]]
+local function thornwood(): ArenaModel
+	return {
+		parts = GLADE_FOREST,
+		outsideColor = GLADE_FLOOR,
+		ambience = "Forest",
+		kit = "Thornwood",
+		lowCover = "Thicket",
+	}
+end
+
 local ArenaModels = {
 	GladeLogs = glade("Thicket"),
 	--[[ Was the pond, until the owner took the water out of the Mossy Glade
@@ -112,6 +125,11 @@ local ArenaModels = {
 	GladeBoulders = glade("Thicket"),
 	GladeThorns = glade("Thicket"),
 	GladeBoss = glade("Thicket"),
+	ThornHedges = thornwood(),
+	ThornHollow = thornwood(),
+	ThornBoulders = thornwood(),
+	ThornBrambles = thornwood(),
+	ThornBoss = thornwood(),
 }
 
 return table.freeze(ArenaModels)

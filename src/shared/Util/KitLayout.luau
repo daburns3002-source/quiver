@@ -129,9 +129,22 @@ local function walls(kit: ArenaKits.Kit, room: Room, out: { Placement })
 	else
 		run(-x + inner, x - inner, z, true)
 	end
-	-- West and east.
-	run(-z + inner, z - inner, -x, false)
-	run(-z + inner, z - inner, x, false)
+	-- West and east, split round a pillar halfway along where the kit asks.
+	for _, side in { -x, x } do
+		if kit.midPillars then
+			run(-z + inner, -inner, side, false)
+			run(inner, z - inner, side, false)
+			table.insert(out, {
+				piece = "CornerPillar",
+				base = Vector3.new(side, 0, 0),
+				yaw = 0,
+				size = pillar,
+				cover = false,
+			})
+		else
+			run(-z + inner, z - inner, side, false)
+		end
+	end
 	for _, sx in { -1, 1 } do
 		for _, sz in { -1, 1 } do
 			table.insert(out, {
@@ -291,13 +304,22 @@ function KitLayout.build(
 					cover = false,
 				})
 			elseif dirt then
-				local grow = 0.85 + rng:NextNumber() * 0.4
-				table.insert(patches, {
-					kind = "Dirt",
-					centre = at + Vector3.new(0, 0.02, 0),
-					size = Vector3.new(stone.X * grow, stone.Y, stone.Z * (2 - grow)),
-					colour = dirt[rng:NextInteger(1, #dirt)],
-				})
+				--[[ A few square blocks round each step, as the reference
+				     sheet's dirt is pixels rather than ovals. ]]
+				for _ = 1, 4 do
+					local side = kit.tile * (0.35 + rng:NextNumber() * 0.3)
+					local jitter = Vector3.new(
+						(rng:NextNumber() - 0.5) * stone.X,
+						0,
+						(rng:NextNumber() - 0.5) * stone.Z
+					)
+					table.insert(patches, {
+						kind = "Dirt",
+						centre = at + jitter + Vector3.new(0, 0.02, 0),
+						size = Vector3.new(side, stone.Y, side),
+						colour = dirt[rng:NextInteger(1, #dirt)],
+					})
+				end
 			end
 		end
 		z -= kit.pathSpacing

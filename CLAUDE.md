@@ -175,8 +175,9 @@ What exists and works, all verified in Studio rather than only by the gates:
   slime, hooded mage, rock-shell brute, spiked urchin); a blue ring under
   the player, a segmented red ring under the aimed-at enemy, a red "!" over
   enemies winding up; a dressed arena (flagstones, caps, orb lamps, grass
-  edge) under soft bright lighting with tier-gated bloom; magenta sparkling
-  enemy orbs. Presentation only.
+  edge) under soft bright lighting with tier-gated bloom; sparkling enemy
+  shots (since 2026-10-24 the Spitter's seed: a leaf-green outlined cube,
+  tumbling, `Fx/ProjectileRenderer`). Presentation only.
 - **The dash** (4-second cooldown, readiness bar), player hit feedback, and
   draft enemy bodies.
 - **Archero 2 proportions:** a portrait 35 × 58 room, a camera that fits the

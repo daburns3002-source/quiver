@@ -45,6 +45,18 @@ Last brought up to date: 2026-10-25.
 | #174 | Wolves are Wilfs, and every area has a Wilf pet (designs) | Its session; then merge |
 | #173 | A Codex-built Mosslet with animations, against Claude Design's | Owner's comparison |
 
+## Planned by the owner (not to build yet)
+
+The owner's plans, noted 2026-10-25 so they aren't forgotten: "dont implement these changes now just keep notes of them so i dont forget when i want to build all of these". Build one only when the owner says to.
+
+- **Lobby** in the same top-down style as the gameplay (its music is ready: `Config/Music` Lobby, Mossy Glade take B).
+- **Eggs for pet hatching** (`docs/PETS-FOREST.md`; hatch rolls on the server).
+- **2D animated intro cutscene** when the player opens the game, with its own 2D animation and sounds.
+- **Character creation screen** right after that cutscene.
+- **Egg breeder** for the eggs.
+- **Blacksmith** for the weapons.
+- **Gear selection area** to equip things for a run.
+
 ## Designed, not built
 
 - The other bosses of Acts 1–3 (`docs/BOSSES.md`; the Slime King is built). Acts 4–5's are on hold.

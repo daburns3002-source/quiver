@@ -95,7 +95,7 @@ as `docs/PIPELINES.md` §4.5 says. Thornwood keeps its colours as the
 importer stores them, darker than the design (the owner's pick over the
 `srgb_glb.py`-converted import, 2026-10-25). As each room starts, a blocky ROOM <n> sign flies out of the top of the gate, hangs at the top of the screen and flies back (`UI/RoomSign`, `Config/RoomSign`, letters from `Config/PixelFont`; the last room's number is red). The exit is a gate in the north wall
 (`Arena/ExitGate`, `Balance.Run.gate`): dark purple haze until the room is
-cleared, then glowing white-gold with a GO arrow, after Archero 2. Moonlit
+cleared, then glowing white-gold with a GO arrow, after Archero 2. While it is open, players walk 1.5× faster (`Balance.Player.exitRush`, `ExitOpen` on Workspace, set by `RoomController`; owner 2026-10-25). Moonlit
 Arena's waves draw from the first
 `Balance.Waves.rooms` (10) rooms only.
 

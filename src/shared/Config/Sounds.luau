@@ -33,8 +33,8 @@ export type Sound = {
 }
 
 --[[ The bosses' round 18 sprite (`assets/audio/final/boss_sprite_r18.mp3`):
-     empty until the owner uploads it, and then its id is the only change. ]]
-local BOSS_SPRITE = ""
+     uploaded 2026-10-25 (Roblox shows its name as #s). ]]
+local BOSS_SPRITE = "rbxassetid://73447077207928"
 
 local Sounds: { [string]: Sound } = {
 	--[[ The Ranger's every arrow (`Config/Weapons.TwigBow.fireSound`). ]]

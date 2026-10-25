@@ -4,7 +4,9 @@
 
 	Each sound is one `Sound` in SoundService, played with
 	`SoundService:PlayLocalSound`, so plays overlap rather than cut each
-	other off. A sound with no id yet is silent, so every hook is wired
+	other off. A sound cut from a sprite (`region`) plays its own slice of
+	the shared file with `Sound:Play()` instead, which keeps to its playback
+	region, so a replay restarts it. A sound with no id yet is silent, so every hook is wired
 	before the audio is uploaded. Presentation only.
 ]]
 
@@ -31,6 +33,11 @@ local function instanceFor(name: string, config: Sounds.Sound): Sound
 	sound.Name = "Sfx_" .. name
 	sound.SoundId = config.id
 	sound.Volume = config.volume
+	local region = config.region
+	if region then
+		sound.PlaybackRegionsEnabled = true
+		sound.PlaybackRegion = NumberRange.new(region[1], region[1] + region[2])
+	end
 	sound.Parent = SoundService
 	instances[name] = sound
 	return sound
@@ -56,7 +63,11 @@ function SoundFx.play(name: string)
 	local sound = instanceFor(name, config)
 	sound.PlaybackSpeed = (config.speed or 1)
 		* (1 + random:NextNumber(-config.pitchJitter, config.pitchJitter))
-	SoundService:PlayLocalSound(sound)
+	if config.region then
+		sound:Play()
+	else
+		SoundService:PlayLocalSound(sound)
+	end
 end
 
 --[[ Loads every sound with an id now, so the first play is not late. ]]

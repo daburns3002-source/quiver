@@ -219,8 +219,12 @@ export type BossClips = {
      at most every `hitEvery`, for `damage`, and pushed `shove` (out from
      under the web, or on round with an arm). `holdSpan` is the length of
      the clip she holds while it spins, so that loop keeps its own pace;
-     `height` is where the web hangs over the floor (drawn only). ]]
+     `height` is where the web hangs over the floor (drawn only). First she
+     scuttles to the middle of the room at `travelSpeed` (owner, 2026-10-25:
+     "go the middle of the arena every time"), taking at least `travelMin`. ]]
 export type BossSpin = {
+	travelSpeed: number,
+	travelMin: number,
 	windup: number,
 	spin: number,
 	broken: number,
@@ -1017,12 +1021,14 @@ local broodmother: EnemyConfig = {
 		restAfterLash = 1,
 		restAfterSpin = 1.5,
 		loop = { "Spin", "Lash" },
-		--[[ The web covers all but a 4-stud track either side of a room 35
-		     wide when she stands mid-room; its arms reach the far corners
+		--[[ She spins mid-room, where the web covers all but a 4-stud track
+		     either side of a room 35 wide; its arms reach the far corners
 		     (the room is 58 long). The arms cross the track at about 8
 		     studs a second, well under the player's 13.5, so walking with
 		     them is the answer and stopping is not. ]]
 		spin = {
+			travelSpeed = 12,
+			travelMin = 0.4,
 			windup = 1.6,
 			spin = 6,
 			broken = 1.6,
@@ -1066,6 +1072,7 @@ local broodmother: EnemyConfig = {
 				},
 			},
 			Spin = {
+				travel = "Move",
 				windup = "WebSpin_Windup",
 				spin = "WebSpin_Hold",
 				broken = "WebSpin_End",

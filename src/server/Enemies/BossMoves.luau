@@ -162,6 +162,10 @@ export type Move = {
 	angle: number,
 }
 
+--[[ Every room is built centred on the origin (`Arena.build`): where a
+     spin is raised. ]]
+local ROOM_CENTRE = Vector3.zero
+
 --[[ The design's king is 4.9 studs tall; this one is twice that. ]]
 local SIZE = 2
 
@@ -276,8 +280,9 @@ local function duration(move: Move, boss: EnemyBoss): number
 	local phase = move.phase
 	if move.kind == "Spin" then
 		local s = boss.spin :: Balance.BossSpin
-		return if phase == "windup"
-			then s.windup
+		return if phase == "travel"
+			then math.max(s.travelMin, (move.land - move.from).Magnitude / s.travelSpeed)
+			elseif phase == "windup" then s.windup
 			elseif phase == "spin" then s.spin
 			elseif phase == "broken" then s.broken
 			else s.recover
@@ -419,7 +424,15 @@ local function enter(
 			e.duration = seconds
 			return e
 		end
-		if phase == "windup" then
+		if phase == "travel" then
+			--[[ First to the middle of the room (owner, 2026-10-25), clear
+			     of cover, so the web always leaves the same edge to walk. ]]
+			move.from = move.feet
+			move.land = flat(clamp(ROOM_CENTRE))
+			move.fromYaw = move.yaw
+			move.toYaw = yawOf(move.land - move.from, move.yaw)
+		elseif phase == "windup" then
+			move.feet = move.land
 			--[[ Spoke one starts on the target, so an arm is on them the
 			     moment it turns: they have the wind-up to step clear. ]]
 			move.angle = WebWheel.angleOf(flat(target) - move.feet)
@@ -506,8 +519,9 @@ end
 local function nextPhase(move: Move, boss: EnemyBoss): string
 	local phase = move.phase
 	if move.kind == "Spin" then
-		return if phase == "windup"
-			then "spin"
+		return if phase == "travel"
+			then "windup"
+			elseif phase == "windup" then "spin"
 			elseif phase == "spin" then "broken"
 			elseif phase == "broken" then "recover"
 			else ""
@@ -570,8 +584,14 @@ local function pose(move: Move, boss: EnemyBoss, t: number): Pose
 	local p = rest(move)
 	local phase = move.phase
 
-	--[[ A spin keeps her where she stands; her clips do the moving. ]]
+	--[[ A spin: she scuttles to the middle, turning to where she goes, then
+	     stays put while her clips do the moving. ]]
 	if move.kind == "Spin" then
+		if phase == "travel" then
+			local e = ease(t)
+			p.feet = move.from:Lerp(move.land, e)
+			p.yaw = lerpAngle(move.fromYaw, move.toYaw, math.min(1, t * 3))
+		end
 		return p
 	end
 
@@ -747,7 +767,10 @@ function BossMoves.step(
 	local events: { Event } = {}
 
 	if move.phase == "" then
-		local first: string = if move.kind == "Lash" then "track" else "windup"
+		local first: string = if move.kind == "Lash"
+			then "track"
+			elseif move.kind == "Spin" then "travel"
+			else "windup"
 		for _, e in enter(move, boss, first, move.phaseAt, target, clamp) do
 			table.insert(events, e)
 		end
@@ -826,9 +849,12 @@ function BossMoves.clip(move: Move, boss: EnemyBoss): (string, number, number)
 	if move.clip == "" then
 		return "", move.clipAt, 0
 	end
-	--[[ The clip held while a web spins loops at its own pace. ]]
+	--[[ The clip held while a web spins loops at its own pace, and so does
+	     the walk to the middle (no span). ]]
 	if move.kind == "Spin" and move.phase == "spin" then
 		return move.clip, move.clipAt, (boss.spin :: Balance.BossSpin).holdSpan
+	elseif move.kind == "Spin" and move.phase == "travel" then
+		return move.clip, move.clipAt, 0
 	end
 	--[[ From the clip's first phase, through this one, and on through each
 	     phase after it that shares the clip. ]]

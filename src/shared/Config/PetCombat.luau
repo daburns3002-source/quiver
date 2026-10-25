@@ -12,8 +12,8 @@
 	Which pet a player has is their `Pet` attribute. Until Phase 6 brings
 	eggs and equipping, only the Studio sandbox sets it.
 
-	A pet looks for enemies within `range` studs of its owner, nearest
-	first, every `every` seconds; with none in range it waits (a support
+	A pet looks for enemies within `range` studs of its owner (60 covers a
+	room; the Fern Frog's tongue is short), nearest first, every `every` seconds; with none in range it waits (a support
 	pet's heal, guard or pull goes off regardless).
 ]]
 
@@ -60,9 +60,9 @@ export type Spec = {
 local PetCombat: { pets: { [string]: Spec } } = {
 	pets = {
 		-- Slime Glob: a blob that slows
-		Mosslet = { every = 2, range = 30, damage = 30, slow = { scale = 0.5, duration = 1.5 } },
+		Mosslet = { every = 2, range = 60, damage = 30, slow = { scale = 0.5, duration = 1.5 } },
 		-- Acorn Flick: a burst of three pellets
-		Babacorn = { every = 2.5, range = 30, damage = 20, hits = 3 },
+		Babacorn = { every = 2.5, range = 60, damage = 20, hits = 3 },
 		-- Tongue Snap: short and hard
 		FernFrog = { every = 3, range = 14, damage = 70 },
 		-- Spore Patch: a healing ring
@@ -70,25 +70,25 @@ local PetCombat: { pets: { [string]: Spec } } = {
 		-- Shell Guard: blocks one hit
 		MossbackSnail = { every = 20, range = 0, guard = true },
 		-- Lantern Lure: pulls the crystals in, marks one enemy
-		FireflyBun = { every = 6, range = 30, magnet = true, mark = { scale = 1.25, duration = 4 } },
+		FireflyBun = { every = 6, range = 60, magnet = true, mark = { scale = 1.25, duration = 4 } },
 		-- Root Snare: holds one enemy still
-		Stumpy = { every = 4, range = 30, damage = 25, root = 1 },
+		Stumpy = { every = 4, range = 60, damage = 25, root = 1 },
 		-- Leaf Dash: slashes up to three
-		GladeFox = { every = 3, range = 30, damage = 45, targets = 3 },
+		GladeFox = { every = 3, range = 60, damage = 45, targets = 3 },
 		-- Feather Volley: homing feathers over walls and cover
-		Hootmoss = { every = 3, range = 40, damage = 25, targets = 4 },
+		Hootmoss = { every = 3, range = 80, damage = 25, targets = 4 },
 		-- Royal Court: two mini slimes, a crown shockwave against bosses
-		SlimePrince = { every = 4, range = 30, damage = 40, targets = 2, bossDamage = 80 },
+		SlimePrince = { every = 4, range = 60, damage = 40, targets = 2, bossDamage = 80 },
 		-- Ember Bite: fire bolts that burn, and a howl that speeds attacks
 		EmberWilfPet = {
 			every = 3,
-			range = 30,
+			range = 60,
 			damage = 35,
 			burn = { rate = 15, duration = 3 },
 			haste = { bonus = 0.25, duration = 3, every = 3 },
 		},
 		-- Prism Beam: pierces a line, heals per hit, revives once a run
-		Glimmerhorn = { every = 4, range = 40, damage = 60, beam = 3, healPerHit = 3, revive = 0.5 },
+		Glimmerhorn = { every = 4, range = 60, damage = 60, beam = 3, healPerHit = 3, revive = 0.5 },
 	},
 }
 

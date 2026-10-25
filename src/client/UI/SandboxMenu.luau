@@ -220,6 +220,8 @@ local function build(): ScreenGui
 		end
 		petLoading = true
 		pet = key
+		-- and it fights in the run (`Combat/PetCombat`)
+		Remotes.event(Remotes.DebugPet):FireServer(key)
 		refresh()
 		task.spawn(function()
 			PetPreview.show(key)

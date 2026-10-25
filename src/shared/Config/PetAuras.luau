@@ -40,6 +40,7 @@ local PetAuras = {
 	pets = {
 		Glimmerhorn = "Mythic",
 		SlimePrince = "Legendary",
+		EmberWilfPet = "Legendary",
 	} :: { [string]: string },
 	looks = {
 		Mythic = {

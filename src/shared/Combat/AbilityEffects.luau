@@ -30,6 +30,8 @@ local Classes = require(ReplicatedStorage.Shared.Config.Classes)
 local ShotPipeline = require(ReplicatedStorage.Shared.Combat.ShotPipeline)
 local Stages = require(ReplicatedStorage.Shared.Combat.Stages)
 local Types = require(ReplicatedStorage.Shared.Types)
+local WeaponStats = require(ReplicatedStorage.Shared.Config.WeaponStats)
+local Weapons = require(ReplicatedStorage.Shared.Config.Weapons)
 
 type ShotStage = Types.ShotStage
 
@@ -124,6 +126,9 @@ export type ClientStats = {
 	widthScale: number,
 	--[[ The player's class, so the client builds the same pipeline. ]]
 	class: string,
+	--[[ The weapon in hand when not the class's own, for its built-in
+	     effect (`Config/WeaponStats.innate`). ]]
+	weapon: string?,
 	abilities: Counts,
 }
 
@@ -142,6 +147,45 @@ local function withClass(counts: Counts, class: string?): Counts
 		merged[id] = (merged[id] or 0) + level
 	end
 	return merged
+end
+
+--[[ The weapon in hand's stats (`Config/WeaponStats`): a pair of bows is
+     its single bow's. nil (the class's own weapon) is a Common. ]]
+local function weaponStats(weapon: string?): WeaponStats.Stats?
+	if not weapon then
+		return nil
+	end
+	local held = (Weapons :: any)[weapon]
+	local key = if held and held.dualOf then held.dualOf else weapon
+	return WeaponStats.weapons[key]
+end
+
+--[[ The class's innate skills and the weapon's (a Legendary's or Mythic's
+     extra effect) added to the drafted ones. ]]
+local function withGear(counts: Counts, class: string?, weapon: string?): Counts
+	local merged = withClass(counts, class)
+	local stats = weaponStats(weapon)
+	local innate = stats and stats.innate
+	if not innate then
+		return merged
+	end
+	if merged == counts then
+		merged = table.clone(counts)
+	end
+	for id, level in innate do
+		merged[id] = (merged[id] or 0) + level
+	end
+	return merged
+end
+
+--[[ The weapon's damage multiplier: its rarity's bonus, scaled to its
+     area's enemies. ]]
+function AbilityEffects.weaponDamage(weapon: string?): number
+	local stats = weaponStats(weapon)
+	if not stats then
+		return 1
+	end
+	return (1 + WeaponStats.bonus[stats.rarity]) * (WeaponStats.areaScale[stats.area] or 1)
 end
 
 local function classOf(class: string?): Classes.Class
@@ -174,8 +218,8 @@ end
 	sorts them into buckets itself; within a bucket they run in the order
 	they are added here.
 ]]
-function AbilityEffects.stages(drafted: Counts, class: string?): { ShotStage }
-	local counts = withClass(drafted, class)
+function AbilityEffects.stages(drafted: Counts, class: string?, weapon: string?): { ShotStage }
+	local counts = withGear(drafted, class, weapon)
 	local out: { ShotStage } = {}
 	local projectile = Balance.Projectile
 	local player = Balance.Player
@@ -306,17 +350,18 @@ local function attackSpeed(counts: Counts): number
 	return at(counts, "DualBows") + at(counts, "QuickHands") + at(counts, "ManaFlow")
 end
 
-function AbilityEffects.serverStats(drafted: Counts, class: string?): ServerStats
+function AbilityEffects.serverStats(drafted: Counts, class: string?, weapon: string?): ServerStats
 	local player = Balance.Player
-	local counts = withClass(drafted, class)
+	local counts = withGear(drafted, class, weapon)
 	local kind = classOf(class)
 
 	return {
 		--[[ Additive across levels, as the cards read: "+30% ATK" is thirty
 		     percent of the base, not of the last level. ]]
-		damage = player.baseDamage
-			* kind.damageScale
-			* (1 + at(counts, "Strength") + at(counts, "Intellect")),
+		damage = player.baseDamage * kind.damageScale * (1 + at(counts, "Strength") + at(
+			counts,
+			"Intellect"
+		)) * AbilityEffects.weaponDamage(weapon),
 		maxHealth = player.maxHealth * kind.healthScale * (1 + at(counts, "Vitality")),
 		--[[ Dual Bows: attack speed ×(1 + level), so its 1 halves the
 		     cooldown. Server and client must agree, or prediction fires
@@ -372,9 +417,9 @@ function AbilityEffects.cooldownAt(
 	return cooldown / (1 + momentumBonus)
 end
 
-function AbilityEffects.clientStats(counts: Counts, class: string?): ClientStats
+function AbilityEffects.clientStats(counts: Counts, class: string?, weapon: string?): ClientStats
 	local player = Balance.Player
-	local merged = withClass(counts, class)
+	local merged = withGear(counts, class, weapon)
 	local kind = classOf(class)
 
 	--[[ Copied rather than passed by reference: the server goes on mutating
@@ -394,6 +439,7 @@ function AbilityEffects.clientStats(counts: Counts, class: string?): ClientStats
 		reachBonus = at(merged, "LongReach"),
 		widthScale = 1 + at(merged, "Cleave"),
 		class = class or "Ranger",
+		weapon = weapon,
 		abilities = copy,
 	}
 end

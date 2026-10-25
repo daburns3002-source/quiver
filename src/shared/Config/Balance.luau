@@ -2879,7 +2879,10 @@ local Balance = {
 		currency in a later phase.
 	]]
 	Revive = {
-		perStage = 1,
+		--[[ No free revive (owner, 2026-10-25: "take out the automatic
+		     revive"): a run is saved only by Second Wind or a pet that
+		     revives. Was 1 a stage. ]]
+		perStage = 0,
 		--[[ Seconds nothing can hurt the player after reviving. ]]
 		invulnerable = 2.5,
 		--[[ Studs around the player swept clear of enemy shots on revive,

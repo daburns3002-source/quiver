@@ -327,5 +327,26 @@
       "Idle",
       "Move"
     ]
+  },
+  "BrambleSow": {
+    "glb": "assets/models/enemies/blocky/bramble_sow.glb",
+    "loops": [
+      "Idle",
+      "Move"
+    ]
+  },
+  "BrambleLurker": {
+    "glb": "assets/models/enemies/blocky/bramble_lurker.glb",
+    "loops": [
+      "Idle",
+      "Move"
+    ]
+  },
+  "Broodmother": {
+    "glb": "assets/models/bosses/broodmother_blocky/broodmother.glb",
+    "loops": [
+      "Idle",
+      "Move"
+    ]
   }
 }

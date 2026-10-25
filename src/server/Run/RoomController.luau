@@ -21,6 +21,7 @@
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 
 local AreaStrikes = require(script.Parent.Parent.Combat.AreaStrikes)
 local Arena = require(script.Parent.Parent.Arena.Arena)
@@ -33,6 +34,7 @@ local Pickups = require(script.Parent.Pickups)
 local ProjectileSystem = require(script.Parent.Parent.Combat.ProjectileSystem)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local RunSession = require(script.Parent.RunSession)
+local Sandbox = require(ReplicatedStorage.Shared.Config.Sandbox)
 local Waves = require(script.Parent.Waves)
 
 local log = Log.forTag("Run")
@@ -185,7 +187,12 @@ local function startStage()
 		buildArena(Balance.Rooms[current.arena or 1])
 		startWave(1)
 	else
-		enterRoom(1)
+		--[[ In Studio, the room `Sandbox.startRoom` names, to test a late
+		     room straight from Play. ]]
+		local first = if RunService:IsStudio() and Sandbox.startRoom
+			then math.clamp(Sandbox.startRoom, 1, total())
+			else 1
+		enterRoom(first)
 	end
 end
 

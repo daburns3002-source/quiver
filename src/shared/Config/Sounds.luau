@@ -36,6 +36,11 @@ export type Sound = {
      uploaded 2026-10-25 (Roblox shows its name as #s). ]]
 local BOSS_SPRITE = "rbxassetid://73447077207928"
 
+--[[ The Warden's new cards' round 19 picks in one upload
+     (`assets/audio/final/warden_sprite_r19.mp3`; owner, 2026-10-25: one
+     file per batch, for Roblox's audio upload limits). Uploaded 2026-10-25. ]]
+local WARDEN_SPRITE = "rbxassetid://123411253404004"
+
 local Sounds: { [string]: Sound } = {
 	--[[ The Ranger's every arrow (`Config/Weapons.TwigBow.fireSound`). ]]
 	arrow_fire = {
@@ -187,22 +192,26 @@ local Sounds: { [string]: Sound } = {
 		pitchJitter = 0,
 		minGap = 0.5,
 	},
-	--[[ The Warden's new cards (2026-10-25): silent until the owner picks
-	     and uploads takes (`assets/audio/warden_card_synth.py`). ]]
+	--[[ The Warden's new cards (2026-10-25): the owner's picks from round 19
+	     (Whirlwind B, Shockwave C, Battle Cry B; `assets/audio/warden_card_synth.py`),
+	     each a region of `WARDEN_SPRITE`. ]]
 	fx_whirlwind = {
-		id = "",
+		id = WARDEN_SPRITE,
+		region = { 0.0, 0.475 },
 		volume = 0.7,
 		pitchJitter = 0.05,
 		minGap = 0.2,
 	},
 	fx_shockwave = {
-		id = "",
+		id = WARDEN_SPRITE,
+		region = { 0.915, 0.57 },
 		volume = 0.8,
 		pitchJitter = 0.03,
 		minGap = 0.3,
 	},
 	fx_battle_cry = {
-		id = "",
+		id = WARDEN_SPRITE,
+		region = { 1.925, 0.759 },
 		volume = 0.6,
 		pitchJitter = 0.08,
 		minGap = 0.15,

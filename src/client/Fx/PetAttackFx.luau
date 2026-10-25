@@ -117,6 +117,7 @@ local function fire(shot: PetAttacks.Shot, pet: Model, index: number)
 	elseif kind == "Reach" then
 		local sweep = shot.sweep or 0
 		local base = CFrame.lookAt(from, from + ahead)
+			* (if shot.flip then CFrame.Angles(0, math.pi, 0) else CFrame.identity)
 		UpgradeFx.play(shot.effect, {
 			at = base,
 			life = life,

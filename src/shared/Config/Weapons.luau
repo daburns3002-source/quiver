@@ -135,6 +135,8 @@ export type Weapon = {
 	--[[ The `Config/WeaponAnimations` entry it plays, when not its own: a
 	     skin plays its base weapon's until it has its own kit. ]]
 	kit: string?,
+	--[[ A Mythic: its glow parts cycle through the rainbow (`Fx/WeaponGlow`). ]]
+	rainbow: boolean?,
 }
 
 local Weapons = {
@@ -455,6 +457,8 @@ local skins: { [string]: any } = {
 				size = Vector3.new(0.1238, 1.18, 0.3535),
 				offset = Vector3.new(0.0018, 0, -0.0213),
 				turned = true,
+				glow = true,
+				colour = Color3.fromRGB(255, 255, 255),
 			},
 			{
 				name = "String",
@@ -478,6 +482,7 @@ local skins: { [string]: any } = {
 				turned = true,
 			},
 		} :: { WeaponPart },
+		rainbow = true,
 		bolt = {
 			meshId = "rbxassetid://113478574540605",
 			size = Vector3.new(0.2298, 0.2298, 1.86),
@@ -642,6 +647,7 @@ local skins: { [string]: any } = {
 				turned = true,
 			},
 		} :: { WeaponPart },
+		rainbow = true,
 		bolt = {
 			meshId = "rbxassetid://116604779817561",
 			size = Vector3.new(0.2712, 0.2851, 1.0434),
@@ -757,6 +763,7 @@ local skins: { [string]: any } = {
 				turned = true,
 			},
 		} :: { WeaponPart },
+		rainbow = true,
 	},
 	-- SKINS END
 }
@@ -774,6 +781,7 @@ for key, skin in skins do
 		blade = base.blade,
 		bolt = skin.bolt or base.bolt,
 		kit = skin.kit,
+		rainbow = skin.rainbow,
 		parts = skin.parts,
 	} :: Weapon
 end

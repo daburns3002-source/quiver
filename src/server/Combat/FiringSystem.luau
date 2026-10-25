@@ -207,6 +207,12 @@ function FiringSystem.step(_deltaTime: number, now: number)
 		)
 			-- the Ember Wilf's howl (`Combat/PetCombat`)
 			/ (if now < session.petHasteUntil then 1 + session.petHaste else 1)
+			-- Battle Cry's kill stacks
+			/ (
+				if now < session.battleCryUntil
+					then 1 + session.battleCryStacks * session.melee.battleCry
+					else 1
+			)
 		if now - session.lastFiredAt < cooldown then
 			continue
 		end

@@ -52,6 +52,16 @@ export type MeleeStats = {
 	--[[ Extra damage to enemies under `Balance.Player.executeBelow` of their
 	     health, as a fraction. Execute. ]]
 	executeBonus: number,
+	--[[ Every this many swings is a spin that hits all round (0 never).
+	     Whirlwind. ]]
+	whirlwindEvery: number,
+	--[[ Studs a slam's ground wave runs (0 none). Shockwave. ]]
+	shockwaveLength: number,
+	--[[ Attack speed per kill stack, as a fraction. Battle Cry. ]]
+	battleCry: number,
+	--[[ 1: side blows destroy enemy shots in their arc; 2: the slam too.
+	     Parry. ]]
+	parry: number,
 }
 
 --[[ What the server applies. ]]
@@ -324,6 +334,10 @@ function AbilityEffects.serverStats(drafted: Counts, class: string?): ServerStat
 			slamBonus = at(counts, "HeavyBlade"),
 			lifesteal = at(counts, "Bloodletting"),
 			executeBonus = at(counts, "Execute"),
+			whirlwindEvery = at(counts, "Whirlwind"),
+			shockwaveLength = at(counts, "Shockwave"),
+			battleCry = at(counts, "BattleCry"),
+			parry = at(counts, "Parry"),
 		},
 		healPerKill = at(counts, "Bloodthirst"),
 		regenPerSecond = at(counts, "Mending"),

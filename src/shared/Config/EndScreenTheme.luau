@@ -16,11 +16,12 @@ local EndScreenTheme = {
 	ink = rgb(27, 27, 43),
 	white = rgb(255, 255, 255),
 
+	--[[ Both blocky: Press Start 2P (CLAUDE.md rule 11, owner 2026-10-24). ]]
 	fonts = {
 		--[[ Headings, values, buttons. ]]
-		display = Enum.Font.LuckiestGuy,
+		display = Enum.Font.Arcade,
 		--[[ Row labels. ]]
-		body = Enum.Font.FredokaOne,
+		body = Enum.Font.Arcade,
 	},
 
 	victory = {

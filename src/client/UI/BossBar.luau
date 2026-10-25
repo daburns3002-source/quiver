@@ -66,7 +66,7 @@ function BossBar.start()
 	local title = Instance.new("TextLabel")
 	title.Size = UDim2.fromScale(1, 0.45)
 	title.BackgroundTransparency = 1
-	title.Font = Enum.Font.GothamBlack
+	title.Font = Enum.Font.Arcade
 	title.TextScaled = true
 	title.TextColor3 = Color3.new(1, 1, 1)
 	title.TextStrokeTransparency = 0.4

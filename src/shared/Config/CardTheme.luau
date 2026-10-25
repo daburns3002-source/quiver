@@ -28,11 +28,12 @@ local CardTheme = {
 		white = rgb(255, 255, 255),
 	},
 
+	--[[ Both blocky: Press Start 2P (CLAUDE.md rule 11, owner 2026-10-24). ]]
 	fonts = {
 		--[[ Headings, rarity labels, names, badges, buttons. ]]
-		display = Enum.Font.LuckiestGuy,
+		display = Enum.Font.Arcade,
 		--[[ Descriptions, stat pills, other copy. ]]
-		body = Enum.Font.FredokaOne,
+		body = Enum.Font.Arcade,
 	},
 
 	card = {

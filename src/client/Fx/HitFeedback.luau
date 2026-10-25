@@ -161,7 +161,7 @@ local function spawnDamageNumber(position: Vector3, amount: number, kind: string
 	local label = Instance.new("TextLabel")
 	label.Size = UDim2.fromScale(1, 1)
 	label.BackgroundTransparency = 1
-	label.Font = Enum.Font.FredokaOne
+	label.Font = Enum.Font.Arcade
 	label.TextScaled = true
 	label.TextColor3 = style.color
 	label.Text = "-" .. tostring(math.floor(amount + 0.5))
@@ -692,7 +692,7 @@ function HitFeedback.onPlayerDodged(kind: string?)
 	local label = Instance.new("TextLabel")
 	label.Size = UDim2.fromScale(1, 1)
 	label.BackgroundTransparency = 1
-	label.Font = Enum.Font.GothamBlack
+	label.Font = Enum.Font.Arcade
 	label.Text = "DODGE!"
 	label.TextScaled = true
 	label.TextColor3 = Color3.fromRGB(150, 230, 255)

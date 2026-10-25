@@ -101,7 +101,7 @@ function DashBar.start()
 	text.Name = "Label"
 	text.Size = UDim2.fromScale(1, 1)
 	text.BackgroundTransparency = 1
-	text.Font = Enum.Font.GothamBold
+	text.Font = Enum.Font.Arcade
 	text.TextScaled = true
 	text.TextColor3 = Color3.fromRGB(255, 255, 255)
 	text.TextStrokeTransparency = 0.7

@@ -34,9 +34,9 @@ local BossBanner = {}
 local TAG_COLOUR = Color3.fromRGB(255, 210, 63)
 local TAG_TEXT = Color3.fromRGB(42, 28, 0)
 local INK = Color3.fromRGB(16, 14, 10)
-local NAME_FONT = Font.fromEnum(Enum.Font.FredokaOne)
-local TAG_FONT = Font.fromEnum(Enum.Font.GothamBlack)
-local SUB_FONT = Font.fromEnum(Enum.Font.GothamBold)
+local NAME_FONT = Font.fromEnum(Enum.Font.Arcade)
+local TAG_FONT = Font.fromEnum(Enum.Font.Arcade)
+local SUB_FONT = Font.fromEnum(Enum.Font.Arcade)
 local LINES = 9
 
 type Parts = {

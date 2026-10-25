@@ -15,16 +15,22 @@
 	one that dies first loses the blow. Other pets' blows land at once.
 
 	The pet stands at its owner for the server's purposes: it walks at heel,
-	and reach is measured from the owner.
+	and reach is measured from the owner. A pet that dashes (`dash`, the
+	Glade Fox) runs from there to each target round the cover
+	(`Enemies/Pathing`), and each blow lands as it arrives
+	(`Shared/Util/PetDash`); the plan goes to the clients with the attack.
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
 
 local Burning = require(script.Parent.Burning)
 local EnemyManager = require(script.Parent.Parent.Enemies.EnemyManager)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
+local Pathing = require(script.Parent.Parent.Enemies.Pathing)
 local PetAttacks = require(ReplicatedStorage.Shared.Config.PetAttacks)
 local PetCombatConfig = require(ReplicatedStorage.Shared.Config.PetCombat)
+local PetDash = require(ReplicatedStorage.Shared.Util.PetDash)
 local PetShots = require(ReplicatedStorage.Shared.Combat.PetShots)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local RunSession = require(script.Parent.Parent.Run.RunSession)
@@ -204,6 +210,83 @@ local function strike(session: Session, state: State, spec: Spec, origin: Vector
 	end
 end
 
+--[[ Half the width of an enemy's body. ]]
+local function radiusOf(model: Model): number
+	local hitbox = model:FindFirstChild("Hitbox")
+	if hitbox and hitbox:IsA("BasePart") then
+		return math.max(hitbox.Size.X, hitbox.Size.Z) / 2
+	end
+	return 1
+end
+
+--[[ A dashing pet's attack: runs to each target round the cover, the
+     blow landing as it arrives, and back. Returns how long it takes, or
+     nil with no target it can reach. ]]
+local function dashAt(
+	player: Player,
+	state: State,
+	spec: Spec,
+	dash: PetDash.Dash,
+	origin: Vector3
+): number?
+	local start = Vector3.new(origin.X, 0, origin.Z)
+	local routes: { { Vector3 } } = {}
+	local aims: { Vector3 } = {}
+	local struck: { Model } = {}
+	local from = start
+	for _, target in inRange(origin, spec.range) do
+		if #struck >= (spec.targets or 1) then
+			break
+		end
+		local land =
+			PetDash.landing(from, target.position, radiusOf(target.model) + dash.radius + dash.gap)
+		local route = Pathing.find(from, land, dash.radius)
+		local finish = route and route[#route]
+		if route and finish and (finish - land).Magnitude <= dash.reach then
+			table.insert(routes, route)
+			table.insert(aims, Vector3.new(target.position.X, 0, target.position.Z))
+			table.insert(struck, target.model)
+			from = finish
+		end
+	end
+	if #struck == 0 then
+		return nil
+	end
+	local home = Pathing.find(from, start, dash.radius)
+	table.insert(routes, if home and #home > 0 then home else { start })
+	local plan = PetDash.plan(start, routes, aims, dash)
+
+	petAttack:FireAllClients(player, state.pet, {
+		at = Workspace:GetServerTimeNow(),
+		plan = plan,
+		targets = struck,
+	})
+	for i, arrive in PetDash.hits(plan) do
+		local model = struck[i]
+		local route = plan.stops[i].route
+		-- struck from where the pet lands, for the knockback
+		local landed = Vector3.new(route[#route].X, origin.Y, route[#route].Z)
+		task.delay(arrive, function()
+			local current = RunSession.get(player)
+			if current and current.alive and states[player] == state then
+				if spec.damage then
+					local amount = spec.damage
+						+ (
+							if spec.bossDamage and EnemyManager.isBoss(model)
+								then spec.bossDamage
+								else 0
+						)
+					for _ = 1, spec.hits or 1 do
+						hit(current, model, amount, landed)
+					end
+				end
+				afflict(current, model, spec, os.clock())
+			end
+		end)
+	end
+	return plan.length
+end
+
 --[[ Seconds into the pet's Attack clip its first piece fires: when the
      targets are chosen. ]]
 local function leadOf(pet: string): number
@@ -274,6 +357,15 @@ function PetCombat.step(deltaTime: number, now: number)
 		end
 		state.nextAt = now + spec.every
 		state.attacks += 1
+		local dash = spec.dash
+		if dash then
+			local length = dashAt(player, state, spec, dash, origin)
+			if length then
+				-- never off again before it is back
+				state.nextAt = math.max(state.nextAt, now + length)
+			end
+			continue
+		end
 		petAttack:FireAllClients(player, state.pet)
 		task.delay(leadOf(state.pet), function()
 			local current = RunSession.get(player)

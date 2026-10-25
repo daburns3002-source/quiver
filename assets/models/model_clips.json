@@ -1,17 +1,145 @@
 {
   "_note": "The game's name for a model -> its Claude Design GLB. Run tools/glb_clips_to_luau.py after changing this.",
-  "Mosslet": "assets/models/pets/forest/mosslet.glb",
-  "Babacorn": "assets/models/pets/forest/babacorn.glb",
-  "FernFrog": "assets/models/pets/forest/fern_frog.glb",
-  "ToadstoolTot": "assets/models/pets/forest/toadstool_tot.glb",
-  "MossbackSnail": "assets/models/pets/forest/mossback_snail.glb",
-  "FireflyBun": "assets/models/pets/forest/firefly_bun.glb",
-  "Stumpy": "assets/models/pets/forest/stumpy.glb",
-  "GladeFox": "assets/models/pets/forest/glade_fox.glb",
-  "Hootmoss": "assets/models/pets/forest/hootmoss.glb",
-  "SlimePrince": "assets/models/pets/forest/slime_prince.glb",
-  "EmberWilfPet": "assets/models/pets/forest/ember_wilf.glb",
-  "Glimmerhorn": "assets/models/pets/forest/glimmerhorn.glb",
+  "Mosslet": {
+    "glb": "assets/models/pets/forest/mosslet.glb",
+    "loops": [
+      "Idle",
+      "Hop",
+      "Follow"
+    ],
+    "moving": [
+      "Attack"
+    ]
+  },
+  "Babacorn": {
+    "glb": "assets/models/pets/forest/babacorn.glb",
+    "loops": [
+      "Idle",
+      "Hop",
+      "Waddle",
+      "Follow"
+    ],
+    "moving": [
+      "Attack"
+    ]
+  },
+  "FernFrog": {
+    "glb": "assets/models/pets/forest/fern_frog.glb",
+    "loops": [
+      "Idle",
+      "Hop",
+      "Follow"
+    ],
+    "moving": [
+      "Attack"
+    ]
+  },
+  "ToadstoolTot": {
+    "glb": "assets/models/pets/forest/toadstool_tot.glb",
+    "loops": [
+      "Idle",
+      "Walk",
+      "Follow",
+      "Spore Puff"
+    ],
+    "moving": [
+      "Attack"
+    ]
+  },
+  "MossbackSnail": {
+    "glb": "assets/models/pets/forest/mossback_snail.glb",
+    "loops": [
+      "Idle",
+      "Crawl",
+      "Follow",
+      "Peek"
+    ],
+    "moving": [
+      "Attack"
+    ]
+  },
+  "FireflyBun": {
+    "glb": "assets/models/pets/forest/firefly_bun.glb",
+    "loops": [
+      "Idle",
+      "Hover",
+      "Follow"
+    ],
+    "moving": [
+      "Attack"
+    ]
+  },
+  "Stumpy": {
+    "glb": "assets/models/pets/forest/stumpy.glb",
+    "loops": [
+      "Idle",
+      "Walk",
+      "Follow",
+      "Stomp"
+    ],
+    "moving": [
+      "Attack"
+    ]
+  },
+  "GladeFox": {
+    "glb": "assets/models/pets/forest/glade_fox.glb",
+    "loops": [
+      "Idle",
+      "Trot",
+      "Follow",
+      "Pounce"
+    ],
+    "moving": [
+      "Attack"
+    ]
+  },
+  "Hootmoss": {
+    "glb": "assets/models/pets/forest/hootmoss.glb",
+    "loops": [
+      "Idle",
+      "Waddle",
+      "Follow",
+      "Wings Out"
+    ],
+    "moving": [
+      "Attack"
+    ]
+  },
+  "SlimePrince": {
+    "glb": "assets/models/pets/forest/slime_prince.glb",
+    "loops": [
+      "Idle",
+      "Hop",
+      "Follow",
+      "RoyalWave"
+    ],
+    "moving": [
+      "Attack"
+    ]
+  },
+  "EmberWilfPet": {
+    "glb": "assets/models/pets/forest/ember_wilf.glb",
+    "loops": [
+      "Idle",
+      "Follow",
+      "Zoomies"
+    ],
+    "moving": [
+      "Attack"
+    ]
+  },
+  "Glimmerhorn": {
+    "glb": "assets/models/pets/forest/glimmerhorn.glb",
+    "loops": [
+      "Idle",
+      "Trot",
+      "Follow",
+      "Leap"
+    ],
+    "moving": [
+      "Attack"
+    ]
+  },
   "KingBloblin": {
     "glb": "assets/models/bosses/king_bloblin_blocky/KingBloblin_Fight.glb",
     "loops": [

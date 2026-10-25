@@ -20,6 +20,8 @@ a model whose clips do not all loop, and writes one module per model
   neighbours cannot stand in for. With a "loops" list, each clip carries
   `loops`: whether it repeats, or plays once and holds its last frame (a
   boss's beats). Without one, every clip loops (pets).
+  A "moving" list names clips played exactly as made even if they walk a
+  path (a pet's one-shot Attack that dashes out and back; see PATH_TRAVEL).
 
 Glb space is glTF's: Y up, the model's front toward +Z, metres as units.
 `Shared/Util/ModelClip` samples the clips; `Fx/ModelAnimator` plays them.
@@ -247,7 +249,7 @@ def nums(vs) -> str:
     return "{ " + ", ".join(num(v) for v in vs) + " }"
 
 
-def convert(path: pathlib.Path):
+def convert(path: pathlib.Path, moving=()):
     gltf, binary = load(path)
     nodes = gltf["nodes"]
     parent = {}
@@ -328,11 +330,12 @@ def convert(path: pathlib.Path):
         size = (hi - lo) * scale
         parts[name_of[i]] = (joint_of(i), list(centre) + list(matrix_to_quat(rot)), list(size))
 
-    # the joints that can carry a whole model along a path: the top two levels
+    # the joints that can carry a whole model along a path: the top two levels,
+    # less a clip's effect pieces (Fx_*, the pets' Attacks), which fly on purpose
     depth = {}
     for jn, jp, _ in joints:
         depth[jn] = depth.get(jp, -1) + 1
-    roots = [jn for jn, _, _ in joints if depth[jn] <= 1]
+    roots = [jn for jn, _, _ in joints if depth[jn] <= 1 and not jn.startswith("Fx_")]
     rest_by_name = {name_of[i]: rest[i] for i in keep}
 
     clips = {}
@@ -368,7 +371,7 @@ def convert(path: pathlib.Path):
                 [float(x) for k in idx for x in values[k]],
             )
         clip_name = anim.get("name") or f"Clip{len(clips) + 1}"
-        stilled = on_the_spot(tracks, roots, rest_by_name)
+        stilled = [] if clip_name in moving else on_the_spot(tracks, roots, rest_by_name)
         if stilled:
             print(f"  {path.stem} {clip_name}: walks a path; played on the spot ({', '.join(stilled)})")
         clips[clip_name] = (length, tracks)
@@ -376,10 +379,11 @@ def convert(path: pathlib.Path):
 
 
 def entry(value):
-    """A manifest value: the GLB's path and the clips that loop (None: all)."""
+    """A manifest value: the GLB's path, the clips that loop (None: all) and
+    the clips played as made however far they travel."""
     if isinstance(value, str):
-        return value, None
-    return value["glb"], value.get("loops")
+        return value, None, ()
+    return value["glb"], value.get("loops"), tuple(value.get("moving", ()))
 
 
 def render(name, model, loops=None) -> str:
@@ -439,8 +443,8 @@ def main():
     for name, rel in manifest.items():
         if name.startswith("_"):
             continue
-        rel, loops = entry(rel)
-        model = convert(ROOT / rel)
+        rel, loops, moving = entry(rel)
+        model = convert(ROOT / rel, moving)
         joints, parts, clips = model
         if loops is not None:
             unknown = sorted(set(loops) - set(clips))

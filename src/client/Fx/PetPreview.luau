@@ -41,17 +41,28 @@ local REPLICATION_WAIT = 20
 --[[ Clip names that read as walking, best first. ]]
 local MOVE_CLIPS = { "Follow", "Walk", "Trot", "Waddle", "Hop" }
 
-type Pet = { model: Model, lift: number, idle: string?, move: string?, last: Vector3 }
+type Pet = {
+	model: Model,
+	lift: number,
+	idle: string?,
+	move: string?,
+	last: Vector3,
+	--[[ The length of its Attack clip (`docs/PETS-FOREST.md`, Attacks), when
+	     it has one, and the clock time an Attack under way ends. ]]
+	attack: number?,
+	actingUntil: number,
+}
 
 local pets: { Pet } = {}
 local holder: Folder? = nil
 local stepping: RBXScriptConnection? = nil
 
-local function clipNames(key: string): (string?, string?)
+--[[ The pet's idle and moving clips, and its Attack clip's length. ]]
+local function clipNames(key: string): (string?, string?, number?)
 	local folder = ReplicatedStorage.Shared.Config:FindFirstChild("ModelClips")
 	local module = folder and folder:FindFirstChild(key)
 	if not module or not module:IsA("ModuleScript") then
-		return nil, nil
+		return nil, nil, nil
 	end
 	local data = (require :: any)(module)
 	local names = {}
@@ -67,7 +78,7 @@ local function clipNames(key: string): (string?, string?)
 			break
 		end
 	end
-	return idle, move
+	return idle, move, if data.clips.Attack then data.clips.Attack.length else nil
 end
 
 local function ground(at: Vector3, ignore: { Instance }): number
@@ -112,7 +123,7 @@ local function spawnAll(source: Instance, only: string?)
 		local box, scaled = model:GetBoundingBox()
 		local lift = model:GetPivot().Position.Y - (box.Position.Y - scaled.Y / 2)
 		local key = model:GetAttribute("ModelClips")
-		local idle, move = clipNames(if type(key) == "string" then key else model.Name)
+		local idle, move, attack = clipNames(if type(key) == "string" then key else model.Name)
 		if idle then
 			model:SetAttribute("ModelClip", idle)
 		end
@@ -126,6 +137,8 @@ local function spawnAll(source: Instance, only: string?)
 			idle = idle,
 			move = move,
 			last = model:GetPivot().Position,
+			attack = attack,
+			actingUntil = 0,
 		})
 	end
 end
@@ -159,6 +172,10 @@ local function step(dt: number)
 		pet.model:PivotTo(CFrame.lookAt(next, next + facing.Unit))
 		pet.last = next
 		local clip = if speed > WALKING then pet.move else pet.idle
+		-- an Attack plays through, walking or not
+		if os.clock() < pet.actingUntil then
+			clip = nil
+		end
 		if clip and pet.model:GetAttribute("ModelClip") ~= clip then
 			pet.model:SetAttribute("ModelClip", clip)
 		end
@@ -222,6 +239,23 @@ function PetPreview.show(key: string?): boolean
 	spawnAll(folder, key)
 	stepping = RunService.RenderStepped:Connect(step)
 	return #pets > 0
+end
+
+--[[ Every pet out plays its Attack clip once (the sandbox's ATTACK
+     button), then goes back to idling or following. Returns how many did. ]]
+function PetPreview.attack(): number
+	local count = 0
+	for _, pet in pets do
+		local length = pet.attack
+		if length then
+			-- set afresh, so a second press restarts it
+			pet.model:SetAttribute("ModelClip", nil)
+			pet.model:SetAttribute("ModelClip", "Attack")
+			pet.actingUntil = os.clock() + length
+			count += 1
+		end
+	end
+	return count
 end
 
 --[[ The pet keys the preview can show: `Config/PetModels`, sorted. ]]

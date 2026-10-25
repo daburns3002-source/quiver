@@ -16,6 +16,18 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## The Glade Fox attacked from where it stood (its Leaf Dash never went anywhere)
+
+**Symptom**: 2026-10-25, the owner's Arcanist run-through: "glade fox needs to actually dash to the enemies when it attacks". The fox played its Attack clip at heel, its slashes appeared on enemies across the room, and they took damage with the fox nowhere near them.
+
+**Cause**: the pet only existed on the client, walking at heel. The server treated every pet as standing at its owner and landed the fox's three blows at once. The Attack clip's own lunge (2.7 GLB units forward between 0.17 s and 0.37 s, then back) was the only movement, a few studs on the spot.
+
+**Fix**: a dashing pet (`Config/PetCombat` `dash`) runs a plan from `Shared/Util/PetDash`, shared by both sides. The server routes the fox to up to three enemies round the cover (`Enemies/Pathing`, at the fox's 0.8-stud radius), lands each blow as it arrives, and sends the plan with the attack. The client (`Fx/PetPreview`) draws the fox along the same plan, carried with each enemy as it moves. The Attack clip is posed to each run (lunge out over the run, slash held, lunge back over the run home), and the clip's own lunge is subtracted from the pivot so the fox is where the plan says. `tests/PetDash.spec` pins it.
+
+**Measured** (Studio, sandbox dummies 30 studs apart, 32 dashes): each blow landed within 6 ms of its planned arrival, 2.6 studs from the enemy's centre (its half-width 1.5 + the fox's 0.8 + 0.3). The fox's body was within 0.15 studs of the landing at every hit, its head 2.5 studs from the enemy. It ran up to 50 studs out and was back at heel 2.2–2.6 s after it set off, inside the 3 s between attacks.
+
+---
+
 ## Chain Lightning's animation never played (the Arcanist's chained orbs looked like arrows)
 
 **Symptom**: 2026-10-25, the owner's Arcanist run-through: "chain lightning animation is not playing". The chain did its damage, but no zig-zag bolt, no spiked node and no crackle sound ever showed. The orb that jumped on was drawn as a plain player arrow.

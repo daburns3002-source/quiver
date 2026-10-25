@@ -274,4 +274,87 @@ return function(t: TestRunner.Helper)
 		t.near(ModelClip.clipTime(loop, 5), 1, 1e-9)
 		t.near(ModelClip.clipTime(nil, 5), 0, 1e-9)
 	end)
+
+	--[[ The animator poses with `deltasInto` and `placeRigid` (native
+	     CFrames for the joints that do not scale); every part must land
+	     where the plain affine maths puts it, in every model and clip, and
+	     with a chain stretched and its fist kept. ]]
+	t.test("the animator's fast maths places every part as the plain maths does", function()
+		local fit: ModelClip.Fit = {
+			turn = CFrame.Angles(0, math.pi, 0),
+			scale = 2.7,
+			origin = Vector3.new(0.3, -0.2, 1.1),
+			error = 0,
+			spread = 1,
+		}
+		local outCF: { [string]: CFrame } = {}
+		local outAffine: { [string]: ModelClip.Affine } = {}
+		local function check(
+			label: string,
+			model: ModelClip.Model,
+			clip: ModelClip.Clip?,
+			time: number,
+			stretch: ModelClip.Stretch?
+		)
+			local rest = ModelClip.rest(model)
+			local plain = ModelClip.deltas(model, clip, time, rest.affine, stretch)
+			ModelClip.deltasInto(clip, time, rest, stretch, outCF, outAffine)
+			for partName, part in model.parts do
+				local delta = plain[part.joint]
+				if not delta then
+					continue
+				end
+				local c = part.cframe
+				local at = fit.origin + fit.turn * (Vector3.new(c[1], c[2], c[3]) * fit.scale)
+				-- orthonormal, as a real part's is: the data's quaternions are rounded
+				local partRest = (CFrame.new(at) * fit.turn * CFrame.new(
+					0,
+					0,
+					0,
+					c[4],
+					c[5],
+					c[6],
+					c[7]
+				)):Orthonormalize()
+				local want, wantStretch = ModelClip.place(partRest, delta, fit)
+				local got, gotStretch
+				local affine = outAffine[part.joint]
+				local rigid = outCF[part.joint]
+				if affine then
+					got, gotStretch = ModelClip.place(partRest, affine, fit)
+				elseif rigid then
+					got, gotStretch = ModelClip.placeRigid(partRest, rigid, fit), Vector3.one
+				else
+					t.isTrue(false, `{label}: {partName}'s joint was not posed`)
+					continue
+				end
+				local off = math.max(
+					(got.Position - want.Position).Magnitude,
+					(got.RightVector - want.RightVector).Magnitude,
+					(got.UpVector - want.UpVector).Magnitude,
+					(gotStretch - wantStretch).Magnitude
+				)
+				-- CFrames are single precision: down King Bloblin's twelve-link lash
+				-- the fist drifts by a ten-thousandth of a stud. A pixel here is
+				-- about a twentieth of one.
+				t.isTrue(off < 1e-3, `{label}: {partName} off by {off}`)
+			end
+		end
+		local all = models()
+		for name, model in all do
+			check(`{name} at rest`, model, nil, 0)
+			for clipName, clip in model.clips do
+				for _, share in { 0.07, 0.5, 0.93 } do
+					check(`{name}.{clipName}`, model, clip, clip.length * share)
+				end
+			end
+		end
+		local king = all.KingBloblin
+		if king and #king.joints >= 3 then
+			check("KingBloblin stretched", king, nil, 0, {
+				[king.joints[2].name] = Vector3.new(1, 1, 3),
+				[king.joints[3].name] = Vector3.new(1, 1, 1 / 3),
+			})
+		end
+	end)
 end

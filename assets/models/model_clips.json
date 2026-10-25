@@ -320,5 +320,12 @@
       "Move",
       "Charge"
     ]
+  },
+  "BurrThistle": {
+    "glb": "assets/models/enemies/blocky/burr_thistle.glb",
+    "loops": [
+      "Idle",
+      "Move"
+    ]
   }
 }

@@ -18,6 +18,9 @@
 ]]
 
 local Intro = {
+	--[[ The longest the black screen waits for the music to load before
+	     the clock starts anyway (seconds), so the hit lands on the cut. ]]
+	musicWait = 3,
 	--[[ Seconds from the cutscene starting. ]]
 	presentsIn = 0.6,
 	--[[ How long the words take to fade (and pop) in, and out. ]]

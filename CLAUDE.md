@@ -570,6 +570,13 @@ for now"): the Blender MCP stays set up (`~/.claude.json`, the `blender-mcp` add
 comparisons are on branch `phase-3/blender-swords`, but no model is made there until the
 owner says otherwise.
 
+**11. Every word on screen is in the blocky font.**
+Press Start 2P, Roblox's `Enum.Font.Arcade` (`Font.fromEnum(Enum.Font.Arcade)` for a
+`FontFace`): HUD, cards, end screens, banners, damage numbers, billboards, dev labels, all
+of it (owner, 2026-10-24: "anywhere there is writing it should be in a blocky font … have
+it as a rule going forward"). The room sign's own pixel font (`Config/PixelFont`) counts.
+`tools/check.sh` fails on any other font.
+
 ## Code conventions
 
 - `--!strict` at the top of every Luau file. No exceptions.

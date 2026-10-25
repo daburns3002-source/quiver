@@ -61,7 +61,7 @@ function RunBanner.start()
 	room.LayoutOrder = 1
 	room.Size = UDim2.new(1, 0, 0, 24)
 	room.BackgroundTransparency = 1
-	room.Font = Enum.Font.GothamBold
+	room.Font = Enum.Font.Arcade
 	room.TextScaled = true
 	room.TextColor3 = NEUTRAL
 	room.TextStrokeTransparency = 0.5
@@ -73,7 +73,7 @@ function RunBanner.start()
 	status.LayoutOrder = 2
 	status.Size = UDim2.new(1, 0, 0, 18)
 	status.BackgroundTransparency = 1
-	status.Font = Enum.Font.Gotham
+	status.Font = Enum.Font.Arcade
 	status.TextScaled = true
 	status.TextColor3 = NEUTRAL
 	status.TextStrokeTransparency = 0.6
@@ -117,7 +117,7 @@ function RunBanner.start()
 	levelText.LayoutOrder = 4
 	levelText.Size = UDim2.new(1, 0, 0, 14)
 	levelText.BackgroundTransparency = 1
-	levelText.Font = Enum.Font.Gotham
+	levelText.Font = Enum.Font.Arcade
 	levelText.TextScaled = true
 	levelText.TextColor3 = Color3.fromRGB(226, 206, 170)
 	levelText.TextStrokeTransparency = 0.7

@@ -40,7 +40,7 @@ local function toast(text: string)
 	label.Size = UDim2.fromOffset(360, 36)
 	label.BackgroundColor3 = Color3.fromRGB(27, 27, 43)
 	label.BackgroundTransparency = 0.15
-	label.Font = Enum.Font.FredokaOne
+	label.Font = Enum.Font.Arcade
 	label.TextSize = 18
 	label.TextColor3 = Color3.fromRGB(255, 106, 85)
 	label.Text = text

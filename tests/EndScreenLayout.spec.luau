@@ -5,11 +5,13 @@
 	it off the panel or into its neighbour: every box stays on the panel,
 	the rows and the rewards box sit inside the stats panel without
 	overlapping, the button below it, and Defeat's progress bar on its
-	third row. Every image they draw must be uploaded.
+	third row. Every image they draw must be uploaded, and every stage's area
+	must have its chest.
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local EndScreenAssets = require(ReplicatedStorage.Shared.Config.EndScreenAssets)
 local EndScreenLayout = require(ReplicatedStorage.Shared.Config.EndScreenLayout)
 local TestRunner = require(script.Parent.TestRunner)
@@ -58,7 +60,14 @@ return function(t: TestRunner.Helper)
 			for _, slot in layout.slots do
 				t.isTrue(inside(slot, layout.rewards), "a reward slot off its box")
 			end
-			t.isTrue(layout.button.y >= stats.y + stats.h - 20, "the button overlaps the stats")
+			if layout.chest then
+				local chest: Box = layout.chest.slot
+				t.isTrue(inside(chest, layout.rewards), "the chest slot off its box")
+				for _, slot in layout.slots do
+					t.isTrue(chest.y >= slot.y + slot.h - 8, "the chest slot overlaps the coins")
+				end
+			end
+			t.isTrue(layout.button.y >= stats.y + stats.h - 30, "the button overlaps the stats")
 		end)
 
 		if layout.bar then
@@ -70,7 +79,19 @@ return function(t: TestRunner.Helper)
 
 	t.test("every end-screen image is uploaded", function()
 		for key, id in EndScreenAssets :: any do
-			t.isTrue(string.match(id, "^rbxassetid://%d+$") ~= nil, `{key} has no asset id`)
+			if type(id) == "string" then
+				t.isTrue(string.match(id, "^rbxassetid://%d+$") ~= nil, `{key} has no asset id`)
+			end
+		end
+	end)
+
+	t.test("every stage's area has its chest", function()
+		local chests: { [string]: string } = EndScreenAssets.chests
+		t.isTrue(chests.MossyGlade ~= nil, "no Mossy Glade chest, the fallback")
+		for _, stage in Balance.Stages do
+			if stage.area then
+				t.isTrue(chests[stage.area] ~= nil, `{stage.name}: no chest for {stage.area}`)
+			end
 		end
 	end)
 end

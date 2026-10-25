@@ -6,6 +6,8 @@ Reads assets/concepts/blocky/ui/end_screens_raw/ (Codex's output, kept as made):
   ribbon_victory.png, ribbon_defeat.png  the title ribbons, blank for live text
   hero_victory.png, hero_defeat.png      the pictures in the middle
   rays_victory.png                       the light rays behind the trophy
+  chest_<area>.png                       each area's chest, for Victory's reward slot
+                                         (drawn from chest_reference.png, the sheet's)
   icons.png                              a 4 x 3 grid of icons (NAMES below)
 and writes assets/ui/end_screens/art/<name>.png, each cropped to what is drawn
 and at most 1024 px on its longer side (Roblox's largest). The crops' sizes
@@ -24,7 +26,19 @@ OUT = pathlib.Path(__file__).resolve().parent / "art"
 MAX = 1024
 PAD = 4
 
-WHOLE = ["ribbon_victory", "ribbon_defeat", "hero_victory", "hero_defeat", "rays_victory"]
+WHOLE = [
+    "ribbon_victory",
+    "ribbon_defeat",
+    "hero_victory",
+    "hero_defeat",
+    "rays_victory",
+    "chest_mossy_glade",
+    "chest_thornwood",
+    "chest_drowned_village",
+    "chest_bogheart_caverns",
+    "chest_windswept_cliffs",
+    "chest_frostpeak_pass",
+]
 NAMES = [
     ["skull", "hourglass", "heart", "chart"],
     ["coin", "gem", "chevron", "refresh"],

@@ -13,6 +13,8 @@
 local EndScreenLayout = {
 	canvas = Vector2.new(1024, 1536),
 
+	--[[ Victory as re-drawn with the chest slot under the coins and gems
+	     (`end_victory_chest.jpg`, owner's yes 2026-10-25). ]]
 	victory = {
 		panel = { x = 34, y = 44, w = 955, h = 1478 },
 		panelSteps = 3,
@@ -21,48 +23,63 @@ local EndScreenLayout = {
 		ribbon = { x = 66, y = 60, w = 892, h = 246 },
 		title = { x = 66, y = 92, w = 892, h = 110 },
 		sub = { x = 252, y = 222, w = 520, h = 114 },
-		hero = { x = 238, y = 326, w = 548, h = 428 },
-		heroCentre = Vector2.new(512, 560),
-		rays = { x = 512 - 820, y = 560 - 820, w = 1640, h = 1640 },
-		tab = { x = 232, y = 718, w = 560, h = 92 },
-		stats = { x = 68, y = 758, w = 888, h = 584 },
+		hero = { x = 282, y = 322, w = 460, h = 360 },
+		heroCentre = Vector2.new(512, 500),
+		rays = { x = 512 - 820, y = 500 - 820, w = 1640, h = 1640 },
+		tab = { x = 232, y = 668, w = 560, h = 84 },
+		stats = { x = 68, y = 708, w = 888, h = 678 },
 		--[[ Inside each row: the icon's left edge and size, where the label
 		     starts and where the value ends. ]]
 		rows = {
 			x = 114,
-			y = 818,
+			y = 767,
 			w = 796,
-			h = 96,
-			pitch = 91,
+			h = 94,
+			pitch = 88,
 			iconX = 44,
 			icon = 70,
 			labelX = 144,
 			valueRight = 756,
 		},
-		rewards = { x = 112, y = 1120, w = 798, h = 190 },
-		rewardsTab = { x = 322, y = 1098, w = 380, h = 62 },
+		rewards = { x = 112, y = 1056, w = 798, h = 300 },
+		rewardsTab = { x = 322, y = 1036, w = 380, h = 60 },
 		slots = {
-			{ x = 146, y = 1150, w = 362, h = 136 },
-			{ x = 516, y = 1150, w = 362, h = 136 },
+			{ x = 146, y = 1094, w = 362, h = 121 },
+			{ x = 514, y = 1094, w = 363, h = 121 },
 		},
 		--[[ Inside each slot: the icon's left edge and size, and where the
 		     number starts. ]]
 		slotIconX = 42,
 		slotIcon = 86,
 		slotTextX = 150,
-		button = { x = 166, y = 1324, w = 692, h = 170 },
+		--[[ The chest slot under them: the slot, and inside it the chest's
+		     box, its sparkles ({ x, y } centres), where the word starts and
+		     where the count ends. ]]
+		chest = {
+			slot = { x = 146, y = 1210, w = 731, h = 138 },
+			icon = { x = 86, y = 11, w = 154, h = 115 },
+			sparkles = { { 59, 40 }, { 279, 40 }, { 49, 90 }, { 269, 90 } },
+			sparkle = 16,
+			labelX = 325,
+			countRight = 650,
+		},
+		button = { x = 166, y = 1360, w = 692, h = 150 },
+		--[[ The button's segmented foot, from its top: where the face ends,
+		     the ink line, the band; and its studs' heights. ]]
+		buttonFoot = { face = 116, line = 122, band = 127 },
+		buttonStudsY = { 35, 102 },
 		--[[ The gold cubes floating round the trophy and the button:
 		     { x, y, size }, their centres. ]]
 		cubes = {
-			{ 195, 410, 74 },
-			{ 866, 415, 74 },
-			{ 185, 553, 62 },
-			{ 224, 622, 42 },
-			{ 150, 735, 62 },
-			{ 869, 660, 88 },
-			{ 814, 598, 44 },
-			{ 127, 1408, 44 },
-			{ 908, 1385, 48 },
+			{ 195, 400, 74 },
+			{ 835, 395, 74 },
+			{ 185, 535, 62 },
+			{ 225, 595, 42 },
+			{ 160, 640, 62 },
+			{ 870, 620, 88 },
+			{ 810, 565, 44 },
+			{ 125, 1440, 44 },
+			{ 910, 1428, 48 },
 		},
 	},
 

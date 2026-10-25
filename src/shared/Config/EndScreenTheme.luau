@@ -138,6 +138,8 @@ local EndScreenTheme = {
 		buttonFootLine = rgb(4, 56, 22),
 		buttonShine = rgb(170, 244, 163),
 		buttonStuds = rgb(160, 236, 140),
+		--[[ How faded the chest is while the run gave none. ]]
+		chestDim = 0.55,
 		cubes = rgb(255, 208, 40),
 		rays = rgb(255, 255, 255),
 		raysTransparency = 0.55,

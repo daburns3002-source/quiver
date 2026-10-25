@@ -1145,6 +1145,10 @@ export type StageConfig = {
 	     Nil is 1. ]]
 	enemyDamage: number?,
 	enemyHealth: number?,
+	--[[ Which area of the world the stage is in (`docs/WORLD.md`), as
+	     `EndScreenAssets.chests` keys it: the chest Victory shows. Nil is
+	     the Mossy Glade. ]]
+	area: string?,
 }
 
 export type RoomConfig = {
@@ -2754,6 +2758,7 @@ local Balance = {
 			     about six hits rather than four. ]]
 			enemyDamage = 0.7,
 			enemyHealth = 0.8,
+			area = "MossyGlade",
 		},
 		{
 			--[[ Forty Thornwood rooms (`tools/thornwood_rooms.py`), a step
@@ -2769,6 +2774,7 @@ local Balance = {
 			end)(),
 			enemyDamage = 0.8,
 			enemyHealth = 0.9,
+			area = "Thornwood",
 		},
 		{
 			--[[ Twenty Mossy Glade rooms ending in King Bloblin
@@ -2785,6 +2791,7 @@ local Balance = {
 			end)(),
 			enemyDamage = 0.7,
 			enemyHealth = 0.8,
+			area = "MossyGlade",
 		},
 	} :: { StageConfig },
 

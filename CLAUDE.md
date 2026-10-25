@@ -169,7 +169,9 @@ What exists and works, all verified in Studio rather than only by the gates:
   (`assets/ui/end_screens/cutout.py`). Defeat is deliberately sad (slate,
   rain, the fallen hood; owner: "make the defeat screen sadder"). Both keep
   a REWARDS box (coins, gems) that counts up `Summary.coins` / `gems`,
-  which nothing sends until the meta loop pays out. HOME stays out until a
+  which nothing sends until the meta loop pays out; Victory's has a chest
+  slot under them showing the chest of the stage's `area` (one Codex chest
+  per area, owner: "codex needs to draw a chest per area"). HOME stays out until a
   lobby exists.
 - **Phase 3, mostly:** the shot pipeline with its abilities as data, XP and a
   choose-one-of-three draft that pauses the world, crit, splash, Ricochet

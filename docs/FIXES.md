@@ -16,6 +16,39 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## Chain Lightning's animation never played (the Arcanist's chained orbs looked like arrows)
+
+**Symptom**: 2026-10-25, the owner's Arcanist run-through: "chain lightning animation is not playing". The chain did its damage, but no zig-zag bolt, no spiked node and no crackle sound ever showed. The orb that jumped on was drawn as a plain player arrow.
+
+**Cause**: two.
+- The onward shot never said whose class it was. The server's chain and ricochet shots (`ProjectileSystem.fireOnward`) were announced with no `look`, so the client drew them in the `Player` (arrow) pool, not `PlayerOrb`. `ArcanistFx` only plays the bolt for a `PlayerOrb` that was chained, so it bailed out on every chain. The damage was never affected: the server's projectile is the same either way.
+- Even with the look, the bolt went to the wrong enemy. `ArcanistFx` picked the nearest enemy ahead of the hit point without skipping the body the chain leaves. The orb meets an enemy at its near edge, so the enemy just hit was usually that nearest one. The bolt was then 3 to 4 studs long and ended at that enemy's own centre, hidden inside its body.
+
+**Fix**:
+- The projectile carries its class `look`. `FiringSystem` sets it, and `fireOnward` passes it on to the onward projectile and its `ShotFired` event, so a chained orb is drawn as an orb.
+- `FxEvents.launched` now carries the body the shot leaves (`from: Model?`) in place of a `chained` boolean.
+- The bolt runs from that body's centre to the enemy most nearly along the chain's aim (`chainTarget`). The server aims the chain straight at its target, so that is the one it jumps to. The cosine to beat is `Balance.UpgradeFx.boltAimed`, and the reach is the ricochet's plus `boltReachSlack`.
+
+**Measured**: Studio, Arcanist with Chain Lightning 2, sandbox dummies plus Melee Chargers. Before: 4 of 4 onward shots arrived with no look and were drawn as arrows. With the look fixed but not the target, bolts were 2.7 to 3.6 studs long, ending on the hit enemy's own centre. After: 13 of 13 chained orbs drew a bolt, 3.4 to 14.7 studs long, each starting 0.00 studs from the hit enemy's centre and ending 0.00 from another enemy's centre (a probe inside `ArcanistFx`). A capture shows the bolt between two enemies.
+
+**Watch for**: a shot the server invents (chain, ricochet, anything new through `fireOnward`) has to carry everything the client draws it by. The client's own volleys get `look` from `LocalFiring`, so this only shows on server-invented shots.
+
+---
+
+## Pet damage landed before the pet's projectile got there
+
+**Symptom**: 2026-10-25, the owner's Arcanist run of the Mossy Glade: "hootmoss damage happens instantly instead of happening when the projectiles actually hit the enemies", and the Babacorn the same. The damage numbers popped on the enemy while the feathers and acorn pellets were still drawn flying toward it.
+
+**Cause**: `Combat/PetCombat` landed every blow of an attack at once, when the pet's first piece left (`Config/PetAttacks` `at`), while `Fx/PetAttackFx` flew each piece for distance / `speed` seconds after that, and the Babacorn's second and third pellets left 0.2 s and 0.4 s later still. The server never knew a projectile was flying.
+
+**Fix**: `Shared/Combat/PetShots` holds the one clock both sides use: blow n rides piece ((n - 1) % count) + 1 of the pet's first piece, which leaves `at + (piece - 1) * every` into the attack and flies `max(0.15, distance / speed)`. `PetCombat` schedules each blow for when its piece leaves, measures the distance then from where the pet stands (`PetShots.heel`, at heel of the owner as `Fx/PetPreview` places it), and lands it a flight later; `PetAttackFx` takes its flight time from the same function. A target that moves is followed (the Hootmoss's feathers home on it, and the blow lands on it wherever it is); one that dies on the way loses the blow, which is not passed on. A pet whose first piece is not a projectile (tongue, beam, snare) lands at once as before. `tests/PetShots.spec` pins it.
+
+**Measured**: in a Studio run (Arcanist, sandbox dummies 56-58 studs off, the changed files swapped into Studio), from the server's `PetAttack` on the client: the **Babacorn**'s pellets left at 0.10 / 0.30 / 0.50 s and their pieces ended at 1.77 / 1.97 / 2.17 s (56 studs at 34 studs/s = 1.65 s); its three damage numbers came at 1.80 / 2.00 / 2.20 s, 15-67 ms after each landing, over three attacks. The **Hootmoss**'s feathers left at 0.25 / 0.40 / 0.55 s and ended at 2.33 / 2.47 / 2.67 s; its hits came at 2.40 / 2.50 / 2.60 s. Before, every blow landed at the first piece's `at` (0.10 s and 0.25 s), with the projectiles barely out. The server's heel point read within 0.1 studs of the drawn pet's distance to each dummy. Suite: 403 pass.
+
+Not fixed here: the client aims every Hootmoss feather at the nearest enemy, while the server hits up to four, so its second to fourth targets take a feather's blow on the feather's clock with no feather drawn going to them (it was so before, only instantly).
+
+---
+
 ## A model's lit or flash pieces came out as `nan`, or the converter crashed
 
 **Symptom**: 2026-10-24, bringing the 44 upgrade-effect GLBs in. `imports_to_luau.py` stopped at `FxMomentum` with `numpy.linalg.LinAlgError: Singular matrix`. Once past that, Selene reported 152 errors, all `` `nan` is not defined ``, in the generated `Config/ModelClips/FxMomentum`, `FxPrecision` and `FxStrength`. Every one was a part's rest `cframe` with a valid position and four `nan`s for its rotation: `Seg_00_Lit`, `Ring_Lit_Seg01`, `ArmBandLeft_GripFlash`. In game, a NaN rotation is a part that never appears.

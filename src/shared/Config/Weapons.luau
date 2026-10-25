@@ -137,6 +137,10 @@ export type Weapon = {
 	kit: string?,
 	--[[ A Mythic: its glow parts cycle through the rainbow (`Fx/WeaponGlow`). ]]
 	rainbow: boolean?,
+	--[[ The single bow this is a pair of (the Dual Bows Mythic): drafting the
+	     card puts the pair of whatever bow is in hand there
+	     (`Shared/Combat/HeldWeaponChoice`). ]]
+	dualOf: string?,
 }
 
 local Weapons = {
@@ -810,6 +814,33 @@ local twigBow = Weapons.TwigBow;
 	fireSound = twigBow.fireSound,
 	offhand = { hand = "RightHand", grip = twigBow.grip },
 	parts = twigBow.parts,
+	dualOf = "TwigBow",
 } :: Weapon
+
+--[[ Each bow skin's own pair, so drafting Dual Bows keeps the skin in hand
+     (owner, 2026-10-25: "it needs to keep the skin of the bow they have on
+     currently"): the skin's meshes, size, glow, rainbow and arrow, held and
+     animated as the Twig Bows are. No skin has a second-hand model, and the
+     bows are symmetric front to back, so the off hand holds a copy of the
+     same model at the same grip and turn, as the Twig Bows' does. ]]
+local twigBowDual = (Weapons :: any).TwigBowDual :: Weapon
+for key, skin in skins do
+	if skin.skinOf ~= "TwigBow" then
+		continue
+	end
+	(Weapons :: any)[`{key}Dual`] = {
+		hand = twigBowDual.hand,
+		scale = skin.scale,
+		grip = twigBowDual.grip,
+		clips = twigBowDual.clips,
+		fireSound = twigBowDual.fireSound,
+		offhand = twigBowDual.offhand,
+		bolt = skin.bolt or twigBow.bolt,
+		kit = "TwigBowDual",
+		rainbow = skin.rainbow,
+		parts = skin.parts,
+		dualOf = key,
+	} :: Weapon
+end
 
 return table.freeze(Weapons)

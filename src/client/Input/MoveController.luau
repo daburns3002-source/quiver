@@ -203,8 +203,10 @@ local function step()
 
 	--[[ From the replicated stats, not from config: Agility raises it, and
 	     this line runs every frame so it would otherwise undo the ability
-	     the moment it was drafted. ]]
-	humanoid.WalkSpeed = PlayerStats.get().moveSpeed
+	     the moment it was drafted. Faster while the cleared room's gate is
+	     open, which the server says (`ExitOpen`). ]]
+	local rush = if workspace:GetAttribute("ExitOpen") == true then Balance.Player.exitRush else 1
+	humanoid.WalkSpeed = PlayerStats.get().moveSpeed * rush
 
 	-- World space, not camera-relative: the second argument must stay false.
 	humanoid:Move(desiredDirection(), false)

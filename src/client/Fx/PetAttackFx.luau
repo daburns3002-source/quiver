@@ -16,6 +16,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 
 local PetAttacks = require(ReplicatedStorage.Shared.Config.PetAttacks)
+local PetShots = require(ReplicatedStorage.Shared.Combat.PetShots)
 local PetSounds = require(ReplicatedStorage.Shared.Config.PetSounds)
 local SoundFx = require(script.Parent.SoundFx)
 local UpgradeFx = require(script.Parent.Upgrades.UpgradeFx)
@@ -66,7 +67,8 @@ local function fly(
 		return from + offset
 	end
 	local fixed = dest()
-	local life = math.max(0.15, (fixed - from).Magnitude / (shot.speed or 25))
+	-- the server lands the blow on this clock (Shared/Combat/PetShots)
+	local life = PetShots.flight(shot, (fixed - from).Magnitude)
 	local arc = shot.arc or 0
 	local function place(t: number): Vector3
 		local goal = if shot.homing then dest() else fixed

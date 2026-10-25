@@ -271,6 +271,10 @@ export type EnemyConfig = {
 	boss: EnemyBoss?,
 	--[[ Lunging attacks, in place of the plain melee hit. ]]
 	lunges: { EnemyLunge }?,
+	--[[ A training dummy (the Studio sandbox, `Config/Sandbox`): it stands
+	     still, never attacks, and every hit refills its health, so it is
+	     struck for as long as anyone likes and never dies. ]]
+	dummy: boolean?,
 }
 
 local meleeCharger: EnemyConfig = {

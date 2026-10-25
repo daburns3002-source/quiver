@@ -91,13 +91,15 @@ local function arrived(source: Instance): boolean
 	return true
 end
 
-local function spawnAll(source: Instance)
+--[[ Clones the server's pets into the Workspace: all of them, or only
+     the one named `only`. ]]
+local function spawnAll(source: Instance, only: string?)
 	local folder = Instance.new("Folder")
 	folder.Name = "PetPreviewLocal"
 	folder.Parent = Workspace
 	holder = folder
 	for _, template in source:GetChildren() do
-		if not template:IsA("Model") then
+		if not template:IsA("Model") or (only and template.Name ~= only) then
 			continue
 		end
 		local model = template:Clone()
@@ -159,31 +161,78 @@ local function step(dt: number)
 	end
 end
 
---[[ Turns the preview on (asking the server to build the pets, once) or
-     off. Returns whether it is now on. ]]
-function PetPreview.toggle(): boolean
+local function putAway()
+	if stepping then
+		stepping:Disconnect()
+		stepping = nil
+	end
 	if holder then
-		if stepping then
-			stepping:Disconnect()
-			stepping = nil
-		end
 		holder:Destroy()
 		holder = nil
-		table.clear(pets)
-		return false
 	end
+	table.clear(pets)
+end
+
+--[[ The server's pets, asking it to build them (once) and waiting until
+     every part has arrived; nil if they never come. ]]
+local function source(): Instance?
 	Remotes.event(Remotes.DebugPetPreview):FireServer()
-	local source = ReplicatedStorage:WaitForChild("PetPreview", 30)
-	if not source then
-		return false
+	local folder = ReplicatedStorage:WaitForChild("PetPreview", 30)
+	if not folder then
+		return nil
 	end
 	local deadline = os.clock() + REPLICATION_WAIT
-	while not arrived(source) and os.clock() < deadline do
+	while not arrived(folder) and os.clock() < deadline do
 		task.wait(0.1)
 	end
-	spawnAll(source)
+	return folder
+end
+
+--[[ Turns the preview of every pet on or off. Returns whether it is now on. ]]
+function PetPreview.toggle(): boolean
+	if holder then
+		putAway()
+		return false
+	end
+	local folder = source()
+	if not folder then
+		return false
+	end
+	spawnAll(folder)
 	stepping = RunService.RenderStepped:Connect(step)
 	return #pets > 0
+end
+
+--[[ One pet at heel (a `Config/PetModels` key, as the sandbox menu picks
+     it), in place of any already out, or none for nil. Returns whether a
+     pet is now out. ]]
+function PetPreview.show(key: string?): boolean
+	putAway()
+	if not key then
+		return false
+	end
+	local folder = source()
+	if not folder then
+		return false
+	end
+	spawnAll(folder, key)
+	stepping = RunService.RenderStepped:Connect(step)
+	return #pets > 0
+end
+
+--[[ The pet keys the preview can show: `Config/PetModels`, sorted. ]]
+function PetPreview.keys(): { string }
+	local out: { string } = {}
+	local folder = ReplicatedStorage.Shared.Config:FindFirstChild("PetModels")
+	if folder then
+		for _, module in folder:GetChildren() do
+			if module:IsA("ModuleScript") then
+				table.insert(out, module.Name)
+			end
+		end
+	end
+	table.sort(out)
+	return out
 end
 
 return PetPreview

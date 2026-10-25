@@ -336,6 +336,13 @@ any card (Studio only), to test a card's effect without drafting it.
 **P** — the pets the owner imported follow you, playing their own clips
 (`Fx/PetPreview`, built by `Server/Dev/PetPreview` from `Config/PetModels`); P again
 puts them away. A look only, until Phase 6's pet system.
+**O** — the playtest sandbox (owner, 2026-10-24), also the SANDBOX tab on the left edge
+(`UI/SandboxMenu`, `Config/Sandbox`): ENTER turns the room into training dummies that
+never die or hit back (`EnemyConfig.dummy`) with every player untouchable and the run
+held (`RoomController.enterSandbox`); LEAVE starts the stage over. Any weapon in hand
+(`Remotes.DebugWeapon`, held as its class, kept for the run like the class) and any
+one pet at heel (`PetPreview.show`). A new `Config/Weapons` entry must be listed in
+`Config/Sandbox` (`tests/Sandbox.spec`).
 From a probe, `Remotes.DebugForceMythic:FireServer("Legendary")` does the
 same without the MCP keyboard tool, which reports as a gamepad and flips the
 draft into its controller layout.

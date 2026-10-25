@@ -7,7 +7,9 @@
 	in), slowly zooming and drifting under light shafts and blocky motes,
 	with a big BEGIN ADVENTURE button at the bottom.
 
-	The music (`Config/Music.intro`) starts on the cutscene's first frame;
+	The music (`Config/Music.intro`) starts on the cutscene's first frame,
+	which waits on the black screen until the track has loaded, so its hit
+	lands on the cut;
 	the run's own music waits (`MusicFx.setQuiet`). The player is held
 	still (`RunPaused.setTitle`) and the server holds the world until the
 	press, which asks it to start (`Remotes.IntroBegin`) and fades the title
@@ -61,7 +63,9 @@ type Parts = {
 
 local parts: Parts? = nil
 local music: Sound? = nil
-local startedAt = 0
+--[[ When the clock started (os.clock), or nil while the black screen
+     waits for the music to load. ]]
+local startedAt: number? = nil
 local pressedAt: number? = nil
 local held: number? = nil
 local connection: RBXScriptConnection? = nil
@@ -321,10 +325,18 @@ local function build(playerGui: PlayerGui): Parts
 	}
 end
 
-local function startMusic()
+-- Seconds since the cutscene's clock started; 0 while it waits to.
+local function clock(): number
+	local started = startedAt
+	return if started then os.clock() - started else 0
+end
+
+--[[ The intro's music, loaded but not playing yet, or nil when it has no
+     id. ]]
+local function loadMusic(): Sound?
 	local track = Music.intro
 	if track.id == "" then
-		return
+		return nil
 	end
 	local sound = Instance.new("Sound")
 	sound.Name = "Music_Intro"
@@ -337,8 +349,35 @@ local function startMusic()
 	end
 	sound.Looped = true
 	sound.Parent = SoundService
-	sound:Play()
 	music = sound
+	return sound
+end
+
+--[[ Holds on the black screen until the music has loaded (at most
+     `Intro.musicWait`), so its hit lands on the cut, then starts the clock
+     and the music on the same frame. ]]
+local function startClock(built: Parts)
+	local sound = loadMusic()
+	if sound and not sound.IsLoaded then
+		local deadline = os.clock() + Intro.musicWait
+		while not sound.IsLoaded and os.clock() < deadline and parts == built do
+			task.wait()
+		end
+	end
+	if parts ~= built then
+		return
+	end
+	startedAt = os.clock()
+	if sound then
+		sound.TimePosition = 0
+		sound:Play()
+	end
+	-- a gamepad lands on the button once it is up
+	task.delay(Intro.buttonAt, function()
+		if parts == built and not pressedAt then
+			GuiService.SelectedObject = built.button
+		end
+	end)
 end
 
 local function fadeMusic(level: number)
@@ -422,7 +461,7 @@ local function pose(t: number)
 end
 
 local function press()
-	local t = os.clock() - startedAt
+	local t = clock()
 	if pressedAt or held or not IntroTimeline.canPress(Intro :: any, t) then
 		return
 	end
@@ -446,19 +485,13 @@ function IntroCutscene.start(begin: () -> ())
 	parts = built
 	built.button.Activated:Connect(press)
 	RunPaused.setTitle(true)
-	startedAt = os.clock()
+	startedAt = nil
 	pressedAt = nil
-	startMusic()
 	connection = RunService.RenderStepped:Connect(function()
-		pose(held or (os.clock() - startedAt))
+		pose(held or clock())
 	end)
 	pose(0)
-	-- a gamepad lands on the button once it is up
-	task.delay(Intro.buttonAt, function()
-		if parts == built and not pressedAt then
-			GuiService.SelectedObject = built.button
-		end
-	end)
+	task.spawn(startClock, built)
 end
 
 --[[ Studio captures: freeze the cutscene at `t` seconds (nil runs it on). ]]
@@ -483,6 +516,7 @@ function IntroCutscene.stop()
 		p.safe:Destroy()
 	end
 	parts = nil
+	startedAt = nil
 	if music then
 		music:Destroy()
 		music = nil

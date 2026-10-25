@@ -2796,11 +2796,11 @@ local Balance = {
 	} :: { StageConfig },
 
 	--[[ Which stage a run plays. Set per point in the game; one index here
-	     until there is a stage select. The Mossy Glade run, for a
-	     run-through of every class (owner, 2026-10-25: "give me 20 rooms of
-	     mossy glade ending in king bloblin first and i will run it 1 time
-	     with each class"); Level 2, Thornwood, is 4; Level 1 is 3. ]]
-	stage = 5,
+	     until there is a stage select. Level 2, Thornwood, to playtest it
+	     (owner, 2026-10-25: "make the playtest have thornwood instead of
+	     mossy glade so i can test it"); the Mossy Glade run is 5, Level 1
+	     is 3. ]]
+	stage = 4,
 
 	--[[ The Waves-mode schedule, as Archero 2 numbers it within each block
 	     of ten: a Valkyrie on the 5th, an Angel on the 9th, a boss on the

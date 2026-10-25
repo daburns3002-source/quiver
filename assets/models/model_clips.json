@@ -230,5 +230,87 @@
   "FxVitality": {
     "glb": "assets/models/effects/fx_vitality.glb",
     "loops": []
+  },
+  "FxPetSlimeGlob": {
+    "glb": "assets/models/effects/fx_pet_slime_glob.glb",
+    "loops": [
+      "Fly"
+    ]
+  },
+  "FxPetAcornPellet": {
+    "glb": "assets/models/effects/fx_pet_acorn_pellet.glb",
+    "loops": [
+      "Spin"
+    ]
+  },
+  "FxPetTongueLash": {
+    "glb": "assets/models/effects/fx_pet_tongue_lash.glb",
+    "loops": []
+  },
+  "FxPetSporePatch": {
+    "glb": "assets/models/effects/fx_pet_spore_patch.glb",
+    "loops": [
+      "Play"
+    ]
+  },
+  "FxPetLureMark": {
+    "glb": "assets/models/effects/fx_pet_lure_mark.glb",
+    "loops": [
+      "Spin"
+    ]
+  },
+  "FxPetRootSnare": {
+    "glb": "assets/models/effects/fx_pet_root_snare.glb",
+    "loops": []
+  },
+  "FxPetLeafSlash": {
+    "glb": "assets/models/effects/fx_pet_leaf_slash.glb",
+    "loops": []
+  },
+  "FxPetFeatherDart": {
+    "glb": "assets/models/effects/fx_pet_feather_dart.glb",
+    "loops": [
+      "Fly"
+    ]
+  },
+  "FxPetMiniSlime": {
+    "glb": "assets/models/effects/fx_pet_mini_slime.glb",
+    "loops": [
+      "Bounce"
+    ]
+  },
+  "FxPetCrownShockwave": {
+    "glb": "assets/models/effects/fx_pet_crown_shockwave.glb",
+    "loops": []
+  },
+  "FxPetEmberBolt": {
+    "glb": "assets/models/effects/fx_pet_ember_bolt.glb",
+    "loops": [
+      "Fly"
+    ]
+  },
+  "FxPetBurningMark": {
+    "glb": "assets/models/effects/fx_pet_burning_mark.glb",
+    "loops": [
+      "Burn"
+    ]
+  },
+  "FxPetHowlAura": {
+    "glb": "assets/models/effects/fx_pet_howl_aura.glb",
+    "loops": [
+      "Play"
+    ]
+  },
+  "FxPetPrismBeam": {
+    "glb": "assets/models/effects/fx_pet_prism_beam.glb",
+    "loops": []
+  },
+  "FxPetHealSparkles": {
+    "glb": "assets/models/effects/fx_pet_heal_sparkles.glb",
+    "loops": []
+  },
+  "FxPetReviveBurst": {
+    "glb": "assets/models/effects/fx_pet_revive_burst.glb",
+    "loops": []
   }
 }

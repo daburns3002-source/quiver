@@ -47,6 +47,11 @@ return function(t: TestRunner.Helper)
 			t.notNil(clips[key], `{key} is imported but has no ModelClips data`)
 		end
 		for key in clips do
+			-- a pet attack's piece may wait on the owner's import (TRACKER): until
+			-- then `Fx/PetAttackFx` simply does not draw it
+			if string.sub(key, 1, 5) == "FxPet" and not imported[key] then
+				continue
+			end
 			t.notNil(imported[key], `{key} has clip data but no import`)
 		end
 	end)

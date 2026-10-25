@@ -19,6 +19,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
 
+local PetAttackFx = require(script.Parent.PetAttackFx)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 
 local PetAura = require(script.Parent.PetAura)
@@ -242,7 +243,8 @@ function PetPreview.show(key: string?): boolean
 end
 
 --[[ Every pet out plays its Attack clip once (the sandbox's ATTACK
-     button), then goes back to idling or following. Returns how many did. ]]
+     button), with its projectiles and effects (`Fx/PetAttackFx`), then goes
+     back to idling or following. Returns how many did. ]]
 function PetPreview.attack(): number
 	local count = 0
 	for _, pet in pets do
@@ -252,6 +254,8 @@ function PetPreview.attack(): number
 			pet.model:SetAttribute("ModelClip", nil)
 			pet.model:SetAttribute("ModelClip", "Attack")
 			pet.actingUntil = os.clock() + length
+			-- and what it throws (`Config/PetAttacks`)
+			PetAttackFx.play(pet.model, pet.model.Name)
 			count += 1
 		end
 	end

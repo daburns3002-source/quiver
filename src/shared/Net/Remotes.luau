@@ -195,6 +195,12 @@ Remotes.DebugSandbox = "DebugSandbox"
 --[[ Client → server, Studio only: hold the named weapon (one of
      `Config/Sandbox.weapons`), as its class. ]]
 Remotes.DebugWeapon = "DebugWeapon"
+--[[ Client → server, Studio only: the pet at heel in a run (a
+     `Config/PetCombat` key, or nil for none), until Phase 6's equipping. ]]
+Remotes.DebugPet = "DebugPet"
+--[[ Server → clients: a player's pet attacks (`Combat/PetCombat`), so
+     that player's pet plays its Attack and pieces. ]]
+Remotes.PetAttack = "PetAttack"
 
 local function getFolder(): Folder
 	if RunService:IsServer() then

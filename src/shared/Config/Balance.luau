@@ -107,6 +107,11 @@ export type EnemyShot = {
 		Nil is `attackRange`.
 	]]
 	range: number?,
+	--[[ Seconds between the fan's projectiles leaving, one after another
+	     across the fan, when they should not all leave at once: set to the
+	     beats of the enemy's shot sound, so each one is heard as it leaves.
+	     Nil fires the whole fan together. ]]
+	every: number?,
 }
 
 --[[
@@ -853,6 +858,11 @@ local burrThistle: EnemyConfig = {
 	shot = {
 		count = 3,
 		spread = math.rad(20),
+		--[[ One burr per "ptoo" of its spit (`enemy_thistle_spit`, round
+		     18 take A: three, 0.06 s apart), so they leave in time with it
+		     (owner, 2026-10-25: "there should be a small delay consistent
+		     with the delay in the sounds for each shot"). ]]
+		every = 0.06,
 		speed = 13.5,
 		lifetime = 70 / 13.5,
 		telegraph = 0.5,

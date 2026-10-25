@@ -164,19 +164,19 @@ return function(t: TestRunner.Helper)
 	end)
 
 	--[[ The server's slam lands when the Warden's leap animation shows it
-	     landing (the RubySword kit's Earthbreaker clip, `Impact`). ]]
+	     landing (the Timber Blade kit's Earthbreaker clip, `Impact`). ]]
 	t.test("Earthbreaker's slam lands on its animation's impact", function()
-		local clip = WeaponAnimations.RubyGreatsword.Earthbreaker
-		t.notNil(clip, "the greatsword has no Earthbreaker clip")
+		local clip = WeaponAnimations.TimberBlade.Earthbreaker
+		t.notNil(clip, "the blade has no Earthbreaker clip")
 		t.near(Balance.Player.earthbreaker.leap, clip.markers.Impact, 1e-3)
 	end)
 
-	--[[ The staff's Meteor cast (the ArcaneStaff kit) summons the meteor,
+	--[[ The staff's Meteor cast (the BranchStaff kit) summons the meteor,
 	     then points the staff at its target as it lands: the point must
 	     come after the summon and no later than the strike, or the staff
 	     slams down at nothing after the explosion. ]]
 	t.test("the Meteor cast points as the meteor lands", function()
-		local clip = WeaponAnimations.ArcaneStaff.Meteor
+		local clip = WeaponAnimations.BranchStaff.Meteor
 		t.notNil(clip, "the staff has no Meteor clip")
 		local summon, point = clip.markers.Summon, clip.markers.Point
 		t.isTrue(summon ~= nil and point ~= nil and summon < point, "the cast lacks its markers")

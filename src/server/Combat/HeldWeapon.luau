@@ -21,7 +21,7 @@ local templates: { [string]: MeshPart } = {}
 function HeldWeapon.preload()
 	local ids: { string } = {}
 	-- every weapon and skin, so switching class never waits on a fetch
-	-- (LeafBowDual's parts are the leaf bow's own, so its ids repeat)
+	-- (TwigBowDual's parts are the Twig Bow's own, so its ids repeat)
 	for _, weapon in Weapons :: any do
 		for _, part in (weapon :: Weapons.Weapon).parts do
 			if not table.find(ids, part.meshId) then

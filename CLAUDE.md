@@ -199,17 +199,17 @@ settled ones. **Damage is on Archero 2's scale** (docs/RESEARCH-archero2.md
 enemy hits kill the player — which replaced the owner's earlier "enemy
 health ×1.5". Damage numbers are white, red crits, orange burns.
 
-**Classes** (`Config/Classes`, 2026-10-23): the Ranger (leaf bow), the
-Arcanist (arcane staff: slow, heavy orbs with Blast Arrows built in) and
-the Warden (ruby greatsword, melee: `Combat/MeleeSystem` lands each blow of
+**Classes** (`Config/Classes`, 2026-10-23): the Ranger (Twig Bow), the
+Arcanist (Branch Staff: slow, heavy orbs with Blast Arrows built in) and
+the Warden (Timber Blade, melee: `Combat/MeleeSystem` lands each blow of
 a three-hit combo on the server, in `Shared/Combat/SwingBox`): an arc in
 front for the first two blows, a circle in front for the slam, both grown by
 Cleave and Long Reach. The red of his swing sweeps exactly that shape
 (`Fx/SwingTrail`, `Shared/Combat/SwingSweep`). Each weapon
 is the owner's Claude Design kit, its animations generated into
 `Config/WeaponAnimations` and played in code by `Fx/WeaponPose`. The
-Ranger's and the Warden's come from the owner's R15 kits
-(`LeafBow_R15_Kit.rbxmx`, `RubySword_R15_Kit.rbxmx`: KeyframeSequences,
+first weapons (Leaf Bow, Arcane Staff, Ruby Greatsword) were deleted on
+2026-10-24 (owner); the blocky ones' R15 kits (KeyframeSequences) are
 converted by `assets/models/weapons/leaf_bow_r15/kit_to_json.py <kit>
 <prefix> <out>`). The bow has a legs layer (`clips.legs`: Idle standing,
 Walk at the character's pace) under the upper-body Hold; the sword a

@@ -72,7 +72,7 @@ function BowString.step(character: Model, drawn: boolean)
 	local player = Players:GetPlayerFromCharacter(character)
 	local held = player and player:GetAttribute("Weapon")
 	local bow = (
-		type(held) == "string" and (Weapons :: any)[held] or Weapons.LeafBow
+		type(held) == "string" and (Weapons :: any)[held] or Weapons.TwigBow
 	) :: Weapons.Weapon
 	local points = bow.bowString
 	if not (origin and points) then

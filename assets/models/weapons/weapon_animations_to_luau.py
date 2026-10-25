@@ -16,11 +16,9 @@ HERE = pathlib.Path(__file__).parent
 OUT = HERE.parents[2] / "src" / "shared" / "Config" / "WeaponAnimations.luau"
 # Config/Weapons entry -> the kit's keyframes.
 KITS = {
-    "LeafBow": HERE / "leaf_bow_r15" / "leaf_bow_animations.json",
-    "ArcaneStaff": HERE / "arcane_staff_r15" / "arcane_staff_animations.json",
-    "RubyGreatsword": HERE / "ruby_greatsword_r15" / "ruby_greatsword_animations.json",
-    # The Dual Bows kit, finished by leaf_bow_dual_r15/layer_clips.py.
-    "LeafBowDual": HERE / "leaf_bow_dual_r15" / "leaf_bow_dual_animations.json",
+    # The Dual Bows kit (made for the leaf bow, since removed), finished by
+    # leaf_bow_dual_r15/layer_clips.py, played with a Twig Bow in each hand.
+    "TwigBowDual": HERE / "leaf_bow_dual_r15" / "leaf_bow_dual_animations.json",
     # The blocky Common skins, each with its own kit (Claude Design, 2026-10-23).
     "TwigBow": HERE / "twig_bow_r15" / "twig_bow_animations.json",
     "BranchStaff": HERE / "branch_staff_r15" / "branch_staff_animations.json",

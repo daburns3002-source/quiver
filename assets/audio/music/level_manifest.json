@@ -1,0 +1,55 @@
+[
+ {
+  "take": "a",
+  "seconds": 96.0,
+  "samples": 4233600,
+  "lufs": -17.0,
+  "true_peak_db": -2.1,
+  "bus_rms_db": {
+   "harp": -24.0,
+   "bass": -21.9,
+   "chipbass": -30.9,
+   "pad": -28.0,
+   "chip": -30.0,
+   "kick": -24.9,
+   "perc": -31.5,
+   "snare": -27.8,
+   "crash": -31.7,
+   "chiplead": -22.6,
+   "lead": -24.1,
+   "answer": -27.7
+  },
+  "seam": {
+   "jump": 0.00653,
+   "p99_inside": 0.14372,
+   "max_inside": 0.5912
+  },
+  "note": "Chip Trail: the pulse lead over the flute, as in your glade and boss picks, with chip arpeggios, harp and a skipping bass."
+ },
+ {
+  "take": "b",
+  "seconds": 96.0,
+  "samples": 4233600,
+  "lufs": -17.0,
+  "true_peak_db": -3.0,
+  "bus_rms_db": {
+   "harp": -24.0,
+   "bass": -21.9,
+   "pad": -28.0,
+   "chip": -30.0,
+   "kick": -24.9,
+   "perc": -31.5,
+   "snare": -27.8,
+   "crash": -31.7,
+   "lead": -21.7,
+   "chiplead": -26.5,
+   "answer": -27.7
+  },
+  "seam": {
+   "jump": 0.00654,
+   "p99_inside": 0.14998,
+   "max_inside": 0.65592
+  },
+  "note": "Flute Trail: the flute leads with the chip sparkling above it, an ocarina in the minor middle; the softer of the two."
+ }
+]

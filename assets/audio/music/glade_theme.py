@@ -248,7 +248,7 @@ def strings(f, dur, vel):
         ph = np.cumsum(fm) / SR % 1
         x += 2 * ph - 1 - blep(ph, fm / SR)
     x = lowpass(x, min(2400, f * 7), 2)
-    return vel * x * release_env(int(SR * dur), int(SR * rel), 0.45)
+    return vel * x * release_env(int(SR * dur), len(t) - int(SR * dur), 0.45)
 
 
 def bell(f, vel):

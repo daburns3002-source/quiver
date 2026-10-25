@@ -1,6 +1,6 @@
 """Builds the music audition page from a render's manifest and OGG/MP3 files.
 
-    python -I build_music_page.py <render_dir> <out.html> [track]      (glade by default; or boss)
+    python -I build_music_page.py <render_dir> <out.html> [track]      (glade by default; or level, boss)
 
 Each take plays as a seamless Web Audio loop, with a button that starts it a
 few seconds before the seam so the join can be heard. Picks save to the
@@ -19,6 +19,11 @@ TRACKS = {
     "glade": ("Mossy Glade", "Area 1's music, under every room: a sunny forest clearing. "
               "F major, 104 BPM, 92 seconds, then it loops: a short harp intro, the tune twice, "
               "a minor middle on the ocarina, a quiet harp-and-bells bridge, and the tune once more."),
+    "level": ("Level", "The music while you play through an area's rooms, between the lobby's Mossy Glade theme "
+              "and the boss fights: engaging but under the fight. G major, 120 BPM, 96 seconds, then it loops: a groove "
+              "intro, the tune twice (it leaves most bars' last beat empty), a softer minor middle, a groove break "
+              "with no tune, a call-and-answer between the lead and a chip echo, and the tune once more. Mastered "
+              "a decibel under the other two."),
     "boss": ("King Bloblin", "Area 1's boss fight, take B (Chip + Brass), now with a battle intro that plays once as "
              "the king appears, like a trainer battle's. You liked Dive: here it is with its runs in four keys; pick one. After it comes the 76-second loop "
              "(D minor, 152 BPM): stabs and a drum fill, the battle tune twice, a heroic major-key middle, a bouncy "

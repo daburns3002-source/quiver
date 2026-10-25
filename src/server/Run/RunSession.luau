@@ -18,6 +18,7 @@ local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Classes = require(ReplicatedStorage.Shared.Config.Classes)
 local Loadout = require(script.Parent.Loadout)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
+local PetCombat = require(ReplicatedStorage.Shared.Config.PetCombat)
 local Pickups = require(script.Parent.Pickups)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local ShotPipeline = require(ReplicatedStorage.Shared.Combat.ShotPipeline)
@@ -72,6 +73,14 @@ export type Session = {
 	     whether it has been spent. The ability is held; the charge is spent. ]]
 	secondWind: number,
 	secondWindUsed: boolean,
+	--[[ The pet's part in the fight (`Combat/PetCombat`): the Mossback
+	     Snail's shell is up and blocks the next hit; the Glimmerhorn's
+	     revive is spent for this run; the Ember Wilf's howl has the player
+	     attacking `petHaste` faster until `petHasteUntil` (os.clock). ]]
+	petGuard: boolean,
+	petReviveUsed: boolean,
+	petHaste: number,
+	petHasteUntil: number,
 	--[[ This stage's kills and when it began, for the end screen. ]]
 	stageKills: number,
 	stageStartedAt: number,
@@ -179,6 +188,10 @@ function RunSession.create(player: Player): Session
 		},
 		secondWind = 0,
 		secondWindUsed = false,
+		petGuard = false,
+		petReviveUsed = false,
+		petHaste = 0,
+		petHasteUntil = 0,
 		stageKills = 0,
 		stageStartedAt = os.clock(),
 		healthSentAt = 0,
@@ -558,6 +571,7 @@ function RunSession.resetRun(session: Session)
 	-- and holds the same weapon (one the sandbox put in hand)
 	session.loadout.weapon = weapon
 	session.secondWindUsed = false
+	session.petReviveUsed = false
 	RunSession.newStage(session)
 	RunSession.applyLoadout(session)
 	session.health = session.maxHealth
@@ -672,6 +686,14 @@ end
 
 --[[ Brings a player back from a killing blow at `health`, untouchable for
      a moment, with the enemy shots around them cleared. ]]
+--[[ The share of max health the player's pet revives them at (the
+     Glimmerhorn, `Config/PetCombat`), or nil. ]]
+local function petRevive(session: Session): number?
+	local pet = session.player:GetAttribute("Pet")
+	local spec = if type(pet) == "string" then PetCombat.pets[pet] else nil
+	return spec and spec.revive
+end
+
 local function revive(session: Session, health: number, kind: string)
 	session.health = math.max(1, health)
 	session.invulnerableUntil = os.clock() + Balance.Revive.invulnerable
@@ -714,6 +736,13 @@ function RunSession.applyDamage(session: Session, amount: number)
 		return
 	end
 
+	--[[ The Mossback Snail's shell takes it (`Combat/PetCombat`). ]]
+	if session.petGuard then
+		session.petGuard = false
+		playerDodged:FireClient(session.player, "Guard")
+		return
+	end
+
 	amount *= session.damageTaken
 	session.health = math.max(0, session.health - amount)
 	playerDamaged:FireClient(session.player, amount)
@@ -730,6 +759,11 @@ function RunSession.applyDamage(session: Session, amount: number)
 			session.secondWindUsed = true
 			revive(session, session.maxHealth * session.secondWind, "SecondWind")
 			log.info("%s survived on Second Wind", session.player.Name)
+		elseif not session.petReviveUsed and petRevive(session) then
+			-- the Glimmerhorn's, once a run
+			session.petReviveUsed = true
+			revive(session, session.maxHealth * (petRevive(session) or 0), "Revive")
+			log.info("%s revived by their pet", session.player.Name)
 		elseif session.revivesLeft > 0 then
 			session.revivesLeft -= 1
 			revive(session, session.maxHealth, "Revive")

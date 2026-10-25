@@ -204,6 +204,8 @@ function FiringSystem.step(_deltaTime: number, now: number)
 			session.movedFor,
 			now - (session.stationarySince or now)
 		)
+			-- the Ember Wilf's howl (`Combat/PetCombat`)
+			/ (if now < session.petHasteUntil then 1 + session.petHaste else 1)
 		if now - session.lastFiredAt < cooldown then
 			continue
 		end

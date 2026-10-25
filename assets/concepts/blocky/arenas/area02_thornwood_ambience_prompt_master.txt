@@ -1,0 +1,44 @@
+EDIT image 1 and save the result to this exact path:
+
+  assets/concepts/blocky/arenas/area02_thornwood_ambience.jpg
+
+Reference images attached, in order:
+1. THE IMAGE TO EDIT: the Thornwood arena seen from the game camera, with the
+   wood around it. Its room, camera, composition, light, colours and rendering
+   are RIGHT and must stay exactly as they are.
+2. The Thornwood arena's views sheet and kit pieces: the room's own Thorn Tree,
+   Bramble Hedge, Thorn Bush, Mossy Boulder and Root Sprout.
+3. The Thornwood Thorn Tree's own views.
+4. The Mossy Glade ambience sheet, the game's first area.
+
+The problem with image 1: the wood around the room reads too much like the
+Mossy Glade (image 4): its trees are round lime cube domes on straight trunks,
+like the glade's. The owner also rejected an orange autumn version and a dark
+teal version as too different from the arena itself. So the wood must look like
+the ROOM CONTINUING OUTWARD: built from the room's own pieces, in the room's own
+colours and light, and that is what sets it apart from the glade.
+
+Change ONLY these, keep everything else in image 1 pixel-for-pixel where you can
+(the room and its interior, the camera, the dirt paths out of both gates, the
+ground, the light, the mist, the light shaft):
+
+- REPLACE EVERY ROUND TREE with the room's own THORN TREE (images 2 and 3):
+  a thick forked brown cube trunk with two or three angular branches and a root
+  flare with grass cubes, and on each branch end ONE to THREE big chunky cubes in
+  the room's lime green with mid-green undersides — the separate cube clumps
+  with branches showing between them, exactly as the trees at the room's corners
+  are drawn. Bigger versions of it in the wood (the same shape, scaled up, a few
+  more cube clumps), every tree its own object with ground between crowns.
+- MORE BRAMBLE, in the room's hedge material: low winding banks of dark green
+  cubes bound in criss-crossing plum vines with cream thorn cubes, like the
+  room's hedges but lumpy and wandering, between the trees.
+- A FEW (four to six) bone-white stepped-cube thorn spikes, 3 to 4 blocks tall,
+  leaning out of bramble banks.
+- FOUR OR FIVE DEAD SNAGS: bare brown forked trunks (the thorn tree's trunk with
+  no leaves) with a plum vine spiralling up, a black blocky crow perched on
+  some of them; plus the loose flock of black crows crossing the top-left.
+- REMOVE every butterfly and every cyan or white glowing thing; keep the
+  thistle-down seeds, the magenta pollen, the leaves and the mist.
+
+Same chunky voxel blocks, flat shading, hard edges, no textures, same neutral
+daylight. No text, no labels, no UI, no characters.

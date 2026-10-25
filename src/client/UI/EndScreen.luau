@@ -26,6 +26,7 @@
 	carries, which is nothing yet.
 ]]
 
+local ContentProvider = game:GetService("ContentProvider")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TextService = game:GetService("TextService")
@@ -983,6 +984,16 @@ end
      the server, which decides. ]]
 function EndScreen.start(restart: () -> ())
 	onRestart = restart
+	--[[ Load the screens' images now, in the background: a run can end at
+	     any moment, and art fetched only then pops in after the screen
+	     (seen in Studio: the icons and the retry arrow came in late). ]]
+	local images: { string } = {}
+	for _, id in EndScreenAssets :: any do
+		table.insert(images, id)
+	end
+	task.spawn(function()
+		ContentProvider:PreloadAsync(images)
+	end)
 end
 
 return EndScreen

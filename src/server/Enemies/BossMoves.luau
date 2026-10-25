@@ -28,20 +28,35 @@
 	clip it plays (`BossMoves.clip`), and the client plays it on the beat.
 	The pose's feet, lift and yaw still place his hitbox; the rest of it is
 	only read for a body the server poses (`BossBody`).
+
+	The Broodmother's Web Walker (`Spin`, `EnemyBoss.spin`) is a third
+	move: a web spun round her where she stands (`Shared/Util/WebWheel`).
+	Its phases only warn, spin and break; who it touches each step is
+	asked of `BossMoves.wheelHit` by `EnemyManager`.
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
+local WebWheel = require(ReplicatedStorage.Shared.Util.WebWheel)
 
 type EnemyBoss = Balance.EnemyBoss
 
 local BossMoves = {}
 
-export type Kind = "Bounce" | "Lash"
+export type Kind = "Bounce" | "Lash" | "Spin"
 
---[[ The order the moves loop in. ]]
+--[[ The order the moves loop in, unless the boss names its own. ]]
 BossMoves.LOOP = { "Bounce", "Lash" } :: { Kind }
+
+--[[ The order `boss`'s moves loop in. ]]
+function BossMoves.loopOf(boss: EnemyBoss): { Kind }
+	local own = boss.loop
+	if own then
+		return own :: { any }
+	end
+	return BossMoves.LOOP
+end
 
 export type Pose = {
 	feet: Vector3,
@@ -142,6 +157,9 @@ export type Move = {
 	     when it began: a clip shared by two phases runs from the first. ]]
 	clip: string,
 	clipAt: number,
+	--[[ A spin: the angle spoke one starts at (`WebWheel`), set as the
+	     web is raised. ]]
+	angle: number,
 }
 
 --[[ The design's king is 4.9 studs tall; this one is twice that. ]]
@@ -256,6 +274,14 @@ end
 local function duration(move: Move, boss: EnemyBoss): number
 	local b, l = boss.bounce, boss.lash
 	local phase = move.phase
+	if move.kind == "Spin" then
+		local s = boss.spin :: Balance.BossSpin
+		return if phase == "windup"
+			then s.windup
+			elseif phase == "spin" then s.spin
+			elseif phase == "broken" then s.broken
+			else s.recover
+	end
 	if move.kind == "Bounce" then
 		return if phase == "windup"
 			then b.windup
@@ -296,6 +322,7 @@ function BossMoves.start(kind: Kind, now: number, feet: Vector3, yaw: number): M
 		pullTo = nil,
 		clip = "",
 		clipAt = now,
+		angle = 0,
 	}
 end
 
@@ -308,6 +335,9 @@ function BossMoves.clipName(boss: EnemyBoss, kind: Kind, phase: string, index: n
 	end
 	if kind == "Bounce" then
 		return clips.Bounce[phase] or ""
+	elseif kind == "Spin" then
+		local spin = clips.Spin
+		return if spin then spin[phase] or "" else ""
 	end
 	local arms = boss.lash.arms
 	local arm = arms[math.clamp(index, 1, #arms)]
@@ -374,6 +404,35 @@ local function enter(
 		move.clipAt = at
 	end
 	local events: { Event } = {}
+
+	if move.kind == "Spin" then
+		local s = boss.spin :: Balance.BossSpin
+		--[[ The web as one event: centred on her, spoke one along
+		     `direction`, `radius` and `length` its web and its arms. ]]
+		local function wheel(kind: string, angle: number, seconds: number): Event
+			local e = event(kind)
+			e.at = move.feet
+			e.direction = WebWheel.spoke(angle, 1, s.spokes)
+			e.radius = s.radius
+			e.length = s.reach
+			e.width = s.width
+			e.duration = seconds
+			return e
+		end
+		if phase == "windup" then
+			--[[ Spoke one starts on the target, so an arm is on them the
+			     moment it turns: they have the wind-up to step clear. ]]
+			move.angle = WebWheel.angleOf(flat(target) - move.feet)
+			table.insert(events, wheel("WheelTell", move.angle, s.windup))
+		elseif phase == "spin" then
+			table.insert(events, wheel("WheelSpin", move.angle, s.spin))
+		elseif phase == "broken" then
+			local stopped = WebWheel.angle(move.angle, s.period, s.spin)
+			table.insert(events, wheel("WheelBreak", stopped, s.broken))
+			table.insert(events, shake(SHAKE_SLAP))
+		end
+		return events
+	end
 
 	if move.kind == "Bounce" then
 		local b = boss.bounce
@@ -446,6 +505,13 @@ end
 --[[ The phase after this one, or "" when the move is over. ]]
 local function nextPhase(move: Move, boss: EnemyBoss): string
 	local phase = move.phase
+	if move.kind == "Spin" then
+		return if phase == "windup"
+			then "spin"
+			elseif phase == "spin" then "broken"
+			elseif phase == "broken" then "recover"
+			else ""
+	end
 	if move.kind == "Bounce" then
 		if phase == "windup" then
 			return "launch"
@@ -503,6 +569,11 @@ end
 local function pose(move: Move, boss: EnemyBoss, t: number): Pose
 	local p = rest(move)
 	local phase = move.phase
+
+	--[[ A spin keeps her where she stands; her clips do the moving. ]]
+	if move.kind == "Spin" then
+		return p
+	end
 
 	if move.kind == "Bounce" then
 		local b = boss.bounce
@@ -676,7 +747,7 @@ function BossMoves.step(
 	local events: { Event } = {}
 
 	if move.phase == "" then
-		local first: string = if move.kind == "Bounce" then "windup" else "track"
+		local first: string = if move.kind == "Lash" then "track" else "windup"
 		for _, e in enter(move, boss, first, move.phaseAt, target, clamp) do
 			table.insert(events, e)
 		end
@@ -755,6 +826,10 @@ function BossMoves.clip(move: Move, boss: EnemyBoss): (string, number, number)
 	if move.clip == "" then
 		return "", move.clipAt, 0
 	end
+	--[[ The clip held while a web spins loops at its own pace. ]]
+	if move.kind == "Spin" and move.phase == "spin" then
+		return move.clip, move.clipAt, (boss.spin :: Balance.BossSpin).holdSpan
+	end
 	--[[ From the clip's first phase, through this one, and on through each
 	     phase after it that shares the clip. ]]
 	local probe = table.clone(move)
@@ -775,7 +850,30 @@ end
 
 --[[ The seconds a boss rests after a move. ]]
 function BossMoves.restAfter(kind: Kind, boss: EnemyBoss): number
+	if kind == "Spin" then
+		return boss.restAfterSpin or boss.restAfterLash
+	end
 	return if kind == "Bounce" then boss.restAfterBounce else boss.restAfterLash
+end
+
+--[[
+	What of a spinning web touches a body `pad` studs across its middle at
+	`point` (`WebWheel.hit`: "web", "arm" or nil). Only while it spins: the
+	wind-up only warns, and a broken web hurts nobody.
+]]
+function BossMoves.wheelHit(
+	move: Move,
+	boss: EnemyBoss,
+	now: number,
+	point: Vector3,
+	pad: number
+): string?
+	local s = boss.spin
+	if move.kind ~= "Spin" or move.phase ~= "spin" or not s then
+		return nil
+	end
+	local angle = WebWheel.angle(move.angle, s.period, now - move.phaseAt)
+	return WebWheel.hit(s, move.feet, angle, point, pad)
 end
 
 return BossMoves

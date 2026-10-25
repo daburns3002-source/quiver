@@ -346,7 +346,8 @@
     "glb": "assets/models/bosses/broodmother_blocky/broodmother.glb",
     "loops": [
       "Idle",
-      "Move"
+      "Move",
+      "WebSpin_Hold"
     ]
   },
   "Thornling": {
@@ -371,5 +372,11 @@
   "FxBroodWebSplat": {
     "glb": "assets/models/effects/fx_brood_web_splat.glb",
     "loops": []
+  },
+  "FxBroodWebWheel": {
+    "glb": "assets/models/effects/fx_brood_web_wheel.glb",
+    "loops": [
+      "Web_Spin"
+    ]
   }
 }

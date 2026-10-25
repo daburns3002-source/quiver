@@ -1,22 +1,27 @@
 --!nocheck
 --[[
-	Run with execute_luau in the Edit datamodel after the owner imports the
-	Mossy Glade's outer forest (File -> Import 3D, Merge Meshes off). Returns
-	JSON of every MeshPart in the import: name, its node's name, mesh id,
-	size, colour, and offset from the import's pivot (the GLB's origin, the
-	lawn's centre). Save it as assets/models/arenas/mossy_glade_outer_ids.json
-	and run tools/forest_to_luau.py.
+	Run with execute_luau in the Edit datamodel after the owner imports an
+	area's outer forest (File -> Import 3D, Merge Meshes off). Returns JSON
+	of every MeshPart in the import: name, its node's name, mesh id, size,
+	colour, and offset from the import's pivot (the GLB's origin, the lawn's
+	centre). Set FOREST below, save the JSON as the file it names and run
+	tools/forest_to_luau.py (with `thornwood` for Thornwood's).
 
-	The import is found by its trees, in the Workspace or in
-	ServerStorage.Imports, since every Claude Design import is "AuxScene".
+	The import is found by its groups, in the Workspace or in
+	ServerStorage.Imports, since every Claude Design import is "AuxScene":
+	the glade's has GlowCaps, Thornwood's Snags.
 ]]
 
 local HttpService = game:GetService("HttpService")
 
+-- "GlowCaps" -> assets/models/arenas/mossy_glade_outer_ids.json
+-- "Snags" -> assets/models/arenas/thornwood_outer_ids.json
+local FOREST = "GlowCaps"
+
 local function isForest(model)
 	return model:IsA("Model")
 		and model:FindFirstChild("Trees", true) ~= nil
-		and model:FindFirstChild("GlowCaps", true) ~= nil
+		and model:FindFirstChild(FOREST, true) ~= nil
 end
 
 local candidates = workspace:GetChildren()

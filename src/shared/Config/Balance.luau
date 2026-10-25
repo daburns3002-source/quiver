@@ -2929,6 +2929,45 @@ local Balance = {
 			shaftColor = Color3.fromRGB(255, 244, 200),
 			shaftTransparency = 0.88,
 		},
+		--[[ Thornwood's wood (assets/concepts/blocky/arenas/
+		     area02_thornwood_ambience*.jpg): the same life as the glade's
+		     in the sheet's colours, with crows for birds (the owner liked
+		     them), magenta pollen for fireflies and no butterflies. ]]
+		Thornwood = {
+			gap = 3,
+			reach = 46,
+			ends = 16,
+			leafFrom = { 17, 21 },
+			-- Its crowns' tops, 12.3 to 15.1 studs.
+			canopy = { 12, 15.5 },
+			hover = 16,
+			clearance = 1.5,
+			leavesPerSecond = 3,
+			leafPool = 60,
+			leafFall = { 0.5, 0.9 },
+			leafRest = 2.5,
+			leafFade = 1.5,
+			leafColors = {
+				Color3.fromRGB(152, 213, 25),
+				Color3.fromRGB(94, 154, 52),
+				Color3.fromRGB(217, 120, 47),
+			},
+			gustSpeed = 0.6,
+			fireflyDensity = 1,
+			mistDensity = 1,
+			fireflyColor = Color3.fromRGB(255, 120, 230),
+			mistColor = Color3.fromRGB(238, 243, 230),
+			butterflies = 0,
+			butterflyColors = { Color3.fromRGB(245, 241, 230) },
+			birds = 7,
+			birdGap = { 10, 20 },
+			birdHeight = 22,
+			birdSpeed = 18,
+			birdColor = Color3.fromRGB(30, 30, 33),
+			lightShafts = 2,
+			shaftColor = Color3.fromRGB(255, 244, 200),
+			shaftTransparency = 0.88,
+		},
 	},
 
 	--[[ How the Mythics' area attacks look (`Fx/MythicFx`), from the owner's

@@ -14,7 +14,8 @@
 	while the room's arena asks for it (the `Ambience` attribute
 	`Arena.build` stamps from `ArenaModels.ambience`), and draws the
 	device tier's share (`DeviceTiers.ambienceShare`). Numbers:
-	`Balance.Ambience`.
+	`Balance.Ambience`, an entry per area (the glade's Forest, Thornwood's
+	crows and pollen), named by that attribute.
 
 	The handoff also sways each tree in the gusts. The glades' trees are
 	one merged mesh, so that waits until they are split into trees.
@@ -80,8 +81,12 @@ local nextFlock = 5
 local clock = 0
 local leafDebt = 0
 
+--[[ The `Balance.Ambience` entry the room's arena asks for: the glade's
+     Forest, or Thornwood's crows and pollen. ]]
+local entry = "Forest"
+
 local function config()
-	return Balance.Ambience.Forest
+	return (Balance.Ambience :: any)[entry] or Balance.Ambience.Forest
 end
 
 local function share(count: number): number
@@ -519,7 +524,9 @@ function ForestAmbience.start()
 			-- a big arena reaches a client over several frames
 			arenaConnection = arena.DescendantAdded:Connect(addCrown)
 		end
-		if arena and arena:GetAttribute("Ambience") == "Forest" then
+		local name = arena and arena:GetAttribute("Ambience")
+		if type(name) == "string" and (Balance.Ambience :: any)[name] ~= nil then
+			entry = name
 			if Device.tier().ambienceShare > 0 then
 				build()
 			end

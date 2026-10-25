@@ -273,7 +273,7 @@ def main():
     for key, value in manifest.items():
         if key.startswith("_"):
             continue
-        rel, _ = glb.entry(value)
+        rel = glb.entry(value)[0]
         pet = rel.startswith(PET_GLBS)
         out = OUT_PETS if pet else OUT_OTHERS
         out.mkdir(parents=True, exist_ok=True)

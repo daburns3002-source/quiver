@@ -203,7 +203,17 @@ local function build(): ScreenGui
 	end
 
 	label(body, "PET", 18, ACCENT).LayoutOrder = 5
-	local pets = grid(body, 6)
+	-- the pet at heel plays its Attack (docs/PETS-FOREST.md, Attacks)
+	local attack = button(body, "PET ATTACK", function()
+		PetPreview.attack()
+	end)
+	attack.LayoutOrder = 6
+	attack.Size = UDim2.new(1, 0, 0, 44)
+	attack.TextSize = 16
+	table.insert(refreshers, function()
+		attack.BackgroundColor3 = if pet and not petLoading then ACCENT else BUTTON
+	end)
+	local pets = grid(body, 7)
 	local function choosePet(key: string?)
 		if petLoading then
 			return

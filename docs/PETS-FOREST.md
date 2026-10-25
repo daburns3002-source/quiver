@@ -77,6 +77,33 @@ rainbow glow and star sparkles (`13_variants.png`).
 Three Commons, then two per tier up to Legendary, and one Mythic, so most
 hatches are Commons and every tier has a choice in it.
 
+## Attacks
+
+Each pet's one combat behaviour (`PROGRESSION.md`: shoots, heals, collects,
+tanks), chosen by the owner on 2026-10-24 ("i like all of these"). Each
+pet's Claude Design model carries an **Attack** clip of it (owner: "low
+complexity except for the legendarys and mythics. those should look cool"):
+the lower tiers move only the pet's own parts; the Legendaries and the Mythic
+add effect pieces (`Fx_*` nodes, invisible at scale 0 outside the clip).
+Attack plays once; every other clip loops (`assets/models/model_clips.json`).
+The behaviours themselves are not built yet: a clip is the look, the
+numbers and the pet system are Phase 6.
+
+| Pet | Rarity | Role | Attack |
+|---|---|---|---|
+| Mosslet | Common | Shoots | **Slime Glob**: lobs a slime blob every 2 s that leaves a puddle, briefly slowing enemies |
+| Babacorn | Common | Shoots | **Acorn Flick**: a quick burst of three small acorn pellets at the nearest enemy |
+| Fern Frog | Common | Shoots | **Tongue Snap**: a short, hard-hitting tongue lash that tugs small enemies toward it |
+| Toadstool Tot | Uncommon | Heals | **Spore Patch**: every 20 s drops a glowing mushroom ring that heals you while you stand in it |
+| Mossback Snail | Uncommon | Tanks | **Shell Guard**: once per room its shell flies in front of you and blocks one hit |
+| Firefly Bun | Rare | Collects | **Lantern Lure**: pulls XP crystals and coins in from across the room; its light marks one enemy to take extra damage |
+| Stumpy | Rare | Controls | **Root Snare**: roots burst under an enemy every few seconds, holding it still for 1 s |
+| Glade Fox | Epic | Shoots | **Leaf Dash**: blinks between up to three enemies, slashing each |
+| Hootmoss | Epic | Shoots | **Feather Volley**: homing feathers fired from above that fly over walls and cover |
+| Slime Prince | Legendary | Summons | **Royal Court**: summons two mini slimes that bounce into enemies, and a crown shockwave against bosses |
+| Ember Wilf | Legendary | Shoots | **Ember Bite**: fire bolts that set enemies burning (stacks with Blaze), and a howl that briefly speeds up your attacks |
+| Glimmerhorn | Mythic | Shoots, heals | **Prism Beam**: a sweeping rainbow beam that pierces every enemy in a line and heals you a little per hit; once per run it revives you |
+
 ## Weapon skins
 
 Asked for alongside the pets (owner, 2026-10-23): forest skins for each
@@ -116,7 +143,5 @@ the owner decides otherwise.
    Ember Wilf tie most closely to the area; the Glimmerhorn shows the top of
    the ladder.
 2. **The Golden Mossy Egg**: a second egg, or only a look.
-3. **Combat behaviour per pet** (`PROGRESSION.md`: each pet shoots, heals,
-   collects or tanks a hit). Not assigned here, since none of those
-   behaviours is designed yet.
+3. ~~**Combat behaviour per pet**~~ Chosen 2026-10-24: see *Attacks*.
 4. **How weapon skins are earned**, and which go to 3D first.

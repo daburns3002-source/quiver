@@ -326,6 +326,10 @@ local skins: { [string]: any } = {
 				turned = true,
 			},
 		} :: { WeaponPart },
+		bolt = {
+			meshId = "rbxassetid://97056789014452",
+			size = Vector3.new(0.3178, 0.302, 1.86),
+		},
 	},
 	FireflyBow = {
 		-- `bow_2rare_firefly_bow`, held as the TwigBow is, playing its kit until it has its own
@@ -357,6 +361,10 @@ local skins: { [string]: any } = {
 				turned = true,
 			},
 		} :: { WeaponPart },
+		bolt = {
+			meshId = "rbxassetid://134432387879424",
+			size = Vector3.new(0.122, 0.122, 0.592),
+		},
 	},
 	MossSlimeBow = {
 		-- `bow_3epic_moss_slime_bow`, held as the TwigBow is, playing its kit until it has its own
@@ -395,6 +403,10 @@ local skins: { [string]: any } = {
 				turned = true,
 			},
 		} :: { WeaponPart },
+		bolt = {
+			meshId = "rbxassetid://135158575063587",
+			size = Vector3.new(0.201, 0.1741, 1.86),
+		},
 	},
 	EmberFangBow = {
 		-- `bow_4legendary_ember_fang_bow`, held as the TwigBow is, playing its kit until it has its own
@@ -426,6 +438,10 @@ local skins: { [string]: any } = {
 				turned = true,
 			},
 		} :: { WeaponPart },
+		bolt = {
+			meshId = "rbxassetid://133739624251092",
+			size = Vector3.new(0.3703, 0.3232, 1.56),
+		},
 	},
 	GladeSpiritBow = {
 		-- `bow_5mythic_glade_spirit_bow`, held as the TwigBow is, playing its kit until it has its own
@@ -462,6 +478,10 @@ local skins: { [string]: any } = {
 				turned = true,
 			},
 		} :: { WeaponPart },
+		bolt = {
+			meshId = "rbxassetid://113478574540605",
+			size = Vector3.new(0.2298, 0.2298, 1.86),
+		},
 	},
 	ToadstoolStaff = {
 		-- `staff_1uncommon_toadstool_staff`, held as the BranchStaff is, playing its kit until it has its own

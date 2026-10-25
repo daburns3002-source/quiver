@@ -142,6 +142,11 @@ export type Weapon = {
 	     rainbow like its weapon (owner, 2026-10-25: "the projectiles for the
 	     legendary and mythics have their own glowing effect"). ]]
 	shotGlow: Color3?,
+	--[[ A Legendary's or Mythic's swing: its streak (`Fx/SwingTrail`) glows in
+	     this colour, a Mythic's turning round the rainbow (owner, 2026-10-25:
+	     "the cleave area that is currently red should also glow and change
+	     color accordingly"). ]]
+	trailGlow: Color3?,
 	--[[ The single bow this is a pair of (the Dual Bows Mythic): drafting the
 	     card puts the pair of whatever bow is in hand there
 	     (`Shared/Combat/HeldWeaponChoice`). ]]
@@ -752,6 +757,7 @@ local skins: { [string]: any } = {
 				turned = true,
 			},
 		} :: { WeaponPart },
+		trailGlow = Color3.fromRGB(253, 127, 53),
 	},
 	GladeheartBlade = {
 		-- `blade_5mythic_gladeheart_blade`, held as the TimberBlade is, playing its kit until it has its own
@@ -777,6 +783,7 @@ local skins: { [string]: any } = {
 			},
 		} :: { WeaponPart },
 		rainbow = true,
+		trailGlow = Color3.fromRGB(222, 190, 243),
 	},
 	-- SKINS END
 }
@@ -796,6 +803,7 @@ for key, skin in skins do
 		kit = skin.kit,
 		rainbow = skin.rainbow,
 		shotGlow = skin.shotGlow,
+		trailGlow = skin.trailGlow,
 		parts = skin.parts,
 	} :: Weapon
 end

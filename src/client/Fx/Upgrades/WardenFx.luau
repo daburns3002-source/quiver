@@ -177,7 +177,17 @@ local function onSpin()
 	local class = Classes[UpgradeFx.class()]
 	local weapon = class and (Weapons :: any)[class.weapon]
 	local trail = weapon and weapon.swingTrail
-	local colours = if trail then trail.colour else { Color3.fromRGB(255, 214, 150) }
+	local glow: Color3? = weapon and weapon.trailGlow
+	-- a Legendary's or Mythic's ring is its blade's glow, a Mythic's a rainbow
+	local colours = if glow and weapon.rainbow
+		then {
+			Color3.fromHSV(0, 0.7, 1),
+			Color3.fromHSV(0.33, 0.7, 1),
+			Color3.fromHSV(0.66, 0.7, 1),
+		}
+		elseif glow then { glow }
+		elseif trail then trail.colour
+		else { Color3.fromRGB(255, 214, 150) }
 	local radius = Balance.Player.whirlwind.radius * PlayerStats.get().widthScale
 	local count = 12
 	cubes(count, 0.9, colours, K.whirlwindLife, function(index, t, part)

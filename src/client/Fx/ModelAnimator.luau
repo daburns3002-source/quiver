@@ -137,8 +137,9 @@ local function dataFor(key: string): ModelClip.Model?
 end
 
 --[[ Starts animating `model` with the data module `key`. Returns false when
-     the data is missing or the model's parts do not match it. ]]
-function ModelAnimator.attach(model: Model, key: string): boolean
+     the data is missing or the model's parts do not match it; `quiet` for
+     a retry while the model is still arriving, which says nothing. ]]
+function ModelAnimator.attach(model: Model, key: string, quiet: boolean?): boolean
 	if animators[model] then
 		return true
 	end
@@ -175,6 +176,9 @@ function ModelAnimator.attach(model: Model, key: string): boolean
 	end
 	local fit = ModelClip.fit(data, observed)
 	if not fit or fit.error > MAX_FIT_ERROR * fit.spread then
+		if quiet then
+			return false
+		end
 		log.warn(
 			`{model:GetFullName()}'s parts do not line up with {key} (fit error {fit and fit.error})`
 		)
@@ -311,8 +315,18 @@ local function watch(model: Instance)
 	     come first: King Bloblin's lash chain arrived after he was attached,
 	     was never driven, and stayed a heap of thousandth-size cubes. Any
 	     part of the model that arrives later joins in. ]]
+	--[[ And a model whose parts all came after its tag (a Bramble Lurker,
+	     2026-10-25) had nothing to fit at first: it is tried again as they
+	     arrive. ]]
 	model.DescendantAdded:Connect(function(added)
 		local a = animators[model]
+		if not a and added:IsA("BasePart") then
+			local key = model:GetAttribute(KEY_ATTRIBUTE)
+			if type(key) == "string" and key ~= "" then
+				ModelAnimator.attach(model, key, true)
+			end
+			return
+		end
 		if not (a and added:IsA("BasePart") and a.data.parts[added.Name]) then
 			return
 		end

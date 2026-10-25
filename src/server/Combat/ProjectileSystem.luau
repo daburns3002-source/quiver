@@ -616,6 +616,12 @@ function ProjectileSystem.step(deltaTime: number, now: number)
 	-- Reverse iteration so removals do not skip entries.
 	for index = #active, 1, -1 do
 		local projectile = active[index]
+		--[[ Gone already: a hit earlier in this step can revive a player,
+		     which clears the enemy shots round them and shortens the list
+		     (2026-10-25 playtest: "attempt to index nil with 'faction'"). ]]
+		if not projectile then
+			continue
+		end
 		--[[ Picked per projectile, not per step: a volley can hold shots of
 		     both factions at once. ]]
 		local isPlayer = projectile.faction == "Player"

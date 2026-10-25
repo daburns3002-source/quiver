@@ -125,8 +125,12 @@ function HitSquash.play(model: Model, kind: Kind?)
 		return
 	end
 	--[[ A boss's body is posed by the server every frame (`BossBody`); a
-	     squash here would fight it and snap it back to a stale shape. ]]
-	if model:GetAttribute("Boss") then
+	     squash here would fight it and snap it back to a stale shape. A
+	     body that plays its own clips (`Fx/ModelAnimator`, Thornwood's
+	     enemies) likewise: the squash welded its parts back to the hitbox
+	     while the animator went on placing them, and the whole enemy
+	     climbed into the sky (2026-10-25 playtest). ]]
+	if model:GetAttribute("Boss") or model:GetAttribute("ModelClips") then
 		return
 	end
 

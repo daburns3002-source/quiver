@@ -195,27 +195,28 @@ local Sounds: { [string]: Sound } = {
 	--[[ Each pet's attack (`Config/PetSounds`), from `assets/audio/pet_synth.py`,
 	     picked by the owner in round 17 (2026-10-24; two each for the Slime
 	     Prince and Ember Wilf, one per half of their attack). Files are in
-	     `assets/audio/final/`; silent until the owner uploads them. ]]
+	     `assets/audio/final/`, uploaded 2026-10-24; the Mossback Snail's
+	     is not in the inventory yet, so it is silent. ]]
 	pet_mosslet = {
-		id = "",
+		id = "rbxassetid://83032506635339",
 		volume = 0.5,
 		pitchJitter = 0.06,
 		minGap = 0.1,
 	},
 	pet_babacorn = {
-		id = "",
+		id = "rbxassetid://97271291476186",
 		volume = 0.5,
 		pitchJitter = 0.06,
 		minGap = 0.1,
 	},
 	pet_fern_frog = {
-		id = "",
+		id = "rbxassetid://127120888285484",
 		volume = 0.5,
 		pitchJitter = 0.06,
 		minGap = 0.1,
 	},
 	pet_toadstool_tot = {
-		id = "",
+		id = "rbxassetid://123748512490271",
 		volume = 0.5,
 		pitchJitter = 0.06,
 		minGap = 0.1,
@@ -227,55 +228,55 @@ local Sounds: { [string]: Sound } = {
 		minGap = 0.1,
 	},
 	pet_firefly_bun = {
-		id = "",
+		id = "rbxassetid://102081050805219",
 		volume = 0.5,
 		pitchJitter = 0.06,
 		minGap = 0.1,
 	},
 	pet_stumpy = {
-		id = "",
+		id = "rbxassetid://80852567296311",
 		volume = 0.5,
 		pitchJitter = 0.06,
 		minGap = 0.1,
 	},
 	pet_glade_fox = {
-		id = "",
+		id = "rbxassetid://102425189669283",
 		volume = 0.5,
 		pitchJitter = 0.06,
 		minGap = 0.1,
 	},
 	pet_hootmoss = {
-		id = "",
+		id = "rbxassetid://125040369200406",
 		volume = 0.5,
 		pitchJitter = 0.06,
 		minGap = 0.1,
 	},
 	pet_slime_prince_court = {
-		id = "",
+		id = "rbxassetid://123150969598499",
 		volume = 0.5,
 		pitchJitter = 0.06,
 		minGap = 0.1,
 	},
 	pet_slime_prince_crown = {
-		id = "",
+		id = "rbxassetid://92028953792865",
 		volume = 0.5,
 		pitchJitter = 0.06,
 		minGap = 0.1,
 	},
 	pet_ember_wilf_bolt = {
-		id = "",
+		id = "rbxassetid://109971968071899",
 		volume = 0.5,
 		pitchJitter = 0.06,
 		minGap = 0.1,
 	},
 	pet_ember_wilf_howl = {
-		id = "",
+		id = "rbxassetid://119539070818650",
 		volume = 0.5,
 		pitchJitter = 0.06,
 		minGap = 0.1,
 	},
 	pet_glimmerhorn = {
-		id = "",
+		id = "rbxassetid://112402396655765",
 		volume = 0.5,
 		pitchJitter = 0.06,
 		minGap = 0.1,

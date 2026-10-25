@@ -1,32 +1,36 @@
 --!strict
 --[[
-	The end screens' images, uploaded to Roblox on 2026-10-22.
+	The end screens' images, uploaded to Roblox on 2026-10-25: the blocky
+	restyle (owner, 2026-10-25: "change defeat and victory screen to new
+	blocky design language").
 
-	The heroes and icons are from design_handoff_end_screens/assets. The
-	ribbon band, tails and sub-ribbon trapezoid are white shapes drawn from
-	the design's own polygons and tinted where they are used; the chevron
-	and refresh icons are drawn white with their ink outline included.
-	Glow and rays are the upgrade cards' (`CardAssets`).
+	Codex art cut from its magenta backgrounds by
+	`assets/ui/end_screens/cutout.py` (raws and prompts in
+	`assets/concepts/blocky/ui/end_screens_raw/`), to match the reference
+	sheets `assets/concepts/blocky/ui/end_victory.jpg` and `end_defeat.jpg`.
+	The ribbons are blank, for live blocky text; the cube is plain grey,
+	tinted where it is used.
 ]]
 
 local EndScreenAssets = {
-	victoryHero = "rbxassetid://94912470524652",
-	defeatHero = "rbxassetid://97280079486021",
+	ribbonVictory = "rbxassetid://104233184250779",
+	ribbonDefeat = "rbxassetid://121514637917026",
+	heroVictory = "rbxassetid://131261335765461",
+	heroDefeat = "rbxassetid://91611465071192",
+	rays = "rbxassetid://110500527798364",
 
-	skull = "rbxassetid://98401132030675",
-	hourglass = "rbxassetid://95841266711065",
-	heart = "rbxassetid://87992330490831",
-	chart = "rbxassetid://126689785765706",
-	coin = "rbxassetid://110064412304973",
-	gem = "rbxassetid://108715454237679",
-	home = "rbxassetid://133908100594725",
-
-	band = "rbxassetid://127792448117848",
-	tailLeft = "rbxassetid://82669822593076",
-	tailRight = "rbxassetid://133240660366513",
-	trapezoid = "rbxassetid://133974817977301",
-	chevron = "rbxassetid://82359982038741",
-	refresh = "rbxassetid://119923437190709",
+	skull = "rbxassetid://81391037520188",
+	hourglass = "rbxassetid://93832562742445",
+	heart = "rbxassetid://132016175854758",
+	chart = "rbxassetid://89255397360408",
+	coin = "rbxassetid://105417892155855",
+	gem = "rbxassetid://110312361811467",
+	chevron = "rbxassetid://102496291506472",
+	refresh = "rbxassetid://131860825119130",
+	cube = "rbxassetid://93394386923395",
+	drop = "rbxassetid://98128376234101",
+	star = "rbxassetid://133495348208361",
+	sparkle = "rbxassetid://75145958219959",
 }
 
 return table.freeze(EndScreenAssets)

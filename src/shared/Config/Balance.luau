@@ -1015,10 +1015,12 @@ local rooms: { RoomConfig } = {
 			{ offset = Vector2.new(-6.21, 19.71), size = Vector3.new(2.7, 1.2, 2.7) },
 		},
 		enemyCount = 4,
-		--[[ The Ember Wilf's debut (owner, 2026-10-23: "here is another enemy
-		     design going into area 1"): from room 6, so the first five stay
-		     the slime tutorial. It is the one new thing to learn here. ]]
-		roster = { meleeCharger, meleeCharger, broodSlime, wilf },
+		--[[ The Sprout Spitter's debut, from room 6, so the first five stay
+		     the slime tutorial: the one new thing to learn here. It took the
+		     Ember Wilf's place (owner, 2026-10-24: "take out the non blocky
+		     wilf enemy"), and fires across the whole room from anywhere in
+		     it (`spreadShooter.shot`). ]]
+		roster = { meleeCharger, meleeCharger, broodSlime, spreadShooter },
 	},
 	{
 		name = "Mossy Hollow II",
@@ -1029,7 +1031,7 @@ local rooms: { RoomConfig } = {
 			{ offset = Vector2.new(8.1, 14.31), size = Vector3.new(3.6, 1.6, 3.6) },
 		},
 		enemyCount = 4,
-		roster = { meleeCharger, broodSlime, wilf },
+		roster = { meleeCharger, broodSlime, spreadShooter },
 	},
 	{
 		name = "Mossy Boulders II",
@@ -1049,7 +1051,7 @@ local rooms: { RoomConfig } = {
 			{ offset = Vector2.new(-5.8, 19.06), size = Vector3.new(2, 1.5, 2) },
 		},
 		enemyCount = 5,
-		roster = { meleeCharger, meleeCharger, broodSlime, wilf },
+		roster = { meleeCharger, meleeCharger, broodSlime, spreadShooter },
 	},
 	{
 		name = "Mossy Thorns II",
@@ -1060,7 +1062,7 @@ local rooms: { RoomConfig } = {
 			{ offset = Vector2.new(-8.64, 15.93), size = Vector3.new(3.3, 1.4, 3.3) },
 		},
 		enemyCount = 5,
-		roster = { meleeCharger, broodSlime, wilf },
+		roster = { meleeCharger, broodSlime, spreadShooter },
 	},
 	{
 		name = "Glade Heart II",

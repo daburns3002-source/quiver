@@ -246,6 +246,17 @@ function KitLayout.seed(name: string): number
 	return seed
 end
 
+--[[ A room's seed: its arena's, stirred by where its cover stands, so
+     rooms that share an arena (Thornwood's forty) still differ in their
+     lawn, plants and path. ]]
+function KitLayout.roomSeed(arena: string, obstacles: { Obstacle }): number
+	local key = arena
+	for _, box in obstacles do
+		key ..= `{math.floor(box.offset.X * 10)},{math.floor(box.offset.Y * 10)};`
+	end
+	return KitLayout.seed(key)
+end
+
 function KitLayout.build(
 	kitName: string,
 	room: Room,

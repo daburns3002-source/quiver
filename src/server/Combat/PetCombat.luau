@@ -7,9 +7,12 @@
 	the Studio sandbox sets it until Phase 6. Every `every` seconds the pet
 	attacks from its owner's side: the server decides who it hits and does
 	it, and tells the clients (`Remotes.PetAttack`) so the owner's pet plays
-	its Attack clip and pieces (`Fx/PetPreview`, `Fx/PetAttackFx`). The
-	blows land when the look's first piece fires (`Config/PetAttacks`), so
-	the damage number meets the projectile rather than leading it.
+	its Attack clip and pieces (`Fx/PetPreview`, `Fx/PetAttackFx`). Its
+	targets are chosen when the look's first piece fires (`Config/PetAttacks`).
+	A pet that throws a projectile lands each blow as the piece carrying it
+	reaches its enemy (`Shared/Combat/PetShots`), so the damage number meets
+	the projectile rather than leading it; a target that moves is followed,
+	one that dies first loses the blow. Other pets' blows land at once.
 
 	The pet stands at its owner for the server's purposes: it walks at heel,
 	and reach is measured from the owner.
@@ -22,6 +25,7 @@ local EnemyManager = require(script.Parent.Parent.Enemies.EnemyManager)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
 local PetAttacks = require(ReplicatedStorage.Shared.Config.PetAttacks)
 local PetCombatConfig = require(ReplicatedStorage.Shared.Config.PetCombat)
+local PetShots = require(ReplicatedStorage.Shared.Combat.PetShots)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local RunSession = require(script.Parent.Parent.Run.RunSession)
 
@@ -93,6 +97,63 @@ local function hit(session: Session, model: Model, amount: number, from: Vector3
 	return landed
 end
 
+--[[ What a pet does to an enemy besides its damage, once a target. ]]
+local function afflict(session: Session, model: Model, spec: Spec, now: number)
+	if spec.slow then
+		EnemyManager.slow(model, spec.slow.scale, now + spec.slow.duration)
+	end
+	if spec.root then
+		EnemyManager.slow(model, 0, now + spec.root)
+	end
+	if spec.burn then
+		Burning.ignite(model, spec.burn.rate, spec.burn.duration, session.player, now)
+	end
+	if spec.mark then
+		EnemyManager.mark(model, spec.mark.scale, now + spec.mark.duration)
+	end
+	if spec.healPerHit then
+		RunSession.heal(session, spec.healPerHit)
+	end
+end
+
+--[[ A piece leaves the pet for `model`, and its blow lands when it gets
+     there: on the target wherever it has moved (a homing piece follows
+     it), and not at all if it died on the way or the pet was put away. ]]
+local function launch(
+	player: Player,
+	state: State,
+	spec: Spec,
+	shot: PetAttacks.Shot,
+	model: Model,
+	amount: number,
+	first: boolean
+)
+	local session = RunSession.get(player)
+	local root = session and rootOf(session)
+	local position = EnemyManager.positions()[model]
+	if not session or not root or not position then
+		return
+	end
+	local from = PetShots.heel(root.CFrame)
+	task.delay(PetShots.flight(shot, (position - from).Magnitude), function()
+		local current = RunSession.get(player)
+		if
+			not current
+			or not current.alive
+			or states[player] ~= state
+			or not EnemyManager.positions()[model]
+		then
+			return
+		end
+		if amount > 0 then
+			hit(current, model, amount, from)
+		end
+		if first then
+			afflict(current, model, spec, os.clock())
+		end
+	end)
+end
+
 --[[ Everything one attack does to the enemies and to its owner. ]]
 local function strike(session: Session, state: State, spec: Spec, origin: Vector3, now: number)
 	local targets = inRange(origin, spec.range)
@@ -106,28 +167,26 @@ local function strike(session: Session, state: State, spec: Spec, origin: Vector
 		end
 	end
 
-	for _, model in struck do
-		if spec.damage then
-			local amount = spec.damage
-				+ (if spec.bossDamage and EnemyManager.isBoss(model) then spec.bossDamage else 0)
-			for _ = 1, spec.hits or 1 do
+	local shot = PetShots.projectile(state.pet)
+	local hits = spec.hits or 1
+	for index, model in struck do
+		local amount = if spec.damage
+			then spec.damage + (if spec.bossDamage and EnemyManager.isBoss(model)
+				then spec.bossDamage
+				else 0)
+			else 0
+		if shot then
+			-- each blow waits for the piece carrying it to leave, then to fly
+			for blow = (index - 1) * hits + 1, index * hits do
+				local wait = PetShots.launch(shot, blow) - shot.at
+				local first = blow == (index - 1) * hits + 1
+				task.delay(wait, launch, session.player, state, spec, shot, model, amount, first)
+			end
+		else
+			for _ = 1, if amount > 0 then hits else 0 do
 				hit(session, model, amount, origin)
 			end
-		end
-		if spec.slow then
-			EnemyManager.slow(model, spec.slow.scale, now + spec.slow.duration)
-		end
-		if spec.root then
-			EnemyManager.slow(model, 0, now + spec.root)
-		end
-		if spec.burn then
-			Burning.ignite(model, spec.burn.rate, spec.burn.duration, session.player, now)
-		end
-		if spec.mark then
-			EnemyManager.mark(model, spec.mark.scale, now + spec.mark.duration)
-		end
-		if spec.healPerHit then
-			RunSession.heal(session, spec.healPerHit)
+			afflict(session, model, spec, now)
 		end
 	end
 
@@ -149,7 +208,7 @@ local function strike(session: Session, state: State, spec: Spec, origin: Vector
 end
 
 --[[ Seconds into the pet's Attack clip its first piece fires: when the
-     blows land. ]]
+     targets are chosen. ]]
 local function leadOf(pet: string): number
 	local shots = (PetAttacks :: any)[pet]
 	local first = shots and shots[1]

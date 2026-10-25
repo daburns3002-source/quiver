@@ -35,7 +35,12 @@ local Music = {
 	     run. The title theme (`title_theme.py`), 71.5 s: the 5.0 s build,
 	     then the 60 s loop from 11.0 s (after the build's tail). An empty
 	     id is silent. ]]
-	intro = { id = "", name = "Title theme", loopStart = 11.0, loopEnd = 71.0 } :: Track,
+	intro = {
+		id = "rbxassetid://115433438359101",
+		name = "Title theme (Soar)",
+		loopStart = 11.0,
+		loopEnd = 71.0,
+	} :: Track,
 	playlists = {
 		Rooms = {
 			-- ours, 77 s, made to loop: a lone track loops in the engine

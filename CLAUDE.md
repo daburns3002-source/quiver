@@ -268,7 +268,7 @@ over, full health or not.
 `assets/audio/synth.py`, or cut from CC0 Freesound recordings by
 `assets/audio/freesound.py` (licence checked on each sound's page; a
 game's ripped audio is never used, only measured against), auditioned on a page whose picks save to its own
-database (`assets/audio/build_page.py`, artifact E53Pu8d5UbwLKnyKYEDo2K,
+database (`assets/audio/build_page.py`; since round 20 artifact M81L9gr5Wiows6H6G5nGyQ, which pauses long takes, before it E53Pu8d5UbwLKnyKYEDo2K,
 read with `ArtifactData` `picks`), uploaded to Roblox by the owner, and the
 ids go in `Config/Sounds`. A sound with an empty id is silent, so every hook
 is wired before its audio exists.

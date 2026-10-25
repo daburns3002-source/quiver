@@ -38,7 +38,7 @@ Last brought up to date: 2026-10-25.
 ## Designed, not built
 
 - The other bosses of Acts 1–3 (`docs/BOSSES.md`; the Slime King is built). Acts 4–5's are on hold.
-- Thornwood's rest (Level 2 is built, 2026-10-25: forty generated rooms (`tools/thornwood_rooms.py`), the four enemies on their own models and clips, the Broodmother on the Slime King's climb-and-drop and pull moves with her own clips): her Thornling clutch (`Summon`; no Thornling model yet), the Thistle's burr (it fires the Spitter's seed), Thornwood's own outer forest (it uses the glade's), thorn trees mid-wall. Level 2 is `Balance.Stages[4]`, and runs open on it (2026-10-25).
+- Thornwood's rest (Level 2 is built, 2026-10-25: forty generated rooms (`tools/thornwood_rooms.py`), the four enemies on their own models and clips, the Broodmother on the Slime King's climb-and-drop and pull moves with her own clips): the Thistle's burr (it fires the Spitter's seed), Thornwood's own outer forest (it uses the glade's), thorn trees mid-wall. Level 2 is `Balance.Stages[4]`, and runs open on it (2026-10-25).
 - Wave 2 of the Warden's and the Arcanist's cards (`docs/CLASS-CARDS.md`; icons made).
 - Pets, eggs and weapon skins (`docs/PETS-FOREST.md`, the Wilf pets): design only, no pet system in the game yet.
 

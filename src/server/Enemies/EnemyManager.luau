@@ -63,6 +63,10 @@ type BossState = {
 	     (`EnemyBoss.clips`), and the time it began on `os.clock()`. ]]
 	clip: string?,
 	clipAt: number,
+	--[[ Moves finished, for `EnemyBoss.summon`, and when the clutch it is
+	     summoning drops (`os.clock()`), or nil. ]]
+	moves: number,
+	summonAt: number?,
 }
 
 type Enemy = {
@@ -822,6 +826,8 @@ function EnemyManager.spawn(
 			airborne = false,
 			clip = if clipped then "" else nil,
 			clipAt = 0,
+			moves = 0,
+			summonAt = nil,
 		}
 		--[[ For the client: the boss bar, and no hit squash on a body the
 		     server is posing. ]]
@@ -1271,8 +1277,25 @@ local function resolveBossEvent(
 		end
 	elseif e.kind == "LaneAim" or e.kind == "Lane" then
 		enemyTelegraph:FireAllClients(e.at, e.direction, e.duration, e.kind, e.length, e.width)
+		--[[ Her lash is a web: the strand flies down the lane as it strikes. ]]
+		if boss.web and e.kind == "Lane" then
+			enemyTelegraph:FireAllClients(
+				e.at,
+				e.direction,
+				e.duration,
+				"WebLane",
+				e.length,
+				e.width
+			)
+		end
 	elseif e.kind == "Splat" then
-		enemyTelegraph:FireAllClients(e.at, e.direction, boss.lash.hold, "Splat", e.radius)
+		enemyTelegraph:FireAllClients(
+			e.at,
+			e.direction,
+			boss.lash.hold,
+			if boss.web then "WebSplat" else "Splat",
+			e.radius
+		)
 	elseif e.kind == "BumpShock" then
 		enemyTelegraph:FireAllClients(
 			e.at,
@@ -1283,7 +1306,7 @@ local function resolveBossEvent(
 		)
 	elseif e.kind == "Shake" then
 		enemyTelegraph:FireAllClients(Vector3.zero, Vector3.zAxis, e.duration, "Shake", e.radius)
-	elseif e.kind == "Goo" then
+	elseif e.kind == "Goo" and not boss.web then
 		enemyTelegraph:FireAllClients(
 			e.at,
 			e.direction,
@@ -1393,6 +1416,25 @@ local function stepBoss(enemy: Enemy, state: BossState, now: number)
 	local move = state.move
 
 	if not move then
+		--[[ A clutch on its way: her Summon clip, then the spiderlings drop
+		     round her. ]]
+		local summon = boss.summon
+		local summonAt = state.summonAt
+		if summon and summonAt then
+			BossBody.pose(state.body, BossMoves.idle(feet, enemy.yaw or 0, now))
+			showClip(enemy, state, summon.clip, summonAt - summon.windup, now, summon.windup)
+			if now >= summonAt then
+				state.summonAt = nil
+				for i = 1, summon.count do
+					local angle = (i / summon.count + 0.125) * math.pi * 2
+					local reach = math.max(config.hitboxSize.X, config.hitboxSize.Z) / 2 + 2
+					local spot =
+						clamp(feet + Vector3.new(math.cos(angle), 0, math.sin(angle)) * reach)
+					EnemyManager.spawn(summon.into, 0, spot)
+				end
+			end
+			return
+		end
 		if now < state.restUntil or not targetRoot then
 			BossBody.pose(state.body, BossMoves.idle(feet, enemy.yaw or 0, now))
 			local idle = if boss.clips then boss.clips.idle else ""
@@ -1432,6 +1474,12 @@ local function stepBoss(enemy: Enemy, state: BossState, now: number)
 		state.move = nil
 		state.restUntil = now + BossMoves.restAfter(move.kind, boss)
 		state.next = state.next % #BossMoves.LOOP + 1
+		state.moves += 1
+		local summon = boss.summon
+		if summon and state.moves % summon.every == 0 then
+			state.summonAt = now + summon.windup
+			state.restUntil = math.max(state.restUntil, now + summon.windup + 0.5)
+		end
 	end
 end
 

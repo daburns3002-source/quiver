@@ -196,6 +196,11 @@ return function(t: TestRunner.Helper)
 				if split then
 					used[split.into.displayName] = true
 				end
+				--[[ And what a boss summons (the Broodmother's Thornlings). ]]
+				local summon = config.boss and config.boss.summon
+				if summon then
+					used[summon.into.displayName] = true
+				end
 			end
 		end
 

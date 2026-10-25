@@ -155,10 +155,14 @@ local ArenaKits: { [string]: Kit } = {
 	Thornwood = {
 		scale = 2.6,
 		pieces = {
+			--[[ Redrawn as a long, lumpy thorn bush with thorns at random
+			     (owner, 2026-10-25: "there should be thorns on the bush not
+			     just a brown X";
+			     assets/concepts/blocky/arenas/kit/thornwood_bramble_hedge_wild_views.png). ]]
 			BrambleHedge = {
-				meshId = "rbxassetid://130242909081488",
-				size = Vector3.new(2, 0.988, 0.7581),
-				centre = Vector3.new(0, 0.494, 0),
+				meshId = "rbxassetid://75359909242178",
+				size = Vector3.new(2.031, 1.0419, 0.77),
+				centre = Vector3.new(0, 0.521, 0),
 			},
 			ThornTree = {
 				meshId = "rbxassetid://114102878041804",

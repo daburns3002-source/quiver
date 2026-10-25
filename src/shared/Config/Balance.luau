@@ -214,6 +214,21 @@ export type EnemyBoss = {
 	--[[ Set when the body plays its own clips; nil for a body the server
 	     poses (`Enemies/BossBody`). ]]
 	clips: BossClips?,
+	--[[ Her lash is a web (the Broodmother): the client draws a silk strand
+	     and a web splat (`Fx/BroodWebFx`) in place of the Slime King's
+	     slime, and no goo. ]]
+	web: boolean?,
+	--[[ After every `every`th move she plays `clip` for `windup` seconds,
+	     then `count` of `into` drop round her. ]]
+	summon: BossSummon?,
+}
+
+export type BossSummon = {
+	into: EnemyConfig,
+	count: number,
+	every: number,
+	clip: string,
+	windup: number,
 }
 
 --[[
@@ -865,6 +880,27 @@ local brambleLurker: EnemyConfig = {
 }
 
 --[[
+	A Thornling: one of the spiderlings the Broodmother drops round her
+	(`EnemyBoss.summon`; the owner's Claude Design "Thornling 3D model",
+	2026-10-25). Small, quick and frail, a Boarlet's health: it scuttles in
+	and bites. Its model ×2.4: 2.4 across, 1.8 tall, 1.85 deep.
+]]
+local thornling: EnemyConfig = {
+	displayName = "Thornling",
+	turnRate = 600,
+	health = 130,
+	moveSpeed = 8.1,
+	attackRange = 3.2,
+	attackDamage = 34,
+	attackCooldown = 1,
+	knockback = 3.5,
+	hitboxSize = Vector3.new(2.4, 1.8, 1.85),
+	color = Color3.fromRGB(110, 70, 160),
+	xpReward = 4,
+	shot = nil,
+}
+
+--[[
 	The Broodmother, Thornwood's boss (docs/BOSSES.md §2, the owner's
 	Claude Design "Thornweaver", 2026-10-25). Alone in Level 2's last
 	room. Her fight runs on the Slime King's two moves, drawn with her own
@@ -928,6 +964,10 @@ local broodmother: EnemyConfig = {
 		restAfterBounce = 1.5,
 		restAfterLash = 1,
 		opening = 1,
+		web = true,
+		--[[ Her clutch (owner, 2026-10-25): after every second move, three
+		     Thornlings drop round her as she plays Summon. ]]
+		summon = { into = thornling, count = 3, every = 2, clip = "Summon", windup = 1.1 },
 		clips = {
 			idle = "Idle",
 			Bounce = {
@@ -2076,6 +2116,7 @@ local Balance = {
 		Boarlet = boarlet,
 		BrambleLurker = brambleLurker,
 		Broodmother = broodmother,
+		Thornling = thornling,
 	},
 
 	--[[
@@ -2980,6 +3021,8 @@ local Balance = {
 			FxBloodletting = 3,
 			FxCleave = 3,
 			FxChainLightning = 6,
+			-- the Broodmother's web: a strand is up to ten segments
+			FxBroodWebStrand = 12,
 		},
 		-- the stepped pop of an effect with no clip: each step's length, and
 		-- how long it takes to shrink away at the end

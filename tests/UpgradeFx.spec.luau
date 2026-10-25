@@ -49,7 +49,9 @@ return function(t: TestRunner.Helper)
 		for key in clips do
 			-- a pet attack's piece may wait on the owner's import (TRACKER): until
 			-- then `Fx/PetAttackFx` simply does not draw it
-			if string.sub(key, 1, 5) == "FxPet" and not imported[key] then
+			-- (and so may the Broodmother's web)
+			local waits = string.sub(key, 1, 5) == "FxPet" or string.sub(key, 1, 7) == "FxBrood"
+			if waits and not imported[key] then
 				continue
 			end
 			t.notNil(imported[key], `{key} has clip data but no import`)

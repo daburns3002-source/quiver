@@ -25,12 +25,19 @@ local function weaponOf(name: string): Weapons.Weapon
 	return (Weapons :: any)[name] :: Weapons.Weapon
 end
 
+--[[ The animations `weaponName` plays: its own, or its kit's (a skin plays
+     its base weapon's until it has its own, `Config/Weapons.kit`). ]]
+function WeaponTiming.clips(weaponName: string): any
+	local weapon = weaponOf(weaponName)
+	return WeaponAnimations[weapon and weapon.kit or weaponName]
+end
+
 --[[ How much faster than written the `fire` clip numbered `index` in the
      combo, and the `ready` after it, play to fit inside `cooldown`. Never
      slower than written. ]]
 function WeaponTiming.cycleSpeed(weaponName: string, index: number, cooldown: number): number
 	local weapon = weaponOf(weaponName)
-	local clips = WeaponAnimations[weaponName]
+	local clips = WeaponTiming.clips(weaponName)
 	local fire = clips[weapon.clips.fire[index]]
 	--[[ A weapon that goes back to aiming after a shot draws only once,
 	     so its shots are only the fire clip. ]]
@@ -44,7 +51,7 @@ end
      clip's `Hit` marker at the speed it plays. 0 for a clip without one. ]]
 function WeaponTiming.hitDelay(weaponName: string, index: number, cooldown: number): number
 	local weapon = weaponOf(weaponName)
-	local clip = WeaponAnimations[weaponName][weapon.clips.fire[index]]
+	local clip = WeaponTiming.clips(weaponName)[weapon.clips.fire[index]]
 	local hit = clip.markers.Hit
 	if not hit then
 		return 0

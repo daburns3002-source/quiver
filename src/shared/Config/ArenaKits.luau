@@ -155,14 +155,16 @@ local ArenaKits: { [string]: Kit } = {
 	Thornwood = {
 		scale = 2.6,
 		pieces = {
-			--[[ Redrawn as a long, lumpy thorn bush with thorns at random
-			     (owner, 2026-10-25: "there should be thorns on the bush not
-			     just a brown X";
-			     assets/concepts/blocky/arenas/kit/thornwood_bramble_hedge_wild_views.png). ]]
+			--[[ Redrawn with looping thorny vines in place of the X (owner,
+			     2026-10-25: "the new bramble hedge with looping thorn vines
+			     should replace the previous hedges";
+			     assets/concepts/blocky/arenas/kit/thornwood_bramble_hedge_v2_views.png).
+			     Its end loops rise above the leaf top, so `size.Y` is the
+			     loops' height; the leaves stop at 0.78. ]]
 			BrambleHedge = {
-				meshId = "rbxassetid://75359909242178",
-				size = Vector3.new(2.031, 1.0419, 0.77),
-				centre = Vector3.new(0, 0.521, 0),
+				meshId = "rbxassetid://124031014884732",
+				size = Vector3.new(3.1237, 1.1661, 0.754),
+				centre = Vector3.new(0, 0.58305, 0),
 			},
 			ThornTree = {
 				meshId = "rbxassetid://114102878041804",

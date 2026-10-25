@@ -1,7 +1,7 @@
 [
  {
   "name": "Ground_NE",
-  "meshId": "rbxassetid://96053973137984",
+  "meshId": "rbxassetid://90666958935622",
   "size": [
    75.0,
    1.0,
@@ -15,7 +15,7 @@
  },
  {
   "name": "Ground_NW",
-  "meshId": "rbxassetid://136863863858842",
+  "meshId": "rbxassetid://129930242293694",
   "size": [
    75.0,
    1.0,
@@ -29,7 +29,7 @@
  },
  {
   "name": "Ground_SE",
-  "meshId": "rbxassetid://81007584684821",
+  "meshId": "rbxassetid://89482244728274",
   "size": [
    75.0,
    1.0,
@@ -43,7 +43,7 @@
  },
  {
   "name": "Ground_SW",
-  "meshId": "rbxassetid://116516109923379",
+  "meshId": "rbxassetid://93004141848263",
   "size": [
    75.0,
    1.0,
@@ -57,7 +57,7 @@
  },
  {
   "name": "Path_NE",
-  "meshId": "rbxassetid://95063131280422",
+  "meshId": "rbxassetid://123674065594475",
   "size": [
    5.85,
    0.001,
@@ -71,7 +71,7 @@
  },
  {
   "name": "Path_NW",
-  "meshId": "rbxassetid://108218870634438",
+  "meshId": "rbxassetid://119073299524381",
   "size": [
    5.85,
    1.0,
@@ -85,7 +85,7 @@
  },
  {
   "name": "Path_SE",
-  "meshId": "rbxassetid://71104294739283",
+  "meshId": "rbxassetid://131536782343393",
   "size": [
    3.9,
    1.0,
@@ -99,7 +99,7 @@
  },
  {
   "name": "Path_SW",
-  "meshId": "rbxassetid://74906659120043",
+  "meshId": "rbxassetid://115325784249805",
   "size": [
    5.85,
    0.001,
@@ -113,7 +113,7 @@
  },
  {
   "name": "Trunk",
-  "meshId": "rbxassetid://91049550891915",
+  "meshId": "rbxassetid://139844505263665",
   "size": [
    10.126,
    13.358,
@@ -127,7 +127,7 @@
  },
  {
   "name": "CanopyMesh",
-  "meshId": "rbxassetid://100236980499291",
+  "meshId": "rbxassetid://98502567295844",
   "size": [
    14.584,
    8.297,
@@ -141,7 +141,7 @@
  },
  {
   "name": "Trunk2",
-  "meshId": "rbxassetid://128403568697817",
+  "meshId": "rbxassetid://116076219139520",
   "size": [
    9.218,
    11.92,
@@ -155,7 +155,7 @@
  },
  {
   "name": "CanopyMesh2",
-  "meshId": "rbxassetid://139102225402992",
+  "meshId": "rbxassetid://115572451271056",
   "size": [
    10.794,
    4.674,
@@ -169,7 +169,7 @@
  },
  {
   "name": "Trunk3",
-  "meshId": "rbxassetid://104033884716604",
+  "meshId": "rbxassetid://85989985552654",
   "size": [
    10.911,
    13.263,
@@ -183,7 +183,7 @@
  },
  {
   "name": "CanopyMesh3",
-  "meshId": "rbxassetid://125995201213844",
+  "meshId": "rbxassetid://137987758087043",
   "size": [
    13.829,
    6.66,
@@ -197,7 +197,7 @@
  },
  {
   "name": "Trunk4",
-  "meshId": "rbxassetid://90728577212725",
+  "meshId": "rbxassetid://135428349335464",
   "size": [
    9.64,
    13.747,
@@ -211,7 +211,7 @@
  },
  {
   "name": "CanopyMesh4",
-  "meshId": "rbxassetid://108310153678410",
+  "meshId": "rbxassetid://97371600185478",
   "size": [
    13.459,
    6.534,
@@ -225,7 +225,7 @@
  },
  {
   "name": "Trunk5",
-  "meshId": "rbxassetid://122572987217414",
+  "meshId": "rbxassetid://97879468245947",
   "size": [
    11.453,
    14.313,
@@ -239,7 +239,7 @@
  },
  {
   "name": "CanopyMesh5",
-  "meshId": "rbxassetid://91851167552182",
+  "meshId": "rbxassetid://124970229236008",
   "size": [
    14.062,
    8.29,
@@ -253,7 +253,7 @@
  },
  {
   "name": "Trunk6",
-  "meshId": "rbxassetid://71209081933757",
+  "meshId": "rbxassetid://135490100923075",
   "size": [
    8.78,
    11.949,
@@ -267,7 +267,7 @@
  },
  {
   "name": "CanopyMesh6",
-  "meshId": "rbxassetid://104376316182316",
+  "meshId": "rbxassetid://123707113156072",
   "size": [
    12.988,
    7.534,
@@ -281,7 +281,7 @@
  },
  {
   "name": "Trunk7",
-  "meshId": "rbxassetid://133964813278579",
+  "meshId": "rbxassetid://93576595339040",
   "size": [
    9.777,
    11.818,
@@ -295,7 +295,7 @@
  },
  {
   "name": "CanopyMesh7",
-  "meshId": "rbxassetid://100408834069738",
+  "meshId": "rbxassetid://74777453397150",
   "size": [
    12.235,
    5.487,
@@ -309,7 +309,7 @@
  },
  {
   "name": "Trunk8",
-  "meshId": "rbxassetid://130762412606984",
+  "meshId": "rbxassetid://83738254106238",
   "size": [
    10.808,
    13.842,
@@ -323,7 +323,7 @@
  },
  {
   "name": "CanopyMesh8",
-  "meshId": "rbxassetid://116327465915538",
+  "meshId": "rbxassetid://83700183363053",
   "size": [
    14.154,
    7.021,
@@ -337,7 +337,7 @@
  },
  {
   "name": "Trunk9",
-  "meshId": "rbxassetid://114266853650679",
+  "meshId": "rbxassetid://122480798615675",
   "size": [
    8.687,
    12.288,
@@ -351,7 +351,7 @@
  },
  {
   "name": "CanopyMesh9",
-  "meshId": "rbxassetid://80496529787177",
+  "meshId": "rbxassetid://119701456684199",
   "size": [
    10.812,
    5.884,
@@ -365,7 +365,7 @@
  },
  {
   "name": "Trunk10",
-  "meshId": "rbxassetid://86081289847085",
+  "meshId": "rbxassetid://81497888237785",
   "size": [
    6.695,
    11.93,
@@ -379,7 +379,7 @@
  },
  {
   "name": "CanopyMesh10",
-  "meshId": "rbxassetid://95721876021051",
+  "meshId": "rbxassetid://107887606772808",
   "size": [
    7.246,
    5.489,
@@ -393,7 +393,7 @@
  },
  {
   "name": "Trunk11",
-  "meshId": "rbxassetid://131297196469933",
+  "meshId": "rbxassetid://86258624160280",
   "size": [
    10.375,
    12.737,
@@ -407,7 +407,7 @@
  },
  {
   "name": "CanopyMesh11",
-  "meshId": "rbxassetid://96290949682587",
+  "meshId": "rbxassetid://133844250790349",
   "size": [
    13.61,
    7.697,
@@ -421,7 +421,7 @@
  },
  {
   "name": "Trunk12",
-  "meshId": "rbxassetid://125296943300562",
+  "meshId": "rbxassetid://95177328420733",
   "size": [
    8.94,
    13.071,
@@ -435,7 +435,7 @@
  },
  {
   "name": "CanopyMesh12",
-  "meshId": "rbxassetid://72426464172386",
+  "meshId": "rbxassetid://87479904662690",
   "size": [
    10.444,
    5.034,
@@ -449,7 +449,7 @@
  },
  {
   "name": "Trunk13",
-  "meshId": "rbxassetid://126404262839906",
+  "meshId": "rbxassetid://100723524122502",
   "size": [
    8.133,
    12.047,
@@ -463,7 +463,7 @@
  },
  {
   "name": "CanopyMesh13",
-  "meshId": "rbxassetid://136734509159286",
+  "meshId": "rbxassetid://89875048986080",
   "size": [
    6.428,
    5.994,
@@ -477,7 +477,7 @@
  },
  {
   "name": "Trunk14",
-  "meshId": "rbxassetid://87328268518006",
+  "meshId": "rbxassetid://74661960759851",
   "size": [
    10.19,
    11.675,
@@ -491,7 +491,7 @@
  },
  {
   "name": "CanopyMesh14",
-  "meshId": "rbxassetid://136997600839026",
+  "meshId": "rbxassetid://83104615353124",
   "size": [
    12.742,
    6.153,
@@ -505,7 +505,7 @@
  },
  {
   "name": "Trunk15",
-  "meshId": "rbxassetid://136919460431980",
+  "meshId": "rbxassetid://116902819976991",
   "size": [
    11.251,
    13.268,
@@ -519,7 +519,7 @@
  },
  {
   "name": "CanopyMesh15",
-  "meshId": "rbxassetid://106712698041860",
+  "meshId": "rbxassetid://78283435536103",
   "size": [
    14.631,
    6.74,
@@ -533,7 +533,7 @@
  },
  {
   "name": "Trunk16",
-  "meshId": "rbxassetid://104368361148479",
+  "meshId": "rbxassetid://111033045443924",
   "size": [
    7.872,
    12.25,
@@ -547,7 +547,7 @@
  },
  {
   "name": "CanopyMesh16",
-  "meshId": "rbxassetid://125352072856152",
+  "meshId": "rbxassetid://127143673347587",
   "size": [
    8.565,
    6.669,
@@ -561,7 +561,7 @@
  },
  {
   "name": "Trunk17",
-  "meshId": "rbxassetid://73538119151625",
+  "meshId": "rbxassetid://131018604673554",
   "size": [
    7.522,
    12.03,
@@ -575,7 +575,7 @@
  },
  {
   "name": "CanopyMesh17",
-  "meshId": "rbxassetid://92867528926819",
+  "meshId": "rbxassetid://91604645293002",
   "size": [
    5.225,
    6.027,
@@ -589,7 +589,7 @@
  },
  {
   "name": "Trunk18",
-  "meshId": "rbxassetid://114874732276545",
+  "meshId": "rbxassetid://81487266132879",
   "size": [
    8.426,
    12.397,
@@ -603,7 +603,7 @@
  },
  {
   "name": "CanopyMesh18",
-  "meshId": "rbxassetid://90256883064123",
+  "meshId": "rbxassetid://136484929459480",
   "size": [
    9.2,
    6.805,
@@ -617,7 +617,7 @@
  },
  {
   "name": "Trunk19",
-  "meshId": "rbxassetid://129526026012972",
+  "meshId": "rbxassetid://111425995922406",
   "size": [
    10.093,
    13.048,
@@ -631,7 +631,7 @@
  },
  {
   "name": "CanopyMesh19",
-  "meshId": "rbxassetid://70868399423743",
+  "meshId": "rbxassetid://129382314497302",
   "size": [
    12.911,
    7.737,
@@ -645,7 +645,7 @@
  },
  {
   "name": "Trunk20",
-  "meshId": "rbxassetid://73332588520100",
+  "meshId": "rbxassetid://83545840277632",
   "size": [
    10.919,
    11.533,
@@ -659,7 +659,7 @@
  },
  {
   "name": "CanopyMesh20",
-  "meshId": "rbxassetid://74692414777417",
+  "meshId": "rbxassetid://139554024822921",
   "size": [
    13.764,
    6.018,
@@ -673,7 +673,7 @@
  },
  {
   "name": "Trunk21",
-  "meshId": "rbxassetid://86429317532770",
+  "meshId": "rbxassetid://113440786148603",
   "size": [
    8.682,
    12.369,
@@ -687,7 +687,7 @@
  },
  {
   "name": "CanopyMesh21",
-  "meshId": "rbxassetid://91758090567616",
+  "meshId": "rbxassetid://108607543152359",
   "size": [
    9.681,
    5.311,
@@ -701,7 +701,7 @@
  },
  {
   "name": "Trunk22",
-  "meshId": "rbxassetid://127262581798998",
+  "meshId": "rbxassetid://135284436428596",
   "size": [
    9.6,
    13.192,
@@ -715,7 +715,7 @@
  },
  {
   "name": "CanopyMesh22",
-  "meshId": "rbxassetid://109838314352911",
+  "meshId": "rbxassetid://130437071517509",
   "size": [
    13.03,
    5.887,
@@ -729,7 +729,7 @@
  },
  {
   "name": "Trunk23",
-  "meshId": "rbxassetid://107436676718973",
+  "meshId": "rbxassetid://119750789885582",
   "size": [
    9.003,
    12.535,
@@ -743,7 +743,7 @@
  },
  {
   "name": "CanopyMesh23",
-  "meshId": "rbxassetid://73468204078659",
+  "meshId": "rbxassetid://127774573481186",
   "size": [
    11.053,
    7.144,
@@ -757,7 +757,7 @@
  },
  {
   "name": "Trunk24",
-  "meshId": "rbxassetid://126840765333064",
+  "meshId": "rbxassetid://96788910439888",
   "size": [
    8.35,
    12.121,
@@ -771,7 +771,7 @@
  },
  {
   "name": "CanopyMesh24",
-  "meshId": "rbxassetid://124189400234904",
+  "meshId": "rbxassetid://121817839826584",
   "size": [
    9.988,
    5.284,
@@ -785,7 +785,7 @@
  },
  {
   "name": "Trunk25",
-  "meshId": "rbxassetid://125636281360069",
+  "meshId": "rbxassetid://137604143119235",
   "size": [
    9.871,
    13.272,
@@ -799,7 +799,7 @@
  },
  {
   "name": "CanopyMesh25",
-  "meshId": "rbxassetid://84665558237273",
+  "meshId": "rbxassetid://136320873756565",
   "size": [
    11.822,
    6.682,
@@ -813,7 +813,7 @@
  },
  {
   "name": "Trunk26",
-  "meshId": "rbxassetid://73907687285596",
+  "meshId": "rbxassetid://80656423586871",
   "size": [
    9.174,
    12.611,
@@ -827,7 +827,7 @@
  },
  {
   "name": "CanopyMesh26",
-  "meshId": "rbxassetid://128779290829979",
+  "meshId": "rbxassetid://82966230352722",
   "size": [
    11.565,
    7.538,
@@ -841,7 +841,7 @@
  },
  {
   "name": "Trunk27",
-  "meshId": "rbxassetid://127726539032547",
+  "meshId": "rbxassetid://115343270403891",
   "size": [
    9.258,
    12.602,
@@ -855,7 +855,7 @@
  },
  {
   "name": "CanopyMesh27",
-  "meshId": "rbxassetid://88935646216264",
+  "meshId": "rbxassetid://130480610258170",
   "size": [
    12.488,
    6.372,
@@ -869,7 +869,7 @@
  },
  {
   "name": "Trunk28",
-  "meshId": "rbxassetid://116197182652110",
+  "meshId": "rbxassetid://117476741195737",
   "size": [
    9.764,
    11.852,
@@ -878,12 +878,12 @@
   "offset": [
    -43.273,
    4.821,
-   33.499
+   33.5
   ]
  },
  {
   "name": "CanopyMesh28",
-  "meshId": "rbxassetid://115294295561779",
+  "meshId": "rbxassetid://70800290479399",
   "size": [
    11.822,
    6.289,
@@ -897,7 +897,7 @@
  },
  {
   "name": "Trunk29",
-  "meshId": "rbxassetid://109224729546421",
+  "meshId": "rbxassetid://113338641500562",
   "size": [
    9.009,
    12.313,
@@ -911,7 +911,7 @@
  },
  {
   "name": "CanopyMesh29",
-  "meshId": "rbxassetid://74694507936431",
+  "meshId": "rbxassetid://80001257831110",
   "size": [
    12.877,
    6.308,
@@ -925,7 +925,7 @@
  },
  {
   "name": "Trunk30",
-  "meshId": "rbxassetid://103263285374135",
+  "meshId": "rbxassetid://131666872651513",
   "size": [
    8.07,
    11.21,
@@ -939,7 +939,7 @@
  },
  {
   "name": "CanopyMesh30",
-  "meshId": "rbxassetid://137125515430879",
+  "meshId": "rbxassetid://122744039278626",
   "size": [
    6.594,
    7.046,
@@ -953,7 +953,7 @@
  },
  {
   "name": "Trunk31",
-  "meshId": "rbxassetid://110222528626067",
+  "meshId": "rbxassetid://122552567162906",
   "size": [
    9.35,
    11.448,
@@ -967,7 +967,7 @@
  },
  {
   "name": "CanopyMesh31",
-  "meshId": "rbxassetid://116684254920938",
+  "meshId": "rbxassetid://106953902006225",
   "size": [
    13.826,
    7.633,
@@ -981,7 +981,7 @@
  },
  {
   "name": "Trunk32",
-  "meshId": "rbxassetid://113337338763495",
+  "meshId": "rbxassetid://96691246988378",
   "size": [
    10.338,
    12.329,
@@ -995,7 +995,7 @@
  },
  {
   "name": "CanopyMesh32",
-  "meshId": "rbxassetid://81634008845286",
+  "meshId": "rbxassetid://103520915219099",
   "size": [
    12.665,
    4.943,
@@ -1009,7 +1009,7 @@
  },
  {
   "name": "Trunk33",
-  "meshId": "rbxassetid://80655900665089",
+  "meshId": "rbxassetid://82386951296011",
   "size": [
    9.553,
    12.702,
@@ -1023,7 +1023,7 @@
  },
  {
   "name": "CanopyMesh33",
-  "meshId": "rbxassetid://114657972099877",
+  "meshId": "rbxassetid://137642170462667",
   "size": [
    14.571,
    7.088,
@@ -1037,7 +1037,7 @@
  },
  {
   "name": "Trunk34",
-  "meshId": "rbxassetid://135588254917037",
+  "meshId": "rbxassetid://140718904015377",
   "size": [
    8.721,
    12.84,
@@ -1051,7 +1051,7 @@
  },
  {
   "name": "CanopyMesh34",
-  "meshId": "rbxassetid://89893711916483",
+  "meshId": "rbxassetid://138491635408062",
   "size": [
    10.672,
    6.906,
@@ -1065,7 +1065,7 @@
  },
  {
   "name": "Trunk35",
-  "meshId": "rbxassetid://125073078235456",
+  "meshId": "rbxassetid://130847754242425",
   "size": [
    9.269,
    11.721,
@@ -1079,7 +1079,7 @@
  },
  {
   "name": "CanopyMesh35",
-  "meshId": "rbxassetid://125346653869485",
+  "meshId": "rbxassetid://110923399865718",
   "size": [
    12.398,
    7.394,
@@ -1093,7 +1093,7 @@
  },
  {
   "name": "Trunk36",
-  "meshId": "rbxassetid://130564039151684",
+  "meshId": "rbxassetid://84359300444773",
   "size": [
    10.738,
    14.236,
@@ -1107,7 +1107,7 @@
  },
  {
   "name": "CanopyMesh36",
-  "meshId": "rbxassetid://123865826540635",
+  "meshId": "rbxassetid://72835073024408",
   "size": [
    13.795,
    7.313,
@@ -1121,7 +1121,7 @@
  },
  {
   "name": "Trunk37",
-  "meshId": "rbxassetid://121356658490510",
+  "meshId": "rbxassetid://86003126622147",
   "size": [
    7.701,
    11.365,
@@ -1135,7 +1135,7 @@
  },
  {
   "name": "CanopyMesh37",
-  "meshId": "rbxassetid://93510599006714",
+  "meshId": "rbxassetid://81324959801232",
   "size": [
    5.524,
    5.606,
@@ -1149,7 +1149,7 @@
  },
  {
   "name": "Trunk38",
-  "meshId": "rbxassetid://119852992187955",
+  "meshId": "rbxassetid://132947047306658",
   "size": [
    9.42,
    11.536,
@@ -1163,7 +1163,7 @@
  },
  {
   "name": "CanopyMesh38",
-  "meshId": "rbxassetid://85374648711670",
+  "meshId": "rbxassetid://124170164648997",
   "size": [
    13.595,
    7.335,
@@ -1171,13 +1171,13 @@
   ],
   "offset": [
    35.716,
-   8.727,
+   8.728,
    4.374
   ]
  },
  {
   "name": "Trunk39",
-  "meshId": "rbxassetid://80580727481971",
+  "meshId": "rbxassetid://87225069900911",
   "size": [
    9.355,
    11.411,
@@ -1191,7 +1191,7 @@
  },
  {
   "name": "CanopyMesh39",
-  "meshId": "rbxassetid://93610899649489",
+  "meshId": "rbxassetid://117720355281841",
   "size": [
    11.613,
    4.949,
@@ -1205,7 +1205,7 @@
  },
  {
   "name": "Trunk40",
-  "meshId": "rbxassetid://84943616386458",
+  "meshId": "rbxassetid://89586107643415",
   "size": [
    10.578,
    11.706,
@@ -1219,7 +1219,7 @@
  },
  {
   "name": "CanopyMesh40",
-  "meshId": "rbxassetid://139780226549056",
+  "meshId": "rbxassetid://108106700634186",
   "size": [
    12.91,
    5.896,
@@ -1233,7 +1233,7 @@
  },
  {
   "name": "Trunk41",
-  "meshId": "rbxassetid://83204387842915",
+  "meshId": "rbxassetid://139931343484299",
   "size": [
    5.56,
    10.292,
@@ -1247,7 +1247,7 @@
  },
  {
   "name": "Trunk412",
-  "meshId": "rbxassetid://123057883398804",
+  "meshId": "rbxassetid://90542658698267",
   "size": [
    3.35,
    7.864,
@@ -1261,7 +1261,7 @@
  },
  {
   "name": "Trunk413",
-  "meshId": "rbxassetid://95884898675836",
+  "meshId": "rbxassetid://110246346529106",
   "size": [
    3.962,
    7.095,
@@ -1275,7 +1275,7 @@
  },
  {
   "name": "Trunk42",
-  "meshId": "rbxassetid://74291098268344",
+  "meshId": "rbxassetid://96623314529510",
   "size": [
    5.682,
    10.076,
@@ -1289,7 +1289,7 @@
  },
  {
   "name": "Trunk422",
-  "meshId": "rbxassetid://123126094885695",
+  "meshId": "rbxassetid://77253695497388",
   "size": [
    3.676,
    7.471,
@@ -1303,7 +1303,7 @@
  },
  {
   "name": "Trunk423",
-  "meshId": "rbxassetid://82049327544178",
+  "meshId": "rbxassetid://106716923565993",
   "size": [
    4.342,
    6.696,
@@ -1317,7 +1317,7 @@
  },
  {
   "name": "Trunk43",
-  "meshId": "rbxassetid://70375992914004",
+  "meshId": "rbxassetid://104152071407170",
   "size": [
    5.349,
    10.649,
@@ -1331,7 +1331,7 @@
  },
  {
   "name": "Trunk432",
-  "meshId": "rbxassetid://101520186414003",
+  "meshId": "rbxassetid://77008247799678",
   "size": [
    3.347,
    7.297,
@@ -1345,7 +1345,7 @@
  },
  {
   "name": "Trunk433",
-  "meshId": "rbxassetid://120008664826341",
+  "meshId": "rbxassetid://73808168093159",
   "size": [
    3.907,
    6.549,
@@ -1359,7 +1359,7 @@
  },
  {
   "name": "Trunk44",
-  "meshId": "rbxassetid://133064404257063",
+  "meshId": "rbxassetid://87124664009509",
   "size": [
    5.988,
    10.367,
@@ -1373,7 +1373,7 @@
  },
  {
   "name": "Trunk442",
-  "meshId": "rbxassetid://85280072712880",
+  "meshId": "rbxassetid://94738268255311",
   "size": [
    3.636,
    7.891,
@@ -1387,7 +1387,7 @@
  },
  {
   "name": "Trunk443",
-  "meshId": "rbxassetid://125171145242986",
+  "meshId": "rbxassetid://118961074175681",
   "size": [
    4.34,
    7.191,
@@ -1401,7 +1401,7 @@
  },
  {
   "name": "Trunk45",
-  "meshId": "rbxassetid://101679214511996",
+  "meshId": "rbxassetid://101962337386524",
   "size": [
    5.422,
    10.264,
@@ -1415,7 +1415,7 @@
  },
  {
   "name": "Trunk452",
-  "meshId": "rbxassetid://133458012575869",
+  "meshId": "rbxassetid://70503936835889",
   "size": [
    3.713,
    7.622,
@@ -1429,7 +1429,7 @@
  },
  {
   "name": "Trunk453",
-  "meshId": "rbxassetid://74485889003709",
+  "meshId": "rbxassetid://119362349815894",
   "size": [
    4.078,
    6.883,
@@ -1437,13 +1437,13 @@
   ],
   "offset": [
    11.186,
-   3.797,
+   3.798,
    41.209
   ]
  },
  {
   "name": "Trunk46",
-  "meshId": "rbxassetid://135064281983142",
+  "meshId": "rbxassetid://118582490408133",
   "size": [
    5.595,
    10.339,
@@ -1457,7 +1457,7 @@
  },
  {
   "name": "Trunk462",
-  "meshId": "rbxassetid://135792877126191",
+  "meshId": "rbxassetid://111756621812407",
   "size": [
    3.4,
    8.027,
@@ -1471,7 +1471,7 @@
  },
  {
   "name": "Trunk463",
-  "meshId": "rbxassetid://105507555151691",
+  "meshId": "rbxassetid://74839134541460",
   "size": [
    4.067,
    7.253,
@@ -1485,7 +1485,7 @@
  },
  {
   "name": "Crow_001",
-  "meshId": "rbxassetid://99910362359275",
+  "meshId": "rbxassetid://120758923958966",
   "size": [
    4.227,
    2.72,
@@ -1499,7 +1499,7 @@
  },
  {
   "name": "Crow_002",
-  "meshId": "rbxassetid://91038095923600",
+  "meshId": "rbxassetid://119454641219252",
   "size": [
    1.768,
    2.72,
@@ -1513,7 +1513,7 @@
  },
  {
   "name": "Crow_003",
-  "meshId": "rbxassetid://105892977047925",
+  "meshId": "rbxassetid://80937987605406",
   "size": [
    1.768,
    2.72,
@@ -1527,7 +1527,7 @@
  },
  {
   "name": "Crow_004",
-  "meshId": "rbxassetid://87983482789550",
+  "meshId": "rbxassetid://108175949462187",
   "size": [
    1.768,
    2.72,
@@ -1541,7 +1541,7 @@
  },
  {
   "name": "Spike_001",
-  "meshId": "rbxassetid://81195689336154",
+  "meshId": "rbxassetid://137976426026638",
   "size": [
    4.32,
    8.855,
@@ -1555,7 +1555,7 @@
  },
  {
   "name": "Spike_0012",
-  "meshId": "rbxassetid://121107049919139",
+  "meshId": "rbxassetid://72533930488120",
   "size": [
    3.591,
    4.459,
@@ -1569,7 +1569,7 @@
  },
  {
   "name": "Spike_002",
-  "meshId": "rbxassetid://136097258526199",
+  "meshId": "rbxassetid://132009171668830",
   "size": [
    4.439,
    8.663,
@@ -1583,7 +1583,7 @@
  },
  {
   "name": "Spike_0022",
-  "meshId": "rbxassetid://83995711639453",
+  "meshId": "rbxassetid://105009639768884",
   "size": [
    3.871,
    4.351,
@@ -1597,7 +1597,7 @@
  },
  {
   "name": "Spike_003",
-  "meshId": "rbxassetid://94258093864163",
+  "meshId": "rbxassetid://131445938576966",
   "size": [
    4.201,
    9.11,
@@ -1611,7 +1611,7 @@
  },
  {
   "name": "Spike_0032",
-  "meshId": "rbxassetid://114381309328220",
+  "meshId": "rbxassetid://137171407608978",
   "size": [
    3.595,
    4.627,
@@ -1625,7 +1625,7 @@
  },
  {
   "name": "Spike_004",
-  "meshId": "rbxassetid://73921088496295",
+  "meshId": "rbxassetid://89442696212857",
   "size": [
    4.582,
    8.044,
@@ -1639,7 +1639,7 @@
  },
  {
   "name": "Spike_0042",
-  "meshId": "rbxassetid://108822201336055",
+  "meshId": "rbxassetid://83070542152619",
   "size": [
    4.111,
    4.053,
@@ -1653,7 +1653,7 @@
  },
  {
   "name": "Spike_005",
-  "meshId": "rbxassetid://135068655103401",
+  "meshId": "rbxassetid://88727120821807",
   "size": [
    4.152,
    8.976,
@@ -1667,7 +1667,7 @@
  },
  {
   "name": "Spike_0052",
-  "meshId": "rbxassetid://130997798773137",
+  "meshId": "rbxassetid://111747822294905",
   "size": [
    3.592,
    4.488,
@@ -1681,7 +1681,7 @@
  },
  {
   "name": "Spike_006",
-  "meshId": "rbxassetid://90269561912184",
+  "meshId": "rbxassetid://100421690267009",
   "size": [
    3.955,
    8.105,
@@ -1695,7 +1695,7 @@
  },
  {
   "name": "Spike_0062",
-  "meshId": "rbxassetid://139255949526260",
+  "meshId": "rbxassetid://83881420026173",
   "size": [
    3.577,
    4.067,
@@ -1709,7 +1709,7 @@
  },
  {
   "name": "Spike_007",
-  "meshId": "rbxassetid://70850376037617",
+  "meshId": "rbxassetid://121867371804357",
   "size": [
    4.353,
    8.303,
@@ -1723,7 +1723,7 @@
  },
  {
   "name": "Spike_0072",
-  "meshId": "rbxassetid://120229903389934",
+  "meshId": "rbxassetid://78352984140119",
   "size": [
    3.7,
    4.129,
@@ -1737,7 +1737,7 @@
  },
  {
   "name": "Spike_008",
-  "meshId": "rbxassetid://114317528167147",
+  "meshId": "rbxassetid://103756514961313",
   "size": [
    4.321,
    8.42,
@@ -1751,7 +1751,7 @@
  },
  {
   "name": "Spike_0082",
-  "meshId": "rbxassetid://112581469914837",
+  "meshId": "rbxassetid://105283678916444",
   "size": [
    3.591,
    4.245,
@@ -1765,7 +1765,7 @@
  },
  {
   "name": "Bush_001",
-  "meshId": "rbxassetid://133000036919669",
+  "meshId": "rbxassetid://121356867776713",
   "size": [
    3.6,
    3.6,
@@ -1779,7 +1779,7 @@
  },
  {
   "name": "Bush_0012",
-  "meshId": "rbxassetid://87724148626104",
+  "meshId": "rbxassetid://123843671153983",
   "size": [
    4.028,
    3.418,
@@ -1793,7 +1793,7 @@
  },
  {
   "name": "Berry_001",
-  "meshId": "rbxassetid://131406859401893",
+  "meshId": "rbxassetid://118642598200444",
   "size": [
    0.5,
    0.5,
@@ -1807,7 +1807,7 @@
  },
  {
   "name": "Berry_001",
-  "meshId": "rbxassetid://96680699938786",
+  "meshId": "rbxassetid://118642598200444",
   "size": [
    0.5,
    0.5,
@@ -1821,7 +1821,7 @@
  },
  {
   "name": "Bush_002",
-  "meshId": "rbxassetid://128821015302474",
+  "meshId": "rbxassetid://120443179539801",
   "size": [
    3.6,
    3.6,
@@ -1835,7 +1835,7 @@
  },
  {
   "name": "Bush_0022",
-  "meshId": "rbxassetid://79829768553914",
+  "meshId": "rbxassetid://116826363648717",
   "size": [
    3.976,
    3.386,
@@ -1849,7 +1849,7 @@
  },
  {
   "name": "Bush_003",
-  "meshId": "rbxassetid://129269735187457",
+  "meshId": "rbxassetid://89141243756894",
   "size": [
    3.6,
    3.6,
@@ -1863,7 +1863,7 @@
  },
  {
   "name": "Bush_0032",
-  "meshId": "rbxassetid://91730636580580",
+  "meshId": "rbxassetid://138685491190848",
   "size": [
    3.963,
    3.427,
@@ -1877,7 +1877,7 @@
  },
  {
   "name": "Bush_004",
-  "meshId": "rbxassetid://140613209864624",
+  "meshId": "rbxassetid://95189195264170",
   "size": [
    3.6,
    3.6,
@@ -1891,7 +1891,7 @@
  },
  {
   "name": "Bush_0042",
-  "meshId": "rbxassetid://103092100143420",
+  "meshId": "rbxassetid://124615651009756",
   "size": [
    4.019,
    2.862,
@@ -1905,7 +1905,7 @@
  },
  {
   "name": "Bush_005",
-  "meshId": "rbxassetid://121631063672594",
+  "meshId": "rbxassetid://127461424163662",
   "size": [
    3.6,
    3.0,
@@ -1919,7 +1919,7 @@
  },
  {
   "name": "Bush_0052",
-  "meshId": "rbxassetid://112661987878436",
+  "meshId": "rbxassetid://101630042194363",
   "size": [
    3.972,
    2.813,
@@ -1933,7 +1933,7 @@
  },
  {
   "name": "Berry_001",
-  "meshId": "rbxassetid://85413460812553",
+  "meshId": "rbxassetid://118642598200444",
   "size": [
    0.5,
    0.5,
@@ -1947,7 +1947,7 @@
  },
  {
   "name": "Berry_001",
-  "meshId": "rbxassetid://86735052282062",
+  "meshId": "rbxassetid://118642598200444",
   "size": [
    0.5,
    0.5,
@@ -1961,7 +1961,7 @@
  },
  {
   "name": "Bush_006",
-  "meshId": "rbxassetid://139142786909940",
+  "meshId": "rbxassetid://87119560338986",
   "size": [
    3.6,
    3.0,
@@ -1975,7 +1975,7 @@
  },
  {
   "name": "Bush_0062",
-  "meshId": "rbxassetid://117938357371123",
+  "meshId": "rbxassetid://126368978029546",
   "size": [
    4.021,
    3.405,
@@ -1989,7 +1989,7 @@
  },
  {
   "name": "Berry_001",
-  "meshId": "rbxassetid://84630183553463",
+  "meshId": "rbxassetid://118642598200444",
   "size": [
    0.5,
    0.5,
@@ -2003,7 +2003,7 @@
  },
  {
   "name": "Berry_001",
-  "meshId": "rbxassetid://76620688504511",
+  "meshId": "rbxassetid://118642598200444",
   "size": [
    0.5,
    0.5,
@@ -2017,7 +2017,7 @@
  },
  {
   "name": "Bush_007",
-  "meshId": "rbxassetid://113743402907621",
+  "meshId": "rbxassetid://111186179179939",
   "size": [
    3.6,
    3.6,
@@ -2031,7 +2031,7 @@
  },
  {
   "name": "Bush_0072",
-  "meshId": "rbxassetid://125836472776184",
+  "meshId": "rbxassetid://112185355215724",
   "size": [
    3.356,
    3.425,
@@ -2045,7 +2045,7 @@
  },
  {
   "name": "Bush_008",
-  "meshId": "rbxassetid://128376954786410",
+  "meshId": "rbxassetid://128884235423097",
   "size": [
    3.6,
    3.6,
@@ -2059,7 +2059,7 @@
  },
  {
   "name": "Bush_0082",
-  "meshId": "rbxassetid://117942498308035",
+  "meshId": "rbxassetid://140491865079858",
   "size": [
    3.996,
    3.461,
@@ -2073,7 +2073,7 @@
  },
  {
   "name": "Bush_009",
-  "meshId": "rbxassetid://124350385339214",
+  "meshId": "rbxassetid://72136897799242",
   "size": [
    3.6,
    3.6,
@@ -2087,7 +2087,7 @@
  },
  {
   "name": "Bush_0092",
-  "meshId": "rbxassetid://122056571819646",
+  "meshId": "rbxassetid://98312542381677",
   "size": [
    3.993,
    2.944,
@@ -2101,7 +2101,7 @@
  },
  {
   "name": "Bush_010",
-  "meshId": "rbxassetid://94396682511895",
+  "meshId": "rbxassetid://80089773296208",
   "size": [
    3.6,
    3.0,
@@ -2115,7 +2115,7 @@
  },
  {
   "name": "Bush_0102",
-  "meshId": "rbxassetid://82278861091663",
+  "meshId": "rbxassetid://93762968960218",
   "size": [
    4.031,
    3.437,
@@ -2129,7 +2129,7 @@
  },
  {
   "name": "Berry_001",
-  "meshId": "rbxassetid://126051194253552",
+  "meshId": "rbxassetid://118642598200444",
   "size": [
    0.5,
    0.5,
@@ -2143,7 +2143,7 @@
  },
  {
   "name": "Berry_001",
-  "meshId": "rbxassetid://89193752114722",
+  "meshId": "rbxassetid://118642598200444",
   "size": [
    0.5,
    0.5,
@@ -2157,7 +2157,7 @@
  },
  {
   "name": "Bush_011",
-  "meshId": "rbxassetid://77615184790772",
+  "meshId": "rbxassetid://136459326509641",
   "size": [
    3.6,
    3.6,
@@ -2171,7 +2171,7 @@
  },
  {
   "name": "Bush_0112",
-  "meshId": "rbxassetid://74772539496748",
+  "meshId": "rbxassetid://124238643338551",
   "size": [
    4.017,
    2.923,
@@ -2185,7 +2185,7 @@
  },
  {
   "name": "Berry_001",
-  "meshId": "rbxassetid://91039236149667",
+  "meshId": "rbxassetid://118642598200444",
   "size": [
    0.5,
    0.5,
@@ -2199,7 +2199,7 @@
  },
  {
   "name": "Berry_001",
-  "meshId": "rbxassetid://102764708993607",
+  "meshId": "rbxassetid://118642598200444",
   "size": [
    0.5,
    0.5,
@@ -2213,7 +2213,7 @@
  },
  {
   "name": "Bush_012",
-  "meshId": "rbxassetid://116168173311909",
+  "meshId": "rbxassetid://108170356791672",
   "size": [
    3.6,
    3.6,
@@ -2227,21 +2227,21 @@
  },
  {
   "name": "Bush_0122",
-  "meshId": "rbxassetid://110936052537615",
+  "meshId": "rbxassetid://101483202085915",
   "size": [
    4.514,
    4.008,
    4.583
   ],
   "offset": [
-   5.514,
+   5.513,
    1.767,
    47.331
   ]
  },
  {
   "name": "Bush_013",
-  "meshId": "rbxassetid://129317560394071",
+  "meshId": "rbxassetid://73399652665096",
   "size": [
    3.6,
    3.0,
@@ -2255,7 +2255,7 @@
  },
  {
   "name": "Bush_0132",
-  "meshId": "rbxassetid://107269862136214",
+  "meshId": "rbxassetid://110548729978786",
   "size": [
    3.467,
    3.441,
@@ -2269,7 +2269,7 @@
  },
  {
   "name": "Bush_014",
-  "meshId": "rbxassetid://108003810245760",
+  "meshId": "rbxassetid://135731130712907",
   "size": [
    3.6,
    3.6,
@@ -2283,7 +2283,7 @@
  },
  {
   "name": "Bush_0142",
-  "meshId": "rbxassetid://108674189809246",
+  "meshId": "rbxassetid://96456230215164",
   "size": [
    3.431,
    2.864,
@@ -2297,7 +2297,7 @@
  },
  {
   "name": "Bush_015",
-  "meshId": "rbxassetid://97848499438450",
+  "meshId": "rbxassetid://74154537192346",
   "size": [
    3.6,
    3.6,
@@ -2311,7 +2311,7 @@
  },
  {
   "name": "Bush_0152",
-  "meshId": "rbxassetid://108104281426108",
+  "meshId": "rbxassetid://138255183405607",
   "size": [
    4.582,
    3.435,
@@ -2325,7 +2325,7 @@
  },
  {
   "name": "Berry_001",
-  "meshId": "rbxassetid://137298744807782",
+  "meshId": "rbxassetid://118642598200444",
   "size": [
    0.5,
    0.5,
@@ -2339,7 +2339,7 @@
  },
  {
   "name": "Berry_001",
-  "meshId": "rbxassetid://113111516529047",
+  "meshId": "rbxassetid://118642598200444",
   "size": [
    0.5,
    0.5,
@@ -2353,7 +2353,7 @@
  },
  {
   "name": "Bush_016",
-  "meshId": "rbxassetid://134096547872299",
+  "meshId": "rbxassetid://116957403197361",
   "size": [
    3.6,
    3.6,
@@ -2367,7 +2367,7 @@
  },
  {
   "name": "Bush_0162",
-  "meshId": "rbxassetid://95464077632917",
+  "meshId": "rbxassetid://118099352913290",
   "size": [
    4.592,
    3.411,
@@ -2381,7 +2381,7 @@
  },
  {
   "name": "Berry_001",
-  "meshId": "rbxassetid://88998243652215",
+  "meshId": "rbxassetid://118642598200444",
   "size": [
    0.5,
    0.5,
@@ -2395,7 +2395,7 @@
  },
  {
   "name": "Berry_001",
-  "meshId": "rbxassetid://108011802244148",
+  "meshId": "rbxassetid://118642598200444",
   "size": [
    0.5,
    0.5,
@@ -2409,7 +2409,7 @@
  },
  {
   "name": "Bush_017",
-  "meshId": "rbxassetid://114644956452387",
+  "meshId": "rbxassetid://108912942507661",
   "size": [
    3.6,
    3.6,
@@ -2423,7 +2423,7 @@
  },
  {
   "name": "Bush_0172",
-  "meshId": "rbxassetid://104741034683195",
+  "meshId": "rbxassetid://96789029824641",
   "size": [
    3.433,
    3.41,
@@ -2437,7 +2437,7 @@
  },
  {
   "name": "Bush_018",
-  "meshId": "rbxassetid://90697362477628",
+  "meshId": "rbxassetid://114786614331811",
   "size": [
    3.6,
    3.6,
@@ -2451,7 +2451,7 @@
  },
  {
   "name": "Bush_0182",
-  "meshId": "rbxassetid://107492663177472",
+  "meshId": "rbxassetid://100557363086522",
   "size": [
    4.568,
    3.974,
@@ -2465,7 +2465,7 @@
  },
  {
   "name": "Bush_019",
-  "meshId": "rbxassetid://91131938616190",
+  "meshId": "rbxassetid://133763806209869",
   "size": [
    3.6,
    3.6,
@@ -2479,7 +2479,7 @@
  },
  {
   "name": "Bush_0192",
-  "meshId": "rbxassetid://126143906160322",
+  "meshId": "rbxassetid://117108625242363",
   "size": [
    4.036,
    4.016,
@@ -2493,7 +2493,7 @@
  },
  {
   "name": "Bush_020",
-  "meshId": "rbxassetid://139071348606610",
+  "meshId": "rbxassetid://135765040866119",
   "size": [
    3.6,
    3.0,
@@ -2507,7 +2507,7 @@
  },
  {
   "name": "Bush_0202",
-  "meshId": "rbxassetid://122546702797754",
+  "meshId": "rbxassetid://110478272279302",
   "size": [
    4.018,
    2.823,
@@ -2521,7 +2521,7 @@
  },
  {
   "name": "Berry_001",
-  "meshId": "rbxassetid://78894857422421",
+  "meshId": "rbxassetid://118642598200444",
   "size": [
    0.5,
    0.5,
@@ -2549,21 +2549,21 @@
  },
  {
   "name": "Bramble_NE_a",
-  "meshId": "rbxassetid://71405352429769",
+  "meshId": "rbxassetid://71461043024724",
   "size": [
-   52.651,
-   3.565,
-   56.221
+   67.128,
+   3.44,
+   57.924
   ],
   "offset": [
-   -47.119,
-   1.666,
-   30.666
+   -40.379,
+   1.551,
+   29.528
   ]
  },
  {
   "name": "Bramble_NE_a2",
-  "meshId": "rbxassetid://102447653675857",
+  "meshId": "rbxassetid://109346155683767",
   "size": [
    69.0,
    3.25,
@@ -2577,119 +2577,63 @@
  },
  {
   "name": "Bramble_NE_a3",
-  "meshId": "rbxassetid://87196690713962",
+  "meshId": "rbxassetid://112892030250679",
   "size": [
-   52.197,
-   3.534,
-   56.454
+   68.026,
+   3.492,
+   58.927
   ],
   "offset": [
-   -47.697,
-   1.542,
-   30.878
+   -40.121,
+   1.546,
+   29.73
   ]
  },
  {
   "name": "Bramble_NE_b",
-  "meshId": "rbxassetid://134268855201972",
+  "meshId": "rbxassetid://129360186651817",
   "size": [
-   69.466,
-   3.537,
-   58.853
+   63.795,
+   3.492,
+   60.274
   ],
   "offset": [
-   -39.602,
-   1.543,
-   29.088
+   -36.905,
+   1.546,
+   29.197
   ]
  },
  {
   "name": "Bramble_NE_b2",
-  "meshId": "rbxassetid://119499168692130",
+  "meshId": "rbxassetid://113230221878674",
   "size": [
-   68.797,
-   3.567,
-   58.722
+   63.92,
+   3.456,
+   59.44
   ],
   "offset": [
-   -39.514,
-   1.667,
-   28.814
-  ]
- },
- {
-  "name": "Bramble_NE_c",
-  "meshId": "rbxassetid://96951828131172",
-  "size": [
-   68.053,
-   3.536,
-   61.834
-  ],
-  "offset": [
-   -38.862,
-   1.543,
-   28.319
-  ]
- },
- {
-  "name": "Bramble_NE_c2",
-  "meshId": "rbxassetid://116015996804343",
-  "size": [
-   68.049,
-   3.564,
-   61.493
-  ],
-  "offset": [
-   -39.0,
-   1.667,
-   28.416
-  ]
- },
- {
-  "name": "Bramble_NE_d",
-  "meshId": "rbxassetid://139638187331515",
-  "size": [
-   64.512,
-   3.535,
-   57.557
-  ],
-  "offset": [
-   -38.466,
-   1.543,
-   30.513
-  ]
- },
- {
-  "name": "Bramble_NE_d2",
-  "meshId": "rbxassetid://71499770060381",
-  "size": [
-   63.739,
-   3.564,
-   57.192
-  ],
-  "offset": [
-   -38.384,
-   1.667,
-   30.588
+   -36.802,
+   1.537,
+   29.431
   ]
  },
  {
   "name": "Bramble_NW_a",
-  "meshId": "rbxassetid://81458792694751",
+  "meshId": "rbxassetid://94622635311636",
   "size": [
-   58.183,
-   3.545,
-   57.015
+   66.609,
+   3.445,
+   59.926
   ],
   "offset": [
-   43.656,
-   1.676,
-   26.336
+   40.804,
+   1.549,
+   28.531
   ]
  },
  {
   "name": "Bramble_NW_a2",
-  "meshId": "rbxassetid://119280241006096",
+  "meshId": "rbxassetid://77333539625149",
   "size": [
    70.5,
    3.25,
@@ -2703,119 +2647,63 @@
  },
  {
   "name": "Bramble_NW_a3",
-  "meshId": "rbxassetid://111963748172906",
+  "meshId": "rbxassetid://95565076662634",
   "size": [
-   54.779,
-   3.536,
-   58.095
+   67.879,
+   3.492,
+   61.804
   ],
   "offset": [
-   45.708,
-   1.543,
-   26.742
+   40.374,
+   1.546,
+   27.692
   ]
  },
  {
   "name": "Bramble_NW_b",
-  "meshId": "rbxassetid://130852986329782",
+  "meshId": "rbxassetid://75228612489947",
   "size": [
-   49.731,
-   3.536,
-   61.902
+   59.019,
+   3.492,
+   49.093
   ],
   "offset": [
-   49.446,
-   1.543,
-   28.078
+   33.214,
+   1.546,
+   31.785
   ]
  },
  {
   "name": "Bramble_NW_b2",
-  "meshId": "rbxassetid://135014014572729",
+  "meshId": "rbxassetid://124939776839037",
   "size": [
-   49.474,
-   3.565,
-   61.103
+   57.548,
+   3.462,
+   47.377
   ],
   "offset": [
-   49.315,
-   1.666,
-   28.342
-  ]
- },
- {
-  "name": "Bramble_NW_c",
-  "meshId": "rbxassetid://133246537492822",
-  "size": [
-   70.898,
-   3.537,
-   60.658
-  ],
-  "offset": [
-   38.705,
-   1.543,
-   29.004
-  ]
- },
- {
-  "name": "Bramble_NW_c2",
-  "meshId": "rbxassetid://70541162026909",
-  "size": [
-   70.051,
-   3.565,
-   60.1
-  ],
-  "offset": [
-   38.747,
-   1.666,
-   29.271
-  ]
- },
- {
-  "name": "Bramble_NW_d",
-  "meshId": "rbxassetid://76265377178644",
-  "size": [
-   46.503,
-   3.53,
-   38.65
-  ],
-  "offset": [
-   50.766,
-   1.54,
-   16.483
-  ]
- },
- {
-  "name": "Bramble_NW_d2",
-  "meshId": "rbxassetid://72029917068772",
-  "size": [
-   45.14,
-   3.565,
-   37.901
-  ],
-  "offset": [
-   50.565,
-   1.666,
-   16.522
+   32.331,
+   1.538,
+   31.372
   ]
  },
  {
   "name": "Bramble_SE_a",
-  "meshId": "rbxassetid://116502958748103",
+  "meshId": "rbxassetid://102191171488568",
   "size": [
-   67.392,
-   3.555,
-   58.99
+   72.545,
+   3.438,
+   58.718
   ],
   "offset": [
-   -40.024,
-   1.671,
-   -29.473
+   -37.249,
+   1.554,
+   -29.273
   ]
  },
  {
   "name": "Bramble_SE_a2",
-  "meshId": "rbxassetid://112673833919499",
+  "meshId": "rbxassetid://132623809362680",
   "size": [
    73.5,
    3.25,
@@ -2829,119 +2717,63 @@
  },
  {
   "name": "Bramble_SE_a3",
-  "meshId": "rbxassetid://103519354794511",
+  "meshId": "rbxassetid://113055718436370",
   "size": [
-   67.944,
-   3.505,
-   49.97
+   73.881,
+   3.495,
+   60.011
   ],
   "offset": [
-   -40.266,
-   1.552,
-   -34.121
+   -37.3,
+   1.544,
+   -28.922
   ]
  },
  {
   "name": "Bramble_SE_b",
-  "meshId": "rbxassetid://82407205068384",
+  "meshId": "rbxassetid://129931756780688",
   "size": [
-   72.182,
-   3.537,
-   61.101
+   63.72,
+   3.492,
+   61.324
   ],
   "offset": [
-   -37.885,
-   1.543,
-   -28.654
+   -39.659,
+   1.546,
+   -28.589
   ]
  },
  {
   "name": "Bramble_SE_b2",
-  "meshId": "rbxassetid://116066446655123",
+  "meshId": "rbxassetid://111686318143877",
   "size": [
-   71.136,
-   3.562,
-   60.848
+   62.874,
+   3.463,
+   60.353
   ],
   "offset": [
-   -37.665,
-   1.668,
-   -28.789
-  ]
- },
- {
-  "name": "Bramble_SE_c",
-  "meshId": "rbxassetid://107450465559045",
-  "size": [
-   73.627,
-   3.539,
-   55.55
-  ],
-  "offset": [
-   -37.038,
-   1.545,
-   -26.785
-  ]
- },
- {
-  "name": "Bramble_SE_c2",
-  "meshId": "rbxassetid://79676223324116",
-  "size": [
-   73.11,
-   3.565,
-   54.773
-  ],
-  "offset": [
-   -37.168,
-   1.666,
-   -26.774
-  ]
- },
- {
-  "name": "Bramble_SE_d",
-  "meshId": "rbxassetid://124267540722175",
-  "size": [
-   66.182,
-   3.536,
-   58.814
-  ],
-  "offset": [
-   -40.358,
-   1.543,
-   -29.94
-  ]
- },
- {
-  "name": "Bramble_SE_d2",
-  "meshId": "rbxassetid://100774365023889",
-  "size": [
-   65.282,
-   3.562,
-   59.163
-  ],
-  "offset": [
-   -40.096,
-   1.668,
-   -29.854
+   -39.734,
+   1.541,
+   -29.377
   ]
  },
  {
   "name": "Bramble_SW_a",
-  "meshId": "rbxassetid://131058518204361",
+  "meshId": "rbxassetid://74677579670938",
   "size": [
-   58.828,
-   3.553,
-   58.709
+   58.055,
+   3.465,
+   58.265
   ],
   "offset": [
-   42.831,
-   1.672,
-   -29.176
+   42.445,
+   1.54,
+   -27.982
   ]
  },
  {
   "name": "Bramble_SW_a2",
-  "meshId": "rbxassetid://109351157878267",
+  "meshId": "rbxassetid://127064618816591",
   "size": [
    66.0,
    3.25,
@@ -2955,133 +2787,49 @@
  },
  {
   "name": "Bramble_SW_a3",
-  "meshId": "rbxassetid://126724726066521",
+  "meshId": "rbxassetid://121937971211790",
   "size": [
-   53.431,
-   3.535,
-   59.502
+   53.61,
+   3.498,
+   60.357
   ],
   "offset": [
-   45.852,
+   44.413,
    1.543,
-   -29.114
+   -28.09
   ]
  },
  {
   "name": "Bramble_SW_b",
-  "meshId": "rbxassetid://102638633897303",
+  "meshId": "rbxassetid://119286597065345",
   "size": [
-   52.586,
-   3.538,
-   56.907
+   66.798,
+   3.492,
+   61.484
   ],
   "offset": [
-   39.478,
-   1.544,
-   -26.69
+   40.642,
+   1.546,
+   -28.487
   ]
  },
  {
   "name": "Bramble_SW_b2",
-  "meshId": "rbxassetid://106996744281559",
+  "meshId": "rbxassetid://137684364540513",
   "size": [
-   51.742,
-   3.565,
-   56.447
+   64.669,
+   3.386,
+   60.237
   ],
   "offset": [
-   39.512,
-   1.666,
-   -26.818
-  ]
- },
- {
-  "name": "Bramble_SW_c",
-  "meshId": "rbxassetid://119822883359871",
-  "size": [
-   65.841,
-   3.535,
-   61.344
-  ],
-  "offset": [
-   39.24,
-   1.543,
-   -28.432
-  ]
- },
- {
-  "name": "Bramble_SW_c2",
-  "meshId": "rbxassetid://87729525894424",
-  "size": [
-   64.892,
-   3.565,
-   60.5
-  ],
-  "offset": [
-   39.002,
-   1.666,
-   -28.343
-  ]
- },
- {
-  "name": "Bramble_SW_d",
-  "meshId": "rbxassetid://106342389032598",
-  "size": [
-   62.408,
-   3.512,
-   59.549
-  ],
-  "offset": [
-   42.863,
-   1.556,
-   -29.472
-  ]
- },
- {
-  "name": "Bramble_SW_d2",
-  "meshId": "rbxassetid://107926115191300",
-  "size": [
-   62.089,
-   3.564,
-   59.417
-  ],
-  "offset": [
-   42.785,
-   1.667,
-   -29.654
-  ]
- },
- {
-  "name": "Bramble_SW_e",
-  "meshId": "rbxassetid://105019016370175",
-  "size": [
-   61.762,
-   3.534,
-   61.02
-  ],
-  "offset": [
-   41.108,
-   1.542,
-   -28.785
-  ]
- },
- {
-  "name": "Bramble_SW_e2",
-  "meshId": "rbxassetid://101037683008980",
-  "size": [
-   61.815,
-   3.565,
-   60.844
-  ],
-  "offset": [
-   41.344,
-   1.666,
-   -28.802
+   41.255,
+   1.58,
+   -28.818
   ]
  },
  {
   "name": "Grass_NE",
-  "meshId": "rbxassetid://78171393851382",
+  "meshId": "rbxassetid://115723640600913",
   "size": [
    73.548,
    1.149,
@@ -3095,7 +2843,7 @@
  },
  {
   "name": "Grass_NW",
-  "meshId": "rbxassetid://96468284834421",
+  "meshId": "rbxassetid://110653249171160",
   "size": [
    72.111,
    1.15,
@@ -3109,7 +2857,7 @@
  },
  {
   "name": "Grass_SE",
-  "meshId": "rbxassetid://130520080060497",
+  "meshId": "rbxassetid://124565531135512",
   "size": [
    74.589,
    1.14,
@@ -3123,7 +2871,7 @@
  },
  {
   "name": "Grass_SW",
-  "meshId": "rbxassetid://118940554126235",
+  "meshId": "rbxassetid://107379842161176",
   "size": [
    70.328,
    1.15,
@@ -3137,7 +2885,7 @@
  },
  {
   "name": "Logs_NE",
-  "meshId": "rbxassetid://130412590197547",
+  "meshId": "rbxassetid://90634976120013",
   "size": [
    2.646,
    2.02,
@@ -3151,7 +2899,7 @@
  },
  {
   "name": "Logs_NE2",
-  "meshId": "rbxassetid://82978095468566",
+  "meshId": "rbxassetid://90461811274234",
   "size": [
    3.464,
    2.838,
@@ -3165,7 +2913,7 @@
  },
  {
   "name": "Logs_NE3",
-  "meshId": "rbxassetid://136058464856177",
+  "meshId": "rbxassetid://88419094295342",
   "size": [
    3.435,
    1.926,
@@ -3179,7 +2927,7 @@
  },
  {
   "name": "Logs_NW",
-  "meshId": "rbxassetid://83091562410258",
+  "meshId": "rbxassetid://102177515526034",
   "size": [
    40.605,
    2.02,
@@ -3193,7 +2941,7 @@
  },
  {
   "name": "Logs_NW2",
-  "meshId": "rbxassetid://105279837652118",
+  "meshId": "rbxassetid://112327756130907",
   "size": [
    39.46,
    2.869,
@@ -3207,7 +2955,7 @@
  },
  {
   "name": "Logs_NW3",
-  "meshId": "rbxassetid://102527250737538",
+  "meshId": "rbxassetid://74492118779070",
   "size": [
    37.565,
    2.332,
@@ -3221,7 +2969,7 @@
  },
  {
   "name": "Logs_SE",
-  "meshId": "rbxassetid://139357165261733",
+  "meshId": "rbxassetid://74094101814014",
   "size": [
    6.61,
    2.02,
@@ -3235,7 +2983,7 @@
  },
  {
   "name": "Logs_SE2",
-  "meshId": "rbxassetid://126206570730009",
+  "meshId": "rbxassetid://114046183850618",
   "size": [
    4.889,
    2.87,
@@ -3249,7 +2997,7 @@
  },
  {
   "name": "Logs_SE3",
-  "meshId": "rbxassetid://84973936196759",
+  "meshId": "rbxassetid://99520670012949",
   "size": [
    5.049,
    2.341,
@@ -3263,7 +3011,7 @@
  },
  {
   "name": "Logs_SW",
-  "meshId": "rbxassetid://103383128255047",
+  "meshId": "rbxassetid://74920937260003",
   "size": [
    4.51,
    2.02,
@@ -3277,7 +3025,7 @@
  },
  {
   "name": "Logs_SW2",
-  "meshId": "rbxassetid://107460389005704",
+  "meshId": "rbxassetid://129089379038865",
   "size": [
    4.851,
    2.854,
@@ -3291,7 +3039,7 @@
  },
  {
   "name": "Logs_SW3",
-  "meshId": "rbxassetid://112021437166488",
+  "meshId": "rbxassetid://139485280574638",
   "size": [
    3.795,
    1.925,
@@ -3305,7 +3053,7 @@
  },
  {
   "name": "Rocks_NE",
-  "meshId": "rbxassetid://92096266983453",
+  "meshId": "rbxassetid://92306507794223",
   "size": [
    28.802,
    3.495,
@@ -3319,7 +3067,7 @@
  },
  {
   "name": "Rocks_NW",
-  "meshId": "rbxassetid://140310881290465",
+  "meshId": "rbxassetid://120971752065045",
   "size": [
    4.213,
    3.06,
@@ -3333,7 +3081,7 @@
  },
  {
   "name": "Rocks_SE",
-  "meshId": "rbxassetid://139638314802182",
+  "meshId": "rbxassetid://135155769213439",
   "size": [
    13.519,
    3.629,
@@ -3347,7 +3095,7 @@
  },
  {
   "name": "Rocks_SW",
-  "meshId": "rbxassetid://93194641638208",
+  "meshId": "rbxassetid://99888356328248",
   "size": [
    24.239,
    3.87,
@@ -3361,7 +3109,7 @@
  },
  {
   "name": "Sprouts_NE",
-  "meshId": "rbxassetid://118305711069014",
+  "meshId": "rbxassetid://74668120079501",
   "size": [
    25.462,
    2.228,
@@ -3375,7 +3123,7 @@
  },
  {
   "name": "Sprouts_NE2",
-  "meshId": "rbxassetid://80464603443028",
+  "meshId": "rbxassetid://75397196196876",
   "size": [
    24.224,
    1.15,
@@ -3389,7 +3137,7 @@
  },
  {
   "name": "Sprouts_NW",
-  "meshId": "rbxassetid://114540919472521",
+  "meshId": "rbxassetid://133967323801959",
   "size": [
    65.103,
    2.228,
@@ -3403,7 +3151,7 @@
  },
  {
   "name": "Sprouts_NW2",
-  "meshId": "rbxassetid://76311285385977",
+  "meshId": "rbxassetid://117641668577917",
   "size": [
    64.487,
    1.15,
@@ -3417,7 +3165,7 @@
  },
  {
   "name": "Sprouts_SE",
-  "meshId": "rbxassetid://97501742597719",
+  "meshId": "rbxassetid://138133402186051",
   "size": [
    61.076,
    2.226,
@@ -3431,7 +3179,7 @@
  },
  {
   "name": "Sprouts_SE2",
-  "meshId": "rbxassetid://86060398377112",
+  "meshId": "rbxassetid://118129615560258",
   "size": [
    59.663,
    1.15,
@@ -3445,7 +3193,7 @@
  },
  {
   "name": "Sprouts_SW",
-  "meshId": "rbxassetid://89292742268453",
+  "meshId": "rbxassetid://122144024317870",
   "size": [
    59.703,
    2.229,
@@ -3459,7 +3207,7 @@
  },
  {
   "name": "Sprouts_SW2",
-  "meshId": "rbxassetid://85889266193801",
+  "meshId": "rbxassetid://123476122354262",
   "size": [
    58.421,
    1.15,

@@ -193,7 +193,7 @@ end
 
 local function stepPose(character: Model, now: number, dt: number)
 	local name, weapon = currentWeapon()
-	local clips = WeaponAnimations[name]
+	local clips = WeaponTiming.clips(name)
 	if name ~= weaponName then
 		weaponName = name
 		comboIndex = 0
@@ -376,7 +376,7 @@ function WeaponPose.release()
 	local name, weapon = currentWeapon()
 	comboPrevious = comboIndex
 	comboIndex = WeaponTiming.nextInCombo(name, comboIndex)
-	blowLanded = WeaponAnimations[name][weapon.clips.fire[comboIndex]].markers.Hit == nil
+	blowLanded = WeaponTiming.clips(name)[weapon.clips.fire[comboIndex]].markers.Hit == nil
 	play("fire", cycleSpeed(), now)
 	StaffOrb.spend()
 end

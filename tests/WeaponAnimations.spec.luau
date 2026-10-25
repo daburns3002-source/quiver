@@ -27,7 +27,7 @@ end
 return function(t: TestRunner.Helper)
 	t.test("every weapon's clips exist", function()
 		for name, weapon in eachWeapon() do
-			local clips = WeaponAnimations[name]
+			local clips = WeaponTiming.clips(name)
 			t.notNil(clips, `{name} has no animations`)
 			local named: { string } = { weapon.clips.hold }
 			for _, optional in { "move", "ready", "aim" } do
@@ -84,7 +84,7 @@ return function(t: TestRunner.Helper)
 	t.test("every fire clip has a marker", function()
 		for name, weapon in eachWeapon() do
 			for _, clipName in weapon.clips.fire do
-				local clip = WeaponAnimations[name][clipName]
+				local clip = WeaponTiming.clips(name)[clipName]
 				t.isTrue(next(clip.markers) ~= nil, `{name}'s {clipName} has no marker`)
 			end
 		end
@@ -120,7 +120,7 @@ return function(t: TestRunner.Helper)
 
 	t.test("every hold clip leaves the legs free", function()
 		for name, weapon in eachWeapon() do
-			for joint in WeaponAnimations[name][weapon.clips.hold].keys[1].joints do
+			for joint in WeaponTiming.clips(name)[weapon.clips.hold].keys[1].joints do
 				t.isTrue(isAny(joint, UPPER), `{name}'s hold moves {joint}`)
 			end
 		end
@@ -138,9 +138,9 @@ return function(t: TestRunner.Helper)
 				continue
 			end
 			t.isTrue(legs.walkSpeed > 0, `{name}'s walk has no speed`)
-			local hold = WeaponAnimations[name][weapon.clips.hold]
+			local hold = WeaponTiming.clips(name)[weapon.clips.hold]
 			for _, clipName in { legs.idle, legs.walk } do
-				local clip = WeaponAnimations[name][clipName]
+				local clip = WeaponTiming.clips(name)[clipName]
 				t.notNil(clip, `{name} has no {clipName}`)
 				t.isTrue(clip.loop, `{name}'s {clipName} does not loop`)
 				for joint in clip.keys[1].joints do

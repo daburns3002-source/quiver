@@ -120,6 +120,13 @@ type Enemy = {
 	]]
 	slideSign: number?,
 	boss: BossState?,
+	--[[ A pet's hold on it (`Combat/PetCombat`): it moves at `slowScale` of
+	     its speed until `slowUntil` (0 is rooted), and takes `markScale`
+	     times the damage until `markUntil` (os.clock). ]]
+	slowScale: number?,
+	slowUntil: number?,
+	markScale: number?,
+	markUntil: number?,
 	--[[ The lunge under way (`EnemyConfig.lunges`), by index, or nil. It
 	     winds up until `lungeGoesAt`, then travels `lungeDirection`, locked
 	     when the wind-up began, until it has covered its distance or cover
@@ -258,6 +265,35 @@ end
 
 --[[ How much of its health a live enemy has left, 0 to 1, or nil for
      anything that is not one. For damage that cares (Execute). ]]
+--[[ Slows a live enemy to `scale` of its speed (0 roots it) until
+     `untilTime` (os.clock). The stronger and longer of two holds wins. ]]
+function EnemyManager.slow(model: Model, scale: number, untilTime: number)
+	local enemy = enemies[model]
+	if not enemy then
+		return
+	end
+	local now = os.clock()
+	local held = (enemy.slowUntil or 0) > now
+	enemy.slowScale = if held then math.min(enemy.slowScale or 1, scale) else scale
+	enemy.slowUntil = math.max(enemy.slowUntil or 0, untilTime)
+end
+
+--[[ A live enemy takes `scale` times the damage until `untilTime`. ]]
+function EnemyManager.mark(model: Model, scale: number, untilTime: number)
+	local enemy = enemies[model]
+	if not enemy then
+		return
+	end
+	enemy.markScale = scale
+	enemy.markUntil = untilTime
+end
+
+--[[ Whether a live enemy is a boss (`EnemyConfig.boss`). ]]
+function EnemyManager.isBoss(model: Model): boolean
+	local enemy = enemies[model]
+	return enemy ~= nil and enemy.config.boss ~= nil
+end
+
 function EnemyManager.healthFraction(model: Model): number?
 	local enemy = enemies[model]
 	if not enemy or enemy.maxHealth <= 0 then
@@ -858,6 +894,9 @@ function EnemyManager.damage(
 		return false, 0, nil
 	end
 
+	if (enemy.markUntil or 0) > os.clock() then
+		amount *= enemy.markScale or 1
+	end
 	enemy.health -= amount
 	--[[ A training dummy shows the blow and keeps every point of health. ]]
 	if enemy.config.dummy then
@@ -1695,6 +1734,8 @@ local function stepEnemy(enemy: Enemy, deltaTime: number, now: number)
 		     room than walking and no player would ever have to respect it. ]]
 		local speed = config.moveSpeed
 			* (if enemy.submerged and burrow then burrow.speedScale else 1)
+			-- a pet's slow or root
+			* (if (enemy.slowUntil or 0) > now then enemy.slowScale or 1 else 1)
 
 		local nextPosition = enemy.position + move * speed * deltaTime
 

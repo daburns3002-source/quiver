@@ -277,4 +277,12 @@ function PetPreview.keys(): { string }
 	return out
 end
 
+--[[ The server's pet attacked (`Combat/PetCombat`): this player's pet
+     plays its Attack and pieces, as the sandbox's button does. ]]
+Remotes.event(Remotes.PetAttack).OnClientEvent:Connect(function(owner: Player)
+	if owner == Players.LocalPlayer then
+		PetPreview.attack()
+	end
+end)
+
 return PetPreview

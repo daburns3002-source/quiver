@@ -200,9 +200,6 @@ local function strike(session: Session, state: State, spec: Spec, origin: Vector
 		state.patch = origin
 		state.patchUntil = now + spec.heal.duration
 	end
-	if spec.guard then
-		session.petGuard = true
-	end
 	if spec.magnet then
 		RunSession.collectCrystals()
 	end
@@ -301,7 +298,7 @@ end
 --[[ Whether the pet has anything to do now: something in reach, or it
      supports its owner without one. ]]
 local function hasWork(spec: Spec, origin: Vector3): boolean
-	if spec.heal or spec.guard or spec.magnet then
+	if spec.heal or spec.magnet then
 		return true
 	end
 	return #inRange(origin, spec.range) > 0
@@ -328,9 +325,13 @@ function PetCombat.step(deltaTime: number, now: number)
 				patchUntil = 0,
 			}
 			states[player] = state
-			-- a new pet's shell is not up yet
-			session.petGuard = false
+			-- a guard pet joins with its shell up for this room; any other has none
+			session.petGuard = spec.guard == true
 			log.info("%s's %s joins the fight", player.Name, state.pet)
+		end
+		-- a guard goes up once a room (`PetCombat.newRoom`), not on the clock
+		if spec.guard then
+			continue
 		end
 		local root = rootOf(session)
 		if not root then
@@ -373,6 +374,24 @@ function PetCombat.step(deltaTime: number, now: number)
 				strike(current, state, spec, at.Position, os.clock())
 			end
 		end)
+	end
+end
+
+--[[ Raises `session`'s pet's shell if its pet guards (the Mossback Snail's
+     Shell Guard): it blocks the next hit (`RunSession.applyDamage`). ]]
+function PetCombat.raiseShell(session: Session)
+	local pet = session.player:GetAttribute("Pet")
+	local spec = if type(pet) == "string" then PetCombatConfig.pets[pet] else nil
+	if spec and spec.guard then
+		session.petGuard = true
+	end
+end
+
+--[[ A room or a wave begins (`Run/RoomController`): every guarding pet's
+     shell is up again, once a room. ]]
+function PetCombat.newRoom()
+	for _, session in RunSession.all() do
+		PetCombat.raiseShell(session)
 	end
 end
 

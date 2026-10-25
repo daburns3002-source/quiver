@@ -14,7 +14,8 @@
 
 	A pet looks for enemies within `range` studs of its owner (60 covers a
 	room; the Fern Frog's tongue is short), nearest first, every `every` seconds; with none in range it waits (a support
-	pet's heal, guard or pull goes off regardless).
+	pet's heal or pull goes off regardless). A guard is not on the clock:
+	see `guard`.
 ]]
 
 local PetDash = require(script.Parent.Parent.Util.PetDash)
@@ -47,7 +48,10 @@ export type Spec = {
 	--[[ A patch under the owner healing `perSecond` while they stand within
 	     `radius` of it, for `duration` seconds. ]]
 	heal: { perSecond: number, duration: number, radius: number }?,
-	--[[ The shell is up again: it blocks the owner's next hit. ]]
+	--[[ Once a room: as each room or wave begins (and as the pet joins) its
+	     shell is up, and it blocks the owner's next hit. The pet plays its
+	     Attack, flying in front of the owner, when it blocks, not on a clock:
+	     `every` is not used. ]]
 	guard: boolean?,
 	--[[ Pulls every XP crystal in the room to the owner. ]]
 	magnet: boolean?,
@@ -72,8 +76,8 @@ local PetCombat: { pets: { [string]: Spec } } = {
 		FernFrog = { every = 3, range = 14, damage = 70 },
 		-- Spore Patch: a healing ring
 		ToadstoolTot = { every = 20, range = 0, heal = { perSecond = 6, duration = 3, radius = 6 } },
-		-- Shell Guard: blocks one hit
-		MossbackSnail = { every = 20, range = 0, guard = true },
+		-- Shell Guard: blocks one hit a room
+		MossbackSnail = { every = 0, range = 0, guard = true },
 		-- Lantern Lure: pulls the crystals in, marks one enemy
 		FireflyBun = { every = 6, range = 60, magnet = true, mark = { scale = 1.25, duration = 4 } },
 		-- Root Snare: holds one enemy still

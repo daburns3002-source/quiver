@@ -88,15 +88,20 @@ local CardAssets = {
 	},
 	mythicBack = "rbxassetid://126477872051221",
 	--[[ The draft screen's buttons in the Glow Toy set (804 x 324, the plate
-	     inside 45..758 x 48..278; pressed, it sits 30 lower), and the
-	     grey plate a Choose! that cannot be pressed yet wears. ]]
+	     inside 45..758 x 48..278; pressed, it sits 30 lower): its blank
+	     plates, green, blue and grey for one that cannot be pressed, with
+	     their words written live in the blocky font (CLAUDE.md rule 11); and
+	     the dice the Reroll art carried, cut out by
+	     `assets/ui/glow_toy_cards/cut_dice.py`. ]]
 	buttons = {
-		choose = "rbxassetid://90120405041151",
-		choosePressed = "rbxassetid://114066087538141",
+		choose = "rbxassetid://135635811569518",
+		choosePressed = "rbxassetid://103700544580820",
 		chooseDisabled = "rbxassetid://101932680741168",
-		reroll = "rbxassetid://73253204045232",
-		rerollPressed = "rbxassetid://78433010161581",
-		rerollDisabled = "rbxassetid://123875979732838",
+		reroll = "rbxassetid://88340391705752",
+		rerollPressed = "rbxassetid://92158637372989",
+		rerollDisabled = "rbxassetid://101932680741168",
+		dice = "rbxassetid://80956788958430",
+		diceDisabled = "rbxassetid://97779362416209",
 	},
 	--[[ The skill bar in the Glow Toy set: its frame (892 x 232, drawn
 	     9-sliced so it fits any number of slots), an empty slot (256 x 256),

@@ -41,6 +41,8 @@ return function(t: TestRunner.Helper)
 				"reroll",
 				"rerollPressed",
 				"rerollDisabled",
+				"dice",
+				"diceDisabled",
 			}
 		do
 			local id = (CardAssets.buttons :: any)[state]

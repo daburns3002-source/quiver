@@ -23,6 +23,7 @@ local Log = require(ReplicatedStorage.Shared.Util.Log)
 local ProjectileFlight = require(ReplicatedStorage.Shared.Combat.ProjectileFlight)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local RunSession = require(script.Parent.Parent.Run.RunSession)
+local SoulLink = require(script.Parent.SoulLink)
 local Targeting = require(script.Parent.Targeting)
 local Types = require(ReplicatedStorage.Shared.Types)
 
@@ -32,7 +33,6 @@ local log = Log.forTag("Projectiles")
 
 local shotFired = Remotes.event(Remotes.ShotFired)
 local explosion = Remotes.event(Remotes.Explosion)
-local soulLink = Remotes.event(Remotes.SoulLink)
 
 --[[ `os.clock()` for the step currently running. Chain shots are created deep
      inside the hit path, which has no reason to be handed the time. ]]
@@ -341,56 +341,6 @@ local function applySplash(projectile: Projectile, centre: Vector3, damage: numb
 end
 
 --[[
-	Soul Chain: the enemies nearest the one hit share in the hit.
-
-	The nearest `link` others within `linkRange` each take `linkShare` of
-	the damage — no knockback, since nothing struck them — and every client
-	is told to draw the link. Snapshotted first, for the same reason as
-	splash: a kill removes its enemy from the table being read.
-]]
-local function applyLink(projectile: Projectile, hit: Model, centre: Vector3, damage: number)
-	if projectile.link <= 0 then
-		return
-	end
-
-	local config = Balance.Projectile
-	local flatCentre = Vector3.new(centre.X, 0, centre.Z)
-	local nearby: { { model: Model, position: Vector3, distance: number } } = {}
-
-	for model, position in EnemyManager.positions() do
-		if model == hit then
-			continue
-		end
-
-		local distance = (Vector3.new(position.X, 0, position.Z) - flatCentre).Magnitude
-		if distance <= config.linkRange then
-			table.insert(nearby, { model = model, position = position, distance = distance })
-		end
-	end
-
-	if #nearby == 0 then
-		return
-	end
-
-	table.sort(nearby, function(a, b)
-		return a.distance < b.distance
-	end)
-
-	local reached: { Vector3 } = {}
-	for index = 1, math.min(projectile.link, #nearby) do
-		table.insert(reached, nearby[index].position)
-	end
-
-	soulLink:FireAllClients(centre, reached)
-
-	for index = 1, #reached do
-		local entry = nearby[index]
-		local _, xp, fell = EnemyManager.damage(entry.model, damage * config.linkShare)
-		RunSession.creditKill(projectile.owner, xp, fell)
-	end
-end
-
---[[
 	Launches arrows the server invented — a ricochet off a hit — and tells
 	every client to draw them.
 
@@ -557,7 +507,7 @@ local function applyHit(projectile: Projectile, model: Model): boolean
 			     second enemy has already happened by the time the chain looks
 			     for what is nearest. ]]
 			applySplash(projectile, projectile.position, damage, model)
-			applyLink(projectile, model, projectile.position, damage)
+			SoulLink.apply(projectile.owner, projectile.link, model, projectile.position, damage)
 		end
 
 		if xp > 0 then

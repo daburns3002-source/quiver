@@ -13,7 +13,7 @@
 	Each blow of the weapon's combo has its own damage (`swing.damage`); the
 	combo keeps its place between swings, however long the swinger moves in
 	between. A class with `swing.guard` cannot be hurt for the whole swing
-	(`RunSession.isInvulnerable`). A swing takes crit and Blaze from the
+	(`RunSession.isInvulnerable`). A swing takes crit, Blaze and Soul Chain from the
 	player's draft, read off the lead shot of the volley the pipeline would
 	build, so a drafted ability means the same thing on any class. The
 	server decides every hit; the client only plays the swing.
@@ -28,6 +28,7 @@ local Burning = require(script.Parent.Burning)
 local Classes = require(ReplicatedStorage.Shared.Config.Classes)
 local EnemyManager = require(script.Parent.Parent.Enemies.EnemyManager)
 local RunSession = require(script.Parent.Parent.Run.RunSession)
+local SoulLink = require(script.Parent.SoulLink)
 local SwingBox = require(ReplicatedStorage.Shared.Combat.SwingBox)
 local Targeting = require(script.Parent.Targeting)
 local Types = require(ReplicatedStorage.Shared.Types)
@@ -194,6 +195,9 @@ local function land(swing: Pending, now: number)
 		end
 		if landed and lead then
 			Burning.ignite(enemy.model, blow * lead.burn, lead.burnDuration, session.player, now)
+			--[[ Soul Chain: the nearest others share the blow, as they would
+			     an arrow's. ]]
+			SoulLink.apply(session.player, lead.link, enemy.model, enemy.position, damage)
 		end
 	end
 end

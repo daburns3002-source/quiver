@@ -1,0 +1,80 @@
+[
+ {
+  "take": "hilltop",
+  "seconds": 77.42,
+  "samples": 3414194,
+  "lufs": -17.0,
+  "true_peak_db": -2.0,
+  "bus_rms_db": {
+   "harp": -24.0,
+   "bass": -21.9,
+   "chipbass": -30.9,
+   "pad": -28.0,
+   "chip": -30.0,
+   "kick": -24.9,
+   "perc": -31.5,
+   "snare": -27.8,
+   "crash": -31.7,
+   "chiplead": -22.4,
+   "lead": -24.0
+  },
+  "seam": {
+   "jump": 0.01171,
+   "p99_inside": 0.14347,
+   "max_inside": 0.72919
+  },
+  "note": "Hilltop: D major at 124 BPM, a bouncy, syncopated hook that rests on its offbeats, a B minor middle. Sunny and on the move."
+ },
+ {
+  "take": "bramble",
+  "seconds": 72.73,
+  "samples": 3207273,
+  "lufs": -17.0,
+  "true_peak_db": -1.8,
+  "bus_rms_db": {
+   "harp": -24.0,
+   "bass": -21.9,
+   "chipbass": -30.9,
+   "pad": -28.0,
+   "chip": -30.0,
+   "kick": -24.9,
+   "perc": -31.4,
+   "snare": -27.8,
+   "crash": -31.7,
+   "chiplead": -22.4,
+   "lead": -24.0
+  },
+  "seam": {
+   "jump": 0.0087,
+   "p99_inside": 0.14351,
+   "max_inside": 0.62228
+  },
+  "note": "Bramble Run: A minor at 132 BPM, driving eighths on a repeated-note motif, lifting into C major in the middle. The most urgent."
+ },
+ {
+  "take": "lantern",
+  "seconds": 85.71,
+  "samples": 3780000,
+  "lufs": -17.0,
+  "true_peak_db": -2.2,
+  "bus_rms_db": {
+   "harp": -24.0,
+   "bass": -21.9,
+   "chipbass": -30.9,
+   "pad": -28.0,
+   "chip": -30.0,
+   "kick": -24.9,
+   "perc": -31.5,
+   "snare": -27.8,
+   "crash": -31.7,
+   "chiplead": -22.2,
+   "lead": -23.8
+  },
+  "seam": {
+   "jump": 0.00345,
+   "p99_inside": 0.13378,
+   "max_inside": 0.64736
+  },
+  "note": "Lantern Path: C major at 112 BPM, a lilting skip of dotted notes, a warm F-to-G middle. The gentlest."
+ }
+]

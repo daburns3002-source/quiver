@@ -1,6 +1,6 @@
 """Builds the music audition page from a render's manifest and OGG/MP3 files.
 
-    python -I build_music_page.py <render_dir> <out.html> [track]      (glade by default; or boss)
+    python -I build_music_page.py <render_dir> <out.html> [track]      (glade by default; or level, boss)
 
 Each take plays as a seamless Web Audio loop, with a button that starts it a
 few seconds before the seam so the join can be heard. Picks save to the
@@ -19,6 +19,11 @@ TRACKS = {
     "glade": ("Mossy Glade", "Area 1's music, under every room: a sunny forest clearing. "
               "F major, 104 BPM, 92 seconds, then it loops: a short harp intro, the tune twice, "
               "a minor middle on the ocarina, a quiet harp-and-bells bridge, and the tune once more."),
+    "level": ("Level", "The music while you play through an area's rooms, between the lobby's Mossy Glade theme "
+              "and the boss fights. Three whole new tunes, each its own key, tempo and feel, all on the pulse lead "
+              "over the flute you've picked before. Each loops: a groove intro, the tune twice (it leaves room for the "
+              "fight's sounds), a softer middle, a groove break with no tune, and the tune once more. Mastered a "
+              "decibel under the other two."),
     "boss": ("King Bloblin", "Area 1's boss fight, take B (Chip + Brass), now with a battle intro that plays once as "
              "the king appears, like a trainer battle's. You liked Dive: here it is with its runs in four keys; pick one. After it comes the 76-second loop "
              "(D minor, 152 BPM): stabs and a drum fill, the battle tune twice, a heroic major-key middle, a bouncy "
@@ -38,7 +43,9 @@ for v in manifest:
         entries.append((f"{TRACK}_{v['take']}_{key}", f"{v['take'].upper()} · {key.replace('_', ' ').title()}", key.upper(),
                         f"{it['intro_seconds']:.1f} s intro, then the loop", it["note"], [it["loop_start"], it["loop_end"]]))
 if not entries:
-    entries = [(f"{TRACK}_{v['take']}", v["take"].upper(), v["take"].upper(), f"{v['seconds']} s · {v['lufs']} LUFS",
+    # takes are letters (A, B) or, for whole different tunes, names (Hilltop)
+    entries = [(f"{TRACK}_{v['take']}", v["take"].upper() if len(v["take"]) == 1 else v["take"].title(),
+                v["take"].upper(), f"{v['seconds']} s · {v['lufs']} LUFS",
                 v["note"], None) for v in manifest]
 # MP3 copies (for browsers without Ogg) only while the page stays well under the 16 MB limit
 formats = ("ogg", "mp3") if len(entries) <= 2 else ("ogg",)

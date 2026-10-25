@@ -2,11 +2,15 @@
 --[[
 	The background music (owner, 2026-10-24: "i need music playing in the
 	background now"), played by `Fx/MusicFx`: one playlist for an ordinary
-	room and one for a boss fight, each looping through its tracks.
+	room and one for a boss fight, each looping through its tracks, and one
+	kept for the lobby.
 
-	Rooms play our own Mossy Glade theme (made from scratch by
-	`assets/audio/music/glade_theme.py`, take B, picked 2026-10-24), alone
-	so it loops seamlessly. Boss fights play King Bloblin's theme
+	Rooms play the level theme, Hilltop (`assets/audio/music/level_theme.py`,
+	picked 2026-10-24: "engaging but not overpowering"), alone so it loops
+	seamlessly. The Mossy Glade theme (`glade_theme.py`, take B) is the
+	lobby's (owner: "the current level music will be the lobby music so keep
+	it in the game so its ready"): nothing plays the Lobby playlist until a
+	lobby exists (docs/LOBBY.md). Boss fights play King Bloblin's theme
 	(`boss_theme.py`, take B with the Dive intro, picked 2026-10-24): a
 	battle intro once as the boss appears, like a trainer battle's (owner:
 	"for every boss, i want an intro part"), then the loop. Music from other
@@ -26,7 +30,12 @@ local Music = {
 	fade = 1.5,
 	playlists = {
 		Rooms = {
-			-- ours, 92 s, made to loop: a lone track loops in the engine
+			-- ours, 77 s, made to loop: a lone track loops in the engine
+			{ id = "rbxassetid://77887687386172", name = "Hilltop" },
+		} :: { Track },
+		--[[ Ready for the lobby; `MusicFx` never makes it current yet. ]]
+		Lobby = {
+			-- ours, 92 s, made to loop
 			{ id = "rbxassetid://74156980070396", name = "Mossy Glade (B)" },
 		} :: { Track },
 		Boss = {

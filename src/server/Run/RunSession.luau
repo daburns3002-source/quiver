@@ -250,7 +250,7 @@ function RunSession.applyLoadout(session: Session)
 	--[[ The weapon in hand: the class's own, unless a drafted card puts
 	     another there (`Ability.weapon`, the Dual Bows Mythic). `Main`
 	     re-equips when it changes, and the client poses whatever it is. ]]
-	local weapon = Classes[class].weapon
+	local weapon = session.loadout.weapon or Classes[class].weapon
 	for id, level in counts do
 		local ability = Abilities.byId[id]
 		if level > 0 and ability and ability.weapon then
@@ -550,10 +550,13 @@ function RunSession.resetRun(session: Session)
 	     so dying before the next hand does not swallow it. ]]
 	local forced = session.loadout.forceRarity
 	local class = session.loadout.class
+	local weapon = session.loadout.weapon
 	session.loadout = Loadout.new()
 	session.loadout.forceRarity = forced
 	-- A new run is the same class.
 	session.loadout.class = class
+	-- and holds the same weapon (one the sandbox put in hand)
+	session.loadout.weapon = weapon
 	session.secondWindUsed = false
 	RunSession.newStage(session)
 	RunSession.applyLoadout(session)

@@ -175,8 +175,9 @@ What exists and works, all verified in Studio rather than only by the gates:
   slime, hooded mage, rock-shell brute, spiked urchin); a blue ring under
   the player, a segmented red ring under the aimed-at enemy, a red "!" over
   enemies winding up; a dressed arena (flagstones, caps, orb lamps, grass
-  edge) under soft bright lighting with tier-gated bloom; magenta sparkling
-  enemy orbs. Presentation only.
+  edge) under soft bright lighting with tier-gated bloom; sparkling enemy
+  shots (since 2026-10-24 the Spitter's seed: a leaf-green outlined cube,
+  tumbling, `Fx/ProjectileRenderer`). Presentation only.
 - **The dash** (4-second cooldown, readiness bar), player hit feedback, and
   draft enemy bodies.
 - **Archero 2 proportions:** a portrait 35 × 58 room, a camera that fits the
@@ -335,6 +336,13 @@ any card (Studio only), to test a card's effect without drafting it.
 **P** — the pets the owner imported follow you, playing their own clips
 (`Fx/PetPreview`, built by `Server/Dev/PetPreview` from `Config/PetModels`); P again
 puts them away. A look only, until Phase 6's pet system.
+**O** — the playtest sandbox (owner, 2026-10-24), also the SANDBOX tab on the left edge
+(`UI/SandboxMenu`, `Config/Sandbox`): ENTER turns the room into training dummies that
+never die or hit back (`EnemyConfig.dummy`) with every player untouchable and the run
+held (`RoomController.enterSandbox`); LEAVE starts the stage over. Any weapon in hand
+(`Remotes.DebugWeapon`, held as its class, kept for the run like the class) and any
+one pet at heel (`PetPreview.show`). A new `Config/Weapons` entry must be listed in
+`Config/Sandbox` (`tests/Sandbox.spec`).
 From a probe, `Remotes.DebugForceMythic:FireServer("Legendary")` does the
 same without the MCP keyboard tool, which reports as a gamepad and flips the
 draft into its controller layout.

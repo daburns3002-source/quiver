@@ -43,10 +43,16 @@ type Faction = Types.Faction
      rather than as objects, and at phone size a merely-coloured dart against a
      lit floor is close to invisible. ]]
 local PLAYER_COLOUR = Color3.fromRGB(255, 244, 196)
---[[ Archero 2's enemy orb: a saturated magenta that no floor in the game
-     shares, so incoming fire is the loudest colour on screen
-     (docs/ART-archero2.md §4). ]]
-local ENEMY_COLOUR = Color3.fromRGB(255, 72, 206)
+--[[ The enemy shot: the Sprout Spitter's seed, a glowing leaf-green cube
+     with a dark outline, tumbling as it flies (owner, 2026-10-24: "make sure
+     that the projectiles from the spitter are green and match the design
+     language of the game"). Was Archero 2's magenta ball. The outline is
+     what keeps a green shot readable on the glade's green lawn. ]]
+local ENEMY_COLOUR = Color3.fromRGB(150, 255, 70)
+local ENEMY_SPARKLE = Color3.fromRGB(215, 255, 170)
+local ENEMY_OUTLINE = Color3.fromRGB(20, 52, 16)
+--[[ Turns a second the seed tumbles through, about two axes. ]]
+local ENEMY_TUMBLE = Vector2.new(1.6, 1.1)
 --[[ The Arcanist's orb (`Config/Classes.look`): the staff kit's bolt
      (the Arcanist's weapon's `bolt`, `Config/Weapons`), drawn about three times an arrow's
      width so it reads as magic at a glance, lit in its class's blue. ]]
@@ -147,8 +153,9 @@ local function createPart(pool: Pool): BasePart
 		part = boltTemplate:Clone()
 	else
 		local plain = Instance.new("Part")
-		plain.Shape = if isOrb
-			then Enum.PartType.Ball
+		plain.Shape = if pool == "Enemy"
+			then Enum.PartType.Block
+			elseif isOrb then Enum.PartType.Ball
 			elseif tier.projectileIsRound then Enum.PartType.Cylinder
 			else Enum.PartType.Block
 		part = plain
@@ -162,6 +169,16 @@ local function createPart(pool: Pool): BasePart
 	part.CastShadow = false
 	part.Material = Enum.Material.Neon
 	part.Color = PLAYER_COLOUR
+
+	if pool == "Enemy" then
+		local outline = Instance.new("SelectionBox")
+		outline.Name = "Outline"
+		outline.Adornee = part
+		outline.Color3 = ENEMY_OUTLINE
+		outline.LineThickness = 0.06
+		outline.SurfaceTransparency = 1
+		outline.Parent = part
+	end
 
 	if pool == "PlayerOrb" and tier.projectileTrails then
 		local light = Instance.new("PointLight")
@@ -195,9 +212,7 @@ local function createPart(pool: Pool): BasePart
 		sparkles.SpreadAngle = Vector2.new(180, 180)
 		sparkles.LightEmission = 1
 		sparkles.Color = ColorSequence.new(
-			if pool == "PlayerOrb"
-				then Color3.fromRGB(200, 240, 255)
-				else Color3.fromRGB(255, 200, 240)
+			if pool == "PlayerOrb" then Color3.fromRGB(200, 240, 255) else ENEMY_SPARKLE
 		)
 		sparkles.Size = NumberSequence.new({
 			NumberSequenceKeypoint.new(0, 0.28),
@@ -343,6 +358,16 @@ end
 ]]
 local function placeAt(position: Vector3, direction: Vector3): CFrame
 	return CFrame.lookAt(position, position + direction)
+end
+
+--[[ An enemy seed tumbles as it goes; everything else points along its
+     flight. ]]
+local function pose(visual: Visual, now: number): CFrame
+	local frame = placeAt(visual.position, visual.direction)
+	if visual.pool == "Enemy" then
+		return frame * CFrame.Angles(now * ENEMY_TUMBLE.X, now * ENEMY_TUMBLE.Y, 0)
+	end
+	return frame
 end
 
 --[[
@@ -626,7 +651,7 @@ local function step(deltaTime: number)
 			alive = ProjectileFlight.advance(visual, deltaTime, params, overlap, contact)
 		end
 
-		visual.part.CFrame = placeAt(visual.position, visual.direction)
+		visual.part.CFrame = pose(visual, now)
 		visual.stopped = not alive
 	end
 end

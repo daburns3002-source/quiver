@@ -859,6 +859,10 @@ function EnemyManager.damage(
 	end
 
 	enemy.health -= amount
+	--[[ A training dummy shows the blow and keeps every point of health. ]]
+	if enemy.config.dummy then
+		enemy.health = enemy.maxHealth
+	end
 
 	--[[ The shove is a velocity that slides off over `slideTime`, not a
 	     jump: an instant two-stud teleport was too quick to see, which made
@@ -1425,6 +1429,11 @@ local function stepEnemy(enemy: Enemy, deltaTime: number, now: number)
 	end
 
 	slide(enemy, deltaTime)
+
+	--[[ A training dummy only takes its knockback, then settles. ]]
+	if enemy.config.dummy then
+		return
+	end
 
 	local targetRoot, distance = nearestAlivePlayerRoot(enemy.position)
 	if not targetRoot then

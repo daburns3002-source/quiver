@@ -54,6 +54,9 @@ export type State = {
 	--[[ This player's class, which decides the skills that can be dealt
 	     (`Ability.classes`). Everyone is a Ranger until classes are built. ]]
 	class: string,
+	--[[ A weapon held in place of the class's own, picked in the Studio
+	     sandbox (`Config/Sandbox`); nil holds the class's. A look only. ]]
+	weapon: string?,
 }
 
 local function costForLevel(level: number): number

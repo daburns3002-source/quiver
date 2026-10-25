@@ -93,7 +93,7 @@ As an enemy model (1), with its moves: a `boss` block in its `EnemyConfig`, each
 **Owner:** the weapon GLB and its R15 kit (`*_R15_Kit.rbxmx`, KeyframeSequences) from Claude Design.
 
 **Claude:**
-1. `optimise_weapon.py` for the model; owner imports it; part ids into `Config/Weapons`.
+1. `optimise_weapon.py` for the model; owner imports it; part ids into `Config/Weapons`. Its glow group (`Gems`, or `Glow` on the Worldroot Staff) gets `glow = true`, so it is drawn Neon (`HeldWeapon`): parts land in it by name (`GLOWS`, never a housing, socket, cap or frame) or because their material glows (emissive 0.45 and up). A projectile's glow group is drawn the same way.
 2. `kit_to_json.py <kit.rbxmx> <Prefix_> <out.json>` → the weapon's `*_animations.json` (kit beside it, force-added). Layer one-clip-at-a-time fixes in a small script if the kit layers clips (`leaf_bow_dual_r15/layer_clips.py`).
 3. `weapon_animations_to_luau.py` → `Config/WeaponAnimations.luau`; its clips named in `Config/Weapons.clips` (`hold`, `ready`, `aim`, `fire`, `legs`, `special`, `afterFire`).
 4. Check in Studio: the joints move as the kit's markers say (`Hit`, `Release`, `Cast`), and the server's timing lands on them (`WeaponTiming`, `ClassCards.spec`).

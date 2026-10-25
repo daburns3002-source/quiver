@@ -189,6 +189,12 @@ Remotes.DebugSpawnEnemy = "DebugSpawnEnemy"
      (`Config/PetModels`) into ReplicatedStorage, so `Fx/PetPreview` can
      set the pets following the player. ]]
 Remotes.DebugPetPreview = "DebugPetPreview"
+--[[ Client → server, Studio only: into the playtest sandbox (true) or out
+     of it (false), `Config/Sandbox`. ]]
+Remotes.DebugSandbox = "DebugSandbox"
+--[[ Client → server, Studio only: hold the named weapon (one of
+     `Config/Sandbox.weapons`), as its class. ]]
+Remotes.DebugWeapon = "DebugWeapon"
 
 local function getFolder(): Folder
 	if RunService:IsServer() then

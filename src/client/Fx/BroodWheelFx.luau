@@ -46,10 +46,19 @@ local function spin(): Balance.BossSpin
 	return (config.boss :: Balance.EnemyBoss).spin :: Balance.BossSpin
 end
 
+--[[ An arm's tile: where along which spoke it sits, whether it is inside
+     the room now, and the transparency last written to it. ]]
+type Arm = { part: BasePart, spoke: number, along: number, inside: boolean, drawn: number }
+
 type Wheel = {
 	holder: Folder,
 	web: { BasePart },
-	arms: { { part: BasePart, spoke: number, along: number } },
+	arms: { Arm },
+	--[[ The web tiles' colour and transparency last written: a few hundred
+	     tiles are only rewritten when the look changes (the warning's pulse,
+	     the fade), not on every frame of the spin. ]]
+	drawnColour: Color3?,
+	drawnWeb: number,
 	piece: Model?,
 	centre: Vector3,
 	start: number,
@@ -63,6 +72,9 @@ type Wheel = {
 
 local current: Wheel? = nil
 local stepping: RBXScriptConnection? = nil
+--[[ The arms' places this frame, moved in one `BulkMoveTo`; reused. ]]
+local moveParts: { BasePart } = {}
+local moveFrames: { CFrame } = {}
 
 --[[ Half the room, from its floor (centred on the origin), so arms stop at
      the walls. ]]
@@ -104,16 +116,19 @@ end
 
 local function placeArms(w: Wheel, angle: number)
 	local half = roomHalf()
-	for _, arm in w.arms do
+	for i, arm in w.arms do
 		local along = WebWheel.spoke(angle, arm.spoke, w.spec.spokes)
 		local at = w.centre + along * arm.along
-		local inside = math.abs(at.X) <= half.X and math.abs(at.Z) <= half.Y
-		arm.part.CFrame = CFrame.lookAt(
+		arm.inside = math.abs(at.X) <= half.X and math.abs(at.Z) <= half.Y
+		moveParts[i] = arm.part
+		moveFrames[i] = CFrame.lookAt(
 			Vector3.new(at.X, TILE_HEIGHT / 2 + 0.05, at.Z),
 			Vector3.new(at.X + along.X, TILE_HEIGHT / 2 + 0.05, at.Z + along.Z)
 		)
-		arm.part:SetAttribute("Inside", inside)
 	end
+	Workspace:BulkMoveTo(moveParts, moveFrames, Enum.BulkMoveMode.FireCFrameChanged)
+	table.clear(moveParts)
+	table.clear(moveFrames)
 end
 
 local function finish(w: Wheel)
@@ -154,14 +169,25 @@ local function step()
 		webAlpha = 1 - fade * (0.35 + 0.15 * beat)
 		armAlpha = 1 - fade * (0.6 + 0.2 * beat)
 	end
-	for _, part in w.web do
-		part.Color = colour
-		part.Transparency = webAlpha
+	local recolour = colour ~= w.drawnColour
+	if recolour or webAlpha ~= w.drawnWeb then
+		for _, part in w.web do
+			part.Color = colour
+			part.Transparency = webAlpha
+		end
+		w.drawnColour = colour
+		w.drawnWeb = webAlpha
 	end
 	placeArms(w, angleNow(w, now))
 	for _, arm in w.arms do
-		arm.part.Color = colour
-		arm.part.Transparency = if arm.part:GetAttribute("Inside") then armAlpha else 1
+		local alpha = if arm.inside then armAlpha else 1
+		if recolour then
+			arm.part.Color = colour
+		end
+		if alpha ~= arm.drawn then
+			arm.part.Transparency = alpha
+			arm.drawn = alpha
+		end
 	end
 end
 
@@ -202,7 +228,7 @@ function BroodWheelFx.tell(
 		table.insert(web, part)
 	end
 
-	local arms = {}
+	local arms: { Arm } = {}
 	for k = 1, s.spokes do
 		local along = radius + TILE / 2
 		while along < reach do
@@ -211,7 +237,8 @@ function BroodWheelFx.tell(
 				Vector3.new(s.width, TILE_HEIGHT, TILE * 0.92),
 				Balance.Telegraph.bossColor
 			)
-			table.insert(arms, { part = part, spoke = k, along = along })
+			-- a new tile is drawn see-through (`tile`)
+			table.insert(arms, { part = part, spoke = k, along = along, inside = false, drawn = 1 })
 			along += TILE
 		end
 	end
@@ -221,6 +248,9 @@ function BroodWheelFx.tell(
 		holder = holder,
 		web = web,
 		arms = arms,
+		-- tiles are made in the boss colour, see-through: the first frame writes
+		drawnColour = nil,
+		drawnWeb = -1,
 		piece = nil,
 		centre = centre,
 		start = WebWheel.angleOf(direction),

@@ -144,6 +144,13 @@ All 59 together: 149,613 triangles in 1,819 parts, 621 if merged.
   table and moves them in one batch.
 - `client/Device`: in Studio, the Workspace attribute `DevTier` ("Low",
   "Medium", "High") plays as that tier, so a phone's budgets can be measured.
+- `Fx/ProjectileRenderer` and `Fx/SlimeHop`: every live shot, and every
+  slime's pieces and shadow, move in one batch a frame.
+- `Fx/BroodWheelFx` (the Broodmother's Web Walker, 225 tiles): the web's
+  145 tiles were recoloured and re-faded every frame; now only when the
+  look changes (the warning's pulse, the fade), so a spin writes none of
+  them. The 80 arm tiles move in one batch and keep whether they are inside
+  the room in a table instead of an attribute set and read every frame.
 
 ## Options the owner decides
 
@@ -170,10 +177,11 @@ All 59 together: 149,613 triangles in 1,819 parts, 621 if merged.
 
 ## Not covered yet
 
-- The Broodmother (her model, clips and web) and the Thornwood outer forest
-  were being changed by other sessions during this pass; they are measured
-  above but not optimised. `Fx/ForestAmbience` (falling leaves, fireflies,
-  birds: about 0.06–0.13 above) moves its parts one by one and is next.
+- The Thornwood outer forest was being changed by another session during
+  this pass; it is measured above but not optimised, and nor is
+  `Fx/ForestAmbience` (falling leaves, fireflies, birds: about 0.06–0.13
+  above), which moves its parts one by one and is next. The Broodmother's
+  model is option 1's biggest boss (119 parts to 38).
 
 ## How these were measured
 

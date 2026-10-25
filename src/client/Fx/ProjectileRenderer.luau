@@ -64,9 +64,16 @@ local PLAYER_ORB_LIGHT = Color3.fromRGB(80, 170, 255)
      set in seconds; on their 0.6 s it drew a beam across the room. ]]
 local PLAYER_ORB_TRAIL_STUDS = 6
 
---[[ The bolt's mesh, loaded once at start (`ProjectileRenderer.start`).
-     Shots drawn before it arrives are plain balls. ]]
+--[[ The held weapon's shot mesh (its `bolt`, `Config/Weapons`): a staff's
+     bolt, or a bow skin's arrow. Loaded at start and again whenever the
+     weapon changes (the sandbox swaps it mid-run), each mesh once. Shots
+     drawn before it arrives, or from a weapon without one, are the plain
+     arrow and ball. ]]
 local boltTemplate: MeshPart? = nil
+local boltSize: Vector3? = nil
+local boltMeshId: string? = nil
+local boltTemplates: { [string]: MeshPart } = {}
+local weaponConnection: RBXScriptConnection? = nil
 
 --[[ What a drawn shot is: an arrow, an enemy orb, or a player's orb. One
      pool each, since each is its own shape. ]]
@@ -149,8 +156,13 @@ local function createPart(pool: Pool): BasePart
 	local partSize = if pool == "PlayerOrb" then PLAYER_ORB_SIZE else ProjectileFlight.size(faction)
 
 	local part: BasePart
-	if pool == "PlayerOrb" and boltTemplate then
+	if pool ~= "Enemy" and boltTemplate and boltSize then
 		part = boltTemplate:Clone()
+		if pool == "Player" then
+			--[[ An arrow mesh keeps its own shape, stretched to the
+			     plain arrow's length. ]]
+			partSize = boltSize * (partSize.Z / math.max(boltSize.Z, 1e-3))
+		end
 	else
 		local plain = Instance.new("Part")
 		plain.Shape = if pool == "Enemy"
@@ -713,6 +725,50 @@ function ProjectileRenderer.spawnVolley(
 	end
 end
 
+--[[ Pooled player shots are drawn in the old weapon's look: drop them. ]]
+local function dropPlayerPools()
+	for _, pooled in { pools["Player" :: Pool], pools["PlayerOrb" :: Pool] } do
+		for _, part in pooled do
+			part:Destroy()
+		end
+		table.clear(pooled)
+	end
+end
+
+--[[ Points `boltTemplate` at the held weapon's shot mesh (the Arcanist's
+     weapon before a run sets one), loading it the first time. ]]
+local function loadBolt()
+	local held = Players.LocalPlayer:GetAttribute("Weapon")
+	local weapon = (Weapons :: any)[if type(held) == "string" then held else Classes.Arcanist.weapon]
+	local bolt = (weapon and weapon.bolt) :: { meshId: string, size: Vector3 }?
+	local meshId = bolt and bolt.meshId
+	if meshId == boltMeshId then
+		return
+	end
+	boltMeshId = meshId
+	boltTemplate = if meshId then boltTemplates[meshId] else nil
+	boltSize = bolt and bolt.size
+	dropPlayerPools()
+	if not bolt or boltTemplates[bolt.meshId] then
+		return
+	end
+	task.spawn(function()
+		local ok, result = pcall(function()
+			return AssetService:CreateMeshPartAsync(Content.fromUri(bolt.meshId), {
+				CollisionFidelity = Enum.CollisionFidelity.Box,
+				RenderFidelity = Enum.RenderFidelity.Automatic,
+			})
+		end)
+		if ok then
+			boltTemplates[bolt.meshId] = result
+			if boltMeshId == bolt.meshId then
+				boltTemplate = result
+				dropPlayerPools()
+			end
+		end
+	end)
+end
+
 function ProjectileRenderer.start(parent: Instance)
 	local existing = parent:FindFirstChild("ProjectileVisuals")
 	if existing then
@@ -726,26 +782,11 @@ function ProjectileRenderer.start(parent: Instance)
 
 	ProjectileRenderer.refreshFilters()
 
-	-- the shot of whatever the Arcanist holds
-	local bolt = (Weapons :: any)[Classes.Arcanist.weapon].bolt :: {
-		meshId: string,
-		size: Vector3,
-	}?
-	if bolt and not boltTemplate then
-		task.spawn(function()
-			local ok, result = pcall(function()
-				return AssetService:CreateMeshPartAsync(Content.fromUri(bolt.meshId), {
-					CollisionFidelity = Enum.CollisionFidelity.Box,
-					RenderFidelity = Enum.RenderFidelity.Automatic,
-				})
-			end)
-			if ok then
-				boltTemplate = result
-				--[[ Shots pooled as plain balls before it arrived. ]]
-				table.clear(pools["PlayerOrb" :: Pool])
-			end
-		end)
+	loadBolt()
+	if weaponConnection then
+		weaponConnection:Disconnect()
 	end
+	weaponConnection = Players.LocalPlayer:GetAttributeChangedSignal("Weapon"):Connect(loadBolt)
 
 	if connection then
 		connection:Disconnect()

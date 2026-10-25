@@ -35,11 +35,11 @@ BASES = {
 }
 # key, label, class, import, projectile import (or None), glow colour (or None)
 SKINS = [
-    ("AcornBow", "ACORN BOW", "Ranger", "bow_1uncommon_acorn_bow", None, None),
-    ("FireflyBow", "FIREFLY BOW", "Ranger", "bow_2rare_firefly_bow", None, (249, 227, 109)),
-    ("MossSlimeBow", "MOSS SLIME BOW", "Ranger", "bow_3epic_moss_slime_bow", None, (215, 230, 83)),
-    ("EmberFangBow", "EMBER FANG BOW", "Ranger", "bow_4legendary_ember_fang_bow", None, (254, 212, 61)),
-    ("GladeSpiritBow", "GLADE SPIRIT BOW", "Ranger", "bow_5mythic_glade_spirit_bow", None, None),
+    ("AcornBow", "ACORN BOW", "Ranger", "bow_1uncommon_acorn_bow", "bow_1uncommon_acorn_arrow", None),
+    ("FireflyBow", "FIREFLY BOW", "Ranger", "bow_2rare_firefly_bow", "bow_2rare_firefly_dart", (249, 227, 109)),
+    ("MossSlimeBow", "MOSS SLIME BOW", "Ranger", "bow_3epic_moss_slime_bow", "bow_3epic_moss_slime_arrow", (215, 230, 83)),
+    ("EmberFangBow", "EMBER FANG BOW", "Ranger", "bow_4legendary_ember_fang_bow", "bow_4legendary_ember_fang_arrow", (254, 212, 61)),
+    ("GladeSpiritBow", "GLADE SPIRIT BOW", "Ranger", "bow_5mythic_glade_spirit_bow", "bow_5mythic_glade_spirit_arrow", None),
     ("ToadstoolStaff", "TOADSTOOL STAFF", "Arcanist", "staff_1uncommon_toadstool_staff", "staff_1uncommon_toadstool_bolt", None),
     ("LanternStaff", "LANTERN STAFF", "Arcanist", "staff_2rare_lantern_staff", "staff_2rare_lantern_staff_bolt", None),
     ("HootmossStaff", "HOOTMOSS STAFF", "Arcanist", "staff_3epic_hootmoss_staff", "staff_3epic_hootmoss_staff_bolt", (230, 173, 207)),
@@ -97,7 +97,7 @@ def entry(imports, key, cls, name, projectile, glow) -> str:
     out.append("\t\t} :: { WeaponPart },")
     if projectile:
         shot = imports[projectile]
-        main = next((p for p in shot["parts"] if p["name"] in ("Bolt", "Glow")), shot["parts"][0])
+        main = next((p for p in shot["parts"] if p["name"] in ("Bolt", "Glow", "Arrow")), shot["parts"][0])
         out.append("\t\tbolt = {")
         out.append(f'\t\t\tmeshId = "{main["meshId"]}",')
         out.append(f"\t\t\tsize = {vec(main['size'])},")

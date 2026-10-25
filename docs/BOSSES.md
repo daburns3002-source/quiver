@@ -79,7 +79,8 @@ King's climb and drop, the jump the owner didn't want, and it is approved
 from the concept sheet `assets/concepts/blocky/broodmother_web_walker_concept.png`.
 Her web shot from #308 is kept as it was.
 
-- **Web Walker.** She rears up and a web unfolds over her back, nearly as
+- **Web Walker.** First she scuttles to the middle of the room (owner,
+  2026-10-25), every time. Then she rears up and a web unfolds over her back, nearly as
   wide as the room. The floor under it turns red, and the spokes' arms carry
   on across the floor to the walls. Spoke one starts on the player, who has
   the wind-up (1.6 s) to step clear. Then the web spins clockwise, one turn
@@ -91,8 +92,10 @@ Her web shot from #308 is kept as it was.
   `Shared/Util/WebWheel`, shared with the drawing (`Fx/BroodWheelFx`).
   Clips: `WebSpin_Windup`, `WebSpin_Hold`, `WebSpin_End` and
   `WebSpin_Recover`. The web model is `fx_brood_web_wheel.glb`.
-- She spins where she stands. Her lash can pull her off-centre, and then one
-  side of the room has no edge to walk; the arms still reach every corner.
+- The web is the owner's Claude Design "Broodmother Web Wheel", built 1:1
+  from the web reference's splat: 8 spokes of solid cube chains with end
+  cubes, one octagon ring, cream knots and a glowing hub. The ring is the
+  web's edge, and the spokes past it are the arms.
 - The phase notches at 50% are not built yet: no boss has phases so far.
 
 ---

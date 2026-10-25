@@ -34,9 +34,10 @@ local BroodWheelFx = {}
      along it and as wide as it is. ]]
 local TILE = 2
 local TILE_HEIGHT = 0.12
---[[ The piece's outer ring is at 0.85 of its spokes' length (one unit):
-     drawn so that ring sits on the web's edge. ]]
-local PIECE_RING = 0.85
+--[[ The piece's one ring (an octagon, as in the web reference's splat)
+     crosses its spokes at 0.55 of their length (one unit): drawn so that
+     ring sits on the web's edge, and the spokes past it are the arms. ]]
+local PIECE_RING = 0.55
 local FADE_IN = 0.35
 local FADE_OUT = 0.3
 

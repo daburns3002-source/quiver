@@ -96,7 +96,36 @@ return function(t: TestRunner.Helper)
 		t.isTrue(hurtIn.spin, "the spin hurts under the web")
 		t.isNil(hurtIn.windup, "the wind-up only warns")
 		t.isNil(hurtIn.broken, "a broken web hurts nobody")
-		t.near(now, s.windup + s.spin + s.broken + s.recover, 2 * FRAME)
+		t.near(now, s.travelMin + s.windup + s.spin + s.broken + s.recover, 2 * FRAME)
+	end)
+
+	t.test("she goes to the middle of the room first, wherever she stood", function()
+		local from = Vector3.new(9, 0, -14)
+		local move = BossMoves.start("Spin", 0, from, 0)
+		local tell: BossMoves.Event? = nil
+		local walked = 0
+		local now = 0
+		for _ = 1, 100000 do
+			now += FRAME
+			local pose, events, done =
+				BossMoves.step(move, boss, now, Vector3.new(0, 0, 10), identity)
+			for _, e in events do
+				if e.kind == "WheelTell" then
+					tell = e
+					walked = now
+				end
+			end
+			if move.phase == "travel" then
+				t.isTrue((pose.feet - from).Magnitude <= from.Magnitude + 1e-6, "on her way in")
+			end
+			if done then
+				break
+			end
+		end
+		local raised = tell :: BossMoves.Event
+		t.notNil(tell, "the web was raised")
+		t.near(raised.at.Magnitude, 0, 1e-6, "raised mid-room")
+		t.near(walked, from.Magnitude / s.travelSpeed, 2 * FRAME, "walked at her pace")
 	end)
 
 	t.test("the arm the client draws is the arm that hits", function()

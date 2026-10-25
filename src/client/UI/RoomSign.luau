@@ -28,6 +28,8 @@ local gui: ScreenGui? = nil
 local sign: Frame? = nil
 local shownAt = 0
 local lastRoom: number? = nil
+local waiting = false
+local pending: { number }? = nil
 local token = 0
 
 --[[ A square of `w` × `h` pixels at pixel (`x`, `y`) of the sign. ]]
@@ -240,6 +242,17 @@ function RoomSignUI.show(index: number, total: number)
 	end)
 end
 
+--[[ Behind the intro's title screen (`UI/IntroCutscene`) the first room's
+     sign waits, and flies out when BEGIN ADVENTURE is pressed. ]]
+function RoomSignUI.setWaiting(value: boolean)
+	waiting = value
+	local due = pending
+	if not value and due then
+		pending = nil
+		RoomSignUI.show(due[1], due[2])
+	end
+end
+
 --[[ Argument order matches `Remotes.RunStateChanged`. Each room is shown
      once, as its fight starts; a death or a finished run forgets the last,
      so the next run's first room is shown again. ]]
@@ -256,7 +269,11 @@ function RoomSignUI.onRunStateChanged(
 	if state == "Fighting" then
 		if index ~= lastRoom then
 			lastRoom = index
-			RoomSignUI.show(index, total)
+			if waiting then
+				pending = { index, total }
+			else
+				RoomSignUI.show(index, total)
+			end
 		end
 	elseif state == "Dead" or state == "Complete" then
 		lastRoom = nil

@@ -35,6 +35,7 @@ local Game = require(Shared.Config.Game)
 local HealthBar = require(script.Parent.UI.HealthBar)
 local HitFeedback = require(script.Parent.Fx.HitFeedback)
 local HitSquash = require(script.Parent.Fx.HitSquash)
+local IntroCutscene = require(script.Parent.UI.IntroCutscene)
 local LocalFiring = require(script.Parent.Combat.LocalFiring)
 local Log = require(Shared.Util.Log)
 local ModelAnimator = require(script.Parent.Fx.ModelAnimator)
@@ -114,6 +115,28 @@ local function currentRoot(): BasePart?
 	end
 
 	return character:FindFirstChild("HumanoidRootPart") :: BasePart?
+end
+
+--[[ The intro cutscene first, so its black screen is up before anything
+     else draws. The run's music and the first room's sign wait for BEGIN
+     ADVENTURE, which asks the server to let the run move. If the cutscene
+     cannot start, the run is let go at once rather than held for ever. ]]
+local function beginRun()
+	MusicFx.setQuiet(false)
+	RoomSign.setWaiting(false)
+	Remotes.event(Remotes.IntroBegin):FireServer()
+end
+if not IntroCutscene.skipped() then
+	MusicFx.setQuiet(true)
+	RoomSign.setWaiting(true)
+	local ok, problem = pcall(function()
+		IntroCutscene.start(beginRun)
+	end)
+	if not ok then
+		log.warn("intro cutscene failed to start: %s", tostring(problem))
+		IntroCutscene.stop()
+		beginRun()
+	end
 end
 
 HealthBar.start()

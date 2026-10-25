@@ -370,6 +370,15 @@ Remotes.event(Remotes.RunRestart).OnServerEvent:Connect(function(player)
 	end
 end)
 
+--[[ The intro's BEGIN ADVENTURE: this player has left the title screen.
+     It can only clear the hold, never set one, so a repeat changes nothing. ]]
+Remotes.event(Remotes.IntroBegin).OnServerEvent:Connect(function(player)
+	local session = RunSession.get(player)
+	if session then
+		RunSession.leaveTitle(session)
+	end
+end)
+
 RunService.Heartbeat:Connect(function(deltaTime: number)
 	local now = os.clock()
 
@@ -383,6 +392,12 @@ RunService.Heartbeat:Connect(function(deltaTime: number)
 	--[[ And while a boss's entry banner plays: nobody moves or attacks until
 	     it has gone (`EnemyManager.introHolding`). ]]
 	if EnemyManager.introHolding(now) then
+		return
+	end
+
+	--[[ And while anyone is still on the intro's title screen
+	     (`UI/IntroCutscene`): the run starts on BEGIN ADVENTURE. ]]
+	if RunSession.anyAtTitle() then
 		return
 	end
 

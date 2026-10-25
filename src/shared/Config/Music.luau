@@ -28,6 +28,12 @@ local Music = {
 	volume = 0.3,
 	--[[ Seconds one playlist takes to fade into another. ]]
 	fade = 1.5,
+	--[[ The intro cutscene's music (`UI/IntroCutscene`): from the top on
+	     the cutscene's first frame, a quiet build into the theme's hit at
+	     `Config/Intro.revealAt` (5.0 s), then looping round its region
+	     while the title waits; it fades out as BEGIN ADVENTURE starts the
+	     run. Made by the intro-music session; an empty id is silent. ]]
+	intro = { id = "", name = "Intro" } :: Track,
 	playlists = {
 		Rooms = {
 			-- ours, 77 s, made to loop: a lone track loops in the engine

@@ -81,7 +81,12 @@ or across the pond. Past the walls the forest lives
 handoff): leaves, fireflies, mist, butterflies, birds and light shafts, on
 top of the canopy because the camera looks down onto it, never inside the
 room (`AmbienceVolumes.spec`). Per-tree sway waits on the trees being split
-out of their merged mesh. As each room starts, a blocky ROOM <n> sign flies out of the top of the gate, hangs at the top of the screen and flies back (`UI/RoomSign`, `Config/RoomSign`, letters from `Config/PixelFont`; the last room's number is red). The exit is a gate in the north wall
+out of their merged mesh. Each area has its own outer forest: the glade's
+(`Config/GladeForest`) and **Thornwood's wood** (`Config/ThornwoodForest`,
+2026-10-25: the room's thorn trees, bramble banks, bone spikes, dead snags
+with crows; crows and magenta pollen in `Balance.Ambience.Thornwood`), made
+as `docs/PIPELINES.md` §4.5 says, colours converted by `srgb_glb.py` before
+the import. As each room starts, a blocky ROOM <n> sign flies out of the top of the gate, hangs at the top of the screen and flies back (`UI/RoomSign`, `Config/RoomSign`, letters from `Config/PixelFont`; the last room's number is red). The exit is a gate in the north wall
 (`Arena/ExitGate`, `Balance.Run.gate`): dark purple haze until the room is
 cleared, then glowing white-gold with a GO arrow, after Archero 2. Moonlit
 Arena's waves draw from the first

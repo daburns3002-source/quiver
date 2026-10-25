@@ -699,11 +699,19 @@ end
 
 --[[ A body left to play its Death clip where it fell, then cleared: a
      copy, so the enemy itself goes at once and nothing can target or hit
-     what is left. ]]
+     what is left. A body that splits falls with its split's clip instead,
+     if its model has it. ]]
 local function fall(enemy: Enemy)
 	local key = enemy.model:GetAttribute("ModelClips")
 	local data = if type(key) == "string" then clipData(key) else nil
-	local death = data and data.clips.Death
+	local split = enemy.config.split
+	local clip = if split
+			and split.clip
+			and data
+			and data.clips[split.clip]
+		then split.clip
+		else "Death"
+	local death = data and data.clips[clip]
 	local parent = folder and folder.Parent
 	if not death or not parent then
 		return
@@ -726,7 +734,7 @@ local function fall(enemy: Enemy)
 	end
 	body:SetAttribute("ModelClipSpan", nil)
 	body:SetAttribute("ModelClipAt", Workspace:GetServerTimeNow())
-	body:SetAttribute("ModelClip", "Death")
+	body:SetAttribute("ModelClip", clip)
 	body.Parent = parent
 	task.delay(death.length + 0.4, function()
 		body:Destroy()
@@ -984,6 +992,9 @@ local function spawnSplit(split: Balance.EnemySplit, origin: Vector3)
 			piece.maxHealth *= split.health
 			piece.model:SetAttribute("MaxHealth", piece.maxHealth)
 			piece.model:SetAttribute("Health", piece.health)
+			--[[ Read by `Fx/SplitFx`, which throws a copy of this body
+			     playing it, instead of a blob of jelly. ]]
+			piece.model:SetAttribute("SplitClip", split.pieceClip)
 		end
 	end
 end

@@ -67,6 +67,13 @@ export type EnemySplit = {
 	count: number,
 	--[[ The pieces' health as a share of their archetype's. ]]
 	health: number,
+	--[[ For a body that plays its own clips: the clip it falls with as it
+	     splits, in place of its Death. ]]
+	clip: string?,
+	--[[ For pieces that play their own clips: each is thrown as itself,
+	     playing this clip over `Balance.Split.flight + settle`, instead of
+	     as a blob of jelly (`Fx/SplitFx`). ]]
+	pieceClip: string?,
 }
 
 --[[
@@ -864,7 +871,10 @@ local boarlet: EnemyConfig = {
 }
 
 --[[ The Bramble Sow: Thornwood's Brood Slime. Big and slow, and when it
-     dies three Boarlets tumble out of its brambles. ]]
+     dies three Boarlets tumble out of its brambles: its brambles burst as
+     it falls (DropBoarlets) and each Boarlet somersaults out curled up
+     (Tumble), both its own clips (owner, 2026-10-25: the slime split did
+     not fit her). ]]
 local brambleSow: EnemyConfig = {
 	displayName = "BrambleSow",
 	turnRate = 220,
@@ -879,7 +889,13 @@ local brambleSow: EnemyConfig = {
 	color = Color3.fromRGB(150, 98, 60),
 	xpReward = 22,
 	shot = nil,
-	split = { into = boarlet, count = 3, health = 1 },
+	split = {
+		into = boarlet,
+		count = 3,
+		health = 1,
+		clip = "DropBoarlets",
+		pieceClip = "Tumble",
+	},
 }
 
 --[[ The Bramble Lurker: Thornwood's burrower. It dives, travels under the

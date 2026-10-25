@@ -35744,1405 +35744,6 @@
    }
   ]
  },
- "AuxScene#29": {
-  "parts": [
-   {
-    "cframe": [
-     0,
-     0.162,
-     0.0345,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "torso",
-    "size": [
-     0.258,
-     0.156,
-     0.315
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://76051741735113",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     0,
-     0.132,
-     -0.1248,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "chest",
-    "size": [
-     0.09,
-     0.078,
-     0.006
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://113075750723017",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     0,
-     0.171,
-     -0.1125,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "collar",
-    "size": [
-     0.288,
-     0.042,
-     0.285
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://101980763915316",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     0,
-     0.138,
-     -0.2595,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "collar_tag",
-    "size": [
-     0.06,
-     0.06,
-     0.015
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://117759696262454",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     0,
-     0.138,
-     -0.26842,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "tag_leaf",
-    "size": [
-     0.01725,
-     0.03795,
-     0.00345
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://120411982104105",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     0,
-     0.138,
-     -0.27,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "tag_leaf_vein",
-    "size": [
-     0.0024,
-     0.027,
-     0.0012
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://77291385544082",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     0.09,
-     0.0945,
-     -0.1155,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "leg_FR",
-    "size": [
-     0.09,
-     0.111,
-     0.09
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://77934364756313",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     0.09,
-     0.02025,
-     -0.1215,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "paw_FR",
-    "size": [
-     0.096,
-     0.0405,
-     0.102
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://122543223253232",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     0.1065,
-     0.015,
-     -0.1731,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "paw_FR_toeA",
-    "size": [
-     0.0042,
-     0.021,
-     0.0012
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://131514219435278",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     0.0735,
-     0.015,
-     -0.1731,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "paw_FR_toeB",
-    "size": [
-     0.0042,
-     0.021,
-     0.0012
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://105490995194199",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     -0.09,
-     0.0945,
-     -0.1155,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "leg_FL",
-    "size": [
-     0.09,
-     0.111,
-     0.09
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://78919208510306",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     -0.09,
-     0.02025,
-     -0.1215,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "paw_FL",
-    "size": [
-     0.096,
-     0.0405,
-     0.102
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://89265208582530",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     -0.0735,
-     0.015,
-     -0.1731,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "paw_FL_toeA",
-    "size": [
-     0.0042,
-     0.021,
-     0.0012
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://134407343185364",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     -0.1065,
-     0.015,
-     -0.1731,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "paw_FL_toeB",
-    "size": [
-     0.0042,
-     0.021,
-     0.0012
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://136418858348107",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     0.084,
-     0.0945,
-     0.1245,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "leg_BR",
-    "size": [
-     0.096,
-     0.111,
-     0.096
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://128273868705637",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     0.084,
-     0.02025,
-     0.1185,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "paw_BR",
-    "size": [
-     0.102,
-     0.0405,
-     0.108
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://86269064084350",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     0.1005,
-     0.015,
-     0.0639,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "paw_BR_toeA",
-    "size": [
-     0.0042,
-     0.021,
-     0.0012
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://103193709544167",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     0.0675,
-     0.015,
-     0.0639,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "paw_BR_toeB",
-    "size": [
-     0.0042,
-     0.021,
-     0.0012
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://96681132042544",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     -0.084,
-     0.0945,
-     0.1245,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "leg_BL",
-    "size": [
-     0.096,
-     0.111,
-     0.096
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://134116149815854",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     -0.084,
-     0.02025,
-     0.1185,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "paw_BL",
-    "size": [
-     0.102,
-     0.0405,
-     0.108
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://97500236696557",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     -0.0675,
-     0.015,
-     0.0639,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "paw_BL_toeA",
-    "size": [
-     0.0042,
-     0.021,
-     0.0012
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://82855409452907",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     -0.1005,
-     0.015,
-     0.0639,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "paw_BL_toeB",
-    "size": [
-     0.0042,
-     0.021,
-     0.0012
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://80322330277071",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     0,
-     0.192,
-     0.2265,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "tail_slab_1",
-    "size": [
-     0.12,
-     0.108,
-     0.138
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://104402555835481",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     0,
-     0.192,
-     0.3585,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "tail_slab_2",
-    "size": [
-     0.132,
-     0.114,
-     0.138
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://98135643157277",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     0,
-     0.351,
-     -0.126,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "head_block",
-    "size": [
-     0.375,
-     0.315,
-     0.36
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://95884301761431",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     0,
-     0.2472,
-     -0.2448,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "face_band",
-    "size": [
-     0.3768,
-     0.111,
-     0.126
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://116537482552037",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     0,
-     0.2475,
-     -0.333,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "muzzle",
-    "size": [
-     0.15,
-     0.108,
-     0.078
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://76166026272722",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     0,
-     0.2805,
-     -0.378,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "nose",
-    "size": [
-     0.066,
-     0.042,
-     0.018
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://111924759585129",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     -0.093,
-     0.3645,
-     -0.3093,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "eye_L",
-    "size": [
-     0.114,
-     0.114,
-     0.006
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://122516112569449",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     -0.093,
-     0.339,
-     -0.3135,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "eye_L_glow",
-    "size": [
-     0.09,
-     0.045,
-     0.003
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://81739060511603",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     -0.0645,
-     0.3915,
-     -0.318,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "eye_L_shine",
-    "size": [
-     0.033,
-     0.033,
-     0.009
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://108975077575990",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     0.093,
-     0.3645,
-     -0.3093,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "eye_R",
-    "size": [
-     0.114,
-     0.114,
-     0.006
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://119687904647170",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     0.093,
-     0.339,
-     -0.3135,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "eye_R_glow",
-    "size": [
-     0.09,
-     0.045,
-     0.003
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://127913471903918",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     0.0645,
-     0.3915,
-     -0.318,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "eye_R_shine",
-    "size": [
-     0.033,
-     0.033,
-     0.009
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://92268550845636",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     0,
-     0.192,
-     0.4755,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "tail_tip",
-    "size": [
-     0.12,
-     0.108,
-     0.102
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://75574697899695",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     0,
-     0.2556,
-     -0.3732,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "mouth_line",
-    "size": [
-     0.0078,
-     0.015,
-     0.0036
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://136226294915610",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     0.015,
-     0.2391,
-     -0.3738,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "mouth_arc_R",
-    "size": [
-     0.0396,
-     0.0198,
-     0.00831
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://90247054785412",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     -0.015,
-     0.2391,
-     -0.3738,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "mouth_arc_L",
-    "size": [
-     0.0396,
-     0.0198,
-     0.00831
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://127301854505706",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     0,
-     0.249,
-     -0.3732,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "mouth_open_line",
-    "size": [
-     0.001,
-     0.001,
-     0.001
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://116752025013762",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     0,
-     0.24899,
-     -0.3732,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "mouth_open_gape",
-    "size": [
-     0.001,
-     0.001,
-     0.001
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://126490144799020",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     0,
-     0.24898,
-     -0.3732,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "mouth_tongue",
-    "size": [
-     0.001,
-     0.001,
-     0.001
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://92925449455455",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     -0.1245,
-     0.5405,
-     -0.138,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "ear_L",
-    "size": [
-     0.126,
-     0.082,
-     0.108
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://111670490270600",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     -0.1245,
-     0.602,
-     -0.138,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "ear_L_tip",
-    "size": [
-     0.052,
-     0.041,
-     0.04457
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://86265974361530",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     0.1245,
-     0.5405,
-     -0.138,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "ear_R",
-    "size": [
-     0.126,
-     0.082,
-     0.108
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://93736240554711",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     0.1245,
-     0.602,
-     -0.138,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "ear_R_tip",
-    "size": [
-     0.052,
-     0.041,
-     0.04457
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://131810296414779",
-    "material": "Plastic",
-    "textureId": ""
-   }
-  ]
- },
  "AuxScene#25": {
   "parts": [
    {
@@ -38541,1529 +37142,6 @@
      0.64706
     ],
     "meshId": "rbxassetid://102633263315289",
-    "material": "Plastic",
-    "textureId": ""
-   }
-  ]
- },
- "AuxScene#26": {
-  "parts": [
-   {
-    "cframe": [
-     0,
-     0.32,
-     -0.158,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "Head_Box",
-    "size": [
-     0.4,
-     0.336,
-     0.324
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://132568546866223",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     -0.116,
-     0.2864,
-     -0.3224,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "Eye_L_Fill",
-    "size": [
-     0.088,
-     0.12,
-     0.008
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://71612561584627",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     -0.1236,
-     0.2972,
-     -0.3244,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "Eye_L_Pupil",
-    "size": [
-     0.0632,
-     0.0888,
-     0.008
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://121429006961516",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     -0.1096,
-     0.3212,
-     -0.3304,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "Eye_L_Glint",
-    "size": [
-     0.018,
-     0.0208,
-     0.0048
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://111604810231449",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     0.116,
-     0.2864,
-     -0.3224,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "Eye_R_Fill",
-    "size": [
-     0.088,
-     0.12,
-     0.008
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://121486782686720",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     0.1236,
-     0.2972,
-     -0.3244,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "Eye_R_Pupil",
-    "size": [
-     0.0632,
-     0.0888,
-     0.008
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://116523103887396",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     0.1096,
-     0.3212,
-     -0.3304,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "Eye_R_Glint",
-    "size": [
-     0.018,
-     0.0208,
-     0.0048
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://94700286476939",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     0,
-     0.2448,
-     -0.3224,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "Mouth_Bottom",
-    "size": [
-     0.024,
-     0.0088,
-     0.0048
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://84770875187399",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     -0.0156,
-     0.2492,
-     -0.3224,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "Mouth_End_L",
-    "size": [
-     0.0088,
-     0.0176,
-     0.0048
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://105421521578318",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     0.0156,
-     0.2492,
-     -0.3224,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "Mouth_End_R",
-    "size": [
-     0.0088,
-     0.0176,
-     0.0048
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://77378358181648",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     -0.132,
-     0.208,
-     -0.3224,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "Blush_L",
-    "size": [
-     0.032,
-     0.012,
-     0.0048
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://75807099472467",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     0.132,
-     0.208,
-     -0.3224,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "Blush_R",
-    "size": [
-     0.032,
-     0.012,
-     0.0048
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://105982866520000",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     0,
-     0.126,
-     -0.048,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "Body_Box",
-    "size": [
-     0.268,
-     0.108,
-     0.36
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://122064958538834",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     -0.096,
-     0.04,
-     -0.184,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "Leg_FL",
-    "size": [
-     0.06,
-     0.08,
-     0.06
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://125336269647410",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     0.096,
-     0.04,
-     -0.184,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "Leg_FR",
-    "size": [
-     0.06,
-     0.08,
-     0.06
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://135968690769154",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     -0.096,
-     0.04,
-     0.088,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "Leg_BL",
-    "size": [
-     0.06,
-     0.08,
-     0.06
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://122355362327672",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     0.096,
-     0.04,
-     0.088,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "Leg_BR",
-    "size": [
-     0.06,
-     0.08,
-     0.06
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://84512791756202",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     0,
-     0.136,
-     0.156,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "Lantern_Connector",
-    "size": [
-     0.12,
-     0.12,
-     0.064
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://108971985418490",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     0,
-     0.176,
-     0.28,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "Lantern_Core",
-    "size": [
-     0.196,
-     0.196,
-     0.196
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://120094636917032",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     0,
-     0.26,
-     0.196,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "Lantern_Frame1",
-    "size": [
-     0.2,
-     0.032,
-     0.032
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://110963540213299",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     0,
-     0.26,
-     0.364,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "Lantern_Frame2",
-    "size": [
-     0.2,
-     0.032,
-     0.032
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://84098194801713",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     0,
-     0.092,
-     0.196,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "Lantern_Frame3",
-    "size": [
-     0.2,
-     0.032,
-     0.032
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://114511975257183",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     0,
-     0.092,
-     0.364,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "Lantern_Frame4",
-    "size": [
-     0.2,
-     0.032,
-     0.032
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://128682050982577",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     -0.084,
-     0.176,
-     0.196,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "Lantern_Frame5",
-    "size": [
-     0.032,
-     0.136,
-     0.032
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://77894225427993",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     -0.084,
-     0.176,
-     0.364,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "Lantern_Frame6",
-    "size": [
-     0.032,
-     0.136,
-     0.032
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://82494168741154",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     0.084,
-     0.176,
-     0.196,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "Lantern_Frame7",
-    "size": [
-     0.032,
-     0.136,
-     0.032
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://131497896484336",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     0.084,
-     0.176,
-     0.364,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "Lantern_Frame8",
-    "size": [
-     0.032,
-     0.136,
-     0.032
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://103705604113505",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     -0.084,
-     0.26,
-     0.28,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "Lantern_Frame9",
-    "size": [
-     0.032,
-     0.032,
-     0.136
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://74538527580211",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     -0.084,
-     0.092,
-     0.28,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "Lantern_Frame10",
-    "size": [
-     0.032,
-     0.032,
-     0.136
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://120461428633585",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     0.084,
-     0.26,
-     0.28,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "Lantern_Frame11",
-    "size": [
-     0.032,
-     0.032,
-     0.136
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://113400627595803",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     0.084,
-     0.092,
-     0.28,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "Lantern_Frame12",
-    "size": [
-     0.032,
-     0.032,
-     0.136
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://107276666944020",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     -0.32,
-     0.168,
-     -0.054,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "Wing_L_Pane",
-    "size": [
-     0.296,
-     0.014,
-     0.116
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://124184595890089",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     -0.32,
-     0.168,
-     0.01,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "Wing_L_EdgeA",
-    "size": [
-     0.32,
-     0.018,
-     0.012
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://75191527954998",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     -0.32,
-     0.168,
-     -0.118,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "Wing_L_EdgeB",
-    "size": [
-     0.32,
-     0.018,
-     0.012
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://80965415474705",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     -0.166,
-     0.168,
-     -0.054,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "Wing_L_EdgeC",
-    "size": [
-     0.012,
-     0.018,
-     0.116
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://126525669381164",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     -0.474,
-     0.168,
-     -0.054,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "Wing_L_EdgeD",
-    "size": [
-     0.012,
-     0.018,
-     0.116
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://82722581007682",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     0,
-     0.168,
-     -0.054,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "Wing_R_Pane",
-    "size": [
-     0.296,
-     0.014,
-     0.116
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://93512687671509",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     0,
-     0.168,
-     0.01,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "Wing_R_EdgeA",
-    "size": [
-     0.32,
-     0.018,
-     0.012
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://118073272506002",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     0,
-     0.168,
-     -0.118,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "Wing_R_EdgeB",
-    "size": [
-     0.32,
-     0.018,
-     0.012
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://123603048612661",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     0.154,
-     0.168,
-     -0.054,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "Wing_R_EdgeC",
-    "size": [
-     0.012,
-     0.018,
-     0.116
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://118531211917098",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     -0.154,
-     0.168,
-     -0.054,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "Wing_R_EdgeD",
-    "size": [
-     0.012,
-     0.018,
-     0.116
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://120500153873999",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     -0.12,
-     0.51,
-     -0.176,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "Antenna_L_Stalk1",
-    "size": [
-     0.02,
-     0.078,
-     0.02
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://95532954820684",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     0.12,
-     0.51,
-     -0.176,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "Antenna_R_Stalk1",
-    "size": [
-     0.02,
-     0.078,
-     0.02
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://136516734001218",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     -0.12,
-     0.574,
-     -0.176,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "Antenna_L_Stalk2",
-    "size": [
-     0.02,
-     0.07,
-     0.02
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://84043516106428",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     0.12,
-     0.574,
-     -0.176,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "Antenna_R_Stalk2",
-    "size": [
-     0.02,
-     0.07,
-     0.02
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://114637089755320",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     -0.12,
-     0.63,
-     -0.176,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "Antenna_L_Stalk3",
-    "size": [
-     0.02,
-     0.062,
-     0.02
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://140157167771233",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     0.12,
-     0.63,
-     -0.176,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "Antenna_R_Stalk3",
-    "size": [
-     0.02,
-     0.062,
-     0.02
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://125352010656880",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     -0.12,
-     0.67,
-     -0.176,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "Antenna_L_Tip",
-    "size": [
-     0.04,
-     0.04,
-     0.04
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://75408517650535",
-    "material": "Plastic",
-    "textureId": ""
-   },
-   {
-    "cframe": [
-     0.12,
-     0.67,
-     -0.176,
-     1,
-     0,
-     0,
-     0,
-     1,
-     0,
-     0,
-     0,
-     1
-    ],
-    "transparency": 0,
-    "name": "Antenna_R_Tip",
-    "size": [
-     0.04,
-     0.04,
-     0.04
-    ],
-    "color": [
-     0.63922,
-     0.63529,
-     0.64706
-    ],
-    "meshId": "rbxassetid://113835216254772",
     "material": "Plastic",
     "textureId": ""
    }
@@ -46441,6 +43519,3889 @@
      0.64706
     ],
     "meshId": "rbxassetid://81576931470486",
+    "material": "Plastic",
+    "textureId": ""
+   }
+  ]
+ },
+ "AuxScene#49": {
+  "parts": [
+   {
+    "cframe": [
+     0,
+     0.162,
+     0.0345,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "torso",
+    "size": [
+     0.258,
+     0.156,
+     0.315
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://111585852418924",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0,
+     0.132,
+     -0.1248,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "chest",
+    "size": [
+     0.09,
+     0.078,
+     0.006
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://88786643879756",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0,
+     0.171,
+     -0.1125,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "collar",
+    "size": [
+     0.288,
+     0.042,
+     0.285
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://83581025880381",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0,
+     0.138,
+     -0.2595,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "collar_tag",
+    "size": [
+     0.06,
+     0.06,
+     0.015
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://139280438334539",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0,
+     0.138,
+     -0.26842,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "tag_leaf",
+    "size": [
+     0.01725,
+     0.03795,
+     0.00345
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://72129389171664",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0,
+     0.138,
+     -0.27,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "tag_leaf_vein",
+    "size": [
+     0.0024,
+     0.027,
+     0.0012
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://120939011090942",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0,
+     0.255,
+     -0.3,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Fx_Ember_1_cube",
+    "size": [
+     0.001,
+     0.001,
+     0.001
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://123158868003218",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0,
+     0.255,
+     -0.3,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Fx_Ember_2_cube",
+    "size": [
+     0.001,
+     0.001,
+     0.001
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://123158868003218",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0,
+     0.255,
+     -0.3,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Fx_Ember_3_cube",
+    "size": [
+     0.001,
+     0.001,
+     0.001
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://123158868003218",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0,
+     0.036,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Fx_HowlRing_cube_01",
+    "size": [
+     0.001,
+     0.001,
+     0.001
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://123158868003218",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0,
+     0.036,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Fx_HowlRing_cube_02",
+    "size": [
+     0.001,
+     0.001,
+     0.001
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://123158868003218",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0,
+     0.036,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Fx_HowlRing_cube_03",
+    "size": [
+     0.001,
+     0.001,
+     0.001
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://123158868003218",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0,
+     0.036,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Fx_HowlRing_cube_04",
+    "size": [
+     0.001,
+     0.001,
+     0.001
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://123158868003218",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0,
+     0.036,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Fx_HowlRing_cube_05",
+    "size": [
+     0.001,
+     0.001,
+     0.001
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://123158868003218",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0,
+     0.036,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Fx_HowlRing_cube_06",
+    "size": [
+     0.001,
+     0.001,
+     0.001
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://123158868003218",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0,
+     0.036,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Fx_HowlRing_cube_07",
+    "size": [
+     0.001,
+     0.001,
+     0.001
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://123158868003218",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0,
+     0.036,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Fx_HowlRing_cube_08",
+    "size": [
+     0.001,
+     0.001,
+     0.001
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://123158868003218",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0,
+     0.036,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Fx_HowlRing_cube_09",
+    "size": [
+     0.001,
+     0.001,
+     0.001
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://123158868003218",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0,
+     0.036,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Fx_HowlRing_cube_10",
+    "size": [
+     0.001,
+     0.001,
+     0.001
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://123158868003218",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0,
+     0.036,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Fx_HowlRing_cube_11",
+    "size": [
+     0.001,
+     0.001,
+     0.001
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://123158868003218",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0,
+     0.036,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Fx_HowlRing_cube_12",
+    "size": [
+     0.001,
+     0.001,
+     0.001
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://123158868003218",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0,
+     0.036,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Fx_HowlRing_cube_13",
+    "size": [
+     0.001,
+     0.001,
+     0.001
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://123158868003218",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0,
+     0.036,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Fx_HowlRing_cube_14",
+    "size": [
+     0.001,
+     0.001,
+     0.001
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://123158868003218",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0,
+     0.036,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Fx_HowlRing_cube_15",
+    "size": [
+     0.001,
+     0.001,
+     0.001
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://123158868003218",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0,
+     0.036,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Fx_HowlRing_cube_16",
+    "size": [
+     0.001,
+     0.001,
+     0.001
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://123158868003218",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0.09,
+     0.0945,
+     -0.1155,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "leg_FR",
+    "size": [
+     0.09,
+     0.111,
+     0.09
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://136815015775163",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0.09,
+     0.02025,
+     -0.1215,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "paw_FR",
+    "size": [
+     0.096,
+     0.0405,
+     0.102
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://139914086278036",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0.10651,
+     0.015,
+     -0.1731,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "paw_FR_toeA",
+    "size": [
+     0.0042,
+     0.021,
+     0.0012
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://86989767126851",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0.0735,
+     0.015,
+     -0.1731,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "paw_FR_toeB",
+    "size": [
+     0.0042,
+     0.021,
+     0.0012
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://86989767126851",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     -0.09,
+     0.0945,
+     -0.1155,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "leg_FL",
+    "size": [
+     0.09,
+     0.111,
+     0.09
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://84107372478068",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     -0.09,
+     0.02025,
+     -0.1215,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "paw_FL",
+    "size": [
+     0.096,
+     0.0405,
+     0.102
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://120044499580567",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     -0.0735,
+     0.015,
+     -0.1731,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "paw_FL_toeA",
+    "size": [
+     0.0042,
+     0.021,
+     0.0012
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://86989767126851",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     -0.10651,
+     0.015,
+     -0.1731,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "paw_FL_toeB",
+    "size": [
+     0.0042,
+     0.021,
+     0.0012
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://86989767126851",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0.084,
+     0.0945,
+     0.1245,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "leg_BR",
+    "size": [
+     0.096,
+     0.111,
+     0.096
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://116341856887306",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0.084,
+     0.02025,
+     0.1185,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "paw_BR",
+    "size": [
+     0.102,
+     0.0405,
+     0.108
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://82821538230047",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0.10049,
+     0.015,
+     0.0639,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "paw_BR_toeA",
+    "size": [
+     0.0042,
+     0.021,
+     0.0012
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://87644090748504",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0.0675,
+     0.015,
+     0.0639,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "paw_BR_toeB",
+    "size": [
+     0.0042,
+     0.021,
+     0.0012
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://87644090748504",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     -0.084,
+     0.0945,
+     0.1245,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "leg_BL",
+    "size": [
+     0.096,
+     0.111,
+     0.096
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://106789539687711",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     -0.084,
+     0.02025,
+     0.1185,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "paw_BL",
+    "size": [
+     0.102,
+     0.0405,
+     0.108
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://85988875888659",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     -0.0675,
+     0.015,
+     0.0639,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "paw_BL_toeA",
+    "size": [
+     0.0042,
+     0.021,
+     0.0012
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://87644090748504",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     -0.10049,
+     0.015,
+     0.0639,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "paw_BL_toeB",
+    "size": [
+     0.0042,
+     0.021,
+     0.0012
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://87644090748504",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0,
+     0.192,
+     0.2265,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "tail_slab_1",
+    "size": [
+     0.12,
+     0.108,
+     0.138
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://113902846581229",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0,
+     0.192,
+     0.3585,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "tail_slab_2",
+    "size": [
+     0.132,
+     0.114,
+     0.138
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://75692581260882",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0,
+     0.351,
+     -0.126,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "head_block",
+    "size": [
+     0.375,
+     0.315,
+     0.36
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://117435706809362",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0,
+     0.2472,
+     -0.2448,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "face_band",
+    "size": [
+     0.3768,
+     0.111,
+     0.126
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://82698150678743",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0,
+     0.2475,
+     -0.333,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "muzzle",
+    "size": [
+     0.15,
+     0.108,
+     0.078
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://102179242061863",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0,
+     0.2805,
+     -0.378,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "nose",
+    "size": [
+     0.066,
+     0.042,
+     0.018
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://103259610486945",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     -0.11513,
+     0.35452,
+     -0.309,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "eye_L",
+    "size": [
+     0.10125,
+     0.10125,
+     0.006
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://73462462257279",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     -0.11513,
+     0.33328,
+     -0.315,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "eye_L_glow",
+    "size": [
+     0.07725,
+     0.03476,
+     0.0024
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://98095106620289",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     -0.13741,
+     0.3768,
+     -0.3156,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "eye_L_shine",
+    "size": [
+     0.0195,
+     0.0195,
+     0.003
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://119125299929652",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0.11513,
+     0.35452,
+     -0.309,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "eye_R",
+    "size": [
+     0.10125,
+     0.10125,
+     0.006
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://138510505953599",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0.11513,
+     0.33328,
+     -0.315,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "eye_R_glow",
+    "size": [
+     0.07725,
+     0.03476,
+     0.0024
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://105189971197777",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0.09285,
+     0.3768,
+     -0.3156,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "eye_R_shine",
+    "size": [
+     0.0195,
+     0.0195,
+     0.003
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://101939122581467",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0,
+     0.192,
+     0.4755,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "tail_tip",
+    "size": [
+     0.12,
+     0.108,
+     0.102
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://77153571136220",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0,
+     0.2556,
+     -0.3732,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "mouth_line",
+    "size": [
+     0.0078,
+     0.015,
+     0.0036
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://96399515934648",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0.015,
+     0.2391,
+     -0.3738,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "mouth_arc_R",
+    "size": [
+     0.0396,
+     0.0198,
+     0.00831
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://131366649328455",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     -0.015,
+     0.2391,
+     -0.3738,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "mouth_arc_L",
+    "size": [
+     0.0396,
+     0.0198,
+     0.00831
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://95362944710675",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0,
+     0.24901,
+     -0.3732,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "mouth_open_line",
+    "size": [
+     0.001,
+     0.001,
+     0.001
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://107876776741991",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0,
+     0.24899,
+     -0.3732,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "mouth_open_gape",
+    "size": [
+     0.001,
+     0.001,
+     0.001
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://111831754772828",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0,
+     0.24898,
+     -0.3732,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "mouth_tongue",
+    "size": [
+     0.001,
+     0.001,
+     0.001
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://103262704145994",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     -0.11513,
+     0.35452,
+     -0.3129,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "eye_L_inner",
+    "size": [
+     0.07725,
+     0.07725,
+     0.0018
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://104740345574925",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     -0.12,
+     0.53393,
+     -0.2325,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "ear_L",
+    "size": [
+     0.135,
+     0.06885,
+     0.135
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://135400268146877",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     -0.12,
+     0.5913,
+     -0.2325,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "ear_L_tip",
+    "size": [
+     0.0783,
+     0.0459,
+     0.0783
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://84987615593894",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0.11513,
+     0.35452,
+     -0.3129,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "eye_R_inner",
+    "size": [
+     0.07725,
+     0.07725,
+     0.0018
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://104740345574925",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0.12,
+     0.53393,
+     -0.2325,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "ear_R",
+    "size": [
+     0.135,
+     0.06885,
+     0.135
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://84101033962864",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0.12,
+     0.5913,
+     -0.2325,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "ear_R_tip",
+    "size": [
+     0.0783,
+     0.0459,
+     0.0783
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://89693516168951",
+    "material": "Plastic",
+    "textureId": ""
+   }
+  ]
+ },
+ "AuxScene#52": {
+  "parts": [
+   {
+    "cframe": [
+     0,
+     0.32,
+     -0.158,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Head_Box",
+    "size": [
+     0.4,
+     0.336,
+     0.324
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://84698641593246",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     -0.114,
+     0.3016,
+     -0.3224,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Eye_L_Fill",
+    "size": [
+     0.084,
+     0.108,
+     0.008
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://127753406583043",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     -0.10139,
+     0.3124,
+     -0.3244,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Eye_L_Pupil",
+    "size": [
+     0.0588,
+     0.0864,
+     0.008
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://117664554878551",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     -0.106,
+     0.33686,
+     -0.3304,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Eye_L_Glint",
+    "size": [
+     0.0252,
+     0.0252,
+     0.0048
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://123631019014283",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0.114,
+     0.3016,
+     -0.3224,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Eye_R_Fill",
+    "size": [
+     0.084,
+     0.108,
+     0.008
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://113377932783578",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0.10139,
+     0.3124,
+     -0.3244,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Eye_R_Pupil",
+    "size": [
+     0.0588,
+     0.0864,
+     0.008
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://103887178151663",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0.106,
+     0.33686,
+     -0.3304,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Eye_R_Glint",
+    "size": [
+     0.0252,
+     0.0252,
+     0.0048
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://79723212293297",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0,
+     0.2508,
+     -0.3224,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Mouth_Bottom",
+    "size": [
+     0.036,
+     0.0064,
+     0.0048
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://106054575881693",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     -0.02299,
+     0.2566,
+     -0.3224,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Mouth_End_L",
+    "size": [
+     0.01,
+     0.0064,
+     0.0048
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://105874288602964",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0.02299,
+     0.2566,
+     -0.3224,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Mouth_End_R",
+    "size": [
+     0.01,
+     0.0064,
+     0.0048
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://109774929182500",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     -0.13499,
+     0.2206,
+     -0.3224,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Blush_L",
+    "size": [
+     0.04,
+     0.014,
+     0.0048
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://121249870676830",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0.13499,
+     0.2206,
+     -0.3224,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Blush_R",
+    "size": [
+     0.04,
+     0.014,
+     0.0048
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://125045616301612",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0,
+     0.126,
+     -0.048,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Body_Box",
+    "size": [
+     0.268,
+     0.108,
+     0.36
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://85245841351198",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     -0.09599,
+     0.04,
+     -0.184,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Leg_FL",
+    "size": [
+     0.06,
+     0.08,
+     0.06
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://107072294898187",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0.09599,
+     0.04,
+     -0.184,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Leg_FR",
+    "size": [
+     0.06,
+     0.08,
+     0.06
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://119396331205553",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     -0.09599,
+     0.04,
+     0.088,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Leg_BL",
+    "size": [
+     0.06,
+     0.08,
+     0.06
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://116511095491556",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0.09599,
+     0.04,
+     0.088,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Leg_BR",
+    "size": [
+     0.06,
+     0.08,
+     0.06
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://111449839755822",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0,
+     0.136,
+     0.156,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Lantern_Connector",
+    "size": [
+     0.12,
+     0.12,
+     0.064
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://100045334016697",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0,
+     0.176,
+     0.28,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Lantern_Core",
+    "size": [
+     0.196,
+     0.196,
+     0.196
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://89431405931949",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0,
+     0.26,
+     0.196,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Lantern_Frame1",
+    "size": [
+     0.2,
+     0.032,
+     0.032
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://106790594726024",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0,
+     0.26,
+     0.364,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Lantern_Frame2",
+    "size": [
+     0.2,
+     0.032,
+     0.032
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://72842271446189",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0,
+     0.092,
+     0.196,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Lantern_Frame3",
+    "size": [
+     0.2,
+     0.032,
+     0.032
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://97654856782195",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0,
+     0.092,
+     0.364,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Lantern_Frame4",
+    "size": [
+     0.2,
+     0.032,
+     0.032
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://128925895719547",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     -0.084,
+     0.176,
+     0.196,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Lantern_Frame5",
+    "size": [
+     0.032,
+     0.136,
+     0.032
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://90678795110120",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     -0.084,
+     0.176,
+     0.364,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Lantern_Frame6",
+    "size": [
+     0.032,
+     0.136,
+     0.032
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://87414525860056",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0.084,
+     0.176,
+     0.196,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Lantern_Frame7",
+    "size": [
+     0.032,
+     0.136,
+     0.032
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://91985512065962",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0.084,
+     0.176,
+     0.364,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Lantern_Frame8",
+    "size": [
+     0.032,
+     0.136,
+     0.032
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://113574475764441",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     -0.084,
+     0.26,
+     0.28,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Lantern_Frame9",
+    "size": [
+     0.032,
+     0.032,
+     0.136
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://76075968773737",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     -0.084,
+     0.092,
+     0.28,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Lantern_Frame10",
+    "size": [
+     0.032,
+     0.032,
+     0.136
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://131480700201260",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0.084,
+     0.26,
+     0.28,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Lantern_Frame11",
+    "size": [
+     0.032,
+     0.032,
+     0.136
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://75723686813667",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0.084,
+     0.092,
+     0.28,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Lantern_Frame12",
+    "size": [
+     0.032,
+     0.032,
+     0.136
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://117926696212784",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     -0.32001,
+     0.168,
+     -0.054,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Wing_L_Pane",
+    "size": [
+     0.296,
+     0.014,
+     0.116
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://90881010224764",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     -0.32001,
+     0.168,
+     0.01,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Wing_L_EdgeA",
+    "size": [
+     0.32,
+     0.018,
+     0.012
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://122654573362745",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     -0.32001,
+     0.168,
+     -0.118,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Wing_L_EdgeB",
+    "size": [
+     0.32,
+     0.018,
+     0.012
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://77545056490280",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     -0.166,
+     0.168,
+     -0.054,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Wing_L_EdgeC",
+    "size": [
+     0.012,
+     0.018,
+     0.116
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://120054854388425",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     -0.474,
+     0.168,
+     -0.054,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Wing_L_EdgeD",
+    "size": [
+     0.012,
+     0.018,
+     0.116
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://99280451864969",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0,
+     0.168,
+     -0.054,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Wing_R_Pane",
+    "size": [
+     0.296,
+     0.014,
+     0.116
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://78463368122627",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0,
+     0.168,
+     0.01,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Wing_R_EdgeA",
+    "size": [
+     0.32,
+     0.018,
+     0.012
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://76900281366374",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0,
+     0.168,
+     -0.118,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Wing_R_EdgeB",
+    "size": [
+     0.32,
+     0.018,
+     0.012
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://131936877227336",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0.15401,
+     0.168,
+     -0.054,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Wing_R_EdgeC",
+    "size": [
+     0.012,
+     0.018,
+     0.116
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://119159019496492",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     -0.15401,
+     0.168,
+     -0.054,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Wing_R_EdgeD",
+    "size": [
+     0.012,
+     0.018,
+     0.116
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://126974006214570",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     -0.114,
+     0.3016,
+     -0.3232,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Eye_L_Edge",
+    "size": [
+     0.084,
+     0.108,
+     0.008
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://92645730315281",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     -0.114,
+     0.3016,
+     -0.3208,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Eye_L_Bloom",
+    "size": [
+     0.1048,
+     0.1288,
+     0.0016
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://100028648985190",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     -0.114,
+     0.3016,
+     -0.3216,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Eye_L_BloomInner",
+    "size": [
+     0.0928,
+     0.1168,
+     0.0016
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://108953255681630",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     -0.09779,
+     0.316,
+     -0.3252,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Eye_L_PupilCore",
+    "size": [
+     0.0516,
+     0.0792,
+     0.008
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://103823313639340",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0.114,
+     0.3016,
+     -0.3232,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Eye_R_Edge",
+    "size": [
+     0.084,
+     0.108,
+     0.008
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://132683072845384",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0.114,
+     0.3016,
+     -0.3208,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Eye_R_Bloom",
+    "size": [
+     0.1048,
+     0.1288,
+     0.0016
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://78206198561087",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0.114,
+     0.3016,
+     -0.3216,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Eye_R_BloomInner",
+    "size": [
+     0.0928,
+     0.1168,
+     0.0016
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://92383165431061",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0.09779,
+     0.316,
+     -0.3252,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Eye_R_PupilCore",
+    "size": [
+     0.0516,
+     0.0792,
+     0.008
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://87782728090301",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     -0.0248,
+     0.2624,
+     -0.3224,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Mouth_End_L_Tip",
+    "size": [
+     0.0064,
+     0.0064,
+     0.0048
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://88854844903914",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0.0248,
+     0.2624,
+     -0.3224,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Mouth_End_R_Tip",
+    "size": [
+     0.0064,
+     0.0064,
+     0.0048
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://102855876966525",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     -0.12,
+     0.51,
+     -0.176,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Antenna_L_Stalk1",
+    "size": [
+     0.02,
+     0.078,
+     0.02
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://134246023478880",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0.12,
+     0.51,
+     -0.176,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Antenna_R_Stalk1",
+    "size": [
+     0.02,
+     0.078,
+     0.02
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://80252322618190",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     -0.12,
+     0.574,
+     -0.176,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Antenna_L_Stalk2",
+    "size": [
+     0.02,
+     0.07,
+     0.02
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://139681009270813",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0.12,
+     0.574,
+     -0.176,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Antenna_R_Stalk2",
+    "size": [
+     0.02,
+     0.07,
+     0.02
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://107251907158848",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     -0.12,
+     0.63,
+     -0.176,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Antenna_L_Stalk3",
+    "size": [
+     0.02,
+     0.062,
+     0.02
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://87597564859067",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0.12,
+     0.63,
+     -0.176,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Antenna_R_Stalk3",
+    "size": [
+     0.02,
+     0.062,
+     0.02
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://86331095287871",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     -0.12,
+     0.67,
+     -0.176,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Antenna_L_Tip",
+    "size": [
+     0.04,
+     0.04,
+     0.04
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://120058542488139",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0.12,
+     0.67,
+     -0.176,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Antenna_R_Tip",
+    "size": [
+     0.04,
+     0.04,
+     0.04
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://94715747186862",
     "material": "Plastic",
     "textureId": ""
    }

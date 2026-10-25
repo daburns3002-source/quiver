@@ -848,6 +848,7 @@ for key, skin in skins do
 		bolt = skin.bolt or twigBow.bolt,
 		kit = "TwigBowDual",
 		rainbow = skin.rainbow,
+		shotGlow = skin.shotGlow,
 		parts = skin.parts,
 		dualOf = key,
 	} :: Weapon

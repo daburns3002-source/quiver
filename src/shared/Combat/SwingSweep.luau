@@ -5,7 +5,7 @@
 	two swings and a circle in front of the player for the last slam").
 
 	A ribbon (`Fx/SwingTrail`) runs between two points this moves over the
-	swing: the blade, from partway along it out to its tip. Then it reads as
+	swing: the blade, from just in front of the swinger out to its tip. Then it reads as
 	a sword swinging, a crescent streaming behind the tip (owner,
 	2026-10-23: "it should still look like they are swinging a sword"),
 	while it still traces the blow's shape (`SwingBox.shape`), growing with
@@ -24,8 +24,11 @@ local SwingBox = require(script.Parent.SwingBox)
 local SwingSweep = {}
 
 --[[ How far along the blade the streak starts, as a share of its reach:
-     the outer part of the arc, where the tip travels. ]]
-SwingSweep.INNER = 0.55
+     from just in front of the swinger out to the tip, so the swing reads
+     as filling the ground it strikes (owner, 2026-10-25: "the visual
+     cleave area for the swords needs to be bigger, it should almost touch
+     the player"). ]]
+SwingSweep.INNER = 0.15
 
 export type Sweep = "LeftToRight" | "RightToLeft" | "Spin"
 

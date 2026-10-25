@@ -247,7 +247,10 @@ end
 function RunSession.applyLoadout(session: Session)
 	local counts = session.loadout.counts
 	local class = session.loadout.class
-	local stats = AbilityEffects.serverStats(counts, class)
+	--[[ The weapon in hand when not the class's own: its rarity's damage
+	     and a Legendary's or Mythic's built-in effect (`Config/WeaponStats`). ]]
+	local equipped = session.loadout.weapon
+	local stats = AbilityEffects.serverStats(counts, class, equipped)
 
 	local ratio = if session.maxHealth > 0 then session.health / session.maxHealth else 1
 
@@ -269,11 +272,11 @@ function RunSession.applyLoadout(session: Session)
 	session.melee = stats.melee
 
 	session.pipeline:clear()
-	for _, stage in AbilityEffects.stages(counts, class) do
+	for _, stage in AbilityEffects.stages(counts, class, equipped) do
 		session.pipeline:addStage(stage)
 	end
 
-	playerStats:FireClient(session.player, AbilityEffects.clientStats(counts, class))
+	playerStats:FireClient(session.player, AbilityEffects.clientStats(counts, class, equipped))
 	--[[ The weapon in hand: the class's own, unless a drafted card puts
 	     another there (`Ability.weapon`, the Dual Bows Mythic, as a pair
 	     of the bow in hand: `Combat/HeldWeaponChoice`). `Main` re-equips

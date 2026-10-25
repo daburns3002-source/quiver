@@ -3,6 +3,10 @@
 	The end screens' motion: per element, milliseconds from the moment the
 	screen is shown (design_handoff_end_screens, Timeline.luau). Easings:
 	BackOut is Enum.EasingStyle.Back, Out; CubicOut and CubicIn likewise.
+
+	Distances are pixels of the reference sheets (`Config/EndScreenLayout`),
+	about 1.9 times the first design's, so the moves are the same share of
+	the screen as they were.
 ]]
 
 local EndScreenTimeline = {
@@ -11,16 +15,16 @@ local EndScreenTimeline = {
 			start = 100,
 			dur = 560,
 			ease = "BackOut",
-			fromOffsetY = -220,
+			fromOffsetY = -420,
 			fromScale = 1.25,
-			idleBob = 2,
+			idleBob = 4,
 		},
 		sub = { start = 480, dur = 420, ease = "BackOut", fromScale = 0, fromRotation = -6 },
 		rays = {
 			start = 500,
 			dur = 600,
 			ease = "CubicOut",
-			toTransparency = 0.15,
+			toTransparency = 0.55,
 			spinDegPerSec = 12,
 			fromScale = 0.6,
 		},
@@ -30,24 +34,26 @@ local EndScreenTimeline = {
 			ease = "BackOut",
 			fromScale = 0.2,
 			fromRotation = -10,
-			idleFloat = 4,
+			idleFloat = 8,
 			idleRadPerSec = 1.6,
 		},
-		flash = { peak = 820, halfWidth = 260, maxOpacity = 0.85 },
-		sparks = { start = 800, dur = 650, count = 12, radius = { 120, 190 } },
+		--[[ The floating cubes pop in round the trophy, then bob. ]]
+		cubes = { start = 760, stagger = 45, dur = 300, idleBob = 6, idleRadPerSec = 1.8 },
+		flash = { peak = 820, halfWidth = 260, maxOpacity = 0.6 },
+		sparks = { start = 800, dur = 650, count = 12, radius = { 230, 360 } },
 		confetti = {
 			start = 900,
 			count = 38,
 			staggerMax = 1800,
-			fallPxPerSec = { 90, 170 },
-			sway = { 10, 32 },
+			fallPxPerSec = { 170, 320 },
+			sway = { 19, 61 },
 		},
-		panel = { start = 1150, dur = 450, ease = "CubicOut", fromOffsetY = 60 },
+		panel = { start = 1150, dur = 450, ease = "CubicOut", fromOffsetY = 114 },
 		rows = {
 			start = 1400,
 			stagger = 170,
 			dur = 340,
-			fromOffsetX = -40,
+			fromOffsetX = -76,
 			countDelay = 100,
 			countDur = 700,
 		},
@@ -69,34 +75,39 @@ local EndScreenTimeline = {
 			shineEvery = 2400,
 			enableAt = 3200,
 		},
-		home = { start = 3000, dur = 320, ease = "CubicOut", fromOffsetY = 20 },
 	},
 	defeat = {
 		banner = { start = 100, dur = 420, ease = "CubicIn", fromScale = 2.3, fromRotation = -4 },
-		shake = { start = 520, dur = 430, amplitude = 9 },
+		shake = { start = 520, dur = 430, amplitude = 17 },
 		sub = { start = 680, dur = 400, ease = "BackOut", fromScale = 0 },
 		hero = {
 			start = 780,
 			dur = 520,
 			ease = "BackOut",
-			fromOffsetY = -140,
+			fromOffsetY = -260,
 			fromRotation = 8,
-			idleFloat = 3,
-			idleRadPerSec = 1.3,
+			idleFloat = 4,
+			idleRadPerSec = 1.0,
 		},
-		glow = { start = 900, dur = 500, pulseRadPerSec = 3 },
-		--[[ Toned right down from the reference's 0.22–0.54 and 0.9: the owner
-		     found the red "too much" (2026-10-22). ]]
-		vignette = { start = 500, dur = 600, opacity = { 0.06, 0.14 }, pulseRadPerSec = 2.5 },
-		flash = { peak = 1200, halfWidth = 220, maxOpacity = 0.45 },
-		rocks = { start = 1180, life = 1500, count = 9, gravityPxPerSec2 = 900 },
-		embers = { start = 900, count = 20, risePxPerSec = { 35, 75 }, sway = { 8, 26 } },
-		panel = { start = 1350, dur = 450, ease = "CubicOut", fromOffsetY = 60 },
+		cubes = { start = 860, stagger = 45, dur = 300, idleBob = 5, idleRadPerSec = 1.2 },
+		flash = { peak = 1200, halfWidth = 220, maxOpacity = 0.3 },
+		--[[ Grey cubes knocked up off the broken shield, then falling. ]]
+		rocks = { start = 1180, life = 1500, count = 9, gravityPxPerSec2 = 1700 },
+		--[[ The rain: thin streaks falling on a slant, round and round. ]]
+		rain = {
+			start = 300,
+			fadeIn = 600,
+			count = 70,
+			fallPxPerSec = { 700, 1000 },
+			length = { 26, 48 },
+			slantDeg = 14,
+		},
+		panel = { start = 1350, dur = 450, ease = "CubicOut", fromOffsetY = 114 },
 		rows = {
 			start = 1600,
 			stagger = 170,
 			dur = 340,
-			fromOffsetX = -40,
+			fromOffsetX = -76,
 			countDelay = 100,
 			countDur = 700,
 		},
@@ -107,6 +118,7 @@ local EndScreenTimeline = {
 			ease = "BackOut",
 			fromScale = 0.85,
 			coinsCount = { 2600, 3400 },
+			gemsCount = { 2700, 3400 },
 		},
 		button = {
 			start = 3100,
@@ -119,7 +131,6 @@ local EndScreenTimeline = {
 			iconSpinDur = 650,
 			enableAt = 3600,
 		},
-		home = { start = 3400, dur = 320, ease = "CubicOut", fromOffsetY = 20 },
 	},
 }
 

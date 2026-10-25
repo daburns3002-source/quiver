@@ -1,0 +1,8 @@
+Use your image generation tool. Draw on a perfectly flat, solid pure magenta background (#FF00FF) everywhere outside the object, with no shadow on the background, no gradient, no texture, no vignette, so it can be cut out by colour. Do NOT use magenta or pink anywhere inside the object. Keep a generous empty margin of magenta around it. No text, no letters anywhere.
+Style: exactly the blocky style of the reference sheet (first reference image): chunky voxel / stair-stepped pixel shapes, flat 2-3 tone shading, thick near-black (#1B1B2B) ink outline, no smooth gradients, no blur.
+Save the PNG in the current folder with the exact file name given.
+
+Make ONE image, file icons.png, 1536 x 1024: a sprite sheet of 12 small blocky pixel icons from the reference sheets, laid out in a neat grid of 4 columns and 3 rows, each icon centred in its own cell with lots of magenta space between icons (no icon touching another or the edge). Each icon about 200 px. Copy their look from the reference sheets:
+Row 1: white pixel skull; hourglass (gold frame, blue sand); red pixel heart; green rising bar-chart (three bars).
+Row 2: gold voxel coin; purple voxel gem; white blocky right chevron arrow ">" with ink outline; white blocky circular retry arrow with ink outline.
+Row 3: a voxel cube in plain light grey/white shades (top face lightest, two side faces darker greys) with ink outline; a small light-blue pixel raindrop; a gold voxel star; a small white pixel sparkle (plus shape).

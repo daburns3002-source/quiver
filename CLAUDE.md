@@ -161,8 +161,16 @@ What exists and works, all verified in Studio rather than only by the gates:
   the screen. Fully animated from `EndScreenTimeline` by
   `UI/EndScreenMotion` (posed from one clock, so a tap skips by moving the
   clock); `EndScreen.hold(ms)` freezes it at one moment for a Studio
-  capture. REWARDS and HOME are left out until currency and a lobby exist
-  (owner's choice).
+  capture. **Blocky since 2026-10-25** (owner: "change defeat and victory
+  screen to new blocky design language"): built 1:1 from Codex sheets
+  `assets/concepts/blocky/ui/end_victory.jpg` / `end_defeat.jpg`, laid out
+  in the sheets' own pixels (`EndScreenLayout`), every panel, row and
+  button flat blocks with stepped corners, the art Codex's
+  (`assets/ui/end_screens/cutout.py`). Defeat is deliberately sad (slate,
+  rain, the fallen hood; owner: "make the defeat screen sadder"). Both keep
+  a REWARDS box (coins, gems) that counts up `Summary.coins` / `gems`,
+  which nothing sends until the meta loop pays out. HOME stays out until a
+  lobby exists.
 - **Phase 3, mostly:** the shot pipeline with its abilities as data, XP and a
   choose-one-of-three draft that pauses the world, crit, splash, Ricochet
   (enemy to enemy), Bouncy Wall, Tracking Eye (homing), Double Shot

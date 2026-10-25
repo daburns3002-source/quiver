@@ -1,9 +1,16 @@
 --!strict
 --[[
-	The Victory and Defeat screens, from the owner's design
-	(design_handoff_end_screens). Built at the design's 540 × 624 and
-	scaled as a whole: 85% of the screen's height, or the screen's width on
-	a phone held upright.
+	The Victory and Defeat screens, in the blocky design language (owner,
+	2026-10-25), built to match their Codex reference sheets
+	(`assets/concepts/blocky/ui/end_victory.jpg`, `end_defeat.jpg`). Built
+	at the sheets' 1024 × 1536 and scaled as a whole: 85% of the screen's
+	height, or the screen's width on a phone held upright.
+
+	Every panel, plate, row and button is drawn from flat blocks: an ink
+	outline, a fill with a lighter strip on top and a darker band below,
+	and stair-stepped corners made of overlapping rectangles. The art the
+	sheets draw (ribbons, the pictures, icons, cubes) is Codex's, in
+	`Config/EndScreenAssets`; every word is live, in the blocky font.
 
 	Presentation only. The server decides that the run is over, whether it
 	was won, and every number shown; the button only asks it for the next
@@ -13,10 +20,10 @@
 	`Config/EndScreenTimeline`. A tap anywhere jumps to the end of it; the
 	button only takes a press once its own entrance has finished.
 
-	Not shown yet, by the owner's choice: the REWARDS box (there are no coins
-	or gems until the meta loop) and HOME (there is no lobby). The stats
-	panel closes up where the rewards would sit, and the button moves up
-	with it.
+	The REWARDS box is there for the coins and gems a run will pay out
+	(owner, 2026-10-25: "still leave an area on both screens for rewards");
+	until the meta loop pays any, it counts up to whatever the summary
+	carries, which is nothing yet.
 ]]
 
 local Players = game:GetService("Players")
@@ -26,7 +33,6 @@ local UserInputService = game:GetService("UserInputService")
 local Workspace = game:GetService("Workspace")
 
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
-local CardAssets = require(ReplicatedStorage.Shared.Config.CardAssets)
 local EndScreenAssets = require(ReplicatedStorage.Shared.Config.EndScreenAssets)
 local EndScreenLayout = require(ReplicatedStorage.Shared.Config.EndScreenLayout)
 local EndScreenTheme = require(ReplicatedStorage.Shared.Config.EndScreenTheme)
@@ -43,19 +49,21 @@ export type Summary = {
 	seconds: number,
 	healthPercent: number,
 	progressPercent: number,
+	--[[ What the run paid out; nil until the meta loop pays anything. ]]
+	coins: number?,
+	gems: number?,
 }
 
-type Stops = ColorSequence
 type Box = { x: number, y: number, w: number, h: number }
+type Block = EndScreenTheme.Block
 
 local Theme = EndScreenTheme
-local Layout = EndScreenLayout
+local CANVAS = EndScreenLayout.canvas
 local INK = Theme.ink
 local WHITE = Theme.white
-local DISPLAY = Theme.fonts.display
-local BODY = Theme.fonts.body
+local FONT = Theme.font
 
---[[ Share of the screen's height the panel fills, and of its width when the
+--[[ Share of the screen's height the sheet fills, and of its width when the
      width is the tighter fit. ]]
 local HEIGHT_SHARE = 0.85
 --[[ A phone held sideways is all height-bound, so it gets nearly the whole
@@ -63,23 +71,15 @@ local HEIGHT_SHARE = 0.85
 local PHONE_HEIGHT_SHARE = 0.97
 local PHONE_WIDTH_SHARE = 0.98
 local WIDTH_SHARE = 0.94
+--[[ Roblox's largest TextSize. ]]
+local MAX_TEXT = 100
 
 local gui: ScreenGui? = nil
 local scaler: UIScale? = nil
-local panelHeight = Theme.panelSize.Y
 local viewportConnection: RBXScriptConnection? = nil
 local inputConnection: RBXScriptConnection? = nil
 local motion: EndScreenMotion.Motion? = nil
 local onRestart: (() -> ())? = nil
-
---[[ A top-to-bottom gradient over `target`, which is drawn white so the
-     gradient's colours come through unchanged. ]]
-local function gradient(target: GuiObject, stops: Stops)
-	local g = Instance.new("UIGradient")
-	g.Color = stops
-	g.Rotation = 90
-	g.Parent = target
-end
 
 local function frame(parent: Instance, name: string, b: Box, z: number): Frame
 	local f = Instance.new("Frame")
@@ -94,19 +94,11 @@ local function frame(parent: Instance, name: string, b: Box, z: number): Frame
 	return f
 end
 
-local function corner(parent: Instance, radius: number)
-	local c = Instance.new("UICorner")
-	c.CornerRadius = UDim.new(0, radius)
-	c.Parent = parent
-end
-
-local function outline(parent: Instance, colour: Color3, thickness: number)
-	local s = Instance.new("UIStroke")
-	s.Color = colour
-	s.Thickness = thickness
-	s.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-	s.LineJoinMode = Enum.LineJoinMode.Round
-	s.Parent = parent
+local function rect(parent: Instance, name: string, b: Box, z: number, colour: Color3): Frame
+	local f = frame(parent, name, b, z)
+	f.BackgroundColor3 = colour
+	f.BackgroundTransparency = 0
+	return f
 end
 
 local function image(parent: Instance, name: string, b: Box, z: number, asset: string): ImageLabel
@@ -117,50 +109,59 @@ local function image(parent: Instance, name: string, b: Box, z: number, asset: s
 	i.BackgroundTransparency = 1
 	i.Image = asset
 	i.ScaleType = Enum.ScaleType.Fit
+	i.ResampleMode = Enum.ResamplerMode.Pixelated
 	i.ZIndex = z
 	i.Parent = parent
 	return i
 end
 
---[[
-	Stroked type. `cssStroke` is the design's text-stroke width; half of it
-	shows outside the glyph, so that is the UIStroke drawn.
-]]
+--[[ Blocky type with a hard ink outline. ]]
 local function text(
 	parent: Instance,
 	name: string,
 	b: Box,
 	z: number,
 	content: string,
-	font: Enum.Font,
 	size: number,
 	colour: Color3,
-	cssStroke: number
+	stroke: number
 ): TextLabel
 	local t = Instance.new("TextLabel")
 	t.Name = name
 	t.Position = UDim2.fromOffset(b.x, b.y)
 	t.Size = UDim2.fromOffset(b.w, b.h)
 	t.BackgroundTransparency = 1
-	t.Font = font
+	t.Font = FONT
 	t.Text = content
-	t.TextSize = size
 	t.TextColor3 = colour
 	t.ZIndex = z
 	t.Parent = parent
-	if cssStroke > 0 then
+	--[[ Roblox draws type no larger than 100: a bigger title is drawn at a
+	     fraction of its size, in a box that fraction of its own, and
+	     scaled back up about its centre. ]]
+	local k = math.ceil(size / MAX_TEXT)
+	t.TextSize = size / k
+	if k > 1 then
+		t.AnchorPoint = Vector2.new(0.5, 0.5)
+		t.Position = UDim2.fromOffset(b.x + b.w / 2, b.y + b.h / 2)
+		t.Size = UDim2.fromOffset(b.w / k, b.h / k)
+		local up = Instance.new("UIScale")
+		up.Scale = k
+		up.Parent = t
+	end
+	if stroke > 0 then
 		local s = Instance.new("UIStroke")
 		s.Color = INK
-		s.Thickness = cssStroke / 2
+		s.Thickness = stroke / k
 		s.ApplyStrokeMode = Enum.ApplyStrokeMode.Contextual
-		s.LineJoinMode = Enum.LineJoinMode.Round
+		s.LineJoinMode = Enum.LineJoinMode.Miter
 		s.Parent = t
 	end
 	return t
 end
 
-local function width(content: string, font: Enum.Font, size: number): number
-	return TextService:GetTextSize(content, size, font, Vector2.new(2000, 200)).X
+local function width(content: string, size: number): number
+	return TextService:GetTextSize(content, size, FONT, Vector2.new(4000, 400)).X
 end
 
 local function clock(seconds: number): string
@@ -168,12 +169,106 @@ local function clock(seconds: number): string
 	return string.format("%02d:%02d", s // 60, s % 60)
 end
 
---[[ A hard drop shadow: the same rounded box in ink, `drop` lower. ]]
-local function shadow(parent: Instance, b: Box, z: number, radius: number, drop: number)
-	local s = frame(parent, "Shadow", { x = b.x, y = b.y + drop, w = b.w, h = b.h }, z)
-	s.BackgroundColor3 = INK
-	s.BackgroundTransparency = 0
-	corner(s, radius)
+--[[
+	A stair-stepped box in one colour: `steps` steps at each corner, each
+	`sx` across and `sy` down, drawn as overlapping rectangles (the widest
+	one the shortest).
+]]
+local function stepped(
+	parent: Instance,
+	name: string,
+	b: Box,
+	z: number,
+	colour: Color3,
+	steps: number,
+	sx: number,
+	sy: number
+)
+	for i = 0, steps do
+		local ix = (steps - i) * sx
+		local iy = i * sy
+		rect(
+			parent,
+			name,
+			{ x = b.x + ix, y = b.y + iy, w = b.w - 2 * ix, h = b.h - 2 * iy },
+			z,
+			colour
+		)
+	end
+end
+
+--[[ A flat block (`Theme.Block`) filling `b` of `parent`, its layers at
+     `z` and above. Returns the block's own frame. ]]
+local function block(
+	parent: Instance,
+	name: string,
+	b: Box,
+	z: number,
+	look: Block,
+	steps: number?,
+	sx: number?,
+	sy: number?
+): Frame
+	local f = frame(parent, name, b, z)
+	local n = steps or 0
+	local stepX = sx or 0
+	local stepY = sy or stepX
+	local function layer(inset: number, top: number, bottom: number, colour: Color3, at: number)
+		stepped(f, "Layer", {
+			x = inset,
+			y = inset + top,
+			w = b.w - 2 * inset,
+			h = b.h - 2 * inset - top - bottom,
+		}, at, colour, n, stepX, stepY)
+	end
+	layer(0, 0, 0, look.ink, z)
+	local inset = look.inkW
+	if look.rim then
+		layer(inset, 0, 0, look.rim, z)
+		inset += look.rimW or 0
+	end
+	local topH = if look.top then look.topH or 0 else 0
+	local bottomH = if look.bottom then look.bottomH or 0 else 0
+	if look.bottom then
+		layer(inset, 0, 0, look.bottom, z)
+	end
+	if look.top then
+		layer(inset, 0, bottomH, look.top, z)
+	end
+	layer(inset, topH, bottomH, look.fill, z)
+	return f
+end
+
+--[[ A grey Codex cube tinted `colour`, centred on (x, y). ]]
+local function cube(
+	parent: Instance,
+	x: number,
+	y: number,
+	size: number,
+	z: number,
+	colour: Color3
+): ImageLabel
+	local c = image(
+		parent,
+		"Cube",
+		{ x = x - size / 2, y = y - size / 2, w = size, h = size },
+		z,
+		EndScreenAssets.cube
+	)
+	c.ImageColor3 = colour
+	return c
+end
+
+--[[ A little square stud with an ink edge, centred on (x, y). ]]
+local function stud(parent: Instance, x: number, y: number, size: number, z: number, colour: Color3)
+	rect(
+		parent,
+		"Stud",
+		{ x = x - size / 2 - 4, y = y - size / 2 - 4, w = size + 8, h = size + 8 },
+		z,
+		INK
+	)
+	rect(parent, "Stud", { x = x - size / 2, y = y - size / 2, w = size, h = size }, z, colour)
 end
 
 --[[ Re-anchors `obj` on its own centre without moving it, and gives it a
@@ -187,207 +282,157 @@ local function pivot(obj: GuiObject): UIScale
 	return scale
 end
 
---[[ A white shape image tinted by a gradient, with an ink copy behind it
-     `pad` larger all round: how the design outlines its ribbon pieces. ]]
-local function shape(
-	parent: Instance,
-	name: string,
-	asset: string,
-	inkBox: Box,
-	fillBox: Box,
-	z: number,
-	stops: Stops
-)
-	local back = image(parent, name .. "Ink", inkBox, z, asset)
-	back.ScaleType = Enum.ScaleType.Stretch
-	back.ImageColor3 = INK
-	local front = image(parent, name, fillBox, z + 1, asset)
-	front.ScaleType = Enum.ScaleType.Stretch
-	gradient(front, stops)
-end
-
-local function buildRibbon(parent: Instance, look: any, won: boolean): (Frame, Frame)
-	local b = Layout.banner
-	local ribbon = frame(parent, "Ribbon", b, 20)
-
-	shape(ribbon, "TailLeft", EndScreenAssets.tailLeft, { x = 0, y = 34, w = 90, h = 54 }, {
-		x = 4,
-		y = 38,
-		w = 84,
-		h = 46,
-	}, 20, look.tails)
-	shape(
+local function buildRibbon(parent: Instance, look: any, layout: any, won: boolean): (Frame, Frame)
+	local rb: Box = layout.ribbon
+	local ribbon = frame(parent, "Ribbon", rb, 20)
+	local art = image(
 		ribbon,
-		"TailRight",
-		EndScreenAssets.tailRight,
-		{ x = b.w - 90, y = 34, w = 90, h = 54 },
-		{
-			x = b.w - 88,
-			y = 38,
-			w = 84,
-			h = 46,
-		},
+		"Art",
+		{ x = 0, y = 0, w = rb.w, h = rb.h },
 		20,
-		look.tails
+		if won then EndScreenAssets.ribbonVictory else EndScreenAssets.ribbonDefeat
 	)
-	shape(ribbon, "Band", EndScreenAssets.band, { x = 52, y = 4, w = b.w - 104, h = 80 }, {
-		x = 57,
-		y = 9,
-		w = b.w - 114,
-		h = 70,
-	}, 22, look.band)
+	art.ScaleType = Enum.ScaleType.Stretch
 
-	-- The title, with a 5 px ink drop behind it.
-	local titleBox = { x = 57, y = 9, w = b.w - 114, h = 70 }
+	--[[ The title: white over a lighter-or-gold lower half, hard-split like
+	     the sheet's letters, with an ink drop under it. ]]
+	local tb: Box = layout.title
+	local inner = { x = tb.x - rb.x, y = tb.y - rb.y, w = tb.w, h = tb.h }
 	local drop = text(
 		ribbon,
 		"TitleDrop",
-		{ x = titleBox.x, y = titleBox.y + 5, w = titleBox.w, h = titleBox.h },
-		24,
+		{ x = inner.x, y = inner.y + 9, w = inner.w, h = inner.h },
+		21,
 		look.titleText,
-		DISPLAY,
-		Theme.text.banner,
+		look.text.title,
 		INK,
-		Theme.text.bannerStroke
+		look.text.titleStroke
 	)
 	drop.TextTransparency = 0
-	text(
+	local title = text(
 		ribbon,
 		"Title",
-		titleBox,
-		25,
+		inner,
+		22,
 		look.titleText,
-		DISPLAY,
-		Theme.text.banner,
-		look.title,
-		Theme.text.bannerStroke
+		look.text.title,
+		WHITE,
+		look.text.titleStroke
 	)
+	local split = Instance.new("UIGradient")
+	split.Rotation = 90
+	split.Color = ColorSequence.new({
+		ColorSequenceKeypoint.new(0, look.title),
+		ColorSequenceKeypoint.new(0.56, look.title),
+		ColorSequenceKeypoint.new(0.561, look.titleLow),
+		ColorSequenceKeypoint.new(1, look.titleLow),
+	})
+	split.Parent = title
 
-	-- The sub-ribbon, a trapezoid over the band's lower edge.
-	local sb = if won then Layout.sub else Layout.subDefeat
-	local sub = frame(parent, "SubRibbon", sb, 26)
-	shape(sub, "Sub", EndScreenAssets.trapezoid, { x = 0, y = 0, w = sb.w, h = sb.h }, {
-		x = 5,
-		y = 4,
-		w = sb.w - 10,
-		h = sb.h - 8,
-	}, 26, look.sub)
+	local sb: Box = layout.sub
+	local sub = block(parent, "SubPlate", sb, 26, look.sub)
 	text(
 		sub,
 		"Text",
-		{ x = 0, y = 2, w = sb.w, h = sb.h },
-		28,
+		{ x = 0, y = 0, w = sb.w, h = sb.h - (look.sub.bottomH or 0) + 4 },
+		29,
 		look.subText,
-		DISPLAY,
-		if won then Theme.text.sub else Theme.text.subDefeat,
-		WHITE,
-		Theme.text.subStroke
+		look.text.sub,
+		look.subTextColour,
+		look.text.subStroke
 	)
+	if look.studs then
+		for _, at in { { 30, 30 }, { sb.w - 30, 30 }, { 30, sb.h - 34 }, { sb.w - 30, sb.h - 34 } } do
+			cube(sub, at[1], at[2], 30, 28, look.studs)
+		end
+	end
 
 	pivot(ribbon)
 	pivot(sub)
 	return ribbon, sub
 end
 
-local function buildHero(parent: Instance, look: any, won: boolean): CanvasGroup
-	if won then
-		local rays = image(parent, "Rays", Layout.rays, 3, CardAssets.rays)
-		rays.ImageColor3 = look.rays
-		rays.ImageTransparency = look.raysTransparency
-		pivot(rays)
-		local glow = image(
-			parent,
-			"Glow",
-			{ x = 270 - 190, y = 196 - 190, w = 380, h = 380 },
-			4,
-			CardAssets.glow
-		)
-		pivot(glow)
-		glow.ImageColor3 = look.glow
-		glow.ImageTransparency = 0.25
-	else
-		local glow = image(
-			parent,
-			"Glow",
-			{ x = 270 - 210, y = 196 - 150, w = 420, h = 300 },
-			4,
-			CardAssets.glow
-		)
-		glow.ScaleType = Enum.ScaleType.Stretch
-		glow.ImageColor3 = look.glow
-		glow.ImageTransparency = 0
-		pivot(glow)
-	end
-
-	--[[ The art in a CanvasGroup, so its bottom edge can be faded as well as
-	     its sides: the art was cut from the reference without its edges
-	     quite faded out (alpha ~0.3 at mid-edge), which drew a pale box
-	     round it, and the bottom shows while the stats panel slides in. ]]
-	local box = if won then Layout.heroVictory else Layout.heroDefeat
-	local hero = Instance.new("CanvasGroup")
-	hero.Name = "Hero"
-	hero.Position = UDim2.fromOffset(box.x, box.y)
-	hero.Size = UDim2.fromOffset(box.w, box.h)
-	hero.BackgroundTransparency = 1
-	hero.ZIndex = 6
-	hero.Parent = parent
-	local down = Instance.new("UIGradient")
-	down.Rotation = 90
-	down.Transparency = NumberSequence.new({
-		NumberSequenceKeypoint.new(0, 0),
-		NumberSequenceKeypoint.new(0.82, 0),
-		NumberSequenceKeypoint.new(1, 1),
-	})
-	down.Parent = hero
-
-	local art = image(
-		hero,
-		"Art",
-		{ x = 0, y = 0, w = box.w, h = box.h },
-		6,
-		if won then EndScreenAssets.victoryHero else EndScreenAssets.defeatHero
+local function buildHero(parent: Instance, layout: any, won: boolean): ImageLabel
+	local hero = image(
+		parent,
+		"Hero",
+		layout.hero,
+		8,
+		if won then EndScreenAssets.heroVictory else EndScreenAssets.heroDefeat
 	)
-	local feather = Instance.new("UIGradient")
-	feather.Transparency = NumberSequence.new({
-		NumberSequenceKeypoint.new(0, 1),
-		NumberSequenceKeypoint.new(0.12, 0),
-		NumberSequenceKeypoint.new(0.88, 0),
-		NumberSequenceKeypoint.new(1, 1),
-	})
-	feather.Parent = art
-
+	hero.ScaleType = Enum.ScaleType.Stretch
 	pivot(hero)
 	return hero
 end
 
+local function buildCubes(parent: Instance, look: any, layout: any): { ImageLabel }
+	local cubes: { ImageLabel } = {}
+	for _, c in layout.cubes do
+		local piece = cube(parent, c[1], c[2], c[3], 7, look.cubes)
+		pivot(piece)
+		table.insert(cubes, piece)
+	end
+	return cubes
+end
+
+export type Count =
+	{ label: TextLabel, kind: "Count" | "Clock" | "Percent" | "Plus", target: number }
+
+--[[ A tab over a panel's top edge: a block with its words, and a stud at
+     each end. ]]
+local function tab(
+	parent: Instance,
+	name: string,
+	b: Box,
+	z: number,
+	look: Block,
+	words: string,
+	size: number,
+	stroke: number,
+	studs: Color3?
+)
+	local t = block(parent, name, b, z, look)
+	text(
+		t,
+		"Text",
+		{ x = 0, y = 0, w = b.w, h = b.h - (look.bottomH or 0) + 4 },
+		z + 2,
+		words,
+		size,
+		WHITE,
+		stroke
+	)
+	if studs then
+		stud(t, 38, b.h / 2, 14, z + 1, studs)
+		stud(t, b.w - 38, b.h / 2, 14, z + 1, studs)
+	end
+end
+
 local function row(
-	panel: Instance,
+	parent: Instance,
+	look: any,
+	layout: any,
 	index: number,
 	icon: string,
 	label: string,
 	value: string
 ): Frame
-	local origin = Layout.rowsOrigin
-	local r = frame(panel, "Row" .. index, {
-		x = origin.X,
-		y = origin.Y + (index - 1) * (Theme.row.height + Theme.row.gap),
-		w = Layout.rowWidth,
-		h = Theme.row.height,
-	}, 33)
-	r.BackgroundColor3 = Theme.row.fill
-	r.BackgroundTransparency = 0
-	corner(r, Theme.row.corner)
-	outline(r, Theme.row.border, 2)
+	local rl = layout.rows
+	local r = block(parent, "Row" .. index, {
+		x = rl.x,
+		y = rl.y + (index - 1) * rl.pitch,
+		w = rl.w,
+		h = rl.h,
+	}, 33, look.row)
 
-	image(r, "Icon", { x = 6, y = 2, w = 26, h = 26 }, 34, icon)
+	image(r, "Icon", { x = rl.iconX, y = (rl.h - rl.icon) / 2, w = rl.icon, h = rl.icon }, 35, icon)
 	local l = text(
 		r,
 		"Label",
-		{ x = 40, y = 0, w = 220, h = Theme.row.height },
-		34,
+		{ x = rl.labelX, y = 2, w = 420, h = rl.h },
+		35,
 		label,
-		BODY,
-		Theme.text.rowLabel,
+		look.text.rowLabel,
 		WHITE,
 		0
 	)
@@ -395,118 +440,80 @@ local function row(
 	local v = text(
 		r,
 		"Value",
-		{ x = Layout.rowWidth - 152, y = 1, w = 140, h = Theme.row.height },
-		34,
+		{ x = rl.valueRight - 220, y = 2, w = 220, h = rl.h },
+		35,
 		value,
-		DISPLAY,
-		Theme.text.rowValue,
+		look.text.rowValue,
 		WHITE,
-		Theme.text.rowValueStroke
+		look.text.rowStroke
 	)
 	v.TextXAlignment = Enum.TextXAlignment.Right
 	return r
 end
 
---[[ Defeat's third row: a label, a bar and a percentage. ]]
-local function progressRow(panel: Instance, index: number, percent: number): Frame
-	local r = row(panel, index, EndScreenAssets.chart, "", string.format("%d%%", percent))
-	local l = r:FindFirstChild("Label") :: TextLabel
-	l.Font = DISPLAY
-	l.TextSize = Theme.text.rowLabelSmall
-	l.Text = "LEVEL PROGRESS"
-	local s = Instance.new("UIStroke")
-	s.Color = INK
-	s.Thickness = 1
-	s.Parent = l
-
-	local barX = 40 + width("LEVEL PROGRESS", DISPLAY, Theme.text.rowLabelSmall) + 12
-	local barW = Layout.rowWidth - barX - 64
-	local track = frame(r, "Track", { x = barX, y = 8, w = barW, h = 14 }, 35)
-	track.BackgroundColor3 = Theme.progress.track
-	track.BackgroundTransparency = 0
-	corner(track, 7)
-	outline(track, INK, 2)
-
-	local fillBar = frame(track, "Fill", { x = 0, y = 0, w = 0, h = 14 }, 36)
-	fillBar.Size = UDim2.fromScale(math.clamp(percent / 100, 0, 1), 1)
-	fillBar.BackgroundTransparency = 0
-	corner(fillBar, 7)
-	gradient(fillBar, Theme.progress.fill)
-	return fillBar
+--[[ Defeat's progress bar on its third row: a run of blocky segments.
+     Returns the function that lights them to a share. ]]
+local function progressBar(r: Frame, look: any, layout: any): (number) -> ()
+	local bar = layout.bar
+	local b = {
+		x = bar.x - layout.rows.x,
+		y = bar.y - (layout.rows.y + 2 * layout.rows.pitch),
+		w = bar.w,
+		h = bar.h,
+	}
+	rect(r, "BarInk", b, 36, INK)
+	local n = bar.segments
+	local gap = 4
+	local inner = { x = b.x + 5, y = b.y + 5, w = b.w - 10, h = b.h - 10 }
+	local segW = (inner.w - (n - 1) * gap) / n
+	type Segment = { body: Frame, top: Frame }
+	local segments: { Segment } = {}
+	for i = 1, n do
+		local x = inner.x + (i - 1) * (segW + gap)
+		local body =
+			rect(r, "Segment", { x = x, y = inner.y, w = segW, h = inner.h }, 37, look.barOff)
+		local top = rect(r, "SegmentTop", { x = x, y = inner.y, w = segW, h = 6 }, 38, look.barOff)
+		table.insert(segments, { body = body, top = top })
+	end
+	return function(share: number)
+		for i, s in segments do
+			local on = (i - 0.5) / n <= share
+			s.body.BackgroundColor3 = if on then look.barOn else look.barOff
+			s.top.BackgroundColor3 = if on then look.barOnTop else look.barOff
+		end
+	end
 end
-
-export type Count = { label: TextLabel, kind: "Count" | "Clock" | "Percent", target: number }
 
 export type Stats = {
 	group: Frame,
 	rows: { Frame },
 	counts: { Count },
-	fill: Frame?,
+	setProgress: ((number) -> ())?,
 	percent: number,
-	shiftUp: number,
+	rewards: Frame,
+	rewardCounts: { Count },
 }
 
-local function buildStats(content: Instance, summary: Summary): Stats
+local function buildStats(content: Instance, look: any, layout: any, summary: Summary): Stats
 	--[[ Everything on the stats panel in one group, so it can slide in as
 	     one piece. ]]
-	local parent = frame(
-		content,
-		"StatsGroup",
-		{ x = 0, y = 0, w = Theme.panelSize.X, h = Theme.panelSize.Y },
-		30
-	)
-	local pb = Layout.panel
-	local rowsBottom = Layout.rowsOrigin.Y + 3 * Theme.row.height + 2 * Theme.row.gap
-	-- Closed up to the rows while the rewards box is not shown.
-	local height = rowsBottom + 18
-	local b = { x = pb.x, y = pb.y, w = pb.w, h = height }
-
-	shadow(parent, b, 30, Theme.panel.corner, 6)
-	local panel = frame(parent, "Stats", b, 31)
-	panel.BackgroundTransparency = 0
-	corner(panel, Theme.panel.corner)
-	outline(panel, INK, 4)
-	gradient(panel, Theme.panel.fill)
-
-	local inner = frame(panel, "InnerLine", { x = 3, y = 3, w = b.w - 6, h = b.h - 6 }, 32)
-	corner(inner, Theme.panel.corner - 3)
-	outline(inner, Theme.panel.innerLine, 2)
-
-	-- The LEVEL tab over the top edge, with its cyan accents.
-	local tb = Layout.levelTab
-	local tab = frame(parent, "LevelTab", { x = tb.x, y = tb.y, w = tb.w, h = tb.h }, 40)
-	tab.BackgroundTransparency = 0
-	corner(tab, 14)
-	outline(tab, INK, 4)
-	gradient(tab, Theme.tab.fill)
-	text(
-		tab,
-		"Text",
-		{ x = 0, y = 3, w = tb.w, h = tb.h },
-		42,
+	local group = frame(content, "StatsGroup", { x = 0, y = 0, w = CANVAS.X, h = CANVAS.Y }, 30)
+	block(group, "Stats", layout.stats, 30, look.stats, 2, 10)
+	tab(
+		group,
+		"LevelTab",
+		layout.tab,
+		40,
+		look.tab,
 		"LEVEL " .. tostring(summary.stage),
-		DISPLAY,
-		Theme.text.level,
-		WHITE,
-		Theme.text.levelStroke
+		look.text.tab,
+		look.text.tabStroke,
+		look.tabStuds
 	)
-	for side = -1, 1, 2 do
-		local accent = frame(tab, "Accent", {
-			x = tb.w / 2 + side * (tb.w / 2 - 30) - 6,
-			y = 12,
-			w = 12,
-			h = 20,
-		}, 41)
-		accent.BackgroundColor3 = Theme.tab.accent
-		accent.BackgroundTransparency = 0
-		accent.Rotation = side * 24
-		corner(accent, 3)
-		outline(accent, INK, 2)
-	end
 
 	local rows: { Frame } = {}
 	local counts: { Count } = {}
-	local fill: Frame? = nil
+	local setProgress: ((number) -> ())? = nil
 	local function add(r: Frame, kind: "Count" | "Clock" | "Percent", target: number)
 		table.insert(rows, r)
 		table.insert(
@@ -515,45 +522,102 @@ local function buildStats(content: Instance, summary: Summary): Stats
 		)
 	end
 
+	local labels = look.labels
 	add(
-		row(panel, 1, EndScreenAssets.skull, "Enemies defeated", tostring(summary.kills)),
+		row(group, look, layout, 1, EndScreenAssets.skull, labels[1], tostring(summary.kills)),
 		"Count",
 		summary.kills
 	)
+	add(
+		row(group, look, layout, 2, EndScreenAssets.hourglass, labels[2], clock(summary.seconds)),
+		"Clock",
+		summary.seconds
+	)
 	if summary.won then
 		add(
-			row(panel, 2, EndScreenAssets.hourglass, "Time", clock(summary.seconds)),
-			"Clock",
-			summary.seconds
-		)
-		add(
 			row(
-				panel,
+				group,
+				look,
+				layout,
 				3,
 				EndScreenAssets.heart,
-				"Health remaining",
+				labels[3],
 				string.format("%d%%", summary.healthPercent)
 			),
 			"Percent",
 			summary.healthPercent
 		)
 	else
-		add(
-			row(panel, 2, EndScreenAssets.hourglass, "Time survived", clock(summary.seconds)),
-			"Clock",
-			summary.seconds
+		local r = row(
+			group,
+			look,
+			layout,
+			3,
+			EndScreenAssets.chart,
+			labels[3],
+			string.format("%d%%", summary.progressPercent)
 		)
-		fill = progressRow(panel, 3, summary.progressPercent)
-		add(panel:FindFirstChild("Row3") :: Frame, "Percent", summary.progressPercent)
+		setProgress = progressBar(r, look, layout)
+		add(r, "Percent", summary.progressPercent)
 	end
 
+	-- The rewards box: its own group, so it can pop in after the rows.
+	local rewards = frame(group, "Rewards", layout.rewards, 32)
+	local rb: Box = layout.rewards
+	block(rewards, "Box", { x = 0, y = 0, w = rb.w, h = rb.h }, 32, look.rewards)
+	local tb: Box = layout.rewardsTab
+	tab(
+		rewards,
+		"RewardsTab",
+		{ x = tb.x - rb.x, y = tb.y - rb.y, w = tb.w, h = tb.h },
+		40,
+		look.rewardsTabBlock or look.tab,
+		"REWARDS",
+		look.text.rewardsTab,
+		look.text.tabStroke,
+		if look.rewardsTabBlock then nil else look.tabStuds
+	)
+	local rewardCounts: { Count } = {}
+	for i, sb in layout.slots do
+		local slot = block(
+			rewards,
+			"Slot" .. i,
+			{ x = sb.x - rb.x, y = sb.y - rb.y, w = sb.w, h = sb.h },
+			34,
+			look.slot
+		)
+		local size = layout.slotIcon
+		image(
+			slot,
+			"Icon",
+			{ x = layout.slotIconX, y = (sb.h - size) / 2, w = size, h = size },
+			36,
+			if i == 1 then EndScreenAssets.coin else EndScreenAssets.gem
+		)
+		local target = (if i == 1 then summary.coins else summary.gems) or 0
+		local v = text(
+			slot,
+			"Value",
+			{ x = layout.slotTextX, y = 3, w = sb.w - layout.slotTextX - 16, h = sb.h },
+			36,
+			"+" .. tostring(target),
+			look.text.reward,
+			WHITE,
+			look.text.rewardStroke
+		)
+		v.TextXAlignment = Enum.TextXAlignment.Left
+		table.insert(rewardCounts, { label = v, kind = "Plus", target = target })
+	end
+	pivot(rewards)
+
 	return {
-		group = parent,
+		group = group,
 		rows = rows,
 		counts = counts,
-		fill = fill,
+		setProgress = setProgress,
 		percent = summary.progressPercent,
-		shiftUp = pb.h - height,
+		rewards = rewards,
+		rewardCounts = rewardCounts,
 	}
 end
 
@@ -564,58 +628,81 @@ export type ButtonParts = {
 	shine: Frame,
 }
 
-local function buildButton(content: Instance, look: any, won: boolean, shiftUp: number): ButtonParts
-	local lb = Layout.button
-	-- The button and its shadow in one group, pivoted on the button's centre.
-	local parent =
-		frame(content, "ButtonGroup", { x = lb.x, y = lb.y - shiftUp, w = lb.w, h = lb.h }, 50)
-	local b = { x = 0, y = 0, w = lb.w, h = lb.h }
-	shadow(parent, b, 50, 22, 6)
+local function buildButton(content: Instance, look: any, layout: any, won: boolean): ButtonParts
+	local lb: Box = layout.button
+	local group = frame(content, "ButtonGroup", lb, 50)
+	local face = block(group, "Face", { x = 0, y = 0, w = lb.w, h = lb.h }, 50, look.button)
+	local ink = look.button.inkW
+	local faceBottom: number
+	if won then
+		-- The sheet's foot: an ink line, then a dark band cut into segments.
+		faceBottom = 124
+		rect(face, "FootLine", { x = ink, y = 132, w = lb.w - 2 * ink, h = 5 }, 51, INK)
+		rect(
+			face,
+			"Foot",
+			{ x = ink, y = 137, w = lb.w - 2 * ink, h = lb.h - 137 - ink },
+			51,
+			look.buttonFoot
+		)
+		local x = ink + 80
+		while x < lb.w - ink - 20 do
+			rect(
+				face,
+				"FootSeam",
+				{ x = x, y = 137, w = 7, h = lb.h - 137 - ink },
+				52,
+				look.buttonFootLine
+			)
+			x += 82
+		end
+		rect(face, "Shine", { x = 64, y = 29, w = lb.w - 128, h = 8 }, 52, look.buttonShine)
+		for _, at in { { 39, 41 }, { lb.w - 39, 41 }, { 39, 108 }, { lb.w - 39, 108 } } do
+			cube(face, at[1], at[2], 34, 53, look.buttonStuds)
+		end
+	else
+		faceBottom = lb.h - ink - (look.button.bottomH or 0)
+		rect(
+			face,
+			"Low",
+			{ x = ink, y = 102, w = lb.w - 2 * ink, h = faceBottom - 102 },
+			51,
+			look.buttonLow
+		)
+		for _, at in { { 40, 32 }, { lb.w - 40, 32 }, { 40, 124 }, { lb.w - 40, 124 } } do
+			stud(face, at[1], at[2], 18, 53, look.buttonStuds)
+		end
+	end
 
+	-- What takes the press: the whole button, drawn by the blocks under it.
 	local button = Instance.new("TextButton")
 	button.Name = "Button"
-	button.Position = UDim2.fromOffset(b.x, b.y)
-	button.Size = UDim2.fromOffset(b.w, b.h)
-	button.BackgroundColor3 = WHITE
-	button.BorderSizePixel = 0
+	button.Size = UDim2.fromScale(1, 1)
+	button.BackgroundTransparency = 1
 	button.AutoButtonColor = false
 	button.Text = ""
-	button.ZIndex = 51
-	button.Parent = parent
-	corner(button, 22)
-	outline(button, INK, 4)
-	gradient(button, look.button)
-	--[[ The shine that sweeps across it: a soft white band, slanted by its
-	     gradient, in a rounded CanvasGroup so it is clipped to the button's
-	     own rounded ends rather than to a rectangle. ]]
-	local shineClip = Instance.new("CanvasGroup")
-	shineClip.Name = "ShineClip"
-	shineClip.Size = UDim2.fromScale(1, 1)
-	shineClip.BackgroundTransparency = 1
-	shineClip.ZIndex = 52
-	shineClip.Parent = button
-	corner(shineClip, 22)
-	local shine = frame(shineClip, "Shine", { x = -120, y = 0, w = 70, h = b.h }, 55)
-	shine.BackgroundTransparency = 0
-	local band = Instance.new("UIGradient")
-	band.Rotation = 18
-	band.Transparency = NumberSequence.new({
-		NumberSequenceKeypoint.new(0, 1),
-		NumberSequenceKeypoint.new(0.5, 0.4),
-		NumberSequenceKeypoint.new(1, 1),
-	})
-	band.Parent = shine
+	button.ZIndex = 60
+	button.Parent = group
 
-	local highlight = frame(button, "Highlight", { x = 14, y = 3, w = b.w - 28, h = 3 }, 52)
-	highlight.BackgroundTransparency = 0.5
-	corner(highlight, 2)
+	--[[ The shine that sweeps across the face now and then: a hard-edged,
+	     slanted light band, clipped to the face. ]]
+	local clip = Instance.new("CanvasGroup")
+	clip.Name = "ShineClip"
+	clip.Position = UDim2.fromOffset(ink, ink)
+	clip.Size = UDim2.fromOffset(lb.w - 2 * ink, faceBottom - ink)
+	clip.BackgroundTransparency = 1
+	clip.ZIndex = 54
+	clip.GroupTransparency = 0.55
+	clip.Parent = group
+	local shine = rect(clip, "Sweep", { x = -160, y = -40, w = 60, h = lb.h + 80 }, 55, WHITE)
+	shine.Rotation = 18
 
-	local inner = frame(button, "Content", { x = 0, y = 0, w = b.w, h = b.h }, 53)
+	local inner = frame(group, "Content", { x = 0, y = 0, w = lb.w, h = faceBottom + 6 }, 56)
 	local list = Instance.new("UIListLayout")
 	list.FillDirection = Enum.FillDirection.Horizontal
 	list.HorizontalAlignment = Enum.HorizontalAlignment.Center
 	list.VerticalAlignment = Enum.VerticalAlignment.Center
-	list.Padding = UDim.new(0, 14)
+	list.Padding = UDim.new(0, 24)
 	list.SortOrder = Enum.SortOrder.LayoutOrder
 	list.Parent = inner
 
@@ -623,34 +710,28 @@ local function buildButton(content: Instance, look: any, won: boolean, shiftUp: 
 	local label = text(
 		inner,
 		"Text",
-		{ x = 0, y = 0, w = width(words, DISPLAY, Theme.text.button) + 8, h = b.h },
-		54,
+		{ x = 0, y = 0, w = width(words, look.text.button) + 12, h = 90 },
+		57,
 		words,
-		DISPLAY,
-		Theme.text.button,
+		look.text.button,
 		WHITE,
-		Theme.text.buttonStroke
+		look.text.buttonStroke
 	)
-	-- Luckiest Guy sits high in its box; the design pads it down 4 px.
-	local pad = Instance.new("UIPadding")
-	pad.PaddingTop = UDim.new(0, 6)
-	pad.Parent = label
-
 	local icon: ImageLabel
 	if won then
 		label.LayoutOrder = 1
 		icon =
-			image(inner, "Chevron", { x = 0, y = 0, w = 26, h = 26 }, 54, EndScreenAssets.chevron)
+			image(inner, "Chevron", { x = 0, y = 0, w = 56, h = 56 }, 57, EndScreenAssets.chevron)
 		icon.LayoutOrder = 2
 	else
 		icon =
-			image(inner, "Refresh", { x = 0, y = 0, w = 36, h = 36 }, 54, EndScreenAssets.refresh)
+			image(inner, "Refresh", { x = 0, y = 0, w = 96, h = 96 }, 57, EndScreenAssets.refresh)
 		icon.LayoutOrder = 1
 		label.LayoutOrder = 2
 	end
 
-	pivot(parent)
-	return { group = parent, button = button, icon = icon, shine = shine }
+	pivot(group)
+	return { group = group, button = button, icon = icon, shine = shine }
 end
 
 local function fit()
@@ -663,8 +744,8 @@ local function fit()
 	end
 	local view = camera.ViewportSize
 	scaler.Scale = math.min(
-		view.Y * (if Device.isPhone() then PHONE_HEIGHT_SHARE else HEIGHT_SHARE) / panelHeight,
-		view.X * (if Device.isPhone() then PHONE_WIDTH_SHARE else WIDTH_SHARE) / Theme.panelSize.X
+		view.Y * (if Device.isPhone() then PHONE_HEIGHT_SHARE else HEIGHT_SHARE) / CANVAS.Y,
+		view.X * (if Device.isPhone() then PHONE_WIDTH_SHARE else WIDTH_SHARE) / CANVAS.X
 	)
 end
 
@@ -692,7 +773,8 @@ function EndScreen.show(summary: Summary)
 	EndScreen.hide()
 
 	local won = summary.won
-	local look = if won then Theme.victory else Theme.defeat
+	local look: any = if won then Theme.victory else Theme.defeat
+	local layout: any = if won then EndScreenLayout.victory else EndScreenLayout.defeat
 
 	local screen = Instance.new("ScreenGui")
 	screen.Name = "EndScreen"
@@ -703,8 +785,6 @@ function EndScreen.show(summary: Summary)
 	     for the Studio preview, but the skill bar would otherwise sit on
 	     top of the button. ]]
 	screen.DisplayOrder = 130
-	--[[ Sibling, not Global: under Global the background's CanvasGroup
-	     stopped clipping, and the rays spilled out past the panel. ]]
 	screen.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 	gui = screen
 
@@ -717,85 +797,131 @@ function EndScreen.show(summary: Summary)
 	dim.ZIndex = 0
 	dim.Parent = screen
 
-	-- Built first so the panel's height can close up around what is shown.
 	local root = Instance.new("Frame")
 	root.Name = "Panel"
 	root.AnchorPoint = Vector2.new(0.5, 0.5)
 	root.Position = UDim2.fromScale(0.5, 0.5)
+	root.Size = UDim2.fromOffset(CANVAS.X, CANVAS.Y)
 	root.BackgroundTransparency = 1
 	root.Parent = screen
 	local scale = Instance.new("UIScale")
 	scale.Parent = root
 	scaler = scale
 
-	local content =
-		frame(root, "Content", { x = 0, y = 0, w = Theme.panelSize.X, h = Theme.panelSize.Y }, 10)
-	local ribbon, sub = buildRibbon(content, look, won)
-	local hero = buildHero(content, look, won)
-	local stats = buildStats(content, summary)
-	local shiftUp = stats.shiftUp
-	local buttonParts = buildButton(content, look, won, shiftUp)
-	local button = buttonParts.button
-
-	local lb = Layout.button
-	panelHeight = lb.y - shiftUp + lb.h + 6 + 22
-	local size = Vector2.new(Theme.panelSize.X, panelHeight)
-	root.Size = UDim2.fromOffset(size.X, size.Y)
-	content.Size = UDim2.fromOffset(size.X, size.Y)
-
-	-- The panel behind it all: hard shadow, then the background, then the ink edge.
-	shadow(root, { x = 0, y = 0, w = size.X, h = size.Y }, 1, 24, 8)
-	--[[ The gradient on a plain frame: drawn through a CanvasGroup it came
-	     out banded, with a visible seam across the panel's lower third. ]]
-	local back = frame(root, "Background", { x = 0, y = 0, w = size.X, h = size.Y }, 2)
-	back.BackgroundTransparency = 0
-	corner(back, 24)
-	gradient(back, look.background)
-	--[[ The rays and glow go in a CanvasGroup over it, whose rounded edge
-	     clips them to the panel — the rays are far wider than it. ]]
-	local glows = Instance.new("CanvasGroup")
-	glows.Name = "Glows"
-	glows.Size = UDim2.fromOffset(size.X, size.Y)
-	glows.BackgroundTransparency = 1
-	glows.ZIndex = 3
-	glows.Parent = root
-	corner(glows, 24)
-	for _, name in { "Rays", "Glow" } do
-		local piece = content:FindFirstChild(name)
-		if piece then
-			piece.Parent = glows
-		end
+	-- The panel: a big stepped block.
+	local pb: Box = layout.panel
+	local panel = block(
+		root,
+		"Back",
+		pb,
+		1,
+		look.panel,
+		layout.panelSteps,
+		layout.panelStep,
+		layout.panelStepY
+	)
+	local inset = look.panel.inkW + (look.panel.rimW or 0)
+	--[[ The area inside the panel's stepped top corners, which the rays,
+	     rain, flash and falling pieces are clipped to. A CanvasGroup, since
+	     a plain frame does not clip children that turn. ]]
+	local stepDown = layout.panelSteps * (layout.panelStepY or layout.panelStep)
+	local inside: Box = {
+		x = pb.x + inset,
+		y = pb.y + inset + stepDown,
+		w = pb.w - 2 * inset,
+		h = pb.h - 2 * inset - stepDown - (look.panel.bottomH or 0),
+	}
+	if look.vignette then
+		-- Defeat's gloom: a darker band round the inside of the edge.
+		local v = look.vignetteW
+		local fill = look.panel.fill
+		local inner = {
+			x = inset,
+			y = inset,
+			w = pb.w - 2 * inset,
+			h = pb.h - 2 * inset - (look.panel.bottomH or 0),
+		}
+		stepped(
+			panel,
+			"Gloom",
+			inner,
+			2,
+			look.vignette,
+			layout.panelSteps,
+			layout.panelStep,
+			layout.panelStep
+		)
+		stepped(
+			panel,
+			"Light",
+			{ x = inner.x + v, y = inner.y + v, w = inner.w - 2 * v, h = inner.h - 2 * v },
+			2,
+			fill,
+			3,
+			v / 2,
+			v / 2
+		)
 	end
-	--[[ Flash, sparks, confetti, rocks and the vignette: over the content,
-	     under the ink edge, clipped to the panel like the rays. ]]
-	local over = Instance.new("CanvasGroup")
-	over.Name = "Over"
-	over.Size = UDim2.fromOffset(size.X, size.Y)
-	over.BackgroundTransparency = 1
-	over.ZIndex = 80
-	over.Parent = root
-	corner(over, 24)
 
-	local edge = frame(root, "Edge", { x = 0, y = 0, w = size.X, h = size.Y }, 90)
-	corner(edge, 24)
-	outline(edge, INK, 5)
+	local function clipped(name: string, z: number): CanvasGroup
+		local c = Instance.new("CanvasGroup")
+		c.Name = name
+		c.Position = UDim2.fromOffset(inside.x, inside.y)
+		c.Size = UDim2.fromOffset(inside.w, inside.h)
+		c.BackgroundTransparency = 1
+		c.ZIndex = z
+		c.Parent = root
+		return c
+	end
+	local behind = clipped("Behind", 3)
+	local over = clipped("Over", 80)
+
+	local content = frame(root, "Content", { x = 0, y = 0, w = CANVAS.X, h = CANVAS.Y }, 10)
+
+	local rays: ImageLabel? = nil
+	if won then
+		local r: Box = layout.rays
+		rays = image(
+			behind,
+			"Rays",
+			{ x = r.x - inside.x, y = r.y - inside.y, w = r.w, h = r.h },
+			3,
+			EndScreenAssets.rays
+		)
+		local raysImage = rays :: ImageLabel
+		raysImage.ImageColor3 = look.rays
+		raysImage.ImageTransparency = look.raysTransparency
+		raysImage.ScaleType = Enum.ScaleType.Stretch
+		pivot(raysImage)
+	end
+
+	local cubes = buildCubes(content, look, layout)
+	local ribbon, sub = buildRibbon(content, look, layout, won)
+	local hero = buildHero(content, layout, won)
+	local stats = buildStats(content, look, layout, summary)
+	local buttonParts = buildButton(content, look, layout, won)
+	local button = buttonParts.button
 
 	local played = EndScreenMotion.play({
 		won = won,
 		root = root,
-		size = size,
+		size = CANVAS,
+		inside = inside,
+		heroCentre = layout.heroCentre,
 		ribbon = ribbon,
 		sub = sub,
 		hero = hero,
-		rays = glows:FindFirstChild("Rays") :: ImageLabel?,
-		glow = glows:FindFirstChild("Glow") :: ImageLabel?,
-		behind = glows,
+		rays = rays,
+		cubes = cubes,
+		behind = behind,
 		over = over,
 		statsGroup = stats.group,
 		rows = stats.rows,
 		counts = stats.counts,
-		fill = stats.fill,
+		setProgress = stats.setProgress,
 		percent = stats.percent,
+		rewards = stats.rewards,
+		rewardCounts = stats.rewardCounts,
 		buttonGroup = buttonParts.group,
 		icon = buttonParts.icon,
 		shine = buttonParts.shine,

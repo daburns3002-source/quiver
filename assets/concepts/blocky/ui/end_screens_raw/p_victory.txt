@@ -1,0 +1,8 @@
+Use your image generation tool. Draw on a perfectly flat, solid pure magenta background (#FF00FF) everywhere outside the object, with no shadow on the background, no gradient, no texture, no vignette, so it can be cut out by colour. Do NOT use magenta or pink anywhere inside the object. Keep a generous empty margin of magenta around it. No text, no letters anywhere.
+Style: exactly the blocky style of the reference sheet (first reference image): chunky voxel / stair-stepped pixel shapes, flat 2-3 tone shading, thick near-black (#1B1B2B) ink outline, no smooth gradients, no blur.
+Save the PNG in the current folder with the exact file name given.
+
+Make these three images, one after another, each its own file:
+1. File ribbon_victory.png, 1536 x 1024: ONLY the gold title ribbon from the top of the reference sheet (the yellow banner with folded tails on both sides), copied as faithfully as possible in shape and colours, but completely BLANK: no "VICTORY!" letters on it, just the plain gold band. Wide, filling most of the width.
+2. File hero_victory.png, 1024 x 1024: ONLY the hero picture from the middle of the reference sheet: the blocky gold voxel trophy with a star, the three gold voxel stars above it, two crossed toy arrows behind it and the green voxel leaves, and the small green gem on its base. Copy it as faithfully as possible. No light rays, no floating cubes, no background.
+3. File rays_victory.png, 1024 x 1024: ONLY the light rays behind the trophy in the reference sheet: a full circle of 12 stair-stepped pixel wedge rays radiating out from the centre, in a single flat light blue (#5AA8FF), on the magenta background.

@@ -71,17 +71,18 @@ return function(t: TestRunner.Helper)
 			local a0, b0 = SwingSweep.edge(shape, sweep, 0)
 			local a1, b1 = SwingSweep.edge(shape, sweep, 1)
 			if shape.kind == "Arc" then
-				t.near(b0.Magnitude, shape.reach, 1e-6)
-				t.near((b0 - a0).Magnitude, shape.reach * (1 - SwingSweep.INNER), 1e-6)
+				-- Vector3 is single precision: about 1e-6 of a 15-stud reach
+				t.near(b0.Magnitude, shape.reach, 1e-5)
+				t.near((b0 - a0).Magnitude, shape.reach * (1 - SwingSweep.INNER), 1e-5)
 				local turned = math.deg(math.acos(math.clamp(b0.Unit:Dot(b1.Unit), -1, 1)))
 				t.near(turned, math.min(shape.arc, 360 - shape.arc), 1e-3)
 			else
 				local centre = Vector3.new(0, 0, -shape.ahead)
-				t.near((b0 - centre).Magnitude, shape.radius, 1e-6)
-				t.near((b0 - a0).Magnitude, shape.radius * (1 - SwingSweep.INNER), 1e-6)
-				t.near((b0 - b1).Magnitude, 0, 1e-6)
+				t.near((b0 - centre).Magnitude, shape.radius, 1e-5)
+				t.near((b0 - a0).Magnitude, shape.radius * (1 - SwingSweep.INNER), 1e-5)
+				t.near((b0 - b1).Magnitude, 0, 1e-5)
 				local _, half = SwingSweep.edge(shape, sweep, 0.5)
-				t.near((half - centre).Magnitude, shape.radius, 1e-6)
+				t.near((half - centre).Magnitude, shape.radius, 1e-5)
 				t.isTrue((a1 - centre).Magnitude < shape.radius, "the streak leaves the circle")
 			end
 		end

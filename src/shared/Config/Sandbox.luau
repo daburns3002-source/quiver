@@ -20,6 +20,23 @@ local Sandbox = {
 		{ weapon = "TwigBowDual", class = "Ranger", label = "DUAL TWIG BOWS" },
 		{ weapon = "BranchStaff", class = "Arcanist", label = "BRANCH STAFF" },
 		{ weapon = "TimberBlade", class = "Warden", label = "TIMBER BLADE" },
+		-- SKINS BEGIN (assets/models/weapons/skins_to_luau.py; regenerate, never hand-edit)
+		{ weapon = "AcornBow", class = "Ranger", label = "ACORN BOW" },
+		{ weapon = "FireflyBow", class = "Ranger", label = "FIREFLY BOW" },
+		{ weapon = "MossSlimeBow", class = "Ranger", label = "MOSS SLIME BOW" },
+		{ weapon = "EmberFangBow", class = "Ranger", label = "EMBER FANG BOW" },
+		{ weapon = "GladeSpiritBow", class = "Ranger", label = "GLADE SPIRIT BOW" },
+		{ weapon = "ToadstoolStaff", class = "Arcanist", label = "TOADSTOOL STAFF" },
+		{ weapon = "LanternStaff", class = "Arcanist", label = "LANTERN STAFF" },
+		{ weapon = "HootmossStaff", class = "Arcanist", label = "HOOTMOSS STAFF" },
+		{ weapon = "SlimeCrownStaff", class = "Arcanist", label = "SLIME CROWN STAFF" },
+		{ weapon = "WorldrootStaff", class = "Arcanist", label = "WORLDROOT STAFF" },
+		{ weapon = "MossstoneBlade", class = "Warden", label = "MOSSSTONE BLADE" },
+		{ weapon = "ThornBlade", class = "Warden", label = "THORN BLADE" },
+		{ weapon = "BroodsplitBlade", class = "Warden", label = "BROODSPLIT BLADE" },
+		{ weapon = "EmberfangBlade", class = "Warden", label = "EMBERFANG BLADE" },
+		{ weapon = "GladeheartBlade", class = "Warden", label = "GLADEHEART BLADE" },
+		-- SKINS END
 	} :: { Entry },
 
 	--[[ The training dummies: copies of a `Balance.Enemies` archetype (its

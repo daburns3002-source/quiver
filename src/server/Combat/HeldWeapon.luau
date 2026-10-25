@@ -77,7 +77,9 @@ function HeldWeapon.equip(character: Model, weaponName: string)
 			local part = template:Clone()
 			part.Name = spec.name
 			part.Size = spec.size * weapon.scale
-			part.CFrame = frame * CFrame.new(spec.offset * weapon.scale)
+			part.CFrame = frame
+				* CFrame.new(spec.offset * weapon.scale)
+				* (if spec.turned then CFrame.Angles(0, math.pi, 0) else CFrame.identity)
 			part.Anchored = false
 			part.Massless = true
 			part.CanCollide = false

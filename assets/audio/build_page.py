@@ -176,7 +176,41 @@ ROUND_17 = [
 ]
 
 # page: (rounds, picks collection, sounds already chosen, shown for context)
+ROUND_18 = [
+    ("Round 18 · King Bloblin's attacks, two big takes each", {
+        "boss_king_bounce_windup": ("Bounce · wind-up", "He squashes down before each of his three bounces.", None),
+        "boss_king_bounce_launch": ("Bounce · launch", "He springs into the air.", None),
+        "boss_king_bounce_slam": ("Bounce · slam", "He lands on the red circle, with the shockwave.", None),
+        "boss_king_lash": ("Slime Lash · strike", "His arm whips down the lane.", None),
+        "boss_king_grab": ("Slime Lash · grab and pull", "The lash catches you and drags you to him.", None),
+        "boss_king_chest_bump": ("Chest bump", "The belly bounce that knocks you away at the end of a grab.", None),
+        "boss_king_goo": ("Goo", "Slime goo spattered round where his lash lands.", None),
+    }),
+    ("Round 18 · the Broodmother's attacks, two big takes each", {
+        "boss_brood_web_windup": ("Web Walker · wind-up", "She rears up and her web unfolds over her back (1.6 s).", None),
+        "boss_brood_web_spin": ("Web Walker · spin", "The web turns for 6 s; this plays on a loop under it.", None),
+        "boss_brood_web_break": ("Web Walker · break", "The web snaps apart and she slumps: your window to shoot.", None),
+        "boss_brood_web_shot": ("Web shot", "A silk strand shot down a lane at you.", None),
+        "boss_brood_web_pull": ("Web pull", "The strand catches you and reels you in.", None),
+        "boss_brood_summon": ("Thornling summon", "After every second move, a clutch of three Thornlings drops round her.", None),
+    }),
+    ("Round 18 · Thornwood's enemies", {
+        "enemy_boar_charge": ("Bramble Boar · charge", "The long charge down a line across the room.", None),
+        "enemy_boar_gore": ("Bramble Boar · dash", "The short, quick dash up close.", None),
+        "enemy_thistle_spit": ("Burr Thistle · spit", "Its three burrs fired in a fan, every 3 s.", (3.0, 3)),
+        "enemy_sow_attack": ("Bramble Sow · bash", "Its heavy close-up attack.", None),
+        "enemy_sow_drop": ("Bramble Sow · Boarlets", "As it dies, three Boarlets tumble out.", None),
+        "enemy_boarlet_bite": ("Boarlet · bite", "The little piglets' nip, about once a second.", (1.0, 4)),
+        "enemy_lurker_dive": ("Bramble Lurker · dive", "It sinks into the ground to travel.", None),
+        "enemy_lurker_emerge": ("Bramble Lurker · emerge", "It bursts up beside you on the marked spot.", None),
+        "enemy_lurker_spray": ("Bramble Lurker · thorn spray", "The fan of thorns it fires as it comes up.", None),
+        "enemy_thornling_bite": ("Thornling · bite", "The spiderlings' bite, about once a second.", (1.0, 4)),
+        "enemy_thornling_hatch": ("Thornling · drop in", "Each Thornling landing as the Broodmother summons it.", (0.12, 3)),
+    }),
+]
+
 PAGES = {
+    "18": (ROUND_18, "picks18", []),
     "17": (ROUND_17, "picks17", []),
     "16": (ROUND_16, "picks16", ["All ten upgrade effects", "Legendary in the hand A"]),
     "15": (ROUND_15, "picks15", ["All ten upgrade effects (Blaze C)"]),

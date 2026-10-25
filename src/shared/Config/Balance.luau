@@ -3483,6 +3483,10 @@ local Balance = {
 		boltRim = Color3.fromRGB(60, 190, 255),
 		boltLife = 0.28,
 		nodeLift = 1.4,
+		-- the chain's target is the enemy most nearly along its aim (the
+		-- cosine it must beat), a little past the reach for one that moved
+		boltAimed = 0.8,
+		boltReachSlack = 3,
 		-- Meteor: the rock rides the fall at most this long
 		meteorLife = 2,
 	},

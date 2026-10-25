@@ -1,0 +1,7 @@
+Use your image generation tool. Draw on a perfectly flat, solid pure magenta background (#FF00FF) everywhere outside the object, with no shadow on the background, no gradient, no texture, no vignette, so it can be cut out by colour. Do NOT use magenta or pink anywhere inside the object. Keep a generous empty margin of magenta around it. No text, no letters anywhere.
+Style: exactly the blocky style of the reference sheet (first reference image): chunky voxel / stair-stepped pixel shapes, flat 2-3 tone shading, thick near-black (#1B1B2B) ink outline, no smooth gradients, no blur.
+Save the PNG in the current folder with the exact file name given.
+
+Make these two images, one after another, each its own file:
+1. File ribbon_defeat.png, 1536 x 1024: ONLY the faded dark red title ribbon from the top of the reference sheet, sagging in the middle with a torn tail, copied as faithfully as possible in shape and colours, but completely BLANK: no "DEFEAT" letters, just the plain red band.
+2. File hero_defeat.png, 1024 x 1024: ONLY the sad hero picture from the middle of the reference sheet: the grey voxel rain cloud with a few pixel raindrops and one teardrop under it, the green hood lying on the ground, the snapped toy bow, the cracked wooden shield, the small grey cubes and the dark wet puddle patch they lie on. Copy it as faithfully as possible. No background rain streaks, no panel.

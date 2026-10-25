@@ -1,7 +1,8 @@
 --!strict
 --[[
 	The end screens' motion, from `Config/EndScreenTimeline`
-	(design_handoff_end_screens, README "Animation").
+	(design_handoff_end_screens, README "Animation"), on the blocky screens
+	(2026-10-25).
 
 	One RenderStepped loop reads the time since the screen appeared and
 	poses every piece for that moment, rather than a stack of tweens: the
@@ -9,21 +10,26 @@
 	matter of moving the clock forward. Nothing here decides anything; the
 	numbers counted up are the ones the server sent.
 
-	Victory: the banner drops, the sub-ribbon pops, rays and glow fade in and
-	turn, the trophy pops and then floats, a white flash, sparks burst out,
-	confetti falls, the panel slides up, the rows slide in and count up, the
-	button pops and then pulses with a shine.
+	Everything that flies about is square and flat, like the screens:
+	sparks, confetti, rain streaks and cubes, no soft glows.
 
-	Defeat: the banner slams down, the panel shakes, the shield drops in and
-	floats, a red glow and edge vignette pulse, a red flash, rocks fall,
-	embers rise, the rows count up, the progress bar fills, the button pops
-	and its arrow spins now and then.
+	Victory: the banner drops, the plate pops, the rays fade in and turn,
+	the trophy pops and then floats, the gold cubes pop in and bob, a white
+	flash, square sparks burst out, confetti falls, the panel slides up,
+	the rows slide in and count up, the rewards pop and count, the button
+	pops and then pulses with a shine.
+
+	Defeat: rain falls, the banner slams down, the panel shakes, the plate
+	pops, the fallen hood and broken shield drop in, the grey cubes pop in,
+	a cold flash, grey cubes are knocked up off the shield and fall, the
+	rows count up, the progress bar lights segment by segment, the rewards
+	pop and count, the button pops and its arrow spins now and then.
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
-local CardAssets = require(ReplicatedStorage.Shared.Config.CardAssets)
+local EndScreenAssets = require(ReplicatedStorage.Shared.Config.EndScreenAssets)
 local EndScreenTheme = require(ReplicatedStorage.Shared.Config.EndScreenTheme)
 local EndScreenTimeline = require(ReplicatedStorage.Shared.Config.EndScreenTimeline)
 
@@ -31,27 +37,35 @@ local Device = require(script.Parent.Parent.Device)
 
 local EndScreenMotion = {}
 
-type Count = { label: TextLabel, kind: "Count" | "Clock" | "Percent", target: number }
+type Count = { label: TextLabel, kind: "Count" | "Clock" | "Percent" | "Plus", target: number }
+type Box = { x: number, y: number, w: number, h: number }
 
 export type Parts = {
 	won: boolean,
 	root: Frame,
+	--[[ The whole sheet, and the inside of the panel the clipped layers
+	     cover, in sheet pixels. ]]
 	size: Vector2,
+	inside: Box,
+	heroCentre: Vector2,
 	ribbon: Frame,
 	sub: Frame,
 	hero: GuiObject,
 	rays: ImageLabel?,
-	glow: ImageLabel?,
-	--[[ Clipped to the panel, behind the content: embers. ]]
+	cubes: { ImageLabel },
+	--[[ Clipped to the panel, behind the content: rays, confetti, rain. ]]
 	behind: CanvasGroup,
-	--[[ Clipped to the panel, over the content: flash, sparks, confetti,
-	     rocks, vignette. ]]
+	--[[ Clipped to the panel, over the content: flash, sparks, falling
+	     cubes. ]]
 	over: CanvasGroup,
 	statsGroup: Frame,
 	rows: { Frame },
 	counts: { Count },
-	fill: Frame?,
+	--[[ Defeat's progress bar: lights it to a share. ]]
+	setProgress: ((number) -> ())?,
 	percent: number,
+	rewards: Frame,
+	rewardCounts: { Count },
 	buttonGroup: Frame,
 	icon: ImageLabel,
 	shine: Frame,
@@ -67,12 +81,8 @@ export type Motion = {
 	hold: (number?) -> (),
 }
 
-local INK = EndScreenTheme.ink
 local WHITE = EndScreenTheme.white
 local SPARK_YELLOW = Color3.fromRGB(255, 225, 77)
-local FLASH_RED = Color3.fromRGB(255, 70, 80)
---[[ Where the hero sits, the centre of the flash and of the burst. ]]
-local HERO_CENTRE = Vector2.new(270, 190)
 --[[ Milliseconds from one shine across the button to the next; each
      takes the whole period to cross. ]]
 local SHINE_PERIOD = 2400
@@ -115,6 +125,8 @@ local function formatCount(count: Count, value: number): string
 		return clock(value)
 	elseif count.kind == "Percent" then
 		return string.format("%d%%", math.floor(value + 0.5))
+	elseif count.kind == "Plus" then
+		return "+" .. tostring(math.floor(value + 0.5))
 	end
 	return tostring(math.floor(value + 0.5))
 end
@@ -138,65 +150,14 @@ local function piece(
 	return f
 end
 
-local function radial(
-	parent: Instance,
-	name: string,
-	size: Vector2,
-	colour: Color3,
-	z: number
-): ImageLabel
-	local i = Instance.new("ImageLabel")
-	i.Name = name
-	i.AnchorPoint = Vector2.new(0.5, 0.5)
-	i.Position = UDim2.fromOffset(HERO_CENTRE.X, HERO_CENTRE.Y - 4)
-	i.Size = UDim2.fromOffset(size.X, size.Y)
-	i.BackgroundTransparency = 1
-	i.Image = CardAssets.glow
-	i.ImageColor3 = colour
-	i.ImageTransparency = 1
-	i.ScaleType = Enum.ScaleType.Stretch
-	i.ZIndex = z
-	i.Parent = parent
-	return i
-end
-
---[[ A red edge, fading toward the middle: one of the vignette's four sides. ]]
-local function edge(parent: Instance, side: string, size: Vector2): Frame
-	local f = Instance.new("Frame")
-	f.Name = "Vignette" .. side
-	f.BackgroundColor3 = Color3.fromRGB(255, 30, 60)
-	f.BorderSizePixel = 0
-	f.ZIndex = 1
-	-- How far in from the edge the red reaches; thinner since the owner
-	-- found the tint too strong.
-	local depth = 80
-	local g = Instance.new("UIGradient")
-	g.Transparency = NumberSequence.new(0, 1)
-	if side == "Top" then
-		f.Size = UDim2.fromOffset(size.X, depth)
-		g.Rotation = 90
-	elseif side == "Bottom" then
-		f.Position = UDim2.fromOffset(0, size.Y - depth)
-		f.Size = UDim2.fromOffset(size.X, depth)
-		g.Rotation = -90
-	elseif side == "Left" then
-		f.Size = UDim2.fromOffset(depth, size.Y)
-		g.Rotation = 0
-	else
-		f.Position = UDim2.fromOffset(size.X - depth, 0)
-		f.Size = UDim2.fromOffset(depth, size.Y)
-		g.Rotation = 180
-	end
-	g.Parent = f
-	f.Parent = parent
-	return f
-end
-
 function EndScreenMotion.play(parts: Parts): Motion
 	local won = parts.won
 	local key: any = if won then EndScreenTimeline.victory else EndScreenTimeline.defeat
 	local look: any = if won then EndScreenTheme.victory else EndScreenTheme.defeat
 	local share = Device.tier().endScreenParticleShare
+	local inside = parts.inside
+	-- The hero's centre inside the clipped layers.
+	local centre = parts.heroCentre - Vector2.new(inside.x, inside.y)
 	-- Seeded, so a screen falls the same way every time it is shown.
 	local random = Random.new(7)
 
@@ -213,6 +174,9 @@ function EndScreenMotion.play(parts: Parts): Motion
 	for _, r in parts.rows do
 		base[r] = r.Position
 	end
+	for _, c in parts.cubes do
+		base[c] = c.Position
+	end
 
 	local function place(obj: GuiObject, dx: number, dy: number)
 		obj.Position = base[obj] + UDim2.fromOffset(dx, dy)
@@ -223,8 +187,11 @@ function EndScreenMotion.play(parts: Parts): Motion
 		obj.Visible = at
 	end
 
-	local flash =
-		radial(parts.over, "Flash", Vector2.new(720, 620), if won then WHITE else FLASH_RED, 20)
+	--[[ A flat flash over the whole panel: hard-edged, like the rest. ]]
+	local flash = piece(parts.over, "Flash", Vector2.new(inside.w, inside.h), look.flash, 20)
+	flash.AnchorPoint = Vector2.zero
+	flash.Visible = true
+	flash.BackgroundTransparency = 1
 
 	-- Victory's sparks and confetti.
 	type Spark = { frame: Frame, dir: Vector2, reach: number, size: number }
@@ -241,25 +208,16 @@ function EndScreenMotion.play(parts: Parts): Motion
 		spin: number,
 	}
 	local confetti: { Confetti } = {}
-	-- Defeat's rocks and embers.
-	type Rock = { frame: Frame, x0: number, y0: number, vx: number, vy: number, spin: number }
+	-- Defeat's falling cubes and rain.
+	type Rock = { frame: ImageLabel, x0: number, y0: number, vx: number, vy: number }
 	local rocks: { Rock } = {}
-	type Ember = {
-		frame: Frame,
-		x0: number,
-		delay: number,
-		speed: number,
-		sway: number,
-		phase: number,
-	}
-	local embers: { Ember } = {}
-	local vignette: { Frame } = {}
+	type Drop = { frame: Frame, x0: number, delay: number, speed: number, length: number }
+	local rain: { Drop } = {}
 
 	if won then
 		local k = key.sparks
 		for i = 1, math.max(1, math.floor(k.count * share + 0.5)) do
-			local big = i % 3 == 1
-			local size = if big then 14 else 9
+			local size = if i % 3 == 1 then 26 else 17
 			local s = piece(
 				parts.over,
 				"Spark",
@@ -267,7 +225,6 @@ function EndScreenMotion.play(parts: Parts): Motion
 				if i % 2 == 0 then WHITE else SPARK_YELLOW,
 				22
 			)
-			s.Rotation = 45
 			local angle = (i / k.count) * math.pi * 2 + random:NextNumber() * 0.3
 			table.insert(sparks, {
 				frame = s,
@@ -280,18 +237,18 @@ function EndScreenMotion.play(parts: Parts): Motion
 		local c = key.confetti
 		for i = 1, math.max(1, math.floor(c.count * share + 0.5)) do
 			local square = i % 4 == 1
-			local w = if square then 10 else 7
+			local w = if square then 19 else 13
 			local f = piece(
-				parts.over,
+				parts.behind,
 				"Confetti",
-				Vector2.new(w, if square then 10 else 14),
+				Vector2.new(w, if square then 19 else 26),
 				look.confetti[(i - 1) % #look.confetti + 1],
 				21
 			)
 			table.insert(confetti, {
 				frame = f,
 				width = w,
-				x0 = random:NextNumber() * parts.size.X,
+				x0 = random:NextNumber() * inside.w,
 				delay = random:NextNumber() * c.staggerMax,
 				speed = lerp(c.fallPxPerSec[1], c.fallPxPerSec[2], random:NextNumber()),
 				sway = lerp(c.sway[1], c.sway[2], random:NextNumber()),
@@ -301,49 +258,40 @@ function EndScreenMotion.play(parts: Parts): Motion
 			})
 		end
 	else
-		for _, side in { "Top", "Bottom", "Left", "Right" } do
-			local f = edge(parts.over, side, parts.size)
-			f.BackgroundTransparency = 1
-			table.insert(vignette, f)
-		end
-
 		local r = key.rocks
 		for _ = 1, r.count do
-			local w = math.floor(10 + random:NextNumber() * 12)
-			local f = piece(parts.over, "Rock", Vector2.new(w, w), WHITE, 23)
-			local g = Instance.new("UIGradient")
-			g.Color = look.rock
-			g.Rotation = 45
-			g.Parent = f
-			local corner = Instance.new("UICorner")
-			corner.CornerRadius = UDim.new(0, 3)
-			corner.Parent = f
-			local stroke = Instance.new("UIStroke")
-			stroke.Color = INK
-			stroke.Thickness = 2.5
-			stroke.Parent = f
+			local w = math.floor(22 + random:NextNumber() * 24)
+			local f = Instance.new("ImageLabel")
+			f.Name = "Rock"
+			f.AnchorPoint = Vector2.new(0.5, 0.5)
+			f.Size = UDim2.fromOffset(w, w)
+			f.BackgroundTransparency = 1
+			f.Image = EndScreenAssets.cube
+			f.ImageColor3 = look.cubes
+			f.ResampleMode = Enum.ResamplerMode.Pixelated
+			f.Visible = false
+			f.ZIndex = 23
+			f.Parent = parts.over
 			table.insert(rocks, {
 				frame = f,
-				vx = (random:NextNumber() - 0.5) * 0.5,
-				vy = -0.25 - random:NextNumber() * 0.25,
-				spin = (random:NextNumber() - 0.5) * 1.2,
-				x0 = HERO_CENTRE.X + (random:NextNumber() - 0.5) * 120,
-				y0 = 200 + random:NextNumber() * 30,
+				vx = (random:NextNumber() - 0.5) * 0.9,
+				vy = -0.5 - random:NextNumber() * 0.45,
+				x0 = centre.X + 120 + (random:NextNumber() - 0.5) * 200,
+				y0 = centre.Y + 40 + random:NextNumber() * 50,
 			})
 		end
 
-		local e = key.embers
-		for i = 1, math.max(1, math.floor(e.count * share + 0.5)) do
-			local w = if i % 3 == 1 then 7 else 5
-			local f = piece(parts.behind, "Ember", Vector2.new(w, w), look.ember, 5)
-			f.Rotation = 45
-			table.insert(embers, {
+		local d = key.rain
+		for _ = 1, math.max(1, math.floor(d.count * share + 0.5)) do
+			local length = lerp(d.length[1], d.length[2], random:NextNumber())
+			local f = piece(parts.behind, "Rain", Vector2.new(5, length), look.rain, 5)
+			f.Rotation = d.slantDeg
+			table.insert(rain, {
 				frame = f,
-				x0 = random:NextNumber() * parts.size.X,
-				delay = random:NextNumber() * 4000,
-				speed = lerp(e.risePxPerSec[1], e.risePxPerSec[2], random:NextNumber()),
-				sway = lerp(e.sway[1], e.sway[2], random:NextNumber()),
-				phase = random:NextNumber() * math.pi * 2,
+				x0 = random:NextNumber() * (inside.w + 200),
+				delay = random:NextNumber() * 3000,
+				speed = lerp(d.fallPxPerSec[1], d.fallPxPerSec[2], random:NextNumber()),
+				length = length,
 			})
 		end
 	end
@@ -420,11 +368,13 @@ function EndScreenMotion.play(parts: Parts): Motion
 	end
 
 	local fadeRibbon = fader(parts.ribbon)
-	local fadePanel = fader(parts.statsGroup, parts.rows :: { any })
+	local fadePanel =
+		fader(parts.statsGroup, { parts.rewards, table.unpack(parts.rows) } :: { any })
 	local fadeRows = {}
 	for i, r in parts.rows do
 		fadeRows[i] = fader(r)
 	end
+	local fadeRewards = fader(parts.rewards)
 
 	local function pose(t: number)
 		local seconds = t / 1000
@@ -445,7 +395,7 @@ function EndScreenMotion.play(parts: Parts): Motion
 			fadeRibbon(clamp01(bp * 3))
 		end
 
-		-- Sub-ribbon pops.
+		-- Plate pops.
 		local sub = key.sub
 		local sp = clamp01((t - sub.start) / sub.dur)
 		show(parts.sub, sp > 0)
@@ -465,44 +415,31 @@ function EndScreenMotion.play(parts: Parts): Motion
 		end
 		parts.hero.Rotation = hero.fromRotation * (1 - hp)
 
-		-- Rays, glow, vignette.
-		if won then
+		-- The floating cubes pop in one by one, then bob.
+		local cubes = key.cubes
+		for i, c in parts.cubes do
+			local cp = clamp01((t - cubes.start - (i - 1) * cubes.stagger) / cubes.dur)
+			show(c, cp > 0)
+			scaleOf(c).Scale = math.max(0, backOut(cp))
+			local bob = if cp >= 1
+				then math.sin(seconds * cubes.idleRadPerSec + i * 1.7) * cubes.idleBob
+				else 0
+			place(c, 0, bob)
+		end
+
+		-- Rays.
+		local raysImage = parts.rays
+		if won and raysImage then
 			local rays = key.rays
 			local rp = clamp01((t - rays.start) / rays.dur)
-			local raysImage = parts.rays
-			if raysImage then
-				raysImage.ImageTransparency = 1 - (1 - rays.toTransparency) * rp
-				scaleOf(raysImage).Scale = lerp(rays.fromScale, 1, cubicOut(rp))
-				raysImage.Rotation = seconds * rays.spinDegPerSec
-			end
-			local glow = parts.glow
-			if glow then
-				glow.ImageTransparency = 1 - 0.8 * rp
-				scaleOf(glow).Scale = 0.95 + 0.05 * math.sin(seconds * 2.4)
-			end
-		else
-			local g = key.glow
-			local glow = parts.glow
-			if glow then
-				local gp = clamp01((t - g.start) / g.dur)
-				local pulse = math.sin(seconds * g.pulseRadPerSec)
-				-- Softer than the reference (0.7 ± 0.3): the red was too much.
-				glow.ImageTransparency = 1 - clamp01(gp * (0.45 + 0.15 * pulse))
-				scaleOf(glow).Scale = 1 + 0.06 * pulse
-			end
-			local v = key.vignette
-			local mid = (v.opacity[1] + v.opacity[2]) / 2
-			local swing = (v.opacity[2] - v.opacity[1]) / 2
-			local opacity = clamp01((t - v.start) / v.dur)
-				* (mid + swing * math.sin(seconds * v.pulseRadPerSec))
-			for _, f in vignette do
-				f.BackgroundTransparency = 1 - opacity
-			end
+			raysImage.ImageTransparency = 1 - (1 - rays.toTransparency) * rp
+			scaleOf(raysImage).Scale = lerp(rays.fromScale, 1, cubicOut(rp))
+			raysImage.Rotation = seconds * rays.spinDegPerSec
 		end
 
 		-- Flash.
 		local fl = key.flash
-		flash.ImageTransparency = 1
+		flash.BackgroundTransparency = 1
 			- math.max(0, 1 - math.abs(t - fl.peak) / fl.halfWidth) * fl.maxOpacity
 
 		-- Shake: the whole panel, decaying.
@@ -517,7 +454,7 @@ function EndScreenMotion.play(parts: Parts): Motion
 		end
 
 		if won then
-			-- Sparks burst out of the trophy.
+			-- Square sparks burst out of the trophy.
 			local k = key.sparks
 			local p = clamp01((t - k.start) / k.dur)
 			local out = cubicOut(p)
@@ -525,7 +462,7 @@ function EndScreenMotion.play(parts: Parts): Motion
 				local live = p > 0 and p < 1
 				s.frame.Visible = live
 				if live then
-					local at = HERO_CENTRE + s.dir * s.reach * out
+					local at = centre + s.dir * s.reach * out
 					s.frame.Position = UDim2.fromOffset(at.X, at.Y)
 					s.frame.BackgroundTransparency = p * p
 					local size = s.size * (1 - p * 0.6)
@@ -533,23 +470,22 @@ function EndScreenMotion.play(parts: Parts): Motion
 				end
 			end
 
-			-- Confetti: falls, sways, spins and flips, round and round.
+			-- Confetti: falls, sways and flips, round and round.
 			local c = key.confetti
 			for _, bit in confetti do
 				local te = t - c.start - bit.delay
 				bit.frame.Visible = te >= 0
 				if te >= 0 then
-					local y = -30 + (te * bit.speed / 1000) % (parts.size.Y + 60)
+					local y = -30 + (te * bit.speed / 1000) % (inside.h + 60)
 					local x = bit.x0 + math.sin(seconds * bit.freq + bit.phase) * bit.sway
 					bit.frame.Position = UDim2.fromOffset(x, y)
-					bit.frame.Rotation = seconds * 90 * bit.freq + bit.phase * 50
 					local flip = math.abs(math.cos(seconds * bit.spin + bit.phase))
 					bit.frame.Size =
-						UDim2.fromOffset(math.max(1, bit.width * flip), bit.frame.Size.Y.Offset)
+						UDim2.fromOffset(math.max(2, bit.width * flip), bit.frame.Size.Y.Offset)
 				end
 			end
 		else
-			-- Rocks: thrown up and out from the shield, then falling.
+			-- Grey cubes knocked up off the shield, then falling.
 			local r = key.rocks
 			local te = t - r.start
 			local gravity = r.gravityPxPerSec2 / 1e6
@@ -560,28 +496,22 @@ function EndScreenMotion.play(parts: Parts): Motion
 					local x = rock.x0 + rock.vx * te
 					local y = rock.y0 + rock.vy * te + gravity * te * te
 					rock.frame.Position = UDim2.fromOffset(x, y)
-					rock.frame.Rotation = rock.spin * te
-					local fade = clamp01((te - (r.life - 400)) / 400)
-					rock.frame.BackgroundTransparency = fade
-					local stroke = rock.frame:FindFirstChildOfClass("UIStroke")
-					if stroke then
-						stroke.Transparency = fade
-					end
+					rock.frame.ImageTransparency = clamp01((te - (r.life - 400)) / 400)
 				end
 			end
 
-			-- Embers: rising from the bottom, swaying, round and round.
-			local e = key.embers
-			for _, ember in embers do
-				local et = t - e.start - ember.delay * 0.3
-				ember.frame.Visible = et >= 0
-				if et >= 0 then
-					local y = parts.size.Y
-						+ 16
-						- ((et * ember.speed / 1000 + ember.delay * 0.1) % (parts.size.Y + 56))
-					local x = ember.x0 + math.sin(seconds * 1.4 + ember.phase) * ember.sway
-					ember.frame.Position = UDim2.fromOffset(x, y)
-					ember.frame.BackgroundTransparency = 1 - math.clamp(y / 300, 0, 1) * 0.9
+			-- Rain: streaks falling on a slant, round and round.
+			local d = key.rain
+			local fade = clamp01((t - d.start) / d.fadeIn)
+			local drift = math.tan(math.rad(d.slantDeg))
+			for _, drop in rain do
+				local dt = t - d.start - drop.delay * 0.2
+				drop.frame.Visible = dt >= 0
+				if dt >= 0 then
+					local fall = (dt * drop.speed / 1000 + drop.delay) % (inside.h + 120)
+					local y = fall - 60
+					drop.frame.Position = UDim2.fromOffset(drop.x0 - fall * drift, y)
+					drop.frame.BackgroundTransparency = 1 - (1 - look.rainTransparency) * fade
 				end
 			end
 		end
@@ -602,22 +532,33 @@ function EndScreenMotion.play(parts: Parts): Motion
 			fadeRows[i](rp * pp)
 
 			local count = parts.counts[i]
-			if count and not (i == 3 and parts.fill) then
+			if count and not (i == 3 and parts.setProgress) then
 				local q = cubicOut(clamp01((t - start - rows.countDelay) / rows.countDur))
 				count.label.Text = formatCount(count, count.target * q)
 			end
 		end
 
-		-- Defeat's progress bar fills, and its percentage counts with it.
-		local fill = parts.fill
-		if fill and key.progress then
+		-- Defeat's progress bar lights up, and its percentage counts with it.
+		local setProgress = parts.setProgress
+		if setProgress and key.progress then
 			local f = key.progress.fill
 			local q = cubicOut(clamp01((t - f[1]) / (f[2] - f[1])))
-			fill.Size = UDim2.fromScale(clamp01(parts.percent / 100) * q, 1)
+			setProgress(clamp01(parts.percent / 100) * q)
 			local count = parts.counts[3]
 			if count then
 				count.label.Text = formatCount(count, count.target * q)
 			end
+		end
+
+		-- Rewards pop in, then count up.
+		local rw = key.rewards
+		local wp = clamp01((t - rw.start) / rw.dur)
+		fadeRewards(wp * pp)
+		scaleOf(parts.rewards).Scale = lerp(rw.fromScale, 1, backOut(wp))
+		for i, count in parts.rewardCounts do
+			local span = if i == 1 then rw.coinsCount else rw.gemsCount
+			local q = cubicOut(clamp01((t - span[1]) / (span[2] - span[1])))
+			count.label.Text = formatCount(count, count.target * q)
 		end
 
 		-- Button pops; once it is live it pulses, a shine sweeps across it,
@@ -633,7 +574,7 @@ function EndScreenMotion.play(parts: Parts): Motion
 
 		parts.shine.Visible = live
 		local sweep = (t % SHINE_PERIOD) / SHINE_PERIOD
-		parts.shine.Position = UDim2.fromOffset(-120 + sweep * 620, 0)
+		parts.shine.Position = UDim2.fromOffset(-160 + sweep * 1100, -40)
 
 		if not won then
 			local every = button.iconSpinEvery

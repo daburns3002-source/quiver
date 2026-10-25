@@ -1,132 +1,268 @@
 --!strict
 --[[
-	The end screens' tokens: colours, gradients, fonts and type sizes
-	(design_handoff_end_screens, README "Screens"). Sizes are design pixels
-	on the 540 × 624 panel, which is built at that size and scaled as a whole.
+	The end screens' colours, words and type sizes, sampled off their
+	blocky reference sheets (`assets/concepts/blocky/ui/end_victory.jpg`,
+	`end_defeat.jpg`; owner's yes 2026-10-25). Flat colour only: every
+	block is a fill with a lighter strip along its top and a darker band
+	along its bottom, inside an ink outline. No gradients, no rounding.
 
-	Gradients are ColorSequences, top to bottom, drawn by a UIGradient
-	turned 90°.
+	A block's look: `ink` outline `inkW` thick, then an optional `rim`
+	`rimW` thick inside it, then `fill`, with `top` (`topH` tall) and
+	`bottom` (`bottomH` tall) bands. Sizes are sheet pixels.
 ]]
 
 local rgb = Color3.fromRGB
-local stop = ColorSequenceKeypoint.new
+
+export type Block = {
+	ink: Color3,
+	inkW: number,
+	rim: Color3?,
+	rimW: number?,
+	fill: Color3,
+	top: Color3?,
+	topH: number?,
+	bottom: Color3?,
+	bottomH: number?,
+}
+
+local INK = rgb(27, 27, 43)
 
 local EndScreenTheme = {
-	panelSize = Vector2.new(540, 624),
-	ink = rgb(27, 27, 43),
+	ink = INK,
 	white = rgb(255, 255, 255),
 
-	--[[ Both blocky: Press Start 2P (CLAUDE.md rule 11, owner 2026-10-24). ]]
-	fonts = {
-		--[[ Headings, values, buttons. ]]
-		display = Enum.Font.Arcade,
-		--[[ Row labels. ]]
-		body = Enum.Font.Arcade,
-	},
+	--[[ Every word: Press Start 2P (CLAUDE.md rule 11). ]]
+	font = Enum.Font.Arcade,
 
 	victory = {
-		background = ColorSequence.new({
-			stop(0, rgb(74, 155, 255)),
-			stop(0.42, rgb(31, 98, 224)),
-			stop(1, rgb(18, 62, 158)),
-		}),
-		band = ColorSequence.new({
-			stop(0, rgb(255, 242, 122)),
-			stop(0.45, rgb(255, 210, 31)),
-			stop(1, rgb(247, 163, 12)),
-		}),
-		tails = ColorSequence.new({ stop(0, rgb(255, 180, 31)), stop(1, rgb(224, 138, 6)) }),
-		title = rgb(255, 225, 77),
 		titleText = "VICTORY!",
-		sub = ColorSequence.new({ stop(0, rgb(95, 224, 106)), stop(1, rgb(34, 168, 58)) }),
 		subText = "LEVEL COMPLETE",
-		button = ColorSequence.new({
-			stop(0, rgb(142, 240, 106)),
-			stop(0.5, rgb(57, 196, 58)),
-			stop(1, rgb(31, 154, 44)),
-		}),
 		buttonText = "NEXT LEVEL",
-		rays = rgb(255, 240, 170),
-		raysTransparency = 0.45,
-		glow = rgb(255, 236, 150),
+		labels = { "ENEMIES DEFEATED", "TIME", "HEALTH LEFT" },
+		--[[ Type sizes (TextSize, sheet pixels) and the ink outline round
+		     the words, each matched to its sheet's lettering. ]]
+		text = {
+			title = 140,
+			titleStroke = 8,
+			sub = 47,
+			subStroke = 4,
+			tab = 67,
+			tabStroke = 5,
+			rewardsTab = 46,
+			rowLabel = 44,
+			rowValue = 52,
+			rowStroke = 3,
+			reward = 78,
+			rewardStroke = 5,
+			button = 78,
+			buttonStroke = 6,
+		},
+		--[[ The title's letters: white over a gold lower half. ]]
+		title = rgb(255, 255, 255),
+		titleLow = rgb(253, 190, 30),
+		subTextColour = rgb(255, 255, 255),
+		panel = {
+			ink = INK,
+			inkW = 7,
+			rim = rgb(48, 157, 255),
+			rimW = 8,
+			fill = rgb(4, 96, 246),
+			bottom = rgb(2, 47, 148),
+			bottomH = 16,
+		} :: Block,
+		sub = {
+			ink = INK,
+			inkW = 8,
+			fill = rgb(54, 214, 73),
+			top = rgb(143, 246, 100),
+			topH = 10,
+			bottom = rgb(18, 136, 39),
+			bottomH = 12,
+		} :: Block,
+		studs = rgb(160, 236, 140),
+		tab = {
+			ink = INK,
+			inkW = 7,
+			fill = rgb(19, 127, 254),
+			top = rgb(97, 182, 253),
+			topH = 10,
+			bottom = rgb(4, 80, 196),
+			bottomH = 8,
+		} :: Block,
+		tabStuds = rgb(121, 195, 254),
+		stats = {
+			ink = INK,
+			inkW = 8,
+			rim = rgb(35, 134, 247),
+			rimW = 8,
+			fill = rgb(1, 62, 190),
+			bottom = rgb(2, 35, 112),
+			bottomH = 11,
+		} :: Block,
+		row = {
+			ink = rgb(3, 10, 40),
+			inkW = 6,
+			fill = rgb(1, 30, 100),
+			top = rgb(0, 55, 164),
+			topH = 9,
+			bottom = rgb(1, 58, 173),
+			bottomH = 9,
+		} :: Block,
+		rewards = {
+			ink = rgb(3, 10, 40),
+			inkW = 6,
+			fill = rgb(0, 51, 158),
+			top = rgb(0, 66, 200),
+			topH = 10,
+			bottom = rgb(1, 69, 194),
+			bottomH = 9,
+		} :: Block,
+		slot = {
+			ink = rgb(3, 10, 40),
+			inkW = 6,
+			rim = rgb(1, 64, 182),
+			rimW = 8,
+			fill = rgb(1, 27, 89),
+		} :: Block,
+		button = {
+			ink = INK,
+			inkW = 9,
+			fill = rgb(49, 200, 68),
+			top = rgb(154, 250, 118),
+			topH = 13,
+			bottom = rgb(19, 130, 45),
+			bottomH = 46,
+		} :: Block,
+		--[[ The button's segmented foot: its band and the lines across it. ]]
+		buttonFoot = rgb(10, 114, 35),
+		buttonFootLine = rgb(4, 56, 22),
+		buttonShine = rgb(170, 244, 163),
+		buttonStuds = rgb(160, 236, 140),
+		cubes = rgb(255, 208, 40),
+		rays = rgb(255, 255, 255),
+		raysTransparency = 0.55,
 		confetti = { rgb(255, 210, 63), rgb(255, 230, 128), rgb(245, 166, 35), rgb(255, 244, 184) },
+		flash = rgb(255, 255, 255),
 	},
 
 	defeat = {
-		background = ColorSequence.new({
-			stop(0, rgb(47, 99, 208)),
-			stop(0.45, rgb(23, 70, 176)),
-			stop(1, rgb(11, 38, 112)),
-		}),
-		band = ColorSequence.new({
-			stop(0, rgb(255, 107, 107)),
-			stop(0.45, rgb(240, 50, 63)),
-			stop(1, rgb(184, 24, 42)),
-		}),
-		tails = ColorSequence.new({ stop(0, rgb(232, 50, 60)), stop(1, rgb(165, 20, 31)) }),
-		title = rgb(244, 246, 251),
 		titleText = "DEFEAT",
-		sub = ColorSequence.new({ stop(0, rgb(42, 92, 200)), stop(1, rgb(20, 47, 122)) }),
 		subText = "SO CLOSE! TRY AGAIN",
-		button = ColorSequence.new({
-			stop(0, rgb(255, 227, 106)),
-			stop(0.5, rgb(255, 191, 31)),
-			stop(1, rgb(240, 138, 6)),
-		}),
 		buttonText = "TRY AGAIN",
-		glow = rgb(255, 40, 60),
-		ember = rgb(255, 59, 71),
-		rock = ColorSequence.new({ stop(0, rgb(107, 117, 144)), stop(1, rgb(58, 65, 88)) }),
-	},
-
-	panel = {
-		fill = ColorSequence.new({ stop(0, rgb(15, 58, 168)), stop(1, rgb(10, 42, 128)) }),
-		innerLine = rgb(31, 139, 255),
-		corner = 20,
-	},
-	tab = {
-		fill = ColorSequence.new({ stop(0, rgb(63, 164, 255)), stop(1, rgb(10, 94, 245)) }),
-		accent = rgb(127, 227, 255),
-	},
-	row = {
-		fill = rgb(6, 36, 102),
-		border = rgb(4, 26, 77),
-		height = 30,
-		gap = 4,
-		corner = 10,
-	},
-	rewards = {
-		fill = rgb(6, 26, 85),
-		border = rgb(4, 19, 64),
-	},
-	progress = {
-		track = rgb(2, 22, 73),
-		fill = ColorSequence.new({ stop(0, rgb(125, 255, 114)), stop(1, rgb(31, 194, 58)) }),
-	},
-	home = {
-		fill = ColorSequence.new({ stop(0, rgb(29, 79, 196)), stop(1, rgb(15, 47, 134)) }),
-	},
-
-	--[[ Type sizes, and the design's CSS text-stroke widths. A CSS stroke is
-	     centred on the glyph edge and the fill is painted over its inner
-	     half, so the outline that shows is half the number here. ]]
-	text = {
-		banner = 64,
-		bannerStroke = 8,
-		sub = 21,
-		subDefeat = 20,
-		subStroke = 4,
-		level = 28,
-		levelStroke = 5,
-		rowLabel = 15,
-		rowLabelSmall = 13,
-		rowValue = 19,
-		rowValueStroke = 3,
-		reward = 30,
-		rewardStroke = 5,
-		button = 34,
-		buttonStroke = 6,
-		home = 16,
+		labels = { "ENEMIES DEFEATED", "TIME SURVIVED", "PROGRESS" },
+		--[[ Type sizes (TextSize, sheet pixels) and the ink outline round
+		     the words, each matched to its sheet's lettering. ]]
+		text = {
+			title = 160,
+			titleStroke = 8,
+			sub = 47,
+			subStroke = 4,
+			tab = 52,
+			tabStroke = 5,
+			rewardsTab = 40,
+			rowLabel = 34,
+			rowValue = 46,
+			rowStroke = 3,
+			reward = 78,
+			rewardStroke = 5,
+			button = 78,
+			buttonStroke = 6,
+		},
+		title = rgb(232, 236, 246),
+		titleLow = rgb(188, 198, 220),
+		subTextColour = rgb(219, 228, 244),
+		panel = {
+			ink = INK,
+			inkW = 7,
+			rim = rgb(95, 122, 179),
+			rimW = 9,
+			fill = rgb(46, 61, 95),
+			bottom = rgb(26, 36, 60),
+			bottomH = 18,
+		} :: Block,
+		--[[ The darker band just inside the panel's edge: the gloom. ]]
+		vignette = rgb(35, 48, 79),
+		vignetteW = 34,
+		sub = {
+			ink = INK,
+			inkW = 7,
+			fill = rgb(41, 54, 88),
+			top = rgb(58, 74, 112),
+			topH = 9,
+			bottom = rgb(30, 40, 66),
+			bottomH = 9,
+		} :: Block,
+		tab = {
+			ink = INK,
+			inkW = 7,
+			fill = rgb(70, 96, 157),
+			top = rgb(128, 157, 211),
+			topH = 8,
+			bottom = rgb(48, 68, 118),
+			bottomH = 7,
+		} :: Block,
+		stats = {
+			ink = INK,
+			inkW = 7,
+			rim = rgb(68, 96, 155),
+			rimW = 7,
+			fill = rgb(36, 58, 103),
+			bottom = rgb(25, 43, 82),
+			bottomH = 10,
+		} :: Block,
+		row = {
+			ink = rgb(10, 14, 28),
+			inkW = 5,
+			fill = rgb(19, 33, 62),
+			top = rgb(35, 56, 101),
+			topH = 9,
+			bottom = rgb(32, 51, 91),
+			bottomH = 9,
+		} :: Block,
+		rewards = {
+			ink = rgb(10, 14, 28),
+			inkW = 6,
+			fill = rgb(25, 40, 74),
+			top = rgb(40, 62, 108),
+			topH = 9,
+			bottom = rgb(36, 53, 92),
+			bottomH = 8,
+		} :: Block,
+		rewardsTabBlock = {
+			ink = INK,
+			inkW = 6,
+			fill = rgb(52, 80, 141),
+			top = rgb(99, 126, 186),
+			topH = 6,
+		} :: Block,
+		slot = {
+			ink = rgb(10, 14, 28),
+			inkW = 6,
+			rim = rgb(51, 71, 113),
+			rimW = 6,
+			fill = rgb(21, 32, 57),
+		} :: Block,
+		button = {
+			ink = INK,
+			inkW = 8,
+			fill = rgb(249, 196, 67),
+			top = rgb(255, 226, 104),
+			topH = 12,
+			bottom = rgb(194, 97, 6),
+			bottomH = 24,
+		} :: Block,
+		--[[ The lower half of the button's face, a shade deeper. ]]
+		buttonLow = rgb(246, 172, 34),
+		buttonShine = rgb(255, 236, 160),
+		buttonStuds = rgb(254, 226, 87),
+		cubes = rgb(150, 160, 186),
+		--[[ The segmented progress bar. ]]
+		barOn = rgb(81, 231, 120),
+		barOnTop = rgb(144, 248, 162),
+		barOff = rgb(37, 52, 88),
+		rain = rgb(150, 178, 222),
+		rainTransparency = 0.45,
+		flash = rgb(190, 205, 235),
 	},
 }
 

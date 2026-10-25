@@ -176,6 +176,29 @@ local function fire(shot: PetAttacks.Shot, pet: Model, index: number)
 	end
 end
 
+--[[ One blow of a pet that dashes (`Config/PetCombat` `dash`, the Glade
+     Fox), as it lands beside `target`: its first piece on the floor under
+     the enemy, facing the way the pet came in, and its sounds. ]]
+function PetAttackFx.strike(pet: Model, key: string, target: Model?)
+	for _, cue in (PetSounds :: any)[key] or {} do
+		SoundFx.play(cue.sound)
+	end
+	local shots = (PetAttacks :: any)[key] :: { PetAttacks.Shot }?
+	local shot = shots and shots[1]
+	if not shot or not pet.Parent then
+		return
+	end
+	local from = pet:GetPivot().Position
+	local spot = if target and target.Parent then target:GetPivot().Position else from
+	local ahead = UpgradeFx.flat(spot - from)
+	local floor = UpgradeFx.floor(spot, shot.lift)
+	UpgradeFx.play(shot.effect, {
+		at = CFrame.lookAt(floor, floor + ahead),
+		life = shot.life or 1,
+		clip = shot.clip,
+	})
+end
+
 --[[ Plays the pieces of `key`'s attack (a `Config/PetAttacks` key, the
      pet's model name) from `pet`, and its sounds (`Config/PetSounds`), timed
      from now as its Attack clip starts. Returns how many pieces it will fire. ]]

@@ -9,6 +9,7 @@
 	which also draws a bow's live string and nocked arrow (`Fx/BowString`).
 ]]
 
+local CollectionService = game:GetService("CollectionService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local MeshTemplates = require(script.Parent.Parent.Util.MeshTemplates)
@@ -17,6 +18,11 @@ local Weapons = require(ReplicatedStorage.Shared.Config.Weapons)
 local HeldWeapon = {}
 
 local templates: { [string]: MeshPart } = {}
+
+--[[ The light a glow part gives off, so an Epic, Legendary or Mythic
+     reads as glowing from the game's camera and not only as a Neon
+     surface (owner, 2026-10-24). ]]
+local GLOW_LIGHT = { brightness = 2, range = 6 }
 
 function HeldWeapon.preload()
 	local ids: { string } = {}
@@ -93,6 +99,18 @@ function HeldWeapon.equip(character: Model, weaponName: string)
 				part.TextureID = spec.textureId
 			end
 			part.Material = if spec.glow then Enum.Material.Neon else Enum.Material.SmoothPlastic
+			if spec.glow then
+				local light = Instance.new("PointLight")
+				light.Color = part.Color
+				light.Brightness = GLOW_LIGHT.brightness
+				light.Range = GLOW_LIGHT.range
+				light.Shadows = false
+				light.Parent = part
+				if weapon.rainbow then
+					-- cycled on the client (`Fx/WeaponGlow`)
+					CollectionService:AddTag(part, "WeaponRainbow")
+				end
+			end
 			if spec.nocked then
 				part.Transparency = 1
 				part:SetAttribute("Nocked", true)

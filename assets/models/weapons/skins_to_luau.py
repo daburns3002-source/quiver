@@ -52,6 +52,14 @@ SKINS = [
     ("GladeheartBlade", "GLADEHEART BLADE", "Warden", "blade_5mythic_gladeheart_blade", None, (222, 190, 243)),
 ]
 GLOWS = ("Gems", "Glow")
+# Epics and up always glow (owner, 2026-10-24); one with no colour of its own
+# glows white, and a Mythic cycles its glow through the rainbow (Fx/WeaponGlow).
+WHITE = (255, 255, 255)
+
+
+def rarity(name: str) -> int:
+    """1 (uncommon) to 5 (mythic), from the import's name: `bow_5mythic_...`."""
+    return int(name.split("_")[1][0])
 
 
 def num(v: float) -> str:
@@ -70,6 +78,8 @@ def rgb(c) -> str:
 def entry(imports, key, cls, name, projectile, glow) -> str:
     base = BASES[cls]
     model = imports[name]
+    if rarity(name) >= 3 and not glow:
+        glow = WHITE
     length = model["size"][1]
     # the grip, up the length from the bottom, in the model's centred frame
     grip_y = -length / 2 + length * base["grip"]
@@ -95,6 +105,8 @@ def entry(imports, key, cls, name, projectile, glow) -> str:
             out.append(f"\t\t\t\tcolour = {rgb(glow)},")
         out.append("\t\t\t},")
     out.append("\t\t} :: { WeaponPart },")
+    if rarity(name) == 5:
+        out.append("\t\trainbow = true,")
     if projectile:
         shot = imports[projectile]
         main = next((p for p in shot["parts"] if p["name"] in ("Bolt", "Glow", "Arrow")), shot["parts"][0])

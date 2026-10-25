@@ -39,6 +39,9 @@ export type Shot = {
 	--[[ Seconds a Reach, Ground, Overhead or Owner piece stays. ]]
 	life: number?,
 	sweep: number?,
+	--[[ A Reach piece modelled pointing back along +Z (the Fern Frog's
+	     tongue): turned half round so it reaches toward the enemy. ]]
+	flip: boolean?,
 	targets: number?,
 	impact: Impact?,
 }
@@ -67,7 +70,14 @@ local PetAttacks: { [string]: { Shot } } = {
 		},
 	},
 	FernFrog = {
-		{ effect = "FxPetTongueLash", clip = "Lash", kind = "Reach", at = 0.2, life = 0.5 },
+		{
+			effect = "FxPetTongueLash",
+			clip = "Lash",
+			kind = "Reach",
+			at = 0.2,
+			life = 0.5,
+			flip = true,
+		},
 	},
 	ToadstoolTot = {
 		{ effect = "FxPetSporePatch", clip = "Play", kind = "Owner", at = 0.4, life = 3 },

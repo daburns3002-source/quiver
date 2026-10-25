@@ -315,7 +315,7 @@ local function placeKit(
 		part.Position = patch.centre
 		part.Color = patch.colour
 		part.Material = Enum.Material.Fabric
-		if patch.kind ~= "Tile" then
+		if patch.kind == "Water" or patch.kind == "Bank" then
 			--[[ Water and its bank are round: a sphere mesh flattened to
 			     the patch, as the round glade's pond was. ]]
 			if patch.kind == "Water" then

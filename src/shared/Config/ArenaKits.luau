@@ -58,6 +58,8 @@ export type Kit = {
 	--[[ A gap in the south wall too, for the door the player comes in by
 	     (owner, 2026-10-24: Thornwood). ]]
 	southGate: boolean?,
+	--[[ A corner pillar halfway along the west and east walls as well. ]]
+	midPillars: boolean?,
 }
 
 --[[ Mossy Glade tints (see `Piece.tint`): stone and wood keep most of their
@@ -188,17 +190,22 @@ local ArenaKits: { [string]: Kit } = {
 			FernBush = "ThornBush",
 		},
 		tile = 3.5,
-		--[[ A darker, browner green than the glade's, under the brambles. ]]
+		--[[ Sampled from the reference sheet's lawn and ground tile
+		     (`assets/concepts/blocky/arenas/area02_thornwood_views.png`),
+		     to match it 1:1 (owner, 2026-10-25: "if the arena does not
+		     match 1 to 1 then redo it"); the first pass was two steps
+		     darker. ]]
 		lawn = {
-			Color3.fromRGB(86, 116, 50),
-			Color3.fromRGB(80, 108, 46),
-			Color3.fromRGB(93, 123, 55),
+			Color3.fromRGB(141, 183, 47),
+			Color3.fromRGB(117, 161, 38),
+			Color3.fromRGB(152, 183, 57),
+			Color3.fromRGB(156, 195, 59),
 		},
-		--[[ The orange dirt of the reference sheet. ]]
+		--[[ The sheet's dirt, in blocks like its pixels. ]]
 		dirt = {
-			Color3.fromRGB(176, 106, 54),
-			Color3.fromRGB(162, 96, 48),
-			Color3.fromRGB(186, 116, 60),
+			Color3.fromRGB(199, 147, 71),
+			Color3.fromRGB(190, 150, 71),
+			Color3.fromRGB(184, 138, 64),
 		},
 		water = Color3.fromRGB(70, 130, 150),
 		bank = Color3.fromRGB(96, 80, 46),
@@ -208,6 +215,7 @@ local ArenaKits: { [string]: Kit } = {
 		plants = { ThornBush = 3, RootSprout = 4 },
 		thicketSpacing = 2.6,
 		southGate = true,
+		midPillars = true,
 	},
 }
 

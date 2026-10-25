@@ -195,8 +195,7 @@ local Sounds: { [string]: Sound } = {
 	--[[ Each pet's attack (`Config/PetSounds`), from `assets/audio/pet_synth.py`,
 	     picked by the owner in round 17 (2026-10-24; two each for the Slime
 	     Prince and Ember Wilf, one per half of their attack). Files are in
-	     `assets/audio/final/`, uploaded 2026-10-24; the Mossback Snail's
-	     is not in the inventory yet, so it is silent. ]]
+	     `assets/audio/final/`, uploaded 2026-10-24. ]]
 	pet_mosslet = {
 		id = "rbxassetid://83032506635339",
 		volume = 0.5,
@@ -222,7 +221,7 @@ local Sounds: { [string]: Sound } = {
 		minGap = 0.1,
 	},
 	pet_mossback_snail = {
-		id = "",
+		id = "rbxassetid://110647736120385",
 		volume = 0.5,
 		pitchJitter = 0.06,
 		minGap = 0.1,

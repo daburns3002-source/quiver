@@ -256,7 +256,7 @@ function AbilityEffects.stages(drafted: Counts, class: string?): { ShotStage }
 	     scaled its damage would overtake the arrow that delivered it. ]]
 	local blast = at(counts, "BlastArrows") * (1 + at(counts, "BiggerOrbs"))
 	if blast > 0 then
-		table.insert(out, Stages.splash(blast, 0.5))
+		table.insert(out, Stages.splash(blast, 0.4))
 	end
 
 	--[[ Chain Lightning arcs an orb on as Ricochet bounces an arrow. ]]

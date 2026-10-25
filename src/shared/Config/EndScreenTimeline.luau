@@ -64,6 +64,7 @@ local EndScreenTimeline = {
 			fromScale = 0.85,
 			coinsCount = { 2100, 2950 },
 			gemsCount = { 2250, 2950 },
+			chestCount = { 2400, 2950 },
 		},
 		button = {
 			start = 2700,

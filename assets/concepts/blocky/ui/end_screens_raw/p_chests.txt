@@ -1,0 +1,11 @@
+Use your image generation tool. Draw on a perfectly flat, solid pure magenta background (#FF00FF) everywhere outside the object, with no shadow on the background, no gradient, no texture, no vignette, so it can be cut out by colour. Do NOT use magenta or pink anywhere inside the object. Keep a generous empty margin of magenta around it. No text, no letters anywhere.
+Style: exactly the blocky style of the reference sheet (first reference image): chunky voxel / stair-stepped pixel shapes, flat 2-3 tone shading, thick near-black (#1B1B2B) ink outline, no smooth gradients, no blur.
+Save the PNG in the current folder with the exact file name given.
+
+The reference image is the game's approved reward chest (wood planks, gold bands, gold lock). Draw SIX area chests in exactly its blocky style, shape, size, framing and three-quarter angle, each re-themed for one area of the game, so a player can tell at a glance which area it came from. Each is its own 1024 x 1024 file, the chest large and centred, closed, no sparkles, no text:
+1. chest_mossy_glade.png  - Mossy Glade (tutorial forest): mossy green-stained wood, gold bands, patches of bright moss and a tiny mushroom on the lid, a leaf-shaped lock.
+2. chest_thornwood.png    - Thornwood (dark bramble wood): dark purple-brown wood, dull bronze bands wrapped with thorny bramble vines, a few magenta thorns, a bramble-knot lock.
+3. chest_drowned_village.png - Drowned Village (flooded ruined houses): water-darkened teal-grey planks, rusty iron bands with barnacles, a little seaweed hanging off, a ship's-wheel lock.
+4. chest_bogheart_caverns.png - Bogheart Caverns (glowing fungus caves): deep purple-black wood, mossy stone corners, glowing cyan and green mushroom caps growing on it, a glowing spore-shaped lock.
+5. chest_windswept_cliffs.png - Windswept Cliffs (high windy peaks): pale weathered sandy wood, silver-white bands, a feather tucked under the band, a little blue sky-crystal lock.
+6. chest_frostpeak_pass.png - Frostpeak Pass (icy mountain pass): frosted pale-blue wood, icy silver bands, snow on the lid and icicles hanging from the front edge, an ice-crystal lock.

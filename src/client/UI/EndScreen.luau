@@ -50,9 +50,11 @@ export type Summary = {
 	seconds: number,
 	healthPercent: number,
 	progressPercent: number,
-	--[[ What the run paid out; nil until the meta loop pays anything. ]]
+	--[[ What the run paid out; nil until the meta loop pays anything.
+	     `chests` are the stage's area's chest (Victory only). ]]
 	coins: number?,
 	gems: number?,
+	chests: number?,
 }
 
 type Box = { x: number, y: number, w: number, h: number }
@@ -376,8 +378,11 @@ local function buildCubes(parent: Instance, look: any, layout: any): { ImageLabe
 	return cubes
 end
 
-export type Count =
-	{ label: TextLabel, kind: "Count" | "Clock" | "Percent" | "Plus", target: number }
+export type Count = {
+	label: TextLabel,
+	kind: "Count" | "Clock" | "Percent" | "Plus" | "Times",
+	target: number,
+}
 
 --[[ A tab over a panel's top edge: a block with its words, and a stud at
      each end. ]]
@@ -483,6 +488,55 @@ local function progressBar(r: Frame, look: any, layout: any): (number) -> ()
 			s.top.BackgroundColor3 = if on then look.barOnTop else look.barOff
 		end
 	end
+end
+
+--[[ Victory's chest slot, under the coins and gems: the chest of the
+     stage's area, its sparkles, CHEST and how many. Dimmed while the run
+     gave none (until chests exist, always). ]]
+local function chestSlot(rewards: Frame, look: any, layout: any, summary: Summary): Count
+	local c = layout.chest
+	local rb: Box = layout.rewards
+	local sb: Box = c.slot
+	local slot = block(
+		rewards,
+		"ChestSlot",
+		{ x = sb.x - rb.x, y = sb.y - rb.y, w = sb.w, h = sb.h },
+		34,
+		look.slot
+	)
+	local stage = Balance.Stages[summary.stage]
+	local area = (stage and stage.area) or "MossyGlade"
+	local chests: { [string]: string } = EndScreenAssets.chests
+	local count = summary.chests or 0
+	local dim = if count > 0 then 0 else look.chestDim
+	local chest = image(slot, "Chest", c.icon, 36, chests[area] or chests.MossyGlade)
+	chest.ImageTransparency = dim
+	for _, at in c.sparkles do
+		cube(slot, at[1], at[2], c.sparkle, 36, look.cubes).ImageTransparency = dim
+	end
+	local label = text(
+		slot,
+		"Label",
+		{ x = c.labelX, y = 3, w = 260, h = sb.h },
+		36,
+		"CHEST",
+		look.text.reward,
+		WHITE,
+		look.text.rewardStroke
+	)
+	label.TextXAlignment = Enum.TextXAlignment.Left
+	local v = text(
+		slot,
+		"Value",
+		{ x = c.countRight - 160, y = 3, w = 160, h = sb.h },
+		36,
+		"x" .. tostring(count),
+		look.text.reward,
+		WHITE,
+		look.text.rewardStroke
+	)
+	v.TextXAlignment = Enum.TextXAlignment.Right
+	return { label = v, kind = "Times", target = count }
 end
 
 export type Stats = {
@@ -609,6 +663,9 @@ local function buildStats(content: Instance, look: any, layout: any, summary: Su
 		v.TextXAlignment = Enum.TextXAlignment.Left
 		table.insert(rewardCounts, { label = v, kind = "Plus", target = target })
 	end
+	if layout.chest then
+		table.insert(rewardCounts, chestSlot(rewards, look, layout, summary))
+	end
 	pivot(rewards)
 
 	return {
@@ -637,12 +694,20 @@ local function buildButton(content: Instance, look: any, layout: any, won: boole
 	local faceBottom: number
 	if won then
 		-- The sheet's foot: an ink line, then a dark band cut into segments.
-		faceBottom = 124
-		rect(face, "FootLine", { x = ink, y = 132, w = lb.w - 2 * ink, h = 5 }, 51, INK)
+		local foot = layout.buttonFoot
+		faceBottom = foot.face
+		local band = foot.band
+		rect(
+			face,
+			"FootLine",
+			{ x = ink, y = foot.line, w = lb.w - 2 * ink, h = band - foot.line },
+			51,
+			INK
+		)
 		rect(
 			face,
 			"Foot",
-			{ x = ink, y = 137, w = lb.w - 2 * ink, h = lb.h - 137 - ink },
+			{ x = ink, y = band, w = lb.w - 2 * ink, h = lb.h - band - ink },
 			51,
 			look.buttonFoot
 		)
@@ -651,14 +716,17 @@ local function buildButton(content: Instance, look: any, layout: any, won: boole
 			rect(
 				face,
 				"FootSeam",
-				{ x = x, y = 137, w = 7, h = lb.h - 137 - ink },
+				{ x = x, y = band, w = 7, h = lb.h - band - ink },
 				52,
 				look.buttonFootLine
 			)
 			x += 82
 		end
 		rect(face, "Shine", { x = 64, y = 29, w = lb.w - 128, h = 8 }, 52, look.buttonShine)
-		for _, at in { { 39, 41 }, { lb.w - 39, 41 }, { 39, 108 }, { lb.w - 39, 108 } } do
+		local studY = layout.buttonStudsY
+		for _, at in
+			{ { 39, studY[1] }, { lb.w - 39, studY[1] }, { 39, studY[2] }, { lb.w - 39, studY[2] } }
+		do
 			cube(face, at[1], at[2], 34, 53, look.buttonStuds)
 		end
 	else
@@ -989,6 +1057,12 @@ function EndScreen.start(restart: () -> ())
 	     (seen in Studio: the icons and the retry arrow came in late). ]]
 	local images: { string } = {}
 	for _, id in EndScreenAssets :: any do
+		if type(id) == "string" then
+			table.insert(images, id)
+		end
+	end
+	local chests: { [string]: string } = EndScreenAssets.chests
+	for _, id in chests do
 		table.insert(images, id)
 	end
 	task.spawn(function()

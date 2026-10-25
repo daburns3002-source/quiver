@@ -37,7 +37,11 @@ local Device = require(script.Parent.Parent.Device)
 
 local EndScreenMotion = {}
 
-type Count = { label: TextLabel, kind: "Count" | "Clock" | "Percent" | "Plus", target: number }
+type Count = {
+	label: TextLabel,
+	kind: "Count" | "Clock" | "Percent" | "Plus" | "Times",
+	target: number,
+}
 type Box = { x: number, y: number, w: number, h: number }
 
 export type Parts = {
@@ -127,6 +131,8 @@ local function formatCount(count: Count, value: number): string
 		return string.format("%d%%", math.floor(value + 0.5))
 	elseif count.kind == "Plus" then
 		return "+" .. tostring(math.floor(value + 0.5))
+	elseif count.kind == "Times" then
+		return "x" .. tostring(math.floor(value + 0.5))
 	end
 	return tostring(math.floor(value + 0.5))
 end
@@ -556,7 +562,10 @@ function EndScreenMotion.play(parts: Parts): Motion
 		fadeRewards(wp * pp)
 		scaleOf(parts.rewards).Scale = lerp(rw.fromScale, 1, backOut(wp))
 		for i, count in parts.rewardCounts do
-			local span = if i == 1 then rw.coinsCount else rw.gemsCount
+			local span = if i == 1
+				then rw.coinsCount
+				elseif i == 2 then rw.gemsCount
+				else rw.chestCount
 			local q = cubicOut(clamp01((t - span[1]) / (span[2] - span[1])))
 			count.label.Text = formatCount(count, count.target * q)
 		end

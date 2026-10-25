@@ -31,6 +31,18 @@ local EndScreenAssets = {
 	drop = "rbxassetid://98128376234101",
 	star = "rbxassetid://133495348208361",
 	sparkle = "rbxassetid://75145958219959",
+
+	--[[ Each area's chest, for Victory's reward slot (owner, 2026-10-25:
+	     "codex needs to draw a chest per area"), keyed by the stage's
+	     `area` in `Balance.Stages`. Acts 1–3 only. ]]
+	chests = {
+		MossyGlade = "rbxassetid://139169356487754",
+		Thornwood = "rbxassetid://121658796918340",
+		DrownedVillage = "rbxassetid://124545791980392",
+		BogheartCaverns = "rbxassetid://107033812916752",
+		WindsweptCliffs = "rbxassetid://76194147797596",
+		FrostpeakPass = "rbxassetid://99991548828480",
+	},
 }
 
 return table.freeze(EndScreenAssets)

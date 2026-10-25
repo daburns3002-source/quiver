@@ -1,0 +1,40 @@
+[
+ {
+  "take": "g",
+  "seconds": 60.0,
+  "samples": 2646000,
+  "lufs": -15.9,
+  "true_peak_db": -2.7,
+  "bus_rms_db": {
+   "bass": -20.9,
+   "ostinato": -25.8,
+   "pad": -25.0,
+   "chip": -29.0,
+   "stabs": -22.8,
+   "kick": -23.0,
+   "snare": -24.9,
+   "taiko": -23.0,
+   "perc": -30.7,
+   "crash": -29.8,
+   "chiplead": -20.4,
+   "lead": -23.0,
+   "brass": -21.0
+  },
+  "seam": {
+   "jump": 0.03684,
+   "p99_inside": 0.10666,
+   "max_inside": 0.55214
+  },
+  "intros": {
+   "build": {
+    "intro_seconds": 5.0,
+    "loop_start": 11.0,
+    "loop_end": 71.0,
+    "seconds": 71.5,
+    "lufs": -16.0,
+    "true_peak_db": -1.2
+   }
+  },
+  "note": "Soar: B flat major, a lyrical tune of wide leaps (up a sixth), long held notes over the band, the most singable."
+ }
+]

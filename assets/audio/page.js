@@ -27,14 +27,54 @@ async function play(id, repeat, gap) {
   }
 }
 
-document.addEventListener("click", (e) => {
+// Long takes (music) pause and resume on their play button; one plays at a time.
+const LONG = 3;
+const paused = {};
+let current = null; // { id, src, at, offset, btn }
+
+function pauseCurrent() {
+  if (!current) return;
+  const c = current;
+  current = null;
+  paused[c.id] = c.offset + (context().currentTime - c.at);
+  c.src.onended = null;
+  c.src.stop();
+  c.btn.classList.remove("playing");
+}
+
+async function toggle(id, btn) {
+  if (current && current.id === id) return pauseCurrent();
+  pauseCurrent();
+  const c = context();
+  if (c.state === "suspended") await c.resume();
+  const b = await buffer(id);
+  const offset = (paused[id] || 0) % b.duration;
+  const src = c.createBufferSource();
+  src.buffer = b;
+  src.connect(c.destination);
+  const at = c.currentTime + 0.02;
+  src.start(at, offset);
+  current = { id, src, at, offset, btn };
+  btn.classList.add("playing");
+  src.onended = () => {
+    if (current && current.src === src) current = null;
+    paused[id] = 0;
+    btn.classList.remove("playing");
+  };
+}
+
+document.addEventListener("click", async (e) => {
   const btn = e.target.closest("[data-play]");
   if (!btn) return;
   const repeat = Number(btn.dataset.repeat || 1);
   const gap = Number(btn.dataset.gap || 0);
-  play(btn.dataset.play, repeat, gap).catch(() => {});
   btn.classList.add("on");
   setTimeout(() => btn.classList.remove("on"), 150);
+  try {
+    const b = await buffer(btn.dataset.play);
+    if (btn.classList.contains("play") && b.duration > LONG) return toggle(btn.dataset.play, btn);
+    play(btn.dataset.play, repeat, gap);
+  } catch (err) {}
 });
 
 // Picks live in the page's database (COLLECTION/<sound>), so Claude reads them

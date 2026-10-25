@@ -183,6 +183,18 @@ ROUND_19 = [
     }),
 ]
 
+ROUND_20 = [
+    ("Round 20 · the intro cutscene's music", {
+        "music_title": ("Title theme", "Plays from the cutscene's first frame: quiet and building on black while DYL.DEVS PRESENTS shows (the bells are the words popping in), the hit at exactly 5 s as the Archer Legends picture cuts in, then the theme, which loops while the title screen waits for BEGIN ADVENTURE. Each take is the whole file that would ship, loop and all: one upload.", None),
+    }),
+]
+
+ROUND_21 = [
+    ("Round 21 · the intro music, four new melodies", {
+        "music_title": ("Title theme", "Four new tunes (round 20's melodies were out). Same build on black and the same hit at exactly 5 s as the picture cuts in; all four voiced like round 20's A (chip lead, flute and brass), so only the tune differs. Each is the whole file that would ship, loop and all: one upload.", None),
+    }),
+]
+
 # page: (rounds, picks collection, sounds already chosen, shown for context)
 ROUND_18 = [
     ("Round 18 · King Bloblin's attacks, two big takes each", {
@@ -218,6 +230,8 @@ ROUND_18 = [
 ]
 
 PAGES = {
+    "21": (ROUND_21, "picks21", []),
+    "20": (ROUND_20, "picks20", []),
     "19": (ROUND_19, "picks19", []),
     "18": (ROUND_18, "picks18", []),
     "17": (ROUND_17, "picks17", []),

@@ -312,5 +312,13 @@
   "FxPetReviveBurst": {
     "glb": "assets/models/effects/fx_pet_revive_burst.glb",
     "loops": []
+  },
+  "BrambleBoar": {
+    "glb": "assets/models/enemies/blocky/bramble_boar.glb",
+    "loops": [
+      "Idle",
+      "Move",
+      "Charge"
+    ]
   }
 }

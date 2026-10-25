@@ -121,7 +121,8 @@ return function(t: TestRunner.Helper)
 		t.isTrue(stat("Execute").melee.executeBonus > plain.melee.executeBonus, "Execute")
 		t.isTrue(stat("Whirlwind").melee.whirlwindEvery > 0, "Whirlwind")
 		t.isTrue(
-			stat("Whirlwind").melee.whirlwindEvery < Abilities.byId.Whirlwind.levels[1],
+			stat("Whirlwind").melee.whirlwindEvery
+				< math.round(1 / Abilities.byId.Whirlwind.levels[1]),
 			"Whirlwind's top level spins no more often"
 		)
 		t.isTrue(stat("Shockwave").melee.shockwaveLength > 0, "Shockwave")

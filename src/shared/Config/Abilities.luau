@@ -607,8 +607,9 @@ local abilities: { Ability } = {
 		category = "Pattern",
 		group = "blade",
 		rarity = "Epic",
-		--[[ Every nth swing is the spin (`Balance.Player.whirlwind`). ]]
-		levels = { 4, 3 },
+		--[[ The share of swings that spin, so the levels rise as the cards
+		     must: one in 4, then one in 3 (`Balance.Player.whirlwind`). ]]
+		levels = { 0.25, 0.34 },
 		stats = { "Every 4th swing", "Every 3rd swing" },
 		icon = "whirlwind",
 		classes = WARDEN,

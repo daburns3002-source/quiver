@@ -334,7 +334,9 @@ function AbilityEffects.serverStats(drafted: Counts, class: string?): ServerStat
 			slamBonus = at(counts, "HeavyBlade"),
 			lifesteal = at(counts, "Bloodletting"),
 			executeBonus = at(counts, "Execute"),
-			whirlwindEvery = at(counts, "Whirlwind"),
+			whirlwindEvery = if at(counts, "Whirlwind") > 0
+				then math.round(1 / at(counts, "Whirlwind"))
+				else 0,
 			shockwaveLength = at(counts, "Shockwave"),
 			battleCry = at(counts, "BattleCry"),
 			parry = at(counts, "Parry"),

@@ -2102,6 +2102,9 @@ local function stepEnemy(enemy: Enemy, deltaTime: number, now: number)
 		return
 	end
 
+	--[[ For the client's sound of a blow that shows no wind-up
+	     (`Fx/EnemySounds`). ]]
+	enemy.model:SetAttribute("AttackAt", now)
 	RunSession.applyDamage(session, config.attackDamage * difficulty().damage)
 end
 

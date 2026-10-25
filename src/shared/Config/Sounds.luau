@@ -280,6 +280,33 @@ local Sounds: { [string]: Sound } = {
 		pitchJitter = 0.06,
 		minGap = 0.1,
 	},
+	--[[ Round 18 (owner's picks, 2026-10-25; `assets/audio/boss_synth.py`,
+	     `assets/audio/final/`), played by `Fx/EnemySounds`: the bosses' moves
+	     and Thornwood's enemies. Silent until uploaded. ]]
+	boss_king_bounce_windup = { id = "", volume = 0.8, pitchJitter = 0.05, minGap = 0.25 },
+	boss_king_bounce_launch = { id = "", volume = 0.8, pitchJitter = 0.05, minGap = 0.25 },
+	boss_king_bounce_slam = { id = "", volume = 0.9, pitchJitter = 0.05, minGap = 0.25 },
+	boss_king_lash = { id = "", volume = 0.8, pitchJitter = 0.05, minGap = 0.25 },
+	boss_king_grab = { id = "", volume = 0.8, pitchJitter = 0.05, minGap = 0.25 },
+	boss_king_chest_bump = { id = "", volume = 0.8, pitchJitter = 0.05, minGap = 0.25 },
+	boss_king_goo = { id = "", volume = 0.7, pitchJitter = 0.05, minGap = 0.25 },
+	boss_brood_web_windup = { id = "", volume = 0.8, pitchJitter = 0.05, minGap = 0.25 },
+	boss_brood_web_spin = { id = "", volume = 0.6, pitchJitter = 0.05, minGap = 0.25 },
+	boss_brood_web_break = { id = "", volume = 0.8, pitchJitter = 0.05, minGap = 0.25 },
+	boss_brood_web_shot = { id = "", volume = 0.8, pitchJitter = 0.05, minGap = 0.25 },
+	boss_brood_web_pull = { id = "", volume = 0.7, pitchJitter = 0.05, minGap = 0.25 },
+	boss_brood_summon = { id = "", volume = 0.8, pitchJitter = 0.05, minGap = 0.25 },
+	enemy_boar_charge = { id = "", volume = 0.6, pitchJitter = 0.05, minGap = 0.12 },
+	enemy_boar_gore = { id = "", volume = 0.55, pitchJitter = 0.05, minGap = 0.12 },
+	enemy_thistle_spit = { id = "", volume = 0.5, pitchJitter = 0.05, minGap = 0.12 },
+	enemy_sow_attack = { id = "", volume = 0.6, pitchJitter = 0.05, minGap = 0.12 },
+	enemy_sow_drop = { id = "", volume = 0.6, pitchJitter = 0.05, minGap = 0.12 },
+	enemy_boarlet_bite = { id = "", volume = 0.45, pitchJitter = 0.05, minGap = 0.12 },
+	enemy_lurker_dive = { id = "", volume = 0.55, pitchJitter = 0.05, minGap = 0.12 },
+	enemy_lurker_emerge = { id = "", volume = 0.6, pitchJitter = 0.05, minGap = 0.12 },
+	enemy_lurker_spray = { id = "", volume = 0.5, pitchJitter = 0.05, minGap = 0.12 },
+	enemy_thornling_bite = { id = "", volume = 0.45, pitchJitter = 0.05, minGap = 0.12 },
+	enemy_thornling_hatch = { id = "", volume = 0.45, pitchJitter = 0.05, minGap = 0.12 },
 }
 
 return table.freeze(Sounds)

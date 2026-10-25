@@ -115,6 +115,11 @@ def projectile(group):
 
 
 BLOCKY.update({
+    # The Uncommon pair never slimmed with the rest (#193's raw exports).
+    "acorn_bow": bow(),
+    "acorn_arrow": projectile("Arrow"),
+    "toadstool_staff": staff(),
+    "toadstool_bolt": projectile("Bolt"),
     "ember_fang_bow": bow(),
     "firefly_bow": bow(),
     "glade_spirit_bow": bow(),

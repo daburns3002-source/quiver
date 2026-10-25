@@ -262,8 +262,9 @@ nothing round). `BossBody` only keeps his shadow on the floor; its jelly
 tube is for a server-posed body. `tests/BossClips.spec.luau` pins it.
 Sounds for his moves are not made yet.
 **The Broodmother's Web Walker** (owner, 2026-10-25, in place of the
-jump): a boss can name its own move loop (`EnemyBoss.loop`, her loop
-is Spin then Lash). A `Spin` raises a web nearly as wide as the room that
+jump): a boss can name its own move loop (`EnemyBoss.loop`; hers opens
+with the lash, then the spin) and run at the player between moves
+(`EnemyBoss.chase`, `BossMoves.chase`). A `Spin` raises a web nearly as wide as the room that
 turns clockwise round her. The player walks the edge with its arms, like a
 horse walker. One pure module (`Shared/Util/WebWheel`) decides both who
 is hit (server, `BossMoves.wheelHit`) and where the arms are drawn

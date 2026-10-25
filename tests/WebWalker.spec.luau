@@ -32,13 +32,36 @@ local function identity(point: Vector3): Vector3
 end
 
 return function(t: TestRunner.Helper)
-	t.test("she loops Web Walker and her lash, and the jump is gone", function()
+	t.test("her fight opens with the lash, Web Walker after, and the jump is gone", function()
 		local loop = BossMoves.loopOf(boss)
-		t.equal(table.concat(loop, " "), "Spin Lash")
+		t.equal(table.concat(loop, " "), "Lash Spin")
 		t.equal(
 			table.concat(BossMoves.loopOf(Balance.Enemies.SlimeKing.boss :: any), " "),
 			"Bounce Lash"
 		)
+	end)
+
+	t.test("between moves she runs at the player and stops short of them", function()
+		local chase = boss.chase :: Balance.BossChase
+		local target = Vector3.new(0, 0, 30)
+		local feet = Vector3.zero
+		local closer = 0
+		for _ = 1, 600 do
+			local to, moving = BossMoves.chase(feet, target, chase, FRAME, identity)
+			if moving then
+				t.isTrue(
+					(to - feet).Magnitude <= chase.speed * FRAME + 1e-6,
+					"never faster than her pace"
+				)
+				closer += 1
+			end
+			feet = to
+		end
+		t.isTrue(closer > 0, "she moved")
+		t.near((target - feet).Magnitude, chase.stopDistance, 1e-3, "stops at her distance")
+		local _, again = BossMoves.chase(feet, target, chase, FRAME, identity)
+		t.isFalse(again, "and stays there")
+		t.isTrue(chase.speed < Balance.Player.moveSpeed, "the player can out-walk her")
 	end)
 
 	t.test("spoke one turns clockwise from the camera (+X toward +Z)", function()

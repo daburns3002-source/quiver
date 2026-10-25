@@ -73,8 +73,11 @@ appear only as her attacks, the lanes below.
   clears Thornlings well; Ranger must not get trapped in a lane.
 
 **Built (2026-10-25)** on the in-game model (the owner's "Thornweaver"
-project). Her loop is **Web Walker**, then her lash as a web, with a
-Thornling clutch after every second move. Web Walker replaced the Slime
+project). Her fight opens with her lash as a web, then **Web Walker**,
+and loops those two, with a Thornling clutch after every second move.
+Between moves she runs at the player (7 studs/s, stopping 7 short;
+`Balance` Broodmother `chase`); only Web Walker sends her back to the
+middle first (owner, 2026-10-25). Web Walker replaced the Slime
 King's climb and drop, the jump the owner didn't want, and it is approved
 from the concept sheet `assets/concepts/blocky/broodmother_web_walker_concept.png`.
 Her web shot from #308 is kept as it was.

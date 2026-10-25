@@ -840,6 +840,29 @@ function BossMoves.idle(feet: Vector3, yaw: number, now: number): Pose
 end
 
 --[[
+	A rest spent running at the target (`EnemyBoss.chase`): where the feet
+	are after `dt` seconds at `speed`, never closer to the target than
+	`stopDistance`, and whether they moved. Turns the room's limits over to
+	`clamp`.
+]]
+function BossMoves.chase(
+	feet: Vector3,
+	target: Vector3,
+	chase: Balance.BossChase,
+	dt: number,
+	clamp: (Vector3) -> Vector3
+): (Vector3, boolean)
+	local offset = flat(target) - flat(feet)
+	local gap = offset.Magnitude - chase.stopDistance
+	if gap <= 1e-3 or dt <= 0 then
+		return flat(feet), false
+	end
+	local stride = math.min(gap, chase.speed * dt)
+	local moved = flat(clamp(flat(feet) + offset.Unit * stride))
+	return moved, (moved - flat(feet)).Magnitude > 1e-3
+end
+
+--[[
 	The clip the body plays now, when it began, and how many seconds it
 	is to last: the phases that share it, played through as they will be
 	(a lash that has not hit plays on to its retract). "" with no move, or

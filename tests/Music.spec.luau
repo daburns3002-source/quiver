@@ -1,8 +1,8 @@
 --!strict
 --[[
 	The music table (`Config/Music`): every id is empty or an asset, and the
-	intro's title theme loops only after the cut (`Config/Intro.revealAt`), so the cutscene's cut
-	lands on the first pass and the loop never replays the build.
+	intro's title theme loops only after the cutscene's cut to the picture
+	(`Config/Intro.revealAt`), so the loop never replays the build.
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -34,16 +34,14 @@ return function(t: TestRunner.Helper)
 		end
 	end)
 
-	t.test("the title theme hits on the cut, then loops past its build", function()
+	t.test("the title theme loops only after the cut, round a long region", function()
 		local intro = Music.intro
+		local start, finish = intro.loopStart, intro.loopEnd
 		t.isTrue(isAsset(intro.id), `the title theme's id {intro.id} is not an asset id`)
-		t.isTrue(
-			intro.hitAt > 0 and intro.hitAt <= intro.loopStart,
-			"the loop would replay the build"
-		)
-		t.isTrue(
-			intro.loopEnd - intro.loopStart > 10,
-			"the title screen's loop is too short to sit under"
-		)
+		t.isTrue(start ~= nil and finish ~= nil, "the title theme has no loop for the title screen")
+		if start and finish then
+			t.isTrue(start >= Intro.revealAt, "the loop would replay the build before the cut")
+			t.isTrue(finish - start > 10, "the title screen's loop is too short to sit under")
+		end
 	end)
 end

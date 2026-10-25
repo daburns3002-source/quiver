@@ -2104,8 +2104,10 @@ local Balance = {
 	} :: { StageConfig },
 
 	--[[ Which stage a run plays. Set per point in the game; one index here
-	     until there is a stage select. ]]
-	stage = 3,
+	     until there is a stage select. Level 2, Thornwood (owner,
+	     2026-10-25: "Make Level 2 the stage a run opens on so I can play
+	     it"); Level 1 is 3. ]]
+	stage = 4,
 
 	--[[ The Waves-mode schedule, as Archero 2 numbers it within each block
 	     of ten: a Valkyrie on the 5th, an Angel on the 9th, a boss on the

@@ -624,7 +624,7 @@ local function launch(
 		expiresAt = os.clock() + (spec.lifetime - headStart),
 		stopped = false,
 	})
-	FxEvents.launched:fire(part, pool, aim, from ~= nil)
+	FxEvents.launched:fire(part, pool, aim, from)
 end
 
 local function step(deltaTime: number)

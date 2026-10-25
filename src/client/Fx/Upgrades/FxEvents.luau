@@ -36,9 +36,9 @@ local function signal<T...>(): Signal<T...>
 end
 
 --[[ A drawn shot left: its part, its pool ("Player", "PlayerOrb", "Enemy"),
-     its aim, and `chained` when the server invented it off a body (a
-     ricochet, a chain). ]]
-FxEvents.launched = signal() :: Signal<BasePart, string, Vector3, boolean>
+     its aim, and `from`, the body it leaves, when the server invented it
+     off one (a ricochet, a chain). ]]
+FxEvents.launched = signal() :: Signal<BasePart, string, Vector3, Model?>
 --[[ A drawn player shot reached a body: where, its heading, its pool, and
      how many more bodies it may pass through. ]]
 FxEvents.contact = signal() :: Signal<Vector3, Vector3, string, number>

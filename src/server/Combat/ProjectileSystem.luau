@@ -88,6 +88,10 @@ type Projectile = {
 	origin: Vector3,
 	--[[ Other enemies near a hit that share in it. Soul Chain. ]]
 	link: number,
+	--[[ How the shooter's class draws its shots (`Config/Classes.look`),
+	     passed on to every shot it sends onward, or the Arcanist's chained
+	     orbs are drawn as arrows and Chain Lightning's bolt never plays. ]]
+	look: string?,
 	--[[ Guards against a single projectile hitting the same enemy on
 	     consecutive steps while it is still inside the hitbox. ]]
 	hitModels: { [Model]: boolean },
@@ -232,6 +236,8 @@ export type SpawnParams = {
 	--[[ Long Shot and Soul Chain. Omitted means none. ]]
 	farBonus: number?,
 	link: number?,
+	--[[ The shooter's class look. Omitted means the plain arrow. ]]
+	look: string?,
 	--[[ A body this projectile starts inside and must not strike: the enemy
 	     a ricochet leaves from, which would otherwise be hit again by the
 	     very first overlap pass. ]]
@@ -286,6 +292,7 @@ function ProjectileSystem.spawn(params: SpawnParams)
 		farBonus = params.farBonus or 0,
 		origin = params.origin,
 		link = params.link or 0,
+		look = params.look,
 		startsAt = now + (params.delay or 0),
 		expiresAt = now + (params.delay or 0) + params.lifetime,
 		hitModels = if params.ignore then { [params.ignore] = true } else {},
@@ -382,6 +389,7 @@ local function fireOnward(projectile: Projectile, onward: Onward)
 			burnDuration = projectile.burnDuration,
 			farBonus = projectile.farBonus,
 			link = projectile.link,
+			look = projectile.look,
 			owner = projectile.owner,
 			now = currentNow,
 			ignore = onward.from,
@@ -420,6 +428,7 @@ local function fireOnward(projectile: Projectile, onward: Onward)
 		firedAt = currentNow,
 		predicted = false,
 		from = onward.from,
+		look = projectile.look,
 	} :: Types.ShotEvent)
 end
 

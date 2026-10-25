@@ -192,6 +192,94 @@ local Sounds: { [string]: Sound } = {
 		pitchJitter = 0.05,
 		minGap = 0.3,
 	},
+	--[[ Each pet's attack (`Config/PetSounds`), from `assets/audio/pet_synth.py`,
+	     picked by the owner in round 17 (2026-10-24; two each for the Slime
+	     Prince and Ember Wilf, one per half of their attack). Files are in
+	     `assets/audio/final/`; silent until the owner uploads them. ]]
+	pet_mosslet = {
+		id = "",
+		volume = 0.5,
+		pitchJitter = 0.06,
+		minGap = 0.1,
+	},
+	pet_babacorn = {
+		id = "",
+		volume = 0.5,
+		pitchJitter = 0.06,
+		minGap = 0.1,
+	},
+	pet_fern_frog = {
+		id = "",
+		volume = 0.5,
+		pitchJitter = 0.06,
+		minGap = 0.1,
+	},
+	pet_toadstool_tot = {
+		id = "",
+		volume = 0.5,
+		pitchJitter = 0.06,
+		minGap = 0.1,
+	},
+	pet_mossback_snail = {
+		id = "",
+		volume = 0.5,
+		pitchJitter = 0.06,
+		minGap = 0.1,
+	},
+	pet_firefly_bun = {
+		id = "",
+		volume = 0.5,
+		pitchJitter = 0.06,
+		minGap = 0.1,
+	},
+	pet_stumpy = {
+		id = "",
+		volume = 0.5,
+		pitchJitter = 0.06,
+		minGap = 0.1,
+	},
+	pet_glade_fox = {
+		id = "",
+		volume = 0.5,
+		pitchJitter = 0.06,
+		minGap = 0.1,
+	},
+	pet_hootmoss = {
+		id = "",
+		volume = 0.5,
+		pitchJitter = 0.06,
+		minGap = 0.1,
+	},
+	pet_slime_prince_court = {
+		id = "",
+		volume = 0.5,
+		pitchJitter = 0.06,
+		minGap = 0.1,
+	},
+	pet_slime_prince_crown = {
+		id = "",
+		volume = 0.5,
+		pitchJitter = 0.06,
+		minGap = 0.1,
+	},
+	pet_ember_wilf_bolt = {
+		id = "",
+		volume = 0.5,
+		pitchJitter = 0.06,
+		minGap = 0.1,
+	},
+	pet_ember_wilf_howl = {
+		id = "",
+		volume = 0.5,
+		pitchJitter = 0.06,
+		minGap = 0.1,
+	},
+	pet_glimmerhorn = {
+		id = "",
+		volume = 0.5,
+		pitchJitter = 0.06,
+		minGap = 0.1,
+	},
 }
 
 return table.freeze(Sounds)

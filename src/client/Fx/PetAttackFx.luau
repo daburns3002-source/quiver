@@ -16,6 +16,8 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 
 local PetAttacks = require(ReplicatedStorage.Shared.Config.PetAttacks)
+local PetSounds = require(ReplicatedStorage.Shared.Config.PetSounds)
+local SoundFx = require(script.Parent.SoundFx)
 local UpgradeFx = require(script.Parent.Upgrades.UpgradeFx)
 
 local PetAttackFx = {}
@@ -174,9 +176,12 @@ local function fire(shot: PetAttacks.Shot, pet: Model, index: number)
 end
 
 --[[ Plays the pieces of `key`'s attack (a `Config/PetAttacks` key, the
-     pet's model name) from `pet`, timed from now as its Attack clip starts.
-     Returns how many pieces it will fire. ]]
+     pet's model name) from `pet`, and its sounds (`Config/PetSounds`), timed
+     from now as its Attack clip starts. Returns how many pieces it will fire. ]]
 function PetAttackFx.play(pet: Model, key: string): number
+	for _, cue in (PetSounds :: any)[key] or {} do
+		task.delay(cue.at, SoundFx.play, cue.sound)
+	end
 	local shots = (PetAttacks :: any)[key] :: { PetAttacks.Shot }?
 	if not shots then
 		return 0

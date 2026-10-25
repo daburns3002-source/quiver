@@ -16,6 +16,18 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## The Mossback Snail's shell did nothing you could see, on a timer
+
+**Symptom**: 2026-10-25, the owner's Arcanist run-through: "mossback snail pet is not working how its supposed to". Its design (`docs/PETS-FOREST.md`, Attacks) is **Shell Guard**: *once per room its shell flies in front of you and blocks one hit*.
+
+**Cause**: `Config/PetCombat` ran it like the shooting pets, on a 20 s clock: the shell came up 20 s after the pet joined and again every 20 s after a block, whatever the room, so the first 20 s of every run had no guard and a long room could have several. Its Attack clip (tuck into the shell, spin and leap forward, take a knock, hop back) played when the guard came up, behind the player with nothing to block; and when the shell did block, the server sent only `PlayerDodged "Guard"`, which `HitFeedback` draws nothing for (Steadfast's plates show their own guard), so the block itself was invisible.
+
+**Fix**: a guard is no longer on the clock. `PetCombat.newRoom` raises every guarding pet's shell as each room (or fight wave) begins, called from `RoomController`; a guard pet joining mid-room comes in with its shell up. `RunSession.applyDamage` spends it on the first hit and fires `PetAttack`, so the snail plays its Attack *as it blocks*, and `Fx/PetPreview` flies a guarding pet 3 studs in front of the player, facing out, while that clip plays. `tests/PetGuard.spec` pins one block a room and a fresh one the next room.
+
+**Measured**: in a Studio run (Ranger, the changed files swapped into Studio, the snail at heel, King Bloblin's room entered fresh twice): the first hit in the room came back `Guard` with no damage and `PetAttack` in the same frame; the snail went from its place at heel (-4.2, 4.0 studs from the player) to 3 studs in front (0, -3.0) by 0.38 s, held there through its Attack and walked back. The next two hits landed (39.2 each). Entering the room again blocked its first hit again. No `PetAttack` fired between blocks (none from a clock). Suite: 410 pass.
+
+---
+
 ## Chain Lightning's animation never played (the Arcanist's chained orbs looked like arrows)
 
 **Symptom**: 2026-10-25, the owner's Arcanist run-through: "chain lightning animation is not playing". The chain did its damage, but no zig-zag bolt, no spiked node and no crackle sound ever showed. The orb that jumped on was drawn as a plain player arrow.

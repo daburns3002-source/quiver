@@ -131,7 +131,7 @@ BLOCKY.update({
     "slime_crown_staff_bolt": projectile("Bolt"),
     # The Mythic staff's glow is one fluorescent hue the game shifts over
     # time (owner, 2026-10-24: "no actual rainbows ... just a fluorescent
-    # hue"). Its 17 Glow_ parts stay a group of their own so the code can
+    # hue"). Its 9 Glow_ parts stay a group of their own so the code can
     # find them; docs/weapons/worldroot-rainbow.md lists them.
     "worldroot_staff": {"turn": 0, "groups": {"Glow": ["Glow"], "Leaves": LEAVES, "Staff": [""]}},
     "worldroot_staff_bolt": {"turn": 0, "groups": {"Glow": ["Glow"], "Bolt": [""]}},

@@ -25,6 +25,7 @@ local BossMoves = require(script.Parent.BossMoves)
 local EnemyDesigns = require(ReplicatedStorage.Shared.Config.EnemyDesigns)
 local EnemyModel = require(script.Parent.EnemyModel)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
+local ModelClip = require(ReplicatedStorage.Shared.Util.ModelClip)
 local Pathing = require(script.Parent.Pathing)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local RunSession = require(script.Parent.Parent.Run.RunSession)
@@ -138,6 +139,12 @@ type Enemy = {
 	lungeTravelled: number,
 	lungeMoving: boolean,
 	lungeHit: { [Player]: boolean },
+	--[[ An imported model that plays its own clips without a boss's moves
+	     (Thornwood's enemies): its clip data, the clip it is showing, and
+	     where it stood last step, to tell walking from standing. ]]
+	clips: ModelClip.Model?,
+	clip: string?,
+	lastPosition: Vector3?,
 }
 
 local EnemyManager = {}
@@ -619,6 +626,105 @@ end
      already checked the spot (see `clusterSpot`). ]]
 --[[ `splitFrom` is where the enemy this one split out of fell: it arrives
      when its piece lands (`Balance.Split`) instead of after a spawn marker. ]]
+local clipCache: { [string]: ModelClip.Model } = {}
+
+--[[ The clip data (`Config/ModelClips/<key>`), or nil when there is none. ]]
+local function clipData(key: string): ModelClip.Model?
+	local cached = clipCache[key]
+	if cached then
+		return cached
+	end
+	local clipsFolder = ReplicatedStorage.Shared.Config:FindFirstChild("ModelClips")
+	local module = if clipsFolder then clipsFolder:FindFirstChild(key) else nil
+	if not module or not module:IsA("ModuleScript") then
+		return nil
+	end
+	local data = (require :: any)(module) :: ModelClip.Model
+	clipCache[key] = data
+	return data
+end
+
+--[[ Shows `clip` on an enemy that plays its own, from the start, if its
+     model has it and it is not already showing. ]]
+local function play(enemy: Enemy, clip: string)
+	local data = enemy.clips
+	if not data or enemy.clip == clip or not data.clips[clip] then
+		return
+	end
+	enemy.clip = clip
+	enemy.model:SetAttribute("ModelClipAt", Workspace:GetServerTimeNow())
+	enemy.model:SetAttribute("ModelClip", clip)
+end
+
+--[[
+	The clip an enemy with its own shows this step: under the floor it
+	burrows (Move); just up, it emerges; winding up a shot or a lunge, its
+	wind-up; mid-lunge, its charge; else it walks or stands.
+]]
+local function animate(enemy: Enemy, deltaTime: number, now: number)
+	local data = enemy.clips
+	if not data then
+		return
+	end
+	local moved = if enemy.lastPosition
+		then Vector3.new(
+			enemy.position.X - enemy.lastPosition.X,
+			0,
+			enemy.position.Z - enemy.lastPosition.Z
+		).Magnitude
+		else 0
+	enemy.lastPosition = enemy.position
+	local emerge = data.clips.Emerge
+	local clip = if enemy.submerged
+		then "Move"
+		elseif
+			emerge
+			and enemy.lastSurfacedAt > 0
+			and now - enemy.lastSurfacedAt < emerge.length
+		then "Emerge"
+		elseif enemy.volleyAt or (enemy.lungeIndex and not enemy.lungeMoving) then "Attack wind-up"
+		elseif enemy.lungeIndex and data.clips.Charge then "Charge"
+		elseif moved > enemy.config.moveSpeed * deltaTime * 0.25 then "Move"
+		else "Idle"
+	play(enemy, clip)
+end
+
+--[[ A body left to play its Death clip where it fell, then cleared: a
+     copy, so the enemy itself goes at once and nothing can target or hit
+     what is left. ]]
+local function fall(enemy: Enemy)
+	local key = enemy.model:GetAttribute("ModelClips")
+	local data = if type(key) == "string" then clipData(key) else nil
+	local death = data and data.clips.Death
+	local parent = folder and folder.Parent
+	if not death or not parent then
+		return
+	end
+	local body = enemy.model:Clone()
+	body.Name = `{enemy.model.Name}Fallen`
+	for _, name in { "Health", "MaxHealth", "Boss", "WindingUp", "LungeWindup" } do
+		body:SetAttribute(name, nil)
+	end
+	for _, part in body:GetDescendants() do
+		if part:IsA("BasePart") then
+			part.CanCollide = false
+			part.CanQuery = false
+			part.CanTouch = false
+		end
+	end
+	local root = body.PrimaryPart
+	if root then
+		root.Anchored = true
+	end
+	body:SetAttribute("ModelClipSpan", nil)
+	body:SetAttribute("ModelClipAt", Workspace:GetServerTimeNow())
+	body:SetAttribute("ModelClip", "Death")
+	body.Parent = parent
+	task.delay(death.length + 0.4, function()
+		body:Destroy()
+	end)
+end
+
 function EnemyManager.spawn(
 	config: EnemyConfig,
 	extraDelay: number?,
@@ -664,6 +770,16 @@ function EnemyManager.spawn(
 	}
 	positions[model] = position
 	aliveCount += 1
+
+	--[[ An imported model with its own clips and no boss's moves walks,
+	     winds up and dies by them (`animate`), drawn by each client. ]]
+	local own = (EnemyDesigns.Imported :: any)[config.displayName] :: EnemyDesigns.ImportedDesign?
+	local ownClips = if own and not config.boss then clipData(own.clips) else nil
+	if own and ownClips then
+		model:SetAttribute("ModelClips", own.clips)
+		CollectionService:AddTag(model, "ModelClips")
+		enemies[model].clips = ownClips
+	end
 
 	if config.boss then
 		--[[ Facing whoever walked in (owner, 2026-10-24: "the bosses should
@@ -960,6 +1076,7 @@ function EnemyManager.damage(
 		enemy.config.displayName,
 		fromPosition
 	)
+	fall(enemy)
 	model:Destroy()
 
 	--[[ Spawned before this returns, so the room never reads as clear in
@@ -1984,6 +2101,9 @@ end
 function EnemyManager.step(deltaTime: number, now: number)
 	for _, enemy in enemies do
 		stepEnemy(enemy, deltaTime, now)
+		if enemy.arrivesAt == nil then
+			animate(enemy, deltaTime, now)
+		end
 	end
 end
 

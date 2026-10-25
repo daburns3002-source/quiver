@@ -714,6 +714,243 @@ local slimeKing: EnemyConfig = {
 	},
 }
 
+--[[
+	Act 1, area 2: Thornwood (the owner's blocky models, Claude Design,
+	2026-10-23 to 25). Each plays its own clips (`Config/ModelClips`):
+	Idle and Move as it walks, `Attack wind-up` on its tell, `Death` as it
+	falls. Each takes the nearest Mossy Glade enemy's behaviour, so Level 2
+	adds bodies before it adds rules.
+
+	The Bramble Boar: a charger that never just walks up and gores. From
+	across the room it charges down a locked line; up close it dashes.
+]]
+local brambleBoar: EnemyConfig = {
+	displayName = "BrambleBoar",
+	turnRate = 300,
+	health = 320,
+	moveSpeed = 5.7,
+	attackRange = 5,
+	attackDamage = 58,
+	attackCooldown = 2,
+	knockback = 2.5,
+	--[[ Its model ×3.4: 3 across, 2.7 tall, 3.8 snout to tail. ]]
+	hitboxSize = Vector3.new(3, 2.7, 3.8),
+	color = Color3.fromRGB(150, 98, 60),
+	xpReward = 16,
+	shot = nil,
+	lunges = {
+		{
+			minRange = 0,
+			maxRange = 7,
+			telegraph = 0.45,
+			tell = "Flash" :: EnemyTell,
+			distance = 6,
+			speed = 28,
+			damageScale = 0.8,
+		},
+		--[[ The charge: it flashes as it paws the ground (its wind-up
+		     clip), then goes most of the room's length. ]]
+		{
+			minRange = 7,
+			maxRange = 20,
+			telegraph = 0.8,
+			tell = "Flash" :: EnemyTell,
+			distance = 17,
+			speed = 24,
+			damageScale = 1.25,
+		},
+	},
+}
+
+--[[ The Burr Thistle: Thornwood's Spitter, three burrs in a fan from
+     anywhere in the room. Its burrs are the Spitter's seeds until the burr
+     is modelled. ]]
+local burrThistle: EnemyConfig = {
+	displayName = "BurrThistle",
+	turnRate = 360,
+	health = 260,
+	moveSpeed = 4.5,
+	attackRange = 13.3,
+	attackDamage = 45,
+	attackCooldown = 3,
+	knockback = 3,
+	--[[ Its model ×2: 3.2 across, 3.8 tall, 2.4 deep. ]]
+	hitboxSize = Vector3.new(3.2, 3.8, 2.4),
+	color = Color3.fromRGB(150, 70, 170),
+	xpReward = 14,
+	shot = {
+		count = 3,
+		spread = math.rad(20),
+		speed = 13.5,
+		lifetime = 70 / 13.5,
+		telegraph = 0.5,
+		tell = "Flash",
+		locksAim = false,
+		range = 70,
+	},
+}
+
+--[[ A Boarlet: one of the piglets a Bramble Sow drops as it dies. The
+     Sow's own model at about half its size; quick and frail. ]]
+local boarlet: EnemyConfig = {
+	displayName = "Boarlet",
+	turnRate = 600,
+	health = 150,
+	moveSpeed = 7.5,
+	attackRange = 3.4,
+	attackDamage = 40,
+	attackCooldown = 1,
+	knockback = 3.5,
+	--[[ The Sow's box ×0.55. ]]
+	hitboxSize = Vector3.new(2.15, 2.25, 3),
+	color = Color3.fromRGB(150, 98, 60),
+	xpReward = 5,
+	shot = nil,
+}
+
+--[[ The Bramble Sow: Thornwood's Brood Slime. Big and slow, and when it
+     dies three Boarlets tumble out of its brambles. ]]
+local brambleSow: EnemyConfig = {
+	displayName = "BrambleSow",
+	turnRate = 220,
+	health = 650,
+	moveSpeed = 4.2,
+	attackRange = 5,
+	attackDamage = 60,
+	attackCooldown = 1.3,
+	knockback = 1.5,
+	--[[ Its model ×3.6: 3.9 across, 4.1 tall, 5.4 long. ]]
+	hitboxSize = Vector3.new(3.9, 4.1, 5.4),
+	color = Color3.fromRGB(150, 98, 60),
+	xpReward = 22,
+	shot = nil,
+	split = { into = boarlet, count = 3, health = 1 },
+}
+
+--[[ The Bramble Lurker: Thornwood's burrower. It dives, travels under the
+     floor, comes up beside the player on a marked spot (`Emerge`) and
+     sprays thorns. ]]
+local brambleLurker: EnemyConfig = {
+	displayName = "BrambleLurker",
+	turnRate = 360,
+	health = 280,
+	moveSpeed = 5.7,
+	attackRange = 10.1,
+	attackDamage = 56,
+	attackCooldown = 2.4,
+	knockback = 3,
+	--[[ Its model ×1.6, its dirt mound and all: 4.5 across, 3.3 tall. ]]
+	hitboxSize = Vector3.new(4.5, 3.3, 4.5),
+	color = Color3.fromRGB(110, 140, 60),
+	xpReward = 20,
+	shot = {
+		count = 5,
+		spread = math.rad(24),
+		speed = 18,
+		lifetime = 13.2 / 18,
+		telegraph = 0.3,
+		tell = "Flash",
+		locksAim = false,
+	},
+	burrow = {
+		duration = 2.2,
+		surfaceTell = 0.75,
+		surfaceDistance = 3.5,
+		speedScale = 2.2,
+		cooldown = 3.5,
+	},
+}
+
+--[[
+	The Broodmother, Thornwood's boss (docs/BOSSES.md §2, the owner's
+	Claude Design "Thornweaver", 2026-10-25). Alone in Level 2's last
+	room. Her fight runs on the Slime King's two moves, drawn with her own
+	clips: the climb (up her thread and down on the player, three times:
+	`ClimbUp`, `DropSlam`) and the web (a strand shot down a lane that drags
+	whoever it catches to her: `ShootWeb`). Her Thornling clutch (`Summon`)
+	waits on the Thornlings' model.
+]]
+local broodmother: EnemyConfig = {
+	displayName = "Broodmother",
+	turnRate = 90,
+	health = 6600,
+	moveSpeed = 0,
+	attackRange = 0,
+	attackDamage = 0,
+	attackCooldown = 0,
+	knockback = 0,
+	--[[ Her model ×3.4, legs spread: 10.3 across, 6.2 tall and deep. ]]
+	hitboxSize = Vector3.new(10.3, 6.2, 6.2),
+	color = Color3.fromRGB(70, 60, 90),
+	xpReward = 110,
+	boss = {
+		title = "The Broodmother",
+		bounce = {
+			bounces = 3,
+			windup = 0.9,
+			launch = 0.2,
+			air = 1.4,
+			recover = 0.55,
+			winded = 1.4,
+			height = 16,
+			maxRange = 22,
+			radius = 7,
+			damage = 60,
+			shove = 7,
+			shockRadius = 12,
+		},
+		lash = {
+			arms = { "Web" },
+			wind = 0.8,
+			track = 0.4,
+			strike = 0.2,
+			hold = 0.35,
+			retract = 0.45,
+			reach = 18,
+			minReach = 6,
+			width = 3.5,
+			damage = 45,
+			shove = 4,
+			pull = 0.38,
+			bump = 0.22,
+			bumpDamage = 34,
+			bumpShove = 9,
+			recover = 0.6,
+			stopDistance = 6,
+			--[[ Her web has no chain to stretch; these only matter to a body
+			     that draws one. ]]
+			chainRoot = 3,
+			chainReach = 18,
+		},
+		restAfterBounce = 1.5,
+		restAfterLash = 1,
+		opening = 1,
+		clips = {
+			idle = "Idle",
+			Bounce = {
+				windup = "Attack wind-up",
+				launch = "ClimbUp",
+				air = "ClimbUp",
+				recover = "DropSlam",
+				winded = "Idle",
+			},
+			Lash = {
+				Web = {
+					track = "Attack wind-up",
+					aimed = "Attack wind-up",
+					strike = "ShootWeb",
+					slap = "ShootWeb",
+					retract = "Idle",
+					pull = "Move",
+					lean = "Attack wind-up",
+					release = "Idle",
+					settle = "Idle",
+				},
+			},
+		},
+	},
+}
+
 --[[ An obstacle footprint, as an XZ offset from the arena centre. ]]
 export type Obstacle = {
 	offset: Vector2,
@@ -1082,6 +1319,151 @@ local rooms: { RoomConfig } = {
 		enemyCount = 1,
 		roster = { slimeKing },
 	},
+
+	--[[
+		Level 2 (2026-10-25): ten Thornwood rooms, built from the owner's
+		blocky Thornwood kit on Level 1's five layouts: hedges, hollow,
+		boulders, brambles, then the boss arena, and the same again. One new
+		enemy a room, as Level 1 teaches them.
+	]]
+	{
+		name = "Thornwood",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(-2.43, -11.56), size = Vector3.new(12, 2.8, 3.5) },
+			{ offset = Vector2.new(-8.91, 5.13), size = Vector3.new(3.75, 1.5, 3.75) },
+			{ offset = Vector2.new(8.64, 13.23), size = Vector3.new(3.3, 1.5, 3.3) },
+			{ offset = Vector2.new(-6.21, 19.71), size = Vector3.new(2.7, 1.2, 2.7) },
+		},
+		--[[ Bramble Boars, which charge down a line: step off it. ]]
+		enemyCount = 3,
+		roster = { brambleBoar },
+	},
+	{
+		name = "Thorn Hollow",
+		arena = "ThornHollow",
+		obstacles = {
+			{ offset = Vector2.new(-4.05, -4.32), size = Vector3.new(14, 0.4, 10) },
+			{ offset = Vector2.new(9.18, -16.2), size = Vector3.new(3.3, 1.4, 3.3) },
+			{ offset = Vector2.new(8.1, 14.31), size = Vector3.new(3.6, 1.6, 3.6) },
+		},
+		--[[ Adds the Burr Thistle. ]]
+		enemyCount = 3,
+		roster = { brambleBoar, burrThistle },
+	},
+	{
+		name = "Thorn Boulders",
+		arena = "ThornBoulders",
+		obstacles = {
+			{ offset = Vector2.new(-8.13, -10.31), size = Vector3.new(5.3, 4.2, 5.6) },
+			{ offset = Vector2.new(-5.35, -8.45), size = Vector3.new(3.6, 2.7, 3.6) },
+			{ offset = Vector2.new(8.37, 7.32), size = Vector3.new(5, 4, 5.4) },
+			{ offset = Vector2.new(10.96, 9.02), size = Vector3.new(3.5, 2.6, 3) },
+			{ offset = Vector2.new(-7.29, 18.12), size = Vector3.new(2.9, 2.3, 3) },
+			{ offset = Vector2.new(9.18, -19.44), size = Vector3.new(3, 1.3, 3) },
+			-- The small boulders beside the big ones.
+			{ offset = Vector2.new(-10.34, -8.15), size = Vector3.new(2.7, 2, 2.5) },
+			{ offset = Vector2.new(-7.13, -13.2), size = Vector3.new(2.2, 1.8, 2.35) },
+			{ offset = Vector2.new(6.18, 9.29), size = Vector3.new(2.5, 2, 2.5) },
+			{ offset = Vector2.new(9.32, 4.54), size = Vector3.new(1.9, 1.7, 2.1) },
+			{ offset = Vector2.new(-5.8, 19.06), size = Vector3.new(2, 1.5, 2) },
+		},
+		--[[ Adds the Bramble Sow and its Boarlets. ]]
+		enemyCount = 4,
+		roster = { brambleBoar, brambleBoar, brambleSow },
+	},
+	{
+		name = "Thorn Brambles",
+		arena = "ThornBrambles",
+		obstacles = {
+			{ offset = Vector2.new(-7.16, -11.6), size = Vector3.new(7.8, 0.4, 7) },
+			{ offset = Vector2.new(7.83, 6.48), size = Vector3.new(9.4, 0.4, 7) },
+			{ offset = Vector2.new(-8.64, 15.93), size = Vector3.new(3.3, 1.4, 3.3) },
+		},
+		--[[ Adds the Bramble Lurker. ]]
+		enemyCount = 4,
+		roster = { brambleBoar, burrThistle, brambleLurker },
+	},
+	{
+		name = "Brood Hollow",
+		arena = "ThornBoss",
+		obstacles = {
+			{ offset = Vector2.new(-11.42, -16.18), size = Vector3.new(3.9, 3.8, 4.4) },
+			{ offset = Vector2.new(11.42, -16.18), size = Vector3.new(3.9, 3.8, 4.4) },
+			{ offset = Vector2.new(-11.42, 16.18), size = Vector3.new(3.9, 3.8, 4.4) },
+			{ offset = Vector2.new(11.42, 16.18), size = Vector3.new(3.9, 3.8, 4.4) },
+		},
+		--[[ The boss arena, halfway; she waits for the second visit. ]]
+		enemyCount = 4,
+		roster = { brambleSow, brambleBoar, burrThistle },
+	},
+	{
+		name = "Thornwood II",
+		arena = "ThornHedges",
+		obstacles = {
+			{ offset = Vector2.new(-2.43, -11.56), size = Vector3.new(12, 2.8, 3.5) },
+			{ offset = Vector2.new(-8.91, 5.13), size = Vector3.new(3.75, 1.5, 3.75) },
+			{ offset = Vector2.new(8.64, 13.23), size = Vector3.new(3.3, 1.5, 3.3) },
+			{ offset = Vector2.new(-6.21, 19.71), size = Vector3.new(2.7, 1.2, 2.7) },
+		},
+		enemyCount = 5,
+		roster = { brambleBoar, brambleBoar, burrThistle, brambleSow },
+	},
+	{
+		name = "Thorn Hollow II",
+		arena = "ThornHollow",
+		obstacles = {
+			{ offset = Vector2.new(-4.05, -4.32), size = Vector3.new(14, 0.4, 10) },
+			{ offset = Vector2.new(9.18, -16.2), size = Vector3.new(3.3, 1.4, 3.3) },
+			{ offset = Vector2.new(8.1, 14.31), size = Vector3.new(3.6, 1.6, 3.6) },
+		},
+		enemyCount = 5,
+		roster = { brambleBoar, brambleSow, brambleLurker },
+	},
+	{
+		name = "Thorn Boulders II",
+		arena = "ThornBoulders",
+		obstacles = {
+			{ offset = Vector2.new(-8.13, -10.31), size = Vector3.new(5.3, 4.2, 5.6) },
+			{ offset = Vector2.new(-5.35, -8.45), size = Vector3.new(3.6, 2.7, 3.6) },
+			{ offset = Vector2.new(8.37, 7.32), size = Vector3.new(5, 4, 5.4) },
+			{ offset = Vector2.new(10.96, 9.02), size = Vector3.new(3.5, 2.6, 3) },
+			{ offset = Vector2.new(-7.29, 18.12), size = Vector3.new(2.9, 2.3, 3) },
+			{ offset = Vector2.new(9.18, -19.44), size = Vector3.new(3, 1.3, 3) },
+			-- The small boulders beside the big ones.
+			{ offset = Vector2.new(-10.34, -8.15), size = Vector3.new(2.7, 2, 2.5) },
+			{ offset = Vector2.new(-7.13, -13.2), size = Vector3.new(2.2, 1.8, 2.35) },
+			{ offset = Vector2.new(6.18, 9.29), size = Vector3.new(2.5, 2, 2.5) },
+			{ offset = Vector2.new(9.32, 4.54), size = Vector3.new(1.9, 1.7, 2.1) },
+			{ offset = Vector2.new(-5.8, 19.06), size = Vector3.new(2, 1.5, 2) },
+		},
+		enemyCount = 5,
+		roster = { brambleBoar, burrThistle, brambleSow, brambleLurker },
+	},
+	{
+		name = "Thorn Brambles II",
+		arena = "ThornBrambles",
+		obstacles = {
+			{ offset = Vector2.new(-7.16, -11.6), size = Vector3.new(7.8, 0.4, 7) },
+			{ offset = Vector2.new(7.83, 6.48), size = Vector3.new(9.4, 0.4, 7) },
+			{ offset = Vector2.new(-8.64, 15.93), size = Vector3.new(3.3, 1.4, 3.3) },
+		},
+		enemyCount = 6,
+		roster = { brambleBoar, burrThistle, brambleSow, brambleLurker },
+	},
+	{
+		name = "Brood Heart",
+		arena = "ThornBoss",
+		obstacles = {
+			{ offset = Vector2.new(-11.42, -16.18), size = Vector3.new(3.9, 3.8, 4.4) },
+			{ offset = Vector2.new(11.42, -16.18), size = Vector3.new(3.9, 3.8, 4.4) },
+			{ offset = Vector2.new(-11.42, 16.18), size = Vector3.new(3.9, 3.8, 4.4) },
+			{ offset = Vector2.new(11.42, 16.18), size = Vector3.new(3.9, 3.8, 4.4) },
+		},
+		--[[ The Broodmother, by herself, as the Slime King is. ]]
+		enemyCount = 1,
+		roster = { broodmother },
+	},
 }
 
 local Balance = {
@@ -1388,6 +1770,12 @@ local Balance = {
 		BabySlime = babySlime,
 		SlimeKing = slimeKing,
 		Wilf = wilf,
+		BrambleBoar = brambleBoar,
+		BurrThistle = burrThistle,
+		BrambleSow = brambleSow,
+		Boarlet = boarlet,
+		BrambleLurker = brambleLurker,
+		Broodmother = broodmother,
 	},
 
 	--[[
@@ -1675,6 +2063,14 @@ local Balance = {
 			     about six hits rather than four. ]]
 			enemyDamage = 0.7,
 			enemyHealth = 0.8,
+		},
+		{
+			--[[ Ten Thornwood rooms, a step harder than Level 1. ]]
+			name = "Level 2",
+			mode = "Rooms",
+			rooms = { 21, 22, 23, 24, 25, 26, 27, 28, 29, 30 },
+			enemyDamage = 0.8,
+			enemyHealth = 0.9,
 		},
 	} :: { StageConfig },
 

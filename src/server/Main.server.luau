@@ -33,6 +33,8 @@ local Game = require(ReplicatedStorage.Shared.Config.Game)
 local HeldWeapon = require(script.Parent.Combat.HeldWeapon)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
 local MeleeSystem = require(script.Parent.Combat.MeleeSystem)
+local PetCombat = require(script.Parent.Combat.PetCombat)
+local PetCombatConfig = require(ReplicatedStorage.Shared.Config.PetCombat)
 local PetPreview = require(script.Parent.Dev.PetPreview)
 local ProjectileSystem = require(script.Parent.Combat.ProjectileSystem)
 local Remotes = require(game:GetService("ReplicatedStorage").Shared.Net.Remotes)
@@ -276,6 +278,19 @@ end)
 
 --[[ Testing only: hold a weapon from the sandbox's list, as its class.
      Honoured only in Studio. ]]
+--[[ Testing only: the pet at heel in a run (`Config/PetCombat`), as the
+     sandbox picks it, until Phase 6 brings equipping. Honoured only in
+     Studio. ]]
+Remotes.event(Remotes.DebugPet).OnServerEvent:Connect(function(player, key)
+	if not RunService:IsStudio() then
+		return
+	end
+	if key == nil or (type(key) == "string" and PetCombatConfig.pets[key]) then
+		player:SetAttribute("Pet", key)
+		log.info("%s has %s at heel (Studio)", player.Name, tostring(key))
+	end
+end)
+
 Remotes.event(Remotes.DebugWeapon).OnServerEvent:Connect(function(player, name)
 	if not RunService:IsStudio() or type(name) ~= "string" then
 		return
@@ -384,6 +399,8 @@ RunService.Heartbeat:Connect(function(deltaTime: number)
 	EnemyFiring.step(now)
 	FiringSystem.step(deltaTime, now)
 	MeleeSystem.step(now)
+	--[[ The pets' attacks (`Config/PetCombat`). ]]
+	PetCombat.step(deltaTime, now)
 	ProjectileSystem.step(deltaTime, now)
 	--[[ After projectiles, so a burn lit this frame does not tick in it. ]]
 	Burning.step(now)

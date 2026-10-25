@@ -158,8 +158,26 @@ ROUND_16 = [
     }),
 ]
 
+ROUND_17 = [
+    ("Round 17 · a simple attack sound for each pet (docs/PETS-FOREST.md, Attacks)", {
+        "pet_mosslet": ("Mosslet · Slime Glob", "Lobs a slime blob that leaves a puddle, every 2 s. Each sound plays with the pet's attack.", None),
+        "pet_babacorn": ("Babacorn · Acorn Flick", "A quick burst of three small acorn pellets.", None),
+        "pet_fern_frog": ("Fern Frog · Tongue Snap", "A short, hard tongue lash that tugs small enemies in.", None),
+        "pet_toadstool_tot": ("Toadstool Tot · Spore Patch", "Drops a glowing mushroom ring that heals you, every 20 s.", None),
+        "pet_mossback_snail": ("Mossback Snail · Shell Guard", "Its shell flies in front of you and blocks one hit.", None),
+        "pet_firefly_bun": ("Firefly Bun · Lantern Lure", "Pulls crystals in and marks an enemy to take extra damage.", None),
+        "pet_stumpy": ("Stumpy · Root Snare", "Roots burst under an enemy and hold it still.", None),
+        "pet_glade_fox": ("Glade Fox · Leaf Dash", "Blinks between up to three enemies, slashing each.", None),
+        "pet_hootmoss": ("Hootmoss · Feather Volley", "Homing feathers fired from above, over walls.", None),
+        "pet_slime_prince": ("Slime Prince · Royal Court", "Summons two mini slimes; a crown shockwave against bosses. Its takes carry gold, like its aura.", None),
+        "pet_ember_wilf": ("Ember Wilf · Ember Bite", "Fire bolts that set enemies burning, and a howl.", None),
+        "pet_glimmerhorn": ("Glimmerhorn · Prism Beam", "A sweeping rainbow beam that pierces and heals. Its takes sparkle, like its aura.", None),
+    }),
+]
+
 # page: (rounds, picks collection, sounds already chosen, shown for context)
 PAGES = {
+    "17": (ROUND_17, "picks17", []),
     "16": (ROUND_16, "picks16", ["All ten upgrade effects", "Legendary in the hand A"]),
     "15": (ROUND_15, "picks15", ["All ten upgrade effects (Blaze C)"]),
     "14": (ROUND_14, "picks14", ["Heal", "Blast Arrows", "Bloodletting", "Chain Lightning", "Meteor", "Overdraw", "Heavy Blade", "Earthbreaker", "Soul Chain (an octave lower)"]),

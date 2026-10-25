@@ -2204,6 +2204,15 @@ local Balance = {
 		critMultiplier = 2,
 		--[[ Share of an enemy's health under which Execute's bonus applies. ]]
 		executeBelow = 0.3,
+		--[[ The Warden's new cards (owner, 2026-10-25). Whirlwind's spin hits
+		     everything within `radius` of the Warden. Shockwave's wave runs
+		     ahead from the slam at `speed` studs a second, `width` wide,
+		     hitting each enemy for `share` of the slam's blow as it arrives.
+		     Battle Cry stacks once per kill, up to `maxStacks`, and the
+		     stacks last `duration` seconds from the last kill. ]]
+		whirlwind = { radius = 6.5 },
+		shockwave = { speed = 32, width = 4, share = 0.6 },
+		battleCry = { maxStacks = 5, duration = 4 },
 
 		--[[ Meteor, the Arcanist's Mythic: every `every`th cast a meteor
 		     falls on that cast's target, its circle shown for `delay`
@@ -3477,6 +3486,9 @@ local Balance = {
 		-- Earthbreaker's debris, drawn at the slam's real radius
 		earthbreakerRadius = 5.5,
 		earthbreakerLife = 0.8,
+		-- Whirlwind's ring of cubes, one whirl; and each Shockwave cube's burst.
+		whirlwindLife = 0.35,
+		shockwaveRise = 0.35,
 		-- Arcanist: Twin Cast's and Arcane Echo's beats at the staff
 		twinLife = 0.6,
 		echoLife = 0.9,

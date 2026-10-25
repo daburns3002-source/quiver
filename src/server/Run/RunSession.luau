@@ -82,6 +82,11 @@ export type Session = {
 	petReviveUsed: boolean,
 	petHaste: number,
 	petHasteUntil: number,
+	--[[ Swings started this run, for Whirlwind's every-nth spin. ]]
+	swingCount: number,
+	--[[ Battle Cry: kill stacks, and when they lapse (os.clock). ]]
+	battleCryStacks: number,
+	battleCryUntil: number,
 	--[[ This stage's kills and when it began, for the end screen. ]]
 	stageKills: number,
 	stageStartedAt: number,
@@ -187,6 +192,10 @@ function RunSession.create(player: Player): Session
 			slamBonus = 0,
 			lifesteal = 0,
 			executeBonus = 0,
+			whirlwindEvery = 0,
+			shockwaveLength = 0,
+			battleCry = 0,
+			parry = 0,
 		},
 		secondWind = 0,
 		secondWindUsed = false,
@@ -194,6 +203,9 @@ function RunSession.create(player: Player): Session
 		petReviveUsed = false,
 		petHaste = 0,
 		petHasteUntil = 0,
+		swingCount = 0,
+		battleCryStacks = 0,
+		battleCryUntil = 0,
 		stageKills = 0,
 		stageStartedAt = os.clock(),
 		healthSentAt = 0,
@@ -393,6 +405,20 @@ end
 ]]
 function RunSession.onEnemyKilled(session: Session)
 	session.stageKills += 1
+	--[[ Battle Cry: a stack per kill, up to the cap; they lapse together
+	     `duration` seconds after the last kill. The attribute tells the
+	     client to play its cry. ]]
+	if session.alive and session.melee.battleCry > 0 then
+		local now = os.clock()
+		local config = Balance.Player.battleCry
+		if now > session.battleCryUntil then
+			session.battleCryStacks = 0
+		end
+		session.battleCryStacks = math.min(session.battleCryStacks + 1, config.maxStacks)
+		session.battleCryUntil = now + config.duration
+		local cries = session.player:GetAttribute("BattleCry")
+		session.player:SetAttribute("BattleCry", (if type(cries) == "number" then cries else 0) + 1)
+	end
 	if not session.alive or session.healPerKill <= 0 then
 		return
 	end

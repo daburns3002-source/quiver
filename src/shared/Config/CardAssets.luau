@@ -22,6 +22,7 @@ local CardAssets = {
 	icons = {
 		["agility"] = "rbxassetid://96642514352872",
 		["arcane-echo"] = "rbxassetid://79387761516670",
+		["battle-cry"] = "rbxassetid://111004588191233",
 		["bigger-orbs"] = "rbxassetid://118503372881228",
 		["blast-arrows"] = "rbxassetid://96658056868426",
 		["blaze"] = "rbxassetid://129563612152498",
@@ -52,12 +53,14 @@ local CardAssets = {
 		["momentum"] = "rbxassetid://128439107704421",
 		["multishot"] = "rbxassetid://107158761217279",
 		["overdraw"] = "rbxassetid://105567107886967",
+		["parry"] = "rbxassetid://81705221912069",
 		["piercing-shot"] = "rbxassetid://115949427937764",
 		["precision"] = "rbxassetid://72501313460007",
 		["quick-hands"] = "rbxassetid://88208778440439",
 		["rear-arrow"] = "rbxassetid://71528451703395",
 		["ricochet"] = "rbxassetid://106688429040344",
 		["second-wind"] = "rbxassetid://92573249402334",
+		["shockwave"] = "rbxassetid://133220522925207",
 		["side-arrow"] = "rbxassetid://82400639958324",
 		["soul-chain"] = "rbxassetid://101754170677017",
 		["spell-pierce"] = "rbxassetid://77628850766293",
@@ -66,6 +69,7 @@ local CardAssets = {
 		["swift-arrows"] = "rbxassetid://97137683322480",
 		["twin-cast"] = "rbxassetid://106576770239038",
 		["vitality"] = "rbxassetid://110892185853892",
+		["whirlwind"] = "rbxassetid://115118313774487",
 	},
 	--[[ The name banner for each rarity, 984 x 558, its plate cleared
 	     (`assets/ui/glow_toy_cards/clear_plates.py`): the card writes its name

@@ -49,12 +49,22 @@ return function(t: TestRunner.Helper)
 	t.test("every stat pill fits across the card", function()
 		for _, ability in Abilities.all do
 			for _, stat in ability.stats do
-				-- the pill's own padding is 10 a side
+				-- the pill's own padding is 10 a side; a long line draws smaller
 				t.isTrue(
-					width(stat, K.statText) + 20 <= INNER + 2,
+					width(stat, CardBuilder.statSize(stat)) + 20 <= INNER + 2,
 					`{ability.name}'s "{stat}" overflows the card`
 				)
 			end
+		end
+	end)
+
+	t.test("every card's name fits its banner, at a readable size", function()
+		for _, ability in Abilities.all do
+			local _, size = CardBuilder.bannerName(ability.name)
+			t.isTrue(
+				size > CardTheme.card.bannerNameMin,
+				`{ability.name} is squeezed to the smallest size`
+			)
 		end
 	end)
 

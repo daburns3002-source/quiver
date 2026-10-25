@@ -111,6 +111,9 @@ def entry(imports, key, cls, name, projectile, glow) -> str:
     # weapon's glow colour; a Mythic's turns round the rainbow.
     if rarity(name) >= 4 and projectile:
         out.append(f"\t\tshotGlow = {rgb(glow)},")
+    # and a Legendary or Mythic blade's swing glows the same way
+    if rarity(name) >= 4 and cls == "Warden":
+        out.append(f"\t\ttrailGlow = {rgb(glow)},")
     if projectile:
         shot = imports[projectile]
         main = next((p for p in shot["parts"] if p["name"] in ("Bolt", "Glow", "Arrow")), shot["parts"][0])

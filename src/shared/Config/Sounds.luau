@@ -27,7 +27,14 @@ export type Sound = {
 	speed: number?,
 	pitchJitter: number,
 	minGap: number,
+	--[[ For a sound cut from a sprite (several sounds in one upload, made by
+	     `assets/audio/sprite.py`): its start and length in seconds there. ]]
+	region: { number }?,
 }
+
+--[[ The bosses' round 18 sprite (`assets/audio/final/boss_sprite_r18.mp3`):
+     empty until the owner uploads it, and then its id is the only change. ]]
+local BOSS_SPRITE = ""
 
 local Sounds: { [string]: Sound } = {
 	--[[ The Ranger's every arrow (`Config/Weapons.TwigBow.fireSound`). ]]
@@ -282,31 +289,166 @@ local Sounds: { [string]: Sound } = {
 	},
 	--[[ Round 18 (owner's picks, 2026-10-25; `assets/audio/boss_synth.py`,
 	     `assets/audio/final/`), played by `Fx/EnemySounds`: the bosses' moves
-	     and Thornwood's enemies. Silent until uploaded. ]]
-	boss_king_bounce_windup = { id = "", volume = 0.8, pitchJitter = 0.05, minGap = 0.25 },
-	boss_king_bounce_launch = { id = "", volume = 0.8, pitchJitter = 0.05, minGap = 0.25 },
-	boss_king_bounce_slam = { id = "", volume = 0.9, pitchJitter = 0.05, minGap = 0.25 },
-	boss_king_lash = { id = "", volume = 0.8, pitchJitter = 0.05, minGap = 0.25 },
-	boss_king_grab = { id = "", volume = 0.8, pitchJitter = 0.05, minGap = 0.25 },
-	boss_king_chest_bump = { id = "", volume = 0.8, pitchJitter = 0.05, minGap = 0.25 },
-	boss_king_goo = { id = "", volume = 0.7, pitchJitter = 0.05, minGap = 0.25 },
-	boss_brood_web_windup = { id = "", volume = 0.8, pitchJitter = 0.05, minGap = 0.25 },
-	boss_brood_web_spin = { id = "", volume = 0.6, pitchJitter = 0.05, minGap = 0.25 },
-	boss_brood_web_break = { id = "", volume = 0.8, pitchJitter = 0.05, minGap = 0.25 },
-	boss_brood_web_shot = { id = "", volume = 0.8, pitchJitter = 0.05, minGap = 0.25 },
-	boss_brood_web_pull = { id = "", volume = 0.7, pitchJitter = 0.05, minGap = 0.25 },
-	boss_brood_summon = { id = "", volume = 0.8, pitchJitter = 0.05, minGap = 0.25 },
-	enemy_boar_charge = { id = "", volume = 0.6, pitchJitter = 0.05, minGap = 0.12 },
-	enemy_boar_gore = { id = "", volume = 0.55, pitchJitter = 0.05, minGap = 0.12 },
-	enemy_thistle_spit = { id = "", volume = 0.5, pitchJitter = 0.05, minGap = 0.12 },
-	enemy_sow_attack = { id = "", volume = 0.6, pitchJitter = 0.05, minGap = 0.12 },
-	enemy_sow_drop = { id = "", volume = 0.6, pitchJitter = 0.05, minGap = 0.12 },
-	enemy_boarlet_bite = { id = "", volume = 0.45, pitchJitter = 0.05, minGap = 0.12 },
-	enemy_lurker_dive = { id = "", volume = 0.55, pitchJitter = 0.05, minGap = 0.12 },
-	enemy_lurker_emerge = { id = "", volume = 0.6, pitchJitter = 0.05, minGap = 0.12 },
-	enemy_lurker_spray = { id = "", volume = 0.5, pitchJitter = 0.05, minGap = 0.12 },
-	enemy_thornling_bite = { id = "", volume = 0.45, pitchJitter = 0.05, minGap = 0.12 },
-	enemy_thornling_hatch = { id = "", volume = 0.45, pitchJitter = 0.05, minGap = 0.12 },
+	     and Thornwood's enemies. The enemies' are uploaded one file each; the
+	     bosses' 13 share one upload, `boss_sprite_r18.mp3` (`BOSS_SPRITE`),
+	     each its own `region` of it. ]]
+	boss_king_bounce_windup = {
+		id = BOSS_SPRITE,
+		region = { 0.0, 0.737 },
+		volume = 0.8,
+		pitchJitter = 0.05,
+		minGap = 0.25,
+	},
+	boss_king_bounce_launch = {
+		id = BOSS_SPRITE,
+		region = { 1.177, 0.599 },
+		volume = 0.8,
+		pitchJitter = 0.05,
+		minGap = 0.25,
+	},
+	boss_king_bounce_slam = {
+		id = BOSS_SPRITE,
+		region = { 2.216, 1.019 },
+		volume = 0.9,
+		pitchJitter = 0.05,
+		minGap = 0.25,
+	},
+	boss_king_lash = {
+		id = BOSS_SPRITE,
+		region = { 3.675, 0.86 },
+		volume = 0.8,
+		pitchJitter = 0.05,
+		minGap = 0.25,
+	},
+	boss_king_grab = {
+		id = BOSS_SPRITE,
+		region = { 4.975, 0.718 },
+		volume = 0.8,
+		pitchJitter = 0.05,
+		minGap = 0.25,
+	},
+	boss_king_chest_bump = {
+		id = BOSS_SPRITE,
+		region = { 6.133, 0.561 },
+		volume = 0.8,
+		pitchJitter = 0.05,
+		minGap = 0.25,
+	},
+	boss_king_goo = {
+		id = BOSS_SPRITE,
+		region = { 7.134, 0.71 },
+		volume = 0.7,
+		pitchJitter = 0.05,
+		minGap = 0.25,
+	},
+	boss_brood_web_windup = {
+		id = BOSS_SPRITE,
+		region = { 8.284, 1.21 },
+		volume = 0.8,
+		pitchJitter = 0.05,
+		minGap = 0.25,
+	},
+	boss_brood_web_spin = {
+		id = BOSS_SPRITE,
+		region = { 9.934, 2.212 },
+		volume = 0.6,
+		pitchJitter = 0.05,
+		minGap = 0.25,
+	},
+	boss_brood_web_break = {
+		id = BOSS_SPRITE,
+		region = { 12.586, 0.62 },
+		volume = 0.8,
+		pitchJitter = 0.05,
+		minGap = 0.25,
+	},
+	boss_brood_web_shot = {
+		id = BOSS_SPRITE,
+		region = { 13.646, 0.618 },
+		volume = 0.8,
+		pitchJitter = 0.05,
+		minGap = 0.25,
+	},
+	boss_brood_web_pull = {
+		id = BOSS_SPRITE,
+		region = { 14.704, 0.614 },
+		volume = 0.7,
+		pitchJitter = 0.05,
+		minGap = 0.25,
+	},
+	boss_brood_summon = {
+		id = BOSS_SPRITE,
+		region = { 15.759, 1.22 },
+		volume = 0.8,
+		pitchJitter = 0.05,
+		minGap = 0.25,
+	},
+	enemy_boar_charge = {
+		id = "rbxassetid://88842850634924",
+		volume = 0.6,
+		pitchJitter = 0.05,
+		minGap = 0.12,
+	},
+	enemy_boar_gore = {
+		id = "rbxassetid://101142695837972",
+		volume = 0.55,
+		pitchJitter = 0.05,
+		minGap = 0.12,
+	},
+	enemy_thistle_spit = {
+		id = "rbxassetid://106207560426472",
+		volume = 0.5,
+		pitchJitter = 0.05,
+		minGap = 0.12,
+	},
+	enemy_sow_attack = {
+		id = "rbxassetid://98246095575745",
+		volume = 0.6,
+		pitchJitter = 0.05,
+		minGap = 0.12,
+	},
+	enemy_sow_drop = {
+		id = "rbxassetid://107072575980213",
+		volume = 0.6,
+		pitchJitter = 0.05,
+		minGap = 0.12,
+	},
+	enemy_boarlet_bite = {
+		id = "rbxassetid://96832416396999",
+		volume = 0.45,
+		pitchJitter = 0.05,
+		minGap = 0.12,
+	},
+	enemy_lurker_dive = {
+		id = "rbxassetid://83564847913669",
+		volume = 0.55,
+		pitchJitter = 0.05,
+		minGap = 0.12,
+	},
+	enemy_lurker_emerge = {
+		id = "rbxassetid://133444661789119",
+		volume = 0.6,
+		pitchJitter = 0.05,
+		minGap = 0.12,
+	},
+	enemy_lurker_spray = {
+		id = "rbxassetid://91409492527437",
+		volume = 0.5,
+		pitchJitter = 0.05,
+		minGap = 0.12,
+	},
+	enemy_thornling_bite = {
+		id = "rbxassetid://91009780551750",
+		volume = 0.45,
+		pitchJitter = 0.05,
+		minGap = 0.12,
+	},
+	enemy_thornling_hatch = {
+		id = "rbxassetid://83251645017802",
+		volume = 0.45,
+		pitchJitter = 0.05,
+		minGap = 0.12,
+	},
 }
 
 return table.freeze(Sounds)

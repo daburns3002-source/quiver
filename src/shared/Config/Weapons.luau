@@ -137,6 +137,11 @@ export type Weapon = {
 	kit: string?,
 	--[[ A Mythic: its glow parts cycle through the rainbow (`Fx/WeaponGlow`). ]]
 	rainbow: boolean?,
+	--[[ A Legendary's or Mythic's shots glow in this colour, with a light and
+	     sparkles (`Fx/ProjectileRenderer`), a Mythic's turning round the
+	     rainbow like its weapon (owner, 2026-10-25: "the projectiles for the
+	     legendary and mythics have their own glowing effect"). ]]
+	shotGlow: Color3?,
 	--[[ The single bow this is a pair of (the Dual Bows Mythic): drafting the
 	     card puts the pair of whatever bow is in hand there
 	     (`Shared/Combat/HeldWeaponChoice`). ]]
@@ -444,6 +449,7 @@ local skins: { [string]: any } = {
 				turned = true,
 			},
 		} :: { WeaponPart },
+		shotGlow = Color3.fromRGB(254, 212, 61),
 		bolt = {
 			meshId = "rbxassetid://133739624251092",
 			size = Vector3.new(0.3703, 0.3232, 1.56),
@@ -487,6 +493,7 @@ local skins: { [string]: any } = {
 			},
 		} :: { WeaponPart },
 		rainbow = true,
+		shotGlow = Color3.fromRGB(255, 255, 255),
 		bolt = {
 			meshId = "rbxassetid://113478574540605",
 			size = Vector3.new(0.2298, 0.2298, 1.86),
@@ -616,6 +623,7 @@ local skins: { [string]: any } = {
 				turned = true,
 			},
 		} :: { WeaponPart },
+		shotGlow = Color3.fromRGB(230, 254, 205),
 		bolt = {
 			meshId = "rbxassetid://74685108676882",
 			size = Vector3.new(0.0875, 0.1056, 0.4146),
@@ -652,6 +660,7 @@ local skins: { [string]: any } = {
 			},
 		} :: { WeaponPart },
 		rainbow = true,
+		shotGlow = Color3.fromRGB(33, 244, 254),
 		bolt = {
 			meshId = "rbxassetid://116604779817561",
 			size = Vector3.new(0.2712, 0.2851, 1.0434),
@@ -786,6 +795,7 @@ for key, skin in skins do
 		bolt = skin.bolt or base.bolt,
 		kit = skin.kit,
 		rainbow = skin.rainbow,
+		shotGlow = skin.shotGlow,
 		parts = skin.parts,
 	} :: Weapon
 end

@@ -622,6 +622,15 @@ not match 1 to 1 then redo it"). Before calling one done, screenshot it in a pla
 sheet and compare, sampling colours from both; if it does not match, redo it. A Claude Design
 GLB's colours are linear: bundle kits with `kit_bundle.py --srgb`, or they come in dark.
 
+**14. Weapons are pictured in 2D.**
+Every picture of a weapon on screen (menus, cards, the sandbox, rewards, and later the
+blacksmith and gear selection) uses the 2D weapon art, never a render or ViewportFrame of the
+3D model (owner, 2026-10-25: "anytime pictures of weapons are on screen they are going to use
+the 2d weapon models because i like those more than the 3d models"). The 2D art is the blocky
+Codex weapon art (`assets/concepts/blocky/weapons/`); cut an icon from it or have Codex draw a
+single view in the same style, upload it (Studio MCP `upload_image`) and show it as an
+ImageLabel. The 3D models stay for the weapon in hand in the world.
+
 ## Code conventions
 
 - `--!strict` at the top of every Luau file. No exceptions.

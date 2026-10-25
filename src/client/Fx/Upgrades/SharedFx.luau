@@ -25,6 +25,14 @@ local K = Balance.UpgradeFx
 local SharedFx = {}
 
 local function onEnemyHit(_model: Model, _amount: number, position: Vector3, kind: string)
+	--[[ Blaze's sound on every tick of a burn, which the server sends as a
+	     hit of its own (owner, 2026-10-24: "the blaze sound effect happens on
+	     each tick of burn not just the first one"); `minGap` keeps several
+	     burning enemies from stacking it. ]]
+	if kind == "Burn" and UpgradeFx.level("Blaze") > 0 then
+		SoundFx.play("fx_blaze")
+		return
+	end
 	if kind ~= "Crit" or UpgradeFx.level("DeadlyStrike") <= 0 then
 		return
 	end
@@ -69,7 +77,6 @@ local function blaze()
 				end,
 			})
 			if tuft then
-				SoundFx.play("fx_blaze")
 				tufts[enemy] = tuft
 			end
 		end

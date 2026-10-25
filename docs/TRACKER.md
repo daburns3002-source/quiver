@@ -55,6 +55,7 @@ The owner's plans, noted 2026-10-25 so they aren't forgotten: "dont implement th
 - **Egg breeder** for the eggs.
 - **Blacksmith** for the weapons.
 - **Gear selection area** to equip things for a run.
+- **Dexes** that keep track of every weapon, pet and enemy; anything the player has not unlocked yet shows as a black silhouette (owner, 2026-10-25).
 
 ## Designed, not built
 

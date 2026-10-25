@@ -74,6 +74,13 @@ local boltSize: Vector3? = nil
 local boltMeshId: string? = nil
 local boltTemplates: { [string]: MeshPart } = {}
 local weaponConnection: RBXScriptConnection? = nil
+--[[ A Legendary's or Mythic's shot glow (`Config/Weapons.shotGlow`): its
+     shots drawn in that colour with a light and sparkles, a Mythic's turned
+     round the hue wheel every frame at its weapon's pace (`Fx/WeaponGlow`). ]]
+local shotGlow: Color3? = nil
+local shotRainbow = false
+local RAINBOW_SPEED = 0.25
+local RAINBOW_SATURATION = 0.7
 
 --[[ What a drawn shot is: an arrow, an enemy orb, or a player's orb. One
      pool each, since each is its own shape. ]]
@@ -196,7 +203,41 @@ local function createPart(pool: Pool): BasePart
 		outline.Parent = part
 	end
 
-	if pool == "PlayerOrb" and tier.projectileTrails then
+	--[[ A Legendary's or Mythic's shot: its own light and sparkles, in its
+	     glow colour (recoloured each frame for a Mythic, in `step`). ]]
+	local glow = if pool ~= "Enemy" then shotGlow else nil
+	if glow then
+		if tier.projectileTrails then
+			local light = Instance.new("PointLight")
+			light.Name = "ShotGlow"
+			light.Color = glow
+			light.Brightness = 3
+			light.Range = 9
+			light.Shadows = false
+			light.Parent = part
+		end
+		if tier.orbSparkleRate > 0 then
+			local sparkles = Instance.new("ParticleEmitter")
+			sparkles.Name = "ShotSparkles"
+			sparkles.Rate = tier.orbSparkleRate * 1.5
+			sparkles.Lifetime = NumberRange.new(0.2, 0.4)
+			sparkles.Speed = NumberRange.new(0.4, 1.2)
+			sparkles.SpreadAngle = Vector2.new(180, 180)
+			sparkles.LightEmission = 1
+			sparkles.Color = ColorSequence.new(glow)
+			sparkles.Size = NumberSequence.new({
+				NumberSequenceKeypoint.new(0, 0.3),
+				NumberSequenceKeypoint.new(1, 0),
+			})
+			sparkles.Transparency = NumberSequence.new({
+				NumberSequenceKeypoint.new(0, 0.05),
+				NumberSequenceKeypoint.new(1, 1),
+			})
+			sparkles.Parent = part
+		end
+	end
+
+	if pool == "PlayerOrb" and tier.projectileTrails and not glow then
 		local light = Instance.new("PointLight")
 		light.Color = PLAYER_ORB_LIGHT
 		light.Brightness = 2
@@ -589,6 +630,7 @@ local function launch(
 		else "Player"
 	local colour = if pool == "Enemy"
 		then ENEMY_COLOUR
+		elseif shotGlow then shotGlow
 		elseif pool == "PlayerOrb" then PLAYER_ORB_COLOUR
 		else PLAYER_COLOUR
 	local part = acquire(pool, colour)
@@ -629,6 +671,9 @@ end
 
 local function step(deltaTime: number)
 	local now = os.clock()
+	local rainbow = if shotRainbow
+		then Color3.fromHSV((now * RAINBOW_SPEED) % 1, RAINBOW_SATURATION, 1)
+		else nil
 
 	for index = #pending, 1, -1 do
 		local queued = pending[index]
@@ -665,6 +710,15 @@ local function step(deltaTime: number)
 
 		if alive and params and overlap then
 			alive = ProjectileFlight.advance(visual, deltaTime, params, overlap, contact)
+		end
+
+		if rainbow and not isEnemy then
+			local part = visual.part
+			part.Color = rainbow
+			local light = part:FindFirstChild("ShotGlow")
+			if light and light:IsA("PointLight") then
+				light.Color = rainbow
+			end
 		end
 
 		table.insert(moveParts, visual.part)
@@ -753,6 +807,13 @@ local function loadBolt()
 	local weapon = (Weapons :: any)[if type(held) == "string" then held else Classes.Arcanist.weapon]
 	local bolt = (weapon and weapon.bolt) :: { meshId: string, size: Vector3 }?
 	local meshId = bolt and bolt.meshId
+	local glow = (weapon and weapon.shotGlow) :: Color3?
+	local rainbow = glow ~= nil and weapon.rainbow == true
+	if glow ~= shotGlow or rainbow ~= shotRainbow then
+		shotGlow = glow
+		shotRainbow = rainbow
+		dropPlayerPools()
+	end
 	if meshId == boltMeshId then
 		return
 	end

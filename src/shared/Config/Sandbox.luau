@@ -17,12 +17,9 @@ export type Entry = { weapon: string, class: string, label: string }
 local Sandbox = {
 	weapons = {
 		{ weapon = "TwigBow", class = "Ranger", label = "TWIG BOW" },
-		{ weapon = "LeafBow", class = "Ranger", label = "LEAF BOW" },
-		{ weapon = "LeafBowDual", class = "Ranger", label = "DUAL LEAF BOWS" },
+		{ weapon = "TwigBowDual", class = "Ranger", label = "DUAL TWIG BOWS" },
 		{ weapon = "BranchStaff", class = "Arcanist", label = "BRANCH STAFF" },
-		{ weapon = "ArcaneStaff", class = "Arcanist", label = "ARCANE STAFF" },
 		{ weapon = "TimberBlade", class = "Warden", label = "TIMBER BLADE" },
-		{ weapon = "RubyGreatsword", class = "Warden", label = "RUBY GREATSWORD" },
 	} :: { Entry },
 
 	--[[ The training dummies: copies of a `Balance.Enemies` archetype (its

@@ -30,14 +30,14 @@ export type Sound = {
 }
 
 local Sounds: { [string]: Sound } = {
-	--[[ The Ranger's every arrow (`Config/Weapons.LeafBow.fireSound`). ]]
+	--[[ The Ranger's every arrow (`Config/Weapons.TwigBow.fireSound`). ]]
 	arrow_fire = {
 		id = "rbxassetid://87054967937419",
 		volume = 0.6,
 		pitchJitter = 0.06,
 		minGap = 0.03,
 	},
-	--[[ The Warden's three blows (`Config/Weapons.RubyGreatsword.comboSounds`):
+	--[[ The Warden's three blows (`Config/Weapons.TimberBlade.comboSounds`):
 	     CC0 recordings from Freesound picked by the owner (2026-10-23;
 	     rounds 10 C, 10 D and 11 D, `assets/audio/freesound.py`), already
 	     10% quicker in the files themselves, so they play at speed 1. ]]
@@ -59,7 +59,7 @@ local Sounds: { [string]: Sound } = {
 		pitchJitter = 0.02,
 		minGap = 0.05,
 	},
-	--[[ The Arcanist's every bolt (`Config/Weapons.ArcaneStaff.fireSound`). ]]
+	--[[ The Arcanist's every bolt (`Config/Weapons.BranchStaff.fireSound`). ]]
 	staff_cast = {
 		id = "rbxassetid://94842415130560",
 		volume = 0.6,

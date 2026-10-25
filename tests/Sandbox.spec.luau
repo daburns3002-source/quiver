@@ -13,12 +13,18 @@ local TestRunner = require(script.Parent.TestRunner)
 local Weapons = require(ReplicatedStorage.Shared.Config.Weapons)
 
 return function(t: TestRunner.Helper)
+	--[[ A bow skin's pair is seen by drafting Dual Bows with the skin in
+	     hand (`tests/HeldWeaponChoice.spec`), so only the Twig Bows' pair is
+	     on the menu. ]]
 	t.test("every weapon is in the sandbox's menu, once", function()
 		local listed: { [string]: number } = {}
 		for _, entry in Sandbox.weapons do
 			listed[entry.weapon] = (listed[entry.weapon] or 0) + 1
 		end
-		for name in Weapons :: any do
+		for name, weapon in Weapons :: any do
+			if weapon.dualOf and name ~= "TwigBowDual" then
+				continue
+			end
 			t.equal(listed[name], 1, `{name} is listed once in Config/Sandbox`)
 		end
 	end)

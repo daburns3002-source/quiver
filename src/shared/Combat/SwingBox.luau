@@ -114,4 +114,37 @@ function SwingBox.hits(
 	return angle <= shape.arc / 2 + allowance
 end
 
+--[[ Whirlwind's spin: a circle `radius` across round the swinger itself,
+     grown by Cleave as the slam's circle is. ]]
+function SwingBox.spin(radius: number, widthScale: number): Shape
+	return { kind = "Circle", reach = 0, arc = 0, radius = radius * widthScale, ahead = 0 }
+end
+
+--[[ Shockwave: whether a body at `at`, `halfWidth` across, is in the lane a
+     slam's wave rolls down — from `ahead` studs in front of `from`, `length`
+     studs on along `direction`, `width` wide — and if so how far along the
+     lane it stands (nil when outside), so the wave can reach it on time. ]]
+function SwingBox.waveAlong(
+	from: Vector3,
+	direction: Vector3,
+	ahead: number,
+	length: number,
+	width: number,
+	at: Vector3,
+	halfWidth: number
+): number?
+	local forward = flat(direction)
+	if forward.Magnitude < 1e-6 or length <= 0 then
+		return nil
+	end
+	forward = forward.Unit
+	local offset = flat(at) - (flat(from) + forward * ahead)
+	local along = offset:Dot(forward)
+	local across = (offset - forward * along).Magnitude
+	if along < -halfWidth or along > length + halfWidth or across > width / 2 + halfWidth then
+		return nil
+	end
+	return math.max(along, 0)
+end
+
 return SwingBox

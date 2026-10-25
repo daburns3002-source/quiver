@@ -128,6 +128,36 @@ return function(t: TestRunner.Helper)
 		)
 	end)
 
+	--[[ The walk to an open gate is quicker (`exitRush`), but a dash is
+	     still the faster thing, or the cleared room makes it pointless. ]]
+	t.test("the walk to an open gate is faster, and a dash faster still", function()
+		local rush = Balance.Player.exitRush
+		local speed = config.distance / config.duration
+		t.isTrue(rush > 1, `exitRush {rush} does not speed the walk up`)
+		t.isTrue(
+			speed > Balance.Player.moveSpeed * rush,
+			`a dash at {speed} studs/s is slower than the walk to an open gate`
+		)
+	end)
+
+	--[[ A dash drives the Humanoid, so walls and cover stop it as they stop
+	     walking, as long as one frame's travel cannot step over the
+	     thinnest of them. Measured against a 60 fps frame, coarser than
+	     the physics step, to leave a margin. ]]
+	t.test("one frame of dash cannot step through a wall or cover", function()
+		local step = config.distance / config.duration / 60
+		local thinnest = Balance.Arena.wallThickness
+		for _, room in Balance.Rooms do
+			for _, obstacle in room.obstacles do
+				thinnest = math.min(thinnest, obstacle.size.X, obstacle.size.Z)
+			end
+		end
+		t.isTrue(
+			step < thinnest,
+			`a dash moves {step} studs a frame, past the thinnest cover ({thinnest})`
+		)
+	end)
+
 	t.test("a dash cannot cross the arena", function()
 		t.isTrue(
 			config.distance < Balance.Arena.size.X / 2,

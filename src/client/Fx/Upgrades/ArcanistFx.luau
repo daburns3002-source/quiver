@@ -128,42 +128,51 @@ local function bolt(from: Vector3, to: Vector3)
 	end)
 end
 
-local function nearestEnemy(from: Vector3, heading: Vector3): Vector3?
+--[[ The enemy the server sent the chain at: the server aims it straight at
+     its target from the hit, so it is the one most nearly along the aim,
+     within the ricochet's reach. The body it leaves is skipped, or the
+     bolt is drawn to the centre of the enemy just hit, inside its body. ]]
+local function chainTarget(from: Vector3, heading: Vector3, leaving: Model): Vector3?
 	local enemies = Workspace:FindFirstChild("Enemies")
 	if not enemies then
 		return nil
 	end
-	local best, pick = math.huge, nil
+	local best, pick = K.boltAimed, nil
 	for _, enemy in enemies:GetChildren() do
-		if enemy:IsA("Model") then
-			local offset = enemy:GetPivot().Position - from
-			local d = offset.Magnitude
-			-- ahead of the bolt and within the ricochet's reach
+		if enemy:IsA("Model") and enemy ~= leaving then
+			local at = enemy:GetPivot().Position
+			local offset = UpgradeFx.flat(at - from)
+			local d = Vector3.new(at.X - from.X, 0, at.Z - from.Z).Magnitude
+			local along = offset:Dot(heading)
 			if
 				d > 1
-				and d <= Balance.Projectile.ricochetRange
-				and offset.Unit:Dot(heading) > 0.5
-				and d < best
+				and d <= Balance.Projectile.ricochetRange + K.boltReachSlack
+				and along > best
 			then
-				best, pick = d, enemy:GetPivot().Position
+				best, pick = along, at
 			end
 		end
 	end
 	return pick
 end
 
-local function onLaunched(part: BasePart, pool: string, aim: Vector3, chained: boolean)
-	if pool ~= "PlayerOrb" or not chained or UpgradeFx.level("ChainLightning") <= 0 then
+local function onLaunched(part: BasePart, pool: string, aim: Vector3, from: Model?)
+	if pool ~= "PlayerOrb" or not from or UpgradeFx.level("ChainLightning") <= 0 then
 		return
 	end
 	do
-		local from = part.Position
+		-- enemy to enemy, at the orb's height
+		local height = part.Position.Y
+		local left = from:GetPivot().Position
+		local start = Vector3.new(left.X, height, left.Z)
 		local heading = UpgradeFx.flat(aim)
-		local to = nearestEnemy(from, heading)
-			or (from + heading * Balance.Projectile.ricochetRange * 0.6)
-		bolt(from, to)
+		local target = chainTarget(part.Position, heading, from)
+		local to = if target
+			then Vector3.new(target.X, height, target.Z)
+			else part.Position + heading * Balance.Projectile.ricochetRange * 0.6
+		bolt(start, to)
 		SoundFx.play("fx_chain_lightning")
-		for _, at in { from, to } do
+		for _, at in { start, to } do
 			UpgradeFx.play("FxChainLightning", {
 				at = CFrame.new(at + Vector3.new(0, K.nodeLift, 0)),
 				life = K.boltLife + 0.1,

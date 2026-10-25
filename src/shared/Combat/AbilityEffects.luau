@@ -52,6 +52,16 @@ export type MeleeStats = {
 	--[[ Extra damage to enemies under `Balance.Player.executeBelow` of their
 	     health, as a fraction. Execute. ]]
 	executeBonus: number,
+	--[[ Every this many swings is a spin that hits all round (0 never).
+	     Whirlwind. ]]
+	whirlwindEvery: number,
+	--[[ Studs a slam's ground wave runs (0 none). Shockwave. ]]
+	shockwaveLength: number,
+	--[[ Attack speed per kill stack, as a fraction. Battle Cry. ]]
+	battleCry: number,
+	--[[ 1: side blows destroy enemy shots in their arc; 2: the slam too.
+	     Parry. ]]
+	parry: number,
 }
 
 --[[ What the server applies. ]]
@@ -216,7 +226,7 @@ function AbilityEffects.stages(drafted: Counts, class: string?): { ShotStage }
 		table.insert(out, Stages.mirror("SideArrows", offsets))
 	end
 
-	local diagonal = at(counts, "DiagonalArrows")
+	local diagonal = at(counts, "DiagonalArrows") + at(counts, "DiagonalOrbs")
 	if diagonal > 0 then
 		local angle = projectile.diagonalAngle
 		local offsets = { angle, -angle }
@@ -304,7 +314,9 @@ function AbilityEffects.serverStats(drafted: Counts, class: string?): ServerStat
 	return {
 		--[[ Additive across levels, as the cards read: "+30% ATK" is thirty
 		     percent of the base, not of the last level. ]]
-		damage = player.baseDamage * kind.damageScale * (1 + at(counts, "Strength")),
+		damage = player.baseDamage
+			* kind.damageScale
+			* (1 + at(counts, "Strength") + at(counts, "Intellect")),
 		maxHealth = player.maxHealth * kind.healthScale * (1 + at(counts, "Vitality")),
 		--[[ Dual Bows: attack speed ×(1 + level), so its 1 halves the
 		     cooldown. Server and client must agree, or prediction fires
@@ -322,6 +334,12 @@ function AbilityEffects.serverStats(drafted: Counts, class: string?): ServerStat
 			slamBonus = at(counts, "HeavyBlade"),
 			lifesteal = at(counts, "Bloodletting"),
 			executeBonus = at(counts, "Execute"),
+			whirlwindEvery = if at(counts, "Whirlwind") > 0
+				then math.round(1 / at(counts, "Whirlwind"))
+				else 0,
+			shockwaveLength = at(counts, "Shockwave"),
+			battleCry = at(counts, "BattleCry"),
+			parry = at(counts, "Parry"),
 		},
 		healPerKill = at(counts, "Bloodthirst"),
 		regenPerSecond = at(counts, "Mending"),

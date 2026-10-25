@@ -14,8 +14,11 @@
 
 	A pet looks for enemies within `range` studs of its owner (60 covers a
 	room; the Fern Frog's tongue is short), nearest first, every `every` seconds; with none in range it waits (a support
-	pet's heal, guard or pull goes off regardless).
+	pet's heal or pull goes off regardless). A guard is not on the clock:
+	see `guard`.
 ]]
+
+local PetDash = require(script.Parent.Parent.Util.PetDash)
 
 export type Spec = {
 	--[[ Seconds between attacks, and studs from the owner it reaches. ]]
@@ -45,7 +48,10 @@ export type Spec = {
 	--[[ A patch under the owner healing `perSecond` while they stand within
 	     `radius` of it, for `duration` seconds. ]]
 	heal: { perSecond: number, duration: number, radius: number }?,
-	--[[ The shell is up again: it blocks the owner's next hit. ]]
+	--[[ Once a room: as each room or wave begins (and as the pet joins) its
+	     shell is up, and it blocks the owner's next hit. The pet plays its
+	     Attack, flying in front of the owner, when it blocks, not on a clock:
+	     `every` is not used. ]]
 	guard: boolean?,
 	--[[ Pulls every XP crystal in the room to the owner. ]]
 	magnet: boolean?,
@@ -55,6 +61,9 @@ export type Spec = {
 	--[[ Once a run, a killing blow leaves the owner at this share of their
 	     max health instead (the Glimmerhorn). ]]
 	revive: number?,
+	--[[ The pet runs to each target and strikes as it lands, then runs back
+	     (the Glade Fox's Leaf Dash; `Shared/Util/PetDash`). ]]
+	dash: PetDash.Dash?,
 }
 
 local PetCombat: { pets: { [string]: Spec } } = {
@@ -67,14 +76,39 @@ local PetCombat: { pets: { [string]: Spec } } = {
 		FernFrog = { every = 3, range = 14, damage = 70 },
 		-- Spore Patch: a healing ring
 		ToadstoolTot = { every = 20, range = 0, heal = { perSecond = 6, duration = 3, radius = 6 } },
-		-- Shell Guard: blocks one hit
-		MossbackSnail = { every = 20, range = 0, guard = true },
+		-- Shell Guard: blocks one hit a room
+		MossbackSnail = { every = 0, range = 0, guard = true },
 		-- Lantern Lure: pulls the crystals in, marks one enemy
 		FireflyBun = { every = 6, range = 60, magnet = true, mark = { scale = 1.25, duration = 4 } },
 		-- Root Snare: holds one enemy still
 		Stumpy = { every = 4, range = 60, damage = 25, root = 1 },
 		-- Leaf Dash: slashes up to three
-		GladeFox = { every = 3, range = 60, damage = 45, targets = 3 },
+		GladeFox = {
+			every = 3,
+			range = 60,
+			damage = 45,
+			targets = 3,
+			-- runs to each one (owner, 2026-10-25), timed to its Attack clip's
+			-- own lunge: out at 0.17 s, landed at 0.37, back from 0.57 to 0.8
+			dash = {
+				speed = 70,
+				windup = 0.17,
+				slash = 0.2,
+				shortest = 0.2,
+				longest = 0.55,
+				radius = 0.8,
+				gap = 0.3,
+				reach = 2,
+				clip = {
+					name = "Attack",
+					root = "Rig",
+					out = 0.167,
+					hit = 0.367,
+					back = 0.567,
+					home = 0.8,
+				},
+			},
+		},
 		-- Feather Volley: homing feathers over walls and cover
 		Hootmoss = { every = 3, range = 80, damage = 25, targets = 4 },
 		-- Royal Court: two mini slimes, a crown shockwave against bosses

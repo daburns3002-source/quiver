@@ -16,6 +16,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 
 local PetAttacks = require(ReplicatedStorage.Shared.Config.PetAttacks)
+local PetShots = require(ReplicatedStorage.Shared.Combat.PetShots)
 local PetSounds = require(ReplicatedStorage.Shared.Config.PetSounds)
 local SoundFx = require(script.Parent.SoundFx)
 local UpgradeFx = require(script.Parent.Upgrades.UpgradeFx)
@@ -66,7 +67,8 @@ local function fly(
 		return from + offset
 	end
 	local fixed = dest()
-	local life = math.max(0.15, (fixed - from).Magnitude / (shot.speed or 25))
+	-- the server lands the blow on this clock (Shared/Combat/PetShots)
+	local life = PetShots.flight(shot, (fixed - from).Magnitude)
 	local arc = shot.arc or 0
 	local function place(t: number): Vector3
 		local goal = if shot.homing then dest() else fixed
@@ -174,6 +176,29 @@ local function fire(shot: PetAttacks.Shot, pet: Model, index: number)
 			)
 		end
 	end
+end
+
+--[[ One blow of a pet that dashes (`Config/PetCombat` `dash`, the Glade
+     Fox), as it lands beside `target`: its first piece on the floor under
+     the enemy, facing the way the pet came in, and its sounds. ]]
+function PetAttackFx.strike(pet: Model, key: string, target: Model?)
+	for _, cue in (PetSounds :: any)[key] or {} do
+		SoundFx.play(cue.sound)
+	end
+	local shots = (PetAttacks :: any)[key] :: { PetAttacks.Shot }?
+	local shot = shots and shots[1]
+	if not shot or not pet.Parent then
+		return
+	end
+	local from = pet:GetPivot().Position
+	local spot = if target and target.Parent then target:GetPivot().Position else from
+	local ahead = UpgradeFx.flat(spot - from)
+	local floor = UpgradeFx.floor(spot, shot.lift)
+	UpgradeFx.play(shot.effect, {
+		at = CFrame.lookAt(floor, floor + ahead),
+		life = shot.life or 1,
+		clip = shot.clip,
+	})
 end
 
 --[[ Plays the pieces of `key`'s attack (a `Config/PetAttacks` key, the

@@ -98,7 +98,7 @@ numbers and the pet system are Phase 6.
 | Mossback Snail | Uncommon | Tanks | **Shell Guard**: once per room its shell flies in front of you and blocks one hit |
 | Firefly Bun | Rare | Collects | **Lantern Lure**: pulls XP crystals and coins in from across the room; its light marks one enemy to take extra damage |
 | Stumpy | Rare | Controls | **Root Snare**: roots burst under an enemy every few seconds, holding it still for 1 s |
-| Glade Fox | Epic | Shoots | **Leaf Dash**: blinks between up to three enemies, slashing each |
+| Glade Fox | Epic | Shoots | **Leaf Dash**: dashes to up to three enemies in turn, slashing each as it lands, then runs back (owner, 2026-10-25: it runs round cover, never through it; `Shared/Util/PetDash`) |
 | Hootmoss | Epic | Shoots | **Feather Volley**: homing feathers fired from above that fly over walls and cover |
 | Slime Prince | Legendary | Summons | **Royal Court**: summons two mini slimes that bounce into enemies, and a crown shockwave against bosses |
 | Ember Wilf | Legendary | Shoots | **Ember Bite**: fire bolts that set enemies burning (stacks with Blaze), and a howl that briefly speeds up your attacks |

@@ -147,6 +147,10 @@ Remotes.PlayerRevived = "PlayerRevived"
      these. ]]
 Remotes.SoulLink = "SoulLink"
 
+--[[ Server → all clients. A Warden's Parry knocked the enemy shots within
+     `radius` of `centre` out of the air: stop drawing them. ]]
+Remotes.ShotsParried = "ShotsParried"
+
 --[[ Server → one client. A hit on this player missed, and why: "Agility"
      (a dodge) or "Guard" (a swing's guard caught it). ]]
 Remotes.PlayerDodged = "PlayerDodged"

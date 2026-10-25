@@ -16,6 +16,7 @@ local AbilityEffects = require(ReplicatedStorage.Shared.Combat.AbilityEffects)
 local Arena = require(script.Parent.Parent.Arena.Arena)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Classes = require(ReplicatedStorage.Shared.Config.Classes)
+local HeldWeaponChoice = require(ReplicatedStorage.Shared.Combat.HeldWeaponChoice)
 local Loadout = require(script.Parent.Loadout)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
 local PetCombat = require(ReplicatedStorage.Shared.Config.PetCombat)
@@ -81,6 +82,11 @@ export type Session = {
 	petReviveUsed: boolean,
 	petHaste: number,
 	petHasteUntil: number,
+	--[[ Swings started this run, for Whirlwind's every-nth spin. ]]
+	swingCount: number,
+	--[[ Battle Cry: kill stacks, and when they lapse (os.clock). ]]
+	battleCryStacks: number,
+	battleCryUntil: number,
 	--[[ This stage's kills and when it began, for the end screen. ]]
 	stageKills: number,
 	stageStartedAt: number,
@@ -148,6 +154,7 @@ local playerStats = Remotes.event(Remotes.PlayerStats)
 local playerDamaged = Remotes.event(Remotes.PlayerDamaged)
 local playerRevived = Remotes.event(Remotes.PlayerRevived)
 local playerDodged = Remotes.event(Remotes.PlayerDodged)
+local petAttack = Remotes.event(Remotes.PetAttack)
 
 --[[ Seconds between health updates sent for regeneration alone. ]]
 local REGEN_SEND_INTERVAL = 0.25
@@ -185,6 +192,10 @@ function RunSession.create(player: Player): Session
 			slamBonus = 0,
 			lifesteal = 0,
 			executeBonus = 0,
+			whirlwindEvery = 0,
+			shockwaveLength = 0,
+			battleCry = 0,
+			parry = 0,
 		},
 		secondWind = 0,
 		secondWindUsed = false,
@@ -192,6 +203,9 @@ function RunSession.create(player: Player): Session
 		petReviveUsed = false,
 		petHaste = 0,
 		petHasteUntil = 0,
+		swingCount = 0,
+		battleCryStacks = 0,
+		battleCryUntil = 0,
 		stageKills = 0,
 		stageStartedAt = os.clock(),
 		healthSentAt = 0,
@@ -261,15 +275,18 @@ function RunSession.applyLoadout(session: Session)
 
 	playerStats:FireClient(session.player, AbilityEffects.clientStats(counts, class))
 	--[[ The weapon in hand: the class's own, unless a drafted card puts
-	     another there (`Ability.weapon`, the Dual Bows Mythic). `Main`
-	     re-equips when it changes, and the client poses whatever it is. ]]
-	local weapon = session.loadout.weapon or Classes[class].weapon
+	     another there (`Ability.weapon`, the Dual Bows Mythic, as a pair
+	     of the bow in hand: `Combat/HeldWeaponChoice`). `Main` re-equips
+	     when it changes, and the client poses whatever it is. ]]
+	local cardWeapon: string? = nil
 	for id, level in counts do
 		local ability = Abilities.byId[id]
 		if level > 0 and ability and ability.weapon then
-			weapon = ability.weapon
+			cardWeapon = ability.weapon
 		end
 	end
+	local weapon =
+		HeldWeaponChoice.pick(session.loadout.weapon or Classes[class].weapon, cardWeapon)
 	session.player:SetAttribute("Weapon", weapon)
 	session.player:SetAttribute("Class", class)
 	healthChanged:FireClient(session.player, session.health, session.maxHealth)
@@ -388,6 +405,20 @@ end
 ]]
 function RunSession.onEnemyKilled(session: Session)
 	session.stageKills += 1
+	--[[ Battle Cry: a stack per kill, up to the cap; they lapse together
+	     `duration` seconds after the last kill. The attribute tells the
+	     client to play its cry. ]]
+	if session.alive and session.melee.battleCry > 0 then
+		local now = os.clock()
+		local config = Balance.Player.battleCry
+		if now > session.battleCryUntil then
+			session.battleCryStacks = 0
+		end
+		session.battleCryStacks = math.min(session.battleCryStacks + 1, config.maxStacks)
+		session.battleCryUntil = now + config.duration
+		local cries = session.player:GetAttribute("BattleCry")
+		session.player:SetAttribute("BattleCry", (if type(cries) == "number" then cries else 0) + 1)
+	end
 	if not session.alive or session.healPerKill <= 0 then
 		return
 	end
@@ -736,10 +767,12 @@ function RunSession.applyDamage(session: Session, amount: number)
 		return
 	end
 
-	--[[ The Mossback Snail's shell takes it (`Combat/PetCombat`). ]]
+	--[[ The Mossback Snail's shell takes it (`Combat/PetCombat`), and the
+	     snail flies in front of its owner to show it (its Attack). ]]
 	if session.petGuard then
 		session.petGuard = false
 		playerDodged:FireClient(session.player, "Guard")
+		petAttack:FireAllClients(session.player, session.player:GetAttribute("Pet"))
 		return
 	end
 

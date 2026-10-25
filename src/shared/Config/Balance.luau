@@ -2146,6 +2146,12 @@ local Balance = {
 		     brisker than the footage's 0.19 by choice — then every speed in
 		     the game went up by half on the owner's ask (2026-10-22). ]]
 		moveSpeed = 13.5,
+		--[[ Walking speed multiplier once a room is cleared and its exit gate
+		     is open, until the player leaves through it (owner, 2026-10-25:
+		     "run faster towards door after the last enemy in the room is
+		     killed"). The server says when (`ExitOpen` on Workspace, set
+		     with the gate by `RoomController`); the client walks at it. ]]
+		exitRush = 1.5,
 		baseDamage = 100,
 		--[[ Seconds between volleys while stationary. Slowed from 0.45 over
 		     playtests: at that pace standing still paid so well that moving
@@ -2179,10 +2185,11 @@ local Balance = {
 			firing needed changing for that; it falls out of driving the
 			Humanoid rather than teleporting.
 
-			Four studs — two player-widths, about a ninth of the room's
-			width. Scaled down with the room from the original sixteen, then
-			shortened a step further after playtest: it still clears a fan,
-			but it is an escape now rather than a way across the room. The duration is the shortest that still reads as travel
+			Six studs — three player-widths, about a sixth of the room's
+			width. Scaled down with the room from the original sixteen and
+			shortened to four after playtest, then lengthened by half on the
+			owner's ask (2026-10-25, "dash further"): still an escape rather
+			than a way across the room. The duration is the shortest that still reads as travel
 			rather than as a blink, which matters because a player who cannot
 			see where they went cannot aim the next one.
 		]]
@@ -2197,6 +2204,15 @@ local Balance = {
 		critMultiplier = 2,
 		--[[ Share of an enemy's health under which Execute's bonus applies. ]]
 		executeBelow = 0.3,
+		--[[ The Warden's new cards (owner, 2026-10-25). Whirlwind's spin hits
+		     everything within `radius` of the Warden. Shockwave's wave runs
+		     ahead from the slam at `speed` studs a second, `width` wide,
+		     hitting each enemy for `share` of the slam's blow as it arrives.
+		     Battle Cry stacks once per kill, up to `maxStacks`, and the
+		     stacks last `duration` seconds from the last kill. ]]
+		whirlwind = { radius = 6.5 },
+		shockwave = { speed = 32, width = 4, share = 0.6 },
+		battleCry = { maxStacks = 5, duration = 4 },
 
 		--[[ Meteor, the Arcanist's Mythic: every `every`th cast a meteor
 		     falls on that cast's target, its circle shown for `delay`
@@ -2232,7 +2248,7 @@ local Balance = {
 		},
 
 		dash = {
-			distance = 4,
+			distance = 6,
 			duration = 0.12,
 			--[[
 				Long enough that it is a decision rather than a second
@@ -3470,6 +3486,9 @@ local Balance = {
 		-- Earthbreaker's debris, drawn at the slam's real radius
 		earthbreakerRadius = 5.5,
 		earthbreakerLife = 0.8,
+		-- Whirlwind's ring of cubes, one whirl; and each Shockwave cube's burst.
+		whirlwindLife = 0.35,
+		shockwaveRise = 0.35,
 		-- Arcanist: Twin Cast's and Arcane Echo's beats at the staff
 		twinLife = 0.6,
 		echoLife = 0.9,
@@ -3483,6 +3502,10 @@ local Balance = {
 		boltRim = Color3.fromRGB(60, 190, 255),
 		boltLife = 0.28,
 		nodeLift = 1.4,
+		-- the chain's target is the enemy most nearly along its aim (the
+		-- cosine it must beat), a little past the reach for one that moved
+		boltAimed = 0.8,
+		boltReachSlack = 3,
 		-- Meteor: the rock rides the fall at most this long
 		meteorLife = 2,
 	},

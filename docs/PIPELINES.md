@@ -109,7 +109,10 @@ As an enemy model (1), with its moves: a `boss` block in its `EnemyConfig`, each
 
 1. Make takes: `assets/audio/synth.py` (from scratch) or `freesound.py` (CC0 only, licence checked per sound; a game's ripped audio is never used, only measured against).
 2. Audition page: `build_page.py` → published artifact; the owner's picks save to its database (`ArtifactData`).
-3. Owner uploads the picks to Roblox; Claude finds the ids (`search_asset`, scope user) and puts them in `Config/Sounds`. An empty id is silent, so hooks are wired first.
+3. **One upload per batch:** join the picks into one sprite (`assets/audio/sprite.py`; each sound a `region` of it in `Config/Sounds`). Roblox allows 20 audio uploads a day and 100 a month, and the owner's are scarce: see the budget below.
+4. Owner uploads the sprite to Roblox; Claude finds the id (`search_asset`, scope user) and puts it in `Config/Sounds`. An empty id is silent, so hooks are wired first.
+
+**Audio upload budget** (owner, 2026-10-25: "i only have 27 audio uploads left so make sure you keep track of that"): **26 left** (2026-10-25, after the Warden sprite `warden_sprite_r19.mp3`). Before asking for an upload, say what it costs and what would be left; after it, update this line in the same PR. Bundle pending sounds into one upload rather than uploading as each is picked.
 
 ## 8. Concept art and images
 

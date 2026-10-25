@@ -30,6 +30,7 @@ local Burning = require(script.Parent.Parent.Combat.Burning)
 local EnemyManager = require(script.Parent.Parent.Enemies.EnemyManager)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
 local MeleeSystem = require(script.Parent.Parent.Combat.MeleeSystem)
+local PetCombat = require(script.Parent.Parent.Combat.PetCombat)
 local Pickups = require(script.Parent.Pickups)
 local ProjectileSystem = require(script.Parent.Parent.Combat.ProjectileSystem)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
@@ -93,6 +94,14 @@ local function broadcast()
 	runStateChanged:FireAllClients(progress, total(), state, label(), unit())
 end
 
+--[[ Lights or puts out the exit gate, and tells every client whether it is
+     open: while it is, players walk at `Balance.Player.exitRush` times
+     their speed, so the walk to the gate after a clear is quick. ]]
+local function setDoorOpen(open: boolean)
+	Arena.setDoorOpen(open)
+	workspace:SetAttribute("ExitOpen", open)
+end
+
 --[[
 	Tears the arena down and builds `layout` in its place.
 
@@ -104,6 +113,8 @@ end
 ]]
 local function buildArena(layout: Balance.RoomConfig)
 	Arena.build(workspace, layout.obstacles, layout.arena)
+	--[[ A new room's gate is built shut. ]]
+	workspace:SetAttribute("ExitOpen", false)
 	EnemyManager.init(workspace)
 
 	ProjectileSystem.clear()
@@ -136,6 +147,8 @@ local function enterRoom(position: number)
 	buildArena(room)
 	Arena.setDoorLabel(if position < total() then tostring(position + 1) else "")
 	EnemyManager.spawnWave(room.enemyCount, room.roster)
+	-- the Mossback Snail's shell is up once a room
+	PetCombat.newRoom()
 
 	log.info("entered room %d/%d — %s", position, total(), room.name)
 	broadcast()
@@ -169,6 +182,7 @@ local function startWave(wave: number)
 	else
 		state = "Fighting"
 		EnemyManager.spawnWave(description.count, description.roster)
+		PetCombat.newRoom()
 	end
 
 	log.info("wave %d/%d — %s", wave, total(), description.kind)
@@ -247,7 +261,7 @@ function RoomController.onPlayerDied()
 
 	state = "Dead"
 	resumeAt = os.clock() + Balance.Run.deathPause
-	Arena.setDoorOpen(false)
+	setDoorOpen(false)
 
 	log.info("run ended at %s %d/%d", unit():lower(), progress, total())
 	broadcast()
@@ -268,7 +282,7 @@ end
 local function complete(now: number)
 	state = "Complete"
 	resumeAt = now + Balance.Run.deathPause
-	Arena.setDoorOpen(false)
+	setDoorOpen(false)
 	log.info("run complete")
 	broadcast()
 	sendSummary(true)
@@ -283,7 +297,7 @@ local function stepRooms(now: number)
 		end
 
 		resumeAt = nil
-		Arena.setDoorOpen(true)
+		setDoorOpen(true)
 	end
 
 	if not anyPlayerAtDoor() then

@@ -98,7 +98,7 @@ local abilities: { Ability } = {
 	{
 		id = "FrontArrow",
 		name = "Front Arrow",
-		description = "Add a parallel arrow to your volley.",
+		description = "Fire another arrow.",
 		category = "Count",
 		group = "arrow",
 		rarity = "Epic",
@@ -111,7 +111,7 @@ local abilities: { Ability } = {
 	{
 		id = "DoubleShot",
 		name = "Double Shot",
-		description = "Fire arrows in a narrow spread.",
+		description = "Fire another arrow in a narrow spread.",
 		category = "Pattern",
 		group = "arrow",
 		rarity = "Rare",
@@ -162,6 +162,20 @@ local abilities: { Ability } = {
 		classes = RANGER,
 	},
 	{
+		--[[ The Arcanist's Diagonal Arrows (owner, 2026-10-25): its level adds
+		     to Diagonal Arrows' in `AbilityEffects`. ]]
+		id = "DiagonalOrbs",
+		name = "Diagonal Orbs",
+		description = "Also cast orbs at diagonal angles.",
+		category = "Pattern",
+		group = "spell",
+		rarity = "Rare",
+		levels = { 2, 4 },
+		stats = { "+2 diagonal", "+4 diagonal" },
+		icon = "diagonal-orbs",
+		classes = ARCANIST,
+	},
+	{
 		id = "PiercingShot",
 		name = "Piercing Shot",
 		description = "Arrows pass through enemies.",
@@ -185,6 +199,8 @@ local abilities: { Ability } = {
 		stats = { "+15% speed", "+30% speed", "+45% speed", "+60% speed", "+75% speed" },
 		icon = "swift-arrows",
 		classes = RANGER,
+		--[[ Out of rotation (owner, 2026-10-25: cut after the class run-throughs). ]]
+		benched = true,
 	},
 	{
 		id = "LongShot",
@@ -199,6 +215,8 @@ local abilities: { Ability } = {
 		stats = { "+8% far dmg", "+16% far dmg", "+24% far dmg" },
 		icon = "long-shot",
 		classes = RANGER,
+		--[[ Out of rotation (owner, 2026-10-25: cut after the class run-throughs). ]]
+		benched = true,
 	},
 	{
 		id = "BouncyWall",
@@ -292,6 +310,23 @@ local abilities: { Ability } = {
 		levels = { 0.1, 0.2, 0.3, 0.4, 0.5 },
 		stats = { "+10% ATK", "+20% ATK", "+30% ATK", "+40% ATK", "+50% ATK" },
 		icon = "strength",
+		--[[ The Arcanist draws Intellect, the same card under its own name. ]]
+		classes = { "Ranger", "Warden" },
+	},
+	{
+		--[[ The Arcanist's Strength (owner, 2026-10-25: "make the arcanist
+		     class have intellect instead of strength, it will function the
+		     same way"): its level adds to Strength's in `AbilityEffects`. ]]
+		id = "Intellect",
+		name = "Intellect",
+		description = "Raise spell damage.",
+		category = "Stats",
+		group = "power",
+		rarity = "Common",
+		levels = { 0.1, 0.2, 0.3, 0.4, 0.5 },
+		stats = { "+10% ATK", "+20% ATK", "+30% ATK", "+40% ATK", "+50% ATK" },
+		icon = "intellect",
+		classes = ARCANIST,
 	},
 	{
 		id = "Precision",
@@ -344,7 +379,8 @@ local abilities: { Ability } = {
 		levels = { 2, 3, 4 },
 		stats = { "Link 2", "Link 3", "Link 4" },
 		icon = "soul-chain",
-		classes = RANGER,
+		--[[ Every class (owner, 2026-10-25): a melee blow links as an arrow does
+		     (`Combat/SoulLink`). ]]
 	},
 
 	--[[ Mobility skills. ]]
@@ -375,6 +411,8 @@ local abilities: { Ability } = {
 		levels = { 0.04, 0.08, 0.12, 0.16, 0.2 },
 		stats = { "+4% dodge", "+8% dodge", "+12% dodge", "+16% dodge", "+20% dodge" },
 		icon = "agility",
+		--[[ Out of rotation (owner, 2026-10-25: cut after the class run-throughs). ]]
+		benched = true,
 	},
 	{
 		id = "Lightfoot",
@@ -411,6 +449,8 @@ local abilities: { Ability } = {
 		levels = { 0.01, 0.02, 0.03 },
 		stats = { "1% HP/s", "2% HP/s", "3% HP/s" },
 		icon = "mending",
+		--[[ Out of rotation (owner, 2026-10-25: cut after the class run-throughs). ]]
+		benched = true,
 	},
 	{
 		id = "Bloodthirst",
@@ -479,6 +519,8 @@ local abilities: { Ability } = {
 		stats = { "-8% dmg taken", "-16% dmg taken", "-24% dmg taken" },
 		icon = "iron-skin",
 		classes = WARDEN,
+		--[[ Out of rotation (owner, 2026-10-25: cut after the class run-throughs). ]]
+		benched = true,
 	},
 	{
 		id = "Cleave",
@@ -515,6 +557,8 @@ local abilities: { Ability } = {
 		stats = { "+0.3s guard", "+0.6s guard" },
 		icon = "steadfast",
 		classes = WARDEN,
+		--[[ Out of rotation (owner, 2026-10-25: cut after the class run-throughs). ]]
+		benched = true,
 	},
 	{
 		id = "HeavyBlade",
@@ -539,6 +583,8 @@ local abilities: { Ability } = {
 		stats = { "3% lifesteal", "6% lifesteal", "9% lifesteal" },
 		icon = "bloodletting",
 		classes = WARDEN,
+		--[[ Out of rotation (owner, 2026-10-25: cut after the class run-throughs). ]]
+		benched = true,
 	},
 	{
 		id = "Execute",
@@ -550,6 +596,61 @@ local abilities: { Ability } = {
 		levels = { 0.5, 1 },
 		stats = { "+50% under 30% HP", "+100% under 30% HP" },
 		icon = "execute",
+		classes = WARDEN,
+	},
+	--[[ The Warden's new cards (owner, 2026-10-25, from the ideas offered
+	     after Iron Skin, Steadfast and Bloodletting were benched). ]]
+	{
+		id = "Whirlwind",
+		name = "Whirlwind",
+		description = "Every few swings, spin and hit everything around you.",
+		category = "Pattern",
+		group = "blade",
+		rarity = "Epic",
+		--[[ The share of swings that spin, so the levels rise as the cards
+		     must: one in 4, then one in 3 (`Balance.Player.whirlwind`). ]]
+		levels = { 0.25, 0.34 },
+		stats = { "Every 4th swing", "Every 3rd swing" },
+		icon = "whirlwind",
+		classes = WARDEN,
+	},
+	{
+		id = "Shockwave",
+		name = "Shockwave",
+		description = "Your slam sends a wave rolling forward along the ground.",
+		category = "OnHit",
+		group = "blade",
+		rarity = "Rare",
+		--[[ Studs the wave runs past the slam (`Balance.Player.shockwave`). ]]
+		levels = { 8, 12, 16 },
+		stats = { "Short wave", "Medium wave", "Long wave" },
+		icon = "shockwave",
+		classes = WARDEN,
+	},
+	{
+		id = "BattleCry",
+		name = "Battle Cry",
+		description = "Each kill quickens your swings for a few seconds, stacking.",
+		category = "OnKill",
+		group = "blade",
+		rarity = "Legendary",
+		--[[ Attack speed per stack (`Balance.Player.battleCry`). ]]
+		levels = { 0.05, 0.1 },
+		stats = { "+5% atk spd per kill", "+10% atk spd per kill" },
+		icon = "battle-cry",
+		classes = WARDEN,
+	},
+	{
+		id = "Parry",
+		name = "Parry",
+		description = "Your swings knock enemy shots out of the air.",
+		category = "Defensive",
+		group = "blade",
+		rarity = "Epic",
+		--[[ 1: the side blows parry; 2: the slam too. ]]
+		levels = { 1, 2 },
+		stats = { "Swings parry", "Slam parries too" },
+		icon = "parry",
 		classes = WARDEN,
 	},
 

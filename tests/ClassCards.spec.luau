@@ -119,6 +119,17 @@ return function(t: TestRunner.Helper)
 		t.isTrue(stat("HeavyBlade").melee.slamBonus > plain.melee.slamBonus, "Heavy Blade")
 		t.isTrue(stat("Bloodletting").melee.lifesteal > plain.melee.lifesteal, "Bloodletting")
 		t.isTrue(stat("Execute").melee.executeBonus > plain.melee.executeBonus, "Execute")
+		t.isTrue(stat("Whirlwind").melee.whirlwindEvery > 0, "Whirlwind")
+		t.isTrue(
+			stat("Whirlwind").melee.whirlwindEvery
+				< math.round(1 / Abilities.byId.Whirlwind.levels[1]),
+			"Whirlwind's top level spins no more often"
+		)
+		t.isTrue(stat("Shockwave").melee.shockwaveLength > 0, "Shockwave")
+		t.isTrue(stat("BattleCry").melee.battleCry > 0, "Battle Cry")
+		t.equal(stat("Parry").melee.parry, 2)
+		t.equal(plain.melee.whirlwindEvery, 0)
+		t.equal(plain.melee.parry, 0)
 	end)
 
 	--[[ Long Reach must reach the client too, or the Warden predicts its

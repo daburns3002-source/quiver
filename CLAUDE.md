@@ -95,7 +95,7 @@ as `docs/PIPELINES.md` §4.5 says. Thornwood keeps its colours as the
 importer stores them, darker than the design (the owner's pick over the
 `srgb_glb.py`-converted import, 2026-10-25). As each room starts, a blocky ROOM <n> sign flies out of the top of the gate, hangs at the top of the screen and flies back (`UI/RoomSign`, `Config/RoomSign`, letters from `Config/PixelFont`; the last room's number is red). The exit is a gate in the north wall
 (`Arena/ExitGate`, `Balance.Run.gate`): dark purple haze until the room is
-cleared, then glowing white-gold with a GO arrow, after Archero 2. Moonlit
+cleared, then glowing white-gold with a GO arrow, after Archero 2. While it is open, players walk 1.5× faster (`Balance.Player.exitRush`, `ExitOpen` on Workspace, set by `RoomController`; owner 2026-10-25). Moonlit
 Arena's waves draw from the first
 `Balance.Waves.rooms` (10) rooms only.
 
@@ -629,6 +629,15 @@ built from (owner, 2026-10-25: "it looks 1 to 1 with the reference pick ... if t
 not match 1 to 1 then redo it"). Before calling one done, screenshot it in a playtest beside its
 sheet and compare, sampling colours from both; if it does not match, redo it. A Claude Design
 GLB's colours are linear: bundle kits with `kit_bundle.py --srgb`, or they come in dark.
+
+**14. Weapons are pictured in 2D.**
+Every picture of a weapon on screen (menus, cards, the sandbox, rewards, and later the
+blacksmith and gear selection) uses the 2D weapon art, never a render or ViewportFrame of the
+3D model (owner, 2026-10-25: "anytime pictures of weapons are on screen they are going to use
+the 2d weapon models because i like those more than the 3d models"). The 2D art is the blocky
+Codex weapon art (`assets/concepts/blocky/weapons/`); cut an icon from it or have Codex draw a
+single view in the same style, upload it (Studio MCP `upload_image`) and show it as an
+ImageLabel. The 3D models stay for the weapon in hand in the world.
 
 ## Code conventions
 

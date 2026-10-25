@@ -30,11 +30,12 @@ local Music = {
 	fade = 1.5,
 	playlists = {
 		Rooms = {
-			-- ours, 92 s, made to loop: a lone track loops in the engine
-			{ id = "rbxassetid://74156980070396", name = "Mossy Glade (B)" },
+			-- ours, 77 s, made to loop: a lone track loops in the engine
+			{ id = "rbxassetid://77887687386172", name = "Hilltop" },
 		} :: { Track },
 		--[[ Ready for the lobby; `MusicFx` never makes it current yet. ]]
 		Lobby = {
+			-- ours, 92 s, made to loop
 			{ id = "rbxassetid://74156980070396", name = "Mossy Glade (B)" },
 		} :: { Track },
 		Boss = {

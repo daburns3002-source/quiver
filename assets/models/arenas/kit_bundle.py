@@ -2,7 +2,7 @@
 GLB for a single Studio import, one mesh per piece.
 
     uv run --with trimesh --with numpy --with scipy --with networkx --with pillow \
-        python -I kit_bundle.py <kit folder> <out.glb>
+        python -I kit_bundle.py <kit folder> <out.glb> [--srgb]
 
 Each piece arrives as many small parts with flat material colours. They are
 merged into one mesh per piece, each part's colour baked onto its vertices
@@ -11,6 +11,12 @@ the piece's own scene places them. Parts that glow (an emissive material)
 go in a second mesh, `<Piece>_Glow`, for the game to draw Neon. Every piece
 sits centred on X/Z with its base at y = 0, in its own units; the game
 scales it into the room.
+
+`--srgb`: a glTF base colour is linear, and Roblox reads vertex colours as
+sRGB, so written as they come every colour draws darker than designed. The
+Mossy Glade was bundled without it and tuned on that look (owner,
+2026-10-24); Thornwood, whose design is darker throughout, came in near
+black (its grey boulders a dark slate) and is bundled with it (2026-10-25).
 """
 import pathlib
 import sys
@@ -19,6 +25,14 @@ import numpy as np
 import trimesh
 
 SRC, OUT = pathlib.Path(sys.argv[1]), pathlib.Path(sys.argv[2])
+SRGB = "--srgb" in sys.argv[3:]
+
+
+def to_srgb(c: np.ndarray) -> np.ndarray:
+    """A linear 0-255 colour as sRGB, alpha kept."""
+    lin = c[:3].astype(float) / 255
+    srgb = np.where(lin <= 0.0031308, lin * 12.92, 1.055 * np.power(lin, 1 / 2.4) - 0.055)
+    return np.append((srgb * 255).round().clip(0, 255), c[3]).astype(np.uint8)
 
 
 def colour_of(geometry) -> np.ndarray:
@@ -51,6 +65,8 @@ for path in sorted(SRC.glob("*.glb")):
         g = scene.geometry[name].copy()
         g.apply_transform(transform)
         colour = colour_of(scene.geometry[name])
+        if SRGB:
+            colour = to_srgb(colour)
         g.visual = trimesh.visual.ColorVisuals(g, vertex_colors=np.tile(colour, (len(g.vertices), 1)))
         (glow if glows(scene.geometry[name]) else solid).append(g)
     whole = trimesh.util.concatenate(solid + glow)

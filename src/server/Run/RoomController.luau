@@ -52,6 +52,9 @@ end
      wave number. One counter for both, because the HUD, the summary and the
      death message all only ever want "how far, out of how many". ]]
 local progress = 1
+--[[ The Studio sandbox (`enterSandbox`): the run stands still around
+     training dummies until it is left. ]]
+local sandbox = false
 local state: State = "Fighting"
 --[[ `os.clock()` at which the pending transition fires, or nil when the run is
      waiting on the player rather than on a clock. ]]
@@ -314,6 +317,54 @@ function RoomController.isOver(): boolean
 	return state == "Dead" or state == "Complete"
 end
 
+--[[
+	Testing only, Studio: the playtest sandbox (`Config/Sandbox`). The room
+	is rebuilt as the stage's first, with training dummies where its fight
+	would be (`dummy` built from `Sandbox.dummy` by the caller), every player
+	untouchable, and the run standing still: no clear, no next room, no
+	wave. Leaving starts the stage again from the top.
+]]
+function RoomController.enterSandbox(dummy: Balance.EnemyConfig, spots: { Vector3 })
+	sandbox = true
+	progress = 1
+	state = "Fighting"
+	resumeAt = nil
+	RunSession.holdOffers(true)
+
+	local current = stage()
+	local layout = if current.mode == "Waves"
+		then Balance.Rooms[current.arena or 1]
+		else Balance.Rooms[(current.rooms or {})[1]]
+	buildArena(layout)
+	Arena.setDoorLabel("")
+
+	local radius = math.max(dummy.hitboxSize.X, dummy.hitboxSize.Z) / 2
+	for _, spot in spots do
+		local at = Arena.resolve(Vector3.new(spot.X, dummy.hitboxSize.Y / 2, spot.Z), radius)
+		EnemyManager.spawn(dummy, 0, at)
+	end
+	for _, session in RunSession.all() do
+		session.invulnerableUntil = math.huge
+	end
+	workspace:SetAttribute("Sandbox", true)
+	log.info("sandbox: %d training dummies", #spots)
+	broadcast()
+end
+
+function RoomController.leaveSandbox()
+	if not sandbox then
+		return
+	end
+	sandbox = false
+	workspace:SetAttribute("Sandbox", false)
+	startStage()
+	log.info("left the sandbox")
+end
+
+function RoomController.inSandbox(): boolean
+	return sandbox
+end
+
 function RoomController.requestRestart(): boolean
 	if not RoomController.isOver() then
 		return false
@@ -340,6 +391,11 @@ function RoomController.requestRestart(): boolean
 end
 
 function RoomController.step(now: number)
+	--[[ The sandbox holds the run where it is: its dummies never die. ]]
+	if sandbox then
+		return
+	end
+
 	--[[ Over: the end screen is up, and the next run starts when a player
 	     asks for it (`requestRestart`), not on a timer. ]]
 	if state == "Dead" or state == "Complete" then

@@ -7,6 +7,8 @@
 	L — the next card hand includes a Legendary.
 	P — the pets the owner imported follow you, playing their own clips
 	(`Fx/PetPreview`); press again to put them away.
+	O — the playtest sandbox's menu (`UI/SandboxMenu`): training dummies,
+	any weapon in hand, any pet at heel.
 	V / B — preview the Victory / Defeat end screen with sample numbers.
 	Drawn on this client only; the server is not told, so the run carries
 	on underneath. Press the same key again, or the other, to swap it.
@@ -24,6 +26,7 @@ local UserInputService = game:GetService("UserInputService")
 local EndScreen = require(script.Parent.UI.EndScreen)
 local PetPreview = require(script.Parent.Fx.PetPreview)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
+local SandboxMenu = require(script.Parent.UI.SandboxMenu)
 
 local DevKeys = {}
 
@@ -85,6 +88,8 @@ function DevKeys.start()
 				local on = PetPreview.toggle()
 				toast(if on then "Studio: pets follow you" else "Studio: pets put away")
 			end)
+		elseif input.KeyCode == Enum.KeyCode.O then
+			SandboxMenu.toggle()
 		elseif input.KeyCode == Enum.KeyCode.L then
 			Remotes.event(Remotes.DebugForceMythic):FireServer("Legendary")
 			toast("Studio: next hand includes a Legendary")

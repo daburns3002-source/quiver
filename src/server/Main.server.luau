@@ -38,6 +38,7 @@ local ProjectileSystem = require(script.Parent.Combat.ProjectileSystem)
 local Remotes = require(game:GetService("ReplicatedStorage").Shared.Net.Remotes)
 local RoomController = require(script.Parent.Run.RoomController)
 local RunSession = require(script.Parent.Run.RunSession)
+local Sandbox = require(ReplicatedStorage.Shared.Config.Sandbox)
 local UpgradeEffects = require(script.Parent.Fx.UpgradeEffects)
 
 local log = Log.forTag("Server")
@@ -201,6 +202,8 @@ Remotes.event(Remotes.DebugNextClass).OnServerEvent:Connect(function(player)
 	local at = table.find(CLASS_ORDER, session.loadout.class) or 0
 	local class = CLASS_ORDER[at % #CLASS_ORDER + 1]
 	session.loadout.class = class
+	-- the class's own weapon, not one the sandbox put in hand
+	session.loadout.weapon = nil
 	RunSession.applyLoadout(session)
 	log.info("%s is now a %s (Studio)", player.Name, class)
 end)
@@ -249,6 +252,47 @@ Remotes.event(Remotes.DebugPetPreview).OnServerEvent:Connect(function(player)
 	end
 	local count = PetPreview.build()
 	log.info("%s previews %d pets (Studio)", player.Name, count)
+end)
+
+--[[ Testing only: the playtest sandbox (`Config/Sandbox`). In, the room
+     becomes training dummies; out, the stage starts again. Honoured only in
+     Studio. ]]
+Remotes.event(Remotes.DebugSandbox).OnServerEvent:Connect(function(player, on)
+	if not RunService:IsStudio() or type(on) ~= "boolean" or not RunSession.get(player) then
+		return
+	end
+	if on then
+		local dummy =
+			table.clone((Balance.Enemies :: any)[Sandbox.dummy.archetype]) :: Balance.EnemyConfig
+		dummy.dummy = true
+		dummy.health = Sandbox.dummy.health
+		dummy.xpReward = 0
+		RoomController.enterSandbox(dummy, Sandbox.dummy.spots)
+	else
+		RoomController.leaveSandbox()
+	end
+	log.info("%s %s the sandbox (Studio)", player.Name, if on then "entered" else "left")
+end)
+
+--[[ Testing only: hold a weapon from the sandbox's list, as its class.
+     Honoured only in Studio. ]]
+Remotes.event(Remotes.DebugWeapon).OnServerEvent:Connect(function(player, name)
+	if not RunService:IsStudio() or type(name) ~= "string" then
+		return
+	end
+	local session = RunSession.get(player)
+	if not session then
+		return
+	end
+	for _, entry in Sandbox.weapons do
+		if entry.weapon == name then
+			session.loadout.class = entry.class
+			session.loadout.weapon = entry.weapon
+			RunSession.applyLoadout(session)
+			log.info("%s holds the %s as a %s (Studio)", player.Name, name, entry.class)
+			return
+		end
+	end
 end)
 
 --[[

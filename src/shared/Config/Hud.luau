@@ -15,6 +15,11 @@
 ]]
 
 local Hud = {
+	--[[ How tall the numbers on the health and dash bars stand against
+	     their bar, centred on it and outlined: the blocky font (CLAUDE.md
+	     rule 11) is unreadable squeezed inside a bar's own height (owner,
+	     2026-10-24: "make the small HUD labels … bigger"). ]]
+	barText = { health = 1.6, dash = 2.6 },
 	desktop = {
 		--[[ The skill bar's size against its full size under the draft:
 		     ~62 points tall (104 full). ]]

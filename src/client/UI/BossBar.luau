@@ -52,8 +52,9 @@ function BossBar.start()
 
 	local frame = Instance.new("Frame")
 	frame.AnchorPoint = Vector2.new(0.5, 0)
-	--[[ Below the run banner's XP bar and its level label. ]]
-	frame.Position = UDim2.fromScale(0.5, 0.135)
+	--[[ Below the run banner's XP bar and its level label, which grew 26
+	     points for the blocky font (CLAUDE.md rule 11). ]]
+	frame.Position = UDim2.new(0.5, 0, 0.135, 26)
 	frame.Size = UDim2.fromScale(0.5, 0.06)
 	frame.BackgroundTransparency = 1
 	frame.Parent = gui

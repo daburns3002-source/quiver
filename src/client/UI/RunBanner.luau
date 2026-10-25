@@ -59,7 +59,7 @@ function RunBanner.start()
 	local room = Instance.new("TextLabel")
 	room.Name = "Room"
 	room.LayoutOrder = 1
-	room.Size = UDim2.new(1, 0, 0, 24)
+	room.Size = UDim2.new(1, 0, 0, 28)
 	room.BackgroundTransparency = 1
 	room.Font = Enum.Font.Arcade
 	room.TextScaled = true
@@ -71,7 +71,7 @@ function RunBanner.start()
 	local status = Instance.new("TextLabel")
 	status.Name = "State"
 	status.LayoutOrder = 2
-	status.Size = UDim2.new(1, 0, 0, 18)
+	status.Size = UDim2.new(1, 0, 0, 20)
 	status.BackgroundTransparency = 1
 	status.Font = Enum.Font.Arcade
 	status.TextScaled = true
@@ -115,12 +115,12 @@ function RunBanner.start()
 	local levelText = Instance.new("TextLabel")
 	levelText.Name = "Level"
 	levelText.LayoutOrder = 4
-	levelText.Size = UDim2.new(1, 0, 0, 14)
+	levelText.Size = UDim2.new(1, 0, 0, 24)
 	levelText.BackgroundTransparency = 1
 	levelText.Font = Enum.Font.Arcade
 	levelText.TextScaled = true
 	levelText.TextColor3 = Color3.fromRGB(226, 206, 170)
-	levelText.TextStrokeTransparency = 0.7
+	levelText.TextStrokeTransparency = 0.3
 	levelText.Text = "Level 1"
 	levelText.Parent = container
 

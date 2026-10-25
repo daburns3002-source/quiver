@@ -592,6 +592,13 @@ glow parts are Neon with a light (`Combat/HeldWeapon`), a Mythic's turned round 
 (`Fx/WeaponGlow`); `skins_to_luau.py` gives every Epic and up a glow. Pets: `Config/PetAuras`
 lists every Legendary and Mythic pet.
 
+**13. Arenas and models match their reference 1:1 in the game.**
+Colours, brightness, pieces and layout, as seen in Studio, against the reference sheet they were
+built from (owner, 2026-10-25: "it looks 1 to 1 with the reference pick ... if the arena does
+not match 1 to 1 then redo it"). Before calling one done, screenshot it in a playtest beside its
+sheet and compare, sampling colours from both; if it does not match, redo it. A Claude Design
+GLB's colours are linear: bundle kits with `kit_bundle.py --srgb`, or they come in dark.
+
 ## Code conventions
 
 - `--!strict` at the top of every Luau file. No exceptions.

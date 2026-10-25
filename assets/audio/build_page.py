@@ -175,6 +175,14 @@ ROUND_17 = [
     }),
 ]
 
+ROUND_19 = [
+    ("Round 19 · the Warden's new cards", {
+        "fx_whirlwind": ("Whirlwind", "Every few swings the Warden spins and hits everything round him; a ring of blade-coloured cubes whirls once. Plays with the spin.", None),
+        "fx_shockwave": ("Shockwave", "His slam sends a wave of earth rolling forward down a lane, cubes bursting up one after another.", None),
+        "fx_battle_cry": ("Battle Cry", "Each kill stacks attack speed for a few seconds. Plays on every kill that adds a stack, so it repeats in a fast fight.", (0.6, 4)),
+    }),
+]
+
 # page: (rounds, picks collection, sounds already chosen, shown for context)
 ROUND_18 = [
     ("Round 18 · King Bloblin's attacks, two big takes each", {
@@ -210,6 +218,7 @@ ROUND_18 = [
 ]
 
 PAGES = {
+    "19": (ROUND_19, "picks19", []),
     "18": (ROUND_18, "picks18", []),
     "17": (ROUND_17, "picks17", []),
     "16": (ROUND_16, "picks16", ["All ten upgrade effects", "Legendary in the hand A"]),

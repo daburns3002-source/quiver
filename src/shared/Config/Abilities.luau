@@ -598,6 +598,60 @@ local abilities: { Ability } = {
 		icon = "execute",
 		classes = WARDEN,
 	},
+	--[[ The Warden's new cards (owner, 2026-10-25, from the ideas offered
+	     after Iron Skin, Steadfast and Bloodletting were benched). ]]
+	{
+		id = "Whirlwind",
+		name = "Whirlwind",
+		description = "Every few swings, spin and hit everything around you.",
+		category = "Pattern",
+		group = "blade",
+		rarity = "Epic",
+		--[[ Every nth swing is the spin (`Balance.Player.whirlwind`). ]]
+		levels = { 4, 3 },
+		stats = { "Every 4th swing", "Every 3rd swing" },
+		icon = "whirlwind",
+		classes = WARDEN,
+	},
+	{
+		id = "Shockwave",
+		name = "Shockwave",
+		description = "Your slam sends a wave rolling forward along the ground.",
+		category = "OnHit",
+		group = "blade",
+		rarity = "Rare",
+		--[[ Studs the wave runs past the slam (`Balance.Player.shockwave`). ]]
+		levels = { 8, 12, 16 },
+		stats = { "Short wave", "Medium wave", "Long wave" },
+		icon = "shockwave",
+		classes = WARDEN,
+	},
+	{
+		id = "BattleCry",
+		name = "Battle Cry",
+		description = "Each kill quickens your swings for a few seconds, stacking.",
+		category = "OnKill",
+		group = "blade",
+		rarity = "Legendary",
+		--[[ Attack speed per stack (`Balance.Player.battleCry`). ]]
+		levels = { 0.05, 0.1 },
+		stats = { "+5% atk spd per kill", "+10% atk spd per kill" },
+		icon = "battle-cry",
+		classes = WARDEN,
+	},
+	{
+		id = "Parry",
+		name = "Parry",
+		description = "Your swings knock enemy shots out of the air.",
+		category = "Defensive",
+		group = "blade",
+		rarity = "Epic",
+		--[[ 1: the side blows parry; 2: the slam too. ]]
+		levels = { 1, 2 },
+		stats = { "Swings parry", "Slam parries too" },
+		icon = "parry",
+		classes = WARDEN,
+	},
 
 	--[[ The Arcanist's cards (docs/CLASS-CARDS.md, 2026-10-23): its orbs.
 	     Several are a Ranger mechanic under a spell's name. ]]

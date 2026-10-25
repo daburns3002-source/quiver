@@ -98,4 +98,25 @@ return function(t: TestRunner.Helper)
 	t.test("a swing with no direction strikes nothing", function()
 		t.isTrue(not SwingBox.hits(ARC, FROM, Vector3.zero, out(1, 0), 1))
 	end)
+
+	t.test("Whirlwind's spin hits all round the swinger, not just in front", function()
+		local spin = SwingBox.spin(6, 1)
+		t.isTrue(SwingBox.hits(spin, FROM, NORTH, FROM + Vector3.new(0, 0, 5), 0.5), "behind")
+		t.isTrue(SwingBox.hits(spin, FROM, NORTH, FROM + Vector3.new(-5, 0, 0), 0.5), "beside")
+		t.isTrue(not SwingBox.hits(spin, FROM, NORTH, FROM + Vector3.new(0, 0, 8), 0.5), "too far")
+		t.isTrue(SwingBox.spin(6, 1.5).radius > spin.radius, "Cleave does not grow the spin")
+	end)
+
+	t.test("Shockwave's lane runs ahead of the slam, and says how far along", function()
+		local near = SwingBox.waveAlong(FROM, NORTH, 4, 12, 4, FROM + NORTH * 6, 0.5)
+		local far = SwingBox.waveAlong(FROM, NORTH, 4, 12, 4, FROM + NORTH * 14, 0.5)
+		t.isTrue(near ~= nil and far ~= nil, "a body in the lane is missed")
+		t.isTrue((near :: number) < (far :: number), "the wave reaches the far body first")
+		t.equal(SwingBox.waveAlong(FROM, NORTH, 4, 12, 4, FROM - NORTH * 6, 0.5), nil)
+		t.equal(SwingBox.waveAlong(FROM, NORTH, 4, 12, 4, FROM + NORTH * 30, 0.5), nil)
+		t.equal(
+			SwingBox.waveAlong(FROM, NORTH, 4, 12, 4, FROM + NORTH * 8 + Vector3.new(6, 0, 0), 0.5),
+			nil
+		)
+	end)
 end

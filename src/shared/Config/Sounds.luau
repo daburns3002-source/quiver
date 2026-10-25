@@ -187,6 +187,26 @@ local Sounds: { [string]: Sound } = {
 		pitchJitter = 0,
 		minGap = 0.5,
 	},
+	--[[ The Warden's new cards (2026-10-25): silent until the owner picks
+	     and uploads takes (`assets/audio/warden_card_synth.py`). ]]
+	fx_whirlwind = {
+		id = "",
+		volume = 0.7,
+		pitchJitter = 0.05,
+		minGap = 0.2,
+	},
+	fx_shockwave = {
+		id = "",
+		volume = 0.8,
+		pitchJitter = 0.03,
+		minGap = 0.3,
+	},
+	fx_battle_cry = {
+		id = "",
+		volume = 0.6,
+		pitchJitter = 0.08,
+		minGap = 0.15,
+	},
 	fx_chain_lightning = {
 		id = "rbxassetid://126506552291541",
 		volume = 0.5,

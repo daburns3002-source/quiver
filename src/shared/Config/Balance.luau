@@ -1015,10 +1015,12 @@ local rooms: { RoomConfig } = {
 			{ offset = Vector2.new(-6.21, 19.71), size = Vector3.new(2.7, 1.2, 2.7) },
 		},
 		enemyCount = 4,
-		--[[ The Ember Wilf's debut (owner, 2026-10-23: "here is another enemy
-		     design going into area 1"): from room 6, so the first five stay
-		     the slime tutorial. It is the one new thing to learn here. ]]
-		roster = { meleeCharger, meleeCharger, broodSlime, wilf },
+		--[[ The Sprout Spitter's debut, from room 6, so the first five stay
+		     the slime tutorial: the one new thing to learn here. It took the
+		     Ember Wilf's place (owner, 2026-10-24: "take out the non blocky
+		     wilf enemy"), and fires across the whole room from anywhere in
+		     it (`spreadShooter.shot`). ]]
+		roster = { meleeCharger, meleeCharger, broodSlime, spreadShooter },
 	},
 	{
 		name = "Mossy Hollow II",
@@ -1029,7 +1031,7 @@ local rooms: { RoomConfig } = {
 			{ offset = Vector2.new(8.1, 14.31), size = Vector3.new(3.6, 1.6, 3.6) },
 		},
 		enemyCount = 4,
-		roster = { meleeCharger, broodSlime, wilf },
+		roster = { meleeCharger, broodSlime, spreadShooter },
 	},
 	{
 		name = "Mossy Boulders II",
@@ -1049,7 +1051,7 @@ local rooms: { RoomConfig } = {
 			{ offset = Vector2.new(-5.8, 19.06), size = Vector3.new(2, 1.5, 2) },
 		},
 		enemyCount = 5,
-		roster = { meleeCharger, meleeCharger, broodSlime, wilf },
+		roster = { meleeCharger, meleeCharger, broodSlime, spreadShooter },
 	},
 	{
 		name = "Mossy Thorns II",
@@ -1060,7 +1062,7 @@ local rooms: { RoomConfig } = {
 			{ offset = Vector2.new(-8.64, 15.93), size = Vector3.new(3.3, 1.4, 3.3) },
 		},
 		enemyCount = 5,
-		roster = { meleeCharger, broodSlime, wilf },
+		roster = { meleeCharger, broodSlime, spreadShooter },
 	},
 	{
 		name = "Glade Heart II",
@@ -1206,14 +1208,16 @@ local Balance = {
 			at full footage speed the arrows read as flying too fast. Still
 			fast enough to land before most targets can step aside. Then
 			×1.5 with every other speed (2026-10-22), to 165: still under
-			the footage's 190.
+			the footage's 190. Then halved (owner, 2026-10-24: "half both of
+			them", the arrow and the mage orb), to 82.5: the orb, at the
+			Arcanist's 0.6, flies 49.5.
 		]]
-		speed = 165,
+		speed = 82.5,
 		--[[ 45 studs of flight, the reach playtesting settled on: a little
 		     over `Player.attackRange`, so a shot at the edge of range
 		     arrives, and not so far that arrows sail on after the fight.
 		     Held as a distance by `Balance.spec`, so this follows `speed`. ]]
-		lifetime = 45 / 165,
+		lifetime = 45 / 82.5,
 		--[[
 			The longest a projectile moves before its hit tests run again.
 
@@ -1604,25 +1608,42 @@ local Balance = {
 
 	Rooms = rooms,
 
-	--[[ Global light, after the footage: bright and even, nothing important
-	     ever in shadow, and a soft bloom so glowing things glow. The bloom is
-	     switched off on the lowest device tier. ]]
+	--[[ Global light. Bright and even after the footage, nothing important
+	     ever in shadow, and a soft bloom so glowing things glow (switched
+	     off on the lowest device tier). Warmed to the Mossy Glade's
+	     reference sheet (owner, 2026-10-24: "it doesnt look as good as the
+	     pics"): a mid-afternoon sun with a golden cast, a warm ambient in
+	     place of the old blue-violet one so the shade under the trees reads
+	     green rather than black, softer shadows, and a tighter bloom, which
+	     at the old size swelled every glowing mushroom into a cyan blob.
+	     Then dimmed a step with a little more contrast, so the bright
+	     lawn stops washing everything out (owner, 2026-10-24: "darker
+	     lighting ... to make everything a little more readable"). ]]
 	Lighting = {
-		ambient = Color3.fromRGB(124, 122, 156),
-		outdoorAmbient = Color3.fromRGB(150, 150, 184),
-		brightness = 2.2,
-		clockTime = 14,
-		bloomIntensity = 0.55,
-		bloomSize = 26,
-		bloomThreshold = 1.15,
-		saturation = 0.15,
-		contrast = 0.05,
-		--[[ The distance haze. The place's default is grey, which read as
-		     grey space at the edges of the screen (owner, 2026-10-22); a
-		     forest green reads as the glade going on into mist. ]]
-		hazeDensity = 0.3,
-		hazeColor = Color3.fromRGB(70, 110, 60),
-		hazeDecay = Color3.fromRGB(30, 60, 30),
+		ambient = Color3.fromRGB(118, 118, 98),
+		outdoorAmbient = Color3.fromRGB(140, 143, 112),
+		brightness = 2.1,
+		clockTime = 15.6,
+		geographicLatitude = 30,
+		sunTint = Color3.fromRGB(255, 225, 175),
+		shadowSoftness = 0.6,
+		environmentDiffuse = 0.8,
+		environmentSpecular = 0.2,
+		bloomIntensity = 0.6,
+		bloomSize = 10,
+		bloomThreshold = 1.1,
+		saturation = 0.05,
+		contrast = 0.12,
+		gradeBrightness = -0.04,
+		gradeTint = Color3.fromRGB(255, 247, 230),
+		--[[ The distance haze: a sunlit yellow-green, so the screen's edges
+		     read as the glade going on into warm mist, never grey space
+		     (owner, 2026-10-22). ]]
+		hazeDensity = 0.25,
+		hazeColor = Color3.fromRGB(200, 215, 150),
+		hazeDecay = Color3.fromRGB(110, 140, 70),
+		hazeGlare = 0.3,
+		haze = 1.2,
 	},
 
 	Stages = {
@@ -2006,8 +2027,14 @@ local Balance = {
 			     canopy (`canopy`, its top's height) before fading; fireflies
 			     and butterflies hover over it, and the mist hangs in it. ]]
 			leafFrom = { 17, 21 },
+			--[[ `canopy` and `hover` are for an arena whose trees the client
+			     cannot find: with crowns (parts named CanopyMesh*), leaves
+			     settle on the crown under them, and the hanging life floats
+			     `clearance` studs over the tallest crown, so none of it
+			     passes through a tree (owner, 2026-10-24). ]]
 			canopy = { 13, 15.5 },
 			hover = 16,
+			clearance = 1.5,
 			leavesPerSecond = 3,
 			leafPool = 60,
 			leafFall = { 0.5, 0.9 },
@@ -2226,6 +2253,99 @@ local Balance = {
 			fitWidth = 36,
 			minVisibleDepth = 30,
 		},
+	},
+	--[[ The upgrade cards' effects (`Fx/Upgrades`, docs/effects/). Phones
+	     first (owner, 2026-10-24): each is a few merged parts, pooled, and
+	     capped here per effect; all one-shots together are capped by
+	     `DeviceTiers.maxUpgradeFx`. ]]
+	UpgradeFx = {
+		-- most copies of one effect alive at once, unless `caps` says
+		defaultCap = 4,
+		-- most parts an effect may be (tests/UpgradeFx.spec): each copy's
+		-- parts are posed every frame
+		maxParts = 40,
+		caps = {
+			FxSoulChain = 6,
+			FxBlaze = 6,
+			FxDeadlyStrike = 3,
+			FxBloodletting = 3,
+			FxCleave = 3,
+			FxChainLightning = 6,
+		},
+		-- the stepped pop of an effect with no clip: each step's length, and
+		-- how long it takes to shrink away at the end
+		popStep = 0.05,
+		popOut = 0.15,
+		-- studs above the floor a flat effect lies, clear of the grass
+		floorLift = 0.08,
+		-- seconds between checks of held cards and burning enemies
+		poll = 0.2,
+		-- Deadly Strike: the skull, this far above the hit, for its 0.45 s clip
+		critLift = 1.5,
+		critLife = 0.5,
+		-- Blaze: the tuft's height up the burning body (0 feet, 1 head)
+		blazeHeight = 0.9,
+		-- Agility: the after-image's 0.4 s Dodge
+		dodgeLife = 0.45,
+		-- the chest's height above the root, and over the head, for effects
+		-- that fly into or pop above the player
+		chest = 0.6,
+		overHead = 3.6,
+		-- Bloodthirst: the drop leaves the corpse after the death pop, in a
+		-- short arc this high
+		dropDelay = 0.12,
+		dropLift = 1,
+		dropArc = 1.5,
+		dropLife = 0.85,
+		-- Second Wind: the winged heart rises this high over this long
+		windLife = 1.65,
+		windRise = 0.6,
+		windHeight = 2.5,
+		-- Vitality's heart and Heal's flask, over the head
+		heartLife = 1.25,
+		flaskLife = 1.05,
+		-- what plays at the bow (Overdraw's release, Twin Cast, Arcane Echo)
+		-- sits this far ahead of the player
+		bowAhead = 1.4,
+		flareLife = 0.32,
+		-- Overdraw's sound: once, after standing still this long, and not again
+		-- until the player moves (owner, 2026-10-24)
+		overdrawSoundAfter = 2,
+		pierceLife = 0.3,
+		bounceLife = 0.35,
+		-- Blast Arrows' starburst is this wide in its own studs; it is drawn
+		-- at the blast's real radius
+		blastRadius = 2.5,
+		blastLife = 0.45,
+		-- Soul Chain: the chain's own length, its lift off the floor, its life
+		chainLength = 10,
+		chainLift = 1.1,
+		chainLife = 0.35,
+		slamLife = 0.6,
+		cleaveLife = 0.4,
+		-- Bloodletting: its full length in studs, where its heart sits
+		-- along it, and its life
+		drainLength = 8,
+		drainHeart = 3.6,
+		drainLife = 0.5,
+		-- Earthbreaker's debris, drawn at the slam's real radius
+		earthbreakerRadius = 5.5,
+		earthbreakerLife = 0.8,
+		-- Arcanist: Twin Cast's and Arcane Echo's beats at the staff
+		twinLife = 0.6,
+		echoLife = 0.9,
+		-- Chain Lightning's bolt: segments, width, how far each kink pushes
+		-- off the line, how often it re-kinks, its colours and life
+		boltSegments = 6,
+		boltWidth = 0.42,
+		boltKink = 0.9,
+		boltCrackle = 0.05,
+		boltCore = Color3.fromRGB(235, 250, 255),
+		boltRim = Color3.fromRGB(60, 190, 255),
+		boltLife = 0.28,
+		nodeLift = 1.4,
+		-- Meteor: the rock rides the fall at most this long
+		meteorLife = 2,
 	},
 }
 

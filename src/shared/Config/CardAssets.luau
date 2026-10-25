@@ -3,10 +3,11 @@
 	The upgrade card design's images, uploaded to Roblox on 2026-10-22 from
 	design_handoff_upgrade_cards/assets.
 
-	`icons` and `banners` are keyed by the icon name each ability carries
+	`icons` is keyed by the icon name each ability carries
 	(`Ability.icon`). Since 2026-10-24 the card itself is the owner's Glow
 	Toy set (arrow-legends-upgrade-cards.zip): a crystal body per rarity,
-	each card's own name banner and icon tile. The shard, facet, glow and
+	a name banner per rarity (the name written on it live) and each card's
+	icon tile. The shard, facet, glow and
 	rays images are white, and are tinted where they are used with
 	ImageColor3 and ImageTransparency.
 ]]
@@ -64,52 +65,16 @@ local CardAssets = {
 		["twin-cast"] = "rbxassetid://106576770239038",
 		["vitality"] = "rbxassetid://110892185853892",
 	},
-	--[[ Each card's name banner, its name and rarity drawn in, 984 x 558. ]]
+	--[[ The name banner for each rarity, 984 x 558, its plate cleared
+	     (`assets/ui/glow_toy_cards/clear_plates.py`): the card writes its name
+	     and rarity on it in the blocky font (CLAUDE.md rule 11). ]]
 	banners = {
-		["agility"] = "rbxassetid://110711191039615",
-		["arcane-echo"] = "rbxassetid://135647539852998",
-		["bigger-orbs"] = "rbxassetid://125543644105303",
-		["blast-arrows"] = "rbxassetid://113516638698681",
-		["blaze"] = "rbxassetid://76245876115982",
-		["bloodletting"] = "rbxassetid://95859130287652",
-		["bloodthirst"] = "rbxassetid://84539692769369",
-		["bouncy-wall"] = "rbxassetid://140395962665524",
-		["chain-lightning"] = "rbxassetid://90361948059539",
-		["cleave"] = "rbxassetid://82522138616879",
-		["deadly-strike"] = "rbxassetid://74283172404410",
-		["diagonal-arrows"] = "rbxassetid://90339076266837",
-		["double-shot"] = "rbxassetid://124416421823063",
-		["dual-bows"] = "rbxassetid://102466471957747",
-		["earthbreaker"] = "rbxassetid://118340982568645",
-		["execute"] = "rbxassetid://124969311721500",
-		["front-arrow"] = "rbxassetid://133464608585997",
-		["heal"] = "rbxassetid://137260532934777",
-		["heavy-blade"] = "rbxassetid://104162896143828",
-		["homing-orbs"] = "rbxassetid://129557211485182",
-		["iron-skin"] = "rbxassetid://95768586992280",
-		["lightfoot"] = "rbxassetid://102696500556241",
-		["long-reach"] = "rbxassetid://93975405639246",
-		["long-shot"] = "rbxassetid://108065649178426",
-		["mana-flow"] = "rbxassetid://104039004037667",
-		["mending"] = "rbxassetid://82364955094110",
-		["meteor"] = "rbxassetid://85797214673357",
-		["momentum"] = "rbxassetid://98462594522989",
-		["multishot"] = "rbxassetid://93608686038271",
-		["overdraw"] = "rbxassetid://113131427288008",
-		["piercing-shot"] = "rbxassetid://93232171782934",
-		["precision"] = "rbxassetid://111244400062253",
-		["quick-hands"] = "rbxassetid://77867909496586",
-		["rear-arrow"] = "rbxassetid://114291930811065",
-		["ricochet"] = "rbxassetid://128724315837766",
-		["second-wind"] = "rbxassetid://71230184479297",
-		["side-arrow"] = "rbxassetid://84643760004676",
-		["soul-chain"] = "rbxassetid://131543457531239",
-		["spell-pierce"] = "rbxassetid://116508430650163",
-		["steadfast"] = "rbxassetid://103327899871865",
-		["strength"] = "rbxassetid://77183901236271",
-		["swift-arrows"] = "rbxassetid://99334100976374",
-		["twin-cast"] = "rbxassetid://72412082547180",
-		["vitality"] = "rbxassetid://101028876018266",
+		Common = "rbxassetid://99271147813779",
+		Uncommon = "rbxassetid://107353888465461",
+		Rare = "rbxassetid://80064908413457",
+		Epic = "rbxassetid://116215851474604",
+		Legendary = "rbxassetid://133356175427301",
+		Mythic = "rbxassetid://90967751254037",
 	},
 	--[[ The Glow Toy crystal card body for each rarity, 398 x 960, and the
 	     Mythic's face-down back. ]]
@@ -122,6 +87,36 @@ local CardAssets = {
 		Mythic = "rbxassetid://89130069446957",
 	},
 	mythicBack = "rbxassetid://126477872051221",
+	--[[ The draft screen's buttons in the Glow Toy set (804 x 324, the plate
+	     inside 45..758 x 48..278; pressed, it sits 30 lower): its blank
+	     plates, green, blue and grey for one that cannot be pressed, with
+	     their words written live in the blocky font (CLAUDE.md rule 11); and
+	     the dice the Reroll art carried, cut out by
+	     `assets/ui/glow_toy_cards/cut_dice.py`. ]]
+	buttons = {
+		choose = "rbxassetid://135635811569518",
+		choosePressed = "rbxassetid://103700544580820",
+		chooseDisabled = "rbxassetid://101932680741168",
+		reroll = "rbxassetid://88340391705752",
+		rerollPressed = "rbxassetid://92158637372989",
+		rerollDisabled = "rbxassetid://101932680741168",
+		dice = "rbxassetid://80956788958430",
+		diceDisabled = "rbxassetid://97779362416209",
+	},
+	--[[ The skill bar in the Glow Toy set: its frame (892 x 232, drawn
+	     9-sliced so it fits any number of slots), an empty slot (256 x 256),
+	     and the LV1 to LV5 badges (276 x 150). ]]
+	skillBar = {
+		frame = "rbxassetid://106145703765733",
+		slotEmpty = "rbxassetid://118176482611632",
+		levels = {
+			"rbxassetid://97985655722472",
+			"rbxassetid://124419960656980",
+			"rbxassetid://107776677590024",
+			"rbxassetid://85445061249362",
+			"rbxassetid://84494525707261",
+		},
+	},
 }
 
 return table.freeze(CardAssets)

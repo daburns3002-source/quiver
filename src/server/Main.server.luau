@@ -38,6 +38,7 @@ local ProjectileSystem = require(script.Parent.Combat.ProjectileSystem)
 local Remotes = require(game:GetService("ReplicatedStorage").Shared.Net.Remotes)
 local RoomController = require(script.Parent.Run.RoomController)
 local RunSession = require(script.Parent.Run.RunSession)
+local UpgradeEffects = require(script.Parent.Fx.UpgradeEffects)
 
 local log = Log.forTag("Server")
 
@@ -89,6 +90,8 @@ EnemyModel.preload()
 Arena.preload()
 -- The archer's bow.
 HeldWeapon.preload()
+-- The upgrade cards' effects, built in the background for clients to copy.
+UpgradeEffects.start()
 RoomController.start()
 
 --[[ The weapon in the player's hand: the one `RunSession.applyLoadout`
@@ -315,6 +318,12 @@ RunService.Heartbeat:Connect(function(deltaTime: number)
 	     fire is not a choice, and a player who takes damage while reading one
 	     will stop reading them. ]]
 	if RunSession.anyChoosing() then
+		return
+	end
+
+	--[[ And while a boss's entry banner plays: nobody moves or attacks until
+	     it has gone (`EnemyManager.introHolding`). ]]
+	if EnemyManager.introHolding(now) then
 		return
 	end
 

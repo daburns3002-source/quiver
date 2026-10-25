@@ -112,6 +112,8 @@ As an enemy model (1), with its moves: a `boss` block in its `EnemyConfig`, each
 
 Codex image generation, always (owner's rule): `codex exec` with the prompt on stdin and `-i` for reference images, signed in with the owner's account. Sheets go in `assets/concepts/`. The look is the **blocky** style (owner, 2026-10-23) for everything new.
 
+**Uploading images needs no owner step** (2026-10-24): serve the PNGs from localhost (`python -m http.server <port> --bind 127.0.0.1` in their folder) and call Studio MCP's `upload_image` with `http://localhost:<port>/<file>.png` paths; it returns the `rbxassetid://` ids. Codex's own sandbox cannot write into a worktree: its image lands in `~/.codex/generated_images/<id>/exec-*.png`, named in its log. Animated icons are 2x2 sheets of 512 px frames (1024 px, Roblox's largest), played with `ImageRectOffset` (`UI/BossBanner`).
+
 ## 9. A UI handoff (cards, end screens)
 
 Claude Design's handoff → its frames and assets generated into `Config/Card*` / `Config/EndScreen*` by script (regenerate, never hand-edit), images uploaded and ids in `CardAssets` / `EndScreenAssets`, motion in code from its timeline.

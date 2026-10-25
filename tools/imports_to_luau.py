@@ -66,6 +66,11 @@ TURN = np.diag([-1.0, 1.0, -1.0])
 MATCH_TOLERANCE = 0.02
 #: Glow (emissive times strength, linear) from which a part is Neon.
 NEON_GLOW = 0.6
+#: A pet's, lower: its designs draw their glowing eyes, ear tips and
+#: crystals from about 0.44 (Ember Wilf's eyes 0.52, Stumpy's crystals 0.53,
+#: Glimmerhorn's eye glows 0.45), and at 0.6 they came out flat (owner,
+#: 2026-10-24: "make sure the pets glow where they need to in game").
+PET_NEON_GLOW = 0.44
 
 
 def num(v: float) -> str:
@@ -112,9 +117,10 @@ def to_srgb(c: float) -> float:
 
 
 def look(gltf, index):
-    """A material's colour (sRGB), Roblox material, transparency and name."""
+    """A material's colour (sRGB), Roblox material, transparency, name and
+    glow (emissive times strength)."""
     if index is None:
-        return [1.0, 1.0, 1.0], "SmoothPlastic", 0.0, ""
+        return [1.0, 1.0, 1.0], "SmoothPlastic", 0.0, "", 0.0
     m = gltf["materials"][index]
     base = m.get("pbrMetallicRoughness", {}).get("baseColorFactor", [1, 1, 1, 1])
     strength = m.get("extensions", {}).get("KHR_materials_emissive_strength", {}).get("emissiveStrength", 1)
@@ -122,7 +128,7 @@ def look(gltf, index):
     colour = [to_srgb(c) for c in np.array(base[:3], float) + glow]
     material = "Neon" if glow.max() >= NEON_GLOW else "SmoothPlastic"
     alpha = base[3] if m.get("alphaMode") == "BLEND" else 1.0
-    return colour, material, round(1 - alpha, 3), m.get("name", "")
+    return colour, material, round(1 - alpha, 3), m.get("name", ""), float(glow.max())
 
 
 def primitives(path: pathlib.Path):
@@ -142,6 +148,16 @@ def primitives(path: pathlib.Path):
             cache[key] = world(parent[i], turned) @ m if i in parent else m
         return cache[key]
 
+    def turn_only(i):
+        """The node's world turn from its rotations alone, ignoring scale.
+        Only reached when a node rests at zero scale: an effect piece that
+        starts shrunk to nothing until its clip grows it. There the scale
+        divides out to nothing, so the turn has to come from the chain of
+        rotations instead."""
+        _, q, _ = glb.local_trs(nodes[i])
+        m = glb.affine(np.zeros(3), q, np.ones(3))[:3, :3]
+        return turn_only(parent[i]) @ m if i in parent else m
+
     out = []
     for i, n in enumerate(nodes):
         if "mesh" not in n:
@@ -154,9 +170,13 @@ def primitives(path: pathlib.Path):
             local_centre = (v.min(0) + v.max(0)) / 2
             # the turn a rigged import leaves out: the real world linear part
             # over the unturned one
-            spin = w[:3, :3] @ np.linalg.inv(flat[:3, :3])
-            u, _, vt = np.linalg.svd(spin)
-            spin = u @ vt
+            if abs(np.linalg.det(flat[:3, :3])) > 1e-12:
+                spin = w[:3, :3] @ np.linalg.inv(flat[:3, :3])
+                u, _, vt = np.linalg.svd(spin)
+                spin = u @ vt
+            else:
+                # zero scale somewhere on the chain: see turn_only
+                spin = turn_only(i)
             out.append(
                 {
                     "node": n.get("name") or f"node{i}",
@@ -273,7 +293,9 @@ def main():
         rows = []
         for a, b in sorted(pairs.items(), key=lambda ab: prims[ab[1]]["node"]):
             part, prim = parts[a], prims[b]
-            colour, material, transparency, surface = prim["look"]
+            colour, material, transparency, surface, glow = prim["look"]
+            if pet and glow >= PET_NEON_GLOW:
+                material = "Neon"
             size = part["size"]
             if mode == "baked":
                 cframe = part["cframe"]

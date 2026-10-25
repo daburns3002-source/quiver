@@ -115,6 +115,83 @@ local Sounds: { [string]: Sound } = {
 	card_click = { id = "rbxassetid://10128760939", volume = 0.6, pitchJitter = 0, minGap = 0.05 },
 	card_reroll = { id = "rbxassetid://10128766965", volume = 0.6, pitchJitter = 0, minGap = 0.2 },
 	card_choose = { id = "rbxassetid://10066947742", volume = 0.7, pitchJitter = 0, minGap = 0.2 },
+	--[[ The card screen's big moments, auditioned as round 15
+	     (assets/audio/reveal_synth.py): a Mythic's reveal, one file timed to
+	     its shake, flip, flash and title, and a hand with a Legendary in it
+	     being dealt. Uploaded 2026-10-24. ]]
+	card_mythic = { id = "rbxassetid://121583656262732", volume = 0.8, pitchJitter = 0, minGap = 1 },
+	card_legendary = {
+		id = "rbxassetid://98255881300623",
+		volume = 0.7,
+		pitchJitter = 0,
+		minGap = 0.5,
+	},
+	--[[ The upgrade effects' sounds (owner, 2026-10-24), auditioned in rounds
+	     12–14 (assets/audio/effect_sounds.py, effect_synth.py) and uploaded
+	     the same day. Played by `Fx/Upgrades/*` where each effect fires; the frequent ones are spaced by `minGap`. ]]
+	fx_blaze = {
+		id = "rbxassetid://119600535751276",
+		volume = 0.5,
+		pitchJitter = 0.08,
+		minGap = 0.25,
+	},
+	-- quieter and lower than the take (owner, 2026-10-24: "make the heal
+	-- a quieter and lower pitch")
+	fx_heal = {
+		id = "rbxassetid://81111733501863",
+		volume = 0.45,
+		speed = 0.85,
+		pitchJitter = 0,
+		minGap = 0.2,
+	},
+	fx_overdraw = {
+		id = "rbxassetid://107624021541458",
+		volume = 0.6,
+		pitchJitter = 0.05,
+		minGap = 0.3,
+	},
+	fx_blast_arrows = {
+		id = "rbxassetid://112654308146555",
+		volume = 0.5,
+		pitchJitter = 0.1,
+		minGap = 0.12,
+	},
+	fx_soul_chain = {
+		id = "rbxassetid://110377398425919",
+		volume = 0.5,
+		pitchJitter = 0.08,
+		minGap = 0.2,
+	},
+	fx_heavy_blade = {
+		id = "rbxassetid://104659872920100",
+		volume = 0.7,
+		pitchJitter = 0.05,
+		minGap = 0.3,
+	},
+	fx_bloodletting = {
+		id = "rbxassetid://108155913281096",
+		volume = 0.4,
+		pitchJitter = 0.1,
+		minGap = 0.25,
+	},
+	fx_earthbreaker = {
+		id = "rbxassetid://94234601764209",
+		volume = 0.8,
+		pitchJitter = 0,
+		minGap = 0.5,
+	},
+	fx_chain_lightning = {
+		id = "rbxassetid://126506552291541",
+		volume = 0.5,
+		pitchJitter = 0.12,
+		minGap = 0.1,
+	},
+	fx_meteor = {
+		id = "rbxassetid://70958519805781",
+		volume = 0.7,
+		pitchJitter = 0.05,
+		minGap = 0.3,
+	},
 }
 
 return table.freeze(Sounds)

@@ -112,6 +112,13 @@ local RunSession = {}
 
 local sessions: { [Player]: Session } = {}
 
+--[[ Whether level-up hands are held back: once a stage's last room or wave
+     is cleared, the area is done and a card would only stand between the
+     player and the end screen (owner, 2026-10-24: "no longer prompt the
+     player after the last boss of any area is defeated"). The levels are
+     kept, owed, and dealt in the next stage. Set by `RoomController`. ]]
+local offersHeld = false
+
 --[[
 	Called when a player's run health reaches zero.
 
@@ -288,7 +295,7 @@ end
 --[[ Opens a card screen if one is owed and none is open. Safe to call every
      frame; it does nothing until there is something to show. ]]
 function RunSession.offerIfOwed(session: Session)
-	if not session.alive then
+	if not session.alive or offersHeld then
 		return
 	end
 
@@ -304,6 +311,11 @@ function RunSession.offerIfOwed(session: Session)
 			session.loadout.rerolls
 		)
 	end
+end
+
+--[[ Holds level-up hands back, or lets them through again (`offersHeld`). ]]
+function RunSession.holdOffers(held: boolean)
+	offersHeld = held
 end
 
 --[[
@@ -657,7 +669,7 @@ end
 
 --[[ Brings a player back from a killing blow at `health`, untouchable for
      a moment, with the enemy shots around them cleared. ]]
-local function revive(session: Session, health: number)
+local function revive(session: Session, health: number, kind: string)
 	session.health = math.max(1, health)
 	session.invulnerableUntil = os.clock() + Balance.Revive.invulnerable
 
@@ -667,7 +679,8 @@ local function revive(session: Session, health: number)
 		handler(session, position)
 	end
 
-	playerRevived:FireAllClients(session.player, position, Balance.Revive.invulnerable)
+	-- which save it was, so Second Wind can be drawn as itself
+	playerRevived:FireAllClients(session.player, position, Balance.Revive.invulnerable, kind)
 end
 
 --[[
@@ -675,13 +688,26 @@ end
 	the amount is never supplied by a client.
 ]]
 function RunSession.applyDamage(session: Session, amount: number)
-	if not session.alive or amount <= 0 or RunSession.isInvulnerable(session) then
+	if not session.alive or amount <= 0 then
+		return
+	end
+	if RunSession.isInvulnerable(session) then
+		--[[ A swing's guard caught it (Steadfast's plates flash); a revive's
+		     grace says nothing. ]]
+		local now = os.clock()
+		if
+			now >= session.invulnerableUntil
+			and now >= session.guardFrom
+			and now < session.guardUntil
+		then
+			playerDodged:FireClient(session.player, "Guard")
+		end
 		return
 	end
 
 	--[[ Agility: rolled on the session's own Random, by the server. ]]
 	if session.dodgeChance > 0 and session.random:NextNumber() < session.dodgeChance then
-		playerDodged:FireClient(session.player)
+		playerDodged:FireClient(session.player, "Agility")
 		return
 	end
 
@@ -699,11 +725,11 @@ function RunSession.applyDamage(session: Session, amount: number)
 	if session.health <= 0 then
 		if session.secondWind > 0 and not session.secondWindUsed then
 			session.secondWindUsed = true
-			revive(session, session.maxHealth * session.secondWind)
+			revive(session, session.maxHealth * session.secondWind, "SecondWind")
 			log.info("%s survived on Second Wind", session.player.Name)
 		elseif session.revivesLeft > 0 then
 			session.revivesLeft -= 1
-			revive(session, session.maxHealth)
+			revive(session, session.maxHealth, "Revive")
 			log.info("%s revived (%d left)", session.player.Name, session.revivesLeft)
 		end
 	end

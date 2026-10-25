@@ -81,7 +81,7 @@ or across the pond. Past the walls the forest lives
 handoff): leaves, fireflies, mist, butterflies, birds and light shafts, on
 top of the canopy because the camera looks down onto it, never inside the
 room (`AmbienceVolumes.spec`). Per-tree sway waits on the trees being split
-out of their merged mesh. The exit is a gate in the north wall
+out of their merged mesh. As each room starts, a blocky ROOM <n> sign flies out of the top of the gate, hangs at the top of the screen and flies back (`UI/RoomSign`, `Config/RoomSign`, letters from `Config/PixelFont`; the last room's number is red). The exit is a gate in the north wall
 (`Arena/ExitGate`, `Balance.Run.gate`): dark purple haze until the room is
 cleared, then glowing white-gold with a GO arrow, after Archero 2. Moonlit
 Arena's waves draw from the first
@@ -260,6 +260,20 @@ and every effect in cubes and tiles (`Fx/BossFx`, `Balance.Telegraph.king`;
 nothing round). `BossBody` only keeps his shadow on the floor; its jelly
 tube is for a server-posed body. `tests/BossClips.spec.luau` pins it.
 Sounds for his moves are not made yet.
+**The boss entry banner** (`UI/BossBanner`, `Config/BossBanners`, owner's
+pick 2026-10-24: style A, "Slash"): as a boss appears, a slanted band in its
+colour tears across, its 2D blocky icon rushes in and plays a four-frame
+attack once (a 2x2 sheet from Codex, `assets/ui/boss_banner/cutout.py`), and
+its name slams down — 4.7 s, over the boss music's battle intro. Both start
+from `Fx/BossWatch` on the same tick (measured 0.03 s apart). Keyed by the
+`Boss` attribute's title; the boss bar shows the banner's name. Icons for all
+six Act 1–3 bosses are uploaded.
+It plays over a dark ground in the boss's colour, above the whole HUD, so
+nothing of the room shows, and **the run holds still until it has gone**
+(owner, 2026-10-24): the server skips its step for `BossBanners.hold` from
+the boss's arrival (`EnemyManager.introHolding`, beside the card screen's
+pause) and the client stops input on `RunPaused.setIntro`, a flag apart from
+the draft's.
 
 Not done: the other nine bosses — designed (`docs/BOSSES.md`, two per
 act, one per area, with Codex concept art) but not built; Phase 3's
@@ -535,6 +549,33 @@ migration.
 Permanent multipliers scale exponentially per area while drafted abilities stay fixed. Enemy
 stats scale off *expected player power at that area*, never flat values. Players outgrowing
 old areas is the product, not a bug.
+
+**9. Every generated image goes through Codex.**
+Concept art, reference sheets, icons, card art, textures — anything generated. Always
+`codex exec`, with the prompt on stdin and `-i` for reference images, signed in with the
+owner's ChatGPT account. Never another image generator, and never hand-drawn SVG standing in
+for art. Sheets go in `assets/concepts/`; the look is the **blocky** style for everything new.
+Owner's rule, restated 2026-10-24. The pipeline is `docs/PIPELINES.md` §8.
+
+**10. 3D models are designed in the browser, through Claude Design.**
+The route: Codex reference sheets (rule 9) → Claude Design opened in the owner's Chrome
+(Claude in Chrome tools, `mcp__claude-in-chrome__*`, each agent in its own tab group) →
+one agent per model, building it until it matches its sheet 1:1 → GLB exported → that
+kind's pipeline (`docs/PIPELINES.md`). Every 3D model goes this way: enemies, pets,
+weapons, effects, arenas and ambience. Never invent a look without a reference sheet.
+
+Blender was tried for this on 2026-10-24 and **paused** the same day (owner: "scrap blender
+for now"): the Blender MCP stays set up (`~/.claude.json`, the `blender-mcp` add-on;
+`C:\Users\dabur\blender-mcp\start_mcp.py` restarts it), and its build scripts and render
+comparisons are on branch `phase-3/blender-swords`, but no model is made there until the
+owner says otherwise.
+
+**11. Every word on screen is in the blocky font.**
+Press Start 2P, Roblox's `Enum.Font.Arcade` (`Font.fromEnum(Enum.Font.Arcade)` for a
+`FontFace`): HUD, cards, end screens, banners, damage numbers, billboards, dev labels, all
+of it (owner, 2026-10-24: "anywhere there is writing it should be in a blocky font … have
+it as a rule going forward"). The room sign's own pixel font (`Config/PixelFont`) counts.
+`tools/check.sh` fails on any other font.
 
 ## Code conventions
 

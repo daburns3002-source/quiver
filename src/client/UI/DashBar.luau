@@ -19,7 +19,10 @@
 ]]
 
 local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
+
+local Hud = require(ReplicatedStorage.Shared.Config.Hud)
 
 local Dash = require(script.Parent.Parent.Input.Dash)
 local HudLayout = require(script.Parent.HudLayout)
@@ -99,12 +102,15 @@ function DashBar.start()
 
 	local text = Instance.new("TextLabel")
 	text.Name = "Label"
-	text.Size = UDim2.fromScale(1, 1)
+	-- taller than the bar, centred on it and outlined (`Hud.barText`)
+	text.AnchorPoint = Vector2.new(0.5, 0.5)
+	text.Position = UDim2.fromScale(0.5, 0.5)
+	text.Size = UDim2.fromScale(1, Hud.barText.dash)
 	text.BackgroundTransparency = 1
-	text.Font = Enum.Font.GothamBold
+	text.Font = Enum.Font.Arcade
 	text.TextScaled = true
 	text.TextColor3 = Color3.fromRGB(255, 255, 255)
-	text.TextStrokeTransparency = 0.7
+	text.TextStrokeTransparency = 0
 	text.Text = "DASH"
 	text.Parent = container
 

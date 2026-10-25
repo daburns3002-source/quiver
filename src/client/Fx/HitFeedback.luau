@@ -161,7 +161,7 @@ local function spawnDamageNumber(position: Vector3, amount: number, kind: string
 	local label = Instance.new("TextLabel")
 	label.Size = UDim2.fromScale(1, 1)
 	label.BackgroundTransparency = 1
-	label.Font = Enum.Font.FredokaOne
+	label.Font = Enum.Font.Arcade
 	label.TextScaled = true
 	label.TextColor3 = style.color
 	label.Text = "-" .. tostring(math.floor(amount + 0.5))
@@ -671,7 +671,10 @@ end
 
 --[[ Agility: a hit missed. A word over the player, so a dodge reads as the
      card working rather than as the enemy missing by luck. ]]
-function HitFeedback.onPlayerDodged()
+function HitFeedback.onPlayerDodged(kind: string?)
+	if kind == "Guard" then
+		return -- a swing's guard caught it: Steadfast's plates show that
+	end
 	local character = Players.LocalPlayer.Character
 	local root = character and character:FindFirstChild("HumanoidRootPart")
 	if not root or not root:IsA("BasePart") then
@@ -689,7 +692,7 @@ function HitFeedback.onPlayerDodged()
 	local label = Instance.new("TextLabel")
 	label.Size = UDim2.fromScale(1, 1)
 	label.BackgroundTransparency = 1
-	label.Font = Enum.Font.GothamBlack
+	label.Font = Enum.Font.Arcade
 	label.Text = "DODGE!"
 	label.TextScaled = true
 	label.TextColor3 = Color3.fromRGB(150, 230, 255)

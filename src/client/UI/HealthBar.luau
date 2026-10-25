@@ -9,7 +9,10 @@
 ]]
 
 local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
+
+local Hud = require(ReplicatedStorage.Shared.Config.Hud)
 
 local HudLayout = require(script.Parent.HudLayout)
 
@@ -73,19 +76,22 @@ function HealthBar.start()
 	barCorner.CornerRadius = UDim.new(0, 6)
 	barCorner.Parent = bar
 
+	-- taller than the bar, centred on it and outlined (`Hud.barText`)
 	local text = Instance.new("TextLabel")
-	text.Size = UDim2.fromScale(1, 1)
+	text.AnchorPoint = Vector2.new(0.5, 0.5)
+	text.Position = UDim2.fromScale(0.5, 0.5)
+	text.Size = UDim2.fromScale(1, Hud.barText.health)
 	text.BackgroundTransparency = 1
-	text.Font = Enum.Font.GothamBold
+	text.Font = Enum.Font.Arcade
 	text.TextScaled = true
 	text.TextColor3 = Color3.fromRGB(255, 255, 255)
-	text.TextStrokeTransparency = 0.6
+	text.TextStrokeTransparency = 0
 	text.Text = ""
 	text.Parent = container
 
 	local padding = Instance.new("UIPadding")
-	padding.PaddingTop = UDim.new(0, 3)
-	padding.PaddingBottom = UDim.new(0, 3)
+	padding.PaddingTop = UDim.new(0, 1)
+	padding.PaddingBottom = UDim.new(0, 1)
 	padding.Parent = text
 
 	gui.Parent = playerGui

@@ -19,6 +19,7 @@ local Workspace = game:GetService("Workspace")
 
 local Arena = require(script.Parent.Parent.Arena.Arena)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
+local BossBanners = require(ReplicatedStorage.Shared.Config.BossBanners)
 local BossBody = require(script.Parent.BossBody)
 local BossMoves = require(script.Parent.BossMoves)
 local EnemyDesigns = require(ReplicatedStorage.Shared.Config.EnemyDesigns)
@@ -215,6 +216,9 @@ end
 --[[ Volleys decided this step, drained by EnemyFiring. ]]
 local pendingVolleys: { Volley } = {}
 
+--[[ Until when (os.clock) the run holds still for a boss's entry banner. ]]
+local introUntil = 0
+
 function EnemyManager.init(parent: Instance)
 	local existing = parent:FindFirstChild("Enemies")
 	if existing then
@@ -229,6 +233,19 @@ function EnemyManager.init(parent: Instance)
 	table.clear(enemies)
 	table.clear(positions)
 	aliveCount = 0
+	introUntil = 0
+end
+
+--[[
+	Whether the run is holding still for a boss's entry: its banner and the
+	music's battle intro (`Config/BossBanners`, owner 2026-10-24: "make sure
+	that the player and boss are frozen and not attacking until the intro
+	banner is fully stopped"). The server loop skips its step meanwhile, as
+	it does for a card screen; the client stops its own input from the same
+	banner (`UI/BossBanner`, `RunPaused`).
+]]
+function EnemyManager.introHolding(now: number): boolean
+	return now < introUntil
 end
 
 function EnemyManager.positions(): { [Model]: Vector3 }
@@ -398,6 +415,28 @@ local function findSpawnPosition(config: EnemyConfig): Vector3
 	     across a small room. Take the furthest clear spot rather than refusing
 	     to spawn, and accept that this wave starts closer than it should. ]]
 	return bestPosition or Vector3.new(limitX, y, limitZ)
+end
+
+local function nearestAlivePlayerRoot(position: Vector3): (BasePart?, number)
+	local bestRoot: BasePart? = nil
+	local bestDistance = math.huge
+
+	for _, session in RunSession.all() do
+		local root = session.root
+		if not root or not session.alive then
+			continue
+		end
+
+		local flat = Vector3.new(root.Position.X - position.X, 0, root.Position.Z - position.Z)
+		local distance = flat.Magnitude
+
+		if distance < bestDistance then
+			bestRoot = root
+			bestDistance = distance
+		end
+	end
+
+	return bestRoot, bestDistance
 end
 
 --[[
@@ -591,6 +630,17 @@ function EnemyManager.spawn(
 	aliveCount += 1
 
 	if config.boss then
+		--[[ Facing whoever walked in (owner, 2026-10-24: "the bosses should
+		     start facing the player when you walk into the room"); from here
+		     its moves turn it. ]]
+		local root = nearestAlivePlayerRoot(position)
+		local toward = if root then root.Position - position else Vector3.zero
+		if Vector3.new(toward.X, 0, toward.Z).Magnitude > 1e-3 then
+			local yaw = math.atan2(-toward.X, -toward.Z)
+			enemies[model].yaw = yaw
+			model:PivotTo(CFrame.new(position) * CFrame.Angles(0, yaw, 0))
+		end
+
 		local parts: { BasePart } = {}
 		for _, child in model:GetChildren() do
 			if child:IsA("BasePart") then
@@ -624,6 +674,9 @@ function EnemyManager.spawn(
 		--[[ For the client: the boss bar, and no hit squash on a body the
 		     server is posing. ]]
 		model:SetAttribute("Boss", config.boss.title)
+		if BossBanners.bosses[config.boss.title] then
+			introUntil = os.clock() + BossBanners.hold
+		end
 	end
 
 	--[[ Health travels as attributes so each client can draw the enemy's
@@ -874,28 +927,6 @@ function EnemyManager.damage(
 	end
 
 	return true, enemy.config.xpReward, enemy.position
-end
-
-local function nearestAlivePlayerRoot(position: Vector3): (BasePart?, number)
-	local bestRoot: BasePart? = nil
-	local bestDistance = math.huge
-
-	for _, session in RunSession.all() do
-		local root = session.root
-		if not root or not session.alive then
-			continue
-		end
-
-		local flat = Vector3.new(root.Position.X - position.X, 0, root.Position.Z - position.Z)
-		local distance = flat.Magnitude
-
-		if distance < bestDistance then
-			bestRoot = root
-			bestDistance = distance
-		end
-	end
-
-	return bestRoot, bestDistance
 end
 
 --[[

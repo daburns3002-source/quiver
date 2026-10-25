@@ -20,5 +20,87 @@
       "Attack",
       "Winded"
     ]
+  },
+  "FxAgility": {
+    "glb": "assets/models/effects/fx_agility.glb",
+    "loops": []
+  },
+  "FxArcaneEcho": {
+    "glb": "assets/models/effects/fx_arcaneecho.glb",
+    "loops": []
+  },
+  "FxBlastArrows": {
+    "glb": "assets/models/effects/fx_blastarrows.glb",
+    "loops": []
+  },
+  "FxBlaze": {
+    "glb": "assets/models/effects/fx_blaze.glb",
+    "loops": [
+      "Flicker"
+    ]
+  },
+  "FxBloodletting": {
+    "glb": "assets/models/effects/fx_bloodletting.glb",
+    "loops": []
+  },
+  "FxBloodthirst": {
+    "glb": "assets/models/effects/fx_bloodthirst.glb",
+    "loops": []
+  },
+  "FxBouncyWall": {
+    "glb": "assets/models/effects/fx_bouncywall.glb",
+    "loops": []
+  },
+  "FxChainLightning": {
+    "glb": "assets/models/effects/fx_chainlightning.glb",
+    "loops": []
+  },
+  "FxCleave": {
+    "glb": "assets/models/effects/fx_cleave.glb",
+    "loops": []
+  },
+  "FxDeadlyStrike": {
+    "glb": "assets/models/effects/fx_deadlystrike.glb",
+    "loops": []
+  },
+  "FxEarthbreaker": {
+    "glb": "assets/models/effects/fx_earthbreaker.glb",
+    "loops": []
+  },
+  "FxHeal": {
+    "glb": "assets/models/effects/fx_heal.glb",
+    "loops": []
+  },
+  "FxHeavyBlade": {
+    "glb": "assets/models/effects/fx_heavyblade.glb",
+    "loops": []
+  },
+  "FxMeteor": {
+    "glb": "assets/models/effects/fx_meteor.glb",
+    "loops": []
+  },
+  "FxOverdraw": {
+    "glb": "assets/models/effects/fx_overdraw.glb",
+    "loops": []
+  },
+  "FxSecondWind": {
+    "glb": "assets/models/effects/fx_secondwind.glb",
+    "loops": []
+  },
+  "FxSoulChain": {
+    "glb": "assets/models/effects/fx_soulchain.glb",
+    "loops": []
+  },
+  "FxSpellPierce": {
+    "glb": "assets/models/effects/fx_spellpierce.glb",
+    "loops": []
+  },
+  "FxTwinCast": {
+    "glb": "assets/models/effects/fx_twincast.glb",
+    "loops": []
+  },
+  "FxVitality": {
+    "glb": "assets/models/effects/fx_vitality.glb",
+    "loops": []
   }
 }

@@ -114,8 +114,57 @@ ROUND_11 = [
     }),
 ]
 
+ROUND_12 = [
+    ("Round 12 · the upgrade effects (all CC0 recordings from Freesound, licence checked on each page)", {
+        "fx_blaze": ("Blaze", "An enemy catches fire from your arrow.", None),
+        "fx_heal": ("Heal", "The Heal card: the potion pours over you.", None),
+        "fx_overdraw": ("Overdraw", "The bow charges while you stand still, then lets loose.", None),
+        "fx_blast_arrows": ("Blast Arrows", "The starburst where an arrow explodes. Can come often, so short is good.", (0.45, 4)),
+        "fx_soul_chain": ("Soul Chain", "A chain snaps between linked enemies.", None),
+        "fx_heavy_blade": ("Heavy Blade", "The Warden's slam, the third blow, bursts in gold.", None),
+        "fx_bloodletting": ("Bloodletting", "Life drawn from a struck enemy into the Warden. Every blow, so it must stay quiet.", (0.5, 3)),
+        "fx_earthbreaker": ("Earthbreaker", "The Mythic's leaping slam: sod and stone thrown up.", None),
+        "fx_chain_lightning": ("Chain Lightning", "The zig-zag bolt jumping to the next enemy.", (0.3, 3)),
+        "fx_meteor": ("Meteor", "The Mythic meteor whooshing down before it lands.", None),
+    }),
+]
+
+ROUND_13 = [
+    ("Round 13 · new takes for the five you turned down: the best CC0 recordings, and sounds designed for each", {
+        "fx_blaze": ROUND_12[0][1]["fx_blaze"],
+        "fx_overdraw": ROUND_12[0][1]["fx_overdraw"],
+        "fx_soul_chain": ROUND_12[0][1]["fx_soul_chain"],
+        "fx_heavy_blade": ROUND_12[0][1]["fx_heavy_blade"],
+        "fx_earthbreaker": ROUND_12[0][1]["fx_earthbreaker"],
+    }),
+]
+
+ROUND_14 = [
+    ("Round 14 · every Blaze take again, from rounds 12 and 13", {
+        "fx_blaze": ROUND_12[0][1]["fx_blaze"],
+    }),
+]
+
+ROUND_15 = [
+    ("Round 15 · the card screen's big moments, designed for them", {
+        "card_mythic": ("Mythic reveal", "Plays as a face-down Mythic starts its reveal: the shake builds for a second, the card flips, the flash hits at 1.35 s and MYTHIC! lands at 1.65 s. Every take hits on the flash.", None),
+        "card_legendary": ("Legendary in the hand", "Plays as a hand with a Legendary in it is dealt, when the frame turns gold.", None),
+    }),
+]
+
+ROUND_16 = [
+    ("Round 16 · the Mythic reveal again: builds you can hear, a harder hit, a celebration", {
+        "card_mythic": ROUND_15[0][1]["card_mythic"],
+    }),
+]
+
 # page: (rounds, picks collection, sounds already chosen, shown for context)
 PAGES = {
+    "16": (ROUND_16, "picks16", ["All ten upgrade effects", "Legendary in the hand A"]),
+    "15": (ROUND_15, "picks15", ["All ten upgrade effects (Blaze C)"]),
+    "14": (ROUND_14, "picks14", ["Heal", "Blast Arrows", "Bloodletting", "Chain Lightning", "Meteor", "Overdraw", "Heavy Blade", "Earthbreaker", "Soul Chain (an octave lower)"]),
+    "13": (ROUND_13, "picks13", ["Heal (quieter, lower)", "Blast Arrows B", "Bloodletting D", "Chain Lightning C", "Meteor A"]),
+    "12": (ROUND_12, "picks12", []),
     "1-2": (ROUND_1_2, "picks", []),
     "3": (ROUND_3, "picks3", ["Player hurt A", "XP crystal D", "Heart D", "Level up A"]),
     "11": (ROUND_11, "picks11", ["Player hurt", "XP crystal", "Heart", "Level up", "Enemy hit", "Dash", "Card pick", "Arrow fire", "Staff cast", "Enemy death", "Gate", "Blow 1 (10 C)", "Blow 2 (10 D)"]),

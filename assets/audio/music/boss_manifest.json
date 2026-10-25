@@ -1,0 +1,105 @@
+[
+ {
+  "take": "a",
+  "seconds": 75.79,
+  "samples": 3342316,
+  "lufs": -16.0,
+  "true_peak_db": -1.5,
+  "bus_rms_db": {
+   "bass": -21.0,
+   "pad": -27.0,
+   "chip": -29.0,
+   "stabs": -22.7,
+   "taiko": -24.0,
+   "perc": -30.7,
+   "snare": -24.9,
+   "kick": -23.0,
+   "crash": -30.8,
+   "chiplead": -20.2,
+   "lead": -23.0,
+   "bells": -23.9
+  },
+  "seam": {
+   "jump": 0.02468,
+   "p99_inside": 0.14449,
+   "max_inside": 0.55505
+  },
+  "note": "Chip Battle: the glade's take B sound turned up for the fight: pulse lead over the flute, chip arpeggios, a triangle bass driving eighths, battle drums."
+ },
+ {
+  "take": "b",
+  "seconds": 75.79,
+  "samples": 3342316,
+  "lufs": -15.9,
+  "true_peak_db": -2.3,
+  "bus_rms_db": {
+   "bass": -21.0,
+   "ostinato": -25.9,
+   "pad": -27.0,
+   "chip": -31.0,
+   "stabs": -22.7,
+   "taiko": -24.0,
+   "perc": -30.7,
+   "snare": -24.9,
+   "kick": -23.0,
+   "crash": -30.8,
+   "chiplead": -21.7,
+   "lead": -25.0,
+   "brass": -22.0,
+   "bells": -23.8
+  },
+  "seam": {
+   "jump": 0.01732,
+   "p99_inside": 0.13496,
+   "max_inside": 0.52782
+  },
+  "intros": {
+   "dive": {
+    "intro_seconds": 4.737,
+    "loop_start": 10.736848,
+    "loop_end": 86.526327,
+    "seconds": 87.026,
+    "lufs": -16.0,
+    "true_peak_db": -2.3,
+    "note": "Dive in A, as before: the runs on the fight's dominant, pulling straight into D minor."
+   },
+   "dive_bb": {
+    "intro_seconds": 4.737,
+    "loop_start": 10.736848,
+    "loop_end": 86.526327,
+    "seconds": 87.026,
+    "lufs": -16.0,
+    "true_peak_db": -2.3,
+    "note": "Dive in B flat: both runs a half step up, a tense, sideways lurch into the fight."
+   },
+   "dive_g": {
+    "intro_seconds": 4.737,
+    "loop_start": 10.736848,
+    "loop_end": 86.526327,
+    "seconds": 87.026,
+    "lufs": -16.0,
+    "true_peak_db": -2.3,
+    "note": "Dive in G: both runs a step down, brighter and bolder against the minor hits."
+   },
+   "dive_d": {
+    "intro_seconds": 4.737,
+    "loop_start": 10.736848,
+    "loop_end": 86.526327,
+    "seconds": 87.026,
+    "lufs": -16.0,
+    "true_peak_db": -2.3,
+    "note": "Dive in D major: both runs on the tune's own home note but major, flipping to minor as the fight starts."
+   },
+   "flash": {
+    "intro_seconds": 4.737,
+    "loop_start": 10.736848,
+    "loop_end": 86.526327,
+    "seconds": 87.026,
+    "lufs": -16.0,
+    "true_peak_db": -2.3,
+    "note": "Flash: high As flickering an octave apart like the screen flashing, arpeggios sweeping down, then the band charging on A."
+   }
+  },
+  "note": "Chip + Brass: the same tune with a brass section under the pulse lead, a string ostinato and orchestral stabs, the chip still on top."
+ }
+]

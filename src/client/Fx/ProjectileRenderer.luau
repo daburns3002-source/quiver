@@ -26,6 +26,7 @@ local Workspace = game:GetService("Workspace")
 
 local Classes = require(ReplicatedStorage.Shared.Config.Classes)
 local Device = require(script.Parent.Parent.Device)
+local FxEvents = require(script.Parent.Upgrades.FxEvents)
 local HitFeedback = require(script.Parent.HitFeedback)
 local ProjectileFlight = require(ReplicatedStorage.Shared.Combat.ProjectileFlight)
 local ShotPipeline = require(ReplicatedStorage.Shared.Combat.ShotPipeline)
@@ -490,6 +491,12 @@ local contact: ProjectileFlight.Contact = {
 		     orbs reaching the player have their own hit feedback. ]]
 		if flight.faction == "Player" then
 			HitFeedback.onArrowContact(flight.position, flight.direction)
+			FxEvents.contact:fire(
+				flight.position,
+				flight.direction,
+				(flight :: any).pool,
+				flight.pierce
+			)
 		end
 		return true
 	end,
@@ -503,6 +510,9 @@ local contact: ProjectileFlight.Contact = {
 		local pool = (flight :: any).pool
 		local style: Faction = if pool == "PlayerOrb" then "Enemy" else flight.faction
 		spawnImpact(position, normal, flight.direction, style, bounced)
+		if flight.faction == "Player" then
+			FxEvents.wall:fire(position, normal, flight.direction, pool, bounced)
+		end
 	end,
 	--[[ The same choice the server makes, from the models it can see. ]]
 	seek = function(flight: ProjectileFlight.Flight): Vector3?
@@ -573,6 +583,7 @@ local function launch(
 		expiresAt = os.clock() + (spec.lifetime - headStart),
 		stopped = false,
 	})
+	FxEvents.launched:fire(part, pool, aim, from ~= nil)
 end
 
 local function step(deltaTime: number)

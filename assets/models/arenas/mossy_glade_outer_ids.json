@@ -1,0 +1,5042 @@
+[
+ {
+  "offset": [
+   0,
+   -0.7,
+   0
+  ],
+  "name": "Ground",
+  "group": "Ground_Node",
+  "meshId": "rbxassetid://97368213166405",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   150,
+   1,
+   120
+  ]
+ },
+ {
+  "offset": [
+   56.791,
+   4.155,
+   54.859
+  ],
+  "name": "Trunk",
+  "group": "Trunk_Node",
+  "meshId": "rbxassetid://79778579745674",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   8.297,
+   8.71,
+   8.297
+  ]
+ },
+ {
+  "offset": [
+   56.972,
+   10.376,
+   54.869
+  ],
+  "name": "CanopyMesh",
+  "group": "CanopyMesh_Node",
+  "meshId": "rbxassetid://100157931204096",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   9.05,
+   6.752,
+   9.422
+  ]
+ },
+ {
+  "offset": [
+   -27.504,
+   4.398,
+   54.812
+  ],
+  "name": "Trunk2",
+  "group": "Trunk2_Node",
+  "meshId": "rbxassetid://122347459244057",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   8.27,
+   9.196,
+   8.45
+  ]
+ },
+ {
+  "offset": [
+   -27.304,
+   11.119,
+   54.484
+  ],
+  "name": "CanopyMesh2",
+  "group": "CanopyMesh2_Node",
+  "meshId": "rbxassetid://127317098032763",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   9.074,
+   6.984,
+   9.483
+  ]
+ },
+ {
+  "offset": [
+   -10.319,
+   4.064,
+   54.157
+  ],
+  "name": "Trunk3",
+  "group": "Trunk3_Node",
+  "meshId": "rbxassetid://128630051645206",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   8.436,
+   8.529,
+   8.452
+  ]
+ },
+ {
+  "offset": [
+   -10.597,
+   10.787,
+   54.195
+  ],
+  "name": "CanopyMesh3",
+  "group": "CanopyMesh3_Node",
+  "meshId": "rbxassetid://96284576679716",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   10.283,
+   8.154,
+   9.719
+  ]
+ },
+ {
+  "offset": [
+   -58.416,
+   4.259,
+   53.902
+  ],
+  "name": "Trunk4",
+  "group": "Trunk4_Node",
+  "meshId": "rbxassetid://124335516184990",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   8.773,
+   8.919,
+   8.773
+  ]
+ },
+ {
+  "offset": [
+   -58.144,
+   10.856,
+   53.722
+  ],
+  "name": "CanopyMesh4",
+  "group": "CanopyMesh4_Node",
+  "meshId": "rbxassetid://115150696006276",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   9.05,
+   7.622,
+   9.197
+  ]
+ },
+ {
+  "offset": [
+   -45.274,
+   4.136,
+   53.669
+  ],
+  "name": "Trunk5",
+  "group": "Trunk5_Node",
+  "meshId": "rbxassetid://138654440464713",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   8.281,
+   8.672,
+   8.412
+  ]
+ },
+ {
+  "offset": [
+   -45.439,
+   10.382,
+   54.017
+  ],
+  "name": "CanopyMesh5",
+  "group": "CanopyMesh5_Node",
+  "meshId": "rbxassetid://81834702876874",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   9.05,
+   6.864,
+   9.613
+  ]
+ },
+ {
+  "offset": [
+   25.817,
+   3.614,
+   53.171
+  ],
+  "name": "Trunk6",
+  "group": "Trunk6_Node",
+  "meshId": "rbxassetid://75296992585072",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   8.277,
+   7.628,
+   8.277
+  ]
+ },
+ {
+  "offset": [
+   26.102,
+   9.533,
+   53.16
+  ],
+  "name": "CanopyMesh6",
+  "group": "CanopyMesh6_Node",
+  "meshId": "rbxassetid://116772594349854",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   10.418,
+   7.906,
+   10.089
+  ]
+ },
+ {
+  "offset": [
+   68.301,
+   4.351,
+   53.083
+  ],
+  "name": "Trunk7",
+  "group": "Trunk7_Node",
+  "meshId": "rbxassetid://77193010881855",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   8.789,
+   9.101,
+   8.859
+  ]
+ },
+ {
+  "offset": [
+   68.386,
+   11.102,
+   53.205
+  ],
+  "name": "CanopyMesh7",
+  "group": "CanopyMesh7_Node",
+  "meshId": "rbxassetid://84914855628330",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   9.384,
+   7.359,
+   9.05
+  ]
+ },
+ {
+  "offset": [
+   46.063,
+   4.078,
+   52.531
+  ],
+  "name": "Trunk8",
+  "group": "Trunk8_Node",
+  "meshId": "rbxassetid://135114886436651",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   8.749,
+   8.557,
+   8.923
+  ]
+ },
+ {
+  "offset": [
+   45.712,
+   10.331,
+   52.538
+  ],
+  "name": "CanopyMesh8",
+  "group": "CanopyMesh8_Node",
+  "meshId": "rbxassetid://100118706627214",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   9.05,
+   7.255,
+   9.235
+  ]
+ },
+ {
+  "offset": [
+   13.827,
+   4.172,
+   50.506
+  ],
+  "name": "Trunk9",
+  "group": "Trunk9_Node",
+  "meshId": "rbxassetid://96602309195123",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   9.093,
+   8.745,
+   8.873
+  ]
+ },
+ {
+  "offset": [
+   13.697,
+   11.07,
+   50.523
+  ],
+  "name": "CanopyMesh9",
+  "group": "CanopyMesh9_Node",
+  "meshId": "rbxassetid://86205444041143",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   9.322,
+   7.516,
+   9.354
+  ]
+ },
+ {
+  "offset": [
+   -68.843,
+   4.225,
+   48.944
+  ],
+  "name": "Trunk10",
+  "group": "Trunk10_Node",
+  "meshId": "rbxassetid://101382302619508",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   8.56,
+   8.851,
+   8.56
+  ]
+ },
+ {
+  "offset": [
+   -69.106,
+   10.717,
+   48.968
+  ],
+  "name": "CanopyMesh10",
+  "group": "CanopyMesh10_Node",
+  "meshId": "rbxassetid://103532270779643",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   9.521,
+   7.242,
+   9.919
+  ]
+ },
+ {
+  "offset": [
+   1.851,
+   3.952,
+   48.58
+  ],
+  "name": "Trunk11",
+  "group": "Trunk11_Node",
+  "meshId": "rbxassetid://102534095444896",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   8.62,
+   8.304,
+   8.62
+  ]
+ },
+ {
+  "offset": [
+   2.022,
+   9.983,
+   48.599
+  ],
+  "name": "CanopyMesh11",
+  "group": "CanopyMesh11_Node",
+  "meshId": "rbxassetid://133612374862439",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   9.955,
+   6.758,
+   9.05
+  ]
+ },
+ {
+  "offset": [
+   60.997,
+   3.686,
+   44.339
+  ],
+  "name": "Trunk12",
+  "group": "Trunk12_Node",
+  "meshId": "rbxassetid://124482381161976",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   8.943,
+   7.771,
+   8.76
+  ]
+ },
+ {
+  "offset": [
+   60.901,
+   9.507,
+   44.456
+  ],
+  "name": "CanopyMesh12",
+  "group": "CanopyMesh12_Node",
+  "meshId": "rbxassetid://127710313168715",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   10.045,
+   7.089,
+   9.41
+  ]
+ },
+ {
+  "offset": [
+   -25.586,
+   4.01,
+   43.141
+  ],
+  "name": "Trunk13",
+  "group": "Trunk13_Node",
+  "meshId": "rbxassetid://74116792001482",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   8.984,
+   8.421,
+   8.984
+  ]
+ },
+ {
+  "offset": [
+   -25.366,
+   10.544,
+   43.454
+  ],
+  "name": "CanopyMesh13",
+  "group": "CanopyMesh13_Node",
+  "meshId": "rbxassetid://85827207440148",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   9.05,
+   7.777,
+   9.168
+  ]
+ },
+ {
+  "offset": [
+   -49.286,
+   3.818,
+   43.136
+  ],
+  "name": "Trunk14",
+  "group": "Trunk14_Node",
+  "meshId": "rbxassetid://130116722007527",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   8.907,
+   8.037,
+   9.075
+  ]
+ },
+ {
+  "offset": [
+   -49.343,
+   9.939,
+   42.826
+  ],
+  "name": "CanopyMesh14",
+  "group": "CanopyMesh14_Node",
+  "meshId": "rbxassetid://77070865458188",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   9.32,
+   7.583,
+   9.344
+  ]
+ },
+ {
+  "offset": [
+   39.112,
+   3.57,
+   41.848
+  ],
+  "name": "Trunk15",
+  "group": "Trunk15_Node",
+  "meshId": "rbxassetid://138892585594869",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   8.862,
+   7.54,
+   8.862
+  ]
+ },
+ {
+  "offset": [
+   39.367,
+   9.411,
+   41.883
+  ],
+  "name": "CanopyMesh15",
+  "group": "CanopyMesh15_Node",
+  "meshId": "rbxassetid://119839461050727",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   9.05,
+   7.435,
+   9.362
+  ]
+ },
+ {
+  "offset": [
+   -9.913,
+   4.533,
+   41.575
+  ],
+  "name": "Trunk16",
+  "group": "Trunk16_Node",
+  "meshId": "rbxassetid://127873283007861",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   8.23,
+   9.465,
+   8.363
+  ]
+ },
+ {
+  "offset": [
+   -10.134,
+   11.36,
+   41.743
+  ],
+  "name": "CanopyMesh16",
+  "group": "CanopyMesh16_Node",
+  "meshId": "rbxassetid://121351574266426",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   9.217,
+   7.023,
+   9.203
+  ]
+ },
+ {
+  "offset": [
+   20.736,
+   3.854,
+   40.499
+  ],
+  "name": "Trunk17",
+  "group": "Trunk17_Node",
+  "meshId": "rbxassetid://135854430371965",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   8.763,
+   8.108,
+   8.763
+  ]
+ },
+ {
+  "offset": [
+   20.787,
+   10.193,
+   40.813
+  ],
+  "name": "CanopyMesh17",
+  "group": "CanopyMesh17_Node",
+  "meshId": "rbxassetid://114931938319106",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   9.426,
+   7.368,
+   9.123
+  ]
+ },
+ {
+  "offset": [
+   -60.928,
+   4.236,
+   39.153
+  ],
+  "name": "Trunk18",
+  "group": "Trunk18_Node",
+  "meshId": "rbxassetid://126826837733165",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   8.618,
+   8.872,
+   8.618
+  ]
+ },
+ {
+  "offset": [
+   -60.881,
+   10.46,
+   39.425
+  ],
+  "name": "CanopyMesh18",
+  "group": "CanopyMesh18_Node",
+  "meshId": "rbxassetid://107704115669582",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   9.981,
+   7.066,
+   9.05
+  ]
+ },
+ {
+  "offset": [
+   50.641,
+   4.134,
+   36.766
+  ],
+  "name": "Trunk19",
+  "group": "Trunk19_Node",
+  "meshId": "rbxassetid://123565765826941",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   8.421,
+   8.668,
+   8.421
+  ]
+ },
+ {
+  "offset": [
+   50.747,
+   10.214,
+   36.756
+  ],
+  "name": "CanopyMesh19",
+  "group": "CanopyMesh19_Node",
+  "meshId": "rbxassetid://86632076231998",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   9.05,
+   6.99,
+   9.365
+  ]
+ },
+ {
+  "offset": [
+   61.786,
+   4.106,
+   32.333
+  ],
+  "name": "Trunk20",
+  "group": "Trunk20_Node",
+  "meshId": "rbxassetid://111700849209565",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   8.422,
+   8.612,
+   8.422
+  ]
+ },
+ {
+  "offset": [
+   61.86,
+   10.58,
+   32.382
+  ],
+  "name": "CanopyMesh20",
+  "group": "CanopyMesh20_Node",
+  "meshId": "rbxassetid://128496442879142",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   9.809,
+   7.511,
+   9.853
+  ]
+ },
+ {
+  "offset": [
+   -28.508,
+   4.356,
+   32.326
+  ],
+  "name": "Trunk21",
+  "group": "Trunk21_Node",
+  "meshId": "rbxassetid://129476701373026",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   8.653,
+   9.111,
+   8.653
+  ]
+ },
+ {
+  "offset": [
+   -28.335,
+   11.172,
+   32.475
+  ],
+  "name": "CanopyMesh21",
+  "group": "CanopyMesh21_Node",
+  "meshId": "rbxassetid://130806551007816",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   9.356,
+   7.957,
+   9.05
+  ]
+ },
+ {
+  "offset": [
+   30.603,
+   4.288,
+   31.729
+  ],
+  "name": "Trunk22",
+  "group": "Trunk22_Node",
+  "meshId": "rbxassetid://125511924467489",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   8.215,
+   8.975,
+   8.215
+  ]
+ },
+ {
+  "offset": [
+   30.394,
+   11.063,
+   31.789
+  ],
+  "name": "CanopyMesh22",
+  "group": "CanopyMesh22_Node",
+  "meshId": "rbxassetid://139310939948515",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   10.475,
+   8.341,
+   10.422
+  ]
+ },
+ {
+  "offset": [
+   -40.281,
+   3.869,
+   31.574
+  ],
+  "name": "Trunk23",
+  "group": "Trunk23_Node",
+  "meshId": "rbxassetid://76974360757329",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   9.022,
+   8.138,
+   9.022
+  ]
+ },
+ {
+  "offset": [
+   -40.207,
+   10.084,
+   31.454
+  ],
+  "name": "CanopyMesh23",
+  "group": "CanopyMesh23_Node",
+  "meshId": "rbxassetid://107030831638607",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   10.595,
+   7.718,
+   9.287
+  ]
+ },
+ {
+  "offset": [
+   -61.19,
+   4.5,
+   28.002
+  ],
+  "name": "Trunk24",
+  "group": "Trunk24_Node",
+  "meshId": "rbxassetid://120711156866222",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   8.412,
+   9.4,
+   8.412
+  ]
+ },
+ {
+  "offset": [
+   -61.244,
+   11.403,
+   28.224
+  ],
+  "name": "CanopyMesh24",
+  "group": "CanopyMesh24_Node",
+  "meshId": "rbxassetid://96052667042861",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   9.552,
+   7.514,
+   9.877
+  ]
+ },
+ {
+  "offset": [
+   51.501,
+   4.932,
+   25.408
+  ],
+  "name": "Trunk25",
+  "group": "Trunk25_Node",
+  "meshId": "rbxassetid://98215431967543",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   8.5,
+   10.263,
+   8.5
+  ]
+ },
+ {
+  "offset": [
+   51.75,
+   11.819,
+   25.565
+  ],
+  "name": "CanopyMesh25",
+  "group": "CanopyMesh25_Node",
+  "meshId": "rbxassetid://113300537579020",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   9.145,
+   6.686,
+   9.05
+  ]
+ },
+ {
+  "offset": [
+   40.974,
+   4.595,
+   25.26
+  ],
+  "name": "Trunk26",
+  "group": "Trunk26_Node",
+  "meshId": "rbxassetid://112314311351084",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   8.22,
+   9.589,
+   8.22
+  ]
+ },
+ {
+  "offset": [
+   40.852,
+   11.588,
+   25.379
+  ],
+  "name": "CanopyMesh26",
+  "group": "CanopyMesh26_Node",
+  "meshId": "rbxassetid://127015833486182",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   9.05,
+   6.81,
+   9.66
+  ]
+ },
+ {
+  "offset": [
+   -50.362,
+   4.319,
+   23.28
+  ],
+  "name": "Trunk27",
+  "group": "Trunk27_Node",
+  "meshId": "rbxassetid://83270890943603",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   8.522,
+   9.038,
+   8.522
+  ]
+ },
+ {
+  "offset": [
+   -50.361,
+   10.753,
+   23.638
+  ],
+  "name": "CanopyMesh27",
+  "group": "CanopyMesh27_Node",
+  "meshId": "rbxassetid://122291700342932",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   10.167,
+   7.404,
+   9.05
+  ]
+ },
+ {
+  "offset": [
+   -30.112,
+   3.794,
+   21.004
+  ],
+  "name": "Trunk28",
+  "group": "Trunk28_Node",
+  "meshId": "rbxassetid://136559534181435",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   8.582,
+   7.987,
+   8.442
+  ]
+ },
+ {
+  "offset": [
+   -29.94,
+   10.003,
+   21.166
+  ],
+  "name": "CanopyMesh28",
+  "group": "CanopyMesh28_Node",
+  "meshId": "rbxassetid://134649575028586",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   9.626,
+   7.762,
+   9.05
+  ]
+ },
+ {
+  "offset": [
+   27.644,
+   3.704,
+   19.376
+  ],
+  "name": "Trunk29",
+  "group": "Trunk29_Node",
+  "meshId": "rbxassetid://125562775995961",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   8.487,
+   7.808,
+   8.487
+  ]
+ },
+ {
+  "offset": [
+   27.65,
+   9.581,
+   19.428
+  ],
+  "name": "CanopyMesh29",
+  "group": "CanopyMesh29_Node",
+  "meshId": "rbxassetid://138766482183123",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   9.05,
+   7.22,
+   9.435
+  ]
+ },
+ {
+  "offset": [
+   -70.167,
+   4.424,
+   18.682
+  ],
+  "name": "Trunk30",
+  "group": "Trunk30_Node",
+  "meshId": "rbxassetid://122835293273169",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   8.437,
+   9.248,
+   8.437
+  ]
+ },
+ {
+  "offset": [
+   -69.963,
+   10.859,
+   18.659
+  ],
+  "name": "CanopyMesh30",
+  "group": "CanopyMesh30_Node",
+  "meshId": "rbxassetid://128793862163554",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   9.5,
+   6.652,
+   9.05
+  ]
+ },
+ {
+  "offset": [
+   63.338,
+   4.729,
+   16.14
+  ],
+  "name": "Trunk31",
+  "group": "Trunk31_Node",
+  "meshId": "rbxassetid://95785572206310",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   8.588,
+   9.857,
+   8.588
+  ]
+ },
+ {
+  "offset": [
+   63.602,
+   11.557,
+   16.348
+  ],
+  "name": "CanopyMesh31",
+  "group": "CanopyMesh31_Node",
+  "meshId": "rbxassetid://136368202513484",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   9.632,
+   6.676,
+   9.05
+  ]
+ },
+ {
+  "offset": [
+   39.526,
+   3.674,
+   13.776
+  ],
+  "name": "Trunk32",
+  "group": "Trunk32_Node",
+  "meshId": "rbxassetid://133421182010029",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   8.197,
+   7.749,
+   8.197
+  ]
+ },
+ {
+  "offset": [
+   39.529,
+   9.924,
+   13.914
+  ],
+  "name": "CanopyMesh32",
+  "group": "CanopyMesh32_Node",
+  "meshId": "rbxassetid://86669694026150",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   9.138,
+   6.822,
+   9.117
+  ]
+ },
+ {
+  "offset": [
+   51.379,
+   3.642,
+   13.536
+  ],
+  "name": "Trunk33",
+  "group": "Trunk33_Node",
+  "meshId": "rbxassetid://139236102558089",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   8.166,
+   7.684,
+   8.103
+  ]
+ },
+ {
+  "offset": [
+   51.374,
+   9.682,
+   13.968
+  ],
+  "name": "CanopyMesh33",
+  "group": "CanopyMesh33_Node",
+  "meshId": "rbxassetid://125948469630949",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   10.633,
+   8.344,
+   10.405
+  ]
+ },
+ {
+  "offset": [
+   -45.402,
+   3.977,
+   12.791
+  ],
+  "name": "Trunk34",
+  "group": "Trunk34_Node",
+  "meshId": "rbxassetid://98345259073128",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   8.503,
+   8.354,
+   8.503
+  ]
+ },
+ {
+  "offset": [
+   -45.311,
+   10.099,
+   12.749
+  ],
+  "name": "CanopyMesh34",
+  "group": "CanopyMesh34_Node",
+  "meshId": "rbxassetid://76558083443404",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   9.05,
+   6.551,
+   10.004
+  ]
+ },
+ {
+  "offset": [
+   -57.304,
+   4.507,
+   11.718
+  ],
+  "name": "Trunk35",
+  "group": "Trunk35_Node",
+  "meshId": "rbxassetid://96076916971841",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   8.554,
+   9.413,
+   8.554
+  ]
+ },
+ {
+  "offset": [
+   -57.016,
+   11.387,
+   11.703
+  ],
+  "name": "CanopyMesh35",
+  "group": "CanopyMesh35_Node",
+  "meshId": "rbxassetid://82358419612441",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   10.341,
+   7.934,
+   10.784
+  ]
+ },
+ {
+  "offset": [
+   -28.903,
+   3.941,
+   9.843
+  ],
+  "name": "Trunk36",
+  "group": "Trunk36_Node",
+  "meshId": "rbxassetid://132630949153482",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   9.111,
+   8.281,
+   9.069
+  ]
+ },
+ {
+  "offset": [
+   -28.913,
+   9.91,
+   9.644
+  ],
+  "name": "CanopyMesh36",
+  "group": "CanopyMesh36_Node",
+  "meshId": "rbxassetid://72154332014014",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   9.445,
+   6.606,
+   9.05
+  ]
+ },
+ {
+  "offset": [
+   29.002,
+   3.868,
+   8.083
+  ],
+  "name": "Trunk37",
+  "group": "Trunk37_Node",
+  "meshId": "rbxassetid://117045837060098",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   8.629,
+   8.135,
+   8.72
+  ]
+ },
+ {
+  "offset": [
+   28.975,
+   10.368,
+   8.112
+  ],
+  "name": "CanopyMesh37",
+  "group": "CanopyMesh37_Node",
+  "meshId": "rbxassetid://128231279788806",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   9.142,
+   7.804,
+   9.265
+  ]
+ },
+ {
+  "offset": [
+   -68.615,
+   4.038,
+   5.975
+  ],
+  "name": "Trunk38",
+  "group": "Trunk38_Node",
+  "meshId": "rbxassetid://104475855240191",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   8.837,
+   8.476,
+   8.837
+  ]
+ },
+ {
+  "offset": [
+   -68.574,
+   10.303,
+   6.087
+  ],
+  "name": "CanopyMesh38",
+  "group": "CanopyMesh38_Node",
+  "meshId": "rbxassetid://79637034052972",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   10.004,
+   7.293,
+   9.05
+  ]
+ },
+ {
+  "offset": [
+   69.94,
+   4.086,
+   4.688
+  ],
+  "name": "Trunk39",
+  "group": "Trunk39_Node",
+  "meshId": "rbxassetid://136820893321070",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   8.724,
+   8.572,
+   8.724
+  ]
+ },
+ {
+  "offset": [
+   70.2,
+   10.725,
+   4.622
+  ],
+  "name": "CanopyMesh39",
+  "group": "CanopyMesh39_Node",
+  "meshId": "rbxassetid://88491136292001",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   9.05,
+   7.841,
+   9.929
+  ]
+ },
+ {
+  "offset": [
+   58.238,
+   4.542,
+   2.854
+  ],
+  "name": "Trunk40",
+  "group": "Trunk40_Node",
+  "meshId": "rbxassetid://122263279986602",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   8.905,
+   9.485,
+   8.669
+  ]
+ },
+ {
+  "offset": [
+   58.276,
+   11.403,
+   3.153
+  ],
+  "name": "CanopyMesh40",
+  "group": "CanopyMesh40_Node",
+  "meshId": "rbxassetid://110307489718048",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   9.864,
+   7.248,
+   9.05
+  ]
+ },
+ {
+  "offset": [
+   44.914,
+   3.868,
+   2.218
+  ],
+  "name": "Trunk41",
+  "group": "Trunk41_Node",
+  "meshId": "rbxassetid://86174942707489",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   8.889,
+   8.136,
+   8.979
+  ]
+ },
+ {
+  "offset": [
+   44.792,
+   10.008,
+   1.828
+  ],
+  "name": "CanopyMesh41",
+  "group": "CanopyMesh41_Node",
+  "meshId": "rbxassetid://128095071156664",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   11.129,
+   7.423,
+   10.275
+  ]
+ },
+ {
+  "offset": [
+   -53.277,
+   4.489,
+   -0.178
+  ],
+  "name": "Trunk42",
+  "group": "Trunk42_Node",
+  "meshId": "rbxassetid://124956673205880",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   8.926,
+   9.378,
+   8.926
+  ]
+ },
+ {
+  "offset": [
+   -53.116,
+   11.373,
+   -0.296
+  ],
+  "name": "CanopyMesh42",
+  "group": "CanopyMesh42_Node",
+  "meshId": "rbxassetid://87528605678993",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   9.129,
+   7.71,
+   9.05
+  ]
+ },
+ {
+  "offset": [
+   -28.62,
+   3.776,
+   -1.897
+  ],
+  "name": "Trunk43",
+  "group": "Trunk43_Node",
+  "meshId": "rbxassetid://116724323715396",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   8.703,
+   7.953,
+   8.89
+  ]
+ },
+ {
+  "offset": [
+   -28.497,
+   9.638,
+   -1.949
+  ],
+  "name": "CanopyMesh43",
+  "group": "CanopyMesh43_Node",
+  "meshId": "rbxassetid://81910542951822",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   9.203,
+   6.96,
+   9.05
+  ]
+ },
+ {
+  "offset": [
+   29.687,
+   4.853,
+   -2.837
+  ],
+  "name": "Trunk44",
+  "group": "Trunk44_Node",
+  "meshId": "rbxassetid://94052038781219",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   8.194,
+   10.105,
+   8.194
+  ]
+ },
+ {
+  "offset": [
+   29.756,
+   11.818,
+   -2.834
+  ],
+  "name": "CanopyMesh44",
+  "group": "CanopyMesh44_Node",
+  "meshId": "rbxassetid://117949755506045",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   9.597,
+   6.953,
+   9.05
+  ]
+ },
+ {
+  "offset": [
+   -65.905,
+   4.152,
+   -5.783
+  ],
+  "name": "Trunk45",
+  "group": "Trunk45_Node",
+  "meshId": "rbxassetid://85861116945264",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   9.057,
+   8.704,
+   9.057
+  ]
+ },
+ {
+  "offset": [
+   -65.893,
+   10.419,
+   -5.792
+  ],
+  "name": "CanopyMesh45",
+  "group": "CanopyMesh45_Node",
+  "meshId": "rbxassetid://74192483901647",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   9.05,
+   7.095,
+   10.216
+  ]
+ },
+ {
+  "offset": [
+   -39.229,
+   4.473,
+   -7.07
+  ],
+  "name": "Trunk46",
+  "group": "Trunk46_Node",
+  "meshId": "rbxassetid://78614292450444",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   8.558,
+   9.347,
+   8.558
+  ]
+ },
+ {
+  "offset": [
+   -39.579,
+   11.35,
+   -7.16
+  ],
+  "name": "CanopyMesh46",
+  "group": "CanopyMesh46_Node",
+  "meshId": "rbxassetid://121329056379342",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   9.05,
+   7.763,
+   9.359
+  ]
+ },
+ {
+  "offset": [
+   63.639,
+   4.93,
+   -7.73
+  ],
+  "name": "Trunk47",
+  "group": "Trunk47_Node",
+  "meshId": "rbxassetid://117908866522007",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   8.625,
+   10.26,
+   8.625
+  ]
+ },
+ {
+  "offset": [
+   63.623,
+   12.064,
+   -7.685
+  ],
+  "name": "CanopyMesh47",
+  "group": "CanopyMesh47_Node",
+  "meshId": "rbxassetid://107965610290924",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   10.419,
+   6.75,
+   9.05
+  ]
+ },
+ {
+  "offset": [
+   49.849,
+   4.289,
+   -11.903
+  ],
+  "name": "Trunk48",
+  "group": "Trunk48_Node",
+  "meshId": "rbxassetid://106395958789075",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   8.987,
+   8.978,
+   8.84
+  ]
+ },
+ {
+  "offset": [
+   50.17,
+   11.085,
+   -11.328
+  ],
+  "name": "CanopyMesh48",
+  "group": "CanopyMesh48_Node",
+  "meshId": "rbxassetid://109588504598350",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   9.39,
+   7.902,
+   9.05
+  ]
+ },
+ {
+  "offset": [
+   -29.114,
+   3.882,
+   -13.116
+  ],
+  "name": "Trunk49",
+  "group": "Trunk49_Node",
+  "meshId": "rbxassetid://110198406240711",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   8.122,
+   8.164,
+   8.273
+  ]
+ },
+ {
+  "offset": [
+   -29.292,
+   10.194,
+   -13.397
+  ],
+  "name": "CanopyMesh49",
+  "group": "CanopyMesh49_Node",
+  "meshId": "rbxassetid://128778856640912",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   9.248,
+   7.975,
+   9.979
+  ]
+ },
+ {
+  "offset": [
+   28.43,
+   4.316,
+   -13.971
+  ],
+  "name": "Trunk50",
+  "group": "Trunk50_Node",
+  "meshId": "rbxassetid://124436889932264",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   8.101,
+   9.033,
+   8.101
+  ]
+ },
+ {
+  "offset": [
+   28.621,
+   10.736,
+   -13.969
+  ],
+  "name": "CanopyMesh50",
+  "group": "CanopyMesh50_Node",
+  "meshId": "rbxassetid://120612137392430",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   9.301,
+   7.394,
+   9.5
+  ]
+ },
+ {
+  "offset": [
+   -50.626,
+   4.864,
+   -15.757
+  ],
+  "name": "Trunk51",
+  "group": "Trunk51_Node",
+  "meshId": "rbxassetid://89077094938474",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   8.644,
+   10.129,
+   8.644
+  ]
+ },
+ {
+  "offset": [
+   -50.513,
+   11.806,
+   -15.985
+  ],
+  "name": "CanopyMesh51",
+  "group": "CanopyMesh51_Node",
+  "meshId": "rbxassetid://128533279087741",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   9.286,
+   6.755,
+   9.05
+  ]
+ },
+ {
+  "offset": [
+   59.326,
+   3.522,
+   -19.641
+  ],
+  "name": "Trunk52",
+  "group": "Trunk52_Node",
+  "meshId": "rbxassetid://86801663705180",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   8.499,
+   7.445,
+   8.499
+  ]
+ },
+ {
+  "offset": [
+   59.421,
+   9.352,
+   -19.278
+  ],
+  "name": "CanopyMesh52",
+  "group": "CanopyMesh52_Node",
+  "meshId": "rbxassetid://74217756788020",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   10.76,
+   7.656,
+   10.792
+  ]
+ },
+ {
+  "offset": [
+   44.607,
+   4.441,
+   -22.481
+  ],
+  "name": "Trunk53",
+  "group": "Trunk53_Node",
+  "meshId": "rbxassetid://76620944868690",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   8.198,
+   9.281,
+   8.198
+  ]
+ },
+ {
+  "offset": [
+   44.748,
+   10.942,
+   -22.302
+  ],
+  "name": "CanopyMesh53",
+  "group": "CanopyMesh53_Node",
+  "meshId": "rbxassetid://70589859839112",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   9.05,
+   7.012,
+   9.256
+  ]
+ },
+ {
+  "offset": [
+   -61.643,
+   4.204,
+   -22.588
+  ],
+  "name": "Trunk54",
+  "group": "Trunk54_Node",
+  "meshId": "rbxassetid://109233796738755",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   8.548,
+   8.807,
+   8.548
+  ]
+ },
+ {
+  "offset": [
+   -61.381,
+   10.984,
+   -22.22
+  ],
+  "name": "CanopyMesh54",
+  "group": "CanopyMesh54_Node",
+  "meshId": "rbxassetid://115243541285188",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   10.565,
+   8.828,
+   10.616
+  ]
+ },
+ {
+  "offset": [
+   -40.844,
+   3.959,
+   -23.923
+  ],
+  "name": "Trunk55",
+  "group": "Trunk55_Node",
+  "meshId": "rbxassetid://112670134775904",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   9.031,
+   8.319,
+   9.031
+  ]
+ },
+ {
+  "offset": [
+   -40.722,
+   10.151,
+   -23.753
+  ],
+  "name": "CanopyMesh55",
+  "group": "CanopyMesh55_Node",
+  "meshId": "rbxassetid://109160069362203",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   9.05,
+   7.426,
+   9.636
+  ]
+ },
+ {
+  "offset": [
+   -28.78,
+   3.816,
+   -25.868
+  ],
+  "name": "Trunk56",
+  "group": "Trunk56_Node",
+  "meshId": "rbxassetid://74778732399507",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   8.457,
+   8.033,
+   8.497
+  ]
+ },
+ {
+  "offset": [
+   -28.854,
+   9.781,
+   -25.365
+  ],
+  "name": "CanopyMesh56",
+  "group": "CanopyMesh56_Node",
+  "meshId": "rbxassetid://125128291862015",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   10.177,
+   7.641,
+   9.215
+  ]
+ },
+ {
+  "offset": [
+   29.816,
+   4.595,
+   -26.057
+  ],
+  "name": "Trunk57",
+  "group": "Trunk57_Node",
+  "meshId": "rbxassetid://75884987773353",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   8.351,
+   9.589,
+   8.41
+  ]
+ },
+ {
+  "offset": [
+   29.579,
+   11.093,
+   -25.749
+  ],
+  "name": "CanopyMesh57",
+  "group": "CanopyMesh57_Node",
+  "meshId": "rbxassetid://136544595572198",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   9.05,
+   6.862,
+   9.057
+  ]
+ },
+ {
+  "offset": [
+   55.655,
+   4.401,
+   -31.092
+  ],
+  "name": "Trunk58",
+  "group": "Trunk58_Node",
+  "meshId": "rbxassetid://137220945933848",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   8.579,
+   9.203,
+   8.298
+  ]
+ },
+ {
+  "offset": [
+   55.448,
+   10.749,
+   -31.058
+  ],
+  "name": "CanopyMesh58",
+  "group": "CanopyMesh58_Node",
+  "meshId": "rbxassetid://140100304316955",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   9.05,
+   6.957,
+   9.058
+  ]
+ },
+ {
+  "offset": [
+   -69.445,
+   3.724,
+   -32.12
+  ],
+  "name": "Trunk59",
+  "group": "Trunk59_Node",
+  "meshId": "rbxassetid://126817206246106",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   8.956,
+   7.849,
+   9.191
+  ]
+ },
+ {
+  "offset": [
+   -69.924,
+   9.669,
+   -32.248
+  ],
+  "name": "CanopyMesh59",
+  "group": "CanopyMesh59_Node",
+  "meshId": "rbxassetid://135058720858761",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   9.31,
+   7.339,
+   10.227
+  ]
+ },
+ {
+  "offset": [
+   67.116,
+   3.97,
+   -32.74
+  ],
+  "name": "Trunk60",
+  "group": "Trunk60_Node",
+  "meshId": "rbxassetid://135902364366786",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   9.029,
+   8.34,
+   9.029
+  ]
+ },
+ {
+  "offset": [
+   67.187,
+   10.455,
+   -32.841
+  ],
+  "name": "CanopyMesh60",
+  "group": "CanopyMesh60_Node",
+  "meshId": "rbxassetid://99563678076766",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   10.611,
+   8.094,
+   9.459
+  ]
+ },
+ {
+  "offset": [
+   -47.625,
+   4.01,
+   -34.625
+  ],
+  "name": "Trunk61",
+  "group": "Trunk61_Node",
+  "meshId": "rbxassetid://135762452452397",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   8.652,
+   8.42,
+   8.652
+  ]
+ },
+ {
+  "offset": [
+   -47.682,
+   10.495,
+   -34.591
+  ],
+  "name": "CanopyMesh61",
+  "group": "CanopyMesh61_Node",
+  "meshId": "rbxassetid://70485825550583",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   9.689,
+   7.501,
+   9.05
+  ]
+ },
+ {
+  "offset": [
+   44.719,
+   3.929,
+   -35.619
+  ],
+  "name": "Trunk62",
+  "group": "Trunk62_Node",
+  "meshId": "rbxassetid://130302715641617",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   8.905,
+   8.258,
+   9.037
+  ]
+ },
+ {
+  "offset": [
+   44.383,
+   10.184,
+   -35.416
+  ],
+  "name": "CanopyMesh62",
+  "group": "CanopyMesh62_Node",
+  "meshId": "rbxassetid://137493406526039",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   9.05,
+   6.885,
+   10.259
+  ]
+ },
+ {
+  "offset": [
+   -30.207,
+   4.423,
+   -36.907
+  ],
+  "name": "Trunk63",
+  "group": "Trunk63_Node",
+  "meshId": "rbxassetid://80002747305072",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   8.929,
+   9.245,
+   8.929
+  ]
+ },
+ {
+  "offset": [
+   -29.987,
+   11.506,
+   -36.934
+  ],
+  "name": "CanopyMesh63",
+  "group": "CanopyMesh63_Node",
+  "meshId": "rbxassetid://75105083525436",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   9.576,
+   7.648,
+   9.05
+  ]
+ },
+ {
+  "offset": [
+   27.513,
+   4.028,
+   -37.638
+  ],
+  "name": "Trunk64",
+  "group": "Trunk64_Node",
+  "meshId": "rbxassetid://71289003921132",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   9.022,
+   8.455,
+   9.217
+  ]
+ },
+ {
+  "offset": [
+   27.659,
+   10.224,
+   -37.437
+  ],
+  "name": "CanopyMesh64",
+  "group": "CanopyMesh64_Node",
+  "meshId": "rbxassetid://139613467394214",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   9.05,
+   6.716,
+   9.145
+  ]
+ },
+ {
+  "offset": [
+   3.876,
+   4.854,
+   -40.711
+  ],
+  "name": "Trunk65",
+  "group": "Trunk65_Node",
+  "meshId": "rbxassetid://132720876731301",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   8.205,
+   10.108,
+   8.205
+  ]
+ },
+ {
+  "offset": [
+   3.852,
+   11.734,
+   -41.011
+  ],
+  "name": "CanopyMesh65",
+  "group": "CanopyMesh65_Node",
+  "meshId": "rbxassetid://93780213574360",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   9.739,
+   7.178,
+   9.05
+  ]
+ },
+ {
+  "offset": [
+   15.765,
+   4.015,
+   -40.734
+  ],
+  "name": "Trunk66",
+  "group": "Trunk66_Node",
+  "meshId": "rbxassetid://76029811440300",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   8.532,
+   8.431,
+   8.532
+  ]
+ },
+ {
+  "offset": [
+   15.663,
+   10.134,
+   -40.445
+  ],
+  "name": "CanopyMesh66",
+  "group": "CanopyMesh66_Node",
+  "meshId": "rbxassetid://106554472024646",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   9.673,
+   6.887,
+   9.05
+  ]
+ },
+ {
+  "offset": [
+   -18.571,
+   3.303,
+   -40.898
+  ],
+  "name": "Trunk67",
+  "group": "Trunk67_Node",
+  "meshId": "rbxassetid://84419438439294",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   8.639,
+   7.006,
+   8.639
+  ]
+ },
+ {
+  "offset": [
+   -18.753,
+   9.111,
+   -41.231
+  ],
+  "name": "CanopyMesh67",
+  "group": "CanopyMesh67_Node",
+  "meshId": "rbxassetid://115340366653547",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   9.753,
+   8.339,
+   10.332
+  ]
+ },
+ {
+  "offset": [
+   -7.737,
+   4.309,
+   -41.041
+  ],
+  "name": "Trunk68",
+  "group": "Trunk68_Node",
+  "meshId": "rbxassetid://129754384507465",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   9.061,
+   9.019,
+   9.061
+  ]
+ },
+ {
+  "offset": [
+   -7.245,
+   11.028,
+   -40.884
+  ],
+  "name": "CanopyMesh68",
+  "group": "CanopyMesh68_Node",
+  "meshId": "rbxassetid://70957435400726",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   9.05,
+   7.793,
+   9.835
+  ]
+ },
+ {
+  "offset": [
+   -58.832,
+   4.1,
+   -41.297
+  ],
+  "name": "Trunk69",
+  "group": "Trunk69_Node",
+  "meshId": "rbxassetid://99772145828424",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   9.091,
+   8.601,
+   9.091
+  ]
+ },
+ {
+  "offset": [
+   -58.873,
+   10.471,
+   -41.768
+  ],
+  "name": "CanopyMesh69",
+  "group": "CanopyMesh69_Node",
+  "meshId": "rbxassetid://129748308741132",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   9.558,
+   7.436,
+   9.05
+  ]
+ },
+ {
+  "offset": [
+   68.524,
+   3.964,
+   -44.746
+  ],
+  "name": "Trunk70",
+  "group": "Trunk70_Node",
+  "meshId": "rbxassetid://89260399577760",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   8.689,
+   8.329,
+   8.689
+  ]
+ },
+ {
+  "offset": [
+   68.681,
+   10.154,
+   -44.606
+  ],
+  "name": "CanopyMesh70",
+  "group": "CanopyMesh70_Node",
+  "meshId": "rbxassetid://110267205803584",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   9.444,
+   7.307,
+   10.216
+  ]
+ },
+ {
+  "offset": [
+   44.788,
+   4.692,
+   -46.742
+  ],
+  "name": "Trunk71",
+  "group": "Trunk71_Node",
+  "meshId": "rbxassetid://94805352672114",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   8.672,
+   9.784,
+   8.813
+  ]
+ },
+ {
+  "offset": [
+   45.096,
+   11.401,
+   -47.088
+  ],
+  "name": "CanopyMesh71",
+  "group": "CanopyMesh71_Node",
+  "meshId": "rbxassetid://82129960032156",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   9.05,
+   6.595,
+   9.327
+  ]
+ },
+ {
+  "offset": [
+   34.287,
+   4.258,
+   -47.344
+  ],
+  "name": "Trunk72",
+  "group": "Trunk72_Node",
+  "meshId": "rbxassetid://139898535914605",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   8.531,
+   8.916,
+   8.437
+  ]
+ },
+ {
+  "offset": [
+   34.091,
+   11.178,
+   -47.196
+  ],
+  "name": "CanopyMesh72",
+  "group": "CanopyMesh72_Node",
+  "meshId": "rbxassetid://133340117391161",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   9.063,
+   8.211,
+   9.05
+  ]
+ },
+ {
+  "offset": [
+   -70.362,
+   4.085,
+   -47.398
+  ],
+  "name": "Trunk73",
+  "group": "Trunk73_Node",
+  "meshId": "rbxassetid://90883823757143",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   8.269,
+   8.57,
+   8.269
+  ]
+ },
+ {
+  "offset": [
+   -70.207,
+   10.511,
+   -47.221
+  ],
+  "name": "CanopyMesh73",
+  "group": "CanopyMesh73_Node",
+  "meshId": "rbxassetid://101433100854826",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   9.508,
+   8.084,
+   10.17
+  ]
+ },
+ {
+  "offset": [
+   -43.989,
+   4.174,
+   -47.764
+  ],
+  "name": "Trunk74",
+  "group": "Trunk74_Node",
+  "meshId": "rbxassetid://95671651391625",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   9.008,
+   8.748,
+   9.008
+  ]
+ },
+ {
+  "offset": [
+   -43.98,
+   10.667,
+   -47.479
+  ],
+  "name": "CanopyMesh74",
+  "group": "CanopyMesh74_Node",
+  "meshId": "rbxassetid://94401355450276",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   9.05,
+   7.595,
+   9.167
+  ]
+ },
+ {
+  "offset": [
+   -32.594,
+   4.214,
+   -48.244
+  ],
+  "name": "Trunk75",
+  "group": "Trunk75_Node",
+  "meshId": "rbxassetid://104163583989906",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   8.711,
+   8.827,
+   8.459
+  ]
+ },
+ {
+  "offset": [
+   -32.926,
+   11.128,
+   -48.163
+  ],
+  "name": "CanopyMesh75",
+  "group": "CanopyMesh75_Node",
+  "meshId": "rbxassetid://133226676419614",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   9.234,
+   8.378,
+   9.05
+  ]
+ },
+ {
+  "offset": [
+   -9.356,
+   3.847,
+   -52.094
+  ],
+  "name": "Trunk76",
+  "group": "Trunk76_Node",
+  "meshId": "rbxassetid://105527142190227",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   8.641,
+   8.095,
+   8.641
+  ]
+ },
+ {
+  "offset": [
+   -9.387,
+   9.892,
+   -52.028
+  ],
+  "name": "CanopyMesh76",
+  "group": "CanopyMesh76_Node",
+  "meshId": "rbxassetid://71675176901541",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   10.068,
+   7.061,
+   9.098
+  ]
+ },
+ {
+  "offset": [
+   -58.29,
+   4.209,
+   -52.923
+  ],
+  "name": "Trunk77",
+  "group": "Trunk77_Node",
+  "meshId": "rbxassetid://131450597023378",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   8.874,
+   8.817,
+   8.874
+  ]
+ },
+ {
+  "offset": [
+   -58.46,
+   10.669,
+   -53.179
+  ],
+  "name": "CanopyMesh77",
+  "group": "CanopyMesh77_Node",
+  "meshId": "rbxassetid://92287755393133",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   10.665,
+   7.147,
+   9.184
+  ]
+ },
+ {
+  "offset": [
+   55.554,
+   3.678,
+   -53.311
+  ],
+  "name": "Trunk78",
+  "group": "Trunk78_Node",
+  "meshId": "rbxassetid://100841730485172",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   8.685,
+   7.756,
+   8.685
+  ]
+ },
+ {
+  "offset": [
+   55.715,
+   9.866,
+   -53.115
+  ],
+  "name": "CanopyMesh78",
+  "group": "CanopyMesh78_Node",
+  "meshId": "rbxassetid://70678015167784",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   10.619,
+   8.022,
+   10.195
+  ]
+ },
+ {
+  "offset": [
+   -20.666,
+   3.593,
+   -53.574
+  ],
+  "name": "Trunk79",
+  "group": "Trunk79_Node",
+  "meshId": "rbxassetid://122137214524106",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   8.504,
+   7.586,
+   8.558
+  ]
+ },
+ {
+  "offset": [
+   -20.791,
+   9.442,
+   -53.67
+  ],
+  "name": "CanopyMesh79",
+  "group": "CanopyMesh79_Node",
+  "meshId": "rbxassetid://126493609776880",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   9.05,
+   7.334,
+   9.4
+  ]
+ },
+ {
+  "offset": [
+   2.282,
+   3.933,
+   -54.413
+  ],
+  "name": "Trunk80",
+  "group": "Trunk80_Node",
+  "meshId": "rbxassetid://135463087953448",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   8.695,
+   8.266,
+   8.695
+  ]
+ },
+ {
+  "offset": [
+   2.435,
+   10.235,
+   -54.294
+  ],
+  "name": "CanopyMesh80",
+  "group": "CanopyMesh80_Node",
+  "meshId": "rbxassetid://81649368073654",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   10.027,
+   7.523,
+   9.751
+  ]
+ },
+ {
+  "offset": [
+   25.029,
+   4.266,
+   -55.189
+  ],
+  "name": "Trunk81",
+  "group": "Trunk81_Node",
+  "meshId": "rbxassetid://107453833280249",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   8.113,
+   8.932,
+   8.113
+  ]
+ },
+ {
+  "offset": [
+   25.045,
+   10.387,
+   -54.885
+  ],
+  "name": "CanopyMesh81",
+  "group": "CanopyMesh81_Node",
+  "meshId": "rbxassetid://89224023338930",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   9.05,
+   6.819,
+   9.761
+  ]
+ },
+ {
+  "offset": [
+   -21.67,
+   0.621,
+   25.46
+  ],
+  "name": "Bush_001_Leaves",
+  "group": "Bush_001_Leaves_Node",
+  "meshId": "rbxassetid://78978503885687",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   3.239,
+   1.643,
+   3.002
+  ]
+ },
+ {
+  "offset": [
+   -21.522,
+   0.878,
+   18.211
+  ],
+  "name": "Bush_002_Leaves",
+  "group": "Bush_002_Leaves_Node",
+  "meshId": "rbxassetid://123282166812981",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   2.842,
+   2.156,
+   2.984
+  ]
+ },
+ {
+  "offset": [
+   -21.705,
+   0.809,
+   13.408
+  ],
+  "name": "Bush_003_Leaves",
+  "group": "Bush_003_Leaves_Node",
+  "meshId": "rbxassetid://126924530959225",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   3.366,
+   2.019,
+   3.362
+  ]
+ },
+ {
+  "offset": [
+   -21.296,
+   0.686,
+   8.779
+  ],
+  "name": "Bush_004_Leaves",
+  "group": "Bush_004_Leaves_Node",
+  "meshId": "rbxassetid://75107362106310",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   3.072,
+   1.773,
+   3.247
+  ]
+ },
+ {
+  "offset": [
+   -21.417,
+   0.845,
+   3.057
+  ],
+  "name": "Bush_005_Leaves",
+  "group": "Bush_005_Leaves_Node",
+  "meshId": "rbxassetid://76572351523944",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   2.911,
+   2.089,
+   3.017
+  ]
+ },
+ {
+  "offset": [
+   -21.713,
+   0.739,
+   -1.709
+  ],
+  "name": "Bush_006_Leaves",
+  "group": "Bush_006_Leaves_Node",
+  "meshId": "rbxassetid://87296806583996",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   3.525,
+   1.877,
+   3.666
+  ]
+ },
+ {
+  "offset": [
+   -21.936,
+   0.834,
+   -7.36
+  ],
+  "name": "Bush_007_Leaves",
+  "group": "Bush_007_Leaves_Node",
+  "meshId": "rbxassetid://127060466899902",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   2.993,
+   2.069,
+   3.515
+  ]
+ },
+ {
+  "offset": [
+   -21.555,
+   0.802,
+   -18.386
+  ],
+  "name": "Bush_008_Leaves",
+  "group": "Bush_008_Leaves_Node",
+  "meshId": "rbxassetid://112456792542180",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   3.288,
+   2.004,
+   3.032
+  ]
+ },
+ {
+  "offset": [
+   -21.577,
+   0.699,
+   -24.726
+  ],
+  "name": "Bush_009_Leaves",
+  "group": "Bush_009_Leaves_Node",
+  "meshId": "rbxassetid://91464278134233",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   2.953,
+   1.797,
+   2.739
+  ]
+ },
+ {
+  "offset": [
+   -21.399,
+   0.735,
+   -29.682
+  ],
+  "name": "Bush_010_Leaves",
+  "group": "Bush_010_Leaves_Node",
+  "meshId": "rbxassetid://97329146610672",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   3.021,
+   1.869,
+   2.795
+  ]
+ },
+ {
+  "offset": [
+   21.352,
+   0.624,
+   33.41
+  ],
+  "name": "Bush_011_Leaves",
+  "group": "Bush_011_Leaves_Node",
+  "meshId": "rbxassetid://133362824621889",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   2.779,
+   1.648,
+   2.986
+  ]
+ },
+ {
+  "offset": [
+   21.591,
+   0.916,
+   26.962
+  ],
+  "name": "Bush_012_Leaves",
+  "group": "Bush_012_Leaves_Node",
+  "meshId": "rbxassetid://92565775694831",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   3.519,
+   2.232,
+   3.643
+  ]
+ },
+ {
+  "offset": [
+   21.505,
+   0.686,
+   21.487
+  ],
+  "name": "Bush_013_Leaves",
+  "group": "Bush_013_Leaves_Node",
+  "meshId": "rbxassetid://89515513747953",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   2.755,
+   1.772,
+   2.518
+  ]
+ },
+ {
+  "offset": [
+   21.496,
+   0.873,
+   12.566
+  ],
+  "name": "Bush_014_Leaves",
+  "group": "Bush_014_Leaves_Node",
+  "meshId": "rbxassetid://89783381313235",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   2.821,
+   2.146,
+   2.857
+  ]
+ },
+ {
+  "offset": [
+   21.268,
+   0.61,
+   7.811
+  ],
+  "name": "Bush_015_Leaves",
+  "group": "Bush_015_Leaves_Node",
+  "meshId": "rbxassetid://117537954665040",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   2.795,
+   1.62,
+   2.838
+  ]
+ },
+ {
+  "offset": [
+   21.553,
+   0.714,
+   2.783
+  ],
+  "name": "Bush_016_Leaves",
+  "group": "Bush_016_Leaves_Node",
+  "meshId": "rbxassetid://132673678651091",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   3.49,
+   1.827,
+   3.451
+  ]
+ },
+ {
+  "offset": [
+   21.445,
+   0.836,
+   -1.846
+  ],
+  "name": "Bush_017_Leaves",
+  "group": "Bush_017_Leaves_Node",
+  "meshId": "rbxassetid://117518427548072",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   2.999,
+   2.073,
+   3.127
+  ]
+ },
+ {
+  "offset": [
+   21.367,
+   0.686,
+   -6.586
+  ],
+  "name": "Bush_018_Leaves",
+  "group": "Bush_018_Leaves_Node",
+  "meshId": "rbxassetid://104693302356377",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   3.004,
+   1.773,
+   2.888
+  ]
+ },
+ {
+  "offset": [
+   21.725,
+   0.801,
+   -12.204
+  ],
+  "name": "Bush_019_Leaves",
+  "group": "Bush_019_Leaves_Node",
+  "meshId": "rbxassetid://116448756415668",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   3.351,
+   2.002,
+   3.326
+  ]
+ },
+ {
+  "offset": [
+   21.519,
+   0.773,
+   -18.708
+  ],
+  "name": "Bush_020_Leaves",
+  "group": "Bush_020_Leaves_Node",
+  "meshId": "rbxassetid://121751947487048",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   2.895,
+   1.945,
+   2.875
+  ]
+ },
+ {
+  "offset": [
+   21.939,
+   0.907,
+   -23.387
+  ],
+  "name": "Bush_021_Leaves",
+  "group": "Bush_021_Leaves_Node",
+  "meshId": "rbxassetid://109531217699182",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   3.589,
+   2.213,
+   3.749
+  ]
+ },
+ {
+  "offset": [
+   13.922,
+   0.634,
+   33.171
+  ],
+  "name": "Bush_022_Leaves",
+  "group": "Bush_022_Leaves_Node",
+  "meshId": "rbxassetid://73233514638569",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   3.086,
+   1.668,
+   2.882
+  ]
+ },
+ {
+  "offset": [
+   -8.458,
+   0.742,
+   33.089
+  ],
+  "name": "Bush_023_Leaves",
+  "group": "Bush_023_Leaves_Node",
+  "meshId": "rbxassetid://135517388831804",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   3.011,
+   1.885,
+   2.881
+  ]
+ },
+ {
+  "offset": [
+   19.562,
+   0.681,
+   -32.89
+  ],
+  "name": "Bush_024_Leaves",
+  "group": "Bush_024_Leaves_Node",
+  "meshId": "rbxassetid://126515203526780",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   3.166,
+   1.762,
+   3.228
+  ]
+ },
+ {
+  "offset": [
+   13.758,
+   0.634,
+   -33.311
+  ],
+  "name": "Bush_025_Leaves",
+  "group": "Bush_025_Leaves_Node",
+  "meshId": "rbxassetid://90826624616577",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   2.998,
+   1.668,
+   3.156
+  ]
+ },
+ {
+  "offset": [
+   9.121,
+   0.623,
+   -33.039
+  ],
+  "name": "Bush_026_Leaves",
+  "group": "Bush_026_Leaves_Node",
+  "meshId": "rbxassetid://78881137109279",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   3.282,
+   1.646,
+   3.371
+  ]
+ },
+ {
+  "offset": [
+   3.506,
+   0.603,
+   -32.915
+  ],
+  "name": "Bush_027_Leaves",
+  "group": "Bush_027_Leaves_Node",
+  "meshId": "rbxassetid://98877929785426",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   3.326,
+   1.606,
+   3.194
+  ]
+ },
+ {
+  "offset": [
+   -5.318,
+   0.885,
+   -33.295
+  ],
+  "name": "Bush_028_Leaves",
+  "group": "Bush_028_Leaves_Node",
+  "meshId": "rbxassetid://96357849399386",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   3.678,
+   2.169,
+   3.489
+  ]
+ },
+ {
+  "offset": [
+   -9.896,
+   0.866,
+   -32.896
+  ],
+  "name": "Bush_029_Leaves",
+  "group": "Bush_029_Leaves_Node",
+  "meshId": "rbxassetid://101142695187779",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   2.557,
+   2.132,
+   2.807
+  ]
+ },
+ {
+  "offset": [
+   -17.345,
+   0.816,
+   -32.848
+  ],
+  "name": "Bush_030_Leaves",
+  "group": "Bush_030_Leaves_Node",
+  "meshId": "rbxassetid://127408477909525",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   2.957,
+   2.032,
+   3.213
+  ]
+ },
+ {
+  "offset": [
+   -18.543,
+   0.842,
+   47.575
+  ],
+  "name": "Bush_031_Leaves",
+  "group": "Bush_031_Leaves_Node",
+  "meshId": "rbxassetid://102587162124951",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   3.269,
+   2.085,
+   3.5
+  ]
+ },
+ {
+  "offset": [
+   -36.02,
+   0.678,
+   9.317
+  ],
+  "name": "Bush_032_Leaves",
+  "group": "Bush_032_Leaves_Node",
+  "meshId": "rbxassetid://127941281185214",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   3.21,
+   1.757,
+   3.423
+  ]
+ },
+ {
+  "offset": [
+   -42.437,
+   0.705,
+   38.694
+  ],
+  "name": "Bush_033_Leaves",
+  "group": "Bush_033_Leaves_Node",
+  "meshId": "rbxassetid://112134699831230",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   2.609,
+   1.81,
+   2.826
+  ]
+ },
+ {
+  "offset": [
+   47.415,
+   0.925,
+   43.843
+  ],
+  "name": "Bush_034_Leaves",
+  "group": "Bush_034_Leaves_Node",
+  "meshId": "rbxassetid://75741688254129",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   3.639,
+   2.25,
+   3.16
+  ]
+ },
+ {
+  "offset": [
+   12.964,
+   0.748,
+   57.85
+  ],
+  "name": "Bush_035_Leaves",
+  "group": "Bush_035_Leaves_Node",
+  "meshId": "rbxassetid://86011090439515",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   3.003,
+   1.895,
+   3.303
+  ]
+ },
+ {
+  "offset": [
+   -69.707,
+   0.949,
+   37.436
+  ],
+  "name": "Bush_036_Leaves",
+  "group": "Bush_036_Leaves_Node",
+  "meshId": "rbxassetid://89219893301125",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   3.162,
+   2.299,
+   3.113
+  ]
+ },
+ {
+  "offset": [
+   24.14,
+   0.741,
+   -47.922
+  ],
+  "name": "Bush_037_Leaves",
+  "group": "Bush_037_Leaves_Node",
+  "meshId": "rbxassetid://105590454859922",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   2.713,
+   1.883,
+   2.572
+  ]
+ },
+ {
+  "offset": [
+   -51.27,
+   0.789,
+   -43.406
+  ],
+  "name": "Bush_038_Leaves",
+  "group": "Bush_038_Leaves_Node",
+  "meshId": "rbxassetid://131608065580670",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   2.661,
+   1.979,
+   3.02
+  ]
+ },
+ {
+  "offset": [
+   -66.805,
+   0.673,
+   -40.715
+  ],
+  "name": "Bush_039_Leaves",
+  "group": "Bush_039_Leaves_Node",
+  "meshId": "rbxassetid://112458419459574",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   2.762,
+   1.747,
+   2.782
+  ]
+ },
+ {
+  "offset": [
+   37.327,
+   0.667,
+   -24.051
+  ],
+  "name": "Bush_040_Leaves",
+  "group": "Bush_040_Leaves_Node",
+  "meshId": "rbxassetid://137029808801637",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   2.916,
+   1.734,
+   3.625
+  ]
+ },
+ {
+  "offset": [
+   -29.704,
+   0.796,
+   29.428
+  ],
+  "name": "Logs_NE",
+  "group": "Logs_NE_Node",
+  "meshId": "rbxassetid://130901908850043",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   29.506,
+   1.992,
+   58.535
+  ]
+ },
+ {
+  "offset": [
+   40.925,
+   0.876,
+   30.16
+  ],
+  "name": "Logs_NW",
+  "group": "Logs_NW_Node",
+  "meshId": "rbxassetid://100883601342613",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   66.56,
+   2.152,
+   24.608
+  ]
+ },
+ {
+  "offset": [
+   -34.393,
+   0.868,
+   -57.464
+  ],
+  "name": "Logs_SE",
+  "group": "Logs_SE_Node",
+  "meshId": "rbxassetid://132746424786618",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   9.978,
+   2.135,
+   3.675
+  ]
+ },
+ {
+  "offset": [
+   17.922,
+   0.758,
+   -50.967
+  ],
+  "name": "Logs_SW",
+  "group": "Logs_SW_Node",
+  "meshId": "rbxassetid://117428528412478",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   3.495,
+   1.916,
+   9.428
+  ]
+ },
+ {
+  "offset": [
+   -36.61,
+   0.927,
+   29.613
+  ],
+  "name": "Plants_NE",
+  "group": "Plants_NE_Node",
+  "meshId": "rbxassetid://104178431879905",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   75.145,
+   2.255,
+   59.715
+  ]
+ },
+ {
+  "offset": [
+   37.178,
+   1.011,
+   30.106
+  ],
+  "name": "Plants_NW",
+  "group": "Plants_NW_Node",
+  "meshId": "rbxassetid://73967884744904",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   73.814,
+   2.421,
+   58.81
+  ]
+ },
+ {
+  "offset": [
+   -37.02,
+   0.978,
+   -29.956
+  ],
+  "name": "Plants_SE",
+  "group": "Plants_SE_Node",
+  "meshId": "rbxassetid://118004547908749",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   75.133,
+   2.355,
+   59.899
+  ]
+ },
+ {
+  "offset": [
+   38.155,
+   0.992,
+   -29.563
+  ],
+  "name": "Plants_SW",
+  "group": "Plants_SW_Node",
+  "meshId": "rbxassetid://130112307842514",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   73.615,
+   2.385,
+   60.263
+  ]
+ },
+ {
+  "offset": [
+   -53.641,
+   2.175,
+   39.782
+  ],
+  "name": "Rocks_NE",
+  "group": "Rocks_NE_Node",
+  "meshId": "rbxassetid://127969129403820",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   40.126,
+   4.749,
+   38.29
+  ]
+ },
+ {
+  "offset": [
+   32.38,
+   2.083,
+   47.436
+  ],
+  "name": "Rocks_NW",
+  "group": "Rocks_NW_Node",
+  "meshId": "rbxassetid://129334807376479",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   11.504,
+   4.566,
+   18.75
+  ]
+ },
+ {
+  "offset": [
+   -61.107,
+   2.431,
+   -22.248
+  ],
+  "name": "Rocks_SE",
+  "group": "Rocks_SE_Node",
+  "meshId": "rbxassetid://131883743290609",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   22.833,
+   5.263,
+   11.998
+  ]
+ },
+ {
+  "offset": [
+   40.373,
+   2.465,
+   -39.804
+  ],
+  "name": "Rocks_SW",
+  "group": "Rocks_SW_Node",
+  "meshId": "rbxassetid://86601222345566",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   63.856,
+   5.329,
+   38.885
+  ]
+ },
+ {
+  "offset": [
+   -34.84,
+   0.686,
+   46.336
+  ],
+  "name": "Stumps_NE",
+  "group": "Stumps_NE_Node",
+  "meshId": "rbxassetid://90347547238252",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   6.652,
+   1.773,
+   6.772
+  ]
+ },
+ {
+  "offset": [
+   70.504,
+   0.862,
+   30.058
+  ],
+  "name": "Stumps_NW",
+  "group": "Stumps_NW_Node",
+  "meshId": "rbxassetid://98384754107392",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   6.859,
+   2.125,
+   7.087
+  ]
+ },
+ {
+  "offset": [
+   -49.727,
+   0.835,
+   -43.951
+  ],
+  "name": "Stumps_SE",
+  "group": "Stumps_SE_Node",
+  "meshId": "rbxassetid://102677699238972",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   27.701,
+   2.07,
+   31.675
+  ]
+ },
+ {
+  "offset": [
+   36.24,
+   0.789,
+   -38.999
+  ],
+  "name": "Stumps_SW",
+  "group": "Stumps_SW_Node",
+  "meshId": "rbxassetid://92793365700192",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   6.834,
+   1.978,
+   6.834
+  ]
+ },
+ {
+  "offset": [
+   -37.098,
+   0.622,
+   30.293
+  ],
+  "name": "Undergrowth_NE",
+  "group": "Undergrowth_NE_Node",
+  "meshId": "rbxassetid://117401649625804",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   75.163,
+   1.644,
+   59.296
+  ]
+ },
+ {
+  "offset": [
+   37.975,
+   0.646,
+   29.553
+  ],
+  "name": "Undergrowth_NW",
+  "group": "Undergrowth_NW_Node",
+  "meshId": "rbxassetid://113021179566874",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   73.342,
+   1.693,
+   60.656
+  ]
+ },
+ {
+  "offset": [
+   -37.616,
+   0.654,
+   -29.913
+  ],
+  "name": "Undergrowth_SE",
+  "group": "Undergrowth_SE_Node",
+  "meshId": "rbxassetid://132254548211321",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   74.724,
+   1.708,
+   60.214
+  ]
+ },
+ {
+  "offset": [
+   36.963,
+   0.607,
+   -30.399
+  ],
+  "name": "Undergrowth_SW",
+  "group": "Undergrowth_SW_Node",
+  "meshId": "rbxassetid://92699893259537",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   75.253,
+   1.614,
+   59.163
+  ]
+ },
+ {
+  "offset": [
+   40.205,
+   1.602,
+   -10.667
+  ],
+  "name": "GlowCap_001",
+  "group": "GlowCap_001_Node",
+  "meshId": "rbxassetid://100496936046519",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   1.6,
+   0.7,
+   1.6
+  ]
+ },
+ {
+  "offset": [
+   39.677,
+   1.036,
+   -9.075
+  ],
+  "name": "GlowCap_002",
+  "group": "GlowCap_002_Node",
+  "meshId": "rbxassetid://85636724774416",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   1.158,
+   0.5,
+   1.158
+  ]
+ },
+ {
+  "offset": [
+   39.116,
+   0.782,
+   -11.574
+  ],
+  "name": "GlowCap_003",
+  "group": "GlowCap_003_Node",
+  "meshId": "rbxassetid://110939714119158",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   0.85,
+   0.42,
+   0.85
+  ]
+ },
+ {
+  "offset": [
+   -22.138,
+   1.629,
+   -14.462
+  ],
+  "name": "GlowCap_004",
+  "group": "GlowCap_004_Node",
+  "meshId": "rbxassetid://107853529991760",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   1.6,
+   0.7,
+   1.6
+  ]
+ },
+ {
+  "offset": [
+   -20.862,
+   1.027,
+   -13.234
+  ],
+  "name": "GlowCap_005",
+  "group": "GlowCap_005_Node",
+  "meshId": "rbxassetid://80623693561832",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   1.075,
+   0.5,
+   1.075
+  ]
+ },
+ {
+  "offset": [
+   17.531,
+   1.664,
+   33.31
+  ],
+  "name": "GlowCap_006",
+  "group": "GlowCap_006_Node",
+  "meshId": "rbxassetid://77065973076075",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   1.6,
+   0.7,
+   1.6
+  ]
+ },
+ {
+  "offset": [
+   16.414,
+   1.01,
+   34.695
+  ],
+  "name": "GlowCap_007",
+  "group": "GlowCap_007_Node",
+  "meshId": "rbxassetid://134856347330971",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   1.166,
+   0.5,
+   1.166
+  ]
+ },
+ {
+  "offset": [
+   17.261,
+   0.797,
+   32.013
+  ],
+  "name": "GlowCap_008",
+  "group": "GlowCap_008_Node",
+  "meshId": "rbxassetid://114656105904063",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   0.85,
+   0.42,
+   0.85
+  ]
+ },
+ {
+  "offset": [
+   -1.142,
+   1.4,
+   -33.48
+  ],
+  "name": "GlowCap_009",
+  "group": "GlowCap_009_Node",
+  "meshId": "rbxassetid://123971980653733",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   1.6,
+   0.7,
+   1.6
+  ]
+ },
+ {
+  "offset": [
+   0.321,
+   1.119,
+   -32.822
+  ],
+  "name": "GlowCap_010",
+  "group": "GlowCap_010_Node",
+  "meshId": "rbxassetid://82799127176030",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   1.161,
+   0.5,
+   1.161
+  ]
+ },
+ {
+  "offset": [
+   21.473,
+   1.426,
+   -28.912
+  ],
+  "name": "GlowCap_011",
+  "group": "GlowCap_011_Node",
+  "meshId": "rbxassetid://135762068206802",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   1.6,
+   0.7,
+   1.6
+  ]
+ },
+ {
+  "offset": [
+   22.538,
+   0.899,
+   -27.586
+  ],
+  "name": "GlowCap_012",
+  "group": "GlowCap_012_Node",
+  "meshId": "rbxassetid://88133386763059",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   1.091,
+   0.5,
+   1.091
+  ]
+ },
+ {
+  "offset": [
+   -21.847,
+   1.529,
+   21.601
+  ],
+  "name": "GlowCap_013",
+  "group": "GlowCap_013_Node",
+  "meshId": "rbxassetid://82652443175591",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   1.6,
+   0.7,
+   1.6
+  ]
+ },
+ {
+  "offset": [
+   -23.455,
+   1.054,
+   21.18
+  ],
+  "name": "GlowCap_014",
+  "group": "GlowCap_014_Node",
+  "meshId": "rbxassetid://140623348094783",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   1.113,
+   0.5,
+   1.113
+  ]
+ },
+ {
+  "offset": [
+   -20.817,
+   0.782,
+   20.632
+  ],
+  "name": "GlowCap_015",
+  "group": "GlowCap_015_Node",
+  "meshId": "rbxassetid://109350566707579",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   0.85,
+   0.42,
+   0.85
+  ]
+ },
+ {
+  "offset": [
+   72.617,
+   1.821,
+   41.809
+  ],
+  "name": "GlowCap_016",
+  "group": "GlowCap_016_Node",
+  "meshId": "rbxassetid://138912766367941",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   1.6,
+   0.7,
+   1.6
+  ]
+ },
+ {
+  "offset": [
+   72.649,
+   0.937,
+   40.205
+  ],
+  "name": "GlowCap_017",
+  "group": "GlowCap_017_Node",
+  "meshId": "rbxassetid://113367771013605",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   1.175,
+   0.5,
+   1.175
+  ]
+ },
+ {
+  "offset": [
+   73.596,
+   0.791,
+   42.874
+  ],
+  "name": "GlowCap_018",
+  "group": "GlowCap_018_Node",
+  "meshId": "rbxassetid://106624262363314",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   0.85,
+   0.42,
+   0.85
+  ]
+ },
+ {
+  "offset": [
+   -41.782,
+   1.423,
+   -57.2
+  ],
+  "name": "GlowCap_019",
+  "group": "GlowCap_019_Node",
+  "meshId": "rbxassetid://124698756154129",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   1.6,
+   0.7,
+   1.6
+  ]
+ },
+ {
+  "offset": [
+   -43.278,
+   0.962,
+   -57.992
+  ],
+  "name": "GlowCap_020",
+  "group": "GlowCap_020_Node",
+  "meshId": "rbxassetid://112448616005372",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   1.106,
+   0.5,
+   1.106
+  ]
+ },
+ {
+  "offset": [
+   -40.591,
+   0.769,
+   -57.931
+  ],
+  "name": "GlowCap_021",
+  "group": "GlowCap_021_Node",
+  "meshId": "rbxassetid://89965544488398",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   0.85,
+   0.42,
+   0.85
+  ]
+ },
+ {
+  "offset": [
+   35.515,
+   1.691,
+   -55.583
+  ],
+  "name": "GlowCap_022",
+  "group": "GlowCap_022_Node",
+  "meshId": "rbxassetid://81101173248319",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   1.6,
+   0.7,
+   1.6
+  ]
+ },
+ {
+  "offset": [
+   37.131,
+   0.919,
+   -55.453
+  ],
+  "name": "GlowCap_023",
+  "group": "GlowCap_023_Node",
+  "meshId": "rbxassetid://109985145468052",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   1.134,
+   0.5,
+   1.134
+  ]
+ },
+ {
+  "offset": [
+   72.378,
+   1.682,
+   -14.114
+  ],
+  "name": "GlowCap_024",
+  "group": "GlowCap_024_Node",
+  "meshId": "rbxassetid://79275038869479",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   1.6,
+   0.7,
+   1.6
+  ]
+ },
+ {
+  "offset": [
+   73.999,
+   1.084,
+   -14.038
+  ],
+  "name": "GlowCap_025",
+  "group": "GlowCap_025_Node",
+  "meshId": "rbxassetid://90017660968164",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   1.16,
+   0.5,
+   1.16
+  ]
+ },
+ {
+  "offset": [
+   3.063,
+   1.447,
+   57.856
+  ],
+  "name": "GlowCap_026",
+  "group": "GlowCap_026_Node",
+  "meshId": "rbxassetid://98437215627466",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   1.6,
+   0.7,
+   1.6
+  ]
+ },
+ {
+  "offset": [
+   1.431,
+   1.005,
+   58.573
+  ],
+  "name": "GlowCap_027",
+  "group": "GlowCap_027_Node",
+  "meshId": "rbxassetid://94374157426290",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   1.165,
+   0.5,
+   1.165
+  ]
+ },
+ {
+  "offset": [
+   -17.663,
+   1.655,
+   43.717
+  ],
+  "name": "GlowCap_028",
+  "group": "GlowCap_028_Node",
+  "meshId": "rbxassetid://122147647962987",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   1.6,
+   0.7,
+   1.6
+  ]
+ },
+ {
+  "offset": [
+   -19.071,
+   0.944,
+   42.902
+  ],
+  "name": "GlowCap_029",
+  "group": "GlowCap_029_Node",
+  "meshId": "rbxassetid://121517255573911",
+  "color": [
+   163,
+   162,
+   165
+  ],
+  "size": [
+   1.177,
+   0.5,
+   1.177
+  ]
+ }
+]

@@ -5,8 +5,10 @@
 	Crystals are small cyan faceted gems that pop out of a kill, lie bobbing
 	where they land, and fly into their owner when walked over or, for any
 	left, when the fight clears.
-	Hearts are fat red hearts tilted to face the camera, waiting until someone
-	walks over them.
+	Hearts are blocky pixel hearts in the game's voxel style (owner,
+	2026-10-24): they pop out of the body, bounce once in a random direction,
+	and stand upright on the floor spinning on the spot until someone walks
+	over them.
 
 	Presentation only. The server decides what drops, where, and who took it;
 	this draws what it is told. A pickup the client never heard about is
@@ -25,6 +27,8 @@ local PickupFx = {}
 type Visual = {
 	model: Model,
 	kind: string,
+	--[[ Hearts: where the first arc lands, before the hop to `rest`. ]]
+	bounce: Vector3?,
 	--[[ Where it rests, and where it was thrown from. ]]
 	rest: Vector3,
 	from: Vector3,
@@ -43,9 +47,34 @@ local BOB_HEIGHT = 0.18
 local BOB_SPEED = 3
 local CRYSTAL_SPIN = math.rad(90)
 --[[ Hearts are built a unit across and drawn this much larger. ]]
-local HEART_SCALE = 1.25
---[[ Hearts lean back to face the camera, which looks down at this pitch. ]]
-local HEART_TILT = math.rad(Balance.Camera.pitch)
+local HEART_SCALE = 2.2
+--[[ A landed heart's turn about the vertical, radians a second. ]]
+local HEART_SPIN = math.rad(150)
+--[[ A heart's bounce after it first lands: the hop's length, height and
+     time. The hop ends where the server put the heart, so it lands first a
+     hop away from there, in a direction of its own. ]]
+local HEART_HOP = 1.6
+local HEART_HOP_HEIGHT = 0.9
+local HEART_HOP_TIME = 0.25
+--[[ A heart stands on the floor: its middle this far above where the server
+     rests pickups (0.6), so its point touches the ground. ]]
+local HEART_LIFT = 0.35
+--[[ The pixel heart, top row first: each row's runs of pixels, as
+     { first column, last column } in a 7 by 6 grid. Built as one bar per
+     run, so a heart is seven parts, not twenty-seven cubes. ]]
+local HEART_ROWS = {
+	{ { 2, 3 }, { 5, 6 } },
+	{ { 1, 7 } },
+	{ { 1, 7 } },
+	{ { 2, 6 } },
+	{ { 3, 5 } },
+	{ { 4, 4 } },
+}
+local HEART_PIXEL = 1 / 7
+--[[ Pixels deep: a heart one pixel deep all but vanished edge-on as it
+     spun, under a camera looking steeply down; four, "a little thicker"
+     than three (owner, 2026-10-24). ]]
+local HEART_DEPTH = 4
 
 local folder: Folder? = nil
 local connection: RBXScriptConnection? = nil
@@ -97,25 +126,34 @@ local function buildHeart(): Model
 	local model = Instance.new("Model")
 	model.Name = "Heart"
 	local colour = Balance.Pickups.heartColor
+	local px = HEART_PIXEL
+	local rows = #HEART_ROWS
 
-	--[[ Two lobes over a diamond, in the heart's own plane (X across, Y up),
-	     with a white shine on the left lobe. ]]
-	local left = part(model, Enum.PartType.Ball, Vector3.one, colour)
-	offset(left, CFrame.new(-0.29, 0.14, 0))
-	local right = part(model, Enum.PartType.Ball, Vector3.one, colour)
-	offset(right, CFrame.new(0.29, 0.14, 0))
-	local point = part(model, Enum.PartType.Block, Vector3.new(0.9, 0.9, 0.66), colour)
-	offset(point, CFrame.new(0, -0.17, 0) * CFrame.Angles(0, 0, math.rad(45)))
+	--[[ Each run of pixels one block, a pixel deep, centred on the grid's
+	     middle in the heart's own plane (X across, Y up). ]]
+	for row, runs in HEART_ROWS do
+		local y = ((rows + 1) / 2 - row) * px
+		for _, run in runs do
+			local first, last = run[1], run[2]
+			local bar = part(
+				model,
+				Enum.PartType.Block,
+				Vector3.new((last - first + 1) * px, px, px * HEART_DEPTH),
+				colour
+			)
+			offset(bar, CFrame.new(((first + last) / 2 - 4) * px, y, 0))
+		end
+	end
 
-	local shine = part(model, Enum.PartType.Ball, Vector3.one * 0.2, Color3.new(1, 1, 1))
-	shine.Material = Enum.Material.Neon
-	offset(shine, CFrame.new(-0.42, 0.34, 0.38))
-
-	--[[ A soft disc behind it, in its plane: a cylinder turned to face out. ]]
-	local glow = part(model, Enum.PartType.Cylinder, Vector3.new(0.1, 1.7, 1.7), colour)
-	glow.Material = Enum.Material.Neon
-	glow.Transparency = 0.86
-	offset(glow, CFrame.new(0, 0, -0.45) * CFrame.Angles(0, math.rad(90), 0))
+	--[[ The pixel shine, top left, on both faces so it shows as it turns. ]]
+	for _, side in { 1, -1 } do
+		local shine =
+			part(model, Enum.PartType.Block, Vector3.new(px, px, px * 0.2), Color3.new(1, 1, 1))
+		offset(
+			shine,
+			CFrame.new(-2 * px, ((rows + 1) / 2 - 2) * px, side * px * (HEART_DEPTH / 2 + 0.05))
+		)
+	end
 
 	model:SetAttribute("Scale", HEART_SCALE)
 	model.Parent = folder
@@ -180,23 +218,35 @@ local function step()
 			end
 		else
 			local age = now - visual.bornAt
+			local bounce = visual.bounce
 			if age < POP_TIME then
 				local alpha = age / POP_TIME
-				centre = visual.from:Lerp(visual.rest, alpha)
+				centre = visual.from:Lerp(bounce or visual.rest, alpha)
 					+ Vector3.new(0, math.sin(alpha * math.pi) * POP_HEIGHT, 0)
+			elseif bounce and age < POP_TIME + HEART_HOP_TIME then
+				local alpha = (age - POP_TIME) / HEART_HOP_TIME
+				centre = bounce:Lerp(visual.rest, alpha)
+					+ Vector3.new(0, math.sin(alpha * math.pi) * HEART_HOP_HEIGHT, 0)
 			else
 				centre = visual.rest
 					+ Vector3.new(0, BOB_HEIGHT * (1 + math.sin(now * BOB_SPEED + visual.phase)), 0)
 			end
 		end
 
-		local turn = if visual.kind == "Heart"
-			then CFrame.Angles(0, math.sin(now * 1.6 + visual.phase) * math.rad(10), 0) * CFrame.Angles(
-				-HEART_TILT,
-				0,
-				0
-			)
-			else CFrame.Angles(0, now * CRYSTAL_SPIN + visual.phase, 0)
+		local turn
+		if visual.kind == "Heart" then
+			local landedFor = now - visual.bornAt - POP_TIME - HEART_HOP_TIME
+			if landedFor < 0 or visual.takenAt then
+				-- in flight: upright
+				turn = CFrame.new()
+			else
+				-- landed: upright on the floor, spinning on the spot
+				turn = CFrame.Angles(0, landedFor * HEART_SPIN, 0)
+			end
+			centre += Vector3.new(0, HEART_LIFT, 0)
+		else
+			turn = CFrame.Angles(0, now * CRYSTAL_SPIN + visual.phase, 0)
+		end
 
 		place(visual, centre, turn, scale)
 	end
@@ -208,9 +258,15 @@ function PickupFx.onDropped(id: number, kind: string, rest: Vector3, from: Vecto
 	end
 
 	local model = if kind == "Heart" then buildHeart() else buildCrystal()
+	local bounce: Vector3? = nil
+	if kind == "Heart" then
+		local angle = Random.new(id):NextNumber() * 2 * math.pi
+		bounce = rest - Vector3.new(math.cos(angle), 0, math.sin(angle)) * HEART_HOP
+	end
 	visuals[id] = {
 		model = model,
 		kind = kind,
+		bounce = bounce,
 		rest = rest,
 		from = Vector3.new(from.X, rest.Y, from.Z),
 		bornAt = os.clock(),

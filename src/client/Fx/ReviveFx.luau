@@ -71,7 +71,7 @@ local function burst(position: Vector3)
 	end)
 end
 
-local function callout(root: BasePart)
+local function callout(root: BasePart, text: string)
 	local billboard = Instance.new("BillboardGui")
 	billboard.Name = "ReviveCallout"
 	billboard.Adornee = root
@@ -83,8 +83,8 @@ local function callout(root: BasePart)
 	local label = Instance.new("TextLabel")
 	label.Size = UDim2.fromScale(1, 1)
 	label.BackgroundTransparency = 1
-	label.Font = Enum.Font.GothamBlack
-	label.Text = "REVIVED!"
+	label.Font = Enum.Font.Arcade
+	label.Text = text
 	label.TextScaled = true
 	label.TextColor3 = GOLD
 	label.TextStrokeColor3 = Color3.fromRGB(90, 50, 0)
@@ -130,13 +130,14 @@ local function shield(player: Player, duration: number)
 	end)
 end
 
-function ReviveFx.onRevived(player: Player, position: Vector3, duration: number)
+function ReviveFx.onRevived(player: Player, position: Vector3, duration: number, kind: string?)
 	ProjectileRenderer.clearEnemyNear(position, Balance.Revive.clearRadius)
 	burst(position)
 
 	local root = rootOf(player)
 	if root then
-		callout(root)
+		-- a spent Mythic is told apart from the stage's revive
+		callout(root, if kind == "SecondWind" then "SECOND WIND!" else "REVIVED!")
 	end
 	shield(player, duration)
 end

@@ -51,6 +51,11 @@ export type Tier = {
 	     The parts are built once at this count and reused, the oldest
 	     first, so a long fight never allocates more. ]]
 	maxSlimeResidue: number,
+	--[[ Most upgrade-card effects playing at once (`Fx/Upgrades/UpgradeFx`),
+	     one-shots only: a persistent tell (Strength's cuffs, Iron Skin's
+	     plates) is the player's own and is always drawn. Past it a new
+	     one-shot is skipped. ]]
+	maxUpgradeFx: number,
 }
 
 --[[
@@ -74,6 +79,7 @@ local low: Tier = {
 	bossFxShare = 0.5,
 	ambienceShare = 0.4,
 	maxSlimeResidue = 24,
+	maxUpgradeFx = 10,
 }
 
 local medium: Tier = {
@@ -92,6 +98,7 @@ local medium: Tier = {
 	bossFxShare = 0.75,
 	ambienceShare = 0.7,
 	maxSlimeResidue = 64,
+	maxUpgradeFx = 20,
 }
 
 local high: Tier = {
@@ -110,6 +117,7 @@ local high: Tier = {
 	bossFxShare = 1,
 	ambienceShare = 1,
 	maxSlimeResidue = 128,
+	maxUpgradeFx = 32,
 }
 
 local DeviceTiers = {

@@ -31,6 +31,7 @@ local CardPanel = require(ReplicatedStorage.Shared.Config.CardPanel)
 local CardTheme = require(ReplicatedStorage.Shared.Config.CardTheme)
 local DetailPanel = require(script.Parent.DetailPanel)
 local Device = require(script.Parent.Parent.Parent.Device)
+local FxEvents = require(script.Parent.Parent.Parent.Fx.Upgrades.FxEvents)
 local Motion = require(script.Parent.Motion)
 local MythicReveal = require(script.Parent.MythicReveal)
 local PlayerStats = require(script.Parent.Parent.Parent.PlayerStats)
@@ -280,6 +281,121 @@ local function setButton(b: TextButton, enabled: boolean, colour: Color3)
 	b.AutoButtonColor = false
 end
 
+--[[ The Glow Toy buttons (`CardAssets.buttons`): the plate is 713 x 230 of
+     the 804 x 324 art, from (45, 48); the art is drawn so that plate fills
+     the button. The plates are blank: the words (and Reroll's dice) are
+     written live in the blocky font (CLAUDE.md rule 11), centred on the
+     plate's face, rows 9..159 of its 230, and move down with the pressed
+     art, which sits 30 lower. ]]
+local ART_SIZE = Vector2.new(804, 324)
+local PLATE_AT = Vector2.new(45, 48)
+local PLATE_SIZE = Vector2.new(713, 230)
+local FACE_TOP = 9
+local FACE_HEIGHT = 150
+local PRESS_DROP = 30
+
+type ButtonArt = {
+	normal: string,
+	pressed: string,
+	disabled: string,
+	words: string,
+	icon: string?,
+	iconDisabled: string?,
+}
+local buttonArt: { [TextButton]: ButtonArt } = {}
+
+local function dress(b: TextButton, art: ButtonArt)
+	buttonArt[b] = art
+	local size = b.Size
+	local scale = size.X.Offset / PLATE_SIZE.X
+	local image = Instance.new("ImageLabel")
+	image.Name = "Art"
+	image.BackgroundTransparency = 1
+	image.Size = UDim2.fromOffset(ART_SIZE.X * scale, ART_SIZE.Y * scale)
+	image.Position = UDim2.fromOffset(-PLATE_AT.X * scale, -PLATE_AT.Y * scale)
+	image.Image = art.normal
+	image.ZIndex = b.ZIndex
+	image.Parent = b
+	b.BackgroundTransparency = 1
+	b.TextTransparency = 1
+	b.ZIndex = b.ZIndex + 1
+	for _, child in b:GetChildren() do
+		if child:IsA("UIStroke") then
+			child.Enabled = false
+		end
+	end
+	local shadow = b.Parent
+	if shadow and shadow:IsA("Frame") then
+		shadow.BackgroundTransparency = 1
+	end
+
+	--[[ The words, and the icon before them, as one row centred on the
+	     plate's face. A child draws over its parent, so they sit above the
+	     art. ]]
+	local face = Instance.new("Frame")
+	face.Name = "Words"
+	face.BackgroundTransparency = 1
+	face.Size = UDim2.new(1, 0, 0, FACE_HEIGHT * scale)
+	face.Position = UDim2.fromOffset(0, FACE_TOP * scale)
+	face.ZIndex = b.ZIndex + 1
+	face.Parent = b
+	local row = Instance.new("UIListLayout")
+	row.FillDirection = Enum.FillDirection.Horizontal
+	row.HorizontalAlignment = Enum.HorizontalAlignment.Center
+	row.VerticalAlignment = Enum.VerticalAlignment.Center
+	row.SortOrder = Enum.SortOrder.LayoutOrder
+	row.Padding = UDim.new(0, 6)
+	row.Parent = face
+	if art.icon then
+		local icon = Instance.new("ImageLabel")
+		icon.Name = "Icon"
+		icon.LayoutOrder = 1
+		icon.BackgroundTransparency = 1
+		icon.Image = art.icon
+		icon.ScaleType = Enum.ScaleType.Fit
+		icon.Size = UDim2.fromOffset(FACE_HEIGHT * scale * 0.72, FACE_HEIGHT * scale * 0.72)
+		icon.ZIndex = face.ZIndex
+		icon.Parent = face
+	end
+	local words = Instance.new("TextLabel")
+	words.Name = "Text"
+	words.LayoutOrder = 2
+	words.BackgroundTransparency = 1
+	words.AutomaticSize = Enum.AutomaticSize.XY
+	words.Font = CardTheme.fonts.display
+	words.TextSize = b.TextSize
+	words.TextColor3 = WHITE
+	words.Text = art.words
+	words.ZIndex = face.ZIndex
+	words.Parent = face
+	local edge = Instance.new("UIStroke")
+	edge.Color = INK
+	edge.Thickness = 3
+	edge.Parent = words
+end
+
+--[[ The art for a button's state, its words riding down with the pressed
+     plate, and the icon greyed with a disabled one. ]]
+local function showArt(b: TextButton, pressed: boolean)
+	local art = buttonArt[b]
+	local image = b:FindFirstChild("Art") :: ImageLabel?
+	if not art or not image then
+		return
+	end
+	local enabled = b.Active
+	image.Image = if not enabled then art.disabled elseif pressed then art.pressed else art.normal
+	local face = b:FindFirstChild("Words") :: Frame?
+	if face then
+		local scale = b.Size.X.Offset / PLATE_SIZE.X
+		face.Position =
+			UDim2.fromOffset(0, (FACE_TOP + (if pressed then PRESS_DROP else 0)) * scale)
+		local icon = face:FindFirstChild("Icon") :: ImageLabel?
+		if icon and art.icon then
+			icon.Image = if enabled then art.icon else art.iconDisabled or art.icon
+		end
+	end
+end
+
 local function wobble(b: TextButton, amp: number)
 	local feel = feelOf(b)
 	if feel then
@@ -322,6 +438,7 @@ local function stepButtons(deltaTime: number)
 
 		b.Position = UDim2.fromOffset(x, feel.lift)
 		b.Rotation = rotation
+		showArt(b, feel.pressed and enabled)
 
 		local base = b:GetAttribute("BaseColor")
 		if typeof(base) == "Color3" then
@@ -524,6 +641,9 @@ local function confirm()
 	end
 
 	local slot = slots[index]
+	if slot then
+		FxEvents.picked:fire(slot.id)
+	end
 	local words, tag, icon = headline, tagline, flyer
 	if slot and words and tag and icon then
 		local ability = Abilities.byId[slot.id]
@@ -1363,15 +1483,48 @@ function DraftScreen.start(chosen: (number) -> (), rerolled: () -> ())
 	list.Parent = buttons
 	buttonsList = list
 
-	local rerollB = button(buttons, "Reroll", "Reroll 2", CardTheme.colors.reroll, 150);
+	local rerollB = button(buttons, "Reroll", "Reroll 2", CardTheme.colors.reroll, 170);
 	(rerollB.Parent :: Frame).LayoutOrder = 1
 	rerollB.Activated:Connect(reroll)
 	rerollButton = rerollB
+	dress(rerollB, {
+		normal = CardAssets.buttons.reroll,
+		pressed = CardAssets.buttons.rerollPressed,
+		disabled = CardAssets.buttons.rerollDisabled,
+		words = "REROLL",
+		icon = CardAssets.buttons.dice,
+		iconDisabled = CardAssets.buttons.diceDisabled,
+	})
+	--[[ How many rerolls are left, on a badge at the plate's corner. ]]
+	local count = Instance.new("TextLabel")
+	count.Name = "Count"
+	count.AnchorPoint = Vector2.new(0.5, 0.5)
+	count.Position = UDim2.new(1, -4, 0, 4)
+	count.Size = UDim2.fromOffset(28, 28)
+	count.BackgroundColor3 = CardTheme.colors.danger
+	count.Font = CardTheme.fonts.display
+	count.TextSize = 18
+	count.TextColor3 = WHITE
+	count.Text = "2"
+	count.ZIndex = rerollB.ZIndex + 2
+	count.Parent = rerollB
+	corner(count, 14)
+	local countEdge = Instance.new("UIStroke")
+	countEdge.Color = INK
+	countEdge.Thickness = 3
+	countEdge.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	countEdge.Parent = count
 
 	local chooseB = button(buttons, "Choose", "Choose!", CardTheme.colors.disabled, 170);
 	(chooseB.Parent :: Frame).LayoutOrder = 2
 	chooseB.Activated:Connect(confirm)
 	chooseButton = chooseB
+	dress(chooseB, {
+		normal = CardAssets.buttons.choose,
+		pressed = CardAssets.buttons.choosePressed,
+		disabled = CardAssets.buttons.chooseDisabled,
+		words = "CHOOSE!",
+	})
 
 	-- The overlay: rays, a flash, a shockwave ring, words and a flying icon.
 	local over = Instance.new("Frame")
@@ -1631,6 +1784,11 @@ function DraftScreen.show(offer: { string }, level: number, source: string?, rer
 			if left > 0 then CardTheme.colors.reroll else CardTheme.colors.disabled
 		)
 		rerollB.Text = `Reroll {left}`
+		local count = rerollB:FindFirstChild("Count") :: TextLabel?
+		if count then
+			count.Text = tostring(left)
+			count.Visible = left > 0
+		end
 	end
 
 	layoutPanel(#offer)
@@ -1657,6 +1815,25 @@ function DraftScreen.show(offer: { string }, level: number, source: string?, rer
 		elseif rarest == 5 then PANEL_LEGENDARY
 		else CardTheme.colors.panel
 	paintPanel(panelBase)
+
+	-- The big cards announce themselves: a Mythic's sound is timed to its
+	-- reveal from its start, a Legendary's plays as the gold hand is dealt.
+	if rarest >= 6 then
+		local token = dealToken
+		for _, slot in slots do
+			local mythic = slot.mythic
+			if mythic then
+				task.delay(math.max(0, mythic.start - now), function()
+					if dealToken == token and gui and gui.Enabled then
+						SoundFx.play("card_mythic")
+					end
+				end)
+				break
+			end
+		end
+	elseif rarest == 5 then
+		SoundFx.play("card_legendary")
+	end
 
 	local isPad = mode == "Gamepad"
 	if strip then

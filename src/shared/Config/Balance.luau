@@ -2211,14 +2211,14 @@ local Balance = {
 		     Battle Cry stacks once per kill, up to `maxStacks`, and the
 		     stacks last `duration` seconds from the last kill. ]]
 		whirlwind = { radius = 6.5 },
-		shockwave = { speed = 32, width = 4, share = 0.6 },
+		shockwave = { speed = 32, width = 4, share = 0.5 },
 		battleCry = { maxStacks = 5, duration = 4 },
 
 		--[[ Meteor, the Arcanist's Mythic: every `every`th cast a meteor
 		     falls on that cast's target, its circle shown for `delay`
 		     seconds, hitting everything within `radius` for `damage` times
 		     the caster's damage. ]]
-		meteor = { every = 5, delay = 0.9, radius = 6, damage = 4 },
+		meteor = { every = 5, delay = 0.9, radius = 6, damage = 3.4 },
 		--[[ Earthbreaker, the Warden's Mythic: a dash ends in a leap,
 		     `leap` seconds from its end to the slam (the RubySword kit's
 		     Earthbreaker clip's Impact marker; `ClassCards.spec` holds them
@@ -2228,10 +2228,10 @@ local Balance = {
 		earthbreaker = {
 			leap = 0.56,
 			slamRadius = 5.5,
-			slamDamage = 2.5,
+			slamDamage = 2.1,
 			crackRadius = 5,
 			crackEvery = 0.5,
-			crackDamage = 0.5,
+			crackDamage = 0.42,
 			crackDuration = 3,
 		},
 
@@ -2314,7 +2314,9 @@ local Balance = {
 			-30% per bounce, from the teardown; the footage shows no number.
 		]]
 		ricochetRange = 14,
-		ricochetDamageScale = 0.7,
+		--[[ 0.6 (owner, 2026-10-25: every upgrade a little weaker, pets and
+		     weapons to carry a player's power); was 0.7. ]]
+		ricochetDamageScale = 0.6,
 		--[[ How far ahead a Tracking Eye arrow looks for something to curve
 		     towards. Under the archer's targeting range, so it bends shots
 		     at the fight rather than hunting across the room. ]]
@@ -2338,7 +2340,7 @@ local Balance = {
 		farRange = 30,
 		--[[ Soul Chain: the share of a hit each linked enemy takes, and how
 		     far from the one hit a link reaches. ]]
-		linkShare = 0.5,
+		linkShare = 0.4,
 		linkRange = 10,
 		--[[
 			Half the width of the drawn arrow, and half the width of the box
@@ -2421,7 +2423,8 @@ local Balance = {
 	--[[ Blaze. How long a burn lasts is the card's level; `rate` is the
 	     share of the arrow's damage it burns for each second. ]]
 	Burn = {
-		rate = 0.2,
+		-- 0.16 with every upgrade made a little weaker (2026-10-25); was 0.2
+		rate = 0.16,
 		tick = 0.5,
 	},
 

@@ -351,6 +351,9 @@ held (`RoomController.enterSandbox`); LEAVE starts the stage over. Any weapon in
 (`Remotes.DebugWeapon`, held as its class, kept for the run like the class) and any
 one pet at heel (`PetPreview.show`). A new `Config/Weapons` entry must be listed in
 `Config/Sandbox` (`tests/Sandbox.spec`).
+**`DevTier`** — a Workspace attribute ("Low", "Medium", "High") set in Edit before Play
+plays as that device tier (`client/Device`, Studio only), to measure a phone's budgets
+(`docs/PERFORMANCE.md`, `tools/studio/perf_room.luau`).
 From a probe, `Remotes.DebugForceMythic:FireServer("Legendary")` does the
 same without the MCP keyboard tool, which reports as a gamepad and flips the
 draft into its controller layout.

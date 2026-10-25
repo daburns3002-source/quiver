@@ -51,6 +51,13 @@ local connection: RBXScriptConnection? = nil
 local targetRing: Model? = nil
 local targetRadius = 0
 local spin = 0
+--[[ The ring's parts with the angle and radius each sits at (nil for the
+     disc under it), read once when it is built rather than off attributes
+     every frame; and the lists its placing hands to `BulkMoveTo`. ]]
+type Segment = { part: BasePart, angle: number?, radius: number? }
+local segments: { Segment } = {}
+local ringParts: { BasePart } = {}
+local ringFrames: { CFrame } = {}
 
 local playerRing: Model? = nil
 
@@ -101,28 +108,39 @@ local function buildTargetRing(radius: number): Model
 		segment:SetAttribute("Radius", radius)
 	end
 
+	table.clear(segments)
+	table.clear(ringParts)
+	table.clear(ringFrames)
+	for _, part in model:GetChildren() do
+		if part:IsA("BasePart") then
+			local angle = part:GetAttribute("Angle")
+			local at = part:GetAttribute("Radius")
+			table.insert(segments, {
+				part = part,
+				angle = if type(angle) == "number" then angle else nil,
+				radius = if type(at) == "number" then at else nil,
+			})
+			table.insert(ringParts, part)
+		end
+	end
+
 	model.Parent = folder
 	return model
 end
 
-local function placeRing(model: Model, centre: Vector3, rotation: number)
-	for _, part in model:GetChildren() do
-		if not part:IsA("BasePart") then
-			continue
-		end
-
-		local angle = part:GetAttribute("Angle")
-		local radius = part:GetAttribute("Radius")
-
-		if type(angle) == "number" and type(radius) == "number" then
+local function placeRing(centre: Vector3, rotation: number)
+	for i, segment in segments do
+		local angle, radius = segment.angle, segment.radius
+		if angle and radius then
 			local a = angle + rotation
 			local position = centre + Vector3.new(math.cos(a) * radius, 0, math.sin(a) * radius)
 			--[[ Each segment lies tangent to the circle. ]]
-			part.CFrame = CFrame.new(position) * CFrame.Angles(0, -a + math.pi / 2, 0)
+			ringFrames[i] = CFrame.new(position) * CFrame.Angles(0, -a + math.pi / 2, 0)
 		else
-			part.CFrame = CFrame.new(centre) * CFrame.Angles(0, 0, math.rad(90))
+			ringFrames[i] = CFrame.new(centre) * CFrame.Angles(0, 0, math.rad(90))
 		end
 	end
+	Workspace:BulkMoveTo(ringParts, ringFrames, Enum.BulkMoveMode.FireCFrameChanged)
 end
 
 local function buildPlayerRing(): Model
@@ -238,7 +256,7 @@ local function updateTarget(deltaTime: number)
 
 	spin = (spin + TARGET_SPIN * deltaTime) % (2 * math.pi)
 	local centre = Vector3.new(root.Position.X, FLOOR_Y + LIFT, root.Position.Z)
-	placeRing(targetRing :: Model, centre, spin)
+	placeRing(centre, spin)
 end
 
 local function updatePlayer()

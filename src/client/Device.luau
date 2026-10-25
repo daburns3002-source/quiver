@@ -9,6 +9,7 @@
 ]]
 
 local GuiService = game:GetService("GuiService")
+local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local Workspace = game:GetService("Workspace")
 
@@ -25,6 +26,14 @@ local Device = {}
 local resolved: DeviceTiers.Tier? = nil
 
 local function detect(): DeviceTiers.Tier
+	--[[ Studio only: a `DevTier` attribute on the Workspace ("Low",
+	     "Medium" or "High"), set in Edit before Play, plays as that tier,
+	     so a phone's budgets can be measured on a computer. ]]
+	local forced = if RunService:IsStudio() then Workspace:GetAttribute("DevTier") else nil
+	if forced == "Low" or forced == "Medium" or forced == "High" then
+		return DeviceTiers[forced]
+	end
+
 	if GuiService:IsTenFootInterface() then
 		return DeviceTiers.Medium
 	end

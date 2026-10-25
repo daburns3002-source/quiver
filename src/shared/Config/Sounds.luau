@@ -38,9 +38,8 @@ local BOSS_SPRITE = "rbxassetid://73447077207928"
 
 --[[ The Warden's new cards' round 19 picks in one upload
      (`assets/audio/final/warden_sprite_r19.mp3`; owner, 2026-10-25: one
-     file per batch, for Roblox's audio upload limits). Empty, so silent,
-     until it is uploaded. ]]
-local WARDEN_SPRITE = ""
+     file per batch, for Roblox's audio upload limits). Uploaded 2026-10-25. ]]
+local WARDEN_SPRITE = "rbxassetid://123411253404004"
 
 local Sounds: { [string]: Sound } = {
 	--[[ The Ranger's every arrow (`Config/Weapons.TwigBow.fireSound`). ]]

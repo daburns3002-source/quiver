@@ -156,27 +156,27 @@ local ArenaKits: { [string]: Kit } = {
 		scale = 2.6,
 		pieces = {
 			BrambleHedge = {
-				meshId = "rbxassetid://131412433375868",
+				meshId = "rbxassetid://130242909081488",
 				size = Vector3.new(2, 0.988, 0.7581),
 				centre = Vector3.new(0, 0.494, 0),
 			},
 			ThornTree = {
-				meshId = "rbxassetid://111589575242394",
+				meshId = "rbxassetid://114102878041804",
 				size = Vector3.new(1.6628, 2, 1.4856),
 				centre = Vector3.new(0, 1, 0),
 			},
 			MossyBoulder = {
-				meshId = "rbxassetid://140108563241728",
+				meshId = "rbxassetid://78499581487276",
 				size = Vector3.new(1.225, 1.07, 1.08),
 				centre = Vector3.new(0, 0.535, 0),
 			},
 			ThornBush = {
-				meshId = "rbxassetid://123520313943150",
+				meshId = "rbxassetid://137379320911418",
 				size = Vector3.new(1.04, 0.98, 1.04),
 				centre = Vector3.new(0, 0.49, 0),
 			},
 			RootSprout = {
-				meshId = "rbxassetid://95010626591606",
+				meshId = "rbxassetid://82229134586267",
 				size = Vector3.new(0.9089, 1.05, 0.784),
 				centre = Vector3.new(0, 0.525, 0),
 			},
@@ -212,7 +212,9 @@ local ArenaKits: { [string]: Kit } = {
 		pathSpacing = 3.2,
 		pathSway = 2.6,
 		edgeDepth = 2.8,
-		plants = { ThornBush = 3, RootSprout = 4 },
+		--[[ Only a few sprouts along the walls: the sheet's thorn bushes are
+		     cover, never decoration. ]]
+		plants = { RootSprout = 2 },
 		thicketSpacing = 2.6,
 		southGate = true,
 		midPillars = true,

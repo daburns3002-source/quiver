@@ -726,7 +726,9 @@ local slimeKing: EnemyConfig = {
 ]]
 local brambleBoar: EnemyConfig = {
 	displayName = "BrambleBoar",
-	turnRate = 300,
+	--[[ Longer than the Wilf, so no quicker to turn; its charges snap it
+	     onto their line regardless. ]]
+	turnRate = 240,
 	health = 320,
 	moveSpeed = 5.7,
 	attackRange = 5,
@@ -832,7 +834,8 @@ local brambleSow: EnemyConfig = {
      sprays thorns. ]]
 local brambleLurker: EnemyConfig = {
 	displayName = "BrambleLurker",
-	turnRate = 360,
+	--[[ Bigger than the Wilf, so no quicker to turn. ]]
+	turnRate = 240,
 	health = 280,
 	moveSpeed = 5.7,
 	attackRange = 10.1,
@@ -1330,10 +1333,23 @@ local rooms: { RoomConfig } = {
 		name = "Thornwood",
 		arena = "ThornHedges",
 		obstacles = {
-			{ offset = Vector2.new(-2.43, -11.56), size = Vector3.new(12, 2.8, 3.5) },
-			{ offset = Vector2.new(-8.91, 5.13), size = Vector3.new(3.75, 1.5, 3.75) },
-			{ offset = Vector2.new(8.64, 13.23), size = Vector3.new(3.3, 1.5, 3.3) },
-			{ offset = Vector2.new(-6.21, 19.71), size = Vector3.new(2.7, 1.2, 2.7) },
+			-- The reference sheet's top-down plan (area02_thornwood_views.png),
+			-- 1:1 (owner, 2026-10-25): three rows of bramble hedge across the
+			-- room, mossy boulders along the walls, thorn bushes between.
+			{ offset = Vector2.new(4.8, -15), size = Vector3.new(15.8, 2.6, 3.4) },
+			{ offset = Vector2.new(-7.2, -1), size = Vector3.new(12, 2.6, 3.4) },
+			{ offset = Vector2.new(7.4, -1), size = Vector3.new(11.5, 2.6, 3.4) },
+			{ offset = Vector2.new(-5, 14), size = Vector3.new(16.3, 2.6, 3.4) },
+			{ offset = Vector2.new(-9.5, -22.5), size = Vector3.new(3, 1.6, 3) },
+			{ offset = Vector2.new(8.4, -22.5), size = Vector3.new(3, 1.6, 3) },
+			{ offset = Vector2.new(-10.3, -6), size = Vector3.new(3, 1.6, 3) },
+			{ offset = Vector2.new(10.8, 3), size = Vector3.new(3, 1.6, 3) },
+			{ offset = Vector2.new(-11.3, 19), size = Vector3.new(3, 1.6, 3) },
+			{ offset = Vector2.new(10.3, 22), size = Vector3.new(3, 1.6, 3) },
+			{ offset = Vector2.new(-10.8, -16), size = Vector3.new(3.4, 0.4, 3.4) },
+			{ offset = Vector2.new(9.4, -8.8), size = Vector3.new(3.4, 0.4, 3.4) },
+			{ offset = Vector2.new(-9.8, 5), size = Vector3.new(3.4, 0.4, 3.4) },
+			{ offset = Vector2.new(10.3, 16), size = Vector3.new(3.4, 0.4, 3.4) },
 		},
 		--[[ Bramble Boars, which charge down a line: step off it. ]]
 		enemyCount = 3,
@@ -1401,10 +1417,23 @@ local rooms: { RoomConfig } = {
 		name = "Thornwood II",
 		arena = "ThornHedges",
 		obstacles = {
-			{ offset = Vector2.new(-2.43, -11.56), size = Vector3.new(12, 2.8, 3.5) },
-			{ offset = Vector2.new(-8.91, 5.13), size = Vector3.new(3.75, 1.5, 3.75) },
-			{ offset = Vector2.new(8.64, 13.23), size = Vector3.new(3.3, 1.5, 3.3) },
-			{ offset = Vector2.new(-6.21, 19.71), size = Vector3.new(2.7, 1.2, 2.7) },
+			-- The reference sheet's top-down plan (area02_thornwood_views.png),
+			-- 1:1 (owner, 2026-10-25): three rows of bramble hedge across the
+			-- room, mossy boulders along the walls, thorn bushes between.
+			{ offset = Vector2.new(4.8, -15), size = Vector3.new(15.8, 2.6, 3.4) },
+			{ offset = Vector2.new(-7.2, -1), size = Vector3.new(12, 2.6, 3.4) },
+			{ offset = Vector2.new(7.4, -1), size = Vector3.new(11.5, 2.6, 3.4) },
+			{ offset = Vector2.new(-5, 14), size = Vector3.new(16.3, 2.6, 3.4) },
+			{ offset = Vector2.new(-9.5, -22.5), size = Vector3.new(3, 1.6, 3) },
+			{ offset = Vector2.new(8.4, -22.5), size = Vector3.new(3, 1.6, 3) },
+			{ offset = Vector2.new(-10.3, -6), size = Vector3.new(3, 1.6, 3) },
+			{ offset = Vector2.new(10.8, 3), size = Vector3.new(3, 1.6, 3) },
+			{ offset = Vector2.new(-11.3, 19), size = Vector3.new(3, 1.6, 3) },
+			{ offset = Vector2.new(10.3, 22), size = Vector3.new(3, 1.6, 3) },
+			{ offset = Vector2.new(-10.8, -16), size = Vector3.new(3.4, 0.4, 3.4) },
+			{ offset = Vector2.new(9.4, -8.8), size = Vector3.new(3.4, 0.4, 3.4) },
+			{ offset = Vector2.new(-9.8, 5), size = Vector3.new(3.4, 0.4, 3.4) },
+			{ offset = Vector2.new(10.3, 16), size = Vector3.new(3.4, 0.4, 3.4) },
 		},
 		enemyCount = 5,
 		roster = { brambleBoar, brambleBoar, burrThistle, brambleSow },

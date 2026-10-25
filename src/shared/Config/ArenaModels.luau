@@ -101,14 +101,23 @@ local function glade(lowCover: "Water" | "Thicket"): ArenaModel
 	}
 end
 
+local ThornwoodForest = require(script.Parent.ThornwoodForest)
+
+local THORNWOOD_FOREST: { ArenaPart } = ThornwoodForest
+
+--[[ Past the wood's own edge, its ground's darkest green, as the glade's. ]]
+local THORNWOOD_FLOOR = Color3.fromRGB(55, 105, 31)
+
 --[[ Act 1, area 2: Thornwood (Level 2), built from the owner's blocky
-     Thornwood kit the same way, in the same outer forest until Thornwood
-     has its own. Thickets are thorn bushes. ]]
+     Thornwood kit the same way, inside its own outer wood
+     (`Config/ThornwoodForest`, 2026-10-25): the room's thorn trees,
+     bramble banks, bone spikes and dead snags with crows, with its own life
+     (`Balance.Ambience.Thornwood`). Thickets are thorn bushes. ]]
 local function thornwood(): ArenaModel
 	return {
-		parts = GLADE_FOREST,
-		outsideColor = GLADE_FLOOR,
-		ambience = "Forest",
+		parts = THORNWOOD_FOREST,
+		outsideColor = THORNWOOD_FLOOR,
+		ambience = "Thornwood",
 		kit = "Thornwood",
 		lowCover = "Thicket",
 	}

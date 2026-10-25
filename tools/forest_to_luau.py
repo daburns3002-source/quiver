@@ -1,13 +1,13 @@
-"""Turn the owner's Studio import of the Mossy Glade's outer forest into
-src/shared/Config/GladeForest.luau, the parts ArenaModels draws round every
-glade room.
+"""Turn the owner's Studio import of an area's outer forest into its config
+module, the parts ArenaModels draws round every room of that area.
 
-    python -I tools/forest_to_luau.py
+    python -I tools/forest_to_luau.py            # the Mossy Glade's
+    python -I tools/forest_to_luau.py thornwood  # Thornwood's
 
-Reads assets/models/arenas/mossy_glade_outer_ids.json, the output of
-tools/studio/dump_forest.luau. The forest (docs/arenas/mossy-glade-outer.md)
-is authored in the room's own frame at 1 unit = 1 stud, so unlike the round
-arenas it is never slimmed or scaled (optimise_arena.py would move it):
+Reads the area's `*_outer_ids.json` (FORESTS below), the output of
+tools/studio/dump_forest.luau. Each forest is authored in the room's own
+frame at 1 unit = 1 stud, so unlike the round arenas it is never slimmed or
+scaled (optimise_arena.py would move it):
 
 - Offsets are read from the import's pivot, which is the GLB's origin, the
   lawn's centre.
@@ -20,21 +20,53 @@ arenas it is never slimmed or scaled (optimise_arena.py would move it):
   2026-10-24: "the clipping is on the trees outside of the arena"). Each
   tree (trunk and crown) moves as one, along its smallest overlap, never
   toward the room.
-- The glow caps' cyan is a material colour, which the importer drops, so
-  they are drawn Neon in that cyan. The ground is drawn matte, as the old
-  glades' was (plastic read its dark grass as pale grey).
+- Glowing parts (the glade's mushroom caps, Thornwood's berries) take
+  their colour from a material, which the importer drops, so they are
+  drawn Neon in that colour. The ground is drawn matte, as the old glades'
+  was (plastic read its dark grass as pale grey).
 """
 
 import json
 import pathlib
+import sys
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
-SOURCE = ROOT / "assets/models/arenas/mossy_glade_outer_ids.json"
-TARGET = ROOT / "src/shared/Config/GladeForest.luau"
 
-# The GLB's GlowCap material, baseColorFactor in 0-255.
-GLOW_CAP = (13, 183, 233)
-MATTE = ("Ground",)
+FORESTS = {
+    "glade": {
+        "source": "assets/models/arenas/mossy_glade_outer_ids.json",
+        "target": "src/shared/Config/GladeForest.luau",
+        "about": [
+            "The Mossy Glade's outer forest as the owner imported it",
+            "(docs/arenas/mossy-glade-outer.md): 81 trees, bushes, rocks, logs and",
+            "glowing mushrooms round the room, with a hole where the room goes.",
+        ],
+        # The GLB's GlowCap material, baseColorFactor in 0-255.
+        "glow": {"GlowCap": (13, 183, 233)},
+        "matte": ("Ground",),
+    },
+    "thornwood": {
+        "source": "assets/models/arenas/thornwood_outer_ids.json",
+        "target": "src/shared/Config/ThornwoodForest.luau",
+        "about": [
+            "Thornwood's outer wood as the owner imported it",
+            "(assets/concepts/blocky/arenas/area02_thornwood_ambience*.jpg): the",
+            "room's thorn trees, bramble banks, bushes, bone spikes, dead snags with",
+            "crows, rocks and logs round the room, with a hole where the room goes.",
+        ],
+        # The GLB's Berry material as sRGB, in 0-255.
+        "glow": {"Berry": (255, 63, 217)},
+        "matte": ("Ground", "Path"),
+        "numbered": ("Berry",),
+        # Its design checks the crowns' spacing itself (2.3 studs at least),
+        # and the boxes `separate` compares are whole trunks with their
+        # branches, which would pull each snag's split pieces apart.
+        "separate": False,
+    },
+}
+FOREST = FORESTS[sys.argv[1] if len(sys.argv) > 1 else "glade"]
+SOURCE = ROOT / FOREST["source"]
+TARGET = ROOT / FOREST["target"]
 
 
 def num(v):
@@ -120,9 +152,17 @@ def separate(rows):
 
 def main():
     rows = json.loads(SOURCE.read_text())
-    moved = separate(rows)
+    moved = separate(rows) if FOREST.get("separate", True) else {}
     for t, (dx, dz) in sorted(moved.items(), key=lambda kv: int(kv[0])):
         print(f"tree {t} moved {dx:+.2f}, {dz:+.2f}")
+    # The importer can give every copy of a node one name (Thornwood's berries
+    # all arrive as Berry_001); those are numbered in order instead.
+    seen = {}
+    for r in rows:
+        if r["name"].startswith(FOREST.get("numbered", ())):
+            seen[r["name"]] = seen.get(r["name"], 0) + 1
+            if seen[r["name"]] > 1:
+                r["name"] = f"{r['name']}_{seen[r['name']]}"
     names = [r["name"] for r in rows]
     dupes = sorted({n for n in names if names.count(n) > 1})
     if dupes:
@@ -131,9 +171,7 @@ def main():
     out = [
         "--!strict",
         "--[[",
-        "\tThe Mossy Glade's outer forest as the owner imported it",
-        "\t(docs/arenas/mossy-glade-outer.md): 81 trees, bushes, rocks, logs and",
-        "\tglowing mushrooms round the room, with a hole where the room goes.",
+        *("\t" + line for line in FOREST["about"]),
         "\tGenerated by tools/forest_to_luau.py from tools/studio/dump_forest.luau's",
         "\toutput; regenerate after a re-import, never hand-edit.",
         "",
@@ -165,10 +203,11 @@ def main():
             f"\t\tsize = {vec(sx, sy, sz)},",
             f"\t\toffset = {vec(-ox, oy, -oz)},",
         ]
-        if r["name"].startswith("GlowCap"):
-            lines.append("\t\tglow = true,")
-            lines.append(f"\t\ttint = Color3.fromRGB({', '.join(map(str, GLOW_CAP))}),")
-        if r["name"] in MATTE:
+        for prefix, colour in FOREST["glow"].items():
+            if r["name"].startswith(prefix):
+                lines.append("\t\tglow = true,")
+                lines.append(f"\t\ttint = Color3.fromRGB({', '.join(map(str, colour))}),")
+        if r["name"].split("_")[0] in FOREST["matte"]:
             lines.append("\t\tmatte = true,")
         out.append("\t{")
         out.extend(lines)

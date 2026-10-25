@@ -16,10 +16,11 @@ export type Entry = { weapon: string, class: string, label: string }
 
 local Sandbox = {
 	--[[ Studio only: the room of a Rooms stage a run starts in, to test a
-	     late room straight from Play; nil starts at the first. Room 40 is the
-	     Broodmother (owner, 2026-10-25: "take me to room 40 and let me test
-	     it myself"). Never honoured in a live server. ]]
-	startRoom = 40 :: number?,
+	     late room straight from Play; nil starts at the first. Back to the
+	     first for the run-throughs (owner, 2026-10-25: "start it at room 1
+	     not 20"); it was 40 for the Broodmother. Never honoured in a live
+	     server. ]]
+	startRoom = nil :: number?,
 	weapons = {
 		{ weapon = "TwigBow", class = "Ranger", label = "TWIG BOW" },
 		{ weapon = "TwigBowDual", class = "Ranger", label = "DUAL TWIG BOWS" },

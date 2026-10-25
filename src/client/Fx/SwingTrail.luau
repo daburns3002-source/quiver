@@ -18,10 +18,15 @@
 
 	A Legendary or Mythic blade's streak glows in its own colour
 	(`Config/Weapons.trailGlow`), a Mythic's turning round the rainbow at
-	its weapon's pace (`Fx/WeaponGlow`; owner, 2026-10-25).
+	its weapon's pace (`Fx/WeaponGlow`; owner, 2026-10-25). A Mythic's
+	slash also scatters little cross-shaped stars over the ground it sweeps
+	("for the mythic sword add little cross shaped stars as well in the swing
+	area"): two crossed bars each, in the rainbow, popping in, turning and
+	fading, from a pool of `STAR_POOL`, so a swing costs no new parts.
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
 
 local Classes = require(ReplicatedStorage.Shared.Config.Classes)
@@ -45,6 +50,23 @@ type Active = {
 	--[[ Whether the far edge has been held for its frame. ]]
 	finished: boolean,
 }
+
+--[[ A Mythic's stars: how many a second while the slash sweeps, how long
+     each lives, its arm's length and thickness in studs, and the most alive
+     at once. ]]
+local STARS_PER_SECOND = 45
+local STAR_LIFE = 0.45
+local STAR_SIZE = 0.75
+local STAR_THICK = 0.14
+local STAR_POOL = 24
+
+type Star = { arms: { Part }, born: number, at: Vector3, hue: number, spin: number }
+
+local stars: { Star } = {}
+local idleStars: { Star } = {}
+local starDebt = 0
+local starFolder: Folder? = nil
+local starConnection: RBXScriptConnection? = nil
 
 local holder: Part? = nil
 local ends: { Attachment } = {}
@@ -121,6 +143,105 @@ local function tint(weapon: any)
 	end
 end
 
+local function newStar(): Star
+	local folder = starFolder
+	if not (folder and folder.Parent) then
+		local made = Instance.new("Folder")
+		made.Name = "SwingStars"
+		made.Parent = Workspace.CurrentCamera
+		starFolder = made
+		folder = made
+	end
+	local arms: { Part } = {}
+	for index = 1, 2 do
+		local arm = Instance.new("Part")
+		arm.Name = "StarArm"
+		arm.Anchored = true
+		arm.CanCollide = false
+		arm.CanQuery = false
+		arm.CanTouch = false
+		arm.CastShadow = false
+		arm.Material = Enum.Material.Neon
+		arm.Size = if index == 1
+			then Vector3.new(STAR_SIZE, STAR_THICK, STAR_THICK)
+			else Vector3.new(STAR_THICK, STAR_THICK, STAR_SIZE)
+		arm.Transparency = 1
+		arm.Parent = folder
+		arms[index] = arm
+	end
+	return { arms = arms, born = 0, at = Vector3.zero, hue = 0, spin = 0 }
+end
+
+--[[ Poses every live star, and parks the ones whose time is up. ]]
+local function stepStars()
+	local now = os.clock()
+	for index = #stars, 1, -1 do
+		local star = stars[index]
+		local t = (now - star.born) / STAR_LIFE
+		if t >= 1 then
+			for _, arm in star.arms do
+				arm.Transparency = 1
+			end
+			table.remove(stars, index)
+			table.insert(idleStars, star)
+			continue
+		end
+		-- pops in over the first fifth, shrinks away over the rest
+		local scale = if t < 0.2 then t / 0.2 else 1 - (t - 0.2) / 0.8 * 0.7
+		local colour =
+			Color3.fromHSV((star.hue + now * RAINBOW_SPEED) % 1, RAINBOW_SATURATION * 0.8, 1)
+		local frame = CFrame.new(star.at + Vector3.new(0, t * 0.6, 0))
+			* CFrame.Angles(0, star.spin + t * 2.5, 0)
+		for _, arm in star.arms do
+			arm.Color = colour
+			arm.Transparency = 0.1 + 0.8 * math.max(0, (t - 0.55) / 0.45)
+			arm.CFrame = frame
+			arm.Size = Vector3.new(
+				if arm.Size.X > arm.Size.Z then STAR_SIZE * scale else STAR_THICK,
+				STAR_THICK,
+				if arm.Size.Z > arm.Size.X then STAR_SIZE * scale else STAR_THICK
+			)
+		end
+	end
+	if #stars == 0 and starConnection then
+		starConnection:Disconnect()
+		starConnection = nil
+	end
+end
+
+--[[ Scatters a Mythic's stars over the streak between its two ends, at a
+     steady rate, from the pool. ]]
+local function scatterStars(dt: number)
+	local part = holder
+	if not part or #ends < 2 then
+		return
+	end
+	starDebt += dt * STARS_PER_SECOND
+	while starDebt >= 1 do
+		starDebt -= 1
+		local star = table.remove(idleStars)
+		if not star then
+			if #stars >= STAR_POOL then
+				break
+			end
+			star = newStar()
+		end
+		local along = 0.2 + math.random() * 0.8
+		local point = ends[1].Position:Lerp(ends[2].Position, along)
+		local s = star :: Star
+		s.at = part.CFrame:PointToWorldSpace(point)
+		s.born = os.clock()
+		s.hue = math.random()
+		s.spin = math.random() * math.pi
+		table.insert(stars, s)
+	end
+	if not starConnection then
+		starConnection = RunService.RenderStepped:Connect(stepStars)
+	end
+end
+
+local lastStarStep = os.clock()
+
 local function place(swing: Active, progress: number)
 	local a, b = SwingSweep.edge(swing.shape, swing.sweep, progress)
 	ends[1].Position = a
@@ -168,8 +289,15 @@ function SwingTrail.step(
 	local current = active
 	if current and not current.finished then
 		place(current, progress)
+		-- a Mythic's stars over the ground the slash is sweeping
+		local now = os.clock()
+		if weapon.rainbow and weapon.trailGlow then
+			scatterStars(math.min(now - lastStarStep, 0.1))
+		end
+		lastStarStep = now
 		return
 	end
+	lastStarStep = os.clock()
 
 	local root = character:FindFirstChild("HumanoidRootPart") :: BasePart?
 	if not root then

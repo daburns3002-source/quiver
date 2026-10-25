@@ -312,5 +312,12 @@
   "FxPetReviveBurst": {
     "glb": "assets/models/effects/fx_pet_revive_burst.glb",
     "loops": []
+  },
+  "BurrThistle": {
+    "glb": "assets/models/enemies/blocky/burr_thistle.glb",
+    "loops": [
+      "Idle",
+      "Move"
+    ]
   }
 }

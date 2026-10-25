@@ -73,6 +73,18 @@ return function(t: TestRunner.Helper)
 		end
 	end)
 
+	t.test("the Mossy Glade run is twenty glade rooms ending in King Bloblin alone", function()
+		local rooms: { number } = Balance.Stages[5].rooms or {}
+		t.equal(#rooms, 20)
+		for _, index in rooms do
+			local room = Balance.Rooms[index]
+			t.isTrue(string.sub(room.arena or "", 1, 5) == "Glade", `{room.name} is not a glade`)
+		end
+		local last = Balance.Rooms[rooms[#rooms]]
+		t.equal(last.enemyCount, 1)
+		t.isTrue(last.roster[1].boss ~= nil, "the last room is not the boss alone")
+	end)
+
 	t.test("Level 2 is forty rooms, none more than 30% cover", function()
 		local rooms: { number } = Balance.Stages[4].rooms or {}
 		t.equal(#rooms, 40)

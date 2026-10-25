@@ -49,6 +49,8 @@ HEDGE_H, BOULDER_H, BUSH_H = 2.6, 1.6, 0.4
 
 BEGIN = "\t--[[\n\t\tLevel 2 (2026-10-25)"
 END_MARK = "\n}\n\nlocal Balance = {"
+#: The Mossy Glade run's rows (`tools/glade_rooms.py`) follow Level 2's.
+GLADE_BEGIN = "\t--[[\n\t\tThe Mossy Glade run (2026-10-25)"
 
 
 def hedge(rng, x, z, along_x):
@@ -254,8 +256,11 @@ def main():
         )
     text = BALANCE.read_text(encoding="utf-8")
     i = text.index(BEGIN)
-    j = text.index(END_MARK, i)
-    BALANCE.write_text(text[:i] + "".join(out).rstrip("\n") + text[j:], encoding="utf-8", newline="\n")
+    if GLADE_BEGIN in text:
+        tail = "\n\n" + text[text.index(GLADE_BEGIN, i) :]
+    else:
+        tail = text[text.index(END_MARK, i) :]
+    BALANCE.write_text(text[:i] + "".join(out).rstrip("\n") + tail, encoding="utf-8", newline="\n")
     print("wrote 40 rooms:", {k: kinds.count(k) for k in sorted(set(kinds))})
 
 

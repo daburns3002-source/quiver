@@ -5,6 +5,23 @@ arcanist class. make the upgrades and give me ideas for them just like you
 did for the ranger. i want icons generated as well for each upgrade with
 codex." This picks option C of `docs/WARDEN-CARDS.md` (a card set per class).
 
+## The 2026-10-25 trim (the owner, after the class run-throughs)
+
+`Config/Abilities` is the source of truth; the lists below predate this.
+
+- **Benched** (never dealt, effects kept): Agility, Mending, Iron Skin,
+  Steadfast, Bloodletting, Swift Arrows, Long Shot (and Momentum, earlier).
+- **Intellect**, the Arcanist's Strength: the same card and effect under its
+  own name and icon; Strength is now the Ranger's and the Warden's.
+- **Diagonal Orbs**, the Arcanist's Diagonal Arrows: the same effect, its
+  own name and icon.
+- **Soul Chain for every class**: orbs link as arrows do, and a Warden's
+  blow links through `Combat/SoulLink`.
+- Descriptions: Front Arrow "Fire another arrow.", Double Shot "Fire another
+  arrow in a narrow spread."
+- The Warden lost Iron Skin, Steadfast and Bloodletting; new Warden cards are
+  the owner's pick from the ideas in the chat of 2026-10-25.
+
 ## Who gets what
 
 - **Every class (12):** Strength, Precision, Deadly Strike, Blaze, Momentum,

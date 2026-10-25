@@ -23,6 +23,7 @@ local Log = require(ReplicatedStorage.Shared.Util.Log)
 local ProjectileFlight = require(ReplicatedStorage.Shared.Combat.ProjectileFlight)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local RunSession = require(script.Parent.Parent.Run.RunSession)
+local SoulLink = require(script.Parent.SoulLink)
 local Targeting = require(script.Parent.Targeting)
 local Types = require(ReplicatedStorage.Shared.Types)
 
@@ -32,7 +33,6 @@ local log = Log.forTag("Projectiles")
 
 local shotFired = Remotes.event(Remotes.ShotFired)
 local explosion = Remotes.event(Remotes.Explosion)
-local soulLink = Remotes.event(Remotes.SoulLink)
 
 --[[ `os.clock()` for the step currently running. Chain shots are created deep
      inside the hit path, which has no reason to be handed the time. ]]
@@ -88,6 +88,10 @@ type Projectile = {
 	origin: Vector3,
 	--[[ Other enemies near a hit that share in it. Soul Chain. ]]
 	link: number,
+	--[[ How the shooter's class draws its shots (`Config/Classes.look`),
+	     passed on to every shot it sends onward, or the Arcanist's chained
+	     orbs are drawn as arrows and Chain Lightning's bolt never plays. ]]
+	look: string?,
 	--[[ Guards against a single projectile hitting the same enemy on
 	     consecutive steps while it is still inside the hitbox. ]]
 	hitModels: { [Model]: boolean },
@@ -232,6 +236,8 @@ export type SpawnParams = {
 	--[[ Long Shot and Soul Chain. Omitted means none. ]]
 	farBonus: number?,
 	link: number?,
+	--[[ The shooter's class look. Omitted means the plain arrow. ]]
+	look: string?,
 	--[[ A body this projectile starts inside and must not strike: the enemy
 	     a ricochet leaves from, which would otherwise be hit again by the
 	     very first overlap pass. ]]
@@ -286,6 +292,7 @@ function ProjectileSystem.spawn(params: SpawnParams)
 		farBonus = params.farBonus or 0,
 		origin = params.origin,
 		link = params.link or 0,
+		look = params.look,
 		startsAt = now + (params.delay or 0),
 		expiresAt = now + (params.delay or 0) + params.lifetime,
 		hitModels = if params.ignore then { [params.ignore] = true } else {},
@@ -341,56 +348,6 @@ local function applySplash(projectile: Projectile, centre: Vector3, damage: numb
 end
 
 --[[
-	Soul Chain: the enemies nearest the one hit share in the hit.
-
-	The nearest `link` others within `linkRange` each take `linkShare` of
-	the damage — no knockback, since nothing struck them — and every client
-	is told to draw the link. Snapshotted first, for the same reason as
-	splash: a kill removes its enemy from the table being read.
-]]
-local function applyLink(projectile: Projectile, hit: Model, centre: Vector3, damage: number)
-	if projectile.link <= 0 then
-		return
-	end
-
-	local config = Balance.Projectile
-	local flatCentre = Vector3.new(centre.X, 0, centre.Z)
-	local nearby: { { model: Model, position: Vector3, distance: number } } = {}
-
-	for model, position in EnemyManager.positions() do
-		if model == hit then
-			continue
-		end
-
-		local distance = (Vector3.new(position.X, 0, position.Z) - flatCentre).Magnitude
-		if distance <= config.linkRange then
-			table.insert(nearby, { model = model, position = position, distance = distance })
-		end
-	end
-
-	if #nearby == 0 then
-		return
-	end
-
-	table.sort(nearby, function(a, b)
-		return a.distance < b.distance
-	end)
-
-	local reached: { Vector3 } = {}
-	for index = 1, math.min(projectile.link, #nearby) do
-		table.insert(reached, nearby[index].position)
-	end
-
-	soulLink:FireAllClients(centre, reached)
-
-	for index = 1, #reached do
-		local entry = nearby[index]
-		local _, xp, fell = EnemyManager.damage(entry.model, damage * config.linkShare)
-		RunSession.creditKill(projectile.owner, xp, fell)
-	end
-end
-
---[[
 	Launches arrows the server invented — a ricochet off a hit — and tells
 	every client to draw them.
 
@@ -432,6 +389,7 @@ local function fireOnward(projectile: Projectile, onward: Onward)
 			burnDuration = projectile.burnDuration,
 			farBonus = projectile.farBonus,
 			link = projectile.link,
+			look = projectile.look,
 			owner = projectile.owner,
 			now = currentNow,
 			ignore = onward.from,
@@ -470,6 +428,7 @@ local function fireOnward(projectile: Projectile, onward: Onward)
 		firedAt = currentNow,
 		predicted = false,
 		from = onward.from,
+		look = projectile.look,
 	} :: Types.ShotEvent)
 end
 
@@ -557,7 +516,7 @@ local function applyHit(projectile: Projectile, model: Model): boolean
 			     second enemy has already happened by the time the chain looks
 			     for what is nearest. ]]
 			applySplash(projectile, projectile.position, damage, model)
-			applyLink(projectile, model, projectile.position, damage)
+			SoulLink.apply(projectile.owner, projectile.link, model, projectile.position, damage)
 		end
 
 		if xp > 0 then

@@ -2146,6 +2146,12 @@ local Balance = {
 		     brisker than the footage's 0.19 by choice — then every speed in
 		     the game went up by half on the owner's ask (2026-10-22). ]]
 		moveSpeed = 13.5,
+		--[[ Walking speed multiplier once a room is cleared and its exit gate
+		     is open, until the player leaves through it (owner, 2026-10-25:
+		     "run faster towards door after the last enemy in the room is
+		     killed"). The server says when (`ExitOpen` on Workspace, set
+		     with the gate by `RoomController`); the client walks at it. ]]
+		exitRush = 1.5,
 		baseDamage = 100,
 		--[[ Seconds between volleys while stationary. Slowed from 0.45 over
 		     playtests: at that pace standing still paid so well that moving
@@ -2179,10 +2185,11 @@ local Balance = {
 			firing needed changing for that; it falls out of driving the
 			Humanoid rather than teleporting.
 
-			Four studs — two player-widths, about a ninth of the room's
-			width. Scaled down with the room from the original sixteen, then
-			shortened a step further after playtest: it still clears a fan,
-			but it is an escape now rather than a way across the room. The duration is the shortest that still reads as travel
+			Six studs — three player-widths, about a sixth of the room's
+			width. Scaled down with the room from the original sixteen and
+			shortened to four after playtest, then lengthened by half on the
+			owner's ask (2026-10-25, "dash further"): still an escape rather
+			than a way across the room. The duration is the shortest that still reads as travel
 			rather than as a blink, which matters because a player who cannot
 			see where they went cannot aim the next one.
 		]]
@@ -2232,7 +2239,7 @@ local Balance = {
 		},
 
 		dash = {
-			distance = 4,
+			distance = 6,
 			duration = 0.12,
 			--[[
 				Long enough that it is a decision rather than a second
@@ -3483,6 +3490,10 @@ local Balance = {
 		boltRim = Color3.fromRGB(60, 190, 255),
 		boltLife = 0.28,
 		nodeLift = 1.4,
+		-- the chain's target is the enemy most nearly along its aim (the
+		-- cosine it must beat), a little past the reach for one that moved
+		boltAimed = 0.8,
+		boltReachSlack = 3,
 		-- Meteor: the rock rides the fall at most this long
 		meteorLife = 2,
 	},

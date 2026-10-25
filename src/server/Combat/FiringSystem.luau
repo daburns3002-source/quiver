@@ -124,6 +124,7 @@ local function fire(session: Session, root: BasePart, now: number)
 			burnDuration = spec.burnDuration,
 			farBonus = spec.farBonus,
 			link = spec.link,
+			look = Classes[session.loadout.class].look,
 			--[[ The run that fired it, so the kill credits the right player's
 			     draft even if the arrow outlives their current session. ]]
 			owner = session.player,

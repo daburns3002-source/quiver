@@ -28,6 +28,17 @@ local CardTheme = {
 		white = rgb(255, 255, 255),
 	},
 
+	--[[ The rarity word on each card's banner plate, in the colours the
+	     Glow Toy set printed it (sampled from its banners). ]]
+	bannerRarity = {
+		Common = rgb(72, 80, 96),
+		Uncommon = rgb(24, 128, 48),
+		Rare = rgb(24, 72, 176),
+		Epic = rgb(88, 32, 168),
+		Legendary = rgb(184, 104, 0),
+		Mythic = rgb(152, 8, 40),
+	},
+
 	--[[ Both blocky: Press Start 2P (CLAUDE.md rule 11, owner 2026-10-24). ]]
 	fonts = {
 		--[[ Headings, rarity labels, names, badges, buttons. ]]
@@ -73,6 +84,13 @@ local CardTheme = {
 		     inside a `descBox`; `CardText.spec` keeps every card's text
 		     inside it. All in the face's 168-wide units. ]]
 		statText = 14,
+		-- a long stat line steps its own size down to fit across the card, to
+		-- no less than this (the blocky font is wide; CLAUDE.md rule 11)
+		statTextMin = 9,
+		-- the name on the banner, as large as fits its ribbon on one line or
+		-- two, up to the first and no smaller than the second
+		bannerNameMax = 24,
+		bannerNameMin = 7,
 		statHeight = 26,
 		descText = 20,
 		descStroke = 4,

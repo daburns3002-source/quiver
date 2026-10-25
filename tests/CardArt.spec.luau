@@ -1,8 +1,8 @@
 --!strict
 --[[
 	Every upgrade card is drawn from the owner's Glow Toy set
-	(`Config/CardAssets`, 2026-10-24): a card without its icon or its name
-	banner, or a rarity without its body, would draw a blank where the art
+	(`Config/CardAssets`, 2026-10-24): a card without its icon, or a rarity
+	without its name banner or its body, would draw a blank where the art
 	should be. A new card must bring its art; so must the draft's buttons and
 	the skill bar.
 ]]
@@ -15,12 +15,12 @@ local Rarities = require(ReplicatedStorage.Shared.Config.Rarities)
 local TestRunner = require(script.Parent.TestRunner)
 
 return function(t: TestRunner.Helper)
-	t.test("every card has its icon and its name banner", function()
+	t.test("every card has its icon, and its rarity a name banner", function()
 		for _, ability in Abilities.all do
 			local icon = CardAssets.icons[ability.icon]
-			local banner = CardAssets.banners[ability.icon]
+			local banner = (CardAssets.banners :: any)[ability.rarity]
 			t.isTrue(icon ~= nil and icon ~= "", `{ability.name} has no icon`)
-			t.isTrue(banner ~= nil and banner ~= "", `{ability.name} has no banner`)
+			t.isTrue(banner ~= nil and banner ~= "", `{ability.rarity} has no banner`)
 		end
 	end)
 

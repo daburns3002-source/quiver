@@ -12,7 +12,8 @@
 	4. the content: the icon on its rarity tile, the level chip, the stat
 	   and description from `Config/Abilities` (the set's own stat lines are
 	   placeholders), the level pips;
-	5. the card's name banner across the top, its name and rarity drawn in;
+	5. the rarity's name banner across the top, the card's name and rarity
+	   written on it in the blocky font;
 	6. the NEW! sticker, the Maxed or Locked overlay, the selection ring.
 
 	Presentation only: a card does not know what an ability does, only what
@@ -78,6 +79,10 @@ local GLOW_TOY = {
 	banner = Vector2.new(984, 558),
 	ribbonWidth = 726,
 	ribbonMidY = 298,
+	--[[ Where the name and the rarity are written on it (its pixels): across
+	     the ribbon, and inside the white plate under it. ]]
+	nameBox = Rect.new(240, 186, 744, 302),
+	rarityBox = Rect.new(378, 333, 606, 376),
 	--[[ The ribbon this wide on the card, its middle this far down. ]]
 	bannerRibbon = 168,
 	bannerY = 34,
@@ -229,6 +234,64 @@ function CardBuilder.wrap(text: string): string
 	return lines(text, CardTheme.fonts.body, CardTheme.card.descText, CardTheme.card.descWrap)
 end
 
+--[[ A card's name as its banner writes it: on one line, or on two split
+     between words, whichever lets it stand larger, and that size. The box
+     is the banner's `nameBox` in the face's units. Measured here rather
+     than left to TextScaled, which sizes text on a scaled, tilted card far
+     smaller than its box. Exposed for `CardText.spec`. ]]
+function CardBuilder.bannerName(name: string): (string, number)
+	local K = CardTheme.card
+	local scale = GLOW_TOY.bannerRibbon / GLOW_TOY.ribbonWidth
+	local box = GLOW_TOY.nameBox
+	local boxW, boxH = box.Width * scale, box.Height * scale
+	local text = string.upper(name)
+	local function fits(candidate: string, size: number, rows: number): boolean
+		local measured = TextService:GetTextSize(
+			candidate,
+			size,
+			CardTheme.fonts.display,
+			Vector2.new(10000, 1000)
+		)
+		return measured.X <= boxW and size * rows * 1.1 <= boxH
+	end
+	local function largest(candidate: string, rows: number): number
+		local size = K.bannerNameMax
+		while size > K.bannerNameMin and not fits(candidate, size, rows) do
+			size -= 1
+		end
+		return size
+	end
+	local best, bestSize = text, largest(text, 1)
+	local words = string.split(text, " ")
+	for split = 1, #words - 1 do
+		local first = table.concat(words, " ", 1, split)
+		local second = table.concat(words, " ", split + 1)
+		local longer = if #first > #second then first else second
+		local size = largest(longer, 2)
+		if size > bestSize then
+			best, bestSize = first .. "\n" .. second, size
+		end
+	end
+	return best, bestSize
+end
+
+--[[ The text size a stat pill draws `text` at: `statText`, or smaller for
+     a line too long to fit across the card at that (the pill's own padding
+     is 10 a side), down to `statTextMin`. Exposed for `CardText.spec`. ]]
+function CardBuilder.statSize(text: string): number
+	local K = CardTheme.card
+	local room = FACE_WIDTH - K.paddingSide * 2 + 2 - 20
+	local size = K.statText
+	while
+		size > K.statTextMin
+		and TextService:GetTextSize(text, size, CardTheme.fonts.body, Vector2.new(10000, 1000)).X
+			> room
+	do
+		size -= 1
+	end
+	return size
+end
+
 local function pips(parent: Instance, ability: Abilities.Ability, level: number, maxed: boolean)
 	local row = frame(parent, "Pips", Z.content)
 	row.LayoutOrder = 99
@@ -325,7 +388,7 @@ function CardBuilder.build(abilityId: string, options: Options): Card
 		face,
 		"Banner",
 		Z.content + 1,
-		CardAssets.banners[ability.icon] or "",
+		CardAssets.banners[ability.rarity] or "",
 		{ color = WHITE, transparency = 0 }
 	)
 	local bannerScale = GLOW_TOY.bannerRibbon / GLOW_TOY.ribbonWidth
@@ -335,6 +398,39 @@ function CardBuilder.build(abilityId: string, options: Options): Card
 		GLOW_TOY.bannerY + (GLOW_TOY.banner.Y / 2 - GLOW_TOY.ribbonMidY) * bannerScale
 	)
 	banner.Size = UDim2.fromOffset(GLOW_TOY.banner.X * bannerScale, GLOW_TOY.banner.Y * bannerScale)
+
+	--[[ The name across the ribbon and the rarity on its plate, written in
+	     the blocky font (CLAUDE.md rule 11) where the set printed them in its
+	     own. ]]
+	local function onBanner(text: TextLabel, box: Rect)
+		text.Position =
+			UDim2.fromScale(box.Min.X / GLOW_TOY.banner.X, box.Min.Y / GLOW_TOY.banner.Y)
+		text.Size = UDim2.fromScale(box.Width / GLOW_TOY.banner.X, box.Height / GLOW_TOY.banner.Y)
+		text.TextWrapped = false
+		text.TextXAlignment = Enum.TextXAlignment.Center
+		text.ZIndex = Z.content + 2
+	end
+	local nameText, nameSize = CardBuilder.bannerName(ability.name)
+	local nameLabel = label(banner, "Name", nameText, CardTheme.fonts.display, nameSize, WHITE, 2)
+	onBanner(nameLabel, GLOW_TOY.nameBox)
+	nameLabel.LineHeight = 1.1
+	local rarityWord = label(
+		banner,
+		"Rarity",
+		string.upper(ability.rarity),
+		CardTheme.fonts.display,
+		8,
+		CardTheme.bannerRarity[ability.rarity] or INK,
+		0
+	)
+	onBanner(rarityWord, GLOW_TOY.rarityBox)
+	rarityWord.TextScaled = true
+	local inset = Instance.new("UIPadding")
+	inset.PaddingTop = UDim.new(0.1, 0)
+	inset.PaddingBottom = UDim.new(0.05, 0)
+	inset.PaddingLeft = UDim.new(0.04, 0)
+	inset.PaddingRight = UDim.new(0.04, 0)
+	inset.Parent = rarityWord
 
 	-- The shine: a white band across the card at 115°, faint until hovered.
 	local shine = frame(root, "Shine", Z.shine)
@@ -431,7 +527,7 @@ function CardBuilder.build(abilityId: string, options: Options): Card
 		"Stat",
 		ability.stats[if maxed then top else nextLevel],
 		CardTheme.fonts.body,
-		CardTheme.card.statText,
+		CardBuilder.statSize(ability.stats[if maxed then top else nextLevel]),
 		WHITE,
 		0
 	)

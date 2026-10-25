@@ -7,6 +7,7 @@
 	- the clip it is playing (`ModelClip`, set by the server: a boss's
 	  beats, an enemy's wind-up, a Lurker's Emerge);
 	- the blows that show no wind-up (`AttackAt`, a melee bite or bash);
+	- a volley leaving (`ShotAt`, the Burr Thistle's spit);
 	- arriving and diving (`Targetable`: a Thornling landing, a Lurker
 	  going under);
 	- a fallen body playing Death (a Sow's Boarlets bursting out).
@@ -50,7 +51,6 @@ local CLIPS: { [string]: { [string]: string } } = {
 		["Attack wind-up"] = "enemy_boar_gore",
 		Charge = "enemy_boar_charge",
 	},
-	BurrThistle = { ["Attack wind-up"] = "enemy_thistle_spit" },
 	BrambleLurker = {
 		["Attack wind-up"] = "enemy_lurker_spray",
 		Emerge = "enemy_lurker_emerge",
@@ -65,6 +65,10 @@ local ATTACKS: { [string]: string } = {
 	Boarlet = "enemy_boarlet_bite",
 	Thornling = "enemy_thornling_bite",
 }
+
+--[[ Model name → the sound of its volley leaving (`ShotAt`), timed to the
+     shots: the Burr Thistle's three "ptoo"s are its three burrs. ]]
+local SHOTS: { [string]: string } = { BurrThistle = "enemy_thistle_spit" }
 
 --[[ Model name → sounds for arriving (Targetable true) and diving (false). ]]
 local ARRIVE: { [string]: string } = { Thornling = "enemy_thornling_hatch" }
@@ -113,6 +117,12 @@ local function watch(model: Instance)
 	if attack then
 		model:GetAttributeChangedSignal("AttackAt"):Connect(function()
 			SoundFx.play(attack)
+		end)
+	end
+	local shot = SHOTS[name]
+	if shot then
+		model:GetAttributeChangedSignal("ShotAt"):Connect(function()
+			SoundFx.play(shot)
 		end)
 	end
 	if ARRIVE[name] or DIVE[name] then

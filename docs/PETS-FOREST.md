@@ -104,6 +104,17 @@ numbers and the pet system are Phase 6.
 | Ember Wilf | Legendary | Shoots | **Ember Bite**: fire bolts that set enemies burning (stacks with Blaze), and a howl that briefly speeds up your attacks |
 | Glimmerhorn | Mythic | Shoots, heals | **Prism Beam**: a sweeping rainbow beam that pierces every enemy in a line and heals you a little per hit; once per run it revives you |
 
+**Projectiles and effects** (owner, 2026-10-24: "i need projectiles for all of the attacks that
+need it and i need visual effects for the legendaries and the mythics"). Codex sheets in
+`assets/concepts/pets/attacks/`; built in Claude Design (projects "Mossy Glade Projectiles" and
+"Pet Attack VFX"), one GLB per piece in `assets/models/effects/fx_pet_*.glb`, slimmed by
+`optimise_effect.py` (11 to 33 parts each). Common to Epic: Slime Glob (with its puddle), Acorn
+Pellet, Tongue Lash, Spore Patch, Lure Mark, Root Snare, Leaf Slash, Feather Dart (the Mossback
+Snail's guard is its own shell). Legendary and Mythic: Mini Slime and Crown Shockwave (Slime
+Prince); Ember Bolt, Burning Mark and Howl Aura (Ember Wilf); Prism Beam, Heal Sparkles and
+Revive Burst (Glimmerhorn). `Config/PetAttacks` says which pieces each attack fires, when and
+how they move; `Fx/PetAttackFx` plays them (the sandbox's PET ATTACK).
+
 ## Weapon skins
 
 Asked for alongside the pets (owner, 2026-10-23): forest skins for each

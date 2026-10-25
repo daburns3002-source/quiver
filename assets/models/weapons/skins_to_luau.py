@@ -107,6 +107,10 @@ def entry(imports, key, cls, name, projectile, glow) -> str:
     out.append("\t\t} :: { WeaponPart },")
     if rarity(name) == 5:
         out.append("\t\trainbow = true,")
+    # Legendary and Mythic shots glow too (owner, 2026-10-25), in the
+    # weapon's glow colour; a Mythic's turns round the rainbow.
+    if rarity(name) >= 4 and projectile:
+        out.append(f"\t\tshotGlow = {rgb(glow)},")
     if projectile:
         shot = imports[projectile]
         main = next((p for p in shot["parts"] if p["name"] in ("Bolt", "Glow", "Arrow")), shot["parts"][0])

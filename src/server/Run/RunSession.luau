@@ -154,6 +154,7 @@ local playerStats = Remotes.event(Remotes.PlayerStats)
 local playerDamaged = Remotes.event(Remotes.PlayerDamaged)
 local playerRevived = Remotes.event(Remotes.PlayerRevived)
 local playerDodged = Remotes.event(Remotes.PlayerDodged)
+local petAttack = Remotes.event(Remotes.PetAttack)
 
 --[[ Seconds between health updates sent for regeneration alone. ]]
 local REGEN_SEND_INTERVAL = 0.25
@@ -766,10 +767,12 @@ function RunSession.applyDamage(session: Session, amount: number)
 		return
 	end
 
-	--[[ The Mossback Snail's shell takes it (`Combat/PetCombat`). ]]
+	--[[ The Mossback Snail's shell takes it (`Combat/PetCombat`), and the
+	     snail flies in front of its owner to show it (its Attack). ]]
 	if session.petGuard then
 		session.petGuard = false
 		playerDodged:FireClient(session.player, "Guard")
+		petAttack:FireAllClients(session.player, session.player:GetAttribute("Pet"))
 		return
 	end
 

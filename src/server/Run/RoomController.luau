@@ -30,6 +30,7 @@ local Burning = require(script.Parent.Parent.Combat.Burning)
 local EnemyManager = require(script.Parent.Parent.Enemies.EnemyManager)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
 local MeleeSystem = require(script.Parent.Parent.Combat.MeleeSystem)
+local PetCombat = require(script.Parent.Parent.Combat.PetCombat)
 local Pickups = require(script.Parent.Pickups)
 local ProjectileSystem = require(script.Parent.Parent.Combat.ProjectileSystem)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
@@ -146,6 +147,8 @@ local function enterRoom(position: number)
 	buildArena(room)
 	Arena.setDoorLabel(if position < total() then tostring(position + 1) else "")
 	EnemyManager.spawnWave(room.enemyCount, room.roster)
+	-- the Mossback Snail's shell is up once a room
+	PetCombat.newRoom()
 
 	log.info("entered room %d/%d — %s", position, total(), room.name)
 	broadcast()
@@ -179,6 +182,7 @@ local function startWave(wave: number)
 	else
 		state = "Fighting"
 		EnemyManager.spawnWave(description.count, description.roster)
+		PetCombat.newRoom()
 	end
 
 	log.info("wave %d/%d — %s", wave, total(), description.kind)

@@ -20,6 +20,7 @@ local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
 
 local PetAttackFx = require(script.Parent.PetAttackFx)
+local PetCombat = require(ReplicatedStorage.Shared.Config.PetCombat)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 
 local PetAura = require(script.Parent.PetAura)
@@ -37,6 +38,11 @@ local BEHIND = 4
      over which it counts as walking. ]]
 local FOLLOW_RATE = 6
 local WALKING = 1.5
+--[[ A guarding pet (the Mossback Snail's Shell Guard, `Config/PetCombat`)
+     flies this far in front of the player while its Attack plays, at this
+     rate, so the shell is between them and the hit. ]]
+local GUARD_AHEAD = 3
+local GUARD_RATE = 30
 --[[ How long to wait for the server's pets to replicate, in seconds. ]]
 local REPLICATION_WAIT = 20
 --[[ Clip names that read as walking, best first. ]]
@@ -52,6 +58,8 @@ type Pet = {
 	     it has one, and the clock time an Attack under way ends. ]]
 	attack: number?,
 	actingUntil: number,
+	--[[ Whether its Attack is a guard: it plays in front of the player. ]]
+	guards: boolean,
 }
 
 local pets: { Pet } = {}
@@ -132,6 +140,7 @@ local function spawnAll(source: Instance, only: string?)
 		CollectionService:AddTag(model, "ModelClips")
 		-- a Mythic or Legendary pet glows, sparkles and trails (`Config/PetAuras`)
 		PetAura.wear(model, template.Name)
+		local combat = PetCombat.pets[template.Name]
 		table.insert(pets, {
 			model = model,
 			lift = lift,
@@ -140,6 +149,7 @@ local function spawnAll(source: Instance, only: string?)
 			last = model:GetPivot().Position,
 			attack = attack,
 			actingUntil = 0,
+			guards = combat ~= nil and combat.guard == true,
 		})
 	end
 end
@@ -156,13 +166,17 @@ local function step(dt: number)
 	for i, pet in pets do
 		local row = (i - 1) // PER_ROW
 		local column = (i - 1) % PER_ROW - (PER_ROW - 1) / 2
-		local place = base * Vector3.new(column * SPACING, 0, BEHIND + row * SPACING)
+		local guarding = pet.guards and os.clock() < pet.actingUntil
+		local place = if guarding
+			then base * Vector3.new(0, 0, -GUARD_AHEAD)
+			else base * Vector3.new(column * SPACING, 0, BEHIND + row * SPACING)
 		local now = pet.model:GetPivot().Position
 		local goal = Vector3.new(place.X, ground(place, ignore) + pet.lift, place.Z)
-		local next = now:Lerp(goal, alpha)
+		local next = now:Lerp(goal, if guarding then 1 - math.exp(-GUARD_RATE * dt) else alpha)
 		local moved = Vector3.new(next.X - pet.last.X, 0, next.Z - pet.last.Z)
 		local speed = moved.Magnitude / math.max(dt, 1e-3)
-		local facing = if moved.Magnitude > 1e-3
+		-- a guard faces out, the way the player faces
+		local facing = if moved.Magnitude > 1e-3 and not guarding
 			then moved.Unit
 			else base.LookVector * Vector3.new(1, 0, 1)
 		if facing.Magnitude < 1e-3 then

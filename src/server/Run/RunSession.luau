@@ -16,6 +16,7 @@ local AbilityEffects = require(ReplicatedStorage.Shared.Combat.AbilityEffects)
 local Arena = require(script.Parent.Parent.Arena.Arena)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Classes = require(ReplicatedStorage.Shared.Config.Classes)
+local HeldWeaponChoice = require(ReplicatedStorage.Shared.Combat.HeldWeaponChoice)
 local Loadout = require(script.Parent.Loadout)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
 local PetCombat = require(ReplicatedStorage.Shared.Config.PetCombat)
@@ -261,15 +262,18 @@ function RunSession.applyLoadout(session: Session)
 
 	playerStats:FireClient(session.player, AbilityEffects.clientStats(counts, class))
 	--[[ The weapon in hand: the class's own, unless a drafted card puts
-	     another there (`Ability.weapon`, the Dual Bows Mythic). `Main`
-	     re-equips when it changes, and the client poses whatever it is. ]]
-	local weapon = session.loadout.weapon or Classes[class].weapon
+	     another there (`Ability.weapon`, the Dual Bows Mythic, as a pair
+	     of the bow in hand: `Combat/HeldWeaponChoice`). `Main` re-equips
+	     when it changes, and the client poses whatever it is. ]]
+	local cardWeapon: string? = nil
 	for id, level in counts do
 		local ability = Abilities.byId[id]
 		if level > 0 and ability and ability.weapon then
-			weapon = ability.weapon
+			cardWeapon = ability.weapon
 		end
 	end
+	local weapon =
+		HeldWeaponChoice.pick(session.loadout.weapon or Classes[class].weapon, cardWeapon)
 	session.player:SetAttribute("Weapon", weapon)
 	session.player:SetAttribute("Class", class)
 	healthChanged:FireClient(session.player, session.health, session.maxHealth)

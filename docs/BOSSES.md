@@ -72,6 +72,35 @@ appear only as her attacks, the lanes below.
 - *Teaches:* choke points — the room keeps narrowing. *Class notes:* Arcanist
   clears Thornlings well; Ranger must not get trapped in a lane.
 
+**Built (2026-10-25)** on the in-game model (the owner's "Thornweaver"
+project). Her fight opens with her lash as a web, then **Web Walker**,
+and loops those two, with a Thornling clutch after every second move.
+Between moves she runs at the player (7 studs/s, stopping 7 short;
+`Balance` Broodmother `chase`); only Web Walker sends her back to the
+middle first (owner, 2026-10-25). Web Walker replaced the Slime
+King's climb and drop, the jump the owner didn't want, and it is approved
+from the concept sheet `assets/concepts/blocky/broodmother_web_walker_concept.png`.
+Her web shot from #308 is kept as it was.
+
+- **Web Walker.** First she scuttles to the middle of the room (owner,
+  2026-10-25), every time. Then she rears up and a web unfolds over her back, nearly as
+  wide as the room. The floor under it turns red, and the spokes' arms carry
+  on across the floor to the walls. Spoke one starts on the player, who has
+  the wind-up (1.6 s) to step clear. Then the web spins clockwise, one turn
+  every 12 s, for 6 s. Under the web hurts. Outside it, the arms sweep the
+  floor, so the player walks round the edge with them, like a horse in a
+  horse walker. The arms cross the edge at about 8 studs a second, against
+  the player's 13.5. Then the web snaps and she slumps, which is the window
+  to shoot her. Numbers: `Balance` Broodmother `spin`. Hit test:
+  `Shared/Util/WebWheel`, shared with the drawing (`Fx/BroodWheelFx`).
+  Clips: `WebSpin_Windup`, `WebSpin_Hold`, `WebSpin_End` and
+  `WebSpin_Recover`. The web model is `fx_brood_web_wheel.glb`.
+- The web is the owner's Claude Design "Broodmother Web Wheel", built 1:1
+  from the web reference's splat: 8 spokes of solid cube chains with end
+  cubes, one octagon ring, cream knots and a glowing hub. The ring is the
+  web's edge, and the spokes past it are the arms.
+- The phase notches at 50% are not built yet: no boss has phases so far.
+
 ---
 
 ## Act 2 — The Lowlands

@@ -18,6 +18,7 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
+local Workspace = game:GetService("Workspace")
 
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local SoundFx = require(script.Parent.SoundFx)
@@ -38,6 +39,14 @@ type Visual = {
 	takenFrom: Vector3?,
 	takenAt: number?,
 	phase: number,
+	--[[ Its parts with their offsets from its centre and their sizes at
+	     scale 1 (the build's `Scale` folded in), read once when built;
+	     `drawnScale` is the scale their sizes were last written at, so a
+	     bobbing pickup only moves. ]]
+	parts: { BasePart },
+	offsets: { CFrame },
+	sizes: { Vector3 },
+	drawnScale: number,
 }
 
 --[[ Seconds a drop takes to arc from the body to where it lands. ]]
@@ -160,24 +169,46 @@ local function buildHeart(): Model
 	return model
 end
 
---[[ Sizes and offsets both scale, so a pickup shrinks as a whole. ]]
-local function place(visual: Visual, centre: Vector3, turn: CFrame, shrink: number)
-	local built = visual.model:GetAttribute("Scale")
-	local scale = shrink * (if type(built) == "number" then built else 1)
+--[[ Every pickup's moves this frame, handed to the engine in one
+     `BulkMoveTo`; reused, so a frame allocates no lists. ]]
+local moveParts: { BasePart } = {}
+local moveFrames: { CFrame } = {}
+local moveCount = 0
 
-	for _, child in visual.model:GetChildren() do
-		if not child:IsA("BasePart") then
-			continue
-		end
-
+--[[ Reads a built pickup's parts once: their offsets and sizes, at the
+     build's own `Scale`. ]]
+local function partsOf(model: Model): ({ BasePart }, { CFrame }, { Vector3 })
+	local built = model:GetAttribute("Scale")
+	local scale = if type(built) == "number" then built else 1
+	local parts: { BasePart } = {}
+	local offsets: { CFrame } = {}
+	local sizes: { Vector3 } = {}
+	for _, child in model:GetChildren() do
 		local relative = child:GetAttribute("Offset")
 		local size = child:GetAttribute("BaseSize")
-		if typeof(relative) == "CFrame" then
-			local scaled = relative - relative.Position + relative.Position * scale
-			child.CFrame = CFrame.new(centre) * turn * scaled
+		if child:IsA("BasePart") and typeof(relative) == "CFrame" and typeof(size) == "Vector3" then
+			table.insert(parts, child)
+			table.insert(offsets, relative - relative.Position + relative.Position * scale)
+			table.insert(sizes, size * scale)
 		end
-		if typeof(size) == "Vector3" then
-			child.Size = size * scale
+	end
+	return parts, offsets, sizes
+end
+
+--[[ Sizes and offsets both scale, so a pickup shrinks as a whole. ]]
+local function place(visual: Visual, centre: Vector3, turn: CFrame, scale: number)
+	local frame = CFrame.new(centre) * turn
+	local resize = scale ~= visual.drawnScale
+	visual.drawnScale = scale
+	for i, child in visual.parts do
+		local relative = visual.offsets[i]
+		moveCount += 1
+		moveParts[moveCount] = child
+		moveFrames[moveCount] = if scale == 1
+			then frame * relative
+			else frame * (relative - relative.Position + relative.Position * scale)
+		if resize then
+			child.Size = visual.sizes[i] * scale
 		end
 	end
 end
@@ -250,6 +281,15 @@ local function step()
 
 		place(visual, centre, turn, scale)
 	end
+
+	if moveCount > 0 then
+		for i = #moveParts, moveCount + 1, -1 do
+			moveParts[i] = nil
+			moveFrames[i] = nil
+		end
+		Workspace:BulkMoveTo(moveParts, moveFrames, Enum.BulkMoveMode.FireCFrameChanged)
+		moveCount = 0
+	end
 end
 
 function PickupFx.onDropped(id: number, kind: string, rest: Vector3, from: Vector3)
@@ -258,6 +298,7 @@ function PickupFx.onDropped(id: number, kind: string, rest: Vector3, from: Vecto
 	end
 
 	local model = if kind == "Heart" then buildHeart() else buildCrystal()
+	local parts, offsets, sizes = partsOf(model)
 	local bounce: Vector3? = nil
 	if kind == "Heart" then
 		local angle = Random.new(id):NextNumber() * 2 * math.pi
@@ -274,6 +315,11 @@ function PickupFx.onDropped(id: number, kind: string, rest: Vector3, from: Vecto
 		takenFrom = nil,
 		takenAt = nil,
 		phase = (id * 1.7) % (2 * math.pi),
+		parts = parts,
+		offsets = offsets,
+		sizes = sizes,
+		-- sizes are written on the first frame
+		drawnScale = -1,
 	}
 end
 

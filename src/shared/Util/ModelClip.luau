@@ -38,6 +38,8 @@ export type Model = { joints: { Joint }, parts: { [string]: Part }, clips: { [st
 export type Fit = { turn: CFrame, scale: number, origin: Vector3, error: number, spread: number }
 
 local IDENTITY = { 1, 0, 0, 0, 1, 0, 0, 0, 1 }
+--[[ Scratch for `pose`, read before the next sample overwrites it. ]]
+local scratch: { number } = { 0, 0, 0, 0 }
 
 local function mul(a: { number }, b: { number }): { number }
 	return {
@@ -123,34 +125,48 @@ function ModelClip.transform(a: Affine, p: Vector3): Vector3
 end
 
 --[[ A track's value `time` seconds in: Linear between keys (rotations
-     normalised, the nearer way round), held at its ends. ]]
-function ModelClip.sample(track: Track, width: number, time: number): { number }
+     normalised, the nearer way round), held at its ends. Written into
+     `out` when given (the animator's per-frame scratch, so posing a model
+     allocates no tables per key), else into a new table. ]]
+function ModelClip.sample(track: Track, width: number, time: number, out: { number }?): { number }
 	local times, values = track.times, track.values
 	local n = #times
-	local function at(k: number): { number }
-		return table.move(values, (k - 1) * width + 1, k * width, 1, {})
-	end
+	local result: { number } = out or table.create(width)
 	if n == 1 or time <= times[1] then
-		return at(1)
+		for k = 1, width do
+			result[k] = values[k]
+		end
+		return result
 	end
 	if time >= times[n] then
-		return at(n)
+		local base = (n - 1) * width
+		for k = 1, width do
+			result[k] = values[base + k]
+		end
+		return result
 	end
 	local i = 1
 	while i < n - 1 and time > times[i + 1] do
 		i += 1
 	end
 	local u = (time - times[i]) / math.max(times[i + 1] - times[i], 1e-9)
-	local a, b = at(i), at(i + 1)
+	local a, b = (i - 1) * width, i * width
 	local sign = 1
-	if width == 4 and a[1] * b[1] + a[2] * b[2] + a[3] * b[3] + a[4] * b[4] < 0 then
+	if
+		width == 4
+		and values[a + 1] * values[b + 1]
+				+ values[a + 2] * values[b + 2]
+				+ values[a + 3] * values[b + 3]
+				+ values[a + 4] * values[b + 4]
+			< 0
+	then
 		sign = -1
 	end
-	local out = {}
 	for k = 1, width do
-		out[k] = a[k] + (b[k] * sign - a[k]) * u
+		local from = values[a + k]
+		result[k] = from + (values[b + k] * sign - from) * u
 	end
-	return out
+	return result
 end
 
 --[[ Where `time` seconds into `clip` falls: wrapped for a looping clip,
@@ -184,15 +200,15 @@ function ModelClip.pose(
 		local tracks = clip and clip.joints[joint.name]
 		if tracks then
 			if tracks.pos then
-				local v = ModelClip.sample(tracks.pos, 3, t)
+				local v = ModelClip.sample(tracks.pos, 3, t, scratch)
 				px, py, pz = v[1], v[2], v[3]
 			end
 			if tracks.rot then
-				local v = ModelClip.sample(tracks.rot, 4, t)
+				local v = ModelClip.sample(tracks.rot, 4, t, scratch)
 				qx, qy, qz, qw = v[1], v[2], v[3], v[4]
 			end
 			if tracks.scale then
-				local v = ModelClip.sample(tracks.scale, 3, t)
+				local v = ModelClip.sample(tracks.scale, 3, t, scratch)
 				sx, sy, sz = v[1], v[2], v[3]
 			end
 		end
@@ -226,6 +242,175 @@ function ModelClip.deltas(
 		out[name] = ModelClip.compose(w, restInverse[name])
 	end
 	return out
+end
+
+--[[
+	The same deltas as `deltas`, for the animator's every frame, in two
+	kinds. Most joints only turn and move: their whole chain carries no
+	scale, so their pose is a CFrame and Roblox's native CFrame maths does
+	in one step what the 3x3 tables take many for. Those land in `outCF`.
+	A joint that scales, or rides one that does, or whose rest does, keeps
+	the affine maths and lands in `outAffine`. Only joints that carry a part,
+	or lead to one, are posed (a Bramble Lurker's legs are nine joints of its
+	thirty-seven); each of them lands in exactly one table. Both tables are
+	the caller's, cleared and refilled each call, so a rigid joint allocates
+	nothing.
+]]
+export type Rest = {
+	--[[ The joints worth posing, in the data's order. ]]
+	joints: { Joint },
+	--[[ The rest world's inverse as a CFrame, for joints whose rest chain
+	     carries no scale; the affine one for every joint. ]]
+	cframe: { [string]: CFrame },
+	affine: { [string]: Affine },
+}
+
+--[[ A scale this close to 1 on every axis is no scale. ]]
+local UNSCALED = 1e-6
+
+local function unscaled(sx: number, sy: number, sz: number): boolean
+	return math.abs(sx - 1) < UNSCALED
+		and math.abs(sy - 1) < UNSCALED
+		and math.abs(sz - 1) < UNSCALED
+end
+
+local function rotation(
+	px: number,
+	py: number,
+	pz: number,
+	qx: number,
+	qy: number,
+	qz: number,
+	qw: number
+): CFrame
+	local n = math.sqrt(qx * qx + qy * qy + qz * qz + qw * qw)
+	if n > 0 then
+		qx, qy, qz, qw = qx / n, qy / n, qz / n, qw / n
+	end
+	return CFrame.new(px, py, pz, qx, qy, qz, qw)
+end
+
+local function affineOf(cframe: CFrame): Affine
+	local _, _, _, r00, r01, r02, r10, r11, r12, r20, r21, r22 = cframe:GetComponents()
+	return { m = { r00, r01, r02, r10, r11, r12, r20, r21, r22 }, t = cframe.Position }
+end
+
+function ModelClip.rest(model: Model): Rest
+	local parentOf: { [string]: string } = {}
+	for _, joint in model.joints do
+		parentOf[joint.name] = joint.parent
+	end
+	local needed: { [string]: true } = {}
+	for _, part in model.parts do
+		local name: string? = part.joint
+		while name and parentOf[name] and not needed[name] do
+			needed[name] = true
+			name = parentOf[name]
+		end
+	end
+	local joints: { Joint } = {}
+	for _, joint in model.joints do
+		if needed[joint.name] then
+			table.insert(joints, joint)
+		end
+	end
+	local out: Rest = { joints = joints, cframe = {}, affine = ModelClip.restInverse(model) }
+	local rigid: { [string]: CFrame } = {}
+	local seen: { [string]: true } = {}
+	for _, joint in model.joints do
+		local r = joint.rest
+		local parentRigid = rigid[joint.parent]
+		if unscaled(r[8], r[9], r[10]) and (parentRigid or not seen[joint.parent]) then
+			local here = rotation(r[1], r[2], r[3], r[4], r[5], r[6], r[7])
+			local world = if parentRigid then parentRigid * here else here
+			rigid[joint.name] = world
+			out.cframe[joint.name] = world:Inverse()
+		end
+		seen[joint.name] = true
+	end
+	return out
+end
+
+local worldCF: { [string]: CFrame } = {}
+local worldAffine: { [string]: Affine } = {}
+
+function ModelClip.deltasInto(
+	clip: Clip?,
+	time: number,
+	rest: Rest,
+	stretch: Stretch?,
+	outCF: { [string]: CFrame },
+	outAffine: { [string]: Affine }
+)
+	table.clear(outCF)
+	table.clear(outAffine)
+	table.clear(worldCF)
+	table.clear(worldAffine)
+	local t = ModelClip.clipTime(clip, time)
+	for _, joint in rest.joints do
+		local r = joint.rest
+		local px, py, pz = r[1], r[2], r[3]
+		local qx, qy, qz, qw = r[4], r[5], r[6], r[7]
+		local sx, sy, sz = r[8], r[9], r[10]
+		local tracks = clip and clip.joints[joint.name]
+		if tracks then
+			if tracks.pos then
+				local v = ModelClip.sample(tracks.pos, 3, t, scratch)
+				px, py, pz = v[1], v[2], v[3]
+			end
+			if tracks.rot then
+				local v = ModelClip.sample(tracks.rot, 4, t, scratch)
+				qx, qy, qz, qw = v[1], v[2], v[3], v[4]
+			end
+			if tracks.scale then
+				local v = ModelClip.sample(tracks.scale, 3, t, scratch)
+				sx, sy, sz = v[1], v[2], v[3]
+			end
+		end
+		local extra = stretch and stretch[joint.name]
+		local kept = stretch ~= nil and (stretch[joint.parent] :: Vector3?) ~= nil
+		if extra and not kept then
+			sx, sy, sz = sx * extra.X, sy * extra.Y, sz * extra.Z
+		end
+		local name = joint.name
+		local parentCF = worldCF[joint.parent]
+		local parentAffine = worldAffine[joint.parent]
+		local keptScale = extra ~= nil and kept and not unscaled(extra.X, extra.Y, extra.Z)
+		if unscaled(sx, sy, sz) and not keptScale and not parentAffine then
+			local here = rotation(px, py, pz, qx, qy, qz, qw)
+			worldCF[name] = if parentCF then parentCF * here else here
+		else
+			local here: Affine =
+				{ m = ModelClip.trs(qx, qy, qz, qw, sx, sy, sz), t = Vector3.new(px, py, pz) }
+			if extra and kept then
+				here.m = mul({ extra.X, 0, 0, 0, extra.Y, 0, 0, 0, extra.Z }, here.m)
+			end
+			local parent = parentAffine or (if parentCF then affineOf(parentCF) else nil)
+			worldAffine[name] = if parent then ModelClip.compose(parent, here) else here
+		end
+	end
+	for name, w in worldCF do
+		local restCF = rest.cframe[name]
+		if restCF then
+			outCF[name] = w * restCF
+		else
+			outAffine[name] = ModelClip.compose(affineOf(w), rest.affine[name])
+		end
+	end
+	for name, w in worldAffine do
+		outAffine[name] = ModelClip.compose(w, rest.affine[name])
+	end
+end
+
+--[[ `place` for a delta that only turns and moves: the same CFrame in
+     native maths, with no stretch. ]]
+function ModelClip.placeRigid(rest: CFrame, delta: CFrame, fit: Fit): CFrame
+	local turn = fit.turn
+	local turned = turn * delta.Rotation * turn:Inverse()
+	local moved = fit.origin
+		+ turned:VectorToWorldSpace(rest.Position - fit.origin)
+		+ turn:VectorToWorldSpace(delta.Position) * fit.scale
+	return CFrame.new(moved) * turned * rest.Rotation
 end
 
 function ModelClip.restInverse(model: Model): { [string]: Affine }

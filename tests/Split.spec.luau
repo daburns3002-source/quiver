@@ -8,10 +8,24 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
+local EnemyDesigns = require(ReplicatedStorage.Shared.Config.EnemyDesigns)
+local ModelClip = require(ReplicatedStorage.Shared.Util.ModelClip)
 local TestRunner = require(script.Parent.TestRunner)
 
 local function radius(config: Balance.EnemyConfig): number
 	return math.max(config.hitboxSize.X, config.hitboxSize.Z) / 2
+end
+
+--[[ The clip `name` of the model an archetype is drawn with, if it plays its own. ]]
+local function clipOf(config: Balance.EnemyConfig, name: string): ModelClip.Clip?
+	local design = EnemyDesigns.Imported[config.displayName]
+	local folder = ReplicatedStorage.Shared.Config:FindFirstChild("ModelClips")
+	local module = if design and folder then folder:FindFirstChild(design.clips) else nil
+	if not module or not module:IsA("ModuleScript") then
+		return nil
+	end
+	local data = (require :: any)(module) :: ModelClip.Model
+	return data.clips[name]
 end
 
 return function(t: TestRunner.Helper)
@@ -64,6 +78,33 @@ return function(t: TestRunner.Helper)
 					Balance.Split.reach >= radius(config) + radius(split.into),
 					`{config.displayName}'s pieces land inside it`
 				)
+			end
+		end
+	end)
+
+	--[[ A clip named in a split that its model lacks would fall back to
+	     Death and the jelly without a word. ]]
+	t.test("a split's clips are its models' own, and a piece's lasts its throw", function()
+		local throw = Balance.Split.flight + Balance.Split.settle
+		for _, value in Balance.Enemies do
+			local config = value :: Balance.EnemyConfig
+			local split = config.split
+			if split and split.clip then
+				t.isTrue(
+					clipOf(config, split.clip) ~= nil,
+					`{config.displayName} has no {split.clip} clip`
+				)
+			end
+			if split and split.pieceClip then
+				local clip = clipOf(split.into, split.pieceClip)
+				t.isTrue(clip ~= nil, `{split.into.displayName} has no {split.pieceClip} clip`)
+				if clip then
+					t.isTrue(
+						not clip.loops,
+						`{split.pieceClip} loops, so it would not end standing`
+					)
+					t.near(clip.length, throw, 0.1, `{split.pieceClip} does not last the throw`)
+				end
 			end
 		end
 	end)

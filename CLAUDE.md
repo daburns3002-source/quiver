@@ -261,6 +261,14 @@ and every effect in cubes and tiles (`Fx/BossFx`, `Balance.Telegraph.king`;
 nothing round). `BossBody` only keeps his shadow on the floor; its jelly
 tube is for a server-posed body. `tests/BossClips.spec.luau` pins it.
 Sounds for his moves are not made yet.
+**The Broodmother's Web Walker** (owner, 2026-10-25, in place of the
+jump): a boss can name its own move loop (`EnemyBoss.loop`; hers opens
+with the lash, then the spin) and run at the player between moves
+(`EnemyBoss.chase`, `BossMoves.chase`). A `Spin` raises a web nearly as wide as the room that
+turns clockwise round her. The player walks the edge with its arms, like a
+horse walker. One pure module (`Shared/Util/WebWheel`) decides both who
+is hit (server, `BossMoves.wheelHit`) and where the arms are drawn
+(`Fx/BroodWheelFx`). `tests/WebWalker.spec.luau` pins it.
 **The boss entry banner** (`UI/BossBanner`, `Config/BossBanners`, owner's
 pick 2026-10-24: style A, "Slash"): as a boss appears, a slanted band in its
 colour tears across, its 2D blocky icon rushes in and plays a four-frame
@@ -343,6 +351,9 @@ held (`RoomController.enterSandbox`); LEAVE starts the stage over. Any weapon in
 (`Remotes.DebugWeapon`, held as its class, kept for the run like the class) and any
 one pet at heel (`PetPreview.show`). A new `Config/Weapons` entry must be listed in
 `Config/Sandbox` (`tests/Sandbox.spec`).
+**`DevTier`** — a Workspace attribute ("Low", "Medium", "High") set in Edit before Play
+plays as that device tier (`client/Device`, Studio only), to measure a phone's budgets
+(`docs/PERFORMANCE.md`, `tools/studio/perf_room.luau`).
 From a probe, `Remotes.DebugForceMythic:FireServer("Legendary")` does the
 same without the MCP keyboard tool, which reports as a gamepad and flips the
 draft into its controller layout.

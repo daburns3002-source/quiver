@@ -30,6 +30,7 @@ local Pathing = require(script.Parent.Pathing)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local RunSession = require(script.Parent.Parent.Run.RunSession)
 local Types = require(ReplicatedStorage.Shared.Types)
+local WebWheel = require(ReplicatedStorage.Shared.Util.WebWheel)
 
 local log = Log.forTag("Enemies")
 
@@ -67,6 +68,11 @@ type BossState = {
 	     summoning drops (`os.clock()`), or nil. ]]
 	moves: number,
 	summonAt: number?,
+	--[[ A spinning web (`EnemyBoss.spin`): when each player may next be
+	     hit by it (`os.clock()`). ]]
+	wheelHitAt: { [Player]: number },
+	--[[ When it last stepped (`os.clock()`), for a chase's stride. ]]
+	steppedAt: number,
 }
 
 type Enemy = {
@@ -695,11 +701,19 @@ end
 
 --[[ A body left to play its Death clip where it fell, then cleared: a
      copy, so the enemy itself goes at once and nothing can target or hit
-     what is left. ]]
+     what is left. A body that splits falls with its split's clip instead,
+     if its model has it. ]]
 local function fall(enemy: Enemy)
 	local key = enemy.model:GetAttribute("ModelClips")
 	local data = if type(key) == "string" then clipData(key) else nil
-	local death = data and data.clips.Death
+	local split = enemy.config.split
+	local clip = if split
+			and split.clip
+			and data
+			and data.clips[split.clip]
+		then split.clip
+		else "Death"
+	local death = data and data.clips[clip]
 	local parent = folder and folder.Parent
 	if not death or not parent then
 		return
@@ -722,7 +736,7 @@ local function fall(enemy: Enemy)
 	end
 	body:SetAttribute("ModelClipSpan", nil)
 	body:SetAttribute("ModelClipAt", Workspace:GetServerTimeNow())
-	body:SetAttribute("ModelClip", "Death")
+	body:SetAttribute("ModelClip", clip)
 	body.Parent = parent
 	task.delay(death.length + 0.4, function()
 		body:Destroy()
@@ -828,6 +842,8 @@ function EnemyManager.spawn(
 			clipAt = 0,
 			moves = 0,
 			summonAt = nil,
+			wheelHitAt = {},
+			steppedAt = 0,
 		}
 		--[[ For the client: the boss bar, and no hit squash on a body the
 		     server is posing. ]]
@@ -979,6 +995,9 @@ local function spawnSplit(split: Balance.EnemySplit, origin: Vector3)
 			piece.maxHealth *= split.health
 			piece.model:SetAttribute("MaxHealth", piece.maxHealth)
 			piece.model:SetAttribute("Health", piece.health)
+			--[[ Read by `Fx/SplitFx`, which throws a copy of this body
+			     playing it, instead of a blob of jelly. ]]
+			piece.model:SetAttribute("SplitClip", split.pieceClip)
 		end
 	end
 end
@@ -1249,6 +1268,10 @@ local function resolveBossEvent(
 
 	if e.kind == "SlamTell" then
 		enemyTelegraph:FireAllClients(e.at, Vector3.zAxis, e.duration, "Slam", e.radius)
+	elseif e.kind == "WheelTell" or e.kind == "WheelSpin" or e.kind == "WheelBreak" then
+		--[[ Web Walker: the web's radius goes as the reach, its arms'
+		     length as the width (`Fx/BroodWheelFx`). ]]
+		enemyTelegraph:FireAllClients(e.at, e.direction, e.duration, e.kind, e.radius, e.length)
 	elseif e.kind == "Slam" then
 		--[[ The landing: its flash, debris and dust on the circle, and the
 		     shockwave out from its edge (`radius`) to `shockRadius`. ]]
@@ -1390,9 +1413,44 @@ local function showClip(
 	model:SetAttribute("ModelClip", if clip ~= "" then clip else nil)
 end
 
+--[[ Studs a player's body reaches out from its centre, for a lunge's touch. ]]
+local PLAYER_REACH = 1
+
+--[[ A spinning web's turn to touch the players (`BossMoves.wheelHit`):
+     each one it touches is hurt, at most every `hitEvery`, and pushed out
+     from under the web or on round with the arm that swept them. ]]
+local function sweepWheel(
+	state: BossState,
+	boss: Balance.EnemyBoss,
+	move: BossMoves.Move,
+	now: number
+)
+	local s = boss.spin
+	if not s then
+		return
+	end
+	for _, session in RunSession.all() do
+		local root = session.root
+		if not root or not session.alive then
+			continue
+		end
+		local touched = BossMoves.wheelHit(move, boss, now, root.Position, PLAYER_REACH)
+		if not touched or now < (state.wheelHitAt[session.player] or 0) then
+			continue
+		end
+		state.wheelHitAt[session.player] = now + s.hitEvery
+		hurt(session, s.damage * difficulty().damage)
+		local push = if touched == "web"
+			then Vector3.new(root.Position.X - move.feet.X, 0, root.Position.Z - move.feet.Z)
+			else WebWheel.sweep(move.feet, root.Position)
+		shove(session, if push.Magnitude > 0.1 then push else Vector3.zAxis, s.shove)
+	end
+end
+
 --[[
-	A boss's turn: rest, then the next move in `BossMoves.LOOP`, played to
-	its end. It does not walk; every step it takes is part of a move.
+	A boss's turn: rest, then the next move in its loop (`BossMoves.loopOf`),
+	played to its end. It does not walk; every step it takes is part of a
+	move.
 ]]
 local function stepBoss(enemy: Enemy, state: BossState, now: number)
 	local config = enemy.config
@@ -1410,6 +1468,10 @@ local function stepBoss(enemy: Enemy, state: BossState, now: number)
 	if state.restUntil == 0 then
 		state.restUntil = now + boss.opening
 	end
+	--[[ Seconds since its last step, for a chase; capped, so a hitch or
+	     the first step never jumps it across the room. ]]
+	local dt = math.clamp(now - state.steppedAt, 0, 0.1)
+	state.steppedAt = now
 
 	local feet = Vector3.new(enemy.position.X, 0, enemy.position.Z)
 	local targetRoot = nearestAlivePlayerRoot(feet)
@@ -1436,12 +1498,30 @@ local function stepBoss(enemy: Enemy, state: BossState, now: number)
 			return
 		end
 		if now < state.restUntil or not targetRoot then
+			--[[ A boss that chases runs at the player through its rests. ]]
+			local chase = boss.chase
+			if chase and targetRoot then
+				local to, moving = BossMoves.chase(feet, targetRoot.Position, chase, dt, clamp)
+				if moving then
+					local heading = to - feet
+					local yaw = math.atan2(-heading.X, -heading.Z)
+					enemy.yaw = yaw
+					enemy.position = to + Vector3.new(0, half, 0)
+					positions[enemy.model] = enemy.position
+					placeHitbox(enemy)
+					BossBody.pose(state.body, BossMoves.idle(to, yaw, now))
+					local running = if state.clip == chase.clip then state.clipAt else now
+					showClip(enemy, state, chase.clip, running, now, 0)
+					return
+				end
+			end
 			BossBody.pose(state.body, BossMoves.idle(feet, enemy.yaw or 0, now))
 			local idle = if boss.clips then boss.clips.idle else ""
 			showClip(enemy, state, idle, if state.clip == idle then state.clipAt else now, now, 0)
 			return
 		end
-		move = BossMoves.start(BossMoves.LOOP[state.next], now, feet, enemy.yaw or 0)
+		local loop = BossMoves.loopOf(boss)
+		move = BossMoves.start(loop[(state.next - 1) % #loop + 1], now, feet, enemy.yaw or 0)
 		state.move = move
 	end
 	assert(move, "a boss move")
@@ -1461,6 +1541,9 @@ local function stepBoss(enemy: Enemy, state: BossState, now: number)
 	for _, e in events do
 		resolveBossEvent(state, boss, e, now, clamp)
 	end
+	if move.kind == "Spin" then
+		sweepWheel(state, boss, move, now)
+	end
 
 	--[[ After the events: a grab switches the clip to the pull. ]]
 	local clip, clipAt, span = BossMoves.clip(move, boss)
@@ -1473,7 +1556,7 @@ local function stepBoss(enemy: Enemy, state: BossState, now: number)
 	if done then
 		state.move = nil
 		state.restUntil = now + BossMoves.restAfter(move.kind, boss)
-		state.next = state.next % #BossMoves.LOOP + 1
+		state.next = state.next % #BossMoves.loopOf(boss) + 1
 		state.moves += 1
 		local summon = boss.summon
 		if summon and state.moves % summon.every == 0 then
@@ -1482,9 +1565,6 @@ local function stepBoss(enemy: Enemy, state: BossState, now: number)
 		end
 	end
 end
-
---[[ Studs a player's body reaches out from its centre, for a lunge's touch. ]]
-local PLAYER_REACH = 1
 
 --[[
 	A lunging enemy's turn (`EnemyConfig.lunges`). Returns whether the lunge
@@ -2057,6 +2137,9 @@ local function stepEnemy(enemy: Enemy, deltaTime: number, now: number)
 		return
 	end
 
+	--[[ For the client's sound of a blow that shows no wind-up
+	     (`Fx/EnemySounds`). ]]
+	enemy.model:SetAttribute("AttackAt", now)
 	RunSession.applyDamage(session, config.attackDamage * difficulty().damage)
 end
 

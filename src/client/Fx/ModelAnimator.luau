@@ -70,7 +70,7 @@ local SCALE_ATTRIBUTE = "ModelClipScale"
      pivot instead (an effect with no clip, still placed and scaled). Off,
      they are left where they are, as the King's and the pets' are. ]]
 local RIGID_ATTRIBUTE = "ModelClipRigid"
-local STILL: ModelClip.Affine = { m = { 1, 0, 0, 0, 1, 0, 0, 0, 1 }, t = Vector3.zero }
+local STILL = CFrame.identity
 local REST_SIZE_ATTRIBUTE = "RestSize"
 local REST_CFRAME_ATTRIBUTE = "RestCFrame"
 --[[ A fit whose parts sit further than this share of the model's spread
@@ -92,7 +92,7 @@ type Animator = {
 	model: Model,
 	data: ModelClip.Model,
 	fit: ModelClip.Fit,
-	restInverse: { [string]: ModelClip.Affine },
+	rest: ModelClip.Rest,
 	driven: { Driven },
 	pivotRest: CFrame,
 	time: number,
@@ -188,7 +188,7 @@ function ModelAnimator.attach(model: Model, key: string, quiet: boolean?): boole
 		model = model,
 		data = data,
 		fit = fit,
-		restInverse = ModelClip.restInverse(data),
+		rest = ModelClip.rest(data),
 		driven = {},
 		pivotRest = pivot,
 		time = 0,
@@ -241,34 +241,74 @@ local function stretchOf(model: Model): ModelClip.Stretch?
 	return out
 end
 
---[[ Poses `model` `time` seconds into its current clip. Exposed so a probe
-     or a test can pose a model at a chosen moment. ]]
-function ModelAnimator.pose(model: Model, time: number)
+--[[ Every frame's moves, gathered across all models and handed to the
+     engine in one `BulkMoveTo`: a CFrame written part by part costs a
+     property change each, and a room of clip-driven enemies and pets moves
+     several hundred parts a frame. Reused, so a frame allocates nothing. ]]
+local moveParts: { BasePart } = {}
+local moveFrames: { CFrame } = {}
+local moveCount = 0
+--[[ Each pose's joint deltas, rigid and affine (`ModelClip.deltasInto`),
+     refilled per model. ]]
+local deltaCF: { [string]: CFrame } = {}
+local deltaAffine: { [string]: ModelClip.Affine } = {}
+
+local function flush()
+	if moveCount == 0 then
+		return
+	end
+	for i = #moveParts, moveCount + 1, -1 do
+		moveParts[i] = nil
+		moveFrames[i] = nil
+	end
+	Workspace:BulkMoveTo(moveParts, moveFrames, Enum.BulkMoveMode.FireCFrameChanged)
+	moveCount = 0
+end
+
+--[[ Poses `model` `time` seconds into its current clip, its moves queued
+     for the next `flush`. ]]
+local function queuePose(model: Model, time: number)
 	local a = animators[model]
 	if not a then
 		return
 	end
 	local name = model:GetAttribute(CLIP_ATTRIBUTE)
 	local clip = if type(name) == "string" then a.data.clips[name] else nil
-	local deltas = ModelClip.deltas(a.data, clip, time, a.restInverse, stretchOf(model))
+	ModelClip.deltasInto(clip, time, a.rest, stretchOf(model), deltaCF, deltaAffine)
 	local pivot = model:GetPivot()
 	local scaleValue = model:GetAttribute(SCALE_ATTRIBUTE)
 	local scale = if type(scaleValue) == "number" then scaleValue else 1
 	for _, d in a.driven do
-		local delta = deltas[d.joint] or (if a.rigid then STILL else nil)
-		if delta then
-			local cframe, stretch = ModelClip.place(d.rest, delta, a.fit)
-			if scale ~= 1 then
-				cframe = CFrame.new(cframe.Position * scale) * cframe.Rotation
-				stretch *= scale
+		local cframe: CFrame, stretch: Vector3
+		local affine = deltaAffine[d.joint]
+		if affine then
+			cframe, stretch = ModelClip.place(d.rest, affine, a.fit)
+		else
+			local rigid = deltaCF[d.joint] or (if a.rigid then STILL else nil)
+			if not rigid then
+				continue
 			end
-			d.part.CFrame = pivot * cframe
-			local size = d.size * stretch
-			if (size - d.part.Size).Magnitude > SIZE_EPSILON then
-				d.part.Size = size
-			end
+			cframe, stretch = ModelClip.placeRigid(d.rest, rigid, a.fit), Vector3.one
+		end
+		if scale ~= 1 then
+			cframe = CFrame.new(cframe.Position * scale) * cframe.Rotation
+			stretch *= scale
+		end
+		moveCount += 1
+		moveParts[moveCount] = d.part
+		moveFrames[moveCount] = pivot * cframe
+		local size = d.size * stretch
+		if (size - d.part.Size).Magnitude > SIZE_EPSILON then
+			d.part.Size = size
 		end
 	end
+end
+
+--[[ Poses `model` `time` seconds into its current clip. Exposed so a probe
+     or a test can pose a model at a chosen moment. ]]
+function ModelAnimator.pose(model: Model, time: number)
+	queuePose(model, time)
+	flush()
 end
 
 local function step(dt: number)
@@ -294,8 +334,9 @@ local function step(dt: number)
 		else
 			a.time += dt * pace
 		end
-		ModelAnimator.pose(model, a.time)
+		queuePose(model, a.time)
 	end
+	flush()
 end
 
 local function watch(model: Instance)

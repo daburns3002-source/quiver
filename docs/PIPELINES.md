@@ -19,6 +19,8 @@ What is in flight right now is in [TRACKER.md](TRACKER.md).
 | `tools/check.sh` | Every gate: StyLua, Selene, strict types, `rojo build`. |
 | `python -I tools/glb_clips_to_luau.py` | The clips inside the Claude Design GLBs listed in `assets/models/model_clips.json` → one data module each in `Config/ModelClips/`. See 10. |
 | `tools/ship.sh "<title>" <body.md>` | Gates, push, PR, waits for CI, updates the branch if main moved, merges. |
+| `python -I tools/glb_stats.py <file.glb>…` | What a GLB costs: triangles, primitives (each a MeshPart once imported), materials, animated joints, clips, and how many parts would remain if those riding one joint were merged. See 11. |
+| `tools/studio/perf_room.luau` | Run on the Client while playing, Studio focused: jumps to a room, then its triangles, draw calls, GPU and render-thread ms, visible parts and busiest client scripts. See 11. |
 
 ## 0. The loop every change goes through
 
@@ -142,4 +144,15 @@ Claude Design's 3D models carry their clips (Idle, Hop, Follow, an attack…) in
 - **A re-export can regroup nodes** (the Glade Fox's runes moved under its tail joint) without moving anything. Parts are paired with nodes by name where the name is unique on both sides, checked by size; only the rest are paired by place. A re-export that adds meshes (open mouths) builds without them until the owner imports it again; the script names what is missing.
 - A looping clip read at exactly its length is back at its start (`pose` wraps).
 - A turn about an axis through a joint has no travel, so test travel with a lift, not a turn.
+
+## 11. Measuring what it costs (performance)
+
+Every model and room's numbers, and what was done about them: [PERFORMANCE.md](PERFORMANCE.md).
+
+1. A new or changed GLB: `python -I tools/glb_stats.py <glb>`. A clip-driven model's part count is what `Fx/ModelAnimator` moves every frame and what the importer makes (Merge Meshes off keeps every primitive a part); a static one should be merged to a few parts by its optimiser before import, as the kits and weapons are.
+2. A room: Play, focus Studio, run `tools/studio/perf_room.luau` with its `ROOM`. Compare against the table in PERFORMANCE.md.
+3. A phone's budgets: set the Workspace attribute `DevTier` to `"Low"` in Edit, then Play (`client/Device`, Studio only). Anything a phone cannot afford is a `DeviceTiers` number, never a code path.
+4. Per-frame code: move many parts in one `Workspace:BulkMoveTo`, read a model's parts and attributes once when it is built rather than every frame, and only set `Size` when it changes.
+
+**Pitfalls seen:** Studio renders nothing while its window is in the background, so frame counts read zero and captures come back black. A long execute_luau call on the Play client that never yields fails with "Target is not reachable". The script profiler's numbers compare two runs of one scene; they are not milliseconds.
 

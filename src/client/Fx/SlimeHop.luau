@@ -53,6 +53,10 @@ type Slime = {
 }
 
 local slimes: { [Model]: Slime } = {}
+--[[ Every slime's pieces and shadows this frame, moved in one `BulkMoveTo`
+     rather than a property write each; reused. ]]
+local moveParts: { BasePart } = {}
+local moveFrames: { CFrame } = {}
 
 --[[ Hops a second at least, to finish a hop after stopping. ]]
 local MIN_FINISH_RATE = 1.2
@@ -168,7 +172,11 @@ local function step(dt: number)
 		local scale = Vector3.new(wide, tall, deep)
 		for _, piece in s.pieces do
 			local offset = piece.offset
-			piece.part.CFrame = frame * (CFrame.new(offset.Position * scale) * offset.Rotation)
+			table.insert(moveParts, piece.part)
+			table.insert(
+				moveFrames,
+				frame * (CFrame.new(offset.Position * scale) * offset.Rotation)
+			)
 			-- In the part's own axes: exact for parts set upright in the model.
 			local own = offset.Rotation:VectorToObjectSpace(scale)
 			piece.part.Size = piece.size
@@ -178,13 +186,20 @@ local function step(dt: number)
 		local shadow = s.shadow
 		if shadow then
 			local shrink = 1 - SHADOW_SHRINK * hop.lift
-			shadow.part.CFrame = floor * shadow.offset
+			table.insert(moveParts, shadow.part)
+			table.insert(moveFrames, floor * shadow.offset)
 			shadow.part.Size = Vector3.new(
 				shadow.size.X * wide * shrink,
 				shadow.size.Y,
 				shadow.size.Z * deep * shrink
 			)
 		end
+	end
+
+	if #moveParts > 0 then
+		Workspace:BulkMoveTo(moveParts, moveFrames, Enum.BulkMoveMode.FireCFrameChanged)
+		table.clear(moveParts)
+		table.clear(moveFrames)
 	end
 end
 

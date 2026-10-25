@@ -67,6 +67,13 @@ export type EnemySplit = {
 	count: number,
 	--[[ The pieces' health as a share of their archetype's. ]]
 	health: number,
+	--[[ For a body that plays its own clips: the clip it falls with as it
+	     splits, in place of its Death. ]]
+	clip: string?,
+	--[[ For pieces that play their own clips: each is thrown as itself,
+	     playing this clip over `Balance.Split.flight + settle`, instead of
+	     as a blob of jelly (`Fx/SplitFx`). ]]
+	pieceClip: string?,
 }
 
 --[[
@@ -199,6 +206,45 @@ export type BossClips = {
 	idle: string,
 	Bounce: { [string]: string },
 	Lash: { [string]: { [string]: string } },
+	Spin: { [string]: string }?,
+}
+
+--[[ Web Walker (the Broodmother; owner, 2026-10-25, concept sheet
+     `assets/concepts/blocky/broodmother_web_walker_concept.png`): she
+     raises a web `radius` studs round her, warned for `windup`, that spins
+     clockwise once every `period` seconds for `spin`, then snaps and leaves
+     her slumped for `broken`. Under the web hurts; outside it `spokes` arms
+     `width` wide reach on to `reach` and sweep the floor, so the player
+     walks round with them, like a horse in a horse walker. A player is hit
+     at most every `hitEvery`, for `damage`, and pushed `shove` (out from
+     under the web, or on round with an arm). `holdSpan` is the length of
+     the clip she holds while it spins, so that loop keeps its own pace;
+     `height` is where the web hangs over the floor (drawn only). First she
+     scuttles to the middle of the room at `travelSpeed` (owner, 2026-10-25:
+     "go the middle of the arena every time"), taking at least `travelMin`. ]]
+export type BossSpin = {
+	travelSpeed: number,
+	travelMin: number,
+	windup: number,
+	spin: number,
+	broken: number,
+	recover: number,
+	spokes: number,
+	radius: number,
+	reach: number,
+	width: number,
+	period: number,
+	damage: number,
+	hitEvery: number,
+	shove: number,
+	holdSpan: number,
+	height: number,
+}
+
+export type BossChase = {
+	speed: number,
+	stopDistance: number,
+	clip: string,
 }
 
 export type EnemyBoss = {
@@ -206,9 +252,18 @@ export type EnemyBoss = {
 	title: string,
 	bounce: BossBounce,
 	lash: BossLash,
-	--[[ Seconds it rests after each move; the moves loop Bounce, Lash. ]]
+	--[[ Seconds it rests after each move; the moves loop Bounce, Lash
+	     unless `loop` names its own order. ]]
 	restAfterBounce: number,
 	restAfterLash: number,
+	restAfterSpin: number?,
+	loop: { string }?,
+	--[[ Web Walker, for a boss whose `loop` has "Spin". ]]
+	spin: BossSpin?,
+	--[[ Set for a boss that runs at the player between moves (her rests
+	     and her opening) instead of standing still: `speed` studs a
+	     second, stopping `stopDistance` from the player, playing `clip`. ]]
+	chase: BossChase?,
 	--[[ Seconds before its first move, once it has arrived. ]]
 	opening: number,
 	--[[ Set when the body plays its own clips; nil for a body the server
@@ -826,7 +881,10 @@ local boarlet: EnemyConfig = {
 }
 
 --[[ The Bramble Sow: Thornwood's Brood Slime. Big and slow, and when it
-     dies three Boarlets tumble out of its brambles. ]]
+     dies three Boarlets tumble out of its brambles: its brambles burst as
+     it falls (DropBoarlets) and each Boarlet somersaults out curled up
+     (Tumble), both its own clips (owner, 2026-10-25: the slime split did
+     not fit her). ]]
 local brambleSow: EnemyConfig = {
 	displayName = "BrambleSow",
 	turnRate = 220,
@@ -841,7 +899,13 @@ local brambleSow: EnemyConfig = {
 	color = Color3.fromRGB(150, 98, 60),
 	xpReward = 22,
 	shot = nil,
-	split = { into = boarlet, count = 3, health = 1 },
+	split = {
+		into = boarlet,
+		count = 3,
+		health = 1,
+		clip = "DropBoarlets",
+		pieceClip = "Tumble",
+	},
 }
 
 --[[ The Bramble Lurker: Thornwood's burrower. It dives, travels under the
@@ -903,11 +967,13 @@ local thornling: EnemyConfig = {
 --[[
 	The Broodmother, Thornwood's boss (docs/BOSSES.md §2, the owner's
 	Claude Design "Thornweaver", 2026-10-25). Alone in Level 2's last
-	room. Her fight runs on the Slime King's two moves, drawn with her own
-	clips: the climb (up her thread and down on the player, three times:
-	`ClimbUp`, `DropSlam`) and the web (a strand shot down a lane that drags
-	whoever it catches to her: `ShootWeb`). Her Thornling clutch (`Summon`)
-	waits on the Thornlings' model.
+	room. Her fight loops two moves, drawn with her own clips: Web Walker
+	(owner, 2026-10-25, in place of the Slime King's climb and drop: a web
+	nearly as wide as the room spins round her and the player walks the
+	edge with it, `spin`, `WebSpin_*`) and the Slime King's lash as a web
+	(a strand shot down a lane that drags whoever it catches to her:
+	`ShootWeb`). After every second move a Thornling clutch (`Summon`).
+	`bounce` is kept for the type and is not in her loop.
 ]]
 local broodmother: EnemyConfig = {
 	displayName = "Broodmother",
@@ -962,8 +1028,39 @@ local broodmother: EnemyConfig = {
 			chainReach = 18,
 		},
 		restAfterBounce = 1.5,
-		restAfterLash = 1,
-		opening = 1,
+		--[[ Rests long enough to see her chase (owner, 2026-10-25: "she
+		     should run at the player as well not just sit in the middle"),
+		     and her fight opens with the lash, the spin after it. ]]
+		restAfterLash = 2.5,
+		restAfterSpin = 2.5,
+		loop = { "Lash", "Spin" },
+		--[[ About half the player's 13.5: she closes in, they can still
+		     out-walk her; she stops short of them by her own reach. ]]
+		chase = { speed = 7, stopDistance = 7, clip = "Move" },
+		--[[ She spins mid-room, where the web covers all but a 4-stud track
+		     either side of a room 35 wide; its arms reach the far corners
+		     (the room is 58 long). The arms cross the track at about 8
+		     studs a second, well under the player's 13.5, so walking with
+		     them is the answer and stopping is not. ]]
+		spin = {
+			travelSpeed = 12,
+			travelMin = 0.4,
+			windup = 1.6,
+			spin = 6,
+			broken = 1.6,
+			recover = 0.8,
+			spokes = 8,
+			radius = 13.5,
+			reach = 34,
+			width = 2.4,
+			period = 12,
+			damage = 45,
+			hitEvery = 0.8,
+			shove = 6,
+			holdSpan = 2,
+			height = 7,
+		},
+		opening = 2.5,
 		web = true,
 		--[[ Her clutch (owner, 2026-10-25): after every second move, three
 		     Thornlings drop round her as she plays Summon. ]]
@@ -989,6 +1086,13 @@ local broodmother: EnemyConfig = {
 					release = "Idle",
 					settle = "Idle",
 				},
+			},
+			Spin = {
+				travel = "Move",
+				windup = "WebSpin_Windup",
+				spin = "WebSpin_Hold",
+				broken = "WebSpin_End",
+				recover = "WebSpin_Recover",
 			},
 		},
 	},

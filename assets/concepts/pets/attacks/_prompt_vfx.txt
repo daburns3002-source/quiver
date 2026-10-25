@@ -1,0 +1,19 @@
+Generate ONE image: a polished game-art reference sheet, 16:9, dark navy background so glows read, titled "Legendary and Mythic pet attack effects". It shows the attack effects of three top-rarity forest pets in Arrow Legends, a Roblox top-down archer game. The attached images are the pets themselves; match their colours exactly. These are the showpieces: they must look spectacular, with strong glows, light trails and particle bursts, while staying in the game's style.
+
+Style: blocky, low-poly, like Roblox parts and Pet Simulator: every piece built from chunky bevelled cubes and slabs, flat colours plus bright Neon glow on the effect parts, no outlines. Glow, sparkles and trails are also small cubes, never smooth particles.
+
+Lay out three wide rows, one per pet, each with two or three effects. Each effect: large in three-quarter view, plus a strip of three small frames showing it play out. Label each in plain blocky letters.
+
+Row 1, Slime Prince (Legendary, emerald and gold):
+- Mini Slime: a small emerald jelly cube minion with two tiny eyes and a tiny gold crown, bouncing in arcs into enemies, with a little green splash of cubes on each landing.
+- Crown Shockwave: a flat ring of glowing gold cubes expanding along the ground with gold sparkle cubes flying up, and a ghostly golden crown flashing above the centre.
+
+Row 2, Ember Wilf (Legendary, orange and ember yellow):
+- Ember Bolt: a glowing orange-yellow fire cube bolt with a flickering trail of smaller ember cubes, three fired in a spread.
+- Burning Mark: small orange flame cubes licking up around an enemy's feet.
+- Howl Aura: a pulsing orange ring of cubes around the player and a soft orange glow, rising ember cubes, a speed boost.
+
+Row 3, Glimmerhorn (Mythic, cream, green, rainbow):
+- Prism Beam: a long straight beam of glowing cubes in rainbow colours, bright white core, sparkle cubes along it, sweeping across a group of enemies.
+- Heal Sparkles: soft green and white sparkle cubes spiralling up around the player.
+- Revive Burst: a big rainbow ring of cubes bursting outward with a column of white-gold light cubes and a ghostly antler silhouette.

@@ -1,0 +1,14 @@
+Generate ONE image: a clean game-art reference sheet, 16:9, light grey background, titled "Mossy Glade pet projectiles". It shows the projectiles and small effects for eight forest pets' attacks in Arrow Legends, a Roblox top-down archer game. The attached images are the pets themselves; match their colours exactly.
+
+Style: blocky, low-poly, like Roblox parts and Pet Simulator: every piece built from a few chunky bevelled cubes and slabs, flat colours, no outlines, no gradients except a soft glow where noted. Simple and readable from a top-down camera. Small: each piece is about the size of the pet's head or smaller.
+
+Lay out eight panels in a 4 x 2 grid. Each panel: the piece large in three-quarter view, a small side view, and a strip of three small frames showing its motion. Label each panel with its name in plain blocky letters.
+
+1. Slime Glob (Mosslet): a lime-green jelly cube glob with a darker moss speck, flying in an arc; frames: flying, splatting, a flat lime puddle of square tiles left on the ground.
+2. Acorn Pellet (Babacorn): a tiny brown acorn made of two cubes, a cap and a nut, spinning; three fired in a quick burst.
+3. Tongue Lash (Fern Frog): a long flat pink tongue made of square segments with a round-cube tip, stretching straight out and snapping back.
+4. Spore Patch (Toadstool Tot): a flat ring of small red-and-white mushroom cubes on the ground with soft green glowing spore cubes rising from it, a healing zone.
+5. Lure Mark (Firefly Bun): a small glowing yellow lantern-light cube marker that floats over an enemy's head, with four tiny light cubes circling it.
+6. Root Snare (Stumpy): brown blocky roots bursting up from the ground in a ring and wrapping inward, with teal glowing fungus cubes at the tips.
+7. Leaf Slash (Glade Fox): a crescent arc made of green leaf-shaped slabs, a sweeping slash with a faint green glow trail.
+8. Feather Dart (Hootmoss): a mossy green feather made of three stacked slabs with an amber glowing tip, flying in a homing curve with a short trail of small feather bits.

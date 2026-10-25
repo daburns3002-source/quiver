@@ -479,6 +479,7 @@ local brambleSow: Design = { shadow(3.9, 5.4, 4.1) }
 local boarlet: Design = { shadow(2.15, 3, 2.25) }
 local brambleLurker: Design = { shadow(4.5, 4.5, 3.3) }
 local broodmother: Design = { shadow(10.3, 6.2, 6.2) }
+local thornling: Design = { shadow(2.4, 1.85, 1.8) }
 
 --[[
 	The Ember Wilf (owner, 2026-10-23), after the owner's dog: a round
@@ -588,6 +589,7 @@ local EnemyDesigns = {
 	Boarlet = boarlet,
 	BrambleLurker = brambleLurker,
 	Broodmother = broodmother,
+	Thornling = thornling,
 
 	--[[ Archetypes built from an imported model, by display name. ]]
 	Imported = {
@@ -648,6 +650,12 @@ local EnemyDesigns = {
 		BrambleLurker = {
 			model = "BrambleLurker",
 			clips = "BrambleLurker",
+			eyes = "^Eye_[LR]$",
+			eyeColor = EYE_AMBER,
+		},
+		Thornling = {
+			model = "Thornling",
+			clips = "Thornling",
 			eyes = "^Eye_[LR]$",
 			eyeColor = EYE_AMBER,
 		},

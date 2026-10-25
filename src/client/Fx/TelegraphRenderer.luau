@@ -18,6 +18,7 @@ local TweenService = game:GetService("TweenService")
 
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local BossFx = require(script.Parent.BossFx)
+local BroodWebFx = require(script.Parent.BroodWebFx)
 local Device = require(script.Parent.Parent.Device)
 local FxEvents = require(script.Parent.Upgrades.FxEvents)
 local MythicFx = require(script.Parent.MythicFx)
@@ -371,6 +372,12 @@ function TelegraphRenderer.onTelegraph(
 			return
 		elseif tell == "Splat" then
 			BossFx.splat(parent, origin, direction, duration, reach)
+			return
+		elseif tell == "WebLane" then
+			BroodWebFx.strand(origin, direction, duration, reach)
+			return
+		elseif tell == "WebSplat" then
+			BroodWebFx.splat(origin, direction, duration, reach)
 			return
 		elseif tell == "Goo" then
 			BossFx.goo(parent, origin, direction, duration, reach)

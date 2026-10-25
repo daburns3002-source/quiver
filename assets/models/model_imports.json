@@ -65935,5 +65935,1168 @@
     "textureId": ""
    }
   ]
+ },
+ "brood_AuxScene_34": {
+  "parts": [
+   {
+    "cframe": [
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "tip_core",
+    "size": [
+     0.10895,
+     0.10263,
+     0.12205
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://125039574609339",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0,
+     0.01528,
+     0.06,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "tip_shell",
+    "size": [
+     0.52354,
+     0.54255,
+     0.38847
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://89982411677353",
+    "material": "Plastic",
+    "textureId": ""
+   }
+  ]
+ },
+ "brood_AuxScene_32": {
+  "parts": [
+   {
+    "cframe": [
+     0,
+     0.05,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "splat_centre_hot",
+    "size": [
+     0.14142,
+     0.1,
+     0.14142
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://137021981441163",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0,
+     0.0425,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "splat_centre",
+    "size": [
+     0.40305,
+     0.085,
+     0.40305
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://77530717193762",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     -0.0013,
+     0.05,
+     0.00035,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "splat_spokes",
+    "size": [
+     2.99264,
+     0.1,
+     3.00392
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://105048508390239",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     -0.00082,
+     0.0375,
+     0.0009,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "splat_ring_inner",
+    "size": [
+     1.20962,
+     0.075,
+     1.21183
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://133543341753172",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     -0.00075,
+     0.0375,
+     -0.00102,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "splat_ring_outer",
+    "size": [
+     1.99938,
+     0.075,
+     1.99932
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://135850492213517",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     -0.00394,
+     0.05,
+     0.00175,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "splat_barbs",
+    "size": [
+     2.31893,
+     0.09421,
+     2.31259
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://89402885712807",
+    "material": "Plastic",
+    "textureId": ""
+   }
+  ]
+ },
+ "brood_AuxScene_33": {
+  "parts": [
+   {
+    "cframe": [
+     0,
+     -0.00016,
+     -0.5,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "strand_silk",
+    "size": [
+     0.24846,
+     0.24929,
+     1.01592
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://96126524376151",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0.01801,
+     -0.02,
+     -0.5,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "strand_barbs",
+    "size": [
+     0.14142,
+     0.36071,
+     0.57571
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://109422026767289",
+    "material": "Plastic",
+    "textureId": ""
+   }
+  ]
+ },
+ "brood_AuxScene_35": {
+  "parts": [
+   {
+    "cframe": [
+     0,
+     0.38,
+     0.03999,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Body",
+    "size": [
+     0.6,
+     0.44,
+     0.6
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://124015378052860",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0,
+     0.53711,
+     -0.0986,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Rune",
+    "size": [
+     0.3465,
+     0.19353,
+     0.30281
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://119953944307313",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0,
+     0.64683,
+     0.16122,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Spike_1",
+    "size": [
+     0.11258,
+     0.23,
+     0.13
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://94909065757958",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     -0.25293,
+     0.5129,
+     0.07036,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Spike_2",
+    "size": [
+     0.09699,
+     0.17,
+     0.112
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://112771096232770",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0.25293,
+     0.5129,
+     0.07036,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Spike_3",
+    "size": [
+     0.09699,
+     0.17,
+     0.112
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://95539118687576",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0,
+     0.17,
+     -0.24001,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Head",
+    "size": [
+     0.32,
+     0.26,
+     0.26
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://101959831092954",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0,
+     0.4653,
+     0.24258,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Rune_Back",
+    "size": [
+     0.32957,
+     0.21162,
+     0.25369
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://111276232981402",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     -0.065,
+     0.15,
+     -0.371,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Eye_L",
+    "size": [
+     0.075,
+     0.075,
+     0.012
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://110156877745456",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0.065,
+     0.15,
+     -0.371,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Eye_R",
+    "size": [
+     0.075,
+     0.075,
+     0.012
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://139786527039840",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     -0.33,
+     0.24028,
+     -0.12,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Leg_L1_Upper",
+    "size": [
+     0.28,
+     0.13,
+     0.13
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://131843908330514",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     -0.42357,
+     0.08591,
+     -0.12,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Leg_L1_Tip",
+    "size": [
+     0.12,
+     0.19,
+     0.10392
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://101410862642838",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     -0.33,
+     0.24028,
+     -0.03999,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Leg_L1_Upper",
+    "size": [
+     0.28,
+     0.13,
+     0.13
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://75753457636829",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     -0.42357,
+     0.08591,
+     -0.03999,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Leg_L2_Tip",
+    "size": [
+     0.12,
+     0.19,
+     0.10392
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://105603517166941",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     -0.33,
+     0.24028,
+     0.05,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Leg_L1_Upper",
+    "size": [
+     0.28,
+     0.13,
+     0.13
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://96112279222222",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     -0.42357,
+     0.08591,
+     0.05,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Leg_L3_Tip",
+    "size": [
+     0.12,
+     0.19,
+     0.10392
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://80668410740936",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     -0.33,
+     0.24028,
+     0.13,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Leg_L1_Upper",
+    "size": [
+     0.28,
+     0.13,
+     0.13
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://108743562723034",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     -0.42357,
+     0.08591,
+     0.13,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Leg_L4_Tip",
+    "size": [
+     0.12,
+     0.19,
+     0.10392
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://90026330585203",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0.17,
+     0.24028,
+     -0.12,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Leg_L1_Upper",
+    "size": [
+     0.28,
+     0.13,
+     0.13
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://115162413332406",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0.07643,
+     0.08591,
+     -0.12,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Leg_R1_Tip",
+    "size": [
+     0.12,
+     0.19,
+     0.10392
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://112642529931737",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0.17,
+     0.24028,
+     -0.03999,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Leg_L1_Upper",
+    "size": [
+     0.28,
+     0.13,
+     0.13
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://117143607409420",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0.07643,
+     0.08591,
+     -0.03999,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Leg_R2_Tip",
+    "size": [
+     0.12,
+     0.19,
+     0.10392
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://72283707396814",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0.17,
+     0.24028,
+     0.05,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Leg_L1_Upper",
+    "size": [
+     0.28,
+     0.13,
+     0.13
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://84310073717408",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0.07643,
+     0.08591,
+     0.05,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Leg_R3_Tip",
+    "size": [
+     0.12,
+     0.19,
+     0.10392
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://135590197166934",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0.17,
+     0.24028,
+     0.13,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Leg_L1_Upper",
+    "size": [
+     0.28,
+     0.13,
+     0.13
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://92642215398056",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0.07643,
+     0.08591,
+     0.13,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Leg_R4_Tip",
+    "size": [
+     0.12,
+     0.19,
+     0.10392
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://114289507068680",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     -0.065,
+     0.15,
+     -0.3725,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Eye_L_Glow",
+    "size": [
+     0.101,
+     0.101,
+     0.001
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://72777803164696",
+    "material": "Plastic",
+    "textureId": ""
+   },
+   {
+    "cframe": [
+     0.065,
+     0.15,
+     -0.3725,
+     1,
+     0,
+     0,
+     0,
+     1,
+     0,
+     0,
+     0,
+     1
+    ],
+    "transparency": 0,
+    "name": "Eye_R_Glow",
+    "size": [
+     0.101,
+     0.101,
+     0.001
+    ],
+    "color": [
+     0.63922,
+     0.63529,
+     0.64706
+    ],
+    "meshId": "rbxassetid://78063042642331",
+    "material": "Plastic",
+    "textureId": ""
+   }
+  ]
  }
 }

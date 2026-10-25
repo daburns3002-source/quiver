@@ -348,5 +348,28 @@
       "Idle",
       "Move"
     ]
+  },
+  "Thornling": {
+    "glb": "assets/models/enemies/blocky/thornling.glb",
+    "loops": [
+      "Idle",
+      "Move"
+    ]
+  },
+  "FxBroodWebStrand": {
+    "glb": "assets/models/effects/fx_brood_web_strand.glb",
+    "loops": [
+      "Wiggle"
+    ]
+  },
+  "FxBroodWebTip": {
+    "glb": "assets/models/effects/fx_brood_web_tip.glb",
+    "loops": [
+      "Pulse"
+    ]
+  },
+  "FxBroodWebSplat": {
+    "glb": "assets/models/effects/fx_brood_web_splat.glb",
+    "loops": []
   }
 }

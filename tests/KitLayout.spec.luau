@@ -44,7 +44,7 @@ local function layoutFor(
 		shape,
 		room.obstacles,
 		model.lowCover or "Thicket",
-		KitLayout.seed(room.arena :: string)
+		KitLayout.roomSeed(room.arena :: string, room.obstacles)
 	),
 		shape
 end

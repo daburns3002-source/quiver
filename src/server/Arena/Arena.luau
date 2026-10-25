@@ -645,7 +645,7 @@ function Arena.build(parent: Instance, obstacles: { Balance.Obstacle }, arena: s
 				part.Transparency = 1
 			end
 		end
-		placeModel(root, model, obstacles, KitLayout.seed(arena or ""))
+		placeModel(root, model, obstacles, KitLayout.roomSeed(arena or "", obstacles))
 		--[[ The client draws the scenery's life from this
 		     (`Fx/ForestAmbience`). ]]
 		root:SetAttribute("Ambience", model.ambience)

@@ -4,8 +4,9 @@
 	body as wide as the player (owner, 2026-10-25: "make sure there is a
 	clear path to the exit every time"), searched over the floor in half-stud
 	cells against the room's cover boxes, the way `tools/thornwood_rooms.py`
-	checks the rooms it writes. And no room is more cover than floor
-	(owner: "make the obstacles way less of the room").
+	checks the rooms it writes. And Level 2's cover is never more than 30%
+	of the room (owner, 2026-10-25: "make sure the obstacles are no more
+	than 30" ... "30% of the room").
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -72,7 +73,7 @@ return function(t: TestRunner.Helper)
 		end
 	end)
 
-	t.test("Level 2 is forty rooms of thin cover", function()
+	t.test("Level 2 is forty rooms, none more than 30% cover", function()
 		local rooms: { number } = Balance.Stages[4].rooms or {}
 		t.equal(#rooms, 40)
 		local floor = Balance.Arena.size.X * Balance.Arena.size.Z
@@ -82,9 +83,8 @@ return function(t: TestRunner.Helper)
 			for _, box in room.obstacles do
 				cover += box.size.X * box.size.Z
 			end
-			t.isTrue(#room.obstacles <= 30, `{room.name} has {#room.obstacles} pieces of cover`)
 			t.isTrue(
-				cover <= floor * 0.1,
+				cover <= floor * 0.3,
 				`{room.name} is {math.floor(cover / floor * 100)}% cover`
 			)
 		end

@@ -14,8 +14,10 @@ bramble hedge, a squat one a mossy boulder, a flat one a thorn bush (blocks
 walking, not arrows). Seeded, so the same forty come out every time. Each
 room is checked here before it is kept:
 
-- at most `MAX_PIECES` pieces (well under the owner's 30) covering at most
-  `MAX_COVER` of the floor;
+- at most `MAX_PIECES` pieces covering at most `MAX_COVER` of the floor:
+  the owner's ceiling is 30% of the room ("30% of the room", 2026-10-25),
+  and these stay far under it, as they also asked for "way less" cover
+  (the forty come out 0.7-5.8%, 2.4% on average);
 - every piece clear of the start, the exit pad and the gate's approach,
   and a body's width from every other piece and from the walls, so nothing
   makes a pocket an enemy or the player can stick in;

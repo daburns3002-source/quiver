@@ -106,7 +106,7 @@ local ThornwoodForest = require(script.Parent.ThornwoodForest)
 local THORNWOOD_FOREST: { ArenaPart } = ThornwoodForest
 
 --[[ Past the wood's own edge, its ground's darkest green, as the glade's. ]]
-local THORNWOOD_FLOOR = Color3.fromRGB(55, 105, 31)
+local THORNWOOD_FLOOR = Color3.fromRGB(10, 36, 3)
 
 --[[ Act 1, area 2: Thornwood (Level 2), built from the owner's blocky
      Thornwood kit the same way, inside its own outer wood

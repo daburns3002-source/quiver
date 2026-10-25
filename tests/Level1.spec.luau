@@ -1,8 +1,9 @@
 --!strict
 --[[
-	Level 1 (`Balance.Stages[3]`, the Mossy Glade): slimes, the Ember Wilf
-	from room 6 on, and the Slime King alone in its last room (owner,
-	2026-10-23).
+	Level 1 (`Balance.Stages[3]`, the Mossy Glade): slimes, the Sprout
+	Spitter from room 6 on, and the Slime King alone in its last room
+	(owner, 2026-10-23; the Spitter in the Ember Wilf's place, 2026-10-24:
+	"take out the non blocky wilf enemy").
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -15,12 +16,12 @@ local SLIMES = {
 	[Balance.Enemies.BroodSlime] = true,
 	[Balance.Enemies.BabySlime] = true,
 	[Balance.Enemies.SlimeKing] = true,
-	[Balance.Enemies.Wilf] = true,
+	[Balance.Enemies.SpreadShooter] = true,
 }
 
---[[ The first room the wilf may appear in: the first five are the slime
+--[[ The first room the Spitter may appear in: the first five are the slime
      tutorial. ]]
-local WILF_FROM = 6
+local SPITTER_FROM = 6
 
 local function level(): { Balance.RoomConfig }
 	local indices: { number } = Balance.Stages[3].rooms or {}
@@ -37,7 +38,7 @@ return function(t: TestRunner.Helper)
 		t.equal(#level(), 10)
 	end)
 
-	t.test("every Level 1 enemy is a slime or the wilf", function()
+	t.test("every Level 1 enemy is a slime or the Spitter, and no Wilf", function()
 		for _, room in level() do
 			for _, config in room.roster do
 				t.isTrue(SLIMES[config] == true, `{room.name} has a {config.displayName}`)
@@ -45,11 +46,11 @@ return function(t: TestRunner.Helper)
 		end
 	end)
 
-	t.test("the wilf only comes from room 6", function()
+	t.test("the Spitter only comes from room 6", function()
 		for index, room in level() do
 			for _, config in room.roster do
-				if config == Balance.Enemies.Wilf then
-					t.isTrue(index >= WILF_FROM, `the wilf is in room {index}`)
+				if config == Balance.Enemies.SpreadShooter then
+					t.isTrue(index >= SPITTER_FROM, `the Spitter is in room {index}`)
 				end
 			end
 		end

@@ -19,8 +19,20 @@ codex." This picks option C of `docs/WARDEN-CARDS.md` (a card set per class).
   blow links through `Combat/SoulLink`.
 - Descriptions: Front Arrow "Fire another arrow.", Double Shot "Fire another
   arrow in a narrow spread."
-- The Warden lost Iron Skin, Steadfast and Bloodletting; new Warden cards are
-  the owner's pick from the ideas in the chat of 2026-10-25.
+- The Warden lost Iron Skin, Steadfast and Bloodletting, and gained four
+  (the owner's picks from six ideas; Rend and Shield Bash were turned down):
+  - **Whirlwind** (Epic): every 4th / 3rd swing is a spin hitting everything
+    within `Balance.Player.whirlwind.radius`, drawn as a ring of cubes.
+  - **Shockwave** (Rare): the slam's wave rolls 8 / 12 / 16 studs down a lane,
+    each enemy hit for a share of the slam as the wave arrives, drawn as earth
+    cubes bursting up in turn.
+  - **Battle Cry** (Legendary): +5% / +10% attack speed per kill, up to 5
+    stacks, lapsing 4 s after the last kill; server-side, like the Ember
+    Wilf's howl.
+  - **Parry** (Epic): side blows (and the slam at level 2) destroy enemy shots
+    in their shape.
+  Whirlwind, Shockwave and Battle Cry have sounds waiting on the owner's picks
+  (audition round 19).
 
 ## Who gets what
 

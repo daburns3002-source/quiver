@@ -71,6 +71,8 @@ type BossState = {
 	--[[ A spinning web (`EnemyBoss.spin`): when each player may next be
 	     hit by it (`os.clock()`). ]]
 	wheelHitAt: { [Player]: number },
+	--[[ When it last stepped (`os.clock()`), for a chase's stride. ]]
+	steppedAt: number,
 }
 
 type Enemy = {
@@ -833,6 +835,7 @@ function EnemyManager.spawn(
 			moves = 0,
 			summonAt = nil,
 			wheelHitAt = {},
+			steppedAt = 0,
 		}
 		--[[ For the client: the boss bar, and no hit squash on a body the
 		     server is posing. ]]
@@ -1454,6 +1457,10 @@ local function stepBoss(enemy: Enemy, state: BossState, now: number)
 	if state.restUntil == 0 then
 		state.restUntil = now + boss.opening
 	end
+	--[[ Seconds since its last step, for a chase; capped, so a hitch or
+	     the first step never jumps it across the room. ]]
+	local dt = math.clamp(now - state.steppedAt, 0, 0.1)
+	state.steppedAt = now
 
 	local feet = Vector3.new(enemy.position.X, 0, enemy.position.Z)
 	local targetRoot = nearestAlivePlayerRoot(feet)
@@ -1480,6 +1487,23 @@ local function stepBoss(enemy: Enemy, state: BossState, now: number)
 			return
 		end
 		if now < state.restUntil or not targetRoot then
+			--[[ A boss that chases runs at the player through its rests. ]]
+			local chase = boss.chase
+			if chase and targetRoot then
+				local to, moving = BossMoves.chase(feet, targetRoot.Position, chase, dt, clamp)
+				if moving then
+					local heading = to - feet
+					local yaw = math.atan2(-heading.X, -heading.Z)
+					enemy.yaw = yaw
+					enemy.position = to + Vector3.new(0, half, 0)
+					positions[enemy.model] = enemy.position
+					placeHitbox(enemy)
+					BossBody.pose(state.body, BossMoves.idle(to, yaw, now))
+					local running = if state.clip == chase.clip then state.clipAt else now
+					showClip(enemy, state, chase.clip, running, now, 0)
+					return
+				end
+			end
 			BossBody.pose(state.body, BossMoves.idle(feet, enemy.yaw or 0, now))
 			local idle = if boss.clips then boss.clips.idle else ""
 			showClip(enemy, state, idle, if state.clip == idle then state.clipAt else now, now, 0)

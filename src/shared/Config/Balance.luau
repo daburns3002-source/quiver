@@ -234,6 +234,12 @@ export type BossSpin = {
 	height: number,
 }
 
+export type BossChase = {
+	speed: number,
+	stopDistance: number,
+	clip: string,
+}
+
 export type EnemyBoss = {
 	--[[ What the boss bar calls it. ]]
 	title: string,
@@ -247,6 +253,10 @@ export type EnemyBoss = {
 	loop: { string }?,
 	--[[ Web Walker, for a boss whose `loop` has "Spin". ]]
 	spin: BossSpin?,
+	--[[ Set for a boss that runs at the player between moves (her rests
+	     and her opening) instead of standing still: `speed` studs a
+	     second, stopping `stopDistance` from the player, playing `clip`. ]]
+	chase: BossChase?,
 	--[[ Seconds before its first move, once it has arrived. ]]
 	opening: number,
 	--[[ Set when the body plays its own clips; nil for a body the server
@@ -1002,9 +1012,15 @@ local broodmother: EnemyConfig = {
 			chainReach = 18,
 		},
 		restAfterBounce = 1.5,
-		restAfterLash = 1,
-		restAfterSpin = 1.5,
-		loop = { "Spin", "Lash" },
+		--[[ Rests long enough to see her chase (owner, 2026-10-25: "she
+		     should run at the player as well not just sit in the middle"),
+		     and her fight opens with the lash, the spin after it. ]]
+		restAfterLash = 2.5,
+		restAfterSpin = 2.5,
+		loop = { "Lash", "Spin" },
+		--[[ About half the player's 13.5: she closes in, they can still
+		     out-walk her; she stops short of them by her own reach. ]]
+		chase = { speed = 7, stopDistance = 7, clip = "Move" },
 		--[[ She spins mid-room, where the web covers all but a 4-stud track
 		     either side of a room 35 wide; its arms reach the far corners
 		     (the room is 58 long). The arms cross the track at about 8
@@ -1028,7 +1044,7 @@ local broodmother: EnemyConfig = {
 			holdSpan = 2,
 			height = 7,
 		},
-		opening = 1,
+		opening = 2.5,
 		web = true,
 		--[[ Her clutch (owner, 2026-10-25): after every second move, three
 		     Thornlings drop round her as she plays Summon. ]]

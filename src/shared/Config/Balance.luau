@@ -2306,6 +2306,9 @@ local Balance = {
 		-- sits this far ahead of the player
 		bowAhead = 1.4,
 		flareLife = 0.32,
+		-- Overdraw's sound: once, after standing still this long, and not again
+		-- until the player moves (owner, 2026-10-24)
+		overdrawSoundAfter = 2,
 		pierceLife = 0.3,
 		bounceLife = 0.35,
 		-- Blast Arrows' starburst is this wide in its own studs; it is drawn

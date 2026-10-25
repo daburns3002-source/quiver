@@ -7,7 +7,8 @@
 	2026-10-24).
 
 	- Overdraw: rings that grow while the archer stands and charges, punched
-	  out when the shot leaves.
+	  out when the shot leaves; its sound once per stand, after
+	  `overdrawSoundAfter` seconds still.
 	- Bouncy Wall: a yellow kick on the wall at each bounce.
 	- Blast Arrows: a starburst at the blast's own radius.
 	- Soul Chain: a chain between linked enemies.
@@ -45,13 +46,16 @@ local function atBow(aim: Vector3): CFrame?
 end
 
 local overdraw: Model? = nil
+--[[ Overdraw's sound has played for this stand: once, until the player
+     moves (a card screen or the boss banner closing restarts the stand's
+     clock without the player moving, and does not count). ]]
+local sounded = false
 
 local function onFired(aim: Vector3)
 	if not overdraw or not ranger() then
 		return
 	end
 	-- the charge is spent: the rings punch out and go
-	SoundFx.play("fx_overdraw")
 	local spent = overdraw
 	overdraw = nil
 	UpgradeFx.stop(spent)
@@ -65,8 +69,20 @@ end
      ramp the server charges over. ]]
 local function overdrawStep()
 	local held = ranger() and UpgradeFx.level("Overdraw") > 0
-	local _, stationarySince = LocalFiring.motion()
+	local movingSince, stationarySince = LocalFiring.motion()
 	local target = LocalFiring.currentTarget()
+	if movingSince then
+		sounded = false
+	elseif
+		held
+		and target
+		and not sounded
+		and stationarySince
+		and os.clock() - stationarySince >= K.overdrawSoundAfter
+	then
+		sounded = true
+		SoundFx.play("fx_overdraw")
+	end
 	if not held or not stationarySince or not target then
 		if overdraw then
 			UpgradeFx.stop(overdraw)

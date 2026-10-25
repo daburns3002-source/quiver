@@ -417,6 +417,28 @@ local function findSpawnPosition(config: EnemyConfig): Vector3
 	return bestPosition or Vector3.new(limitX, y, limitZ)
 end
 
+local function nearestAlivePlayerRoot(position: Vector3): (BasePart?, number)
+	local bestRoot: BasePart? = nil
+	local bestDistance = math.huge
+
+	for _, session in RunSession.all() do
+		local root = session.root
+		if not root or not session.alive then
+			continue
+		end
+
+		local flat = Vector3.new(root.Position.X - position.X, 0, root.Position.Z - position.Z)
+		local distance = flat.Magnitude
+
+		if distance < bestDistance then
+			bestRoot = root
+			bestDistance = distance
+		end
+	end
+
+	return bestRoot, bestDistance
+end
+
 --[[
 	Takes an enemy out of play while its spawn marker is up, or puts it in.
 
@@ -608,6 +630,17 @@ function EnemyManager.spawn(
 	aliveCount += 1
 
 	if config.boss then
+		--[[ Facing whoever walked in (owner, 2026-10-24: "the bosses should
+		     start facing the player when you walk into the room"); from here
+		     its moves turn it. ]]
+		local root = nearestAlivePlayerRoot(position)
+		local toward = if root then root.Position - position else Vector3.zero
+		if Vector3.new(toward.X, 0, toward.Z).Magnitude > 1e-3 then
+			local yaw = math.atan2(-toward.X, -toward.Z)
+			enemies[model].yaw = yaw
+			model:PivotTo(CFrame.new(position) * CFrame.Angles(0, yaw, 0))
+		end
+
 		local parts: { BasePart } = {}
 		for _, child in model:GetChildren() do
 			if child:IsA("BasePart") then
@@ -894,28 +927,6 @@ function EnemyManager.damage(
 	end
 
 	return true, enemy.config.xpReward, enemy.position
-end
-
-local function nearestAlivePlayerRoot(position: Vector3): (BasePart?, number)
-	local bestRoot: BasePart? = nil
-	local bestDistance = math.huge
-
-	for _, session in RunSession.all() do
-		local root = session.root
-		if not root or not session.alive then
-			continue
-		end
-
-		local flat = Vector3.new(root.Position.X - position.X, 0, root.Position.Z - position.Z)
-		local distance = flat.Magnitude
-
-		if distance < bestDistance then
-			bestRoot = root
-			bestDistance = distance
-		end
-	end
-
-	return bestRoot, bestDistance
 end
 
 --[[

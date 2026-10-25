@@ -52,7 +52,7 @@ local function rebuildPipeline()
 	pipeline:clear()
 
 	local stats = PlayerStats.get()
-	for _, stage in AbilityEffects.stages(stats.abilities, stats.class) do
+	for _, stage in AbilityEffects.stages(stats.abilities, stats.class, stats.weapon) do
 		pipeline:addStage(stage)
 	end
 end

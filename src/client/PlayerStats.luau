@@ -35,6 +35,9 @@ export type Stats = {
 	reachBonus: number,
 	widthScale: number,
 	class: string,
+	--[[ The weapon in hand when not the class's own, for its built-in
+	     effect (`Config/WeaponStats`). ]]
+	weapon: string?,
 	--[[ Stack counts, not stages. Stages are functions and do not replicate;
 	     `AbilityEffects.stages` rebuilds the identical pipeline from these. ]]
 	abilities: { [string]: number },
@@ -93,6 +96,7 @@ function PlayerStats.set(stats: Stats)
 		reachBonus = math.max(tonumber(stats.reachBonus) or 0, 0),
 		widthScale = math.max(tonumber(stats.widthScale) or 1, 0),
 		class = if typeof(stats.class) == "string" then stats.class else "Ranger",
+		weapon = if typeof(stats.weapon) == "string" then stats.weapon else nil,
 		abilities = if typeof(stats.abilities) == "table" then stats.abilities else {},
 	}
 

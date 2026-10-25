@@ -1,6 +1,7 @@
 --!strict
 --[[
-	The stage's revive.
+	Saving a run from a lethal hit: no free revive any more (2026-10-25), only
+	Second Wind or a pet that revives.
 
 	Driven on a session of the module's own, which `execute_luau` loads fresh,
 	so the live run is not touched. The session is never bound to a character:
@@ -28,50 +29,25 @@ return function(t: TestRunner.Helper)
 		return session
 	end
 
-	t.test("the first lethal hit revives at full health, untouchable", function()
+	t.test("there is no free revive: a lethal hit kills", function()
+		-- owner, 2026-10-25: "take out the automatic revive"
+		t.equal(Balance.Revive.perStage, 0)
 		local session = fresh()
 		RunSession.applyDamage(session, session.maxHealth * 10)
-
-		t.isTrue(session.alive, "the revive did not save the player")
-		t.equal(session.health, session.maxHealth)
-		t.equal(session.revivesLeft, Balance.Revive.perStage - 1)
-		t.isTrue(RunSession.isInvulnerable(session))
+		t.isFalse(session.alive, "the player was revived for free")
 	end)
 
-	t.test("nothing hurts while invulnerable", function()
+	t.test("Second Wind still saves, at its share of health, untouchable", function()
 		local session = fresh()
-		RunSession.applyDamage(session, session.maxHealth * 10)
-		RunSession.applyDamage(session, 50)
-		t.equal(session.health, session.maxHealth)
-	end)
-
-	t.test("with the revives spent, a lethal hit kills", function()
-		local session = fresh()
-		for _ = 1, Balance.Revive.perStage do
-			RunSession.applyDamage(session, session.maxHealth * 10)
-			session.invulnerableUntil = 0
-		end
-
-		RunSession.applyDamage(session, session.maxHealth * 10)
-		t.isFalse(session.alive, "a revive was spent twice")
-	end)
-
-	t.test("Second Wind is spent before the revive, at its share of health", function()
-		local session = fresh()
-		session.secondWind = 0.5
+		session.secondWind = 0.4
 		RunSession.applyDamage(session, session.maxHealth * 10)
 
-		t.near(session.health, session.maxHealth * 0.5, 1e-6)
+		t.isTrue(session.alive, "Second Wind did not save the player")
+		t.near(session.health, session.maxHealth * 0.4, 1e-6)
 		t.isTrue(session.secondWindUsed)
-		t.equal(session.revivesLeft, Balance.Revive.perStage)
-	end)
-
-	t.test("a new stage gives the revives back", function()
-		local session = fresh()
-		RunSession.applyDamage(session, session.maxHealth * 10)
-		RunSession.newStage(session)
-		t.equal(session.revivesLeft, Balance.Revive.perStage)
-		t.isFalse(RunSession.isInvulnerable(session))
+		t.isTrue(RunSession.isInvulnerable(session))
+		RunSession.applyDamage(session, 50)
+		t.near(session.health, session.maxHealth * 0.4, 1e-6)
 	end)
 
 	t.test("the shield outlasts a hit's reaction and the clear reaches past melee", function()

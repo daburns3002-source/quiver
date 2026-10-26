@@ -725,6 +725,13 @@ local function blacksmithPosition(): Vector3?
 	return nil
 end
 
+--[[ Whether `position` is in the lobby's clearing rather than the arena. ]]
+local function inLobbyArea(position: Vector3): boolean
+	local offset = position - LobbyConfig.origin
+	local half = LobbyConfig.size / 2
+	return math.abs(offset.X) <= half.X + 8 and math.abs(offset.Z) <= half.Y + 8
+end
+
 function ShopScreen.isOpen(): boolean
 	local p = panel
 	return p ~= nil and p.Visible
@@ -811,9 +818,17 @@ function ShopScreen.start()
 			Remotes.event(Remotes.DebugWallet):FireServer(fill.coins, fill.gems, fill.items)
 			ShopScreen.open()
 		end
-		-- not over the story cutscene that plays in the lobby after BEGIN ADVENTURE
+		--[[ Only once the player stands in the lobby (owner, 2026-10-26: "make
+		     sure the gold and gems does not show up until the player is in the
+		     lobby"): the run's state is already Lobby on the title and through
+		     the story cutscene, while the player is still in the arena. ]]
 		local story = player.PlayerGui:FindFirstChild("StoryCutscene")
-		local inLobby = Workspace:GetAttribute("InLobby") == true and story == nil
+		local body = player.Character
+			and player.Character:FindFirstChild("HumanoidRootPart") :: BasePart?
+		local inLobby = Workspace:GetAttribute("InLobby") == true
+			and story == nil
+			and body ~= nil
+			and inLobbyArea(body.Position)
 		local h = hud
 		if h then
 			h.Visible = inLobby

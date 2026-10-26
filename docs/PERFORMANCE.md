@@ -175,6 +175,46 @@ All 59 together: 149,613 triangles in 1,819 parts, 621 if merged.
    though the game builds from mesh ids and never reads them. Keep a copy in
    a separate place file for the dump scripts, then delete the folder.
 
+## Loading ahead: the next room and the cards (2026-10-26)
+
+Owner, after a playtest: "next rooms need to preload while playing current
+room (very important) … I also want icons to preload as well".
+
+- **The next room is built mid-fight.** `Balance.Run.prepareDelay` (3 s) into
+  each room the server builds the next one (`Arena.prepare`) and parks it in
+  `ReplicatedStorage.NextArena`, so its ~560 parts reach every client during
+  the fight; at the door `Arena.build` only moves it into Workspace. The
+  client (`Fx/RoomPreload`) preloads the parked room's meshes and textures and
+  the enemies it brings (its `Roster` attribute: meshes, NEW ENEMY! picture
+  and sheet, a boss's banner icon and the boss music). Sounds already load at
+  join; enemies animate from data, so there are no animation assets.
+- **Card images load from the story on** (`UI/Cards/CardPreload`): every
+  `CardAssets` image is fetched, the class's first; on tiers with
+  `DeviceTiers.warmCardImages` (Medium, High) the class's images are also
+  kept drawn off-screen (about 50 MB of video memory), so a hand draws them
+  on its first frame. Low only downloads them.
+
+Measured in Studio on the test PC (Mossy Glade run; door = `DebugRoom` to
+the next room, which is what walking through it does):
+
+| | Before | After |
+|---|---:|---:|
+| Server work at the door (room built + enemies spawned) | 10–12 ms | 5–6 ms (49 ms for King Bloblin's room, his model) |
+| Building the next room in the background, mid-fight | — | 6–7 ms |
+| Next room's content preloaded, after it was parked | — | 0.25–0.73 s (about 6 s before anyone can reach the door) |
+| Worst frame on the first door of a fresh Play (room 6 → 7) | 334 ms, once* | 21 ms |
+| Worst frame on later doors (content already cached) | 20–37 ms | 21–37 ms |
+| A hand of three never-shown icons, until all are drawn | 317–348 ms | 65 ms (all 50 icons fetched before the first hand) |
+
+*Taken once, on main. Later in the session the same door with preparing
+switched off (`prepareDelay` = 1e6) also ran 21 ms, so that 334 ms frame
+was first-load content or noise, not something every door does on a PC.
+
+What Studio cannot show: the replication saved at the door on a real
+network (Studio's server is local, `DataReceiveKbps` reads 0) and a phone's
+cold cache. Studio keeps content cached for the whole session, so only
+the first door of a session is cold there.
+
 ## Not covered yet
 
 - The Thornwood outer forest was being changed by another session during

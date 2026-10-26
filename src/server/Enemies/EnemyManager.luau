@@ -22,6 +22,7 @@ local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local BossBanners = require(ReplicatedStorage.Shared.Config.BossBanners)
 local BossBody = require(script.Parent.BossBody)
 local BossMoves = require(script.Parent.BossMoves)
+local CurrentStage = require(ReplicatedStorage.Shared.Util.CurrentStage)
 local EnemyDesigns = require(ReplicatedStorage.Shared.Config.EnemyDesigns)
 local EnemyModel = require(script.Parent.EnemyModel)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
@@ -233,7 +234,7 @@ local SPAWN_GRID_STEP = 2
 
 --[[ The stage's multipliers on enemy damage and health (`StageConfig`). ]]
 local function difficulty(): { damage: number, health: number }
-	local stage = Balance.Stages[Balance.stage]
+	local stage = CurrentStage.config()
 	return {
 		damage = stage and stage.enemyDamage or 1,
 		health = stage and stage.enemyHealth or 1,

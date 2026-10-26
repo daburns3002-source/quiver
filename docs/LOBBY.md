@@ -2,7 +2,7 @@
 
 Phase 5. See `docs/ROADMAP.md`.
 
-The lobby is the first thing a new player sees and the room they return to between every run.
+The lobby is the first thing a new player sees and where every adventure starts.
 It carries the art direction, so unlike every other phase it gets its art pass **in-phase**
 rather than waiting for Phase 8.
 
@@ -16,8 +16,9 @@ across the north edge with the Mossy Glade and Thornwood portals lit and three l
 the areas to come; trees, cliffs and waterfalls round the edge.
 
 **The flow** (built): BEGIN ADVENTURE puts players at the campfire; walking into a lit portal
-starts that area's run (Mossy Glade: the Mossy Glade Run; Thornwood: Level 2); every run, won or
-lost, ends back at the campfire (the end screen's button). Data in `Config/Lobby`, built by
+starts that area's run (Mossy Glade: the Mossy Glade Run; Thornwood: Level 2); from there the end
+screen's NEXT LEVEL and TRY AGAIN carry on as before (`Balance.campaign`). Nothing leads back to
+the lobby after a run yet. Data in `Config/Lobby`, built by
 `Run/Lobby`, the run's state `Lobby` in `Run/RoomController` (`beginStage`, `inLobby`), the stage
 a portal picked published as the Workspace's `Stage` (`Util/CurrentStage`). The camera follows
 the player across the clearing, the lobby plays its Mossy Glade music, and the banner reads

@@ -57,7 +57,9 @@ function LoadingPick.describeWeapon(weapon: string): string
 	end
 	local rarity = string.upper(stats.rarity)
 	local bonus = math.floor((WeaponStats.bonus[stats.rarity] or 0) * 100 + 0.5)
-	local line = if bonus > 0 then `{rarity}. +{bonus}% damage.` else `{rarity}. A trusty starting weapon.`
+	local line = if bonus > 0
+		then `{rarity}. +{bonus}% damage.`
+		else `{rarity}. A trusty starting weapon.`
 	if stats.effect then
 		line ..= " " .. stats.effect
 	end
@@ -75,7 +77,10 @@ function LoadingPick.pool(profile: SaveSchema.Profile?): { Entry }
 	local pool: { Entry } = {}
 	for _, enemy in NewEnemies.enemies do
 		if met[enemy.area] and enemy.picture and not enemy.benched then
-			table.insert(pool, { name = enemy.name, picture = enemy.picture, description = enemy.description })
+			table.insert(
+				pool,
+				{ name = enemy.name, picture = enemy.picture, description = enemy.description }
+			)
 		end
 	end
 	for weapon, stats in WeaponStats.weapons do

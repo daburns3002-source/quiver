@@ -25,6 +25,15 @@
 
 local ArenaKits = require(script.Parent.ArenaKits)
 
+export type Sign = {
+	centre: Vector3,
+	size: Vector2,
+	normal: Vector3?,
+	up: Vector3?,
+	text: string,
+	colour: Color3,
+}
+
 export type Placed = { piece: string, at: Vector2, yaw: number?, lift: number? }
 
 export type Portal = {
@@ -204,6 +213,109 @@ local Lobby = {
 		Vector2.new(-100, 72),
 		Vector2.new(100, 72),
 	},
+	--[[ The words on the lobby's signs, written by the game in its one font
+	     (owner, 2026-10-26: "make every piece of text in the lobby the same
+	     font"): each piece's sign board is blank (`lobby_kit_v4`), and here is
+	     where it is on the piece, in kit units from its base centre, front
+	     +Z (`normal` and `up` for a tilted board), the words, and the colour
+	     the carved letters had. ]]
+	signs = {
+		EggHatchery = {
+			centre = Vector3.new(0, 2.96875, -0.3125),
+			size = Vector2.new(2.375, 0.4375),
+			text = "EGG HATCHERY",
+			colour = Color3.fromRGB(242, 230, 196),
+		},
+		Blacksmith = {
+			centre = Vector3.new(1.35, 3.63, 1.07),
+			size = Vector2.new(2.46, 0.46),
+			text = "BLACKSMITH",
+			colour = Color3.fromRGB(244, 234, 208),
+		},
+		GearStation = {
+			centre = Vector3.new(0, 2.7976, 0.9332),
+			size = Vector2.new(2.459, 0.42),
+			normal = Vector3.new(0, 0.343, 0.939),
+			up = Vector3.new(0, 0.9394, -0.3429),
+			text = "GEAR STATION",
+			colour = Color3.fromRGB(244, 234, 208),
+		},
+		DexHall = {
+			centre = Vector3.new(-0.0325, 3.1, 1.275),
+			size = Vector2.new(2.18, 0.4),
+			text = "DEX HALL",
+			colour = Color3.fromRGB(243, 233, 203),
+		},
+		Leaderboard = {
+			centre = Vector3.new(0, 2.885, 0.28),
+			size = Vector2.new(3, 0.43),
+			text = "FARTHEST ADVENTURERS",
+			colour = Color3.fromRGB(244, 226, 173),
+		},
+		PortalArch_MossyGlade = {
+			centre = Vector3.new(0, 3.2, 0.15),
+			size = Vector2.new(1.6, 0.5),
+			text = "MOSSY GLADE",
+			colour = Color3.fromRGB(242, 234, 211),
+		},
+		PortalArch_Thornwood = {
+			centre = Vector3.new(0, 3.2, 0.25),
+			size = Vector2.new(1.6, 0.5),
+			text = "THORNWOOD",
+			colour = Color3.fromRGB(242, 234, 211),
+		},
+		PortalArch_DrownedVillage = {
+			centre = Vector3.new(0, 3.16, 0.44),
+			size = Vector2.new(2.12, 0.64),
+			text = "DROWNED VILLAGE",
+			colour = Color3.fromRGB(255, 255, 255),
+		},
+		PortalArch_BogheartCaverns = {
+			centre = Vector3.new(0, 3.22, 0.44),
+			size = Vector2.new(1.96, 0.52),
+			text = "BOGHEART CAVERNS",
+			colour = Color3.fromRGB(255, 255, 255),
+		},
+		PortalArch_WindsweptCliffs = {
+			centre = Vector3.new(0, 3.1875, 0.45),
+			size = Vector2.new(1.85, 0.675),
+			text = "WINDSWEPT CLIFFS",
+			colour = Color3.fromRGB(255, 255, 255),
+		},
+		PortalArch_FrostpeakPass = {
+			centre = Vector3.new(0, 3.15, 0.45),
+			size = Vector2.new(1.85, 0.55),
+			text = "FROSTPEAK PASS",
+			colour = Color3.fromRGB(255, 255, 255),
+		},
+		PortalArch_EmberMines = {
+			centre = Vector3.new(0, 3.175, 0.075),
+			size = Vector2.new(2.5, 0.65),
+			text = "EMBER MINES",
+			colour = Color3.fromRGB(246, 244, 238),
+		},
+		PortalArch_ObsidianForge = {
+			centre = Vector3.new(0, 3.2, 0.075),
+			size = Vector2.new(2.45, 0.55),
+			text = "OBSIDIAN FORGE",
+			colour = Color3.fromRGB(246, 244, 238),
+		},
+		PortalArch_ShatteredKingdom = {
+			centre = Vector3.new(0, 3, 0.45),
+			size = Vector2.new(2.2, 0.5),
+			text = "SHATTERED KINGDOM",
+			colour = Color3.fromRGB(255, 255, 255),
+		},
+		PortalArch_VoidRift = {
+			centre = Vector3.new(0.0017, 3.043, 0.33),
+			size = Vector2.new(1.8, 0.4),
+			normal = Vector3.new(0.035, 0.0599, 0.9976),
+			up = Vector3.new(0.0499, 0.9968, -0.0616),
+			text = "VOID RIFT",
+			colour = Color3.fromRGB(255, 255, 255),
+		},
+	} :: { [string]: Sign },
+
 	--[[ The lawn's scatter: how likely each kind is, one piece per
 	     `scatterCell` studs square (`scatterFill` of the cells filled). ]]
 	scatter = {
@@ -229,11 +341,11 @@ local Lobby = {
 			centre = Vector3.new(0, 1.5, 0),
 		},
 		Blacksmith = {
-			meshId = "rbxassetid://133650219914484",
+			meshId = "rbxassetid://105766496891501",
 			size = Vector3.new(6, 5, 4),
 			centre = Vector3.new(0, 2.5, 0),
 			glow = {
-				meshId = "rbxassetid://85134254025900",
+				meshId = "rbxassetid://125860799363874",
 				size = Vector3.new(4.98, 1.66, 2.4584),
 				centre = Vector3.new(0.11, 1.29, 0.6908),
 			},
@@ -249,34 +361,34 @@ local Lobby = {
 			centre = Vector3.new(0, 1.58, 0),
 		},
 		DexHall = {
-			meshId = "rbxassetid://121288238703444",
+			meshId = "rbxassetid://137580120868267",
 			size = Vector3.new(8.835, 3.44, 4.25),
 			centre = Vector3.new(0, 1.72, 0),
 			glow = {
-				meshId = "rbxassetid://126159659097923",
+				meshId = "rbxassetid://121084239876446",
 				size = Vector3.new(6.473, 1.189, 0.798),
 				centre = Vector3.new(-0.964, 1.1455, 1.044),
 			},
 		},
 		EggHatchery = {
-			meshId = "rbxassetid://122513354568014",
+			meshId = "rbxassetid://140557897813184",
 			size = Vector3.new(5.5, 3.25, 5.375),
 			centre = Vector3.new(0, 1.625, 0),
 			glow = {
-				meshId = "rbxassetid://138350049174931",
+				meshId = "rbxassetid://118994057166286",
 				size = Vector3.new(4.4375, 1.6875, 3.25),
 				centre = Vector3.new(-0.4688, 1.2187, 0.8125),
 			},
 		},
 		GearStation = {
-			meshId = "rbxassetid://98980750782634",
+			meshId = "rbxassetid://121677949555244",
 			size = Vector3.new(5.96, 3.38, 4.04),
 			centre = Vector3.new(0, 1.69, 0),
 			--[[ Its cream canvas burned white in the lobby's light; toned
 			     down to the sheet's. ]]
 			tint = Color3.fromRGB(222, 214, 196),
 			glow = {
-				meshId = "rbxassetid://99842150139990",
+				meshId = "rbxassetid://79963552970577",
 				size = Vector3.new(5.54, 0.2, 0.14),
 				centre = Vector3.new(-0, 0.73, 0.87),
 			},
@@ -434,11 +546,11 @@ local Lobby = {
 			centre = Vector3.new(0, 0.149, 0),
 		},
 		Leaderboard = {
-			meshId = "rbxassetid://96019975519999",
+			meshId = "rbxassetid://76711186785426",
 			size = Vector3.new(4.72, 4, 0.875),
 			centre = Vector3.new(0, 2, 0),
 			glow = {
-				meshId = "rbxassetid://101978763999118",
+				meshId = "rbxassetid://122935039138399",
 				size = Vector3.new(4.63, 0.35, 0.23),
 				centre = Vector3.new(-0, 2.1751, -0.0125),
 			},
@@ -449,87 +561,87 @@ local Lobby = {
 			centre = Vector3.new(0, 0.5492, 0),
 		},
 		PortalArch_BogheartCaverns = {
-			meshId = "rbxassetid://108728930551492",
+			meshId = "rbxassetid://132390011721511",
 			size = Vector3.new(2.86, 3.6, 1),
 			centre = Vector3.new(0, 1.8, 0),
 			glow = {
-				meshId = "rbxassetid://99366304836446",
+				meshId = "rbxassetid://113209528822230",
 				size = Vector3.new(2.7705, 3.015, 0.816),
 				centre = Vector3.new(0.0113, 1.7075, 0.083),
 			},
 		},
 		PortalArch_DrownedVillage = {
-			meshId = "rbxassetid://121330182316610",
+			meshId = "rbxassetid://98350397516434",
 			size = Vector3.new(2.8575, 3.6, 1),
 			centre = Vector3.new(0, 1.8, 0),
 			glow = {
-				meshId = "rbxassetid://83261839448648",
+				meshId = "rbxassetid://84609529873884",
 				size = Vector3.new(2.73, 2.94, 0.5),
 				centre = Vector3.new(0.0013, 1.47, 0.23),
 			},
 		},
 		PortalArch_EmberMines = {
-			meshId = "rbxassetid://139883040347989",
+			meshId = "rbxassetid://105349407667732",
 			size = Vector3.new(2.8, 3.6, 1),
 			centre = Vector3.new(0, 1.8, 0),
 			glow = {
-				meshId = "rbxassetid://117519370175045",
+				meshId = "rbxassetid://106082737634129",
 				size = Vector3.new(2.75, 2.225, 0.55),
 				centre = Vector3.new(0.025, 1.2875, 0.175),
 			},
 		},
 		PortalArch_FrostpeakPass = {
-			meshId = "rbxassetid://140464350045700",
+			meshId = "rbxassetid://128583531229486",
 			size = Vector3.new(2.8, 3.6, 1),
 			centre = Vector3.new(0, 1.8, 0),
 			glow = {
-				meshId = "rbxassetid://130181987197507",
+				meshId = "rbxassetid://123077415228167",
 				size = Vector3.new(2.8, 2.775, 1),
 				centre = Vector3.new(-0, 1.6625, 0),
 			},
 		},
 		PortalArch_MossyGlade = {
-			meshId = "rbxassetid://126412676624650",
+			meshId = "rbxassetid://94159909097508",
 			size = Vector3.new(2.8, 3.6, 1),
 			centre = Vector3.new(0, 1.8, 0),
 			glow = {
-				meshId = "rbxassetid://133136036108807",
+				meshId = "rbxassetid://86635203505894",
 				size = Vector3.new(2.35, 0.3, 0.25),
 				centre = Vector3.new(0.225, 0.35, 0.375),
 			},
 		},
 		PortalArch_ObsidianForge = {
-			meshId = "rbxassetid://79678938978657",
+			meshId = "rbxassetid://89838869815161",
 			size = Vector3.new(2.8, 3.6, 1),
 			centre = Vector3.new(0, 1.8, 0),
 			glow = {
-				meshId = "rbxassetid://100636716460581",
+				meshId = "rbxassetid://121871008552458",
 				size = Vector3.new(2.75, 2.375, 0.775),
 				centre = Vector3.new(-0, 1.6126, 0.0875),
 			},
 		},
 		PortalArch_ShatteredKingdom = {
-			meshId = "rbxassetid://124937815520423",
+			meshId = "rbxassetid://100410545343091",
 			size = Vector3.new(2.8, 3.6, 1.0004),
 			centre = Vector3.new(0, 1.8, 0),
 		},
 		PortalArch_Thornwood = {
-			meshId = "rbxassetid://102421468733046",
+			meshId = "rbxassetid://112149866406437",
 			size = Vector3.new(2.8, 3.6, 1),
 			centre = Vector3.new(0, 1.8, 0),
 		},
 		PortalArch_VoidRift = {
-			meshId = "rbxassetid://108025404697436",
+			meshId = "rbxassetid://108007579219396",
 			size = Vector3.new(2.7902, 3.5976, 1),
 			centre = Vector3.new(0, 1.7988, 0),
 			glow = {
-				meshId = "rbxassetid://123701444508025",
+				meshId = "rbxassetid://138317700893740",
 				size = Vector3.new(2.7714, 3.3953, 0.7914),
 				centre = Vector3.new(0.0071, 1.8477, 0.0962),
 			},
 		},
 		PortalArch_WindsweptCliffs = {
-			meshId = "rbxassetid://117013671583072",
+			meshId = "rbxassetid://124463565707165",
 			size = Vector3.new(2.8, 3.6, 1),
 			centre = Vector3.new(0, 1.8, 0),
 		},

@@ -171,6 +171,13 @@ local function build()
 		place(picture, LoadingScreen.picture)
 		picture.ZIndex = 3
 		picture.Parent = screen
+		local line = text(screen, "Description", entry.description, LoadingScreen.descriptionText)
+		place(line, LoadingScreen.description)
+		line.TextWrapped = true
+		line.ZIndex = 3
+		local lineLimit = Instance.new("UITextSizeConstraint")
+		lineLimit.MaxTextSize = 30
+		lineLimit.Parent = line
 		local name = text(screen, "Name", entry.name, WHITE)
 		place(name, LoadingScreen.plaque)
 		name.ZIndex = 3

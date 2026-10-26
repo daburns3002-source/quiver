@@ -48,6 +48,10 @@ export type Enemy = {
 	picture: string,
 	--[[ The area it is from, for a stage without one. ]]
 	area: string,
+	--[[ Out of the game for now (owner, 2026-10-26: "take the ember wilf
+	     enemy out of rotation, that enemy is benched"): kept for when it
+	     comes back, never shown on the loading screen. ]]
+	benched: boolean?,
 }
 
 local WHITE = Color3.fromRGB(248, 248, 240)
@@ -127,6 +131,7 @@ local NewEnemies = {
 			description = "Charges when its eyes flash red and pounces up close. Get off its line!",
 			picture = "rbxassetid://96856212963605",
 			area = "MossyGlade",
+			benched = true,
 		},
 		BroodSlime = {
 			name = "BROOD SLIME",

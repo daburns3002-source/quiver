@@ -1,0 +1,20 @@
+Use your image generation tool to make ONE image, 1536 x 1024 (landscape): a STORYBOARD sheet for a short 2D story cutscene in a Roblox game called Archer Legends. Eight panels in a 4-wide by 2-tall grid, each panel 16:9 with a thick dark border, a small white number 1-8 in a dark square in each panel's top-left corner, on a dark charcoal background. No other text, no captions, no speech bubbles.
+
+Style of every panel: exactly the 2D blocky pixel-art look of the FIRST reference image (the game's NEW ENEMY! card, the Moss Slime in the Mossy Glade): chunky pixels, flat 2-3 tone shading, thick near-black ink outlines, bright saturated colours, a sunny blocky forest of cube-leafed trees, grass blocks, mossy stones, stumps, little orange spotted mushrooms, fireflies, light rays. No smooth gradients, no 3D rendering.
+
+Characters, drawn faithfully from the references:
+- KING BLOBLIN (SECOND reference: his 2D icon sheet; THIRD: his concept art): a huge cube-shaped lime-green slime with a gold block crown with a green gem, glowing yellow square eyes under angry dark brows, a cloak of dark-green moss/leaf cubes with little cube slimes riding on it, a brown strap with a gold green-gem clasp, big cube fists.
+- the SLIME SOLDIER (FOURTH reference, its design sheet): small cube lime-green slime, iron pot helmet with a leaf plume, round wooden shield with a gold crown, twig spear.
+- the three HEROES (FIFTH reference, the title picture, where they are seen from behind): the ARCANIST, long brown hair, deep-blue robe with gold trim, a blue-purple hood, a wooden staff topped with a green crystal; the RANGER, green hood and tunic, a wooden bow and a quiver on his back; the WARDEN, red cap and long red cape, brown leather armour, a big wooden greatsword on his shoulder. Blocky Roblox-like figures with square heads.
+
+Panels:
+1. Wide shot: a sunny Mossy Glade clearing in the middle of the forest. King Bloblin sits in the middle on a big mossy stone throne, relaxed. Behind him a HUGE wooden treasure chest with gold bands, covered and dripping with thick green slime.
+2. The slime soldier marches up to the king from the right holding out a rolled paper scroll; the king looks down at it.
+3. Close-up: the king's big green hands hold the open paper. On it, three square class icons side by side: a green-framed icon with a wooden BOW (the Ranger), a blue-framed icon with a wooden STAFF topped by a green crystal (the Arcanist), a red-framed icon with a wooden GREATSWORD (the Warden). The king's angry eyes peek over the top.
+4. Close-up of the king's face turning MAD: brows slammed down, eyes glowing hot, face darkening, steam puffs, the paper crumpling in his fist, the soldier cowering.
+5. The king ROARS: huge open square mouth, slime spraying, a shockwave ring, leaves and birds blasting off the trees, the chest's slime splashing.
+6. The view has panned across the forest to the edge of the glade: the three heroes, seen from the front, turn toward the roar, startled, the leaves still blowing past.
+7. The three heroes run away from us into the forest down a stone path between the cube trees, toward the roar, weapons ready, seen from behind.
+8. Pure black panel.
+
+Keep the characters consistent from panel to panel.

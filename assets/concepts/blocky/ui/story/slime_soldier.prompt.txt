@@ -1,0 +1,9 @@
+Use your image generation tool to make ONE image, 1536 x 1024 (landscape): a character design sheet for a NEW enemy character in a Roblox game called Archer Legends, the SLIME SOLDIER, King Bloblin's loyal foot soldier.
+
+Style: exactly the 2D blocky pixel-art look of the FIRST reference image (the game's NEW ENEMY! card: the Moss Slime in its picture window): chunky pixels, flat 2-3 tone shading, a thick near-black (#1B1B2B) ink outline round every shape, bright friendly colours, no smooth gradients, no blur, no 3D rendering.
+
+The character: a small cube-shaped lime-green slime, the same kind as the little cube slimes riding on King Bloblin's mossy cloak in the SECOND reference image (King Bloblin) and as the Moss Slime in the THIRD (its model sheet): square body, two big square glowing amber-yellow eyes, a little green sheen, stubby cube feet. What makes it a SOLDIER: a dented little iron pot helmet with a short green leaf plume on top; two stubby cube arms (so it can hold things); a small round wooden shield with a painted gold crown (King Bloblin's emblem) on one arm; a short twig spear with a leaf-shaped stone tip in the other; a brown leather strap across its body with a gold buckle bearing a tiny green gem like the king's. Proud, earnest, a bit nervous. Slime drips a little at its feet. About one third of King Bloblin's height.
+
+Layout on a plain light grey background: left, a big front three-quarter view; middle, side view and back view; right, three small poses: (a) marching, spear on shoulder; (b) holding out a rolled paper scroll with both arms, spear tucked under; (c) startled, jumping, sweat drop. Under the views, a small colour swatch row (5 squares). A small scale silhouette of King Bloblin behind it at the right for size.
+
+No text anywhere, no labels, no words.

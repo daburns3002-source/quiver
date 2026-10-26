@@ -14,6 +14,7 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local SoundService = game:GetService("SoundService")
+local Workspace = game:GetService("Workspace")
 
 local BossWatch = require(script.Parent.BossWatch)
 local Music = require(ReplicatedStorage.Shared.Config.Music)
@@ -112,13 +113,25 @@ function MusicFx.setQuiet(value: boolean)
 end
 
 function MusicFx.start()
-	BossWatch.onChange(function(title: string?)
+	--[[ The lobby's own (Mossy Glade), before a run; a boss's or the rooms'
+	     in a run. ]]
+	local boss: string? = nil
+	local function choose()
 		local was = current
-		current = if title then "Boss" else "Rooms"
+		current = if Workspace:GetAttribute("InLobby") == true
+			then "Lobby"
+			elseif boss then "Boss"
+			else "Rooms"
 		if current ~= was then
 			enter(current)
 		end
+	end
+	BossWatch.onChange(function(title: string?)
+		boss = title
+		choose()
 	end)
+	Workspace:GetAttributeChangedSignal("InLobby"):Connect(choose)
+	choose()
 	BossWatch.start()
 	RunService.Heartbeat:Connect(step)
 end

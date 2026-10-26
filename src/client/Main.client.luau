@@ -280,7 +280,7 @@ Remotes.event(Remotes.RunStateChanged).OnClientEvent
 
 		--[[ The end screen belongs to the run that ended, so it clears the
 		     moment the next one starts fighting. ]]
-		if state == "Fighting" then
+		if state == "Fighting" or state == "Lobby" then
 			EndScreen.hide()
 		elseif state == "Cleared" and unit ~= "Wave" then
 			--[[ With the doors, which start to swing once the clear's

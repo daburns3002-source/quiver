@@ -31,6 +31,7 @@ local EnemyModel = require(script.Parent.Enemies.EnemyModel)
 local FiringSystem = require(script.Parent.Combat.FiringSystem)
 local Game = require(ReplicatedStorage.Shared.Config.Game)
 local HeldWeapon = require(script.Parent.Combat.HeldWeapon)
+local Lobby = require(script.Parent.Run.Lobby)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
 local MeleeSystem = require(script.Parent.Combat.MeleeSystem)
 local PetCombat = require(script.Parent.Combat.PetCombat)
@@ -95,6 +96,8 @@ Arena.preload()
 HeldWeapon.preload()
 -- The upgrade cards' effects, built in the background for clients to copy.
 UpgradeEffects.start()
+-- The lobby, where players arrive after BEGIN ADVENTURE.
+Lobby.build(workspace)
 RoomController.start()
 
 --[[ The weapon in the player's hand: the one `RunSession.applyLoadout`
@@ -113,6 +116,10 @@ local function onCharacterAdded(player: Player, character: Model)
 	local session = RunSession.get(player) or RunSession.create(player)
 	RunSession.bindCharacter(session, character)
 	HeldWeapon.equip(character, weaponFor(player))
+	-- in the lobby, a new body appears at the lobby's campfire
+	if RoomController.inLobby() and not session.atTitle then
+		task.defer(Lobby.place, character)
+	end
 	--[[ Enemy projectiles raycast against player characters, so the filter has
 	     to learn about each new body. Without this a respawned player is
 	     invisible to every enemy shot. ]]
@@ -377,6 +384,11 @@ Remotes.event(Remotes.IntroBegin).OnServerEvent:Connect(function(player)
 	if session then
 		RunSession.leaveTitle(session)
 	end
+	-- off the title screen and into the lobby
+	local character = player.Character
+	if character and RoomController.inLobby() then
+		Lobby.place(character)
+	end
 end)
 
 --[[ GOT IT! on a NEW ENEMY! screen. Only clears a screen the server opened. ]]
@@ -406,6 +418,20 @@ RunService.Heartbeat:Connect(function(deltaTime: number)
 	--[[ And while anyone is still on the intro's title screen
 	     (`UI/IntroCutscene`): the run starts on BEGIN ADVENTURE. ]]
 	if RunSession.anyAtTitle() then
+		return
+	end
+
+	--[[ In the lobby: nothing fights; stepping into an active portal starts
+	     its area's run (`Run/Lobby`). ]]
+	if RoomController.inLobby() then
+		for _, session in RunSession.all() do
+			local root = session.root
+			local stage = root and Lobby.portalFor(root.Position)
+			if stage then
+				RoomController.beginStage(stage)
+				break
+			end
+		end
 		return
 	end
 

@@ -15,6 +15,7 @@ local Workspace = game:GetService("Workspace")
 
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local CameraFit = require(ReplicatedStorage.Shared.Util.CameraFit)
+local LobbyConfig = require(ReplicatedStorage.Shared.Config.Lobby)
 
 local Device = require(script.Parent.Parent.Device)
 
@@ -112,6 +113,23 @@ local function step(deltaTime: number, getRoot: () -> BasePart?)
 	local target = if lowest > highest
 		then Vector3.new(0, 0, (lowest + highest) / 2 + math.clamp(root.Position.Z, -reach, reach))
 		else Vector3.new(0, 0, math.clamp(root.Position.Z, lowest, highest))
+	--[[ In the lobby (`Config/Lobby`): it is wider and deeper than a room,
+	     so the camera follows the player both ways, kept over the clearing. ]]
+	if Workspace:GetAttribute("InLobby") == true then
+		local centre = LobbyConfig.origin
+		local halfX, halfZ = LobbyConfig.size.X / 2 - 18, LobbyConfig.size.Y / 2
+		target = Vector3.new(
+			math.clamp(root.Position.X, centre.X - halfX, centre.X + halfX),
+			0,
+			math.clamp(root.Position.Z, centre.Z - halfZ - far, centre.Z + halfZ - near)
+		)
+		-- a jump between the room and the lobby is a cut, not a pan
+		if currentFocus and (currentFocus - target).Magnitude > 200 then
+			currentFocus = target
+		end
+	elseif currentFocus and (currentFocus - target).Magnitude > 200 then
+		currentFocus = target
+	end
 
 	if not currentFocus then
 		currentFocus = target

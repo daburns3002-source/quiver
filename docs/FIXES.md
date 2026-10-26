@@ -16,6 +16,18 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## Stumpy's Root Snare did not hold anything
+
+**Symptom**: 2026-10-26, the owner after a playtest: "stumpy needs to hold enemies in place."
+
+**Cause**: the root was a slow to 0 (`EnemyManager.slow(model, 0, …)`), and a slow only scales the walking speed. Everything else an enemy does to move went on: an Ember Wilf's lunge travelled at full speed, a burrower dived, and every hit's knockback slid it (the stagger skips walking, not sliding). It lasted 1 s every 4 s, and the roots were drawn by the client under whichever enemy was nearest the *pet* for a fixed 1.6 s, not under the one the server held, which is nearest the *owner*.
+
+**Fix**: a root is its own hold (`EnemyManager.root`, `rootedUntil`; timing in `Shared/Util/RootHold`): while held, `stepEnemy` zeroes the knockback, does not dive, walks at 0, and `stepLunge` starts no lunge and ends one under way where it stands. And `separate()` no longer shoves a held body: the first Studio run with all that in still had a held Wilf drifting 3.9 studs in 2.9 s, pushed along by the enemies walking into it, so the other body now takes the whole push. It still attacks from where it stands. The server publishes `RootedUntil` (server time) and `RootedBy`; `Fx/RootHoldFx` draws the pet's `Hold` piece (`Config/PetAttacks`, kind `Hold`) on that enemy, its clip stretched over the hold. 1.75 s every 4 s; bosses are not held (`root.boss = 0`: their moves are timelines). `tests/RootHold.spec` pins the timing and that a hold stays under half the time.
+
+**Measured**: in Studio, Mossy Glade room 3, Stumpy at heel, three Wilfs and a Charger chasing a player walking a circle: a root every 4.0 s holding 1.71-1.73 s; held enemies moved 0.000 studs over 6.0 enemy-seconds (free ones about 4 studs a second); the snare drawn under the held enemy in 361 of 361 samples. Before the `separate()` change, a held Wilf moved 3.86 studs over 2.9 s.
+
+---
+
 ## Shop weapons leant every which way; Diagonal Arrows' icon fired backwards
 
 **Symptom**: 2026-10-26, the owner after a playtest: "change icons in shop to all be at the same angle. change diagonal arrow icon to only the top 2 since there are no arrows fired behind the player."

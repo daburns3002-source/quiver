@@ -19,6 +19,7 @@
 ]]
 
 local PetDash = require(script.Parent.Parent.Util.PetDash)
+local RootHold = require(script.Parent.Parent.Util.RootHold)
 
 export type Spec = {
 	--[[ Seconds between attacks, and studs from the owner it reaches. ]]
@@ -34,10 +35,12 @@ export type Spec = {
 	beam: number?,
 	--[[ Extra damage against a boss (the Slime Prince's crown shockwave). ]]
 	bossDamage: number?,
-	--[[ A hit enemy moves at `scale` of its speed for `duration` seconds;
-	     `root` holds it still that many seconds. ]]
+	--[[ A hit enemy moves at `scale` of its speed for `duration` seconds. ]]
 	slow: { scale: number, duration: number }?,
-	root: number?,
+	--[[ A hit enemy is held where it stands for `duration` seconds (a boss
+	     for `boss`): no walking, lunging, diving or sliding with a shove,
+	     though it still attacks from there (`Shared/Util/RootHold`). ]]
+	root: RootHold.Root?,
 	--[[ A hit enemy burns at `rate` damage a second for `duration` (stacks
 	     with Blaze the way two burns do: the stronger rate wins). ]]
 	burn: { rate: number, duration: number }?,
@@ -80,8 +83,10 @@ local PetCombat: { pets: { [string]: Spec } } = {
 		MossbackSnail = { every = 0, range = 0, guard = true },
 		-- Lantern Lure: pulls the crystals in, marks one enemy
 		FireflyBun = { every = 6, range = 60, magnet = true, mark = { scale = 1.25, duration = 4 } },
-		-- Root Snare: holds one enemy still
-		Stumpy = { every = 4, range = 60, damage = 25, root = 1 },
+		-- Root Snare: holds one enemy still (owner, 2026-10-26: "stumpy needs to
+		-- hold enemies in place"). Held under half the time, so a room still
+		-- has to be fought; bosses are not held: their moves are timelines
+		Stumpy = { every = 4, range = 60, damage = 25, root = { duration = 1.75, boss = 0 } },
 		-- Leaf Dash: slashes up to three
 		GladeFox = {
 			every = 3,

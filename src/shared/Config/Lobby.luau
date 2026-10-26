@@ -25,6 +25,15 @@
 
 local ArenaKits = require(script.Parent.ArenaKits)
 
+export type Sign = {
+	centre: Vector3,
+	size: Vector2,
+	normal: Vector3?,
+	up: Vector3?,
+	text: string,
+	colour: Color3,
+}
+
 export type Placed = { piece: string, at: Vector2, yaw: number?, lift: number? }
 
 export type Portal = {
@@ -204,6 +213,109 @@ local Lobby = {
 		Vector2.new(-100, 72),
 		Vector2.new(100, 72),
 	},
+	--[[ The words on the lobby's signs, written by the game in its one font
+	     (owner, 2026-10-26: "make every piece of text in the lobby the same
+	     font"): each piece's sign board is blank (`lobby_kit_v4`), and here is
+	     where it is on the piece, in kit units from its base centre, front
+	     +Z (`normal` and `up` for a tilted board), the words, and the colour
+	     the carved letters had. ]]
+	signs = {
+		EggHatchery = {
+			centre = Vector3.new(0, 2.96875, -0.3125),
+			size = Vector2.new(2.375, 0.4375),
+			text = "EGG HATCHERY",
+			colour = Color3.fromRGB(242, 230, 196),
+		},
+		Blacksmith = {
+			centre = Vector3.new(1.35, 3.63, 1.07),
+			size = Vector2.new(2.46, 0.46),
+			text = "BLACKSMITH",
+			colour = Color3.fromRGB(244, 234, 208),
+		},
+		GearStation = {
+			centre = Vector3.new(0, 2.7976, 0.9332),
+			size = Vector2.new(2.459, 0.42),
+			normal = Vector3.new(0, 0.343, 0.939),
+			up = Vector3.new(0, 0.9394, -0.3429),
+			text = "GEAR STATION",
+			colour = Color3.fromRGB(244, 234, 208),
+		},
+		DexHall = {
+			centre = Vector3.new(-0.0325, 3.1, 1.275),
+			size = Vector2.new(2.18, 0.4),
+			text = "DEX HALL",
+			colour = Color3.fromRGB(243, 233, 203),
+		},
+		Leaderboard = {
+			centre = Vector3.new(0, 2.885, 0.28),
+			size = Vector2.new(3, 0.43),
+			text = "FARTHEST ADVENTURERS",
+			colour = Color3.fromRGB(244, 226, 173),
+		},
+		PortalArch_MossyGlade = {
+			centre = Vector3.new(0, 3.2, 0.15),
+			size = Vector2.new(1.6, 0.5),
+			text = "MOSSY GLADE",
+			colour = Color3.fromRGB(242, 234, 211),
+		},
+		PortalArch_Thornwood = {
+			centre = Vector3.new(0, 3.2, 0.25),
+			size = Vector2.new(1.6, 0.5),
+			text = "THORNWOOD",
+			colour = Color3.fromRGB(242, 234, 211),
+		},
+		PortalArch_DrownedVillage = {
+			centre = Vector3.new(0, 3.16, 0.44),
+			size = Vector2.new(2.12, 0.64),
+			text = "DROWNED VILLAGE",
+			colour = Color3.fromRGB(255, 255, 255),
+		},
+		PortalArch_BogheartCaverns = {
+			centre = Vector3.new(0, 3.22, 0.44),
+			size = Vector2.new(1.96, 0.52),
+			text = "BOGHEART CAVERNS",
+			colour = Color3.fromRGB(255, 255, 255),
+		},
+		PortalArch_WindsweptCliffs = {
+			centre = Vector3.new(0, 3.1875, 0.45),
+			size = Vector2.new(1.85, 0.675),
+			text = "WINDSWEPT CLIFFS",
+			colour = Color3.fromRGB(255, 255, 255),
+		},
+		PortalArch_FrostpeakPass = {
+			centre = Vector3.new(0, 3.15, 0.45),
+			size = Vector2.new(1.85, 0.55),
+			text = "FROSTPEAK PASS",
+			colour = Color3.fromRGB(255, 255, 255),
+		},
+		PortalArch_EmberMines = {
+			centre = Vector3.new(0, 3.175, 0.075),
+			size = Vector2.new(2.5, 0.65),
+			text = "EMBER MINES",
+			colour = Color3.fromRGB(246, 244, 238),
+		},
+		PortalArch_ObsidianForge = {
+			centre = Vector3.new(0, 3.2, 0.075),
+			size = Vector2.new(2.45, 0.55),
+			text = "OBSIDIAN FORGE",
+			colour = Color3.fromRGB(246, 244, 238),
+		},
+		PortalArch_ShatteredKingdom = {
+			centre = Vector3.new(0, 3, 0.45),
+			size = Vector2.new(2.2, 0.5),
+			text = "SHATTERED KINGDOM",
+			colour = Color3.fromRGB(255, 255, 255),
+		},
+		PortalArch_VoidRift = {
+			centre = Vector3.new(0.0017, 3.043, 0.33),
+			size = Vector2.new(1.8, 0.4),
+			normal = Vector3.new(0.035, 0.0599, 0.9976),
+			up = Vector3.new(0.0499, 0.9968, -0.0616),
+			text = "VOID RIFT",
+			colour = Color3.fromRGB(255, 255, 255),
+		},
+	} :: { [string]: Sign },
+
 	--[[ The lawn's scatter: how likely each kind is, one piece per
 	     `scatterCell` studs square (`scatterFill` of the cells filled). ]]
 	scatter = {

@@ -113,6 +113,58 @@ end
 
 --[[ A kit piece at `at`, turned `yaw`, grown `grow` times; returns its
      footprint in studs, or nil when its mesh is not there. ]]
+--[[ A piece's sign: its words, in the game's font, on a panel laid over
+     the piece's blank board (`LobbyConfig.signs`). The board sits in the
+     piece's own frame, front +Z, turned with the piece. ]]
+local function drawSign(
+	name: string,
+	at: Vector2,
+	yaw: number,
+	grow: number,
+	lift: number?,
+	parent: Instance
+)
+	local sign = LobbyConfig.signs[name]
+	if not sign then
+		return
+	end
+	local unit = LobbyConfig.scale * grow
+	local normal = (sign.normal or Vector3.new(0, 0, 1)).Unit
+	local up = (sign.up or Vector3.new(0, 1, 0)).Unit
+	-- a hair in front of the board, so the panel never sinks into it
+	local centre = sign.centre * unit + normal * 0.08 * unit
+	local place = CFrame.new(world(at, lift)) * CFrame.Angles(0, yaw, 0)
+	local panel = Instance.new("Part")
+	panel.Name = name .. "Sign"
+	panel.Anchored = true
+	panel.CanCollide = false
+	panel.CanQuery = false
+	panel.CanTouch = false
+	panel.CastShadow = false
+	panel.Transparency = 1
+	panel.Size = Vector3.new(sign.size.X * unit, sign.size.Y * unit, 0.05)
+	-- its Front (where a SurfaceGui draws) faces out of the board
+	panel.CFrame = place * CFrame.lookAt(centre, centre + normal, up)
+	local gui = Instance.new("SurfaceGui")
+	gui.Name = "Words"
+	gui.Face = Enum.NormalId.Front
+	gui.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
+	gui.PixelsPerStud = 40
+	gui.LightInfluence = 0.4
+	gui.Parent = panel
+	local label = Instance.new("TextLabel")
+	label.BackgroundTransparency = 1
+	label.AnchorPoint = Vector2.new(0.5, 0.5)
+	label.Position = UDim2.fromScale(0.5, 0.5)
+	label.Size = UDim2.fromScale(0.9, 0.72)
+	label.Font = Enum.Font.Arcade
+	label.Text = sign.text
+	label.TextColor3 = sign.colour
+	label.TextScaled = true
+	label.Parent = gui
+	panel.Parent = parent
+end
+
 local function piece(
 	name: string,
 	at: Vector2,
@@ -150,6 +202,7 @@ local function piece(
 		part.CastShadow = false
 	end
 	part.Parent = parent
+	drawSign(name, at, yaw, grow, lift, parent)
 	local glow = spec.glow
 	if glow then
 		local light = templates[glow.meshId]

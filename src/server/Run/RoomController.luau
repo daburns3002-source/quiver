@@ -178,6 +178,58 @@ local function buildArena(layout: Balance.RoomConfig)
 	end
 end
 
+--[[ The kinds of enemy a room brings, by `EnemyConfig.displayName`: its
+     roster and what they split into or summon. ]]
+local function rosterNames(room: Balance.RoomConfig): { string }
+	local names: { string } = {}
+	local seen: { [string]: boolean } = {}
+	local function add(config: Balance.EnemyConfig?)
+		if not config or seen[config.displayName] then
+			return
+		end
+		seen[config.displayName] = true
+		table.insert(names, config.displayName)
+		add(config.split and config.split.into)
+		local boss = config.boss
+		add(boss and boss.summon and boss.summon.into)
+	end
+	for _, config in room.roster do
+		add(config)
+	end
+	return names
+end
+
+--[[ Bumped on every room entered, so a preparation scheduled for a room
+     left early (a death, a debug jump) never runs. ]]
+local entered = 0
+
+--[[ Builds the next room in the background while this one is played
+     (`Arena.prepare`), after `Balance.Run.prepareDelay`, so the work and its
+     replication land mid-fight rather than on the room's first frames or on
+     the door. ]]
+local function prepareNext(position: number)
+	entered += 1
+	local ticket = entered
+	local rooms = stage().rooms or {}
+	local nextRoom = Balance.Rooms[rooms[position + 1]]
+	if not nextRoom then
+		return
+	end
+	task.delay(Balance.Run.prepareDelay, function()
+		if ticket ~= entered or progress ~= position then
+			return
+		end
+		local began = os.clock()
+		Arena.prepare(nextRoom.obstacles, nextRoom.arena, rosterNames(nextRoom))
+		log.info(
+			"prepared room %d (%s) in %.1f ms",
+			position + 1,
+			nextRoom.name,
+			(os.clock() - began) * 1000
+		)
+	end)
+end
+
 local function enterRoom(position: number)
 	progress = position
 	state = "Fighting"
@@ -186,6 +238,7 @@ local function enterRoom(position: number)
 	local rooms = stage().rooms or {}
 	local room = Balance.Rooms[rooms[position]]
 
+	local began = os.clock()
 	buildArena(room)
 	RunSession.setRoom(position)
 	Arena.setDoorLabel(if position < total() then tostring(position + 1) else "")
@@ -193,8 +246,15 @@ local function enterRoom(position: number)
 	-- the Mossback Snail's shell is up once a room
 	PetCombat.newRoom()
 
-	log.info("entered room %d/%d — %s", position, total(), room.name)
+	log.info(
+		"entered room %d/%d — %s (%.1f ms)",
+		position,
+		total(),
+		room.name,
+		(os.clock() - began) * 1000
+	)
 	broadcast()
+	prepareNext(position)
 end
 
 --[[

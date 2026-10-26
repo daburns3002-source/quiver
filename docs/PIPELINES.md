@@ -103,7 +103,7 @@ As an enemy model (1), with its moves: a `boss` block in its `EnemyConfig`, each
 
 ## 6. A card or Mythic
 
-`Config/Abilities` (data: rarity, levels, stat lines, `classes`, `weapon` for a held-weapon change), its effect as a pipeline stage or an `AbilityEffects` stat — never an `if` on the card's name in combat code — and an area attack through `Combat/AreaStrikes` with its look in `Fx/MythicFx`. Icon: Codex art, uploaded, id in `CardAssets`. `ClassCards.spec` checks the pools.
+`Config/Abilities` (data: rarity, levels, stat lines, `classes`, `weapon` for a held-weapon change), its effect as a pipeline stage or an `AbilityEffects` stat — never an `if` on the card's name in combat code — and an area attack through `Combat/AreaStrikes` with its look in `Fx/MythicFx`. Icon: Codex art, uploaded, id in `CardAssets`; one Codex redraws on flat magenta (`assets/concepts/blocky/ui/cards/<icon>_raw.png`, the old icon as `-i` reference) goes on its rarity tile with `python -I assets/ui/glow_toy_cards/compose_icon.py <icon> <rarity>`. `ClassCards.spec` checks the pools.
 
 ## 7. A sound
 

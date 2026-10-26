@@ -136,9 +136,11 @@ out of their merged mesh. Each area has its own outer forest: the glade's
 with crows; crows and magenta pollen in `Balance.Ambience.Thornwood`), made
 as `docs/PIPELINES.md` §4.5 says. Thornwood keeps its colours as the
 importer stores them, darker than the design (the owner's pick over the
-`srgb_glb.py`-converted import, 2026-10-25). As each room starts, a blocky ROOM <n> sign flies out of the top of the gate, hangs at the top of the screen and flies back (`UI/RoomSign`, `Config/RoomSign`, letters from `Config/PixelFont`; the last room's number is red). The exit is a gate in the north wall
+`srgb_glb.py`-converted import, 2026-10-25). Both are toned down so the fight reads first (owner, 2026-10-26: "a little less
+distracting"): `ArenaModels.outerShade` / `outerGlow` darken the forest and its glow, never the
+kit's room, and `Balance.Ambience` keeps its life sparse. As each room starts, a blocky ROOM <n> sign flies out of the top of the gate, hangs at the top of the screen and flies back (`UI/RoomSign`, `Config/RoomSign`, letters from `Config/PixelFont`; the last room's number is red). The exit is a gate in the north wall
 (`Arena/ExitGate`, `Balance.Run.gate`): dark purple haze until the room is
-cleared, then glowing white-gold with a GO arrow, after Archero 2. While it is open, players walk 1.5× faster (`Balance.Player.exitRush`, `ExitOpen` on Workspace, set by `RoomController`; owner 2026-10-25). Moonlit
+cleared, then glowing white-gold with a GO arrow, after Archero 2. While it is open, players walk 1.5× faster (`Balance.Player.exitRush`, `ExitOpen` on Workspace, set by `RoomController`; owner 2026-10-25). **The next room is built while this one is played** (`Arena.prepare`, `Balance.Run.prepareDelay`, owner 2026-10-26), parked in `ReplicatedStorage.NextArena` and swapped in at the door; the client preloads it and its enemies (`Fx/RoomPreload`), and every card image from the story on (`UI/Cards/CardPreload`, `DeviceTiers.warmCardImages`); `tests/Preload.spec`, numbers in `docs/PERFORMANCE.md`. Moonlit
 Arena's waves draw from the first
 `Balance.Waves.rooms` (10) rooms only.
 
@@ -328,7 +330,8 @@ pays back 40%; areas with no weapons yet are black silhouettes. The store sells 
 weapons for gems by rarity, its Legendaries for coins and 3 of its boss's item; Mythics only
 come out of crates. EQUIP holds an owned weapon (its class with it), saved, in hand at once in
 the lobby. Every weapon picture is the THREE-QUARTER view of the reference sheet its 3D model was
-built from (owner: "use the 2d reference sheet 3/4 view pictures"; `Config/ShopAssets`,
+built from (owner: "use the 2d reference sheet 3/4 view pictures"), all turned to the Acorn Bow's
+angle (owner, 2026-10-26: "all at the same angle"; `Config/ShopAssets`,
 `assets/ui/shop/three_quarter.py`); a new weapon needs one (`Shop.spec`). Studio test remote:
 `Remotes.DebugWallet:FireServer(coins, gems, itemsEach)`. In Studio the shop opens by itself on
 reaching the lobby, wallet topped up (`Sandbox.openShop`; set it to nil to stop that).

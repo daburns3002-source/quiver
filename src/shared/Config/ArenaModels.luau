@@ -68,6 +68,14 @@ export type ArenaModel = {
 	     flat, low cover is: water or a thicket. ]]
 	kit: string?,
 	lowCover: ("Water" | "Thicket")?,
+	--[[ How far the scenery past the walls (`parts`, and the floor under
+	     it) is toned down so the fight in the room reads first (owner,
+	     2026-10-26: "make outer arenas a little less distracting"): its
+	     colours times this grey (1 = as imported), and its glowing pieces'
+	     colours times `outerGlow`, dimmer Neon that blooms less. The
+	     kit's room is never toned. ]]
+	outerShade: number?,
+	outerGlow: number?,
 }
 
 --[[
@@ -79,6 +87,11 @@ export type ArenaModel = {
 ]]
 
 local GladeForest = require(script.Parent.GladeForest)
+
+--[[ Every area's outer forest a little darker and its glow dimmer, the
+     same share for each so each keeps its own look (`outerShade`). ]]
+local OUTER_SHADE = 0.72
+local OUTER_GLOW = 0.8
 
 local GLADE_FOREST: { ArenaPart } = GladeForest
 
@@ -102,6 +115,8 @@ local function glade(lowCover: "Water" | "Thicket"): ArenaModel
 		ambience = "Forest",
 		kit = "Mossy",
 		lowCover = lowCover,
+		outerShade = OUTER_SHADE,
+		outerGlow = OUTER_GLOW,
 	}
 end
 
@@ -124,6 +139,8 @@ local function thornwood(): ArenaModel
 		ambience = "Thornwood",
 		kit = "Thornwood",
 		lowCover = "Thicket",
+		outerShade = OUTER_SHADE,
+		outerGlow = OUTER_GLOW,
 		--[[ A little darker than the glade under its brambles (owner,
 		     2026-10-25: "make the lighting for thornwood a little darker"):
 		     about a fifth less light, and a cooler, dimmer ambient. ]]

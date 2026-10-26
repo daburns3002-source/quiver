@@ -399,6 +399,9 @@ local function placeModel(
 	     the way Claude Design shows it. Offsets are already turned. ]]
 	local turn = CFrame.Angles(0, math.pi, 0)
 
+	local outerShade = model.outerShade or 1
+	local outerGlow = model.outerGlow or 1
+
 	local function place(spec: ArenaModels.ArenaPart, shift: Vector3, name: string)
 		local water = spec.water
 		if water then
@@ -481,8 +484,11 @@ local function placeModel(
 		part.CanCollide = false
 		part.CanQuery = false
 		part.CanTouch = false
-		--[[ White, so the model's own vertex colours show unchanged. ]]
-		part.Color = spec.tint or Color3.new(1, 1, 1)
+		--[[ White, so the model's own vertex colours show unchanged, then
+		     toned by the model's `outerShade` / `outerGlow`. ]]
+		local shade = if spec.glow then outerGlow else outerShade
+		local tint = spec.tint or Color3.new(1, 1, 1)
+		part.Color = Color3.new(tint.R * shade, tint.G * shade, tint.B * shade)
 		part.Material = if spec.glow
 			then Enum.Material.Neon
 			elseif spec.matte then Enum.Material.Fabric
@@ -515,32 +521,40 @@ local function placeModel(
 	     and it shows only past the forest's edge. ]]
 	local outside = model.outsideColor
 	if outside then
+		--[[ Toned as the forest's ground is, so the two stay one floor. ]]
+		local toned =
+			Color3.new(outside.R * outerShade, outside.G * outerShade, outside.B * outerShade)
 		local floor =
-			decor("Outside", Vector3.new(600, 1, 600), CFrame.new(0, -0.75, 0), outside, folder)
+			decor("Outside", Vector3.new(600, 1, 600), CFrame.new(0, -0.75, 0), toned, folder)
 		--[[ Matte: plastic catches the sun at a glance and paled to grey. ]]
 		floor.Material = Enum.Material.Fabric
 	end
 end
 
---[[
-	Builds the room under `parent` and returns the folder holding everything that
-	blocks a projectile.
+--[[ A room built ahead of being shown (`Arena.prepare`): its folder, and
+     what `Arena.build` makes the live layout when it is swapped in. ]]
+type Prepared = {
+	root: Folder,
+	blockers: Folder,
+	gate: ExitGate.Gate,
+	boxes: { Box },
+	obstacles: { Balance.Obstacle },
+	arena: string?,
+	model: ArenaModels.ArenaModel?,
+}
 
-	`obstacles` is the room's layout. The walls, floor and door are the same in
-	every room; the pillars are what make one room a different fight from the
-	last, which is why they are the only thing passed in.
-]]
---[[ `arena` names the `ArenaModels` entry that dresses the room; nil, or a
-     name with no model, is the grey box. ]]
-function Arena.build(parent: Instance, obstacles: { Balance.Obstacle }, arena: string?): Folder
+--[[ The next room, built while this one is played and parked in
+     `ReplicatedStorage.NextArena`, where it replicates to every client
+     during the fight rather than all at once as the door is walked through
+     (owner, 2026-10-26: "next rooms need to preload while playing current
+     room"); the clients load its meshes from there (`Fx/RoomPreload`). ]]
+local prepared: Prepared? = nil
+
+--[[ Everything of a room but the live state: built unparented, touching
+     nothing the current room uses, so it can be made while that room is
+     being played. ]]
+local function construct(obstacles: { Balance.Obstacle }, arena: string?): Prepared
 	local config = Balance.Arena
-
-	local existing = parent:FindFirstChild("Arena")
-	if existing then
-		existing:Destroy()
-	end
-
-	clearDefaultBaseplate(parent)
 
 	local root = Instance.new("Folder")
 	root.Name = "Arena"
@@ -565,9 +579,7 @@ function Arena.build(parent: Instance, obstacles: { Balance.Obstacle }, arena: s
 	local thickness = config.wallThickness
 	local height = config.wallHeight
 
-	halfSize = Vector2.new(extentX, extentZ)
-	table.clear(boxes)
-	layoutVersion += 1
+	local roomBoxes: { Box } = {}
 
 	local wallDefinitions = {
 		{
@@ -627,7 +639,7 @@ function Arena.build(parent: Instance, obstacles: { Balance.Obstacle }, arena: s
 		wall.Transparency = 1
 		wall.Parent = playerWalls
 
-		table.insert(boxes, {
+		table.insert(roomBoxes, {
 			centre = obstacle.offset,
 			halfExtents = Vector2.new(obstacle.size.X / 2, obstacle.size.Z / 2),
 		})
@@ -653,16 +665,105 @@ function Arena.build(parent: Instance, obstacles: { Balance.Obstacle }, arena: s
 	else
 		dress(root, obstacles)
 	end
-	--[[ The area's own light, or the game's (`ArenaModels.lighting`). ]]
-	Atmosphere.apply(if model then model.lighting else nil)
 
-	root.Parent = parent
-	blockersFolder = blockers
-	exitGate = gate
+	return {
+		root = root,
+		blockers = blockers,
+		gate = gate,
+		boxes = roomBoxes,
+		obstacles = obstacles,
+		arena = arena,
+		model = model,
+	}
+end
+
+local function dropPrepared()
+	local old = prepared
+	prepared = nil
+	if old then
+		old.root:Destroy()
+	end
+end
+
+--[[
+	Builds the room `obstacles` and `arena` describe now, ahead of
+	`Arena.build` asking for it, and parks it in `ReplicatedStorage.NextArena`
+	so it reaches the clients while the current room is played. `roster`
+	names the room's enemies (`EnemyConfig.displayName`) for the clients to
+	load too. A later `build` of the same room swaps it in instead of
+	building; any other room drops it. `park` is for the tests, which keep
+	theirs out of the DataModel.
+]]
+function Arena.prepare(
+	obstacles: { Balance.Obstacle },
+	arena: string?,
+	roster: { string }?,
+	park: Instance?
+)
+	local current = prepared
+	if current and current.obstacles == obstacles and current.arena == arena then
+		return
+	end
+	dropPrepared()
+
+	local made = construct(obstacles, arena)
+	made.root:SetAttribute("Roster", table.concat(roster or {}, ","))
+	local holder = park or ReplicatedStorage:FindFirstChild("NextArena")
+	if not holder then
+		local folder = Instance.new("Folder")
+		folder.Name = "NextArena"
+		folder.Parent = ReplicatedStorage
+		holder = folder
+	end
+	made.root.Parent = holder
+	prepared = made
+end
+
+--[[
+	Builds the room under `parent` and returns the folder holding everything that
+	blocks a projectile.
+
+	`obstacles` is the room's layout. The walls, floor and door are the same in
+	every room; the pillars are what make one room a different fight from the
+	last, which is why they are the only thing passed in.
+]]
+--[[ `arena` names the `ArenaModels` entry that dresses the room; nil, or a
+     name with no model, is the grey box. A room `Arena.prepare` already
+     built is swapped in rather than built again. ]]
+function Arena.build(parent: Instance, obstacles: { Balance.Obstacle }, arena: string?): Folder
+	local config = Balance.Arena
+
+	local existing = parent:FindFirstChild("Arena")
+	if existing then
+		existing:Destroy()
+	end
+
+	clearDefaultBaseplate(parent)
+
+	local ready = prepared
+	local made: Prepared
+	if ready and ready.obstacles == obstacles and ready.arena == arena then
+		prepared = nil
+		made = ready
+	else
+		dropPrepared()
+		made = construct(obstacles, arena)
+	end
+
+	halfSize = Vector2.new(config.size.X / 2, config.size.Z / 2)
+	boxes = made.boxes
+	layoutVersion += 1
+
+	--[[ The area's own light, or the game's (`ArenaModels.lighting`). ]]
+	Atmosphere.apply(if made.model then made.model.lighting else nil)
+
+	made.root.Parent = parent
+	blockersFolder = made.blockers
+	exitGate = made.gate
 
 	log.info("built arena with %d obstacles", #boxes)
 
-	return blockers
+	return made.blockers
 end
 
 function Arena.blockers(): Folder?

@@ -8,9 +8,14 @@ modeled off"), as the shop's icons.
 Reads assets/concepts/blocky/weapons/skins/forest/<name>_views.*, finds the
 rightmost tall object in the sheet's top row (the three-quarter view, as
 every sheet lays it out), keys out the light grey background, keeps the
-weapon and the sparkles round it (not its label), and writes
-assets/ui/shop/icons/<Weapon>.png at 256 px. A weapon with no sheet keeps
-its Codex icon from cutout.py.
+weapon and the sparkles round it (not its label), turns it to the shop's
+one angle (`level`), and writes assets/ui/shop/icons/<Weapon>.png at 256 px.
+A weapon with no sheet keeps its Codex icon from cutout.py.
+
+Every weapon sits at the same angle (owner, 2026-10-26: "change icons in
+shop to all be at the same angle"): the Acorn Bow's, whose Codex icon is
+kept as it is (owner: "use the old acorn bow picture") — leaning TILT
+degrees to the right, a bow's belly on the left and its string on the right.
 """
 
 import pathlib
@@ -24,6 +29,8 @@ SHEETS = ROOT / "assets/concepts/blocky/weapons/skins/forest"
 OUT = pathlib.Path(__file__).resolve().parent / "icons"
 SIZE = 256
 PAD = 0.06
+# the Acorn Bow icon's long axis, measured: degrees its top leans right
+TILT = 21.3
 
 WEAPONS = {
     "TwigBow": "twig_bow_views.jpg",
@@ -113,10 +120,46 @@ def cut(path: pathlib.Path) -> Image.Image:
     return img.crop(box) if box else img
 
 
+def axis(img: Image.Image) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """The solid pixels, their centre and their long axis (pointing up)."""
+    solid = np.asarray(img)[..., 3] > 40
+    ys, xs = np.nonzero(solid)
+    pts = np.vstack([xs, ys]).astype(np.float64)
+    centre = pts.mean(axis=1)
+    _, vectors = np.linalg.eigh(np.cov(pts - centre[:, None]))
+    up = vectors[:, 1]
+    if up[1] > 0:
+        up = -up
+    return pts, centre, up
+
+
+def level(img: Image.Image, bow: bool) -> Image.Image:
+    """Mirror a bow so its belly is on the left, then turn the weapon until
+    its long axis leans TILT degrees to the right."""
+    if bow:
+        pts, centre, up = axis(img)
+        # the string runs straight from tip to tip; the belly bows out to one
+        # side of it, which is where the mass sits
+        along = up @ (pts - centre[:, None])
+        top = pts[:, along.argmax()]
+        bottom = pts[:, along.argmin()]
+        chord = top - bottom
+        offset = centre - bottom
+        side = chord[0] * offset[1] - chord[1] * offset[0]
+        # image y runs down: a positive cross is the right-hand side
+        if side > 0:
+            img = img.transpose(Image.FLIP_LEFT_RIGHT)
+    _, _, up = axis(img)
+    lean = np.degrees(np.arctan2(up[0], -up[1]))
+    turned = img.rotate(lean - TILT, resample=Image.BICUBIC, expand=True)
+    box = turned.getchannel("A").point(lambda a: 255 if a > 40 else 0).getbbox()
+    return turned.crop(box) if box else turned
+
+
 def main() -> None:
     OUT.mkdir(exist_ok=True)
     for weapon, sheet in WEAPONS.items():
-        img = cut(SHEETS / sheet)
+        img = level(cut(SHEETS / sheet), weapon.endswith("Bow"))
         side = int(max(img.size) * (1 + 2 * PAD))
         square = Image.new("RGBA", (side, side), (0, 0, 0, 0))
         square.paste(img, ((side - img.size[0]) // 2, (side - img.size[1]) // 2))

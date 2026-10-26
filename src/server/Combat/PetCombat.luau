@@ -33,6 +33,7 @@ local PetCombatConfig = require(ReplicatedStorage.Shared.Config.PetCombat)
 local PetDash = require(ReplicatedStorage.Shared.Util.PetDash)
 local PetShots = require(ReplicatedStorage.Shared.Combat.PetShots)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
+local RootHold = require(ReplicatedStorage.Shared.Util.RootHold)
 local RunSession = require(script.Parent.Parent.Run.RunSession)
 
 type Spec = PetCombatConfig.Spec
@@ -109,7 +110,12 @@ local function afflict(session: Session, model: Model, spec: Spec, now: number)
 		EnemyManager.slow(model, spec.slow.scale, now + spec.slow.duration)
 	end
 	if spec.root then
-		EnemyManager.slow(model, 0, now + spec.root)
+		local pet = session.player:GetAttribute("Pet")
+		EnemyManager.root(
+			model,
+			RootHold.seconds(spec.root, EnemyManager.isBoss(model)),
+			if type(pet) == "string" then pet else ""
+		)
 	end
 	if spec.burn then
 		Burning.ignite(model, spec.burn.rate, spec.burn.duration, session.player, now)

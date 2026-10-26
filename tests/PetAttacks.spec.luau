@@ -11,7 +11,8 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local PetAttacks = require(ReplicatedStorage.Shared.Config.PetAttacks)
 local TestRunner = require(script.Parent.TestRunner)
 
-local KINDS = { Projectile = true, Reach = true, Ground = true, Overhead = true, Owner = true }
+local KINDS =
+	{ Projectile = true, Reach = true, Ground = true, Overhead = true, Owner = true, Hold = true }
 
 return function(t: TestRunner.Helper)
 	t.test("every attack belongs to a pet the preview can show", function()

@@ -29,6 +29,7 @@ local Log = require(ReplicatedStorage.Shared.Util.Log)
 local ModelClip = require(ReplicatedStorage.Shared.Util.ModelClip)
 local Pathing = require(script.Parent.Pathing)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
+local RootHold = require(ReplicatedStorage.Shared.Util.RootHold)
 local RunSession = require(script.Parent.Parent.Run.RunSession)
 local Types = require(ReplicatedStorage.Shared.Types)
 local WebWheel = require(ReplicatedStorage.Shared.Util.WebWheel)
@@ -140,6 +141,9 @@ type Enemy = {
 	     times the damage until `markUntil` (os.clock). ]]
 	slowScale: number?,
 	slowUntil: number?,
+	--[[ `os.clock()` until which a pet's root holds it where it stands
+	     (`EnemyManager.root`). ]]
+	rootedUntil: number,
 	markScale: number?,
 	markUntil: number?,
 	--[[ The lunge under way (`EnemyConfig.lunges`), by index, or nil. It
@@ -297,6 +301,24 @@ function EnemyManager.slow(model: Model, scale: number, untilTime: number)
 	local held = (enemy.slowUntil or 0) > now
 	enemy.slowScale = if held then math.min(enemy.slowScale or 1, scale) else scale
 	enemy.slowUntil = math.max(enemy.slowUntil or 0, untilTime)
+end
+
+--[[ Holds a live enemy where it stands for `seconds` (a pet's root,
+     `Shared/Util/RootHold`): a longer hold already on it is kept. Published
+     as `RootedUntil` (server time, for the roots round its feet,
+     `Fx/RootHoldFx`) and `RootedBy` (the pet, whose attack's `Hold` piece
+     they are). Returns whether it is held. ]]
+function EnemyManager.root(model: Model, seconds: number, by: string): boolean
+	local enemy = enemies[model]
+	if not enemy or seconds <= 0 then
+		return false
+	end
+	local now = os.clock()
+	local untilTime = RootHold.extend(enemy.rootedUntil, now, seconds)
+	enemy.rootedUntil = untilTime
+	model:SetAttribute("RootedUntil", Workspace:GetServerTimeNow() + (untilTime - now))
+	model:SetAttribute("RootedBy", by)
+	return true
 end
 
 --[[ A live enemy takes `scale` times the damage until `untilTime`. ]]
@@ -786,6 +808,7 @@ function EnemyManager.spawn(
 		lungeMoving = false,
 		lungeHit = {},
 		slideSign = nil,
+		rootedUntil = 0,
 		arrivesAt = nil,
 		route = nil,
 		routeAt = 0,
@@ -1597,9 +1620,10 @@ local function stepLunge(
 	local config = enemy.config
 	local lunges = config.lunges :: { Balance.EnemyLunge }
 	local index = enemy.lungeIndex
+	local rooted = RootHold.held(enemy.rootedUntil, now)
 
 	if not index then
-		if now - enemy.lastAttackAt < config.attackCooldown then
+		if rooted or now - enemy.lastAttackAt < config.attackCooldown then
 			return false
 		end
 		local radius = math.max(config.hitboxSize.X, config.hitboxSize.Z) / 2
@@ -1659,6 +1683,19 @@ local function stepLunge(
 	if now < enemy.lungeGoesAt then
 		-- Winding up: it holds still, pointed down its line.
 		return true
+	end
+
+	--[[ Held by a root: the lunge comes to nothing where it stands, and its
+	     cooldown starts again from here. ]]
+	if rooted then
+		if not enemy.lungeMoving then
+			EnemyModel.restore(enemy.skin, config)
+			enemy.model:SetAttribute(WINDING_UP, nil)
+		end
+		enemy.lungeIndex = nil
+		enemy.lungeMoving = false
+		enemy.lastAttackAt = now
+		return false
 	end
 
 	if not enemy.lungeMoving then
@@ -1727,6 +1764,12 @@ local function stepEnemy(enemy: Enemy, deltaTime: number, now: number)
 		return
 	end
 
+	--[[ A pet's root holds it where it stands: not even a hit's shove moves
+	     it (the white flash still shows the hit). ]]
+	local rooted = RootHold.held(enemy.rootedUntil, now)
+	if rooted then
+		enemy.knockbackVelocity = Vector3.zero
+	end
 	slide(enemy, deltaTime)
 
 	--[[ A training dummy only takes its knockback, then settles. ]]
@@ -1817,7 +1860,11 @@ local function stepEnemy(enemy: Enemy, deltaTime: number, now: number)
 					enemy.model:SetAttribute(WINDING_UP, true)
 				end
 			end
-		elseif now - enemy.lastSurfacedAt >= burrow.cooldown and not enemy.volleyAt then
+		elseif
+			now - enemy.lastSurfacedAt >= burrow.cooldown
+			and not enemy.volleyAt
+			and not rooted
+		then
 			--[[
 				Deliberately not gated on distance. A ranged enemy holds at
 				`attackRange`, so requiring "further than attackRange" to dive
@@ -2002,6 +2049,7 @@ local function stepEnemy(enemy: Enemy, deltaTime: number, now: number)
 			* (if enemy.submerged and burrow then burrow.speedScale else 1)
 			-- a pet's slow or root
 			* (if (enemy.slowUntil or 0) > now then enemy.slowScale or 1 else 1)
+			* (if rooted then 0 else 1)
 
 		local nextPosition = enemy.position + move * speed * deltaTime
 
@@ -2205,6 +2253,7 @@ end
 local OVERLAP_PUSH = 1
 
 local function separate()
+	local now = os.clock()
 	local live: { Enemy } = {}
 	for _, enemy in enemies do
 		if not enemy.submerged and not enemy.arrivesAt then
@@ -2237,10 +2286,20 @@ local function separate()
 
 			local push = (minimum - gap) * 0.5 * OVERLAP_PUSH
 
+			--[[ A body a pet's root holds is not shoved: the other takes the
+			     whole push, or neither moves when both are held. Otherwise
+			     anything walking into it pushed it along at walking pace. ]]
+			local aHeld = RootHold.held(a.rootedUntil, now)
+			local bHeld = RootHold.held(b.rootedUntil, now)
+			local aShare = if aHeld then 0 elseif bHeld then 2 else 1
+			local bShare = if bHeld then 0 elseif aHeld then 2 else 1
+
 			--[[ Back through the arena, or a pair pressed against a wall would
 			     be separated straight through it. ]]
-			a.position = Arena.resolveBox(a.position - direction * push, footprint(a.config, a.yaw))
-			b.position = Arena.resolveBox(b.position + direction * push, footprint(b.config, b.yaw))
+			a.position =
+				Arena.resolveBox(a.position - direction * push * aShare, footprint(a.config, a.yaw))
+			b.position =
+				Arena.resolveBox(b.position + direction * push * bShare, footprint(b.config, b.yaw))
 
 			placeHitbox(a)
 			placeHitbox(b)

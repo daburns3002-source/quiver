@@ -60,11 +60,12 @@ the same name = the data's name, `ModelClip` = the clip) is played by
 (`Shared/Util/ModelClip`, pinned by `tests/ModelClip.spec`). PIPELINES.md §10.
 
 **The game opens on the intro cutscene** (`UI/IntroCutscene`, `Config/Intro`,
-owner 2026-10-25, after Pixel Lineage's): black, DYL.DEVS PRESENTS in dark
-gold, a cut on the music's hit at 5.0 s (`revealAt`, the shared contract with
-the intro music, `Config/Music.intro`) to the full-screen Codex title picture
-with its logo painted in, slowly zooming under light shafts and blocky motes,
-and BEGIN ADVENTURE. The run holds still until it is pressed: the server skips
+owner 2026-10-25, after Pixel Lineage's): black, DYL.DEVS in dark gold with
+PRESENTS small and white under it, a cut on the music's hit at 5.0 s (`revealAt`,
+the shared contract with the intro music, `Config/Music.intro`) to the Codex title
+picture (logo painted in), which never moves once up (owner) and shows whole at
+the screen's height with dimmed copies filling the sides, and BEGIN ADVENTURE,
+still until hovered or pressed. The run holds still until it is pressed: the server skips
 its step while any player is still on the title (`RunSession.anyAtTitle`,
 cleared by `Remotes.IntroBegin`), the client holds on `RunPaused.setTitle`, the
 room's music and its ROOM sign wait. **In Studio, set a `SkipIntro` attribute

@@ -34,6 +34,7 @@ local Music = require(ReplicatedStorage.Shared.Config.Music)
 
 local Device = require(script.Parent.Parent.Device)
 local RunPaused = require(script.Parent.Parent.RunPaused)
+local TitleMotion = require(script.Parent.TitleMotion)
 
 local IntroCutscene = {}
 
@@ -52,6 +53,7 @@ type Parts = {
 	presentsScale: UIScale,
 	picture: Frame,
 	backdrop: Frame,
+	motion: TitleMotion.Motion,
 	shade: Frame,
 	flash: Frame,
 	button: TextButton,
@@ -329,6 +331,7 @@ local function build(playerGui: PlayerGui): Parts
 		presentsScale = presentsScale,
 		picture = picture,
 		backdrop = backdrop,
+		motion = TitleMotion.build(picture),
 		shade = shade,
 		flash = flash,
 		button = made.button,
@@ -433,6 +436,10 @@ local function pose(t: number)
 	-- the whole picture, as large as fits; the sides, covered
 	place(p.picture, math.min(size.X / c.width, size.Y / c.height))
 	place(p.backdrop, math.max(size.X / c.width, size.Y / c.height))
+	-- the water and the falling leaves, from the moment the picture appears
+	if now.revealed then
+		TitleMotion.step(p.motion, t - Intro.revealAt, fade)
+	end
 	local dim = p.backdrop:FindFirstChild("Dim") :: Frame
 	dim.BackgroundTransparency = Intro.sidesDim + (1 - Intro.sidesDim) * fade
 

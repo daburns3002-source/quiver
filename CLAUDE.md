@@ -312,7 +312,8 @@ come out of crates. EQUIP holds an owned weapon (its class with it), saved, in h
 the lobby. Every weapon picture is the THREE-QUARTER view of the reference sheet its 3D model was
 built from (owner: "use the 2d reference sheet 3/4 view pictures"; `Config/ShopAssets`,
 `assets/ui/shop/three_quarter.py`); a new weapon needs one (`Shop.spec`). Studio test remote:
-`Remotes.DebugWallet:FireServer(coins, gems, itemsEach)`.
+`Remotes.DebugWallet:FireServer(coins, gems, itemsEach)`. In Studio the shop opens by itself on
+reaching the lobby, wallet topped up (`Sandbox.openShop`; set it to nil to stop that).
 
 **Revive** (`Balance.Revive`): once per stage, automatically, after Second
 Wind — full health, 2.5 s untouchable behind a gold shield, and enemy shots

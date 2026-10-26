@@ -107,6 +107,11 @@ export type EnemyShot = {
 		Nil is `attackRange`.
 	]]
 	range: number?,
+	--[[ Seconds between the fan's projectiles leaving, one after another
+	     across the fan, when they should not all leave at once: set to the
+	     beats of the enemy's shot sound, so each one is heard as it leaves.
+	     Nil fires the whole fan together. ]]
+	every: number?,
 }
 
 --[[
@@ -853,6 +858,11 @@ local burrThistle: EnemyConfig = {
 	shot = {
 		count = 3,
 		spread = math.rad(20),
+		--[[ One burr per "ptoo" of its spit (`enemy_thistle_spit`, round
+		     18 take A: three, 0.06 s apart), so they leave in time with it
+		     (owner, 2026-10-25: "there should be a small delay consistent
+		     with the delay in the sounds for each shot"). ]]
+		every = 0.06,
 		speed = 13.5,
 		lifetime = 70 / 13.5,
 		telegraph = 0.5,
@@ -2796,11 +2806,11 @@ local Balance = {
 	} :: { StageConfig },
 
 	--[[ Which stage a run plays. Set per point in the game; one index here
-	     until there is a stage select. The Mossy Glade run, for a
-	     run-through of every class (owner, 2026-10-25: "give me 20 rooms of
-	     mossy glade ending in king bloblin first and i will run it 1 time
-	     with each class"); Level 2, Thornwood, is 4; Level 1 is 3. ]]
-	stage = 5,
+	     until there is a stage select. Level 2, Thornwood, to playtest it
+	     (owner, 2026-10-25: "make the playtest have thornwood instead of
+	     mossy glade so i can test it"); the Mossy Glade run is 5, Level 1
+	     is 3. ]]
+	stage = 4,
 
 	--[[ The Waves-mode schedule, as Archero 2 numbers it within each block
 	     of ten: a Valkyrie on the 5th, an Angel on the 9th, a boss on the

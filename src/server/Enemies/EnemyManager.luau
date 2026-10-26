@@ -1166,6 +1166,8 @@ local function queueVolley(enemy: Enemy, targetRoot: BasePart, shot: Balance.Ene
 		return
 	end
 
+	--[[ For the client's sound of the volley leaving (`Fx/EnemySounds`). ]]
+	enemy.model:SetAttribute("ShotAt", os.clock())
 	table.insert(pendingVolleys, {
 		origin = enemy.position,
 		direction = direction,

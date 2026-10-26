@@ -507,7 +507,7 @@ local spreadShooter: EnemyConfig = {
 	     seconds"). ]]
 	attackCooldown = 3,
 	knockback = 3,
-	--[[ The Sprout Spitter's own shape (its model, 3 × 3.6 × 3), not the
+	--[[ The Splitter Spitter's own shape (its model, 3 × 3.6 × 3), not the
 	     shared 5-stud box; arrows at `Projectile.height` meet it. ]]
 	hitboxSize = Vector3.new(3, 3.2, 3),
 	color = Color3.fromRGB(70, 206, 236),
@@ -1489,7 +1489,7 @@ local rooms: { RoomConfig } = {
 			{ offset = Vector2.new(-6.21, 19.71), size = Vector3.new(2.7, 1.2, 2.7) },
 		},
 		enemyCount = 4,
-		--[[ The Sprout Spitter's debut, from room 6, so the first five stay
+		--[[ The Splitter Spitter's debut, from room 6, so the first five stay
 		     the slime tutorial: the one new thing to learn here. It took the
 		     Ember Wilf's place (owner, 2026-10-24: "take out the non blocky
 		     wilf enemy"), and fires across the whole room from anywhere in
@@ -3204,7 +3204,7 @@ local Balance = {
 				size = 0.55,
 				count = 6,
 			},
-			-- The Sprout Slime: the palest lime.
+			-- The Splitter Spitter: the palest lime.
 			Spitter = {
 				light = Color3.fromRGB(204, 242, 64),
 				dark = Color3.fromRGB(152, 202, 36),

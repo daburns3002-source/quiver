@@ -117,7 +117,7 @@ local NewEnemies = {
 			area = "MossyGlade",
 		},
 		Spitter = {
-			name = "SPROUT SLIME",
+			name = "SPLITTER SPITTER",
 			description = "Spits two seeds from across the room. Slip through the gap between them!",
 			picture = "rbxassetid://82242476998896",
 			area = "MossyGlade",

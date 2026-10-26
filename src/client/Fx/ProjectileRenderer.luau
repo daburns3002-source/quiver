@@ -43,7 +43,7 @@ type Faction = Types.Faction
      rather than as objects, and at phone size a merely-coloured dart against a
      lit floor is close to invisible. ]]
 local PLAYER_COLOUR = Color3.fromRGB(255, 244, 196)
---[[ The enemy shot: the Sprout Spitter's seed, a glowing leaf-green cube
+--[[ The enemy shot: the Splitter Spitter's seed, a glowing leaf-green cube
      with a dark outline, tumbling as it flies (owner, 2026-10-24: "make sure
      that the projectiles from the spitter are green and match the design
      language of the game"). Was Archero 2's magenta ball. The outline is

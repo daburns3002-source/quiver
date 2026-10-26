@@ -1,6 +1,6 @@
 --!strict
 --[[
-	Level 1 (`Balance.Stages[3]`, the Mossy Glade): slimes, the Sprout
+	Level 1 (`Balance.Stages[3]`, the Mossy Glade): slimes, the Splitter
 	Spitter from room 6 on, and the Slime King alone in its last room
 	(owner, 2026-10-23; the Spitter in the Ember Wilf's place, 2026-10-24:
 	"take out the non blocky wilf enemy").

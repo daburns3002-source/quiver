@@ -103,15 +103,38 @@ return function(t: TestRunner.Helper)
 		Pickups.dropForKill(player, FAR, 30, Random.new(3), unchanged)
 		local far = Balance.Pickups.crystalRadius + Balance.Pickups.crystalScatter + 1
 
-		t.equal(Pickups.takeCrystals(player, FAR + Vector3.new(far, 0, 0)), 0)
+		local landed = os.clock() + Balance.Pickups.popTime
+		t.equal(Pickups.takeCrystals(player, FAR + Vector3.new(far, 0, 0), landed), 0)
 		t.equal(Pickups.count("Crystal"), #Pickups.split(30))
 
 		--[[ Standing on the body reaches every crystal it scattered. ]]
 		t.isTrue(Balance.Pickups.crystalRadius >= Balance.Pickups.crystalScatter)
-		t.equal(Pickups.takeCrystals(player, FAR), 30)
+		t.equal(Pickups.takeCrystals(player, FAR, landed), 30)
 		t.equal(Pickups.count("Crystal"), 0)
 		t.isNil(Pickups.collectCrystals()[player], "taken crystals paid again at the clear")
 		Pickups.clear()
+	end)
+
+	t.test("a crystal still popping out of its kill is not taken", function()
+		local player = Players:GetPlayers()[1]
+		if not player then
+			return
+		end
+
+		Pickups.clear()
+		Pickups.dropForKill(player, FAR, 30, Random.new(4), unchanged)
+		t.equal(Pickups.takeCrystals(player, FAR, os.clock()), 0, "taken in the air")
+		t.equal(Pickups.count("Crystal"), #Pickups.split(30))
+		t.equal(Pickups.takeCrystals(player, FAR, os.clock() + Balance.Pickups.popTime), 30)
+		Pickups.clear()
+	end)
+
+	t.test("the crystals' flight lands their XP before the gate can open", function()
+		local pickups = Balance.Pickups
+		t.isTrue(
+			pickups.collectDelay + pickups.collectFlight < Balance.Run.clearPause,
+			"a clear's XP would arrive after the run moved on"
+		)
 	end)
 
 	t.test("a heart is taken by standing on it, and only then", function()

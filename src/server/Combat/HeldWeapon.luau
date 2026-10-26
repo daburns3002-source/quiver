@@ -12,6 +12,7 @@
 local CollectionService = game:GetService("CollectionService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local MeshTemplates = require(script.Parent.Parent.Util.MeshTemplates)
 local Weapons = require(ReplicatedStorage.Shared.Config.Weapons)
 
@@ -77,6 +78,10 @@ function HeldWeapon.equip(character: Model, weaponName: string)
 
 	local model = Instance.new("Model")
 	model.Name = "HeldWeapon"
+	--[[ Its size in hand: its own, grown about the grip (`heldWeaponScale`).
+	     Carried on `WeaponOrigin`, so what the client draws in the weapon's
+	     units (the string, the arrow, a blade's tip) grows with it. ]]
+	local scale = weapon.scale * Balance.Player.heldWeaponScale
 
 	--[[ Builds the weapon's parts in one hand. The off hand's copy (a second
 	     bow) is the same model, but only the main hand's carries the
@@ -91,9 +96,9 @@ function HeldWeapon.equip(character: Model, weaponName: string)
 			end
 			local part = template:Clone()
 			part.Name = spec.name
-			part.Size = spec.size * weapon.scale
+			part.Size = spec.size * scale
 			part.CFrame = frame
-				* CFrame.new(spec.offset * weapon.scale)
+				* CFrame.new(spec.offset * scale)
 				* (if spec.turned then CFrame.Angles(0, math.pi, 0) else CFrame.identity)
 			part.Anchored = false
 			part.Massless = true
@@ -146,7 +151,7 @@ function HeldWeapon.equip(character: Model, weaponName: string)
 				local origin = Instance.new("Attachment")
 				origin.Name = "WeaponOrigin"
 				origin.CFrame = part.CFrame:ToObjectSpace(frame)
-				origin:SetAttribute("Scale", weapon.scale)
+				origin:SetAttribute("Scale", scale)
 				origin.Parent = part
 			end
 		end

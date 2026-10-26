@@ -295,7 +295,21 @@ when the server counts one on the player (`Meteors` attribute).
 drops as cyan crystals; walk over your own to take them mid-fight, and any
 left are drawn in when the wave or room clears. Hearts drop on 5% of kills and on every
 Valkyrie wave, wait on the floor, and heal 20% of max health when walked
-over, full health or not.
+over, full health or not, putting a green "+N" on the health bar's right end
+(`HealthChanged`'s third value, `Hud.healNumber`, owner 2026-10-26). **XP counts as the crystals arrive** (owner, 2026-10-26):
+a crystal can't be taken until it has landed (`Balance.Pickups.popTime`), and its XP is
+credited a `collectFlight` later (`RunSession.landXp`), so the bar and any level-up rise
+as it reaches the player, never as the enemy dies.
+
+**After every pause the attack starts over** (owner, 2026-10-26: the hit landed before
+the attack's animation after an upgrade pick): `Shared/Combat/FireRhythm` is the
+move-or-shoot rhythm both sides keep; the server's first step after any hold (card screen,
+banner, NEW ENEMY!, end screen, lobby) calls `RunSession.resumeAttacks` and
+`MeleeSystem.resume` (a swing in the air never lands), the client's `RunPaused` resume
+does the same in `LocalFiring`, and `WeaponPose` holds still behind the screen and readies
+the weapon from the start. A screen that lets the server go on must let the client go at the
+same moment, never after its own exit animation (the NEW ENEMY! screen did; `docs/FIXES.md`). `tests/FireRhythm.spec` pins it. Weapons are held
+`Balance.Player.heldWeaponScale` (1.2×) their `Config/Weapons` size, about the grip.
 
 **Sounds** (`Config/Sounds`, `Fx/SoundFx`): made from scratch in
 `assets/audio/synth.py`, or cut from CC0 Freesound recordings by

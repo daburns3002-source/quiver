@@ -20,6 +20,20 @@ local Hud = {
 	     rule 11) is unreadable squeezed inside a bar's own height (owner,
 	     2026-10-24: "make the small HUD labels … bigger"). ]]
 	barText = { health = 1.6, dash = 2.6 },
+	--[[ The "+N" a heart puts up on the health bar (owner, 2026-10-26:
+	     "add heal number to the health bar whenever you pick up a heart"):
+	     green, `height` bar heights tall, at `x` across the bar (its empty
+	     right end, clear of the centred numbers and of the DASH label above),
+	     rising `rise` bar heights over `seconds` and fading as it goes. ]]
+	healNumber = {
+		colour = Color3.fromRGB(140, 255, 140),
+		edge = Color3.fromRGB(16, 48, 20),
+		edgeWidth = 2.5,
+		height = 2,
+		x = 0.87,
+		rise = 1.1,
+		seconds = 0.9,
+	},
 	desktop = {
 		--[[ The skill bar's size against its full size under the draft:
 		     ~62 points tall (104 full). ]]

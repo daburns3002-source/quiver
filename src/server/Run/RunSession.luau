@@ -20,6 +20,7 @@ local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Classes = require(ReplicatedStorage.Shared.Config.Classes)
 local CurrentStage = require(ReplicatedStorage.Shared.Util.CurrentStage)
 local Economy = require(ReplicatedStorage.Shared.Config.Economy)
+local FireRhythm = require(ReplicatedStorage.Shared.Combat.FireRhythm)
 local HeldWeaponChoice = require(ReplicatedStorage.Shared.Combat.HeldWeaponChoice)
 local Loadout = require(script.Parent.Loadout)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
@@ -117,6 +118,9 @@ export type Session = {
 	--[[ Regen accrues every frame but is only told to the client a few
 	     times a second. ]]
 	healthSentAt: number,
+	--[[ XP crystals flying in to this player: what each batch carries and
+	     when it arrives, when it is credited (`landXp`). ]]
+	xpArriving: { { amount: number, at: number } },
 	--[[ Revives left this stage, and `os.clock()` until which nothing hurts
 	     the player — set by a revive. ]]
 	revivesLeft: number,
@@ -245,6 +249,7 @@ function RunSession.create(player: Player): Session
 		meeting = {},
 		tutorialProgress = TutorialHands.newProgress(),
 		healthSentAt = 0,
+		xpArriving = {},
 		revivesLeft = Balance.Revive.perStage,
 		invulnerableUntil = 0,
 		guardFrom = 0,
@@ -497,7 +502,18 @@ function RunSession.levelUpIfOwed()
 			and loadout.pendingLevels <= 0
 			and TutorialHands.owesLevel(Tutorial :: any, session.tutorialProgress, tutorialRoom)
 		then
-			RunSession.awardXp(session, loadout.xpToNext - loadout.xp)
+			--[[ Topped up with the crystals still flying in, landing with the
+			     last of them, so the level comes as they arrive. ]]
+			local landsAt = os.clock()
+			local arriving = 0
+			for _, batch in session.xpArriving do
+				arriving += batch.amount
+				landsAt = math.max(landsAt, batch.at)
+			end
+			local owed = loadout.xpToNext - loadout.xp - arriving
+			if owed > 0 then
+				table.insert(session.xpArriving, { amount = owed, at = landsAt })
+			end
 		end
 	end
 end
@@ -654,8 +670,9 @@ end
 
 	The XP does not arrive here. It drops at `position` as crystals, which
 	the player can walk over (`pickUpFloor`) and which are otherwise drawn
-	in when the fight clears (`collectCrystals`). Without a position there
-	is nowhere to drop them, and the XP is credited at once.
+	in when the fight clears (`collectCrystals`); either way it is credited
+	as they reach the player (`landXp`). Without a position there is nowhere
+	to drop them, and the XP is credited at once.
 ]]
 function RunSession.creditKill(owner: Player?, xp: number, position: Vector3?)
 	if xp <= 0 or not owner then
@@ -678,25 +695,60 @@ function RunSession.creditKill(owner: Player?, xp: number, position: Vector3?)
 	end
 end
 
---[[ Draws in every crystal on the floor and credits each player the XP of
-     their own. Called when a wave or a room clears. ]]
-function RunSession.collectCrystals()
-	for player, xp in Pickups.collectCrystals() do
-		local session = RunSession.get(player)
-		if session then
-			RunSession.awardXp(session, xp)
+--[[ Crystals carrying `amount` XP have set off for this player: it is
+     credited when they arrive, a flight's time from now, so the XP bar and
+     any level-up rise as they reach the player (owner, 2026-10-26). ]]
+local function xpSetOff(session: Session, amount: number)
+	table.insert(
+		session.xpArriving,
+		{ amount = amount, at = os.clock() + Balance.Pickups.collectFlight }
+	)
+end
+
+--[[ Credits every batch of crystals that has reached its player by `now`.
+     Called every frame the run is moving, so a card screen holds the rest
+     until it closes. ]]
+function RunSession.landXp(now: number)
+	for _, session in sessions do
+		local arriving = session.xpArriving
+		local i = 1
+		while i <= #arriving do
+			local batch = arriving[i]
+			if now >= batch.at then
+				table.remove(arriving, i)
+				RunSession.awardXp(session, batch.amount)
+			else
+				i += 1
+			end
 		end
 	end
 end
 
---[[ Restores a share of max health. Server-only, like damage. ]]
-function RunSession.heal(session: Session, amount: number)
+--[[ Draws in every crystal on the floor; each player is credited the XP of
+     their own as it arrives. Called when a wave or a room clears. ]]
+function RunSession.collectCrystals()
+	for player, xp in Pickups.collectCrystals() do
+		local session = RunSession.get(player)
+		if session then
+			xpSetOff(session, xp)
+		end
+	end
+end
+
+--[[ Restores a share of max health. Server-only, like damage. `shown`
+     puts the amount up by the health bar as a "+N" (a heart's). ]]
+function RunSession.heal(session: Session, amount: number, shown: boolean?)
 	if not session.alive or amount <= 0 then
 		return
 	end
 
 	session.health = math.min(session.maxHealth, session.health + amount)
-	healthChanged:FireClient(session.player, session.health, session.maxHealth)
+	healthChanged:FireClient(
+		session.player,
+		session.health,
+		session.maxHealth,
+		if shown then amount else nil
+	)
 end
 
 --[[
@@ -716,12 +768,13 @@ function RunSession.pickUpFloor()
 
 		local taken = Pickups.takeHearts(session.player, root.Position)
 		if taken > 0 then
-			RunSession.heal(session, taken * Balance.Pickups.heartHeal * session.maxHealth)
+			--[[ Shown as what the hearts are worth, even at full health. ]]
+			RunSession.heal(session, taken * Balance.Pickups.heartHeal * session.maxHealth, true)
 		end
 
 		local xp = Pickups.takeCrystals(session.player, root.Position)
 		if xp > 0 then
-			RunSession.awardXp(session, xp)
+			xpSetOff(session, xp)
 		end
 	end
 end
@@ -798,6 +851,8 @@ function RunSession.resetRun(session: Session)
 	session.petReviveUsed = false
 	-- a screen left open when the run ended holds nothing now
 	table.clear(session.meeting)
+	-- nor do crystals still flying in from it
+	table.clear(session.xpArriving)
 	RunSession.newStage(session)
 	RunSession.applyLoadout(session)
 	session.health = session.maxHealth
@@ -1032,24 +1087,18 @@ function RunSession.isStationary(session: Session, now: number): boolean
 	end
 
 	local moving = humanoid.MoveDirection.Magnitude > Balance.Player.stationaryThreshold
+	return FireRhythm.settle(session, moving, now)
+end
 
-	if moving then
-		session.stationarySince = nil
-		session.movingSince = session.movingSince or now
-		return false
+--[[ The world moves again after standing still (a card screen, a boss's
+     banner, a NEW ENEMY! screen): every player's attack starts over, a full
+     settle and cooldown from now, as the client's prediction does on its own
+     resume. Without it the first frame back fired at once, and the hit landed
+     before the client had drawn the shot or played the attack. ]]
+function RunSession.resumeAttacks(now: number)
+	for _, session in sessions do
+		FireRhythm.resume(session, now)
 	end
-
-	local since = session.stationarySince
-	if not since then
-		session.stationarySince = now
-		--[[ How long the stretch of moving that just ended lasted, for
-		     Momentum. ]]
-		session.movedFor = if session.movingSince then now - session.movingSince else 0
-		session.movingSince = nil
-		return false
-	end
-
-	return (now - since) >= Balance.Player.stationaryDelay
 end
 
 Players.PlayerRemoving:Connect(RunSession.destroy)

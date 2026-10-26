@@ -20,6 +20,7 @@ local HealthBar = {}
 
 local fill: Frame? = nil
 local label: TextLabel? = nil
+local box: Frame? = nil
 
 local LOW_HEALTH_FRACTION = 0.3
 local HEALTHY_COLOUR = Color3.fromRGB(104, 198, 122)
@@ -98,9 +99,59 @@ function HealthBar.start()
 
 	fill = bar
 	label = text
+	box = container
 end
 
-function HealthBar.update(health: number, maxHealth: number)
+--[[ A "+N" rising off the top of the bar and fading: a heart's heal, told
+     by the server with the health it brought (`Remotes.HealthChanged`).
+     Each heal its own, so two hearts taken together show twice. ]]
+local function showHeal(amount: number)
+	local container = box
+	if not container then
+		return
+	end
+
+	local config = Hud.healNumber
+	local number = Instance.new("TextLabel")
+	number.Name = "HealNumber"
+	number.AnchorPoint = Vector2.new(0.5, 1)
+	number.Position = UDim2.fromScale(0.5, 0)
+	number.Size = UDim2.fromScale(1, config.height)
+	number.BackgroundTransparency = 1
+	number.Font = Enum.Font.Arcade
+	number.TextScaled = true
+	number.TextColor3 = config.colour
+	number.TextStrokeTransparency = 0
+	number.Text = `+{math.max(1, math.floor(amount + 0.5))}`
+	number.ZIndex = 5
+	number.Parent = container
+
+	local scale = Instance.new("UIScale")
+	scale.Scale = 0.6
+	scale.Parent = number
+
+	-- a quick pop, then the rise and fade
+	TweenService:Create(scale, TweenInfo.new(0.12, Enum.EasingStyle.Back), { Scale = 1 }):Play()
+	local rise = TweenService:Create(
+		number,
+		TweenInfo.new(config.seconds, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+		{
+			Position = UDim2.fromScale(0.5, -config.rise),
+			TextTransparency = 1,
+			TextStrokeTransparency = 1,
+		}
+	)
+	rise.Completed:Once(function()
+		number:Destroy()
+	end)
+	rise:Play()
+end
+
+function HealthBar.update(health: number, maxHealth: number, shown: number?)
+	if shown and shown > 0 then
+		showHeal(shown)
+	end
+
 	local bar = fill
 	local text = label
 

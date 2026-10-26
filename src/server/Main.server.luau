@@ -452,6 +452,11 @@ Remotes.event(Remotes.NewEnemySeen).OnServerEvent:Connect(function(player, kind)
 	end
 end)
 
+--[[ Whether last frame's step was skipped because the world was held. The
+     first frame it runs again, every attack starts over
+     (`RunSession.resumeAttacks`). ]]
+local wasHeld = false
+
 RunService.Heartbeat:Connect(function(deltaTime: number)
 	local now = os.clock()
 
@@ -459,18 +464,21 @@ RunService.Heartbeat:Connect(function(deltaTime: number)
 	     fire is not a choice, and a player who takes damage while reading one
 	     will stop reading them. ]]
 	if RunSession.anyChoosing() then
+		wasHeld = true
 		return
 	end
 
 	--[[ And while a boss's entry banner plays: nobody moves or attacks until
 	     it has gone (`EnemyManager.introHolding`). ]]
 	if EnemyManager.introHolding(now) then
+		wasHeld = true
 		return
 	end
 
 	--[[ And while anyone is still on the intro's title screen
 	     (`UI/IntroCutscene`): the run starts on BEGIN ADVENTURE. ]]
 	if RunSession.anyAtTitle() then
+		wasHeld = true
 		return
 	end
 
@@ -485,12 +493,14 @@ RunService.Heartbeat:Connect(function(deltaTime: number)
 				break
 			end
 		end
+		wasHeld = true
 		return
 	end
 
 	--[[ And while anyone reads a NEW ENEMY! screen, until GOT IT!
 	     (`Config/NewEnemies`). ]]
 	if RunSession.anyMeeting() then
+		wasHeld = true
 		return
 	end
 
@@ -498,7 +508,14 @@ RunService.Heartbeat:Connect(function(deltaTime: number)
 	     than a 2.5 s timer. A character respawns after five seconds; left
 	     running, the arena killed it again behind the screen, every time. ]]
 	if RoomController.isOver() then
+		wasHeld = true
 		return
+	end
+
+	if wasHeld then
+		wasHeld = false
+		RunSession.resumeAttacks(now)
+		MeleeSystem.resume()
 	end
 
 	EnemyManager.step(deltaTime, now)
@@ -521,6 +538,8 @@ RunService.Heartbeat:Connect(function(deltaTime: number)
 	--[[ Crystals and hearts are taken by walking over them, so after
 	     everything that moves the player this frame. ]]
 	RunSession.pickUpFloor()
+	--[[ And credited as they arrive, which may level the player up. ]]
+	RunSession.landXp(now)
 	--[[ Mending. ]]
 	RunSession.regenerate(deltaTime, now)
 

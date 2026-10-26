@@ -49,8 +49,9 @@ type Visual = {
 	drawnScale: number,
 }
 
---[[ Seconds a drop takes to arc from the body to where it lands. ]]
-local POP_TIME = 0.35
+--[[ Seconds a drop takes to arc from the body to where it lands; the
+     server will not let a crystal be walked over sooner. ]]
+local POP_TIME = Balance.Pickups.popTime
 local POP_HEIGHT = 2.2
 local BOB_HEIGHT = 0.18
 local BOB_SPEED = 3

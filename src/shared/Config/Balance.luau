@@ -2255,6 +2255,13 @@ local Balance = {
 		-- Seconds the archer must be still before firing resumes. Small, but
 		-- non-zero stops a player machine-gunning by tapping the stick.
 		stationaryDelay = 0.1,
+		--[[ Every weapon in hand is drawn this much larger than its
+		     `Config/Weapons` scale, about its grip, so the hand stays on the
+		     handle (owner, 2026-10-26: "make weapon models 20% bigger in the
+		     players hand"). Presentation only: shots leave from
+		     `Aim.shotOrigin` and a blade hits its `SwingBox`, whatever the
+		     model's size. ]]
+		heldWeaponScale = 1.2,
 
 		--[[
 			The dash.
@@ -2975,9 +2982,15 @@ local Balance = {
 		--[[ Seconds after a clear before the crystals are drawn in, so the
 		     last kill's crystals are seen landing first. ]]
 		collectDelay = 0.3,
-		--[[ Seconds a crystal takes to fly to its owner. Presentation; the XP
-		     is credited when the flight starts. ]]
+		--[[ Seconds a crystal takes to fly to its owner. Its XP is credited
+		     as it arrives, not as it sets off (owner, 2026-10-26: "make sure
+		     the xp bar goes up when the crystals are collected"). ]]
 		collectFlight = 0.45,
+		--[[ Seconds a drop takes to arc out of the body to where it lands
+		     (`Fx/PickupFx`). A crystal cannot be walked over until it has
+		     landed, so a kill beside the player is not collected as it
+		     drops. ]]
+		popTime = 0.35,
 
 		--[[ Chance a kill drops a heart. ]]
 		heartChance = 0.05,

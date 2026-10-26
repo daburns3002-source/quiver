@@ -40,6 +40,16 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## The story cutscene's sound did not match its picture on a phone
+
+**Symptom**: 2026-10-26, the owner on a phone: "the bloblin cutscene audio did not match where the clip was at visually on the phone".
+
+**Cause**: the picture ran on its own clock (`os.clock` from the start) and the music was started once beside it. A phone that started the track late, or stalled it while streaming, left the music behind the frames for the rest of the cutscene; nothing ever brought them back together.
+
+**Fix**: `StoryCutscene`'s clock follows the music: while it plays, any drift over 0.15 s (`DRIFT`) puts the clock back on `Sound.TimePosition`, so the frames wait for late music. A track not loaded when the clock starts joins at the clock's position once it is. The same change added portrait frames for phones held upright (`Config/Story.portraits`).
+
+**Measured**: in Studio, 2,503 render frames across the cutscene: the picture's time within 0.022 s of the music's position throughout, all 40 frames in order, no gaps.
+
 ## The story cutscene kept cutting out and back in
 
 **Symptom**: 2026-10-26, the owner on the run-through: "the king bloblin cutscene is not smooth, it keeps cutting out and back in".

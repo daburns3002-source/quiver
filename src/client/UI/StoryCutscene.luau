@@ -329,7 +329,14 @@ local function pose(t: number)
 	local wanted: Frame? = nil
 	local name = now.picture
 	if name then
-		wanted = (upright and p.portraits[name]) or p.pictures[name]
+		-- a portrait frame only if it was warmed (the screen was tall when the
+		-- title came up); otherwise the landscape one, which always is
+		local tall = p.portraits[name]
+		if upright and tall and warmed[(tall:FindFirstChild("Top") :: ImageLabel).Image] then
+			wanted = tall
+		else
+			wanted = p.pictures[name]
+		end
 	end
 	if not wanted then
 		showing = nil
@@ -432,9 +439,11 @@ local function startClock(built: Parts)
 	local deadline = os.clock() + Story.loadWait
 	while os.clock() < deadline and parts == built do
 		local ready = music == nil or (music :: Sound).IsLoaded
-		for _, holder in built.pictures do
-			if not loaded(holder) then
-				ready = false
+		for _, set in { built.pictures, built.portraits } do
+			for _, holder in set do
+				if not loaded(holder) then
+					ready = false
+				end
 			end
 		end
 		if ready then

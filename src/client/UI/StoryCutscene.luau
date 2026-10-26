@@ -58,9 +58,16 @@ local held: number? = nil
 local connection: RBXScriptConnection? = nil
 local onDone: (() -> ())? = nil
 local played: { [number]: boolean } = {}
---[[ The frame on screen, and how long the clock has waited on each frame. ]]
+--[[ The frame on screen. A frame whose images are not in yet never shows:
+     the one before it stays up until they are, so nothing flashes blank. ]]
 local showing: Frame? = nil
-local stalled: { [string]: number } = {}
+--[[ The frame before it, kept up underneath until the new one's own halves
+     report loaded, so a cut never shows a blank frame even for one frame. ]]
+local under: Frame? = nil
+--[[ The frames' images, warmed while the title is up (`preload`), and each
+     image's warm copy by its id. ]]
+local warm: ScreenGui? = nil
+local warmed: { [string]: ImageLabel } = {}
 --[[ The story's music (`Config/Music.story`), or nil when it has no id. ]]
 local music: Sound? = nil
 --[[ How long SKIP takes the music down (the picture cuts to black at once). ]]
@@ -90,9 +97,17 @@ local function pictureNames(): { string }
 	return out
 end
 
---[[ Starts loading every frame now (while the title is up), so none pops in
-     late. ]]
+--[[ Starts loading every frame now, while the title is up, so all are in
+     when the story starts. Roblox only loads an image it is drawing (not a
+     hidden one, nor a fully transparent one), so each sits in a 2-pixel,
+     nearly transparent label on a screen of its own until the story ends;
+     the cutscene's own frame, hidden until its turn, then draws at once from
+     the cache (owner: "it keeps cutting out and back in" was every frame
+     loading only when it came on). ]]
 function StoryCutscene.preload()
+	if warm then
+		return
+	end
 	local ids = {}
 	for _, name in pictureNames() do
 		local halves = Story.pictures[name]
@@ -101,11 +116,38 @@ function StoryCutscene.preload()
 			table.insert(ids, halves.right)
 		end
 	end
+	local gui = Instance.new("ScreenGui")
+	gui.Name = "StoryWarm"
+	gui.ResetOnSpawn = false
+	gui.DisplayOrder = -100
+	gui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
+	for _, id in ids do
+		local image = Instance.new("ImageLabel")
+		image.BackgroundTransparency = 1
+		image.Size = UDim2.fromOffset(2, 2)
+		image.ImageTransparency = 0.99
+		image.Image = id
+		image.Parent = gui
+		warmed[id] = image
+	end
+	warm = gui
 	task.spawn(function()
 		pcall(function()
 			ContentProvider:PreloadAsync(ids)
 		end)
 	end)
+end
+
+--[[ Whether a frame's two halves are in: their warm copies have loaded
+     (an image never warmed counts as in). ]]
+local function loaded(holder: Frame): boolean
+	for _, side in { "Left", "Right" } do
+		local copy = warmed[(holder:FindFirstChild(side) :: ImageLabel).Image]
+		if copy and not copy.IsLoaded then
+			return false
+		end
+	end
+	return true
 end
 
 local function buildSkip(safe: ScreenGui): (Frame, TextButton, Frame)
@@ -257,12 +299,29 @@ local function pose(t: number)
 	local winH = math.floor(source.height * fit + 0.5)
 	p.window.Size = UDim2.fromOffset(winW, winH)
 	local split = math.floor(winW / 2)
-	showing = nil
-	for name, holder in p.pictures do
-		local on = name == now.picture
+	--[[ The frame the clock asks for, once both its halves are in; until then
+	     the one before it stays up. Black is only ever the story's own black. ]]
+	local wanted = if now.picture then p.pictures[now.picture] else nil
+	if not wanted then
+		showing = nil
+		under = nil
+	elseif wanted ~= showing and loaded(wanted) then
+		under = showing
+		showing = wanted
+	end
+	local current = showing
+	if current and under then
+		local left = current:FindFirstChild("Left") :: ImageLabel
+		local right = current:FindFirstChild("Right") :: ImageLabel
+		if left.IsLoaded and right.IsLoaded then
+			under = nil
+		end
+	end
+	for _, holder in p.pictures do
+		local on = holder == showing or holder == under
 		holder.Visible = on
+		holder.ZIndex = if holder == showing then 4 else 3
 		if on then
-			showing = holder
 			local left = holder:FindFirstChild("Left") :: ImageLabel
 			local right = holder:FindFirstChild("Right") :: ImageLabel
 			left.Size = UDim2.fromOffset(split, winH)
@@ -299,10 +358,8 @@ local function startClock(built: Parts)
 	while os.clock() < deadline and parts == built do
 		local ready = music == nil or (music :: Sound).IsLoaded
 		for _, holder in built.pictures do
-			for _, image in holder:GetChildren() do
-				if image:IsA("ImageLabel") and not image.IsLoaded then
-					ready = false
-				end
+			if not loaded(holder) then
+				ready = false
 			end
 		end
 		if ready then
@@ -354,7 +411,8 @@ function StoryCutscene.start(done: () -> ())
 	startedAt = nil
 	skippedAt = nil
 	played = {}
-	stalled = {}
+	showing = nil
+	under = nil
 	if Music.story.id ~= "" then
 		local sound = Instance.new("Sound")
 		sound.Name = "Music_Story"
@@ -363,35 +421,14 @@ function StoryCutscene.start(done: () -> ())
 		sound.Parent = SoundService
 		music = sound
 	end
-	connection = RunService.RenderStepped:Connect(function(dt: number)
-		--[[ A frame still loading holds the clock (at most `Story.stall` on
-		     each), so a slow connection pauses briefly rather than showing
-		     black. ]]
-		local frame = showing
-		local waiting = false
-		if frame and held == nil and startedAt and not skippedAt then
-			local left = frame:FindFirstChild("Left") :: ImageLabel
-			local right = frame:FindFirstChild("Right") :: ImageLabel
-			local waited = stalled[frame.Name] or 0
-			if (not left.IsLoaded or not right.IsLoaded) and waited < Story.stall then
-				stalled[frame.Name] = waited + dt
-				startedAt = (startedAt :: number) + dt
-				waiting = true
-			end
-		end
-		--[[ The music waits with the frames, so it stays on them; SKIP takes it
+	connection = RunService.RenderStepped:Connect(function()
+		--[[ The clock and the music run on together and never stop (a frame
+		     still loading keeps the last one up instead); SKIP takes the music
 		     down over `MUSIC_OUT`. ]]
 		local sound = music
-		if sound and startedAt then
-			if waiting and sound.IsPlaying then
-				sound:Pause()
-			elseif not waiting and sound.IsPaused and not skippedAt then
-				sound:Resume()
-			end
-			local skipped = skippedAt
-			if skipped then
-				sound.Volume = Music.volume * math.max(0, 1 - (clock() - skipped) / MUSIC_OUT)
-			end
+		local skipped = skippedAt
+		if sound and skipped then
+			sound.Volume = Music.volume * math.max(0, 1 - (clock() - skipped) / MUSIC_OUT)
 		end
 		pose(held or clock())
 	end)
@@ -423,6 +460,12 @@ function StoryCutscene.stop()
 	parts = nil
 	startedAt = nil
 	showing = nil
+	under = nil
+	if warm then
+		warm:Destroy()
+		warm = nil
+		table.clear(warmed)
+	end
 	local sound = music
 	music = nil
 	if sound then

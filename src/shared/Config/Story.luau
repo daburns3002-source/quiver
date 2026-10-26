@@ -26,10 +26,10 @@ local StoryTimeline = require(script.Parent.Parent.Util.StoryTimeline)
 
 local Story = {
 	--[[ The longest the black waits for the frames to load before the clock
-	     starts anyway (seconds). ]]
+	     starts anyway (seconds). They load while the title is up
+	     (`StoryCutscene.preload`), and one not in by its turn never shows:
+	     the frame before it stays up, and the clock and music run on. ]]
 	loadWait = 5,
-	--[[ And the longest the clock holds on any one frame still loading. ]]
-	stall = 2,
 	--[[ Black before the first frame (under the title fading away,
 	     `Config/Intro.leave`), and after the last before the run is let go. ]]
 	lead = 0.9,

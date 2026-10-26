@@ -16,6 +16,18 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## The story cutscene kept cutting out and back in
+
+**Symptom**: 2026-10-26, the owner on the run-through: "the king bloblin cutscene is not smooth, it keeps cutting out and back in".
+
+**Cause**: every frame (two ImageLabel halves) was built hidden (`Visible = false`) and only shown on its turn. Roblox does not load an image it is not drawing, so each frame only started loading as it came on: it showed blank, and the cutscene's own "wait for a loading frame" held the clock and **paused the music** for up to 2 s, then let both go. `ContentProvider:PreloadAsync` during the title did not help: it downloads, but a label still has to draw once before it is ready. A fully transparent label (`ImageTransparency = 1`) does not load either.
+
+**Fix**: `StoryCutscene.preload`, called as the title comes up, draws every frame's images in 2-pixel labels at 0.99 transparency on a screen of their own (`StoryWarm`), kept until the story ends. A frame becomes current only once its warm copies have loaded; until then the frame before it stays up, and on a cut the outgoing frame stays underneath until the new one's own halves report loaded. The clock and music never pause.
+
+**Measured**: in Studio, 2,518 render frames sampled across the whole cutscene: all 40 frames in order, 0 black gaps between the opening and closing black, 0 music stops, the warm copies 80/80 loaded before BEGIN ADVENTURE was pressable (about 9 s into the title); before, 92 samples of a shown-but-unloaded frame in one run.
+
+---
+
 ## Thornwood's enemies barely moved when hit (and their hit flash was faint)
 
 **Symptom**: 2026-10-25, the owner: "the enemies in thornwood should be knocked back too". Then the rule for every enemy except bosses: "very briefly flash white on hit and get knocked back".

@@ -37,6 +37,21 @@ local SHADOWLESS = { LobbyTree = true, CliffBlock = true, Waterfall = true }
      hatchery's moss and fountain burned white as Neon, where the sheet has
      them blue and pale green. ]]
 local SOFT_GLOW = { Waterfall = true, EggHatchery = true }
+--[[ Pieces a player bumps into rather than walks through (owner,
+     2026-10-26: "the objects in the lobby need to be solid"), by their
+     bounding box; the stations have their own walls, and the campfire a
+     collider round its fire alone (`build`). Bushes, flowers and mushrooms
+     stay soft underfoot. ]]
+local SOLID = {
+	Leaderboard = true,
+	SmithNPC = true,
+	FairyNPC = true,
+	Lectern = true,
+	Rock = true,
+}
+--[[ The campfire's fire ring, studs across, that a player cannot walk into;
+     the paving round it stays walkable. ]]
+local FIRE_RING = 15
 
 --[[ The lawn's top, a little above the place's Baseplate (whose top is
      y = 0 and reaches under the lobby's north half): level with it, the
@@ -123,7 +138,7 @@ local function piece(
 	part.CFrame = CFrame.new(world(at, (lift or 0) + size.Y / 2))
 		* CFrame.Angles(0, yaw + math.pi, 0)
 	part.Anchored = true
-	part.CanCollide = false
+	part.CanCollide = SOLID[name] == true or string.sub(name, 1, 10) == "PortalArch"
 	part.CanQuery = false
 	part.CanTouch = false
 	part.Color = tint or spec.tint or Color3.new(1, 1, 1)
@@ -247,7 +262,18 @@ function Lobby.build(parent: Instance)
 	for _, station in LobbyConfig.stations do
 		local size = piece(station.piece, station.at, station.yaw or 0, 1, root)
 		keep(station.at, size, 14)
-		if size and station.piece ~= "SpawnCampfire" then
+		if size and station.piece == "SpawnCampfire" then
+			-- a round collider over the fire alone
+			local fire = block(
+				"FireRing",
+				Vector3.new(8, FIRE_RING, FIRE_RING),
+				world(station.at, 4),
+				nil,
+				root
+			)
+			fire.Shape = Enum.PartType.Cylinder
+			fire.CFrame = CFrame.new(world(station.at, 4)) * CFrame.Angles(0, 0, math.pi / 2)
+		elseif size then
 			block(
 				"StationWall",
 				Vector3.new(size.X * 0.9, 16, size.Z * 0.8),

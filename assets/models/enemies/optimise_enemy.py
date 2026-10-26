@@ -13,7 +13,7 @@ vertex-coloured part keeps COLOR_0 (linear -> sRGB), a textured part has
 its texture sampled onto its vertices. Eye sockets are cut where the eyes
 sit behind the body. Turned 180 degrees about Y so the face looks down -Z,
 centred on X/Z with its base at y = 0. Per-enemy budgets and tweaks are in
-ENEMIES below. First used for the Moss Slime, then the Sprout Spitter, the Brood Slime and
+ENEMIES below. First used for the Moss Slime, then the Splitter Spitter, the Brood Slime and
 the Slime King (Mossy Glade's boss).
 """
 import sys

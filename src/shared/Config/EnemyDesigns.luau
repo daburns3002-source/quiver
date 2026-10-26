@@ -242,8 +242,8 @@ local charger: Design = {
 }
 
 --[[
-	Spread ranged: the Sprout Spitter, Act 1's seed-spitter (the "Sprout
-	Slime" of docs/ENEMIES-AND-ARENAS.md) — a lime jelly with a two-leaf
+	Spread ranged: the Splitter Spitter, Act 1's seed-spitter (the Sprout Spitter and
+	Sprout Slime until the owner renamed it, 2026-10-26) — a lime jelly with a two-leaf
 	sprout, a mossy cap, little mushrooms, amber eye sockets and a round
 	spout of a mouth it lobs its fan of seeds from.
 
@@ -251,7 +251,7 @@ local charger: Design = {
 	slimmed by `optimise_enemy.py`, imported 2026-10-22). Turned 180° like
 	the Moss Slime, scaled ×2.45 into a hitbox cut to fit it, 3 × 3.6 × 3.
 ]]
---[[ Since 2026-10-23: the blocky Sprout Slime, a seed-nozzle face (Claude Design, 2026-10-23). From
+--[[ Since 2026-10-23: the blocky Splitter Spitter, a seed-nozzle face (Claude Design, 2026-10-23). From
      `assets/models/enemies/blocky/` through `optimise_blocky_enemy.py`, imported
      by the owner: Body with the model's colours on its vertices, glowing
      Eyes in the act's amber. Turned 180° like every import, scaled to fill

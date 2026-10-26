@@ -28,7 +28,7 @@ return function(t: TestRunner.Helper)
 		for name in Balance.SlimeHop.kinds :: any do
 			t.notNil(settings.kinds[name], name .. " hops like a slime but throws nothing")
 		end
-		t.notNil(settings.kinds.Spitter, "the Sprout Slime throws nothing")
+		t.notNil(settings.kinds.Spitter, "the Splitter Spitter throws nothing")
 		t.notNil(settings.kinds.SlimeKing, "King Bloblin throws nothing")
 	end)
 

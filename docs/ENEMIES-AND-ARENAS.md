@@ -80,7 +80,7 @@ as written below.
 
 | Act | Area | Enemies (elite last) |
 |---|---|---|
-| 1 | Mossy Glade | Moss Slime, Sprout Slime, Ember Wilf, *Brood Slime* |
+| 1 | Mossy Glade | Moss Slime, Splitter Spitter, Ember Wilf, *Brood Slime* |
 | 1 | Thornwood | Bramble Boar, Burr Thistle, Bramble Lurker, *Bramble Sow* |
 | 2 | Drowned Village | Drowned Zombie, Ditch Eel, Bell Ringer, *Hollow Fisherman* |
 | 2 | Bogheart Caverns | Spore Puff, Glowcap, Shellback |
@@ -100,7 +100,7 @@ the act that teaches the game.
 | Enemy | Made from | What it does | Teaches |
 |---|---|---|---|
 | **Moss Slime** | Charger, slow · reskin | Hops straight at you | Move or shoot |
-| **Sprout Slime** | Spitter · reskin | Lobs one slow seed | Dodging a shot |
+| **Splitter Spitter** (was the Sprout Slime; owner, 2026-10-26) | Spitter · reskin | Lobs one slow seed | Dodging a shot |
 | *Elite:* **Brood Slime** (built 2026-10-22) | Charger · twist: splits into 4 Moss Slimes (owner, like Zac) on death, thrown out like Zac's Cell Division | A slow wall that becomes four threats | Finishing what you start |
 
 The **Glade Wilf** (a masked mossy wolf in packs of three) is **dropped**,

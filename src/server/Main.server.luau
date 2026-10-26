@@ -32,6 +32,7 @@ local FiringSystem = require(script.Parent.Combat.FiringSystem)
 local Game = require(ReplicatedStorage.Shared.Config.Game)
 local HeldWeapon = require(script.Parent.Combat.HeldWeapon)
 local Lobby = require(script.Parent.Run.Lobby)
+local LobbyConfig = require(ReplicatedStorage.Shared.Config.Lobby)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
 local MeleeSystem = require(script.Parent.Combat.MeleeSystem)
 local PetCombat = require(script.Parent.Combat.PetCombat)
@@ -43,6 +44,7 @@ local Remotes = require(game:GetService("ReplicatedStorage").Shared.Net.Remotes)
 local RoomController = require(script.Parent.Run.RoomController)
 local RunSession = require(script.Parent.Run.RunSession)
 local Sandbox = require(ReplicatedStorage.Shared.Config.Sandbox)
+local StoryLeaderboard = require(script.Parent.Run.StoryLeaderboard)
 local UpgradeEffects = require(script.Parent.Fx.UpgradeEffects)
 local Wallet = require(script.Parent.Data.Wallet)
 local WeaponShop = require(script.Parent.Data.Shop)
@@ -108,6 +110,21 @@ UpgradeEffects.start()
 -- The lobby, where players arrive after BEGIN ADVENTURE.
 Lobby.build(workspace)
 RoomController.start()
+-- The FARTHEST ADVENTURERS board's store (`Run/StoryLeaderboard`).
+StoryLeaderboard.start()
+do
+	-- written on the lobby's board, each area named as its portal is
+	local face = Lobby.leaderboardFace()
+	if face then
+		local areaNames: { [number]: string } = {}
+		for _, portal in LobbyConfig.portals do
+			if portal.stage and portal.name then
+				areaNames[portal.stage] = portal.name
+			end
+		end
+		StoryLeaderboard.attach(face, areaNames)
+	end
+end
 
 --[[ The weapon in the player's hand: the one `RunSession.applyLoadout`
      recorded, which a drafted card can change (the Dual Bows Mythic), or

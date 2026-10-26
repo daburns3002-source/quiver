@@ -25,7 +25,7 @@
 
 local ArenaKits = require(script.Parent.ArenaKits)
 
-export type Placed = { piece: string, at: Vector2, yaw: number? }
+export type Placed = { piece: string, at: Vector2, yaw: number?, lift: number? }
 
 export type Portal = {
 	--[[ The area's name on its sign, and the `Balance.Stages` index its
@@ -35,6 +35,10 @@ export type Portal = {
 	--[[ The swirl's colour, and the sign piece above the arch. ]]
 	tint: Color3?,
 	sign: string?,
+	--[[ Its own arch, built in its area's look with its name on it (owner,
+	     2026-10-25: "the portals also should look like their areas not all
+	     look the same"); the plain `PortalArch` and `sign` until imported. ]]
+	arch: string?,
 }
 
 local GREEN = Color3.fromRGB(80, 230, 70)
@@ -45,39 +49,53 @@ local Lobby = {
 	     arena at the origin. ]]
 	origin = Vector3.new(0, 0, 1000),
 	--[[ The walkable clearing, studs across (X) and deep (Z). ]]
-	size = Vector2.new(110, 96),
+	size = Vector2.new(220, 192),
 	--[[ Studs per kit unit, as the arena kits are drawn. ]]
-	scale = 3,
+	scale = 6,
 	--[[ Where a player appears: beside the campfire. ]]
-	spawn = Vector2.new(-4, 25),
+	spawn = Vector2.new(-8, 50),
 
 	--[[ The portal terraces across the north edge: two rows of arches
 	     (owner, 2026-10-25: "make sure there are 2 rows of portals with them
 	     being locked, there should be at least 10 portals for now"). `terrace`
 	     is the front row's centre; the back row stands `rowDepth` studs
 	     behind it and `rowRise` up, reached by steps. ]]
-	terrace = Vector2.new(0, -30),
-	rowDepth = 9.6,
-	rowRise = 1,
+	terrace = Vector2.new(0, -60),
+	rowDepth = 19.2,
+	rowRise = 2,
 	perRow = 5,
-	archSpacing = 9,
+	archSpacing = 18,
 	--[[ The arches, front row west to east, then the back row: the two
 	     areas built so far, then eight locked. ]]
 	portals = {
-		{ name = "Mossy Glade", stage = 5, tint = GREEN, sign = "PortalSignMossy" },
-		{ name = "Thornwood", stage = 4, tint = PURPLE, sign = "PortalSignThornwood" },
-		{},
-		{},
-		{},
-		{},
-		{},
-		{},
-		{},
-		{},
+		{
+			name = "Mossy Glade",
+			stage = 5,
+			tint = GREEN,
+			sign = "PortalSignMossy",
+			arch = "PortalArch_MossyGlade",
+		},
+		{
+			name = "Thornwood",
+			stage = 4,
+			tint = PURPLE,
+			sign = "PortalSignThornwood",
+			arch = "PortalArch_Thornwood",
+		},
+		{ name = "Drowned Village", arch = "PortalArch_DrownedVillage" },
+		{ name = "Bogheart Caverns", arch = "PortalArch_BogheartCaverns" },
+		{ name = "Windswept Cliffs", arch = "PortalArch_WindsweptCliffs" },
+		{ name = "Frostpeak Pass", arch = "PortalArch_FrostpeakPass" },
+		{ name = "Ember Mines", arch = "PortalArch_EmberMines" },
+		{ name = "Obsidian Forge", arch = "PortalArch_ObsidianForge" },
+		{ name = "Shattered Kingdom", arch = "PortalArch_ShatteredKingdom" },
+		{ name = "Void Rift", arch = "PortalArch_VoidRift" },
 	} :: { Portal },
 	--[[ Studs in front of an active arch a player must come within to go
 	     through it. ]]
-	portalReach = 3.5,
+	portalReach = 7,
+	--[[ Studs in front of an arch where its mouth is. ]]
+	mouthAhead = 4,
 	--[[ How the portal pieces sit, in kit units, as the kit was drawn: the
 	     arches on the terrace's 0.3-high platform, the terrace reaching
 	     further forward than back; the swirl's foot 0.2 above the arch's,
@@ -94,27 +112,57 @@ local Lobby = {
 	     hatchery) west, the gear grove (blacksmith, gear station, dex hall)
 	     east, the campfire spawn in the middle. ]]
 	stations = {
-		{ piece = "EggHatchery", at = Vector2.new(-34, -6) },
-		{ piece = "Blacksmith", at = Vector2.new(30, -14) },
-		{ piece = "GearStation", at = Vector2.new(37, 0) },
-		{ piece = "DexHall", at = Vector2.new(27, 18) },
-		{ piece = "SpawnCampfire", at = Vector2.new(-4, 14) },
+		{ piece = "EggHatchery", at = Vector2.new(-68, -12) },
+		{ piece = "Blacksmith", at = Vector2.new(60, -28) },
+		{ piece = "GearStation", at = Vector2.new(74, 0) },
+		{ piece = "DexHall", at = Vector2.new(54, 36) },
+		{ piece = "SpawnCampfire", at = Vector2.new(-8, 28) },
 	} :: { Placed },
+
+	--[[ The lobby's characters and smaller set pieces (owner, 2026-10-25):
+	     the blacksmith at his anvil before the forge ("modeled after the
+	     blacksmith from elden ring"), the fairy who keeps the hatchery
+	     ("modeled after the great fairy from breath of the wild"), our own
+	     blocky takes (`assets/concepts/blocky/lobby/npcs/`); and the three
+	     codex books on lecterns before the Dex Hall ("the books that will be
+	     the enemy codex, weapon codex, and pet codex"). `lift` in studs. ]]
+	props = {
+		-- in the seat the forge leaves him before its anvils (0.3, 1.4 units
+		-- from the Blacksmith's centre, its tiles 0.12 up)
+		{ piece = "SmithNPC", at = Vector2.new(61.8, -19.6), lift = 0.72 },
+		{ piece = "FairyNPC", at = Vector2.new(-70, -42) },
+		{ piece = "Lectern", at = Vector2.new(40, 58) },
+		{ piece = "Lectern", at = Vector2.new(54, 58) },
+		{ piece = "Lectern", at = Vector2.new(68, 58) },
+		{ piece = "BookEnemies", at = Vector2.new(40, 58), lift = 6.6 },
+		{ piece = "BookWeapons", at = Vector2.new(54, 58), lift = 6.6 },
+		{ piece = "BookPets", at = Vector2.new(68, 58), lift = 6.6 },
+	} :: { Placed },
+
+	--[[ The FARTHEST ADVENTURERS board (`Run/StoryLeaderboard`) beside the
+	     path north of the campfire, as on `lobby_v3.png`. `face` is its
+	     board's front, in kit units from the piece's base centre, where the
+	     names are written; until the piece is imported the face alone
+	     stands there on two posts' height. ]]
+	leaderboard = {
+		at = Vector2.new(-36, -4),
+		face = { centre = Vector3.new(0, 1.65, 0.15), size = Vector2.new(2.8, 1.9) },
+	},
 
 	--[[ The dirt paths, as runs of points: the spawn up to the portals, and
 	     out to each grove. ]]
 	paths = {
 		{
-			Vector2.new(-4, 46),
-			Vector2.new(-4, 24),
-			Vector2.new(-2, 0),
-			Vector2.new(0, -18),
-			Vector2.new(0, -26),
+			Vector2.new(-8, 92),
+			Vector2.new(-8, 48),
+			Vector2.new(-4, 0),
+			Vector2.new(0, -36),
+			Vector2.new(0, -52),
 		},
-		{ Vector2.new(-8, 8), Vector2.new(-20, 0), Vector2.new(-30, -2) },
-		{ Vector2.new(0, 4), Vector2.new(12, -6), Vector2.new(20, -12) },
-		{ Vector2.new(2, 10), Vector2.new(18, 10), Vector2.new(30, 4) },
-		{ Vector2.new(2, 14), Vector2.new(16, 18), Vector2.new(22, 18) },
+		{ Vector2.new(-16, 16), Vector2.new(-40, 0), Vector2.new(-60, -4) },
+		{ Vector2.new(0, 8), Vector2.new(24, -12), Vector2.new(40, -24) },
+		{ Vector2.new(4, 20), Vector2.new(36, 20), Vector2.new(60, 8) },
+		{ Vector2.new(4, 28), Vector2.new(32, 36), Vector2.new(44, 36) },
 	} :: { { Vector2 } },
 
 	lawn = {
@@ -127,19 +175,31 @@ local Lobby = {
 		Color3.fromRGB(190, 150, 71),
 		Color3.fromRGB(184, 138, 64),
 	},
-	tile = 4,
+	tile = 8,
 
 	--[[ The forest round the clearing: a ring of trees and cliffs this many
 	     studs apart, with waterfalls at the four corners as on the sheet,
 	     and a scatter of bushes, rocks and glowing mushrooms on the lawn. ]]
-	ringSpacing = 9,
+	ringSpacing = 18,
 	waterfalls = {
-		Vector2.new(-48, -38),
-		Vector2.new(48, -38),
-		Vector2.new(-50, 36),
-		Vector2.new(50, 36),
+		Vector2.new(-96, -76),
+		Vector2.new(96, -76),
+		Vector2.new(-100, 72),
+		Vector2.new(100, 72),
 	},
-	scatter = { Bush = 44, Rock = 16, GlowMushroom = 26 },
+	--[[ The lawn's scatter: how likely each kind is, one piece per
+	     `scatterCell` studs square (`scatterFill` of the cells filled). ]]
+	scatter = {
+		FlowerPink = 14,
+		FlowerWhite = 12,
+		FlowerYellow = 12,
+		FlowerBlue = 10,
+		Bush = 24,
+		GlowMushroom = 12,
+		Rock = 8,
+	},
+	scatterCell = 11,
+	scatterFill = 0.8,
 
 	--[[ The kit's pieces, from the owner's import (2026-10-25,
 	     `kit_bundle.py --srgb` on `assets/models/lobby/lobby_kit`), in kit
@@ -152,13 +212,13 @@ local Lobby = {
 			centre = Vector3.new(0, 1.5, 0),
 		},
 		Blacksmith = {
-			meshId = "rbxassetid://70422421617501",
+			meshId = "rbxassetid://133650219914484",
 			size = Vector3.new(6, 5, 4),
 			centre = Vector3.new(0, 2.5, 0),
 			glow = {
-				meshId = "rbxassetid://85117261314160",
-				size = Vector3.new(4.95, 1.43, 2.4584),
-				centre = Vector3.new(0.095, 1.175, 0.6908),
+				meshId = "rbxassetid://85134254025900",
+				size = Vector3.new(4.98, 1.66, 2.4584),
+				centre = Vector3.new(0.11, 1.29, 0.6908),
 			},
 		},
 		Bush = {
@@ -293,6 +353,178 @@ local Lobby = {
 			meshId = "rbxassetid://80888581914858",
 			size = Vector3.new(1.4, 2, 0.1),
 			centre = Vector3.new(0, 1, 0),
+		},
+		-- the second import (2026-10-25: area arches, the leaderboard, flowers,
+		-- the codex books, the smith and the hatchery fairy)
+		BookEnemies = {
+			meshId = "rbxassetid://76847797460015",
+			size = Vector3.new(0.86, 1.04, 0.38),
+			centre = Vector3.new(0, 0.52, 0),
+			glow = {
+				meshId = "rbxassetid://86536383867082",
+				size = Vector3.new(0.58, 0.26, 0.28),
+				centre = Vector3.new(0.15, 0.43, 0.06),
+			},
+		},
+		BookPets = {
+			meshId = "rbxassetid://79698627668218",
+			size = Vector3.new(0.86, 1.04, 0.38),
+			centre = Vector3.new(0, 0.52, 0),
+			glow = {
+				meshId = "rbxassetid://101832364438907",
+				size = Vector3.new(0.16, 0.18, 0.28),
+				centre = Vector3.new(0.36, 0.5501, 0.06),
+			},
+		},
+		BookWeapons = {
+			meshId = "rbxassetid://140426894819576",
+			size = Vector3.new(0.86, 1.04, 0.38),
+			centre = Vector3.new(0, 0.52, 0),
+			glow = {
+				meshId = "rbxassetid://82135615613010",
+				size = Vector3.new(0.36, 0.2, 0.28),
+				centre = Vector3.new(0.26, 0.56, 0.06),
+			},
+		},
+		FairyNPC = {
+			meshId = "rbxassetid://76377756194331",
+			size = Vector3.new(3.5619, 4.5045, 3.3027),
+			centre = Vector3.new(0, 2.2523, 0),
+			glow = {
+				meshId = "rbxassetid://129780618379889",
+				size = Vector3.new(2.7858, 2.4507, 0.8148),
+				centre = Vector3.new(0.025, 3.2347, 0.4459),
+			},
+		},
+		FlowerBlue = {
+			meshId = "rbxassetid://132057953083307",
+			size = Vector3.new(0.5007, 0.3009, 0.4119),
+			centre = Vector3.new(0, 0.1505, 0),
+		},
+		FlowerPink = {
+			meshId = "rbxassetid://89286604004504",
+			size = Vector3.new(0.5025, 0.2988, 0.4088),
+			centre = Vector3.new(0, 0.1494, 0),
+		},
+		FlowerWhite = {
+			meshId = "rbxassetid://140693954381199",
+			size = Vector3.new(0.5143, 0.2873, 0.3554),
+			centre = Vector3.new(0, 0.1436, 0),
+		},
+		FlowerYellow = {
+			meshId = "rbxassetid://131000894240730",
+			size = Vector3.new(0.5035, 0.2981, 0.4073),
+			centre = Vector3.new(0, 0.149, 0),
+		},
+		Leaderboard = {
+			meshId = "rbxassetid://96019975519999",
+			size = Vector3.new(4.72, 4, 0.875),
+			centre = Vector3.new(0, 2, 0),
+			glow = {
+				meshId = "rbxassetid://101978763999118",
+				size = Vector3.new(4.63, 0.35, 0.23),
+				centre = Vector3.new(-0, 2.1751, -0.0125),
+			},
+		},
+		Lectern = {
+			meshId = "rbxassetid://129185599203372",
+			size = Vector3.new(0.8, 1.0984, 0.6673),
+			centre = Vector3.new(0, 0.5492, 0),
+		},
+		PortalArch_BogheartCaverns = {
+			meshId = "rbxassetid://108728930551492",
+			size = Vector3.new(2.86, 3.6, 1),
+			centre = Vector3.new(0, 1.8, 0),
+			glow = {
+				meshId = "rbxassetid://99366304836446",
+				size = Vector3.new(2.7705, 3.015, 0.816),
+				centre = Vector3.new(0.0113, 1.7075, 0.083),
+			},
+		},
+		PortalArch_DrownedVillage = {
+			meshId = "rbxassetid://121330182316610",
+			size = Vector3.new(2.8575, 3.6, 1),
+			centre = Vector3.new(0, 1.8, 0),
+			glow = {
+				meshId = "rbxassetid://83261839448648",
+				size = Vector3.new(2.73, 2.94, 0.5),
+				centre = Vector3.new(0.0013, 1.47, 0.23),
+			},
+		},
+		PortalArch_EmberMines = {
+			meshId = "rbxassetid://139883040347989",
+			size = Vector3.new(2.8, 3.6, 1),
+			centre = Vector3.new(0, 1.8, 0),
+			glow = {
+				meshId = "rbxassetid://117519370175045",
+				size = Vector3.new(2.75, 2.225, 0.55),
+				centre = Vector3.new(0.025, 1.2875, 0.175),
+			},
+		},
+		PortalArch_FrostpeakPass = {
+			meshId = "rbxassetid://140464350045700",
+			size = Vector3.new(2.8, 3.6, 1),
+			centre = Vector3.new(0, 1.8, 0),
+			glow = {
+				meshId = "rbxassetid://130181987197507",
+				size = Vector3.new(2.8, 2.775, 1),
+				centre = Vector3.new(-0, 1.6625, 0),
+			},
+		},
+		PortalArch_MossyGlade = {
+			meshId = "rbxassetid://126412676624650",
+			size = Vector3.new(2.8, 3.6, 1),
+			centre = Vector3.new(0, 1.8, 0),
+			glow = {
+				meshId = "rbxassetid://133136036108807",
+				size = Vector3.new(2.35, 0.3, 0.25),
+				centre = Vector3.new(0.225, 0.35, 0.375),
+			},
+		},
+		PortalArch_ObsidianForge = {
+			meshId = "rbxassetid://79678938978657",
+			size = Vector3.new(2.8, 3.6, 1),
+			centre = Vector3.new(0, 1.8, 0),
+			glow = {
+				meshId = "rbxassetid://100636716460581",
+				size = Vector3.new(2.75, 2.375, 0.775),
+				centre = Vector3.new(-0, 1.6126, 0.0875),
+			},
+		},
+		PortalArch_ShatteredKingdom = {
+			meshId = "rbxassetid://124937815520423",
+			size = Vector3.new(2.8, 3.6, 1.0004),
+			centre = Vector3.new(0, 1.8, 0),
+		},
+		PortalArch_Thornwood = {
+			meshId = "rbxassetid://102421468733046",
+			size = Vector3.new(2.8, 3.6, 1),
+			centre = Vector3.new(0, 1.8, 0),
+		},
+		PortalArch_VoidRift = {
+			meshId = "rbxassetid://108025404697436",
+			size = Vector3.new(2.7902, 3.5976, 1),
+			centre = Vector3.new(0, 1.7988, 0),
+			glow = {
+				meshId = "rbxassetid://123701444508025",
+				size = Vector3.new(2.7714, 3.3953, 0.7914),
+				centre = Vector3.new(0.0071, 1.8477, 0.0962),
+			},
+		},
+		PortalArch_WindsweptCliffs = {
+			meshId = "rbxassetid://117013671583072",
+			size = Vector3.new(2.8, 3.6, 1),
+			centre = Vector3.new(0, 1.8, 0),
+		},
+		SmithNPC = {
+			meshId = "rbxassetid://100628589388853",
+			size = Vector3.new(1.8031, 1.7278, 1.3711),
+			centre = Vector3.new(0, 0.8639, 0),
+			glow = {
+				meshId = "rbxassetid://111148419591185",
+				size = Vector3.new(0.36, 0.2533, 0.1265),
+				centre = Vector3.new(-0.4515, 0.9485, 0.0934),
+			},
 		},
 	} :: { [string]: ArenaKits.Piece },
 }

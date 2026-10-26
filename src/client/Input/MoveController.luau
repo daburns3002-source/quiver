@@ -19,6 +19,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
+local Workspace = game:GetService("Workspace")
 
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Dash = require(script.Parent.Dash)
@@ -97,7 +98,18 @@ local function desiredDirection(): Vector3
 		speed-up would quietly change how long a player can afford to stand
 		still, which is the one thing this whole game is tuned around.
 	]]
-	local flat = (SCREEN_RIGHT * axis.X + SCREEN_UP * axis.Y)
+	local up, right = SCREEN_UP, SCREEN_RIGHT
+	--[[ In the lobby the camera is Roblox's own and turns (`TopDownCamera`),
+	     so up the screen is wherever it looks, flattened. ]]
+	local camera = Workspace.CurrentCamera
+	if Workspace:GetAttribute("InLobby") == true and camera then
+		local look = camera.CFrame.LookVector * Vector3.new(1, 0, 1)
+		if look.Magnitude > 1e-3 then
+			up = look.Unit
+			right = Vector3.new(-up.Z, 0, up.X)
+		end
+	end
+	local flat = (right * axis.X + up * axis.Y)
 	return if flat.Magnitude > 1e-3 then flat.Unit else Vector3.zero
 end
 

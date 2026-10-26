@@ -24,8 +24,9 @@ local Sandbox = {
 	--[[ Studio only: the Blacksmith's shop opens by itself on arriving in
 	     the lobby, with this much in the wallet to try it (owner,
 	     2026-10-25: "let me see the shop ui when i load the playtest"). nil
-	     leaves it shut. Never honoured in a live server. ]]
-	openShop = { coins = 5000, gems = 2000, items = 5 } :: { coins: number, gems: number, items: number }?,
+	     leaves it shut: off for the run-through from the intro to the
+	     lobby (owner, 2026-10-26). Never honoured in a live server. ]]
+	openShop = nil :: { coins: number, gems: number, items: number }?,
 	weapons = {
 		{ weapon = "TwigBow", class = "Ranger", label = "TWIG BOW" },
 		{ weapon = "TwigBowDual", class = "Ranger", label = "DUAL TWIG BOWS" },

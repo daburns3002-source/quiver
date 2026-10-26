@@ -16,9 +16,13 @@
 	  pet with none.
 	- Overhead: `lift` studs above an enemy, riding it.
 	- Owner: on the floor under the pet's owner, riding them.
+	- Hold: round the feet of each enemy the attack holds, for as long as
+	  the server holds it (`root`, `Fx/RootHoldFx`), its clip stretched over
+	  the hold; not played by `Fx/PetAttackFx`. Its `at` is still when the
+	  attack lands.
 ]]
 
-export type Kind = "Projectile" | "Reach" | "Ground" | "Overhead" | "Owner"
+export type Kind = "Projectile" | "Reach" | "Ground" | "Overhead" | "Owner" | "Hold"
 
 export type Impact = { effect: string, clip: string?, life: number }
 
@@ -94,7 +98,8 @@ local PetAttacks: { [string]: { Shot } } = {
 		},
 	},
 	Stumpy = {
-		{ effect = "FxPetRootSnare", clip = "Snare", kind = "Ground", at = 0.45, life = 1.6 },
+		-- on the enemy it holds, for the whole hold (owner, 2026-10-26)
+		{ effect = "FxPetRootSnare", clip = "Snare", kind = "Hold", at = 0.45 },
 	},
 	GladeFox = {
 		{

@@ -44,7 +44,9 @@ local log = Log.forTag("Run")
 
 local RoomController = {}
 
-export type State = "Fighting" | "Cleared" | "Choosing" | "Dead" | "Complete"
+--[[ `Lobby`: before a run, everyone in the lobby (`Run/Lobby`), nothing
+     fighting; a portal starts the next run (`beginStage`). ]]
+export type State = "Lobby" | "Fighting" | "Cleared" | "Choosing" | "Dead" | "Complete"
 
 local runStateChanged = Remotes.event(Remotes.RunStateChanged)
 local runSummary = Remotes.event(Remotes.RunSummary)
@@ -64,7 +66,7 @@ local progress = 1
 --[[ The Studio sandbox (`enterSandbox`): the run stands still around
      training dummies until it is left. ]]
 local sandbox = false
-local state: State = "Fighting"
+local state: State = "Lobby"
 --[[ `os.clock()` at which the pending transition fires, or nil when the run is
      waiting on the player rather than on a clock. ]]
 local resumeAt: number? = nil
@@ -97,6 +99,12 @@ local function label(): string
 end
 
 local function broadcast()
+	--[[ For the client's camera, music and HUD (`Camera/TopDownCamera`). ]]
+	workspace:SetAttribute("InLobby", state == "Lobby")
+	if state == "Lobby" then
+		runStateChanged:FireAllClients(0, 0, "Lobby", "Lobby", "Lobby")
+		return
+	end
 	runStateChanged:FireAllClients(progress, total(), state, label(), unit())
 end
 
@@ -216,9 +224,31 @@ local function startStage()
 	end
 end
 
+--[[ At boot: the lobby, until a portal starts a run. ]]
 function RoomController.start()
 	workspace:SetAttribute(CurrentStage.ATTRIBUTE, stageIndex)
+	state = "Lobby"
+	broadcast()
+end
+
+--[[ A portal: run stage `index` (a `Balance.Stages` entry), published as
+     the Workspace's `Stage` so both sides read it (`Util/CurrentStage`).
+     From there NEXT LEVEL follows `Balance.campaign` as before. ]]
+function RoomController.beginStage(index: number)
+	if state ~= "Lobby" or not Balance.Stages[index] then
+		return
+	end
+	stageIndex = index
+	workspace:SetAttribute(CurrentStage.ATTRIBUTE, stageIndex)
+	for _, session in RunSession.all() do
+		RunSession.resetRun(session)
+	end
 	startStage()
+end
+
+--[[ Everyone in the lobby, before a run. ]]
+function RoomController.inLobby(): boolean
+	return state == "Lobby"
 end
 
 --[[ Testing only, from `Remotes.DebugRoom` in Studio: straight into room
@@ -428,6 +458,10 @@ function RoomController.step(now: number)
 	if sandbox then
 		return
 	end
+	--[[ Nothing runs in the lobby. ]]
+	if state == "Lobby" then
+		return
+	end
 
 	--[[ Over: the end screen is up, and the next run starts when a player
 	     asks for it (`requestRestart`), not on a timer. ]]
@@ -492,6 +526,10 @@ end
 
 --[[ So a client joining mid-run is not left with an empty HUD. ]]
 function RoomController.sendStateTo(player: Player)
+	if state == "Lobby" then
+		runStateChanged:FireClient(player, 0, 0, "Lobby", "Lobby", "Lobby")
+		return
+	end
 	runStateChanged:FireClient(player, progress, total(), state, label(), unit())
 end
 

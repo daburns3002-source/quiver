@@ -275,7 +275,7 @@ function RoomSignUI.onRunStateChanged(
 				RoomSignUI.show(index, total)
 			end
 		end
-	elseif state == "Dead" or state == "Complete" then
+	elseif state == "Dead" or state == "Complete" or state == "Lobby" then
 		lastRoom = nil
 	end
 end

@@ -164,6 +164,11 @@ function RunBanner.onRunStateChanged(
 		return
 	end
 
+	if state == "Lobby" then
+		room.Text = "Lobby"
+		status.Text = ""
+		return
+	end
 	room.Text = `{unit or "Room"} {index} / {total}  ·  {name}`
 
 	if state == "Cleared" then

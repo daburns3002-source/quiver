@@ -2,7 +2,7 @@
 --[[
 	The lobby (`Config/Lobby`, `Run/Lobby`; owner, 2026-10-25): its two
 	working portals lead to Mossy Glade's and Thornwood's runs, the rest are
-	locked; the campfire spawn stands in the clearing clear of the stations;
+	locked, ten or more in two rows; the campfire spawn stands in the clearing clear of the stations;
 	and only a portal's mouth starts a run, never the spawn or the lawn.
 ]]
 
@@ -26,6 +26,27 @@ return function(t: TestRunner.Helper)
 			end
 		end
 		t.equal(table.concat(open, ","), "Mossy Glade,Thornwood")
+	end)
+
+	t.test("at least ten portals, in two rows, every mouth on the lawn", function()
+		t.isTrue(#LobbyConfig.portals >= 10, "fewer than ten portals")
+		t.equal(Lobby.rowOf(#LobbyConfig.portals), 2)
+		local half = LobbyConfig.size / 2
+		for index in LobbyConfig.portals do
+			local at = Lobby.archAt(index)
+			t.isTrue(
+				math.abs(at.X) < half.X and math.abs(at.Y) < half.Y,
+				`portal {index} stands outside the clearing`
+			)
+			for other in LobbyConfig.portals do
+				if other ~= index then
+					t.isTrue(
+						(Lobby.archAt(other) - at).Magnitude > LobbyConfig.portalReach * 2,
+						`portals {index} and {other} overlap`
+					)
+				end
+			end
+		end
 	end)
 
 	t.test("the spawn is in the clearing, clear of every station", function()

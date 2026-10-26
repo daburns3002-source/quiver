@@ -30,11 +30,23 @@ local function world(at: Vector2, y: number?): Vector3
 	return ORIGIN + Vector3.new(at.X, y or 0, at.Y)
 end
 
---[[ Where arch `index` stands, west to east along the terrace. ]]
+--[[ Which row arch `index` stands in: 1 the front, 2 the back. ]]
+function Lobby.rowOf(index: number): number
+	return math.ceil(index / LobbyConfig.perRow)
+end
+
+--[[ The centre of row `row`'s terrace, and how high it stands. ]]
+local function rowCentre(row: number): (Vector2, number)
+	return LobbyConfig.terrace - Vector2.new(0, (row - 1) * LobbyConfig.rowDepth),
+		(row - 1) * LobbyConfig.rowRise
+end
+
+--[[ Where arch `index` stands: front row west to east, then the back. ]]
 function Lobby.archAt(index: number): Vector2
-	local count = #LobbyConfig.portals
-	local offset = (index - (count + 1) / 2) * LobbyConfig.archSpacing
-	return LobbyConfig.terrace + Vector2.new(offset, 0)
+	local perRow = LobbyConfig.perRow
+	local column = (index - 1) % perRow + 1
+	local offset = (column - (perRow + 1) / 2) * LobbyConfig.archSpacing
+	return rowCentre(Lobby.rowOf(index)) + Vector2.new(offset, 0)
 end
 
 local function block(
@@ -75,7 +87,8 @@ local function piece(
 	yaw: number,
 	grow: number,
 	parent: Instance,
-	tint: Color3?
+	tint: Color3?,
+	lift: number?
 ): Vector3?
 	local spec = LobbyConfig.pieces[name]
 	if not spec then
@@ -90,7 +103,8 @@ local function piece(
 	part.Name = name
 	part.Size = size
 	-- the importer turns each mesh half round; turned back
-	part.CFrame = CFrame.new(world(at, size.Y / 2)) * CFrame.Angles(0, yaw + math.pi, 0)
+	part.CFrame = CFrame.new(world(at, (lift or 0) + size.Y / 2))
+		* CFrame.Angles(0, yaw + math.pi, 0)
 	part.Anchored = true
 	part.CanCollide = false
 	part.CanQuery = false
@@ -107,7 +121,7 @@ local function piece(
 			g.Size = glow.size * LobbyConfig.scale * grow
 			local centre = CFrame.Angles(0, yaw, 0)
 				:VectorToWorldSpace(glow.centre * LobbyConfig.scale * grow)
-			g.CFrame = CFrame.new(world(at) + centre) * CFrame.Angles(0, yaw + math.pi, 0)
+			g.CFrame = CFrame.new(world(at, lift) + centre) * CFrame.Angles(0, yaw + math.pi, 0)
 			g.Anchored = true
 			g.CanCollide = false
 			g.CanQuery = false
@@ -212,26 +226,53 @@ function Lobby.build(parent: Instance)
 		end
 	end
 
-	-- the portal terrace and its arches
-	piece("PortalTerrace", LobbyConfig.terrace, 0, 1, root)
-	for index, portal in LobbyConfig.portals do
-		local at = Lobby.archAt(index)
-		table.insert(taken, at)
-		piece("PortalArch", at, 0, 1, root)
-		if portal.stage then
-			piece("PortalSwirl", at, 0, 1, root, portal.tint)
-			if portal.sign then
-				piece(portal.sign, at, 0, 1, root)
+	-- the portal terraces, each row's arches, and steps up to the back row
+	local rows = Lobby.rowOf(#LobbyConfig.portals)
+	local span = LobbyConfig.perRow * LobbyConfig.archSpacing
+	for row = 1, rows do
+		local centre, rise = rowCentre(row)
+		piece("PortalTerrace", centre, 0, 1, root, nil, rise)
+		if rise > 0 then
+			-- the raised terrace to stand on, and its steps between the front arches
+			block(
+				"TerraceFloor",
+				Vector3.new(span + 6, rise, 8),
+				world(centre + Vector2.new(0, 1), rise / 2),
+				nil,
+				root
+			).CanQuery =
+				true
+			for _, side in { -1, 1 } do
+				piece(
+					"PortalSteps",
+					centre + Vector2.new(side * LobbyConfig.archSpacing / 2, 6),
+					0,
+					1,
+					root
+				)
 			end
-		else
-			piece("PortalLock", at, 0, 1, root)
 		end
 	end
-	-- nobody walks behind the terrace
+	for index, portal in LobbyConfig.portals do
+		local at = Lobby.archAt(index)
+		local _, lift = rowCentre(Lobby.rowOf(index))
+		table.insert(taken, at)
+		piece("PortalArch", at, 0, 1, root, nil, lift)
+		if portal.stage then
+			piece("PortalSwirl", at, 0, 1, root, portal.tint, lift)
+			if portal.sign then
+				piece(portal.sign, at, 0, 1, root, nil, lift)
+			end
+		else
+			piece("PortalLock", at, 0, 1, root, nil, lift)
+		end
+	end
+	-- nobody walks behind the back row
+	local back = rowCentre(rows)
 	block(
 		"TerraceWall",
 		Vector3.new(LobbyConfig.size.X, 10, 4),
-		world(LobbyConfig.terrace + Vector2.new(0, -4), 5),
+		world(back + Vector2.new(0, -4), 5),
 		nil,
 		root
 	)

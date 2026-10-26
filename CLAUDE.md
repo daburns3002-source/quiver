@@ -339,6 +339,12 @@ act, one per area, with Codex concept art) but not built; Phase 3's
 playtest question — *did two runs in a row feel
 meaningfully different?* — which needs the owner.
 
+**Every enemy but a boss flashes white and is knocked back on a hit** (owner,
+2026-10-25, a rule for every enemy from now on): `Fx/HitFeedback`'s solid white
+Highlight, and for `Balance.Knockback.stagger` after a hit an enemy only slides
+with the shove (`EnemyManager` `staggerUntil`), so its own walking and charges
+cannot cancel it. A new enemy needs a `knockback` above 0 (`Balance.spec`).
+
 **Enemies arrive in triangles of three** (`Balance.Spawning.clusterSize`),
 the tip pointing at the player; the row swings round the tip when a wall is
 behind it. Blocked arrows stick in the wall for a moment.

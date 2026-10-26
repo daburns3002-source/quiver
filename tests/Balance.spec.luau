@@ -29,6 +29,22 @@ local function archetypes(): { [string]: Balance.EnemyConfig }
 end
 
 return function(t: TestRunner.Helper)
+	--[[ Every enemy but a boss is visibly knocked back (owner, 2026-10-25):
+	     a hit's shove must be all an enemy does until it has slid out, or
+	     its own walking and charges cancel it, as the Bramble Boar's did.
+	     And every one of them is shoved at all. ]]
+	t.test("a hit's shove is not cancelled by the enemy's own moves", function()
+		t.isTrue(
+			Balance.Knockback.stagger >= Balance.Knockback.slideTime,
+			"stagger outlasts the slide"
+		)
+		for name, config in archetypes() do
+			if not config.boss then
+				t.isTrue(config.knockback > 0, `{name} is knocked back`)
+			end
+		end
+	end)
+
 	t.test("every archetype has sane core stats", function()
 		for name, config in archetypes() do
 			t.isTrue(config.health > 0, `{name} needs positive health`)

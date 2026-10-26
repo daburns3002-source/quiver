@@ -105,6 +105,9 @@ type Enemy = {
 	     over `Balance.Knockback.slideTime`, so a hit reads as a push rather
 	     than the one-frame jump it used to be. ]]
 	knockbackVelocity: Vector3,
+	--[[ `os.clock()` until which a hit's shove is all it does
+	     (`Balance.Knockback.stagger`). ]]
+	staggerUntil: number,
 	lastAttackAt: number,
 	--[[ `os.clock()` at which a telegraphed volley actually leaves, or nil
 	     when this enemy is not winding one up. ]]
@@ -767,6 +770,7 @@ function EnemyManager.spawn(
 		maxHealth = config.health * difficulty().health,
 		position = position,
 		knockbackVelocity = Vector3.zero,
+		staggerUntil = 0,
 		lastAttackAt = 0,
 		volleyAt = nil,
 		volleyDirection = nil,
@@ -1062,6 +1066,9 @@ function EnemyManager.damage(
 		end
 
 		enemy.knockbackVelocity = combined
+		if impulse > 0 then
+			enemy.staggerUntil = os.clock() + Balance.Knockback.stagger
+		end
 	end
 
 	if enemy.health > 0 then
@@ -1723,6 +1730,12 @@ local function stepEnemy(enemy: Enemy, deltaTime: number, now: number)
 
 	--[[ A training dummy only takes its knockback, then settles. ]]
 	if enemy.config.dummy then
+		return
+	end
+
+	--[[ Just hit: it slides with the shove and nothing else, so a hit pushes
+	     it back even mid-charge (`Balance.Knockback.stagger`). ]]
+	if now < enemy.staggerUntil then
 		return
 	end
 

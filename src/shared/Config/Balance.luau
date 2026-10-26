@@ -3060,6 +3060,12 @@ local Balance = {
 		clearPause = 0.8,
 		--[[ Seconds the run-over message holds before the run restarts. ]]
 		deathPause = 2.5,
+		--[[ Seconds into a room before the next room is built in the
+		     background (`Arena.prepare`; owner, 2026-10-26: "next rooms need
+		     to preload while playing current room"): past the room's own
+		     arrival (its enemies landing, the ROOM sign), so the two never
+		     share a frame, and well before anyone reaches the door. ]]
+		prepareDelay = 3,
 	},
 
 	Spawning = {

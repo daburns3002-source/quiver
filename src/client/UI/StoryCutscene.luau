@@ -46,6 +46,9 @@ type Parts = {
 	safe: ScreenGui,
 	window: Frame,
 	pictures: { [string]: Frame },
+	--[[ The same frames drawn for a phone held upright (`Story.portraits`),
+	     shown instead while the screen is taller than wide. ]]
+	portraits: { [string]: Frame },
 	skip: TextButton,
 	skipGroup: Frame,
 	skipFace: Frame,
@@ -109,11 +112,18 @@ function StoryCutscene.preload()
 		return
 	end
 	local ids = {}
+	local view = workspace.CurrentCamera.ViewportSize
+	local upright = view.Y > view.X or Device.isPhone()
 	for _, name in pictureNames() do
 		local halves = Story.pictures[name]
 		if halves then
 			table.insert(ids, halves.left)
 			table.insert(ids, halves.right)
+		end
+		local tall = Story.portraits[name]
+		if tall and upright then
+			table.insert(ids, tall.top)
+			table.insert(ids, tall.bottom)
 		end
 	end
 	local gui = Instance.new("ScreenGui")
@@ -141,13 +151,48 @@ end
 --[[ Whether a frame's two halves are in: their warm copies have loaded
      (an image never warmed counts as in). ]]
 local function loaded(holder: Frame): boolean
-	for _, side in { "Left", "Right" } do
-		local copy = warmed[(holder:FindFirstChild(side) :: ImageLabel).Image]
+	for _, half in holder:GetChildren() do
+		local copy = if half:IsA("ImageLabel") then warmed[half.Image] else nil
 		if copy and not copy.IsLoaded then
 			return false
 		end
 	end
 	return true
+end
+
+--[[ A frame's two halves side by side (landscape, `Left` and `Right`) or one
+     above the other (portrait, `Top` and `Bottom`), each showing only its own
+     side of the middle, so no seam doubles. ]]
+local function halvesOf(window: Frame, name: string, ids: { string }, portrait: boolean): Frame
+	local holder = Instance.new("Frame")
+	holder.Name = if portrait then name .. "_Tall" else name
+	holder.BackgroundTransparency = 1
+	holder.Size = UDim2.fromScale(1, 1)
+	holder.Visible = false
+	holder.ZIndex = 3
+	holder.Parent = window
+	local source: any = if portrait then Story.portrait else Story.picture
+	local sides: { string } = if portrait then { "Top", "Bottom" } else { "Left", "Right" }
+	for index, side in sides do
+		local image = Instance.new("ImageLabel")
+		image.Name = side
+		image.BackgroundTransparency = 1
+		image.Image = ids[index]
+		if portrait then
+			local middle = source.height / 2
+			image.ImageRectOffset =
+				Vector2.new(0, if index == 1 then 0 else middle - source.bottomFrom)
+			image.ImageRectSize = Vector2.new(source.width, middle)
+		else
+			local middle = source.width / 2
+			image.ImageRectOffset =
+				Vector2.new(if index == 1 then 0 else middle - source.rightFrom, 0)
+			image.ImageRectSize = Vector2.new(middle, source.height)
+		end
+		image.ZIndex = 3
+		image.Parent = holder
+	end
+	return holder
 end
 
 local function buildSkip(safe: ScreenGui): (Frame, TextButton, Frame)
@@ -217,33 +262,15 @@ local function build(playerGui: PlayerGui): Parts
 	window.Position = UDim2.fromScale(0.5, 0.5)
 	window.ClipsDescendants = true
 
-	local p = Story.picture
-	local middle = p.width / 2
-	local pictures = {}
+	local pictures, portraits = {}, {}
 	for _, name in pictureNames() do
-		local holder = Instance.new("Frame")
-		holder.Name = name
-		holder.BackgroundTransparency = 1
-		holder.Size = UDim2.fromScale(1, 1)
-		holder.Visible = false
-		holder.ZIndex = 3
-		holder.Parent = window
-		local halves = Story.pictures[name]
-		for _, side in { "Left", "Right" } do
-			local image = Instance.new("ImageLabel")
-			image.Name = side
-			image.BackgroundTransparency = 1
-			image.Image = if halves
-				then (if side == "Left" then halves.left else halves.right)
-				else ""
-			-- each half shows only its own side of the middle, so no seam doubles
-			image.ImageRectOffset =
-				Vector2.new(if side == "Left" then 0 else middle - p.rightFrom, 0)
-			image.ImageRectSize = Vector2.new(middle, p.height)
-			image.ZIndex = 3
-			image.Parent = holder
+		local wide = Story.pictures[name]
+		pictures[name] =
+			halvesOf(window, name, if wide then { wide.left, wide.right } else { "", "" }, false)
+		local tall = Story.portraits[name]
+		if tall then
+			portraits[name] = halvesOf(window, name, { tall.top, tall.bottom }, true)
 		end
-		pictures[name] = holder
 	end
 
 	local group, button, face = buildSkip(safe)
@@ -252,6 +279,7 @@ local function build(playerGui: PlayerGui): Parts
 		safe = safe,
 		window = window,
 		pictures = pictures,
+		portraits = portraits,
 		skip = button,
 		skipGroup = group,
 		skipFace = face,
@@ -291,17 +319,25 @@ local function pose(t: number)
 	end
 	local now = StoryTimeline.pose(c, t, skippedAt)
 
-	-- the 16:9 frame, as large as fits
+	--[[ The frame the clock asks for, in the shape of the screen (a portrait
+	     frame while it is taller than wide, if that frame has one), once its
+	     warm copies are in; until then the one before it stays up, and on the
+	     cut it stays underneath until the new one's own halves are in. Black is
+	     only ever the story's own black. ]]
 	local screen = p.gui.AbsoluteSize
-	local source = Story.picture
-	local fit = math.min(screen.X / source.width, screen.Y / source.height)
-	local winW = math.floor(source.width * fit + 0.5)
-	local winH = math.floor(source.height * fit + 0.5)
-	p.window.Size = UDim2.fromOffset(winW, winH)
-	local split = math.floor(winW / 2)
-	--[[ The frame the clock asks for, once both its halves are in; until then
-	     the one before it stays up. Black is only ever the story's own black. ]]
-	local wanted = if now.picture then p.pictures[now.picture] else nil
+	local upright = screen.Y > screen.X
+	local wanted: Frame? = nil
+	local name = now.picture
+	if name then
+		-- a portrait frame only if it was warmed (the screen was tall when the
+		-- title came up); otherwise the landscape one, which always is
+		local tall = p.portraits[name]
+		if upright and tall and warmed[(tall:FindFirstChild("Top") :: ImageLabel).Image] then
+			wanted = tall
+		else
+			wanted = p.pictures[name]
+		end
+	end
 	if not wanted then
 		showing = nil
 		under = nil
@@ -311,22 +347,47 @@ local function pose(t: number)
 	end
 	local current = showing
 	if current and under then
-		local left = current:FindFirstChild("Left") :: ImageLabel
-		local right = current:FindFirstChild("Right") :: ImageLabel
-		if left.IsLoaded and right.IsLoaded then
+		local ready = true
+		for _, half in current:GetChildren() do
+			if half:IsA("ImageLabel") and not half.IsLoaded then
+				ready = false
+			end
+		end
+		if ready then
 			under = nil
 		end
 	end
-	for _, holder in p.pictures do
-		local on = holder == showing or holder == under
-		holder.Visible = on
-		holder.ZIndex = if holder == showing then 4 else 3
-		if on then
-			local left = holder:FindFirstChild("Left") :: ImageLabel
-			local right = holder:FindFirstChild("Right") :: ImageLabel
-			left.Size = UDim2.fromOffset(split, winH)
-			right.Position = UDim2.fromOffset(split, 0)
-			right.Size = UDim2.fromOffset(winW - split, winH)
+
+	-- the frame, whole and as large as fits
+	local tall = if current then current:FindFirstChild("Top") ~= nil else upright
+	local source: any = if tall then Story.portrait else Story.picture
+	local fit = math.min(screen.X / source.width, screen.Y / source.height)
+	local winW = math.floor(source.width * fit + 0.5)
+	local winH = math.floor(source.height * fit + 0.5)
+	p.window.Size = UDim2.fromOffset(winW, winH)
+	for _, set in { p.pictures, p.portraits } do
+		for _, holder in set do
+			local on = holder == showing or holder == under
+			holder.Visible = on
+			holder.ZIndex = if holder == showing then 4 else 3
+			if on then
+				local first = holder:FindFirstChild(if tall then "Top" else "Left") :: ImageLabel?
+				local second =
+					holder:FindFirstChild(if tall then "Bottom" else "Right") :: ImageLabel?
+				if first and second then
+					if tall then
+						local split = math.floor(winH / 2)
+						first.Size = UDim2.fromOffset(winW, split)
+						second.Position = UDim2.fromOffset(0, split)
+						second.Size = UDim2.fromOffset(winW, winH - split)
+					else
+						local split = math.floor(winW / 2)
+						first.Size = UDim2.fromOffset(split, winH)
+						second.Position = UDim2.fromOffset(split, 0)
+						second.Size = UDim2.fromOffset(winW - split, winH)
+					end
+				end
+			end
 		end
 	end
 
@@ -346,9 +407,30 @@ local function pose(t: number)
 end
 
 -- Seconds since the clock started; 0 while it waits for the frames to load.
+--[[ How far the picture's clock may drift from the music before it is put
+     back on it (seconds). ]]
+local DRIFT = 0.15
+
+--[[ Seconds since the clock started; 0 while it waits for the frames to load.
+     While the music plays the clock follows it (owner, 2026-10-26: "the
+     bloblin cutscene audio did not match where the clip was at visually on
+     the phone"): when the two drift apart by more than `DRIFT` the clock is
+     put back on the music's position, so a phone that starts or stutters the
+     music late holds the picture with it. ]]
 local function clock(): number
 	local started = startedAt
-	return if started then os.clock() - started else 0
+	if not started then
+		return 0
+	end
+	local sound = music
+	if sound and sound.IsPlaying and not skippedAt then
+		local heard = sound.TimePosition
+		if math.abs((os.clock() - started) - heard) > DRIFT then
+			started = os.clock() - heard
+			startedAt = started
+		end
+	end
+	return os.clock() - started
 end
 
 --[[ Holds on black until every frame has loaded (at most `Story.loadWait`;
@@ -357,9 +439,11 @@ local function startClock(built: Parts)
 	local deadline = os.clock() + Story.loadWait
 	while os.clock() < deadline and parts == built do
 		local ready = music == nil or (music :: Sound).IsLoaded
-		for _, holder in built.pictures do
-			if not loaded(holder) then
-				ready = false
+		for _, set in { built.pictures, built.portraits } do
+			for _, holder in set do
+				if not loaded(holder) then
+					ready = false
+				end
 			end
 		end
 		if ready then
@@ -371,9 +455,10 @@ local function startClock(built: Parts)
 		return
 	end
 	startedAt = os.clock()
-	-- the music's first beat is the clock's first frame (`story_theme.py`)
+	-- the music's first beat is the clock's first frame (`story_theme.py`); a
+	-- track not loaded yet starts where the picture is when it is (`follow`)
 	local sound = music
-	if sound then
+	if sound and sound.IsLoaded then
 		sound.TimePosition = 0
 		sound:Play()
 	end
@@ -427,6 +512,14 @@ function StoryCutscene.start(done: () -> ())
 		     down over `MUSIC_OUT`. ]]
 		local sound = music
 		local skipped = skippedAt
+		-- a track that loaded late joins the picture where it is
+		if sound and startedAt and not skipped and sound.IsLoaded and not sound.IsPlaying then
+			local at = clock()
+			if at < sound.TimeLength then
+				sound.TimePosition = at
+				sound:Play()
+			end
+		end
 		if sound and skipped then
 			sound.Volume = Music.volume * math.max(0, 1 - (clock() - skipped) / MUSIC_OUT)
 		end

@@ -40,8 +40,17 @@ local function ensure<T>(className: string, name: string): T
 	return created :: any
 end
 
-function Atmosphere.apply()
-	local config = Balance.Lighting
+--[[ `overrides` is an area's own (`ArenaModels.lighting`): those fields in
+     place of `Balance.Lighting`'s, the rest as ever. Applied again with
+     none to put the game's own light back. ]]
+function Atmosphere.apply(overrides: { [string]: any }?)
+	local config: any = Balance.Lighting
+	if overrides then
+		config = table.clone(config)
+		for key, value in overrides do
+			config[key] = value
+		end
+	end
 
 	Lighting.Ambient = config.ambient
 	Lighting.OutdoorAmbient = config.outdoorAmbient

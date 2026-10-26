@@ -65,10 +65,18 @@ PRESENTS small and white under it, a cut on the music's hit at 5.0 s (`revealAt`
 the shared contract with the intro music, `Config/Music.intro`) to the Codex title
 picture (logo painted in), which never moves once up (owner) and shows whole at
 the screen's height with dimmed copies filling the sides, and BEGIN ADVENTURE,
-still until hovered or pressed. The run holds still until it is pressed: the server skips
+still until hovered or pressed. BEGIN ADVENTURE plays **the story cutscene**
+(`UI/StoryCutscene`, `Config/Story`, `Util/StoryTimeline`, owner 2026-10-25): 2D
+frame by frame, 49 Codex frames from the owner's approved storyboard
+(`assets/concepts/blocky/ui/story/`): King Bloblin in the glade with his
+over-the-top slimy chest, a Slime Soldier brings a WANTED poster (WANTED: his
+icon, REWARD: the chest icon, the three class icons signed), he roars, the view
+pans to the heroes (never in a frame with the king), they run into the forest,
+black. SKIP >> fades it to black. There is no tutorial yet; it ends in the lobby.
+The run holds still until the story's black has held: the server skips
 its step while any player is still on the title (`RunSession.anyAtTitle`,
-cleared by `Remotes.IntroBegin`), the client holds on `RunPaused.setTitle`, the
-room's music and its ROOM sign wait. **In Studio, set a `SkipIntro` attribute
+cleared by `Remotes.IntroBegin`, fired at the story's end), the client holds on
+`RunPaused.setTitle` then `setStory`, the room's music and its ROOM sign wait. **In Studio, set a `SkipIntro` attribute
 on Workspace in Edit before Play** to skip it on both sides, for probes that
 need the run going (or fire `Remotes.IntroBegin` from a probe).
 

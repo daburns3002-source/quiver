@@ -12,9 +12,9 @@
 	which waits on the black screen until the track has loaded, so its hit
 	lands on the cut;
 	the run's own music waits (`MusicFx.setQuiet`). The player is held
-	still (`RunPaused.setTitle`) and the server holds the world until the
-	press, which asks it to start (`Remotes.IntroBegin`) and fades the title
-	away as the room's music comes in.
+	still (`RunPaused.setTitle`) and the server holds the world; the press
+	fades the title away into the story cutscene (`UI/StoryCutscene`), whose
+	end asks the server to start (`Remotes.IntroBegin`).
 
 	One RenderStepped loop poses everything from the time since the start
 	(`Util/IntroTimeline`), so `IntroCutscene.hold(t)` can freeze it at a

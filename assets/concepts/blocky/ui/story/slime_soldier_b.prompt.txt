@@ -1,0 +1,3 @@
+Use your image generation tool to EDIT the FIRST attached image (a character design sheet of the Slime Soldier, 1536 x 1024). Output ONE image of the same size, identical in every pixel except for ONE change:
+On every view where the round wooden shield's face shows, replace the gold crown painted on it with a small 2D blocky pixel-art ICON OF KING BLOBLIN'S FACE, taken from the SECOND attached image (his icon sheet, top-left frame): his lime-green cube head with the gold block crown and green gem on top, two glowing yellow square eyes under angry dark brows, a dark ink outline. Painted flat on the shield's wood, centred, as big as the crown was. Same pixel style and ink outlines as the rest of the sheet.
+Keep EVERYTHING else exactly as it is. No text anywhere.

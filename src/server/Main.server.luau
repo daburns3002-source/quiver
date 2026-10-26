@@ -123,8 +123,11 @@ do
 	if face then
 		local areaNames: { [number]: string } = {}
 		for _, portal in LobbyConfig.portals do
-			if portal.stage and portal.name then
-				areaNames[portal.stage] = portal.name
+			local levels: { number } = portal.levels or {}
+			for _, stage in levels do
+				if portal.name then
+					areaNames[stage] = portal.name
+				end
 			end
 		end
 		StoryLeaderboard.attach(face, areaNames)
@@ -144,11 +147,16 @@ local function weaponFor(player: Player): string
 end
 
 --[[ The weapon in hand during a run, nothing in the lobby (owner,
-     2026-10-25). Called whenever either can change. ]]
+     2026-10-25); and jumping in the lobby only (2026-10-26,
+     `RunSession.allowJump`). Called whenever either can change. ]]
 local function refreshWeapon(player: Player)
 	local character = player.Character
 	if not character then
 		return
+	end
+	local session = RunSession.get(player)
+	if session then
+		RunSession.allowJump(session, RoomController.inLobby())
 	end
 	if RoomController.inLobby() then
 		HeldWeapon.unequip(character)
@@ -444,6 +452,28 @@ Remotes.event(Remotes.IntroBegin).OnServerEvent:Connect(function(player)
 	end
 end)
 
+--[[ START on a portal's screen (`UI/PortalScreen`): which portal and which
+     of its levels. The server decides: only in the lobby, off the title, and
+     only for the portal the player stands at (`Lobby.startFor`). ]]
+Remotes.event(Remotes.PortalStart).OnServerEvent:Connect(function(player, index, level)
+	local session = RunSession.get(player)
+	local root = session and session.root
+	if not session or session.atTitle or not root or not RoomController.inLobby() then
+		return
+	end
+	local stage = Lobby.startFor(root.Position, index, level)
+	if stage then
+		RoomController.beginStage(stage)
+	end
+end)
+
+--[[ Which portal's screen each player has open (`Remotes.PortalOpen`), so
+     it is sent only as they step in or out. ]]
+local portalShown: { [Player]: number } = {}
+Players.PlayerRemoving:Connect(function(player)
+	portalShown[player] = nil
+end)
+
 --[[ GOT IT! on a NEW ENEMY! screen. Only clears a screen the server opened. ]]
 Remotes.event(Remotes.NewEnemySeen).OnServerEvent:Connect(function(player, kind)
 	local session = RunSession.get(player)
@@ -474,18 +504,32 @@ RunService.Heartbeat:Connect(function(deltaTime: number)
 		return
 	end
 
-	--[[ In the lobby: nothing fights; stepping into an active portal starts
-	     its area's run (`Run/Lobby`). ]]
+	--[[ In the lobby: nothing fights; stepping into an active portal opens
+	     its screen, whose START asks for the run (`Remotes.PortalStart`;
+	     owner, 2026-10-26: "need screen for portal entry with the level
+	     selector"), and stepping out closes it. ]]
 	if RoomController.inLobby() then
-		for _, session in RunSession.all() do
+		for player, session in RunSession.all() do
 			local root = session.root
-			local stage = root and Lobby.portalFor(root.Position)
-			if stage then
-				RoomController.beginStage(stage)
-				break
+			local index = if root and not session.atTitle
+				then Lobby.portalAt(root.Position)
+				else nil
+			local shown = index or 0
+			if portalShown[player] ~= shown then
+				portalShown[player] = shown
+				Remotes.event(Remotes.PortalOpen):FireClient(player, shown)
 			end
 		end
 		return
+	end
+	-- out of the lobby, every portal screen is shut
+	if next(portalShown) then
+		for player, shown in portalShown do
+			if shown ~= 0 then
+				Remotes.event(Remotes.PortalOpen):FireClient(player, 0)
+			end
+		end
+		table.clear(portalShown)
 	end
 
 	--[[ And while anyone reads a NEW ENEMY! screen, until GOT IT!

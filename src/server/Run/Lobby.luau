@@ -10,7 +10,9 @@
 	  invisible walls round the edge and round each station. A piece whose
 	  mesh is not imported yet is left out.
 	- `place` puts a character at the campfire.
-	- `portalFor` says which active portal a player is standing in, if any.
+	- `portalAt` says which active portal a player is standing in, if any,
+	  for its screen to open (`UI/PortalScreen`); `startFor` checks a START
+	  from that screen and names the stage it may start.
 
 	Seeded, so the lobby is the same every time.
 ]]
@@ -295,7 +297,7 @@ function Lobby.build(parent: Instance)
 		if not themed then
 			piece("PortalArch", at, 0, 1, root, nil, lift)
 		end
-		if portal.stage then
+		if portal.levels then
 			piece("PortalSwirl", at, 0, 1, root, portal.tint, lift + LobbyConfig.swirlLift * unit)
 			if portal.sign and not themed then
 				local sign = at + Vector2.new(0, LobbyConfig.signAhead * unit)
@@ -447,18 +449,47 @@ function Lobby.place(character: Model)
 	character:PivotTo(CFrame.lookAt(at, at + Vector3.new(0, 0, -1)))
 end
 
---[[ The stage of the active portal `position` stands in, or nil. ]]
-function Lobby.portalFor(position: Vector3): number?
+--[[ The index of the nearest active portal whose mouth `position` stands
+     within `LobbyConfig.portalReach` (plus `slack`) of, or nil. ]]
+function Lobby.portalAt(position: Vector3, slack: number?): number?
+	local best, bestDistance = nil, LobbyConfig.portalReach + (slack or 0)
 	for index, portal in LobbyConfig.portals do
-		if portal.stage then
+		if portal.levels then
 			local mouth = world(Lobby.archAt(index) + Vector2.new(0, LobbyConfig.mouthAhead))
-			local flat = Vector3.new(position.X - mouth.X, 0, position.Z - mouth.Z)
-			if flat.Magnitude <= LobbyConfig.portalReach then
-				return portal.stage
+			local distance = Vector3.new(position.X - mouth.X, 0, position.Z - mouth.Z).Magnitude
+			if distance <= bestDistance then
+				best, bestDistance = index, distance
 			end
 		end
 	end
-	return nil
+	return best
+end
+
+--[[
+	START on a portal's screen: the stage level `level` of portal `index`
+	plays, or nil when the request is not one this player may make. Both
+	numbers come from the client, so each is checked: a whole number, an
+	active portal, one of its levels, and the player standing at that portal
+	(within `startSlack` more than its screen opens at, for the press's trip),
+	so nobody starts an area from across the lobby.
+]]
+function Lobby.startFor(position: Vector3, index: unknown, level: unknown): number?
+	if type(index) ~= "number" or type(level) ~= "number" then
+		return nil
+	end
+	if index ~= math.floor(index) or level ~= math.floor(level) then
+		return nil
+	end
+	local portal = LobbyConfig.portals[index]
+	local levels = portal and portal.levels
+	local stage = levels and levels[level]
+	if not stage then
+		return nil
+	end
+	if Lobby.portalAt(position, LobbyConfig.startSlack) ~= index then
+		return nil
+	end
+	return stage
 end
 
 --[[ Whether `position` is in the lobby rather than the arena. ]]

@@ -148,6 +148,20 @@ Remotes.DebugWallet = "DebugWallet"
 Remotes.IntroBegin = "IntroBegin"
 
 --[[
+	Server → one client. The player has stepped into a lit portal's mouth in
+	the lobby: open its screen (`UI/PortalScreen`) with that portal's index
+	in `Config/Lobby.portals`, or 0 to shut it as they step out.
+]]
+Remotes.PortalOpen = "PortalOpen"
+
+--[[
+	Client → server. START on a portal's screen: the portal's index and the
+	level picked. The server checks both and that the player stands at that
+	portal (`Run/Lobby.startFor`) before starting the run.
+]]
+Remotes.PortalStart = "PortalStart"
+
+--[[
 	Server → one client. A kind of enemy this player has not met before has
 	landed (its `EnemyConfig.displayName`): show its NEW ENEMY! screen
 	(`Config/NewEnemies`). The server holds the run until it is closed.

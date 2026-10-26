@@ -1,0 +1,437 @@
+--!strict
+--[[
+	A portal's screen (owner, 2026-10-26: "need screen for portal entry with
+	the level selector"). Walking into a lit portal's mouth no longer starts
+	the run: the server sees the player there and sends the portal's index
+	(`Remotes.PortalOpen`, 0 as they step out), and this shows the area — its
+	name in the portal's colour, its act — and its levels to pick from, each
+	with its boss, its rooms and whether it is cleared (the profile's
+	`bossesBeaten`), then locked COMING SOON slots up to
+	`Config/Lobby.levelSlots`. START asks the server (`Remotes.PortalStart`),
+	which checks the player still stands at that portal and starts the run;
+	X, Escape or walking away closes it.
+
+	Built like the Blacksmith's shop (`UI/ShopScreen`): blocky wood boxes
+	with an ink border, every word in the blocky font (rule 11), buttons
+	still until hovered or pressed. The boss pictures are the boss banners'
+	Codex icons (`Config/BossBanners`), their first frame.
+]]
+
+local GuiService = game:GetService("GuiService")
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local Workspace = game:GetService("Workspace")
+
+local Balance = require(ReplicatedStorage.Shared.Config.Balance)
+local BossBanners = require(ReplicatedStorage.Shared.Config.BossBanners)
+local LobbyConfig = require(ReplicatedStorage.Shared.Config.Lobby)
+local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
+local SaveSchema = require(ReplicatedStorage.Shared.Util.SaveSchema)
+local ShopAssets = require(ReplicatedStorage.Shared.Config.ShopAssets)
+
+local Device = require(script.Parent.Parent.Device)
+local SoundFx = require(script.Parent.Parent.Fx.SoundFx)
+
+local PortalScreen = {}
+
+local FONT = Font.fromEnum(Enum.Font.Arcade)
+local INK = Color3.fromRGB(24, 16, 10)
+local WOOD = Color3.fromRGB(78, 52, 32)
+local PLANK = Color3.fromRGB(58, 38, 24)
+local GOLD = Color3.fromRGB(255, 206, 74)
+local WHITE = Color3.new(1, 1, 1)
+local GREEN = Color3.fromRGB(70, 176, 58)
+local RED = Color3.fromRGB(196, 64, 52)
+local GREY = Color3.fromRGB(96, 92, 88)
+local LOCKED = Color3.fromRGB(40, 34, 30)
+
+type Slot = { frame: Frame, face: Frame, button: TextButton, level: number? }
+
+local gui: ScreenGui? = nil
+local panel: Frame? = nil
+local startButton: TextButton? = nil
+local startFace: Frame? = nil
+local startWords: TextLabel? = nil
+local profile: SaveSchema.Profile? = nil
+--[[ The portal showing (its index in `Config/Lobby.portals`), the level
+     picked, and whether START has been pressed. ]]
+local portalIndex: number? = nil
+local picked = 1
+local starting = false
+local slots: { Slot } = {}
+
+local function rect(parent: Instance, name: string, colour: Color3, z: number): Frame
+	local f = Instance.new("Frame")
+	f.Name = name
+	f.BorderSizePixel = 0
+	f.BackgroundColor3 = colour
+	f.ZIndex = z
+	f.Parent = parent
+	return f
+end
+
+local function label(
+	parent: Instance,
+	text: string,
+	colour: Color3,
+	z: number,
+	maxSize: number?
+): TextLabel
+	local l = Instance.new("TextLabel")
+	l.BackgroundTransparency = 1
+	l.FontFace = FONT
+	l.Text = text
+	l.TextColor3 = colour
+	l.TextScaled = true
+	l.ZIndex = z
+	l.Parent = parent
+	local fit = Instance.new("UITextSizeConstraint")
+	fit.MaxTextSize = maxSize or 28
+	fit.Parent = l
+	local stroke = Instance.new("UIStroke")
+	stroke.Color = INK
+	stroke.Thickness = 2
+	stroke.Parent = l
+	return l
+end
+
+--[[ A blocky box: an ink border round a face, with a lighter top edge. ]]
+local function box(parent: Instance, name: string, face: Color3, z: number): (Frame, Frame)
+	local outer = rect(parent, name, INK, z)
+	local inner = rect(outer, "Face", face, z + 1)
+	inner.Position = UDim2.fromOffset(3, 3)
+	inner.Size = UDim2.new(1, -6, 1, -6)
+	local top = rect(inner, "Shine", face:Lerp(WHITE, 0.25), z + 1)
+	top.Size = UDim2.new(1, 0, 0, 3)
+	return outer, inner
+end
+
+local function hit(parent: Instance, z: number): TextButton
+	local b = Instance.new("TextButton")
+	b.BackgroundTransparency = 1
+	b.Text = ""
+	b.Size = UDim2.fromScale(1, 1)
+	b.ZIndex = z
+	b.AutoButtonColor = false
+	b.Parent = parent
+	return b
+end
+
+--[[ The boss banner (`Config/BossBanners`) of the area named `area`. ]]
+local function bannerFor(area: string?): BossBanners.Banner?
+	for _, banner in BossBanners.bosses do
+		if banner.area == area then
+			return banner
+		end
+	end
+	return nil
+end
+
+local function close()
+	local screen = gui
+	if screen then
+		screen.Enabled = false
+	end
+	if startButton and GuiService.SelectedObject == startButton then
+		GuiService.SelectedObject = nil
+	end
+	portalIndex = nil
+	starting = false
+end
+
+local function start()
+	local index = portalIndex
+	local portal = index and LobbyConfig.portals[index]
+	local levels = portal and portal.levels
+	if not index or not levels or not levels[picked] or starting then
+		return
+	end
+	starting = true
+	SoundFx.play("card_click")
+	Remotes.event(Remotes.PortalStart):FireServer(index, picked)
+end
+
+--[[ Fills the panel for portal `index`. ]]
+local function fill(index: number)
+	local p = panel
+	local portal = LobbyConfig.portals[index]
+	if not p or not portal then
+		return
+	end
+	local tint = portal.tint or GOLD
+	local banner = bannerFor(portal.name)
+	local header = p:FindFirstChild("Header") :: Frame
+	local headerFace = header:FindFirstChild("Face") :: Frame
+	headerFace.BackgroundColor3 = tint:Lerp(INK, 0.35)
+	local name = header:FindFirstChild("AreaName") :: TextLabel
+	name.Text = string.upper(portal.name or "")
+	local act = header:FindFirstChild("Act") :: TextLabel
+	act.Text = if banner then string.upper(banner.act) else ""
+
+	local levels = portal.levels or {}
+	picked = math.clamp(picked, 1, math.max(#levels, 1))
+	for i, slot in slots do
+		local stage = Balance.Stages[levels[i]]
+		slot.level = if stage then i else nil
+		local f = slot.face
+		for _, child in f:GetChildren() do
+			if child.Name ~= "Shine" then
+				child:Destroy()
+			end
+		end
+		local title = label(f, `LEVEL {i}`, if stage then GOLD else GREY, 14, 24)
+		title.Position = UDim2.fromScale(0.05, 0.04)
+		title.Size = UDim2.fromScale(0.9, 0.12)
+		if stage then
+			f.BackgroundColor3 = PLANK
+			local pic = Instance.new("ImageLabel")
+			pic.Name = "Boss"
+			pic.BackgroundTransparency = 1
+			pic.ScaleType = Enum.ScaleType.Fit
+			pic.Position = UDim2.fromScale(0.1, 0.18)
+			pic.Size = UDim2.fromScale(0.8, 0.42)
+			pic.ZIndex = 14
+			pic.Parent = f
+			if banner and banner.icon ~= "" then
+				-- the banner's sheet, its first frame (ready)
+				local cell = BossBanners.sheet.cell
+				pic.Image = banner.icon
+				pic.ImageRectOffset = Vector2.zero
+				pic.ImageRectSize = Vector2.new(cell, cell)
+			end
+			local boss = label(f, if banner then string.upper(banner.name) else "", WHITE, 14, 16)
+			boss.Position = UDim2.fromScale(0.05, 0.61)
+			boss.Size = UDim2.fromScale(0.9, 0.09)
+			local rooms = label(f, `{#(stage.rooms or {})} ROOMS`, WHITE, 14, 16)
+			rooms.Position = UDim2.fromScale(0.05, 0.72)
+			rooms.Size = UDim2.fromScale(0.9, 0.08)
+			local p2 = profile
+			local cleared = p2 ~= nil and stage.area ~= nil and p2.bossesBeaten[stage.area] == true
+			local chip, chipFace = box(f, "Status", if cleared then GOLD else GREEN, 14)
+			chip.Position = UDim2.fromScale(0.12, 0.83)
+			chip.Size = UDim2.fromScale(0.76, 0.12)
+			local words = label(chipFace, if cleared then "CLEARED" else "UNLOCKED", WHITE, 16, 16)
+			words.Position = UDim2.fromScale(0.05, 0.15)
+			words.Size = UDim2.fromScale(0.9, 0.7)
+		else
+			f.BackgroundColor3 = LOCKED
+			local lock = Instance.new("ImageLabel")
+			lock.Name = "Lock"
+			lock.BackgroundTransparency = 1
+			lock.ScaleType = Enum.ScaleType.Fit
+			lock.Image = ShopAssets.lock
+			lock.Position = UDim2.fromScale(0.25, 0.25)
+			lock.Size = UDim2.fromScale(0.5, 0.4)
+			lock.ZIndex = 14
+			lock.Parent = f
+			local soon = label(f, "COMING SOON", GREY, 14, 16)
+			soon.Position = UDim2.fromScale(0.05, 0.75)
+			soon.Size = UDim2.fromScale(0.9, 0.1)
+		end
+	end
+end
+
+--[[ Repaints what changes from frame to frame: the picked level's gold
+     border, and the buttons' hover and press. ]]
+local function pose()
+	for _, slot in slots do
+		local chosen = slot.level ~= nil and slot.level == picked
+		slot.frame.BackgroundColor3 = if chosen then GOLD else INK
+	end
+	local face, button, words = startFace, startButton, startWords
+	if face and button and words then
+		local colour = if starting then GREY else GREEN
+		local state = button.GuiState
+		if not starting and state == Enum.GuiState.Press then
+			colour = colour:Lerp(Color3.new(0, 0, 0), 0.3)
+		elseif
+			not starting
+			and (state == Enum.GuiState.Hover or GuiService.SelectedObject == button)
+		then
+			colour = colour:Lerp(WHITE, 0.2)
+		end
+		face.BackgroundColor3 = colour
+		words.Text = if starting
+			then "STARTING..."
+			elseif UserInputService.KeyboardEnabled and not Device.isPhone() then "START [ENTER]"
+			else "START"
+	end
+end
+
+local function build(playerGui: PlayerGui)
+	local phone = Device.isPhone()
+	local screen = Instance.new("ScreenGui")
+	screen.Name = "PortalScreen"
+	screen.ResetOnSpawn = false
+	screen.IgnoreGuiInset = true
+	screen.ScreenInsets = Enum.ScreenInsets.DeviceSafeInsets
+	screen.DisplayOrder = 114
+	screen.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+	screen.Enabled = false
+	screen.Parent = playerGui
+	gui = screen
+
+	local dim = rect(screen, "Dim", Color3.new(0, 0, 0), 1)
+	dim.BackgroundTransparency = 0.5
+	dim.Size = UDim2.new(1, 0, 1, 200)
+	dim.Position = UDim2.fromOffset(0, -100)
+
+	local p = box(screen, "Panel", WOOD, 2)
+	p.AnchorPoint = Vector2.new(0.5, 0.5)
+	p.Position = UDim2.fromScale(0.5, 0.5)
+	p.Size = UDim2.fromScale(if phone then 0.96 else 0.62, if phone then 0.94 else 0.74)
+	local limit = Instance.new("UISizeConstraint")
+	limit.MaxSize = Vector2.new(920, 620)
+	limit.Parent = p
+	panel = p
+
+	-- the area's name on a band in its portal's colour
+	local header = box(p, "Header", GOLD, 4)
+	header.Position = UDim2.fromScale(0.03, 0.03)
+	header.Size = UDim2.fromScale(0.94, 0.2)
+	local areaName = label(header, "", WHITE, 7, 48)
+	areaName.Name = "AreaName"
+	areaName.Position = UDim2.fromScale(0.04, 0.1)
+	areaName.Size = UDim2.fromScale(0.8, 0.5)
+	areaName.TextXAlignment = Enum.TextXAlignment.Left
+	local act = label(header, "", GOLD, 7, 20)
+	act.Name = "Act"
+	act.Position = UDim2.fromScale(0.04, 0.62)
+	act.Size = UDim2.fromScale(0.6, 0.26)
+	act.TextXAlignment = Enum.TextXAlignment.Left
+
+	local x, xFace = box(p, "Close", RED, 8)
+	x.AnchorPoint = Vector2.new(1, 0)
+	x.Position = UDim2.new(1, -12, 0, 12)
+	x.Size = UDim2.fromScale(0.08, 0.1)
+	local square = Instance.new("UIAspectRatioConstraint")
+	square.Parent = x
+	local xWords = label(xFace, "X", WHITE, 10, 26)
+	xWords.Size = UDim2.fromScale(1, 1)
+	local xHit = hit(x, 11)
+	xHit.Activated:Connect(close)
+
+	local pick = label(p, "CHOOSE A LEVEL", WHITE, 4, 22)
+	pick.Position = UDim2.fromScale(0.05, 0.255)
+	pick.Size = UDim2.fromScale(0.9, 0.06)
+
+	-- the level cards
+	local row = Instance.new("Frame")
+	row.Name = "Levels"
+	row.BackgroundTransparency = 1
+	row.Position = UDim2.fromScale(0.04, 0.33)
+	row.Size = UDim2.fromScale(0.92, 0.48)
+	row.ZIndex = 4
+	row.Parent = p
+	local list = Instance.new("UIListLayout")
+	list.FillDirection = Enum.FillDirection.Horizontal
+	list.HorizontalAlignment = Enum.HorizontalAlignment.Center
+	list.SortOrder = Enum.SortOrder.LayoutOrder
+	list.Padding = UDim.new(0.03, 0)
+	list.Parent = row
+	local share = (1 - 0.03 * (LobbyConfig.levelSlots - 1)) / LobbyConfig.levelSlots
+	table.clear(slots)
+	for i = 1, LobbyConfig.levelSlots do
+		local card, face = box(row, `Level{i}`, PLANK, 10)
+		card.LayoutOrder = i
+		card.Size = UDim2.fromScale(share, 1)
+		local b = hit(card, 20)
+		local slot: Slot = { frame = card, face = face, button = b, level = nil }
+		b.Activated:Connect(function()
+			if slot.level and not starting then
+				picked = slot.level
+				SoundFx.play("card_click")
+			end
+		end)
+		table.insert(slots, slot)
+	end
+
+	local go, goFace = box(p, "Start", GREEN, 8)
+	go.AnchorPoint = Vector2.new(0.5, 0)
+	go.Position = UDim2.fromScale(0.5, 0.84)
+	go.Size = UDim2.fromScale(if phone then 0.5 else 0.36, 0.12)
+	local goWords = label(goFace, "START", WHITE, 10, 28)
+	goWords.Position = UDim2.fromScale(0.06, 0.18)
+	goWords.Size = UDim2.fromScale(0.88, 0.64)
+	local goHit = hit(go, 11)
+	goHit.Activated:Connect(start)
+	startButton, startFace, startWords = goHit, goFace, goWords
+end
+
+function PortalScreen.isOpen(): boolean
+	local screen = gui
+	return screen ~= nil and screen.Enabled
+end
+
+--[[ Opens portal `index`'s screen, as if the server had sent it: for the
+     server's message, and for a Studio capture. ]]
+function PortalScreen.open(index: number)
+	local screen = gui
+	local portal = LobbyConfig.portals[index]
+	if not screen or not portal or not portal.levels then
+		return
+	end
+	if portalIndex ~= index then
+		picked = 1
+	end
+	portalIndex = index
+	starting = false
+	fill(index)
+	screen.Enabled = true
+	if UserInputService.GamepadEnabled then
+		GuiService.SelectedObject = startButton
+	end
+end
+
+PortalScreen.close = close
+
+function PortalScreen.start()
+	local player = Players.LocalPlayer
+	build(player:WaitForChild("PlayerGui") :: PlayerGui)
+
+	Remotes.event(Remotes.PortalOpen).OnClientEvent:Connect(function(index)
+		if type(index) == "number" and index > 0 then
+			PortalScreen.open(index)
+		else
+			close()
+		end
+	end)
+	Remotes.event(Remotes.ProfileChanged).OnClientEvent:Connect(function(next)
+		if type(next) ~= "table" then
+			return
+		end
+		profile = next
+		local index = portalIndex
+		if index and PortalScreen.isOpen() then
+			fill(index)
+		end
+	end)
+	UserInputService.InputBegan:Connect(function(input, processed)
+		if not PortalScreen.isOpen() then
+			return
+		end
+		if input.KeyCode == Enum.KeyCode.Escape or input.KeyCode == Enum.KeyCode.ButtonB then
+			close()
+		elseif
+			not processed
+			and (input.KeyCode == Enum.KeyCode.Return or input.KeyCode == Enum.KeyCode.KeypadEnter)
+		then
+			start()
+		end
+	end)
+	RunService.RenderStepped:Connect(function()
+		if not PortalScreen.isOpen() then
+			return
+		end
+		-- the run has begun (or the lobby is gone): nothing to choose
+		if Workspace:GetAttribute("InLobby") ~= true then
+			close()
+			return
+		end
+		pose()
+	end)
+end
+
+return PortalScreen

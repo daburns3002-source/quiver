@@ -13,6 +13,12 @@
 	Nothing here is authoritative. The server reads the replicated
 	Humanoid.MoveDirection and decides whether a volley goes out; this module
 	only decides where the character walks.
+
+	In the lobby there is no dash (owner, 2026-10-26: "let players sprint and
+	jump in the lobby instead of dash"): Shift, a gamepad's X (or a click of
+	its left stick) or the phone's SPRINT button runs, and Space, A or JUMP
+	jumps (`Config/Lobby.sprint`, `jumpHeight`; `Input/LobbyButtons`). The
+	server allows the jump only there (`RunSession.allowJump`).
 ]]
 
 local Players = game:GetService("Players")
@@ -24,6 +30,8 @@ local Workspace = game:GetService("Workspace")
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Dash = require(script.Parent.Dash)
 local DashButton = require(script.Parent.DashButton)
+local LobbyButtons = require(script.Parent.LobbyButtons)
+local LobbyConfig = require(ReplicatedStorage.Shared.Config.Lobby)
 local PlayerStats = require(script.Parent.Parent.PlayerStats)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local RunPaused = require(script.Parent.Parent.RunPaused)
@@ -65,6 +73,34 @@ local KEY_VECTORS: { [Enum.KeyCode]: Vector2 } = {
 local held: { [Enum.KeyCode]: boolean } = {}
 local stick = Vector2.zero
 local connections: { RBXScriptConnection } = {}
+
+--[[ The lobby's sprint: held keys, and a toggle (the gamepad's stick click,
+     the phone's SPRINT) that lasts until pressed again. ]]
+local SPRINT_KEYS: { [Enum.KeyCode]: boolean } = {
+	[Enum.KeyCode.LeftShift] = true,
+	[Enum.KeyCode.RightShift] = true,
+	[Enum.KeyCode.ButtonX] = true,
+}
+local sprintToggled = false
+--[[ The character whose Jumping state was last set here, and to what. ]]
+local jumpSetFor: Humanoid? = nil
+local jumpSetTo: boolean? = nil
+
+local function inLobby(): boolean
+	return Workspace:GetAttribute("InLobby") == true
+end
+
+local function sprinting(): boolean
+	if sprintToggled then
+		return true
+	end
+	for keyCode in SPRINT_KEYS do
+		if held[keyCode] then
+			return true
+		end
+	end
+	return false
+end
 
 --[[ Keyboard and stick are summed rather than prioritised, so a player on a
      laptop with a controller plugged in is never fighting a dead input. ]]
@@ -124,8 +160,9 @@ end
 ]]
 local function requestDash()
 	--[[ No dashing out from behind the cards either. The dash is the one
-	     input that would move the player far enough to matter. ]]
-	if RunPaused.get() then
+	     input that would move the player far enough to matter. Nor in the
+	     lobby, which jumps instead. ]]
+	if RunPaused.get() or inLobby() then
 		return
 	end
 
@@ -153,6 +190,24 @@ local function requestDash()
 	end
 end
 
+--[[ A jump, in the lobby only: Roblox's own, through the Humanoid. ]]
+local function requestJump()
+	local character = player.Character
+	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+	if humanoid and inLobby() and not RunPaused.get() then
+		humanoid.Jump = true
+	end
+end
+
+--[[ Space, A and the phone's button: a jump in the lobby, a dash in a run. ]]
+local function pressAction()
+	if inLobby() then
+		requestJump()
+	else
+		requestDash()
+	end
+end
+
 local function step()
 	local character = player.Character
 	if not character then
@@ -162,6 +217,17 @@ local function step()
 	local humanoid = character:FindFirstChildOfClass("Humanoid")
 	if not humanoid or humanoid.Health <= 0 then
 		return
+	end
+
+	--[[ The character's physics are this client's, so the Jumping state is
+	     switched here too, as the server switches the jump's height. ]]
+	local lobby = inLobby()
+	if jumpSetFor ~= humanoid or jumpSetTo ~= lobby then
+		jumpSetFor, jumpSetTo = humanoid, lobby
+		humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping, lobby)
+	end
+	if not lobby then
+		sprintToggled = false
 	end
 
 	--[[
@@ -218,6 +284,9 @@ local function step()
 	     the moment it was drafted. Faster while the cleared room's gate is
 	     open, which the server says (`ExitOpen`). ]]
 	local rush = if workspace:GetAttribute("ExitOpen") == true then Balance.Player.exitRush else 1
+	if lobby and sprinting() then
+		rush = LobbyConfig.sprint
+	end
 	humanoid.WalkSpeed = PlayerStats.get().moveSpeed * rush
 
 	-- World space, not camera-relative: the second argument must stay false.
@@ -230,6 +299,7 @@ end
 local function releaseAll()
 	table.clear(held)
 	stick = Vector2.zero
+	sprintToggled = false
 end
 
 function MoveController.start()
@@ -237,6 +307,9 @@ function MoveController.start()
 
 	Thumbstick.start()
 	DashButton.start(requestDash)
+	LobbyButtons.start(requestJump, function()
+		sprintToggled = not sprintToggled
+	end, sprinting)
 
 	--[[ A dash in flight must not survive a death: the cooldown belongs to the
 	     life that spent it, and a heading captured before a respawn points
@@ -256,16 +329,22 @@ function MoveController.start()
 				return
 			end
 
-			if KEY_VECTORS[input.KeyCode] then
+			if KEY_VECTORS[input.KeyCode] or SPRINT_KEYS[input.KeyCode] then
 				held[input.KeyCode] = true
+				return
+			end
+
+			if input.KeyCode == Enum.KeyCode.ButtonL3 and inLobby() then
+				sprintToggled = not sprintToggled
 				return
 			end
 
 			--[[ Space and the gamepad's bottom face button. Jumping was taken
 			     out of the run, which is what leaves space free — it is the
-			     key every player already reaches for to get out of the way. ]]
+			     key every player already reaches for to get out of the way.
+			     In the lobby, where nothing needs dodging, it jumps. ]]
 			if input.KeyCode == Enum.KeyCode.Space or input.KeyCode == Enum.KeyCode.ButtonA then
-				requestDash()
+				pressAction()
 			end
 		end)
 	)
@@ -275,7 +354,7 @@ function MoveController.start()
 	table.insert(
 		connections,
 		UserInputService.InputEnded:Connect(function(input)
-			if KEY_VECTORS[input.KeyCode] then
+			if KEY_VECTORS[input.KeyCode] or SPRINT_KEYS[input.KeyCode] then
 				held[input.KeyCode] = nil
 			end
 		end)
@@ -307,6 +386,7 @@ function MoveController.stop()
 	table.clear(connections)
 	Thumbstick.stop()
 	DashButton.stop()
+	LobbyButtons.stop()
 	Dash.reset()
 	Shove.reset()
 	releaseAll()

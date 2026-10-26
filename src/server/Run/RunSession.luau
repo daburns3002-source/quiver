@@ -22,6 +22,7 @@ local CurrentStage = require(ReplicatedStorage.Shared.Util.CurrentStage)
 local Economy = require(ReplicatedStorage.Shared.Config.Economy)
 local HeldWeaponChoice = require(ReplicatedStorage.Shared.Combat.HeldWeaponChoice)
 local Loadout = require(script.Parent.Loadout)
+local LobbyConfig = require(ReplicatedStorage.Shared.Config.Lobby)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
 local NewEnemies = require(ReplicatedStorage.Shared.Config.NewEnemies)
 local PetCombat = require(ReplicatedStorage.Shared.Config.PetCombat)
@@ -886,7 +887,7 @@ function RunSession.bindCharacter(session: Session, character: Model)
 		other live, and disabling the state stops the jump animation and the
 		freefall transition firing from anything that bypasses both.
 
-		The lobby is not a run and is free to re-enable all of this.
+		The lobby is not a run and re-enables all of this (`allowJump`).
 	]]
 	humanoid.JumpPower = 0
 	humanoid.JumpHeight = 0
@@ -902,6 +903,22 @@ function RunSession.bindCharacter(session: Session, character: Model)
 	session.stationarySince = nil
 
 	healthChanged:FireClient(session.player, session.health, session.maxHealth)
+end
+
+--[[ Jumping on in the lobby (owner, 2026-10-26: "let players sprint and
+     jump in the lobby"), off again for a run, the same three ways
+     `bindCharacter` takes it away. The client, which owns the character's
+     physics, enables the state on its side too (`Input/MoveController`). ]]
+function RunSession.allowJump(session: Session, allowed: boolean)
+	local humanoid = session.humanoid
+	if not humanoid then
+		return
+	end
+	local height = if allowed then LobbyConfig.jumpHeight else 0
+	humanoid.JumpHeight = height
+	-- the same jump in JumpPower's terms, v = sqrt(2 g h)
+	humanoid.JumpPower = math.sqrt(2 * Workspace.Gravity * height)
+	humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping, allowed)
 end
 
 function RunSession.unbindCharacter(session: Session)

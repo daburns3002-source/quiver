@@ -45,7 +45,7 @@ local Music = {
 	     needs some music"), scored to its frames by `story_theme.py` (cue times
 	     from `Config/Story`; re-render it whenever the frames' holds change), with
 	     King Bloblin's yawn mixed in on f03b. From the top on the first frame,
-	     once; paused while a frame is still loading, so it stays on its frames.
+	     once, never paused (a frame still loading keeps the one before it up).
 	     `assets/audio/music/story.ogg`, 45.6 s (uploaded as
 	     story_theme_upload). An empty id is silent. ]]
 	story = {

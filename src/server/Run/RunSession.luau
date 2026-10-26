@@ -18,6 +18,8 @@ local AbilityEffects = require(ReplicatedStorage.Shared.Combat.AbilityEffects)
 local Arena = require(script.Parent.Parent.Arena.Arena)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Classes = require(ReplicatedStorage.Shared.Config.Classes)
+local CurrentStage = require(ReplicatedStorage.Shared.Util.CurrentStage)
+local Economy = require(ReplicatedStorage.Shared.Config.Economy)
 local HeldWeaponChoice = require(ReplicatedStorage.Shared.Combat.HeldWeaponChoice)
 local Loadout = require(script.Parent.Loadout)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
@@ -26,6 +28,7 @@ local PetCombat = require(ReplicatedStorage.Shared.Config.PetCombat)
 local Pickups = require(script.Parent.Pickups)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local ShotPipeline = require(ReplicatedStorage.Shared.Combat.ShotPipeline)
+local Wallet = require(script.Parent.Parent.Data.Wallet)
 
 local log = Log.forTag("RunSession")
 
@@ -92,6 +95,9 @@ export type Session = {
 	battleCryUntil: number,
 	--[[ This stage's kills and when it began, for the end screen. ]]
 	stageKills: number,
+	--[[ This stage's payouts so far, for the end screen's REWARDS box. ]]
+	stageCoins: number,
+	stageGems: number,
 	stageStartedAt: number,
 	--[[ Still on the intro's title screen: the run holds until they press
 	     BEGIN ADVENTURE (`Remotes.IntroBegin`). ]]
@@ -221,6 +227,8 @@ function RunSession.create(player: Player): Session
 		battleCryStacks = 0,
 		battleCryUntil = 0,
 		stageKills = 0,
+		stageCoins = 0,
+		stageGems = 0,
 		stageStartedAt = os.clock(),
 		-- in Studio, `SkipIntro` on Workspace starts without the title (`Config/Intro`)
 		atTitle = not (RunService:IsStudio() and Workspace:GetAttribute("SkipIntro") == true),
@@ -489,6 +497,7 @@ end
 ]]
 function RunSession.onEnemyKilled(session: Session)
 	session.stageKills += 1
+	RunSession.payCoins(session, RunSession.areaPay().killCoins)
 	--[[ Battle Cry: a stack per kill, up to the cap; they lapse together
 	     `duration` seconds after the last kill. The attribute tells the
 	     client to play its cry. ]]
@@ -535,6 +544,39 @@ function RunSession.regenerate(deltaTime: number, now: number)
 			session.healthSentAt = now
 			healthChanged:FireClient(session.player, session.health, session.maxHealth)
 		end
+	end
+end
+
+--[[ The current stage's payouts (`Config/Economy`), all zero for a stage
+     with no area (the courtyards, the Moonlit Arena). ]]
+local NO_PAY: Economy.Area =
+	{ killCoins = 0, clearCoins = 0, bossItem = "", firstBossGems = 0, bossGems = 0 }
+
+function RunSession.areaPay(): Economy.Area
+	local area = CurrentStage.config().area
+	return area and Economy.areas[area] or NO_PAY
+end
+
+--[[ Coins into the player's saved wallet, counted for this stage's
+     summary. ]]
+function RunSession.payCoins(session: Session, amount: number)
+	if amount <= 0 then
+		return
+	end
+	session.stageCoins += amount
+	Wallet.addCoins(session.player, amount)
+end
+
+--[[ This stage's boss is beaten: every player in the run gets its item and
+     its gems (`Wallet.beatBoss`). ]]
+function RunSession.payBoss()
+	local area = CurrentStage.config().area
+	if not area then
+		return
+	end
+	for _, session in sessions do
+		local gems = Wallet.beatBoss(session.player, area)
+		session.stageGems += gems
 	end
 end
 
@@ -700,6 +742,8 @@ end
 function RunSession.newStage(session: Session)
 	session.revivesLeft = Balance.Revive.perStage
 	session.stageKills = 0
+	session.stageCoins = 0
+	session.stageGems = 0
 	session.stageStartedAt = os.clock()
 	session.invulnerableUntil = 0
 end

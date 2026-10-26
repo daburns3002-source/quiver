@@ -27,9 +27,16 @@ the player across the clearing, the lobby plays its Mossy Glade music, and the b
 "Lobby". The stations are scenery until their features are built. With several players in the
 server, the first to step into a portal takes everyone.
 
-**The art** (in progress): one Claude Design agent per group of pieces builds the kit to the
-sheet 1:1, bundled like an arena kit into `assets/models/lobby/lobby_kit` for one owner import;
-until then the clearing is lawn, dirt paths and invisible walls.
+**The art** (built, 2026-10-25): twenty Claude Design pieces (four agents: hatchery and campfire;
+blacksmith and gear station; dex hall and the portal pieces; the scenery), each compared with the
+sheet, in `assets/models/lobby/lobby_kit`, bundled with `kit_bundle.py --srgb` into
+`assets/models/lobby/lobby_kit_roblox.glb`, imported by the owner; their mesh ids are
+`Config/Lobby.pieces`. Placed and compared in Studio with `lobby_portal_rows.png`. Found on the
+way: the place's Baseplate (top at y = 0) reaches under the lobby's north half and fought the lawn
+in grey stripes, so the lawn and its floor stand 0.1 above it; the forest round the edge casts no
+shadow; the waterfall's and hatchery's glow is drawn lit but not Neon (Neon burned them white).
+Still apart from the sheet: the lawn has no flower pieces, and the blacksmith's roof hides most of
+its weapon rack from the game camera.
 
 ## What the lobby has to contain
 

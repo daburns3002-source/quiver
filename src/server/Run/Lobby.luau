@@ -26,6 +26,20 @@ local ORIGIN = LobbyConfig.origin
 local templates: { [string]: MeshPart } = {}
 local folder: Folder? = nil
 
+--[[ The forest round the edge casts no shadow: the lobby's low sun laid
+     its trees' and cliffs' shadows across the whole lawn in stripes,
+     which the sheet does not have. ]]
+local SHADOWLESS = { LobbyTree = true, CliffBlock = true, Waterfall = true }
+--[[ Glow that is drawn lit but not Neon: the waterfall's water and the
+     hatchery's moss and fountain burned white as Neon, where the sheet has
+     them blue and pale green. ]]
+local SOFT_GLOW = { Waterfall = true, EggHatchery = true }
+
+--[[ The lawn's top, a little above the place's Baseplate (whose top is
+     y = 0 and reaches under the lobby's north half): level with it, the
+     two flickered across the lawn in grey stripes. ]]
+local LAWN = 0.1
+
 local function world(at: Vector2, y: number?): Vector3
 	return ORIGIN + Vector3.new(at.X, y or 0, at.Y)
 end
@@ -111,6 +125,12 @@ local function piece(
 	part.CanTouch = false
 	part.Color = tint or spec.tint or Color3.new(1, 1, 1)
 	part.Material = Enum.Material.SmoothPlastic
+	part.CastShadow = not SHADOWLESS[name]
+	if name == "PortalSwirl" then
+		-- all glow, in its portal's colour
+		part.Material = Enum.Material.Neon
+		part.CastShadow = false
+	end
 	part.Parent = parent
 	local glow = spec.glow
 	if glow then
@@ -126,7 +146,7 @@ local function piece(
 			g.CanCollide = false
 			g.CanQuery = false
 			g.CanTouch = false
-			g.Material = Enum.Material.Neon
+			g.Material = if SOFT_GLOW[name] then Enum.Material.SmoothPlastic else Enum.Material.Neon
 			g.Color = tint or Color3.new(1, 1, 1)
 			g.CastShadow = false
 			g.Parent = parent
@@ -173,17 +193,17 @@ function Lobby.build(parent: Instance)
 			block(
 				"Tile",
 				Vector3.new(tile, 1, tile),
-				world(at, -0.5),
+				world(at, LAWN - 0.5),
 				LobbyConfig.lawn[rng:NextInteger(1, #LobbyConfig.lawn)],
 				root
 			)
 		end
 	end
-	-- a floor to stand on, under the tiles
+	-- a floor to stand on, level with the lawn the whole way across
 	local floor = block(
 		"Floor",
 		Vector3.new(LobbyConfig.size.X + 40, 1, LobbyConfig.size.Y + 40),
-		world(Vector2.zero, -1.5),
+		world(Vector2.zero, LAWN - 0.55),
 		nil,
 		root
 	)
@@ -198,11 +218,14 @@ function Lobby.build(parent: Instance)
 			for s = 0, steps do
 				local at = a:Lerp(b, s / steps)
 				table.insert(trail, at)
-				local side = 2 + rng:NextNumber() * 1.5
+				local side = 4 + rng:NextNumber() * 1.5
 				block(
 					"Dirt",
 					Vector3.new(side, 0.06, side),
-					world(at + Vector2.new(rng:NextNumber() - 0.5, rng:NextNumber() - 0.5), 0.03),
+					world(
+						at + Vector2.new(rng:NextNumber() - 0.5, rng:NextNumber() - 0.5),
+						LAWN + 0.03
+					),
 					LobbyConfig.dirt[rng:NextInteger(1, #LobbyConfig.dirt)],
 					root
 				)
@@ -227,44 +250,49 @@ function Lobby.build(parent: Instance)
 	end
 
 	-- the portal terraces, each row's arches, and steps up to the back row
+	local unit = LobbyConfig.scale
 	local rows = Lobby.rowOf(#LobbyConfig.portals)
-	local span = LobbyConfig.perRow * LobbyConfig.archSpacing
+	local platform = LobbyConfig.archLift * unit
+	local ahead = Vector2.new(0, LobbyConfig.terraceAhead * unit)
 	for row = 1, rows do
 		local centre, rise = rowCentre(row)
-		piece("PortalTerrace", centre, 0, 1, root, nil, rise)
-		if rise > 0 then
-			-- the raised terrace to stand on, and its steps between the front arches
-			block(
+		local size = piece("PortalTerrace", centre + ahead, 0, 1, root, nil, rise)
+		if size then
+			-- its platform, to stand on
+			local stand = block(
 				"TerraceFloor",
-				Vector3.new(span + 6, rise, 8),
-				world(centre + Vector2.new(0, 1), rise / 2),
+				Vector3.new(size.X, rise + platform, size.Z),
+				world(centre + ahead, (rise + platform) / 2),
 				nil,
 				root
-			).CanQuery =
-				true
+			)
+			stand.CanQuery = true
+		end
+		if rise > 0 then
+			-- steps up from the front row, behind its middle arches
 			for _, side in { -1, 1 } do
-				piece(
-					"PortalSteps",
-					centre + Vector2.new(side * LobbyConfig.archSpacing / 2, 6),
-					0,
-					1,
-					root
-				)
+				local at = centre
+					+ ahead
+					+ Vector2.new(side * LobbyConfig.archSpacing / 2, LobbyConfig.rowDepth / 2)
+				piece("PortalSteps", at, 0, 1, root, nil, platform)
 			end
 		end
 	end
 	for index, portal in LobbyConfig.portals do
 		local at = Lobby.archAt(index)
-		local _, lift = rowCentre(Lobby.rowOf(index))
+		local _, rise = rowCentre(Lobby.rowOf(index))
+		local lift = rise + platform
 		table.insert(taken, at)
 		piece("PortalArch", at, 0, 1, root, nil, lift)
 		if portal.stage then
-			piece("PortalSwirl", at, 0, 1, root, portal.tint, lift)
+			piece("PortalSwirl", at, 0, 1, root, portal.tint, lift + LobbyConfig.swirlLift * unit)
 			if portal.sign then
-				piece(portal.sign, at, 0, 1, root, nil, lift)
+				local sign = at + Vector2.new(0, LobbyConfig.signAhead * unit)
+				piece(portal.sign, sign, 0, 1, root, nil, lift + LobbyConfig.signLift * unit)
 			end
 		else
-			piece("PortalLock", at, 0, 1, root, nil, lift)
+			local lock = at + Vector2.new(0, LobbyConfig.lockAhead * unit)
+			piece("PortalLock", lock, 0, 1, root, nil, lift)
 		end
 	end
 	-- nobody walks behind the back row
@@ -309,7 +337,7 @@ function Lobby.build(parent: Instance)
 				(rng:NextNumber() * 2 - 1) * (half.X - 4),
 				(rng:NextNumber() * 2 - 1) * (half.Y - 4)
 			)
-			if near(at, taken, 12) or near(at, trail, 3) or at.Y < LobbyConfig.terrace.Y + 6 then
+			if near(at, taken, 15) or near(at, trail, 4.5) or at.Y < LobbyConfig.terrace.Y + 6 then
 				continue
 			end
 			piece(name, at, rng:NextNumber() * math.pi * 2, 0.8 + rng:NextNumber() * 0.5, root)

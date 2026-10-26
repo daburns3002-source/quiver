@@ -69,4 +69,47 @@ return function(t: TestRunner.Helper)
 		t.isFalse(IntroTimeline.pose(c, pressed, pressed).done)
 		t.isTrue(IntroTimeline.pose(c, pressed + Intro.leave, pressed).done)
 	end)
+
+	t.test("each title picture is a full grid of tiles, its water and leaves on the art", function()
+		for key, art in Intro.pictures :: { [string]: any } do
+			t.equal(#art.tiles, art.cols * art.rows, key)
+			-- a tile of the 2x enlargement stays inside Roblox's 1024 px limit
+			t.isTrue(art.width * 2 / art.cols <= 1024 and art.height * 2 / art.rows <= 1024, key)
+			local box = art.water.box
+			t.isTrue(box.x >= 0 and box.y >= 0, key)
+			t.isTrue(box.x + box.w <= art.width and box.y + box.h <= art.height, key)
+			local from = art.leavesFrom
+			t.isTrue(from.x + from.w <= art.width and from.y + from.h <= art.height, key)
+		end
+		t.isTrue(Intro.pictures.portrait.height > Intro.pictures.portrait.width)
+		t.isTrue(Intro.pictures.landscape.width > Intro.pictures.landscape.height)
+	end)
+
+	t.test(
+		"on a full-screen computer the title fills the screen; on an ultrawide it shows whole",
+		function()
+			local art = Intro.pictures.landscape
+			local function fills(w: number, h: number): boolean
+				local scale, x, y =
+					IntroTimeline.fit(art.width, art.height, w, h, Intro.maxCrop, Intro.cropTop)
+				return x <= 0.5
+					and y <= 0.5
+					and art.width * scale + x >= w - 0.5
+					and art.height * scale + y >= h - 0.5
+			end
+			for _, screen in
+				{ { 1920, 1080 }, { 2560, 1440 }, { 1366, 768 }, { 1920, 1200 }, { 1440, 900 } }
+			do
+				t.isTrue(fills(screen[1], screen[2]), `{screen[1]}x{screen[2]}`)
+			end
+			-- 21:9: filling would crop a quarter of the picture, so it stays whole
+			local scale =
+				IntroTimeline.fit(art.width, art.height, 2560, 1080, Intro.maxCrop, Intro.cropTop)
+			t.near(scale, 1080 / art.height, 1e-6)
+			-- a crop of its height comes mostly off the bottom, so the logo stays
+			local _, _, y =
+				IntroTimeline.fit(art.width, art.height, 2000, 1000, Intro.maxCrop, Intro.cropTop)
+			t.isTrue(y <= 0 and -y < 0.05 * 1000)
+		end
+	)
 end

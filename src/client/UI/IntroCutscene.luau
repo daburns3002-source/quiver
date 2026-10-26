@@ -21,6 +21,7 @@
 	moment for a Studio capture. Presentation only.
 ]]
 
+local ContentProvider = game:GetService("ContentProvider")
 local GuiService = game:GetService("GuiService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -44,6 +45,13 @@ local SHINE = Color3.fromRGB(140, 222, 110)
 local FOOT = Color3.fromRGB(40, 120, 34)
 local STUD = Color3.fromRGB(255, 210, 63)
 
+type Set = {
+	art: any,
+	picture: Frame,
+	backdrop: Frame,
+	motion: TitleMotion.Motion,
+}
+
 type Parts = {
 	gui: ScreenGui,
 	safe: ScreenGui,
@@ -51,9 +59,9 @@ type Parts = {
 	presents: TextLabel,
 	presentsSub: TextLabel,
 	presentsScale: UIScale,
-	picture: Frame,
-	backdrop: Frame,
-	motion: TitleMotion.Motion,
+	--[[ Each of `Intro.pictures` (landscape, portrait), built once; the one
+	     that fits the screen's shape shows. ]]
+	sets: { [string]: Set },
 	shade: Frame,
 	flash: Frame,
 	button: TextButton,
@@ -127,7 +135,11 @@ local function buildButton(safe: ScreenGui): ButtonParts
 	group.Name = "BeginAdventure"
 	group.AnchorPoint = Vector2.new(0.5, 1)
 	group.Position = UDim2.new(0.5, 0, 1, -16)
-	group.Size = UDim2.fromScale(if phone then 0.5 else 0.3, 1)
+	-- an upright screen (a phone) gets a button most of its width, over the phone art
+	local camera = workspace.CurrentCamera
+	local viewport = if camera then camera.ViewportSize else Vector2.new(1280, 720)
+	local upright = viewport.Y > viewport.X
+	group.Size = UDim2.fromScale(if upright then 0.8 elseif phone then 0.5 else 0.3, 1)
 	group.BackgroundTransparency = 1
 	group.ZIndex = 20
 	group.Parent = safe
@@ -225,7 +237,9 @@ local function build(playerGui: PlayerGui): Parts
 	safe.DisplayOrder = 111
 	safe.Parent = playerGui
 
-	local black = rect(gui, "Black", Color3.new(0, 0, 0), 1)
+	-- under everything, the picture's tiles too, until the title leaves:
+	-- nothing of the game shows through a tile still loading
+	local black = rect(gui, "Black", Color3.new(0, 0, 0), 0)
 	black.Size = UDim2.fromScale(1, 1)
 	black.Active = true
 
@@ -265,17 +279,13 @@ local function build(playerGui: PlayerGui): Parts
 	subFit.MaxTextSize = 26
 	subFit.Parent = sub
 
-	--[[ The whole picture shows at the screen's height, so neither the logo
-	     at its top nor the heroes at its bottom are ever cut off; on a screen
-	     wider than it (most computers and phones), the bars at its sides are
-	     the same picture stretched to cover and darkened. ]]
-	local p = Intro.picture
-	--[[ The halves meet at the source's middle, each showing only its own
-	     side of it (the overlap is cut off by `ImageRect`), so they never
-	     double up where they meet as they fade. `pose` sizes them in whole
-	     pixels so no hairline shows between them. ]]
-	local middle = p.width / 2
-	local function halves(name: string, z: number): Frame
+	--[[ The whole picture shows at the screen's height (or width), so neither
+	     the logo at its top nor the heroes at its bottom are ever cut off; on
+	     a screen of another shape, the bars at its sides are the same picture
+	     stretched to cover and darkened. Each picture is a grid of tiles
+	     (`Intro.pictures`), which `pose` sizes in whole pixels so no hairline
+	     shows between them. ]]
+	local function tiles(art: any, name: string, z: number): Frame
 		local holder = Instance.new("Frame")
 		holder.Name = name
 		holder.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -284,25 +294,31 @@ local function build(playerGui: PlayerGui): Parts
 		holder.Visible = false
 		holder.ZIndex = z
 		holder.Parent = gui
-		for _, side in { "left", "right" } do
+		for index, id in art.tiles do
 			local image = Instance.new("ImageLabel")
-			image.Name = if side == "left" then "Left" else "Right"
+			image.Name = `Tile{index}`
 			image.BackgroundTransparency = 1
-			image.Image = (p :: any)[side]
-			image.ImageRectOffset =
-				Vector2.new(if side == "left" then 0 else middle - p.rightFrom, 0)
-			image.ImageRectSize = Vector2.new(middle, p.height)
+			image.Image = id
 			image.ZIndex = z
 			image.Parent = holder
 		end
 		return holder
 	end
-	local backdrop = halves("Backdrop", 1)
-	local dim = rect(backdrop, "Dim", Color3.new(0, 0, 0), 2)
-	dim.Size = UDim2.fromScale(1, 1)
-	dim.BackgroundTransparency = Intro.sidesDim
-	dim.ZIndex = 2
-	local picture = halves("Picture", 3)
+	local sets: { [string]: Set } = {}
+	for key, art in Intro.pictures :: { [string]: any } do
+		local backdrop = tiles(art, `Backdrop_{key}`, 1)
+		local dim = rect(backdrop, "Dim", Color3.new(0, 0, 0), 2)
+		dim.Size = UDim2.fromScale(1, 1)
+		dim.BackgroundTransparency = Intro.sidesDim
+		dim.ZIndex = 2
+		local picture = tiles(art, `Picture_{key}`, 3)
+		sets[key] = {
+			art = art,
+			picture = picture,
+			backdrop = backdrop,
+			motion = TitleMotion.build(picture, art),
+		}
+	end
 
 	-- the bottom darkens a little under the button
 	local shade = rect(gui, "Shade", Color3.new(0, 0, 0), 6)
@@ -329,9 +345,7 @@ local function build(playerGui: PlayerGui): Parts
 		presents = presents,
 		presentsSub = sub,
 		presentsScale = presentsScale,
-		picture = picture,
-		backdrop = backdrop,
-		motion = TitleMotion.build(picture),
+		sets = sets,
 		shade = shade,
 		flash = flash,
 		button = made.button,
@@ -374,6 +388,19 @@ end
      `Intro.musicWait`), so its hit lands on the cut, then starts the clock
      and the music on the same frame. ]]
 local function startClock(built: Parts)
+	-- the title's tiles load during the black screen, ready for the cut
+	task.spawn(function()
+		local ids = {}
+		for _, art in Intro.pictures :: { [string]: any } do
+			for _, id in art.tiles do
+				table.insert(ids, id)
+			end
+			table.insert(ids, art.water.image)
+		end
+		pcall(function()
+			ContentProvider:PreloadAsync(ids)
+		end)
+	end)
 	local sound = loadMusic()
 	if sound and not sound.IsLoaded then
 		local deadline = os.clock() + Intro.musicWait
@@ -415,33 +442,48 @@ local function pose(t: number)
 	p.presents.TextTransparency = 1 - now.presents
 	p.presentsSub.TextTransparency = 1 - now.presents
 	p.presentsScale.Scale = now.presentsScale
-	p.black.BackgroundTransparency = if now.revealed then 1 else fade
+	p.black.BackgroundTransparency = fade
 
 	local size = p.gui.AbsoluteSize
-	local c = Intro.picture
-	local function place(holder: Frame, scale: number)
-		local wide = math.floor(c.width * scale + 0.5)
-		local tall = math.floor(c.height * scale + 0.5)
-		holder.Visible = now.revealed
+	-- the picture whose shape fits: the phone art on a screen taller than wide
+	local showing = if size.Y > size.X then "portrait" else "landscape"
+	local function place(set: Set, holder: Frame, scale: number, x: number?, y: number?)
+		local art = set.art
+		local wide = math.floor(art.width * scale + 0.5)
+		local tall = math.floor(art.height * scale + 0.5)
 		holder.Size = UDim2.fromOffset(wide, tall)
-		local left = holder:FindFirstChild("Left") :: ImageLabel
-		local right = holder:FindFirstChild("Right") :: ImageLabel
-		local split = math.floor(wide / 2)
-		left.Size = UDim2.fromOffset(split, tall)
-		right.Position = UDim2.fromOffset(split, 0)
-		right.Size = UDim2.fromOffset(wide - split, tall)
-		left.ImageTransparency = fade
-		right.ImageTransparency = fade
+		if x and y then
+			holder.AnchorPoint = Vector2.zero
+			holder.Position = UDim2.fromOffset(math.floor(x + 0.5), math.floor(y + 0.5))
+		end
+		for index = 1, #art.tiles do
+			local tile = holder:FindFirstChild(`Tile{index}`) :: ImageLabel
+			local col, row = (index - 1) % art.cols, (index - 1) // art.cols
+			local x0, x1 = wide * col // art.cols, wide * (col + 1) // art.cols
+			local y0, y1 = tall * row // art.rows, tall * (row + 1) // art.rows
+			tile.Position = UDim2.fromOffset(x0, y0)
+			tile.Size = UDim2.fromOffset(x1 - x0, y1 - y0)
+			tile.ImageTransparency = fade
+		end
 	end
-	-- the whole picture, as large as fits; the sides, covered
-	place(p.picture, math.min(size.X / c.width, size.Y / c.height))
-	place(p.backdrop, math.max(size.X / c.width, size.Y / c.height))
-	-- the water and the falling leaves, from the moment the picture appears
-	if now.revealed then
-		TitleMotion.step(p.motion, t - Intro.revealAt, fade)
+	for key, set in p.sets do
+		local shown = now.revealed and key == showing
+		set.picture.Visible = shown
+		set.backdrop.Visible = shown
+		if not shown then
+			continue
+		end
+		local art = set.art
+		-- the picture filling the screen if a small crop does it, else whole; the sides, covered
+		local scale, x, y =
+			IntroTimeline.fit(art.width, art.height, size.X, size.Y, Intro.maxCrop, Intro.cropTop)
+		place(set, set.picture, scale, x, y)
+		place(set, set.backdrop, math.max(size.X / art.width, size.Y / art.height))
+		-- the water and the falling leaves, from the moment the picture appears
+		TitleMotion.step(set.motion, t - Intro.revealAt, fade)
+		local dim = set.backdrop:FindFirstChild("Dim") :: Frame
+		dim.BackgroundTransparency = Intro.sidesDim + (1 - Intro.sidesDim) * fade
 	end
-	local dim = p.backdrop:FindFirstChild("Dim") :: Frame
-	dim.BackgroundTransparency = Intro.sidesDim + (1 - Intro.sidesDim) * fade
 
 	p.shade.Visible = now.revealed
 	p.shade.BackgroundTransparency = fade

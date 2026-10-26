@@ -69,6 +69,33 @@ function IntroTimeline.pose(c: Config, t: number, pressedAt: number?): Pose
 	}
 end
 
+--[[ How the title picture sits on a screen: its scale, and where its
+     top-left corner goes (pixels from the screen's). It fills the screen
+     when that crops no more than `maxCrop` of the picture in either
+     direction (owner, 2026-10-26: "make sure the archer legends title fits
+     in a normal computer sized ratio when full screen on a pc"), cropping
+     a too-tall picture `topShare` from its top and the rest from its
+     bottom, so the logo stays; otherwise it shows whole, centred, with
+     bars. ]]
+function IntroTimeline.fit(
+	artW: number,
+	artH: number,
+	screenW: number,
+	screenH: number,
+	maxCrop: number,
+	topShare: number
+): (number, number, number)
+	local cover = math.max(screenW / artW, screenH / artH)
+	local whole = math.min(screenW / artW, screenH / artH)
+	local cropW = 1 - screenW / (artW * cover)
+	local cropH = 1 - screenH / (artH * cover)
+	local scale = if math.max(cropW, cropH) <= maxCrop then cover else whole
+	local w, h = artW * scale, artH * scale
+	local x = (screenW - w) / 2
+	local y = if h > screenH then -(h - screenH) * topShare else (screenH - h) / 2
+	return scale, x, y
+end
+
 --[[ Whether a press at `t` counts: only once the button is up. ]]
 function IntroTimeline.canPress(c: Config, t: number): boolean
 	return t >= c.buttonAt

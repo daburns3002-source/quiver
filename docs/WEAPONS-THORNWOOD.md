@@ -40,9 +40,21 @@ all fifteen side by side in `contact_sheet.png` there.
 | Rare | Plum Burr Bow | Burr Totem Staff | Plumguard Blade |
 | Epic | Lurker Vine Bow | Lurker Crest Staff | Burrcrest Blade |
 | Legendary | Silkweaver Bow | Silk Diadem Staff | Silkbound Blade |
-| Mythic | Prism Thistle Bow | Rainbow Burr Staff | Crownspike Blade |
+| Mythic | Ironwrath Bow | Ruinmaul Staff | Havocjaw Blade |
 
 ---
+
+**The Mythics are the masculine set** (owner, 2026-10-26: "the mythic
+weapons for this one should be masculine and really cool. the gladeheart
+mythics are cool for area 1 and are more feminine. i want a more masculine
+design for these ones"). Area 1's Glade Spirit Bow, Worldroot Staff and
+Gladeheart Blade are elegant (flowers, leaves, pastel sparkle); Thornwood's
+are their opposite: heavy and angular, in blackened bramble wood, dark iron
+and obsidian, with tusks, thorn spikes and a fierce boar-head emblem, and
+their Mythic rainbow is fierce energy (cracks, runes, edge glow, flame-like
+wisps). Redesigned and renamed by Codex the same day; the first drafts
+(Prism Thistle Bow, Rainbow Burr Staff, Crownspike Blade) are kept as
+`*_old_views.png`.
 
 ## Ranger — bows
 
@@ -71,14 +83,18 @@ fine violet silk ribbons.
 (Web Snare: hits slow 30% for 2 s, refreshed by further hits; bosses slowed
 less.)
 
-**Prism Thistle Bow** (Mythic) `prism_thistle_bow_views.png`.
-Broad plum limbs in stepped thistle shapes, big cream thorn plates sweeping
-out from an olive-gold grip; the string, magenta inset crystals and limb
-edges glow rainbow.
-*Projectile:* a faceted magenta thorn arrow with a rainbow ribbon trail.
-*Effect:* "Thistle arrows: every third hit bursts into thorns around the
-target." (Thorn Burst: 60% weapon damage to the target and enemies near it;
-a burst cannot set off another.)
+**Ironwrath Bow** (Mythic) `ironwrath_bow_views.png`.
+A massive recurve war bow: thick angular limbs of blackened bramble wood
+armoured in dark iron plates, ivory tusk hooks at the tips, jagged cream
+thorn spikes along the limbs, a fierce iron boar-head emblem above the
+leather grip. Rainbow energy burns through cracks in the limbs and the
+emblem's eyes; the string is rainbow light; flame-like rainbow wisps stream
+off the tips.
+*Projectile:* a heavy black arrow with a barbed obsidian head, a blazing
+rainbow core and a short jagged rainbow trail.
+*Effect:* "Thistle arrows: every third hit erupts into jagged thorns around
+the target." (Thorn Burst: 60% weapon damage to the target and enemies near
+it; a burst cannot set off another.)
 
 ## Arcanist — staffs
 
@@ -109,15 +125,17 @@ glowing gold squares.
 (Root Hold: the first enemy the fourth orb hits is held 1 s; bosses are
 slowed 40% instead. Can reuse `Shared/Util/RootHold`.)
 
-**Rainbow Burr Staff** (Mythic) `rainbow_burr_staff_views.png`.
-A straight olive-gold shaft holding a large plum burr frame of six blunt
-cream spikes round a floating rainbow prism orb, a rainbow halo ring round
-the head; the orb, shaft inlays and the purple pointed foot glow rainbow; a maroon wrap keeps the handhold clear.
-*Projectile:* a rainbow prism cube trailing rainbow voxel squares (as drawn;
-close to the Worldroot Staff's, so a candidate for a redraw).
-*Effect:* "Burr spores: every orb leaves a stacking poison on its target."
-(Spore Poison: each hit adds a stack of 30% weapon damage over 3 s, up to
-five; cheerful green bubbles; poison sets off no other hit effects.)
+**Ruinmaul Staff** (Mythic) `ruinmaul_staff_views.png`.
+A long straight shaft of blackened bramble wood bound in dark iron, a pointed
+iron foot, and on top a heavy squared mace-like head of dark iron and
+obsidian with ivory tusk flanges and cream thorn spikes, plum and olive-gold
+trim. Carved runes blaze rainbow and rainbow fire vents from cracks in the
+head.
+*Projectile:* a dense obsidian orb with burr studs and molten rainbow
+cracks, trailing a tight tongue of rainbow flame.
+*Effect:* "Burr blight: every orb poisons its target, stacking with repeated
+hits." (Each stack 30% weapon damage over 3 s, up to five; poison sets off no
+other hit effects.)
 
 ## Warden — blades
 
@@ -145,14 +163,16 @@ purple pommel. The rune and silk seams glow.
 (Boar Rush: the third-blow slam pushes enemies in its area back 8 studs;
 bosses resist; walls stop them.)
 
-**Crownspike Blade** (Mythic) `crownspike_blade_views.png`.
-A broad straight plum greatsword, two thick cream edge rails framing a column
-of big magenta crystal plates; an olive-gold crown-shaped crossguard,
-maroon-wrapped grip, gold block pommel. The crystals, edges and pommel inset
-glow rainbow.
-*Effect:* "Crown cracks: the slam makes struck enemies take more damage."
-(Crystal Fracture: enemies the slam hits take 30% more damage from players
-and pets for 4 s; refreshes, does not stack.)
+**Havocjaw Blade** (Mythic) `havocjaw_blade_views.png`.
+A very broad cleaver-like greatsword: a flat black obsidian blade with a thick
+dark-iron spine, angular cream thorn teeth along the back edge, plum inlays;
+the crossguard a fierce iron boar head whose ivory tusks sweep up the blade;
+leather grip, heavy iron pommel with a rainbow gem. Rainbow energy sears
+through cracks across the blade and runs the whole cutting edge, flaring
+into flame-like wisps.
+*Effect:* "Ruin cracks: the slam makes struck enemies take more damage."
+(Enemies the slam hits take 30% more damage from players and pets for 4 s;
+refreshes, does not stack.)
 
 ## Open decisions (the owner's)
 

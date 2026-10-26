@@ -34,7 +34,7 @@ palette), and `contact_sheet.png` shows all ten.
 | # | Wilf | Area | Act | Look | Action pose |
 |---|---|---|---|---|---|
 | 1 | **Ember Wilf** | Mossy Glade | 1 · The Wilds | ginger and cream, ember-glowing ear and tail tips, a gold leaf tag | zoomies |
-| 2 | **Bramble Wilf** | Thornwood | 1 | forest green and bark brown, a collar of blunt thorns, red berries | pounce |
+| 2 | **Bramble Wilf** | Thornwood | 1 | ashy bramble-bark grey-brown, ivory mask, chest and front-right sock, a ridge of purple thorns, lilac tail tip (recoloured 2026-10-26, `PETS-THORNWOOD.md`) | pounce |
 | 3 | **Tide Wilf** | Drowned Village | 2 · The Lowlands | sea teal and foam white, fin ears and tail, sailor neckerchief, anchor tag | splash |
 | 4 | **Glowcap Wilf** | Bogheart Caverns | 2 | bog purple and moss, glowing cyan mushroom caps along its back | spore sneeze |
 | 5 | **Gale Wilf** | Windswept Cliffs | 3 · The Heights | sky blue and cloud white, little feather wings, a wind-swirl tail, goggles | glide |

@@ -14,7 +14,9 @@
 	Built like the Blacksmith's shop (`UI/ShopScreen`): blocky wood boxes
 	with an ink border, every word in the blocky font (rule 11), buttons
 	still until hovered or pressed. The boss pictures are the boss banners'
-	Codex icons (`Config/BossBanners`), their first frame.
+	Codex icons (`Config/BossBanners`), their first frame. On a screen taller
+	than it is wide (a phone, held upright) the level cards stack as rows,
+	picture beside words, instead of standing side by side.
 ]]
 
 local GuiService = game:GetService("GuiService")
@@ -61,6 +63,18 @@ local portalIndex: number? = nil
 local picked = 1
 local starting = false
 local slots: { Slot } = {}
+local levelRow: Frame? = nil
+local levelList: UIListLayout? = nil
+--[[ Whether the cards are laid as rows, for an upright screen. ]]
+local rows = false
+
+--[[ Where a piece of a card goes, as {x, y, w, h} shares of the card: `tall`
+     for a card standing in a row of them, `wide` for one of a stack. ]]
+local function put(item: GuiObject, tall: { number }, wide: { number })
+	local at = if rows then wide else tall
+	item.Position = UDim2.fromScale(at[1], at[2])
+	item.Size = UDim2.fromScale(at[3], at[4])
+end
 
 local function rect(parent: Instance, name: string, colour: Color3, z: number): Frame
 	local f = Instance.new("Frame")
@@ -182,16 +196,17 @@ local function fill(index: number)
 			end
 		end
 		local title = label(f, `LEVEL {i}`, if stage then GOLD else GREY, 14, 24)
-		title.Position = UDim2.fromScale(0.05, 0.04)
-		title.Size = UDim2.fromScale(0.9, 0.12)
+		put(title, { 0.05, 0.04, 0.9, 0.12 }, { 0.36, 0.08, 0.6, 0.22 })
+		if rows then
+			title.TextXAlignment = Enum.TextXAlignment.Left
+		end
 		if stage then
 			f.BackgroundColor3 = PLANK
 			local pic = Instance.new("ImageLabel")
 			pic.Name = "Boss"
 			pic.BackgroundTransparency = 1
 			pic.ScaleType = Enum.ScaleType.Fit
-			pic.Position = UDim2.fromScale(0.1, 0.18)
-			pic.Size = UDim2.fromScale(0.8, 0.42)
+			put(pic, { 0.1, 0.18, 0.8, 0.42 }, { 0.03, 0.08, 0.3, 0.84 })
 			pic.ZIndex = 14
 			pic.Parent = f
 			if banner and banner.icon ~= "" then
@@ -202,16 +217,17 @@ local function fill(index: number)
 				pic.ImageRectSize = Vector2.new(cell, cell)
 			end
 			local boss = label(f, if banner then string.upper(banner.name) else "", WHITE, 14, 16)
-			boss.Position = UDim2.fromScale(0.05, 0.61)
-			boss.Size = UDim2.fromScale(0.9, 0.09)
+			put(boss, { 0.05, 0.61, 0.9, 0.09 }, { 0.36, 0.34, 0.6, 0.16 })
 			local rooms = label(f, `{#(stage.rooms or {})} ROOMS`, WHITE, 14, 16)
-			rooms.Position = UDim2.fromScale(0.05, 0.72)
-			rooms.Size = UDim2.fromScale(0.9, 0.08)
+			put(rooms, { 0.05, 0.72, 0.9, 0.08 }, { 0.36, 0.52, 0.6, 0.13 })
+			if rows then
+				boss.TextXAlignment = Enum.TextXAlignment.Left
+				rooms.TextXAlignment = Enum.TextXAlignment.Left
+			end
 			local p2 = profile
 			local cleared = p2 ~= nil and stage.area ~= nil and p2.bossesBeaten[stage.area] == true
 			local chip, chipFace = box(f, "Status", if cleared then GOLD else GREEN, 14)
-			chip.Position = UDim2.fromScale(0.12, 0.83)
-			chip.Size = UDim2.fromScale(0.76, 0.12)
+			put(chip, { 0.12, 0.83, 0.76, 0.12 }, { 0.36, 0.7, 0.5, 0.22 })
 			local words = label(chipFace, if cleared then "CLEARED" else "UNLOCKED", WHITE, 16, 16)
 			words.Position = UDim2.fromScale(0.05, 0.15)
 			words.Size = UDim2.fromScale(0.9, 0.7)
@@ -222,13 +238,14 @@ local function fill(index: number)
 			lock.BackgroundTransparency = 1
 			lock.ScaleType = Enum.ScaleType.Fit
 			lock.Image = ShopAssets.lock
-			lock.Position = UDim2.fromScale(0.25, 0.25)
-			lock.Size = UDim2.fromScale(0.5, 0.4)
+			put(lock, { 0.25, 0.25, 0.5, 0.4 }, { 0.08, 0.15, 0.2, 0.7 })
 			lock.ZIndex = 14
 			lock.Parent = f
 			local soon = label(f, "COMING SOON", GREY, 14, 16)
-			soon.Position = UDim2.fromScale(0.05, 0.75)
-			soon.Size = UDim2.fromScale(0.9, 0.1)
+			put(soon, { 0.05, 0.75, 0.9, 0.1 }, { 0.36, 0.45, 0.6, 0.2 })
+			if rows then
+				soon.TextXAlignment = Enum.TextXAlignment.Left
+			end
 		end
 	end
 end
@@ -331,12 +348,11 @@ local function build(playerGui: PlayerGui)
 	list.SortOrder = Enum.SortOrder.LayoutOrder
 	list.Padding = UDim.new(0.03, 0)
 	list.Parent = row
-	local share = (1 - 0.03 * (LobbyConfig.levelSlots - 1)) / LobbyConfig.levelSlots
+	levelRow, levelList = row, list
 	table.clear(slots)
 	for i = 1, LobbyConfig.levelSlots do
 		local card, face = box(row, `Level{i}`, PLANK, 10)
 		card.LayoutOrder = i
-		card.Size = UDim2.fromScale(share, 1)
 		local b = hit(card, 20)
 		local slot: Slot = { frame = card, face = face, button = b, level = nil }
 		b.Activated:Connect(function()
@@ -365,6 +381,25 @@ function PortalScreen.isOpen(): boolean
 	return screen ~= nil and screen.Enabled
 end
 
+--[[ Lays the level cards out for the screen's shape: side by side, or
+     stacked as rows on an upright screen. ]]
+local function layCards(screen: ScreenGui)
+	local row, list = levelRow, levelList
+	if not row or not list then
+		return
+	end
+	local view = screen.AbsoluteSize
+	rows = view.Y > view.X
+	local share = (1 - 0.03 * (LobbyConfig.levelSlots - 1)) / LobbyConfig.levelSlots
+	list.FillDirection = if rows then Enum.FillDirection.Vertical else Enum.FillDirection.Horizontal
+	list.VerticalAlignment = Enum.VerticalAlignment.Center
+	for _, slot in slots do
+		slot.frame.Size = if rows then UDim2.fromScale(1, share) else UDim2.fromScale(share, 1)
+	end
+	-- stacked, the cards take the panel's height down to START
+	row.Size = UDim2.fromScale(0.92, if rows then 0.5 else 0.48)
+end
+
 --[[ Opens portal `index`'s screen, as if the server had sent it: for the
      server's message, and for a Studio capture. ]]
 function PortalScreen.open(index: number)
@@ -373,6 +408,7 @@ function PortalScreen.open(index: number)
 	if not screen or not portal or not portal.levels then
 		return
 	end
+	layCards(screen)
 	if portalIndex ~= index then
 		picked = 1
 	end

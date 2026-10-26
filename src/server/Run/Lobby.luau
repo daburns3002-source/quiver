@@ -25,6 +25,7 @@ local Lobby = {}
 local ORIGIN = LobbyConfig.origin
 local templates: { [string]: MeshPart } = {}
 local folder: Folder? = nil
+local leaderboardFace: Part? = nil
 
 --[[ The forest round the edge casts no shadow: the lobby's low sun laid
      its trees' and cliffs' shadows across the whole lawn in stripes,
@@ -185,11 +186,11 @@ function Lobby.build(parent: Instance)
 
 	-- the lawn
 	local tile = LobbyConfig.tile
-	local across = math.ceil((LobbyConfig.size.X + 24) / tile)
-	local deep = math.ceil((LobbyConfig.size.Y + 24) / tile)
+	local across = math.ceil((LobbyConfig.size.X + 48) / tile)
+	local deep = math.ceil((LobbyConfig.size.Y + 48) / tile)
 	for i = 0, across - 1 do
 		for j = 0, deep - 1 do
-			local at = Vector2.new(-half.X - 12 + (i + 0.5) * tile, -half.Y - 12 + (j + 0.5) * tile)
+			local at = Vector2.new(-half.X - 24 + (i + 0.5) * tile, -half.Y - 24 + (j + 0.5) * tile)
 			block(
 				"Tile",
 				Vector3.new(tile, 1, tile),
@@ -202,7 +203,7 @@ function Lobby.build(parent: Instance)
 	-- a floor to stand on, level with the lawn the whole way across
 	local floor = block(
 		"Floor",
-		Vector3.new(LobbyConfig.size.X + 40, 1, LobbyConfig.size.Y + 40),
+		Vector3.new(LobbyConfig.size.X + 80, 1, LobbyConfig.size.Y + 80),
 		world(Vector2.zero, LAWN - 0.55),
 		nil,
 		root
@@ -214,11 +215,11 @@ function Lobby.build(parent: Instance)
 	for _, path in LobbyConfig.paths do
 		for k = 1, #path - 1 do
 			local a, b = path[k], path[k + 1]
-			local steps = math.max(1, math.floor((b - a).Magnitude / 2))
+			local steps = math.max(1, math.floor((b - a).Magnitude / 4))
 			for s = 0, steps do
 				local at = a:Lerp(b, s / steps)
 				table.insert(trail, at)
-				local side = 4 + rng:NextNumber() * 1.5
+				local side = 8 + rng:NextNumber() * 3
 				block(
 					"Dirt",
 					Vector3.new(side, 0.06, side),
@@ -241,8 +242,8 @@ function Lobby.build(parent: Instance)
 		if size and station.piece ~= "SpawnCampfire" then
 			block(
 				"StationWall",
-				Vector3.new(size.X * 0.9, 8, size.Z * 0.8),
-				world(station.at, 4),
+				Vector3.new(size.X * 0.9, 16, size.Z * 0.8),
+				world(station.at, 8),
 				nil,
 				root
 			)
@@ -283,10 +284,14 @@ function Lobby.build(parent: Instance)
 		local _, rise = rowCentre(Lobby.rowOf(index))
 		local lift = rise + platform
 		table.insert(taken, at)
-		piece("PortalArch", at, 0, 1, root, nil, lift)
+		-- its area's own arch, its name built in; the plain one until imported
+		local themed = portal.arch and piece(portal.arch, at, 0, 1, root, nil, lift)
+		if not themed then
+			piece("PortalArch", at, 0, 1, root, nil, lift)
+		end
 		if portal.stage then
 			piece("PortalSwirl", at, 0, 1, root, portal.tint, lift + LobbyConfig.swirlLift * unit)
-			if portal.sign then
+			if portal.sign and not themed then
 				local sign = at + Vector2.new(0, LobbyConfig.signAhead * unit)
 				piece(portal.sign, sign, 0, 1, root, nil, lift + LobbyConfig.signLift * unit)
 			end
@@ -295,12 +300,38 @@ function Lobby.build(parent: Instance)
 			piece("PortalLock", lock, 0, 1, root, nil, lift)
 		end
 	end
+	-- the characters, the codex books and their lecterns
+	for _, prop in LobbyConfig.props do
+		piece(prop.piece, prop.at, prop.yaw or 0, 1, root, nil, prop.lift)
+		table.insert(taken, prop.at)
+	end
+
+	-- the leaderboard, and the face its names are written on
+	local board = LobbyConfig.leaderboard
+	piece("Leaderboard", board.at, 0, 1, root)
+	table.insert(taken, board.at)
+	local face = Instance.new("Part")
+	face.Name = "LeaderboardFace"
+	face.Anchored = true
+	face.CanCollide = false
+	face.CanQuery = false
+	face.CanTouch = false
+	face.CastShadow = false
+	face.Material = Enum.Material.SmoothPlastic
+	face.Color = Color3.fromRGB(28, 24, 22)
+	face.Size = Vector3.new(board.face.size.X * unit, board.face.size.Y * unit, 0.2)
+	-- turned so its Front (where a SurfaceGui draws) faces the clearing
+	face.CFrame = CFrame.new(world(board.at, 0) + board.face.centre * unit)
+		* CFrame.Angles(0, math.pi, 0)
+	face.Parent = root
+	leaderboardFace = face
+
 	-- nobody walks behind the back row
 	local back = rowCentre(rows)
 	block(
 		"TerraceWall",
-		Vector3.new(LobbyConfig.size.X, 10, 4),
-		world(back + Vector2.new(0, -4), 5),
+		Vector3.new(LobbyConfig.size.X, 20, 8),
+		world(back + Vector2.new(0, -12), 10),
 		nil,
 		root
 	)
@@ -318,12 +349,12 @@ function Lobby.build(parent: Instance)
 		piece(kind, at, rng:NextNumber() * math.pi * 2, 0.85 + rng:NextNumber() * 0.4, root)
 	end
 	for x = -half.X, half.X, spacing do
-		ring(Vector2.new(x, -half.Y - 6))
-		ring(Vector2.new(x, half.Y + 6))
+		ring(Vector2.new(x, -half.Y - 12))
+		ring(Vector2.new(x, half.Y + 12))
 	end
 	for z = -half.Y, half.Y, spacing do
-		ring(Vector2.new(-half.X - 6, z))
-		ring(Vector2.new(half.X + 6, z))
+		ring(Vector2.new(-half.X - 12, z))
+		ring(Vector2.new(half.X + 12, z))
 	end
 
 	-- the lawn's scatter, clear of the stations, portals and paths
@@ -334,10 +365,10 @@ function Lobby.build(parent: Instance)
 				break
 			end
 			local at = Vector2.new(
-				(rng:NextNumber() * 2 - 1) * (half.X - 4),
-				(rng:NextNumber() * 2 - 1) * (half.Y - 4)
+				(rng:NextNumber() * 2 - 1) * (half.X - 8),
+				(rng:NextNumber() * 2 - 1) * (half.Y - 8)
 			)
-			if near(at, taken, 15) or near(at, trail, 4.5) or at.Y < LobbyConfig.terrace.Y + 6 then
+			if near(at, taken, 30) or near(at, trail, 9) or at.Y < LobbyConfig.terrace.Y + 12 then
 				continue
 			end
 			piece(name, at, rng:NextNumber() * math.pi * 2, 0.8 + rng:NextNumber() * 0.5, root)
@@ -346,32 +377,32 @@ function Lobby.build(parent: Instance)
 	end
 
 	-- the walls round the clearing
-	local wall = 4
+	local wall = 8
 	block(
 		"WallNorth",
-		Vector3.new(LobbyConfig.size.X + 2 * wall, 12, wall),
-		world(Vector2.new(0, -half.Y - wall / 2), 6),
+		Vector3.new(LobbyConfig.size.X + 2 * wall, 24, wall),
+		world(Vector2.new(0, -half.Y - wall / 2), 12),
 		nil,
 		root
 	)
 	block(
 		"WallSouth",
-		Vector3.new(LobbyConfig.size.X + 2 * wall, 12, wall),
-		world(Vector2.new(0, half.Y + wall / 2), 6),
+		Vector3.new(LobbyConfig.size.X + 2 * wall, 24, wall),
+		world(Vector2.new(0, half.Y + wall / 2), 12),
 		nil,
 		root
 	)
 	block(
 		"WallWest",
-		Vector3.new(wall, 12, LobbyConfig.size.Y),
-		world(Vector2.new(-half.X - wall / 2, 0), 6),
+		Vector3.new(wall, 24, LobbyConfig.size.Y),
+		world(Vector2.new(-half.X - wall / 2, 0), 12),
 		nil,
 		root
 	)
 	block(
 		"WallEast",
-		Vector3.new(wall, 12, LobbyConfig.size.Y),
-		world(Vector2.new(half.X + wall / 2, 0), 6),
+		Vector3.new(wall, 24, LobbyConfig.size.Y),
+		world(Vector2.new(half.X + wall / 2, 0), 12),
 		nil,
 		root
 	)
@@ -390,7 +421,7 @@ end
 function Lobby.portalFor(position: Vector3): number?
 	for index, portal in LobbyConfig.portals do
 		if portal.stage then
-			local mouth = world(Lobby.archAt(index) + Vector2.new(0, 2))
+			local mouth = world(Lobby.archAt(index) + Vector2.new(0, LobbyConfig.mouthAhead))
 			local flat = Vector3.new(position.X - mouth.X, 0, position.Z - mouth.Z)
 			if flat.Magnitude <= LobbyConfig.portalReach then
 				return portal.stage
@@ -404,6 +435,11 @@ end
 function Lobby.contains(position: Vector3): boolean
 	local relative = position - ORIGIN
 	return math.abs(relative.X) < LobbyConfig.size.X and math.abs(relative.Z) < LobbyConfig.size.Y
+end
+
+--[[ The leaderboard's face, for `Run/StoryLeaderboard` to write on. ]]
+function Lobby.leaderboardFace(): Part?
+	return leaderboardFace
 end
 
 function Lobby.folder(): Folder?

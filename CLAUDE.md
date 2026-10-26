@@ -305,6 +305,10 @@ and the boss's item every time it falls plus gems, more the first time; the end 
 box shows the stage's take. Any schema change bumps `SaveSchema.VERSION` with a migration and a
 `SaveSchema.spec` case.
 
+**Empty hands in the lobby** (owner, 2026-10-25): the server holds no weapon while `InLobby`
+(`Main.refreshWeapon`, `HeldWeapon.unequip`) and `Fx/WeaponPose` writes no pose there, so
+Roblox's own animation has the arms; the weapon comes back as a run starts.
+
 **The weapon shop** (owner, 2026-10-25; `Config/Shop`, `Util/ShopRules`, `Server/Data/Shop`,
 `UI/ShopScreen`): at the lobby's Blacksmith, SHOP (or E) opens CRATES, STORE and MY WEAPONS.
 A crate per area for coins (500, 1,000, 2,000, 4,000, 10,000, 20,000) rolls on the server

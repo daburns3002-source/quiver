@@ -45,6 +45,7 @@ local RunSession = require(script.Parent.Run.RunSession)
 local Sandbox = require(ReplicatedStorage.Shared.Config.Sandbox)
 local UpgradeEffects = require(script.Parent.Fx.UpgradeEffects)
 local Wallet = require(script.Parent.Data.Wallet)
+local WeaponShop = require(script.Parent.Data.Shop)
 
 local log = Log.forTag("Server")
 
@@ -54,6 +55,7 @@ log.info("%s v%s booting", Game.Name, Game.Version)
      each player is told their wallet once it is in. ]]
 PlayerData.onLoaded(Wallet.send)
 PlayerData.start()
+WeaponShop.start()
 
 --[[
 	Where Roblox drops a character on join and on respawn.

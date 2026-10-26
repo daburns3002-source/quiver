@@ -294,6 +294,17 @@ and the boss's item every time it falls plus gems, more the first time; the end 
 box shows the stage's take. Any schema change bumps `SaveSchema.VERSION` with a migration and a
 `SaveSchema.spec` case.
 
+**The weapon shop** (owner, 2026-10-25; `Config/Shop`, `Util/ShopRules`, `Server/Data/Shop`,
+`UI/ShopScreen`): at the lobby's Blacksmith, SHOP (or E) opens CRATES, STORE and MY WEAPONS.
+A crate per area for coins (500, 1,000, 2,000, 4,000, 10,000, 20,000) rolls on the server
+(Uncommon 60, Rare 28, Epic 11, Mythic 1) one of that area's weapons; a weapon already owned
+pays back 40%; areas with no weapons yet are black silhouettes. The store sells an area's
+weapons for gems by rarity, its Legendaries for coins and 3 of its boss's item; Mythics only
+come out of crates. EQUIP holds an owned weapon (its class with it), saved, in hand at once in
+the lobby. Every weapon picture is the 2D Codex icon (`Config/ShopAssets`,
+`assets/ui/shop/cutout.py`); a new weapon needs one (`Shop.spec`). Studio test remote:
+`Remotes.DebugWallet:FireServer(coins, gems, itemsEach)`.
+
 **Revive** (`Balance.Revive`): once per stage, automatically, after Second
 Wind — full health, 2.5 s untouchable behind a gold shield, and enemy shots
 within 12 studs cleared.

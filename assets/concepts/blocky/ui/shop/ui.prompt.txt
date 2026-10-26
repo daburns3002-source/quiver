@@ -1,0 +1,7 @@
+Use case: 2D game UI icons. Generate ONE square 1024x1024 image: a 3-column by 2-row grid of six icons on a FLAT, PURE MAGENTA background (#FF00FF) everywhere, no borders, no panels, no text, no labels, wide magenta gaps between them. Chunky blocky voxel style like the attached reference (small cubes with soft bevels, saturated colours, soft polished render, a dark outline so each reads on any background). Each icon whole and centred in its cell, filling about 80% of it, seen from a three-quarter view. Order, left to right, top row first:
+1 MOSSY GLADE WEAPON CRATE: a big sturdy wooden treasure crate with gold corner brackets and a gold lock plate, moss and little leaves growing on its lid, a green leaf emblem on the front, a faint golden glow leaking from the lid seam.
+2 COIN: a single thick gold coin, slightly tilted, with a leaf stamped on it and a bright shine.
+3 GEM: a single faceted cyan-blue gem crystal, bright and sparkling.
+4 ROYAL JELLY: a small glowing jar of amber-green slime jelly with a tiny gold crown on the lid (King Bloblin's trophy).
+5 BROOD SILK: a glowing spool of pale lilac spider silk with a small magenta crystal pinned to it (the Broodmother's trophy).
+6 A small golden padlock.

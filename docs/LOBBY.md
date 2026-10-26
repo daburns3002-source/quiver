@@ -6,14 +6,27 @@ The lobby is the first thing a new player sees and the room they return to betwe
 It carries the art direction, so unlike every other phase it gets its art pass **in-phase**
 rather than waiting for Phase 8.
 
-## Status: blocked
+## Status: building (2026-10-25)
 
-Nothing has been built. Two things are missing before work can start:
+**The design** is the owner's pick: layout C, "Three Groves", without the egg breeder
+(`assets/concepts/blocky/lobby/lobby_three_groves.png`; the other options beside it). A forest
+clearing in the Mossy Glade's style: the Egg Hatchery in the west grove; the Blacksmith, Gear
+Station and Dex Hall in the east grove; the campfire spawn in the middle; the portal terrace
+across the north edge with the Mossy Glade and Thornwood portals lit and three locked arches for
+the areas to come; trees, cliffs and waterfalls round the edge.
 
-1. **The reference images.** They have been described but not shared into the project. Drop
-   them in `assets/reference/lobby/` and they become the spec.
-2. **The Studio MCP connection.** Without it I cannot build geometry in Studio, run a playtest,
-   or take the screenshots the review standard below depends on. See `docs/SETUP.md`.
+**The flow** (built): BEGIN ADVENTURE puts players at the campfire; walking into a lit portal
+starts that area's run (Mossy Glade: the Mossy Glade Run; Thornwood: Level 2); every run, won or
+lost, ends back at the campfire (the end screen's button). Data in `Config/Lobby`, built by
+`Run/Lobby`, the run's state `Lobby` in `Run/RoomController` (`beginStage`, `inLobby`), the stage
+a portal picked published as the Workspace's `Stage` (`Util/CurrentStage`). The camera follows
+the player across the clearing, the lobby plays its Mossy Glade music, and the banner reads
+"Lobby". The stations are scenery until their features are built. With several players in the
+server, the first to step into a portal takes everyone.
+
+**The art** (in progress): one Claude Design agent per group of pieces builds the kit to the
+sheet 1:1, bundled like an arena kit into `assets/models/lobby/lobby_kit` for one owner import;
+until then the clearing is lawn, dirt paths and invisible walls.
 
 ## What the lobby has to contain
 

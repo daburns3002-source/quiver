@@ -69,10 +69,73 @@ local Intro = {
 	--[[ How dark the side bars are on a screen wider than the picture
 	     (the picture stretched to cover behind it): 0 black, 1 not dimmed. ]]
 	sidesDim = 0.45,
-	--[[ Once the picture is up nothing on it moves (owner, 2026-10-25: "the
-	     screen should not move at all after it fully appears"): no zoom,
-	     drift, light shafts or motes; only the cut's flash and the button
-	     rising in. ]]
+	--[[ The picture itself never moves (owner, 2026-10-25: "the screen should
+	     not move at all after it fully appears"), but a couple of things on
+	     it do, very minimally (owner, 2026-10-26: "i want the water in the
+	     river to be moving, leaves falling from the ... mossy glade part",
+	     the left side). Drawn by `UI/TitleMotion` in the picture's own
+	     pixels (`picture.width` x `picture.height`), so they sit on the art
+	     at any screen size. ]]
+	motion = {
+		--[[ The ponds' own pixels, brightened (`assets/ui/intro/water.py`),
+		     shown through a soft band of light that slides across them, and
+		     small glints that drift along the water from `spots`. ]]
+		water = {
+			image = "rbxassetid://105351049677009",
+			box = { x = 640, y = 547, w = 855, h = 175 },
+			-- seconds for the band to cross, and how strong it is at its middle
+			period = 5,
+			strength = 0.7,
+			glintEvery = 0.7,
+			glintLife = 1.4,
+			glintDrift = 10,
+			spots = {
+				{ 655, 601 },
+				{ 674, 590 },
+				{ 677, 582 },
+				{ 686, 610 },
+				{ 689, 606 },
+				{ 691, 567 },
+				{ 693, 591 },
+				{ 699, 607 },
+				{ 706, 610 },
+				{ 712, 616 },
+				{ 1205, 690 },
+				{ 1246, 686 },
+				{ 1355, 678 },
+				{ 1361, 683 },
+				{ 1365, 675 },
+				{ 1374, 707 },
+				{ 1377, 703 },
+				{ 1402, 697 },
+				{ 1409, 694 },
+				{ 1414, 701 },
+				{ 1425, 696 },
+				{ 1483, 699 },
+			},
+		},
+		--[[ The Mossy Glade's own ambience leaves (`Fx/ForestAmbience`: small
+		     flat leaves in `Balance.Ambience.Forest.leafColors`, fluttering),
+		     a few at a time, falling straight down from the Mossy Glade tree
+		     on the left, then fading (owner, 2026-10-26: "they should just fall
+		     straight down and it should be the leaves like the ambience in
+		     mossy glade"). `size` is a leaf's length in title pixels; it is
+		     0.45 / 0.7 as wide, as the ambience's leaf is. ]]
+		leaves = {
+			spawnEvery = 2.2,
+			most = 4,
+			size = { 12, 16 },
+			life = { 5, 7 },
+			fall = { 45, 65 },
+			-- flips a second as it flutters
+			flutter = { 1.2, 2 },
+			-- where they start: under the canopy of the Mossy Glade tree at the
+			-- top left, in title pixels (owner: "from the mossy glade trees")
+			from = {
+				{ x = 10, y = 60, w = 230, h = 150 },
+			},
+		},
+	},
 
 	--[[ The button's colours: the end screens' green. ]]
 	buttonColour = Color3.fromRGB(70, 176, 58),

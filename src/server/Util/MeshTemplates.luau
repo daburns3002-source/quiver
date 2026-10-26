@@ -20,8 +20,13 @@ local log = Log.forTag("MeshTemplates")
 local MeshTemplates = {}
 
 --[[ A template for every id in `ids`, keyed by id. A mesh that fails to
-     load is warned about and left out; callers fall back without it. ]]
-function MeshTemplates.load(ids: { string }): { [string]: MeshPart }
+     load is warned about and left out; callers fall back without it. Its
+     collision is its bounding box, or its true shape for an id in
+     `precise` (a piece players walk on, like the lobby's campfire paving). ]]
+function MeshTemplates.load(
+	ids: { string },
+	precise: { [string]: boolean }?
+): { [string]: MeshPart }
 	local templates: { [string]: MeshPart } = {}
 	local wanted: { [string]: boolean } = {}
 	for _, id in ids do
@@ -37,7 +42,9 @@ function MeshTemplates.load(ids: { string }): { [string]: MeshPart }
 		task.spawn(function()
 			local ok, result = pcall(function()
 				return AssetService:CreateMeshPartAsync(id, {
-					CollisionFidelity = Enum.CollisionFidelity.Box,
+					CollisionFidelity = if precise and precise[id]
+						then Enum.CollisionFidelity.PreciseConvexDecomposition
+						else Enum.CollisionFidelity.Box,
 					RenderFidelity = Enum.RenderFidelity.Automatic,
 				})
 			end)

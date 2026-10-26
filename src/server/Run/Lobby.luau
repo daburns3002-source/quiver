@@ -49,6 +49,10 @@ local SOLID = {
 	Lectern = true,
 	Rock = true,
 }
+--[[ Pieces a player walks up onto, solid in their true shape rather than a
+     box (owner, 2026-10-26: "the stone and stairs around the fireplace in
+     the middle are still not solid"): the campfire's paving and steps. ]]
+local WALKED_ON: { [string]: boolean } = { SpawnCampfire = true }
 --[[ The campfire's fire ring, studs across, that a player cannot walk into;
      the paving round it stays walkable. ]]
 local FIRE_RING = 15
@@ -190,7 +194,9 @@ local function piece(
 	part.CFrame = CFrame.new(world(at, (lift or 0) + size.Y / 2))
 		* CFrame.Angles(0, yaw + math.pi, 0)
 	part.Anchored = true
-	part.CanCollide = SOLID[name] == true or string.sub(name, 1, 10) == "PortalArch"
+	part.CanCollide = SOLID[name] == true
+		or WALKED_ON[name] == true
+		or string.sub(name, 1, 10) == "PortalArch"
 	part.CanQuery = false
 	part.CanTouch = false
 	part.Color = tint or spec.tint or Color3.new(1, 1, 1)
@@ -243,7 +249,15 @@ function Lobby.build(parent: Instance)
 			table.insert(ids, spec.glow.meshId)
 		end
 	end
-	templates = MeshTemplates.load(ids)
+	-- pieces walked on get their true shape to stand on
+	local precise: { [string]: boolean } = {}
+	for name in WALKED_ON do
+		local spec = LobbyConfig.pieces[name]
+		if spec then
+			precise[spec.meshId] = true
+		end
+	end
+	templates = MeshTemplates.load(ids, precise)
 
 	local existing = parent:FindFirstChild("Lobby")
 	if existing then

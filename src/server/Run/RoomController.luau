@@ -30,6 +30,7 @@ local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Burning = require(script.Parent.Parent.Combat.Burning)
 local CurrentStage = require(ReplicatedStorage.Shared.Util.CurrentStage)
 local EnemyManager = require(script.Parent.Parent.Enemies.EnemyManager)
+local Lobby = require(script.Parent.Lobby)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
 local MeleeSystem = require(script.Parent.Parent.Combat.MeleeSystem)
 local PetCombat = require(script.Parent.Parent.Combat.PetCombat)
@@ -186,6 +187,7 @@ local function enterRoom(position: number)
 	local room = Balance.Rooms[rooms[position]]
 
 	buildArena(room)
+	RunSession.setRoom(position)
 	Arena.setDoorLabel(if position < total() then tostring(position + 1) else "")
 	EnemyManager.spawnWave(room.enemyCount, room.roster)
 	-- the Mossback Snail's shell is up once a room
@@ -237,6 +239,8 @@ local function startStage()
 	for _, session in RunSession.all() do
 		RunSession.newStage(session)
 	end
+	-- the tutorial's fixed hands, class and pool (`Config/Tutorial`)
+	RunSession.setTutorial(current.tutorial == true)
 
 	if current.mode == "Waves" then
 		jumped = false
@@ -468,6 +472,26 @@ function RoomController.requestRestart(): boolean
 		return false
 	end
 
+	--[[ The tutorial won: on to the lobby, where the portals start the
+	     campaign's runs (`Config/Tutorial`). ]]
+	if state == "Complete" and stage().tutorial then
+		for _, session in RunSession.all() do
+			RunSession.resetRun(session)
+		end
+		RunSession.setTutorial(false)
+		resumeAt = nil
+		state = "Lobby"
+		broadcast()
+		for _, session in RunSession.all() do
+			local character = session.character
+			if character then
+				Lobby.place(character)
+			end
+		end
+		log.info("tutorial won: to the lobby")
+		return true
+	end
+
 	if state == "Complete" then
 		stageIndex = CurrentStage.nextAfter(Balance.campaign, stageIndex)
 		workspace:SetAttribute(CurrentStage.ATTRIBUTE, stageIndex)
@@ -534,7 +558,7 @@ function RoomController.step(now: number)
 			--[[ Its item and gems, as the boss falls (owner, 2026-10-25:
 			     "the boss drop is guaranteed every time"). A Rooms stage
 			     ends in its boss. ]]
-			if stage().mode == "Rooms" then
+			if stage().mode == "Rooms" and not stage().tutorial then
 				RunSession.payBoss()
 			end
 		end
@@ -559,6 +583,8 @@ function RoomController.step(now: number)
 
 		collectAt = nil
 		RunSession.collectCrystals()
+		-- a tutorial room that must level up does, before its gate opens
+		RunSession.levelUpIfOwed()
 		return
 	end
 

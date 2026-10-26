@@ -1159,6 +1159,10 @@ export type StageConfig = {
 	     `EndScreenAssets.chests` keys it: the chest Victory shows. Nil is
 	     the Mossy Glade. ]]
 	area: string?,
+	--[[ The tutorial (`Config/Tutorial`): fixed upgrade hands, the tutorial's
+	     class, no Legendary or Mythic, no boss pay, and on to the lobby when
+	     it is won. ]]
+	tutorial: boolean?,
 }
 
 export type RoomConfig = {
@@ -1190,6 +1194,74 @@ export type RoomConfig = {
 	keeps having to re-learn where standing still is safe rather than settling
 	into one position that always works.
 ]]
+--[[
+	The tutorial's five rooms (owner, 2026-10-25: "a 5 room level. it should
+	only have the lowest moss enemy and the spitter"), after `rooms` as 81-85
+	so the room generators, which rewrite their own runs of `rooms`, never
+	touch them. Mossy Glade layouts from the run's first rooms. Sized so the
+	level-ups land in rooms 1, 2 and 3 (`Config/Tutorial`): 30, 34 and 44 XP
+	against level costs of 28, 35 and 44.
+]]
+local tutorialRooms: { RoomConfig } = {
+	{
+		-- three Moss Slimes: learn to move and to stand still to shoot
+		name = "Tutorial 1",
+		arena = "GladeLogs",
+		obstacles = {
+			{ offset = Vector2.new(8.75, -11.49), size = Vector3.new(9, 2.8, 3.5) },
+			{ offset = Vector2.new(-8.75, -11.49), size = Vector3.new(9, 2.8, 3.5) },
+		},
+		enemyCount = 3,
+		roster = { meleeCharger },
+	},
+	{
+		-- the Sprout Spitter's debut, beside two slimes
+		name = "Tutorial 2",
+		arena = "GladeLogs",
+		obstacles = {
+			{ offset = Vector2.new(0, 3.84), size = Vector3.new(11, 2.8, 3.5) },
+			{ offset = Vector2.new(8.13, -12.58), size = Vector3.new(3.75, 1.5, 3.75) },
+			{ offset = Vector2.new(-8.13, -12.58), size = Vector3.new(3.75, 1.5, 3.75) },
+		},
+		enemyCount = 3,
+		roster = { meleeCharger, meleeCharger, spreadShooter },
+	},
+	{
+		-- the Legendary room: Multishot comes on its level-up
+		name = "Tutorial 3",
+		arena = "GladeLogs",
+		obstacles = {
+			{ offset = Vector2.new(9.06, -14.16), size = Vector3.new(3.3, 1.5, 3.3) },
+			{ offset = Vector2.new(-9.06, -14.16), size = Vector3.new(3.3, 1.5, 3.3) },
+		},
+		enemyCount = 4,
+		roster = { meleeCharger, meleeCharger, meleeCharger, spreadShooter },
+	},
+	{
+		name = "Tutorial 4",
+		arena = "GladeLogs",
+		obstacles = {
+			{ offset = Vector2.new(-10, 0.21), size = Vector3.new(3.4, 0.4, 3.4) },
+			{ offset = Vector2.new(0, 0.21), size = Vector3.new(3.4, 0.4, 3.4) },
+			{ offset = Vector2.new(10, 0.21), size = Vector3.new(6.8, 0.4, 3.4) },
+		},
+		enemyCount = 4,
+		roster = { meleeCharger, spreadShooter },
+	},
+	{
+		name = "Tutorial 5",
+		arena = "GladeLogs",
+		obstacles = {
+			{ offset = Vector2.new(5.54, 10.57), size = Vector3.new(7, 2.8, 3.5) },
+			{ offset = Vector2.new(-5.54, 10.57), size = Vector3.new(7, 2.8, 3.5) },
+			{ offset = Vector2.new(5.13, -3.51), size = Vector3.new(3.2, 3.2, 3.2) },
+			{ offset = Vector2.new(-5.13, -3.51), size = Vector3.new(3.2, 3.2, 3.2) },
+		},
+		enemyCount = 5,
+		roster = { meleeCharger, meleeCharger, spreadShooter },
+	},
+}
+
 local rooms: { RoomConfig } = {
 	{
 		name = "Open Ground",
@@ -2709,7 +2781,14 @@ local Balance = {
 		},
 	},
 
-	Rooms = rooms,
+	--[[ The rooms, then the tutorial's five (81-85). ]]
+	Rooms = (function(): { RoomConfig }
+		local all = table.clone(rooms)
+		for _, room in tutorialRooms do
+			table.insert(all, room)
+		end
+		return all
+	end)(),
 
 	--[[ Global light. Bright and even after the footage, nothing important
 	     ever in shadow, and a soft bloom so glowing things glow (switched
@@ -2813,7 +2892,23 @@ local Balance = {
 			enemyHealth = 0.8,
 			area = "MossyGlade",
 		},
+		{
+			--[[ The tutorial (`Config/Tutorial`), after the story cutscene:
+			     five easy Mossy Glade rooms of Moss Slimes and Sprout
+			     Spitters, no boss. ]]
+			name = "Tutorial",
+			mode = "Rooms",
+			rooms = { 81, 82, 83, 84, 85 },
+			enemyDamage = 0.5,
+			enemyHealth = 0.6,
+			area = "MossyGlade",
+			tutorial = true,
+		},
 	} :: { StageConfig },
+
+	--[[ The tutorial stage, played after the story cutscene and won into the
+	     lobby (`Config/Tutorial`). ]]
+	tutorialStage = 6,
 
 	--[[ Which stage the first run plays: the Mossy Glade run. Level 2,
 	     Thornwood, is 4; Level 1 is 3. ]]

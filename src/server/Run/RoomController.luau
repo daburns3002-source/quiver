@@ -38,6 +38,8 @@ local ProjectileSystem = require(script.Parent.Parent.Combat.ProjectileSystem)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local RunSession = require(script.Parent.RunSession)
 local Sandbox = require(ReplicatedStorage.Shared.Config.Sandbox)
+local StoryLeaderboard = require(script.Parent.StoryLeaderboard)
+local StoryProgress = require(ReplicatedStorage.Shared.Util.StoryProgress)
 local Waves = require(script.Parent.Waves)
 
 local log = Log.forTag("Run")
@@ -66,6 +68,10 @@ local progress = 1
 --[[ The Studio sandbox (`enterSandbox`): the run stands still around
      training dummies until it is left. ]]
 local sandbox = false
+--[[ The stage was started part-way through, in Studio (`Sandbox.startRoom`,
+     `debugEnterRoom`): its clears are not a real run, so the leaderboard
+     is not told of them. ]]
+local jumped = false
 local state: State = "Lobby"
 --[[ `os.clock()` at which the pending transition fires, or nil when the run is
      waiting on the player rather than on a clock. ]]
@@ -111,6 +117,27 @@ end
 --[[ Lights or puts out the exit gate, and tells every client whether it is
      open: while it is, players walk at `Balance.Player.exitRush` times
      their speed, so the walk to the gate after a clear is quick. ]]
+--[[ How far through the story everyone in the run now is, for the
+     FARTHEST ADVENTURERS board (`Run/StoryLeaderboard`): the campaign's
+     earlier stages and this one's rooms up to the one just cleared. A stage
+     outside the campaign, the sandbox and a Studio jump record nothing. ]]
+local function recordStory()
+	if sandbox or jumped then
+		return
+	end
+	local score = StoryProgress.score(Balance.campaign, Balance.Stages, stageIndex, progress)
+	if not score then
+		return
+	end
+	--[[ A later area's portal can be walked into straight from the lobby:
+	     its rooms count only for a player who has already come that far,
+	     so nobody is credited with areas they skipped. ]]
+	local start = StoryProgress.score(Balance.campaign, Balance.Stages, stageIndex, 0) or 0
+	for _, session in RunSession.all() do
+		StoryLeaderboard.record(session.player, score, start)
+	end
+end
+
 local function setDoorOpen(open: boolean)
 	Arena.setDoorOpen(open)
 	workspace:SetAttribute("ExitOpen", open)
@@ -212,6 +239,7 @@ local function startStage()
 	end
 
 	if current.mode == "Waves" then
+		jumped = false
 		buildArena(Balance.Rooms[current.arena or 1])
 		startWave(1)
 	else
@@ -220,6 +248,7 @@ local function startStage()
 		local first = if RunService:IsStudio() and Sandbox.startRoom
 			then math.clamp(Sandbox.startRoom, 1, total())
 			else 1
+		jumped = first > 1
 		enterRoom(first)
 	end
 end
@@ -259,6 +288,7 @@ function RoomController.debugEnterRoom(position: number)
 		return
 	end
 	RunSession.holdOffers(false)
+	jumped = true
 	enterRoom(position)
 end
 
@@ -326,6 +356,7 @@ local function complete(now: number)
 	end
 	resumeAt = now + Balance.Run.deathPause
 	setDoorOpen(false)
+	recordStory()
 	log.info("run complete")
 	broadcast()
 	sendSummary(true)
@@ -484,6 +515,7 @@ function RoomController.step(now: number)
 
 		state = "Cleared"
 		resumeAt = now + Balance.Waves.pause
+		recordStory()
 		broadcast()
 		return
 	end
@@ -494,6 +526,7 @@ function RoomController.step(now: number)
 		end
 
 		state = "Cleared"
+		recordStory()
 		--[[ The area's last fight (its boss) is won: no card for the levels
 		     its crystals bring; they are dealt in the next stage. ]]
 		if progress >= total() then

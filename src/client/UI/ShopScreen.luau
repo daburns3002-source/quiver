@@ -32,6 +32,7 @@ local LobbyConfig = require(ReplicatedStorage.Shared.Config.Lobby)
 local Purse = require(ReplicatedStorage.Shared.Util.Purse)
 local Rarities = require(ReplicatedStorage.Shared.Config.Rarities)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
+local Sandbox = require(ReplicatedStorage.Shared.Config.Sandbox)
 local SaveSchema = require(ReplicatedStorage.Shared.Util.SaveSchema)
 local Shop = require(ReplicatedStorage.Shared.Config.Shop)
 local ShopAssets = require(ReplicatedStorage.Shared.Config.ShopAssets)
@@ -50,8 +51,9 @@ local GOLD = Color3.fromRGB(255, 206, 74)
 local WHITE = Color3.new(1, 1, 1)
 local GREEN = Color3.fromRGB(70, 176, 58)
 local GREY = Color3.fromRGB(96, 92, 88)
---[[ Studs from the Blacksmith within which SHOP shows. ]]
-local REACH = 14
+--[[ Studs from the Blacksmith's centre within which SHOP shows: past its
+     front, where its smith sits, now the lobby is twice the size. ]]
+local REACH = 28
 
 -- "Crates", "Store" or "Weapons"
 type Tab = string
@@ -793,8 +795,22 @@ function ShopScreen.start()
 		end
 	end)
 
+	--[[ Studio only (`Sandbox.openShop`): open by itself the first time the
+	     player is in the lobby, past the story cutscene, wallet topped up. ]]
+	local autoOpen = if RunService:IsStudio() then Sandbox.openShop else nil
 	RunService.RenderStepped:Connect(function()
 		poseButtons()
+		local fill = autoOpen
+		if
+			fill
+			and Workspace:GetAttribute("InLobby") == true
+			and not player.PlayerGui:FindFirstChild("StoryCutscene")
+			and not player.PlayerGui:FindFirstChild("IntroCutscene")
+		then
+			autoOpen = nil
+			Remotes.event(Remotes.DebugWallet):FireServer(fill.coins, fill.gems, fill.items)
+			ShopScreen.open()
+		end
 		-- not over the story cutscene that plays in the lobby after BEGIN ADVENTURE
 		local story = player.PlayerGui:FindFirstChild("StoryCutscene")
 		local inLobby = Workspace:GetAttribute("InLobby") == true and story == nil

@@ -67,7 +67,7 @@ return function(t: TestRunner.Helper)
 		t.isTrue(Lobby.portalFor(spawn) == nil, "the spawn is inside a portal")
 		for index, portal in LobbyConfig.portals do
 			local at = Lobby.archAt(index)
-			local mouth = origin + Vector3.new(at.X, 3, at.Y + 2)
+			local mouth = origin + Vector3.new(at.X, 3, at.Y + LobbyConfig.mouthAhead)
 			t.equal(Lobby.portalFor(mouth), portal.stage)
 		end
 	end)

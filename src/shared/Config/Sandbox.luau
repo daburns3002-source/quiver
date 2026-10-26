@@ -21,6 +21,11 @@ local Sandbox = {
 	     not 20"); it was 40 for the Broodmother. Never honoured in a live
 	     server. ]]
 	startRoom = nil :: number?,
+	--[[ Studio only: the Blacksmith's shop opens by itself on arriving in
+	     the lobby, with this much in the wallet to try it (owner,
+	     2026-10-25: "let me see the shop ui when i load the playtest"). nil
+	     leaves it shut. Never honoured in a live server. ]]
+	openShop = { coins = 5000, gems = 2000, items = 5 } :: { coins: number, gems: number, items: number }?,
 	weapons = {
 		{ weapon = "TwigBow", class = "Ranger", label = "TWIG BOW" },
 		{ weapon = "TwigBowDual", class = "Ranger", label = "DUAL TWIG BOWS" },

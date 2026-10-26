@@ -123,6 +123,19 @@ Remotes.RunRestart = "RunRestart"
 ]]
 Remotes.ProfileChanged = "ProfileChanged"
 
+--[[ Client → server: the shop (`Server/Data/Shop`). Each carries only what
+     is asked for (a crate's index, a weapon's name); the price, the roll and
+     the result are the server's. ]]
+Remotes.ShopOpenCrate = "ShopOpenCrate"
+Remotes.ShopBuy = "ShopBuy"
+Remotes.ShopEquip = "ShopEquip"
+--[[ Server → one client: what a crate gave (index, weapon, whether it is
+     new, coins paid back for one already owned). ]]
+Remotes.ShopCrateOpened = "ShopCrateOpened"
+--[[ Client → server, Studio only: coins, gems and boss items into the
+     wallet (`Data/Shop`), to test the shop without playing for them. ]]
+Remotes.DebugWallet = "DebugWallet"
+
 --[[
 	Client → server. The intro's BEGIN ADVENTURE button: this player has
 	left the title screen, so the run may move. Carries nothing; the server

@@ -1,0 +1,138 @@
+--!strict
+--[[
+	The weapon shop's rules (`Config/Shop`), pure, so the server and the
+	shop screen agree and `tests/Shop.spec` pins them: which weapons each
+	area's crate holds, how a roll picks one, what the store charges, and
+	which class holds a weapon.
+]]
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Economy = require(ReplicatedStorage.Shared.Config.Economy)
+local Purse = require(script.Parent.Purse)
+local Sandbox = require(ReplicatedStorage.Shared.Config.Sandbox)
+local Shop = require(ReplicatedStorage.Shared.Config.Shop)
+local WeaponStats = require(ReplicatedStorage.Shared.Config.WeaponStats)
+
+local ShopRules = {}
+
+export type Entry = { weapon: string, class: string, label: string, rarity: string, area: number }
+
+local ORDER = { Common = 1, Uncommon = 2, Rare = 3, Epic = 4, Legendary = 5, Mythic = 6 }
+
+--[[ Every weapon a player can own: one with stats and a class to hold it,
+     not a pair the Dual Bows card swaps in. In rarity order. ]]
+function ShopRules.catalog(): { Entry }
+	local out = {}
+	for _, entry in Sandbox.weapons do
+		local stats = WeaponStats.weapons[entry.weapon]
+		if stats then
+			table.insert(out, {
+				weapon = entry.weapon,
+				class = entry.class,
+				label = entry.label,
+				rarity = stats.rarity :: string,
+				area = stats.area,
+			})
+		end
+	end
+	table.sort(out, function(a, b)
+		if a.area ~= b.area then
+			return a.area < b.area
+		end
+		if a.class ~= b.class then
+			return a.class < b.class
+		end
+		return ORDER[a.rarity] < ORDER[b.rarity]
+	end)
+	return out
+end
+
+function ShopRules.find(weapon: string): Entry?
+	for _, entry in ShopRules.catalog() do
+		if entry.weapon == weapon then
+			return entry
+		end
+	end
+	return nil
+end
+
+--[[ What area `index`'s crate can give: its weapons of a rarity the crate
+     rolls. Empty for an area with no weapons yet (a silhouette). ]]
+function ShopRules.cratePool(index: number): { Entry }
+	local out = {}
+	for _, entry in ShopRules.catalog() do
+		if entry.area == index and Shop.crateOdds[entry.rarity] then
+			table.insert(out, entry)
+		end
+	end
+	return out
+end
+
+--[[ Picks from a crate's pool: a rarity by `Shop.crateOdds` (only those
+     the pool has), then a weapon of it. `r1` and `r2` are uniform in
+     [0, 1), from the server's `Random`. ]]
+function ShopRules.roll(pool: { Entry }, r1: number, r2: number): Entry?
+	local byRarity: { [string]: { Entry } } = {}
+	local total = 0
+	for _, entry in pool do
+		if not byRarity[entry.rarity] then
+			byRarity[entry.rarity] = {}
+			total += Shop.crateOdds[entry.rarity] or 0
+		end
+		table.insert(byRarity[entry.rarity], entry)
+	end
+	if total <= 0 then
+		return nil
+	end
+	local rarities = {}
+	for rarity in byRarity do
+		table.insert(rarities, rarity)
+	end
+	table.sort(rarities, function(a, b)
+		return ORDER[a] < ORDER[b]
+	end)
+	local pick = r1 * total
+	for _, rarity in rarities do
+		pick -= Shop.crateOdds[rarity]
+		if pick < 0 then
+			local list = byRarity[rarity]
+			return list[math.clamp(math.floor(r2 * #list) + 1, 1, #list)]
+		end
+	end
+	local last = byRarity[rarities[#rarities]]
+	return last[#last]
+end
+
+--[[ The store's price for a weapon, or nil when the store does not sell
+     it (the class weapons, Mythics). ]]
+function ShopRules.price(entry: Entry): Purse.Cost?
+	local crate = Shop.crates[entry.area]
+	if not crate then
+		return nil
+	end
+	if entry.rarity == "Legendary" then
+		local item = Economy.areas[crate.area] and Economy.areas[crate.area].bossItem
+		if not item then
+			return nil
+		end
+		local scale = crate.price / Shop.crates[1].price
+		return {
+			coins = math.floor(Shop.legendaryCoins * scale),
+			items = { [item] = Shop.legendaryItems },
+		}
+	end
+	local gems = Shop.gemPrices[entry.rarity]
+	if not gems then
+		return nil
+	end
+	return { gems = gems * entry.area }
+end
+
+--[[ Coins paid back when a crate gives a weapon already owned. ]]
+function ShopRules.refund(index: number): number
+	local crate = Shop.crates[index]
+	return if crate then math.floor(crate.price * Shop.duplicateRefund) else 0
+end
+
+return ShopRules

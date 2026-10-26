@@ -60,6 +60,7 @@ The owner's plans, noted 2026-10-25 so they aren't forgotten: "dont implement th
 - **Egg breeder** for the eggs.
 - **Blacksmith** for the weapons.
 - **Gear selection area** to equip things for a run.
+- **Weapon crates and a weapon store** (owner, 2026-10-25): every area has a crate that opens that area's weapons (rolled on the server, like hatches), and a store sells weapons for gems, except each area's Legendary, which costs coins plus an item that drops only from that area's boss. Open: the crate's price and currency, the boss item's name and look, and its drop rate.
 - **Dexes** that keep track of every weapon, pet and enemy; anything the player has not unlocked yet shows as a black silhouette (owner, 2026-10-25).
 
 ## Designed, not built

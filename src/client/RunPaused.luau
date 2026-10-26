@@ -1,7 +1,7 @@
 --!strict
 --[[
 	Whether the run is stopped: for a draft, a boss's entry banner, the
-	title screen or a NEW ENEMY! screen.
+	title screen, the story cutscene or a NEW ENEMY! screen.
 
 	One flag, read by everything the client drives itself: movement, firing
 	prediction and the dash. It exists as its own module rather than as a
@@ -25,10 +25,13 @@ local intro = false
 local title = false
 --[[ And again: a NEW ENEMY! screen (`UI/NewEnemyScreen`), until GOT IT!. ]]
 local meeting = false
+--[[ And again: the story cutscene after BEGIN ADVENTURE (`UI/StoryCutscene`),
+     until its black screen has held. ]]
+local story = false
 local changed = Instance.new("BindableEvent")
 
 function RunPaused.get(): boolean
-	return paused or intro or title or meeting
+	return paused or intro or title or meeting or story
 end
 
 --[[ Idempotent, so callers can set it from several places without having to
@@ -84,6 +87,20 @@ function RunPaused.setMeeting(value: boolean)
 
 	local was = RunPaused.get()
 	meeting = value
+	if RunPaused.get() ~= was then
+		changed:Fire(RunPaused.get())
+	end
+end
+
+--[[ While the story cutscene plays. The server holds the world for it too:
+     the player stays on the title (`RunSession.anyAtTitle`) until it ends. ]]
+function RunPaused.setStory(value: boolean)
+	if story == value then
+		return
+	end
+
+	local was = RunPaused.get()
+	story = value
 	if RunPaused.get() ~= was then
 		changed:Fire(RunPaused.get())
 	end

@@ -1,0 +1,24 @@
+Use your image generation tool to make ONE image, 1536 x 1024 (landscape): one page of a STORYBOARD for a short 2D story cutscene in a Roblox game called Archer Legends. Twelve panels in a 4-wide by 3-tall grid, every panel a 16:9 landscape rectangle with a thick dark border, a small white number in a dark square in each panel's top-left corner (the numbers given below), on a dark charcoal background. No other text anywhere, no captions, no speech bubbles.
+
+Style of every panel: exactly the 2D blocky pixel-art look of the FIRST reference image (the storyboard already approved, 8 panels): chunky pixels, flat 2-3 tone shading, thick near-black ink outlines, bright saturated colours, a sunny Mossy Glade forest of cube-leafed trees, grass blocks, mossy stones, stumps, little orange spotted mushrooms, fireflies, light rays. Keep every character and the place EXACTLY as in that first reference, consistent from panel to panel. No smooth gradients, no 3D rendering.
+
+Characters (also see the other references):
+- KING BLOBLIN (SECOND reference: his 2D icon sheet): a huge cube-shaped lime-green slime with a gold block crown with a green gem, glowing yellow square eyes under dark brows, a cloak of dark-green moss/leaf cubes with little cube slimes riding on it, a brown strap with a gold green-gem clasp, big cube fists. He sits on a big mossy stone throne in the middle of the glade, and a HUGE wooden treasure chest with gold bands, covered and dripping with thick green slime, stands DIRECTLY BEHIND him, its top showing above his crown and its sides either side of him.
+- the SLIME SOLDIER (THIRD reference, its design sheet): a small cube lime-green slime with an iron pot helmet with a leaf plume, a round wooden shield with a gold crown, a twig spear, a brown strap.
+- the three HEROES (as in panels 6-7 of the first reference): the ARCANIST, a girl with long brown hair, a deep-blue robe with gold trim and a blue hood, a wooden staff topped with a green crystal; the RANGER, green hood and tunic, a wooden bow and a quiver of arrows; the WARDEN, red cap and long red cape, brown leather armour, a big wooden greatsword on his shoulder.
+
+The scroll, wherever it shows: cream parchment with three square class icons side by side: a green-framed icon with a wooden bow (Ranger), a blue-framed icon with a wooden staff topped by a green crystal (Arcanist), a red-framed icon with a wooden greatsword (Warden), and a line of dark squiggles above them standing in for words (no real letters).
+
+Panels on this page:
+13. Close-up: the king's face goes darker green, brows slam down, eyes glow hot, steam puffs from his head, the scroll trembling in his hands.
+14. He crumples the scroll in one fist, paper bits flying; the slime soldier backs away, sweating.
+15. Low angle: the king rises up from his throne, huge, his shadow falling over the tiny soldier, the slimy chest behind him.
+16. The king takes a giant breath: body swelling, cheeks puffed, eyes squeezed shut, the little slimes on his cloak clinging on.
+17. Close-up: the king ROARS, a huge open square mouth, slime spraying, a pale shockwave ring bursting from him.
+18. Wide: the roar's shockwave sweeps across the glade, leaves and birds blasting off the trees, the chest's slime splashing, the soldier tumbling backward.
+19. The view pans across the forest to the right: the shockwave rolling through the cube trees, leaves streaming.
+20. At the far edge of the forest the three heroes stand by a mossy path; the shockwave reaches them, leaves blowing past, they spin round, startled, "!" marks over their heads (seen from the front).
+21. Close-up of the three heroes' faces reacting: the Arcanist gasping, the Ranger wide-eyed, the Warden gritting his teeth.
+22. They share a determined look and grip their weapons; the Warden points his greatsword toward the forest.
+23. The three heroes run away from us into the forest down a stone path between the cube trees, seen from behind.
+24. They disappear into the shadowy trees in the distance; the edges of the picture darken toward black.

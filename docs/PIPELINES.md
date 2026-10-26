@@ -122,6 +122,8 @@ Codex image generation, always (owner's rule): `codex exec` with the prompt on s
 
 **A NEW ENEMY! screen for a new enemy** (`Config/NewEnemies`): have Codex draw its 2D blocky picture from its model sheet, with its area's approved sheet (`assets/concepts/blocky/ui/new_enemy/sheet_<area>_a.png`) as the style reference, on flat magenta (flat blue if the enemy is magenta or pink; add it to `BLUE` in the script), prompts in `new_enemy/enemies/`. Save it as `new_enemy/enemies/<enemy>_raw.png`, run `python -I assets/ui/new_enemy/cutout.py`, upload `art/<enemy>.png`, and add an entry under the enemy's `displayName` with its name, a one-line description of what it does and its area. `tests/NewEnemies.spec` fails until every enemy met in an area has one. A new area needs its sheet drawn and approved first, then emptied by Codex (`new_enemy/p_blank.txt`) and its boxes measured.
 
+**A 2D story cutscene** (`Config/Story`, `UI/StoryCutscene`): a storyboard sheet first, approved by the owner; then `assets/concepts/blocky/ui/story/frames.py` draws key frames from its panels and in-between frames as edits of them (`keys`, `tweens`, plus one-off fixes such as `bows`, `posters`), four Codex jobs at a time, into `raw/`; `python -I assets/ui/story/cut.py` cuts each frame's middle 16:9 band into two halves; upload them and put the ids in `Config/Story.pictures`. `tests/StoryTimeline.spec` fails until every frame shown has its ids.
+
 ## 9. A UI handoff (cards, end screens)
 
 Claude Design's handoff → its frames and assets generated into `Config/Card*` / `Config/EndScreen*` by script (regenerate, never hand-edit), images uploaded and ids in `CardAssets` / `EndScreenAssets`, motion in code from its timeline.

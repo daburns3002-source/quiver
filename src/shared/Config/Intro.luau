@@ -4,7 +4,8 @@
 	`UI/IntroCutscene` and posed by `Util/IntroTimeline`, after Pixel
 	Lineage's intro: a black screen where DYL.DEVS PRESENTS fades in in
 	dark gold, then a cut to the full-screen title picture, with gentle
-	motion over it, and a BEGIN ADVENTURE button that starts the run.
+	motion over it, and a BEGIN ADVENTURE button that plays the story
+	cutscene (`UI/StoryCutscene`, `Config/Story`), whose end starts the run.
 
 	The times are the shared contract with the intro music (side-session
 	note `intro-cutscene-contract.md`): the music (`Config/Music.intro`)

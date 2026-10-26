@@ -1,0 +1,24 @@
+Use your image generation tool to make ONE image, 1536 x 1024 (landscape): one page of a STORYBOARD for a short 2D story cutscene in a Roblox game called Archer Legends. Twelve panels in a 4-wide by 3-tall grid, every panel a 16:9 landscape rectangle with a thick dark border, a small white number in a dark square in each panel's top-left corner (the numbers given below), on a dark charcoal background. No other text anywhere, no captions, no speech bubbles.
+
+Style of every panel: exactly the 2D blocky pixel-art look of the FIRST reference image (the storyboard already approved, 8 panels): chunky pixels, flat 2-3 tone shading, thick near-black ink outlines, bright saturated colours, a sunny Mossy Glade forest of cube-leafed trees, grass blocks, mossy stones, stumps, little orange spotted mushrooms, fireflies, light rays. Keep every character and the place EXACTLY as in that first reference, consistent from panel to panel. No smooth gradients, no 3D rendering.
+
+Characters (also see the other references):
+- KING BLOBLIN (SECOND reference: his 2D icon sheet): a huge cube-shaped lime-green slime with a gold block crown with a green gem, glowing yellow square eyes under dark brows, a cloak of dark-green moss/leaf cubes with little cube slimes riding on it, a brown strap with a gold green-gem clasp, big cube fists. He sits on a big mossy stone throne in the middle of the glade, and a HUGE wooden treasure chest with gold bands, covered and dripping with thick green slime, stands DIRECTLY BEHIND him, its top showing above his crown and its sides either side of him.
+- the SLIME SOLDIER (THIRD reference, its design sheet): a small cube lime-green slime with an iron pot helmet with a leaf plume, a round wooden shield with a gold crown, a twig spear, a brown strap.
+- the three HEROES (as in panels 6-7 of the first reference): the ARCANIST, a girl with long brown hair, a deep-blue robe with gold trim and a blue hood, a wooden staff topped with a green crystal; the RANGER, green hood and tunic, a wooden bow and a quiver of arrows; the WARDEN, red cap and long red cape, brown leather armour, a big wooden greatsword on his shoulder.
+
+The scroll, wherever it shows: cream parchment with three square class icons side by side: a green-framed icon with a wooden bow (Ranger), a blue-framed icon with a wooden staff topped by a green crystal (Arcanist), a red-framed icon with a wooden greatsword (Warden), and a line of dark squiggles above them standing in for words (no real letters).
+
+Panels on this page:
+1. High above the forest canopy at morning, sun rays, the glade a small clearing far below.
+2. The view sinks down into the clearing: King Bloblin small in the middle on his throne, the slimy chest behind him, the whole glade around.
+3. Closer: the king lounging on his throne, eyes half-closed, content and lazy, little slimes dozing on his cloak.
+4. The king yawns a huge square yawn; a butterfly lands on his crown.
+5. The bushes at the right edge of the glade rustle; a spear tip and a green leaf plume poke out of the leaves.
+6. The slime soldier bursts out of the bushes running, the rolled scroll held high over his head.
+7. The slime soldier skids to a stop in front of the throne, slime splashing, and salutes nervously, sweat drop.
+8. The soldier holds the rolled scroll up with both stubby arms; the king leans down, peering at it with one brow raised.
+9. The king's big cube hand plucks the scroll from the soldier.
+10. The king unrolls the scroll, curious, the paper half open toward him (we see its back).
+11. Close-up of the open scroll, filling the panel: the three class icons and the squiggle line; the king's big green fingers hold its edges.
+12. Extreme close-up of the king's eyes over the top of the scroll, widening, one brow twitching.

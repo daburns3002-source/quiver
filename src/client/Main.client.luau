@@ -58,6 +58,7 @@ local SkillBar = require(script.Parent.UI.Cards.SkillBar)
 local SlimeHop = require(script.Parent.Fx.SlimeHop)
 local SlimeResidue = require(script.Parent.Fx.SlimeResidue)
 local SoundFx = require(script.Parent.Fx.SoundFx)
+local StoryCutscene = require(script.Parent.UI.StoryCutscene)
 local TelegraphRenderer = require(script.Parent.Fx.TelegraphRenderer)
 local TopDownCamera = require(script.Parent.Camera.TopDownCamera)
 local Types = require(Shared.Types)
@@ -119,19 +120,32 @@ local function currentRoot(): BasePart?
 end
 
 --[[ The intro cutscene first, so its black screen is up before anything
-     else draws. The run's music and the first room's sign wait for BEGIN
-     ADVENTURE, which asks the server to let the run move. If the cutscene
-     cannot start, the run is let go at once rather than held for ever. ]]
+     else draws. BEGIN ADVENTURE plays the story cutscene (`UI/StoryCutscene`),
+     and only its end lets the run in: the run's music and the first room's
+     sign wait, and the server keeps the player on the title until
+     `Remotes.IntroBegin`. If either cutscene cannot start, the run is let go
+     at once rather than held for ever. ]]
 local function beginRun()
 	MusicFx.setQuiet(false)
 	RoomSign.setWaiting(false)
 	Remotes.event(Remotes.IntroBegin):FireServer()
 end
+local function playStory()
+	local ok, problem = pcall(function()
+		StoryCutscene.start(beginRun)
+	end)
+	if not ok then
+		log.warn("story cutscene failed to start: %s", tostring(problem))
+		StoryCutscene.stop()
+		beginRun()
+	end
+end
 if not IntroCutscene.skipped() then
 	MusicFx.setQuiet(true)
 	RoomSign.setWaiting(true)
+	StoryCutscene.preload()
 	local ok, problem = pcall(function()
-		IntroCutscene.start(beginRun)
+		IntroCutscene.start(playStory)
 	end)
 	if not ok then
 		log.warn("intro cutscene failed to start: %s", tostring(problem))

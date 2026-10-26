@@ -213,7 +213,7 @@ local function addEmitters(parent: Instance, volume: Volume)
 		NumberSequenceKeypoint.new(1, 1),
 	})
 	fireflies.Lifetime = NumberRange.new(4, 7)
-	fireflies.Rate = math.clamp(area / 60 * c.fireflyDensity, 1, 8) * tier
+	fireflies.Rate = math.clamp(area / 60 * c.fireflyDensity, 1, c.fireflyMax) * tier
 	fireflies.Speed = NumberRange.new(0.2, 0.6)
 	fireflies.SpreadAngle = Vector2.new(180, 180)
 	fireflies.Acceleration = Vector3.new(0, 0.05, 0)

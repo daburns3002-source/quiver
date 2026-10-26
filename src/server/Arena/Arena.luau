@@ -13,6 +13,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local ArenaKits = require(ReplicatedStorage.Shared.Config.ArenaKits)
 local ArenaModels = require(ReplicatedStorage.Shared.Config.ArenaModels)
+local Atmosphere = require(script.Parent.Atmosphere)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local ExitGate = require(script.Parent.ExitGate)
 local KitLayout = require(ReplicatedStorage.Shared.Util.KitLayout)
@@ -652,6 +653,8 @@ function Arena.build(parent: Instance, obstacles: { Balance.Obstacle }, arena: s
 	else
 		dress(root, obstacles)
 	end
+	--[[ The area's own light, or the game's (`ArenaModels.lighting`). ]]
+	Atmosphere.apply(if model then model.lighting else nil)
 
 	root.Parent = parent
 	blockersFolder = blockers

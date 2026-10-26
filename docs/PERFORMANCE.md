@@ -125,7 +125,7 @@ All 59 together: 149,613 triangles in 1,819 parts, 621 if merged.
 | Bramble Hedge v2 | 2,364 | 1 | no buried faces; 16 per room |
 | Mossy Glade outer forest (`GladeForest`) | ~63k in view | 253 meshes | each tree its own mesh, for sway |
 | Weapons and skins (35 imports) | 154–4,252 each, 51k in all | 1–5 each | one in hand at a time |
-| Round enemies (Moss, Brood, Baby Slime, Sprout Spitter, Ember Wilf) | 3,347–7,515 each | 1–3 each | already merged |
+| Round enemies (Moss, Brood, Baby Slime, Splitter Spitter, Ember Wilf) | 3,347–7,515 each | 1–3 each | already merged |
 
 ## What changed (no re-import)
 

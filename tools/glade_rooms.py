@@ -14,7 +14,7 @@ Each box is drawn by the Mossy Glade kit (`KitLayout`) by its shape: a long
 one is a fallen log, a tall one a stone pillar, a squat one a tree stump,
 a flat one a fern thicket (blocks walking, not arrows).
 
-Slimes first (Moss Slimes, then Brood Slimes), the Sprout Spitter from
+Slimes first (Moss Slimes, then Brood Slimes), the Splitter Spitter from
 room 7; room 20 is King Bloblin alone in Level 1's boss room, the Glade
 Heart, and every other room is random. Seeded, so the same twenty come
 out every time.

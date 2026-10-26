@@ -66,13 +66,16 @@ the shared contract with the intro music, `Config/Music.intro`) to the Codex tit
 picture (logo painted in), which never moves once up (owner) and shows whole at
 the screen's height with dimmed copies filling the sides, and BEGIN ADVENTURE,
 still until hovered or pressed. BEGIN ADVENTURE plays **the story cutscene**
-(`UI/StoryCutscene`, `Config/Story`, `Util/StoryTimeline`, owner 2026-10-25): 2D
-frame by frame, 49 Codex frames from the owner's approved storyboard
-(`assets/concepts/blocky/ui/story/`): King Bloblin in the glade with his
-over-the-top slimy chest, a Slime Soldier brings a WANTED poster (WANTED: his
-icon, REWARD: the chest icon, the three class icons signed), he roars, the view
-pans to the heroes (never in a frame with the king), they run into the forest,
-black. SKIP >> fades it to black. There is no tutorial yet; it ends in the lobby.
+(`UI/StoryCutscene`, `Config/Story`, `Util/StoryTimeline`, owner 2026-10-25): **one
+frame at a time** (owner: "stop changing the frames and adding effects"), 40
+Codex frames from the owner's approved storyboard (`assets/concepts/blocky/ui/story/`),
+each shown once, whole and still, with straight cuts: King Bloblin asleep in the
+glade with his over-the-top slimy chest, a Slime Soldier brings a WANTED poster
+(WANTED: his icon, REWARD: the chest icon, the three class icons signed), he
+roars, the heroes (never in a frame with the king) run into the forest, black.
+Its calm music (`Config/Music.story`, `assets/audio/music/story_theme.py`) is
+scored to the frames' holds, the king's yawn mixed in: change a hold and
+re-render and re-upload it. SKIP >> cuts to black. There is no tutorial yet; it ends in the lobby.
 The run holds still until the story's black has held: the server skips
 its step while any player is still on the title (`RunSession.anyAtTitle`,
 cleared by `Remotes.IntroBegin`, fired at the story's end), the client holds on

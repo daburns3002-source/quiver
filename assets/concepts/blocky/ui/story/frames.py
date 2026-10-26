@@ -150,6 +150,18 @@ HANDS = {
     for name in ("f11", "f13a", "f13b")
 }
 
+# the king asleep at the start (owner, 2026-10-25: "f01, f02a and f02b need to have the kings eyes shut")
+SHUT = "King Bloblin's EYES are SHUT: draw each of his two square eyes as a closed eye, a short flat dark-green horizontal line (like a sleeping face), with no yellow glow; his brows relaxed. Everything else in the frame, King Bloblin included, stays exactly the same."
+
+EYES = {
+    name: {
+        "base": name,
+        "refs": [KING],
+        "prompt": f"Use your image generation tool to EDIT the FIRST attached image (a frame of a 2D pixel-art cutscene, 1536 x 1024). Output ONE image of exactly the same size, identical in every pixel except: {SHUT}",
+    }
+    for name in ("f01", "f02a", "f02b")
+}
+
 TWEENS = {
     # the glade's opening frame without the soldier, who arrives later (run before f02b)
     "f02a": tween("f02a", "REMOVE the slime soldier with the scroll and shield at the bottom right completely, and fill where he stood with the same leafy bushes, grass and stone steps around him, so nobody but King Bloblin is in the glade."),
@@ -210,7 +222,7 @@ def run(name: str, job: dict) -> str:
 
 def main() -> None:
     which = sys.argv[1]
-    jobs = {"keys": KEYS, "tweens": TWEENS, "bows": BOWS, "posters": POSTERS, "hands": HANDS}[which]
+    jobs = {"keys": KEYS, "tweens": TWEENS, "bows": BOWS, "posters": POSTERS, "hands": HANDS, "eyes": EYES}[which]
     names = sys.argv[2:] or list(jobs)
     RAW.mkdir(exist_ok=True)
     with ThreadPoolExecutor(WORKERS) as pool:

@@ -62,6 +62,7 @@ local SoundFx = require(script.Parent.Fx.SoundFx)
 local StoryCutscene = require(script.Parent.UI.StoryCutscene)
 local TelegraphRenderer = require(script.Parent.Fx.TelegraphRenderer)
 local TopDownCamera = require(script.Parent.Camera.TopDownCamera)
+local TutorialPrompts = require(script.Parent.UI.TutorialPrompts)
 local Types = require(Shared.Types)
 local UpgradeFx = require(script.Parent.Fx.Upgrades.UpgradeFx)
 local VitalFx = require(script.Parent.Fx.Upgrades.VitalFx)
@@ -184,6 +185,7 @@ EnemyHealthBars.start()
 BossBar.start()
 BossBanner.start()
 NewEnemyScreen.start()
+TutorialPrompts.start()
 PickupFx.start(Workspace)
 CombatMarkers.start(Workspace)
 TelegraphRenderer.start(Workspace)
@@ -292,6 +294,7 @@ Remotes.event(Remotes.RunStateChanged).OnClientEvent
 	:Connect(function(index, total, state, name, unit)
 		RunBanner.onRunStateChanged(index, total, state, name, unit)
 		RoomSign.onRunStateChanged(index, total, state, name, unit)
+		TutorialPrompts.onRunStateChanged(index, total, state)
 
 		--[[ The end screen belongs to the run that ended, so it clears the
 		     moment the next one starts fighting. ]]
@@ -366,6 +369,7 @@ Remotes.event(Remotes.AbilityOffer).OnClientEvent
 		end
 		RunPaused.set(true)
 		DraftScreen.show(offer, level, source, rerolls)
+		TutorialPrompts.onOffer()
 	end)
 
 Remotes.event(Remotes.XpChanged).OnClientEvent:Connect(RunBanner.onXpChanged)

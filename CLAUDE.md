@@ -75,13 +75,24 @@ glade with his over-the-top slimy chest, a Slime Soldier brings a WANTED poster
 roars, the heroes (never in a frame with the king) run into the forest, black.
 Its calm music (`Config/Music.story`, `assets/audio/music/story_theme.py`) is
 scored to the frames' holds, the king's yawn mixed in: change a hold and
-re-render and re-upload it. SKIP >> cuts to black. There is no tutorial yet; it ends in the lobby.
+re-render and re-upload it. SKIP >> cuts to black. It ends in **the tutorial**
+(`Config/Tutorial`, owner 2026-10-25): `Balance.Stages[Balance.tutorialStage]`, five
+Mossy Glade rooms (81-85, kept apart from the generated rooms) of Moss Slimes and
+Sprout Spitters only, played as a Ranger, won into the lobby. Its upgrades are
+fixed, the same for everyone (`Util/TutorialHands`, `tests/Tutorial.spec`): a
+Common, an Uncommon and a Rare first; on room 3's level-up Multishot (Legendary)
+in the middle; Legendaries and Mythics banned from its pool (`Loadout.State.banned`,
+which a fixed hand ignores), no rerolls. The rooms' XP lands the level-ups in rooms
+1-3, and room 3 is granted the XP it owes if not. `UI/TutorialPrompts` says how to
+move (per device) until the player has, that standing still shoots at the next
+fight, and how levelling up works over the first hand.
 The run holds still until the story's black has held: the server skips
 its step while any player is still on the title (`RunSession.anyAtTitle`,
 cleared by `Remotes.IntroBegin`, fired at the story's end), the client holds on
 `RunPaused.setTitle` then `setStory`, the room's music and its ROOM sign wait. **In Studio, set a `SkipIntro` attribute
 on Workspace in Edit before Play** to skip it on both sides, for probes that
-need the run going (or fire `Remotes.IntroBegin` from a probe).
+need the run going, into the lobby (firing `Remotes.IntroBegin` from a probe now
+starts the tutorial, as the story's end does).
 
 **The game is Mossy Glade, then Thornwood** (`Balance.campaign = { 5, 4 }`,
 owner 2026-10-25): after the intro, **the Mossy Glade run** (stage 5, the first

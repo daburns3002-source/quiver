@@ -426,13 +426,16 @@ end)
      It can only clear the hold, never set one, so a repeat changes nothing. ]]
 Remotes.event(Remotes.IntroBegin).OnServerEvent:Connect(function(player)
 	local session = RunSession.get(player)
-	if session then
-		RunSession.leaveTitle(session)
+	--[[ Off the title and the story cutscene and into the tutorial
+	     (`Config/Tutorial`), which is won into the lobby. Only a player who
+	     was still on the title starts it, so a repeat, or a client in the
+	     lobby, cannot pull everyone back into it. ]]
+	if not session or not session.atTitle then
+		return
 	end
-	-- off the title screen and into the lobby
-	local character = player.Character
-	if character and RoomController.inLobby() then
-		Lobby.place(character)
+	RunSession.leaveTitle(session)
+	if RoomController.inLobby() then
+		RoomController.beginStage(Balance.tutorialStage)
 	end
 end)
 

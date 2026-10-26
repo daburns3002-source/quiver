@@ -28,6 +28,8 @@ local PetCombat = require(ReplicatedStorage.Shared.Config.PetCombat)
 local Pickups = require(script.Parent.Pickups)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local ShotPipeline = require(ReplicatedStorage.Shared.Combat.ShotPipeline)
+local Tutorial = require(ReplicatedStorage.Shared.Config.Tutorial)
+local TutorialHands = require(ReplicatedStorage.Shared.Util.TutorialHands)
 local Wallet = require(script.Parent.Parent.Data.Wallet)
 
 local log = Log.forTag("RunSession")
@@ -109,6 +111,9 @@ export type Session = {
 	     2026-10-25). ]]
 	seenEnemies: { [string]: boolean },
 	meeting: { string },
+	--[[ The tutorial's fixed hands dealt to this player so far this stage
+	     (`Util/TutorialHands`). ]]
+	tutorialProgress: TutorialHands.Progress,
 	--[[ Regen accrues every frame but is only told to the client a few
 	     times a second. ]]
 	healthSentAt: number,
@@ -152,6 +157,10 @@ local sessions: { [Player]: Session } = {}
      player after the last boss of any area is defeated"). The levels are
      kept, owed, and dealt in the next stage. Set by `RoomController`. ]]
 local offersHeld = false
+--[[ Whether the stage being played is the tutorial (`Config/Tutorial`), and
+     which of its rooms the run is in: its hands are fixed, not rolled. ]]
+local tutorial = false
+local tutorialRoom = 1
 
 --[[
 	Called when a player's run health reaches zero.
@@ -234,6 +243,7 @@ function RunSession.create(player: Player): Session
 		atTitle = not (RunService:IsStudio() and Workspace:GetAttribute("SkipIntro") == true),
 		seenEnemies = {},
 		meeting = {},
+		tutorialProgress = TutorialHands.newProgress(),
 		healthSentAt = 0,
 		revivesLeft = Balance.Revive.perStage,
 		invulnerableUntil = 0,
@@ -422,7 +432,16 @@ function RunSession.offerIfOwed(session: Session)
 	end
 
 	local atFullHealth = session.health >= session.maxHealth - 1e-3
-	local offer = Loadout.openOffer(session.loadout, atFullHealth, session.random)
+	--[[ The tutorial deals its fixed hand for this level-up; a nil hand (the
+	     list ran out) rolls from the pool its banned rarities keep clean. ]]
+	local hand: { string }?, kind: TutorialHands.Kind? = nil, nil
+	if tutorial then
+		hand, kind = TutorialHands.handFor(Tutorial :: any, session.tutorialProgress, tutorialRoom)
+	end
+	local offer = Loadout.openOffer(session.loadout, atFullHealth, session.random, hand)
+	if offer and hand and kind then
+		TutorialHands.dealt(session.tutorialProgress, kind, tutorialRoom)
+	end
 
 	if offer then
 		abilityOffer:FireClient(
@@ -432,6 +451,54 @@ function RunSession.offerIfOwed(session: Session)
 			"Level",
 			session.loadout.rerolls
 		)
+	end
+end
+
+--[[ A stage is starting: whether it is the tutorial. In it every player is
+     the tutorial's class, can never be dealt its banned rarities, has no
+     rerolls, and is dealt the fixed hands from the first. Called after the
+     run's loadouts are fresh (`resetRun`, `newStage`). ]]
+function RunSession.setTutorial(on: boolean)
+	tutorial = on
+	tutorialRoom = 1
+	if not on then
+		return
+	end
+	for _, session in sessions do
+		session.tutorialProgress = TutorialHands.newProgress()
+		local loadout = session.loadout
+		loadout.class = Tutorial.class
+		-- the class's own weapon, not one the sandbox put in hand
+		loadout.weapon = nil
+		loadout.banned = table.clone(Tutorial.bannedRarities)
+		loadout.rerolls = Tutorial.rerolls
+		RunSession.applyLoadout(session)
+		sendXp(session)
+	end
+end
+
+--[[ The run has entered room `room` of the stage. ]]
+function RunSession.setRoom(room: number)
+	tutorialRoom = room
+end
+
+--[[ The tutorial's room has been cleared and its crystals collected: a room
+     that must level up (`Tutorial.levelUpIn`) and has not is granted the XP
+     still owed, so its fixed hand is dealt before the gate opens. ]]
+function RunSession.levelUpIfOwed()
+	if not tutorial then
+		return
+	end
+	for _, session in sessions do
+		local loadout = session.loadout
+		if
+			session.alive
+			and not loadout.offer
+			and loadout.pendingLevels <= 0
+			and TutorialHands.owesLevel(Tutorial :: any, session.tutorialProgress, tutorialRoom)
+		then
+			RunSession.awardXp(session, loadout.xpToNext - loadout.xp)
+		end
 	end
 end
 

@@ -28,6 +28,12 @@
       }
     },
 
+    "ReplicatedFirst": {
+      "Loading": {
+        "$path": "src/first/Loading.client.luau"
+      }
+    },
+
     "StarterPlayer": {
       "StarterPlayerScripts": {
         "Client": {

@@ -156,6 +156,10 @@ if not IntroCutscene.skipped() then
 	end
 end
 
+--[[ The intro is up (or skipped): the loading screen can lift
+     (`first/Loading`). ]]
+player:SetAttribute("ClientReady", true)
+
 HealthBar.start()
 DashBar.start()
 EndScreen.start(function()

@@ -18,6 +18,11 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
+--[[ Every remote, before anything else loads or builds: a client waits only
+     so long for one, and the lobby's meshes keep a fresh live server busy
+     for longer than that (`Net/Remotes.createAll`). ]]
+require(ReplicatedStorage.Shared.Net.Remotes).createAll()
+
 local Abilities = require(ReplicatedStorage.Shared.Config.Abilities)
 local AreaStrikes = require(script.Parent.Combat.AreaStrikes)
 local Arena = require(script.Parent.Arena.Arena)

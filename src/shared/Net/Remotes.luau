@@ -14,7 +14,11 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
 local FOLDER_NAME = "Remotes"
-local WAIT_TIMEOUT = 10
+--[[ Seconds a client waits for a remote. The server makes every one at
+     once (`createAll`), so this is only a backstop for a slow start; at 10
+     a live server still loading the lobby's meshes outlasted it, and the
+     client died before the title (a friend's playtest, 2026-10-26). ]]
+local WAIT_TIMEOUT = 60
 
 local Remotes = {}
 
@@ -286,6 +290,19 @@ function Remotes.event(name: string): RemoteEvent
 	local remote = folder:WaitForChild(name, WAIT_TIMEOUT)
 	assert(remote, `Remote "{name}" never replicated after {WAIT_TIMEOUT}s`)
 	return remote :: RemoteEvent
+end
+
+--[[ Server: makes every remote named above, at once. Called first thing
+     at boot, before anything slow (the lobby loads dozens of meshes), so a
+     client that joins early finds them all instead of waiting on remotes
+     the server has not reached yet. ]]
+function Remotes.createAll()
+	assert(RunService:IsServer(), "Remotes.createAll is the server's")
+	for key, value in Remotes :: { [string]: any } do
+		if type(value) == "string" and key == value then
+			Remotes.event(value)
+		end
+	end
 end
 
 return Remotes

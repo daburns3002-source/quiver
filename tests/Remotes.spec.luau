@@ -67,4 +67,18 @@ return function(t: TestRunner.Helper)
 			)
 		end
 	end)
+
+	--[[ Every remote exists from the server's first moment
+	     (`Remotes.createAll`, at the top of `Main`), so a client never
+	     waits on one the server has not reached yet: a friend's live
+	     playtest (2026-10-26) died before the title when the lobby's meshes
+	     held the server past the client's wait. ]]
+	t.test("createAll makes every remote", function()
+		Remotes.createAll()
+		local folder = ReplicatedStorage:FindFirstChild("Remotes")
+		t.notNil(folder, "no Remotes folder")
+		for _, value in names do
+			t.notNil((folder :: Instance):FindFirstChild(value), `remote {value} was not made`)
+		end
+	end)
 end

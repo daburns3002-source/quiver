@@ -41,6 +41,17 @@ local Music = {
 		loopStart = 11.0,
 		loopEnd = 71.0,
 	} :: Track,
+	--[[ The story cutscene's music (`UI/StoryCutscene`, owner 2026-10-25: "it
+	     needs some music"), scored to its frames by `story_theme.py` (cue times
+	     from `Config/Story`; re-render it whenever the frames' holds change), with
+	     King Bloblin's yawn mixed in on f03b. From the top on the first frame,
+	     once; paused while a frame is still loading, so it stays on its frames.
+	     `assets/audio/music/story.ogg`, 45.6 s (uploaded as
+	     story_theme_upload). An empty id is silent. ]]
+	story = {
+		id = "rbxassetid://96540837394738",
+		name = "Story (King Bloblin)",
+	} :: Track,
 	playlists = {
 		Rooms = {
 			-- ours, 77 s, made to loop: a lone track loops in the engine

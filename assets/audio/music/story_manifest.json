@@ -1,0 +1,31 @@
+{
+ "seconds": 45.6,
+ "lufs": -19.0,
+ "true_peak_db": -4.6,
+ "yawn_at": 8.5,
+ "cues": {
+  "Sky": 0.9,
+  "Glade": 2.9,
+  "Chest": 5.9,
+  "Lounge": 8.5,
+  "Yawn": 10.2,
+  "Bushes": 12.0,
+  "Run": 14.0,
+  "Skid": 15.2,
+  "Offer": 16.9,
+  "Take": 18.9,
+  "Unroll": 20.1,
+  "Eyes": 21.9,
+  "Steam": 23.7,
+  "Crumple": 26.1,
+  "Rise": 27.8,
+  "Breath": 29.6,
+  "Roar": 31.2,
+  "Shockwave": 33.0,
+  "Pan": 34.8,
+  "Faces": 36.8,
+  "Ready": 38.8,
+  "Away": 40.3
+ },
+ "frames_end": 42.3
+}

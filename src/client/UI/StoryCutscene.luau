@@ -4,15 +4,15 @@
 	King Bloblin in Mossy Glade gets the WANTED poster, roars, and the heroes run
 	into the forest; then black, then the run.
 
-	Frame by frame: each shot shows its Codex frames in turn (`Util/StoryTimeline`
-	says which, and where the view pans, pushes in or shakes), the whole 16:9
-	frame shown as large as fits with black bars round it. One RenderStepped loop
-	poses everything from the time since the start, so `StoryCutscene.hold(t)`
-	freezes it at a moment for a Studio capture.
+	One frame at a time (owner, 2026-10-25): each Codex frame shows once, whole
+	and still, as large as fits with black bars round it, then cuts to the next
+	(`Util/StoryTimeline` says which); no zoom, pan, shake or fade. One
+	RenderStepped loop shows the frame for the time since the start, so
+	`StoryCutscene.hold(t)` freezes it at a moment for a Studio capture.
 
 	The player stays held (`RunPaused.setStory`) and the server keeps them on the
 	title until `finish` runs once the black has held, which asks it to start
-	(`Remotes.IntroBegin`, through the callback). SKIP fades to black at once.
+	(`Remotes.IntroBegin`, through the callback). SKIP cuts to black.
 	Presentation only.
 ]]
 
@@ -21,8 +21,10 @@ local GuiService = game:GetService("GuiService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
+local SoundService = game:GetService("SoundService")
 local UserInputService = game:GetService("UserInputService")
 
+local Music = require(ReplicatedStorage.Shared.Config.Music)
 local Story = require(ReplicatedStorage.Shared.Config.Story)
 local StoryTimeline = require(ReplicatedStorage.Shared.Util.StoryTimeline)
 
@@ -43,9 +45,7 @@ type Parts = {
 	gui: ScreenGui,
 	safe: ScreenGui,
 	window: Frame,
-	stage: Frame,
 	pictures: { [string]: Frame },
-	cover: Frame,
 	skip: TextButton,
 	skipGroup: Frame,
 	skipFace: Frame,
@@ -61,6 +61,10 @@ local played: { [number]: boolean } = {}
 --[[ The frame on screen, and how long the clock has waited on each frame. ]]
 local showing: Frame? = nil
 local stalled: { [string]: number } = {}
+--[[ The story's music (`Config/Music.story`), or nil when it has no id. ]]
+local music: Sound? = nil
+--[[ How long SKIP takes the music down (the picture cuts to black at once). ]]
+local MUSIC_OUT = 0.5
 
 local function rect(parent: Instance, name: string, colour: Color3, z: number): Frame
 	local f = Instance.new("Frame")
@@ -171,12 +175,6 @@ local function build(playerGui: PlayerGui): Parts
 	window.Position = UDim2.fromScale(0.5, 0.5)
 	window.ClipsDescendants = true
 
-	local stage = Instance.new("Frame")
-	stage.Name = "Stage"
-	stage.BackgroundTransparency = 1
-	stage.ZIndex = 3
-	stage.Parent = window
-
 	local p = Story.picture
 	local middle = p.width / 2
 	local pictures = {}
@@ -187,7 +185,7 @@ local function build(playerGui: PlayerGui): Parts
 		holder.Size = UDim2.fromScale(1, 1)
 		holder.Visible = false
 		holder.ZIndex = 3
-		holder.Parent = stage
+		holder.Parent = window
 		local halves = Story.pictures[name]
 		for _, side in { "Left", "Right" } do
 			local image = Instance.new("ImageLabel")
@@ -206,17 +204,12 @@ local function build(playerGui: PlayerGui): Parts
 		pictures[name] = holder
 	end
 
-	local cover = rect(gui, "Cover", Color3.new(0, 0, 0), 10)
-	cover.Size = UDim2.fromScale(1, 1)
-
 	local group, button, face = buildSkip(safe)
 	return {
 		gui = gui,
 		safe = safe,
 		window = window,
-		stage = stage,
 		pictures = pictures,
-		cover = cover,
 		skip = button,
 		skipGroup = group,
 		skipFace = face,
@@ -263,16 +256,7 @@ local function pose(t: number)
 	local winW = math.floor(source.width * fit + 0.5)
 	local winH = math.floor(source.height * fit + 0.5)
 	p.window.Size = UDim2.fromOffset(winW, winH)
-	p.window.Position = UDim2.new(0.5, now.shake.X * screen.Y, 0.5, now.shake.Y * screen.Y)
-
-	local stageW = math.floor(winW * now.zoom + 0.5)
-	local stageH = math.floor(winH * now.zoom + 0.5)
-	p.stage.Size = UDim2.fromOffset(stageW, stageH)
-	p.stage.Position = UDim2.fromOffset(
-		-math.floor((stageW - winW) * now.pan + 0.5),
-		-math.floor((stageH - winH) / 2 + 0.5)
-	)
-	local split = math.floor(stageW / 2)
+	local split = math.floor(winW / 2)
 	showing = nil
 	for name, holder in p.pictures do
 		local on = name == now.picture
@@ -281,15 +265,13 @@ local function pose(t: number)
 			showing = holder
 			local left = holder:FindFirstChild("Left") :: ImageLabel
 			local right = holder:FindFirstChild("Right") :: ImageLabel
-			left.Size = UDim2.fromOffset(split, stageH)
+			left.Size = UDim2.fromOffset(split, winH)
 			right.Position = UDim2.fromOffset(split, 0)
-			right.Size = UDim2.fromOffset(stageW - split, stageH)
+			right.Size = UDim2.fromOffset(winW - split, winH)
 		end
 	end
 
-	p.cover.BackgroundTransparency = 1 - now.black
-
-	local skippable = t >= Story.skipAt and not skippedAt and now.black < 1
+	local skippable = t >= Story.skipAt and not skippedAt and now.picture ~= nil
 	p.skipGroup.Visible = skippable
 	local hover = p.skip.GuiState == Enum.GuiState.Hover
 		or p.skip.GuiState == Enum.GuiState.Press
@@ -315,7 +297,7 @@ end
 local function startClock(built: Parts)
 	local deadline = os.clock() + Story.loadWait
 	while os.clock() < deadline and parts == built do
-		local ready = true
+		local ready = music == nil or (music :: Sound).IsLoaded
 		for _, holder in built.pictures do
 			for _, image in holder:GetChildren() do
 				if image:IsA("ImageLabel") and not image.IsLoaded then
@@ -332,6 +314,12 @@ local function startClock(built: Parts)
 		return
 	end
 	startedAt = os.clock()
+	-- the music's first beat is the clock's first frame (`story_theme.py`)
+	local sound = music
+	if sound then
+		sound.TimePosition = 0
+		sound:Play()
+	end
 	-- a gamepad lands on SKIP once it is up
 	task.delay(Story.skipAt, function()
 		if parts == built and not skippedAt and UserInputService.GamepadEnabled then
@@ -367,11 +355,20 @@ function StoryCutscene.start(done: () -> ())
 	skippedAt = nil
 	played = {}
 	stalled = {}
+	if Music.story.id ~= "" then
+		local sound = Instance.new("Sound")
+		sound.Name = "Music_Story"
+		sound.SoundId = Music.story.id
+		sound.Volume = Music.volume
+		sound.Parent = SoundService
+		music = sound
+	end
 	connection = RunService.RenderStepped:Connect(function(dt: number)
 		--[[ A frame still loading holds the clock (at most `Story.stall` on
 		     each), so a slow connection pauses briefly rather than showing
 		     black. ]]
 		local frame = showing
+		local waiting = false
 		if frame and held == nil and startedAt and not skippedAt then
 			local left = frame:FindFirstChild("Left") :: ImageLabel
 			local right = frame:FindFirstChild("Right") :: ImageLabel
@@ -379,6 +376,21 @@ function StoryCutscene.start(done: () -> ())
 			if (not left.IsLoaded or not right.IsLoaded) and waited < Story.stall then
 				stalled[frame.Name] = waited + dt
 				startedAt = (startedAt :: number) + dt
+				waiting = true
+			end
+		end
+		--[[ The music waits with the frames, so it stays on them; SKIP takes it
+		     down over `MUSIC_OUT`. ]]
+		local sound = music
+		if sound and startedAt then
+			if waiting and sound.IsPlaying then
+				sound:Pause()
+			elseif not waiting and sound.IsPaused and not skippedAt then
+				sound:Resume()
+			end
+			local skipped = skippedAt
+			if skipped then
+				sound.Volume = Music.volume * math.max(0, 1 - (clock() - skipped) / MUSIC_OUT)
 			end
 		end
 		pose(held or clock())
@@ -411,6 +423,15 @@ function StoryCutscene.stop()
 	parts = nil
 	startedAt = nil
 	showing = nil
+	local sound = music
+	music = nil
+	if sound then
+		-- the last chord rings on into the lobby rather than cutting off
+		local left = if sound.IsPlaying then sound.TimeLength - sound.TimePosition else 0
+		task.delay(math.clamp(left, 0, 3), function()
+			sound:Destroy()
+		end)
+	end
 	RunPaused.setStory(false)
 end
 

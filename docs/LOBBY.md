@@ -9,11 +9,13 @@ rather than waiting for Phase 8.
 ## Status: building (2026-10-25)
 
 **The design** is the owner's pick: layout C, "Three Groves", without the egg breeder
-(`assets/concepts/blocky/lobby/lobby_three_groves.png`; the other options beside it). A forest
+(`assets/concepts/blocky/lobby/lobby_three_groves.png`; the other options beside it), with two
+rows of portals (owner, 2026-10-25: "make sure there are 2 rows of portals with them being
+locked, there should be at least 10 portals for now"; `lobby_portal_rows.png`). A forest
 clearing in the Mossy Glade's style: the Egg Hatchery in the west grove; the Blacksmith, Gear
-Station and Dex Hall in the east grove; the campfire spawn in the middle; the portal terrace
-across the north edge with the Mossy Glade and Thornwood portals lit and three locked arches for
-the areas to come; trees, cliffs and waterfalls round the edge.
+Station and Dex Hall in the east grove; the campfire spawn in the middle; two portal terraces
+across the north edge, ten arches in two rows of five (the back row a step up): Mossy Glade and
+Thornwood lit at the front row's west end, eight locked for the areas to come; trees, cliffs and waterfalls round the edge.
 
 **The flow** (built): BEGIN ADVENTURE puts players at the campfire; walking into a lit portal
 starts that area's run (Mossy Glade: the Mossy Glade Run; Thornwood: Level 2); from there the end

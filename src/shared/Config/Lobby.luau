@@ -51,13 +51,26 @@ local Lobby = {
 	--[[ Where a player appears: beside the campfire. ]]
 	spawn = Vector2.new(-4, 25),
 
-	--[[ The portal terrace across the north edge, and its five arches from
-	     west to east: the two areas built so far, then three locked. ]]
-	terrace = Vector2.new(0, -40),
-	archSpacing = 8,
+	--[[ The portal terraces across the north edge: two rows of arches
+	     (owner, 2026-10-25: "make sure there are 2 rows of portals with them
+	     being locked, there should be at least 10 portals for now"). `terrace`
+	     is the front row's centre; the back row stands `rowDepth` studs
+	     behind it and `rowRise` up, reached by steps. ]]
+	terrace = Vector2.new(0, -30),
+	rowDepth = 12,
+	rowRise = 1,
+	perRow = 5,
+	archSpacing = 9,
+	--[[ The arches, front row west to east, then the back row: the two
+	     areas built so far, then eight locked. ]]
 	portals = {
 		{ name = "Mossy Glade", stage = 5, tint = GREEN, sign = "PortalSignMossy" },
 		{ name = "Thornwood", stage = 4, tint = PURPLE, sign = "PortalSignThornwood" },
+		{},
+		{},
+		{},
+		{},
+		{},
 		{},
 		{},
 		{},
@@ -84,8 +97,8 @@ local Lobby = {
 			Vector2.new(-4, 46),
 			Vector2.new(-4, 24),
 			Vector2.new(-2, 0),
-			Vector2.new(0, -20),
-			Vector2.new(0, -34),
+			Vector2.new(0, -18),
+			Vector2.new(0, -26),
 		},
 		{ Vector2.new(-8, 8), Vector2.new(-20, 0), Vector2.new(-30, -2) },
 		{ Vector2.new(0, 4), Vector2.new(12, -6), Vector2.new(20, -12) },

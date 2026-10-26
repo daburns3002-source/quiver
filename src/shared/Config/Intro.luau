@@ -50,74 +50,140 @@ local Intro = {
 
 	button = "BEGIN ADVENTURE",
 
-	--[[ The title picture (`assets/concepts/blocky/ui/intro/title.png`,
-	     Codex, the owner's pick, 2026-10-25: the three heroes on a Mossy
-	     Glade hill, Thornwood beyond, the World Tree; logo painted in),
-	     cut into two halves under Roblox's 1024 px limit by
-	     `assets/ui/intro/cut.py` and uploaded through Studio's MCP. ]]
-	picture = {
-		left = "rbxassetid://94680822162414",
-		right = "rbxassetid://79601534977043",
-		--[[ The source's size, each half's width and where the right half
-		     starts (the halves overlap by 8 px, so no seam shows). ]]
-		width = 1670,
-		height = 941,
-		half = 839,
-		rightFrom = 831,
+	--[[ The title picture, two of the same art: `landscape` for a screen
+	     wider than tall (computers, consoles), `portrait` for one taller than
+	     wide (phones, which play the game upright; owner, 2026-10-26: "there
+	     needs to be a mobile version of the title screen"). Codex, the owner's
+	     picks (`assets/concepts/blocky/ui/intro/title.png`, `title_portrait.png`:
+	     the three heroes on the Mossy Glade, Thornwood beyond, the World Tree,
+	     logo painted in). Each is enlarged 2x and cut into a grid of tiles under
+	     Roblox's 1024 px limit (`assets/ui/intro/tiles.py`; owner: "Resolution of
+	     title screen needs to be higher"), `tiles` in row order. `width` and
+	     `height` are the art's own pixels, which `water` and `leavesFrom` are in. ]]
+	pictures = {
+		landscape = {
+			width = 1670,
+			height = 941,
+			cols = 4,
+			rows = 2,
+			tiles = {
+				"rbxassetid://73283236117725",
+				"rbxassetid://79625145319971",
+				"rbxassetid://118420334678373",
+				"rbxassetid://100688302403117",
+				"rbxassetid://80972719598001",
+				"rbxassetid://103915902604466",
+				"rbxassetid://131692646369508",
+				"rbxassetid://104553368268005",
+			},
+			--[[ The ponds' own pixels, brightened (`assets/ui/intro/water.py`),
+			     and the spots glints start from. ]]
+			water = {
+				image = "rbxassetid://105351049677009",
+				box = { x = 640, y = 547, w = 855, h = 175 },
+				spots = {
+					{ 655, 601 },
+					{ 674, 590 },
+					{ 677, 582 },
+					{ 686, 610 },
+					{ 689, 606 },
+					{ 691, 567 },
+					{ 693, 591 },
+					{ 699, 607 },
+					{ 706, 610 },
+					{ 712, 616 },
+					{ 1205, 690 },
+					{ 1246, 686 },
+					{ 1355, 678 },
+					{ 1361, 683 },
+					{ 1365, 675 },
+					{ 1374, 707 },
+					{ 1377, 703 },
+					{ 1402, 697 },
+					{ 1409, 694 },
+					{ 1414, 701 },
+					{ 1425, 696 },
+					{ 1483, 699 },
+				},
+			},
+			-- under the canopy of the Mossy Glade tree at the top left
+			leavesFrom = { x = 10, y = 60, w = 230, h = 150 },
+		},
+		portrait = {
+			width = 941,
+			height = 1672,
+			cols = 2,
+			rows = 4,
+			tiles = {
+				"rbxassetid://108854052246374",
+				"rbxassetid://116809946895414",
+				"rbxassetid://90987120985881",
+				"rbxassetid://114842959404665",
+				"rbxassetid://81588607149523",
+				"rbxassetid://81934830458044",
+				"rbxassetid://98758801552720",
+				"rbxassetid://88944366694585",
+			},
+			water = {
+				image = "rbxassetid://100193523448159",
+				box = { x = 243, y = 1000, w = 588, h = 173 },
+				spots = {
+					{ 275, 1067 },
+					{ 308, 1064 },
+					{ 318, 1063 },
+					{ 323, 1045 },
+					{ 346, 1043 },
+					{ 348, 1057 },
+					{ 357, 1034 },
+					{ 361, 1020 },
+					{ 691, 1093 },
+					{ 728, 1098 },
+					{ 736, 1109 },
+					{ 740, 1137 },
+					{ 743, 1070 },
+					{ 765, 1145 },
+					{ 772, 1138 },
+					{ 778, 1115 },
+					{ 783, 1149 },
+					{ 815, 1133 },
+				},
+			},
+			leavesFrom = { x = 5, y = 40, w = 140, h = 330 },
+		},
 	},
 
 	--[[ How dark the side bars are on a screen wider than the picture
 	     (the picture stretched to cover behind it): 0 black, 1 not dimmed. ]]
 	sidesDim = 0.45,
+	--[[ The picture fills the screen when that crops at most this share of
+	     it (a 16:10 computer screen crops 10% of its sides), taking
+	     `cropTop` of any height it loses from the top and the rest from the
+	     bottom grass; a screen needing more shows it whole with bars
+	     (`IntroTimeline.fit`). ]]
+	maxCrop = 0.12,
+	cropTop = 0.2,
 	--[[ The picture itself never moves (owner, 2026-10-25: "the screen should
 	     not move at all after it fully appears"), but a couple of things on
 	     it do, very minimally (owner, 2026-10-26: "i want the water in the
 	     river to be moving, leaves falling from the ... mossy glade part",
 	     the left side). Drawn by `UI/TitleMotion` in the picture's own
-	     pixels (`picture.width` x `picture.height`), so they sit on the art
+	     pixels (`pictures`), so they sit on the art
 	     at any screen size. ]]
 	motion = {
-		--[[ The ponds' own pixels, brightened (`assets/ui/intro/water.py`),
-		     shown through a soft band of light that slides across them, and
-		     small glints that drift along the water from `spots`. ]]
+		--[[ Each picture's `water`, shown through a soft band of light that
+		     slides across it, and small glints that drift along the water. ]]
 		water = {
-			image = "rbxassetid://105351049677009",
-			box = { x = 640, y = 547, w = 855, h = 175 },
 			-- seconds for the band to cross, and how strong it is at its middle
 			period = 5,
 			strength = 0.7,
 			glintEvery = 0.7,
 			glintLife = 1.4,
 			glintDrift = 10,
-			spots = {
-				{ 655, 601 },
-				{ 674, 590 },
-				{ 677, 582 },
-				{ 686, 610 },
-				{ 689, 606 },
-				{ 691, 567 },
-				{ 693, 591 },
-				{ 699, 607 },
-				{ 706, 610 },
-				{ 712, 616 },
-				{ 1205, 690 },
-				{ 1246, 686 },
-				{ 1355, 678 },
-				{ 1361, 683 },
-				{ 1365, 675 },
-				{ 1374, 707 },
-				{ 1377, 703 },
-				{ 1402, 697 },
-				{ 1409, 694 },
-				{ 1414, 701 },
-				{ 1425, 696 },
-				{ 1483, 699 },
-			},
 		},
 		--[[ The Mossy Glade's own ambience leaves (`Fx/ForestAmbience`: small
 		     flat leaves in `Balance.Ambience.Forest.leafColors`, fluttering),
 		     a few at a time, falling straight down from the Mossy Glade tree
-		     on the left, then fading (owner, 2026-10-26: "they should just fall
+		     on the left (each picture's `leavesFrom`), then fading (owner, 2026-10-26: "they should just fall
 		     straight down and it should be the leaves like the ambience in
 		     mossy glade"). `size` is a leaf's length in title pixels; it is
 		     0.45 / 0.7 as wide, as the ambience's leaf is. ]]
@@ -129,11 +195,6 @@ local Intro = {
 			fall = { 45, 65 },
 			-- flips a second as it flutters
 			flutter = { 1.2, 2 },
-			-- where they start: under the canopy of the Mossy Glade tree at the
-			-- top left, in title pixels (owner: "from the mossy glade trees")
-			from = {
-				{ x = 10, y = 60, w = 230, h = 150 },
-			},
 		},
 	},
 

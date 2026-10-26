@@ -28,10 +28,11 @@ local ArenaKits = require(script.Parent.ArenaKits)
 export type Placed = { piece: string, at: Vector2, yaw: number?, lift: number? }
 
 export type Portal = {
-	--[[ The area's name on its sign, and the `Balance.Stages` index its
-	     run plays; nil for a locked arch (an area not built yet). ]]
+	--[[ The area's name on its sign, and its levels: the `Balance.Stages`
+	     index each plays, in order, offered on the portal's screen
+	     (`UI/PortalScreen`); nil for a locked arch (an area not built yet). ]]
 	name: string?,
-	stage: number?,
+	levels: { number }?,
 	--[[ The swirl's colour, and the sign piece above the arch. ]]
 	tint: Color3?,
 	sign: string?,
@@ -70,14 +71,14 @@ local Lobby = {
 	portals = {
 		{
 			name = "Mossy Glade",
-			stage = 5,
+			levels = { 5 },
 			tint = GREEN,
 			sign = "PortalSignMossy",
 			arch = "PortalArch_MossyGlade",
 		},
 		{
 			name = "Thornwood",
-			stage = 4,
+			levels = { 4 },
 			tint = PURPLE,
 			sign = "PortalSignThornwood",
 			arch = "PortalArch_Thornwood",
@@ -91,9 +92,22 @@ local Lobby = {
 		{ name = "Shattered Kingdom", arch = "PortalArch_ShatteredKingdom" },
 		{ name = "Void Rift", arch = "PortalArch_VoidRift" },
 	} :: { Portal },
-	--[[ Studs in front of an active arch a player must come within to go
-	     through it. ]]
+	--[[ Studs from an active arch's mouth a player must come within for its
+	     screen to open (`UI/PortalScreen`), and how much further the server
+	     still grants START from, for the time the press takes to arrive. ]]
 	portalReach = 7,
+	startSlack = 4,
+	--[[ The level selector's slots per area: its levels, then locked ones
+	     (COMING SOON) up to this many. ]]
+	levelSlots = 3,
+
+	--[[ Moving round the lobby (owner, 2026-10-26: "let players sprint and
+	     jump in the lobby instead of dash"): Shift, a gamepad's X or the
+	     phone's SPRINT button runs this many times walking speed; Space, A or
+	     JUMP jumps this high (studs, Roblox's own jump). Runs keep the dash
+	     and never jump. ]]
+	sprint = 1.7,
+	jumpHeight = 7.2,
 	--[[ Studs in front of an arch where its mouth is. ]]
 	mouthAhead = 4,
 	--[[ How the portal pieces sit, in kit units, as the kit was drawn: the
@@ -110,12 +124,15 @@ local Lobby = {
 
 	--[[ The stations, as the sheet lays them out: the pet grove (the
 	     hatchery) west, the gear grove (blacksmith, gear station, dex hall)
-	     east, the campfire spawn in the middle. ]]
+	     east, the campfire spawn in the middle. The gear station stands out
+	     east of the blacksmith and below it, the dex hall further south
+	     (owner, 2026-10-26: the gear area "almost overlaps with the
+	     blacksmith area"); `Lobby.spec` keeps every footprint apart. ]]
 	stations = {
 		{ piece = "EggHatchery", at = Vector2.new(-68, -12) },
 		{ piece = "Blacksmith", at = Vector2.new(60, -28) },
-		{ piece = "GearStation", at = Vector2.new(74, 0) },
-		{ piece = "DexHall", at = Vector2.new(54, 36) },
+		{ piece = "GearStation", at = Vector2.new(86, 6) },
+		{ piece = "DexHall", at = Vector2.new(54, 44) },
 		{ piece = "SpawnCampfire", at = Vector2.new(-8, 28) },
 	} :: { Placed },
 
@@ -131,12 +148,12 @@ local Lobby = {
 		-- from the Blacksmith's centre, its tiles 0.12 up)
 		{ piece = "SmithNPC", at = Vector2.new(61.8, -19.6), lift = 0.72 },
 		{ piece = "FairyNPC", at = Vector2.new(-70, -42) },
-		{ piece = "Lectern", at = Vector2.new(40, 58) },
-		{ piece = "Lectern", at = Vector2.new(54, 58) },
-		{ piece = "Lectern", at = Vector2.new(68, 58) },
-		{ piece = "BookEnemies", at = Vector2.new(40, 58), lift = 6.6 },
-		{ piece = "BookWeapons", at = Vector2.new(54, 58), lift = 6.6 },
-		{ piece = "BookPets", at = Vector2.new(68, 58), lift = 6.6 },
+		{ piece = "Lectern", at = Vector2.new(40, 66) },
+		{ piece = "Lectern", at = Vector2.new(54, 66) },
+		{ piece = "Lectern", at = Vector2.new(68, 66) },
+		{ piece = "BookEnemies", at = Vector2.new(40, 66), lift = 6.6 },
+		{ piece = "BookWeapons", at = Vector2.new(54, 66), lift = 6.6 },
+		{ piece = "BookPets", at = Vector2.new(68, 66), lift = 6.6 },
 	} :: { Placed },
 
 	--[[ The FARTHEST ADVENTURERS board (`Run/StoryLeaderboard`) beside the
@@ -161,8 +178,8 @@ local Lobby = {
 		},
 		{ Vector2.new(-16, 16), Vector2.new(-40, 0), Vector2.new(-60, -4) },
 		{ Vector2.new(0, 8), Vector2.new(24, -12), Vector2.new(40, -24) },
-		{ Vector2.new(4, 20), Vector2.new(36, 20), Vector2.new(60, 8) },
-		{ Vector2.new(4, 28), Vector2.new(32, 36), Vector2.new(44, 36) },
+		{ Vector2.new(4, 20), Vector2.new(40, 20), Vector2.new(72, 22) },
+		{ Vector2.new(4, 28), Vector2.new(32, 44), Vector2.new(44, 44) },
 	} :: { { Vector2 } },
 
 	lawn = {

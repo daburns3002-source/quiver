@@ -18,14 +18,30 @@ across the north edge, ten arches in two rows of five (the back row a step up): 
 Thornwood lit at the front row's west end, eight locked for the areas to come; trees, cliffs and waterfalls round the edge.
 
 **The flow** (built): BEGIN ADVENTURE puts players at the campfire; walking into a lit portal
-starts that area's run (Mossy Glade: the Mossy Glade Run; Thornwood: Level 2); from there the end
+opens its screen (`UI/PortalScreen`, owner 2026-10-26: "need screen for portal entry with the
+level selector"): the area, its levels (`portals[i].levels`, one 20-room level each for now; locked
+COMING SOON slots up to `levelSlots`), each with its boss and whether it is cleared, and START, which
+asks the server (`Remotes.PortalStart`); the server starts the run only for the portal the player
+stands at and one of its levels (`Run/Lobby.startFor`, `tests/Lobby.spec`). X, Escape or walking
+away closes it. (Mossy Glade: the Mossy Glade Run; Thornwood: Level 2); from there the end
 screen's NEXT LEVEL and TRY AGAIN carry on as before (`Balance.campaign`). Nothing leads back to
 the lobby after a run yet. Data in `Config/Lobby`, built by
 `Run/Lobby`, the run's state `Lobby` in `Run/RoomController` (`beginStage`, `inLobby`), the stage
 a portal picked published as the Workspace's `Stage` (`Util/CurrentStage`). The camera follows
 the player across the clearing, the lobby plays its Mossy Glade music, and the banner reads
 "Lobby". The stations are scenery until their features are built. With several players in the
-server, the first to step into a portal takes everyone.
+server, the first to press START takes everyone.
+
+**Moving in the lobby** (owner, 2026-10-26: "let players sprint and jump in the lobby instead of
+dash"): no dash there; Shift, a gamepad's X (or a click of its left stick) or the phone's SPRINT
+button runs at `Config/Lobby.sprint` times walking speed, and Space, A or the phone's JUMP jumps
+(Roblox's own, `jumpHeight`; `RunSession.allowJump` on the server, `Input/MoveController` and
+`Input/LobbyButtons` on the client). A run keeps its dash and never jumps.
+
+**Station spacing** (2026-10-26, the owner: the gear area "almost overlaps with the blacksmith
+area"): the Gear Station stands out east and south of the Blacksmith, the Dex Hall and its
+lecterns a little further south; `Lobby.spec` keeps every station's footprint 6 studs from every
+other's.
 
 **The art** (built, 2026-10-25): twenty Claude Design pieces (four agents: hatchery and campfire;
 blacksmith and gear station; dex hall and the portal pieces; the scenery), each compared with the

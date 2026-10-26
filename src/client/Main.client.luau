@@ -45,6 +45,7 @@ local MusicFx = require(script.Parent.Fx.MusicFx)
 local NewEnemyScreen = require(script.Parent.UI.NewEnemyScreen)
 local PickupFx = require(script.Parent.Fx.PickupFx)
 local PlayerStats = require(script.Parent.PlayerStats)
+local PortalScreen = require(script.Parent.UI.PortalScreen)
 local ProjectileRenderer = require(script.Parent.Fx.ProjectileRenderer)
 local RangerFx = require(script.Parent.Fx.Upgrades.RangerFx)
 local Remotes = require(Shared.Net.Remotes)
@@ -358,6 +359,8 @@ DevKeys.start()
 SandboxMenu.start()
 -- the Blacksmith's weapon shop, and the wallet, in the lobby
 ShopScreen.start()
+-- a lit portal's screen and its level selector, in the lobby
+PortalScreen.start()
 
 DraftScreen.start(function(index: number)
 	DraftScreen.hide()

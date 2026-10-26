@@ -63,7 +63,7 @@ the same name = the data's name, `ModelClip` = the clip) is played by
 owner 2026-10-25, after Pixel Lineage's): black, DYL.DEVS in dark gold with
 PRESENTS small and white under it, a cut on the music's hit at 5.0 s (`revealAt`,
 the shared contract with the intro music, `Config/Music.intro`) to the Codex title
-picture (logo painted in), which never moves once up (owner) and shows whole at
+picture (logo painted in; a portrait one on upright screens, phones; both 2x tiles, `Intro.pictures`), which never moves once up (owner) and shows whole at
 the screen's height with dimmed copies filling the sides, and BEGIN ADVENTURE,
 still until hovered or pressed. BEGIN ADVENTURE plays **the story cutscene**
 (`UI/StoryCutscene`, `Config/Story`, `Util/StoryTimeline`, owner 2026-10-25): **one
@@ -295,7 +295,21 @@ when the server counts one on the player (`Meteors` attribute).
 drops as cyan crystals; walk over your own to take them mid-fight, and any
 left are drawn in when the wave or room clears. Hearts drop on 5% of kills and on every
 Valkyrie wave, wait on the floor, and heal 20% of max health when walked
-over, full health or not.
+over, full health or not, putting a green "+N" on the health bar's right end
+(`HealthChanged`'s third value, `Hud.healNumber`, owner 2026-10-26). **XP counts as the crystals arrive** (owner, 2026-10-26):
+a crystal can't be taken until it has landed (`Balance.Pickups.popTime`), and its XP is
+credited a `collectFlight` later (`RunSession.landXp`), so the bar and any level-up rise
+as it reaches the player, never as the enemy dies.
+
+**After every pause the attack starts over** (owner, 2026-10-26: the hit landed before
+the attack's animation after an upgrade pick): `Shared/Combat/FireRhythm` is the
+move-or-shoot rhythm both sides keep; the server's first step after any hold (card screen,
+banner, NEW ENEMY!, end screen, lobby) calls `RunSession.resumeAttacks` and
+`MeleeSystem.resume` (a swing in the air never lands), the client's `RunPaused` resume
+does the same in `LocalFiring`, and `WeaponPose` holds still behind the screen and readies
+the weapon from the start. A screen that lets the server go on must let the client go at the
+same moment, never after its own exit animation (the NEW ENEMY! screen did; `docs/FIXES.md`). `tests/FireRhythm.spec` pins it. Weapons are held
+`Balance.Player.heldWeaponScale` (1.2×) their `Config/Weapons` size, about the grip.
 
 **Sounds** (`Config/Sounds`, `Fx/SoundFx`): made from scratch in
 `assets/audio/synth.py`, or cut from CC0 Freesound recordings by
@@ -317,6 +331,13 @@ tell the owner). Runs pay (`Config/Economy`, per area): coins per kill, a clear 
 and the boss's item every time it falls plus gems, more the first time; the end screen's REWARDS
 box shows the stage's take. Any schema change bumps `SaveSchema.VERSION` with a migration and a
 `SaveSchema.spec` case.
+
+**Portals open a screen; the lobby sprints and jumps** (owner, 2026-10-26): walking into a lit
+portal opens `UI/PortalScreen` (the area, its levels from `Config/Lobby.portals[i].levels`, START),
+and only START starts the run, validated by the server against the portal the player stands at
+(`Remotes.PortalStart`, `Run/Lobby.startFor`, `tests/Lobby.spec`). In the lobby there is no dash:
+Shift / gamepad X / the phone's SPRINT runs (`Config/Lobby.sprint`) and Space / A / JUMP jumps
+(`RunSession.allowJump`, `Input/LobbyButtons`); a run still dashes and never jumps.
 
 **Empty hands in the lobby** (owner, 2026-10-25): the server holds no weapon while `InLobby`
 (`Main.refreshWeapon`, `HeldWeapon.unequip`) and `Fx/WeaponPose` writes no pose there, so

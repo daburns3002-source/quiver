@@ -25,6 +25,7 @@ local AbilityEffects = require(ReplicatedStorage.Shared.Combat.AbilityEffects)
 local Aim = require(ReplicatedStorage.Shared.Combat.Aim)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Classes = require(ReplicatedStorage.Shared.Config.Classes)
+local FireRhythm = require(ReplicatedStorage.Shared.Combat.FireRhythm)
 local FxEvents = require(script.Parent.Parent.Fx.Upgrades.FxEvents)
 local PlayerStats = require(script.Parent.Parent.PlayerStats)
 local ProjectileRenderer = require(script.Parent.Parent.Fx.ProjectileRenderer)
@@ -57,12 +58,14 @@ local function rebuildPipeline()
 	end
 end
 
-local lastFiredAt = 0
-local stationarySince: number? = nil
---[[ For Momentum: when the current stretch of moving began, and how long
-     the last one lasted. Tracked exactly as `RunSession.isStationary` does. ]]
-local movingSince: number? = nil
-local movedFor = 0
+--[[ When the player stood still, moved and last attacked, kept by the
+     server's own rule (`Shared/Combat/FireRhythm`), so the two keep time. ]]
+local rhythm: FireRhythm.State = {
+	stationarySince = nil,
+	movingSince = nil,
+	movedFor = 0,
+	lastFiredAt = 0,
+}
 local connection: RBXScriptConnection? = nil
 local loadoutConnection: RBXScriptConnection? = nil
 
@@ -153,7 +156,7 @@ end
      long the last move lasted. For effects that show Momentum's bank and
      Overdraw's charge; read-only. ]]
 function LocalFiring.motion(): (number?, number?, number)
-	return movingSince, stationarySince, movedFor
+	return rhythm.movingSince, rhythm.stationarySince, rhythm.movedFor
 end
 
 function LocalFiring.currentTarget(): Model?
@@ -205,9 +208,8 @@ local function step()
 	local moveDirection = humanoid.MoveDirection
 	local moving = moveDirection.Magnitude > Balance.Player.stationaryThreshold
 
+	local settled = FireRhythm.settle(rhythm, moving, now)
 	if moving then
-		stationarySince = nil
-		movingSince = movingSince or now
 		face(root, moveDirection)
 		return
 	end
@@ -218,14 +220,7 @@ local function step()
 		face(root, (target :: Vector3) - root.Position)
 	end
 
-	if not stationarySince then
-		stationarySince = now
-		movedFor = if movingSince then now - movingSince else 0
-		movingSince = nil
-		return
-	end
-
-	if now - (stationarySince :: number) < Balance.Player.stationaryDelay then
+	if not settled then
 		return
 	end
 
@@ -236,10 +231,10 @@ local function step()
 	local cooldown = AbilityEffects.cooldownAt(
 		stats.attackCooldown,
 		stats.momentumBonus,
-		movedFor,
-		now - (stationarySince :: number)
+		rhythm.movedFor,
+		now - (rhythm.stationarySince or now)
 	)
-	if now - lastFiredAt < cooldown then
+	if now - rhythm.lastFiredAt < cooldown then
 		return
 	end
 
@@ -254,7 +249,7 @@ local function step()
 		return
 	end
 
-	lastFiredAt = now
+	rhythm.lastFiredAt = now
 
 	--[[ A melee class's swing is the server's to land (`Combat/MeleeSystem`);
 	     this client only plays it. ]]
@@ -308,13 +303,13 @@ function LocalFiring.start()
 		pauseConnection:Disconnect()
 	end
 
-	--[[ Clearing the settle timer on resume matters: the player has been
+	--[[ Starting the rhythm over on resume matters: the player has been
 	     standing still behind the cards, and letting that count would hand
-	     them a free volley the instant they choose. ]]
+	     them a free volley the instant they choose. The server starts over
+	     the same way (`RunSession.resumeAttacks`). ]]
 	pauseConnection = RunPaused.onChanged(function(value: boolean)
 		if not value then
-			stationarySince = nil
-			lastFiredAt = os.clock()
+			FireRhythm.resume(rhythm, os.clock())
 		end
 	end)
 
@@ -322,8 +317,8 @@ function LocalFiring.start()
 end
 
 function LocalFiring.reset()
-	lastFiredAt = 0
-	stationarySince = nil
+	rhythm.lastFiredAt = 0
+	rhythm.stationarySince = nil
 	rebuildPipeline()
 end
 

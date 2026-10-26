@@ -37,6 +37,7 @@ type Glint = { frame: Frame, born: number, x: number, y: number }
 
 export type Motion = {
 	picture: Frame,
+	art: any,
 	water: ImageLabel,
 	band: UIGradient,
 	leaves: { Leaf },
@@ -46,32 +47,33 @@ export type Motion = {
 	random: Random,
 }
 
-local W, H = Intro.picture.width, Intro.picture.height
-
 local function between(random: Random, range: { number }): number
 	return random:NextNumber(range[1], range[2])
 end
 
--- a point in title pixels as a position inside the picture
-local function at(x: number, y: number): UDim2
-	return UDim2.fromScale(x / W, y / H)
+-- a point in the art's pixels as a position inside the picture
+local function at(m: Motion, x: number, y: number): UDim2
+	return UDim2.fromScale(x / m.art.width, y / m.art.height)
 end
 
-function TitleMotion.build(picture: Frame): Motion
+--[[ `art` is a `Config/Intro.pictures` entry: its water and where its
+     leaves fall from. ]]
+function TitleMotion.build(picture: Frame, art: any): Motion
 	picture.ClipsDescendants = true
-	local w = Intro.motion.water
+	local w = art.water
 	local water = Instance.new("ImageLabel")
 	water.Name = "Water"
 	water.BackgroundTransparency = 1
 	water.Image = w.image
-	water.Position = at(w.box.x, w.box.y)
-	water.Size = UDim2.fromScale(w.box.w / W, w.box.h / H)
+	water.Position = UDim2.fromScale(w.box.x / art.width, w.box.y / art.height)
+	water.Size = UDim2.fromScale(w.box.w / art.width, w.box.h / art.height)
 	water.ZIndex = 4
 	water.Parent = picture
 	local band = Instance.new("UIGradient")
 	band.Parent = water
 	return {
 		picture = picture,
+		art = art,
 		water = water,
 		band = band,
 		leaves = {},
@@ -85,7 +87,7 @@ end
 local function spawnLeaf(m: Motion, t: number)
 	local c = Intro.motion.leaves
 	local colours = Balance.Ambience.Forest.leafColors
-	local from = c.from[m.random:NextInteger(1, #c.from)]
+	local from = m.art.leavesFrom
 	local long = between(m.random, c.size)
 	local frame = Instance.new("Frame")
 	frame.Name = "Leaf"
@@ -93,7 +95,7 @@ local function spawnLeaf(m: Motion, t: number)
 	frame.BackgroundColor3 = colours[m.random:NextInteger(1, #colours)]
 	frame.BackgroundTransparency = 1
 	frame.AnchorPoint = Vector2.new(0.5, 0.5)
-	frame.Size = UDim2.fromScale(long / W, long * LEAF_WIDE / H)
+	frame.Size = UDim2.fromScale(long / m.art.width, long * LEAF_WIDE / m.art.height)
 	frame.Rotation = m.random:NextNumber(-30, 30)
 	frame.ZIndex = 5
 	frame.Parent = m.picture
@@ -113,7 +115,7 @@ local function spawnLeaf(m: Motion, t: number)
 end
 
 local function spawnGlint(m: Motion, t: number)
-	local spots = Intro.motion.water.spots
+	local spots = m.art.water.spots
 	local spot = spots[m.random:NextInteger(1, #spots)]
 	local frame = Instance.new("Frame")
 	frame.Name = "Glint"
@@ -121,7 +123,7 @@ local function spawnGlint(m: Motion, t: number)
 	frame.BackgroundColor3 = Color3.fromRGB(235, 255, 255)
 	frame.BackgroundTransparency = 1
 	frame.AnchorPoint = Vector2.new(0.5, 0.5)
-	frame.Size = UDim2.fromScale(5 / W, 3 / H)
+	frame.Size = UDim2.fromScale(5 / m.art.width, 3 / m.art.height)
 	frame.ZIndex = 5
 	frame.Parent = m.picture
 	table.insert(m.glints, { frame = frame, born = t, x = spot[1], y = spot[2] })
@@ -154,7 +156,7 @@ function TitleMotion.step(m: Motion, t: number, fade: number)
 			g.frame:Destroy()
 			table.remove(m.glints, i)
 		else
-			g.frame.Position = at(g.x + w.glintDrift * a, g.y)
+			g.frame.Position = at(m, g.x + w.glintDrift * a, g.y)
 			g.frame.BackgroundTransparency = 1 - math.sin(a * math.pi) * 0.85 * (1 - fade)
 		end
 	end
@@ -172,7 +174,7 @@ function TitleMotion.step(m: Motion, t: number, fade: number)
 			table.remove(m.leaves, i)
 		else
 			-- straight down, flipping over as it flutters (seen edge-on, then flat)
-			leaf.frame.Position = at(leaf.x, leaf.y + leaf.fall * age)
+			leaf.frame.Position = at(m, leaf.x, leaf.y + leaf.fall * age)
 			local flip = math.abs(math.cos(age * leaf.flutter * math.pi + leaf.phase))
 			leaf.scale.Scale = 0.35 + 0.65 * flip
 			-- in over half a second, out over the last second

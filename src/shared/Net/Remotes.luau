@@ -68,7 +68,9 @@ Remotes.RunStateChanged = "RunStateChanged"
 --[[ Server → one client. The local player took damage, for shake and vignette. ]]
 Remotes.PlayerDamaged = "PlayerDamaged"
 
---[[ Server → one client. Health changed for any reason, including spawn. ]]
+--[[ Server → one client. Health changed for any reason, including spawn:
+     (health, maxHealth, shown?), `shown` a heal to put up by the bar as a
+     "+N" (a heart's, so far). ]]
 Remotes.HealthChanged = "HealthChanged"
 
 --[[ Server → one client. Run XP and level, for the bar under the health. ]]
@@ -146,6 +148,20 @@ Remotes.DebugWallet = "DebugWallet"
 	only clears its own hold for this player (`RunSession.leaveTitle`).
 ]]
 Remotes.IntroBegin = "IntroBegin"
+
+--[[
+	Server → one client. The player has stepped into a lit portal's mouth in
+	the lobby: open its screen (`UI/PortalScreen`) with that portal's index
+	in `Config/Lobby.portals`, or 0 to shut it as they step out.
+]]
+Remotes.PortalOpen = "PortalOpen"
+
+--[[
+	Client → server. START on a portal's screen: the portal's index and the
+	level picked. The server checks both and that the player stands at that
+	portal (`Run/Lobby.startFor`) before starting the run.
+]]
+Remotes.PortalStart = "PortalStart"
 
 --[[
 	Server → one client. A kind of enemy this player has not met before has

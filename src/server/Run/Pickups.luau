@@ -32,6 +32,9 @@ type Pickup = {
 	--[[ Crystals only: whose kill it was, and the XP it carries. ]]
 	owner: Player?,
 	xp: number,
+	--[[ When it dropped: it is in the air, and cannot be walked over, for
+	     `Balance.Pickups.popTime`. ]]
+	droppedAt: number,
 }
 
 local pickupDropped = Remotes.event(Remotes.PickupDropped)
@@ -53,6 +56,7 @@ local function add(kind: Kind, position: Vector3, owner: Player?, xp: number, fr
 		position = Vector3.new(position.X, REST_Y, position.Z),
 		owner = owner,
 		xp = xp,
+		droppedAt = os.clock(),
 	}
 	pickups[pickup.id] = pickup
 
@@ -159,15 +163,22 @@ function Pickups.collectCrystals(): { [Player]: number }
 	return owed
 end
 
---[[ Takes `player`'s own crystals within reach of `position`, and returns
-     the XP they carried. Someone else's crystals stay where they are. ]]
-function Pickups.takeCrystals(player: Player, position: Vector3): number
-	local reach = Balance.Pickups.crystalRadius
+--[[ Takes `player`'s own crystals within reach of `position` that have
+     landed, and returns the XP they carried. Someone else's crystals stay
+     where they are, and so does one still popping out of its kill. `now`
+     is for tests; it defaults to the clock. ]]
+function Pickups.takeCrystals(player: Player, position: Vector3, now: number?): number
+	local config = Balance.Pickups
+	local reach = config.crystalRadius
+	local landed = (now or os.clock()) - config.popTime
 	local ids: { number } = {}
 	local xp = 0
 
 	for id, pickup in pickups do
 		if pickup.kind ~= "Crystal" or pickup.owner ~= player then
+			continue
+		end
+		if pickup.droppedAt > landed then
 			continue
 		end
 

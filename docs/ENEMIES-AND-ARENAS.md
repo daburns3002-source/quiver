@@ -135,9 +135,9 @@ that slows — the act where standing still in the wrong place costs you.
 
 | Enemy | Made from | What it does |
 |---|---|---|
-| **Drowned Zombie** | Charger, slow · twist: rises once more after death unless it burns | Slow, relentless |
+| **Drowned Zombie** | Charger, slow · twist: rises **once** after it is killed, then stays dead for good; killed while **burning**, it never rises at all (owner, 2026-10-26) | Slow, relentless |
 | **Ditch Eel** | **New: phaser** — slides through the flooded ground, under walls and houses, and surfaces to bite | Can't be hidden from |
-| **Bell Ringer** | Lancer · twist: its shot is a sound wave cone, not a line | A wide telegraph |
+| **Bell Ringer** | **Echo Mark** (owner's pick, 2026-10-26): rings at the player and a glowing ring lands under their feet; a beat later the echo strikes that exact spot. Standing still gets you hit, so it counters stop-to-shoot | Keep moving between shots |
 | *Elite:* **Hollow Fisherman** | Bulwark · twist: hooks you toward it (pull) | Being pulled |
 
 **Arenas.** *Flooded Street* — two rows of broken houses, a lane between.

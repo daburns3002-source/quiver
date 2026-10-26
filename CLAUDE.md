@@ -309,8 +309,9 @@ A crate per area for coins (500, 1,000, 2,000, 4,000, 10,000, 20,000) rolls on t
 pays back 40%; areas with no weapons yet are black silhouettes. The store sells an area's
 weapons for gems by rarity, its Legendaries for coins and 3 of its boss's item; Mythics only
 come out of crates. EQUIP holds an owned weapon (its class with it), saved, in hand at once in
-the lobby. Every weapon picture is the 2D Codex icon (`Config/ShopAssets`,
-`assets/ui/shop/cutout.py`); a new weapon needs one (`Shop.spec`). Studio test remote:
+the lobby. Every weapon picture is the THREE-QUARTER view of the reference sheet its 3D model was
+built from (owner: "use the 2d reference sheet 3/4 view pictures"; `Config/ShopAssets`,
+`assets/ui/shop/three_quarter.py`); a new weapon needs one (`Shop.spec`). Studio test remote:
 `Remotes.DebugWallet:FireServer(coins, gems, itemsEach)`.
 
 **Revive** (`Balance.Revive`): once per stage, automatically, after Second

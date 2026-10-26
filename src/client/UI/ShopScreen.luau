@@ -795,7 +795,9 @@ function ShopScreen.start()
 
 	RunService.RenderStepped:Connect(function()
 		poseButtons()
-		local inLobby = Workspace:GetAttribute("InLobby") == true
+		-- not over the story cutscene that plays in the lobby after BEGIN ADVENTURE
+		local story = player.PlayerGui:FindFirstChild("StoryCutscene")
+		local inLobby = Workspace:GetAttribute("InLobby") == true and story == nil
 		local h = hud
 		if h then
 			h.Visible = inLobby

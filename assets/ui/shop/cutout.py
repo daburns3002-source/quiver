@@ -5,7 +5,9 @@
 Reads assets/concepts/blocky/ui/shop/<sheet>_raw.png (3 x 2 grids, as Codex
 made them) and writes assets/ui/shop/icons/<Name>.png, 256 px squares with
 the magenta keyed out, each weapon or icon trimmed and centred. The names
-are `Config/Shop`'s and `Config/WeaponStats`'s.
+are `Config/Shop`'s and `Config/WeaponStats`'s. Run three_quarter.py after
+this: it replaces every weapon that has a reference sheet with that sheet's
+three-quarter view (only the Acorn Bow keeps its Codex icon).
 """
 
 import pathlib

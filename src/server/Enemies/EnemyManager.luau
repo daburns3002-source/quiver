@@ -1704,6 +1704,11 @@ local function stepEnemy(enemy: Enemy, deltaTime: number, now: number)
 
 		enemy.arrivesAt = nil
 		setArriving(enemy, false)
+		--[[ Its NEW ENEMY! screen, for whoever has not met its kind; the
+		     run holds from the next step until they close it. ]]
+		if not enemy.config.boss and not enemy.config.dummy then
+			RunSession.meetEnemy(enemy.config.displayName)
+		end
 	end
 
 	local boss = enemy.boss

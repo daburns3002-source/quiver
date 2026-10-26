@@ -1,0 +1,5 @@
+
+AREA: "THORNWOOD" - a dark, tangled bramble forest at dusk: twisted dark thorn trees, purple-brown bramble vines with sharp thorns, bone spikes, dead snags with crows, magenta-violet pollen drifting, deep purple and dark green shadows. The banner is dark bramble wood wrapped in thorny vines with sharp thorns sticking out, dark purple and deep green, a few violet glowing pollen motes; the frame is gnarled dark wood and thorns. Second reference image: the Thornwood area.
+ENEMY: the Bramble Boar - third reference image (its model sheet): a stocky blocky brown boar wrapped in thorny bramble vines, tusks, glowing eyes. Draw it faithfully.
+ENEMY NAME: "BRAMBLE BOAR"
+DESCRIPTION: "Paws the ground, then charges across the room. Step out of its line!"

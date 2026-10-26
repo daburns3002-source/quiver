@@ -317,6 +317,19 @@ nothing of the room shows, and **the run holds still until it has gone**
 the boss's arrival (`EnemyManager.introHolding`, beside the card screen's
 pause) and the client stops input on `RunPaused.setIntro`, a flag apart from
 the draft's.
+**The NEW ENEMY! screen** (`UI/NewEnemyScreen`, `Config/NewEnemies`, owner
+2026-10-25): the first time a player meets a kind of non-boss enemy (once per
+server visit until there is a save), its picture, name and description come up
+on its area's banner, and **the run holds until GOT IT!** (`RunSession.meetEnemy`
+as an enemy lands, `anyMeeting` in the server loop, `RunPaused.setMeeting`,
+`Remotes.NewEnemy` / `NewEnemySeen`). Each area's screen is the owner's
+approved Codex sheet 1:1 (`assets/concepts/blocky/ui/new_enemy/`), uploaded
+in two halves with its picture window, name plate and description box emptied
+by Codex, its dark ground cut away and an ink border round the card; it drops in
+and settles, and GOT IT! plays the cards' click and sweeps it away; the enemy pictures are Codex's 2D blocky art from each one's sheet
+(`assets/ui/new_enemy/cutout.py`). The sheet is the stage's area's. Areas
+1–3's fourteen are in, Drowned Village's four waiting for their enemies.
+`tests/NewEnemies.spec` makes every enemy met in an area bring a screen.
 
 Not done: the other nine bosses — designed (`docs/BOSSES.md`, two per
 act, one per area, with Codex concept art) but not built; Phase 3's

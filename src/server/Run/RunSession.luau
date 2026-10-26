@@ -21,6 +21,7 @@ local Classes = require(ReplicatedStorage.Shared.Config.Classes)
 local HeldWeaponChoice = require(ReplicatedStorage.Shared.Combat.HeldWeaponChoice)
 local Loadout = require(script.Parent.Loadout)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
+local NewEnemies = require(ReplicatedStorage.Shared.Config.NewEnemies)
 local PetCombat = require(ReplicatedStorage.Shared.Config.PetCombat)
 local Pickups = require(script.Parent.Pickups)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
@@ -95,6 +96,13 @@ export type Session = {
 	--[[ Still on the intro's title screen: the run holds until they press
 	     BEGIN ADVENTURE (`Remotes.IntroBegin`). ]]
 	atTitle: boolean,
+	--[[ The kinds of enemy (`EnemyConfig.displayName`) this player has met
+	     since joining, and the NEW ENEMY! screens open on their client, in
+	     order (`Config/NewEnemies`). The run holds while any is open. Kept
+	     across runs: once per server visit until there is a save (owner,
+	     2026-10-25). ]]
+	seenEnemies: { [string]: boolean },
+	meeting: { string },
 	--[[ Regen accrues every frame but is only told to the client a few
 	     times a second. ]]
 	healthSentAt: number,
@@ -154,6 +162,7 @@ RunSession.onRevive = nil :: ((Session, Vector3) -> ())?
 
 local healthChanged = Remotes.event(Remotes.HealthChanged)
 local xpChanged = Remotes.event(Remotes.XpChanged)
+local newEnemy = Remotes.event(Remotes.NewEnemy)
 local abilityOffer = Remotes.event(Remotes.AbilityOffer)
 local playerStats = Remotes.event(Remotes.PlayerStats)
 local playerDamaged = Remotes.event(Remotes.PlayerDamaged)
@@ -215,6 +224,8 @@ function RunSession.create(player: Player): Session
 		stageStartedAt = os.clock(),
 		-- in Studio, `SkipIntro` on Workspace starts without the title (`Config/Intro`)
 		atTitle = not (RunService:IsStudio() and Workspace:GetAttribute("SkipIntro") == true),
+		seenEnemies = {},
+		meeting = {},
 		healthSentAt = 0,
 		revivesLeft = Balance.Revive.perStage,
 		invulnerableUntil = 0,
@@ -347,6 +358,47 @@ function RunSession.leaveTitle(session: Session)
 	end
 	session.atTitle = false
 	session.stageStartedAt = os.clock()
+end
+
+--[[ A kind of enemy has landed (`EnemyManager`): everyone who has not met
+     it yet this visit is shown its NEW ENEMY! screen, and the run holds
+     until they close it (owner, 2026-10-25: pause until GOT IT!). Kinds
+     without a screen (bosses, summons, the old archetypes) pass. ]]
+function RunSession.meetEnemy(kind: string)
+	if not NewEnemies.enemies[kind] then
+		return
+	end
+	for _, session in sessions do
+		if not session.seenEnemies[kind] then
+			session.seenEnemies[kind] = true
+			table.insert(session.meeting, kind)
+			newEnemy:FireClient(session.player, kind)
+		end
+	end
+end
+
+--[[ Whether anyone has a NEW ENEMY! screen open. The run holds for them as
+     it does for a draft (`anyChoosing`). ]]
+function RunSession.anyMeeting(): boolean
+	for _, session in sessions do
+		if #session.meeting > 0 then
+			return true
+		end
+	end
+
+	return false
+end
+
+--[[ The player pressed GOT IT! on a kind's screen. Only clears a screen the
+     server opened, so a stray or repeated press changes nothing. ]]
+function RunSession.metEnemy(session: Session, kind: unknown)
+	if type(kind) ~= "string" then
+		return
+	end
+	local at = table.find(session.meeting, kind)
+	if at then
+		table.remove(session.meeting, at)
+	end
 end
 
 local function sendXp(session: Session)
@@ -635,6 +687,8 @@ function RunSession.resetRun(session: Session)
 	session.loadout.weapon = weapon
 	session.secondWindUsed = false
 	session.petReviveUsed = false
+	-- a screen left open when the run ended holds nothing now
+	table.clear(session.meeting)
 	RunSession.newStage(session)
 	RunSession.applyLoadout(session)
 	session.health = session.maxHealth

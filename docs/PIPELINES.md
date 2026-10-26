@@ -120,6 +120,8 @@ Codex image generation, always (owner's rule): `codex exec` with the prompt on s
 
 **Uploading images needs no owner step** (2026-10-24): serve the PNGs from localhost (`python -m http.server <port> --bind 127.0.0.1` in their folder) and call Studio MCP's `upload_image` with `http://localhost:<port>/<file>.png` paths; it returns the `rbxassetid://` ids. Codex's own sandbox cannot write into a worktree: its image lands in `~/.codex/generated_images/<id>/exec-*.png`, named in its log. Animated icons are 2x2 sheets of 512 px frames (1024 px, Roblox's largest), played with `ImageRectOffset` (`UI/BossBanner`).
 
+**A NEW ENEMY! screen for a new enemy** (`Config/NewEnemies`): have Codex draw its 2D blocky picture from its model sheet, with its area's approved sheet (`assets/concepts/blocky/ui/new_enemy/sheet_<area>_a.png`) as the style reference, on flat magenta (flat blue if the enemy is magenta or pink; add it to `BLUE` in the script), prompts in `new_enemy/enemies/`. Save it as `new_enemy/enemies/<enemy>_raw.png`, run `python -I assets/ui/new_enemy/cutout.py`, upload `art/<enemy>.png`, and add an entry under the enemy's `displayName` with its name, a one-line description of what it does and its area. `tests/NewEnemies.spec` fails until every enemy met in an area has one. A new area needs its sheet drawn and approved first, then emptied by Codex (`new_enemy/p_blank.txt`) and its boxes measured.
+
 ## 9. A UI handoff (cards, end screens)
 
 Claude Design's handoff → its frames and assets generated into `Config/Card*` / `Config/EndScreen*` by script (regenerate, never hand-edit), images uploaded and ids in `CardAssets` / `EndScreenAssets`, motion in code from its timeline.

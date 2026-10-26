@@ -214,6 +214,10 @@ function PetAttackFx.play(pet: Model, key: string): number
 	end
 	local fired = 0
 	for _, shot in shots do
+		-- drawn on the enemies the server holds (`Fx/RootHoldFx`)
+		if shot.kind == "Hold" then
+			continue
+		end
 		local count = if shot.kind == "Ground"
 			then math.max(shot.targets or 1, 1)
 			else shot.count or 1

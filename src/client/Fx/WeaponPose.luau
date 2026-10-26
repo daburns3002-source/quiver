@@ -48,6 +48,7 @@ local BowString = require(script.Parent.BowString)
 local Classes = require(ReplicatedStorage.Shared.Config.Classes)
 local FxEvents = require(script.Parent.Upgrades.FxEvents)
 local PlayerStats = require(script.Parent.Parent.PlayerStats)
+local RunPaused = require(script.Parent.Parent.RunPaused)
 local StaffOrb = require(script.Parent.StaffOrb)
 local SwingTrail = require(script.Parent.SwingTrail)
 local WeaponAnimations = require(ReplicatedStorage.Shared.Config.WeaponAnimations)
@@ -359,7 +360,9 @@ end
 
 local function step()
 	local now = os.clock()
-	local dt = now - lastStep
+	--[[ Still behind a card screen or a banner: the pose is written, so the
+	     arms stay where they were, but nothing plays on. ]]
+	local dt = if RunPaused.get() then 0 else now - lastStep
 	lastStep = now
 	--[[ Empty hands in the lobby (the server holds no weapon there): nothing
 	     is written, so Roblox's own animation has the arms. Forgetting the
@@ -376,6 +379,19 @@ local function step()
 	if character then
 		stepPose(character, now, dt)
 	end
+end
+
+--[[ The world moves again after standing still: an attack under way never
+     finishes (a blow that had not landed gives its combo place back, as the
+     server's does in `MeleeSystem.resume`), and the weapon is readied from
+     the start, in time with the shot `LocalFiring` now waits a full cooldown
+     for. ]]
+local function resume()
+	if role == "fire" and not blowLanded then
+		comboIndex = comboPrevious
+	end
+	engaged = false
+	play("hold", 1, os.clock())
 end
 
 --[[ An attack left the weapon: the next clip of its combo plays. ]]
@@ -417,6 +433,11 @@ function WeaponPose.start(aimHasTarget: () -> boolean)
 		connection:Disconnect()
 	end
 	connection = RunService.Stepped:Connect(step)
+	RunPaused.onChanged(function(paused: boolean)
+		if not paused then
+			resume()
+		end
+	end)
 	--[[ The server counts each meteor this player calls down
 	     (`Combat/FiringSystem`); the staff casts it. ]]
 	Players.LocalPlayer:GetAttributeChangedSignal("Meteors"):Connect(function()

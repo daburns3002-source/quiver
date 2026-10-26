@@ -16,6 +16,66 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## The lobby's Gear Station almost overlapped the Blacksmith
+
+**Symptom**: 2026-10-26, the owner after a playtest: "gear area needs to be moved because it almost overlaps with the blacksmith area."
+
+**Cause**: when the lobby was doubled (`scale` 6), the stations kept their places from the sheet, but each piece's footprint grew to 36 × 24 studs. The Gear Station at (74, 0) and the Blacksmith at (60, −28) ended up 3.9 studs apart, with the smith's seat between them. Nothing checked the spacing.
+
+**Fix**: the Gear Station moved out east and south to (86, 6), and the Dex Hall and its lecterns 8 studs further south to make room (`Config/Lobby.stations`). `Lobby.spec` now keeps every station's footprint at least 6 studs from every other's, measured on X or Z.
+
+**Measured**: in Studio, from the built meshes' boxes: Gear Station to Blacksmith 9.9 studs (was 3.9), to the smith's seat 9.4, to the Dex Hall 13.1.
+
+---
+
+## Stumpy's Root Snare did not hold anything
+
+**Symptom**: 2026-10-26, the owner after a playtest: "stumpy needs to hold enemies in place."
+
+**Cause**: the root was a slow to 0 (`EnemyManager.slow(model, 0, …)`), and a slow only scales the walking speed. Everything else an enemy does to move went on: an Ember Wilf's lunge travelled at full speed, a burrower dived, and every hit's knockback slid it (the stagger skips walking, not sliding). It lasted 1 s every 4 s, and the roots were drawn by the client under whichever enemy was nearest the *pet* for a fixed 1.6 s, not under the one the server held, which is nearest the *owner*.
+
+**Fix**: a root is its own hold (`EnemyManager.root`, `rootedUntil`; timing in `Shared/Util/RootHold`): while held, `stepEnemy` zeroes the knockback, does not dive, walks at 0, and `stepLunge` starts no lunge and ends one under way where it stands. And `separate()` no longer shoves a held body: the first Studio run with all that in still had a held Wilf drifting 3.9 studs in 2.9 s, pushed along by the enemies walking into it, so the other body now takes the whole push. It still attacks from where it stands. The server publishes `RootedUntil` (server time) and `RootedBy`; `Fx/RootHoldFx` draws the pet's `Hold` piece (`Config/PetAttacks`, kind `Hold`) on that enemy, its clip stretched over the hold. 1.75 s every 4 s; bosses are not held (`root.boss = 0`: their moves are timelines). `tests/RootHold.spec` pins the timing and that a hold stays under half the time.
+
+**Measured**: in Studio, Mossy Glade room 3, Stumpy at heel, three Wilfs and a Charger chasing a player walking a circle: a root every 4.0 s holding 1.71-1.73 s; held enemies moved 0.000 studs over 6.0 enemy-seconds (free ones about 4 studs a second); the snare drawn under the held enemy in 361 of 361 samples. Before the `separate()` change, a held Wilf moved 3.86 studs over 2.9 s.
+
+---
+
+## Shop weapons leant every which way; Diagonal Arrows' icon fired backwards
+
+**Symptom**: 2026-10-26, the owner after a playtest: "change icons in shop to all be at the same angle. change diagonal arrow icon to only the top 2 since there are no arrows fired behind the player."
+
+**Cause**: each shop weapon is the three-quarter view cut from its own reference sheet, and the sheets draw it at whatever lean they liked (measured: −19° to +32°, bows facing either way). Diagonal Arrows' Glow Toy icon (and Diagonal Orbs') is an X of four, but the cards only ever fire forward (±30°, `AbilityEffects`).
+
+**Fix**: `three_quarter.py` levels every cut-out (`level`): a bow is mirrored so its belly is left and its string right, then each weapon is turned until its long axis leans 21.3° right, the Acorn Bow's (its old Codex icon kept as it was). Codex redrew both diagonal icons as a V of two forward shots (`assets/concepts/blocky/ui/cards/`), put on the Rare tile by `glow_toy_cards/compose_icon.py`.
+
+**Measured**: all 17 re-cut weapons' long axes at 21.3°; the 19 new images load in Play (`PreloadAsync`, 19/19 Success).
+
+---
+
+## After picking an upgrade, the first hit landed before its attack animation
+
+**Symptom**: 2026-10-26, the owner after a playtest: "fix the attacking after an upgrade is selected, the projectile hits before the animation of attacking plays".
+
+**Cause**: the server skips its whole step while a card screen (or a banner, or a NEW ENEMY! screen) is up, but `os.clock()` keeps going and the session's `stationarySince` and `lastFiredAt` stayed where they were. On its first frame back the server found a long settle and an expired cooldown and fired at once. The client's prediction starts its rhythm over on resume, so it drew nothing for a whole cooldown, and it skips the server's copy of its own volley: damage landed with no arrow and no attack on screen, and the client's own shot and animation came 0.7 s later. A melee swing begun before the pause landed the same way. Separately, the NEW ENEMY! screen sent GOT IT! to the server at the click but cleared the client's pause only once the sheet had swept away (`NewEnemies.leave`, 0.4 s), so even with both rhythms reset the server's arrows led the client's by about 0.35 s.
+
+**Fix**: `Shared/Combat/FireRhythm`, the move-or-shoot rhythm both sides keep (`settle`, `resume`). The server's first step after any hold calls `RunSession.resumeAttacks` (and `MeleeSystem.resume`, so a swing still in the air never lands and gives its combo place back); the client's `RunPaused` resume does the same in `LocalFiring`. `WeaponPose` holds still behind the screen and starts the weapon from Hold on resume, so the draw plays before the release. The NEW ENEMY! screen lets the client go at GOT IT!, the same moment the server does. `tests/FireRhythm.spec` pins a full settle and cooldown after any pause and the two rhythms firing on the same frame.
+
+**Measured**: in Studio, a level-up hand picked with three Tanks alive: the hand closed at 230.793 s, the server's first shot came at 231.524 s (one cooldown later) and the client drew its three arrows at 231.526 s, on the same frame. After a NEW ENEMY! screen, before the screen fix: server shot 30.499 s, client arrow 30.867 s (0.37 s behind, on every shot after). After it: client 28.432 s, server 28.464 s. A Warden blow picked mid-fight landed after the pick, not on it.
+
+---
+
+## The XP bar rose before the crystals reached the player
+
+**Symptom**: 2026-10-26, the owner: "make sure the xp bar goes up when the crystals are collected, not when dropped".
+
+**Cause**: the server credited a crystal's XP the moment it was taken, which is when its flight to the player *starts* (`collectFlight`, 0.45 s). And a crystal could be taken while still popping out of its kill: with a 7-stud magnet and 2.2 studs of scatter, a kill near the player was "collected" on the frame it dropped, so the bar (and any level-up hand) rose as the enemy died.
+
+**Fix**: a crystal cannot be taken until it has landed (`Balance.Pickups.popTime`, shared with `Fx/PickupFx`), and its XP goes into `session.xpArriving` and is credited a flight later (`RunSession.landXp`, every frame the run moves). The tutorial's owed level-up is topped up with what is still flying in and lands with the last of it.
+
+**Measured**: in Studio, a room clear: last crystals dropped 4.617 s, drawn in 4.916 s (`collectDelay`), XP bar moved 5.383 s (+0.467). A pick's room clear: taken 162.810 s, XP 163.261 s.
+
+---
+
 ## The story cutscene kept cutting out and back in
 
 **Symptom**: 2026-10-26, the owner on the run-through: "the king bloblin cutscene is not smooth, it keeps cutting out and back in".

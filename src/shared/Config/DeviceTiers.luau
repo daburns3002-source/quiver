@@ -56,6 +56,13 @@ export type Tier = {
 	     plates) is the player's own and is always drawn. Past it a new
 	     one-shot is skipped. ]]
 	maxUpgradeFx: number,
+	--[[ Whether the upgrade cards' images are kept drawn, out of sight,
+	     from the start of the run (`UI/Cards/CardPreload`), so a hand shows
+	     its icons on its first frame. Every tier downloads them early; this
+	     also holds them in video memory (about 50 MB for a class's cards),
+	     which the lowest tier is spared: there a hand decodes them as it
+	     comes up, without waiting on the network. ]]
+	warmCardImages: boolean,
 }
 
 --[[
@@ -80,6 +87,7 @@ local low: Tier = {
 	ambienceShare = 0.4,
 	maxSlimeResidue = 24,
 	maxUpgradeFx = 10,
+	warmCardImages = false,
 }
 
 local medium: Tier = {
@@ -99,6 +107,7 @@ local medium: Tier = {
 	ambienceShare = 0.7,
 	maxSlimeResidue = 64,
 	maxUpgradeFx = 20,
+	warmCardImages = true,
 }
 
 local high: Tier = {
@@ -118,6 +127,7 @@ local high: Tier = {
 	ambienceShare = 1,
 	maxSlimeResidue = 128,
 	maxUpgradeFx = 32,
+	warmCardImages = true,
 }
 
 local DeviceTiers = {

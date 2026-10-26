@@ -4,7 +4,8 @@
 	rules 9 and 14), uploaded through Studio's MCP, keyed by a weapon's
 	`Config/WeaponStats` name. Each weapon is the THREE-QUARTER view of the
 	reference sheet its 3D model was built from (owner, 2026-10-25), cut out by
-	`assets/ui/shop/three_quarter.py`; the Acorn Bow, which has no sheet, and
+	`assets/ui/shop/three_quarter.py` and turned to one angle, the Acorn Bow's
+	(owner, 2026-10-26); the Acorn Bow, which has no sheet, and
 	the crate, coins, gems and boss items are Codex's shop sheets cut out by
 	`assets/ui/shop/cutout.py`. Areas without
 	art of their own show the Mossy Glade crate as a black silhouette.
@@ -22,24 +23,24 @@ local ShopAssets = {
 		BroodSilk = "rbxassetid://91967702339012",
 	} :: { [string]: string },
 	weapons = {
-		TwigBow = "rbxassetid://89841540130312",
+		TwigBow = "rbxassetid://138984353895385",
 		AcornBow = "rbxassetid://90453772215579",
-		FireflyBow = "rbxassetid://81768703457702",
-		MossSlimeBow = "rbxassetid://121992307955241",
-		EmberFangBow = "rbxassetid://127276672222487",
-		GladeSpiritBow = "rbxassetid://110408798064101",
-		BranchStaff = "rbxassetid://80085083687616",
-		ToadstoolStaff = "rbxassetid://90146834069883",
-		LanternStaff = "rbxassetid://128770184821460",
-		HootmossStaff = "rbxassetid://131204888538377",
-		SlimeCrownStaff = "rbxassetid://83423961366955",
-		WorldrootStaff = "rbxassetid://86183620962587",
-		TimberBlade = "rbxassetid://125162451128057",
-		MossstoneBlade = "rbxassetid://91807471069914",
-		ThornBlade = "rbxassetid://80040161215177",
-		BroodsplitBlade = "rbxassetid://125493298765353",
-		EmberfangBlade = "rbxassetid://124954085051996",
-		GladeheartBlade = "rbxassetid://96121957703325",
+		FireflyBow = "rbxassetid://123828841079142",
+		MossSlimeBow = "rbxassetid://112090320658439",
+		EmberFangBow = "rbxassetid://114946127588121",
+		GladeSpiritBow = "rbxassetid://124461716691460",
+		BranchStaff = "rbxassetid://77612272068019",
+		ToadstoolStaff = "rbxassetid://127251274901482",
+		LanternStaff = "rbxassetid://105723217995423",
+		HootmossStaff = "rbxassetid://110060045731761",
+		SlimeCrownStaff = "rbxassetid://123948487950469",
+		WorldrootStaff = "rbxassetid://109446824605098",
+		TimberBlade = "rbxassetid://125018236999573",
+		MossstoneBlade = "rbxassetid://80933185041566",
+		ThornBlade = "rbxassetid://124361900306270",
+		BroodsplitBlade = "rbxassetid://80210413001940",
+		EmberfangBlade = "rbxassetid://84444894674818",
+		GladeheartBlade = "rbxassetid://76868549241879",
 	} :: { [string]: string },
 }
 

@@ -2255,6 +2255,13 @@ local Balance = {
 		-- Seconds the archer must be still before firing resumes. Small, but
 		-- non-zero stops a player machine-gunning by tapping the stick.
 		stationaryDelay = 0.1,
+		--[[ Every weapon in hand is drawn this much larger than its
+		     `Config/Weapons` scale, about its grip, so the hand stays on the
+		     handle (owner, 2026-10-26: "make weapon models 20% bigger in the
+		     players hand"). Presentation only: shots leave from
+		     `Aim.shotOrigin` and a blade hits its `SwingBox`, whatever the
+		     model's size. ]]
+		heldWeaponScale = 1.2,
 
 		--[[
 			The dash.
@@ -2975,9 +2982,15 @@ local Balance = {
 		--[[ Seconds after a clear before the crystals are drawn in, so the
 		     last kill's crystals are seen landing first. ]]
 		collectDelay = 0.3,
-		--[[ Seconds a crystal takes to fly to its owner. Presentation; the XP
-		     is credited when the flight starts. ]]
+		--[[ Seconds a crystal takes to fly to its owner. Its XP is credited
+		     as it arrives, not as it sets off (owner, 2026-10-26: "make sure
+		     the xp bar goes up when the crystals are collected"). ]]
 		collectFlight = 0.45,
+		--[[ Seconds a drop takes to arc out of the body to where it lands
+		     (`Fx/PickupFx`). A crystal cannot be walked over until it has
+		     landed, so a kill beside the player is not collected as it
+		     drops. ]]
+		popTime = 0.35,
 
 		--[[ Chance a kill drops a heart. ]]
 		heartChance = 0.05,
@@ -3060,6 +3073,12 @@ local Balance = {
 		clearPause = 0.8,
 		--[[ Seconds the run-over message holds before the run restarts. ]]
 		deathPause = 2.5,
+		--[[ Seconds into a room before the next room is built in the
+		     background (`Arena.prepare`; owner, 2026-10-26: "next rooms need
+		     to preload while playing current room"): past the room's own
+		     arrival (its enemies landing, the ROOM sign), so the two never
+		     share a frame, and well before anyone reaches the door. ]]
+		prepareDelay = 3,
 	},
 
 	Spawning = {
@@ -3282,7 +3301,11 @@ local Balance = {
 			canopy = { 13, 15.5 },
 			hover = 16,
 			clearance = 1.5,
-			leavesPerSecond = 3,
+			--[[ Toned down so the room reads first (owner, 2026-10-26: "make
+			     outer arenas a little less distracting"): fewer leaves,
+			     fireflies, butterflies and birds than the handoff's, birds
+			     crossing less often and the shafts fainter. ]]
+			leavesPerSecond = 2,
 			leafPool = 60,
 			leafFall = { 0.5, 0.9 },
 			--[[ Seconds a fallen leaf lies before it fades, and how long the
@@ -3301,10 +3324,13 @@ local Balance = {
 			--[[ Fireflies a second per 60 square studs of floor, and mist
 			     puffs per 400. ]]
 			fireflyDensity = 1,
+			--[[ Fireflies a second per strip, at most: the strips are big
+			     enough that the density alone always reached it. ]]
+			fireflyMax = 4,
 			mistDensity = 1,
 			fireflyColor = Color3.fromRGB(235, 255, 150),
 			mistColor = Color3.fromRGB(238, 243, 230),
-			butterflies = 6,
+			butterflies = 3,
 			butterflyColors = {
 				Color3.fromRGB(242, 209, 74),
 				Color3.fromRGB(245, 241, 230),
@@ -3312,15 +3338,15 @@ local Balance = {
 			},
 			--[[ A flock crosses every `birdGap` seconds, `birdHeight` studs up:
 			     over the canopy and under the top-down camera. ]]
-			birds = 6,
-			birdGap = { 12, 25 },
+			birds = 5,
+			birdGap = { 20, 35 },
 			birdHeight = 22,
 			birdSpeed = 18,
 			birdColor = Color3.fromRGB(45, 51, 40),
 			--[[ Shafts of light slanting down between the trees, breathing. ]]
-			lightShafts = 4,
+			lightShafts = 2,
 			shaftColor = Color3.fromRGB(255, 244, 200),
-			shaftTransparency = 0.88,
+			shaftTransparency = 0.92,
 		},
 		--[[ Thornwood's wood (assets/concepts/blocky/arenas/
 		     area02_thornwood_ambience*.jpg): the same life as the glade's
@@ -3335,7 +3361,7 @@ local Balance = {
 			canopy = { 12, 15.5 },
 			hover = 16,
 			clearance = 1.5,
-			leavesPerSecond = 3,
+			leavesPerSecond = 2,
 			leafPool = 60,
 			leafFall = { 0.5, 0.9 },
 			leafRest = 2.5,
@@ -3347,19 +3373,20 @@ local Balance = {
 			},
 			gustSpeed = 0.6,
 			fireflyDensity = 1,
+			fireflyMax = 4,
 			mistDensity = 1,
 			fireflyColor = Color3.fromRGB(255, 120, 230),
 			mistColor = Color3.fromRGB(238, 243, 230),
 			butterflies = 0,
 			butterflyColors = { Color3.fromRGB(245, 241, 230) },
-			birds = 7,
-			birdGap = { 10, 20 },
+			birds = 5,
+			birdGap = { 18, 30 },
 			birdHeight = 22,
 			birdSpeed = 18,
 			birdColor = Color3.fromRGB(30, 30, 33),
-			lightShafts = 2,
+			lightShafts = 1,
 			shaftColor = Color3.fromRGB(255, 244, 200),
-			shaftTransparency = 0.88,
+			shaftTransparency = 0.92,
 		},
 	},
 

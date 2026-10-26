@@ -23,7 +23,7 @@ local RunService = game:GetService("RunService")
 local TextService = game:GetService("TextService")
 local UserInputService = game:GetService("UserInputService")
 
-local Balance = require(ReplicatedStorage.Shared.Config.Balance)
+local CurrentStage = require(ReplicatedStorage.Shared.Util.CurrentStage)
 local NewEnemies = require(ReplicatedStorage.Shared.Config.NewEnemies)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 
@@ -188,7 +188,7 @@ end
 --[[ The sheet for this stage's area, or the enemy's own in a stage that has
      no area (the courtyards, the Moonlit Arena). ]]
 local function sheetFor(enemy: NewEnemies.Enemy): NewEnemies.Sheet
-	local stage = Balance.Stages[Balance.stage]
+	local stage = CurrentStage.config()
 	local area = stage and stage.area
 	return (area and NewEnemies.sheets[area])
 		or NewEnemies.sheets[enemy.area]

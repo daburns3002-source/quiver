@@ -9,11 +9,12 @@
 	  one of two skills, an Angel a stat or a heal, and a boss wave closes each
 	  block of ten. See `Waves` for the schedule.
 
-	Which shape a run takes is `Balance.Stages[Balance.stage].mode` — data,
+	Which shape a run takes is the current stage's `mode` — data,
 	because it depends on where in the game a stage sits, not on anything the
 	code should decide.
 
-	Die, and the run goes back to the start of the stage. The server owns all
+	Die, and the run goes back to the start of the stage. Win, and NEXT
+	LEVEL starts the next stage of `Balance.campaign`, upgrades reset. The server owns all
 	of it: the client is told where it is and what state the run is in, and
 	never reports either. Stage progress is what areas unlock on in Phase 5,
 	so a client that could claim a wave could claim an area.
@@ -27,6 +28,7 @@ local AreaStrikes = require(script.Parent.Parent.Combat.AreaStrikes)
 local Arena = require(script.Parent.Parent.Arena.Arena)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Burning = require(script.Parent.Parent.Combat.Burning)
+local CurrentStage = require(ReplicatedStorage.Shared.Util.CurrentStage)
 local EnemyManager = require(script.Parent.Parent.Enemies.EnemyManager)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
 local MeleeSystem = require(script.Parent.Parent.Combat.MeleeSystem)
@@ -47,8 +49,12 @@ export type State = "Fighting" | "Cleared" | "Choosing" | "Dead" | "Complete"
 local runStateChanged = Remotes.event(Remotes.RunStateChanged)
 local runSummary = Remotes.event(Remotes.RunSummary)
 
+--[[ The stage being played, published for the clients and the enemies
+     (`Util/CurrentStage`). ]]
+local stageIndex = Balance.stage
+
 local function stage(): Balance.StageConfig
-	return Balance.Stages[Balance.stage]
+	return Balance.Stages[stageIndex]
 end
 
 --[[ How far through the stage the run is: a position in its room list, or a
@@ -211,6 +217,7 @@ local function startStage()
 end
 
 function RoomController.start()
+	workspace:SetAttribute(CurrentStage.ATTRIBUTE, stageIndex)
 	startStage()
 end
 
@@ -243,7 +250,7 @@ local function sendSummary(won: boolean)
 
 		runSummary:FireClient(session.player, {
 			won = won,
-			stage = Balance.stage,
+			stage = stageIndex,
 			kills = session.stageKills,
 			seconds = math.floor(os.clock() - session.stageStartedAt),
 			healthPercent = healthPercent,
@@ -394,16 +401,21 @@ function RoomController.requestRestart(): boolean
 		return false
 	end
 
-	if state == "Dead" then
-		log.info("restarting the run")
+	if state == "Complete" then
+		stageIndex = CurrentStage.nextAfter(Balance.campaign, stageIndex)
+		workspace:SetAttribute(CurrentStage.ATTRIBUTE, stageIndex)
+		log.info("on to stage %d, %s", stageIndex, stage().name)
+	end
 
-		--[[ Levels and abilities are run-local by design: a death costs the
-		     build and nothing else, because the meta loop that would soften
-		     that is Phase 6. Reset before the stage is built, so the first
-		     wave meets a level-one archer. ]]
-		for _, session in RunSession.all() do
-			RunSession.resetRun(session)
-		end
+	log.info("restarting the run")
+
+	--[[ Levels and abilities are run-local by design: a death costs the
+	     build and nothing else, because the meta loop that would soften
+	     that is Phase 6, and a new area starts from level one too (owner,
+	     2026-10-25: "reset upgrades and go into thornwood"). Reset before
+	     the stage is built, so the first wave meets a level-one archer. ]]
+	for _, session in RunSession.all() do
+		RunSession.resetRun(session)
 	end
 
 	resumeAt = nil

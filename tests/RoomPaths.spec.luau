@@ -85,9 +85,19 @@ return function(t: TestRunner.Helper)
 		t.isTrue(last.roster[1].boss ~= nil, "the last room is not the boss alone")
 	end)
 
-	t.test("Level 2 is forty rooms, none more than 30% cover", function()
+	t.test("Level 2 is twenty rooms ending in the Broodmother alone", function()
 		local rooms: { number } = Balance.Stages[4].rooms or {}
-		t.equal(#rooms, 40)
+		t.equal(#rooms, 20)
+		local last = Balance.Rooms[rooms[#rooms]]
+		t.equal(last.enemyCount, 1)
+		t.isTrue(last.roster[1].boss ~= nil, "the last room is not the boss alone")
+	end)
+
+	t.test("all forty Thornwood rooms are under 30% cover", function()
+		local rooms: { number } = {}
+		for index = 21, 60 do
+			table.insert(rooms, index)
+		end
 		local floor = Balance.Arena.size.X * Balance.Arena.size.Z
 		for _, index in rooms do
 			local room = Balance.Rooms[index]

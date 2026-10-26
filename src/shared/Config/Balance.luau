@@ -2777,15 +2777,19 @@ local Balance = {
 			area = "MossyGlade",
 		},
 		{
-			--[[ Forty Thornwood rooms (`tools/thornwood_rooms.py`), a step
-			     harder than Level 1. ]]
+			--[[ Twenty Thornwood rooms, a step harder than Level 1 (owner,
+			     2026-10-25: "make thornwood only 20 rooms as well"): the first
+			     nineteen of the forty `tools/thornwood_rooms.py` wrote (room
+			     10 the elite fight in the boss arena), then the Broodmother
+			     alone in the Brood Heart. The other twenty stay in `Rooms`. ]]
 			name = "Level 2",
 			mode = "Rooms",
 			rooms = (function(): { number }
 				local list = {}
-				for index = 21, 60 do
+				for index = 21, 39 do
 					table.insert(list, index)
 				end
+				table.insert(list, 60)
 				return list
 			end)(),
 			enemyDamage = 0.8,
@@ -2811,12 +2815,17 @@ local Balance = {
 		},
 	} :: { StageConfig },
 
-	--[[ Which stage a run plays. Set per point in the game; one index here
-	     until there is a stage select. Level 2, Thornwood, to playtest it
-	     (owner, 2026-10-25: "make the playtest have thornwood instead of
-	     mossy glade so i can test it"); the Mossy Glade run is 5, Level 1
-	     is 3. ]]
-	stage = 4,
+	--[[ Which stage the first run plays: the Mossy Glade run. Level 2,
+	     Thornwood, is 4; Level 1 is 3. ]]
+	stage = 5,
+	--[[ The stages played in turn (owner, 2026-10-25: "play the intro, then
+	     go into mossy glade rooms 1-20 then after the victory sign, when the
+	     player clicks next level, reset upgrades and go into thornwood"):
+	     NEXT LEVEL on Victory starts the next one with the upgrades reset,
+	     TRY AGAIN on Defeat the same one. After the last, it is played
+	     again until there is an area past it. `RoomController`,
+	     `Util/CurrentStage`. ]]
+	campaign = { 5, 4 },
 
 	--[[ The Waves-mode schedule, as Archero 2 numbers it within each block
 	     of ten: a Valkyrie on the 5th, an Angel on the 9th, a boss on the

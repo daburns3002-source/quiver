@@ -43,6 +43,56 @@ local Story = {
 	     `half` px wide, the right one from `rightFrom`. ]]
 	picture = { width = 1536, height = 864, half = 772, rightFrom = 764 },
 
+	--[[ The portrait frames (owner, 2026-10-26: "make it mobile vertical
+	     resolution"), shown while the screen is taller than wide: the same art
+	     reframed by Codex (`assets/concepts/blocky/ui/story/portrait.py`),
+	     1024 x 1536, cut into a top and a bottom half, the bottom from
+	     `bottomFrom`, by `assets/ui/story/cut_portrait.py`. ]]
+	portrait = { width = 1024, height = 1536, half = 772, bottomFrom = 764 },
+	--[[ Their uploaded halves, by frame: every frame or none. ]]
+	portraits = {
+		f01 = { top = "rbxassetid://132826732996083", bottom = "rbxassetid://117063062234215" },
+		f02a = { top = "rbxassetid://101268508257438", bottom = "rbxassetid://133941862753852" },
+		f02b = { top = "rbxassetid://109328275108966", bottom = "rbxassetid://78365149488527" },
+		f02c = { top = "rbxassetid://83761583730690", bottom = "rbxassetid://79013040459468" },
+		f02d = { top = "rbxassetid://81205326337720", bottom = "rbxassetid://99161742976390" },
+		f03b = { top = "rbxassetid://95082384819417", bottom = "rbxassetid://101383510895968" },
+		f04a = { top = "rbxassetid://123579498845364", bottom = "rbxassetid://95148870832512" },
+		f04b = { top = "rbxassetid://101441282069458", bottom = "rbxassetid://81369798406334" },
+		f05a = { top = "rbxassetid://78748483578747", bottom = "rbxassetid://139245014331564" },
+		f05b = { top = "rbxassetid://119524110870037", bottom = "rbxassetid://92302287295110" },
+		f06a = { top = "rbxassetid://139755387155479", bottom = "rbxassetid://88706865068804" },
+		f06b = { top = "rbxassetid://82345204204160", bottom = "rbxassetid://118462072009906" },
+		f06c = { top = "rbxassetid://101719991081367", bottom = "rbxassetid://99186974746467" },
+		f07a = { top = "rbxassetid://103529080375839", bottom = "rbxassetid://116216033036010" },
+		f07b = { top = "rbxassetid://128483197005596", bottom = "rbxassetid://100379033094740" },
+		f08a = { top = "rbxassetid://79199120519344", bottom = "rbxassetid://127418698135186" },
+		f08b = { top = "rbxassetid://121276186452909", bottom = "rbxassetid://131734565832507" },
+		f09 = { top = "rbxassetid://93949072850276", bottom = "rbxassetid://108683870764281" },
+		f10a = { top = "rbxassetid://120626805426199", bottom = "rbxassetid://107316136789565" },
+		f10b = { top = "rbxassetid://112486960951454", bottom = "rbxassetid://123607697806821" },
+		f12a = { top = "rbxassetid://136398549398227", bottom = "rbxassetid://133341723369959" },
+		f12b = { top = "rbxassetid://88851833180297", bottom = "rbxassetid://122022244852061" },
+		f13a = { top = "rbxassetid://88927811723849", bottom = "rbxassetid://86822773890658" },
+		f13b = { top = "rbxassetid://92891202903852", bottom = "rbxassetid://71422745834758" },
+		f14a = { top = "rbxassetid://87804189535277", bottom = "rbxassetid://77670123258982" },
+		f14b = { top = "rbxassetid://131269207075316", bottom = "rbxassetid://123844825671070" },
+		f15a = { top = "rbxassetid://116614179050056", bottom = "rbxassetid://104227758174820" },
+		f15b = { top = "rbxassetid://96946311376636", bottom = "rbxassetid://77138147550943" },
+		f16a = { top = "rbxassetid://137774527825488", bottom = "rbxassetid://119747727623775" },
+		f16b = { top = "rbxassetid://128260275576307", bottom = "rbxassetid://82127583907807" },
+		f17a = { top = "rbxassetid://137657414429034", bottom = "rbxassetid://79499698371763" },
+		f17b = { top = "rbxassetid://112476381105027", bottom = "rbxassetid://130715302251255" },
+		f18a = { top = "rbxassetid://126290855165812", bottom = "rbxassetid://134621772921097" },
+		f18b = { top = "rbxassetid://130547911902005", bottom = "rbxassetid://113971503281826" },
+		f19 = { top = "rbxassetid://129219132254966", bottom = "rbxassetid://115315553633726" },
+		f21a = { top = "rbxassetid://100823347085166", bottom = "rbxassetid://83618904886416" },
+		f21b = { top = "rbxassetid://132200046609984", bottom = "rbxassetid://89619526239053" },
+		f22b = { top = "rbxassetid://91335693090305", bottom = "rbxassetid://92103275517632" },
+		f23a = { top = "rbxassetid://84030034214582", bottom = "rbxassetid://107518376125202" },
+		f23c = { top = "rbxassetid://112309278207874", bottom = "rbxassetid://101686934765748" },
+	} :: { [string]: { top: string, bottom: string } },
+
 	--[[ Uploaded halves, by frame. ]]
 	pictures = {
 		f01 = { left = "rbxassetid://84266171488518", right = "rbxassetid://106530788926163" },

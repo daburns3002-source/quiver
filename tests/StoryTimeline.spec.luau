@@ -86,4 +86,21 @@ return function(t: TestRunner.Helper)
 			end
 		end
 	end)
+
+	t.test(
+		"the portrait frames cover every frame or none, each with its uploaded halves",
+		function()
+			local any = next(Story.portraits) ~= nil
+			for _, shot in Story.shots do
+				for _, frame in shot.frames do
+					local tall = Story.portraits[frame.picture]
+					t.equal(tall ~= nil, any)
+					if tall then
+						t.isTrue(tall.top:match("^rbxassetid://%d+$") ~= nil)
+						t.isTrue(tall.bottom:match("^rbxassetid://%d+$") ~= nil)
+					end
+				end
+			end
+		end
+	)
 end

@@ -560,7 +560,10 @@ local function buildStats(content: Instance, look: any, layout: any, summary: Su
 		layout.tab,
 		40,
 		look.tab,
-		"LEVEL " .. tostring(summary.stage),
+		-- the tutorial is not a numbered level (`Config/Tutorial`)
+		if summary.stage == Balance.tutorialStage
+			then "TUTORIAL"
+			else "LEVEL " .. tostring(summary.stage),
 		look.text.tab,
 		look.text.tabStroke,
 		look.tabStuds

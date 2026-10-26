@@ -57,6 +57,9 @@ export type State = {
 	--[[ A weapon held in place of the class's own, picked in the Studio
 	     sandbox (`Config/Sandbox`); nil holds the class's. A look only. ]]
 	weapon: string?,
+	--[[ Rarities that can never be dealt this run: the tutorial's Legendary
+	     and Mythic (`Config/Tutorial.bannedRarities`). Nil bans none. ]]
+	banned: { string }?,
 }
 
 local function costForLevel(level: number): number
@@ -144,9 +147,11 @@ end
 
 --[[
 	The skills that may legally be dealt right now: under their cap, not
-	excluded by something held, and not a filler card.
+	excluded by something held, and not a filler card. `chosen` is a hand
+	dealt on purpose (the tutorial's fixed hands), which may hold a rarity the
+	run's rolls are banned from: Multishot on the tutorial's room 3.
 ]]
-local function candidates(state: State): { Ability }
+local function candidates(state: State, chosen: boolean?): { Ability }
 	local out: { Ability } = {}
 
 	for _, ability in Abilities.all do
@@ -165,6 +170,12 @@ local function candidates(state: State): { Ability }
 		-- Another class's skill.
 		local classes = ability.classes
 		if classes and not table.find(classes, state.class) then
+			continue
+		end
+
+		-- A rarity this run may not roll (the tutorial's).
+		local banned = state.banned
+		if banned and not chosen and table.find(banned, ability.rarity) then
 			continue
 		end
 
@@ -245,14 +256,64 @@ function Loadout.rollOffer(
 	return picked
 end
 
+--[[ A fixed hand (the tutorial's, `Util/TutorialHands`) as it can be dealt
+     now: its cards in their slots, any one that can no longer be taken (at
+     its cap, excluded, another class's) replaced from the ordinary pool, so a
+     slot is never empty and its order is kept. ]]
+function Loadout.fixedHand(
+	state: State,
+	hand: { string },
+	atFullHealth: boolean,
+	random: Random
+): { string }
+	local legal = {}
+	for _, ability in candidates(state, true) do
+		legal[ability.id] = true
+	end
+	local slots: { [number]: string } = {}
+	local missing = 0
+	for index, id in hand do
+		local ability = Abilities.byId[id]
+		if ability and (legal[id] or (ability.filler and not atFullHealth)) then
+			slots[index] = id
+		else
+			missing += 1
+		end
+	end
+	local spares: { string } = {}
+	if missing > 0 then
+		for _, id in Loadout.rollOffer(state, atFullHealth, random, #hand + missing) do
+			if not table.find(hand, id) then
+				table.insert(spares, id)
+			end
+		end
+	end
+	local out: { string } = {}
+	for index = 1, #hand do
+		local id = slots[index] or table.remove(spares, 1)
+		if id then
+			table.insert(out, id)
+		end
+	end
+	return out
+end
+
 --[[ Opens a card screen if one is owed and none is already open. Returns the
-     offer, or nil when there is nothing to show. ]]
-function Loadout.openOffer(state: State, atFullHealth: boolean, random: Random): { string }?
+     offer, or nil when there is nothing to show. `hand`, when given, is dealt
+     in place of a roll (the tutorial's fixed hands). ]]
+function Loadout.openOffer(
+	state: State,
+	atFullHealth: boolean,
+	random: Random,
+	hand: { string }?
+): { string }?
 	if state.offer or state.pendingLevels <= 0 then
 		return nil
 	end
 
-	local offer = Loadout.rollOffer(state, atFullHealth, random)
+	local offer = if hand
+		then Loadout.fixedHand(state, hand, atFullHealth, random)
+		else Loadout.rollOffer(state, atFullHealth, random)
 
 	--[[ Nothing legal to offer still consumes the level. Holding it back would
 	     re-roll the same empty pool on every kill for the rest of the run. ]]

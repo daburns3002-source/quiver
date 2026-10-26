@@ -114,23 +114,25 @@ local Intro = {
 				{ 1483, 699 },
 			},
 		},
-		--[[ Blocky leaves (Codex, `assets/ui/intro/leaves.py`: a 2x2 sheet of
-		     `cell` px frames) dropping from the left side's tree and bushes,
-		     drifting right and down with a sway, then fading. ]]
+		--[[ The Mossy Glade's own ambience leaves (`Fx/ForestAmbience`: small
+		     flat leaves in `Balance.Ambience.Forest.leafColors`, fluttering),
+		     a few at a time, falling straight down from the Mossy Glade tree
+		     on the left, then fading (owner, 2026-10-26: "they should just fall
+		     straight down and it should be the leaves like the ambience in
+		     mossy glade"). `size` is a leaf's length in title pixels; it is
+		     0.45 / 0.7 as wide, as the ambience's leaf is. ]]
 		leaves = {
-			sheet = "rbxassetid://102598124345595",
-			cell = 128,
-			spawnEvery = 1.1,
-			most = 7,
-			size = { 34, 48 },
-			life = { 5, 7.5 },
-			fall = { 55, 85 },
-			drift = { 18, 40 },
-			sway = { 10, 22 },
-			-- where they start: boxes of title pixels (the tree top-left, the bushes)
+			spawnEvery = 2.2,
+			most = 4,
+			size = { 12, 16 },
+			life = { 5, 7 },
+			fall = { 45, 65 },
+			-- flips a second as it flutters
+			flutter = { 1.2, 2 },
+			-- where they start: under the canopy of the Mossy Glade tree at the
+			-- top left, in title pixels (owner: "from the mossy glade trees")
 			from = {
-				{ x = 0, y = 20, w = 240, h = 170 },
-				{ x = 0, y = 440, w = 180, h = 160 },
+				{ x = 10, y = 60, w = 230, h = 150 },
 			},
 		},
 	},

@@ -2,8 +2,9 @@
 --[[
 	The little that moves on the title picture (owner, 2026-10-26; see
 	`Config/Intro.motion`): light sliding over the ponds with a few glints,
-	and leaves falling from the left side's Mossy Glade tree and bushes. The
-	picture itself stays still.
+	and the Mossy Glade's ambience leaves (`Fx/ForestAmbience`'s small flat
+	leaves, in its colours) falling straight down from the Mossy Glade tree
+	on the left, fluttering. The picture itself stays still.
 
 	Everything lives inside the picture's frame (`UI/IntroCutscene`'s
 	"Picture"), placed by scale in the art's own pixels, so it stays on the
@@ -13,22 +14,25 @@
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Intro = require(ReplicatedStorage.Shared.Config.Intro)
 
 local TitleMotion = {}
 
 type Leaf = {
-	image: ImageLabel,
+	frame: Frame,
+	scale: UIScale,
 	born: number,
 	life: number,
 	x: number,
 	y: number,
 	fall: number,
-	drift: number,
-	sway: number,
+	flutter: number,
 	phase: number,
-	spin: number,
 }
+
+-- the ambience leaf's proportions (`Fx/ForestAmbience` LEAF_SIZE, 0.7 x 0.45)
+local LEAF_WIDE = 0.45 / 0.7
 type Glint = { frame: Frame, born: number, x: number, y: number }
 
 export type Motion = {
@@ -80,31 +84,31 @@ end
 
 local function spawnLeaf(m: Motion, t: number)
 	local c = Intro.motion.leaves
+	local colours = Balance.Ambience.Forest.leafColors
 	local from = c.from[m.random:NextInteger(1, #c.from)]
-	local frame = m.random:NextInteger(0, 3)
-	local image = Instance.new("ImageLabel")
-	image.Name = "Leaf"
-	image.BackgroundTransparency = 1
-	image.Image = c.sheet
-	image.ImageRectSize = Vector2.new(c.cell, c.cell)
-	image.ImageRectOffset = Vector2.new((frame % 2) * c.cell, (frame // 2) * c.cell)
-	local size = between(m.random, c.size)
-	image.Size = UDim2.fromScale(size / W, size / H)
-	image.AnchorPoint = Vector2.new(0.5, 0.5)
-	image.ImageTransparency = 1
-	image.ZIndex = 5
-	image.Parent = m.picture
+	local long = between(m.random, c.size)
+	local frame = Instance.new("Frame")
+	frame.Name = "Leaf"
+	frame.BorderSizePixel = 0
+	frame.BackgroundColor3 = colours[m.random:NextInteger(1, #colours)]
+	frame.BackgroundTransparency = 1
+	frame.AnchorPoint = Vector2.new(0.5, 0.5)
+	frame.Size = UDim2.fromScale(long / W, long * LEAF_WIDE / H)
+	frame.Rotation = m.random:NextNumber(-30, 30)
+	frame.ZIndex = 5
+	frame.Parent = m.picture
+	local scale = Instance.new("UIScale")
+	scale.Parent = frame
 	table.insert(m.leaves, {
-		image = image,
+		frame = frame,
+		scale = scale,
 		born = t,
 		life = between(m.random, c.life),
 		x = from.x + m.random:NextNumber() * from.w,
 		y = from.y + m.random:NextNumber() * from.h,
 		fall = between(m.random, c.fall),
-		drift = between(m.random, c.drift),
-		sway = between(m.random, c.sway),
+		flutter = between(m.random, c.flutter),
 		phase = m.random:NextNumber(0, 2 * math.pi),
-		spin = m.random:NextNumber(-40, 40),
 	})
 end
 
@@ -164,16 +168,16 @@ function TitleMotion.step(m: Motion, t: number, fade: number)
 		local leaf = m.leaves[i]
 		local age = t - leaf.born
 		if age >= leaf.life then
-			leaf.image:Destroy()
+			leaf.frame:Destroy()
 			table.remove(m.leaves, i)
 		else
-			local wave = math.sin(age * 1.6 + leaf.phase)
-			leaf.image.Position =
-				at(leaf.x + leaf.drift * age + leaf.sway * wave, leaf.y + leaf.fall * age)
-			leaf.image.Rotation = leaf.spin * age + 20 * wave
+			-- straight down, flipping over as it flutters (seen edge-on, then flat)
+			leaf.frame.Position = at(leaf.x, leaf.y + leaf.fall * age)
+			local flip = math.abs(math.cos(age * leaf.flutter * math.pi + leaf.phase))
+			leaf.scale.Scale = 0.35 + 0.65 * flip
 			-- in over half a second, out over the last second
 			local show = math.clamp(math.min(age / 0.5, leaf.life - age), 0, 1)
-			leaf.image.ImageTransparency = 1 - show * (1 - fade)
+			leaf.frame.BackgroundTransparency = 1 - show * (1 - fade)
 		end
 	end
 end

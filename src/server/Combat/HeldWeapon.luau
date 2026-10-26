@@ -49,6 +49,15 @@ local IN_HAND = CFrame.fromMatrix(
 	Vector3.new(0, -1, 0)
 )
 
+--[[ Empty hands (the lobby, owner 2026-10-25: "the roblox character in the
+     main lobby should not have any weapon equipped"). ]]
+function HeldWeapon.unequip(character: Model)
+	local existing = character:FindFirstChild("HeldWeapon")
+	if existing then
+		existing:Destroy()
+	end
+end
+
 --[[ Puts `weaponName` (a `Config/Weapons` entry) in the character's hand,
      replacing whatever it held. ]]
 function HeldWeapon.equip(character: Model, weaponName: string)

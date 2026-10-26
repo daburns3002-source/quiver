@@ -138,10 +138,24 @@ local function weaponFor(player: Player): string
 	return Classes[if session then session.loadout.class else "Ranger"].weapon
 end
 
+--[[ The weapon in hand during a run, nothing in the lobby (owner,
+     2026-10-25). Called whenever either can change. ]]
+local function refreshWeapon(player: Player)
+	local character = player.Character
+	if not character then
+		return
+	end
+	if RoomController.inLobby() then
+		HeldWeapon.unequip(character)
+	else
+		HeldWeapon.equip(character, weaponFor(player))
+	end
+end
+
 local function onCharacterAdded(player: Player, character: Model)
 	local session = RunSession.get(player) or RunSession.create(player)
 	RunSession.bindCharacter(session, character)
-	HeldWeapon.equip(character, weaponFor(player))
+	refreshWeapon(player)
 	-- in the lobby, a new body appears at the lobby's campfire
 	if RoomController.inLobby() and not session.atTitle then
 		task.defer(Lobby.place, character)
@@ -166,9 +180,7 @@ local function onPlayerAdded(player: Player)
 	--[[ A drafted card (the Dual Bows Mythic) or a class change can swap
 	     the weapon mid-run. ]]
 	player:GetAttributeChangedSignal("Weapon"):Connect(function()
-		if player.Character then
-			HeldWeapon.equip(player.Character, weaponFor(player))
-		end
+		refreshWeapon(player)
 	end)
 
 	if player.Character then
@@ -181,6 +193,13 @@ for _, player in Players:GetPlayers() do
 end
 
 Players.PlayerAdded:Connect(onPlayerAdded)
+
+-- into the lobby and out of it: the weapon goes away and comes back
+workspace:GetAttributeChangedSignal("InLobby"):Connect(function()
+	for _, player in Players:GetPlayers() do
+		refreshWeapon(player)
+	end
+end)
 
 --[[
 	The client picks a card.

@@ -40,6 +40,7 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
+local Workspace = game:GetService("Workspace")
 
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local BladeFx = require(script.Parent.BladeFx)
@@ -360,6 +361,13 @@ local function step()
 	local now = os.clock()
 	local dt = now - lastStep
 	lastStep = now
+	--[[ Empty hands in the lobby (the server holds no weapon there): nothing
+	     is written, so Roblox's own animation has the arms. Forgetting the
+	     weapon makes its hold play again when a run starts. ]]
+	if Workspace:GetAttribute("InLobby") == true then
+		weaponName = ""
+		return
+	end
 	local character = player.Character
 	if character ~= comboCharacter then
 		comboCharacter = character

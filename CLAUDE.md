@@ -328,7 +328,8 @@ pays back 40%; areas with no weapons yet are black silhouettes. The store sells 
 weapons for gems by rarity, its Legendaries for coins and 3 of its boss's item; Mythics only
 come out of crates. EQUIP holds an owned weapon (its class with it), saved, in hand at once in
 the lobby. Every weapon picture is the THREE-QUARTER view of the reference sheet its 3D model was
-built from (owner: "use the 2d reference sheet 3/4 view pictures"; `Config/ShopAssets`,
+built from (owner: "use the 2d reference sheet 3/4 view pictures"), all turned to the Acorn Bow's
+angle (owner, 2026-10-26: "all at the same angle"; `Config/ShopAssets`,
 `assets/ui/shop/three_quarter.py`); a new weapon needs one (`Shop.spec`). Studio test remote:
 `Remotes.DebugWallet:FireServer(coins, gems, itemsEach)`. In Studio the shop opens by itself on
 reaching the lobby, wallet topped up (`Sandbox.openShop`; set it to nil to stop that).

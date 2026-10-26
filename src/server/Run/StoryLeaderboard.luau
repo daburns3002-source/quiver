@@ -327,6 +327,27 @@ function StoryLeaderboard.start()
 		end
 	end)
 
+	-- each player's stored best, so a later area counts once it is theirs
+	local function load(player: Player)
+		local userId = player.UserId
+		if not store then
+			return
+		end
+		local loaded, stored = pcall(function(): any
+			local value = (store :: OrderedDataStore):GetAsync(tostring(userId))
+			return value
+		end)
+		if not loaded then
+			noteFailure(stored)
+		elseif type(stored) == "number" and stored > (best[userId] or 0) then
+			best[userId] = stored
+		end
+	end
+	Players.PlayerAdded:Connect(load)
+	for _, player in Players:GetPlayers() do
+		task.spawn(load, player)
+	end
+
 	Players.PlayerRemoving:Connect(function(player)
 		local userId = player.UserId
 		if dirty[userId] then
@@ -348,15 +369,21 @@ function StoryLeaderboard.start()
 	end)
 end
 
---[[ This player has reached `score` (`StoryProgress.score`). Only ever
-     raises their best; a lower or missing score changes nothing. ]]
-function StoryLeaderboard.record(player: Player, score: number?)
+--[[ This player has reached `score` (`StoryProgress.score`) in a stage
+     whose first room scores `start`. Only ever raises their best; a lower
+     or missing score changes nothing, and so does a stage the player has
+     not reached yet (`start` above their best): its rooms are not theirs
+     to claim until the areas before it are. ]]
+function StoryLeaderboard.record(player: Player, score: number?, start: number?)
 	if type(score) ~= "number" or score ~= score or score <= 0 then
 		return
 	end
 	local value = math.floor(score)
 	local userId = player.UserId
 	names[userId] = player.Name
+	if (start or 0) > (best[userId] or 0) then
+		return
+	end
 	if value <= (best[userId] or 0) then
 		return
 	end

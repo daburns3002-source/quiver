@@ -129,8 +129,12 @@ local function recordStory()
 	if not score then
 		return
 	end
+	--[[ A later area's portal can be walked into straight from the lobby:
+	     its rooms count only for a player who has already come that far,
+	     so nobody is credited with areas they skipped. ]]
+	local start = StoryProgress.score(Balance.campaign, Balance.Stages, stageIndex, 0) or 0
 	for _, session in RunSession.all() do
-		StoryLeaderboard.record(session.player, score)
+		StoryLeaderboard.record(session.player, score, start)
 	end
 end
 

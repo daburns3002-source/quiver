@@ -127,7 +127,9 @@ local Lobby = {
 	     codex books on lecterns before the Dex Hall ("the books that will be
 	     the enemy codex, weapon codex, and pet codex"). `lift` in studs. ]]
 	props = {
-		{ piece = "SmithNPC", at = Vector2.new(52, -8) },
+		-- in the seat the forge leaves him before its anvils (0.3, 1.4 units
+		-- from the Blacksmith's centre, its tiles 0.12 up)
+		{ piece = "SmithNPC", at = Vector2.new(61.8, -19.6), lift = 0.72 },
 		{ piece = "FairyNPC", at = Vector2.new(-70, -42) },
 		{ piece = "Lectern", at = Vector2.new(40, 58) },
 		{ piece = "Lectern", at = Vector2.new(54, 58) },

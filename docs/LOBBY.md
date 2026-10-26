@@ -35,8 +35,24 @@ sheet, in `assets/models/lobby/lobby_kit`, bundled with `kit_bundle.py --srgb` i
 way: the place's Baseplate (top at y = 0) reaches under the lobby's north half and fought the lawn
 in grey stripes, so the lawn and its floor stand 0.1 above it; the forest round the edge casts no
 shadow; the waterfall's and hatchery's glow is drawn lit but not Neon (Neon burned them white).
-Still apart from the sheet: the lawn has no flower pieces, and the blacksmith's roof hides most of
-its weapon rack from the game camera.
+**v3** (owner, 2026-10-25: "fix everything to look more like the sheet. also lets upscale
+everything and have it be the normal roblox camera angle. the portals also should look like their
+areas not all look the same. double the map size and length in between everything, change the
+camera angle and also add a leaderboard for farthest story completion"; then the blacksmith
+"modeled after the blacksmith from elden ring", the egg station's keeper "after the great fairy
+from breath of the wild", 2D cards for both, and the three codex books). The sheet is now
+`lobby_v3.png`. The clearing is twice the size and every piece twice as big (`scale` 6); in the
+lobby the camera is Roblox's own, started behind the player at its usual angle, and walking
+follows it (`TopDownCamera`, `MoveController`); a run takes the top-down camera back. Each portal
+is its own area's arch with its name built in (`portals[i].arch`). The lawn's scatter (flowers,
+bushes, mushrooms, rocks) is laid on a jittered grid, so it spreads evenly. Props: the smith at his
+anvil, the Hatchery Fairy, three codex books on lecterns before the Dex Hall. The FARTHEST
+ADVENTURERS board shows `Run/StoryLeaderboard` (see `docs/LEADERBOARD.md`). The second import is
+`assets/models/lobby/lobby_kit_v3_roblox.glb`. Codex art: `lobby/npcs/` (model sheets and the
+cards), `lobby/codex_books.png`, and the 2D codex books with their 6-frame page turns in
+`ui/codex/` (for the dexes, not built yet). Still apart from the sheet: the fairy's wings import
+solid (vertex colours carry no transparency), and the blacksmith's forge keeps its earlier
+left-right layout.
 
 ## What the lobby has to contain
 

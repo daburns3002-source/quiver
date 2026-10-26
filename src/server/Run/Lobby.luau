@@ -235,10 +235,16 @@ function Lobby.build(parent: Instance)
 	end
 
 	-- the stations, each with a wall round its footprint
-	local taken: { Vector2 } = { LobbyConfig.spawn }
+	--[[ Where the lawn's scatter may not go: each piece's own footprint and
+	     a little round it, the spawn, and the paths (`trail`). ]]
+	local clear: { { at: Vector2, reach: number } } = { { at = LobbyConfig.spawn, reach = 8 } }
+	local function keep(at: Vector2, size: Vector3?, fallback: number)
+		local reach = if size then math.max(size.X, size.Z) / 2 + 3 else fallback
+		table.insert(clear, { at = at, reach = reach })
+	end
 	for _, station in LobbyConfig.stations do
 		local size = piece(station.piece, station.at, station.yaw or 0, 1, root)
-		table.insert(taken, station.at)
+		keep(station.at, size, 14)
 		if size and station.piece ~= "SpawnCampfire" then
 			block(
 				"StationWall",
@@ -283,7 +289,7 @@ function Lobby.build(parent: Instance)
 		local at = Lobby.archAt(index)
 		local _, rise = rowCentre(Lobby.rowOf(index))
 		local lift = rise + platform
-		table.insert(taken, at)
+		keep(at, nil, 10)
 		-- its area's own arch, its name built in; the plain one until imported
 		local themed = portal.arch and piece(portal.arch, at, 0, 1, root, nil, lift)
 		if not themed then
@@ -302,14 +308,13 @@ function Lobby.build(parent: Instance)
 	end
 	-- the characters, the codex books and their lecterns
 	for _, prop in LobbyConfig.props do
-		piece(prop.piece, prop.at, prop.yaw or 0, 1, root, nil, prop.lift)
-		table.insert(taken, prop.at)
+		local size = piece(prop.piece, prop.at, prop.yaw or 0, 1, root, nil, prop.lift)
+		keep(prop.at, size, 6)
 	end
 
 	-- the leaderboard, and the face its names are written on
 	local board = LobbyConfig.leaderboard
-	piece("Leaderboard", board.at, 0, 1, root)
-	table.insert(taken, board.at)
+	keep(board.at, piece("Leaderboard", board.at, 0, 1, root), 16)
 	local face = Instance.new("Part")
 	face.Name = "LeaderboardFace"
 	face.Anchored = true
@@ -357,22 +362,47 @@ function Lobby.build(parent: Instance)
 		ring(Vector2.new(half.X + 12, z))
 	end
 
-	-- the lawn's scatter, clear of the stations, portals and paths
-	for name: string, count: number in LobbyConfig.scatter :: { [string]: number } do
-		local placed = 0
-		for _ = 1, count * 20 do
-			if placed >= count then
-				break
+	--[[ The lawn's scatter, spread evenly as on the sheet: one piece at a
+	     jittered point in each cell of a grid, its kind drawn by weight,
+	     clear of the pieces, the paths and the terraces. (Thrown at random
+	     points instead, it heaped into the one open corner.) ]]
+	local weights = LobbyConfig.scatter :: { [string]: number }
+	local kinds: { string } = {}
+	local totalWeight = 0
+	for name, weight in weights do
+		table.insert(kinds, name)
+		totalWeight += weight
+	end
+	table.sort(kinds)
+	local cell = LobbyConfig.scatterCell
+	local function blocked(at: Vector2): boolean
+		if at.Y < LobbyConfig.terrace.Y + 14 or near(at, trail, 6) then
+			return true
+		end
+		for _, area in clear do
+			if (at - area.at).Magnitude < area.reach then
+				return true
 			end
-			local at = Vector2.new(
-				(rng:NextNumber() * 2 - 1) * (half.X - 8),
-				(rng:NextNumber() * 2 - 1) * (half.Y - 8)
-			)
-			if near(at, taken, 30) or near(at, trail, 9) or at.Y < LobbyConfig.terrace.Y + 12 then
+		end
+		return false
+	end
+	for x = -half.X + cell / 2, half.X - cell / 2, cell do
+		for z = -half.Y + cell / 2, half.Y - cell / 2, cell do
+			local at = Vector2.new(x, z)
+				+ Vector2.new(rng:NextNumber() - 0.5, rng:NextNumber() - 0.5) * cell * 0.8
+			if rng:NextNumber() > LobbyConfig.scatterFill or blocked(at) then
 				continue
 			end
-			piece(name, at, rng:NextNumber() * math.pi * 2, 0.8 + rng:NextNumber() * 0.5, root)
-			placed += 1
+			local pick = rng:NextNumber() * totalWeight
+			local kind = kinds[#kinds]
+			for _, name in kinds do
+				pick -= weights[name]
+				if pick <= 0 then
+					kind = name
+					break
+				end
+			end
+			piece(kind, at, rng:NextNumber() * math.pi * 2, 0.8 + rng:NextNumber() * 0.5, root)
 		end
 	end
 

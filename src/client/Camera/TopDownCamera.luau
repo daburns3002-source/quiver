@@ -81,8 +81,18 @@ local function step(deltaTime: number, getRoot: () -> BasePart?)
 			camera.FieldOfView = 70
 			local root = getRoot()
 			local humanoid = root and root.Parent and root.Parent:FindFirstChildOfClass("Humanoid")
-			if humanoid then
+			if root and humanoid then
 				camera.CameraSubject = humanoid
+				--[[ Started at Roblox's own angle, behind the player and a
+				     little above, rather than keeping the steep top-down
+				     view it had. ]]
+				local behind = root.CFrame.LookVector * Vector3.new(1, 0, 1)
+				if behind.Magnitude < 1e-3 then
+					behind = Vector3.new(0, 0, -1)
+				end
+				local head = root.Position + Vector3.new(0, 1.5, 0)
+				camera.CFrame =
+					CFrame.lookAt(head - behind.Unit * 12 + Vector3.new(0, 3.5, 0), head)
 			end
 		end
 		currentFocus = nil

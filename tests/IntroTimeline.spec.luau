@@ -52,12 +52,14 @@ return function(t: TestRunner.Helper)
 		t.near(IntroTimeline.pose(c, Intro.buttonAt + Intro.buttonIn).button, 1, 1e-6)
 	end)
 
-	t.test("the zoom stays in its range and always covers the screen", function()
+	t.test("once the title is fully up, nothing on it changes", function()
+		local up = Intro.buttonAt + Intro.buttonIn
+		local a = IntroTimeline.pose(c, up)
 		for s = 0, 120, 0.7 do
-			local pose = IntroTimeline.pose(c, Intro.revealAt + s)
-			t.isTrue(pose.zoom >= Intro.zoom.from - 1e-6 and pose.zoom <= Intro.zoom.to + 1e-6)
-			-- the drift never shows the picture's edge
-			t.isTrue(math.abs(pose.drift) * 2 <= pose.zoom - 1 + 1e-6)
+			local b = IntroTimeline.pose(c, up + s)
+			t.equal(b.flash, a.flash)
+			t.equal(b.button, a.button)
+			t.equal(b.shown, a.shown)
 		end
 	end)
 

@@ -37,7 +37,11 @@ local Intro = {
 	--[[ After the press, the title fades off over this long. ]]
 	leave = 0.7,
 
-	presents = "DYL.DEVS PRESENTS",
+	--[[ DYL.DEVS in dark gold, PRESENTS smaller and white under it (owner,
+	     2026-10-25). ]]
+	presents = "DYL.DEVS",
+	presentsSub = "PRESENTS",
+	presentsSubColour = Color3.fromRGB(255, 255, 255),
 	--[[ Dark gold (owner's brief), on black. ]]
 	presentsColour = Color3.fromRGB(176, 132, 36),
 	--[[ The words start this much larger and settle to 1 as they fade in. ]]
@@ -46,49 +50,39 @@ local Intro = {
 	button = "BEGIN ADVENTURE",
 
 	--[[ The title picture (`assets/concepts/blocky/ui/intro/title.png`,
-	     Codex, the owner's pick A with its logo painted in, 2026-10-25),
+	     Codex, the owner's pick, 2026-10-25: the three heroes on a Mossy
+	     Glade hill, Thornwood beyond, the World Tree; logo painted in),
 	     cut into two halves under Roblox's 1024 px limit by
 	     `assets/ui/intro/cut.py` and uploaded through Studio's MCP. ]]
 	picture = {
-		left = "rbxassetid://93694893016976",
-		right = "rbxassetid://134918920655339",
+		left = "rbxassetid://94680822162414",
+		right = "rbxassetid://79601534977043",
 		--[[ The source's size, each half's width and where the right half
 		     starts (the halves overlap by 8 px, so no seam shows). ]]
-		width = 1672,
+		width = 1670,
 		height = 941,
-		half = 840,
-		rightFrom = 832,
+		half = 839,
+		rightFrom = 831,
 	},
 
-	--[[ Ambience over the still. A slow zoom in and out from the
-	     picture's top edge (where its logo is), over `period` seconds,
-	     drifting sideways by up to `drift` of the room the zoom leaves, so
-	     no edge ever shows. Kept small: on a screen wider than the picture
-	     the zoom crops more of the heroes at the bottom. ]]
-	zoom = { from = 1, to = 1.07, period = 28, drift = 0.8 },
-	--[[ Light shafts from the upper right, as in the picture, breathing. ]]
-	shafts = { count = 4, transparency = 0.7, breathe = 0.08, period = 6 },
-	--[[ Blocky motes (gold sparks and leaf cubes) drifting up and across. A
-	     phone draws fewer. ]]
-	motes = {
-		count = 26,
-		phoneCount = 14,
-		size = { 4, 10 },
-		speed = { 0.02, 0.05 },
-		colours = {
-			Color3.fromRGB(255, 214, 110),
-			Color3.fromRGB(255, 236, 170),
-			Color3.fromRGB(126, 196, 64),
-			Color3.fromRGB(88, 164, 48),
-		},
-	},
+	--[[ How dark the side bars are on a screen wider than the picture
+	     (the picture stretched to cover behind it): 0 black, 1 not dimmed. ]]
+	sidesDim = 0.45,
+	--[[ Once the picture is up nothing on it moves (owner, 2026-10-25: "the
+	     screen should not move at all after it fully appears"): no zoom,
+	     drift, light shafts or motes; only the cut's flash and the button
+	     rising in. ]]
 
 	--[[ The button's colours: the end screens' green. ]]
 	buttonColour = Color3.fromRGB(70, 176, 58),
 	buttonEdge = Color3.fromRGB(28, 96, 30),
 	buttonText = Color3.fromRGB(255, 255, 255),
-	--[[ The button's breathing scale while it waits. ]]
-	buttonPulse = { size = 0.04, period = 1.6 },
+	--[[ The button stays still until the player reaches for it (owner,
+	     2026-10-25: "static until hovered over and clicked on"): under the
+	     mouse or a gamepad's focus it brightens and grows a little; held
+	     down it darkens and presses in. ]]
+	buttonHover = { colour = Color3.fromRGB(98, 206, 80), scale = 1.05 },
+	buttonPress = { colour = Color3.fromRGB(46, 136, 40), scale = 0.96 },
 }
 
 return table.freeze(Intro)

@@ -4,7 +4,8 @@
 	after Pixel Lineage's intro: a black screen where DYL.DEVS PRESENTS fades
 	in in dark gold, then, on the intro music's hit at 5.0 s, a cut to the
 	full-screen title picture (Codex, the owner's pick A, its logo painted
-	in), slowly zooming and drifting under light shafts and blocky motes,
+	in), which stands still once it is up (owner: "the screen should not
+	move at all after it fully appears"),
 	with a big BEGIN ADVENTURE button at the bottom.
 
 	The music (`Config/Music.intro`) starts on the cutscene's first frame,
@@ -41,24 +42,23 @@ local INK = Color3.fromRGB(20, 14, 6)
 local SHINE = Color3.fromRGB(140, 222, 110)
 local FOOT = Color3.fromRGB(40, 120, 34)
 local STUD = Color3.fromRGB(255, 210, 63)
-local SHAFT = Color3.fromRGB(255, 232, 170)
-
-type Mote = { frame: Frame, x: number, y: number, speed: number, sway: number, phase: number }
 
 type Parts = {
 	gui: ScreenGui,
 	safe: ScreenGui,
 	black: Frame,
 	presents: TextLabel,
+	presentsSub: TextLabel,
 	presentsScale: UIScale,
 	picture: Frame,
-	shafts: { Frame },
-	motes: { Mote },
+	backdrop: Frame,
 	shade: Frame,
 	flash: Frame,
 	button: TextButton,
 	buttonGroup: Frame,
 	buttonScale: UIScale,
+	buttonFace: { Frame },
+	buttonWords: TextLabel,
 }
 
 local parts: Parts? = nil
@@ -111,13 +111,21 @@ local function stepped(parent: Instance, name: string, colour: Color3, z: number
 	return holder
 end
 
-local function buildButton(safe: ScreenGui): (Frame, TextButton, UIScale)
+type ButtonParts = {
+	group: Frame,
+	button: TextButton,
+	scale: UIScale,
+	face: { Frame },
+	words: TextLabel,
+}
+
+local function buildButton(safe: ScreenGui): ButtonParts
 	local phone = Device.isPhone()
 	local group = Instance.new("Frame")
 	group.Name = "BeginAdventure"
 	group.AnchorPoint = Vector2.new(0.5, 1)
 	group.Position = UDim2.new(0.5, 0, 1, -16)
-	group.Size = UDim2.fromScale(if phone then 0.6 else 0.32, 1)
+	group.Size = UDim2.fromScale(if phone then 0.5 else 0.3, 1)
 	group.BackgroundTransparency = 1
 	group.ZIndex = 20
 	group.Parent = safe
@@ -125,7 +133,7 @@ local function buildButton(safe: ScreenGui): (Frame, TextButton, UIScale)
 	ratio.AspectRatio = 5.2
 	ratio.Parent = group
 	local size = Instance.new("UISizeConstraint")
-	size.MaxSize = Vector2.new(600, 116)
+	size.MaxSize = Vector2.new(560, 108)
 	size.Parent = group
 	local scale = Instance.new("UIScale")
 	scale.Parent = group
@@ -138,7 +146,7 @@ local function buildButton(safe: ScreenGui): (Frame, TextButton, UIScale)
 	face.Size = UDim2.fromScale(0.976, 0.88)
 	face.ZIndex = 21
 	face.Parent = group
-	stepped(face, "Face", Intro.buttonColour, 21, 0.1)
+	local faceBlock = stepped(face, "Face", Intro.buttonColour, 21, 0.1)
 	local foot = rect(face, "Foot", FOOT, 22)
 	foot.Position = UDim2.fromScale(0.03, 0.78)
 	foot.Size = UDim2.fromScale(0.94, 0.12)
@@ -160,7 +168,7 @@ local function buildButton(safe: ScreenGui): (Frame, TextButton, UIScale)
 	words.BackgroundTransparency = 1
 	words.AnchorPoint = Vector2.new(0.5, 0.5)
 	words.Position = UDim2.fromScale(0.5, 0.47)
-	words.Size = UDim2.fromScale(0.84, 0.42)
+	words.Size = UDim2.fromScale(0.86, 0.5)
 	words.FontFace = FONT
 	words.Text = Intro.button
 	words.TextColor3 = Intro.buttonText
@@ -169,8 +177,16 @@ local function buildButton(safe: ScreenGui): (Frame, TextButton, UIScale)
 	words.Parent = face
 	local stroke = Instance.new("UIStroke")
 	stroke.Color = INK
-	stroke.Thickness = if phone then 2 else 3
+	stroke.Thickness = if phone then 3 else 4
+	stroke.LineJoinMode = Enum.LineJoinMode.Miter
 	stroke.Parent = words
+	-- a hard blocky shadow under the words, so they read on the green
+	local shadow = words:Clone()
+	shadow.Name = "Shadow"
+	shadow.TextColor3 = INK
+	shadow.Position = UDim2.new(0.5, 0, 0.47, if phone then 3 else 4)
+	shadow.ZIndex = 23
+	shadow.Parent = face
 
 	local button = Instance.new("TextButton")
 	button.Name = "Button"
@@ -180,7 +196,13 @@ local function buildButton(safe: ScreenGui): (Frame, TextButton, UIScale)
 	button.AutoButtonColor = false
 	button.ZIndex = 30
 	button.Parent = group
-	return group, button, scale
+	local blocks = {}
+	for _, block in faceBlock:GetChildren() do
+		if block:IsA("Frame") then
+			table.insert(blocks, block)
+		end
+	end
+	return { group = group, button = button, scale = scale, face = blocks, words = words }
 end
 
 local function build(playerGui: PlayerGui): Parts
@@ -223,72 +245,62 @@ local function build(playerGui: PlayerGui): Parts
 	fit.Parent = presents
 	local presentsScale = Instance.new("UIScale")
 	presentsScale.Parent = presents
+	-- PRESENTS, smaller and white, under DYL.DEVS
+	local sub = Instance.new("TextLabel")
+	sub.Name = "Sub"
+	sub.BackgroundTransparency = 1
+	sub.AnchorPoint = Vector2.new(0.5, 0)
+	sub.Position = UDim2.fromScale(0.5, 1.25)
+	sub.Size = UDim2.fromScale(0.5, 0.5)
+	sub.FontFace = FONT
+	sub.Text = Intro.presentsSub
+	sub.TextColor3 = Intro.presentsSubColour
+	sub.TextScaled = true
+	sub.TextTransparency = 1
+	sub.ZIndex = 10
+	sub.Parent = presents
+	local subFit = Instance.new("UITextSizeConstraint")
+	subFit.MaxTextSize = 26
+	subFit.Parent = sub
 
-	local picture = Instance.new("Frame")
-	picture.Name = "Picture"
-	-- pinned to the top: on a screen wider than the picture the crop comes
-	-- off the grass at the bottom, never the painted logo at the top
-	picture.AnchorPoint = Vector2.new(0.5, 0)
-	picture.BackgroundTransparency = 1
-	picture.Visible = false
-	picture.ZIndex = 2
-	picture.Parent = gui
+	--[[ The whole picture shows at the screen's height, so neither the logo
+	     at its top nor the heroes at its bottom are ever cut off; on a screen
+	     wider than it (most computers and phones), the bars at its sides are
+	     the same picture stretched to cover and darkened. ]]
 	local p = Intro.picture
 	--[[ The halves meet at the source's middle, each showing only its own
 	     side of it (the overlap is cut off by `ImageRect`), so they never
 	     double up where they meet as they fade. `pose` sizes them in whole
 	     pixels so no hairline shows between them. ]]
 	local middle = p.width / 2
-	for _, side in { "left", "right" } do
-		local image = Instance.new("ImageLabel")
-		image.Name = if side == "left" then "Left" else "Right"
-		image.BackgroundTransparency = 1
-		image.Image = (p :: any)[side]
-		image.ImageRectOffset = Vector2.new(if side == "left" then 0 else middle - p.rightFrom, 0)
-		image.ImageRectSize = Vector2.new(middle, p.height)
-		image.ZIndex = 2
-		image.Parent = picture
+	local function halves(name: string, z: number): Frame
+		local holder = Instance.new("Frame")
+		holder.Name = name
+		holder.AnchorPoint = Vector2.new(0.5, 0.5)
+		holder.Position = UDim2.fromScale(0.5, 0.5)
+		holder.BackgroundTransparency = 1
+		holder.Visible = false
+		holder.ZIndex = z
+		holder.Parent = gui
+		for _, side in { "left", "right" } do
+			local image = Instance.new("ImageLabel")
+			image.Name = if side == "left" then "Left" else "Right"
+			image.BackgroundTransparency = 1
+			image.Image = (p :: any)[side]
+			image.ImageRectOffset =
+				Vector2.new(if side == "left" then 0 else middle - p.rightFrom, 0)
+			image.ImageRectSize = Vector2.new(middle, p.height)
+			image.ZIndex = z
+			image.Parent = holder
+		end
+		return holder
 	end
-
-	-- light shafts from the upper right, where the picture's sun is
-	local shafts = {}
-	for i = 1, Intro.shafts.count do
-		local shaft = rect(gui, "Shaft", SHAFT, 4)
-		shaft.AnchorPoint = Vector2.new(0.5, 0)
-		shaft.Position = UDim2.fromScale(0.62 + i * 0.09, -0.25)
-		shaft.Size = UDim2.fromScale(0.035 + (i % 2) * 0.03, 1.6)
-		shaft.Rotation = 34
-		shaft.Visible = false
-		local fade = Instance.new("UIGradient")
-		fade.Rotation = 90
-		fade.Transparency = NumberSequence.new({
-			NumberSequenceKeypoint.new(0, 0),
-			NumberSequenceKeypoint.new(0.55, 0.6),
-			NumberSequenceKeypoint.new(1, 1),
-		})
-		fade.Parent = shaft
-		table.insert(shafts, shaft)
-	end
-
-	local motes: { Mote } = {}
-	local m = Intro.motes
-	local random = Random.new()
-	for i = 1, if Device.isPhone() then m.phoneCount else m.count do
-		local mote = rect(gui, "Mote", m.colours[(i - 1) % #m.colours + 1], 5)
-		local px = random:NextInteger(m.size[1], m.size[2])
-		mote.Size = UDim2.fromOffset(px, px)
-		mote.AnchorPoint = Vector2.new(0.5, 0.5)
-		mote.Rotation = random:NextNumber(0, 90)
-		mote.Visible = false
-		table.insert(motes, {
-			frame = mote,
-			x = random:NextNumber(),
-			y = random:NextNumber(),
-			speed = random:NextNumber(m.speed[1], m.speed[2]),
-			sway = random:NextNumber(0.005, 0.02),
-			phase = random:NextNumber(0, 2 * math.pi),
-		})
-	end
+	local backdrop = halves("Backdrop", 1)
+	local dim = rect(backdrop, "Dim", Color3.new(0, 0, 0), 2)
+	dim.Size = UDim2.fromScale(1, 1)
+	dim.BackgroundTransparency = Intro.sidesDim
+	dim.ZIndex = 2
+	local picture = halves("Picture", 3)
 
 	-- the bottom darkens a little under the button
 	local shade = rect(gui, "Shade", Color3.new(0, 0, 0), 6)
@@ -305,23 +317,25 @@ local function build(playerGui: PlayerGui): Parts
 	flash.Size = UDim2.fromScale(1, 1)
 	flash.BackgroundTransparency = 1
 
-	local buttonGroup, button, buttonScale = buildButton(safe)
-	buttonGroup.Visible = false
+	local made = buildButton(safe)
+	made.group.Visible = false
 
 	return {
 		gui = gui,
 		safe = safe,
 		black = black,
 		presents = presents,
+		presentsSub = sub,
 		presentsScale = presentsScale,
 		picture = picture,
-		shafts = shafts,
-		motes = motes,
+		backdrop = backdrop,
 		shade = shade,
 		flash = flash,
-		button = button,
-		buttonGroup = buttonGroup,
-		buttonScale = buttonScale,
+		button = made.button,
+		buttonGroup = made.group,
+		buttonScale = made.scale,
+		buttonFace = made.face,
+		buttonWords = made.words,
 	}
 end
 
@@ -396,42 +410,32 @@ local function pose(t: number)
 	local fade = 1 - now.shown
 
 	p.presents.TextTransparency = 1 - now.presents
+	p.presentsSub.TextTransparency = 1 - now.presents
 	p.presentsScale.Scale = now.presentsScale
 	p.black.BackgroundTransparency = if now.revealed then 1 else fade
 
 	local size = p.gui.AbsoluteSize
 	local c = Intro.picture
-	local cover = math.max(size.X / c.width, size.Y / c.height) * now.zoom
-	p.picture.Visible = now.revealed
-	local wide = math.floor(c.width * cover + 0.5)
-	local tall = math.floor(c.height * cover + 0.5)
-	p.picture.Size = UDim2.fromOffset(wide, tall)
-	p.picture.Position = UDim2.fromScale(0.5 + now.drift, 0)
-	local left = p.picture:FindFirstChild("Left") :: ImageLabel
-	local right = p.picture:FindFirstChild("Right") :: ImageLabel
-	local split = math.floor(wide / 2)
-	left.Size = UDim2.fromOffset(split, tall)
-	right.Position = UDim2.fromOffset(split, 0)
-	right.Size = UDim2.fromOffset(wide - split, tall)
-	for _, image in p.picture:GetChildren() do
-		if image:IsA("ImageLabel") then
-			image.ImageTransparency = fade
-		end
+	local function place(holder: Frame, scale: number)
+		local wide = math.floor(c.width * scale + 0.5)
+		local tall = math.floor(c.height * scale + 0.5)
+		holder.Visible = now.revealed
+		holder.Size = UDim2.fromOffset(wide, tall)
+		local left = holder:FindFirstChild("Left") :: ImageLabel
+		local right = holder:FindFirstChild("Right") :: ImageLabel
+		local split = math.floor(wide / 2)
+		left.Size = UDim2.fromOffset(split, tall)
+		right.Position = UDim2.fromOffset(split, 0)
+		right.Size = UDim2.fromOffset(wide - split, tall)
+		left.ImageTransparency = fade
+		right.ImageTransparency = fade
 	end
+	-- the whole picture, as large as fits; the sides, covered
+	place(p.picture, math.min(size.X / c.width, size.Y / c.height))
+	place(p.backdrop, math.max(size.X / c.width, size.Y / c.height))
+	local dim = p.backdrop:FindFirstChild("Dim") :: Frame
+	dim.BackgroundTransparency = Intro.sidesDim + (1 - Intro.sidesDim) * fade
 
-	for i, shaft in p.shafts do
-		shaft.Visible = now.revealed
-		local wave = math.sin(t * 0.7 + i * 1.3) * 0.04
-		shaft.BackgroundTransparency = math.clamp(now.shaftTransparency + wave, 0, 1) + fade * 0.2
-	end
-	for _, mote in p.motes do
-		mote.frame.Visible = now.revealed
-		local y = (mote.y - t * mote.speed) % 1.1 - 0.05
-		local x = (mote.x + math.sin(t * 0.6 + mote.phase) * mote.sway + t * 0.004) % 1
-		mote.frame.Position = UDim2.fromScale(x, y)
-		mote.frame.Rotation += 0.3
-		mote.frame.BackgroundTransparency = 0.25 + 0.3 * math.sin(t * 1.7 + mote.phase) ^ 2 + fade
-	end
 	p.shade.Visible = now.revealed
 	p.shade.BackgroundTransparency = fade
 
@@ -439,7 +443,21 @@ local function pose(t: number)
 
 	p.buttonGroup.Visible = now.button > 0 and now.shown > 0
 	p.buttonGroup.Position = UDim2.new(0.5, 0, 1 + 0.25 * (1 - now.button), -16)
-	p.buttonScale.Scale = now.buttonScale * (1 - 0.1 * fade)
+	--[[ Still until the player reaches for it: brighter and a little larger
+	     under the mouse (or a gamepad's focus), darker and pressed in while
+	     held. ]]
+	local ready = now.button >= 1 and not pressedAt
+	local state = p.button.GuiState
+	local pressing = ready and state == Enum.GuiState.Press
+	local hovering = ready
+		and not pressing
+		and (state == Enum.GuiState.Hover or GuiService.SelectedObject == p.button)
+	local look = if pressing then Intro.buttonPress elseif hovering then Intro.buttonHover else nil
+	for _, block in p.buttonFace do
+		block.BackgroundColor3 = if look then look.colour else Intro.buttonColour
+	end
+	p.buttonWords.Position = UDim2.new(0.5, 0, 0.47, if pressing then 3 else 0)
+	p.buttonScale.Scale = (if look then look.scale else 1) * (1 - 0.1 * fade)
 	for _, piece in p.buttonGroup:GetDescendants() do
 		if piece:IsA("Frame") then
 			piece:SetAttribute("Base", piece:GetAttribute("Base") or piece.BackgroundTransparency)

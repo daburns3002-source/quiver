@@ -243,20 +243,32 @@ local function flash(model: Model)
 	end
 	local boss = model:GetAttribute("Boss") ~= nil
 	local h = highlight :: Highlight
-	h.FillTransparency = if boss then Balance.Feedback.bossHitFill else 0.35
+	local feedback = Balance.Feedback
+	--[[ Every enemy but a boss washes solid white, briefly, then fades
+	     (owner, 2026-10-25); a boss only faintly. ]]
+	h.FillTransparency = if boss then feedback.bossHitFill else feedback.hitFill
 	h.OutlineTransparency = 0
+	--[[ Drawn only while it shows: Roblox draws about 31 Highlights at once,
+	     and a room's worth of idle ones would starve the ones flashing. ]]
+	h.Enabled = true
+	local token = ((h:GetAttribute("FlashToken") :: number?) or 0) + 1
+	h:SetAttribute("FlashToken", token)
+	local hold = if boss then 0 else feedback.hitFlashDuration
+	local fade = if boss then feedback.hitFlashDuration * 1.6 else feedback.hitFlashFade
 	TweenService:Create(
 		h,
-		TweenInfo.new(
-			Balance.Feedback.hitFlashDuration * 1.6,
-			Enum.EasingStyle.Quad,
-			Enum.EasingDirection.In
-		),
+		TweenInfo.new(fade, Enum.EasingStyle.Quad, Enum.EasingDirection.In, 0, false, hold),
 		{
 			FillTransparency = 1,
 			OutlineTransparency = 1,
 		}
 	):Play()
+	task.delay(hold + fade, function()
+		-- only the newest flash puts it away
+		if h.Parent and h:GetAttribute("FlashToken") == token then
+			h.Enabled = false
+		end
+	end)
 
 	--[[ A boss keeps its colours under fire (`Balance.Feedback.bossHitFill`). ]]
 	if boss then

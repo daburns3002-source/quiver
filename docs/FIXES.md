@@ -16,6 +16,18 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## Thornwood's enemies barely moved when hit (and their hit flash was faint)
+
+**Symptom**: 2026-10-25, the owner: "the enemies in thornwood should be knocked back too". Then the rule for every enemy except bosses: "very briefly flash white on hit and get knocked back".
+
+**Cause**: the server applied every enemy's `knockback` as a sliding shove (`EnemyManager.slide`), but the enemy kept stepping through it: walking at its `moveSpeed`, and for a Bramble Boar charging at 24 to 28 studs a second, which cancelled the push outright. Measured in Studio (client, hitbox along the line away from the player, 0.35 s after each hit): Bramble Boar hits moved it -0.83, +0.03 and +0.56 studs against a configured 2.5. And the flash: the Highlight's fill started at 0.35 (a faint wash), and the repaint to white only touches tinted parts. Imported Thornwood models are white meshes with vertex colours, so the repaint changed nothing on them.
+
+**Fix**: `Balance.Knockback.stagger` (the slide's whole length, 0.25 s): after a hit an enemy only slides (`EnemyManager` `staggerUntil`, checked in `stepEnemy` before walking, lunges and attacks), then takes up where it was. Bosses take no knockback and step their own moves. The flash (`Fx/HitFeedback`) is now a solid white Highlight (`Feedback.hitFill = 0`) held for `hitFlashDuration`, faded over `hitFlashFade`, and switched off between flashes (Roblox draws only about 31 Highlights at once). `Balance.spec` pins stagger >= slideTime and every non-boss enemy's knockback > 0.
+
+**Measured**: in Studio, Thornwood room 1, with the change swapped in: with a 0.15 s stagger, Bramble Boar hits moved +0.56, +0.87, +1.40 and -0.51 studs at 0.35 s, so the charge took back the rest. Hence the full slide length. The Highlight read fill 0.00 and on at 0.04 s, and off by 0.35 s, on every hit. The 0.25 s stagger itself was not measured: another session took Studio over.
+
+---
+
 ## The Mossback Snail's shell did nothing you could see, on a timer
 
 **Symptom**: 2026-10-25, the owner's Arcanist run-through: "mossback snail pet is not working how its supposed to". Its design (`docs/PETS-FOREST.md`, Attacks) is **Shell Guard**: *once per room its shell flies in front of you and blocks one hit*.

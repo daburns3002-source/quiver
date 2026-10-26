@@ -2432,6 +2432,12 @@ local Balance = {
 	     read as an impact, long enough to be seen at all. ]]
 	Knockback = {
 		slideTime = 0.25,
+		--[[ Seconds after a hit that an enemy only slides with the shove (the
+		     slide's whole length): it does not walk, carry a lunge forward or
+		     start an attack, then takes up where it was. Without it a Bramble Boar's charge (24 to
+		     28 studs a second) cancelled the push and hits looked weightless
+		     (owner, 2026-10-25: every enemy but a boss is knocked back). ]]
+		stagger = 0.25,
 	},
 
 	--[[ Blaze. How long a burn lasts is the card's level; `rate` is the
@@ -3286,6 +3292,13 @@ local Balance = {
 
 	Feedback = {
 		hitFlashDuration = 0.08,
+		--[[ A hit washes a non-boss enemy solid white for `hitFlashDuration`,
+		     then fades it over `hitFlashFade` (owner, 2026-10-25: "very
+		     briefly flash white on hit"). The Highlight's fill transparency
+		     at the hit: 0 is solid white, over the vertex-coloured meshes
+		     the old recolour could not whiten. ]]
+		hitFill = 0,
+		hitFlashFade = 0.1,
 		--[[ An enemy hit squashes onto its feet and springs back
 		     (`Fx/HitSquash`): flattened by this share at the hit, settled
 		     by `hitSquashDuration` seconds. Not on burn ticks. ]]

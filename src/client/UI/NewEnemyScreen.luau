@@ -254,6 +254,13 @@ local function gotIt()
 		Remotes.event(Remotes.NewEnemySeen):FireServer(kind)
 	end
 	fromServer[kind] = nil
+	--[[ The server goes on at GOT IT!, so the last screen lets this client go
+	     on now too, not once the sheet has swept away: held through the
+	     sweep, the client started its attack 0.4 s after the server's arrows
+	     had already landed (owner, 2026-10-26). ]]
+	if #queue == 1 then
+		RunPaused.setMeeting(false)
+	end
 end
 
 --[[ The letters at the sheet's scale, refitted when the words or the

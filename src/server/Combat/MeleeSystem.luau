@@ -272,6 +272,20 @@ function MeleeSystem.step(now: number)
 	end
 end
 
+--[[ The world moves again after standing still: a swing begun before the
+     pause never lands, and gives its place in the combo back, so the next
+     blow waits for a swing the client plays from the start
+     (`RunSession.resumeAttacks`). ]]
+function MeleeSystem.resume()
+	for _, swing in pending do
+		local session = swing.session
+		if session.swingIndex == swing.index then
+			session.swingIndex = swing.previous
+		end
+	end
+	table.clear(pending)
+end
+
 --[[ Forgets every swing in the air, for a run that is ending. ]]
 function MeleeSystem.clear()
 	table.clear(pending)

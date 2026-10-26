@@ -2,10 +2,12 @@
 moving water (owner, 2026-10-26: "i want the water in the river to be
 moving"), and the points glints may start from.
 
-    python -I assets/ui/intro/water.py
+    python -I assets/ui/intro/water.py            (the computer title)
+    python -I assets/ui/intro/water.py portrait   (the phone title)
 
-Reads assets/concepts/blocky/ui/intro/title.png (the approved Codex art) and
-writes assets/ui/intro/title_water.png: the water's own pixels, brightened,
+Reads assets/concepts/blocky/ui/intro/title.png or title_portrait.png (the
+approved Codex art) and writes assets/ui/intro/title_water.png or
+title_portrait_water.png: the water's own pixels, brightened,
 everything else transparent, cropped to the ponds' box. Prints the box and
 a few glint spots (title pixels) for `Config/Intro.water`.
 """
@@ -16,9 +18,15 @@ import numpy as np
 from PIL import Image
 from scipy import ndimage
 
+import sys
+
 HERE = pathlib.Path(__file__).resolve().parent
-SOURCE = HERE.parents[1] / "concepts" / "blocky" / "ui" / "intro" / "title.png"
-BAND = (540, 760)  # the ponds sit between these rows
+ART = HERE.parents[1] / "concepts" / "blocky" / "ui" / "intro"
+PORTRAIT = len(sys.argv) > 1 and sys.argv[1] == "portrait"
+SOURCE = ART / ("title_portrait.png" if PORTRAIT else "title.png")
+OUTPUT = HERE / ("title_portrait_water.png" if PORTRAIT else "title_water.png")
+# the ponds sit between these rows
+BAND = (990, 1180) if PORTRAIT else (540, 760)
 
 
 def mask(rgb: np.ndarray, loose: bool) -> np.ndarray:
@@ -48,7 +56,7 @@ def main() -> None:
     x0, x1, y0, y1 = xs.min() - 4, xs.max() + 5, ys.min() - 4, ys.max() + 5
     bright = np.clip(rgb * 1.25 + 30, 0, 255)
     rgba = np.dstack([bright, np.clip(alpha, 0, 1) * 255]).astype(np.uint8)
-    Image.fromarray(rgba, "RGBA").crop((x0, y0, x1, y1)).save(HERE / "title_water.png")
+    Image.fromarray(rgba, "RGBA").crop((x0, y0, x1, y1)).save(OUTPUT)
     print(f"box x={x0}..{x1} y={y0}..{y1}")
     sy, sx = np.nonzero(ponds & strict)
     rng = np.random.default_rng(7)

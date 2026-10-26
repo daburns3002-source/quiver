@@ -63,7 +63,7 @@ the same name = the data's name, `ModelClip` = the clip) is played by
 owner 2026-10-25, after Pixel Lineage's): black, DYL.DEVS in dark gold with
 PRESENTS small and white under it, a cut on the music's hit at 5.0 s (`revealAt`,
 the shared contract with the intro music, `Config/Music.intro`) to the Codex title
-picture (logo painted in), which never moves once up (owner) and shows whole at
+picture (logo painted in; a portrait one on upright screens, phones; both 2x tiles, `Intro.pictures`), which never moves once up (owner) and shows whole at
 the screen's height with dimmed copies filling the sides, and BEGIN ADVENTURE,
 still until hovered or pressed. BEGIN ADVENTURE plays **the story cutscene**
 (`UI/StoryCutscene`, `Config/Story`, `Util/StoryTimeline`, owner 2026-10-25): **one

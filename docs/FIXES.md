@@ -16,6 +16,18 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## Shop weapons leant every which way; Diagonal Arrows' icon fired backwards
+
+**Symptom**: 2026-10-26, the owner after a playtest: "change icons in shop to all be at the same angle. change diagonal arrow icon to only the top 2 since there are no arrows fired behind the player."
+
+**Cause**: each shop weapon is the three-quarter view cut from its own reference sheet, and the sheets draw it at whatever lean they liked (measured: −19° to +32°, bows facing either way). Diagonal Arrows' Glow Toy icon (and Diagonal Orbs') is an X of four, but the cards only ever fire forward (±30°, `AbilityEffects`).
+
+**Fix**: `three_quarter.py` levels every cut-out (`level`): a bow is mirrored so its belly is left and its string right, then each weapon is turned until its long axis leans 21.3° right, the Acorn Bow's (its old Codex icon kept as it was). Codex redrew both diagonal icons as a V of two forward shots (`assets/concepts/blocky/ui/cards/`), put on the Rare tile by `glow_toy_cards/compose_icon.py`.
+
+**Measured**: all 17 re-cut weapons' long axes at 21.3°; the 19 new images load in Play (`PreloadAsync`, 19/19 Success).
+
+---
+
 ## The story cutscene kept cutting out and back in
 
 **Symptom**: 2026-10-26, the owner on the run-through: "the king bloblin cutscene is not smooth, it keeps cutting out and back in".

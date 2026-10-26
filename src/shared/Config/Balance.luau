@@ -3282,7 +3282,11 @@ local Balance = {
 			canopy = { 13, 15.5 },
 			hover = 16,
 			clearance = 1.5,
-			leavesPerSecond = 3,
+			--[[ Toned down so the room reads first (owner, 2026-10-26: "make
+			     outer arenas a little less distracting"): fewer leaves,
+			     fireflies, butterflies and birds than the handoff's, birds
+			     crossing less often and the shafts fainter. ]]
+			leavesPerSecond = 2,
 			leafPool = 60,
 			leafFall = { 0.5, 0.9 },
 			--[[ Seconds a fallen leaf lies before it fades, and how long the
@@ -3301,10 +3305,13 @@ local Balance = {
 			--[[ Fireflies a second per 60 square studs of floor, and mist
 			     puffs per 400. ]]
 			fireflyDensity = 1,
+			--[[ Fireflies a second per strip, at most: the strips are big
+			     enough that the density alone always reached it. ]]
+			fireflyMax = 4,
 			mistDensity = 1,
 			fireflyColor = Color3.fromRGB(235, 255, 150),
 			mistColor = Color3.fromRGB(238, 243, 230),
-			butterflies = 6,
+			butterflies = 3,
 			butterflyColors = {
 				Color3.fromRGB(242, 209, 74),
 				Color3.fromRGB(245, 241, 230),
@@ -3312,15 +3319,15 @@ local Balance = {
 			},
 			--[[ A flock crosses every `birdGap` seconds, `birdHeight` studs up:
 			     over the canopy and under the top-down camera. ]]
-			birds = 6,
-			birdGap = { 12, 25 },
+			birds = 5,
+			birdGap = { 20, 35 },
 			birdHeight = 22,
 			birdSpeed = 18,
 			birdColor = Color3.fromRGB(45, 51, 40),
 			--[[ Shafts of light slanting down between the trees, breathing. ]]
-			lightShafts = 4,
+			lightShafts = 2,
 			shaftColor = Color3.fromRGB(255, 244, 200),
-			shaftTransparency = 0.88,
+			shaftTransparency = 0.92,
 		},
 		--[[ Thornwood's wood (assets/concepts/blocky/arenas/
 		     area02_thornwood_ambience*.jpg): the same life as the glade's
@@ -3335,7 +3342,7 @@ local Balance = {
 			canopy = { 12, 15.5 },
 			hover = 16,
 			clearance = 1.5,
-			leavesPerSecond = 3,
+			leavesPerSecond = 2,
 			leafPool = 60,
 			leafFall = { 0.5, 0.9 },
 			leafRest = 2.5,
@@ -3347,19 +3354,20 @@ local Balance = {
 			},
 			gustSpeed = 0.6,
 			fireflyDensity = 1,
+			fireflyMax = 4,
 			mistDensity = 1,
 			fireflyColor = Color3.fromRGB(255, 120, 230),
 			mistColor = Color3.fromRGB(238, 243, 230),
 			butterflies = 0,
 			butterflyColors = { Color3.fromRGB(245, 241, 230) },
-			birds = 7,
-			birdGap = { 10, 20 },
+			birds = 5,
+			birdGap = { 18, 30 },
 			birdHeight = 22,
 			birdSpeed = 18,
 			birdColor = Color3.fromRGB(30, 30, 33),
-			lightShafts = 2,
+			lightShafts = 1,
 			shaftColor = Color3.fromRGB(255, 244, 200),
-			shaftTransparency = 0.88,
+			shaftTransparency = 0.92,
 		},
 	},
 

@@ -399,6 +399,9 @@ local function placeModel(
 	     the way Claude Design shows it. Offsets are already turned. ]]
 	local turn = CFrame.Angles(0, math.pi, 0)
 
+	local outerShade = model.outerShade or 1
+	local outerGlow = model.outerGlow or 1
+
 	local function place(spec: ArenaModels.ArenaPart, shift: Vector3, name: string)
 		local water = spec.water
 		if water then
@@ -481,8 +484,11 @@ local function placeModel(
 		part.CanCollide = false
 		part.CanQuery = false
 		part.CanTouch = false
-		--[[ White, so the model's own vertex colours show unchanged. ]]
-		part.Color = spec.tint or Color3.new(1, 1, 1)
+		--[[ White, so the model's own vertex colours show unchanged, then
+		     toned by the model's `outerShade` / `outerGlow`. ]]
+		local shade = if spec.glow then outerGlow else outerShade
+		local tint = spec.tint or Color3.new(1, 1, 1)
+		part.Color = Color3.new(tint.R * shade, tint.G * shade, tint.B * shade)
 		part.Material = if spec.glow
 			then Enum.Material.Neon
 			elseif spec.matte then Enum.Material.Fabric
@@ -515,8 +521,11 @@ local function placeModel(
 	     and it shows only past the forest's edge. ]]
 	local outside = model.outsideColor
 	if outside then
+		--[[ Toned as the forest's ground is, so the two stay one floor. ]]
+		local toned =
+			Color3.new(outside.R * outerShade, outside.G * outerShade, outside.B * outerShade)
 		local floor =
-			decor("Outside", Vector3.new(600, 1, 600), CFrame.new(0, -0.75, 0), outside, folder)
+			decor("Outside", Vector3.new(600, 1, 600), CFrame.new(0, -0.75, 0), toned, folder)
 		--[[ Matte: plastic catches the sun at a glance and paled to grey. ]]
 		floor.Material = Enum.Material.Fabric
 	end

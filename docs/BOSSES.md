@@ -112,8 +112,13 @@ ghost Drowned Bellkeeper, 2026-10-22: no ghost in Act 2.)
 - **Phase 1 — Toll.** Rings its bell shell: a shockwave ring expands from it,
   jump-free — you must be outside it or between two rings. Smashes through
   the ruined houses rather than going round them.
+- **Echo Mark** (owner, 2026-10-26: "i like the echo mark ability for the boss
+  and the bell ringer"). Between tolls it rings at the player: a glowing ring
+  lands under their feet and, a beat later, the echo strikes that spot, bigger
+  than the Bell Ringer's. Standing still to shoot gets you hit.
 - **Phase 2 (50%) — The Drowned Rise.** Each toll raises Drowned Zombies; the
-  bell's rings now come in pairs.
+  bell's rings now come in pairs, and Echo Mark drops two marks at once (one on
+  the player, one where they are heading).
 - *Teaches:* ring timing; nothing can hide behind a wall here. *Class notes:*
   Warden can stand inside the ring's gap; Ranger must keep line of sight.
 

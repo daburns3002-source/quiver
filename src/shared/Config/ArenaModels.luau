@@ -59,6 +59,10 @@ export type ArenaModel = {
 	--[[ The life drawn in the scenery past the walls, a `Balance.Ambience`
 	     entry (`Fx/ForestAmbience`): leaves, fireflies, mist, birds. ]]
 	ambience: string?,
+	--[[ `Balance.Lighting` fields this area lights differently, applied
+	     while one of its rooms is up (`Arena/Atmosphere`); every other
+	     field, and every area without this, keeps the game's own. ]]
+	lighting: { [string]: any }?,
 	--[[ An `ArenaKits` entry the room is built from, in place of `parts`'
 	     ground, walls and cover (`Shared/Util/KitLayout`), and what its
 	     flat, low cover is: water or a thicket. ]]
@@ -120,6 +124,15 @@ local function thornwood(): ArenaModel
 		ambience = "Thornwood",
 		kit = "Thornwood",
 		lowCover = "Thicket",
+		--[[ A little darker than the glade under its brambles (owner,
+		     2026-10-25: "make the lighting for thornwood a little darker"):
+		     about a fifth less light, and a cooler, dimmer ambient. ]]
+		lighting = {
+			brightness = 1.7,
+			ambient = Color3.fromRGB(98, 98, 84),
+			outdoorAmbient = Color3.fromRGB(116, 120, 96),
+			gradeBrightness = -0.08,
+		},
 	}
 end
 

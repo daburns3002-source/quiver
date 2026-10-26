@@ -16,6 +16,18 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## The lobby's Gear Station almost overlapped the Blacksmith
+
+**Symptom**: 2026-10-26, the owner after a playtest: "gear area needs to be moved because it almost overlaps with the blacksmith area."
+
+**Cause**: when the lobby was doubled (`scale` 6), the stations kept their places from the sheet, but each piece's footprint grew to 36 × 24 studs. The Gear Station at (74, 0) and the Blacksmith at (60, −28) ended up 3.9 studs apart, with the smith's seat between them. Nothing checked the spacing.
+
+**Fix**: the Gear Station moved out east and south to (86, 6), and the Dex Hall and its lecterns 8 studs further south to make room (`Config/Lobby.stations`). `Lobby.spec` now keeps every station's footprint at least 6 studs from every other's, measured on X or Z.
+
+**Measured**: in Studio, from the built meshes' boxes: Gear Station to Blacksmith 9.9 studs (was 3.9), to the smith's seat 9.4, to the Dex Hall 13.1.
+
+---
+
 ## Stumpy's Root Snare did not hold anything
 
 **Symptom**: 2026-10-26, the owner after a playtest: "stumpy needs to hold enemies in place."

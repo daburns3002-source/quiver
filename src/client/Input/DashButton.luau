@@ -20,6 +20,7 @@
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
+local Workspace = game:GetService("Workspace")
 
 local Dash = require(script.Parent.Dash)
 local HudLayout = require(script.Parent.Parent.UI.HudLayout)
@@ -145,6 +146,8 @@ function DashButton.start(pressed: () -> ())
 	table.insert(
 		connections,
 		RunService.RenderStepped:Connect(function()
+			-- the lobby has no dash: its JUMP and SPRINT stand here instead
+			created.Enabled = Workspace:GetAttribute("InLobby") ~= true
 			local readiness = Dash.readiness(os.clock())
 			local ready = readiness >= 1
 

@@ -21,6 +21,7 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
+local Workspace = game:GetService("Workspace")
 
 local Hud = require(ReplicatedStorage.Shared.Config.Hud)
 
@@ -132,6 +133,9 @@ function DashBar.start()
 		if not bar2 or not text2 then
 			return
 		end
+
+		-- the lobby has no dash (`Input/MoveController`)
+		gui.Enabled = Workspace:GetAttribute("InLobby") ~= true
 
 		local readiness = Dash.readiness(os.clock())
 		local ready = readiness >= 1

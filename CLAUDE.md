@@ -332,6 +332,13 @@ and the boss's item every time it falls plus gems, more the first time; the end 
 box shows the stage's take. Any schema change bumps `SaveSchema.VERSION` with a migration and a
 `SaveSchema.spec` case.
 
+**Portals open a screen; the lobby sprints and jumps** (owner, 2026-10-26): walking into a lit
+portal opens `UI/PortalScreen` (the area, its levels from `Config/Lobby.portals[i].levels`, START),
+and only START starts the run, validated by the server against the portal the player stands at
+(`Remotes.PortalStart`, `Run/Lobby.startFor`, `tests/Lobby.spec`). In the lobby there is no dash:
+Shift / gamepad X / the phone's SPRINT runs (`Config/Lobby.sprint`) and Space / A / JUMP jumps
+(`RunSession.allowJump`, `Input/LobbyButtons`); a run still dashes and never jumps.
+
 **Empty hands in the lobby** (owner, 2026-10-25): the server holds no weapon while `InLobby`
 (`Main.refreshWeapon`, `HeldWeapon.unequip`) and `Fx/WeaponPose` writes no pose there, so
 Roblox's own animation has the arms; the weapon comes back as a run starts.

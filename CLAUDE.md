@@ -282,6 +282,18 @@ read with `ArtifactData` `picks`), uploaded to Roblox by the owner, and the
 ids go in `Config/Sounds`. A sound with an empty id is silent, so every hook
 is wired before its audio exists.
 
+**Saved data and payouts** (2026-10-25, the first persistence): `Server/Data/PlayerData`
+loads each player's profile (`Util/SaveSchema`: coins, gems, boss items, weapons owned, the one
+equipped, bosses beaten) with a session lock in the record, saves a changed profile within 6 s,
+all every 60 s, on leave and on shutdown, and never writes over a record another live server
+holds or one from a newer game version. Studio uses its own store (`PlayerData_Studio`), and
+with Studio API access off profiles live in memory only. Every change goes through
+`Data/Wallet` (server only; the `Coins`/`Gems` Player attributes and `Remotes.ProfileChanged`
+tell the owner). Runs pay (`Config/Economy`, per area): coins per kill, a clear bonus at Victory,
+and the boss's item every time it falls plus gems, more the first time; the end screen's REWARDS
+box shows the stage's take. Any schema change bumps `SaveSchema.VERSION` with a migration and a
+`SaveSchema.spec` case.
+
 **Revive** (`Balance.Revive`): once per stage, automatically, after Second
 Wind — full health, 2.5 s untouchable behind a gold shield, and enemy shots
 within 12 studs cleared.

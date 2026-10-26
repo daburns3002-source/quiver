@@ -37,16 +37,23 @@ local MeleeSystem = require(script.Parent.Combat.MeleeSystem)
 local PetCombat = require(script.Parent.Combat.PetCombat)
 local PetCombatConfig = require(ReplicatedStorage.Shared.Config.PetCombat)
 local PetPreview = require(script.Parent.Dev.PetPreview)
+local PlayerData = require(script.Parent.Data.PlayerData)
 local ProjectileSystem = require(script.Parent.Combat.ProjectileSystem)
 local Remotes = require(game:GetService("ReplicatedStorage").Shared.Net.Remotes)
 local RoomController = require(script.Parent.Run.RoomController)
 local RunSession = require(script.Parent.Run.RunSession)
 local Sandbox = require(ReplicatedStorage.Shared.Config.Sandbox)
 local UpgradeEffects = require(script.Parent.Fx.UpgradeEffects)
+local Wallet = require(script.Parent.Data.Wallet)
 
 local log = Log.forTag("Server")
 
 log.info("%s v%s booting", Game.Name, Game.Version)
+
+--[[ Saved data first, so a profile is loading while everything else boots;
+     each player is told their wallet once it is in. ]]
+PlayerData.onLoaded(Wallet.send)
+PlayerData.start()
 
 --[[
 	Where Roblox drops a character on join and on respawn.

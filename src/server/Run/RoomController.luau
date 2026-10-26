@@ -285,6 +285,8 @@ local function sendSummary(won: boolean)
 			seconds = math.floor(os.clock() - session.stageStartedAt),
 			healthPercent = healthPercent,
 			progressPercent = progressPercent,
+			coins = session.stageCoins,
+			gems = session.stageGems,
 		})
 	end
 end
@@ -318,6 +320,10 @@ end
 
 local function complete(now: number)
 	state = "Complete"
+	-- the area's clear bonus, before the summary that shows it
+	for _, session in RunSession.all() do
+		RunSession.payCoins(session, RunSession.areaPay().clearCoins)
+	end
 	resumeAt = now + Balance.Run.deathPause
 	setDoorOpen(false)
 	log.info("run complete")
@@ -492,6 +498,12 @@ function RoomController.step(now: number)
 		     its crystals bring; they are dealt in the next stage. ]]
 		if progress >= total() then
 			RunSession.holdOffers(true)
+			--[[ Its item and gems, as the boss falls (owner, 2026-10-25:
+			     "the boss drop is guaranteed every time"). A Rooms stage
+			     ends in its boss. ]]
+			if stage().mode == "Rooms" then
+				RunSession.payBoss()
+			end
 		end
 		--[[ Held for a beat after the last kill, so a clear reads as its own
 		     moment rather than being swallowed by what comes next. ]]

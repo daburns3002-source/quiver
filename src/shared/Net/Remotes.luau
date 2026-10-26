@@ -117,6 +117,13 @@ Remotes.RunSummary = "RunSummary"
 Remotes.RunRestart = "RunRestart"
 
 --[[
+	Server → one client. That player's saved profile changed (coins, gems,
+	boss items, weapons owned, the one equipped): the whole profile, for
+	the shop and the wallet. Sent only from `Data/Wallet`.
+]]
+Remotes.ProfileChanged = "ProfileChanged"
+
+--[[
 	Client → server. The intro's BEGIN ADVENTURE button: this player has
 	left the title screen, so the run may move. Carries nothing; the server
 	only clears its own hold for this player (`RunSession.leaveTitle`).

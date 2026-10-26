@@ -20,14 +20,18 @@ local Hud = {
 	     rule 11) is unreadable squeezed inside a bar's own height (owner,
 	     2026-10-24: "make the small HUD labels … bigger"). ]]
 	barText = { health = 1.6, dash = 2.6 },
-	--[[ The "+N" a heart puts up over the health bar (owner, 2026-10-26:
+	--[[ The "+N" a heart puts up on the health bar (owner, 2026-10-26:
 	     "add heal number to the health bar whenever you pick up a heart"):
-	     green, as tall as the bar's own numbers, rising `rise` bar heights
-	     above it over `seconds` and fading as it goes. ]]
+	     green, `height` bar heights tall, at `x` across the bar (its empty
+	     right end, clear of the centred numbers and of the DASH label above),
+	     rising `rise` bar heights over `seconds` and fading as it goes. ]]
 	healNumber = {
-		colour = Color3.fromRGB(110, 255, 120),
-		height = 1.6,
-		rise = 1.6,
+		colour = Color3.fromRGB(140, 255, 140),
+		edge = Color3.fromRGB(16, 48, 20),
+		edgeWidth = 2.5,
+		height = 2,
+		x = 0.87,
+		rise = 1.1,
 		seconds = 0.9,
 	},
 	desktop = {

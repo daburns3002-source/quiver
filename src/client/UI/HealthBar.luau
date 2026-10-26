@@ -102,7 +102,7 @@ function HealthBar.start()
 	box = container
 end
 
---[[ A "+N" rising off the top of the bar and fading: a heart's heal, told
+--[[ A "+N" rising off the bar's right end and fading: a heart's heal, told
      by the server with the health it brought (`Remotes.HealthChanged`).
      Each heal its own, so two hearts taken together show twice. ]]
 local function showHeal(amount: number)
@@ -114,32 +114,44 @@ local function showHeal(amount: number)
 	local config = Hud.healNumber
 	local number = Instance.new("TextLabel")
 	number.Name = "HealNumber"
-	number.AnchorPoint = Vector2.new(0.5, 1)
-	number.Position = UDim2.fromScale(0.5, 0)
-	number.Size = UDim2.fromScale(1, config.height)
+	number.AnchorPoint = Vector2.new(0.5, 0.5)
+	number.Position = UDim2.fromScale(config.x, 0.5)
+	number.Size = UDim2.fromScale(0.26, config.height)
 	number.BackgroundTransparency = 1
 	number.Font = Enum.Font.Arcade
 	number.TextScaled = true
 	number.TextColor3 = config.colour
-	number.TextStrokeTransparency = 0
 	number.Text = `+{math.max(1, math.floor(amount + 0.5))}`
 	number.ZIndex = 5
 	number.Parent = container
+
+	-- a thick dark edge, so green reads on the bar's own green
+	local edge = Instance.new("UIStroke")
+	edge.Color = config.edge
+	edge.Thickness = config.edgeWidth
+	edge.Parent = number
 
 	local scale = Instance.new("UIScale")
 	scale.Scale = 0.6
 	scale.Parent = number
 
-	-- a quick pop, then the rise and fade
+	-- a quick pop, then the rise; solid for its first half, fading over the rest
+	local seconds = config.seconds
+	local fade = TweenInfo.new(
+		seconds / 2,
+		Enum.EasingStyle.Quad,
+		Enum.EasingDirection.In,
+		0,
+		false,
+		seconds / 2
+	)
 	TweenService:Create(scale, TweenInfo.new(0.12, Enum.EasingStyle.Back), { Scale = 1 }):Play()
+	TweenService:Create(number, fade, { TextTransparency = 1 }):Play()
+	TweenService:Create(edge, fade, { Transparency = 1 }):Play()
 	local rise = TweenService:Create(
 		number,
-		TweenInfo.new(config.seconds, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-		{
-			Position = UDim2.fromScale(0.5, -config.rise),
-			TextTransparency = 1,
-			TextStrokeTransparency = 1,
-		}
+		TweenInfo.new(seconds, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+		{ Position = UDim2.fromScale(config.x, 0.5 - config.rise) }
 	)
 	rise.Completed:Once(function()
 		number:Destroy()

@@ -134,9 +134,9 @@ local Lobby = {
 		{ piece = "Lectern", at = Vector2.new(40, 58) },
 		{ piece = "Lectern", at = Vector2.new(54, 58) },
 		{ piece = "Lectern", at = Vector2.new(68, 58) },
-		{ piece = "BookEnemies", at = Vector2.new(40, 58), lift = 6 },
-		{ piece = "BookWeapons", at = Vector2.new(54, 58), lift = 6 },
-		{ piece = "BookPets", at = Vector2.new(68, 58), lift = 6 },
+		{ piece = "BookEnemies", at = Vector2.new(40, 58), lift = 6.6 },
+		{ piece = "BookWeapons", at = Vector2.new(54, 58), lift = 6.6 },
+		{ piece = "BookPets", at = Vector2.new(68, 58), lift = 6.6 },
 	} :: { Placed },
 
 	--[[ The FARTHEST ADVENTURERS board (`Run/StoryLeaderboard`) beside the

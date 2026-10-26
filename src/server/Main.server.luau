@@ -43,6 +43,7 @@ local Remotes = require(game:GetService("ReplicatedStorage").Shared.Net.Remotes)
 local RoomController = require(script.Parent.Run.RoomController)
 local RunSession = require(script.Parent.Run.RunSession)
 local Sandbox = require(ReplicatedStorage.Shared.Config.Sandbox)
+local StoryLeaderboard = require(script.Parent.Run.StoryLeaderboard)
 local UpgradeEffects = require(script.Parent.Fx.UpgradeEffects)
 local Wallet = require(script.Parent.Data.Wallet)
 local WeaponShop = require(script.Parent.Data.Shop)
@@ -108,6 +109,8 @@ UpgradeEffects.start()
 -- The lobby, where players arrive after BEGIN ADVENTURE.
 Lobby.build(workspace)
 RoomController.start()
+-- The FARTHEST ADVENTURERS board's store (`Run/StoryLeaderboard`).
+StoryLeaderboard.start()
 
 --[[ The weapon in the player's hand: the one `RunSession.applyLoadout`
      recorded, which a drafted card can change (the Dual Bows Mythic), or

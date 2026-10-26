@@ -1,0 +1,13 @@
+Use your image generation tool to make ONE image, 1024 x 1536 (portrait), a finished game UI design sheet for a Roblox game called Arrow Legends.
+
+What it is: the "NEW ENEMY!" screen that pops up over the game the first time the player meets a new kind of enemy. It must look like it belongs to the same set as the FIRST reference image (the game's VICTORY screen): exactly the same blocky pixel-art UI language - chunky stair-stepped panel edges with stepped corners, flat 2-3 tone shading, thick near-black (#1B1B2B) ink outlines, a big ribbon banner across the top with folded tails, bold chunky white pixel lettering with dark outline, small square rivets, floating voxel cubes as decoration, a dark backdrop around the panel. Same proportions and polish as that screen. No smooth gradients, no blur.
+
+Layout, top to bottom:
+1. A big ribbon banner across the top with folded tails, reading exactly "NEW ENEMY!" in big chunky white pixel letters with a dark outline. The banner is themed to the AREA (see below) - its colours, its material and the little decorations growing on or hanging from it come from that area.
+2. Under it a small plaque reading exactly the AREA NAME given below, in small pixel capitals.
+3. A big picture window in the middle of the panel showing the ENEMY (see below) as a 2D blocky pixel-art picture, drawn faithfully from its reference image (same shape, colours, face and details), seen from the front three-quarter view, big and centred, on a scenic backdrop of the area (simple, flat, pixel style) with light rays behind it.
+4. A name plate under the picture reading exactly the ENEMY NAME given below, in big chunky pixel capitals.
+5. A description box under the name, with exactly the DESCRIPTION text given below in small clean white pixel letters, on two or three lines.
+6. At the bottom a big chunky button reading exactly "GOT IT!".
+
+Spell every word exactly as given. No other text anywhere. The whole panel's colours (frame, boxes, button) follow the area theme, not the blue of the reference.

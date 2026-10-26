@@ -379,6 +379,14 @@ Remotes.event(Remotes.IntroBegin).OnServerEvent:Connect(function(player)
 	end
 end)
 
+--[[ GOT IT! on a NEW ENEMY! screen. Only clears a screen the server opened. ]]
+Remotes.event(Remotes.NewEnemySeen).OnServerEvent:Connect(function(player, kind)
+	local session = RunSession.get(player)
+	if session then
+		RunSession.metEnemy(session, kind)
+	end
+end)
+
 RunService.Heartbeat:Connect(function(deltaTime: number)
 	local now = os.clock()
 
@@ -398,6 +406,12 @@ RunService.Heartbeat:Connect(function(deltaTime: number)
 	--[[ And while anyone is still on the intro's title screen
 	     (`UI/IntroCutscene`): the run starts on BEGIN ADVENTURE. ]]
 	if RunSession.anyAtTitle() then
+		return
+	end
+
+	--[[ And while anyone reads a NEW ENEMY! screen, until GOT IT!
+	     (`Config/NewEnemies`). ]]
+	if RunSession.anyMeeting() then
 		return
 	end
 

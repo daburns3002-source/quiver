@@ -124,6 +124,19 @@ Remotes.RunRestart = "RunRestart"
 Remotes.IntroBegin = "IntroBegin"
 
 --[[
+	Server → one client. A kind of enemy this player has not met before has
+	landed (its `EnemyConfig.displayName`): show its NEW ENEMY! screen
+	(`Config/NewEnemies`). The server holds the run until it is closed.
+]]
+Remotes.NewEnemy = "NewEnemy"
+
+--[[
+	Client → server. GOT IT! on a NEW ENEMY! screen, with the kind it showed.
+	The server only clears a screen it opened (`RunSession.metEnemy`).
+]]
+Remotes.NewEnemySeen = "NewEnemySeen"
+
+--[[
 	Server → all clients. Something exploded here, this wide.
 
 	The radius travels with it rather than being looked up, because what the

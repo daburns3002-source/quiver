@@ -1,0 +1,5 @@
+Use your image generation tool to EDIT the attached image (a game UI screen, 1024 x 1536). Output ONE image of exactly the same size, identical to the input in every pixel except for these three changes:
+1. Remove the creature from the big picture window in the middle. Fill where it stood with the same scenic backdrop that is already around it (continue the ground, trees, water, light rays naturally), so the window shows only the empty scene.
+2. Remove the creature's name text from the name plate under the picture, leaving the plate completely blank (its plain fill colour, rivets and border kept).
+3. Remove the description text from the description box, leaving the box completely blank (its plain fill colour, rivets and border kept).
+Keep EVERYTHING else exactly as it is: the "NEW ENEMY!" banner and its letters, the area name plaque and its letters, the "GOT IT!" button and its letters, the frame, all decorations, colours, positions and sizes. Do not redraw, restyle, move or crop anything else.

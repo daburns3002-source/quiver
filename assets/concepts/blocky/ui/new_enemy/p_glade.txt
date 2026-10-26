@@ -1,0 +1,5 @@
+
+AREA: "MOSSY GLADE" - a bright, sunny tutorial forest: fresh green grass blocks, moss, little orange-and-white spotted mushrooms, sprouts and leaves, mossy stumps, a pond, fireflies. The banner is moss green and leafy, with moss and small orange spotted mushrooms and green sprout leaves growing along its top edge; the frame is warm wood and green moss. Second reference image: the Mossy Glade area. 
+ENEMY: the Moss Slime - third reference image (its model sheet): a cube-shaped lime-green slime with a shaggy coat of dark green moss cubes, little orange spotted mushrooms and sprouts on top, two big square amber glowing eyes, four stubby feet.
+ENEMY NAME: "MOSS SLIME"
+DESCRIPTION: "Hops straight at you. Keep moving, then shoot when it's close!"

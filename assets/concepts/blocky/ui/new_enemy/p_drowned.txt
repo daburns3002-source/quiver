@@ -1,0 +1,5 @@
+
+AREA: "DROWNED VILLAGE" - a sunken, flooded fishing village in grey-blue mist: broken houses with slate-blue roofs half under turquoise water, rotten wooden piers and posts, fishing nets, ropes, old lanterns, barnacles, seaweed, a rusty bell. The banner is weathered sea-soaked wood planks and a rope, teal and turquoise, with seaweed, barnacles, a small fishing net and dripping water hanging from it; the frame is old dock planks with rope. Second reference image: the Drowned Village area.
+ENEMY: the Drowned Zombie - third reference image (its concept art): a slow, soggy blocky zombie villager with grey-green skin, seaweed and ragged wet clothes, glowing pale-green eyes. Draw it faithfully, in the blocky style.
+ENEMY NAME: "DROWNED ZOMBIE"
+DESCRIPTION: "Slow but relentless. Rises again after it falls - unless it burns!"

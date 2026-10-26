@@ -146,7 +146,7 @@ local Lobby = {
 	     stands there on two posts' height. ]]
 	leaderboard = {
 		at = Vector2.new(-36, -4),
-		face = { centre = Vector3.new(0, 2, 0.42), size = Vector2.new(3.6, 2.4) },
+		face = { centre = Vector3.new(0, 1.65, 0.15), size = Vector2.new(2.8, 1.9) },
 	},
 
 	--[[ The dirt paths, as runs of points: the spawn up to the portals, and

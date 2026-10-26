@@ -42,6 +42,7 @@ local Log = require(Shared.Util.Log)
 local ModelAnimator = require(script.Parent.Fx.ModelAnimator)
 local MoveController = require(script.Parent.Input.MoveController)
 local MusicFx = require(script.Parent.Fx.MusicFx)
+local NameTags = require(script.Parent.UI.NameTags)
 local NewEnemyScreen = require(script.Parent.UI.NewEnemyScreen)
 local PickupFx = require(script.Parent.Fx.PickupFx)
 local PlayerStats = require(script.Parent.PlayerStats)
@@ -168,6 +169,7 @@ end
      (`first/Loading`). ]]
 player:SetAttribute("ClientReady", true)
 
+NameTags.start()
 HealthBar.start()
 DashBar.start()
 EndScreen.start(function()

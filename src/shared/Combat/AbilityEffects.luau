@@ -64,6 +64,22 @@ export type MeleeStats = {
 	--[[ 1: side blows destroy enemy shots in their arc; 2: the slam too.
 	     Parry. ]]
 	parry: number,
+	--[[ Multiplier on the whole swing: its reach, depth and the slam's
+	     size. Titan's Grip. ]]
+	reachScale: number,
+	--[[ Damage multiplier on the first swing after being hit (0 none).
+	     Counter Strike. ]]
+	counterStrike: number,
+}
+
+--[[ The class upgrades of 2026-10-27 that act beside the shot rather than
+     in it (`Combat/ClassUpgrades`): 1 when held, 0 when not. ]]
+export type UpgradeStats = {
+	phoenix: number,
+	arrowRain: number,
+	blackHole: number,
+	elemental: number,
+	turret: number,
 }
 
 --[[ What the server applies. ]]
@@ -94,6 +110,7 @@ export type ServerStats = {
 	     held. ]]
 	meteor: number,
 	earthbreaker: number,
+	upgrades: UpgradeStats,
 }
 
 --[[
@@ -124,6 +141,8 @@ export type ClientStats = {
 	--[[ Multiplier on a melee swing's width, so the swing drawn is the box
 	     the server checks. Cleave. ]]
 	widthScale: number,
+	--[[ Multiplier on the whole swing, as the server's. Titan's Grip. ]]
+	reachScale: number,
 	--[[ The player's class, so the client builds the same pipeline. ]]
 	class: string,
 	--[[ The weapon in hand when not the class's own, for its built-in
@@ -372,6 +391,13 @@ function AbilityEffects.serverStats(drafted: Counts, class: string?, weapon: str
 		damageTaken = 1 - at(counts, "IronSkin"),
 		meteor = at(counts, "Meteor"),
 		earthbreaker = at(counts, "Earthbreaker"),
+		upgrades = {
+			phoenix = at(counts, "PhoenixArrow"),
+			arrowRain = at(counts, "RainOfArrows"),
+			blackHole = at(counts, "BlackHole"),
+			elemental = at(counts, "ElementalOrbs"),
+			turret = at(counts, "ArcaneTurret"),
+		},
 		melee = {
 			widthScale = 1 + at(counts, "Cleave"),
 			reachBonus = at(counts, "LongReach"),
@@ -385,6 +411,8 @@ function AbilityEffects.serverStats(drafted: Counts, class: string?, weapon: str
 			shockwaveLength = at(counts, "Shockwave"),
 			battleCry = at(counts, "BattleCry"),
 			parry = at(counts, "Parry"),
+			reachScale = math.max(at(counts, "TitansGrip"), 1),
+			counterStrike = at(counts, "CounterStrike"),
 		},
 		healPerKill = at(counts, "Bloodthirst"),
 		regenPerSecond = at(counts, "Mending"),
@@ -438,6 +466,7 @@ function AbilityEffects.clientStats(counts: Counts, class: string?, weapon: stri
 		projectileLifetime = Balance.Projectile.lifetime / kind.speedScale,
 		reachBonus = at(merged, "LongReach"),
 		widthScale = 1 + at(merged, "Cleave"),
+		reachScale = math.max(at(merged, "TitansGrip"), 1),
 		class = class or "Ranger",
 		weapon = weapon,
 		abilities = copy,

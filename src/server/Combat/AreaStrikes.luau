@@ -28,8 +28,9 @@ type Strike = {
 	radius: number,
 	damage: number,
 	landsAt: number,
-	--[[ What the client draws as it lands. ]]
-	impact: string,
+	--[[ What the client draws as it lands; nil when the caller draws it
+	     itself (Rain of Arrows' arrows, drawn falling from one event). ]]
+	impact: string?,
 	--[[ Called with where it landed, after it has hit. ]]
 	landed: ((Vector3) -> ())?,
 }
@@ -44,7 +45,7 @@ export type StrikeParams = {
 	now: number,
 	--[[ A telegraph tell shown at `at` until it lands, if any. ]]
 	warning: string?,
-	impact: string,
+	impact: string?,
 	landed: ((Vector3) -> ())?,
 }
 
@@ -56,6 +57,9 @@ type Zone = {
 	every: number,
 	nextAt: number,
 	endsAt: number,
+	--[[ What each eruption draws; nil draws nothing (Phoenix Arrow's fire,
+	     drawn burning for the zone's whole life). ]]
+	tick: string?,
 }
 
 local strikes: { Strike } = {}
@@ -101,7 +105,9 @@ function AreaStrikes.strike(params: StrikeParams)
 end
 
 --[[ Ground that hurts: everything inside it is hit every `every` seconds
-     for `duration`, starting `every` from now. Drawn as `look`. ]]
+     for `duration`, starting `every` from now. Drawn as `look` (nil: the
+     caller draws it), and each
+     hit as `tick` (Earthbreaker's "Erupt" when omitted; false for none). ]]
 function AreaStrikes.zone(
 	owner: Player,
 	at: Vector3,
@@ -110,10 +116,13 @@ function AreaStrikes.zone(
 	every: number,
 	duration: number,
 	now: number,
-	look: string
+	look: string?,
+	tick: (string | false)?
 )
 	local flat = Vector3.new(at.X, 0, at.Z)
-	telegraph:FireAllClients(flat, Vector3.zAxis, duration, look, radius)
+	if look then
+		telegraph:FireAllClients(flat, Vector3.zAxis, duration, look, radius)
+	end
 	table.insert(zones, {
 		owner = owner,
 		at = flat,
@@ -122,6 +131,7 @@ function AreaStrikes.zone(
 		every = every,
 		nextAt = now + every,
 		endsAt = now + duration,
+		tick = if tick == nil then "Erupt" elseif tick == false then nil else tick,
 	})
 end
 
@@ -155,7 +165,10 @@ function AreaStrikes.step(now: number)
 			local at = if follow and follow.Parent
 				then Vector3.new(follow.Position.X, 0, follow.Position.Z)
 				else strike.at
-			telegraph:FireAllClients(at, Vector3.zAxis, RING, strike.impact, strike.radius)
+			local impact = strike.impact
+			if impact then
+				telegraph:FireAllClients(at, Vector3.zAxis, RING, impact, strike.radius)
+			end
 			hit(strike.owner, at, strike.radius, strike.damage)
 			local landed = strike.landed
 			if landed then
@@ -167,7 +180,10 @@ function AreaStrikes.step(now: number)
 	for index = #zones, 1, -1 do
 		local zone = zones[index]
 		while now >= zone.nextAt and zone.nextAt <= zone.endsAt do
-			telegraph:FireAllClients(zone.at, Vector3.zAxis, RING, "Erupt", zone.radius)
+			local tick = zone.tick
+			if tick then
+				telegraph:FireAllClients(zone.at, Vector3.zAxis, RING, tick, zone.radius)
+			end
 			hit(zone.owner, zone.at, zone.radius, zone.damage)
 			zone.nextAt += zone.every
 		end

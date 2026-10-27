@@ -78,6 +78,9 @@ export type Session = {
 	     server accepted began, which Earthbreaker's cooldown counts from. ]]
 	meteor: number,
 	earthbreaker: number,
+	--[[ The class upgrades beside the shot (`Combat/ClassUpgrades`, which
+	     keeps their counters and timers). ]]
+	upgrades: AbilityEffects.UpgradeStats,
 	casts: number,
 	lastDashAt: number,
 	--[[ Share of max health Second Wind revives with (0 without it), and
@@ -180,6 +183,11 @@ RunSession.onDeath = nil :: ((Session) -> ())?
      same reason as `onDeath`: the projectile system requires this module. ]]
 RunSession.onRevive = nil :: ((Session, Vector3) -> ())?
 
+--[[ Called when a hit really lands on a player (not dodged, guarded or
+     blocked), after their health has dropped: Counter Strike charges on it
+     (`Combat/ClassUpgrades`). A hook for the same reason as `onDeath`. ]]
+RunSession.onHurt = nil :: ((Session) -> ())?
+
 local healthChanged = Remotes.event(Remotes.HealthChanged)
 local xpChanged = Remotes.event(Remotes.XpChanged)
 local newEnemy = Remotes.event(Remotes.NewEnemy)
@@ -217,6 +225,7 @@ function RunSession.create(player: Player): Session
 		damageTaken = 1,
 		meteor = 0,
 		earthbreaker = 0,
+		upgrades = { phoenix = 0, arrowRain = 0, blackHole = 0, elemental = 0, turret = 0 },
 		casts = 0,
 		lastDashAt = -math.huge,
 		melee = {
@@ -230,6 +239,8 @@ function RunSession.create(player: Player): Session
 			shockwaveLength = 0,
 			battleCry = 0,
 			parry = 0,
+			reachScale = 1,
+			counterStrike = 0,
 		},
 		secondWind = 0,
 		secondWindUsed = false,
@@ -311,6 +322,7 @@ function RunSession.applyLoadout(session: Session)
 	session.damageTaken = stats.damageTaken
 	session.meteor = stats.meteor
 	session.earthbreaker = stats.earthbreaker
+	session.upgrades = stats.upgrades
 	session.melee = stats.melee
 
 	session.pipeline:clear()
@@ -1048,6 +1060,10 @@ function RunSession.applyDamage(session: Session, amount: number)
 	amount *= session.damageTaken
 	session.health = math.max(0, session.health - amount)
 	playerDamaged:FireClient(session.player, amount)
+	local hurt = RunSession.onHurt
+	if hurt then
+		hurt(session)
+	end
 
 	--[[
 		A killing blow is undone, if anything can: Second Wind first — a

@@ -29,6 +29,7 @@ local Arena = require(script.Parent.Arena.Arena)
 local Atmosphere = require(script.Parent.Arena.Atmosphere)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Burning = require(script.Parent.Combat.Burning)
+local ClassUpgrades = require(script.Parent.Combat.ClassUpgrades)
 local Classes = require(ReplicatedStorage.Shared.Config.Classes)
 local EnemyFiring = require(script.Parent.Combat.EnemyFiring)
 local EnemyManager = require(script.Parent.Enemies.EnemyManager)
@@ -98,6 +99,9 @@ local function buildSpawn(parent: Instance)
 end
 
 buildSpawn(workspace)
+
+--[[ Counter Strike charges on a hit taken (`Combat/ClassUpgrades`). ]]
+RunSession.onHurt = ClassUpgrades.onHurt
 
 --[[ The run controller owns the arena now: it builds a room on entry, so
      there is nothing to build here. ]]
@@ -612,6 +616,9 @@ RunService.Heartbeat:Connect(function(deltaTime: number)
 	Burning.step(now)
 	--[[ Meteors landing and cracked ground erupting (the Mythics). ]]
 	AreaStrikes.step(now)
+	--[[ The class upgrades: black holes dragging, the phoenix's fire, the
+	     Arcane Turret's crystal. ]]
+	ClassUpgrades.step(deltaTime, now)
 	--[[ After projectiles, because a hit's knockback moves its enemy and can
 	     push it into another. Overlaps are resolved once everything that can
 	     move a body this frame has done so. ]]

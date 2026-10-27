@@ -478,6 +478,57 @@ local Sounds: { [string]: Sound } = {
 		pitchJitter = 0.05,
 		minGap = 0.12,
 	},
+	--[[ The class upgrades of 2026-10-27 (`Fx/Upgrades/*BuildFx`): hooked up
+	     silent, waiting on the owner's picks and one sprite upload. ]]
+	-- the phoenix's cry as it leaves the bow
+	fx_phoenix = {
+		id = "",
+		volume = 0.7,
+		pitchJitter = 0.05,
+		minGap = 0.5,
+	},
+	-- the arrow going up, and the rain's patter
+	fx_arrow_rain = {
+		id = "",
+		volume = 0.6,
+		pitchJitter = 0.05,
+		minGap = 0.5,
+	},
+	-- the hole opening and its hum
+	fx_black_hole = {
+		id = "",
+		volume = 0.7,
+		pitchJitter = 0.05,
+		minGap = 0.6,
+	},
+	-- the implosion
+	fx_black_hole_implode = {
+		id = "",
+		volume = 0.8,
+		pitchJitter = 0.05,
+		minGap = 0.4,
+	},
+	-- the crystal appearing
+	fx_turret = {
+		id = "",
+		volume = 0.6,
+		pitchJitter = 0.05,
+		minGap = 0.5,
+	},
+	-- the giant sword's slam
+	fx_titan_slam = {
+		id = "",
+		volume = 0.85,
+		pitchJitter = 0.05,
+		minGap = 0.3,
+	},
+	-- the charged blow
+	fx_counter_strike = {
+		id = "",
+		volume = 0.8,
+		pitchJitter = 0.05,
+		minGap = 0.3,
+	},
 }
 
 return table.freeze(Sounds)

@@ -82,6 +82,10 @@ type Projectile = {
 	     long. ]]
 	burn: number,
 	burnDuration: number,
+	--[[ What a hit slows its enemy to (1 none) and for how long: Elemental
+	     Orbs' ice. ]]
+	slow: number,
+	slowDuration: number,
 	--[[ Long Shot's extra damage at full range, and where the flight began,
 	     which is what "range" is measured from. ]]
 	farBonus: number,
@@ -233,6 +237,9 @@ export type SpawnParams = {
 	--[[ Blaze's burn fraction and duration. Omitted means none. ]]
 	burn: number?,
 	burnDuration: number?,
+	--[[ Elemental Orbs' ice: speed scale and seconds. Omitted means none. ]]
+	slow: number?,
+	slowDuration: number?,
 	--[[ Long Shot and Soul Chain. Omitted means none. ]]
 	farBonus: number?,
 	link: number?,
@@ -289,6 +296,8 @@ function ProjectileSystem.spawn(params: SpawnParams)
 		homing = params.homing,
 		burn = params.burn or 0,
 		burnDuration = params.burnDuration or 0,
+		slow = params.slow or 1,
+		slowDuration = params.slowDuration or 0,
 		farBonus = params.farBonus or 0,
 		origin = params.origin,
 		link = params.link or 0,
@@ -387,6 +396,8 @@ local function fireOnward(projectile: Projectile, onward: Onward)
 			homing = projectile.homing,
 			burn = projectile.burn,
 			burnDuration = projectile.burnDuration,
+			slow = projectile.slow,
+			slowDuration = projectile.slowDuration,
 			farBonus = projectile.farBonus,
 			link = projectile.link,
 			look = projectile.look,
@@ -534,6 +545,9 @@ local function applyHit(projectile: Projectile, model: Model): boolean
 				projectile.owner,
 				currentNow
 			)
+			if projectile.slow < 1 then
+				EnemyManager.slow(model, projectile.slow, os.clock() + projectile.slowDuration)
+			end
 			fireRicochet(projectile, model)
 		end
 

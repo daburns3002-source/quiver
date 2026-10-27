@@ -211,6 +211,12 @@ Remotes.SoulLink = "SoulLink"
      `radius` of `centre` out of the air: stop drawing them. ]]
 Remotes.ShotsParried = "ShotsParried"
 
+--[[ Server → all clients. A class upgrade's moment to draw
+     (`Combat/ClassUpgrades`, `Fx/Upgrades/*BuildFx`): its kind
+     ("ArrowRain", "BlackHole", "BlackHoleImplode", "TitanSlam"), the player
+     it is theirs, then that kind's own values. ]]
+Remotes.UpgradeFx = "UpgradeFx"
+
 --[[ Server → one client. A hit on this player missed, and why: "Agility"
      (a dodge) or "Guard" (a swing's guard caught it). ]]
 Remotes.PlayerDodged = "PlayerDodged"

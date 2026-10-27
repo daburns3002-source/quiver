@@ -8,13 +8,19 @@ and writes icons_transparent/<icon>.png (the icon alone, 512 px, as big as
 the set's) and icons/<icon>.png (the icon on tiles_blank/<rarity>.png, in
 the tile's window where the set's own icons sit). <icon> is the file name
 the set uses (diagonalarrows, multishot); <rarity> a tiles_blank name.
+
+A Legendary or Mythic icon glows on its tile (CLAUDE.md rule 12): a soft
+halo out of the icon's own outline, gold for a Legendary and running round
+the rainbow for a Mythic.
 """
 
 import pathlib
 import sys
 
+import colorsys
+
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageFilter
 from scipy import ndimage
 
 HERE = pathlib.Path(__file__).resolve().parent
@@ -53,6 +59,32 @@ def fitted(icon: Image.Image, side: int) -> Image.Image:
     return icon.resize((round(icon.size[0] * scale), round(icon.size[1] * scale)), Image.LANCZOS)
 
 
+GOLD = (255, 205, 70)
+HALO_BLUR = 12
+HALO_STRENGTH = 0.9
+
+
+def halo(icon: Image.Image, rarity: str) -> Image.Image | None:
+    """The icon's glow, as big as the icon, or None for a rarity without."""
+    if rarity not in ("legendary", "mythic"):
+        return None
+    pad = HALO_BLUR * 3
+    alpha = Image.new("L", (icon.size[0] + pad * 2, icon.size[1] + pad * 2), 0)
+    alpha.paste(icon.getchannel("A"), (pad, pad))
+    alpha = alpha.filter(ImageFilter.MaxFilter(9)).filter(ImageFilter.GaussianBlur(HALO_BLUR))
+    a = np.asarray(alpha).astype(np.float32) * HALO_STRENGTH
+    h, w = a.shape
+    if rarity == "mythic":
+        yy, xx = np.mgrid[0:h, 0:w]
+        hue = (np.arctan2(yy - h / 2, xx - w / 2) / (2 * np.pi)) % 1
+        rgb = np.vectorize(lambda t: colorsys.hsv_to_rgb(t, 0.75, 1.0), otypes=[float, float, float])(hue)
+        colour = np.dstack(rgb) * 255
+    else:
+        colour = np.ones((h, w, 3)) * np.array(GOLD)
+    out = Image.fromarray(np.dstack([colour, np.clip(a, 0, 255)]).astype(np.uint8), "RGBA")
+    return out
+
+
 def main() -> None:
     name, rarity = sys.argv[1], sys.argv[2]
     icon = key_out(Image.open(RAW / f"{name}_raw.png"))
@@ -66,6 +98,9 @@ def main() -> None:
     small = fitted(icon, WINDOW)
     x = WINDOW_CENTRE[0] - small.size[0] // 2
     y = WINDOW_CENTRE[1] - small.size[1] // 2
+    glow = halo(small, rarity)
+    if glow:
+        tile.alpha_composite(glow, (x - HALO_BLUR * 3, y - HALO_BLUR * 3))
     tile.alpha_composite(small, (x, y))
     tile.save(HERE / "icons" / f"{name}.png")
     print(name, rarity)

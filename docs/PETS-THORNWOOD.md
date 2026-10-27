@@ -95,7 +95,7 @@ unchanged, as in area 1.
 | 7 | **Berry Bat** | Rare | a bark-brown cube bat with wide angular purple slab wings and one glowing magenta berry at its throat | the purple bramble bushes and their berries |
 | 8 | **Bramble Bear** | Epic | an upright forest-green bear cub with huge vine-wrapped forearms, glowing plum vine markings | raises Thornwood's hedges with its fists |
 | 9 | **Briar Lynx** | Epic | a crouching lime-and-green lynx kitten with tall plum thorn ear tufts, cheek flares, a bobtail and glowing pink slash markings | its ear thorns and crossed blades echo the briars |
-| 10 | **Bramble Wilf** | Legendary | the Wilf shape in ashy bramble-bark fur, ivory mask, chest and right-front sock, a ridge of purple thorns down neck and back, a lilac tail tip, a gold collar and golden aura | the area's Wilf, the second of the ten |
+| 10 | **Bramble Wilf** | Legendary | the Wilf shape in ashy bramble-bark fur, ivory mask, chest and right-front sock, a ridge of purple thorns down neck and back, a lilac tail tip, a gold collar and a **purple** aura (owner, 2026-10-26: "Keep the Bramble Wilf's aura purple.") | the area's Wilf, the second of the ten |
 | 11 | **Thorn Princess** | Legendary | a cute lavender baby spider, eight short slab legs, olive-gold back plates, magenta crystal thorns and a gold crown | heir to the area's boss, the Broodmother |
 | 12 | **Thornwake** | Mythic | a wingless baby dragon: ivory cube head, long smoky-teal body, plum leaf fins with ivory thorn tips, berry belly plates, S-shaped tail (`12_thornwake_views.png`) | |
 
@@ -153,7 +153,7 @@ right leg** from foot to body, the front left only a short paw; **mauve**
 ear insides (`#B38AAB`); a narrow ridge of blunt **purple thorn wedges**
 (`#8246A6`) down neck and back like a mane; a **pale lilac** tail tip
 (`#D7BCEB`); purple eyes; and the Legendary **gold collar** (`#E9BC53`),
-golden aura and sparkles. Grey-brown keeps it apart from the green Bear,
+purple aura (the owner's choice over the sheet's gold, 2026-10-26) and gold sparkles. Grey-brown keeps it apart from the green Bear,
 the orange Ember Wilf, the chestnut Hoglet and the darker Berry Bat, and
 keeps purple to an accent so it is not one more plum pet.
 `PETS-WILFS.md` still lists the old "forest green and bark brown" coat;
@@ -209,3 +209,8 @@ Codex's own pick is the Thornwake, for the biggest spectacle.
 5. **The Bramble Wilf as a Legendary**: `PETS-WILFS.md` gives every area a
    Wilf; here it takes a Legendary slot, as the Ember Wilf does in Mossy
    Glade.
+
+
+## Built (2026-10-26)
+
+All twelve were built in Claude Design from their sheets, one agent each, compared view by view until they matched, and exported with their clips to `assets/models/pets/thornwood/` (Idle, a movement loop, Follow, a signature loop, Attack). They wait for the owner's Studio import (Merge Meshes off) before `tools/imports_to_luau.py` and `tools/glb_clips_to_luau.py` wire them in (`docs/PIPELINES.md` §10).

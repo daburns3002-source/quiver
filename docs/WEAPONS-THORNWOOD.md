@@ -40,7 +40,7 @@ all fifteen side by side in `contact_sheet.png` there.
 | Rare | Plum Burr Bow | Burr Totem Staff | Plumguard Blade |
 | Epic | Lurker Vine Bow | Lurker Crest Staff | Burrcrest Blade |
 | Legendary | Silkweaver Bow | Silk Diadem Staff | Silkbound Blade |
-| Mythic | Ironwrath Bow | Ruinmaul Staff | Havocjaw Blade |
+| Mythic | **Nightbarb Bow** | **Blackspine Staff** | **Briarbreaker Blade** |
 
 ---
 
@@ -83,7 +83,7 @@ fine violet silk ribbons.
 (Web Snare: hits slow 30% for 2 s, refreshed by further hits; bosses slowed
 less.)
 
-**Ironwrath Bow** (Mythic) `ironwrath_bow_views.png`.
+**Ironwrath Bow** (Mythic) `old/ironwrath_bow_views.png` (superseded by the Nightbarb Bow).
 A massive recurve war bow: thick angular limbs of blackened bramble wood
 armoured in dark iron plates, ivory tusk hooks at the tips, jagged cream
 thorn spikes along the limbs, a fierce iron boar-head emblem above the
@@ -125,7 +125,7 @@ glowing gold squares.
 (Root Hold: the first enemy the fourth orb hits is held 1 s; bosses are
 slowed 40% instead. Can reuse `Shared/Util/RootHold`.)
 
-**Ruinmaul Staff** (Mythic) `ruinmaul_staff_views.png`.
+**Ruinmaul Staff** (Mythic) `old/ruinmaul_staff_views.png` (superseded by the Blackspine Staff).
 A long straight shaft of blackened bramble wood bound in dark iron, a pointed
 iron foot, and on top a heavy squared mace-like head of dark iron and
 obsidian with ivory tusk flanges and cream thorn spikes, plum and olive-gold
@@ -163,7 +163,7 @@ purple pommel. The rune and silk seams glow.
 (Boar Rush: the third-blow slam pushes enemies in its area back 8 studs;
 bosses resist; walls stop them.)
 
-**Havocjaw Blade** (Mythic) `havocjaw_blade_views.png`.
+**Havocjaw Blade** (Mythic) `old/havocjaw_blade_views.png` (superseded by the Briarbreaker Blade).
 A very broad cleaver-like greatsword: a flat black obsidian blade with a thick
 dark-iron spine, angular cream thorn teeth along the back edge, plum inlays;
 the crossguard a fierce iron boar head whose ivory tusks sweep up the blade;
@@ -174,9 +174,40 @@ into flame-like wisps.
 (Enemies the slam hits take 30% more damage from players and pets for 4 s;
 refreshes, does not stack.)
 
+## The Mythics: the owner's picks (2026-10-26: "briarbreaker, blackspine, and nightbarb bow")
+
+The Thornwood Mythics are the **Nightbarb Bow**, the **Blackspine Staff** and the **Briarbreaker Blade** (sheets beside the others in `weapons/skins/thornwood/`). The unpicked takes, the Dreadbriar Staff and the Gloamspike Blade, are kept in `options/`; the Blackbriar Siege Bow was never drawn. The Mythic entries in the class sections above (Ironwrath, Ruinmaul, Havocjaw) are superseded and their sheets are in `old/`.
+
+### The takes, as offered
+
+The owner, after the Ironwrath Bow, Ruinmaul Staff and Havocjaw Blade
+(2026-10-26): "try again on the weapons". So two takes per class, written
+and drawn by Codex: darker and more grounded, like a top-tier dark-fantasy
+hero's item, a bold heavy silhouette that reads at a glance, a restrained
+palette (blackened iron, obsidian, bone, deep bramble red-purple) with the
+Mythic rainbow as one fierce accent only, no faces. Sheets in
+`assets/concepts/blocky/weapons/skins/thornwood/options/`, side by side in
+`options/options_contact.png` (top row take A, bottom row take B). The
+earlier drafts are in `old/` (Ironwrath, Ruinmaul, Havocjaw) and
+`*_old_views.png` (Prism Thistle, Rainbow Burr, Crownspike). Each class
+keeps its effect whichever take is picked:
+
+- Bow: "Thistle arrows: every third hit erupts into jagged thorns around
+  the target." (Thorn Burst, 60% weapon damage around the target.)
+- Staff: "Burr blight: every orb poisons its target, stacking with repeated
+  hits." (30% over 3 s, up to five stacks.)
+- Blade: "Ruin cracks: the slam makes struck enemies take more damage."
+  (+30% damage taken for 4 s.)
+
+| Class | Take A | Take B |
+|---|---|---|
+| Bow | **Blackbriar Siege Bow**: a giant, thick recurve of blocky blackened-iron plates over red-purple bramble bindings, bone wedges at the tips; rainbow: one core gem above the grip. Arrow: heavy black, bone tip. `blackbriar_siege_bow_views.png` | **Nightbarb Bow**: long, lean predator bow, obsidian limbs with swept-back fins and hooked tips, bone inlays, red-purple grip; rainbow: a row of runes down each limb. Arrow: slender obsidian, needle bone point, rainbow streak. `nightbarb_bow_views.png` (**picked**) |
+| Staff | **Dreadbriar Staff**: a war-maul, a heavy spiked iron hammer head with bone end plates on a long red-purple-wrapped shaft, iron spike foot; rainbow: one square core gem in the hammer. Orb: dark purple core in four floating iron segments. `options/dreadbriar_staff_views.png` | **Blackspine Staff**: tall thorned scepter-spear, an obsidian spearhead between two hooked bone prongs, bone thorns up the wrapped shaft; rainbow: fire along one edge of the spearhead. Orb: dark violet with three bone splinters and a rainbow flame trail. `blackspine_staff_views.png` (**picked**) |
+| Blade | **Briarbreaker Blade**: broad slab cleaver, an iron-framed obsidian face with stepped iron teeth on its spine, wrapped in thorned bramble, heavy block crossguard; rainbow: one gem at the blade's base. `briarbreaker_blade_views.png` (**picked**) | **Gloamspike Blade**: long jagged greatsword, a spear point and staggered obsidian and bone barbs down both edges, a spiked crossguard; rainbow: a line of runes down the centre rib. `options/gloamspike_blade_views.png` |
+
 ## Open decisions (the owner's)
 
-1. Which of these to keep, rename or redraw.
+1. Which of these to keep, rename or redraw. ~~Which Mythic take per class~~: decided, the Nightbarb Bow, Blackspine Staff and Briarbreaker Blade (owner, 2026-10-26).
 2. The six effects and their numbers (each a new card except Root Hold).
 3. Whether the Epic blades get anything beyond their glow, as the Epic bows
    and staffs get projectiles.

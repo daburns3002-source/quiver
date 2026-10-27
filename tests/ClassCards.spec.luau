@@ -144,8 +144,9 @@ return function(t: TestRunner.Helper)
 
 	--[[ Each class has Mythics of its own (owner, 2026-10-23: Dual Bows,
 	     Meteor, Earthbreaker; 2026-10-27 added Phoenix Arrow, Black Hole,
-	     Titan's Grip), and no Mythic is shared between classes. ]]
-	t.test("every class has a Mythic, and every Mythic is one class's", function()
+	     Titan's Grip), and a class Mythic is never shared between classes
+	     (Second Wind, for every class, names none). ]]
+	t.test("every class has a Mythic, and every class Mythic is one class's", function()
 		for name in Classes do
 			local mythics = {}
 			for _, ability in Abilities.all do
@@ -157,11 +158,8 @@ return function(t: TestRunner.Helper)
 			t.isTrue(#mythics >= 1, `{name} has no Mythic`)
 		end
 		for _, ability in Abilities.all do
-			if ability.rarity == "Mythic" then
-				t.isTrue(
-					ability.classes ~= nil and #(ability.classes :: { string }) == 1,
-					`{ability.id} is not one class's`
-				)
+			if ability.rarity == "Mythic" and ability.classes ~= nil then
+				t.isTrue(#(ability.classes :: { string }) == 1, `{ability.id} is not one class's`)
 			end
 		end
 	end)

@@ -766,7 +766,7 @@ local abilities: { Ability } = {
 	{
 		id = "PhoenixArrow",
 		name = "Phoenix Arrow",
-		description = "Every 8th arrow is a flaming phoenix that flies through everything, leaving fire behind.",
+		description = "Every 8th arrow is a phoenix that burns through everything.",
 		category = "OnHit",
 		group = "arrow",
 		rarity = "Mythic",
@@ -778,7 +778,7 @@ local abilities: { Ability } = {
 	{
 		id = "RainOfArrows",
 		name = "Rain of Arrows",
-		description = "Every 6th shot fires an arrow skyward; a rain of arrows falls on the target.",
+		description = "Every 6th shot calls a rain of arrows on the target.",
 		category = "OnHit",
 		group = "arrow",
 		rarity = "Legendary",
@@ -802,7 +802,7 @@ local abilities: { Ability } = {
 	{
 		id = "ElementalOrbs",
 		name = "Elemental Orbs",
-		description = "Your orbs cycle fire, ice and lightning: they burn, slow and chain in turn.",
+		description = "Orbs cycle fire, ice and lightning: burn, slow, chain.",
 		category = "OnHit",
 		group = "spell",
 		rarity = "Epic",
@@ -814,7 +814,7 @@ local abilities: { Ability } = {
 	{
 		id = "ArcaneTurret",
 		name = "Arcane Turret",
-		description = "Every 10s a floating crystal appears beside you and casts orbs on its own.",
+		description = "Every 10s a crystal appears beside you and casts orbs.",
 		category = "Count",
 		group = "spell",
 		rarity = "Legendary",
@@ -826,7 +826,7 @@ local abilities: { Ability } = {
 	{
 		id = "TitansGrip",
 		name = "Titan's Grip",
-		description = "Your sword doubles in size: swings reach twice as far and every slam shakes the room.",
+		description = "Your sword doubles in size; every slam shakes the room.",
 		category = "Pattern",
 		group = "blade",
 		rarity = "Mythic",

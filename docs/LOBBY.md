@@ -19,13 +19,16 @@ Thornwood lit at the front row's west end, eight locked for the areas to come; t
 
 **The flow** (built): BEGIN ADVENTURE puts players at the campfire; walking into a lit portal
 opens its screen (`UI/PortalScreen`, owner 2026-10-26: "need screen for portal entry with the
-level selector"): the area, its levels (`portals[i].levels`, one 20-room level each for now; locked
-COMING SOON slots up to `levelSlots`), each with its boss and whether it is cleared, and START, which
-asks the server (`Remotes.PortalStart`); the server starts the run only for the portal the player
-stands at and one of its levels (`Run/Lobby.startFor`, `tests/Lobby.spec`). X, Escape or walking
-away closes it. (Mossy Glade: the Mossy Glade Run; Thornwood: Level 2); from there the end
-screen's NEXT LEVEL and TRY AGAIN carry on as before (`Balance.campaign`). Nothing leads back to
-the lobby after a run yet. Data in `Config/Lobby`, built by
+level selector"): the area, its levels (`portals[i].levels`), and START, which asks the server
+(`Remotes.PortalStart`); the server starts the run only for the portal the player stands at, one of
+its levels, and a level that player has opened (`Run/Lobby.startFor`, `Util/LevelUnlocks`,
+`tests/Lobby.spec`). X, Escape or walking away closes it. **Mossy Glade has ten levels** (owner,
+2026-10-26: "2 ROWS OF 5 LEVELS EACH"): numbered buttons 1-1..1-5 over 1-6..1-10
+(`levelColumns`), 1-1 always open, each next one opened by beating the one before (saved,
+`SaveSchema` v2 `levelsBeaten`), locked ones dimmed under a lock, beaten ones CLEARED in gold, the
+picked one's rooms or waves on the line under them. Thornwood keeps its single card (its level, its
+boss, two COMING SOON slots up to `levelSlots`). From a run the end screen's NEXT LEVEL goes on to
+the portal's next level, and back here after its last (1-10, Thornwood); TRY AGAIN replays. Data in `Config/Lobby`, built by
 `Run/Lobby`, the run's state `Lobby` in `Run/RoomController` (`beginStage`, `inLobby`), the stage
 a portal picked published as the Workspace's `Stage` (`Util/CurrentStage`). The camera follows
 the player across the clearing, the lobby plays its Mossy Glade music, and the banner reads

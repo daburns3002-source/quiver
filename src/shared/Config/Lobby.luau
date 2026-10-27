@@ -13,7 +13,8 @@
 	ADVENTURE, walk between the stations (scenery for now: each becomes
 	usable as its feature is built), and step into an active portal to start
 	that area's run (`Run/Lobby`, `Run/RoomController.beginStage`); from
-	there NEXT LEVEL and TRY AGAIN carry on as before (`Balance.campaign`).
+	there NEXT LEVEL goes on to the portal's next level (back here after its
+	last) and TRY AGAIN replays.
 
 	Positions are studs from the lobby's centre on its floor; north is −Z,
 	as in the arena, so the portals stand at the top of the screen. The
@@ -80,7 +81,11 @@ local Lobby = {
 	portals = {
 		{
 			name = "Mossy Glade",
-			levels = { 5 },
+			--[[ Mossy Glade 1-1..1-10 (owner, 2026-10-26: "ONCE YOU ENTER THE
+			     PORTAL FOR MOSSY GLADE IT SHOULD HAVE THE 10 LEVELS AVAILABLE TO
+			     SELECT 2 ROWS OF 5 LEVELS EACH"), each opened by beating the one
+			     before (`Util/LevelUnlocks`). ]]
+			levels = { 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 },
 			tint = GREEN,
 			sign = "PortalSignMossy",
 			arch = "PortalArch_MossyGlade",
@@ -109,6 +114,10 @@ local Lobby = {
 	--[[ The level selector's slots per area: its levels, then locked ones
 	     (COMING SOON) up to this many. ]]
 	levelSlots = 3,
+	--[[ A portal with more levels than `levelSlots` shows them as a grid of
+	     numbered buttons instead, this many to a row: Mossy Glade's ten as
+	     two rows of five (1-1..1-5 above 1-6..1-10). ]]
+	levelColumns = 5,
 
 	--[[ Moving round the lobby (owner, 2026-10-26: "let players sprint and
 	     jump in the lobby instead of dash"): Shift, a gamepad's X or the

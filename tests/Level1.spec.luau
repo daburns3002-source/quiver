@@ -1,9 +1,11 @@
 --!strict
 --[[
-	Level 1 (`Balance.Stages[3]`, the Mossy Glade): slimes, the Splitter
-	Spitter from room 6 on, and the Slime King alone in its last room
-	(owner, 2026-10-23; the Spitter in the Ember Wilf's place, 2026-10-24:
-	"take out the non blocky wilf enemy").
+	Level 1 (`Balance.Stages[3]`, the Mossy Glade): slimes and the Splitter
+	Spitter from room 6 on (owner, 2026-10-23; the Spitter in the Ember
+	Wilf's place, 2026-10-24: "take out the non blocky wilf enemy"). Its last
+	room was the Slime King alone; since 2026-10-26 he appears only at the
+	end of Mossy Glade 1-10 ("king bloblin will not appear until the end of
+	level 10"), so no room of it has a boss.
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -56,19 +58,10 @@ return function(t: TestRunner.Helper)
 		end
 	end)
 
-	t.test("the last room is the Slime King alone", function()
-		local rooms = level()
-		local last = rooms[#rooms]
-		t.equal(last.enemyCount, 1)
-		t.equal(#last.roster, 1)
-		t.isTrue(last.roster[1] == Balance.Enemies.SlimeKing, "the last room is not the Slime King")
-	end)
-
-	t.test("no other room has a boss in it", function()
-		local rooms = level()
-		for index = 1, #rooms - 1 do
-			for _, config in rooms[index].roster do
-				t.isTrue(config.boss == nil, `{rooms[index].name} has a boss`)
+	t.test("no room has a boss in it, the Slime King least of all", function()
+		for _, room in level() do
+			for _, config in room.roster do
+				t.isTrue(config.boss == nil, `{room.name} has a boss`)
 			end
 		end
 	end)

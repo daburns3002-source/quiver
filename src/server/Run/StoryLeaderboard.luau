@@ -418,7 +418,7 @@ end
 
 --[[ Draws the board on `face`'s front: `Leaderboard.rows` rows of rank,
      name, area and room, kept up to date. `names` maps a stage index to
-     its area's name (5 = "Mossy Glade", 4 = "Thornwood"). ]]
+     its area's name (7 = "Mossy Glade 1-1", 4 = "Thornwood"). ]]
 function StoryLeaderboard.attach(face: BasePart, areaNames: { [number]: string })
 	local existing = face:FindFirstChild("FarthestAdventurers")
 	if existing then

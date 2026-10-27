@@ -2,8 +2,9 @@
 --[[
 	How far a player has come through the story (`Balance.campaign`), as one
 	number the leaderboard can sort on (`Run/StoryLeaderboard`): every room of
-	the campaign's earlier stages, plus the rooms cleared in this one. Mossy
-	Glade's twenty then Thornwood's twenty, so 32 is Thornwood, 12 of 20.
+	the campaign's earlier stages, plus the rooms (or waves) cleared in this
+	one. Mossy Glade 1-1..1-10's 175 then Thornwood's twenty, so 187 is
+	Thornwood, 12 of 20.
 
 	`describe` turns a score back into what the board prints: the area, and
 	the room out of its stage's rooms. A score that lands exactly on a

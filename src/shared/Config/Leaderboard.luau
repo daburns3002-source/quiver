@@ -12,7 +12,10 @@ local Leaderboard = {
 	--[[ The OrderedDataStore. Versioned: a change to what the score means
 	     (a new area before Thornwood, say) gets a new name and a fresh
 	     board, never a rewrite of this one. ]]
-	storeName = "FarthestStory_v1",
+	--[[ `_v2` since 2026-10-26: Mossy Glade's ten levels (175 rooms and
+	     waves) now come before Thornwood, so a `_v1` score (out of 40) no
+	     longer means the same place in the story. ]]
+	storeName = "FarthestStory_v2",
 	--[[ Seconds: the least time between two writes of one player's best,
 	     and between two reads of the top. ]]
 	flushEvery = 30,

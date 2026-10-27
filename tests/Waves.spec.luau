@@ -52,6 +52,44 @@ return function(t: TestRunner.Helper)
 		end
 	end)
 
+	--[[ A stage that brings its own fights (Mossy Glade's wave levels):
+	     its fights spread in order, its elite on the boss positions, and its
+	     finale on the last wave whatever the schedule puts there. ]]
+	t.test("a stage's own fights, elite and finale", function()
+		local a = { enemyCount = 3, roster = { Balance.Enemies.MeleeCharger } }
+		local b = { enemyCount = 5, roster = { Balance.Enemies.BroodSlime } }
+		local elite = { enemyCount = 6, roster = { Balance.Enemies.SpreadShooter } }
+		local finale = { enemyCount = 1, roster = { Balance.Enemies.SlimeKing } }
+		local stage: Balance.StageConfig = {
+			name = "Test",
+			mode = "Waves",
+			arena = 1,
+			waves = 25,
+			fights = { a, b },
+			elite = elite,
+			finale = finale,
+		}
+		t.equal(Waves.describe(1, 25, stage).count, 3)
+		t.equal(Waves.describe(24, 25, stage).count, 5)
+		local ten = Waves.describe(10, 25, stage)
+		t.equal(ten.kind, "Elite")
+		t.equal(ten.count, 6)
+		-- the 25th would be a Valkyrie; the finale takes it
+		t.equal(Waves.kind(25), "Valkyrie")
+		local last = Waves.describe(25, 25, stage)
+		t.equal(last.kind, "Boss")
+		t.isTrue(last.roster[1] == Balance.Enemies.SlimeKing)
+		-- without a finale, the schedule stands
+		stage.finale = nil
+		t.equal(Waves.describe(25, 25, stage).kind, "Valkyrie")
+		local previous = 0
+		for wave = 1, 25 do
+			local index = Waves.fightIndex(wave, 25, 2)
+			t.isTrue(index >= previous, `wave {wave} steps back`)
+			previous = index
+		end
+	end)
+
 	--[[ The tutorial order the Rooms list encodes carries into Waves: the
 	     first wave fights room one, the last fights the last room, and the
 	     tier never steps backwards. ]]

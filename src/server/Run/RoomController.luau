@@ -13,8 +13,11 @@
 	because it depends on where in the game a stage sits, not on anything the
 	code should decide.
 
-	Die, and the run goes back to the start of the stage. Win, and NEXT
-	LEVEL starts the next stage of `Balance.campaign`, upgrades reset. The server owns all
+	Die, and the run goes back to the start of the stage. Win, and the
+	level is saved as beaten (`Wallet.beatLevel`, which opens the next one),
+	and NEXT LEVEL starts the next level of its portal (Mossy Glade 1-3, then
+	1-4), upgrades reset, or goes back to the lobby after the last; a stage
+	behind no portal follows `Balance.campaign`. The server owns all
 	of it: the client is told where it is and what state the run is in, and
 	never reports either. Stage progress is what areas unlock on in Phase 5,
 	so a client that could claim a wave could claim an area.
@@ -30,7 +33,9 @@ local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Burning = require(script.Parent.Parent.Combat.Burning)
 local CurrentStage = require(ReplicatedStorage.Shared.Util.CurrentStage)
 local EnemyManager = require(script.Parent.Parent.Enemies.EnemyManager)
+local LevelUnlocks = require(ReplicatedStorage.Shared.Util.LevelUnlocks)
 local Lobby = require(script.Parent.Lobby)
+local LobbyConfig = require(ReplicatedStorage.Shared.Config.Lobby)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
 local MeleeSystem = require(script.Parent.Parent.Combat.MeleeSystem)
 local PetCombat = require(script.Parent.Parent.Combat.PetCombat)
@@ -41,6 +46,7 @@ local RunSession = require(script.Parent.RunSession)
 local Sandbox = require(ReplicatedStorage.Shared.Config.Sandbox)
 local StoryLeaderboard = require(script.Parent.StoryLeaderboard)
 local StoryProgress = require(ReplicatedStorage.Shared.Util.StoryProgress)
+local Wallet = require(script.Parent.Parent.Data.Wallet)
 local Waves = require(script.Parent.Waves)
 
 local log = Log.forTag("Run")
@@ -98,7 +104,7 @@ end
 local function label(): string
 	local current = stage()
 	if current.mode == "Waves" then
-		local kind = Waves.kind(progress)
+		local kind = Waves.kindIn(current, progress, total())
 		return if kind == "Fight" then current.name else kind
 	end
 	local rooms = current.rooms or {}
@@ -266,7 +272,7 @@ local function startWave(wave: number)
 	progress = wave
 	resumeAt = nil
 
-	local description = Waves.describe(wave, total())
+	local description = Waves.describe(wave, total(), stage())
 
 	if description.kind == "Valkyrie" or description.kind == "Angel" then
 		state = "Choosing"
@@ -348,11 +354,20 @@ end
      `position` of a Rooms stage, so a late room (the boss) can be tested
      without fighting through the rest. ]]
 function RoomController.debugEnterRoom(position: number)
-	if stage().mode ~= "Rooms" or position < 1 or position > total() then
+	if state == "Lobby" or state == "Dead" or state == "Complete" then
+		return
+	end
+	if position ~= math.floor(position) or position < 1 or position > total() then
 		return
 	end
 	RunSession.holdOffers(false)
 	jumped = true
+	if stage().mode == "Waves" then
+		-- the arena built afresh (whatever is fighting goes), then that wave
+		buildArena(Balance.Rooms[stage().arena or 1])
+		startWave(position)
+		return
+	end
 	enterRoom(position)
 end
 
@@ -412,11 +427,41 @@ local function anyPlayerAtDoor(): boolean
 	return false
 end
 
+--[[ Whether the stage's last fight has a boss in it: its last room, or a
+     Waves stage's last wave. The tutorial pays no boss. ]]
+local function endsInBoss(): boolean
+	local current = stage()
+	if current.tutorial then
+		return false
+	end
+	local roster: { Balance.EnemyConfig }
+	if current.mode == "Waves" then
+		roster = Waves.describe(total(), total(), current).roster
+	else
+		local rooms = current.rooms or {}
+		local last = Balance.Rooms[rooms[#rooms]]
+		roster = if last then last.roster else {}
+	end
+	for _, config in roster do
+		if config.boss then
+			return true
+		end
+	end
+	return false
+end
+
 local function complete(now: number)
 	state = "Complete"
+	local level = stage().level
 	-- the area's clear bonus, before the summary that shows it
 	for _, session in RunSession.all() do
 		RunSession.payCoins(session, RunSession.areaPay().clearCoins)
+		--[[ The level is won, for everyone in the run: saved, and the next
+		     one opens. Decided here, never asked for. A Studio jump
+		     (`debugEnterRoom`) counts, so unlocking can be tested there. ]]
+		if level then
+			Wallet.beatLevel(session.player, level)
+		end
 	end
 	resumeAt = now + Balance.Run.deathPause
 	setDoorOpen(false)
@@ -524,6 +569,40 @@ function RoomController.inSandbox(): boolean
 	return sandbox
 end
 
+--[[ Everyone back to the lobby's campfire, the run put away: after the
+     tutorial, and after an area's last level. ]]
+local function toLobby()
+	for _, session in RunSession.all() do
+		RunSession.resetRun(session)
+	end
+	RunSession.setTutorial(false)
+	resumeAt = nil
+	state = "Lobby"
+	broadcast()
+	for _, session in RunSession.all() do
+		local character = session.character
+		if character then
+			Lobby.place(character)
+		end
+	end
+end
+
+--[[ The level after stage `index`, by the portal whose levels hold it
+     (`Config/Lobby`): its next, nil after its last, and whether any portal
+     holds it (a stage behind none follows `Balance.campaign`). ]]
+local function nextLevel(index: number): (number?, boolean)
+	for _, portal in LobbyConfig.portals do
+		local levels = portal.levels
+		if levels then
+			local after, found = LevelUnlocks.nextAfter(levels, index)
+			if found then
+				return after, true
+			end
+		end
+	end
+	return nil, false
+end
+
 function RoomController.requestRestart(): boolean
 	if not RoomController.isOver() then
 		return false
@@ -535,25 +614,21 @@ function RoomController.requestRestart(): boolean
 	--[[ The tutorial won: on to the lobby, where the portals start the
 	     campaign's runs (`Config/Tutorial`). ]]
 	if state == "Complete" and stage().tutorial then
-		for _, session in RunSession.all() do
-			RunSession.resetRun(session)
-		end
-		RunSession.setTutorial(false)
-		resumeAt = nil
-		state = "Lobby"
-		broadcast()
-		for _, session in RunSession.all() do
-			local character = session.character
-			if character then
-				Lobby.place(character)
-			end
-		end
+		toLobby()
 		log.info("tutorial won: to the lobby")
 		return true
 	end
 
 	if state == "Complete" then
-		stageIndex = CurrentStage.nextAfter(Balance.campaign, stageIndex)
+		--[[ NEXT LEVEL: the portal's next level, or the lobby after its
+		     last (owner, 2026-10-26: Mossy Glade 1-1 to 1-10). ]]
+		local nextIndex, behindPortal = nextLevel(stageIndex)
+		if behindPortal and not nextIndex then
+			toLobby()
+			log.info("%s won, its area's last level: to the lobby", stage().name)
+			return true
+		end
+		stageIndex = nextIndex or CurrentStage.nextAfter(Balance.campaign, stageIndex)
 		workspace:SetAttribute(CurrentStage.ATTRIBUTE, stageIndex)
 		log.info("on to stage %d, %s", stageIndex, stage().name)
 	end
@@ -616,9 +691,10 @@ function RoomController.step(now: number)
 		if progress >= total() then
 			RunSession.holdOffers(true)
 			--[[ Its item and gems, as the boss falls (owner, 2026-10-25:
-			     "the boss drop is guaranteed every time"). A Rooms stage
-			     ends in its boss. ]]
-			if stage().mode == "Rooms" and not stage().tutorial then
+			     "the boss drop is guaranteed every time"): only a stage
+			     whose last fight is a boss (Thornwood's, Mossy Glade
+			     1-10's), never 1-1..1-9's elite fights. ]]
+			if endsInBoss() then
 				RunSession.payBoss()
 			end
 		end

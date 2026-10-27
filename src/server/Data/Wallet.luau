@@ -100,6 +100,19 @@ function Wallet.equip(player: Player, weapon: string?)
 	end
 end
 
+--[[ A level is won (`StageConfig.level`, "1-3"): saved, so the next one
+     opens (`Util/LevelUnlocks`). Only `RoomController` calls it, as a run
+     completes; a client never reports a win. ]]
+function Wallet.beatLevel(player: Player, level: string)
+	local profile = PlayerData.get(player)
+	if not profile or profile.levelsBeaten[level] then
+		return
+	end
+	profile.levelsBeaten[level] = true
+	log.info("%s beat level %s", player.Name, level)
+	changed(player, profile)
+end
+
 --[[ An area's boss is beaten: its item, and gems (more the first time).
      Returns what was given, for the run's summary. ]]
 function Wallet.beatBoss(player: Player, area: string): (number, string?)

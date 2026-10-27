@@ -26,13 +26,12 @@ return function(t: TestRunner.Helper)
 				for _, index in portal.levels do
 					local stage = Balance.Stages[index]
 					t.notNil(stage, `{portal.name}'s portal names a stage that does not exist`)
-					t.equal(stage.mode, "Rooms")
 					t.isTrue(not stage.tutorial, `{portal.name}'s portal plays the tutorial`)
 				end
-				t.isTrue(
-					#portal.levels <= LobbyConfig.levelSlots,
-					`{portal.name} has more levels than its screen has slots`
-				)
+				-- more than the cards hold are a grid, its rows full but the last
+				if #portal.levels > LobbyConfig.levelSlots then
+					t.isTrue(LobbyConfig.levelColumns >= 1, "a grid needs columns")
+				end
 				table.insert(open, portal.name)
 			end
 		end
@@ -113,6 +112,34 @@ return function(t: TestRunner.Helper)
 				t.isTrue(found == nil, `locked portal {index} opens a screen`)
 			end
 		end
+	end)
+
+	t.test("Mossy Glade's portal holds its ten levels, two rows of five", function()
+		local glade = LobbyConfig.portals[1]
+		t.equal(glade.name, "Mossy Glade")
+		local levels = glade.levels :: { number }
+		t.equal(#levels, 10)
+		t.equal(LobbyConfig.levelColumns, 5)
+		t.isTrue(#levels > LobbyConfig.levelSlots, "Mossy Glade's ten are not a grid")
+		for position, index in levels do
+			t.equal(Balance.Stages[index].level, `1-{position}`)
+		end
+	end)
+
+	t.test("START is granted only for a level the player has opened", function()
+		local glade = LobbyConfig.portals[1]
+		local levels = glade.levels :: { number }
+		local at = mouthOf(1)
+		-- nothing beaten: 1-1 only
+		t.equal(Lobby.startFor(at, 1, 1, {}), levels[1])
+		t.equal(Lobby.startFor(at, 1, 1, nil), levels[1])
+		t.isTrue(Lobby.startFor(at, 1, 2, {}) == nil, "started 1-2 with 1-1 unbeaten")
+		t.isTrue(Lobby.startFor(at, 1, 10, nil) == nil, "started 1-10 with nothing beaten")
+		-- 1-1 to 1-3 beaten: up to 1-4
+		local beaten = { ["1-1"] = true, ["1-2"] = true, ["1-3"] = true }
+		t.equal(Lobby.startFor(at, 1, 4, beaten), levels[4])
+		t.equal(Lobby.startFor(at, 1, 2, beaten), levels[2])
+		t.isTrue(Lobby.startFor(at, 1, 5, beaten) == nil, "started 1-5 with 1-4 unbeaten")
 	end)
 
 	t.test("START is granted only at that portal, for one of its levels", function()

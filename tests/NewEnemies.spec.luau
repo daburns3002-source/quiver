@@ -36,6 +36,21 @@ local function metInAreas(): { [string]: Balance.EnemyConfig }
 				end
 			end
 		end
+		-- a wave stage's own fights (Mossy Glade 1-5..1-10)
+		local fights: { Balance.WaveFight } = table.clone(stage.fights or {})
+		if stage.elite then
+			table.insert(fights, stage.elite)
+		end
+		if stage.finale then
+			table.insert(fights, stage.finale)
+		end
+		if stage.area then
+			for _, fight in fights do
+				for _, config in fight.roster do
+					add(config)
+				end
+			end
+		end
 	end
 	return met
 end

@@ -200,11 +200,30 @@ return function(t: TestRunner.Helper)
 		t.equal(distinct, 1, "the opener should hold a single archetype")
 	end)
 
-	t.test("every archetype is introduced somewhere in the run", function()
+	t.test("every archetype is introduced somewhere in the game", function()
 		local used: { [string]: boolean } = {}
 
+		--[[ A room's roster, or a wave stage's own fight (King Bloblin is
+		     only 1-10's last wave, owner 2026-10-26). ]]
+		local rosters: { { Balance.EnemyConfig } } = {}
 		for _, room in Balance.Rooms do
-			for _, config in room.roster do
+			table.insert(rosters, room.roster)
+		end
+		for _, stage in Balance.Stages do
+			local fights: { Balance.WaveFight } = stage.fights or {}
+			for _, fight in fights do
+				table.insert(rosters, fight.roster)
+			end
+			if stage.elite then
+				table.insert(rosters, stage.elite.roster)
+			end
+			if stage.finale then
+				table.insert(rosters, stage.finale.roster)
+			end
+		end
+
+		for _, roster in rosters do
+			for _, config in roster do
 				used[config.displayName] = true
 				--[[ What it splits into arrives with it (the Brood Slime's
 				     babies). ]]
@@ -221,7 +240,7 @@ return function(t: TestRunner.Helper)
 		end
 
 		for name, config in archetypes() do
-			t.isTrue(used[config.displayName], `{name} never appears in any room`)
+			t.isTrue(used[config.displayName], `{name} never appears in any room or wave`)
 		end
 	end)
 

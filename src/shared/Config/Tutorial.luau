@@ -24,6 +24,13 @@
 ]]
 
 local Tutorial = {
+	--[[ The tutorial plays after the story cutscene on every join until the
+	     player has beaten this level (`StageConfig.level`), then never
+	     again: they go straight to the lobby (owner, 2026-10-26: "the
+	     tutorial should play until they have beaten the first level of
+	     mossy glade"; `Util/LevelUnlocks.tutorialOwed`, decided by the
+	     server from the saved profile). ]]
+	untilBeaten = "1-1",
 	--[[ Everyone plays the tutorial as this class. ]]
 	class = "Ranger",
 	--[[ Rarities that can never be dealt in the tutorial. ]]

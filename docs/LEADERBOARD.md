@@ -10,10 +10,12 @@ and bronze for the top three.
 `src/shared/Util/StoryProgress.luau`, pinned by `tests/StoryProgress.spec.luau`.
 
 A player's score is one whole number: every room of the stages before this one
-in `Balance.campaign`, plus the rooms cleared in this one. With the campaign as
-it is (`{ 5, 4 }`: the Mossy Glade run's 20 rooms, then Thornwood's 20), 7 is
-Mossy Glade 7/20, 20 is Mossy Glade 20/20, 32 is Thornwood 12/20 and 40 is the
-whole story. `StoryProgress.describe` turns a score back into that area and
+in `Balance.campaign`, plus the rooms (or waves) cleared in this one. With the
+campaign as it is since 2026-10-26 (`{ 7, ..., 16, 4 }`: Mossy Glade 1-1..1-10,
+10 + 10 + 15 + 15 rooms then 20, 20, 20, 20, 20 and 25 waves, 175 in all, then
+Thornwood's 20 rooms), 7 is Mossy Glade 1-1 7/10, 50 is Mossy Glade 1-4 15/15,
+187 is Thornwood 12/20 and 195 is the whole story. The board names each glade
+level (`Mossy Glade 1-3`). `StoryProgress.describe` turns a score back into that area and
 room; the area names are passed in by whoever draws the board.
 
 The server records a score (`Run/RoomController`, `recordStory`) when a room is
@@ -27,7 +29,7 @@ jump). A stage outside the campaign has no score.
 | | |
 |---|---|
 | Kind | `OrderedDataStore` |
-| Name | `FarthestStory_v1` (`Config/Leaderboard.storeName`) |
+| Name | `FarthestStory_v2` (`Config/Leaderboard.storeName`; `_v1` was the 40-room campaign before Mossy Glade's ten levels, left as it was) |
 | Key | `tostring(userId)` |
 | Value | the player's best score, a whole number |
 
@@ -72,6 +74,6 @@ this separate ordered store, written only by the max rule above.
 `StoryLeaderboard.attach(face, areaNames)` builds a `SurfaceGui` on the front
 of `face` (sized by `Leaderboard.pixelsPerStud`, `Enum.Font.Arcade`), with
 `Leaderboard.rows` rows, and redraws it whenever the top changes. `areaNames`
-maps a stage index to its area's name, e.g. `{ [5] = "Mossy Glade",
-[4] = "Thornwood" }`. The board's title, FARTHEST ADVENTURERS, is the frame's,
+maps a stage index to its area's name, e.g. `{ [7] = "Mossy Glade 1-1",
+[4] = "Thornwood" }` (an area of several levels names the level too). The board's title, FARTHEST ADVENTURERS, is the frame's,
 not the SurfaceGui's.

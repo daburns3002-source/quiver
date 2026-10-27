@@ -7,11 +7,18 @@
 	Version 1 (2026-10-25, the first saved data): the wallet (coins, gems,
 	boss items), the weapons owned, the one equipped, and which bosses have
 	been beaten (for first-time gems).
+
+	Version 2 (2026-10-26, Mossy Glade's ten levels): `levelsBeaten`, the
+	levels won, keyed by each stage's `level` ("1-3"), which open the next
+	level (`Util/LevelUnlocks`) and end the tutorial once 1-1 is beaten. A
+	version 1 profile starts with none, except that one which had beaten
+	King Bloblin (the end of the old twenty-room Mossy Glade run) counts
+	1-1 as beaten, so its player is not sent back through the tutorial.
 ]]
 
 local SaveSchema = {}
 
-SaveSchema.VERSION = 1
+SaveSchema.VERSION = 2
 
 --[[ The classes' own weapons, owned from the start. ]]
 local STARTERS = { "TwigBow", "BranchStaff", "TimberBlade" }
@@ -25,6 +32,8 @@ export type Profile = {
 	--[[ The weapon to hold in runs, nil for the class's own. ]]
 	equipped: string?,
 	bossesBeaten: { [string]: boolean },
+	--[[ Levels won, by `StageConfig.level` (version 2). ]]
+	levelsBeaten: { [string]: boolean },
 }
 
 function SaveSchema.default(): Profile
@@ -40,6 +49,7 @@ function SaveSchema.default(): Profile
 		weapons = weapons,
 		equipped = nil,
 		bossesBeaten = {},
+		levelsBeaten = {},
 	}
 end
 
@@ -103,6 +113,13 @@ function SaveSchema.migrate(raw: unknown): Profile
 		profile.equipped = data.equipped
 	end
 	profile.bossesBeaten = flags(data.bossesBeaten)
+	profile.levelsBeaten = flags(data.levelsBeaten)
+	--[[ 1 → 2: no levels existed; the old Mossy Glade run, won, stands in
+	     for the first of them. A stored copy with no version is a 1. ]]
+	local version = if type(data.version) == "number" then data.version else 1
+	if version < 2 and profile.bossesBeaten.MossyGlade then
+		profile.levelsBeaten["1-1"] = true
+	end
 	return profile
 end
 

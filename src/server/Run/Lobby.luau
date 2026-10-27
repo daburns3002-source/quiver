@@ -19,6 +19,8 @@
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local Balance = require(ReplicatedStorage.Shared.Config.Balance)
+local LevelUnlocks = require(ReplicatedStorage.Shared.Util.LevelUnlocks)
 local LobbyConfig = require(ReplicatedStorage.Shared.Config.Lobby)
 local MeshTemplates = require(script.Parent.Parent.Util.MeshTemplates)
 
@@ -562,11 +564,18 @@ end
 	START on a portal's screen: the stage level `level` of portal `index`
 	plays, or nil when the request is not one this player may make. Both
 	numbers come from the client, so each is checked: a whole number, an
-	active portal, one of its levels, and the player standing at that portal
-	(within `startSlack` more than its screen opens at, for the press's trip),
-	so nobody starts an area from across the lobby.
+	active portal, one of its levels, that level open to this player (the
+	levels they have beaten, `beaten`, from their saved profile:
+	`Util/LevelUnlocks`), and the player standing at that portal (within
+	`startSlack` more than its screen opens at, for the press's trip), so
+	nobody starts an area from across the lobby.
 ]]
-function Lobby.startFor(position: Vector3, index: unknown, level: unknown): number?
+function Lobby.startFor(
+	position: Vector3,
+	index: unknown,
+	level: unknown,
+	beaten: LevelUnlocks.Beaten?
+): number?
 	if type(index) ~= "number" or type(level) ~= "number" then
 		return nil
 	end
@@ -576,7 +585,10 @@ function Lobby.startFor(position: Vector3, index: unknown, level: unknown): numb
 	local portal = LobbyConfig.portals[index]
 	local levels = portal and portal.levels
 	local stage = levels and levels[level]
-	if not stage then
+	if not stage or not levels then
+		return nil
+	end
+	if not LevelUnlocks.isUnlocked(levels, Balance.Stages, beaten, level) then
 		return nil
 	end
 	if Lobby.portalAt(position, LobbyConfig.startSlack) ~= index then

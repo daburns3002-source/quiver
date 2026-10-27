@@ -7,9 +7,16 @@
 	name in the portal's colour, its act — and its levels to pick from, each
 	with its boss, its rooms and whether it is cleared (the profile's
 	`bossesBeaten`), then locked COMING SOON slots up to
-	`Config/Lobby.levelSlots`. START asks the server (`Remotes.PortalStart`),
-	which checks the player still stands at that portal and starts the run;
-	X, Escape or walking away closes it.
+	`Config/Lobby.levelSlots`. An area with more levels than that (Mossy
+	Glade's ten, owner 2026-10-26: "2 ROWS OF 5 LEVELS EACH") shows them as
+	a grid of numbered buttons, `Config/Lobby.levelColumns` to a row: a
+	locked one dimmed under a lock, a beaten one marked CLEARED in gold, the
+	picked one framed in gold, with its rooms or waves (and its boss) on the
+	line under the grid. Which are open is `Util/LevelUnlocks` over the
+	profile's `levelsBeaten`; the server checks it again on START. START asks
+	the server (`Remotes.PortalStart`), which checks the player still stands
+	at that portal and has that level open, and starts the run; X, Escape or
+	walking away closes it.
 
 	Built like the Blacksmith's shop (`UI/ShopScreen`): blocky wood boxes
 	with an ink border, every word in the blocky font (rule 11), buttons
@@ -28,6 +35,7 @@ local Workspace = game:GetService("Workspace")
 
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local BossBanners = require(ReplicatedStorage.Shared.Config.BossBanners)
+local LevelUnlocks = require(ReplicatedStorage.Shared.Util.LevelUnlocks)
 local LobbyConfig = require(ReplicatedStorage.Shared.Config.Lobby)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local SaveSchema = require(ReplicatedStorage.Shared.Util.SaveSchema)
@@ -50,6 +58,8 @@ local GREY = Color3.fromRGB(96, 92, 88)
 local LOCKED = Color3.fromRGB(40, 34, 30)
 
 type Slot = { frame: Frame, face: Frame, button: TextButton, level: number? }
+--[[ A numbered button of the grid: the `position`th of the portal's levels. ]]
+type Tile = { frame: Frame, position: number, open: boolean }
 
 local gui: ScreenGui? = nil
 local panel: Frame? = nil
@@ -67,6 +77,12 @@ local levelRow: Frame? = nil
 local levelList: UIListLayout? = nil
 --[[ Whether the cards are laid as rows, for an upright screen. ]]
 local rows = false
+--[[ The grid of numbered levels, for an area with more than
+     `levelSlots` (`fillGrid`), and the line under it naming the pick. ]]
+local levelGrid: Frame? = nil
+local gridInfo: TextLabel? = nil
+local tiles: { Tile } = {}
+local grid = false
 
 --[[ Where a piece of a card goes, as {x, y, w, h} shares of the card: `tall`
      for a card standing in a row of them, `wide` for one of a stack. ]]
@@ -143,6 +159,12 @@ local function bannerFor(area: string?): BossBanners.Banner?
 	return nil
 end
 
+--[[ The levels this player has beaten, from their profile. ]]
+local function beaten(): LevelUnlocks.Beaten?
+	local p = profile
+	return if p then p.levelsBeaten else nil
+end
+
 local function close()
 	local screen = gui
 	if screen then
@@ -162,9 +184,98 @@ local function start()
 	if not index or not levels or not levels[picked] or starting then
 		return
 	end
+	if not LevelUnlocks.isUnlocked(levels, Balance.Stages, beaten(), picked) then
+		return
+	end
 	starting = true
 	SoundFx.play("card_click")
 	Remotes.event(Remotes.PortalStart):FireServer(index, picked)
+end
+
+--[[ What the line under the grid says of the picked level: its number,
+     its rooms or waves, and its boss if it ends in one. ]]
+local function describe(stage: Balance.StageConfig): string
+	local size = if stage.mode == "Waves"
+		then `{stage.waves or 0} WAVES`
+		else `{#(stage.rooms or {})} ROOMS`
+	local finale = stage.finale
+	local first = finale and finale.roster[1]
+	local boss = first and first.boss
+	local words = `LEVEL {stage.level or ""}: {size}`
+	if boss then
+		-- the boss by its banner's name (King Bloblin), as the boss bar shows it
+		local banner = BossBanners.bosses[boss.title]
+		local name = if banner then banner.name else boss.title
+		words ..= `, THEN {string.upper(name)}`
+	end
+	return words
+end
+
+--[[ The grid: one numbered button per level, `levelColumns` to a row, in
+     order (Mossy Glade 1-1..1-5 above 1-6..1-10). ]]
+local function fillGrid(levels: { number })
+	local frame = levelGrid
+	if not frame then
+		return
+	end
+	for _, tile in tiles do
+		tile.frame:Destroy()
+	end
+	table.clear(tiles)
+	local done = beaten()
+	local columns = math.max(LobbyConfig.levelColumns, 1)
+	local lines = math.max(math.ceil(#levels / columns), 1)
+	local gapX, gapY = 0.025, 0.08
+	local w = (1 - gapX * (columns - 1)) / columns
+	local h = (1 - gapY * (lines - 1)) / lines
+	if not LevelUnlocks.isUnlocked(levels, Balance.Stages, done, picked) then
+		picked = LevelUnlocks.suggested(levels, Balance.Stages, done)
+	end
+	for position, index in levels do
+		local stage = Balance.Stages[index]
+		local open = LevelUnlocks.isUnlocked(levels, Balance.Stages, done, position)
+		local cleared = LevelUnlocks.isBeaten(stage, done)
+		local column = (position - 1) % columns
+		local line = (position - 1) // columns
+		local card, face = box(frame, `Level{position}`, if open then PLANK else LOCKED, 10)
+		card.Position = UDim2.fromScale(column * (w + gapX), line * (h + gapY))
+		card.Size = UDim2.fromScale(w, h)
+		local name = if stage then stage.level or tostring(position) else ""
+		local number = label(face, name, if open then GOLD else GREY, 14, 34)
+		number.Name = "Number"
+		number.Position = UDim2.fromScale(0.06, if open then 0.14 else 0.08)
+		number.Size = UDim2.fromScale(0.88, 0.38)
+		if not open then
+			-- locked: dimmed, under a lock
+			face.BackgroundTransparency = 0.25
+			local lock = Instance.new("ImageLabel")
+			lock.Name = "Lock"
+			lock.BackgroundTransparency = 1
+			lock.ScaleType = Enum.ScaleType.Fit
+			lock.Image = ShopAssets.lock
+			lock.ImageTransparency = 0.15
+			lock.Position = UDim2.fromScale(0.25, 0.5)
+			lock.Size = UDim2.fromScale(0.5, 0.42)
+			lock.ZIndex = 14
+			lock.Parent = face
+		else
+			local chip, chipFace = box(face, "Status", if cleared then GOLD else GREEN, 14)
+			chip.Position = UDim2.fromScale(0.08, 0.6)
+			chip.Size = UDim2.fromScale(0.84, 0.28)
+			local words = label(chipFace, if cleared then "CLEARED" else "PLAY", WHITE, 16, 14)
+			words.Position = UDim2.fromScale(0.06, 0.15)
+			words.Size = UDim2.fromScale(0.88, 0.7)
+		end
+		local b = hit(card, 20)
+		local tile: Tile = { frame = card, position = position, open = open }
+		b.Activated:Connect(function()
+			if tile.open and not starting then
+				picked = tile.position
+				SoundFx.play("card_click")
+			end
+		end)
+		table.insert(tiles, tile)
+	end
 end
 
 --[[ Fills the panel for portal `index`. ]]
@@ -185,6 +296,18 @@ local function fill(index: number)
 	act.Text = if banner then string.upper(banner.act) else ""
 
 	local levels = portal.levels or {}
+	grid = #levels > LobbyConfig.levelSlots
+	if levelRow then
+		levelRow.Visible = not grid
+	end
+	if levelGrid and gridInfo then
+		levelGrid.Visible = grid
+		gridInfo.Visible = grid
+	end
+	if grid then
+		fillGrid(levels)
+		return
+	end
 	picked = math.clamp(picked, 1, math.max(#levels, 1))
 	for i, slot in slots do
 		local stage = Balance.Stages[levels[i]]
@@ -257,21 +380,40 @@ local function pose()
 		local chosen = slot.level ~= nil and slot.level == picked
 		slot.frame.BackgroundColor3 = if chosen then GOLD else INK
 	end
+	local pickedOpen = true
+	if grid then
+		pickedOpen = false
+		for _, tile in tiles do
+			local chosen = tile.position == picked
+			tile.frame.BackgroundColor3 = if chosen then GOLD else INK
+			if chosen then
+				pickedOpen = tile.open
+			end
+		end
+		local index = portalIndex
+		local portal = index and LobbyConfig.portals[index]
+		local levels = portal and portal.levels
+		local stage = levels and Balance.Stages[levels[picked]]
+		if gridInfo then
+			gridInfo.Text = if stage then describe(stage) else ""
+		end
+	end
 	local face, button, words = startFace, startButton, startWords
 	if face and button and words then
-		local colour = if starting then GREY else GREEN
+		local idle = starting or not pickedOpen
+		local colour = if idle then GREY else GREEN
 		local state = button.GuiState
-		if not starting and state == Enum.GuiState.Press then
+		if not idle and state == Enum.GuiState.Press then
 			colour = colour:Lerp(Color3.new(0, 0, 0), 0.3)
 		elseif
-			not starting
-			and (state == Enum.GuiState.Hover or GuiService.SelectedObject == button)
+			not idle and (state == Enum.GuiState.Hover or GuiService.SelectedObject == button)
 		then
 			colour = colour:Lerp(WHITE, 0.2)
 		end
 		face.BackgroundColor3 = colour
 		words.Text = if starting
 			then "STARTING..."
+			elseif not pickedOpen then "LOCKED"
 			elseif UserInputService.KeyboardEnabled and not Device.isPhone() then "START [ENTER]"
 			else "START"
 	end
@@ -364,6 +506,23 @@ local function build(playerGui: PlayerGui)
 		table.insert(slots, slot)
 	end
 
+	-- the grid, for an area of many levels (`fillGrid`), in the cards' place
+	local gridFrame = Instance.new("Frame")
+	gridFrame.Name = "LevelGrid"
+	gridFrame.BackgroundTransparency = 1
+	gridFrame.Position = UDim2.fromScale(0.05, 0.34)
+	gridFrame.Size = UDim2.fromScale(0.9, 0.4)
+	gridFrame.ZIndex = 4
+	gridFrame.Visible = false
+	gridFrame.Parent = p
+	levelGrid = gridFrame
+	local info = label(p, "", WHITE, 4, 20)
+	info.Name = "LevelInfo"
+	info.Position = UDim2.fromScale(0.05, 0.755)
+	info.Size = UDim2.fromScale(0.9, 0.06)
+	info.Visible = false
+	gridInfo = info
+
 	local go, goFace = box(p, "Start", GREEN, 8)
 	go.AnchorPoint = Vector2.new(0.5, 0)
 	go.Position = UDim2.fromScale(0.5, 0.84)
@@ -410,7 +569,8 @@ function PortalScreen.open(index: number)
 	end
 	layCards(screen)
 	if portalIndex ~= index then
-		picked = 1
+		-- the first open level not beaten yet (1 for a single-level area)
+		picked = LevelUnlocks.suggested(portal.levels, Balance.Stages, beaten())
 	end
 	portalIndex = index
 	starting = false

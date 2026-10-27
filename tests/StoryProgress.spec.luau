@@ -90,7 +90,7 @@ return function(t: TestRunner.Helper)
 		t.isTrue(best > 0, "the campaign has rooms")
 		for position, index in Balance.campaign do
 			local stage = Balance.Stages[index]
-			local count = #(stage.rooms or {})
+			local count = if stage.rooms then #stage.rooms else stage.waves or 0
 			for cleared = 1, count do
 				local score = StoryProgress.score(Balance.campaign, Balance.Stages, index, cleared)
 				t.notNil(score, `stage {index}`)

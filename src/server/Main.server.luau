@@ -36,6 +36,7 @@ local EnemyModel = require(script.Parent.Enemies.EnemyModel)
 local FiringSystem = require(script.Parent.Combat.FiringSystem)
 local Game = require(ReplicatedStorage.Shared.Config.Game)
 local HeldWeapon = require(script.Parent.Combat.HeldWeapon)
+local LevelUnlocks = require(ReplicatedStorage.Shared.Util.LevelUnlocks)
 local Lobby = require(script.Parent.Run.Lobby)
 local LobbyConfig = require(ReplicatedStorage.Shared.Config.Lobby)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
@@ -50,11 +51,16 @@ local RoomController = require(script.Parent.Run.RoomController)
 local RunSession = require(script.Parent.Run.RunSession)
 local Sandbox = require(ReplicatedStorage.Shared.Config.Sandbox)
 local StoryLeaderboard = require(script.Parent.Run.StoryLeaderboard)
+local Tutorial = require(ReplicatedStorage.Shared.Config.Tutorial)
 local UpgradeEffects = require(script.Parent.Fx.UpgradeEffects)
 local Wallet = require(script.Parent.Data.Wallet)
 local WeaponShop = require(script.Parent.Data.Shop)
 
 local log = Log.forTag("Server")
+
+--[[ Seconds BEGIN ADVENTURE's end waits for a profile still loading, to
+     know whether the tutorial is owed. ]]
+local PROFILE_WAIT = 8
 
 log.info("%s v%s booting", Game.Name, Game.Version)
 
@@ -126,7 +132,11 @@ do
 			local levels: { number } = portal.levels or {}
 			for _, stage in levels do
 				if portal.name then
-					areaNames[stage] = portal.name
+					-- an area of several levels names the level too
+					local level = Balance.Stages[stage] and Balance.Stages[stage].level
+					areaNames[stage] = if level and #levels > 1
+						then `{portal.name} {level}`
+						else portal.name
 				end
 			end
 		end
@@ -447,8 +457,32 @@ Remotes.event(Remotes.IntroBegin).OnServerEvent:Connect(function(player)
 		return
 	end
 	RunSession.leaveTitle(session)
-	if RoomController.inLobby() then
+	if not RoomController.inLobby() then
+		return
+	end
+	--[[ The tutorial only until the player has beaten Mossy Glade 1-1
+	     (owner, 2026-10-26: "the tutorial should play until they have beaten
+	     the first level of mossy glade"); after that, straight to the lobby.
+	     Their profile is normally in long before the story ends; it is
+	     given a few seconds more if not, and a profile that never loads
+	     owes the tutorial. ]]
+	local deadline = os.clock() + PROFILE_WAIT
+	while not PlayerData.get(player) and player.Parent and os.clock() < deadline do
+		task.wait(0.25)
+	end
+	local profile = PlayerData.get(player)
+	local beaten = if profile then profile.levelsBeaten else nil
+	if not RoomController.inLobby() or not player.Parent then
+		return
+	end
+	if LevelUnlocks.tutorialOwed(beaten, Tutorial.untilBeaten) then
 		RoomController.beginStage(Balance.tutorialStage)
+	else
+		local character = player.Character
+		if character then
+			Lobby.place(character)
+		end
+		log.info("%s has beaten %s: no tutorial", player.Name, Tutorial.untilBeaten)
 	end
 end)
 
@@ -461,7 +495,10 @@ Remotes.event(Remotes.PortalStart).OnServerEvent:Connect(function(player, index,
 	if not session or session.atTitle or not root or not RoomController.inLobby() then
 		return
 	end
-	local stage = Lobby.startFor(root.Position, index, level)
+	-- only a level this player has opened (`Util/LevelUnlocks`)
+	local profile = PlayerData.get(player)
+	local beaten = if profile then profile.levelsBeaten else nil
+	local stage = Lobby.startFor(root.Position, index, level, beaten)
 	if stage then
 		RoomController.beginStage(stage)
 	end

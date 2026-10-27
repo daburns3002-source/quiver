@@ -57,6 +57,54 @@ return function(t: TestRunner.Helper)
 		t.isNil(p.equipped, "a weapon not owned is not equipped")
 	end)
 
+	t.test("a new profile has beaten no level", function()
+		local p = SaveSchema.migrate(nil)
+		t.equal(SaveSchema.VERSION, 2)
+		t.isNil((next(p.levelsBeaten)))
+	end)
+
+	t.test("version 1 migrates to 2: nothing lost, no levels beaten", function()
+		local p = SaveSchema.migrate({
+			version = 1,
+			coins = 70,
+			gems = 3,
+			items = { RoyalJelly = 1 },
+			weapons = { AcornBow = true },
+			equipped = "AcornBow",
+			bossesBeaten = { Thornwood = true },
+		})
+		t.equal(p.version, 2)
+		t.equal(p.coins, 70)
+		t.equal(p.gems, 3)
+		t.equal(p.items.RoyalJelly, 1)
+		t.equal(p.equipped, "AcornBow")
+		t.isTrue(p.bossesBeaten.Thornwood)
+		t.isNil((next(p.levelsBeaten)), "a version 1 profile has no levels beaten")
+	end)
+
+	t.test("version 1 that beat King Bloblin counts 1-1 as beaten", function()
+		local p = SaveSchema.migrate({ version = 1, bossesBeaten = { MossyGlade = true } })
+		t.isTrue(p.levelsBeaten["1-1"] == true, "the old Mossy Glade run, won, is 1-1")
+		t.isNil(p.levelsBeaten["1-2"])
+		-- a record with no version is a 1
+		t.isTrue(SaveSchema.migrate({ bossesBeaten = { MossyGlade = true } }).levelsBeaten["1-1"])
+	end)
+
+	t.test("version 2 keeps its levels as they are", function()
+		local p = SaveSchema.migrate({
+			version = 2,
+			bossesBeaten = { MossyGlade = true },
+			levelsBeaten = { ["1-2"] = true, ["1-3"] = "yes", [4] = true },
+		})
+		t.isTrue(p.levelsBeaten["1-2"])
+		t.isNil(p.levelsBeaten["1-3"], "only true counts")
+		t.isNil(p.levelsBeaten["1-1"], "no stand-in once levels exist")
+		-- and round-trips
+		local again = SaveSchema.migrate(p)
+		t.isTrue(again.levelsBeaten["1-2"])
+		t.isNil(again.levelsBeaten["1-1"])
+	end)
+
 	t.test("a newer game's save is not readable here", function()
 		t.isFalse(SaveSchema.readable({ version = SaveSchema.VERSION + 1 }))
 		t.isTrue(SaveSchema.readable({ version = SaveSchema.VERSION }))

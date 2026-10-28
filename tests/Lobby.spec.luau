@@ -154,12 +154,13 @@ return function(t: TestRunner.Helper)
 		end
 	end)
 
-	--[[ Endless is its own arch, opened by beating 1-10 and not by the
-	     level unlocking its one "level" would otherwise give for free
-	     (`docs/ENDLESS.md`: with no cards and no gear it is a death at
-	     floor 6). The server is the one that decides, so this goes through
-	     `Lobby.startFor` rather than the screen. ]]
-	t.test("Endless opens only once 1-10 is beaten", function()
+	--[[ Endless is its own arch, open to everyone while the game is in
+	     playtest (owner, 2026-10-28). Before launch it takes `requires =
+	     "1-10"` back and this test flips with it (`docs/ENDLESS.md`: with
+	     no cards and no gear it is a death at floor 6). The server is the
+	     one that decides, so this goes through `Lobby.startFor` rather
+	     than the screen. ]]
+	t.test("Endless is open in playtest, and only from its own mouth", function()
 		local index, portal = nil, nil
 		for i, p in LobbyConfig.portals do
 			if p.name == "Endless" then
@@ -167,22 +168,18 @@ return function(t: TestRunner.Helper)
 			end
 		end
 		assert(index and portal, "no Endless portal")
-		t.equal(portal.requires, "1-10")
+		t.equal(portal.requires, nil)
 		local levels = portal.levels :: { number }
 		t.equal(#levels, 1)
 		t.equal(Balance.Stages[levels[1]].mode, "Endless")
 
 		local at = mouthOf(index)
-		t.isTrue(Lobby.startFor(at, index, 1, nil) == nil, "Endless opened with nothing beaten")
-		t.isTrue(Lobby.startFor(at, index, 1, { ["1-1"] = true }) == nil, "Endless opened on 1-1")
-		t.isTrue(Lobby.startFor(at, index, 1, { ["1-9"] = true }) == nil, "Endless opened on 1-9")
+		t.equal(Lobby.startFor(at, index, 1, nil), levels[1])
+		t.equal(Lobby.startFor(at, index, 1, { ["1-1"] = true }), levels[1])
 		t.equal(Lobby.startFor(at, index, 1, { ["1-10"] = true }), levels[1])
 		-- and still only from its own mouth
 		local spawn = origin + Vector3.new(LobbyConfig.spawn.X, 3, LobbyConfig.spawn.Y)
-		t.isTrue(
-			Lobby.startFor(spawn, index, 1, { ["1-10"] = true }) == nil,
-			"Endless started from the campfire"
-		)
+		t.isTrue(Lobby.startFor(spawn, index, 1, nil) == nil, "Endless started from the campfire")
 	end)
 
 	t.test("START is granted only for a level the player has opened", function()

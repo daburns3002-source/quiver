@@ -117,7 +117,12 @@ local Lobby = {
 		--[[ Endless (`docs/ENDLESS.md`, `Balance.endlessStage`): one
 		     "level", opened by beating Mossy Glade 1-10 (`requires`). Last
 		     of the arches so the ten areas keep their order in the rows. ]]
-		{ name = "Endless", levels = { 17 }, tint = CYAN, requires = "1-10" },
+		--[[ Open to everyone while the game is in playtest (owner,
+		     2026-10-28: "since its still in playtest phase, that should
+		     just be unlocked for now"). Before launch this takes
+		     `requires = "1-10"` back: with no cards and no gear Endless
+		     is a death at floor 6 (`docs/ENDLESS.md`). ]]
+		{ name = "Endless", levels = { 17 }, tint = CYAN },
 	} :: { Portal },
 	--[[ Studs from an active arch's mouth a player must come within for its
 	     screen to open (`UI/PortalScreen`), and how much further the server

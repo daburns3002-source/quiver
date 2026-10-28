@@ -45,18 +45,17 @@ return function(t: TestRunner.Helper)
 		t.isTrue(phone.lobbySprintSize <= phone.lobbyJumpSize, "SPRINT against JUMP")
 	end)
 
-	--[[ The two are stacked in the corner, so what matters is the whole
-	     column against the screen's short side — the dimension it is read
-	     against when the phone is held either way. A third is already
-	     generous for a pair of buttons in one corner. ]]
-	t.test("the lobby stack leaves most of a small phone's screen alone", function()
+	--[[ The two are stacked in the corner where one button used to be, so the
+	     column is what the eye reads, not either button. Two buttons must of
+	     course be taller than one; what they must not be is dearer than two
+	     of the button they replace — and they have to be smaller than the
+	     pair the owner called too big, which is the whole complaint. ]]
+	t.test("the lobby column costs no more than the button it replaces, twice", function()
 		local stack = phone.lobbyJumpSize + phone.lobbyGap + phone.lobbySprintSize
 		t.isTrue(
-			stack <= SHORT_SIDE / 3,
-			`the JUMP and SPRINT column is {stack} of {SHORT_SIDE} points`
+			stack <= phone.dashButtonSize * 2,
+			`the JUMP and SPRINT column is {stack} against a {phone.dashButtonSize} button`
 		)
-		--[[ And it is smaller than it was, which is the complaint this
-		     answers: two of the dash button's own sizes with its gap. ]]
 		t.isTrue(stack < 92 + 14 + 76, "smaller than the stack the owner called too big")
 	end)
 

@@ -6,7 +6,8 @@
 	- From room 1, how to move, in this device's own controls (keys, touch or
 	  the left stick), until the player has walked `moveDistance` studs (the walk
 	  to the gate counts: room 1's slimes fall fast to an archer standing still);
-	  then, at the next fight, that standing still shoots, for `shootFor` seconds.
+	  then, at the next fight, that standing still shoots, for `shootFor` seconds;
+	  then how to dash, in this device's controls, until the player has dashed.
 	- Over the first upgrade hand, how levelling up works with the upgrades,
 	  until a card is picked.
 
@@ -26,6 +27,7 @@ local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local CurrentStage = require(ReplicatedStorage.Shared.Util.CurrentStage)
 local Tutorial = require(ReplicatedStorage.Shared.Config.Tutorial)
 
+local Dash = require(script.Parent.Parent.Input.Dash)
 local Device = require(script.Parent.Parent.Device)
 local RunPaused = require(script.Parent.Parent.RunPaused)
 
@@ -52,6 +54,7 @@ local lastPosition: Vector3? = nil
 local shootLeft = 0
 local moveTaught = false
 local shootShown = false
+local dashTaught = false
 local levelTaught = false
 local levelShowing = false
 
@@ -116,20 +119,20 @@ local function panel(gui: ScreenGui, name: string, y: number, tall: number): Pan
 	return { group = group, title = title, body = body }
 end
 
---[[ The move prompt in this device's own controls. ]]
-local function moveWords(): string
+--[[ A prompt in this device's own controls. ]]
+local function forDevice(words: { keyboard: string, touch: string, gamepad: string }): string
 	local last = UserInputService:GetLastInputType()
 	if
 		last == Enum.UserInputType.Gamepad1
 		or last == Enum.UserInputType.Gamepad2
 		or (UserInputService.GamepadEnabled and not UserInputService.KeyboardEnabled)
 	then
-		return Tutorial.prompts.move.gamepad
+		return words.gamepad
 	end
 	if UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled then
-		return Tutorial.prompts.move.touch
+		return words.touch
 	end
-	return Tutorial.prompts.move.keyboard
+	return words.keyboard
 end
 
 local function show(p: Panel?, title: string, body: string)
@@ -175,7 +178,7 @@ local function step(dt: number)
 		if walked >= Tutorial.moveDistance then
 			moveTaught = true
 		else
-			show(roomPanel, "HOW TO MOVE", moveWords())
+			show(roomPanel, "HOW TO MOVE", forDevice(Tutorial.prompts.move))
 			return
 		end
 	end
@@ -186,6 +189,13 @@ local function step(dt: number)
 	if shootLeft > 0 then
 		shootLeft -= dt
 		show(roomPanel, "HOW TO SHOOT", Tutorial.prompts.shoot)
+	elseif shootShown and not dashTaught then
+		if Dash.isDashing(os.clock()) then
+			dashTaught = true
+			hide(roomPanel)
+		else
+			show(roomPanel, "HOW TO DASH", forDevice(Tutorial.prompts.dash))
+		end
 	else
 		hide(roomPanel)
 	end
@@ -205,6 +215,7 @@ function TutorialPrompts.onRunStateChanged(index: number, _total: number, state:
 		shootLeft = 0
 		moveTaught = false
 		shootShown = false
+		dashTaught = false
 		levelTaught = false
 	end
 	room = index

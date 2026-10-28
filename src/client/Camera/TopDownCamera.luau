@@ -9,6 +9,7 @@
 	identical without a line of per-platform code.
 ]]
 
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
@@ -22,6 +23,10 @@ local TopDownCamera = {}
 
 local connection: RBXScriptConnection? = nil
 local currentFocus: Vector3? = nil
+--[[ How far the lobby's camera zooms out, studs: near enough that the
+     forest round the clearing fills the view rather than the world's edge
+     (owner, 2026-10-27: "the player should not see this in the lobby"). ]]
+local LOBBY_ZOOM = 45
 
 local shakeMagnitude = 0
 local shakeDecay = 0
@@ -76,6 +81,7 @@ local function step(deltaTime: number, getRoot: () -> BasePart?)
 	     camera angle"); `MoveController` walks relative to it there. The
 	     next run takes the top-down camera back, cutting to the room. ]]
 	if Workspace:GetAttribute("InLobby") == true then
+		Players.LocalPlayer.CameraMaxZoomDistance = LOBBY_ZOOM
 		if camera.CameraType ~= Enum.CameraType.Custom then
 			camera.CameraType = Enum.CameraType.Custom
 			camera.FieldOfView = 70

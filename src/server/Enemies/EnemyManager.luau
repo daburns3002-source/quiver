@@ -32,6 +32,7 @@ local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local RootHold = require(ReplicatedStorage.Shared.Util.RootHold)
 local RunSession = require(script.Parent.Parent.Run.RunSession)
 local Types = require(ReplicatedStorage.Shared.Types)
+local Waves = require(script.Parent.Parent.Run.Waves)
 local WebWheel = require(ReplicatedStorage.Shared.Util.WebWheel)
 
 local log = Log.forTag("Enemies")
@@ -236,12 +237,31 @@ local HOLD_FRACTION = 0.6
      few hundred box tests. ]]
 local SPAWN_GRID_STEP = 2
 
---[[ The stage's multipliers on enemy damage and health (`StageConfig`). ]]
-local function difficulty(): { damage: number, health: number }
+--[[
+	The multipliers on enemy damage, health and fire rate.
+
+	The stage's own (`StageConfig.enemyDamage` / `enemyHealth`) for a Rooms
+	or Waves stage. An Endless run has neither, and takes the floor's curve
+	instead (`Run/Waves.floorCurve`, `docs/ENDLESS.md`), compounding from
+	floor 1, with the lap modifiers' fire rate on top. The floor comes from
+	the server's own published attribute, never from a client
+	(`Util/CurrentStage.endlessFloor`).
+]]
+local function difficulty(): { damage: number, health: number, fireRate: number }
 	local stage = CurrentStage.config()
+	local floor = CurrentStage.endlessFloor()
+	if floor then
+		local curve = Waves.floorCurve(floor)
+		return {
+			damage = curve.damage,
+			health = curve.health,
+			fireRate = Waves.floorFireRate(floor),
+		}
+	end
 	return {
 		damage = stage and stage.enemyDamage or 1,
 		health = stage and stage.enemyHealth or 1,
+		fireRate = 1,
 	}
 end
 
@@ -1078,9 +1098,14 @@ function EnemyManager.damage(
 	     exactly the archetype's `knockback` before it rests. Further hits add
 	     to it, up to twice one hit's worth, so a volley pushes harder without
 	     flinging anything across the room. ]]
+	--[[ Along the ground only. A blow from straight above (a meteor landing
+	     dead on it) has no flat part, and its `.Unit` was NaN: the enemy
+	     vanished to (0, -1e6, 0), unkillable, and the room never cleared
+	     (playtest, 2026-10-28). Such a blow pushes nowhere. ]]
 	local knockbackDirection = if fromPosition then enemy.position - fromPosition else Vector3.zero
+	knockbackDirection = Vector3.new(knockbackDirection.X, 0, knockbackDirection.Z)
 	if knockbackDirection.Magnitude > 1e-3 then
-		local flat = Vector3.new(knockbackDirection.X, 0, knockbackDirection.Z).Unit
+		local flat = knockbackDirection.Unit
 		local rate = KNOCKBACK_SETTLE / Balance.Knockback.slideTime
 		local impulse = enemy.config.knockback * rate
 		local combined = enemy.knockbackVelocity + flat * impulse
@@ -1623,7 +1648,7 @@ local function stepLunge(
 	local rooted = RootHold.held(enemy.rootedUntil, now)
 
 	if not index then
-		if rooted or now - enemy.lastAttackAt < config.attackCooldown then
+		if rooted or now - enemy.lastAttackAt < config.attackCooldown / difficulty().fireRate then
 			return false
 		end
 		local radius = math.max(config.hitboxSize.X, config.hitboxSize.Z) / 2
@@ -2030,11 +2055,13 @@ local function stepEnemy(enemy: Enemy, deltaTime: number, now: number)
 				continue
 			end
 
+			-- flat, as the knockback: two heights on one spot have no flat way apart
 			local away = enemy.position - otherPosition
+			away = Vector3.new(away.X, 0, away.Z)
 			local gap = away.Magnitude
 
 			if gap > 1e-3 and gap < SEPARATION_DISTANCE then
-				separation += Vector3.new(away.X, 0, away.Z).Unit * (1 - gap / SEPARATION_DISTANCE)
+				separation += away.Unit * (1 - gap / SEPARATION_DISTANCE)
 			end
 		end
 
@@ -2157,7 +2184,7 @@ local function stepEnemy(enemy: Enemy, deltaTime: number, now: number)
 		return
 	end
 
-	if now - enemy.lastAttackAt < config.attackCooldown then
+	if now - enemy.lastAttackAt < config.attackCooldown / difficulty().fireRate then
 		return
 	end
 

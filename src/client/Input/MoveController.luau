@@ -194,7 +194,12 @@ end
 local function requestJump()
 	local character = player.Character
 	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
-	if humanoid and inLobby() and not RunPaused.get() then
+	if
+		humanoid
+		and inLobby()
+		and not RunPaused.get()
+		and player:GetAttribute("ClassSelecting") ~= true
+	then
 		humanoid.Jump = true
 	end
 end
@@ -239,7 +244,7 @@ local function step()
 		contested. `Move(zero)` rather than an early return, so the Humanoid
 		is actively told to stop instead of coasting on its last direction.
 	]]
-	if RunPaused.get() then
+	if RunPaused.get() or player:GetAttribute("ClassSelecting") == true then
 		humanoid.WalkSpeed = PlayerStats.get().moveSpeed
 		humanoid:Move(Vector3.zero, false)
 		return

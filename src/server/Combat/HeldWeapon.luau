@@ -169,4 +169,46 @@ function HeldWeapon.equip(character: Model, weaponName: string)
 	model.Parent = character
 end
 
+--[[ Every weapon as a model in ReplicatedStorage.WeaponPreview, its pivot
+     the hand that holds it, so the gear screen can put the player's weapon
+     in their character's hand (owner, 2026-10-26: "the gear screen should
+     show the player holding their weapon"). After `preload`. ]]
+function HeldWeapon.buildPreviews()
+	local folder = Instance.new("Folder")
+	folder.Name = "WeaponPreview"
+	for name, weapon in Weapons :: any do
+		local w = weapon :: Weapons.Weapon
+		local model = Instance.new("Model")
+		model.Name = name
+		model:SetAttribute("Hand", w.hand)
+		local scale = w.scale * Balance.Player.heldWeaponScale
+		local frame = CFrame.new(w.grip) * (w.inHand or IN_HAND)
+		for _, spec in w.parts do
+			local template = templates[spec.meshId]
+			if not template or spec.nocked then
+				continue
+			end
+			local part = template:Clone()
+			part.Name = spec.name
+			part.Size = spec.size * scale
+			part.CFrame = frame
+				* CFrame.new(spec.offset * scale)
+				* (if spec.turned then CFrame.Angles(0, math.pi, 0) else CFrame.identity)
+			part.Anchored = true
+			part.CanCollide = false
+			part.CanQuery = false
+			part.CanTouch = false
+			part.Color = spec.colour or Color3.new(1, 1, 1)
+			if spec.textureId then
+				part.TextureID = spec.textureId
+			end
+			part.Material = if spec.glow then Enum.Material.Neon else Enum.Material.SmoothPlastic
+			part.Parent = model
+		end
+		model.WorldPivot = CFrame.new()
+		model.Parent = folder
+	end
+	folder.Parent = ReplicatedStorage
+end
+
 return HeldWeapon

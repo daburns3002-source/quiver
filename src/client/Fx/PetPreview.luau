@@ -1,11 +1,12 @@
 --!strict
 --[[
-	Studio only (the P key, `DevKeys`): the pets the owner imported follow
-	this player around, playing their own clips: Idle while the player
-	stands, their Follow (or walk, trot, waddle, hop) while the player moves.
-	A look at the pets in the game before Phase 6 builds the real pet system
-	(eggs, equipping, saving: docs/ROADMAP.md). Nothing here is a system:
-	the pets live on this client only and do nothing in a run.
+	The pets following this player, playing their own clips: Idle while the
+	player stands, their Follow (or walk, trot, waddle, hop) while the player
+	moves. Since 2026-10-26 they are the pets in the player's two slots
+	(`Pet` and `Pet2` attributes, set by `Server/Data/Hatchery` from the gear
+	screen; `PetPreview.follow`); in Studio the P key (`DevKeys`) shows every
+	imported pet instead, and the sandbox menu one. They live on this client
+	only; the server fights with them (`Combat/PetCombat`).
 
 	The server builds the models once (`Server/Dev/PetPreview`, from
 	`Config/PetModels`); this clones them into the Workspace, scales them to
@@ -25,6 +26,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
 
+local Eggs = require(ReplicatedStorage.Shared.Config.Eggs)
 local ModelClip = require(ReplicatedStorage.Shared.Util.ModelClip)
 local PetAttackFx = require(script.Parent.PetAttackFx)
 local PetCombat = require(ReplicatedStorage.Shared.Config.PetCombat)
@@ -185,14 +187,24 @@ local function arrived(source: Instance): boolean
 end
 
 --[[ Clones the server's pets into the Workspace: all of them, or only
-     the one named `only`. ]]
-local function spawnAll(source: Instance, only: string?)
+     those named in `only`, in its order. ]]
+local function spawnAll(source: Instance, only: { string }?)
 	local folder = Instance.new("Folder")
 	folder.Name = "PetPreviewLocal"
 	folder.Parent = Workspace
 	holder = folder
-	for _, template in source:GetChildren() do
-		if not template:IsA("Model") or (only and template.Name ~= only) then
+	local templates = source:GetChildren()
+	if only then
+		templates = {}
+		for _, key in only do
+			local found = source:FindFirstChild(key)
+			if found then
+				table.insert(templates, found)
+			end
+		end
+	end
+	for _, template in templates do
+		if not template:IsA("Model") then
 			continue
 		end
 		local model = template:Clone()
@@ -393,9 +405,47 @@ function PetPreview.show(key: string?): boolean
 	if not folder then
 		return false
 	end
-	spawnAll(folder, key)
+	spawnAll(folder, { key })
 	stepping = RunService.RenderStepped:Connect(step)
 	return #pets > 0
+end
+
+--[[ The pets in this player's slots (`Config/Eggs.slots`), kept at heel as
+     the slots change. A Studio preview (P, the sandbox) puts them away until
+     the slots next change. ]]
+function PetPreview.follow()
+	local player = Players.LocalPlayer
+	local shown = ""
+	local function refresh()
+		local keys: { string } = {}
+		for _, attribute in Eggs.slots do
+			local key = player:GetAttribute(attribute)
+			if type(key) == "string" then
+				table.insert(keys, key)
+			end
+		end
+		local signature = table.concat(keys, ",")
+		if signature == shown then
+			return
+		end
+		shown = signature
+		putAway()
+		if #keys == 0 then
+			return
+		end
+		local folder = source()
+		if not folder or shown ~= signature then
+			return
+		end
+		spawnAll(folder, keys)
+		stepping = RunService.RenderStepped:Connect(step)
+	end
+	for _, attribute in Eggs.slots do
+		player:GetAttributeChangedSignal(attribute):Connect(function()
+			task.spawn(refresh)
+		end)
+	end
+	task.spawn(refresh)
 end
 
 --[[ The pet named `key` runs the server's dash (`Combat/PetCombat`): to
@@ -427,14 +477,15 @@ local function runDash(key: string, plan: PetDash.Plan, at: number, targets: { M
 	end
 end
 
---[[ Every pet out plays its Attack clip once (the sandbox's ATTACK
-     button), with its projectiles and effects (`Fx/PetAttackFx`), then goes
-     back to idling or following. Returns how many did. ]]
-function PetPreview.attack(): number
+--[[ Every pet out, or only the one named `key`, plays its Attack clip
+     once (the sandbox's ATTACK button), with its projectiles and effects
+     (`Fx/PetAttackFx`), then goes back to idling or following. Returns how
+     many did. ]]
+function PetPreview.attack(key: string?): number
 	local count = 0
 	for _, pet in pets do
 		local length = pet.attack
-		if length then
+		if length and (key == nil or pet.model.Name == key) then
 			-- set afresh, so a second press restarts it
 			pet.model:SetAttribute("ModelClip", nil)
 			pet.model:SetAttribute("ModelClip", "Attack")
@@ -473,7 +524,7 @@ Remotes.event(Remotes.PetAttack).OnClientEvent
 		if type(dash) == "table" and type(dash.plan) == "table" then
 			runDash(key, dash.plan, dash.at, dash.targets or {})
 		else
-			PetPreview.attack()
+			PetPreview.attack(key)
 		end
 	end)
 

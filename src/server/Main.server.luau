@@ -30,11 +30,13 @@ local Atmosphere = require(script.Parent.Arena.Atmosphere)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Burning = require(script.Parent.Combat.Burning)
 local Classes = require(ReplicatedStorage.Shared.Config.Classes)
+local EndlessLeaderboard = require(script.Parent.Run.EndlessLeaderboard)
 local EnemyFiring = require(script.Parent.Combat.EnemyFiring)
 local EnemyManager = require(script.Parent.Enemies.EnemyManager)
 local EnemyModel = require(script.Parent.Enemies.EnemyModel)
 local FiringSystem = require(script.Parent.Combat.FiringSystem)
 local Game = require(ReplicatedStorage.Shared.Config.Game)
+local Hatchery = require(script.Parent.Data.Hatchery)
 local HeldWeapon = require(script.Parent.Combat.HeldWeapon)
 local LevelUnlocks = require(ReplicatedStorage.Shared.Util.LevelUnlocks)
 local Lobby = require(script.Parent.Run.Lobby)
@@ -69,6 +71,9 @@ log.info("%s v%s booting", Game.Name, Game.Version)
 PlayerData.onLoaded(Wallet.send)
 PlayerData.start()
 WeaponShop.start()
+Hatchery.start()
+--[[ The pets' models, for every player's pets at heel (`Fx/PetPreview`). ]]
+task.spawn(PetPreview.build)
 
 --[[
 	Where Roblox drops a character on join and on respawn.
@@ -116,6 +121,7 @@ EnemyModel.preload()
 Arena.preload()
 -- The archer's bow.
 HeldWeapon.preload()
+HeldWeapon.buildPreviews()
 -- The upgrade cards' effects, built in the background for clients to copy.
 UpgradeEffects.start()
 -- The lobby, where players arrive after BEGIN ADVENTURE.
@@ -141,6 +147,14 @@ do
 			end
 		end
 		StoryLeaderboard.attach(face, areaNames)
+	end
+end
+-- The DEEPEST DELVERS board's store (`Run/EndlessLeaderboard`).
+EndlessLeaderboard.start()
+do
+	local face = Lobby.endlessLeaderboardFace()
+	if face then
+		EndlessLeaderboard.attach(face)
 	end
 end
 
@@ -504,6 +518,13 @@ Remotes.event(Remotes.PortalStart).OnServerEvent:Connect(function(player, index,
 	end
 end)
 
+--[[ A pick at an Endless checkpoint, or 0 to bank and leave. Everything
+     about it is checked by `RoomController.endlessPick`, which only
+     honours a checkpoint it opened itself (`docs/ENDLESS.md`). ]]
+Remotes.event(Remotes.EndlessPick).OnServerEvent:Connect(function(player, choice)
+	RoomController.endlessPick(player, choice)
+end)
+
 --[[ Which portal's screen each player has open (`Remotes.PortalOpen`), so
      it is sent only as they step in or out. ]]
 local portalShown: { [Player]: number } = {}
@@ -581,6 +602,14 @@ RunService.Heartbeat:Connect(function(deltaTime: number)
 	--[[ And while anyone reads a NEW ENEMY! screen, until GOT IT!
 	     (`Config/NewEnemies`). ]]
 	if RunSession.anyMeeting() then
+		wasHeld = true
+		return
+	end
+
+	--[[ And at an Endless checkpoint, until every living player has picked
+	     (`docs/ENDLESS.md`): the beat after a boss floor has no fight in it,
+	     so nothing should be moving or firing behind its screen. ]]
+	if RoomController.atCheckpoint() then
 		wasHeld = true
 		return
 	end

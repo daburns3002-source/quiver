@@ -27,6 +27,25 @@ local Sandbox = {
 	     leaves it shut: off for the run-through from the intro to the
 	     lobby (owner, 2026-10-26). Never honoured in a live server. ]]
 	openShop = nil :: { coins: number, gems: number, items: number }?,
+	--[[ Studio only: on joining, this much in the wallet and these areas'
+	     bosses counted as beaten, so every egg and crate can be tried
+	     (owner, 2026-10-26: "unlock both eggs so i can test them"). nil for
+	     a run-through as a new player. Never honoured in a live server. ]]
+	--[[ `levels` counts those levels beaten too (`SaveSchema.levelsBeaten`),
+	     so what waits on one can be reached from Play: 1-10 opens the
+	     Endless portal (`docs/ENDLESS.md`), which otherwise needs the whole
+	     of Mossy Glade played first. ]]
+	testUnlock = {
+		coins = 50000,
+		gems = 2000,
+		bosses = { "MossyGlade" },
+		levels = { "1-10" },
+	} :: {
+		coins: number,
+		gems: number,
+		bosses: { string },
+		levels: { string },
+	}?,
 	weapons = {
 		{ weapon = "TwigBow", class = "Ranger", label = "TWIG BOW" },
 		{ weapon = "TwigBowDual", class = "Ranger", label = "DUAL TWIG BOWS" },

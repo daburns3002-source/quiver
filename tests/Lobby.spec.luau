@@ -18,7 +18,7 @@ local LobbyConfig = require(ReplicatedStorage.Shared.Config.Lobby)
 local TestRunner = require(script.Parent.TestRunner)
 
 return function(t: TestRunner.Helper)
-	t.test("the two working portals are Mossy Glade and Thornwood, the rest locked", function()
+	t.test("the working portals are Mossy Glade, Thornwood and Endless", function()
 		local open = {}
 		for _, portal in LobbyConfig.portals do
 			if portal.levels then
@@ -35,7 +35,7 @@ return function(t: TestRunner.Helper)
 				table.insert(open, portal.name)
 			end
 		end
-		t.equal(table.concat(open, ","), "Mossy Glade,Thornwood")
+		t.equal(table.concat(open, ","), "Mossy Glade,Thornwood,Endless")
 	end)
 
 	t.test("at least ten portals, in two rows, every mouth on the lawn", function()
@@ -75,9 +75,10 @@ return function(t: TestRunner.Helper)
 		local GAP = 6
 		local placed = {}
 		for _, station in LobbyConfig.stations do
-			local spec = LobbyConfig.pieces[station.piece]
+			local spec = LobbyConfig.buildings[station.piece]
 			if spec then
-				local size = spec.size * LobbyConfig.scale
+				-- the foundation reaches a stud past the walls
+				local size = spec.size + Vector3.new(2, 0, 2)
 				table.insert(placed, { name = station.piece, at = station.at, size = size })
 			end
 		end
@@ -91,6 +92,33 @@ return function(t: TestRunner.Helper)
 					math.max(apartX, apartZ) >= GAP,
 					`the {a.name} and the {b.name} are {math.max(apartX, apartZ)} studs apart`
 				)
+			end
+		end
+	end)
+
+	t.test("every egg and crate stand keeps clear of every building", function()
+		for owner, spots in LobbyConfig.stands do
+			local home, found = Vector2.zero, false
+			for _, station in LobbyConfig.stations do
+				if station.piece == owner then
+					home, found = station.at, true
+				end
+			end
+			t.isTrue(found, `the {owner}'s stands have no station`)
+			for _, spot in spots do
+				local at = home + spot.at
+				local reach = LobbyConfig.standSize / 2
+				for _, station in LobbyConfig.stations do
+					local spec = LobbyConfig.buildings[station.piece]
+					if spec then
+						local apartX = math.abs(at.X - station.at.X) - spec.size.X / 2 - 1 - reach
+						local apartZ = math.abs(at.Y - station.at.Y) - spec.size.Z / 2 - 1 - reach
+						t.isTrue(
+							math.max(apartX, apartZ) >= 0,
+							`the {spot.key} stand stands in the {station.piece}`
+						)
+					end
+				end
 			end
 		end
 	end)
@@ -124,6 +152,37 @@ return function(t: TestRunner.Helper)
 		for position, index in levels do
 			t.equal(Balance.Stages[index].level, `1-{position}`)
 		end
+	end)
+
+	--[[ Endless is its own arch, opened by beating 1-10 and not by the
+	     level unlocking its one "level" would otherwise give for free
+	     (`docs/ENDLESS.md`: with no cards and no gear it is a death at
+	     floor 6). The server is the one that decides, so this goes through
+	     `Lobby.startFor` rather than the screen. ]]
+	t.test("Endless opens only once 1-10 is beaten", function()
+		local index, portal = nil, nil
+		for i, p in LobbyConfig.portals do
+			if p.name == "Endless" then
+				index, portal = i, p
+			end
+		end
+		assert(index and portal, "no Endless portal")
+		t.equal(portal.requires, "1-10")
+		local levels = portal.levels :: { number }
+		t.equal(#levels, 1)
+		t.equal(Balance.Stages[levels[1]].mode, "Endless")
+
+		local at = mouthOf(index)
+		t.isTrue(Lobby.startFor(at, index, 1, nil) == nil, "Endless opened with nothing beaten")
+		t.isTrue(Lobby.startFor(at, index, 1, { ["1-1"] = true }) == nil, "Endless opened on 1-1")
+		t.isTrue(Lobby.startFor(at, index, 1, { ["1-9"] = true }) == nil, "Endless opened on 1-9")
+		t.equal(Lobby.startFor(at, index, 1, { ["1-10"] = true }), levels[1])
+		-- and still only from its own mouth
+		local spawn = origin + Vector3.new(LobbyConfig.spawn.X, 3, LobbyConfig.spawn.Y)
+		t.isTrue(
+			Lobby.startFor(spawn, index, 1, { ["1-10"] = true }) == nil,
+			"Endless started from the campfire"
+		)
 	end)
 
 	t.test("START is granted only for a level the player has opened", function()

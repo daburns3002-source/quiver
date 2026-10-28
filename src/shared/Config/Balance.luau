@@ -1136,6 +1136,11 @@ export type Obstacle = {
 	  `Waves.angelAt` an Angel offers a stat or a heal, and every
 	  `Waves.bossAt` is a boss wave. `arena` names the `Rooms` entry whose
 	  layout is the arena; `waves` is how many there are.
+	- **Endless** — the Waves loop with no last wave (`docs/ENDLESS.md`). Its
+	  schedule, curve, areas and modifiers are `Balance.Endless`, not this
+	  stage's own fields: an Endless stage carries nothing but its name, its
+	  mode and its `level` key, so `Balance.Waves`'s story pacing and the
+	  stage's fixed `enemyDamage` / `enemyHealth` are untouched by it.
 
 	Wave content is read off the same `Rooms` list a Rooms stage walks: wave
 	`w` of `n` fights the roster and count of room ⌈w / n · #Rooms⌉. The
@@ -1144,12 +1149,78 @@ export type Obstacle = {
 	levels do, so their waves are glade enemies and their boss waves wait
 	for King Bloblin at the end of 1-10.
 ]]
-export type StageMode = "Rooms" | "Waves"
+export type StageMode = "Rooms" | "Waves" | "Endless"
 
 --[[ One wave's fight: how many, cycled through `roster`, as a room's. ]]
 export type WaveFight = {
 	enemyCount: number,
 	roster: { EnemyConfig },
+}
+
+--[[
+	One area in the Endless rotation (`Balance.Endless.areas`, ten floors
+	each): its arena, its fight rosters and the two fights that close a
+	block. Everything an Endless floor needs about where it is, so adding an
+	area to the mode is one entry here and nothing else (`docs/ENDLESS.md`).
+]]
+export type EndlessArea = {
+	--[[ What the HUD prints beside the floor. ]]
+	name: string,
+	--[[ The area key `Config/Economy` and `EndScreenAssets.chests` use. ]]
+	area: string,
+	--[[ The `Rooms` entry whose layout the floors are fought in. ]]
+	arena: number,
+	--[[ Fight floors, spread evenly across the area's ten floors. ]]
+	fights: { WaveFight },
+	--[[ Every 5th floor that is not a 10th: an elite fight, no boss. ]]
+	miniBoss: WaveFight,
+	--[[ Every 10th floor: the area's own boss. ]]
+	boss: WaveFight,
+}
+
+--[[
+	A lap modifier (`Balance.Endless.modifiers`). Each lap past the first
+	adds the next of the list, drawn in order so a run is reproducible, so
+	loop two is not loop one with bigger numbers.
+]]
+export type EndlessModifier = {
+	key: string,
+	--[[ What the HUD prints for it. ]]
+	name: string,
+	--[[ Multiplier on how often enemies fire (above 1 is faster). ]]
+	fireRate: number?,
+	--[[ A second elite joins every mini-boss floor. ]]
+	extraElite: boolean?,
+	--[[ A floor hazard, by `Combat/AreaStrikes` pattern key. ]]
+	hazard: string?,
+}
+
+--[[ One of the three the player picks at an Endless checkpoint
+     (`Balance.Endless.checkpoint.picks`). The client draws these in order
+     and sends back an index, so what the buttons say is data and what each
+     one does is `Run/RoomController`. ]]
+export type EndlessPick = {
+	--[[ Which pick it is: "Heal", "Card" or "Shop". ]]
+	key: string,
+	--[[ What the button says, and the line under it. ]]
+	name: string,
+	words: string,
+}
+
+--[[ A one-time, per-account Endless reward (`Balance.Endless.milestones`),
+     claimed the first time its floor is reached and keyed by that floor in
+     the save (`SaveSchema.endlessMilestones`). ]]
+export type EndlessMilestone = {
+	floor: number,
+	--[[ What it is: "Egg", "Gear", "Cosmetic", "Title". ]]
+	kind: string,
+	--[[ What the end screen calls it. ]]
+	name: string,
+	--[[ The rarity floor the grant must meet, nil for none. ]]
+	rarity: string?,
+	--[[ Soulstones paid with it. Until the egg, gear, cosmetic and title
+	     grants exist, this is the whole payout — see `Endless`. ]]
+	soulstones: number,
 }
 
 export type StageConfig = {
@@ -3786,11 +3857,33 @@ local Balance = {
 			enemyHealth = 2,
 			area = "MossyGlade",
 		},
+		--[[
+			Endless (`docs/ENDLESS.md`, `Balance.Endless`, `Balance.endlessStage`):
+			the Waves loop with no last wave. It carries no `waves`, `arena`,
+			`fights`, `enemyDamage` or `enemyHealth` of its own — every floor's
+			arena, roster, count and multipliers come from `Balance.Endless`,
+			which is the point of the mode being data.
+
+			No `area`, deliberately: `RunSession.areaPay` would otherwise pay
+			Mossy Glade coins for every Endless kill, and the mode pays its own
+			currency instead so depth can never inflate the story economy. No
+			`level` either: Endless is never beaten, so nothing of it belongs in
+			`levelsBeaten`. It is not in `campaign`, so it scores no story
+			progress; its own board is `endlessBest`.
+		]]
+		{
+			name = "Endless",
+			mode = "Endless",
+		},
 	} :: { StageConfig },
 
 	--[[ The tutorial stage, played after the story cutscene and won into the
 	     lobby (`Config/Tutorial`). ]]
 	tutorialStage = 6,
+
+	--[[ The Endless stage (`Balance.Endless`), behind the lobby's Endless
+	     portal once Mossy Glade 1-10 is beaten. The last of `Stages`. ]]
+	endlessStage = 17,
 
 	--[[ Which stage a run plays before any portal has chosen one: Mossy
 	     Glade 1-1. Level 2, Thornwood, is 4; the old Mossy Glade run 5 and
@@ -3830,6 +3923,237 @@ local Balance = {
 		     from: the Courtyards' ten, whose tutorial order carries into
 		     waves. Later rooms belong to their own levels. ]]
 		rooms = 10,
+	},
+
+	--[[
+		Endless mode (`docs/ENDLESS.md`, owner 2026-10-27), all of it data:
+		the schedule, the curve, the enemy-count ramp, the area rotation, the
+		lap modifiers, the payouts and the hard cap.
+
+		**Its own schedule.** Nothing here reads `Balance.Waves` —
+		`valkyrieAt` / `angelAt` / `bossAt` are the story's pacing and stay
+		the story's. An Endless floor is a fight, a mini-boss or a boss, and
+		the draft is orthogonal to all three.
+
+		**Its own currency.** Soulstones (owner, 2026-10-27), kept out of
+		`Config/Economy`'s coins and gems so depth can never inflate the
+		story economy. What the screens print is `SaveSchema.SOULSTONES`.
+	]]
+	Endless = {
+		--[[ A floor is one wave: a Waves stage is 20 waves at 8-12 minutes
+		     (`docs/PROGRESSION.md`), so a floor is about 30 seconds and
+		     floor 20 is a ten-minute run.
+
+		     Every 10th floor is a boss, every 5th that is not a 10th a
+		     mini-boss, and everything else a fight. Frequencies, not
+		     positions in a block: there is no block, because there is no
+		     last floor. ]]
+		bossEvery = 10,
+		miniBossEvery = 5,
+		--[[ On clearing every 3rd floor the player drafts, whatever kind of
+		     floor it was. Floor 15 is a mini-boss that drafts and floor 30 a
+		     boss that drafts; a draft is never displaced and never
+		     deferred. ]]
+		draftEvery = 3,
+		--[[ Cards a floor's draft offers, as a Valkyrie's. ]]
+		draftOffer = 3,
+		--[[ Seconds between a floor clearing and the next arriving. ]]
+		pause = 1.2,
+
+		--[[
+			The curve, compounding from floor 1 on top of the area's own
+			values: `health ^ (floor - 1)` and `damage ^ (floor - 1)`.
+
+			**Health grows faster than damage on purpose.** Spongy enemies
+			are a worse run; enemies that delete you without warning are a
+			worse game. The player should always see the wall coming.
+
+			1.08-1.12 was floated and rejected: with a draft every 3 floors
+			and cards modest since PR #342 (about +10% each), run power is
+			2.6x by floor 30 and 4.6x by floor 50, so 1.10 puts enemy health
+			at 10.8x by floor 25 and the wall at floor 22-28. At 1.045 health
+			is 9.0x by floor 50 against the player's 4.6x and account power
+			covers the rest, which puts the wall near floor 45-55 for a
+			geared account and deeper as the account grows: **a best floor is
+			a readout of a collection.**
+
+			These two numbers are the whole difficulty of the mode. Retune
+			them from measured runs, never from feel.
+		]]
+		health = 1.045,
+		damage = 1.03,
+
+		--[[ The enemy-count ramp off the area's own count: one more every
+		     `countEvery` floors, at most `countBonus` more, and never more
+		     than `countCap` in the arena at once — the arena only fits so
+		     many and the device tiers have projectile budgets
+		     (`docs/PERFORMANCE.md`). The bonus is spent by floor 30; past it
+		     the multipliers carry the difficulty. ]]
+		countEvery = 6,
+		countBonus = 5,
+		countCap = 12,
+
+		--[[ **Stop at floor 200.** Nothing should overflow and the
+		     leaderboard should be bounded. ]]
+		maxFloor = 200,
+
+		--[[
+			The rotation: ten floors of each area's arena and roster, then
+			round again. Only **built** areas are in it — Mossy Glade and
+			Thornwood. Drowned Village is designed but has no enemies yet
+			(`Config/NewEnemies`: "Drowned Village's four wait for their
+			enemies"), so it joins by being added here once it does, and
+			every area added later shows up in Endless for free.
+
+			Bosses on boss floors are the areas' own, as `StageConfig.finale`
+			already works. That puts King Bloblin in Endless as well as at
+			the end of 1-10; `docs/ENDLESS.md` asks for it deliberately.
+		]]
+		areas = {
+			{
+				name = "Mossy Glade",
+				area = "MossyGlade",
+				-- the Glade Heart, 1-10's arena
+				arena = levelRoom(56),
+				fights = {
+					{ enemyCount = 5, roster = { meleeCharger, broodSlime, spreadShooter } },
+					{
+						enemyCount = 6,
+						roster = { meleeCharger, meleeCharger, broodSlime, spreadShooter },
+					},
+					{ enemyCount = 6, roster = { broodSlime, spreadShooter, meleeCharger } },
+					{
+						enemyCount = 7,
+						roster = { broodSlime, broodSlime, spreadShooter, meleeCharger },
+					},
+				},
+				miniBoss = {
+					enemyCount = 7,
+					roster = { broodSlime, broodSlime, wilf, spreadShooter },
+				},
+				boss = { enemyCount = 1, roster = { slimeKing } },
+			},
+			{
+				name = "Thornwood",
+				area = "Thornwood",
+				-- the Brood Heart, Level 2's last room
+				arena = 60,
+				fights = {
+					{ enemyCount = 5, roster = { brambleBoar, burrThistle, brambleSow } },
+					{
+						enemyCount = 6,
+						roster = { brambleBoar, burrThistle, brambleLurker, brambleSow },
+					},
+					{ enemyCount = 6, roster = { burrThistle, brambleSow, brambleLurker } },
+					{
+						enemyCount = 7,
+						roster = { brambleSow, brambleSow, burrThistle, brambleBoar },
+					},
+				},
+				miniBoss = {
+					enemyCount = 7,
+					roster = { brambleSow, brambleSow, brambleLurker, burrThistle },
+				},
+				boss = { enemyCount = 1, roster = { broodmother } },
+			},
+		} :: { EndlessArea },
+
+		--[[
+			One modifier per lap past the first, drawn in order so a run is
+			reproducible: lap 2 has the first, lap 3 the first two, and so on
+			until the list is spent, after which the curve carries the
+			difficulty alone (nothing stacks twice, so nothing overflows).
+
+			A lap is `#areas * bossEvery` floors — 20 with two areas built,
+			so lap 2 starts at floor 21.
+		]]
+		modifiers = {
+			{ key = "Quickshot", name = "QUICKSHOT", fireRate = 1.25 },
+			{ key = "Pairs", name = "PAIRED ELITES", extraElite = true },
+			{ key = "Scorch", name = "SCORCHED FLOOR", hazard = "Scorch" },
+		} :: { EndlessModifier },
+
+		--[[
+			The repeatable payout, in Soulstones, **at each boss floor and
+			nowhere else**: payment lands exactly where the
+			bank-or-push decision is, and a per-floor dribble would make that
+			decision quieter. Block `n` (floor `n * bossEvery`) pays
+			`blockPay * n`, so it grows with the depth.
+
+			`runCap` is the floor-60 total (25 * (1+2+3+4+5+6) = 525).
+			**Without the cap, Endless is a gold firehose** the moment one
+			account's build outruns the curve; past it, depth pays prestige —
+			the leaderboard and the milestones — and not currency.
+		]]
+		blockPay = 25,
+		runCap = 525,
+
+		--[[
+			The one-time milestones, each hitting a different system on
+			purpose so no one of them is skippable because you already have
+			enough of that thing (`docs/ENDLESS.md`).
+
+			**This table is the swap point, and the owner has not confirmed
+			it.** The egg, gear, cosmetic and title grants do not exist yet
+			either, so a claim today records the milestone and pays its
+			`soulstones`; when those systems land, each entry's `kind`,
+			`rarity` and `name` is what they read, and nothing else about
+			the mode changes.
+		]]
+		milestones = {
+			{ floor = 10, kind = "Egg", name = "A PET EGG", soulstones = 50 },
+			{ floor = 20, kind = "Gear", name = "A GEAR PIECE", soulstones = 100 },
+			{ floor = 30, kind = "Cosmetic", name = "A TRAIL OR AURA", soulstones = 200 },
+			{
+				floor = 50,
+				kind = "Egg",
+				name = "A LEGENDARY PET EGG",
+				rarity = "Legendary",
+				soulstones = 400,
+			},
+			{
+				floor = 75,
+				kind = "Gear",
+				name = "A LEGENDARY GEAR PIECE",
+				rarity = "Legendary",
+				soulstones = 700,
+			},
+			{
+				floor = 100,
+				kind = "Title",
+				name = "A TITLE AND A MYTHIC COSMETIC",
+				rarity = "Mythic",
+				soulstones = 1200,
+			},
+		} :: { EndlessMilestone },
+
+		--[[
+			The checkpoint beat after every boss floor: no fight, and the
+			player picks one of three (the Archero 2 shape), or banks and
+			leaves with everything vested.
+
+			`Shop` stands in for the Endless shop, which is not built yet: it
+			pays `shopBundle` Soulstones instead. Swap its handling in
+			`Run/RoomController` when the shop lands.
+		]]
+		checkpoint = {
+			--[[ Seconds the beat holds before the screen opens, so the boss
+			     falling reads as its own moment. ]]
+			pause = 1.6,
+			--[[ The three, in the order the screen draws them. ]]
+			picks = {
+				{ key = "Heal", name = "FULL HEAL", words = "Back to full health" },
+				{ key = "Card", name = "EXTRA CARD", words = "One more skill, now" },
+				{
+					key = "Shop",
+					name = "SOULSTONE CACHE",
+					words = "A bundle of Soulstones",
+				},
+			} :: { EndlessPick },
+			--[[ The Endless shop's stand-in bundle of Soulstones, for the
+			     third pick, and still under the run's cap. ]]
+			shopBundle = 60,
+		},
 	},
 
 	--[[

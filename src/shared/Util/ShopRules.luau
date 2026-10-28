@@ -104,6 +104,27 @@ function ShopRules.roll(pool: { Entry }, r1: number, r2: number): Entry?
 	return last[#last]
 end
 
+--[[ A weapon's chance (0..1) from crate `index`, as `roll` picks it: its
+     rarity's share of the rarities the crate has, split evenly by the
+     weapons of that rarity. ]]
+function ShopRules.chance(index: number, entry: Entry): number
+	local total, same = 0, 0
+	local seen: { [string]: boolean } = {}
+	for _, other in ShopRules.cratePool(index) do
+		if not seen[other.rarity] then
+			seen[other.rarity] = true
+			total += Shop.crateOdds[other.rarity] or 0
+		end
+		if other.rarity == entry.rarity then
+			same += 1
+		end
+	end
+	if total <= 0 or same == 0 then
+		return 0
+	end
+	return (Shop.crateOdds[entry.rarity] or 0) / total / same
+end
+
 --[[ The store's price for a weapon, or nil when the store does not sell
      it (the class weapons, Mythics). ]]
 function ShopRules.price(entry: Entry): Purse.Cost?

@@ -41,6 +41,11 @@ local PetAuras = {
 		Glimmerhorn = "Mythic",
 		SlimePrince = "Legendary",
 		EmberWilfPet = "Legendary",
+		-- Thornwood (docs/PETS-THORNWOOD.md)
+		Thornwake = "Mythic",
+		ThornPrincess = "Legendary",
+		-- owner, 2026-10-26: "Keep the Bramble Wilf's aura purple."
+		BrambleWilf = "LegendaryPurple",
 	} :: { [string]: string },
 	looks = {
 		Mythic = {
@@ -69,6 +74,24 @@ local PetAuras = {
 				Color3.fromRGB(255, 245, 170),
 				Color3.fromRGB(255, 205, 60),
 				Color3.fromRGB(230, 150, 20),
+			},
+			fill = 0.75,
+			outline = 0.15,
+			lightRange = 9,
+			lightBrightness = 2,
+			sparkleRate = 12,
+			sparkleLife = 1,
+			sparkleSize = 0.3,
+			trail = 0.5,
+		},
+		--[[ The Legendary aura in the Bramble Wilf's purple. ]]
+		LegendaryPurple = {
+			rainbow = nil,
+			glow = Color3.fromRGB(190, 110, 255),
+			colours = {
+				Color3.fromRGB(235, 200, 255),
+				Color3.fromRGB(190, 110, 255),
+				Color3.fromRGB(120, 50, 200),
 			},
 			fill = 0.75,
 			outline = 0.15,

@@ -36,12 +36,16 @@ local Shop = {
 		{ area = "FrostpeakPass", name = "FROSTPEAK PASS", price = 20000 },
 	} :: { Crate },
 
-	--[[ A crate's odds, by rarity (weights, not percentages). ]]
+	counts = { 1, 3 },
+
+	--[[ A crate's odds, by rarity (weights, not percentages). Mythic 3: a
+	     crate's three Mythics (one per class) at 1% each (owner, 2026-10-28:
+	     "make the odds of pulling a mythic 1%"). ]]
 	crateOdds = {
-		Uncommon = 60,
+		Uncommon = 58,
 		Rare = 28,
 		Epic = 11,
-		Mythic = 1,
+		Mythic = 3,
 	} :: { [string]: number },
 
 	--[[ Share of a crate's price paid back for a weapon already owned. ]]
@@ -49,7 +53,7 @@ local Shop = {
 
 	--[[ The store's gem prices, by rarity, times the area's number. ]]
 	gemPrices = {
-		Uncommon = 60,
+		Uncommon = 58,
 		Rare = 180,
 		Epic = 450,
 	} :: { [string]: number },

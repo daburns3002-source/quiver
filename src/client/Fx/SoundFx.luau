@@ -70,6 +70,25 @@ function SoundFx.play(name: string)
 	end
 end
 
+--[[ Plays `name` over and over (a sprite sound loops its own region) until
+     the function it returns is called; nothing for a sound with no id yet. ]]
+function SoundFx.loop(name: string): () -> ()
+	local config = Sounds[name]
+	if not config or config.id == "" then
+		return function() end
+	end
+	local sound = instanceFor(name, config)
+	sound.Looped = true
+	local region = config.region
+	if region then
+		sound.LoopRegion = NumberRange.new(region[1], region[1] + region[2])
+	end
+	sound:Play()
+	return function()
+		sound:Stop()
+	end
+end
+
 --[[ Loads every sound with an id now, so the first play is not late. ]]
 function SoundFx.preload()
 	local list = {}

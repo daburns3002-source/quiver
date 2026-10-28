@@ -489,7 +489,11 @@ Remotes.event(Remotes.IntroBegin).OnServerEvent:Connect(function(player)
 	if not RoomController.inLobby() or not player.Parent then
 		return
 	end
-	if LevelUnlocks.tutorialOwed(beaten, Tutorial.untilBeaten) then
+	--[[ Studio's `Sandbox.forceTutorial` plays it even when the profile says
+	     it is done, so a playtest can have the tutorial and the unlocked
+	     areas at once (`Config/Sandbox`). Never honoured in a live server. ]]
+	local forced = RunService:IsStudio() and Sandbox.forceTutorial == true
+	if forced or LevelUnlocks.tutorialOwed(beaten, Tutorial.untilBeaten) then
 		RoomController.beginStage(Balance.tutorialStage)
 	else
 		local character = player.Character

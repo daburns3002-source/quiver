@@ -31,15 +31,27 @@ local Sandbox = {
 	     bosses counted as beaten, so every egg and crate can be tried
 	     (owner, 2026-10-26: "unlock both eggs so i can test them"). nil for
 	     a run-through as a new player. Never honoured in a live server. ]]
+	--[[ Studio only: the tutorial plays even though `testUnlock` counts 1-1
+	     as beaten. The playtest wants the intro, the title and the tutorial
+	     AND the areas open (owner, 2026-10-28), and those pull against each
+	     other: opening 1-2 needs 1-1 beaten, and 1-1 beaten is the very flag
+	     `Util/LevelUnlocks.tutorialOwed` reads to decide the tutorial is
+	     done. This overrides it. nil leaves the tutorial to the profile, as
+	     a live server always does. ]]
+	forceTutorial = true :: boolean?,
 	--[[ `levels` counts those levels beaten too (`SaveSchema.levelsBeaten`),
-	     so what waits on one can be reached from Play: 1-10 opens the
-	     Endless portal (`docs/ENDLESS.md`), which otherwise needs the whole
-	     of Mossy Glade played first. ]]
+	     so what waits on one can be reached from Play. All ten of Mossy
+	     Glade for the playtest (owner, 2026-10-28: "the mossy glade areas
+	     and thornwood areas are unlocked"), because a level only opens once
+	     the one before it is beaten (`LevelUnlocks.isUnlocked`) — 1-10 alone
+	     left 1-2..1-9 shut. Thornwood's single level is open from the start
+	     whatever is beaten; its boss is in `bosses` so what that gates can
+	     be tried too. ]]
 	testUnlock = {
 		coins = 50000,
 		gems = 2000,
-		bosses = { "MossyGlade" },
-		levels = { "1-10" },
+		bosses = { "MossyGlade", "Thornwood" },
+		levels = { "1-1", "1-2", "1-3", "1-4", "1-5", "1-6", "1-7", "1-8", "1-9", "1-10" },
 	} :: {
 		coins: number,
 		gems: number,

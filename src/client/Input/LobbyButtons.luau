@@ -7,21 +7,35 @@
 
 	Real `TextButton`s, like the dash button, so a finger on one is processed
 	and the movement stick (`Thumbstick`) never takes it.
+
+	Their sizes are `Config/Hud.phone` (`lobbyJumpSize`, `lobbySprintSize`,
+	`lobbyGap`), not constants here, because they are of a piece with the dash
+	button they stand in for and with the stack above them.
+
+	JUMP's held look is tracked here rather than read off `GuiState`, for the
+	same reason as the dash button's: a finger that slides off the button
+	before it lifts can leave Roblox's own state at `Press` for good, and this
+	one did — it painted the face dark on `GuiState == Press` and nothing ever
+	painted it back.
 ]]
 
 local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local Workspace = game:GetService("Workspace")
+
+local Hud = require(ReplicatedStorage.Shared.Config.Hud)
 
 local HudLayout = require(script.Parent.Parent.UI.HudLayout)
 
 local LobbyButtons = {}
 
---[[ Screen pixels: the dash button's size, SPRINT a little smaller above. ]]
-local JUMP_SIZE = 92
-local SPRINT_SIZE = 76
-local GAP = 14
+--[[ Screen pixels, from `Config/Hud.phone`: JUMP where the dash button
+     stands, SPRINT smaller above it. ]]
+local JUMP_SIZE = Hud.phone.lobbyJumpSize
+local SPRINT_SIZE = Hud.phone.lobbySprintSize
+local GAP = Hud.phone.lobbyGap
 
 local INK = Color3.fromRGB(24, 16, 10)
 local JUMP_COLOUR = Color3.fromRGB(70, 176, 58)
@@ -30,6 +44,8 @@ local SPRINT_ON = Color3.fromRGB(255, 206, 74)
 
 local gui: ScreenGui? = nil
 local connections: { RBXScriptConnection } = {}
+--[[ Whether a finger is down on JUMP. Its look only. ]]
+local pressing = false
 
 function LobbyButtons.stop()
 	for _, connection in connections do
@@ -40,6 +56,7 @@ function LobbyButtons.stop()
 		gui:Destroy()
 		gui = nil
 	end
+	pressing = false
 end
 
 --[[ A blocky square button: an ink border, a face, its word. ]]
@@ -51,6 +68,9 @@ local function button(parent: Instance, name: string, text: string, size: number
 	b.BackgroundColor3 = INK
 	b.BorderSizePixel = 0
 	b.AutoButtonColor = false
+	--[[ No gamepad adornment on a touch control: a pad plugged into a phone
+	     would otherwise leave Roblox's own selection box round it. ]]
+	b.Selectable = false
 	b.Text = ""
 	b.Parent = parent
 	local face = Instance.new("Frame")
@@ -112,15 +132,48 @@ function LobbyButtons.start(jump: () -> (), toggleSprint: () -> (), sprinting: (
 		table.insert(connections, layoutConnection)
 	end
 
-	table.insert(connections, jumpButton.MouseButton1Down:Connect(jump))
+	table.insert(
+		connections,
+		jumpButton.MouseButton1Down:Connect(function()
+			pressing = true
+			jump()
+		end)
+	)
 	table.insert(connections, sprintButton.MouseButton1Down:Connect(toggleSprint))
+
+	--[[ Every way a press can end, as the dash button has them: the lift and
+	     the finger sliding off, then the two that Roblox never reports to the
+	     button at all. ]]
+	local function release()
+		pressing = false
+	end
+	table.insert(connections, jumpButton.MouseButton1Up:Connect(release))
+	table.insert(connections, jumpButton.MouseLeave:Connect(release))
+	table.insert(
+		connections,
+		UserInputService.InputEnded:Connect(function(input)
+			if
+				input.UserInputType == Enum.UserInputType.Touch
+				or input.UserInputType == Enum.UserInputType.MouseButton1
+			then
+				release()
+			end
+		end)
+	)
+	table.insert(connections, UserInputService.WindowFocusReleased:Connect(release))
+
 	table.insert(
 		connections,
 		RunService.RenderStepped:Connect(function()
-			created.Enabled = Workspace:GetAttribute("InLobby") == true
+			local showing = Workspace:GetAttribute("InLobby") == true
+			created.Enabled = showing
+			-- hidden mid-press, no input event is coming for that finger
+			if pressing and not showing then
+				pressing = false
+			end
 			local on = sprinting()
 			sprintFace.BackgroundColor3 = if on then SPRINT_ON else SPRINT_OFF
-			jumpFace.BackgroundColor3 = if jumpButton.GuiState == Enum.GuiState.Press
+			jumpFace.BackgroundColor3 = if pressing
 				then JUMP_COLOUR:Lerp(Color3.new(0, 0, 0), 0.3)
 				else JUMP_COLOUR
 		end)

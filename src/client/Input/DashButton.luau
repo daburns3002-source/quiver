@@ -15,8 +15,24 @@
 	The ring is the cooldown. It is a fill rather than a number because the
 	player reads it in peripheral vision while looking at a fan of projectiles
 	somewhere else on the screen.
+
+	**The ring carries readiness; the face never does.** The face used to be
+	painted the ready colour — a saturated light blue at near-full opacity —
+	the whole time the dash was off cooldown, which is most of a fight. A
+	round button sitting permanently lit under the thumb does not read as
+	"ready", it reads as held down (owner, 2026-10-27: "the dash button in
+	game is highlighted blue and the highlight never clears"). So the face
+	stays dark and only the ring and the chevron brighten.
+
+	The press is the one thing allowed to change the face, and it is tracked
+	here rather than read off `GuiState`: a finger that leaves the button
+	before it lifts can leave Roblox's own state at `Press` for good, so every
+	way a press can end clears it — the lift, the touch ending anywhere on the
+	screen, the finger sliding off, the window losing focus, and the button
+	being taken away when the lobby hides it.
 ]]
 
+local GuiService = game:GetService("GuiService")
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
@@ -35,13 +51,24 @@ local MARGIN = 28
 local gui: ScreenGui? = nil
 local connections: { RBXScriptConnection } = {}
 
+--[[ The ring and the chevron, which brighten as the dash comes back. ]]
 local READY_COLOUR = Color3.fromRGB(120, 210, 255)
-local COOLING_COLOUR = Color3.fromRGB(70, 86, 104)
+--[[ The face, which does not: one dark disc, a little more solid when the
+     dash is in, and darker still while it is held. ]]
+local FACE_COLOUR = Color3.fromRGB(44, 54, 68)
+local PRESS_COLOUR = Color3.fromRGB(26, 32, 42)
+local FACE_COOLING = 0.5
+local FACE_READY = 0.34
+local FACE_PRESSED = 0.16
 
 --[[ Set by `start`, called when the button is pressed. Kept as a hook rather
      than calling Dash directly so MoveController stays the only thing that
      knows what a dash does to a character. ]]
 local onPressed: (() -> ())? = nil
+
+--[[ Whether a finger is down on the button right now. Only the face's look
+     depends on it; the dash itself has already fired by then. ]]
+local pressing = false
 
 function DashButton.stop()
 	for _, connection in connections do
@@ -55,6 +82,7 @@ function DashButton.stop()
 	end
 
 	onPressed = nil
+	pressing = false
 end
 
 --[[ `pressed` is invoked on every tap, ready or not. Whether a dash is
@@ -68,6 +96,7 @@ function DashButton.start(pressed: () -> ())
 	end
 
 	onPressed = pressed
+	pressing = false
 
 	local playerGui = Players.LocalPlayer:WaitForChild("PlayerGui")
 
@@ -97,9 +126,15 @@ function DashButton.start(pressed: () -> ())
 	if layoutConnection then
 		table.insert(connections, layoutConnection)
 	end
-	button.BackgroundColor3 = COOLING_COLOUR
-	button.BackgroundTransparency = 0.25
+	button.BackgroundColor3 = FACE_COLOUR
+	button.BackgroundTransparency = FACE_COOLING
+	--[[ Off, as it has always been: Roblox's own press tint is a grey wash
+	     over the whole disc, and the ring would wash with it. ]]
 	button.AutoButtonColor = false
+	--[[ No gamepad adornment on a touch control. Left on, a pad plugged into
+	     a phone can put Roblox's own light blue selection box round this
+	     button and leave it there. ]]
+	button.Selectable = false
 	button.Text = ""
 	button.Parent = created
 
@@ -130,15 +165,41 @@ function DashButton.start(pressed: () -> ())
 	padding.PaddingRight = UDim.new(0, 18)
 	padding.Parent = label
 
+	--[[ Fired on the way down, not on release: a dash that waits for the
+	     finger to lift is a dash that arrives after the thing it was dodging
+	     (CLAUDE.md, "Feel beats correctness in the input path"). ]]
 	table.insert(
 		connections,
 		button.MouseButton1Down:Connect(function()
+			pressing = true
 			local handler = onPressed
 			if handler then
 				handler()
 			end
 		end)
 	)
+
+	--[[ Every way a press can end. The first two are the button's own and
+	     cover the ordinary cases; the rest are the ones that left the old
+	     visual stuck, where Roblox never tells the button anything because
+	     the finger is no longer over it. ]]
+	local function release()
+		pressing = false
+	end
+	table.insert(connections, button.MouseButton1Up:Connect(release))
+	table.insert(connections, button.MouseLeave:Connect(release))
+	table.insert(
+		connections,
+		UserInputService.InputEnded:Connect(function(input)
+			if
+				input.UserInputType == Enum.UserInputType.Touch
+				or input.UserInputType == Enum.UserInputType.MouseButton1
+			then
+				release()
+			end
+		end)
+	)
+	table.insert(connections, UserInputService.WindowFocusReleased:Connect(release))
 
 	--[[ Repainted every frame from the single source of truth rather than
 	     tweened on press, so a dash triggered by the spacebar on a device that
@@ -147,14 +208,31 @@ function DashButton.start(pressed: () -> ())
 		connections,
 		RunService.RenderStepped:Connect(function()
 			-- the lobby has no dash: its JUMP and SPRINT stand here instead
-			created.Enabled = Workspace:GetAttribute("InLobby") ~= true
+			local showing = Workspace:GetAttribute("InLobby") ~= true
+			created.Enabled = showing
 			local readiness = Dash.readiness(os.clock())
 			local ready = readiness >= 1
 
-			button.BackgroundColor3 = if ready then READY_COLOUR else COOLING_COLOUR
-			button.BackgroundTransparency = if ready then 0.15 else 0.45
+			--[[ A press cannot outlive the button. Hidden by the lobby
+			     mid-press, no input event is ever coming for that finger —
+			     Roblox has nothing left to report it to — so the press is
+			     dropped here or it would still be dark on the way back. ]]
+			if pressing and not showing then
+				pressing = false
+			end
+
+			button.BackgroundColor3 = if pressing then PRESS_COLOUR else FACE_COLOUR
+			button.BackgroundTransparency = if pressing
+				then FACE_PRESSED
+				elseif ready then FACE_READY
+				else FACE_COOLING
 			stroke.Transparency = 1 - readiness * 0.7
 			label.TextTransparency = if ready then 0.1 else 0.55
+
+			--[[ And no selection box left on it, however it got there. ]]
+			if GuiService.SelectedObject == button then
+				GuiService.SelectedObject = nil
+			end
 		end)
 	)
 end

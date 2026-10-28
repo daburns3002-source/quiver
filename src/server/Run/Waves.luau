@@ -197,6 +197,25 @@ function Waves.floorLap(floor: number): number
 	return (Waves.floorBlock(floor) - 1) // #areas + 1
 end
 
+--[[
+	How many of its area's boss `floor` fights: the area's `bossByLap` entry
+	for this lap, its last entry for every deeper lap, and the boss fight's
+	own `enemyCount` for an area that does not ramp.
+
+	Mossy Glade ramps `{ 1, 2 }`: one King Bloblin at floor 10, two at 30,
+	50, 70 and deeper (owner, 2026-10-28). By lap and not by floor, so the
+	ramp still means "the second time this area comes round" when a third
+	area joins the rotation and a lap stops being twenty floors.
+]]
+function Waves.floorBossCount(floor: number): number
+	local area = Balance.Endless.areas[Waves.floorArea(floor)]
+	local byLap = area.bossByLap
+	if not byLap or #byLap == 0 then
+		return area.boss.enemyCount
+	end
+	return byLap[math.min(Waves.floorLap(floor), #byLap)]
+end
+
 --[[ The modifiers in force on `floor`: one more for each lap past the
      first, drawn in order so a run is reproducible, and no more once the
      list is spent (the curve carries it from there). ]]
@@ -246,9 +265,11 @@ end
 	a mini-boss floor takes the area's `miniBoss` and a boss floor its
 	`boss`.
 
-	The boss is spawned as the area wrote it — no ramp and no count bonus,
-	because a second King Bloblin is not a harder boss fight, it is a
-	different one. The curve still applies to him, through `floorCurve`.
+	The boss floor takes no count bonus and no depth ramp, because a second
+	King Bloblin is not a harder boss fight, it is a different one. The only
+	thing that changes how many there are is the area's own `bossByLap`
+	(`floorBossCount`), which the glade uses to put two kings on floors 30
+	and deeper. The curve still applies to them, through `floorCurve`.
 
 	The `Pairs` modifier (lap 3 on) puts a second elite in every mini-boss
 	fight: its roster leads with two of its heaviest body, and the fight's
@@ -261,7 +282,7 @@ function Waves.describeFloor(floor: number): Wave
 	local kind: Kind = Waves.floorKind(floor)
 
 	if kind == "Boss" then
-		return { kind = kind, roster = area.boss.roster, count = area.boss.enemyCount }
+		return { kind = kind, roster = area.boss.roster, count = Waves.floorBossCount(floor) }
 	end
 
 	if kind == "Elite" then

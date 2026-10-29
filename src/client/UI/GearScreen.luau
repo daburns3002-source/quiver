@@ -28,6 +28,7 @@ local GearScreen = {}
 local screen: StationScreen.Screen? = nil
 local tab = "GEAR"
 local byName = false
+local preferredPetSlot: number? = nil
 type Entry = {
 	key: string,
 	name: string,
@@ -438,7 +439,7 @@ local function card(
 	gradient(face, Color3.fromRGB(255, 255, 255), Color3.fromRGB(190, 190, 190))
 	if icon ~= "" then
 		local picture = Kit.image(face, icon, locked)
-		picture.Position, picture.Size = UDim2.fromScale(0.1, 0.06), UDim2.fromScale(0.8, 0.88)
+		picture.Position, picture.Size = UDim2.fromScale(0.04, 0.02), UDim2.fromScale(0.92, 0.96)
 		picture.ZIndex = 4
 	end
 	if locked then
@@ -447,12 +448,13 @@ local function card(
 		lock.ZIndex = 8
 	elseif rarity == "Mythic" then
 		Kit.rainbowRing(body)
-	elseif rarity == "Legendary" then
-		local halo = frame(body, Kit.gold)
+	elseif rarity == "Legendary" or rarity == "Epic" then
+		local glowColour = if rarity == "Epic" then Kit.colour("Epic") else Kit.gold
+		local halo = frame(body, glowColour)
 		halo.BackgroundTransparency = 1
 		halo.Position, halo.Size = UDim2.fromScale(-0.04, -0.04), UDim2.fromScale(1.08, 1.08)
 		corner(halo, 0.14)
-		local glow = rim(halo, Kit.gold, 6)
+		local glow = rim(halo, glowColour, 6)
 		Kit.animate(body, function(t)
 			glow.Transparency = 0.45 + math.sin(t * 3) * 0.3
 		end)
@@ -542,6 +544,13 @@ local function drawNative(s: StationScreen.Screen)
 	role.TextXAlignment = Enum.TextXAlignment.Left
 	s.wallet(c, if p then p.coins else 0, if p then p.gems else 0)
 
+	local close = Kit.nativeButton(c, "X", Color3.fromRGB(218, 55, 75), s.close)
+	close.Name = "CloseGear"
+	close.ZIndex = 25
+	lay(close, { 1770, 245, 110, 110 }, { 820, 125, 90, 90 })
+	local heading = Kit.nativeText(c, "GEAR", Kit.gold)
+	lay(heading, { 620, 245, 680, 130 }, { 270, 140, 400, 90 })
+
 	-- the hero, big in the middle of the stage
 	portrait(c, function(item)
 		lay(item, { 400, 228, 1120, 1080 }, { 210, 120, 520, 820 })
@@ -560,8 +569,8 @@ local function drawNative(s: StationScreen.Screen)
 		holder.BackgroundTransparency = 1
 		lay(
 			holder,
-			{ if column == 1 then 126 else 1498, 300 + (row - 1) * 330, 296, 296 },
-			{ if column == 1 then 40 else 740, 170 + (row - 1) * 230, 170, 170 }
+			{ if column == 1 then 126 else 1498, 410 + (row - 1) * 440, 296, 296 },
+			{ if column == 1 then 30 else 720, 270 + (row - 1) * 340, 190, 190 }
 		)
 		local tile = card(holder, rarity or "Common", icon or "", locked)
 		tile.Size = UDim2.fromScale(1, 1)
@@ -576,6 +585,7 @@ local function drawNative(s: StationScreen.Screen)
 		plate.Position, plate.Size = UDim2.fromScale(0.2, -0.08), UDim2.fromScale(0.6, 0.17)
 		plate.ZIndex = 10
 		corner(plate, 0.4)
+		holder.Name = words:gsub(" ", "") .. "Slot"
 		local tabText = Kit.nativeText(plate, words)
 		tabText.ZIndex = 11
 		return holder
@@ -588,9 +598,19 @@ local function drawNative(s: StationScreen.Screen)
 		GearAssets.weapons[equipped],
 		false
 	)
-	makeSlot("TRAIL", 1, 2, nil, nil, true)
-	makeSlot("SOON", 1, 3, nil, nil, true)
-	makeSlot("SOON", 2, 3, nil, nil, true)
+	Kit.nativePress(weaponSlot, function()
+		if not Reveal.busy() then
+			tab = "GEAR"
+			s.open()
+		end
+	end)
+	local trailSlot = makeSlot("TRAIL", 1, 2, nil, nil, true)
+	Kit.nativePress(trailSlot, function()
+		if not Reveal.busy() then
+			tab = "TRAILS"
+			s.open()
+		end
+	end)
 	local petSlots: { GuiObject } = {}
 	for index = 1, 2 do
 		local key = p and p.equippedPets[index]
@@ -609,8 +629,10 @@ local function drawNative(s: StationScreen.Screen)
 			plus.Position, plus.Size = UDim2.fromScale(0.3, 0.25), UDim2.fromScale(0.4, 0.4)
 		end
 		Kit.nativePress(slot, function()
-			if key and not Reveal.busy() then
-				Remotes.event(Remotes.EquipPet):FireServer(index, nil)
+			if not Reveal.busy() then
+				preferredPetSlot = index
+				tab = "PETS"
+				s.open()
 			end
 		end)
 		petSlots[index] = slot
@@ -780,11 +802,11 @@ local function drawNative(s: StationScreen.Screen)
 	layout.SortOrder = Enum.SortOrder.LayoutOrder
 	-- the reference's card and gap, as shares of the visible grid
 	if wideLayout then
-		layout.CellSize = UDim2.fromScale(164 / 920, 164 / 560)
-		layout.CellPadding = UDim2.fromScale(20 / 920, 22 / 560)
+		layout.CellSize = UDim2.fromScale(204 / 920, 204 / 560)
+		layout.CellPadding = UDim2.fromScale(24 / 920, 26 / 560)
 	else
-		layout.CellSize = UDim2.fromScale(316 / 1760, 316 / 1260)
-		layout.CellPadding = UDim2.fromScale(34 / 1760, 40 / 1260)
+		layout.CellSize = UDim2.fromScale(398 / 1760, 398 / 1260)
+		layout.CellPadding = UDim2.fromScale(40 / 1760, 44 / 1260)
 	end
 	layout.Parent = grid
 	if tab == "CLASSES" then
@@ -817,17 +839,8 @@ local function drawNative(s: StationScreen.Screen)
 			end)
 		end
 	elseif tab == "TRAILS" then
-		-- trails do not exist yet: their slots, locked
-		for i = 1, 5 do
-			local holder = frame(grid, Color3.new(0, 0, 0))
-			holder.BackgroundTransparency = 1
-			holder.LayoutOrder = i
-			local soon = card(holder, "Common", "", true)
-			soon.Size = UDim2.fromScale(1, 1)
-			local text = Kit.nativeText(soon, "SOON")
-			text.ZIndex = 9
-			text.Position, text.Size = UDim2.fromScale(0.1, 0.3), UDim2.fromScale(0.8, 0.22)
-		end
+		local empty = Kit.nativeText(c, "TRAILS ARE NOT AVAILABLE YET")
+		lay(empty, { 200, 2000, 1520, 150 }, { 1010, 500, 840, 100 })
 	end
 	for i, entry in entries do
 		local isPet = tab == "PETS"
@@ -860,8 +873,9 @@ local function drawNative(s: StationScreen.Screen)
 						end
 					end
 				elseif isPet then
-					local slot = if not p.equippedPets[1]
-						then 1
+					local slot = if preferredPetSlot
+						then preferredPetSlot
+						elseif not p.equippedPets[1] then 1
 						elseif not p.equippedPets[2] then 2
 						else 1
 					Reveal.equip(holder, petSlots[slot], entry.icon, true)

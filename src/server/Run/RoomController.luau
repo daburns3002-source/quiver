@@ -310,6 +310,22 @@ local function prepareNext(position: number)
 	end)
 end
 
+--[[ Publish the combat ordinal before spawning, so rewards do not raise HP
+     and direct Studio jumps receive the same scaling as normal progression. ]]
+local function setCombatEncounter(position: number)
+	local ordinal = position
+	if stage().mode == "Waves" then
+		ordinal = 0
+		for wave = 1, position do
+			local kind = Waves.kindIn(stage(), wave, total())
+			if kind ~= "Angel" and kind ~= "Valkyrie" then
+				ordinal += 1
+			end
+		end
+	end
+	workspace:SetAttribute("CombatEncounter", ordinal)
+end
+
 local function enterRoom(position: number)
 	progress = position
 	state = "Fighting"
@@ -322,6 +338,7 @@ local function enterRoom(position: number)
 	buildArena(room)
 	RunSession.setRoom(position)
 	Arena.setDoorLabel(if position < total() then tostring(position + 1) else "")
+	setCombatEncounter(position)
 	EnemyManager.spawnWave(room.enemyCount, room.roster)
 	-- the Mossback Snail's shell is up once a room
 	PetCombat.newRoom()
@@ -364,6 +381,7 @@ local function startWave(wave: number)
 		end
 	else
 		state = "Fighting"
+		setCombatEncounter(wave)
 		EnemyManager.spawnWave(description.count, description.roster)
 		PetCombat.newRoom()
 	end
@@ -417,6 +435,7 @@ end
 
 local function startStage()
 	local current = stage()
+	workspace:SetAttribute("CombatEncounter", 0)
 	RunSession.holdOffers(false)
 
 	for _, session in RunSession.all() do
@@ -451,6 +470,7 @@ end
 
 --[[ At boot: the lobby, until a portal starts a run. ]]
 function RoomController.start()
+	workspace:SetAttribute("CombatEncounter", 0)
 	workspace:SetAttribute(CurrentStage.ATTRIBUTE, stageIndex)
 	state = "Lobby"
 	broadcast()

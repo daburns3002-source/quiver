@@ -31,7 +31,7 @@ local Stages = {}
 	is why the Spitter uses three rather than two: a fan with nothing down the
 	middle reads as "miss on purpose" instead of "walk through the gap".
 ]]
-function Stages.spread(count: number, angle: number): ShotStage
+function Stages.spread(count: number, angle: number, extraDamageScale: number?): ShotStage
 	return {
 		name = "Spread",
 		order = ShotPipeline.Stage.Pattern,
@@ -47,6 +47,8 @@ function Stages.spread(count: number, angle: number): ShotStage
 			for _, spec in specs do
 				for index = 0, count - 1 do
 					local copy = table.clone(spec)
+					-- Keep one primary projectile; copies inherit reduced damage.
+					copy.damageScale = spec.damageScale * (if index == math.floor((count - 1) / 2) then 1 else extraDamageScale or 1)
 					copy.angleOffset = spec.angleOffset + first + index * angle
 					table.insert(fanned, copy)
 				end
@@ -66,7 +68,7 @@ end
 	so a player holding Front Arrow fires the whole widened fan backwards too
 	rather than a single arrow.
 ]]
-function Stages.mirror(name: string, offsets: { number }): ShotStage
+function Stages.mirror(name: string, offsets: { number }, extraDamageScale: number?): ShotStage
 	return {
 		name = name,
 		order = ShotPipeline.Stage.Pattern,
@@ -83,6 +85,7 @@ function Stages.mirror(name: string, offsets: { number }): ShotStage
 
 				for _, offset in offsets do
 					local copy = table.clone(spec)
+					copy.damageScale = spec.damageScale * (extraDamageScale or 1)
 					copy.angleOffset = spec.angleOffset + offset
 					table.insert(out, copy)
 				end
@@ -342,7 +345,7 @@ end
 	walks into the second. Copies keep every other field, so a lane of Front
 	Arrows is repeated as a lane.
 ]]
-function Stages.repeatVolley(extra: number, interval: number): ShotStage
+function Stages.repeatVolley(extra: number, interval: number, extraDamageScale: number?): ShotStage
 	return {
 		name = "RepeatVolley",
 		order = ShotPipeline.Stage.Count,
@@ -361,6 +364,7 @@ function Stages.repeatVolley(extra: number, interval: number): ShotStage
 			for round = 1, extra do
 				for _, spec in specs do
 					local copy = table.clone(spec)
+					copy.damageScale = spec.damageScale * (extraDamageScale or 1)
 					copy.delay = spec.delay + round * interval
 					table.insert(out, copy)
 				end
@@ -383,7 +387,7 @@ end
 	Centred, so an odd count keeps one arrow exactly on the line the player
 	aimed along and an even one straddles it evenly.
 ]]
-function Stages.parallel(count: number, spacing: number): ShotStage
+function Stages.parallel(count: number, spacing: number, extraDamageScale: number?): ShotStage
 	return {
 		name = "Parallel",
 		order = ShotPipeline.Stage.Count,
@@ -399,6 +403,8 @@ function Stages.parallel(count: number, spacing: number): ShotStage
 			for _, spec in specs do
 				for index = 0, count - 1 do
 					local copy = table.clone(spec)
+					-- Keep one primary projectile; copies inherit reduced damage.
+					copy.damageScale = spec.damageScale * (if index == math.floor((count - 1) / 2) then 1 else extraDamageScale or 1)
 					copy.lateralOffset = spec.lateralOffset + first + index * spacing
 					table.insert(out, copy)
 				end

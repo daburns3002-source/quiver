@@ -1,69 +1,78 @@
 {
   "name": "Arrow Legends",
-  "globIgnorePaths": ["**/.package-lock.json"],
+  "globIgnorePaths": [
+    "**/.package-lock.json"
+  ],
   "tree": {
     "$className": "DataModel",
-
     "ReplicatedStorage": {
       "Shared": {
         "$path": "src/shared"
       },
       "Packages": {
-        "$path": { "optional": "Packages" }
+        "$path": {
+          "optional": "Packages"
+        }
+      },
+      "HatcheryPetIcons": {
+        "$path": "assets/studio-codex/HatcheryPetIcons.rbxm"
       }
     },
-
     "ServerScriptService": {
       "Server": {
         "$path": "src/server"
       },
       "ServerPackages": {
-        "$path": { "optional": "ServerPackages" }
+        "$path": {
+          "optional": "ServerPackages"
+        }
       }
     },
-
     "ServerStorage": {
       "Tests": {
         "$path": "tests"
+      },
+      "ReusableUITemplates": {
+        "$path": "assets/studio-codex/ReusableUITemplates.rbxm"
       }
     },
-
     "ReplicatedFirst": {
       "Loading": {
         "$path": "src/first/Loading.client.luau"
       }
     },
-
     "StarterPlayer": {
       "StarterPlayerScripts": {
         "Client": {
           "$path": "src/client"
+        },
+        "EggHatcheryUI": {
+          "$path": "src/standalone/EggHatcheryUI.client.luau"
+        },
+        "WeaponChestUI": {
+          "$path": "src/standalone/WeaponChestUI.client.luau"
         }
       },
       "StarterCharacterScripts": {
         "$className": "StarterCharacterScripts"
       }
     },
-
     "StarterGui": {
       "$properties": {
         "ScreenOrientation": "Portrait"
       }
     },
-
     "Workspace": {
       "$properties": {
         "FilteringEnabled": true,
         "StreamingEnabled": false
       }
     },
-
     "Lighting": {
       "$properties": {
         "Technology": "Future"
       }
     },
-
     "SoundService": {
       "$properties": {
         "RespectFilteringEnabled": true

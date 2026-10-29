@@ -34,3 +34,6 @@ Thumbs.db
 # Python caches (assets/ scripts)
 __pycache__/
 .intake/
+
+# Approved Studio UI model snapshots, preserved for reproducible Rojo builds.
+!/assets/studio-codex/*.rbxm

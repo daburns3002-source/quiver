@@ -19,6 +19,7 @@ local Workspace = game:GetService("Workspace")
 
 local Arena = require(script.Parent.Parent.Arena.Arena)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
+local CombatTuning = require(ReplicatedStorage.Shared.Config.CombatTuning)
 local BossBanners = require(ReplicatedStorage.Shared.Config.BossBanners)
 local BossBody = require(script.Parent.BossBody)
 local BossMoves = require(script.Parent.BossMoves)
@@ -258,9 +259,15 @@ local function difficulty(): { damage: number, health: number, fireRate: number 
 			fireRate = Waves.floorFireRate(floor),
 		}
 	end
+	local healthScale = 1
+	if stage and stage.area == "MossyGlade" and not workspace:GetAttribute("Sandbox") then
+		local encounter = workspace:GetAttribute("CombatEncounter")
+		local ordinal = if type(encounter) == "number" then math.max(1, encounter) else 1
+		healthScale += (ordinal - 1) * CombatTuning.roomHealthPerEncounter
+	end
 	return {
 		damage = stage and stage.enemyDamage or 1,
-		health = stage and stage.enemyHealth or 1,
+		health = (stage and stage.enemyHealth or 1) * healthScale,
 		fireRate = 1,
 	}
 end

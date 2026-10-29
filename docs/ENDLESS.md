@@ -134,6 +134,36 @@ repeatable currency keeps the mode worth replaying once the milestones are claim
 Each hits a different system on purpose, so no one milestone is skippable because you already
 have enough of that thing.
 
+### The reward set — designed, not built
+
+Owner, 2026-10-28, with reference sheets: the Endless rewards are a matched **astral set**, two
+pieces so far. Both are drawn and **nothing is modelled yet** — notes only until the owner says
+to build them.
+
+- **Astral Arc**, a bow — `assets/concepts/blocky/weapons/endless/astral_arc_views.png`.
+  Front, side, back and three-quarter, a close-up of the centre star and its orbit ring, and
+  four views of the star-tipped arrow that goes with it.
+- **Orbit Manta**, a pet — `assets/concepts/blocky/pets/endless/orbit_manta_views.png`.
+  Front, right, three-quarter, back and top, plus exploded wing layers, the ring on its own,
+  and how the ring sits around the body.
+
+They share one design language so they read as a set: black body, lavender panels, silver trim,
+a hot pink four-point star and a faceted low-poly cut. Both carry a **silver orbit ring** — on
+the bow around the centre star, on the pet floating around the upper body, encircling it
+without intersecting. The bow sheet's material swatches are black, lavender, silver and pink.
+
+Three things are still open:
+
+- **Which floors they sit on.** The table above puts pet eggs at 10 and 50 and gear at 20 and
+  75, and a pet and a bow fit that shape, but the owner has not said which goes where.
+- **Their rarity.** Every Legendary and Mythic has to glow, and a Mythic's glow is a rainbow
+  (the owner's standing rule). These sheets show a pink glow, not a rainbow, so the tier has to
+  be settled before either is modelled.
+- **Whether the set grows.** Two pieces cover two milestones; the table has six.
+
+When they are built they go through the usual pipelines — the weapon pipeline for the Arc and
+its arrow, the pet modelling route for the Manta — and must match these sheets 1:1 in game.
+
 ### Repeatable — at checkpoints, not per floor
 
 Pay the currency **at each boss floor**, not per floor. Payment lands exactly where the

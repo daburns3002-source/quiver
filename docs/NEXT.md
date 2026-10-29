@@ -182,6 +182,54 @@ The owner wants new upgrade cards. Points to settle first:
 
 ---
 
+## 6. Added 2026-10-29
+
+### Ember Wilf goes, as an enemy only
+
+Owner: *"ember wilf needs to go completely as an enemy."*
+
+**The pet stays.** They are two different things with two different keys, so the removal has to
+be surgical:
+
+- **Remove** — the enemy. `Config/Balance` (the archetype, `displayName = "Wilf"`),
+  `Config/EnemyDesigns`, `Config/EnemyRigs`, `Fx/EnemyRig`, its entry in `UI/SandboxMenu`, and
+  every roster that fights it: check each stage's `fights`, `elite` and `finale` in
+  `Balance.Stages`, and `Balance.Rooms`. A roster referencing a deleted archetype is a crash,
+  not a lint error, so the roster sweep is the part that actually matters.
+- **Keep** — `EmberWilfPet`: `Config/Pets` (Legendary, Mossy Egg), `PetModels/EmberWilfPet`,
+  `ModelClips/EmberWilfPet`, `PetAttacks`, `PetAuras`, `PetCombat`, `PetSounds`,
+  `HatchUiAssets`, `GearAssets`.
+
+Shared between them: `Config/Sounds` and `tests/RigClip.spec` mention both — take only the
+enemy's lines. Confirm with the owner whether the enemy's **sounds and mesh uploads** should go
+too, or stay in case it returns.
+
+### Endless needs reworking
+
+Owner: *"endless needs to be reworked."* **No detail given yet — get specifics before touching
+anything.**
+
+This collides with the plan above, and the collision is worth deciding early. Step 0.6 is
+"land Endless v6, close #398". If the mode is being reworked, landing it as built may be
+wasted work. Three ways to go:
+
+1. **Land it, then rework on top.** Keeps the merge order intact and unblocks everything else,
+   since Endless is last in the stack anyway and holds schema v6. The rework becomes a normal
+   follow-up PR. **Recommended** unless the rework is fundamental.
+2. **Rework first, then land.** Only worth it if the save schema itself changes — `endlessBest`,
+   `endlessMilestones`, `soulstones` — because reworking those after they ship means another
+   migration.
+3. **Drop it from the stack.** Costs the most: everything below it still has to land, and
+   Endless would need re-cutting against whatever `main` becomes.
+
+What to ask the owner: is it the **curve** (floor scaling, where the wall lands), the
+**structure** (floor kinds, the draft cadence, checkpoints), the **rewards** (Soulstones, the
+milestone table, bank-or-push), the **areas** (the rotation and its modifiers), or the whole
+shape of the mode? `docs/ENDLESS.md` holds what was agreed, so the fastest route is walking
+that doc and marking what changes.
+
+---
+
 ## Suggested order
 
 1. Land the stack (0), with the Codex audit as part of it.

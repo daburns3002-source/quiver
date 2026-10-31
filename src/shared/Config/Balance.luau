@@ -430,63 +430,6 @@ local broodSlime: EnemyConfig = {
 }
 
 --[[
-	The Ember Wilf (owner, 2026-10-23: "a wilf enemy that has a charge and
-	dash attack ... modeled after this dog"): a fluffy ginger wilf, quick
-	and low, that never just walks up and bites. From across the room it
-	charges, its eyes flashing red first; up close it dashes,
-	a short pounce on a quick flash. Both are lunges (`EnemyLunge`), so the
-	answer to both is the same — see where it is pointed and get out of the
-	line. Its body is primitives in the dog's colours until its model exists
-	(`assets/concepts/models/ember_wilf_sheet.png`).
-]]
-local wilf: EnemyConfig = {
-	displayName = "Wilf",
-	--[[ As slow to turn as anything its size (it is the longest of the
-	     grunts); its lunges snap it onto their line regardless, so this only
-	     shapes how it walks. ]]
-	turnRate = 240,
-	health = 260,
-	moveSpeed = 6.3,
-	--[[ It closes to here, inside the dash, then lunges; it has no plain
-	     bite. ]]
-	attackRange = 5,
-	attackDamage = 60,
-	attackCooldown = 1.8,
-	knockback = 2.5,
-	--[[ The owner's model's own shape, ×2.6 (`assets/models/enemies/
-	     ember_wilf_roblox.glb`, a round pup): 2.2 across, 3 tall, 3.3 nose
-	     to tail. Arrows at `Projectile.height` meet it. ]]
-	hitboxSize = Vector3.new(2.2, 3, 3.3),
-	color = Color3.fromRGB(214, 116, 48),
-	xpReward = 16,
-	shot = nil,
-	lunges = {
-		--[[ Dash: close, quick, and lighter. ]]
-		{
-			minRange = 0,
-			maxRange = 8,
-			telegraph = 0.4,
-			tell = "Flash" :: EnemyTell,
-			distance = 7,
-			speed = 32,
-			damageScale = 0.8,
-		},
-		--[[ Charge: from across the room, on a long line, and it hurts. Its
-		     eyes flash red as it winds up, with no line drawn (owner,
-		     2026-10-23). ]]
-		{
-			minRange = 8,
-			maxRange = 20,
-			telegraph = 0.75,
-			tell = "Eyes" :: EnemyTell,
-			distance = 18,
-			speed = 26,
-			damageScale = 1.3,
-		},
-	},
-}
-
---[[
 	Spread ranged. Stands off and fires a fan of slow projectiles, which the
 	player walks through the gaps of. The counterplay it teaches is "find the
 	gap, move through it" — so the arc stays wide enough to read and the
@@ -2041,11 +1984,12 @@ local rooms: { RoomConfig } = {
 			{ offset = Vector2.new(-4.6, 0), size = Vector3.new(2.5, 10, 38.7) },
 			{ offset = Vector2.new(4.6, 0), size = Vector3.new(2.5, 10, 38.7) },
 		},
-		--[[ Adds the lancer: a drawn line to step out of, in the room with
-		     lanes. The Ember Wilf stands in for the Lancer everywhere for now
-		     (owner, 2026-10-23); its charge is a drawn line too. ]]
+		--[[ Meant to add the lancer: a drawn line to step out of, in the room
+		     with lanes. The Ember Wilf stood in for it, and the Wilf is gone
+		     as an enemy (owner, 2026-10-31), so this room has neither.
+		     Un-bench `_lineSniper` in `Enemies` to give it back. ]]
 		enemyCount = 4,
-		roster = { meleeCharger, spreadShooter, wilf },
+		roster = { meleeCharger, spreadShooter },
 	},
 	{
 		name = "Quarters",
@@ -2055,7 +1999,7 @@ local rooms: { RoomConfig } = {
 		},
 		--[[ No new archetype. Four of them at once instead, and a brood. ]]
 		enemyCount = 5,
-		roster = { meleeCharger, spreadShooter, wilf, broodSlime },
+		roster = { meleeCharger, spreadShooter, broodSlime },
 	},
 	{
 		name = "The Pit",
@@ -2081,7 +2025,7 @@ local rooms: { RoomConfig } = {
 		},
 		--[[ All five, and from here the count is the only thing still rising. ]]
 		enemyCount = 6,
-		roster = { meleeCharger, spreadShooter, wilf, burrower, tank },
+		roster = { meleeCharger, spreadShooter, burrower, tank },
 	},
 	{
 		name = "Last Cover",
@@ -2090,7 +2034,7 @@ local rooms: { RoomConfig } = {
 		},
 		--[[ All five. ]]
 		enemyCount = 6,
-		roster = { meleeCharger, wilf, spreadShooter, burrower, tank },
+		roster = { meleeCharger, spreadShooter, burrower, tank },
 	},
 	{
 		name = "Nowhere To Stand",
@@ -2099,7 +2043,7 @@ local rooms: { RoomConfig } = {
 		obstacles = {},
 		--[[ All five, at the most this run ever throws at once. ]]
 		enemyCount = 7,
-		roster = { meleeCharger, spreadShooter, wilf, burrower, tank },
+		roster = { meleeCharger, spreadShooter, burrower, tank },
 	},
 
 	--[[
@@ -3281,16 +3225,18 @@ local Balance = {
 	Enemies = {
 		MeleeCharger = meleeCharger,
 		SpreadShooter = spreadShooter,
-		--[[ The Lancer is benched while the Ember Wilf stands in for it
-		     (owner, 2026-10-23: "have that replace the sniper enemy for
-		     now"). Its config stays below; put it back here and in the
-		     rosters to bring it back. ]]
+		--[[ The Lancer is still benched, but its stand-in has gone: the Ember
+		     Wilf was removed as an enemy (owner, 2026-10-31) and nothing took
+		     its place, so the rooms that wanted a drawn line to step out of
+		     have no enemy that draws one. Its config is `_lineSniper` below,
+		     untouched -- add `Lancer = _lineSniper` here and put it in those
+		     rosters to bring it back. Left to the owner because it changes
+		     five rooms' difficulty. ]]
 		Tank = tank,
 		Burrower = burrower,
 		BroodSlime = broodSlime,
 		BabySlime = babySlime,
 		SlimeKing = slimeKing,
-		Wilf = wilf,
 		BrambleBoar = brambleBoar,
 		BurrThistle = burrThistle,
 		BrambleSow = brambleSow,
@@ -4050,7 +3996,7 @@ local Balance = {
 				},
 				miniBoss = {
 					enemyCount = 7,
-					roster = { broodSlime, broodSlime, wilf, spreadShooter },
+					roster = { broodSlime, broodSlime, spreadShooter },
 				},
 				boss = { enemyCount = 1, roster = { slimeKing } },
 			},
@@ -4416,7 +4362,7 @@ local Balance = {
 		and shrink away. A crit throws more, a kill more again and all the
 		way round. Drawn on each client by `Fx/SlimeResidue` from the
 		server's hit and death; the cubes touch nothing. Keyed by enemy
-		`displayName`; an enemy not listed (the Ember Wilf) throws none.
+		`displayName`; an enemy not listed throws none.
 		How many can be alive at once is `DeviceTiers.maxSlimeResidue`.
 	]]
 	SlimeResidue = {

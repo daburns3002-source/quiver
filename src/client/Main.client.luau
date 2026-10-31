@@ -24,6 +24,7 @@ local CardPreload = require(script.Parent.UI.Cards.CardPreload)
 local ClassScreen = require(script.Parent.UI.ClassScreen)
 local Classes = require(Shared.Config.Classes)
 local CombatMarkers = require(script.Parent.Fx.CombatMarkers)
+local ControlMenu = require(script.Parent.UI.ControlMenu)
 local DashBar = require(script.Parent.UI.DashBar)
 local DevKeys = require(script.Parent.DevKeys)
 local Device = require(script.Parent.Device)
@@ -317,6 +318,7 @@ Remotes.event(Remotes.RunStateChanged).OnClientEvent
 		RunBanner.onRunStateChanged(index, total, state, name, unit)
 		RoomSign.onRunStateChanged(index, total, state, name, unit)
 		TutorialPrompts.onRunStateChanged(index, total, state)
+		ControlMenu.onRunStateChanged(index, total, state)
 
 		--[[ The end screen belongs to the run that ended, so it clears the
 		     moment the next one starts fighting. ]]

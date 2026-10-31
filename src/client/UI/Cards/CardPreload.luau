@@ -18,7 +18,6 @@
 	memory.
 ]]
 
-local ContentProvider = game:GetService("ContentProvider")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -26,32 +25,19 @@ local Abilities = require(ReplicatedStorage.Shared.Config.Abilities)
 local CardAssets = require(ReplicatedStorage.Shared.Config.CardAssets)
 local Device = require(script.Parent.Parent.Parent.Device)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
+local Preload = require(script.Parent.Parent.Parent.Preload)
 
 local log = Log.forTag("CardPreload")
 
 local CardPreload = {}
 
+local WARM = "Cards"
+
 local started = false
-local warmGui: ScreenGui? = nil
-local warmed: { [string]: boolean } = {}
-local fetched: { [string]: boolean } = {}
 
 --[[ Every image id in `CardAssets` but the icons, which go by class. ]]
 local function frameImages(): { string }
-	local out: { string } = {}
-	local function walk(value: any)
-		if type(value) == "string" then
-			if string.find(value, "^rbxassetid://") then
-				table.insert(out, value)
-			end
-		elseif type(value) == "table" and value ~= CardAssets.icons then
-			for _, inner in value do
-				walk(inner)
-			end
-		end
-	end
-	walk(CardAssets)
-	return out
+	return Preload.idsIn(CardAssets, CardAssets.icons)
 end
 
 local function canDeal(ability: Abilities.Ability, class: string?): boolean
@@ -84,44 +70,7 @@ local function warm(ids: { string })
 	if not Device.tier().warmCardImages then
 		return
 	end
-	local gui = warmGui
-	if not gui then
-		local made = Instance.new("ScreenGui")
-		made.Name = "CardWarm"
-		made.ResetOnSpawn = false
-		made.DisplayOrder = -100
-		made.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
-		warmGui = made
-		gui = made
-	end
-	for _, id in ids do
-		if warmed[id] then
-			continue
-		end
-		warmed[id] = true
-		local image = Instance.new("ImageLabel")
-		image.BackgroundTransparency = 1
-		image.Size = UDim2.fromOffset(2, 2)
-		image.ImageTransparency = 0.99
-		image.Image = id
-		image.Parent = gui
-	end
-end
-
-local function fetch(ids: { string }): number
-	local list: { string } = {}
-	for _, id in ids do
-		if not fetched[id] then
-			fetched[id] = true
-			table.insert(list, id)
-		end
-	end
-	if #list > 0 then
-		pcall(function()
-			ContentProvider:PreloadAsync(list)
-		end)
-	end
-	return #list
+	Preload.warm(WARM, ids)
 end
 
 local function classOf(): string?
@@ -139,9 +88,9 @@ function CardPreload.start()
 		local began = os.clock()
 		local mine = CardPreload.imagesFor(classOf() or "Ranger")
 		warm(mine)
-		local count = fetch(mine)
+		local count = Preload.fetch(mine)
 		log.info("%d card images for the class in %.2f s", count, os.clock() - began)
-		local rest = fetch(CardPreload.imagesFor(nil))
+		local rest = Preload.fetch(CardPreload.imagesFor(nil))
 		log.info("%d more card icons by %.2f s", rest, os.clock() - began)
 	end)
 	-- a new class (the C key, a weapon of another class) brings its own cards

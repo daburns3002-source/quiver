@@ -19,7 +19,6 @@
 	little earlier.
 ]]
 
-local ContentProvider = game:GetService("ContentProvider")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
@@ -29,20 +28,11 @@ local Log = require(ReplicatedStorage.Shared.Util.Log)
 local Music = require(ReplicatedStorage.Shared.Config.Music)
 local NewEnemies = require(ReplicatedStorage.Shared.Config.NewEnemies)
 
+local Preload = require(script.Parent.Parent.Preload)
+
 local log = Log.forTag("RoomPreload")
 
 local RoomPreload = {}
-
---[[ Content already asked for, so a room of the same enemies asks for
-     nothing again. ]]
-local asked: { [string]: boolean } = {}
-
-local function add(list: { string }, id: any)
-	if type(id) == "string" and id ~= "" and not asked[id] then
-		asked[id] = true
-		table.insert(list, id)
-	end
-end
 
 local function importedRows(model: string): { any }
 	local folder = ReplicatedStorage.Shared.Config:FindFirstChild("ImportedModels")
@@ -126,24 +116,19 @@ local function load(arena: Instance)
 	if type(roster) == "string" then
 		for name in string.gmatch(roster, "[^,]+") do
 			for _, id in RoomPreload.enemyContent(name, configs) do
-				add(ids, id)
+				table.insert(ids, id)
 			end
 		end
 	end
 
+	--[[ Deduplication is `Preload`'s: a room of the same enemies as the last
+	     one asks the network for nothing again, and so does anything else
+	     that has already fetched the same mesh. ]]
 	task.spawn(function()
-		local ok, problem = pcall(function()
-			-- the arena's own meshes and textures, then the enemies'
-			ContentProvider:PreloadAsync({ arena })
-			if #ids > 0 then
-				ContentProvider:PreloadAsync(ids)
-			end
-		end)
-		if not ok then
-			log.warn("next room did not preload: %s", tostring(problem))
-			return
-		end
-		log.info("next room loaded in %.2f s (%d enemy assets)", os.clock() - began, #ids)
+		-- the arena's own meshes and textures, then the enemies'
+		Preload.fetchInstances({ arena })
+		local count = Preload.fetch(ids)
+		log.info("next room loaded in %.2f s (%d new enemy assets)", os.clock() - began, count)
 		arena:SetAttribute("PreloadedIn", os.clock() - began)
 	end)
 end

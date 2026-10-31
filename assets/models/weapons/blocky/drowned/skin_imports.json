@@ -1,0 +1,97 @@
+{
+ "eelcrest bow arena 3": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "name": "Bow",
+    "meshId": "rbxassetid://79795647768703",
+    "textureId": "rbxassetid://138309091162872",
+    "size": [
+     0.3394,
+     0.9995,
+     0.1313
+    ]
+   }
+  ]
+ },
+ "tollstring bow arena 3": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "name": "Bow",
+    "meshId": "rbxassetid://70803920000312",
+    "textureId": "rbxassetid://87111981155450",
+    "size": [
+     0.4771,
+     0.9995,
+     0.1694
+    ]
+   }
+  ]
+ },
+ "tollkeeper staff arena 3": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "name": "Staff",
+    "meshId": "rbxassetid://126230765318311",
+    "textureId": "rbxassetid://131973326076494",
+    "size": [
+     0.2739,
+     0.9995,
+     0.1216
+    ]
+   }
+  ]
+ },
+ "sunken bell sword arena 3": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "name": "Blade",
+    "meshId": "rbxassetid://79270724349699",
+    "textureId": "rbxassetid://78360244322797",
+    "size": [
+     0.3394,
+     0.9995,
+     0.1724
+    ]
+   }
+  ]
+ },
+ "best astral arc mythic bow": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "name": "Bow",
+    "meshId": "rbxassetid://79357419386617",
+    "textureId": "rbxassetid://77897864765783",
+    "size": [
+     0.5513,
+     0.9995,
+     0.3032
+    ]
+   }
+  ]
+ }
+}

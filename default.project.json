@@ -45,12 +45,6 @@
       "StarterPlayerScripts": {
         "Client": {
           "$path": "src/client"
-        },
-        "EggHatcheryUI": {
-          "$path": "src/standalone/EggHatcheryUI.client.luau"
-        },
-        "WeaponChestUI": {
-          "$path": "src/standalone/WeaponChestUI.client.luau"
         }
       },
       "StarterCharacterScripts": {

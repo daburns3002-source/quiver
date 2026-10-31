@@ -253,7 +253,7 @@ local function details(
 	local lines: { string } = {}
 	if isPet then
 		local info = Pets[entry.key]
-		local egg = info and EggRules.find(info.egg)
+		local egg = if info and info.egg then EggRules.find(info.egg) else nil
 		table.insert(lines, "FIGHTS BESIDE YOU IN RUNS")
 		table.insert(lines, "FROM THE " .. (if egg then egg.name else "EGG"))
 		if entry.owned then

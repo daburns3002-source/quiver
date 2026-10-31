@@ -1,0 +1,182 @@
+--!strict
+--[[
+	What a pet does, in words, read straight off `Config/PetCombat` (Codex's
+	hatchery screen, 2026-10-29; owner, 2026-10-31: "codex made a good one a
+	couple days ago that i want to use").
+
+	The numbers are never written down twice: every sentence is formatted
+	from the same spec the server fights with, so retuning a pet retunes
+	what the hatchery says about it and the two can never drift. A pet with
+	no combat spec says so rather than inventing a line.
+
+	Pure, so `tests/PetBlurb.spec` pins it.
+]]
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local PetCombat = require(ReplicatedStorage.Shared.Config.PetCombat)
+
+local PetBlurb = {}
+
+--[[ Said when a pet has no `Config/PetCombat` entry at all. ]]
+PetBlurb.NONE = "This pet has no combat behaviour yet."
+
+local function percent(n: number): string
+	return string.format("%g%%", n)
+end
+
+--[[ The lines describing pet `key`, in the order they are shown: what it
+     does on its clock first, then what it does to the enemy, then what it
+     does for the player. Empty for a pet with no spec. ]]
+function PetBlurb.lines(key: string): { string }
+	local spec = PetCombat.pets[key]
+	if not spec then
+		return {}
+	end
+	local out: { string } = {}
+	local function add(line: string)
+		table.insert(out, line)
+	end
+
+	if spec.guard then
+		add("Shell Guard blocks the next hit you would take. The shell comes back each room.")
+	end
+
+	local damage = spec.damage
+	if damage then
+		local hits = spec.hits or 1
+		local targets = spec.targets or 1
+		if spec.beam then
+			add(
+				string.format(
+					"Fires a piercing beam for %g damage every %g seconds, hitting everything along it.",
+					damage,
+					spec.every
+				)
+			)
+		elseif spec.dash then
+			add(
+				string.format(
+					"Dashes to up to %g enemies for %g damage each, %g seconds between attacks.",
+					targets,
+					damage,
+					spec.every
+				)
+			)
+		elseif hits > 1 then
+			add(
+				string.format(
+					"Fires %g shots for %g damage each every %g seconds (%g in all if every one lands).",
+					hits,
+					damage,
+					spec.every,
+					hits * damage
+				)
+			)
+		elseif targets > 1 then
+			add(
+				string.format(
+					"Deals %g damage to up to %g enemies every %g seconds.",
+					damage,
+					targets,
+					spec.every
+				)
+			)
+		else
+			add(string.format("Deals %g damage every %g seconds.", damage, spec.every))
+		end
+	end
+
+	if spec.bossDamage then
+		add(
+			string.format(
+				"Hits bosses for %g more, so %g a hit.",
+				spec.bossDamage,
+				(damage or 0) + spec.bossDamage
+			)
+		)
+	end
+	if spec.slow then
+		add(
+			string.format(
+				"Slows what it hits by %s for %g seconds.",
+				percent((1 - spec.slow.scale) * 100),
+				spec.slow.duration
+			)
+		)
+	end
+	if spec.root then
+		add(
+			string.format(
+				"Holds its target still for %g seconds. Bosses cannot be held.",
+				spec.root.duration
+			)
+		)
+	end
+	if spec.burn then
+		add(
+			string.format(
+				"Burns for %g a second over %g seconds.",
+				spec.burn.rate,
+				spec.burn.duration
+			)
+		)
+	end
+	if spec.mark then
+		add(
+			string.format(
+				"Marks a target every %g seconds; it takes %s more damage for %g seconds.",
+				spec.every,
+				percent((spec.mark.scale - 1) * 100),
+				spec.mark.duration
+			)
+		)
+	end
+	if spec.heal then
+		add(
+			string.format(
+				"Lays a healing patch every %g seconds: %g HP a second for %g seconds to anyone standing in it.",
+				spec.every,
+				spec.heal.perSecond,
+				spec.heal.duration
+			)
+		)
+	end
+	if spec.haste then
+		add(
+			string.format(
+				"Every %g attacks, gives you %s attack speed for %g seconds.",
+				spec.haste.every,
+				percent(spec.haste.bonus * 100),
+				spec.haste.duration
+			)
+		)
+	end
+	if spec.healPerHit then
+		add(string.format("Heals you %g HP for every enemy it hits.", spec.healPerHit))
+	end
+	if spec.revive then
+		add(
+			string.format(
+				"Once a run, saves you from a killing blow and brings you back on %s of your health.",
+				percent(spec.revive * 100)
+			)
+		)
+	end
+	if spec.magnet then
+		add("Pulls the room's XP crystals to you.")
+	end
+
+	return out
+end
+
+--[[ The same, as one block of text for a detail card. ]]
+function PetBlurb.text(key: string): string
+	local lines = PetBlurb.lines(key)
+	if #lines == 0 then
+		return PetBlurb.NONE
+	end
+	return table.concat(lines, "\n\n")
+end
+
+return PetBlurb

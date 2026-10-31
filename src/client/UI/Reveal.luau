@@ -3,6 +3,7 @@
 	The shops' single-clock celebrations (owner, 2026-10-26: "heavy on dopamine").
 	Only server answers supply prizes. A tap advances the clock; a second closes.
 ]]
+local AssetService = game:GetService("AssetService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -28,6 +29,29 @@ type Look = {
 	soundBurst: number,
 	jingle: number,
 	special: string,
+	--[[ The model to show instead of the pictures, where one was made
+	     (`GearAssets.models`). ]]
+	model: GearAssets.RevealModel?,
+}
+--[[ One egg or chest of a reveal and the trimmings around it. `view`,
+     `mesh` and `block` are the model's, and are nil together when the
+     opened thing has none and `shell` carries it as pictures. ]]
+type ShellPart = {
+	x: number,
+	glow: ImageLabel,
+	rays: ImageLabel,
+	ring: ImageLabel,
+	shell: ImageLabel,
+	white: ImageLabel,
+	icon: ImageLabel,
+	name: TextLabel,
+	nameScale: UIScale,
+	rarity: TextLabel,
+	note: TextLabel,
+	view: ViewportFrame?,
+	block: MeshPart?,
+	--[[ The mesh's own size, which the squash is taken against. ]]
+	native: Vector3?,
 }
 local showing = false
 local pendingUntil = 0
@@ -86,6 +110,71 @@ end
 local function popIn(k: number): number
 	return 1 + 2.7 * (k - 1) ^ 3 + 1.7 * (k - 1) ^ 2
 end
+--[[ How much of the viewport's height the model fills when it is sitting
+     still. The rest is room for the squash, the shake and the chest's tip,
+     none of which may clip the frame's edge. ]]
+local MODEL_FILL = 0.68
+local MODEL_FOV = 40
+
+--[[ The reveals' models, loaded once and cloned per reveal.
+
+     A MeshPart, not a block with a `SpecialMesh`: a modern mesh asset does
+     not load into one of those at all, and draws nothing. MeshParts come
+     from `AssetService:CreateMeshPartAsync`, which yields while it fetches,
+     and a reveal has to be on screen the frame it is asked for -- so they
+     are fetched when the client starts and a reveal that finds its model
+     missing plays its pictures instead. ]]
+local templates: { [string]: MeshPart } = {}
+
+function Reveal.preloadModels()
+	for _, spec in GearAssets.models do
+		if templates[spec.mesh] then
+			continue
+		end
+		task.spawn(function()
+			local ok, part = pcall(function()
+				return AssetService:CreateMeshPartAsync(Content.fromUri(spec.mesh), {
+					CollisionFidelity = Enum.CollisionFidelity.Box,
+					RenderFidelity = Enum.RenderFidelity.Precise,
+				})
+			end)
+			if ok and part then
+				part.TextureID = spec.texture
+				part.Anchored = true
+				part.CanCollide = false
+				part.CastShadow = false
+				templates[spec.mesh] = part
+			end
+		end)
+	end
+end
+
+--[[ An egg or chest as its model, in a viewport of its own. The camera is
+     placed off the mesh's own height rather than by eye, so a model of
+     another size frames itself. ]]
+local function shellModel(root: Instance, template: MeshPart): (ViewportFrame, MeshPart)
+	local view = Instance.new("ViewportFrame")
+	view.BackgroundTransparency = 1
+	view.Ambient = Color3.fromRGB(200, 200, 200)
+	view.LightColor = Color3.new(1, 0.94, 0.8)
+	view.LightDirection = Vector3.new(-0.3, -1, -0.5)
+	view.AnchorPoint = Vector2.new(0.5, 0.5)
+	view.ZIndex = 3
+	view.Parent = root
+	local world = Instance.new("WorldModel")
+	world.Parent = view
+	local block = template:Clone()
+	block.CFrame = CFrame.new()
+	block.Parent = world
+	local camera = Instance.new("Camera")
+	camera.FieldOfView = MODEL_FOV
+	local away = (block.Size.Y / MODEL_FILL) / 2 / math.tan(math.rad(MODEL_FOV) / 2)
+	camera.CFrame = CFrame.lookAt(Vector3.new(0, 0, away), Vector3.zero)
+	camera.Parent = view
+	view.CurrentCamera = camera
+	return view, block
+end
+
 --[[ The eggs hatch over the world, in step (docs/EGG-HATCH-REFERENCE.md):
      they drop in, a ring sweeps out, they flash white, shake as cracks
      spread, the screen flashes and each pet stands where its egg was with
@@ -93,6 +182,11 @@ end
      away and the layer closes by itself. A tap skips to the next beat. ]]
 local function hatch(look: Look, prizes: { Prize }, finished: () -> ())
 	local beats = Beats.egg
+	local model = look.model
+	local skin = if model then model.texture else ""
+	--[[ A chest has a lid, so it rocks open and stays on screen while the
+	     weapon rises out of it; an egg has none and is gone on the burst. ]]
+	local tips = model ~= nil and model.tips
 	local gui, shake, canvas, flash, tap = layer(1)
 	local single = #prizes == 1
 	local size = if single then 560 else 440
@@ -105,7 +199,7 @@ local function hatch(look: Look, prizes: { Prize }, finished: () -> ())
 	-- an Epic or better holds until its reveal sound has played over it
 	local leave = if rare then math.max(beats.leave, soundAt + look.jingle + 0.6) else beats.leave
 	local done = leave + beats.done - beats.leave
-	local parts = {}
+	local parts: { ShellPart } = {}
 	for index, prize in prizes do
 		local root = Instance.new("Frame")
 		root.BackgroundTransparency = 1
@@ -126,6 +220,16 @@ local function hatch(look: Look, prizes: { Prize }, finished: () -> ())
 		nameScale.Parent = name
 		local rarity = Kit.label(root, string.upper(prize.rarity))
 		local note = Kit.label(root, prize.note, Kit.gold)
+		--[[ With a model the pictures are built and left hidden rather than
+		     skipped, so `pose` keeps one shape and the fallback stays one
+		     `Visible` away. ]]
+		local view: ViewportFrame?, block: MeshPart?, native: Vector3? = nil, nil, nil
+		local template = if model then templates[model.mesh] else nil
+		if template then
+			local frame, made = shellModel(root, template)
+			view, block, native = frame, made, made.Size
+			shell.Visible = false
+		end
 		table.insert(parts, {
 			x = if single then 960 else 960 + (index - 2) * 400,
 			glow = glow,
@@ -138,6 +242,9 @@ local function hatch(look: Look, prizes: { Prize }, finished: () -> ())
 			nameScale = nameScale,
 			rarity = rarity,
 			note = note,
+			view = view,
+			block = block,
+			native = native,
 		})
 	end
 	local started = os.clock()
@@ -169,13 +276,18 @@ local function hatch(look: Look, prizes: { Prize }, finished: () -> ())
 		local swept = t - beats.drop
 		local shown = math.clamp((t - beats.burst) / (beats.land - beats.burst + 0.15), 0, 1)
 		local gone = math.clamp((t - leave) / (done - leave), 0, 1)
+		--[[ A lid swings open from the second crack and is wide by the time
+		     the prize stands there; the chest then fades out behind it. ]]
+		local opens = math.clamp((t - beats.cracks[2]) / (beats.land - beats.cracks[2]), 0, 1)
+		local sank = math.clamp((t - beats.burst) / math.max(beats.land - beats.burst, 0.01), 0, 1)
+		local shellGone = if tips then beats.land else beats.burst
 		local scale = math.max(0.02, popIn(shown) * (1 - gone))
 		for index, part in parts do
 			local x = part.x
 			local colour = rainbow(t, prizes[index].rarity)
 			-- the egg
-			local egg = t < beats.burst
-			part.shell.Visible = egg
+			local egg = t < shellGone
+			part.shell.Visible = egg and part.view == nil
 			part.shell.Image = if t >= beats.cracks[2]
 				then look.crack2
 				elseif t >= beats.cracks[1] then look.crack1
@@ -187,6 +299,38 @@ local function hatch(look: Look, prizes: { Prize }, finished: () -> ())
 			)
 			part.shell.Size =
 				UDim2.fromScale(size * (1 + squash) / 1920, size * (1 - squash) / 1080)
+			local view, block, native = part.view, part.block, part.native
+			if view and block and native then
+				view.Visible = egg
+				view.Position = part.shell.Position
+				view.Size = UDim2.fromScale(size / 1920, size / 1080)
+				view.ImageTransparency = sank
+				--[[ The squash rides the mesh rather than the frame, so the
+				     model deforms inside a frame that never moves out from
+				     under it. Each crack beat gets a jolt of its own: a mesh
+				     has no second picture to swap to, so the two moments the
+				     sound is cut for have to be felt instead of seen. ]]
+				local jolt = math.sin(math.clamp((t - beats.cracks[1]) / 0.18, 0, 1) * math.pi)
+						* 0.07
+					+ math.sin(math.clamp((t - beats.cracks[2]) / 0.18, 0, 1) * math.pi) * 0.09
+				local fat = 1 + squash + jolt
+				block.Size = native * Vector3.new(fat, 1 - squash - jolt, fat)
+				local tilt = math.rad(math.sin(t * (28 + power * 30)) * power * 12)
+				block.CFrame =
+					CFrame.Angles(if tips then -opens * math.rad(38) else 0, t * 0.5, tilt)
+				--[[ Whitening a textured mesh: `Neon` ignores the viewport's
+				     own light, so the texture goes bright, and dropping the
+				     texture at the peak gives the pure white the pictures got
+				     from a frame drawn white. ]]
+				if whiten > 0.02 then
+					block.Material = Enum.Material.Neon
+					block.Color = Color3.new(1, 1, 1)
+					block.TextureID = if whiten > 0.5 then "" else skin
+				else
+					block.Material = Enum.Material.SmoothPlastic
+					block.TextureID = skin
+				end
+			end
 			part.white.Visible = egg and whiten > 0
 			centre(part.white, x, y, size * 1.3, size * 1.3)
 			part.white.ImageTransparency = 1 - whiten
@@ -451,7 +595,10 @@ end
      eggs' place, shaking to its own opening sound. ]]
 function Reveal.crates(index: number, results: { { weapon: string, new: boolean } })
 	local crate = Shop.crates[index]
-	local art = if crate then GearAssets.crates[crate.area] else nil
+	if not crate then
+		return
+	end
+	local art = GearAssets.crates[crate.area]
 	if not art then
 		return
 	end
@@ -471,13 +618,17 @@ function Reveal.crates(index: number, results: { { weapon: string, new: boolean 
 	end
 	present(
 		{
+			--[[ The padlocks come off, then the lid: `bare` and `open` were
+			     cut for this and were both standing unused, so a chest with
+			     no model still opens rather than only shaking. ]]
 			whole = art.closed,
-			crack1 = art.closed,
-			crack2 = art.closed,
+			crack1 = art.bare,
+			crack2 = art.open,
 			sound = "crate_open",
 			soundBurst = Beats.crate.soundBurst,
 			jingle = Beats.crate.jingle,
 			special = "YOU FOUND SOMETHING SPECIAL...",
+			model = GearAssets.models[crate.area],
 		},
 		prizes,
 		function(prize)
@@ -523,6 +674,7 @@ function Reveal.eggs(
 			soundBurst = Beats.egg.soundBurst,
 			jingle = Beats.egg.jingle,
 			special = "YOU HATCHED SOMETHING SPECIAL...",
+			model = GearAssets.models[key],
 		},
 		prizes,
 		function(prize)

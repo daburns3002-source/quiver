@@ -13,9 +13,19 @@
 	  per `Config/Shop` area) and `eggs` (whole,
 	  two cracked stages and the burst, per `Config/Eggs` key): the reveals'
 	  frames.
+	- `models`: the egg's and the chest's Tripo models, shown by `UI/Reveal` in
+	  a viewport in place of the frames above.
 	- `fx`: white shapes the reveals tint by rarity.
 	  An empty id is not drawn.
 ]]
+
+--[[ One reveal's model: its mesh, its texture, and whether it tips open
+     like a lid. The size is the mesh's own, read off the loaded part. ]]
+export type RevealModel = {
+	mesh: string,
+	texture: string,
+	tips: boolean,
+}
 
 local GearAssets = {
 	--[[ The crate's INSIDE tiles cut whole from the chosen mockup (owner,
@@ -163,6 +173,32 @@ local GearAssets = {
 			burst = "rbxassetid://80786736493750",
 		},
 	} :: { [string]: { whole: string, crack1: string, crack2: string, burst: string } },
+	--[[ The egg and the chest as the models the owner generated in Tripo
+	     (2026-10-31: "i also want it to play with the new egg and chest
+	     models that were created"). Shown in a viewport by `UI/Reveal`, so
+	     they tip, turn and squash in three dimensions where the pictures
+	     above could only swap one frame for the next.
+
+	     Keyed as `eggs` and `crates` are, and a key with no model here
+	     still plays with its pictures: Thornwood's egg is imported but
+	     came out of Tripo with no texture, so it stays on its art until
+	     there is one.
+	     `tips` is the chest's: a lid swings, so it rocks open and stays
+	     on screen while the weapon rises out of it. An egg has none and
+	     is gone on the burst. Both are single meshes, so no shell half
+	     and no lid can move by itself -- the light does that work. ]]
+	models = {
+		MossyEgg = {
+			mesh = "rbxassetid://103640048972307",
+			texture = "rbxassetid://132312157850854",
+			tips = false,
+		},
+		MossyGlade = {
+			mesh = "rbxassetid://113614951993286",
+			texture = "rbxassetid://81554242221614",
+			tips = true,
+		},
+	} :: { [string]: RevealModel },
 	--[[ The showcase behind a pulled prize (owner, 2026-10-26: option 4, "the
 	     showcase pedestal with the rarity banner and confetti"): white, tinted
 	     by rarity. The banner is 748 x 297, the pedestal 642 x 318. ]]

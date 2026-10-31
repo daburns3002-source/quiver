@@ -107,8 +107,20 @@ function HatchStand.draw(
 	-- the name over its card
 	local title = Kit.label(c, spec.title)
 	Kit.put(title, 120, 150, 860, 84)
+	--[[ The card wraps whatever the pool is: an egg holds eight, the Mossy
+	     Glade crate twelve, and a later area may hold another number again,
+	     so the grid is measured rather than laid out by hand. ]]
+	local held = #spec.tiles
+	local perRow = if held > 6 then 4 else 3
+	local gap = 14
+	local wide = (820 - (perRow - 1) * gap) // perRow
+	local rows = math.max(math.ceil(held / perRow), 1)
+	--[[ Rows share the room between the top strip and the pity bar, and a
+	     card never grows past the width of its own column. ]]
+	local tall = math.min(math.floor((360 - (rows - 1) * gap) / rows), wide)
+	local bottom = 340 + rows * tall + (rows - 1) * gap
 	local card = Kit.panel(c, Color3.new(1, 1, 1))
-	Kit.put(card, 120, 240, 860, 560)
+	Kit.put(card, 120, 240, 860, bottom + 130 - 240)
 	-- the top row: price, picker, AUTO
 	local price = Kit.panel(c, Kit.gold)
 	Kit.pill(price)
@@ -133,14 +145,8 @@ function HatchStand.draw(
 	Kit.put(toggle, 800, 258, 160, 66)
 	--[[ What is inside, rarest last: one full-colour card each, laid out as
 	     Codex's screens do (owner, 2026-10-31: "codex made a good one a
-	     couple days ago that i want to use") -- four across for an egg's
-	     eight pets, three for a crate's six weapons, the chance in the
-	     corner of the card rather than on a band under it. ]]
-	local held = #spec.tiles
-	local perRow = if held > 6 then 4 else 3
-	local gap = 14
-	local wide = (820 - (perRow - 1) * gap) // perRow
-	local tall = 160
+	     couple days ago that i want to use") -- the chance in the corner of
+	     the card rather than on a band under it. ]]
 	for i, entry in spec.tiles do
 		local col, row = (i - 1) % perRow, (i - 1) // perRow
 		local tile = Kit.nativeTile(c, entry.rarity, entry.icon, spec.locked ~= nil, true)
@@ -163,9 +169,8 @@ function HatchStand.draw(
 		end
 	end
 	-- how many are in there, under the cards, as Codex's screens say it
-	local rows = math.ceil(held / perRow)
 	local tally = Kit.label(c, `{held} {spec.noun}`, Kit.white)
-	Kit.put(tally, 140, 340 + rows * (tall + gap) + 4, 820, 40)
+	Kit.put(tally, 140, bottom + 8, 820, 32)
 	if spec.locked then
 		local lock = Kit.image(c, ShopAssets.lock)
 		Kit.put(lock, 490, 380, 120, 140)
@@ -175,7 +180,7 @@ function HatchStand.draw(
 	-- the pity bar: a rainbow filling towards the guaranteed Mythic
 	local track = Kit.panel(c, Color3.fromRGB(60, 60, 72))
 	Kit.pill(track)
-	Kit.put(track, 140, 712, 820, 64)
+	Kit.put(track, 140, bottom + 46, 820, 60)
 	local fill = Instance.new("Frame")
 	fill.BorderSizePixel = 0
 	fill.BackgroundColor3 = Color3.new(1, 1, 1)
@@ -191,7 +196,7 @@ function HatchStand.draw(
 	local gradient = Instance.new("UIGradient")
 	gradient.Color = ColorSequence.new(colours)
 	gradient.Parent = fill
-	Kit.pityLine(c, spec.pity, 140, 716, 820, 56)
+	Kit.pityLine(c, spec.pity, 140, bottom + 48, 820, 54)
 	-- the egg or crate on its stand, its prompts beside it
 	Kit.stage(c, 1120, 860, 520, spec.moss)
 	local icon = Kit.image(c, spec.picture, spec.locked ~= nil)

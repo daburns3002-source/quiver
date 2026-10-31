@@ -21,12 +21,19 @@ export type Entry = { weapon: string, class: string, label: string, rarity: stri
 local ORDER = { Common = 1, Uncommon = 2, Rare = 3, Epic = 4, Legendary = 5, Mythic = 6 }
 
 --[[ Every weapon a player can own: one with stats and a class to hold it,
-     not a pair the Dual Bows card swaps in. In rarity order. ]]
+     not a pair the Dual Bows card swaps in, and from an area that is
+     stocked (`Config/Shop`'s `stocked`). In rarity order.
+
+     An unstocked area's weapons exist -- they are modelled, held and
+     fought with in the sandbox -- but they are not for sale, so they are
+     not here either: this is what the store, the crates and the gear
+     screen all read. ]]
 function ShopRules.catalog(): { Entry }
 	local out = {}
 	for _, entry in Sandbox.weapons do
 		local stats = WeaponStats.weapons[entry.weapon]
-		if stats then
+		local crate = stats and Shop.crates[stats.area]
+		if stats and crate and crate.stocked then
 			table.insert(out, {
 				weapon = entry.weapon,
 				class = entry.class,

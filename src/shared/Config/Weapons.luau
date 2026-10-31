@@ -935,6 +935,7 @@ local skins: { [string]: any } = {
 				textureId = "rbxassetid://131973326076494",
 			},
 		} :: { WeaponPart },
+		shotGlow = Color3.fromRGB(255, 255, 255),
 	},
 	TollguardBlade = {
 		-- `sunken bell sword arena 3`, held as the TimberBlade is, playing its kit until it has its own
@@ -1003,6 +1004,7 @@ local skins: { [string]: any } = {
 			},
 		} :: { WeaponPart },
 		rainbow = true,
+		shotGlow = Color3.fromRGB(255, 255, 255),
 	},
 	StormglassBlade = {
 		-- `stormglass blade arena 3`, held as the TimberBlade is, playing its kit until it has its own

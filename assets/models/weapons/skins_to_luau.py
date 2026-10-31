@@ -148,8 +148,14 @@ def entry(imports, key, cls, name, projectile, glow, tier=None) -> str:
     if tier == 5:
         out.append("\t\trainbow = true,")
     # Legendary and Mythic shots glow too (owner, 2026-10-25), in the
-    # weapon's glow colour; a Mythic's turns round the rainbow.
-    if tier >= 4 and projectile:
+    # weapon's glow colour; a Mythic's turns round the rainbow. A skin with
+    # no projectile of its own still fires its base's bolt (Config/Weapons
+    # resolves `skin.bolt or base.bolt`), so a staff glows whether or not it
+    # brought a bolt of its own -- the Branch Staff it is skinned on has one.
+    # A bow does not: the Twig Bow draws a `bowString` and no bolt, so a bow
+    # with no arrow of its own has no shot to glow. Nor has a Warden's blade,
+    # which takes `trailGlow` below instead.
+    if tier >= 4 and (projectile or cls == "Arcanist"):
         out.append(f"\t\tshotGlow = {rgb(glow)},")
     # and a Legendary or Mythic blade's swing glows the same way
     if tier >= 4 and cls == "Warden":

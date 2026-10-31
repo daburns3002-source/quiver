@@ -23,12 +23,22 @@ export type Crate = {
 	area: string,
 	name: string,
 	price: number,
+	--[[ Whether the area's weapons can be owned yet. An area is stocked
+	     once its weapons have their 2D icons and the area has a
+	     `Config/Economy` entry to price a Legendary against -- without
+	     both, a crate would pay out a weapon the shop cannot draw and the
+	     store cannot cost. Unstocked areas' weapons are still held and
+	     fought with in the sandbox; they are simply not for sale.
+
+	     `Util/ShopRules.catalog` is the one gate, so the store, the
+	     crates and the gear screen all agree about what exists. ]]
+	stocked: boolean?,
 }
 
 local Shop = {
 	--[[ Areas in order: area 1 is the Mossy Glade (`WeaponStats.area`). ]]
 	crates = {
-		{ area = "MossyGlade", name = "MOSSY GLADE", price = 500 },
+		{ area = "MossyGlade", name = "MOSSY GLADE", price = 500, stocked = true },
 		{ area = "Thornwood", name = "THORNWOOD", price = 1000 },
 		{ area = "DrownedVillage", name = "DROWNED VILLAGE", price = 2000 },
 		{ area = "BogheartCaverns", name = "BOGHEART CAVERNS", price = 4000 },

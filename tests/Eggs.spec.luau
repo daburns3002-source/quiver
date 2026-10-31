@@ -56,15 +56,26 @@ return function(t: TestRunner.Helper)
 		end
 	end)
 
-	t.test("the Thornwood Egg opens once King Bloblin is beaten", function()
-		local egg = EggRules.find("ThornwoodEgg")
-		t.notNil(egg)
-		if egg then
-			t.isFalse(EggRules.open(egg, {}))
-			t.isTrue(EggRules.open(egg, { MossyGlade = true }))
+	--[[ Both eggs are open from the start for now (owner, 2026-10-27: "the
+	     mossy glade egg and thornwood egg should be unlocked for now"), so
+	     what is pinned here is that neither asks for a boss, and that the
+	     gate still works for the egg that takes one up when `unlock` comes
+	     back. ]]
+	t.test("both eggs are open from the start", function()
+		for _, key in { "MossyEgg", "ThornwoodEgg" } do
+			local egg = EggRules.find(key)
+			t.notNil(egg, key)
+			if egg then
+				t.isTrue(EggRules.open(egg, {}), key)
+			end
 		end
-		local first = EggRules.find("MossyEgg")
-		t.isTrue(first ~= nil and EggRules.open(first, {}))
+	end)
+
+	t.test("an egg with an unlock stays shut until its boss is beaten", function()
+		local gated =
+			{ key = "x", name = "X", area = "Thornwood", price = 1, unlock = "MossyGlade" }
+		t.isFalse(EggRules.open(gated :: any, {}))
+		t.isTrue(EggRules.open(gated :: any, { MossyGlade = true }))
 	end)
 
 	t.test("two pet slots, matching the save", function()

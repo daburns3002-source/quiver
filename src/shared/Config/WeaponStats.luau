@@ -107,31 +107,65 @@ local WeaponStats = {
 		},
 
 		--[[ Area 3, the Drowned Village (docs/WEAPONS-DROWNED.md). Tiers read
-		     off Codex's sheets. The three Legendaries carry no `innate` or
-		     `effect` yet: the area's extra effects have not been designed, so
-		     for now they are a plain +40%. Buoy (Rare staff), Eventide (Mythic
-		     bow), Maelstrom (Mythic staff) and Stormglass (Mythic blade) are
-		     designed but not imported, and there is no Uncommon bow at all. ]]
+		     off Codex's sheets; there is no Uncommon bow at all.
+
+		     The area is not stocked yet (`Config/Shop`'s `stocked`), so none
+		     of these can be bought: they have no 2D icons and the area has no
+		     `Config/Economy` entry to price a Legendary against. They are
+		     held and fought with in the sandbox, and the three toll weapons
+		     and three Mythics carry their effects so the ladder is whole when
+		     the area opens.
+
+		     Each effect is a card its own class can draw: a bow's is the
+		     Ranger's, a staff's the Arcanist's, a blade's the Warden's. ]]
 		SlatefinBow = { rarity = "Rare", area = 3 },
 		EelcrestBow = { rarity = "Epic", area = 3 },
-		TollstringBow = { rarity = "Legendary", area = 3 },
+		TollstringBow = {
+			rarity = "Legendary",
+			area = 3,
+			innate = { Ricochet = 1 },
+			effect = "Toll's echo: the shot rings off its mark on to another.",
+		},
 
 		ReedStaff = { rarity = "Uncommon", area = 3 },
 		WellpearlStaff = { rarity = "Epic", area = 3 },
-		TollkeeperStaff = { rarity = "Legendary", area = 3 },
+		TollkeeperStaff = {
+			rarity = "Legendary",
+			area = 3,
+			innate = { TwinCast = 1 },
+			effect = "Keeper's second strike: the bell is rung twice.",
+		},
 
 		TidewoodBlade = { rarity = "Uncommon", area = 3 },
 		TidehookBlade = { rarity = "Rare", area = 3 },
 		CausewayBlade = { rarity = "Epic", area = 3 },
-		TollguardBlade = { rarity = "Legendary", area = 3 },
+		TollguardBlade = {
+			rarity = "Legendary",
+			area = 3,
+			innate = { Parry = 1 },
+			effect = "Guard's answer: a blow turned aside is turned back.",
+		},
 
-		--[[ The four imported 2026-10-31, completing the ladder bar the
-		     Uncommon bow. The Mythics carry no `innate` for the same reason
-		     as the Legendaries: area 3's effects are not designed yet. ]]
+		--[[ The four imported 2026-10-31, completing the ladder. ]]
 		BuoyStaff = { rarity = "Rare", area = 3 },
-		EventideBow = { rarity = "Mythic", area = 3 },
-		MaelstromStaff = { rarity = "Mythic", area = 3 },
-		StormglassBlade = { rarity = "Mythic", area = 3 },
+		EventideBow = {
+			rarity = "Mythic",
+			area = 3,
+			innate = { SoulChain = 1 },
+			effect = "Eventide: a drowned soul leaps from the dead to the living.",
+		},
+		MaelstromStaff = {
+			rarity = "Mythic",
+			area = 3,
+			innate = { Meteor = 1 },
+			effect = "Maelstrom: the sea falls in where the spell lands.",
+		},
+		StormglassBlade = {
+			rarity = "Mythic",
+			area = 3,
+			innate = { Execute = 1 },
+			effect = "Stormglass: a wounded enemy is sheared clean through.",
+		},
 	} :: { [string]: Stats },
 }
 

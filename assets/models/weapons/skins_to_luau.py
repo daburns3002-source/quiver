@@ -17,10 +17,12 @@ with the base weapon's animations (`kit`) until it has its own kit.
 """
 import json
 import pathlib
+import re
 
 HERE = pathlib.Path(__file__).parent
 ROOT = HERE.parents[2]
 IMPORTS = HERE / "blocky" / "forest" / "skin_imports.json"
+DROWNED_IMPORTS = HERE / "blocky" / "drowned" / "skin_imports.json"
 WEAPONS = ROOT / "src" / "shared" / "Config" / "Weapons.luau"
 SANDBOX = ROOT / "src" / "shared" / "Config" / "Sandbox.luau"
 BEGIN = "-- SKINS BEGIN (assets/models/weapons/skins_to_luau.py; regenerate, never hand-edit)\n"
@@ -51,6 +53,25 @@ SKINS = [
     ("EmberfangBlade", "EMBERFANG BLADE", "Warden", "blade_4legendary_emberfang_blade", None, (253, 127, 53)),
     ("GladeheartBlade", "GLADEHEART BLADE", "Warden", "blade_5mythic_gladeheart_blade", None, (222, 190, 243)),
 ]
+# Area 3, the Drowned Village. Tripo imports, so the name carries no tier and
+# each states it (docs/WEAPONS-DROWNED.md, read off Codex's sheets). Four of
+# the fourteen designed are not in Studio yet: Buoy, Eventide, Maelstrom and
+# Stormglass. No projectiles imported, so none has a bolt.
+# key, label, class, import, projectile, glow colour, tier
+DROWNED = [
+    ("ReedStaff", "REED STAFF", "Arcanist", "reed staff arena 3", None, None, 1),
+    ("TidewoodBlade", "TIDEWOOD BLADE", "Warden", "tidewood blade arena 3", None, None, 1),
+    ("SlatefinBow", "SLATEFIN BOW", "Ranger", "slatefin bow arena 3", None, None, 2),
+    ("TidehookBlade", "TIDEHOOK BLADE", "Warden", "tidehook blade arena 3", None, None, 2),
+    ("EelcrestBow", "EELCREST BOW", "Ranger", "eelcrest bow arena 3", None, None, 3),
+    ("WellpearlStaff", "WELLPEARL STAFF", "Arcanist", "wellpearl staff arena 3", None, None, 3),
+    ("CausewayBlade", "CAUSEWAY BLADE", "Warden", "causeway blade arena 3", None, None, 3),
+    ("TollstringBow", "TOLLSTRING BOW", "Ranger", "tollstring bow arena 3", None, None, 4),
+    ("TollkeeperStaff", "TOLLKEEPER STAFF", "Arcanist", "tollkeeper staff arena 3", None, None, 4),
+    # `sunken bell sword arena 3` is the Tollguard Blade under its working
+    # name (owner, 2026-10-30).
+    ("TollguardBlade", "TOLLGUARD BLADE", "Warden", "sunken bell sword arena 3", None, None, 4),
+]
 GLOWS = ("Gems", "Glow")
 # Epics and up always glow (owner, 2026-10-24); one with no colour of its own
 # glows white, and a Mythic cycles its glow through the rainbow (Fx/WeaponGlow).
@@ -75,10 +96,11 @@ def rgb(c) -> str:
     return f"Color3.fromRGB({c[0]}, {c[1]}, {c[2]})"
 
 
-def entry(imports, key, cls, name, projectile, glow) -> str:
+def entry(imports, key, cls, name, projectile, glow, tier=None) -> str:
     base = BASES[cls]
     model = imports[name]
-    if rarity(name) >= 3 and not glow:
+    tier = tier if tier is not None else rarity(name)
+    if tier >= 3 and not glow:
         glow = WHITE
     length = model["size"][1]
     # the grip, up the length from the bottom, in the model's centred frame
@@ -100,19 +122,22 @@ def entry(imports, key, cls, name, projectile, glow) -> str:
         out.append(f"\t\t\t\tsize = {vec(part['size'])},")
         out.append(f"\t\t\t\toffset = {vec(offset)},")
         out.append("\t\t\t\tturned = true,")
+        # A Tripo model carries its colours in a texture, not its vertices.
+        if part.get("textureId"):
+            out.append(f'\t\t\t\ttextureId = "{part["textureId"]}",')
         if part["name"] in GLOWS and glow:
             out.append("\t\t\t\tglow = true,")
             out.append(f"\t\t\t\tcolour = {rgb(glow)},")
         out.append("\t\t\t},")
     out.append("\t\t} :: { WeaponPart },")
-    if rarity(name) == 5:
+    if tier == 5:
         out.append("\t\trainbow = true,")
     # Legendary and Mythic shots glow too (owner, 2026-10-25), in the
     # weapon's glow colour; a Mythic's turns round the rainbow.
-    if rarity(name) >= 4 and projectile:
+    if tier >= 4 and projectile:
         out.append(f"\t\tshotGlow = {rgb(glow)},")
     # and a Legendary or Mythic blade's swing glows the same way
-    if rarity(name) >= 4 and cls == "Warden":
+    if tier >= 4 and cls == "Warden":
         out.append(f"\t\ttrailGlow = {rgb(glow)},")
     if projectile:
         shot = imports[projectile]
@@ -130,7 +155,9 @@ def splice(path: pathlib.Path, block: str, anchor: str):
     if BEGIN in text:
         a = text.index(BEGIN)
         b = text.index(END, a) + len(END)
-        text = text[:a] + BEGIN + block + END + text[b:]
+        head = text[:a]
+        indent = head[head.rfind(chr(10)) + 1 :]
+        text = text[:a] + BEGIN + block + indent + END + text[b:]
     else:
         i = text.index(anchor)
         text = text[:i] + BEGIN + block + END + text[i:]
@@ -139,11 +166,14 @@ def splice(path: pathlib.Path, block: str, anchor: str):
 
 def main():
     imports = json.loads(IMPORTS.read_text(encoding="utf-8"))
-    skins = "\n".join(entry(imports, k, c, n, p, g) for k, _, c, n, p, g in SKINS) + "\n"
+    drowned = json.loads(DROWNED_IMPORTS.read_text(encoding="utf-8"))
+    rows = [(imports, k, c, n, p, g, None) for k, _, c, n, p, g in SKINS]
+    rows += [(drowned, k, c, n, p, g, t) for k, _, c, n, p, g, t in DROWNED]
+    skins = chr(10).join(entry(*r) for r in rows) + chr(10)
     splice(WEAPONS, skins, "\t--[[ SKINS GO HERE ]]\n")
-    menu = "".join(f'\t\t{{ weapon = "{k}", class = "{c}", label = "{l}" }},\n' for k, l, c, _, _, _ in SKINS)
+    menu = "".join(f'\t\t{{ weapon = "{k}", class = "{c}", label = "{l}" }},\n' for k, l, c, *_ in SKINS + DROWNED)
     splice(SANDBOX, menu, "\t\t--[[ SKINS GO HERE ]]\n")
-    print(f"wrote {len(SKINS)} skins")
+    print(f"wrote {len(rows)} skins")
 
 
 if __name__ == "__main__":

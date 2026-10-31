@@ -79,6 +79,16 @@ local Sandbox = {
 		{ weapon = "BroodsplitBlade", class = "Warden", label = "BROODSPLIT BLADE" },
 		{ weapon = "EmberfangBlade", class = "Warden", label = "EMBERFANG BLADE" },
 		{ weapon = "GladeheartBlade", class = "Warden", label = "GLADEHEART BLADE" },
+		{ weapon = "ReedStaff", class = "Arcanist", label = "REED STAFF" },
+		{ weapon = "TidewoodBlade", class = "Warden", label = "TIDEWOOD BLADE" },
+		{ weapon = "SlatefinBow", class = "Ranger", label = "SLATEFIN BOW" },
+		{ weapon = "TidehookBlade", class = "Warden", label = "TIDEHOOK BLADE" },
+		{ weapon = "EelcrestBow", class = "Ranger", label = "EELCREST BOW" },
+		{ weapon = "WellpearlStaff", class = "Arcanist", label = "WELLPEARL STAFF" },
+		{ weapon = "CausewayBlade", class = "Warden", label = "CAUSEWAY BLADE" },
+		{ weapon = "TollstringBow", class = "Ranger", label = "TOLLSTRING BOW" },
+		{ weapon = "TollkeeperStaff", class = "Arcanist", label = "TOLLKEEPER STAFF" },
+		{ weapon = "TollguardBlade", class = "Warden", label = "TOLLGUARD BLADE" },
 		-- SKINS END
 	} :: { Entry },
 

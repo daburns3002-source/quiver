@@ -785,6 +785,167 @@ local skins: { [string]: any } = {
 		rainbow = true,
 		trailGlow = Color3.fromRGB(222, 190, 243),
 	},
+	ReedStaff = {
+		-- `reed staff arena 3`, held as the BranchStaff is, playing its kit until it has its own
+		kit = "BranchStaff",
+		skinOf = "BranchStaff",
+		scale = 4.4902,
+		parts = {
+			{
+				name = "Staff",
+				meshId = "rbxassetid://132803148374860",
+				size = Vector3.new(0.2837, 0.9995, 0.2847),
+				offset = Vector3.new(0, 0.07, 0),
+				turned = true,
+				textureId = "rbxassetid://116611356053754",
+			},
+		} :: { WeaponPart },
+	},
+	TidewoodBlade = {
+		-- `tidewood blade arena 3`, held as the TimberBlade is, playing its kit until it has its own
+		kit = "TimberBlade",
+		skinOf = "TimberBlade",
+		scale = 4.7904,
+		parts = {
+			{
+				name = "Blade",
+				meshId = "rbxassetid://101080327527177",
+				size = Vector3.new(0.4097, 0.9995, 0.1284),
+				offset = Vector3.new(0, 0.2459, 0),
+				turned = true,
+				textureId = "rbxassetid://82801723110398",
+			},
+		} :: { WeaponPart },
+	},
+	SlatefinBow = {
+		-- `slatefin bow arena 3`, held as the TwigBow is, playing its kit until it has its own
+		kit = "TwigBow",
+		skinOf = "TwigBow",
+		scale = 4.2501,
+		parts = {
+			{
+				name = "Bow",
+				meshId = "rbxassetid://72959352581083",
+				size = Vector3.new(0.104, 0.9995, 0.4927),
+				offset = Vector3.new(0, 0, 0),
+				turned = true,
+				textureId = "rbxassetid://95094493478746",
+			},
+		} :: { WeaponPart },
+	},
+	TidehookBlade = {
+		-- `tidehook blade arena 3`, held as the TimberBlade is, playing its kit until it has its own
+		kit = "TimberBlade",
+		skinOf = "TimberBlade",
+		scale = 4.7904,
+		parts = {
+			{
+				name = "Blade",
+				meshId = "rbxassetid://109253908479186",
+				size = Vector3.new(0.4624, 0.9995, 0.1528),
+				offset = Vector3.new(0, 0.2459, 0),
+				turned = true,
+				textureId = "rbxassetid://110272759853929",
+			},
+		} :: { WeaponPart },
+	},
+	EelcrestBow = {
+		-- `eelcrest bow arena 3`, held as the TwigBow is, playing its kit until it has its own
+		kit = "TwigBow",
+		skinOf = "TwigBow",
+		scale = 4.2501,
+		parts = {
+			{
+				name = "Bow",
+				meshId = "rbxassetid://79795647768703",
+				size = Vector3.new(0.3394, 0.9995, 0.1313),
+				offset = Vector3.new(0, 0, 0),
+				turned = true,
+				textureId = "rbxassetid://138309091162872",
+			},
+		} :: { WeaponPart },
+	},
+	WellpearlStaff = {
+		-- `wellpearl staff arena 3`, held as the BranchStaff is, playing its kit until it has its own
+		kit = "BranchStaff",
+		skinOf = "BranchStaff",
+		scale = 4.4902,
+		parts = {
+			{
+				name = "Staff",
+				meshId = "rbxassetid://130258670765972",
+				size = Vector3.new(0.2358, 0.9995, 0.2114),
+				offset = Vector3.new(0, 0.07, 0),
+				turned = true,
+				textureId = "rbxassetid://78141638311419",
+			},
+		} :: { WeaponPart },
+	},
+	CausewayBlade = {
+		-- `causeway blade arena 3`, held as the TimberBlade is, playing its kit until it has its own
+		kit = "TimberBlade",
+		skinOf = "TimberBlade",
+		scale = 4.7904,
+		parts = {
+			{
+				name = "Blade",
+				meshId = "rbxassetid://102479967632985",
+				size = Vector3.new(0.3911, 0.9995, 0.1528),
+				offset = Vector3.new(0, 0.2459, 0),
+				turned = true,
+				textureId = "rbxassetid://77605466340843",
+			},
+		} :: { WeaponPart },
+	},
+	TollstringBow = {
+		-- `tollstring bow arena 3`, held as the TwigBow is, playing its kit until it has its own
+		kit = "TwigBow",
+		skinOf = "TwigBow",
+		scale = 4.2501,
+		parts = {
+			{
+				name = "Bow",
+				meshId = "rbxassetid://70803920000312",
+				size = Vector3.new(0.4771, 0.9995, 0.1694),
+				offset = Vector3.new(0, 0, 0),
+				turned = true,
+				textureId = "rbxassetid://87111981155450",
+			},
+		} :: { WeaponPart },
+	},
+	TollkeeperStaff = {
+		-- `tollkeeper staff arena 3`, held as the BranchStaff is, playing its kit until it has its own
+		kit = "BranchStaff",
+		skinOf = "BranchStaff",
+		scale = 4.4902,
+		parts = {
+			{
+				name = "Staff",
+				meshId = "rbxassetid://126230765318311",
+				size = Vector3.new(0.2739, 0.9995, 0.1216),
+				offset = Vector3.new(0, 0.07, 0),
+				turned = true,
+				textureId = "rbxassetid://131973326076494",
+			},
+		} :: { WeaponPart },
+	},
+	TollguardBlade = {
+		-- `sunken bell sword arena 3`, held as the TimberBlade is, playing its kit until it has its own
+		kit = "TimberBlade",
+		skinOf = "TimberBlade",
+		scale = 4.7904,
+		parts = {
+			{
+				name = "Blade",
+				meshId = "rbxassetid://79270724349699",
+				size = Vector3.new(0.3394, 0.9995, 0.1724),
+				offset = Vector3.new(0, 0.2459, 0),
+				turned = true,
+				textureId = "rbxassetid://78360244322797",
+			},
+		} :: { WeaponPart },
+		trailGlow = Color3.fromRGB(255, 255, 255),
+	},
 	-- SKINS END
 }
 for key, skin in skins do

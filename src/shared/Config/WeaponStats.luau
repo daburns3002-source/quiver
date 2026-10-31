@@ -44,7 +44,12 @@ local WeaponStats = {
 
 	--[[ Each area's weapons against its enemies' health, the first area's
 	     being 1. ]]
-	areaScale = { 1, 1.125 } :: { number },
+	--[[ Area 3's 1.25 is provisional: the Drowned Village has no stages in
+	     `Balance.Stages` yet, so there is no enemy health to divide by. It
+	     follows the step area 1 to 2 made (0.8 to 0.9 health, 1 to 1.125) on
+	     the assumption area 3 lands near 1.0, and should be re-derived once
+	     its stages exist. ]]
+	areaScale = { 1, 1.125, 1.25 } :: { number },
 
 	weapons = {
 		-- The classes' own (area 1, Common).
@@ -100,6 +105,25 @@ local WeaponStats = {
 			innate = { Whirlwind = 1 },
 			effect = "Heartwood whirl: every fourth swing spins all around you.",
 		},
+
+		--[[ Area 3, the Drowned Village (docs/WEAPONS-DROWNED.md). Tiers read
+		     off Codex's sheets. The three Legendaries carry no `innate` or
+		     `effect` yet: the area's extra effects have not been designed, so
+		     for now they are a plain +40%. Buoy (Rare staff), Eventide (Mythic
+		     bow), Maelstrom (Mythic staff) and Stormglass (Mythic blade) are
+		     designed but not imported, and there is no Uncommon bow at all. ]]
+		SlatefinBow = { rarity = "Rare", area = 3 },
+		EelcrestBow = { rarity = "Epic", area = 3 },
+		TollstringBow = { rarity = "Legendary", area = 3 },
+
+		ReedStaff = { rarity = "Uncommon", area = 3 },
+		WellpearlStaff = { rarity = "Epic", area = 3 },
+		TollkeeperStaff = { rarity = "Legendary", area = 3 },
+
+		TidewoodBlade = { rarity = "Uncommon", area = 3 },
+		TidehookBlade = { rarity = "Rare", area = 3 },
+		CausewayBlade = { rarity = "Epic", area = 3 },
+		TollguardBlade = { rarity = "Legendary", area = 3 },
 	} :: { [string]: Stats },
 }
 

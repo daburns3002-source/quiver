@@ -166,14 +166,15 @@ function Waves.floorDrafts(floor: number): boolean
 end
 
 --[[ The curve at `floor`, as multipliers on the area's own values,
-     compounding from floor 1 (so floor 1 is 1 and 1). Health grows faster
-     than damage on purpose — see `Balance.Endless`. ]]
+     compounding from floor 1. Health starts below the area's own
+     (`Endless.healthStart`) and climbs faster than damage, which starts at
+     the same place — see `Balance.Endless`. ]]
 function Waves.floorCurve(floor: number): { health: number, damage: number }
 	local schedule = Balance.Endless
 	local steps = floor - 1
 	return {
-		health = schedule.health ^ steps,
-		damage = schedule.damage ^ steps,
+		health = schedule.healthStart * schedule.health ^ steps,
+		damage = schedule.damageStart * schedule.damage ^ steps,
 	}
 end
 

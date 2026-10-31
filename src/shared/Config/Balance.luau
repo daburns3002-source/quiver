@@ -3980,7 +3980,28 @@ local Balance = {
 			These two numbers are the whole difficulty of the mode. Retune
 			them from measured runs, never from feel.
 		]]
-		health = 1.045,
+		--[[ `healthStart` is where floor 1 sits against the area's own health,
+		     and `health` the rate from there (owner, 2026-10-31: "balance the
+		     health so it starts easier and gets harder").
+
+		     Floor 1 used to be a flat 1.0, which measured badly: it throws five
+		     enemies and 2,040 health at a level 1 Ranger holding a Twig Bow and
+		     no cards at all. 0.7 gives that opening room to breathe.
+
+		     The rate rises 1.045 to 1.058 to pay for it. The two curves cross
+		     at floor 30, so everything above floor 30 is harder than before and
+		     everything below is easier: 1.16x at floor 10 against 1.49x,
+		     6.25x at floor 40 against 5.57x, 11x at floor 50 against 8.64x.
+		     The wall moves in from roughly 45-55 to 42-50.
+
+		     Damage starts at the same 0.7 and keeps its gentler 1.03, so an
+		     opening floor hits softer as well as dying faster, and health
+		     still outgrows damage at every depth. Starting health below damage
+		     would invert that — enemies that delete you without warning are a
+		     worse game than enemies that take a while. ]]
+		healthStart = 0.7,
+		damageStart = 0.7,
+		health = 1.058,
 		damage = 1.03,
 
 		--[[ The enemy-count ramp off the area's own count: one more every

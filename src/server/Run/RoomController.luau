@@ -1008,6 +1008,20 @@ local function nextLevel(index: number): (number?, boolean)
 	return nil, false
 end
 
+--[[ Leave the run for the lobby (`Remotes.RunLobby`). Unlike `toLobby`'s
+     other callers -- the tutorial ending, an area's last level -- this one
+     is the player giving up, so nothing is credited: no `beatLevel`, no
+     payout, and the stage is not marked beaten. Refused when there is no
+     run to leave. ]]
+function RoomController.requestLobby(): boolean
+	if state == "Lobby" or sandbox then
+		return false
+	end
+	toLobby()
+	log.info("left the run for the lobby")
+	return true
+end
+
 function RoomController.requestRestart(): boolean
 	if not RoomController.isOver() then
 		return false

@@ -459,6 +459,15 @@ Remotes.event(Remotes.RunRestart).OnServerEvent:Connect(function(player)
 	end
 end)
 
+--[[ BACK TO LOBBY, from the HUD mid-room or an end screen. Only a player in
+     the run may ask, and `requestLobby` refuses unless there is a run to
+     leave. Nothing is credited: leaving is giving up, not winning. ]]
+Remotes.event(Remotes.RunLobby).OnServerEvent:Connect(function(player)
+	if RunSession.get(player) then
+		RoomController.requestLobby()
+	end
+end)
+
 --[[ The intro's BEGIN ADVENTURE: this player has left the title screen.
      It can only clear the hold, never set one, so a repeat changes nothing. ]]
 Remotes.event(Remotes.IntroBegin).OnServerEvent:Connect(function(player)

@@ -122,6 +122,14 @@ Remotes.RunSummary = "RunSummary"
 ]]
 Remotes.RunRestart = "RunRestart"
 
+--[[ Leave the run and go back to the lobby, from the HUD mid-room or from
+     an end screen (owner, 2026-10-29: "there needs to be a back to lobby
+     button ... while you are mid room and also on the defeat and victory
+     screens"). The server decides: `RoomController.requestLobby` refuses
+     unless the asker is in a run that is not already the lobby. Abandoning
+     a run keeps nothing -- the stage is not counted beaten. ]]
+Remotes.RunLobby = "RunLobby"
+
 --[[
 	Server → one client. That player's saved profile changed (coins, gems,
 	boss items, weapons owned, the one equipped): the whole profile, for

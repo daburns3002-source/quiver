@@ -940,6 +940,17 @@ function RunSession.bindCharacter(session: Session, character: Model)
 	local root = character:WaitForChild("HumanoidRootPart", 10) :: BasePart?
 
 	if not humanoid or not root then
+		--[[ A character that was swapped out while we waited is not a failure.
+		     The title hold and the class screen both replace the body before
+		     the player reaches the lobby, and `WaitForChild` on a model that
+		     has left the DataModel only ever times out. The next
+		     `CharacterAdded` binds the real one, so only a character still
+		     standing as the player's own is worth warning about — warning on
+		     the rest sends whoever reads the log chasing a bug that is not
+		     there (owner's playtest, 2026-10-30). ]]
+		if character.Parent == nil or session.player.Character ~= character then
+			return
+		end
 		log.warn("character for %s never produced a Humanoid/root", session.player.Name)
 		return
 	end

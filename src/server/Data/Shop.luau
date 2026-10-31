@@ -168,6 +168,11 @@ local function chooseClass(player: Player, class: unknown, look: unknown)
 	if not starter or not Wallet.owns(player, starter) then
 		return
 	end
+	--[[ The look is remembered, not worn. The player keeps their own Roblox
+	     avatar in game (owner, 2026-10-30: "own avatar is fine"), so there are
+	     no class bodies to build and nothing applies this to the character.
+	     `look` is read in one place only — `UI/ClassScreen`, to decide whether
+	     the class screen has already been answered. ]]
 	Wallet.setLook(player, look)
 	Wallet.equip(player, starter)
 	if RoomController.inLobby() then

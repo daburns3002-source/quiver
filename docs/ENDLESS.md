@@ -113,6 +113,20 @@ list in `Balance.Endless`, drawn in order so a run is reproducible.
 Bosses on boss floors are the areas' own bosses, which is already how `StageConfig.finale`
 works.
 
+**How many of them is the area's own ramp** (`Balance.EndlessArea.bossByLap`, owner 2026-10-28:
+"for level 30 and 50 and on every time he appears in endless it should be 2 king bloblins"):
+a list by lap, its last entry carrying on for every deeper lap. Mossy Glade's `{ 1, 2 }` is one
+King Bloblin at floor 10 and **two** at 30, 50, 70 and deeper; Thornwood has none, so the
+Broodmother is always alone. By lap and not by floor, so "the second time this area comes
+round" still means that when a third area joins the rotation and a lap stops being twenty
+floors. Nothing else ever changes a boss floor's count — not the depth ramp, not the count
+bonus — because a second king is not a harder fight, it is a different one.
+
+Two bosses get **one boss bar each**, stacked, under one title reading "SLIME KING ×2"
+(`UI/BossBar`): a single combined bar would have to show the pair's total health, and then its
+thirds would mark nothing, since the pair crossing two thirds of their combined health is not
+when either king summons his slimes.
+
 ---
 
 ## Rewards

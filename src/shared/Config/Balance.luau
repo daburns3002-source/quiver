@@ -278,15 +278,31 @@ export type EnemyBoss = {
 	     and a web splat (`Fx/BroodWebFx`) in place of the Slime King's
 	     slime, and no goo. ]]
 	web: boolean?,
-	--[[ After every `every`th move she plays `clip` for `windup` seconds,
-	     then `count` of `into` drop round her. ]]
+	--[[ It plays `clip` for `windup` seconds, then `count` of `into` drop
+	     round it — on a move count (`every`, the Broodmother's clutches) or
+	     as its health falls through fractions of its max (`atFractions`,
+	     King Bloblin's thirds). ]]
 	summon: BossSummon?,
 }
 
 export type BossSummon = {
 	into: EnemyConfig,
 	count: number,
-	every: number,
+	--[[ After every `every`th move finished. Nil for a summon driven by
+	     health instead. ]]
+	every: number?,
+	--[[
+		Fractions of max health: the summon is owed each time the boss's
+		health falls through one of these, exactly once each per boss
+		(`Util/BossThresholds`, `Enemies/EnemyManager`). Order does not
+		matter and the boss bar segments itself from the count
+		(`UI/BossBar`, drawing only).
+
+		A blow that crosses two at once owes both, so it drops `count` per
+		crossing: `EnemyManager` banks the crossings rather than the fact of
+		one.
+	]]
+	atFractions: { number }?,
 	clip: string,
 	windup: number,
 }
@@ -691,6 +707,35 @@ local slimeKing: EnemyConfig = {
 		restAfterBounce = 1.5,
 		restAfterLash = 1,
 		opening = 1,
+		--[[
+			**Two Brood Slimes at each third of his health** (owner,
+			2026-10-28): the bar is segmented in thirds so the next
+			threshold is visible coming (`UI/BossBar`), and he crosses
+			2/3 and 1/3 once each per fight.
+
+			`Attack` is the one clip of his 22 that the fight did not
+			already use, which is exactly why it is the right one: his
+			lash wind-ups have been teaching the player all fight that an
+			arm going up means a lash down a lane, and borrowing one for a
+			summon would lie to them. 1.5 s of wind-up, so its 3 s of
+			motion plays at double pace (`ModelClipSpan`) rather than the
+			3x a shorter beat would need, and so two slimes landing is
+			warned of as plainly as a slam is.
+
+			The Brood Slime is the glade's elite, which splits into four
+			Baby Slimes on death: two of them at a third is a real turn in
+			the fight without burying the arena.
+		]]
+		--[[ Cast, like the Endless lists below: a nested literal that
+		     leaves an optional field out is not *exactly* its type, and the
+		     type checker holds a table property to exactly. ]]
+		summon = {
+			into = broodSlime,
+			count = 2,
+			atFractions = { 2 / 3, 1 / 3 },
+			clip = "Attack",
+			windup = 1.5,
+		} :: BossSummon,
 		--[[ King Bloblin's 22 clips (the owner's King Bloblin Fight,
 		     2026-10-24), on the beats of the moves above. The wind-up plays
 		     across tracking and the lock; the chest bump across the lean and
@@ -1017,7 +1062,13 @@ local broodmother: EnemyConfig = {
 		web = true,
 		--[[ Her clutch (owner, 2026-10-25): after every second move, three
 		     Thornlings drop round her as she plays Summon. ]]
-		summon = { into = thornling, count = 3, every = 2, clip = "Summon", windup = 1.1 },
+		summon = {
+			into = thornling,
+			count = 3,
+			every = 2,
+			clip = "Summon",
+			windup = 1.1,
+		} :: BossSummon,
 		clips = {
 			idle = "Idle",
 			Bounce = {
@@ -1119,6 +1170,17 @@ export type EndlessArea = {
 	miniBoss: WaveFight,
 	--[[ Every 10th floor: the area's own boss. ]]
 	boss: WaveFight,
+	--[[
+		How many of `boss` a boss floor fights, by lap: entry `n` is lap
+		`n` and the last entry carries on for every deeper lap. Nil for an
+		area whose boss floors always fight `boss.enemyCount`.
+
+		Mossy Glade's `{ 1, 2 }` is the owner's "for level 30 and 50 and on
+		every time he appears in endless it should be 2 king bloblins"
+		(2026-10-28): one king at floor 10, two at 30, 50, 70 and deeper.
+		Two from floor 10 on is `{ 2 }`.
+	]]
+	bossByLap: { number }?,
 }
 
 --[[
@@ -4009,6 +4071,8 @@ local Balance = {
 					roster = { broodSlime, broodSlime, spreadShooter },
 				},
 				boss = { enemyCount = 1, roster = { slimeKing } },
+				-- one king on floor 10, two from floor 30 (`bossByLap`)
+				bossByLap = { 1, 2 },
 			},
 			{
 				name = "Thornwood",

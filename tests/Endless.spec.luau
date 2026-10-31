@@ -180,18 +180,60 @@ return function(t: TestRunner.Helper)
 		end
 	end)
 
-	t.test("a boss floor fights the area's own boss, alone and unramped", function()
+	t.test("a boss floor fights the area's own boss, with no count bonus", function()
 		for _, floor in { 10, 20, 30, 200 } do
 			local area = Balance.Endless.areas[Waves.floorArea(floor)]
 			local description = Waves.describeFloor(floor)
 			t.equal(description.kind, "Boss")
+			--[[ The depth ramp and the count bonus never touch a boss floor;
+			     the area's own `bossByLap` is the only thing that says how
+			     many there are. ]]
 			t.equal(
 				description.count,
-				area.boss.enemyCount,
+				Waves.floorBossCount(floor),
 				`floor {floor}'s boss was given the count ramp`
 			)
 			t.isTrue(description.roster[1] == area.boss.roster[1])
 			t.notNil(area.boss.roster[1].boss, `floor {floor}'s boss is not a boss`)
+		end
+	end)
+
+	--[[
+		The owner's "for level 30 and 50 and on every time he appears in
+		endless it should be 2 king bloblins" (2026-10-28), read as a ramp:
+		floor 10 keeps one king, and every glade boss floor from 30 down
+		fights two. By lap rather than by floor, so it still means "the
+		second time the glade comes round" when a third area joins the
+		rotation (`Balance.EndlessArea.bossByLap`).
+	]]
+	t.test("the glade's boss floors ramp to two King Bloblins from floor 30", function()
+		local glade = Balance.Endless.areas[1]
+		t.equal(glade.name, "Mossy Glade", "the rotation no longer opens in the glade")
+		t.notNil(glade.bossByLap, "the glade's boss floors do not ramp")
+
+		t.equal(Waves.describeFloor(10).count, 1, "floor 10 fights more than one king")
+		for _, floor in { 30, 50, 70, 90, 190 } do
+			t.equal(Waves.floorArea(floor), 1, `floor {floor} is not a glade floor`)
+			local description = Waves.describeFloor(floor)
+			t.equal(description.kind, "Boss")
+			t.equal(description.count, 2, `floor {floor} does not fight two kings`)
+			--[[ A roster of one, cycled: two of the same body, which is
+			     what `EnemyManager.spawnWave` makes of it. ]]
+			t.equal(#description.roster, 1)
+			t.isTrue(description.roster[1] == glade.boss.roster[1])
+		end
+	end)
+
+	t.test("an area with no ramp fights one boss however deep it is", function()
+		local thornwood = Balance.Endless.areas[2]
+		t.isNil(thornwood.bossByLap, "Thornwood's boss floors ramp")
+		for _, floor in { 20, 40, 60, 200 } do
+			t.equal(Waves.floorArea(floor), 2, `floor {floor} is not a Thornwood floor`)
+			t.equal(
+				Waves.describeFloor(floor).count,
+				thornwood.boss.enemyCount,
+				`floor {floor} does not fight one Broodmother`
+			)
 		end
 	end)
 

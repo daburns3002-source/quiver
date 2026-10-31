@@ -46,6 +46,25 @@ Lash (an arm down a locked lane that grabs, pulls and chest-bumps), in
 place of the Royal Hop and Divided Court below. He is alone in Level 1's
 room 10. Numbers in `Balance` (`slimeKing`); code in
 `src/server/Enemies/BossMoves.luau` and `BossBody.luau`.
+
+**His health in thirds, and two Brood Slimes at each** (owner, 2026-10-28):
+his boss bar is divided into three equal parts, and each time his health
+falls through a third — 2/3 and 1/3 — he plays his `Attack` clip for 1.5 s
+and **two Brood Slimes** drop beside him. The thresholds are data
+(`BossSummon.atFractions`, counted by `Util/BossThresholds`) and not a branch
+on his name, so any later boss gets them by writing fractions in `Balance`;
+the segments the bar draws come from a `HealthSegments` attribute the server
+publishes and are presentation only. Each threshold is owed exactly once per
+king, however the damage lands, and **a single blow that crosses both owes
+both** — four slimes at once from a 70%-to-30% hit. A killing blow owes
+nothing. The clutch waits if he is mid-slam and drops when he is next
+standing.
+
+**Two of him, on Endless's deeper glade boss floors** (owner, 2026-10-28,
+`docs/ENDLESS.md`): Endless floor 10 fights one king, floors 30, 50, 70 and
+deeper fight two, which is the glade area's own `bossByLap` ramp and nothing
+in the fight itself. Each king keeps his own thirds and his own clutches, and
+each gets his own bar.
 *A huge moss slime wearing a tiny crown.* The tutorial boss: one idea, shown
 clearly.
 

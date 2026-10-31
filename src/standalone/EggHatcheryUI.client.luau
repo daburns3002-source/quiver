@@ -31,13 +31,21 @@ local function text(p, s, x, y, w, h, size, c, z)
 	t.Position = UDim2.fromOffset(x, y)
 	t.Size = UDim2.fromOffset(w, h)
 	t.Text = s
-	t.Font = Enum.Font.GothamBold
+	--[[ Press Start 2P, like every other word on screen (CLAUDE.md rule
+	     11). It is far wider than the Gotham this was drawn against, so
+	     each label is scaled to fit its own box and capped at the size it
+	     was laid out for: it may shrink to stay inside, never grow. ]]
+	t.Font = Enum.Font.Arcade
 	t.TextSize = size
+	t.TextScaled = true
 	t.TextColor3 = c or WHITE
 	t.TextXAlignment = Enum.TextXAlignment.Center
 	t.TextYAlignment = Enum.TextYAlignment.Center
 	t.ZIndex = z or 10
 	t.Parent = p
+	local cap = Instance.new("UITextSizeConstraint")
+	cap.MaxTextSize = size
+	cap.Parent = t
 	local st = Instance.new("UIStroke")
 	st.Color = INK
 	st.Thickness = size >= 30 and 1.5 or 0.8
@@ -669,12 +677,11 @@ for i = 1, #keys do
 	card.AnchorPoint = Vector2.new(0.5, 0.5)
 	card.Position = UDim2.fromOffset(102, 106)
 	local glow = {}
-	-- selene: allow(shadowing)
-	for layer = 1, 3 do
-		local spread = ({ 7, 4, 2 })[layer]
+	for ring = 1, 3 do
+		local spread = ({ 7, 4, 2 })[ring]
 		local g = frame(
 			slot,
-			"RarityGlow" .. i .. "Layer" .. layer,
+			"RarityGlow" .. i .. "Layer" .. ring,
 			-spread,
 			-spread,
 			204 + spread * 2,
@@ -690,8 +697,8 @@ for i = 1, #keys do
 		stroke.Name = "SolidHalo"
 		stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 		stroke.LineJoinMode = Enum.LineJoinMode.Round
-		stroke.Thickness = ({ 12, 8, 4 })[layer]
-		stroke.Transparency = ({ 0.9, 0.7, 0.25 })[layer]
+		stroke.Thickness = ({ 12, 8, 4 })[ring]
+		stroke.Transparency = ({ 0.9, 0.7, 0.25 })[ring]
 		stroke.Parent = g
 		local rotation = Instance.new("UIGradient")
 		rotation.Name = "GlowRotation"
@@ -794,7 +801,6 @@ for i = 1, #keys do
 	name.Visible = false
 	local odds = text(card, "—%", 6, 157, 188, 49, 42, Color3.new(1, 1, 1), 32)
 	odds.TextXAlignment = Enum.TextXAlignment.Right
-	odds.Font = Enum.Font.FredokaOne
 	local oddsStroke = odds:FindFirstChildOfClass("UIStroke")
 	oddsStroke.Thickness = 4
 	oddsStroke.Color = INK

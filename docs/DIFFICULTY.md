@@ -172,6 +172,35 @@ where the player has no cards.
 
 ---
 
+## What was actually built (2026-10-31)
+
+**Not the geometric curve above.** Codex's combat pass had already added half of
+this — `CombatTuning.roomHealthPerEncounter`, a linear +2% per encounter applied
+in `EnemyManager.difficulty()` off a `CombatEncounter` workspace attribute that
+`RoomController` already maintains. Adding a second, geometric ramp on top would
+have double-counted, and the owner's standing rule is that Codex's work stays.
+
+So the existing mechanism was extended rather than replaced:
+
+- `roomHealthStart = 0.75` — the missing "starts easier" half. The first
+  encounter now sits below the stage's own number instead of on it.
+- `roomHealthPerEncounter` 0.02 to 0.029, so the end of a 20-wave level still
+  lands at 1.30 despite the lower start.
+- The `area == "MossyGlade"` gate is gone. The flat-difficulty problem was every
+  level's, not one area's.
+- **Bosses keep the stage's own number.** They sit at the end of the ramp, and
+  1-10's King Bloblin at `2.0 x 1.30` would be a 30% buff nobody asked for.
+
+Over a 20-wave level: 0.75 at wave 1, about 1.0 at wave 10, 1.30 at wave 20.
+
+**What this gives up against the design above:** the ramp is linear, not
+front-loaded by `progress ^ 0.5`. The measured card curve says a third of a
+level's cards arrive in its first 10%, so a linear ramp still lags the player
+early and the middle of a level stays its easiest stretch. That is a smaller
+error than it was — the start is 25% lower, which is where the mismatch hurt
+most — but it is not gone. Front-loading is a one-line change to the same
+constant if playtesting says the middle still sags.
+
 ## Where it goes
 
 One hook, already built. `Enemies/EnemyManager.difficulty()` currently returns the stage

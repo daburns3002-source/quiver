@@ -259,11 +259,21 @@ local function difficulty(): { damage: number, health: number, fireRate: number 
 			fireRate = Waves.floorFireRate(floor),
 		}
 	end
+	--[[ The within-level ramp (`Config/CombatTuning`, `docs/DIFFICULTY.md`):
+	     every area now, not only the Mossy Glade, because the flat-difficulty
+	     problem was every level's. A boss keeps the stage's own number: it
+	     sits at the end of the ramp, and 1-10's King Bloblin at 2.0 x 1.30
+	     would be a 30% buff nobody asked for. ]]
 	local healthScale = 1
-	if stage and stage.area == "MossyGlade" and not workspace:GetAttribute("Sandbox") then
+	if stage and not workspace:GetAttribute("Sandbox") then
 		local encounter = workspace:GetAttribute("CombatEncounter")
 		local ordinal = if type(encounter) == "number" then math.max(1, encounter) else 1
-		healthScale += (ordinal - 1) * CombatTuning.roomHealthPerEncounter
+		local total = stage.waves
+		local boss = total ~= nil and Waves.kindIn(stage, ordinal, total) == "Boss"
+		if not boss then
+			healthScale = CombatTuning.roomHealthStart
+				+ (ordinal - 1) * CombatTuning.roomHealthPerEncounter
+		end
 	end
 	return {
 		damage = stage and stage.enemyDamage or 1,

@@ -26,8 +26,8 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Abilities = require(ReplicatedStorage.Shared.Config.Abilities)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
-local CombatTuning = require(ReplicatedStorage.Shared.Config.CombatTuning)
 local Classes = require(ReplicatedStorage.Shared.Config.Classes)
+local CombatTuning = require(ReplicatedStorage.Shared.Config.CombatTuning)
 local ShotPipeline = require(ReplicatedStorage.Shared.Combat.ShotPipeline)
 local Stages = require(ReplicatedStorage.Shared.Combat.Stages)
 local Types = require(ReplicatedStorage.Shared.Types)
@@ -230,28 +230,48 @@ function AbilityEffects.stages(drafted: Counts, class: string?, weapon: string?)
 	--[[ Twin Cast is the Arcanist's Front Arrow: orbs side by side. ]]
 	local front = at(counts, "FrontArrow") + at(counts, "TwinCast")
 	if front > 0 then
-		table.insert(out, Stages.parallel(1 + front, projectile.parallelSpacing, CombatTuning.extraProjectileDamage))
+		table.insert(
+			out,
+			Stages.parallel(
+				1 + front,
+				projectile.parallelSpacing,
+				CombatTuning.extraProjectileDamage
+			)
+		)
 	end
 
 	--[[ After Front Arrow, so a lane is repeated as a lane; and Count, so
 	     every Pattern stage copies the repeats too. ]]
 	local multishot = at(counts, "Multishot")
 	if multishot > 0 then
-		table.insert(out, Stages.repeatVolley(multishot, projectile.multishotInterval, CombatTuning.multishotDamage))
+		table.insert(
+			out,
+			Stages.repeatVolley(
+				multishot,
+				projectile.multishotInterval,
+				CombatTuning.multishotDamage
+			)
+		)
 	end
 
 	--[[ Arcane Echo: the cast again, a moment later, as Multishot repeats
 	     an arrow. ]]
 	local echo = at(counts, "ArcaneEcho")
 	if echo > 0 then
-		table.insert(out, Stages.repeatVolley(echo, projectile.echoInterval, CombatTuning.extraProjectileDamage))
+		table.insert(
+			out,
+			Stages.repeatVolley(echo, projectile.echoInterval, CombatTuning.extraProjectileDamage)
+		)
 	end
 
 	--[[ The narrow fan goes first in Pattern, so the rear, side and
 	     diagonal copies are fans as well. ]]
 	local double = at(counts, "DoubleShot")
 	if double > 0 then
-		table.insert(out, Stages.spread(double, projectile.doubleShotSpread, CombatTuning.extraProjectileDamage))
+		table.insert(
+			out,
+			Stages.spread(double, projectile.doubleShotSpread, CombatTuning.extraProjectileDamage)
+		)
 	end
 
 	local rear = at(counts, "RearArrow")
@@ -279,7 +299,10 @@ function AbilityEffects.stages(drafted: Counts, class: string?, weapon: string?)
 			table.insert(offsets, projectile.wideDiagonalAngle)
 			table.insert(offsets, -projectile.wideDiagonalAngle)
 		end
-		table.insert(out, Stages.mirror("DiagonalArrows", offsets, CombatTuning.extraProjectileDamage))
+		table.insert(
+			out,
+			Stages.mirror("DiagonalArrows", offsets, CombatTuning.extraProjectileDamage)
+		)
 	end
 
 	local pierce = at(counts, "PiercingShot") + at(counts, "SpellPierce")

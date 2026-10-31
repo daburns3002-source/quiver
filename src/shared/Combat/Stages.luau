@@ -48,7 +48,12 @@ function Stages.spread(count: number, angle: number, extraDamageScale: number?):
 				for index = 0, count - 1 do
 					local copy = table.clone(spec)
 					-- Keep one primary projectile; copies inherit reduced damage.
-					copy.damageScale = spec.damageScale * (if index == math.floor((count - 1) / 2) then 1 else extraDamageScale or 1)
+					copy.damageScale = spec.damageScale
+						* (
+							if index == math.floor((count - 1) / 2)
+								then 1
+								else extraDamageScale or 1
+						)
 					copy.angleOffset = spec.angleOffset + first + index * angle
 					table.insert(fanned, copy)
 				end
@@ -404,7 +409,12 @@ function Stages.parallel(count: number, spacing: number, extraDamageScale: numbe
 				for index = 0, count - 1 do
 					local copy = table.clone(spec)
 					-- Keep one primary projectile; copies inherit reduced damage.
-					copy.damageScale = spec.damageScale * (if index == math.floor((count - 1) / 2) then 1 else extraDamageScale or 1)
+					copy.damageScale = spec.damageScale
+						* (
+							if index == math.floor((count - 1) / 2)
+								then 1
+								else extraDamageScale or 1
+						)
 					copy.lateralOffset = spec.lateralOffset + first + index * spacing
 					table.insert(out, copy)
 				end

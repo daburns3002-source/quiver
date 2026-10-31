@@ -3934,11 +3934,21 @@ local Balance = {
 		     enemies and 2,040 health at a level 1 Ranger holding a Twig Bow and
 		     no cards at all. 0.7 gives that opening room to breathe.
 
-		     The rate rises 1.045 to 1.058 to pay for it. The two curves cross
-		     at floor 30, so everything above floor 30 is harder than before and
-		     everything below is easier: 1.16x at floor 10 against 1.49x,
-		     6.25x at floor 40 against 5.57x, 11x at floor 50 against 8.64x.
-		     The wall moves in from roughly 45-55 to 42-50.
+		     The rate is set so that **floor 10 lands exactly on the old curve**
+		     (owner, 2026-10-31: "room 10 should keep the old difficulty and then
+		     scale up from there"), which makes it 1.0872. Floors 1-9 are the
+		     easier opening; floor 10 is 1.49x as it always was; past it the
+		     curve pulls away hard.
+
+		       floor      1     5    10    20    30    40     50
+		       new     0.70  0.98  1.49  3.43  7.92 18.28  42.18
+		       old     1.00  1.19  1.49  2.31  3.58  5.57   8.64
+
+		     **That is a much steeper deep end than before** -- floor 50 is 42x
+		     where it was 8.6x, so the wall comes in from roughly 45-55 to about
+		     25-30 and a run is nearer 13 minutes than 25. Lower this rate if
+		     runs end too soon; floor 10 holding its old value is the fixed
+		     point, not the depth of the wall.
 
 		     Damage starts at the same 0.7 and keeps its gentler 1.03, so an
 		     opening floor hits softer as well as dying faster, and health
@@ -3947,7 +3957,7 @@ local Balance = {
 		     worse game than enemies that take a while. ]]
 		healthStart = 0.7,
 		damageStart = 0.7,
-		health = 1.058,
+		health = 1.0872,
 		damage = 1.03,
 
 		--[[ The enemy-count ramp off the area's own count: one more every

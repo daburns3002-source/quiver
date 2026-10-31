@@ -74,7 +74,7 @@ return function(t: TestRunner.Helper)
 	     from floor 1, health faster than damage on purpose. The numbers the
 	     doc argues for are asserted, not just the shape. ]]
 	t.test("the curve compounds from floor 1, health ahead of damage", function()
-		t.near(Balance.Endless.health, 1.058, 1e-9)
+		t.near(Balance.Endless.health, 1.0872, 1e-9)
 		t.near(Balance.Endless.damage, 1.03, 1e-9)
 		t.near(Balance.Endless.healthStart, 0.7, 1e-9)
 		t.near(Balance.Endless.damageStart, 0.7, 1e-9)
@@ -86,22 +86,17 @@ return function(t: TestRunner.Helper)
 		t.near(first.health, 0.7, 1e-9, "floor 1 is not easier than the area's own")
 		t.near(first.damage, 0.7, 1e-9)
 
-		t.near(Waves.floorCurve(2).health, 0.7 * 1.058, 1e-9)
-		t.near(Waves.floorCurve(11).health, 0.7 * 1.058 ^ 10, 1e-9)
-		t.near(Waves.floorCurve(51).damage, 0.7 * 1.03 ^ 50, 1e-9)
+		--[[ **Floor 10 is the fixed point** (owner, 2026-10-31: "room 10 should
+		     keep the old difficulty and then scale up from there"). The rate
+		     exists to land here, so this is the assertion a retune must not
+		     break. ]]
+		t.near(Waves.floorCurve(10).health, 1.045 ^ 9, 0.005, "floor 10 is off the old curve")
 
-		--[[ The two curves cross at floor 30: shallower than that is easier
-		     than the old flat-start 1.045, deeper is harder. Pinned at both
-		     sides so a retune cannot quietly flatten it. ]]
-		t.near(
-			Waves.floorCurve(30).health,
-			1.045 ^ 29,
-			0.05,
-			"the curves no longer cross at floor 30"
-		)
-		t.isTrue(Waves.floorCurve(10).health < 1.045 ^ 9, "floor 10 is not easier than it was")
-		t.isTrue(Waves.floorCurve(50).health > 1.045 ^ 49, "floor 50 is not harder than it was")
-		t.near(Waves.floorCurve(50).health, 11.09, 0.05, "floor 50 is not about 11x health")
+		--[[ Easier before it, harder after, and sharply so. ]]
+		t.isTrue(Waves.floorCurve(5).health < 1.045 ^ 4, "floor 5 is not easier than it was")
+		t.isTrue(Waves.floorCurve(20).health > 1.045 ^ 19, "floor 20 is not harder than it was")
+		t.near(Waves.floorCurve(30).health, 7.92, 0.05, "floor 30 is not about 7.9x health")
+		t.near(Waves.floorCurve(50).health, 42.18, 0.2, "floor 50 is not about 42x health")
 
 		--[[ And never faster in damage than in health, at any depth: an
 		     enemy that deletes you without warning is a worse game. ]]

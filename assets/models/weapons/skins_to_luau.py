@@ -71,6 +71,10 @@ DROWNED = [
     # `sunken bell sword arena 3` is the Tollguard Blade under its working
     # name (owner, 2026-10-30).
     ("TollguardBlade", "TOLLGUARD BLADE", "Warden", "sunken bell sword arena 3", None, None, 4),
+    ("BuoyStaff", "BUOY STAFF", "Arcanist", "buoy staff arena 3", None, None, 2),
+    ("EventideBow", "EVENTIDE BOW", "Ranger", "eventide bow arena 3", None, None, 5),
+    ("MaelstromStaff", "MAELSTROM STAFF", "Arcanist", "maelstrom staff arena 3", None, None, 5),
+    ("StormglassBlade", "STORMGLASS BLADE", "Warden", "stormglass blade arena 3", None, None, 5),
 ]
 GLOWS = ("Gems", "Glow")
 # Epics and up always glow (owner, 2026-10-24); one with no colour of its own

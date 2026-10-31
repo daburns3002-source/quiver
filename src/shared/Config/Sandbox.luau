@@ -89,6 +89,10 @@ local Sandbox = {
 		{ weapon = "TollstringBow", class = "Ranger", label = "TOLLSTRING BOW" },
 		{ weapon = "TollkeeperStaff", class = "Arcanist", label = "TOLLKEEPER STAFF" },
 		{ weapon = "TollguardBlade", class = "Warden", label = "TOLLGUARD BLADE" },
+		{ weapon = "BuoyStaff", class = "Arcanist", label = "BUOY STAFF" },
+		{ weapon = "EventideBow", class = "Ranger", label = "EVENTIDE BOW" },
+		{ weapon = "MaelstromStaff", class = "Arcanist", label = "MAELSTROM STAFF" },
+		{ weapon = "StormglassBlade", class = "Warden", label = "STORMGLASS BLADE" },
 		-- SKINS END
 	} :: { Entry },
 

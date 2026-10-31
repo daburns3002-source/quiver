@@ -946,6 +946,74 @@ local skins: { [string]: any } = {
 		} :: { WeaponPart },
 		trailGlow = Color3.fromRGB(255, 255, 255),
 	},
+	BuoyStaff = {
+		-- `buoy staff arena 3`, held as the BranchStaff is, playing its kit until it has its own
+		kit = "BranchStaff",
+		skinOf = "BranchStaff",
+		scale = 4.4902,
+		parts = {
+			{
+				name = "Staff",
+				meshId = "rbxassetid://78767941640588",
+				size = Vector3.new(0.313, 0.9995, 0.3901),
+				offset = Vector3.new(0, 0.07, 0),
+				turned = true,
+				textureId = "rbxassetid://111040352974574",
+			},
+		} :: { WeaponPart },
+	},
+	EventideBow = {
+		-- `eventide bow arena 3`, held as the TwigBow is, playing its kit until it has its own
+		kit = "TwigBow",
+		skinOf = "TwigBow",
+		scale = 4.2501,
+		parts = {
+			{
+				name = "Bow",
+				meshId = "rbxassetid://101108217438474",
+				size = Vector3.new(0.396, 0.9995, 0.1606),
+				offset = Vector3.new(0, 0, 0),
+				turned = true,
+				textureId = "rbxassetid://134441330446964",
+			},
+		} :: { WeaponPart },
+		rainbow = true,
+	},
+	MaelstromStaff = {
+		-- `maelstrom staff arena 3`, held as the BranchStaff is, playing its kit until it has its own
+		kit = "BranchStaff",
+		skinOf = "BranchStaff",
+		scale = 4.4902,
+		parts = {
+			{
+				name = "Staff",
+				meshId = "rbxassetid://72086969439896",
+				size = Vector3.new(0.4136, 0.9995, 0.1235),
+				offset = Vector3.new(0, 0.07, 0),
+				turned = true,
+				textureId = "rbxassetid://80653594323518",
+			},
+		} :: { WeaponPart },
+		rainbow = true,
+	},
+	StormglassBlade = {
+		-- `stormglass blade arena 3`, held as the TimberBlade is, playing its kit until it has its own
+		kit = "TimberBlade",
+		skinOf = "TimberBlade",
+		scale = 4.7904,
+		parts = {
+			{
+				name = "Blade",
+				meshId = "rbxassetid://95695726908721",
+				size = Vector3.new(0.5093, 0.9995, 0.1226),
+				offset = Vector3.new(0, 0.2459, 0),
+				turned = true,
+				textureId = "rbxassetid://91354810095787",
+			},
+		} :: { WeaponPart },
+		rainbow = true,
+		trailGlow = Color3.fromRGB(255, 255, 255),
+	},
 	-- SKINS END
 }
 for key, skin in skins do

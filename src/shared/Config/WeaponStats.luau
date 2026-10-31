@@ -124,6 +124,14 @@ local WeaponStats = {
 		TidehookBlade = { rarity = "Rare", area = 3 },
 		CausewayBlade = { rarity = "Epic", area = 3 },
 		TollguardBlade = { rarity = "Legendary", area = 3 },
+
+		--[[ The four imported 2026-10-31, completing the ladder bar the
+		     Uncommon bow. The Mythics carry no `innate` for the same reason
+		     as the Legendaries: area 3's effects are not designed yet. ]]
+		BuoyStaff = { rarity = "Rare", area = 3 },
+		EventideBow = { rarity = "Mythic", area = 3 },
+		MaelstromStaff = { rarity = "Mythic", area = 3 },
+		StormglassBlade = { rarity = "Mythic", area = 3 },
 	} :: { [string]: Stats },
 }
 

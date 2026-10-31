@@ -114,6 +114,8 @@ RunSession.onRevive = function(_session, position: Vector3)
 	ProjectileSystem.clearEnemyShotsNear(position, Balance.Revive.clearRadius)
 end
 
+RunSession.onShellBlock = PetCombat.shellBlocked
+
 Atmosphere.apply()
 -- Uploaded enemy meshes, made once before anything spawns.
 EnemyModel.preload()

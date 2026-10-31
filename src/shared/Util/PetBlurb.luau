@@ -14,6 +14,7 @@
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local Bleed = require(ReplicatedStorage.Shared.Combat.Bleed)
 local PetCombat = require(ReplicatedStorage.Shared.Config.PetCombat)
 
 local PetBlurb = {}
@@ -40,6 +41,27 @@ function PetBlurb.lines(key: string): { string }
 
 	if spec.guard then
 		add("Shell Guard blocks the next hit you would take. The shell comes back each room.")
+	end
+	if spec.reflect then
+		add(
+			string.format(
+				"Blocking bursts thorns for %g damage to every enemy within %g studs.",
+				spec.reflect.damage,
+				spec.reflect.radius
+			)
+		)
+	end
+
+	local aura = spec.aura
+	if aura then
+		add(
+			string.format(
+				"A ring of thorns turns around you, hitting everything within %g studs for %g damage every %g seconds.",
+				aura.radius,
+				aura.damage,
+				aura.every
+			)
+		)
 	end
 
 	local damage = spec.damage
@@ -105,11 +127,23 @@ function PetBlurb.lines(key: string): { string }
 			)
 		)
 	end
-	if spec.root then
+	local hold = spec.root
+	if hold then
 		add(
 			string.format(
-				"Holds its target still for %g seconds. Bosses cannot be held.",
-				spec.root.duration
+				"Holds its target still for %g seconds.%s",
+				hold.duration,
+				if hold.boss > 0
+					then string.format(" Even a boss, for %g.", hold.boss)
+					else " Bosses cannot be held."
+			)
+		)
+	end
+	if spec.chain then
+		add(
+			string.format(
+				"The hold jumps to %g more enemy beside it, which takes no damage.",
+				spec.chain
 			)
 		)
 	end
@@ -119,6 +153,18 @@ function PetBlurb.lines(key: string): { string }
 				"Burns for %g a second over %g seconds.",
 				spec.burn.rate,
 				spec.burn.duration
+			)
+		)
+	end
+	local bleed = spec.bleed
+	if bleed then
+		add(
+			string.format(
+				"Every hit drives in a thorn, up to %g: %g a second each, so %g a second on a full stack. They lapse %g seconds after the last one.",
+				bleed.stacks,
+				bleed.rate,
+				Bleed.rate(bleed, bleed.stacks),
+				bleed.duration
 			)
 		)
 	end

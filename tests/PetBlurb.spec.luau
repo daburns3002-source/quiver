@@ -47,6 +47,58 @@ return function(t: TestRunner.Helper)
 		end
 	end)
 
+	--[[ A pet whose only damage comes off a block or out of a ring says so:
+	     the damage branch reads `spec.damage`, which neither of them has, so
+	     without their own lines they would describe themselves as doing
+	     nothing (the Thistle Mole and Thornwake, owner 2026-10-31). ]]
+	t.test("a pet that hits without a `damage` number still says what it hits for", function()
+		for key, spec in PetCombat.pets do
+			local text = PetBlurb.text(key)
+			local reflect = spec.reflect
+			if reflect then
+				t.isTrue(
+					string.find(text, string.format("%g", reflect.damage), 1, true) ~= nil,
+					`{key} bursts thorns without saying for how much`
+				)
+			end
+			local aura = spec.aura
+			if aura then
+				t.isTrue(
+					string.find(text, string.format("%g", aura.damage), 1, true) ~= nil,
+					`{key}'s ring does not say its damage`
+				)
+			end
+		end
+	end)
+
+	t.test("a cage says a boss can be held, and a plain hold says it cannot", function()
+		for key, spec in PetCombat.pets do
+			local hold = spec.root
+			if not hold then
+				continue
+			end
+			local text = PetBlurb.text(key)
+			local cages = string.find(text, "Even a boss", 1, true) ~= nil
+			t.equal(cages, hold.boss > 0, `{key}: what it says about bosses is not what it does`)
+		end
+	end)
+
+	t.test("thorns that stack say the stack, the rate and what it comes to", function()
+		for key, spec in PetCombat.pets do
+			local bleed = spec.bleed
+			if not bleed then
+				continue
+			end
+			local text = PetBlurb.text(key)
+			for _, number in { bleed.stacks, bleed.rate, bleed.rate * bleed.stacks } do
+				t.isTrue(
+					string.find(text, string.format("%g", number), 1, true) ~= nil,
+					`{key}'s thorns do not say {number}`
+				)
+			end
+		end
+	end)
+
 	t.test("a healer's patch is described once, not as plain damage", function()
 		for key, spec in PetCombat.pets do
 			if spec.heal and not spec.damage then

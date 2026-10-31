@@ -15,7 +15,8 @@
 	- Ground: on the floor under an enemy (`targets` of them), or under the
 	  pet with none.
 	- Overhead: `lift` studs above an enemy, riding it.
-	- Owner: on the floor under the pet's owner, riding them.
+	- Owner: on the floor under the pet's owner, riding them (`sweep` turns
+	  it as it rides, for a ring).
 	- Hold: round the feet of each enemy the attack holds, for as long as
 	  the server holds it (`root`, `Fx/RootHoldFx`), its clip stretched over
 	  the hold; not played by `Fx/PetAttackFx`. Its `at` is still when the
@@ -42,6 +43,7 @@ export type Shot = {
 	lift: number?,
 	--[[ Seconds a Reach, Ground, Overhead or Owner piece stays. ]]
 	life: number?,
+	--[[ Degrees a Reach or Owner piece turns through over its life. ]]
 	sweep: number?,
 	--[[ A Reach piece modelled pointing back along +Z (the Fern Frog's
 	     tongue): turned half round so it reaches toward the enemy. ]]
@@ -221,19 +223,42 @@ local PetAttacks: { [string]: { Shot } } = {
 	BerryMouse = {
 		{ effect = "FxPetSporePatch", clip = "Play", kind = "Owner", at = 0.4, life = 3 },
 	},
-	-- the Thistle Mole's guard is its own shell: no piece, as the Snail has none
+	--[[ The Thistle Mole's shell answers (`PetCombat` `reflect`), so unlike
+	     the Snail's it has a piece: the thorns going out off its owner as it
+	     blocks. Played when the shell blocks rather than on a clock, from
+	     the same `Remotes.PetAttack` the Snail's flight uses. ]]
+	ThistleMole = {
+		{ effect = "FxPetCrownShockwave", clip = "Play", kind = "Owner", at = 0.1, life = 0.8 },
+	},
+	--[[ Its hold jumps to a second enemy (`chain`), and the Hold piece is
+	     drawn round every enemy the attack holds, so both get their roots
+	     without a second entry. The vines across the floor say where it
+	     jumped. ]]
 	BriarBeetle = {
+		{
+			effect = "FxPetLeafSlash",
+			clip = "Slash",
+			kind = "Ground",
+			at = 0.4,
+			life = 0.45,
+			targets = 2,
+			every = 0.08,
+		},
 		{ effect = "FxPetRootSnare", clip = "Snare", kind = "Hold", at = 0.45 },
 	},
+	--[[ Blood Berry: a berry thrown, and the owner fed as it bursts. The
+	     mark it used to hang over an enemy is gone with the spec's
+	     (`healPerHit` now). ]]
 	BerryBat = {
 		{
-			effect = "FxPetLureMark",
-			clip = "Spin",
-			kind = "Overhead",
-			at = 0.5,
-			lift = 4.5,
-			life = 3,
+			effect = "FxPetSlimeGlob",
+			clip = "Fly",
+			kind = "Projectile",
+			at = 0.3,
+			speed = 32,
+			impact = { effect = "FxPetSlimeGlob", clip = "Splat", life = 0.8 },
 		},
+		{ effect = "FxPetHealSparkles", clip = "Play", kind = "Owner", at = 0.55, life = 0.9 },
 	},
 	BrambleBear = {
 		{
@@ -270,6 +295,7 @@ local PetAttacks: { [string]: { Shot } } = {
 			count = 3,
 			spread = 18,
 			speed = 30,
+			-- a thorn going in, standing in for art of its own (`bleed`)
 			impact = { effect = "FxPetBurningMark", clip = "Burn", life = 2 },
 		},
 		{ effect = "FxPetHowlAura", clip = "Play", kind = "Owner", at = 0.8, life = 2 },
@@ -286,28 +312,38 @@ local PetAttacks: { [string]: { Shot } } = {
 			arc = 4,
 			impact = { effect = "FxPetMiniSlime", clip = "Splash", life = 0.5 },
 		},
+		--[[ The cage coming down (`root`, and a `boss` above 0): the
+		     shockwave now lands on the enemy rather than under her, since it
+		     is what holds it. Its Hold piece is drawn round the held
+		     enemy's feet for as long as the server holds it. ]]
 		{
 			effect = "FxPetCrownShockwave",
 			clip = "Play",
 			kind = "Ground",
-			at = 0.75,
+			at = 0.45,
 			life = 1.2,
-			targets = 0,
+			targets = 2,
 		},
+		{ effect = "FxPetRootSnare", clip = "Snare", kind = "Hold", at = 0.4 },
 	},
-	--[[ Its revive has no piece: the Glimmerhorn shows one at 2.2 s and this
+	--[[ The Wake (`aura`): a ring turning round its owner, not a beam. It
+	     lives as long as the ring does, so the pet raising it again every
+	     three seconds reads as one unbroken ring rather than a flicker, and
+	     the howl under it is the moment it is raised.
+
+	     Its revive has no piece: the Glimmerhorn shows one at 2.2 s and this
 	     clip is over at 1.0, so there is nowhere to put it until Thornwake
 	     has an Attack long enough or a burst of its own. ]]
 	Thornwake = {
 		{
-			effect = "FxPetPrismBeam",
-			clip = "Fire",
-			kind = "Reach",
-			at = 0.4,
-			life = 1.2,
-			sweep = 60,
+			effect = "FxPetCrownShockwave",
+			clip = "Play",
+			kind = "Owner",
+			at = 0.25,
+			life = 3,
+			sweep = 360,
 		},
-		{ effect = "FxPetHealSparkles", clip = "Play", kind = "Owner", at = 0.8, life = 1.2 },
+		{ effect = "FxPetHowlAura", clip = "Play", kind = "Owner", at = 0.2, life = 1 },
 	},
 }
 

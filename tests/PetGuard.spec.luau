@@ -45,6 +45,21 @@ return function(t: TestRunner.Helper)
 		end
 	end)
 
+	--[[ Thorn Shell (owner, 2026-10-31): the Thistle Mole's block answers.
+	     A reflect without a guard would never fire, since the burst hangs
+	     off the block. ]]
+	t.test("thorns off a shell belong to a pet that has one", function()
+		for key, spec in PetCombatConfig.pets do
+			local reflect = spec.reflect
+			if not reflect then
+				continue
+			end
+			t.isTrue(spec.guard == true, `{key} bursts thorns but blocks nothing`)
+			t.isTrue(reflect.damage > 0, `{key}: thorns that do something`)
+			t.isTrue(reflect.radius > 0, `{key}: thorns that reach something`)
+		end
+	end)
+
 	local player = Players:GetPlayers()[1]
 	if not player then
 		return
@@ -91,6 +106,34 @@ return function(t: TestRunner.Helper)
 		withPet("Mosslet", function(session)
 			PetCombat.raiseShell(session)
 			t.isFalse(session.petGuard)
+		end)
+	end)
+
+	--[[ The burst itself needs enemies to hit, which a test has none of; what
+	     is pinned here is that blocking reaches for it at all and that a
+	     shell with nothing to answer with is harmless. ]]
+	t.test("blocking with the Thistle Mole answers, and blocking without one does not", function()
+		withPet("ThistleMole", function(session)
+			local answered: { string } = {}
+			local before = RunSession.onShellBlock
+			RunSession.onShellBlock = function(_s, pet: string)
+				table.insert(answered, pet)
+			end
+			PetCombat.raiseShell(session)
+			RunSession.applyDamage(session, 50)
+			RunSession.onShellBlock = before
+			t.equal(#answered, 1, "the block was answered once")
+			t.equal(answered[1], "ThistleMole")
+			t.equal(session.health, session.maxHealth, "and it still blocked the hit")
+		end)
+	end)
+
+	t.test("the Snail's shell blocks without bursting", function()
+		withPet("MossbackSnail", function(session)
+			PetCombat.raiseShell(session)
+			-- it has no `reflect`, so the burst finds nothing to do
+			PetCombat.shellBlocked(session, "MossbackSnail")
+			t.equal(session.health, session.maxHealth)
 		end)
 	end)
 end

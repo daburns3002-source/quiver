@@ -170,10 +170,24 @@ local function fire(shot: PetAttacks.Shot, pet: Model, index: number)
 		end
 		local start = under()
 		if start then
-			UpgradeFx.play(
-				shot.effect,
-				{ at = start, life = life, clip = shot.clip, follow = under }
-			)
+			--[[ A piece that turns as it rides (Thornwake's ring of thorns):
+			     `follow` puts it under its owner square every frame, wiping
+			     the rotation, so `motion` sets the whole turn afresh rather
+			     than adding to it. ]]
+			local sweep = shot.sweep or 0
+			UpgradeFx.play(shot.effect, {
+				at = start,
+				life = life,
+				clip = shot.clip,
+				follow = under,
+				motion = if sweep ~= 0
+					then function(model: Model, t: number, span: number)
+						model:PivotTo(
+							model:GetPivot() * CFrame.Angles(0, math.rad(sweep) * t / span, 0)
+						)
+					end
+					else nil,
+			})
 		end
 	end
 end

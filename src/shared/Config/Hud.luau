@@ -67,6 +67,18 @@ local Hud = {
 		dashButtonSize = 92,
 		dashButtonMargin = 28,
 		dashButtonAboveStack = 14,
+		--[[ The lobby's JUMP and SPRINT, which stand where the dash button
+		     does (`Input/LobbyButtons`). They were the dash button's own 92
+		     and 76, and two square buttons stacked came to 182 points of a
+		     phone's height — a fifth of the screen (owner, 2026-10-27: "the
+		     lobby sprint and jump buttons are too big"). At 72 and 60 the
+		     stack is 144, and both stay well clear of the 44-point floor a
+		     thumb needs: JUMP is smaller than the dash button it replaces,
+		     and SPRINT, pressed once in a while rather than in a fight, is
+		     smaller again. ]]
+		lobbyJumpSize = 72,
+		lobbySprintSize = 60,
+		lobbyGap = 12,
 	},
 	--[[ The skill bar's full width and height on a touch screen: six 44-point
 	     slots, 10 apart, 14 of padding a side; 44 + 18 + 24 tall. ]]

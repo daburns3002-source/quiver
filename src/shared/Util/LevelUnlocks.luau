@@ -83,6 +83,19 @@ function LevelUnlocks.nextAfter(levels: { number }, current: number): (number?, 
 	return nil, false
 end
 
+--[[ Whether a portal is open at all, beyond its own levels' unlocking: a
+     portal with a `requires` (`Config/Lobby.Portal`) waits on that level
+     being beaten. Endless waits on 1-10, because Endless with no cards and
+     no gear is a death at floor 6 and clearing the first area's boss is the
+     proof the mode is worth opening (`docs/ENDLESS.md`). A portal with no
+     `requires` is open. ]]
+function LevelUnlocks.portalOpen(requires: string?, beaten: Beaten?): boolean
+	if requires == nil then
+		return true
+	end
+	return beaten ~= nil and beaten[requires] == true
+end
+
 --[[ Whether the tutorial is still owed: until the level keyed `key` is
      beaten (owner, 2026-10-26: "the tutorial should play until they have
      beaten the first level of mossy glade"). A profile not loaded owes it. ]]

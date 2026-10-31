@@ -20,6 +20,7 @@ local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Classes = require(ReplicatedStorage.Shared.Config.Classes)
 local CurrentStage = require(ReplicatedStorage.Shared.Util.CurrentStage)
 local Economy = require(ReplicatedStorage.Shared.Config.Economy)
+local Eggs = require(ReplicatedStorage.Shared.Config.Eggs)
 local FireRhythm = require(ReplicatedStorage.Shared.Combat.FireRhythm)
 local HeldWeaponChoice = require(ReplicatedStorage.Shared.Combat.HeldWeaponChoice)
 local Loadout = require(script.Parent.Loadout)
@@ -555,6 +556,37 @@ function RunSession.offerEncounter(session: Session, source: "Valkyrie" | "Angel
 end
 
 --[[
+	An Endless floor's draft (`docs/ENDLESS.md`): dealt on clearing every
+	third floor, and once more for each extra card a checkpoint grants.
+	Pauses the run exactly as a level-up does — the offer being open is what
+	`anyChoosing` reads — and is chosen through the same validated
+	`chooseAbility`, so the client picks one of the cards the server already
+	decided to allow and nothing else.
+]]
+function RunSession.offerEndlessDraft(session: Session)
+	if not session.alive then
+		return
+	end
+
+	local offer = Loadout.openEndlessDraft(
+		session.loadout,
+		session.health >= session.maxHealth - 1e-3,
+		session.random,
+		Balance.Endless.draftOffer
+	)
+
+	if offer then
+		abilityOffer:FireClient(
+			session.player,
+			offer,
+			session.loadout.level,
+			"Endless",
+			session.loadout.rerolls
+		)
+	end
+end
+
+--[[
 	Credits XP for something this player killed.
 
 	Takes the session rather than the player so a caller has already had to
@@ -908,6 +940,17 @@ function RunSession.bindCharacter(session: Session, character: Model)
 	local root = character:WaitForChild("HumanoidRootPart", 10) :: BasePart?
 
 	if not humanoid or not root then
+		--[[ A character that was swapped out while we waited is not a failure.
+		     The title hold and the class screen both replace the body before
+		     the player reaches the lobby, and `WaitForChild` on a model that
+		     has left the DataModel only ever times out. The next
+		     `CharacterAdded` binds the real one, so only a character still
+		     standing as the player's own is worth warning about — warning on
+		     the rest sends whoever reads the log chasing a bug that is not
+		     there (owner's playtest, 2026-10-30). ]]
+		if character.Parent == nil or session.player.Character ~= character then
+			return
+		end
 		log.warn("character for %s never produced a Humanoid/root", session.player.Name)
 		return
 	end
@@ -989,9 +1032,26 @@ end
 --[[ The share of max health the player's pet revives them at (the
      Glimmerhorn, `Config/PetCombat`), or nil. ]]
 local function petRevive(session: Session): number?
-	local pet = session.player:GetAttribute("Pet")
-	local spec = if type(pet) == "string" then PetCombat.pets[pet] else nil
-	return spec and spec.revive
+	for _, attribute in Eggs.slots do
+		local pet = session.player:GetAttribute(attribute)
+		local spec = if type(pet) == "string" then PetCombat.pets[pet] else nil
+		if spec and spec.revive then
+			return spec.revive
+		end
+	end
+	return nil
+end
+
+--[[ The player's pet that guards (the Mossback Snail), for its Attack. ]]
+local function guardPet(session: Session): string?
+	for _, attribute in Eggs.slots do
+		local pet = session.player:GetAttribute(attribute)
+		local spec = if type(pet) == "string" then PetCombat.pets[pet] else nil
+		if spec and spec.guard then
+			return pet :: string
+		end
+	end
+	return nil
 end
 
 local function revive(session: Session, health: number, kind: string)
@@ -1041,7 +1101,7 @@ function RunSession.applyDamage(session: Session, amount: number)
 	if session.petGuard then
 		session.petGuard = false
 		playerDodged:FireClient(session.player, "Guard")
-		petAttack:FireAllClients(session.player, session.player:GetAttribute("Pet"))
+		petAttack:FireAllClients(session.player, guardPet(session))
 		return
 	end
 

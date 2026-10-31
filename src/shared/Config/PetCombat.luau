@@ -117,7 +117,7 @@ local PetCombat: { pets: { [string]: Spec } } = {
 		-- Feather Volley: homing feathers over walls and cover
 		Hootmoss = { every = 3, range = 80, damage = 25, targets = 4 },
 		-- Royal Court: two mini slimes, a crown shockwave against bosses
-		SlimePrince = { every = 4, range = 60, damage = 40, targets = 2, bossDamage = 80 },
+		SlimePrince = { every = 4, range = 60, damage = 50, targets = 2, bossDamage = 80 },
 		-- Ember Bite: fire bolts that burn, and a howl that speeds attacks
 		EmberWilfPet = {
 			every = 3,
@@ -127,7 +127,7 @@ local PetCombat: { pets: { [string]: Spec } } = {
 			haste = { bonus = 0.25, duration = 3, every = 3 },
 		},
 		-- Prism Beam: pierces a line, heals per hit, revives once a run
-		Glimmerhorn = { every = 4, range = 60, damage = 60, beam = 3, healPerHit = 3, revive = 0.5 },
+		Glimmerhorn = { every = 4, range = 60, damage = 80, beam = 3, healPerHit = 3, revive = 0.5 },
 	},
 }
 

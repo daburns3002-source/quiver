@@ -11,6 +11,7 @@
 	which the entry banner shares, so both land on the same tick.
 ]]
 
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local SoundService = game:GetService("SoundService")
@@ -18,6 +19,10 @@ local Workspace = game:GetService("Workspace")
 
 local BossWatch = require(script.Parent.BossWatch)
 local Music = require(ReplicatedStorage.Shared.Config.Music)
+
+--[[ The share of its volume the music keeps while a lobby screen is open. ]]
+local DUCK = 0.12
+local duck = 1
 
 local MusicFx = {}
 
@@ -83,6 +88,17 @@ end
 
 local function step(dt: number)
 	local rate = dt / math.max(Music.fade, 1e-3)
+	-- way down while a lobby screen (Blacksmith, Hatchery, Gear) is open
+	-- (owner, 2026-10-26), back up as it closes; the player's `InStation`
+	-- and silent under the class select screen (owner, 2026-10-27: "the
+	-- music should cut out"), its `ClassSelecting`
+	local player = Players.LocalPlayer
+	local ducked = player:GetAttribute("InStation") == true
+	local duckTo = if player:GetAttribute("ClassSelecting") == true
+		then 0
+		elseif ducked then DUCK
+		else 1
+	duck += (duckTo - duck) * math.min(1, dt * 6)
 	for name: string in Music.playlists :: { [string]: any } do
 		local p = playerFor(name)
 		if not p then
@@ -102,7 +118,7 @@ local function step(dt: number)
 			-- paused, so a room's music picks up where it left off
 			p.sound:Pause()
 		end
-		p.sound.Volume = Music.volume * p.level
+		p.sound.Volume = Music.volume * p.level * duck
 	end
 end
 

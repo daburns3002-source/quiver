@@ -21,7 +21,6 @@
 	moment for a Studio capture. Presentation only.
 ]]
 
-local ContentProvider = game:GetService("ContentProvider")
 local GuiService = game:GetService("GuiService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -34,6 +33,7 @@ local IntroTimeline = require(ReplicatedStorage.Shared.Util.IntroTimeline)
 local Music = require(ReplicatedStorage.Shared.Config.Music)
 
 local Device = require(script.Parent.Parent.Device)
+local Preload = require(script.Parent.Parent.Preload)
 local RunPaused = require(script.Parent.Parent.RunPaused)
 local TitleMotion = require(script.Parent.TitleMotion)
 
@@ -87,6 +87,35 @@ function IntroCutscene.skipped(): boolean
 	return RunService:IsStudio() and Workspace:GetAttribute("SkipIntro") == true
 end
 
+--[[ The screen's size. Read from the camera rather than from the ScreenGui:
+     one that has not been drawn yet reports 800 by 600, which would call a
+     phone held upright a landscape screen. ]]
+local function viewport(): Vector2
+	local camera = Workspace.CurrentCamera
+	return if camera then camera.ViewportSize else Vector2.new(1280, 720)
+end
+
+--[[ Which of `Intro.pictures` fits a screen this shape: the phone art on one
+     taller than wide. ]]
+local function orientationFor(size: Vector2): string
+	return if size.Y > size.X then "portrait" else "landscape"
+end
+
+--[[ Every content id one of `Intro.pictures` draws: its tiles and its
+     water. ]]
+local function idsOf(key: string): { string }
+	local art = (Intro.pictures :: { [string]: any })[key]
+	if not art then
+		return {}
+	end
+	local ids: { string } = {}
+	for _, id in art.tiles do
+		table.insert(ids, id)
+	end
+	table.insert(ids, art.water.image)
+	return ids
+end
+
 local function rect(parent: Instance, name: string, colour: Color3, z: number): Frame
 	local f = Instance.new("Frame")
 	f.Name = name
@@ -136,9 +165,8 @@ local function buildButton(safe: ScreenGui): ButtonParts
 	group.AnchorPoint = Vector2.new(0.5, 1)
 	group.Position = UDim2.new(0.5, 0, 1, -16)
 	-- an upright screen (a phone) gets a button most of its width, over the phone art
-	local camera = workspace.CurrentCamera
-	local viewport = if camera then camera.ViewportSize else Vector2.new(1280, 720)
-	local upright = viewport.Y > viewport.X
+	local view = viewport()
+	local upright = view.Y > view.X
 	group.Size = UDim2.fromScale(if upright then 0.8 elseif phone then 0.5 else 0.3, 1)
 	group.BackgroundTransparency = 1
 	group.ZIndex = 20
@@ -388,25 +416,32 @@ end
      `Intro.musicWait`), so its hit lands on the cut, then starts the clock
      and the music on the same frame. ]]
 local function startClock(built: Parts)
-	-- the title's tiles load during the black screen, ready for the cut
+	--[[ The title's tiles and the music both load during the black screen,
+	     and the clock waits for both: the cut at `revealAt` is counted from
+	     here, so holding the clock holds the music's hit with it and the two
+	     still land together.
+
+	     Only the orientation on screen is waited for. Loading both was twice
+	     the bytes for a picture only one of them would ever draw, which is
+	     what put the cut ahead of the tiles on a phone. The other follows in
+	     the background, because a phone can be turned over mid-title. ]]
+	local showing = orientationFor(viewport())
+	local other = if showing == "landscape" then "portrait" else "landscape"
+	local tilesIn = false
 	task.spawn(function()
-		local ids = {}
-		for _, art in Intro.pictures :: { [string]: any } do
-			for _, id in art.tiles do
-				table.insert(ids, id)
-			end
-			table.insert(ids, art.water.image)
-		end
-		pcall(function()
-			ContentProvider:PreloadAsync(ids)
-		end)
+		tilesIn = Preload.await(idsOf(showing), Intro.tilesWait)
+		Preload.fetchAsync(idsOf(other))
 	end)
+
 	local sound = loadMusic()
-	if sound and not sound.IsLoaded then
-		local deadline = os.clock() + Intro.musicWait
-		while not sound.IsLoaded and os.clock() < deadline and parts == built do
-			task.wait()
+	local began = os.clock()
+	while parts == built do
+		local waited = os.clock() - began
+		local musicIn = sound == nil or sound.IsLoaded or waited >= Intro.musicWait
+		if (tilesIn or waited >= Intro.tilesWait) and musicIn then
+			break
 		end
+		task.wait(0.05)
 	end
 	if parts ~= built then
 		return
@@ -444,9 +479,9 @@ local function pose(t: number)
 	p.presentsScale.Scale = now.presentsScale
 	p.black.BackgroundTransparency = fade
 
-	local size = p.gui.AbsoluteSize
+	local size = viewport()
 	-- the picture whose shape fits: the phone art on a screen taller than wide
-	local showing = if size.Y > size.X then "portrait" else "landscape"
+	local showing = orientationFor(size)
 	local function place(set: Set, holder: Frame, scale: number, x: number?, y: number?)
 		local art = set.art
 		local wide = math.floor(art.width * scale + 0.5)

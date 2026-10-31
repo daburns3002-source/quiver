@@ -190,12 +190,28 @@ local function requestDash()
 	end
 end
 
---[[ A jump, in the lobby only: Roblox's own, through the Humanoid. ]]
+--[[ A jump, in the lobby only: Roblox's own, through the Humanoid.
+
+     Through `ChangeState`, not `Humanoid.Jump`. `Jump` is a request flag that
+     Roblox's own control scripts write every frame from whatever their jump
+     input is doing, and on a touch screen that input is live: the flag set
+     here was read back as false before the physics step ever saw it, so the
+     phone's JUMP button did nothing while the spacebar — which goes through
+     those same control scripts — worked (owner, 2026-10-27: "jump did not
+     work"). `ChangeState` is not a flag and nothing overwrites it.
+
+     `SetStateEnabled(Jumping, ...)` is still the gate, switched in `step`, so
+     this cannot jump in a run. ]]
 local function requestJump()
 	local character = player.Character
 	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
-	if humanoid and inLobby() and not RunPaused.get() then
-		humanoid.Jump = true
+	if
+		humanoid
+		and inLobby()
+		and not RunPaused.get()
+		and player:GetAttribute("ClassSelecting") ~= true
+	then
+		humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
 	end
 end
 
@@ -239,7 +255,7 @@ local function step()
 		contested. `Move(zero)` rather than an early return, so the Humanoid
 		is actively told to stop instead of coasting on its last direction.
 	]]
-	if RunPaused.get() then
+	if RunPaused.get() or player:GetAttribute("ClassSelecting") == true then
 		humanoid.WalkSpeed = PlayerStats.get().moveSpeed
 		humanoid:Move(Vector3.zero, false)
 		return

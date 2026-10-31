@@ -122,6 +122,14 @@ Remotes.RunSummary = "RunSummary"
 ]]
 Remotes.RunRestart = "RunRestart"
 
+--[[ Leave the run and go back to the lobby, from the HUD mid-room or from
+     an end screen (owner, 2026-10-29: "there needs to be a back to lobby
+     button ... while you are mid room and also on the defeat and victory
+     screens"). The server decides: `RoomController.requestLobby` refuses
+     unless the asker is in a run that is not already the lobby. Abandoning
+     a run keeps nothing -- the stage is not counted beaten. ]]
+Remotes.RunLobby = "RunLobby"
+
 --[[
 	Server → one client. That player's saved profile changed (coins, gems,
 	boss items, weapons owned, the one equipped): the whole profile, for
@@ -138,6 +146,25 @@ Remotes.ShopEquip = "ShopEquip"
 --[[ Server → one client: what a crate gave (index, weapon, whether it is
      new, coins paid back for one already owned). ]]
 Remotes.ShopCrateOpened = "ShopCrateOpened"
+--[[ Client → server: the egg hatchery and the gear screen
+     (`Server/Data/Hatchery`): an egg's key and how many to hatch; a pet
+     slot (1 or 2) and the pet for it, or nil to empty it. ]]
+Remotes.HatchEgg = "HatchEgg"
+Remotes.EquipPet = "EquipPet"
+--[[ Server → one client: what a hatch gave (the egg's key, then each
+     pet's key and whether it was new, in order). ]]
+Remotes.EggHatched = "EggHatched"
+--[[ Client → server: send me my profile again (`Remotes.ProfileChanged`).
+     The one sent on join can reach only whichever listener connected first
+     (the loading screen), so the lobby's screens ask for it when they start. ]]
+Remotes.ProfileRequest = "ProfileRequest"
+--[[ Client → server: the class select screen's CHOOSE (a class's name and a
+     look, "male" or "female"); the server checks both (`Data/Shop`). ]]
+Remotes.ChooseClass = "ChooseClass"
+--[[ Client → server: the gear screen's class switch (a class's name); the
+     server puts that class's own weapon in hand and empties the pet slots
+     (`Data/Shop`). ]]
+Remotes.SwitchClass = "SwitchClass"
 --[[ Client → server, Studio only: coins, gems and boss items into the
      wallet (`Data/Shop`), to test the shop without playing for them. ]]
 Remotes.DebugWallet = "DebugWallet"
@@ -168,6 +195,25 @@ Remotes.PortalStart = "PortalStart"
 	landed (its `EnemyConfig.displayName`): show its NEW ENEMY! screen
 	(`Config/NewEnemies`). The server holds the run until it is closed.
 ]]
+--[[
+	Server → one client. An Endless checkpoint is open: the floor just
+	cleared, the Soulstones the run has banked, and whether a bank-and-leave
+	is offered (`docs/ENDLESS.md`). What the three picks are is config the
+	client already has (`Balance.Endless.checkpoint.picks`).
+]]
+Remotes.EndlessCheckpoint = "EndlessCheckpoint"
+
+--[[
+	Client → server. "I pick the nth option at the checkpoint", or 0 to bank
+	and leave.
+
+	An index into `Balance.Endless.checkpoint.picks` and nothing else, checked
+	against a checkpoint the server itself opened (non-negotiable 2): a client
+	that lies can only pick a different one of the three it was already going
+	to be allowed to pick, and can never name a floor or a payout.
+]]
+Remotes.EndlessPick = "EndlessPick"
+
 Remotes.NewEnemy = "NewEnemy"
 
 --[[

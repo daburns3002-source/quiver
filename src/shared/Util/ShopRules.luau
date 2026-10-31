@@ -21,12 +21,19 @@ export type Entry = { weapon: string, class: string, label: string, rarity: stri
 local ORDER = { Common = 1, Uncommon = 2, Rare = 3, Epic = 4, Legendary = 5, Mythic = 6 }
 
 --[[ Every weapon a player can own: one with stats and a class to hold it,
-     not a pair the Dual Bows card swaps in. In rarity order. ]]
+     not a pair the Dual Bows card swaps in, and from an area that is
+     stocked (`Config/Shop`'s `stocked`). In rarity order.
+
+     An unstocked area's weapons exist -- they are modelled, held and
+     fought with in the sandbox -- but they are not for sale, so they are
+     not here either: this is what the store, the crates and the gear
+     screen all read. ]]
 function ShopRules.catalog(): { Entry }
 	local out = {}
 	for _, entry in Sandbox.weapons do
 		local stats = WeaponStats.weapons[entry.weapon]
-		if stats then
+		local crate = stats and Shop.crates[stats.area]
+		if stats and crate and crate.stocked then
 			table.insert(out, {
 				weapon = entry.weapon,
 				class = entry.class,
@@ -102,6 +109,27 @@ function ShopRules.roll(pool: { Entry }, r1: number, r2: number): Entry?
 	end
 	local last = byRarity[rarities[#rarities]]
 	return last[#last]
+end
+
+--[[ A weapon's chance (0..1) from crate `index`, as `roll` picks it: its
+     rarity's share of the rarities the crate has, split evenly by the
+     weapons of that rarity. ]]
+function ShopRules.chance(index: number, entry: Entry): number
+	local total, same = 0, 0
+	local seen: { [string]: boolean } = {}
+	for _, other in ShopRules.cratePool(index) do
+		if not seen[other.rarity] then
+			seen[other.rarity] = true
+			total += Shop.crateOdds[other.rarity] or 0
+		end
+		if other.rarity == entry.rarity then
+			same += 1
+		end
+	end
+	if total <= 0 or same == 0 then
+		return 0
+	end
+	return (Shop.crateOdds[entry.rarity] or 0) / total / same
 end
 
 --[[ The store's price for a weapon, or nil when the store does not sell

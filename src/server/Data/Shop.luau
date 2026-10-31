@@ -16,12 +16,17 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
+local Classes = require(ReplicatedStorage.Shared.Config.Classes)
 local Economy = require(ReplicatedStorage.Shared.Config.Economy)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
+local SaveSchema = require(ReplicatedStorage.Shared.Util.SaveSchema)
 local Shop = require(ReplicatedStorage.Shared.Config.Shop)
 local ShopRules = require(ReplicatedStorage.Shared.Util.ShopRules)
 
+local Hatchery = require(script.Parent.Hatchery)
+local Lobby = require(script.Parent.Parent.Run.Lobby)
+local Pity = require(ReplicatedStorage.Shared.Util.Pity)
 local PlayerData = require(script.Parent.PlayerData)
 local RoomController = require(script.Parent.Parent.Run.RoomController)
 local RunSession = require(script.Parent.Parent.Run.RunSession)
@@ -59,8 +64,13 @@ local function hold(player: Player, weapon: string?)
 	RunSession.applyLoadout(session)
 end
 
-local function openCrate(player: Player, index: unknown)
-	if type(index) ~= "number" or not allowed(player) then
+local function openCrate(player: Player, index: unknown, count: unknown)
+	if
+		type(index) ~= "number"
+		or type(count) ~= "number"
+		or not table.find(Shop.counts, count)
+		or not allowed(player)
+	then
 		return
 	end
 	local crate = Shop.crates[index]
@@ -68,26 +78,36 @@ local function openCrate(player: Player, index: unknown)
 	if not crate or #pool == 0 then
 		return
 	end
-	if not Wallet.pay(player, { coins = crate.price }) then
+	local n = count :: number
+	if not Wallet.pay(player, { coins = crate.price * n }) then
 		return
 	end
-	local entry = ShopRules.roll(pool, random:NextNumber(), random:NextNumber())
-	if not entry then
-		return
+	local profile = PlayerData.get(player)
+	local mythics = Pity.mythics(pool)
+	local results = {}
+	for _ = 1, n do
+		-- the 100th crate since the last Mythic is one (`Util/Pity`)
+		local since = if profile then profile.pity.crates else 0
+		local entry = if Pity.forced(since) and #mythics > 0
+			then mythics[random:NextInteger(1, #mythics)]
+			else ShopRules.roll(pool, random:NextNumber(), random:NextNumber())
+		if entry then
+			if profile then
+				profile.pity.crates = Pity.after(since, entry.rarity == "Mythic")
+			end
+			-- a duplicate is a C copy to merge (owner, 2026-10-28), so no refund
+			local new = Wallet.grantWeapon(player, entry.weapon)
+			log.info(
+				"%s opened the %s crate: %s%s",
+				player.Name,
+				crate.name,
+				entry.weapon,
+				if new then "" else " (again)"
+			)
+			table.insert(results, { weapon = entry.weapon, new = new })
+		end
 	end
-	local new = Wallet.grantWeapon(player, entry.weapon)
-	local refund = if new then 0 else ShopRules.refund(index)
-	if refund > 0 then
-		Wallet.addCoins(player, refund)
-	end
-	log.info(
-		"%s opened the %s crate: %s%s",
-		player.Name,
-		crate.name,
-		entry.weapon,
-		if new then "" else " (again)"
-	)
-	crateOpened:FireClient(player, index, entry.weapon, new, refund)
+	crateOpened:FireClient(player, index, results)
 end
 
 local function buy(player: Player, weapon: unknown)
@@ -104,11 +124,26 @@ local function buy(player: Player, weapon: unknown)
 	end
 end
 
+--[[ The class the player plays: their saved weapon's, else the one in
+     hand. Gear equips only within it (owner, 2026-10-27: "after the player
+     chooses their class, it should load them into the game with their
+     class only"); `switchClass` changes it. ]]
+local function classOf(player: Player): string?
+	local profile = PlayerData.get(player)
+	local entry = profile and profile.equipped and ShopRules.find(profile.equipped)
+	if entry then
+		return entry.class
+	end
+	local session = RunSession.get(player)
+	return session and session.loadout.class
+end
+
 local function equip(player: Player, weapon: unknown)
 	if type(weapon) ~= "string" or not allowed(player) then
 		return
 	end
-	if not ShopRules.find(weapon) or not Wallet.owns(player, weapon) then
+	local entry = ShopRules.find(weapon)
+	if not entry or not Wallet.owns(player, weapon) or entry.class ~= classOf(player) then
 		return
 	end
 	Wallet.equip(player, weapon)
@@ -117,7 +152,67 @@ local function equip(player: Player, weapon: unknown)
 	end
 end
 
+--[[ The class select screen's CHOOSE: the class's own weapon in hand (the
+     class with it), and the look saved. Only the playable classes. ]]
+local PLAYABLE = { Ranger = true, Arcanist = true, Warden = true }
+local function chooseClass(player: Player, class: unknown, look: unknown)
+	if
+		type(class) ~= "string"
+		or not PLAYABLE[class]
+		or type(look) ~= "string"
+		or not allowed(player)
+	then
+		return
+	end
+	local starter = Classes[class] and Classes[class].weapon
+	if not starter or not Wallet.owns(player, starter) then
+		return
+	end
+	--[[ The look is remembered, not worn. The player keeps their own Roblox
+	     avatar in game (owner, 2026-10-30: "own avatar is fine"), so there are
+	     no class bodies to build and nothing applies this to the character.
+	     `look` is read in one place only — `UI/ClassScreen`, to decide whether
+	     the class screen has already been answered. ]]
+	Wallet.setLook(player, look)
+	Wallet.equip(player, starter)
+	if RoomController.inLobby() then
+		hold(player, starter)
+		-- into the lobby fresh, at its spawn, behind the loading screen
+		if player.Character then
+			Lobby.place(player.Character)
+		end
+	end
+	log.info("%s chose the %s (%s)", player.Name, class, look)
+end
+
+--[[ The gear screen's class switch (owner, 2026-10-27: "the player should
+     be able to switch classes in the gear screen", then "the equipped items
+     that the player has should reset when switching to a new class"): the
+     class's own weapon in hand, the class with it, and both pet slots
+     emptied. In the lobby only. ]]
+local function switchClass(player: Player, class: unknown)
+	if type(class) ~= "string" or not PLAYABLE[class] or not allowed(player) then
+		return
+	end
+	local starter = Classes[class] and Classes[class].weapon
+	if not starter or not Wallet.owns(player, starter) or not RoomController.inLobby() then
+		return
+	end
+	if classOf(player) == class then
+		return
+	end
+	Wallet.equip(player, starter)
+	for slot = 1, SaveSchema.PET_SLOTS do
+		Wallet.equipPet(player, slot, nil)
+	end
+	Hatchery.apply(player)
+	hold(player, starter)
+	log.info("%s switched to the %s", player.Name, class)
+end
+
 function ShopServer.start()
+	Remotes.event(Remotes.ChooseClass).OnServerEvent:Connect(chooseClass)
+	Remotes.event(Remotes.SwitchClass).OnServerEvent:Connect(switchClass)
 	Remotes.event(Remotes.ShopOpenCrate).OnServerEvent:Connect(openCrate)
 	Remotes.event(Remotes.ShopBuy).OnServerEvent:Connect(buy)
 	Remotes.event(Remotes.ShopEquip).OnServerEvent:Connect(equip)

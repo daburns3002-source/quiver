@@ -1,10 +1,10 @@
 --!strict
 --[[
-	Studio only: builds the pets the owner imported (`Config/PetModels`, from
-	tools/imports_to_luau.py) as models in ReplicatedStorage.PetPreview, so
-	`Fx/PetPreview` can set them following the player. Nothing here runs in
-	a live game, and nothing here touches a run: the pets are a look, not a
-	system. The real pet system is Phase 6 (docs/ROADMAP.md).
+	Builds the pets the owner imported (`Config/PetModels`, from
+	tools/imports_to_luau.py) as models in ReplicatedStorage.PetPreview, once
+	as the server boots (since 2026-10-26, when eggs made pets real; before
+	that only Studio's P key did), so `Fx/PetPreview` can set each player's
+	equipped pets following them. Nothing here touches a run.
 
 	Each part is rebuilt from its mesh id the way enemy meshes are
 	(`Util/MeshTemplates`), at the size and place the import gave it, so
@@ -12,7 +12,6 @@
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local RunService = game:GetService("RunService")
 
 local Log = require(ReplicatedStorage.Shared.Util.Log)
 local MeshTemplates = require(script.Parent.Parent.Util.MeshTemplates)
@@ -55,9 +54,6 @@ function PetPreview.build(): number
 	local folder = ReplicatedStorage:FindFirstChild(FOLDER)
 	if built and folder then
 		return #folder:GetChildren()
-	end
-	if not RunService:IsStudio() then
-		return 0
 	end
 	built = true
 	local all = specs()

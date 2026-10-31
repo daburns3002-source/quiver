@@ -44,7 +44,12 @@ local WeaponStats = {
 
 	--[[ Each area's weapons against its enemies' health, the first area's
 	     being 1. ]]
-	areaScale = { 1, 1.125 } :: { number },
+	--[[ Area 3's 1.25 is provisional: the Drowned Village has no stages in
+	     `Balance.Stages` yet, so there is no enemy health to divide by. It
+	     follows the step area 1 to 2 made (0.8 to 0.9 health, 1 to 1.125) on
+	     the assumption area 3 lands near 1.0, and should be re-derived once
+	     its stages exist. ]]
+	areaScale = { 1, 1.125, 1.25 } :: { number },
 
 	weapons = {
 		-- The classes' own (area 1, Common).
@@ -99,6 +104,67 @@ local WeaponStats = {
 			area = 1,
 			innate = { Whirlwind = 1 },
 			effect = "Heartwood whirl: every fourth swing spins all around you.",
+		},
+
+		--[[ Area 3, the Drowned Village (docs/WEAPONS-DROWNED.md). Tiers read
+		     off Codex's sheets; there is no Uncommon bow at all.
+
+		     The area is not stocked yet (`Config/Shop`'s `stocked`), so none
+		     of these can be bought: they have no 2D icons and the area has no
+		     `Config/Economy` entry to price a Legendary against. They are
+		     held and fought with in the sandbox, and the three toll weapons
+		     and three Mythics carry their effects so the ladder is whole when
+		     the area opens.
+
+		     Each effect is a card its own class can draw: a bow's is the
+		     Ranger's, a staff's the Arcanist's, a blade's the Warden's. ]]
+		SlatefinBow = { rarity = "Rare", area = 3 },
+		EelcrestBow = { rarity = "Epic", area = 3 },
+		TollstringBow = {
+			rarity = "Legendary",
+			area = 3,
+			innate = { Ricochet = 1 },
+			effect = "Toll's echo: the shot rings off its mark on to another.",
+		},
+
+		ReedStaff = { rarity = "Uncommon", area = 3 },
+		WellpearlStaff = { rarity = "Epic", area = 3 },
+		TollkeeperStaff = {
+			rarity = "Legendary",
+			area = 3,
+			innate = { TwinCast = 1 },
+			effect = "Keeper's second strike: the bell is rung twice.",
+		},
+
+		TidewoodBlade = { rarity = "Uncommon", area = 3 },
+		TidehookBlade = { rarity = "Rare", area = 3 },
+		CausewayBlade = { rarity = "Epic", area = 3 },
+		TollguardBlade = {
+			rarity = "Legendary",
+			area = 3,
+			innate = { Parry = 1 },
+			effect = "Guard's answer: a blow turned aside is turned back.",
+		},
+
+		--[[ The four imported 2026-10-31, completing the ladder. ]]
+		BuoyStaff = { rarity = "Rare", area = 3 },
+		EventideBow = {
+			rarity = "Mythic",
+			area = 3,
+			innate = { SoulChain = 1 },
+			effect = "Eventide: a drowned soul leaps from the dead to the living.",
+		},
+		MaelstromStaff = {
+			rarity = "Mythic",
+			area = 3,
+			innate = { Meteor = 1 },
+			effect = "Maelstrom: the sea falls in where the spell lands.",
+		},
+		StormglassBlade = {
+			rarity = "Mythic",
+			area = 3,
+			innate = { Execute = 1 },
+			effect = "Stormglass: a wounded enemy is sheared clean through.",
 		},
 	} :: { [string]: Stats },
 }

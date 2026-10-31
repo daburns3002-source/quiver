@@ -27,7 +27,7 @@ local Loadout = {}
 
 --[[ Who is offering the cards on screen. A level-up spends a level it was
      owed; a Valkyrie or an Angel is a gift, and spends nothing. ]]
-export type OfferSource = "Level" | "Valkyrie" | "Angel"
+export type OfferSource = "Level" | "Valkyrie" | "Angel" | "Endless"
 
 export type State = {
 	--[[ Ability id to how many copies have been taken. Instant abilities are
@@ -353,6 +353,33 @@ function Loadout.openValkyrie(
 end
 
 --[[
+	An Endless floor's draft (`docs/ENDLESS.md`): `size` cards from the
+	ordinary pool, dealt on clearing every third floor and every extra card
+	a checkpoint grants. The same roll as a Valkyrie's — it is its own source
+	only so the screen can say FLOOR CLEARED rather than VALKYRIE, and so it
+	is never charged to a level (see `chooseAbility`).
+]]
+function Loadout.openEndlessDraft(
+	state: State,
+	atFullHealth: boolean,
+	random: Random,
+	size: number
+): { string }?
+	if state.offer then
+		return nil
+	end
+
+	local offer = Loadout.rollOffer(state, atFullHealth, random, size)
+	if #offer == 0 then
+		return nil
+	end
+
+	state.offer = offer
+	state.offerSource = "Endless"
+	return offer
+end
+
+--[[
 	An Angel's offer, as Archero 2 has it: a minor stat boost or a heal. The
 	stat is any Stats ability still under its cap and not excluded; the heal
 	is the Heal card. The stat may be missing late in a run — the heal is
@@ -440,9 +467,9 @@ function Loadout.choose(state: State, index: number): Ability?
 	--[[ Instant abilities are resolved by the caller and never recorded as
 	     held, but they still count towards their own cap. ]]
 	state.counts[ability.id] = (state.counts[ability.id] or 0) + 1
-	--[[ Only a level-up spends a level. A Valkyrie's or an Angel's card is
-	     a gift, and charging it to a level would quietly cost the player
-	     their next draft. ]]
+	--[[ Only a level-up spends a level. A Valkyrie's, an Angel's or an
+	     Endless floor's card is a gift, and charging it to a level would
+	     quietly cost the player their next draft. ]]
 	if state.offerSource == "Level" then
 		state.pendingLevels -= 1
 	end

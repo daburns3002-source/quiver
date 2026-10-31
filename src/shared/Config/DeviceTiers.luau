@@ -63,6 +63,14 @@ export type Tier = {
 	     which the lowest tier is spared: there a hand decodes them as it
 	     comes up, without waiting on the network. ]]
 	warmCardImages: boolean,
+	--[[ How many of the story cutscene's frames are held in video memory at
+	     once (`UI/StoryCutscene`), counting from the one on screen. Every
+	     tier downloads all forty; this is how many are also kept drawn, out
+	     of sight, so their turn costs no decode. The window slides with the
+	     cutscene and frames behind it are dropped, because holding all forty
+	     is about 120 MB of texture on a device that has just been asked to
+	     load an arena as well. A high tier can afford the lot. ]]
+	warmStoryFrames: number,
 }
 
 --[[
@@ -88,6 +96,7 @@ local low: Tier = {
 	maxSlimeResidue = 24,
 	maxUpgradeFx = 10,
 	warmCardImages = false,
+	warmStoryFrames = 4,
 }
 
 local medium: Tier = {
@@ -108,6 +117,7 @@ local medium: Tier = {
 	maxSlimeResidue = 64,
 	maxUpgradeFx = 20,
 	warmCardImages = true,
+	warmStoryFrames = 10,
 }
 
 local high: Tier = {
@@ -128,6 +138,7 @@ local high: Tier = {
 	maxSlimeResidue = 128,
 	maxUpgradeFx = 32,
 	warmCardImages = true,
+	warmStoryFrames = 40,
 }
 
 local DeviceTiers = {

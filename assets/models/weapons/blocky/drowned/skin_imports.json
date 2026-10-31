@@ -1,0 +1,338 @@
+{
+ "buoy staff arena 3": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://78767941640588",
+    "name": "Staff",
+    "size": [
+     0.313,
+     0.9995,
+     0.3901
+    ],
+    "textureId": "rbxassetid://111040352974574"
+   }
+  ],
+  "size": [
+   0.313,
+   0.9995,
+   0.3901
+  ]
+ },
+ "causeway blade arena 3": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://102479967632985",
+    "name": "Blade",
+    "size": [
+     0.3911,
+     0.9995,
+     0.1528
+    ],
+    "textureId": "rbxassetid://77605466340843"
+   }
+  ],
+  "size": [
+   0.3911,
+   0.9995,
+   0.1528
+  ]
+ },
+ "eelcrest bow arena 3": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://79795647768703",
+    "name": "Bow",
+    "size": [
+     0.3394,
+     0.9995,
+     0.1313
+    ],
+    "textureId": "rbxassetid://138309091162872"
+   }
+  ],
+  "size": [
+   0.3394,
+   0.9995,
+   0.1313
+  ]
+ },
+ "eventide bow arena 3": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://101108217438474",
+    "name": "Bow",
+    "size": [
+     0.396,
+     0.9995,
+     0.1606
+    ],
+    "textureId": "rbxassetid://134441330446964"
+   }
+  ],
+  "size": [
+   0.396,
+   0.9995,
+   0.1606
+  ]
+ },
+ "maelstrom staff arena 3": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://72086969439896",
+    "name": "Staff",
+    "size": [
+     0.4136,
+     0.9995,
+     0.1235
+    ],
+    "textureId": "rbxassetid://80653594323518"
+   }
+  ],
+  "size": [
+   0.4136,
+   0.9995,
+   0.1235
+  ]
+ },
+ "reed staff arena 3": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://132803148374860",
+    "name": "Staff",
+    "size": [
+     0.2837,
+     0.9995,
+     0.2847
+    ],
+    "textureId": "rbxassetid://116611356053754"
+   }
+  ],
+  "size": [
+   0.2837,
+   0.9995,
+   0.2847
+  ]
+ },
+ "slatefin bow arena 3": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://72959352581083",
+    "name": "Bow",
+    "size": [
+     0.104,
+     0.9995,
+     0.4927
+    ],
+    "textureId": "rbxassetid://95094493478746"
+   }
+  ],
+  "size": [
+   0.104,
+   0.9995,
+   0.4927
+  ]
+ },
+ "stormglass blade arena 3": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://95695726908721",
+    "name": "Blade",
+    "size": [
+     0.5093,
+     0.9995,
+     0.1226
+    ],
+    "textureId": "rbxassetid://91354810095787"
+   }
+  ],
+  "size": [
+   0.5093,
+   0.9995,
+   0.1226
+  ]
+ },
+ "sunken bell sword arena 3": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://79270724349699",
+    "name": "Blade",
+    "size": [
+     0.3394,
+     0.9995,
+     0.1724
+    ],
+    "textureId": "rbxassetid://78360244322797"
+   }
+  ],
+  "size": [
+   0.3394,
+   0.9995,
+   0.1724
+  ]
+ },
+ "tidehook blade arena 3": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://109253908479186",
+    "name": "Blade",
+    "size": [
+     0.4624,
+     0.9995,
+     0.1528
+    ],
+    "textureId": "rbxassetid://110272759853929"
+   }
+  ],
+  "size": [
+   0.4624,
+   0.9995,
+   0.1528
+  ]
+ },
+ "tidewood blade arena 3": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://101080327527177",
+    "name": "Blade",
+    "size": [
+     0.4097,
+     0.9995,
+     0.1284
+    ],
+    "textureId": "rbxassetid://82801723110398"
+   }
+  ],
+  "size": [
+   0.4097,
+   0.9995,
+   0.1284
+  ]
+ },
+ "tollkeeper staff arena 3": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://126230765318311",
+    "name": "Staff",
+    "size": [
+     0.2739,
+     0.9995,
+     0.1216
+    ],
+    "textureId": "rbxassetid://131973326076494"
+   }
+  ],
+  "size": [
+   0.2739,
+   0.9995,
+   0.1216
+  ]
+ },
+ "tollstring bow arena 3": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://70803920000312",
+    "name": "Bow",
+    "size": [
+     0.4771,
+     0.9995,
+     0.1694
+    ],
+    "textureId": "rbxassetid://87111981155450"
+   }
+  ],
+  "size": [
+   0.4771,
+   0.9995,
+   0.1694
+  ]
+ },
+ "wellpearl staff arena 3": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://130258670765972",
+    "name": "Staff",
+    "size": [
+     0.2358,
+     0.9995,
+     0.2114
+    ],
+    "textureId": "rbxassetid://78141638311419"
+   }
+  ],
+  "size": [
+   0.2358,
+   0.9995,
+   0.2114
+  ]
+ }
+}

@@ -43,6 +43,11 @@ export type WeaponPart = {
 	--[[ Turned half round about its own Y: a skin modelled facing the other
 	     way from its base weapon (`assets/models/weapons/skins_to_luau.py`). ]]
 	turned: boolean?,
+	--[[ A further turn about its own Y, radians, on top of `turned`. Tripo
+	     models do not share one convention: three of the Drowned Village bows
+	     are modelled with the limbs curving in XY where the Twig Bow's curve
+	     is in YZ, so they face sideways in the hand without this. ]]
+	yaw: number?,
 }
 
 --[[ Which of the weapon's `Config/WeaponAnimations` clips plays when:
@@ -861,6 +866,7 @@ local skins: { [string]: any } = {
 				size = Vector3.new(0.3394, 0.9995, 0.1313),
 				offset = Vector3.new(0, 0, 0),
 				turned = true,
+				yaw = math.pi / 2,
 				textureId = "rbxassetid://138309091162872",
 			},
 		} :: { WeaponPart },
@@ -909,6 +915,7 @@ local skins: { [string]: any } = {
 				size = Vector3.new(0.4771, 0.9995, 0.1694),
 				offset = Vector3.new(0, 0, 0),
 				turned = true,
+				yaw = math.pi / 2,
 				textureId = "rbxassetid://87111981155450",
 			},
 		} :: { WeaponPart },
@@ -974,6 +981,7 @@ local skins: { [string]: any } = {
 				size = Vector3.new(0.396, 0.9995, 0.1606),
 				offset = Vector3.new(0, 0, 0),
 				turned = true,
+				yaw = math.pi / 2,
 				textureId = "rbxassetid://134441330446964",
 			},
 		} :: { WeaponPart },

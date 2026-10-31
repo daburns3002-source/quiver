@@ -99,7 +99,7 @@ function HeldWeapon.equip(character: Model, weaponName: string)
 			part.Size = spec.size * scale
 			part.CFrame = frame
 				* CFrame.new(spec.offset * scale)
-				* (if spec.turned then CFrame.Angles(0, math.pi, 0) else CFrame.identity)
+				* CFrame.Angles(0, (if spec.turned then math.pi else 0) + (spec.yaw or 0), 0)
 			part.Anchored = false
 			part.Massless = true
 			part.CanCollide = false
@@ -193,7 +193,7 @@ function HeldWeapon.buildPreviews()
 			part.Size = spec.size * scale
 			part.CFrame = frame
 				* CFrame.new(spec.offset * scale)
-				* (if spec.turned then CFrame.Angles(0, math.pi, 0) else CFrame.identity)
+				* CFrame.Angles(0, (if spec.turned then math.pi else 0) + (spec.yaw or 0), 0)
 			part.Anchored = true
 			part.CanCollide = false
 			part.CanQuery = false

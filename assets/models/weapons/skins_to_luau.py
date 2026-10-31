@@ -76,6 +76,15 @@ DROWNED = [
     ("MaelstromStaff", "MAELSTROM STAFF", "Arcanist", "maelstrom staff arena 3", None, None, 5),
     ("StormglassBlade", "STORMGLASS BLADE", "Warden", "stormglass blade arena 3", None, None, 5),
 ]
+# Radians of extra turn about Y for models that do not follow the base
+# weapon's convention. A bow's limbs should curve in YZ as the Twig Bow's do;
+# these three are modelled curving in XY, so they face sideways without it.
+# Verified against each import's bounding box: X wider than Z means XY.
+YAW = {
+    "EelcrestBow": "math.pi / 2",
+    "TollstringBow": "math.pi / 2",
+    "EventideBow": "math.pi / 2",
+}
 GLOWS = ("Gems", "Glow")
 # Epics and up always glow (owner, 2026-10-24); one with no colour of its own
 # glows white, and a Mythic cycles its glow through the rainbow (Fx/WeaponGlow).
@@ -126,6 +135,8 @@ def entry(imports, key, cls, name, projectile, glow, tier=None) -> str:
         out.append(f"\t\t\t\tsize = {vec(part['size'])},")
         out.append(f"\t\t\t\toffset = {vec(offset)},")
         out.append("\t\t\t\tturned = true,")
+        if YAW.get(key):
+            out.append(f"\t\t\t\tyaw = {YAW[key]},")
         # A Tripo model carries its colours in a texture, not its vertices.
         if part.get("textureId"):
             out.append(f'\t\t\t\ttextureId = "{part["textureId"]}",')

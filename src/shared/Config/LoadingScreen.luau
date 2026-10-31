@@ -14,6 +14,19 @@ local LoadingScreen = {
 	--[[ The uploaded art (nil: the screen stays black
 	     with the picture, tip and bar drawn on their own). ]]
 	art = "rbxassetid://96723708924131" :: string?,
+	--[[ Codex's per-enemy spotlight screens (2026-10-31), keyed by the entry
+	     name `Util/LoadingPick` hands over, which is the enemy's
+	     `NewEnemies.name`. Each bakes its own backdrop, enemy, title and
+	     line into one 1672x941 picture, so the screen draws it whole and
+	     keeps only the live furniture over it: the bar, LOADING and the tip.
+	     An entry with no spotlight falls back to `art` exactly as before.
+	     Sources in `assets/concepts/blocky/ui/loading/spotlight/`. ]]
+	spotlights = {
+		["BABY SLIME"] = "rbxassetid://109875530590023",
+		["BROOD SLIME"] = "rbxassetid://85643151176705",
+		["MOSS SLIME"] = "rbxassetid://140658661048079",
+		["SPLITTER SPITTER"] = "rbxassetid://108350133336178",
+	} :: { [string]: string },
 	--[[ The art's size in pixels, and its panels. ]]
 	size = Vector2.new(1672, 941),
 	--[[ The picture window holds the picture, then its line under it

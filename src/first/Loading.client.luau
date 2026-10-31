@@ -141,7 +141,16 @@ local function build()
 		item.Size = UDim2.fromScale(box.w / size.X, box.h / size.Y)
 	end
 
-	local art: string? = LoadingScreen.art
+	-- an enemy or weapon the player has met, and its name
+	local entry = if #pool > 0 then pool[math.random(1, #pool)] else nil
+
+	--[[ Codex's spotlight for this entry, if there is one: one picture with
+	     the backdrop, the enemy, its title and its line already in it. It
+	     fills the screen and the composed window below is skipped, because
+	     everything that window draws is already painted into it. Without
+	     one, nothing changes -- the shared `art` and the window as before. ]]
+	local spotlight: string? = if entry then LoadingScreen.spotlights[entry.name] else nil
+	local art: string? = spotlight or LoadingScreen.art
 	if art then
 		local image = Instance.new("ImageLabel")
 		image.Name = "Art"
@@ -162,9 +171,7 @@ local function build()
 	title.Visible = false
 	loading.Visible = false
 
-	-- an enemy or weapon the player has met, and its name
-	local entry = if #pool > 0 then pool[math.random(1, #pool)] else nil
-	if entry then
+	if entry and not spotlight then
 		-- a scene of its area behind it, rays in its rarity's colour turning
 		-- behind the picture, and a soft glow, so it is not floating in an
 		-- empty window (owner, 2026-10-26)

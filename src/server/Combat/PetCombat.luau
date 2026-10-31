@@ -3,8 +3,10 @@
 	The pets fight (docs/PETS-FOREST.md, Attacks; numbers in
 	`Config/PetCombat`, placeholders until the owner balances them).
 
-	A player's pet is their `Pet` attribute (a `Config/PetModels` key); only
-	the Studio sandbox sets it until Phase 6. Every `every` seconds the pet
+	A player's pets are their `Pet` and `Pet2` attributes (`Config/Eggs`
+	slots, `Config/PetModels` keys), set from the gear screen
+	(`Server/Data/Hatchery`) or, in Studio, the sandbox. Each fights on its
+	own clock. Every `every` seconds a pet
 	attacks from its owner's side: the server decides who it hits and does
 	it, and tells the clients (`Remotes.PetAttack`) so the owner's pet plays
 	its Attack clip and pieces (`Fx/PetPreview`, `Fx/PetAttackFx`). Its
@@ -25,6 +27,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 
 local Burning = require(script.Parent.Burning)
+local Eggs = require(ReplicatedStorage.Shared.Config.Eggs)
 local EnemyManager = require(script.Parent.Parent.Enemies.EnemyManager)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
 local Pathing = require(script.Parent.Parent.Enemies.Pathing)
@@ -52,7 +55,34 @@ type State = {
 	patchUntil: number,
 }
 
-local states: { [Player]: State } = {}
+--[[ Each player's pets, by slot. ]]
+local states: { [Player]: { [number]: State } } = {}
+
+--[[ The pets in a player's slots that can fight, by slot. ]]
+local function petsOf(player: Player): { [number]: string }
+	local out = {}
+	for slot, attribute in Eggs.slots do
+		local pet = player:GetAttribute(attribute)
+		if type(pet) == "string" and PetCombatConfig.pets[pet] then
+			out[slot] = pet
+		end
+	end
+	return out
+end
+
+--[[ Whether `state` is still one of the player's pets in the fight. ]]
+local function current(player: Player, state: State): boolean
+	local mine = states[player]
+	if not mine then
+		return false
+	end
+	for _, held in mine do
+		if held == state then
+			return true
+		end
+	end
+	return false
+end
 local petAttack = Remotes.event(Remotes.PetAttack)
 
 local function rootOf(session: Session): BasePart?
@@ -105,17 +135,12 @@ local function hit(session: Session, model: Model, amount: number, from: Vector3
 end
 
 --[[ What a pet does to an enemy besides its damage, once a target. ]]
-local function afflict(session: Session, model: Model, spec: Spec, now: number)
+local function afflict(session: Session, pet: string, model: Model, spec: Spec, now: number)
 	if spec.slow then
 		EnemyManager.slow(model, spec.slow.scale, now + spec.slow.duration)
 	end
 	if spec.root then
-		local pet = session.player:GetAttribute("Pet")
-		EnemyManager.root(
-			model,
-			RootHold.seconds(spec.root, EnemyManager.isBoss(model)),
-			if type(pet) == "string" then pet else ""
-		)
+		EnemyManager.root(model, RootHold.seconds(spec.root, EnemyManager.isBoss(model)), pet)
 	end
 	if spec.burn then
 		Burning.ignite(model, spec.burn.rate, spec.burn.duration, session.player, now)
@@ -148,20 +173,20 @@ local function launch(
 	end
 	local from = PetShots.heel(root.CFrame)
 	task.delay(PetShots.flight(shot, (position - from).Magnitude), function()
-		local current = RunSession.get(player)
+		local now = RunSession.get(player)
 		if
-			not current
-			or not current.alive
-			or states[player] ~= state
+			not now
+			or not now.alive
+			or not current(player, state)
 			or not EnemyManager.positions()[model]
 		then
 			return
 		end
 		if amount > 0 then
-			hit(current, model, amount, from)
+			hit(now, model, amount, from)
 		end
 		if first then
-			afflict(current, model, spec, os.clock())
+			afflict(now, state.pet, model, spec, os.clock())
 		end
 	end)
 end
@@ -198,7 +223,7 @@ local function strike(session: Session, state: State, spec: Spec, origin: Vector
 			for _ = 1, if amount > 0 then hits else 0 do
 				hit(session, model, amount, origin)
 			end
-			afflict(session, model, spec, now)
+			afflict(session, state.pet, model, spec, now)
 		end
 	end
 
@@ -273,8 +298,8 @@ local function dashAt(
 		-- struck from where the pet lands, for the knockback
 		local landed = Vector3.new(route[#route].X, origin.Y, route[#route].Z)
 		task.delay(arrive, function()
-			local current = RunSession.get(player)
-			if current and current.alive and states[player] == state then
+			local live = RunSession.get(player)
+			if live and live.alive and current(player, state) then
 				if spec.damage then
 					local amount = spec.damage
 						+ (
@@ -283,10 +308,10 @@ local function dashAt(
 								else 0
 						)
 					for _ = 1, spec.hits or 1 do
-						hit(current, model, amount, landed)
+						hit(live, model, amount, landed)
 					end
 				end
-				afflict(current, model, spec, os.clock())
+				afflict(live, state.pet, model, spec, os.clock())
 			end
 		end)
 	end
@@ -310,86 +335,109 @@ local function hasWork(spec: Spec, origin: Vector3): boolean
 	return #inRange(origin, spec.range) > 0
 end
 
+--[[ One pet's turn: its clock, its spore patch, its attack. ]]
+local function stepPet(
+	player: Player,
+	session: Session,
+	state: State,
+	spec: Spec,
+	deltaTime: number,
+	now: number
+)
+	-- a guard goes up once a room (`PetCombat.newRoom`), not on the clock
+	if spec.guard then
+		return
+	end
+	local root = rootOf(session)
+	if not root then
+		return
+	end
+	local origin = root.Position
+
+	-- the spore patch heals while the owner stands in it
+	local patch = state.patch
+	if patch and spec.heal then
+		if now >= state.patchUntil then
+			state.patch = nil
+		elseif
+			(Vector3.new(origin.X - patch.X, 0, origin.Z - patch.Z)).Magnitude
+			<= spec.heal.radius
+		then
+			RunSession.heal(session, spec.heal.perSecond * deltaTime)
+		end
+	end
+
+	if now < state.nextAt or not hasWork(spec, origin) then
+		return
+	end
+	state.nextAt = now + spec.every
+	state.attacks += 1
+	local dash = spec.dash
+	if dash then
+		local length = dashAt(player, state, spec, dash, origin)
+		if length then
+			-- never off again before it is back
+			state.nextAt = math.max(state.nextAt, now + length)
+		end
+		return
+	end
+	petAttack:FireAllClients(player, state.pet)
+	task.delay(leadOf(state.pet), function()
+		local live = RunSession.get(player)
+		local at = live and rootOf(live)
+		if live and live.alive and at and current(player, state) then
+			strike(live, state, spec, at.Position, os.clock())
+		end
+	end)
+end
+
 function PetCombat.step(deltaTime: number, now: number)
 	for player, session in RunSession.all() do
-		local pet = player:GetAttribute("Pet")
-		local spec = if type(pet) == "string" then PetCombatConfig.pets[pet] else nil
-		if not spec or not session.alive then
+		local pets = petsOf(player)
+		if not session.alive or next(pets) == nil then
 			states[player] = nil
 			continue
 		end
-		local existing = states[player]
-		local state: State
-		if existing and existing.pet == pet then
-			state = existing
-		else
-			state = {
-				pet = pet :: string,
-				nextAt = now + spec.every,
-				attacks = 0,
-				patch = nil,
-				patchUntil = 0,
-			}
-			states[player] = state
-			-- a guard pet joins with its shell up for this room; any other has none
-			session.petGuard = spec.guard == true
-			log.info("%s's %s joins the fight", player.Name, state.pet)
-		end
-		-- a guard goes up once a room (`PetCombat.newRoom`), not on the clock
-		if spec.guard then
-			continue
-		end
-		local root = rootOf(session)
-		if not root then
-			continue
-		end
-		local origin = root.Position
-
-		-- the spore patch heals while the owner stands in it
-		local patch = state.patch
-		if patch and spec.heal then
-			if now >= state.patchUntil then
-				state.patch = nil
-			elseif
-				(Vector3.new(origin.X - patch.X, 0, origin.Z - patch.Z)).Magnitude
-				<= spec.heal.radius
-			then
-				RunSession.heal(session, spec.heal.perSecond * deltaTime)
+		local mine = states[player] or {}
+		states[player] = mine
+		for slot = 1, #Eggs.slots do
+			local pet = pets[slot]
+			if not pet then
+				mine[slot] = nil
+				continue
 			end
-		end
-
-		if now < state.nextAt or not hasWork(spec, origin) then
-			continue
-		end
-		state.nextAt = now + spec.every
-		state.attacks += 1
-		local dash = spec.dash
-		if dash then
-			local length = dashAt(player, state, spec, dash, origin)
-			if length then
-				-- never off again before it is back
-				state.nextAt = math.max(state.nextAt, now + length)
+			local spec = PetCombatConfig.pets[pet]
+			local held = mine[slot]
+			local state: State
+			if held and held.pet == pet then
+				state = held
+			else
+				state = {
+					pet = pet,
+					nextAt = now + spec.every,
+					attacks = 0,
+					patch = nil,
+					patchUntil = 0,
+				}
+				mine[slot] = state
+				-- a guard pet joins with its shell up for this room
+				if spec.guard then
+					session.petGuard = true
+				end
+				log.info("%s's %s joins the fight", player.Name, pet)
 			end
-			continue
+			stepPet(player, session, state, spec, deltaTime, now)
 		end
-		petAttack:FireAllClients(player, state.pet)
-		task.delay(leadOf(state.pet), function()
-			local current = RunSession.get(player)
-			local at = current and rootOf(current)
-			if current and current.alive and at then
-				strike(current, state, spec, at.Position, os.clock())
-			end
-		end)
 	end
 end
 
 --[[ Raises `session`'s pet's shell if its pet guards (the Mossback Snail's
      Shell Guard): it blocks the next hit (`RunSession.applyDamage`). ]]
 function PetCombat.raiseShell(session: Session)
-	local pet = session.player:GetAttribute("Pet")
-	local spec = if type(pet) == "string" then PetCombatConfig.pets[pet] else nil
-	if spec and spec.guard then
-		session.petGuard = true
+	for _, pet in petsOf(session.player) do
+		if PetCombatConfig.pets[pet].guard then
+			session.petGuard = true
+		end
 	end
 end
 

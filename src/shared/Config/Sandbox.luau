@@ -27,6 +27,37 @@ local Sandbox = {
 	     leaves it shut: off for the run-through from the intro to the
 	     lobby (owner, 2026-10-26). Never honoured in a live server. ]]
 	openShop = nil :: { coins: number, gems: number, items: number }?,
+	--[[ Studio only: on joining, this much in the wallet and these areas'
+	     bosses counted as beaten, so every egg and crate can be tried
+	     (owner, 2026-10-26: "unlock both eggs so i can test them"). nil for
+	     a run-through as a new player. Never honoured in a live server. ]]
+	--[[ Studio only: the tutorial plays even though `testUnlock` counts 1-1
+	     as beaten. The playtest wants the intro, the title and the tutorial
+	     AND the areas open (owner, 2026-10-28), and those pull against each
+	     other: opening 1-2 needs 1-1 beaten, and 1-1 beaten is the very flag
+	     `Util/LevelUnlocks.tutorialOwed` reads to decide the tutorial is
+	     done. This overrides it. nil leaves the tutorial to the profile, as
+	     a live server always does. ]]
+	forceTutorial = true :: boolean?,
+	--[[ `levels` counts those levels beaten too (`SaveSchema.levelsBeaten`),
+	     so what waits on one can be reached from Play. All ten of Mossy
+	     Glade for the playtest (owner, 2026-10-28: "the mossy glade areas
+	     and thornwood areas are unlocked"), because a level only opens once
+	     the one before it is beaten (`LevelUnlocks.isUnlocked`) — 1-10 alone
+	     left 1-2..1-9 shut. Thornwood's single level is open from the start
+	     whatever is beaten; its boss is in `bosses` so what that gates can
+	     be tried too. ]]
+	testUnlock = {
+		coins = 50000,
+		gems = 2000,
+		bosses = { "MossyGlade", "Thornwood" },
+		levels = { "1-1", "1-2", "1-3", "1-4", "1-5", "1-6", "1-7", "1-8", "1-9", "1-10" },
+	} :: {
+		coins: number,
+		gems: number,
+		bosses: { string },
+		levels: { string },
+	}?,
 	weapons = {
 		{ weapon = "TwigBow", class = "Ranger", label = "TWIG BOW" },
 		{ weapon = "TwigBowDual", class = "Ranger", label = "DUAL TWIG BOWS" },
@@ -48,6 +79,20 @@ local Sandbox = {
 		{ weapon = "BroodsplitBlade", class = "Warden", label = "BROODSPLIT BLADE" },
 		{ weapon = "EmberfangBlade", class = "Warden", label = "EMBERFANG BLADE" },
 		{ weapon = "GladeheartBlade", class = "Warden", label = "GLADEHEART BLADE" },
+		{ weapon = "ReedStaff", class = "Arcanist", label = "REED STAFF" },
+		{ weapon = "TidewoodBlade", class = "Warden", label = "TIDEWOOD BLADE" },
+		{ weapon = "SlatefinBow", class = "Ranger", label = "SLATEFIN BOW" },
+		{ weapon = "TidehookBlade", class = "Warden", label = "TIDEHOOK BLADE" },
+		{ weapon = "EelcrestBow", class = "Ranger", label = "EELCREST BOW" },
+		{ weapon = "WellpearlStaff", class = "Arcanist", label = "WELLPEARL STAFF" },
+		{ weapon = "CausewayBlade", class = "Warden", label = "CAUSEWAY BLADE" },
+		{ weapon = "TollstringBow", class = "Ranger", label = "TOLLSTRING BOW" },
+		{ weapon = "TollkeeperStaff", class = "Arcanist", label = "TOLLKEEPER STAFF" },
+		{ weapon = "TollguardBlade", class = "Warden", label = "TOLLGUARD BLADE" },
+		{ weapon = "BuoyStaff", class = "Arcanist", label = "BUOY STAFF" },
+		{ weapon = "EventideBow", class = "Ranger", label = "EVENTIDE BOW" },
+		{ weapon = "MaelstromStaff", class = "Arcanist", label = "MAELSTROM STAFF" },
+		{ weapon = "StormglassBlade", class = "Warden", label = "STORMGLASS BLADE" },
 		-- SKINS END
 	} :: { Entry },
 

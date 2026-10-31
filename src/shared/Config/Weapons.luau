@@ -43,6 +43,11 @@ export type WeaponPart = {
 	--[[ Turned half round about its own Y: a skin modelled facing the other
 	     way from its base weapon (`assets/models/weapons/skins_to_luau.py`). ]]
 	turned: boolean?,
+	--[[ A further turn about its own Y, radians, on top of `turned`. Tripo
+	     models do not share one convention: three of the Drowned Village bows
+	     are modelled with the limbs curving in XY where the Twig Bow's curve
+	     is in YZ, so they face sideways in the hand without this. ]]
+	yaw: number?,
 }
 
 --[[ Which of the weapon's `Config/WeaponAnimations` clips plays when:
@@ -784,6 +789,240 @@ local skins: { [string]: any } = {
 		} :: { WeaponPart },
 		rainbow = true,
 		trailGlow = Color3.fromRGB(222, 190, 243),
+	},
+	ReedStaff = {
+		-- `reed staff arena 3`, held as the BranchStaff is, playing its kit until it has its own
+		kit = "BranchStaff",
+		skinOf = "BranchStaff",
+		scale = 4.4902,
+		parts = {
+			{
+				name = "Staff",
+				meshId = "rbxassetid://132803148374860",
+				size = Vector3.new(0.2837, 0.9995, 0.2847),
+				offset = Vector3.new(0, 0.07, 0),
+				turned = true,
+				textureId = "rbxassetid://116611356053754",
+			},
+		} :: { WeaponPart },
+	},
+	TidewoodBlade = {
+		-- `tidewood blade arena 3`, held as the TimberBlade is, playing its kit until it has its own
+		kit = "TimberBlade",
+		skinOf = "TimberBlade",
+		scale = 4.7904,
+		parts = {
+			{
+				name = "Blade",
+				meshId = "rbxassetid://101080327527177",
+				size = Vector3.new(0.4097, 0.9995, 0.1284),
+				offset = Vector3.new(0, 0.2459, 0),
+				turned = true,
+				textureId = "rbxassetid://82801723110398",
+			},
+		} :: { WeaponPart },
+	},
+	SlatefinBow = {
+		-- `slatefin bow arena 3`, held as the TwigBow is, playing its kit until it has its own
+		kit = "TwigBow",
+		skinOf = "TwigBow",
+		scale = 4.2501,
+		parts = {
+			{
+				name = "Bow",
+				meshId = "rbxassetid://72959352581083",
+				size = Vector3.new(0.104, 0.9995, 0.4927),
+				offset = Vector3.new(0, 0, 0),
+				turned = true,
+				textureId = "rbxassetid://95094493478746",
+			},
+		} :: { WeaponPart },
+	},
+	TidehookBlade = {
+		-- `tidehook blade arena 3`, held as the TimberBlade is, playing its kit until it has its own
+		kit = "TimberBlade",
+		skinOf = "TimberBlade",
+		scale = 4.7904,
+		parts = {
+			{
+				name = "Blade",
+				meshId = "rbxassetid://109253908479186",
+				size = Vector3.new(0.4624, 0.9995, 0.1528),
+				offset = Vector3.new(0, 0.2459, 0),
+				turned = true,
+				textureId = "rbxassetid://110272759853929",
+			},
+		} :: { WeaponPart },
+	},
+	EelcrestBow = {
+		-- `eelcrest bow arena 3`, held as the TwigBow is, playing its kit until it has its own
+		kit = "TwigBow",
+		skinOf = "TwigBow",
+		scale = 4.2501,
+		parts = {
+			{
+				name = "Bow",
+				meshId = "rbxassetid://79795647768703",
+				size = Vector3.new(0.3394, 0.9995, 0.1313),
+				offset = Vector3.new(0, 0, 0),
+				turned = true,
+				yaw = math.pi / 2,
+				textureId = "rbxassetid://138309091162872",
+			},
+		} :: { WeaponPart },
+	},
+	WellpearlStaff = {
+		-- `wellpearl staff arena 3`, held as the BranchStaff is, playing its kit until it has its own
+		kit = "BranchStaff",
+		skinOf = "BranchStaff",
+		scale = 4.4902,
+		parts = {
+			{
+				name = "Staff",
+				meshId = "rbxassetid://130258670765972",
+				size = Vector3.new(0.2358, 0.9995, 0.2114),
+				offset = Vector3.new(0, 0.07, 0),
+				turned = true,
+				textureId = "rbxassetid://78141638311419",
+			},
+		} :: { WeaponPart },
+	},
+	CausewayBlade = {
+		-- `causeway blade arena 3`, held as the TimberBlade is, playing its kit until it has its own
+		kit = "TimberBlade",
+		skinOf = "TimberBlade",
+		scale = 4.7904,
+		parts = {
+			{
+				name = "Blade",
+				meshId = "rbxassetid://102479967632985",
+				size = Vector3.new(0.3911, 0.9995, 0.1528),
+				offset = Vector3.new(0, 0.2459, 0),
+				turned = true,
+				textureId = "rbxassetid://77605466340843",
+			},
+		} :: { WeaponPart },
+	},
+	TollstringBow = {
+		-- `tollstring bow arena 3`, held as the TwigBow is, playing its kit until it has its own
+		kit = "TwigBow",
+		skinOf = "TwigBow",
+		scale = 4.2501,
+		parts = {
+			{
+				name = "Bow",
+				meshId = "rbxassetid://70803920000312",
+				size = Vector3.new(0.4771, 0.9995, 0.1694),
+				offset = Vector3.new(0, 0, 0),
+				turned = true,
+				yaw = math.pi / 2,
+				textureId = "rbxassetid://87111981155450",
+			},
+		} :: { WeaponPart },
+	},
+	TollkeeperStaff = {
+		-- `tollkeeper staff arena 3`, held as the BranchStaff is, playing its kit until it has its own
+		kit = "BranchStaff",
+		skinOf = "BranchStaff",
+		scale = 4.4902,
+		parts = {
+			{
+				name = "Staff",
+				meshId = "rbxassetid://126230765318311",
+				size = Vector3.new(0.2739, 0.9995, 0.1216),
+				offset = Vector3.new(0, 0.07, 0),
+				turned = true,
+				textureId = "rbxassetid://131973326076494",
+			},
+		} :: { WeaponPart },
+		shotGlow = Color3.fromRGB(255, 255, 255),
+	},
+	TollguardBlade = {
+		-- `sunken bell sword arena 3`, held as the TimberBlade is, playing its kit until it has its own
+		kit = "TimberBlade",
+		skinOf = "TimberBlade",
+		scale = 4.7904,
+		parts = {
+			{
+				name = "Blade",
+				meshId = "rbxassetid://79270724349699",
+				size = Vector3.new(0.3394, 0.9995, 0.1724),
+				offset = Vector3.new(0, 0.2459, 0),
+				turned = true,
+				textureId = "rbxassetid://78360244322797",
+			},
+		} :: { WeaponPart },
+		trailGlow = Color3.fromRGB(255, 255, 255),
+	},
+	BuoyStaff = {
+		-- `buoy staff arena 3`, held as the BranchStaff is, playing its kit until it has its own
+		kit = "BranchStaff",
+		skinOf = "BranchStaff",
+		scale = 4.4902,
+		parts = {
+			{
+				name = "Staff",
+				meshId = "rbxassetid://78767941640588",
+				size = Vector3.new(0.313, 0.9995, 0.3901),
+				offset = Vector3.new(0, 0.07, 0),
+				turned = true,
+				textureId = "rbxassetid://111040352974574",
+			},
+		} :: { WeaponPart },
+	},
+	EventideBow = {
+		-- `eventide bow arena 3`, held as the TwigBow is, playing its kit until it has its own
+		kit = "TwigBow",
+		skinOf = "TwigBow",
+		scale = 4.2501,
+		parts = {
+			{
+				name = "Bow",
+				meshId = "rbxassetid://101108217438474",
+				size = Vector3.new(0.396, 0.9995, 0.1606),
+				offset = Vector3.new(0, 0, 0),
+				turned = true,
+				yaw = math.pi / 2,
+				textureId = "rbxassetid://134441330446964",
+			},
+		} :: { WeaponPart },
+		rainbow = true,
+	},
+	MaelstromStaff = {
+		-- `maelstrom staff arena 3`, held as the BranchStaff is, playing its kit until it has its own
+		kit = "BranchStaff",
+		skinOf = "BranchStaff",
+		scale = 4.4902,
+		parts = {
+			{
+				name = "Staff",
+				meshId = "rbxassetid://72086969439896",
+				size = Vector3.new(0.4136, 0.9995, 0.1235),
+				offset = Vector3.new(0, 0.07, 0),
+				turned = true,
+				textureId = "rbxassetid://80653594323518",
+			},
+		} :: { WeaponPart },
+		rainbow = true,
+		shotGlow = Color3.fromRGB(255, 255, 255),
+	},
+	StormglassBlade = {
+		-- `stormglass blade arena 3`, held as the TimberBlade is, playing its kit until it has its own
+		kit = "TimberBlade",
+		skinOf = "TimberBlade",
+		scale = 4.7904,
+		parts = {
+			{
+				name = "Blade",
+				meshId = "rbxassetid://95695726908721",
+				size = Vector3.new(0.5093, 0.9995, 0.1226),
+				offset = Vector3.new(0, 0.2459, 0),
+				turned = true,
+				textureId = "rbxassetid://91354810095787",
+			},
+		} :: { WeaponPart },
+		rainbow = true,
+		trailGlow = Color3.fromRGB(255, 255, 255),
 	},
 	-- SKINS END
 }

@@ -25,11 +25,20 @@
 local StoryTimeline = require(script.Parent.Parent.Util.StoryTimeline)
 
 local Story = {
-	--[[ The longest the black waits for the frames to load before the clock
-	     starts anyway (seconds). They load while the title is up
-	     (`StoryCutscene.preload`), and one not in by its turn never shows:
-	     the frame before it stays up, and the clock and music run on. ]]
+	--[[ The longest the black waits before the clock starts anyway (seconds).
+	     It waits for the first `leadShots` shots only — not for all forty
+	     frames, which is what made this slow (owner, 2026-10-27: "the King
+	     Bloblin story cutscene loads very slowly"). The rest come down while
+	     the cutscene plays, which gives them the twenty-odd seconds of
+	     running time instead of asking for them all up front; one still not
+	     in by its turn never shows, so the frame before it stays up and the
+	     clock and music run on. ]]
 	loadWait = 5,
+	--[[ How many shots' frames the black waits for. Four is nine frames —
+	     about seven seconds of cutscene, far longer than the rest take to
+	     arrive behind it, so the picture never catches up with the loading
+	     (`StoryCutscene.preload`). ]]
+	leadShots = 4,
 	--[[ Black before the first frame (under the title fading away,
 	     `Config/Intro.leave`), and after the last before the run is let go. ]]
 	lead = 0.9,

@@ -334,10 +334,20 @@ return function(t: TestRunner.Helper)
 					(got.UpVector - want.UpVector).Magnitude,
 					(gotStretch - wantStretch).Magnitude
 				)
-				-- CFrames are single precision: down King Bloblin's twelve-link lash
-				-- the fist drifts by a ten-thousandth of a stud. A pixel here is
-				-- about a twentieth of one.
-				t.isTrue(off < 1e-3, `{label}: {partName} off by {off}`)
+				--[[ CFrames are single precision: down King Bloblin's twelve-link
+				     lash the fist drifts by a ten-thousandth of a stud. A pixel
+				     here is about a twentieth of one.
+
+				     A part with no size is a marker, not a body -- Burrball's
+				     `Burr` is where its burr is thrown from, on a joint whose
+				     rest scale is 0.0001. Dividing through a scale that near
+				     zero is ill-conditioned, so the two paths part by a few
+				     thousandths; nothing is drawn there, and a tenth of a pixel
+				     is under any distance the marker is used at. ]]
+				local size = part.size
+				local drawn = size[1] > 0 or size[2] > 0 or size[3] > 0
+				local allow = if drawn then 1e-3 else 1e-2
+				t.isTrue(off < allow, `{label}: {partName} off by {off}`)
 			end
 		end
 		local all = models()

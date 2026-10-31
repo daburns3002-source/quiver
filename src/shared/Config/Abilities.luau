@@ -73,7 +73,7 @@ local abilities: { Ability } = {
 	{
 		id = "Multishot",
 		name = "Multishot",
-		description = "Fire an extra arrow after each shot.",
+		description = "Fire extra arrows after each shot. Repeats deal 50% damage.",
 		category = "Count",
 		group = "arrow",
 		rarity = "Legendary",
@@ -98,7 +98,7 @@ local abilities: { Ability } = {
 	{
 		id = "FrontArrow",
 		name = "Front Arrow",
-		description = "Fire another arrow.",
+		description = "Fire extra arrows beside the first. Extras deal 40% damage.",
 		category = "Count",
 		group = "arrow",
 		rarity = "Epic",
@@ -111,7 +111,7 @@ local abilities: { Ability } = {
 	{
 		id = "DoubleShot",
 		name = "Double Shot",
-		description = "Fire another arrow in a narrow spread.",
+		description = "Fire a narrow spread. Extra arrows deal 40% damage.",
 		category = "Pattern",
 		group = "arrow",
 		rarity = "Rare",
@@ -152,7 +152,7 @@ local abilities: { Ability } = {
 		--[[ The design says 45°. The first pair stays at the footage's
 		     measured 30° (`Balance.Projectile.diagonalAngle`); the second
 		     level's pair flies at 45°. ]]
-		description = "Also fire arrows at diagonal angles.",
+		description = "Also fire diagonally. Diagonal arrows deal 40% damage.",
 		category = "Pattern",
 		group = "arrow",
 		rarity = "Rare",
@@ -166,7 +166,7 @@ local abilities: { Ability } = {
 		     to Diagonal Arrows' in `AbilityEffects`. ]]
 		id = "DiagonalOrbs",
 		name = "Diagonal Orbs",
-		description = "Also cast orbs at diagonal angles.",
+		description = "Also cast diagonally. Diagonal orbs deal 40% damage.",
 		category = "Pattern",
 		group = "spell",
 		rarity = "Rare",
@@ -276,14 +276,8 @@ local abilities: { Ability } = {
 		group = "power",
 		rarity = "Rare",
 		--[[ Added to the crit multiplier, `Balance.Player.critMultiplier`. ]]
-		levels = { 0.16, 0.32, 0.48, 0.64, 0.8 },
-		stats = {
-			"+16% crit dmg",
-			"+32% crit dmg",
-			"+48% crit dmg",
-			"+64% crit dmg",
-			"+80% crit dmg",
-		},
+		levels = { 2, 4, 6 },
+		stats = { "+200% crit dmg", "+400% crit dmg", "+600% crit dmg" },
 		icon = "deadly-strike",
 	},
 	{
@@ -467,7 +461,7 @@ local abilities: { Ability } = {
 	{
 		id = "SecondWind",
 		name = "Second Wind",
-		description = "Revive once with half your HP.",
+		description = "Revive once with 40% of your max HP.",
 		category = "Defensive",
 		group = "vital",
 		rarity = "Mythic",
@@ -683,7 +677,7 @@ local abilities: { Ability } = {
 	{
 		id = "TwinCast",
 		name = "Twin Cast",
-		description = "An extra orb beside each cast.",
+		description = "Cast extra orbs beside the first. Extras deal 40% damage.",
 		category = "Count",
 		group = "spell",
 		rarity = "Rare",
@@ -695,7 +689,7 @@ local abilities: { Ability } = {
 	{
 		id = "ArcaneEcho",
 		name = "Arcane Echo",
-		description = "Each cast repeats a moment later.",
+		description = "Repeat each cast. Echoes deal 40% damage.",
 		category = "Count",
 		group = "spell",
 		rarity = "Rare",

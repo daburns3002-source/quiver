@@ -19,8 +19,8 @@
 	XP still owed is granted so it gets one (`levelUpIn`).
 
 	On screen (`UI/TutorialPrompts`): how to move until the player has, then
-	that standing still shoots at the next fight; and how levelling up works,
-	over the first upgrade hand.
+	that standing still shoots at the next fight, then how to dash until they
+	have; and how levelling up works, over the first upgrade hand.
 ]]
 
 local Tutorial = {
@@ -64,6 +64,14 @@ local Tutorial = {
 			gamepad = "MOVE WITH THE LEFT STICK",
 		},
 		shoot = "STOP MOVING TO SHOOT! YOUR BOW FIRES BY ITSELF WHILE YOU STAND STILL",
+		--[[ After the shooting one, until the player dashes (owner,
+		     2026-10-27: "there needs to be a part in the tutorial that
+		     shows the player to dash"). ]]
+		dash = {
+			keyboard = "PRESS SPACE TO DASH OUT OF DANGER!",
+			touch = "TAP THE DASH BUTTON TO DASH OUT OF DANGER!",
+			gamepad = "PRESS A TO DASH OUT OF DANGER!",
+		},
 		levelUp = {
 			title = "LEVEL UP!",
 			body = "DEFEAT ENEMIES AND COLLECT THEIR BLUE CRYSTALS TO FILL YOUR XP BAR. EVERY LEVEL, PICK ONE UPGRADE. UPGRADES LAST FOR THE WHOLE RUN AND STACK.",

@@ -22,7 +22,15 @@ local SaveSchema = require(script.Parent.SaveSchema)
 local ShopAssets = require(script.Parent.Parent.Config.ShopAssets)
 local WeaponStats = require(script.Parent.Parent.Config.WeaponStats)
 
-export type Entry = { name: string, picture: string, description: string }
+--[[ `area` is the `Config/Economy` key of where it belongs (for its
+     backdrop), `rarity` a weapon's (for its glow), nil for an enemy. ]]
+export type Entry = {
+	name: string,
+	picture: string,
+	description: string,
+	area: string,
+	rarity: string?,
+}
 
 local LoadingPick = {}
 
@@ -77,10 +85,12 @@ function LoadingPick.pool(profile: SaveSchema.Profile?): { Entry }
 	local pool: { Entry } = {}
 	for _, enemy in NewEnemies.enemies do
 		if met[enemy.area] and enemy.picture and not enemy.benched then
-			table.insert(
-				pool,
-				{ name = enemy.name, picture = enemy.picture, description = enemy.description }
-			)
+			table.insert(pool, {
+				name = enemy.name,
+				picture = enemy.picture,
+				description = enemy.description,
+				area = enemy.area,
+			})
 		end
 	end
 	for weapon, stats in WeaponStats.weapons do
@@ -90,6 +100,8 @@ function LoadingPick.pool(profile: SaveSchema.Profile?): { Entry }
 				name = weaponName(weapon),
 				picture = picture,
 				description = LoadingPick.describeWeapon(weapon),
+				area = AREAS[stats.area] or AREAS[1],
+				rarity = stats.rarity :: string,
 			})
 		end
 	end

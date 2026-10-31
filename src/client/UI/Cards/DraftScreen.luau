@@ -58,6 +58,8 @@ local TITLES = {
 	Level = { "LEVEL UP!", "Level %d · choose one skill" },
 	Valkyrie = { "VALKYRIE!", "Choose a blessing" },
 	Angel = { "ANGEL!", "Choose a gift" },
+	--[[ An Endless floor's draft, every third floor (`docs/ENDLESS.md`). ]]
+	Endless = { "FLOOR CLEARED!", "Choose one skill" },
 }
 
 type Slot = {

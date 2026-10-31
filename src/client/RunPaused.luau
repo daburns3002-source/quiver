@@ -1,7 +1,8 @@
 --!strict
 --[[
 	Whether the run is stopped: for a draft, a boss's entry banner, the
-	title screen, the story cutscene or a NEW ENEMY! screen.
+	title screen, the story cutscene, a NEW ENEMY! screen or an Endless
+	checkpoint.
 
 	One flag, read by everything the client drives itself: movement, firing
 	prediction and the dash. It exists as its own module rather than as a
@@ -28,10 +29,13 @@ local meeting = false
 --[[ And again: the story cutscene after BEGIN ADVENTURE (`UI/StoryCutscene`),
      until its black screen has held. ]]
 local story = false
+--[[ And again: an Endless checkpoint (`UI/EndlessCheckpoint`), until a pick
+     (`docs/ENDLESS.md`). ]]
+local checkpoint = false
 local changed = Instance.new("BindableEvent")
 
 function RunPaused.get(): boolean
-	return paused or intro or title or meeting or story
+	return paused or intro or title or meeting or story or checkpoint
 end
 
 --[[ Idempotent, so callers can set it from several places without having to
@@ -101,6 +105,20 @@ function RunPaused.setStory(value: boolean)
 
 	local was = RunPaused.get()
 	story = value
+	if RunPaused.get() ~= was then
+		changed:Fire(RunPaused.get())
+	end
+end
+
+--[[ While an Endless checkpoint's screen is up. The server holds the world
+     for it too (`RoomController.atCheckpoint`). ]]
+function RunPaused.setCheckpoint(value: boolean)
+	if checkpoint == value then
+		return
+	end
+
+	local was = RunPaused.get()
+	checkpoint = value
 	if RunPaused.get() ~= was then
 		changed:Fire(RunPaused.get())
 	end

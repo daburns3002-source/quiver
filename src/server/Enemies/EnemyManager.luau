@@ -22,6 +22,8 @@ local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local BossBanners = require(ReplicatedStorage.Shared.Config.BossBanners)
 local BossBody = require(script.Parent.BossBody)
 local BossMoves = require(script.Parent.BossMoves)
+local BossThresholds = require(ReplicatedStorage.Shared.Util.BossThresholds)
+local CombatTuning = require(ReplicatedStorage.Shared.Config.CombatTuning)
 local CurrentStage = require(ReplicatedStorage.Shared.Util.CurrentStage)
 local EnemyDesigns = require(ReplicatedStorage.Shared.Config.EnemyDesigns)
 local EnemyModel = require(script.Parent.EnemyModel)
@@ -32,6 +34,7 @@ local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local RootHold = require(ReplicatedStorage.Shared.Util.RootHold)
 local RunSession = require(script.Parent.Parent.Run.RunSession)
 local Types = require(ReplicatedStorage.Shared.Types)
+local Waves = require(script.Parent.Parent.Run.Waves)
 local WebWheel = require(ReplicatedStorage.Shared.Util.WebWheel)
 
 local log = Log.forTag("Enemies")
@@ -70,6 +73,12 @@ type BossState = {
 	     summoning drops (`os.clock()`), or nil. ]]
 	moves: number,
 	summonAt: number?,
+	--[[ For a health-driven summon (`BossSummon.atFractions`): how many of
+	     its thresholds this boss has already fallen through, and how many
+	     clutches it therefore owes but has not dropped yet. Per boss, so
+	     two kings on an Endless floor each count their own thirds. ]]
+	thresholdsPassed: number,
+	summonOwed: number,
 	--[[ A spinning web (`EnemyBoss.spin`): when each player may next be
 	     hit by it (`os.clock()`). ]]
 	wheelHitAt: { [Player]: number },
@@ -236,12 +245,47 @@ local HOLD_FRACTION = 0.6
      few hundred box tests. ]]
 local SPAWN_GRID_STEP = 2
 
---[[ The stage's multipliers on enemy damage and health (`StageConfig`). ]]
-local function difficulty(): { damage: number, health: number }
+--[[
+	The multipliers on enemy damage, health and fire rate.
+
+	The stage's own (`StageConfig.enemyDamage` / `enemyHealth`) for a Rooms
+	or Waves stage. An Endless run has neither, and takes the floor's curve
+	instead (`Run/Waves.floorCurve`, `docs/ENDLESS.md`), compounding from
+	floor 1, with the lap modifiers' fire rate on top. The floor comes from
+	the server's own published attribute, never from a client
+	(`Util/CurrentStage.endlessFloor`).
+]]
+local function difficulty(): { damage: number, health: number, fireRate: number }
 	local stage = CurrentStage.config()
+	local floor = CurrentStage.endlessFloor()
+	if floor then
+		local curve = Waves.floorCurve(floor)
+		return {
+			damage = curve.damage,
+			health = curve.health,
+			fireRate = Waves.floorFireRate(floor),
+		}
+	end
+	--[[ The within-level ramp (`Config/CombatTuning`, `docs/DIFFICULTY.md`):
+	     every area now, not only the Mossy Glade, because the flat-difficulty
+	     problem was every level's. A boss keeps the stage's own number: it
+	     sits at the end of the ramp, and 1-10's King Bloblin at 2.0 x 1.30
+	     would be a 30% buff nobody asked for. ]]
+	local healthScale = 1
+	if stage and not workspace:GetAttribute("Sandbox") then
+		local encounter = workspace:GetAttribute("CombatEncounter")
+		local ordinal = if type(encounter) == "number" then math.max(1, encounter) else 1
+		local total = stage.waves
+		local boss = total ~= nil and Waves.kindIn(stage, ordinal, total) == "Boss"
+		if not boss then
+			healthScale = CombatTuning.roomHealthStart
+				+ (ordinal - 1) * CombatTuning.roomHealthPerEncounter
+		end
+	end
 	return {
 		damage = stage and stage.enemyDamage or 1,
-		health = stage and stage.enemyHealth or 1,
+		health = (stage and stage.enemyHealth or 1) * healthScale,
+		fireRate = 1,
 	}
 end
 
@@ -870,12 +914,23 @@ function EnemyManager.spawn(
 			clipAt = 0,
 			moves = 0,
 			summonAt = nil,
+			thresholdsPassed = 0,
+			summonOwed = 0,
 			wheelHitAt = {},
 			steppedAt = 0,
 		}
 		--[[ For the client: the boss bar, and no hit squash on a body the
 		     server is posing. ]]
 		model:SetAttribute("Boss", config.boss.title)
+		--[[ For the boss bar, which segments itself rather than knowing
+		     whose fight this is: one segment more than there are
+		     thresholds, so King Bloblin's two give thirds. Drawing only —
+		     the health above it is still the truth. ]]
+		local summon = config.boss.summon
+		local fractions = summon and summon.atFractions
+		if fractions and #fractions > 0 then
+			model:SetAttribute("HealthSegments", #fractions + 1)
+		end
 		if BossBanners.bosses[config.boss.title] then
 			introUntil = os.clock() + BossBanners.hold
 		end
@@ -1031,6 +1086,40 @@ local function spawnSplit(split: Balance.EnemySplit, origin: Vector3)
 end
 
 --[[
+	Banks the health thresholds a boss has just fallen through
+	(`BossSummon.atFractions`): King Bloblin owes a clutch of Brood Slimes
+	each time his health crosses a third. Called on every blow that leaves
+	him standing, and counted off the health he has now rather than off the
+	blow, so each threshold is owed exactly once however the damage lands
+	(`Util/BossThresholds`).
+
+	**A blow that crosses two thresholds at once owes two clutches** — a hit
+	from 70% to 30% drops four slimes, not two. The owner has not said which
+	it should be (PR for King Bloblin's thirds, 2026-10-28); for one clutch
+	however many thresholds a blow crossed, clamp the line below to 1.
+
+	The clutch is not dropped here: a boss mid-slam finishes its move first,
+	and `stepBoss` picks the debt up when it is next idle.
+]]
+local function bankThresholds(enemy: Enemy)
+	local state = enemy.boss
+	local boss = enemy.config.boss
+	local summon = boss and boss.summon
+	local fractions = summon and summon.atFractions
+	if not state or not fractions then
+		return
+	end
+	local passed = BossThresholds.reached(fractions, enemy.health, enemy.maxHealth)
+	if passed <= state.thresholdsPassed then
+		return
+	end
+	--[[ The line: one clutch per threshold crossed. `1` here instead would
+	     make a blow that crosses two owe only one. ]]
+	state.summonOwed += passed - state.thresholdsPassed
+	state.thresholdsPassed = passed
+end
+
+--[[
 	Server-authoritative damage. Nothing on the client can reach this; the
 	projectile system is the only caller.
 ]]
@@ -1078,9 +1167,14 @@ function EnemyManager.damage(
 	     exactly the archetype's `knockback` before it rests. Further hits add
 	     to it, up to twice one hit's worth, so a volley pushes harder without
 	     flinging anything across the room. ]]
+	--[[ Along the ground only. A blow from straight above (a meteor landing
+	     dead on it) has no flat part, and its `.Unit` was NaN: the enemy
+	     vanished to (0, -1e6, 0), unkillable, and the room never cleared
+	     (playtest, 2026-10-28). Such a blow pushes nowhere. ]]
 	local knockbackDirection = if fromPosition then enemy.position - fromPosition else Vector3.zero
+	knockbackDirection = Vector3.new(knockbackDirection.X, 0, knockbackDirection.Z)
 	if knockbackDirection.Magnitude > 1e-3 then
-		local flat = Vector3.new(knockbackDirection.X, 0, knockbackDirection.Z).Unit
+		local flat = knockbackDirection.Unit
 		local rate = KNOCKBACK_SETTLE / Balance.Knockback.slideTime
 		local impulse = enemy.config.knockback * rate
 		local combined = enemy.knockbackVelocity + flat * impulse
@@ -1096,6 +1190,7 @@ function EnemyManager.damage(
 	end
 
 	if enemy.health > 0 then
+		bankThresholds(enemy)
 		model:SetAttribute("Health", enemy.health)
 		--[[ Where the blow came from travels too, for the client's slime
 		     residue to fly back out of the struck face. ]]
@@ -1511,17 +1606,29 @@ local function stepBoss(enemy: Enemy, state: BossState, now: number)
 	local move = state.move
 
 	if not move then
-		--[[ A clutch on its way: her Summon clip, then the spiderlings drop
-		     round her. ]]
 		local summon = boss.summon
+		--[[ A health-driven clutch (`BossSummon.atFractions`) comes due
+		     between moves: the threshold was crossed mid-slam and the debt
+		     waited in `summonOwed` until he was standing (`bankThresholds`). ]]
+		if summon and not state.summonAt and state.summonOwed > 0 then
+			state.summonAt = now + summon.windup
+			state.restUntil = math.max(state.restUntil, now + summon.windup + 0.5)
+		end
+		--[[ A clutch on its way: the summon clip, then the bodies drop
+		     round it. `summonOwed` clutches at once for a blow that crossed
+		     more than one threshold; one for a move-count summon, which
+		     banks nothing. ]]
 		local summonAt = state.summonAt
 		if summon and summonAt then
 			BossBody.pose(state.body, BossMoves.idle(feet, enemy.yaw or 0, now))
 			showClip(enemy, state, summon.clip, summonAt - summon.windup, now, summon.windup)
 			if now >= summonAt then
 				state.summonAt = nil
-				for i = 1, summon.count do
-					local angle = (i / summon.count + 0.125) * math.pi * 2
+				local clutches = math.max(state.summonOwed, 1)
+				state.summonOwed = 0
+				local total = summon.count * clutches
+				for i = 1, total do
+					local angle = (i / total + 0.125) * math.pi * 2
 					local reach = math.max(config.hitboxSize.X, config.hitboxSize.Z) / 2 + 2
 					local spot =
 						clamp(feet + Vector3.new(math.cos(angle), 0, math.sin(angle)) * reach)
@@ -1592,7 +1699,8 @@ local function stepBoss(enemy: Enemy, state: BossState, now: number)
 		state.next = state.next % #BossMoves.loopOf(boss) + 1
 		state.moves += 1
 		local summon = boss.summon
-		if summon and state.moves % summon.every == 0 then
+		local every = summon and summon.every
+		if summon and every and state.moves % every == 0 then
 			state.summonAt = now + summon.windup
 			state.restUntil = math.max(state.restUntil, now + summon.windup + 0.5)
 		end
@@ -1623,7 +1731,7 @@ local function stepLunge(
 	local rooted = RootHold.held(enemy.rootedUntil, now)
 
 	if not index then
-		if rooted or now - enemy.lastAttackAt < config.attackCooldown then
+		if rooted or now - enemy.lastAttackAt < config.attackCooldown / difficulty().fireRate then
 			return false
 		end
 		local radius = math.max(config.hitboxSize.X, config.hitboxSize.Z) / 2
@@ -2030,11 +2138,13 @@ local function stepEnemy(enemy: Enemy, deltaTime: number, now: number)
 				continue
 			end
 
+			-- flat, as the knockback: two heights on one spot have no flat way apart
 			local away = enemy.position - otherPosition
+			away = Vector3.new(away.X, 0, away.Z)
 			local gap = away.Magnitude
 
 			if gap > 1e-3 and gap < SEPARATION_DISTANCE then
-				separation += Vector3.new(away.X, 0, away.Z).Unit * (1 - gap / SEPARATION_DISTANCE)
+				separation += away.Unit * (1 - gap / SEPARATION_DISTANCE)
 			end
 		end
 
@@ -2157,7 +2267,7 @@ local function stepEnemy(enemy: Enemy, deltaTime: number, now: number)
 		return
 	end
 
-	if now - enemy.lastAttackAt < config.attackCooldown then
+	if now - enemy.lastAttackAt < config.attackCooldown / difficulty().fireRate then
 		return
 	end
 

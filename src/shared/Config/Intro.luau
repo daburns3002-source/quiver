@@ -22,6 +22,18 @@ local Intro = {
 	--[[ The longest the black screen waits for the music to load before
 	     the clock starts anyway (seconds), so the hit lands on the cut. ]]
 	musicWait = 3,
+	--[[ And the longest it waits for the title picture's own tiles (owner,
+	     2026-10-27: "the title screen does not load on mobile"). The cut at
+	     `revealAt` used to be timed off the music alone, so on a phone it
+	     landed while the tiles were still coming down and cut to the black
+	     underneath them; they arrived seconds later, or looked as though they
+	     never did. Waiting here rather than moving the cut is what keeps the
+	     music's hit on it: the clock and the track start on the same frame,
+	     so holding one holds both.
+
+	     Only the tiles of the orientation actually on screen are waited for —
+	     half of them (`UI/IntroCutscene`). ]]
+	tilesWait = 8,
 	--[[ Seconds from the cutscene starting. ]]
 	presentsIn = 0.6,
 	--[[ How long the words take to fade (and pop) in, and out. ]]

@@ -106,4 +106,15 @@ return function(t: TestRunner.Helper)
 			end
 		end
 	end)
+
+	--[[ A portal's own gate, beyond its levels' (`Config/Lobby.Portal`'s
+	     `requires`): Endless waits on 1-10 (`docs/ENDLESS.md`). ]]
+	t.test("a portal with no requirement is open; one with a requirement waits", function()
+		t.isTrue(LevelUnlocks.portalOpen(nil, nil), "an ungated portal is shut")
+		t.isTrue(LevelUnlocks.portalOpen(nil, {}))
+		t.isFalse(LevelUnlocks.portalOpen("1-10", nil), "a gated portal opened with no profile")
+		t.isFalse(LevelUnlocks.portalOpen("1-10", {}))
+		t.isFalse(LevelUnlocks.portalOpen("1-10", { ["1-9"] = true }))
+		t.isTrue(LevelUnlocks.portalOpen("1-10", { ["1-10"] = true }))
+	end)
 end

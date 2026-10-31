@@ -16,7 +16,6 @@
 	Presentation only.
 ]]
 
-local ContentProvider = game:GetService("ContentProvider")
 local GuiService = game:GetService("GuiService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -24,15 +23,19 @@ local RunService = game:GetService("RunService")
 local SoundService = game:GetService("SoundService")
 local UserInputService = game:GetService("UserInputService")
 
+local Log = require(ReplicatedStorage.Shared.Util.Log)
 local Music = require(ReplicatedStorage.Shared.Config.Music)
 local Story = require(ReplicatedStorage.Shared.Config.Story)
 local StoryTimeline = require(ReplicatedStorage.Shared.Util.StoryTimeline)
 
 local Device = require(script.Parent.Parent.Device)
+local Preload = require(script.Parent.Parent.Preload)
 local RunPaused = require(script.Parent.Parent.RunPaused)
 local SoundFx = require(script.Parent.Parent.Fx.SoundFx)
 
 local StoryCutscene = {}
+
+local log = Log.forTag("StoryCutscene")
 
 local FONT = Font.fromEnum(Enum.Font.Arcade)
 local INK = Color3.fromRGB(20, 14, 6)
@@ -67,10 +70,18 @@ local showing: Frame? = nil
 --[[ The frame before it, kept up underneath until the new one's own halves
      report loaded, so a cut never shows a blank frame even for one frame. ]]
 local under: Frame? = nil
---[[ The frames' images, warmed while the title is up (`preload`), and each
-     image's warm copy by its id. ]]
-local warm: ScreenGui? = nil
-local warmed: { [string]: ImageLabel } = {}
+--[[ Whether `preload` has run, the orientation it loaded for, and which
+     frames are down (by `Story.shots` picture name). A frame is "in" once its
+     halves have been fetched — downloaded and decoded — which is a firmer
+     answer than asking a label whether it has drawn yet. ]]
+local preloaded = false
+local loadedFor: string? = nil
+local framesIn: { [string]: boolean } = {}
+--[[ The warm set's name in `Preload`, and the frames currently held in video
+     memory. The window slides with the cutscene
+     (`DeviceTiers.warmStoryFrames`). ]]
+local WARM = "Story"
+local warmHeld: { [string]: boolean } = {}
 --[[ The story's music (`Config/Music.story`), or nil when it has no id. ]]
 local music: Sound? = nil
 --[[ How long SKIP takes the music down (the picture cuts to black at once). ]]
@@ -86,78 +97,179 @@ local function rect(parent: Instance, name: string, colour: Color3, z: number): 
 	return f
 end
 
---[[ Every frame the cutscene shows, once each. ]]
+--[[ Every frame the cutscene shows, once each, in order — and where each one
+     stands in that order.
+
+     Worked out once and kept: `pose` asks for the order every frame to slide
+     the warm window along it, and walking twenty-two shots and allocating two
+     tables sixty times a second, inside the code meant to stop the cutscene
+     stuttering, would be its own small version of the problem. ]]
+local frameOrder: { string }? = nil
+local indexOf: { [string]: number } = {}
+
 local function pictureNames(): { string }
+	local known = frameOrder
+	if known then
+		return known
+	end
 	local seen, out = {}, {}
 	for _, shot in Story.shots do
 		for _, frame in shot.frames do
 			if not seen[frame.picture] then
 				seen[frame.picture] = true
 				table.insert(out, frame.picture)
+				indexOf[frame.picture] = #out
 			end
 		end
 	end
+	frameOrder = out
 	return out
 end
 
---[[ Starts loading every frame now, while the title is up, so all are in
-     when the story starts. Roblox only loads an image it is drawing (not a
-     hidden one, nor a fully transparent one), so each sits in a 2-pixel,
-     nearly transparent label on a screen of its own until the story ends;
-     the cutscene's own frame, hidden until its turn, then draws at once from
-     the cache (owner: "it keeps cutting out and back in" was every frame
-     loading only when it came on). ]]
+--[[ Which set of halves this screen will draw: the portrait frames on a
+     phone held upright, the landscape ones otherwise. Decided once, when the
+     title comes up, and loaded alone — the other set is the same forty
+     pictures over again, and nothing will draw it this run. ]]
+local function orientation(): string
+	local camera = workspace.CurrentCamera
+	local view = if camera then camera.ViewportSize else Vector2.new(1280, 720)
+	local upright = view.Y > view.X or Device.isPhone()
+	return if upright then "portrait" else "landscape"
+end
+
+--[[ A frame's two halves, in the orientation being loaded. Falls back to the
+     landscape pair for a frame with no portrait art, which is what `pose`
+     falls back to drawing. ]]
+local function halfIds(name: string, portrait: boolean): { string }
+	if portrait then
+		local tall = Story.portraits[name]
+		if tall then
+			return { tall.top, tall.bottom }
+		end
+	end
+	local wide = Story.pictures[name]
+	return if wide then { wide.left, wide.right } else {}
+end
+
+--[[ The frames of the first `Story.leadShots` shots, then all the rest, both
+     in the order they are shown. The split is the point of this: the first
+     list is what the black screen waits for, the second is what loads behind
+     the cutscene while it plays. ]]
+local function leadAndRest(): ({ string }, { string })
+	local lead: { string } = {}
+	local rest: { string } = {}
+	local seen: { [string]: boolean } = {}
+	for index, shot in Story.shots do
+		for _, frame in shot.frames do
+			if seen[frame.picture] then
+				continue
+			end
+			seen[frame.picture] = true
+			table.insert(if index <= Story.leadShots then lead else rest, frame.picture)
+		end
+	end
+	return lead, rest
+end
+
+--[[ Starts loading the frames while the title is up.
+
+     The first few shots are fetched first and are all the black screen waits
+     for; everything after them is fetched in shot order behind the playing
+     cutscene, so the picture always has frames in hand without the black
+     screen paying for all forty. Asking for every frame in both orientations
+     up front was eighty-odd downloads before the first one could show, and on
+     a phone the cutscene began before they were in and skipped its way
+     through them (owner: "it keeps cutting out and back in"; "the King
+     Bloblin story cutscene loads very slowly").
+
+     Fetching is all that correctness needs — a fetched frame draws without
+     the network. Warming, which also costs video memory, is separate and
+     bounded (`warmFor`). ]]
 function StoryCutscene.preload()
-	if warm then
+	if preloaded then
 		return
 	end
-	local ids = {}
-	local view = workspace.CurrentCamera.ViewportSize
-	local upright = view.Y > view.X or Device.isPhone()
-	for _, name in pictureNames() do
-		local halves = Story.pictures[name]
-		if halves then
-			table.insert(ids, halves.left)
-			table.insert(ids, halves.right)
-		end
-		local tall = Story.portraits[name]
-		if tall and upright then
-			table.insert(ids, tall.top)
-			table.insert(ids, tall.bottom)
+	preloaded = true
+	local portrait = orientation() == "portrait"
+	loadedFor = if portrait then "portrait" else "landscape"
+	local lead, rest = leadAndRest()
+
+	--[[ A frame at a time, not one batch of eighty: each `fetch` returns when
+	     that frame's two halves are in, so `framesIn` fills in shot order and
+	     the cutscene can start on frame one while frame thirty is still
+	     coming. One batch would land them all at the end, which is the
+	     behaviour this replaces. ]]
+	local function take(names: { string })
+		for _, name in names do
+			local ids = halfIds(name, portrait)
+			if #ids > 0 then
+				Preload.fetch(ids)
+			end
+			framesIn[name] = true
 		end
 	end
-	local gui = Instance.new("ScreenGui")
-	gui.Name = "StoryWarm"
-	gui.ResetOnSpawn = false
-	gui.DisplayOrder = -100
-	gui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
-	for _, id in ids do
-		local image = Instance.new("ImageLabel")
-		image.BackgroundTransparency = 1
-		image.Size = UDim2.fromOffset(2, 2)
-		image.ImageTransparency = 0.99
-		image.Image = id
-		image.Parent = gui
-		warmed[id] = image
-	end
-	warm = gui
+
 	task.spawn(function()
-		pcall(function()
-			ContentProvider:PreloadAsync(ids)
-		end)
+		local began = os.clock()
+		take(lead)
+		log.info("%d lead frames (%s) in %.2f s", #lead, tostring(loadedFor), os.clock() - began)
+		take(rest)
+		log.info("all %d frames in %.2f s", #lead + #rest, os.clock() - began)
 	end)
 end
 
---[[ Whether a frame's two halves are in: their warm copies have loaded
-     (an image never warmed counts as in). ]]
-local function loaded(holder: Frame): boolean
-	for _, half in holder:GetChildren() do
-		local copy = if half:IsA("ImageLabel") then warmed[half.Image] else nil
-		if copy and not copy.IsLoaded then
+--[[ Whether every frame of the lead is down. ]]
+local function leadIn(): boolean
+	local lead = leadAndRest()
+	for _, name in lead do
+		if not framesIn[name] then
 			return false
 		end
 	end
 	return true
+end
+
+--[[ Where the warm window was last placed, and when. `pose` asks on every
+     frame; the window itself only moves on a cut, but a frame that was still
+     coming down when it last moved has to be picked up when it lands, so it
+     is also redone a few times a second. ]]
+local warmAt: number? = nil
+local warmedAt = 0
+local WARM_RECHECK = 0.25
+
+--[[ Keeps the frames from `at` onward warm, up to the tier's window, and
+     drops the ones behind, so a frame's decode has already happened by its
+     turn without the whole cutscene sitting in video memory at once. ]]
+local function warmFor(at: number)
+	local now = os.clock()
+	if warmAt == at and now - warmedAt < WARM_RECHECK then
+		return
+	end
+	warmAt, warmedAt = at, now
+	local order = pictureNames()
+	local window = Device.tier().warmStoryFrames
+	local portrait = loadedFor == "portrait"
+	local wanted: { [string]: boolean } = {}
+	for index = at, math.min(at + window - 1, #order) do
+		wanted[order[index]] = true
+	end
+	for name in wanted do
+		if not warmHeld[name] and framesIn[name] then
+			warmHeld[name] = true
+			Preload.warm(WARM, halfIds(name, portrait))
+		end
+	end
+	for name in warmHeld do
+		if not wanted[name] then
+			warmHeld[name] = nil
+			Preload.cool(WARM, halfIds(name, portrait))
+		end
+	end
+end
+
+--[[ Whether the frame called `name` is down. ]]
+local function loaded(name: string): boolean
+	return framesIn[name] == true
 end
 
 --[[ A frame's two halves side by side (landscape, `Left` and `Right`) or one
@@ -320,28 +432,36 @@ local function pose(t: number)
 	local now = StoryTimeline.pose(c, t, skippedAt)
 
 	--[[ The frame the clock asks for, in the shape of the screen (a portrait
-	     frame while it is taller than wide, if that frame has one), once its
-	     warm copies are in; until then the one before it stays up, and on the
-	     cut it stays underneath until the new one's own halves are in. Black is
-	     only ever the story's own black. ]]
+	     frame while it is taller than wide, if that frame has one), once it is
+	     down; until then the one before it stays up, and on the cut it stays
+	     underneath until the new one's own halves have drawn. Black is only
+	     ever the story's own black. ]]
 	local screen = p.gui.AbsoluteSize
 	local upright = screen.Y > screen.X
 	local wanted: Frame? = nil
 	local name = now.picture
 	if name then
-		-- a portrait frame only if it was warmed (the screen was tall when the
-		-- title came up); otherwise the landscape one, which always is
+		--[[ A portrait frame only if portrait is what was loaded: the screen's
+		     shape was settled when the title came up, and the other
+		     orientation's halves were never fetched. ]]
 		local tall = p.portraits[name]
-		if upright and tall and warmed[(tall:FindFirstChild("Top") :: ImageLabel).Image] then
+		if upright and tall and loadedFor == "portrait" then
 			wanted = tall
 		else
 			wanted = p.pictures[name]
+		end
+		--[[ Keep this frame and the next few warm, and drop the ones already
+		     shown (`DeviceTiers.warmStoryFrames`). ]]
+		pictureNames()
+		local at = indexOf[name]
+		if at then
+			warmFor(at)
 		end
 	end
 	if not wanted then
 		showing = nil
 		under = nil
-	elseif wanted ~= showing and loaded(wanted) then
+	elseif wanted ~= showing and name and loaded(name) then
 		under = showing
 		showing = wanted
 	end
@@ -433,20 +553,20 @@ local function clock(): number
 	return os.clock() - started
 end
 
---[[ Holds on black until every frame has loaded (at most `Story.loadWait`;
-     they have been loading since the title came up), so none shows black. ]]
+--[[ Holds on black until the first `Story.leadShots` shots have loaded (at
+     most `Story.loadWait`; they have been loading since the title came up),
+     so none of them shows black.
+
+     It waited for all forty frames before, which on a phone meant it always
+     hit the cap and started anyway with most of them still coming — so the
+     cutscene ran ahead of its own pictures and held each frame up until the
+     next one that happened to be in. Waiting for the opening shots instead
+     costs the same black screen at worst and leaves the remaining twenty
+     seconds of running time to fetch the other thirty frames. ]]
 local function startClock(built: Parts)
 	local deadline = os.clock() + Story.loadWait
 	while os.clock() < deadline and parts == built do
-		local ready = music == nil or (music :: Sound).IsLoaded
-		for _, set in { built.pictures, built.portraits } do
-			for _, holder in set do
-				if not loaded(holder) then
-					ready = false
-				end
-			end
-		end
-		if ready then
+		if (music == nil or (music :: Sound).IsLoaded) and leadIn() then
 			break
 		end
 		task.wait(0.1)
@@ -554,11 +674,10 @@ function StoryCutscene.stop()
 	startedAt = nil
 	showing = nil
 	under = nil
-	if warm then
-		warm:Destroy()
-		warm = nil
-		table.clear(warmed)
-	end
+	--[[ The frames' video memory goes back as the cutscene leaves. What was
+	     fetched stays fetched, so a second play of it costs no network. ]]
+	Preload.coolAll(WARM)
+	table.clear(warmHeld)
 	local sound = music
 	music = nil
 	if sound then

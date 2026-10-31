@@ -1,3 +1,9 @@
+> **Codex Studio preservation, 2026-10-29:** Before connecting Rojo or changing
+> the hatchery/chest UI or combat balance, read
+> [docs/CODEX-STUDIO-HANDOFF-2026-10-29.md](docs/CODEX-STUDIO-HANDOFF-2026-10-29.md).
+> Preserve the approved standalone UI and merged balance changes. The full older
+> Studio snapshot must not overwrite newer save-schema, pet or Endless code.
+
 # Arrow Legends — builder rulebook
 
 **Archero's combat inside a Pet Simulator / Steal an Egg progression shell.**

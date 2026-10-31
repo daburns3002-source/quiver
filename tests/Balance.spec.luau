@@ -618,6 +618,14 @@ return function(t: TestRunner.Helper)
 			elseif stage.mode == "Waves" then
 				t.notNil(Balance.Rooms[stage.arena or 0], `stage {index} has no arena`)
 				t.isTrue((stage.waves or 0) >= 1, `stage {index} has no waves`)
+			elseif stage.mode == "Endless" then
+				--[[ An Endless stage names no rooms, no arena and no wave
+				     count: every floor's arena and roster is
+				     `Balance.Endless`, whose own areas are checked by
+				     `tests/Endless.spec`. ]]
+				t.isNil(stage.rooms, `stage {index} is Endless with a room list`)
+				t.isNil(stage.arena, `stage {index} is Endless with one fixed arena`)
+				t.isTrue(#Balance.Endless.areas > 0, "Endless rotates over no areas")
 			else
 				t.isTrue(false, `stage {index} has an unknown mode`)
 			end

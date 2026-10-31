@@ -107,9 +107,11 @@ local function build()
 	shared:WaitForChild("Config"):WaitForChild("LoadingScreen")
 	shared:WaitForChild("Config"):WaitForChild("LoadingTips")
 	shared:WaitForChild("Util"):WaitForChild("LoadingPick")
+	shared:WaitForChild("Config"):WaitForChild("Rarities")
 	local LoadingScreen = require(ReplicatedStorage.Shared.Config.LoadingScreen)
 	local LoadingTips = require(ReplicatedStorage.Shared.Config.LoadingTips)
 	local LoadingPick = require(ReplicatedStorage.Shared.Util.LoadingPick)
+	local Rarities = require(ReplicatedStorage.Shared.Config.Rarities)
 
 	-- what the player has met, from their save if it comes in time
 	local profile = awaitProfile(LoadingScreen.profileWait)
@@ -139,7 +141,16 @@ local function build()
 		item.Size = UDim2.fromScale(box.w / size.X, box.h / size.Y)
 	end
 
-	local art: string? = LoadingScreen.art
+	-- an enemy or weapon the player has met, and its name
+	local entry = if #pool > 0 then pool[math.random(1, #pool)] else nil
+
+	--[[ Codex's spotlight for this entry, if there is one: one picture with
+	     the backdrop, the enemy, its title and its line already in it. It
+	     fills the screen and the composed window below is skipped, because
+	     everything that window draws is already painted into it. Without
+	     one, nothing changes -- the shared `art` and the window as before. ]]
+	local spotlight: string? = if entry then LoadingScreen.spotlights[entry.name] else nil
+	local art: string? = spotlight or LoadingScreen.art
 	if art then
 		local image = Instance.new("ImageLabel")
 		image.Name = "Art"
@@ -160,9 +171,63 @@ local function build()
 	title.Visible = false
 	loading.Visible = false
 
-	-- an enemy or weapon the player has met, and its name
-	local entry = if #pool > 0 then pool[math.random(1, #pool)] else nil
-	if entry then
+	if entry and not spotlight then
+		-- a scene of its area behind it, rays in its rarity's colour turning
+		-- behind the picture, and a soft glow, so it is not floating in an
+		-- empty window (owner, 2026-10-26)
+		local backdrop = LoadingScreen.backdrops[entry.area] or ""
+		if backdrop ~= "" then
+			local scene = Instance.new("ImageLabel")
+			scene.Name = "Scene"
+			scene.BackgroundTransparency = 1
+			scene.Image = backdrop
+			scene.ScaleType = Enum.ScaleType.Crop
+			place(scene, LoadingScreen.window)
+			scene.ZIndex = 2
+			scene.Parent = screen
+			local shade = Instance.new("Frame")
+			shade.BackgroundColor3 = BLACK
+			shade.BorderSizePixel = 0
+			shade.Size = UDim2.fromScale(1, 1)
+			local fade = Instance.new("UIGradient")
+			fade.Rotation = 90
+			fade.Transparency = NumberSequence.new({
+				NumberSequenceKeypoint.new(0, 1),
+				NumberSequenceKeypoint.new(0.55, 0.85),
+				NumberSequenceKeypoint.new(1, 0.25),
+			})
+			fade.Parent = shade
+			shade.Parent = scene
+		end
+		local rarity = if entry.rarity then (Rarities.byName :: any)[entry.rarity] else nil
+		local tint = if rarity then rarity.color else Color3.fromRGB(255, 230, 160)
+		local box = LoadingScreen.picture
+		local side = box.h * 1.5
+		local cx, cy = box.x + box.w / 2, box.y + box.h / 2
+		local glow = Instance.new("ImageLabel")
+		glow.BackgroundTransparency = 1
+		glow.Image = LoadingScreen.glow
+		glow.ImageColor3 = tint
+		glow.ImageTransparency = 0.35
+		place(glow, { x = cx - side / 2, y = cy - side / 2, w = side, h = side })
+		glow.ZIndex = 2
+		glow.Parent = screen
+		local rays = Instance.new("ImageLabel")
+		rays.BackgroundTransparency = 1
+		rays.Image = LoadingScreen.rays
+		rays.ImageColor3 = tint
+		rays.ImageTransparency = 0.55
+		place(rays, { x = cx - side / 2, y = cy - side / 2, w = side, h = side })
+		rays.ZIndex = 2
+		rays.Parent = screen
+		local turning: RBXScriptConnection
+		turning = RunService.RenderStepped:Connect(function(dt: number)
+			if not rays.Parent then
+				turning:Disconnect()
+				return
+			end
+			rays.Rotation += dt * 12
+		end)
 		local picture = Instance.new("ImageLabel")
 		picture.Name = "Picture"
 		picture.BackgroundTransparency = 1

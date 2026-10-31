@@ -23,12 +23,22 @@ export type Crate = {
 	area: string,
 	name: string,
 	price: number,
+	--[[ Whether the area's weapons can be owned yet. An area is stocked
+	     once its weapons have their 2D icons and the area has a
+	     `Config/Economy` entry to price a Legendary against -- without
+	     both, a crate would pay out a weapon the shop cannot draw and the
+	     store cannot cost. Unstocked areas' weapons are still held and
+	     fought with in the sandbox; they are simply not for sale.
+
+	     `Util/ShopRules.catalog` is the one gate, so the store, the
+	     crates and the gear screen all agree about what exists. ]]
+	stocked: boolean?,
 }
 
 local Shop = {
 	--[[ Areas in order: area 1 is the Mossy Glade (`WeaponStats.area`). ]]
 	crates = {
-		{ area = "MossyGlade", name = "MOSSY GLADE", price = 500 },
+		{ area = "MossyGlade", name = "MOSSY GLADE", price = 500, stocked = true },
 		{ area = "Thornwood", name = "THORNWOOD", price = 1000 },
 		{ area = "DrownedVillage", name = "DROWNED VILLAGE", price = 2000 },
 		{ area = "BogheartCaverns", name = "BOGHEART CAVERNS", price = 4000 },
@@ -36,12 +46,16 @@ local Shop = {
 		{ area = "FrostpeakPass", name = "FROSTPEAK PASS", price = 20000 },
 	} :: { Crate },
 
-	--[[ A crate's odds, by rarity (weights, not percentages). ]]
+	counts = { 1, 3 },
+
+	--[[ A crate's odds, by rarity (weights, not percentages). Mythic 3: a
+	     crate's three Mythics (one per class) at 1% each (owner, 2026-10-28:
+	     "make the odds of pulling a mythic 1%"). ]]
 	crateOdds = {
-		Uncommon = 60,
+		Uncommon = 58,
 		Rare = 28,
 		Epic = 11,
-		Mythic = 1,
+		Mythic = 3,
 	} :: { [string]: number },
 
 	--[[ Share of a crate's price paid back for a weapon already owned. ]]
@@ -49,7 +63,7 @@ local Shop = {
 
 	--[[ The store's gem prices, by rarity, times the area's number. ]]
 	gemPrices = {
-		Uncommon = 60,
+		Uncommon = 58,
 		Rare = 180,
 		Epic = 450,
 	} :: { [string]: number },

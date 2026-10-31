@@ -22,6 +22,21 @@ What is in flight right now is in [TRACKER.md](TRACKER.md).
 | `python -I tools/glb_stats.py <file.glb>…` | What a GLB costs: triangles, primitives (each a MeshPart once imported), materials, animated joints, clips, and how many parts would remain if those riding one joint were merged. See 11. |
 | `tools/studio/perf_room.luau` | Run on the Client while playing, Studio focused: jumps to a room, then its triangles, draw calls, GPU and render-thread ms, visible parts and busiest client scripts. See 11. |
 
+## Imports leave the world once dumped
+
+An import only exists so its mesh ids can be read; the game builds every
+model from `Config`, never from the import. Left in the Workspace, though,
+every playtest replicates and draws it. On 2026-10-24, 65 imports (4,167
+parts) took a playtest from 60 FPS to 26, with a 323 ms worst frame
+(`docs/FIXES.md`).
+
+So the moment a dump has read an import, it moves to **`ServerStorage.Imports`**:
+not replicated, not drawn, and still there to dump again. Both dump scripts
+read `ServerStorage.Imports` as well as the Workspace, so a dump after the move
+still finds everything — which matters, because `imports_to_luau.py` prunes
+every module it does not regenerate. Only fresh, not-yet-dumped imports belong
+in the Workspace.
+
 ## 0. The loop every change goes through
 
 1. **Intake** (if something was sent): `tools/intake.py`. Decide the pipeline below.

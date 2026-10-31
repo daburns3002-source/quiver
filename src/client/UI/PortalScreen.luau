@@ -184,6 +184,12 @@ local function start()
 	if not index or not levels or not levels[picked] or starting then
 		return
 	end
+	--[[ The portal's own gate (Endless waits on 1-10), then the level's.
+	     The server checks both again on START, and its answer is the one
+	     that decides (`Run/Lobby.startFor`). ]]
+	if not LevelUnlocks.portalOpen(portal and portal.requires, beaten()) then
+		return
+	end
 	if not LevelUnlocks.isUnlocked(levels, Balance.Stages, beaten(), picked) then
 		return
 	end
@@ -192,12 +198,25 @@ local function start()
 	Remotes.event(Remotes.PortalStart):FireServer(index, picked)
 end
 
+--[[ How big a stage is, in its own unit: rooms, waves, or — for Endless,
+     which has no last floor — the hard cap it stops at
+     (`Balance.Endless.maxFloor`, `docs/ENDLESS.md`). ]]
+local function sizeOf(stage: Balance.StageConfig): string
+	if stage.mode == "Endless" then
+		return `ENDLESS FLOORS`
+	end
+	return if stage.mode == "Waves"
+		then `{stage.waves or 0} WAVES`
+		else `{#(stage.rooms or {})} ROOMS`
+end
+
 --[[ What the line under the grid says of the picked level: its number,
      its rooms or waves, and its boss if it ends in one. ]]
 local function describe(stage: Balance.StageConfig): string
-	local size = if stage.mode == "Waves"
-		then `{stage.waves or 0} WAVES`
-		else `{#(stage.rooms or {})} ROOMS`
+	if stage.mode == "Endless" then
+		return `{sizeOf(stage)}, EVERY 10TH A BOSS`
+	end
+	local size = sizeOf(stage)
 	local finale = stage.finale
 	local first = finale and finale.roster[1]
 	local boss = first and first.boss
@@ -296,6 +315,10 @@ local function fill(index: number)
 	act.Text = if banner then string.upper(banner.act) else ""
 
 	local levels = portal.levels or {}
+	--[[ A portal with a `requires` this player has not beaten (Endless
+	     before 1-10) draws its slot locked and says what opens it, rather
+	     than looking playable and being refused on START. ]]
+	local portalOpen = LevelUnlocks.portalOpen(portal.requires, beaten())
 	grid = #levels > LobbyConfig.levelSlots
 	if levelRow then
 		levelRow.Visible = not grid
@@ -310,7 +333,7 @@ local function fill(index: number)
 	end
 	picked = math.clamp(picked, 1, math.max(#levels, 1))
 	for i, slot in slots do
-		local stage = Balance.Stages[levels[i]]
+		local stage = if portalOpen then Balance.Stages[levels[i]] else nil
 		slot.level = if stage then i else nil
 		local f = slot.face
 		for _, child in f:GetChildren() do
@@ -341,7 +364,7 @@ local function fill(index: number)
 			end
 			local boss = label(f, if banner then string.upper(banner.name) else "", WHITE, 14, 16)
 			put(boss, { 0.05, 0.61, 0.9, 0.09 }, { 0.36, 0.34, 0.6, 0.16 })
-			local rooms = label(f, `{#(stage.rooms or {})} ROOMS`, WHITE, 14, 16)
+			local rooms = label(f, sizeOf(stage), WHITE, 14, 16)
 			put(rooms, { 0.05, 0.72, 0.9, 0.08 }, { 0.36, 0.52, 0.6, 0.13 })
 			if rows then
 				boss.TextXAlignment = Enum.TextXAlignment.Left
@@ -364,7 +387,12 @@ local function fill(index: number)
 			put(lock, { 0.25, 0.25, 0.5, 0.4 }, { 0.08, 0.15, 0.2, 0.7 })
 			lock.ZIndex = 14
 			lock.Parent = f
-			local soon = label(f, "COMING SOON", GREY, 14, 16)
+			--[[ A locked portal says what opens it; an area not built yet
+			     says COMING SOON, as before. ]]
+			local words = if portalOpen or not portal.requires
+				then "COMING SOON"
+				else `BEAT {portal.requires}`
+			local soon = label(f, words, GREY, 14, 16)
 			put(soon, { 0.05, 0.75, 0.9, 0.1 }, { 0.36, 0.45, 0.6, 0.2 })
 			if rows then
 				soon.TextXAlignment = Enum.TextXAlignment.Left
@@ -562,6 +590,9 @@ end
 --[[ Opens portal `index`'s screen, as if the server had sent it: for the
      server's message, and for a Studio capture. ]]
 function PortalScreen.open(index: number)
+	if Players.LocalPlayer:GetAttribute("ClassSelecting") == true then
+		return
+	end
 	local screen = gui
 	local portal = LobbyConfig.portals[index]
 	if not screen or not portal or not portal.levels then

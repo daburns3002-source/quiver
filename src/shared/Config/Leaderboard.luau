@@ -6,6 +6,10 @@
 	furthest through `Balance.campaign`, scored by `Util/StoryProgress`,
 	kept by `Run/StoryLeaderboard`. The store is described in
 	`docs/LEADERBOARD.md`.
+
+	The DEEPEST DELVERS board beside it (`Run/EndlessLeaderboard`,
+	`docs/ENDLESS.md`) shares every budget and colour here and has its own
+	store and columns.
 ]]
 
 local Leaderboard = {
@@ -16,6 +20,12 @@ local Leaderboard = {
 	     waves) now come before Thornwood, so a `_v1` score (out of 40) no
 	     longer means the same place in the story. ]]
 	storeName = "FarthestStory_v2",
+	--[[ The DEEPEST DELVERS board (`Run/EndlessLeaderboard`,
+	     `docs/ENDLESS.md`): each player's best Endless floor. Its own store,
+	     not a column of the story's, because a floor means the same thing
+	     for ever while a story score moves whenever an area is inserted —
+	     so this one never needs a `_v2`. ]]
+	endlessStoreName = "EndlessBest_v1",
 	--[[ Seconds: the least time between two writes of one player's best,
 	     and between two reads of the top. ]]
 	flushEvery = 30,
@@ -33,6 +43,8 @@ local Leaderboard = {
 	pixelsPerStud = 50,
 	--[[ Shares of a row's width: rank, name, area, room. ]]
 	columns = { rank = 0.1, name = 0.36, area = 0.36, room = 0.18 },
+	--[[ The Endless board's own shares: rank, name, floor. ]]
+	endlessColumns = { rank = 0.12, name = 0.5, floor = 0.38 },
 	--[[ Shares of the board's height round the rows, and between them. ]]
 	padding = 0.04,
 	gap = 0.012,

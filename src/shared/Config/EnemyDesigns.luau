@@ -482,63 +482,6 @@ local broodmother: Design = { shadow(10.3, 6.2, 6.2) }
 local thornling: Design = { shadow(2.4, 1.85, 1.8) }
 
 --[[
-	The Ember Wilf (owner, 2026-10-23), after the owner's dog: a round
-	ginger pup with a cream chest, muzzle and paws.
-
-	From the owner's design_handoff_ember_wilf: `ember_wilf_rigged.glb`,
-	skinned to 19 bones, imported by the owner with its rig (2026-10-23).
-	It already faces forward, and is shrunk to 0.65 of the import into its
-	2.2 × 3 × 3.3 hitbox (`Balance`). The texture carries its colours, so it
-	is white. It runs and dashes by its own animations (`Config/EnemyRigs`,
-	`Fx/EnemyRig`).
-
-	The eyes are painted into that one mesh, so they cannot glow on their
-	own: two Neon discs in the slimes' amber sit over them (owner: "make
-	sure the wilf's eyes glow like the slimes eyes bright orange"), placed
-	where the mesh paints them, measured from its vertex colours, and
-	riding on its head bone so they bob with it.
-]]
-local WILF_EYES = Color3.fromRGB(255, 176, 32)
-local wilf: Design = {
-	shadow(2.2, 3.3, 3),
-	{
-		name = "Body",
-		shape = "Mesh",
-		meshId = "rbxassetid://131900046053757",
-		textureId = "rbxassetid://106053882267208",
-		rig = "Wilf",
-		size = Vector3.new(2.189, 2.99, 3.222),
-		offset = Vector3.new(0, -0.005, 0),
-		shade = 1,
-		color = WHITE,
-	},
-	{
-		name = "EyeLeft",
-		shape = "Ellipsoid",
-		size = Vector3.new(0.36, 0.3, 0.12),
-		offset = Vector3.new(-0.39, 0.37, -1.28),
-		shade = 1,
-		color = WILF_EYES,
-		material = Enum.Material.Neon,
-		tint = false,
-		bone = "Head",
-		eye = true,
-	},
-	{
-		name = "EyeRight",
-		shape = "Ellipsoid",
-		size = Vector3.new(0.36, 0.3, 0.12),
-		offset = Vector3.new(0.39, 0.37, -1.28),
-		shade = 1,
-		color = WILF_EYES,
-		material = Enum.Material.Neon,
-		tint = false,
-		bone = "Head",
-		eye = true,
-	},
-}
-
---[[
 	The Baby Slime (the owner's updated slimes, 2026-10-23): a small green
 	jelly dome with a tuft of moss. A stand-in of primitives in its model's
 	proportions (×2, in its 2.5 × 1.5 hitbox) until the owner imports
@@ -582,7 +525,6 @@ local EnemyDesigns = {
 	BroodSlime = broodSlime,
 	BabySlime = babySlime,
 	SlimeKing = slimeKing,
-	Wilf = wilf,
 	BrambleBoar = brambleBoar,
 	BurrThistle = burrThistle,
 	BrambleSow = brambleSow,

@@ -34,6 +34,13 @@ export type Sound = {
 
 --[[ The bosses' round 18 sprite (`assets/audio/final/boss_sprite_r18.mp3`):
      uploaded 2026-10-25 (Roblox shows its name as #s). ]]
+--[[ The shops' round 22-25 picks in one upload
+     (`assets/audio/final/shop_sprite_r25.mp3`): uploaded 2026-10-26. ]]
+--[[ The class select screen's two sounds in one upload
+     (`final/class_sprite_r27.mp3`, uploaded 2026-10-27). ]]
+local CLASS_SPRITE = "rbxassetid://94430209523341"
+local SHOP_SPRITE = "rbxassetid://89103453757006"
+
 local BOSS_SPRITE = "rbxassetid://73447077207928"
 
 --[[ The Warden's new cards' round 19 picks in one upload
@@ -131,6 +138,88 @@ local Sounds: { [string]: Sound } = {
 	     (assets/audio/reveal_synth.py): a Mythic's reveal, one file timed to
 	     its shake, flip, flash and title, and a hand with a Legendary in it
 	     being dealt. Uploaded 2026-10-24. ]]
+	--[[ The shops' and the gear screen's big moments (rounds 22-25, owner's
+	     picks 2026-10-26), timed to `Config/Reveal`, in one sprite
+	     (`assets/audio/final/shop_sprite_r25.mp3`). ]]
+	crate_open = {
+		id = SHOP_SPRITE,
+		volume = 0.8,
+		pitchJitter = 0,
+		minGap = 0.5,
+		region = { 0, 3.81 },
+	},
+	egg_hatch = {
+		id = SHOP_SPRITE,
+		volume = 0.8,
+		pitchJitter = 0,
+		minGap = 0.5,
+		region = { 4.25, 3.794 },
+	},
+	reveal_rare = {
+		id = SHOP_SPRITE,
+		volume = 0.7,
+		pitchJitter = 0,
+		minGap = 0.5,
+		region = { 8.484, 2.871 },
+	},
+	equip_weapon = {
+		id = SHOP_SPRITE,
+		volume = 0.6,
+		pitchJitter = 0.03,
+		minGap = 0.1,
+		region = { 11.795, 0.89 },
+	},
+	equip_pet = {
+		id = SHOP_SPRITE,
+		volume = 0.6,
+		pitchJitter = 0.03,
+		minGap = 0.1,
+		region = { 13.125, 0.65 },
+	},
+	new_item = {
+		id = SHOP_SPRITE,
+		volume = 0.6,
+		pitchJitter = 0,
+		minGap = 0.2,
+		region = { 14.215, 1.05 },
+	},
+	--[[ A Mythic pulled from a crate or egg, after the jingle, in place of
+	     reveal_rare (owner, 2026-10-26: "super over the top"; round 26).
+	     `assets/audio/final/mythic_reveal_r26.mp3`, uploaded 2026-10-26. ]]
+	--[[ The class select screen (owner, 2026-10-27: "there should be sounds
+	     when selecting and choosing"): a hero panel clicked (round 27 B, a
+	     blade shing and a bell) and CHOOSE (round 27 A, the heroic lock-in),
+	     both in `CLASS_SPRITE` (`assets/audio/final/class_sprite_r27.mp3`). ]]
+	class_select = {
+		id = CLASS_SPRITE,
+		volume = 0.6,
+		pitchJitter = 0,
+		minGap = 0.08,
+		region = { 0, 0.579 },
+	},
+	class_choose = {
+		id = CLASS_SPRITE,
+		volume = 0.8,
+		pitchJitter = 0,
+		minGap = 1,
+		region = { 1.019, 2.063 },
+	},
+	mythic_reveal = {
+		id = "rbxassetid://109234973944698",
+		volume = 0.85,
+		pitchJitter = 0,
+		minGap = 1,
+	},
+	--[[ The soft glitter looping under a pulled prize until its screen is
+	     closed (owner, 2026-10-26: "at a much lower volume"); exactly its
+	     four-second loop. ]]
+	reveal_glitter = {
+		id = SHOP_SPRITE,
+		volume = 0.18,
+		pitchJitter = 0,
+		minGap = 0,
+		region = { 15.705, 4.0 },
+	},
 	card_mythic = { id = "rbxassetid://121583656262732", volume = 0.8, pitchJitter = 0, minGap = 1 },
 	card_legendary = {
 		id = "rbxassetid://98255881300623",

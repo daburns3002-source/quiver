@@ -3,8 +3,8 @@
 	The eggs (`Config/Eggs`, `Config/Pets`, `Util/EggRules`): every pet has a
 	rarity the eggs roll and an egg that exists, an egg's chances add up to
 	one with the Mythic rarest, a roll covers every pet in proportion, the
-	Mossy Egg holds all twelve forest pets, and the Thornwood Egg waits for
-	King Bloblin.
+	Mossy Egg holds eight of the forest pets, and both eggs are open from the
+	start for now.
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -15,16 +15,22 @@ local Pets = require(ReplicatedStorage.Shared.Config.Pets)
 local TestRunner = require(script.Parent.TestRunner)
 
 return function(t: TestRunner.Helper)
-	t.test("every pet has a rarity the eggs roll and an egg that exists", function()
+	--[[ A pet with no egg is benched, not broken (eight to an egg): what
+	     must hold is that nobody points at an egg that is not there. ]]
+	t.test("every pet has a rarity the eggs roll, and any egg it names exists", function()
 		for pet, info in Pets do
 			t.notNil(Eggs.odds[info.rarity], pet)
-			t.notNil(EggRules.find(info.egg), pet)
+			if info.egg then
+				t.notNil(EggRules.find(info.egg), pet)
+			end
 		end
 	end)
 
-	t.test("the Mossy Egg holds the twelve forest pets, chances adding to one", function()
+	t.test("every egg holds eight pets, chances adding to one", function()
+		for _, egg in Eggs.list do
+			t.equal(#EggRules.pool(egg.key), 8, egg.key)
+		end
 		local pool = EggRules.pool("MossyEgg")
-		t.equal(#pool, 12)
 		local total = 0
 		local mythic = math.huge
 		for _, entry in pool do

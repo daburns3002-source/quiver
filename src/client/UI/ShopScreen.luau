@@ -210,11 +210,14 @@ function ShopScreen.start()
 		end)
 		local tiles = {}
 		for _, entry in pool do
+			local owned = p ~= nil and p.weapons[entry.weapon] == true
 			table.insert(tiles, {
 				rarity = entry.rarity,
+				-- always the 2D weapon art, never a render (owner's standing rule)
 				icon = picture(entry.weapon),
 				chance = ShopRules.chance(selected, entry),
-				owned = p ~= nil and p.weapons[entry.weapon] == true,
+				owned = owned,
+				silhouette = entry.rarity == "Mythic" and not owned,
 			})
 		end
 		HatchStand.draw(s, {
@@ -232,6 +235,7 @@ function ShopScreen.start()
 			moss = crate.area == "MossyGlade",
 			counts = Shop.counts,
 			verb = "OPEN",
+			noun = "WEAPONS",
 		}, control, press, affordable)
 	end
 	s.connect(Remotes.event(Remotes.ShopCrateOpened).OnClientEvent, function(index, results)

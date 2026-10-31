@@ -7,8 +7,11 @@
 	(CLAUDE.md non-negotiable 2).
 
 	PLACEHOLDER PRICES AND ODDS (2026-10-26) until the owner sets them: the
-	Mossy Egg a little under the Mossy Glade crate, the odds giving each pet
-	of a rarity the same share (three Commons at about 17.8% each, a Mythic 1%; owner, 2026-10-28: "make the odds of pulling a mythic 1%").
+	Mossy Egg at the Mossy Glade crate's price, the odds giving each pet of a
+	rarity the same share. With eight pets to an egg that is two Commons at
+	26.75% each, the lone Uncommon 24%, the Rare 12%, the Epic 6%, each of the
+	two Legendaries 1.75% and the Mythic 1% (owner, 2026-10-28: "make the odds
+	of pulling a mythic 1%").
 
 	An egg opens once its area does: `unlock` names the area whose boss must
 	be beaten first (Thornwood after King Bloblin), nil for the first.
@@ -25,7 +28,8 @@ export type Egg = {
 
 local Eggs = {
 	list = {
-		{ key = "MossyEgg", name = "MOSSY EGG", area = "MossyGlade", price = 400 },
+		-- 500 gold (owner, 2026-10-31: "a good amount" for the first egg)
+		{ key = "MossyEgg", name = "MOSSY EGG", area = "MossyGlade", price = 500 },
 		{
 			key = "ThornwoodEgg",
 			name = "THORNWOOD EGG",

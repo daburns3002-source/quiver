@@ -82,11 +82,14 @@ function EggScreen.start()
 		local unlocked = EggRules.open(egg, if p then p.bossesBeaten else {})
 		local tiles = {}
 		for _, entry in pool do
+			local owned = p ~= nil and (p.pets[entry.pet] or 0) > 0
 			table.insert(tiles, {
 				rarity = entry.rarity,
 				icon = GearAssets.pets[entry.pet] or "",
 				chance = entry.chance,
-				owned = p ~= nil and (p.pets[entry.pet] or 0) > 0,
+				owned = owned,
+				-- the Mythic stays a shape until somebody pulls it
+				silhouette = entry.rarity == "Mythic" and not owned,
 			})
 		end
 		HatchStand.draw(s, {
@@ -107,6 +110,7 @@ function EggScreen.start()
 			moss = egg.area == "MossyGlade",
 			counts = Eggs.counts,
 			verb = "HATCH",
+			noun = "PETS",
 		}, control, press, affordable)
 	end
 	s.connect(Remotes.event(Remotes.EggHatched).OnClientEvent, function(key, results)

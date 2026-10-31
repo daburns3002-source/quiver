@@ -23,7 +23,16 @@ local ShopAssets = require(ReplicatedStorage.Shared.Config.ShopAssets)
 local StationScreen = require(script.Parent.StationScreen)
 local HatchStand = {}
 
-export type Tile = { rarity: string, icon: string, chance: number, owned: boolean }
+export type Tile = {
+	rarity: string,
+	icon: string,
+	chance: number,
+	owned: boolean,
+	--[[ Drawn black on its rarity's card, as Codex's screens draw a Mythic
+	     nobody has pulled yet: the colour says how rare, the silhouette
+	     keeps what it is a surprise. ]]
+	silhouette: boolean?,
+}
 export type Spec = {
 	title: string,
 	price: number,
@@ -38,6 +47,8 @@ export type Spec = {
 	--[[ The press counts (1 and 3) and the word on their prompts. ]]
 	counts: { number },
 	verb: string,
+	--[[ What the cards hold, for the line under them: "PETS", "WEAPONS". ]]
+	noun: string,
 }
 export type Controller = {
 	auto: boolean,
@@ -97,7 +108,7 @@ function HatchStand.draw(
 	local title = Kit.label(c, spec.title)
 	Kit.put(title, 120, 150, 860, 84)
 	local card = Kit.panel(c, Color3.new(1, 1, 1))
-	Kit.put(card, 120, 240, 860, 520)
+	Kit.put(card, 120, 240, 860, 560)
 	-- the top row: price, picker, AUTO
 	local price = Kit.panel(c, Kit.gold)
 	Kit.pill(price)
@@ -120,16 +131,41 @@ function HatchStand.draw(
 		control.toggle
 	)
 	Kit.put(toggle, 800, 258, 160, 66)
-	-- what is inside, rarest last, each with its chance
+	--[[ What is inside, rarest last: one full-colour card each, laid out as
+	     Codex's screens do (owner, 2026-10-31: "codex made a good one a
+	     couple days ago that i want to use") -- four across for an egg's
+	     eight pets, three for a crate's six weapons, the chance in the
+	     corner of the card rather than on a band under it. ]]
+	local held = #spec.tiles
+	local perRow = if held > 6 then 4 else 3
+	local gap = 14
+	local wide = (820 - (perRow - 1) * gap) // perRow
+	local tall = 160
 	for i, entry in spec.tiles do
-		local tile = Kit.tile(c, entry.rarity, entry.icon, spec.locked ~= nil)
-		Kit.put(tile, 140 + (i - 1) % 6 * 137, 340 + math.floor((i - 1) / 6) * 160, 128, 152)
+		local col, row = (i - 1) % perRow, (i - 1) // perRow
+		local tile = Kit.nativeTile(c, entry.rarity, entry.icon, spec.locked ~= nil, true)
+		Kit.put(tile, 140 + col * (wide + gap), 340 + row * (tall + gap), wide, tall)
+		--[[ A silhouette keeps its card's colour: `nativeTile`'s own locked
+		     look greys the whole card, which would lose the rarity. ]]
+		if entry.silhouette then
+			for _, child in tile:GetChildren() do
+				if child:IsA("ImageLabel") and child.Image == entry.icon then
+					child.ImageColor3 = Color3.new(0, 0, 0)
+				end
+			end
+		end
 		local odds = Kit.label(tile, string.format("%g%%", math.round(entry.chance * 10000) / 100))
-		odds.Position, odds.Size = UDim2.fromScale(0.04, 0.78), UDim2.fromScale(0.92, 0.18)
+		odds.Position, odds.Size = UDim2.fromScale(0.36, 0.7), UDim2.fromScale(0.58, 0.24)
+		odds.TextXAlignment = Enum.TextXAlignment.Right
+		odds.ZIndex = 6
 		if entry.owned then
 			Kit.owned(tile)
 		end
 	end
+	-- how many are in there, under the cards, as Codex's screens say it
+	local rows = math.ceil(held / perRow)
+	local tally = Kit.label(c, `{held} {spec.noun}`, Kit.white)
+	Kit.put(tally, 140, 340 + rows * (tall + gap) + 4, 820, 40)
 	if spec.locked then
 		local lock = Kit.image(c, ShopAssets.lock)
 		Kit.put(lock, 490, 380, 120, 140)
@@ -139,7 +175,7 @@ function HatchStand.draw(
 	-- the pity bar: a rainbow filling towards the guaranteed Mythic
 	local track = Kit.panel(c, Color3.fromRGB(60, 60, 72))
 	Kit.pill(track)
-	Kit.put(track, 140, 676, 820, 64)
+	Kit.put(track, 140, 712, 820, 64)
 	local fill = Instance.new("Frame")
 	fill.BorderSizePixel = 0
 	fill.BackgroundColor3 = Color3.new(1, 1, 1)
@@ -155,7 +191,7 @@ function HatchStand.draw(
 	local gradient = Instance.new("UIGradient")
 	gradient.Color = ColorSequence.new(colours)
 	gradient.Parent = fill
-	Kit.pityLine(c, spec.pity, 140, 680, 820, 56)
+	Kit.pityLine(c, spec.pity, 140, 716, 820, 56)
 	-- the egg or crate on its stand, its prompts beside it
 	Kit.stage(c, 1120, 860, 520, spec.moss)
 	local icon = Kit.image(c, spec.picture, spec.locked ~= nil)

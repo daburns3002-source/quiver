@@ -46,16 +46,28 @@ local function bones(part)
 	return out
 end
 
+--[[ Imports live in the Workspace until dumped, then move to
+     ServerStorage.Imports, where a playtest neither replicates nor draws
+     them (docs/FIXES.md). A dump reads both, or one taken after the move
+     would find nothing. ]]
+local candidates = workspace:GetChildren()
+local stored = game:GetService("ServerStorage"):FindFirstChild("Imports")
+if stored then
+	for _, child in stored:GetChildren() do
+		table.insert(candidates, child)
+	end
+end
+
 local roots = {}
 if #NAMES == 0 then
-	for _, child in workspace:GetChildren() do
+	for _, child in candidates do
 		if child:IsA("Model") then
 			table.insert(roots, child)
 		end
 	end
 else
 	for _, name in NAMES do
-		for _, child in workspace:GetChildren() do
+		for _, child in candidates do
 			if child.Name == name then
 				table.insert(roots, child)
 			end

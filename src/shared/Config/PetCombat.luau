@@ -128,6 +128,49 @@ local PetCombat: { pets: { [string]: Spec } } = {
 		},
 		-- Prism Beam: pierces a line, heals per hit, revives once a run
 		Glimmerhorn = { every = 4, range = 60, damage = 80, beam = 3, healPerHit = 3, revive = 0.5 },
+
+		--[[ Thornwood (area 2). Each one is its Mossy Glade counterpart's
+		     trick at this area's strength: damage is the forest pet's times
+		     `WeaponStats.areaScale[2]` (1.125), rounded, because area 2's
+		     enemies carry 0.9 health against area 1's 0.8 and a pet has to
+		     keep up the same way a weapon does.
+
+		     The shapes are deliberately the forest's -- a slow, a guard, a
+		     root, a mark, a volley, a burn-and-haste, a court, a beam -- so
+		     every kind of pet exists in both areas and a player who learned
+		     one knows the other. What changes is the flavour and the
+		     numbers. ]]
+
+		-- Bark Charge: a short, hard ram
+		BarkHoglet = { every = 3, range = 16, damage = 79 },
+		-- Burr Toss: three burrs off its back
+		Burrball = { every = 2.5, range = 60, damage = 22, hits = 3 },
+		-- Spore Puff: a cloud that slows
+		Budbulb = { every = 2, range = 60, damage = 34, slow = { scale = 0.5, duration = 1.5 } },
+		-- Berry Cache: a patch that feeds whoever stands in it
+		BerryMouse = { every = 18, range = 0, heal = { perSecond = 7, duration = 3, radius = 6 } },
+		-- Thistle Shell: blocks one hit a room
+		ThistleMole = { every = 0, range = 0, guard = true },
+		-- Briar Snare: holds one enemy still; bosses are not held
+		BriarBeetle = { every = 4, range = 60, damage = 28, root = { duration = 1.75, boss = 0 } },
+		-- Berry Mark: paints one target softer
+		BerryBat = { every = 6, range = 70, damage = 26, mark = { scale = 1.3, duration = 4 } },
+		-- Bramble Swipe: one blow across three
+		BrambleBear = { every = 3, range = 60, damage = 51, targets = 3 },
+		-- Thorn Darts: four that follow
+		BriarLynx = { every = 3, range = 80, damage = 28, targets = 4 },
+		-- Thorn Bite: bolts that burn, and a howl that speeds attacks
+		BrambleWilf = {
+			every = 3,
+			range = 60,
+			damage = 39,
+			burn = { rate = 17, duration = 3 },
+			haste = { bonus = 0.25, duration = 3, every = 3 },
+		},
+		-- Court of Thorns: two spirits, a shockwave against bosses
+		ThornPrincess = { every = 4, range = 60, damage = 56, targets = 2, bossDamage = 90 },
+		-- Briar Beam: pierces a line, heals per hit, revives once a run
+		Thornwake = { every = 4, range = 60, damage = 90, beam = 3, healPerHit = 3, revive = 0.5 },
 	},
 }
 

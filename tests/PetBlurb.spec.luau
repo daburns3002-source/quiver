@@ -13,20 +13,13 @@ local PetCombat = require(ReplicatedStorage.Shared.Config.PetCombat)
 local TestRunner = require(script.Parent.TestRunner)
 
 return function(t: TestRunner.Helper)
-	--[[ Thornwood's pets are modelled but have no `Config/PetCombat` entry
-	     yet, so they honestly say so. The Mossy Egg's eight are finished and
-	     must each describe themselves. ]]
-	t.test("every Mossy Egg pet says what it does", function()
-		for _, entry in EggRules.pool("MossyEgg") do
-			local text = PetBlurb.text(entry.pet)
-			t.isTrue(text ~= PetBlurb.NONE, `{entry.pet} has no combat spec to describe`)
-		end
-	end)
-
-	t.test("a hatchable pet always has something to say", function()
+	--[[ Both areas' pets are finished now (Thornwood's got their combat in
+	     2026-10-31), so nothing a player can hatch may shrug. ]]
+	t.test("every pet a player can hatch says what it does", function()
 		for _, egg in Eggs.list do
 			for _, entry in EggRules.pool(egg.key) do
-				t.isTrue(#PetBlurb.text(entry.pet) > 0, entry.pet)
+				local text = PetBlurb.text(entry.pet)
+				t.isTrue(text ~= PetBlurb.NONE, `{entry.pet} has no combat spec to describe`)
 			end
 		end
 	end)

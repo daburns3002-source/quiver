@@ -1,7 +1,9 @@
 --!strict
 --[[
-	The Mossback Snail's Shell Guard (docs/PETS-FOREST.md, Attacks): once a
-	room its shell blocks one hit. Raised as a room begins
+	Shell Guard (docs/PETS-FOREST.md, Attacks): once a room the shell blocks
+	one hit. The Mossback Snail carries it in the Mossy Glade and the
+	Thistle Mole in Thornwood -- one guard to an egg, so a player always has
+	the option and never two of it. Raised as a room begins
 	(`PetCombat.newRoom`, by way of `raiseShell`), never by the clock, and
 	spent on the first hit, so a second hit in the same room lands.
 
@@ -13,15 +15,33 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 
+local EggRules = require(ReplicatedStorage.Shared.Util.EggRules)
+local Eggs = require(ReplicatedStorage.Shared.Config.Eggs)
 local PetCombat = require(ServerScriptService.Server.Combat.PetCombat)
 local PetCombatConfig = require(ReplicatedStorage.Shared.Config.PetCombat)
 local RunSession = require(ServerScriptService.Server.Run.RunSession)
 local TestRunner = require(script.Parent.TestRunner)
 
 return function(t: TestRunner.Helper)
-	t.test("the snail guards, and only the snail", function()
+	t.test("exactly one pet in each egg guards", function()
+		for _, egg in Eggs.list do
+			local guards = {}
+			for _, entry in EggRules.pool(egg.key) do
+				local spec = PetCombatConfig.pets[entry.pet]
+				if spec and spec.guard then
+					table.insert(guards, entry.pet)
+				end
+			end
+			t.equal(#guards, 1, `{egg.key} holds {#guards} guards: {table.concat(guards, ", ")}`)
+		end
+	end)
+
+	t.test("a guard does nothing else: no damage, no clock", function()
 		for key, spec in PetCombatConfig.pets do
-			t.equal(spec.guard == true, key == "MossbackSnail", `{key}'s guard`)
+			if spec.guard then
+				t.isNil(spec.damage, `{key} guards and hits`)
+				t.equal(spec.every, 0, `{key}'s guard is not on a clock`)
+			end
 		end
 	end)
 

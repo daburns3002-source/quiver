@@ -158,10 +158,10 @@ The owner wants new upgrade cards. Points to settle first:
   power**. New cards hold that line — they are not a place to add power back.
 - `Config/Abilities` is data feeding an ordered pipeline; a card is never an `if` branch in the
   shooting code.
-- **Diagonal Arrows has no magnitude knob** and was missed by the 20% pass — it makes
-  full-damage mirrored copies, so level 2 is five full-damage arrows from a Rare card. Worth
-  adding a `diagonalDamageScale` (mirroring `ricochetDamageScale`) before adding more cards
-  that interact with projectile count.
+- ~~Diagonal Arrows has no magnitude knob~~ — **wrong, and already fixed.** Codex's combat
+  pass passes `CombatTuning.extraProjectileDamage` (0.4) into `Stages.mirror`, so the diagonal
+  copies do 40% each: level 2 is 1 forward plus 4 at 40%, about 2.6x, not 5x. Checked
+  2026-10-31.
 - `upgrade_cards.md` is sitting in the unclaimed sweep bucket. Find out what it is before
   writing new cards.
 

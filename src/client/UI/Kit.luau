@@ -741,6 +741,475 @@ function Kit.wallet(parent: Instance, coins: number, gems: number)
 		l.Size = UDim2.fromScale(0.66, 0.6)
 	end
 end
+--[[
+	Codex's hatchery surfaces (his `EggHatcheryUI`, 2026-10-29; owner,
+	2026-10-31: "his layout with the working controls"). Kept apart from the
+	wood station kit above and from the native Gear kit below, because all
+	three are live and none of them is the other.
+
+	A pixel panel is five horizontal strips making a stepped silhouette — a
+	pixel-art rounded rectangle — drawn twice: an ink border, then the fill
+	inset inside it. The steps are a fixed number of pixels rather than a
+	share of the panel, so `w` and `h` are passed in: they are the panel's
+	size on the 1920x1080 sheet, which is the only way the strips can work
+	out their own fractions of it.
+]]
+Kit.pixelInk = Color3.fromRGB(7, 60, 80)
+Kit.pixelForest = Color3.fromRGB(28, 57, 38)
+Kit.pixelFace = Color3.fromRGB(24, 51, 35)
+Kit.pixelCream = Color3.fromRGB(232, 245, 249)
+Kit.pixelLeaf = Color3.fromRGB(132, 245, 43)
+
+--[[ Codex drew his at 1200x720 and this sheet is 1920x1080, which is the
+     same shape at 1.5x. His step of 6 pixels is this one's 9. ]]
+local STEP = 9
+
+function Kit.pixelPanel(parent: Instance, w: number, h: number, colour: Color3): Frame
+	local f = Instance.new("Frame")
+	f.Name = "PixelPanel"
+	f.BackgroundTransparency = 1
+	f.Size = UDim2.fromScale(1, 1)
+	f.Parent = parent
+	local function strips(name: string, inset: number, colour2: Color3, z: number)
+		local tall, wide = h - inset * 2, w - inset * 2
+		local rows = {
+			{ STEP * 2, 0, wide - STEP * 4, STEP },
+			{ STEP, STEP, wide - STEP * 2, STEP },
+			{ 0, STEP * 2, wide, tall - STEP * 4 },
+			{ STEP, tall - STEP * 2, wide - STEP * 2, STEP },
+			{ STEP * 2, tall - STEP, wide - STEP * 4, STEP },
+		}
+		for i, r in rows do
+			local strip = Instance.new("Frame")
+			strip.Name = name .. i
+			strip.BorderSizePixel = 0
+			strip.BackgroundColor3 = colour2
+			strip.Position = UDim2.fromScale((r[1] + inset) / w, (r[2] + inset) / h)
+			strip.Size = UDim2.fromScale(r[3] / w, r[4] / h)
+			strip.ZIndex = z
+			strip.Parent = f
+		end
+	end
+	strips("Border", 0, Kit.pixelInk, 2)
+	strips("Face", 4.5, colour, 3)
+	return f
+end
+
+--[[ A word on a pixel panel: Press Start 2P with Codex's ink outline,
+     scaled to fit its box and capped at the size it was drawn for, so it
+     may shrink to stay inside but never grow (CLAUDE.md rule 11). ]]
+function Kit.pixelText(parent: Instance, words: string, size: number, colour: Color3?): TextLabel
+	local t = Instance.new("TextLabel")
+	t.Name = "PixelText"
+	t.BackgroundTransparency = 1
+	t.Size = UDim2.fromScale(1, 1)
+	t.Font = Enum.Font.Arcade
+	t.Text = words
+	t.TextSize = size
+	t.TextScaled = true
+	t.TextColor3 = colour or Color3.fromRGB(248, 253, 255)
+	t.TextXAlignment = Enum.TextXAlignment.Center
+	t.TextYAlignment = Enum.TextYAlignment.Center
+	t.ZIndex = 10
+	t.Parent = parent
+	local cap = Instance.new("UITextSizeConstraint")
+	cap.MinTextSize, cap.MaxTextSize = 1, size
+	cap.Parent = t
+	local stroke = Instance.new("UIStroke")
+	stroke.Color = Kit.pixelInk
+	stroke.Thickness = if size >= 45 then 2.5 else 1.4
+	stroke.LineJoinMode = Enum.LineJoinMode.Round
+	stroke.Parent = t
+	return t
+end
+
+--[[
+	Codex's press feel, which his buttons have and a plain click area does
+	not: the face lifts a little under the pointer, sinks under the press
+	and settles back on a Back ease, so the button answers before the
+	server does. `burst` throws his ring of coins out of the press itself —
+	twelve, on the clock, fading as they fly.
+]]
+function Kit.pressFx(hit: GuiButton, visual: GuiObject, burst: boolean)
+	local scale = visual:FindFirstChildOfClass("UIScale") or Instance.new("UIScale")
+	scale.Parent = visual
+	local base = scale.Scale
+	local showing: number? = nil
+	local playing: Tween? = nil
+	local function settle()
+		local want = base
+		if hit.GuiState == Enum.GuiState.Press then
+			want = base * 0.9
+		elseif hit.GuiState == Enum.GuiState.Hover then
+			want = base * 1.08
+		end
+		if showing == want then
+			return
+		end
+		showing = want
+		if playing then
+			playing:Cancel()
+		end
+		playing = TweenService:Create(
+			scale,
+			TweenInfo.new(0.16, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
+			{ Scale = want }
+		)
+		assert(playing, "a tween"):Play()
+	end
+	hit:GetPropertyChangedSignal("GuiState"):Connect(settle)
+	if not burst then
+		return
+	end
+	hit.Activated:Connect(function()
+		local layer = hit:FindFirstAncestorWhichIsA("ScreenGui")
+		if not layer then
+			return
+		end
+		local middle = visual.AbsolutePosition + visual.AbsoluteSize / 2 - layer.AbsolutePosition
+		for i = 1, 12 do
+			local angle = i * math.pi / 6
+			local length = math.random(45, 95)
+			local size = math.random(18, 26)
+			local coin = Instance.new("ImageLabel")
+			coin.Name = "CoinBurst"
+			coin.AnchorPoint = Vector2.new(0.5, 0.5)
+			coin.BackgroundTransparency = 1
+			coin.Image = ShopAssets.coin
+			coin.Position = UDim2.fromOffset(middle.X, middle.Y)
+			coin.Rotation = math.random(0, 90)
+			coin.Size = UDim2.fromOffset(size, size)
+			coin.ZIndex = 55
+			coin.Parent = layer
+			local fly = TweenService:Create(
+				coin,
+				TweenInfo.new(0.6, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+				{
+					Position = UDim2.fromOffset(
+						middle.X + math.cos(angle) * length,
+						middle.Y + math.sin(angle) * length
+					),
+					Size = UDim2.fromOffset(0, 0),
+					ImageTransparency = 1,
+					Rotation = coin.Rotation + 100,
+				}
+			)
+			fly:Play()
+			fly.Completed:Once(function()
+				coin:Destroy()
+			end)
+		end
+	end)
+end
+
+--[[
+	A pet standing on its card, as the real model rather than a picture
+	(Codex's `EggHatcheryUI` drew its cards this way and the owner,
+	2026-10-31, asked for it back). The server builds the pets once into
+	`ReplicatedStorage.PetPreview` (`Server/Dev/PetPreview`), so this clones
+	one and frames it.
+
+	The camera is placed off the model's own extents, never by eye, so a
+	tall pet and a wide one both sit inside the card with room around them
+	— the pictures were being cut at the card's edge. It stands in front of
+	the pet: `Config/PetModels` is in Roblox's frame, where a model's front
+	is its pivot's look vector, which an identity pivot points down -Z.
+
+	Returns nil when the pet has no model yet, and the card falls back to
+	its picture.
+]]
+local MODEL_FOV = 40
+--[[ How much of the card the pet fills, leaving the rest as margin. ]]
+local MODEL_FILL = 1.12
+--[[ The eight corners of a unit box, for framing a model against a card. ]]
+local CORNERS = {}
+for _, x in { -1, 1 } do
+	for _, y in { -1, 1 } do
+		for _, z in { -1, 1 } do
+			table.insert(CORNERS, Vector3.new(x, y, z))
+		end
+	end
+end
+--[[ The three-quarter turn: round to its left and a little above it. ]]
+local MODEL_YAW = 20
+local MODEL_PITCH = 11
+
+function Kit.petModel(parent: Instance, key: string, hidden: boolean): ViewportFrame?
+	local built = ReplicatedStorage:FindFirstChild("PetPreview")
+	local template = if built then built:FindFirstChild(key) else nil
+	if not template or not template:IsA("Model") then
+		return nil
+	end
+
+	local view = Instance.new("ViewportFrame")
+	view.Name = "PetModel"
+	view.Ambient = Color3.fromRGB(220, 220, 220)
+	view.BackgroundTransparency = 1
+	view.LightColor = Color3.new(1, 1, 1)
+	view.LightDirection = Vector3.new(-1, -1, -2)
+	view.Size = UDim2.fromScale(1, 1)
+	view.ZIndex = 12
+	view.Parent = parent
+
+	local world = Instance.new("WorldModel")
+	world.Parent = view
+	local model = template:Clone()
+	model.Parent = world
+	--[[ Squared up first, so the pet faces the camera whatever pose the
+	     server left it in, then shifted so its middle is the origin. ]]
+	model:PivotTo(CFrame.new())
+	local middle, extents = model:GetBoundingBox()
+	model:PivotTo(CFrame.new(-middle.Position))
+
+	if hidden then
+		for _, part in model:GetDescendants() do
+			if part:IsA("BasePart") then
+				part.Color = Color3.new(0, 0, 0)
+				part.Material = Enum.Material.SmoothPlastic
+				if part:IsA("MeshPart") then
+					part.TextureID = ""
+				end
+			end
+		end
+	end
+
+	--[[ Seen from a three-quarter view rather than head on (owner,
+	     2026-10-31: "i still want them at an angle"), which is how a pet
+	     reads as a model instead of a picture of one.
+
+	     Turned that way the pet is wider on screen than its own X, so the
+	     room it needs is measured across the turn, not off one axis; and
+	     the distance is to its middle, with its near corner half a
+	     diagonal closer. Both were what cut pets at the card's edge. ]]
+	local yaw, pitch = math.rad(MODEL_YAW), math.rad(MODEL_PITCH)
+	local across = extents.X * math.cos(yaw) + extents.Z * math.sin(yaw)
+	local deep = extents.Z * math.cos(yaw) + extents.X * math.sin(yaw)
+	local tall = extents.Y * math.cos(pitch) + deep * math.sin(pitch)
+	local reach = math.max(across, tall)
+	local away = (reach / MODEL_FILL) / 2 / math.tan(math.rad(MODEL_FOV) / 2)
+		+ math.sqrt(extents.X ^ 2 + extents.Z ^ 2) / 2
+	local camera = Instance.new("Camera")
+	camera.FieldOfView = MODEL_FOV
+	local eye = CFrame.Angles(0, yaw, 0) * CFrame.Angles(pitch, 0, 0) * Vector3.new(0, 0, -away)
+	camera.CFrame = CFrame.lookAt(eye, Vector3.zero)
+	camera.Parent = view
+
+	--[[ A model centred on the origin does not land centred on the card:
+	     the camera looks down at it, so the near and far faces of its box
+	     project by different amounts and the pet rides high. Rather than
+	     guess an offset, its box is projected and the pet is slid by what
+	     that measures — which holds for any pet, whatever its shape. ]]
+	local half = math.tan(math.rad(MODEL_FOV) / 2)
+	--[[ Sliding the pet changes its own projection, since a corner nearer
+	     the lens moves further on screen than one behind it, so one pass
+	     lands close rather than true. A few settle it. ]]
+	for _ = 1, 4 do
+		local here = model:GetBoundingBox().Position
+		local low, high = Vector2.one * math.huge, Vector2.one * -math.huge
+		for _, corner in CORNERS do
+			local at = camera.CFrame:PointToObjectSpace(here + corner * extents / 2)
+			local flat = Vector2.new(at.X, at.Y) / (-at.Z * half)
+			low, high = low:Min(flat), high:Max(flat)
+		end
+		local drift = (low + high) / 2
+		if drift.Magnitude < 1e-4 then
+			break
+		end
+		local reachOut = camera.CFrame.RightVector * (drift.X * away * half)
+		local reachUp = camera.CFrame.UpVector * (drift.Y * away * half)
+		model:PivotTo(model:GetPivot() - reachOut - reachUp)
+	end
+	view.CurrentCamera = camera
+	return view
+end
+
+--[[ Codex's bright rarity palette, which is not `Config/Rarities`: his
+     cards are lit from the front and read at a glance across a panel, so
+     the Rare is a cyan rather than the muted blue a card in the hand
+     wants. The faces on his screens are these. ]]
+Kit.bright = {
+	Common = Color3.fromRGB(216, 224, 232),
+	Uncommon = Color3.fromRGB(70, 255, 113),
+	Rare = Color3.fromRGB(0, 228, 255),
+	Epic = Color3.fromRGB(195, 83, 255),
+	Legendary = Color3.fromRGB(255, 211, 28),
+	Mythic = Color3.fromRGB(255, 40, 101),
+}
+
+--[[
+	One card from Codex's hatchery and chest: a flat face in its rarity's
+	bright colour, pixel-shaded in an 8x8 grid so it is not a plain
+	rectangle, a gleam across the whole card and the odds in the bottom
+	corner. `art` is the picture laid on it — the 2D weapon art for a
+	crate, the pet's picture for an egg — drawn black when `hidden`, which
+	is how he shows a Mythic nobody has pulled.
+
+	Legendary and Mythic carry a glow (owner's standing rule) and a Mythic
+	also carries his drifting rainbow pluses.
+]]
+function Kit.rarityCard(
+	parent: Instance,
+	rarity: string,
+	art: string,
+	chance: number,
+	hidden: boolean,
+	owned: boolean,
+	key: string?
+): Frame
+	local base = Kit.bright[rarity] or Kit.colour(rarity)
+
+	local card = Instance.new("Frame")
+	card.Name = "RarityCard"
+	card.BackgroundColor3 = base
+	card.BorderSizePixel = 0
+	card.Size = UDim2.fromScale(1, 1)
+	card.ZIndex = 8
+	card.Parent = parent
+	local round = Instance.new("UICorner")
+	round.CornerRadius = UDim.new(0, 18)
+	round.Parent = card
+
+	--[[ His pixel wash: each tile the face nudged a little toward white or
+	     black, by a hash that repeats every other column and row so the
+	     grain reads as hand-placed pixels rather than noise. ]]
+	local wash = Instance.new("Frame")
+	wash.BackgroundTransparency = 1
+	wash.Position = UDim2.fromScale(0.03, 0.055)
+	wash.Size = UDim2.fromScale(0.94, 0.886)
+	wash.ZIndex = 9
+	wash.Parent = card
+	for row = 0, 7 do
+		for col = 0, 7 do
+			local hash = (col * 17 + row * 31 + math.floor(col / 2) * 13 + math.floor(row / 2) * 7)
+				% 11
+			local shade = (hash - 5) * 0.006 + (3.5 - row) * 0.004
+			local tile = Instance.new("Frame")
+			tile.BorderSizePixel = 0
+			tile.BackgroundColor3 = base:Lerp(
+				if shade >= 0 then Color3.new(1, 1, 1) else Color3.new(0, 0, 0),
+				math.abs(shade)
+			)
+			tile.Position = UDim2.fromScale(col / 8, row / 8)
+			tile.Size = UDim2.fromScale(1 / 8, 1 / 8)
+			tile.ZIndex = 9
+			tile.Parent = wash
+		end
+	end
+
+	-- the gleam he runs across the whole card, brightest at the top left
+	local gleam = Instance.new("Frame")
+	gleam.BackgroundColor3 = Color3.new(1, 1, 1)
+	gleam.BackgroundTransparency = 0.82
+	gleam.BorderSizePixel = 0
+	gleam.Size = UDim2.fromScale(1, 1)
+	gleam.ZIndex = 10
+	gleam.Parent = card
+	local gleamRound = Instance.new("UICorner")
+	gleamRound.CornerRadius = UDim.new(0, 18)
+	gleamRound.Parent = gleam
+	local slant = Instance.new("UIGradient")
+	slant.Rotation = 35
+	slant.Transparency = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, 1),
+		NumberSequenceKeypoint.new(0.42, 1),
+		NumberSequenceKeypoint.new(0.52, 0.15),
+		NumberSequenceKeypoint.new(0.62, 1),
+		NumberSequenceKeypoint.new(1, 1),
+	})
+	slant.Parent = gleam
+
+	--[[ The model where there is one, as Codex drew them, and the picture
+	     where there is not — a weapon always keeps its 2D art. ]]
+	local standing = if key then Kit.petModel(card, key, hidden) else nil
+	if standing then
+		--[[ The whole card, as Codex fills his: the odds sit over the pet
+		     in the corner rather than taking a strip of their own. ]]
+		standing.Position, standing.Size = UDim2.fromScale(0.02, 0), UDim2.fromScale(0.96, 1)
+	else
+		local picture = Kit.image(card, art)
+		picture.Position, picture.Size = UDim2.fromScale(0.08, 0.05), UDim2.fromScale(0.84, 0.76)
+		picture.ZIndex = 12
+		if hidden then
+			picture.ImageColor3 = Color3.new(0, 0, 0)
+		end
+	end
+
+	local odds = Kit.pixelText(card, string.format("%g%%", math.round(chance * 10000) / 100), 26)
+	odds.Position, odds.Size = UDim2.fromScale(0.3, 0.74), UDim2.fromScale(0.64, 0.2)
+	odds.TextXAlignment = Enum.TextXAlignment.Right
+	odds.ZIndex = 13
+
+	--[[ Every Legendary and Mythic glows (owner's standing rule); Codex
+	     draws it as rings of stroke outside the card, widest and faintest
+	     first. ]]
+	if rarity == "Legendary" or rarity == "Mythic" then
+		for ring, spread in { 7, 4, 2 } do
+			local halo = Instance.new("Frame")
+			halo.BackgroundTransparency = 1
+			halo.Position = UDim2.fromScale(-spread / 204, -spread / 212)
+			halo.Size = UDim2.fromScale(1 + spread * 2 / 204, 1 + spread * 2 / 212)
+			halo.ZIndex = 7
+			halo.Parent = card
+			local corner = Instance.new("UICorner")
+			corner.CornerRadius = UDim.new(0, 12 + spread)
+			corner.Parent = halo
+			local stroke = Instance.new("UIStroke")
+			stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+			stroke.LineJoinMode = Enum.LineJoinMode.Round
+			stroke.Color = base
+			stroke.Thickness = ({ 12, 8, 4 })[ring]
+			stroke.Transparency = ({ 0.9, 0.7, 0.25 })[ring]
+			stroke.Parent = halo
+		end
+	end
+	if rarity == "Mythic" then
+		Kit.rainbowRing(card)
+		local sparks = Instance.new("Frame")
+		sparks.BackgroundTransparency = 1
+		sparks.ClipsDescendants = true
+		sparks.Size = UDim2.fromScale(1, 1)
+		sparks.ZIndex = 13
+		sparks.Parent = card
+		local drifting = {}
+		for j = 1, 18 do
+			local size = 9 + (j % 4) * 2
+			local plus = Instance.new("Frame")
+			plus.AnchorPoint = Vector2.new(0.5, 0.5)
+			plus.BackgroundTransparency = 1
+			plus.Size = UDim2.fromOffset(size, size)
+			plus.ZIndex = 13
+			plus.Parent = sparks
+			for _, arm in { { size, 2 }, { 2, size } } do
+				local bar = Instance.new("Frame")
+				bar.BackgroundColor3 = Color3.new(1, 1, 1)
+				bar.BackgroundTransparency = 0.72
+				bar.BorderSizePixel = 0
+				bar.AnchorPoint = Vector2.new(0.5, 0.5)
+				bar.Position = UDim2.fromScale(0.5, 0.5)
+				bar.Size = UDim2.fromOffset(arm[1], arm[2])
+				bar.ZIndex = 13
+				bar.Parent = plus
+			end
+			table.insert(drifting, {
+				plus = plus,
+				x = ((j * 0.61803398875) % 1) * 0.9 + 0.05,
+				phase = (j * 0.381966) % 1,
+				speed = 0.12 + (j % 4) * 0.025,
+			})
+		end
+		Kit.animate(sparks, function(t)
+			for _, spark in drifting do
+				local y = (spark.phase - t * spark.speed) % 1
+				spark.plus.Position = UDim2.fromScale(spark.x, y)
+			end
+		end)
+	end
+	if owned then
+		Kit.owned(card)
+	end
+	return card
+end
+
 function Kit.canvas(parent: Instance): Frame
 	local c = Instance.new("Frame")
 	c.Name = "StationCanvas"

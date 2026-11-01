@@ -151,6 +151,16 @@ function ShopScreen.start()
 	backdrop.Position, backdrop.Size = UDim2.fromScale(0, 0), UDim2.fromScale(1, 1)
 	backdrop.ScaleType = Enum.ScaleType.Crop
 	backdrop.ResampleMode = Enum.ResamplerMode.Default
+	--[[ Codex's screens stand on an empty dark background: the area's
+	     scene belongs inside the odds panel and nowhere else (owner,
+	     2026-10-31, on the full-screen art). The layer stays, because it is
+	     what covers Roblox's own top bar; what it carries goes dark. ]]
+	local veil = Instance.new("Frame")
+	veil.BackgroundColor3 = Color3.fromRGB(14, 16, 20)
+	veil.BorderSizePixel = 0
+	veil.Size = UDim2.fromScale(1, 1)
+	veil.ZIndex = 50
+	veil.Parent = layer
 	local dim = s.canvas.Parent :: GuiObject
 	local function follow()
 		layer.Enabled = dim.Visible and GearAssets.backgrounds.blacksmith ~= ""
@@ -193,7 +203,10 @@ function ShopScreen.start()
 					end
 				end
 			)
-			Kit.put(b, if index == 1 then 620 else 960, 40, 320, 84)
+			--[[ Under the left column rather than across the top: Codex's
+			     name hangs in that band, and the Blacksmith's own two modes
+			     are the game's furniture, not his. ]]
+			Kit.put(b, if index == 1 then 202 else 522, 840, 300, 84)
 		end
 		if store then
 			drawStore(s)
@@ -232,7 +245,7 @@ function ShopScreen.start()
 			locked = if #pool == 0 then "NO WEAPONS YET" else nil,
 			pity = if p then p.pity.crates else 0,
 			picture = GearAssets.crates[crate.area].closed,
-			moss = crate.area == "MossyGlade",
+			backdrop = GearAssets.backgrounds.blacksmith,
 			counts = Shop.counts,
 			verb = "OPEN",
 			noun = "WEAPONS",

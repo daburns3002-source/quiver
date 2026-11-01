@@ -49,6 +49,16 @@ function EggScreen.start()
 	backdrop.Size = UDim2.fromScale(1, 1)
 	backdrop.ScaleType = Enum.ScaleType.Crop
 	backdrop.ResampleMode = Enum.ResamplerMode.Default
+	--[[ Codex's screens stand on an empty dark background: the area's
+	     scene belongs inside the odds panel and nowhere else (owner,
+	     2026-10-31, on the full-screen art). The layer stays, because it is
+	     what covers Roblox's own top bar; what it carries goes dark. ]]
+	local veil = Instance.new("Frame")
+	veil.BackgroundColor3 = Color3.fromRGB(14, 16, 20)
+	veil.BorderSizePixel = 0
+	veil.Size = UDim2.fromScale(1, 1)
+	veil.ZIndex = 50
+	veil.Parent = layer
 	s.connect(dim:GetPropertyChangedSignal("Visible"), function()
 		layer.Enabled = dim.Visible and GearAssets.backgrounds.hatchery ~= ""
 	end)

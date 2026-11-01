@@ -18,6 +18,43 @@ local LobbyConfig = require(ReplicatedStorage.Shared.Config.Lobby)
 local TestRunner = require(script.Parent.TestRunner)
 
 return function(t: TestRunner.Helper)
+	--[[ The Dex Hall's two books are the only imported models in the lobby
+	     (`Config/Lobby.dex`), so they are the only places an asset id can
+	     be wrong and leave a hole where a book should be. ]]
+	t.test("the Dex Hall's books name real assets and keep their own shape", function()
+		local dex = LobbyConfig.dex
+		for _, book in { dex.roofBook, dex.standBook } do
+			t.isTrue(book.mesh:match("^rbxassetid://%d+$") ~= nil, book.mesh)
+			t.isTrue(book.texture:match("^rbxassetid://%d+$") ~= nil, book.texture)
+			--[[ The scale comes off `across` over the import's own width,
+			     so a native size of nought would divide by zero and a
+			     book would come out infinitely large. ]]
+			t.isTrue(book.native.X > 0 and book.native.Y > 0 and book.native.Z > 0, book.mesh)
+			t.isTrue(book.across > 0, book.mesh)
+		end
+		t.isTrue(dex.roofBook.mesh ~= dex.standBook.mesh, "two different books")
+	end)
+
+	--[[ The roof book stands astride the ridge of the hall it belongs to,
+	     not floating over the lawn: drawn wider than the building it would
+	     hang past the eaves. ]]
+	t.test("the roof book fits across its own roof", function()
+		local hall = LobbyConfig.buildings.DexHall
+		t.isTrue(LobbyConfig.dex.roofBook.across < hall.size.X, "wider than the hall")
+		t.isTrue(LobbyConfig.dex.roofBook.across > hall.size.X / 4, "lost on the roof")
+	end)
+
+	--[[ The lecterns stand out front, clear of the steps and of each
+	     other, and inside the hall's own width so they read as its pair. ]]
+	t.test("the lecterns flank the steps without meeting them", function()
+		local dex = LobbyConfig.dex
+		local hall = LobbyConfig.buildings.DexHall
+		local gap = dex.lectern.out * 2 - dex.lectern.base.X
+		t.isTrue(gap > dex.carpet.X, "the carpet runs between them")
+		t.isTrue(dex.lectern.out * 2 + dex.lectern.base.X <= hall.size.X + 6, "wider than the hall")
+		t.isTrue(dex.lectern.forward > 0, "in front")
+	end)
+
 	t.test("the working portals are Mossy Glade, Thornwood and Endless", function()
 		local open = {}
 		for _, portal in LobbyConfig.portals do

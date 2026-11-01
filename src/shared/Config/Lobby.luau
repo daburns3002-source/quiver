@@ -357,11 +357,17 @@ local Lobby = {
 		--[[ The two stone pads the stands go on, built with the hall:
 		     outside the steps and a little forward of its front. ]]
 		pads = { out = 14, forward = 15, top = 1.2, size = Vector3.new(7, 1.2, 6) },
-		--[[ Its nameboard, hung as every other station's is: just under
-		     the eaves and out past the front of the porch (owner,
-		     2026-11-01: "the dex hall sign needs to be fixed and look
-		     like the other ones"). ]]
-		sign = { height = 11, forward = 17.5 },
+		--[[
+			Its nameboard, on the gable over the entrance.
+
+			It hung out in front of the porch at first, as the other
+			stations' do, and at this building's width that put a board
+			twenty studs across squarely over the whole front: the
+			columns, the opening and the lanterns all disappeared behind
+			it. On the gable it reads from the lawn and leaves the
+			building visible, which is what the sheet shows.
+		]]
+		sign = { height = 10.7, forward = 11.15, across = 11.5, tall = 2 },
 		--[[ The lanterns either side of the porch, and the light each
 		     casts on the lawn. ]]
 		lanterns = { out = 9.55, height = 6.5, forward = 12, range = 16, brightness = 1.2 },

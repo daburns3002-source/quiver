@@ -209,7 +209,8 @@ local function land(swing: Pending, now: number)
 					if not (session.alive and EnemyManager.healthFraction(model)) then
 						return
 					end
-					local _, xp, fell = EnemyManager.damage(model, blow * wave.share, origin, "Hit")
+					local _, xp, fell =
+						EnemyManager.damage(model, blow * wave.share, origin, "Hit", session.player)
 					RunSession.creditKill(session.player, xp, fell)
 				end)
 			end
@@ -241,7 +242,8 @@ local function land(swing: Pending, now: number)
 			kind = "Crit"
 		end
 
-		local landed, xp, fell = EnemyManager.damage(enemy.model, damage, root.Position, kind)
+		local landed, xp, fell =
+			EnemyManager.damage(enemy.model, damage, root.Position, kind, session.player)
 		--[[ Bloodletting: a share of the blow comes back as health. ]]
 		if landed and melee.lifesteal > 0 then
 			RunSession.heal(session, damage * melee.lifesteal)

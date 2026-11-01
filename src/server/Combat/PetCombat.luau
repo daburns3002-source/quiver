@@ -58,6 +58,10 @@ type State = {
 	     raised, so there is no position to keep. ]]
 	auraUntil: number,
 	auraBiteAt: number,
+	--[[ The Buoy Puffer's Payback Puff: the owner's `lastHurtAt` this pet
+	     has already answered, so one puff answers one run of damage rather
+	     than firing again every cooldown for the rest of the room. ]]
+	paidFor: number,
 }
 
 --[[ Each player's pets, by slot. ]]
@@ -167,6 +171,17 @@ local function afflict(
 	if spec.mark then
 		EnemyManager.mark(model, spec.mark.scale, now + spec.mark.duration)
 	end
+	if spec.blind and not EnemyManager.isBoss(model) then
+		--[[ Ink Blink. A boss shrugs it off: its moves are timelines
+		     aimed from where it stands, and half-blinding one would stop
+		     a fight rather than shorten it. ]]
+		EnemyManager.blind(model, spec.blind.range, spec.blind.duration)
+	end
+	if spec.wake then
+		--[[ Wake Chase: the foam goes on, and bites it for walking
+		     (`Enemies/EnemyManager`, `Shared/Util/PetWake`). ]]
+		EnemyManager.wake(model, spec.wake, session.player)
+	end
 	if spec.healPerHit and touched then
 		RunSession.heal(session, spec.healPerHit)
 	end
@@ -218,7 +233,7 @@ local function strike(session: Session, state: State, spec: Spec, origin: Vector
 	local held = spec.targets or 1
 	if spec.beam and nearest then
 		struck = inLine(origin, nearest.position, spec.beam, spec.range)
-	elseif spec.damage or spec.root or spec.mark then
+	elseif spec.damage or spec.root or spec.mark or spec.blind or spec.wake then
 		for i = 1, math.min(held, #targets) do
 			table.insert(struck, targets[i].model)
 		end
@@ -236,6 +251,32 @@ local function strike(session: Session, state: State, spec: Spec, origin: Vector
 		afflict(session, state.pet, model, spec, now, false)
 	end
 
+	--[[ The Abyss Jelly's canopy goes over the nearest few, the struck one
+	     among them, and shares out what the player lands on any of them
+	     (`Shared/Util/DeepAccord`). It does no damage of its own. ]]
+	local accord = spec.accord
+	if accord then
+		local under: { Model } = {}
+		for i = 1, math.min(accord.targets, #targets) do
+			table.insert(under, targets[i].model)
+		end
+		EnemyManager.accord(under, accord.duration)
+	end
+
+	--[[ The Slate Turtle tucks in: for a moment its owner takes less from
+	     everything (`Shared/Util/Shelter`). It reaches nobody and hits
+	     nothing, so it is the whole of that pet's turn. ]]
+	local shelter = spec.shelter
+	if shelter then
+		session.petShelterCut = shelter.reduction
+		session.petShelterUntil = now + shelter.duration
+	end
+
+	--[[ The Buoy Puffer's spine is the only blow in the game worth more
+	     than its own number, and only because it cost its owner health to
+	     earn (`payback`, armed in `stepPet`). ]]
+	local payback = spec.payback
+
 	local shot = PetShots.projectile(state.pet)
 	local hits = spec.hits or 1
 	for index, model in struck do
@@ -244,6 +285,9 @@ local function strike(session: Session, state: State, spec: Spec, origin: Vector
 				then spec.bossDamage
 				else 0)
 			else 0
+		if payback then
+			amount *= payback.scale
+		end
 		if shot then
 			-- each blow waits for the piece carrying it to leave, then to fly
 			for blow = (index - 1) * hits + 1, index * hits do
@@ -368,7 +412,8 @@ end
 --[[ Whether the pet has anything to do now: something in reach, or it
      supports its owner without one. ]]
 local function hasWork(spec: Spec, origin: Vector3): boolean
-	if spec.heal or spec.magnet then
+	--[[ A shelter needs nobody to be in range: it is cast on its owner. ]]
+	if spec.heal or spec.magnet or spec.shelter then
 		return true
 	end
 	return #inRange(origin, spec.range) > 0
@@ -422,7 +467,25 @@ local function stepPet(
 		end
 	end
 
-	if now < state.nextAt or not hasWork(spec, origin) then
+	--[[
+		The Buoy Puffer answers damage, not a clock: it sits on a ready
+		cooldown doing nothing until its owner is actually hurt, and then
+		it puffs once. `paidFor` is the hurt it has already answered, so a
+		single hit buys a single spine however long the fight goes on.
+
+		`lastHurtAt` is set only where damage landed (`Run/RunSession`), so
+		a dodge, the Snail's shell, or a shelter that took a hit down to
+		nothing never arm it.
+	]]
+	if spec.payback then
+		if session.lastHurtAt <= state.paidFor then
+			return
+		end
+		if now < state.nextAt or not hasWork(spec, origin) then
+			return
+		end
+		state.paidFor = session.lastHurtAt
+	elseif now < state.nextAt or not hasWork(spec, origin) then
 		return
 	end
 	state.nextAt = now + spec.every
@@ -475,6 +538,7 @@ function PetCombat.step(deltaTime: number, now: number)
 					patchUntil = 0,
 					auraUntil = 0,
 					auraBiteAt = 0,
+					paidFor = 0,
 				}
 				mine[slot] = state
 				-- a guard pet joins with its shell up for this room

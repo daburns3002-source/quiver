@@ -25,11 +25,13 @@ local BossMoves = require(script.Parent.BossMoves)
 local BossThresholds = require(ReplicatedStorage.Shared.Util.BossThresholds)
 local CombatTuning = require(ReplicatedStorage.Shared.Config.CombatTuning)
 local CurrentStage = require(ReplicatedStorage.Shared.Util.CurrentStage)
+local DeepAccord = require(ReplicatedStorage.Shared.Util.DeepAccord)
 local EnemyDesigns = require(ReplicatedStorage.Shared.Config.EnemyDesigns)
 local EnemyModel = require(script.Parent.EnemyModel)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
 local ModelClip = require(ReplicatedStorage.Shared.Util.ModelClip)
 local Pathing = require(script.Parent.Pathing)
+local PetWake = require(ReplicatedStorage.Shared.Util.PetWake)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local RootHold = require(ReplicatedStorage.Shared.Util.RootHold)
 local RunSession = require(script.Parent.Parent.Run.RunSession)
@@ -155,6 +157,27 @@ type Enemy = {
 	rootedUntil: number,
 	markScale: number?,
 	markUntil: number?,
+	--[[ The Inkpot's Ink Blink: until `blindUntil` (os.clock) this enemy
+	     cannot pick a target further than `blindRange` studs away. It
+	     still walks and still swings at whatever is close. ]]
+	blindUntil: number?,
+	blindRange: number?,
+	--[[ The Tide Wilf's Wake Chase (`Shared/Util/PetWake`): foam on this
+	     enemy until `wakeUntil` that bites it for walking. `wakeFrom` is
+	     where it stood when travel was last counted, `wakeTravelled` the
+	     studs it has walked under the foam and `wakeLanded` the splashes
+	     already paid; `wakeOwner` is credited for the kill. ]]
+	wake: PetWake.Wake?,
+	wakeUntil: number?,
+	wakeFrom: Vector3?,
+	wakeTravelled: number,
+	wakeLanded: number,
+	wakeOwner: Player?,
+	--[[ The Abyss Jelly's Deep Accord (`Shared/Util/DeepAccord`): until
+	     `accordUntil` a blow the player lands on this enemy is shared out
+	     among those of `accordWith` still alive. ]]
+	accordWith: { Model }?,
+	accordUntil: number?,
 	--[[ The lunge under way (`EnemyConfig.lunges`), by index, or nil. It
 	     winds up until `lungeGoesAt`, then travels `lungeDirection`, locked
 	     when the wind-up began, until it has covered its distance or cover
@@ -373,6 +396,63 @@ function EnemyManager.mark(model: Model, scale: number, untilTime: number)
 	end
 	enemy.markScale = scale
 	enemy.markUntil = untilTime
+end
+
+--[[ Ink in a live enemy's face (the Inkpot's Ink Blink): for `seconds` it
+     cannot pick a target more than `range` studs off. The shorter sight
+     and the longer blinding both win, so a second squirt never makes an
+     enemy see further than the first left it. ]]
+function EnemyManager.blind(model: Model, range: number, seconds: number)
+	local enemy = enemies[model]
+	if not enemy or seconds <= 0 then
+		return
+	end
+	local now = os.clock()
+	local blinded = (enemy.blindUntil or 0) > now
+	enemy.blindRange = if blinded then math.min(enemy.blindRange or range, range) else range
+	enemy.blindUntil = math.max(enemy.blindUntil or 0, now + seconds)
+end
+
+--[[ Foam on a live enemy (the Tide Wilf's Wake Chase, `Shared/Util/PetWake`):
+     for `wake.duration` it owes a splash for every `wake.perStud` studs it
+     walks, up to `wake.hits`. A fresh wake starts its count again rather
+     than adding to one already on it -- the splashes a wake has are its
+     own, and two overlapping wakes must not pay each other's. ]]
+function EnemyManager.wake(model: Model, wake: PetWake.Wake, owner: Player?)
+	local enemy = enemies[model]
+	if not enemy or wake.duration <= 0 then
+		return
+	end
+	enemy.wake = wake
+	enemy.wakeUntil = os.clock() + wake.duration
+	enemy.wakeFrom = enemy.position
+	enemy.wakeTravelled = 0
+	enemy.wakeLanded = 0
+	enemy.wakeOwner = owner
+end
+
+--[[ A canopy over live enemies (the Abyss Jelly's Deep Accord): for
+     `seconds`, a blow the player lands on any of them is shared out among
+     those still alive (`Shared/Util/DeepAccord`). Each one holds the whole
+     group, itself included, so the split is the same whichever is struck. ]]
+function EnemyManager.accord(models: { Model }, seconds: number)
+	local live: { Model } = {}
+	for _, model in models do
+		if enemies[model] then
+			table.insert(live, model)
+		end
+	end
+	if #live < 2 or seconds <= 0 then
+		return
+	end
+	local untilTime = os.clock() + seconds
+	for _, model in live do
+		local enemy = enemies[model]
+		if enemy then
+			enemy.accordWith = live
+			enemy.accordUntil = untilTime
+		end
+	end
 end
 
 --[[ Whether a live enemy is a boss (`EnemyConfig.boss`). ]]
@@ -853,6 +933,8 @@ function EnemyManager.spawn(
 		lungeHit = {},
 		slideSign = nil,
 		rootedUntil = 0,
+		wakeTravelled = 0,
+		wakeLanded = 0,
 		arrivesAt = nil,
 		route = nil,
 		routeAt = 0,
@@ -1145,11 +1227,73 @@ function EnemyManager.damage(
 	model: Model,
 	amount: number,
 	fromPosition: Vector3?,
-	kind: Types.HitKind?
+	kind: Types.HitKind?,
+	by: Player?
 ): (boolean, number, Vector3?)
 	local enemy = enemies[model]
 	if not enemy or amount <= 0 then
 		return false, 0, nil
+	end
+
+	--[[
+		The Abyss Jelly's canopy shares the blow out (`Shared/Util/DeepAccord`).
+
+		`by` is the player whose own blow this is, and it is what opens the
+		canopy: only their projectiles and their swings pass it. A burn
+		never does. The design is that a shot which would have been wasted
+		on a nearly-dead enemy chips three instead, not that every tick of
+		fire becomes a room-wide aura.
+
+		Each share goes back through here with the canopy taken off the
+		enemies it covers, so nothing recurses and nothing is counted
+		twice; the total is exactly `amount`, whatever the canopy holds.
+		The struck enemy's outcome is returned as always, so its caller
+		pays for it in the usual way, and the others are credited here --
+		each with its own place, so its crystals fall where it did.
+	]]
+	local linked = enemy.accordWith
+	if by and kind ~= "Burn" and linked and (enemy.accordUntil or 0) > os.clock() then
+		local living: { Model } = {}
+		for _, other in linked do
+			if enemies[other] then
+				table.insert(living, other)
+			end
+		end
+		if #living > 1 then
+			local share = DeepAccord.share(amount, #living)
+			for _, other in living do
+				local sharer = enemies[other]
+				if sharer then
+					sharer.accordWith = nil
+				end
+			end
+			local landed, xp, fell = false, 0, nil :: Vector3?
+			for _, other in living do
+				local hitLanded, hitXp, hitFell =
+					EnemyManager.damage(other, share, fromPosition, kind, nil)
+				if other == model then
+					landed, xp, fell = hitLanded, hitXp, hitFell
+				else
+					RunSession.creditKill(by, hitXp, hitFell)
+				end
+			end
+			--[[ Back up over whatever lived, for the rest of its seconds. ]]
+			local rest: { Model } = {}
+			for _, other in living do
+				if enemies[other] then
+					table.insert(rest, other)
+				end
+			end
+			if #rest > 1 then
+				for _, other in rest do
+					local sharer = enemies[other]
+					if sharer then
+						sharer.accordWith = rest
+					end
+				end
+			end
+			return landed, xp, fell
+		end
 	end
 
 	if (enemy.markUntil or 0) > os.clock() then
@@ -2283,6 +2427,13 @@ local function stepEnemy(enemy: Enemy, deltaTime: number, now: number)
 
 	--[[ A shot may fire from further out than the enemy holds (`shot.range`). ]]
 	local fireRange = if shot and shot.range then shot.range else config.attackRange
+	--[[ Inked (the Inkpot's Ink Blink): it cannot pick out anything past
+	     arm's length, so a ranged enemy holding its distance simply stops
+	     firing while it lasts. Melee is untouched, because the cap only
+	     ever shortens a reach that was already longer. ]]
+	if (enemy.blindUntil or 0) > now then
+		fireRange = math.min(fireRange, enemy.blindRange or fireRange)
+	end
 	if distance > fireRange then
 		return
 	end
@@ -2439,11 +2590,59 @@ local function separate()
 	end
 end
 
+--[[
+	The Tide Wilf's wake, counted (`Shared/Util/PetWake`): the studs this
+	enemy has walked under the foam, and the splashes that owes.
+
+	Only its own walking. A hit's shove slides it for `Balance.Knockback`'s
+	stagger, and that is the player's doing, not the enemy's -- counting it
+	would turn the wake into "shoot it and the foam does the rest", which is
+	the opposite of a pet that punishes an enemy for chasing you. So travel
+	while it is staggered is not counted, and the mark moves with it.
+]]
+local function stepWake(enemy: Enemy, now: number)
+	local wake = enemy.wake
+	if not wake then
+		return
+	end
+	if now >= (enemy.wakeUntil or 0) then
+		enemy.wake = nil
+		enemy.wakeOwner = nil
+		return
+	end
+	local from = enemy.wakeFrom
+	if from then
+		local moved = Vector3.new(enemy.position.X - from.X, 0, enemy.position.Z - from.Z).Magnitude
+		if now >= enemy.staggerUntil then
+			enemy.wakeTravelled += moved
+		end
+	end
+	enemy.wakeFrom = enemy.position
+
+	local owed = PetWake.owed(wake, enemy.wakeTravelled, enemy.wakeLanded)
+	if owed <= 0 then
+		return
+	end
+	enemy.wakeLanded += owed
+	local owner = enemy.wakeOwner
+	--[[ The splashes land from where it stands, so its own shove goes
+	     nowhere in particular rather than away from a pet across the room. ]]
+	local landed, xp, fell = EnemyManager.damage(enemy.model, wake.damage * owed, nil, "Hit", nil)
+	if landed and xp > 0 then
+		RunSession.creditKill(owner, xp, fell)
+	end
+	if enemy.wakeLanded >= wake.hits then
+		enemy.wake = nil
+		enemy.wakeOwner = nil
+	end
+end
+
 function EnemyManager.step(deltaTime: number, now: number)
 	for _, enemy in enemies do
 		stepEnemy(enemy, deltaTime, now)
 		if enemy.arrivesAt == nil then
 			animate(enemy, deltaTime, now)
+			stepWake(enemy, now)
 		end
 	end
 end

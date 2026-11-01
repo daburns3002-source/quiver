@@ -16,6 +16,8 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Bleed = require(ReplicatedStorage.Shared.Combat.Bleed)
 local PetCombat = require(ReplicatedStorage.Shared.Config.PetCombat)
+local PetWake = require(ReplicatedStorage.Shared.Util.PetWake)
+local Shelter = require(ReplicatedStorage.Shared.Util.Shelter)
 
 local PetBlurb = {}
 
@@ -211,6 +213,70 @@ function PetBlurb.lines(key: string): { string }
 	end
 	if spec.magnet then
 		add("Pulls the room's XP crystals to you.")
+	end
+	--[[ Drowned Village (docs/PETS-DROWNED.md). Each says what it does
+	     *not* do as well, because all four of these are easy to read as
+	     something stronger than they are: a cut is not a shield, ink is
+	     not a stun, foam on something standing still is nothing, and a
+	     canopy adds no damage at all. ]]
+	local shelter = spec.shelter
+	if shelter then
+		add(
+			string.format(
+				"Roof Huddle: every %g seconds it tucks in beside you for %g seconds, and you take %s less from everything. Hits still land -- nothing is blocked. About %s less damage over a fight.",
+				spec.every,
+				shelter.duration,
+				percent(shelter.reduction * 100),
+				percent(Shelter.averageCut(shelter, spec.every) * 100)
+			)
+		)
+	end
+	local payback = spec.payback
+	if payback and spec.damage then
+		add(
+			string.format(
+				"Payback Puff: it does nothing until you are hurt. Then it fires one spine for %g damage, %gx its usual, and no more often than every %g seconds.",
+				spec.damage * payback.scale,
+				payback.scale,
+				spec.every
+			)
+		)
+	end
+	local blind = spec.blind
+	if blind then
+		add(
+			string.format(
+				"Ink Blink: every %g seconds it inks one enemy's face. For %g seconds it cannot pick a target more than %g studs away, so anything shooting from range stops. It still moves, and still swings up close. No damage, and bosses see through it.",
+				spec.every,
+				blind.duration,
+				blind.range
+			)
+		)
+	end
+	local wake = spec.wake
+	if wake then
+		add(
+			string.format(
+				"Wake Chase: every %g seconds it splashes foam on one enemy for %g seconds. Every %g studs that enemy walks costs it %g, up to %g times -- %g in all if it keeps running. An enemy that stands still takes nothing.",
+				spec.every,
+				wake.duration,
+				wake.perStud,
+				wake.damage,
+				wake.hits,
+				PetWake.total(wake)
+			)
+		)
+	end
+	local accord = spec.accord
+	if accord then
+		add(
+			string.format(
+				"Deep Accord: every %g seconds it joins up to %g enemies under a canopy for %g seconds. Damage you deal to one is split evenly between them, so one shot chips them all. It adds no damage of its own -- the total is exactly what you dealt.",
+				spec.every,
+				accord.targets,
+				accord.duration
+			)
+		)
 	end
 
 	return out

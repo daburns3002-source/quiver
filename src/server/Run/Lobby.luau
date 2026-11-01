@@ -201,16 +201,10 @@ local function dexPiece(name: string, spec: DexPiece, foot: CFrame, parent: Inst
 	p.CanTouch = false
 	p.Material = Enum.Material.SmoothPlastic
 	p.Size = size
-	if spec.texture ~= "" then
-		p.TextureID = spec.texture
-		--[[ A textured import carries its colours in the texture, so the
-		     part must not tint them. ]]
-		p.Color = Color3.new(1, 1, 1)
-	else
-		--[[ No texture: it renders in one flat colour, and the least
-		     wrong one is the sheet's panel cream. ]]
-		p.Color = LobbyConfig.dex.colours.bare
-	end
+	p.TextureID = spec.texture
+	--[[ Both books carry their colours in their own texture, so the part
+	     must not tint them. ]]
+	p.Color = Color3.new(1, 1, 1)
 	p.CFrame = foot * CFrame.new(0, size.Y / 2, 0)
 	p.Parent = parent
 	return p
@@ -687,69 +681,225 @@ local function building(name: string, at: Vector2, parent: Instance): Vector3?
 		Its books ride that turn with it, which is why they are placed
 		before it rather than in world space.
 	]]
+	--[[
+		The Dex Hall is built here from parts rather than placed as a
+		model (owner, 2026-11-01: "make a whole new building", "i want you
+		to just use parts already in roblox"), so nothing below runs for
+		it. The two books the owner modelled are still imports; everything
+		they stand on is parts, in the sheet's own colours.
+	]]
 	if name == "DexHall" then
 		local dex = LobbyConfig.dex
+		local look = dex.colours
 		local hall = dex.hall
-		--[[ The import stands on its own floor, so the assembly's origin
-		     is the lawn and everything is measured up from there. ]]
-		local frame = base * CFrame.Angles(0, dex.turn, 0)
-		local body = dexPiece("Hall", hall, frame, model)
-		if not body then
-			--[[ The mesh did not load: without it there is no hall and
-			     no pads for its books to stand on, so nothing is drawn
-			     rather than three books floating over the lawn. ]]
-			model.Parent = parent
-			return nil
+		local wide, deepHall = hall.across, hall.deep
+		local halfD = deepHall / 2
+		--[[ Front is +Z, as every station's is, and `base` already
+		     carries the turn that puts that front toward the middle. ]]
+		local function spotIn(x: number, y: number, z: number): CFrame
+			return base * CFrame.new(x, y, z)
 		end
-		dexPiece(
-			"RoofBook",
-			dex.roofBook,
-			frame * CFrame.new(0, hall.ridge - dex.roofBook.seat, -dex.roofBook.forward),
-			model
-		)
+		local function slab(
+			label: string,
+			block: Vector3,
+			x: number,
+			y: number,
+			z: number,
+			colour: Color3
+		): Part
+			return part(label, block, spotIn(x, y, z), colour, model)
+		end
+		--[[ A cylinder lying across X: the columns, their bands and the
+		     roof's corner caps. ]]
+		local function roll(
+			label: string,
+			long: number,
+			across: number,
+			x: number,
+			y: number,
+			z: number,
+			colour: Color3
+		): Part
+			return part(
+				label,
+				Vector3.new(long, across, across),
+				spotIn(x, y, z) * CFrame.Angles(0, 0, math.pi / 2),
+				colour,
+				model,
+				Enum.PartType.Cylinder
+			)
+		end
+
+		--[[ The plinth it stands on, two steps up to the porch, and the
+		     carpet running over them and in through the front. ]]
+		slab("Plinth", Vector3.new(wide, 1.5, deepHall), 0, 0.75, -2.5, look.stone)
+		slab("Step", Vector3.new(12.8, 1, 3.1), 0, 0.5, halfD - 1.1, look.stone)
+		slab("Step", Vector3.new(12.8, 0.5, 3.1), 0, 0.25, halfD + 1.9, look.stone)
+		slab("Carpet", Vector3.new(7.7, 0.1, 3.1), 0, 1.05, halfD - 1.1, look.red)
+		slab("Carpet", Vector3.new(7.7, 0.1, 3.1), 0, 0.55, halfD + 1.9, look.red)
+		slab("Carpet", Vector3.new(7.7, 0.1, 11), 0, 1.55, 9, look.red)
+
+		--[[ The timber frame: a post at each corner and either side of
+		     the porch, a beam along the top and the bottom, and the cream
+		     panels filling between them. ]]
+		local wallY, postH = 5.5, 8
 		for _, sx in { -1, 1 } do
-			dexPiece(
-				"StandBook",
-				dex.standBook,
-				frame * CFrame.new(sx * dex.pads.out, dex.pads.top, -dex.pads.forward),
+			for _, sz in { -1, 1 } do
+				slab("Post", Vector3.new(2, postH, 2), sx * 18, wallY, sz * 13 - 2.5, look.timber)
+			end
+			slab("Post", Vector3.new(2, postH, 2), sx * 9.55, wallY, 10.5, look.timber)
+			slab("PanelSide", Vector3.new(1.6, 4, 24), sx * 18, wallY, -2.5, look.panel)
+			slab("BeamSide", Vector3.new(2, 2, 24), sx * 18, 2.5, -2.5, look.timber)
+			slab("BeamSide", Vector3.new(2, 2, 24), sx * 18, 8.5, -2.5, look.timber)
+			slab("PanelFront", Vector3.new(6.45, 4, 1.6), sx * 13.77, wallY, 10.5, look.panel)
+			slab("BeamFront", Vector3.new(6.45, 2, 2), sx * 13.77, 2.5, 10.5, look.timber)
+		end
+		slab("PanelBack", Vector3.new(34, 4, 1.6), 0, wallY, -15.5, look.panel)
+		slab("BeamBack", Vector3.new(34, 2, 2), 0, 2.5, -15.5, look.timber)
+		slab("BeamTop", Vector3.new(wide, 2, 2), 0, 8.5, -15.5, look.timber)
+		slab("BeamTop", Vector3.new(wide, 2, 2), 0, 8.5, 10.5, look.timber)
+
+		--[[ The porch columns: a white shaft between two blocks, banded
+		     in gold top and bottom. ]]
+		for _, sx in { -1, 1 } do
+			local x = sx * 7.3
+			slab("ColumnFoot", Vector3.new(3, 0.8, 3), x, 1.9, 12.5, look.column)
+			roll("ColumnBand", 0.6, 2.75, x, 2.6, 12.5, look.gold)
+			roll("Column", 5.2, 2.25, x, 5.5, 12.5, look.column)
+			roll("ColumnBand", 0.6, 2.75, x, 8.4, 12.5, look.gold)
+			slab("ColumnHead", Vector3.new(3, 0.8, 3), x, 9.1, 12.5, look.column)
+		end
+
+		--[[ The roof: a slope either side meeting a flat top, with a gold
+		     cap at each of its four corners. ]]
+		for _, sx in { -1, 1 } do
+			part(
+				"RoofSlope",
+				Vector3.new(30, 1.5, 14.14),
+				spotIn(sx * 14.54, 12.46, -2.5) * CFrame.Angles(0, math.pi / 2, sx * math.rad(18.6)),
+				look.roof,
+				model
+			)
+			for _, sz in { -1, 1 } do
+				roll("RoofCap", 1.5, 2.4, sx * 19.2, 11, sz * 13.2 - 2.5, look.gold)
+				roll("RoofCapTip", 0.5, 1.44, sx * 19.2, 12, sz * 13.2 - 2.5, look.gold)
+			end
+		end
+		slab("RoofFlat", Vector3.new(16.2, 1.5, 30), 0, 14.75, -2.5, look.roof)
+		slab("RoofTop", Vector3.new(13.2, 0.8, 28), 0, hall.ridge - 0.4, -2.5, look.roof)
+
+		--[[ The gable over the porch: a cream face between two purple
+		     slopes, a timber king post, a gold peak. ]]
+		slab("GableFace", Vector3.new(16, 3.4, 0.8), 0, 11.6, 10.4, look.panel)
+		slab("GablePost", Vector3.new(1.6, 3.4, 1.2), 0, 11.6, 10.7, look.timber)
+		for _, sx in { -1, 1 } do
+			part(
+				"GableSlope",
+				Vector3.new(11.4, 1.1, 1.6),
+				spotIn(sx * 4.6, 12.6, 10.9) * CFrame.Angles(0, 0, sx * math.rad(22)),
+				look.roof,
 				model
 			)
 		end
-		--[[ Its wall lanterns are modelled but cannot glow: one mesh takes
-		     one material, so a light goes where each hangs instead. ]]
-		for _, sx in { -1, 1 } do
-			local glow = Instance.new("Attachment")
-			glow.Name = "LanternGlow"
-			glow.WorldCFrame = frame
-				* CFrame.new(sx * dex.lanterns.out, dex.lanterns.height, -dex.lanterns.forward)
-			glow.Parent = body
-			local light = Instance.new("PointLight")
-			light.Color = dex.colours.lantern
-			light.Range = dex.lanterns.range
-			light.Brightness = dex.lanterns.brightness
-			light.Parent = glow
+		slab("GablePeak", Vector3.new(2.6, 1.4, 2.2), 0, 14.1, 10.9, look.gold)
+
+		--[[ Inside: the counter, and a shelf of books behind it. ]]
+		slab("Counter", Vector3.new(22.8, 3, 4), 0, 3, 5.5, look.timber)
+		slab("CounterTop", Vector3.new(23.8, 0.5, 5), 0, 4.75, 5.5, look.timber)
+		slab("ShelfBack", Vector3.new(22.8, 6, 3), 0, 4.5, -13, look.timber)
+		for row = 0, 2 do
+			slab("ShelfBoard", Vector3.new(22.8, 0.4, 1), 0, 4.37 + row * 1.66, -11, look.timber)
+			for col = 0, 5 do
+				slab(
+					"ShelfBook",
+					Vector3.new(1.3, 1.6, 0.8),
+					(col - 2.5) * 3.4,
+					5.3 + row * 1.66,
+					-11.1,
+					look.books[(row * 6 + col) % #look.books + 1]
+				)
+			end
 		end
-		--[[ Hung like every other station's: just under the eaves, out
-		     past the front of the porch, as wide as the building allows.
-		     It was placed off the ridge and the width before, which put
-		     it higher and smaller than the rest (owner, 2026-11-01: "the
-		     dex hall sign needs to be fixed and look like the other
-		     ones"). ]]
-		--[[ Off `base`, not `frame`: `frame` carries the half-turn that
-		     brings the hall mesh round to face the lawn, and a board hung
-		     on that would read out of the back of the building. `base`
-		     already faces the middle like every other station's. ]]
+
+		--[[ A lantern either side of the porch, lit. ]]
+		local lantern = dex.lanterns
+		for _, sx in { -1, 1 } do
+			local x = sx * lantern.out
+			slab(
+				"LanternArm",
+				Vector3.new(0.4, 0.3, 0.6),
+				x,
+				lantern.height + 1.15,
+				lantern.forward - 0.3,
+				look.iron
+			)
+			slab(
+				"LanternCap",
+				Vector3.new(1.2, 0.5, 1.2),
+				x,
+				lantern.height + 0.75,
+				lantern.forward,
+				look.iron
+			)
+			slab(
+				"LanternFoot",
+				Vector3.new(1.2, 0.3, 1.2),
+				x,
+				lantern.height - 0.65,
+				lantern.forward,
+				look.iron
+			)
+			local glass = slab(
+				"Lantern",
+				Vector3.new(0.96, 1, 0.96),
+				x,
+				lantern.height,
+				lantern.forward,
+				look.lantern
+			)
+			glass.Material = Enum.Material.Neon
+			local light = Instance.new("PointLight")
+			light.Color = look.lantern
+			light.Range = lantern.range
+			light.Brightness = lantern.brightness
+			light.Parent = glass
+		end
+
+		--[[ The two pads out front, and the owner's stand on each. The
+		     books were modelled facing -Z, so they take `turn` on top of
+		     the building's own. ]]
+		local pads = dex.pads
+		for _, sx in { -1, 1 } do
+			slab("StandPad", pads.size, sx * pads.out, pads.top / 2, pads.forward, look.stone)
+			dexPiece(
+				"StandBook",
+				dex.standBook,
+				base
+					* CFrame.new(sx * pads.out, pads.top, pads.forward)
+					* CFrame.Angles(0, dex.turn, 0),
+				model
+			)
+		end
+
+		--[[ And the open book resting on the roof. ]]
+		dexPiece(
+			"RoofBook",
+			dex.roofBook,
+			base
+				* CFrame.new(0, hall.ridge - dex.roofBook.seat, dex.roofBook.forward)
+				* CFrame.Angles(0, dex.turn, 0),
+			model
+		)
+
 		signboard(
 			spec.sign,
 			base * CFrame.new(0, dex.sign.height, dex.sign.forward),
-			math.min(hall.across * 0.6, 20),
+			math.min(wide * 0.6, 20),
 			3.4,
 			model
 		)
 		model.Parent = parent
-		local across = hall.across
-		local deep = hall.native.Z / hall.native.X * across
-		return Vector3.new(across + 2, hall.ridge, deep + 2)
+		return Vector3.new(wide + 2, hall.ridge, deepHall + 2)
 	end
 	local function box(label: string, s: Vector3, offset: Vector3, colour: Color3): Part
 		return part(label, s, base * CFrame.new(offset), colour, model)
@@ -1261,14 +1411,11 @@ local function near(a: Vector2, list: { Vector2 }, reach: number): boolean
 end
 
 function Lobby.build(parent: Instance)
-	--[[ The Dex Hall's books, fetched before anything is placed: they are
-	     the only meshes in the lobby, so this is the one wait, and it is
-	     two ids. ]]
-	dexTemplates = MeshTemplates.load({
-		LobbyConfig.dex.hall.mesh,
-		LobbyConfig.dex.roofBook.mesh,
-		LobbyConfig.dex.standBook.mesh,
-	})
+	--[[ The Dex Hall's two books, fetched before anything is placed: they
+	     are the only meshes in the lobby, everything else being parts, so
+	     this is the one wait and it is two ids. ]]
+	dexTemplates =
+		MeshTemplates.load({ LobbyConfig.dex.roofBook.mesh, LobbyConfig.dex.standBook.mesh })
 	local rng = Random.new(20261027)
 	local root = Instance.new("Folder")
 	root.Name = "Lobby"

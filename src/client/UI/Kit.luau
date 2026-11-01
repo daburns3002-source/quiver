@@ -921,6 +921,9 @@ end
 local MODEL_FOV = 40
 --[[ How much of the card the pet fills, leaving the rest as margin. ]]
 local MODEL_FILL = 0.66
+--[[ The three-quarter turn: round to its left and a little above it. ]]
+local MODEL_YAW = 34
+local MODEL_PITCH = 16
 
 function Kit.petModel(parent: Instance, key: string, hidden: boolean): ViewportFrame?
 	local built = ReplicatedStorage:FindFirstChild("PetPreview")
@@ -961,17 +964,25 @@ function Kit.petModel(parent: Instance, key: string, hidden: boolean): ViewportF
 		end
 	end
 
-	--[[ Measured to the model's middle, so its near face is half its depth
-	     closer than that — without the depth term a chunky pet overflows
-	     the card and is cut at the top. ]]
-	--[[ Width and height only: a long pet's depth runs away from the
-	     camera and costs it no room on the card, so counting it would
-	     shrink the pet for nothing. ]]
-	local reach = math.max(extents.X, extents.Y)
-	local away = (reach / MODEL_FILL) / 2 / math.tan(math.rad(MODEL_FOV) / 2) + extents.Z / 2
+	--[[ Seen from a three-quarter view rather than head on (owner,
+	     2026-10-31: "i still want them at an angle"), which is how a pet
+	     reads as a model instead of a picture of one.
+
+	     Turned that way the pet is wider on screen than its own X, so the
+	     room it needs is measured across the turn, not off one axis; and
+	     the distance is to its middle, with its near corner half a
+	     diagonal closer. Both were what cut pets at the card's edge. ]]
+	local yaw, pitch = math.rad(MODEL_YAW), math.rad(MODEL_PITCH)
+	local across = extents.X * math.cos(yaw) + extents.Z * math.sin(yaw)
+	local deep = extents.Z * math.cos(yaw) + extents.X * math.sin(yaw)
+	local tall = extents.Y * math.cos(pitch) + deep * math.sin(pitch)
+	local reach = math.max(across, tall)
+	local away = (reach / MODEL_FILL) / 2 / math.tan(math.rad(MODEL_FOV) / 2)
+		+ math.sqrt(extents.X ^ 2 + extents.Z ^ 2) / 2
 	local camera = Instance.new("Camera")
 	camera.FieldOfView = MODEL_FOV
-	camera.CFrame = CFrame.lookAt(Vector3.new(0, 0, -away), Vector3.zero)
+	local eye = CFrame.Angles(0, yaw, 0) * CFrame.Angles(pitch, 0, 0) * Vector3.new(0, 0, -away)
+	camera.CFrame = CFrame.lookAt(eye, Vector3.zero)
 	camera.Parent = view
 	view.CurrentCamera = camera
 	return view

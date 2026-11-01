@@ -21,6 +21,72 @@ return function(t: TestRunner.Helper)
 	--[[ The Dex Hall's three models are the only imported meshes in the
 	     lobby (`Config/Lobby.dex`), so they are the only places an asset
 	     id can be wrong and leave a hole where the hall should be. ]]
+	--[[ Owner, 2026-11-01: a building to each corner, every one of them
+	     facing the middle. Both halves matter -- a corner each is what
+	     makes the lawn a circuit rather than a line, and facing the
+	     middle is what makes the four read as one place. ]]
+	t.test("the four stations stand one to a corner", function()
+		local corners = {
+			GearStation = Vector2.new(-1, -1),
+			Blacksmith = Vector2.new(1, -1),
+			DexHall = Vector2.new(-1, 1),
+			EggHatchery = Vector2.new(1, 1),
+		}
+		local found = 0
+		for _, station in LobbyConfig.stations do
+			local want = corners[station.piece]
+			if want then
+				found += 1
+				t.equal(math.sign(station.at.X), want.X, `{station.piece} east/west`)
+				t.equal(math.sign(station.at.Y), want.Y, `{station.piece} north/south`)
+			end
+		end
+		t.equal(found, 4, "all four placed")
+	end)
+
+	t.test("every building faces the middle", function()
+		for _, station in LobbyConfig.stations do
+			if not LobbyConfig.buildings[station.piece] then
+				continue
+			end
+			local yaw = LobbyConfig.facing(station.at)
+			--[[ Its front is local +Z, which a turn about Y sends to
+			     (sin, cos). Pointed at the middle, that is the way from
+			     the building to the origin. ]]
+			local front = Vector2.new(math.sin(yaw), math.cos(yaw))
+			local toMiddle = -station.at.Unit
+			t.isTrue((front - toMiddle).Magnitude < 1e-4, station.piece)
+		end
+	end)
+
+	--[[ An egg or crate stand sits in front of its station, and has to
+	     stay in front of it now the station can be turned any way. ]]
+	t.test("every stand stays out front of its own station, whichever corner it is on", function()
+		for owner, spots in LobbyConfig.stands do
+			local home: Vector2? = nil
+			for _, station in LobbyConfig.stations do
+				if station.piece == owner then
+					home = station.at
+				end
+			end
+			t.notNil(home, owner)
+			if not home then
+				continue
+			end
+			local yaw = LobbyConfig.facing(home)
+			local front = Vector2.new(math.sin(yaw), math.cos(yaw))
+			for _, spot in spots do
+				local turned = LobbyConfig.turnedOffset(home, spot.at)
+				--[[ Turning moves it, never stretches it. Vector2 holds
+				     single-precision floats, so a 24-stud offset carries
+				     a few millionths of slack. ]]
+				t.isTrue(math.abs(turned.Magnitude - spot.at.Magnitude) < 1e-3, spot.key)
+				--[[ And it lands on the side the building looks at. ]]
+				t.isTrue(turned:Dot(front) > 0, `{spot.key} is behind the {owner}`)
+			end
+		end
+	end)
+
 	t.test("the Dex Hall's three imports name real meshes and keep their own shape", function()
 		local dex = LobbyConfig.dex
 		local seen: { [string]: boolean } = {}
@@ -122,6 +188,11 @@ return function(t: TestRunner.Helper)
 		end
 	end)
 
+	--[[ Measured as each one is actually turned (owner, 2026-11-01: every
+	     building faces the middle). A box turned off the square covers
+	     more lawn than its own width and depth, so taking `spec.size` as
+	     it stands would say two buildings were clear of each other when
+	     their corners overlap. ]]
 	t.test("every station's footprint stands clear of every other's", function()
 		local GAP = 6
 		local placed = {}
@@ -130,7 +201,10 @@ return function(t: TestRunner.Helper)
 			if spec then
 				-- the foundation reaches a stud past the walls
 				local size = spec.size + Vector3.new(2, 0, 2)
-				table.insert(placed, { name = station.piece, at = station.at, size = size })
+				local yaw = LobbyConfig.facing(station.at)
+				local s, c = math.abs(math.sin(yaw)), math.abs(math.cos(yaw))
+				local turned = Vector3.new(size.X * c + size.Z * s, size.Y, size.X * s + size.Z * c)
+				table.insert(placed, { name = station.piece, at = station.at, size = turned })
 			end
 		end
 		for i, a in placed do

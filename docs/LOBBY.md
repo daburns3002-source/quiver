@@ -99,6 +99,24 @@ render of the finished building is not one: a texture has to be the UV-unwrapped
 was made with. Until that image exists the hall cannot look like its sheet, and the acceptance
 standard below is **not met** for it.
 
+**The layout** (owner, 2026-11-01: "every building should be either northwest, northeast,
+southwest, or southeast ... the dex hall is in the southwest, the gear station is in the
+northwest, the blacksmith is in the northeast, and the egg hatchery is in the southeast, and
+then the portals are at the north"). One station to each corner of the clearing, **every one of
+them turned to face the middle**, with the fountain between them and the portal terraces beyond.
+They were strung along the east side before, which left the west half of the lawn empty and made
+the walk a line rather than a circuit.
+
+The turn is one rule, `Config/Lobby.facing`: a building is modelled facing +Z, so the yaw that
+points its front at the origin is the bearing of its own place, negated. Three things read it —
+the builder, the egg and crate stands it puts out front (`turnedOffset`, so they come round with
+their station), and `Lobby.spec`, which measures each footprint **as it is actually turned**,
+since a box off the square covers more lawn than its own width and depth. A station standing in
+the middle has no bearing and is left alone.
+
+The two northern buildings stand clear of the portal terraces: the front ledge reaches z =
+-50.4 and they reach z = -43.
+
 ## What the lobby has to contain
 
 From `docs/PROGRESSION.md`:

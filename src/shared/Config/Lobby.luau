@@ -82,11 +82,48 @@ export type Building = {
 	emblem: string?,
 }
 
+--[[
+	Which way a building at `at` is turned: toward the middle of the
+	clearing (owner, 2026-11-01), as radians about Y.
+
+	A building is modelled facing +Z, which `CFrame.Angles(0, y, 0)` sends
+	to (sin y, cos y), so the turn that points its front at the origin is
+	the bearing of -`at`. One function because three places need to agree
+	about it -- the builder, the stands it puts out front, and the spec
+	that measures the footprints -- and a building facing a way its own
+	eggs do not is the bug this exists to make impossible.
+
+	A station standing dead in the middle has no bearing to face, and is
+	left unturned.
+]]
+local function facingMiddle(at: Vector2): number
+	if at.Magnitude < 1e-3 then
+		return 0
+	end
+	return math.atan2(-at.X, -at.Y)
+end
+
+--[[ Where a point `offset` studs from a building's own middle lands once
+     that building is turned to face the middle: its local +Z is the way it
+     faces, its +X to that way's right. The egg and crate stands are placed
+     with this, so they stay out front whichever corner their station is
+     on. ]]
+local function turnedOffset(at: Vector2, offset: Vector2): Vector2
+	local yaw = facingMiddle(at)
+	local s, c = math.sin(yaw), math.cos(yaw)
+	return Vector2.new(offset.X * c + offset.Y * s, -offset.X * s + offset.Y * c)
+end
+
 local GREEN = Color3.fromRGB(80, 230, 70)
 local PURPLE = Color3.fromRGB(140, 60, 235)
 local CYAN = Color3.fromRGB(70, 220, 224)
 
 local Lobby = {
+	--[[ Which way a building faces, and where a thing placed in front of
+	     it lands once it is turned. See `facingMiddle` above. ]]
+	facing = facingMiddle,
+	turnedOffset = turnedOffset,
+
 	--[[ Where the lobby's centre stands in the world: well away from the
 	     arena at the origin. ]]
 	origin = Vector3.new(0, 0, 1000),
@@ -163,15 +200,33 @@ local Lobby = {
 	archSize = 14,
 	archRise = 8,
 
-	--[[ The stations: the hatchery and the blacksmith east, the gear
-	     station west, the dex hall south-east, the spawn's fountain in the
-	     middle (`SpawnCampfire`, its old name, kept for the screens that
-	     look it up). `Lobby.spec` keeps every footprint apart. ]]
+	--[[
+		The stations, one to each corner of the clearing (owner,
+		2026-11-01: "every building should be either northwest,
+		northeast, southwest, or southeast ... the dex hall is in the
+		southwest, the gear station is in the northwest, the blacksmith
+		is in the northeast, and the egg hatchery is in the southeast,
+		and then the portals are at the north").
+
+		North is -Z and west is -X, so a corner is a sign on each. They
+		were strung along the east side before, which left the west half
+		of the lawn empty and the player walking a line rather than a
+		circuit; a corner each puts the fountain in the middle of four
+		and the portals beyond it.
+
+		The two northern ones stand clear of the portal terraces, whose
+		front ledge reaches z = -50.4: turned to face the middle they
+		reach z = -43, which leaves seven studs of lawn between.
+
+		The spawn's fountain keeps its old name `SpawnCampfire`, for the
+		screens that look it up. `Lobby.spec` keeps every footprint apart,
+		measured as each one is actually turned.
+	]]
 	stations = {
-		{ piece = "GearStation", at = Vector2.new(-68, -12) },
-		{ piece = "Blacksmith", at = Vector2.new(60, -28) },
-		{ piece = "EggHatchery", at = Vector2.new(86, 7) },
-		{ piece = "DexHall", at = Vector2.new(54, 44) },
+		{ piece = "GearStation", at = Vector2.new(-66, -24) },
+		{ piece = "Blacksmith", at = Vector2.new(66, -24) },
+		{ piece = "DexHall", at = Vector2.new(-66, 36) },
+		{ piece = "EggHatchery", at = Vector2.new(66, 36) },
 		{ piece = "SpawnCampfire", at = Vector2.new(-8, 28) },
 	} :: { Placed },
 
@@ -211,8 +266,11 @@ local Lobby = {
 		     vivid violet roof with gold corner caps, brown timber over warm
 		     cream panels, and a pale stone base. The old roof was a muted
 		     lilac and the panels nearly white. ]]
+		--[[ The import's own size, so the spacing is measured against
+		     what actually stands there (`dex.hall`: 38 across, 28 deep,
+		     its ridge 14.28 up). ]]
 		DexHall = {
-			size = Vector3.new(38, 14, 22),
+			size = Vector3.new(38, 14.28, 28),
 			rise = 10,
 			walls = Color3.fromRGB(238, 226, 196),
 			roof = Color3.fromRGB(124, 44, 230),

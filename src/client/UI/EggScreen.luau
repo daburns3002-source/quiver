@@ -107,7 +107,7 @@ function EggScreen.start()
 				else nil,
 			pity = if p then p.pity.eggs else 0,
 			picture = GearAssets.eggs[egg.key].whole,
-			moss = egg.area == "MossyGlade",
+			backdrop = GearAssets.backgrounds.hatchery,
 			counts = Eggs.counts,
 			verb = "HATCH",
 			noun = "PETS",

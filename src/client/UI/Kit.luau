@@ -741,6 +741,88 @@ function Kit.wallet(parent: Instance, coins: number, gems: number)
 		l.Size = UDim2.fromScale(0.66, 0.6)
 	end
 end
+--[[
+	Codex's hatchery surfaces (his `EggHatcheryUI`, 2026-10-29; owner,
+	2026-10-31: "his layout with the working controls"). Kept apart from the
+	wood station kit above and from the native Gear kit below, because all
+	three are live and none of them is the other.
+
+	A pixel panel is five horizontal strips making a stepped silhouette — a
+	pixel-art rounded rectangle — drawn twice: an ink border, then the fill
+	inset inside it. The steps are a fixed number of pixels rather than a
+	share of the panel, so `w` and `h` are passed in: they are the panel's
+	size on the 1920x1080 sheet, which is the only way the strips can work
+	out their own fractions of it.
+]]
+Kit.pixelInk = Color3.fromRGB(7, 60, 80)
+Kit.pixelForest = Color3.fromRGB(28, 57, 38)
+Kit.pixelFace = Color3.fromRGB(24, 51, 35)
+Kit.pixelCream = Color3.fromRGB(232, 245, 249)
+Kit.pixelLeaf = Color3.fromRGB(132, 245, 43)
+
+--[[ Codex drew his at 1200x720 and this sheet is 1920x1080, which is the
+     same shape at 1.5x. His step of 6 pixels is this one's 9. ]]
+local STEP = 9
+
+function Kit.pixelPanel(parent: Instance, w: number, h: number, colour: Color3): Frame
+	local f = Instance.new("Frame")
+	f.Name = "PixelPanel"
+	f.BackgroundTransparency = 1
+	f.Size = UDim2.fromScale(1, 1)
+	f.Parent = parent
+	local function strips(name: string, inset: number, colour2: Color3, z: number)
+		local tall, wide = h - inset * 2, w - inset * 2
+		local rows = {
+			{ STEP * 2, 0, wide - STEP * 4, STEP },
+			{ STEP, STEP, wide - STEP * 2, STEP },
+			{ 0, STEP * 2, wide, tall - STEP * 4 },
+			{ STEP, tall - STEP * 2, wide - STEP * 2, STEP },
+			{ STEP * 2, tall - STEP, wide - STEP * 4, STEP },
+		}
+		for i, r in rows do
+			local strip = Instance.new("Frame")
+			strip.Name = name .. i
+			strip.BorderSizePixel = 0
+			strip.BackgroundColor3 = colour2
+			strip.Position = UDim2.fromScale((r[1] + inset) / w, (r[2] + inset) / h)
+			strip.Size = UDim2.fromScale(r[3] / w, r[4] / h)
+			strip.ZIndex = z
+			strip.Parent = f
+		end
+	end
+	strips("Border", 0, Kit.pixelInk, 2)
+	strips("Face", 4.5, colour, 3)
+	return f
+end
+
+--[[ A word on a pixel panel: Press Start 2P with Codex's ink outline,
+     scaled to fit its box and capped at the size it was drawn for, so it
+     may shrink to stay inside but never grow (CLAUDE.md rule 11). ]]
+function Kit.pixelText(parent: Instance, words: string, size: number, colour: Color3?): TextLabel
+	local t = Instance.new("TextLabel")
+	t.Name = "PixelText"
+	t.BackgroundTransparency = 1
+	t.Size = UDim2.fromScale(1, 1)
+	t.Font = Enum.Font.Arcade
+	t.Text = words
+	t.TextSize = size
+	t.TextScaled = true
+	t.TextColor3 = colour or Color3.fromRGB(248, 253, 255)
+	t.TextXAlignment = Enum.TextXAlignment.Center
+	t.TextYAlignment = Enum.TextYAlignment.Center
+	t.ZIndex = 10
+	t.Parent = parent
+	local cap = Instance.new("UITextSizeConstraint")
+	cap.MinTextSize, cap.MaxTextSize = 1, size
+	cap.Parent = t
+	local stroke = Instance.new("UIStroke")
+	stroke.Color = Kit.pixelInk
+	stroke.Thickness = if size >= 45 then 2.5 else 1.4
+	stroke.LineJoinMode = Enum.LineJoinMode.Round
+	stroke.Parent = t
+	return t
+end
+
 function Kit.canvas(parent: Instance): Frame
 	local c = Instance.new("Frame")
 	c.Name = "StationCanvas"

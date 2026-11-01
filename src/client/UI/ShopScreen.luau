@@ -232,7 +232,7 @@ function ShopScreen.start()
 			locked = if #pool == 0 then "NO WEAPONS YET" else nil,
 			pity = if p then p.pity.crates else 0,
 			picture = GearAssets.crates[crate.area].closed,
-			moss = crate.area == "MossyGlade",
+			backdrop = GearAssets.backgrounds.blacksmith,
 			counts = Shop.counts,
 			verb = "OPEN",
 			noun = "WEAPONS",

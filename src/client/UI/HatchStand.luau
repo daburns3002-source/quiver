@@ -43,7 +43,9 @@ export type Spec = {
 	locked: string?,
 	pity: number,
 	picture: string,
-	moss: boolean,
+	--[[ The scene washed in behind the cards (Codex put the Mossy Glade
+	     behind his), empty for none. ]]
+	backdrop: string,
 	--[[ The press counts (1 and 3) and the word on their prompts. ]]
 	counts: { number },
 	verb: string,
@@ -66,32 +68,49 @@ function HatchStand.commas(n: number): string
 	return text
 end
 
--- A round key prompt: the key in a white circle, its words above.
+--[[
+	Codex's grid. He drew the hatchery at 1200x720 and `UI/Kit` lays out
+	against 1920x1080, which is the same shape at 1.5x with 60 pixels of
+	margin each side, so every number below is one of his own, untouched.
+]]
+local function at(item: GuiObject, x: number, y: number, w: number, h: number)
+	Kit.put(item, 60 + x * 1.5, y * 1.5, w * 1.5, h * 1.5)
+end
+
+--[[ A frame of nothing, to hang a pixel panel and its words on. ]]
+local function slot(c: Frame, x: number, y: number, w: number, h: number): Frame
+	local holder = Instance.new("Frame")
+	holder.BackgroundTransparency = 1
+	holder.Parent = c
+	at(holder, x, y, w, h)
+	return holder
+end
+
+--[[ One of Codex's key prompts: a leaf-green pixel panel with the key in
+     it and what it does underneath. Greyed when it cannot be afforded, and
+     still pressable, so a player who cannot pay is told rather than
+     ignored. ]]
 local function prompt(
 	c: Frame,
 	x: number,
 	y: number,
+	w: number,
+	h: number,
 	key: string,
 	words: string,
 	can: boolean,
 	action: () -> ()
 )
-	local over = Kit.label(c, words, if can then Kit.white else Color3.fromRGB(150, 150, 150))
-	Kit.put(over, x - 200, y - 112, 400, 52)
-	local circle = Instance.new("Frame")
-	circle.BackgroundColor3 = if can then Color3.new(1, 1, 1) else Color3.fromRGB(150, 150, 150)
-	circle.Parent = c
-	local corner = Instance.new("UICorner")
-	corner.CornerRadius = UDim.new(0.5, 0)
-	corner.Parent = circle
-	local edge = Instance.new("UIStroke")
-	edge.Color = Color3.fromRGB(40, 40, 48)
-	edge.Thickness = 4
-	edge.Parent = circle
-	Kit.put(circle, x - 52, y - 52, 104, 104)
-	local letter = Kit.label(circle, if keys then key else "TAP", Color3.fromRGB(40, 40, 48))
-	letter.Position, letter.Size = UDim2.fromScale(0.15, 0.2), UDim2.fromScale(0.7, 0.6)
-	Kit.clickArea(circle, action)
+	local holder = slot(c, x, y, w, h)
+	local face = if can then Kit.pixelLeaf else Color3.fromRGB(120, 130, 120)
+	local panel = Kit.pixelPanel(holder, w * 1.5, h * 1.5, face)
+	local letter = Kit.pixelText(panel, if keys then key else "TAP", 54, Color3.new(1, 1, 1))
+	letter.Position, letter.Size = UDim2.fromScale(0.1, 0.1), UDim2.fromScale(0.8, 0.48)
+	letter.ZIndex = 11
+	local cost = Kit.pixelText(panel, words, 22, Color3.fromRGB(229, 255, 184))
+	cost.Position, cost.Size = UDim2.fromScale(0.06, 0.6), UDim2.fromScale(0.88, 0.28)
+	cost.ZIndex = 11
+	Kit.clickArea(holder, action)
 end
 
 --[[ Draws the stand onto `s`'s canvas; `press(count)` asks the server,
@@ -104,53 +123,57 @@ function HatchStand.draw(
 	affordable: (number) -> boolean
 )
 	local c = s.canvas
-	-- the name over its card
-	local title = Kit.label(c, spec.title)
-	Kit.put(title, 120, 150, 860, 84)
-	--[[ The card wraps whatever the pool is: an egg holds eight, the Mossy
-	     Glade crate twelve, and a later area may hold another number again,
-	     so the grid is measured rather than laid out by hand. ]]
-	local held = #spec.tiles
-	local perRow = if held > 6 then 4 else 3
-	local gap = 14
-	local wide = (820 - (perRow - 1) * gap) // perRow
-	local rows = math.max(math.ceil(held / perRow), 1)
-	--[[ Rows share the room between the top strip and the pity bar, and a
-	     card never grows past the width of its own column. ]]
-	local tall = math.min(math.floor((360 - (rows - 1) * gap) / rows), wide)
-	local bottom = 340 + rows * tall + (rows - 1) * gap
-	local card = Kit.panel(c, Color3.new(1, 1, 1))
-	Kit.put(card, 120, 240, 860, bottom + 130 - 240)
-	-- the top row: price, picker, AUTO
-	local price = Kit.panel(c, Kit.gold)
-	Kit.pill(price)
-	Kit.put(price, 140, 258, 228, 66)
-	local coin = Kit.image(price, ShopAssets.coin)
-	coin.Position, coin.Size = UDim2.fromScale(0.06, 0.12), UDim2.fromScale(0.26, 0.76)
-	local cost = Kit.label(price, HatchStand.commas(spec.price))
-	cost.Position, cost.Size = UDim2.fromScale(0.34, 0.2), UDim2.fromScale(0.6, 0.6)
-	local picker = Kit.button(c, "< " .. spec.picker .. " >", Kit.slate, function()
+
+	--[[ The name across the top, which is also the picker: Codex drew one
+	     egg and so had no need of one, and folding the arrows into his
+	     title costs the layout nothing. ]]
+	local titleBox = slot(c, 40, 4, 1120, 92)
+	local title = Kit.pixelText(titleBox, `< {spec.title} >`, 74)
+	title.ZIndex = 12
+	Kit.clickArea(titleBox, function()
 		if not Reveal.busy() then
 			control.auto = false
 			spec.onPick()
 		end
 	end)
-	Kit.put(picker, 384, 258, 400, 66)
-	local toggle = Kit.button(
-		c,
-		"AUTO" .. (if keys then " [T]" else ""),
-		if control.auto then Kit.green else Kit.slate,
-		control.toggle
-	)
-	Kit.put(toggle, 800, 258, 160, 66)
-	--[[ What is inside, rarest last: one full-colour card each, laid out as
-	     Codex's screens do (owner, 2026-10-31: "codex made a good one a
-	     couple days ago that i want to use") -- the chance in the corner of
-	     the card rather than on a band under it. ]]
+
+	--[[ The odds panel, where Codex put it: forest green, with the area's
+	     own scene washed in behind the cards so it is not an empty box. ]]
+	local panelHolder = slot(c, 520, 110, 660, 552)
+	Kit.pixelPanel(panelHolder, 990, 828, Kit.pixelForest)
+	if spec.backdrop ~= "" then
+		local scene = Kit.image(panelHolder, spec.backdrop)
+		scene.Position, scene.Size = UDim2.fromScale(0.02, 0.03), UDim2.fromScale(0.96, 0.94)
+		scene.ScaleType = Enum.ScaleType.Crop
+		scene.ImageTransparency = 0.38
+		scene.ZIndex = 4
+	end
+
+	-- the price, in his cream pill in the panel's top corner
+	local priceHolder = slot(c, 536, 122, 190, 58)
+	Kit.pixelPanel(priceHolder, 285, 87, Kit.pixelCream)
+	local coin = Kit.image(priceHolder, ShopAssets.coin)
+	coin.Position, coin.Size = UDim2.fromScale(0.06, 0.16), UDim2.fromScale(0.22, 0.68)
+	coin.ZIndex = 10
+	local cost =
+		Kit.pixelText(priceHolder, HatchStand.commas(spec.price), 30, Color3.fromRGB(255, 213, 44))
+	cost.Position, cost.Size = UDim2.fromScale(0.3, 0.2), UDim2.fromScale(0.64, 0.6)
+	cost.ZIndex = 11
+
+	--[[ What is inside, on Codex's cards. The grid measures itself: an egg
+	     holds eight and a crate twelve, and a later area may hold another
+	     number again. ]]
+	local held = #spec.tiles
+	local perRow = if held > 6 then 4 else 3
+	local gap = 10
+	local wide = (628 - (perRow - 1) * gap) // perRow
+	local rows = math.max(math.ceil(held / perRow), 1)
+	local tall = math.min((364 - (rows - 1) * gap) // rows, wide)
 	for i, entry in spec.tiles do
 		local col, row = (i - 1) % perRow, (i - 1) // perRow
 		local tile = Kit.nativeTile(c, entry.rarity, entry.icon, spec.locked ~= nil, true)
-		Kit.put(tile, 140 + col * (wide + gap), 340 + row * (tall + gap), wide, tall)
+		at(tile, 536 + col * (wide + gap), 196 + row * (tall + gap), wide, tall)
+		tile.ZIndex = 8
 		--[[ A silhouette keeps its card's colour: `nativeTile`'s own locked
 		     look greys the whole card, which would lose the rarity. ]]
 		if entry.silhouette then
@@ -160,35 +183,38 @@ function HatchStand.draw(
 				end
 			end
 		end
-		local odds = Kit.label(tile, string.format("%g%%", math.round(entry.chance * 10000) / 100))
-		odds.Position, odds.Size = UDim2.fromScale(0.36, 0.7), UDim2.fromScale(0.58, 0.24)
-		odds.TextXAlignment = Enum.TextXAlignment.Right
-		odds.ZIndex = 6
+		local odds =
+			Kit.pixelText(tile, string.format("%g%%", math.round(entry.chance * 10000) / 100), 18)
+		odds.Position, odds.Size = UDim2.fromScale(0.08, 0.74), UDim2.fromScale(0.84, 0.2)
+		odds.ZIndex = 12
 		if entry.owned then
 			Kit.owned(tile)
 		end
 	end
-	-- how many are in there, under the cards, as Codex's screens say it
-	local tally = Kit.label(c, `{held} {spec.noun}`, Kit.white)
-	Kit.put(tally, 140, bottom + 8, 820, 32)
-	if spec.locked then
-		local lock = Kit.image(c, ShopAssets.lock)
-		Kit.put(lock, 490, 380, 120, 140)
-		local why = Kit.label(c, spec.locked, Kit.gold)
-		Kit.put(why, 160, 540, 780, 56)
-	end
-	-- the pity bar: a rainbow filling towards the guaranteed Mythic
-	local track = Kit.panel(c, Color3.fromRGB(60, 60, 72))
-	Kit.pill(track)
-	Kit.put(track, 140, bottom + 46, 820, 60)
+
+	-- how many are in there, then the pity bar, both inside the panel
+	local tallyBox = slot(c, 536, 566, 628, 26)
+	local tally = Kit.pixelText(tallyBox, `{held} {spec.noun}`, 22)
+	tally.ZIndex = 11
+
+	local track = Instance.new("Frame")
+	track.BorderSizePixel = 0
+	track.BackgroundColor3 = Color3.fromRGB(14, 34, 25)
+	track.ZIndex = 8
+	track.Parent = c
+	at(track, 536, 598, 628, 40)
+	local round = Instance.new("UICorner")
+	round.CornerRadius = UDim.new(0.5, 0)
+	round.Parent = track
 	local fill = Instance.new("Frame")
 	fill.BorderSizePixel = 0
 	fill.BackgroundColor3 = Color3.new(1, 1, 1)
 	fill.Size = UDim2.fromScale(math.clamp(spec.pity / Pity.EVERY, 0.04, 1), 1)
+	fill.ZIndex = 9
 	fill.Parent = track
-	local round = Instance.new("UICorner")
-	round.CornerRadius = UDim.new(0.5, 0)
-	round.Parent = fill
+	local curve = Instance.new("UICorner")
+	curve.CornerRadius = UDim.new(0.5, 0)
+	curve.Parent = fill
 	local colours = {}
 	for n = 0, 6 do
 		table.insert(colours, ColorSequenceKeypoint.new(n / 6, Color3.fromHSV(n / 7, 0.75, 1)))
@@ -196,27 +222,53 @@ function HatchStand.draw(
 	local gradient = Instance.new("UIGradient")
 	gradient.Color = ColorSequence.new(colours)
 	gradient.Parent = fill
-	Kit.pityLine(c, spec.pity, 140, bottom + 48, 820, 54)
-	-- the egg or crate on its stand, its prompts beside it
-	Kit.stage(c, 1120, 860, 520, spec.moss)
+	Kit.pityLine(c, spec.pity, 60 + 536 * 1.5, 599 * 1.5, 628 * 1.5, 38 * 1.5)
+
+	--[[ Codex's left column is the action side: his single E prompt sat
+	     here under the word Hatch. The egg or crate stands where that word
+	     was, with both prompts and AUTO under it. ]]
 	local icon = Kit.image(c, spec.picture, spec.locked ~= nil)
-	Kit.put(icon, 1150, 300, 460, 560)
+	at(icon, 110, 116, 320, 290)
 	Kit.animate(icon, function(t)
-		icon.Position = UDim2.fromScale(1150 / 1920, (300 + math.sin(t * 1.8) * 8) / 1080)
+		at(icon, 110, 116 + math.sin(t * 1.8) * 5, 320, 290)
 	end)
+
+	if spec.locked then
+		local lock = Kit.image(c, ShopAssets.lock)
+		at(lock, 790, 200, 120, 104)
+		lock.ZIndex = 14
+		local whyBox = slot(c, 620, 320, 460, 54)
+		local why = Kit.pixelText(whyBox, spec.locked, 34, Color3.fromRGB(255, 213, 44))
+		why.ZIndex = 14
+	end
+
 	for i, count in spec.counts do
 		prompt(
 			c,
-			1760,
-			420 + (i - 1) * 300,
+			if i == 1 then 60 else 280,
+			428,
+			180,
+			134,
 			if i == 1 then "E" else "R",
-			spec.verb .. " " .. tostring(count) .. " " .. HatchStand.commas(spec.price * count),
+			`{spec.verb} {count}`,
 			affordable(count),
 			function()
 				press(count)
 			end
 		)
 	end
+
+	local autoHolder = slot(c, 60, 584, 400, 64)
+	Kit.pixelPanel(
+		autoHolder,
+		600,
+		96,
+		if control.auto then Kit.pixelLeaf else Color3.fromRGB(90, 110, 95)
+	)
+	local autoWords = Kit.pixelText(autoHolder, "AUTO" .. (if keys then " [T]" else ""), 30)
+	autoWords.Position, autoWords.Size = UDim2.fromScale(0.08, 0.24), UDim2.fromScale(0.84, 0.52)
+	autoWords.ZIndex = 11
+	Kit.clickArea(autoHolder, control.toggle)
 end
 
 --[[ AUTO, the keys and the STOP button for a stand screen. `active` says

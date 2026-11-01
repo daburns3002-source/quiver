@@ -44,8 +44,13 @@ local Pets: { [string]: Pet } = {
 	BarkHoglet = { name = "BARK HOGLET", rarity = "Common", egg = "ThornwoodEgg" },
 	Burrball = { name = "BURRBALL", rarity = "Common", egg = "ThornwoodEgg" },
 	Budbulb = { name = "BUDBULB", rarity = "Common" },
-	BerryMouse = { name = "BERRY MOUSE", rarity = "Uncommon", egg = "ThornwoodEgg" },
-	ThistleMole = { name = "THISTLE MOLE", rarity = "Uncommon" },
+	--[[ Thornwood's Uncommon is the guard, not the healer (owner,
+	     2026-10-31): the Thistle Mole's Thorn Shell is in and the Berry
+	     Mouse is benched, so each egg holds one guard and a player always
+	     has that option. It costs both eggs their healer, since the
+	     Toadstool Tot is benched too. ]]
+	BerryMouse = { name = "BERRY MOUSE", rarity = "Uncommon" },
+	ThistleMole = { name = "THISTLE MOLE", rarity = "Uncommon", egg = "ThornwoodEgg" },
 	BriarBeetle = { name = "BRIAR BEETLE", rarity = "Rare", egg = "ThornwoodEgg" },
 	BerryBat = { name = "BERRY BAT", rarity = "Rare" },
 	BrambleBear = { name = "BRAMBLE BEAR", rarity = "Epic", egg = "ThornwoodEgg" },

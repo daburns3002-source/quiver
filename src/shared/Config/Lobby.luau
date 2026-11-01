@@ -305,13 +305,35 @@ local Lobby = {
 		--[[ The hall. `across` is how wide it is drawn; everything else
 		     here is in studs off its own floor and middle, at that width. ]]
 		hall = {
-			mesh = "rbxassetid://127471291621211",
-			--[[ **No texture.** It imported without one, unlike the two
-			     books, which came in carrying theirs. Until there is one
-			     the hall renders in a single flat colour, which is not
-			     the sheet: see docs/TRACKER.md. ]]
-			texture = "",
-			native = Vector3.new(0.9995, 0.3755, 0.7368),
+			--[[
+				**A stand-in, and the owner knows it** (2026-11-01: "use
+				attempt 1").
+
+				The hall he modelled came out of Tripo before its
+				texturing step, so it carries no UVs at all and can never
+				take a texture (docs/LOBBY.md). Roblox's own
+				`generate_texture` was run over it instead, which unwraps
+				the mesh as it paints: this is that mesh and that texture,
+				from the first of three attempts.
+
+				It is **not** the sheet. The roof, the gold edge caps, the
+				cream panels, the white banded columns, the red carpet,
+				the lit lanterns and the shelves of books all landed; the
+				timbers came out salmon rather than brown and the base
+				plinth red rather than cream. A second pass fixed those
+				two and lost the cream panels, so this one is the closer
+				of the two. It goes when the owner re-exports from Tripo
+				with texturing on, and that is two ids.
+
+				Geometrically it is the same hall: drawn at 38 across it
+				measures 38.00 x 14.28 x 28.01 with its ridge at 14.28 and
+				its pads where they were, all re-measured. Only its own
+				native size differs -- the generator returned it at twice
+				the scale -- which is why `native` is not the import's.
+			]]
+			mesh = "rbxassetid://98715106100909",
+			texture = "rbxassetid://88497813757007",
+			native = Vector3.new(2, 0.7513, 1.4744),
 			across = 38,
 			--[[ Measured: the top of the ridge over the hall's floor. ]]
 			ridge = 14.28,
@@ -364,8 +386,9 @@ local Lobby = {
 		     mesh cannot be Neon in part -- so a light goes at each. ]]
 		lanterns = { out = 11, height = 6.4, forward = 13.6, range = 16, brightness = 1.2 },
 		colours = {
-			--[[ What the untextured hall is tinted until it has a texture:
-			     the sheet's warm cream panel, which is the most of it. ]]
+			--[[ What a hall with no texture is tinted. Unused while the
+			     stand-in above carries one, and kept for the swap back to
+			     a raw import. ]]
 			bare = Color3.fromRGB(238, 226, 196),
 			lantern = Color3.fromRGB(255, 186, 92),
 		},

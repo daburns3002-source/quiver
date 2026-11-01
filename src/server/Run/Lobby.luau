@@ -757,8 +757,25 @@ local function building(name: string, at: Vector2, parent: Instance): Vector3?
 			slab("ColumnHead", Vector3.new(3.4, 1, 3.4), x, 9.6, 12.5, look.column)
 		end
 
-		--[[ The roof: a slope either side meeting a flat top, with a gold
-		     cap at each of its four corners. ]]
+		--[[
+			The roof. Its pitch is shallow because the sheet's is: a slope
+			of this width tilted 18.6 degrees made a steep A that read as
+			a chalet, where the sheet has a long low roof whose eaves come
+			down just over the wall tops (owner, 2026-11-01: "gable and
+			roof").
+
+			The flat top is where the two slopes meet, so the ridge
+			follows the pitch down rather than being a number of its own,
+			and the book rests on it.
+		]]
+		local pitch = math.rad(hall.pitch)
+		local slopeWide = 14.14
+		--[[ The flat top's half-width, where a slope's inner edge lands. ]]
+		local flatHalf = 6.6
+		local lift = slopeWide / 2 * math.sin(pitch)
+		local reach = slopeWide / 2 * math.cos(pitch)
+		--[[ The eaves sit half a stud over the top beam. ]]
+		local eave = 10
 		for _, sx in { -1, 1 } do
 			--[[ `fromOrientation` and not `Angles`: a slope is turned a
 			     quarter round to lie along the building and then tilted,
@@ -766,9 +783,9 @@ local function building(name: string, at: Vector2, parent: Instance): Vector3?
 			     on its edge and laid the other flat over the lawn. ]]
 			part(
 				"RoofSlope",
-				Vector3.new(30, 1.5, 14.14),
-				spotIn(sx * 14.54, 12.46, -2.5)
-					* CFrame.fromOrientation(math.rad(sx * 18.6), math.pi / 2, 0),
+				Vector3.new(30, 1.5, slopeWide),
+				spotIn(sx * (flatHalf + reach), eave + lift, -2.5)
+					* CFrame.fromOrientation(math.rad(sx * hall.pitch), math.pi / 2, 0),
 				look.roof,
 				model
 			)
@@ -778,40 +795,90 @@ local function building(name: string, at: Vector2, parent: Instance): Vector3?
 			for _, sz in { -1, 1 } do
 				slab(
 					"RoofCap",
-					Vector3.new(3, 2.6, 3.4),
-					sx * 18.6,
-					10.9,
+					Vector3.new(3, 2.4, 3.4),
+					sx * (flatHalf + reach * 2 - 1),
+					eave - 0.3,
 					sz * 13.2 - 2.5,
 					look.gold
 				)
 			end
 			--[[ The pale block standing on the roof either side of the
-			     gable, which the sheet shows from the front and the
-			     back. ]]
-			slab("RoofBlock", Vector3.new(3.6, 3.4, 3.6), sx * 13, 15.6, -5.5, look.stone)
-			slab("RoofBlockCap", Vector3.new(4.2, 0.7, 4.2), sx * 13, 17.5, -5.5, look.column)
+			     gable, which the sheet shows from the front and back. ]]
+			slab("RoofBlock", Vector3.new(3.6, 3, 3.6), sx * 11, hall.ridge + 1.3, -5.5, look.stone)
+			slab(
+				"RoofBlockCap",
+				Vector3.new(4.2, 0.6, 4.2),
+				sx * 11,
+				hall.ridge + 3.1,
+				-5.5,
+				look.column
+			)
 		end
-		slab("RoofFlat", Vector3.new(16.2, 1.5, 30), 0, 14.75, -2.5, look.roof)
-		slab("RoofTop", Vector3.new(13.2, 0.8, 28), 0, hall.ridge - 0.4, -2.5, look.roof)
+		slab(
+			"RoofFlat",
+			Vector3.new(flatHalf * 2 + 3, 1.4, 30),
+			0,
+			hall.ridge - 1.4,
+			-2.5,
+			look.roof
+		)
+		slab("RoofTop", Vector3.new(flatHalf * 2, 0.8, 28), 0, hall.ridge - 0.4, -2.5, look.roof)
 
-		--[[ The gable over the porch: a cream face between two purple
-		     slopes, a timber king post, a gold peak. ]]
-		slab("GableFace", Vector3.new(16, 3.4, 0.8), 0, 11.6, 10.4, look.panel)
-		slab("GablePost", Vector3.new(1.6, 3.4, 1.2), 0, 11.6, 10.7, look.timber)
-		--[[ The two arms meet over the middle. Turning a part about Z by
-		     a positive angle lifts its +X end, so the left arm takes the
-		     positive one: with the signs the other way round they made a
-		     V hanging into the doorway instead of a peak over it. ]]
+		--[[
+			The gable over the porch.
+
+			Its two arms are **timber**, not roof. The sheet frames a
+			cream face with brown rafters and lets the purple show behind
+			them; drawn in the roof's own purple they read as two beams
+			thrown across the front rather than the edges of a gable.
+
+			The face sits behind the rafters, the king post runs up the
+			middle of it, a beam closes the bottom and a gold block caps
+			the peak where the two meet.
+		]]
+		local gableFoot, gableApex, gableHalf = 10.1, 13.4, 7
+		local gableMid = (gableApex + gableFoot) / 2
+		local gableRun = math.sqrt(gableHalf ^ 2 + (gableApex - gableFoot) ^ 2)
+		local gableTilt = math.atan2(gableApex - gableFoot, gableHalf)
+		slab(
+			"GableFace",
+			Vector3.new(gableHalf * 2, gableApex - gableFoot, 0.8),
+			0,
+			gableMid,
+			13.6,
+			look.panel
+		)
+		slab(
+			"GablePost",
+			Vector3.new(1.3, gableApex - gableFoot, 1.1),
+			0,
+			gableMid,
+			10.7,
+			look.timber
+		)
+		--[[ Turning a part about Z by a positive angle lifts its +X end,
+		     so the left arm takes the positive one: with the signs the
+		     other way round they made a V hanging into the doorway
+		     instead of a peak over it. ]]
 		for _, sx in { -1, 1 } do
 			part(
-				"GableSlope",
-				Vector3.new(8.4, 1.2, 2.2),
-				spotIn(sx * 4, 12.45, 10.9) * CFrame.fromOrientation(0, 0, -sx * math.rad(17.4)),
-				look.roof,
+				"GableRafter",
+				Vector3.new(gableRun, 1.1, 1.6),
+				spotIn(sx * gableHalf / 2, gableMid, 14.1)
+					* CFrame.fromOrientation(0, 0, -sx * gableTilt),
+				look.timber,
 				model
 			)
 		end
-		slab("GablePeak", Vector3.new(2.6, 1.5, 2.4), 0, 13.9, 10.9, look.gold)
+		slab(
+			"GableBeam",
+			Vector3.new(gableHalf * 2 + 1.4, 1.1, 1.6),
+			0,
+			gableFoot,
+			14.1,
+			look.timber
+		)
+		slab("GablePeak", Vector3.new(2.4, 1.3, 2.2), 0, gableApex + 0.5, 14.1, look.gold)
 
 		--[[ Inside: the counter, and a shelf of books behind it. ]]
 		slab("Counter", Vector3.new(22.8, 3, 4), 0, 3, 5.5, look.timber)

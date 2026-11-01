@@ -111,6 +111,7 @@ function EggScreen.start()
 				selected = selected % #Eggs.list + 1
 				s.open()
 			end,
+			tabs = {},
 			tiles = tiles,
 			locked = if not unlocked
 				then "BEAT KING BLOBLIN"

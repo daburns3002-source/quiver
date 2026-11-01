@@ -65,6 +65,51 @@ return function(t: TestRunner.Helper)
 		end
 	end)
 
+	--[[ Three chests to an area, one a class (owner, 2026-11-01: "It
+	     should be 3 separate chests"). ]]
+	t.test("each chest holds one class, and the three are the whole crate", function()
+		local whole = ShopRules.cratePool(1)
+		local counted = 0
+		for _, chest in Shop.chests do
+			local pool = ShopRules.cratePool(1, chest.class)
+			t.isTrue(#pool > 0, `{chest.name}: an empty chest`)
+			for _, entry in pool do
+				t.equal(entry.class, chest.class, entry.weapon)
+			end
+			counted += #pool
+		end
+		t.equal(counted, #whole, "the three chests are the crate, no more and no less")
+	end)
+
+	--[[ The reason `crateOdds.Mythic` is 1 and not 3: a chest holds one
+	     class, so one Mythic, and choosing a class must not treble the
+	     chance of pulling one (owner, 2026-10-28: "make the odds of
+	     pulling a mythic 1%"). ]]
+	t.test("a Mythic is about 1% of an open, from any chest", function()
+		for _, chest in Shop.chests do
+			local pool = ShopRules.cratePool(1, chest.class)
+			local mythic = nil
+			for _, entry in pool do
+				if entry.rarity == "Mythic" then
+					mythic = entry
+				end
+			end
+			t.notNil(mythic, `{chest.name}: no Mythic in the chest`)
+			if mythic then
+				t.near(ShopRules.chance(1, mythic, chest.class), 0.01, 0.003, chest.name)
+			end
+		end
+	end)
+
+	t.test("only the three chests can be opened", function()
+		for _, chest in Shop.chests do
+			t.notNil(ShopRules.chest(chest.class), chest.class)
+		end
+		t.isNil(ShopRules.chest("Assassin"), "a class with no weapons is no chest")
+		t.isNil(ShopRules.chest(nil))
+		t.isNil(ShopRules.chest(7))
+	end)
+
 	t.test("areas with no weapons have an empty crate (a silhouette)", function()
 		for index = 2, #Shop.crates do
 			local pool = ShopRules.cratePool(index)

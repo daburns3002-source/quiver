@@ -18,6 +18,8 @@
 	Weapons belong to areas by `Config/WeaponStats.area`.
 ]]
 
+export type Chest = { class: string, name: string, tab: string }
+
 export type Crate = {
 	--[[ The area's `Config/Economy` key, and its name on screen. ]]
 	area: string,
@@ -48,14 +50,28 @@ local Shop = {
 
 	counts = { 1, 3 },
 
-	--[[ A crate's odds, by rarity (weights, not percentages). Mythic 3: a
-	     crate's three Mythics (one per class) at 1% each (owner, 2026-10-28:
-	     "make the odds of pulling a mythic 1%"). ]]
+	--[[ An area's crate is three chests, one a class (owner, 2026-11-01:
+	     "It should be 3 separate chests"), as Codex drew them: his chest
+	     is titled BOW CHEST and switched by Bows / Wands / Swords along
+	     its top. `class` is the class that holds the weapons
+	     (`Config/Sandbox`), `name` goes in the title and `tab` on the
+	     button. Each costs its area's price, whichever is chosen. ]]
+	chests = {
+		{ class = "Ranger", name = "BOW", tab = "BOWS" },
+		{ class = "Arcanist", name = "WAND", tab = "WANDS" },
+		{ class = "Warden", name = "SWORD", tab = "SWORDS" },
+	} :: { Chest },
+
+	--[[ A chest's odds, by rarity (weights, not percentages). A chest
+	     holds one class, so one weapon of each rarity, and Mythic 1 keeps
+	     a Mythic at about 1% an open (owner, 2026-10-28: "make the odds of
+	     pulling a mythic 1%") now that choosing a class no longer means
+	     choosing between three Mythics. ]]
 	crateOdds = {
 		Uncommon = 58,
 		Rare = 28,
 		Epic = 11,
-		Mythic = 3,
+		Mythic = 1,
 	} :: { [string]: number },
 
 	--[[ Share of a crate's price paid back for a weapon already owned. ]]

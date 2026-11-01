@@ -50,6 +50,11 @@ export type Spec = {
 	--[[ The scene washed in behind the cards (Codex put the Mossy Glade
 	     behind his), empty for none. ]]
 	backdrop: string,
+	--[[ The chests along the panel's top strip, where Codex drew his
+	     Bows / Wands / Swords (`Config/Shop.chests`). Empty for a stand
+	     with one thing inside, like an egg, which then keeps its picker
+	     in the strip instead. ]]
+	tabs: { { words: string, on: boolean, pick: () -> () } },
 	--[[ The press counts (1 and 3) and the word on their prompts. ]]
 	counts: { number },
 	verb: string,
@@ -264,20 +269,60 @@ function HatchStand.draw(
 	cost.Position, cost.Size = UDim2.fromScale(0.3, 0.2), UDim2.fromScale(0.64, 0.6)
 	cost.ZIndex = 11
 
-	--[[ The picker, as the tabs Codex drew along his chest's top strip:
-	     he had one egg and so needed none, and this is where he put the
-	     same control when he did need it. ]]
-	local pickerHolder = slot(c, 726, 122, 330, 58)
-	Kit.pixelPanel(pickerHolder, 495, 87, Color3.fromRGB(23, 43, 30))
-	local pickerWords = Kit.pixelText(pickerHolder, `< {spec.picker} >`, 26)
-	pickerWords.ZIndex = 11
-	local pickerHit = Kit.clickArea(pickerHolder, function()
-		if not Reveal.busy() then
-			control.auto = false
-			spec.onPick()
+	--[[ Codex's top strip. A chest stand fills it with his tabs, and its
+	     area picker goes under the left column; an egg stand has no tabs
+	     and keeps its picker here, which is where he put a control of
+	     this kind when he had one. ]]
+	local function picker(x: number, y: number, w: number, h: number)
+		local holder = slot(c, x, y, w, h)
+		Kit.pixelPanel(holder, w * 1.5, h * 1.5, Color3.fromRGB(23, 43, 30))
+		local words = Kit.pixelText(holder, `< {spec.picker} >`, 26)
+		words.ZIndex = 11
+		Kit.pressFx(
+			Kit.clickArea(holder, function()
+				if not Reveal.busy() then
+					control.auto = false
+					spec.onPick()
+				end
+			end),
+			holder,
+			false
+		)
+	end
+
+	if #spec.tabs == 0 then
+		picker(726, 122, 330, 58)
+	else
+		local gap = 8
+		local wide = (330 - (#spec.tabs - 1) * gap) // #spec.tabs
+		for i, tab in spec.tabs do
+			local holder = slot(c, 726 + (i - 1) * (wide + gap), 122, wide, 58)
+			Kit.pixelPanel(
+				holder,
+				wide * 1.5,
+				87,
+				if tab.on then Kit.pixelCream else Color3.fromRGB(23, 43, 30)
+			)
+			local words = Kit.pixelText(
+				holder,
+				tab.words,
+				24,
+				if tab.on then Color3.fromRGB(23, 43, 30) else nil
+			)
+			words.ZIndex = 11
+			Kit.pressFx(
+				Kit.clickArea(holder, function()
+					if not Reveal.busy() then
+						control.auto = false
+						tab.pick()
+					end
+				end),
+				holder,
+				false
+			)
 		end
-	end)
-	Kit.pressFx(pickerHit, pickerHolder, false)
+		picker(95, 556, 390, 54)
+	end
 
 	-- his close, a red X in the panel's own top corner
 	local closeHolder = slot(c, 1114, 122, 50, 50)
@@ -298,17 +343,23 @@ function HatchStand.draw(
 	     holds eight in two rows and a crate twelve in three, so the row
 	     pitch closes up as the rows grow rather than running off the pad. ]]
 	local held = #spec.tiles
-	local perRow = 4
+	--[[ Four to a row for an egg's eight or a crate's twelve; a chest of
+	     four reads better as a square than as one long row with the pad
+	     empty under it. ]]
+	local perRow = if held <= 4 then math.max(math.min(held, 2), 1) else 4
 	local rows = math.max(math.ceil(held / perRow), 1)
 	--[[ The cards fill the quiet pad rather than a fixed pitch: eight pets
 	     sit in two roomy rows and twelve weapons in three shorter ones, and
 	     neither runs over the pad's edge. ]]
 	local gap = 9
-	local wide = math.min(153, (628 - (perRow - 1) * gap) // perRow)
-	local tall = math.min(159, (414 - (rows - 1) * gap) // rows)
+	local wide = math.min((628 - (perRow - 1) * gap) // perRow, (414 - (rows - 1) * gap) // rows)
+	local tall = wide
+	-- centred in the pad, so a short grid sits in the middle of it
+	local left = 536 + (628 - (perRow * wide + (perRow - 1) * gap)) // 2
+	local top = 206 + (414 - (rows * tall + (rows - 1) * gap)) // 2
 	for i, entry in spec.tiles do
 		local col, row = (i - 1) % perRow, (i - 1) // perRow
-		local holder = slot(c, 540 + col * (wide + gap), 206 + row * (tall + gap), wide, tall)
+		local holder = slot(c, left + col * (wide + gap), top + row * (tall + gap), wide, tall)
 		holder.ZIndex = 8
 		Kit.rarityCard(
 			holder,

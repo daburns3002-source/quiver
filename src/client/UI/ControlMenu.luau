@@ -4,9 +4,15 @@
 	lobby button built into the game while you are mid room"; 2026-10-31: "it
 	should be on the left side").
 
-	Top-left, not bottom-left: on a phone the left thumb is on the thumbstick
-	and the dash button already sits bottom-right to stay clear of it
-	(`Input/DashButton`), so the one free corner on the left is the top one.
+	On the left edge at mid-height, directly under the Studio SANDBOX tab
+	(owner, 2026-10-31: "i want it right below the sandbox button").
+
+	It is placed in raw pixels off the left edge rather than through
+	`Kit.put`, which lays out against a 1920x1080 sheet: the SANDBOX tab
+	(`UI/SandboxMenu`) is anchored at (0, 8) and half the viewport's height
+	in raw pixels too, so matching that is the only way the two stay lined up
+	at a window size other than 1920x1080 — which, in Studio, is every window
+	size. The sheet would have put it right only on one.
 
 	Leaving is asked for twice. The menu button opens a panel that says what
 	it costs rather than doing it, because a mis-tap mid-fight would throw the
@@ -26,8 +32,12 @@ local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 
 local ControlMenu = {}
 
---[[ The 1920x1080 sheet `UI/Kit` lays out against. ]]
-local MENU = { x = 40, y = 40, w = 150, h = 96 }
+--[[ The menu button, in raw pixels off the left edge at mid-height: `x`
+     across, `drop` below the middle, `w` by `h`. Sized and offset to sit
+     under the SANDBOX tab, which is 44 tall and centred, so its bottom edge
+     is 22 below the middle and this starts 12 clear of it. ]]
+local MENU = { x = 8, drop = 34, w = 136, h = 64 }
+--[[ The confirm panel, on the 1920x1080 sheet `UI/Kit` lays out against. ]]
 local PANEL = { x = 610, y = 350, w = 700, h = 380 }
 
 local screen: ScreenGui? = nil
@@ -57,6 +67,16 @@ local function build()
 	gui.Name = "ControlMenu"
 	gui.ResetOnSpawn = false
 	gui.IgnoreGuiInset = true
+	--[[ Sibling, as every screen but the class picker is: a ScreenGui made
+	     in code defaults to Global, where `ZIndex` is compared across the
+	     whole screen rather than between siblings. This one was left on the
+	     default, so the MENU button's frame (`ZIndex` 5, set so the confirm
+	     panel at 10 covers it) painted over its own label at 4 and the
+	     button came out blank — owner, 2026-10-31: "it has no text right now
+	     which needs to be fixed". Under Sibling a child always draws over
+	     its parent and the two `ZIndex` values do only what they were
+	     written for. ]]
+	gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 	gui.DisplayOrder = 40
 	gui.Enabled = false
 	gui.Parent = player:WaitForChild("PlayerGui")
@@ -65,7 +85,9 @@ local function build()
 	local open_ = Kit.button(gui, "MENU", Kit.slate, function()
 		setOpen(not open)
 	end)
-	Kit.put(open_, MENU.x, MENU.y, MENU.w, MENU.h)
+	open_.AnchorPoint = Vector2.new(0, 0)
+	open_.Position = UDim2.new(0, MENU.x, 0.5, MENU.drop)
+	open_.Size = UDim2.fromOffset(MENU.w, MENU.h)
 	open_.ZIndex = 5
 
 	local box = Kit.panel(gui, Kit.wood)

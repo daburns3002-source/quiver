@@ -1605,6 +1605,16 @@ local function stepBoss(enemy: Enemy, state: BossState, now: number)
 	local targetRoot = nearestAlivePlayerRoot(feet)
 	local move = state.move
 
+	--[[ Caged (the Thorn Princess's Briar Cage, `Config/PetCombat` `root`
+	     with a `boss` above 0): it stands. A boss's moves are timelines —
+	     the slam's own steps are what carry it across the room — so a cage
+	     cannot stop one halfway without leaving it somewhere its move never
+	     meant to put it. What it does instead is hold the boss between
+	     moves: no chase, and no next move started while the cage is up.
+	     That makes the cage a window to shoot in rather than a stun lock,
+	     and it is why the hold is short. ]]
+	local caged = move == nil and RootHold.held(enemy.rootedUntil, now)
+
 	if not move then
 		local summon = boss.summon
 		--[[ A health-driven clutch (`BossSummon.atFractions`) comes due
@@ -1637,10 +1647,11 @@ local function stepBoss(enemy: Enemy, state: BossState, now: number)
 			end
 			return
 		end
-		if now < state.restUntil or not targetRoot then
-			--[[ A boss that chases runs at the player through its rests. ]]
+		if caged or now < state.restUntil or not targetRoot then
+			--[[ A boss that chases runs at the player through its rests, but
+			     not out of a cage. ]]
 			local chase = boss.chase
-			if chase and targetRoot then
+			if chase and targetRoot and not caged then
 				local to, moving = BossMoves.chase(feet, targetRoot.Position, chase, dt, clamp)
 				if moving then
 					local heading = to - feet

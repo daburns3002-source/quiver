@@ -53,6 +53,11 @@ type State = {
 	--[[ The Toadstool Tot's spore patch, while it lasts. ]]
 	patch: Vector3?,
 	patchUntil: number,
+	--[[ Thornwake's ring of thorns: while it turns, and when it next bites
+	     (`aura`). It rides its owner rather than standing where it was
+	     raised, so there is no position to keep. ]]
+	auraUntil: number,
+	auraBiteAt: number,
 }
 
 --[[ Each player's pets, by slot. ]]
@@ -134,8 +139,19 @@ local function hit(session: Session, model: Model, amount: number, from: Vector3
 	return landed
 end
 
---[[ What a pet does to an enemy besides its damage, once a target. ]]
-local function afflict(session: Session, pet: string, model: Model, spec: Spec, now: number)
+--[[ What a pet does to an enemy besides its damage, once a target.
+
+     `touched` is false for an enemy the attack reached without hitting —
+     the one a Chain Snare jumps to. It is held, slowed and bled like the
+     first, but it never feeds its owner, because nothing bit it. ]]
+local function afflict(
+	session: Session,
+	pet: string,
+	model: Model,
+	spec: Spec,
+	now: number,
+	touched: boolean
+)
 	if spec.slow then
 		EnemyManager.slow(model, spec.slow.scale, now + spec.slow.duration)
 	end
@@ -145,10 +161,13 @@ local function afflict(session: Session, pet: string, model: Model, spec: Spec, 
 	if spec.burn then
 		Burning.ignite(model, spec.burn.rate, spec.burn.duration, session.player, now)
 	end
+	if spec.bleed then
+		Burning.bleed(model, spec.bleed, session.player, now)
+	end
 	if spec.mark then
 		EnemyManager.mark(model, spec.mark.scale, now + spec.mark.duration)
 	end
-	if spec.healPerHit then
+	if spec.healPerHit and touched then
 		RunSession.heal(session, spec.healPerHit)
 	end
 end
@@ -186,7 +205,7 @@ local function launch(
 			hit(now, model, amount, from)
 		end
 		if first then
-			afflict(now, state.pet, model, spec, os.clock())
+			afflict(now, state.pet, model, spec, os.clock(), true)
 		end
 	end)
 end
@@ -196,12 +215,25 @@ local function strike(session: Session, state: State, spec: Spec, origin: Vector
 	local targets = inRange(origin, spec.range)
 	local nearest = targets[1]
 	local struck: { Model } = {}
+	local held = spec.targets or 1
 	if spec.beam and nearest then
 		struck = inLine(origin, nearest.position, spec.beam, spec.range)
 	elseif spec.damage or spec.root or spec.mark then
-		for i = 1, math.min(spec.targets or 1, #targets) do
+		for i = 1, math.min(held, #targets) do
 			table.insert(struck, targets[i].model)
 		end
+	end
+
+	--[[ The Briar Beetle's Chain Snare: the enemies next in line take
+	     everything but the damage, so a hold spreads without the pet hitting
+	     for two. Nearest-first is already the order `inRange` returns, which
+	     is why these are simply the ones after the struck. ]]
+	local chained: { Model } = {}
+	for i = held + 1, math.min(held + (spec.chain or 0), #targets) do
+		table.insert(chained, targets[i].model)
+	end
+	for _, model in chained do
+		afflict(session, state.pet, model, spec, now, false)
 	end
 
 	local shot = PetShots.projectile(state.pet)
@@ -223,13 +255,20 @@ local function strike(session: Session, state: State, spec: Spec, origin: Vector
 			for _ = 1, if amount > 0 then hits else 0 do
 				hit(session, model, amount, origin)
 			end
-			afflict(session, state.pet, model, spec, now)
+			afflict(session, state.pet, model, spec, now, true)
 		end
 	end
 
 	if spec.heal then
 		state.patch = origin
 		state.patchUntil = now + spec.heal.duration
+	end
+	--[[ Thornwake raises its ring afresh, which is what its Attack is for:
+	     a ring that simply never went out would never play one. ]]
+	local aura = spec.aura
+	if aura then
+		state.auraUntil = now + aura.duration
+		state.auraBiteAt = math.max(state.auraBiteAt, now)
 	end
 	if spec.magnet then
 		RunSession.collectCrystals()
@@ -311,7 +350,7 @@ local function dashAt(
 						hit(live, model, amount, landed)
 					end
 				end
-				afflict(live, state.pet, model, spec, os.clock())
+				afflict(live, state.pet, model, spec, os.clock(), true)
 			end
 		end)
 	end
@@ -353,6 +392,22 @@ local function stepPet(
 		return
 	end
 	local origin = root.Position
+
+	--[[ The ring of thorns bites whatever is inside it, on its own clock
+	     rather than the pet's: the pet raises it every few seconds and it
+	     turns in between. It rides the owner, so standing in the fight is
+	     the price of it. ]]
+	local aura = spec.aura
+	if aura and now < state.auraUntil and now >= state.auraBiteAt then
+		state.auraBiteAt = now + aura.every
+		--[[ Damage and nothing else: a ring biting every three quarters of
+		     a second would refresh a slow, a hold or a bleed faster than any
+		     of them are priced for. A pet with a ring carries no other
+		     affliction for exactly that reason. ]]
+		for _, target in inRange(origin, aura.radius) do
+			hit(session, target.model, aura.damage, origin)
+		end
+	end
 
 	-- the spore patch heals while the owner stands in it
 	local patch = state.patch
@@ -418,6 +473,8 @@ function PetCombat.step(deltaTime: number, now: number)
 					attacks = 0,
 					patch = nil,
 					patchUntil = 0,
+					auraUntil = 0,
+					auraBiteAt = 0,
 				}
 				mine[slot] = state
 				-- a guard pet joins with its shell up for this room
@@ -431,8 +488,31 @@ function PetCombat.step(deltaTime: number, now: number)
 	end
 end
 
+--[[
+	The thorns off a blocked shell (`reflect`, the Thistle Mole's Thorn
+	Shell): everything close enough to have hit its owner is hit back.
+
+	Wired to `RunSession.onShellBlock` at boot, because hurting an enemy
+	means the enemy manager and the session module cannot reach for it.
+	Credited to the owner as any other pet's blow is, so a kill by thorns is
+	their kill.
+]]
+function PetCombat.shellBlocked(session: Session, pet: string)
+	local spec = PetCombatConfig.pets[pet]
+	local reflect = spec and spec.reflect
+	local root = reflect and rootOf(session)
+	if not reflect or not root then
+		return
+	end
+	local origin = root.Position
+	for _, target in inRange(origin, reflect.radius) do
+		hit(session, target.model, reflect.damage, origin)
+	end
+end
+
 --[[ Raises `session`'s pet's shell if its pet guards (the Mossback Snail's
-     Shell Guard): it blocks the next hit (`RunSession.applyDamage`). ]]
+     Shell Guard, the Thistle Mole's Thorn Shell): it blocks the next hit
+     (`RunSession.applyDamage`). ]]
 function PetCombat.raiseShell(session: Session)
 	for _, pet in petsOf(session.player) do
 		if PetCombatConfig.pets[pet].guard then

@@ -135,6 +135,35 @@ and the Mythic add effect pieces, as area 1's do.
 | Thorn Princess | Legendary | Controls | **Princess Stitch**: every 10 s stitches three sparkling magenta web strands across a group of enemies for 3 s, hurting and slowing whatever crosses them |
 | Thornwake | Mythic | Shoots | **Briar Wheel**: every 14 s its tail curls into a glowing thorn wheel that rolls off and ricochets between up to three enemies, one heavy hit each |
 
+### What was actually built (2026-10-31)
+
+The table above is the design sheet, not the game. The attacks were built
+on 2026-10-31 and `Config/PetCombat` is the only truth about what they do;
+read it rather than this table. Two rounds happened on the same day:
+
+1. All twelve were first built as their Mossy Glade counterpart's trick at
+   area 2's strength, which kept every kind of pet available in both areas.
+2. The owner read six of them back as reskins and asked for options. Each
+   of those six was then given something the Mossy Glade has no answer to:
+
+   | Pet | What it does now |
+   |---|---|
+   | Thistle Mole | **Thorn Shell** — still blocks a hit a room, and the block bursts thorns into everything within 10 studs |
+   | Briar Beetle | **Chain Snare** — the hold jumps to a second enemy, which takes no damage |
+   | Berry Bat | **Blood Berry** — bites far more often and feeds its owner on every hit; the mark is gone |
+   | Bramble Wilf | **Thorn Bite** — thorns that stack up to three, so damage grows the longer its owner stays on one enemy; the howl stays |
+   | Thorn Princess | **Briar Cage** — two spirits, and a cage that holds even a boss, the only thing in the game that does |
+   | Thornwake | **The Wake** — a ring of thorns turning round its owner instead of a beam; the revive stays |
+
+   The other six (the Commons, Berry Mouse, Bramble Bear, Briar Lynx) keep
+   the forest's shapes on purpose, so a player who learned one area knows
+   the other.
+
+Still outstanding: every effect piece is a Mossy Glade `FxPet` model
+standing in, so the attacks read as the forest's until Thornwood has art of
+its own. The Attack clips are all exactly 1.0 s, which is why nothing
+trails after the swing — Thornwake's revive shows no piece.
+
 Thornwood's flavours are thorns, burrs that slow, web strands, bramble
 walls and boar charges, so none repeats an area-1 attack. Two notes for
 when they are built: Little Tusk Rush and Briar Pounce move the pet to an

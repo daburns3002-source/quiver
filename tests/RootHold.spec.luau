@@ -51,6 +51,27 @@ return function(t: TestRunner.Helper)
 		end
 	end)
 
+	--[[ Briar Cage (owner, 2026-10-31): the Thorn Princess is the first hold
+	     in the game with a `boss` above 0, and a boss stands only between its
+	     moves (`Enemies/EnemyManager`), so the cage must be a window rather
+	     than a lock. ]]
+	t.test("a cage holds a boss for less than it holds anything else", function()
+		local caged = 0
+		for name, spec in PetCombat.pets do
+			local hold = spec.root
+			if not hold or hold.boss <= 0 then
+				continue
+			end
+			caged += 1
+			t.isTrue(hold.boss < hold.duration, `{name}: a boss held as long as a Bloblin`)
+			t.isTrue(
+				hold.boss / spec.every <= 0.35,
+				`{name}: a boss is caged {hold.boss}s of every {spec.every}, near enough a lock`
+			)
+		end
+		t.isTrue(caged > 0, "nothing in the game cages a boss any more")
+	end)
+
 	t.test("every pet that roots draws its hold", function()
 		for name, spec in PetCombat.pets do
 			if not spec.root then

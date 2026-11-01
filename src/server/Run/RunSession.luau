@@ -181,6 +181,13 @@ RunSession.onDeath = nil :: ((Session) -> ())?
      same reason as `onDeath`: the projectile system requires this module. ]]
 RunSession.onRevive = nil :: ((Session, Vector3) -> ())?
 
+--[[ Called as a guarding pet's shell blocks a hit, with the pet that
+     blocked: the Thistle Mole's thorns burst from the shell
+     (`Combat/PetCombat`, `reflect`). A hook for the same reason as the
+     others — hurting an enemy means the enemy manager, which requires this
+     module. ]]
+RunSession.onShellBlock = nil :: ((Session, string) -> ())?
+
 local healthChanged = Remotes.event(Remotes.HealthChanged)
 local xpChanged = Remotes.event(Remotes.XpChanged)
 local newEnemy = Remotes.event(Remotes.NewEnemy)
@@ -1101,7 +1108,14 @@ function RunSession.applyDamage(session: Session, amount: number)
 	if session.petGuard then
 		session.petGuard = false
 		playerDodged:FireClient(session.player, "Guard")
-		petAttack:FireAllClients(session.player, guardPet(session))
+		local shell = guardPet(session)
+		petAttack:FireAllClients(session.player, shell)
+		--[[ A shell that answers: the Thistle Mole's thorns go out into
+		     whatever was close enough to hit its owner (`reflect`). ]]
+		local blocked = RunSession.onShellBlock
+		if shell and blocked then
+			blocked(session, shell)
+		end
 		return
 	end
 

@@ -13,20 +13,13 @@ local PetCombat = require(ReplicatedStorage.Shared.Config.PetCombat)
 local TestRunner = require(script.Parent.TestRunner)
 
 return function(t: TestRunner.Helper)
-	--[[ Thornwood's pets are modelled but have no `Config/PetCombat` entry
-	     yet, so they honestly say so. The Mossy Egg's eight are finished and
-	     must each describe themselves. ]]
-	t.test("every Mossy Egg pet says what it does", function()
-		for _, entry in EggRules.pool("MossyEgg") do
-			local text = PetBlurb.text(entry.pet)
-			t.isTrue(text ~= PetBlurb.NONE, `{entry.pet} has no combat spec to describe`)
-		end
-	end)
-
-	t.test("a hatchable pet always has something to say", function()
+	--[[ Both areas' pets are finished now (Thornwood's got their combat in
+	     2026-10-31), so nothing a player can hatch may shrug. ]]
+	t.test("every pet a player can hatch says what it does", function()
 		for _, egg in Eggs.list do
 			for _, entry in EggRules.pool(egg.key) do
-				t.isTrue(#PetBlurb.text(entry.pet) > 0, entry.pet)
+				local text = PetBlurb.text(entry.pet)
+				t.isTrue(text ~= PetBlurb.NONE, `{entry.pet} has no combat spec to describe`)
 			end
 		end
 	end)
@@ -50,6 +43,58 @@ return function(t: TestRunner.Helper)
 			end
 			if spec.guard then
 				t.isTrue(string.find(text, "Shell Guard", 1, true) ~= nil, key)
+			end
+		end
+	end)
+
+	--[[ A pet whose only damage comes off a block or out of a ring says so:
+	     the damage branch reads `spec.damage`, which neither of them has, so
+	     without their own lines they would describe themselves as doing
+	     nothing (the Thistle Mole and Thornwake, owner 2026-10-31). ]]
+	t.test("a pet that hits without a `damage` number still says what it hits for", function()
+		for key, spec in PetCombat.pets do
+			local text = PetBlurb.text(key)
+			local reflect = spec.reflect
+			if reflect then
+				t.isTrue(
+					string.find(text, string.format("%g", reflect.damage), 1, true) ~= nil,
+					`{key} bursts thorns without saying for how much`
+				)
+			end
+			local aura = spec.aura
+			if aura then
+				t.isTrue(
+					string.find(text, string.format("%g", aura.damage), 1, true) ~= nil,
+					`{key}'s ring does not say its damage`
+				)
+			end
+		end
+	end)
+
+	t.test("a cage says a boss can be held, and a plain hold says it cannot", function()
+		for key, spec in PetCombat.pets do
+			local hold = spec.root
+			if not hold then
+				continue
+			end
+			local text = PetBlurb.text(key)
+			local cages = string.find(text, "Even a boss", 1, true) ~= nil
+			t.equal(cages, hold.boss > 0, `{key}: what it says about bosses is not what it does`)
+		end
+	end)
+
+	t.test("thorns that stack say the stack, the rate and what it comes to", function()
+		for key, spec in PetCombat.pets do
+			local bleed = spec.bleed
+			if not bleed then
+				continue
+			end
+			local text = PetBlurb.text(key)
+			for _, number in { bleed.stacks, bleed.rate, bleed.rate * bleed.stacks } do
+				t.isTrue(
+					string.find(text, string.format("%g", number), 1, true) ~= nil,
+					`{key}'s thorns do not say {number}`
+				)
 			end
 		end
 	end)

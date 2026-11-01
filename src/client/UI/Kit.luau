@@ -920,10 +920,10 @@ end
 ]]
 local MODEL_FOV = 40
 --[[ How much of the card the pet fills, leaving the rest as margin. ]]
-local MODEL_FILL = 0.66
+local MODEL_FILL = 0.84
 --[[ The three-quarter turn: round to its left and a little above it. ]]
-local MODEL_YAW = 34
-local MODEL_PITCH = 16
+local MODEL_YAW = 20
+local MODEL_PITCH = 11
 
 function Kit.petModel(parent: Instance, key: string, hidden: boolean): ViewportFrame?
 	local built = ReplicatedStorage:FindFirstChild("PetPreview")

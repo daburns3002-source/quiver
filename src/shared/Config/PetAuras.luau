@@ -46,6 +46,10 @@ local PetAuras = {
 		ThornPrincess = "Legendary",
 		-- owner, 2026-10-26: "Keep the Bramble Wilf's aura purple."
 		BrambleWilf = "LegendaryPurple",
+		-- Drowned Village (docs/PETS-DROWNED.md): the Tide Wilf carries the
+		-- family's gold aura and sparkles, the Abyss Jelly the Mythic rainbow
+		TideWilf = "Legendary",
+		AbyssJelly = "Mythic",
 	} :: { [string]: string },
 	looks = {
 		Mythic = {

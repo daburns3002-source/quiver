@@ -661,7 +661,10 @@ local function building(name: string, at: Vector2, parent: Instance): Vector3?
 	model.Name = name
 	local size = spec.size
 	local w, h, d = size.X, size.Y, size.Z
-	local base = CFrame.new(world(at, LAWN))
+	--[[ Turned to face the middle of the clearing (owner, 2026-11-01), so
+	     everything below -- walls, roof, porch, sign and props -- comes
+	     round with it: they are all placed off `base`. ]]
+	local base = CFrame.new(world(at, LAWN)) * CFrame.Angles(0, LobbyConfig.facing(at), 0)
 
 	--[[
 		The Dex Hall is the owner's own model, not a box with props on it
@@ -1363,17 +1366,23 @@ function Lobby.build(parent: Instance)
 		local size = building(station.piece, station.at, root)
 		if size then
 			keep(station.at, Vector2.new(size.X, size.Z).Magnitude / 2 + 3)
+			--[[ The wall that keeps players out of it is turned with it,
+			     or a building standing at an angle would be fenced by a
+			     box squared to the lawn. ]]
 			wall(
 				"StationWall",
 				Vector3.new(size.X, 20, size.Z),
-				CFrame.new(world(station.at, 10)),
+				CFrame.new(world(station.at, 10))
+					* CFrame.Angles(0, LobbyConfig.facing(station.at), 0),
 				root
 			)
 		end
 		local spots = LobbyConfig.stands[station.piece]
 		if spots then
 			for _, spot in spots do
-				local at = station.at + spot.at
+				--[[ Out front of its own station, whichever corner that
+				     is on: the offset turns with the building. ]]
+				local at = station.at + LobbyConfig.turnedOffset(station.at, spot.at)
 				standOut(spot.kind, spot.key, world(at, LAWN), root)
 				keep(at, LobbyConfig.standSize / 2 + 2)
 			end

@@ -274,14 +274,23 @@ local function words(board: Part, text: string, colour: Color3)
 end
 
 --[[ A wooden sign board facing south (+Z), its centre at `centre`. ]]
+--[[
+	A wooden nameboard, reading out of `where`'s own front (+Z).
+
+	It takes a frame rather than a point because the stations are turned to
+	face the middle now (owner, 2026-11-01): a board that always faced south
+	would have its back to the lawn on three corners out of four.
+]]
 local function signboard(
 	text: string,
-	centre: Vector3,
+	where: CFrame,
 	width: number,
 	height: number,
 	parent: Instance
 )
-	local facing = CFrame.new(centre) * CFrame.Angles(0, math.pi, 0)
+	--[[ A part's face is its -Z, and a building's front is its +Z, so the
+	     board turns half round to read out of the wall it hangs on. ]]
+	local facing = where * CFrame.Angles(0, math.pi, 0)
 	part(
 		"SignFrame",
 		Vector3.new(width + 0.8, height + 0.8, 0.5),
@@ -720,10 +729,20 @@ local function building(name: string, at: Vector2, parent: Instance): Vector3?
 			light.Brightness = dex.lanterns.brightness
 			light.Parent = glow
 		end
+		--[[ Hung like every other station's: just under the eaves, out
+		     past the front of the porch, as wide as the building allows.
+		     It was placed off the ridge and the width before, which put
+		     it higher and smaller than the rest (owner, 2026-11-01: "the
+		     dex hall sign needs to be fixed and look like the other
+		     ones"). ]]
+		--[[ Off `base`, not `frame`: `frame` carries the half-turn that
+		     brings the hall mesh round to face the lawn, and a board hung
+		     on that would read out of the back of the building. `base`
+		     already faces the middle like every other station's. ]]
 		signboard(
 			spec.sign,
-			(frame * CFrame.new(0, hall.ridge * 0.72, -(hall.across * 0.42))).Position,
-			math.min(w * 0.6, 20),
+			base * CFrame.new(0, dex.sign.height, dex.sign.forward),
+			math.min(hall.across * 0.6, 20),
 			3.4,
 			model
 		)
@@ -881,7 +900,7 @@ local function building(name: string, at: Vector2, parent: Instance): Vector3?
 	end
 	signboard(
 		spec.sign,
-		base.Position + Vector3.new(0, top - 2.2, front + (if spec.columns then 6.8 else 0.6)),
+		base * CFrame.new(0, top - 2.2, front + (if spec.columns then 6.8 else 0.6)),
 		math.min(w * 0.6, 20),
 		3.4,
 		model
@@ -1190,9 +1209,11 @@ local function portalArch(index: number, portal: LobbyConfig.Portal, parent: Ins
 		)
 	end
 	if portal.name then
+		--[[ The arches stand in rows across the north edge and all face
+		     the lawn, so theirs is the plain southward board. ]]
 		signboard(
 			string.upper(portal.name),
-			centre + Vector3.new(0, radius + 2.6, 0.4),
+			CFrame.new(centre + Vector3.new(0, radius + 2.6, 0.4)),
 			LobbyConfig.archSpacing - 4,
 			2.4,
 			model

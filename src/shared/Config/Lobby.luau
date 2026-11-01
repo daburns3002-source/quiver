@@ -316,18 +316,32 @@ local Lobby = {
 			--[[ Measured: the top of the ridge over the hall's floor. ]]
 			ridge = 14.28,
 		},
-		--[[ The book astride the ridge. Its own bounding box reaches down
-		     past the covers to the tip of its ribbon, so `seat` is how far
-		     below the ridge its foot goes to put the covers *on* the
-		     ridge rather than floating over it: measured, the covers'
-		     underside sits 1.7 studs above the box's bottom at the front.
-		     `forward` puts it over the front gable, as the sheet has it. ]]
+		--[[
+			The book astride the ridge, resting on the roof (owner,
+			2026-11-01: "the book needs to rest on the roof like this",
+			with the sheet).
+
+			`seat` is how far below the ridge its foot goes. Its own
+			bounding box reaches well below the covers -- down to the tip
+			of its ribbon -- so sitting the box on the ridge leaves the
+			book hanging in the air over it, which is what it did.
+
+			Measured rather than guessed: the book was dropped onto the
+			hall with both at their drawn size and precise collision, and
+			the first thing its underside meets, ignoring the narrow ridge
+			finial its open covers are meant to straddle, is the roof
+			slope at 4.83 below the ridge. So the covers lie on the roof
+			and the gable's peak sits up in the fold of the pages, as the
+			sheet has it.
+
+			`forward` puts it over the front gable.
+		]]
 		roofBook = {
 			mesh = "rbxassetid://132359194018769",
 			texture = "rbxassetid://75292294805929",
 			native = Vector3.new(0.9995, 0.5698, 0.5864),
 			across = 16,
-			seat = 2.2,
+			seat = 4.83,
 			forward = 8,
 		},
 		--[[ The stand on each pad. ]]
@@ -341,6 +355,11 @@ local Lobby = {
 		     far either side of the middle, this far forward, their tops
 		     this high over its floor. ]]
 		pads = { out = 13, forward = 11, top = 0.9 },
+		--[[ Its nameboard, hung as every other station's is: just under
+		     the eaves and out past the front of the porch, rather than up
+		     by the ridge where it first went (owner, 2026-11-01: "the dex
+		     hall sign needs to be fixed and look like the other ones"). ]]
+		sign = { height = 11, forward = 15.4 },
 		--[[ The hall's own wall lanterns are modelled but not lit -- a
 		     mesh cannot be Neon in part -- so a light goes at each. ]]
 		lanterns = { out = 11, height = 6.4, forward = 13.6, range = 16, brightness = 1.2 },

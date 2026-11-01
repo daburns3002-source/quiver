@@ -92,12 +92,28 @@ assembly is placed in the hall's frame and turned; the books ride that turn with
 of the server's meshes and are cloned; if the hall mesh fails to load nothing is drawn, rather
 than three books floating over the lawn.
 
-**The hall has no texture.** It imported without one, unlike the two books, which came in
-carrying theirs — so it renders in a single flat colour (the sheet's panel cream) instead of the
-violet roof, brown timber and cream panels the sheet shows. One mesh takes one texture, and a
-render of the finished building is not one: a texture has to be the UV-unwrapped image the model
-was made with. Until that image exists the hall cannot look like its sheet, and the acceptance
-standard below is **not met** for it.
+The nameboards turn with their stations: `signboard` takes a frame rather than a point, since a
+board that always faced south would have its back to the lawn on three corners out of four. The
+words sit on a part's Front face, which is its -Z, so a board reads out of the frame's -Z — the
+Dex Hall's hangs off `base` and not off the turned mesh frame, or it would read out of the back
+of the building.
+
+The roof book **rests on the roof**, 4.83 studs below the ridge (owner, 2026-11-01: "the book
+needs to rest on the roof like this"). Measured, not guessed: the book was dropped onto the hall
+with both at their drawn size and precise collision, and the first thing its underside meets —
+ignoring the narrow ridge finial its open covers straddle — is the roof slope at that depth. Its
+covers lie on the roof and the gable's peak sits up in the fold of the pages.
+
+**The hall has no texture, and cannot be given one as it stands.** Its GLB was read directly
+(`codex hall.glb`): one mesh, 24,395 vertices carrying `POSITION` and `NORMAL` **and nothing
+else** — no `TEXCOORD_0`, so no UVs — one material named `material` with no texture, and zero
+images in the file. A mesh with no UVs has nowhere to put a texture image; this is not a setting
+that was missed on import. The hall therefore renders in a single flat colour (the sheet's panel
+cream) instead of the violet roof, brown timber and cream panels.
+
+The fix is to export it from Tripo **with its texture**, which also writes the UVs. The two books
+prove the route: their intakes each carry a `.fbm/..._basecolor.jpg` beside the FBX and they came
+into Studio textured. Until then the acceptance standard below is **not met** for the hall.
 
 **The layout** (owner, 2026-11-01: "every building should be either northwest, northeast,
 southwest, or southeast ... the dex hall is in the southwest, the gear station is in the

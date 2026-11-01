@@ -1,11 +1,18 @@
 --!strict
 --[[
 	Shell Guard (docs/PETS-FOREST.md, Attacks): once a room the shell blocks
-	one hit. The Mossback Snail carries it in the Mossy Glade and the
-	Thistle Mole in Thornwood -- one guard to an egg, so a player always has
-	the option and never two of it. Raised as a room begins
-	(`PetCombat.newRoom`, by way of `raiseShell`), never by the clock, and
-	spent on the first hit, so a second hit in the same room lands.
+	one hit. Raised as a room begins (`PetCombat.newRoom`, by way of
+	`raiseShell`), never by the clock, and spent on the first hit, so a
+	second hit in the same room lands.
+
+	Two pets carry it, the Mossback Snail and the Thistle Mole, but only the
+	Snail is hatchable: each egg holds one Uncommon (`Config/Pets`), and
+	Thornwood's is the Berry Mouse. So the rule is that no egg holds two
+	guards — never that every egg holds one. An earlier version of this file
+	asserted the latter and was wrong; it reached main unverified on
+	2026-10-31 because the suite could not be run, and this is the
+	correction. Whether Thornwood's Uncommon should be the guard instead of
+	the healer is the owner's call and is open in docs/TRACKER.md.
 
 	Driven on a session of the test's own, as `Revive.spec` is; the player's
 	`Pet` attribute is put back afterwards.
@@ -23,7 +30,7 @@ local RunSession = require(ServerScriptService.Server.Run.RunSession)
 local TestRunner = require(script.Parent.TestRunner)
 
 return function(t: TestRunner.Helper)
-	t.test("exactly one pet in each egg guards", function()
+	t.test("no egg holds two guards", function()
 		for _, egg in Eggs.list do
 			local guards = {}
 			for _, entry in EggRules.pool(egg.key) do
@@ -32,8 +39,28 @@ return function(t: TestRunner.Helper)
 					table.insert(guards, entry.pet)
 				end
 			end
-			t.equal(#guards, 1, `{egg.key} holds {#guards} guards: {table.concat(guards, ", ")}`)
+			t.isTrue(#guards <= 1, `{egg.key} holds {#guards} guards: {table.concat(guards, ", ")}`)
 		end
+	end)
+
+	--[[ A guard a player cannot hatch is dead code, and two of them would
+	     mean one egg had been given the other's. Pinned as a count so the
+	     day Thornwood's Uncommon changes, this says so. ]]
+	t.test("one guard is hatchable, and it is the Snail", function()
+		local hatchable = {}
+		for _, egg in Eggs.list do
+			for _, entry in EggRules.pool(egg.key) do
+				local spec = PetCombatConfig.pets[entry.pet]
+				if spec and spec.guard then
+					table.insert(hatchable, `{entry.pet} ({egg.key})`)
+				end
+			end
+		end
+		t.equal(#hatchable, 1, `guards a player can hatch: {table.concat(hatchable, ", ")}`)
+		t.isTrue(
+			string.find(hatchable[1] or "", "MossbackSnail", 1, true) ~= nil,
+			`the hatchable guard is {hatchable[1]}`
+		)
 	end)
 
 	t.test("a guard does nothing else: no damage, no clock", function()

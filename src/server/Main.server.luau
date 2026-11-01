@@ -331,7 +331,9 @@ Remotes.event(Remotes.DebugSpawnEnemy).OnServerEvent:Connect(function(_player, n
 	if not RunService:IsStudio() or type(name) ~= "string" then
 		return
 	end
-	local config = (Balance.Enemies :: any)[name]
+	--[[ `Benched` too: an enemy that is built but has no room yet (the
+	     Lancer, the Hollow Fisherman) can still be fought in Studio. ]]
+	local config = (Balance.Enemies :: any)[name] or (Balance.Benched :: any)[name]
 	if config then
 		EnemyManager.spawn(config)
 	end

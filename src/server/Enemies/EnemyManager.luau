@@ -1375,6 +1375,15 @@ local function shove(session: RunSession.Session, direction: Vector3, distance: 
 	playerShoved:FireClient(session.player, along.Unit, distance)
 end
 
+--[[ The same push, for the Hollow Fisherman's hook (`Combat/ProjectileSystem`,
+     `EnemyShot.reel`): a reeled player is shoved back along the line the
+     hook flew, so the client walks them and cover stops them. It lives here
+     because this is where the shove remote does, and ProjectileSystem
+     already requires this module. ]]
+function EnemyManager.shovePlayer(session: RunSession.Session, direction: Vector3, distance: number)
+	shove(session, direction, distance)
+end
+
 --[[ Damage that reports whether it landed: a dodge (Agility) or a shield
      takes nothing, and a lash that took nothing grabs nobody. ]]
 local function hurt(session: RunSession.Session, amount: number): boolean

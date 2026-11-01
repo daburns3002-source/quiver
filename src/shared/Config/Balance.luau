@@ -112,6 +112,21 @@ export type EnemyShot = {
 	     beats of the enemy's shot sound, so each one is heard as it leaves.
 	     Nil fires the whole fan together. ]]
 	every: number?,
+	--[[
+		Studs a hit drags the player back along the line the shot flew, so
+		the shot ends with them closer to whoever fired it: the Hollow
+		Fisherman's hook, which casts and reels you in.
+
+		The pull is the client's own, the shove a boss's bump uses, so walls
+		and cover stop it exactly as they stop walking -- nobody is dragged
+		through a crate. It reads as a line to step out of rather than a
+		grab to escape, so a shot that reels must lock its aim and draw a
+		`Line` (`tests/Balance.spec`): being pulled by something you could
+		not see coming is the complaint this is written to avoid.
+
+		Nil pulls nobody, which is every other shot in the game.
+	]]
+	reel: number?,
 }
 
 --[[
@@ -960,6 +975,65 @@ local thornling: EnemyConfig = {
 	color = Color3.fromRGB(110, 70, 160),
 	xpReward = 4,
 	shot = nil,
+}
+
+--[[
+	The Hollow Fisherman, Drowned Village's caster (docs/ENEMIES-AND-ARENAS.md,
+	"3. Drowned Village"; its NEW ENEMY! card already reads "Casts its hook
+	and reels you in. Dodge the line and keep your distance!").
+
+	It is the Spitter's shape of enemy -- it holds a distance and fires --
+	with one difference that is the whole of it: the hook pulls. One slow
+	cast down a locked line, drawn before it leaves, and whoever it catches
+	is dragged back along that line toward the rod. A ranged enemy that
+	closes the distance for you is the counterweight to "keep your distance":
+	the answer is not to back away further, it is to not be on the line.
+
+	**It is not in any room yet** (`Benched` below): Drowned Village has no
+	arena and no stages, so it has nowhere to stand. Everything about it is
+	built and it spawns in Studio.
+
+	PLACEHOLDER NUMBERS until the owner plays it. Area 3 sits past Thornwood,
+	so its health is above the Burr Thistle's and its damage near the
+	Spitter's; the reel is 6 studs, under half the 13.5 it fires from, so a
+	catch costs ground but never lands you on top of it.
+]]
+local hollowFisherman: EnemyConfig = {
+	displayName = "HollowFisherman",
+	--[[ Slow to come round: it is a standing caster, not a tracker. ]]
+	turnRate = 240,
+	health = 520,
+	moveSpeed = 4.4,
+	--[[ Ranged: the distance it wants to hold, not one it closes to. ]]
+	attackRange = 13.5,
+	attackDamage = 52,
+	attackCooldown = 3.4,
+	knockback = 3,
+	--[[ Its model at 3.20x, the most that fits: 2.99 across, 3.16 tall and
+	     2.34 deep, stood on the floor (`EnemyDesigns`). A standing figure,
+	     so taller than it is deep. ]]
+	hitboxSize = Vector3.new(3.2, 3.6, 2.8),
+	color = Color3.fromRGB(120, 196, 206),
+	xpReward = 22,
+	shot = {
+		--[[ One hook, never a fan: a line with a gap in it is not a line. ]]
+		count = 1,
+		spread = 0,
+		--[[ Slower than the Spitter's seeds (13.5): a hook you cannot see
+		     coming is a grab, and the whole shot is the line it draws. ]]
+		speed = 11,
+		--[[ 18 studs of reach, past the 13.5 it fires from, so backing off
+		     a step is not an escape by itself. ]]
+		lifetime = 18 / 11,
+		telegraph = 0.85,
+		tell = "Line" :: EnemyTell,
+		--[[ Locked, as a `Line` must be: the line it draws is where the
+		     hook goes, so stepping off it is the answer. ]]
+		locksAim = true,
+		--[[ The reel. Less than half the distance it fires from, so being
+		     caught costs ground and never puts you inside its swing. ]]
+		reel = 6,
+	},
 }
 
 --[[
@@ -3307,6 +3381,26 @@ local Balance = {
 		Broodmother = broodmother,
 		Thornling = thornling,
 	},
+
+	--[[
+		Archetypes that are built but have no room to stand in yet.
+
+		`Enemies` is the roster's vocabulary and `tests/Balance.spec` holds
+		it to that: everything in it is introduced somewhere in the game.
+		That is the right rule and it leaves nowhere to put a finished
+		enemy whose area is not built -- the Lancer has been homeless since
+		the Ember Wilf stopped standing in for it, and the Hollow Fisherman
+		arrives with no Drowned Village to stand in.
+
+		So they live here instead: real configs, out of every roster, and
+		`Remotes.DebugSpawnEnemy` reaches them in Studio so one can be
+		fought before its area exists. Moving one in is cutting a line and
+		adding it to a roster.
+	]]
+	Benched = {
+		Lancer = _lineSniper,
+		HollowFisherman = hollowFisherman,
+	} :: { [string]: EnemyConfig },
 
 	--[[
 		How a splitting enemy's pieces leave it, after Zac's Cell Division

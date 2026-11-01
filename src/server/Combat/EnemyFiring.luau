@@ -84,6 +84,9 @@ local function release(volley: EnemyManager.Volley, specs: { Types.ShotSpec }, n
 			link = 0,
 			owner = nil,
 			now = now,
+			--[[ The Hollow Fisherman's hook drags whoever it catches back
+			     along its own line (`Balance.EnemyShot.reel`). ]]
+			reel = volley.shot.reel,
 		})
 	end
 

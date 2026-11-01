@@ -509,6 +509,41 @@ local babySlime: Design = {
 	glow("EyeRight", 0.32, Vector3.new(0.3, 0.02, -0.95), Color3.fromRGB(255, 176, 32)),
 }
 
+--[[
+	The Hollow Fisherman, Drowned Village's caster: one textured Tripo mesh
+	(`skeleton fisherman arena 3`), not a Claude Design build, so it comes
+	as a single part with its own texture rather than a body and separate
+	eyes. Scaled x3.43 -- the most that keeps it inside a 3.2-wide hitbox --
+	to 3.20 x 3.39 x 2.51, standing on the floor of a 3.2 x 3.6 x 2.8 box.
+
+	**Its eyes are painted on.** Every earlier enemy wears Neon eyes in its
+	act's colour, which only works where the model brings them as their own
+	part; this one's face is in the texture, so there is nothing to make
+	glow. A glowing pair would have to come from the model.
+
+	**Its facing is unconfirmed.** It is left untruned, facing -Z, because
+	that is how every Tripo import checked in this place has stood (all five
+	Drowned pets, measured 2026-11-01) -- unlike the Claude Design blocky
+	imports, which face +Z and all carry `BLOCKY_TURN`. If it casts over its
+	shoulder in a playtest, this one field is the fix.
+]]
+local hollowFisherman: Design = {
+	shadow(3.2, 2.8, 3.6),
+	{
+		name = "Body",
+		shape = "Mesh",
+		meshId = "rbxassetid://118890414913996",
+		textureId = "rbxassetid://121194827830064",
+		size = Vector3.new(2.986, 3.164, 2.342),
+		--[[ The import stands on its pivot, so its middle is half its own
+		     height off the floor of the box; the sideways nudge is the
+		     model's own, its rod held out to one side. ]]
+		offset = Vector3.new(-0.106, -0.218, 0.014),
+		shade = 1,
+		color = WHITE,
+	},
+}
+
 --[[ Keyed by `EnemyConfig.displayName`, which is what the model is named and
      the only identifier an archetype actually carries. ]]
 local EnemyDesigns = {
@@ -532,6 +567,8 @@ local EnemyDesigns = {
 	BrambleLurker = brambleLurker,
 	Broodmother = broodmother,
 	Thornling = thornling,
+	-- Drowned Village
+	HollowFisherman = hollowFisherman,
 
 	--[[ Archetypes built from an imported model, by display name. ]]
 	Imported = {

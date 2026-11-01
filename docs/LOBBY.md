@@ -73,26 +73,31 @@ cards), `lobby/codex_books.png`, and the 2D codex books with their 6-frame page 
 solid (vertex colours carry no transparency), and the blacksmith's forge keeps its earlier
 left-right layout.
 
-**The Dex Hall** (2026-11-01, the owner's front and back sheet, and his two imported
-models: "i made the book that goes on the roof and also the book stand that is on the ground in
-front of it"). Built to that sheet: a vivid violet roof with gold corner caps over brown timber
-and warm cream panels, the open book astride the ridge with a red ribbon down the gable under a
-gold lozenge, six loose pages adrift round it, a lectern either side of the steps, a lit lantern
-on each front wall, the red carpet up to the door, and a counter with a lamp between two shelves
-of books inside. Numbers in `Config/Lobby.dex`, built by `Run/Lobby`.
+**The Dex Hall** is the owner's own model (2026-11-01: "ok i imported the dex hall i want you
+to use", "put the book on top and the book stands on the sides where they belong"). Three
+imports, the only meshes in the lobby: the hall, the open book astride its roof and the stand on
+each of the two stone pads out front. The hall mesh carries its own porch, columns, wall
+lanterns, steps, carpet, counter and shelves, so nothing is drawn over it; a light goes at each
+lantern, because one mesh takes one material and a modelled lantern cannot glow by itself.
 
-The two books are **the only imported meshes in the lobby**, which is otherwise all parts: an
-open book's pages are not a shape a few boxes make well, and they are the thing the hall is named
-for. `MeshPart.MeshId` cannot be assigned, so they go through `Util/MeshTemplates` with the rest
-of the server's meshes and are cloned from there; a mesh that fails to load leaves its book out
-rather than stopping the hall. Their facing is `dex.turn`, half a turn, on the same assumption
-every Tripo import here has met -- they arrive facing -Z and a building faces south.
+Everything is measured off the mesh, by raycast against its own collision shape at the size it
+is drawn: the ridge stands 14.28 studs over its floor, and the two pads are 0.9 high, 7 wide,
+13 studs either side of the middle and 11 forward. The roof book's own box reaches down to the
+tip of its ribbon, so its foot is seated 2.2 studs below the ridge to put the covers *on* it
+rather than floating. The hall was modelled facing -Z and a building faces south, so the whole
+assembly is placed in the hall's frame and turned; the books ride that turn with it. Numbers in
+`Config/Lobby.dex`.
 
-**Not yet seen against the sheet.** Studio would not render the lobby to a capture from this
-side of the tool (the class select holds the client before the lobby is reached, and a scripted
-camera is overridden each frame), so the hall is built to the sheet by construction and measured
-rather than compared by eye. The acceptance standard below is therefore **not met yet** for the
-Dex Hall: the side-by-side is the owner's to make, or mine once a capture works.
+`MeshPart.MeshId` cannot be assigned, so the three go through `Util/MeshTemplates` with the rest
+of the server's meshes and are cloned; if the hall mesh fails to load nothing is drawn, rather
+than three books floating over the lawn.
+
+**The hall has no texture.** It imported without one, unlike the two books, which came in
+carrying theirs — so it renders in a single flat colour (the sheet's panel cream) instead of the
+violet roof, brown timber and cream panels the sheet shows. One mesh takes one texture, and a
+render of the finished building is not one: a texture has to be the UV-unwrapped image the model
+was made with. Until that image exists the hall cannot look like its sheet, and the acceptance
+standard below is **not met** for it.
 
 ## What the lobby has to contain
 

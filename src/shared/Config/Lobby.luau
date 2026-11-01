@@ -32,6 +32,16 @@
 
 export type Placed = { piece: string, at: Vector2 }
 
+--[[ One of the Dex Hall's imported models (`dex` below), as much of it as
+     every one of them has: `Run/Lobby` reads these four to clone and size
+     a piece, and each piece adds whatever else its own placing needs. ]]
+export type DexPiece = {
+	mesh: string,
+	texture: string,
+	native: Vector3,
+	across: number,
+}
+
 export type Portal = {
 	--[[ The area's name on its sign, and its levels: the `Balance.Stages`
 	     index each plays, in order, offered on the portal's screen
@@ -212,84 +222,75 @@ local Lobby = {
 	} :: { [string]: Building },
 
 	--[[
-		The Dex Hall's own pieces, from the owner's sheet (2026-11-01).
+		The Dex Hall, which is the owner's own model rather than parts
+		(2026-11-01: "ok i imported the dex hall i want you to use", and
+		"put the book on top and the book stands on the sides where they
+		belong"). Three imports: the hall itself, the open book that sits
+		astride its roof, and the stand that goes on each of the two stone
+		pads out front -- the hall mesh carries those pads, its porch
+		columns, its wall lanterns, its steps, its carpet and its shelves,
+		so nothing here draws them again.
 
-		Its two books are imported models, the only ones in the lobby: the
-		open book that sits astride the roof ridge, and the one on each
-		lectern out front. Everything else here is parts, as the rest of
-		the lobby is -- the red ribbon down the gable with its gold
-		lozenge, the loose pages drifting round the roof book, the lecterns
-		under their books, the lanterns either side of the porch and the
-		red carpet up the steps.
+		Everything below is measured off the hall mesh itself, by raycast
+		against its own collision shape at the size it is drawn
+		(`across` = 38): the ridge stands 14.28 studs over its floor, and
+		the two pads are 0.9 studs high, 7 wide, centred 13 studs either
+		side of the middle and 11 studs forward.
 
-		`turn` is half a turn about Y: the imports come in facing -Z, as
-		every Tripo import in this place has, and a building faces south,
-		so the open pages have to come round to meet the player. It is one
-		number because it is the thing most likely to be wrong.
+		The hall's front faces -Z as it was modelled, and a lobby building
+		faces south, so the whole assembly is turned by `turn` -- and
+		because the books are placed in the hall's own frame before that
+		turn, they come round with it.
 	]]
 	dex = {
 		turn = math.pi,
-		--[[ The roof book, astride the ridge. `across` is how wide it is
-		     drawn; the model is scaled off that, so its proportions are
-		     its own. ]]
+		--[[ The hall. `across` is how wide it is drawn; everything else
+		     here is in studs off its own floor and middle, at that width. ]]
+		hall = {
+			mesh = "rbxassetid://127471291621211",
+			--[[ **No texture.** It imported without one, unlike the two
+			     books, which came in carrying theirs. Until there is one
+			     the hall renders in a single flat colour, which is not
+			     the sheet: see docs/TRACKER.md. ]]
+			texture = "",
+			native = Vector3.new(0.9995, 0.3755, 0.7368),
+			across = 38,
+			--[[ Measured: the top of the ridge over the hall's floor. ]]
+			ridge = 14.28,
+		},
+		--[[ The book astride the ridge. Its own bounding box reaches down
+		     past the covers to the tip of its ribbon, so `seat` is how far
+		     below the ridge its foot goes to put the covers *on* the
+		     ridge rather than floating over it: measured, the covers'
+		     underside sits 1.7 studs above the box's bottom at the front.
+		     `forward` puts it over the front gable, as the sheet has it. ]]
 		roofBook = {
 			mesh = "rbxassetid://132359194018769",
 			texture = "rbxassetid://75292294805929",
-			--[[ The import's own size, which fixes the scale. ]]
 			native = Vector3.new(0.9995, 0.5698, 0.5864),
-			across = 15,
-			--[[ Studs the book's foot stands above the ridge. ]]
-			lift = -0.6,
+			across = 16,
+			seat = 2.2,
+			forward = 8,
 		},
-		--[[ The book on each lectern. ]]
+		--[[ The stand on each pad. ]]
 		standBook = {
 			mesh = "rbxassetid://111083341429927",
 			texture = "rbxassetid://105823115455072",
 			native = Vector3.new(0.9995, 0.8843, 0.6723),
-			across = 5,
-			lift = 0,
+			across = 5.5,
 		},
-		--[[ The lecterns: how far out from the middle each stands, how far
-		     forward of the porch, and the pedestal under the book. ]]
-		--[[ Just outside the porch columns and a little forward of the
-		     steps, as the sheet has them: far enough out not to be behind
-		     a column from the lobby camera, near enough that they still
-		     read as the hall's. ]]
-		lectern = {
-			out = 15,
-			forward = 6,
-			base = Vector3.new(6, 1.2, 5),
-			post = Vector3.new(3, 4.2, 2.6),
-			deskTilt = math.rad(18),
-		},
-		--[[ The loose pages round the roof book: how many, how far out they
-		     drift and the band of heights they sit in. ]]
-		pages = {
-			count = 6,
-			size = Vector3.new(3, 0.3, 3.4),
-			spread = { 11, 17 },
-			rise = { 2, 7 },
-		},
-		--[[ The ribbon down the front gable, and the lozenge on it. ]]
-		ribbon = { width = 2.6, drop = 9, lozenge = 2.4 },
-		--[[ The wall lanterns either side of the porch. ]]
-		lantern = { out = 17, height = 8, size = Vector3.new(1.8, 2.6, 1.8) },
-		--[[ The carpet up the steps and across the porch. ]]
-		carpet = Vector2.new(13, 16),
+		--[[ The pads the stands go on, measured off the hall mesh: this
+		     far either side of the middle, this far forward, their tops
+		     this high over its floor. ]]
+		pads = { out = 13, forward = 11, top = 0.9 },
+		--[[ The hall's own wall lanterns are modelled but not lit -- a
+		     mesh cannot be Neon in part -- so a light goes at each. ]]
+		lanterns = { out = 11, height = 6.4, forward = 13.6, range = 16, brightness = 1.2 },
 		colours = {
-			trim = Color3.fromRGB(247, 196, 30),
-			timber = Color3.fromRGB(150, 82, 40),
-			timberDark = Color3.fromRGB(116, 62, 30),
-			stone = Color3.fromRGB(236, 232, 220),
-			red = Color3.fromRGB(214, 36, 42),
-			page = Color3.fromRGB(246, 238, 214),
+			--[[ What the untextured hall is tinted until it has a texture:
+			     the sheet's warm cream panel, which is the most of it. ]]
+			bare = Color3.fromRGB(238, 226, 196),
 			lantern = Color3.fromRGB(255, 186, 92),
-			shelf = {
-				Color3.fromRGB(126, 58, 180),
-				Color3.fromRGB(206, 44, 54),
-				Color3.fromRGB(240, 196, 54),
-				Color3.fromRGB(236, 232, 214),
-			},
 		},
 	},
 

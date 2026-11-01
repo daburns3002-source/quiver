@@ -270,7 +270,7 @@ local Lobby = {
 		     what actually stands there (`dex.hall`: 38 across, 28 deep,
 		     its ridge 14.28 up). ]]
 		DexHall = {
-			size = Vector3.new(38, 16.3, 28),
+			size = Vector3.new(38, 13.74, 28),
 			rise = 10,
 			walls = Color3.fromRGB(238, 226, 196),
 			roof = Color3.fromRGB(124, 44, 230),
@@ -326,7 +326,11 @@ local Lobby = {
 		turn = math.pi,
 		--[[ `across` and `deep` are the plinth's footprint; `ridge` is the
 		     flat top of the roof over the lawn, which the book rests on. ]]
-		hall = { across = 38, deep = 28, ridge = 16.3 },
+		--[[ `ridge` is the flat top of the roof over the lawn, which the
+		     book rests on. It came down from 16.3 with the pitch: the
+		     sheet's roof is long and low, and an 18.6 degree slope made
+		     a steep A of it (owner, 2026-11-01: "gable and roof"). ]]
+		hall = { across = 38, deep = 28, ridge = 13.74, pitch = 12 },
 		--[[
 			The open book on the roof.
 
@@ -367,10 +371,14 @@ local Lobby = {
 			it. On the gable it reads from the lawn and leaves the
 			building visible, which is what the sheet shows.
 		]]
-		sign = { height = 10.7, forward = 11.15, across = 11.5, tall = 2 },
+		sign = { height = 11, forward = 14.35, across = 8, tall = 1.5 },
 		--[[ The lanterns either side of the porch, and the light each
 		     casts on the lawn. ]]
-		lanterns = { out = 9.55, height = 6.5, forward = 12, range = 16, brightness = 1.2 },
+		--[[ Turned down from 16 studs at 1.2 (owner, 2026-11-01: "the
+		     lighting is too strong"): at that strength the pair washed
+		     the whole front of the building out and the glass read as a
+		     flat yellow blob rather than a lamp. ]]
+		lanterns = { out = 9.55, height = 6.5, forward = 12, range = 8, brightness = 0.32 },
 		--[[ The sheet's palette, set on the parts outright. ]]
 		colours = {
 			roof = Color3.fromRGB(140, 40, 220),
@@ -380,7 +388,8 @@ local Lobby = {
 			stone = Color3.fromRGB(240, 235, 205),
 			column = Color3.fromRGB(255, 255, 255),
 			red = Color3.fromRGB(220, 30, 40),
-			lantern = Color3.fromRGB(255, 200, 50),
+			--[[ Warmer and less blinding than the 255,200,50 it was. ]]
+			lantern = Color3.fromRGB(255, 186, 96),
 			iron = Color3.fromRGB(30, 30, 30),
 			books = {
 				Color3.fromRGB(138, 43, 226),

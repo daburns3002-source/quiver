@@ -64,16 +64,30 @@ function ShopRules.find(weapon: string): Entry?
 	return nil
 end
 
---[[ What area `index`'s crate can give: its weapons of a rarity the crate
-     rolls. Empty for an area with no weapons yet (a silhouette). ]]
-function ShopRules.cratePool(index: number): { Entry }
+--[[ What area `index`'s chest can give: its weapons of a rarity the chest
+     rolls, and of `class` when one is named — an area's crate is three
+     chests, one a class (`Shop.chests`). Empty for an area with no weapons
+     yet (a silhouette). ]]
+function ShopRules.cratePool(index: number, class: string?): { Entry }
 	local out = {}
 	for _, entry in ShopRules.catalog() do
-		if entry.area == index and Shop.crateOdds[entry.rarity] then
+		local wanted = class == nil or entry.class == class
+		if entry.area == index and wanted and Shop.crateOdds[entry.rarity] then
 			table.insert(out, entry)
 		end
 	end
 	return out
+end
+
+--[[ Whether `class` is one of the three chests, which is what the server
+     checks before it charges for one. ]]
+function ShopRules.chest(class: unknown): Shop.Chest?
+	for _, chest in Shop.chests do
+		if chest.class == class then
+			return chest
+		end
+	end
+	return nil
 end
 
 --[[ Picks from a crate's pool: a rarity by `Shop.crateOdds` (only those
@@ -114,10 +128,10 @@ end
 --[[ A weapon's chance (0..1) from crate `index`, as `roll` picks it: its
      rarity's share of the rarities the crate has, split evenly by the
      weapons of that rarity. ]]
-function ShopRules.chance(index: number, entry: Entry): number
+function ShopRules.chance(index: number, entry: Entry, class: string?): number
 	local total, same = 0, 0
 	local seen: { [string]: boolean } = {}
-	for _, other in ShopRules.cratePool(index) do
+	for _, other in ShopRules.cratePool(index, class) do
 		if not seen[other.rarity] then
 			seen[other.rarity] = true
 			total += Shop.crateOdds[other.rarity] or 0

@@ -25,6 +25,9 @@ local ShopScreen = {}
 local screen: StationScreen.Screen? = nil
 local selected = 1
 local store = false
+--[[ Which of the area's three chests is open (owner, 2026-11-01: "It
+     should be 3 separate chests"), as an index into `Shop.chests`. ]]
+local chest = 1
 function ShopScreen.isOpen(): boolean
 	return screen ~= nil and screen.isOpen()
 end
@@ -174,14 +177,14 @@ function ShopScreen.start()
 	local function affordable(count: number): boolean
 		local p = s.profile
 		return p ~= nil
-			and #ShopRules.cratePool(selected) > 0
+			and #ShopRules.cratePool(selected, Shop.chests[chest].class) > 0
 			and p.coins >= Shop.crates[selected].price * count
 	end
 	local function press(count: number)
 		if affordable(count) then
-			local index = selected
+			local index, class = selected, Shop.chests[chest].class
 			Reveal.request(function()
-				Remotes.event(Remotes.ShopOpenCrate):FireServer(index, count)
+				Remotes.event(Remotes.ShopOpenCrate):FireServer(index, count, class)
 			end)
 		end
 	end
@@ -206,14 +209,15 @@ function ShopScreen.start()
 			--[[ Under the left column rather than across the top: Codex's
 			     name hangs in that band, and the Blacksmith's own two modes
 			     are the game's furniture, not his. ]]
-			Kit.put(b, if index == 1 then 202 else 522, 840, 300, 84)
+			Kit.put(b, if index == 1 then 202 else 522, 930, 300, 84)
 		end
 		if store then
 			drawStore(s)
 			return
 		end
 		local crate = Shop.crates[selected]
-		local pool = table.clone(ShopRules.cratePool(selected))
+		local holds = Shop.chests[chest]
+		local pool = table.clone(ShopRules.cratePool(selected, holds.class))
 		table.sort(pool, function(a, b)
 			local ra, rb = Rarities.byName[a.rarity].tier, Rarities.byName[b.rarity].tier
 			if ra ~= rb then
@@ -221,6 +225,17 @@ function ShopScreen.start()
 			end
 			return a.label < b.label
 		end)
+		local tabs = {}
+		for index, each in Shop.chests do
+			table.insert(tabs, {
+				words = each.tab,
+				on = index == chest,
+				pick = function()
+					chest = index
+					s.open()
+				end,
+			})
+		end
 		local tiles = {}
 		for _, entry in pool do
 			local owned = p ~= nil and p.weapons[entry.weapon] == true
@@ -228,19 +243,20 @@ function ShopScreen.start()
 				rarity = entry.rarity,
 				-- always the 2D weapon art, never a render (owner's standing rule)
 				icon = picture(entry.weapon),
-				chance = ShopRules.chance(selected, entry),
+				chance = ShopRules.chance(selected, entry, holds.class),
 				owned = owned,
 				silhouette = entry.rarity == "Mythic" and not owned,
 			})
 		end
 		HatchStand.draw(s, {
-			title = crate.name .. " CRATE",
+			title = holds.name .. " CHEST",
 			price = crate.price,
 			picker = crate.name,
 			onPick = function()
 				selected = selected % #Shop.crates + 1
 				s.open()
 			end,
+			tabs = tabs,
 			tiles = tiles,
 			locked = if #pool == 0 then "NO WEAPONS YET" else nil,
 			pity = if p then p.pity.crates else 0,

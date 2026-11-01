@@ -6,8 +6,9 @@
 	price is checked and paid whole through `Data/Wallet`; nothing a client
 	says sets a total, a roll or an owned weapon.
 
-	- `Remotes.ShopOpenCrate(index)`: pays the crate, rolls, grants the
-	  weapon or pays back `duplicateRefund`, and answers `ShopCrateOpened`.
+	- `Remotes.ShopOpenCrate(index, count, class)`: pays the chest, rolls
+	  among that class's weapons, grants it or pays back `duplicateRefund`,
+	  and answers `ShopCrateOpened`.
 	- `Remotes.ShopBuy(weapon)`: pays the store's price and grants it.
 	- `Remotes.ShopEquip(weapon)`: holds an owned weapon in runs (its class
 	  with it), saved; applied at once in the lobby, else from the next run.
@@ -64,7 +65,7 @@ local function hold(player: Player, weapon: string?)
 	RunSession.applyLoadout(session)
 end
 
-local function openCrate(player: Player, index: unknown, count: unknown)
+local function openCrate(player: Player, index: unknown, count: unknown, class: unknown)
 	if
 		type(index) ~= "number"
 		or type(count) ~= "number"
@@ -73,8 +74,15 @@ local function openCrate(player: Player, index: unknown, count: unknown)
 	then
 		return
 	end
+	--[[ An area's crate is three chests, one a class (owner, 2026-11-01),
+	     so the class is part of what is being paid for and is checked here
+	     like the rest: an unknown one buys nothing. ]]
+	local chest = ShopRules.chest(class)
+	if not chest then
+		return
+	end
 	local crate = Shop.crates[index]
-	local pool = if crate then ShopRules.cratePool(index) else {}
+	local pool = if crate then ShopRules.cratePool(index, chest.class) else {}
 	if not crate or #pool == 0 then
 		return
 	end
@@ -98,16 +106,17 @@ local function openCrate(player: Player, index: unknown, count: unknown)
 			-- a duplicate is a C copy to merge (owner, 2026-10-28), so no refund
 			local new = Wallet.grantWeapon(player, entry.weapon)
 			log.info(
-				"%s opened the %s crate: %s%s",
+				"%s opened the %s %s chest: %s%s",
 				player.Name,
 				crate.name,
+				chest.name,
 				entry.weapon,
 				if new then "" else " (again)"
 			)
 			table.insert(results, { weapon = entry.weapon, new = new })
 		end
 	end
-	crateOpened:FireClient(player, index, results)
+	crateOpened:FireClient(player, index, results, chest.class)
 end
 
 local function buy(player: Player, weapon: unknown)

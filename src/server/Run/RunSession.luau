@@ -30,6 +30,7 @@ local NewEnemies = require(ReplicatedStorage.Shared.Config.NewEnemies)
 local PetCombat = require(ReplicatedStorage.Shared.Config.PetCombat)
 local Pickups = require(script.Parent.Pickups)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
+local Shelter = require(ReplicatedStorage.Shared.Util.Shelter)
 local ShotPipeline = require(ReplicatedStorage.Shared.Combat.ShotPipeline)
 local Tutorial = require(ReplicatedStorage.Shared.Config.Tutorial)
 local TutorialHands = require(ReplicatedStorage.Shared.Util.TutorialHands)
@@ -93,6 +94,16 @@ export type Session = {
 	petReviveUsed: boolean,
 	petHaste: number,
 	petHasteUntil: number,
+	--[[ The Slate Turtle's Roof Huddle (`Shared/Util/Shelter`): while
+	     `petShelterUntil` (os.clock) is ahead, every hit is cut by
+	     `petShelterCut`. A cut, not a block: see `Util/Shelter`. ]]
+	petShelterCut: number,
+	petShelterUntil: number,
+	--[[ `os.clock()` the owner last actually lost health, which is what
+	     arms the Buoy Puffer's Payback Puff (`Combat/PetCombat`). Set only
+	     where damage landed: a dodge, a guard and a shelter that took it
+	     all to nothing never arm it, because nothing hit. ]]
+	lastHurtAt: number,
 	--[[ Swings started this run, for Whirlwind's every-nth spin. ]]
 	swingCount: number,
 	--[[ Battle Cry: kill stacks, and when they lapse (os.clock). ]]
@@ -245,6 +256,9 @@ function RunSession.create(player: Player): Session
 		petReviveUsed = false,
 		petHaste = 0,
 		petHasteUntil = 0,
+		petShelterCut = 0,
+		petShelterUntil = 0,
+		lastHurtAt = 0,
 		swingCount = 0,
 		battleCryStacks = 0,
 		battleCryUntil = 0,
@@ -1120,7 +1134,18 @@ function RunSession.applyDamage(session: Session, amount: number)
 	end
 
 	amount *= session.damageTaken
+	--[[ The Slate Turtle is tucked in beside its owner: everything is
+	     smaller while it lasts (`Shared/Util/Shelter`). After every other
+	     reduction, so it cuts what would actually have landed. ]]
+	if os.clock() < session.petShelterUntil then
+		amount = Shelter.reduce(amount, session.petShelterCut)
+	end
+	if amount <= 0 then
+		return
+	end
 	session.health = math.max(0, session.health - amount)
+	--[[ Arms the Buoy Puffer: it answers damage that landed, nothing else. ]]
+	session.lastHurtAt = os.clock()
 	playerDamaged:FireClient(session.player, amount)
 
 	--[[

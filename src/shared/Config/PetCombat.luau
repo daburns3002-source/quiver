@@ -19,8 +19,11 @@
 ]]
 
 local Bleed = require(script.Parent.Parent.Combat.Bleed)
+local DeepAccord = require(script.Parent.Parent.Util.DeepAccord)
 local PetDash = require(script.Parent.Parent.Util.PetDash)
+local PetWake = require(script.Parent.Parent.Util.PetWake)
 local RootHold = require(script.Parent.Parent.Util.RootHold)
+local Shelter = require(script.Parent.Parent.Util.Shelter)
 
 export type Spec = {
 	--[[ Seconds between attacks, and studs from the owner it reaches. ]]
@@ -88,6 +91,31 @@ export type Spec = {
 	--[[ The pet runs to each target and strikes as it lands, then runs back
 	     (the Glade Fox's Leaf Dash; `Shared/Util/PetDash`). ]]
 	dash: PetDash.Dash?,
+	--[[ Drowned Village (docs/PETS-DROWNED.md). Five behaviours that are
+	     each a first for the game, which is why each one's rule is its own
+	     pure module rather than a number read in the damage path. ]]
+	--[[ The owner takes less from everything for a while (the Slate
+	     Turtle's Roof Huddle; `Shared/Util/Shelter`). A cut, not a wall:
+	     hits still land, nothing is blocked and nobody is untouchable. ]]
+	shelter: Shelter.Shelter?,
+	--[[ A pet that answers the owner being hurt rather than a clock (the
+	     Buoy Puffer's Payback Puff): it arms when its owner takes damage
+	     and its next attack, at most one every `every`, hits for `scale`
+	     times what it otherwise would. With no damage taken it does
+	     nothing at all. ]]
+	payback: { scale: number }?,
+	--[[ A hit enemy cannot pick a target further than `range` studs away
+	     for `duration` seconds (the Inkpot's Ink Blink): it still walks,
+	     and still attacks whatever comes close. No slow and no damage. ]]
+	blind: { duration: number, range: number }?,
+	--[[ Foam on one enemy that bites it for walking (the Tide Wilf's Wake
+	     Chase; `Shared/Util/PetWake`). An enemy that stands still takes
+	     nothing from it. ]]
+	wake: PetWake.Wake?,
+	--[[ A canopy joining a few enemies, which share out what any of them
+	     takes (the Abyss Jelly's Deep Accord; `Shared/Util/DeepAccord`).
+	     It never multiplies damage: the total is what the player dealt. ]]
+	accord: DeepAccord.Accord?,
 }
 
 local PetCombat: { pets: { [string]: Spec } } = {
@@ -256,6 +284,70 @@ local PetCombat: { pets: { [string]: Spec } } = {
 			range = 12,
 			aura = { damage = 14, radius = 12, every = 0.75, duration = 3 },
 			revive = 0.5,
+		},
+
+		--[[ Drowned Village (docs/PETS-DROWNED.md). PLACEHOLDER NUMBERS, as
+		     everything here is, until the owner plays them. Area 3's enemies
+		     are not built, so these are aimed at Thornwood's: the Bramble
+		     Boar at 900 health hitting for 70.
+
+		     Three of the five do no damage of their own at all. That is on
+		     purpose and it is what makes this egg read differently from the
+		     first two -- the glade is a pool of little damage dealers, and
+		     the village answers with a pet that makes you harder to kill,
+		     one that makes an archer useless up close, and one that makes
+		     the whole room fall together. ]]
+		--[[ Roof Huddle: it tucks in beside you and everything hurts less
+		     for a moment. 3 s in every 14 is a fifth off for 21% of a
+		     fight, which is worth about a tenth of the player's health
+		     against area 2's rooms -- a real defensive pick without being
+		     the Snail's flat "one hit did not happen". ]]
+		SlateTurtle = {
+			every = 14,
+			range = 0,
+			shelter = { reduction = 0.2, duration = 3 },
+		},
+		--[[ Payback Puff: nothing at all until its owner is hurt, then one
+		     blunt spine at triple weight. Three times a Rare's ordinary 55
+		     is 165, about a fifth of a Bramble Boar, and only ever once
+		     every 8 s however often the player is hit -- a pet that
+		     rewards taking a hit must not reward standing in a fire. ]]
+		BuoyPuffer = {
+			every = 8,
+			range = 60,
+			damage = 55,
+			payback = { scale = 3 },
+		},
+		--[[ Ink Blink: ink in one enemy's face. For 3 s it cannot pick a
+		     target more than 6 studs off, so a Spitter or a Burr Thistle
+		     holding its distance simply stops firing; a melee enemy on top
+		     of you is unaffected, which is the trade. No slow, no damage,
+		     and a boss ignores it (`Combat/PetCombat`). ]]
+		Inkpot = {
+			every = 11,
+			range = 60,
+			blind = { duration = 3, range = 6 },
+		},
+		--[[ Wake Chase: foam that bites whatever wears it for moving. Four
+		     splashes of 45 is 180 against something that runs the whole 3 s
+		     and nothing against something that stands -- so it is worth
+		     most against exactly the enemies a Legendary should answer,
+		     the chargers and the lungers. ]]
+		TideWilf = {
+			every = 10,
+			range = 60,
+			wake = { damage = 45, perStud = 3, hits = 4, duration = 3 },
+		},
+		--[[ Deep Accord: a canopy over three. It adds no damage of its own
+		     -- a blow on a linked enemy is split, never copied
+		     (`Shared/Util/DeepAccord`) -- and it is a Mythic because of
+		     what that does to a room: every shot spends itself on three
+		     enemies at once, so a room falls together instead of one at a
+		     time, and nothing is left on a sliver of health. ]]
+		AbyssJelly = {
+			every = 16,
+			range = 60,
+			accord = { targets = 3, duration = 4 },
 		},
 	},
 }

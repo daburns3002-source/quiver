@@ -13,6 +13,26 @@ local PetCombat = require(ReplicatedStorage.Shared.Config.PetCombat)
 local TestRunner = require(script.Parent.TestRunner)
 
 return function(t: TestRunner.Helper)
+	--[[ Drowned Village: each of the five has a spec, and each says
+	     something. A pet that fought but said nothing would show the
+	     hatchery's "no combat behaviour yet" beside an attack that works. ]]
+	t.test("the Drowned Village five each fight and each say so", function()
+		for _, key in { "SlateTurtle", "BuoyPuffer", "Inkpot", "TideWilf", "AbyssJelly" } do
+			t.notNil(PetCombat.pets[key], key)
+			local lines = PetBlurb.lines(key)
+			t.isTrue(#lines > 0, key)
+			t.isTrue(PetBlurb.text(key) ~= PetBlurb.NONE, key)
+		end
+	end)
+
+	--[[ Three of the five do no damage at all, which is the point of them;
+	     what must not happen is one that does nothing whatsoever. ]]
+	t.test("every pet that fights does something a line can describe", function()
+		for key in PetCombat.pets do
+			t.isTrue(#PetBlurb.lines(key) > 0, key)
+		end
+	end)
+
 	--[[ Both areas' pets are finished now (Thornwood's got their combat in
 	     2026-10-31), so nothing a player can hatch may shrug. ]]
 	t.test("every pet a player can hatch says what it does", function()

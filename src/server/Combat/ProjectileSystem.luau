@@ -517,7 +517,10 @@ local function applyHit(projectile: Projectile, model: Model): boolean
 		     necessarily a live enemy — it can be one killed earlier in this
 		     same step — and an arrow that stopped dead on one of those looked
 		     exactly like a hit that failed to register. ]]
-		local landed, xp, fell = EnemyManager.damage(model, damage, projectile.position, kind)
+		--[[ `owner` says this is the player's own blow, which is what a
+		     Deep Accord canopy shares out. ]]
+		local landed, xp, fell =
+			EnemyManager.damage(model, damage, projectile.position, kind, projectile.owner)
 
 		if landed then
 			--[[ Splash before the chain, so an explosion that finishes a

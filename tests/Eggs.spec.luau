@@ -4,13 +4,15 @@
 	rarity the eggs roll and an egg that exists, an egg's chances add up to
 	one with the Mythic rarest, a roll covers every pet in proportion, the
 	Mossy Egg holds eight of the forest pets, and both eggs are open from the
-	start for now.
+	start for now. Also the models: every one has a pet behind it, and every
+	Legendary and Mythic among them wears its aura.
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local EggRules = require(ReplicatedStorage.Shared.Util.EggRules)
 local Eggs = require(ReplicatedStorage.Shared.Config.Eggs)
+local PetAuras = require(ReplicatedStorage.Shared.Config.PetAuras)
 local Pets = require(ReplicatedStorage.Shared.Config.Pets)
 local TestRunner = require(script.Parent.TestRunner)
 
@@ -22,6 +24,43 @@ return function(t: TestRunner.Helper)
 			t.notNil(Eggs.odds[info.rarity], pet)
 			if info.egg then
 				t.notNil(EggRules.find(info.egg), pet)
+			end
+		end
+	end)
+
+	--[[ A model with no `Config/Pets` row would never hatch and never show
+	     a name: `Util/EggRules` reads the pool from `Pets`, not from the
+	     models folder. ]]
+	t.test("every pet model has a pet behind it", function()
+		for _, model in ReplicatedStorage.Shared.Config.PetModels:GetChildren() do
+			t.notNil(Pets[model.Name], model.Name)
+		end
+	end)
+
+	--[[ Owner's standing rule: every Legendary and Mythic glows, and a
+	     Mythic's glow is the rainbow (`Config/PetAuras`). ]]
+	t.test("every modelled Legendary and Mythic wears an aura", function()
+		for _, model in ReplicatedStorage.Shared.Config.PetModels:GetChildren() do
+			local info = Pets[model.Name]
+			if not info or (info.rarity ~= "Legendary" and info.rarity ~= "Mythic") then
+				continue
+			end
+			local look = PetAuras.looks[PetAuras.pets[model.Name]]
+			t.notNil(look, model.Name)
+			if look and info.rarity == "Mythic" then
+				t.notNil(look.rainbow, model.Name)
+			end
+		end
+	end)
+
+	--[[ Drowned Village (docs/PETS-DROWNED.md): five imported, benched
+	     until the egg has its eight and its hatch art. ]]
+	t.test("the Drowned Village's five are modelled and benched", function()
+		for _, pet in { "SlateTurtle", "BuoyPuffer", "Inkpot", "TideWilf", "AbyssJelly" } do
+			t.notNil(Pets[pet], pet)
+			t.notNil(ReplicatedStorage.Shared.Config.PetModels:FindFirstChild(pet), pet)
+			if Pets[pet] then
+				t.isNil(Pets[pet].egg, pet)
 			end
 		end
 	end)

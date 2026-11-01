@@ -126,6 +126,14 @@ local GearAssets = {
 		BrambleWilf = "rbxassetid://100817787910788",
 		ThornPrincess = "rbxassetid://77091667536130",
 		Thornwake = "rbxassetid://85430024402506",
+		-- Drowned Village. Rendered from the models rather than drawn, since
+		-- these five came out of Tripo with no art of their own
+		-- (assets/concepts/pets/drowned/README.md)
+		SlateTurtle = "rbxassetid://96863657817087",
+		BuoyPuffer = "rbxassetid://98931444417689",
+		Inkpot = "rbxassetid://83913732789136",
+		TideWilf = "rbxassetid://95828713798755",
+		AbyssJelly = "rbxassetid://86884247547888",
 	} :: { [string]: string },
 	crates = {
 		MossyGlade = {

@@ -64,6 +64,24 @@ local Pets: { [string]: Pet } = {
 	BrambleWilf = { name = "BRAMBLE WILF", rarity = "Legendary", egg = "ThornwoodEgg" },
 	ThornPrincess = { name = "THORN PRINCESS", rarity = "Legendary", egg = "ThornwoodEgg" },
 	Thornwake = { name = "THORNWAKE", rarity = "Mythic", egg = "ThornwoodEgg" },
+	--[[ Drowned Village (docs/PETS-DROWNED.md), the five the owner has
+	     imported so far. No egg yet: `Config/Eggs` holds none for the area
+	     and `tests/Eggs.spec` pins an egg at eight pets, so the Drowned
+	     Village Egg waits on three more models -- two of the Commons (Dock
+	     Otter, Reed Duck, Foam Pup) and the Toll Prince, the boss heir that
+	     shares the Legendary slot with the Tide Wilf -- and on its own
+	     hatch art in `Config/GearAssets.eggs`. Until then these five are
+	     benched like any other petless pet: modelled, previewable and
+	     ready to be rolled the day the egg opens.
+
+	     They are single Tripo meshes rather than blocky Claude Design
+	     builds, so none of them has clips, an attack or a combat spec yet;
+	     `Combat/PetCombat` simply skips a pet it has no spec for. ]]
+	SlateTurtle = { name = "SLATE TURTLE", rarity = "Uncommon" },
+	BuoyPuffer = { name = "BUOY PUFFER", rarity = "Rare" },
+	Inkpot = { name = "INKPOT", rarity = "Epic" },
+	TideWilf = { name = "TIDE WILF", rarity = "Legendary" },
+	AbyssJelly = { name = "ABYSS JELLY", rarity = "Mythic" },
 }
 
 return table.freeze(Pets)

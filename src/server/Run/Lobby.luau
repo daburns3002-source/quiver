@@ -27,6 +27,7 @@ local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Eggs = require(ReplicatedStorage.Shared.Config.Eggs)
 local LevelUnlocks = require(ReplicatedStorage.Shared.Util.LevelUnlocks)
 local LobbyConfig = require(ReplicatedStorage.Shared.Config.Lobby)
+local MeshTemplates = require(script.Parent.Parent.Util.MeshTemplates)
 local Shop = require(ReplicatedStorage.Shared.Config.Shop)
 
 local Lobby = {}
@@ -156,6 +157,65 @@ local function blob(
 	local mesh = Instance.new("SpecialMesh")
 	mesh.MeshType = Enum.MeshType.Sphere
 	mesh.Parent = p
+	return p
+end
+
+--[[
+	The Dex Hall's two imported books (`LobbyConfig.dex`), loaded once at
+	boot and cloned from here.
+
+	`MeshPart.MeshId` cannot be written: a mesh part has to come out of
+	`AssetService:CreateMeshPartAsync`, which yields while it fetches. So
+	the two ids go through `Util/MeshTemplates` with everything else the
+	server loads, and the lobby clones what came back. A mesh that did not
+	load leaves its book out rather than stopping the hall being built.
+]]
+local bookTemplates: { [string]: MeshPart } = {}
+
+export type BookSpec = {
+	mesh: string,
+	texture: string,
+	native: Vector3,
+	across: number,
+	lift: number,
+}
+
+--[[
+	One of those books, drawn `across` studs wide with its own proportions
+	kept, standing on `foot`.
+
+	The lobby is otherwise all parts; these two are the ones the owner
+	modelled. `native` is the import's own size, which is what fixes the
+	scale -- reading it from the config rather than measuring the asset
+	means the maths does not wait on a fetch.
+]]
+local function bookPiece(
+	name: string,
+	spec: BookSpec,
+	foot: Vector3,
+	turn: number,
+	parent: Instance
+): MeshPart?
+	local template = bookTemplates[spec.mesh]
+	if not template then
+		return nil
+	end
+	local p = template:Clone()
+	local size = spec.native * (spec.across / spec.native.X)
+	p.Name = name
+	p.Anchored = true
+	p.CanCollide = false
+	p.CanQuery = false
+	p.CanTouch = false
+	p.Material = Enum.Material.SmoothPlastic
+	p.Size = size
+	p.TextureID = spec.texture
+	--[[ The import carries its colours in its texture, so the part must
+	     not tint them. ]]
+	p.Color = Color3.new(1, 1, 1)
+	p.CFrame = CFrame.new(foot + Vector3.new(0, spec.lift + size.Y / 2, 0))
+		* CFrame.Angles(0, turn, 0)
+	p.Parent = parent
 	return p
 end
 
@@ -814,6 +874,158 @@ local function building(name: string, at: Vector2, parent: Instance): Vector3?
 		armourStand(spot(Vector3.new(-w / 2 + 3.5, 0, front + 4)), model)
 		weaponRack(spot(Vector3.new(w / 2 - 4.5, 0, front + 3)), { "bow", "staff", "sword" }, model)
 	end
+	--[[
+		The Dex Hall, to the owner's sheet (2026-11-01, front and back):
+		the open book astride the ridge with its ribbon down the gable and
+		its pages adrift, a lectern either side of the steps, a lantern on
+		each front wall, and the red carpet up to the door.
+
+		The two books are the owner's own imports (`bookPiece`); everything
+		round them is parts, as the rest of the lobby is.
+	]]
+	if name == "DexHall" then
+		local dex = LobbyConfig.dex
+		local look = dex.colours
+
+		--[[ The book sits astride the ridge, which the sheet shows carrying
+		     its weight on the gable rather than floating over it. ]]
+		bookPiece(
+			"RoofBook",
+			dex.roofBook,
+			base.Position + Vector3.new(0, ridge, 0),
+			dex.turn,
+			model
+		)
+
+		--[[ Its ribbon down the front gable, with the gold lozenge the
+		     sheet puts at the bottom of it. ]]
+		local ribbon = dex.ribbon
+		box(
+			"Ribbon",
+			Vector3.new(ribbon.width, ribbon.drop, 0.5),
+			Vector3.new(0, ridge - ribbon.drop / 2, front + 0.4),
+			look.red
+		)
+		local lozenge = box(
+			"RibbonLozenge",
+			Vector3.new(ribbon.lozenge, ribbon.lozenge, 0.5),
+			Vector3.new(0, ridge - ribbon.drop, front + 0.6),
+			look.trim
+		)
+		lozenge.Orientation = Vector3.new(0, 0, 45) + lozenge.Orientation
+
+		--[[ Loose pages adrift round the book. Laid on a ring rather than
+		     at random, so they read as a spread from every angle the lobby
+		     camera takes rather than clumping on one side. ]]
+		local pages = dex.pages
+		for k = 0, pages.count - 1 do
+			local share = k / pages.count
+			local turn = share * math.pi * 2
+			local out = pages.spread[1] + (pages.spread[2] - pages.spread[1]) * ((k % 3) / 2)
+			local up = pages.rise[1] + (pages.rise[2] - pages.rise[1]) * (((k + 1) % 3) / 2)
+			local page = part(
+				"Page",
+				pages.size,
+				base
+					* CFrame.new(math.sin(turn) * out, ridge + up, math.cos(turn) * out * 0.45)
+					* CFrame.Angles(math.rad(-25 + k * 13), turn, math.rad(18 - k * 9)),
+				look.page,
+				model
+			)
+			page.CastShadow = false
+		end
+
+		--[[ A lectern either side of the steps, each an open book on a
+		     brown post over a pale stone block. ]]
+		local lectern = dex.lectern
+		for _, sx in { -1, 1 } do
+			local stood = Vector3.new(sx * lectern.out, 0, front + lectern.forward)
+			box(
+				"LecternBase",
+				lectern.base,
+				stood + Vector3.new(0, lectern.base.Y / 2, 0),
+				look.stone
+			)
+			box(
+				"LecternPost",
+				lectern.post,
+				stood + Vector3.new(0, lectern.base.Y + lectern.post.Y / 2, 0),
+				look.timber
+			)
+			local deskAt = lectern.base.Y + lectern.post.Y
+			box(
+				"LecternTrim",
+				Vector3.new(lectern.post.X + 1.4, 0.5, lectern.post.Z + 1.2),
+				stood + Vector3.new(0, deskAt + 0.25, 0),
+				look.trim
+			)
+			bookPiece(
+				"LecternBook",
+				dex.standBook,
+				base.Position + stood + Vector3.new(0, deskAt + 0.5, 0),
+				dex.turn,
+				model
+			)
+		end
+
+		--[[ A lit lantern on the front wall either side of the porch. ]]
+		local lantern = dex.lantern
+		for _, sx in { -1, 1 } do
+			local hung = Vector3.new(sx * lantern.out, floor + lantern.height, front + 0.6)
+			box(
+				"LanternBracket",
+				Vector3.new(0.5, 0.5, 1.2),
+				hung + Vector3.new(0, 1.6, 0),
+				look.timberDark
+			)
+			local glass = box("Lantern", lantern.size, hung, look.lantern)
+			glass.Material = Enum.Material.Neon
+			local light = Instance.new("PointLight")
+			light.Color = look.lantern
+			light.Range = 16
+			light.Brightness = 1.2
+			light.Parent = glass
+		end
+
+		--[[ The red carpet, up the steps and across the porch. ]]
+		local carpet = dex.carpet
+		box(
+			"Carpet",
+			Vector3.new(carpet.X, 0.14, carpet.Y),
+			Vector3.new(0, floor + 0.08, front + carpet.Y / 2),
+			look.red
+		)
+
+		--[[ Inside: a counter with its own lamp, and a shelf of books
+		     either side, which is what the sheet shows through the front. ]]
+		box("Counter", Vector3.new(12, 4, 2.6), Vector3.new(0, floor + 2, front - 3), look.timber)
+		local lamp = box(
+			"CounterLamp",
+			Vector3.new(1.4, 1.8, 1.4),
+			Vector3.new(0, floor + 4.9, front - 3),
+			look.lantern
+		)
+		lamp.Material = Enum.Material.Neon
+		for _, sx in { -1, 1 } do
+			local shelfAt = Vector3.new(sx * 11, 0, front - 2.2)
+			box(
+				"Shelf",
+				Vector3.new(8, 8, 1.8),
+				shelfAt + Vector3.new(0, floor + 4, 0),
+				look.timberDark
+			)
+			for row = 0, 2 do
+				for col = 0, 3 do
+					box(
+						"ShelfBook",
+						Vector3.new(1.2, 2, 1.4),
+						shelfAt + Vector3.new((col - 1.5) * 1.6, floor + 1.6 + row * 2.6, 0.4),
+						look.shelf[(row * 4 + col) % #look.shelf + 1]
+					)
+				end
+			end
+		end
+	end
 	if spec.title then
 		local anchor = wall("Title", Vector3.one, spot(Vector3.new(0, ridge + 14, 0)), model)
 		anchor.CanCollide = false
@@ -1113,6 +1325,11 @@ local function near(a: Vector2, list: { Vector2 }, reach: number): boolean
 end
 
 function Lobby.build(parent: Instance)
+	--[[ The Dex Hall's books, fetched before anything is placed: they are
+	     the only meshes in the lobby, so this is the one wait, and it is
+	     two ids. ]]
+	bookTemplates =
+		MeshTemplates.load({ LobbyConfig.dex.roofBook.mesh, LobbyConfig.dex.standBook.mesh })
 	local rng = Random.new(20261027)
 	local root = Instance.new("Folder")
 	root.Name = "Lobby"

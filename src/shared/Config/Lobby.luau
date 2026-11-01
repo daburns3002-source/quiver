@@ -12,8 +12,13 @@
 	sandy paths with darker edges, raised grass ledges on orange-brown cliff
 	sides, round grey boulders, puffy round trees, waterfalls, cottages with
 	coloured roofs, wooden signs and round wooden egg platforms. Everything is
-	built at boot from plain smooth parts (`Run/Lobby`), no meshes and no
-	imports; the words alone are in the blocky font.
+	built at boot from plain smooth parts (`Run/Lobby`); the words alone are
+	in the blocky font. The one exception is the Dex Hall's two books
+	(`dex` below), which the owner modelled and imported himself
+	(2026-11-01: "i made the book that goes on the roof and also the book
+	stand that is on the ground in front of it") -- an open book's pages
+	are not a shape a few boxes make well, and they are the thing the hall
+	is named for.
 
 	A clearing beside the arena, far enough away that neither is ever on
 	screen with the other. Players arrive at the fountain after BEGIN
@@ -192,15 +197,101 @@ local Lobby = {
 			titleColour = Color3.fromRGB(110, 200, 255),
 			emblem = "shield",
 		},
+		--[[ Colours off the owner's sheet (2026-11-01, front and back): a
+		     vivid violet roof with gold corner caps, brown timber over warm
+		     cream panels, and a pale stone base. The old roof was a muted
+		     lilac and the panels nearly white. ]]
 		DexHall = {
 			size = Vector3.new(38, 14, 22),
 			rise = 10,
-			walls = Color3.fromRGB(240, 238, 232),
-			roof = Color3.fromRGB(134, 92, 206),
+			walls = Color3.fromRGB(238, 226, 196),
+			roof = Color3.fromRGB(124, 44, 230),
 			sign = "DEX HALL",
 			columns = true,
 		},
 	} :: { [string]: Building },
+
+	--[[
+		The Dex Hall's own pieces, from the owner's sheet (2026-11-01).
+
+		Its two books are imported models, the only ones in the lobby: the
+		open book that sits astride the roof ridge, and the one on each
+		lectern out front. Everything else here is parts, as the rest of
+		the lobby is -- the red ribbon down the gable with its gold
+		lozenge, the loose pages drifting round the roof book, the lecterns
+		under their books, the lanterns either side of the porch and the
+		red carpet up the steps.
+
+		`turn` is half a turn about Y: the imports come in facing -Z, as
+		every Tripo import in this place has, and a building faces south,
+		so the open pages have to come round to meet the player. It is one
+		number because it is the thing most likely to be wrong.
+	]]
+	dex = {
+		turn = math.pi,
+		--[[ The roof book, astride the ridge. `across` is how wide it is
+		     drawn; the model is scaled off that, so its proportions are
+		     its own. ]]
+		roofBook = {
+			mesh = "rbxassetid://132359194018769",
+			texture = "rbxassetid://75292294805929",
+			--[[ The import's own size, which fixes the scale. ]]
+			native = Vector3.new(0.9995, 0.5698, 0.5864),
+			across = 15,
+			--[[ Studs the book's foot stands above the ridge. ]]
+			lift = -0.6,
+		},
+		--[[ The book on each lectern. ]]
+		standBook = {
+			mesh = "rbxassetid://111083341429927",
+			texture = "rbxassetid://105823115455072",
+			native = Vector3.new(0.9995, 0.8843, 0.6723),
+			across = 5,
+			lift = 0,
+		},
+		--[[ The lecterns: how far out from the middle each stands, how far
+		     forward of the porch, and the pedestal under the book. ]]
+		--[[ Just outside the porch columns and a little forward of the
+		     steps, as the sheet has them: far enough out not to be behind
+		     a column from the lobby camera, near enough that they still
+		     read as the hall's. ]]
+		lectern = {
+			out = 15,
+			forward = 6,
+			base = Vector3.new(6, 1.2, 5),
+			post = Vector3.new(3, 4.2, 2.6),
+			deskTilt = math.rad(18),
+		},
+		--[[ The loose pages round the roof book: how many, how far out they
+		     drift and the band of heights they sit in. ]]
+		pages = {
+			count = 6,
+			size = Vector3.new(3, 0.3, 3.4),
+			spread = { 11, 17 },
+			rise = { 2, 7 },
+		},
+		--[[ The ribbon down the front gable, and the lozenge on it. ]]
+		ribbon = { width = 2.6, drop = 9, lozenge = 2.4 },
+		--[[ The wall lanterns either side of the porch. ]]
+		lantern = { out = 17, height = 8, size = Vector3.new(1.8, 2.6, 1.8) },
+		--[[ The carpet up the steps and across the porch. ]]
+		carpet = Vector2.new(13, 16),
+		colours = {
+			trim = Color3.fromRGB(247, 196, 30),
+			timber = Color3.fromRGB(150, 82, 40),
+			timberDark = Color3.fromRGB(116, 62, 30),
+			stone = Color3.fromRGB(236, 232, 220),
+			red = Color3.fromRGB(214, 36, 42),
+			page = Color3.fromRGB(246, 238, 214),
+			lantern = Color3.fromRGB(255, 186, 92),
+			shelf = {
+				Color3.fromRGB(126, 58, 180),
+				Color3.fromRGB(206, 44, 54),
+				Color3.fromRGB(240, 196, 54),
+				Color3.fromRGB(236, 232, 214),
+			},
+		},
+	},
 
 	--[[ The fountain at the spawn: its basin, studs across, and the paved
 	     ring round it. A player cannot walk into the basin. ]]

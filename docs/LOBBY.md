@@ -73,6 +73,27 @@ cards), `lobby/codex_books.png`, and the 2D codex books with their 6-frame page 
 solid (vertex colours carry no transparency), and the blacksmith's forge keeps its earlier
 left-right layout.
 
+**The Dex Hall** (2026-11-01, the owner's front and back sheet, and his two imported
+models: "i made the book that goes on the roof and also the book stand that is on the ground in
+front of it"). Built to that sheet: a vivid violet roof with gold corner caps over brown timber
+and warm cream panels, the open book astride the ridge with a red ribbon down the gable under a
+gold lozenge, six loose pages adrift round it, a lectern either side of the steps, a lit lantern
+on each front wall, the red carpet up to the door, and a counter with a lamp between two shelves
+of books inside. Numbers in `Config/Lobby.dex`, built by `Run/Lobby`.
+
+The two books are **the only imported meshes in the lobby**, which is otherwise all parts: an
+open book's pages are not a shape a few boxes make well, and they are the thing the hall is named
+for. `MeshPart.MeshId` cannot be assigned, so they go through `Util/MeshTemplates` with the rest
+of the server's meshes and are cloned from there; a mesh that fails to load leaves its book out
+rather than stopping the hall. Their facing is `dex.turn`, half a turn, on the same assumption
+every Tripo import here has met -- they arrive facing -Z and a building faces south.
+
+**Not yet seen against the sheet.** Studio would not render the lobby to a capture from this
+side of the tool (the class select holds the client before the lobby is reached, and a scripted
+camera is overridden each frame), so the hall is built to the sheet by construction and measured
+rather than compared by eye. The acceptance standard below is therefore **not met yet** for the
+Dex Hall: the side-by-side is the owner's to make, or mine once a capture works.
+
 ## What the lobby has to contain
 
 From `docs/PROGRESSION.md`:

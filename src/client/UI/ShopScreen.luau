@@ -193,7 +193,10 @@ function ShopScreen.start()
 					end
 				end
 			)
-			Kit.put(b, if index == 1 then 620 else 960, 40, 320, 84)
+			--[[ Under the left column rather than across the top: Codex's
+			     name hangs in that band, and the Blacksmith's own two modes
+			     are the game's furniture, not his. ]]
+			Kit.put(b, if index == 1 then 202 else 522, 840, 300, 84)
 		end
 		if store then
 			drawStore(s)

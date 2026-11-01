@@ -823,6 +823,262 @@ function Kit.pixelText(parent: Instance, words: string, size: number, colour: Co
 	return t
 end
 
+--[[
+	Codex's press feel, which his buttons have and a plain click area does
+	not: the face lifts a little under the pointer, sinks under the press
+	and settles back on a Back ease, so the button answers before the
+	server does. `burst` throws his ring of coins out of the press itself —
+	twelve, on the clock, fading as they fly.
+]]
+function Kit.pressFx(hit: GuiButton, visual: GuiObject, burst: boolean)
+	local scale = visual:FindFirstChildOfClass("UIScale") or Instance.new("UIScale")
+	scale.Parent = visual
+	local base = scale.Scale
+	local showing: number? = nil
+	local playing: Tween? = nil
+	local function settle()
+		local want = base
+		if hit.GuiState == Enum.GuiState.Press then
+			want = base * 0.9
+		elseif hit.GuiState == Enum.GuiState.Hover then
+			want = base * 1.08
+		end
+		if showing == want then
+			return
+		end
+		showing = want
+		if playing then
+			playing:Cancel()
+		end
+		playing = TweenService:Create(
+			scale,
+			TweenInfo.new(0.16, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
+			{ Scale = want }
+		)
+		assert(playing, "a tween"):Play()
+	end
+	hit:GetPropertyChangedSignal("GuiState"):Connect(settle)
+	if not burst then
+		return
+	end
+	hit.Activated:Connect(function()
+		local layer = hit:FindFirstAncestorWhichIsA("ScreenGui")
+		if not layer then
+			return
+		end
+		local middle = visual.AbsolutePosition + visual.AbsoluteSize / 2 - layer.AbsolutePosition
+		for i = 1, 12 do
+			local angle = i * math.pi / 6
+			local length = math.random(45, 95)
+			local size = math.random(18, 26)
+			local coin = Instance.new("ImageLabel")
+			coin.Name = "CoinBurst"
+			coin.AnchorPoint = Vector2.new(0.5, 0.5)
+			coin.BackgroundTransparency = 1
+			coin.Image = ShopAssets.coin
+			coin.Position = UDim2.fromOffset(middle.X, middle.Y)
+			coin.Rotation = math.random(0, 90)
+			coin.Size = UDim2.fromOffset(size, size)
+			coin.ZIndex = 55
+			coin.Parent = layer
+			local fly = TweenService:Create(
+				coin,
+				TweenInfo.new(0.6, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+				{
+					Position = UDim2.fromOffset(
+						middle.X + math.cos(angle) * length,
+						middle.Y + math.sin(angle) * length
+					),
+					Size = UDim2.fromOffset(0, 0),
+					ImageTransparency = 1,
+					Rotation = coin.Rotation + 100,
+				}
+			)
+			fly:Play()
+			fly.Completed:Once(function()
+				coin:Destroy()
+			end)
+		end
+	end)
+end
+
+--[[ Codex's bright rarity palette, which is not `Config/Rarities`: his
+     cards are lit from the front and read at a glance across a panel, so
+     the Rare is a cyan rather than the muted blue a card in the hand
+     wants. The faces on his screens are these. ]]
+Kit.bright = {
+	Common = Color3.fromRGB(216, 224, 232),
+	Uncommon = Color3.fromRGB(70, 255, 113),
+	Rare = Color3.fromRGB(0, 228, 255),
+	Epic = Color3.fromRGB(195, 83, 255),
+	Legendary = Color3.fromRGB(255, 211, 28),
+	Mythic = Color3.fromRGB(255, 40, 101),
+}
+
+--[[
+	One card from Codex's hatchery and chest: a flat face in its rarity's
+	bright colour, pixel-shaded in an 8x8 grid so it is not a plain
+	rectangle, a gleam across the whole card and the odds in the bottom
+	corner. `art` is the picture laid on it — the 2D weapon art for a
+	crate, the pet's picture for an egg — drawn black when `hidden`, which
+	is how he shows a Mythic nobody has pulled.
+
+	Legendary and Mythic carry a glow (owner's standing rule) and a Mythic
+	also carries his drifting rainbow pluses.
+]]
+function Kit.rarityCard(
+	parent: Instance,
+	rarity: string,
+	art: string,
+	chance: number,
+	hidden: boolean,
+	owned: boolean
+): Frame
+	local base = Kit.bright[rarity] or Kit.colour(rarity)
+
+	local card = Instance.new("Frame")
+	card.Name = "RarityCard"
+	card.BackgroundColor3 = base
+	card.BorderSizePixel = 0
+	card.Size = UDim2.fromScale(1, 1)
+	card.ZIndex = 8
+	card.Parent = parent
+	local round = Instance.new("UICorner")
+	round.CornerRadius = UDim.new(0, 18)
+	round.Parent = card
+
+	--[[ His pixel wash: each tile the face nudged a little toward white or
+	     black, by a hash that repeats every other column and row so the
+	     grain reads as hand-placed pixels rather than noise. ]]
+	local wash = Instance.new("Frame")
+	wash.BackgroundTransparency = 1
+	wash.Position = UDim2.fromScale(0.03, 0.055)
+	wash.Size = UDim2.fromScale(0.94, 0.886)
+	wash.ZIndex = 9
+	wash.Parent = card
+	for row = 0, 7 do
+		for col = 0, 7 do
+			local hash = (col * 17 + row * 31 + math.floor(col / 2) * 13 + math.floor(row / 2) * 7)
+				% 11
+			local shade = (hash - 5) * 0.006 + (3.5 - row) * 0.004
+			local tile = Instance.new("Frame")
+			tile.BorderSizePixel = 0
+			tile.BackgroundColor3 = base:Lerp(
+				if shade >= 0 then Color3.new(1, 1, 1) else Color3.new(0, 0, 0),
+				math.abs(shade)
+			)
+			tile.Position = UDim2.fromScale(col / 8, row / 8)
+			tile.Size = UDim2.fromScale(1 / 8, 1 / 8)
+			tile.ZIndex = 9
+			tile.Parent = wash
+		end
+	end
+
+	-- the gleam he runs across the whole card, brightest at the top left
+	local gleam = Instance.new("Frame")
+	gleam.BackgroundColor3 = Color3.new(1, 1, 1)
+	gleam.BackgroundTransparency = 0.82
+	gleam.BorderSizePixel = 0
+	gleam.Size = UDim2.fromScale(1, 1)
+	gleam.ZIndex = 10
+	gleam.Parent = card
+	local gleamRound = Instance.new("UICorner")
+	gleamRound.CornerRadius = UDim.new(0, 18)
+	gleamRound.Parent = gleam
+	local slant = Instance.new("UIGradient")
+	slant.Rotation = 35
+	slant.Transparency = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, 1),
+		NumberSequenceKeypoint.new(0.42, 1),
+		NumberSequenceKeypoint.new(0.52, 0.15),
+		NumberSequenceKeypoint.new(0.62, 1),
+		NumberSequenceKeypoint.new(1, 1),
+	})
+	slant.Parent = gleam
+
+	local picture = Kit.image(card, art)
+	picture.Position, picture.Size = UDim2.fromScale(0.08, 0.05), UDim2.fromScale(0.84, 0.76)
+	picture.ZIndex = 12
+	if hidden then
+		picture.ImageColor3 = Color3.new(0, 0, 0)
+	end
+
+	local odds = Kit.pixelText(card, string.format("%g%%", math.round(chance * 10000) / 100), 26)
+	odds.Position, odds.Size = UDim2.fromScale(0.3, 0.74), UDim2.fromScale(0.64, 0.2)
+	odds.TextXAlignment = Enum.TextXAlignment.Right
+	odds.ZIndex = 13
+
+	--[[ Every Legendary and Mythic glows (owner's standing rule); Codex
+	     draws it as rings of stroke outside the card, widest and faintest
+	     first. ]]
+	if rarity == "Legendary" or rarity == "Mythic" then
+		for ring, spread in { 7, 4, 2 } do
+			local halo = Instance.new("Frame")
+			halo.BackgroundTransparency = 1
+			halo.Position = UDim2.fromScale(-spread / 204, -spread / 212)
+			halo.Size = UDim2.fromScale(1 + spread * 2 / 204, 1 + spread * 2 / 212)
+			halo.ZIndex = 7
+			halo.Parent = card
+			local corner = Instance.new("UICorner")
+			corner.CornerRadius = UDim.new(0, 12 + spread)
+			corner.Parent = halo
+			local stroke = Instance.new("UIStroke")
+			stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+			stroke.LineJoinMode = Enum.LineJoinMode.Round
+			stroke.Color = base
+			stroke.Thickness = ({ 12, 8, 4 })[ring]
+			stroke.Transparency = ({ 0.9, 0.7, 0.25 })[ring]
+			stroke.Parent = halo
+		end
+	end
+	if rarity == "Mythic" then
+		Kit.rainbowRing(card)
+		local sparks = Instance.new("Frame")
+		sparks.BackgroundTransparency = 1
+		sparks.ClipsDescendants = true
+		sparks.Size = UDim2.fromScale(1, 1)
+		sparks.ZIndex = 13
+		sparks.Parent = card
+		local drifting = {}
+		for j = 1, 18 do
+			local size = 9 + (j % 4) * 2
+			local plus = Instance.new("Frame")
+			plus.AnchorPoint = Vector2.new(0.5, 0.5)
+			plus.BackgroundTransparency = 1
+			plus.Size = UDim2.fromOffset(size, size)
+			plus.ZIndex = 13
+			plus.Parent = sparks
+			for _, arm in { { size, 2 }, { 2, size } } do
+				local bar = Instance.new("Frame")
+				bar.BackgroundColor3 = Color3.new(1, 1, 1)
+				bar.BackgroundTransparency = 0.72
+				bar.BorderSizePixel = 0
+				bar.AnchorPoint = Vector2.new(0.5, 0.5)
+				bar.Position = UDim2.fromScale(0.5, 0.5)
+				bar.Size = UDim2.fromOffset(arm[1], arm[2])
+				bar.ZIndex = 13
+				bar.Parent = plus
+			end
+			table.insert(drifting, {
+				plus = plus,
+				x = ((j * 0.61803398875) % 1) * 0.9 + 0.05,
+				phase = (j * 0.381966) % 1,
+				speed = 0.12 + (j % 4) * 0.025,
+			})
+		end
+		Kit.animate(sparks, function(t)
+			for _, spark in drifting do
+				local y = (spark.phase - t * spark.speed) % 1
+				spark.plus.Position = UDim2.fromScale(spark.x, y)
+			end
+		end)
+	end
+	if owned then
+		Kit.owned(card)
+	end
+	return card
+end
+
 function Kit.canvas(parent: Instance): Frame
 	local c = Instance.new("Frame")
 	c.Name = "StationCanvas"

@@ -159,6 +159,34 @@ read it rather than this table. Two rounds happened on the same day:
    the forest's shapes on purpose, so a player who learned one area knows
    the other.
 
+### Which eight the egg holds (2026-10-31)
+
+Each egg holds eight pets at fixed rarity slots — two Commons, one
+Uncommon, one Rare, one Epic, two Legendaries, one Mythic — so four of the
+twelve are benched. The owner settled Thornwood's eight the same day:
+
+| Slot | In the egg | Benched |
+|---|---|---|
+| Common | Bark Hoglet | Budbulb |
+| Common | **Berry Bat** (moved from Rare) | **Burrball** |
+| Uncommon | **Thistle Mole** | **Berry Mouse** |
+| Rare | Briar Beetle | — |
+| Epic | Bramble Bear | Briar Lynx |
+| Legendary | Bramble Wilf | — |
+| Legendary | Thorn Princess | — |
+| Mythic | Thornwake | — |
+
+The Bat changed rarity rather than taking a Common's slot as a Rare,
+because one Common in an egg would carry the whole 53.5% Common weight and
+appear in over half of all hatches. As a Common its drain was cut from 2 a
+bite to 1.
+
+All twelve keep their specs, attacks and blurbs, so benching is a one-field
+change in `Config/Pets` and nothing has to be rebuilt to swap one back in.
+The egg has **no healer**: the Berry Mouse is benched, and so is the Mossy
+Egg's Toadstool Tot, so no hatchable pet in the game heals its owner on a
+patch.
+
 Still outstanding: every effect piece is a Mossy Glade `FxPet` model
 standing in, so the attacks read as the forest's until Thornwood has art of
 its own. The Attack clips are all exactly 1.0 s, which is why nothing

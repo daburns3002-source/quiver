@@ -104,16 +104,29 @@ with both at their drawn size and precise collision, and the first thing its und
 ignoring the narrow ridge finial its open covers straddle — is the roof slope at that depth. Its
 covers lie on the roof and the gable's peak sits up in the fold of the pages.
 
-**The hall has no texture, and cannot be given one as it stands.** Its GLB was read directly
-(`codex hall.glb`): one mesh, 24,395 vertices carrying `POSITION` and `NORMAL` **and nothing
-else** — no `TEXCOORD_0`, so no UVs — one material named `material` with no texture, and zero
-images in the file. A mesh with no UVs has nowhere to put a texture image; this is not a setting
-that was missed on import. The hall therefore renders in a single flat colour (the sheet's panel
-cream) instead of the violet roof, brown timber and cream panels.
+**The hall's texture is a stand-in** (owner, 2026-11-01: "use attempt 1").
 
-The fix is to export it from Tripo **with its texture**, which also writes the UVs. The two books
-prove the route: their intakes each carry a `.fbm/..._basecolor.jpg` beside the FBX and they came
-into Studio textured. Until then the acceptance standard below is **not met** for the hall.
+The hall as modelled could not take one. Its GLB was read directly (`codex hall.glb`): one mesh,
+24,395 vertices carrying `POSITION` and `NORMAL` **and nothing else** — no `TEXCOORD_0`, so no
+UVs — one material named `material` with no texture, and zero images in the file. A mesh with no
+UVs has nowhere to put a texture image, so this was never a setting missed on import.
+
+Roblox's own `generate_texture` was run over it instead, which unwraps a mesh as it paints it:
+`Config/Lobby.dex.hall` names that mesh and that texture. Three passes were made, all on clones,
+and the first is the one kept. It is **not** the sheet: the roof, the gold edge caps, the cream
+panels, the white banded columns, the red carpet, the lit lanterns and the shelves all landed,
+but the timbers came out salmon rather than brown and the base plinth red rather than cream. A
+second pass fixed those two and lost the cream panels; a third, in Quality mode, remeshed and
+never produced a texture at all.
+
+Geometrically it is the same hall — re-measured at 38 across it is 38.00 × 14.28 × 28.01 with its
+ridge and pads where they were — but the generator returned it at twice the native scale, which
+is why `hall.native` is not the import's own size.
+
+It goes the moment the hall is exported from Tripo **with texturing on**, which writes real UVs
+and a real basecolor; that is two ids in the config. The two books prove the route: their intakes
+each carry a `.fbm/..._basecolor.jpg` beside the FBX and they came into Studio textured. Until
+then the acceptance standard below is **not met** for the hall.
 
 **The layout** (owner, 2026-11-01: "every building should be either northwest, northeast,
 southwest, or southeast ... the dex hall is in the southwest, the gear station is in the

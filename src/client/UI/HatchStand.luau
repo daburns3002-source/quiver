@@ -369,20 +369,15 @@ function HatchStand.draw(
 		why.ZIndex = 16
 	end
 
-	for i, count in spec.counts do
-		prompt(
-			c,
-			if i == 1 then 95 else 305,
-			290,
-			180,
-			154,
-			if i == 1 then "E" else "R",
-			if count > 1 then `x{count}` else nil,
-			affordable(count),
-			function()
-				press(count)
-			end
-		)
+	--[[ Codex's one key, in the middle of his column (owner, 2026-10-31:
+	     "take the R button away, the E should just be there in the
+	     middle"). The other counts keep their keys — only the second
+	     button goes. ]]
+	local single = spec.counts[1]
+	if single then
+		prompt(c, 200, 290, 180, 154, "E", nil, affordable(single), function()
+			press(single)
+		end)
 	end
 
 	local autoHolder = slot(c, 95, 478, 390, 62)

@@ -920,7 +920,16 @@ end
 ]]
 local MODEL_FOV = 40
 --[[ How much of the card the pet fills, leaving the rest as margin. ]]
-local MODEL_FILL = 1.02
+local MODEL_FILL = 1.12
+--[[ The eight corners of a unit box, for framing a model against a card. ]]
+local CORNERS = {}
+for _, x in { -1, 1 } do
+	for _, y in { -1, 1 } do
+		for _, z in { -1, 1 } do
+			table.insert(CORNERS, Vector3.new(x, y, z))
+		end
+	end
+end
 --[[ The three-quarter turn: round to its left and a little above it. ]]
 local MODEL_YAW = 20
 local MODEL_PITCH = 11
@@ -984,6 +993,32 @@ function Kit.petModel(parent: Instance, key: string, hidden: boolean): ViewportF
 	local eye = CFrame.Angles(0, yaw, 0) * CFrame.Angles(pitch, 0, 0) * Vector3.new(0, 0, -away)
 	camera.CFrame = CFrame.lookAt(eye, Vector3.zero)
 	camera.Parent = view
+
+	--[[ A model centred on the origin does not land centred on the card:
+	     the camera looks down at it, so the near and far faces of its box
+	     project by different amounts and the pet rides high. Rather than
+	     guess an offset, its box is projected and the pet is slid by what
+	     that measures — which holds for any pet, whatever its shape. ]]
+	local half = math.tan(math.rad(MODEL_FOV) / 2)
+	--[[ Sliding the pet changes its own projection, since a corner nearer
+	     the lens moves further on screen than one behind it, so one pass
+	     lands close rather than true. A few settle it. ]]
+	for _ = 1, 4 do
+		local here = model:GetBoundingBox().Position
+		local low, high = Vector2.one * math.huge, Vector2.one * -math.huge
+		for _, corner in CORNERS do
+			local at = camera.CFrame:PointToObjectSpace(here + corner * extents / 2)
+			local flat = Vector2.new(at.X, at.Y) / (-at.Z * half)
+			low, high = low:Min(flat), high:Max(flat)
+		end
+		local drift = (low + high) / 2
+		if drift.Magnitude < 1e-4 then
+			break
+		end
+		local reachOut = camera.CFrame.RightVector * (drift.X * away * half)
+		local reachUp = camera.CFrame.UpVector * (drift.Y * away * half)
+		model:PivotTo(model:GetPivot() - reachOut - reachUp)
+	end
 	view.CurrentCamera = camera
 	return view
 end

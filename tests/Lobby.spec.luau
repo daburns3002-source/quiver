@@ -87,52 +87,57 @@ return function(t: TestRunner.Helper)
 		end
 	end)
 
-	t.test("the Dex Hall's three imports name real meshes and keep their own shape", function()
+	--[[ The Dex Hall is parts now, bar the two books the owner modelled,
+	     so those two are the only places an asset id can be wrong and
+	     leave a hole where a book should be. ]]
+	t.test("the Dex Hall's two book imports name real meshes", function()
 		local dex = LobbyConfig.dex
 		local seen: { [string]: boolean } = {}
-		local pieces: { LobbyConfig.DexPiece } = { dex.hall, dex.roofBook, dex.standBook }
+		local pieces: { LobbyConfig.DexPiece } = { dex.roofBook, dex.standBook }
 		for _, piece in pieces do
 			t.isTrue(piece.mesh:match("^rbxassetid://%d+$") ~= nil, piece.mesh)
+			t.isTrue(piece.texture:match("^rbxassetid://%d+$") ~= nil, piece.texture)
 			t.isTrue(not seen[piece.mesh], "each is its own mesh")
 			seen[piece.mesh] = true
 			--[[ The scale is `across` over the import's own width, so a
 			     native size of nought would divide by zero. ]]
 			t.isTrue(piece.native.X > 0 and piece.native.Y > 0 and piece.native.Z > 0, piece.mesh)
 			t.isTrue(piece.across > 0, piece.mesh)
-			--[[ A texture is either a real asset or honestly empty: the
-			     hall imported without one, and `Run/Lobby` tints it
-			     rather than painting a broken id onto it. ]]
-			t.isTrue(
-				piece.texture == "" or piece.texture:match("^rbxassetid://%d+$") ~= nil,
-				piece.texture
-			)
 		end
 	end)
 
-	--[[ The book sits astride the ridge rather than floating over it: its
-	     own box reaches down to the tip of its ribbon, so its foot goes
-	     below the ridge by more than nothing and less than the hall. ]]
-	t.test("the roof book seats on the ridge, over the hall it belongs to", function()
+	--[[ The book rests on the roof rather than floating over it: its own
+	     box reaches down past its covers to the tip of the ribbon, so its
+	     foot drops below the roof by more than nothing and less than the
+	     whole building. ]]
+	t.test("the roof book seats on the roof, over the hall it belongs to", function()
 		local dex = LobbyConfig.dex
-		t.isTrue(dex.roofBook.seat > 0, "floats over the ridge")
+		t.isTrue(dex.roofBook.seat > 0, "floats over the roof")
 		t.isTrue(dex.roofBook.seat < dex.hall.ridge, "sunk into the hall")
 		t.isTrue(dex.roofBook.across < dex.hall.across, "wider than the hall")
 		t.isTrue(dex.roofBook.across > dex.hall.across / 4, "lost on the roof")
-		--[[ Forward of the middle, over the front gable, and still on
-		     the roof rather than off its front edge. ]]
-		local deep = dex.hall.native.Z / dex.hall.native.X * dex.hall.across
-		t.isTrue(dex.roofBook.forward > 0 and dex.roofBook.forward < deep / 2, "off the roof")
+		t.isTrue(math.abs(dex.roofBook.forward) < dex.hall.deep / 2, "off the roof")
 	end)
 
-	--[[ The stands go on the two pads the hall mesh carries, measured off
-	     it: outside the steps, inside the hall's own width. ]]
+	--[[ The stands go on the two pads the hall builds for them: out past
+	     its steps, and each one wide enough to hold its stand. ]]
 	t.test("the stands stand on their pads, clear of each other", function()
 		local dex = LobbyConfig.dex
-		local deep = dex.hall.native.Z / dex.hall.native.X * dex.hall.across
 		t.isTrue(dex.pads.out * 2 > dex.standBook.across * 2, "the two stands meet")
-		t.isTrue(dex.pads.out * 2 + dex.standBook.across <= dex.hall.across, "wider than the hall")
-		t.isTrue(dex.pads.forward > 0 and dex.pads.forward < deep / 2 + 4, "off the front")
+		t.isTrue(dex.pads.forward > dex.hall.deep / 2, "inside the building")
 		t.isTrue(dex.pads.top > 0, "sunk into the lawn")
+		t.isTrue(dex.pads.size.X >= dex.standBook.across, "the stand overhangs its pad")
+	end)
+
+	--[[ The hall's own shape has to be what `buildings.DexHall` says, or
+	     the spacing between the stations is measured against a building
+	     that is not there. ]]
+	t.test("the Dex Hall's footprint matches the building it builds", function()
+		local dex = LobbyConfig.dex
+		local spec = LobbyConfig.buildings.DexHall
+		t.equal(spec.size.X, dex.hall.across, "width")
+		t.equal(spec.size.Z, dex.hall.deep, "depth")
+		t.isTrue(math.abs(spec.size.Y - dex.hall.ridge) < 0.5, "height")
 	end)
 
 	t.test("the working portals are Mossy Glade, Thornwood and Endless", function()

@@ -73,80 +73,31 @@ cards), `lobby/codex_books.png`, and the 2D codex books with their 6-frame page 
 solid (vertex colours carry no transparency), and the blacksmith's forge keeps its earlier
 left-right layout.
 
-**The Dex Hall** is the owner's own model (2026-11-01: "ok i imported the dex hall i want you
-to use", "put the book on top and the book stands on the sides where they belong"). Three
-imports, the only meshes in the lobby: the hall, the open book astride its roof and the stand on
-each of the two stone pads out front. The hall mesh carries its own porch, columns, wall
-lanterns, steps, carpet, counter and shelves, so nothing is drawn over it; a light goes at each
-lantern, because one mesh takes one material and a modelled lantern cannot glow by itself.
+**The Dex Hall is built from parts**, like every other station (owner, 2026-11-01: "the dex hall
+needs to be remade, use the book stands and the book on the top but make a whole new building",
+then "i want you to just use parts already in roblox"). 92 parts: a cream plinth and two steps
+with a red carpet over them, a timber frame of posts and beams over cream panels, two white
+columns banded in gold, a roof of two slopes meeting a flat top with a gold cap at each corner,
+a gable with a timber king post and a gold peak, a lit lantern either side of the porch, and a
+counter with a shelf of coloured books inside. Every colour is set outright from the sheet's
+palette (`Config/Lobby.dex.colours`), so it matches by construction rather than by a generator's
+guess.
 
-Everything is measured off the mesh, by raycast against its own collision shape at the size it
-is drawn: the ridge stands 14.28 studs over its floor, and the two pads are 0.9 high, 7 wide,
-13 studs either side of the middle and 11 forward. The roof book's own box reaches down to the
-tip of its ribbon, so its foot is seated 2.2 studs below the ridge to put the covers *on* it
-rather than floating. The hall was modelled facing -Z and a building faces south, so the whole
-assembly is placed in the hall's frame and turned; the books ride that turn with it. Numbers in
-`Config/Lobby.dex`.
+Two things stay imported: the open book on the roof and the stand on each of the two pads the
+hall builds out front. They were modelled facing -Z, so they take an extra half-turn (`dex.turn`)
+on top of the building's own. The book rests on the roof — its bounding box reaches down past
+its covers to the tip of the ribbon, so its foot drops 2.35 studs below the roof to put the
+covers on it.
 
-`MeshPart.MeshId` cannot be assigned, so the three go through `Util/MeshTemplates` with the rest
-of the server's meshes and are cloned; if the hall mesh fails to load nothing is drawn, rather
-than three books floating over the lawn.
+**Why it is parts.** The hall the owner modelled came out of Tripo before its texturing step and
+so carried no UVs at all — one mesh, 24,395 vertices with `POSITION` and `NORMAL` and nothing
+else, one untextured material, no images. A mesh with no UVs has nowhere for a texture to go, so
+it could only ever render in one flat colour. Roblox's own `generate_texture` was tried, which
+unwraps as it paints and did produce a textured hall, but across three attempts it never got the
+sheet's colours right in one pass — the timbers came out salmon, or the cream panels went brown.
+Parts have neither problem, and they live in the repo rather than in the place file.
 
-The nameboards turn with their stations: `signboard` takes a frame rather than a point, since a
-board that always faced south would have its back to the lawn on three corners out of four. The
-words sit on a part's Front face, which is its -Z, so a board reads out of the frame's -Z — the
-Dex Hall's hangs off `base` and not off the turned mesh frame, or it would read out of the back
-of the building.
-
-The roof book **rests on the roof**, 4.83 studs below the ridge (owner, 2026-11-01: "the book
-needs to rest on the roof like this"). Measured, not guessed: the book was dropped onto the hall
-with both at their drawn size and precise collision, and the first thing its underside meets —
-ignoring the narrow ridge finial its open covers straddle — is the roof slope at that depth. Its
-covers lie on the roof and the gable's peak sits up in the fold of the pages.
-
-**The hall's texture is a stand-in** (owner, 2026-11-01: "use attempt 1").
-
-The hall as modelled could not take one. Its GLB was read directly (`codex hall.glb`): one mesh,
-24,395 vertices carrying `POSITION` and `NORMAL` **and nothing else** — no `TEXCOORD_0`, so no
-UVs — one material named `material` with no texture, and zero images in the file. A mesh with no
-UVs has nowhere to put a texture image, so this was never a setting missed on import.
-
-Roblox's own `generate_texture` was run over it instead, which unwraps a mesh as it paints it:
-`Config/Lobby.dex.hall` names that mesh and that texture. Three passes were made, all on clones,
-and the first is the one kept. It is **not** the sheet: the roof, the gold edge caps, the cream
-panels, the white banded columns, the red carpet, the lit lanterns and the shelves all landed,
-but the timbers came out salmon rather than brown and the base plinth red rather than cream. A
-second pass fixed those two and lost the cream panels; a third, in Quality mode, remeshed and
-never produced a texture at all.
-
-Geometrically it is the same hall — re-measured at 38 across it is 38.00 × 14.28 × 28.01 with its
-ridge and pads where they were — but the generator returned it at twice the native scale, which
-is why `hall.native` is not the import's own size.
-
-It goes the moment the hall is exported from Tripo **with texturing on**, which writes real UVs
-and a real basecolor; that is two ids in the config. The two books prove the route: their intakes
-each carry a `.fbm/..._basecolor.jpg` beside the FBX and they came into Studio textured. Until
-then the acceptance standard below is **not met** for the hall.
-
-**The layout** (owner, 2026-11-01: "every building should be either northwest, northeast,
-southwest, or southeast ... the dex hall is in the southwest, the gear station is in the
-northwest, the blacksmith is in the northeast, and the egg hatchery is in the southeast, and
-then the portals are at the north"). One station to each corner of the clearing, **every one of
-them turned to face the middle**, with the fountain between them and the portal terraces beyond.
-They were strung along the east side before, which left the west half of the lawn empty and made
-the walk a line rather than a circuit.
-
-The turn is one rule, `Config/Lobby.facing`: a building is modelled facing +Z, so the yaw that
-points its front at the origin is the bearing of its own place, negated. Three things read it —
-the builder, the egg and crate stands it puts out front (`turnedOffset`, so they come round with
-their station), and `Lobby.spec`, which measures each footprint **as it is actually turned**,
-since a box off the square covers more lawn than its own width and depth. A station standing in
-the middle has no bearing and is left alone.
-
-The two northern buildings stand clear of the portal terraces: the front ledge reaches z =
--50.4 and they reach z = -43.
-
-## What the lobby has to contain
+## What the lobby has to contain## What the lobby has to contain
 
 From `docs/PROGRESSION.md`:
 

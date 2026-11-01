@@ -270,7 +270,7 @@ local Lobby = {
 		     what actually stands there (`dex.hall`: 38 across, 28 deep,
 		     its ridge 14.28 up). ]]
 		DexHall = {
-			size = Vector3.new(38, 14.28, 28),
+			size = Vector3.new(38, 16.3, 28),
 			rise = 10,
 			walls = Color3.fromRGB(238, 226, 196),
 			roof = Color3.fromRGB(124, 44, 230),
@@ -300,71 +300,52 @@ local Lobby = {
 		because the books are placed in the hall's own frame before that
 		turn, they come round with it.
 	]]
+	--[[
+		The Dex Hall, built from Roblox parts (owner, 2026-11-01: "the dex
+		hall needs to be remade, use the book stands and the book on the
+		top but make a whole new building", then "i want you to just use
+		parts already in roblox").
+
+		The import it replaces could never be textured -- it came out of
+		Tripo with no UVs at all -- and the generated stand-in texture was
+		never the sheet. Parts have no such problem: every colour here is
+		set outright, so the hall is the sheet's by construction rather
+		than by a generator's guess. It is also how every other station in
+		this lobby is built, and it lives in the repo rather than in the
+		place file, which a model left in the Workspace would not.
+
+		What stays imported are the two the owner modelled: the open book
+		on the roof and the stand on each pad.
+
+		The hall is built facing +Z, like every other station, and the
+		whole thing is then turned to face the middle (`facing`). `turn`
+		is the extra half-turn the two book imports need on top of that,
+		since they were modelled facing -Z.
+	]]
 	dex = {
 		turn = math.pi,
-		--[[ The hall. `across` is how wide it is drawn; everything else
-		     here is in studs off its own floor and middle, at that width. ]]
-		hall = {
-			--[[
-				**A stand-in, and the owner knows it** (2026-11-01: "use
-				attempt 1").
-
-				The hall he modelled came out of Tripo before its
-				texturing step, so it carries no UVs at all and can never
-				take a texture (docs/LOBBY.md). Roblox's own
-				`generate_texture` was run over it instead, which unwraps
-				the mesh as it paints: this is that mesh and that texture,
-				from the first of three attempts.
-
-				It is **not** the sheet. The roof, the gold edge caps, the
-				cream panels, the white banded columns, the red carpet,
-				the lit lanterns and the shelves of books all landed; the
-				timbers came out salmon rather than brown and the base
-				plinth red rather than cream. A second pass fixed those
-				two and lost the cream panels, so this one is the closer
-				of the two. It goes when the owner re-exports from Tripo
-				with texturing on, and that is two ids.
-
-				Geometrically it is the same hall: drawn at 38 across it
-				measures 38.00 x 14.28 x 28.01 with its ridge at 14.28 and
-				its pads where they were, all re-measured. Only its own
-				native size differs -- the generator returned it at twice
-				the scale -- which is why `native` is not the import's.
-			]]
-			mesh = "rbxassetid://98715106100909",
-			texture = "rbxassetid://88497813757007",
-			native = Vector3.new(2, 0.7513, 1.4744),
-			across = 38,
-			--[[ Measured: the top of the ridge over the hall's floor. ]]
-			ridge = 14.28,
-		},
+		--[[ `across` and `deep` are the plinth's footprint; `ridge` is the
+		     flat top of the roof over the lawn, which the book rests on. ]]
+		hall = { across = 38, deep = 28, ridge = 16.3 },
 		--[[
-			The book astride the ridge, resting on the roof (owner,
-			2026-11-01: "the book needs to rest on the roof like this",
-			with the sheet).
+			The open book on the roof.
 
 			`seat` is how far below the ridge its foot goes. Its own
-			bounding box reaches well below the covers -- down to the tip
-			of its ribbon -- so sitting the box on the ridge leaves the
-			book hanging in the air over it, which is what it did.
-
-			Measured rather than guessed: the book was dropped onto the
-			hall with both at their drawn size and precise collision, and
-			the first thing its underside meets, ignoring the narrow ridge
-			finial its open covers are meant to straddle, is the roof
-			slope at 4.83 below the ridge. So the covers lie on the roof
-			and the gable's peak sits up in the fold of the pages, as the
-			sheet has it.
-
-			`forward` puts it over the front gable.
+			bounding box reaches well below its covers -- down to the tip
+			of the ribbon -- so sitting that box on the roof leaves the
+			book hanging in the air above it, which is what it did at
+			first. Measured instead: the covers' underside is 2.35 studs
+			above the box's bottom where they meet the flat of the roof,
+			so that is the drop that puts them on it.
 		]]
 		roofBook = {
 			mesh = "rbxassetid://132359194018769",
 			texture = "rbxassetid://75292294805929",
 			native = Vector3.new(0.9995, 0.5698, 0.5864),
 			across = 16,
-			seat = 4.83,
-			forward = 8,
+			seat = 2.35,
+			--[[ Forward of the middle, over the gable. ]]
+			forward = 4,
 		},
 		--[[ The stand on each pad. ]]
 		standBook = {
@@ -373,24 +354,33 @@ local Lobby = {
 			native = Vector3.new(0.9995, 0.8843, 0.6723),
 			across = 5.5,
 		},
-		--[[ The pads the stands go on, measured off the hall mesh: this
-		     far either side of the middle, this far forward, their tops
-		     this high over its floor. ]]
-		pads = { out = 13, forward = 11, top = 0.9 },
+		--[[ The two stone pads the stands go on, built with the hall:
+		     outside the steps and a little forward of its front. ]]
+		pads = { out = 14, forward = 15, top = 1.2, size = Vector3.new(7, 1.2, 6) },
 		--[[ Its nameboard, hung as every other station's is: just under
-		     the eaves and out past the front of the porch, rather than up
-		     by the ridge where it first went (owner, 2026-11-01: "the dex
-		     hall sign needs to be fixed and look like the other ones"). ]]
-		sign = { height = 11, forward = 15.4 },
-		--[[ The hall's own wall lanterns are modelled but not lit -- a
-		     mesh cannot be Neon in part -- so a light goes at each. ]]
-		lanterns = { out = 11, height = 6.4, forward = 13.6, range = 16, brightness = 1.2 },
+		     the eaves and out past the front of the porch (owner,
+		     2026-11-01: "the dex hall sign needs to be fixed and look
+		     like the other ones"). ]]
+		sign = { height = 11, forward = 17.5 },
+		--[[ The lanterns either side of the porch, and the light each
+		     casts on the lawn. ]]
+		lanterns = { out = 9.55, height = 6.5, forward = 12, range = 16, brightness = 1.2 },
+		--[[ The sheet's palette, set on the parts outright. ]]
 		colours = {
-			--[[ What a hall with no texture is tinted. Unused while the
-			     stand-in above carries one, and kept for the swap back to
-			     a raw import. ]]
-			bare = Color3.fromRGB(238, 226, 196),
-			lantern = Color3.fromRGB(255, 186, 92),
+			roof = Color3.fromRGB(140, 40, 220),
+			gold = Color3.fromRGB(255, 215, 0),
+			timber = Color3.fromRGB(130, 80, 40),
+			panel = Color3.fromRGB(255, 248, 220),
+			stone = Color3.fromRGB(240, 235, 205),
+			column = Color3.fromRGB(255, 255, 255),
+			red = Color3.fromRGB(220, 30, 40),
+			lantern = Color3.fromRGB(255, 200, 50),
+			iron = Color3.fromRGB(30, 30, 30),
+			books = {
+				Color3.fromRGB(138, 43, 226),
+				Color3.fromRGB(220, 30, 40),
+				Color3.fromRGB(255, 215, 0),
+			},
 		},
 	},
 

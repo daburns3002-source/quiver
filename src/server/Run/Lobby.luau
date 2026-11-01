@@ -709,35 +709,20 @@ local function building(name: string, at: Vector2, parent: Instance): Vector3?
 		): Part
 			return part(label, block, spotIn(x, y, z), colour, model)
 		end
-		--[[ A cylinder lying across X: the columns, their bands and the
-		     roof's corner caps. ]]
-		local function roll(
-			label: string,
-			long: number,
-			across: number,
-			x: number,
-			y: number,
-			z: number,
-			colour: Color3
-		): Part
-			return part(
-				label,
-				Vector3.new(long, across, across),
-				spotIn(x, y, z) * CFrame.Angles(0, 0, math.pi / 2),
-				colour,
-				model,
-				Enum.PartType.Cylinder
-			)
-		end
-
 		--[[ The plinth it stands on, two steps up to the porch, and the
 		     carpet running over them and in through the front. ]]
 		slab("Plinth", Vector3.new(wide, 1.5, deepHall), 0, 0.75, -2.5, look.stone)
 		slab("Step", Vector3.new(12.8, 1, 3.1), 0, 0.5, halfD - 1.1, look.stone)
 		slab("Step", Vector3.new(12.8, 0.5, 3.1), 0, 0.25, halfD + 1.9, look.stone)
-		slab("Carpet", Vector3.new(7.7, 0.1, 3.1), 0, 1.05, halfD - 1.1, look.red)
-		slab("Carpet", Vector3.new(7.7, 0.1, 3.1), 0, 0.55, halfD + 1.9, look.red)
-		slab("Carpet", Vector3.new(7.7, 0.1, 11), 0, 1.55, 9, look.red)
+		--[[ The carpet lies over the porch and the top step only; the
+		     sheet leaves the lower step cream, so the red reads as a
+		     runner going in rather than as a red staircase. ]]
+		slab("Carpet", Vector3.new(9, 0.12, 3.1), 0, 1.06, halfD - 1.1, look.red)
+		slab("Carpet", Vector3.new(9, 0.12, 11), 0, 1.56, 9, look.red)
+		--[[ Its gold edging, which the sheet runs down either side. ]]
+		for _, sx in { -1, 1 } do
+			slab("CarpetEdge", Vector3.new(0.7, 0.14, 11), sx * 4.85, 1.57, 9, look.gold)
+		end
 
 		--[[ The timber frame: a post at each corner and either side of
 		     the porch, a beam along the top and the bottom, and the cream
@@ -759,31 +744,52 @@ local function building(name: string, at: Vector2, parent: Instance): Vector3?
 		slab("BeamTop", Vector3.new(wide, 2, 2), 0, 8.5, -15.5, look.timber)
 		slab("BeamTop", Vector3.new(wide, 2, 2), 0, 8.5, 10.5, look.timber)
 
-		--[[ The porch columns: a white shaft between two blocks, banded
-		     in gold top and bottom. ]]
+		--[[ The porch columns. Square, as the sheet draws them -- they
+		     were turned cylinders at first, which read as a temple rather
+		     than the toy-brick building this is. A white shaft between
+		     two wider blocks, banded in gold under each. ]]
 		for _, sx in { -1, 1 } do
 			local x = sx * 7.3
-			slab("ColumnFoot", Vector3.new(3, 0.8, 3), x, 1.9, 12.5, look.column)
-			roll("ColumnBand", 0.6, 2.75, x, 2.6, 12.5, look.gold)
-			roll("Column", 5.2, 2.25, x, 5.5, 12.5, look.column)
-			roll("ColumnBand", 0.6, 2.75, x, 8.4, 12.5, look.gold)
-			slab("ColumnHead", Vector3.new(3, 0.8, 3), x, 9.1, 12.5, look.column)
+			slab("ColumnFoot", Vector3.new(3.4, 1, 3.4), x, 2, 12.5, look.column)
+			slab("ColumnBand", Vector3.new(3.1, 0.8, 3.1), x, 2.9, 12.5, look.gold)
+			slab("Column", Vector3.new(2.6, 5, 2.6), x, 5.8, 12.5, look.column)
+			slab("ColumnBand", Vector3.new(3.1, 0.8, 3.1), x, 8.7, 12.5, look.gold)
+			slab("ColumnHead", Vector3.new(3.4, 1, 3.4), x, 9.6, 12.5, look.column)
 		end
 
 		--[[ The roof: a slope either side meeting a flat top, with a gold
 		     cap at each of its four corners. ]]
 		for _, sx in { -1, 1 } do
+			--[[ `fromOrientation` and not `Angles`: a slope is turned a
+			     quarter round to lie along the building and then tilted,
+			     and doing the tilt about the wrong axis stood one slope
+			     on its edge and laid the other flat over the lawn. ]]
 			part(
 				"RoofSlope",
 				Vector3.new(30, 1.5, 14.14),
-				spotIn(sx * 14.54, 12.46, -2.5) * CFrame.Angles(0, math.pi / 2, sx * math.rad(18.6)),
+				spotIn(sx * 14.54, 12.46, -2.5)
+					* CFrame.fromOrientation(math.rad(sx * 18.6), math.pi / 2, 0),
 				look.roof,
 				model
 			)
+			--[[ A gold block at each of the roof's four corners. Square,
+			     as the sheet has them, not the turned cylinders they
+			     were. ]]
 			for _, sz in { -1, 1 } do
-				roll("RoofCap", 1.5, 2.4, sx * 19.2, 11, sz * 13.2 - 2.5, look.gold)
-				roll("RoofCapTip", 0.5, 1.44, sx * 19.2, 12, sz * 13.2 - 2.5, look.gold)
+				slab(
+					"RoofCap",
+					Vector3.new(3, 2.6, 3.4),
+					sx * 18.6,
+					10.9,
+					sz * 13.2 - 2.5,
+					look.gold
+				)
 			end
+			--[[ The pale block standing on the roof either side of the
+			     gable, which the sheet shows from the front and the
+			     back. ]]
+			slab("RoofBlock", Vector3.new(3.6, 3.4, 3.6), sx * 13, 15.6, -5.5, look.stone)
+			slab("RoofBlockCap", Vector3.new(4.2, 0.7, 4.2), sx * 13, 17.5, -5.5, look.column)
 		end
 		slab("RoofFlat", Vector3.new(16.2, 1.5, 30), 0, 14.75, -2.5, look.roof)
 		slab("RoofTop", Vector3.new(13.2, 0.8, 28), 0, hall.ridge - 0.4, -2.5, look.roof)
@@ -792,16 +798,20 @@ local function building(name: string, at: Vector2, parent: Instance): Vector3?
 		     slopes, a timber king post, a gold peak. ]]
 		slab("GableFace", Vector3.new(16, 3.4, 0.8), 0, 11.6, 10.4, look.panel)
 		slab("GablePost", Vector3.new(1.6, 3.4, 1.2), 0, 11.6, 10.7, look.timber)
+		--[[ The two arms meet over the middle. Turning a part about Z by
+		     a positive angle lifts its +X end, so the left arm takes the
+		     positive one: with the signs the other way round they made a
+		     V hanging into the doorway instead of a peak over it. ]]
 		for _, sx in { -1, 1 } do
 			part(
 				"GableSlope",
-				Vector3.new(11.4, 1.1, 1.6),
-				spotIn(sx * 4.6, 12.6, 10.9) * CFrame.Angles(0, 0, sx * math.rad(22)),
+				Vector3.new(8.4, 1.2, 2.2),
+				spotIn(sx * 4, 12.45, 10.9) * CFrame.fromOrientation(0, 0, -sx * math.rad(17.4)),
 				look.roof,
 				model
 			)
 		end
-		slab("GablePeak", Vector3.new(2.6, 1.4, 2.2), 0, 14.1, 10.9, look.gold)
+		slab("GablePeak", Vector3.new(2.6, 1.5, 2.4), 0, 13.9, 10.9, look.gold)
 
 		--[[ Inside: the counter, and a shelf of books behind it. ]]
 		slab("Counter", Vector3.new(22.8, 3, 4), 0, 3, 5.5, look.timber)
@@ -894,8 +904,8 @@ local function building(name: string, at: Vector2, parent: Instance): Vector3?
 		signboard(
 			spec.sign,
 			base * CFrame.new(0, dex.sign.height, dex.sign.forward),
-			math.min(wide * 0.6, 20),
-			3.4,
+			dex.sign.across,
+			dex.sign.tall,
 			model
 		)
 		model.Parent = parent

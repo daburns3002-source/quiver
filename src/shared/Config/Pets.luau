@@ -42,7 +42,7 @@ local Pets: { [string]: Pet } = {
 	Glimmerhorn = { name = "GLIMMERHORN", rarity = "Mythic", egg = "MossyEgg" },
 	-- Thornwood (docs/PETS-THORNWOOD.md): hatchable once imported
 	BarkHoglet = { name = "BARK HOGLET", rarity = "Common", egg = "ThornwoodEgg" },
-	Burrball = { name = "BURRBALL", rarity = "Common", egg = "ThornwoodEgg" },
+	Burrball = { name = "BURRBALL", rarity = "Common" },
 	Budbulb = { name = "BUDBULB", rarity = "Common" },
 	--[[ Thornwood's Uncommon is the guard, not the healer (owner,
 	     2026-10-31): the Thistle Mole's Thorn Shell is in and the Berry
@@ -52,7 +52,13 @@ local Pets: { [string]: Pet } = {
 	BerryMouse = { name = "BERRY MOUSE", rarity = "Uncommon" },
 	ThistleMole = { name = "THISTLE MOLE", rarity = "Uncommon", egg = "ThornwoodEgg" },
 	BriarBeetle = { name = "BRIAR BEETLE", rarity = "Rare", egg = "ThornwoodEgg" },
-	BerryBat = { name = "BERRY BAT", rarity = "Rare" },
+	--[[ The Berry Bat is a Common now, not a Rare (owner, 2026-10-31: "i
+	     like the berry bat design so take the burrball out", then "make the
+	     berry bat a common"). Dropping a Common for a Rare would have left
+	     the egg with one Common carrying the whole 53.5% Common weight, so
+	     the Bat moved rarity instead and the slots stay 2/1/1/1/2/1. The
+	     Burrball is benched in its place. ]]
+	BerryBat = { name = "BERRY BAT", rarity = "Common", egg = "ThornwoodEgg" },
 	BrambleBear = { name = "BRAMBLE BEAR", rarity = "Epic", egg = "ThornwoodEgg" },
 	BriarLynx = { name = "BRIAR LYNX", rarity = "Epic" },
 	BrambleWilf = { name = "BRAMBLE WILF", rarity = "Legendary", egg = "ThornwoodEgg" },

@@ -197,8 +197,14 @@ local PetCombat: { pets: { [string]: Spec } } = {
 		--[[ Blood Berry: it drinks. Nothing else in the Thornwood egg feeds
 		     its owner on a hit, where the mark it used to carry was the
 		     Firefly Bun's (owner, 2026-10-31). Bites far more often than the
-		     mark did, since a mark lasts and a bite does not. ]]
-		BerryBat = { every = 2.5, range = 70, damage = 26, healPerHit = 2 },
+		     mark did, since a mark lasts and a bite does not.
+
+		     A Common since the owner moved it there, so the drain is a
+		     trickle rather than a sustain: 1 a bite, 0.4 a second, against
+		     the 2 it drank as a Rare. The damage stands — 10 a second is
+		     already the softest of the egg's Commons, and feeding its owner
+		     at all is the whole reason to take it. ]]
+		BerryBat = { every = 2.5, range = 70, damage = 26, healPerHit = 1 },
 		-- Bramble Swipe: one blow across three
 		BrambleBear = { every = 3, range = 60, damage = 51, targets = 3 },
 		-- Thorn Darts: four that follow

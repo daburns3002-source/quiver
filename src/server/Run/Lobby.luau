@@ -651,6 +651,31 @@ local function armourStand(cframe: CFrame, parent: Instance)
 	)
 end
 
+--[[ A station's name floating over it, which is how a player picks it
+     out from across the lawn. Its own function because the Dex Hall is
+     built and returned before the rest of `building` runs, and it needs
+     one too (owner, 2026-11-01: "the text to be above like the rest of
+     the buildings"). ]]
+local function floatingTitle(spec: LobbyConfig.Building, at: CFrame, model: Model)
+	local anchor = wall("Title", Vector3.one, at, model)
+	anchor.CanCollide = false
+	local board = Instance.new("BillboardGui")
+	board.Size = UDim2.fromScale(32, 6)
+	board.LightInfluence = 0
+	board.MaxDistance = 320
+	board.Parent = anchor
+	local label = Instance.new("TextLabel")
+	label.BackgroundTransparency = 1
+	label.Size = UDim2.fromScale(1, 1)
+	label.Font = Enum.Font.Arcade
+	label.TextScaled = true
+	label.Text = spec.title or ""
+	label.TextColor3 = spec.titleColour or COLOURS.text
+	label.TextStrokeColor3 = Color3.fromRGB(40, 24, 12)
+	label.TextStrokeTransparency = 0
+	label.Parent = board
+end
+
 --[[ A station's cottage (`LobbyConfig.buildings`): a stone foundation,
      plastered walls framed in timber, a door and two windows, a gabled roof
      with a ridge, its sign over the door, and what its kind adds. Its door
@@ -771,7 +796,7 @@ local function building(name: string, at: Vector2, parent: Instance): Vector3?
 		local pitch = math.rad(hall.pitch)
 		local slopeWide = 14.14
 		--[[ The flat top's half-width, where a slope's inner edge lands. ]]
-		local flatHalf = 6.6
+		local flatHalf = 4.2
 		local lift = slopeWide / 2 * math.sin(pitch)
 		local reach = slopeWide / 2 * math.cos(pitch)
 		--[[ The eaves sit half a stud over the top beam. ]]
@@ -816,9 +841,9 @@ local function building(name: string, at: Vector2, parent: Instance): Vector3?
 		end
 		slab(
 			"RoofFlat",
-			Vector3.new(flatHalf * 2 + 3, 1.4, 30),
+			Vector3.new(flatHalf * 2 + 1.6, 1.1, 30),
 			0,
-			hall.ridge - 1.4,
+			hall.ridge - 1.1,
 			-2.5,
 			look.roof
 		)
@@ -881,8 +906,12 @@ local function building(name: string, at: Vector2, parent: Instance): Vector3?
 		slab("GablePeak", Vector3.new(2.4, 1.3, 2.2), 0, gableApex + 0.5, 14.1, look.gold)
 
 		--[[ Inside: the counter, and a shelf of books behind it. ]]
-		slab("Counter", Vector3.new(22.8, 3, 4), 0, 3, 5.5, look.timber)
-		slab("CounterTop", Vector3.new(23.8, 0.5, 5), 0, 4.75, 5.5, look.timber)
+		--[[ Set well back. It stood at the front at first, which
+		     turned the whole entrance into a letterbox slot over its
+		     top: the sheet shows a doorway you see through, with the
+		     counter and the shelves behind it. ]]
+		slab("Counter", Vector3.new(20, 2.6, 3.4), 0, 2.8, -4, look.timber)
+		slab("CounterTop", Vector3.new(21, 0.5, 4.4), 0, 4.35, -4, look.timber)
 		slab("ShelfBack", Vector3.new(22.8, 6, 3), 0, 4.5, -13, look.timber)
 		for row = 0, 2 do
 			slab("ShelfBoard", Vector3.new(22.8, 0.4, 1), 0, 4.37 + row * 1.66, -11, look.timber)
@@ -968,13 +997,12 @@ local function building(name: string, at: Vector2, parent: Instance): Vector3?
 			model
 		)
 
-		signboard(
-			spec.sign,
-			base * CFrame.new(0, dex.sign.height, dex.sign.forward),
-			dex.sign.across,
-			dex.sign.tall,
-			model
-		)
+		--[[ No wooden board on this one: at any size it covered the
+		     gable it had to hang on. Its name floats over it instead,
+		     as every other station's does. ]]
+		if spec.title then
+			floatingTitle(spec, base * CFrame.new(0, hall.ridge + 12, 0), model)
+		end
 		model.Parent = parent
 		return Vector3.new(wide + 2, hall.ridge, deepHall + 2)
 	end
@@ -1188,23 +1216,7 @@ local function building(name: string, at: Vector2, parent: Instance): Vector3?
 		weaponRack(spot(Vector3.new(w / 2 - 4.5, 0, front + 3)), { "bow", "staff", "sword" }, model)
 	end
 	if spec.title then
-		local anchor = wall("Title", Vector3.one, spot(Vector3.new(0, ridge + 14, 0)), model)
-		anchor.CanCollide = false
-		local board = Instance.new("BillboardGui")
-		board.Size = UDim2.fromScale(32, 6)
-		board.LightInfluence = 0
-		board.MaxDistance = 320
-		board.Parent = anchor
-		local label = Instance.new("TextLabel")
-		label.BackgroundTransparency = 1
-		label.Size = UDim2.fromScale(1, 1)
-		label.Font = Enum.Font.Arcade
-		label.TextScaled = true
-		label.Text = spec.title
-		label.TextColor3 = spec.titleColour or COLOURS.text
-		label.TextStrokeColor3 = Color3.fromRGB(40, 24, 12)
-		label.TextStrokeTransparency = 0
-		label.Parent = board
+		floatingTitle(spec, base * CFrame.new(0, ridge + 14, 0), model)
 	end
 	model.Parent = parent
 	return Vector3.new(w + 2, top + spec.rise, d + 2)

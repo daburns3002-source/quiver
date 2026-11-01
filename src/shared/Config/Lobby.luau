@@ -262,19 +262,23 @@ local Lobby = {
 			titleColour = Color3.fromRGB(110, 200, 255),
 			emblem = "shield",
 		},
-		--[[ Colours off the owner's sheet (2026-11-01, front and back): a
-		     vivid violet roof with gold corner caps, brown timber over warm
-		     cream panels, and a pale stone base. The old roof was a muted
-		     lilac and the panels nearly white. ]]
-		--[[ The import's own size, so the spacing is measured against
-		     what actually stands there (`dex.hall`: 38 across, 28 deep,
-		     its ridge 14.28 up). ]]
+		--[[ Its size is what `dex.hall` builds, so the spacing between
+		     stations is measured against what actually stands there. It
+		     carries **no `sign`**: every other station hangs a wooden
+		     board, and on this one it covered the gable whatever size it
+		     was (owner, 2026-11-01: "i want the sign to disappear
+		     completely and the text to be above like the rest of the
+		     buildings"). Its name floats over it instead, as theirs do.
+		     Its walls and roof colours live in `dex.colours`; these two
+		     are here only because every building has them. ]]
 		DexHall = {
 			size = Vector3.new(38, 13.74, 28),
 			rise = 10,
 			walls = Color3.fromRGB(238, 226, 196),
 			roof = Color3.fromRGB(124, 44, 230),
-			sign = "DEX HALL",
+			sign = "",
+			title = "THE DEXES",
+			titleColour = Color3.fromRGB(196, 150, 255),
 			columns = true,
 		},
 	} :: { [string]: Building },
@@ -361,17 +365,6 @@ local Lobby = {
 		--[[ The two stone pads the stands go on, built with the hall:
 		     outside the steps and a little forward of its front. ]]
 		pads = { out = 14, forward = 15, top = 1.2, size = Vector3.new(7, 1.2, 6) },
-		--[[
-			Its nameboard, on the gable over the entrance.
-
-			It hung out in front of the porch at first, as the other
-			stations' do, and at this building's width that put a board
-			twenty studs across squarely over the whole front: the
-			columns, the opening and the lanterns all disappeared behind
-			it. On the gable it reads from the lawn and leaves the
-			building visible, which is what the sheet shows.
-		]]
-		sign = { height = 11, forward = 14.35, across = 8, tall = 1.5 },
 		--[[ The lanterns either side of the porch, and the light each
 		     casts on the lawn. ]]
 		--[[ Turned down from 16 studs at 1.2 (owner, 2026-11-01: "the

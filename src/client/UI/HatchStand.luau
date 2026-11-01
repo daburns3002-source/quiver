@@ -26,6 +26,10 @@ local HatchStand = {}
 export type Tile = {
 	rarity: string,
 	icon: string,
+	--[[ The pet's key (`Config/PetModels`), when the card should stand its
+	     real model up rather than draw a picture. A weapon has none: its
+	     card keeps the 2D art. ]]
+	key: string?,
 	chance: number,
 	owned: boolean,
 	--[[ Drawn black on its rarity's card, as Codex's screens draw a Mythic
@@ -312,7 +316,8 @@ function HatchStand.draw(
 			entry.icon,
 			entry.chance,
 			entry.silhouette == true or spec.locked ~= nil,
-			entry.owned
+			entry.owned,
+			entry.key
 		)
 	end
 

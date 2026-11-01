@@ -902,6 +902,81 @@ function Kit.pressFx(hit: GuiButton, visual: GuiObject, burst: boolean)
 	end)
 end
 
+--[[
+	A pet standing on its card, as the real model rather than a picture
+	(Codex's `EggHatcheryUI` drew its cards this way and the owner,
+	2026-10-31, asked for it back). The server builds the pets once into
+	`ReplicatedStorage.PetPreview` (`Server/Dev/PetPreview`), so this clones
+	one and frames it.
+
+	The camera is placed off the model's own extents, never by eye, so a
+	tall pet and a wide one both sit inside the card with room around them
+	— the pictures were being cut at the card's edge. It stands in front of
+	the pet: `Config/PetModels` is in Roblox's frame, where a model's front
+	is its pivot's look vector, which an identity pivot points down -Z.
+
+	Returns nil when the pet has no model yet, and the card falls back to
+	its picture.
+]]
+local MODEL_FOV = 40
+--[[ How much of the card the pet fills, leaving the rest as margin. ]]
+local MODEL_FILL = 0.66
+
+function Kit.petModel(parent: Instance, key: string, hidden: boolean): ViewportFrame?
+	local built = ReplicatedStorage:FindFirstChild("PetPreview")
+	local template = if built then built:FindFirstChild(key) else nil
+	if not template or not template:IsA("Model") then
+		return nil
+	end
+
+	local view = Instance.new("ViewportFrame")
+	view.Name = "PetModel"
+	view.Ambient = Color3.fromRGB(220, 220, 220)
+	view.BackgroundTransparency = 1
+	view.LightColor = Color3.new(1, 1, 1)
+	view.LightDirection = Vector3.new(-1, -1, -2)
+	view.Size = UDim2.fromScale(1, 1)
+	view.ZIndex = 12
+	view.Parent = parent
+
+	local world = Instance.new("WorldModel")
+	world.Parent = view
+	local model = template:Clone()
+	model.Parent = world
+	--[[ Squared up first, so the pet faces the camera whatever pose the
+	     server left it in, then shifted so its middle is the origin. ]]
+	model:PivotTo(CFrame.new())
+	local middle, extents = model:GetBoundingBox()
+	model:PivotTo(CFrame.new(-middle.Position))
+
+	if hidden then
+		for _, part in model:GetDescendants() do
+			if part:IsA("BasePart") then
+				part.Color = Color3.new(0, 0, 0)
+				part.Material = Enum.Material.SmoothPlastic
+				if part:IsA("MeshPart") then
+					part.TextureID = ""
+				end
+			end
+		end
+	end
+
+	--[[ Measured to the model's middle, so its near face is half its depth
+	     closer than that — without the depth term a chunky pet overflows
+	     the card and is cut at the top. ]]
+	--[[ Width and height only: a long pet's depth runs away from the
+	     camera and costs it no room on the card, so counting it would
+	     shrink the pet for nothing. ]]
+	local reach = math.max(extents.X, extents.Y)
+	local away = (reach / MODEL_FILL) / 2 / math.tan(math.rad(MODEL_FOV) / 2) + extents.Z / 2
+	local camera = Instance.new("Camera")
+	camera.FieldOfView = MODEL_FOV
+	camera.CFrame = CFrame.lookAt(Vector3.new(0, 0, -away), Vector3.zero)
+	camera.Parent = view
+	view.CurrentCamera = camera
+	return view
+end
+
 --[[ Codex's bright rarity palette, which is not `Config/Rarities`: his
      cards are lit from the front and read at a glance across a panel, so
      the Rare is a cyan rather than the muted blue a card in the hand
@@ -932,7 +1007,8 @@ function Kit.rarityCard(
 	art: string,
 	chance: number,
 	hidden: boolean,
-	owned: boolean
+	owned: boolean,
+	key: string?
 ): Frame
 	local base = Kit.bright[rarity] or Kit.colour(rarity)
 
@@ -996,11 +1072,18 @@ function Kit.rarityCard(
 	})
 	slant.Parent = gleam
 
-	local picture = Kit.image(card, art)
-	picture.Position, picture.Size = UDim2.fromScale(0.08, 0.05), UDim2.fromScale(0.84, 0.76)
-	picture.ZIndex = 12
-	if hidden then
-		picture.ImageColor3 = Color3.new(0, 0, 0)
+	--[[ The model where there is one, as Codex drew them, and the picture
+	     where there is not — a weapon always keeps its 2D art. ]]
+	local standing = if key then Kit.petModel(card, key, hidden) else nil
+	if standing then
+		standing.Position, standing.Size = UDim2.fromScale(0.04, 0.02), UDim2.fromScale(0.92, 0.8)
+	else
+		local picture = Kit.image(card, art)
+		picture.Position, picture.Size = UDim2.fromScale(0.08, 0.05), UDim2.fromScale(0.84, 0.76)
+		picture.ZIndex = 12
+		if hidden then
+			picture.ImageColor3 = Color3.new(0, 0, 0)
+		end
 	end
 
 	local odds = Kit.pixelText(card, string.format("%g%%", math.round(chance * 10000) / 100), 26)

@@ -96,6 +96,7 @@ function EggScreen.start()
 			table.insert(tiles, {
 				rarity = entry.rarity,
 				icon = GearAssets.pets[entry.pet] or "",
+				key = entry.pet,
 				chance = entry.chance,
 				owned = owned,
 				-- the Mythic stays a shape until somebody pulls it

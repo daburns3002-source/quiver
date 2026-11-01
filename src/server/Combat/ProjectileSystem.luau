@@ -95,6 +95,9 @@ type Projectile = {
 	--[[ Guards against a single projectile hitting the same enemy on
 	     consecutive steps while it is still inside the hitbox. ]]
 	hitModels: { [Model]: boolean },
+	--[[ Studs a struck player is dragged back along this line. 0 for every
+	     shot but the Hollow Fisherman's hook. ]]
+	reel: number,
 }
 
 local ProjectileSystem = {}
@@ -242,6 +245,10 @@ export type SpawnParams = {
 	     a ricochet leaves from, which would otherwise be hit again by the
 	     very first overlap pass. ]]
 	ignore: Model?,
+	--[[ Studs a struck player is dragged back along this projectile's own
+	     line (`Balance.EnemyShot.reel`, the Hollow Fisherman's hook).
+	     Omitted means none, which is every other shot. ]]
+	reel: number?,
 }
 
 --[[
@@ -293,6 +300,7 @@ function ProjectileSystem.spawn(params: SpawnParams)
 		origin = params.origin,
 		link = params.link or 0,
 		look = params.look,
+		reel = params.reel or 0,
 		startsAt = now + (params.delay or 0),
 		expiresAt = now + (params.delay or 0) + params.lifetime,
 		hitModels = if params.ignore then { [params.ignore] = true } else {},
@@ -550,7 +558,15 @@ local function applyHit(projectile: Projectile, model: Model): boolean
 		return false
 	end
 
+	local before = session.health
 	RunSession.applyDamage(session, projectile.damage)
+	--[[ A hook reels whoever it caught back along the line it flew, toward
+	     the rod that cast it (`Balance.EnemyShot.reel`). Only on a hit that
+	     landed: a dodge or a shield that took nothing was not caught, so
+	     nothing drags. The client does the walking, so cover stops it. ]]
+	if projectile.reel > 0 and session.alive and session.health < before then
+		EnemyManager.shovePlayer(session, -projectile.direction, projectile.reel)
+	end
 	return true
 end
 

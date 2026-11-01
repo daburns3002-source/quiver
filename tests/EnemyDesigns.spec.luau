@@ -177,11 +177,18 @@ return function(t: TestRunner.Helper)
 	end)
 
 	--[[ A design keyed to a name no archetype uses is dead data that reads as
-	     live. It would never be built and nothing else would say so. ]]
+	     live. It would never be built and nothing else would say so.
+
+	     A benched archetype's design is not dead: it has no room yet, but
+	     it is built and `DebugSpawnEnemy` stands it up in Studio, which is
+	     the only way to look at it. A typo still fails. ]]
 	t.test("no design is keyed to an archetype that does not exist", function()
 		local known: { [string]: boolean } = {}
 		for _, value in Balance.Enemies do
 			local config = value :: Balance.EnemyConfig
+			known[config.displayName] = true
+		end
+		for _, config in Balance.Benched do
 			known[config.displayName] = true
 		end
 

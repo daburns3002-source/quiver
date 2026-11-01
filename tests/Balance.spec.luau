@@ -200,6 +200,48 @@ return function(t: TestRunner.Helper)
 		t.equal(distinct, 1, "the opener should hold a single archetype")
 	end)
 
+	--[[ `Balance.Benched` is the way out of the rule below, so it has to be
+	     narrow: a benched archetype is a real config that no roster names.
+	     Anything in both tables would be introduced twice over. ]]
+	t.test("a benched archetype is a real one, and in no roster", function()
+		for name, config in Balance.Benched do
+			t.equal(type(config.displayName), "string", name)
+			t.isTrue(config.health > 0, name)
+			t.isTrue(config.hitboxSize.Y > 0, name)
+			t.isNil((Balance.Enemies :: any)[name], name)
+		end
+	end)
+
+	--[[ A shot that pulls has to be one the player can read and step out
+	     of: the hook is a line, locked, drawn before it leaves. And it may
+	     never drag anyone past the thing that cast it. ]]
+	t.test("a shot that reels draws a locked line, and pulls less than its range", function()
+		local reeled = 0
+		local all: { Balance.EnemyConfig } = {}
+		for _, config in (Balance.Enemies :: any) :: { [string]: Balance.EnemyConfig } do
+			table.insert(all, config)
+		end
+		for _, config in Balance.Benched do
+			table.insert(all, config)
+		end
+		for _, config in all do
+			local shot = config.shot
+			local reel = if shot then shot.reel else nil
+			if not shot or not reel then
+				continue
+			end
+			reeled += 1
+			t.equal(shot.tell, "Line", config.displayName)
+			t.isTrue(shot.locksAim, config.displayName)
+			t.isTrue(shot.telegraph > 0, config.displayName)
+			t.isTrue(reel > 0, config.displayName)
+			--[[ Half the distance it fires from: a catch costs ground, it
+			     does not put the player inside the caster. ]]
+			t.isTrue(reel < (shot.range or config.attackRange) / 2, config.displayName)
+		end
+		t.isTrue(reeled > 0, "something reels")
+	end)
+
 	t.test("every archetype is introduced somewhere in the game", function()
 		local used: { [string]: boolean } = {}
 

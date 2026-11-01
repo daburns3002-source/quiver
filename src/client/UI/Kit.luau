@@ -920,7 +920,7 @@ end
 ]]
 local MODEL_FOV = 40
 --[[ How much of the card the pet fills, leaving the rest as margin. ]]
-local MODEL_FILL = 0.84
+local MODEL_FILL = 1.02
 --[[ The three-quarter turn: round to its left and a little above it. ]]
 local MODEL_YAW = 20
 local MODEL_PITCH = 11
@@ -1087,7 +1087,9 @@ function Kit.rarityCard(
 	     where there is not — a weapon always keeps its 2D art. ]]
 	local standing = if key then Kit.petModel(card, key, hidden) else nil
 	if standing then
-		standing.Position, standing.Size = UDim2.fromScale(0.04, 0.02), UDim2.fromScale(0.92, 0.8)
+		--[[ The whole card, as Codex fills his: the odds sit over the pet
+		     in the corner rather than taking a strip of their own. ]]
+		standing.Position, standing.Size = UDim2.fromScale(0.02, 0), UDim2.fromScale(0.96, 1)
 	else
 		local picture = Kit.image(card, art)
 		picture.Position, picture.Size = UDim2.fromScale(0.08, 0.05), UDim2.fromScale(0.84, 0.76)

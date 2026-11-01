@@ -18,41 +18,55 @@ local LobbyConfig = require(ReplicatedStorage.Shared.Config.Lobby)
 local TestRunner = require(script.Parent.TestRunner)
 
 return function(t: TestRunner.Helper)
-	--[[ The Dex Hall's two books are the only imported models in the lobby
-	     (`Config/Lobby.dex`), so they are the only places an asset id can
-	     be wrong and leave a hole where a book should be. ]]
-	t.test("the Dex Hall's books name real assets and keep their own shape", function()
+	--[[ The Dex Hall's three models are the only imported meshes in the
+	     lobby (`Config/Lobby.dex`), so they are the only places an asset
+	     id can be wrong and leave a hole where the hall should be. ]]
+	t.test("the Dex Hall's three imports name real meshes and keep their own shape", function()
 		local dex = LobbyConfig.dex
-		for _, book in { dex.roofBook, dex.standBook } do
-			t.isTrue(book.mesh:match("^rbxassetid://%d+$") ~= nil, book.mesh)
-			t.isTrue(book.texture:match("^rbxassetid://%d+$") ~= nil, book.texture)
-			--[[ The scale comes off `across` over the import's own width,
-			     so a native size of nought would divide by zero and a
-			     book would come out infinitely large. ]]
-			t.isTrue(book.native.X > 0 and book.native.Y > 0 and book.native.Z > 0, book.mesh)
-			t.isTrue(book.across > 0, book.mesh)
+		local seen: { [string]: boolean } = {}
+		local pieces: { LobbyConfig.DexPiece } = { dex.hall, dex.roofBook, dex.standBook }
+		for _, piece in pieces do
+			t.isTrue(piece.mesh:match("^rbxassetid://%d+$") ~= nil, piece.mesh)
+			t.isTrue(not seen[piece.mesh], "each is its own mesh")
+			seen[piece.mesh] = true
+			--[[ The scale is `across` over the import's own width, so a
+			     native size of nought would divide by zero. ]]
+			t.isTrue(piece.native.X > 0 and piece.native.Y > 0 and piece.native.Z > 0, piece.mesh)
+			t.isTrue(piece.across > 0, piece.mesh)
+			--[[ A texture is either a real asset or honestly empty: the
+			     hall imported without one, and `Run/Lobby` tints it
+			     rather than painting a broken id onto it. ]]
+			t.isTrue(
+				piece.texture == "" or piece.texture:match("^rbxassetid://%d+$") ~= nil,
+				piece.texture
+			)
 		end
-		t.isTrue(dex.roofBook.mesh ~= dex.standBook.mesh, "two different books")
 	end)
 
-	--[[ The roof book stands astride the ridge of the hall it belongs to,
-	     not floating over the lawn: drawn wider than the building it would
-	     hang past the eaves. ]]
-	t.test("the roof book fits across its own roof", function()
-		local hall = LobbyConfig.buildings.DexHall
-		t.isTrue(LobbyConfig.dex.roofBook.across < hall.size.X, "wider than the hall")
-		t.isTrue(LobbyConfig.dex.roofBook.across > hall.size.X / 4, "lost on the roof")
-	end)
-
-	--[[ The lecterns stand out front, clear of the steps and of each
-	     other, and inside the hall's own width so they read as its pair. ]]
-	t.test("the lecterns flank the steps without meeting them", function()
+	--[[ The book sits astride the ridge rather than floating over it: its
+	     own box reaches down to the tip of its ribbon, so its foot goes
+	     below the ridge by more than nothing and less than the hall. ]]
+	t.test("the roof book seats on the ridge, over the hall it belongs to", function()
 		local dex = LobbyConfig.dex
-		local hall = LobbyConfig.buildings.DexHall
-		local gap = dex.lectern.out * 2 - dex.lectern.base.X
-		t.isTrue(gap > dex.carpet.X, "the carpet runs between them")
-		t.isTrue(dex.lectern.out * 2 + dex.lectern.base.X <= hall.size.X + 6, "wider than the hall")
-		t.isTrue(dex.lectern.forward > 0, "in front")
+		t.isTrue(dex.roofBook.seat > 0, "floats over the ridge")
+		t.isTrue(dex.roofBook.seat < dex.hall.ridge, "sunk into the hall")
+		t.isTrue(dex.roofBook.across < dex.hall.across, "wider than the hall")
+		t.isTrue(dex.roofBook.across > dex.hall.across / 4, "lost on the roof")
+		--[[ Forward of the middle, over the front gable, and still on
+		     the roof rather than off its front edge. ]]
+		local deep = dex.hall.native.Z / dex.hall.native.X * dex.hall.across
+		t.isTrue(dex.roofBook.forward > 0 and dex.roofBook.forward < deep / 2, "off the roof")
+	end)
+
+	--[[ The stands go on the two pads the hall mesh carries, measured off
+	     it: outside the steps, inside the hall's own width. ]]
+	t.test("the stands stand on their pads, clear of each other", function()
+		local dex = LobbyConfig.dex
+		local deep = dex.hall.native.Z / dex.hall.native.X * dex.hall.across
+		t.isTrue(dex.pads.out * 2 > dex.standBook.across * 2, "the two stands meet")
+		t.isTrue(dex.pads.out * 2 + dex.standBook.across <= dex.hall.across, "wider than the hall")
+		t.isTrue(dex.pads.forward > 0 and dex.pads.forward < deep / 2 + 4, "off the front")
+		t.isTrue(dex.pads.top > 0, "sunk into the lawn")
 	end)
 
 	t.test("the working portals are Mossy Glade, Thornwood and Endless", function()

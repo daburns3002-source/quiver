@@ -184,6 +184,49 @@ ladder is now 3.5 times (section 3). If the owner wants the late levels to
 feel *stronger* rather than merely shorter, that is the lever, and it moves
 every area at once because `WeaponStats.bonus` is shared.
 
+### Then, same day: rooms rather than waves
+
+The owner read the above and asked for the mode rather than the numbers
+(2026-11-02: "i only want 1-5 to be waves and the rest should be rooms").
+1-6..1-9 are twenty rooms each now and 1-10 twenty-five, the counts the
+owner set all along, read as rooms; only 1-5 is still fought as waves, so
+the glade teaches that mode once. 1-10's King Bloblin moved from its
+twenty-fifth wave to its twenty-fifth room, alone in the Glade Heart, the
+way the Broodmother closes Thornwood.
+
+The counts per room were aimed at the health each level asked as a wave
+level, so the mode change does not quietly undo the flattening above — a
+Waves level only fights about sixteen of its twenty waves, since two
+Valkyries and two Angels are encounters, where every room of a Rooms level
+is a fight:
+
+| Level | Mode | Rooms | Enemies | HP x | Total HP | 100 dmg | 170 | Was |
+|---|---|---|---|---|---|---|---|---|
+| 1-1 | Rooms | 10 | 41 | 1.10 | 16,632 | 1.8m | 1.1m | — |
+| 1-2 | Rooms | 10 | 51 | 1.14 | 22,913 | 2.5m | 1.5m | — |
+| 1-3 | Rooms | 15 | 76 | 1.18 | 34,975 | 3.9m | 2.3m | — |
+| 1-4 | Rooms | 15 | 91 | 1.22 | 42,895 | 4.8m | 2.8m | — |
+| 1-5 | Waves | 20 | 83 | 1.26 | 40,824 | 4.5m | 2.7m | — |
+| 1-6 | Rooms | 20 | 92 | 1.30 | 46,254 | 5.1m | 3.0m | 44,304 |
+| 1-7 | Rooms | 20 | 102 | 1.34 | 52,662 | 5.9m | 3.4m | 50,410 |
+| 1-8 | Rooms | 20 | 111 | 1.38 | 59,036 | 6.6m | 3.9m | 54,730 |
+| 1-9 | Rooms | 20 | 121 | 1.42 | 66,200 | 7.4m | 4.3m | 59,214 |
+| 1-10 | Rooms | 25 | 145 | 1.46 | 88,651 | 9.9m | 5.8m | 87,074 |
+
+The area's pool is 3.8% larger than it was as waves. 1-9 carries most of
+that at +11.8%, which is the price of a clean ladder in whole enemies over
+twenty rooms: the per-room counts run 4-5, 4-6, 5-6, 5-7 and 5-7, and any
+pair that matched would make two levels equal rather than ascending.
+
+**A real consequence, for the owner to decide on.** A Waves level deals a
+card at its Valkyrie and its Angel — the 5th and 9th of every block of ten
+(`Balance.Waves`). Rooms levels have no such thing: their cards come only
+from XP level-ups. So this change removes about **sixteen guaranteed card
+offers** across 1-6..1-10. Nothing breaks, and 1-1..1-4 have always worked
+that way, but the late glade is a little harder in build terms than the
+pool above suggests. Putting Valkyrie and Angel rooms into Rooms mode would
+be new work, not a retune.
+
 ---
 
 ## 3. Pets

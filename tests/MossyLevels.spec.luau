@@ -23,17 +23,19 @@ local KING = Balance.Enemies.SlimeKing
 --[[ The old twenty-room Mossy Glade run, which 1-1 must be harder than. ]]
 local OLD_RUN = 5
 
+--[[ The owner's counts, and only 1-5 fought as waves (owner, 2026-11-02:
+     "i only want 1-5 to be waves and the rest should be rooms"). ]]
 local SHAPE: { { mode: string, size: number } } = {
 	{ mode = "Rooms", size = 10 },
 	{ mode = "Rooms", size = 10 },
 	{ mode = "Rooms", size = 15 },
 	{ mode = "Rooms", size = 15 },
 	{ mode = "Waves", size = 20 },
-	{ mode = "Waves", size = 20 },
-	{ mode = "Waves", size = 20 },
-	{ mode = "Waves", size = 20 },
-	{ mode = "Waves", size = 20 },
-	{ mode = "Waves", size = 25 },
+	{ mode = "Rooms", size = 20 },
+	{ mode = "Rooms", size = 20 },
+	{ mode = "Rooms", size = 20 },
+	{ mode = "Rooms", size = 20 },
+	{ mode = "Rooms", size = 25 },
 }
 
 local function levels(): { Balance.StageConfig }
@@ -171,20 +173,18 @@ return function(t: TestRunner.Helper)
 		)
 	end)
 
-	--[[ Within one mode, a later level asks for more than the one before it.
-	     Not across the Rooms-to-Waves boundary: 1-4 is fifteen rooms with a
-	     walk between each and 1-5 is twenty waves in one arena with none, so
-	     their pools are not comparable and 1-5's is the smaller of the two
-	     by design. ]]
+	--[[ Within one mode, a later level asks for more than the one before it
+	     — against the last level of that same mode, so 1-5 sitting in the
+	     middle as the area's one wave level does not break the chain either
+	     side of it. Not across the modes: a room with a walk between each
+	     and a wave with none are not the same kind of minute. ]]
 	t.test("inside one mode, each level asks more than the last", function()
-		local mode, last = nil, 0
+		local last: { [string]: number } = {}
 		for _, stage in levels() do
 			local asks = pool(stage)
-			if stage.mode ~= mode then
-				mode, last = stage.mode, 0
-			end
-			t.isTrue(asks > last, `{stage.name} asks {asks}, under the {last} before it`)
-			last = asks
+			local before = last[stage.mode] or 0
+			t.isTrue(asks > before, `{stage.name} asks {asks}, under the {before} before it`)
+			last[stage.mode] = asks
 		end
 	end)
 
@@ -194,24 +194,24 @@ return function(t: TestRunner.Helper)
 	     the shape the owner set (10, 10, 15, 15, then 20 x5 and 25), and
 	     being longer is not a cliff. Being harder in every single fight is. ]]
 	t.test("no level is a cliff", function()
-		local all = levels()
 		local function density(stage: Balance.StageConfig): number
 			local parts = if stage.mode == "Waves"
 				then stage.waves or 1
 				else #(stage.rooms or ({} :: { number }))
 			return pool(stage) / math.max(parts, 1)
 		end
-		for position = 2, #all do
-			--[[ 1-5 opens the Waves block, which is why it is skipped: a
-			     room with a walk between each and a wave with none are not
-			     comparable. ]]
-			if all[position].mode == all[position - 1].mode then
-				local before, after = density(all[position - 1]), density(all[position])
+		--[[ Against the last level of the same mode, as above. ]]
+		local last: { [string]: number } = {}
+		for _, stage in levels() do
+			local after = density(stage)
+			local before = last[stage.mode]
+			if before then
 				t.isTrue(
 					after <= before * 1.5,
-					`{all[position].name} asks {after} a wave, over half again the {before} before it`
+					`{stage.name} asks {after} a room, over half again the {before} before it`
 				)
 			end
+			last[stage.mode] = after
 		end
 	end)
 
@@ -223,7 +223,12 @@ return function(t: TestRunner.Helper)
 		t.isTrue((thornwood.enemyDamage or 1) >= (last.enemyDamage or 1))
 	end)
 
-	t.test("King Bloblin only as 1-10's last wave, alone", function()
+	--[[ He closes the area as the Broodmother closes Thornwood: the last
+	     room of the last level, alone, and nowhere else in the game (owner,
+	     2026-10-26: "king bloblin will not appear until the end of level
+	     10"). It was 1-10's twenty-fifth wave until the owner asked for the
+	     levels to be rooms (2026-11-02). ]]
+	t.test("King Bloblin only as 1-10's last fight, alone", function()
 		local all = levels()
 		for position, stage in all do
 			local list = fights(stage)
@@ -240,15 +245,26 @@ return function(t: TestRunner.Helper)
 				end
 			end
 		end
+
+		--[[ And the run really ends on him: 1-10's last room is the one he
+		     is in, which is what `RoomController.endsInBoss` reads to pay
+		     the boss drop. ]]
 		local ten = all[10]
-		local total = ten.waves or 0
-		t.equal(Waves.kindIn(ten, total, total), "Boss")
+		local rooms: { number } = ten.rooms or {}
+		local last = Balance.Rooms[rooms[#rooms]]
+		t.notNil(last, "1-10 has a last room")
+		if last then
+			t.isTrue(hasKing(last.roster), "1-10's last room is King Bloblin's")
+		end
 	end)
 
-	t.test("King Bloblin is in no Mossy Glade room at all", function()
+	t.test("exactly one glade room holds King Bloblin, and it is 1-10's last", function()
+		local ten = levels()[10]
+		local rooms: { number } = ten.rooms or {}
+		local his = rooms[#rooms]
 		for index, room in Balance.Rooms do
 			if string.sub(room.arena or "", 1, 5) == "Glade" then
-				t.isFalse(hasKing(room.roster), `room {index} ({room.name}) has King Bloblin`)
+				t.equal(hasKing(room.roster), index == his, `room {index} ({room.name})`)
 			end
 		end
 	end)

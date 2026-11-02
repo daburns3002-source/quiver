@@ -215,6 +215,54 @@ return function(t: TestRunner.Helper)
 		end
 	end)
 
+	--[[ An Angel room, where a Waves level would have an Angel wave (owner,
+	     2026-11-02: "add an angel room"). It restores what turning the
+	     glade into rooms took away: a Waves level deals a card at its
+	     Valkyrie and its Angel, and Rooms levels had no encounters at all.
+
+	     The positions are the same schedule, read off `Balance.Waves`
+	     rather than written twice """ + EM + """ `tools/glade_levels.py` hardcodes
+	     them as BLOCK and ANGEL_AT, and this is what holds the two together. ]]
+	t.test("every Rooms level has its Angel rooms where a Waves level would", function()
+		local block = Balance.Waves.blockSize
+		local at = Balance.Waves.angelAt
+		local found = 0
+		for _, stage in levels() do
+			if stage.mode ~= "Rooms" then
+				continue
+			end
+			local rooms: { number } = stage.rooms or {}
+			for position, index in rooms do
+				local room = Balance.Rooms[index]
+				--[[ Never the last room: that is the level's Glade Heart
+				     fight, and 1-10's is King Bloblin. ]]
+				local wanted = position < #rooms and position % block == at
+				t.equal(room.encounter ~= nil, wanted, `{stage.name} room {position} ({room.name})`)
+				if wanted then
+					found += 1
+					t.equal(room.encounter, "Angel", `{stage.name} room {position}`)
+				end
+			end
+		end
+		t.isTrue(found > 0, "the glade has Angel rooms at all")
+	end)
+
+	--[[ Nothing is in one, and nothing can be: an encounter room that
+	     spawned anything would freeze the run, since `RoomController` opens
+	     the offer instead of a fight and the door waits on the choice. ]]
+	t.test("an Angel room is empty, and still a room a player can walk", function()
+		for _, stage in levels() do
+			for _, index in stage.rooms or ({} :: { number }) do
+				local room = Balance.Rooms[index]
+				if room.encounter then
+					t.equal(room.enemyCount, 0, room.name)
+					t.equal(#room.roster, 0, room.name)
+					t.notNil(room.arena, `{room.name} has no arena to dress it`)
+				end
+			end
+		end
+	end)
+
 	t.test("Thornwood, after the glade, is harder than all of it", function()
 		local last = levels()[10]
 		local thornwood = Balance.Stages[Balance.campaign[#Balance.campaign]]

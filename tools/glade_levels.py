@@ -31,6 +31,17 @@ are kept and read as rooms: 20, 20, 20, 20 and 25.
 - 1-10: twenty-five, the last of them King Bloblin alone in the Glade
   Heart, as the Broodmother closes Thornwood.
 
+Every Rooms level also gets an **Angel room** wherever a Waves level would
+have an Angel wave: the 9th room of each block of ten, so rooms 9 and 19 of
+a twenty- or twenty-five-room level and room 9 of a ten- or fifteen-room
+one (owner, 2026-11-02: "add an angel room"). An Angel room has nothing in
+it -- `enemyCount` 0, empty roster, `encounter = "Angel"` -- and
+`Run/RoomController` opens the Angel's offer there instead of spawning. It
+takes one of the level's rooms rather than adding one, so the counts the
+owner set still hold. `BLOCK` and `ANGEL_AT` below must match
+`Balance.Waves.blockSize` and `angelAt`, which `tests/MossyLevels.spec`
+checks.
+
 King Bloblin (`slimeKing`) is in no other row. They are written as
 `gladeLevelRooms`, after the tutorial's rooms, so their indices in
 `Balance.Rooms` start at 86. Seeded, so the same rooms come out every time.
@@ -84,6 +95,11 @@ LEVELS = [
     ("1-10", "boss", 25, 5, 7, 7),
 ]
 
+#: Where an Angel room falls, mirroring `Balance.Waves.blockSize` and
+#: `Balance.Waves.angelAt`. Pinned against them by `tests/MossyLevels.spec`.
+BLOCK = 10
+ANGEL_AT = 9
+
 MIXES = [
     "meleeCharger, meleeCharger, broodSlime, spreadShooter",
     "meleeCharger, broodSlime, spreadShooter",
@@ -115,9 +131,10 @@ def layout(rng, light=False):
     raise SystemExit("no layout fits")
 
 
-def row(name, arena, pieces, count, who, boss=False):
+def row(name, arena, pieces, count, who, boss=False, encounter=None):
     assert thorn.walkable(pieces), name
     assert boss or "slimeKing" not in who, name
+    assert encounter is None or (count == 0 and who == ""), name
     return (
         "\t{\n"
         f'\t\tname = "{name}",\n'
@@ -125,7 +142,20 @@ def row(name, arena, pieces, count, who, boss=False):
         + thorn.obstacles_lua(pieces)
         + f"\t\tenemyCount = {count},\n"
         f"\t\troster = {{ {who} }},\n"
-        "\t},\n"
+        + (f'\t\tencounter = "{encounter}",\n' if encounter else "")
+        + "\t},\n"
+    )
+
+
+def angel_room(rng, level):
+    """The level's Angel room: a quiet clearing with nobody in it."""
+    return row(
+        f"Glade Angel {level}",
+        "GladeLogs",
+        layout(rng, light=True),
+        0,
+        "",
+        encounter="Angel",
     )
 
 
@@ -140,8 +170,9 @@ def main():
         "\t1-2's ten, 1-3's fifteen, 1-4's fifteen, 1-5's single wave arena,\n"
         "\t1-6..1-9's twenty each and 1-10's twenty-five. Every Rooms level\n"
         "\tends in a Glade Heart fight, and 1-10's last room is King Bloblin\n"
-        "\talone. `Balance.Rooms` 86 on, after the tutorial's. Edit the\n"
-        "\tscript, not these rows. ]]\n"
+        "\talone; the 9th room of each block of ten is an Angel room with\n"
+        "\tnothing in it. `Balance.Rooms` 86 on, after the tutorial's. Edit\n"
+        "\tthe script, not these rows. ]]\n"
         "local gladeLevelRooms: { RoomConfig } = {\n"
     ]
     total = 0
@@ -152,7 +183,9 @@ def main():
             total += 1
             continue
         for n in range(1, rooms + 1):
-            if n < rooms:
+            if n < rooms and n % BLOCK == ANGEL_AT:
+                out.append(angel_room(rng, level))
+            elif n < rooms:
                 count, who = roster(level, n, rooms, first, last)
                 out.append(row(f"Mossy Glade {level}", "GladeLogs", layout(rng), count, who))
             elif kind == "boss":

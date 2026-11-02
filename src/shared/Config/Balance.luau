@@ -1357,6 +1357,20 @@ export type RoomConfig = {
 	     grey-box look. Presentation only: what collides is still the room's
 	     walls and `obstacles`. Nil is the grey box. ]]
 	arena: string?,
+	--[[
+		A room that is not a fight but an encounter: "Angel" (owner,
+		2026-11-02: "add an angel room"). Nothing spawns in it and
+		`Run/RoomController` opens that encounter's offer instead, the way a
+		Waves stage does at `Waves.angelAt`; the door opens once everyone has
+		picked. Its `enemyCount` is 0 and its `roster` empty.
+
+		This exists because the Rooms mode had no encounters at all: a Waves
+		level deals a card at its Valkyrie and its Angel, and when the owner
+		turned 1-6..1-10 into rooms (#442) that took about sixteen guaranteed
+		offers out of the glade. A Rooms level now gets its Angels back on the
+		same schedule a Waves level uses, read off `Balance.Waves`.
+	]]
+	encounter: string?,
 }
 
 --[[
@@ -1444,8 +1458,9 @@ local tutorialRooms: { RoomConfig } = {
 	1-2's ten, 1-3's fifteen, 1-4's fifteen, 1-5's single wave arena,
 	1-6..1-9's twenty each and 1-10's twenty-five. Every Rooms level
 	ends in a Glade Heart fight, and 1-10's last room is King Bloblin
-	alone. `Balance.Rooms` 86 on, after the tutorial's. Edit the
-	script, not these rows. ]]
+	alone; the 9th room of each block of ten is an Angel room with
+	nothing in it. `Balance.Rooms` 86 on, after the tutorial's. Edit
+	the script, not these rows. ]]
 local gladeLevelRooms: { RoomConfig } = {
 	{
 		name = "Mossy Glade 1-1",
@@ -1530,15 +1545,16 @@ local gladeLevelRooms: { RoomConfig } = {
 		roster = { meleeCharger, meleeCharger, broodSlime, spreadShooter },
 	},
 	{
-		name = "Mossy Glade 1-1",
+		name = "Glade Angel 1-1",
 		arena = "GladeLogs",
 		obstacles = {
 			{ offset = Vector2.new(0, -3.04), size = Vector3.new(7, 2.8, 3.5) },
 			{ offset = Vector2.new(8.18, -19.66), size = Vector3.new(3.75, 1.5, 3.75) },
 			{ offset = Vector2.new(-8.18, -19.66), size = Vector3.new(3.75, 1.5, 3.75) },
 		},
-		enemyCount = 5,
-		roster = { meleeCharger, broodSlime, spreadShooter },
+		enemyCount = 0,
+		roster = {},
+		encounter = "Angel",
 	},
 	{
 		name = "Glade Heart 1-1",
@@ -1639,15 +1655,16 @@ local gladeLevelRooms: { RoomConfig } = {
 		roster = { meleeCharger, meleeCharger, broodSlime, spreadShooter },
 	},
 	{
-		name = "Mossy Glade 1-2",
+		name = "Glade Angel 1-2",
 		arena = "GladeLogs",
 		obstacles = {
 			{ offset = Vector2.new(8.39, 4.84), size = Vector3.new(3.5, 2.8, 11) },
 			{ offset = Vector2.new(-8.39, 4.84), size = Vector3.new(3.5, 2.8, 11) },
 			{ offset = Vector2.new(0, 13.84), size = Vector3.new(3.4, 0.4, 3.4) },
 		},
-		enemyCount = 6,
-		roster = { meleeCharger, broodSlime, spreadShooter },
+		enemyCount = 0,
+		roster = {},
+		encounter = "Angel",
 	},
 	{
 		name = "Glade Heart 1-2",
@@ -1748,7 +1765,7 @@ local gladeLevelRooms: { RoomConfig } = {
 		roster = { meleeCharger, meleeCharger, broodSlime, spreadShooter },
 	},
 	{
-		name = "Mossy Glade 1-3",
+		name = "Glade Angel 1-3",
 		arena = "GladeLogs",
 		obstacles = {
 			{ offset = Vector2.new(9.82, 6.11), size = Vector3.new(3.4, 0.4, 5.1) },
@@ -1756,8 +1773,9 @@ local gladeLevelRooms: { RoomConfig } = {
 			{ offset = Vector2.new(8.54, -8.79), size = Vector3.new(6.8, 0.4, 3.4) },
 			{ offset = Vector2.new(-8.54, -8.79), size = Vector3.new(6.8, 0.4, 3.4) },
 		},
-		enemyCount = 5,
-		roster = { meleeCharger, broodSlime, spreadShooter },
+		enemyCount = 0,
+		roster = {},
+		encounter = "Angel",
 	},
 	{
 		name = "Mossy Glade 1-3",
@@ -1912,15 +1930,16 @@ local gladeLevelRooms: { RoomConfig } = {
 		roster = { meleeCharger, meleeCharger, broodSlime, spreadShooter },
 	},
 	{
-		name = "Mossy Glade 1-4",
+		name = "Glade Angel 1-4",
 		arena = "GladeLogs",
 		obstacles = {
 			{ offset = Vector2.new(0, -7.52), size = Vector3.new(9, 2.8, 3.5) },
 			{ offset = Vector2.new(10.18, -15.91), size = Vector3.new(3.2, 3.2, 3.2) },
 			{ offset = Vector2.new(-10.18, -15.91), size = Vector3.new(3.2, 3.2, 3.2) },
 		},
-		enemyCount = 6,
-		roster = { meleeCharger, broodSlime, spreadShooter },
+		enemyCount = 0,
+		roster = {},
+		encounter = "Angel",
 	},
 	{
 		name = "Mossy Glade 1-4",
@@ -2088,7 +2107,7 @@ local gladeLevelRooms: { RoomConfig } = {
 		roster = { meleeCharger, meleeCharger, broodSlime, spreadShooter },
 	},
 	{
-		name = "Mossy Glade 1-6",
+		name = "Glade Angel 1-6",
 		arena = "GladeLogs",
 		obstacles = {
 			{ offset = Vector2.new(8.22, 11.11), size = Vector3.new(3, 1.5, 3) },
@@ -2096,8 +2115,9 @@ local gladeLevelRooms: { RoomConfig } = {
 			{ offset = Vector2.new(6.65, -9.48), size = Vector3.new(3.4, 0.4, 5.1) },
 			{ offset = Vector2.new(-6.65, -9.48), size = Vector3.new(3.4, 0.4, 5.1) },
 		},
-		enemyCount = 4,
-		roster = { meleeCharger, broodSlime, spreadShooter },
+		enemyCount = 0,
+		roster = {},
+		encounter = "Angel",
 	},
 	{
 		name = "Mossy Glade 1-6",
@@ -2196,14 +2216,15 @@ local gladeLevelRooms: { RoomConfig } = {
 		roster = { broodSlime, spreadShooter, meleeCharger },
 	},
 	{
-		name = "Mossy Glade 1-6",
+		name = "Glade Angel 1-6",
 		arena = "GladeLogs",
 		obstacles = {
 			{ offset = Vector2.new(-7, -15.55), size = Vector3.new(6.8, 0.4, 3.4) },
 			{ offset = Vector2.new(7, -15.55), size = Vector3.new(3.4, 0.4, 3.4) },
 		},
-		enemyCount = 5,
-		roster = { meleeCharger, meleeCharger, broodSlime },
+		enemyCount = 0,
+		roster = {},
+		encounter = "Angel",
 	},
 	{
 		name = "Glade Heart 1-6",
@@ -2306,26 +2327,15 @@ local gladeLevelRooms: { RoomConfig } = {
 		roster = { meleeCharger, meleeCharger, broodSlime, spreadShooter },
 	},
 	{
-		name = "Mossy Glade 1-7",
-		arena = "GladeLogs",
-		obstacles = {
-			{ offset = Vector2.new(-5.08, -4.55), size = Vector3.new(3.4, 0.4, 5.1) },
-			{ offset = Vector2.new(-6.51, 11.22), size = Vector3.new(3.4, 0.4, 5.1) },
-			{ offset = Vector2.new(8.57, -12.5), size = Vector3.new(5.1, 0.4, 3.4) },
-			{ offset = Vector2.new(7.83, 11.39), size = Vector3.new(3.4, 0.4, 6.8) },
-		},
-		enemyCount = 5,
-		roster = { meleeCharger, broodSlime, spreadShooter },
-	},
-	{
-		name = "Mossy Glade 1-7",
+		name = "Glade Angel 1-7",
 		arena = "GladeLogs",
 		obstacles = {
 			{ offset = Vector2.new(10.27, 7.53), size = Vector3.new(3.5, 2.8, 9) },
 			{ offset = Vector2.new(-10.27, 7.53), size = Vector3.new(3.5, 2.8, 9) },
 		},
-		enemyCount = 5,
-		roster = { broodSlime, spreadShooter, meleeCharger },
+		enemyCount = 0,
+		roster = {},
+		encounter = "Angel",
 	},
 	{
 		name = "Mossy Glade 1-7",
@@ -2335,7 +2345,7 @@ local gladeLevelRooms: { RoomConfig } = {
 			{ offset = Vector2.new(7, 6.77), size = Vector3.new(2.8, 3.2, 2.8) },
 		},
 		enemyCount = 5,
-		roster = { meleeCharger, meleeCharger, broodSlime },
+		roster = { broodSlime, spreadShooter, meleeCharger },
 	},
 	{
 		name = "Mossy Glade 1-7",
@@ -2345,7 +2355,7 @@ local gladeLevelRooms: { RoomConfig } = {
 			{ offset = Vector2.new(7, 1.17), size = Vector3.new(3.4, 0.4, 3.4) },
 		},
 		enemyCount = 5,
-		roster = { meleeCharger, meleeCharger, broodSlime, spreadShooter },
+		roster = { meleeCharger, meleeCharger, broodSlime },
 	},
 	{
 		name = "Mossy Glade 1-7",
@@ -2355,7 +2365,7 @@ local gladeLevelRooms: { RoomConfig } = {
 			{ offset = Vector2.new(-9.63, -5.42), size = Vector3.new(3.4, 0.4, 3.4) },
 		},
 		enemyCount = 5,
-		roster = { meleeCharger, broodSlime, spreadShooter },
+		roster = { meleeCharger, meleeCharger, broodSlime, spreadShooter },
 	},
 	{
 		name = "Mossy Glade 1-7",
@@ -2365,7 +2375,7 @@ local gladeLevelRooms: { RoomConfig } = {
 			{ offset = Vector2.new(7, -0.39), size = Vector3.new(2.8, 3.2, 2.8) },
 		},
 		enemyCount = 5,
-		roster = { broodSlime, spreadShooter, meleeCharger },
+		roster = { meleeCharger, broodSlime, spreadShooter },
 	},
 	{
 		name = "Mossy Glade 1-7",
@@ -2375,8 +2385,8 @@ local gladeLevelRooms: { RoomConfig } = {
 			{ offset = Vector2.new(10.98, -15.66), size = Vector3.new(2.8, 3.2, 2.8) },
 			{ offset = Vector2.new(-10.98, -15.66), size = Vector3.new(2.8, 3.2, 2.8) },
 		},
-		enemyCount = 6,
-		roster = { meleeCharger, meleeCharger, broodSlime },
+		enemyCount = 5,
+		roster = { broodSlime, spreadShooter, meleeCharger },
 	},
 	{
 		name = "Mossy Glade 1-7",
@@ -2386,7 +2396,7 @@ local gladeLevelRooms: { RoomConfig } = {
 			{ offset = Vector2.new(-5.1, -13.02), size = Vector3.new(3.75, 1.5, 3.75) },
 		},
 		enemyCount = 6,
-		roster = { meleeCharger, meleeCharger, broodSlime, spreadShooter },
+		roster = { meleeCharger, meleeCharger, broodSlime },
 	},
 	{
 		name = "Mossy Glade 1-7",
@@ -2396,7 +2406,7 @@ local gladeLevelRooms: { RoomConfig } = {
 			{ offset = Vector2.new(-8.77, -3.44), size = Vector3.new(9, 2.8, 3.5) },
 		},
 		enemyCount = 6,
-		roster = { meleeCharger, broodSlime, spreadShooter },
+		roster = { meleeCharger, meleeCharger, broodSlime, spreadShooter },
 	},
 	{
 		name = "Mossy Glade 1-7",
@@ -2406,7 +2416,7 @@ local gladeLevelRooms: { RoomConfig } = {
 			{ offset = Vector2.new(7, 5.08), size = Vector3.new(5.1, 0.4, 3.4) },
 		},
 		enemyCount = 6,
-		roster = { broodSlime, spreadShooter, meleeCharger },
+		roster = { meleeCharger, broodSlime, spreadShooter },
 	},
 	{
 		name = "Mossy Glade 1-7",
@@ -2416,7 +2426,19 @@ local gladeLevelRooms: { RoomConfig } = {
 			{ offset = Vector2.new(-8.98, -9.64), size = Vector3.new(3.5, 2.8, 11) },
 		},
 		enemyCount = 6,
-		roster = { meleeCharger, meleeCharger, broodSlime },
+		roster = { broodSlime, spreadShooter, meleeCharger },
+	},
+	{
+		name = "Glade Angel 1-7",
+		arena = "GladeLogs",
+		obstacles = {
+			{ offset = Vector2.new(9.9, 0.71), size = Vector3.new(7, 2.8, 3.5) },
+			{ offset = Vector2.new(-9.9, 0.71), size = Vector3.new(7, 2.8, 3.5) },
+			{ offset = Vector2.new(0, 9.71), size = Vector3.new(3.4, 0.4, 6.8) },
+		},
+		enemyCount = 0,
+		roster = {},
+		encounter = "Angel",
 	},
 	{
 		name = "Glade Heart 1-7",
@@ -2434,34 +2456,11 @@ local gladeLevelRooms: { RoomConfig } = {
 		name = "Mossy Glade 1-8",
 		arena = "GladeLogs",
 		obstacles = {
-			{ offset = Vector2.new(11.5, 4), size = Vector3.new(3.5, 2.8, 7) },
-			{ offset = Vector2.new(-11.5, 4), size = Vector3.new(3.5, 2.8, 7) },
-			{ offset = Vector2.new(11.5, -16), size = Vector3.new(3.5, 2.8, 9) },
-			{ offset = Vector2.new(-11.5, -16), size = Vector3.new(3.5, 2.8, 9) },
-		},
-		enemyCount = 5,
-		roster = { meleeCharger, broodSlime, spreadShooter },
-	},
-	{
-		name = "Mossy Glade 1-8",
-		arena = "GladeLogs",
-		obstacles = {
-			{ offset = Vector2.new(9.9, 0.71), size = Vector3.new(7, 2.8, 3.5) },
-			{ offset = Vector2.new(-9.9, 0.71), size = Vector3.new(7, 2.8, 3.5) },
-			{ offset = Vector2.new(0, 9.71), size = Vector3.new(3.4, 0.4, 6.8) },
-		},
-		enemyCount = 5,
-		roster = { broodSlime, spreadShooter, meleeCharger },
-	},
-	{
-		name = "Mossy Glade 1-8",
-		arena = "GladeLogs",
-		obstacles = {
 			{ offset = Vector2.new(9.75, -4.06), size = Vector3.new(7, 2.8, 3.5) },
 			{ offset = Vector2.new(-9.75, -4.06), size = Vector3.new(7, 2.8, 3.5) },
 		},
 		enemyCount = 5,
-		roster = { meleeCharger, meleeCharger, broodSlime },
+		roster = { meleeCharger, broodSlime, spreadShooter },
 	},
 	{
 		name = "Mossy Glade 1-8",
@@ -2471,7 +2470,7 @@ local gladeLevelRooms: { RoomConfig } = {
 			{ offset = Vector2.new(-5.7, -3.94), size = Vector3.new(7, 2.8, 3.5) },
 		},
 		enemyCount = 5,
-		roster = { meleeCharger, meleeCharger, broodSlime, spreadShooter },
+		roster = { broodSlime, spreadShooter, meleeCharger },
 	},
 	{
 		name = "Mossy Glade 1-8",
@@ -2483,7 +2482,7 @@ local gladeLevelRooms: { RoomConfig } = {
 			{ offset = Vector2.new(0.65, -0.13), size = Vector3.new(3, 1.5, 3) },
 		},
 		enemyCount = 5,
-		roster = { meleeCharger, broodSlime, spreadShooter },
+		roster = { meleeCharger, meleeCharger, broodSlime },
 	},
 	{
 		name = "Mossy Glade 1-8",
@@ -2494,7 +2493,7 @@ local gladeLevelRooms: { RoomConfig } = {
 			{ offset = Vector2.new(-7.84, -15.07), size = Vector3.new(3.75, 1.5, 3.75) },
 		},
 		enemyCount = 5,
-		roster = { broodSlime, spreadShooter, meleeCharger },
+		roster = { meleeCharger, meleeCharger, broodSlime, spreadShooter },
 	},
 	{
 		name = "Mossy Glade 1-8",
@@ -2505,7 +2504,7 @@ local gladeLevelRooms: { RoomConfig } = {
 			{ offset = Vector2.new(-8, -16.96), size = Vector3.new(3.75, 1.5, 3.75) },
 		},
 		enemyCount = 5,
-		roster = { meleeCharger, meleeCharger, broodSlime },
+		roster = { meleeCharger, broodSlime, spreadShooter },
 	},
 	{
 		name = "Mossy Glade 1-8",
@@ -2516,7 +2515,7 @@ local gladeLevelRooms: { RoomConfig } = {
 			{ offset = Vector2.new(-8.37, 8.59), size = Vector3.new(3.75, 1.5, 3.75) },
 		},
 		enemyCount = 5,
-		roster = { meleeCharger, meleeCharger, broodSlime, spreadShooter },
+		roster = { broodSlime, spreadShooter, meleeCharger },
 	},
 	{
 		name = "Mossy Glade 1-8",
@@ -2528,7 +2527,7 @@ local gladeLevelRooms: { RoomConfig } = {
 			{ offset = Vector2.new(-11.5, -16), size = Vector3.new(3.5, 2.8, 11) },
 		},
 		enemyCount = 5,
-		roster = { meleeCharger, broodSlime, spreadShooter },
+		roster = { meleeCharger, meleeCharger, broodSlime },
 	},
 	{
 		name = "Mossy Glade 1-8",
@@ -2539,18 +2538,19 @@ local gladeLevelRooms: { RoomConfig } = {
 			{ offset = Vector2.new(-7.9, -14.29), size = Vector3.new(3, 1.5, 3) },
 		},
 		enemyCount = 5,
-		roster = { broodSlime, spreadShooter, meleeCharger },
+		roster = { meleeCharger, meleeCharger, broodSlime, spreadShooter },
 	},
 	{
-		name = "Mossy Glade 1-8",
+		name = "Glade Angel 1-8",
 		arena = "GladeLogs",
 		obstacles = {
 			{ offset = Vector2.new(0, -6.56), size = Vector3.new(9, 2.8, 3.5) },
 			{ offset = Vector2.new(7.24, -17.24), size = Vector3.new(3, 1.5, 3) },
 			{ offset = Vector2.new(-7.24, -17.24), size = Vector3.new(3, 1.5, 3) },
 		},
-		enemyCount = 6,
-		roster = { meleeCharger, meleeCharger, broodSlime },
+		enemyCount = 0,
+		roster = {},
+		encounter = "Angel",
 	},
 	{
 		name = "Mossy Glade 1-8",
@@ -2561,8 +2561,8 @@ local gladeLevelRooms: { RoomConfig } = {
 			{ offset = Vector2.new(11.5, -16), size = Vector3.new(3.5, 2.8, 11) },
 			{ offset = Vector2.new(-11.5, -16), size = Vector3.new(3.5, 2.8, 11) },
 		},
-		enemyCount = 6,
-		roster = { meleeCharger, meleeCharger, broodSlime, spreadShooter },
+		enemyCount = 5,
+		roster = { broodSlime, spreadShooter, meleeCharger },
 	},
 	{
 		name = "Mossy Glade 1-8",
@@ -2573,7 +2573,7 @@ local gladeLevelRooms: { RoomConfig } = {
 			{ offset = Vector2.new(10, 2.56), size = Vector3.new(3.2, 3.2, 3.2) },
 		},
 		enemyCount = 6,
-		roster = { meleeCharger, broodSlime, spreadShooter },
+		roster = { meleeCharger, meleeCharger, broodSlime },
 	},
 	{
 		name = "Mossy Glade 1-8",
@@ -2583,7 +2583,7 @@ local gladeLevelRooms: { RoomConfig } = {
 			{ offset = Vector2.new(-8.47, -3.13), size = Vector3.new(3.5, 2.8, 11) },
 		},
 		enemyCount = 6,
-		roster = { broodSlime, spreadShooter, meleeCharger },
+		roster = { meleeCharger, meleeCharger, broodSlime, spreadShooter },
 	},
 	{
 		name = "Mossy Glade 1-8",
@@ -2594,7 +2594,7 @@ local gladeLevelRooms: { RoomConfig } = {
 			{ offset = Vector2.new(0, -13.48), size = Vector3.new(5.1, 0.4, 3.4) },
 		},
 		enemyCount = 6,
-		roster = { meleeCharger, meleeCharger, broodSlime },
+		roster = { meleeCharger, broodSlime, spreadShooter },
 	},
 	{
 		name = "Mossy Glade 1-8",
@@ -2605,7 +2605,7 @@ local gladeLevelRooms: { RoomConfig } = {
 			{ offset = Vector2.new(-9.73, -17.06), size = Vector3.new(3.2, 3.2, 3.2) },
 		},
 		enemyCount = 6,
-		roster = { meleeCharger, meleeCharger, broodSlime, spreadShooter },
+		roster = { broodSlime, spreadShooter, meleeCharger },
 	},
 	{
 		name = "Mossy Glade 1-8",
@@ -2616,7 +2616,7 @@ local gladeLevelRooms: { RoomConfig } = {
 			{ offset = Vector2.new(-8.7, -13.88), size = Vector3.new(3.2, 3.2, 3.2) },
 		},
 		enemyCount = 6,
-		roster = { meleeCharger, broodSlime, spreadShooter },
+		roster = { meleeCharger, meleeCharger, broodSlime },
 	},
 	{
 		name = "Mossy Glade 1-8",
@@ -2626,7 +2626,7 @@ local gladeLevelRooms: { RoomConfig } = {
 			{ offset = Vector2.new(7, -9.07), size = Vector3.new(3.2, 3.2, 3.2) },
 		},
 		enemyCount = 6,
-		roster = { broodSlime, spreadShooter, meleeCharger },
+		roster = { meleeCharger, meleeCharger, broodSlime, spreadShooter },
 	},
 	{
 		name = "Mossy Glade 1-8",
@@ -2638,7 +2638,28 @@ local gladeLevelRooms: { RoomConfig } = {
 			{ offset = Vector2.new(-11.5, -16), size = Vector3.new(3.5, 2.8, 11) },
 		},
 		enemyCount = 6,
-		roster = { meleeCharger, meleeCharger, broodSlime },
+		roster = { meleeCharger, broodSlime, spreadShooter },
+	},
+	{
+		name = "Mossy Glade 1-8",
+		arena = "GladeLogs",
+		obstacles = {
+			{ offset = Vector2.new(-7, -8.37), size = Vector3.new(3.4, 0.4, 3.4) },
+			{ offset = Vector2.new(7, -8.37), size = Vector3.new(6.8, 0.4, 3.4) },
+		},
+		enemyCount = 6,
+		roster = { broodSlime, spreadShooter, meleeCharger },
+	},
+	{
+		name = "Glade Angel 1-8",
+		arena = "GladeLogs",
+		obstacles = {
+			{ offset = Vector2.new(-7, 4.63), size = Vector3.new(3, 1.5, 3) },
+			{ offset = Vector2.new(7, 4.63), size = Vector3.new(3, 1.5, 3) },
+		},
+		enemyCount = 0,
+		roster = {},
+		encounter = "Angel",
 	},
 	{
 		name = "Glade Heart 1-8",
@@ -2656,31 +2677,11 @@ local gladeLevelRooms: { RoomConfig } = {
 		name = "Mossy Glade 1-9",
 		arena = "GladeLogs",
 		obstacles = {
-			{ offset = Vector2.new(-7, -8.37), size = Vector3.new(3.4, 0.4, 3.4) },
-			{ offset = Vector2.new(7, -8.37), size = Vector3.new(6.8, 0.4, 3.4) },
-		},
-		enemyCount = 5,
-		roster = { meleeCharger, broodSlime, spreadShooter },
-	},
-	{
-		name = "Mossy Glade 1-9",
-		arena = "GladeLogs",
-		obstacles = {
-			{ offset = Vector2.new(-7, 4.63), size = Vector3.new(3, 1.5, 3) },
-			{ offset = Vector2.new(7, 4.63), size = Vector3.new(3, 1.5, 3) },
-		},
-		enemyCount = 5,
-		roster = { broodSlime, spreadShooter, meleeCharger },
-	},
-	{
-		name = "Mossy Glade 1-9",
-		arena = "GladeLogs",
-		obstacles = {
 			{ offset = Vector2.new(7.44, 2.37), size = Vector3.new(9, 2.8, 3.5) },
 			{ offset = Vector2.new(-7.44, 2.37), size = Vector3.new(9, 2.8, 3.5) },
 		},
 		enemyCount = 5,
-		roster = { meleeCharger, meleeCharger, broodSlime },
+		roster = { meleeCharger, broodSlime, spreadShooter },
 	},
 	{
 		name = "Mossy Glade 1-9",
@@ -2690,7 +2691,7 @@ local gladeLevelRooms: { RoomConfig } = {
 			{ offset = Vector2.new(7, -7.37), size = Vector3.new(2.8, 3.2, 2.8) },
 		},
 		enemyCount = 5,
-		roster = { meleeCharger, meleeCharger, broodSlime, spreadShooter },
+		roster = { broodSlime, spreadShooter, meleeCharger },
 	},
 	{
 		name = "Mossy Glade 1-9",
@@ -2700,7 +2701,7 @@ local gladeLevelRooms: { RoomConfig } = {
 			{ offset = Vector2.new(-9.35, -1.91), size = Vector3.new(7, 2.8, 3.5) },
 		},
 		enemyCount = 5,
-		roster = { meleeCharger, broodSlime, spreadShooter },
+		roster = { meleeCharger, meleeCharger, broodSlime },
 	},
 	{
 		name = "Mossy Glade 1-9",
@@ -2710,8 +2711,8 @@ local gladeLevelRooms: { RoomConfig } = {
 			{ offset = Vector2.new(8.71, -17.1), size = Vector3.new(2.8, 3.2, 2.8) },
 			{ offset = Vector2.new(-8.71, -17.1), size = Vector3.new(2.8, 3.2, 2.8) },
 		},
-		enemyCount = 6,
-		roster = { broodSlime, spreadShooter, meleeCharger },
+		enemyCount = 5,
+		roster = { meleeCharger, meleeCharger, broodSlime, spreadShooter },
 	},
 	{
 		name = "Mossy Glade 1-9",
@@ -2720,8 +2721,8 @@ local gladeLevelRooms: { RoomConfig } = {
 			{ offset = Vector2.new(5.28, 8.14), size = Vector3.new(3.4, 0.4, 5.1) },
 			{ offset = Vector2.new(-5.28, 8.14), size = Vector3.new(3.4, 0.4, 5.1) },
 		},
-		enemyCount = 6,
-		roster = { meleeCharger, meleeCharger, broodSlime },
+		enemyCount = 5,
+		roster = { meleeCharger, broodSlime, spreadShooter },
 	},
 	{
 		name = "Mossy Glade 1-9",
@@ -2731,7 +2732,7 @@ local gladeLevelRooms: { RoomConfig } = {
 			{ offset = Vector2.new(-8.54, 8.68), size = Vector3.new(2.8, 3.2, 2.8) },
 		},
 		enemyCount = 6,
-		roster = { meleeCharger, meleeCharger, broodSlime, spreadShooter },
+		roster = { broodSlime, spreadShooter, meleeCharger },
 	},
 	{
 		name = "Mossy Glade 1-9",
@@ -2742,7 +2743,7 @@ local gladeLevelRooms: { RoomConfig } = {
 			{ offset = Vector2.new(-8.89, -15.98), size = Vector3.new(3.2, 3.2, 3.2) },
 		},
 		enemyCount = 6,
-		roster = { meleeCharger, broodSlime, spreadShooter },
+		roster = { meleeCharger, meleeCharger, broodSlime },
 	},
 	{
 		name = "Mossy Glade 1-9",
@@ -2753,18 +2754,19 @@ local gladeLevelRooms: { RoomConfig } = {
 			{ offset = Vector2.new(10, 3.65), size = Vector3.new(2.8, 3.2, 2.8) },
 		},
 		enemyCount = 6,
-		roster = { broodSlime, spreadShooter, meleeCharger },
+		roster = { meleeCharger, meleeCharger, broodSlime, spreadShooter },
 	},
 	{
-		name = "Mossy Glade 1-9",
+		name = "Glade Angel 1-9",
 		arena = "GladeLogs",
 		obstacles = {
 			{ offset = Vector2.new(0, 2.36), size = Vector3.new(9, 2.8, 3.5) },
 			{ offset = Vector2.new(10.69, -17.34), size = Vector3.new(3.75, 1.5, 3.75) },
 			{ offset = Vector2.new(-10.69, -17.34), size = Vector3.new(3.75, 1.5, 3.75) },
 		},
-		enemyCount = 6,
-		roster = { meleeCharger, meleeCharger, broodSlime },
+		enemyCount = 0,
+		roster = {},
+		encounter = "Angel",
 	},
 	{
 		name = "Mossy Glade 1-9",
@@ -2774,7 +2776,7 @@ local gladeLevelRooms: { RoomConfig } = {
 			{ offset = Vector2.new(-9.11, 6.74), size = Vector3.new(3.75, 1.5, 3.75) },
 		},
 		enemyCount = 6,
-		roster = { meleeCharger, meleeCharger, broodSlime, spreadShooter },
+		roster = { broodSlime, spreadShooter, meleeCharger },
 	},
 	{
 		name = "Mossy Glade 1-9",
@@ -2785,7 +2787,7 @@ local gladeLevelRooms: { RoomConfig } = {
 			{ offset = Vector2.new(10, -4.6), size = Vector3.new(3, 1.5, 3) },
 		},
 		enemyCount = 6,
-		roster = { meleeCharger, broodSlime, spreadShooter },
+		roster = { meleeCharger, meleeCharger, broodSlime },
 	},
 	{
 		name = "Mossy Glade 1-9",
@@ -2796,7 +2798,7 @@ local gladeLevelRooms: { RoomConfig } = {
 			{ offset = Vector2.new(10, -14.5), size = Vector3.new(3.2, 3.2, 3.2) },
 		},
 		enemyCount = 6,
-		roster = { broodSlime, spreadShooter, meleeCharger },
+		roster = { meleeCharger, meleeCharger, broodSlime, spreadShooter },
 	},
 	{
 		name = "Mossy Glade 1-9",
@@ -2805,8 +2807,8 @@ local gladeLevelRooms: { RoomConfig } = {
 			{ offset = Vector2.new(8.72, -4.86), size = Vector3.new(7, 2.8, 3.5) },
 			{ offset = Vector2.new(-8.72, -4.86), size = Vector3.new(7, 2.8, 3.5) },
 		},
-		enemyCount = 7,
-		roster = { meleeCharger, meleeCharger, broodSlime },
+		enemyCount = 6,
+		roster = { meleeCharger, broodSlime, spreadShooter },
 	},
 	{
 		name = "Mossy Glade 1-9",
@@ -2816,8 +2818,8 @@ local gladeLevelRooms: { RoomConfig } = {
 			{ offset = Vector2.new(9.02, -17.49), size = Vector3.new(3.3, 1.5, 3.3) },
 			{ offset = Vector2.new(-9.02, -17.49), size = Vector3.new(3.3, 1.5, 3.3) },
 		},
-		enemyCount = 7,
-		roster = { meleeCharger, meleeCharger, broodSlime, spreadShooter },
+		enemyCount = 6,
+		roster = { broodSlime, spreadShooter, meleeCharger },
 	},
 	{
 		name = "Mossy Glade 1-9",
@@ -2828,7 +2830,7 @@ local gladeLevelRooms: { RoomConfig } = {
 			{ offset = Vector2.new(0, -1.78), size = Vector3.new(3.4, 0.4, 3.4) },
 		},
 		enemyCount = 7,
-		roster = { meleeCharger, broodSlime, spreadShooter },
+		roster = { meleeCharger, meleeCharger, broodSlime },
 	},
 	{
 		name = "Mossy Glade 1-9",
@@ -2839,7 +2841,7 @@ local gladeLevelRooms: { RoomConfig } = {
 			{ offset = Vector2.new(0, 3.49), size = Vector3.new(3.4, 0.4, 6.8) },
 		},
 		enemyCount = 7,
-		roster = { broodSlime, spreadShooter, meleeCharger },
+		roster = { meleeCharger, meleeCharger, broodSlime, spreadShooter },
 	},
 	{
 		name = "Mossy Glade 1-9",
@@ -2850,7 +2852,29 @@ local gladeLevelRooms: { RoomConfig } = {
 			{ offset = Vector2.new(-9.81, -14.93), size = Vector3.new(3, 1.5, 3) },
 		},
 		enemyCount = 7,
-		roster = { meleeCharger, meleeCharger, broodSlime },
+		roster = { meleeCharger, broodSlime, spreadShooter },
+	},
+	{
+		name = "Mossy Glade 1-9",
+		arena = "GladeLogs",
+		obstacles = {
+			{ offset = Vector2.new(8.5, -1.22), size = Vector3.new(3.5, 2.8, 7) },
+			{ offset = Vector2.new(-8.5, -1.22), size = Vector3.new(3.5, 2.8, 7) },
+			{ offset = Vector2.new(0, 7.78), size = Vector3.new(3.4, 0.4, 3.4) },
+		},
+		enemyCount = 7,
+		roster = { broodSlime, spreadShooter, meleeCharger },
+	},
+	{
+		name = "Glade Angel 1-9",
+		arena = "GladeLogs",
+		obstacles = {
+			{ offset = Vector2.new(6.21, 8.23), size = Vector3.new(3.4, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.21, 8.23), size = Vector3.new(3.4, 0.4, 3.4) },
+		},
+		enemyCount = 0,
+		roster = {},
+		encounter = "Angel",
 	},
 	{
 		name = "Glade Heart 1-9",
@@ -2868,33 +2892,12 @@ local gladeLevelRooms: { RoomConfig } = {
 		name = "Mossy Glade 1-10",
 		arena = "GladeLogs",
 		obstacles = {
-			{ offset = Vector2.new(8.5, -1.22), size = Vector3.new(3.5, 2.8, 7) },
-			{ offset = Vector2.new(-8.5, -1.22), size = Vector3.new(3.5, 2.8, 7) },
-			{ offset = Vector2.new(0, 7.78), size = Vector3.new(3.4, 0.4, 3.4) },
-		},
-		enemyCount = 5,
-		roster = { meleeCharger, broodSlime, spreadShooter },
-	},
-	{
-		name = "Mossy Glade 1-10",
-		arena = "GladeLogs",
-		obstacles = {
-			{ offset = Vector2.new(6.21, 8.23), size = Vector3.new(3.4, 0.4, 3.4) },
-			{ offset = Vector2.new(-6.21, 8.23), size = Vector3.new(3.4, 0.4, 3.4) },
-		},
-		enemyCount = 5,
-		roster = { broodSlime, spreadShooter, meleeCharger },
-	},
-	{
-		name = "Mossy Glade 1-10",
-		arena = "GladeLogs",
-		obstacles = {
 			{ offset = Vector2.new(9.44, 2.95), size = Vector3.new(3.5, 2.8, 7) },
 			{ offset = Vector2.new(-9.44, 2.95), size = Vector3.new(3.5, 2.8, 7) },
 			{ offset = Vector2.new(0, -6.05), size = Vector3.new(6.8, 0.4, 3.4) },
 		},
 		enemyCount = 5,
-		roster = { meleeCharger, meleeCharger, broodSlime },
+		roster = { meleeCharger, broodSlime, spreadShooter },
 	},
 	{
 		name = "Mossy Glade 1-10",
@@ -2904,7 +2907,7 @@ local gladeLevelRooms: { RoomConfig } = {
 			{ offset = Vector2.new(-8.48, -5.24), size = Vector3.new(9, 2.8, 3.5) },
 		},
 		enemyCount = 5,
-		roster = { meleeCharger, meleeCharger, broodSlime, spreadShooter },
+		roster = { broodSlime, spreadShooter, meleeCharger },
 	},
 	{
 		name = "Mossy Glade 1-10",
@@ -2916,7 +2919,7 @@ local gladeLevelRooms: { RoomConfig } = {
 			{ offset = Vector2.new(-11.5, -16), size = Vector3.new(3.5, 2.8, 9) },
 		},
 		enemyCount = 5,
-		roster = { meleeCharger, broodSlime, spreadShooter },
+		roster = { meleeCharger, meleeCharger, broodSlime },
 	},
 	{
 		name = "Mossy Glade 1-10",
@@ -2926,7 +2929,7 @@ local gladeLevelRooms: { RoomConfig } = {
 			{ offset = Vector2.new(7, -9.52), size = Vector3.new(3.4, 0.4, 6.8) },
 		},
 		enemyCount = 5,
-		roster = { broodSlime, spreadShooter, meleeCharger },
+		roster = { meleeCharger, meleeCharger, broodSlime, spreadShooter },
 	},
 	{
 		name = "Mossy Glade 1-10",
@@ -2936,8 +2939,8 @@ local gladeLevelRooms: { RoomConfig } = {
 			{ offset = Vector2.new(8.31, -14.66), size = Vector3.new(3.75, 1.5, 3.75) },
 			{ offset = Vector2.new(-8.31, -14.66), size = Vector3.new(3.75, 1.5, 3.75) },
 		},
-		enemyCount = 6,
-		roster = { meleeCharger, meleeCharger, broodSlime },
+		enemyCount = 5,
+		roster = { meleeCharger, broodSlime, spreadShooter },
 	},
 	{
 		name = "Mossy Glade 1-10",
@@ -2946,8 +2949,8 @@ local gladeLevelRooms: { RoomConfig } = {
 			{ offset = Vector2.new(0.4, -10.15), size = Vector3.new(6.8, 0.4, 3.4) },
 			{ offset = Vector2.new(-11.36, 10.18), size = Vector3.new(3.3, 1.5, 3.3) },
 		},
-		enemyCount = 6,
-		roster = { meleeCharger, meleeCharger, broodSlime, spreadShooter },
+		enemyCount = 5,
+		roster = { broodSlime, spreadShooter, meleeCharger },
 	},
 	{
 		name = "Mossy Glade 1-10",
@@ -2959,7 +2962,7 @@ local gladeLevelRooms: { RoomConfig } = {
 			{ offset = Vector2.new(-7.19, 5.09), size = Vector3.new(3.4, 0.4, 3.4) },
 		},
 		enemyCount = 6,
-		roster = { meleeCharger, broodSlime, spreadShooter },
+		roster = { meleeCharger, meleeCharger, broodSlime },
 	},
 	{
 		name = "Mossy Glade 1-10",
@@ -2970,17 +2973,18 @@ local gladeLevelRooms: { RoomConfig } = {
 			{ offset = Vector2.new(-10.66, -17.38), size = Vector3.new(3.75, 1.5, 3.75) },
 		},
 		enemyCount = 6,
-		roster = { broodSlime, spreadShooter, meleeCharger },
+		roster = { meleeCharger, meleeCharger, broodSlime, spreadShooter },
 	},
 	{
-		name = "Mossy Glade 1-10",
+		name = "Glade Angel 1-10",
 		arena = "GladeLogs",
 		obstacles = {
 			{ offset = Vector2.new(10.54, 4.02), size = Vector3.new(2.8, 3.2, 2.8) },
 			{ offset = Vector2.new(-10.54, 4.02), size = Vector3.new(2.8, 3.2, 2.8) },
 		},
-		enemyCount = 6,
-		roster = { meleeCharger, meleeCharger, broodSlime },
+		enemyCount = 0,
+		roster = {},
+		encounter = "Angel",
 	},
 	{
 		name = "Mossy Glade 1-10",
@@ -2990,7 +2994,7 @@ local gladeLevelRooms: { RoomConfig } = {
 			{ offset = Vector2.new(-7.78, -8.74), size = Vector3.new(2.8, 3.2, 2.8) },
 		},
 		enemyCount = 6,
-		roster = { meleeCharger, meleeCharger, broodSlime, spreadShooter },
+		roster = { broodSlime, spreadShooter, meleeCharger },
 	},
 	{
 		name = "Mossy Glade 1-10",
@@ -3000,7 +3004,7 @@ local gladeLevelRooms: { RoomConfig } = {
 			{ offset = Vector2.new(-8.04, -5.98), size = Vector3.new(11, 2.8, 3.5) },
 		},
 		enemyCount = 6,
-		roster = { meleeCharger, broodSlime, spreadShooter },
+		roster = { meleeCharger, meleeCharger, broodSlime },
 	},
 	{
 		name = "Mossy Glade 1-10",
@@ -3010,7 +3014,7 @@ local gladeLevelRooms: { RoomConfig } = {
 			{ offset = Vector2.new(7, -0.94), size = Vector3.new(2.8, 3.2, 2.8) },
 		},
 		enemyCount = 6,
-		roster = { broodSlime, spreadShooter, meleeCharger },
+		roster = { meleeCharger, meleeCharger, broodSlime, spreadShooter },
 	},
 	{
 		name = "Mossy Glade 1-10",
@@ -3020,7 +3024,7 @@ local gladeLevelRooms: { RoomConfig } = {
 			{ offset = Vector2.new(-9.15, -6.14), size = Vector3.new(7, 2.8, 3.5) },
 		},
 		enemyCount = 6,
-		roster = { meleeCharger, meleeCharger, broodSlime },
+		roster = { meleeCharger, broodSlime, spreadShooter },
 	},
 	{
 		name = "Mossy Glade 1-10",
@@ -3032,7 +3036,7 @@ local gladeLevelRooms: { RoomConfig } = {
 			{ offset = Vector2.new(-10.41, -2.41), size = Vector3.new(3.3, 1.5, 3.3) },
 		},
 		enemyCount = 6,
-		roster = { meleeCharger, meleeCharger, broodSlime, spreadShooter },
+		roster = { broodSlime, spreadShooter, meleeCharger },
 	},
 	{
 		name = "Mossy Glade 1-10",
@@ -3044,7 +3048,7 @@ local gladeLevelRooms: { RoomConfig } = {
 			{ offset = Vector2.new(-11.5, -16), size = Vector3.new(3.5, 2.8, 9) },
 		},
 		enemyCount = 6,
-		roster = { meleeCharger, broodSlime, spreadShooter },
+		roster = { meleeCharger, meleeCharger, broodSlime },
 	},
 	{
 		name = "Mossy Glade 1-10",
@@ -3054,7 +3058,7 @@ local gladeLevelRooms: { RoomConfig } = {
 			{ offset = Vector2.new(7, -1.21), size = Vector3.new(3.3, 1.5, 3.3) },
 		},
 		enemyCount = 6,
-		roster = { broodSlime, spreadShooter, meleeCharger },
+		roster = { meleeCharger, meleeCharger, broodSlime, spreadShooter },
 	},
 	{
 		name = "Mossy Glade 1-10",
@@ -3063,8 +3067,8 @@ local gladeLevelRooms: { RoomConfig } = {
 			{ offset = Vector2.new(-7, -0.46), size = Vector3.new(5.1, 0.4, 3.4) },
 			{ offset = Vector2.new(7, -0.46), size = Vector3.new(6.8, 0.4, 3.4) },
 		},
-		enemyCount = 7,
-		roster = { meleeCharger, meleeCharger, broodSlime },
+		enemyCount = 6,
+		roster = { meleeCharger, broodSlime, spreadShooter },
 	},
 	{
 		name = "Mossy Glade 1-10",
@@ -3075,29 +3079,19 @@ local gladeLevelRooms: { RoomConfig } = {
 			{ offset = Vector2.new(11.5, 4), size = Vector3.new(3.5, 2.8, 7) },
 			{ offset = Vector2.new(-11.5, 4), size = Vector3.new(3.5, 2.8, 7) },
 		},
-		enemyCount = 7,
-		roster = { meleeCharger, meleeCharger, broodSlime, spreadShooter },
+		enemyCount = 6,
+		roster = { broodSlime, spreadShooter, meleeCharger },
 	},
 	{
-		name = "Mossy Glade 1-10",
-		arena = "GladeLogs",
-		obstacles = {
-			{ offset = Vector2.new(1.12, 12.38), size = Vector3.new(3, 1.5, 3) },
-			{ offset = Vector2.new(-4.07, -12.54), size = Vector3.new(3.2, 3.2, 3.2) },
-			{ offset = Vector2.new(10.24, 3.65), size = Vector3.new(3.75, 1.5, 3.75) },
-		},
-		enemyCount = 7,
-		roster = { meleeCharger, broodSlime, spreadShooter },
-	},
-	{
-		name = "Mossy Glade 1-10",
+		name = "Glade Angel 1-10",
 		arena = "GladeLogs",
 		obstacles = {
 			{ offset = Vector2.new(-7, -9), size = Vector3.new(3.3, 1.5, 3.3) },
 			{ offset = Vector2.new(7, -9), size = Vector3.new(3.75, 1.5, 3.75) },
 		},
-		enemyCount = 7,
-		roster = { broodSlime, spreadShooter, meleeCharger },
+		enemyCount = 0,
+		roster = {},
+		encounter = "Angel",
 	},
 	{
 		name = "Mossy Glade 1-10",
@@ -3108,7 +3102,7 @@ local gladeLevelRooms: { RoomConfig } = {
 			{ offset = Vector2.new(0, -16.68), size = Vector3.new(3.4, 0.4, 5.1) },
 		},
 		enemyCount = 7,
-		roster = { meleeCharger, meleeCharger, broodSlime },
+		roster = { meleeCharger, meleeCharger, broodSlime, spreadShooter },
 	},
 	{
 		name = "Mossy Glade 1-10",
@@ -3118,6 +3112,39 @@ local gladeLevelRooms: { RoomConfig } = {
 			{ offset = Vector2.new(-11.5, -16), size = Vector3.new(3.5, 2.8, 9) },
 			{ offset = Vector2.new(11.5, 4), size = Vector3.new(3.5, 2.8, 11) },
 			{ offset = Vector2.new(-11.5, 4), size = Vector3.new(3.5, 2.8, 11) },
+		},
+		enemyCount = 7,
+		roster = { meleeCharger, broodSlime, spreadShooter },
+	},
+	{
+		name = "Mossy Glade 1-10",
+		arena = "GladeLogs",
+		obstacles = {
+			{ offset = Vector2.new(-10, -5.6), size = Vector3.new(3.4, 0.4, 5.1) },
+			{ offset = Vector2.new(0, -5.6), size = Vector3.new(3.4, 0.4, 5.1) },
+			{ offset = Vector2.new(10, -5.6), size = Vector3.new(3.4, 0.4, 3.4) },
+		},
+		enemyCount = 7,
+		roster = { broodSlime, spreadShooter, meleeCharger },
+	},
+	{
+		name = "Mossy Glade 1-10",
+		arena = "GladeLogs",
+		obstacles = {
+			{ offset = Vector2.new(11.5, 4), size = Vector3.new(3.5, 2.8, 7) },
+			{ offset = Vector2.new(-11.5, 4), size = Vector3.new(3.5, 2.8, 7) },
+			{ offset = Vector2.new(11.5, -16), size = Vector3.new(3.5, 2.8, 11) },
+			{ offset = Vector2.new(-11.5, -16), size = Vector3.new(3.5, 2.8, 11) },
+		},
+		enemyCount = 7,
+		roster = { meleeCharger, meleeCharger, broodSlime },
+	},
+	{
+		name = "Mossy Glade 1-10",
+		arena = "GladeLogs",
+		obstacles = {
+			{ offset = Vector2.new(-7, 6.36), size = Vector3.new(2.8, 3.2, 2.8) },
+			{ offset = Vector2.new(7, 6.36), size = Vector3.new(3.2, 3.2, 3.2) },
 		},
 		enemyCount = 7,
 		roster = { meleeCharger, meleeCharger, broodSlime, spreadShooter },

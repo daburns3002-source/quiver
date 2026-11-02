@@ -311,14 +311,26 @@ local function prepareNext(position: number)
 end
 
 --[[ Publish the combat ordinal before spawning, so rewards do not raise HP
-     and direct Studio jumps receive the same scaling as normal progression. ]]
+     and direct Studio jumps receive the same scaling as normal progression.
+
+     An encounter is not a fight and does not count: a Waves stage's
+     Valkyries and Angels are skipped, and so are a Rooms stage's Angel
+     rooms (`RoomConfig.encounter`), or the room after one would be scaled
+     as though a fight had happened in it. ]]
 local function setCombatEncounter(position: number)
-	local ordinal = position
+	local ordinal = 0
 	if stage().mode == "Waves" then
-		ordinal = 0
 		for wave = 1, position do
 			local kind = Waves.kindIn(stage(), wave, total())
 			if kind ~= "Angel" and kind ~= "Valkyrie" then
+				ordinal += 1
+			end
+		end
+	else
+		local rooms: { number } = stage().rooms or {}
+		for index = 1, position do
+			local room = Balance.Rooms[rooms[index]]
+			if room and room.encounter == nil then
 				ordinal += 1
 			end
 		end
@@ -339,15 +351,30 @@ local function enterRoom(position: number)
 	RunSession.setRoom(position)
 	Arena.setDoorLabel(if position < total() then tostring(position + 1) else "")
 	setCombatEncounter(position)
-	EnemyManager.spawnWave(room.enemyCount, room.roster)
-	-- the Mossback Snail's shell is up once a room
-	PetCombat.newRoom()
+
+	--[[ An Angel room: nothing spawns, and the offer opens to everyone the
+	     way a Waves stage's Angel wave does (`startWave`). The world is
+	     frozen while anyone is choosing, and the update loop's "Choosing"
+	     branch clears the room once nobody is, so the door opens from there
+	     rather than from a kill count. ]]
+	local encounter = room.encounter
+	if encounter then
+		state = "Choosing"
+		for _, session in RunSession.all() do
+			RunSession.offerEncounter(session, encounter :: any)
+		end
+	else
+		EnemyManager.spawnWave(room.enemyCount, room.roster)
+		-- the Mossback Snail's shell is up once a room
+		PetCombat.newRoom()
+	end
 
 	log.info(
-		"entered room %d/%d — %s (%.1f ms)",
+		"entered room %d/%d — %s%s (%.1f ms)",
 		position,
 		total(),
 		room.name,
+		if encounter then ` ({encounter})` else "",
 		(os.clock() - began) * 1000
 	)
 	broadcast()

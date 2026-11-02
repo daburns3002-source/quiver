@@ -171,6 +171,9 @@ end
 	loads, and the lobby clones what came back.
 ]]
 local dexTemplates: { [string]: MeshPart } = {}
+--[[ The same table under a name that is not about the dex, for the tree
+     and the arches. ]]
+local lobbyTemplates: { [string]: MeshPart } = {}
 
 export type DexPiece = {
 	mesh: string,
@@ -296,42 +299,41 @@ local function signboard(
 	words(board, text, COLOURS.text)
 end
 
---[[ A tree: a trunk and a crown of three round clumps, `grow` times the
-     lawn's size. ]]
+--[[
+	A tree: the owner's imported model, `grow` times the size a tree of 1
+	stands (owner, 2026-11-01: "use the tree import and replace the
+	existing trees in the game with it").
+
+	It was a trunk pillar under three leaf blobs. `tall` is set to what
+	that came to, so every scatter and ring that places trees keeps its
+	spacing without being retuned.
+
+	Each is turned a random amount about Y, which is all the variety a
+	single mesh has; without it a hundred identical trees read as wallpaper.
+	Falls back to nothing if the mesh did not load, as the dex books do.
+]]
 local function tree(at: Vector2, grow: number, rng: Random, parent: Instance, solid: boolean)
-	local model = Instance.new("Model")
-	model.Name = "Tree"
-	local foot = world(at, LAWN)
-	local height = 7 * grow
-	local trunk = pillar("Trunk", foot, height + 2 * grow, 2.2 * grow, COLOURS.trunk, model)
-	trunk.CanCollide = solid
-	local leaves = COLOURS.leaves
-	local crown = foot + Vector3.new(0, height + 3 * grow, 0)
-	local turn = rng:NextNumber() * math.pi * 2
-	blob(
-		"Crown",
-		Vector3.new(11, 9, 11) * grow,
-		CFrame.new(crown),
-		leaves[rng:NextInteger(1, #leaves)],
-		model
-	)
-	for k = 0, 1 do
-		local angle = turn + k * math.pi
-		local side = Vector3.new(math.cos(angle), 0, math.sin(angle)) * 3.6 * grow
-		blob(
-			"Clump",
-			Vector3.new(7.5, 6.5, 7.5) * grow,
-			CFrame.new(crown + side + Vector3.new(0, -1.6 * grow + k * 2.4 * grow, 0)),
-			leaves[rng:NextInteger(1, #leaves)],
-			model
-		)
+	local spec = LobbyConfig.treeModel
+	local template = lobbyTemplates[spec.mesh]
+	if not template then
+		return
 	end
-	for _, p in model:GetDescendants() do
-		if p:IsA("BasePart") then
-			p.CastShadow = solid
-		end
-	end
-	model.Parent = parent
+	local p = template:Clone()
+	p.Name = "Tree"
+	p.Anchored = true
+	p.CanCollide = solid
+	p.CanQuery = solid
+	p.CanTouch = false
+	p.CastShadow = solid
+	p.Material = Enum.Material.SmoothPlastic
+	p.Size = spec.native * (spec.tall * grow / spec.native.Y)
+	p.TextureID = spec.texture
+	--[[ The tree carries its colours in its own texture, so the part must
+	     not tint them. ]]
+	p.Color = Color3.new(1, 1, 1)
+	p.CFrame = CFrame.new(world(at, LAWN) + Vector3.new(0, p.Size.Y / 2, 0))
+		* CFrame.Angles(0, rng:NextNumber() * math.pi * 2, 0)
+	p.Parent = parent
 end
 
 --[[ A round grey boulder of two or three stones. ]]
@@ -1478,30 +1480,93 @@ local function portalArch(index: number, portal: LobbyConfig.Portal, parent: Ins
 	local centre = world(at, LAWN + ledge + LobbyConfig.archRise)
 	local active = portal.levels ~= nil
 	local stone = if active then COLOURS.rockLight else COLOURS.rock
-	local SEGMENTS = 18
-	for k = 0, SEGMENTS - 1 do
-		local angle = k / SEGMENTS * math.pi * 2
-		local spot = centre + Vector3.new(math.cos(angle), math.sin(angle), 0) * radius
-		local colour = if k == SEGMENTS / 4 then COLOURS.gold else stone
-		part(
-			"Ring",
-			Vector3.new(2.4, 2.6, 2.4),
-			CFrame.new(spot) * CFrame.Angles(0, 0, angle),
-			colour,
-			model
-		)
+	--[[
+		The arch itself. An area the owner has imported stands as its own
+		model; one past `archSilhouetteFrom` has no model and none coming,
+		so it stands as the first area's painted black (owner, 2026-11-01:
+		"replace every portal past 4 with a silhouette of the arena 1
+		portal until portals are made for them"). The rest -- Thornwood and
+		the Drowned Village, whose models arrive tomorrow -- keep the built
+		stone ring until they have one.
+	]]
+	local spec = LobbyConfig.archModels[index]
+	local silhouette = spec == nil and index >= LobbyConfig.archSilhouetteFrom
+	if silhouette then
+		spec = LobbyConfig.archModels[1]
 	end
-	for _, side in { -1, 1 } do
-		local leg = part(
-			"Leg",
-			Vector3.new(2.6, LobbyConfig.archRise, 2.6),
-			CFrame.new(
-				world(at + Vector2.new(side * radius, 0), LAWN + ledge + LobbyConfig.archRise / 2)
-			),
-			stone,
-			model
-		)
-		leg.CanCollide = true
+	local template = if spec then lobbyTemplates[spec.mesh] else nil
+
+	if spec and template then
+		local arch = template:Clone()
+		arch.Name = "Arch"
+		arch.Anchored = true
+		arch.CanCollide = false
+		arch.CanQuery = false
+		arch.CanTouch = false
+		arch.Material = Enum.Material.SmoothPlastic
+		arch.Size = spec.native * (LobbyConfig.archTall / spec.native.Y)
+		if silhouette then
+			--[[ No texture and no light in it: the shape is all a
+			     silhouette says, which is the point of one. ]]
+			arch.TextureID = ""
+			arch.Color = LobbyConfig.archSilhouette
+		else
+			arch.TextureID = spec.texture
+			--[[ It carries its colours in its own texture, so the part
+			     must not tint them. ]]
+			arch.Color = Color3.new(1, 1, 1)
+		end
+		arch.CFrame = CFrame.new(world(at, LAWN + ledge) + Vector3.new(0, arch.Size.Y / 2, 0))
+			* CFrame.Angles(0, LobbyConfig.archTurn, 0)
+		arch.Parent = model
+		--[[ The legs stay, invisible, so a player is held out of the
+		     uprights exactly as before whatever shape the model is. ]]
+		for _, side in { -1, 1 } do
+			local leg = part(
+				"Leg",
+				Vector3.new(2.6, LobbyConfig.archRise, 2.6),
+				CFrame.new(
+					world(
+						at + Vector2.new(side * radius, 0),
+						LAWN + ledge + LobbyConfig.archRise / 2
+					)
+				),
+				stone,
+				model
+			)
+			leg.CanCollide = true
+			leg.Transparency = 1
+			leg.CastShadow = false
+		end
+	else
+		local SEGMENTS = 18
+		for k = 0, SEGMENTS - 1 do
+			local angle = k / SEGMENTS * math.pi * 2
+			local spot = centre + Vector3.new(math.cos(angle), math.sin(angle), 0) * radius
+			local colour = if k == SEGMENTS / 4 then COLOURS.gold else stone
+			part(
+				"Ring",
+				Vector3.new(2.4, 2.6, 2.4),
+				CFrame.new(spot) * CFrame.Angles(0, 0, angle),
+				colour,
+				model
+			)
+		end
+		for _, side in { -1, 1 } do
+			local leg = part(
+				"Leg",
+				Vector3.new(2.6, LobbyConfig.archRise, 2.6),
+				CFrame.new(
+					world(
+						at + Vector2.new(side * radius, 0),
+						LAWN + ledge + LobbyConfig.archRise / 2
+					)
+				),
+				stone,
+				model
+			)
+			leg.CanCollide = true
+		end
 	end
 	local disc = part(
 		"Swirl",
@@ -1609,11 +1674,19 @@ local function near(a: Vector2, list: { Vector2 }, reach: number): boolean
 end
 
 function Lobby.build(parent: Instance)
-	--[[ The Dex Hall's two books, fetched before anything is placed: they
-	     are the only meshes in the lobby, everything else being parts, so
-	     this is the one wait and it is two ids. ]]
-	dexTemplates =
-		MeshTemplates.load({ LobbyConfig.dex.roofBook.mesh, LobbyConfig.dex.standBook.mesh })
+	--[[ Every mesh the lobby uses, fetched before anything is placed: the
+	     Dex Hall's two books, the tree, and each arch the owner has
+	     imported. One wait for the lot, which is what `MeshTemplates` is
+	     for -- asked one at a time they cost about a second each. ]]
+	do
+		local ids = { LobbyConfig.dex.roofBook.mesh, LobbyConfig.dex.standBook.mesh }
+		table.insert(ids, LobbyConfig.treeModel.mesh)
+		for _, arch in LobbyConfig.archModels do
+			table.insert(ids, arch.mesh)
+		end
+		dexTemplates = MeshTemplates.load(ids)
+		lobbyTemplates = dexTemplates
+	end
 	local rng = Random.new(20261027)
 	local root = Instance.new("Folder")
 	root.Name = "Lobby"

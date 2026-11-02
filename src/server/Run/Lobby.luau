@@ -793,17 +793,35 @@ local function building(name: string, at: Vector2, parent: Instance): Vector3?
 		slab("BeamTop", Vector3.new(wide, 2, 2), 0, 8.5, -15.5, look.timber)
 		slab("BeamTop", Vector3.new(wide, 2, 2), 0, 8.5, 10.5, look.timber)
 
-		--[[ The porch columns. Square, as the sheet draws them -- they
-		     were turned cylinders at first, which read as a temple rather
-		     than the toy-brick building this is. A white shaft between
-		     two wider blocks, banded in gold under each. ]]
+		--[[
+			The porch columns. Square, as the sheet draws them -- they
+			were turned cylinders at first, which read as a temple rather
+			than the toy-brick building this is. A white shaft between two
+			wider blocks, banded in gold under each.
+
+			They stand in front of the wall line, which is at z 11.5. At
+			12.5 each one was buried 0.7 studs into the corner post and the
+			top beam, so brown timber cut through the white blocks in nine
+			places (owner, 2026-11-01: "should not be clipping through
+			anything"). Out here nothing of the frame reaches them, and the
+			head stops at 9.55 where the gable beam begins, so the column
+			meets what it holds up instead of piercing it.
+
+			Each also stands on stone down to the lawn. The plinth stops at
+			z 11.5, so a column out here had its whole foot over open grass
+			-- all 25 rays under it found lawn 1.5 studs below (owner:
+			"these pillars need to be flush to the ground"). The base is
+			the steps' own stone and runs into their outer cheeks, so it
+			reads as the porch floor carrying on under the column.
+		]]
 		for _, sx in { -1, 1 } do
 			local x = sx * 7.3
-			slab("ColumnFoot", Vector3.new(3.4, 1, 3.4), x, 2, 12.5, look.column)
-			slab("ColumnBand", Vector3.new(3.1, 0.8, 3.1), x, 2.9, 12.5, look.gold)
-			slab("Column", Vector3.new(2.6, 5, 2.6), x, 5.8, 12.5, look.column)
-			slab("ColumnBand", Vector3.new(3.1, 0.8, 3.1), x, 8.7, 12.5, look.gold)
-			slab("ColumnHead", Vector3.new(3.4, 1, 3.4), x, 9.6, 12.5, look.column)
+			slab("ColumnBase", Vector3.new(3.4, 1.5, 3.6), x, 0.75, 13.2, look.stone)
+			slab("ColumnFoot", Vector3.new(3.4, 1, 3.4), x, 2, 13.3, look.column)
+			slab("ColumnBand", Vector3.new(3.1, 0.8, 3.1), x, 2.9, 13.3, look.gold)
+			slab("Column", Vector3.new(2.6, 4.45, 2.6), x, 5.525, 13.3, look.column)
+			slab("ColumnBand", Vector3.new(3.1, 0.8, 3.1), x, 8.15, 13.3, look.gold)
+			slab("ColumnHead", Vector3.new(3.4, 1, 3.4), x, 9.05, 13.3, look.column)
 		end
 
 		--[[

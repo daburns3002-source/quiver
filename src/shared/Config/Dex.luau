@@ -10,6 +10,13 @@
 	a picture window, a name plaque and a description box down the left
 	page, and a 3x3 grid of slots on the right.
 
+	Codex drew a sample entry into the middle slot of each spread -- a
+	horned enemy, a sword, a fox -- which showed under every page the
+	screen drew (owner, 2026-11-01: "the middle square has a constant
+	silhouette"). It is painted out of all 21 source images, the cell laid
+	back to the page's own paper, and these are the ids of the cleaned
+	ones.
+
 	**The three are not the same layout.** They look alike, but Codex drew
 	each one separately: the enemy book's slots are 145 wide on a 199 pitch,
 	the pet book's 125 on 186, the weapon book's 135 on 193, and the plaques
@@ -85,14 +92,14 @@ local Dex = {
 	books = {
 		Enemies = {
 			title = "ENEMIES",
-			spread = "rbxassetid://95805981400827",
+			spread = "rbxassetid://90876700869692",
 			turn = {
-				"rbxassetid://104946844827539",
-				"rbxassetid://90353064087324",
-				"rbxassetid://73433914248407",
-				"rbxassetid://103889455647416",
-				"rbxassetid://91612147530424",
-				"rbxassetid://78819232047694",
+				"rbxassetid://140036952821236",
+				"rbxassetid://71332474798830",
+				"rbxassetid://134293298002938",
+				"rbxassetid://84001533560193",
+				"rbxassetid://136709529671449",
+				"rbxassetid://90876700869692",
 			},
 			picture = { x = 277, y = 151, w = 343, h = 306 },
 			plaque = { x = 228, y = 500, w = 470, h = 74 },
@@ -110,14 +117,14 @@ local Dex = {
 		} :: Book,
 		Weapons = {
 			title = "WEAPONS",
-			spread = "rbxassetid://80870146096666",
+			spread = "rbxassetid://80406021146225",
 			turn = {
-				"rbxassetid://98292860862012",
-				"rbxassetid://138491715882157",
-				"rbxassetid://85057410986403",
-				"rbxassetid://100101005940334",
-				"rbxassetid://96769238265698",
-				"rbxassetid://80870146096666",
+				"rbxassetid://123626260880925",
+				"rbxassetid://75661339663233",
+				"rbxassetid://73286053052315",
+				"rbxassetid://73080602888875",
+				"rbxassetid://122411507598479",
+				"rbxassetid://81051730028159",
 			},
 			picture = { x = 239, y = 162, w = 356, h = 319 },
 			plaque = { x = 200, y = 536, w = 442, h = 74 },
@@ -135,14 +142,14 @@ local Dex = {
 		} :: Book,
 		Pets = {
 			title = "PETS",
-			spread = "rbxassetid://119576194367119",
+			spread = "rbxassetid://117809291551852",
 			turn = {
-				"rbxassetid://113953050338872",
-				"rbxassetid://99283906521154",
-				"rbxassetid://86902083144615",
-				"rbxassetid://138691736917483",
-				"rbxassetid://90560164681006",
-				"rbxassetid://85959441811235",
+				"rbxassetid://78667437217662",
+				"rbxassetid://102593702597549",
+				"rbxassetid://134732318913442",
+				"rbxassetid://73788556188024",
+				"rbxassetid://113240965652523",
+				"rbxassetid://119442228805279",
 			},
 			picture = { x = 307, y = 161, w = 328, h = 285 },
 			plaque = { x = 250, y = 499, w = 450, h = 72 },

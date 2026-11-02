@@ -62,9 +62,19 @@ page has not lifted yet, and has landed -- so a turn begins and ends where the
 book already was. They are kept in the list rather than trimmed, because the
 animation reads as six evenly spaced frames.
 
-The left page does not move in the frames, so a turn hides only the grid,
-plays the six, and redraws on the next nine. Seen in game:
-`assets/concepts/blocky/ui/codex/dex_page_turn_in_game.jpg`.
+**Back turns run the frames in reverse** (owner, 2026-11-01: "the page
+animation needs to turn the other way if they click the back page arrow"). The
+frames are a page lifting off the right and falling to the left, so played
+backwards they are a page coming back; because the ends are both the resting
+spread, either direction still starts and finishes where the book was.
+
+**The book must not move while they play** (owner: "make sure the book doesnt
+move at all when the animation plays"). It cannot, because a turn calls `fill`
+and never `draw`: the spread stays the same Instance throughout, and only the
+`Pages` frame is emptied and remade. Rebuilding the screen mid-turn destroyed
+and recreated the spread, and the book flickered as the image reloaded.
+
+Seen in game: `assets/concepts/blocky/ui/codex/dex_page_turn_in_game.jpg`.
 
 ## Art
 
@@ -72,6 +82,25 @@ Sources in `assets/concepts/blocky/ui/codex/`, each 1672x941: a
 `<book>_codex_spread.png` and `<book>_turn_1..6.png`. Twenty-one images, of
 which fifteen are distinct -- in every book the spread, turn 1 and turn 6 are
 the same picture.
+
+### The sample entry is painted out
+
+Codex drew a sample into the **middle slot** of each spread -- a horned enemy,
+a sword, a fox -- so every page the screen drew had a silhouette sitting under
+its fifth slot (owner, 2026-11-01: "the middle square has a constant
+silhouette"). All 21 images are cleaned in place: the sample's footprint is
+taken by differencing that cell against the emptiest other cell on the same
+page, grown a few pixels to catch the anti-aliased rim, and laid back to paper
+copied from that cell with its tone matched to the paper still showing around
+the sample.
+
+Where a frame's curling page covers the middle slot, only what is still dark
+is rewritten, so the paper of the curl survives. A darkness threshold alone
+left a pale ghost of the shape and missed the sword's tip and pommel, which
+are mid-tone -- hence differencing rather than thresholding.
+
+**If Codex redraws a spread, it will arrive with its sample back.** Clean it
+the same way before uploading.
 
 ## Adding to a book
 

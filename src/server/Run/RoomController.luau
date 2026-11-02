@@ -44,6 +44,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
+local AngelProp = require(script.Parent.AngelProp)
 local AreaStrikes = require(script.Parent.Parent.Combat.AreaStrikes)
 local Arena = require(script.Parent.Parent.Arena.Arena)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
@@ -360,6 +361,14 @@ local function enterRoom(position: number)
 	local encounter = room.encounter
 	if encounter then
 		state = "Choosing"
+		--[[ The Angel itself, in the middle of the room facing whoever walked
+		     in. Into the arena folder, so the next room tears it down with
+		     everything else. ]]
+		local arena = workspace:FindFirstChild("Arena")
+		if arena and encounter == "Angel" then
+			local middle = Vector3.new(0, 0, 0)
+			AngelProp.build(arena, middle, Balance.Arena.spawnPosition - middle)
+		end
 		for _, session in RunSession.all() do
 			RunSession.offerEncounter(session, encounter :: any)
 		end

@@ -48,9 +48,11 @@ export type Enemy = {
 	picture: string,
 	--[[ The area it is from, for a stage without one. ]]
 	area: string,
-	--[[ Out of the game for now (owner, 2026-10-26: "take the ember wilf
-	     enemy out of rotation, that enemy is benched"): kept for when it
-	     comes back, never shown on the loading screen. ]]
+	--[[ Out of the game but kept here, so it shows on neither the loading
+	     screen nor the dex. No enemy is benched at the moment: the Ember
+	     Wilf was, and on 2026-11-01 the owner took it out for good ("take
+	     the ember wilf out all the way"), so the field is here for the
+	     next one rather than for anything in the game today. ]]
 	benched: boolean?,
 }
 
@@ -125,13 +127,6 @@ local NewEnemies = {
 			description = "Spits two seeds from across the room. Slip through the gap between them!",
 			picture = "rbxassetid://82242476998896",
 			area = "MossyGlade",
-		},
-		Wilf = {
-			name = "EMBER WILF",
-			description = "Charges when its eyes flash red and pounces up close. Get off its line!",
-			picture = "rbxassetid://96856212963605",
-			area = "MossyGlade",
-			benched = true,
 		},
 		BroodSlime = {
 			name = "BROOD SLIME",

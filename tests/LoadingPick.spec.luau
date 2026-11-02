@@ -14,6 +14,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local LoadingPick = require(ReplicatedStorage.Shared.Util.LoadingPick)
 local LoadingScreen = require(ReplicatedStorage.Shared.Config.LoadingScreen)
 local LoadingTips = require(ReplicatedStorage.Shared.Config.LoadingTips)
+local NewEnemies = require(ReplicatedStorage.Shared.Config.NewEnemies)
 local SaveSchema = require(ReplicatedStorage.Shared.Util.SaveSchema)
 local TestRunner = require(script.Parent.TestRunner)
 
@@ -76,11 +77,17 @@ return function(t: TestRunner.Helper)
 		end
 	end)
 
-	t.test("the benched Ember Wilf is never shown", function()
+	--[[ Nothing is benched today, so this pins the rule rather than a
+	     name: whatever carries the flag stays out of the pool. ]]
+	t.test("a benched enemy is never shown", function()
 		local profile = SaveSchema.default()
 		profile.bossesBeaten.MossyGlade = true
-		t.isTrue(not has(LoadingPick.pool(nil), "EMBER WILF"), "Wilf shown")
-		t.isTrue(not has(LoadingPick.pool(profile), "EMBER WILF"), "Wilf shown")
+		for key, enemy in NewEnemies.enemies do
+			if enemy.benched then
+				t.isTrue(not has(LoadingPick.pool(nil), enemy.name), key .. " shown")
+				t.isTrue(not has(LoadingPick.pool(profile), enemy.name), key .. " shown")
+			end
+		end
 	end)
 
 	t.test("Thornwood's enemies once King Bloblin is beaten", function()

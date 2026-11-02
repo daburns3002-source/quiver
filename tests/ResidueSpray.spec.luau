@@ -24,7 +24,6 @@ return function(t: TestRunner.Helper)
 		for name in settings.kinds do
 			t.isTrue(names[name] == true, name .. " is not an enemy")
 		end
-		t.isNil(settings.kinds.Wilf, "the Ember Wilf is not a slime")
 		for name in Balance.SlimeHop.kinds :: any do
 			t.notNil(settings.kinds[name], name .. " hops like a slime but throws nothing")
 		end

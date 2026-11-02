@@ -272,7 +272,7 @@ local Lobby = {
 		     Its walls and roof colours live in `dex.colours`; these two
 		     are here only because every building has them. ]]
 		DexHall = {
-			size = Vector3.new(38, 13.74, 28),
+			size = Vector3.new(38, 13.71, 28),
 			rise = 10,
 			walls = Color3.fromRGB(238, 226, 196),
 			roof = Color3.fromRGB(124, 44, 230),
@@ -334,7 +334,12 @@ local Lobby = {
 		     book rests on. It came down from 16.3 with the pitch: the
 		     sheet's roof is long and low, and an 18.6 degree slope made
 		     a steep A of it (owner, 2026-11-01: "gable and roof"). ]]
-		hall = { across = 38, deep = 28, ridge = 13.74, pitch = 12 },
+		--[[ `ridge` is where a slope of this pitch gets to over the
+		     middle, which is what the roof's cap is set to and what the
+		     book rests on; `Run/Lobby` works it out from `pitch` and
+		     uses its own, so this is the declared copy the spec checks
+		     the building's height against. ]]
+		hall = { across = 38, deep = 28, ridge = 13.71, pitch = 12 },
 		--[[
 			The open book on the roof.
 

@@ -765,6 +765,19 @@ local function building(name: string, at: Vector2, parent: Instance): Vector3?
 			slab("BeamFront", Vector3.new(6.45, 2, 2), sx * 13.77, 2.5, 10.5, look.timber)
 		end
 		slab("PanelBack", Vector3.new(34, 4, 1.6), 0, wallY, -15.5, look.panel)
+		--[[ Windows along the back, behind the shelves (owner,
+		     2026-11-01: "those white squares should be windows behind
+		     the books"): the cream panel read as four blank squares
+		     through the gaps in the shelving. Set just in front of the
+		     panel so they are what you see through it. ]]
+		for _, x in { -14, -5, 5, 14 } do
+			local pane = slab("Window", Vector3.new(5.4, 2.8, 0.5), x, wallY, -14.8, look.glass)
+			pane.Material = Enum.Material.Glass
+			pane.Transparency = 0.45
+			slab("WindowFrame", Vector3.new(6.2, 3.4, 0.4), x, wallY, -14.95, look.timber)
+			slab("WindowBar", Vector3.new(0.35, 2.8, 0.6), x, wallY, -14.7, look.timber)
+			slab("WindowBar", Vector3.new(5.4, 0.35, 0.6), x, wallY, -14.7, look.timber)
+		end
 		slab("BeamBack", Vector3.new(34, 2, 2), 0, 2.5, -15.5, look.timber)
 		slab("BeamTop", Vector3.new(wide, 2, 2), 0, 8.5, -15.5, look.timber)
 		slab("BeamTop", Vector3.new(wide, 2, 2), 0, 8.5, 10.5, look.timber)
@@ -848,6 +861,61 @@ local function building(name: string, at: Vector2, parent: Instance): Vector3?
 			look.roof
 		)
 		slab("RoofTop", Vector3.new(flatHalf * 2, 0.8, 28), 0, hall.ridge - 0.4, -2.5, look.roof)
+
+		--[[
+			The gable ends.
+
+			The roof's ridge runs front to back, so it rises toward the
+			middle while the wall tops stay level: that left a triangle
+			of open sky over the back wall and over the porch, which from
+			inside is a clear view out (owner, 2026-11-01: "the roof isnt
+			closed"). A vertical ray never found it -- the roof is over
+			your head the whole way -- because the hole is sideways.
+
+			Filled with a run of panels stepping in toward the middle,
+			each one rising to the roof's underside at the *outer* edge
+			of its own band, so no step can poke through the slope above
+			it.
+		]]
+		local wallTop = 9.4
+		local outerX = flatHalf + reach * 2
+		--[[ How high the roof's underside is over the middle. ]]
+		local peakUnder = (eave - 0.8) + (outerX - flatHalf) * math.tan(pitch)
+		--[[
+			One wedge each side, rather than a run of steps: stepped
+			panels showed from outside under the eaves as a cream
+			staircase climbing to the gable. A wedge lies flush under the
+			slope.
+
+			A wedge's face falls along its own +Z, so a quarter turn about
+			Y lays it along X; the sign of the turn picks which end is
+			tall, and each side wants its tall end at the middle.
+		]]
+		local function gableEnd(z: number)
+			for _, sx in { -1, 1 } do
+				local wedge = part(
+					"GableEnd",
+					Vector3.new(1.5, peakUnder - wallTop, outerX),
+					spotIn(-sx * outerX / 2, (wallTop + peakUnder) / 2, z)
+						* CFrame.Angles(0, sx * math.pi / 2, 0),
+					look.panel,
+					model,
+					Enum.PartType.Wedge
+				)
+				wedge.CanCollide = true
+			end
+			--[[ The flat over the middle, where the roof is level. ]]
+			slab(
+				"GableEnd",
+				Vector3.new(flatHalf * 2, peakUnder - wallTop, 1.5),
+				0,
+				(wallTop + peakUnder) / 2,
+				z,
+				look.panel
+			)
+		end
+		gableEnd(-15.5)
+		gableEnd(10.5)
 
 		--[[
 			The gable over the porch.

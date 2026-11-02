@@ -384,6 +384,8 @@ local Lobby = {
 			--[[ Warmer and less blinding than the 255,200,50 it was. ]]
 			lantern = Color3.fromRGB(255, 186, 96),
 			iron = Color3.fromRGB(30, 30, 30),
+			--[[ The windows behind the shelves. ]]
+			glass = Color3.fromRGB(176, 222, 255),
 			books = {
 				Color3.fromRGB(138, 43, 226),
 				Color3.fromRGB(220, 30, 40),

@@ -72,9 +72,24 @@ anvil, the Hatchery Fairy, three codex books on lecterns before the Dex Hall.
 under three leaf blobs -- so three times as many trees cost *fewer* parts than
 before (1,252 in the lobby, down from about 2,152). `tall` is set to what the
 built tree came to, so every scatter and ring that places one keeps its
-spacing; each is turned a random amount about Y, which is all the variety a
-single mesh has. The scatter also weighs trees at 9 against 15 for everything
-else and fills 0.72 of its cells (owner: "add more around the lobby").
+spacing.
+
+**Variety comes from two things, because one mesh has none of its own.** Each
+tree is turned a random amount about Y, and its height is stretched by itself
+(`treeModel.stretch`, 0.8 to 1.4) apart from how wide it is. Scaling evenly
+only makes a tree look nearer or further -- the built trees it replaced hid
+that by randomising their crowns too. On the lawn that gives trees from 8.9 to
+20.9 studs whose height-to-width ratios span 1.45 to 2.53; before, every tree
+had the same ratio.
+
+**Density** (owner: "add more around the lobby"). Weighting trees higher was
+not enough on its own: only about a quarter of scatter tries can land, because
+the paths, the terrace and the `keep` ring round every building, stand, arch
+and board reserve most of the lawn. At a 14-stud cell with 0.6 filled the
+whole clearing held 37 scattered things, 15 of them trees. The cell is now 10
+with 0.9 filled and a tree reserves 4.2 rather than 6, which gives 24 trees
+and about seventy other things. The space test itself is unchanged, so nothing
+stands any closer to a building or a path than before.
 
 Each area's arch comes from `Config/Lobby.archModels`, keyed by portal index.
 The Mossy Glade's is imported; Thornwood's and the Drowned Village's are

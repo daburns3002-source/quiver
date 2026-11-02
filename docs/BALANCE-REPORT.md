@@ -127,6 +127,14 @@ Damage a second, computed from each spec: direct
 (`damage x hits x targets / every`) plus anything over time (`aura`, `burn`,
 `bleed`). Utility that is not damage is listed, not scored.
 
+**This table is the snapshot of 2026-11-01, before the ladder was fixed.**
+The numbers below are what the game did then, and the finding that follows
+is what the owner picked first; the fix is at the end of this section. The
+same arithmetic now lives in `Shared/Util/PetPower`, so it can be read off
+the config instead of recomputed by hand, and it credits a beam or a ring
+with two enemies where this table credited one (which is why the
+Glimmerhorn and Thornwake rows read lower here than they do there).
+
 | # | Pet | Rarity | Total | Direct | Over time | Egg | Utility |
 |---|---|---|---|---|---|---|---|
 | 1 | BRAMBLE BEAR | Epic | 51.0 | 51.0 | — | yes | |
@@ -175,6 +183,45 @@ report.
 
 The quickest honest fix is to raise Rare, Legendary and Mythic *damage* so the
 ladder climbs, and let utility be the bonus on top rather than the excuse.
+
+### Fixed, 2026-11-02
+
+The owner picked this one first, and it is done. `Shared/Util/PetPower` puts
+every pet on one number (damage a second against a full room), and
+`Config/PetCombat` now aims each rarity at a band:
+
+|  | Common | Rare | Epic | Legendary | Mythic |
+|---|---|---|---|---|---|
+| area 1 | 16 | 24 | 34 | 44 | 56 |
+| area 2 | 18 | 27 | 38 | 50 | 64 |
+| area 3 | 20 | 30 | 43 | 55 | 70 |
+
+Each area's band is the one before it times that area's `areaScale`, the
+same step its weapons take. Uncommon has no band: every Uncommon so far is
+a guard or a shelter, which trades its damage away outright, so it is off
+the scale rather than at the bottom of it.
+
+What the two live eggs do now:
+
+| Egg | Common | Uncommon | Rare | Epic | Legendary | Mythic |
+|---|---|---|---|---|---|---|
+| Mossy | 16.0, 16.8 | guard | 24.0 | 34.0 | 44.0, 44.0 | 56.0 |
+| Thornwood | 18.0, 18.0 | guard | 27.0 | 38.0 | 50.0, 50.0 | 64.0 |
+
+The egg's total output rose about 27%, which is deliberate: the Epics came
+down and the top came up further, and pets are where this game is supposed
+to carry a player's power. Benched pets were tuned to the same bands so
+that putting an `egg` field back cannot re-invert the ladder, and the
+Drowned Village's two damage dealers were set to area 3's band ready for
+its egg. `tests/PetPower.spec` now fails if the ladder ever goes backwards
+or if a pet drifts more than a fifth off its band.
+
+Two things this does **not** fix. The Abyss Jelly, the Drowned Village's
+Mythic, still does no damage of its own at all — its canopy divides damage
+rather than adding any — so when that egg opens its rarest pull will again
+be, on this scale, its weakest. That is how `docs/PETS-DROWNED.md` designs
+it, so it is the owner's call rather than a bug. And the Uncommon guards
+are still worth 0 here by the same reasoning.
 
 ---
 

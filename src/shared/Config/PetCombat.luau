@@ -5,9 +5,38 @@
 	look (the Attack clip and its pieces, `Config/PetAttacks`) plays on the
 	clients in step with it.
 
-	PLACEHOLDER NUMBERS (2026-10-24): the owner balances them. For scale, the
-	player's arrow does 100 and the area 1 enemies have 150 to 1,200 health;
-	the player has 225.
+	For scale, the player's arrow does 100 and the area 1 enemies have 150 to
+	1,200 health; the player has 225.
+
+	**The damage climbs with rarity, and `tests/PetPower.spec` holds it
+	there.** It had quietly inverted: in both eggs the Epic was the hardest
+	hitter, the Mythic did less than the Common and the Rare about a third of
+	it (`docs/BALANCE-REPORT.md`, 2026-11-01; owner, 2026-11-02, asked for the
+	pet rarity ladder first). What hid it is that no two of these pets are
+	described in the same terms, so `Util/PetPower` puts them all on one
+	number — damage a second against a full room — and these are the
+	bands each rarity is aimed at:
+
+		          area 1   area 2   area 3
+		Common        16       18       20
+		Rare          24       27       30
+		Epic          34       38       43
+		Legendary     44       50       55
+		Mythic        56       64       70
+
+	Area 2's are area 1's times `WeaponStats.areaScale[2]` (1.125) and area
+	3's times 1.25, the same step a weapon of that area takes, because a pet
+	has to keep up with that area's health the same way.
+
+	Uncommon has no band: both eggs' Uncommon is a guard, which trades its
+	damage for blocking a hit outright, and the Drowned Village's is a
+	shelter. A pet that does no damage at all is off this scale rather than
+	at the bottom of it, and so are the holds, heals, revives, hastes, marks,
+	blinds and canopies the rest carry on top — which is why a pet can
+	sit a little under its band and still be the right pick.
+
+	A benched pet is held to its old egg's bands too, so putting its `egg`
+	field back cannot re-invert the ladder.
 
 	Which pet a player has is their `Pet` attribute. Until Phase 6 brings
 	eggs and equipping, only the Studio sandbox sets it.
@@ -121,11 +150,11 @@ export type Spec = {
 local PetCombat: { pets: { [string]: Spec } } = {
 	pets = {
 		-- Slime Glob: a blob that slows
-		Mosslet = { every = 2, range = 60, damage = 30, slow = { scale = 0.5, duration = 1.5 } },
+		Mosslet = { every = 2, range = 60, damage = 32, slow = { scale = 0.5, duration = 1.5 } },
 		-- Acorn Flick: a burst of three pellets
-		Babacorn = { every = 2.5, range = 60, damage = 20, hits = 3 },
+		Babacorn = { every = 2.5, range = 60, damage = 14, hits = 3 },
 		-- Tongue Snap: short and hard
-		FernFrog = { every = 3, range = 14, damage = 70 },
+		FernFrog = { every = 3, range = 14, damage = 48 },
 		-- Spore Patch: a healing ring
 		ToadstoolTot = { every = 20, range = 0, heal = { perSecond = 6, duration = 3, radius = 6 } },
 		-- Shell Guard: blocks one hit a room
@@ -135,12 +164,12 @@ local PetCombat: { pets: { [string]: Spec } } = {
 		-- Root Snare: holds one enemy still (owner, 2026-10-26: "stumpy needs to
 		-- hold enemies in place"). Held under half the time, so a room still
 		-- has to be fought; bosses are not held: their moves are timelines
-		Stumpy = { every = 4, range = 60, damage = 25, root = { duration = 1.75, boss = 0 } },
+		Stumpy = { every = 4, range = 60, damage = 96, root = { duration = 1.75, boss = 0 } },
 		-- Leaf Dash: slashes up to three
 		GladeFox = {
 			every = 3,
 			range = 60,
-			damage = 45,
+			damage = 34,
 			targets = 3,
 			-- runs to each one (owner, 2026-10-25), timed to its Attack clip's
 			-- own lunge: out at 0.17 s, landed at 0.37, back from 0.57 to 0.8
@@ -164,19 +193,26 @@ local PetCombat: { pets: { [string]: Spec } } = {
 			},
 		},
 		-- Feather Volley: homing feathers over walls and cover
-		Hootmoss = { every = 3, range = 80, damage = 25, targets = 4 },
+		Hootmoss = { every = 3, range = 80, damage = 26, targets = 4 },
 		-- Royal Court: two mini slimes, a crown shockwave against bosses
-		SlimePrince = { every = 4, range = 60, damage = 50, targets = 2, bossDamage = 80 },
+		SlimePrince = { every = 4, range = 60, damage = 88, targets = 2, bossDamage = 140 },
 		-- Ember Bite: fire bolts that burn, and a howl that speeds attacks
 		EmberWilfPet = {
 			every = 3,
 			range = 60,
-			damage = 35,
-			burn = { rate = 15, duration = 3 },
+			damage = 60,
+			burn = { rate = 24, duration = 3 },
 			haste = { bonus = 0.25, duration = 3, every = 3 },
 		},
 		-- Prism Beam: pierces a line, heals per hit, revives once a run
-		Glimmerhorn = { every = 4, range = 60, damage = 80, beam = 3, healPerHit = 3, revive = 0.5 },
+		Glimmerhorn = {
+			every = 4,
+			range = 60,
+			damage = 112,
+			beam = 3,
+			healPerHit = 4,
+			revive = 0.5,
+		},
 
 		--[[ Thornwood (area 2). Each one is its Mossy Glade counterpart's
 		     trick at this area's strength: damage is the forest pet's times
@@ -196,11 +232,11 @@ local PetCombat: { pets: { [string]: Spec } } = {
 		     exist once a player owns the forest's eight. ]]
 
 		-- Bark Charge: a short, hard ram
-		BarkHoglet = { every = 3, range = 16, damage = 79 },
+		BarkHoglet = { every = 3, range = 16, damage = 54 },
 		-- Burr Toss: three burrs off its back
-		Burrball = { every = 2.5, range = 60, damage = 22, hits = 3 },
+		Burrball = { every = 2.5, range = 60, damage = 14, hits = 3 },
 		-- Spore Puff: a cloud that slows
-		Budbulb = { every = 2, range = 60, damage = 34, slow = { scale = 0.5, duration = 1.5 } },
+		Budbulb = { every = 2, range = 60, damage = 36, slow = { scale = 0.5, duration = 1.5 } },
 		-- Berry Cache: a patch that feeds whoever stands in it
 		BerryMouse = { every = 18, range = 0, heal = { perSecond = 7, duration = 3, radius = 6 } },
 		--[[ Thorn Shell: blocks one hit a room, and the block answers --
@@ -210,7 +246,7 @@ local PetCombat: { pets: { [string]: Spec } } = {
 			every = 0,
 			range = 0,
 			guard = true,
-			reflect = { damage = 45, radius = 10 },
+			reflect = { damage = 50, radius = 10 },
 		},
 		--[[ Chain Snare: the hold jumps from the enemy it hits to the one
 		     beside it, so a pair is pinned instead of Stumpy's one (owner,
@@ -218,7 +254,7 @@ local PetCombat: { pets: { [string]: Spec } } = {
 		BriarBeetle = {
 			every = 4,
 			range = 60,
-			damage = 28,
+			damage = 108,
 			root = { duration = 1.75, boss = 0 },
 			chain = 1,
 		},
@@ -229,27 +265,30 @@ local PetCombat: { pets: { [string]: Spec } } = {
 
 		     A Common since the owner moved it there, so the drain is a
 		     trickle rather than a sustain: 1 a bite, 0.4 a second, against
-		     the 2 it drank as a Rare. The damage stands — 10 a second is
-		     already the softest of the egg's Commons, and feeding its owner
-		     at all is the whole reason to take it. ]]
-		BerryBat = { every = 2.5, range = 70, damage = 26, healPerHit = 1 },
+		     the 2 it drank as a Rare. The bite itself is the egg's Common
+		     band, as the Bark Hoglet's is: it was a third of that before,
+		     on the reasoning that feeding its owner at all paid for the
+		     difference, which is not a reason for a Common to be the egg's
+		     weakest pet by a factor of three. ]]
+		BerryBat = { every = 2.5, range = 70, damage = 45, healPerHit = 1 },
 		-- Bramble Swipe: one blow across three
-		BrambleBear = { every = 3, range = 60, damage = 51, targets = 3 },
+		BrambleBear = { every = 3, range = 60, damage = 38, targets = 3 },
 		-- Thorn Darts: four that follow
-		BriarLynx = { every = 3, range = 80, damage = 28, targets = 4 },
+		BriarLynx = { every = 3, range = 80, damage = 29, targets = 4 },
 		--[[ Thorn Bite: thorns that stack, so the damage grows the longer
 		     its owner stays on one enemy, and a howl that speeds attacks.
 		     The Ember Wilf's burn paid the same on every hit; this one has
 		     to be earned (owner, 2026-10-31). Nine seconds on one target for
 		     a full stack, which only a boss or a brute lives to see.
 
-		     Direct damage is down from 39 because the bleed carries it: 10
-		     a second from the bites, up to 36 more from the thorns. ]]
+		     The bleed carries it: 20 a second from the bites and up to 45
+		     more from the thorns, which averages out to the Legendary band
+		     over the ramp rather than only reaching it on a full stack. ]]
 		BrambleWilf = {
 			every = 3,
 			range = 60,
-			damage = 30,
-			bleed = { rate = 12, stacks = 3, duration = 7 },
+			damage = 60,
+			bleed = { rate = 15, stacks = 3, duration = 7 },
 			haste = { bonus = 0.25, duration = 3, every = 3 },
 		},
 		--[[ Briar Cage: two spirits, and a cage that holds even a boss --
@@ -264,7 +303,7 @@ local PetCombat: { pets: { [string]: Spec } } = {
 		ThornPrincess = {
 			every = 5,
 			range = 60,
-			damage = 56,
+			damage = 125,
 			targets = 2,
 			root = { duration = 1.5, boss = 1.25 },
 		},
@@ -276,13 +315,13 @@ local PetCombat: { pets: { [string]: Spec } } = {
 
 		     `range` is the ring, so the pet only raises it with something
 		     near enough to catch. It asks its owner to stand in the fight to
-		     earn 18 a second an enemy, where the beam was safe at 60 studs.
+		     earn 32 a second an enemy, where the beam was safe at 60 studs.
 		     No heal on hit: a ring over four enemies would never stop
 		     healing. ]]
 		Thornwake = {
 			every = 3,
 			range = 12,
-			aura = { damage = 14, radius = 12, every = 0.75, duration = 3 },
+			aura = { damage = 24, radius = 12, every = 0.75, duration = 3 },
 			revive = 0.5,
 		},
 
@@ -308,14 +347,14 @@ local PetCombat: { pets: { [string]: Spec } } = {
 			shelter = { reduction = 0.2, duration = 3 },
 		},
 		--[[ Payback Puff: nothing at all until its owner is hurt, then one
-		     blunt spine at triple weight. Three times a Rare's ordinary 55
-		     is 165, about a fifth of a Bramble Boar, and only ever once
+		     blunt spine at triple weight. Three times a Rare's ordinary 80
+		     is 240, about a quarter of a Bramble Boar, and only ever once
 		     every 8 s however often the player is hit -- a pet that
 		     rewards taking a hit must not reward standing in a fire. ]]
 		BuoyPuffer = {
 			every = 8,
 			range = 60,
-			damage = 55,
+			damage = 80,
 			payback = { scale = 3 },
 		},
 		--[[ Ink Blink: ink in one enemy's face. For 3 s it cannot pick a
@@ -329,14 +368,14 @@ local PetCombat: { pets: { [string]: Spec } } = {
 			blind = { duration = 3, range = 6 },
 		},
 		--[[ Wake Chase: foam that bites whatever wears it for moving. Four
-		     splashes of 45 is 180 against something that runs the whole 3 s
+		     splashes of 138 is 552 against something that runs the whole 3 s
 		     and nothing against something that stands -- so it is worth
 		     most against exactly the enemies a Legendary should answer,
 		     the chargers and the lungers. ]]
 		TideWilf = {
 			every = 10,
 			range = 60,
-			wake = { damage = 45, perStud = 3, hits = 4, duration = 3 },
+			wake = { damage = 138, perStud = 3, hits = 4, duration = 3 },
 		},
 		--[[ Deep Accord: a canopy over three. It adds no damage of its own
 		     -- a blow on a linked enemy is split, never copied

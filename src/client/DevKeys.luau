@@ -81,8 +81,8 @@ function DevKeys.start()
 			Remotes.event(Remotes.DebugNextClass):FireServer()
 			toast("Studio: switching class")
 		elseif input.KeyCode == Enum.KeyCode.K then
-			Remotes.event(Remotes.DebugSpawnEnemy):FireServer("Wilf")
-			toast("Studio: a wilf")
+			Remotes.event(Remotes.DebugSpawnEnemy):FireServer("BroodSlime")
+			toast("Studio: a brood slime")
 		elseif input.KeyCode == Enum.KeyCode.P then
 			task.spawn(function()
 				local on = PetPreview.toggle()

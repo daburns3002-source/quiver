@@ -1,11 +1,15 @@
 --!strict
 --[[
-	Rigged enemies' animation (`Config/EnemyRigs`, `Shared/Util/RigClip`,
-	the owner's design_handoff_ember_wilf). What is pinned: every clip
-	drives only bones the rig has, at every key; a looping clip meets
-	itself, so the run never hitches; and a dash is fitted to its lunge —
-	crouched until the server launches it, in the air for exactly the
-	bolt, and done after the skid.
+	Rigged enemies' animation (`Config/EnemyRigs`, `Shared/Util/RigClip`).
+	What is pinned: every clip drives only bones the rig has, at every
+	key; a looping clip meets itself, so the run never hitches; and a dash
+	is fitted to its lunge — crouched until the server launches it, in the
+	air for exactly the bolt, and done after the skid.
+
+	**No enemy is rigged at the moment**, so the checks that walk
+	`EnemyRigs` pass over an empty table and will bite again the day one
+	is added. The dash check runs on a clip written here, so the timing
+	contract stays covered meanwhile.
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -68,8 +72,25 @@ return function(t: TestRunner.Helper)
 		end
 	end)
 
+	--[[ Against a clip written here, not a rig's own: the Ember Wilf was
+	     the only rigged enemy and the owner took it out (2026-11-01), so
+	     there is none to read. What matters is `dashTime`'s contract, and
+	     a hand-written dash pins it as well as a real one did. ]]
 	t.test("a dash crouches until launched, leaps for the bolt, then skids", function()
-		local dash = EnemyRigs.Wilf.clips.Dash
+		local dash: EnemyRigs.Clip = {
+			length = 1.2,
+			loop = false,
+			markers = { Launch = 0.3, Land = 0.9 },
+			times = { 0, 0.3, 0.9, 1.2 },
+			bones = {
+				Root = {
+					{ 0, 0, 0, 0, 0, 0, 1 },
+					{ 0, 0, 0, 0, 0, 0, 1 },
+					{ 0, 0, 0, 0, 0, 0, 1 },
+					{ 0, 0, 0, 0, 0, 0, 1 },
+				},
+			},
+		}
 		local launch = dash.markers.Launch
 		local land = dash.markers.Land
 		t.isTrue(launch ~= nil and land ~= nil and launch < land, "the dash lacks its markers")

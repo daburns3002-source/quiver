@@ -16,7 +16,7 @@ local LoadingTips = {
 	"Legendary and Mythic upgrades are rare, and they glow. Grab them!",
 	"A Brood Slime bursts into four Baby Slimes. Clear the little ones fast.",
 	"The Splitter Spitter spits two seeds. Slip through the gap between them.",
-	"When an Ember Wilf's eyes flash red, it's about to charge. Get off its line!",
+	"The Dex Hall keeps a book of every enemy, weapon and pet. Meet one and it fills in.",
 	"A Bramble Boar paws the ground before it charges. Step aside!",
 	"A Bramble Lurker bursts up on a marked spot. Don't stand on the mark.",
 	"Every kill pays coins, and clearing an area pays a bonus.",

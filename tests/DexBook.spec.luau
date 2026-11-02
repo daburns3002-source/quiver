@@ -12,6 +12,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Dex = require(ReplicatedStorage.Shared.Config.Dex)
 local DexBook = require(ReplicatedStorage.Shared.Util.DexBook)
+local NewEnemies = require(ReplicatedStorage.Shared.Config.NewEnemies)
 local SaveSchema = require(ReplicatedStorage.Shared.Util.SaveSchema)
 local TestRunner = require(script.Parent.TestRunner)
 
@@ -90,6 +91,24 @@ return function(t: TestRunner.Helper)
 		local after = DexBook.entries("Weapons", profile)
 		t.isTrue(wasFound(after, target :: string), "owning it finds it")
 		t.equal(DexBook.found(after), before + 1, "one more, not all of them")
+	end)
+
+	--[[ The owner's rule (2026-11-01): "anytime the new enemy card comes up
+	     for a player that means it is now unlocked for them in the dex".
+	     `RunSession.meetEnemy` writes the dex flag in the same block that
+	     fires the card, so the two can only agree if the two *sets* agree:
+	     every enemy with a card is in the book, and the book holds nothing
+	     that can never show one. A benched enemy has no card and is not in
+	     the book, which is the one allowed difference. ]]
+	t.test("the enemy book is exactly what can show a NEW ENEMY! card", function()
+		local inBook: { [string]: boolean } = {}
+		for _, entry in DexBook.entries("Enemies", nil) do
+			inBook[entry.key] = true
+		end
+		for key, enemy in NewEnemies.enemies do
+			local carded = not enemy.benched and enemy.picture ~= ""
+			t.equal(inBook[key] == true, carded, key)
+		end
 	end)
 
 	t.test("meeting an enemy finds it, and only it", function()

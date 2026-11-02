@@ -18,10 +18,17 @@ the game already keeps (`Util/DexBook`, pure, pinned by `tests/DexBook.spec`):
 | Weapons | `Config/WeaponStats` + `Config/ShopAssets` | owned (`Profile.weapons`) |
 | Pets | `Config/Pets` + `Config/GearAssets` | hatched (`Profile.pets`) |
 
-A benched enemy or a pet no egg holds is still in its book: a dex is a record
-of the world, not of what is obtainable this week. What is *not* in a book is
-anything with no picture, since a slot with nothing in it cannot even be a
-silhouette.
+A pet no egg holds is still in its book: a dex is a record of the world, not
+of what is obtainable this week. A **benched** enemy is not, because it cannot
+be met at all and would be a slot that can never be anything but a silhouette.
+Nothing with no picture is in a book either, since a slot with nothing in it
+cannot even be a silhouette.
+
+That keeps the owner's rule true (2026-11-01): *"anytime the new enemy card
+comes up for a player that means it is now unlocked for them in the dex."*
+`RunSession.meetEnemy` writes the dex flag in the same block that fires the
+card, and `tests/DexBook.spec` pins the two **sets** equal -- every enemy that
+can show a card is in the book, and the book holds nothing that never can.
 
 A weapon's big picture is its 2D art and its slot icon the mini pixel one;
 both are 2D, never a render of the model.

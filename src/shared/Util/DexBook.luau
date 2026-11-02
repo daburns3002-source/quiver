@@ -15,9 +15,11 @@
 	  model, and their line is the one the loading screen already writes.
 	- **Pets** from `Config/Pets`, found once hatched.
 
-	A benched enemy or a pet no egg holds is still in its book: the dex is a
-	record of the world, not of what is obtainable this week. What is *not*
-	in a book is anything with no picture to draw, since a slot with nothing
+	A pet no egg holds is still in its book: the dex is a record of the
+	world, not of what is obtainable this week. A **benched** enemy is not,
+	because it cannot be met at all -- it would be a slot that can never be
+	anything but a silhouette, which reads as a dex you can never finish.
+	Nothing with no picture is in a book either, since a slot with nothing
 	in it cannot even be a silhouette.
 
 	Pure, so `tests/DexBook.spec` pins it.
@@ -129,7 +131,7 @@ function DexBook.entries(book: string, profile: SaveSchema.Profile?): { Entry }
 	if book == "Enemies" then
 		local seen = if saved then saved.enemiesSeen else {}
 		for key, enemy in NewEnemies.enemies do
-			if enemy.picture and enemy.picture ~= "" then
+			if enemy.picture and enemy.picture ~= "" and not enemy.benched then
 				table.insert(ranked, {
 					rank = AREAS[enemy.area] or LAST_AREA,
 					entry = {

@@ -6,7 +6,6 @@ local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 local Workspace = game:GetService("Workspace")
 local Assets = require(ReplicatedStorage.Shared.Config.ClassSelectAssets)
-local Classes = require(ReplicatedStorage.Shared.Config.Classes)
 local GearAssets = require(ReplicatedStorage.Shared.Config.GearAssets)
 local Hit = require(ReplicatedStorage.Shared.Util.ClassSelectHit)
 local Kit = require(script.Parent.Kit)
@@ -14,17 +13,15 @@ local LoadingPick = require(ReplicatedStorage.Shared.Util.LoadingPick)
 local LoadingScreen = require(ReplicatedStorage.Shared.Config.LoadingScreen)
 local LoadingTips = require(ReplicatedStorage.Shared.Config.LoadingTips)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
-local Sandbox = require(ReplicatedStorage.Shared.Config.Sandbox)
 local SoundFx = require(script.Parent.Parent.Fx.SoundFx)
 local ClassScreen = {}
 local started = false
 --[[ Seconds the loading screen stays up after CHOOSE. ]]
 local LOAD_SECONDS = 1.8
 
---[[ The game's loading screen (`Config/LoadingScreen`'s art, a tip and a
-     bar filling over `LOAD_SECONDS`), over everything in `parent`, its
-     picture the chosen class's own weapon (`Util/LoadingPick`'s entry). ]]
-local function loadingCover(parent: Instance, class: string): Frame
+--[[ The game's loading screen over everything in `parent`: one of Codex's
+     spotlights, a tip, and a bar filling over `LOAD_SECONDS`. ]]
+local function loadingCover(parent: Instance): Frame
 	local cover = Instance.new("Frame")
 	cover.Name = "Loading"
 	cover.BackgroundColor3 = Color3.new(0, 0, 0)
@@ -49,53 +46,31 @@ local function loadingCover(parent: Instance, class: string): Frame
 		object.ZIndex = 51
 		object.Parent = screen
 	end
-	if LoadingScreen.art then
+	--[[
+		One of Codex's spotlights, drawn from the same four the join
+		screen uses (owner, 2026-11-01: "the old loading screens need to
+		be removed from the game").
+
+		This was the last place the old shared art appeared: it drew that
+		backdrop with the chosen class's weapon composed over it -- a
+		picture, a line and a name plaque. A spotlight is a finished
+		picture instead, so only the tip and the bar go over it, exactly
+		as on the join screen.
+	]]
+	local spotlit: { string } = {}
+	for _, entry in LoadingPick.pool(nil) do
+		local art = LoadingScreen.spotlights[entry.name]
+		if art then
+			table.insert(spotlit, art)
+		end
+	end
+	if #spotlit > 0 then
 		local art = Instance.new("ImageLabel")
 		art.BackgroundTransparency = 1
-		art.Image = LoadingScreen.art
+		art.Image = spotlit[math.random(1, #spotlit)]
 		art.Size = UDim2.fromScale(1, 1)
 		art.ZIndex = 50
 		art.Parent = screen
-	end
-	local label = nil
-	for _, entry in Sandbox.weapons do
-		if Classes[class] and entry.weapon == Classes[class].weapon then
-			label = entry.label
-		end
-	end
-	for _, entry in LoadingPick.pool(nil) do
-		if entry.name == label then
-			local picture = Instance.new("ImageLabel")
-			picture.BackgroundTransparency = 1
-			picture.Image = entry.picture
-			picture.ScaleType = Enum.ScaleType.Fit
-			place(picture, LoadingScreen.picture)
-			local line = Instance.new("TextLabel")
-			line.BackgroundTransparency = 1
-			line.Font = Enum.Font.Arcade
-			line.Text = entry.description
-			line.TextColor3 = LoadingScreen.descriptionText
-			line.TextScaled = true
-			line.TextWrapped = true
-			place(line, LoadingScreen.description)
-			local lineLimit = Instance.new("UITextSizeConstraint")
-			lineLimit.MaxTextSize = 30
-			lineLimit.Parent = line
-			local name = Instance.new("TextLabel")
-			name.BackgroundTransparency = 1
-			name.Font = Enum.Font.Arcade
-			name.Text = entry.name
-			name.TextColor3 = Color3.new(1, 1, 1)
-			name.TextScaled = true
-			place(name, LoadingScreen.plaque)
-			local pad = Instance.new("UIPadding")
-			pad.PaddingTop = UDim.new(0.18, 0)
-			pad.PaddingBottom = UDim.new(0.18, 0)
-			pad.PaddingLeft = UDim.new(0.08, 0)
-			pad.PaddingRight = UDim.new(0.08, 0)
-			pad.Parent = name
-			break
-		end
 	end
 	local tip = Instance.new("TextLabel")
 	tip.BackgroundTransparency = 1
@@ -349,7 +324,7 @@ function ClassScreen.start()
 			if not gui.Parent then
 				return
 			end
-			local cover = loadingCover(dim, section.class)
+			local cover = loadingCover(dim)
 			task.delay(LOAD_SECONDS, function()
 				if not gui.Parent then
 					return

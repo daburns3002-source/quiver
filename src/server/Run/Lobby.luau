@@ -817,14 +817,32 @@ local function building(name: string, at: Vector2, parent: Instance): Vector3?
 			follows the pitch down rather than being a number of its own,
 			and the book rests on it.
 		]]
+		--[[
+			The roof: a slope either side meeting one flat cap, all of it
+			flush (owner, 2026-11-01: "make sure the roof is flush").
+
+			It was two stacked slabs over the slopes, which left a step
+			along the ridge and a wedge where each slope ran into them.
+			There is one cap now, its **top surface** set to the ridge and
+			the slopes' inner edges arriving at exactly that height: the
+			ridge is not a free number, it is where a slope of this pitch
+			gets to, which `ridgeOf` works out.
+
+			The cap reaches a little past each slope's inner edge, so the
+			join is buried rather than butted -- an overlap cannot be
+			seen, a hairline gap can.
+		]]
 		local pitch = math.rad(hall.pitch)
 		local slopeWide = 14.14
-		--[[ The flat top's half-width, where a slope's inner edge lands. ]]
+		--[[ The cap's half-width, where a slope's inner edge lands. ]]
 		local flatHalf = 4.2
 		local lift = slopeWide / 2 * math.sin(pitch)
 		local reach = slopeWide / 2 * math.cos(pitch)
+		local thick = 1.5
 		--[[ The eaves sit half a stud over the top beam. ]]
 		local eave = 10
+		--[[ Where the slope's top surface arrives over the middle. ]]
+		local ridge = eave + 2 * lift + (thick / 2) / math.cos(pitch)
 		for _, sx in { -1, 1 } do
 			--[[ `fromOrientation` and not `Angles`: a slope is turned a
 			     quarter round to lie along the building and then tilted,
@@ -832,7 +850,7 @@ local function building(name: string, at: Vector2, parent: Instance): Vector3?
 			     on its edge and laid the other flat over the lawn. ]]
 			part(
 				"RoofSlope",
-				Vector3.new(30, 1.5, slopeWide),
+				Vector3.new(30, thick, slopeWide),
 				spotIn(sx * (flatHalf + reach), eave + lift, -2.5)
 					* CFrame.fromOrientation(math.rad(sx * hall.pitch), math.pi / 2, 0),
 				look.roof,
@@ -851,27 +869,15 @@ local function building(name: string, at: Vector2, parent: Instance): Vector3?
 					look.gold
 				)
 			end
-			--[[ The pale block standing on the roof either side of the
-			     gable, which the sheet shows from the front and back. ]]
-			slab("RoofBlock", Vector3.new(3.6, 3, 3.6), sx * 11, hall.ridge + 1.3, -5.5, look.stone)
-			slab(
-				"RoofBlockCap",
-				Vector3.new(4.2, 0.6, 4.2),
-				sx * 11,
-				hall.ridge + 3.1,
-				-5.5,
-				look.column
-			)
 		end
 		slab(
-			"RoofFlat",
-			Vector3.new(flatHalf * 2 + 1.6, 1.1, 30),
+			"RoofTop",
+			Vector3.new(flatHalf * 2 + 1.8, thick, 30),
 			0,
-			hall.ridge - 1.1,
+			ridge - thick / 2,
 			-2.5,
 			look.roof
 		)
-		slab("RoofTop", Vector3.new(flatHalf * 2, 0.8, 28), 0, hall.ridge - 0.4, -2.5, look.roof)
 
 		--[[
 			The gable ends.
@@ -1071,7 +1077,7 @@ local function building(name: string, at: Vector2, parent: Instance): Vector3?
 			"RoofBook",
 			dex.roofBook,
 			base
-				* CFrame.new(0, hall.ridge - dex.roofBook.seat, dex.roofBook.forward)
+				* CFrame.new(0, ridge - dex.roofBook.seat, dex.roofBook.forward)
 				* CFrame.Angles(0, dex.turn, 0),
 			model
 		)
@@ -1080,10 +1086,10 @@ local function building(name: string, at: Vector2, parent: Instance): Vector3?
 		     gable it had to hang on. Its name floats over it instead,
 		     as every other station's does. ]]
 		if spec.title then
-			floatingTitle(spec, base * CFrame.new(0, hall.ridge + 12, 0), model)
+			floatingTitle(spec, base * CFrame.new(0, ridge + 12, 0), model)
 		end
 		model.Parent = parent
-		return Vector3.new(wide + 2, hall.ridge, deepHall + 2)
+		return Vector3.new(wide + 2, ridge, deepHall + 2)
 	end
 	local function box(label: string, s: Vector3, offset: Vector3, colour: Color3): Part
 		return part(label, s, base * CFrame.new(offset), colour, model)

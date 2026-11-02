@@ -3765,11 +3765,28 @@ local Balance = {
 			Rooms from `tools/glade_levels.py` (`levelRoom`).
 
 			**The difficulty curve.** Enemy health starts at 1.1 (the old
-			Mossy Glade run's was 0.8) and rises 0.1 a level to 2.0 at 1-10;
+			Mossy Glade run's was 0.8) and rises 0.04 a level to 1.46 at 1-10;
 			damage, more gently, from 0.75 (the run's 0.7) by 0.03 a level to
 			1.02 (owner, 2026-10-26: "enemy health needs to be scaled up as
 			well, the game is too easy currently"). The rosters grow with
 			them. `tests/MossyLevels.spec` holds every step harder.
+
+			**Health used to rise 0.1 a level, to 2.0** (owner, 2026-11-02,
+			picked level length of the balance report's three findings). With
+			the room and wave counts the owner set — 10, 10, 15, 15, then
+			20, 20, 20, 20, 20, 25 — that made 1-10 ask 119,280 health,
+			7.9 times 1-1's, where the best weapon area 1 can hold is 1.7
+			times the starting bow: the late levels got *long* rather than
+			hard, 13.3 minutes of firing on the starting bow with no cards
+			drafted at all (`docs/BALANCE-REPORT.md` §2).
+
+			The slope is what changed, and only the slope. **Enemy damage is
+			untouched**, so every fight is exactly as lethal as the owner
+			tuned it to be — the levels are not easier, they are shorter:
+			1-10 now asks 87,074, 5.8 times 1-1's, which is the length the
+			owner's wave counts ask for (2.5 times) times what area 1's gear
+			can grow by (1.7 times). `tests/MossyLevels.spec` pins the climb
+			against that gear so it cannot drift past it again.
 		]]
 		{
 			name = "Mossy Glade 1-1",
@@ -3786,7 +3803,7 @@ local Balance = {
 			mode = "Rooms",
 			rooms = levelRooms(11, 10),
 			enemyDamage = 0.78,
-			enemyHealth = 1.2,
+			enemyHealth = 1.14,
 			area = "MossyGlade",
 		},
 		{
@@ -3795,7 +3812,7 @@ local Balance = {
 			mode = "Rooms",
 			rooms = levelRooms(21, 15),
 			enemyDamage = 0.81,
-			enemyHealth = 1.3,
+			enemyHealth = 1.18,
 			area = "MossyGlade",
 		},
 		{
@@ -3804,7 +3821,7 @@ local Balance = {
 			mode = "Rooms",
 			rooms = levelRooms(36, 15),
 			enemyDamage = 0.84,
-			enemyHealth = 1.4,
+			enemyHealth = 1.22,
 			area = "MossyGlade",
 		},
 		{
@@ -3827,7 +3844,7 @@ local Balance = {
 				roster = { broodSlime, broodSlime, meleeCharger, spreadShooter },
 			},
 			enemyDamage = 0.87,
-			enemyHealth = 1.5,
+			enemyHealth = 1.26,
 			area = "MossyGlade",
 		},
 		{
@@ -3847,7 +3864,7 @@ local Balance = {
 			},
 			elite = { enemyCount = 7, roster = { broodSlime, broodSlime, spreadShooter } },
 			enemyDamage = 0.9,
-			enemyHealth = 1.6,
+			enemyHealth = 1.3,
 			area = "MossyGlade",
 		},
 		{
@@ -3870,7 +3887,7 @@ local Balance = {
 				roster = { broodSlime, broodSlime, meleeCharger, spreadShooter },
 			},
 			enemyDamage = 0.93,
-			enemyHealth = 1.7,
+			enemyHealth = 1.34,
 			area = "MossyGlade",
 		},
 		{
@@ -3899,7 +3916,7 @@ local Balance = {
 				roster = { broodSlime, broodSlime, spreadShooter, spreadShooter },
 			},
 			enemyDamage = 0.96,
-			enemyHealth = 1.8,
+			enemyHealth = 1.38,
 			area = "MossyGlade",
 		},
 		{
@@ -3928,7 +3945,7 @@ local Balance = {
 				roster = { broodSlime, broodSlime, spreadShooter, spreadShooter },
 			},
 			enemyDamage = 0.99,
-			enemyHealth = 1.9,
+			enemyHealth = 1.42,
 			area = "MossyGlade",
 		},
 		{
@@ -3956,7 +3973,7 @@ local Balance = {
 			-- King Bloblin, alone, the 25th wave: his only appearance
 			finale = { enemyCount = 1, roster = { slimeKing } },
 			enemyDamage = 1.02,
-			enemyHealth = 2,
+			enemyHealth = 1.46,
 			area = "MossyGlade",
 		},
 		--[[

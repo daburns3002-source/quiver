@@ -17,6 +17,7 @@ local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local LobbyConfig = require(ReplicatedStorage.Shared.Config.Lobby)
 local TestRunner = require(script.Parent.TestRunner)
 local Waves = require(ServerScriptService.Server.Run.Waves)
+local WeaponStats = require(ReplicatedStorage.Shared.Config.WeaponStats)
 
 local KING = Balance.Enemies.SlimeKing
 --[[ The old twenty-room Mossy Glade run, which 1-1 must be harder than. ]]
@@ -61,6 +62,21 @@ local function fights(stage: Balance.StageConfig): { { count: number, roster: { 
 		end
 	end
 	return out
+end
+
+--[[ The health a level asks the player to chew through: every enemy of
+     every fight, at that level's own multiplier. Enemies are taken from a
+     roster in turn (`EnemyManager.spawnWave`), so this is exact rather than
+     an average. ]]
+local function pool(stage: Balance.StageConfig): number
+	local total = 0
+	for _, fight in fights(stage) do
+		for member = 1, fight.count do
+			local config = fight.roster[(member - 1) % #fight.roster + 1]
+			total += config.health
+		end
+	end
+	return total * (stage.enemyHealth or 1)
 end
 
 local function hasKing(roster: { any }): boolean
@@ -131,6 +147,71 @@ return function(t: TestRunner.Helper)
 			end
 			t.isTrue(most >= biggest, `{stage.name}'s biggest fight is smaller than before`)
 			biggest = most
+		end
+	end)
+
+	--[[ The balance report's second finding (2026-11-01), as a rule rather
+	     than a number: across area 1 the health pool climbed 7.9 times while
+	     the best weapon the area can hold is 1.7 times the starting one, so
+	     the late levels got long rather than hard. A level's enemies may not
+	     get tougher faster than the player's weapons can. ]]
+	t.test("enemies never toughen faster than area 1's weapons can keep up", function()
+		local all = levels()
+		local first = all[1].enemyHealth or 1
+		local last = all[#all].enemyHealth or 1
+
+		--[[ What the area's own ladder offers: its Mythic against the
+		     Common the player starts with. Both are scaled by the same
+		     `areaScale`, so it cancels. ]]
+		local bonus = WeaponStats.bonus :: any
+		local gear = (1 + bonus.Mythic) / (1 + bonus.Common)
+		t.isTrue(
+			last / first <= gear,
+			`1-10's enemies are {last / first} times 1-1's, past the {gear} times a weapon can grow`
+		)
+	end)
+
+	--[[ Within one mode, a later level asks for more than the one before it.
+	     Not across the Rooms-to-Waves boundary: 1-4 is fifteen rooms with a
+	     walk between each and 1-5 is twenty waves in one arena with none, so
+	     their pools are not comparable and 1-5's is the smaller of the two
+	     by design. ]]
+	t.test("inside one mode, each level asks more than the last", function()
+		local mode, last = nil, 0
+		for _, stage in levels() do
+			local asks = pool(stage)
+			if stage.mode ~= mode then
+				mode, last = stage.mode, 0
+			end
+			t.isTrue(asks > last, `{stage.name} asks {asks}, under the {last} before it`)
+			last = asks
+		end
+	end)
+
+	--[[ No level is suddenly much denser than the one before. Measured a
+	     room or a wave at a time, not over the whole level: 1-3 and 1-10 are
+	     each half again the length of the level before them, because that is
+	     the shape the owner set (10, 10, 15, 15, then 20 x5 and 25), and
+	     being longer is not a cliff. Being harder in every single fight is. ]]
+	t.test("no level is a cliff", function()
+		local all = levels()
+		local function density(stage: Balance.StageConfig): number
+			local parts = if stage.mode == "Waves"
+				then stage.waves or 1
+				else #(stage.rooms or ({} :: { number }))
+			return pool(stage) / math.max(parts, 1)
+		end
+		for position = 2, #all do
+			--[[ 1-5 opens the Waves block, which is why it is skipped: a
+			     room with a walk between each and a wave with none are not
+			     comparable. ]]
+			if all[position].mode == all[position - 1].mode then
+				local before, after = density(all[position - 1]), density(all[position])
+				t.isTrue(
+					after <= before * 1.5,
+					`{all[position].name} asks {after} a wave, over half again the {before} before it`
+				)
+			end
 		end
 	end)
 

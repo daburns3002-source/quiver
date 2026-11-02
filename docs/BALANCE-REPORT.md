@@ -89,6 +89,12 @@ Total enemy health a level asks you to chew through, and how long that takes
 at four damage tiers **with no upgrade cards at all** — the floor, not the
 real time, since a run levels up as it goes.
 
+**This table is the snapshot of 2026-11-01, before the curve was flattened.**
+The owner picked this finding second (2026-11-02); the fix is at the end of
+this section. The totals here were also computed from each roster's average
+health, where the game takes enemies from a roster in turn, so they run a
+little high: 1-10 asked 119,280 rather than the 133,290 below.
+
 | Level | Mode | Rooms | HP x | Total HP | 100 dmg | 140 | 170 | 212.5 |
 |---|---|---|---|---|---|---|---|---|
 | 1-1 | Rooms | 10 | 1.10 | 16,912 | 1.9m | 1.3m | 1.1m | 0.9m |
@@ -118,6 +124,65 @@ area-1 Mythic's 170 damage it is 8.7 minutes before a single card.
 Thornwood's enemies are the toughest in the game (health x2.10) but it is 20
 rooms against 1-10's 25 waves, so its pool is **66,108 against 133,290** — it
 asks about half as much as the level that unlocks it.
+
+### Fixed, 2026-11-02
+
+Enemy health across area 1 rose 0.1 a level, 1.1 to 2.0. It now rises **0.04
+a level, 1.1 to 1.46**, so the enemies toughen 1.33 times across the area
+against the 1.7 times the area's own weapon ladder can grow — the gap that
+made the late levels long is closed from the enemy side.
+
+**Enemy damage is untouched.** Every fight is exactly as lethal as the owner
+tuned it (0.75 rising to 1.02; owner, 2026-10-26: "the game is too easy
+currently"), and no room, wave or roster changed. The levels are not easier:
+they are shorter.
+
+| Level | Mode | Rooms | Enemies | HP x | Total HP | 100 dmg | 140 | 170 | 212.5 |
+|---|---|---|---|---|---|---|---|---|---|
+| 1-1 | Rooms | 10 | 41 | 1.10 | 16,632 | 1.8m | 1.3m | 1.1m | 0.9m |
+| 1-2 | Rooms | 10 | 51 | 1.14 | 22,913 | 2.5m | 1.8m | 1.5m | 1.2m |
+| 1-3 | Rooms | 15 | 76 | 1.18 | 34,975 | 3.9m | 2.8m | 2.3m | 1.8m |
+| 1-4 | Rooms | 15 | 91 | 1.22 | 42,895 | 4.8m | 3.4m | 2.8m | 2.2m |
+| 1-5 | Waves | 20 | 83 | 1.26 | 40,824 | 4.5m | 3.2m | 2.7m | 2.1m |
+| 1-6 | Waves | 20 | 87 | 1.30 | 44,304 | 4.9m | 3.5m | 2.9m | 2.3m |
+| 1-7 | Waves | 20 | 97 | 1.34 | 50,410 | 5.6m | 4.0m | 3.3m | 2.6m |
+| 1-8 | Waves | 20 | 101 | 1.38 | 54,730 | 6.1m | 4.3m | 3.6m | 2.9m |
+| 1-9 | Waves | 20 | 104 | 1.42 | 59,214 | 6.6m | 4.7m | 3.9m | 3.1m |
+| 1-10 | Waves | 25 | 131 | 1.46 | 87,074 | 9.7m | 6.9m | 5.7m | 4.6m |
+| Thornwood | Rooms | 20 | 71 | 2.10 | 66,906 | 7.4m | 5.3m | 4.4m | 3.5m |
+
+1-10 falls from 13.3 minutes to **9.7** at the no-card floor, and to 5.7 on an
+area-1 Mythic. Across the area the pool climbs 5.2 times instead of 7.9,
+which is about the 2.5 times the owner's wave counts ask for times the 1.7
+times the gear can grow.
+
+Three rules are now pinned in `tests/MossyLevels.spec`:
+
+- the enemies may not toughen faster than the area's weapons can (1.33
+  against 1.7);
+- inside one mode, a later level asks for more than the one before it;
+- no level is suddenly half again as dense as the one before it, measured a
+  room or a wave at a time rather than over the whole level, since being
+  *longer* is the owner's own plan (10, 10, 15, 15, then 20 five times and
+  25) and only being harder in every fight is a cliff.
+
+**The 1-4 to 1-5 dip is deliberate and not fixed.** 1-5 asks 40,824 against
+1-4's 42,895, because fifteen rooms with a walk between each and twenty waves
+in one arena with none are not the same kind of minute. The monotonic rule
+therefore runs inside each mode, not across the boundary.
+
+**Thornwood is still shorter than 1-10** (66,906 against 87,074), though the
+gap narrows from half to three quarters. Its enemies are much tougher —
+health 2.10, 1.44 times 1-10's — so it is harder per fight and shorter
+overall, which is the right shape for the first level of a new area rather
+than the eleventh of this one. It closes properly when Thornwood is split
+into its own ten levels; the owner's call, and left alone here.
+
+**What this does not fix** is the other half of the gap: area 1's weapon
+ladder is only 1.7 times from the starting bow to its Mythic, where the pet
+ladder is now 3.5 times (section 3). If the owner wants the late levels to
+feel *stronger* rather than merely shorter, that is the lever, and it moves
+every area at once because `WeaponStats.bonus` is shared.
 
 ---
 

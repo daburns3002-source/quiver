@@ -26,13 +26,37 @@ local function byName(): { [string]: AngelDesign.Part }
 	return out
 end
 
+--[[ The box a part really fills, turn included: the wing feathers are
+     tilted slabs, so their corners reach further than half their size
+     (`AngelDesign.Part.rotation`). Every check below measures from this
+     rather than from `offset +/- size / 2`. ]]
+local function extent(part: AngelDesign.Part): (Vector3, Vector3)
+	local turn = part.rotation
+	local frame = if turn
+		then CFrame.Angles(math.rad(turn.X), math.rad(turn.Y), math.rad(turn.Z))
+		else CFrame.identity
+	local low, high = Vector3.one * math.huge, Vector3.one * -math.huge
+	for _, x in { -0.5, 0.5 } do
+		for _, y in { -0.5, 0.5 } do
+			for _, z in { -0.5, 0.5 } do
+				local corner = part.offset
+					+ frame:VectorToWorldSpace(part.size * Vector3.new(x, y, z))
+				low, high = low:Min(corner), high:Max(corner)
+			end
+		end
+	end
+	return low, high
+end
+
 --[[ The lowest and highest point of a part. ]]
 local function bottom(part: AngelDesign.Part): number
-	return part.offset.Y - part.size.Y / 2
+	local low = extent(part)
+	return low.Y
 end
 
 local function top(part: AngelDesign.Part): number
-	return part.offset.Y + part.size.Y / 2
+	local _, high = extent(part)
+	return high.Y
 end
 
 return function(t: TestRunner.Helper)
@@ -123,7 +147,11 @@ return function(t: TestRunner.Helper)
 		end
 	end)
 
-	t.test("each wing is three blocks stepping outward and up, getting smaller", function()
+	--[[ Bigger outward, which is what the sheet's WINGS panel shows: the
+	     outermost slab is the largest and reaches the top of the head. Two
+	     earlier passes had them shrinking outward and they read as stairs
+	     going down. ]]
+	t.test("each wing is three feathers sweeping outward and up, getting bigger", function()
 		local parts = byName()
 		for _, side in { "Left", "Right" } do
 			local last: AngelDesign.Part? = nil
@@ -137,7 +165,8 @@ return function(t: TestRunner.Helper)
 						`{name} does not step outward`
 					)
 					t.isTrue(part.offset.Y > last.offset.Y, `{name} does not step up`)
-					t.isTrue(part.size.Y < last.size.Y, `{name} is not smaller than the one before`)
+					t.isTrue(part.size.Y > last.size.Y, `{name} is not bigger than the one before`)
+					t.isTrue(part.size.X > last.size.X, `{name} is not wider than the one before`)
 				end
 				last = part
 			end
@@ -154,14 +183,67 @@ return function(t: TestRunner.Helper)
 		end
 	end)
 
-	t.test("the robe's hem is wider than the torso above it", function()
+	--[[ The gold band is the widest thing on the body and the hem tucks
+	     under it, which is what the sheet's FRONT view shows. It was built
+	     flared wider than the torso at first, which is the opposite. ]]
+	t.test("the band is the widest of the robe, and the hem tucks under it", function()
 		local parts = byName()
-		local hem, torso = parts.Hem, parts.Torso
+		local hem, torso, band = parts.Hem, parts.Torso, parts.Waist
 		t.notNil(hem, "there is a hem")
 		t.notNil(torso, "there is a torso")
-		if hem and torso then
-			t.isTrue(hem.size.X > torso.size.X, "the hem flares")
-			t.isTrue(top(hem) <= torso.offset.Y, "the hem is below the torso")
+		t.notNil(band, "there is a waist band")
+		if hem and torso and band then
+			t.isTrue(band.size.X > torso.size.X, "the band is wider than the torso")
+			t.isTrue(hem.size.X < torso.size.X, "the hem tucks in under the band")
+			t.isTrue(top(hem) <= band.offset.Y, "the hem is below the band")
+			t.isTrue(top(band) <= torso.offset.Y, "the band is below the torso")
+		end
+	end)
+
+	--[[ And the head is the widest part of the figure above the wings,
+	     which is what makes it read as an angel rather than a pillar. ]]
+	t.test("the head is a little wider than the torso", function()
+		local parts = byName()
+		local head, torso = parts.Head, parts.Torso
+		if head and torso then
+			t.isTrue(head.size.X > torso.size.X, "the head is wider")
+			t.isTrue(head.size.X < torso.size.X * 1.4, "but not a balloon")
+		end
+	end)
+
+	--[[ The outermost wing slab reaches the top of the head, as the sheet
+	     draws it: any lower and the wings read as stubs. ]]
+	--[[ Each feather is tilted further over than the one before, which is
+	     what makes the wing sweep instead of climb like stairs. ]]
+	t.test("each feather is tilted further than the one before", function()
+		local parts = byName()
+		for _, side in { "Left", "Right" } do
+			local last = 0
+			for step = 1, 3 do
+				local part = parts[`Wing{side}{step}`]
+				t.notNil(part, `Wing{side}{step}`)
+				local turn = part and part.rotation
+				t.notNil(turn, `Wing{side}{step} is not tilted at all`)
+				if turn then
+					local tilt = math.abs(turn.Z)
+					t.isTrue(tilt > last, `Wing{side}{step} is not tilted further`)
+					t.isTrue(tilt < 60, `Wing{side}{step} is tilted past a wing into a blade`)
+					last = tilt
+				end
+			end
+		end
+		--[[ Mirrored: the two wings tilt opposite ways. ]]
+		local left, right = parts.WingLeft3, parts.WingRight3
+		if left and right and left.rotation and right.rotation then
+			t.near(left.rotation.Z, -right.rotation.Z, 1e-6, "the wings tilt opposite ways")
+		end
+	end)
+
+	t.test("the wings reach the top of the head", function()
+		local parts = byName()
+		local head, outer = parts.Head, parts.WingLeft3
+		if head and outer then
+			t.near(top(outer), top(head), 0.2, "the outer wing against the head")
 		end
 	end)
 
@@ -211,6 +293,54 @@ return function(t: TestRunner.Helper)
 			t.isTrue(part.offset.Y < 0.2, `{part.name} is not on the floor`)
 		end
 		t.equal(grounded, 1, "one pool of light")
+	end)
+
+	--[[ The GLB (owner, 2026-11-02: "Redo as a GLB") is the same blocks
+	     joined into one piece a colour, so the room can draw three
+	     MeshParts instead of nineteen parts. A mesh cannot be fetched from
+	     a file, so the ids stay empty until the owner imports it and
+	     `Run/AngelProp` keeps building the blocks until they are all
+	     there. All three or none: a half-imported Angel would be a head
+	     with no eyes. ]]
+	t.test("the mesh ids are all filled in or all empty", function()
+		local pieces = { AngelDesign.mesh.cream, AngelDesign.mesh.gold, AngelDesign.mesh.eye }
+		local filled = 0
+		for _, mesh in pieces do
+			if mesh.id ~= "" then
+				filled += 1
+				t.isTrue(
+					string.match(mesh.id, "^rbxassetid://%d+$") ~= nil,
+					`"{mesh.id}" is not an asset id`
+				)
+			end
+			t.isTrue(mesh.size.X > 0 and mesh.size.Y > 0 and mesh.size.Z > 0, "a mesh has a size")
+		end
+		t.isTrue(filled == 0 or filled == #pieces, `{filled} of {#pieces} meshes are imported`)
+	end)
+
+	--[[ And the mesh pieces cover the same figure the blocks do, so
+	     swapping one for the other cannot change the Angel's size or where
+	     it stands. Checked against the blocks of each colour. ]]
+	t.test("each mesh piece is the box its own blocks fill", function()
+		local groups = {
+			{ mesh = AngelDesign.mesh.cream, color = AngelDesign.cream },
+			{ mesh = AngelDesign.mesh.gold, color = AngelDesign.gold },
+			{ mesh = AngelDesign.mesh.eye, color = AngelDesign.eye },
+		}
+		for _, group in groups do
+			local low, high = Vector3.one * math.huge, Vector3.one * -math.huge
+			for _, part in AngelDesign.parts do
+				if part.grounded or part.color ~= group.color then
+					continue
+				end
+				local partLow, partHigh = extent(part)
+				low, high = low:Min(partLow), high:Max(partHigh)
+			end
+			local size = high - low
+			local middle = (high + low) / 2
+			t.near((size - group.mesh.size).Magnitude, 0, 1e-3, "the mesh is the blocks' size")
+			t.near((middle - group.mesh.offset).Magnitude, 0, 1e-3, "the mesh sits where they do")
+		end
 	end)
 
 	t.test("the stated height is the height the blocks come to", function()

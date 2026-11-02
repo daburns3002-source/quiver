@@ -17,6 +17,7 @@ local TweenService = game:GetService("TweenService")
 
 local AngelDesign = require(ReplicatedStorage.Shared.Config.AngelDesign)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
+local MeshTemplates = require(script.Parent.Parent.Util.MeshTemplates)
 
 local log = Log.forTag("AngelProp")
 
@@ -39,8 +40,61 @@ local function piece(spec: AngelDesign.Part): BasePart
 	return part
 end
 
+--[[ The three mesh ids, if the owner has imported the GLB. All three or
+     none: a half-imported Angel would draw a head with no eyes, so the
+     blocks are kept until the set is complete (`tests/Angel.spec`). ]]
+local function meshIds(): { string }?
+	local ids = {}
+	for _, part in { AngelDesign.mesh.cream, AngelDesign.mesh.gold, AngelDesign.mesh.eye } do
+		if part.id == "" then
+			return nil
+		end
+		table.insert(ids, part.id)
+	end
+	return ids
+end
+
+--[[ The Angel as three MeshParts, one a colour, in place of the blocks.
+     Returns false if a mesh did not load, so the caller falls back rather
+     than leaving a room with an invisible encounter in it. ]]
+local function buildMesh(model: Model, root: BasePart, base: CFrame, ids: { string }): boolean
+	local templates = MeshTemplates.load(ids)
+	local pieces = {
+		{ spec = AngelDesign.mesh.cream, color = AngelDesign.cream },
+		{ spec = AngelDesign.mesh.gold, color = AngelDesign.gold },
+		{ spec = AngelDesign.mesh.eye, color = AngelDesign.eye },
+	}
+	for _, entry in pieces do
+		local template = templates[entry.spec.id]
+		if not template then
+			return false
+		end
+		local part = template:Clone()
+		part.Name = entry.spec.id
+		part.Size = entry.spec.size
+		part.CFrame = base * CFrame.new(entry.spec.offset)
+		part.Color = entry.color
+		part.Material = Enum.Material.SmoothPlastic
+		part.Anchored = false
+		part.CanCollide = false
+		part.CanQuery = false
+		part.CanTouch = false
+		part.CastShadow = false
+		local weld = Instance.new("WeldConstraint")
+		weld.Part0 = root
+		weld.Part1 = part
+		part.Parent = model
+		weld.Parent = part
+	end
+	return true
+end
+
 --[[ Builds the Angel over `at` (a point on the floor), facing `look` on the
-     flat. Returns the model, parented to `parent`. ]]
+     flat. Returns the model, parented to `parent`.
+
+     From the GLB's meshes where the owner has imported them, and from
+     `Config/AngelDesign`'s blocks otherwise. The two are the same figure:
+     the GLB is exported from those very blocks. ]]
 function AngelProp.build(parent: Instance, at: Vector3, look: Vector3): Model
 	local model = Instance.new("Model")
 	model.Name = "Angel"
@@ -65,9 +119,22 @@ function AngelProp.build(parent: Instance, at: Vector3, look: Vector3): Model
 	root.Parent = model
 	model.PrimaryPart = root
 
+	local ids = meshIds()
+	local drawn = ids ~= nil and buildMesh(model, root, base, ids)
+
 	for _, spec in AngelDesign.parts do
+		--[[ With the meshes drawn, only the pool of light is still a part:
+		     it is Neon and flat on the floor, not geometry the GLB carries. ]]
+		if drawn and not spec.grounded then
+			continue
+		end
 		local part = piece(spec)
+		local turn = spec.rotation
 		part.CFrame = base * CFrame.new(spec.offset)
+		if turn then
+			part.CFrame = part.CFrame
+				* CFrame.Angles(math.rad(turn.X), math.rad(turn.Y), math.rad(turn.Z))
+		end
 		if spec.grounded then
 			--[[ A Cylinder's own axis lies along X, so a flat disc on the
 			     floor is turned onto its face. ]]
@@ -108,7 +175,7 @@ function AngelProp.build(parent: Instance, at: Vector3, look: Vector3): Model
 	)
 	TweenService:Create(root, info, { CFrame = up }):Play()
 
-	log.info("built the Angel at %s", tostring(at))
+	log.info("built the Angel at %s (%s)", tostring(at), if drawn then "mesh" else "blocks")
 	return model
 end
 

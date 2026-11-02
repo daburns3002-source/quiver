@@ -76,10 +76,26 @@ backwards they are a page coming back; because the ends are both the resting
 spread, either direction still starts and finishes where the book was.
 
 **The book must not move while they play** (owner: "make sure the book doesnt
-move at all when the animation plays"). It cannot, because a turn calls `fill`
-and never `draw`: the spread stays the same Instance throughout, and only the
-`Pages` frame is emptied and remade. Rebuilding the screen mid-turn destroyed
-and recreated the spread, and the book flickered as the image reloaded.
+move at all when the animation plays"; then "i dont want to see multiple
+frames of the spine and outer covers those should be the same the whole way
+through the animation. the only part changing should be the tan pages").
+
+Two separate things caused that, and both are fixed:
+
+1. A turn used to end by calling `draw`, which empties the canvas and so
+   destroyed and remade the spread; the book flickered as the image reloaded.
+   A turn now calls `fill`, and the spread stays the same Instance throughout.
+2. **Codex's frames are whole-book pictures, and it re-rendered everything in
+   each one.** Measured against the spread, a frame differs by around 450,000
+   pixels on the left page, the spine and the covers *alone* -- the covers
+   genuinely are drawn differently frame to frame. Playing them as the spread
+   therefore shook the entire book, however steady the Instance was.
+
+So the frames are cut down to the right page (`Config/Dex.books[n].turnWindow`,
+measured per book: the page runs from the spine to where the cover's colour
+begins) and played in a `TurningPage` label laid over a spread that is never
+touched. The covers and the spine cannot move because nothing draws them twice.
+The trade is that a little of the curl that strayed over the spine is clipped.
 
 Seen in game: `assets/concepts/blocky/ui/codex/dex_page_turn_in_game.jpg`.
 

@@ -31,6 +31,13 @@
 	the image reloaded (owner, 2026-11-01: "make sure the book doesnt move
 	at all when the animation plays"). Only changing books rebuilds, since
 	that is a different picture.
+
+	The turn itself never touches the spread either. Codex's frames are
+	whole-book pictures that differ from the spread everywhere -- around
+	450,000 pixels on the left page, spine and covers alone -- so playing
+	them as the spread shook the entire book. `Config/Dex` holds them cut
+	down to the right page (`turnWindow`), and they play in a `TurningPage`
+	label laid over the spread, which never changes at all.
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -122,6 +129,20 @@ function DexScreen.start()
 			item.Size = UDim2.fromScale(box.w / Dex.canvas.X, box.h / Dex.canvas.Y)
 		end
 
+		--[[ The turning page: a crop of the right page only, laid over the
+		     spread while a turn runs. Nothing else on the book is touched,
+		     so the covers and the spine cannot move -- Codex's frames are
+		     whole-book pictures that differ everywhere, and playing them
+		     as the spread shook the lot (owner, 2026-11-01: "the only part
+		     changing should be the tan pages"). ]]
+		local leaf = Instance.new("ImageLabel")
+		leaf.Name = "TurningPage"
+		leaf.BackgroundTransparency = 1
+		leaf.Visible = false
+		leaf.ZIndex = 4
+		leaf.Parent = stage
+		place(leaf, art.turnWindow)
+
 		--[[ The tabs over the book. Left of centre: `StationScreen`'s own
 		     draw puts the coin and gem pills in the top right, and centred
 		     tabs ran under them. ]]
@@ -197,27 +218,27 @@ function DexScreen.start()
 					     they click the back page arrow"). The frames are a
 					     page lifting off the right and falling to the
 					     left, so run in reverse they are a page coming
-					     back the other way. Frames 1 and 6 are both the
-					     resting spread, so either way begins and ends
-					     where the book already was. ]]
+					     back the other way. Frames 1 and 6 are the resting
+					     page, so either way begins and ends where the book
+					     already was. ]]
 					local frames = art.turn
+					leaf.Visible = true
 					for index = 1, #frames do
 						--[[ The screen may have closed, or the player may
-						     have changed books; either way this spread is
+						     have changed books; either way this book is
 						     gone and there is nothing to animate. ]]
-						if spread.Parent == nil then
+						if stage.Parent == nil then
 							return
 						end
-						spread.Image = if step > 0
-							then frames[index]
-							else frames[#frames - index + 1]
+						leaf.Image = if step > 0 then frames[index] else frames[#frames - index + 1]
 						task.wait(Dex.turnFrame)
 					end
-					spread.Image = art.spread
+					leaf.Visible = false
 					turning = false
-					--[[ `fill`, not `draw`: the spread stays exactly the
-					     instance it was, so the book cannot shift. ]]
-					if spread.Parent ~= nil then
+					--[[ `fill`, not `draw`: the spread is never reassigned
+					     and the stage is never rebuilt, so the book holds
+					     still from the first frame to the last. ]]
+					if stage.Parent ~= nil then
 						fill()
 					end
 				end)

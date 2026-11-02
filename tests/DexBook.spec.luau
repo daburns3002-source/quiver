@@ -196,6 +196,19 @@ return function(t: TestRunner.Helper)
 			local foot = grid.y + (grid.rows - 1) * grid.stepY + grid.h
 			t.isTrue(right <= Dex.canvas.X, `{name} grid fits across`)
 			t.isTrue(foot <= Dex.canvas.Y, `{name} grid fits down`)
+			--[[ The turn frames are crops of the right page, so their
+			     window has to sit on the right page and cover the grid --
+			     a window that missed the slots would animate blank paper
+			     beside them. ]]
+			local win = book.turnWindow
+			t.isTrue(win.x > Dex.canvas.X / 2, `{name} turn window is on the right page`)
+			t.isTrue(win.x + win.w <= Dex.canvas.X, `{name} turn window fits across`)
+			t.isTrue(win.y + win.h <= Dex.canvas.Y, `{name} turn window fits down`)
+			t.isTrue(win.x <= grid.x, `{name} turn window reaches the first slot`)
+			t.isTrue(win.y <= grid.y, `{name} turn window reaches the top row`)
+			t.isTrue(win.x + win.w >= right, `{name} turn window covers the last column`)
+			t.isTrue(win.y + win.h >= foot, `{name} turn window covers the bottom row`)
+
 			--[[ The grid is on the right-hand page, past the spine. ]]
 			t.isTrue(grid.x > Dex.canvas.X / 2, `{name} grid is on the right page`)
 			t.isTrue(

@@ -291,8 +291,15 @@ return function(t: TestRunner.Helper)
 
 		for index, room in Balance.Rooms do
 			t.isTrue(#room.name > 0, `room {index} needs a name`)
-			t.isTrue(room.enemyCount > 0, `room {index} needs enemies`)
-			t.isTrue(#room.roster > 0, `room {index} has nothing to spawn`)
+			--[[ Unless it is an encounter: an Angel room is a room with
+			     nobody in it (`RoomConfig.encounter`). ]]
+			if room.encounter then
+				t.equal(room.enemyCount, 0, `room {index} is an encounter and must be empty`)
+				t.equal(#room.roster, 0, `room {index} is an encounter and must be empty`)
+			else
+				t.isTrue(room.enemyCount > 0, `room {index} needs enemies`)
+				t.isTrue(#room.roster > 0, `room {index} has nothing to spawn`)
+			end
 
 			for _, obstacle in room.obstacles do
 				t.isTrue(

@@ -43,7 +43,7 @@
 
 local SaveSchema = {}
 
-SaveSchema.VERSION = 6
+SaveSchema.VERSION = 7
 
 --[[ The classes' own weapons, owned from the start. ]]
 local STARTERS = { "TwigBow", "BranchStaff", "TimberBlade" }
@@ -76,6 +76,15 @@ export type Profile = {
 	--[[ Soulstones, the Endless currency (owner, 2026-10-27), spent only in
 	     the Endless shop. Never folded into `coins` or `gems`. ]]
 	soulstones: number,
+	--[[ Enemies this player has ever met, by `Config/NewEnemies` key
+	     (version 7), for the Dex Hall's enemy dex. Weapons and pets are
+	     already kept above, so the dex reads those; an enemy is met rather
+	     than owned and had nowhere to be written down before.
+
+	     A run's own `seenEnemies` is per visit -- it decides whether to
+	     show the NEW ENEMY! card -- and this is the lasting copy: the card
+	     shows once ever, and the dex remembers. ]]
+	enemiesSeen: { [string]: boolean },
 }
 
 --[[ The looks the class select screen offers. ]]
@@ -110,6 +119,7 @@ function SaveSchema.default(): Profile
 		endlessBest = 0,
 		endlessMilestones = {},
 		soulstones = 0,
+		enemiesSeen = {},
 	}
 end
 
@@ -208,6 +218,12 @@ function SaveSchema.migrate(raw: unknown): Profile
 	profile.endlessBest = count(data.endlessBest)
 	profile.endlessMilestones = flags(data.endlessMilestones)
 	profile.soulstones = count(data.soulstones)
+	--[[ 6 → 7: nobody's met enemies were written down before, so an older
+	     profile's dex starts empty rather than guessing from the bosses it
+	     has beaten. A player meets them again as they play, and the dex
+	     fills in; inventing entries would show creatures somebody has
+	     never seen. ]]
+	profile.enemiesSeen = flags(data.enemiesSeen)
 	return profile
 end
 

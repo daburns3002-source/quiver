@@ -214,11 +214,16 @@ function StationScreen.new(name: string, stationName: string, promptWords: strin
 		if not station or (flat - station).Magnitude > 28 then
 			return false
 		end
+		--[[ Every station that opens a screen, so the nearest one wins
+		     whichever it is. The Dex Hall joined them on 2026-11-01; while
+		     it was missing, its own prompt gave way to the others but
+		     theirs never gave way to it. ]]
 		for _, other in Lobby.stations do
 			if
 				other.piece == "Blacksmith"
 				or other.piece == "EggHatchery"
 				or other.piece == "GearStation"
+				or other.piece == "DexHall"
 			then
 				local position = Lobby.origin + Vector3.new(other.at.X, 0, other.at.Y)
 				if

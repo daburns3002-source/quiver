@@ -66,7 +66,12 @@ follows it (`TopDownCamera`, `MoveController`); a run takes the top-down camera 
 is its own area's arch with its name built in (`portals[i].arch`). The lawn's scatter (flowers,
 bushes, mushrooms, rocks) is laid on a jittered grid, so it spreads evenly. Props: the smith at his
 anvil, the Hatchery Fairy, three codex books on lecterns before the Dex Hall. The FARTHEST
-ADVENTURERS board shows `Run/StoryLeaderboard` (see `docs/LEADERBOARD.md`). The second import is
+ADVENTURERS board shows `Run/StoryLeaderboard` (see `docs/LEADERBOARD.md`). Both boards stand
+south of the spawn facing north (owner, 2026-11-01: "move the leaderboards to behind the player
+south of the spawn"), 32 studs back and 39 degrees either side of due south, so a player who
+arrives facing the portals has them behind and sees both at once on turning round. They used to
+flank the path north of the fountain. `leaderboard.turn` turns a whole board; with none it reads
+south, as both did before. The second import is
 `assets/models/lobby/lobby_kit_v3_roblox.glb`. Codex art: `lobby/npcs/` (model sheets and the
 cards), `lobby/codex_books.png`, and the 2D codex books with their 6-frame page turns in
 `ui/codex/` (for the dexes, not built yet). Still apart from the sheet: the fairy's wings import

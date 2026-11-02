@@ -1814,24 +1814,28 @@ function Lobby.build(parent: Instance)
 	--[[ A leaderboard: a board on two posts, the names on its dark face.
 	     Built twice — FARTHEST ADVENTURERS and DEEPEST DELVERS
 	     (`LobbyConfig.leaderboard`, `LobbyConfig.endlessLeaderboard`) — so
-	     the two boards are the same board, drawn on by different modules. ]]
+	     the two boards are the same board, drawn on by different modules.
+
+	     Everything is placed off `base`, which carries the board's `turn`.
+	     It used to be built straight onto world axes, which only read the
+	     one way; both boards now stand south of the spawn and face north
+	     (owner, 2026-11-01: "move the leaderboards to behind the player
+	     south of the spawn"). In `base` the board always reads toward +Z. ]]
 	local function buildBoard(name: string, board: typeof(LobbyConfig.leaderboard)): Part
 		local face = board.face
-		local foot = world(board.at, LAWN)
+		local base = CFrame.new(world(board.at, LAWN)) * CFrame.Angles(0, board.turn, 0)
 		local model = Instance.new("Model")
 		model.Name = name
 		for _, side in { -1, 1 } do
 			local post = part(
 				"Post",
 				Vector3.new(1.4, face.centre.Y + face.size.Y / 2 + 1.5, 1.4),
-				CFrame.new(
-					foot
-						+ Vector3.new(
-							side * (face.size.X / 2 + 1.3),
-							(face.centre.Y + face.size.Y / 2 + 1.5) / 2,
-							0
-						)
-				),
+				base
+					* CFrame.new(
+						side * (face.size.X / 2 + 1.3),
+						(face.centre.Y + face.size.Y / 2 + 1.5) / 2,
+						0
+					),
 				COLOURS.woodDark,
 				model
 			)
@@ -1840,16 +1844,14 @@ function Lobby.build(parent: Instance)
 		part(
 			"Backing",
 			Vector3.new(face.size.X + 2, face.size.Y + 2, 0.8),
-			CFrame.new(foot + Vector3.new(0, face.centre.Y, face.centre.Z - 0.6)),
+			base * CFrame.new(0, face.centre.Y, face.centre.Z - 0.6),
 			COLOURS.wood,
 			model
 		)
 		part(
 			"Crest",
 			Vector3.new(face.size.X + 3, 1.4, 1.2),
-			CFrame.new(
-				foot + Vector3.new(0, face.centre.Y + face.size.Y / 2 + 1.4, face.centre.Z - 0.6)
-			),
+			base * CFrame.new(0, face.centre.Y + face.size.Y / 2 + 1.4, face.centre.Z - 0.6),
 			COLOURS.gold,
 			model
 		)
@@ -1857,7 +1859,7 @@ function Lobby.build(parent: Instance)
 		local surface = part(
 			`{name}Face`,
 			Vector3.new(face.size.X, face.size.Y, 0.2),
-			CFrame.new(foot + face.centre) * CFrame.Angles(0, math.pi, 0),
+			base * CFrame.new(face.centre) * CFrame.Angles(0, math.pi, 0),
 			Color3.fromRGB(28, 24, 22),
 			root
 		)

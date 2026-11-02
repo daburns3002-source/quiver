@@ -404,19 +404,30 @@ local Lobby = {
 	fountain = 16,
 	plaza = 40,
 
-	--[[ The FARTHEST ADVENTURERS board (`Run/StoryLeaderboard`) beside the
-	     path north of the fountain: its face, studs from the board's foot,
-	     where the names are written. ]]
+	--[[ The FARTHEST ADVENTURERS board (`Run/StoryLeaderboard`), south of
+	     the spawn at (-8, 50) and turned to read north (owner, 2026-11-01:
+	     "move the leaderboards to behind the player south of the spawn").
+	     A player arrives facing the fountain and the portals, so the boards
+	     are behind them and read when they turn round; they used to flank
+	     the path north of the fountain, where the walk up to the portals
+	     went past their faces. 26 studs back rather than 13, so both sit
+	     within view at once instead of 59 degrees out to either side.
+
+	     `face` is studs from the board's foot to where the names are
+	     written, and `turn` how far the whole board is turned about Y. With
+	     no turn a board reads south, which is what both did before. ]]
 	leaderboard = {
-		at = Vector2.new(-36, -4),
+		at = Vector2.new(-28, 76),
+		turn = math.pi,
 		face = { centre = Vector3.new(0, 10, 0.9), size = Vector2.new(16.8, 11.4) },
 	},
 
-	--[[ The DEEPEST DELVERS board (`Run/EndlessLeaderboard`) facing it
-	     across the path, so the two boards flank the walk up to the
-	     portals. Same build and same face as the story's. ]]
+	--[[ The DEEPEST DELVERS board (`Run/EndlessLeaderboard`) the other side
+	     of the path south from the spawn, so the two still flank a walk and
+	     a player sees both at once. Same build, same face, same turn. ]]
 	endlessLeaderboard = {
-		at = Vector2.new(30, -4),
+		at = Vector2.new(12, 76),
+		turn = math.pi,
 		face = { centre = Vector3.new(0, 10, 0.9), size = Vector2.new(16.8, 11.4) },
 	},
 

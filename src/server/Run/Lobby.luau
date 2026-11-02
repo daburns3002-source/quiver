@@ -833,14 +833,20 @@ local function building(name: string, at: Vector2, parent: Instance): Vector3?
 			seen, a hairline gap can.
 		]]
 		local pitch = math.rad(hall.pitch)
-		local slopeWide = 14.14
+		--[[ Long enough to overhang the walls by three studs. It used to
+		     stop within a thirtieth of a stud of the wall at x = 18,
+		     which left a slit of daylight along the eaves you could see
+		     straight through from inside (owner, 2026-11-01: "i dont
+		     want to see through this"). An overhang cannot leave a slit. ]]
+		local slopeWide = 17.5
 		--[[ The cap's half-width, where a slope's inner edge lands. ]]
 		local flatHalf = 4.2
 		local lift = slopeWide / 2 * math.sin(pitch)
 		local reach = slopeWide / 2 * math.cos(pitch)
 		local thick = 1.5
-		--[[ The eaves sit half a stud over the top beam. ]]
-		local eave = 10
+		--[[ The eaves sit a little *under* the top beam, so the roof laps
+		     over the wall rather than meeting it edge to edge. ]]
+		local eave = 9.3
 		--[[ Where the slope's top surface arrives over the middle. ]]
 		local ridge = eave + 2 * lift + (thick / 2) / math.cos(pitch)
 		for _, sx in { -1, 1 } do

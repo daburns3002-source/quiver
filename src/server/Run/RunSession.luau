@@ -29,6 +29,7 @@ local Log = require(ReplicatedStorage.Shared.Util.Log)
 local NewEnemies = require(ReplicatedStorage.Shared.Config.NewEnemies)
 local PetCombat = require(ReplicatedStorage.Shared.Config.PetCombat)
 local Pickups = require(script.Parent.Pickups)
+local PlayerData = require(script.Parent.Parent.Data.PlayerData)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local Shelter = require(ReplicatedStorage.Shared.Util.Shelter)
 local ShotPipeline = require(ReplicatedStorage.Shared.Combat.ShotPipeline)
@@ -419,6 +420,18 @@ function RunSession.meetEnemy(kind: string)
 			session.seenEnemies[kind] = true
 			table.insert(session.meeting, kind)
 			newEnemy:FireClient(session.player, kind)
+			--[[ `seenEnemies` is this visit's; the dex wants a lasting
+			     record, so the profile is written here and not when the
+			     player presses GOT IT! -- they have met the thing whether
+			     or not they read the card, and closing the game on an open
+			     card should still fill in the dex (`Util/DexBook`, save
+			     version 7). ]]
+			local profile = PlayerData.get(session.player)
+			if profile and not profile.enemiesSeen[kind] then
+				profile.enemiesSeen[kind] = true
+				PlayerData.touch(session.player)
+				Wallet.send(session.player)
+			end
 		end
 	end
 end

@@ -20,7 +20,7 @@ wolf is named "Wilf" — the Ember Wilf, plural Wilfs — in names, code, docs
 and files. Every area gets a Wilf pet.
 
 Run loop: `docs/RESEARCH-archero.md`. Meta loop: `docs/PROGRESSION.md`.
-Phase plan: `docs/ROADMAP.md`. Lobby spec: `docs/LOBBY.md`.
+Phase plan: `docs/ROADMAP.md`. Lobby spec: `docs/LOBBY.md`. The dexes: `docs/DEX.md`.
 **Classes and world: `docs/WORLD.md`** — since 2026-10-22 the game is three
 classes (Ranger, Arcanist, an unlockable melee class) across ten areas
 in five acts. A new title is being chosen; until then it stays "Arrow

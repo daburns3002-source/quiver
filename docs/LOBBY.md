@@ -65,7 +65,28 @@ lobby the camera is Roblox's own, started behind the player at its usual angle, 
 follows it (`TopDownCamera`, `MoveController`); a run takes the top-down camera back. Each portal
 is its own area's arch with its name built in (`portals[i].arch`). The lawn's scatter (flowers,
 bushes, mushrooms, rocks) is laid on a jittered grid, so it spreads evenly. Props: the smith at his
-anvil, the Hatchery Fairy, three codex books on lecterns before the Dex Hall. The FARTHEST
+anvil, the Hatchery Fairy, three codex books on lecterns before the Dex Hall.
+
+**Imported models (2026-11-01).** The lawn's trees are the owner's blocky tree
+(`Config/Lobby.treeModel`), one MeshPart each where they were a trunk pillar
+under three leaf blobs -- so three times as many trees cost *fewer* parts than
+before (1,252 in the lobby, down from about 2,152). `tall` is set to what the
+built tree came to, so every scatter and ring that places one keeps its
+spacing; each is turned a random amount about Y, which is all the variety a
+single mesh has. The scatter also weighs trees at 9 against 15 for everything
+else and fills 0.72 of its cells (owner: "add more around the lobby").
+
+Each area's arch comes from `Config/Lobby.archModels`, keyed by portal index.
+The Mossy Glade's is imported; Thornwood's and the Drowned Village's are
+modelled and arrive next, and keep the built stone ring until then. From
+`archSilhouetteFrom` (5) on there is no model and none coming, so each stands
+as the first area's painted black with its texture dropped (owner: "replace
+every portal past 4 with a silhouette of the arena 1 portal until portals are
+made for them") -- that includes Endless, which is last of the arches. Giving
+a portal its own `archModels` entry is all it takes to stop it being one. The
+swirl, the padlock and the colliding legs are unchanged; the legs just turn
+invisible behind a model, so a player is held out of the uprights exactly as
+before. The FARTHEST
 ADVENTURERS board shows `Run/StoryLeaderboard` (see `docs/LEADERBOARD.md`). Both boards stand
 south of the spawn facing north (owner, 2026-11-01: "move the leaderboards to behind the player
 south of the spawn"), 32 studs back and 39 degrees either side of due south, so a player who

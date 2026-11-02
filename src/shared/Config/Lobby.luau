@@ -176,6 +176,45 @@ local Lobby = {
 		     is a death at floor 6 (`docs/ENDLESS.md`). ]]
 		{ name = "Endless", levels = { 17 }, tint = CYAN },
 	} :: { Portal },
+	--[[
+		The owner's imported lobby models (2026-11-01). `native` is each
+		import's own size, kept here so the placing maths never waits on a
+		fetch; everything is scaled off it.
+	]]
+	--[[ The blocky tree, which replaced the lawn's built trunk and blobs
+	     ("use the tree import and replace the existing trees in the game
+	     with it"). `tall` is the studs a tree of `grow` 1 stands, matched
+	     to what the built one was so the scatter's spacing still holds. ]]
+	treeModel = {
+		mesh = "rbxassetid://139262265934696",
+		texture = "rbxassetid://93690388231604",
+		native = Vector3.new(2.54, 4.6, 2.49),
+		tall = 14,
+	},
+	--[[ Each area's arch, by portal index, as the owner imports them. Only
+	     the Mossy Glade's exists so far; Thornwood's and the Drowned
+	     Village's are modelled and come tomorrow, and keep the built stone
+	     ring until they do. ]]
+	archModels = {
+		[1] = {
+			mesh = "rbxassetid://89518626870205",
+			texture = "rbxassetid://122345112819768",
+			native = Vector3.new(0.85, 1, 0.59),
+		},
+	} :: { [number]: { mesh: string, texture: string, native: Vector3 } },
+	--[[ From this portal on there is no arch of its own and none coming
+	     soon, so each stands as a black silhouette of the first area's
+	     (owner, 2026-11-01: "replace every portal past 4 with a silhouette
+	     of the arena 1 portal until portals are made for them"). Give a
+	     portal its own entry in `archModels` and it stops being one. ]]
+	archSilhouetteFrom = 5,
+	archSilhouette = Color3.fromRGB(18, 16, 24),
+	--[[ How tall an imported arch stands above its ledge, and how far it is
+	     turned about Y. The built ring's top sat 14 up, so 15 keeps the
+	     rows reading the same from the lawn. ]]
+	archTall = 15,
+	archTurn = 0,
+
 	--[[ Studs from an active arch's mouth a player must come within for its
 	     screen to open (`UI/PortalScreen`), and how much further the server
 	     still grants START from, for the time the press takes to arrive. ]]
@@ -492,15 +531,22 @@ local Lobby = {
 		Vector2.new(-100, 72),
 		Vector2.new(100, 72),
 	},
+	--[[ Trees weigh more than the rest together now the lawn has a real
+	     one to plant (owner, 2026-11-01: "add more around the lobby"): 3
+	     of 15 was a tree every few cells, which read as a lawn with a
+	     couple of trees on it rather than a clearing in a wood. The cells
+	     also fill a little fuller, so the edges thicken without crowding
+	     the walk between the stations -- `keep` still clears a radius
+	     round every building, stand, arch and board. ]]
 	scatter = {
-		Tree = 3,
+		Tree = 9,
 		Bush = 4,
 		Boulder = 2,
 		Flowers = 4,
 		Mushroom = 2,
 	} :: { [string]: number },
 	scatterCell = 14,
-	scatterFill = 0.6,
+	scatterFill = 0.72,
 
 	--[[ The eggs and weapon crates out in the open, as Tap Simulator Reborn
 	     stands its eggs (owner, 2026-10-27): smooth models on round wooden

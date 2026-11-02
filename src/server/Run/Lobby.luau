@@ -767,68 +767,28 @@ local function building(name: string, at: Vector2, parent: Instance): Vector3?
 		slab("PanelBack", Vector3.new(34, 4, 1.6), 0, wallY, -15.5, look.panel)
 
 		--[[
-			Windows, wherever a wall would otherwise read as a blank
-			square from inside (owner, 2026-11-01: "those white squares
-			should be windows behind the books", then "the squares behind
-			the book stand need to be windowd").
+			The window behind each book stand (owner, 2026-11-01: "the
+			squares behind the book stand need to be windowd").
 
-			Four small panes in the back were not enough: the cream
-			showed around and between them through the gaps in the
-			shelving, and the two long side walls were blank the whole
-			way. The back is a run of five nearly full-height panes now
-			and each side wall has three, so there is no plain panel left
-			at eye level inside.
+			It is the front wall panel, the one the stand stands against,
+			which read as a plain cream square from out on the lawn. A
+			first attempt put panes across the back wall and down both
+			sides, inside, which was the wrong wall entirely -- those are
+			reverted.
+
+			Centred in the panel rather than set against one face, so it
+			reads as a window from the lawn and from the porch alike.
 		]]
-		local function window(
-			x: number,
-			y: number,
-			z: number,
-			span: number,
-			tall: number,
-			along: string
-		)
-			--[[ `along` is the wall's own run: the pane lies in it. ]]
-			local pane = if along == "x"
-				then Vector3.new(span, tall, 0.5)
-				else Vector3.new(0.5, tall, span)
-			local frame = if along == "x"
-				then Vector3.new(span + 0.9, tall + 0.9, 0.4)
-				else Vector3.new(0.4, tall + 0.9, span + 0.9)
-			local upright = if along == "x"
-				then Vector3.new(0.35, tall, 0.6)
-				else Vector3.new(0.6, tall, 0.35)
-			local across = if along == "x"
-				then Vector3.new(span, 0.35, 0.6)
-				else Vector3.new(0.6, 0.35, span)
-			local inward = if along == "x"
-				then Vector3.new(0, 0, if z < 0 then 1 else -1)
-				else Vector3.new(if x < 0 then 1 else -1, 0, 0)
-			local sill = Vector3.new(x, y, z) + inward * 0.55
-			slab("WindowFrame", frame, sill.X, y, sill.Z, look.timber)
-			local glass = slab(
-				"Window",
-				pane,
-				(sill + inward * 0.15).X,
-				y,
-				(sill + inward * 0.15).Z,
-				look.glass
-			)
-			glass.Material = Enum.Material.Glass
-			glass.Transparency = 0.5
-			local barAt = sill + inward * 0.35
-			slab("WindowBar", upright, barAt.X, y, barAt.Z, look.timber)
-			slab("WindowBar", across, barAt.X, y, barAt.Z, look.timber)
-		end
-		--[[ The back wall, behind the shelves. ]]
-		for _, x in { -14, -7, 0, 7, 14 } do
-			window(x, wallY, -15.5, 5.8, 3.4, "x")
-		end
-		--[[ And the two long side walls, which were blank end to end. ]]
 		for _, sx in { -1, 1 } do
-			for _, z in { -11, -3, 5 } do
-				window(sx * 18, wallY, z, 6, 3.4, "z")
-			end
+			local x = sx * 13.77
+			slab("WindowFrame", Vector3.new(5.6, 3.6, 1.9), x, wallY, 10.5, look.timber)
+			local pane = slab("Window", Vector3.new(4.6, 2.8, 2.1), x, wallY, 10.5, look.glass)
+			pane.Material = Enum.Material.Glass
+			pane.Transparency = 0.45
+			slab("WindowBar", Vector3.new(0.35, 2.8, 2.2), x, wallY, 10.5, look.timber)
+			slab("WindowBar", Vector3.new(4.6, 0.35, 2.2), x, wallY, 10.5, look.timber)
 		end
+
 		slab("BeamBack", Vector3.new(34, 2, 2), 0, 2.5, -15.5, look.timber)
 		slab("BeamTop", Vector3.new(wide, 2, 2), 0, 8.5, -15.5, look.timber)
 		slab("BeamTop", Vector3.new(wide, 2, 2), 0, 8.5, 10.5, look.timber)

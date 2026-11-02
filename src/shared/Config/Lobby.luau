@@ -190,6 +190,20 @@ local Lobby = {
 		texture = "rbxassetid://93690388231604",
 		native = Vector3.new(2.54, 4.6, 2.49),
 		tall = 14,
+		--[[ How far a tree's height is stretched on its own, apart from
+		     how wide it is (owner, 2026-11-01: "make the trees different
+		     heights").
+
+		     The scatter already grew each tree between 0.72 and 1.08, but
+		     that scales a single mesh evenly, which only makes it look
+		     nearer or further away -- the trunk and crown keep exactly
+		     the same proportions. The built trees it replaced hid this by
+		     randomising their crowns as well. Stretching the height by
+		     itself is what actually reads as a taller or squatter tree.
+
+		     With the scatter's own range that puts the lawn's trees
+		     between about 8 and 21 studs. ]]
+		stretch = NumberRange.new(0.8, 1.4),
 	},
 	--[[ Each area's arch, by portal index, as the owner imports them. Only
 	     the Mossy Glade's exists so far; Thornwood's and the Drowned
@@ -545,8 +559,15 @@ local Lobby = {
 		Flowers = 4,
 		Mushroom = 2,
 	} :: { [string]: number },
-	scatterCell = 14,
-	scatterFill = 0.72,
+	--[[ A smaller cell and nearly every one tried, because only about a
+	     quarter of tries can land: the paths, the terrace and the ring
+	     `keep` round every building, stand, arch and board reserve most
+	     of the lawn, and at 14 studs with 0.6 filled that left 37 things
+	     scattered over the whole clearing, fifteen of them trees. The
+	     space test is unchanged, so nothing gets any closer to a building
+	     or a path than before -- there are simply more places tried. ]]
+	scatterCell = 10,
+	scatterFill = 0.9,
 
 	--[[ The eggs and weapon crates out in the open, as Tap Simulator Reborn
 	     stands its eggs (owner, 2026-10-27): smooth models on round wooden

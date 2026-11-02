@@ -52,7 +52,14 @@ local OUTER_RINGS = {
 }
 local OUTER_FLOOR = 900
 --[[ How far each scatter kind keeps from everything else, studs. ]]
-local REACH = { Tree = 6, Bush = 3, Boulder = 3.5, Flowers = 2, Mushroom = 1.5 }
+--[[ How much room each scattered thing keeps to itself, in studs at
+     `grow` 1. A tree asked for 6, which with everything else competing
+     for the same cells left only thirteen standing on the lawn -- the
+     weight in `Config/Lobby.scatter` cannot help if the space test
+     rejects the cell anyway (owner, 2026-11-01: "add more around the
+     lobby"). At 4.2 they stand in loose groups instead of singly, which
+     is what a clearing in a wood looks like. ]]
+local REACH = { Tree = 4.2, Bush = 3, Boulder = 3.5, Flowers = 2, Mushroom = 1.5 }
 --[[ The eggs' and crates' colours, after their 2D art
      (`assets/ui/gear/reveal/`, `GearAssets.crates`). ]]
 local STAND_LOOK = {
@@ -308,8 +315,9 @@ end
 	that came to, so every scatter and ring that places trees keeps its
 	spacing without being retuned.
 
-	Each is turned a random amount about Y, which is all the variety a
-	single mesh has; without it a hundred identical trees read as wallpaper.
+	Each is turned a random amount about Y and stretched in height on its
+	own, so no two are the same shape; without that a hundred copies of one
+	mesh read as wallpaper.
 	Falls back to nothing if the mesh did not load, as the dex books do.
 ]]
 local function tree(at: Vector2, grow: number, rng: Random, parent: Instance, solid: boolean)
@@ -326,7 +334,15 @@ local function tree(at: Vector2, grow: number, rng: Random, parent: Instance, so
 	p.CanTouch = false
 	p.CastShadow = solid
 	p.Material = Enum.Material.SmoothPlastic
-	p.Size = spec.native * (spec.tall * grow / spec.native.Y)
+	--[[ `grow` sets how wide it is and `stretch` how tall, so no two
+	     trees are the same shape. Scaling evenly only ever looked like
+	     the same tree at a different distance. The spacing between
+	     scattered things reads `grow`, so stretching the height alone
+	     never crowds anything. ]]
+	local scale = spec.tall * grow / spec.native.Y
+	local stretch = rng:NextNumber(spec.stretch.Min, spec.stretch.Max)
+	p.Size =
+		Vector3.new(spec.native.X * scale, spec.native.Y * scale * stretch, spec.native.Z * scale)
 	p.TextureID = spec.texture
 	--[[ The tree carries its colours in its own texture, so the part must
 	     not tint them. ]]

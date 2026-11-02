@@ -12,18 +12,28 @@ level kind of like endless."
 `StageConfig.enemyDamage` and `enemyHealth` are **one constant for a whole stage**, applied in
 `Enemies/EnemyManager.difficulty()`. Across Mossy Glade they step up level by level:
 
-| Level | Mode | Waves | `enemyDamage` | `enemyHealth` |
+| Level | Mode | Rooms or waves | `enemyDamage` | `enemyHealth` |
 |---|---|---|---|---|
-| 1-1 | Rooms | — | 0.75 | 1.1 |
-| 1-2 | Rooms | — | 0.78 | 1.2 |
-| 1-3 | Rooms | — | 0.81 | 1.3 |
-| 1-4 | Rooms | — | 0.84 | 1.4 |
-| 1-5 | Waves | 20 | 0.87 | 1.5 |
-| 1-6 | Waves | 20 | 0.90 | 1.6 |
-| 1-7 | Waves | 20 | 0.93 | 1.7 |
-| 1-8 | Waves | 20 | 0.96 | 1.8 |
-| 1-9 | Waves | 20 | 0.99 | 1.9 |
-| 1-10 | Waves | 25 | 1.02 | 2.0 |
+| 1-1 | Rooms | 10 | 0.75 | 1.10 |
+| 1-2 | Rooms | 10 | 0.78 | 1.14 |
+| 1-3 | Rooms | 15 | 0.81 | 1.18 |
+| 1-4 | Rooms | 15 | 0.84 | 1.22 |
+| 1-5 | Waves | 20 | 0.87 | 1.26 |
+| 1-6 | Rooms | 20 | 0.90 | 1.30 |
+| 1-7 | Rooms | 20 | 0.93 | 1.34 |
+| 1-8 | Rooms | 20 | 0.96 | 1.38 |
+| 1-9 | Rooms | 20 | 0.99 | 1.42 |
+| 1-10 | Rooms | 25 | 1.02 | 1.46 |
+
+**Two things changed under this doc on 2026-11-02 and the table above is
+current; the worked examples further down are not.** The health baselines
+were flattened from 1.1 rising by 0.1 to 1.1 rising by 0.04 (#441, the
+balance report's level-length finding), and 1-6..1-10 became Rooms levels
+(#442, owner: "i only want 1-5 to be waves and the rest should be rooms").
+So where a section below says 1-5's baseline is 1.5 or reads 1-10 as waves,
+read 1.26 and rooms. Nothing in the proposal itself moves: it already ramps
+on `index` out of `total`, which is the wave number in a Waves stage and the
+room number in a Rooms stage, and `Balance.StageCurve` is still unbuilt.
 
 A clean line **between** levels and a flat line **inside** each one. That flat line is the
 whole problem: a player enters 1-5 with no cards drafted and meets the full 1.5× health, then

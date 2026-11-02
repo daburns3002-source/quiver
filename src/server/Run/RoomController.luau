@@ -1125,7 +1125,7 @@ function RoomController.step(now: number)
 			--[[ Its item and gems, as the boss falls (owner, 2026-10-25:
 			     "the boss drop is guaranteed every time"): only a stage
 			     whose last fight is a boss (Thornwood's, Mossy Glade
-			     1-10's), never 1-1..1-9's elite fights. ]]
+			     1-10's), never 1-5's elite fights. ]]
 			if endsInBoss() then
 				RunSession.payBoss()
 			end

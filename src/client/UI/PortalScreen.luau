@@ -210,6 +210,30 @@ local function sizeOf(stage: Balance.StageConfig): string
 		else `{#(stage.rooms or {})} ROOMS`
 end
 
+--[[ The boss a level ends in, if it ends in one: a Waves stage's
+     `finale`, or a Rooms stage's last room (Mossy Glade 1-10 is King
+     Bloblin alone in the Glade Heart, Thornwood the Broodmother in the
+     Brood Heart). Read the same way `RoomController.endsInBoss` reads it,
+     so the line and the boss drop can never disagree. ]]
+local function bossOf(stage: Balance.StageConfig): Balance.EnemyBoss?
+	local roster: { Balance.EnemyConfig }
+	local finale = stage.finale
+	if finale then
+		roster = finale.roster
+	else
+		local rooms = stage.rooms or {}
+		local last = Balance.Rooms[rooms[#rooms]]
+		roster = if last then last.roster else {}
+	end
+	for _, config in roster do
+		local boss = (config :: any).boss
+		if boss then
+			return boss
+		end
+	end
+	return nil
+end
+
 --[[ What the line under the grid says of the picked level: its number,
      its rooms or waves, and its boss if it ends in one. ]]
 local function describe(stage: Balance.StageConfig): string
@@ -217,9 +241,7 @@ local function describe(stage: Balance.StageConfig): string
 		return `{sizeOf(stage)}, EVERY 10TH A BOSS`
 	end
 	local size = sizeOf(stage)
-	local finale = stage.finale
-	local first = finale and finale.roster[1]
-	local boss = first and first.boss
+	local boss = bossOf(stage)
 	local words = `LEVEL {stage.level or ""}: {size}`
 	if boss then
 		-- the boss by its banner's name (King Bloblin), as the boss bar shows it

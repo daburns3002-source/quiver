@@ -16,6 +16,18 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## The enemy took the damage after the arrow had flown past it
+
+**Symptom**: 2026-11-03, the owner: "the enemy does take damage, but the arrow has already flown past, or the spark is in the wrong place."
+
+**Cause**: the firing rhythm drifted. Player fire is predicted, not request/response: the server (`Combat/FiringSystem`) and the client (`Combat/LocalFiring`) each run the same rule on their own clock and each spawn their own volley. Both booked a volley with `lastFiredAt = now` — the frame it actually went out on. A volley can only go on a frame boundary, so it is always a little late, and booking it at `now` carried that lateness into the next interval instead of spending it. The error compounded, for as long as the player stood still, and the two sides round by different amounts: at 0.7 s cooldown the client at 15 fps books `ceil(0.7 / 0.0667) × 0.0667 = 0.727 s` a volley (+27 ms) while the server's 60 Hz Heartbeat books 0.7014 s (+1.4 ms). Nothing ever pulled them back into step. Whichever side was behind applied its damage nowhere near its own arrow — which is both halves of what the owner saw. The hand-over suspected the replicated character root lagging the client's own; it is not that (and it cannot be measured in Studio Play, where the two share one DataModel: the drawn arrow sits 0.42 studs off the server's line there, and no more).
+
+**Fix**: `FireRhythm.fired(state, now, cooldown)`, used by `FiringSystem`, `MeleeSystem` and `LocalFiring` in place of writing `lastFiredAt` themselves. It books the volley at the time it was *due* (`lastFiredAt + cooldown`), so each one is at most one frame late and the lateness is not inherited. A rhythm more than a whole interval late — nothing asked it to fire for a while — starts over from `now` rather than banking a backlog into a burst. `tests/FireRhythm.spec` now steps a server rhythm at 60 fps and a client rhythm at 15 fps over 30 s of standing still and holds both within one client frame of their due times and of each other; the old booking fails it, and the old spec never could, because its helper set `lastFiredAt = now` itself and only ever checked the first shot.
+
+**Measured**: in Studio Play, standing still, arrow speed 82.5 studs/s, client 15 fps and server 60 Hz, each drawn arrow paired to its own volley by perpendicular distance to that volley's ray. Five consecutive volleys ran -119, -151, -168, -201, -219 ms apart (server firing first), and the drawn arrow sat 9.7, 12.5, 13.8, 16.6 and 17.9 studs behind the server's — a pure time offset, growing about 25 ms a volley without bound. Over 30 s of standing still the old booking drifts 1333 ms from the due time and leaves the two sides 716 ms apart (59 studs of arrow, the width of the room) and firing a different number of volleys, 42 against 41; the new one holds both inside one client frame, 66 ms, and both fire 43.
+
+**Left alone, measured**: the damage number is drawn at `enemy.position`, 2.8-3.1 studs from the contact point the server reports (8 of 8 hits) — a number over the body is the genre's convention, so it is the owner's call rather than this fix's.
+
 ## The lobby's Gear Station almost overlapped the Blacksmith
 
 **Symptom**: 2026-10-26, the owner after a playtest: "gear area needs to be moved because it almost overlaps with the blacksmith area."

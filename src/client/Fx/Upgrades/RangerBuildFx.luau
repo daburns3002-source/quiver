@@ -16,13 +16,16 @@
 	Presentation only.
 ]]
 
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local FxEvents = require(script.Parent.FxEvents)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local SoundFx = require(script.Parent.Parent.SoundFx)
 local TopDownCamera = require(script.Parent.Parent.Parent.Camera.TopDownCamera)
+local UpgradeFx = require(script.Parent.UpgradeFx)
 local Voxel = require(script.Parent.Voxel)
 
 local RangerBuildFx = {}
@@ -285,14 +288,172 @@ local function onRain(
 	end)
 end
 
+--[[ Ghost Quiver ]]
+
+local SPIRIT = Color3.fromRGB(150, 225, 255)
+local SPIRIT_DEEP = Color3.fromRGB(70, 150, 205)
+--[[ How long the draw arm takes to snap forward on a release. ]]
+local RELEASE = 0.16
+
+type Ghost = {
+	model: Model,
+	parts: { BasePart },
+	bowArm: BasePart,
+	drawArm: BasePart,
+	shownAt: number,
+	releasedAt: number,
+}
+
+local ghost: Ghost? = nil
+--[[ The last volley's aim, so the ghost stands behind the player rather
+     than in front of them. The client already hears this
+     (`FxEvents.fired`); nothing new has to be sent. ]]
+local lastAim = Vector3.new(0, 0, -1)
+
+--[[
+	A spectral archer, nine cubes of it.
+
+	Kept to nine because part count, not triangles, is what costs on a phone
+	(docs/NEXT.md): every part here is posed each frame. All of it is Neon
+	and half transparent, so it reads as a spirit rather than a second
+	player, and it never collides or takes a hit.
+]]
+local function buildGhost(): Ghost
+	local model = Instance.new("Model")
+	model.Name = "GhostArcher"
+	local function piece(size: Vector3, colour: Color3): BasePart
+		local part = Voxel.cube(size, colour, true, model)
+		part.Transparency = 0.45
+		return part
+	end
+	local body = piece(Vector3.new(1.1, 1.5, 0.6), SPIRIT_DEEP)
+	local head = piece(Vector3.new(0.75, 0.7, 0.75), SPIRIT)
+	local hood = piece(Vector3.new(0.95, 0.35, 0.95), SPIRIT_DEEP)
+	local bowArm = piece(Vector3.new(0.9, 0.26, 0.26), SPIRIT)
+	local drawArm = piece(Vector3.new(0.8, 0.26, 0.26), SPIRIT)
+	local bowTop = piece(Vector3.new(0.2, 0.9, 0.2), SPIRIT)
+	local bowMid = piece(Vector3.new(0.2, 0.5, 0.2), SPIRIT)
+	local bowLow = piece(Vector3.new(0.2, 0.9, 0.2), SPIRIT)
+	--[[ No legs: it trails off into a wisp, which is cheaper than legs and
+	     reads better for something that has no feet on the ground. ]]
+	local wisp = piece(Vector3.new(0.8, 0.9, 0.5), SPIRIT_DEEP)
+	Voxel.light(body, SPIRIT, 8, 1.1)
+	model.PrimaryPart = body
+	model.Parent = Voxel.folder()
+	return {
+		model = model,
+		parts = { body, head, hood, bowArm, drawArm, bowTop, bowMid, bowLow, wisp },
+		bowArm = bowArm,
+		drawArm = drawArm,
+		shownAt = os.clock(),
+		releasedAt = -1,
+	}
+end
+
+local function dropGhost()
+	local held = ghost
+	if not held then
+		return
+	end
+	ghost = nil
+	for _, part in held.parts do
+		part:Destroy()
+	end
+	held.model:Destroy()
+end
+
+--[[
+	Holds the archer behind the player and poses it.
+
+	Its own frame, not the character's: it hangs `behind` studs back along
+	the last aim, so it is always the shoulder you are not looking over,
+	and it bobs on its own phase so it never looks welded on.
+]]
+local function ghostStep()
+	local root = UpgradeFx.root()
+	if UpgradeFx.level("GhostQuiver") <= 0 or not root then
+		dropGhost()
+		return
+	end
+	--[[ Spelled out rather than `held = held or buildGhost()`, so the type
+	     is `Ghost` and not `Ghost?` for the posing below. ]]
+	local held: Ghost
+	local standing = ghost
+	if standing then
+		held = standing
+	else
+		held = buildGhost()
+		ghost = held
+	end
+	local now = os.clock()
+	local config = Balance.Player.ghostQuiver
+	local aim = UpgradeFx.flat(lastAim)
+	local centre = root.Position - aim * config.behind + Vector3.new(0, 0.35, 0)
+	local bob = math.sin(now * 2.1) * 0.18
+	local base =
+		CFrame.lookAt(centre + Vector3.new(0, bob, 0), centre + aim + Vector3.new(0, bob, 0))
+
+	--[[ Fading in over its first moment, so it arrives rather than
+	     appearing: a drafted card should feel like something joining. ]]
+	local arrive = math.clamp((now - held.shownAt) / 0.35, 0, 1)
+	for _, part in held.parts do
+		part.Transparency = 1 - 0.55 * arrive
+	end
+
+	held.parts[1].CFrame = base
+	held.parts[2].CFrame = base * CFrame.new(0, 1.1, 0)
+	held.parts[3].CFrame = base * CFrame.new(0, 1.5, 0)
+	--[[ The bow arm is out toward the aim; the draw arm is back at the ear
+	     and snaps forward as the volley goes. ]]
+	held.bowArm.CFrame = base * CFrame.new(0.55, 0.45, -0.35) * CFrame.Angles(0, 0.4, 0)
+	local drawn = 1
+	if held.releasedAt > 0 then
+		drawn = math.clamp((now - held.releasedAt) / RELEASE, 0, 1)
+		if drawn >= 1 then
+			held.releasedAt = -1
+		end
+		--[[ Stepped, as every clip in this game is, so the release reads as
+		     a snap and not a slide. ]]
+		drawn = math.ceil((1 - drawn) * 3) / 3
+	end
+	held.drawArm.CFrame = base
+		* CFrame.new(-0.5, 0.45, 0.1 + 0.45 * drawn)
+		* CFrame.Angles(0, -0.3, 0)
+	local stave = base * CFrame.new(0.95, 0.5, -0.5)
+	held.parts[6].CFrame = stave * CFrame.new(0, 0.55, 0.1) * CFrame.Angles(0.5, 0, 0)
+	held.parts[7].CFrame = stave
+	held.parts[8].CFrame = stave * CFrame.new(0, -0.55, 0.1) * CFrame.Angles(-0.5, 0, 0)
+	held.parts[9].CFrame = base * CFrame.new(0, -1.1, 0.1) * CFrame.Angles(0.3, 0, 0)
+end
+
+--[[ The ghost loosed its copy of the volley: the draw arm snaps and a wisp
+     breaks off the bow. The server says where it stood, which is only used
+     for the puff — the archer's own place is the client's, so it never
+     stutters between volleys. ]]
+local function onGhostVolley(at: Vector3)
+	local held = ghost
+	if held then
+		held.releasedAt = os.clock()
+	end
+	Voxel.burst(at + Vector3.new(0, 1, 0), 4, { SPIRIT, SPIRIT_DEEP }, 7, 0.4, 0.3, 4)
+end
+
 function RangerBuildFx.start()
 	FxEvents.launched:connect(onLaunched)
+	--[[ The ghost stands behind the aim, so it tracks the volleys this
+	     client already announces to itself. ]]
+	FxEvents.fired:connect(function(aim: Vector3)
+		lastAim = aim
+	end)
 	Remotes.event(Remotes.UpgradeFx).OnClientEvent
-		:Connect(function(kind: string, _owner: Player, ...)
+		:Connect(function(kind: string, owner: Player, ...)
 			if kind == "ArrowRain" then
 				onRain(...)
+			elseif kind == "GhostQuiver" and owner == Players.LocalPlayer then
+				onGhostVolley(...)
 			end
 		end)
+	RunService.Heartbeat:Connect(ghostStep)
 end
 
 return RangerBuildFx

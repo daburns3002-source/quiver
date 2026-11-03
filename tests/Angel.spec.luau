@@ -295,52 +295,57 @@ return function(t: TestRunner.Helper)
 		t.equal(grounded, 1, "one pool of light")
 	end)
 
-	--[[ The GLB (owner, 2026-11-02: "Redo as a GLB") is the same blocks
-	     joined into one piece a colour, so the room can draw three
-	     MeshParts instead of nineteen parts. A mesh cannot be fetched from
-	     a file, so the ids stay empty until the owner imports it and
-	     `Run/AngelProp` keeps building the blocks until they are all
-	     there. All three or none: a half-imported Angel would be a head
-	     with no eyes. ]]
-	t.test("the mesh ids are all filled in or all empty", function()
-		local pieces = { AngelDesign.mesh.cream, AngelDesign.mesh.gold, AngelDesign.mesh.eye }
-		local filled = 0
-		for _, mesh in pieces do
-			if mesh.id ~= "" then
-				filled += 1
-				t.isTrue(
-					string.match(mesh.id, "^rbxassetid://%d+$") ~= nil,
-					`"{mesh.id}" is not an asset id`
-				)
+	--[[ The owner's imported Angel (2026-11-02: "i just imported the angel
+	     room model") is one textured MeshPart, so the id and the texture go
+	     together: a mesh with no texture would draw a white blank, and a
+	     texture with no mesh draws nothing at all. Empty means no import and
+	     `Run/AngelProp` keeps building the blocks. ]]
+	t.test("the mesh and its texture are both filled in or both empty", function()
+		local mesh = AngelDesign.mesh
+		for _, id in { mesh.id, mesh.textureId } do
+			if id ~= "" then
+				t.isTrue(string.match(id, "^rbxassetid://%d+$") ~= nil, `"{id}" is not an asset id`)
 			end
-			t.isTrue(mesh.size.X > 0 and mesh.size.Y > 0 and mesh.size.Z > 0, "a mesh has a size")
 		end
-		t.isTrue(filled == 0 or filled == #pieces, `{filled} of {#pieces} meshes are imported`)
+		t.equal(mesh.id == "", mesh.textureId == "", "one of the two is missing")
 	end)
 
-	--[[ And the mesh pieces cover the same figure the blocks do, so
-	     swapping one for the other cannot change the Angel's size or where
-	     it stands. Checked against the blocks of each colour. ]]
-	t.test("each mesh piece is the box its own blocks fill", function()
-		local groups = {
-			{ mesh = AngelDesign.mesh.cream, color = AngelDesign.cream },
-			{ mesh = AngelDesign.mesh.gold, color = AngelDesign.gold },
-			{ mesh = AngelDesign.mesh.eye, color = AngelDesign.eye },
-		}
-		for _, group in groups do
-			local low, high = Vector3.one * math.huge, Vector3.one * -math.huge
-			for _, part in AngelDesign.parts do
-				if part.grounded or part.color ~= group.color then
-					continue
-				end
-				local partLow, partHigh = extent(part)
-				low, high = low:Min(partLow), high:Max(partHigh)
+	--[[ The import is its own model, not the blocks joined up, so its box is
+	     not checked against them. What must hold is where it sits: the robe
+	     hovers exactly as the blocks do, and the head stops below the halo so
+	     the ring floats clear instead of cutting through it. ]]
+	t.test("the imported Angel hovers where the blocks do, under the halo", function()
+		local mesh = AngelDesign.mesh
+		t.isTrue(mesh.size.X > 0 and mesh.size.Y > 0 and mesh.size.Z > 0, "the mesh has a size")
+
+		local low = mesh.offset.Y - mesh.size.Y / 2
+		local high = mesh.offset.Y + mesh.size.Y / 2
+		t.near(low, AngelDesign.hover, 1e-3, "the robe hovers on AngelDesign.hover")
+
+		local ring = math.huge
+		for _, part in AngelDesign.parts do
+			if part.halo then
+				local partLow = select(1, extent(part)).Y
+				ring = math.min(ring, partLow)
 			end
-			local size = high - low
-			local middle = (high + low) / 2
-			t.near((size - group.mesh.size).Magnitude, 0, 1e-3, "the mesh is the blocks' size")
-			t.near((middle - group.mesh.offset).Magnitude, 0, 1e-3, "the mesh sits where they do")
 		end
+		t.isTrue(ring < math.huge, "there is a halo")
+		t.isTrue(high < ring, `the head reaches {high}, into the halo at {ring}`)
+		t.isTrue(high > AngelDesign.height - 1.5, "the mesh is too short for its halo")
+	end)
+
+	--[[ Nothing the import draws is built as a block as well, or the Angel
+	     would wear two of everything. Only the halo and the pool of light
+	     survive beside it, which is what `Run/AngelProp` keeps. ]]
+	t.test("only the halo and the light stand beside the mesh", function()
+		local kept = 0
+		for _, part in AngelDesign.parts do
+			if part.halo or part.grounded then
+				kept += 1
+				t.isFalse(part.halo == true and part.grounded == true, `{part.name} is both`)
+			end
+		end
+		t.equal(kept, 5, "four halo bars and one pool of light")
 	end)
 
 	t.test("the stated height is the height the blocks come to", function()

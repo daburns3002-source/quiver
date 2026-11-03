@@ -543,10 +543,36 @@ draft into its controller layout.
 - **Threads spawned by an `execute_luau` probe die when it returns.** A
   background sampler started in one call records nothing; sample inside the
   call that waits, or time a `screen_capture`.
-- **`user_mouse_input` drives the GUI for real**: `moveTo` an
-  `instance_path` such as `LocalPlayer.PlayerGui.DraftScreen.Panel...`,
-  then click, or `mouseButtonDown` / wait / `mouseButtonUp` for a hold.
-  Play-mode captures do show the GUI (and the 3D view, these days).
+- **`user_mouse_input` moves the cursor but its clicks may not land.**
+  `moveTo` an `instance_path` such as
+  `LocalPlayer.PlayerGui.DraftScreen.Panel...`, then click, or
+  `mouseButtonDown` / wait / `mouseButtonUp` for a hold. This has worked; on
+  2026-11-03 it did not, in any form, over a dozen attempts on two different
+  screens, focused and unfocused, at 15 fps and at 60 — `GetMouseLocation`
+  confirmed the cursor sitting inside the button and nothing fired. Note that
+  `instance_path` aims at the raw `AbsolutePosition`, which is 58 px above
+  where the mouse has to be: add the `GuiService:GetGuiInset()` Y yourself and
+  pass x/y. **`user_keyboard_input` is the reliable one** — reach for it
+  first. Play-mode captures do show the GUI (and the 3D view, these days).
+- **A screen that holds the run cannot be cleared from a probe**, because each
+  one keeps the *client's* `RunPaused` set even once the server's hold is
+  gone, and `LocalFiring` draws nothing while it is. NEW ENEMY! yields to
+  `user_keyboard_input` `Return` (`NewEnemySeen` from a probe clears only the
+  server). **The draft does not yield at all**: its ButtonA / ButtonX are
+  bound through `ContextActionService` in gamepad mode only, so a synthetic
+  ButtonA does nothing, and `AbilityChosen` clears `session.loadout.offer`
+  while the screen stays up and stays paused. An open draft is a dead end —
+  restart Play. The sandbox is no rig either: it holds the run, so nothing
+  fires.
+- **To measure a fight, shoot something that cannot die**:
+  `DebugSpawnEnemy:FireServer("SlimeKing")` is 6000 health and pays no XP
+  until it falls, so no level-up and no draft ever interrupt the window. Stand
+  the player nearest it so `Aim` picks it over the room.
+- **Studio renders at a hard 15 fps while unfocused**, which inflates any
+  frame-rate-dependent measurement about fourfold — record the frame time
+  alongside every number so it can be read back. And do setup and measurement
+  in **one** `execute_luau` call: Play dies between calls often enough
+  ("Target is closed") that multi-call rigs lose their state.
 - To move the character from a probe, call `Humanoid:Move` from
   `RunService.Stepped`: `MoveController` resets it every RenderStepped, and
   a teleport does not count as moving for the move-or-shoot rule.

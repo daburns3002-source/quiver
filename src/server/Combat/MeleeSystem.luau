@@ -25,6 +25,7 @@ local Aim = require(ReplicatedStorage.Shared.Combat.Aim)
 local Arena = require(script.Parent.Parent.Arena.Arena)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Burning = require(script.Parent.Burning)
+local ClassUpgrades = require(script.Parent.ClassUpgrades)
 local Classes = require(ReplicatedStorage.Shared.Config.Classes)
 local EnemyManager = require(script.Parent.Parent.Enemies.EnemyManager)
 local ProjectileSystem = require(script.Parent.ProjectileSystem)
@@ -82,7 +83,8 @@ function MeleeSystem.swing(session: Session, root: BasePart, now: number, cooldo
 	local target = Aim.choose(
 		origin,
 		candidates(),
-		(class.reach or Balance.Player.attackRange) + session.melee.reachBonus,
+		((class.reach or Balance.Player.attackRange) + session.melee.reachBonus)
+			* session.melee.reachScale,
 		Aim.clearTest(Arena.blockers(), Balance.Projectile.radius)
 	)
 	if not target then
@@ -165,16 +167,29 @@ local function land(swing: Pending, now: number)
 	if swing.index == #config.damage then
 		blow *= 1 + melee.slamBonus
 	end
+	--[[ Counter Strike: the first blow after being hit, charged
+	     (`Combat/ClassUpgrades`). ]]
+	blow *= ClassUpgrades.spendCounter(session)
 
 	--[[ An arc for the side-to-side blows, a circle for the slam, grown by
 	     Cleave and Long Reach (`Shared/Combat/SwingBox`). ]]
-	local shape =
-		SwingBox.shape(config, swing.index, #config.damage, melee.widthScale, melee.reachBonus)
+	local shape = SwingBox.shape(
+		config,
+		swing.index,
+		#config.damage,
+		melee.widthScale,
+		melee.reachBonus,
+		melee.reachScale
+	)
 	local slam = swing.index == #config.damage
+	--[[ Titan's Grip: the giant sword's slam shakes the room for everyone. ]]
+	if slam and not swing.spin then
+		ClassUpgrades.slammed(session, root.Position + swing.direction * shape.ahead, shape.radius)
+	end
 	--[[ Whirlwind: the spin hits everything round the Warden instead; the
 	     attribute tells every client to draw it. ]]
 	if swing.spin then
-		shape = SwingBox.spin(Balance.Player.whirlwind.radius, melee.widthScale)
+		shape = SwingBox.spin(Balance.Player.whirlwind.radius, melee.widthScale * melee.reachScale)
 		session.player:SetAttribute("WhirlwindAt", workspace:GetServerTimeNow())
 	end
 

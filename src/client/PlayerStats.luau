@@ -34,6 +34,8 @@ export type Stats = {
 	     box the server checks. ]]
 	reachBonus: number,
 	widthScale: number,
+	--[[ Titan's Grip: the whole swing grown by this. ]]
+	reachScale: number,
 	class: string,
 	--[[ The weapon in hand when not the class's own, for its built-in
 	     effect (`Config/WeaponStats`). ]]
@@ -55,6 +57,7 @@ local function defaults(): Stats
 		projectileLifetime = Balance.Projectile.lifetime,
 		reachBonus = 0,
 		widthScale = 1,
+		reachScale = 1,
 		class = "Ranger",
 		abilities = {},
 	}
@@ -95,6 +98,7 @@ function PlayerStats.set(stats: Stats)
 		projectileLifetime = tonumber(stats.projectileLifetime) or Balance.Projectile.lifetime,
 		reachBonus = math.max(tonumber(stats.reachBonus) or 0, 0),
 		widthScale = math.max(tonumber(stats.widthScale) or 1, 0),
+		reachScale = math.max(tonumber(stats.reachScale) or 1, 1),
 		class = if typeof(stats.class) == "string" then stats.class else "Ranger",
 		weapon = if typeof(stats.weapon) == "string" then stats.weapon else nil,
 		abilities = if typeof(stats.abilities) == "table" then stats.abilities else {},

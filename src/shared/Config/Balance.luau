@@ -4250,6 +4250,74 @@ local Balance = {
 			crackDuration = 3,
 		},
 
+		--[[ The class upgrades of 2026-10-27 (`Combat/ClassUpgrades`).
+		     Damage is always times the player's own. ]]
+		--[[ Phoenix Arrow: every `every`th volley a phoenix flies `speed`
+		     studs a second through every enemy for `damage`, dropping a fire
+		     patch every `trailStep` studs that burns everything within
+		     `trailRadius` for `trailDamage` every `trailEvery` seconds, for
+		     `trailDuration`. ]]
+		phoenix = {
+			every = 8,
+			damage = 1.8,
+			speed = 70,
+			trailStep = 3,
+			trailRadius = 1.8,
+			trailDamage = 0.12,
+			trailEvery = 0.5,
+			trailDuration = 2.5,
+		},
+		--[[ Rain of Arrows: every `every`th volley an arrow goes up; `delay`
+		     seconds later `arrows` fall within `radius` of the target, each
+		     a `stagger` behind the last, hitting within `arrowRadius` for
+		     `damage`. ]]
+		arrowRain = {
+			every = 6,
+			delay = 0.6,
+			arrows = 12,
+			radius = 4.5,
+			stagger = 0.035,
+			arrowRadius = 1.3,
+			damage = 0.3,
+		},
+		--[[ Black Hole: every `every`th cast a black orb flies to the target
+		     (at the cast's speed) and opens there: for `duration` seconds it
+		     drags every enemy within `pullRadius` in at up to `pullSpeed`
+		     studs a second (bosses stand), ticking `tickDamage` every
+		     `tickEvery`, then implodes for `implodeDamage` within
+		     `implodeRadius`. ]]
+		blackHole = {
+			every = 7,
+			duration = 2,
+			pullRadius = 8,
+			pullSpeed = 9,
+			tickDamage = 0.12,
+			tickEvery = 0.4,
+			implodeRadius = 5,
+			implodeDamage = 2.4,
+		},
+		--[[ Elemental Orbs: casts cycle fire, ice, lightning. Fire burns for
+		     `burn` of the hit a second over `burnDuration`; ice slows to
+		     `slow` of an enemy's speed for `slowDuration`; lightning arcs on
+		     `chain` more times. ]]
+		elemental = {
+			burn = 0.18,
+			burnDuration = 3,
+			slow = 0.5,
+			slowDuration = 2,
+			chain = 2,
+		},
+		--[[ Arcane Turret: every `every` seconds of fighting a crystal hovers
+		     at `offset` from the Arcanist for `duration`, casting an orb at
+		     the nearest enemy every `castEvery` seconds for `damage`. ]]
+		turret = {
+			every = 10,
+			duration = 6,
+			castEvery = 0.5,
+			damage = 0.35,
+			offset = Vector3.new(3, 1.2, 1),
+		},
+
 		--[[
 			Momentum: "attack speed rises while moving". Nothing fires on the
 			move here, so the speed is banked by moving and spent after:

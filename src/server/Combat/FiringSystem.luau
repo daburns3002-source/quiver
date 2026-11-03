@@ -19,6 +19,7 @@ local Aim = require(ReplicatedStorage.Shared.Combat.Aim)
 local AreaStrikes = require(script.Parent.AreaStrikes)
 local Arena = require(script.Parent.Parent.Arena.Arena)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
+local ClassUpgrades = require(script.Parent.ClassUpgrades)
 local Classes = require(ReplicatedStorage.Shared.Config.Classes)
 local EnemyManager = require(script.Parent.Parent.Enemies.EnemyManager)
 local MeleeSystem = require(script.Parent.MeleeSystem)
@@ -101,7 +102,7 @@ local function fire(session: Session, root: BasePart, now: number)
 	for _, spec in specs do
 		local aim = ShotPipeline.aim(direction, spec)
 
-		ProjectileSystem.spawn({
+		local params: ProjectileSystem.SpawnParams = {
 			faction = "Player" :: Types.Faction,
 			--[[ Offset sideways so parallel arrows start beside each other
 			     rather than on top of one another. The renderer calls the
@@ -129,7 +130,10 @@ local function fire(session: Session, root: BasePart, now: number)
 			     draft even if the arrow outlives their current session. ]]
 			owner = session.player,
 			now = now,
-		})
+		}
+		--[[ Elemental Orbs: the cast's element on each orb. ]]
+		ClassUpgrades.dress(session, params)
+		ProjectileSystem.spawn(params)
 	end
 
 	session.lastFiredAt = now
@@ -155,6 +159,10 @@ local function fire(session: Session, root: BasePart, now: number)
 			player:SetAttribute("Meteors", ((player:GetAttribute("Meteors") :: number?) or 0) + 1)
 		end
 	end
+
+	--[[ The class upgrades that count volleys: Phoenix Arrow, Rain of
+	     Arrows, Black Hole, Elemental Orbs' cycle. ]]
+	ClassUpgrades.afterVolley(session, origin, direction, target.position, now)
 
 	--[[
 		One packet per volley. Specs go over whole rather than packed: Phase 1

@@ -312,7 +312,14 @@ function SwingTrail.step(
 	local at = Vector3.new(root.Position.X, HEIGHT, root.Position.Z)
 	local fresh: Active = {
 		origin = CFrame.lookAt(at, at + forward),
-		shape = SwingBox.shape(box, blow, blows, stats.widthScale, stats.reachBonus),
+		shape = SwingBox.shape(
+			box,
+			blow,
+			blows,
+			stats.widthScale,
+			stats.reachBonus,
+			stats.reachScale
+		),
 		sweep = SwingSweep.forBlow(blow, blows),
 		finished = false,
 	}

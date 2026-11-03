@@ -624,9 +624,10 @@ local function launch(
 	from: Model?,
 	look: string?
 )
+	-- the Arcane Turret's orbs are orbs too (`Fx/Upgrades/ArcanistBuildFx`)
 	local pool: Pool = if faction == "Enemy"
 		then "Enemy"
-		elseif look == "Orb" then "PlayerOrb"
+		elseif look == "Orb" or look == "TurretOrb" then "PlayerOrb"
 		else "Player"
 	local colour = if pool == "Enemy"
 		then ENEMY_COLOUR
@@ -666,7 +667,7 @@ local function launch(
 		expiresAt = os.clock() + (spec.lifetime - headStart),
 		stopped = false,
 	})
-	FxEvents.launched:fire(part, pool, aim, from)
+	FxEvents.launched:fire(part, pool, aim, from, look)
 end
 
 local function step(deltaTime: number)

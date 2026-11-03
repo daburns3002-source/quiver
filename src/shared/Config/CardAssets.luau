@@ -70,6 +70,15 @@ local CardAssets = {
 		["twin-cast"] = "rbxassetid://106576770239038",
 		["vitality"] = "rbxassetid://110892185853892",
 		["whirlwind"] = "rbxassetid://115118313774487",
+		-- the class upgrades of 2026-10-27, Codex art on their rarity tiles,
+		-- Legendaries and Mythics glowing (assets/concepts/blocky/ui/cards/)
+		["phoenix-arrow"] = "rbxassetid://85983117265792",
+		["rain-of-arrows"] = "rbxassetid://90550310656451",
+		["black-hole"] = "rbxassetid://107641402465073",
+		["elemental-orbs"] = "rbxassetid://118494344966128",
+		["arcane-turret"] = "rbxassetid://86210492796030",
+		["titans-grip"] = "rbxassetid://106382045408524",
+		["counter-strike"] = "rbxassetid://98666038274289",
 	},
 	--[[ The name banner for each rarity, 984 x 558, its plate cleared
 	     (`assets/ui/glow_toy_cards/clear_plates.py`): the card writes its name

@@ -34,6 +34,32 @@ codex." This picks option C of `docs/WARDEN-CARDS.md` (a card set per class).
   Whirlwind, Shockwave and Battle Cry have sounds waiting on the owner's picks
   (audition round 19).
 
+## The class upgrades (owner's picks, 2026-10-27)
+
+From `docs/UPGRADES-BRAINSTORM.md` ("i like the phoenix arrow idea and rain of
+arrows, i like the black hole idea, elemental orbs, and arcane turret. i like
+the titans grip, counter strike"). The build-defining cards, drawn big:
+
+| Card | Class | Rarity | What it does |
+|---|---|---|---|
+| Phoenix Arrow | Ranger | Mythic | Every 8th volley a phoenix flies through every enemy to the wall (1.8x), the ground burning behind it for 2.5 s. |
+| Rain of Arrows | Ranger | Legendary | Every 6th volley an arrow goes up; 0.6 s later 12 fall within 4.5 studs of the target (0.3x each). |
+| Black Hole | Arcanist | Mythic | Every 7th cast a black orb opens a hole at the target that drags enemies in for 2 s (bosses stand), then implodes (2.4x). |
+| Elemental Orbs | Arcanist | Epic | Casts cycle fire (burn), ice (slow to 50% for 2 s), lightning (+2 chains). |
+| Arcane Turret | Arcanist | Legendary | Every 10 s of fighting a crystal hovers beside the Arcanist for 6 s, casting an orb every 0.5 s (0.35x). |
+| Titan's Grip | Warden | Mythic | The swing's reach, depth and slam all 2x (`MeleeStats.reachScale`, `SwingBox.shape`); the sword drawn 2x; every slam shakes the room. |
+| Counter Strike | Warden | Epic | A hit taken (not dodged or guarded) makes the next blow 3x. The Warden is untouchable mid-swing, so it charges when he is hit between swings. |
+
+Server: `Combat/ClassUpgrades` (counters per session, the hole's pull through
+`EnemyManager.pull`, the turret, the phoenix's fire as `AreaStrikes` zones);
+numbers in `Balance.Player`. Client: `Fx/Upgrades/RangerBuildFx`,
+`ArcanistBuildFx`, `WardenBuildFx`, built from voxel cubes (`Fx/Upgrades/Voxel`)
+in place of Claude Design FX models; `Remotes.UpgradeFx` and the player's
+attributes (`OrbElement`, `TurretUntil`, `CounterReady`, `CounterAt`) drive
+them. Icons: Codex, `assets/concepts/blocky/ui/cards/<icon>_raw.png`, composed
+with a gold (Legendary) or rainbow (Mythic) halo by `compose_icon.py`. Sounds:
+seven silent hooks in `Config/Sounds` (`fx_phoenix` ... `fx_counter_strike`).
+
 ## Who gets what
 
 - **Every class (12):** Strength, Precision, Deadly Strike, Blaze, Momentum,
@@ -109,6 +135,12 @@ Icons: one per card (all 25, waves 1 and 2), made with Codex in the style of the
 flat glyph with a thick dark outline on a white disc), in
 `assets/concepts/icons/`.
 
-The icons are uploaded and their ids are in `Config/CardAssets`. Cleave's and
+Wave 1's icons are uploaded and their ids are in `Config/CardAssets`.
+**Wave 2's are not** (checked 2026-11-03): `Config/CardAssets` holds no key
+for Sunder, Echo Slash, Riposte, Frost Orb, Arcane Shield, Split Orb,
+Gravity Well or Orbiting Orb, and `assets/ui/glow_toy_cards/icons/` has no
+art for them either, so all eight are blocked on Codex as well as on code.
+Forty further ideas, and which of wave 2 is now cheap, are in
+[CARD-IDEAS.md](CARD-IDEAS.md). Cleave's and
 Echo Slash's carry a faint grey smudge at the disc's left edge; regenerate
 those two if it shows on a card.

@@ -1490,6 +1490,26 @@ local function slide(enemy: Enemy, deltaTime: number)
 	placeHitbox(enemy)
 end
 
+--[[ Drags a live enemy up to `studs` towards `toward` (the Black Hole),
+     stopping `stopAt` short of it, through the arena's cover as a shove
+     does. Bosses, and anything underground or in the air, stand. ]]
+function EnemyManager.pull(model: Model, toward: Vector3, studs: number, stopAt: number)
+	local enemy = enemies[model]
+	if not enemy or enemy.boss or enemy.submerged or not positions[model] then
+		return
+	end
+	local offset = Vector3.new(toward.X - enemy.position.X, 0, toward.Z - enemy.position.Z)
+	local away = offset.Magnitude
+	if away <= stopAt then
+		return
+	end
+	local step = math.min(studs, away - stopAt)
+	enemy.position =
+		Arena.resolveBox(enemy.position + offset.Unit * step, footprint(enemy.config, enemy.yaw))
+	positions[model] = enemy.position
+	placeHitbox(enemy)
+end
+
 --[[
 	A boss in the air (a Royal Bounce) is out of reach of everything on the
 	floor, and nothing should try: off the target list and out of the sweep,

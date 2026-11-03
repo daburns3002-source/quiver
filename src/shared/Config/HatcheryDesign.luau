@@ -5,63 +5,63 @@
 
 	Its sheet is the EGG HATCHERY panel of
 	`assets/concepts/blocky/lobby/ref_main.png`, with
-	`assets/concepts/blocky/lobby/ref_hatchery.png` as the closeup of the
+	`assets/concepts/blocky/lobby/ref_hatchery.png` as a closeup of the
 	same build. Both were drawn by Codex and approved by the owner.
 
-	What the sheet actually shows, which the cottage standing here before
-	did not:
+	Read again on 2026-11-02 at the sheet's own resolution, after the first
+	rebuild was looked at lit in Studio beside it (owner: "these need to be
+	redone heavily, if it is not 1 to 1 exactly try again"). The first pass
+	had been drawn off a thumbnail and got five things wrong, all of which
+	this one carries:
 
-	  * It is **an open pavilion, not a cottage**. Four timber posts, a
-	    front beam, and a FLAT roof deck of grey stone slabs. No walls, no
-	    door, no windows, no gable, and no giant egg on a ridge -- the
-	    whole front is open and you look straight in at the eggs.
-	  * The eggs stand in **one round stone nest ring** that fills nearly
-	    the whole width of the pavilion and spills forward past its posts,
-	    not in two straw nests set either side of a doorway.
-	  * There are **three eggs, of two sizes**: a tall one at the middle,
-	    set back, and a shorter one either side of it, each sitting in a
-	    gold collar.
-	  * The nameboard **hangs from the front beam**, dark-faced in a timber
-	    frame, two thirds of the building's width.
-	  * A lantern hangs on the beam at each end, and vines trail off the
-	    front edge of the deck.
+	  * The eggs sit in **three separate round stone nests**, each with its
+	    own gold rim and moss bed, overlapping into a clover. The first
+	    pass put all three inside ONE wide ring, which read in game as a
+	    smooth plastic tub with the eggs sunk in it.
+	  * Behind the posts there is a **wall of stone blocks**, so you look
+	    at the eggs against stone rather than straight through at the lawn.
+	  * The nameboard is a **dark board with white letters** in a timber
+	    frame. The shared light-brown signboard reads as a plank here.
+	  * The stones are laid in **three close greys picked at random**, not
+	    two alternating -- a two-colour grid reads as a checkerboard from
+	    the lobby's own distance, which is exactly what the first build
+	    did.
+	  * The ground is **flagstone paving**, a field of separate slabs, not
+	    one smooth disc, and a **timber fence** runs round the back and
+	    sides.
 
-	Every measurement below is read off the sheet as a fraction of **the
-	pavilion's width** -- the run between the outer faces of the two front
-	posts, 185 px on `ref_main.png` -- and then set against a width of 30
-	studs. The fraction is given beside each so a later pass can check the
-	reading rather than the result:
+	Every measurement below is read off the panel as a fraction of **the
+	header beam's span** -- 830 px on the panel enlarged four times -- and
+	then set against a span of 30 studs:
 
-	    pavilion width          185 px   1.00   ->  30      `across`
-	    depth, front to back     85 px   0.46   ->  14      `deep`
-	    post, ground to beam    130 px   0.70   ->  21      `postTall`
-	    post thickness           13 px   0.07   ->  2       `postThick`
-	    beam depth               12 px   0.065  ->  2       `beam`
-	    roof slab thickness      10 px   0.054  ->  1.6     `slab`
-	    sign board width        122 px   0.66   ->  20      `sign.across`
-	    sign board height        32 px   0.17   ->  5       `sign.tall`
-	    nest ring, outer        177 px   0.96   ->  28      `ring.across`
-	    nest ring height         32 px   0.17   ->  5       `ring.tall`
-	    nest centres apart       46 px   0.25   ->  8.5 *   `nestApart`
-	    middle egg height        62 px   0.335  ->  10      `eggs[2].tall`
-	    outer egg height         45 px   0.24   ->  7       `eggs[1].tall`
-	    lanterns apart          145 px   0.78   ->  ±11.5   `lantern.out`
-	    front pedestal height    38 px   0.21   ->  6       `pedestal.tall`
+	    header beam span        830 px   1.00   ->  30      `across`
+	    depth, front to back    390 px   0.47   ->  14      `deep`
+	    post, ground to beam    455 px   0.55   ->  16.5    `postTall`
+	    post thickness           57 px   0.069  ->  2       `postThick`
+	    header beam depth        60 px   0.072  ->  2.2     `beam`
+	    roof slab thickness      55 px   0.066  ->  2       `slab`
+	    sign board width        420 px   0.51   ->  15      `sign.across`
+	    sign board height       100 px   0.12   ->  3.6     `sign.tall`
+	    nest field, end to end  595 px   0.72   ->  21.8    `nests` span
+	    middle nest, outer      280 px   0.34   ->  10.4 *  `nests[2].across`
+	    outer nest, outer       240 px   0.29   ->  8.6     `nests[1].across`
+	    nest stone course       125 px   0.15   ->  4.5     `nestTall`
+	    middle egg height       220 px   0.27   ->  8       `nests[2].tall`
+	    middle egg width        195 px   0.23   ->  7       `nests[2].wide`
+	    outer egg height        175 px   0.21   ->  6.3     `nests[1].tall`
+	    outer egg width         150 px   0.18   ->  5.4     `nests[1].wide`
+	    pedestal width           72 px   0.087  ->  2.6     `pedestal.across`
+	    pedestal height          60 px   0.073  ->  2.2     `pedestal.tall`
+	    lantern body             80 px   0.10   ->  3       `lantern.tall`
 
-	  * the eggs are set 8.5 apart rather than the sheet's 7.5, because
-	    this build's middle egg is a solid 8.4 wide where the sheet's is a
-	    painted oval: at 7.5 the three ran into one white mass with the
-	    outer two hidden behind the middle, which is the one thing the
-	    sheet's clutch never does.
+	  * the middle nest is drawn a shade wider than its share of the field
+	    because the panel has it set back behind the other two, where
+	    perspective shrinks it; taken flat it reads as the same size as the
+	    outer pair, and the sheet's own closeup shows it plainly bigger.
 
-	**The post height was read wrong the first time**, at 0.49, because
-	the sheet hides the posts' feet behind the nest ring and the first
-	reading took the apron in front of the ring for the ground. Drawn flat
-	(`tools/lobby_views.py`) that pavilion was a slab of roof with the
-	eggs lost under it. On the sheet the sign's bottom edge is level with
-	the tallest egg's top, which only comes out if the beam is 0.70 of the
-	width up -- so that is the reading, and the eggs stand clear under it
-	as they do on the sheet.
+	A nest's inner hole is narrower than the egg standing in it, in the
+	sheet as here: the shell rests ON the gold rim and overhangs it, which
+	is what makes an egg look heavy rather than dropped in a cup.
 
 	Offsets are in the building's own frame: +Z is the way it faces (toward
 	the middle of the clearing, `Config/Lobby.facing`), +X to that way's
@@ -69,88 +69,98 @@
 ]]
 
 local HatcheryDesign = {
-	--[[ The pavilion's footprint. `Config/Lobby.buildings.EggHatchery`
+	--[[ The shelter's footprint. `Config/Lobby.buildings.EggHatchery`
 	     declares the same two, and `Lobby.spec` holds them equal: the
-	     spacing between stations is measured off that declaration, so a
-	     building wider than it says would be spaced as if it were not. ]]
+	     spacing between stations is measured off that declaration. ]]
 	across = 30,
 	deep = 14,
 
-	--[[ The four posts and what they hold up. `postTall` is the ground to
-	     the beam's underside, so the deck's top is
-	     `postTall + beam + slab`. ]]
-	postTall = 21,
+	--[[ The timber frame: four posts under a beam round their heads, and
+	     the flat deck of paving slabs they carry. `eaves` is how far the
+	     deck laps past the posts on every side. ]]
+	postTall = 16.5,
 	postThick = 2,
-	beam = 2,
-	slab = 1.6,
-	--[[ How far the deck reaches past the posts on every side. The sheet
-	     laps it over the front beam by about a third of a post. ]]
-	eaves = 1.2,
+	beam = 2.2,
+	slab = 2,
+	eaves = 2,
 
-	--[[ The nameboard hanging from the front beam, and how far its face
-	     stands proud of the beam. ]]
-	sign = { across = 20, tall = 5, out = 0.9 },
+	--[[ The stone wall closing the back of the shelter, between the two
+	     back posts. `courses` go up it and `columns` across, each block a
+	     touch narrower than its cell so the joints show. ]]
+	back = { thick = 1.6, courses = 5, columns = 8, joint = 0.18 },
 
-	--[[ The round stone nest ring: `across` outside, `tall` above the
-	     lawn, its wall `thick`, and `forward` studs in front of the
-	     building's middle, which is what puts it under the open front
-	     rather than back among the posts. The sheet's ring is drawn as a
-	     course of blocks, so `blocks` of them go round it. ]]
-	ring = { across = 28, tall = 5, thick = 3.2, forward = 2, blocks = 22 },
+	--[[ The nameboard hanging off the front beam: its size and how far its
+	     face stands proud of the beam. ]]
+	sign = { across = 15, tall = 3.6, out = 1.1 },
 
-	--[[ The three eggs, west to east, each in its gold collar. `tall` and
-	     `wide` are the egg; `collar` is the gold ring round its foot;
-	     `back` is how far behind the ring's middle it sits -- the sheet
-	     sets the tall middle egg back and brings the two outer ones
-	     forward, which is what makes three eggs read as a clutch rather
-	     than a row. ]]
-	nestApart = 8.5,
-	eggs = {
-		{ tall = 7, wide = 5.9, collar = 7, back = -1.6 },
-		{ tall = 10, wide = 8.4, collar = 8.4, back = 2.2 },
-		{ tall = 7, wide = 5.9, collar = 7, back = -1.6 },
+	--[[
+		The three nests, left to right, each a ring of stone blocks with a
+		gold rim and a moss bed inside, and the egg standing on it.
+
+		`at` is studs right of the middle, `back` studs behind the nest
+		field's own line, `across` the stone ring's outer width, `wide` and
+		`tall` the egg's. The middle one stands back, as the sheet sets it.
+	]]
+	nestTall = 4.5,
+	nestThick = 2.2,
+	nestBlocks = 12,
+	nests = {
+		{ at = -7.2, back = 0, across = 8.6, wide = 5.4, tall = 6.3 },
+		{ at = 0, back = 2.6, across = 10.4, wide = 7, tall = 8 },
+		{ at = 7.2, back = 0, across = 8.6, wide = 5.4, tall = 6.3 },
 	},
-	--[[ How many spots a shell carries, and how big each is against the
-	     egg's width. ]]
-	spots = { count = 11, size = 0.19 },
+	--[[ How far the nest field stands forward of the building's middle.
+	     The eggs are sized so the tallest one's top comes level with the
+	     nameboard's bottom edge, which is where the sheet puts it. ]]
+	nestForward = 2.5,
+	--[[ The spots on a shell: how many, and each one's width as a share of
+	     the egg's. The sheet dots them in two blues. ]]
+	spots = { count = 11, size = 0.2 },
 
-	--[[ A lantern on the beam at each end: `out` studs either side of the
-	     middle, its glass `tall`, hung `drop` below the beam. The light is
-	     the Dex Hall's, which the owner already turned down once
-	     (2026-11-01: "the lighting is too strong"). ]]
-	lantern = { out = 11.5, tall = 3.4, drop = 3, range = 9, brightness = 0.34 },
+	--[[ A lantern hung under each end of the front beam. ]]
+	lantern = { out = 12.4, tall = 1.8, drop = 2.6, range = 10, brightness = 0.5 },
 
-	--[[ The vines trailing off the deck: this many down EACH SIDE, where
-	     the sheet hangs them, each between these lengths. They used to
-	     hang across the front, where they fell over the nameboard. ]]
-	vines = { count = 3, long = NumberRange.new(2.5, 6) },
+	--[[ The vines trailing off the front beam, either side of the board,
+	     and one down each side. ]]
+	vines = { count = 5, thick = 0.5, long = NumberRange.new(2.5, 6.5) },
 
-	--[[ The little stone pedestal with a green stone on it, out front of
-	     the ring on the apron. ]]
-	pedestal = { across = 4, tall = 6, forward = 19 },
+	--[[ The little stone pedestal with a green stone on it, out front at
+	     the middle, `forward` studs ahead of the building's own line. ]]
+	pedestal = { across = 2.6, tall = 2.2, forward = 12 },
 
-	--[[ The paved apron the whole station stands on, studs across. The
-	     sheet runs it out past the ring on every side. ]]
-	apron = 46,
+	--[[ The paved ground: how far across the whole circle of flagstones
+	     reaches, and how big one slab is. ]]
+	apron = 36,
+	flag = 3.6,
+
+	--[[ The timber fence round the back and sides. It stops `gap` radians
+	     short of the front on each side, leaving the path and the station's
+	     stands their room. ]]
+	fence = { radius = 17.5, posts = 18, tall = 3.8, rail = 0.5, gap = 0.7 },
 
 	--[[ The sheet's palette, set on the parts outright, as the Dex Hall's
-	     is. Nothing here is generated or tinted. ]]
+	     is. Nothing here is generated or tinted. The three greys are what
+	     the nest and roof stones are picked from. ]]
 	colours = {
-		slab = Color3.fromRGB(176, 174, 166),
-		slabDark = Color3.fromRGB(160, 158, 151),
-		timber = Color3.fromRGB(150, 96, 52),
-		timberDark = Color3.fromRGB(110, 68, 38),
-		board = Color3.fromRGB(62, 40, 26),
-		stone = Color3.fromRGB(140, 142, 146),
-		stoneLight = Color3.fromRGB(170, 172, 176),
+		stone = Color3.fromRGB(108, 110, 118),
+		stoneLight = Color3.fromRGB(130, 132, 140),
+		stoneDark = Color3.fromRGB(90, 92, 100),
+		slab = Color3.fromRGB(130, 128, 122),
+		slabLight = Color3.fromRGB(150, 147, 140),
+		slabDark = Color3.fromRGB(112, 110, 105),
+		flag = Color3.fromRGB(172, 154, 130),
+		flagLight = Color3.fromRGB(190, 172, 148),
+		flagDark = Color3.fromRGB(152, 134, 112),
+		timber = Color3.fromRGB(138, 86, 44),
+		timberDark = Color3.fromRGB(92, 56, 30),
+		board = Color3.fromRGB(38, 32, 30),
+		ink = Color3.fromRGB(248, 246, 240),
 		gold = Color3.fromRGB(240, 198, 52),
 		shell = Color3.fromRGB(248, 246, 232),
-		--[[ The sheet spots its shells in two blues, not one. ]]
 		spotA = Color3.fromRGB(74, 162, 226),
 		spotB = Color3.fromRGB(86, 206, 196),
 		moss = Color3.fromRGB(150, 200, 50),
 		vine = Color3.fromRGB(108, 180, 60),
-		apron = Color3.fromRGB(198, 186, 170),
 		lantern = Color3.fromRGB(255, 186, 96),
 		iron = Color3.fromRGB(42, 40, 38),
 		gem = Color3.fromRGB(126, 206, 72),

@@ -294,7 +294,7 @@ local Lobby = {
 		     there. It carries no `rise`, `roof`, `chimney` or `emblem`:
 		     nothing of the cottage runs for it. ]]
 		Blacksmith = {
-			size = Vector3.new(32, 17, 22),
+			size = Vector3.new(32, 20, 22),
 			rise = 0,
 			walls = Color3.fromRGB(150, 152, 158),
 			roof = Color3.fromRGB(150, 152, 158),
@@ -303,13 +303,13 @@ local Lobby = {
 			titleColour = Color3.fromRGB(255, 150, 60),
 		},
 		--[[ Rebuilt from its sheet on 2026-11-02
-		     (`Config/HatcheryDesign`): an open timber pavilion under a
-		     flat stone deck, with the three eggs in one round nest ring
-		     under it. `size` is the pavilion's width, the top of its deck
-		     and its depth. As with the Blacksmith, no `rise`, `roof` or
-		     `emblem`. ]]
+		     (`Config/HatcheryDesign`): a timber shelter with a stone back
+		     wall under a flat deck of paving, with the three eggs in
+		     their own stone nests under it. `size` is the shelter's
+		     width, the top of its deck and its depth. As with the
+		     Blacksmith, no `rise`, `roof` or `emblem`. ]]
 		EggHatchery = {
-			size = Vector3.new(30, 24.6, 14),
+			size = Vector3.new(30, 20.7, 14),
 			rise = 0,
 			walls = Color3.fromRGB(150, 96, 52),
 			roof = Color3.fromRGB(176, 174, 166),

@@ -195,6 +195,21 @@ ROUND_21 = [
     }),
 ]
 
+ROUND_22 = [
+    ("Round 22 · the owner's eleven card picks", {
+        "fx_guard_break": ("Guard Break", "The Warden's slam throws what it hits 6-12 studs back and leaves it reeling. Plays on the slam, so about every third swing in a fight.", (1.1, 3)),
+        "fx_bull_rush": ("Bull Rush", "His dash becomes a charge that runs enemies down. At most every 4 seconds, like the dash itself.", None),
+        "fx_blood_pact": ("Blood Pact", "Plays once, the moment he drops under half health and his blows start landing much harder. It has to read as bad news that is also good news.", None),
+        "fx_vengeful_spirit": ("Vengeful Spirit", "An enemy he kills rises as a ghostly sword that fights for him for 6 seconds. Plays as it rises, so once a kill.", None),
+        "fx_thornfall": ("Thornfall", "An enemy killed by an arrow plants 3-5 arrows in the ground, which fire outward a quarter-second later. Once a kill, so it repeats fast in a crowd.", (0.5, 4)),
+        "fx_headhunter": ("Headhunter", "Every 10th (then 7th) shot is a guaranteed critical hit. It has to cut through a volley without becoming the loudest thing in the fight.", (0.7, 4)),
+        "fx_ghost_quiver": ("Ghost Quiver", "A spectral archer behind you copies every volley at 40%. This plays *under* your own arrow sound every single shot, so it must be quiet and hollow — pick the one you would not tire of.", (0.7, 5)),
+        "fx_windrunner": ("Windrunner", "Every volley banks move speed, up to three stacks. This plays only as the third stack lands, not on every volley, so it can be a small reward rather than a tick.", None),
+        "fx_time_dilation": ("Time Dilation", "An orb's blast leaves a field where enemies and their shots crawl, for 2-3 seconds. Plays as the field opens.", None),
+        "fx_prismatic_burst": ("Prismatic Burst", "An orb that kills bursts into six shards that seek new targets. Once a kill.", (0.6, 3)),
+    }),
+]
+
 # page: (rounds, picks collection, sounds already chosen, shown for context)
 ROUND_18 = [
     ("Round 18 · King Bloblin's attacks, two big takes each", {
@@ -230,6 +245,7 @@ ROUND_18 = [
 ]
 
 PAGES = {
+    "22": (ROUND_22, "picks22", []),
     "21": (ROUND_21, "picks21", []),
     "20": (ROUND_20, "picks20", []),
     "19": (ROUND_19, "picks19", []),

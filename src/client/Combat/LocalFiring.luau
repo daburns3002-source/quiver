@@ -249,7 +249,11 @@ local function step()
 		return
 	end
 
-	rhythm.lastFiredAt = now
+	--[[ The same booking the server makes, at the time the volley was due
+	     rather than on the frame it went out, or this prediction's cadence
+	     creeps away from the server's for as long as the player stands still
+	     (`FireRhythm.fired`). ]]
+	FireRhythm.fired(rhythm, now, cooldown)
 
 	--[[ A melee class's swing is the server's to land (`Combat/MeleeSystem`);
 	     this client only plays it. ]]

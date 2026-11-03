@@ -22,6 +22,7 @@ local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local ClassUpgrades = require(script.Parent.ClassUpgrades)
 local Classes = require(ReplicatedStorage.Shared.Config.Classes)
 local EnemyManager = require(script.Parent.Parent.Enemies.EnemyManager)
+local FireRhythm = require(ReplicatedStorage.Shared.Combat.FireRhythm)
 local MeleeSystem = require(script.Parent.MeleeSystem)
 local ProjectileSystem = require(script.Parent.ProjectileSystem)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
@@ -60,7 +61,7 @@ local function overdrawScale(session: Session, now: number): number
 	return 1 + session.overdrawBonus * charge
 end
 
-local function fire(session: Session, root: BasePart, now: number)
+local function fire(session: Session, root: BasePart, now: number, cooldown: number)
 	--[[ The nearest enemy with a clear line of fire, aimed at the part of it
 	     that can be hit; see `Shared/Combat/Aim`. The client predicts with
 	     the same rule. ]]
@@ -136,7 +137,10 @@ local function fire(session: Session, root: BasePart, now: number)
 		ProjectileSystem.spawn(params)
 	end
 
-	session.lastFiredAt = now
+	--[[ Booked at the time it was due rather than at `now`, so this cadence
+	     cannot creep away from the client's prediction of it. See
+	     `FireRhythm.fired`. ]]
+	FireRhythm.fired(session, now, cooldown)
 
 	--[[ Meteor: every few casts, one falls on the cast's target as well. ]]
 	if session.meteor > 0 then
@@ -232,7 +236,7 @@ function FiringSystem.step(_deltaTime: number, now: number)
 			continue
 		end
 
-		fire(session, root, now)
+		fire(session, root, now, cooldown)
 	end
 end
 

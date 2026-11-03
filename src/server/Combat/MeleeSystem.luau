@@ -28,6 +28,7 @@ local Burning = require(script.Parent.Burning)
 local ClassUpgrades = require(script.Parent.ClassUpgrades)
 local Classes = require(ReplicatedStorage.Shared.Config.Classes)
 local EnemyManager = require(script.Parent.Parent.Enemies.EnemyManager)
+local FireRhythm = require(ReplicatedStorage.Shared.Combat.FireRhythm)
 local ProjectileSystem = require(script.Parent.ProjectileSystem)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local RunSession = require(script.Parent.Parent.Run.RunSession)
@@ -109,7 +110,7 @@ function MeleeSystem.swing(session: Session, root: BasePart, now: number, cooldo
 	local every = session.melee.whirlwindEvery
 	local spin = every > 0 and session.swingCount % every == 0
 	session.swingEndsAt = now + clip.length / speed
-	session.lastFiredAt = now
+	FireRhythm.fired(session, now, cooldown)
 
 	--[[ Untouchable for the whole swing, and for a while after with
 	     Steadfast. ]]

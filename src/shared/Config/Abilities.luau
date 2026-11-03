@@ -784,7 +784,7 @@ local abilities: { Ability } = {
 	{
 		id = "BlackHole",
 		name = "Black Hole",
-		description = "Every 7th orb becomes a black hole that drags enemies in, then implodes.",
+		description = "Every 7th orb becomes a black hole that drags, then implodes.",
 		category = "OnHit",
 		group = "spell",
 		rarity = "Mythic",

@@ -409,6 +409,45 @@ local function onLaunched(part: BasePart, pool: string, _aim: Vector3, from: Mod
 	end
 end
 
+--[[ Time Dilation: the crawling field, a slow blue ring that hangs where
+     the shot landed and fades with it, with cubes drifting up inside it so
+     the ground itself reads as slowed. ]]
+local DILATION = Color3.fromRGB(120, 180, 255)
+
+local function onTimeField(at: Vector3, radius: number, life: number)
+	Voxel.ring(at, radius, { DILATION, Color3.fromRGB(200, 225, 255) }, math.min(life, 0.6), 0.2)
+	local folder = Voxel.folder()
+	local motes: { { part: Part, x: number, z: number, phase: number } } = {}
+	local count = Voxel.share(9)
+	for index = 1, count do
+		local angle = index / count * math.pi * 2
+		local r = radius * (0.25 + math.random() * 0.7)
+		local part = Voxel.cube(0.3 + math.random() * 0.25, DILATION, true, folder)
+		part.Transparency = 0.35
+		table.insert(motes, {
+			part = part,
+			x = at.X + math.cos(angle) * r,
+			z = at.Z + math.sin(angle) * r,
+			phase = math.random(),
+		})
+	end
+	Voxel.run(life, function(t)
+		for _, mote in motes do
+			--[[ Drifting up very slowly, and stepped, which is what makes it
+			     read as time crawling rather than as a particle effect. ]]
+			local rise = ((t + mote.phase) % 1) * 2.2
+			rise = math.floor(rise * 6) / 6
+			mote.part.CFrame = CFrame.new(mote.x, 0.4 + rise, mote.z)
+			mote.part.Transparency = 0.35 + 0.5 * t
+		end
+		return nil
+	end, function()
+		for _, mote in motes do
+			mote.part:Destroy()
+		end
+	end)
+end
+
 function ArcanistBuildFx.start()
 	FxEvents.launched:connect(onLaunched)
 	FxEvents.contact:connect(onContact)
@@ -419,6 +458,8 @@ function ArcanistBuildFx.start()
 				flyToHole(args[1], args[2], args[3], args[4], args[5])
 			elseif kind == "BlackHoleImplode" then
 				implode(args[1], args[2])
+			elseif kind == "TimeField" then
+				onTimeField(args[1], args[2], args[3])
 			end
 		end)
 	RunService.Heartbeat:Connect(turretStep)

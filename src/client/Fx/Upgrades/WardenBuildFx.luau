@@ -22,6 +22,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
+local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local SoundFx = require(script.Parent.Parent.SoundFx)
 local TopDownCamera = require(script.Parent.Parent.Parent.Camera.TopDownCamera)
@@ -155,6 +156,100 @@ local function onTitanSlam(at: Vector3, radius: number)
 	end)
 end
 
+--[[ Vengeful Spirit ]]
+
+local SPIRIT = Color3.fromRGB(150, 230, 255)
+local SPIRIT_DARK = Color3.fromRGB(70, 150, 200)
+
+--[[ One risen sword: the blade, its crossguard and the glow under it. ]]
+type Blade = { parts: { BasePart }, slot: number }
+local blades: { [Player]: { Blade } } = {}
+
+local function makeBlade(slot: number): Blade
+	local folder = Voxel.folder()
+	local blade = Voxel.cube(Vector3.new(0.3, 2.2, 0.3), SPIRIT, true, folder)
+	local guard = Voxel.cube(Vector3.new(1.1, 0.28, 0.28), SPIRIT_DARK, true, folder)
+	local grip = Voxel.cube(Vector3.new(0.26, 0.7, 0.26), SPIRIT_DARK, true, folder)
+	for _, part in { blade, guard, grip } do
+		part.Transparency = 0.25
+	end
+	Voxel.light(blade, SPIRIT, 7, 1.4)
+	return { parts = { blade, guard, grip }, slot = slot }
+end
+
+local function dropBlades(player: Player, keep: number)
+	local mine = blades[player]
+	if not mine then
+		return
+	end
+	for index = #mine, keep + 1, -1 do
+		for _, part in mine[index].parts do
+			part:Destroy()
+		end
+		table.remove(mine, index)
+	end
+	if #mine == 0 then
+		blades[player] = nil
+	end
+end
+
+--[[ The risen swords hover at the Warden's shoulder and turn slowly, one
+     to each side. Driven by the `Spirits` attribute the server owns, so a
+     sword is up exactly while the server has one striking. ]]
+local function spiritStep()
+	local now = os.clock()
+	for _, player in Players:GetPlayers() do
+		local want = player:GetAttribute("Spirits")
+		want = if type(want) == "number" then math.floor(want) else 0
+		local character = player.Character
+		local root = character and character:FindFirstChild("HumanoidRootPart")
+		if not (root and root:IsA("BasePart")) or want <= 0 then
+			dropBlades(player, 0)
+			continue
+		end
+		local mine = blades[player]
+		if not mine then
+			mine = {}
+			blades[player] = mine
+		end
+		while #mine < want do
+			table.insert(mine, makeBlade(#mine))
+		end
+		dropBlades(player, want)
+		local config = Balance.Player.vengefulSpirit
+		for index, held in mine do
+			--[[ One either side, each turning on its own phase so two never
+			     read as one object. ]]
+			local side = if index % 2 == 1 then 1 else -1
+			local spin = now * 1.6 + index * 2.2
+			local bob = math.sin(now * 2.4 + index) * 0.22
+			local offset =
+				Vector3.new(config.offset.X * side, config.offset.Y + bob, config.offset.Z)
+			local base = CFrame.new(root.Position + offset) * CFrame.Angles(0, spin, 0.35)
+			held.parts[1].CFrame = base
+			held.parts[2].CFrame = base * CFrame.new(0, -0.95, 0)
+			held.parts[3].CFrame = base * CFrame.new(0, -1.45, 0)
+		end
+	end
+end
+
+--[[ A sword struck: a flash on what it hit, and a slash of cubes. ]]
+local function onSpiritStrike(at: Vector3)
+	Voxel.flash(Vector3.new(at.X, 1.2, at.Z), 2.4, SPIRIT, 0.16)
+	Voxel.burst(Vector3.new(at.X, 1.2, at.Z), 7, { SPIRIT, SPIRIT_DARK }, 9, 0.45, 0.35, 5)
+end
+
+--[[ Bull Rush: dust torn up along the charge. ]]
+local function onBullRush(player: Player)
+	local character = player.Character
+	local root = character and character:FindFirstChild("HumanoidRootPart")
+	if not (root and root:IsA("BasePart")) then
+		return
+	end
+	SoundFx.play("fx_titan_slam")
+	Voxel.burst(Vector3.new(root.Position.X, 0.5, root.Position.Z), 12, DUST, 10, 0.5, 0.4, 7)
+end
+
 --[[ Counter Strike ]]
 
 type Charge = { highlight: Highlight, embers: ParticleEmitter }
@@ -266,6 +361,9 @@ local function watch(player: Player)
 	player:GetAttributeChangedSignal("CounterAt"):Connect(function()
 		onCounter(player)
 	end)
+	player:GetAttributeChangedSignal("BullRushAt"):Connect(function()
+		onBullRush(player)
+	end)
 end
 
 function WardenBuildFx.start()
@@ -287,11 +385,17 @@ function WardenBuildFx.start()
 			local args = { ... }
 			if kind == "TitanSlam" then
 				onTitanSlam(args[1], args[2])
+			elseif kind == "SpiritStrike" then
+				onSpiritStrike(args[1])
 			end
 		end)
+	Players.PlayerRemoving:Connect(function(player: Player)
+		dropBlades(player, 0)
+	end)
 	RunService.Heartbeat:Connect(function()
 		titanStep()
 		counterStep()
+		spiritStep()
 	end)
 end
 

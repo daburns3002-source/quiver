@@ -154,6 +154,39 @@ machinery that exists and runs today, and each still needs its one Codex icon.
 10. **Serrated Edge** — but the Assassin does not exist, so **Sunder** (wave 2)
     instead: the same `mark`, on a class that can be played today.
 
+## Picked, 2026-11-03
+
+The owner: *"i like thornfall, headhunter, ghost quiver, windrunner, twin
+elements, time dilation, prismatic burst, guard break, bull rush, blood pact,
+vengeful spirit. hold off on the assassin class for now."*
+
+Eleven of the forty, and **the Assassin's ten are on hold** — the class still
+has no combat system, which is what that would have needed first.
+
+| Card | Class | Where its rule lives |
+|---|---|---|
+| Windrunner | Ranger | `ClassUpgrades.afterVolley` banks the stacks; `AbilityEffects.moveSpeedAt` spends them, on both sides |
+| Thornfall | Ranger | `ClassUpgrades.onKillAt` -> `thornfall` |
+| Headhunter | Ranger | `ClassUpgrades.dress` (the per-projectile hook) |
+| Ghost Quiver | Ranger | `ClassUpgrades.afterVolley`, handed the volley's own specs |
+| Twin Elements | Arcanist | a lane in `AbilityEffects.stages`; its elements in `dress` |
+| Time Dilation | Arcanist | `ProjectileSystem.onPlayerHit` -> `ClassUpgrades.onPlayerHit` |
+| Prismatic Burst | Arcanist | `ClassUpgrades.onKillAt` -> `prismatic` |
+| Guard Break | Warden | `MeleeSystem.land`, through `EnemyManager.shove` |
+| Bull Rush | Warden | `Remotes.DashStarted` -> `ClassUpgrades.beginRush`, swept in `step` |
+| Blood Pact | Warden | `MeleeSystem.land`, against the player's live health |
+| Vengeful Spirit | Warden | `ClassUpgrades.onKillAt` -> `raiseSpirit`, struck in `step` |
+
+The three shared pieces the table above promised were built once and are now
+general: **`RunSession.onKillAt`** (where an enemy fell — Thornfall, Prismatic
+Burst and Vengeful Spirit all hang off it), **`ProjectileSystem.onPlayerHit`**
+(where a player's shot landed) and **`EnemyManager.shove`** (an extra push with
+its own stagger, on the knockback a blow already uses). The remaining four
+shared pieces — an orbiting hitter, a stillness channel, an untargetable window
+and a delayed repeat — are still unbuilt, and still make their cards cheap.
+
+**Twenty-nine ideas are still on the table**, the Assassin's ten among them.
+
 ## What to say back
 
 1. **Which of the forty** do you want built? Ticking a whole class is fine.

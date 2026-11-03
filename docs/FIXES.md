@@ -1384,3 +1384,24 @@ measured each crown as a shrunken circle, not by its full blocky box.
 from any tree it overlaps, along the smaller overlap, with a 0.3-stud gap,
 and the move goes to whichever tree it takes away from the room. 17 trees
 moved, at most 1.1 studs. Measure trees by their full boxes, not circles.
+
+## Studio imports piled up in the Workspace again
+
+**Symptom:** the owner: "i feel like there are a bunch of models in the
+playtest that should not be there". The Workspace held 124 children and 11,192
+instances -- 17 unnamed `AuxScene` imports at 10,461 instances between them, 34
+unnamed `Scene` imports, every area-1 weapon already wired by id, 33 Tripo
+imports named by arena, three generations of lobby kit, and
+`thornwood untextured egg arena 2 (1)` twice.
+**Cause:** the same cause as 2026-10-24, when 65 had piled up and a playtest
+ran at 26 FPS. `docs/PIPELINES.md` has said ever since that an import moves to
+`ServerStorage.Imports` as soon as a dump reads it, and that only fresh,
+not-yet-dumped imports belong in the Workspace. Nothing enforced it, so ten
+days later there were 122 more. A rule nobody can run is a rule that decays.
+**Fix:** `tools/studio/tidy_imports.luau` -- one `execute_luau` call that moves
+everything but Camera and Terrain into `ServerStorage.Imports` and says what it
+moved. Moving, not deleting: both dump scripts read that folder, so the
+imports stay dumpable, which matters because `imports_to_luau.py` prunes every
+module it does not regenerate. Ran it: 122 models, 11,314 instances, Workspace
+down to Camera and Terrain, 722 tests pass in Play and the server boots, builds
+its arenas and runs a session clean. Write the command, not the convention.

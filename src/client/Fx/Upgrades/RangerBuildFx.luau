@@ -288,6 +288,126 @@ local function onRain(
 	end)
 end
 
+--[[ The last volley's aim: Windrunner's streaks trail back along it and the
+     ghost archer stands behind it, rather than in front of the player. The
+     client already hears this (`FxEvents.fired`); nothing new is sent. ]]
+local lastAim = Vector3.new(0, 0, -1)
+
+--[[ Windrunner ]]
+
+local WIND = { Color3.fromRGB(205, 240, 255), Color3.fromRGB(150, 205, 240) }
+--[[ Seconds between streaks while the stacks are full. ]]
+local STREAK_EVERY = 0.14
+
+local windFull = false
+local windNext = 0
+
+--[[
+	Wind off the player while Windrunner is at full stacks.
+
+	Only at full: the card banks a stack on every volley, so drawing each one
+	would be a flicker nobody could read. Full is the state worth seeing, and
+	it is the moment the sound plays too.
+]]
+local function windStep()
+	local root = UpgradeFx.root()
+	if UpgradeFx.level("Windrunner") <= 0 or not root then
+		windFull = false
+		return
+	end
+	local stacks = Players.LocalPlayer:GetAttribute("Windrunner")
+	stacks = if type(stacks) == "number" then stacks else 0
+	local full = stacks >= Balance.Player.windrunner.maxStacks
+	if full and not windFull then
+		SoundFx.play("fx_windrunner")
+		Voxel.burst(root.Position, 6, WIND, 8, 0.4, 0.3, 4)
+	end
+	windFull = full
+	if not full then
+		return
+	end
+	local now = os.clock()
+	if now < windNext then
+		return
+	end
+	windNext = now + STREAK_EVERY
+	--[[ One short streak a time, trailing off the player and fading: cheap
+	     enough to run for as long as the stacks hold. ]]
+	local streak =
+		Voxel.cube(Vector3.new(0.18, 0.18, 1.6), WIND[(os.clock() * 7 % 2) // 1 + 1], true)
+	streak.Transparency = 0.3
+	local from = root.Position + Vector3.new((math.random() - 0.5) * 2.2, math.random() * 1.6, 0)
+	local heading = UpgradeFx.flat(lastAim)
+	Voxel.run(0.3, function(t)
+		streak.CFrame = CFrame.lookAt(from - heading * (t * 2.6), from - heading * (t * 2.6 + 1))
+		streak.Transparency = 0.3 + 0.7 * t
+		return nil
+	end, function()
+		streak:Destroy()
+	end)
+end
+
+--[[ Thornfall ]]
+
+--[[ The arrows a kill plants, standing in the body until they fire. ]]
+local function onThornfall(at: Vector3, count: number)
+	SoundFx.play("fx_thornfall")
+	local config = Balance.Player.thornfall
+	local planted: { Model } = {}
+	for index = 1, count do
+		local angle = (index - 1) / count * math.pi * 2
+		local arrow = Voxel.arrow(0.8)
+		local heading = Vector3.new(math.cos(angle), 0, math.sin(angle))
+		--[[ Standing in the ground nose-up, leaning the way it will fire. ]]
+		arrow:PivotTo(
+			CFrame.lookAt(
+				at + heading * 0.5 + Vector3.new(0, 0.5, 0),
+				at + heading + Vector3.new(0, 1.6, 0)
+			)
+		)
+		table.insert(planted, arrow)
+	end
+	Voxel.burst(at, 5, DUST, 7, 0.4, 0.3, 4)
+	--[[ They stand for the server's own delay, then leave: the real arrows
+	     the server fires take over from here, so these only cover the wait. ]]
+	task.delay(config.delay, function()
+		for _, arrow in planted do
+			arrow:Destroy()
+		end
+		Voxel.flash(at + Vector3.new(0, 0.6, 0), 2.2, GOLD, 0.14)
+	end)
+end
+
+--[[ Headhunter ]]
+
+--[[ The marked shot: a gold ring snapping shut on the bow as it looses. ]]
+local function onHeadhunter(origin: Vector3)
+	SoundFx.play("fx_headhunter")
+	Voxel.flash(origin, 1.6, GOLD, 0.14)
+	local n = Voxel.share(6)
+	local marks: { Part } = {}
+	for _ = 1, n do
+		local cube = Voxel.cube(0.22, GOLD, true)
+		cube.Transparency = 0.15
+		table.insert(marks, cube)
+	end
+	Voxel.run(0.26, function(t)
+		local radius = 1.5 * (1 - t) + 0.25
+		for index, cube in marks do
+			local angle = (index - 1) / #marks * math.pi * 2 + t * 2.2
+			cube.CFrame = CFrame.new(
+				origin + Vector3.new(math.cos(angle) * radius, 0, math.sin(angle) * radius)
+			)
+			cube.Transparency = 0.15 + 0.85 * t
+		end
+		return nil
+	end, function()
+		for _, cube in marks do
+			cube:Destroy()
+		end
+	end)
+end
+
 --[[ Ghost Quiver ]]
 
 local SPIRIT = Color3.fromRGB(150, 225, 255)
@@ -305,10 +425,6 @@ type Ghost = {
 }
 
 local ghost: Ghost? = nil
---[[ The last volley's aim, so the ghost stands behind the player rather
-     than in front of them. The client already hears this
-     (`FxEvents.fired`); nothing new has to be sent. ]]
-local lastAim = Vector3.new(0, 0, -1)
 
 --[[
 	A spectral archer, nine cubes of it.
@@ -435,6 +551,7 @@ local function onGhostVolley(at: Vector3)
 	if held then
 		held.releasedAt = os.clock()
 	end
+	SoundFx.play("fx_ghost_quiver")
 	Voxel.burst(at + Vector3.new(0, 1, 0), 4, { SPIRIT, SPIRIT_DEEP }, 7, 0.4, 0.3, 4)
 end
 
@@ -451,9 +568,16 @@ function RangerBuildFx.start()
 				onRain(...)
 			elseif kind == "GhostQuiver" and owner == Players.LocalPlayer then
 				onGhostVolley(...)
+			elseif kind == "Thornfall" then
+				onThornfall(...)
+			elseif kind == "Headhunter" and owner == Players.LocalPlayer then
+				onHeadhunter(...)
 			end
 		end)
-	RunService.Heartbeat:Connect(ghostStep)
+	RunService.Heartbeat:Connect(function()
+		ghostStep()
+		windStep()
+	end)
 end
 
 return RangerBuildFx

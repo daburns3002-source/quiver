@@ -192,12 +192,26 @@ end
 type Tinted = { part: BasePart, element: string }
 local tinted: { Tinted } = {}
 
+--[[ Orbs this client has drawn, for Twin Elements' alternation. The server
+     counts its own (`ClassUpgrades.dress`); this is only the colour, so the
+     two drifting apart changes nothing that decides an outcome. ]]
+local twinShots = 0
+
 local function elementNow(): string?
-	if UpgradeFx.level("ElementalOrbs") <= 0 then
-		return nil
+	if UpgradeFx.level("ElementalOrbs") > 0 then
+		local element = Players.LocalPlayer:GetAttribute("OrbElement")
+		if type(element) == "string" and ELEMENT_COLOUR[element] then
+			return element
+		end
 	end
-	local element = Players.LocalPlayer:GetAttribute("OrbElement")
-	return if type(element) == "string" and ELEMENT_COLOUR[element] then element else nil
+	--[[ Twin Elements: one of the pair burns and the other chills, so the
+	     orbs simply alternate. Elemental Orbs wins where both are held --
+	     its cycle is the louder promise of the two. ]]
+	if UpgradeFx.level("TwinElements") > 0 then
+		twinShots += 1
+		return if twinShots % 2 == 1 then "Fire" else "Ice"
+	end
+	return nil
 end
 
 local function dressOrb(part: BasePart, element: string)
@@ -415,6 +429,7 @@ end
 local DILATION = Color3.fromRGB(120, 180, 255)
 
 local function onTimeField(at: Vector3, radius: number, life: number)
+	SoundFx.play("fx_time_dilation")
 	Voxel.ring(at, radius, { DILATION, Color3.fromRGB(200, 225, 255) }, math.min(life, 0.6), 0.2)
 	local folder = Voxel.folder()
 	local motes: { { part: Part, x: number, z: number, phase: number } } = {}
@@ -448,6 +463,45 @@ local function onTimeField(at: Vector3, radius: number, life: number)
 	end)
 end
 
+--[[ Prismatic Burst: the shards an orb's kill throws out. The shards
+     themselves are real shots the renderer draws; this is the orb coming
+     apart that sends them. ]]
+local PRISM = {
+	Color3.fromRGB(255, 90, 90),
+	Color3.fromRGB(255, 190, 80),
+	Color3.fromRGB(255, 240, 120),
+	Color3.fromRGB(120, 230, 140),
+	Color3.fromRGB(120, 210, 255),
+	Color3.fromRGB(190, 140, 255),
+}
+
+local function onPrismatic(at: Vector3, count: number)
+	SoundFx.play("fx_prismatic_burst")
+	Voxel.flash(at, 2.6, Color3.new(1, 1, 1), 0.14)
+	--[[ One cube a shard, in the shard's own colour, thrown the way its shot
+	     goes so the burst and the shots read as one thing. ]]
+	local shards: { Part } = {}
+	for index = 1, count do
+		local cube = Voxel.cube(0.4, PRISM[(index - 1) % #PRISM + 1], true)
+		table.insert(shards, cube)
+	end
+	Voxel.run(0.34, function(t)
+		for index, cube in shards do
+			local angle = (index - 1) / #shards * math.pi * 2
+			local out = 0.4 + t * 3.4
+			cube.CFrame = CFrame.new(
+				at + Vector3.new(math.cos(angle) * out, 0.3 + t * 0.5, math.sin(angle) * out)
+			) * CFrame.Angles(t * 6, t * 4, 0)
+			cube.Transparency = t
+		end
+		return nil
+	end, function()
+		for _, cube in shards do
+			cube:Destroy()
+		end
+	end)
+end
+
 function ArcanistBuildFx.start()
 	FxEvents.launched:connect(onLaunched)
 	FxEvents.contact:connect(onContact)
@@ -460,6 +514,8 @@ function ArcanistBuildFx.start()
 				implode(args[1], args[2])
 			elseif kind == "TimeField" then
 				onTimeField(args[1], args[2], args[3])
+			elseif kind == "PrismaticBurst" then
+				onPrismatic(args[1], args[2])
 			end
 		end)
 	RunService.Heartbeat:Connect(turretStep)

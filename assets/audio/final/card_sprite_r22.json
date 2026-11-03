@@ -1,0 +1,42 @@
+{
+ "fx_windrunner": [
+  0.0,
+  0.411
+ ],
+ "fx_thornfall": [
+  0.851,
+  0.28
+ ],
+ "fx_headhunter": [
+  1.571,
+  0.56
+ ],
+ "fx_ghost_quiver": [
+  2.571,
+  0.369
+ ],
+ "fx_time_dilation": [
+  3.38,
+  0.883
+ ],
+ "fx_prismatic_burst": [
+  4.703,
+  0.401
+ ],
+ "fx_guard_break": [
+  5.544,
+  0.47
+ ],
+ "fx_bull_rush": [
+  6.454,
+  0.349
+ ],
+ "fx_blood_pact": [
+  7.243,
+  1.0
+ ],
+ "fx_vengeful_spirit": [
+  8.683,
+  0.754
+ ]
+}

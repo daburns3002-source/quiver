@@ -23,6 +23,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
+local FxEvents = require(script.Parent.FxEvents)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local SoundFx = require(script.Parent.Parent.SoundFx)
 local TopDownCamera = require(script.Parent.Parent.Parent.Camera.TopDownCamera)
@@ -213,6 +214,9 @@ local function spiritStep()
 			blades[player] = mine
 		end
 		while #mine < want do
+			--[[ The sound is of a sword rising, so it plays as one does and
+			     not on every strike it goes on to make. ]]
+			SoundFx.play("fx_vengeful_spirit")
 			table.insert(mine, makeBlade(#mine))
 		end
 		dropBlades(player, want)
@@ -246,8 +250,87 @@ local function onBullRush(player: Player)
 	if not (root and root:IsA("BasePart")) then
 		return
 	end
-	SoundFx.play("fx_titan_slam")
+	SoundFx.play("fx_bull_rush")
 	Voxel.burst(Vector3.new(root.Position.X, 0.5, root.Position.Z), 12, DUST, 10, 0.5, 0.4, 7)
+end
+
+--[[ Guard Break ]]
+
+--[[ The guard breaking as the slam lands: plate cubes thrown off the blow
+     and a ring of dust where they went.
+
+     Hung on the client's own blow signal rather than anything new from the
+     server: `FxEvents.blow` already says which blow of the combo landed and
+     whether it was the heavy last one, which is exactly when the card acts.
+]]
+local PLATE = { Color3.fromRGB(176, 180, 188), Color3.fromRGB(120, 126, 136) }
+
+local function onBlow(_index: number, _of: number, heavy: boolean)
+	if not heavy or UpgradeFx.level("GuardBreak") <= 0 then
+		return
+	end
+	local root = UpgradeFx.root()
+	if not root then
+		return
+	end
+	SoundFx.play("fx_guard_break")
+	local at = root.Position + root.CFrame.LookVector * 3
+	Voxel.flash(Vector3.new(at.X, 0.8, at.Z), 2.8, Color3.fromRGB(255, 245, 220), 0.12)
+	Voxel.burst(Vector3.new(at.X, 1, at.Z), 10, PLATE, 13, 0.55, 0.4, 8)
+	Voxel.ring(Vector3.new(at.X, 0, at.Z), 7, DUST, 0.35, 0.25)
+end
+
+--[[ Blood Pact ]]
+
+local PACT = Color3.fromRGB(190, 30, 40)
+
+--[[ While the pact is paying out, the Warden is lit red and bleeds embers.
+     On the server's `BloodPact` attribute, which flips once as he crosses
+     under half health rather than every frame he stays there. ]]
+local pactGlow: { [Player]: { highlight: Highlight, embers: ParticleEmitter } } = {}
+
+local function dropPact(player: Player)
+	local held = pactGlow[player]
+	if not held then
+		return
+	end
+	pactGlow[player] = nil
+	held.highlight:Destroy()
+	held.embers:Destroy()
+end
+
+local function onPact(player: Player)
+	local on = player:GetAttribute("BloodPact") == true
+	if not on then
+		dropPact(player)
+		return
+	end
+	local character = player.Character
+	local root = character and character:FindFirstChild("HumanoidRootPart")
+	if not (root and root:IsA("BasePart")) or pactGlow[player] then
+		return
+	end
+	if player == Players.LocalPlayer then
+		SoundFx.play("fx_blood_pact")
+	end
+	local highlight = Instance.new("Highlight")
+	highlight.FillColor = PACT
+	highlight.FillTransparency = 0.72
+	highlight.OutlineColor = PACT
+	highlight.OutlineTransparency = 0.2
+	highlight.Adornee = character
+	highlight.Parent = character
+	local embers = Instance.new("ParticleEmitter")
+	embers.Color = ColorSequence.new(PACT)
+	embers.Size = NumberSequence.new(0.22)
+	embers.Lifetime = NumberRange.new(0.5, 0.9)
+	embers.Rate = 14
+	embers.Speed = NumberRange.new(1, 2.4)
+	embers.SpreadAngle = Vector2.new(25, 25)
+	embers.Acceleration = Vector3.new(0, 3.5, 0)
+	embers.LightEmission = 0.8
+	embers.Parent = root
+	pactGlow[player] = { highlight = highlight, embers = embers }
 end
 
 --[[ Counter Strike ]]
@@ -364,6 +447,10 @@ local function watch(player: Player)
 	player:GetAttributeChangedSignal("BullRushAt"):Connect(function()
 		onBullRush(player)
 	end)
+	player:GetAttributeChangedSignal("BloodPact"):Connect(function()
+		onPact(player)
+	end)
+	onPact(player)
 end
 
 function WardenBuildFx.start()
@@ -389,8 +476,10 @@ function WardenBuildFx.start()
 				onSpiritStrike(args[1])
 			end
 		end)
+	FxEvents.blow:connect(onBlow)
 	Players.PlayerRemoving:Connect(function(player: Player)
 		dropBlades(player, 0)
+		dropPact(player)
 	end)
 	RunService.Heartbeat:Connect(function()
 		titanStep()

@@ -95,6 +95,9 @@ type State = {
 	     through, so one dash hits an enemy once. ]]
 	rushUntil: number,
 	rushHit: { [Model]: true },
+	--[[ Blood Pact: whether it is paying out, so the client is told the
+	     moment it engages and not every frame it stays engaged. ]]
+	pactOn: boolean,
 }
 
 local states: { [Session]: State } = setmetatable({}, { __mode = "k" }) :: any
@@ -143,6 +146,7 @@ local function state(session: Session): State
 		shots = 0,
 		rushUntil = 0,
 		rushHit = {},
+		pactOn = false,
 	}
 	states[session] = fresh
 	return fresh
@@ -594,6 +598,9 @@ function ClassUpgrades.dress(session: Session, params: ProjectileSystem.SpawnPar
 	if held.headhunterEvery > 0 and own.shots % held.headhunterEvery == 0 then
 		params.critChance = 1
 		params.critMultiplier = params.critMultiplier * Balance.Player.headhunter.multiplier
+		--[[ Which shot was marked, so the clients can mark it too. Only on
+		     the one shot in ten, so this is not chatter. ]]
+		upgradeFx:FireAllClients("Headhunter", session.player, params.origin)
 	end
 
 	--[[ Twin Elements: the orbs alternate fire and ice. Counted across all
@@ -793,6 +800,21 @@ function ClassUpgrades.step(deltaTime: number, now: number)
 		end
 	end
 
+	--[[ Blood Pact: on while he is under the threshold, off above it. Pushed
+	     to the player as a boolean rather than a time, because the client
+	     holds an aura for as long as it is true, and the moment it turns on
+	     is when the sound plays. ]]
+	local pact = Balance.Player.bloodPact
+	for session, own in states do
+		local wants = session.melee.bloodPact > 0
+			and session.alive
+			and session.health < session.maxHealth * pact.below
+		if wants ~= own.pactOn then
+			own.pactOn = wants
+			session.player:SetAttribute("BloodPact", wants)
+		end
+	end
+
 	--[[ Time Dilation: everything standing in a field crawls, and so do the
 	     shots crossing it. Re-applied every step rather than set once, so an
 	     enemy that walks in afterwards is caught too. ]]
@@ -943,6 +965,10 @@ function ClassUpgrades.clear()
 			session.player:SetAttribute("Windrunner", 0)
 		end
 		session.player:SetAttribute("Spirits", 0)
+		if own.pactOn then
+			own.pactOn = false
+			session.player:SetAttribute("BloodPact", false)
+		end
 		if own.turretUntil > 0 then
 			own.turretUntil = 0
 			session.player:SetAttribute("TurretUntil", 0)

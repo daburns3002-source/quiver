@@ -48,6 +48,13 @@ local BOSS_SPRITE = "rbxassetid://73447077207928"
      file per batch, for Roblox's audio upload limits). Uploaded 2026-10-25. ]]
 local WARDEN_SPRITE = "rbxassetid://123411253404004"
 
+--[[ The owner's eleven card picks: ten sounds in one upload
+     (`assets/audio/final/card_sprite_r22.mp3`, rounds 22 and 23 --
+     Thornfall, Guard Break and Bull Rush were sent back once and are
+     round 23's). **Not uploaded yet**, so every region below is silent
+     until the owner uploads the file and the id lands here. ]]
+local CARD_SPRITE = ""
+
 local Sounds: { [string]: Sound } = {
 	--[[ The Ranger's every arrow (`Config/Weapons.TwigBow.fireSound`). ]]
 	arrow_fire = {
@@ -617,6 +624,90 @@ local Sounds: { [string]: Sound } = {
 		volume = 0.8,
 		pitchJitter = 0.05,
 		minGap = 0.3,
+	},
+
+	--[[ The owner's eleven card picks (2026-11-03), rounds 22 and 23's
+	     sounds in one sprite. Twin Elements has none on purpose: it fires
+	     every cast, where the staff's own cast sound already plays. ]]
+	-- the third Windrunner stack landing
+	fx_windrunner = {
+		id = CARD_SPRITE,
+		volume = 0.5,
+		pitchJitter = 0.04,
+		minGap = 0.6,
+		region = { 0.0, 0.411 },
+	},
+	-- the arrows a kill plants, firing outward
+	fx_thornfall = {
+		id = CARD_SPRITE,
+		volume = 0.65,
+		pitchJitter = 0.04,
+		minGap = 0.25,
+		region = { 0.851, 0.28 },
+	},
+	-- the guaranteed crit, every 10th shot then every 7th
+	fx_headhunter = {
+		id = CARD_SPRITE,
+		volume = 0.7,
+		pitchJitter = 0.04,
+		minGap = 0.2,
+		region = { 1.571, 0.56 },
+	},
+	-- the ghost archer's own release, under the player's own arrow every shot -- the quietest thing on the sprite, by design
+	fx_ghost_quiver = {
+		id = CARD_SPRITE,
+		volume = 0.3,
+		pitchJitter = 0.04,
+		minGap = 0.1,
+		region = { 2.571, 0.369 },
+	},
+	-- the crawling field opening
+	fx_time_dilation = {
+		id = CARD_SPRITE,
+		volume = 0.65,
+		pitchJitter = 0.04,
+		minGap = 0.5,
+		region = { 3.38, 0.883 },
+	},
+	-- an orb's kill bursting into shards
+	fx_prismatic_burst = {
+		id = CARD_SPRITE,
+		volume = 0.65,
+		pitchJitter = 0.04,
+		minGap = 0.25,
+		region = { 4.703, 0.401 },
+	},
+	-- the slam throwing them back
+	fx_guard_break = {
+		id = CARD_SPRITE,
+		volume = 0.8,
+		pitchJitter = 0.04,
+		minGap = 0.3,
+		region = { 5.544, 0.47 },
+	},
+	-- the charge
+	fx_bull_rush = {
+		id = CARD_SPRITE,
+		volume = 0.75,
+		pitchJitter = 0.04,
+		minGap = 0.4,
+		region = { 6.454, 0.349 },
+	},
+	-- the moment he drops under half health and it engages
+	fx_blood_pact = {
+		id = CARD_SPRITE,
+		volume = 0.8,
+		pitchJitter = 0.04,
+		minGap = 1.0,
+		region = { 7.243, 1.0 },
+	},
+	-- a sword rising out of a body
+	fx_vengeful_spirit = {
+		id = CARD_SPRITE,
+		volume = 0.7,
+		pitchJitter = 0.04,
+		minGap = 0.3,
+		region = { 8.683, 0.754 },
 	},
 }
 

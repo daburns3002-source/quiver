@@ -284,17 +284,15 @@ local Lobby = {
 	} :: { Placed },
 
 	buildings = {
-		--[[ Rebuilt from its sheet on 2026-11-02 (`Config/BlacksmithDesign`,
-		     where every measurement is written down): the sheet's shop is
-		     a stone forge open to the front under a chimney stack, not the
-		     red-roofed cottage with a sword on its ridge that stood here.
-		     `size` is what that build comes to -- the wall's width, its
-		     height, and the depth of the apron it stands on -- so the
-		     spacing between stations is measured against what is actually
-		     there. It carries no `rise`, `roof`, `chimney` or `emblem`:
-		     nothing of the cottage runs for it. ]]
+		--[[ The Dex Hall's building in the forge's own livery (owner,
+		     2026-11-03: "just reuse the building that you made for the
+		     codex and recolor it"), so it declares the Dex Hall's
+		     footprint and ridge. `Config/BlacksmithDesign` holds the
+		     colours and what stands on the pads and the roof; the
+		     geometry is `dex.hall` below. It carries no `rise`, `roof`,
+		     `chimney` or `emblem`: the cottage code never runs for it. ]]
 		Blacksmith = {
-			size = Vector3.new(32, 14.2, 20),
+			size = Vector3.new(38, 13.71, 28),
 			rise = 0,
 			walls = Color3.fromRGB(150, 152, 158),
 			roof = Color3.fromRGB(150, 152, 158),
@@ -592,8 +590,8 @@ local Lobby = {
 			{ kind = "egg", key = "ThornwoodEgg", at = Vector2.new(20, 21) },
 		},
 		Blacksmith = {
-			{ kind = "crate", key = "MossyGlade", at = Vector2.new(-14, 22) },
-			{ kind = "crate", key = "Thornwood", at = Vector2.new(4, 22) },
+			{ kind = "crate", key = "MossyGlade", at = Vector2.new(-20, 21) },
+			{ kind = "crate", key = "Thornwood", at = Vector2.new(20, 21) },
 		},
 	} :: { [string]: { { kind: string, key: string, at: Vector2 } } },
 	--[[ A stand's platform, studs across. ]]

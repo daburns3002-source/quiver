@@ -160,15 +160,9 @@ return function(t: TestRunner.Helper)
 		t.equal(hatchery.size.Y, dexHall.size.Y, "the hatchery's height")
 
 		local smith = LobbyConfig.buildings.Blacksmith
-		t.equal(smith.size.X, BlacksmithDesign.across, "the blacksmith's width")
-		t.equal(smith.size.Z, BlacksmithDesign.deep, "the blacksmith's depth")
-		local B = BlacksmithDesign.house
-		--[[ Summed in single-precision floats, so a few millionths of
-		     slack, as the turned stand offsets carry. ]]
-		t.isTrue(
-			math.abs(smith.size.Y - (B.tall + B.lintel + B.gable)) < 1e-3,
-			"the blacksmith's height"
-		)
+		t.equal(smith.size.X, dexHall.size.X, "the blacksmith's width")
+		t.equal(smith.size.Z, dexHall.size.Z, "the blacksmith's depth")
+		t.equal(smith.size.Y, dexHall.size.Y, "the blacksmith's height")
 	end)
 
 	--[[ Neither is a cottage on its sheet, so neither may ask `building`
@@ -194,33 +188,40 @@ return function(t: TestRunner.Helper)
 		with a nil for a roof -- and it has to actually be a different
 		colour, or there would be two Dex Halls in the lobby.
 	]]
-	t.test("the hatchery wears every colour the shared hall builder reads", function()
+	t.test("both shops wear every colour the shared hall builder reads", function()
 		local dex = LobbyConfig.dex.colours
-		local hatch = HatcheryDesign.colours
-		local same = 0
-		local keys = 0
-		for key, value in dex :: { [string]: any } do
-			keys += 1
-			local mine = (hatch :: { [string]: any })[key]
-			t.notNil(mine, `the hatchery has no {key}`)
-			if typeof(value) == "Color3" then
-				t.equal(typeof(mine), "Color3", `the hatchery's {key} is not a colour`)
-				if mine == value then
-					same += 1
+		local liveries: { [string]: { [string]: any } } = {
+			hatchery = HatcheryDesign.colours :: any,
+			blacksmith = BlacksmithDesign.colours :: any,
+		}
+		for station, livery in liveries do
+			local same, keys = 0, 0
+			for key, value in dex :: { [string]: any } do
+				keys += 1
+				local mine = livery[key]
+				t.notNil(mine, `the {station} has no {key}`)
+				if typeof(value) == "Color3" then
+					t.equal(typeof(mine), "Color3", `the {station}'s {key} is not a colour`)
+					if mine == value then
+						same += 1
+					end
+				else
+					--[[ `books`, the row on the shelves: a list either
+					     way, and each shop stocks its own. ]]
+					t.equal(typeof(mine), "table", `the {station}'s {key} is not a list`)
+					t.isTrue(#(mine :: { Color3 }) > 0, `the {station}'s {key} is empty`)
 				end
-			else
-				--[[ `books`, the row on the shelves: a list either way,
-				     and the Hatchery's are eggs. ]]
-				t.equal(typeof(mine), "table", `the hatchery's {key} is not a list`)
-				t.isTrue(#(mine :: { Color3 }) > 0, `the hatchery's {key} is empty`)
 			end
+			t.isTrue(keys >= 8, "the hall builder reads fewer colours than it used to")
+			t.isTrue(same < keys // 2, `the {station} is painted as the Dex Hall`)
 		end
-		t.isTrue(keys >= 8, "the hall builder reads fewer colours than it used to")
-		t.isTrue(same < keys // 2, "the hatchery is painted as the Dex Hall")
+		--[[ And the two shops are not each other either. ]]
+		t.isTrue(
+			HatcheryDesign.colours.roof ~= BlacksmithDesign.colours.roof,
+			"the two shops have the same roof"
+		)
 	end)
 
-	--[[ Where the Dex Hall stands a book, the Hatchery stands an egg:
-	     one on each front pad in a nest, and a big one on the roof. ]]
 	t.test("the hatchery's eggs sit on its pads and on its roof", function()
 		local E = HatcheryDesign
 		local pads = LobbyConfig.dex.pads
@@ -236,85 +237,30 @@ return function(t: TestRunner.Helper)
 		t.isTrue(E.roofEgg.seat >= 0, "the roof egg floats over the roof")
 	end)
 
-	--[[ The forge house is a timber front in a shell of stone, and the
-	     whole of it has to sit inside the footprint the lobby spaces the
-	     stations by. ]]
-	t.test("the blacksmith's forge house stands inside its own footprint", function()
-		local D = BlacksmithDesign
-		local H = D.house
-		t.isTrue(
-			math.abs(H.side) + H.across / 2 + D.shell.out <= D.across / 2,
-			"the stone shell runs off the side of the footprint"
-		)
-		t.isTrue(H.back + H.deep <= D.deep, "the house runs off the back of the footprint")
-		t.isTrue(H.tall > D.hearth.base + D.hearth.tall, "the hearth is taller than the opening")
-		t.isTrue(H.gable > 0 and H.lintel > 0, "the front has no gable over its lintel")
-		t.isTrue(D.counter.tall < H.tall, "the counter fills the opening")
-		t.isTrue(D.shell.courses >= 2, "the shell is one block high")
-	end)
-
-	--[[ The gold hammer is the shop's sign here -- there is no nameboard
-	     on either sheet any more -- and the two banners hang beside it,
-	     not over the opening the hammer sits above. ]]
-	t.test("the blacksmith's hammer and banners hang on the gable", function()
-		local D = BlacksmithDesign
-		t.isTrue(D.hammer.head > 0 and D.hammer.haft > 0, "there is no hammer")
-		t.isTrue(D.banner.out > D.hammer.head / 2, "a banner hangs over the hammer")
-		t.isTrue(
-			D.banner.out + D.banner.wide / 2 <= D.house.across / 2 + D.shell.out,
-			"a banner hangs off the end of the house"
-		)
-		t.isTrue(
-			D.banner.long < D.house.tall,
-			"a banner hangs down past the lintel into the opening"
-		)
-	end)
-
-	--[[ The sheet is drawn from the front-left: the rock and its lava are
-	     on the viewer's LEFT, which is negative X, and the three chests
-	     on the right. The first rebuild of this shop came out mirrored,
-	     so this is held rather than left to the eye. ]]
-	t.test("the blacksmith's lava is on the left and its chests on the right", function()
-		local D = BlacksmithDesign
-		t.isTrue(D.rock.side < 0, "the rock stands on the chests' side")
-		t.isTrue(D.anvil.side < 0, "the anvil stands on the chests' side")
-		t.isTrue(D.chest.side > 0, "the chests stand on the rock's side")
-		t.isTrue(D.lava.wide < D.rock.across, "the lava is wider than the rock it runs down")
-		t.isTrue(D.rock.steps >= 2, "the rock does not step down")
-		t.isTrue(
-			math.abs(D.rock.side) + D.rock.across / 2 <= D.across / 2 + 2,
-			"the rock runs off the side of the footprint"
-		)
-		t.isTrue(
-			D.chest.side + D.chest.apart + D.chest.across / 2 <= D.across / 2 + 2,
-			"the chests run off the side of the footprint"
-		)
-	end)
-
-	--[[ Three chests, one for each of the three classes the shop sells
-	     for, and the anvil out clear of the house on the paving. ]]
-	t.test(
-		"the blacksmith's three chests are its three classes, and the anvil stands clear",
-		function()
-			local D = BlacksmithDesign
-			t.equal(#D.marks, 3, "three chests")
-			local seen = {}
-			for _, mark in D.marks do
-				t.isTrue(
-					mark == "bow" or mark == "wand" or mark == "sword",
-					`{mark} is not a class the shop sells for`
-				)
-				t.equal(seen[mark], nil, `two chests for {mark}`)
-				seen[mark] = true
-			end
+	--[[ Where the Dex Hall stands a book, the forge stands its trade:
+	     a rack of the three classes' weapons on one pad, a suit of
+	     armour on the other, and a great sword in the ridge. ]]
+	t.test("the blacksmith stands weapons where the Dex Hall stands books", function()
+		local B = BlacksmithDesign
+		t.equal(#B.rack, 3, "the rack holds one weapon for each class")
+		local seen = {}
+		for _, kind in B.rack do
+			--[[ `weaponRack` draws these three and nothing else: a kind
+			     it does not know is simply left out, so the rack would
+			     come out short with no error anywhere. ]]
 			t.isTrue(
-				D.anvil.forward > D.house.back + D.house.deep,
-				"the anvil stands inside the forge house"
+				kind == "sword" or kind == "bow" or kind == "staff",
+				`the rack holds a {kind}, which nothing draws`
 			)
-			t.isTrue(D.anvil.forward < D.deep, "the anvil stands off the paving")
-			t.isTrue(D.chest.forward < D.deep, "a chest stands off the paving")
+			t.equal(seen[kind], nil, `two {kind}s on the rack`)
+			seen[kind] = true
 		end
-	)
+		t.isTrue(B.roofSword.grow > 1, "the roof sword is no bigger than a hand sword")
+		--[[ Sunk a little, so the blade rises out of the roof rather
+		     than floating over it, but not swallowed by it. ]]
+		t.isTrue(B.roofSword.seat > 0, "the roof sword floats over the roof")
+		t.isTrue(B.roofSword.seat < 4 * B.roofSword.grow, "the roof sword sinks into the roof")
+	end)
 
 	t.test("the working portals are Mossy Glade, Thornwood and Endless", function()
 		local open = {}

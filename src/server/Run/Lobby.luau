@@ -309,19 +309,6 @@ local function signboard(
 end
 
 --[[
-	One of three close greys for a block at `a`, `b` in a wall or a ring.
-
-	Picked from a hash of the two rather than alternated, because two
-	colours laid in a grid read as a checkerboard from across the lawn --
-	which is what the first Blacksmith wall did -- while three picked at
-	random read as stone.
-]]
-local function shade(a: number, b: number, shades: { Color3 }): Color3
-	local hash = math.sin(a * 12.9898 + b * 78.233) * 43758.5453
-	return shades[math.floor((hash - math.floor(hash)) * #shades) + 1]
-end
-
---[[
 	A tree: the owner's imported model, `grow` times the size a tree of 1
 	stands (owner, 2026-11-01: "use the tree import and replace the
 	existing trees in the game with it").
@@ -709,533 +696,6 @@ local function floatingTitle(spec: LobbyConfig.Building, at: CFrame, model: Mode
 	label.Parent = board
 end
 
---[[
-	The Blacksmith, built from its sheet's own measurements
-	(`Config/BlacksmithDesign`, where every one of them is written down
-	against the reference it was read off).
-
-	A timber-fronted forge house cut into a purple rock: corner posts and
-	a lintel under a gable carrying a gold hammer, a red banner each side
-	of it, the hearth alight behind a timber counter with a tool rack and
-	a bench, a lit chimney on the roof, a lava fall down a stepped outcrop
-	on the left, the shop's three chests on their pedestals on the right,
-	and one big anvil out front on the paving.
-
-	Built facing +Z, like every other station.
-]]
-local function blacksmith(base: CFrame, model: Model): Vector3
-	local D = BlacksmithDesign
-	local look = D.colours
-	local halfD = D.deep / 2
-	local rocks = { look.rock, look.rockLight, look.rockDark }
-	local floors = { look.floor, look.floorLight, look.floorDark }
-	local H = D.house
-	--[[ The house's own middle, and the plane its front timber stands
-	     in: everything inside the forge is placed off these two. ]]
-	local houseX = H.side
-	local houseZ = -halfD + H.back + H.deep / 2
-	local front = houseZ + H.deep / 2
-
-	local function piece(
-		label: string,
-		size: Vector3,
-		x: number,
-		y: number,
-		z: number,
-		c: Color3
-	): Part
-		return part(label, size, base * CFrame.new(x, y, z), c, model)
-	end
-
-	--[[ The paving the whole diorama stands on. ]]
-	local tilesX = math.ceil(D.apron.X / D.flag)
-	local tilesZ = math.ceil(D.apron.Y / D.flag)
-	piece(
-		"ApronBed",
-		Vector3.new(tilesX * D.flag, 0.22, tilesZ * D.flag),
-		0,
-		0.11,
-		0,
-		look.floorDark
-	)
-	for col = 1, tilesX do
-		for row = 1, tilesZ do
-			piece(
-				"Flagstone",
-				Vector3.new(D.flag - 0.18, 0.3, D.flag - 0.18),
-				(col - (tilesX + 1) / 2) * D.flag,
-				0.15,
-				(row - (tilesZ + 1) / 2) * D.flag,
-				shade(col, row, floors)
-			)
-		end
-	end
-
-	--[[ The purple block the house is cut into: courses of stone either
-	     side of the opening and a band of it over the lintel. ]]
-	local shell = D.shell
-	local shellW = H.across + shell.out * 2
-	local cellH = (H.tall + shell.rise) / shell.courses
-	local cellW = shellW / 9
-	for col = 1, 9 do
-		local x = houseX + (col - 5) * cellW
-		local inside = math.abs(x - houseX) < H.across / 2 - cellW / 4
-		for row = 1, shell.courses do
-			local foot = (row - 1) * cellH
-			if inside and foot < H.tall then
-				continue
-			end
-			piece(
-				"Shell",
-				Vector3.new(cellW - shell.joint, cellH - shell.joint, H.deep),
-				x,
-				foot + cellH / 2,
-				houseZ,
-				shade(col, row, rocks)
-			)
-		end
-	end
-
-	--[[ The timber front: a post each side, the lintel across their
-	     heads, and a gold bracket at every joint. ]]
-	for _, sx in { -1, 1 } do
-		local x = houseX + sx * (H.across / 2 - H.post / 2)
-		piece("FramePost", Vector3.new(H.post, H.tall, H.post), x, H.tall / 2, front, look.timber)
-		for _, y in { 0.9, H.tall - 0.9 } do
-			piece("Bracket", Vector3.new(H.post + 0.5, 1.2, H.post + 0.5), x, y, front, look.gold)
-		end
-	end
-	piece(
-		"Lintel",
-		Vector3.new(H.across + H.post, H.lintel, H.post),
-		houseX,
-		H.tall + H.lintel / 2,
-		front,
-		look.timberLight
-	)
-
-	--[[ The gable over the lintel, and the gold hammer on it. ]]
-	piece(
-		"Gable",
-		Vector3.new(H.across * 0.78, H.gable, H.post * 0.8),
-		houseX,
-		H.tall + H.lintel + H.gable / 2,
-		front,
-		look.timberDark
-	)
-	local hammer = D.hammer
-	local hammerY = H.tall + H.lintel + H.gable / 2 + 0.6
-	part(
-		"HammerHead",
-		Vector3.new(hammer.head, hammer.thick * 1.4, hammer.thick),
-		base
-			* CFrame.new(houseX + hammer.haft * 0.28, hammerY + hammer.haft * 0.22, front + 0.6)
-			* CFrame.Angles(0, 0, hammer.lean),
-		look.gold,
-		model
-	)
-	part(
-		"HammerHaft",
-		Vector3.new(hammer.haft, hammer.thick * 0.7, hammer.thick * 0.8),
-		base
-			* CFrame.new(houseX - hammer.head * 0.3, hammerY - hammer.haft * 0.18, front + 0.6)
-			* CFrame.Angles(0, 0, hammer.lean),
-		look.goldLight,
-		model
-	)
-
-	--[[ A red banner each side of the gable, hanging off the lintel, with
-	     the same hammer in gold on the cloth. ]]
-	local banner = D.banner
-	for _, sx in { -1, 1 } do
-		local x = houseX + sx * banner.out
-		local y = H.tall + H.lintel - banner.long / 2
-		piece(
-			"BannerCloth",
-			Vector3.new(banner.wide, banner.long, 0.4),
-			x,
-			y,
-			front + 0.7,
-			look.banner
-		)
-		piece(
-			"BannerTail",
-			Vector3.new(banner.wide * 0.55, banner.wide * 0.55, 0.4),
-			x,
-			y - banner.long / 2,
-			front + 0.7,
-			look.bannerDark
-		)
-		piece(
-			"BannerMark",
-			Vector3.new(banner.mark * 2.4, banner.mark, 0.4),
-			x,
-			y + banner.mark,
-			front + 0.95,
-			look.gold
-		)
-		piece(
-			"BannerMark",
-			Vector3.new(banner.mark, banner.mark * 2.6, 0.4),
-			x,
-			y - banner.mark,
-			front + 0.95,
-			look.gold
-		)
-	end
-
-	--[[ The hearth at the back of the opening, and the light it throws --
-	     the only thing lighting this corner of the lobby. ]]
-	local hearth = D.hearth
-	local backWall = houseZ - H.deep / 2
-	piece(
-		"HearthStone",
-		Vector3.new(hearth.across + 2.4, hearth.tall + hearth.base + 1.2, 1),
-		houseX,
-		(hearth.tall + hearth.base + 1.2) / 2,
-		backWall + 0.5,
-		look.rockDark
-	)
-	piece(
-		"HearthBase",
-		Vector3.new(hearth.across + 1.4, hearth.base, 2.2),
-		houseX,
-		hearth.base / 2,
-		backWall + 1.6,
-		look.rock
-	)
-	local fire = piece(
-		"ForgeFire",
-		Vector3.new(hearth.across, hearth.tall, 0.6),
-		houseX,
-		hearth.base + hearth.tall / 2,
-		backWall + 1.1,
-		look.fire
-	)
-	fire.Material = Enum.Material.Neon
-	local light = Instance.new("PointLight")
-	light.Color = look.fire
-	light.Range = hearth.range
-	light.Brightness = hearth.brightness
-	light.Parent = fire
-
-	--[[ The counter across the front of the opening, the tool rack to the
-	     hearth's left and the bench to its right. ]]
-	local counter = D.counter
-	piece(
-		"Counter",
-		Vector3.new(H.across - H.post * 2, counter.tall, counter.thick),
-		houseX,
-		counter.tall / 2,
-		front - counter.thick,
-		look.timber
-	)
-	piece(
-		"CounterTop",
-		Vector3.new(H.across - H.post * 2 + 0.6, 0.4, counter.thick + 0.6),
-		houseX,
-		counter.tall + 0.2,
-		front - counter.thick,
-		look.timberLight
-	)
-	local rack = D.rack
-	piece(
-		"ToolRack",
-		Vector3.new(rack.across, rack.tall, 0.6),
-		houseX + rack.side,
-		rack.tall / 2 + 0.6,
-		backWall + 1.4,
-		look.timberDark
-	)
-	for k = 1, 3 do
-		piece(
-			"Tool",
-			Vector3.new(0.5, 1.8, 0.5),
-			houseX + rack.side + (k - 2) * 1.2,
-			rack.tall + 0.4,
-			backWall + 1.7,
-			look.timber
-		)
-	end
-	local bench = D.bench
-	piece(
-		"Bench",
-		Vector3.new(bench.long, 0.5, 1.8),
-		houseX + bench.side,
-		bench.tall,
-		backWall + 1.8,
-		look.timber
-	)
-	for _, sx in { -1, 1 } do
-		piece(
-			"BenchLeg",
-			Vector3.new(0.6, bench.tall, 0.6),
-			houseX + bench.side + sx * (bench.long / 2 - 0.5),
-			bench.tall / 2,
-			backWall + 1.8,
-			look.timberDark
-		)
-	end
-	local lit = piece(
-		"BenchWork",
-		Vector3.new(1.2, 0.6, 1),
-		houseX + bench.side,
-		bench.tall + 0.5,
-		backWall + 1.8,
-		look.lavaLight
-	)
-	lit.Material = Enum.Material.Neon
-	for k = 1, D.chains.count do
-		piece(
-			"Chain",
-			Vector3.new(0.3, D.chains.long, 0.3),
-			houseX + (k - (D.chains.count + 1) / 2) * 3.4,
-			H.tall - D.chains.long / 2,
-			front - 0.8,
-			look.rockDark
-		)
-	end
-
-	--[[ The chimney on the roof, with its lit window. ]]
-	local ch = D.chimney
-	local roof = H.tall + shell.rise
-	piece(
-		"Chimney",
-		Vector3.new(ch.across, ch.rise, ch.across),
-		houseX + ch.side,
-		roof + ch.rise / 2,
-		houseZ - ch.back,
-		look.rock
-	)
-	local vent = piece(
-		"ChimneyLight",
-		Vector3.new(ch.across * 0.5, ch.rise * 0.4, 0.4),
-		houseX + ch.side,
-		roof + ch.rise * 0.55,
-		houseZ - ch.back + ch.across / 2,
-		look.fire
-	)
-	vent.Material = Enum.Material.Neon
-
-	--[[ The rock outcrop on the left, stepping down toward the front,
-	     with the lava pouring down its face and a timber rail on top. ]]
-	local rock = D.rock
-	for k = 1, rock.steps do
-		local tall = rock.tall * (1 - (k - 1) * 0.22)
-		local z = -halfD + rock.block / 2 + (k - 1) * rock.block * 1.6
-		piece(
-			"Rock",
-			Vector3.new(rock.across, tall, rock.block * 1.6),
-			rock.side + (k - 1) * 0.9,
-			tall / 2,
-			z,
-			shade(k, 1, rocks)
-		)
-		local flow = piece(
-			"Lava",
-			Vector3.new(D.lava.wide, tall, 0.5),
-			rock.side + (k - 1) * 0.9 + rock.across / 2 - D.lava.wide,
-			tall / 2,
-			z + rock.block * 0.8,
-			if k % 2 == 0 then look.lava else look.lavaLight
-		)
-		flow.Material = Enum.Material.Neon
-		if k == 1 then
-			local heat = Instance.new("PointLight")
-			heat.Color = look.lava
-			heat.Range = D.lava.range
-			heat.Brightness = D.lava.brightness
-			heat.Parent = flow
-		end
-	end
-	for k = 1, D.rail.posts do
-		local x = rock.side - rock.across / 2 + (k - 0.5) * (rock.across / D.rail.posts)
-		piece(
-			"RailPost",
-			Vector3.new(0.6, D.rail.tall, 0.6),
-			x,
-			rock.tall + D.rail.tall / 2,
-			-halfD + rock.block / 2,
-			look.timberDark
-		)
-	end
-	piece(
-		"Rail",
-		Vector3.new(rock.across, 0.5, 0.5),
-		rock.side,
-		rock.tall + D.rail.tall - 0.4,
-		-halfD + rock.block / 2,
-		look.timber
-	)
-
-	--[[ The one anvil out on the paving, on its stone block, with the
-	     forge's own light under it as the sheet lights it. ]]
-	local anvil = D.anvil
-	local ax, az = anvil.side, -halfD + anvil.forward
-	piece(
-		"AnvilBlock",
-		Vector3.new(anvil.long * 0.82, anvil.tall * 0.42, anvil.wide * 1.3),
-		ax,
-		anvil.tall * 0.21,
-		az,
-		look.anvilDark
-	)
-	local under = piece(
-		"AnvilGlow",
-		Vector3.new(anvil.long * 0.86, 0.5, anvil.wide * 1.34),
-		ax,
-		anvil.tall * 0.44,
-		az,
-		look.lava
-	)
-	under.Material = Enum.Material.Neon
-	piece(
-		"AnvilWaist",
-		Vector3.new(anvil.long * 0.36, anvil.tall * 0.3, anvil.wide * 0.7),
-		ax,
-		anvil.tall * 0.62,
-		az,
-		look.anvil
-	)
-	piece(
-		"AnvilFace",
-		Vector3.new(anvil.long, anvil.tall * 0.3, anvil.wide),
-		ax,
-		anvil.tall * 0.9,
-		az,
-		look.anvil
-	)
-	piece(
-		"AnvilHorn",
-		Vector3.new(anvil.long * 0.34, anvil.tall * 0.18, anvil.wide * 0.6),
-		ax + anvil.long * 0.62,
-		anvil.tall * 0.9,
-		az,
-		look.anvilDark
-	)
-
-	--[[ The three chests on the right, each on its stone pedestal under a
-	     red shield, with its own weapon standing over it. ]]
-	local chest = D.chest
-	for k, mark in D.marks do
-		local x = chest.side + (k - 2) * chest.apart
-		local z = -halfD + chest.forward - (k - 2) * 1.2
-		piece(
-			"ChestPlinth",
-			Vector3.new(chest.across + 1.6, chest.plinth, chest.across + 1.6),
-			x,
-			chest.plinth / 2,
-			z,
-			look.floor
-		)
-		piece(
-			"Chest",
-			Vector3.new(chest.across, chest.across * 0.7, chest.across * 0.8),
-			x,
-			chest.plinth + chest.across * 0.35,
-			z,
-			look.chest
-		)
-		piece(
-			"ChestBand",
-			Vector3.new(chest.across + 0.3, 0.5, chest.across * 0.8 + 0.3),
-			x,
-			chest.plinth + chest.across * 0.52,
-			z,
-			look.gold
-		)
-		local crest = piece(
-			"ChestShield",
-			Vector3.new(chest.across * 0.8, chest.across * 0.9, 0.4),
-			x,
-			chest.plinth * 0.55,
-			z + chest.across / 2 + 0.9,
-			look.banner
-		)
-		piece(
-			"ShieldRim",
-			Vector3.new(chest.across * 0.95, chest.across * 1.05, 0.3),
-			x,
-			chest.plinth * 0.55,
-			z + chest.across / 2 + 0.8,
-			look.gold
-		)
-		crest.Name = `Shield_{mark}`
-		--[[ The class's own weapon, standing out of the chest: a bow, a
-		     wand and a sword, left to right as the sheet stands them. ]]
-		local overY = chest.plinth + chest.across * 0.7
-		if mark == "bow" then
-			part(
-				"Bow",
-				Vector3.new(0.4, chest.across * 1.5, 0.4),
-				base * CFrame.new(x, overY + chest.across * 0.7, z) * CFrame.Angles(0, 0, 0.5),
-				look.gold,
-				model
-			)
-			piece(
-				"BowString",
-				Vector3.new(0.2, chest.across * 1.3, 0.2),
-				x + 0.5,
-				overY + chest.across * 0.7,
-				z,
-				look.goldLight
-			)
-		elseif mark == "wand" then
-			piece(
-				"WandShaft",
-				Vector3.new(0.4, chest.across, 0.4),
-				x,
-				overY + chest.across * 0.5,
-				z,
-				look.chest
-			)
-			local gem = piece(
-				"WandGem",
-				Vector3.new(0.9, 1.2, 0.9),
-				x,
-				overY + chest.across * 1.1,
-				z,
-				look.crystal
-			)
-			gem.Material = Enum.Material.Neon
-		else
-			piece(
-				"Blade",
-				Vector3.new(0.5, chest.across * 1.4, 0.3),
-				x,
-				overY + chest.across * 0.7,
-				z,
-				look.steel
-			)
-			piece("Guard", Vector3.new(1.6, 0.4, 0.5), x, overY, z, look.gold)
-			piece("Grip", Vector3.new(0.4, 1, 0.4), x, overY - 0.6, z, look.banner)
-		end
-	end
-
-	--[[ The barrel and the crates the sheet stacks round the shop. ]]
-	pillar(
-		"Barrel",
-		(base * CFrame.new(houseX + H.across / 2 + 1.6, 0.3, front - 1)).Position,
-		2.4,
-		2,
-		look.timberDark,
-		model
-	)
-	for _, spot in { Vector2.new(-5.5, 6), Vector2.new(7.5, 2.4), Vector2.new(13, 3) } do
-		piece("Crate", Vector3.new(2.2, 2.2, 2.2), spot.X, 1.1, -halfD + spot.Y, look.timber)
-		piece(
-			"CrateBand",
-			Vector3.new(2.3, 0.4, 2.3),
-			spot.X,
-			1.1,
-			-halfD + spot.Y,
-			look.timberDark
-		)
-	end
-
-	return Vector3.new(D.across + 2, H.tall + H.lintel + H.gable, D.deep + 2)
-end
-
 --[[ A station's cottage (`LobbyConfig.buildings`): a stone foundation,
      plastered walls framed in timber, a door and two windows, a gabled roof
      with a ridge, its sign over the door, and what its kind adds. Its door
@@ -1262,14 +722,6 @@ local function building(name: string, at: Vector2, parent: Instance): Vector3?
 	     cottage on its reference, so each is built by its own hand and
 	     nothing below runs for it. Its name still floats over it, as
 	     every station's does. ]]
-	if name == "Blacksmith" then
-		local built = blacksmith(base, model)
-		if spec.title then
-			floatingTitle(spec, base * CFrame.new(0, built.Y + 12, 0), model)
-		end
-		model.Parent = parent
-		return built
-	end
 
 	--[[
 		The Dex Hall is the owner's own model, not a box with props on it
@@ -1291,22 +743,35 @@ local function building(name: string, at: Vector2, parent: Instance): Vector3?
 		they stand on is parts, in the sheet's own colours.
 	]]
 	--[[
-		The Dex Hall's building, which the Egg Hatchery wears too.
+		The Dex Hall's building, which the Egg Hatchery and the
+		Blacksmith wear too.
 
-		The owner's call on 2026-11-03, after three passes at building the
-		Hatchery from its own sheets came out wrong in game: "just reuse
-		the building that you made for the codex and recolor it". So one
-		builder draws both, and `look` is the only thing that differs --
-		`Config/Lobby.dex.colours` for the Dex Hall, the Hatchery's own
-		livery in `Config/HatcheryDesign.colours` for the other. The two
-		places where the building carries something of its own, the front
-		pads and the top of the roof, branch on `hatch`: books for the
-		Dex, eggs for the Hatchery.
+		The owner's call on 2026-11-03, after three passes at building
+		both shop stations from their own sheets came out wrong in game:
+		"just reuse the building that you made for the codex and recolor
+		it". So one builder draws all three, and the palette is the only
+		thing that differs -- `Config/Lobby.dex.colours`,
+		`Config/HatcheryDesign.colours`, `Config/BlacksmithDesign.colours`.
+
+		The two places where a station carries something of its own are
+		the front pads and the top of the roof:
+
+		  * the Dex Hall, the owner's two book imports;
+		  * the Hatchery, an egg in a gold nest on each pad and a big
+		    spotted one on the ridge;
+		  * the Blacksmith, a weapon rack and a suit of armour on the
+		    pads and a great sword standing in the ridge.
 	]]
-	if name == "DexHall" or name == "EggHatchery" then
+	if name == "DexHall" or name == "EggHatchery" or name == "Blacksmith" then
 		local dex = LobbyConfig.dex
 		local hatch = name == "EggHatchery"
-		local look = if hatch then HatcheryDesign.colours else dex.colours
+		local forge = name == "Blacksmith"
+		local look = dex.colours
+		if hatch then
+			look = HatcheryDesign.colours
+		elseif forge then
+			look = BlacksmithDesign.colours
+		end
 		local hall = dex.hall
 		local wide, deepHall = hall.across, hall.deep
 		local halfD = deepHall / 2
@@ -1677,7 +1142,20 @@ local function building(name: string, at: Vector2, parent: Instance): Vector3?
 		local pads = dex.pads
 		for _, sx in { -1, 1 } do
 			slab("StandPad", pads.size, sx * pads.out, pads.top / 2, pads.forward, look.stone)
-			if hatch then
+			if forge then
+				--[[ A rack of the three classes' weapons on the left pad
+				     and a suit of armour on the right, where the Dex Hall
+				     stands a book. ]]
+				if sx < 0 then
+					weaponRack(
+						base * CFrame.new(sx * pads.out, pads.top, pads.forward),
+						BlacksmithDesign.rack,
+						model
+					)
+				else
+					armourStand(base * CFrame.new(sx * pads.out, pads.top, pads.forward), model)
+				end
+			elseif hatch then
 				--[[ A nest of gold straw with an egg standing in it, where
 				     the Dex Hall stands a book. ]]
 				local E = HatcheryDesign
@@ -1715,7 +1193,12 @@ local function building(name: string, at: Vector2, parent: Instance): Vector3?
 
 		--[[ And what rests on the roof: the owner's open book on the Dex
 		     Hall, a big spotted egg on the Hatchery. ]]
-		if hatch then
+		if forge then
+			--[[ A great sword standing in the ridge, its guard sunk a
+			     little so the blade rises out of the roof. ]]
+			local S = BlacksmithDesign.roofSword
+			sword(base * CFrame.new(0, ridge - S.seat, S.forward), S.grow, model)
+		elseif hatch then
 			local E = HatcheryDesign.roofEgg
 			egg(
 				base * CFrame.new(0, ridge + E.tall / 2 - E.seat, dex.roofBook.forward),

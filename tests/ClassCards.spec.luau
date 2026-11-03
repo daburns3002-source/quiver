@@ -173,6 +173,14 @@ return function(t: TestRunner.Helper)
 			{ "BlackHole", "Arcanist", "blackHole" },
 			{ "ElementalOrbs", "Arcanist", "elemental" },
 			{ "ArcaneTurret", "Arcanist", "turret" },
+			--[[ The owner's picks of 2026-11-03. ]]
+			{ "Thornfall", "Ranger", "thornfall" },
+			{ "Headhunter", "Ranger", "headhunterEvery" },
+			{ "GhostQuiver", "Ranger", "ghostQuiver" },
+			{ "TwinElements", "Arcanist", "twinElements" },
+			{ "TimeDilation", "Arcanist", "timeDilation" },
+			{ "PrismaticBurst", "Arcanist", "prismaticBurst" },
+			{ "VengefulSpirit", "Warden", "vengefulSpirit" },
 		}
 		for _, case in cases do
 			local id, class, field = case[1], case[2], case[3]
@@ -185,6 +193,70 @@ return function(t: TestRunner.Helper)
 			AbilityEffects.serverStats(max("CounterStrike"), "Warden").melee.counterStrike > 1,
 			"Counter Strike"
 		)
+	end)
+
+	--[[ The owner's picks of 2026-11-03: the three that change a blow rather
+	     than acting beside it (`Combat/MeleeSystem`). ]]
+	t.test("Guard Break, Bull Rush and Blood Pact switch on with their cards", function()
+		local plain = AbilityEffects.serverStats({}, "Warden").melee
+		local function melee(id: string)
+			return AbilityEffects.serverStats(max(id), "Warden").melee
+		end
+		t.equal(plain.guardBreak, 0)
+		t.equal(plain.bullRush, 0)
+		t.equal(plain.bloodPact, 0)
+		t.isTrue(melee("GuardBreak").guardBreak > 0, "Guard Break")
+		t.isTrue(melee("BullRush").bullRush > 0, "Bull Rush")
+		t.isTrue(melee("BloodPact").bloodPact > 0, "Blood Pact")
+		--[[ Guard Break throws further every level, or its later levels are
+		     not an upgrade. ]]
+		local studs = Abilities.byId.GuardBreak.levels
+		for level = 2, #studs do
+			t.isTrue(studs[level] > studs[level - 1], `Guard Break level {level} throws no further`)
+		end
+	end)
+
+	--[[ Headhunter's levels are the *share* of shots that crit, so they rise
+	     as a card's levels must, and the effect inverts them to "every Nth"
+	     — the same trick Whirlwind plays. Get the inversion the wrong way
+	     round and the top level would crit less often than the first. ]]
+	t.test("Headhunter crits more often at its top level, not less", function()
+		local first =
+			AbilityEffects.serverStats({ Headhunter = 1 }, "Ranger").upgrades.headhunterEvery
+		local top = AbilityEffects.serverStats(max("Headhunter"), "Ranger").upgrades.headhunterEvery
+		t.isTrue(first > 0 and top > 0, "Headhunter never crits")
+		t.isTrue(top < first, "Headhunter's top level crits less often than its first")
+		t.equal(AbilityEffects.serverStats({}, "Ranger").upgrades.headhunterEvery, 0)
+	end)
+
+	--[[ Twin Elements is a lane in the volley, like Front Arrow and Twin
+	     Cast: the pair has to actually be two orbs, or the card is only a
+	     tint. ]]
+	t.test("Twin Elements casts a second orb", function()
+		t.isTrue(#cast(max("TwinElements")) > #cast({}), "Twin Elements casts no extra orb")
+	end)
+
+	--[[ Windrunner is move speed, which the client applies, so both sides
+	     have to see it and agree on what the stacks are worth. ]]
+	t.test("Windrunner reaches the client and caps its stacks", function()
+		local counts = max("Windrunner")
+		local perStack = AbilityEffects.serverStats(counts, "Ranger").windrunner
+		t.isTrue(perStack > 0, "the server never hears of Windrunner")
+		t.equal(AbilityEffects.clientStats(counts, "Ranger").windrunner, perStack)
+		t.equal(AbilityEffects.serverStats({}, "Ranger").windrunner, 0)
+
+		local base = Balance.Player.moveSpeed
+		local cap = Balance.Player.windrunner.maxStacks
+		t.equal(AbilityEffects.moveSpeedAt(base, perStack, 0), base)
+		t.isTrue(AbilityEffects.moveSpeedAt(base, perStack, 1) > base, "one stack does nothing")
+		t.isTrue(
+			AbilityEffects.moveSpeedAt(base, perStack, cap + 5)
+				== AbilityEffects.moveSpeedAt(base, perStack, cap),
+			"Windrunner's stacks are not capped"
+		)
+		--[[ Without the card the stacks are worth nothing, however many a
+		     stale attribute claims. ]]
+		t.equal(AbilityEffects.moveSpeedAt(base, 0, 99), base)
 	end)
 
 	--[[ Titan's Grip grows the whole swing, and the client draws and aims by

@@ -107,6 +107,11 @@ buildSpawn(workspace)
 
 --[[ Counter Strike charges on a hit taken (`Combat/ClassUpgrades`). ]]
 RunSession.onHurt = ClassUpgrades.onHurt
+--[[ Thornfall's arrows, Prismatic Burst's shards and Vengeful Spirit's sword
+     all rise out of an enemy this player killed. ]]
+RunSession.onKillAt = ClassUpgrades.onKillAt
+--[[ Time Dilation: a shot of this player's landed, so its field opens. ]]
+ProjectileSystem.onPlayerHit = ClassUpgrades.onPlayerHit
 
 --[[ The run controller owns the arena now: it builds a room on entry, so
      there is nothing to build here. ]]
@@ -417,7 +422,12 @@ end)
 Remotes.event(Remotes.DashStarted).OnServerEvent:Connect(function(player)
 	local session = RunSession.get(player)
 	local root = session and session.root
-	if not session or not root or not session.alive or session.earthbreaker <= 0 then
+	if not session or not root or not session.alive then
+		return
+	end
+	--[[ Bull Rush rides the same dash, and the same gate: either card is
+	     reason enough to accept this, neither is reason to accept two. ]]
+	if session.earthbreaker <= 0 and session.melee.bullRush <= 0 then
 		return
 	end
 	local now = os.clock()
@@ -426,6 +436,12 @@ Remotes.event(Remotes.DashStarted).OnServerEvent:Connect(function(player)
 		return
 	end
 	session.lastDashAt = now
+	--[[ Bull Rush: for the dash's length he runs down what he passes
+	     through (`Combat/ClassUpgrades`). ]]
+	ClassUpgrades.beginRush(session, now)
+	if session.earthbreaker <= 0 then
+		return
+	end
 	local quake = Balance.Player.earthbreaker
 	local damage = session.damage
 	AreaStrikes.strike({

@@ -165,8 +165,10 @@ local function fire(session: Session, root: BasePart, now: number, cooldown: num
 	end
 
 	--[[ The class upgrades that count volleys: Phoenix Arrow, Rain of
-	     Arrows, Black Hole, Elemental Orbs' cycle. ]]
-	ClassUpgrades.afterVolley(session, origin, direction, target.position, now)
+	     Arrows, Black Hole, Elemental Orbs' cycle, Windrunner's stacks, and
+	     Ghost Quiver — which is handed the specs this volley was built from,
+	     so the ghost fires the player's volley rather than one of its own. ]]
+	ClassUpgrades.afterVolley(session, origin, direction, target.position, now, specs)
 
 	--[[
 		One packet per volley. Specs go over whole rather than packed: Phase 1

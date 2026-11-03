@@ -157,6 +157,11 @@ end
 	whole game rests on, and it lives here as an omission rather than as a
 	special case somewhere hotter.
 ]]
+--[[ Called where one of a player's shots landed on an enemy, with the
+     player who owns it: Time Dilation's field opens there. Set by
+     `Main.server`; nil when nothing wants it. ]]
+ProjectileSystem.onPlayerHit = nil :: ((Player, Vector3) -> ())?
+
 function ProjectileSystem.refreshFilters()
 	local blockers = Arena.blockers()
 	local enemyFolder = EnemyManager.folder()
@@ -558,6 +563,14 @@ local function applyHit(projectile: Projectile, model: Model): boolean
 			)
 			if projectile.slow < 1 then
 				EnemyManager.slow(model, projectile.slow, os.clock() + projectile.slowDuration)
+			end
+			--[[ Time Dilation: the blast leaves its crawling field here
+			     (`Combat/ClassUpgrades`). A hook rather than a call, for the
+			     same reason as `RunSession.onHurt`: ClassUpgrades requires
+			     this module, so this module cannot require it back. ]]
+			local landedHook = ProjectileSystem.onPlayerHit
+			if landedHook and projectile.owner then
+				landedHook(projectile.owner, projectile.position)
 			end
 			fireRicochet(projectile, model)
 		end

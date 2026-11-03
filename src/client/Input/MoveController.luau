@@ -27,6 +27,7 @@ local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local Workspace = game:GetService("Workspace")
 
+local AbilityEffects = require(ReplicatedStorage.Shared.Combat.AbilityEffects)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Dash = require(script.Parent.Dash)
 local DashButton = require(script.Parent.DashButton)
@@ -303,7 +304,16 @@ local function step()
 	if lobby and sprinting() then
 		rush = LobbyConfig.sprint
 	end
-	humanoid.WalkSpeed = PlayerStats.get().moveSpeed * rush
+	--[[ Windrunner: the stacks the server has banked for recent volleys.
+	     Through `AbilityEffects.moveSpeedAt`, which the server reads too, so
+	     the speed the player feels is the speed the server believes. ]]
+	local stats = PlayerStats.get()
+	local stacks = player:GetAttribute("Windrunner")
+	humanoid.WalkSpeed = AbilityEffects.moveSpeedAt(
+		stats.moveSpeed,
+		stats.windrunner,
+		if type(stacks) == "number" then stacks else 0
+	) * rush
 
 	-- World space, not camera-relative: the second argument must stay false.
 	humanoid:Move(desiredDirection(), false)

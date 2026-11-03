@@ -171,6 +171,16 @@ local function land(swing: Pending, now: number)
 	--[[ Counter Strike: the first blow after being hit, charged
 	     (`Combat/ClassUpgrades`). ]]
 	blow *= ClassUpgrades.spendCounter(session)
+	--[[ Blood Pact: harder the worse off he is. Read here rather than in
+	     `AbilityEffects.serverStats`, because it depends on health *now* —
+	     the same reason Execute is read against the enemy's health below,
+	     and stats are rebuilt only on a level-up. ]]
+	if
+		melee.bloodPact > 0
+		and session.health < session.maxHealth * Balance.Player.bloodPact.below
+	then
+		blow *= 1 + melee.bloodPact
+	end
 
 	--[[ An arc for the side-to-side blows, a circle for the slam, grown by
 	     Cleave and Long Reach (`Shared/Combat/SwingBox`). ]]
@@ -260,6 +270,17 @@ local function land(swing: Pending, now: number)
 
 		local landed, xp, fell =
 			EnemyManager.damage(enemy.model, damage, root.Position, kind, session.player)
+		--[[ Guard Break: the slam throws what it hits well past the blow's
+		     own knockback and holds it there. The slam only, and never the
+		     spin, which already hits all round. ]]
+		if landed and slam and not swing.spin and melee.guardBreak > 0 then
+			EnemyManager.shove(
+				enemy.model,
+				root.Position,
+				melee.guardBreak,
+				Balance.Player.guardBreak.stagger
+			)
+		end
 		--[[ Bloodletting: a share of the blow comes back as health. ]]
 		if landed and melee.lifesteal > 0 then
 			RunSession.heal(session, damage * melee.lifesteal)

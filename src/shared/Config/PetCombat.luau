@@ -377,15 +377,38 @@ local PetCombat: { pets: { [string]: Spec } } = {
 			range = 60,
 			wake = { damage = 138, perStud = 3, hits = 4, duration = 3 },
 		},
-		--[[ Deep Accord: a canopy over three. It adds no damage of its own
-		     -- a blow on a linked enemy is split, never copied
-		     (`Shared/Util/DeepAccord`) -- and it is a Mythic because of
-		     what that does to a room: every shot spends itself on three
-		     enemies at once, so a room falls together instead of one at a
-		     time, and nothing is left on a sliver of health. ]]
+		--[[ Deep Accord, and a curtain of stinging tentacles (owner,
+		     2026-11-02: "do ... the mythic jellyfish attacks").
+
+		     The canopy is unchanged and still adds no damage of its own --
+		     a blow on a linked enemy is split, never copied
+		     (`Shared/Util/DeepAccord`) -- and it is still what makes a room
+		     fall together instead of one enemy at a time. But a Mythic that
+		     deals nothing is the rarest pull in its egg and the weakest on
+		     the one scale the game has (`Shared/Util/PetPower`;
+		     `docs/BALANCE-REPORT.md`), which is what this fixes.
+
+		     The sting lands on the same three the canopy goes over, on the
+		     same 16 s clock: a flurry of three tentacle bites of 125 on
+		     each. A pet's own blow is never shared out, only the player's
+		     is (`Shared/Util/DeepAccord`), so all nine land in full. That
+		     is 125 x 3 x 3 / 16 = 70.3 a second against a room on
+		     `Shared/Util/PetPower`'s reckoning, which is area 3's Mythic
+		     band of 70.
+
+		     A ring round its owner would have read better for a jellyfish,
+		     and it cannot have one: an `aura` must be drawn for as long as
+		     it turns (`tests/PetAttacks.spec`), and the Abyss Jelly is a
+		     single static Tripo mesh with no clips for the preview to play
+		     and no `Config/PetAttacks` pieces of its own. That is the same
+		     thing holding the other four Drowned pets' attacks back, and it
+		     wants a rigged model, not a number. ]]
 		AbyssJelly = {
 			every = 16,
 			range = 60,
+			damage = 125,
+			hits = 3,
+			targets = 3,
 			accord = { targets = 3, duration = 4 },
 		},
 	},

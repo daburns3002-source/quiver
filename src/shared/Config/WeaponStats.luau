@@ -42,13 +42,26 @@ local WeaponStats = {
 		Mythic = 0.7,
 	} :: { [Rarity]: number },
 
-	--[[ Each area's weapons against its enemies' health, the first area's
-	     being 1. ]]
-	--[[ Area 3's 1.25 is provisional: the Drowned Village has no stages in
-	     `Balance.Stages` yet, so there is no enemy health to divide by. It
-	     follows the step area 1 to 2 made (0.8 to 0.9 health, 1 to 1.125) on
-	     the assumption area 3 lands near 1.0, and should be re-derived once
-	     its stages exist. ]]
+	--[[
+		Each area's weapons against its enemies' health, the first area's
+		being 1. One step an area, 1.125, compounded: 1, 1.125, 1.266 ->
+		1.25 rounded. It is no longer called provisional (owner, 2026-11-02:
+		"do the weapons"). The Drowned Village still has no stages, so there
+		is no area-3 enemy health to divide by and there may never be an
+		exact number to find; the series is the rule instead, and it is the
+		same step `Shared/Util/PetPower` walks each egg's bands up by.
+
+		**This puts the whole of area 3 above the whole of area 1** -- an
+		area-3 Rare (143.8) beats an area-1 Epic (125), an area-3 Legendary
+		(175) an area-1 Mythic (170). That is the design, not a fault
+		(`docs/BALANCE-REPORT.md`, finding 1): the owner asked for it in so
+		many words, and no area step bigger than 1.05 can leave the rarity
+		order whole, since Common to Uncommon is only 1.05 itself. What
+		keeps it from biting is that an area's weapons are for sale only
+		once that area is `stocked` (`Config/Shop`), which
+		`tests/ConfigConsistency.spec` now holds to areas that have stages
+		to earn them in.
+	]]
 	areaScale = { 1, 1.125, 1.25 } :: { number },
 
 	weapons = {

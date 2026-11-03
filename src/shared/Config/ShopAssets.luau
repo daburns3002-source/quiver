@@ -41,6 +41,25 @@ local ShopAssets = {
 		BroodsplitBlade = "rbxassetid://80210413001940",
 		EmberfangBlade = "rbxassetid://84444894674818",
 		GladeheartBlade = "rbxassetid://76868549241879",
+		--[[ Drowned Village (area 3). Their sheets never reached `main` -- they
+		     were written on `phase-3/gear-and-shops` and lost when it did not
+		     merge, which is why all fourteen had no picture at all
+		     (`docs/BALANCE-REPORT.md` S5). Recovered from bfe0227 and cut by
+		     the same `three_quarter.py` as the rest, to the same angle. ]]
+		SlatefinBow = "rbxassetid://78681740622848",
+		EelcrestBow = "rbxassetid://116382891837760",
+		TollstringBow = "rbxassetid://121332739614479",
+		EventideBow = "rbxassetid://102768612981445",
+		ReedStaff = "rbxassetid://84673063298120",
+		BuoyStaff = "rbxassetid://118200804112434",
+		WellpearlStaff = "rbxassetid://93150871245323",
+		TollkeeperStaff = "rbxassetid://71210802364384",
+		MaelstromStaff = "rbxassetid://131306932739114",
+		TidewoodBlade = "rbxassetid://98362935899924",
+		TidehookBlade = "rbxassetid://95677367377108",
+		CausewayBlade = "rbxassetid://133759570596256",
+		TollguardBlade = "rbxassetid://119966247169126",
+		StormglassBlade = "rbxassetid://118645109109390",
 	} :: { [string]: string },
 }
 

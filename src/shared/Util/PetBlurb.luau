@@ -87,6 +87,20 @@ function PetBlurb.lines(key: string): { string }
 					spec.every
 				)
 			)
+		elseif hits > 1 and targets > 1 then
+			--[[ A flurry on each of several enemies (the Abyss Jelly's
+			     tentacles): the total has to count both or it reads as a
+			     third of what it is. ]]
+			add(
+				string.format(
+					"Hits up to %g enemies with %g strikes of %g damage each every %g seconds (%g in all if every one lands).",
+					targets,
+					hits,
+					damage,
+					spec.every,
+					hits * damage * targets
+				)
+			)
 		elseif hits > 1 then
 			add(
 				string.format(
@@ -271,7 +285,7 @@ function PetBlurb.lines(key: string): { string }
 	if accord then
 		add(
 			string.format(
-				"Deep Accord: every %g seconds it joins up to %g enemies under a canopy for %g seconds. Damage you deal to one is split evenly between them, so one shot chips them all. It adds no damage of its own -- the total is exactly what you dealt.",
+				"Deep Accord: every %g seconds it joins up to %g enemies under a canopy for %g seconds. Damage you deal to one is split evenly between them, so one shot chips them all. The canopy adds no damage of its own -- the total is exactly what you dealt.",
 				spec.every,
 				accord.targets,
 				accord.duration

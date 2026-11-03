@@ -13,6 +13,8 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
+local BlacksmithDesign = require(ReplicatedStorage.Shared.Config.BlacksmithDesign)
+local HatcheryDesign = require(ReplicatedStorage.Shared.Config.HatcheryDesign)
 local Lobby = require(ServerScriptService.Server.Run.Lobby)
 local LobbyConfig = require(ReplicatedStorage.Shared.Config.Lobby)
 local TestRunner = require(script.Parent.TestRunner)
@@ -138,6 +140,131 @@ return function(t: TestRunner.Helper)
 		t.equal(spec.size.X, dex.hall.across, "width")
 		t.equal(spec.size.Z, dex.hall.deep, "depth")
 		t.isTrue(math.abs(spec.size.Y - dex.hall.ridge) < 0.5, "height")
+	end)
+
+	--[[
+		The Egg Hatchery and the Blacksmith were rebuilt from their sheets
+		on 2026-11-02 (`Config/HatcheryDesign`, `Config/BlacksmithDesign`).
+		What follows holds the things the sheets actually decide, which
+		two earlier passes of this lobby got wrong by eye: not the
+		numbers, which are meant to be retuned, but the shapes they have
+		to come out as.
+	]]
+	t.test("each rebuilt station's footprint matches the building it builds", function()
+		local hatchery = LobbyConfig.buildings.EggHatchery
+		t.equal(hatchery.size.X, HatcheryDesign.across, "the hatchery's width")
+		t.equal(hatchery.size.Z, HatcheryDesign.deep, "the hatchery's depth")
+		local deck = HatcheryDesign.postTall + HatcheryDesign.beam + HatcheryDesign.slab
+		t.isTrue(math.abs(hatchery.size.Y - deck) < 0.5, "the hatchery's height")
+
+		local smith = LobbyConfig.buildings.Blacksmith
+		t.equal(smith.size.X, BlacksmithDesign.across, "the blacksmith's width")
+		t.equal(smith.size.Z, BlacksmithDesign.deep, "the blacksmith's depth")
+		t.equal(smith.size.Y, BlacksmithDesign.wallTall, "the blacksmith's height")
+	end)
+
+	--[[ Neither is a cottage on its sheet, so neither may ask `building`
+	     for one: a `rise`, a roof or an emblem here would put a gable and
+	     a giant egg or sword back on top of the rebuilt shapes. ]]
+	t.test("neither rebuilt station is built as a cottage", function()
+		for _, name in { "EggHatchery", "Blacksmith" } do
+			local spec = LobbyConfig.buildings[name]
+			t.equal(spec.rise, 0, `{name} has a gable`)
+			t.equal(spec.emblem, nil, `{name} has an emblem on its ridge`)
+			t.equal(spec.chimney, nil, `{name} builds the cottage chimney`)
+			t.equal(spec.columns, nil, `{name} builds the cottage porch`)
+			t.isTrue(spec.title ~= nil and spec.title ~= "", `{name} has no floating name`)
+		end
+	end)
+
+	--[[ The pavilion is open and you look in at the eggs: the sheet's
+	     beam stands well over the tallest egg, the deck laps past the
+	     posts, and the nest ring fills the width without running into
+	     the posts that hold the roof up. ]]
+	t.test("the hatchery is an open pavilion with its eggs under it", function()
+		local D = HatcheryDesign
+		t.isTrue(D.postTall > D.eggs[2].tall + D.ring.tall, "the roof sits on the eggs")
+		t.isTrue(D.across > D.deep, "the pavilion is deeper than it is wide")
+		t.isTrue(D.eaves > 0, "the deck stops at the posts")
+		t.isTrue(D.ring.across < D.across, "the nest ring is wider than the pavilion")
+		--[[ A post stands at each corner, half its thickness in; the
+		     ring's outermost stone may touch one but not pass it. ]]
+		local post = D.across / 2 - D.postThick
+		t.isTrue(D.ring.across / 2 <= post + 1, "the ring runs through the posts")
+		--[[ It is set forward, so the eggs are in the open rather than
+		     back in the shade of the deck. ]]
+		t.isTrue(D.ring.forward > 0, "the nest ring sits behind the middle")
+		t.isTrue(D.ring.forward + D.ring.across / 2 > D.deep / 2, "the nest is all under the roof")
+	end)
+
+	--[[ Three eggs of two sizes, each one standing apart: at the sheet's
+	     own spacing this build's solid middle egg swallowed the two
+	     beside it, which is the one thing the sheet's clutch never
+	     does. ]]
+	t.test("the hatchery's three eggs stand apart, the middle one tallest", function()
+		local D = HatcheryDesign
+		t.equal(#D.eggs, 3, "three eggs")
+		t.isTrue(D.eggs[2].tall > D.eggs[1].tall, "the middle egg is the tallest")
+		t.equal(D.eggs[1].tall, D.eggs[3].tall, "the outer two match")
+		t.isTrue(D.eggs[2].back > D.eggs[1].back, "the middle egg is not set back")
+		for k, egg in D.eggs do
+			t.isTrue(egg.collar >= egg.wide, `egg {k} overhangs its collar`)
+			t.isTrue(egg.tall > egg.wide, `egg {k} is not egg-shaped`)
+		end
+		local gap = D.nestApart - D.eggs[2].wide / 2 - D.eggs[1].wide / 2
+		t.isTrue(gap > 0, "the outer eggs run into the middle one")
+		--[[ And all three stay inside the ring they sit in. ]]
+		local reach = D.nestApart + D.eggs[3].collar / 2
+		t.isTrue(reach < D.ring.across / 2, "an egg hangs off the ring")
+	end)
+
+	--[[ The forge is a hole in the wall with fire in it, under a stack
+	     that stands BEHIND the wall: built on the wall line the chimney
+	     put three studs of stone in front of its own hearth and hid the
+	     fire from everywhere but dead in front. ]]
+	t.test("the blacksmith's hearth is open under a chimney that stands clear of it", function()
+		local D = BlacksmithDesign
+		t.isTrue(D.hearth.tall < D.wallTall, "the hearth is taller than the wall")
+		t.isTrue(D.hearth.across < D.across, "the hearth is wider than the wall")
+		--[[ The opening is cut to one side, with the stack over it. ]]
+		t.equal(math.sign(D.chimney.side), math.sign(D.hearth.side), "the stack is off its hearth")
+		t.isTrue(
+			math.abs(D.hearth.side) + D.hearth.across / 2 <= D.across / 2,
+			"the hearth is cut through the end of the wall"
+		)
+		--[[ Behind the wall: its front face is `across / 2 - back` from
+		     the wall's own middle plane, which has to be behind it. ]]
+		t.isTrue(D.chimney.back - D.chimney.across / 2 > 0, "the chimney stands in the shop")
+		t.isTrue(D.chimney.rise > 0, "the chimney stops at the wall")
+		t.isTrue(D.chimney.mouth < D.chimney.across, "the chimney is all mouth")
+	end)
+
+	--[[ What the sheet puts out on the floor, in front of the wall and
+	     clear of it, and the pair of banners outside the frame posts. ]]
+	t.test("the blacksmith's floor furniture stands in front of its wall", function()
+		local D = BlacksmithDesign
+		for name, piece in
+			{ anvil = D.anvil, rack = D.rack, bench = D.bench } :: { [string]: { forward: number } }
+		do
+			t.isTrue(piece.forward > 0, `the {name} is inside the wall`)
+			t.isTrue(piece.forward < D.deep, `the {name} is off the apron`)
+		end
+		t.isTrue(D.apron.X >= D.across, "the apron is narrower than the shop")
+		t.isTrue(D.anvil.apart > D.anvil.long, "the two anvils run into each other")
+		t.isTrue(D.anvil.forward > D.returns, "an anvil stands in the side wall")
+		--[[ The banners hang outside the posts, not over the opening. ]]
+		t.isTrue(D.banner.out > D.post.out, "a banner hangs inside the shop")
+		t.isTrue(D.banner.long < D.banner.top, "a banner reaches the floor")
+		--[[ And the board hangs on the other side of the wall from the
+		     hearth, with its bottom edge above the opening: drawn on
+		     the hearth's own side it covered the fire. ]]
+		local board = (D.across / 2 - D.sign.across / 2 - 1.5) * -math.sign(D.hearth.side)
+		t.isTrue(board * D.hearth.side < 0, "the board hangs over the fire")
+		t.isTrue(
+			D.wallTall - D.sign.below - D.sign.tall > D.hearth.tall,
+			"the board meets the arch"
+		)
+		t.isTrue(D.sign.below + D.sign.tall < D.wallTall, "the board is off the top of the wall")
 	end)
 
 	t.test("the working portals are Mossy Glade, Thornwood and Endless", function()

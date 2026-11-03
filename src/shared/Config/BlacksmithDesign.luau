@@ -37,8 +37,13 @@ local BlacksmithDesign = {
 	--[[ The great sword standing on the ridge, where the Dex Hall rests
 	     its open book. `grow` is how many times a hand sword's size it
 	     is drawn, and `seat` how far its guard sits below the ridge so
-	     the blade rises out of the roof rather than floating over it. ]]
-	roofSword = { grow = 2.1, seat = 1.6, forward = 4 },
+	     the blade rises out of the roof rather than floating over it.
+
+	     It came down from 2.1: at that size the blade stood half again
+	     the height of the building and was the first thing you saw from
+	     anywhere in the clearing, where the roof ornament should read as
+	     a weathervane. ]]
+	roofSword = { grow = 1.4, seat = 1.1, forward = 4 },
 
 	--[[
 		The forge's livery. Every key here is one the shared `hall`
@@ -52,10 +57,11 @@ local BlacksmithDesign = {
 		roof = Color3.fromRGB(96, 86, 112),
 		gold = Color3.fromRGB(250, 170, 45),
 		timber = Color3.fromRGB(150, 88, 40),
-		--[[ The panels are stone too, a shade off the roof so the frame
-		     still reads against them. ]]
-		panel = Color3.fromRGB(162, 158, 170),
-		stone = Color3.fromRGB(136, 132, 144),
+		--[[ The panels are pale stone, well off the timber: at a darker
+		     grey the frame and the fill ran together and the whole shop
+		     read as another wooden cottage. ]]
+		panel = Color3.fromRGB(198, 196, 206),
+		stone = Color3.fromRGB(150, 146, 158),
 		column = Color3.fromRGB(196, 192, 202),
 		--[[ The runner into the shop, in the banners' own red. ]]
 		red = Color3.fromRGB(186, 36, 36),

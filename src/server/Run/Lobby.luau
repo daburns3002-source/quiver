@@ -710,516 +710,6 @@ local function floatingTitle(spec: LobbyConfig.Building, at: CFrame, model: Mode
 end
 
 --[[
-	The Egg Hatchery, built from its sheet's own measurements
-	(`Config/HatcheryDesign`, where every one of them is written down
-	against the reference it was read off).
-
-	A raised cream stone plaza: three steps up into a tiled deck with a
-	block of cyan light each side of them, a low parapet round it, a pool
-	of glowing water behind, a crystal bloom standing in the pool with six
-	magenta petals and a fan of green leaves, an egg on its own lit
-	pedestal either side, and two capped pillars and a vined balustrade
-	round the back.
-
-	Built facing +Z, like every other station; `base` already carries the
-	turn that points that front at the middle of the clearing.
-]]
-local function hatchery(base: CFrame, model: Model): Vector3
-	local D = HatcheryDesign
-	local look = D.colours
-	local halfW, halfD = D.across / 2, D.deep / 2
-	local creams = { look.stone, look.stoneLight, look.stoneDark }
-	--[[ The deck's front edge and its back edge, in the building's own
-	     frame: the deck sits at the FRONT of the footprint and the pool
-	     and the balustrade fill what is behind it. ]]
-	local deckFront = halfD
-	local deckBack = halfD - D.plaza.deep
-	local top = D.plaza.tall
-
-	local function piece(
-		label: string,
-		size: Vector3,
-		x: number,
-		y: number,
-		z: number,
-		c: Color3
-	): Part
-		return part(label, size, base * CFrame.new(x, y, z), c, model)
-	end
-
-	--[[ The green that climbs a pillar or a balustrade post: leaf blocks
-	     up one face with a flower or two among them, as the sheet dresses
-	     every piece of its stonework. ]]
-	local function climb(x: number, z: number, thick: number, foot: number, tall: number)
-		local n = D.vines.perPost
-		for k = 1, n do
-			local y = foot + (k - 0.5) * tall / n
-			local side = if k % 2 == 0 then 1 else -1
-			piece(
-				"Vine",
-				Vector3.new(D.vines.thick, tall / n * 0.9, D.vines.thick),
-				x + side * thick * 0.5,
-				y,
-				z + thick * 0.5,
-				if k % 2 == 0 then look.leaf else look.leafDark
-			)
-			piece(
-				"VineLeaf",
-				Vector3.new(D.vines.thick * 1.4, D.vines.thick, D.vines.thick * 1.4),
-				x + side * thick * 0.95,
-				y,
-				z + thick * 0.5,
-				look.leafLight
-			)
-		end
-		for f = 1, D.vines.flowers do
-			local y = foot + tall * (0.35 + 0.3 * (f - 1))
-			local side = if f % 2 == 0 then 1 else -1
-			local petal = if f % 2 == 0 then look.flower else look.daisy
-			local at = x + side * thick * 0.7
-			piece("FlowerEye", Vector3.new(0.6, 0.6, 0.4), at, y, z + thick * 0.66, look.pollen)
-			for _, d in
-				{ Vector2.new(1, 0), Vector2.new(-1, 0), Vector2.new(0, 1), Vector2.new(0, -1) }
-			do
-				piece(
-					"FlowerPetal",
-					Vector3.new(0.6, 0.6, 0.35),
-					at + d.X * 0.6,
-					y + d.Y * 0.6,
-					z + thick * 0.64,
-					petal
-				)
-			end
-		end
-	end
-
-	--[[ How far out the deck reaches at a given depth: square at the
-	     back, with the two front corners cut off, as the sheet draws
-	     them. ]]
-	local function deckReach(z: number): number
-		return halfW - math.max(0, z - (deckFront - D.plaza.chamfer))
-	end
-
-	--[[ The deck itself, in two blocks and two corners, so the front
-	     reads as a cut-off octagon rather than a brick. ]]
-	local chamfer = D.plaza.chamfer
-	piece(
-		"Deck",
-		Vector3.new(D.across, top, D.plaza.deep - chamfer),
-		0,
-		top / 2,
-		(deckBack + deckFront - chamfer) / 2,
-		look.stoneDark
-	)
-	piece(
-		"DeckFront",
-		Vector3.new(D.across - chamfer * 2, top, chamfer),
-		0,
-		top / 2,
-		deckFront - chamfer / 2,
-		look.stoneDark
-	)
-	for _, sx in { -1, 1 } do
-		part(
-			"DeckCorner",
-			Vector3.new(chamfer * 1.42, top, chamfer * 1.42),
-			base
-				* CFrame.new(sx * (halfW - chamfer / 2), top / 2, deckFront - chamfer / 2)
-				* CFrame.Angles(0, math.pi / 4, 0),
-			look.stoneDark,
-			model
-		)
-	end
-
-	--[[ The deck's tiled top, laid as separate slabs in three creams and
-	     clipped to the deck's own outline. ]]
-	local tile = D.plaza.tile
-	local cols = math.ceil(D.across / tile)
-	local rows = math.ceil(D.plaza.deep / tile)
-	for col = 1, cols do
-		for row = 1, rows do
-			local x = (col - (cols + 1) / 2) * tile
-			local z = deckBack + (row - 0.5) * tile
-			if math.abs(x) + tile / 2 > deckReach(z) then
-				continue
-			end
-			piece(
-				"DeckTile",
-				Vector3.new(tile - 0.2, 0.4, tile - 0.2),
-				x,
-				top - 0.2,
-				z,
-				shade(col, row, creams)
-			)
-		end
-	end
-
-	--[[ The three steps up the middle of the front. ]]
-	for k = 1, D.steps.count do
-		local rise = top - k * D.steps.rise
-		piece(
-			"Step",
-			Vector3.new(D.steps.across - (k - 1) * 2, rise, D.steps.tread),
-			0,
-			rise / 2,
-			deckFront + (k - 0.5) * D.steps.tread,
-			look.stone
-		)
-	end
-
-	--[[ The low parapet round the deck: across the back, down both sides,
-	     and a wing each side of the steps with a block of cyan light set
-	     into it. ]]
-	local rim = D.parapet
-	piece(
-		"Parapet",
-		Vector3.new(D.across, rim.tall, rim.thick),
-		0,
-		top + rim.tall / 2,
-		deckBack + rim.thick / 2,
-		look.stone
-	)
-	local wing = halfW - D.steps.across / 2
-	for _, sx in { -1, 1 } do
-		piece(
-			"Parapet",
-			Vector3.new(rim.thick, rim.tall, D.plaza.deep - chamfer),
-			sx * (halfW - rim.thick / 2),
-			top + rim.tall / 2,
-			(deckBack + deckFront - chamfer) / 2,
-			look.stone
-		)
-		local at = sx * (D.steps.across / 2 + wing / 2)
-		piece(
-			"ParapetWing",
-			Vector3.new(wing, rim.tall, rim.thick),
-			at,
-			top + rim.tall / 2,
-			deckFront - chamfer / 2,
-			look.stone
-		)
-		--[[ The light in the stone beside the steps. ]]
-		local lamp = piece(
-			"StepGlow",
-			Vector3.new(D.glow.long, D.glow.tall, 0.5),
-			at,
-			top - D.steps.rise,
-			deckFront - chamfer / 2 + rim.thick / 2,
-			look.glow
-		)
-		lamp.Material = Enum.Material.Neon
-	end
-
-	--[[ The pool behind the parapet, its surface a little below the deck,
-	     with short falls down its back wall. ]]
-	local pool = D.pool
-	local poolBack = deckBack - pool.reach
-	local water = piece(
-		"Water",
-		Vector3.new(D.across - 2, 0.5, pool.reach),
-		0,
-		top - pool.drop,
-		deckBack - pool.reach / 2,
-		look.water
-	)
-	water.Material = Enum.Material.Neon
-	water.Transparency = 0.12
-	local shine = Instance.new("PointLight")
-	shine.Color = look.water
-	shine.Range = pool.range
-	shine.Brightness = pool.brightness
-	shine.Parent = water
-	piece(
-		"PoolFloor",
-		Vector3.new(D.across, top - pool.drop, pool.reach),
-		0,
-		(top - pool.drop) / 2,
-		deckBack - pool.reach / 2,
-		look.stoneDark
-	)
-	for k = 1, pool.falls do
-		local fall = piece(
-			"Fall",
-			Vector3.new(1.8, pool.drop + 1.6, 0.5),
-			(k - (pool.falls + 1) / 2) * (D.across / pool.falls),
-			top - pool.drop / 2,
-			poolBack + 0.3,
-			look.waterDeep
-		)
-		fall.Material = Enum.Material.Neon
-	end
-
-	--[[
-		The crystal bloom standing in the pool: a cream base, a fan of
-		green leaves curling up round it, six magenta petals leaning out,
-		and the pale spire in the middle with its deep-pink diamond.
-
-		Every crystal is turned a quarter turn about its own axis, which
-		is what gives the sheet's faceted look out of plain blocks.
-	]]
-	local bloom = D.bloom
-	local bloomZ = deckBack - bloom.back
-	local footY = top - pool.drop
-	piece(
-		"BloomBase",
-		Vector3.new(bloom.across * 0.72, bloom.base, bloom.across * 0.5),
-		0,
-		footY + bloom.base / 2,
-		bloomZ,
-		look.stone
-	)
-	local leaves = D.leaves
-	for k = 1, leaves.count do
-		local turn = (k - (leaves.count + 1) / 2) * (math.pi / (leaves.count + 1))
-		local reach = leaves.across / 2
-		--[[ Each leaf is two blocks, the outer one tipped up, which is
-		     the curl the sheet draws. ]]
-		part(
-			"Leaf",
-			Vector3.new(leaves.thick, leaves.thick * 1.6, leaves.long),
-			base
-				* CFrame.new(
-					math.sin(turn) * reach * 0.55,
-					footY + bloom.base * 0.6,
-					bloomZ + math.cos(turn) * leaves.long * 0.3
-				)
-				* CFrame.Angles(0, turn, 0),
-			if k % 2 == 0 then look.leaf else look.leafLight,
-			model
-		)
-		part(
-			"LeafTip",
-			Vector3.new(leaves.thick, leaves.long * 0.7, leaves.thick * 1.4),
-			base
-				* CFrame.new(
-					math.sin(turn) * reach,
-					footY + bloom.base + leaves.long * 0.3,
-					bloomZ + math.cos(turn) * leaves.long * 0.55
-				)
-				* CFrame.Angles(0, turn, 0),
-			if k % 2 == 0 then look.leafDark else look.leaf,
-			model
-		)
-	end
-
-	local petals = D.petals
-	for k = 1, petals.count do
-		local turn = (k - 0.5) * math.pi * 2 / petals.count
-		part(
-			"Petal",
-			Vector3.new(petals.wide, petals.tall, petals.wide),
-			base
-				* CFrame.new(
-					math.sin(turn) * petals.out,
-					footY + bloom.base + petals.tall / 2,
-					bloomZ + math.cos(turn) * petals.out * 0.6
-				)
-				* CFrame.Angles(
-					math.cos(turn) * petals.lean,
-					math.pi / 4,
-					-math.sin(turn) * petals.lean
-				),
-			if k % 2 == 0 then look.petal else look.petalDeep,
-			model
-		)
-	end
-
-	local spire = D.spire
-	part(
-		"Spire",
-		Vector3.new(spire.wide, spire.tall, spire.wide),
-		base
-			* CFrame.new(0, footY + bloom.base + spire.tall / 2, bloomZ)
-			* CFrame.Angles(0, math.pi / 4, 0),
-		look.spireLight,
-		model
-	)
-	part(
-		"SpirePoint",
-		Vector3.new(spire.point, spire.point, spire.point),
-		base
-			* CFrame.new(0, footY + bloom.base + spire.tall + spire.point * 0.35, bloomZ)
-			* CFrame.Angles(0, math.pi / 4, math.pi / 4),
-		look.spire,
-		model
-	)
-	part(
-		"SpireHeart",
-		Vector3.new(spire.wide * 0.62, spire.tall * 0.52, spire.wide * 0.62),
-		base
-			* CFrame.new(0, footY + bloom.base + spire.tall * 0.42, bloomZ + spire.wide * 0.38)
-			* CFrame.Angles(0, math.pi / 4, 0),
-		look.petalDeep,
-		model
-	)
-
-	--[[ The two egg pedestals on the deck: a cream drum banded in cyan
-	     light with a magenta diamond on its face, leaves round its head,
-	     and the egg standing on it. ]]
-	local ped = D.pedestal
-	local clutch = D.egg
-	for _, sx in { -1, 1 } do
-		local x = sx * ped.out
-		local z = deckBack + ped.forward + D.plaza.deep / 2
-		pillar(
-			"Pedestal",
-			(base * CFrame.new(x, top, z)).Position,
-			ped.tall,
-			ped.across,
-			look.stone,
-			model
-		)
-		for b = 1, ped.bands do
-			local band = pillar(
-				"PedestalBand",
-				(base * CFrame.new(x, top + b * ped.tall / (ped.bands + 1) - 0.2, z)).Position,
-				0.4,
-				ped.across + 0.3,
-				look.glow,
-				model
-			)
-			band.Material = Enum.Material.Neon
-		end
-		part(
-			"PedestalMark",
-			Vector3.new(1.5, 1.5, 0.5),
-			base
-				* CFrame.new(x, top + ped.tall * 0.42, z + ped.across / 2)
-				* CFrame.Angles(0, 0, math.pi / 4),
-			look.petal,
-			model
-		)
-		pillar(
-			"PedestalCap",
-			(base * CFrame.new(x, top + ped.tall, z)).Position,
-			0.5,
-			ped.across + 0.6,
-			look.stoneLight,
-			model
-		)
-
-		--[[ The leaves round the egg's foot. ]]
-		local footTop = top + ped.tall + 0.5
-		for k = 1, clutch.leaves do
-			local turn = k * math.pi * 2 / clutch.leaves
-			part(
-				"EggLeaf",
-				Vector3.new(1.1, 2.6, 1.8),
-				base
-					* CFrame.new(
-						x + math.sin(turn) * ped.across * 0.36,
-						footTop + 0.9,
-						z + math.cos(turn) * ped.across * 0.36
-					)
-					* CFrame.Angles(0.4, turn, 0),
-				if k % 2 == 0 then look.leaf else look.leafLight,
-				model
-			)
-		end
-
-		--[[ The egg, and its flat angular spots -- pink on the left of
-		     the sheet, purple on the right. ]]
-		local centre = base * CFrame.new(x, footTop + clutch.tall / 2, z)
-		blob("Shell", Vector3.new(clutch.wide, clutch.tall, clutch.wide), centre, look.shell, model)
-		local spot = if sx < 0 then look.spotA else look.spotB
-		for k = 0, clutch.spots - 1 do
-			local turn = k * 2.39996
-			local lift = math.rad(-16 + (k % 3) * 34)
-			local normal = Vector3.new(
-				math.cos(turn) * math.cos(lift),
-				math.sin(lift),
-				math.sin(turn) * math.cos(lift)
-			)
-			local on = centre.Position
-				+ normal * (Vector3.new(clutch.wide, clutch.tall, clutch.wide) / 2) * 0.95
-			local across = clutch.wide * clutch.spot
-			part(
-				"Spot",
-				Vector3.new(across, across, 0.4),
-				CFrame.lookAt(on, on + normal) * CFrame.Angles(0, 0, math.pi / 4),
-				spot,
-				model
-			)
-		end
-	end
-
-	--[[ The two capped pillars at the back corners. ]]
-	local post = D.pillar
-	for _, sx in { -1, 1 } do
-		local x = sx * post.out
-		local z = deckBack - post.back
-		piece(
-			"Pillar",
-			Vector3.new(post.shaft, post.tall, post.shaft),
-			x,
-			post.tall / 2,
-			z,
-			look.stone
-		)
-		piece(
-			"PillarCap",
-			Vector3.new(post.cap, 1.4, post.cap),
-			x,
-			post.tall + 0.7,
-			z,
-			look.stoneLight
-		)
-		piece("PillarFoot", Vector3.new(post.cap, 1, post.cap), x, 0.5, z, look.stoneLight)
-		climb(x, z, post.shaft, 1, post.tall - 2)
-	end
-
-	--[[ The balustrade behind: capped posts round an arc with two rails
-	     between each pair, and greenery on them, as the sheet dresses
-	     them. ]]
-	local fence = D.fence
-	local centreZ = fence.centre
-	for k = 0, fence.posts do
-		local turn = math.pi - fence.span / 2 + fence.span * k / fence.posts
-		local x = math.sin(turn) * fence.radius
-		local z = centreZ + math.cos(turn) * fence.radius
-		piece(
-			"FencePost",
-			Vector3.new(fence.post, fence.tall, fence.post * 0.7),
-			x,
-			fence.tall / 2,
-			z,
-			look.stone
-		)
-		piece(
-			"FenceCap",
-			Vector3.new(fence.post + 0.6, 0.8, fence.post * 0.7 + 0.6),
-			x,
-			fence.tall + 0.4,
-			z,
-			look.stoneLight
-		)
-		if k % 3 == 0 then
-			climb(x, z, fence.post, 0.8, fence.tall - 1.4)
-		end
-		if k == 0 then
-			continue
-		end
-		local last = math.pi - fence.span / 2 + fence.span * (k - 1) / fence.posts
-		local lx = math.sin(last) * fence.radius
-		local lz = centreZ + math.cos(last) * fence.radius
-		local long = math.sqrt((x - lx) * (x - lx) + (z - lz) * (z - lz))
-		for _, lift in { 0.75, 0.45 } do
-			part(
-				"FenceRail",
-				Vector3.new(long, fence.rail * 2, fence.rail),
-				base
-					* CFrame.new((x + lx) / 2, fence.tall * lift, (z + lz) / 2)
-					* CFrame.Angles(0, (turn + last) / 2, 0),
-				look.stone,
-				model
-			)
-		end
-	end
-
-	return Vector3.new(D.across + 2, footY + bloom.base + spire.tall + spire.point, D.deep + 2)
-end
-
---[[
 	The Blacksmith, built from its sheet's own measurements
 	(`Config/BlacksmithDesign`, where every one of them is written down
 	against the reference it was read off).
@@ -1772,10 +1262,8 @@ local function building(name: string, at: Vector2, parent: Instance): Vector3?
 	     cottage on its reference, so each is built by its own hand and
 	     nothing below runs for it. Its name still floats over it, as
 	     every station's does. ]]
-	if name == "EggHatchery" or name == "Blacksmith" then
-		local built = if name == "EggHatchery"
-			then hatchery(base, model)
-			else blacksmith(base, model)
+	if name == "Blacksmith" then
+		local built = blacksmith(base, model)
 		if spec.title then
 			floatingTitle(spec, base * CFrame.new(0, built.Y + 12, 0), model)
 		end
@@ -1802,9 +1290,23 @@ local function building(name: string, at: Vector2, parent: Instance): Vector3?
 		it. The two books the owner modelled are still imports; everything
 		they stand on is parts, in the sheet's own colours.
 	]]
-	if name == "DexHall" then
+	--[[
+		The Dex Hall's building, which the Egg Hatchery wears too.
+
+		The owner's call on 2026-11-03, after three passes at building the
+		Hatchery from its own sheets came out wrong in game: "just reuse
+		the building that you made for the codex and recolor it". So one
+		builder draws both, and `look` is the only thing that differs --
+		`Config/Lobby.dex.colours` for the Dex Hall, the Hatchery's own
+		livery in `Config/HatcheryDesign.colours` for the other. The two
+		places where the building carries something of its own, the front
+		pads and the top of the roof, branch on `hatch`: books for the
+		Dex, eggs for the Hatchery.
+	]]
+	if name == "DexHall" or name == "EggHatchery" then
 		local dex = LobbyConfig.dex
-		local look = dex.colours
+		local hatch = name == "EggHatchery"
+		local look = if hatch then HatcheryDesign.colours else dex.colours
 		local hall = dex.hall
 		local wide, deepHall = hall.across, hall.deep
 		local halfD = deepHall / 2
@@ -2175,25 +1677,63 @@ local function building(name: string, at: Vector2, parent: Instance): Vector3?
 		local pads = dex.pads
 		for _, sx in { -1, 1 } do
 			slab("StandPad", pads.size, sx * pads.out, pads.top / 2, pads.forward, look.stone)
+			if hatch then
+				--[[ A nest of gold straw with an egg standing in it, where
+				     the Dex Hall stands a book. ]]
+				local E = HatcheryDesign
+				pillar(
+					"Nest",
+					(base * CFrame.new(sx * pads.out, pads.top, pads.forward)).Position,
+					E.nest.tall,
+					E.nest.across,
+					look.gold,
+					model
+				)
+				egg(
+					base
+						* CFrame.new(
+							sx * pads.out,
+							pads.top + E.nest.tall + E.padEgg.tall / 2 - 0.5,
+							pads.forward
+						),
+					Vector3.new(E.padEgg.wide, E.padEgg.tall, E.padEgg.wide),
+					E.shell,
+					if sx < 0 then E.spotA else E.spotB,
+					model
+				)
+			else
+				dexPiece(
+					"StandBook",
+					dex.standBook,
+					base
+						* CFrame.new(sx * pads.out, pads.top, pads.forward)
+						* CFrame.Angles(0, dex.turn, 0),
+					model
+				)
+			end
+		end
+
+		--[[ And what rests on the roof: the owner's open book on the Dex
+		     Hall, a big spotted egg on the Hatchery. ]]
+		if hatch then
+			local E = HatcheryDesign.roofEgg
+			egg(
+				base * CFrame.new(0, ridge + E.tall / 2 - E.seat, dex.roofBook.forward),
+				Vector3.new(E.wide, E.tall, E.wide),
+				HatcheryDesign.shell,
+				HatcheryDesign.spotA,
+				model
+			)
+		else
 			dexPiece(
-				"StandBook",
-				dex.standBook,
+				"RoofBook",
+				dex.roofBook,
 				base
-					* CFrame.new(sx * pads.out, pads.top, pads.forward)
+					* CFrame.new(0, ridge - dex.roofBook.seat, dex.roofBook.forward)
 					* CFrame.Angles(0, dex.turn, 0),
 				model
 			)
 		end
-
-		--[[ And the open book resting on the roof. ]]
-		dexPiece(
-			"RoofBook",
-			dex.roofBook,
-			base
-				* CFrame.new(0, ridge - dex.roofBook.seat, dex.roofBook.forward)
-				* CFrame.Angles(0, dex.turn, 0),
-			model
-		)
 
 		--[[ No wooden board on this one: at any size it covered the
 		     gable it had to hang on. Its name floats over it instead,

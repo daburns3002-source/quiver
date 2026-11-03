@@ -151,12 +151,13 @@ return function(t: TestRunner.Helper)
 		to come out as.
 	]]
 	t.test("each rebuilt station's footprint matches the building it builds", function()
+		--[[ The Hatchery wears the Dex Hall's building, so it declares
+		     the Dex Hall's own footprint and ridge. ]]
 		local hatchery = LobbyConfig.buildings.EggHatchery
-		t.equal(hatchery.size.X, HatcheryDesign.across, "the hatchery's width")
-		t.equal(hatchery.size.Z, HatcheryDesign.deep, "the hatchery's depth")
-		local H = HatcheryDesign
-		local bloom = H.plaza.tall - H.pool.drop + H.bloom.tall
-		t.isTrue(math.abs(hatchery.size.Y - bloom) < 1.5, "the hatchery's height")
+		local dexHall = LobbyConfig.buildings.DexHall
+		t.equal(hatchery.size.X, dexHall.size.X, "the hatchery's width")
+		t.equal(hatchery.size.Z, dexHall.size.Z, "the hatchery's depth")
+		t.equal(hatchery.size.Y, dexHall.size.Y, "the hatchery's height")
 
 		local smith = LobbyConfig.buildings.Blacksmith
 		t.equal(smith.size.X, BlacksmithDesign.across, "the blacksmith's width")
@@ -184,73 +185,55 @@ return function(t: TestRunner.Helper)
 		end
 	end)
 
-	--[[ The deck is something a player walks up onto: the steps have to
-	     climb the whole of it, and it has to leave room behind itself for
-	     the pool and the balustrade. ]]
-	t.test("the hatchery is a raised plaza you can walk up", function()
-		local D = HatcheryDesign
-		local climb = D.steps.count * D.steps.rise
-		t.isTrue(math.abs(climb - D.plaza.tall) < 0.5, "the steps do not reach the deck")
-		t.isTrue(D.steps.across < D.across, "the steps are wider than the plaza")
-		t.isTrue(D.parapet.tall > 0, "the deck has no parapet")
-		t.isTrue(D.plaza.chamfer * 2 < D.across, "the deck is all corner")
-		t.isTrue(D.plaza.deep < D.deep, "the deck fills the whole footprint")
-		t.isTrue(
-			D.plaza.deep + D.pool.reach <= D.deep,
-			"the pool runs off the back of the footprint"
-		)
+	--[[
+		The Hatchery is the Dex Hall's building recoloured (owner,
+		2026-11-03: "just reuse the building that you made for the codex
+		and recolor it"), so one builder draws both and the only thing
+		that may differ is the livery. These hold that: every colour the
+		builder reads has to be there, or the Hatchery would come out
+		with a nil for a roof -- and it has to actually be a different
+		colour, or there would be two Dex Halls in the lobby.
+	]]
+	t.test("the hatchery wears every colour the shared hall builder reads", function()
+		local dex = LobbyConfig.dex.colours
+		local hatch = HatcheryDesign.colours
+		local same = 0
+		local keys = 0
+		for key, value in dex :: { [string]: any } do
+			keys += 1
+			local mine = (hatch :: { [string]: any })[key]
+			t.notNil(mine, `the hatchery has no {key}`)
+			if typeof(value) == "Color3" then
+				t.equal(typeof(mine), "Color3", `the hatchery's {key} is not a colour`)
+				if mine == value then
+					same += 1
+				end
+			else
+				--[[ `books`, the row on the shelves: a list either way,
+				     and the Hatchery's are eggs. ]]
+				t.equal(typeof(mine), "table", `the hatchery's {key} is not a list`)
+				t.isTrue(#(mine :: { Color3 }) > 0, `the hatchery's {key} is empty`)
+			end
+		end
+		t.isTrue(keys >= 8, "the hall builder reads fewer colours than it used to")
+		t.isTrue(same < keys // 2, "the hatchery is painted as the Dex Hall")
 	end)
 
-	--[[ The pool, the bloom, the pillars and the balustrade all stand
-	     behind the deck, and all of them inside the footprint the lobby
-	     spaces the stations by. ]]
-	t.test("the hatchery's pool and bloom stand behind the deck, inside its footprint", function()
-		local D = HatcheryDesign
-		local half = D.deep / 2
-		local deckBack = half - D.plaza.deep
-		local poolBack = deckBack - D.pool.reach
-		t.isTrue(D.pool.reach > 0, "there is no pool")
-		t.isTrue(poolBack >= -half, "the pool runs past the back of the footprint")
-		t.isTrue(D.bloom.back > 0, "the bloom stands on the deck")
-		t.isTrue(deckBack - D.bloom.back > poolBack, "the bloom stands behind the pool")
-		t.isTrue(deckBack - D.pillar.back >= poolBack - 1, "a pillar stands behind the pool")
-		t.isTrue(
-			D.fence.centre - D.fence.radius >= -half,
-			"the balustrade runs past the back of the footprint"
-		)
-		t.isTrue(D.fence.radius <= D.across / 2, "the balustrade runs past the sides")
-		t.isTrue(D.pillar.out + D.pillar.cap / 2 <= D.across / 2, "a pillar stands off the plaza")
-	end)
-
-	--[[ The bloom is the thing the whole station is built round: a pale
-	     spire inside a ring of magenta petals over a fan of green leaves,
-	     every one of them shorter than the spire. ]]
-	t.test("the hatchery's bloom is a spire in a ring of petals over its leaves", function()
-		local D = HatcheryDesign
-		t.equal(D.petals.count, 6, "six petals")
-		t.equal(D.leaves.count, 6, "six leaves")
-		t.isTrue(D.spire.tall > D.petals.tall, "a petal stands over the spire")
-		t.isTrue(D.petals.out > D.spire.wide / 2, "the petals stand inside the spire")
-		t.isTrue(D.leaves.across > D.bloom.across, "the leaves do not reach past the petals")
-		t.isTrue(D.leaves.long < D.spire.tall, "a leaf stands over the spire")
-		local built = D.bloom.base + D.spire.tall + D.spire.point
-		t.isTrue(math.abs(built - D.bloom.tall) < 1.5, "the bloom is not the height it says")
-	end)
-
-	--[[ One egg on its own lit pedestal each side, both standing on the
-	     deck rather than off the front of it. ]]
-	t.test("the hatchery's two eggs stand on lit pedestals on the deck", function()
-		local D = HatcheryDesign
-		t.isTrue(D.pedestal.bands >= 1, "the pedestal carries no light")
-		t.isTrue(D.pedestal.out > D.pedestal.across / 2, "the two pedestals run into each other")
-		t.isTrue(
-			D.pedestal.out + D.pedestal.across / 2 < D.across / 2,
-			"a pedestal hangs off the plaza"
-		)
-		t.isTrue(math.abs(D.pedestal.forward) < D.plaza.deep / 2, "a pedestal stands off the deck")
-		t.isTrue(D.egg.tall > D.pedestal.tall, "the egg is shorter than what it stands on")
-		t.isTrue(D.egg.wide < D.pedestal.across, "the egg is wider than its pedestal")
-		t.isTrue(D.egg.spots >= 4, "the shell has no spots")
+	--[[ Where the Dex Hall stands a book, the Hatchery stands an egg:
+	     one on each front pad in a nest, and a big one on the roof. ]]
+	t.test("the hatchery's eggs sit on its pads and on its roof", function()
+		local E = HatcheryDesign
+		local pads = LobbyConfig.dex.pads
+		t.isTrue(E.padEgg.tall > E.padEgg.wide, "a pad egg is not egg-shaped")
+		t.isTrue(E.roofEgg.tall > E.roofEgg.wide, "the roof egg is not egg-shaped")
+		t.isTrue(E.roofEgg.wide > E.padEgg.wide, "the roof egg is no bigger than a pad egg")
+		--[[ The egg and the nest under it both stand ON the pad. ]]
+		t.isTrue(E.nest.across >= E.padEgg.wide, "the egg overhangs its nest")
+		t.isTrue(E.nest.across < pads.size.X, "the nest overhangs its pad")
+		t.isTrue(E.nest.across < pads.size.Z, "the nest overhangs its pad")
+		--[[ And the roof egg sits ON the ridge rather than sunk in it. ]]
+		t.isTrue(E.roofEgg.seat < E.roofEgg.tall / 2, "the roof egg sinks into the roof")
+		t.isTrue(E.roofEgg.seat >= 0, "the roof egg floats over the roof")
 	end)
 
 	--[[ The forge house is a timber front in a shell of stone, and the

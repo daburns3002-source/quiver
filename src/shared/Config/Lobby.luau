@@ -302,14 +302,15 @@ local Lobby = {
 			title = "WEAPON SHOP",
 			titleColour = Color3.fromRGB(255, 150, 60),
 		},
-		--[[ Rebuilt from its sheet on 2026-11-02
-		     (`Config/HatcheryDesign`): a timber shelter with a stone back
-		     wall under a flat deck of paving, with the three eggs in
-		     their own stone nests under it. `size` is the shelter's
-		     width, the top of its deck and its depth. As with the
-		     Blacksmith, no `rise`, `roof` or `emblem`. ]]
+		--[[ The Dex Hall's building in the Hatchery's own livery (owner,
+		     2026-11-03: "just reuse the building that you made for the
+		     codex and recolor it"), so it declares the Dex Hall's
+		     footprint and ridge. `Config/HatcheryDesign` holds the
+		     colours and the eggs; the geometry is `dex.hall` below. As
+		     with the Blacksmith it carries no `rise`, `roof` or
+		     `emblem`: the cottage code never runs for it. ]]
 		EggHatchery = {
-			size = Vector3.new(30, 17, 24),
+			size = Vector3.new(38, 13.71, 28),
 			rise = 0,
 			walls = Color3.fromRGB(150, 96, 52),
 			roof = Color3.fromRGB(176, 174, 166),
@@ -587,8 +588,8 @@ local Lobby = {
 	     `at` is in studs from the station's centre. ]]
 	stands = {
 		EggHatchery = {
-			{ kind = "egg", key = "MossyEgg", at = Vector2.new(-22, 14) },
-			{ kind = "egg", key = "ThornwoodEgg", at = Vector2.new(22, 14) },
+			{ kind = "egg", key = "MossyEgg", at = Vector2.new(-20, 21) },
+			{ kind = "egg", key = "ThornwoodEgg", at = Vector2.new(20, 21) },
 		},
 		Blacksmith = {
 			{ kind = "crate", key = "MossyGlade", at = Vector2.new(-14, 22) },

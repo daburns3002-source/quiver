@@ -284,26 +284,38 @@ local Lobby = {
 	} :: { Placed },
 
 	buildings = {
+		--[[ Rebuilt from its sheet on 2026-11-02 (`Config/BlacksmithDesign`,
+		     where every measurement is written down): the sheet's shop is
+		     a stone forge open to the front under a chimney stack, not the
+		     red-roofed cottage with a sword on its ridge that stood here.
+		     `size` is what that build comes to -- the wall's width, its
+		     height, and the depth of the apron it stands on -- so the
+		     spacing between stations is measured against what is actually
+		     there. It carries no `rise`, `roof`, `chimney` or `emblem`:
+		     nothing of the cottage runs for it. ]]
 		Blacksmith = {
-			size = Vector3.new(32, 13, 22),
-			rise = 9,
-			walls = Color3.fromRGB(186, 178, 168),
-			roof = Color3.fromRGB(204, 70, 58),
+			size = Vector3.new(32, 17, 22),
+			rise = 0,
+			walls = Color3.fromRGB(150, 152, 158),
+			roof = Color3.fromRGB(150, 152, 158),
 			sign = "BLACKSMITH",
-			chimney = true,
 			title = "WEAPON SHOP",
 			titleColour = Color3.fromRGB(255, 150, 60),
-			emblem = "sword",
 		},
+		--[[ Rebuilt from its sheet on 2026-11-02
+		     (`Config/HatcheryDesign`): an open timber pavilion under a
+		     flat stone deck, with the three eggs in one round nest ring
+		     under it. `size` is the pavilion's width, the top of its deck
+		     and its depth. As with the Blacksmith, no `rise`, `roof` or
+		     `emblem`. ]]
 		EggHatchery = {
-			size = Vector3.new(28, 12, 20),
-			rise = 9,
-			walls = Color3.fromRGB(248, 236, 208),
-			roof = Color3.fromRGB(236, 120, 170),
+			size = Vector3.new(30, 24.6, 14),
+			rise = 0,
+			walls = Color3.fromRGB(150, 96, 52),
+			roof = Color3.fromRGB(176, 174, 166),
 			sign = "EGG HATCHERY",
 			title = "HATCH EGGS",
 			titleColour = Color3.fromRGB(255, 214, 72),
-			emblem = "egg",
 		},
 		GearStation = {
 			size = Vector3.new(32, 12, 22),

@@ -24,7 +24,9 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
+local BlacksmithDesign = require(ReplicatedStorage.Shared.Config.BlacksmithDesign)
 local Eggs = require(ReplicatedStorage.Shared.Config.Eggs)
+local HatcheryDesign = require(ReplicatedStorage.Shared.Config.HatcheryDesign)
 local LevelUnlocks = require(ReplicatedStorage.Shared.Util.LevelUnlocks)
 local LobbyConfig = require(ReplicatedStorage.Shared.Config.Lobby)
 local MeshTemplates = require(script.Parent.Parent.Util.MeshTemplates)
@@ -694,10 +696,612 @@ local function floatingTitle(spec: LobbyConfig.Building, at: CFrame, model: Mode
 	label.Parent = board
 end
 
+--[[
+	The Egg Hatchery, built from its sheet's own measurements
+	(`Config/HatcheryDesign`, where every one of them is written down
+	against the reference it was read off).
+
+	An open timber pavilion: four posts, a beam round their heads, a flat
+	deck of stone slabs over them, the nameboard hanging from the front
+	beam with a lantern at each end of it, and one round stone nest ring
+	under it holding three eggs in gold collars. There is no wall, no door
+	and no gable -- the front is open and you look straight in at the eggs,
+	which is what the sheet shows and what the cottage that stood here did
+	not.
+
+	Built facing +Z, like every other station; `base` already carries the
+	turn that points that front at the middle of the clearing.
+]]
+local function hatchery(base: CFrame, model: Model): Vector3
+	local D = HatcheryDesign
+	local look = D.colours
+	local halfW, halfD = D.across / 2, D.deep / 2
+	local deckFoot = D.postTall
+	local deckTop = deckFoot + D.beam + D.slab
+
+	local function slab(label: string, size: Vector3, x: number, y: number, z: number, c: Color3)
+		return part(label, size, base * CFrame.new(x, y, z), c, model)
+	end
+
+	--[[ The paved apron the whole station stands on, which the sheet runs
+	     out past the ring on every side. ]]
+	pillar("Apron", base.Position, 0.3, D.apron, look.apron, model)
+
+	--[[ The four posts, and the beam running round their heads. ]]
+	local postX, postZ = halfW - D.postThick / 2, halfD - D.postThick / 2
+	for _, sx in { -1, 1 } do
+		for _, sz in { -1, 1 } do
+			slab(
+				"Post",
+				Vector3.new(D.postThick, D.postTall, D.postThick),
+				sx * postX,
+				D.postTall / 2,
+				sz * postZ,
+				look.timberDark
+			)
+			--[[ A short brace from the post up into the beam at each
+			     corner, as the sheet frames its openings. ]]
+			slab(
+				"Brace",
+				Vector3.new(4.4, D.postThick * 0.7, D.postThick * 0.7),
+				sx * (postX - 2.2),
+				D.postTall - 1.2,
+				sz * postZ,
+				look.timber
+			)
+		end
+		slab(
+			"BeamSide",
+			Vector3.new(D.beam, D.beam, D.deep),
+			sx * postX,
+			deckFoot + D.beam / 2,
+			0,
+			look.timber
+		)
+		slab(
+			"Beam",
+			Vector3.new(D.across, D.beam, D.beam),
+			0,
+			deckFoot + D.beam / 2,
+			sx * postZ,
+			look.timber
+		)
+	end
+
+	--[[ The flat roof deck: a grid of stone slabs in two greys, as the
+	     sheet paves it, lapped `eaves` studs past the posts all round. ]]
+	local deckW, deckD = D.across + D.eaves * 2, D.deep + D.eaves * 2
+	local cols, rows = 6, 4
+	for col = 1, cols do
+		for row = 1, rows do
+			slab(
+				"Deck",
+				Vector3.new(deckW / cols, D.slab, deckD / rows),
+				(col - (cols + 1) / 2) * (deckW / cols),
+				deckTop - D.slab / 2,
+				(row - (rows + 1) / 2) * (deckD / rows),
+				if (col + row) % 2 == 0 then look.slab else look.slabDark
+			)
+		end
+	end
+
+	--[[ The nameboard, hanging from the front beam. ]]
+	signboard(
+		"EGG HATCHERY",
+		base * CFrame.new(0, deckFoot - D.sign.tall / 2 - 0.4, halfD + D.sign.out),
+		D.sign.across,
+		D.sign.tall,
+		model
+	)
+
+	--[[ A lantern at each end of the beam, and the vines trailing off the
+	     front edge of the deck. ]]
+	for _, sx in { -1, 1 } do
+		local x = sx * D.lantern.out
+		local y = deckFoot - D.lantern.drop
+		slab("LanternArm", Vector3.new(0.4, D.lantern.drop, 0.5), x, y + 1.3, halfD, look.iron)
+		slab("LanternCap", Vector3.new(1.4, 0.5, 1.4), x, y + 0.6, halfD, look.iron)
+		local glass = slab(
+			"Lantern",
+			Vector3.new(1.1, D.lantern.tall, 1.1),
+			x,
+			y - D.lantern.tall / 2,
+			halfD,
+			look.lantern
+		)
+		glass.Material = Enum.Material.Neon
+		local light = Instance.new("PointLight")
+		light.Color = look.lantern
+		light.Range = D.lantern.range
+		light.Brightness = D.lantern.brightness
+		light.Parent = glass
+	end
+	--[[ Down each side, as the sheet hangs them. Across the front they
+	     fell over the nameboard. ]]
+	for _, sx in { -1, 1 } do
+		for k = 1, D.vines.count do
+			local z = (k - (D.vines.count + 1) / 2) * (D.deep / D.vines.count)
+			local long = D.vines.long.Min
+				+ (D.vines.long.Max - D.vines.long.Min) * (((k + sx) * 0.37) % 1)
+			slab(
+				"Vine",
+				Vector3.new(0.45, long, 0.45),
+				sx * (halfW + D.eaves * 0.6),
+				deckTop - D.slab - long / 2,
+				z,
+				look.vine
+			)
+		end
+	end
+
+	--[[
+		The nest ring: a course of stone blocks round a circle, a moss
+		floor inside it, and the three eggs in their gold collars.
+
+		Each block is turned to the circle rather than laid square, or
+		the ring reads as a cog; its width is the chord its share of the
+		circle spans, plus a little so the joints close.
+	]]
+	local ring = D.ring
+	local radius = (ring.across - ring.thick) / 2
+	local chord = 2 * math.pi * radius / ring.blocks * 1.25
+	for k = 0, ring.blocks - 1 do
+		local turn = k * math.pi * 2 / ring.blocks
+		part(
+			"RingStone",
+			Vector3.new(chord, ring.tall, ring.thick),
+			base
+				* CFrame.new(
+					math.sin(turn) * radius,
+					ring.tall / 2,
+					ring.forward + math.cos(turn) * radius
+				)
+				* CFrame.Angles(0, turn, 0),
+			if k % 2 == 0 then look.stone else look.stoneLight,
+			model
+		)
+	end
+	pillar(
+		"NestFloor",
+		(base * CFrame.new(0, 0, ring.forward)).Position,
+		ring.tall - 0.6,
+		ring.across - ring.thick * 2,
+		look.moss,
+		model
+	)
+
+	for k, spec in D.eggs do
+		local x = (k - (#D.eggs + 1) / 2) * D.nestApart
+		local foot = ring.tall - 0.6
+		local at = base * CFrame.new(x, foot, ring.forward + spec.back)
+		--[[ The gold collar the egg sits in, a shade wider than the egg
+		     so the shell rises out of it rather than off it. ]]
+		pillar("Collar", at.Position, 1.1, spec.collar, look.gold, model)
+		pillar(
+			"CollarInner",
+			at.Position + Vector3.new(0, 0.2, 0),
+			1,
+			spec.collar - 1.6,
+			look.moss,
+			model
+		)
+		local centre = at * CFrame.new(0, 0.9 + spec.tall / 2, 0)
+		blob("Shell", Vector3.new(spec.wide, spec.tall, spec.wide), centre, look.shell, model)
+		for s = 0, D.spots.count - 1 do
+			local turn = s * 2.39996
+			local lift = math.rad(-30 + (s % 4) * 28)
+			local normal = Vector3.new(
+				math.cos(turn) * math.cos(lift),
+				math.sin(lift),
+				math.sin(turn) * math.cos(lift)
+			)
+			local size = Vector3.new(spec.wide, spec.tall, spec.wide)
+			local on = centre.Position + normal * (size / 2) * 0.95
+			local across = spec.wide * D.spots.size * (0.8 + (s % 3) * 0.2)
+			blob(
+				"Spot",
+				Vector3.new(across, across, 0.4),
+				CFrame.lookAt(on, on + normal),
+				if s % 2 == 0 then look.spotA else look.spotB,
+				model
+			)
+		end
+	end
+
+	--[[ The little pedestal with a green stone on it, out front. ]]
+	local ped = D.pedestal
+	pillar(
+		"Pedestal",
+		(base * CFrame.new(0, 0, ped.forward)).Position,
+		ped.tall,
+		ped.across,
+		look.stone,
+		model
+	)
+	pillar(
+		"PedestalCap",
+		(base * CFrame.new(0, ped.tall, ped.forward)).Position,
+		0.5,
+		ped.across + 0.8,
+		look.stoneLight,
+		model
+	)
+	blob(
+		"PedestalStone",
+		Vector3.new(2.2, 1.8, 2.2),
+		base * CFrame.new(0, ped.tall + 1.2, ped.forward),
+		look.gem,
+		model
+	)
+
+	return Vector3.new(D.across + 2, deckTop, D.deep + 2)
+end
+
+--[[
+	The Blacksmith, built from its sheet's own measurements
+	(`Config/BlacksmithDesign`, where every one of them is written down
+	against the reference it was read off).
+
+	A stone forge open to the front: one tall back wall in courses, a
+	short return down each side, a timber post at each end under a front
+	beam, a chimney stack behind, the hearth arch alight in the wall, the
+	nameboard over the racks, a workbench and a sword rack against the
+	wall, two anvils out on the apron and a blue banner at each end.
+
+	Built facing +Z, like every other station.
+]]
+local function blacksmith(base: CFrame, model: Model): Vector3
+	local D = BlacksmithDesign
+	local look = D.colours
+	local halfW, halfD = D.across / 2, D.deep / 2
+	--[[ The wall's front face, which everything mounted on it hangs off. ]]
+	local wallFace = -halfD + D.wallThick
+
+	local function slab(label: string, size: Vector3, x: number, y: number, z: number, c: Color3)
+		return part(label, size, base * CFrame.new(x, y, z), c, model)
+	end
+
+	--[[ The paved apron, and its darker edging. ]]
+	slab("ApronEdge", Vector3.new(D.apron.X + 2, 0.24, D.apron.Y + 2), 0, 0.12, 2, look.floorEdge)
+	slab("Apron", Vector3.new(D.apron.X, 0.3, D.apron.Y), 0, 0.3, 2, look.floor)
+
+	--[[
+		The back wall, in courses, with the hearth arch left out of it.
+
+		A strip that stands over the hearth's opening is built only from
+		the lintel up; every other strip runs the full height. Building
+		the hole this way rather than drawing a dark rectangle on the
+		wall is what makes the fire read as being INSIDE the wall, which
+		is what the sheet shows.
+	]]
+	local strips = 10
+	local stripW = D.across / strips
+	local hearthLeft = D.hearth.side - D.hearth.across / 2
+	local hearthRight = D.hearth.side + D.hearth.across / 2
+	for s = 1, strips do
+		local x = (s - (strips + 1) / 2) * stripW
+		local overHearth = x + stripW / 2 > hearthLeft and x - stripW / 2 < hearthRight
+		local foot = if overHearth then D.hearth.tall else 0
+		for course = 1, D.courses do
+			local bandFoot = (course - 1) * D.wallTall / D.courses
+			local bandTop = course * D.wallTall / D.courses
+			if bandTop <= foot then
+				continue
+			end
+			local y0 = math.max(bandFoot, foot)
+			slab(
+				"WallStone",
+				Vector3.new(stripW, bandTop - y0, D.wallThick),
+				x,
+				(y0 + bandTop) / 2,
+				-halfD + D.wallThick / 2,
+				if (s + course) % 2 == 0 then look.stone else look.stoneDark
+			)
+		end
+	end
+	--[[ The stone shelf capping the wall, lapped out past its face. ]]
+	slab(
+		"WallCap",
+		Vector3.new(D.across + D.cap.out * 2, D.cap.tall, D.wallThick + D.cap.out * 2),
+		0,
+		D.wallTall + D.cap.tall / 2,
+		-halfD + D.wallThick / 2,
+		look.stoneLight
+	)
+
+	--[[ The two short returns down the sides, and the timber frame. ]]
+	for _, sx in { -1, 1 } do
+		slab(
+			"Return",
+			Vector3.new(D.wallThick, D.wallTall, D.returns),
+			sx * (halfW - D.wallThick / 2),
+			D.wallTall / 2,
+			-halfD + D.returns / 2,
+			look.stone
+		)
+		slab(
+			"FramePost",
+			Vector3.new(D.post.thick, D.wallTall, D.post.thick),
+			sx * D.post.out,
+			D.wallTall / 2,
+			-halfD + D.returns - D.post.thick / 2,
+			look.timberDark
+		)
+	end
+
+	--[[ The chimney stack behind, with its dark mouth on top. ]]
+	local ch = D.chimney
+	slab(
+		"Chimney",
+		Vector3.new(ch.across, D.wallTall + ch.rise, ch.across),
+		ch.side,
+		(D.wallTall + ch.rise) / 2,
+		-halfD - ch.back + ch.across / 2,
+		look.stone
+	)
+	slab(
+		"ChimneyCap",
+		Vector3.new(ch.across + 1.2, 1.2, ch.across + 1.2),
+		ch.side,
+		D.wallTall + ch.rise + 0.6,
+		-halfD - ch.back + ch.across / 2,
+		look.stoneLight
+	)
+	local mouth = slab(
+		"ChimneyMouth",
+		Vector3.new(ch.mouth, 1.4, ch.mouth),
+		ch.side,
+		D.wallTall + ch.rise + 0.8,
+		-halfD - ch.back + ch.across / 2,
+		look.board
+	)
+	local smoke = Instance.new("Smoke")
+	smoke.Color = Color3.fromRGB(214, 214, 214)
+	smoke.Opacity = 0.14
+	smoke.RiseVelocity = 5
+	smoke.Size = 4
+	smoke.Parent = mouth
+
+	--[[
+		The hearth: the brick lip across the opening's foot, the coals on
+		it, and a sheet of fire standing in the arch, which is the only
+		thing lighting this corner of the lobby.
+	]]
+	local hearth = D.hearth
+	--[[ The lip juts out onto the apron, where the sheet has it, and the
+	     fire stands just inside the opening's own front: both were set
+	     inside the wall's two studs of thickness at first, where the
+	     stone hid the whole hearth from anywhere but dead in front. ]]
+	slab(
+		"HearthLip",
+		Vector3.new(hearth.across + 1.6, hearth.lip, D.wallThick + 1.6),
+		hearth.side,
+		hearth.lip / 2,
+		wallFace + 0.8,
+		look.brick
+	)
+	slab(
+		"HearthBack",
+		Vector3.new(hearth.across, hearth.tall, 0.6),
+		hearth.side,
+		hearth.tall / 2,
+		-halfD + 0.3,
+		look.brick
+	)
+	local fire = slab(
+		"ForgeFire",
+		Vector3.new(hearth.across - 2.4, hearth.tall - 2, 0.6),
+		hearth.side,
+		hearth.lip + (hearth.tall - 2) / 2,
+		wallFace - 0.5,
+		look.fire
+	)
+	fire.Material = Enum.Material.Neon
+	local light = Instance.new("PointLight")
+	light.Color = look.fire
+	light.Range = hearth.range
+	light.Brightness = hearth.brightness
+	light.Parent = fire
+	for k = -2, 2 do
+		local coal = slab(
+			"Coal",
+			Vector3.new(1.8, 0.7, 1.2),
+			hearth.side + k * 2,
+			hearth.lip + 0.5,
+			wallFace + 0.4,
+			look.ember
+		)
+		coal.Material = Enum.Material.Neon
+	end
+
+	--[[ The nameboard on the wall, over the racks -- on the side AWAY
+	     from the hearth, as the sheet hangs it. It was drawn on the
+	     hearth's own side at first, where it covered the fire. ]]
+	signboard(
+		"BLACKSMITH",
+		base
+			* CFrame.new(
+				(D.across / 2 - D.sign.across / 2 - 1.5) * -math.sign(D.hearth.side),
+				D.wallTall - D.sign.below - D.sign.tall / 2,
+				wallFace + D.sign.out
+			),
+		D.sign.across,
+		D.sign.tall,
+		model
+	)
+
+	--[[ The sword rack against the wall, left of the hearth. ]]
+	local rack = D.rack
+	for _, sx in { -1, 1 } do
+		slab(
+			"RackPost",
+			Vector3.new(0.7, rack.tall, 0.7),
+			rack.side + sx * rack.across / 2,
+			rack.tall / 2,
+			-halfD + rack.forward,
+			look.timberDark
+		)
+	end
+	slab(
+		"RackBar",
+		Vector3.new(rack.across, 0.6, 0.7),
+		rack.side,
+		rack.tall - 0.5,
+		-halfD + rack.forward,
+		look.timber
+	)
+	slab(
+		"RackFoot",
+		Vector3.new(rack.across + 0.8, 0.6, 2.2),
+		rack.side,
+		0.3,
+		-halfD + rack.forward,
+		look.timberDark
+	)
+	for k = 1, rack.blades do
+		local x = rack.side + (k - (rack.blades + 1) / 2) * (rack.across / rack.blades)
+		local z = -halfD + rack.forward + 0.7
+		slab("Blade", Vector3.new(0.7, rack.blade, 0.26), x, rack.blade / 2 + 0.6, z, look.steel)
+		slab("Guard", Vector3.new(1.9, 0.5, 0.5), x, rack.blade + 0.8, z, look.gold)
+		slab("Grip", Vector3.new(0.5, 1.4, 0.5), x, rack.blade + 1.7, z, look.timberDark)
+	end
+
+	--[[ The workbench further left, with hammers laid on it. ]]
+	local bench = D.bench
+	slab(
+		"Bench",
+		Vector3.new(bench.long, 0.6, bench.wide),
+		bench.side,
+		bench.tall,
+		-halfD + bench.forward,
+		look.timber
+	)
+	for _, sx in { -1, 1 } do
+		slab(
+			"BenchLeg",
+			Vector3.new(0.7, bench.tall, 0.7),
+			bench.side + sx * (bench.long / 2 - 0.6),
+			bench.tall / 2,
+			-halfD + bench.forward,
+			look.timberDark
+		)
+	end
+	for k = -1, 1 do
+		slab(
+			"HammerHead",
+			Vector3.new(1.5, 0.9, 0.9),
+			bench.side + k * 2.4,
+			bench.tall + 0.75,
+			-halfD + bench.forward,
+			look.anvil
+		)
+		slab(
+			"HammerShaft",
+			Vector3.new(0.4, 0.4, 2.6),
+			bench.side + k * 2.4,
+			bench.tall + 0.6,
+			-halfD + bench.forward + 1.6,
+			look.timberDark
+		)
+	end
+
+	--[[ The two anvils out on the apron: a block foot, a waist and the
+	     face over it, with the horn out one end, as the sheet draws
+	     them. ]]
+	local anvil = D.anvil
+	for _, sx in { -1, 1 } do
+		local x = sx * anvil.apart / 2
+		local z = -halfD + anvil.forward
+		slab(
+			"AnvilFoot",
+			Vector3.new(anvil.long * 0.62, anvil.tall * 0.26, anvil.wide),
+			x,
+			anvil.tall * 0.13,
+			z,
+			look.anvil
+		)
+		slab(
+			"AnvilWaist",
+			Vector3.new(anvil.long * 0.34, anvil.tall * 0.42, anvil.wide * 0.7),
+			x,
+			anvil.tall * 0.47,
+			z,
+			look.anvil
+		)
+		slab(
+			"AnvilFace",
+			Vector3.new(anvil.long, anvil.tall * 0.32, anvil.wide),
+			x,
+			anvil.tall * 0.84,
+			z,
+			look.anvil
+		)
+		slab(
+			"AnvilHorn",
+			Vector3.new(anvil.long * 0.3, anvil.tall * 0.2, anvil.wide * 0.6),
+			x + sx * anvil.long * 0.62,
+			anvil.tall * 0.84,
+			z,
+			look.anvil
+		)
+	end
+
+	--[[ A banner at each end: the cross pole, the cloth, and the gold
+	     emblem on its face. ]]
+	local banner = D.banner
+	for _, sx in { -1, 1 } do
+		local x = sx * banner.out
+		local z = -halfD + banner.forward
+		slab("BannerPost", Vector3.new(0.7, banner.top, 0.7), x, banner.top / 2, z, look.timberDark)
+		slab(
+			"BannerPole",
+			Vector3.new(banner.wide + 1.6, 0.6, 0.6),
+			x,
+			banner.top,
+			z,
+			look.timberDark
+		)
+		slab(
+			"BannerCloth",
+			Vector3.new(banner.wide, banner.long, 0.3),
+			x,
+			banner.top - banner.long / 2 - 0.4,
+			z,
+			look.banner
+		)
+		--[[ The emblem: a stem with two arms, which is the shape the
+		     sheet's gold mark on the cloth comes to. ]]
+		slab(
+			"BannerMark",
+			Vector3.new(0.8, banner.long * 0.42, 0.4),
+			x,
+			banner.top - banner.long / 2 - 0.4,
+			z + 0.1,
+			look.gold
+		)
+		for _, ax in { -1, 1 } do
+			slab(
+				"BannerMark",
+				Vector3.new(0.7, banner.long * 0.26, 0.4),
+				x + ax * 0.9,
+				banner.top - banner.long / 2 - 0.9,
+				z + 0.1,
+				look.gold
+			)
+		end
+	end
+
+	return Vector3.new(D.across + 2, D.wallTall, D.deep + 2)
+end
+
 --[[ A station's cottage (`LobbyConfig.buildings`): a stone foundation,
      plastered walls framed in timber, a door and two windows, a gabled roof
      with a ridge, its sign over the door, and what its kind adds. Its door
-     faces south. ]]
+     faces south.
+
+     The Dex Hall, the Blacksmith and the Egg Hatchery are none of those
+     things on their sheets, so each is built by its own hand and nothing
+     of the cottage runs for them. ]]
 local function building(name: string, at: Vector2, parent: Instance): Vector3?
 	local spec = LobbyConfig.buildings[name]
 	if not spec then
@@ -711,6 +1315,21 @@ local function building(name: string, at: Vector2, parent: Instance): Vector3?
 	     everything below -- walls, roof, porch, sign and props -- comes
 	     round with it: they are all placed off `base`. ]]
 	local base = CFrame.new(world(at, LAWN)) * CFrame.Angles(0, LobbyConfig.facing(at), 0)
+
+	--[[ The two rebuilt from their sheets on 2026-11-02: neither is a
+	     cottage on its reference, so each is built by its own hand and
+	     nothing below runs for it. Its name still floats over it, as
+	     every station's does. ]]
+	if name == "EggHatchery" or name == "Blacksmith" then
+		local built = if name == "EggHatchery"
+			then hatchery(base, model)
+			else blacksmith(base, model)
+		if spec.title then
+			floatingTitle(spec, base * CFrame.new(0, built.Y + 12, 0), model)
+		end
+		model.Parent = parent
+		return built
+	end
 
 	--[[
 		The Dex Hall is the owner's own model, not a box with props on it

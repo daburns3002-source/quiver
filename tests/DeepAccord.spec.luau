@@ -42,9 +42,14 @@ return function(t: TestRunner.Helper)
 			if accord then
 				t.isTrue(accord.targets >= 2, key)
 				t.isTrue(accord.duration > 0, key)
-				--[[ And it adds nothing itself: a canopy that also hit
-				     would be doing the multiplying by the back door. ]]
-				t.isNil(spec.damage, key)
+				--[[ A canopy pet may hit for itself (the Abyss Jelly's
+				     tentacles, owner 2026-11-02). It cannot multiply by
+				     the back door: `Combat/PetCombat` lands a pet's blow
+				     through `EnemyManager.damage` with no player behind
+				     it, and only a player's blow is shared out, so a
+				     pet's own sting lands whole on each enemy it bit and
+				     the canopy never sees it. The tests above hold the
+				     player's side of that. ]]
 			end
 		end
 	end)

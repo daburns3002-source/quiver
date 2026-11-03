@@ -5,7 +5,7 @@ modeled off"), as the shop's icons.
 
     python -I assets/ui/shop/three_quarter.py
 
-Reads assets/concepts/blocky/weapons/skins/forest/<name>_views.*, finds the
+Reads assets/concepts/blocky/weapons/skins/<area>/<name>_views.*, finds the
 rightmost tall object in the sheet's top row (the three-quarter view, as
 every sheet lays it out), keys out the light grey background, keeps the
 weapon and the sparkles round it (not its label), turns it to the shop's
@@ -25,7 +25,7 @@ from PIL import Image
 from scipy import ndimage
 
 ROOT = pathlib.Path(__file__).resolve().parents[3]
-SHEETS = ROOT / "assets/concepts/blocky/weapons/skins/forest"
+SHEETS = ROOT / "assets/concepts/blocky/weapons/skins"
 OUT = pathlib.Path(__file__).resolve().parent / "icons"
 SIZE = 256
 PAD = 0.06
@@ -33,23 +33,40 @@ PAD = 0.06
 TILT = 21.3
 
 WEAPONS = {
-    "TwigBow": "twig_bow_views.jpg",
-    "FireflyBow": "firefly_bow_views.png",
-    "MossSlimeBow": "moss_slime_bow_views.png",
-    "EmberFangBow": "ember_fang_bow_views.png",
-    "GladeSpiritBow": "glade_spirit_bow_views.png",
-    "BranchStaff": "branch_staff_views.jpg",
-    "ToadstoolStaff": "toadstool_staff_views.png",
-    "LanternStaff": "lantern_staff_views.png",
-    "HootmossStaff": "hootmoss_staff_views.png",
-    "SlimeCrownStaff": "slime_crown_staff_views.png",
-    "WorldrootStaff": "worldroot_staff_views.png",
-    "TimberBlade": "timber_blade_views.jpg",
-    "MossstoneBlade": "mossstone_blade_views.png",
-    "ThornBlade": "thorn_blade_views.png",
-    "BroodsplitBlade": "broodsplit_blade_views.png",
-    "EmberfangBlade": "emberfang_blade_views.png",
-    "GladeheartBlade": "gladeheart_blade_views.png",
+    "TwigBow": "forest/twig_bow_views.jpg",
+    "FireflyBow": "forest/firefly_bow_views.png",
+    "MossSlimeBow": "forest/moss_slime_bow_views.png",
+    "EmberFangBow": "forest/ember_fang_bow_views.png",
+    "GladeSpiritBow": "forest/glade_spirit_bow_views.png",
+    "BranchStaff": "forest/branch_staff_views.jpg",
+    "ToadstoolStaff": "forest/toadstool_staff_views.png",
+    "LanternStaff": "forest/lantern_staff_views.png",
+    "HootmossStaff": "forest/hootmoss_staff_views.png",
+    "SlimeCrownStaff": "forest/slime_crown_staff_views.png",
+    "WorldrootStaff": "forest/worldroot_staff_views.png",
+    "TimberBlade": "forest/timber_blade_views.jpg",
+    "MossstoneBlade": "forest/mossstone_blade_views.png",
+    "ThornBlade": "forest/thorn_blade_views.png",
+    "BroodsplitBlade": "forest/broodsplit_blade_views.png",
+    "EmberfangBlade": "forest/emberfang_blade_views.png",
+    "GladeheartBlade": "forest/gladeheart_blade_views.png",
+    # Drowned Village (area 3), docs/WEAPONS-DROWNED.md. Sheets recovered from
+    # `phase-3/gear-and-shops` (bfe0227), which never merged -- which is why
+    # these fourteen had no icon at all (docs/BALANCE-REPORT.md Sec 5).
+    "SlatefinBow": "drowned/slatefin_bow_views.png",
+    "EelcrestBow": "drowned/eelcrest_bow_views.png",
+    "TollstringBow": "drowned/tollstring_bow_views.png",
+    "EventideBow": "drowned/eventide_bow_views.png",
+    "ReedStaff": "drowned/reed_staff_views.png",
+    "BuoyStaff": "drowned/buoy_staff_views.png",
+    "WellpearlStaff": "drowned/wellpearl_staff_views.png",
+    "TollkeeperStaff": "drowned/tollkeeper_staff_views.png",
+    "MaelstromStaff": "drowned/maelstrom_staff_views.png",
+    "TidewoodBlade": "drowned/tidewood_blade_views.png",
+    "TidehookBlade": "drowned/tidehook_blade_views.png",
+    "CausewayBlade": "drowned/causeway_blade_views.png",
+    "TollguardBlade": "drowned/tollguard_blade_views.png",
+    "StormglassBlade": "drowned/stormglass_blade_views.png",
 }
 
 

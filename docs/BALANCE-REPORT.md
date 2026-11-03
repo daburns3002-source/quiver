@@ -81,6 +81,29 @@ keep up with that area's tougher enemies. But two things make it a live risk:
 It is not biting yet, because area 3's crate is unstocked (see §5), but it
 will the day those weapons become obtainable.
 
+### Called, 2026-11-02
+
+The owner picked this one third (*"do the weapons"*). **The inversion stands.**
+It is the design, not a fault: the owner asked for exactly it (`WeaponStats`'s
+own header), and the arithmetic leaves no alternative anyway -- Common to
+Uncommon is a step of 1.05, so no area step larger than that could leave the
+rarity order whole, and 1.05 an area would not keep any area's weapons up with
+its enemies.
+
+What changed is the two things around it. `areaScale[3]` is **no longer
+provisional**: it is the 1.125 step compounded (1, 1.125, 1.266 -> 1.25
+rounded), the same step `Shared/Util/PetPower` walks each egg's bands up by,
+and the Drowned Village may never have stages to derive an exact number from.
+And the guard that keeps the inversion harmless is now a test rather than a
+comment: `tests/ConfigConsistency.spec` holds a `stocked` area to having stages
+to reach it, an `Economy` entry to price its Legendary, and a picture for every
+weapon it sells. An area's gear cannot go on sale ahead of the area.
+
+The Drowned Village stays unstocked, and **the art is no longer why** -- all
+fourteen pictures are cut and uploaded (§5 below). What is left is the Old
+Tollcrab's boss item, which needs a name, a price and an icon, and the area's
+stages, without which that item could never drop.
+
 ---
 
 ## 2. Levels
@@ -324,8 +347,13 @@ Drowned Village's two damage dealers were set to area 3's band ready for
 its egg. `tests/PetPower.spec` now fails if the ladder ever goes backwards
 or if a pet drifts more than a fifth off its band.
 
-Two things this does **not** fix. The Abyss Jelly, the Drowned Village's
-Mythic, still does no damage of its own at all — its canopy divides damage
+Two things this does **not** fix. ~~The Abyss Jelly, the Drowned Village's
+Mythic, still does no damage of its own at all~~ -- **fixed 2026-11-02**
+(owner: *"the mythic jellyfish attacks"*): it now stings the three enemies its
+canopy joins, three bites of 125 each every 16 s, which is 70.3 damage a second
+against a room where area 3's Mythic band is 70. The canopy itself is
+unchanged and still adds nothing. What follows was true before that. The Abyss
+Jelly did no damage of its own at all — its canopy divides damage
 rather than adding any — so when that egg opens its rarest pull will again
 be, on this scale, its weakest. That is how `docs/PETS-DROWNED.md` designs
 it, so it is the owner's call rather than a bug. And the Uncommon guards

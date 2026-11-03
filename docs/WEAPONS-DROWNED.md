@@ -1,9 +1,16 @@
 # Weapons — Drowned Village (area 3)
 
 The rarity ladder, read off Codex's reference sheets rather than inferred, and what is
-imported so far. Sheets live in `assets/concepts/blocky/weapons/skins/drowned/` on
-`phase-3/gear-and-shops` (commit `bfe0227`); each `*_views.png` carries its tier in the title,
-and `contact_sheet.png` shows eleven of them together.
+imported so far. Sheets live in `assets/concepts/blocky/weapons/skins/drowned/`; each
+`*_views.png` carries its tier in the title, and `contact_sheet.png` shows eleven of them
+together.
+
+**They reached `main` on 2026-11-02**, recovered from `phase-3/gear-and-shops` (commit
+`bfe0227`), which never merged. That branch not merging is the whole reason all fourteen of
+these weapons had no 2D art and no icon, which is what `docs/BALANCE-REPORT.md` S5 calls the
+thing holding the area-3 tier back. Every one now has its shop picture in
+`Config/ShopAssets`, cut by `assets/ui/shop/three_quarter.py` to the same angle as the other
+eighteen. The mini pixel icons for the gear screen are still to come.
 
 Same rules as the other areas (`WEAPONS-THORNWOOD.md`): one weapon per class at each of
 Uncommon, Rare, Epic, Legendary and Mythic; Legendaries and Mythics glow, Mythics rainbow; the

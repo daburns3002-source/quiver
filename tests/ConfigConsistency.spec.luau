@@ -14,12 +14,15 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Abilities = require(ReplicatedStorage.Shared.Config.Abilities)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
+local Economy = require(ReplicatedStorage.Shared.Config.Economy)
 local Eggs = require(ReplicatedStorage.Shared.Config.Eggs)
 local GearAssets = require(ReplicatedStorage.Shared.Config.GearAssets)
 local LobbyConfig = require(ReplicatedStorage.Shared.Config.Lobby)
 local NewEnemies = require(ReplicatedStorage.Shared.Config.NewEnemies)
 local PetCombat = require(ReplicatedStorage.Shared.Config.PetCombat)
 local Pets = require(ReplicatedStorage.Shared.Config.Pets)
+local Shop = require(ReplicatedStorage.Shared.Config.Shop)
+local ShopAssets = require(ReplicatedStorage.Shared.Config.ShopAssets)
 local TestRunner = require(script.Parent.TestRunner)
 local WeaponStats = require(ReplicatedStorage.Shared.Config.WeaponStats)
 
@@ -200,6 +203,59 @@ return function(t: TestRunner.Helper)
 				`{key}'s rarity "{stats.rarity}" has no bonus`
 			)
 			t.notNil(WeaponStats.areaScale[stats.area], `{key}'s area {stats.area} has no scale`)
+		end
+	end)
+
+	--[[ What `Config/Shop`'s `stocked` means, said out loud. An area goes on
+	     sale only when a player can reach it: its weapons must have
+	     pictures to show, its boss must have an item to price a Legendary
+	     against, and it must have stages to earn either in.
+
+	     The last of those is what keeps `WeaponStats.areaScale` honest. An
+	     area's weapons are a quarter stronger than the one before it, so a
+	     crate stocked ahead of its levels sells gear that outranks
+	     everything native to the only area a player has actually played
+	     (`docs/BALANCE-REPORT.md`, finding 1). ]]
+	t.test("a stocked area can be reached, priced and drawn", function()
+		for index, crate in Shop.crates do
+			if not crate.stocked then
+				continue
+			end
+			local staged = false
+			for _, stage in Balance.Stages do
+				if stage.area == crate.area then
+					staged = true
+					break
+				end
+			end
+			t.isTrue(staged, `{crate.area} is stocked but has no stages to reach it`)
+			local area = Economy.areas[crate.area]
+			t.notNil(area, `{crate.area} is stocked but Economy has no entry for it`)
+			if area then
+				t.isTrue(
+					ShopAssets.items[area.bossItem] ~= nil,
+					`{crate.area}'s boss item {area.bossItem} has no picture`
+				)
+			end
+			for key, stats in WeaponStats.weapons do
+				if stats.area == index then
+					t.isTrue(
+						(ShopAssets.weapons[key] or "") ~= "",
+						`{key} is for sale in {crate.area} with no picture`
+					)
+				end
+			end
+		end
+	end)
+
+	--[[ The fourteen Drowned Village weapons had no picture at all until
+	     2026-11-02, because their reference sheets were written on a branch
+	     that never merged -- which is the one thing that held the area back
+	     that was nobody's design decision. Pinned so it cannot be lost a
+	     second time. ]]
+	t.test("every weapon has a shop picture", function()
+		for key, _ in WeaponStats.weapons do
+			t.isTrue((ShopAssets.weapons[key] or "") ~= "", `{key} has no shop picture`)
 		end
 	end)
 end

@@ -154,13 +154,20 @@ return function(t: TestRunner.Helper)
 		local hatchery = LobbyConfig.buildings.EggHatchery
 		t.equal(hatchery.size.X, HatcheryDesign.across, "the hatchery's width")
 		t.equal(hatchery.size.Z, HatcheryDesign.deep, "the hatchery's depth")
-		local deck = HatcheryDesign.postTall + HatcheryDesign.beam + HatcheryDesign.slab
-		t.isTrue(math.abs(hatchery.size.Y - deck) < 0.5, "the hatchery's height")
+		local H = HatcheryDesign
+		local bloom = H.plaza.tall - H.pool.drop + H.bloom.tall
+		t.isTrue(math.abs(hatchery.size.Y - bloom) < 1.5, "the hatchery's height")
 
 		local smith = LobbyConfig.buildings.Blacksmith
 		t.equal(smith.size.X, BlacksmithDesign.across, "the blacksmith's width")
 		t.equal(smith.size.Z, BlacksmithDesign.deep, "the blacksmith's depth")
-		t.equal(smith.size.Y, BlacksmithDesign.wallTall, "the blacksmith's height")
+		local B = BlacksmithDesign.house
+		--[[ Summed in single-precision floats, so a few millionths of
+		     slack, as the turned stand offsets carry. ]]
+		t.isTrue(
+			math.abs(smith.size.Y - (B.tall + B.lintel + B.gable)) < 1e-3,
+			"the blacksmith's height"
+		)
 	end)
 
 	--[[ Neither is a cottage on its sheet, so neither may ask `building`
@@ -177,158 +184,154 @@ return function(t: TestRunner.Helper)
 		end
 	end)
 
-	--[[ The shelter is open to the front and closed at the back, and the
-	     beam stands well over the tallest egg, so you look in at the
-	     clutch against stone rather than through at the lawn. ]]
-	t.test("the hatchery is a shelter with its eggs under it", function()
+	--[[ The deck is something a player walks up onto: the steps have to
+	     climb the whole of it, and it has to leave room behind itself for
+	     the pool and the balustrade. ]]
+	t.test("the hatchery is a raised plaza you can walk up", function()
 		local D = HatcheryDesign
-		local tallest = D.nests[2].tall
-		t.isTrue(D.postTall > tallest + D.nestTall, "the roof sits on the eggs")
-		t.isTrue(D.across > D.deep, "the shelter is deeper than it is wide")
-		t.isTrue(D.eaves > 0, "the deck stops at the posts")
-		t.isTrue(D.back.thick > 0 and D.back.courses >= 2, "the back of the shelter is open")
-		--[[ A post stands at each corner, half its thickness in; the
-		     outermost nest may touch one but not pass it. ]]
-		local post = D.across / 2 - D.postThick
-		local outer = math.abs(D.nests[1].at) + D.nests[1].across / 2
-		t.isTrue(outer <= post + 1, "the nests run through the posts")
-		--[[ Set forward, so the eggs are in the open rather than back in
-		     the shade of the deck. ]]
-		t.isTrue(D.nestForward > 0, "the nests sit behind the middle")
+		local climb = D.steps.count * D.steps.rise
+		t.isTrue(math.abs(climb - D.plaza.tall) < 0.5, "the steps do not reach the deck")
+		t.isTrue(D.steps.across < D.across, "the steps are wider than the plaza")
+		t.isTrue(D.parapet.tall > 0, "the deck has no parapet")
+		t.isTrue(D.plaza.chamfer * 2 < D.across, "the deck is all corner")
+		t.isTrue(D.plaza.deep < D.deep, "the deck fills the whole footprint")
 		t.isTrue(
-			D.nestForward + D.nests[2].across / 2 > D.deep / 2,
-			"the nests are all under the roof"
+			D.plaza.deep + D.pool.reach <= D.deep,
+			"the pool runs off the back of the footprint"
 		)
 	end)
 
-	--[[ Three nests, each with its own egg: one wide ring with the three
-	     sunk in it is what the first build laid, and in game it read as a
-	     plastic tub rather than the sheet's clover of stone. ]]
-	t.test("the hatchery's three nests each hold one egg, the middle one tallest", function()
+	--[[ The pool, the bloom, the pillars and the balustrade all stand
+	     behind the deck, and all of them inside the footprint the lobby
+	     spaces the stations by. ]]
+	t.test("the hatchery's pool and bloom stand behind the deck, inside its footprint", function()
 		local D = HatcheryDesign
-		t.equal(#D.nests, 3, "three nests")
-		t.isTrue(D.nests[2].tall > D.nests[1].tall, "the middle egg is the tallest")
-		t.isTrue(D.nests[2].across > D.nests[1].across, "the middle nest is the widest")
-		t.equal(D.nests[1].tall, D.nests[3].tall, "the outer two eggs match")
-		t.equal(D.nests[1].across, D.nests[3].across, "the outer two nests match")
-		t.isTrue(D.nests[2].back > D.nests[1].back, "the middle nest is not set back")
-		for k, nest in D.nests do
-			t.isTrue(nest.tall > nest.wide, `egg {k} is not egg-shaped`)
-			--[[ The shell rests ON the gold rim and overhangs the hole,
-			     which is what stops an egg reading as dropped in a cup. ]]
-			local hole = nest.across - D.nestThick * 2
-			t.isTrue(nest.wide > hole, `egg {k} drops through its nest`)
-			t.isTrue(nest.wide < nest.across, `egg {k} swallows its nest`)
-		end
-		--[[ The eggs stand apart even where the nests overlap. ]]
-		local gap = math.abs(D.nests[2].at - D.nests[1].at)
-			- D.nests[2].wide / 2
-			- D.nests[1].wide / 2
-		t.isTrue(gap > 0, "the outer eggs run into the middle one")
+		local half = D.deep / 2
+		local deckBack = half - D.plaza.deep
+		local poolBack = deckBack - D.pool.reach
+		t.isTrue(D.pool.reach > 0, "there is no pool")
+		t.isTrue(poolBack >= -half, "the pool runs past the back of the footprint")
+		t.isTrue(D.bloom.back > 0, "the bloom stands on the deck")
+		t.isTrue(deckBack - D.bloom.back > poolBack, "the bloom stands behind the pool")
+		t.isTrue(deckBack - D.pillar.back >= poolBack - 1, "a pillar stands behind the pool")
+		t.isTrue(
+			D.fence.centre - D.fence.radius >= -half,
+			"the balustrade runs past the back of the footprint"
+		)
+		t.isTrue(D.fence.radius <= D.across / 2, "the balustrade runs past the sides")
+		t.isTrue(D.pillar.out + D.pillar.cap / 2 <= D.across / 2, "a pillar stands off the plaza")
 	end)
 
-	--[[ The forge is a hole in the wall with fire in it, under a stack
-	     that stands BEHIND the wall: built on the wall line the chimney
-	     put three studs of stone in front of its own hearth and hid the
-	     fire from everywhere but dead in front. ]]
-	t.test("the blacksmith's hearth is open under a chimney that stands clear of it", function()
+	--[[ The bloom is the thing the whole station is built round: a pale
+	     spire inside a ring of magenta petals over a fan of green leaves,
+	     every one of them shorter than the spire. ]]
+	t.test("the hatchery's bloom is a spire in a ring of petals over its leaves", function()
+		local D = HatcheryDesign
+		t.equal(D.petals.count, 6, "six petals")
+		t.equal(D.leaves.count, 6, "six leaves")
+		t.isTrue(D.spire.tall > D.petals.tall, "a petal stands over the spire")
+		t.isTrue(D.petals.out > D.spire.wide / 2, "the petals stand inside the spire")
+		t.isTrue(D.leaves.across > D.bloom.across, "the leaves do not reach past the petals")
+		t.isTrue(D.leaves.long < D.spire.tall, "a leaf stands over the spire")
+		local built = D.bloom.base + D.spire.tall + D.spire.point
+		t.isTrue(math.abs(built - D.bloom.tall) < 1.5, "the bloom is not the height it says")
+	end)
+
+	--[[ One egg on its own lit pedestal each side, both standing on the
+	     deck rather than off the front of it. ]]
+	t.test("the hatchery's two eggs stand on lit pedestals on the deck", function()
+		local D = HatcheryDesign
+		t.isTrue(D.pedestal.bands >= 1, "the pedestal carries no light")
+		t.isTrue(D.pedestal.out > D.pedestal.across / 2, "the two pedestals run into each other")
+		t.isTrue(
+			D.pedestal.out + D.pedestal.across / 2 < D.across / 2,
+			"a pedestal hangs off the plaza"
+		)
+		t.isTrue(math.abs(D.pedestal.forward) < D.plaza.deep / 2, "a pedestal stands off the deck")
+		t.isTrue(D.egg.tall > D.pedestal.tall, "the egg is shorter than what it stands on")
+		t.isTrue(D.egg.wide < D.pedestal.across, "the egg is wider than its pedestal")
+		t.isTrue(D.egg.spots >= 4, "the shell has no spots")
+	end)
+
+	--[[ The forge house is a timber front in a shell of stone, and the
+	     whole of it has to sit inside the footprint the lobby spaces the
+	     stations by. ]]
+	t.test("the blacksmith's forge house stands inside its own footprint", function()
 		local D = BlacksmithDesign
-		local head = D.hearth.base + D.hearth.tall
-		t.isTrue(head + D.hearth.hood < D.wallTall, "the hearth is taller than the wall")
-		t.isTrue(D.hearth.across < D.across, "the hearth is wider than the wall")
-		--[[ The opening is cut to one side, with the stack over it. ]]
-		t.equal(math.sign(D.chimney.side), math.sign(D.hearth.side), "the stack is off its hearth")
+		local H = D.house
 		t.isTrue(
-			math.abs(D.hearth.side) + D.hearth.across / 2 <= D.across / 2,
-			"the hearth is cut through the end of the wall"
+			math.abs(H.side) + H.across / 2 + D.shell.out <= D.across / 2,
+			"the stone shell runs off the side of the footprint"
 		)
-		--[[ Behind the wall: its front face is `across / 2 - back` from
-		     the wall's own middle plane, which has to be behind it. ]]
-		t.isTrue(D.chimney.back - D.chimney.across / 2 > 0, "the chimney stands in the shop")
-		t.isTrue(D.chimney.rise > 0, "the chimney stops at the wall")
-		t.isTrue(D.chimney.mouth < D.chimney.across, "the chimney is all mouth")
+		t.isTrue(H.back + H.deep <= D.deep, "the house runs off the back of the footprint")
+		t.isTrue(H.tall > D.hearth.base + D.hearth.tall, "the hearth is taller than the opening")
+		t.isTrue(H.gable > 0 and H.lintel > 0, "the front has no gable over its lintel")
+		t.isTrue(D.counter.tall < H.tall, "the counter fills the opening")
+		t.isTrue(D.shell.courses >= 2, "the shell is one block high")
 	end)
 
-	--[[ The side wall down the left is what turns one wall into a shop,
-	     and the arch has to be a hole in it rather than a hole off its
-	     end. ]]
-	t.test("the blacksmith's side wall carries an arch inside its own length", function()
+	--[[ The gold hammer is the shop's sign here -- there is no nameboard
+	     on either sheet any more -- and the two banners hang beside it,
+	     not over the opening the hammer sits above. ]]
+	t.test("the blacksmith's hammer and banners hang on the gable", function()
 		local D = BlacksmithDesign
-		t.isTrue(D.side.long > D.arch.across, "the arch is wider than the wall it is cut in")
-		t.isTrue(D.arch.forward - D.arch.across / 2 > 0, "the arch is cut behind the back wall")
+		t.isTrue(D.hammer.head > 0 and D.hammer.haft > 0, "there is no hammer")
+		t.isTrue(D.banner.out > D.hammer.head / 2, "a banner hangs over the hammer")
 		t.isTrue(
-			D.arch.forward + D.arch.across / 2 < D.side.long,
-			"the arch runs off the end of the side wall"
+			D.banner.out + D.banner.wide / 2 <= D.house.across / 2 + D.shell.out,
+			"a banner hangs off the end of the house"
 		)
-		t.isTrue(D.arch.tall < D.wallTall, "the arch is taller than the wall")
-		t.isTrue(D.arch.steps >= 1, "the arch has no head")
-		--[[ The red cloth hangs in the arch, not over its head or on the
-		     floor. ]]
-		t.isTrue(D.cloth.wide < D.arch.across, "the cloth is wider than the arch")
-		t.isTrue(D.cloth.top <= D.arch.tall, "the cloth hangs above the arch")
-		t.isTrue(D.cloth.long < D.cloth.top, "the cloth reaches the floor")
+		t.isTrue(
+			D.banner.long < D.house.tall,
+			"a banner hangs down past the lintel into the opening"
+		)
 	end)
 
-	--[[ What the sheet puts out on the floor, in front of the wall and
-	     clear of it, and the banner and rack outside the walls. ]]
-	t.test("the blacksmith's floor furniture stands in front of its wall", function()
+	--[[ The sheet is drawn from the front-left: the rock and its lava are
+	     on the viewer's LEFT, which is negative X, and the three chests
+	     on the right. The first rebuild of this shop came out mirrored,
+	     so this is held rather than left to the eye. ]]
+	t.test("the blacksmith's lava is on the left and its chests on the right", function()
 		local D = BlacksmithDesign
-		for name, item in
-			{ anvil = D.anvil, bench = D.bench, wares = D.table_ } :: {
-				[string]: { forward: number },
-			}
-		do
-			t.isTrue(item.forward > 0, `the {name} is inside the wall`)
-			t.isTrue(item.forward < D.deep, `the {name} is off the apron`)
-		end
-		t.isTrue(D.apron.X >= D.across, "the apron is narrower than the shop")
-		--[[ One anvil, out on the open floor clear of the side wall and
-		     of the tables: the sheet draws a single anvil as the thing
-		     the eye lands on, and a matched pair is what the first build
-		     put there. ]]
+		t.isTrue(D.rock.side < 0, "the rock stands on the chests' side")
+		t.isTrue(D.anvil.side < 0, "the anvil stands on the chests' side")
+		t.isTrue(D.chest.side > 0, "the chests stand on the rock's side")
+		t.isTrue(D.lava.wide < D.rock.across, "the lava is wider than the rock it runs down")
+		t.isTrue(D.rock.steps >= 2, "the rock does not step down")
 		t.isTrue(
-			math.abs(D.anvil.side) + D.anvil.long / 2 < D.across / 2 - D.wallThick,
-			"the anvil stands in a wall"
+			math.abs(D.rock.side) + D.rock.across / 2 <= D.across / 2 + 2,
+			"the rock runs off the side of the footprint"
 		)
-		t.isTrue(D.anvil.forward > D.bench.forward + D.bench.wide, "the anvil is on the bench")
-		--[[ The banner hangs outside the walls, and the sword rack
-		     outside the side wall, where the sheet stands them. ]]
-		t.isTrue(math.abs(D.banner.out) > D.across / 2, "the banner hangs inside the shop")
-		--[[ The sheet puts the fire on the viewer's right and the arch,
-		     the rack and the board on the left; +X is the right of the
-		     screen for a station facing +Z. ]]
-		t.isTrue(D.hearth.side > 0, "the hearth is cut on the wrong side")
-		t.isTrue(D.rack.side < 0, "the sword rack stands on the hearth's side")
-		t.isTrue(D.bench.side < 0, "the work tables stand on the hearth's side")
-		t.isTrue(D.banner.long < D.banner.top, "the banner reaches the floor")
-		t.isTrue(math.abs(D.rack.side) > D.across / 2, "the sword rack stands in the shop")
-		--[[ And the board hangs on the other side of the wall from the
-		     hearth, with its bottom edge above the hood: drawn on the
-		     hearth's own side it covered the fire. ]]
-		local board = (D.across / 2 - D.sign.across / 2 - 1.5) * -math.sign(D.hearth.side)
-		t.isTrue(board * D.hearth.side < 0, "the board hangs over the fire")
 		t.isTrue(
-			D.wallTall - D.sign.below - D.sign.tall > D.hearth.base + D.hearth.tall + D.hearth.hood,
-			"the board meets the hood"
+			D.chest.side + D.chest.apart + D.chest.across / 2 <= D.across / 2 + 2,
+			"the chests run off the side of the footprint"
 		)
-		t.isTrue(D.sign.below + D.sign.tall < D.wallTall, "the board is off the top of the wall")
 	end)
 
-	--[[ Both sheets hang a DARK board with white letters in a timber
-	     frame. The lobby's shared light-brown plank reads as a plank, and
-	     that is what both of these were given first. ]]
-	t.test("both rebuilt stations hang a dark nameboard with pale letters", function()
-		for name, look in
-			{ hatchery = HatcheryDesign.colours, blacksmith = BlacksmithDesign.colours } :: {
-				[string]: { board: Color3, ink: Color3 },
-			}
-		do
-			local board = look.board.R + look.board.G + look.board.B
-			local ink = look.ink.R + look.ink.G + look.ink.B
-			t.isTrue(board < 0.6, `the {name}'s board is not dark`)
-			t.isTrue(ink > board + 1.5, `the {name}'s letters do not stand off its board`)
+	--[[ Three chests, one for each of the three classes the shop sells
+	     for, and the anvil out clear of the house on the paving. ]]
+	t.test(
+		"the blacksmith's three chests are its three classes, and the anvil stands clear",
+		function()
+			local D = BlacksmithDesign
+			t.equal(#D.marks, 3, "three chests")
+			local seen = {}
+			for _, mark in D.marks do
+				t.isTrue(
+					mark == "bow" or mark == "wand" or mark == "sword",
+					`{mark} is not a class the shop sells for`
+				)
+				t.equal(seen[mark], nil, `two chests for {mark}`)
+				seen[mark] = true
+			end
+			t.isTrue(
+				D.anvil.forward > D.house.back + D.house.deep,
+				"the anvil stands inside the forge house"
+			)
+			t.isTrue(D.anvil.forward < D.deep, "the anvil stands off the paving")
+			t.isTrue(D.chest.forward < D.deep, "a chest stands off the paving")
 		end
-	end)
+	)
 
 	t.test("the working portals are Mossy Glade, Thornwood and Endless", function()
 		local open = {}

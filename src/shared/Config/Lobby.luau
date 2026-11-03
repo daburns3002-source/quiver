@@ -294,7 +294,7 @@ local Lobby = {
 		     there. It carries no `rise`, `roof`, `chimney` or `emblem`:
 		     nothing of the cottage runs for it. ]]
 		Blacksmith = {
-			size = Vector3.new(32, 20, 22),
+			size = Vector3.new(32, 14.2, 20),
 			rise = 0,
 			walls = Color3.fromRGB(150, 152, 158),
 			roof = Color3.fromRGB(150, 152, 158),
@@ -309,7 +309,7 @@ local Lobby = {
 		     width, the top of its deck and its depth. As with the
 		     Blacksmith, no `rise`, `roof` or `emblem`. ]]
 		EggHatchery = {
-			size = Vector3.new(30, 20.7, 14),
+			size = Vector3.new(30, 17, 24),
 			rise = 0,
 			walls = Color3.fromRGB(150, 96, 52),
 			roof = Color3.fromRGB(176, 174, 166),
@@ -587,8 +587,8 @@ local Lobby = {
 	     `at` is in studs from the station's centre. ]]
 	stands = {
 		EggHatchery = {
-			{ kind = "egg", key = "MossyEgg", at = Vector2.new(-6, 21) },
-			{ kind = "egg", key = "ThornwoodEgg", at = Vector2.new(12, 21) },
+			{ kind = "egg", key = "MossyEgg", at = Vector2.new(-22, 14) },
+			{ kind = "egg", key = "ThornwoodEgg", at = Vector2.new(22, 14) },
 		},
 		Blacksmith = {
 			{ kind = "crate", key = "MossyGlade", at = Vector2.new(-14, 22) },

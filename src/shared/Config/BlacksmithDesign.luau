@@ -3,182 +3,163 @@
 	The Blacksmith, measured off its reference sheet (owner's standing
 	rule, CLAUDE.md 13: "if it does not match 1 to 1 then redo it").
 
-	Its sheet is the BLACKSMITH panel of
-	`assets/concepts/blocky/lobby/ref_main.png`, with
-	`assets/concepts/blocky/lobby/ref_blacksmith.png` and
-	`ref3_blacksmith.png` as closeups of the same build. All three were
-	drawn by Codex and approved by the owner.
+	Its sheet is `assets/concepts/blocky/lobby/ref4_blacksmith.png`, which
+	the owner sent on 2026-11-02 to replace the BLACKSMITH panel of
+	`ref_main.png` entirely. It is a different building: not a grey stone
+	forge open to a lawn, but a **timber-fronted forge house cut into a
+	purple rock**, with a lava fall down one side and the shop's three
+	chests out on the other.
 
-	Read again on 2026-11-02 at the sheet's own resolution, after the first
-	rebuild was looked at lit in Studio beside it (owner: "these need to be
-	redone heavily, if it is not 1 to 1 exactly try again"). What the first
-	pass got wrong, and this one carries:
+	What the sheet shows, piece by piece:
 
-	  * The shop is an **L of stone**: the back wall, and a side wall down
-	    the left with a **round-headed arch** cut through it. The first pass
-	    had one flat wall and two stubs, which read as a fence.
-	  * There is **one big anvil** out on the floor, not a matched pair.
-	    The sheet's single anvil is the thing the eye lands on.
-	  * The stones are laid in **three close greys picked at random**. Two
-	    alternating greys read as a checkerboard from the lobby's own
-	    distance, which is exactly what the first build did.
-	  * The nameboard is a **dark board with white letters** in a timber
-	    frame, big and high on the wall.
-	  * The chimney is a **stepped stack** of three blocks narrowing as it
-	    rises, not one plain column.
-	  * The hearth has a **stone hood** over its arch and a raised stone
-	    base under it.
-	  * A **red cloth** hangs in the side arch and a **lantern** burns on
-	    the left pillar, which is what lights that corner on the sheet.
+	  * A **forge house** of purple-grey block with a heavy **timber
+	    front**: two corner posts, a lintel across, and a gable over it
+	    carrying a huge **gold hammer**. Gold brackets at every joint of
+	    the timber.
+	  * A **red banner** with a gold hammer on it hanging from the lintel
+	    each side of the gable.
+	  * The front is open: inside, a **hearth full of fire** behind a long
+	    timber counter, a tool rack to the left, a bench to the right, and
+	    chains hanging from the lintel.
+	  * A small **chimney** on the roof with a lit window in it.
+	  * On the LEFT, a stepped outcrop of the same purple rock with a
+	    **lava fall** pouring down it, and a timber rail along the top.
+	  * On the RIGHT, the shop's **three chests**, each on its own stone
+	    pedestal under a red shield: a **bow**, a **wand** and a **sword**,
+	    with that weapon standing over the chest.
+	  * Out front, a single huge **anvil** on a stone block, lit from
+	    under by the forge.
+	  * The whole thing stands on grey **paving slabs**.
 
-	Every measurement below is read off the panel as a fraction of **the
-	back wall's width** -- 700 px on the panel enlarged four times -- and
-	then set against a width of 32 studs:
+	The sheet is drawn in isometric. Horizontal readings are taken across
+	the drawing and scaled from **the whole diorama's width** -- 1430 px on
+	the sheet cropped to the build -- against a width of 32 studs, which
+	gives 44.7 px to the stud; heights are read with the same scale,
+	because the drawing's vertical axis is true vertical:
 
-	    back wall width         700 px   1.00   ->  32      `across`
-	    depth, front to back    480 px   0.69   ->  22      `deep`
-	    wall height             340 px   0.49   ->  20 *    `wallTall`
-	    wall thickness           35 px   0.05   ->  1.8     `wallThick`
-	    chimney, front face     170 px   0.24   ->  8       `chimney.across`
-	    chimney over the wall   285 px   0.41   ->  13      `chimney.rise`
-	    sign board width        320 px   0.46   ->  15      `sign.across`
-	    sign board height       125 px   0.18   ->  5.6     `sign.tall`
-	    hearth arch width       190 px   0.27   ->  8.6     `hearth.across`
-	    hearth opening height   100 px   0.14   ->  4.6     `hearth.tall`
-	    hearth hood height       70 px   0.10   ->  3.2     `hearth.hood`
-	    side arch width         150 px   0.21   ->  7       `arch.across`
-	    side wall, how far out  350 px   0.50   ->  16      `side.long`
-	    side arch height        230 px   0.33   ->  10.5    `arch.tall`
-	    anvil length            190 px   0.27   ->  8       `anvil.long`
-	    anvil height            120 px   0.17   ->  5.4     `anvil.tall`
-	    bench length            150 px   0.21   ->  7       `bench.long`
-	    banner cloth length     210 px   0.30   ->  9.6     `banner.long`
+	    diorama width          1430 px   1.00   ->  32      `across`
+	    forge house front       770 px   0.54   ->  17.5    `house.across`
+	    house, floor to lintel  360 px   0.25   ->  8       `house.tall`
+	    gable over the lintel   205 px   0.14   ->  4.6     `house.gable`
+	    timber post thickness    75 px   0.052  ->  1.7     `house.post`
+	    lintel depth             70 px   0.049  ->  1.6     `house.lintel`
+	    gold hammer, head        230 px   0.16   ->  5.2     `hammer.head`
+	    gold hammer, handle      250 px   0.175  ->  5.6     `hammer.haft`
+	    banner cloth length      200 px   0.14   ->  4.5     `banner.long`
+	    banner cloth width       110 px   0.077  ->  2.5     `banner.wide`
+	    hearth opening width     230 px   0.16   ->  5.2     `hearth.across`
+	    hearth opening height    150 px   0.105  ->  3.4     `hearth.tall`
+	    counter height          ~120 px   0.084  ->  2.7     `counter.tall`
+	    anvil length            330 px   0.23   ->  7.4      `anvil.long`
+	    anvil height            200 px   0.14   ->  4.5      `anvil.tall`
+	    chest width             130 px   0.091  ->  2.9      `chest.across`
+	    chest pedestal height   130 px   0.091  ->  2.9      `chest.plinth`
+	    lava fall width         110 px   0.077  ->  2.5      `lava.wide`
+	    rock outcrop width      380 px   0.27   ->  8.5      `rock.across`
 
-	  * the wall is built 20 studs high rather than the 15.7 its reading
-	    gives. The panel is drawn in isometric, which foreshortens
-	    everything vertical: taken flat the shop came out in game as a low
-	    garden wall with the board nearly off the top of it, where the
-	    sheet's wall is the tallest thing in the shop but the chimney. 20
-	    is what puts the board back where the sheet hangs it, clear above
-	    the hearth's hood.
-
-	The hearth and the chimney over it are on the viewer's RIGHT, which is
-	the building's own **positive X**: a station faces +Z, you look at it
-	down -Z, and its +X is then the right of the screen -- checked in
-	Studio on 2026-11-02 against the fire's own glow, because the first
-	rebuild had it the other way round and came out mirrored. Two of the
-	three sheets put the fire and the stack on the right, with the arch,
-	the racks and the board to their left, so every `side` below reads
-	that way.
+	The sheet is drawn from the front-left, so what reads as the LEFT of
+	the drawing is the building's **negative X**: a station faces +Z, you
+	look at it down -Z, and +X is then the right of the screen -- checked
+	in Studio on 2026-11-02 against the forge fire's own glow. So the rock
+	and its lava are at negative X and the three chests at positive X.
 
 	Offsets are in the building's own frame: +Z is the way it faces (toward
-	the middle of the clearing, `Config/Lobby.facing`), +X to that way's
-	right, and y is height above the lawn.
+	the middle of the clearing, `Config/Lobby.facing`), +X to the right of
+	a player standing in front of it, and y is height above the lawn.
 ]]
 
 local BlacksmithDesign = {
-	--[[ The shop's footprint. `Config/Lobby.buildings.Blacksmith` declares
-	     the same two, and `Lobby.spec` holds them equal: the spacing
-	     between stations is measured off that declaration. ]]
+	--[[ The whole diorama's footprint. `Config/Lobby.buildings.Blacksmith`
+	     declares the same two, and `Lobby.spec` holds them equal: the
+	     spacing between stations is measured off that declaration. ]]
 	across = 32,
-	deep = 22,
+	deep = 20,
 
-	--[[ The stonework: how high the walls stand, how thick they are, and
-	     how many courses and columns of blocks the back wall is laid in. ]]
-	wallTall = 20,
-	wallThick = 1.8,
-	courses = 6,
-	columns = 11,
-	joint = 0.2,
-	--[[ The shelf of stone capping a wall, lapped out past its face. ]]
-	cap = { tall = 1.3, out = 1.1 },
-
-	--[[ The side wall down the LEFT (+X), which is what turns one wall
-	     into a shop: it runs `long` studs forward of the back wall. ]]
-	side = { long = 16 },
-	--[[ The round-headed arch cut through that side wall, `forward` studs
-	     ahead of the back wall's face. The head is drawn as `steps` courses
-	     of stone stepping in over the opening. ]]
-	arch = { across = 7, tall = 12, forward = 7.5, steps = 3 },
-
-	--[[ The chimney: a stepped stack behind the hearth, three blocks
-	     narrowing as they rise. `back` is how far its own back face stands
-	     behind the wall's -- the stack is entirely BEHIND the wall, bitten
-	     one stud into it so the two read as one piece of stone. Standing it
-	     on the wall line put three studs of chimney inside the shop, in
-	     front of the hearth, which from the lobby's own angle hid the fire
-	     completely. ]]
-	chimney = { across = 8, rise = 13, back = 7.5, side = 8, mouth = 4.2 },
-
-	--[[ The nameboard, high on the back wall, left of the hearth: its
-	     size, how far its face stands proud of the stone, and how far its
-	     top is below the wall's cap. ]]
-	sign = { across = 15, tall = 6, out = 0.9, below = 2.6 },
-
-	--[[ The hearth arch cut into the wall under the chimney: the opening,
-	     the stone hood over it, the raised base under it, how far right of
-	     the middle it is cut, and the light the fire throws. ]]
-	hearth = {
-		across = 8.6,
-		tall = 6,
-		hood = 3.2,
-		base = 1.8,
-		side = 8,
-		range = 22,
-		brightness = 0.8,
+	--[[ The forge house: the opening's width, the height to the lintel,
+	     the gable over it, and the timber it is framed in. `side` is
+	     studs right of the middle and `back` studs behind it. ]]
+	house = {
+		across = 17.5,
+		deep = 9,
+		tall = 8,
+		gable = 4.6,
+		post = 1.7,
+		lintel = 1.6,
+		side = -1,
+		back = 4,
 	},
+	--[[ The purple block the house is cut into: how far the stone runs
+	     past the timber each side, how far it rises over the lintel, and
+	     how many courses go up it. ]]
+	shell = { out = 3.4, rise = 2.2, courses = 6, joint = 0.2 },
 
-	--[[ The one anvil out on the floor, on its dark stone block.
-	     `forward` is studs in front of the wall's face. ]]
-	anvil = { long = 8, tall = 5.4, wide = 3, side = -2, forward = 11 },
+	--[[ The gold hammer on the gable: its head, its handle, and how far
+	     the handle leans over. ]]
+	hammer = { head = 5.2, haft = 5.6, thick = 2, lean = 0.5 },
 
-	--[[ The two work tables against the back wall, left of the hearth, and
-	     the weapon table standing out in front of them. ]]
-	bench = { long = 7, tall = 3.4, wide = 2.6, side = -9, forward = 3.4, apart = 8 },
-	table_ = { long = 6.4, tall = 3.2, wide = 2.8, side = 2.5, forward = 9 },
+	--[[ A red banner each side of the gable, hanging off the lintel. ]]
+	banner = { long = 4.5, wide = 2.5, out = 6.4, mark = 0.5 },
 
-	--[[ The A-frame sword rack at the far left, outside the side wall. ]]
-	rack = { across = 6, tall = 5.4, blades = 3, blade = 4.4, side = -19, forward = 7 },
+	--[[ The hearth inside, and the light it throws over the whole shop --
+	     it is the only thing lighting this corner of the lobby. ]]
+	hearth = { across = 5.2, tall = 3.4, base = 1.2, range = 34, brightness = 1.6 },
+	--[[ The timber counter across the front of the opening. ]]
+	counter = { tall = 2.7, thick = 1.4 },
+	--[[ The rack of tools to the left of the hearth and the bench to its
+	     right, inside the house. ]]
+	rack = { across = 4, tall = 4.6, side = -5.6 },
+	bench = { long = 4.4, tall = 2.6, side = 5.6 },
+	--[[ The chains hanging off the lintel. ]]
+	chains = { count = 3, long = 2.4 },
 
-	--[[ The blue banner on its pole at the right, and the red cloth
-	     hanging in the side arch. ]]
-	banner = { long = 9.6, wide = 5, out = 17.5, top = 15, forward = 7 },
-	cloth = { long = 7, wide = 4.6, top = 10 },
+	--[[ The chimney on the roof, with its lit window. ]]
+	chimney = { across = 2.6, rise = 3.4, side = -4, back = 2 },
 
-	--[[ The lantern on the left pillar, which is what lights that corner
-	     on the sheet. ]]
-	lantern = { tall = 2.6, at = -10.5, forward = 2.2, range = 14, brightness = 0.7 },
+	--[[ The rock outcrop on the left, with the lava fall down its face
+	     and a timber rail along its top. `steps` is how many blocks it
+	     steps down in. ]]
+	rock = { across = 8.5, tall = 9, steps = 4, side = -12, block = 2.6 },
+	lava = { wide = 2.5, range = 20, brightness = 1.4 },
+	rail = { tall = 2.6, posts = 3 },
 
-	--[[ The paved floor: how far across it reaches, and how big one
-	     flagstone is. The sheet runs it out well past the anvil. ]]
-	apron = Vector2.new(36, 24),
-	flag = 4.5,
+	--[[ The one anvil out on the floor, on its stone block, lit from
+	     under by the forge. ]]
+	anvil = { long = 7.4, tall = 4.5, wide = 3, side = -8, forward = 15 },
+
+	--[[ The shop's three chests on the right, each on its stone pedestal
+	     under a red shield, with its weapon standing over it. The marks
+	     are the three classes, in the sheet's own order. ]]
+	chest = { across = 2.9, plinth = 2.9, apart = 4.4, side = 11.5, forward = 10 },
+	marks = { "bow", "wand", "sword" },
+
+	--[[ The paving the whole thing stands on, and how big one slab is. ]]
+	apron = Vector2.new(32, 20),
+	flag = 4,
 
 	--[[ The sheet's palette, set on the parts outright, as the Dex Hall's
-	     is. Nothing here is generated or tinted. The three greys are what
-	     every wall stone is picked from. ]]
+	     is. Nothing here is generated or tinted. ]]
 	colours = {
-		stone = Color3.fromRGB(104, 106, 114),
-		stoneLight = Color3.fromRGB(126, 128, 136),
-		stoneDark = Color3.fromRGB(86, 88, 96),
-		timber = Color3.fromRGB(138, 86, 44),
-		timberDark = Color3.fromRGB(88, 52, 28),
-		board = Color3.fromRGB(34, 30, 28),
-		ink = Color3.fromRGB(248, 246, 240),
-		floor = Color3.fromRGB(170, 142, 108),
-		floorLight = Color3.fromRGB(188, 160, 126),
-		floorDark = Color3.fromRGB(150, 122, 92),
-		anvil = Color3.fromRGB(72, 80, 96),
-		anvilDark = Color3.fromRGB(52, 58, 70),
-		steel = Color3.fromRGB(198, 206, 218),
-		brick = Color3.fromRGB(150, 92, 72),
-		fire = Color3.fromRGB(255, 140, 40),
-		ember = Color3.fromRGB(236, 74, 30),
-		banner = Color3.fromRGB(48, 92, 176),
-		cloth = Color3.fromRGB(186, 54, 40),
-		gold = Color3.fromRGB(244, 196, 64),
-		lantern = Color3.fromRGB(255, 186, 96),
-		iron = Color3.fromRGB(42, 40, 38),
+		rock = Color3.fromRGB(104, 94, 120),
+		rockLight = Color3.fromRGB(126, 116, 142),
+		rockDark = Color3.fromRGB(84, 74, 100),
+		floor = Color3.fromRGB(150, 146, 158),
+		floorLight = Color3.fromRGB(168, 164, 176),
+		floorDark = Color3.fromRGB(132, 128, 140),
+		timber = Color3.fromRGB(168, 98, 46),
+		timberLight = Color3.fromRGB(196, 121, 58),
+		timberDark = Color3.fromRGB(124, 70, 32),
+		gold = Color3.fromRGB(250, 170, 45),
+		goldLight = Color3.fromRGB(255, 200, 84),
+		banner = Color3.fromRGB(204, 34, 34),
+		bannerDark = Color3.fromRGB(162, 22, 22),
+		fire = Color3.fromRGB(255, 170, 40),
+		lava = Color3.fromRGB(255, 150, 0),
+		lavaLight = Color3.fromRGB(255, 216, 77),
+		anvil = Color3.fromRGB(128, 124, 146),
+		anvilDark = Color3.fromRGB(96, 92, 114),
+		steel = Color3.fromRGB(226, 228, 236),
+		chest = Color3.fromRGB(150, 60, 190),
+		crystal = Color3.fromRGB(233, 90, 220),
 	},
 }
 

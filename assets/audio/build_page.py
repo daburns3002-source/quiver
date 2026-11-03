@@ -210,6 +210,14 @@ ROUND_22 = [
     }),
 ]
 
+ROUND_23 = [
+    ("Round 23 · the three sent back", {
+        "fx_thornfall": ("Thornfall", "An enemy killed by an arrow plants 3-5 arrows in the ground, which fire outward a quarter-second later. Once a kill, so it repeats fast in a crowd. Round 22's three were all wood going into earth; these four start somewhere else each.", (0.5, 4)),
+        "fx_guard_break": ("Guard Break", "The Warden's slam throws what it hits 6-12 studs back and leaves it reeling, about every third swing. Round 22's three were all a metal break; these are the push, the brittleness and a flat arcade knock.", (1.1, 3)),
+        "fx_bull_rush": ("Bull Rush", "His dash becomes a charge that runs enemies down, at most every 4 seconds. Round 22's three were all a rising rush; these are the animal, the burst and the armour.", None),
+    }),
+]
+
 # page: (rounds, picks collection, sounds already chosen, shown for context)
 ROUND_18 = [
     ("Round 18 · King Bloblin's attacks, two big takes each", {
@@ -245,6 +253,7 @@ ROUND_18 = [
 ]
 
 PAGES = {
+    "23": (ROUND_23, "picks23", ["Blood Pact A", "Ghost Quiver A", "Headhunter C", "Prismatic Burst B", "Time Dilation A", "Vengeful Spirit A", "Windrunner C"]),
     "22": (ROUND_22, "picks22", []),
     "21": (ROUND_21, "picks21", []),
     "20": (ROUND_20, "picks20", []),

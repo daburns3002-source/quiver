@@ -131,7 +131,7 @@ local function nearestEnemy(origin: Vector3): (Model?, Vector3?)
 		origin,
 		candidates,
 		if class and class.reach
-			then class.reach + PlayerStats.get().reachBonus
+			then (class.reach + PlayerStats.get().reachBonus) * PlayerStats.get().reachScale
 			else Balance.Player.attackRange,
 		Aim.clearTest(blockers, Balance.Projectile.radius)
 	)

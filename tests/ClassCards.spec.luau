@@ -13,6 +13,7 @@ local AbilityEffects = require(ReplicatedStorage.Shared.Combat.AbilityEffects)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Classes = require(ReplicatedStorage.Shared.Config.Classes)
 local ShotPipeline = require(ReplicatedStorage.Shared.Combat.ShotPipeline)
+local SwingBox = require(ReplicatedStorage.Shared.Combat.SwingBox)
 local TestRunner = require(script.Parent.TestRunner)
 local Types = require(ReplicatedStorage.Shared.Types)
 local WeaponAnimations = require(ReplicatedStorage.Shared.Config.WeaponAnimations)
@@ -141,9 +142,11 @@ return function(t: TestRunner.Helper)
 		)
 	end)
 
-	--[[ Each class has one Mythic of its own (owner, 2026-10-23): Dual Bows,
-	     Meteor, Earthbreaker. ]]
-	t.test("every class has exactly one Mythic, its own", function()
+	--[[ Each class has Mythics of its own (owner, 2026-10-23: Dual Bows,
+	     Meteor, Earthbreaker; 2026-10-27 added Phoenix Arrow, Black Hole,
+	     Titan's Grip), and a class Mythic is never shared between classes
+	     (Second Wind, for every class, names none). ]]
+	t.test("every class has a Mythic, and every class Mythic is one class's", function()
 		for name in Classes do
 			local mythics = {}
 			for _, ability in Abilities.all do
@@ -152,7 +155,55 @@ return function(t: TestRunner.Helper)
 					table.insert(mythics, ability.id)
 				end
 			end
-			t.equal(#mythics, 1)
+			t.isTrue(#mythics >= 1, `{name} has no Mythic`)
+		end
+		for _, ability in Abilities.all do
+			if ability.rarity == "Mythic" and ability.classes ~= nil then
+				t.isTrue(#(ability.classes :: { string }) == 1, `{ability.id} is not one class's`)
+			end
+		end
+	end)
+
+	--[[ The class upgrades of 2026-10-27 (`Combat/ClassUpgrades`): each is
+	     off without its card and on with it, for its own class. ]]
+	t.test("the class upgrades switch on with their cards", function()
+		local cases = {
+			{ "PhoenixArrow", "Ranger", "phoenix" },
+			{ "RainOfArrows", "Ranger", "arrowRain" },
+			{ "BlackHole", "Arcanist", "blackHole" },
+			{ "ElementalOrbs", "Arcanist", "elemental" },
+			{ "ArcaneTurret", "Arcanist", "turret" },
+		}
+		for _, case in cases do
+			local id, class, field = case[1], case[2], case[3]
+			t.equal((AbilityEffects.serverStats({}, class).upgrades :: any)[field], 0)
+			t.isTrue((AbilityEffects.serverStats(max(id), class).upgrades :: any)[field] > 0, id)
+			t.isTrue(table.find(Abilities.byId[id].classes :: { string }, class) ~= nil, id)
+		end
+		t.equal(AbilityEffects.serverStats({}, "Warden").melee.counterStrike, 0)
+		t.isTrue(
+			AbilityEffects.serverStats(max("CounterStrike"), "Warden").melee.counterStrike > 1,
+			"Counter Strike"
+		)
+	end)
+
+	--[[ Titan's Grip grows the whole swing, and the client draws and aims by
+	     the same scale the server hits with. ]]
+	t.test("Titan's Grip grows every blow's shape by its scale", function()
+		local plain = AbilityEffects.serverStats({}, "Warden").melee
+		local grip = AbilityEffects.serverStats(max("TitansGrip"), "Warden").melee
+		t.equal(plain.reachScale, 1)
+		t.isTrue(grip.reachScale > 1, "no growth")
+		t.equal(AbilityEffects.clientStats(max("TitansGrip"), "Warden").reachScale, grip.reachScale)
+		local swing = Classes.Warden.swing :: any
+		local blows = #swing.damage
+		for blow = 1, blows do
+			local small = SwingBox.shape(swing, blow, blows, 1, 0, plain.reachScale)
+			local big = SwingBox.shape(swing, blow, blows, 1, 0, grip.reachScale)
+			t.isTrue(
+				big.reach + big.radius > small.reach + small.radius,
+				`blow {blow} did not grow`
+			)
 		end
 	end)
 

@@ -45,7 +45,8 @@ local WardenFx = {}
 local function reach(): number
 	local class = Classes[UpgradeFx.class()]
 	local box = class and class.swing
-	return (if box then box.reach else 4) + PlayerStats.get().reachBonus
+	return ((if box then box.reach else 4) + PlayerStats.get().reachBonus)
+		* PlayerStats.get().reachScale
 end
 
 local function facing(): (BasePart?, Vector3)
@@ -188,7 +189,9 @@ local function onSpin()
 		elseif glow then { glow }
 		elseif trail then trail.colour
 		else { Color3.fromRGB(255, 214, 150) }
-	local radius = Balance.Player.whirlwind.radius * PlayerStats.get().widthScale
+	local radius = Balance.Player.whirlwind.radius
+		* PlayerStats.get().widthScale
+		* PlayerStats.get().reachScale
 	local count = 12
 	cubes(count, 0.9, colours, K.whirlwindLife, function(index, t, part)
 		local centre = UpgradeFx.root()
@@ -216,8 +219,9 @@ local function onWave(look: Vector3, from: Vector3)
 	local length = levels[math.min(level, #levels)]
 	local wave = Balance.Player.shockwave
 	local class = Classes[UpgradeFx.class()]
-	local ahead = (if class and class.swing then class.swing.slamAhead else 5)
-		+ PlayerStats.get().reachBonus
+	local ahead = (
+		(if class and class.swing then class.swing.slamAhead else 5) + PlayerStats.get().reachBonus
+	) * PlayerStats.get().reachScale
 	local step = 2
 	local count = math.max(1, math.floor(length / step))
 	local across = Vector3.new(-look.Z, 0, look.X)

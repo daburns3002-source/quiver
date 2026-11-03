@@ -48,26 +48,29 @@ export type SwingConfig = {
 local FULL_TURN = 360
 
 --[[ The shape of blow `blow` of `blows`, grown by Cleave's `widthScale`
-     and Long Reach's `reachBonus`. ]]
+     and Long Reach's `reachBonus`, then the whole of it by Titan's Grip's
+     `reachScale` (1 when omitted). ]]
 function SwingBox.shape(
 	swing: SwingConfig,
 	blow: number,
 	blows: number,
 	widthScale: number,
-	reachBonus: number
+	reachBonus: number,
+	reachScale: number?
 ): Shape
+	local scale = reachScale or 1
 	if blow >= blows then
 		return {
 			kind = "Circle",
 			reach = 0,
 			arc = 0,
-			radius = swing.slamRadius * widthScale,
-			ahead = swing.slamAhead + reachBonus,
+			radius = swing.slamRadius * widthScale * scale,
+			ahead = (swing.slamAhead + reachBonus) * scale,
 		}
 	end
 	return {
 		kind = "Arc",
-		reach = swing.reach + reachBonus,
+		reach = (swing.reach + reachBonus) * scale,
 		arc = math.min(swing.arc * widthScale, FULL_TURN),
 		radius = 0,
 		ahead = 0,

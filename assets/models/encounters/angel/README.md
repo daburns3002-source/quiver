@@ -1,5 +1,14 @@
 # The Angel
 
+**Superseded, 2026-11-02.** The owner modelled and imported their own Angel
+instead ("i just imported the angel room model"), from the no-halo reference
+sheet in `assets/concepts/blocky/encounters/angel/`. That import is one
+textured MeshPart with no halo of its own, its ids are in
+`Config/AngelDesign.mesh`, and it is what an Angel room draws. The GLB below
+was never imported and nothing reads it; it is kept only because
+`export_glb.py` is still the way to turn `Config/AngelDesign`'s blocks --
+the fallback the room builds when no mesh id is set -- back into a model.
+
 `angel.glb` — the Angel who stands in an Angel room (`RoomConfig.encounter`),
 as three meshes: **cream** (robe, head, arms, wings), **gold** (waist band,
 brooch, halo) and **eye** (the two closed eyes). One piece a colour, so

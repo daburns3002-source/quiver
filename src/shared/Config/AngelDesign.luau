@@ -48,6 +48,10 @@ export type Part = {
 	     2026-11-02: "the wings are off"). Everything else leaves it out. ]]
 	rotation: Vector3?,
 	shape: Shape?,
+	--[[ The halo. The owner's imported Angel has no halo of its own (its
+	     sheet is `angel_no_halo_four_views.png`), so these blocks are built
+	     whether the mesh is drawn or not. ]]
+	halo: boolean?,
 	--[[ Drawn Neon: the pool of light on the ground. ]]
 	glow: boolean?,
 	--[[ Left out of the hover bob, so the light stays on the ground while
@@ -69,6 +73,10 @@ local function block(
 	rotation: Vector3?
 ): Part
 	return { name = name, size = size, offset = offset, color = color, rotation = rotation }
+end
+
+local function halo(name: string, size: Vector3, offset: Vector3): Part
+	return { name = name, size = size, offset = offset, color = GOLD, halo = true }
 end
 
 --[[ One wing: three feathers fanning up and out from the shoulder, each
@@ -123,12 +131,17 @@ local parts: { Part } = {
 	block("EyeLeft", Vector3.new(0.55, 0.2, 0.14), Vector3.new(-0.52, 5, -0.98), EYE),
 	block("EyeRight", Vector3.new(0.55, 0.2, 0.14), Vector3.new(0.52, 5, -0.98), EYE),
 
-	--[[ The halo: four bars making a flat ring, level, floating half a head
-	     above it and half again its width. ]]
-	block("HaloFront", Vector3.new(2.8, 0.3, 0.3), Vector3.new(0, 6.54, -0.85), GOLD),
-	block("HaloBack", Vector3.new(2.8, 0.3, 0.3), Vector3.new(0, 6.54, 0.85), GOLD),
-	block("HaloLeft", Vector3.new(0.3, 0.3, 2), Vector3.new(-1.25, 6.54, 0), GOLD),
-	block("HaloRight", Vector3.new(0.3, 0.3, 2), Vector3.new(1.25, 6.54, 0), GOLD),
+	--[[ The halo: four bars making a flat ring, level, floating a clear
+	     gap above the head and half again its width.
+
+	     It sat at 6.54, which left no gap at all over the owner's imported
+	     head and read as a gold plate resting on it (seen in Studio,
+	     2026-11-02). Raised to float 0.78 above the head, about four tenths
+	     of a head, as the sheet draws it. ]]
+	halo("HaloFront", Vector3.new(3, 0.3, 0.3), Vector3.new(0, 7, -0.95)),
+	halo("HaloBack", Vector3.new(3, 0.3, 0.3), Vector3.new(0, 7, 0.95)),
+	halo("HaloLeft", Vector3.new(0.3, 0.3, 2.2), Vector3.new(-1.35, 7, 0)),
+	halo("HaloRight", Vector3.new(0.3, 0.3, 2.2), Vector3.new(1.35, 7, 0)),
 }
 
 for _, side in { -1, 1 } do
@@ -179,44 +192,35 @@ local AngelDesign = {
 
 	--[[ Its height all told, halo included, for anything that needs to frame
 	     it. `tests/Angel.spec` checks the parts agree. ]]
-	height = 6.69,
+	height = 7.15,
 
 	--[[
-		The same Angel as a mesh (owner, 2026-11-02: "Redo as a GLB").
+		The Angel the owner imported (2026-11-02: "i just imported the angel
+		room model"), which is what the room draws when the id is filled in.
 
-		`assets/models/encounters/angel/angel.glb` holds the blocks above
-		joined into one piece per colour -- cream, gold, and the dark of the
-		eyes -- so the room draws three MeshParts instead of nineteen parts,
-		with no texture needed. The GLB is exported from these very numbers
-		by the script in that folder, so the two can never disagree.
+		It is ONE textured MeshPart, not the three colour pieces the GLB in
+		`assets/models/encounters/angel/` was exported as: the owner modelled
+		it from the no-halo reference sheet instead
+		(`assets/concepts/blocky/encounters/angel/angel_no_halo_four_views.png`),
+		so the cream, the gold and the eyes all come from its texture and
+		**it carries no halo**. The halo is the four gold blocks above, built
+		whether the mesh is drawn or not.
 
-		**The ids are empty until the owner imports it.** A mesh cannot be
-		fetched from a file: `MeshPart.MeshId` is not assignable and
-		`AssetService:CreateMeshPartAsync` wants an uploaded asset, so the
-		GLB has to go into Studio and come back as three ids. Until then
-		`Run/AngelProp` builds the blocks, which is the same shape and the
-		same colours; fill all three in and it builds the mesh instead.
+		`size` is the import measured in Studio at the scale that puts the
+		figure where the sheet does: the bottom of its robe on
+		`AngelDesign.hover` and the top of its head at 6.07, right under the
+		halo. The import is deeper than the blocks are (3.74 against 1.9)
+		because its wings sweep back rather than out, so the mesh is NOT the
+		box the blocks fill and is not checked against them.
 
-		Each piece carries the size and the offset its own blocks fill, which
-		`tests/Angel.spec` checks, so a piece that imports at some other
-		scale is placed rather than trusted.
+		Empty ids mean no import, and `Run/AngelProp` builds the blocks, which
+		is the same figure in the same place.
 	]]
 	mesh = {
-		cream = {
-			id = "",
-			size = Vector3.new(6.76, 4.627, 1.9),
-			offset = Vector3.new(0, 3.8135, 0),
-		},
-		gold = {
-			id = "",
-			size = Vector3.new(2.8, 4.59, 2),
-			offset = Vector3.new(0, 4.395, 0),
-		},
-		eye = {
-			id = "",
-			size = Vector3.new(1.59, 0.2, 0.14),
-			offset = Vector3.new(0, 5, -0.98),
-		},
+		id = "rbxassetid://137599223664094",
+		textureId = "rbxassetid://115778260190544",
+		size = Vector3.new(5.398, 4.57, 3.737),
+		offset = Vector3.new(0, 3.785, 0),
 	},
 }
 

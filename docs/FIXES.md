@@ -1415,7 +1415,7 @@ the local branch with it. The work survived only in the reflog.
 
 The cause is `gh pr view "$branch"`, which resolves a branch name to **any** pr
 that ever used it, merged ones included. `phase-3/drowned-pet-attacks` had been
-used months earlier for #414, so the script adopted that pr, "merged" the
+used three days earlier for #414, so the script adopted that pr, "merged" the
 already-merged thing, and reported success.
 
 Two things made it dangerous rather than merely wrong: it read as a normal
@@ -1430,23 +1430,15 @@ Reuse a branch name and git is happy; GitHub remembers.
 ## `glb_clips_to_luau.py` deleted seventeen modules nobody asked it to
 
 2026-11-04. Running `python -I tools/glb_clips_to_luau.py` to generate clips
-for seven new effect GLBs also removed seventeen unrelated modules from
-`Config/ModelClips`, and rewrote fifty-nine more, cutting 261,000 lines.
+for seven new effect GLBs also removed seventeen modules from
+`Config/ModelClips`: every one not named in `assets/models/model_clips.json`.
+Five are the Drowned Village pets `tools/pet_motions.py` writes. The other
+twelve are Thornwood pets that the manifest has never listed (their modules
+arrived in #402). The script now prints `not listed, kept: <name>` and deletes
+only with `--prune`.
 
-Two separate traps, both from the same assumption — that
-`assets/models/model_clips.json` is the whole truth about that folder:
-
-- **It deletes anything unlisted.** Seventeen modules are not in the manifest:
-  the benched Thornwood pets, whose entries were dropped when they were
-  benched, and the five Drowned Village pets, whose motion is hand-authored by
-  `tools/pet_motions.py` because they came out of Tripo with no GLB at all.
-  The script took all seventeen. It now prints `not listed, kept: <name>` and
-  deletes only when run with `--prune`.
-- **It rewrites from whatever GLBs happen to be on disk**, and in this
-  checkout those do not reproduce what is committed — fifty-nine modules came
-  back far smaller. That half is not fixed: a bare run still rewrites them, so
-  check `git diff` after running it and revert what you did not mean to touch.
-
-Both were caught only because the run printed `removed BuoyPuffer.luau` for a
-module written an hour earlier. A generator that deletes should say what it is
-about to delete, not report it afterwards.
+The generator does not format its output. Straight after a run, `git diff`
+shows every module changed by hundreds of thousands of lines. Run StyLua on the
+folder first: with that done, the diff against the committed modules is empty.
+This entry first read that diff as the GLBs failing to reproduce the modules.
+That was wrong, and they reproduce them exactly.

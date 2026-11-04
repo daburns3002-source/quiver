@@ -456,13 +456,11 @@ def main():
         written.add(path.name)
         keys = sum(len(t[0]) for c in clips.values() for jt in c[1].values() for t in jt.values())
         print(f"{name}: {len(joints)} joints, {len(parts)} parts, {sorted(clips)}, {keys} keys, {path.stat().st_size // 1024} KB")
-    # Only ever delete what this run could have written. 17 modules here are
-    # not listed in model_clips.json -- the benched Thornwood pets, whose
-    # entries were dropped when they were benched, and the five Drowned
-    # Village pets, whose motion is hand-authored by tools/pet_motions.py
-    # because they have no GLB at all. A bare run used to delete every one of
-    # them (2026-11-04, docs/FIXES.md). Orphans are reported now, and removed
-    # only when asked for.
+    # 17 modules here are not listed in model_clips.json: twelve Thornwood pets
+    # the manifest has never held, and the five Drowned Village pets, whose
+    # motion tools/pet_motions.py writes because they have no GLB. A bare run
+    # used to delete all of them (2026-11-04, docs/FIXES.md). Orphans are
+    # reported now, and removed only when asked for.
     prune = "--prune" in sys.argv
     orphans = sorted(o.name for o in OUT.glob("*.luau") if o.name not in written)
     for name in orphans:

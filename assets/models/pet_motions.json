@@ -1,0 +1,131 @@
+{
+  "_README": [
+    "Hand-authored motion for the five Drowned Village pets, which came out of",
+    "Tripo as one static mesh each with no GLB and so no clips of their own.",
+    "`python -I tools/pet_motions.py` turns this into Config/ModelClips/<Pet>.",
+    "",
+    "Each pet is a single part named Body, so these move the whole animal:",
+    "position, rotation and scale. A limb cannot move on its own here -- that",
+    "needs a jointed Claude Design rebuild (docs/PETS-DROWNED.md).",
+    "",
+    "Units: position in import studs (each pet is about 1 stud tall at import,",
+    "and Fx/ModelAnimator scales the motion with the pet). Rotation in degrees",
+    "as [x, y, z]. Scale as a multiplier per axis. Times in seconds.",
+    "",
+    "Keep the first and last key of a looping clip identical or it will jump."
+  ],
+
+  "AbyssJelly": {
+    "size": [0.99951, 0.95459, 0.85791],
+    "rest": [0, 0.4773, 0],
+    "note": "A bell that pulses: squeeze and rise, relax and sink. The one motion a jellyfish must have, and the one a single mesh can do honestly.",
+    "clips": {
+      "Idle": {
+        "length": 2.6,
+        "pos": [[0.0, [0, 0, 0]], [0.5, [0, 0.11, 0]], [1.1, [0, 0.13, 0]], [2.0, [0, -0.02, 0]], [2.6, [0, 0, 0]]],
+        "scale": [[0.0, [1, 1, 1]], [0.45, [0.82, 1.26, 0.82]], [1.0, [1.1, 0.86, 1.1]], [1.8, [0.98, 1.03, 0.98]], [2.6, [1, 1, 1]]]
+      },
+      "Attack": {
+        "length": 1.5,
+        "loops": false,
+        "note": "Three hard pulses, one a sting, then it settles.",
+        "pos": [[0.0, [0, 0, 0]], [0.18, [0, 0.2, 0]], [0.4, [0, 0.03, 0]], [0.58, [0, 0.2, 0]], [0.8, [0, 0.03, 0]], [0.98, [0, 0.2, 0]], [1.2, [0, 0.03, 0]], [1.5, [0, 0, 0]]],
+        "scale": [[0.0, [1, 1, 1]], [0.14, [0.72, 1.4, 0.72]], [0.36, [1.16, 0.8, 1.16]], [0.54, [0.72, 1.4, 0.72]], [0.76, [1.16, 0.8, 1.16]], [0.94, [0.72, 1.4, 0.72]], [1.16, [1.16, 0.8, 1.16]], [1.5, [1, 1, 1]]]
+      }
+    }
+  },
+
+  "BuoyPuffer": {
+    "size": [0.99951, 0.75732, 0.95557],
+    "rest": [0, 0.37866, 0],
+    "note": "Rides the swell, and puffs when it pays back a hit.",
+    "clips": {
+      "Idle": {
+        "length": 3.0,
+        "pos": [[0.0, [0, 0, 0]], [0.8, [0, 0.07, 0]], [1.6, [0, 0.01, 0]], [2.3, [0, 0.05, 0]], [3.0, [0, 0, 0]]],
+        "rot": [[0.0, [0, 0, 0]], [0.9, [3, 0, 5]], [1.9, [-2, 0, -4]], [3.0, [0, 0, 0]]]
+      },
+      "Attack": {
+        "length": 1.2,
+        "loops": false,
+        "note": "Draws in, swells to half again its size, holds, then flops back.",
+        "scale": [[0.0, [1, 1, 1]], [0.12, [0.84, 0.84, 0.84]], [0.3, [1.5, 1.5, 1.5]], [0.72, [1.44, 1.44, 1.44]], [0.95, [0.92, 0.92, 0.92]], [1.2, [1, 1, 1]]],
+        "pos": [[0.0, [0, 0, 0]], [0.3, [0, 0.14, 0]], [0.72, [0, 0.12, 0]], [1.2, [0, 0, 0]]]
+      }
+    }
+  },
+
+  "Inkpot": {
+    "size": [0.87061, 0.62256, 0.8501],
+    "rest": [0, 0.31128, 0],
+    "note": "Sits low and still, then recoils and spits its ink forward.",
+    "clips": {
+      "Idle": {
+        "length": 3.4,
+        "pos": [[0.0, [0, 0, 0]], [1.0, [0, 0.04, 0]], [2.2, [0, 0.01, 0]], [3.4, [0, 0, 0]]],
+        "rot": [[0.0, [0, 0, 0]], [1.2, [0, 7, 0]], [2.4, [0, -7, 0]], [3.4, [0, 0, 0]]]
+      },
+      "Attack": {
+        "length": 1.0,
+        "loops": false,
+        "note": "Pulls back, throws itself forward on the squirt, rocks back level.",
+        "pos": [[0.0, [0, 0, 0]], [0.22, [0, 0.02, -0.14]], [0.38, [0, 0.0, 0.2]], [0.7, [0, 0, 0.05]], [1.0, [0, 0, 0]]],
+        "rot": [[0.0, [0, 0, 0]], [0.22, [-16, 0, 0]], [0.38, [22, 0, 0]], [0.7, [-5, 0, 0]], [1.0, [0, 0, 0]]],
+        "scale": [[0.0, [1, 1, 1]], [0.22, [1.12, 0.86, 1.12]], [0.38, [0.88, 1.18, 0.88]], [1.0, [1, 1, 1]]]
+      }
+    }
+  },
+
+  "SlateTurtle": {
+    "size": [0.78271, 0.61475, 0.99951],
+    "rest": [0, 0.30738, 0],
+    "note": "Plods, and hunkers under its shell when it shelters the room.",
+    "clips": {
+      "Idle": {
+        "length": 3.6,
+        "pos": [[0.0, [0, 0, 0]], [1.1, [0, 0.035, 0]], [2.4, [0, 0.01, 0]], [3.6, [0, 0, 0]]],
+        "rot": [[0.0, [0, 0, 0]], [1.2, [0, 0, 3]], [2.5, [0, 0, -3]], [3.6, [0, 0, 0]]]
+      },
+      "Waddle": {
+        "length": 0.9,
+        "note": "A slow waddle, rolling side to side on its shell.",
+        "pos": [[0.0, [0, 0, 0]], [0.22, [0, 0.05, 0]], [0.45, [0, 0, 0]], [0.68, [0, 0.05, 0]], [0.9, [0, 0, 0]]],
+        "rot": [[0.0, [0, 0, 0]], [0.22, [0, 0, 8]], [0.45, [0, 0, 0]], [0.68, [0, 0, -8]], [0.9, [0, 0, 0]]]
+      },
+      "Attack": {
+        "length": 1.6,
+        "loops": false,
+        "note": "Drops and pulls in tight, holds the shelter, then rises again.",
+        "pos": [[0.0, [0, 0, 0]], [0.25, [0, -0.09, 0]], [1.15, [0, -0.09, 0]], [1.6, [0, 0, 0]]],
+        "scale": [[0.0, [1, 1, 1]], [0.25, [1.14, 0.7, 1.14]], [1.15, [1.12, 0.72, 1.12]], [1.6, [1, 1, 1]]]
+      }
+    }
+  },
+
+  "TideWilf": {
+    "size": [0.48584, 0.77783, 0.99951],
+    "rest": [0, 0.38892, 0],
+    "note": "A lean runner: prowls low, then lunges the three studs its reach allows.",
+    "clips": {
+      "Idle": {
+        "length": 2.8,
+        "pos": [[0.0, [0, 0, 0]], [0.7, [0, 0.05, 0]], [1.5, [0, 0.015, 0]], [2.8, [0, 0, 0]]],
+        "rot": [[0.0, [0, 0, 0]], [0.9, [0, 6, 0]], [1.9, [0, -6, 0]], [2.8, [0, 0, 0]]]
+      },
+      "Trot": {
+        "length": 0.55,
+        "note": "A bounding gait, nose down on the push.",
+        "pos": [[0.0, [0, 0, 0]], [0.14, [0, 0.12, 0]], [0.3, [0, 0, 0]], [0.42, [0, 0.07, 0]], [0.55, [0, 0, 0]]],
+        "rot": [[0.0, [0, 0, 0]], [0.14, [-9, 0, 0]], [0.3, [6, 0, 0]], [0.55, [0, 0, 0]]]
+      },
+      "Attack": {
+        "length": 1.1,
+        "loops": false,
+        "note": "Crouches, throws itself forward, lands and recovers.",
+        "pos": [[0.0, [0, 0, 0]], [0.2, [0, -0.06, -0.08]], [0.42, [0, 0.16, 0.42]], [0.66, [0, 0, 0.5]], [1.1, [0, 0, 0]]],
+        "rot": [[0.0, [0, 0, 0]], [0.2, [10, 0, 0]], [0.42, [-18, 0, 0]], [0.66, [8, 0, 0]], [1.1, [0, 0, 0]]],
+        "scale": [[0.0, [1, 1, 1]], [0.2, [1.08, 0.88, 1.0]], [0.42, [0.92, 1.14, 1.06]], [1.1, [1, 1, 1]]]
+      }
+    }
+  }
+}

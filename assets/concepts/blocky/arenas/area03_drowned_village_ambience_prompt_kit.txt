@@ -1,0 +1,71 @@
+Generate ONE image and save it to this exact path:
+
+  assets/concepts/blocky/arenas/area03_drowned_village_ambience_kit.jpg
+
+Reference images attached, in order:
+1. The Drowned Village ambience view: the flooded village around the arena.
+   EVERY piece below is taken from this image, with its shapes and its colours.
+2. The Drowned Village arena concept sheet with its kit pieces (the room's
+   ruined house, stone well, crate, barrel, lantern post, cobble causeway tile,
+   reeds and swatches).
+3. The Mossy Glade ambience KIT sheet: copy ONLY its layout, plain light-grey
+   backdrop, lighting, angle and spacing. None of its pieces or colours.
+
+Match the visual language EXACTLY -- chunky voxel blocks, flat shading, hard
+edges, no textures, saturated colours, soft ambient light with a gentle drop
+shadow, the same neutral daylight as image 2.
+
+This is a KIT SHEET, not a scene: individual objects laid out in neat rows on a
+plain light-grey studio backdrop, each piece isolated with space around it, lit
+the same way, all at a consistent three-quarter angle, exactly like reference 3.
+No scene, no ground plane -- a catalogue of parts.
+
+Lay out these pieces in rows (but draw NO text):
+
+Row 1 -- the big pieces, each drawn as a separate whole object:
+- The drowned bell tower: a square pale-grey stone cube tower four or five
+  blocks tall, leaning, a slate-blue block cap, an open arch near the top with a
+  bronze bell hanging in it, a dark algae band round its base.
+- A sunken house: the room's own timber frame and slate-blue block roof (image
+  2), tilted, cut off at the eaves as if the rest is under water, a green algae
+  band along the cut.
+- A roof ridge alone: just the slate-blue roof peak and its brown ridge beam,
+  the smallest a drowned house gets.
+- The toll gate: a grey stone cube arch with a brown timber bar across it and a
+  lit lantern hanging on the post.
+- A dead drowned tree: a bare grey-brown forked cube trunk, no leaves, a cream
+  rope and a square net panel snagged in the fork.
+
+Row 2 -- water dressing:
+- A reed bed: a clump of bright green reed cubes of three different heights on a
+  small shallow-water base.
+- A swamped rowboat: a brown plank hull, half full of turquoise water cubes, one
+  oar across it.
+- A net on poles: two brown posts with a square net panel between them and three
+  cream cork float cubes along the top.
+- A crab pot: a small box of brown slats with a rope loop.
+- A mossy grey rock cluster with a darker green algae band at the waterline.
+- A drifting debris raft: two or three flat brown plank slabs with a barrel and
+  a crate (image 2's barrel and crate) riding on them.
+- A leaning lantern post (image 2's lantern post), tilted, still lit.
+- The cobble causeway tile (image 2), one square of grey cobble.
+
+Row 3 -- the moving ambience, each drawn large and clearly faceted so its block
+construction is obvious:
+- A water glint: ONE small flat pale-cyan slab, slightly tilted. A flat slab,
+  NOT a star, NOT a sparkle.
+- A ripple: one flat turquoise square ring slab, hard-edged.
+- A bubble: one tiny pale-cyan cube with a soft glow around it.
+- A gull: a chunky white blocky body with a small orange beak cube and two flat
+  angled grey wing slabs spread wide.
+- A dragonfly: a thin dark blue-green body cube with four tiny flat angled wing
+  slabs, pale and translucent.
+- A mist piece: one flat translucent white slab, low and wide.
+- A light shaft: one angled translucent pale-warm-yellow prism with flat sides.
+
+Row 4 -- material swatches, as flat square tiles like reference 3's bottom row,
+sampled from image 1: shallow turquoise water, deep flood teal, grey cobble,
+pale grey stone, timber brown, dark plank brown, slate-blue roof, reed green,
+algae green, cream rope, bronze bell, lantern orange glow, mist white.
+
+No text, no labels, no numbers, no UI, no characters, no background scenery.

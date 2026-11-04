@@ -93,7 +93,7 @@ function DevKeys.start()
 			--[[ How far the arrow you see is from the shot that did the
 			     damage (`Fx/ShotDrift`). Reads about zero in Studio Play,
 			     where one DataModel holds both sides; the numbers that mean
-			     anything come from a real server. ]]
+			     anything come from the Test tab's local server. ]]
 			local line = ShotDrift.report()
 			print(line)
 			toast(line)

@@ -24,8 +24,9 @@
 	matches the server's copy of each to the one the client drew, and records
 	how far apart the two origins and the two directions were. In Studio Play
 	every number should be about zero -- that only proves the instrument
-	works. The numbers that matter come from Play Here with a real server, or
-	from a published place.
+	works. The numbers that matter come from Studio's Test tab with a local
+	server and a separate player window: the J key that reads this is
+	Studio-only (`DevKeys`), so a published place cannot show them.
 
 	Read it with `ShotDrift.report()`, bound to a dev key.
 ]]

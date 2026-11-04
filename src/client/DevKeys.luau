@@ -27,6 +27,7 @@ local EndScreen = require(script.Parent.UI.EndScreen)
 local PetPreview = require(script.Parent.Fx.PetPreview)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local SandboxMenu = require(script.Parent.UI.SandboxMenu)
+local ShotDrift = require(script.Parent.Fx.ShotDrift)
 
 local DevKeys = {}
 
@@ -88,6 +89,14 @@ function DevKeys.start()
 				local on = PetPreview.toggle()
 				toast(if on then "Studio: pets follow you" else "Studio: pets put away")
 			end)
+		elseif input.KeyCode == Enum.KeyCode.J then
+			--[[ How far the arrow you see is from the shot that did the
+			     damage (`Fx/ShotDrift`). Reads about zero in Studio Play,
+			     where one DataModel holds both sides; the numbers that mean
+			     anything come from a real server. ]]
+			local line = ShotDrift.report()
+			print(line)
+			toast(line)
 		elseif input.KeyCode == Enum.KeyCode.O then
 			SandboxMenu.toggle()
 		elseif input.KeyCode == Enum.KeyCode.L then

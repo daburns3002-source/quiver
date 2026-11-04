@@ -23,6 +23,53 @@ stand.
 | **The boss, on paper** | The Old Tollcrab is fully designed in `docs/BOSSES.md`: Toll (an expanding shockwave ring that smashes through houses), Echo Mark, and Phase 2's Drowned Rise. Its banner and icon are in `Config/BossBanners`, uploaded. Its model is imported (`assets/models/enemies/drowned/crab_arena_3`). |
 | **The crate** | In `Config/Shop` at 2,000 coins, `stocked` off. |
 
+## The outer arena: the kit pieces
+
+Owner, 2026-11-03: *"i have the arena made, but i need the outer arena made.
+give me the kit pieces for the outer arena."*
+
+The outer arena is the scenery past the room's walls, the way the glade has its
+outer forest and Thornwood its outer wood (`docs/PIPELINES.md` §5.5). The
+principle Thornwood settled is that it is **the room continuing outward** --
+built from the room's own pieces, in the room's own colours and light -- so
+every piece below is taken from `area03_drowned_village.jpg`. Past the walls
+the village keeps going, deeper under the flood.
+
+Two sheets drive it, and both prompts are written and waiting on Codex's usage
+reset (`..._ambience_prompt_master.txt`, `..._ambience_prompt_kit.txt` beside
+the concept sheet):
+
+**The big pieces** -- the silhouette of the flooded village.
+
+| Piece | What it is |
+|---|---|
+| **Drowned bell tower** | Pale-grey stone, leaning, slate-blue cap, a bronze bell in an open arch near the top, algae round its base. The tallest thing in the frame, and the Bell Ringer's home. |
+| **Sunken house** | The room's own timber frame and slate-blue roof, tilted, cut off at the eaves as if the rest is under, a green algae band along the cut. |
+| **Roof ridge alone** | Just the roof peak and its ridge beam -- the smallest a drowned house gets, for the deep water. |
+| **Toll gate** | A grey stone arch, a timber bar across it, a lit lantern on the post, on a cobble causeway that runs out of the water and stops. The Old Tollcrab's toll, seen before you fight it. |
+| **Dead drowned tree** | A bare grey-brown forked trunk, no leaves, rope and a net panel snagged in the fork. |
+
+**Water dressing** -- what fills the space between them.
+
+Reed bed (three reed heights on a shallow base) · swamped rowboat with an oar ·
+net on two poles with cork floats · slatted crab pot · mossy rock cluster with
+an algae waterline · drifting debris raft of planks, a barrel and a crate ·
+leaning lantern post, still lit · the cobble causeway tile.
+
+**The moving ambience** -- the pieces `Fx/ForestAmbience` will drive.
+
+Water glint (a flat pale-cyan slab) · ripple (a flat turquoise ring) · bubble ·
+gull · dragonfly · mist slab · light shaft. The glade's leaves and fireflies and
+Thornwood's pollen and crows have no place here; the water does the moving.
+
+**Swatches:** shallow turquoise, deep flood teal, grey cobble, pale grey stone,
+timber brown, dark plank brown, slate-blue roof, reed green, algae green, cream
+rope, bronze bell, lantern orange, mist white.
+
+Two things the outer arena is doing besides looking right: the bell tower and
+the toll gate put the Bell Ringer and the Old Tollcrab in front of the player
+before either is fought, which is the only foreshadowing the area has.
+
 ## What it waits on, in the order it has to happen
 
 Each step needs the one before it. This is why nothing here can be picked up

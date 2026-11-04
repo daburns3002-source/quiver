@@ -53,7 +53,7 @@ local WARDEN_SPRITE = "rbxassetid://123411253404004"
      Thornfall, Guard Break and Bull Rush were sent back once and are
      round 23's). **Not uploaded yet**, so every region below is silent
      until the owner uploads the file and the id lands here. ]]
-local CARD_SPRITE = ""
+local CARD_SPRITE = "rbxassetid://76277598556834"
 
 local Sounds: { [string]: Sound } = {
 	--[[ The Ranger's every arrow (`Config/Weapons.TwigBow.fireSound`). ]]

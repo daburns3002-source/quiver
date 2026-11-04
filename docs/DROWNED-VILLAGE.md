@@ -112,7 +112,17 @@ out of order.
 - **There is no Uncommon bow.** Fourteen weapons against fifteen slots, and it
   is a real gap in the set rather than a missing sheet
   (`docs/WEAPONS-DROWNED.md`).
-- **None of the five pets plays an animation.** They came out of Tripo as single
-  static meshes with no clips, which is also why the Abyss Jelly's sting could
-  not be the trailing ring a jellyfish wants. Rigged models would fix all five
-  at once.
+- **The five pets move now, as far as one mesh can.** They came out of Tripo as
+  single static meshes with no clips, so until 2026-11-04 they stood dead still.
+  `tools/pet_motions.py` generates `Config/ModelClips` for all five from a
+  hand-authored spec (`assets/models/pet_motions.json`): the jelly pulses its
+  bell, the puffer swells, the Inkpot recoils and spits, the turtle hunkers
+  under its shell, the Tide Wilf lunges. Each pet is still ONE part, so the
+  whole animal moves together and no fin, limb or tentacle moves alone -- a
+  jointed Claude Design rebuild is still the real fix, and would replace that
+  script with the GLB pipeline every other model uses.
+- **Their attacks can be drawn now.** `tests/PetAttacks.spec` asks that an
+  attacking pet has clips the preview can show, which is what blocked a
+  `Config/PetAttacks` entry for the five. With clips in place the Abyss Jelly
+  could finally get the trailing tentacle ring it wanted, and the other four
+  their own pieces. Not done.

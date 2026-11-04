@@ -164,4 +164,29 @@ return function(t: TestRunner.Helper)
 			end
 		end
 	end)
+
+	--[[ Nothing checked that a piece's `clip` is a clip its effect has:
+	     the spec read the effect's name and its kind and stopped there, so
+	     a typo drew nothing and said nothing. Found while giving the five
+	     Drowned Village pets their pieces (2026-11-04). ]]
+	t.test("every piece names a clip its effect has", function()
+		local clips = ReplicatedStorage.Shared.Config:FindFirstChild("ModelClips")
+		local function check(key: string, effect: string, clip: string?)
+			local module = clips and clips:FindFirstChild(effect)
+			t.notNil(module, `{key}: {effect} has no Config/ModelClips`)
+			if not module or not module:IsA("ModuleScript") or clip == nil then
+				return
+			end
+			local data = (require :: any)(module)
+			t.notNil(data.clips[clip], `{key}: {effect} has no {clip} clip`)
+		end
+		for key, shots in PetAttacks do
+			for _, shot in shots do
+				check(key, shot.effect, shot.clip)
+				if shot.impact then
+					check(key, shot.impact.effect, shot.impact.clip)
+				end
+			end
+		end
+	end)
 end

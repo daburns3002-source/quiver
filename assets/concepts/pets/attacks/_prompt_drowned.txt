@@ -1,0 +1,65 @@
+Generate ONE image and save it to this exact path:
+
+  assets/concepts/pets/attacks/drowned_pieces.png
+
+A clean game-art reference sheet, 16:9, light grey background, titled "Drowned
+Village pet attack pieces". It shows the projectiles and small effects for five
+flooded-village pets' attacks in Arrow Legends, a Roblox top-down archer game.
+The attached images are the five pets themselves — Abyss Jelly, Buoy Puffer,
+Inkpot, Slate Turtle, Tide Wilf — and every piece below must take its colours
+from the pet it belongs to.
+
+Style: blocky, low-poly, like Roblox parts and Pet Simulator: every piece built
+from a few chunky bevelled cubes and slabs, flat colours, no outlines, no
+gradients except a soft glow where noted. Simple and readable from a top-down
+camera. Small: each piece is about the size of the pet's head or smaller.
+
+These are water pieces and must not read as forest ones. No leaves, no petals,
+no spores, no wood, no fire. Their language is water, ink, deep-sea glow, wet
+stone and the turquoise of a flooded street.
+
+Lay out seven panels, four across and three down, the last two cells left
+empty. Each panel: the piece large in three-quarter view, a small side view,
+and a strip of three small frames showing its motion. Label each panel with its
+name in plain blocky letters.
+
+1. Tentacle Sting (Abyss Jelly): a trailing tentacle of four or five small
+   cubes strung in a line, thinning toward the tip, each cube a translucent
+   deep violet-blue with a soft cyan glow. It lashes straight out from the pet
+   and recoils in a curl; frames: coiled, lashed out straight, curling back.
+   NOT a tongue — the segments hang loose and trail behind the tip.
+
+2. Accord Mark (Abyss Jelly): the mark its canopy lays on three enemies at once.
+   A flat ring of small translucent cyan cubes lying on the ground, with a
+   single glowing violet cube hanging just above its centre. Show three of them
+   side by side, joined by a thin line of tiny cyan cubes running between the
+   rings — the blow shared among all three. Frames: the ring settling, the link
+   lighting up, the ring fading.
+
+3. Spine Burst (Buoy Puffer): a ring of short, blunt cream spine wedges thrown
+   outward flat along the ground from under the pet, over a low pale turquoise
+   water ring. Frames: spines drawn in tight, bursting out, the water ring
+   spreading on alone. NOT a crown, NOT a shockwave of light — these are
+   physical spines over water.
+
+4. Ink Squirt (Inkpot): a blob of near-black ink, two or three cubes with a
+   deep indigo sheen, flying in a flat arc with a short trail of smaller ink
+   cubes behind it. Frames: fired, flying, bursting.
+
+5. Ink Cloud (Inkpot): what the squirt leaves. A low flat patch of near-black
+   ink tiles on the ground with a loose cloud of dark indigo cubes hanging
+   above it, thick enough to hide what is inside — this is a blinding cloud,
+   not a healing patch. Frames: bursting outward, hanging full, thinning away.
+
+6. Slate Shelter (Slate Turtle): a low dome over the player built from flat
+   grey-green slate slabs laid like overlapping shell plates, translucent, with
+   wet green algae edging each plate and a pale turquoise rim where it meets
+   the ground. Frames: the plates rising and locking together, holding, sinking
+   away. NOT a howl, NOT rings of sound — this is a shell.
+
+7. Tide Slash (Tide Wilf): a crescent arc of flat turquoise water slabs, darker
+   at the leading edge, with a scatter of small white foam cubes flung off its
+   outer rim. Frames: the arc starting, full sweep, breaking into foam. NOT a
+   leaf crescent — this is a sheet of thrown water.
+
+No UI, no characters, no background scenery beyond the plain grey backdrop.

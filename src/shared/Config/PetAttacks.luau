@@ -354,9 +354,12 @@ local PetAttacks: { [string]: { Shot } } = {
 
 	     Every effect below is a Mossy Glade or Thornwood piece standing in,
 	     the way Thornwood's own pets borrowed glade art before they were
-	     redrawn. The water ones are the furthest off and the first that
-	     would want art of their own: ink is not slime, and a tentacle is not
-	     a tongue. ]]
+	     redrawn. The seven that replace them are designed
+	     (`docs/PETS-DROWNED.md`, The seven effect pieces, and the sheet
+	     `assets/concepts/pets/attacks/drowned_pieces.png`) and wait on
+	     Claude Design: Tentacle Sting, Accord Mark, Spine Burst, Ink Squirt,
+	     Ink Cloud, Slate Shelter, Tide Slash. Swap each name in here as its
+	     GLB lands. ]]
 	AbyssJelly = {
 		--[[ Three stings on the three pulses of its Attack clip (0.14, 0.54,
 		     0.94), one a hit: `PetCombat` gives it hits = 3. A lash standing

@@ -147,6 +147,39 @@ link group, and duplicate canopies do not stack. One canopy per pet, at
 most three targets, ends on room change or run end. Decoys never move a
 player, and no effect permits walking or firing through cover.
 
+### The seven effect pieces
+
+Designed 2026-11-04 (owner: *"design the effects"*). The five pets' attacks
+ship in `Config/PetAttacks` as of #460, but **every effect they fire is a Mossy
+Glade or Thornwood piece standing in** — the same debt Thornwood carried before
+its own art. Ink is not slime, a tentacle is not a tongue, and a shell is not a
+howl. These seven replace them.
+
+Reference sheet: `assets/concepts/pets/attacks/drowned_pieces.png`
+(prompt beside it, `_prompt_drowned.txt`). The route is the glade's: Claude
+Design, one GLB per piece into `assets/models/effects/fx_pet_*.glb`, slimmed by
+`optimise_effect.py`, then the name swapped in `Config/PetAttacks`.
+
+| Piece | Pet | Replaces | What it is |
+|---|---|---|---|
+| **Tentacle Sting** | Abyss Jelly | `FxPetTongueLash` | Four or five translucent violet cubes strung in a trailing line, thinning to the tip, cyan glow. Lashes out and curls back. The thing the jelly has wanted since #447. |
+| **Accord Mark** | Abyss Jelly | `FxPetLureMark` | A flat cyan ring on the ground with a violet cube above it, and a thin line of small cubes running to the other two — the blow being shared, made visible. Drawn once per target, three at a time. |
+| **Spine Burst** | Buoy Puffer | `FxPetCrownShockwave` | Blunt cream spines thrown flat outward over a low turquoise water ring. Physical spines, not a crown of light. |
+| **Ink Squirt** | Inkpot | `FxPetSlimeGlob` | A near-black blob with an indigo sheen and a short trail, flat arc. |
+| **Ink Cloud** | Inkpot | `FxPetSporePatch` | Where the squirt lands: black ink tiles under a thick indigo cloud, dense enough to hide what is inside. It blinds; the spore patch it borrows from heals, which is as wrong as a stand-in gets. |
+| **Slate Shelter** | Slate Turtle | `FxPetHowlAura` | A low dome of overlapping slate plates with algae edging, turquoise rim at the ground. |
+| **Tide Slash** | Tide Wilf | `FxPetLeafSlash` | A crescent of flat turquoise slabs, dark at the leading edge, flinging white foam cubes off its rim. |
+
+Two notes for whoever builds them:
+
+- **The Slate Shelter goes over the player.** The sheet draws it opaque; it has
+  to be translucent enough to play under, and low enough not to swallow the
+  camera. It is the one piece here that can make the game unplayable if it is
+  built as drawn.
+- **The Accord Mark is three pieces at once.** `Fx/PetAttackFx` draws a Ground
+  piece once per target, so the linking line has to read with one, two or three
+  rings on the floor — it cannot assume all three are there.
+
 ## The Tide Wilf's colours
 
 Keep `PETS-WILFS.md`'s sea-teal and foam-white coat, fin ears and tail,

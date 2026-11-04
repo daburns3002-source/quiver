@@ -155,6 +155,13 @@ Glade or Thornwood piece standing in** — the same debt Thornwood carried befor
 its own art. Ink is not slime, a tentacle is not a tongue, and a shell is not a
 howl. These seven replace them.
 
+**Built 2026-11-04** in Claude Design (project "Drowned Village Pieces",
+`claude.ai/design/p/62e52d68-3c60-45d5-bd1a-c8e14764e077`), exported as seven
+GLBs in `assets/models/effects/fx_pet_*.glb`, slimmed, with their clips
+generated into `Config/ModelClips`. **Still to do: the owner imports them in
+Studio and uploads the meshes**, then `Config/ImportedModels/FxPet*` and the
+name swap in `Config/PetAttacks`.
+
 Reference sheet: `assets/concepts/pets/attacks/drowned_pieces.png`
 (prompt beside it, `_prompt_drowned.txt`). The route is the glade's: Claude
 Design, one GLB per piece into `assets/models/effects/fx_pet_*.glb`, slimmed by

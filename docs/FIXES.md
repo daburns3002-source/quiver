@@ -1426,3 +1426,27 @@ Now it asks for an **open** pr by that head (`gh pr list --state open`), so a
 reused branch name opens a new pr instead of adopting a dead one.
 
 Reuse a branch name and git is happy; GitHub remembers.
+
+## `glb_clips_to_luau.py` deleted seventeen modules nobody asked it to
+
+2026-11-04. Running `python -I tools/glb_clips_to_luau.py` to generate clips
+for seven new effect GLBs also removed seventeen unrelated modules from
+`Config/ModelClips`, and rewrote fifty-nine more, cutting 261,000 lines.
+
+Two separate traps, both from the same assumption — that
+`assets/models/model_clips.json` is the whole truth about that folder:
+
+- **It deletes anything unlisted.** Seventeen modules are not in the manifest:
+  the benched Thornwood pets, whose entries were dropped when they were
+  benched, and the five Drowned Village pets, whose motion is hand-authored by
+  `tools/pet_motions.py` because they came out of Tripo with no GLB at all.
+  The script took all seventeen. It now prints `not listed, kept: <name>` and
+  deletes only when run with `--prune`.
+- **It rewrites from whatever GLBs happen to be on disk**, and in this
+  checkout those do not reproduce what is committed — fifty-nine modules came
+  back far smaller. That half is not fixed: a bare run still rewrites them, so
+  check `git diff` after running it and revert what you did not mean to touch.
+
+Both were caught only because the run printed `removed BuoyPuffer.luau` for a
+module written an hour earlier. A generator that deletes should say what it is
+about to delete, not report it afterwards.

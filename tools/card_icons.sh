@@ -48,8 +48,12 @@ for entry in $CARDS; do
 
 	echo "== $icon ($rarity): asking Codex"
 	log=$(mktemp)
+	# `--` because --image takes MANY files: without it the last -i eats the
+	# prompt and codex falls back to stdin. `</dev/null` because codex appends
+	# piped stdin to the prompt, so in a background shell, whose stdin never
+	# closes, it waits for EOF until the timeout kills it.
 	# shellcheck disable=SC2086
-	if ! timeout 600 codex exec $REFS -- "$(cat "$prompt")" >"$log" 2>&1; then
+	if ! timeout 600 codex exec $REFS -- "$(cat "$prompt")" >"$log" 2>&1 </dev/null; then
 		echo "   codex failed:"; tail -4 "$log"; rm -f "$log"
 		failed=$((failed + 1)); continue
 	fi

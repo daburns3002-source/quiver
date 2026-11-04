@@ -4363,7 +4363,7 @@ local Balance = {
 			slow = 0.6,
 			slowDuration = 1.5,
 		},
-		--[[ Time Dilation: an orb's blast leaves a field `radius` wide in
+		--[[ Time Dilation: a kill leaves a field `radius` wide in
 		     which enemies move at `slow` of their speed and their shots fly
 		     at `shotSlow` of theirs. How long it lasts is the card's
 		     level. ]]
@@ -4407,6 +4407,10 @@ local Balance = {
 			width = 3.2,
 			shove = 5,
 			stagger = 0.3,
+			--[[ Seconds nothing can hurt him from the dash's start. Well past
+			     `dash.duration` (0.12): he must feel safe going in, and the
+			     server only hears of the dash a moment after it begins. ]]
+			immune = 0.4,
 		},
 		--[[ Blood Pact: under `below` of health the Warden's blows carry the
 		     card's level as extra damage. ]]

@@ -915,7 +915,7 @@ local abilities: { Ability } = {
 	{
 		id = "TimeDilation",
 		name = "Time Dilation",
-		description = "Your blasts leave a field where enemies crawl.",
+		description = "Kills leave a field where enemies crawl.",
 		category = "OnHit",
 		group = "spell",
 		rarity = "Legendary",

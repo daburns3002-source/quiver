@@ -107,11 +107,9 @@ buildSpawn(workspace)
 
 --[[ Counter Strike charges on a hit taken (`Combat/ClassUpgrades`). ]]
 RunSession.onHurt = ClassUpgrades.onHurt
---[[ Thornfall's arrows, Prismatic Burst's shards and Vengeful Spirit's sword
-     all rise out of an enemy this player killed. ]]
+--[[ Thornfall's arrows, Prismatic Burst's shards, Vengeful Spirit's sword and
+     Time Dilation's field all rise out of an enemy this player killed. ]]
 RunSession.onKillAt = ClassUpgrades.onKillAt
---[[ Time Dilation: a shot of this player's landed, so its field opens. ]]
-ProjectileSystem.onPlayerHit = ClassUpgrades.onPlayerHit
 
 --[[ The run controller owns the arena now: it builds a room on entry, so
      there is nothing to build here. ]]

@@ -661,10 +661,10 @@ local Sounds: { [string]: Sound } = {
 		minGap = 0.1,
 		region = { 2.571, 0.369 },
 	},
-	-- the crawling field opening
+	-- the crawling field opening, on a kill (owner, 2026-11-04: "lower the volume a little bit")
 	fx_time_dilation = {
 		id = CARD_SPRITE,
-		volume = 0.65,
+		volume = 0.5,
 		pitchJitter = 0.04,
 		minGap = 0.5,
 		region = { 3.38, 0.883 },

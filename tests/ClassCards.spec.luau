@@ -8,9 +8,12 @@
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local ServerScriptService = game:GetService("ServerScriptService")
+
 local Abilities = require(ReplicatedStorage.Shared.Config.Abilities)
 local AbilityEffects = require(ReplicatedStorage.Shared.Combat.AbilityEffects)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
+local ClassUpgrades = require(ServerScriptService.Server.Combat.ClassUpgrades)
 local Classes = require(ReplicatedStorage.Shared.Config.Classes)
 local ShotPipeline = require(ReplicatedStorage.Shared.Combat.ShotPipeline)
 local SwingBox = require(ReplicatedStorage.Shared.Combat.SwingBox)
@@ -315,5 +318,23 @@ return function(t: TestRunner.Helper)
 		local summon, point = clip.markers.Summon, clip.markers.Point
 		t.isTrue(summon ~= nil and point ~= nil and summon < point, "the cast lacks its markers")
 		t.isTrue(point <= Balance.Player.meteor.delay, "the staff points after the meteor lands")
+	end)
+
+	t.test("Bull Rush's immunity outlasts the dash and never shortens a shield", function()
+		local rush = Balance.Player.bullRush
+		t.isTrue(rush.immune > Balance.Player.dash.duration, "immune for less than the charge")
+
+		local function charge(melee: number, shield: number): number
+			local session: any = {
+				melee = { bullRush = melee },
+				invulnerableUntil = shield,
+				player = Instance.new("Configuration"),
+			}
+			ClassUpgrades.beginRush(session, 100)
+			return session.invulnerableUntil
+		end
+		t.equal(charge(1, 0), 100 + rush.immune)
+		t.equal(charge(0, 0), 0)
+		t.equal(charge(1, 1000), 1000)
 	end)
 end

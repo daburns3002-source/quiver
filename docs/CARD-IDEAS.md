@@ -79,7 +79,7 @@ the 42 are a flat percentage on a stat.
 | **Rune Circle** | Epic | Where an orb bursts, a rune stays and burns what stands in it. | 3 s at 0.25x/s, 2 / 3 runes | `Combat/AreaStrikes` zones — the phoenix's fire, already general | Nothing |
 | **Arcane Tether** | Epic | The two nearest enemies you strike are tethered: hurt one, hurt the other. | 40% / 60% shared | `Combat/SoulLink`, `Util/DeepAccord` | The pairing rule, and drawing the tether |
 | **Twin Elements** | Epic | Every cast is two orbs at once, one fire and one ice. | 1 pair, 70% each | Twin Cast's parallel stage, `ClassUpgrades.dress` | Per-projectile elements inside one volley (`dress` handles one orb today) |
-| **Time Dilation** | Legendary | A blast leaves a field where enemies *and their shots* crawl. | 50% speed for 2 s / 3 s, 6 studs | `EnemyManager.slow`, an `AreaStrikes` zone | Slowing enemy projectiles — `ProjectileSystem` has no speed scale on a live shot |
+| **Time Dilation** | Legendary | A kill leaves a field where enemies *and their shots* crawl. | 50% speed for 2 s / 3 s, 6 studs | `EnemyManager.slow`, an `AreaStrikes` zone | Slowing enemy projectiles — `ProjectileSystem` has no speed scale on a live shot |
 | **Starfall** | Legendary | Meteors fall on the enemies nearest you, on their own. | 3 meteors at 1.2x, every 9 s / 7 s | Meteor whole (warning circle, strike), `EnemyManager.triangle` | Nothing |
 | **Prismatic Burst** | Legendary | An orb that kills bursts into small orbs that seek new targets. | 6 shards at 0.3x | `invent`, `homing`, the `OnKill` hook Thornfall needs | Shared with Thornfall — build the hook once |
 | **Singularity** | Mythic | Stand still and an orb grows in front of you, then rolls through everything, dragging enemies with it. | up to 2 s charge, 3x, pierces all | Overdraw's stillness, Spell Pierce, `EnemyManager.pull` | A held projectile that grows before it is fired |
@@ -170,10 +170,10 @@ has no combat system, which is what that would have needed first.
 | Headhunter | Ranger | `ClassUpgrades.dress` (the per-projectile hook) |
 | Ghost Quiver | Ranger | `ClassUpgrades.afterVolley`, handed the volley's own specs |
 | Twin Elements | Arcanist | a lane in `AbilityEffects.stages`; its elements in `dress` |
-| Time Dilation | Arcanist | `ProjectileSystem.onPlayerHit` -> `ClassUpgrades.onPlayerHit` |
+| Time Dilation | Arcanist | `ClassUpgrades.onKillAt` (on a hit until the owner's playtest, 2026-11-04) |
 | Prismatic Burst | Arcanist | `ClassUpgrades.onKillAt` -> `prismatic` |
 | Guard Break | Warden | `MeleeSystem.land`, through `EnemyManager.shove` |
-| Bull Rush | Warden | `Remotes.DashStarted` -> `ClassUpgrades.beginRush`, swept in `step` |
+| Bull Rush | Warden | `Remotes.DashStarted` -> `ClassUpgrades.beginRush`, swept in `step`; immune for `Balance.Player.bullRush.immune` |
 | Blood Pact | Warden | `MeleeSystem.land`, against the player's live health |
 | Vengeful Spirit | Warden | `ClassUpgrades.onKillAt` -> `raiseSpirit`, struck in `step` |
 

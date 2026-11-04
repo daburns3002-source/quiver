@@ -453,40 +453,27 @@ function ClassUpgrades.onKillAt(session: Session, at: Vector3)
 	if held.vengefulSpirit > 0 then
 		raiseSpirit(session, now)
 	end
-end
-
---[[
-	Time Dilation: one of this player's shots landed here, so the field
-	opens (`ProjectileSystem.onPlayerHit`).
-
-	Enemies inside it crawl, and so do their shots: the slow is re-applied
-	every step rather than set once, because an enemy that walks in after
-	the blast should be caught too, and `EnemyManager.slow` is a deadline
-	and not a state to clear.
-]]
-function ClassUpgrades.onPlayerHit(player: Player, at: Vector3)
-	local session = RunSession.get(player)
-	if not session or session.upgrades.timeDilation <= 0 then
-		return
+	if held.timeDilation > 0 then
+		table.insert(fields, {
+			session = session,
+			at = Vector3.new(at.X, 0, at.Z),
+			endsAt = now + held.timeDilation,
+		})
+		upgradeFx:FireAllClients(
+			"TimeField",
+			session.player,
+			Vector3.new(at.X, 0, at.Z),
+			Balance.Player.timeDilation.radius,
+			held.timeDilation
+		)
 	end
-	local config = Balance.Player.timeDilation
-	local now = os.clock()
-	table.insert(fields, {
-		session = session,
-		at = Vector3.new(at.X, 0, at.Z),
-		endsAt = now + session.upgrades.timeDilation,
-	})
-	upgradeFx:FireAllClients(
-		"TimeField",
-		player,
-		Vector3.new(at.X, 0, at.Z),
-		config.radius,
-		session.upgrades.timeDilation
-	)
 end
 
 --[[ Bull Rush: the dash has begun, so for its length the Warden runs down
-     whatever he passes through (`Remotes.DashStarted`, `Main.server`). ]]
+     whatever he passes through (`Remotes.DashStarted`, `Main.server`), and
+     nothing can hurt him until `immune` has passed (owner, 2026-11-04: "there
+     needs to be immunity frames in the bull rush"). The later of the two, so
+     a charge can never cut a revive's longer shield short. ]]
 function ClassUpgrades.beginRush(session: Session, now: number)
 	if session.melee.bullRush <= 0 then
 		return
@@ -494,6 +481,8 @@ function ClassUpgrades.beginRush(session: Session, now: number)
 	local own = state(session)
 	own.rushUntil = now + Balance.Player.dash.duration
 	own.rushHit = {}
+	session.invulnerableUntil =
+		math.max(session.invulnerableUntil, now + Balance.Player.bullRush.immune)
 	session.player:SetAttribute("BullRushAt", Workspace:GetServerTimeNow())
 end
 

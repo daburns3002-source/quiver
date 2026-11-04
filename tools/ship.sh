@@ -13,10 +13,13 @@ branch=$(git branch --show-current)
 [ -z "$(git status --porcelain --untracked-files=no)" ] || { echo "Uncommitted changes: commit them first."; exit 1; }
 tools/check.sh
 git push -q -u origin "$branch"
-pr=$(gh pr view "$branch" --json number --jq .number 2>/dev/null || true)
+# Only an OPEN pr: a branch name used before resolves to its old merged pr,
+# which this would then "merge" again, print as success and ship nothing
+# (2026-11-04, phase-3/drowned-pet-attacks against #414).
+pr=$(gh pr list --head "$branch" --state open --json number --jq '.[0].number // empty' 2>/dev/null || true)
 if [ -z "$pr" ]; then
 	gh pr create --title "$title" --body-file "$body" >/dev/null
-	pr=$(gh pr view "$branch" --json number --jq .number)
+	pr=$(gh pr list --head "$branch" --state open --json number --jq '.[0].number')
 fi
 echo "PR #$pr"
 for attempt in 1 2 3; do

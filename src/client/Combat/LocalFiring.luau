@@ -30,6 +30,7 @@ local FxEvents = require(script.Parent.Parent.Fx.Upgrades.FxEvents)
 local PlayerStats = require(script.Parent.Parent.PlayerStats)
 local ProjectileRenderer = require(script.Parent.Parent.Fx.ProjectileRenderer)
 local RunPaused = require(script.Parent.Parent.RunPaused)
+local ShotDrift = require(script.Parent.Parent.Fx.ShotDrift)
 local ShotPipeline = require(ReplicatedStorage.Shared.Combat.ShotPipeline)
 
 local LocalFiring = {}
@@ -277,6 +278,9 @@ local function step()
 
 	local look = if class then class.look else "Arrow"
 	ProjectileRenderer.spawnVolley("Player", origin, aim.Unit, specs, 0, nil, look)
+	--[[ The arrow drawn here is this client's; the damage is the server's.
+	     `Fx/ShotDrift` keeps the two so they can be compared. ]]
+	ShotDrift.predicted(origin, aim.Unit)
 	for _, listener in firedListeners do
 		listener()
 	end

@@ -69,6 +69,7 @@ local RunPaused = require(script.Parent.RunPaused)
 local SandboxMenu = require(script.Parent.UI.SandboxMenu)
 local SharedFx = require(script.Parent.Fx.Upgrades.SharedFx)
 local ShopScreen = require(script.Parent.UI.ShopScreen)
+local ShotDrift = require(script.Parent.Fx.ShotDrift)
 local Shove = require(script.Parent.Input.Shove)
 local SkillBar = require(script.Parent.UI.Cards.SkillBar)
 local SlimeHop = require(script.Parent.Fx.SlimeHop)
@@ -277,6 +278,10 @@ Remotes.event(Remotes.ShotFired).OnClientEvent:Connect(function(event: ShotEvent
 		fire invisible ones.
 	]]
 	if event.faction == "Player" and event.shooterId == player.UserId and event.predicted then
+		--[[ Thrown away, but measured first: this is the only place the
+		     server's own origin and aim for a volley the client drew itself
+		     ever reach the client (`Fx/ShotDrift`). ]]
+		ShotDrift.server(event.origin, event.direction)
 		return
 	end
 

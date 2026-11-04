@@ -26,9 +26,13 @@ Row 1 -- the big pieces, each drawn as a separate whole object:
 - The drowned bell tower: a square pale-grey stone cube tower four or five
   blocks tall, leaning, a slate-blue block cap, an open arch near the top with a
   bronze bell hanging in it, a dark algae band round its base.
-- A sunken house: the room's own timber frame and slate-blue block roof (image
-  2), tilted, cut off at the eaves as if the rest is under water, a green algae
-  band along the cut.
+- A sunken house. This is a HALF-DRAWN house, not a whole one: the room's own
+  timber frame and slate-blue block roof (image 2), tilted, and CUT OFF FLAT at
+  the eaves as if everything below is under the water -- no ground floor, no
+  wall below the eaves, no door, no window, nothing standing on grass. A dark
+  green algae band runs along the cut. Its materials are the room's: brown
+  timber, grey stone and slate-blue roof blocks ONLY. NO cream or white plaster
+  wall -- that colour is not in this area.
 - A roof ridge alone: just the slate-blue roof peak and its brown ridge beam,
   the smallest a drowned house gets.
 - The toll gate: a grey stone cube arch with a brown timber bar across it and a
@@ -67,5 +71,16 @@ Row 4 -- material swatches, as flat square tiles like reference 3's bottom row,
 sampled from image 1: shallow turquoise water, deep flood teal, grey cobble,
 pale grey stone, timber brown, dark plank brown, slate-blue roof, reed green,
 algae green, cream rope, bronze bell, lantern orange glow, mist white.
+
+Two things that went wrong on the first attempt at this sheet and must not
+happen again:
+
+- EVERY piece that stands in the flood -- the bell tower, the sunken house, the
+  roof ridge, the toll gate, the dead tree, the rocks, the lantern post -- has a
+  DARK GREEN ALGAE BAND at its waterline, a wet stain on stone and timber. NOT
+  bright green grass cubes, NOT a grassy base. Nothing here stands on dry land;
+  this village is under water.
+- NO cream or white plaster anywhere. The only cream in this area is rope and
+  cork floats.
 
 No text, no labels, no numbers, no UI, no characters, no background scenery.

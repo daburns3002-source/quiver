@@ -345,6 +345,91 @@ local PetAttacks: { [string]: { Shot } } = {
 		},
 		{ effect = "FxPetHowlAura", clip = "Play", kind = "Owner", at = 0.2, life = 1 },
 	},
+	--[[ The Drowned Village's five (2026-11-04). They could have no pieces
+	     until they had clips to hang them on: each came out of Tripo as one
+	     static mesh, so `Config/ModelClips` had no entry and
+	     `tests/PetAttacks.spec` rightly refused an attack the preview could
+	     not show. `tools/pet_motions.py` gave them motion, and these are the
+	     pieces that motion was timed for.
+
+	     Every effect below is a Mossy Glade or Thornwood piece standing in,
+	     the way Thornwood's own pets borrowed glade art before they were
+	     redrawn. The water ones are the furthest off and the first that
+	     would want art of their own: ink is not slime, and a tentacle is not
+	     a tongue. ]]
+	AbyssJelly = {
+		--[[ Three stings on the three pulses of its Attack clip (0.14, 0.54,
+		     0.94), one a hit: `PetCombat` gives it hits = 3. A lash standing
+		     in for a tentacle. ]]
+		{
+			effect = "FxPetTongueLash",
+			clip = "Lash",
+			kind = "Reach",
+			at = 0.14,
+			count = 3,
+			every = 0.4,
+			life = 0.4,
+			sweep = 35,
+		},
+		--[[ The canopy: `accord` shares a blow among 3 enemies for 4 s, so
+		     the mark is drawn under each of the three and lasts exactly as
+		     long as the sharing does. Ground, not Overhead -- only Ground
+		     reads `targets`; Overhead draws on the nearest enemy alone. ]]
+		{
+			effect = "FxPetLureMark",
+			clip = "Spin",
+			kind = "Ground",
+			at = 0.14,
+			life = 4,
+			targets = 3,
+		},
+	},
+	--[[ The puff itself, under the pet, at the top of its swell (0.3). Its
+	     damage is payback for a hit already taken (`reflect`), so nothing
+	     flies out at an enemy: the burst is the whole of it. ]]
+	BuoyPuffer = {
+		{ effect = "FxPetCrownShockwave", clip = "Play", kind = "Ground", at = 0.3, life = 0.9 },
+	},
+	--[[ The squirt leaves on the spit (0.38) and lands as a patch that sits
+	     for the 3 s the blind lasts (`EnemyManager.blind`). A glob and a
+	     spore patch standing in for ink. ]]
+	Inkpot = {
+		{
+			effect = "FxPetSlimeGlob",
+			clip = "Fly",
+			kind = "Projectile",
+			at = 0.38,
+			speed = 24,
+			arc = 2,
+			homing = true,
+			impact = { effect = "FxPetSporePatch", clip = "Play", life = 3 },
+		},
+	},
+	--[[ The shelter is cast on the owner, not an enemy, so it is an Owner
+	     piece: raised as the turtle hunkers (0.25) and held the 3 s
+	     `Util/Shelter` cuts damage for. ]]
+	SlateTurtle = {
+		{
+			effect = "FxPetHowlAura",
+			clip = "Play",
+			kind = "Owner",
+			at = 0.25,
+			life = 3,
+			sweep = 180,
+		},
+	},
+	--[[ One slash at the far end of the lunge (0.42), where the clip puts
+	     the pet nearest the enemy. Its reach is 3 studs, so nothing flies. ]]
+	TideWilf = {
+		{
+			effect = "FxPetLeafSlash",
+			clip = "Slash",
+			kind = "Reach",
+			at = 0.42,
+			life = 0.35,
+			sweep = 70,
+		},
+	},
 }
 
 return table.freeze(PetAttacks)

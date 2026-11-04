@@ -1405,3 +1405,24 @@ imports stay dumpable, which matters because `imports_to_luau.py` prunes every
 module it does not regenerate. Ran it: 122 models, 11,314 instances, Workspace
 down to Camera and Terrain, 722 tests pass in Play and the server boots, builds
 its arenas and runs a session clean. Write the command, not the convention.
+
+## `tools/ship.sh` reported a merge and shipped nothing
+
+2026-11-04. `tools/ship.sh` printed `PR #414`, `! Pull request #414 was already
+merged`, and then `Merged #414: <main's existing commit>` — and exited 0. The
+commit it was given never reached main, and `gh pr merge --delete-branch` took
+the local branch with it. The work survived only in the reflog.
+
+The cause is `gh pr view "$branch"`, which resolves a branch name to **any** pr
+that ever used it, merged ones included. `phase-3/drowned-pet-attacks` had been
+used months earlier for #414, so the script adopted that pr, "merged" the
+already-merged thing, and reported success.
+
+Two things made it dangerous rather than merely wrong: it read as a normal
+successful ship, and it deleted the branch. A script that deletes work must be
+certain it has saved it first.
+
+Now it asks for an **open** pr by that head (`gh pr list --state open`), so a
+reused branch name opens a new pr instead of adopting a dead one.
+
+Reuse a branch name and git is happy; GitHub remembers.

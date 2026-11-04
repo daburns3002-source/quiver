@@ -121,8 +121,12 @@ out of order.
   whole animal moves together and no fin, limb or tentacle moves alone -- a
   jointed Claude Design rebuild is still the real fix, and would replace that
   script with the GLB pipeline every other model uses.
-- **Their attacks can be drawn now.** `tests/PetAttacks.spec` asks that an
-  attacking pet has clips the preview can show, which is what blocked a
-  `Config/PetAttacks` entry for the five. With clips in place the Abyss Jelly
-  could finally get the trailing tentacle ring it wanted, and the other four
-  their own pieces. Not done.
+- **Their attacks are drawn.** All five have `Config/PetAttacks` entries
+  (2026-11-04), timed to the clips above: the jelly's three stings on its three
+  pulses plus a canopy mark under each of the three enemies it shares a blow
+  among, the puffer's burst at the top of its swell, the Inkpot's squirt landing
+  as a patch for the 3 s of its blind, the turtle's dome raised as it hunkers,
+  the Tide Wilf's slash at the far end of its lunge. **Every effect is a Mossy
+  Glade or Thornwood piece standing in**, as Thornwood's own pets did before
+  they were redrawn — ink is not slime and a tentacle is not a tongue, so these
+  are the first in line for art of their own. Nobody has watched them yet.

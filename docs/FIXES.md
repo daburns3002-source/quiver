@@ -16,6 +16,15 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## The lobby camera could swing under the floor
+
+**Seen:** pitching Roblox's own lobby camera up swung it below the courtyard, showing the underside of
+the floor and scenery. **Cause:** the lobby's floor and scenery are built with CanQuery off, so the
+default camera's occlusion never sees them. **Fix:** `TopDownCamera`'s floor guard, bound straight
+after Roblox's camera in the lobby, slides the camera in along its line to the player until it is 1.5
+studs above the ground the player last stood on. **Measured:** in Play, a camera forced 8 studs under
+the floor every frame ended 1.5 above it on all 15 frames.
+
 ## The lobby's sky was grey and its front buildings faced away
 
 **Seen:** the lobby from above under a grey sky, the Your Gear and Dexes buildings and both

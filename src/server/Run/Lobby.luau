@@ -28,6 +28,7 @@ local Workspace = game:GetService("Workspace")
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Eggs = require(ReplicatedStorage.Shared.Config.Eggs)
 local LevelUnlocks = require(ReplicatedStorage.Shared.Util.LevelUnlocks)
+local LobbyBackdrop = require(script.Parent.LobbyBackdrop)
 local LobbyConfig = require(ReplicatedStorage.Shared.Config.Lobby)
 local LobbyCourtyard = require(script.Parent.LobbyCourtyard)
 local MeshTemplates = require(script.Parent.Parent.Util.MeshTemplates)
@@ -257,36 +258,59 @@ end
 	mesh read as wallpaper.
 	Falls back to nothing if the mesh did not load, as the dex books do.
 ]]
-local function tree(at: Vector2, grow: number, rng: Random, parent: Instance, solid: boolean)
-	local spec = LobbyConfig.treeModel
-	local template = lobbyTemplates[spec.mesh]
-	if not template then
-		return
-	end
-	local p = template:Clone()
-	p.Name = "Tree"
-	p.Anchored = true
-	p.CanCollide = solid
-	p.CanQuery = solid
-	p.CanTouch = false
-	p.CastShadow = solid
-	p.Material = Enum.Material.SmoothPlastic
+local function tree(
+	at: Vector2,
+	grow: number,
+	rng: Random,
+	parent: Instance,
+	solid: boolean,
+	y: number?
+)
+	local spec = LobbyConfig.tree
+	local model = Instance.new("Model")
+	model.Name = "Tree"
 	--[[ `grow` sets how wide it is and `stretch` how tall, so no two
-	     trees are the same shape. Scaling evenly only ever looked like
-	     the same tree at a different distance. The spacing between
-	     scattered things reads `grow`, so stretching the height alone
-	     never crowds anything. ]]
-	local scale = spec.tall * grow / spec.native.Y
-	local stretch = rng:NextNumber(spec.stretch.Min, spec.stretch.Max)
-	p.Size =
-		Vector3.new(spec.native.X * scale, spec.native.Y * scale * stretch, spec.native.Z * scale)
-	p.TextureID = spec.texture
-	--[[ The tree carries its colours in its own texture, so the part must
-	     not tint them. ]]
-	p.Color = Color3.new(1, 1, 1)
-	p.CFrame = CFrame.new(world(at, OUTSIDE) + Vector3.new(0, p.Size.Y / 2, 0))
-		* CFrame.Angles(0, rng:NextNumber() * math.pi * 2, 0)
-	p.Parent = parent
+	     trees are the same shape. The spacing between scattered things
+	     reads `grow`, so stretching the height alone never crowds
+	     anything. ]]
+	local tall = spec.tall * grow * rng:NextNumber(spec.stretch.Min, spec.stretch.Max)
+	local crown = spec.tall * grow * spec.crown
+	local bare = tall * spec.trunk
+	local turn = CFrame.Angles(0, rng:NextNumber() * math.pi * 2, 0)
+	local foot = CFrame.new(world(at, y or OUTSIDE)) * turn
+	local thick = math.max(1, crown * 0.16)
+	part(
+		"Trunk",
+		Vector3.new(thick, bare + crown * 0.3, thick),
+		foot * CFrame.new(0, (bare + crown * 0.3) / 2, 0),
+		COLOURS.trunk,
+		model
+	)
+	-- the crown's body, a lump to one side, and the sunlit top
+	local middle = foot * CFrame.new(0, bare + crown * 0.42, 0)
+	local leaves = spec.leaves
+	blob("Leaves", Vector3.new(crown, crown * 0.86, crown), middle, leaves[1], model)
+	blob(
+		"Leaves",
+		Vector3.new(crown * 0.72, crown * 0.64, crown * 0.72),
+		middle * CFrame.new(crown * 0.24, crown * 0.12, crown * 0.14),
+		leaves[2],
+		model
+	)
+	blob(
+		"Leaves",
+		Vector3.new(crown * 0.56, crown * 0.48, crown * 0.56),
+		middle * CFrame.new(-crown * 0.08, crown * 0.36, -crown * 0.06),
+		leaves[3],
+		model
+	)
+	for _, p in model:GetChildren() do
+		local piece = p :: BasePart
+		piece.CanCollide = solid
+		piece.CanQuery = solid
+		piece.CastShadow = solid
+	end
+	model.Parent = parent
 end
 
 --[[ A round grey boulder of two or three stones. ]]
@@ -873,11 +897,10 @@ end
 
 function Lobby.build(parent: Instance)
 	--[[ Every mesh the lobby uses, fetched before anything is placed: the
-	     Dex Hall's two books, the tree, and the four buildings. One wait for the lot, which is what `MeshTemplates` is
+	     Dex Hall's two books and the four buildings. One wait for the lot, which is what `MeshTemplates` is
 	     for -- asked one at a time they cost about a second each. ]]
 	do
 		local ids = { LobbyConfig.dex.roofBook.mesh, LobbyConfig.dex.standBook.mesh }
-		table.insert(ids, LobbyConfig.treeModel.mesh)
 		for _, design in PalaceBuildings do
 			for _, piece in design.pieces do
 				table.insert(ids, piece.mesh)
@@ -1274,6 +1297,11 @@ function Lobby.build(parent: Instance)
 			end
 		end
 	end
+
+	-- the cliffs, falls and ruins far past the wood
+	LobbyBackdrop.build(rng, root, function(at, grow, treeRng, treeParent, y)
+		tree(at, grow, treeRng, treeParent, false, y)
+	end)
 
 	root.Parent = parent
 	folder = root

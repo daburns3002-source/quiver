@@ -213,3 +213,12 @@ sun) and the clock is 9.5, as the warm haze had turned the whole sky grey. The c
 `courtyard.drop` (18) studs above a darker `forestFloor`, and the brown lawn ledges round it are gone.
 Still not matched: the tree import's bright blocky crowns (a textured mesh ignores `Color`, so it
 cannot be tinted), and the blacksmith, fairy and arcade vines.
+
+**Trees and backdrop (2026-11-05).** The blocky tree import is replaced by a tree built in code
+(`Config/Lobby.tree`): a trunk and three round leaf clusters in the sheet's olive, mid green and
+sunlit yellow-green (owner: "make a new tree model then", built rather than generated). Past the
+wood, `Run/LobbyBackdrop` builds the far scenery after the enemy spotlight loading screens (owner:
+"there should be mountains and waterfalls"): 18 stepped stone cliffs with grass ledges, hanging moss,
+trees and pines on top, falls into pools on four of the northern ones, a ruined tower and aqueduct on
+the highest, a taller bare ring behind them to close the horizon, and glowing cyan mushrooms on the
+forest floor (`Config/Lobby.backdrop`). The lobby is about 3,950 parts with it, not measured on a phone.

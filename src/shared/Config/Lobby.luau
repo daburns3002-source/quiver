@@ -173,15 +173,24 @@ local Lobby = {
 		import's own size, kept here so the placing maths never waits on a
 		fetch; everything is scaled off it.
 	]]
-	--[[ The blocky tree, which replaced the lawn's built trunk and blobs
-	     ("use the tree import and replace the existing trees in the game
-	     with it"). `tall` is the studs a tree of `grow` 1 stands, matched
-	     to what the built one was so the scatter's spacing still holds. ]]
-	treeModel = {
-		mesh = "rbxassetid://139262265934696",
-		texture = "rbxassetid://93690388231604",
-		native = Vector3.new(2.54, 4.6, 2.49),
+	--[[ The lobby's tree, built in code from a trunk and three round leaf
+	     clusters in the layout sheet's colours (owner, 2026-11-05: "make a
+	     new tree model then", built rather than generated). It replaces the
+	     blocky import of 2026-11-01, whose bright lime texture could not be
+	     tinted to the sheet's olive and yellow-green leaves. `tall` is the
+	     studs a tree of `grow` 1 stands, so the scatter's spacing still holds;
+	     `crown` is the leaves' width against that height, and `trunk` how much
+	     of the height is bare trunk. ]]
+	tree = {
 		tall = 14,
+		crown = 0.62,
+		trunk = 0.42,
+		--[[ Shadow side, body and the sunlit top, off the sheet. ]]
+		leaves = {
+			Color3.fromRGB(70, 108, 40),
+			Color3.fromRGB(108, 148, 46),
+			Color3.fromRGB(162, 184, 62),
+		},
 		--[[ How far a tree's height is stretched on its own, apart from
 		     how wide it is (owner, 2026-11-01: "make the trees different
 		     heights").
@@ -461,6 +470,46 @@ local Lobby = {
 	},
 
 	--[[ The look, off the layout sheet's swatches: flat, warm, smooth. ]]
+	--[[ The far scenery (`Run/LobbyBackdrop`), after the enemy spotlight
+	     loading screens: `cliffs` stepped stone cliffs in a ring `reach` studs
+	     from the middle, `tall` high (half as much again behind the portals)
+	     and `wide` across, `treesOnTop` trees and pines on each, `falls` of
+	     them with a fall down the face, a ruined tower and aqueduct on the
+	     highest northern one, and `shrooms` glowing mushrooms on the forest
+	     floor `shroomReach` from the middle. ]]
+	backdrop = {
+		cliffs = 18,
+		reach = NumberRange.new(235, 300),
+		tall = NumberRange.new(60, 105),
+		wide = NumberRange.new(90, 130),
+		--[[ A second ring past the first, bare and taller, that fills the
+		     horizon between the near cliffs. ]]
+		far = {
+			cliffs = 14,
+			reach = NumberRange.new(400, 470),
+			tall = NumberRange.new(90, 140),
+			wide = NumberRange.new(150, 210),
+		},
+		treesOnTop = 4,
+		falls = 4,
+		shrooms = 28,
+		shroomReach = NumberRange.new(110, 190),
+		stone = Color3.fromRGB(112, 126, 128),
+		stoneDark = Color3.fromRGB(88, 100, 104),
+		grass = Color3.fromRGB(104, 160, 58),
+		mossDark = Color3.fromRGB(62, 112, 44),
+		ruin = Color3.fromRGB(140, 146, 150),
+		ruinDark = Color3.fromRGB(40, 46, 52),
+		pine = Color3.fromRGB(38, 92, 54),
+		pineLight = Color3.fromRGB(58, 120, 66),
+		pineTrunk = Color3.fromRGB(96, 66, 44),
+		water = Color3.fromRGB(196, 232, 250),
+		foam = Color3.fromRGB(240, 250, 255),
+		pool = Color3.fromRGB(70, 176, 196),
+		shroomStem = Color3.fromRGB(196, 230, 240),
+		shroomGlow = Color3.fromRGB(80, 220, 255),
+	},
+
 	--[[ The ground below the balustrade, a deeper green than the lawn ledges
 	     were, so the wood round the courtyard reads as the sheet's shaded
 	     forest floor rather than a bright field. ]]

@@ -183,14 +183,18 @@ local Lobby = {
 	     of the height is bare trunk. ]]
 	tree = {
 		tall = 14,
-		crown = 0.62,
-		trunk = 0.42,
-		--[[ Shadow side, body and the sunlit top, off the sheet. ]]
+		crown = 0.78,
+		trunk = 0.4,
+		--[[ Shadow side, body and the sunlit top, the fresh greens of the
+		     enemy spotlight loading screens' voxel trees (owner, 2026-11-05:
+		     the round-blob tree "look[s] terrible"). ]]
 		leaves = {
-			Color3.fromRGB(70, 108, 40),
-			Color3.fromRGB(108, 148, 46),
-			Color3.fromRGB(162, 184, 62),
+			Color3.fromRGB(46, 100, 38),
+			Color3.fromRGB(78, 146, 48),
+			Color3.fromRGB(134, 190, 66),
 		},
+		bark = Color3.fromRGB(104, 72, 46),
+		barkDark = Color3.fromRGB(78, 52, 34),
 		--[[ How far a tree's height is stretched on its own, apart from
 		     how wide it is (owner, 2026-11-01: "make the trees different
 		     heights").
@@ -474,9 +478,11 @@ local Lobby = {
 	     loading screens: `cliffs` stepped stone cliffs in a ring `reach` studs
 	     from the middle, `tall` high (half as much again behind the portals)
 	     and `wide` across, `treesOnTop` trees and pines on each, `falls` of
-	     them with a fall down the face, a ruined tower and aqueduct on the
-	     highest northern one, and `shrooms` glowing mushrooms on the forest
-	     floor `shroomReach` from the middle. ]]
+	     them with a stepped fall cascading down the face, and `shrooms`
+	     glowing mushrooms on the forest floor `shroomReach` from the middle.
+	     The ruined tower and aqueduct that stood on the highest cliff are
+	     gone (owner, 2026-11-05: "get rid of the castle looking object
+	     completely"). ]]
 	backdrop = {
 		cliffs = 18,
 		reach = NumberRange.new(235, 300),
@@ -498,12 +504,17 @@ local Lobby = {
 		stoneDark = Color3.fromRGB(88, 100, 104),
 		grass = Color3.fromRGB(104, 160, 58),
 		mossDark = Color3.fromRGB(62, 112, 44),
-		ruin = Color3.fromRGB(140, 146, 150),
-		ruinDark = Color3.fromRGB(40, 46, 52),
 		pine = Color3.fromRGB(38, 92, 54),
 		pineLight = Color3.fromRGB(58, 120, 66),
 		pineTrunk = Color3.fromRGB(96, 66, 44),
+		--[[ A fall's width in studs, and how many particles a second stream
+		     down each drop and puff as mist off its pool. ]]
+		fallWide = NumberRange.new(24, 34),
+		fallStreaks = 18,
+		fallMist = 6,
 		water = Color3.fromRGB(196, 232, 250),
+		waterDeep = Color3.fromRGB(150, 210, 238),
+		rock = Color3.fromRGB(96, 104, 108),
 		foam = Color3.fromRGB(240, 250, 255),
 		pool = Color3.fromRGB(70, 176, 196),
 		shroomStem = Color3.fromRGB(196, 230, 240),

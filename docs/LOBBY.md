@@ -215,10 +215,13 @@ Still not matched: the tree import's bright blocky crowns (a textured mesh ignor
 cannot be tinted), and the blacksmith, fairy and arcade vines.
 
 **Trees and backdrop (2026-11-05).** The blocky tree import is replaced by a tree built in code
-(`Config/Lobby.tree`): a trunk and three round leaf clusters in the sheet's olive, mid green and
-sunlit yellow-green (owner: "make a new tree model then", built rather than generated). Past the
+(`Config/Lobby.tree`), blocky like the loading screens' voxel trees: a square trunk on a flared
+foot under a crown of stacked slabs and offset cubes, dark underneath and sunlit on top, each piece
+turned a little (owner, 2026-11-05: the round-blob tree "look[s] terrible"). Past the
 wood, `Run/LobbyBackdrop` builds the far scenery after the enemy spotlight loading screens (owner:
 "there should be mountains and waterfalls"): 18 stepped stone cliffs with grass ledges, hanging moss,
-trees and pines on top, falls into pools on four of the northern ones, a ruined tower and aqueduct on
-the highest, a taller bare ring behind them to close the horizon, and glowing cyan mushrooms on the
-forest floor (`Config/Lobby.backdrop`). The lobby is about 3,950 parts with it, not measured on a phone.
+trees and pines on top, stepped falls on four of the northern ones (a stream over the top, a drop of
+streaked water down each tier with a foam lip, streaming particles and spray, a run across each
+ledge, and a rock-ringed pool that mists), a taller bare ring behind them to close the horizon, and glowing cyan mushrooms on the
+forest floor (`Config/Lobby.backdrop`). The ruined tower and aqueduct that stood on the highest
+cliff were removed (owner: "get rid of the castle looking object completely"). The lobby is about 5,460 parts with it (the blocky trees are 8 parts each, 284 of them), not measured on a phone.

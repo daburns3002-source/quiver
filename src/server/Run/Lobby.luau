@@ -245,18 +245,16 @@ local function signboard(
 end
 
 --[[
-	A tree: the owner's imported model, `grow` times the size a tree of 1
-	stands (owner, 2026-11-01: "use the tree import and replace the
-	existing trees in the game with it").
+	A tree, built in code in the blocky voxel look of the enemy spotlight
+	loading screens: a square trunk on a flared foot, and a crown of stacked
+	slabs and offset cubes, darkest underneath and sunlit on top, each piece
+	turned a little so the outline is lumpy rather than one box (owner,
+	2026-11-05: the round-blob tree "look[s] terrible", "redo them").
 
-	It was a trunk pillar under three leaf blobs. `tall` is set to what
-	that came to, so every scatter and ring that places trees keeps its
-	spacing without being retuned.
-
-	Each is turned a random amount about Y and stretched in height on its
-	own, so no two are the same shape; without that a hundred copies of one
-	mesh read as wallpaper.
-	Falls back to nothing if the mesh did not load, as the dex books do.
+	`grow` times the size a tree of 1 stands, `tall` matched to the trees
+	before it so every scatter and ring keeps its spacing. Each is turned a
+	random amount and stretched in height on its own, so no two are the same.
+	`y` stands it on a cliff top instead of the forest floor.
 ]]
 local function tree(
 	at: Vector2,
@@ -269,44 +267,83 @@ local function tree(
 	local spec = LobbyConfig.tree
 	local model = Instance.new("Model")
 	model.Name = "Tree"
-	--[[ `grow` sets how wide it is and `stretch` how tall, so no two
-	     trees are the same shape. The spacing between scattered things
-	     reads `grow`, so stretching the height alone never crowds
-	     anything. ]]
 	local tall = spec.tall * grow * rng:NextNumber(spec.stretch.Min, spec.stretch.Max)
-	local crown = spec.tall * grow * spec.crown
+	local c = spec.tall * grow * spec.crown
 	local bare = tall * spec.trunk
-	local turn = CFrame.Angles(0, rng:NextNumber() * math.pi * 2, 0)
-	local foot = CFrame.new(world(at, y or OUTSIDE)) * turn
-	local thick = math.max(1, crown * 0.16)
+	local foot = CFrame.new(world(at, y or OUTSIDE))
+		* CFrame.Angles(0, rng:NextNumber() * math.pi * 2, 0)
+	local function twist(): CFrame
+		return CFrame.Angles(0, rng:NextNumber(-0.3, 0.3), 0)
+	end
+	local thick = math.max(1.2, c * 0.2)
+	local trunkTall = bare + c * 0.3
 	part(
 		"Trunk",
-		Vector3.new(thick, bare + crown * 0.3, thick),
-		foot * CFrame.new(0, (bare + crown * 0.3) / 2, 0),
-		COLOURS.trunk,
+		Vector3.new(thick, trunkTall, thick),
+		foot * CFrame.new(0, trunkTall / 2, 0),
+		spec.bark,
 		model
 	)
-	-- the crown's body, a lump to one side, and the sunlit top
-	local middle = foot * CFrame.new(0, bare + crown * 0.42, 0)
+	part(
+		"Roots",
+		Vector3.new(thick * 1.7, thick * 0.5, thick * 1.7),
+		foot * CFrame.new(0, thick * 0.25, 0) * CFrame.Angles(0, math.pi / 4, 0),
+		spec.barkDark,
+		model
+	)
 	local leaves = spec.leaves
-	blob("Leaves", Vector3.new(crown, crown * 0.86, crown), middle, leaves[1], model)
-	blob(
+	local base = foot * CFrame.new(0, bare, 0)
+	-- the shaded underside, the body, and lumps hanging off its sides
+	part(
 		"Leaves",
-		Vector3.new(crown * 0.72, crown * 0.64, crown * 0.72),
-		middle * CFrame.new(crown * 0.24, crown * 0.12, crown * 0.14),
+		Vector3.new(c, c * 0.3, c * 0.92),
+		base * CFrame.new(0, c * 0.15, 0) * twist(),
+		leaves[1],
+		model
+	)
+	part(
+		"Leaves",
+		Vector3.new(c * 0.86, c * 0.34, c),
+		base * CFrame.new(0, c * 0.4, 0) * twist(),
 		leaves[2],
 		model
 	)
-	blob(
+	local spin = rng:NextNumber() * math.pi * 2
+	for k = 0, 2 do
+		local angle = spin + k * math.pi * 2 / 3 + rng:NextNumber(-0.4, 0.4)
+		local s = c * rng:NextNumber(0.34, 0.46)
+		part(
+			"Leaves",
+			Vector3.new(s, s * 0.8, s),
+			base
+				* CFrame.new(
+					math.cos(angle) * c * 0.44,
+					c * rng:NextNumber(0.18, 0.5),
+					math.sin(angle) * c * 0.44
+				)
+				* twist(),
+			if k == 0 then leaves[1] else leaves[2],
+			model
+		)
+	end
+	-- the sunlit top and a small cap off centre
+	part(
 		"Leaves",
-		Vector3.new(crown * 0.56, crown * 0.48, crown * 0.56),
-		middle * CFrame.new(-crown * 0.08, crown * 0.36, -crown * 0.06),
+		Vector3.new(c * 0.62, c * 0.26, c * 0.62),
+		base * CFrame.new(c * 0.05, c * 0.68, -c * 0.04) * twist(),
+		leaves[3],
+		model
+	)
+	part(
+		"Leaves",
+		Vector3.new(c * 0.3, c * 0.18, c * 0.3),
+		base * CFrame.new(-c * 0.12, c * 0.86, c * 0.08) * twist(),
 		leaves[3],
 		model
 	)
 	for _, p in model:GetChildren() do
 		local piece = p :: BasePart
-		piece.CanCollide = solid
+		piece.CanCollide = solid and piece.Name ~= "Leaves"
 		piece.CanQuery = solid
 		piece.CastShadow = solid
 	end

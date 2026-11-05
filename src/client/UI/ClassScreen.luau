@@ -15,6 +15,7 @@ local LoadingTips = require(ReplicatedStorage.Shared.Config.LoadingTips)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local RunPaused = require(script.Parent.Parent.RunPaused)
 local SoundFx = require(script.Parent.Parent.Fx.SoundFx)
+local SpotlightArt = require(ReplicatedStorage.Shared.Util.SpotlightArt)
 local ClassScreen = {}
 local started = false
 --[[ Seconds the loading screen stays up after CHOOSE. ]]
@@ -58,7 +59,7 @@ local function loadingCover(parent: Instance): Frame
 		picture instead, so only the tip and the bar go over it, exactly
 		as on the join screen.
 	]]
-	local spotlit: { string } = {}
+	local spotlit: { { string } } = {}
 	for _, entry in LoadingPick.pool(nil) do
 		local art = LoadingScreen.spotlights[entry.name]
 		if art then
@@ -66,12 +67,13 @@ local function loadingCover(parent: Instance): Frame
 		end
 	end
 	if #spotlit > 0 then
-		local art = Instance.new("ImageLabel")
-		art.BackgroundTransparency = 1
-		art.Image = spotlit[math.random(1, #spotlit)]
-		art.Size = UDim2.fromScale(1, 1)
-		art.ZIndex = 50
-		art.Parent = screen
+		SpotlightArt.draw(
+			screen,
+			spotlit[math.random(1, #spotlit)],
+			50,
+			LoadingScreen.size,
+			LoadingScreen.tileOverlap
+		)
 	end
 	local tip = Instance.new("TextLabel")
 	tip.BackgroundTransparency = 1

@@ -22,13 +22,28 @@ local LoadingScreen = {
 	     keeps only the live furniture over it: the bar, LOADING and the tip.
 	     These four are every loading screen the game has: an enemy without
 	     one is simply not drawn, on either screen.
-	     Sources in `assets/concepts/blocky/ui/loading/spotlight/`. ]]
+	     Sources in `assets/concepts/blocky/ui/loading/spotlight/`.
+
+	     Each is its left and right halves, 836x941 apiece plus
+	     `tileOverlap` pixels of the other half past the cut, drawn side by
+	     side by `Util/SpotlightArt` (owner, 2026-11-05: "i need the loading
+	     thumbnails higher resolution"): Roblox shrinks an upload to 1024 on
+	     its longest side, so the whole picture had been shown at 1024x576.
+	     The halves are in `assets/ui/loading_tiles/`. ]]
 	spotlights = {
-		["BABY SLIME"] = "rbxassetid://74998338245767",
-		["BROOD SLIME"] = "rbxassetid://85955600741270",
-		["MOSS SLIME"] = "rbxassetid://113292881925772",
-		["SPLITTER SPITTER"] = "rbxassetid://83618763129975",
-	} :: { [string]: string },
+		["BABY SLIME"] = { "rbxassetid://113200378901201", "rbxassetid://79381368210341" },
+		["BROOD SLIME"] = { "rbxassetid://98125274935404", "rbxassetid://91177741126351" },
+		["MOSS SLIME"] = { "rbxassetid://122909053983457", "rbxassetid://118985955689898" },
+		["SPLITTER SPITTER"] = {
+			"rbxassetid://117967764117644",
+			"rbxassetid://75718199343735",
+		},
+	} :: { [string]: { string } },
+	--[[ The most pixels Roblox keeps on an image's longest side. ]]
+	uploadLimit = 1024,
+	--[[ Pixels each tile carries past its cut, so the seam blends into
+	     real picture rather than showing a light line. ]]
+	tileOverlap = 8,
 	--[[ A spotlight's size in pixels, which every box below is measured
 	     against. ]]
 	size = Vector2.new(1672, 941),

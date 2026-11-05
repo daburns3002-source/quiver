@@ -55,7 +55,7 @@ local OUTER_RINGS = {
 	{ out = 58, spacing = 20, grow = { 1.6, 2.2 } },
 	{ out = 86, spacing = 24, grow = { 2.0, 2.8 } },
 }
-local OUTER_FLOOR = 900
+local OUTER_FLOOR = 2000
 --[[ How far each scatter kind keeps from everything else, studs. ]]
 --[[ How much room each scattered thing keeps to itself, in studs at
      `grow` 1. A tree asked for 6, which with everything else competing
@@ -394,7 +394,7 @@ local function floatingTitle(spec: LobbyConfig.Building, at: CFrame, model: Mode
 	local anchor = wall("Title", Vector3.one, at, model)
 	anchor.CanCollide = false
 	local board = Instance.new("BillboardGui")
-	board.Size = UDim2.fromScale(32, 6)
+	board.Size = UDim2.fromScale(28, 14)
 	board.LightInfluence = 0
 	board.MaxDistance = 320
 	board.Parent = anchor
@@ -403,11 +403,14 @@ local function floatingTitle(spec: LobbyConfig.Building, at: CFrame, model: Mode
 	label.Size = UDim2.fromScale(1, 1)
 	label.Font = Enum.Font.Arcade
 	label.TextScaled = true
-	label.Text = spec.title or ""
+	-- two chunky lines, as the sheet letters them
+	label.Text = string.gsub(spec.title or "", " ", "\n")
 	label.TextColor3 = spec.titleColour or COLOURS.text
-	label.TextStrokeColor3 = Color3.fromRGB(40, 24, 12)
-	label.TextStrokeTransparency = 0
 	label.Parent = board
+	local stroke = Instance.new("UIStroke")
+	stroke.Color = Color3.fromRGB(40, 24, 12)
+	stroke.Thickness = 3
+	stroke.Parent = label
 end
 
 --[[ The bob of the Hatch Eggs' floating egg. ]]
@@ -431,6 +434,7 @@ local function building(name: string, at: Vector2, parent: Instance): Vector3?
 	local model = Instance.new("Model")
 	model.Name = name
 	local base = CFrame.new(world(at, LAWN)) * CFrame.Angles(0, LobbyConfig.facing(at), 0)
+	local bobbing: MeshPart? = nil
 
 	for _, piece in design.pieces do
 		local template = lobbyTemplates[piece.mesh]
@@ -451,7 +455,7 @@ local function building(name: string, at: Vector2, parent: Instance): Vector3?
 		mesh.CFrame = spot
 		mesh.Parent = model
 		if piece.bob then
-			TweenService:Create(mesh, BOB, { CFrame = spot * CFrame.new(0, BOB_HEIGHT, 0) }):Play()
+			bobbing = mesh
 		end
 	end
 
@@ -485,8 +489,6 @@ local function building(name: string, at: Vector2, parent: Instance): Vector3?
 		end
 	end
 
-	floatingTitle(spec, base * CFrame.new(0, top + 6, 0), model)
-
 	--[[ From the back wall to the foot of the steps, turned with the building.
 	     Nobody walks in: a station's screen opens from out front. ]]
 	local back = spec.size.Z / 2
@@ -496,8 +498,23 @@ local function building(name: string, at: Vector2, parent: Instance): Vector3?
 		base * CFrame.new(0, 10, (design.front - back) / 2),
 		model
 	)
+
+	-- everything grows from the building's own foot
+	local scale = LobbyConfig.buildingScale
+	model.WorldPivot = base
+	model:ScaleTo(scale)
+	if bobbing then
+		TweenService
+			:Create(bobbing, BOB, { CFrame = bobbing.CFrame * CFrame.new(0, BOB_HEIGHT, 0) })
+			:Play()
+	end
+	--[[ Its name above its outer shoulder, where the sheet letters it, so a
+	     building in front never hides behind the words of one behind. ]]
+	local titleAt = at + Vector2.new(math.sign(at.X) * spec.size.X * 0.4, 0)
+	floatingTitle(spec, CFrame.new(world(titleAt, LAWN + top * scale + 4)), model)
+
 	model.Parent = parent
-	return Vector3.new(spec.size.X, top, spec.size.Z)
+	return Vector3.new(spec.size.X, top, spec.size.Z) * scale
 end
 
 --[[ An egg or a crate out in the open (`LobbyConfig.stands`): a smooth
@@ -883,7 +900,7 @@ function Lobby.build(parent: Instance)
 		"Lawn",
 		Vector3.new(OUTER_FLOOR, 1, OUTER_FLOOR),
 		CFrame.new(world(Vector2.zero, OUTSIDE - 0.5)),
-		COLOURS.grass,
+		LobbyConfig.forestFloor,
 		root
 	).CanCollide =
 		true
@@ -906,7 +923,8 @@ function Lobby.build(parent: Instance)
 			for _, spot in spots do
 				--[[ Out front of its own station, whichever corner that
 				     is on: the offset turns with the building. ]]
-				local at = station.at + LobbyConfig.turnedOffset(station.at, spot.at)
+				local at = station.at
+					+ LobbyConfig.turnedOffset(station.at, spot.at * LobbyConfig.buildingScale)
 				standOut(spot.kind, spot.key, world(at, LAWN), root)
 			end
 		end
@@ -1160,44 +1178,13 @@ function Lobby.build(parent: Instance)
 		fall.Parent = root
 	end
 
-	-- the cliffs round the clearing, grass on top, trees behind
+	-- the trees round the clearing, below the balustrade
 	local spacing = LobbyConfig.ringSpacing
 	local function ring(at: Vector2, out: Vector2)
 		if near(at, LobbyConfig.waterfalls, spacing + 6) or (at.Y > 0 and math.abs(at.X) < 24) then
 			return
 		end
-		local tall = rng:NextNumber(8, 15)
-		local deep = rng:NextNumber(12, 18)
-		local facing = CFrame.lookAt(world(at, OUTSIDE), world(at - out, OUTSIDE))
-			* CFrame.Angles(0, rng:NextNumber(-0.12, 0.12), 0)
-		local cliff = Instance.new("Model")
-		cliff.Name = "Cliff"
-		part(
-			"Rock",
-			Vector3.new(spacing + 6, tall, deep),
-			facing * CFrame.new(0, tall / 2, deep / 2 - 3),
-			COLOURS.cliff,
-			cliff
-		)
-		part(
-			"Shade",
-			Vector3.new(spacing + 6.4, tall * 0.35, deep + 0.4),
-			facing * CFrame.new(0, tall * 0.175, deep / 2 - 3),
-			COLOURS.cliffDark,
-			cliff
-		)
-		part(
-			"Grass",
-			Vector3.new(spacing + 7, 1.4, deep + 1),
-			facing * CFrame.new(0, tall + 0.5, deep / 2 - 3),
-			COLOURS.grass,
-			cliff
-		)
-		for _, p in cliff:GetChildren() do
-			(p :: BasePart).CastShadow = false
-		end
-		cliff.Parent = root
-		tree(at + out * (deep + 4), rng:NextNumber(1.1, 1.5), rng, root, false)
+		tree(at + out * rng:NextNumber(8, 22), rng:NextNumber(1.1, 1.5), rng, root, false)
 	end
 	for x = -half.X, half.X, spacing do
 		ring(Vector2.new(x, -half.Y - 6), Vector2.new(0, -1))

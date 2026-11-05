@@ -38,16 +38,6 @@ local function loadingCover(parent: Instance): Frame
 	screen.Size = UDim2.fromScale(1, 1)
 	screen.ZIndex = 50
 	screen.Parent = cover
-	local aspect = Instance.new("UIAspectRatioConstraint")
-	aspect.AspectRatio = LoadingScreen.size.X / LoadingScreen.size.Y
-	aspect.Parent = screen
-	local function place(object: GuiObject, box: LoadingScreen.Box)
-		object.Position =
-			UDim2.fromScale(box.x / LoadingScreen.size.X, box.y / LoadingScreen.size.Y)
-		object.Size = UDim2.fromScale(box.w / LoadingScreen.size.X, box.h / LoadingScreen.size.Y)
-		object.ZIndex = 51
-		object.Parent = screen
-	end
 	--[[
 		One of Codex's spotlights, drawn from the same four the join
 		screen uses (owner, 2026-11-01: "the old loading screens need to
@@ -59,21 +49,31 @@ local function loadingCover(parent: Instance): Frame
 		picture instead, so only the tip and the bar go over it, exactly
 		as on the join screen.
 	]]
-	local spotlit: { { string } } = {}
+	local spotlit: { string } = {}
 	for _, entry in LoadingPick.pool(nil) do
-		local art = LoadingScreen.spotlights[entry.name]
-		if art then
-			table.insert(spotlit, art)
+		if LoadingScreen.spotlights[entry.name] then
+			table.insert(spotlit, entry.name)
 		end
 	end
-	if #spotlit > 0 then
-		SpotlightArt.draw(
-			screen,
-			spotlit[math.random(1, #spotlit)],
-			50,
-			LoadingScreen.size,
-			LoadingScreen.tileOverlap
-		)
+	--[[ Upright on a phone held portrait (owner, 2026-11-05: "make new
+	     loading screens for mobile"). ]]
+	local camera = Workspace.CurrentCamera
+	local layout, art = LoadingScreen.pick(
+		if camera then camera.ViewportSize else Vector2.new(16, 9),
+		if #spotlit > 0 then spotlit[math.random(1, #spotlit)] else ""
+	)
+	local size = layout.size
+	local aspect = Instance.new("UIAspectRatioConstraint")
+	aspect.AspectRatio = size.X / size.Y
+	aspect.Parent = screen
+	local function place(object: GuiObject, box: LoadingScreen.Box)
+		object.Position = UDim2.fromScale(box.x / size.X, box.y / size.Y)
+		object.Size = UDim2.fromScale(box.w / size.X, box.h / size.Y)
+		object.ZIndex = 51
+		object.Parent = screen
+	end
+	if art then
+		SpotlightArt.draw(screen, art, 50, size, LoadingScreen.tileOverlap, layout.columns)
 	end
 	local tip = Instance.new("TextLabel")
 	tip.BackgroundTransparency = 1
@@ -83,13 +83,13 @@ local function loadingCover(parent: Instance): Frame
 	tip.TextScaled = true
 	tip.TextWrapped = true
 	tip.TextXAlignment = Enum.TextXAlignment.Left
-	place(tip, LoadingScreen.tip)
+	place(tip, layout.tip)
 	local limit = Instance.new("UITextSizeConstraint")
 	limit.MaxTextSize = 40
 	limit.Parent = tip
 	local trough = Instance.new("Frame")
 	trough.BackgroundTransparency = 1
-	place(trough, LoadingScreen.bar)
+	place(trough, layout.bar)
 	local bar = Instance.new("Frame")
 	bar.BackgroundColor3 = LoadingScreen.barFill
 	bar.BorderSizePixel = 0
@@ -210,6 +210,81 @@ function ClassScreen.start()
 	choose.Parent = canvas
 	local chooseScale = Instance.new("UIScale")
 	chooseScale.Parent = choose
+
+	--[[ The upright screen, shown instead on a screen taller than wide
+	     (owner, 2026-11-05: "make the character select screen the classes on
+	     top of eachother instead of next to eachother horizontally"): the
+	     classes stacked in bands, male left and female right. The picked
+	     half is outlined in gold and the rest darkened, as the landscape
+	     panels grow and grey. ]]
+	local upright = Assets.portrait
+	local tall = Instance.new("Frame")
+	tall.Name = "UprightCanvas"
+	tall.BackgroundTransparency = 1
+	tall.AnchorPoint = Vector2.new(0.5, 0.5)
+	tall.Position = UDim2.fromScale(0.5, 0.5)
+	tall.Size = UDim2.fromScale(1, 1)
+	tall.Visible = false
+	tall.Parent = dim
+	local tallAspect = Instance.new("UIAspectRatioConstraint")
+	tallAspect.AspectRatio = upright.size.X / upright.size.Y
+	tallAspect.AspectType = Enum.AspectType.FitWithinMaxSize
+	tallAspect.Parent = tall
+	if #upright.tiles > 0 then
+		SpotlightArt.draw(tall, upright.tiles, 1, upright.size, upright.overlap, upright.columns)
+	end
+	local halves: { Frame } = {}
+	local outlines: { UIStroke } = {}
+	for i in Assets.sections do
+		local edges = upright.bands[math.ceil(i / 2)]
+		local left = i % 2 == 1
+		local half = Instance.new("Frame")
+		half.Name = "Half" .. i
+		half.BackgroundColor3 = Color3.new(0, 0, 0)
+		half.BackgroundTransparency = 1
+		half.BorderSizePixel = 0
+		half.Position = UDim2.fromScale(
+			(if left then 0 else upright.split) / upright.size.X,
+			edges.top / upright.size.Y
+		)
+		half.Size = UDim2.fromScale(
+			(if left then upright.split else upright.size.X - upright.split) / upright.size.X,
+			(edges.bottom - edges.top) / upright.size.Y
+		)
+		half.ZIndex = 5
+		half.Parent = tall
+		local outline = Instance.new("UIStroke")
+		outline.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+		outline.Color = Color3.fromRGB(255, 206, 85)
+		outline.Thickness = 5
+		outline.Enabled = false
+		outline.Parent = half
+		halves[i] = half
+		outlines[i] = outline
+	end
+	local tallHit = hit:Clone()
+	tallHit.Parent = tall
+	--[[ Which screen shows, and where CHOOSE sits on it, for the screen's
+	     shape now; again whenever it changes, as when a phone turns. ]]
+	local isUpright = false
+	local chooseY, chooseOf = 820, 1080
+	local function arrange()
+		local camera = Workspace.CurrentCamera
+		local viewport = if camera then camera.ViewportSize else Vector2.new(16, 9)
+		isUpright = viewport.Y > viewport.X and #upright.tiles > 0
+		tall.Visible = isUpright
+		canvas.Visible = not isUpright
+		choose.Parent = if isUpright then tall else canvas
+		choose.Size = if isUpright
+			then UDim2.fromScale(480 / upright.size.X, 126 / upright.size.Y)
+			else UDim2.fromScale(480 / 1920, 126 / 1080)
+		chooseY = if isUpright then upright.choose else 820
+		chooseOf = if isUpright then upright.size.Y else 1080
+	end
+	arrange()
+	if Workspace.CurrentCamera then
+		connect(Workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"), arrange)
+	end
 	local selected: number? = nil
 	local hovered: number? = nil
 	local closing = false
@@ -229,8 +304,27 @@ function ClassScreen.start()
 				else (if hovered == i then Color3.new(1, 1, 1) else Color3.new(1, 1, 1))
 			tween(panel, 0.2, { ImageColor3 = colour })
 		end
+		for i, half in halves do
+			local isSelected = selected == i
+			outlines[i].Enabled = isSelected or (hovered == i and selected == nil)
+			outlines[i].Transparency = if isSelected then 0 else 0.5
+			tween(half, 0.2, {
+				BackgroundTransparency = if selected and not isSelected then 0.55 else 1,
+			})
+		end
 	end
 	local function sectionAt(position: Vector3): number?
+		if isUpright then
+			local size = tall.AbsoluteSize
+			if size.X <= 0 or size.Y <= 0 then
+				return nil
+			end
+			return Hit.upright(
+				upright,
+				(position.X - tall.AbsolutePosition.X) / size.X * upright.size.X,
+				(position.Y - tall.AbsolutePosition.Y) / size.Y * upright.size.Y
+			)
+		end
 		local size = canvas.AbsoluteSize
 		if size.X <= 0 or size.Y <= 0 then
 			return nil
@@ -240,7 +334,7 @@ function ClassScreen.start()
 			(position.Y - canvas.AbsolutePosition.Y) / size.Y * 1080
 		)
 	end
-	connect(hit.InputEnded, function(input: InputObject)
+	local function press(input: InputObject)
 		if
 			closing
 			or (
@@ -256,6 +350,14 @@ function ClassScreen.start()
 		end
 		if Assets.sections[index].locked then
 			shakes[index] = os.clock()
+			-- a red flash on the upright screen, whose halves cannot shake
+			local half = halves[index]
+			half.BackgroundColor3 = Color3.fromRGB(150, 20, 20)
+			half.BackgroundTransparency = 0.5
+			tween(half, 0.35, { BackgroundTransparency = 1 })
+			task.delay(0.36, function()
+				half.BackgroundColor3 = Color3.new(0, 0, 0)
+			end)
 			return
 		end
 		if selected == index then
@@ -274,8 +376,8 @@ function ClassScreen.start()
 			chooseScale.Scale = 0
 			tween(chooseScale, 0.25, { Scale = 1 }, true)
 		end
-	end)
-	connect(hit.InputChanged, function(input: InputObject)
+	end
+	local function move(input: InputObject)
 		if input.UserInputType == Enum.UserInputType.MouseMovement then
 			local index = sectionAt(input.Position)
 			if index ~= hovered then
@@ -283,11 +385,16 @@ function ClassScreen.start()
 				tint()
 			end
 		end
-	end)
-	connect(hit.MouseLeave, function()
+	end
+	local function leave()
 		hovered = nil
 		tint()
-	end)
+	end
+	for _, button in { hit, tallHit } do
+		connect(button.InputEnded, press)
+		connect(button.InputChanged, move)
+		connect(button.MouseLeave, leave)
+	end
 	connect(choose.InputBegan, function(input: InputObject)
 		if
 			input.UserInputType == Enum.UserInputType.MouseButton1
@@ -397,7 +504,7 @@ function ClassScreen.start()
 			return
 		end
 		local now = os.clock()
-		choose.Position = UDim2.fromScale(0.5, (820 + math.sin(now * 2) * 4) / 1080)
+		choose.Position = UDim2.fromScale(0.5, (chooseY + math.sin(now * 2) * 4) / chooseOf)
 		for i, began in shakes do
 			local elapsed = now - began
 			panels[i].Rotation = if elapsed < 0.35

@@ -133,24 +133,6 @@ local function build()
 		return
 	end
 
-	local size: Vector2 = LoadingScreen.size
-	local screen = Instance.new("Frame")
-	screen.Name = "Screen"
-	screen.BackgroundTransparency = 1
-	screen.AnchorPoint = Vector2.new(0.5, 0.5)
-	screen.Position = UDim2.fromScale(0.5, 0.5)
-	screen.Size = UDim2.fromScale(1, 1)
-	screen.ZIndex = 2
-	local aspect = Instance.new("UIAspectRatioConstraint")
-	aspect.AspectRatio = size.X / size.Y
-	aspect.Parent = screen
-	screen.Parent = back
-
-	local function place(item: GuiObject, box: Box)
-		item.Position = UDim2.fromScale(box.x / size.X, box.y / size.Y)
-		item.Size = UDim2.fromScale(box.w / size.X, box.h / size.Y)
-	end
-
 	--[[ Only Codex's spotlights are shown (owner, 2026-10-31: "the old
 	     loading screens need to be removed, the 4 new ones should be the
 	     only ones in the game so far"), so what the player has met is
@@ -169,9 +151,33 @@ local function build()
 		end
 	end
 	local entry = if #spotlit > 0 then spotlit[math.random(1, #spotlit)] else nil
-	local art: { string }? = if entry then LoadingScreen.spotlights[entry.name] else nil
+
+	--[[ Upright on a phone held portrait, where that spotlight has an
+	     upright picture (owner, 2026-11-05: "make new loading screens for
+	     mobile"). ]]
+	local camera = workspace.CurrentCamera
+	local viewport = if camera then camera.ViewportSize else Vector2.new(16, 9)
+	local layout, art = LoadingScreen.pick(viewport, if entry then entry.name else "")
+	local size: Vector2 = layout.size
+	local screen = Instance.new("Frame")
+	screen.Name = "Screen"
+	screen.BackgroundTransparency = 1
+	screen.AnchorPoint = Vector2.new(0.5, 0.5)
+	screen.Position = UDim2.fromScale(0.5, 0.5)
+	screen.Size = UDim2.fromScale(1, 1)
+	screen.ZIndex = 2
+	local aspect = Instance.new("UIAspectRatioConstraint")
+	aspect.AspectRatio = size.X / size.Y
+	aspect.Parent = screen
+	screen.Parent = back
+
+	local function place(item: GuiObject, box: Box)
+		item.Position = UDim2.fromScale(box.x / size.X, box.y / size.Y)
+		item.Size = UDim2.fromScale(box.w / size.X, box.h / size.Y)
+	end
+
 	if art then
-		SpotlightArt.draw(screen, art, 2, LoadingScreen.size, LoadingScreen.tileOverlap)
+		SpotlightArt.draw(screen, art, 2, size, LoadingScreen.tileOverlap, layout.columns)
 	end
 	title.Visible = false
 	loading.Visible = false
@@ -179,7 +185,7 @@ local function build()
 	-- one of the tips
 	local tip =
 		text(screen, "Tip", LoadingTips[math.random(1, #LoadingTips)], LoadingScreen.tipText)
-	place(tip, LoadingScreen.tip)
+	place(tip, layout.tip)
 	tip.TextWrapped = true
 	tip.TextXAlignment = Enum.TextXAlignment.Left
 	tip.ZIndex = 3
@@ -193,7 +199,7 @@ local function build()
 	trough.BackgroundTransparency = if art then 1 else 0
 	trough.BackgroundColor3 = Color3.fromRGB(24, 32, 26)
 	trough.BorderSizePixel = 0
-	place(trough, LoadingScreen.bar)
+	place(trough, layout.bar)
 	trough.ZIndex = 3
 	trough.Parent = screen
 	local bar = Instance.new("Frame")

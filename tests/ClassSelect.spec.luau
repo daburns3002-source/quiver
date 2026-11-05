@@ -26,4 +26,27 @@ return function(t: TestRunner.Helper)
 		t.equal(Hit.section(-1, 300), nil)
 		t.equal(Hit.section(960, 1081), nil)
 	end)
+	--[[ The upright screen (owner, 2026-11-05: "make the character select
+	     screen the classes on top of eachother"): a band per class in
+	     order, male on the left, and its tiles within what Roblox keeps. ]]
+	t.test("upright hit test: a band per class, male left and female right", function()
+		local upright = Assets.portrait
+		t.equal(#upright.bands, 4)
+		for band, edges in upright.bands do
+			local y = (edges.top + edges.bottom) / 2
+			t.equal(Hit.upright(upright, upright.split / 2, y), (band - 1) * 2 + 1)
+			t.equal(Hit.upright(upright, (upright.split + upright.size.X) / 2, y), band * 2)
+		end
+		t.equal(Hit.upright(upright, 540, upright.bands[1].top - 1), nil)
+		t.equal(Hit.upright(upright, 540, upright.choose), nil)
+	end)
+	t.test("upright picture is tiled within the upload limit", function()
+		local upright = Assets.portrait
+		local rows = math.ceil(#upright.tiles / upright.columns)
+		t.isTrue(
+			upright.size.X / upright.columns + 2 * upright.overlap <= 1024
+				and upright.size.Y / rows + 2 * upright.overlap <= 1024,
+			"the upright class picture's tiles are larger than Roblox keeps"
+		)
+	end)
 end

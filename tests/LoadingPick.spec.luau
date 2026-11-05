@@ -69,6 +69,30 @@ return function(t: TestRunner.Helper)
 		end
 	end)
 
+	--[[ The upright pictures (owner, 2026-11-05: "make new loading screens
+	     for mobile"): one for every landscape spotlight, each with its bar
+	     measured, and tiled within the limit too. ]]
+	t.test("every spotlight has an upright picture with its own bar", function()
+		local upright = LoadingScreen.portrait
+		for key in LoadingScreen.spotlights do
+			local tiles = upright.spotlights[key]
+			t.isTrue(tiles ~= nil, `the "{key}" spotlight has no upright picture`)
+			t.isTrue(upright.bars[key] ~= nil, `the "{key}" upright picture has no bar`)
+			if tiles then
+				local rows = math.ceil(#tiles / upright.columns)
+				t.isTrue(
+					upright.size.X / upright.columns <= LoadingScreen.uploadLimit
+						and upright.size.Y / rows + 2 * LoadingScreen.tileOverlap
+							<= LoadingScreen.uploadLimit,
+					`the "{key}" upright tiles are larger than Roblox keeps`
+				)
+			end
+			local layout = LoadingScreen.pick(Vector2.new(390, 844), key)
+			t.equal(layout.size, upright.size)
+			t.equal(LoadingScreen.pick(Vector2.new(1920, 1080), key).size, LoadingScreen.size)
+		end
+	end)
+
 	--[[ And at least one has to be reachable the moment a player joins, or
 	     the first thing they ever see is a black screen with a tip on it. ]]
 	t.test("a brand new player can be shown a spotlight", function()

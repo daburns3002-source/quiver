@@ -69,11 +69,13 @@ function RoomPreload.enemyContent(
 		end
 	end
 
+	--[[ Textures and pictures only. `PreloadAsync` takes a bare id as an image,
+	     so a mesh id only ever logged "Asset type does not match requested type"
+	     and fetched nothing. A mesh is fetched with the instance that holds it. ]]
 	local design = (EnemyDesigns :: any)[name]
 	if type(design) == "table" then
 		for _, spec in design do
 			if type(spec) == "table" then
-				put(spec.meshId)
 				put(spec.textureId)
 			end
 		end
@@ -81,7 +83,6 @@ function RoomPreload.enemyContent(
 	local imported = (EnemyDesigns.Imported :: any)[name]
 	if type(imported) == "table" and type(imported.model) == "string" then
 		for _, row in importedRows(imported.model) do
-			put(row.meshId)
 			put(row.textureId)
 		end
 	end
@@ -101,16 +102,27 @@ function RoomPreload.enemyContent(
 	if boss then
 		local banner = (BossBanners.bosses :: any)[boss.title]
 		put(banner and banner.icon)
-		for _, track in Music.playlists.Boss do
-			put(track.id)
-		end
 	end
 	return list
+end
+
+--[[ A boss's music, as sounds: `PreloadAsync` takes a bare id as an image, so
+     the track must go as an instance or it is not fetched at all, and its
+     intro is timed to the banner. ]]
+local function bossSounds(): { Instance }
+	local sounds: { Instance } = {}
+	for _, track in Music.playlists.Boss do
+		local sound = Instance.new("Sound")
+		sound.SoundId = track.id
+		table.insert(sounds, sound)
+	end
+	return sounds
 end
 
 local function load(arena: Instance)
 	local began = os.clock()
 	local ids: { string } = {}
+	local hasBoss = false
 	local configs = configsByName()
 	local roster = arena:GetAttribute("Roster")
 	if type(roster) == "string" then
@@ -118,6 +130,8 @@ local function load(arena: Instance)
 			for _, id in RoomPreload.enemyContent(name, configs) do
 				table.insert(ids, id)
 			end
+			local config = configs[name]
+			hasBoss = hasBoss or (config ~= nil and config.boss ~= nil)
 		end
 	end
 
@@ -127,6 +141,9 @@ local function load(arena: Instance)
 	task.spawn(function()
 		-- the arena's own meshes and textures, then the enemies'
 		Preload.fetchInstances({ arena })
+		if hasBoss then
+			Preload.fetchInstances(bossSounds())
+		end
 		local count = Preload.fetch(ids)
 		log.info("next room loaded in %.2f s (%d new enemy assets)", os.clock() - began, count)
 		arena:SetAttribute("PreloadedIn", os.clock() - began)

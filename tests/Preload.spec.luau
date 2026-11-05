@@ -70,34 +70,37 @@ return function(t: TestRunner.Helper)
 		end
 	)
 
-	t.test("every enemy's meshes, picture and banner are loaded with its room", function()
-		for _, config in Balance.Enemies :: any do
-			if type(config) ~= "table" or type(config.displayName) ~= "string" then
-				continue
-			end
-			local name = config.displayName
-			local ids = RoomPreload.enemyContent(name)
-			local design = (EnemyDesigns :: any)[name]
-			if type(design) == "table" then
-				for _, spec in design do
-					if type(spec) == "table" and type(spec.meshId) == "string" then
-						t.isTrue(
-							has(ids, spec.meshId),
-							`{name}'s mesh {spec.meshId} is not preloaded`
-						)
+	t.test(
+		"every enemy's picture and banner load with its room, and no mesh goes as an image",
+		function()
+			for _, config in Balance.Enemies :: any do
+				if type(config) ~= "table" or type(config.displayName) ~= "string" then
+					continue
+				end
+				local name = config.displayName
+				local ids = RoomPreload.enemyContent(name)
+				local design = (EnemyDesigns :: any)[name]
+				if type(design) == "table" then
+					for _, spec in design do
+						if type(spec) == "table" and type(spec.meshId) == "string" then
+							t.isTrue(
+								not has(ids, spec.meshId),
+								`{name}'s mesh {spec.meshId} would be asked for as an image`
+							)
+						end
 					end
 				end
-			end
-			local met = (NewEnemies.enemies :: any)[name]
-			if met then
-				t.isTrue(has(ids, met.picture), `{name}'s NEW ENEMY! picture is not preloaded`)
-			end
-			local banner = config.boss and (BossBanners.bosses :: any)[config.boss.title]
-			if banner and banner.icon ~= "" then
-				t.isTrue(has(ids, banner.icon), `{name}'s banner icon is not preloaded`)
+				local met = (NewEnemies.enemies :: any)[name]
+				if met then
+					t.isTrue(has(ids, met.picture), `{name}'s NEW ENEMY! picture is not preloaded`)
+				end
+				local banner = config.boss and (BossBanners.bosses :: any)[config.boss.title]
+				if banner and banner.icon ~= "" then
+					t.isTrue(has(ids, banner.icon), `{name}'s banner icon is not preloaded`)
+				end
 			end
 		end
-	end)
+	)
 
 	t.test(
 		"every card a class can be dealt has its icon warmed, with every rarity's frame",

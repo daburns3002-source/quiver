@@ -213,7 +213,10 @@ function SlimeResidue.onEnemyHit(
 	--[[ From the struck face, at the height arrows fly, inside the body. ]]
 	local reach = if hitbox then math.min(hitbox.Size.X, hitbox.Size.Z) / 2 else 1
 	local top = if hitbox then centre.Y + hitbox.Size.Y / 2 else centre.Y
-	local height = math.clamp(Balance.Projectile.height, floorY() + kind.size, top)
+	--[[ A low body's top can stand under the lowest a cube may start. `clamp`
+	     errors on that, which lost the hit's whole spray. ]]
+	local lowest = floorY() + kind.size
+	local height = math.clamp(Balance.Projectile.height, lowest, math.max(lowest, top))
 	local at = Vector3.new(centre.X, height, centre.Z) + back * reach * 0.9
 
 	local count = ResidueSpray.count(kind, hitKind :: string?, false, settings)

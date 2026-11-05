@@ -13,6 +13,7 @@ local LoadingPick = require(ReplicatedStorage.Shared.Util.LoadingPick)
 local LoadingScreen = require(ReplicatedStorage.Shared.Config.LoadingScreen)
 local LoadingTips = require(ReplicatedStorage.Shared.Config.LoadingTips)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
+local RunPaused = require(script.Parent.Parent.RunPaused)
 local SoundFx = require(script.Parent.Parent.Fx.SoundFx)
 local ClassScreen = {}
 local started = false
@@ -79,6 +80,7 @@ local function loadingCover(parent: Instance): Frame
 	tip.TextColor3 = LoadingScreen.tipText
 	tip.TextScaled = true
 	tip.TextWrapped = true
+	tip.TextXAlignment = Enum.TextXAlignment.Left
 	place(tip, LoadingScreen.tip)
 	local limit = Instance.new("UITextSizeConstraint")
 	limit.MaxTextSize = 40
@@ -358,6 +360,7 @@ function ClassScreen.start()
 			not shown
 			and hasProfile
 			and not hasLook
+			and not RunPaused.beforeArrival()
 			and Workspace:GetAttribute("InLobby") == true
 		then
 			shown = true
@@ -375,6 +378,18 @@ function ClassScreen.start()
 		maybeOpen()
 	end)
 	connect(Workspace:GetAttributeChangedSignal("InLobby"), maybeOpen)
+	--[[ The story's end asks the server for the tutorial, and the lobby stays
+	     `InLobby` until the answer arrives. Asking again a moment later keeps
+	     this screen from flashing up before a tutorial starts; after the
+	     tutorial, `InLobby` itself opens it. ]]
+	table.insert(
+		connections,
+		RunPaused.onChanged(function()
+			if not RunPaused.beforeArrival() then
+				task.delay(2, maybeOpen)
+			end
+		end)
+	)
 	connect(RunService.RenderStepped, function()
 		if not gui.Enabled then
 			return

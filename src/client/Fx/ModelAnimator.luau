@@ -176,7 +176,9 @@ function ModelAnimator.attach(model: Model, key: string, quiet: boolean?): boole
 	end
 	local fit = ModelClip.fit(data, observed)
 	if not fit or fit.error > MAX_FIT_ERROR * fit.spread then
-		if quiet then
+		--[[ Nothing to fit yet is no failure: the tag came first, and `watch`
+		     tries again as the parts arrive. ]]
+		if quiet or not fit then
 			return false
 		end
 		log.warn(

@@ -185,16 +185,11 @@ local function build()
 		text(screen, "Tip", LoadingTips[math.random(1, #LoadingTips)], LoadingScreen.tipText)
 	place(tip, LoadingScreen.tip)
 	tip.TextWrapped = true
+	tip.TextXAlignment = Enum.TextXAlignment.Left
 	tip.ZIndex = 3
 	local limit = Instance.new("UITextSizeConstraint")
 	limit.MaxTextSize = 40
 	limit.Parent = tip
-	local tipPad = Instance.new("UIPadding")
-	tipPad.PaddingLeft = UDim.new(0.07, 0)
-	tipPad.PaddingRight = UDim.new(0.07, 0)
-	tipPad.PaddingTop = UDim.new(0.1, 0)
-	tipPad.PaddingBottom = UDim.new(0.1, 0)
-	tipPad.Parent = tip
 
 	-- the bar
 	local trough = Instance.new("Frame")

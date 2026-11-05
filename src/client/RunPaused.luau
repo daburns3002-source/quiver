@@ -34,6 +34,11 @@ local story = false
 local checkpoint = false
 local changed = Instance.new("BindableEvent")
 
+--[[ Whether the title or the story is still up: the player has not arrived. ]]
+function RunPaused.beforeArrival(): boolean
+	return title or story
+end
+
 function RunPaused.get(): boolean
 	return paused or intro or title or meeting or story or checkpoint
 end

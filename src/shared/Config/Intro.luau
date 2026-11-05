@@ -80,8 +80,8 @@ local Intro = {
 			rows = 2,
 			tiles = {
 				"rbxassetid://73283236117725",
-				"rbxassetid://79625145319971",
-				"rbxassetid://118420334678373",
+				"rbxassetid://114806197690760",
+				"rbxassetid://107045548457217",
 				"rbxassetid://100688302403117",
 				"rbxassetid://80972719598001",
 				"rbxassetid://103915902604466",
@@ -127,8 +127,8 @@ local Intro = {
 			cols = 2,
 			rows = 4,
 			tiles = {
-				"rbxassetid://108854052246374",
-				"rbxassetid://116809946895414",
+				"rbxassetid://136610583070079",
+				"rbxassetid://113451470336871",
 				"rbxassetid://90987120985881",
 				"rbxassetid://114842959404665",
 				"rbxassetid://81588607149523",

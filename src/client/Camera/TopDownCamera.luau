@@ -22,6 +22,7 @@ local Device = require(script.Parent.Parent.Device)
 local TopDownCamera = {}
 
 local connection: RBXScriptConnection? = nil
+local FLOOR_GUARD = "LobbyCameraFloor"
 local currentFocus: Vector3? = nil
 --[[ How far the lobby's camera zooms out, studs: near enough that the
      forest round the clearing fills the view rather than the world's edge
@@ -30,6 +31,55 @@ local LOBBY_ZOOM = 45
 
 local shakeMagnitude = 0
 local shakeDecay = 0
+
+--[[ How far above the ground the player last stood the lobby camera must
+     stay, studs (owner, 2026-11-05: "make sure that the player cant look
+     underneath the floor"). ]]
+local FLOOR_CLEARANCE = 1.5
+--[[ The height of the ground the player last stood on, kept through a jump
+     so the guard does not lift with them. ]]
+local lastGround: number? = nil
+
+--[[
+	Keeps Roblox's own lobby camera above the floor. The lobby's floor and
+	scenery are built with CanQuery off, so the default camera's occlusion
+	never sees them, and pitching the view up swung the camera under the
+	courtyard, where the underside of everything showed. Run straight after
+	Roblox's camera each frame: when the camera has gone below the ground the
+	player stands on, it slides in along its line to the player until it is
+	`FLOOR_CLEARANCE` above it, which reads as the camera resting on the
+	ground the way a real one would.
+]]
+local function guardFloor(getRoot: () -> BasePart?)
+	if Workspace:GetAttribute("InLobby") ~= true then
+		lastGround = nil
+		return
+	end
+	local camera = Workspace.CurrentCamera
+	local root = getRoot()
+	local humanoid = root and root.Parent and root.Parent:FindFirstChildOfClass("Humanoid")
+	if not camera or not root or not humanoid then
+		return
+	end
+	if humanoid.FloorMaterial ~= Enum.Material.Air or not lastGround then
+		lastGround = root.Position.Y - root.Size.Y / 2 - humanoid.HipHeight
+	end
+	local least = (lastGround :: number) + FLOOR_CLEARANCE
+	local at = camera.CFrame
+	if at.Position.Y >= least then
+		return
+	end
+	local focus = camera.Focus.Position
+	local fromFocus = at.Position - focus
+	local y = at.Position.Y
+	if focus.Y > least and math.abs(focus.Y - y) > 1e-3 then
+		-- along the line from the focus, to where it crosses the guard height
+		local t = (focus.Y - least) / (focus.Y - y)
+		camera.CFrame = at.Rotation + (focus + fromFocus * t)
+	else
+		camera.CFrame = at + Vector3.new(0, least - y, 0)
+	end
+end
 
 --[[
 	Where the camera sits relative to its focus, solved for this screen by
@@ -192,6 +242,10 @@ function TopDownCamera.start(getRoot: () -> BasePart?)
 	connection = RunService.RenderStepped:Connect(function(deltaTime)
 		step(deltaTime, getRoot)
 	end)
+	RunService:UnbindFromRenderStep(FLOOR_GUARD)
+	RunService:BindToRenderStep(FLOOR_GUARD, Enum.RenderPriority.Camera.Value + 1, function()
+		guardFloor(getRoot)
+	end)
 end
 
 function TopDownCamera.stop()
@@ -199,6 +253,8 @@ function TopDownCamera.stop()
 		connection:Disconnect()
 		connection = nil
 	end
+	RunService:UnbindFromRenderStep(FLOOR_GUARD)
+	lastGround = nil
 
 	currentFocus = nil
 	shakeMagnitude = 0

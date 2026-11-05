@@ -295,6 +295,7 @@ local function difficulty(): { damage: number, health: number, fireRate: number 
 	     sits at the end of the ramp, and 1-10's King Bloblin at 2.0 x 1.30
 	     would be a 30% buff nobody asked for. ]]
 	local healthScale = 1
+	local damageScale = 1
 	if stage and not workspace:GetAttribute("Sandbox") then
 		local encounter = workspace:GetAttribute("CombatEncounter")
 		local ordinal = if type(encounter) == "number" then math.max(1, encounter) else 1
@@ -304,9 +305,10 @@ local function difficulty(): { damage: number, health: number, fireRate: number 
 			healthScale = CombatTuning.roomHealthStart
 				+ (ordinal - 1) * CombatTuning.roomHealthPerEncounter
 		end
+		damageScale = Waves.damageRamp(stage, ordinal)
 	end
 	return {
-		damage = stage and stage.enemyDamage or 1,
+		damage = (stage and stage.enemyDamage or 1) * damageScale,
 		health = (stage and stage.enemyHealth or 1) * healthScale,
 		fireRate = 1,
 	}

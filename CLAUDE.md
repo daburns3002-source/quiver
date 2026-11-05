@@ -108,9 +108,10 @@ starts the tutorial, as the story's end does).
 owner 2026-10-26): **Mossy Glade 1-1..1-10** (stages 7-16, `level = "1-n"`, the lobby portal's
 `levels`, `tests/MossyLevels.spec`): 1-1 and 1-2 ten rooms, 1-3 and 1-4 fifteen (rooms 86-135,
 `tools/glade_levels.py`, each ending in a Glade Heart fight without a boss), 1-5..1-9 twenty waves
-in one clearing and 1-10 twenty-five in the Glade Heart (the stage's own `fights`, `elite` on the
-boss positions, and `finale`: **King Bloblin alone as 1-10's last wave, his only appearance**;
-`Run/Waves.kindIn`). Every level is harder than the last: enemy health 1.1 at 1-1 (the old run's
+in one clearing each (the stage's own `fights`, and `elite` on the boss positions; owner, 2026-11-05)
+and 1-10 twenty-five rooms, **King Bloblin alone in its last, his only appearance**. Inside a level
+enemy health and damage rise every fight (`CombatTuning`, `Run/Waves.damageRamp`,
+`docs/DIFFICULTY.md`). Every level is harder than the last: enemy health 1.1 at 1-1 (the old run's
 0.8) up 0.1 a level to 2.0, damage 0.75 up 0.03 to 1.02 (owner: "enemy health needs to be scaled
 up as well, the game is too easy currently"); Thornwood one step past, 2.1 / 1.05. A won level is
 saved (`SaveSchema` v2 `levelsBeaten`, `Wallet.beatLevel`, server-decided in `RoomController`) and

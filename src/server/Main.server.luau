@@ -569,6 +569,14 @@ Remotes.event(Remotes.NewEnemySeen).OnServerEvent:Connect(function(player, kind)
 	end
 end)
 
+--[[ MENU's LEAVE THE RUN? panel opened or shut. ]]
+Remotes.event(Remotes.RunMenu).OnServerEvent:Connect(function(player, open)
+	local session = RunSession.get(player)
+	if session then
+		RunSession.setInMenu(session, open)
+	end
+end)
+
 --[[ Whether last frame's step was skipped because the world was held. The
      first frame it runs again, every attack starts over
      (`RunSession.resumeAttacks`). ]]
@@ -631,6 +639,13 @@ RunService.Heartbeat:Connect(function(deltaTime: number)
 	--[[ And while anyone reads a NEW ENEMY! screen, until GOT IT!
 	     (`Config/NewEnemies`). ]]
 	if RunSession.anyMeeting() then
+		wasHeld = true
+		return
+	end
+
+	--[[ And while anyone has MENU's LEAVE THE RUN? panel open (owner,
+	     2026-11-05): nobody should take hits while reading it. ]]
+	if RunSession.anyInMenu() then
 		wasHeld = true
 		return
 	end

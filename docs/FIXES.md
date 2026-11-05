@@ -1493,6 +1493,22 @@ on that, which lost the hit's spray. Seen in Endless.
 `Shop.classOf` read the saved weapon before the session, so a class saved but not yet held counted as
 "already that class" and the switch returned without a word. The session comes first now.
 
+## Players kept taking hits while reading LEAVE THE RUN? (2026-11-05)
+
+MENU's panel did not pause anything. It now holds both sides (`RunPaused.setMenu`, `Remotes.RunMenu`,
+`RunSession.anyInMenu`) for at most `CombatTuning.menuHold` seconds, a limit so one player cannot
+freeze a shared run by leaving it open; the panel shuts itself then.
+
+## A level's first room hit as hard as its last (2026-11-05)
+
+Enemy health ramped through a level and damage was one flat number. See "Damage ramp" in
+`docs/DIFFICULTY.md`.
+
+## Endless's Mossy Glade arena was not the Glade Heart (2026-11-05)
+
+`Balance.Endless.areas[1].arena` said `levelRoom(56)`, "the Glade Heart", but that index stopped being
+the Heart when 1-10 became rooms (#442). It is 1-10's last room again, `levelRoom(80)`.
+
 ## Testing overnight: Studio stops drawing, and everything looks stuck (2026-11-05)
 
 Unfocused, or with the display asleep, Studio can draw **no frames at all** while server time runs on.

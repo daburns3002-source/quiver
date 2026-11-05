@@ -211,6 +211,23 @@ error than it was — the start is 25% lower, which is where the mismatch hurt
 most — but it is not gone. Front-loading is a one-line change to the same
 constant if playtesting says the middle still sags.
 
+## Damage ramp, and what changed on 2026-11-05
+
+Owner, asked whether two Bramble Boars killing a player in Thornwood's room 12 was intended: "no the
+levels should scale difficulty per room". Health ramped; **damage did not**, so room 1 hit as hard as
+room 20.
+
+- `CombatTuning.roomDamageStart` 0.7, `roomDamagePerEncounter` 0.016, capped at 1 (`Run/Waves.damageRamp`).
+  **The stage's `enemyDamage` is now the top of the level, not its flat value**, so no fight hits
+  harder than before and most hit softer. A boss's fight stays at 1.
+- Thornwood's rooms are ordered by the health they bring, which used to dip after room 10.
+- 1-6..1-9 became Waves, so the note at the top about Rooms now holds only for 1-10.
+
+**Known mismatch, left alone:** the health ramp's boss exemption only sees Waves stages
+(`total = stage.waves`), so a boss in a last *room* takes the ramp this doc says it should not: King
+Bloblin about 1.39x and the Broodmother 1.30x. Removing it would make both a quarter weaker, which is
+the owner's call.
+
 ## Where it goes
 
 One hook, already built. `Enemies/EnemyManager.difficulty()` currently returns the stage

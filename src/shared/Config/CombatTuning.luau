@@ -18,4 +18,14 @@ return table.freeze({
 	     drafted at all. ]]
 	roomHealthStart = 0.75,
 	roomHealthPerEncounter = 0.029,
+	--[[ The same ramp on enemy damage (owner, 2026-11-05: "the levels should
+	     scale difficulty per room", when two Bramble Boars killed a player
+	     in Thornwood's room 12). The stage's number is now the top: 0.7 of
+	     it in the first fight, all of it by the twentieth, never over. Damage
+	     was flat, so a level's first room hit as hard as its last.
+	     (`Run/Waves.damageRamp`) ]]
+	roomDamageStart = 0.7,
+	roomDamagePerEncounter = 0.016,
+	--[[ How long MENU's LEAVE THE RUN? panel can hold the run, in seconds. ]]
+	menuHold = 60,
 })

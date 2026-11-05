@@ -131,6 +131,13 @@ Remotes.RunRestart = "RunRestart"
 Remotes.RunLobby = "RunLobby"
 
 --[[
+	Client → server. MENU's LEAVE THE RUN? panel opened (true) or shut (false).
+	The world holds while it is open, for at most `CombatTuning.menuHold`
+	(`RunSession.setInMenu`).
+]]
+Remotes.RunMenu = "RunMenu"
+
+--[[
 	Server → one client. That player's saved profile changed (coins, gems,
 	boss items, weapons owned, the one equipped): the whole profile, for
 	the shop and the wallet. Sent only from `Data/Wallet`.

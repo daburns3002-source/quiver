@@ -10,10 +10,9 @@ each area, with concept art, are in `ENEMIES-AND-ARENAS.md`.
 
 ## Title
 
-"Arrow Legends" names one class. Candidates that fit all three:
-**Splitpath, Threefold, Descent, Hollow Crown, Ashborn.** *Open — see the
-decisions at the end.* Until one is chosen the code, repo and docs keep
-"Arrow Legends".
+**Arrowborne** (owner, 2026-11-04). It replaced Arrow Legends, which named
+one class; the other candidates were Splitpath, Threefold, Descent, Hollow
+Crown and Ashborn.
 
 ---
 
@@ -108,7 +107,7 @@ an area is still unlocked by beating its boss (`PROGRESSION.md`). Ten in
 
 ## Decisions this needs from the owner
 
-1. **The title** — one of the five, or keep "Arrow Legends".
+1. ~~**The title**~~ — settled: Arrowborne.
 2. **The unlockable melee class** — Warden or Duelist.
 3. ~~**Boss cadence**~~ — settled: two bosses per act, one per area (`BOSSES.md`).
 4. **When classes land in the roadmap** — the Arcanist is cheap (projectile

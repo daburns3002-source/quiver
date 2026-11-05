@@ -1,4 +1,4 @@
-# Arrow Legends — upgrade cards
+# Arrowborne — upgrade cards
 
 Every upgrade card in the game (44), by the class that can draw it, then rarity.
 Rarities, lowest to highest: Common, Uncommon, Rare, Epic, Legendary, Mythic.

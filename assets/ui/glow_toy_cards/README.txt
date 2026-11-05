@@ -1,4 +1,4 @@
-Arrow Legends upgrade cards, Glow Toy style.
+Arrowborne upgrade cards, Glow Toy style.
 
 icons/ - 512x512 icon on its rarity tile, one per upgrade.
 icons_transparent/ - 512x512 icon only, transparent background, for drawing on your own tile.

@@ -1,6 +1,6 @@
 """The title theme: the intro cutscene's music (owner, 2026-10-25: quiet and
 building while "DYL.DEVS PRESENTS" shows on black, then "a grandiose song"
-from the moment the "Archer Legends" picture cuts in). Original, made from
+from the moment the title picture cuts in). Original, made from
 scratch with the Mossy Glade theme's voices and mastering (`glade_theme.py`)
 and the boss theme's brass and drums (`boss_theme.py`).
 

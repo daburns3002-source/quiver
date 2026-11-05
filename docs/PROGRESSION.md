@@ -1,6 +1,6 @@
 # Progression design
 
-Arrow Legends is **Archero's combat inside a Pet Simulator / Steal an Egg progression shell.**
+Arrowborne is **Archero's combat inside a Pet Simulator / Steal an Egg progression shell.**
 
 Two loops, deliberately different in shape:
 

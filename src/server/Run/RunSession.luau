@@ -84,6 +84,10 @@ export type Session = {
 	--[[ The class upgrades beside the shot (`Combat/ClassUpgrades`, which
 	     keeps their counters and timers). ]]
 	upgrades: AbilityEffects.UpgradeStats,
+	--[[ Windrunner: move speed per stack, as a fraction. The stacks
+	     themselves live in `Combat/ClassUpgrades` and are published on the
+	     player's `Windrunner` attribute, which the client reads. ]]
+	windrunner: number,
 	casts: number,
 	lastDashAt: number,
 	--[[ Share of max health Second Wind revives with (0 without it), and
@@ -208,6 +212,13 @@ RunSession.onShellBlock = nil :: ((Session, string) -> ())?
      (`Combat/ClassUpgrades`). A hook for the same reason as `onDeath`. ]]
 RunSession.onHurt = nil :: ((Session) -> ())?
 
+--[[ Called when an enemy this player killed fell at that spot: Thornfall's
+     arrows, Prismatic Burst's shards and Vengeful Spirit's sword all rise
+     out of the body (`Combat/ClassUpgrades`). A hook for the same reason as
+     `onHurt`: acting on a kill means inventing shots, which means the
+     projectile system, which requires this module. ]]
+RunSession.onKillAt = nil :: ((Session, Vector3) -> ())?
+
 local healthChanged = Remotes.event(Remotes.HealthChanged)
 local xpChanged = Remotes.event(Remotes.XpChanged)
 local newEnemy = Remotes.event(Remotes.NewEnemy)
@@ -245,7 +256,21 @@ function RunSession.create(player: Player): Session
 		damageTaken = 1,
 		meteor = 0,
 		earthbreaker = 0,
-		upgrades = { phoenix = 0, arrowRain = 0, blackHole = 0, elemental = 0, turret = 0 },
+		upgrades = {
+			phoenix = 0,
+			arrowRain = 0,
+			blackHole = 0,
+			elemental = 0,
+			turret = 0,
+			thornfall = 0,
+			headhunterEvery = 0,
+			ghostQuiver = 0,
+			twinElements = 0,
+			timeDilation = 0,
+			prismaticBurst = 0,
+			vengefulSpirit = 0,
+		},
+		windrunner = 0,
 		casts = 0,
 		lastDashAt = -math.huge,
 		melee = {
@@ -261,6 +286,9 @@ function RunSession.create(player: Player): Session
 			parry = 0,
 			reachScale = 1,
 			counterStrike = 0,
+			guardBreak = 0,
+			bullRush = 0,
+			bloodPact = 0,
 		},
 		secondWind = 0,
 		secondWindUsed = false,
@@ -346,6 +374,7 @@ function RunSession.applyLoadout(session: Session)
 	session.meteor = stats.meteor
 	session.earthbreaker = stats.earthbreaker
 	session.upgrades = stats.upgrades
+	session.windrunner = stats.windrunner
 	session.melee = stats.melee
 
 	session.pipeline:clear()
@@ -657,7 +686,7 @@ end
 	heal into the XP call would make a future "XP without a kill" source heal
 	the player for no reason.
 ]]
-function RunSession.onEnemyKilled(session: Session)
+function RunSession.onEnemyKilled(session: Session, at: Vector3?)
 	session.stageKills += 1
 	RunSession.payCoins(session, RunSession.areaPay().killCoins)
 	--[[ Battle Cry: a stack per kill, up to the cap; they lapse together
@@ -673,6 +702,12 @@ function RunSession.onEnemyKilled(session: Session)
 		session.battleCryUntil = now + config.duration
 		local cries = session.player:GetAttribute("BattleCry")
 		session.player:SetAttribute("BattleCry", (if type(cries) == "number" then cries else 0) + 1)
+	end
+	--[[ The cards that raise something out of the body want to know where
+	     it fell, so this runs before the heal's early return. ]]
+	local onKillAt = RunSession.onKillAt
+	if session.alive and at and onKillAt then
+		onKillAt(session, at)
 	end
 	if not session.alive or session.healPerKill <= 0 then
 		return
@@ -763,7 +798,7 @@ function RunSession.creditKill(owner: Player?, xp: number, position: Vector3?)
 		return
 	end
 
-	RunSession.onEnemyKilled(session)
+	RunSession.onEnemyKilled(session, position)
 
 	if position then
 		Pickups.dropForKill(owner, position, xp, session.random, function(point)

@@ -4318,6 +4318,106 @@ local Balance = {
 			offset = Vector3.new(3, 1.2, 1),
 		},
 
+		--[[ The owner's picks of 2026-11-03, from `docs/CARD-IDEAS.md`.
+		     Damage is always times the player's own, and every one of these
+		     was aimed at the band the live cards already sit in: cards are
+		     not where power is added (PR #342). ]]
+		--[[ Windrunner: every volley banks a stack worth `perStack` move
+		     speed, up to `maxStacks`; they all lapse `duration` seconds
+		     after the last volley. `perStack` is the card's level. ]]
+		windrunner = {
+			maxStacks = 3,
+			duration = 2,
+		},
+		--[[ Thornfall: an enemy killed by an arrow plants arrows in the
+		     ground, which fire outward `delay` seconds later, spread evenly
+		     round the circle, each for `damage`. How many is the card's
+		     level. ]]
+		thornfall = {
+			delay = 0.25,
+			damage = 0.3,
+			speed = 55,
+			lifetime = 1.1,
+		},
+		--[[ Headhunter: every Nth shot (the card's level, inverted) is a
+		     guaranteed crit at `multiplier` times the crit it would have
+		     been, so it stacks with Deadly Strike rather than replacing
+		     it. ]]
+		headhunter = {
+			multiplier = 1.5,
+		},
+		--[[ Ghost Quiver: a spectral archer holds `behind` studs behind the
+		     player and copies every volley at `damage`, `delay` seconds
+		     late so the two volleys read as two. ]]
+		ghostQuiver = {
+			behind = 4,
+			damage = 0.4,
+			delay = 0.12,
+		},
+		--[[ Twin Elements: every cast is two orbs `spacing` apart, one fire
+		     and one ice, each for `damage`. Fire burns as Elemental Orbs'
+		     does; ice slows to `slow` for `slowDuration`. ]]
+		twinElements = {
+			spacing = 1.6,
+			damage = 0.7,
+			slow = 0.6,
+			slowDuration = 1.5,
+		},
+		--[[ Time Dilation: a kill leaves a field `radius` wide in
+		     which enemies move at `slow` of their speed and their shots fly
+		     at `shotSlow` of theirs. How long it lasts is the card's
+		     level. ]]
+		timeDilation = {
+			radius = 6,
+			slow = 0.5,
+			shotSlow = 0.5,
+		},
+		--[[ Prismatic Burst: an orb that kills bursts into shards that seek
+		     the nearest enemy, each for `damage`. How many is the card's
+		     level. ]]
+		prismaticBurst = {
+			damage = 0.3,
+			speed = 42,
+			lifetime = 1,
+			homing = 9,
+		},
+		--[[ Vengeful Spirit: an enemy killed by a blow rises as a sword
+		     that hovers by the Warden for `duration`, striking the nearest
+		     enemy within `reach` every `strikeEvery` for `damage`. Only
+		     `most` stand at once, and a new kill refreshes the oldest
+		     rather than adding another. ]]
+		vengefulSpirit = {
+			duration = 6,
+			strikeEvery = 0.8,
+			damage = 0.4,
+			reach = 9,
+			most = 2,
+			offset = Vector3.new(-2.6, 1.4, -1),
+		},
+		--[[ Guard Break: the slam throws what it hits `studs` further than
+		     the blow's own knockback and holds it for `stagger`. `studs` is
+		     the card's level. ]]
+		guardBreak = {
+			stagger = 0.4,
+		},
+		--[[ Bull Rush: the dash runs enemies down, hitting everything within
+		     `width` of its path for the card's level times the player's
+		     damage and shoving them `shove` studs aside. ]]
+		bullRush = {
+			width = 3.2,
+			shove = 5,
+			stagger = 0.3,
+			--[[ Seconds nothing can hurt him from the dash's start. Well past
+			     `dash.duration` (0.12): he must feel safe going in, and the
+			     server only hears of the dash a moment after it begins. ]]
+			immune = 0.4,
+		},
+		--[[ Blood Pact: under `below` of health the Warden's blows carry the
+		     card's level as extra damage. ]]
+		bloodPact = {
+			below = 0.5,
+		},
+
 		--[[
 			Momentum: "attack speed rises while moving". Nothing fires on the
 			move here, so the speed is banked by moving and spent after:

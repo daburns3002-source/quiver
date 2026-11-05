@@ -71,6 +71,15 @@ export type MeleeStats = {
 	--[[ Damage multiplier on the first swing after being hit (0 none).
 	     Counter Strike. ]]
 	counterStrike: number,
+	--[[ Studs the slam throws what it hits, on top of a blow's own
+	     knockback (0 none). Guard Break. ]]
+	guardBreak: number,
+	--[[ Damage multiplier on enemies the dash runs through (0 none).
+	     Bull Rush. ]]
+	bullRush: number,
+	--[[ Extra damage as a fraction while under
+	     `Balance.Player.bloodPact.below` of health (0 none). Blood Pact. ]]
+	bloodPact: number,
 }
 
 --[[ The class upgrades of 2026-10-27 that act beside the shot rather than
@@ -81,6 +90,26 @@ export type UpgradeStats = {
 	blackHole: number,
 	elemental: number,
 	turret: number,
+	--[[ The owner's picks of 2026-11-03. Each is 0 when the card is not
+	     held; the ones with levels carry the level's own number. ]]
+	--[[ Arrows a kill plants in the ground, to fire outward. Thornfall. ]]
+	thornfall: number,
+	--[[ Every this many shots is a guaranteed crit (0 never).
+	     Headhunter. ]]
+	headhunterEvery: number,
+	--[[ 1 when a spectral archer copies the volley. Ghost Quiver. ]]
+	ghostQuiver: number,
+	--[[ 1 when each cast is a fire orb and an ice orb. Twin Elements. ]]
+	twinElements: number,
+	--[[ Seconds a blast's crawling field lasts (0 none). Time
+	     Dilation. ]]
+	timeDilation: number,
+	--[[ Shards an orb that kills bursts into (0 none). Prismatic
+	     Burst. ]]
+	prismaticBurst: number,
+	--[[ 1 when a kill raises a sword that fights for the player.
+	     Vengeful Spirit. ]]
+	vengefulSpirit: number,
 }
 
 --[[ What the server applies. ]]
@@ -100,6 +129,9 @@ export type ServerStats = {
 	overdrawBonus: number,
 	--[[ Extra attack speed, as a fraction, while Momentum is paying out. ]]
 	momentumBonus: number,
+	--[[ Move speed per Windrunner stack, as a fraction (0 none). The server
+	     counts the stacks; the client applies them. ]]
+	windrunner: number,
 	--[[ The class's shot speed and lifetime (`Config/Classes`). ]]
 	projectileSpeed: number,
 	projectileLifetime: number,
@@ -144,6 +176,10 @@ export type ClientStats = {
 	widthScale: number,
 	--[[ Multiplier on the whole swing, as the server's. Titan's Grip. ]]
 	reachScale: number,
+	--[[ Move speed per Windrunner stack, as a fraction (0 none). The live
+	     stack count rides on the player's `Windrunner` attribute, which the
+	     server owns, because the server decides when a volley goes. ]]
+	windrunner: number,
 	--[[ The player's class, so the client builds the same pipeline. ]]
 	class: string,
 	--[[ The weapon in hand when not the class's own, for its built-in
@@ -246,8 +282,11 @@ function AbilityEffects.stages(drafted: Counts, class: string?, weapon: string?)
 
 	--[[ Front Arrow puts extra arrows *beside* the first rather than fanning
 	     them, so the whole volley lands in the enemy the player aimed at. ]]
-	--[[ Twin Cast is the Arcanist's Front Arrow: orbs side by side. ]]
-	local front = at(counts, "FrontArrow") + at(counts, "TwinCast")
+	--[[ Twin Cast is the Arcanist's Front Arrow: orbs side by side. Twin
+	     Elements adds a lane the same way — its pair *is* a parallel orb —
+	     and `ClassUpgrades.dress` is what makes one of them fire and the
+	     other ice. ]]
+	local front = at(counts, "FrontArrow") + at(counts, "TwinCast") + at(counts, "TwinElements")
 	if front > 0 then
 		table.insert(
 			out,
@@ -421,6 +460,17 @@ function AbilityEffects.serverStats(drafted: Counts, class: string?, weapon: str
 			blackHole = at(counts, "BlackHole"),
 			elemental = at(counts, "ElementalOrbs"),
 			turret = at(counts, "ArcaneTurret"),
+			thornfall = at(counts, "Thornfall"),
+			--[[ Inverted as Whirlwind's is: the card's levels are the share
+			     of shots that crit, so they rise as a card's levels must. ]]
+			headhunterEvery = if at(counts, "Headhunter") > 0
+				then math.round(1 / at(counts, "Headhunter"))
+				else 0,
+			ghostQuiver = at(counts, "GhostQuiver"),
+			twinElements = at(counts, "TwinElements"),
+			timeDilation = at(counts, "TimeDilation"),
+			prismaticBurst = at(counts, "PrismaticBurst"),
+			vengefulSpirit = at(counts, "VengefulSpirit"),
 		},
 		melee = {
 			widthScale = 1 + at(counts, "Cleave"),
@@ -437,6 +487,9 @@ function AbilityEffects.serverStats(drafted: Counts, class: string?, weapon: str
 			parry = at(counts, "Parry"),
 			reachScale = math.max(at(counts, "TitansGrip"), 1),
 			counterStrike = at(counts, "CounterStrike"),
+			guardBreak = at(counts, "GuardBreak"),
+			bullRush = at(counts, "BullRush"),
+			bloodPact = at(counts, "BloodPact"),
 		},
 		healPerKill = at(counts, "Bloodthirst"),
 		regenPerSecond = at(counts, "Mending"),
@@ -444,6 +497,7 @@ function AbilityEffects.serverStats(drafted: Counts, class: string?, weapon: str
 		secondWind = at(counts, "SecondWind"),
 		overdrawBonus = at(counts, "Overdraw"),
 		momentumBonus = at(counts, "Momentum"),
+		windrunner = at(counts, "Windrunner"),
 	}
 end
 
@@ -491,10 +545,30 @@ function AbilityEffects.clientStats(counts: Counts, class: string?, weapon: stri
 		reachBonus = at(merged, "LongReach"),
 		widthScale = 1 + at(merged, "Cleave"),
 		reachScale = math.max(at(merged, "TitansGrip"), 1),
+		windrunner = at(merged, "Windrunner"),
 		class = class or "Ranger",
 		weapon = weapon,
 		abilities = copy,
 	}
+end
+
+--[[
+	Move speed right now, with Windrunner: faster the more volleys have gone
+	recently, up to the cap.
+
+	One function for both sides, as `cooldownAt` is. The server counts the
+	stacks (it decides when a volley goes) and publishes them on the
+	player's `Windrunner` attribute; the client pins `WalkSpeed` from this
+	every frame. Both read the same number from the same place, so the speed
+	the player feels is the speed the server believes.
+]]
+function AbilityEffects.moveSpeedAt(moveSpeed: number, windrunner: number, stacks: number): number
+	if windrunner <= 0 or stacks <= 0 then
+		return moveSpeed
+	end
+
+	local capped = math.min(stacks, Balance.Player.windrunner.maxStacks)
+	return moveSpeed * (1 + windrunner * capped)
 end
 
 --[[

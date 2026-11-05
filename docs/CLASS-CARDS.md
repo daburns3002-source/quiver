@@ -60,6 +60,17 @@ them. Icons: Codex, `assets/concepts/blocky/ui/cards/<icon>_raw.png`, composed
 with a gold (Legendary) or rainbow (Mythic) halo by `compose_icon.py`. Sounds:
 seven silent hooks in `Config/Sounds` (`fx_phoenix` ... `fx_counter_strike`).
 
+## The owner's eleven picks (2026-11-03)
+
+From `docs/CARD-IDEAS.md`'s forty: **Windrunner, Thornfall, Headhunter, Ghost
+Quiver** (Ranger), **Twin Elements, Time Dilation, Prismatic Burst**
+(Arcanist), **Guard Break, Bull Rush, Blood Pact, Vengeful Spirit** (Warden).
+The Assassin's ten are on hold — the class has no combat system yet.
+
+Rules in `Combat/ClassUpgrades` and `Combat/MeleeSystem`, numbers in
+`Balance.Player`, FX in `Fx/Upgrades/WardenBuildFx` and `ArcanistBuildFx`.
+That doc's table says per card which machinery each reuses.
+
 ## Who gets what
 
 - **Every class (12):** Strength, Precision, Deadly Strike, Blaze, Momentum,

@@ -1493,6 +1493,32 @@ end
 --[[ Drags a live enemy up to `studs` towards `toward` (the Black Hole),
      stopping `stopAt` short of it, through the arena's cover as a shove
      does. Bosses, and anything underground or in the air, stand. ]]
+--[[
+	An extra shove away from `fromPosition`, `studs` far, held still for
+	`stagger` seconds: Guard Break's slam and Bull Rush's charge throw an
+	enemy further than a blow's own knockback does.
+
+	The same velocity-and-slide the blow uses (`Balance.Knockback`), not a
+	teleport, so it reads as a push; and it *replaces* rather than adds to
+	whatever push is already running, because a slam that lands with a
+	volley should throw its own distance and not twice it. Bosses stand:
+	they are terrain, as they are for every other push.
+]]
+function EnemyManager.shove(model: Model, fromPosition: Vector3, studs: number, stagger: number)
+	local enemy = enemies[model]
+	if not enemy or enemy.boss or enemy.submerged or studs <= 0 then
+		return
+	end
+	local offset = enemy.position - fromPosition
+	offset = Vector3.new(offset.X, 0, offset.Z)
+	if offset.Magnitude <= 1e-3 then
+		return
+	end
+	local rate = KNOCKBACK_SETTLE / Balance.Knockback.slideTime
+	enemy.knockbackVelocity = offset.Unit * studs * rate
+	enemy.staggerUntil = math.max(enemy.staggerUntil, os.clock() + stagger)
+end
+
 function EnemyManager.pull(model: Model, toward: Vector3, studs: number, stopAt: number)
 	local enemy = enemies[model]
 	if not enemy or enemy.boss or enemy.submerged or not positions[model] then

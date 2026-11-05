@@ -67,7 +67,7 @@ local function text(parent: Instance, name: string, words: string, colour: Color
 end
 
 -- the cover, at once
-local title = text(back, "Title", "ARCHER LEGENDS", GOLD)
+local title = text(back, "Title", "ARROWBORNE", GOLD)
 title.AnchorPoint = Vector2.new(0.5, 0.5)
 title.Position = UDim2.fromScale(0.5, 0.44)
 title.Size = UDim2.fromScale(0.8, 0.09)

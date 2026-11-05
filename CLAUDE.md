@@ -4,7 +4,7 @@
 > Preserve the approved standalone UI and merged balance changes. The full older
 > Studio snapshot must not overwrite newer save-schema, pet or Endless code.
 
-# Arrow Legends — builder rulebook
+# Arrowborne — builder rulebook
 
 **Archero's combat inside a Pet Simulator / Steal an Egg progression shell.**
 Low poly, cross-platform, co-op-shaped.
@@ -23,8 +23,9 @@ Run loop: `docs/RESEARCH-archero.md`. Meta loop: `docs/PROGRESSION.md`.
 Phase plan: `docs/ROADMAP.md`. Lobby spec: `docs/LOBBY.md`. The dexes: `docs/DEX.md`.
 **Classes and world: `docs/WORLD.md`** — since 2026-10-22 the game is three
 classes (Ranger, Arcanist, an unlockable melee class) across ten areas
-in five acts. A new title is being chosen; until then it stays "Arrow
-Legends". Nothing of it is built yet, and its open decisions are the
+in five acts. The game is called Arrowborne (owner, 2026-11-04;
+before that Arrow Legends, and Archer Legends on screen). The repo, the
+checkout folder and the DataStores keep their old names on purpose. Nothing of it is built yet, and its open decisions are the
 owner's. Enemy and arena ideas per area: `docs/ENEMIES-AND-ARENAS.md`, with
 concept art in `assets/concepts/`. **Images and models are made with
 ChatGPT Codex** (owner's rule): `codex exec` with its image generation,

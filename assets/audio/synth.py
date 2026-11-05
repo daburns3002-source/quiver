@@ -1,4 +1,4 @@
-"""Procedural sound effects for Arrow Legends: bright, punchy, cartoony,
+"""Procedural sound effects for Arrowborne: bright, punchy, cartoony,
 lightly after Archero 2. Every sound is built from scratch here (tones,
 noise, filters, envelopes), so all of it is ours to ship.
 

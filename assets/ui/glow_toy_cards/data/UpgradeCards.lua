@@ -1,4 +1,4 @@
--- Arrow Legends upgrade cards. Upload the PNGs, then paste each asset id over the 0s.
+-- Arrowborne upgrade cards. Upload the PNGs, then paste each asset id over the 0s.
 return {
 	heal = { name = "Heal", class = "Shared", rarity = "Common", stat = "+30% HP", description = "Restore some of your health now.", icon = "rbxassetid://0", iconTransparent = "rbxassetid://0", banner = "rbxassetid://0" },
 	lightfoot = { name = "Lightfoot", class = "Shared", rarity = "Common", stat = "+10% SPEED", description = "Move faster.", icon = "rbxassetid://0", iconTransparent = "rbxassetid://0", banner = "rbxassetid://0" },

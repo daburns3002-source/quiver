@@ -22,6 +22,8 @@ before this one.
 
 ## Waiting on the owner - a decision
 
+- **The rename to Arrowborne (2026-11-04), the part only you can do:** on the Creator Dashboard, the experience and place name and description, the group if it carries the old name, and the icon and thumbnails.
+
 Nothing moves on these until you answer, so they keep their full detail.
 
 | What | What the owner does | Then Claude | Where it is |

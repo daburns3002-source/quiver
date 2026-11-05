@@ -185,7 +185,7 @@ ROUND_19 = [
 
 ROUND_20 = [
     ("Round 20 · the intro cutscene's music", {
-        "music_title": ("Title theme", "Plays from the cutscene's first frame: quiet and building on black while DYL.DEVS PRESENTS shows (the bells are the words popping in), the hit at exactly 5 s as the Archer Legends picture cuts in, then the theme, which loops while the title screen waits for BEGIN ADVENTURE. Each take is the whole file that would ship, loop and all: one upload.", None),
+        "music_title": ("Title theme", "Plays from the cutscene's first frame: quiet and building on black while DYL.DEVS PRESENTS shows (the bells are the words popping in), the hit at exactly 5 s as the title picture cuts in, then the theme, which loops while the title screen waits for BEGIN ADVENTURE. Each take is the whole file that would ship, loop and all: one upload.", None),
     }),
 ]
 
@@ -297,7 +297,7 @@ for round_title, sounds in ROUNDS:
 here = os.path.dirname(os.path.abspath(__file__))
 css = open(os.path.join(here, "page.css"), encoding="utf-8").read()
 js = open(os.path.join(here, "page.js"), encoding="utf-8").read()
-page = f"""<title>Arrow Legends Sound Audition</title>
+page = f"""<title>Arrowborne Sound Audition</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Fredoka:wght@400;500;600&display=swap">

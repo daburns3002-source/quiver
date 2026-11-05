@@ -4,13 +4,14 @@
 	players arrive after BEGIN ADVENTURE,
 	and where stepping into an active portal starts that area's run.
 
-	- `build` lays the clearing out from plain smooth parts (owner,
-	  2026-10-27: "i dont want it to have the pixely texture. just make it
-	  look like a normal lobby"): a lawn, sandy paths, the fountain, the
-	  four station buildings (`Config/PalaceBuildings`), the egg and crate stands, the portal ledges and
-	  their arches, the two leaderboards, lamps, a ring of cliffs and trees with
-	  waterfalls, a scatter of trees, bushes, boulders, flowers and
-	  mushrooms, and invisible walls round the edge and round each station.
+	- `build` lays out Lobby B from plain smooth parts (owner, 2026-10-27:
+	  "i dont want it to have the pixely texture"; the layout sheet,
+	  `assets/concepts/blocky/lobby/palace/lobby_layout_reference.png`): the
+	  courtyard's floor, carpets, fountain and ruins (`Run/LobbyCourtyard`),
+	  the four station buildings (`Config/PalaceBuildings`), the portal terrace
+	  and its arches, the two leaderboards, and past the balustrade a ring of
+	  cliffs and trees with waterfalls and a scatter of trees, bushes,
+	  boulders, flowers and mushrooms.
 	  Round things are ellipsoids (a block with a sphere `SpecialMesh`).
 	- `place` puts a character at the spawn.
 	- `portalAt` says which active portal a player is standing in, if any,
@@ -28,6 +29,7 @@ local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Eggs = require(ReplicatedStorage.Shared.Config.Eggs)
 local LevelUnlocks = require(ReplicatedStorage.Shared.Util.LevelUnlocks)
 local LobbyConfig = require(ReplicatedStorage.Shared.Config.Lobby)
+local LobbyCourtyard = require(script.Parent.LobbyCourtyard)
 local MeshTemplates = require(script.Parent.Parent.Util.MeshTemplates)
 local PalaceBuildings = require(ReplicatedStorage.Shared.Config.PalaceBuildings)
 local Shop = require(ReplicatedStorage.Shared.Config.Shop)
@@ -40,9 +42,10 @@ local folder: Folder? = nil
 local leaderboardFace: Part? = nil
 local endlessLeaderboardFace: Part? = nil
 
---[[ The lawn's top, a little above the place's Baseplate (whose top is
-     y = 0): level with it, the two flicker. ]]
-local LAWN = 0.1
+--[[ The courtyard's floor, which the buildings and the terrace stand on, and
+     the ground past the balustrade, below it. ]]
+local LAWN = LobbyCourtyard.FLOOR
+local OUTSIDE = LobbyCourtyard.OUTSIDE
 --[[ The wood beyond the cliff ring, so the edge of the world never shows
      (owner, 2026-10-27: "the player should not see this in the lobby"):
      its rings, studs out from the clearing's edge, each tree's size range,
@@ -96,63 +99,30 @@ function Lobby.rowOf(index: number): number
 	return math.ceil(index / LobbyConfig.perRow)
 end
 
+--[[ How many arches stand in row `row`. ]]
+local function rowCount(row: number): number
+	return math.clamp(#LobbyConfig.portals - (row - 1) * LobbyConfig.perRow, 0, LobbyConfig.perRow)
+end
+
 --[[ The centre of row `row`'s ledge, and how high its top stands. ]]
 local function rowCentre(row: number): (Vector2, number)
 	return LobbyConfig.terrace - Vector2.new(0, (row - 1) * LobbyConfig.rowDepth),
 		LobbyConfig.ledge + (row - 1) * LobbyConfig.rowRise
 end
 
---[[ Where arch `index` stands: front row west to east, then the back. ]]
+--[[ Where arch `index` stands: front row west to east, then the back, each
+     row centred on the carpet however many arches it has. ]]
 function Lobby.archAt(index: number): Vector2
 	local perRow = LobbyConfig.perRow
 	local column = (index - 1) % perRow + 1
-	local offset = (column - (perRow + 1) / 2) * LobbyConfig.archSpacing
-	return rowCentre(Lobby.rowOf(index)) + Vector2.new(offset, 0)
+	local row = Lobby.rowOf(index)
+	local offset = (column - (rowCount(row) + 1) / 2) * LobbyConfig.archSpacing
+	return rowCentre(row) + Vector2.new(offset, 0)
 end
 
---[[ A smooth part, seen but never met: no collision, no queries (the
-     camera and the prompts see through it). ]]
-local function part(
-	name: string,
-	size: Vector3,
-	cframe: CFrame,
-	colour: Color3,
-	parent: Instance,
-	shape: Enum.PartType?
-): Part
-	local p = Instance.new("Part")
-	p.Name = name
-	p.Anchored = true
-	p.CanCollide = false
-	p.CanQuery = false
-	p.CanTouch = false
-	p.Material = Enum.Material.SmoothPlastic
-	p.TopSurface = Enum.SurfaceType.Smooth
-	p.BottomSurface = Enum.SurfaceType.Smooth
-	if shape then
-		p.Shape = shape
-	end
-	p.Size = size
-	p.CFrame = cframe
-	p.Color = colour
-	p.Parent = parent
-	return p
-end
-
---[[ An ellipsoid `size` studs across. ]]
-local function blob(
-	name: string,
-	size: Vector3,
-	cframe: CFrame,
-	colour: Color3,
-	parent: Instance
-): Part
-	local p = part(name, size, cframe, colour, parent)
-	local mesh = Instance.new("SpecialMesh")
-	mesh.MeshType = Enum.MeshType.Sphere
-	mesh.Parent = p
-	return p
-end
+local part = LobbyCourtyard.part
+local blob = LobbyCourtyard.blob
+local wall = LobbyCourtyard.wall
 
 --[[
 	The Dex Hall's three imported models (`LobbyConfig.dex`): the hall
@@ -226,21 +196,6 @@ local function pillar(
 	)
 end
 
---[[ A wall a player meets and nothing sees. ]]
-local function wall(name: string, size: Vector3, cframe: CFrame, parent: Instance): Part
-	local p = Instance.new("Part")
-	p.Name = name
-	p.Anchored = true
-	p.Transparency = 1
-	p.CanCollide = true
-	p.CanQuery = false
-	p.CanTouch = false
-	p.Size = size
-	p.CFrame = cframe
-	p.Parent = parent
-	return p
-end
-
 --[[ Words on a board's front, in the game's one font. ]]
 local function words(board: Part, text: string, colour: Color3)
 	local gui = Instance.new("SurfaceGui")
@@ -254,7 +209,8 @@ local function words(board: Part, text: string, colour: Color3)
 	label.BackgroundTransparency = 1
 	label.AnchorPoint = Vector2.new(0.5, 0.5)
 	label.Position = UDim2.fromScale(0.5, 0.5)
-	label.Size = UDim2.fromScale(0.9, 0.66)
+	label.Size = UDim2.fromScale(0.92, 0.84)
+	label.TextWrapped = true
 	label.Font = Enum.Font.Arcade
 	label.Text = text
 	label.TextColor3 = colour
@@ -264,19 +220,13 @@ local function words(board: Part, text: string, colour: Color3)
 	label.Parent = gui
 end
 
---[[ A wooden sign board facing south (+Z), its centre at `centre`. ]]
---[[
-	A wooden nameboard, reading out of `where`'s own front (+Z).
-
-	It takes a frame rather than a point because the stations are turned to
-	face the middle now (owner, 2026-11-01): a board that always faced south
-	would have its back to the lawn on three corners out of four.
-]]
+--[[ A plaque in a gold frame, reading out of `where`'s own front (+Z). ]]
 local function signboard(
 	text: string,
 	where: CFrame,
 	width: number,
 	height: number,
+	colour: Color3,
 	parent: Instance
 )
 	--[[ A part's face is its -Z, and a building's front is its +Z, so the
@@ -286,10 +236,10 @@ local function signboard(
 		"SignFrame",
 		Vector3.new(width + 0.8, height + 0.8, 0.5),
 		facing * CFrame.new(0, 0, 0.3),
-		COLOURS.woodDark,
+		COLOURS.gold,
 		parent
 	)
-	local board = part("Sign", Vector3.new(width, height, 0.5), facing, COLOURS.wood, parent)
+	local board = part("Sign", Vector3.new(width, height, 0.5), facing, colour, parent)
 	words(board, text, COLOURS.text)
 end
 
@@ -334,7 +284,7 @@ local function tree(at: Vector2, grow: number, rng: Random, parent: Instance, so
 	--[[ The tree carries its colours in its own texture, so the part must
 	     not tint them. ]]
 	p.Color = Color3.new(1, 1, 1)
-	p.CFrame = CFrame.new(world(at, LAWN) + Vector3.new(0, p.Size.Y / 2, 0))
+	p.CFrame = CFrame.new(world(at, OUTSIDE) + Vector3.new(0, p.Size.Y / 2, 0))
 		* CFrame.Angles(0, rng:NextNumber() * math.pi * 2, 0)
 	p.Parent = parent
 end
@@ -343,7 +293,7 @@ end
 local function boulder(at: Vector2, grow: number, rng: Random, parent: Instance)
 	local model = Instance.new("Model")
 	model.Name = "Boulder"
-	local foot = world(at, LAWN)
+	local foot = world(at, OUTSIDE)
 	local main = blob(
 		"Stone",
 		Vector3.new(5, 3.6, 4.4) * grow,
@@ -372,7 +322,7 @@ end
 local function bush(at: Vector2, grow: number, rng: Random, parent: Instance)
 	local model = Instance.new("Model")
 	model.Name = "Bush"
-	local foot = world(at, LAWN)
+	local foot = world(at, OUTSIDE)
 	local leaves = COLOURS.leaves
 	for k = 0, 2 do
 		local angle = k * 2.1 + rng:NextNumber()
@@ -392,7 +342,7 @@ end
 local function flowers(at: Vector2, rng: Random, parent: Instance)
 	local model = Instance.new("Model")
 	model.Name = "Flowers"
-	local foot = world(at, LAWN)
+	local foot = world(at, OUTSIDE)
 	local colour = COLOURS.flowers[rng:NextInteger(1, #COLOURS.flowers)]
 	for _ = 1, 5 do
 		local spot = foot + Vector3.new(rng:NextNumber(-1.6, 1.6), 0, rng:NextNumber(-1.6, 1.6))
@@ -418,7 +368,7 @@ end
 local function mushroom(at: Vector2, grow: number, parent: Instance)
 	local model = Instance.new("Model")
 	model.Name = "Mushroom"
-	local foot = world(at, LAWN)
+	local foot = world(at, OUTSIDE)
 	pillar("Stalk", foot, 1.4 * grow, 0.8 * grow, COLOURS.foam, model)
 	local cap = foot + Vector3.new(0, 1.5 * grow, 0)
 	blob("Cap", Vector3.new(2.6, 1.5, 2.6) * grow, CFrame.new(cap), COLOURS.mushroom, model)
@@ -685,139 +635,101 @@ local function standOut(kind: string, key: string, centre: Vector3, parent: Inst
 	model.Parent = parent
 end
 
---[[ A portal: a stone ring on two legs, a swirl in its colour (or a dark
-     disc and a padlock while its area is locked), and its name on a board
-     above. ]]
+--[[ A portal, set in its row's wall (`terrace` builds the wall): a stone arch
+     with a gold keystone round an opening that holds a swirl in its colour, or
+     the dark and a gold padlock while its area is locked, and its name on a
+     plaque above. Built facing south, its foot on the ledge. ]]
 local function portalArch(index: number, portal: LobbyConfig.Portal, parent: Instance)
 	local model = Instance.new("Model")
 	model.Name = "Portal_" .. index
-	local at = Lobby.archAt(index)
 	local _, ledge = rowCentre(Lobby.rowOf(index))
-	local radius = LobbyConfig.archSize / 2 - 1
-	local centre = world(at, LAWN + ledge + LobbyConfig.archRise)
+	local base = CFrame.new(world(Lobby.archAt(index), LAWN + ledge))
+	local across = LobbyConfig.archWidth
+	local sides = LobbyConfig.archSides
 	local active = portal.levels ~= nil
-	local stone = if active then COLOURS.rockLight else COLOURS.rock
-	--[[
-		The arch itself. An area the owner has imported stands as its own
-		model; one past `archSilhouetteFrom` has no model and none coming,
-		so it stands as the first area's painted black (owner, 2026-11-01:
-		"replace every portal past 4 with a silhouette of the arena 1
-		portal until portals are made for them"). The rest -- Thornwood and
-		the Drowned Village, whose models arrive tomorrow -- keep the built
-		stone ring until they have one.
-	]]
-	local spec = LobbyConfig.archModels[index]
-	local silhouette = spec == nil and index >= LobbyConfig.archSilhouetteFrom
-	if silhouette then
-		spec = LobbyConfig.archModels[1]
-	end
-	local template = if spec then lobbyTemplates[spec.mesh] else nil
+	local fill = if active
+		then (portal.tint or COLOURS.gold):Lerp(Color3.new(0, 0, 0), 0.35)
+		else LobbyConfig.archDark
 
-	if spec and template then
-		local arch = template:Clone()
-		arch.Name = "Arch"
-		arch.Anchored = true
-		arch.CanCollide = false
-		arch.CanQuery = false
-		arch.CanTouch = false
-		arch.Material = Enum.Material.SmoothPlastic
-		arch.Size = spec.native * (LobbyConfig.archTall / spec.native.Y)
-		if silhouette then
-			--[[ No texture and no light in it: the shape is all a
-			     silhouette says, which is the point of one. ]]
-			arch.TextureID = ""
-			arch.Color = LobbyConfig.archSilhouette
-		else
-			arch.TextureID = spec.texture
-			--[[ It carries its colours in its own texture, so the part
-			     must not tint them. ]]
-			arch.Color = Color3.new(1, 1, 1)
-		end
-		arch.CFrame = CFrame.new(world(at, LAWN + ledge) + Vector3.new(0, arch.Size.Y / 2, 0))
-			* CFrame.Angles(0, LobbyConfig.archTurn, 0)
-		arch.Parent = model
-		--[[ The legs stay, invisible, so a player is held out of the
-		     uprights exactly as before whatever shape the model is. ]]
-		for _, side in { -1, 1 } do
-			local leg = part(
-				"Leg",
-				Vector3.new(2.6, LobbyConfig.archRise, 2.6),
-				CFrame.new(
-					world(
-						at + Vector2.new(side * radius, 0),
-						LAWN + ledge + LobbyConfig.archRise / 2
-					)
-				),
-				stone,
-				model
-			)
-			leg.CanCollide = true
-			leg.Transparency = 1
-			leg.CastShadow = false
-		end
-	else
-		local SEGMENTS = 18
-		for k = 0, SEGMENTS - 1 do
-			local angle = k / SEGMENTS * math.pi * 2
-			local spot = centre + Vector3.new(math.cos(angle), math.sin(angle), 0) * radius
-			local colour = if k == SEGMENTS / 4 then COLOURS.gold else stone
-			part(
-				"Ring",
-				Vector3.new(2.4, 2.6, 2.4),
-				CFrame.new(spot) * CFrame.Angles(0, 0, angle),
-				colour,
-				model
-			)
-		end
-		for _, side in { -1, 1 } do
-			local leg = part(
-				"Leg",
-				Vector3.new(2.6, LobbyConfig.archRise, 2.6),
-				CFrame.new(
-					world(
-						at + Vector2.new(side * radius, 0),
-						LAWN + ledge + LobbyConfig.archRise / 2
-					)
-				),
-				stone,
-				model
-			)
-			leg.CanCollide = true
-		end
-	end
-	local disc = part(
+	-- the opening: straight sides and a round top, laid on the wall
+	local mouth = part(
+		"Mouth",
+		Vector3.new(across, sides, 0.3),
+		base * CFrame.new(0, sides / 2, 1),
+		fill,
+		model
+	)
+	local top = part(
 		"Swirl",
-		Vector3.new(0.4, radius * 2 - 1.2, radius * 2 - 1.2),
-		CFrame.new(centre) * CFrame.Angles(0, math.pi / 2, 0),
-		if active then portal.tint or COLOURS.gold else Color3.fromRGB(44, 46, 60),
+		Vector3.new(0.3, across, across),
+		base * CFrame.new(0, sides, 1) * CFrame.Angles(0, math.pi / 2, 0),
+		fill,
 		model,
 		Enum.PartType.Cylinder
 	)
-	if active then
-		disc.Material = Enum.Material.Neon
-		disc.Transparency = 0.15
-		local core = part(
-			"SwirlCore",
-			Vector3.new(0.5, radius, radius),
-			CFrame.new(centre) * CFrame.Angles(0, math.pi / 2, 0),
-			(portal.tint or COLOURS.gold):Lerp(Color3.new(1, 1, 1), 0.5),
-			model,
-			Enum.PartType.Cylinder
+	mouth.CastShadow = false
+	top.CastShadow = false
+
+	-- the stones round it
+	local ring = across / 2 + 0.8
+	for _, side in { -1, 1 } do
+		part(
+			"Jamb",
+			Vector3.new(1.6, sides, 1.2),
+			base * CFrame.new(side * ring, sides / 2, 1.1),
+			COLOURS.stoneShade,
+			model
 		)
-		core.Material = Enum.Material.Neon
+	end
+	local STONES = 9
+	for k = 0, STONES do
+		local turn = k / STONES * math.pi
+		local keystone = k == math.floor(STONES / 2) or k == math.ceil(STONES / 2)
+		part(
+			if keystone then "Keystone" else "Stone",
+			Vector3.new(1.6, 2.2, 1.2),
+			base
+				* CFrame.new(math.cos(turn) * ring, sides + math.sin(turn) * ring, 1.1)
+				* CFrame.Angles(0, 0, turn - math.pi / 2),
+			if keystone then COLOURS.gold else COLOURS.stoneShade,
+			model
+		)
+	end
+
+	local centre = base * CFrame.new(0, sides - 0.5, 1.3)
+	if active then
+		local tint = portal.tint or COLOURS.gold
+		-- the swirl's arms, paler toward its heart
+		for arm = 0, 2 do
+			for step = 1, 8 do
+				local turn = step * 0.62 + arm * math.pi * 2 / 3
+				local out = step * 0.62
+				local piece = part(
+					"SwirlArm",
+					Vector3.new(1.1, 1.1, 0.2),
+					centre
+						* CFrame.new(math.cos(turn) * out, math.sin(turn) * out, 0)
+						* CFrame.Angles(0, 0, turn),
+					tint:Lerp(Color3.new(1, 1, 1), 0.5 - step * 0.055),
+					model
+				)
+				piece.Material = Enum.Material.Neon
+				piece.CastShadow = false
+			end
+		end
 		local light = Instance.new("PointLight")
-		light.Color = portal.tint or COLOURS.gold
+		light.Color = tint
 		light.Range = 18
 		light.Brightness = 2
-		light.Parent = disc
+		light.Parent = top
 	else
 		-- a padlock across the dark
-		local lock = centre + Vector3.new(0, -1, 0.6)
-		part("Lock", Vector3.new(3.2, 2.8, 1), CFrame.new(lock), COLOURS.gold, model)
+		local lock = centre * CFrame.new(0, -1, 0.3)
+		part("Lock", Vector3.new(3.2, 2.8, 1), lock, COLOURS.gold, model)
 		part(
 			"Keyhole",
 			Vector3.new(0.6, 1, 0.2),
-			CFrame.new(lock + Vector3.new(0, 0, 0.55)),
+			lock * CFrame.new(0, 0, 0.55),
 			COLOURS.woodDark,
 			model
 		)
@@ -825,43 +737,38 @@ local function portalArch(index: number, portal: LobbyConfig.Portal, parent: Ins
 			part(
 				"Shackle",
 				Vector3.new(0.5, 2, 0.5),
-				CFrame.new(lock + Vector3.new(side * 1, 2, 0)),
-				COLOURS.rockLight,
+				lock * CFrame.new(side, 2, 0),
+				COLOURS.gold,
 				model
 			)
 		end
-		part(
-			"Shackle",
-			Vector3.new(2.5, 0.5, 0.5),
-			CFrame.new(lock + Vector3.new(0, 3, 0)),
-			COLOURS.rockLight,
-			model
-		)
+		part("Shackle", Vector3.new(2.5, 0.5, 0.5), lock * CFrame.new(0, 3, 0), COLOURS.gold, model)
 	end
 	if portal.name then
-		--[[ The arches stand in rows across the north edge and all face
-		     the lawn, so theirs is the plain southward board. ]]
 		signboard(
 			string.upper(portal.name),
-			CFrame.new(centre + Vector3.new(0, radius + 2.6, 0.4)),
-			LobbyConfig.archSpacing - 4,
-			2.4,
+			base * CFrame.new(0, sides + across / 2 + 3.5, 1.6),
+			LobbyConfig.archSpacing - 5.5,
+			3.4,
+			LobbyConfig.plaques[portal.name] or COLOURS.woodDark,
 			model
 		)
 	end
 	model.Parent = parent
 end
 
---[[ Wide wooden steps up a ledge's front edge: from `low` to `high`,
-     starting at `edge` (z) and coming south, `width` across at `x`. ]]
+--[[ Broad marble steps up a ledge's front edge: from `low` to `high`, starting
+     at `edge` (z) and coming south, `width` across at `x`. `carpet` is how wide
+     a red carpet runs up their middle, if one does. Returns the foot's z. ]]
 local function steps(
 	x: number,
 	edge: number,
 	low: number,
 	high: number,
 	width: number,
-	parent: Instance
-)
+	parent: Instance,
+	carpet: number?
+): number
 	local count = math.max(1, math.ceil((high - low) / 0.6))
 	local rise = (high - low) / count
 	for k = 1, count do
@@ -873,12 +780,69 @@ local function steps(
 			"Step",
 			Vector3.new(width, topY, depth),
 			CFrame.new(world(Vector2.new(x, z), LAWN + topY / 2 - 0.01)),
-			if k % 2 == 0 then COLOURS.wood else COLOURS.woodDark:Lerp(COLOURS.wood, 0.5),
+			if k % 2 == 0 then COLOURS.stone else COLOURS.stoneShade,
 			parent
 		)
 		step.CanCollide = true
 		step.CanQuery = true
+		if carpet then
+			local edge2 = LobbyConfig.courtyard.carpetEdge * 2
+			local at = world(Vector2.new(x, z), LAWN + topY)
+			part(
+				"StepEdge",
+				Vector3.new(carpet + edge2, 0.1, depth),
+				CFrame.new(at + Vector3.new(0, 0.05, 0)),
+				COLOURS.gold,
+				parent
+			).CastShadow =
+				false
+			part(
+				"StepCarpet",
+				Vector3.new(carpet, 0.1, depth),
+				CFrame.new(at + Vector3.new(0, 0.1, 0)),
+				COLOURS.carpet,
+				parent
+			).CastShadow =
+				false
+		end
 	end
+	return edge + count * 1.4
+end
+
+--[[ A stone pier between two arches: a gold band at its foot and head, and a
+     red banner hung down its front. ]]
+local function pier(at: Vector2, foot: number, tall: number, parent: Instance)
+	local base = CFrame.new(world(at, foot))
+	part(
+		"Pier",
+		Vector3.new(3.4, tall, 3),
+		base * CFrame.new(0, tall / 2, 0.6),
+		COLOURS.stone,
+		parent
+	)
+	for _, y in { 1, tall - 0.8 } do
+		part(
+			"PierGold",
+			Vector3.new(3.8, 0.6, 3.4),
+			base * CFrame.new(0, y, 0.6),
+			COLOURS.gold,
+			parent
+		)
+	end
+	part(
+		"Banner",
+		Vector3.new(2, tall * 0.42, 0.2),
+		base * CFrame.new(0, tall * 0.7, 2.2),
+		COLOURS.carpet,
+		parent
+	)
+	part(
+		"BannerHem",
+		Vector3.new(2, 0.4, 0.3),
+		base * CFrame.new(0, tall * 0.49, 2.2),
+		COLOURS.gold,
+		parent
+	)
 end
 
 local function near(a: Vector2, list: { Vector2 }, reach: number): boolean
@@ -892,15 +856,11 @@ end
 
 function Lobby.build(parent: Instance)
 	--[[ Every mesh the lobby uses, fetched before anything is placed: the
-	     Dex Hall's two books, the tree, and each arch the owner has
-	     imported. One wait for the lot, which is what `MeshTemplates` is
+	     Dex Hall's two books, the tree, and the four buildings. One wait for the lot, which is what `MeshTemplates` is
 	     for -- asked one at a time they cost about a second each. ]]
 	do
 		local ids = { LobbyConfig.dex.roofBook.mesh, LobbyConfig.dex.standBook.mesh }
 		table.insert(ids, LobbyConfig.treeModel.mesh)
-		for _, arch in LobbyConfig.archModels do
-			table.insert(ids, arch.mesh)
-		end
 		for _, design in PalaceBuildings do
 			for _, piece in design.pieces do
 				table.insert(ids, piece.mesh)
@@ -914,7 +874,7 @@ function Lobby.build(parent: Instance)
 	root.Name = "Lobby"
 	local half = LobbyConfig.size / 2
 
-	-- the lawn, out to the wood's edge
+	-- the ground past the balustrade, out to the wood's edge
 	local baseplate = Workspace:FindFirstChild("Baseplate")
 	if baseplate then
 		baseplate:Destroy()
@@ -922,112 +882,25 @@ function Lobby.build(parent: Instance)
 	part(
 		"Lawn",
 		Vector3.new(OUTER_FLOOR, 1, OUTER_FLOOR),
-		CFrame.new(world(Vector2.zero, LAWN - 0.5)),
+		CFrame.new(world(Vector2.zero, OUTSIDE - 0.5)),
 		COLOURS.grass,
 		root
 	).CanCollide =
 		true
 
-	-- the sandy paths: an edge under each run, rounded at every bend
-	local width = LobbyConfig.pathWidth
-	local trail: { Vector2 } = {}
-	local paths = Instance.new("Model")
-	paths.Name = "Paths"
-	local function lay(a: Vector2, b: Vector2, extra: number, y: number, colour: Color3)
-		local length = (b - a).Magnitude
-		local middle = (a + b) / 2
-		local flat = CFrame.lookAt(world(middle, y), world(b, y))
-		part("Path", Vector3.new(width + extra, 0.2, length), flat, colour, paths)
-	end
-	local function joint(at: Vector2, across: number, y: number, colour: Color3)
-		part(
-			"Joint",
-			Vector3.new(0.2, across, across),
-			CFrame.new(world(at, y)) * CFrame.Angles(0, 0, math.pi / 2),
-			colour,
-			paths,
-			Enum.PartType.Cylinder
-		)
-	end
-	for _, run in LobbyConfig.paths do
-		for k = 1, #run do
-			joint(run[k], width + 2, LAWN + 0.02, COLOURS.sandEdge)
-			joint(run[k], width, LAWN + 0.08, COLOURS.sand)
-			if k < #run then
-				lay(run[k], run[k + 1], 2, LAWN + 0.02, COLOURS.sandEdge)
-				lay(run[k], run[k + 1], 0, LAWN + 0.08, COLOURS.sand)
-				local count = math.ceil((run[k + 1] - run[k]).Magnitude / 4)
-				for s = 0, count do
-					table.insert(trail, run[k]:Lerp(run[k + 1], s / count))
-				end
-			end
-		end
-	end
-	paths.Parent = root
-
-	--[[ Where the lawn's scatter may not go: each station and a little round
-	     it, the stands, the spawn, the portals and the paths (`trail`). ]]
-	local clear: { { at: Vector2, reach: number } } = { { at = LobbyConfig.spawn, reach = 8 } }
-	local function keep(at: Vector2, reach: number)
-		table.insert(clear, { at = at, reach = reach })
-	end
-
-	-- the fountain at the spawn, on a paved ring
-	for _, station in LobbyConfig.stations do
-		if station.piece == "SpawnCampfire" then
-			local plaza = LobbyConfig.plaza
-			local basin = LobbyConfig.fountain
-			joint(station.at, plaza + 2, LAWN + 0.03, COLOURS.sandEdge)
-			joint(station.at, plaza, LAWN + 0.1, COLOURS.sand)
-			local fountain = Instance.new("Model")
-			fountain.Name = "Fountain"
-			local foot = world(station.at, LAWN)
-			pillar("Basin", foot, 2.4, basin, COLOURS.rockLight, fountain)
-			local pool = pillar("Pool", foot, 2.5, basin - 2, COLOURS.water, fountain)
-			pool.Transparency = 0.1
-			pillar("Column", foot, 7, 2.4, COLOURS.rock, fountain)
-			pillar("Bowl", foot + Vector3.new(0, 6, 0), 1.2, 7, COLOURS.rockLight, fountain)
-			pillar("BowlWater", foot + Vector3.new(0, 6.1, 0), 1.2, 6, COLOURS.water, fountain).Transparency =
-				0.1
-			blob(
-				"Spout",
-				Vector3.new(2, 3, 2),
-				CFrame.new(foot + Vector3.new(0, 8.4, 0)),
-				COLOURS.foam,
-				fountain
-			).Transparency =
-				0.2
-			for k = 0, 7 do
-				local angle = k * math.pi / 4
-				blob(
-					"Splash",
-					Vector3.new(1.6, 1, 1.6),
-					CFrame.new(
-						foot + Vector3.new(math.cos(angle) * 4.2, 2.6, math.sin(angle) * 4.2)
-					),
-					COLOURS.foam,
-					fountain
-				).Transparency =
-					0.3
-			end
-			fountain.Parent = root
-			local ring = wall(
-				"FountainWall",
-				Vector3.new(8, basin, basin),
-				CFrame.new(world(station.at, 4)) * CFrame.Angles(0, 0, math.pi / 2),
-				root
-			)
-			ring.Shape = Enum.PartType.Cylinder
-			keep(station.at, plaza / 2 + 2)
-		end
-	end
+	-- the courtyard's floor, its rings and its ruins
+	LobbyCourtyard.floor(rng, root)
+	LobbyCourtyard.plaza(rng, root)
+	LobbyCourtyard.arrival(rng, root)
+	LobbyCourtyard.buildingCarpets(root)
+	LobbyCourtyard.southStairs(root)
+	LobbyCourtyard.balustrade(rng, root)
+	LobbyCourtyard.ruins(rng, root)
+	LobbyCourtyard.sky()
 
 	-- the stations, and their stands out front
 	for _, station in LobbyConfig.stations do
-		local size = building(station.piece, station.at, root)
-		if size then
-			keep(station.at, Vector2.new(size.X, size.Z).Magnitude / 2 + 3)
-		end
+		building(station.piece, station.at, root)
 		local spots = LobbyConfig.stands[station.piece]
 		if spots then
 			for _, spot in spots do
@@ -1035,68 +908,128 @@ function Lobby.build(parent: Instance)
 				     is on: the offset turns with the building. ]]
 				local at = station.at + LobbyConfig.turnedOffset(station.at, spot.at)
 				standOut(spot.kind, spot.key, world(at, LAWN), root)
-				keep(at, LobbyConfig.standSize / 2 + 2)
 			end
 		end
 	end
 
-	-- the portal ledges, back row first, with steps up each
+	-- the portal ledges, back row first, each with its wall of arches
 	local rows = Lobby.rowOf(#LobbyConfig.portals)
 	local across = LobbyConfig.perRow * LobbyConfig.archSpacing + 24
+	local drop = LobbyConfig.courtyard.drop
+	local walkWidth = LobbyConfig.courtyard.walkWidth
+	local carpetFoot = 0
 	for row = rows, 1, -1 do
 		local centre, height = rowCentre(row)
-		local depth = LobbyConfig.rowDepth + (if row == rows then 24 else 0)
-		local back = centre.Y - LobbyConfig.rowDepth / 2 - (if row == rows then 24 else 0)
+		local extra = if row == rows then 8 else 0
+		local depth = LobbyConfig.rowDepth + extra
+		local back = centre.Y - LobbyConfig.rowDepth / 2 - extra
 		local middle = Vector2.new(centre.X, back + depth / 2)
 		local ledge = part(
 			"Ledge",
-			Vector3.new(across, height - 0.5, depth),
-			CFrame.new(world(middle, LAWN + (height - 0.5) / 2)),
-			COLOURS.cliff,
+			Vector3.new(across, height + drop, depth),
+			CFrame.new(world(middle, LAWN + (height - drop) / 2)),
+			COLOURS.stoneShade,
 			root
 		)
 		ledge.CanCollide = true
 		ledge.CanQuery = true
-		local grass = part(
-			"LedgeGrass",
-			Vector3.new(across + 1, 0.6, depth + 1),
-			CFrame.new(world(middle, LAWN + height - 0.3)),
-			COLOURS.grass,
-			root
-		)
-		grass.CanCollide = true
-		grass.CanQuery = true
 		part(
-			"LedgeShade",
-			Vector3.new(across + 0.4, 0.8, depth + 0.4),
-			CFrame.new(world(middle, LAWN + 0.4)),
-			COLOURS.cliffDark,
+			"LedgeTop",
+			Vector3.new(across + 0.6, 0.2, depth + 0.6),
+			CFrame.new(world(middle, LAWN + height + 0.02)),
+			COLOURS.marble[1],
 			root
-		)
+		).CastShadow =
+			false
 		local front = centre.Y + LobbyConfig.rowDepth / 2 + 0.5
 		local _, below = rowCentre(row - 1)
 		local low = if row == 1 then 0 else below
 		if row == 1 then
-			steps(0, front, low, height, 40, root)
+			carpetFoot = steps(0, front, low, height, 52, root, walkWidth)
 		else
 			for _, side in { -1, 1 } do
-				steps(side * (across / 2 - 8), front, low, height, 12, root)
+				steps(side * (across / 2 - 5), front, low, height, 9, root)
+			end
+		end
+
+		-- the wall the arches are set in, solid, with a pier either side of each
+		local count = rowCount(row)
+		local tall = LobbyConfig.archWall
+		local long = count * LobbyConfig.archSpacing + 3.4
+		local arcade = part(
+			"Arcade",
+			Vector3.new(long, tall, 1.6),
+			CFrame.new(world(centre, LAWN + height + tall / 2)),
+			COLOURS.stone,
+			root
+		)
+		arcade.CanCollide = true
+		part(
+			"Cornice",
+			Vector3.new(long + 1, 0.8, 2.6),
+			CFrame.new(world(centre, LAWN + height + tall + 0.4)),
+			COLOURS.gold,
+			root
+		)
+		for k = 0, count do
+			local x = (k - count / 2) * LobbyConfig.archSpacing
+			pier(centre + Vector2.new(x, 0), LAWN + height, tall, root)
+			if k % 2 == 0 then
+				local leaves = COLOURS.leaves
+				blob(
+					"ArcadeLeaves",
+					Vector3.new(7, 2.6, 3.6),
+					CFrame.new(world(centre + Vector2.new(x + 3, 0), LAWN + height + tall + 1.2)),
+					leaves[k % #leaves + 1],
+					root
+				)
 			end
 		end
 	end
+	-- the carpet from the plaza's inner ring to the foot of the steps, and on
+	-- across the ledge to the arches
+	do
+		local carpets = root:FindFirstChild("Carpets") :: Instance
+		local top = LobbyConfig.middle.Y - LobbyConfig.courtyard.plazaInner / 2 + 0.4
+		LobbyCourtyard.carpet(Vector2.new(0, top), Vector2.new(0, carpetFoot), walkWidth, carpets)
+		local front, height = rowCentre(1)
+		LobbyCourtyard.carpet(
+			Vector2.new(0, front.Y + 1),
+			Vector2.new(0, front.Y + LobbyConfig.rowDepth / 2 + 0.5),
+			walkWidth,
+			carpets,
+			height
+		)
+		-- and south between the leaderboards to the stairs
+		local arrival = LobbyConfig.courtyard.arrival
+		LobbyCourtyard.carpet(
+			arrival.at + Vector2.new(0, arrival.across / 2 - 0.5),
+			Vector2.new(0, 88),
+			walkWidth,
+			carpets
+		)
+	end
 	for index, portal in LobbyConfig.portals do
 		portalArch(index, portal, root)
-		keep(Lobby.archAt(index), 10)
 	end
 	local back = rowCentre(rows)
 	wall(
 		"TerraceWall",
-		Vector3.new(LobbyConfig.size.X, 24, 8),
-		CFrame.new(world(back + Vector2.new(0, -14), 12)),
+		Vector3.new(across, 30, 4),
+		CFrame.new(world(back + Vector2.new(0, -10), 15)),
 		root
 	)
+	for _, side in { -1, 1 } do
+		local z = LobbyConfig.terrace.Y - LobbyConfig.rowDepth
+		wall(
+			"TerraceSide",
+			Vector3.new(4, 30, 60),
+			CFrame.new(world(Vector2.new(side * (across / 2 + 2), z), 15)),
+			root
+		)
+	end
 
-	--[[ A leaderboard: a board on two posts, the names on its dark face.
+	--[[ A leaderboard: a stone board on two posts, the names on its dark face.
 	     Built twice — FARTHEST ADVENTURERS and DEEPEST DELVERS
 	     (`LobbyConfig.leaderboard`, `LobbyConfig.endlessLeaderboard`) — so
 	     the two boards are the same board, drawn on by different modules.
@@ -1121,7 +1054,7 @@ function Lobby.build(parent: Instance)
 						(face.centre.Y + face.size.Y / 2 + 1.5) / 2,
 						0
 					),
-				COLOURS.woodDark,
+				COLOURS.stone,
 				model
 			)
 			post.CanCollide = true
@@ -1130,14 +1063,39 @@ function Lobby.build(parent: Instance)
 			"Backing",
 			Vector3.new(face.size.X + 2, face.size.Y + 2, 0.8),
 			base * CFrame.new(0, face.centre.Y, face.centre.Z - 0.6),
-			COLOURS.wood,
+			COLOURS.gold,
 			model
 		)
 		part(
 			"Crest",
 			Vector3.new(face.size.X + 3, 1.4, 1.2),
 			base * CFrame.new(0, face.centre.Y + face.size.Y / 2 + 1.4, face.centre.Z - 0.6),
+			COLOURS.stone,
+			model
+		)
+		-- stone behind, where the frame's gold would otherwise show as one slab
+		part(
+			"BackPanel",
+			Vector3.new(face.size.X, face.size.Y, 0.2),
+			base * CFrame.new(0, face.centre.Y, face.centre.Z - 1.05),
+			COLOURS.stoneShade,
+			model
+		)
+		-- the gold diamond and its red gem on the crest
+		local crest = base
+			* CFrame.new(0, face.centre.Y + face.size.Y / 2 + 3.2, face.centre.Z - 0.6)
+		part(
+			"CrestGold",
+			Vector3.new(3, 3, 0.8),
+			crest * CFrame.Angles(0, 0, math.pi / 4),
 			COLOURS.gold,
+			model
+		)
+		part(
+			"CrestGem",
+			Vector3.new(1.5, 1.5, 1.2),
+			crest * CFrame.Angles(0, 0, math.pi / 4),
+			COLOURS.carpet,
 			model
 		)
 		model.Parent = root
@@ -1149,53 +1107,17 @@ function Lobby.build(parent: Instance)
 			root
 		)
 		surface.CastShadow = false
-		keep(board.at, 14)
 		return surface
 	end
 
 	leaderboardFace = buildBoard("Leaderboard", LobbyConfig.leaderboard)
 	endlessLeaderboardFace = buildBoard("EndlessLeaderboard", LobbyConfig.endlessLeaderboard)
 
-	-- lamps along the paths, at every other bend
-	for _, run in LobbyConfig.paths do
-		for k = 2, #run, 2 do
-			local along = (run[k] - run[k - 1]).Unit
-			local side = Vector2.new(-along.Y, along.X) * (width / 2 + 2)
-			local at = run[k] + side
-			local lamp = Instance.new("Model")
-			lamp.Name = "Lamp"
-			local post = pillar("Post", world(at, LAWN), 7, 0.8, COLOURS.woodDark, lamp)
-			post.CanCollide = true
-			local glow = blob(
-				"Lantern",
-				Vector3.new(1.8, 2, 1.8),
-				CFrame.new(world(at, LAWN + 7.6)),
-				Color3.fromRGB(255, 222, 140),
-				lamp
-			)
-			glow.Material = Enum.Material.Neon
-			part(
-				"LampCap",
-				Vector3.new(2.2, 0.5, 2.2),
-				CFrame.new(world(at, LAWN + 8.8)),
-				COLOURS.woodDark,
-				lamp
-			)
-			local light = Instance.new("PointLight")
-			light.Color = Color3.fromRGB(255, 214, 150)
-			light.Range = 14
-			light.Brightness = 0.8
-			light.Parent = glow
-			lamp.Parent = root
-			keep(at, 2)
-		end
-	end
-
 	-- waterfalls down the corner cliffs into round pools
 	for _, at in LobbyConfig.waterfalls do
 		local fall = Instance.new("Model")
 		fall.Name = "Waterfall"
-		local facing = CFrame.lookAt(world(at, LAWN), world(Vector2.zero, LAWN))
+		local facing = CFrame.lookAt(world(at, OUTSIDE), world(Vector2.zero, OUTSIDE))
 		local function put(label: string, size: Vector3, offset: Vector3, colour: Color3): Part
 			return part(label, size, facing * CFrame.new(offset), colour, fall)
 		end
@@ -1241,12 +1163,12 @@ function Lobby.build(parent: Instance)
 	-- the cliffs round the clearing, grass on top, trees behind
 	local spacing = LobbyConfig.ringSpacing
 	local function ring(at: Vector2, out: Vector2)
-		if near(at, LobbyConfig.waterfalls, spacing + 6) then
+		if near(at, LobbyConfig.waterfalls, spacing + 6) or (at.Y > 0 and math.abs(at.X) < 24) then
 			return
 		end
-		local tall = rng:NextNumber(14, 26)
+		local tall = rng:NextNumber(8, 15)
 		local deep = rng:NextNumber(12, 18)
-		local facing = CFrame.lookAt(world(at, LAWN), world(at - out, LAWN))
+		local facing = CFrame.lookAt(world(at, OUTSIDE), world(at - out, OUTSIDE))
 			* CFrame.Angles(0, rng:NextNumber(-0.12, 0.12), 0)
 		local cliff = Instance.new("Model")
 		cliff.Name = "Cliff"
@@ -1300,8 +1222,9 @@ function Lobby.build(parent: Instance)
 		end
 	end
 
-	--[[ The lawn's scatter: one jittered point in each cell of a grid, its
-	     kind drawn by weight, clear of everything above and of each other. ]]
+	--[[ The scatter past the balustrade: one jittered point in each cell of a grid, its
+	     kind drawn by weight, clear of the courtyard, the south stairs and
+	     each other. ]]
 	local weights = LobbyConfig.scatter
 	local kinds: { string } = {}
 	local totalWeight = 0
@@ -1313,19 +1236,14 @@ function Lobby.build(parent: Instance)
 	local cell = LobbyConfig.scatterCell
 	local scattered: { { at: Vector2, reach: number } } = {}
 	local function blocked(at: Vector2, reach: number): boolean
-		if
-			at.Y - reach < LobbyConfig.terrace.Y + LobbyConfig.rowDepth / 2 + 8
-			or near(at, trail, width / 2 + 1 + reach)
-		then
+		if LobbyCourtyard.inside(at, -(reach + 2)) or (at.Y > 80 and math.abs(at.X) < 20) then
 			return true
 		end
 		if math.abs(at.X) + reach > half.X - 2 or math.abs(at.Y) + reach > half.Y - 2 then
 			return true
 		end
-		for _, area in clear do
-			if (at - area.at).Magnitude < area.reach + reach then
-				return true
-			end
+		if at.Y < LobbyConfig.terrace.Y + 12 and math.abs(at.X) < across / 2 + reach then
+			return true
 		end
 		for _, other in scattered do
 			if (at - other.at).Magnitude < other.reach + reach then
@@ -1357,7 +1275,7 @@ function Lobby.build(parent: Instance)
 			end
 			table.insert(scattered, { at = at, reach = reach })
 			if kind == "Tree" then
-				tree(at, grow * 0.9, rng, root, true)
+				tree(at, grow * 0.9, rng, root, false)
 			elseif kind == "Bush" then
 				bush(at, grow, rng, root)
 			elseif kind == "Boulder" then
@@ -1369,33 +1287,6 @@ function Lobby.build(parent: Instance)
 			end
 		end
 	end
-
-	-- the clearing's edge
-	local thick = 8
-	wall(
-		"WallNorth",
-		Vector3.new(LobbyConfig.size.X + 2 * thick, 24, thick),
-		CFrame.new(world(Vector2.new(0, -half.Y - thick / 2), 12)),
-		root
-	)
-	wall(
-		"WallSouth",
-		Vector3.new(LobbyConfig.size.X + 2 * thick, 24, thick),
-		CFrame.new(world(Vector2.new(0, half.Y + thick / 2), 12)),
-		root
-	)
-	wall(
-		"WallWest",
-		Vector3.new(thick, 24, LobbyConfig.size.Y),
-		CFrame.new(world(Vector2.new(-half.X - thick / 2, 0), 12)),
-		root
-	)
-	wall(
-		"WallEast",
-		Vector3.new(thick, 24, LobbyConfig.size.Y),
-		CFrame.new(world(Vector2.new(half.X + thick / 2, 0), 12)),
-		root
-	)
 
 	root.Parent = parent
 	folder = root

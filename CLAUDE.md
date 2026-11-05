@@ -601,6 +601,14 @@ draft into its controller layout.
   the plugin and reconnecting is a manual click in Studio, which nothing
   automated can do for you.
 
+- **The Play camera can be posed from a probe.** The lobby's camera follows the
+  character and keeps whatever turn `Camera.CFrame` is given, so set
+  `CameraMinZoomDistance = 45` on the client, stand the anchored, invisible
+  character at `cam + look * 45` from the server, and set `Camera.CFrame` once.
+- **Studio changes can be tested without taking over the Rojo serve**: write the
+  changed text into each script's `.Source` from `execute_luau` in Edit. A later
+  sync of that file overwrites it, and a new script vanishes on the next Connect.
+
 **Still blocked on the user:** lobby reference images, which belong in
 `assets/reference/lobby/` and are the spec for `docs/LOBBY.md`.
 

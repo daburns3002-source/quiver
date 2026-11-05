@@ -186,3 +186,16 @@ ends only when I can say:
 Self-assessment against a reference is exactly where it is easiest to quietly lower the bar. So
 the screenshot comparisons go in the PR, and what I could not match gets named explicitly
 rather than left for you to notice.
+
+## Lobby B (2026-11-04)
+
+The lobby is now a ruined marble courtyard, built to the layout sheet
+`assets/concepts/blocky/lobby/palace/lobby_layout_reference.png`, under a blue sky with clouds and
+a sun (owner, 2026-11-05). Where this file describes a lawn, sandy paths, lamps or a scatter on the
+floor, the sheet replaces it. The numbers are in `Config/Lobby` (`courtyard`, `light`, `sky`,
+`motes`); `Run/LobbyCourtyard` builds the ground and ruins and `Run/Lobby` the terrace and buildings.
+The courtyard stands `courtyard.drop` studs above the ground past the balustrade, and players are
+held inside the balustrade's outline. **The lobby's light wins while players are in it**:
+`Atmosphere.lobby` sets it from `InLobby`, and a room's own light comes back as they leave. A test
+run in `execute_luau` loads its own copy of `Atmosphere`, so it can leave the room's light showing in
+the lobby until `InLobby` next changes; that is the probe, not the game.

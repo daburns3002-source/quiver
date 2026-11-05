@@ -1,0 +1,4 @@
+Use case: game title screen key art, a careful edit. Generate ONE wide 16:9 illustration that is the attached image with only ONE change; keep every other pixel the same (the three heroes, the World Tree, the Thornwood, the glade, the path, the sky, the light).
+The change: the logo now reads ARROWBORNE instead of ARCHER LEGENDS. Two lines, in the same place and at the same overall size as the old logo: ARROW on the smaller top line, BORNE on the larger bottom line, with the green leaf-tipped arrow running through in the same way. Same chunky gold blocky letters, same dark stone outline, same glow. Spell it exactly: A-R-R-O-W, then B-O-R-N-E. The only text in the image is that logo. No UI, no other words.
+
+Only the logo from Codex's result was kept: it was pasted over the approved title.png and title_portrait.png with a soft edge, so everything else stays the same picture (2026-11-04).

@@ -117,9 +117,11 @@ local function build()
 	shared:WaitForChild("Config"):WaitForChild("LoadingScreen")
 	shared:WaitForChild("Config"):WaitForChild("LoadingTips")
 	shared:WaitForChild("Util"):WaitForChild("LoadingPick")
+	shared:WaitForChild("Util"):WaitForChild("SpotlightArt")
 	local LoadingScreen = require(ReplicatedStorage.Shared.Config.LoadingScreen)
 	local LoadingTips = require(ReplicatedStorage.Shared.Config.LoadingTips)
 	local LoadingPick = require(ReplicatedStorage.Shared.Util.LoadingPick)
+	local SpotlightArt = require(ReplicatedStorage.Shared.Util.SpotlightArt)
 
 	-- what the player has met, from their save if it comes in time
 	local profile = awaitProfile(LoadingScreen.profileWait)
@@ -167,15 +169,9 @@ local function build()
 		end
 	end
 	local entry = if #spotlit > 0 then spotlit[math.random(1, #spotlit)] else nil
-	local art: string? = if entry then LoadingScreen.spotlights[entry.name] else nil
+	local art: { string }? = if entry then LoadingScreen.spotlights[entry.name] else nil
 	if art then
-		local image = Instance.new("ImageLabel")
-		image.Name = "Art"
-		image.BackgroundTransparency = 1
-		image.Image = art
-		image.Size = UDim2.fromScale(1, 1)
-		image.ZIndex = 2
-		image.Parent = screen
+		SpotlightArt.draw(screen, art, 2, LoadingScreen.size, LoadingScreen.tileOverlap)
 	end
 	title.Visible = false
 	loading.Visible = false

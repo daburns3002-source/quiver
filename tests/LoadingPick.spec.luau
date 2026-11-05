@@ -54,6 +54,21 @@ return function(t: TestRunner.Helper)
 		end
 	end)
 
+	--[[ Each is drawn from tiles narrow enough that Roblox keeps every pixel
+	     (owner, 2026-11-05: "i need the loading thumbnails higher
+	     resolution"), and tall enough too. ]]
+	t.test("every spotlight is tiled within the upload limit", function()
+		for key, tiles in LoadingScreen.spotlights do
+			t.isTrue(#tiles > 0, `the "{key}" spotlight has no tiles`)
+			t.isTrue(
+				LoadingScreen.size.X / #tiles + 2 * LoadingScreen.tileOverlap
+						<= LoadingScreen.uploadLimit
+					and LoadingScreen.size.Y <= LoadingScreen.uploadLimit,
+				`the "{key}" spotlight's tiles are wider than Roblox keeps, so it shows blurred`
+			)
+		end
+	end)
+
 	--[[ And at least one has to be reachable the moment a player joins, or
 	     the first thing they ever see is a black screen with a tip on it. ]]
 	t.test("a brand new player can be shown a spotlight", function()

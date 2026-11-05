@@ -17,6 +17,7 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
+local CombatTuning = require(ReplicatedStorage.Shared.Config.CombatTuning)
 
 type EnemyConfig = Balance.EnemyConfig
 type StageConfig = Balance.StageConfig
@@ -79,6 +80,50 @@ function Waves.kindIn(stage: StageConfig?, wave: number, total: number): Kind
 		return "Elite"
 	end
 	return kind
+end
+
+--[[ What enemy damage is multiplied by in a stage's `ordinal`th fight, on top
+     of the stage's own number (`CombatTuning`): rising a little every fight,
+     reset each level. A boss's fight is left at 1, as it is tuned by hand and
+     sits at the end of the ramp anyway. ]]
+function Waves.damageRamp(stage: StageConfig, ordinal: number): number
+	local boss = false
+	if stage.mode == "Waves" then
+		local total = stage.waves or 0
+		local fight = 0
+		for wave = 1, total do
+			local kind = Waves.kindIn(stage, wave, total)
+			if kind ~= "Valkyrie" and kind ~= "Angel" then
+				fight += 1
+				if fight == ordinal then
+					boss = kind == "Boss"
+					break
+				end
+			end
+		end
+	else
+		local fight = 0
+		for _, index in stage.rooms or ({} :: { number }) do
+			local room = Balance.Rooms[index]
+			if room and room.encounter == nil then
+				fight += 1
+				if fight == ordinal then
+					for _, config in room.roster do
+						boss = boss or config.boss ~= nil
+					end
+					break
+				end
+			end
+		end
+	end
+	if boss then
+		return 1
+	end
+	return math.min(
+		1,
+		CombatTuning.roomDamageStart
+			+ (math.max(ordinal, 1) - 1) * CombatTuning.roomDamagePerEncounter
+	)
 end
 
 --[[ Which of `count` fights wave `wave` of `total` takes: spread evenly, the

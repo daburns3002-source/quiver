@@ -23,18 +23,18 @@ local KING = Balance.Enemies.SlimeKing
 --[[ The old twenty-room Mossy Glade run, which 1-1 must be harder than. ]]
 local OLD_RUN = 5
 
---[[ The owner's counts, and only 1-5 fought as waves (owner, 2026-11-02:
-     "i only want 1-5 to be waves and the rest should be rooms"). ]]
+--[[ The owner's counts, 1-5..1-9 fought as waves (owner, 2026-11-05, asked
+     about 1-6..1-9: "waves"; before that, 2026-11-02, only 1-5 was). ]]
 local SHAPE: { { mode: string, size: number } } = {
 	{ mode = "Rooms", size = 10 },
 	{ mode = "Rooms", size = 10 },
 	{ mode = "Rooms", size = 15 },
 	{ mode = "Rooms", size = 15 },
 	{ mode = "Waves", size = 20 },
-	{ mode = "Rooms", size = 20 },
-	{ mode = "Rooms", size = 20 },
-	{ mode = "Rooms", size = 20 },
-	{ mode = "Rooms", size = 20 },
+	{ mode = "Waves", size = 20 },
+	{ mode = "Waves", size = 20 },
+	{ mode = "Waves", size = 20 },
+	{ mode = "Waves", size = 20 },
 	{ mode = "Rooms", size = 25 },
 }
 
@@ -99,6 +99,47 @@ return function(t: TestRunner.Helper)
 			t.equal(stage.name, `Mossy Glade 1-{position}`)
 			t.equal(stage.area, "MossyGlade")
 			t.isTrue(not stage.tutorial, stage.name)
+		end
+	end)
+
+	--[[ Owner, 2026-11-05: "the levels should scale difficulty per room". ]]
+	t.test("every fight of every level hits at least as hard as the one before", function()
+		local all = levels()
+		table.insert(all, Balance.Stages[Balance.campaign[#Balance.campaign]])
+		for _, stage in all do
+			local list = fights(stage)
+			local before = 0
+			for ordinal, fight in list do
+				local ramp = Waves.damageRamp(stage, ordinal)
+				t.isTrue(ramp <= 1, `{stage.name} fight {ordinal} is over the stage's number`)
+				local boss = false
+				for _, config in fight.roster do
+					boss = boss or config.boss ~= nil
+				end
+				if boss then
+					t.equal(ramp, 1, `{stage.name}'s boss`)
+				else
+					t.isTrue(ramp >= before, `{stage.name} fight {ordinal}`)
+				end
+				before = ramp
+			end
+			t.isTrue(Waves.damageRamp(stage, 1) < 1, `{stage.name} starts at full damage`)
+		end
+	end)
+
+	t.test("Thornwood's rooms never bring less health than the room before", function()
+		local stage = Balance.Stages[Balance.campaign[#Balance.campaign]]
+		local before = 0
+		for n, fight in fights(stage) do
+			local total = 0
+			for member = 1, fight.count do
+				total += fight.roster[(member - 1) % #fight.roster + 1].health
+			end
+			--[[ The Broodmother alone closes it, on her own terms. ]]
+			if fight.roster[1].boss == nil then
+				t.isTrue(total >= before, `Thornwood room {n} brings {total}, under {before}`)
+				before = total
+			end
 		end
 	end)
 

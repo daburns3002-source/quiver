@@ -16,7 +16,11 @@
 
 	Leaving is asked for twice. The menu button opens a panel that says what
 	it costs rather than doing it, because a mis-tap mid-fight would throw the
-	run away and the player cannot undo it. The server still decides:
+	run away and the player cannot undo it. The panel stops the fight while it
+	is open (owner, 2026-11-05), on both sides: `RunPaused.setMenu` here and
+	`RunSession.anyInMenu` on the server, which lets go by itself after
+	`CombatTuning.menuHold` so one player cannot freeze everyone's run. The
+	server still decides:
 	`Remotes.RunLobby` is a request, and `RoomController.requestLobby` refuses
 	it unless there is a run to leave.
 
@@ -27,8 +31,10 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local CombatTuning = require(ReplicatedStorage.Shared.Config.CombatTuning)
 local Kit = require(script.Parent.Kit)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
+local RunPaused = require(script.Parent.Parent.RunPaused)
 
 local ControlMenu = {}
 
@@ -44,10 +50,31 @@ local screen: ScreenGui? = nil
 local panel: Frame? = nil
 local open = false
 
+--[[ Bumped on every open or shut, so an old timer never shuts a panel opened
+     since. ]]
+local opening = 0
+
 local function setOpen(value: boolean)
+	local was = open
 	open = value
 	if panel then
 		panel.Visible = value
+	end
+	if was == value then
+		return
+	end
+	RunPaused.setMenu(value)
+	Remotes.event(Remotes.RunMenu):FireServer(value)
+	opening += 1
+	if value then
+		local this = opening
+		--[[ The server stops holding at `menuHold`, so the panel cannot stay
+		     up over a fight that has started again. ]]
+		task.delay(CombatTuning.menuHold, function()
+			if this == opening then
+				setOpen(false)
+			end
+		end)
 	end
 end
 

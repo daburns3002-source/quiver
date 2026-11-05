@@ -18,6 +18,7 @@ local AbilityEffects = require(ReplicatedStorage.Shared.Combat.AbilityEffects)
 local Arena = require(script.Parent.Parent.Arena.Arena)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Classes = require(ReplicatedStorage.Shared.Config.Classes)
+local CombatTuning = require(ReplicatedStorage.Shared.Config.CombatTuning)
 local CurrentStage = require(ReplicatedStorage.Shared.Util.CurrentStage)
 local Economy = require(ReplicatedStorage.Shared.Config.Economy)
 local Eggs = require(ReplicatedStorage.Shared.Config.Eggs)
@@ -129,6 +130,8 @@ export type Session = {
 	     2026-10-25). ]]
 	seenEnemies: { [string]: boolean },
 	meeting: { string },
+	--[[ When (os.clock) MENU's panel stops holding the world; 0 when shut. ]]
+	menuUntil: number,
 	--[[ The tutorial's fixed hands dealt to this player so far this stage
 	     (`Util/TutorialHands`). ]]
 	tutorialProgress: TutorialHands.Progress,
@@ -282,6 +285,7 @@ function RunSession.create(player: Player): Session
 		atTitle = not (RunService:IsStudio() and Workspace:GetAttribute("SkipIntro") == true),
 		seenEnemies = {},
 		meeting = {},
+		menuUntil = 0,
 		tutorialProgress = TutorialHands.newProgress(),
 		healthSentAt = 0,
 		xpArriving = {},
@@ -453,6 +457,26 @@ end
 function RunSession.anyMeeting(): boolean
 	for _, session in sessions do
 		if #session.meeting > 0 then
+			return true
+		end
+	end
+
+	return false
+end
+
+--[[ MENU's panel opened or shut (`Remotes.RunMenu`). A client's say-so, so
+     it can only ever hold the run for `CombatTuning.menuHold` at a time. ]]
+function RunSession.setInMenu(session: Session, open: unknown)
+	if type(open) == "boolean" then
+		session.menuUntil = if open then os.clock() + CombatTuning.menuHold else 0
+	end
+end
+
+--[[ Whether anyone has MENU's panel open, as `anyMeeting` for a screen. ]]
+function RunSession.anyInMenu(): boolean
+	local now = os.clock()
+	for _, session in sessions do
+		if session.menuUntil > now then
 			return true
 		end
 	end
@@ -930,6 +954,7 @@ function RunSession.resetRun(session: Session)
 	session.petReviveUsed = false
 	-- a screen left open when the run ended holds nothing now
 	table.clear(session.meeting)
+	session.menuUntil = 0
 	-- nor do crystals still flying in from it
 	table.clear(session.xpArriving)
 	RunSession.newStage(session)

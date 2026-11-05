@@ -1,8 +1,8 @@
 --!strict
 --[[
 	Whether the run is stopped: for a draft, a boss's entry banner, the
-	title screen, the story cutscene, a NEW ENEMY! screen or an Endless
-	checkpoint.
+	title screen, the story cutscene, a NEW ENEMY! screen, an Endless
+	checkpoint or MENU's LEAVE THE RUN? panel.
 
 	One flag, read by everything the client drives itself: movement, firing
 	prediction and the dash. It exists as its own module rather than as a
@@ -32,6 +32,8 @@ local story = false
 --[[ And again: an Endless checkpoint (`UI/EndlessCheckpoint`), until a pick
      (`docs/ENDLESS.md`). ]]
 local checkpoint = false
+--[[ And again: MENU's LEAVE THE RUN? panel (`UI/ControlMenu`), until it shuts. ]]
+local menu = false
 local changed = Instance.new("BindableEvent")
 
 --[[ Whether the title or the story is still up: the player has not arrived. ]]
@@ -40,7 +42,7 @@ function RunPaused.beforeArrival(): boolean
 end
 
 function RunPaused.get(): boolean
-	return paused or intro or title or meeting or story or checkpoint
+	return paused or intro or title or meeting or story or checkpoint or menu
 end
 
 --[[ Idempotent, so callers can set it from several places without having to
@@ -124,6 +126,20 @@ function RunPaused.setCheckpoint(value: boolean)
 
 	local was = RunPaused.get()
 	checkpoint = value
+	if RunPaused.get() ~= was then
+		changed:Fire(RunPaused.get())
+	end
+end
+
+--[[ While MENU's panel is open. The server holds the world for it too
+     (`RunSession.anyInMenu`). ]]
+function RunPaused.setMenu(value: boolean)
+	if menu == value then
+		return
+	end
+
+	local was = RunPaused.get()
+	menu = value
 	if RunPaused.get() ~= was then
 		changed:Fire(RunPaused.get())
 	end

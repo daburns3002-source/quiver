@@ -1449,3 +1449,56 @@ Studio draws no 3D while its window is minimized, and `screen_capture` then retu
 (28, 30, 34) with the GUI over it. `execute_luau` carries on working, so it looks like a fault in the
 game. Restore the window. Do not use computer-use `open_application` for it: that launches a second
 Studio. Restore the running window by its handle instead.
+
+## WASD does nothing, with a controller plugged in (2026-11-05)
+
+`GuiService.SelectedObject` stayed set after the intro (on the SANDBOX tab in Studio), and while it is
+set Roblox marks every key press processed, so `MoveController` dropped them. The arrow keys too. The
+player stood still in the tutorial with only a blue ring round a menu button to show why. The movement
+keys now ignore `processed` unless a text box has focus.
+
+## The class screen opened over the title (2026-11-05)
+
+`UI/ClassScreen` opened as soon as the profile arrived and `InLobby` was true, and the lobby is the
+state the server boots in, so a new player chose a class before seeing DYL.DEVS, then got a loading
+screen, then the title. It now waits for `RunPaused.beforeArrival()` to clear and two seconds more,
+which is how long the story's end takes to become a tutorial.
+
+## A body falling into the void behind the title (2026-11-05)
+
+`onCharacterAdded` left a body where it spawned while `atTitle`, which is over the arena that is not
+built yet. It fell to the kill height and respawned, over and over until BEGIN ADVENTURE. Placed in the
+lobby now, title or not.
+
+## Loading screens: old name, a tip on the slime's face, a bar in the wrong place (2026-11-05)
+
+The four spotlights baked in ARCHER LEGENDS, a bar and a TIP line, and `Config/LoadingScreen`'s boxes
+were left from older art, so the live tip was drawn over the enemy and the live bar started mid-way
+along the baked one. Codex redrew them (`assets/concepts/blocky/ui/loading/spotlight/rebrand.sh`) with
+the new name, an empty bar and no tip, and the boxes are measured off that art.
+
+## "Asset type does not match requested type" for enemy meshes (2026-11-05)
+
+`RoomPreload.enemyContent` handed mesh ids to `PreloadAsync`, which takes a bare id as an image. Each one
+logged the warning and fetched nothing. Only images go that way now. Enemy meshes still load on first
+sight, which is the same as before this was noticed.
+
+## `SlimeResidue:216` "max must be greater than or equal to min" (2026-11-05)
+
+A low enemy's top can stand under the lowest height a residue cube may start at, and `math.clamp` errors
+on that, which lost the hit's spray. Seen in Endless.
+
+## The Gear screen refuses to switch to one class (2026-11-05)
+
+`Shop.classOf` read the saved weapon before the session, so a class saved but not yet held counted as
+"already that class" and the switch returned without a word. The session comes first now.
+
+## Testing overnight: Studio stops drawing, and everything looks stuck (2026-11-05)
+
+Unfocused, or with the display asleep, Studio can draw **no frames at all** while server time runs on.
+Movement is driven from `RenderStepped`, so the character stands still, nothing shoots, and a room
+looks soft-locked. Measure frames before believing a stuck room: count `RenderStepped` for a second
+from `execute_luau`. `SetThreadExecutionState` with display-required and returning focus keeps it
+drawing. Also, a computer-use click teleports the cursor, and a Roblox button needs `MouseEnter` first:
+`mouse_move`, a short wait, then click, or the click is lost and looks like a dead button.
+

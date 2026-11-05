@@ -289,8 +289,9 @@ function EndlessCheckpoint.start()
 		pick(0)
 	end)
 
-	--[[ 1, 2, 3 take a gift and Escape banks, so the screen can be answered
-	     without the pointer (a gamepad's D-pad still moves the pointer). ]]
+	--[[ 1, 2, 3 take a gift, so the screen can be answered without the pointer
+	     (a gamepad's D-pad still moves the pointer). Banking takes the pointer:
+	     Roblox keeps Escape for its own menu. ]]
 	UserInputService.InputBegan:Connect(function(input: InputObject)
 		if not made.gui.Enabled then
 			return

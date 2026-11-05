@@ -341,7 +341,11 @@ function MoveController.start()
 	table.insert(
 		connections,
 		UserInputService.InputBegan:Connect(function(input, processed)
-			if processed then
+			--[[ A gamepad's menu selection left on any button marks every key
+			     processed, so with a controller merely plugged in WASD did
+			     nothing at all. Only typing in a box may take the movement keys. ]]
+			local moving = KEY_VECTORS[input.KeyCode] or SPRINT_KEYS[input.KeyCode]
+			if processed and (not moving or UserInputService:GetFocusedTextBox() ~= nil) then
 				return
 			end
 

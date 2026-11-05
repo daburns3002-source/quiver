@@ -199,8 +199,10 @@ local function onCharacterAdded(player: Player, character: Model)
 	local session = RunSession.get(player) or RunSession.create(player)
 	RunSession.bindCharacter(session, character)
 	refreshWeapon(player)
-	-- in the lobby, a new body appears at the lobby's campfire
-	if RoomController.inLobby() and not session.atTitle then
+	--[[ In the lobby, a new body appears on the arrival circle, behind the title
+	     screen too. Left where it spawned, over the arena that is not built yet,
+	     it fell into the void and died over and over until BEGIN ADVENTURE. ]]
+	if RoomController.inLobby() then
 		task.defer(Lobby.place, character)
 	end
 	--[[ Enemy projectiles raycast against player characters, so the filter has

@@ -138,13 +138,17 @@ end
      chooses their class, it should load them into the game with their
      class only"); `switchClass` changes it. ]]
 local function classOf(player: Player): string?
+	--[[ The class being played first. The save could say another (a choice made
+	     during a run is saved and not yet held), and asking it refused a switch
+	     to that class as "already that class" while the player stood there as
+	     the old one. ]]
+	local session = RunSession.get(player)
+	if session then
+		return session.loadout.class
+	end
 	local profile = PlayerData.get(player)
 	local entry = profile and profile.equipped and ShopRules.find(profile.equipped)
-	if entry then
-		return entry.class
-	end
-	local session = RunSession.get(player)
-	return session and session.loadout.class
+	return entry and entry.class
 end
 
 local function equip(player: Player, weapon: unknown)

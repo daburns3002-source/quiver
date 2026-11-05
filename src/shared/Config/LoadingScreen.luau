@@ -24,17 +24,17 @@ local LoadingScreen = {
 	     one is simply not drawn, on either screen.
 	     Sources in `assets/concepts/blocky/ui/loading/spotlight/`. ]]
 	spotlights = {
-		["BABY SLIME"] = "rbxassetid://109875530590023",
-		["BROOD SLIME"] = "rbxassetid://85643151176705",
-		["MOSS SLIME"] = "rbxassetid://140658661048079",
-		["SPLITTER SPITTER"] = "rbxassetid://108350133336178",
+		["BABY SLIME"] = "rbxassetid://74998338245767",
+		["BROOD SLIME"] = "rbxassetid://85955600741270",
+		["MOSS SLIME"] = "rbxassetid://113292881925772",
+		["SPLITTER SPITTER"] = "rbxassetid://83618763129975",
 	} :: { [string]: string },
 	--[[ A spotlight's size in pixels, which every box below is measured
 	     against. ]]
 	size = Vector2.new(1672, 941),
-	tip = { x = 1126, y = 270, w = 332, h = 390 } :: Box,
+	tip = { x = 80, y = 836, w = 1500, h = 40 } :: Box,
 	--[[ The bar's trough, to the pixel, so the fill sits flush in it. ]]
-	bar = { x = 470, y = 810, w = 728, h = 43 } :: Box,
+	bar = { x = 81, y = 808, w = 1508, h = 13 } :: Box,
 	tipText = Color3.fromRGB(236, 232, 214),
 	barFill = Color3.fromRGB(110, 200, 60),
 	--[[ How long the screen waits for the player's save before choosing

@@ -605,6 +605,10 @@ draft into its controller layout.
   character and keeps whatever turn `Camera.CFrame` is given, so set
   `CameraMinZoomDistance = 45` on the client, stand the anchored, invisible
   character at `cam + look * 45` from the server, and set `Camera.CFrame` once.
+- **To play every level unattended**, use the autopilot in `tools/studio/autoplay/` (its README): it
+  shares the game's `require` cache because it is made in Edit, and logs errors, stuck rooms and
+  bad states. It sees no visual fault, so sample captures while it runs. Real keys and clicks do
+  reach Play through computer use, once Studio has focus: hover before clicking a button.
 - **Studio changes can be tested without taking over the Rojo serve**: write the
   changed text into each script's `.Source` from `execute_luau` in Edit. A later
   sync of that file overwrites it, and a new script vanishes on the next Connect.

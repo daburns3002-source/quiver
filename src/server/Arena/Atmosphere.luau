@@ -40,10 +40,14 @@ local function ensure<T>(className: string, name: string): T
 	return created :: any
 end
 
---[[ `overrides` is an area's own (`ArenaModels.lighting`): those fields in
-     place of `Balance.Lighting`'s, the rest as ever. Applied again with
-     none to put the game's own light back. ]]
-function Atmosphere.apply(overrides: { [string]: any }?)
+--[[ What the room asks for and what the lobby does. The lobby's golden hour
+     wins while players are there: a room is built ahead of the door, which
+     must not change the light they stand in, and the room's comes back the
+     moment they leave. ]]
+local roomLight: { [string]: any }? = nil
+local lobbyLight: { [string]: any }? = nil
+
+local function show(overrides: { [string]: any }?)
 	local config: any = Balance.Lighting
 	if overrides then
 		config = table.clone(config)
@@ -79,6 +83,21 @@ function Atmosphere.apply(overrides: { [string]: any }?)
 	grade.Contrast = config.contrast
 	grade.Brightness = config.gradeBrightness
 	grade.TintColor = config.gradeTint
+end
+
+--[[ `overrides` is an area's own (`ArenaModels.lighting`): those fields in
+     place of `Balance.Lighting`'s, the rest as ever. Applied again with
+     none to put the game's own light back. ]]
+function Atmosphere.apply(overrides: { [string]: any }?)
+	roomLight = overrides
+	show(lobbyLight or roomLight)
+end
+
+--[[ The lobby's light while players are in it (`Config/Lobby.light`), or nil
+     to go back to the room's. ]]
+function Atmosphere.lobby(light: { [string]: any }?)
+	lobbyLight = light
+	show(lobbyLight or roomLight)
 end
 
 return Atmosphere

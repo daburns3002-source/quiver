@@ -69,12 +69,13 @@ export type Building = {
 }
 
 --[[
-	Which way a building at `at` is turned: toward the middle of the
-	clearing (owner, 2026-11-01), as radians about Y.
+	Which way a building at `at` is turned: toward the fountain in the
+	middle of the courtyard (owner, 2026-11-01; the layout sheet, 2026-11-04),
+	as radians about Y.
 
 	A building is modelled facing +Z, which `CFrame.Angles(0, y, 0)` sends
-	to (sin y, cos y), so the turn that points its front at the origin is
-	the bearing of -`at`. One function because three places need to agree
+	to (sin y, cos y), so the turn that points its front at the fountain is
+	the bearing from `at` to `MIDDLE`. One function because three places need to agree
 	about it -- the builder, the stands it puts out front, and the spec
 	that measures the footprints -- and a building facing a way its own
 	eggs do not is the bug this exists to make impossible.
@@ -82,11 +83,14 @@ export type Building = {
 	A station standing dead in the middle has no bearing to face, and is
 	left unturned.
 ]]
+local MIDDLE = Vector2.new(0, 6)
+
 local function facingMiddle(at: Vector2): number
-	if at.Magnitude < 1e-3 then
+	local way = MIDDLE - at
+	if way.Magnitude < 1e-3 then
 		return 0
 	end
-	return math.atan2(-at.X, -at.Y)
+	return math.atan2(way.X, way.Y)
 end
 
 --[[ Where a point `offset` studs from a building's own middle lands once
@@ -115,19 +119,21 @@ local Lobby = {
 	origin = Vector3.new(0, 0, 1000),
 	--[[ The walkable clearing, studs across (X) and deep (Z). ]]
 	size = Vector2.new(220, 192),
-	--[[ Where a player appears: south of the fountain. ]]
-	spawn = Vector2.new(-8, 50),
+	--[[ The fountain, which all four buildings face, halfway between their
+	     rows. ]]
+	middle = MIDDLE,
+	--[[ Where a player appears: the middle of the arrival circle. ]]
+	spawn = Vector2.new(0, 54),
 
 	--[[ The portal terraces across the north edge: two rows of arches
 	     (owner, 2026-10-25: "make sure there are 2 rows of portals"), each
-	     on a grass ledge with a cliff face and wide wooden steps up its
-	     front. `terrace` is the front row's centre; the back row stands
+	     on a marble ledge with broad marble steps up its front. `terrace` is the front row's centre; the back row stands
 	     `rowDepth` studs behind it and `rowRise` higher. `ledge` is the
 	     front row's height above the lawn. ]]
-	terrace = Vector2.new(0, -60),
+	terrace = Vector2.new(0, -66),
 	rowDepth = 19.2,
-	rowRise = 3,
-	ledge = 2.4,
+	rowRise = 7,
+	ledge = 9,
 	--[[ Six to a row since 2026-10-27, so the eleventh arch (Endless) joins
 	     the areas without opening a third row — the owner's "make sure there
 	     are 2 rows of portals" stands. ]]
@@ -191,29 +197,20 @@ local Lobby = {
 		     between about 8 and 21 studs. ]]
 		stretch = NumberRange.new(0.8, 1.4),
 	},
-	--[[ Each area's arch, by portal index, as the owner imports them. Only
-	     the Mossy Glade's exists so far; Thornwood's and the Drowned
-	     Village's are modelled and come tomorrow, and keep the built stone
-	     ring until they do. ]]
-	archModels = {
-		[1] = {
-			mesh = "rbxassetid://89518626870205",
-			texture = "rbxassetid://122345112819768",
-			native = Vector3.new(0.85, 1, 0.59),
-		},
-	} :: { [number]: { mesh: string, texture: string, native: Vector3 } },
-	--[[ From this portal on there is no arch of its own and none coming
-	     soon, so each stands as a black silhouette of the first area's
-	     (owner, 2026-11-01: "replace every portal past 4 with a silhouette
-	     of the arena 1 portal until portals are made for them"). Give a
-	     portal its own entry in `archModels` and it stops being one. ]]
-	archSilhouetteFrom = 5,
-	archSilhouette = Color3.fromRGB(18, 16, 24),
-	--[[ How tall an imported arch stands above its ledge, and how far it is
-	     turned about Y. The built ring's top sat 14 up, so 15 keeps the
-	     rows reading the same from the lawn. ]]
-	archTall = 15,
-	archTurn = 0,
+	--[[ An arch's opening, studs across and how high its straight sides go
+	     before the round top, and the height of the stone wall it is set in.
+	     Every arch is built alike, as the sheet draws them: the swirl where
+	     an area is open, the dark and a gold padlock where it is not. ]]
+	archWidth = 11,
+	archSides = 7.5,
+	archWall = 19,
+	--[[ The dark of a locked arch, and each open arch's plaque, by its name. ]]
+	archDark = Color3.fromRGB(32, 26, 34),
+	plaques = {
+		["Mossy Glade"] = Color3.fromRGB(38, 92, 40),
+		["Thornwood"] = Color3.fromRGB(70, 34, 112),
+		["Endless"] = Color3.fromRGB(20, 88, 92),
+	} :: { [string]: Color3 },
 
 	--[[ Studs from an active arch's mouth a player must come within for its
 	     screen to open (`UI/PortalScreen`), and how much further the server
@@ -234,11 +231,6 @@ local Lobby = {
 	jumpHeight = 7.2,
 	--[[ Studs in front of an arch where its mouth is. ]]
 	mouthAhead = 4,
-	--[[ An arch's ring, studs across its outside, and how high its centre
-	     stands above the ledge. ]]
-	archSize = 14,
-	archRise = 8,
-
 	--[[
 		The stations, one to each corner of the clearing (owner,
 		2026-11-01: "every building should be either northwest,
@@ -254,19 +246,21 @@ local Lobby = {
 		and the portals beyond it.
 
 		The two northern ones stand clear of the portal terraces, whose
-		front ledge reaches z = -50.4: turned to face the middle they
-		reach about z = -47, which leaves three studs of lawn between.
+		front ledge reaches z = -56.4: turned to face the fountain they
+		reach about z = -48. They moved in from x = 66 for the layout sheet,
+		where the four sit close round the fountain with only a short carpet
+		between.
 
 		The spawn's fountain keeps its old name `SpawnCampfire`, for the
 		screens that look it up. `Lobby.spec` keeps every footprint apart,
 		measured as each one is actually turned.
 	]]
 	stations = {
-		{ piece = "Blacksmith", at = Vector2.new(-66, -24) },
-		{ piece = "EggHatchery", at = Vector2.new(66, -24) },
-		{ piece = "GearStation", at = Vector2.new(-66, 36) },
-		{ piece = "DexHall", at = Vector2.new(66, 36) },
-		{ piece = "SpawnCampfire", at = Vector2.new(-8, 28) },
+		{ piece = "Blacksmith", at = Vector2.new(-52, -24) },
+		{ piece = "EggHatchery", at = Vector2.new(52, -24) },
+		{ piece = "GearStation", at = Vector2.new(-52, 36) },
+		{ piece = "DexHall", at = Vector2.new(52, 36) },
+		{ piece = "SpawnCampfire", at = MIDDLE },
 	} :: { Placed },
 
 	buildings = {
@@ -323,13 +317,114 @@ local Lobby = {
 		pads = { out = 14, forward = 15, top = 1.2, size = Vector3.new(7, 1.2, 6) },
 	},
 
-	--[[ The fountain at the spawn: its basin, studs across, and the paved
-	     ring round it. A player cannot walk into the basin. ]]
-	fountain = 16,
-	plaza = 40,
+	--[[ The fountain: its basin, studs across, and the outer gold ring round
+	     it. A player cannot walk into the basin. ]]
+	fountain = 26,
+	plaza = 44,
+
+	--[[
+		Lobby B's ground and ruins (`Run/LobbyCourtyard`), measured off the
+		sheet's plan: the outline the balustrade follows, clockwise from the
+		terrace's south-west corner, its corners cut as the plan cuts them.
+	]]
+	courtyard = {
+		outline = {
+			Vector2.new(-66, -56.4),
+			Vector2.new(-86, -36),
+			Vector2.new(-86, 58),
+			Vector2.new(-58, 88),
+			Vector2.new(-14, 88),
+			Vector2.new(14, 88),
+			Vector2.new(58, 88),
+			Vector2.new(86, 58),
+			Vector2.new(86, -36),
+			Vector2.new(66, -56.4),
+		},
+		--[[ Which edges have no balustrade: the south stairs' top (5) and the
+		     terrace's foot (10, which also has no wall: players walk onto it). ]]
+		openEdges = { 5, 10 },
+		terraceEdge = 10,
+		--[[ How far the ground past the balustrade lies below the floor. ]]
+		drop = 8,
+		tile = Vector2.new(10, 7.5),
+		joint = 0.35,
+		--[[ The share of flagstones with moss along a joint, then how many
+		     long veins of moss and cracks wander over the floor. ]]
+		mossShare = 0.3,
+		mossVeins = 16,
+		cracks = 14,
+		carpetWidth = 7,
+		carpetEdge = 0.7,
+		--[[ The carpets on the middle line: to the portals and between the
+		     leaderboards. ]]
+		walkWidth = 9,
+		--[[ The fountain's inner gold ring, its lilies and the leaves round it. ]]
+		plazaInner = 33,
+		lilies = 9,
+		hedge = 22,
+		arrival = { at = Vector2.new(0, 54), across = 30, inner = 17, walk = 6 },
+		southGap = 14,
+		balustrade = { bay = 11, tall = 5.2, balusters = 3, broken = 0.2, rubble = 0.08 },
+		columns = {
+			{ at = Vector2.new(-82, -34), tall = 18 },
+			{ at = Vector2.new(82, -34), tall = 15 },
+			{ at = Vector2.new(-83, 2), tall = 13 },
+			{ at = Vector2.new(83, 8), tall = 20 },
+			{ at = Vector2.new(-83, 44), tall = 21 },
+			{ at = Vector2.new(83, 42), tall = 14 },
+			{ at = Vector2.new(-56, 84), tall = 12 },
+			{ at = Vector2.new(56, 84), tall = 16 },
+			{ at = Vector2.new(-62, -53), tall = 11 },
+			{ at = Vector2.new(62, -53), tall = 10 },
+		} :: { { at: Vector2, tall: number } },
+		ruinArch = {
+			at = { Vector2.new(-88, -70), Vector2.new(88, -70) },
+			across = 16,
+			tall = 30,
+		},
+	},
+
+	--[[ Golden hour, with the low sun in the north-east over the portals as
+	     the sheet draws it, so the long shadows fall towards the player. A
+	     negative latitude is what puts Roblox's sun north. These are the
+	     fields of `Balance.Lighting`, for `Arena/Atmosphere`. ]]
+	light = {
+		ambient = Color3.fromRGB(170, 122, 114),
+		outdoorAmbient = Color3.fromRGB(216, 160, 148),
+		brightness = 1.9,
+		clockTime = 8,
+		geographicLatitude = -20,
+		sunTint = Color3.fromRGB(255, 186, 128),
+		shadowSoftness = 0.4,
+		environmentDiffuse = 0.8,
+		environmentSpecular = 0.2,
+		bloomIntensity = 0.3,
+		bloomSize = 10,
+		bloomThreshold = 1.6,
+		saturation = 0.08,
+		contrast = 0.08,
+		gradeBrightness = 0,
+		gradeTint = Color3.fromRGB(255, 238, 226),
+		hazeDensity = 0.22,
+		hazeColor = Color3.fromRGB(255, 232, 214),
+		hazeDecay = Color3.fromRGB(150, 176, 226),
+		hazeGlare = 0.1,
+		haze = 0.9,
+	},
+
+	--[[ The sky stays blue, with clouds and a sun (owner, 2026-11-05: "make
+	     sure the sky is blue still with clouds and a sun"), over the sheet's
+	     warm floor. No moon: at this hour it would hang beside the sun. ]]
+	sky = { cloudCover = 0.62, cloudDensity = 0.72, sunSize = 16 },
+
+	--[[ The life in the air (`Fx/LobbyMotes`), each scaled by the device's
+	     `ambienceShare`: gold motes drifting over the courtyard, and mist at
+	     the foot of each waterfall. ]]
+	motes = { rate = 26, lifetime = NumberRange.new(5, 9), size = 0.32, high = 22 },
+	mist = { rate = 5, lifetime = NumberRange.new(3, 5), size = 9 },
 
 	--[[ The FARTHEST ADVENTURERS board (`Run/StoryLeaderboard`), south of
-	     the spawn at (-8, 50) and turned to read north (owner, 2026-11-01:
+	     the spawn at (0, 54) and turned to read north (owner, 2026-11-01:
 	     "move the leaderboards to behind the player south of the spawn").
 	     A player arrives facing the fountain and the portals, so the boards
 	     are behind them and read when they turn round; they used to flank
@@ -341,7 +436,7 @@ local Lobby = {
 	     written, and `turn` how far the whole board is turned about Y. With
 	     no turn a board reads south, which is what both did before. ]]
 	leaderboard = {
-		at = Vector2.new(-28, 76),
+		at = Vector2.new(-22, 78),
 		turn = math.pi,
 		face = { centre = Vector3.new(0, 10, 0.9), size = Vector2.new(16.8, 11.4) },
 	},
@@ -350,36 +445,29 @@ local Lobby = {
 	     of the path south from the spawn, so the two still flank a walk and
 	     a player sees both at once. Same build, same face, same turn. ]]
 	endlessLeaderboard = {
-		at = Vector2.new(12, 76),
+		at = Vector2.new(22, 78),
 		turn = math.pi,
 		face = { centre = Vector3.new(0, 10, 0.9), size = Vector2.new(16.8, 11.4) },
 	},
 
-	--[[ The sandy paths, as runs of points: the spawn up to the portals, and
-	     out to each station. ]]
-	paths = {
-		{
-			Vector2.new(-8, 92),
-			Vector2.new(-8, 48),
-			Vector2.new(-4, 0),
-			Vector2.new(0, -36),
-			Vector2.new(0, -48),
-		},
-		{ Vector2.new(-16, 16), Vector2.new(-40, 0), Vector2.new(-62, 2) },
-		{ Vector2.new(0, 8), Vector2.new(24, -12), Vector2.new(50, -12) },
-		{ Vector2.new(4, 20), Vector2.new(40, 20), Vector2.new(78, 24) },
-		{ Vector2.new(4, 28), Vector2.new(32, 44), Vector2.new(44, 30) },
-	} :: { { Vector2 } },
-	pathWidth = 11,
-
-	--[[ The look, after the owner's reference clip: flat, bright, smooth. ]]
+	--[[ The look, off the layout sheet's swatches: flat, warm, smooth. ]]
 	colours = {
-		grass = Color3.fromRGB(104, 206, 72),
-		grassDark = Color3.fromRGB(80, 178, 58),
-		sand = Color3.fromRGB(238, 182, 118),
-		sandEdge = Color3.fromRGB(198, 130, 76),
-		cliff = Color3.fromRGB(204, 116, 70),
-		cliffDark = Color3.fromRGB(168, 90, 56),
+		marble = {
+			Color3.fromRGB(251, 226, 198),
+			Color3.fromRGB(247, 219, 190),
+			Color3.fromRGB(243, 212, 186),
+		},
+		joint = Color3.fromRGB(196, 158, 134),
+		crack = Color3.fromRGB(176, 136, 124),
+		moss = Color3.fromRGB(134, 176, 44),
+		mossDark = Color3.fromRGB(110, 156, 44),
+		stone = Color3.fromRGB(246, 226, 200),
+		stoneShade = Color3.fromRGB(214, 186, 164),
+		carpet = Color3.fromRGB(232, 62, 70),
+		lily = Color3.fromRGB(248, 121, 152),
+		grass = Color3.fromRGB(104, 176, 66),
+		cliff = Color3.fromRGB(142, 112, 92),
+		cliffDark = Color3.fromRGB(112, 88, 76),
 		rock = Color3.fromRGB(152, 158, 168),
 		rockLight = Color3.fromRGB(182, 188, 196),
 		trunk = Color3.fromRGB(130, 86, 54),
@@ -390,9 +478,9 @@ local Lobby = {
 		},
 		wood = Color3.fromRGB(176, 116, 68),
 		woodDark = Color3.fromRGB(118, 74, 44),
-		water = Color3.fromRGB(78, 178, 244),
+		water = Color3.fromRGB(72, 186, 205),
 		foam = Color3.fromRGB(236, 248, 255),
-		gold = Color3.fromRGB(250, 202, 60),
+		gold = Color3.fromRGB(252, 190, 36),
 		glass = Color3.fromRGB(160, 216, 255),
 		flowers = {
 			Color3.fromRGB(250, 96, 120),
@@ -411,18 +499,13 @@ local Lobby = {
 	     each kind as likely as its weight. ]]
 	ringSpacing = 16,
 	waterfalls = {
-		Vector2.new(-96, -76),
-		Vector2.new(96, -76),
-		Vector2.new(-100, 72),
-		Vector2.new(100, 72),
+		Vector2.new(-102, -40),
+		Vector2.new(102, -40),
+		Vector2.new(-90, 84),
+		Vector2.new(90, 84),
 	},
-	--[[ Trees weigh more than the rest together now the lawn has a real
-	     one to plant (owner, 2026-11-01: "add more around the lobby"): 3
-	     of 15 was a tree every few cells, which read as a lawn with a
-	     couple of trees on it rather than a clearing in a wood. The cells
-	     also fill a little fuller, so the edges thicken without crowding
-	     the walk between the stations -- `keep` still clears a radius
-	     round every building, stand, arch and board. ]]
+	--[[ All of it past the balustrade now (the sheet's floor is open marble):
+	     chunky green trees and bushes, a few boulders. ]]
 	scatter = {
 		Tree = 9,
 		Bush = 4,
@@ -430,30 +513,16 @@ local Lobby = {
 		Flowers = 4,
 		Mushroom = 2,
 	} :: { [string]: number },
-	--[[ A smaller cell and nearly every one tried, because only about a
-	     quarter of tries can land: the paths, the terrace and the ring
-	     `keep` round every building, stand, arch and board reserve most
-	     of the lawn, and at 14 studs with 0.6 filled that left 37 things
-	     scattered over the whole clearing, fifteen of them trees. The
-	     space test is unchanged, so nothing gets any closer to a building
-	     or a path than before -- there are simply more places tried. ]]
 	scatterCell = 10,
 	scatterFill = 0.9,
 
 	--[[ The eggs and weapon crates out in the open, as Tap Simulator Reborn
 	     stands its eggs (owner, 2026-10-27): smooth models on round wooden
 	     platforms (`Run/Lobby` `standOut`), with their name and price above.
-	     `at` is in studs from the station's centre. ]]
-	stands = {
-		EggHatchery = {
-			{ kind = "egg", key = "MossyEgg", at = Vector2.new(-15, 25) },
-			{ kind = "egg", key = "ThornwoodEgg", at = Vector2.new(15, 25) },
-		},
-		Blacksmith = {
-			{ kind = "crate", key = "MossyGlade", at = Vector2.new(-15, 25) },
-			{ kind = "crate", key = "Thornwood", at = Vector2.new(15, 25) },
-		},
-	} :: { [string]: { { kind: string, key: string, at: Vector2 } } },
+	     `at` is in studs from the station's centre. None stands now: the
+	     layout sheet leaves the floor open and carries the eggs on the Hatch
+	     Eggs' roof. An entry here puts one back. ]]
+	stands = {} :: { [string]: { { kind: string, key: string, at: Vector2 } } },
 	--[[ A stand's platform, studs across. ]]
 	standSize = 10,
 }

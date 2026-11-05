@@ -237,8 +237,14 @@ end
 
 Players.PlayerAdded:Connect(onPlayerAdded)
 
--- into the lobby and out of it: the weapon goes away and comes back
+-- into the lobby and out of it: the weapon goes away and comes back, and the
+-- golden hour comes and goes with it
+local function lobbyLight()
+	Atmosphere.lobby(if workspace:GetAttribute("InLobby") == true then LobbyConfig.light else nil)
+end
+lobbyLight()
 workspace:GetAttributeChangedSignal("InLobby"):Connect(function()
+	lobbyLight()
 	for _, player in Players:GetPlayers() do
 		refreshWeapon(player)
 	end

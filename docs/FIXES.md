@@ -1442,3 +1442,10 @@ shows every module changed by hundreds of thousands of lines. Run StyLua on the
 folder first: with that done, the diff against the committed modules is empty.
 This entry first read that diff as the GLBs failing to reproduce the modules.
 That was wrong, and they reproduce them exactly.
+
+## Studio captures are one flat dark grey, in Edit and in Play (2026-11-05)
+
+Studio draws no 3D while its window is minimized, and `screen_capture` then returns a uniform
+(28, 30, 34) with the GUI over it. `execute_luau` carries on working, so it looks like a fault in the
+game. Restore the window. Do not use computer-use `open_application` for it: that launches a second
+Studio. Restore the running window by its handle instead.

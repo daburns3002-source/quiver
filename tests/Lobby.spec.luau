@@ -15,6 +15,7 @@ local ServerScriptService = game:GetService("ServerScriptService")
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Lobby = require(ServerScriptService.Server.Run.Lobby)
 local LobbyConfig = require(ReplicatedStorage.Shared.Config.Lobby)
+local LobbyCourtyard = require(ServerScriptService.Server.Run.LobbyCourtyard)
 local PalaceBuildings = require(ReplicatedStorage.Shared.Config.PalaceBuildings)
 local TestRunner = require(script.Parent.TestRunner)
 
@@ -50,9 +51,9 @@ return function(t: TestRunner.Helper)
 			local yaw = LobbyConfig.facing(station.at)
 			--[[ Its front is local +Z, which a turn about Y sends to
 			     (sin, cos). Pointed at the middle, that is the way from
-			     the building to the origin. ]]
+			     the building to the fountain. ]]
 			local front = Vector2.new(math.sin(yaw), math.cos(yaw))
-			local toMiddle = -station.at.Unit
+			local toMiddle = (LobbyConfig.middle - station.at).Unit
 			t.isTrue((front - toMiddle).Magnitude < 1e-4, station.piece)
 		end
 	end)
@@ -278,6 +279,86 @@ return function(t: TestRunner.Helper)
 							math.max(apartX, apartZ) >= 0,
 							`the {spot.key} stand stands in the {station.piece}`
 						)
+					end
+				end
+			end
+		end
+	end)
+
+	--[[ The layout sheet: everything a player walks to stands inside the
+	     balustrade, the fountain on the middle line between the rows of
+	     buildings, and the arrival circle and the two boards south of it. ]]
+	t.test("the courtyard holds everything a player walks to", function()
+		for _, station in LobbyConfig.stations do
+			local spec = LobbyConfig.buildings[station.piece]
+			if spec then
+				local yaw = LobbyConfig.facing(station.at)
+				local s, c = math.sin(yaw), math.cos(yaw)
+				for _, sx in { -1, 1 } do
+					for _, sz in { -1, 1 } do
+						local x, z = sx * spec.size.X / 2, sz * spec.size.Z / 2
+						local corner = station.at + Vector2.new(x * c + z * s, -x * s + z * c)
+						t.isTrue(
+							LobbyCourtyard.inside(corner, 2),
+							`{station.piece} crosses the balustrade`
+						)
+					end
+				end
+			end
+		end
+		t.isTrue(LobbyCourtyard.inside(LobbyConfig.spawn, 10), "the spawn is outside")
+		t.isTrue(LobbyCourtyard.inside(LobbyConfig.middle, 10), "the fountain is outside")
+		t.isTrue(LobbyCourtyard.inside(LobbyConfig.leaderboard.at, 2), "a board is outside")
+		t.isTrue(LobbyCourtyard.inside(LobbyConfig.endlessLeaderboard.at, 2), "a board is outside")
+	end)
+
+	t.test("the fountain, the arrival circle and the walkway read down the middle", function()
+		local court = LobbyConfig.courtyard
+		t.equal(LobbyConfig.middle.X, 0, "the fountain")
+		t.equal(court.arrival.at.X, 0, "the arrival circle")
+		t.equal(LobbyConfig.spawn, court.arrival.at, "a player arrives in the circle")
+		t.isTrue(
+			court.arrival.at.Y - court.arrival.across / 2
+				> LobbyConfig.middle.Y + LobbyConfig.plaza / 2,
+			"the circle and the plaza overlap"
+		)
+		t.isTrue(court.plazaInner < LobbyConfig.plaza, "the rings have swapped")
+		t.isTrue(LobbyConfig.fountain < court.plazaInner, "the basin covers its ring")
+		local west, east = LobbyConfig.leaderboard, LobbyConfig.endlessLeaderboard
+		t.isTrue(
+			west.at.X + west.face.size.X / 2 + 2.6 < -(court.walkWidth / 2),
+			"a board stands on the walkway"
+		)
+		t.isTrue(
+			east.at.X - east.face.size.X / 2 - 2.6 > court.walkWidth / 2,
+			"a board stands on the walkway"
+		)
+	end)
+
+	t.test("each row of arches is centred on the carpet", function()
+		for row = 1, Lobby.rowOf(#LobbyConfig.portals) do
+			local sum = 0
+			for index in LobbyConfig.portals do
+				if Lobby.rowOf(index) == row then
+					sum += Lobby.archAt(index).X
+				end
+			end
+			t.near(sum, 0, 1e-3, `row {row}`)
+		end
+	end)
+
+	t.test("the northern buildings stand clear of the terrace and its steps", function()
+		local foot = LobbyConfig.terrace.Y + LobbyConfig.rowDepth / 2 + 0.5
+		for _, station in LobbyConfig.stations do
+			local spec = LobbyConfig.buildings[station.piece]
+			if spec and station.at.Y < 0 then
+				local yaw = LobbyConfig.facing(station.at)
+				local s, c = math.sin(yaw), math.cos(yaw)
+				for _, sx in { -1, 1 } do
+					for _, sz in { -1, 1 } do
+						local x, z = sx * spec.size.X / 2, sz * spec.size.Z / 2
+						local cornerZ = station.at.Y + (-x * s + z * c)
+						t.isTrue(cornerZ > foot, `{station.piece} reaches the terrace`)
 					end
 				end
 			end

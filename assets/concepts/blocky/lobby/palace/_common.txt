@@ -1,0 +1,25 @@
+Reference images attached, in order:
+1. THE DEX HALL as it stands in the game. The owner loves it. It must appear EXACTLY as drawn here, unchanged: purple roof with gold corners, brown walls, white columns with gold bands, red carpet, the two book lecterns, and the huge open book on the roof with loose pages flying off it. Image 1 is also the STYLE reference for the whole picture: clean, smooth, chunky low-poly shapes, flat saturated colours, simple bevels, no pixel textures and no noisy voxel surfaces.
+2. The hatchery fairy, who keeps the egg building. Copy her exactly, small, at her building.
+3. The blacksmith, who keeps the weapon shop. Copy him exactly, small, at his building.
+
+Subject: a mobile game's lobby for a top-down archer game, seen from a high three-quarter camera looking down, so every building front and roof reads clearly. Players walk between places here before each run. It is a home base you return to after every run, with the feeling of a grand old palace that is lived in: places you recognise at a glance, warm firelight against deep shadow, rich carpets, gold trim, and everything one short walk from the centre.
+
+Layout, required in every version:
+- A round fountain plaza at the centre, where players arrive.
+- Four buildings at the four corners, each turned to face the plaza, each joined to it by a carpeted walkway.
+- A row of arched portals along the top edge, with big steps up to them: a green swirl labelled MOSSY GLADE, a purple swirl labelled THORNWOOD, then three dark locked arches each with a padlock.
+
+Above each building float big glowing blocky pixel-font words, exactly these, in these colours, with no sign board behind them:
+- WEAPON SHOP in orange
+- HATCH EGGS in yellow
+- YOUR GEAR in light blue
+- THE DEXES in purple (over the Dex Hall)
+
+Each building must say what it is from its silhouette alone, the way the Dex Hall's giant book does. Each has ONE huge landmark on its roof, the same scale as that book. The walls and roofs of the other three share the Dex Hall's construction (columns, gold bands, carpet) but each has its own roof colour:
+- WEAPON SHOP, orange-red roof: a colossal sword driven point-down through the roof, with a glowing forge chimney beside it and an anvil at the door, and the blacksmith at the anvil.
+- HATCH EGGS, golden-yellow roof: a giant speckled egg sitting in a nest on the roof, cracked with warm light pouring out, and smaller eggs on round pedestals at the door, and the fairy beside them.
+- YOUR GEAR, light-blue roof: a giant knight's helmet and round shield mounted on the roof, with armour stands holding gear either side of the door.
+- THE DEXES: the Dex Hall from image 1, unchanged.
+
+No characters other than the fairy and the blacksmith. No UI. No words other than the ones listed.

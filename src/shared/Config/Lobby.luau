@@ -59,27 +59,13 @@ export type Portal = {
 	requires: string?,
 }
 
---[[ A station's building: a cottage `size` studs (walls `size.Y` tall),
-     its roof `rise` studs above the walls, and its colours; `sign` is the
-     words on the board over its door. `chimney` adds a stone chimney,
-     `columns` a row of pillars along its front. What it is for shows three
-     ways (owner, 2026-10-27: "you still have to have some attributes to the
-     gear station, blacksmith, and egg hatchery that lets players know what
-     they are"): `title`, big words floating over it in `titleColour`, as
-     the reference clip floats "Eggs" over its eggs; `emblem`, a giant sign
-     of its trade on its ridge ("egg", "sword" or "shield"); and its props
-     out front, by `emblem` too (`Run/Lobby` `building`). ]]
+--[[ A station's footprint and height, which the spacing between stations is
+     measured against, and the big words floating over it. Its model is in
+     `Config/PalaceBuildings`. ]]
 export type Building = {
 	size: Vector3,
-	rise: number,
-	walls: Color3,
-	roof: Color3,
-	sign: string,
-	chimney: boolean?,
-	columns: boolean?,
-	title: string?,
-	titleColour: Color3?,
-	emblem: string?,
+	title: string,
+	titleColour: Color3,
 }
 
 --[[
@@ -256,10 +242,10 @@ local Lobby = {
 	--[[
 		The stations, one to each corner of the clearing (owner,
 		2026-11-01: "every building should be either northwest,
-		northeast, southwest, or southeast ... the dex hall is in the
-		southwest, the gear station is in the northwest, the blacksmith
-		is in the northeast, and the egg hatchery is in the southeast,
-		and then the portals are at the north").
+		northeast, southwest, or southeast ... and then the portals are at
+		the north"). Which goes where is the layout the owner chose on
+		2026-11-04 (`lobby_layout_reference.png`): weapons northwest, eggs
+		northeast, gear southwest, dexes southeast.
 
 		North is -Z and west is -X, so a corner is a sign on each. They
 		were strung along the east side before, which left the west half
@@ -269,199 +255,72 @@ local Lobby = {
 
 		The two northern ones stand clear of the portal terraces, whose
 		front ledge reaches z = -50.4: turned to face the middle they
-		reach z = -43, which leaves seven studs of lawn between.
+		reach about z = -47, which leaves three studs of lawn between.
 
 		The spawn's fountain keeps its old name `SpawnCampfire`, for the
 		screens that look it up. `Lobby.spec` keeps every footprint apart,
 		measured as each one is actually turned.
 	]]
 	stations = {
-		{ piece = "GearStation", at = Vector2.new(-66, -24) },
-		{ piece = "Blacksmith", at = Vector2.new(66, -24) },
-		{ piece = "DexHall", at = Vector2.new(-66, 36) },
-		{ piece = "EggHatchery", at = Vector2.new(66, 36) },
+		{ piece = "Blacksmith", at = Vector2.new(-66, -24) },
+		{ piece = "EggHatchery", at = Vector2.new(66, -24) },
+		{ piece = "GearStation", at = Vector2.new(-66, 36) },
+		{ piece = "DexHall", at = Vector2.new(66, 36) },
 		{ piece = "SpawnCampfire", at = Vector2.new(-8, 28) },
 	} :: { Placed },
 
 	buildings = {
-		--[[ Rebuilt from its sheet on 2026-11-02 (`Config/BlacksmithDesign`,
-		     where every measurement is written down): the sheet's shop is
-		     a stone forge open to the front under a chimney stack, not the
-		     red-roofed cottage with a sword on its ridge that stood here.
-		     `size` is what that build comes to -- the wall's width, its
-		     height, and the depth of the apron it stands on -- so the
-		     spacing between stations is measured against what is actually
-		     there. It carries no `rise`, `roof`, `chimney` or `emblem`:
-		     nothing of the cottage runs for it. ]]
 		Blacksmith = {
-			size = Vector3.new(32, 17, 22),
-			rise = 0,
-			walls = Color3.fromRGB(150, 152, 158),
-			roof = Color3.fromRGB(150, 152, 158),
-			sign = "BLACKSMITH",
+			size = Vector3.new(38, 41.6, 28),
 			title = "WEAPON SHOP",
 			titleColour = Color3.fromRGB(255, 150, 60),
 		},
-		--[[ Rebuilt from its sheet on 2026-11-02
-		     (`Config/HatcheryDesign`): an open timber pavilion under a
-		     flat stone deck, with the three eggs in one round nest ring
-		     under it. `size` is the pavilion's width, the top of its deck
-		     and its depth. As with the Blacksmith, no `rise`, `roof` or
-		     `emblem`. ]]
 		EggHatchery = {
-			size = Vector3.new(30, 24.6, 14),
-			rise = 0,
-			walls = Color3.fromRGB(150, 96, 52),
-			roof = Color3.fromRGB(176, 174, 166),
-			sign = "EGG HATCHERY",
+			size = Vector3.new(38, 40, 28),
 			title = "HATCH EGGS",
 			titleColour = Color3.fromRGB(255, 214, 72),
 		},
 		GearStation = {
-			size = Vector3.new(32, 12, 22),
-			rise = 9,
-			walls = Color3.fromRGB(248, 236, 208),
-			roof = Color3.fromRGB(66, 124, 214),
-			sign = "GEAR STATION",
+			size = Vector3.new(38, 42, 28),
 			title = "YOUR GEAR",
 			titleColour = Color3.fromRGB(110, 200, 255),
-			emblem = "shield",
 		},
-		--[[ Its size is what `dex.hall` builds, so the spacing between
-		     stations is measured against what actually stands there. It
-		     carries **no `sign`**: every other station hangs a wooden
-		     board, and on this one it covered the gable whatever size it
-		     was (owner, 2026-11-01: "i want the sign to disappear
-		     completely and the text to be above like the rest of the
-		     buildings"). Its name floats over it instead, as theirs do.
-		     Its walls and roof colours live in `dex.colours`; these two
-		     are here only because every building has them. ]]
 		DexHall = {
-			size = Vector3.new(38, 13.71, 28),
-			rise = 10,
-			walls = Color3.fromRGB(238, 226, 196),
-			roof = Color3.fromRGB(124, 44, 230),
-			sign = "",
+			size = Vector3.new(38, 19, 28),
 			title = "THE DEXES",
 			titleColour = Color3.fromRGB(196, 150, 255),
-			columns = true,
 		},
 	} :: { [string]: Building },
 
 	--[[
-		The Dex Hall, which is the owner's own model rather than parts
-		(2026-11-01: "ok i imported the dex hall i want you to use", and
-		"put the book on top and the book stands on the sides where they
-		belong"). Three imports: the hall itself, the open book that sits
-		astride its roof, and the stand that goes on each of the two stone
-		pads out front -- the hall mesh carries those pads, its porch
-		columns, its wall lanterns, its steps, its carpet and its shelves,
-		so nothing here draws them again.
-
-		Everything below is measured off the hall mesh itself, by raycast
-		against its own collision shape at the size it is drawn
-		(`across` = 38): the ridge stands 14.28 studs over its floor, and
-		the two pads are 0.9 studs high, 7 wide, centred 13 studs either
-		side of the middle and 11 studs forward.
-
-		The hall's front faces -Z as it was modelled, and a lobby building
-		faces south, so the whole assembly is turned by `turn` -- and
-		because the books are placed in the hall's own frame before that
-		turn, they come round with it.
-	]]
-	--[[
-		The Dex Hall, built from Roblox parts (owner, 2026-11-01: "the dex
-		hall needs to be remade, use the book stands and the book on the
-		top but make a whole new building", then "i want you to just use
-		parts already in roblox").
-
-		The import it replaces could never be textured -- it came out of
-		Tripo with no UVs at all -- and the generated stand-in texture was
-		never the sheet. Parts have no such problem: every colour here is
-		set outright, so the hall is the sheet's by construction rather
-		than by a generator's guess. It is also how every other station in
-		this lobby is built, and it lives in the repo rather than in the
-		place file, which a model left in the Workspace would not.
-
-		What stays imported are the two the owner modelled: the open book
-		on the roof and the stand on each pad.
-
-		The hall is built facing +Z, like every other station, and the
-		whole thing is then turned to face the middle (`facing`). `turn`
-		is the extra half-turn the two book imports need on top of that,
-		since they were modelled facing -Z.
+		The Dex Hall's two books, the owner's own models, which stay as they
+		are whatever hall they sit on (2026-11-04: "dont remake the book on the
+		roof and the book stands"). The hall itself is in
+		`Config/PalaceBuildings`, and these numbers are its flat roof deck and
+		its two pads, measured off its export. `turn` is the half-turn the
+		books need, modelled facing -Z where a building faces +Z.
 	]]
 	dex = {
 		turn = math.pi,
-		--[[ `across` and `deep` are the plinth's footprint; `ridge` is the
-		     flat top of the roof over the lawn, which the book rests on. ]]
-		--[[ `ridge` is the flat top of the roof over the lawn, which the
-		     book rests on. It came down from 16.3 with the pitch: the
-		     sheet's roof is long and low, and an 18.6 degree slope made
-		     a steep A of it (owner, 2026-11-01: "gable and roof"). ]]
-		--[[ `ridge` is where a slope of this pitch gets to over the
-		     middle, which is what the roof's cap is set to and what the
-		     book rests on; `Run/Lobby` works it out from `pitch` and
-		     uses its own, so this is the declared copy the spec checks
-		     the building's height against. ]]
-		hall = { across = 38, deep = 28, ridge = 13.71, pitch = 12 },
-		--[[
-			The open book on the roof.
-
-			`seat` is how far below the ridge its foot goes. Its own
-			bounding box reaches well below its covers -- down to the tip
-			of the ribbon -- so sitting that box on the roof leaves the
-			book hanging in the air above it, which is what it did at
-			first. Measured instead: the covers' underside is 2.35 studs
-			above the box's bottom where they meet the flat of the roof,
-			so that is the drop that puts them on it.
-		]]
+		hall = { across = 38, deep = 28, ridge = 19 },
+		--[[ `seat` is how far below the deck the book's foot goes: its box
+		     reaches down past its covers to the tip of the ribbon, and the
+		     covers' underside is 2.35 studs above the box's bottom. ]]
 		roofBook = {
 			mesh = "rbxassetid://132359194018769",
 			texture = "rbxassetid://75292294805929",
 			native = Vector3.new(0.9995, 0.5698, 0.5864),
 			across = 16,
 			seat = 2.35,
-			--[[ Forward of the middle, over the gable. ]]
-			forward = 4,
+			forward = 0,
 		},
-		--[[ The stand on each pad. ]]
 		standBook = {
 			mesh = "rbxassetid://111083341429927",
 			texture = "rbxassetid://105823115455072",
 			native = Vector3.new(0.9995, 0.8843, 0.6723),
 			across = 5.5,
 		},
-		--[[ The two stone pads the stands go on, built with the hall:
-		     outside the steps and a little forward of its front. ]]
 		pads = { out = 14, forward = 15, top = 1.2, size = Vector3.new(7, 1.2, 6) },
-		--[[ The lanterns either side of the porch, and the light each
-		     casts on the lawn. ]]
-		--[[ Turned down from 16 studs at 1.2 (owner, 2026-11-01: "the
-		     lighting is too strong"): at that strength the pair washed
-		     the whole front of the building out and the glass read as a
-		     flat yellow blob rather than a lamp. ]]
-		lanterns = { out = 9.55, height = 6.5, forward = 12, range = 8, brightness = 0.32 },
-		--[[ The sheet's palette, set on the parts outright. ]]
-		colours = {
-			roof = Color3.fromRGB(140, 40, 220),
-			gold = Color3.fromRGB(255, 215, 0),
-			timber = Color3.fromRGB(130, 80, 40),
-			panel = Color3.fromRGB(255, 248, 220),
-			stone = Color3.fromRGB(240, 235, 205),
-			column = Color3.fromRGB(255, 255, 255),
-			red = Color3.fromRGB(220, 30, 40),
-			--[[ Warmer and less blinding than the 255,200,50 it was. ]]
-			lantern = Color3.fromRGB(255, 186, 96),
-			iron = Color3.fromRGB(30, 30, 30),
-			--[[ The windows behind the shelves. ]]
-			glass = Color3.fromRGB(176, 222, 255),
-			books = {
-				Color3.fromRGB(138, 43, 226),
-				Color3.fromRGB(220, 30, 40),
-				Color3.fromRGB(255, 215, 0),
-			},
-		},
 	},
 
 	--[[ The fountain at the spawn: its basin, studs across, and the paved
@@ -587,12 +446,12 @@ local Lobby = {
 	     `at` is in studs from the station's centre. ]]
 	stands = {
 		EggHatchery = {
-			{ kind = "egg", key = "MossyEgg", at = Vector2.new(-6, 21) },
-			{ kind = "egg", key = "ThornwoodEgg", at = Vector2.new(12, 21) },
+			{ kind = "egg", key = "MossyEgg", at = Vector2.new(-15, 25) },
+			{ kind = "egg", key = "ThornwoodEgg", at = Vector2.new(15, 25) },
 		},
 		Blacksmith = {
-			{ kind = "crate", key = "MossyGlade", at = Vector2.new(-14, 22) },
-			{ kind = "crate", key = "Thornwood", at = Vector2.new(4, 22) },
+			{ kind = "crate", key = "MossyGlade", at = Vector2.new(-15, 25) },
+			{ kind = "crate", key = "Thornwood", at = Vector2.new(15, 25) },
 		},
 	} :: { [string]: { { kind: string, key: string, at: Vector2 } } },
 	--[[ A stand's platform, studs across. ]]

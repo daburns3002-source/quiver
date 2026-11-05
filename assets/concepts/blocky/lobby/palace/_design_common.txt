@@ -1,0 +1,8 @@
+Build this as one low-poly 3D object, exportable as GLB. The attached sheet is the reference: match it 1 to 1 from every labelled view. The second image is the sibling building it must look like the same family as: same plank walls, white square columns with gold bands, timber gable, gold roof corners.
+
+Scale: 1 unit = 1 Roblox stud. Footprint 38 wide (X) by 28 deep (Z), walls about 14 tall, ridge about 24 high, floor at Y = 0, centred on the origin, the front facing -Z. The landmark stands above that.
+Finish: flat colours only, simple bevels, no textures, no outlines. Every named object is its own separate named mesh node. Keep it under 6000 triangles in total. All four sides are finished and players walk around it, and the porch is walkable with a real open doorway.
+Do NOT model: the floating title, the character, smoke, sparks, flames, or glow rays. Those are added in the game. Lit materials are fine for windows and lanterns.
+Every building in this set has: three broad steps up to the porch with the red, gold-edged carpet running up them; windows with white frames and warm glowing panes; a glowing lantern on the wall beside each porch column; a column at each back corner and one at the middle of the back wall.
+No animation. Show it on a plain background with orbit controls and a Download GLB button.
+

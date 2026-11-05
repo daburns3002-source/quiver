@@ -1,0 +1,3 @@
+Generate ONE 16:9 image and save it in the current directory as palace_b_sunset_ruin.png
+
+Setting for this version: THE SUNSET PALACE. A ruined palace courtyard reclaimed by the forest at golden hour. Warm cream and white marble floors, cracked, with moss in the joints and gold inlaid rings around the plaza. Broken white columns wrapped in vines line the walkways, with chunky green trees beyond the walls and waterfalls falling past the courtyard's edge. Red carpets. Long warm light and soft purple shadows. This is the brightest of the versions and still ties to the green forest areas of the game.

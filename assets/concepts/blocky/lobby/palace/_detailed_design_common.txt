@@ -1,0 +1,6 @@
+Build this as one stylised 3D object, exportable as GLB. The attached sheet is the reference: match it 1 to 1 from every labelled view, including its level of detail. All the detail on the sheet is real modelled geometry: individual overlapping roof shingles, separate wall planks and timber frames, carved columns, stone foundation blocks, arched window frames with leaded panes, layered gable beams, and furnished interiors seen through the doorway. Do not simplify it into flat slabs.
+
+Scale: 1 unit = 1 Roblox stud. Footprint 38 wide (X) by 28 deep (Z) with the steps extending forward of that, floor at Y = 0, centred on the origin, the front facing -Z. The top of the roof is at Y = 13.71 and the roof pitch is low, about 12 degrees. Any roof landmark stands above that.
+Finish: flat saturated colours with soft bevels, no textures and no outlines. Every named object is its own separate named mesh node, with no single node over 5000 triangles and about 20000 triangles in total. All four sides are finished because players walk around it, and the porch is walkable with a real open doorway.
+Do NOT model: the floating title, any character, smoke, sparks, flames, or glow rays. Those are added in the game. Lit materials are fine for windows, lanterns and forge mouths.
+No animation. Show it on a plain background with orbit controls and a Download GLB button.

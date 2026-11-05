@@ -1,0 +1,11 @@
+Generate ONE 16:9 image at the highest resolution available and save it in the current directory as building_hatch_eggs_detailed.png
+
+A detailed art-direction reference sheet for one building in a mobile game's lobby, precise enough for a modeller to work from.
+
+The building is HATCH EGGS. Roof: golden-yellow shingles.
+Landmark: three giant eggs in a row along the ridge, each on its own ornate carved golden stand. Left: pink with darker pink zigzags. Middle: larger, blue with white zigzags, floating clear above its empty stand and glowing. Right: green with darker spots. Do not draw a nest or a cracked egg.
+Gable emblem: a gold egg. Banners: yellow with a gold egg.
+Interior through the door: shelves of small colourful eggs on straw, and warm light.
+Props at the door: a small carved golden stand holding a spotted egg, a straw-lined wooden crate of three small eggs, a stone pot of pink flowers, and a hanging basket of leaves.
+Character: the fairy, at the door, holding an egg.
+Title: HATCH EGGS, in glowing yellow.

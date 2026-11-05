@@ -1,0 +1,4 @@
+Make YOUR GEAR from the sheet.
+Roof: light blue hipped roof.
+Landmark: a giant steel knight's helmet with barred visor, gold trim and blue plume, and a giant round blue shield with gold rim and a gold star, leaning against the helmet's right side as drawn.
+Door props, as separate nodes: two armour stands, silver with gold trim and red with gold trim, and a wooden chest with gold lock.

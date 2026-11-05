@@ -1,0 +1,4 @@
+Make HATCH EGGS from the sheet.
+Roof: golden yellow hipped roof.
+Landmark: three large eggs in a row along the ridge, each on its own golden stand. Left: pink with darker pink zigzags. Middle: larger, blue with white zigzags, floating clear above its empty stand, as a separate node named egg_float so the game can bob it. Right: green with darker spots. Build the patterns from coloured geometry, with no textures.
+Door props, as separate nodes: a small golden stand holding a spotted egg, a straw-lined crate of three small eggs, and a pot of pink flowers.

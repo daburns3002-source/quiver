@@ -1,0 +1,21 @@
+
+Reference images attached, in order:
+1. THE LOBBY LAYOUT. The building belongs in this world. Match its light, colours, materials and finish.
+2. The landmark sheet. The chosen option is named below; keep its landmark's shape and its proportion to the building.
+3. THE DEX HALL as it stands in the game. This building is its sibling: copy its construction exactly, meaning brown plank walls, white square columns with gold bands, a brown timber gable over an open porch, a sloped roof with gold corners, and a red carpet with gold edges. Change only the roof colour, the landmark and the props named below.
+4. The character who stands at this building, for scale and for colours.
+
+Style: clean, smooth, chunky low-poly shapes, flat saturated colours, simple bevels. No pixel textures and no noisy voxel surfaces. Every object is a separate, clearly readable solid, so a modeller can build it from these views.
+
+Sheet layout: a plain light-grey backdrop with no scenery and no ground except a small soft shadow. One large panel on the left, about half the sheet, with the smaller panels stacked and arranged on the right. Each panel has a small black label.
+
+HERO, the large panel: the whole building from the game's high three-quarter camera, front and one side visible, the character at the door, and the big glowing blocky pixel-font title floating above the landmark with no board behind it.
+FRONT: a straight-on elevation with no perspective.
+SIDE: a straight-on elevation with no perspective.
+BACK: a straight-on elevation with no perspective. The back is finished too, with walls, columns and roof, because players can walk around it.
+TOP: straight down, showing the roof shape and where the landmark sits on it.
+LANDMARK: the roof landmark alone, large, with no building.
+PROPS: the door props alone, each drawn separately and spaced apart.
+COLOURS: a strip of six flat swatches for this building's main colours.
+
+The same building in every panel, with the same proportions and details. Only the title and the panel labels HERO, FRONT, SIDE, BACK, TOP, LANDMARK, PROPS and COLOURS may appear as words. Spell every word exactly.

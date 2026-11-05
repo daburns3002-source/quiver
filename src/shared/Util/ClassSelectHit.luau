@@ -14,4 +14,25 @@ function ClassSelectHit.section(x: number, y: number): number?
 	end
 	return nil
 end
+--[[ The section under (`x`, `y`) on the upright picture `layout`: its band
+     picks the class and its side the look, male left of `split`. ]]
+function ClassSelectHit.upright(
+	layout: {
+		size: Vector2,
+		split: number,
+		bands: { { top: number, bottom: number } },
+	},
+	x: number,
+	y: number
+): number?
+	if x < 0 or x > layout.size.X then
+		return nil
+	end
+	for band, edges in layout.bands do
+		if y >= edges.top and y < edges.bottom then
+			return (band - 1) * 2 + (if x < layout.split then 1 else 2)
+		end
+	end
+	return nil
+end
 return table.freeze(ClassSelectHit)

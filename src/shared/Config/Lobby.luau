@@ -69,37 +69,37 @@ export type Building = {
 }
 
 --[[
-	Which way a building at `at` is turned: toward the fountain in the
-	middle of the courtyard (owner, 2026-11-01; the layout sheet, 2026-11-04),
-	as radians about Y.
+	Which way a building at `at` is turned, as radians about Y: south, towards
+	the camera, and `TURN_IN` towards the middle line, as the layout sheet draws
+	all four with their doors in view (owner, 2026-11-05: make it look like the
+	reference). This replaces "every one facing the middle" of 2026-11-01, which
+	showed the camera the backs of the southern two.
 
 	A building is modelled facing +Z, which `CFrame.Angles(0, y, 0)` sends
-	to (sin y, cos y), so the turn that points its front at the fountain is
-	the bearing from `at` to `MIDDLE`. One function because three places need to agree
+	to (sin y, cos y). One function because three places need to agree
 	about it -- the builder, the stands it puts out front, and the spec
 	that measures the footprints -- and a building facing a way its own
 	eggs do not is the bug this exists to make impossible.
 
-	A station standing dead in the middle has no bearing to face, and is
-	left unturned.
+	A station standing on the middle line is left unturned.
 ]]
 local MIDDLE = Vector2.new(0, 6)
+local TURN_IN = 0.25
 
-local function facingMiddle(at: Vector2): number
-	local way = MIDDLE - at
-	if way.Magnitude < 1e-3 then
+local function facingSouth(at: Vector2): number
+	if math.abs(at.X) < 1e-3 then
 		return 0
 	end
-	return math.atan2(way.X, way.Y)
+	return -math.sign(at.X) * TURN_IN
 end
 
 --[[ Where a point `offset` studs from a building's own middle lands once
-     that building is turned to face the middle: its local +Z is the way it
+     that building is turned: its local +Z is the way it
      faces, its +X to that way's right. The egg and crate stands are placed
      with this, so they stay out front whichever corner their station is
      on. ]]
 local function turnedOffset(at: Vector2, offset: Vector2): Vector2
-	local yaw = facingMiddle(at)
+	local yaw = facingSouth(at)
 	local s, c = math.sin(yaw), math.cos(yaw)
 	return Vector2.new(offset.X * c + offset.Y * s, -offset.X * s + offset.Y * c)
 end
@@ -110,8 +110,8 @@ local CYAN = Color3.fromRGB(70, 220, 224)
 
 local Lobby = {
 	--[[ Which way a building faces, and where a thing placed in front of
-	     it lands once it is turned. See `facingMiddle` above. ]]
-	facing = facingMiddle,
+	     it lands once it is turned. See `facingSouth` above. ]]
+	facing = facingSouth,
 	turnedOffset = turnedOffset,
 
 	--[[ Where the lobby's centre stands in the world: well away from the
@@ -246,22 +246,28 @@ local Lobby = {
 		and the portals beyond it.
 
 		The two northern ones stand clear of the portal terraces, whose
-		front ledge reaches z = -56.4: turned to face the fountain they
-		reach about z = -48. They moved in from x = 66 for the layout sheet,
-		where the four sit close round the fountain with only a short carpet
-		between.
+		front ledge reaches z = -56.4: grown by `buildingScale` and turned in,
+		they reach about z = -51. The rows stand 68 studs apart, so a northern
+		building is not hidden behind a southern one's roof from the camera,
+		and x = 51 north and 56 south keeps their outer corners inside the
+		balustrade, whose northern corners are cut on the slant.
 
 		The spawn's fountain keeps its old name `SpawnCampfire`, for the
 		screens that look it up. `Lobby.spec` keeps every footprint apart,
 		measured as each one is actually turned.
 	]]
 	stations = {
-		{ piece = "Blacksmith", at = Vector2.new(-52, -24) },
-		{ piece = "EggHatchery", at = Vector2.new(52, -24) },
-		{ piece = "GearStation", at = Vector2.new(-52, 36) },
-		{ piece = "DexHall", at = Vector2.new(52, 36) },
+		{ piece = "Blacksmith", at = Vector2.new(-51, -28) },
+		{ piece = "EggHatchery", at = Vector2.new(51, -28) },
+		{ piece = "GearStation", at = Vector2.new(-56, 40) },
+		{ piece = "DexHall", at = Vector2.new(56, 40) },
 		{ piece = "SpawnCampfire", at = MIDDLE },
 	} :: { Placed },
+
+	--[[ How much larger than its export each building stands: the sheet's are
+	     nearly a third of the courtyard's width. `buildings[...].size` is the
+	     export's own, so a footprint is that times this. ]]
+	buildingScale = 1.25,
 
 	buildings = {
 		Blacksmith = {
@@ -345,7 +351,7 @@ local Lobby = {
 		openEdges = { 5, 10 },
 		terraceEdge = 10,
 		--[[ How far the ground past the balustrade lies below the floor. ]]
-		drop = 8,
+		drop = 18,
 		tile = Vector2.new(10, 7.5),
 		joint = 0.35,
 		--[[ The share of flagstones with moss along a joint, then how many
@@ -392,7 +398,7 @@ local Lobby = {
 		ambient = Color3.fromRGB(170, 122, 114),
 		outdoorAmbient = Color3.fromRGB(216, 160, 148),
 		brightness = 1.9,
-		clockTime = 8,
+		clockTime = 9.5,
 		geographicLatitude = -20,
 		sunTint = Color3.fromRGB(255, 186, 128),
 		shadowSoftness = 0.4,
@@ -405,11 +411,13 @@ local Lobby = {
 		contrast = 0.08,
 		gradeBrightness = 0,
 		gradeTint = Color3.fromRGB(255, 238, 226),
-		hazeDensity = 0.22,
-		hazeColor = Color3.fromRGB(255, 232, 214),
-		hazeDecay = Color3.fromRGB(150, 176, 226),
-		hazeGlare = 0.1,
-		haze = 0.9,
+		--[[ Thin and blue: the warm haze this used to be turned the whole sky
+		     grey, and its glare whitened the trees towards the sun. ]]
+		hazeDensity = 0.1,
+		hazeColor = Color3.fromRGB(190, 222, 255),
+		hazeDecay = Color3.fromRGB(110, 170, 255),
+		hazeGlare = 0,
+		haze = 0.6,
 	},
 
 	--[[ The sky stays blue, with clouds and a sun (owner, 2026-11-05: "make
@@ -434,10 +442,12 @@ local Lobby = {
 
 	     `face` is studs from the board's foot to where the names are
 	     written, and `turn` how far the whole board is turned about Y. With
-	     no turn a board reads south, which is what both did before. ]]
+	     no turn a board reads south, towards the camera, as the layout sheet
+	     draws them (owner, 2026-11-05); they read north from 2026-11-01, which
+	     showed the camera their backs. ]]
 	leaderboard = {
 		at = Vector2.new(-22, 78),
-		turn = math.pi,
+		turn = 0,
 		face = { centre = Vector3.new(0, 10, 0.9), size = Vector2.new(16.8, 11.4) },
 	},
 
@@ -446,11 +456,16 @@ local Lobby = {
 	     a player sees both at once. Same build, same face, same turn. ]]
 	endlessLeaderboard = {
 		at = Vector2.new(22, 78),
-		turn = math.pi,
+		turn = 0,
 		face = { centre = Vector3.new(0, 10, 0.9), size = Vector2.new(16.8, 11.4) },
 	},
 
 	--[[ The look, off the layout sheet's swatches: flat, warm, smooth. ]]
+	--[[ The ground below the balustrade, a deeper green than the lawn ledges
+	     were, so the wood round the courtyard reads as the sheet's shaded
+	     forest floor rather than a bright field. ]]
+	forestFloor = Color3.fromRGB(82, 140, 56),
+
 	colours = {
 		marble = {
 			Color3.fromRGB(251, 226, 198),

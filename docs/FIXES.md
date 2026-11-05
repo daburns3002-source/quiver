@@ -16,6 +16,16 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## The lobby's sky was grey and its front buildings faced away
+
+**Seen:** the lobby from above under a grey sky, the Your Gear and Dexes buildings and both
+leaderboards showing their backs to the camera, the trees towards the sun glowing white.
+**Cause:** `Config/Lobby.light`'s warm haze (density 0.22, haze 0.9, glare 0.1) at clock 8 greyed
+the whole sky; every building faced the fountain, so the southern two faced north, away from the
+camera, and the boards had been turned to read north. **Fix:** a thin blue haze with no glare at
+clock 9.5; buildings face south turned 0.25 rad in, the boards read south. **Measured:** in Play from
+the sheet's angle, the sky reads blue with clouds and all four doors and both board faces are in view.
+
 ## The enemy took the damage after the arrow had flown past it
 
 **Symptom**: 2026-11-03, the owner: "the enemy does take damage, but the arrow has already flown past, or the spark is in the wrong place."

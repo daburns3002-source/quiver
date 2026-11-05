@@ -209,9 +209,10 @@ local function underBuilding(at: Vector2): boolean
 			local yaw = LobbyConfig.facing(station.at)
 			local s, c = math.sin(yaw), math.cos(yaw)
 			local d = at - station.at
+			local size = spec.size * LobbyConfig.buildingScale
 			if
-				math.abs(d.X * c - d.Y * s) < spec.size.X / 2 - 2
-				and math.abs(d.X * s + d.Y * c) < spec.size.Z / 2 - 2
+				math.abs(d.X * c - d.Y * s) < size.X / 2 - 2
+				and math.abs(d.X * s + d.Y * c) < size.Z / 2 - 2
 			then
 				return true
 			end
@@ -583,7 +584,9 @@ function LobbyCourtyard.arrival(rng: Random, parent: Instance)
 	circle.Parent = parent
 end
 
---[[ A red carpet from each building's steps to the plaza's inner ring. ]]
+--[[ The sheet's red carpets. A northern building's runs from its steps to the
+     plaza's inner ring. A southern one has its back to the plaza, so a carpet
+     runs from the ring in under it, and a short one from its steps southward. ]]
 function LobbyCourtyard.buildingCarpets(parent: Instance)
 	local carpets = Instance.new("Model")
 	carpets.Name = "Carpets"
@@ -591,13 +594,16 @@ function LobbyCourtyard.buildingCarpets(parent: Instance)
 	for _, station in LobbyConfig.stations do
 		local design = PalaceBuildings[station.piece]
 		if design then
-			local way = (middle - station.at).Unit
-			carpet(
-				station.at + way * (design.front - 1),
-				middle - way * (SPEC.plazaInner / 2 - 0.4),
-				SPEC.carpetWidth,
-				carpets
-			)
+			local yaw = LobbyConfig.facing(station.at)
+			local front = Vector2.new(math.sin(yaw), math.cos(yaw))
+			local door = station.at + front * (design.front * LobbyConfig.buildingScale - 1)
+			local north = station.at.Y < middle.Y
+			local from = if north then door else station.at
+			local way = (middle - from).Unit
+			carpet(from, middle - way * (SPEC.plazaInner / 2 - 0.4), SPEC.carpetWidth, carpets)
+			if not north then
+				carpet(door, door + front * 14, SPEC.carpetWidth, carpets)
+			end
 		end
 	end
 	carpets.Parent = parent

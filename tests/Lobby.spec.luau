@@ -43,18 +43,17 @@ return function(t: TestRunner.Helper)
 		t.equal(found, 4, "all four placed")
 	end)
 
-	t.test("every building faces the middle", function()
+	t.test("every building faces the camera, turned in towards the middle line", function()
 		for _, station in LobbyConfig.stations do
 			if not LobbyConfig.buildings[station.piece] then
 				continue
 			end
 			local yaw = LobbyConfig.facing(station.at)
 			--[[ Its front is local +Z, which a turn about Y sends to
-			     (sin, cos). Pointed at the middle, that is the way from
-			     the building to the fountain. ]]
+			     (sin, cos): mostly south, and a little towards x = 0. ]]
 			local front = Vector2.new(math.sin(yaw), math.cos(yaw))
-			local toMiddle = (LobbyConfig.middle - station.at).Unit
-			t.isTrue((front - toMiddle).Magnitude < 1e-4, station.piece)
+			t.isTrue(front.Y > 0.9, `{station.piece} turns its back on the camera`)
+			t.isTrue(front.X * station.at.X < 0, `{station.piece} turns outward`)
 		end
 	end)
 
@@ -237,7 +236,7 @@ return function(t: TestRunner.Helper)
 			local spec = LobbyConfig.buildings[station.piece]
 			if spec then
 				-- the foundation reaches a stud past the walls
-				local size = spec.size + Vector3.new(2, 0, 2)
+				local size = spec.size * LobbyConfig.buildingScale + Vector3.new(2, 0, 2)
 				local yaw = LobbyConfig.facing(station.at)
 				local s, c = math.abs(math.sin(yaw)), math.abs(math.cos(yaw))
 				local turned = Vector3.new(size.X * c + size.Z * s, size.Y, size.X * s + size.Z * c)
@@ -296,7 +295,8 @@ return function(t: TestRunner.Helper)
 				local s, c = math.sin(yaw), math.cos(yaw)
 				for _, sx in { -1, 1 } do
 					for _, sz in { -1, 1 } do
-						local x, z = sx * spec.size.X / 2, sz * spec.size.Z / 2
+						local size = spec.size * LobbyConfig.buildingScale
+						local x, z = sx * size.X / 2, sz * size.Z / 2
 						local corner = station.at + Vector2.new(x * c + z * s, -x * s + z * c)
 						t.isTrue(
 							LobbyCourtyard.inside(corner, 2),
@@ -356,7 +356,8 @@ return function(t: TestRunner.Helper)
 				local s, c = math.sin(yaw), math.cos(yaw)
 				for _, sx in { -1, 1 } do
 					for _, sz in { -1, 1 } do
-						local x, z = sx * spec.size.X / 2, sz * spec.size.Z / 2
+						local size = spec.size * LobbyConfig.buildingScale
+						local x, z = sx * size.X / 2, sz * size.Z / 2
 						local cornerZ = station.at.Y + (-x * s + z * c)
 						t.isTrue(cornerZ > foot, `{station.piece} reaches the terrace`)
 					end

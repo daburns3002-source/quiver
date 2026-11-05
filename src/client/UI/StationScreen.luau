@@ -211,7 +211,7 @@ function StationScreen.new(name: string, stationName: string, promptWords: strin
 			return false
 		end
 		local flat = Vector3.new(root.Position.X, 0, root.Position.Z)
-		if not station or (flat - station).Magnitude > 28 then
+		if not station or (flat - station).Magnitude > 34 then
 			return false
 		end
 		--[[ Every station that opens a screen, so the nearest one wins

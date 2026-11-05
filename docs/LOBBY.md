@@ -199,3 +199,17 @@ held inside the balustrade's outline. **The lobby's light wins while players are
 `Atmosphere.lobby` sets it from `InLobby`, and a room's own light comes back as they leave. A test
 run in `execute_luau` loads its own copy of `Atmosphere`, so it can leave the room's light showing in
 the lobby until `InLobby` next changes; that is the probe, not the game.
+
+**Second pass against the sheet (2026-11-05).** The owner asked again for it to look like the
+reference, keeping the blue sky. From the sheet's angle the southern two buildings showed their backs
+and the leaderboards their stone backs, so all four buildings now face south, turned `TURN_IN`
+(0.25 rad) towards the middle line, and the boards read south: both reverse the owner's 2026-11-01
+calls, in favour of the sheet. The buildings stand `buildingScale` (1.25) larger, as the sheet's are
+nearly a third of the courtyard's width, and the rows sit further apart so a northern one shows over
+a southern roof. The southern buildings' carpets run in under them from the plaza and out from their
+doors southward. The titles are two lines, larger, with a thicker outline, over each building's
+outer shoulder. The haze is thin and blue (`hazeGlare` 0, which had whitened the trees towards the
+sun) and the clock is 9.5, as the warm haze had turned the whole sky grey. The courtyard stands
+`courtyard.drop` (18) studs above a darker `forestFloor`, and the brown lawn ledges round it are gone.
+Still not matched: the tree import's bright blocky crowns (a textured mesh ignores `Color`, so it
+cannot be tinted), and the blacksmith, fairy and arcade vines.

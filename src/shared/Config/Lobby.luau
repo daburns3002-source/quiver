@@ -151,7 +151,9 @@ local Lobby = {
 		},
 		{ name = "Thornwood", levels = { 4 }, tint = PURPLE },
 		{ name = "Drowned Village" },
-		{ name = "Bogheart Caverns" },
+		--[[ Bogheart Caverns (2026-11-06): one level, twenty rooms ending in
+		     Grandmother Gulp, as Thornwood's is. ]]
+		{ name = "Bogheart Caverns", levels = { 19 }, tint = CYAN },
 		{ name = "Windswept Cliffs" },
 		{ name = "Frostpeak Pass" },
 		{ name = "Ember Mines" },

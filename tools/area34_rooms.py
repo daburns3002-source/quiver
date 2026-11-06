@@ -29,10 +29,12 @@ body's width between pieces, clear of the start, the exit and the gate's
 approach, and a walk from the start to the exit (`tests/RoomPaths.spec`
 checks it again in game).
 
-Rosters are stand-ins until each area's own enemies are modelled
-(`docs/DROWNED-VILLAGE.md`): the Hollow Fisherman, area 3's one finished
-enemy, among Thornwood's; area 4 has none of its own yet, so Thornwood's
-alone. Neither stage is behind a portal yet.
+Area 3's rosters are stand-ins until its own enemies are modelled
+(`docs/DROWNED-VILLAGE.md`): the Hollow Fisherman, its one finished enemy,
+among Thornwood's, and its stage is behind no portal. Area 4 has its own
+(2026-11-06): twenty rooms like Thornwood's, nineteen fights of the Spore
+Puff, Glowcap and Shellback, then Grandmother Gulp alone in the Bogheart
+Heart.
 """
 import pathlib
 from collections import deque
@@ -152,16 +154,28 @@ DROWNED = [
 TWO_NORTH = MUSHROOMS[:2]
 TWO_SOUTH = MUSHROOMS[2:]
 BOGHEART = [
-    ("Bogheart Caverns 1", "BogheartOpen", MUSHROOMS, 3, "brambleBoar, burrThistle"),
-    ("Bogheart Caverns 2", "BogheartStream", STREAM + TWO_SOUTH, 4, "brambleBoar, burrThistle"),
-    ("Bogheart Caverns 3", "BogheartStream", STREAM + MUSHROOMS, 4, "burrThistle, brambleBoar, brambleSow"),
-    ("Bogheart Caverns 4", "BogheartOpen", MUSHROOMS, 5, "brambleBoar, brambleLurker, burrThistle"),
-    ("Bogheart Caverns 5", "BogheartStream", STREAM + TWO_NORTH, 5, "brambleSow, burrThistle, brambleBoar"),
-    ("Bogheart Caverns 6", "BogheartStream", STREAM + MUSHROOMS, 5, "brambleLurker, brambleBoar, brambleSow"),
-    ("Bogheart Caverns 7", "BogheartOpen", MUSHROOMS, 6, "burrThistle, brambleLurker, brambleBoar, brambleSow"),
-    ("Bogheart Caverns 8", "BogheartStream", STREAM + MUSHROOMS, 6, "brambleBoar, brambleSow, burrThistle, brambleLurker"),
-    ("Bogheart Caverns 9", "BogheartStream", STREAM + TWO_SOUTH, 6, "brambleSow, brambleLurker, burrThistle, brambleBoar"),
-    ("Bogheart Heart", "BogheartBoss", STREAM + MUSHROOMS, 7, "brambleSow, brambleBoar, burrThistle, brambleLurker"),
+    #: Nineteen fights, Spore Puffs first, then the Glowcap, then the
+    #: Shellback, each room a little harder; then Grandmother Gulp alone.
+    ("Bogheart Caverns 1", "BogheartOpen", MUSHROOMS, 3, "sporePuff"),
+    ("Bogheart Caverns 2", "BogheartStream", STREAM + TWO_SOUTH, 3, "sporePuff, glowcap"),
+    ("Bogheart Caverns 3", "BogheartStream", STREAM + MUSHROOMS, 4, "sporePuff, glowcap"),
+    ("Bogheart Caverns 4", "BogheartOpen", MUSHROOMS, 4, "glowcap, sporePuff, sporePuff"),
+    ("Bogheart Caverns 5", "BogheartStream", STREAM + TWO_NORTH, 4, "shellback, sporePuff"),
+    ("Bogheart Caverns 6", "BogheartStream", STREAM + MUSHROOMS, 5, "sporePuff, glowcap, shellback"),
+    ("Bogheart Caverns 7", "BogheartOpen", MUSHROOMS, 5, "shellback, sporePuff, glowcap"),
+    ("Bogheart Caverns 8", "BogheartStream", STREAM + TWO_SOUTH, 5, "glowcap, sporePuff, sporePuff, shellback"),
+    ("Bogheart Caverns 9", "BogheartStream", STREAM + MUSHROOMS, 5, "shellback, glowcap, sporePuff"),
+    ("Bogheart Caverns 10", "BogheartOpen", MUSHROOMS, 6, "sporePuff, sporePuff, glowcap, shellback"),
+    ("Bogheart Caverns 11", "BogheartStream", STREAM + TWO_NORTH, 6, "glowcap, shellback, sporePuff"),
+    ("Bogheart Caverns 12", "BogheartStream", STREAM + MUSHROOMS, 6, "shellback, sporePuff, glowcap, sporePuff"),
+    ("Bogheart Caverns 13", "BogheartOpen", MUSHROOMS, 6, "glowcap, glowcap, sporePuff, shellback"),
+    ("Bogheart Caverns 14", "BogheartStream", STREAM + TWO_SOUTH, 7, "sporePuff, shellback, glowcap, sporePuff"),
+    ("Bogheart Caverns 15", "BogheartStream", STREAM + MUSHROOMS, 7, "shellback, glowcap, sporePuff, sporePuff"),
+    ("Bogheart Caverns 16", "BogheartOpen", MUSHROOMS, 7, "glowcap, sporePuff, shellback, sporePuff"),
+    ("Bogheart Caverns 17", "BogheartStream", STREAM + TWO_NORTH, 7, "shellback, shellback, glowcap, sporePuff"),
+    ("Bogheart Caverns 18", "BogheartStream", STREAM + MUSHROOMS, 8, "sporePuff, glowcap, shellback, sporePuff"),
+    ("Bogheart Caverns 19", "BogheartStream", STREAM + MUSHROOMS, 8, "shellback, glowcap, sporePuff, glowcap, sporePuff"),
+    ("Bogheart Heart", "BogheartBoss", STREAM + MUSHROOMS, 1, "grandmotherGulp"),
 ]
 
 

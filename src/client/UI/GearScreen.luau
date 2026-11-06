@@ -1,17 +1,24 @@
 --!strict
 --[[
-	The Gear sheet (owner, 2026-10-26: "the player's own character in the middle").
-	Weapons remain 2D pictures; the character, held preview and companions enter the viewport.
+	The Gear sheet (owner, 2026-10-26: "the player's own character in the middle"),
+	in the chunky style (owner, 2026-11-05; mockup assets/concepts/ui_refs/
+	mockups/gear.jpg): the gold GEAR ribbon and red X, the hero on a stone
+	pedestal with ATK and HP on a gold plate, the slots either side, and a
+	white inventory card of tabs, rarity tiles and buttons. Laid out on
+	1920 x 1080, or 1080 x 1920 held upright. Weapons remain 2D pictures; the
+	character, held preview and companions enter the viewport.
 ]]
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
+local Chunky = require(script.Parent.Chunky)
 local Classes = require(ReplicatedStorage.Shared.Config.Classes)
 local EggRules = require(ReplicatedStorage.Shared.Util.EggRules)
 local EggScreen = require(script.Parent.EggScreen)
 local GearAssets = require(ReplicatedStorage.Shared.Config.GearAssets)
+local HatchStand = require(script.Parent.HatchStand)
 local Kit = require(script.Parent.Kit)
 local Pets = require(ReplicatedStorage.Shared.Config.Pets)
 local Rarities = require(ReplicatedStorage.Shared.Config.Rarities)
@@ -29,14 +36,6 @@ local screen: StationScreen.Screen? = nil
 local tab = "GEAR"
 local byName = false
 local preferredPetSlot: number? = nil
-type Entry = {
-	key: string,
-	name: string,
-	rarity: string,
-	icon: string,
-	owned: boolean,
-	count: number,
-}
 function GearScreen.open()
 	if screen then
 		screen.open()
@@ -62,6 +61,7 @@ end
 local function portrait(
 	parent: Instance,
 	put: (GuiObject, number, number, number, number) -> (),
+	rect: { number },
 	weaponName: string?,
 	pets: { string }?
 )
@@ -70,7 +70,7 @@ local function portrait(
 	viewport.ZIndex = 2
 	viewport.Ambient = Color3.fromRGB(200, 200, 200)
 	viewport.LightColor = Color3.new(1, 0.94, 0.8)
-	put(viewport, 600, 88, 720, 412)
+	put(viewport, rect[1], rect[2], rect[3], rect[4])
 	viewport.Parent = parent
 	local world = Instance.new("WorldModel")
 	world.Parent = viewport
@@ -161,7 +161,8 @@ local function portrait(
 	end
 	local bounds, size = clone:GetBoundingBox()
 	local center = bounds.Position
-	-- Fit the full body to 92% of the frame, allowing for depth and the gentle turn.
+	-- Fit the full body to 92% of the frame, allowing for depth and the gentle turn;
+	-- a held sword or an aura may reach a little past the sides.
 	local function frameCamera()
 		local aspect = viewport.AbsoluteSize.X / math.max(1, viewport.AbsoluteSize.Y)
 		local halfFov = math.tan(math.rad(camera.FieldOfView / 2))
@@ -169,7 +170,7 @@ local function portrait(
 		local halfWidth = (size.X + size.Z * 0.35) / 2
 		local distance = math.max(
 			size.Y / (2.04 * halfFov),
-			halfWidth / (0.95 * halfFov * math.max(aspect, 0.1))
+			halfWidth / (1.15 * halfFov * math.max(aspect, 0.1))
 		) + size.Z / 2
 		-- Roblox characters face -Z after PivotTo(CFrame.new()).
 		camera.CFrame = CFrame.lookAt(chest - Vector3.new(0, 0, distance), chest)
@@ -185,19 +186,52 @@ local function portrait(
 		resized:Disconnect()
 	end)
 end
-type Rect = { number }
---[[ Whether the screen is laid out landscape (PC and console, owner,
-     2026-10-27: "these buttons and the layout needs to also be formatted
-     landscape for the pc and console"): the canvas is 1920 x 1080, the
-     showcase on the left and the sheet on the right; otherwise the
-     reference's tall column, 1920 x `TALL`. ]]
-local wideLayout = false
+--[[ A weapon's 2D art, the same picture the Blacksmith shows (never a
+     render: owner's standing rule). ]]
+local function weaponArt(weapon: string): string
+	return ShopAssets.weapons[weapon] or GearAssets.weapons[weapon] or ""
+end
+type Entry = {
+	key: string,
+	name: string,
+	rarity: string,
+	icon: string,
+	owned: boolean,
+	count: number,
+}
+--[[ A fresh sheet that draws over everything already on `sheet`: the
+     same sheet pixels, laid on `over` (which covers the whole canvas). ]]
+local function overlay(sheet: Chunky.Sheet, over: GuiObject): Chunky.Sheet
+	return { canvas = over :: any, w = sheet.w, h = sheet.h, upright = sheet.upright }
+end
+local function plate(
+	sheet: Chunky.Sheet,
+	colour: Color3,
+	x: number,
+	y: number,
+	w: number,
+	h: number
+): Frame
+	local f = Instance.new("Frame")
+	f.BorderSizePixel = 0
+	f.BackgroundColor3 = Color3.new(1, 1, 1)
+	f.ZIndex = 8
+	Chunky.put(sheet, f, x, y, w, h)
+	local shade = Instance.new("UIGradient")
+	shade.Rotation = 90
+	shade.Color = ColorSequence.new(colour:Lerp(Color3.new(1, 1, 1), 0.3), colour)
+	shade.Parent = f
+	Chunky.round(f, math.min(26, h * 0.4))
+	Chunky.outline(f, 6)
+	return f
+end
 --[[ An item's details over the screen (owner, 2026-10-27, with a video of
-     the reference game: tapping an item opens its card first): a name
-     banner in its rarity's colour, the rarity, the icon big on its card,
-     what it does, and EQUIP (or EQUIPPED / UNEQUIP / LOCKED) and CLOSE. ]]
+     the reference game: tapping an item opens its card first), in the
+     chunky style: a blue panel, the name on the gold ribbon, the rarity on
+     a plate in its colour, the item big in its rarity frame, what it does
+     on a white card, and EQUIP (or EQUIPPED / UNEQUIP / LOCKED) and CLOSE. ]]
 local function details(
-	c: Frame,
+	sheet: Chunky.Sheet,
 	entry: Entry,
 	isPet: boolean,
 	isEquipped: boolean,
@@ -210,52 +244,71 @@ local function details(
 	shade.BackgroundColor3 = Color3.new(0, 0, 0)
 	shade.BackgroundTransparency = 0.35
 	shade.Size = UDim2.fromScale(1, 1)
-	shade.ZIndex = 40
-	shade.Parent = c
+	shade.ZIndex = 100
+	shade.Parent = sheet.canvas
 	local function close()
 		shade:Destroy()
 	end
 	shade.Activated:Connect(close)
+	local pop = overlay(sheet, shade)
+	local up = sheet.upright
+	-- panel, ribbon, X, rarity, tile, lines card, buttons (sheet pixels)
+	local L = if up
+		then {
+			panel = { 90, 480, 900, 1010 },
+			ribbon = { 150, 404, 780, 150 },
+			x = { 920, 436, 104 },
+			rarity = { 380, 590, 320, 64 },
+			tile = { 370, 676, 340, 340 },
+			lines = { 150, 1040, 780, 230 },
+			equip = { 150, 1310, 460, 116 },
+			shut = { 640, 1310, 290, 116 },
+		}
+		else {
+			panel = { 560, 140, 800, 840 },
+			ribbon = { 590, 68, 740, 144 },
+			x = { 1296, 100, 100 },
+			rarity = { 800, 230, 320, 60 },
+			tile = { 805, 306, 310, 310 },
+			lines = { 620, 640, 680, 180 },
+			equip = { 620, 846, 400, 104 },
+			shut = { 1040, 846, 260, 104 },
+		}
+	local panel = Chunky.panel(pop, table.unpack(L.panel))
+	-- swallow clicks on the panel itself
+	local guard = Instance.new("TextButton")
+	guard.Text, guard.BackgroundTransparency, guard.AutoButtonColor = "", 1, false
+	guard.ZIndex = 3
+	Chunky.put(pop, guard, table.unpack(L.panel))
+	Chunky.pop(panel)
+	Chunky.ribbon(pop, string.upper(entry.name), table.unpack(L.ribbon))
+	Chunky.close(pop, L.x[1], L.x[2], L.x[3], close)
+	local colour = if entry.owned then Chunky.rarity[entry.rarity] or Chunky.grey else Chunky.grey
+	local badge = plate(pop, colour, table.unpack(L.rarity))
+	Chunky.text(badge, string.upper(entry.rarity), nil, 5).Position = UDim2.fromScale(0, 0)
 	local holder = Instance.new("Frame")
 	holder.BackgroundTransparency = 1
-	holder.ZIndex = 41
-	holder.Parent = shade
-	if wideLayout then
-		Kit.put(holder, 560, 120, 800, 840)
-	else
-		Kit.put(holder, 160, 300 * 1080 / 3413, 1600, 2300 * 1080 / 3413)
+	holder.ZIndex = 6
+	Chunky.put(pop, holder, table.unpack(L.tile))
+	-- a weapon is always its 2D art; a pet stands as its model
+	local tile = Chunky.tile(
+		holder,
+		entry.rarity,
+		entry.icon,
+		nil,
+		not entry.owned,
+		false,
+		if isPet then entry.key else nil
+	)
+	if entry.owned then
+		Chunky.gleam(tile)
 	end
-	local panel = Kit.nativePanel(holder, nil, true)
-	panel.ZIndex = 41
-	-- swallow clicks on the card itself
-	local guard = Instance.new("TextButton")
-	guard.Text, guard.BackgroundTransparency, guard.Size = "", 1, UDim2.fromScale(1, 1)
-	guard.ZIndex = 41
-	guard.Parent = panel
-	local colour = if entry.owned then Kit.colour(entry.rarity) else Color3.fromRGB(112, 120, 132)
-	local banner = Kit.nativePanel(holder, colour)
-	banner.ZIndex = 42
-	banner.Position, banner.Size = UDim2.fromScale(0.08, -0.03), UDim2.fromScale(0.84, 0.13)
-	local title = Kit.nativeText(banner, entry.name)
-	title.ZIndex = 43
-	local ribbon = Kit.nativePanel(holder, colour:Lerp(Color3.new(0, 0, 0), 0.35))
-	ribbon.ZIndex = 42
-	ribbon.Position, ribbon.Size = UDim2.fromScale(0.3, 0.11), UDim2.fromScale(0.4, 0.07)
-	Kit.nativeText(ribbon, string.upper(entry.rarity)).ZIndex = 43
-	local card = Kit.nativeTile(holder, entry.rarity, entry.icon, not entry.owned, true)
-	card.Position, card.Size = UDim2.fromScale(0.33, 0.21), UDim2.fromScale(0.34, 0.32)
-	for _, d in card:GetDescendants() do
-		if d:IsA("GuiObject") then
-			d.ZIndex += 42
-		end
-	end
-	card.ZIndex = 42
 	local lines: { string } = {}
 	if isPet then
 		local info = Pets[entry.key]
 		local egg = if info and info.egg then EggRules.find(info.egg) else nil
 		table.insert(lines, "FIGHTS BESIDE YOU IN RUNS")
-		table.insert(lines, "FROM THE " .. (if egg then egg.name else "EGG"))
+		table.insert(lines, "FROM THE " .. string.upper(if egg then egg.name else "EGG"))
 		if entry.owned then
 			table.insert(lines, "OWNED x" .. tostring(entry.count))
 		end
@@ -280,14 +333,12 @@ local function details(
 			if isPet then "HATCH IT AT THE EGG HATCHERY" else "OPEN CRATES AT THE BLACKSMITH"
 		)
 	end
-	local list = Kit.nativePanel(holder, Color3.fromRGB(28, 30, 38))
-	list.ZIndex = 42
-	list.Position, list.Size = UDim2.fromScale(0.08, 0.56), UDim2.fromScale(0.84, 0.25)
+	local card = Chunky.card(pop, table.unpack(L.lines))
+	local count = math.max(#lines, 1)
 	for i, words in lines do
-		local line = Kit.nativeText(list, words)
-		line.ZIndex = 43
-		line.Position = UDim2.fromScale(0.05, 0.06 + (i - 1) * (0.88 / math.max(#lines, 1)))
-		line.Size = UDim2.fromScale(0.9, 0.8 / math.max(#lines, 3))
+		local line = Chunky.text(card, words, Chunky.ink, 0)
+		line.Position = UDim2.fromScale(0.05, 0.08 + (i - 1) * 0.84 / count)
+		line.Size = UDim2.fromScale(0.9, 0.84 / math.max(count, 3) * 0.8)
 	end
 	local label = if not entry.owned
 		then "LOCKED"
@@ -295,10 +346,15 @@ local function details(
 		elseif isEquipped then "EQUIPPED"
 		else "EQUIP"
 	local can = entry.owned and not (isEquipped and not isPet)
-	local equip = Kit.nativeButton(
-		holder,
+	local e = L.equip
+	Chunky.button(
+		pop,
 		label,
-		if can then Kit.green else Color3.fromRGB(80, 84, 96),
+		if can then Chunky.green else Chunky.grey,
+		e[1],
+		e[2],
+		e[3],
+		e[4],
 		function()
 			if can then
 				close()
@@ -306,452 +362,207 @@ local function details(
 			end
 		end
 	)
-	equip.Position, equip.Size = UDim2.fromScale(0.08, 0.84), UDim2.fromScale(0.5, 0.12)
-	local shut = Kit.nativeButton(holder, "CLOSE", Color3.fromRGB(80, 84, 96), close)
-	shut.Position, shut.Size = UDim2.fromScale(0.62, 0.84), UDim2.fromScale(0.3, 0.12)
-	for _, button in { equip, shut } do
-		for _, d in button:GetDescendants() do
-			if d:IsA("GuiObject") then
-				d.ZIndex += 42
-			end
-		end
-		button.ZIndex = 42
-	end
-	for _, d in panel:GetDescendants() do
-		if d:IsA("GuiObject") and d ~= guard then
-			d.ZIndex += 41
-		end
-	end
-	for _, d in banner:GetDescendants() do
-		if d:IsA("GuiObject") then
-			d.ZIndex = math.max(d.ZIndex, 43)
-		end
-	end
-	for _, d in ribbon:GetDescendants() do
-		if d:IsA("GuiObject") then
-			d.ZIndex = math.max(d.ZIndex, 43)
-		end
-	end
-	for _, d in list:GetDescendants() do
-		if d:IsA("GuiObject") then
-			d.ZIndex = math.max(d.ZIndex, 43)
-		end
-	end
+	local c = L.shut
+	Chunky.button(pop, "CLOSE", Chunky.blue, c[1], c[2], c[3], c[4], close)
 	SoundFx.play("new_item")
 end
---[[ The screen's design canvas: 1920 wide and 9:16 tall, the owner's
-     reference (a phone gear screen, 2026-10-27: "i want it ONE to ONE")
-     laid out piece for piece at its own proportions (its 683 x 1170 shot
-     scaled 2.81 across, 2.92 down); on a wide screen the column stands
-     centred over the jungle. Our own art and words throughout. ]]
-local TALL = 3413
-local function put(item: GuiObject, x: number, y: number, w: number, h: number)
-	Kit.put(item, x, y * 1080 / TALL, w, h * 1080 / TALL)
-end
-local NAVY = Color3.fromRGB(26, 32, 62)
-local NAVY_DARK = Color3.fromRGB(16, 20, 40)
-local LETTER = {
-	Common = "C",
-	Uncommon = "U",
-	Rare = "R",
-	Epic = "E",
-	Legendary = "L",
-	Mythic = "M",
-}
-local function corner(item: GuiObject, radius: number)
-	local round = Instance.new("UICorner")
-	round.CornerRadius = UDim.new(radius, 0)
-	round.Parent = item
-end
-local function gradient(item: GuiObject, top: Color3, bottom: Color3)
-	local shade = Instance.new("UIGradient")
-	shade.Rotation = 90
-	shade.Color = ColorSequence.new(top, bottom)
-	shade.Parent = item
-end
-local function rim(item: GuiObject, colour: Color3, canvasPx: number): UIStroke
-	local edge = Instance.new("UIStroke")
-	edge.Color = colour
-	edge.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-	edge.Parent = item
-	local function size()
-		local canvas: Instance? = item.Parent
-		while canvas and canvas.Name ~= "StationCanvas" do
-			canvas = canvas.Parent
-		end
-		local unit = if canvas and canvas:IsA("GuiObject") then canvas.AbsoluteSize.X / 1920 else 1
-		edge.Thickness = math.max(1, canvasPx * unit)
-	end
-	size()
-	item:GetPropertyChangedSignal("AbsoluteSize"):Connect(size)
-	return edge
-end
-local function frame(parent: Instance, colour: Color3): Frame
-	local f = Instance.new("Frame")
-	f.BorderSizePixel = 0
-	f.BackgroundColor3 = colour
-	f.Parent = parent
-	return f
-end
---[[ A round dark badge (the reference's small circles on every card). ]]
-local function badge(
-	parent: GuiObject,
+
+--[[ One of the hero's slots: its name over a rarity tile, the equipped
+     thing on it (gleaming), "+" when empty, a lock when there is nothing
+     to put in it yet. Pressing it opens the matching tab. ]]
+local function slot(
+	sheet: Chunky.Sheet,
 	words: string,
-	colour: Color3,
 	x: number,
 	y: number,
-	size: number
-)
-	local dot = frame(parent, colour)
-	dot.Position, dot.Size = UDim2.fromScale(x, y), UDim2.fromScale(size, size)
-	dot.ZIndex = 8
-	local square = Instance.new("UIAspectRatioConstraint")
-	square.Parent = dot
-	corner(dot, 0.5)
-	rim(dot, Color3.fromRGB(255, 236, 170), 4)
-	local text = Kit.nativeText(dot, words)
-	text.ZIndex = 9
-	text.Position, text.Size = UDim2.fromScale(0.16, 0.18), UDim2.fromScale(0.68, 0.64)
-	return dot
-end
---[[ The reference's item card: the whole card its rarity's colour, light
-     at the top and deeper at the bottom, a thick lighter rim, the picture
-     big, the rarity's letter big in gold
-     bottom-left, a count badge bottom-centre. Locked: grey, the picture a
-     silhouette, a lock. ]]
-local function card(
-	parent: Instance,
-	rarity: string,
-	icon: string,
+	size: number,
+	rarity: string?,
+	icon: string?,
 	locked: boolean,
-	count: string?
+	action: () -> ()
 ): Frame
-	local colour = if locked then Color3.fromRGB(120, 126, 140) else Kit.colour(rarity)
-	local body = frame(parent, colour)
-	body.Name = "Card"
-	corner(body, 0.12)
-	gradient(body, Color3.new(1, 1, 1), Color3.fromRGB(150, 150, 150))
-	rim(body, colour:Lerp(Color3.new(1, 1, 1), 0.45), 9)
-	-- the inner face: a deeper panel, as the reference's cards have
-	local face = frame(body, colour:Lerp(Color3.new(0, 0, 0), 0.18))
-	face.Position, face.Size = UDim2.fromScale(0.07, 0.06), UDim2.fromScale(0.86, 0.74)
-	corner(face, 0.1)
-	gradient(face, Color3.fromRGB(255, 255, 255), Color3.fromRGB(190, 190, 190))
-	if icon ~= "" then
-		local picture = Kit.image(face, icon, locked)
-		picture.Position, picture.Size = UDim2.fromScale(0.04, 0.02), UDim2.fromScale(0.92, 0.96)
-		picture.ZIndex = 4
+	local holder = Instance.new("Frame")
+	holder.Name = words:gsub(" ", "") .. "Slot"
+	holder.BackgroundTransparency = 1
+	holder.ZIndex = 6
+	local tall = size + 58
+	Chunky.put(sheet, holder, x, y, size, tall)
+	local name = Chunky.text(holder, words, nil, 5)
+	name.Size = UDim2.fromScale(1, 50 / tall)
+	local box = Instance.new("Frame")
+	box.BackgroundTransparency = 1
+	box.Position, box.Size = UDim2.fromScale(0, 58 / tall), UDim2.fromScale(1, size / tall)
+	box.ZIndex = 6
+	box.Parent = holder
+	local filled = icon ~= nil and icon ~= ""
+	local tile = Chunky.tile(box, if filled then rarity or "Common" else "Common", icon or "")
+	if filled then
+		Chunky.gleam(tile, x * 0.003 + y * 0.002)
+	elseif locked then
+		local lock = Kit.image(tile, ShopAssets.lock)
+		lock.Position, lock.Size = UDim2.fromScale(0.25, 0.22), UDim2.fromScale(0.5, 0.5)
+		lock.ZIndex = 12
+	else
+		local plus = Chunky.text(tile, "+", nil, 6)
+		plus.Position, plus.Size = UDim2.fromScale(0.25, 0.18), UDim2.fromScale(0.5, 0.56)
 	end
-	if locked then
-		local lock = Kit.image(body, ShopAssets.lock)
-		lock.Position, lock.Size = UDim2.fromScale(0.62, 0.52), UDim2.fromScale(0.3, 0.3)
-		lock.ZIndex = 8
-	elseif rarity == "Mythic" then
-		Kit.rainbowRing(body)
-	elseif rarity == "Legendary" or rarity == "Epic" then
-		local glowColour = if rarity == "Epic" then Kit.colour("Epic") else Kit.gold
-		local halo = frame(body, glowColour)
-		halo.BackgroundTransparency = 1
-		halo.Position, halo.Size = UDim2.fromScale(-0.04, -0.04), UDim2.fromScale(1.08, 1.08)
-		corner(halo, 0.14)
-		local glow = rim(halo, glowColour, 6)
-		Kit.animate(body, function(t)
-			glow.Transparency = 0.45 + math.sin(t * 3) * 0.3
-		end)
-	end
-	-- the big rarity letter, gold with a dark drop, bottom-left
-	local letter = Kit.nativeText(body, if locked then "?" else LETTER[rarity] or "C", Kit.gold)
-	letter.ZIndex = 9
-	letter.Position, letter.Size = UDim2.fromScale(0.02, 0.62), UDim2.fromScale(0.32, 0.36)
-	if count then
-		badge(body, count, Color3.fromRGB(150, 24, 40), 0.38, 0.76, 0.24)
-	end
-	return body
+	Chunky.press(holder, function()
+		if not Reveal.busy() then
+			action()
+		end
+	end)
+	return holder
 end
 
-local function lay(item: GuiObject, tall: Rect, wide: Rect)
-	if wideLayout then
-		Kit.put(item, wide[1], wide[2], wide[3], wide[4])
-	else
-		put(item, tall[1], tall[2], tall[3], tall[4])
-	end
-end
-local function drawNative(s: StationScreen.Screen)
+local function draw(s: StationScreen.Screen)
 	local c, p = s.canvas, s.profile
 	for _, child in c:GetChildren() do
 		if child:IsA("GuiObject") then
 			child:Destroy()
 		end
 	end
-	local player = Players.LocalPlayer
+	local area = HatchStand.chrome(s, "GEAR")
+	local sheet = area.sheet
+	local up = sheet.upright
 	local class = Classes[currentClass()] or Classes.Ranger
 	local equipped = equippedForClass(p)
 	local weapon = ShopRules.find(equipped)
 	local petKeys: { string } = {}
-	for slot = 1, 2 do
-		local key = p and p.equippedPets[slot]
+	for index = 1, 2 do
+		local key = p and p.equippedPets[index]
 		if key then
 			table.insert(petKeys, key)
 		end
 	end
-
-	-- the showcase stage: our jungle temple behind the hero, darker at its foot
-	local stage = Kit.image(c, GearAssets.backgrounds.gear)
-	stage.ScaleType = Enum.ScaleType.Crop
-	-- behind everything else on the canvas
-	stage.ZIndex = 0
-	lay(stage, { 0, 220, 1920, 1090 }, { 0, 110, 940, 970 })
-	local foot = frame(stage, Color3.new(0, 0, 0))
-	foot.Size = UDim2.fromScale(1, 1)
-	local fade = Instance.new("UIGradient")
-	fade.Rotation = 90
-	fade.Transparency = NumberSequence.new({
-		NumberSequenceKeypoint.new(0, 1),
-		NumberSequenceKeypoint.new(0.7, 0.85),
-		NumberSequenceKeypoint.new(1, 0.35),
-	})
-	fade.Parent = foot
-
-	-- the top bar: the player's picture, name and class; the wallet
-	local bar = frame(c, NAVY_DARK)
-	lay(bar, { 0, 0, 1920, 228 }, { 0, 0, 1920, 110 })
-	gradient(bar, Color3.fromRGB(255, 255, 255), Color3.fromRGB(170, 170, 170))
-	local avatar = frame(c, Color3.fromRGB(90, 50, 140))
-	lay(avatar, { 30, 14, 210, 210 }, { 14, 8, 94, 94 })
-	corner(avatar, 0.16)
-	rim(avatar, Kit.gold, 8)
-	local head = Instance.new("ImageLabel")
-	head.BackgroundTransparency = 1
-	head.Position, head.Size = UDim2.fromScale(0.06, 0.06), UDim2.fromScale(0.88, 0.88)
-	head.Parent = avatar
-	task.spawn(function()
-		local ok, image = pcall(function()
-			return Players:GetUserThumbnailAsync(
-				player.UserId,
-				Enum.ThumbnailType.HeadShot,
-				Enum.ThumbnailSize.Size150x150
-			)
-		end)
-		if ok and head.Parent then
-			head.Image = image
-		end
-	end)
-	local name = Kit.nativeText(c, string.upper(player.DisplayName))
-	lay(name, { 270, 28, 520, 80 }, { 124, 10, 420, 46 })
-	name.TextXAlignment = Enum.TextXAlignment.Left
-	local role = Kit.nativeText(c, string.upper(currentClass()), Kit.gold)
-	lay(role, { 270, 120, 420, 74 }, { 124, 60, 300, 40 })
-	role.TextXAlignment = Enum.TextXAlignment.Left
-	s.wallet(c, if p then p.coins else 0, if p then p.gems else 0)
-
-	local close = Kit.nativeButton(c, "X", Color3.fromRGB(218, 55, 75), s.close)
-	close.Name = "CloseGear"
-	close.ZIndex = 25
-	lay(close, { 1770, 245, 110, 110 }, { 820, 125, 90, 90 })
-	local heading = Kit.nativeText(c, "GEAR", Kit.gold)
-	lay(heading, { 620, 245, 680, 130 }, { 270, 140, 400, 90 })
-
-	-- the hero, big in the middle of the stage
-	portrait(c, function(item)
-		lay(item, { 400, 228, 1120, 1080 }, { 210, 120, 520, 820 })
-	end, equipped, petKeys)
-
-	-- the slots: three down each side, each a card with its name on a tab
-	local function makeSlot(
-		words: string,
-		column: number,
-		row: number,
-		rarity: string?,
-		icon: string?,
-		locked: boolean
-	): Frame
-		local holder = frame(c, Color3.new(0, 0, 0))
-		holder.BackgroundTransparency = 1
-		lay(
-			holder,
-			{ if column == 1 then 126 else 1498, 410 + (row - 1) * 440, 296, 296 },
-			{ if column == 1 then 30 else 720, 270 + (row - 1) * 340, 190, 190 }
-		)
-		local tile = card(holder, rarity or "Common", icon or "", locked)
-		tile.Size = UDim2.fromScale(1, 1)
-		if not icon or icon == "" then
-			local letter = tile:FindFirstChild("NativeText")
-			if letter and letter:IsA("TextLabel") and not locked then
-				letter.Visible = false
-			end
-		end
-		-- the name tab on the card's top edge (the reference's "Lv." tab)
-		local plate = frame(holder, NAVY_DARK)
-		plate.Position, plate.Size = UDim2.fromScale(0.2, -0.08), UDim2.fromScale(0.6, 0.17)
-		plate.ZIndex = 10
-		corner(plate, 0.4)
-		holder.Name = words:gsub(" ", "") .. "Slot"
-		local tabText = Kit.nativeText(plate, words)
-		tabText.ZIndex = 11
-		return holder
-	end
-	local weaponSlot = makeSlot(
-		"WEAPON",
-		1,
-		1,
-		if weapon then weapon.rarity else "Common",
-		GearAssets.weapons[equipped],
-		false
-	)
-	Kit.nativePress(weaponSlot, function()
-		if not Reveal.busy() then
-			tab = "GEAR"
+	local function reopen(nextTab: string)
+		return function()
+			tab = nextTab
 			s.open()
 		end
-	end)
-	local trailSlot = makeSlot("TRAIL", 1, 2, nil, nil, true)
-	Kit.nativePress(trailSlot, function()
-		if not Reveal.busy() then
-			tab = "TRAILS"
-			s.open()
-		end
-	end)
-	local petSlots: { GuiObject } = {}
-	for index = 1, 2 do
-		local key = p and p.equippedPets[index]
-		local info = key and Pets[key]
-		local slot = makeSlot(
-			"PET " .. tostring(index),
-			2,
-			index,
-			if info then info.rarity else nil,
-			if key then GearAssets.pets[key] else nil,
-			false
-		)
-		if not key then
-			local plus = Kit.nativeText(slot, "+")
-			plus.ZIndex = 9
-			plus.Position, plus.Size = UDim2.fromScale(0.3, 0.25), UDim2.fromScale(0.4, 0.4)
-		end
-		Kit.nativePress(slot, function()
-			if not Reveal.busy() then
-				preferredPetSlot = index
-				tab = "PETS"
-				s.open()
-			end
-		end)
-		petSlots[index] = slot
 	end
 
-	-- ATK and HP under the hero, each with its pixel icon
+	-- the hero on a round stone pedestal, the slots either side
+	local L = if up
+		then {
+			hero = { 290, 290, 500, 700 },
+			pedestal = { 320, 826, 440, 100 },
+			plate = { 330, 960, 420, 92 },
+			left = 90,
+			right = 800,
+			rows = { 330, 640 },
+			size = 190,
+			card = { 60, 1086, 960, 784 },
+		}
+		else {
+			hero = { 360, 176, 400, 700 },
+			pedestal = { 400, 712, 320, 90 },
+			plate = { 380, 850, 360, 100 },
+			left = 196,
+			right = 728,
+			rows = { 250, 610 },
+			size = 196,
+			card = { 950, 190, 780, 830 },
+		}
+	local pedestal = Instance.new("Frame")
+	pedestal.BorderSizePixel = 0
+	pedestal.BackgroundColor3 = Color3.new(1, 1, 1)
+	pedestal.ZIndex = 4
+	Chunky.put(sheet, pedestal, table.unpack(L.pedestal))
+	local stone = Instance.new("UIGradient")
+	stone.Rotation = 90
+	stone.Color = ColorSequence.new(Color3.fromRGB(150, 160, 186), Color3.fromRGB(84, 92, 124))
+	stone.Parent = pedestal
+	local oval = Instance.new("UICorner")
+	oval.CornerRadius = UDim.new(0.5, 0)
+	oval.Parent = pedestal
+	Chunky.outline(pedestal, 6)
+	portrait(c, function(item, x, y, w, h)
+		Chunky.put(sheet, item, x, y, w, h)
+		item.ZIndex = 6
+	end, L.hero, equipped, petKeys)
+
+	-- ATK and HP on the gold plate under the hero (the mockup's POWER plate)
 	local stats = WeaponStats.weapons[equipped]
 	local scale = if stats
 		then (1 + WeaponStats.bonus[stats.rarity]) * (WeaponStats.areaScale[stats.area] or 1)
 		else 1
 	local chosenClass = if weapon then Classes[weapon.class] or class else class
-	local values = {
-		{
-			"ATK",
-			tostring(math.round(Balance.Player.baseDamage * chosenClass.damageScale * scale)),
-			GearAssets.uiIcons.sword,
-		},
-		{ "HP", tostring(Balance.Player.maxHealth), GearAssets.uiIcons.heart },
-	}
-	for i, entry in values do
-		local pill = frame(c, Color3.fromRGB(34, 28, 24))
-		pill.BackgroundTransparency = 0.15
-		lay(pill, { 576 + (i - 1) * 390, 1160, 370, 122 }, { 250 + (i - 1) * 230, 960, 210, 90 })
-		corner(pill, 0.3)
-		rim(pill, Color3.fromRGB(70, 58, 44), 4)
-		local icon = Kit.image(pill, entry[3])
-		icon.Position, icon.Size = UDim2.fromScale(0.04, 0.04), UDim2.fromScale(0.3, 0.62)
-		local square = Instance.new("UIAspectRatioConstraint")
-		square.Parent = icon
-		local label = Kit.nativeText(pill, entry[1])
-		label.Position, label.Size = UDim2.fromScale(0.04, 0.66), UDim2.fromScale(0.28, 0.3)
-		label.ZIndex = 8
-		local value = Kit.nativeText(pill, entry[2])
-		value.Position, value.Size = UDim2.fromScale(0.36, 0.2), UDim2.fromScale(0.58, 0.6)
-	end
+	local atk = math.round(Balance.Player.baseDamage * chosenClass.damageScale * scale)
+	local power = plate(sheet, Chunky.gold, table.unpack(L.plate))
+	local words = Chunky.text(
+		power,
+		"ATK " .. Chunky.commas(atk) .. "   HP " .. Chunky.commas(Balance.Player.maxHealth),
+		nil,
+		6
+	)
+	words.Position, words.Size = UDim2.fromScale(0.06, 0.16), UDim2.fromScale(0.88, 0.68)
 
-	-- the sheet: navy, its tabs along the top edge
-	local sheet = frame(c, NAVY)
-	lay(sheet, { 0, 1500, 1920, 1568 }, { 940, 110, 980, 970 })
-	gradient(sheet, Color3.fromRGB(255, 255, 255), Color3.fromRGB(200, 200, 200))
-	local tabsBack = frame(c, NAVY_DARK)
-	lay(tabsBack, { 0, 1300, 1920, 210 }, { 940, 110, 980, 120 })
-	local tabs: { { id: string, words: string, icon: string } } = {
-		{ id = "CLASSES", words = "CLASSES", icon = GearAssets.uiIcons.archerHead },
-		{ id = "GEAR", words = "WEAPON", icon = GearAssets.uiIcons.swordTab },
-		{ id = "PETS", words = "PETS", icon = GearAssets.uiIcons.egg },
-	}
-	for i, entry in tabs do
-		local selected = tab == entry.id
-		local tabButton = frame(c, if selected then Kit.gold else Color3.fromRGB(44, 52, 90))
-		lay(tabButton, {
-			34 + (i - 1) * 622,
-			if selected then 1300 else 1322,
-			606,
-			if selected then 210 else 170,
-		}, {
-			954 + (i - 1) * 322,
-			if selected then 114 else 126,
-			312,
-			if selected then 116 else 96,
-		})
-		corner(tabButton, 0.18)
-		gradient(
-			tabButton,
-			Color3.new(1, 1, 1),
-			if selected then Color3.fromRGB(230, 170, 60) else Color3.fromRGB(170, 170, 170)
-		)
-		rim(
-			tabButton,
-			if selected then Color3.fromRGB(255, 240, 170) else Color3.fromRGB(70, 82, 130),
-			5
-		)
-		if entry.icon ~= "" then
-			local glyph = Kit.image(tabButton, entry.icon)
-			glyph.Position, glyph.Size = UDim2.fromScale(0.06, 0.14), UDim2.fromScale(0.18, 0.72)
-			local square = Instance.new("UIAspectRatioConstraint")
-			square.Parent = glyph
-		end
-		local text = Kit.nativeText(tabButton, entry.words)
-		text.Position, text.Size = UDim2.fromScale(0.28, 0.22), UDim2.fromScale(0.66, 0.56)
-		Kit.nativePress(tabButton, function()
-			if not Reveal.busy() and not selected then
-				tab = entry.id
+	local weaponSlot = slot(
+		sheet,
+		"WEAPON",
+		L.left,
+		L.rows[1],
+		L.size,
+		if weapon then weapon.rarity else "Common",
+		weaponArt(equipped),
+		false,
+		reopen("GEAR")
+	)
+	slot(sheet, "TRAIL", L.left, L.rows[2], L.size, nil, nil, true, reopen("TRAILS"))
+	local petSlots: { GuiObject } = {}
+	for index = 1, 2 do
+		local key = p and p.equippedPets[index]
+		local info = key and Pets[key]
+		petSlots[index] = slot(
+			sheet,
+			"PET " .. tostring(index),
+			L.right,
+			L.rows[index],
+			L.size,
+			if info then info.rarity else nil,
+			if key then GearAssets.pets[key] else nil,
+			false,
+			function()
+				preferredPetSlot = index
+				tab = "PETS"
 				s.open()
 			end
-		end)
-	end
-	-- the toolbar: sort left, TRAILS right
-	local function goldPill(words: string, left: boolean, action: () -> ()): Frame
-		local pill = frame(c, Kit.gold)
-		lay(
-			pill,
-			{ if left then 70 else 1418, 1556, 436, 160 },
-			{ if left then 970 else 1610, 250, 280, 84 }
 		)
-		corner(pill, 0.3)
-		gradient(pill, Color3.fromRGB(255, 255, 255), Color3.fromRGB(235, 150, 40))
-		rim(pill, Color3.fromRGB(150, 80, 10), 6)
-		local text = Kit.nativeText(pill, words)
-		text.Position, text.Size = UDim2.fromScale(0.08, 0.24), UDim2.fromScale(0.84, 0.52)
-		Kit.nativePress(pill, action)
-		return pill
 	end
-	goldPill(if byName then "BY NAME" else "BY RARITY", true, function()
-		if not Reveal.busy() then
-			byName = not byName
-			s.open()
-		end
-	end)
-	goldPill("TRAILS", false, function()
-		if not Reveal.busy() and tab ~= "TRAILS" then
-			tab = "TRAILS"
-			s.open()
-		end
-	end)
-	local divider = frame(c, Color3.fromRGB(60, 72, 120))
-	lay(divider, { 40, 1750, 1840, 6 }, { 960, 350, 940, 4 })
 
-	-- the grid: five cards a row
+	-- the white inventory card: its tabs, the grid, the buttons under it
+	local cx, cy, cw, ch = table.unpack(L.card)
+	Chunky.card(sheet, cx, cy, cw, ch)
+	local tabs = {
+		{ id = "CLASSES", words = "CLASSES", colour = Chunky.purple },
+		{ id = "GEAR", words = "WEAPONS", colour = Chunky.gold },
+		{ id = "PETS", words = "PETS", colour = Chunky.blue },
+		{ id = "TRAILS", words = "TRAILS", colour = Chunky.green },
+	}
+	local tabGap = 10
+	local tabW = (cw - 44 - tabGap * (#tabs - 1)) / #tabs
+	for i, entry in tabs do
+		Chunky.tab(
+			sheet,
+			entry.words,
+			entry.colour,
+			tab == entry.id,
+			cx + 22 + (i - 1) * (tabW + tabGap),
+			cy + 20,
+			tabW,
+			if up then 86 else 80,
+			function()
+				if not Reveal.busy() and tab ~= entry.id then
+					tab = entry.id
+					s.open()
+				end
+			end
+		)
+	end
+	local buttonH = if up then 110 else 100
+	local gx, gy = cx + 22, cy + 120
+	local gw, gh = cw - 44, ch - 120 - buttonH - 40
+
 	local entries: { Entry } = {}
 	if tab == "GEAR" then
 		for _, entry in ShopRules.catalog() do
@@ -762,7 +573,7 @@ local function drawNative(s: StationScreen.Screen)
 				key = entry.weapon,
 				name = entry.label,
 				rarity = entry.rarity,
-				icon = GearAssets.weapons[entry.weapon] or "",
+				icon = weaponArt(entry.weapon),
 				owned = p ~= nil and p.weapons[entry.weapon] == true,
 				count = 1,
 			})
@@ -788,46 +599,62 @@ local function drawNative(s: StationScreen.Screen)
 		end
 		return a.name < b.name
 	end)
+
+	-- the grid: four tiles a row landscape, five upright; it scrolls
+	local cols = if up then 5 else 4
+	local pad, gap = 14, 16
+	local cell = (gw - 24 - pad * 2 - gap * (cols - 1)) / cols
+	local count = if tab == "CLASSES" then 3 else #entries
+	local rows = math.max(math.ceil(count / cols), 1)
+	local contentH = math.max(gh, pad * 2 + rows * cell + (rows - 1) * gap)
 	local grid = Instance.new("ScrollingFrame")
 	grid.Name = "InventoryGrid"
 	grid.BackgroundTransparency = 1
 	grid.BorderSizePixel = 0
-	grid.ScrollBarThickness = 6
-	grid.ScrollBarImageColor3 = Kit.gold
-	grid.Parent = c
-	lay(grid, { 80, 1790, 1760, 1260 }, { 970, 370, 920, 560 })
-	grid.CanvasSize = UDim2.fromScale(0, 0)
-	grid.AutomaticCanvasSize = Enum.AutomaticSize.Y
-	local layout = Instance.new("UIGridLayout")
-	layout.SortOrder = Enum.SortOrder.LayoutOrder
-	-- the reference's card and gap, as shares of the visible grid
-	if wideLayout then
-		layout.CellSize = UDim2.fromScale(204 / 920, 204 / 560)
-		layout.CellPadding = UDim2.fromScale(24 / 920, 26 / 560)
-	else
-		layout.CellSize = UDim2.fromScale(398 / 1760, 398 / 1260)
-		layout.CellPadding = UDim2.fromScale(40 / 1760, 44 / 1260)
+	grid.ScrollBarThickness = 10
+	grid.ScrollBarImageColor3 = Chunky.navy
+	grid.ScrollingDirection = Enum.ScrollingDirection.Y
+	grid.ZIndex = 6
+	Chunky.put(sheet, grid, gx, gy, gw, gh)
+	--[[ The cells in screen pixels, from the grid's width: a scroll
+	     canvas's own scale does not follow its window, so scale positions
+	     inside it stretch. ]]
+	local placed: { { holder: Frame, x: number, y: number } } = {}
+	local function layout()
+		local unit = grid.AbsoluteSize.X / gw
+		grid.CanvasSize = UDim2.fromOffset(0, contentH * unit)
+		for _, each in placed do
+			each.holder.Position = UDim2.fromOffset(each.x * unit, each.y * unit)
+			each.holder.Size = UDim2.fromOffset(cell * unit, cell * unit)
+		end
 	end
-	layout.Parent = grid
+	grid:GetPropertyChangedSignal("AbsoluteSize"):Connect(layout)
+	local function cellAt(n: number): Frame
+		local holder = Instance.new("Frame")
+		holder.BackgroundTransparency = 1
+		holder.ZIndex = 6
+		table.insert(placed, {
+			holder = holder,
+			x = pad + ((n - 1) % cols) * (cell + gap),
+			y = pad + ((n - 1) // cols) * (cell + gap),
+		})
+		holder.Parent = grid
+		return holder
+	end
 	if tab == "CLASSES" then
 		for i, className in { "Ranger", "Arcanist", "Warden" } do
 			local selected = className == currentClass()
-			local holder = frame(grid, Color3.new(0, 0, 0))
-			holder.BackgroundTransparency = 1
-			holder.LayoutOrder = i
-			local tile = card(
+			local holder = cellAt(i)
+			local tile = Chunky.tile(
 				holder,
 				if selected then "Legendary" else "Common",
-				GearAssets.weapons[Classes[className].weapon] or "",
-				false
+				weaponArt(Classes[className].weapon),
+				string.upper(className),
+				false,
+				selected
 			)
-			tile.Size = UDim2.fromScale(1, 1)
-			local title = frame(holder, NAVY_DARK)
-			title.Position, title.Size = UDim2.fromScale(0.08, -0.06), UDim2.fromScale(0.84, 0.18)
-			title.ZIndex = 10
-			corner(title, 0.4)
-			Kit.nativeText(title, string.upper(className)).ZIndex = 11
-			Kit.nativePress(holder, function()
+			Chunky.gleam(tile, i * 0.37)
+			Chunky.press(holder, function()
 				if
 					not selected
 					and Workspace:GetAttribute("InLobby") == true
@@ -839,47 +666,57 @@ local function drawNative(s: StationScreen.Screen)
 			end)
 		end
 	elseif tab == "TRAILS" then
-		local empty = Kit.nativeText(c, "TRAILS ARE NOT AVAILABLE YET")
-		lay(empty, { 200, 2000, 1520, 150 }, { 1010, 500, 840, 100 })
+		local empty = Instance.new("Frame")
+		empty.BackgroundTransparency = 1
+		empty.ZIndex = 6
+		Chunky.put(sheet, empty, gx + 40, gy + gh * 0.4, gw - 80, 70)
+		Chunky.text(empty, "TRAILS ARE NOT AVAILABLE YET", Chunky.ink, 0)
 	end
 	for i, entry in entries do
 		local isPet = tab == "PETS"
 		local isEquipped = if isPet
 			then p ~= nil and (p.equippedPets[1] == entry.key or p.equippedPets[2] == entry.key)
 			else equipped == entry.key
-		local holder = frame(grid, Color3.new(0, 0, 0))
-		holder.BackgroundTransparency = 1
-		holder.LayoutOrder = i
-		local tile = card(
+		local holder = cellAt(i)
+		-- a weapon is always its 2D art (owner's standing rule); a pet stands
+		local tile = Chunky.tile(
 			holder,
 			entry.rarity,
 			entry.icon,
+			if isPet and entry.owned
+				then "x" .. tostring(entry.count)
+				elseif isEquipped then "EQUIPPED"
+				else nil,
 			not entry.owned,
-			if isPet and entry.owned then tostring(entry.count) elseif isEquipped then "E" else nil
+			isEquipped,
+			if isPet and entry.icon == "" then entry.key else nil
 		)
-		tile.Size = UDim2.fromScale(1, 1)
-		if isEquipped then
-			Kit.owned(tile)
+		if entry.owned then
+			Chunky.gleam(tile, i * 0.37)
+		else
+			local lock = Kit.image(tile, ShopAssets.lock)
+			lock.Position, lock.Size = UDim2.fromScale(0.6, 0.56), UDim2.fromScale(0.34, 0.34)
+			lock.ZIndex = 13
 		end
-		Kit.nativePress(holder, function()
+		Chunky.press(holder, function()
 			if Reveal.busy() or not p then
 				return
 			end
-			details(c, entry, isPet, isEquipped, function()
+			details(sheet, entry, isPet, isEquipped, function()
 				if isPet and isEquipped then
-					for slot = 1, 2 do
-						if p.equippedPets[slot] == entry.key then
-							Remotes.event(Remotes.EquipPet):FireServer(slot, nil)
+					for index = 1, 2 do
+						if p.equippedPets[index] == entry.key then
+							Remotes.event(Remotes.EquipPet):FireServer(index, nil)
 						end
 					end
 				elseif isPet then
-					local slot = if preferredPetSlot
+					local index = if preferredPetSlot
 						then preferredPetSlot
 						elseif not p.equippedPets[1] then 1
 						elseif not p.equippedPets[2] then 2
 						else 1
-					Reveal.equip(holder, petSlots[slot], entry.icon, true)
-					Remotes.event(Remotes.EquipPet):FireServer(slot, entry.key)
+					Reveal.equip(holder, petSlots[index], entry.icon, true)
+					Remotes.event(Remotes.EquipPet):FireServer(index, entry.key)
 				else
 					Reveal.equip(holder, weaponSlot, entry.icon, false)
 					Remotes.event(Remotes.ShopEquip):FireServer(entry.key)
@@ -888,73 +725,58 @@ local function drawNative(s: StationScreen.Screen)
 		end)
 	end
 
-	-- the bottom bar: the lobby's screens, ours raised in gold
-	local nav = frame(c, NAVY_DARK)
-	lay(nav, { 0, 3068, 1920, 345 }, { 940, 945, 980, 135 })
-	gradient(nav, Color3.fromRGB(255, 255, 255), Color3.fromRGB(150, 150, 150))
+	layout()
+
+	-- under the grid: the sort, and the Blacksmith and Hatchery shortcuts
+	local by = cy + ch - buttonH - 22
+	local bw = (cw - 44 - 2 * 16) / 3
 	local crate = GearAssets.crates.MossyGlade
 	local egg = GearAssets.eggs.MossyEgg
-	local items: { { words: string, picture: string, tall: Rect, wide: Rect } } = {
-		{
-			words = "BLACKSMITH",
-			picture = if crate then crate.closed else "",
-			tall = { 60, 3090, 360, 320 },
-			wide = { 960, 952, 210, 124 },
-		},
-		{
-			words = "WEAPON",
-			picture = GearAssets.weapons[equipped] or "",
-			tall = { 430, 3010, 520, 400 },
-			wide = { 1185, 920, 280, 156 },
-		},
-		{
-			words = "LOBBY",
-			picture = "",
-			tall = { 970, 3090, 360, 320 },
-			wide = { 1480, 952, 190, 124 },
-		},
-		{
-			words = "HATCHERY",
-			picture = if egg then egg.whole else "",
-			tall = { 1360, 3090, 360, 320 },
-			wide = { 1685, 952, 210, 124 },
-		},
-	}
-	for _, item in items do
-		local words, picture = item.words, item.picture
-		local here = words == "WEAPON"
-		local button = frame(c, if here then Kit.gold else NAVY_DARK)
-		button.BackgroundTransparency = if here then 0 else 1
-		lay(button, item.tall, item.wide)
-		if here then
-			corner(button, 0.14)
-			gradient(button, Color3.fromRGB(255, 255, 255), Color3.fromRGB(230, 160, 40))
-			rim(button, Color3.fromRGB(255, 240, 170), 6)
-		end
-		if picture ~= "" then
-			local icon = Kit.image(button, picture)
-			icon.Position, icon.Size = UDim2.fromScale(0.1, -0.06), UDim2.fromScale(0.8, 0.78)
-			local square = Instance.new("UIAspectRatioConstraint")
-			square.Parent = icon
-		else
-			local arrow = Kit.nativeText(button, "<")
-			arrow.Position, arrow.Size = UDim2.fromScale(0.25, 0.08), UDim2.fromScale(0.5, 0.5)
-		end
-		local label =
-			Kit.nativeText(button, words, if here then Color3.fromRGB(60, 36, 10) else nil)
-		label.Position, label.Size = UDim2.fromScale(0.04, 0.68), UDim2.fromScale(0.92, 0.26)
-		Kit.nativePress(button, function()
-			if here or Reveal.busy() then
-				return
+	local function shortcut(open: () -> ()): () -> ()
+		return function()
+			if not Reveal.busy() then
+				s.close()
+				StationScreen.openShortcut(open)
 			end
-			s.close()
-			if words == "BLACKSMITH" then
-				StationScreen.openShortcut(ShopScreen.open)
-			elseif words == "HATCHERY" then
-				StationScreen.openShortcut(EggScreen.open)
-			end
-		end)
+		end
 	end
+	Chunky.button(
+		sheet,
+		if byName then "BY NAME" else "BY RARITY",
+		Chunky.gold,
+		cx + 22,
+		by,
+		bw,
+		buttonH,
+		function()
+			if not Reveal.busy() then
+				byName = not byName
+				s.open()
+			end
+		end
+	)
+	Chunky.button(
+		sheet,
+		"SMITH",
+		Chunky.blue,
+		cx + 22 + bw + 16,
+		by,
+		bw,
+		buttonH,
+		shortcut(ShopScreen.open),
+		if crate then crate.closed else nil
+	)
+	Chunky.button(
+		sheet,
+		"HATCH",
+		Chunky.green,
+		cx + 22 + 2 * (bw + 16),
+		by,
+		bw,
+		buttonH,
+		shortcut(EggScreen.open),
+		if egg then egg.whole else nil
+	)
 end
 function GearScreen.start()
 	if screen then
@@ -962,69 +784,8 @@ function GearScreen.start()
 	end
 	local s = StationScreen.new("GearScreen", "GearStation", "GEAR")
 	screen = s
-	local layer = Instance.new("ScreenGui")
-	layer.Name = "GearBackground"
-	layer.IgnoreGuiInset = true
-	layer.ScreenInsets = Enum.ScreenInsets.None
-	layer.ResetOnSpawn = false
-	layer.DisplayOrder = s.gui.DisplayOrder - 1
-	layer.Enabled = false
-	layer.Parent = s.gui.Parent
-	local backdrop = Kit.image(layer, GearAssets.backgrounds.gear)
-	backdrop.Size = UDim2.fromScale(1, 1)
-	backdrop.ScaleType = Enum.ScaleType.Crop
-	backdrop.ResampleMode = Enum.ResamplerMode.Default
-	backdrop:ClearAllChildren()
-	local dim = s.canvas.Parent :: GuiObject
-	local function follow()
-		layer.Enabled = dim.Visible and GearAssets.backgrounds.gear ~= ""
-		dim.BackgroundTransparency = 1
-	end
-	s.connect(dim:GetPropertyChangedSignal("Visible"), follow)
-	s.gui.Destroying:Once(function()
-		layer:Destroy()
-	end)
-	local lastUpright = false
-	s.connect(dim:GetPropertyChangedSignal("AbsoluteSize"), function()
-		local upright = dim.AbsoluteSize.Y > dim.AbsoluteSize.X
-		if upright ~= lastUpright and s.isOpen() and not Reveal.busy() then
-			s.open()
-		end
-	end)
-	s.wallet = function(parent: Instance, coins: number, gems: number)
-		for i, entry in
-			{ { icon = ShopAssets.coin, amount = coins }, { icon = ShopAssets.gem, amount = gems } }
-		do
-			local pill = Instance.new("Frame")
-			pill.Name = "Wallet"
-			pill.BorderSizePixel = 0
-			pill.BackgroundColor3 = Color3.fromRGB(12, 16, 32)
-			pill.Parent = parent
-			if wideLayout then
-				Kit.put(pill, 1360 + (i - 1) * 280, 20, 260, 70)
-			else
-				Kit.put(pill, 830 + (i - 1) * 540, 52 * 1080 / 3413, 500, 120 * 1080 / 3413)
-			end
-			local round = Instance.new("UICorner")
-			round.CornerRadius = UDim.new(0.5, 0)
-			round.Parent = pill
-			local icon = Kit.image(pill, entry.icon)
-			icon.Position, icon.Size = UDim2.fromScale(-0.06, -0.12), UDim2.fromScale(0.3, 1.24)
-			icon.ZIndex = 3
-			local text = Kit.nativeText(pill, tostring(entry.amount))
-			text.Position, text.Size = UDim2.fromScale(0.28, 0.16), UDim2.fromScale(0.66, 0.68)
-		end
-	end
 	s.draw = function()
-		follow()
-		lastUpright = dim.AbsoluteSize.Y > dim.AbsoluteSize.X
-		-- the reference's tall column on an upright screen, landscape otherwise
-		wideLayout = not lastUpright
-		local aspect = s.canvas:FindFirstChildOfClass("UIAspectRatioConstraint")
-		if aspect then
-			aspect.AspectRatio = if wideLayout then 16 / 9 else 9 / 16
-		end
-		drawNative(s)
+		draw(s)
 	end
 end
 return GearScreen

@@ -1,0 +1,8 @@
+ranger_male: 16 pieces, 7695 tris, missing [], acc ['Hood']
+ranger_female: 16 pieces, 8477 tris, missing [], acc ['Hood']
+arcanist_male: 16 pieces, 8116 tris, missing [], acc ['Hood']
+arcanist_female: 16 pieces, 8486 tris, missing [], acc ['Hat']
+warden_male: 16 pieces, 9006 tris, missing [], acc ['Cape']
+warden_female: 16 pieces, 8506 tris, missing [], acc ['Cape']
+assassin_male: 16 pieces, 7957 tris, missing [], acc ['Hood']
+assassin_female: 16 pieces, 8123 tris, missing [], acc ['Hood']

@@ -13,8 +13,8 @@
 	  per `Config/Shop` area) and `eggs` (whole,
 	  two cracked stages and the burst, per `Config/Eggs` key): the reveals'
 	  frames.
-	- `models`: the egg's and the chest's Tripo models, shown by `UI/Reveal` in
-	  a viewport in place of the frames above.
+	- `models`: each area's egg and chest as Tripo models, shown by `UI/Reveal`
+	  in a viewport in place of the frames above.
 	- `fx`: white shapes the reveals tint by rarity.
 	  An empty id is not drawn.
 ]]
@@ -181,32 +181,82 @@ local GearAssets = {
 			burst = "rbxassetid://80786736493750",
 		},
 	} :: { [string]: { whole: string, crack1: string, crack2: string, burst: string } },
-	--[[ The egg and the chest as the models the owner generated in Tripo
-	     (2026-10-31: "i also want it to play with the new egg and chest
-	     models that were created"). Shown in a viewport by `UI/Reveal`, so
-	     they tip, turn and squash in three dimensions where the pictures
-	     above could only swap one frame for the next.
-
-	     Keyed as `eggs` and `crates` are, and a key with no model here
-	     still plays with its pictures: Thornwood's egg is imported but
-	     came out of Tripo with no texture, so it stays on its art until
-	     there is one.
-	     `tips` is the chest's: a lid swings, so it rocks open and stays
-	     on screen while the weapon rises out of it. An egg has none and
-	     is gone on the burst. Both are single meshes, so no shell half
-	     and no lid can move by itself -- the light does that work. ]]
+	--[[ Each area's egg and chest as its low-poly Tripo model (imported
+	     2026-11-06 into the TEST place's `Workspace/TripoImports/EggsChests`;
+	     owner: "Yes, wire them in"), keyed by `Config/Economy` area: an
+	     egg's hatch plays its area's egg (`Config/Eggs.area`), a crate opens
+	     as its area's chest. Shown in a viewport by `UI/Reveal`; the texture
+	     is the import's colour map (a SurfaceAppearance cannot be built at
+	     runtime). An area with none here, or one that failed to load, plays
+	     its pictures.
+	     `tips` would rock a lid open, but each chest is one mesh with no lid
+	     of its own, so it is false: the whole chest hops and bursts. ]]
 	models = {
-		MossyEgg = {
-			mesh = "rbxassetid://103640048972307",
-			texture = "rbxassetid://132312157850854",
-			tips = false,
-		},
-		MossyGlade = {
-			mesh = "rbxassetid://113614951993286",
-			texture = "rbxassetid://81554242221614",
-			tips = true,
-		},
-	} :: { [string]: RevealModel },
+		eggs = {
+			MossyGlade = {
+				mesh = "rbxassetid://125007533010638",
+				texture = "rbxassetid://101535024945167",
+				tips = false,
+			},
+			Thornwood = {
+				mesh = "rbxassetid://136399572384733",
+				texture = "rbxassetid://137252381792019",
+				tips = false,
+			},
+			DrownedVillage = {
+				mesh = "rbxassetid://90855358804446",
+				texture = "rbxassetid://106538419205770",
+				tips = false,
+			},
+			BogheartCaverns = {
+				mesh = "rbxassetid://106386797211241",
+				texture = "rbxassetid://90958054262941",
+				tips = false,
+			},
+			WindsweptCliffs = {
+				mesh = "rbxassetid://84640768113906",
+				texture = "rbxassetid://126516439380216",
+				tips = false,
+			},
+			FrostpeakPass = {
+				mesh = "rbxassetid://125610927907283",
+				texture = "rbxassetid://138392576594921",
+				tips = false,
+			},
+		} :: { [string]: RevealModel },
+		chests = {
+			MossyGlade = {
+				mesh = "rbxassetid://98625708965048",
+				texture = "rbxassetid://137596064356339",
+				tips = false,
+			},
+			Thornwood = {
+				mesh = "rbxassetid://79820164640155",
+				texture = "rbxassetid://122839180369787",
+				tips = false,
+			},
+			DrownedVillage = {
+				mesh = "rbxassetid://95676445033005",
+				texture = "rbxassetid://88164974961553",
+				tips = false,
+			},
+			BogheartCaverns = {
+				mesh = "rbxassetid://95156149663868",
+				texture = "rbxassetid://115638567453182",
+				tips = false,
+			},
+			WindsweptCliffs = {
+				mesh = "rbxassetid://126335066165779",
+				texture = "rbxassetid://91074804881162",
+				tips = false,
+			},
+			FrostpeakPass = {
+				mesh = "rbxassetid://85132839108840",
+				texture = "rbxassetid://114056664341037",
+				tips = false,
+			},
+		} :: { [string]: RevealModel },
+	},
 	--[[ Each area's egg and chest as one picture (Codex's per-area art,
 	     `assets/concepts/blocky/eggs_chests/egg_<area>.png` and
 	     `chest_<area>.png`, 2026-11-06), for an egg or chest with no model

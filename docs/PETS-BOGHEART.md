@@ -22,7 +22,7 @@ except the boss heir, no beetle, bat, snail, firefly, turtle, axolotl or slime.
 | 3 | **Bog Beaver** | Uncommon | a deep-brown cube beaver with a flat paddle tail, buck-tooth square and a little reed satchel (its accessory) | dams the bog channels |
 | 4 | **Lanternfin** | Rare | a round purple cave anglerfish paddling just above the ground, with one glowing cyan lure on a stalk | the underground lake's only light |
 | 5 | **Olm** | Epic | a pale pink-white blind cave salamander, long box body, four tiny legs, glowing cyan side markings | the lake's ancient blind dweller |
-| 6 | **Glowcap Wilf** | Legendary | the Wilf family shape in bog purple and moss, glowing cyan mushroom caps along its back; golden aura and sparkles | the area's Wilf (`PETS-WILFS.md`, #4), spore-sneeze pose |
+| 6 | **Glowcap Wilf** | Legendary | the Wilf family shape in bog purple and moss, a longer sock on its front-right leg like every Wilf, glowing cyan mushroom caps along its back; golden aura and sparkles | the area's Wilf (`PETS-WILFS.md`, #4), spore-sneeze pose |
 | 7 | **Gulpling** | Legendary | a cute baby purple-and-lime toad with big yellow eyes, tiny gold round spectacles and one glowing cyan mushroom on its head; golden aura | heir to Grandmother Gulp |
 | 8 | **Prism Leviathan** | Mythic | a majestic floating sea-serpent coiled in an S, dark-teal crystal box segments with glowing cyan cores, a crown of crystal fin spikes, a halo ring behind its head and glowing lake-water ribbons | the legend of the underground lake |
 

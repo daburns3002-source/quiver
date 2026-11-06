@@ -1,7 +1,8 @@
 --!strict
 --[[
 	Glowcap Wilf as the owner imported it (Tripo, low poly, 2026-11-06), a Bogheart
-	Caverns Legendary (docs/PETS-BOGHEART.md). One textured Tripo mesh like the
+	Caverns Legendary (docs/PETS-BOGHEART.md),
+	remodelled with the Wilf family's longer front-right sock. One textured Tripo mesh like the
 	Drowned Village pets (`TideWilf`): the mesh id, the colour map as its
 	texture, the size and the place over the pivot are read out of the
 	Studio import (`Workspace/TripoImports/Pets/GlowcapWilf`). Read them again
@@ -14,12 +15,12 @@
 return table.freeze({
 	{
 		name = "Body",
-		meshId = "rbxassetid://73252591683005",
-		textureId = "rbxassetid://88974150850753",
+		meshId = "rbxassetid://118291748320021",
+		textureId = "rbxassetid://76343780466712",
 		color = { 0.63922, 0.63529, 0.64706 },
 		material = "Plastic",
 		transparency = 0,
-		size = { 0.609, 0.855, 0.979 },
-		cframe = { 0, 0.4275, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1 },
+		size = { 0.649, 0.871, 0.982 },
+		cframe = { 0, 0.4353, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1 },
 	},
 })

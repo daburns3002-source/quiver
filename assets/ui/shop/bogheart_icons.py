@@ -17,7 +17,7 @@ background from the border inwards, trims, and writes 256 px squares:
 
 The files named are the approved picks: the Mythics' option A (the plain
 file, which equals `_a`), the daggers' B, the cricket with its fixed legs
-and the Olm with its eyes.
+the Olm with its eyes and the Glowcap Wilf with its front-right sock.
 """
 
 import pathlib
@@ -69,7 +69,7 @@ PETS = {
     "BogBeaver": "03_bog_beaver",
     "Lanternfin": "04_lanternfin",
     "Olm": "05_olm_eyes",
-    "GlowcapWilf": "06_glowcap_wilf",
+    "GlowcapWilf": "06_glowcap_wilf_sock",
     "Gulpling": "07_gulpling",
     "PrismLeviathan": "08_prism_leviathan",
 }

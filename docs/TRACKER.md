@@ -105,7 +105,7 @@ where you would be standing. Say what reads wrong and Claude retunes it.
 - **The in-run MENU button.** It sits on the left edge at mid-height, which is where a floating thumbstick is most often grabbed - is it under your thumb on a phone?
 - **Endless.** Beat 1-10 and walk into the Endless arch: a draft every 3rd floor, a mini-boss every 5th, a boss every 10th, the area changing every 10. Health x1.045 a floor, damage x1.030.
 
-- **The UI restyle (2026-11-05).** The Hatchery and the Blacksmith (CRATES and STORE) are in the chunky style you approved (assets/concepts/ui_refs/mockups/). Open both on a phone held each way. Gear, Dex and the Mossy Glade level screen follow, one PR each.
+- **The UI restyle (2026-11-05).** The Hatchery, the Blacksmith (CRATES and STORE) and Gear are in the chunky style you approved (assets/concepts/ui_refs/mockups/). Open them on a phone held each way. Gear has your four real slots (WEAPON, TRAIL, PET 1, PET 2) rather than the mockup's six, ATK and HP on the gold plate where the mockup says POWER, and BY RARITY / SMITH / HATCH under the grid where it shows EQUIP BEST and SELL, which the game does not have. Dex and the Mossy Glade level screen follow, one PR each.
 
 ### The big one
 

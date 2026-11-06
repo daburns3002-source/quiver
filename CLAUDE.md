@@ -369,7 +369,9 @@ mockups in `assets/concepts/ui_refs/mockups/`, top-game references and the audit
 is the kit (blue panel, gold ribbon title, red corner X, glossy lipped buttons, tabs, currency pills,
 rarity tiles, pop-in), laid out in sheet pixels on 1920 x 1080 or, held upright, 1080 x 1920
 (`Chunky.sheet`). `HatchStand.chrome` frames a station screen in it. Done: Hatchery, Blacksmith
-(crates and store). Next: Gear, Dex, the Mossy Glade level screen.
+(crates and store), Gear. Next: Dex, the Mossy Glade level screen. Anything pressable bounces
+(`Chunky.press`, or a `Chunky.button`) and anything equippable or equipped gleams (`Chunky.gleam`,
+owner, 2026-11-05: "the gleam on equippables, the bounce on click").
 
 **The weapon shop** (owner, 2026-10-25; `Config/Shop`, `Util/ShopRules`, `Server/Data/Shop`,
 `UI/ShopScreen`): at the lobby's Blacksmith, SHOP (or E) opens CRATES, STORE and MY WEAPONS.

@@ -598,6 +598,38 @@ local shellback: Design = {
 	},
 }
 
+--[[
+	Grandmother Gulp (the low-poly Tripo mesh, `TripoImports/Enemies/
+	GrandmotherGulp`): her import x10, stood on the floor of her box, posed
+	whole by `Enemies/BossBody`. `Arm_Tongue` is her tongue's tip, tucked at
+	her mouth: `BossBody` throws it as the lash's fist and draws the pink
+	tube to it from there (the tube takes the arm's colour). Unturned, facing
+	-Z, as the other Tripo imports are; if she lashes over her shoulder, a
+	180 degree `rotation` on both parts is the fix.
+]]
+local GULP_TONGUE = Color3.fromRGB(240, 116, 156)
+local grandmotherGulp: Design = {
+	shadow(9.8, 10, 9.8),
+	{
+		name = "Body",
+		shape = "Mesh",
+		meshId = "rbxassetid://121420582897209",
+		textureId = "rbxassetid://105734204599318",
+		size = Vector3.new(9.67, 9.66, 9.81),
+		offset = Vector3.new(0, -0.07, 0),
+		shade = 1,
+		color = WHITE,
+	},
+	{
+		name = "Arm_Tongue",
+		shape = "Ball",
+		size = Vector3.one * 1.8,
+		offset = Vector3.new(0, -1.9, -4),
+		shade = 1,
+		color = GULP_TONGUE,
+	},
+}
+
 --[[ Keyed by `EnemyConfig.displayName`, which is what the model is named and
      the only identifier an archetype actually carries. ]]
 local EnemyDesigns = {
@@ -627,6 +659,7 @@ local EnemyDesigns = {
 	SporePuff = sporePuff,
 	Glowcap = glowcap,
 	Shellback = shellback,
+	GrandmotherGulp = grandmotherGulp,
 
 	--[[ Archetypes built from an imported model, by display name. ]]
 	Imported = {

@@ -14,7 +14,7 @@
 	Mythic says it is something special while it builds.
 
 	What is opened (`look`), best first: the area's Tripo model
-	(`GearAssets.models`, keyed by egg key or crate area) once it is
+	(`GearAssets.models.eggs` / `.chests`, keyed by area) once it is
 	imported and loaded, then its cut frames (`GearAssets.eggs` /
 	`GearAssets.crates`), then the area's single picture
 	(`GearAssets.areaPictures`, then Victory's chest), and last an egg or
@@ -272,7 +272,14 @@ local MODEL_FOV = 40
 local templates: { [string]: MeshPart } = {}
 
 function Reveal.preloadModels()
-	for _, spec in GearAssets.models do
+	local specs = {}
+	for _, spec in GearAssets.models.eggs do
+		table.insert(specs, spec)
+	end
+	for _, spec in GearAssets.models.chests do
+		table.insert(specs, spec)
+	end
+	for _, spec in specs do
 		if templates[spec.mesh] then
 			continue
 		end
@@ -738,10 +745,14 @@ local function play(look: Look, prizes: { Prize }, chanceOf: (Prize) -> number, 
 			local open = 0
 			if chest and burst then
 				open = clamp01(since / 0.12)
-				local pop = 0.18 * decay(since, 8, 24)
+				-- a one-piece chest has no lid to fling: the whole chest
+				-- bursts wide, hops and lands before it sinks away
+				local pop = (if template then 0.3 else 0.18) * decay(since, 8, 24)
 				sx, sy = 1 + pop, 1 - pop
 				rot = 0
-				py = y + clamp01((since - 0.35) / 0.5) * 140
+				py = y
+					- math.sin(clamp01(since / 0.3) * math.pi) * 90
+					+ clamp01((since - 0.35) / 0.5) * 140
 			end
 			local shellAlpha = if chest
 				then clamp01((t - (line.banner - 0.1)) / 0.35)
@@ -1039,7 +1050,7 @@ local function crateLook(area: string): Look
 		crack2 = "",
 		bare = if frames then frames.bare else "",
 		open = if frames then frames.open else "",
-		model = GearAssets.models[area],
+		model = GearAssets.models.chests[area],
 		colours = Beats.wood,
 		glow = Beats.glows[area] or Beats.glows.MossyGlade,
 		special = "YOU FOUND SOMETHING SPECIAL...",
@@ -1058,7 +1069,7 @@ local function eggLook(key: string): Look
 		crack2 = if frames then frames.crack2 else "",
 		bare = "",
 		open = "",
-		model = GearAssets.models[key],
+		model = GearAssets.models.eggs[area],
 		colours = Beats.shells[area] or Beats.shells.MossyGlade,
 		glow = Beats.glows[area] or Beats.glows.MossyGlade,
 		special = "YOU HATCHED SOMETHING SPECIAL...",

@@ -95,8 +95,8 @@ Eight pets (owner, 2026-11-06: "there should only be 8"): two Commons, one
 Uncommon, one Rare, one Epic, two Legendaries and one Mythic. The Slate
 Turtle, Buoy Puffer, Inkpot, Tide Wilf and Abyss Jelly are the owner's Tripo
 models, in game; the Dock Otter, Reed Duck and Toll Prince have reference
-sheets in `assets/concepts/blocky/pets/drowned/` waiting on the owner's
-approval. The Foam Pup, Reed Axolotl, Pearl Pony and Mist Heron are cut.
+sheets in `assets/concepts/blocky/pets/drowned/`, approved by the owner on
+2026-11-06 and ready to model in Tripo. The Foam Pup, Reed Axolotl, Pearl Pony and Mist Heron are cut.
 
 The Wilf and boss heir take the two Legendary slots.
 

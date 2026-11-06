@@ -347,6 +347,50 @@ local function drawCracks(origin: Vector3, duration: number, radius: number)
 	end
 end
 
+--[[
+	A Spore Puff's cloud (`Balance.EnemyBurst`): a ring on the floor the size
+	the server hurts, at full size from the first frame, and a soft pink-green
+	puff that blooms inside it and drifts away over its `duration`. What it
+	hurts is the ring; the puff is only how it reads.
+]]
+local function drawSporeCloud(origin: Vector3, duration: number, radius: number)
+	local config = Balance.Telegraph
+	local ring = groundDisc(origin, "SporeCloudRing", config.sporeColor, radius * 2)
+	ring.Transparency = 0.6
+	TweenService:Create(
+		ring,
+		TweenInfo.new(duration, Enum.EasingStyle.Quad, Enum.EasingDirection.In),
+		{ Transparency = 1 }
+	):Play()
+	Debris:AddItem(ring, duration)
+
+	local puff = Instance.new("Part")
+	puff.Name = "SporeCloud"
+	puff.Shape = Enum.PartType.Ball
+	puff.Anchored = true
+	puff.CanCollide = false
+	puff.CanQuery = false
+	puff.CanTouch = false
+	puff.CastShadow = false
+	puff.Material = Enum.Material.SmoothPlastic
+	puff.Color = config.sporeCloudColor
+	puff.Transparency = 0.35
+	puff.Size = Vector3.one * radius * 0.6
+	puff.CFrame = CFrame.new(origin.X, radius * 0.35, origin.Z)
+	puff.Parent = folder
+	TweenService:Create(
+		puff,
+		TweenInfo.new(0.25, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
+		{ Size = Vector3.one * radius * 2 }
+	):Play()
+	TweenService:Create(
+		puff,
+		TweenInfo.new(duration, Enum.EasingStyle.Quad, Enum.EasingDirection.In),
+		{ Transparency = 1, CFrame = CFrame.new(origin.X, radius * 0.8, origin.Z) }
+	):Play()
+	Debris:AddItem(puff, duration)
+end
+
 --[[ `tell` and `reach` come straight off the enemy's config on the server; the
      client never decides whether a warning is owed, only how to show it.
      `width` is sent only for a lane. ]]
@@ -453,6 +497,11 @@ function TelegraphRenderer.onTelegraph(
 		if folder then
 			MythicFx.erupt(folder, origin, reach)
 		end
+		return
+	end
+
+	if tell == "SporeCloud" then
+		drawSporeCloud(origin, duration, reach)
 		return
 	end
 

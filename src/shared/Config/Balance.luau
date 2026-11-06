@@ -55,6 +55,7 @@ export type TelegraphTell =
 	| "GroundSlam"
 	| "Cracks"
 	| "Erupt"
+	| "SporeCloud"
 
 --[[
 	What an enemy becomes when it dies, if anything: `count` of `into`,
@@ -127,6 +128,35 @@ export type EnemyShot = {
 		Nil pulls nobody, which is every other shot in the game.
 	]]
 	reel: number?,
+	--[[
+		Radians the volley's aim turns by each time it fires, in place of
+		aiming at anyone: the Glowcap's spiral (docs/ENEMIES-AND-ARENAS.md,
+		"a mushroom turret that sprays spores in a spiral"). With `count`
+		spread evenly round the circle, each volley is a ring of spores
+		turned a little further than the last, so the gaps sweep round and
+		the answer is to walk with them rather than to stand off.
+
+		Nil aims at the target, which is every other shot in the game.
+	]]
+	spin: number?,
+}
+
+--[[
+	A cloud of spores where an enemy died (the Spore Puff: "bursts into a
+	poison cloud when killed close", docs/ENEMIES-AND-ARENAS.md). It puffs
+	out `radius` studs round the body the moment it falls and hangs there
+	for `linger` seconds; anyone inside takes `damageScale` of the enemy's
+	`attackDamage` every `every` seconds, the first tick `delay` after the
+	puff, so a player who sees it bloom can step out before it bites. The
+	counterplay is killing it from range: a death across the room hurts
+	nobody.
+]]
+export type EnemyBurst = {
+	radius: number,
+	delay: number,
+	linger: number,
+	every: number,
+	damageScale: number,
 }
 
 --[[
@@ -374,6 +404,8 @@ export type EnemyConfig = {
 	shot: EnemyShot?,
 	burrow: EnemyBurrow?,
 	split: EnemySplit?,
+	--[[ A cloud of spores where it dies (`EnemyBurst`). ]]
+	burst: EnemyBurst?,
 	boss: EnemyBoss?,
 	--[[ Lunging attacks, in place of the plain melee hit. ]]
 	lunges: { EnemyLunge }?,
@@ -1034,6 +1066,109 @@ local hollowFisherman: EnemyConfig = {
 		     caught costs ground and never puts you inside its swing. ]]
 		reel = 6,
 	},
+}
+
+--[[
+	Act 2, area 4: Bogheart Caverns (docs/ENEMIES-AND-ARENAS.md, "4. Bogheart
+	Caverns"; the low-poly Tripo models, 2026-11-06). Each is one textured
+	mesh, so its whole body moves as one (`SlimeHop`) rather than playing
+	clips. PLACEHOLDER NUMBERS until the owner plays them: health a step past
+	Thornwood's, set against the stage's own multipliers.
+
+	The Spore Puff: the cavern's charger. A pink puffball that hops straight
+	at you, and when it dies it bursts into a cloud of spores that hurts
+	whoever is standing next to it -- so the lesson is the one its card
+	says: kill it from range.
+]]
+local sporePuff: EnemyConfig = {
+	displayName = "SporePuff",
+	--[[ Small and quick, a Moss Slime's turn. ]]
+	turnRate = 540,
+	--[[ Frail, like every charger: its threat is the cloud, not the bite. ]]
+	health = 260,
+	moveSpeed = 6.6,
+	attackRange = 3.8,
+	attackDamage = 50,
+	attackCooldown = 1.1,
+	knockback = 3,
+	--[[ Its model x2.7: 2.64 across, 2.63 tall, 2.25 deep. ]]
+	hitboxSize = Vector3.new(2.7, 2.7, 2.4),
+	color = Color3.fromRGB(236, 104, 150),
+	xpReward = 12,
+	shot = nil,
+	--[[ About a room-tile round it (the player is 2 across), so dying at
+	     arm's length catches you and dying three steps away does not. Three
+	     ticks over 1.8 s at most, the first after 0.35 s: long enough to
+	     see it bloom and step out. ]]
+	burst = {
+		radius = 4,
+		delay = 0.35,
+		linger = 1.8,
+		every = 0.6,
+		damageScale = 0.4,
+	},
+}
+
+--[[ The Glowcap: a mushroom turret that never moves. It sprays a ring of
+     four spores from its gills, and every ring is turned a little further
+     round than the last (`EnemyShot.spin`), so its gaps sweep the room like
+     a lighthouse beam. It holds a zone rather than chasing anyone. ]]
+local glowcap: EnemyConfig = {
+	displayName = "Glowcap",
+	--[[ It only turns to face whoever it is near; its rings never aim. ]]
+	turnRate = 120,
+	health = 380,
+	--[[ Stationary (docs/ENEMIES-AND-ARENAS.md: "New: stationary"). ]]
+	moveSpeed = 0,
+	attackRange = 13.3,
+	attackDamage = 40,
+	--[[ A ring every 1.1 s: the sweep has to be steady to be walkable. ]]
+	attackCooldown = 1.1,
+	--[[ Rooted, but a hit still shows: a short shove that it never walks
+	     back from, so it is kept small (memory: every enemy is knocked
+	     back). ]]
+	knockback = 0.8,
+	--[[ Its model x3.6: 3.10 across, 3.53 tall, 3.00 deep. ]]
+	hitboxSize = Vector3.new(3.2, 3.6, 3.1),
+	color = Color3.fromRGB(70, 170, 160),
+	xpReward = 16,
+	shot = {
+		--[[ A ring of four, 90 degrees apart. ]]
+		count = 4,
+		spread = math.rad(90),
+		--[[ Slow spores: a ring is a pattern to walk through, not a shot to
+		     outrun. ]]
+		speed = 9,
+		lifetime = 22 / 9,
+		telegraph = 0.35,
+		tell = "Flash",
+		locksAim = false,
+		--[[ Fires at anyone in the room. ]]
+		range = 70,
+		--[[ 25 degrees further round each ring: a gap passes any one spot
+		     about every 4 rings. ]]
+		spin = math.rad(25),
+	},
+}
+
+--[[ The Shellback: the Bulwark as a mossy beetle-turtle. Slow, heavy and
+     hard to kill: the wall that walks between you and the turrets. ]]
+local shellback: EnemyConfig = {
+	displayName = "Shellback",
+	turnRate = 90,
+	health = 900,
+	moveSpeed = 3.3,
+	attackRange = 4.6,
+	attackDamage = 80,
+	attackCooldown = 1.6,
+	--[[ Heavier than anything else here, but a hit still moves it a little
+	     (the Bulwark's 0.6 did not read as a hit at all). ]]
+	knockback = 1.2,
+	--[[ Its model x5: 4.90 across, 4.71 tall, 4.85 deep. ]]
+	hitboxSize = Vector3.new(5, 4.8, 5),
+	color = Color3.fromRGB(40, 110, 110),
+	xpReward = 26,
+	shot = nil,
 }
 
 --[[
@@ -4026,6 +4161,10 @@ local Balance = {
 	Benched = {
 		Lancer = _lineSniper,
 		HollowFisherman = hollowFisherman,
+		-- Bogheart Caverns, until its rooms carry them
+		SporePuff = sporePuff,
+		Glowcap = glowcap,
+		Shellback = shellback,
 	} :: { [string]: EnemyConfig },
 
 	--[[
@@ -4175,6 +4314,10 @@ local Balance = {
 		     Wider than the enemy so stepping to its edge is not enough. ]]
 		groundRadius = 3,
 		groundColor = Color3.fromRGB(255, 150, 60),
+		--[[ A Spore Puff's cloud (`EnemyBurst`): the ring it hurts inside,
+		     and the puff that blooms in it, the puff's own pink gone sickly. ]]
+		sporeColor = Color3.fromRGB(170, 230, 90),
+		sporeCloudColor = Color3.fromRGB(214, 150, 190),
 		--[[
 			The footprint, drawn instantly at full size and left there.
 
@@ -5192,6 +5335,13 @@ local Balance = {
 			BroodSlime = { hop = 3.6, height = 0.6 },
 			-- A quick skitter.
 			BabySlime = { hop = 1.6, height = 0.5 },
+			--[[ Bogheart Caverns' single-mesh Tripo bodies move whole, by
+			     this hop (they have no clips): the Spore Puff bounces like
+			     the puffball it is, the Shellback plods in long, low
+			     stomps, and the Glowcap, which never moves, only breathes. ]]
+			SporePuff = { hop = 2.6, height = 0.7 },
+			Shellback = { hop = 4.4, height = 0.18 },
+			Glowcap = { hop = 3, height = 0.05 },
 		},
 		--[[ The breath when standing: this share of height, over this many
 		     seconds. ]]
@@ -5297,6 +5447,30 @@ local Balance = {
 				moss = Color3.fromRGB(44, 104, 56),
 				size = 1.0,
 				count = 7,
+			},
+			--[[ Bogheart Caverns (they hop, so they throw): pink puff and
+			     its pale spots; the Glowcap's teal cap and glowing gills;
+			     the Shellback's teal shell and its moss. ]]
+			SporePuff = {
+				light = Color3.fromRGB(246, 140, 176),
+				dark = Color3.fromRGB(214, 84, 128),
+				moss = Color3.fromRGB(250, 222, 200),
+				size = 0.38,
+				count = 5,
+			},
+			Glowcap = {
+				light = Color3.fromRGB(70, 168, 160),
+				dark = Color3.fromRGB(32, 104, 104),
+				moss = Color3.fromRGB(196, 248, 140),
+				size = 0.4,
+				count = 5,
+			},
+			Shellback = {
+				light = Color3.fromRGB(46, 120, 120),
+				dark = Color3.fromRGB(24, 76, 80),
+				moss = Color3.fromRGB(130, 210, 60),
+				size = 0.55,
+				count = 6,
 			},
 		},
 		--[[ Share of the cubes that are moss rather than jelly. ]]

@@ -763,6 +763,45 @@ return function(t: TestRunner.Helper)
 		)
 	end)
 
+	--[[ A spinning turret (the Glowcap) fires a ring that aims at nobody, so
+	     its spores must go evenly round the whole circle, and each ring must
+	     turn by less than the gap between spores or the sweep reads as
+	     random. A death cloud (the Spore Puff) must give a moment to step
+	     out before it bites, and bite at least once before it blows away. ]]
+	t.test("spinning rings and spore clouds are readable", function()
+		local all: { Balance.EnemyConfig } = {}
+		for _, config in (Balance.Enemies :: any) :: { [string]: Balance.EnemyConfig } do
+			table.insert(all, config)
+		end
+		for _, config in Balance.Benched do
+			table.insert(all, config)
+		end
+		local spun, burst = 0, 0
+		for _, config in all do
+			local shot = config.shot
+			local spin = if shot then shot.spin else nil
+			if shot and spin then
+				spun += 1
+				t.isTrue(
+					math.abs(shot.count * shot.spread - 2 * math.pi) < 1e-3,
+					`{config.displayName}'s ring is not a full circle`
+				)
+				t.isTrue(
+					spin > 0 and spin < shot.spread,
+					`{config.displayName} turns past its own gap`
+				)
+			end
+			local cloud = config.burst
+			if cloud then
+				burst += 1
+				t.isTrue(cloud.delay > 0, `{config.displayName}'s cloud bites at once`)
+				t.isTrue(cloud.delay < cloud.linger, `{config.displayName}'s cloud never bites`)
+				t.isTrue(cloud.every > 0 and cloud.radius > 0, config.displayName)
+			end
+		end
+		t.isTrue(spun > 0 and burst > 0, "the Glowcap's ring or the Spore Puff's cloud is gone")
+	end)
+
 	--[[ Player arrows fly at one height, low, for every enemy: each hitbox
 	     sits on the floor, so the arrow's whole width must fit inside the
 	     shortest one, or a squat enemy is shot over. ]]

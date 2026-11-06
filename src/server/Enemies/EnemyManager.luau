@@ -195,6 +195,21 @@ type Enemy = {
 	clips: ModelClip.Model?,
 	clip: string?,
 	lastPosition: Vector3?,
+	--[[ A spinning turret's (`EnemyShot.spin`) aim: radians round from +Z,
+	     turned on by `spin` with every volley. ]]
+	spinAim: number?,
+}
+
+--[[ A cloud of spores where an enemy died (`EnemyConfig.burst`): it hurts
+     whoever is within `radius` of `at` on each tick from `nextAt` until
+     `endsAt`, every `every` seconds, for `damage`. ]]
+type Cloud = {
+	at: Vector3,
+	radius: number,
+	damage: number,
+	every: number,
+	nextAt: number,
+	endsAt: number,
 }
 
 local EnemyManager = {}
@@ -317,6 +332,9 @@ end
 --[[ Volleys decided this step, drained by EnemyFiring. ]]
 local pendingVolleys: { Volley } = {}
 
+--[[ Spore clouds still hanging where their enemies died. ]]
+local clouds: { Cloud } = {}
+
 --[[ Until when (os.clock) the run holds still for a boss's entry banner. ]]
 local introUntil = 0
 
@@ -333,6 +351,7 @@ function EnemyManager.init(parent: Instance)
 
 	table.clear(enemies)
 	table.clear(positions)
+	table.clear(clouds)
 	aliveCount = 0
 	introUntil = 0
 end
@@ -1383,6 +1402,28 @@ function EnemyManager.damage(
 		spawnSplit(split, enemy.position)
 	end
 
+	--[[ The Spore Puff's cloud: it blooms the moment the body falls, so a
+	     player at arm's length sees it before its first tick lands. ]]
+	local burst = enemy.config.burst
+	if burst then
+		local now = os.clock()
+		table.insert(clouds, {
+			at = enemy.position,
+			radius = burst.radius,
+			damage = enemy.config.attackDamage * burst.damageScale * difficulty().damage,
+			every = burst.every,
+			nextAt = now + burst.delay,
+			endsAt = now + burst.linger,
+		})
+		enemyTelegraph:FireAllClients(
+			enemy.position,
+			Vector3.zAxis,
+			burst.linger,
+			"SporeCloud",
+			burst.radius
+		)
+	end
+
 	return true, enemy.config.xpReward, enemy.position
 end
 
@@ -1433,6 +1474,15 @@ local function queueVolley(enemy: Enemy, targetRoot: BasePart, shot: Balance.Ene
 		now, so standing still through the tell is punished.
 	]]
 	local direction = enemy.volleyDirection or aimAt(enemy.position, targetRoot)
+
+	--[[ A spinning turret aims at nobody: each volley leaves `spin` further
+	     round than the last, from wherever its first one pointed. ]]
+	local spin = shot.spin
+	if spin then
+		local aim = enemy.spinAim or (if direction then math.atan2(direction.X, direction.Z) else 0)
+		direction = Vector3.new(math.sin(aim), 0, math.cos(aim))
+		enemy.spinAim = aim + spin
+	end
 
 	if not direction then
 		return
@@ -2659,7 +2709,36 @@ local function stepWake(enemy: Enemy, now: number)
 	end
 end
 
+--[[ Ticks the spore clouds: each hurts whoever stands inside it, every
+     `every` seconds, until it has blown away. ]]
+local function stepClouds(now: number)
+	local index = 1
+	while index <= #clouds do
+		local cloud = clouds[index]
+		if now >= cloud.endsAt then
+			table.remove(clouds, index)
+			continue
+		end
+		if now >= cloud.nextAt then
+			cloud.nextAt += cloud.every
+			for _, session in RunSession.all() do
+				local root = session.root
+				if not root or not session.alive then
+					continue
+				end
+				local away =
+					Vector3.new(root.Position.X - cloud.at.X, 0, root.Position.Z - cloud.at.Z)
+				if away.Magnitude <= cloud.radius then
+					hurt(session, cloud.damage)
+				end
+			end
+		end
+		index += 1
+	end
+end
+
 function EnemyManager.step(deltaTime: number, now: number)
+	stepClouds(now)
 	for _, enemy in enemies do
 		stepEnemy(enemy, deltaTime, now)
 		if enemy.arrivesAt == nil then

@@ -87,11 +87,14 @@ where you would be standing. Say what reads wrong and Claude retunes it.
 
 ### The Drowned Village
 
+- **The outer flood** (`Config/DrownedForest`, built 2026-11-05 after `area03_drowned_village_ambience_v2.png`): sunken houses, the leaning bell tower, the toll gate, dead trees with nets, boats, reeds and lantern posts in turquoise water, with gulls, glints, mist and warm shafts. Are the outer roofs too dark a blue?
 - **The arena** (`Balance.drownedStage`, behind no portal yet). Hold it against `area03_drowned_village_v2.png`: the six sunken houses and their lanterns, the causeway, the well, the dock gates top and bottom, and the open-floor rooms (1, 5, 9).
 - **The footsteps in the water.** Every stride throws droplets, a foam flash and two ripple rings. Big enough? (Silent until the sprite is uploaded.)
 - **Its five pets' attacks** (O, sandbox). Three do no damage at all, which is the thing to judge: the Slate Turtle's 20% cut for 3 s in 14, the Buoy Puffer's 240 only once you are hurt, the Inkpot's 3 s blind, the Tide Wilf's 138 a 3 studs. None of the five plays an animation - do they need rigged models, or is a pose and an effect piece enough?
 
 ### Bogheart Caverns
+
+- **The outer cavern** (`Config/BogheartForest`, built 2026-11-05 after `area04_bogheart_caverns_ambience*.png`): the stream running on under two bridges into its pools, rock rims and columns, giant mushroom groves, sprouts, the side cave mouths, with spores, glow-bugs, mist and cyan shafts. Is the outer floor dark enough, or too dark? Do the caps read cyan?
 
 - **The arena** (`Balance.bogheartStage`, behind no portal yet). Hold it against `area04_bogheart_caverns_v2.png` and, for rooms 1, 4 and 7, `area04_bogheart_caverns_open.png`: the stream with its bridge and side stepping stones, the four giant mushrooms, the cave mouths. Is the glow right, or still too bright?
 

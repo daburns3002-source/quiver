@@ -157,17 +157,26 @@ local function thornwood(): ArenaModel
 	}
 end
 
+local BogheartForest = require(script.Parent.BogheartForest)
+local DrownedForest = require(script.Parent.DrownedForest)
+
+local DROWNED_OUTER: { ArenaPart } = DrownedForest
+local BOGHEART_OUTER: { ArenaPart } = BogheartForest
+
 --[[ Act 1, area 3: the Drowned Village, built from the owner's kit
-     (`Config/ArenaKits.Drowned`). No outer arena yet (its kit pieces are
-     designed in `docs/DROWNED-VILLAGE.md`), so past the walls is the deep
-     flood water, the sheet's darkest teal. Its floor is shallow water, so
+     (`Config/ArenaKits.Drowned`), inside its own outer flood
+     (`Config/DrownedForest`, 2026-11-05): sunken houses, the bell tower,
+     the toll gate, dead trees with nets, boats and reeds, with its own life
+     (`Balance.Ambience.Drowned`). Past that, the deep flood water, the
+     sheet's darkest teal. Its floor is shallow water, so
      `Fx/WaterSteps` splashes and rings under every step (`shallowWater`).
      Its low cover would be water, though no room has any. ]]
 local DROWNED_FLOOD = Color3.fromRGB(0, 110, 118)
 local function drowned(): ArenaModel
 	return {
-		parts = {},
+		parts = DROWNED_OUTER,
 		outsideColor = DROWNED_FLOOD,
+		ambience = "Drowned",
 		kit = "Drowned",
 		lowCover = "Water",
 		outerShade = OUTER_SHADE,
@@ -176,14 +185,18 @@ local function drowned(): ArenaModel
 	}
 end
 
---[[ Act 2, area 4: Bogheart Caverns (`Config/ArenaKits.Bogheart`). Its
-     water boxes are the glowing stream; past the walls, the cave's dark
-     slate. Darker than the glade, a cave lit by its own glow. ]]
+--[[ Act 2, area 4: Bogheart Caverns (`Config/ArenaKits.Bogheart`), inside
+     its own outer cavern (`Config/BogheartForest`, 2026-11-05): rock rims
+     and columns, giant mushroom groves, bog sprouts, the glowing stream
+     running on to its pools and two side cave mouths, with its own life
+     (`Balance.Ambience.Bogheart`). Its water boxes are the glowing stream;
+     past it all, the cave's dark slate. Darker than the glade, a cave lit by its own glow. ]]
 local CAVERN_ROCK = Color3.fromRGB(46, 50, 64)
 local function bogheart(): ArenaModel
 	return {
-		parts = {},
+		parts = BOGHEART_OUTER,
 		outsideColor = CAVERN_ROCK,
+		ambience = "Bogheart",
 		kit = "Bogheart",
 		lowCover = "Water",
 		outerShade = OUTER_SHADE,

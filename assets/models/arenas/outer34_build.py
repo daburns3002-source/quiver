@@ -121,17 +121,73 @@ class Scene:
                 col = patch(x, z) if patch else None
                 if col is None:
                     col = rare[self.rng.randrange(len(rare))] if r < 0.08 else tones[self.rng.randrange(len(tones))]
-                dy = self.rng.choice((0, 0, 0.04))
-                o.box(x - 1.5, TOP - 1, z - 1.5, x + 1.5, TOP + dy, z + 1.5, col)
+                # one flat top: any step between tiles draws as a seam line
+                o.box(x - 1.5, TOP - 1, z - 1.5, x + 1.5, TOP, z + 1.5, col)
 
     def glb(self, out):
-        scene = trimesh.Scene()
-        groups = sorted({o.group for o in self.objs})
-        for g in groups:
-            scene.graph.update(frame_to=g, frame_from=scene.graph.base_frame)
+        """Writes the GLB by hand: one node and mesh per part under one node
+        per group, with float vertex colours. trimesh writes them as
+        normalised bytes, which the Studio importer read as linear and drew
+        about half as bright (2026-11-05); the Claude Design and kit GLBs
+        that import as designed carry floats."""
+        import json
+        import struct
+
+        blob = bytearray()
+        views, accessors, meshes, nodes = [], [], [], []
+
+        def add(data, target, count, kind, ctype, lo=None, hi=None):
+            while len(blob) % 4:
+                blob.append(0)
+            views.append({"buffer": 0, "byteOffset": len(blob), "byteLength": len(data), "target": target})
+            blob.extend(data)
+            acc = {"bufferView": len(views) - 1, "componentType": ctype, "count": count, "type": kind}
+            if lo is not None:
+                acc["min"], acc["max"] = lo, hi
+            accessors.append(acc)
+            return len(accessors) - 1
+
+        groups = {}
         for o in self.objs:
-            scene.add_geometry(o.mesh(), node_name=o.name, geom_name=o.name, parent_node_name=o.group)
-        out.write_bytes(trimesh.exchange.gltf.export_glb(scene, include_normals=True))
+            m = o.mesh()
+            v = np.asarray(m.vertices, np.float32)
+            n = np.asarray(m.vertex_normals, np.float32)
+            c = (np.asarray(m.visual.vertex_colors, np.float32)[:, :3] / 255.0).astype(np.float32)
+            f = np.asarray(m.faces, np.uint32)
+            pos = add(v.tobytes(), 34962, len(v), "VEC3", 5126, v.min(0).tolist(), v.max(0).tolist())
+            nor = add(n.tobytes(), 34962, len(n), "VEC3", 5126)
+            col = add(c.tobytes(), 34962, len(c), "VEC3", 5126)
+            idx = add(f.tobytes(), 34963, f.size, "SCALAR", 5125)
+            meshes.append({"name": o.name, "primitives": [{"attributes": {"POSITION": pos, "NORMAL": nor, "COLOR_0": col}, "indices": idx, "material": 0}]})
+            nodes.append({"name": o.name, "mesh": len(meshes) - 1})
+            groups.setdefault(o.group, []).append(len(nodes) - 1)
+        roots = []
+        for g, kids in groups.items():
+            nodes.append({"name": g, "children": kids})
+            roots.append(len(nodes) - 1)
+        while len(blob) % 4:
+            blob.append(0)
+        doc = {
+            "asset": {"version": "2.0", "generator": "outer34_build.py"},
+            "scene": 0,
+            "scenes": [{"nodes": roots}],
+            "nodes": nodes,
+            "meshes": meshes,
+            "materials": [{"name": "Vertex", "pbrMetallicRoughness": {"baseColorFactor": [1, 1, 1, 1], "metallicFactor": 0, "roughnessFactor": 1}}],
+            "accessors": accessors,
+            "bufferViews": views,
+            "buffers": [{"byteLength": len(blob)}],
+        }
+        js = json.dumps(doc, separators=(",", ":")).encode()
+        js += b" " * (-len(js) % 4)
+        total = 12 + 8 + len(js) + 8 + len(blob)
+        out.write_bytes(
+            struct.pack("<III", 0x46546C67, 2, total)
+            + struct.pack("<II", len(js), 0x4E4F534A)
+            + js
+            + struct.pack("<II", len(blob), 0x004E4942)
+            + bytes(blob)
+        )
 
     def check(self):
         bad = []
@@ -168,7 +224,7 @@ def rock(s, o, cx, cz, w, h, d, cols, moss=None, steps=3, top=None):
     return y
 
 
-def ripple(o, cx, cz, r, col, w=0.35):
+def ripple(o, cx, cz, r, col, w=0.25):
     """A flat square ring on the water round something standing in it."""
     y0, y1 = TOP + 0.02, TOP + 0.08
     o.box(cx - r, y0, cz - r, cx + r, y1, cz - r + w, col)
@@ -182,7 +238,7 @@ def ripple(o, cx, cz, r, col, w=0.35):
 W3 = dict(
     water=[(22, 188, 196), (16, 180, 190), (30, 196, 200), (12, 172, 184)],
     glint=[(110, 222, 224), (70, 208, 214)],
-    ring=(150, 232, 232),
+    ring=(96, 216, 220),
     stone=[(150, 156, 166), (170, 175, 184), (128, 134, 146)],
     moss=(104, 178, 44),
     roof=[(84, 108, 164), (98, 124, 182), (70, 92, 142)],
@@ -205,7 +261,7 @@ def sunken_house(s, cx, cz, yaw, size=1.0):
     ends and ridge, a broken dark hole, moss on the eaves."""
     o = s.new("House", "Houses")
     rng = s.rng
-    L, W, H = 11 * size, 9 * size, 6 * size  # along the ridge, across, high
+    L, W, H = 11 * size, 9 * size, 7 * size  # along the ridge, across, high
     rows = 5
     pts = []
     for k in range(rows):
@@ -242,7 +298,7 @@ def sunken_house(s, cx, cz, yaw, size=1.0):
         ax, az = x0 * c - z0 * sn, x0 * sn + z0 * c
         bx, bz = x1 * c - z1 * sn, x1 * sn + z1 * c
         o.box(cx + ax, y0, cz + az, cx + bx, y1, cz + bz, col)
-    ripple(o, cx, cz, max(L, W) / 2 + 1.2, W3["ring"])
+    ripple(o, cx, cz, max(L, W) / 2 + 0.4, W3["ring"])
 
 
 def dead_tree(s, cx, cz, h=12, net=False):
@@ -449,9 +505,9 @@ def drowned():
     s.ground(W3["water"], [(40, 204, 206)], water)
     # Off the sheet: (px - 818) / 12.4, (py - 455) / 9.4.
     for cx, cz, yaw, sz in [
-        (-44, -32, 0, 1.0), (-10, -43, math.pi / 2, 0.85), (27, -25, 0, 0.75),
-        (60, -6, math.pi / 2, 1.0), (38, 4, 0, 1.0), (-26, 42, math.pi / 2, 1.0),
-        (-66, 44, 0, 0.9), (68, 46, math.pi / 2, 0.9), (34, -52, 0, 0.8),
+        (-44, -32, math.pi / 2, 1.0), (-10, -43, math.pi / 2, 0.85), (27, -25, 0, 0.75),
+        (60, -6, math.pi / 2, 1.0), (38, 4, math.pi / 2, 1.0), (-26, 42, math.pi / 2, 1.0),
+        (-66, 44, 0, 0.9), (68, 46, math.pi / 2, 0.9), (34, -52, math.pi / 2, 0.8),
     ]:
         sunken_house(s, cx, cz, yaw, sz)
     for cx, cz, h, net in [(-56, -43, 13, True), (-58, -19, 12, True), (-32, 2, 9, False), (12, -50, 8, False), (46, 33, 12, True), (70, 20, 10, False), (-70, 30, 9, False)]:

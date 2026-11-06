@@ -77,7 +77,8 @@ FORESTS = {
         ],
         # Lantern lights, drawn white in the GLB for the game to tint.
         "glow": {"Lamp": (255, 196, 110)},
-        "matte": ("Ground",),
+        # The flood is water, drawn smooth like the room's floor, not matte.
+        "matte": (),
         "separate": False,
     },
     "bogheart": {

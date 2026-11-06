@@ -5,10 +5,13 @@
 	mockup (`assets/concepts/blocky/ui/classes/class_select4.png`, 1920 x 1080)
 	by `assets/ui/gear/classes`' cut. Each: image and box {x, y, w, h} on the
 	mockup, the screen's canvas. The male Ranger and both Assassins were
-	redrawn inside their sections (owner, 2026-11-06: "make sure the male
-	ranger and the male and female assassin are in their sections"):
-	`assets/concepts/blocky/ui/classes/class_select5.png`, re-cut along the
-	same borders by `tools/class_select/recut.py`. `sections` are the eight slanted panels in
+	redrawn inside their sections at full size, and the female Ranger's bow
+	fixed (owner, 2026-11-06: "make sure the male ranger and the male and
+	female assassin are in their sections", "dont make them smaller", "fix
+	the bow in the female rangers hand"):
+	`assets/concepts/blocky/ui/classes/class_select_final.png`, built by
+	`tools/class_select/compose.py` and cut along the same borders by
+	`tools/class_select/recut.py`. `sections` are the eight slanted panels in
 	order, each cut along its gold borders (transparent outside, and under
 	the title and plates so an enlarged one shows no copy of them); `base` is
 	the whole mockup behind them; `choose` / `choosePressed` the CHOOSE
@@ -27,13 +30,13 @@ local ClassSelectAssets = {
 			class = "Ranger",
 			look = "male",
 			locked = false,
-			piece = piece("rbxassetid://117515529576290", 0, 0, 390, 1080),
+			piece = piece("rbxassetid://107007102886668", 0, 0, 390, 1080),
 		},
 		{
 			class = "Ranger",
 			look = "female",
 			locked = false,
-			piece = piece("rbxassetid://105454770232856", 117, 0, 498, 1080),
+			piece = piece("rbxassetid://133629687056582", 117, 0, 498, 1080),
 		},
 		{
 			class = "Arcanist",
@@ -63,16 +66,16 @@ local ClassSelectAssets = {
 			class = "Assassin",
 			look = "male",
 			locked = true,
-			piece = piece("rbxassetid://75494499420106", 1264, 0, 499, 1080),
+			piece = piece("rbxassetid://126356383023454", 1264, 0, 499, 1080),
 		},
 		{
 			class = "Assassin",
 			look = "female",
 			locked = true,
-			piece = piece("rbxassetid://76349660539222", 1490, 0, 430, 1080),
+			piece = piece("rbxassetid://129009211539245", 1490, 0, 430, 1080),
 		},
 	} :: { { class: string, look: string, locked: boolean, piece: Piece } },
-	base = piece("rbxassetid://110335903768030", 0, 0, 1920, 1080),
+	base = piece("rbxassetid://75350427144183", 0, 0, 1920, 1080),
 	title = piece("rbxassetid://137676218447234", 466, 26, 988, 136),
 	plateRanger = piece("rbxassetid://81409055845751", 28, 908, 456, 122),
 	plateArcanist = piece("rbxassetid://85077422603739", 495, 908, 459, 122),

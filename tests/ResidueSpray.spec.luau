@@ -21,6 +21,10 @@ return function(t: TestRunner.Helper)
 		for _, config in Balance.Enemies :: any do
 			names[config.displayName] = true
 		end
+		--[[ A benched enemy is a real one, waiting for its rooms. ]]
+		for _, config in Balance.Benched do
+			names[config.displayName] = true
+		end
 		for name in settings.kinds do
 			t.isTrue(names[name] == true, name .. " is not an enemy")
 		end

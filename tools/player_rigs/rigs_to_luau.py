@@ -68,7 +68,8 @@ def read_ids():
             if not line or line.startswith("#"):
                 continue
             key, mesh, tex = (line.split("|") + ["", ""])[:3]
-            ids[key] = (mesh, tex)
+            ids[key] = tuple(v if not v or v.startswith("rbxassetid://") else "rbxassetid://" + v
+                             for v in (mesh.strip(), tex.strip()))
     return ids
 
 

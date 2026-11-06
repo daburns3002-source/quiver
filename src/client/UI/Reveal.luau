@@ -272,11 +272,12 @@ local MODEL_FOV = 40
 local templates: { [string]: MeshPart } = {}
 
 function Reveal.preloadModels()
-	local specs: { GearAssets.RevealModel } = {}
-	for _, kind in { GearAssets.models.eggs, GearAssets.models.chests } do
-		for _, spec in kind do
-			table.insert(specs, spec)
-		end
+	local specs = {}
+	for _, spec in GearAssets.models.eggs do
+		table.insert(specs, spec)
+	end
+	for _, spec in GearAssets.models.chests do
+		table.insert(specs, spec)
 	end
 	for _, spec in specs do
 		if templates[spec.mesh] then
@@ -744,10 +745,14 @@ local function play(look: Look, prizes: { Prize }, chanceOf: (Prize) -> number, 
 			local open = 0
 			if chest and burst then
 				open = clamp01(since / 0.12)
-				local pop = 0.18 * decay(since, 8, 24)
+				-- a one-piece chest has no lid to fling: the whole chest
+				-- bursts wide, hops and lands before it sinks away
+				local pop = (if template then 0.3 else 0.18) * decay(since, 8, 24)
 				sx, sy = 1 + pop, 1 - pop
 				rot = 0
-				py = y + clamp01((since - 0.35) / 0.5) * 140
+				py = y
+					- math.sin(clamp01(since / 0.3) * math.pi) * 90
+					+ clamp01((since - 0.35) / 0.5) * 140
 			end
 			local shellAlpha = if chest
 				then clamp01((t - (line.banner - 0.1)) / 0.35)

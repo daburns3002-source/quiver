@@ -13,9 +13,8 @@
 	  per `Config/Shop` area) and `eggs` (whole,
 	  two cracked stages and the burst, per `Config/Eggs` key): the reveals'
 	  frames.
-	- `models`: each area's egg and chest as Tripo models (`eggs`, `chests`,
-	  keyed by area), shown by `UI/Reveal` in a viewport in place of the
-	  frames above.
+	- `models`: each area's egg and chest as Tripo models, shown by `UI/Reveal`
+	  in a viewport in place of the frames above.
 	- `fx`: white shapes the reveals tint by rarity.
 	  An empty id is not drawn.
 ]]
@@ -192,21 +191,16 @@ local GearAssets = {
 			burst = "rbxassetid://80786736493750",
 		},
 	} :: { [string]: { whole: string, crack1: string, crack2: string, burst: string } },
-	--[[ The egg and the chest as the models the owner generated in Tripo
-	     (2026-10-31: "i also want it to play with the new egg and chest
-	     models that were created"). Shown in a viewport by `UI/Reveal`, so
-	     they tip, turn and squash in three dimensions where the pictures
-	     above could only swap one frame for the next.
-
-	     Each area's own egg and chest (the low-poly Tripo set imported
-	     2026-11-06, `Workspace/TripoImports/EggsChests`; the colour map
-	     as the texture, since a script cannot set a SurfaceAppearance),
-	     keyed by area: an egg plays its area's (`Config/Eggs.area`), a
-	     crate its own. An area with no model here plays its pictures.
-	     `tips` is the chest's: it rocks and shakes whole and stays on
-	     screen while the weapon rises out of it. An egg has none and is
-	     gone on the burst. Both are single meshes, so no shell half and
-	     no lid can move by itself -- the light does that work. ]]
+	--[[ Each area's egg and chest as its low-poly Tripo model (imported
+	     2026-11-06 into the TEST place's `Workspace/TripoImports/EggsChests`;
+	     owner: "Yes, wire them in"), keyed by `Config/Economy` area: an
+	     egg's hatch plays its area's egg (`Config/Eggs.area`), a crate opens
+	     as its area's chest. Shown in a viewport by `UI/Reveal`; the texture
+	     is the import's colour map (a SurfaceAppearance cannot be built at
+	     runtime). An area with none here, or one that failed to load, plays
+	     its pictures.
+	     `tips` would rock a lid open, but each chest is one mesh with no lid
+	     of its own, so it is false: the whole chest hops and bursts. ]]
 	models = {
 		eggs = {
 			MossyGlade = {
@@ -239,40 +233,40 @@ local GearAssets = {
 				texture = "rbxassetid://138392576594921",
 				tips = false,
 			},
-		},
+		} :: { [string]: RevealModel },
 		chests = {
 			MossyGlade = {
 				mesh = "rbxassetid://98625708965048",
 				texture = "rbxassetid://137596064356339",
-				tips = true,
+				tips = false,
 			},
 			Thornwood = {
 				mesh = "rbxassetid://79820164640155",
 				texture = "rbxassetid://122839180369787",
-				tips = true,
+				tips = false,
 			},
 			DrownedVillage = {
 				mesh = "rbxassetid://95676445033005",
 				texture = "rbxassetid://88164974961553",
-				tips = true,
+				tips = false,
 			},
 			BogheartCaverns = {
 				mesh = "rbxassetid://95156149663868",
 				texture = "rbxassetid://115638567453182",
-				tips = true,
+				tips = false,
 			},
 			WindsweptCliffs = {
 				mesh = "rbxassetid://126335066165779",
 				texture = "rbxassetid://91074804881162",
-				tips = true,
+				tips = false,
 			},
 			FrostpeakPass = {
 				mesh = "rbxassetid://85132839108840",
 				texture = "rbxassetid://114056664341037",
-				tips = true,
+				tips = false,
 			},
-		},
-	} :: { eggs: { [string]: RevealModel }, chests: { [string]: RevealModel } },
+		} :: { [string]: RevealModel },
+	},
 	--[[ Each area's egg and chest as one picture (Codex's per-area art,
 	     `assets/concepts/blocky/eggs_chests/egg_<area>.png` and
 	     `chest_<area>.png`, 2026-11-06), for an egg or chest with no model

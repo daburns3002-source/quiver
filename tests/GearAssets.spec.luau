@@ -52,10 +52,15 @@ return function(t: TestRunner.Helper)
 		end
 	end)
 
-	t.test("every area has its own egg and chest model", function()
+	-- every area's egg and chest is a model (owner, 2026-11-06: "wire them in")
+	t.test("every egg's area and every crate's area has its model", function()
+		for _, egg in Eggs.list do
+			local model = GearAssets.models.eggs[egg.area]
+			t.isTrue(model ~= nil and model.mesh ~= "" and model.texture ~= "", egg.key)
+		end
 		for _, crate in Shop.crates do
-			t.notNil(GearAssets.models.eggs[crate.area], crate.area)
-			t.notNil(GearAssets.models.chests[crate.area], crate.area)
+			local model = GearAssets.models.chests[crate.area]
+			t.isTrue(model ~= nil and model.mesh ~= "" and model.texture ~= "", crate.area)
 		end
 	end)
 end

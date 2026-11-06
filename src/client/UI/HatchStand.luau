@@ -1,12 +1,12 @@
 --!strict
 --[[
-	Tap Simulator Reborn's egg stand (owner, 2026-10-27: "replicated exactly
-	1 to 1"; docs/EGG-HATCH-REFERENCE.md), shared by the Egg Hatchery and the
-	Blacksmith's crates (owner, 2026-10-27: the weapon chests "changed exactly
-	how you are changing the pets and with the same ui"): the name over a
-	white card holding the price, the picker and the AUTO toggle, what is
-	inside with its odds and the pity bar; the egg or crate beside it with
-	its key prompts, E for one and R for three (T toggles AUTO).
+	The egg and crate stand, shared by the Egg Hatchery and the Blacksmith's
+	crates (owner, 2026-10-27: the weapon chests "changed exactly how you are
+	changing the pets and with the same ui"), in the chunky style the owner
+	approved on 2026-11-05 (`UI/Chunky`, assets/concepts/ui_refs/mockups/
+	hatchery.jpg and shop.jpg): the egg or crate on its pedestal with its
+	name, price, picker and press buttons; a white card of what is inside
+	with the odds and the pity bar. E presses one, R three, T toggles AUTO.
 
 	`controller` runs AUTO for a screen: presses follow one another until
 	STOP, the screen closes or the coins run out; the stand hides while a
@@ -16,6 +16,8 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
+local Chunky = require(script.Parent.Chunky)
+local GearAssets = require(ReplicatedStorage.Shared.Config.GearAssets)
 local Kit = require(script.Parent.Kit)
 local Pity = require(ReplicatedStorage.Shared.Util.Pity)
 local Reveal = require(script.Parent.Reveal)
@@ -60,13 +62,19 @@ export type Spec = {
 	verb: string,
 	--[[ What the cards hold, for the line under them: "PETS", "WEAPONS". ]]
 	noun: string,
+	--[[ The ribbon's words when they are not `title` (the Blacksmith's
+	     ribbon names the station; the stand under it names the chest). ]]
+	heading: string?,
+	--[[ The screen's own modes, as tabs along the panel's head (the
+	     Blacksmith's CRATES and STORE). ]]
+	modes: { Mode }?,
 }
+export type Mode = { words: string, on: boolean, pick: () -> () }
 export type Controller = {
 	auto: boolean,
 	toggle: () -> (),
 }
-
-local keys = UserInputService.KeyboardEnabled
+export type Area = { sheet: Chunky.Sheet, x: number, y: number, w: number, bottom: number }
 
 function HatchStand.commas(n: number): string
 	local text = tostring(n)
@@ -78,122 +86,18 @@ function HatchStand.commas(n: number): string
 end
 
 --[[
-	Codex's grid. He drew the hatchery at 1200x720 and `UI/Kit` lays out
-	against 1920x1080, which is the same shape at 1.5x with 60 pixels of
-	margin each side, so every number below is one of his own, untouched.
+	The chunky frame every Blacksmith and Hatchery screen stands in: the blue
+	panel, the gold ribbon carrying `title` over its top edge, the red X off
+	its corner, the wallet top-left and `modes` as tabs along the panel's
+	head. Returns the room left inside the panel. Laid out for the screen as
+	it is held: 1920 x 1080, or 1080 x 1920 on a phone held upright.
 ]]
-local function at(item: GuiObject, x: number, y: number, w: number, h: number)
-	Kit.put(item, 60 + x * 1.5, y * 1.5, w * 1.5, h * 1.5)
-end
-
---[[ A frame of nothing, to hang a panel and its words on. ]]
-local function slot(c: Frame, x: number, y: number, w: number, h: number): Frame
-	local holder = Instance.new("Frame")
-	holder.BackgroundTransparency = 1
-	holder.Parent = c
-	at(holder, x, y, w, h)
-	return holder
-end
-
---[[
-	Codex's action button: a leaf-green face lit from the top, a gloss bar
-	across its head, a soft halo just outside it and the key in the middle
-	at nearly the height of the button. Greyed when it cannot be afforded,
-	and still pressable, so a player who cannot pay is told rather than
-	ignored.
-]]
-local function prompt(
-	c: Frame,
-	x: number,
-	y: number,
-	w: number,
-	h: number,
-	key: string,
-	words: string?,
-	can: boolean,
-	action: () -> ()
-)
-	local holder = slot(c, x, y, w, h)
-	local face = if can then Color3.fromRGB(132, 245, 43) else Color3.fromRGB(120, 130, 120)
-
-	local halo = Instance.new("Frame")
-	halo.BackgroundTransparency = 1
-	halo.Position = UDim2.fromScale(-8 / w, -8 / h)
-	halo.Size = UDim2.fromScale(1 + 16 / w, 1 + 16 / h)
-	halo.ZIndex = 7
-	halo.Parent = holder
-	local haloRound = Instance.new("UICorner")
-	haloRound.CornerRadius = UDim.new(0, 22)
-	haloRound.Parent = halo
-	local haloEdge = Instance.new("UIStroke")
-	haloEdge.Color = Color3.fromRGB(166, 255, 84)
-	haloEdge.Thickness = 5
-	haloEdge.Transparency = 0.55
-	haloEdge.Parent = halo
-
-	local button = Instance.new("Frame")
-	button.BackgroundColor3 = face
-	button.BorderSizePixel = 0
-	button.Size = UDim2.fromScale(1, 1)
-	button.ZIndex = 8
-	button.Parent = holder
-	local round = Instance.new("UICorner")
-	round.CornerRadius = UDim.new(0, 18)
-	round.Parent = button
-	local lit = Instance.new("UIGradient")
-	lit.Rotation = 90
-	lit.Color =
-		ColorSequence.new(face:Lerp(Color3.new(1, 1, 1), 0.3), face:Lerp(Color3.new(0, 0, 0), 0.25))
-	lit.Parent = button
-
-	local gloss = Instance.new("Frame")
-	gloss.BackgroundColor3 = Color3.new(1, 1, 1)
-	gloss.BackgroundTransparency = 0.78
-	gloss.BorderSizePixel = 0
-	gloss.Position = UDim2.fromScale(0.09, 0.08)
-	gloss.Size = UDim2.fromScale(0.82, 0.3)
-	gloss.ZIndex = 10
-	gloss.Parent = button
-	local glossRound = Instance.new("UICorner")
-	glossRound.CornerRadius = UDim.new(0, 10)
-	glossRound.Parent = gloss
-	local fade = Instance.new("UIGradient")
-	fade.Rotation = 90
-	fade.Transparency =
-		NumberSequence.new({ NumberSequenceKeypoint.new(0, 0), NumberSequenceKeypoint.new(1, 1) })
-	fade.Parent = gloss
-
-	local letter = Kit.pixelText(button, if keys then key else "TAP", 80, Color3.new(1, 1, 1))
-	letter.Position = UDim2.fromScale(0.1, if words then 0.06 else 0.16)
-	letter.Size = UDim2.fromScale(0.8, if words then 0.56 else 0.68)
-	letter.ZIndex = 11
-	if words then
-		local under = Kit.pixelText(button, words, 24, Color3.fromRGB(255, 224, 71))
-		under.Position, under.Size = UDim2.fromScale(0.06, 0.64), UDim2.fromScale(0.88, 0.26)
-		under.ZIndex = 11
-	end
-	Kit.pressFx(Kit.clickArea(holder, action), button, true)
-end
-
---[[ Draws the stand onto `s`'s canvas; `press(count)` asks the server,
-     `affordable(count)` says whether it may. ]]
-function HatchStand.draw(
-	s: StationScreen.Screen,
-	spec: Spec,
-	control: Controller,
-	press: (number) -> (),
-	affordable: (number) -> boolean
-)
+function HatchStand.chrome(s: StationScreen.Screen, title: string, modes: { Mode }?): Area
 	local c = s.canvas
-
-	--[[ Codex closes with the X inside the panel and carries no wallet at
-	     all, so the station's own back arrow is a second close for the same
-	     thing and its wallet sits exactly where his title hangs. The arrow
-	     goes; the wallet moves into the empty air over his left column. ]]
+	local dim = c.Parent :: GuiObject
 	local layer = c:FindFirstAncestorWhichIsA("ScreenGui")
 	if layer then
-		--[[ The Blacksmith carries a second wallet of its own, over the
-		     station rather than on the canvas; one of the two is enough. ]]
+		-- the Blacksmith's own lobby wallet; this frame carries its own
 		for _, other in layer:GetDescendants() do
 			if
 				other.Name == "Wallet"
@@ -204,249 +108,337 @@ function HatchStand.draw(
 			end
 		end
 	end
+	-- the station's back arrow and old wallet give way to the X and the pills
 	for _, child in c:GetChildren() do
-		if child:IsA("ImageButton") then
+		if child:IsA("ImageButton") or child.Name == "Wallet" then
 			child:Destroy()
-		elseif child.Name == "Wallet" and child:IsA("GuiObject") then
-			local first = child.Position.X.Scale < 0.8
-			Kit.put(child, if first then 202 else 482, 40, if first then 264 else 240, 100)
 		end
 	end
-
-	--[[ The name, in plain outlined Arcade over the panel rather than on a
-	     bar of its own: Codex hangs it in the air above everything, and a
-	     bar behind it is the thing that made this screen stop being his. ]]
-	local titleBox = slot(c, 500, -14, 700, 130)
-	local title = Kit.pixelText(titleBox, spec.title, 100)
-	title.ZIndex = 20
-
-	--[[ His odds panel: the area's scene filling it corner to corner under
-	     a rounded leaf-green edge, and a quiet dark pad over the middle so
-	     the forest shows at the perimeter and the cards sit on calm. ]]
-	local panelHolder = slot(c, 520, 110, 660, 552)
-	local panel = Kit.pixelPanel(panelHolder, 990, 828, Kit.pixelForest)
-	for _, part in panel:GetChildren() do
-		if part:IsA("Frame") then
-			part.BackgroundTransparency = 0.3
-		end
-	end
-	if spec.backdrop ~= "" then
-		local scene = Kit.image(panelHolder, spec.backdrop)
-		scene.Position, scene.Size = UDim2.fromScale(0, 0), UDim2.fromScale(1, 1)
-		scene.ScaleType = Enum.ScaleType.Crop
-		scene.ImageTransparency = 0.38
-		scene.ZIndex = 6
-		local sceneRound = Instance.new("UICorner")
-		sceneRound.CornerRadius = UDim.new(0, 24)
-		sceneRound.Parent = scene
-		local edge = Instance.new("UIStroke")
-		edge.Thickness = 4
-		edge.Transparency = 0.3
-		edge.Color = Color3.fromRGB(123, 157, 73)
-		edge.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-		edge.Parent = scene
-	end
-	local calm = Instance.new("Frame")
-	calm.BackgroundColor3 = Color3.fromRGB(14, 34, 25)
-	calm.BackgroundTransparency = 0.04
-	calm.BorderSizePixel = 0
-	calm.Position = UDim2.fromScale(4 / 660, 72 / 552)
-	calm.Size = UDim2.fromScale(652 / 660, 438 / 552)
-	calm.ZIndex = 7
-	calm.Parent = panelHolder
-	local calmRound = Instance.new("UICorner")
-	calmRound.CornerRadius = UDim.new(0, 16)
-	calmRound.Parent = calm
-
-	-- the price, in his cream pill in the panel's top corner
-	local priceHolder = slot(c, 536, 122, 174, 58)
-	Kit.pixelPanel(priceHolder, 261, 87, Kit.pixelCream)
-	local coin = Kit.image(priceHolder, ShopAssets.coin)
-	coin.Position, coin.Size = UDim2.fromScale(0.07, 0.17), UDim2.fromScale(0.22, 0.66)
-	coin.ZIndex = 10
-	local cost =
-		Kit.pixelText(priceHolder, HatchStand.commas(spec.price), 30, Color3.fromRGB(255, 213, 44))
-	cost.Position, cost.Size = UDim2.fromScale(0.3, 0.2), UDim2.fromScale(0.64, 0.6)
-	cost.ZIndex = 11
-
-	--[[ Codex's top strip. A chest stand fills it with his tabs, and its
-	     area picker goes under the left column; an egg stand has no tabs
-	     and keeps its picker here, which is where he put a control of
-	     this kind when he had one. ]]
-	local function picker(x: number, y: number, w: number, h: number)
-		local holder = slot(c, x, y, w, h)
-		Kit.pixelPanel(holder, w * 1.5, h * 1.5, Color3.fromRGB(23, 43, 30))
-		local words = Kit.pixelText(holder, `< {spec.picker} >`, 26)
-		words.ZIndex = 11
-		Kit.pressFx(
-			Kit.clickArea(holder, function()
-				if not Reveal.busy() then
-					control.auto = false
-					spec.onPick()
+	--[[ Once per screen: pop in on each opening, and lay out again when a
+	     phone turns between upright and landscape. ]]
+	if not c:GetAttribute("ChunkyWatch") then
+		c:SetAttribute("ChunkyWatch", true)
+		local upright = dim.AbsoluteSize.Y > dim.AbsoluteSize.X
+		s.connect(dim:GetPropertyChangedSignal("Visible"), function()
+			if not dim.Visible then
+				c:SetAttribute("Shown", nil)
+			end
+		end)
+		s.connect(dim:GetPropertyChangedSignal("AbsoluteSize"), function()
+			local now = dim.AbsoluteSize.Y > dim.AbsoluteSize.X
+			if now ~= upright then
+				upright = now
+				if s.isOpen() and not Reveal.busy() then
+					s.open()
 				end
-			end),
-			holder,
-			false
+			end
+		end)
+	end
+	local sheet = Chunky.sheet(c)
+	local up = sheet.upright
+	if up then
+		Chunky.panel(sheet, 30, 196, 1020, 1694)
+		Chunky.ribbon(sheet, title, 170, 116, 740, 150)
+		Chunky.close(sheet, 956, 150, 110, s.close)
+	else
+		Chunky.panel(sheet, 150, 104, 1620, 940)
+		Chunky.ribbon(sheet, title, 630, 22, 660, 144)
+		Chunky.close(sheet, 1688, 66, 108, s.close)
+	end
+	local p = s.profile
+	Chunky.wallet(
+		sheet,
+		if p then p.coins else 0,
+		if p then p.gems else 0,
+		if up then 40 else 170,
+		if up then 24 else 18,
+		if up then 80 else 70
+	)
+	local top = if up then 290 else 182
+	if modes then
+		local w = if up then 300 else 250
+		for i, mode in modes do
+			Chunky.tab(
+				sheet,
+				mode.words,
+				if i == 1 then Chunky.gold else Chunky.blue,
+				mode.on,
+				(if up then 70 else 190) + (i - 1) * (w + 18),
+				top,
+				w,
+				88,
+				function()
+					if not Reveal.busy() then
+						mode.pick()
+					end
+				end
+			)
+		end
+		top += 108
+	end
+	if not c:GetAttribute("Shown") then
+		c:SetAttribute("Shown", true)
+		Chunky.pop(c)
+	end
+	return {
+		sheet = sheet,
+		x = if up then 70 else 190,
+		y = top,
+		w = if up then 940 else 1540,
+		bottom = if up then 1850 else 1012,
+	}
+end
+
+--[[ The odds as the cards print them: "2.5%". ]]
+local function odds(chance: number): string
+	return string.format("%g%%", math.round(chance * 10000) / 100)
+end
+
+--[[ The columns that make the largest square tiles for `count` in a w x h
+     box, and that size. ]]
+function HatchStand.grid(count: number, w: number, h: number, gap: number): (number, number)
+	local bestCols, bestSize = 1, 0
+	for cols = 1, math.max(count, 1) do
+		local rows = math.ceil(count / cols)
+		local size = math.min((w - (cols - 1) * gap) / cols, (h - (rows - 1) * gap) / rows)
+		if size > bestSize then
+			bestCols, bestSize = cols, size
+		end
+	end
+	return bestCols, math.floor(bestSize)
+end
+
+local function words(
+	sheet: Chunky.Sheet,
+	text: string,
+	x: number,
+	y: number,
+	w: number,
+	h: number,
+	colour: Color3?,
+	stroke: number?
+): TextLabel
+	local box = Instance.new("Frame")
+	box.BackgroundTransparency = 1
+	box.ZIndex = 6
+	Chunky.put(sheet, box, x, y, w, h)
+	return Chunky.text(box, text, colour, stroke)
+end
+
+--[[ Draws the stand onto `s`'s canvas, as the approved mockups' Hatchery
+     and Blacksmith. `press(count)` asks the server, `affordable(count)`
+     says whether it may. ]]
+function HatchStand.draw(
+	s: StationScreen.Screen,
+	spec: Spec,
+	control: Controller,
+	press: (number) -> (),
+	affordable: (number) -> boolean
+)
+	local area = HatchStand.chrome(s, spec.heading or spec.title, spec.modes)
+	local sheet = area.sheet
+	local up = sheet.upright
+	-- the stand's column, and the white card beside it (under it, upright)
+	local cx, cy, cw = area.x, area.y, if up then area.w else 620
+	local cBottom = if up then cy + 820 else area.bottom
+	local kx = if up then area.x else 850
+	local ky = if up then cBottom + 30 else area.y
+	local kw = if up then area.w else 880
+	local kh = area.bottom - ky
+
+	local function guard(action: () -> ()): () -> ()
+		return function()
+			if not Reveal.busy() then
+				control.auto = false
+				action()
+			end
+		end
+	end
+
+	-- the picker row: the chests as tabs, or the one picker for an egg
+	local y = cy
+	if #spec.tabs > 0 then
+		local gap = 14
+		local w = (cw - (#spec.tabs - 1) * gap) / #spec.tabs
+		for i, tab in spec.tabs do
+			Chunky.tab(
+				sheet,
+				tab.words,
+				Chunky.purple,
+				tab.on,
+				cx + (i - 1) * (w + gap),
+				y,
+				w,
+				78,
+				guard(tab.pick)
+			)
+		end
+	else
+		Chunky.button(sheet, `<  {spec.picker}  >`, Chunky.blue, cx, y, cw, 84, guard(spec.onPick))
+	end
+	y += 100
+
+	-- the egg or crate on its pedestal, in a soft glow
+	local size = math.min(cw * 0.62, cBottom - 316 - y)
+	local pedestal = Instance.new("Frame")
+	pedestal.BorderSizePixel = 0
+	pedestal.BackgroundColor3 = Chunky.navy
+	pedestal.BackgroundTransparency = 0.45
+	pedestal.ZIndex = 4
+	Chunky.put(sheet, pedestal, cx + cw / 2 - size * 0.55, y + size * 0.84, size * 1.1, size * 0.2)
+	Chunky.round(pedestal, size)
+	local glow = Kit.image(sheet.canvas, GearAssets.fx.glow)
+	Chunky.put(sheet, glow, cx + cw / 2 - size * 0.7, y - size * 0.1, size * 1.4, size * 1.2)
+	glow.ImageTransparency = 0.55
+	glow.ZIndex = 4
+	if spec.picture ~= "" then
+		local picture = Kit.image(sheet.canvas, spec.picture)
+		Chunky.put(sheet, picture, cx + cw / 2 - size / 2, y, size, size)
+		picture.ZIndex = 6
+		if spec.locked then
+			picture.ImageColor3 = Color3.fromRGB(70, 74, 96)
+		end
+	end
+	y = cBottom - 316
+
+	words(sheet, spec.title, cx, y, cw, 76, nil, 6)
+	y += 92
+
+	-- the price, and beside it the area picker when the chests took the tabs
+	if #spec.tabs > 0 then
+		Chunky.pill(sheet, ShopAssets.coin, Chunky.commas(spec.price), cx, y, 250, 82, Chunky.gold)
+		Chunky.button(
+			sheet,
+			`<  {spec.picker}  >`,
+			Chunky.blue,
+			cx + 270,
+			y,
+			cw - 270,
+			82,
+			guard(spec.onPick)
+		)
+	else
+		Chunky.pill(
+			sheet,
+			ShopAssets.coin,
+			Chunky.commas(spec.price),
+			cx + cw / 2 - 140,
+			y,
+			280,
+			82,
+			Chunky.gold
 		)
 	end
+	y += 104
 
-	if #spec.tabs == 0 then
-		picker(726, 122, 330, 58)
-	else
-		local gap = 8
-		local wide = (330 - (#spec.tabs - 1) * gap) // #spec.tabs
-		for i, tab in spec.tabs do
-			local holder = slot(c, 726 + (i - 1) * (wide + gap), 122, wide, 58)
-			Kit.pixelPanel(
-				holder,
-				wide * 1.5,
-				87,
-				if tab.on then Kit.pixelCream else Color3.fromRGB(23, 43, 30)
-			)
-			local words = Kit.pixelText(
-				holder,
-				tab.words,
-				24,
-				if tab.on then Color3.fromRGB(23, 43, 30) else nil
-			)
-			words.ZIndex = 11
-			Kit.pressFx(
-				Kit.clickArea(holder, function()
-					if not Reveal.busy() then
-						control.auto = false
-						tab.pick()
-					end
-				end),
-				holder,
-				false
-			)
-		end
-		picker(95, 556, 390, 54)
+	-- one button per count, then AUTO
+	local slots = #spec.counts + 1
+	local gap = 16
+	local bw = (cw - (slots - 1) * gap) / slots
+	for i, count in spec.counts do
+		Chunky.button(
+			sheet,
+			`{spec.verb} {count}`,
+			if not affordable(count)
+				then Chunky.grey
+				elseif i == 1 then Chunky.green
+				else Chunky.gold,
+			cx + (i - 1) * (bw + gap),
+			y,
+			bw,
+			116,
+			function()
+				press(count)
+			end
+		)
 	end
+	Chunky.button(
+		sheet,
+		if control.auto then "AUTO ON" else "AUTO",
+		if control.auto then Chunky.green else Chunky.blue,
+		cx + #spec.counts * (bw + gap),
+		y,
+		bw,
+		116,
+		control.toggle
+	)
 
-	-- his close, a red X in the panel's own top corner
-	local closeHolder = slot(c, 1114, 122, 50, 50)
-	local close = Instance.new("Frame")
-	close.BackgroundColor3 = Color3.fromRGB(220, 70, 85)
-	close.BorderSizePixel = 0
-	close.Size = UDim2.fromScale(1, 1)
-	close.ZIndex = 14
-	close.Parent = closeHolder
-	local closeRound = Instance.new("UICorner")
-	closeRound.CornerRadius = UDim.new(0, 12)
-	closeRound.Parent = close
-	local cross = Kit.pixelText(close, "X", 34, Color3.new(1, 1, 1))
-	cross.ZIndex = 15
-	Kit.pressFx(Kit.clickArea(closeHolder, s.close), close, false)
-
-	--[[ What is inside, on his cards. The grid measures itself: an egg
-	     holds eight in two rows and a crate twelve in three, so the row
-	     pitch closes up as the rows grow rather than running off the pad. ]]
+	-- what is inside, on the white card
+	Chunky.card(sheet, kx, ky, kw, kh)
+	words(sheet, `{spec.noun} INSIDE`, kx + 24, ky + 14, kw - 48, 62, Chunky.navy, 0)
 	local held = #spec.tiles
-	--[[ Four to a row for an egg's eight or a crate's twelve; a chest of
-	     four reads better as a square than as one long row with the pad
-	     empty under it. ]]
-	local perRow = if held <= 4 then math.max(math.min(held, 2), 1) else 4
-	local rows = math.max(math.ceil(held / perRow), 1)
-	--[[ The cards fill the quiet pad rather than a fixed pitch: eight pets
-	     sit in two roomy rows and twelve weapons in three shorter ones, and
-	     neither runs over the pad's edge. ]]
-	local gap = 9
-	local wide = math.min((628 - (perRow - 1) * gap) // perRow, (414 - (rows - 1) * gap) // rows)
-	local tall = wide
-	-- centred in the pad, so a short grid sits in the middle of it
-	local left = 536 + (628 - (perRow * wide + (perRow - 1) * gap)) // 2
-	local top = 206 + (414 - (rows * tall + (rows - 1) * gap)) // 2
+	local gx, gy, gw, gh = kx + 28, ky + 88, kw - 56, kh - 88 - 120
+	local tileGap = 16
+	local cols, tile = HatchStand.grid(held, gw, gh, tileGap)
+	local rows = math.max(math.ceil(held / cols), 1)
+	local left = gx + (gw - (cols * tile + (cols - 1) * tileGap)) / 2
+	local top = gy + (gh - (rows * tile + (rows - 1) * tileGap)) / 2
 	for i, entry in spec.tiles do
-		local col, row = (i - 1) % perRow, (i - 1) // perRow
-		local holder = slot(c, left + col * (wide + gap), top + row * (tall + gap), wide, tall)
-		holder.ZIndex = 8
-		Kit.rarityCard(
+		local col, row = (i - 1) % cols, (i - 1) // cols
+		local holder = Instance.new("Frame")
+		holder.BackgroundTransparency = 1
+		holder.ZIndex = 6
+		Chunky.put(
+			sheet,
+			holder,
+			left + col * (tile + tileGap),
+			top + row * (tile + tileGap),
+			tile,
+			tile
+		)
+		Chunky.tile(
 			holder,
 			entry.rarity,
 			entry.icon,
-			entry.chance,
+			odds(entry.chance),
 			entry.silhouette == true or spec.locked ~= nil,
 			entry.owned,
 			entry.key
 		)
 	end
 
-	-- how many are in there, then the pity bar, both along the panel's foot
-	local tallyBox = slot(c, 536, 622, 628, 22)
-	local tally = Kit.pixelText(tallyBox, `{held} {spec.noun}`, 24)
-	tally.ZIndex = 11
-
-	local track = Instance.new("Frame")
-	track.BorderSizePixel = 0
-	track.BackgroundColor3 = Color3.fromRGB(14, 34, 25)
-	track.ZIndex = 8
-	track.Parent = c
-	at(track, 536, 644, 628, 18)
-	local round = Instance.new("UICorner")
-	round.CornerRadius = UDim.new(0.5, 0)
-	round.Parent = track
-	local fill = Instance.new("Frame")
-	fill.BorderSizePixel = 0
-	fill.BackgroundColor3 = Color3.new(1, 1, 1)
-	fill.Size = UDim2.fromScale(math.clamp(spec.pity / Pity.EVERY, 0.04, 1), 1)
-	fill.ZIndex = 9
-	fill.Parent = track
-	local curve = Instance.new("UICorner")
-	curve.CornerRadius = UDim.new(0.5, 0)
-	curve.Parent = fill
-	local colours = {}
-	for n = 0, 6 do
-		table.insert(colours, ColorSequenceKeypoint.new(n / 6, Color3.fromHSV(n / 7, 0.75, 1)))
-	end
-	local gradient = Instance.new("UIGradient")
-	gradient.Color = ColorSequence.new(colours)
-	gradient.Parent = fill
-	Kit.pityLine(c, spec.pity, 60 + 536 * 1.5, 645 * 1.5, 628 * 1.5, 16 * 1.5)
-
-	--[[ Codex's left column: the verb in big soft letters with his one
-	     green key under it. The second count and AUTO are the game's own
-	     controls, in his button and sitting on his baseline. ]]
-	local wordBox = slot(c, 95, 178, 400, 114)
-	local word = Kit.pixelText(wordBox, spec.verb, 96, Color3.fromRGB(229, 255, 184))
-	word.ZIndex = 20
-
 	if spec.locked then
-		local lock = Kit.image(c, ShopAssets.lock)
-		at(lock, 790, 200, 120, 104)
-		lock.ZIndex = 16
-		local whyBox = slot(c, 620, 320, 460, 54)
-		local why = Kit.pixelText(whyBox, spec.locked, 34, Color3.fromRGB(255, 213, 44))
-		why.ZIndex = 16
+		local veil = Instance.new("Frame")
+		veil.BorderSizePixel = 0
+		veil.BackgroundColor3 = Chunky.navy
+		veil.BackgroundTransparency = 0.35
+		veil.ZIndex = 20
+		Chunky.put(sheet, veil, kx + 10, gy, kw - 20, gh)
+		Chunky.round(veil, 20)
+		local lock = Kit.image(sheet.canvas, ShopAssets.lock)
+		Chunky.put(sheet, lock, kx + kw / 2 - 70, gy + gh / 2 - 130, 140, 122)
+		lock.ZIndex = 22
+		words(sheet, spec.locked, kx + 40, gy + gh / 2 + 10, kw - 80, 70, Chunky.gold, 5).ZIndex =
+			23
 	end
 
-	--[[ Codex's one key, in the middle of his column (owner, 2026-10-31:
-	     "take the R button away, the E should just be there in the
-	     middle"). The other counts keep their keys — only the second
-	     button goes. ]]
-	local single = spec.counts[1]
-	if single then
-		prompt(c, 200, 290, 180, 154, "E", nil, affordable(single), function()
-			press(single)
-		end)
-	end
-
-	local autoHolder = slot(c, 95, 478, 390, 62)
-	local autoFace = Instance.new("Frame")
-	autoFace.BackgroundColor3 = if control.auto
-		then Color3.fromRGB(132, 245, 43)
-		else Color3.fromRGB(90, 110, 95)
-	autoFace.BorderSizePixel = 0
-	autoFace.Size = UDim2.fromScale(1, 1)
-	autoFace.ZIndex = 8
-	autoFace.Parent = autoHolder
-	local autoRound = Instance.new("UICorner")
-	autoRound.CornerRadius = UDim.new(0, 16)
-	autoRound.Parent = autoFace
-	local autoWords = Kit.pixelText(autoFace, "AUTO" .. (if keys then " [T]" else ""), 30)
-	autoWords.Position, autoWords.Size = UDim2.fromScale(0.08, 0.22), UDim2.fromScale(0.84, 0.56)
-	autoWords.ZIndex = 11
-	Kit.pressFx(Kit.clickArea(autoHolder, control.toggle), autoFace, false)
+	-- the tally and the guaranteed Mythic along the card's foot
+	local left2 = math.max(1, Pity.EVERY - spec.pity)
+	local tally =
+		words(sheet, `{held} {spec.noun}`, kx + 30, ky + kh - 112, kw - 60, 44, Chunky.navy, 0)
+	tally.TextXAlignment = Enum.TextXAlignment.Left
+	local line = words(
+		sheet,
+		if left2 == 1 then "NEXT ONE IS A MYTHIC!" else `MYTHIC IN {left2}`,
+		kx + 30,
+		ky + kh - 112,
+		kw - 60,
+		44,
+		Chunky.purple,
+		0
+	)
+	line.Name = "PityLine"
+	line.TextXAlignment = Enum.TextXAlignment.Right
+	Chunky.bar(
+		sheet,
+		spec.pity / Pity.EVERY,
+		Chunky.purple,
+		kx + 30,
+		ky + kh - 60,
+		kw - 60,
+		34,
+		true
+	)
 end
 
 --[[ AUTO, the keys and the STOP button for a stand screen. `active` says
@@ -482,8 +474,8 @@ function HatchStand.controller(
 	stopLayer.Enabled = false
 	stopLayer.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
 	local stopCanvas = Kit.canvas(stopLayer)
-	local words = Kit.label(stopCanvas, "AUTO", Kit.white)
-	Kit.put(words, 24, 788, 320, 48)
+	local autoLabel = Kit.label(stopCanvas, "AUTO", Kit.white)
+	Kit.put(autoLabel, 24, 788, 320, 48)
 	local stop = Kit.button(stopCanvas, "STOP", Color3.fromRGB(230, 60, 50), function()
 		control.auto = false
 		if s.isOpen() and not Reveal.busy() then

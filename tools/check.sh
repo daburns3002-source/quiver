@@ -14,9 +14,9 @@ out=$(luau-lsp analyze --sourcemap=sourcemap.json --defs=globalTypes.d.luau src 
 if [ -n "$out" ]; then echo "$out"; exit 1; fi
 echo "clean"
 echo "== fonts"
-# Every word on screen is in the blocky font, Press Start 2P (CLAUDE.md rule 11).
-bad=$(grep -rnE "Enum\.Font\.[A-Za-z]+|Font\.(new|fromName|fromId)\(" src | grep -v "Enum\.Font\.Arcade" || true)
-if [ -n "$bad" ]; then echo "$bad"; echo "Use Enum.Font.Arcade (Press Start 2P): CLAUDE.md rule 11."; exit 1; fi
+# Every word on screen is in the blocky font, Press Start 2P, or the chunky screens' rounded Fredoka One (CLAUDE.md rule 11).
+bad=$(grep -rnE "Enum\.Font\.[A-Za-z]+|Font\.(new|fromName|fromId)\(" src | grep -v "Enum\.Font\.Arcade\|Enum\.Font\.FredokaOne" || true)
+if [ -n "$bad" ]; then echo "$bad"; echo "Use Enum.Font.Arcade (Press Start 2P) or, for the chunky screens, Enum.Font.FredokaOne: CLAUDE.md rule 11."; exit 1; fi
 echo "blocky"
 echo "== rojo build"; rojo build -o "${TMPDIR:-/tmp}/check.rbxl" | tail -1
 echo "All gates pass."

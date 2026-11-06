@@ -99,6 +99,8 @@ where you would be standing. Say what reads wrong and Claude retunes it.
 - **The in-run MENU button.** It sits on the left edge at mid-height, which is where a floating thumbstick is most often grabbed - is it under your thumb on a phone?
 - **Endless.** Beat 1-10 and walk into the Endless arch: a draft every 3rd floor, a mini-boss every 5th, a boss every 10th, the area changing every 10. Health x1.045 a floor, damage x1.030.
 
+- **The UI restyle (2026-11-05).** The Hatchery and the Blacksmith (CRATES and STORE) are in the chunky style you approved (assets/concepts/ui_refs/mockups/). Open both on a phone held each way. Gear, Dex and the Mossy Glade level screen follow, one PR each.
+
 ### The big one
 
 - **A run-through with every class, weapon and pet, on both maps.** 1-1..1-10 once with each class (C switches class, O opens the sandbox), then Thornwood. This is the row that would answer most of the others at once, and the Phase 3 question behind it: *did two runs in a row feel meaningfully different?*
@@ -142,6 +144,7 @@ a backlog. What is genuinely not built is the last three.
 
 - The blocky Mossy Glade has no blocky forest or boulder yet: the trees past the walls are still the round models, and boulders are drawn as mossy stone pillars, whose moss tops read as lawn from above. A blocky tree and boulder in the kit would fix both.
 
+- Two in-Roblox tests fail on main, in files the UI restyle does not touch (2026-11-05): CardText finds Earthbreaker's description 8 lines long and Black Hole's "Black hole every 7th cast" pill too wide for its card.
 - Enemy overlap with cover is measured clean in rooms 1–4 only; rooms 5–10 and the arena art itself are unmeasured (CLAUDE.md, "Known rough edges").
 - A Wilf lunge stopped short by cover still plays its leap for the full time.
 - The Slime King's moves have no sounds yet.

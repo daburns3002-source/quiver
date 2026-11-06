@@ -6,10 +6,11 @@ This is the one place the area's state is written down. It was spread across
 three tracker rows, two pet docs, a weapons doc and `docs/BOSSES.md`, which is
 why it kept looking more finished than it is.
 
-**The short version: the area has no arena, and almost everything else is
-waiting on that.** Its weapons, its pets, its boss design and three of its four
-enemy cards are done. None of them can be reached, because there is nowhere to
-stand.
+**The short version (2026-11-05): the arena and its rooms are built; the area's
+own enemies are next.** The owner's kit is in game (`Config/ArenaKits.Drowned`),
+ten rooms are generated from the approved sheet (`tools/area34_rooms.py`), and
+`Balance.drownedStage` (18) plays them. It is behind no portal yet, because
+its rosters are stand-ins: the Hollow Fisherman among Thornwood's enemies.
 
 ## What is built
 
@@ -22,6 +23,9 @@ stand.
 | **Three enemy cards** | Drowned Zombie, Ditch Eel and Bell Ringer have their NEW ENEMY! entries in `Config/NewEnemies` with pictures uploaded. |
 | **The boss, on paper** | The Old Tollcrab is fully designed in `docs/BOSSES.md`: Toll (an expanding shockwave ring that smashes through houses), Echo Mark, and Phase 2's Drowned Rise. Its banner and icon are in `Config/BossBanners`, uploaded. Its model is imported (`assets/models/enemies/drowned/crab_arena_3`). |
 | **The crate** | In `Config/Shop` at 2,000 coins, `stocked` off. |
+| **The arena** | Built 2026-11-05 from the owner's kit (`assets/models/arenas/drowned_village_kit/`, bundled `--srgb`, imported) after `assets/concepts/blocky/arenas/area03_drowned_village_v2.png`: turquoise flood water (the sheet's own shades), a causeway of path tiles up the middle, the well at the centre, broken stone walls to the north and crate-and-barrel stacks to the south, three sunken houses set into each side wall with a lit lantern by each, reeds at the corners and wall feet, and the dock gate in both gaps (the exit's doors swing inside the north one). `Config/ArenaKits.Drowned`, `ArenaModels.DrownedVillage` / `DrownedOpen` / `DrownedBoss`, laid out by `Util/KitLayout`. |
+| **The rooms** | Ten, from `tools/area34_rooms.py`: only the sheet's own cover at the sheet's own places, so every room matches it; rooms 1, 5 and 9 are the open floor (owner: "there should also be an open floor layout"), and the middle is never filled (the first sheet was "too cluttered there is no space to move"). The tenth is the Old Tollcrab's room with an elite fight until he is built. `Balance.drownedStage` (18), after Endless so no stage moved; behind no portal. |
+| **Footsteps in the water** | `Fx/WaterSteps` (owner: "the footsteps in the shallow water need to be emphasized"): every stride of every player throws blocky droplets, flashes a foam disc and sends two ripple rings out. Three synthesised splashes (`assets/audio/water_step_synth.py`) are one sprite, `assets/audio/final/water_step_sprite.mp3`, **not uploaded yet** (1 of the day's 20), so the steps are silent until `WATER_SPRITE` in `Config/Sounds` has its id. |
 
 ## The outer arena: the kit pieces
 
@@ -75,15 +79,9 @@ before either is fought, which is the only foreshadowing the area has.
 Each step needs the one before it. This is why nothing here can be picked up
 out of order.
 
-1. **The arena. The owner's to make.** Nothing exists but the concept sheet
-   `assets/concepts/blocky/arenas/area03_drowned_village.jpg` — no GLB, no kit,
-   no imports. It has to come out of Claude Design and be sent, the way the
-   Mossy Glade and Thornwood kits were (CLAUDE.md rule 10). **Everything below
-   is blocked on this.**
-2. **The kit, the rooms and the stages.** From the import: `Config/ArenaKits`,
-   generated rooms the way `tools/thornwood_rooms.py` wrote Thornwood's, and
-   `Balance.Stages` entries. Until these exist the area has no levels, so no
-   enemy can spawn and no boss can be fought.
+1. ~~**The arena.**~~ Done 2026-11-05: the owner's kit, imported.
+2. ~~**The kit, the rooms and the stages.**~~ Done 2026-11-05 (above). The
+   stage is behind no portal until step 3 gives it its own enemies.
 3. **Three enemy models** — Drowned Zombie, Ditch Eel, Bell Ringer. Their cards
    and pictures are already waiting for them. Then rosters, and the Hollow
    Fisherman comes off the bench.

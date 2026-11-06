@@ -76,6 +76,10 @@ export type ArenaModel = {
 	     kit's room is never toned. ]]
 	outerShade: number?,
 	outerGlow: number?,
+	--[[ The floor is shallow water: every step splashes and leaves a ring
+	     (`Fx/WaterSteps`; owner, 2026-11-05: "the footsteps in the shallow
+	     water need to be emphasized"). ]]
+	shallowWater: boolean?,
 }
 
 --[[
@@ -153,6 +157,46 @@ local function thornwood(): ArenaModel
 	}
 end
 
+--[[ Act 1, area 3: the Drowned Village, built from the owner's kit
+     (`Config/ArenaKits.Drowned`). No outer arena yet (its kit pieces are
+     designed in `docs/DROWNED-VILLAGE.md`), so past the walls is the deep
+     flood water, the sheet's darkest teal. Its floor is shallow water, so
+     `Fx/WaterSteps` splashes and rings under every step (`shallowWater`).
+     Its low cover would be water, though no room has any. ]]
+local DROWNED_FLOOD = Color3.fromRGB(0, 110, 118)
+local function drowned(): ArenaModel
+	return {
+		parts = {},
+		outsideColor = DROWNED_FLOOD,
+		kit = "Drowned",
+		lowCover = "Water",
+		outerShade = OUTER_SHADE,
+		outerGlow = OUTER_GLOW,
+		shallowWater = true,
+	}
+end
+
+--[[ Act 2, area 4: Bogheart Caverns (`Config/ArenaKits.Bogheart`). Its
+     water boxes are the glowing stream; past the walls, the cave's dark
+     slate. Darker than the glade, a cave lit by its own glow. ]]
+local CAVERN_ROCK = Color3.fromRGB(46, 50, 64)
+local function bogheart(): ArenaModel
+	return {
+		parts = {},
+		outsideColor = CAVERN_ROCK,
+		kit = "Bogheart",
+		lowCover = "Water",
+		outerShade = OUTER_SHADE,
+		outerGlow = OUTER_GLOW,
+		lighting = {
+			brightness = 1.4,
+			ambient = Color3.fromRGB(84, 92, 112),
+			outdoorAmbient = Color3.fromRGB(96, 106, 128),
+			gradeBrightness = -0.06,
+		},
+	}
+end
+
 local ArenaModels = {
 	GladeLogs = glade("Thicket"),
 	--[[ Was the pond, until the owner took the water out of the Mossy Glade
@@ -169,6 +213,17 @@ local ArenaModels = {
 	ThornBoulders = thornwood(),
 	ThornBrambles = thornwood(),
 	ThornBoss = thornwood(),
+	--[[ The Drowned Village's rooms: the sheet's (well, ruins, crates) and
+	     its variants, the open floor, and the last room. One look, so one
+	     builder; the names say which kind of room it is. ]]
+	DrownedVillage = drowned(),
+	DrownedOpen = drowned(),
+	DrownedBoss = drowned(),
+	--[[ Bogheart Caverns: stream rooms, the open floor (no stream), and the
+	     last room. ]]
+	BogheartStream = bogheart(),
+	BogheartOpen = bogheart(),
+	BogheartBoss = bogheart(),
 }
 
 return table.freeze(ArenaModels)

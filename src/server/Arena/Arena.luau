@@ -316,6 +316,14 @@ local function placeKit(
 		part.Position = patch.centre
 		part.Color = patch.colour
 		part.Material = Enum.Material.Fabric
+		if patch.kind == "Tile" and kit.wetFloor then
+			--[[ Flood water: smooth, with a little shine. ]]
+			part.Material = Enum.Material.SmoothPlastic
+			part.Reflectance = 0.06
+		elseif patch.kind == "Reed" then
+			part.Material = Enum.Material.SmoothPlastic
+			part.CastShadow = true
+		end
 		if patch.kind == "Water" or patch.kind == "Bank" then
 			--[[ Water and its bank are round: a sphere mesh flattened to
 			     the patch, as the round glade's pond was. ]]
@@ -339,10 +347,10 @@ local function placeKit(
 		at: CFrame,
 		glow: boolean,
 		tint: Color3?
-	)
+	): MeshPart?
 		local template = meshTemplates[meshId]
 		if not template then
-			return
+			return nil
 		end
 		local part = template:Clone()
 		part.Name = name
@@ -356,6 +364,7 @@ local function placeKit(
 		part.Material = if glow then Enum.Material.Neon else Enum.Material.SmoothPlastic
 		part.CastShadow = not glow
 		part.Parent = folder
+		return part
 	end
 	for _, placed in layout.pieces do
 		local piece = KitLayout.piece(kit, placed.piece)
@@ -369,18 +378,27 @@ local function placeKit(
 			placed.piece,
 			placed.size,
 			CFrame.new(placed.base + Vector3.new(0, placed.size.Y / 2, 0)) * facing,
-			false,
+			piece.neon == true,
 			piece.tint
 		)
 		local glow = piece.glow
 		if glow then
-			mesh(
+			local lit = mesh(
 				glow.meshId,
 				placed.piece .. "Glow",
 				glow.size * grown,
 				CFrame.new(placed.base + facing:VectorToWorldSpace(glow.centre * grown)) * facing,
-				true
+				true,
+				glow.tint
 			)
+			if lit and glow.light then
+				local light = Instance.new("PointLight")
+				light.Color = glow.light
+				light.Range = glow.lightRange or 12
+				light.Brightness = 2
+				light.Shadows = false
+				light.Parent = lit
+			end
 		end
 	end
 end
@@ -646,9 +664,13 @@ local function construct(obstacles: { Balance.Obstacle }, arena: string?): Prepa
 	end
 
 	--[[ The exit gate in the north wall: dark until the room is cleared. ]]
-	local gate = ExitGate.build(root)
-
 	local model = if arena then (ArenaModels :: any)[arena] :: ArenaModels.ArenaModel? else nil
+	--[[ A kit with its own door in the gap (the Drowned Village's dock
+	     gate, the caverns' cave mouth) frames the exit itself: the gate
+	     keeps only its doors, light and plaque. ]]
+	local kit = if model and model.kit then ArenaKits[model.kit] else nil
+	local door = if kit then KitLayout.piece(kit, "Door") else nil
+	local gate = ExitGate.build(root, if kit and door then door.size.Y * kit.scale else nil)
 	if model then
 		--[[ The model draws the room, so the grey box's floor, walls and
 		     cover boxes go invisible. They still collide and stop arrows. ]]
@@ -662,6 +684,9 @@ local function construct(obstacles: { Balance.Obstacle }, arena: string?): Prepa
 		--[[ The client draws the scenery's life from this
 		     (`Fx/ForestAmbience`). ]]
 		root:SetAttribute("Ambience", model.ambience)
+		--[[ Its floor is shallow water: the client splashes every step
+		     (`Fx/WaterSteps`). ]]
+		root:SetAttribute("ShallowWater", model.shallowWater == true)
 	else
 		dress(root, obstacles)
 	end

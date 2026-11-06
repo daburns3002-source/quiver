@@ -134,6 +134,16 @@ local GearAssets = {
 		Inkpot = "rbxassetid://83913732789136",
 		TideWilf = "rbxassetid://95828713798755",
 		AbyssJelly = "rbxassetid://86884247547888",
+		-- Bogheart Caverns: Codex's 2D art each Tripo model was made from,
+		-- keyed out (assets/ui/shop/bogheart_icons.py, assets/ui/pets/icons)
+		CaveCricket = "rbxassetid://122930020470923",
+		LichenGecko = "rbxassetid://116997582430113",
+		BogBeaver = "rbxassetid://112831862812693",
+		Lanternfin = "rbxassetid://81684013821583",
+		Olm = "rbxassetid://109387352166966",
+		GlowcapWilf = "rbxassetid://112157011551762",
+		Gulpling = "rbxassetid://97124284184604",
+		PrismLeviathan = "rbxassetid://85422430099871",
 	} :: { [string]: string },
 	crates = {
 		MossyGlade = {
@@ -261,26 +271,27 @@ local GearAssets = {
 	     `assets/concepts/blocky/eggs_chests/egg_<area>.png` and
 	     `chest_<area>.png`, 2026-11-06), for an egg or chest with no model
 	     and no cut frames above: `UI/Reveal` draws its cracks and light over
-	     it. "" until uploaded, and then the reveal draws its own in the
+	     it (cut by assets/ui/shop/bogheart_icons.py into assets/ui/reveal/).
+	     "" until uploaded, and then the reveal draws its own in the
 	     area's colours (`Config/Reveal.shells`; a chest falls back to
 	     Victory's first). A Tripo model, once imported, goes in `models`
 	     under the egg's key or the chest's area and wins over all of it. ]]
 	areaPictures = {
 		eggs = {
-			MossyGlade = "",
-			Thornwood = "",
-			DrownedVillage = "",
-			BogheartCaverns = "",
-			WindsweptCliffs = "",
-			FrostpeakPass = "",
+			MossyGlade = "rbxassetid://76065283088869",
+			Thornwood = "rbxassetid://108887450586880",
+			DrownedVillage = "rbxassetid://121474380981161",
+			BogheartCaverns = "rbxassetid://83295936746424",
+			WindsweptCliffs = "rbxassetid://92920546659530",
+			FrostpeakPass = "rbxassetid://116457878440348",
 		} :: { [string]: string },
 		chests = {
-			MossyGlade = "",
-			Thornwood = "",
-			DrownedVillage = "",
-			BogheartCaverns = "",
-			WindsweptCliffs = "",
-			FrostpeakPass = "",
+			MossyGlade = "rbxassetid://125919531196238",
+			Thornwood = "rbxassetid://76697875072018",
+			DrownedVillage = "rbxassetid://112729800271804",
+			BogheartCaverns = "rbxassetid://130442503309827",
+			WindsweptCliffs = "rbxassetid://134250106942954",
+			FrostpeakPass = "rbxassetid://109095257627714",
 		} :: { [string]: string },
 	},
 	--[[ The showcase behind a pulled prize (owner, 2026-10-26: option 4, "the

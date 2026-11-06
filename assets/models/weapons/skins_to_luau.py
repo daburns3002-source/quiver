@@ -23,6 +23,7 @@ HERE = pathlib.Path(__file__).parent
 ROOT = HERE.parents[2]
 IMPORTS = HERE / "blocky" / "forest" / "skin_imports.json"
 DROWNED_IMPORTS = HERE / "blocky" / "drowned" / "skin_imports.json"
+BOGHEART_IMPORTS = HERE / "blocky" / "bogheart" / "skin_imports.json"
 WEAPONS = ROOT / "src" / "shared" / "Config" / "Weapons.luau"
 SANDBOX = ROOT / "src" / "shared" / "Config" / "Sandbox.luau"
 BEGIN = "-- SKINS BEGIN (assets/models/weapons/skins_to_luau.py; regenerate, never hand-edit)\n"
@@ -76,6 +77,30 @@ DROWNED = [
     ("MaelstromStaff", "MAELSTROM STAFF", "Arcanist", "maelstrom staff arena 3", None, None, 5),
     ("StormglassBlade", "STORMGLASS BLADE", "Warden", "stormglass blade arena 3", None, None, 5),
 ]
+# Area 4, Bogheart Caverns (docs/WEAPONS-BOGHEART.md): the low-poly Tripo
+# set imported 2026-11-06 (Workspace/TripoImports/Weapons, each one MeshPart
+# whose SurfaceAppearance colour map is its textureId). The five daggers wait
+# for the Assassin class. A Legendary's or Mythic's glow is an `aura` (one
+# textured mesh has no gem to draw Neon), and a Mythic need not be rainbow
+# (owner, 2026-11-06), so none of these is.
+# key, label, class, import, projectile, glow colour, tier
+BOGHEART = [
+    ("PeatwoodBow", "PEATWOOD BOW", "Ranger", "PeatwoodBow", None, None, 1),
+    ("SporestringBow", "SPORESTRING BOW", "Ranger", "SporestringBow", None, None, 2),
+    ("GlowcapLongbow", "GLOWCAP LONGBOW", "Ranger", "GlowcapLongbow", None, None, 3),
+    ("GulpstringBow", "GULPSTRING BOW", "Ranger", "GulpstringBow", None, (233, 185, 46), 4),
+    ("LumenveilBow", "LUMENVEIL BOW", "Ranger", "LumenveilBow", None, (63, 230, 242), 5),
+    ("LichenStaff", "LICHEN STAFF", "Arcanist", "LichenStaff", None, None, 1),
+    ("PuffballStaff", "PUFFBALL STAFF", "Arcanist", "PuffballStaff", None, None, 2),
+    ("VentstoneStaff", "VENTSTONE STAFF", "Arcanist", "VentstoneStaff", None, None, 3),
+    ("GrandmothersStaff", "GRANDMOTHER'S STAFF", "Arcanist", "GrandmothersStaff", None, (77, 232, 200), 4),
+    ("MyceliadStaff", "MYCELIAD STAFF", "Arcanist", "MyceliadStaff", None, (63, 230, 242), 5),
+    ("BogironBlade", "BOGIRON BLADE", "Warden", "BogironBlade", None, None, 1),
+    ("ShellbackCleaver", "SHELLBACK CLEAVER", "Warden", "ShellbackCleaver", None, None, 2),
+    ("CaplightBlade", "CAPLIGHT BLADE", "Warden", "CaplightBlade", None, None, 3),
+    ("GulpfangBlade", "GULPFANG BLADE", "Warden", "GulpfangBlade", None, (154, 205, 60), 4),
+    ("DeepglowBlade", "DEEPGLOW BLADE", "Warden", "DeepglowBlade", None, (63, 230, 242), 5),
+]
 # Radians of extra turn about Y for models that do not follow the base
 # weapon's convention. A bow's limbs should curve in YZ as the Twig Bow's do;
 # these three are modelled curving in XY, so they face sideways without it.
@@ -84,6 +109,12 @@ YAW = {
     "EelcrestBow": "math.pi / 2",
     "TollstringBow": "math.pi / 2",
     "EventideBow": "math.pi / 2",
+    # every Bogheart bow is wider in X than Z
+    "PeatwoodBow": "math.pi / 2",
+    "SporestringBow": "math.pi / 2",
+    "GlowcapLongbow": "math.pi / 2",
+    "GulpstringBow": "math.pi / 2",
+    "LumenveilBow": "math.pi / 2",
 }
 GLOWS = ("Gems", "Glow")
 # Epics and up always glow (owner, 2026-10-24); one with no colour of its own
@@ -109,7 +140,7 @@ def rgb(c) -> str:
     return f"Color3.fromRGB({c[0]}, {c[1]}, {c[2]})"
 
 
-def entry(imports, key, cls, name, projectile, glow, tier=None) -> str:
+def entry(imports, key, cls, name, projectile, glow, tier=None, aura=False) -> str:
     base = BASES[cls]
     model = imports[name]
     tier = tier if tier is not None else rarity(name)
@@ -145,8 +176,10 @@ def entry(imports, key, cls, name, projectile, glow, tier=None) -> str:
             out.append(f"\t\t\t\tcolour = {rgb(glow)},")
         out.append("\t\t\t},")
     out.append("\t\t} :: { WeaponPart },")
-    if tier == 5:
+    if tier == 5 and not aura:
         out.append("\t\trainbow = true,")
+    if aura and tier >= 4:
+        out.append(f"\t\taura = {rgb(glow)},")
     # Legendary and Mythic shots glow too (owner, 2026-10-25), in the
     # weapon's glow colour; a Mythic's turns round the rainbow. A skin with
     # no projectile of its own still fires its base's bolt (Config/Weapons
@@ -190,9 +223,11 @@ def main():
     drowned = json.loads(DROWNED_IMPORTS.read_text(encoding="utf-8"))
     rows = [(imports, k, c, n, p, g, None) for k, _, c, n, p, g in SKINS]
     rows += [(drowned, k, c, n, p, g, t) for k, _, c, n, p, g, t in DROWNED]
+    bogheart = json.loads(BOGHEART_IMPORTS.read_text(encoding="utf-8"))
+    rows += [(bogheart, k, c, n, p, g, t, True) for k, _, c, n, p, g, t in BOGHEART]
     skins = chr(10).join(entry(*r) for r in rows) + chr(10)
     splice(WEAPONS, skins, "\t--[[ SKINS GO HERE ]]\n")
-    menu = "".join(f'\t\t{{ weapon = "{k}", class = "{c}", label = "{l}" }},\n' for k, l, c, *_ in SKINS + DROWNED)
+    menu = "".join(f'\t\t{{ weapon = "{k}", class = "{c}", label = "{l}" }},\n' for k, l, c, *_ in SKINS + DROWNED + BOGHEART)
     splice(SANDBOX, menu, "\t\t--[[ SKINS GO HERE ]]\n")
     print(f"wrote {len(rows)} skins")
 

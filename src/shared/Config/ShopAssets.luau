@@ -60,6 +60,24 @@ local ShopAssets = {
 		CausewayBlade = "rbxassetid://133759570596256",
 		TollguardBlade = "rbxassetid://119966247169126",
 		StormglassBlade = "rbxassetid://118645109109390",
+		--[[ Bogheart Caverns (area 4): Codex's single-view art each Tripo
+		     model was made from, keyed out and leaned to the shop's angle by
+		     `assets/ui/shop/bogheart_icons.py`. ]]
+		PeatwoodBow = "rbxassetid://77854642596986",
+		SporestringBow = "rbxassetid://85942075348140",
+		GlowcapLongbow = "rbxassetid://98507755464460",
+		GulpstringBow = "rbxassetid://89535313974914",
+		LumenveilBow = "rbxassetid://115879787301940",
+		LichenStaff = "rbxassetid://126008663286801",
+		PuffballStaff = "rbxassetid://91819748629431",
+		VentstoneStaff = "rbxassetid://100584963113720",
+		GrandmothersStaff = "rbxassetid://101948393345443",
+		MyceliadStaff = "rbxassetid://137388978927932",
+		BogironBlade = "rbxassetid://103649482550008",
+		ShellbackCleaver = "rbxassetid://85925217474045",
+		CaplightBlade = "rbxassetid://84960466576463",
+		GulpfangBlade = "rbxassetid://96938087300130",
+		DeepglowBlade = "rbxassetid://99421700524406",
 	} :: { [string]: string },
 }
 

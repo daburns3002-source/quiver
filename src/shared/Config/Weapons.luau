@@ -152,6 +152,11 @@ export type Weapon = {
 	     "the cleave area that is currently red should also glow and change
 	     color accordingly"). ]]
 	trailGlow: Color3?,
+	--[[ A Legendary's or Mythic's glow when it is one textured mesh with no
+	     gem part to draw Neon (the Tripo weapons: Neon would wipe the
+	     texture): a light and drifting motes of this colour round the whole
+	     weapon (`Combat/HeldWeapon`), stronger on a Mythic. ]]
+	aura: Color3?,
 	--[[ The single bow this is a pair of (the Dual Bows Mythic): drafting the
 	     card puts the pair of whatever bow is in hand there
 	     (`Shared/Combat/HeldWeaponChoice`). ]]
@@ -1024,6 +1029,261 @@ local skins: { [string]: any } = {
 		rainbow = true,
 		trailGlow = Color3.fromRGB(255, 255, 255),
 	},
+	PeatwoodBow = {
+		-- `PeatwoodBow`, held as the TwigBow is, playing its kit until it has its own
+		kit = "TwigBow",
+		skinOf = "TwigBow",
+		scale = 4.3347,
+		parts = {
+			{
+				name = "Bow",
+				meshId = "rbxassetid://94551202011556",
+				size = Vector3.new(0.315, 0.98, 0.127),
+				offset = Vector3.new(0, 0, 0),
+				turned = true,
+				yaw = math.pi / 2,
+				textureId = "rbxassetid://80292125067109",
+			},
+		} :: { WeaponPart },
+	},
+	SporestringBow = {
+		-- `SporestringBow`, held as the TwigBow is, playing its kit until it has its own
+		kit = "TwigBow",
+		skinOf = "TwigBow",
+		scale = 4.3303,
+		parts = {
+			{
+				name = "Bow",
+				meshId = "rbxassetid://103321901285946",
+				size = Vector3.new(0.356, 0.981, 0.286),
+				offset = Vector3.new(0, 0, 0),
+				turned = true,
+				yaw = math.pi / 2,
+				textureId = "rbxassetid://79533440065634",
+			},
+		} :: { WeaponPart },
+	},
+	GlowcapLongbow = {
+		-- `GlowcapLongbow`, held as the TwigBow is, playing its kit until it has its own
+		kit = "TwigBow",
+		skinOf = "TwigBow",
+		scale = 4.3436,
+		parts = {
+			{
+				name = "Bow",
+				meshId = "rbxassetid://104591892675942",
+				size = Vector3.new(0.355, 0.978, 0.172),
+				offset = Vector3.new(0, 0, 0),
+				turned = true,
+				yaw = math.pi / 2,
+				textureId = "rbxassetid://139985030298891",
+			},
+		} :: { WeaponPart },
+	},
+	GulpstringBow = {
+		-- `GulpstringBow`, held as the TwigBow is, playing its kit until it has its own
+		kit = "TwigBow",
+		skinOf = "TwigBow",
+		scale = 4.3259,
+		parts = {
+			{
+				name = "Bow",
+				meshId = "rbxassetid://99382341866581",
+				size = Vector3.new(0.395, 0.982, 0.13),
+				offset = Vector3.new(0, 0, 0),
+				turned = true,
+				yaw = math.pi / 2,
+				textureId = "rbxassetid://90212931991948",
+			},
+		} :: { WeaponPart },
+		aura = Color3.fromRGB(233, 185, 46),
+	},
+	LumenveilBow = {
+		-- `LumenveilBow`, held as the TwigBow is, playing its kit until it has its own
+		kit = "TwigBow",
+		skinOf = "TwigBow",
+		scale = 4.3525,
+		parts = {
+			{
+				name = "Bow",
+				meshId = "rbxassetid://94069705695978",
+				size = Vector3.new(0.496, 0.976, 0.163),
+				offset = Vector3.new(0, 0, 0),
+				turned = true,
+				yaw = math.pi / 2,
+				textureId = "rbxassetid://85513665096011",
+			},
+		} :: { WeaponPart },
+		aura = Color3.fromRGB(63, 230, 242),
+	},
+	LichenStaff = {
+		-- `LichenStaff`, held as the BranchStaff is, playing its kit until it has its own
+		kit = "BranchStaff",
+		skinOf = "BranchStaff",
+		scale = 4.5843,
+		parts = {
+			{
+				name = "Staff",
+				meshId = "rbxassetid://136088403192549",
+				size = Vector3.new(0.327, 0.979, 0.278),
+				offset = Vector3.new(0, 0.0685, 0),
+				turned = true,
+				textureId = "rbxassetid://122121403422209",
+			},
+		} :: { WeaponPart },
+	},
+	PuffballStaff = {
+		-- `PuffballStaff`, held as the BranchStaff is, playing its kit until it has its own
+		kit = "BranchStaff",
+		skinOf = "BranchStaff",
+		scale = 4.5288,
+		parts = {
+			{
+				name = "Staff",
+				meshId = "rbxassetid://90887222301769",
+				size = Vector3.new(0.323, 0.991, 0.327),
+				offset = Vector3.new(0, 0.0694, 0),
+				turned = true,
+				textureId = "rbxassetid://77568163002092",
+			},
+		} :: { WeaponPart },
+	},
+	VentstoneStaff = {
+		-- `VentstoneStaff`, held as the BranchStaff is, playing its kit until it has its own
+		kit = "BranchStaff",
+		skinOf = "BranchStaff",
+		scale = 4.5425,
+		parts = {
+			{
+				name = "Staff",
+				meshId = "rbxassetid://98596101865515",
+				size = Vector3.new(0.263, 0.988, 0.181),
+				offset = Vector3.new(0, 0.0692, 0),
+				turned = true,
+				textureId = "rbxassetid://76057306819133",
+			},
+		} :: { WeaponPart },
+	},
+	GrandmothersStaff = {
+		-- `GrandmothersStaff`, held as the BranchStaff is, playing its kit until it has its own
+		kit = "BranchStaff",
+		skinOf = "BranchStaff",
+		scale = 4.5703,
+		parts = {
+			{
+				name = "Staff",
+				meshId = "rbxassetid://91308112810741",
+				size = Vector3.new(0.282, 0.982, 0.282),
+				offset = Vector3.new(0, 0.0687, 0),
+				turned = true,
+				textureId = "rbxassetid://75619327618221",
+			},
+		} :: { WeaponPart },
+		aura = Color3.fromRGB(77, 232, 200),
+		shotGlow = Color3.fromRGB(77, 232, 200),
+	},
+	MyceliadStaff = {
+		-- `MyceliadStaff`, held as the BranchStaff is, playing its kit until it has its own
+		kit = "BranchStaff",
+		skinOf = "BranchStaff",
+		scale = 4.5703,
+		parts = {
+			{
+				name = "Staff",
+				meshId = "rbxassetid://115347501743312",
+				size = Vector3.new(0.478, 0.982, 0.339),
+				offset = Vector3.new(0, 0.0687, 0),
+				turned = true,
+				textureId = "rbxassetid://136450464150422",
+			},
+		} :: { WeaponPart },
+		aura = Color3.fromRGB(63, 230, 242),
+		shotGlow = Color3.fromRGB(63, 230, 242),
+	},
+	BogironBlade = {
+		-- `BogironBlade`, held as the TimberBlade is, playing its kit until it has its own
+		kit = "TimberBlade",
+		skinOf = "TimberBlade",
+		scale = 4.8857,
+		parts = {
+			{
+				name = "Blade",
+				meshId = "rbxassetid://79090622526288",
+				size = Vector3.new(0.366, 0.98, 0.231),
+				offset = Vector3.new(0, 0.2411, 0),
+				turned = true,
+				textureId = "rbxassetid://112883282679657",
+			},
+		} :: { WeaponPart },
+	},
+	ShellbackCleaver = {
+		-- `ShellbackCleaver`, held as the TimberBlade is, playing its kit until it has its own
+		kit = "TimberBlade",
+		skinOf = "TimberBlade",
+		scale = 4.8857,
+		parts = {
+			{
+				name = "Blade",
+				meshId = "rbxassetid://90706887602960",
+				size = Vector3.new(0.355, 0.98, 0.25),
+				offset = Vector3.new(0, 0.2411, 0),
+				turned = true,
+				textureId = "rbxassetid://96134853426694",
+			},
+		} :: { WeaponPart },
+	},
+	CaplightBlade = {
+		-- `CaplightBlade`, held as the TimberBlade is, playing its kit until it has its own
+		kit = "TimberBlade",
+		skinOf = "TimberBlade",
+		scale = 4.8857,
+		parts = {
+			{
+				name = "Blade",
+				meshId = "rbxassetid://123715475838154",
+				size = Vector3.new(0.442, 0.98, 0.449),
+				offset = Vector3.new(0, 0.2411, 0),
+				turned = true,
+				textureId = "rbxassetid://71950662762116",
+			},
+		} :: { WeaponPart },
+	},
+	GulpfangBlade = {
+		-- `GulpfangBlade`, held as the TimberBlade is, playing its kit until it has its own
+		kit = "TimberBlade",
+		skinOf = "TimberBlade",
+		scale = 4.8807,
+		parts = {
+			{
+				name = "Blade",
+				meshId = "rbxassetid://135950284493280",
+				size = Vector3.new(0.358, 0.981, 0.167),
+				offset = Vector3.new(0, 0.2413, 0),
+				turned = true,
+				textureId = "rbxassetid://136223254568313",
+			},
+		} :: { WeaponPart },
+		aura = Color3.fromRGB(154, 205, 60),
+		trailGlow = Color3.fromRGB(154, 205, 60),
+	},
+	DeepglowBlade = {
+		-- `DeepglowBlade`, held as the TimberBlade is, playing its kit until it has its own
+		kit = "TimberBlade",
+		skinOf = "TimberBlade",
+		scale = 4.8758,
+		parts = {
+			{
+				name = "Blade",
+				meshId = "rbxassetid://101210643934322",
+				size = Vector3.new(0.475, 0.982, 0.146),
+				offset = Vector3.new(0, 0.2416, 0),
+				turned = true,
+				textureId = "rbxassetid://117869830486634",
+			},
+		} :: { WeaponPart },
+		aura = Color3.fromRGB(63, 230, 242),
+		trailGlow = Color3.fromRGB(63, 230, 242),
+	},
 	-- SKINS END
 }
 for key, skin in skins do
@@ -1043,6 +1303,7 @@ for key, skin in skins do
 		rainbow = skin.rainbow,
 		shotGlow = skin.shotGlow,
 		trailGlow = skin.trailGlow,
+		aura = skin.aura,
 		parts = skin.parts,
 	} :: Weapon
 end

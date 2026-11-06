@@ -13,7 +13,9 @@ local CollectionService = game:GetService("CollectionService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
+local GearAssets = require(ReplicatedStorage.Shared.Config.GearAssets)
 local MeshTemplates = require(script.Parent.Parent.Util.MeshTemplates)
+local WeaponStats = require(ReplicatedStorage.Shared.Config.WeaponStats)
 local Weapons = require(ReplicatedStorage.Shared.Config.Weapons)
 
 local HeldWeapon = {}
@@ -24,6 +26,43 @@ local templates: { [string]: MeshPart } = {}
      reads as glowing from the game's camera and not only as a Neon
      surface (owner, 2026-10-24). ]]
 local GLOW_LIGHT = { brightness = 2, range = 6 }
+--[[ A textured Legendary's or Mythic's aura (`Weapons.aura`): its light and
+     the motes drifting off it, a Mythic's brighter and denser. ]]
+local AURA = {
+	Legendary = { brightness = 2.5, range = 8, rate = 6 },
+	Mythic = { brightness = 3.5, range = 11, rate = 12 },
+}
+
+--[[ Gives the weapon's first part its aura: a light, and small motes of the
+     colour rising off the whole weapon, never touching its texture. ]]
+local function addAura(part: BasePart, colour: Color3, mythic: boolean)
+	local look = if mythic then AURA.Mythic else AURA.Legendary
+	local light = Instance.new("PointLight")
+	light.Color = colour
+	light.Brightness = look.brightness
+	light.Range = look.range
+	light.Shadows = false
+	light.Parent = part
+	local motes = Instance.new("ParticleEmitter")
+	motes.Name = "Aura"
+	motes.Texture = GearAssets.fx.sparkle
+	motes.Color = ColorSequence.new(colour)
+	motes.LightEmission = 1
+	motes.LightInfluence = 0
+	motes.Rate = look.rate
+	motes.Lifetime = NumberRange.new(0.6, 1.1)
+	motes.Speed = NumberRange.new(0.3, 0.8)
+	motes.SpreadAngle = Vector2.new(180, 180)
+	motes.Size = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, 0),
+		NumberSequenceKeypoint.new(0.3, 0.25),
+		NumberSequenceKeypoint.new(1, 0),
+	})
+	motes.Transparency = NumberSequence.new(0.15)
+	motes.Shape = Enum.ParticleEmitterShape.Box
+	motes.ShapeInOut = Enum.ParticleEmitterShapeInOut.Outward
+	motes.Parent = part
+end
 
 function HeldWeapon.preload()
 	local ids: { string } = {}
@@ -82,6 +121,8 @@ function HeldWeapon.equip(character: Model, weaponName: string)
 	     Carried on `WeaponOrigin`, so what the client draws in the weapon's
 	     units (the string, the arrow, a blade's tip) grows with it. ]]
 	local scale = weapon.scale * Balance.Player.heldWeaponScale
+	local stats = WeaponStats.weapons[weaponName]
+	local mythic = stats ~= nil and stats.rarity == "Mythic"
 
 	--[[ Builds the weapon's parts in one hand. The off hand's copy (a second
 	     bow) is the same model, but only the main hand's carries the
@@ -124,6 +165,9 @@ function HeldWeapon.equip(character: Model, weaponName: string)
 					-- cycled on the client (`Fx/WeaponGlow`)
 					CollectionService:AddTag(part, "WeaponRainbow")
 				end
+			end
+			if weapon.aura and spec == weapon.parts[1] then
+				addAura(part, weapon.aura, mythic)
 			end
 			if spec.nocked then
 				part.Transparency = 1

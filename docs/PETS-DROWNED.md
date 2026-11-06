@@ -84,24 +84,25 @@ unchanged, as in area 1. Painted orange on a Common is not an emissive lamp.
 |---|---|---|---|---|
 | 1 | **Dock Otter** | Common | a plank-brown cube otter with a foam-white muzzle and belly, little square ears, broad flat tail and oversized mitten paws | plays among the docks and barrel hoops |
 | 2 | **Reed Duck** | Common | a cream cube duckling with a slate-blue back patch, orange wedge bill, two paddle feet and a short reed-green feather tuft | nests in the flooded street's reeds |
-| 3 | **Foam Pup** | Common | a slate-grey seal pup with a huge foam-white cube face, dark square nose, two slab flippers and a split wedge tail | the pale foam gathering beside the causeway |
-| 4 | **Slate Turtle** | Uncommon | a saturated teal turtle with a low stepped blue-slate shell, four short flippers and one rope belt round its shell (its accessory) | its roof-tile shell echoes the ruined houses |
-| 5 | **Reed Axolotl** | Uncommon | a pale turquoise cube axolotl with three coral-red gill wedges on each cheek, a slab tail and a moss-green reed scarf (its accessory) | a friendly shallow-water creature among the reeds |
-| 6 | **Buoy Puffer** | Rare | a squat orange-and-cream cube pufferfish with blunt slate wedge spines, tiny side fins and one glowing amber square belly patch | an orange fishing buoy bobbing beside the docks |
-| 7 | **Pearl Pony** | Rare | a teal seahorse with a big cube head, short box snout, slate crest, square-curled tail and one glowing pearl at its throat | the well's pale stones and harbour treasures |
-| 8 | **Mist Heron** | Epic | a foam-white box heron with a slate slab-wing cape, short sturdy legs, a long orange wedge bill and glowing turquoise feather markings | waits on the causeway in the morning mist |
-| 9 | **Inkpot** | Epic | a deep slate-blue cube octopus with eight short thick slab arms, cream sucker squares and glowing teal ink-drop markings | hides in broken barrels and the hollow well |
-| 10 | **Tide Wilf** | Legendary | the Wilf family shape in sea teal and foam white, fin-shaped ears and tail slabs, a slate sailor neckerchief and gold anchor tag; golden aura and sparkles | the area's Wilf, third of the family; the splash pose from `PETS-WILFS.md` |
-| 11 | **Toll Prince** | Legendary | a cute coral-red baby crab with cream mitten claws, teal square eye stalks and one oversized teal bell shell with gold bands; a tiny gold crown, moss tabs and two cream flowers | heir to Old Tollcrab; one big bell, never a pile of bells |
-| 12 | **Abyss Jelly** | Mythic | a floating abyss-blue cube jellyfish with a pearl face panel, four broad stepped ribbon arms and four shorter tentacle slabs, teal luminous seams and a rainbow sheen; a ring of light and orbiting pearl motes | the mysterious deep water beyond the flooded village |
+| 3 | **Slate Turtle** | Uncommon | a saturated teal turtle with a low stepped blue-slate shell, four short flippers and one rope belt round its shell (its accessory) | its roof-tile shell echoes the ruined houses |
+| 4 | **Buoy Puffer** | Rare | a squat orange-and-cream cube pufferfish with blunt slate wedge spines, tiny side fins and one glowing amber square belly patch | an orange fishing buoy bobbing beside the docks |
+| 5 | **Inkpot** | Epic | a deep slate-blue cube octopus with eight short thick slab arms, cream sucker squares and glowing teal ink-drop markings | hides in broken barrels and the hollow well |
+| 6 | **Tide Wilf** | Legendary | the Wilf family shape in sea teal and foam white, fin-shaped ears and tail slabs, a slate sailor neckerchief and gold anchor tag; golden aura and sparkles | the area's Wilf, third of the family; the splash pose from `PETS-WILFS.md` |
+| 7 | **Toll Prince** | Legendary | a cute coral-red baby crab with cream mitten claws, teal square eye stalks and one oversized teal bell shell with gold bands; a tiny gold crown, moss tabs and two cream flowers | heir to Old Tollcrab; one big bell, never a pile of bells |
+| 8 | **Abyss Jelly** | Mythic | a floating abyss-blue cube jellyfish with a pearl face panel, four broad stepped ribbon arms and four shorter tentacle slabs, teal luminous seams and a rainbow sheen; a ring of light and orbiting pearl motes | the mysterious deep water beyond the flooded village |
 
-Three Commons, two Uncommons, two Rares, two Epics, two Legendaries and one
-Mythic. The Wilf and boss heir take the two Legendary slots.
+Eight pets (owner, 2026-11-06: "there should only be 8"): two Commons, one
+Uncommon, one Rare, one Epic, two Legendaries and one Mythic. The Slate
+Turtle, Buoy Puffer, Inkpot, Tide Wilf and Abyss Jelly are the owner's Tripo
+models, in game; the Dock Otter, Reed Duck and Toll Prince have reference
+sheets in `assets/concepts/blocky/pets/drowned/` waiting on the owner's
+approval. The Foam Pup, Reed Axolotl, Pearl Pony and Mist Heron are cut.
+
+The Wilf and boss heir take the two Legendary slots.
 
 **Silhouettes from the top-down camera:** Otter a long paddle tail; Duck a
-wedge bill and two feet; Foam Pup a broad flipper shape; Turtle a stepped
-square roof; Axolotl six cheek fans; Puffer a blunt spiky square; Pearl Pony
-a square hook tail; Heron a long bill and folded wing cape; Inkpot an
+wedge bill and two feet; Turtle a stepped
+square roof; Puffer a blunt spiky square; Inkpot an
 eight-armed pinwheel; Tide Wilf the family's four-legged shape with fins;
 Toll Prince two big claws under one tall bell; Abyss Jelly a square canopy
 with four long ribbons. Keep the jelly's ribbons broad and few, never a
@@ -119,12 +120,8 @@ Mythic add the more spectacular effect pieces, as in area 1.
 |---|---|---|---|
 | Dock Otter | Common | Shoots | **First Crack**: every 5 s claps a flat pebble at one reachable enemy; deals double its normal pet-hit damage if that enemy is still at full health, otherwise one ordinary hit |
 | Reed Duck | Common | Tanks | **False Quack**: every 10 s quacks at the nearest ordinary enemy; its next aimed projectile targets the duck's current spot instead of you, then the duck waddles aside; lasts at most 2 s and does not redirect bosses or ground attacks |
-| Foam Pup | Common | Shoots | **Double Splash**: every 6 s slaps one enemy's position with water, then repeats the same small splash at that exact ground position 0.8 s later; a moving enemy can escape the second hit |
 | Slate Turtle | Uncommon | Tanks | **Roof Huddle**: every 14 s tucks in beside you for 3 s, reducing incoming damage by 20%; hits still land, and it neither blocks shots nor grants invulnerability |
-| Reed Axolotl | Uncommon | Heals | **Fresh Rinse**: every 12 s, if you have a removable slow or poison, shakes off a clean-water splash that removes those current effects; no health restoration, no immunity to the next hazard tick, and no removal of hooks or scripted boss mechanics |
 | Buoy Puffer | Rare | Shoots | **Payback Puff**: arms after its owner takes damage; at most once every 8 s inflates and fires one blunt spine at that damage's living, reachable enemy source for triple its ordinary pet-hit damage; environmental damage cannot arm it |
-| Pearl Pony | Rare | Shoots | **Pearl Watch**: every 8 s places one pearl beside you for 4 s; it strikes the first enemy that enters its small radius, once, then disappears; at most one pearl, with no splash, slow or root |
-| Mist Heron | Epic | Shoots | **Last Catch**: every 7 s pecks the lowest-health reachable enemy; an ordinary enemy already below 15% health is finished outright, otherwise it takes one normal pet hit; elites and bosses always take only the normal hit |
 | Inkpot | Epic | Controls | **Ink Blink**: every 11 s squirts one enemy's face; for 3 s its aimed shots cannot acquire targets beyond 6 studs, though it can still move and attack close up; no slow, damage bonus or effect on bosses and untargeted area attacks |
 | Tide Wilf | Legendary | Shoots | **Wake Chase**: every 10 s splashes a foam wake onto one reachable enemy for 3 s; each 3 studs that enemy travels triggers one little splash hit, up to four, then the wake ends; standing still takes no extra hits |
 | Toll Prince | Legendary | Controls | **Quiet Toll**: every 12 s rings its bell and sends a gold-edged teal note at one enemy; for 2 s an ordinary enemy cannot begin a ranged attack, but can move and use melee; existing shots and committed tells finish, and bosses receive one normal pet hit instead |
@@ -219,12 +216,8 @@ not pixel samples.
 |---|---|
 | Dock Otter | `#8B5938` `#533A2B` `#F1E8D3` `#658093` `#668541` `#252D33` |
 | Reed Duck | `#F2E8CE` `#637D97` `#EC9B36` `#76A84B` `#C7DDD5` `#263742` |
-| Foam Pup | `#7C929D` `#EDF6ED` `#4A6578` `#B6D8D6` `#DCA56A` `#243741` |
 | Slate Turtle | `#239D98` `#52718D` `#304B65` `#D9C79C` `#739341` `#EFF1DA` |
-| Reed Axolotl | `#8ADBD0` `#F3EBDD` `#EA7856` `#399A98` `#668C3C` `#294F5A` |
 | Buoy Puffer | `#E98E32` `#F3E4BC` `#5A748A` `#FFC754` `#BD5636` `#254858` |
-| Pearl Pony | `#278D8B` `#395F7A` `#F2EDDA` `#AFF4E8` `#B59650` `#214752` |
-| Mist Heron | `#F0F2E5` `#647F98` `#E79A3A` `#65E3D5` `#AC94D9` `#293E54` |
 | Inkpot | `#344E70` `#1E334D` `#F0E7CE` `#4CE1CE` `#A98BD4` `#688B4A` |
 | Tide Wilf | `#268F92` `#F0F5E8` `#3B607E` `#91D9CE` `#E9BC53` `#283F50` |
 | Toll Prince | `#EF7043` `#B9422C` `#F0E2BF` `#318C88` `#E4B64F` `#729132` |

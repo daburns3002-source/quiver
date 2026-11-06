@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Reference sheets for the Drowned Village's twelve pets and the area 3/4
+# Reference sheets for the Drowned Village's three unbuilt pets (the other five are
+# the owner's Tripo models) and the area 3/4
 # bosses, drawn through Codex for the owner's approval before anything is
 # built (2026-11-05). Layout copies the Thornwood pet sheets (Bark Hoglet).
 # Built pets pass their in-game icon so the sheet matches the model 1:1.
@@ -25,16 +26,7 @@ GLOW_M="It is Mythic: a rainbow-shifting glow and sheen, a ring of light and orb
 
 draw 01_dock_otter_views.png "DOCK OTTER" COMMON "TAIL SLAP" "A plank-brown cube otter with a foam-white muzzle and belly, little square ears, a broad flat paddle tail and oversized mitten paws."
 draw 02_reed_duck_views.png "REED DUCK" COMMON "PECK" "A cream cube duckling with a slate-blue back patch, an orange wedge bill, two paddle feet and a short reed-green feather tuft."
-draw 03_foam_pup_views.png "FOAM PUP" COMMON "FOAM BARK" "A slate-grey seal pup with a huge foam-white cube face, a dark square nose, two slab flippers and a split wedge tail."
-draw 04_slate_turtle_views.png "SLATE TURTLE" UNCOMMON "SLATE SHELTER" "A saturated teal turtle with a low stepped blue-slate shell, four short flippers and one cream rope belt round its shell." $P/drowned/SlateTurtle.png
-draw 05_reed_axolotl_views.png "REED AXOLOTL" UNCOMMON "GILL SPLASH" "A pale turquoise cube axolotl with three coral-red gill wedges on each cheek, a slab tail and a moss-green reed scarf."
-draw 06_buoy_puffer_views.png "BUOY PUFFER" RARE "SPINE BURST" "A squat orange-and-cream cube pufferfish with blunt slate wedge spines, tiny side fins and one glowing amber square belly patch." $P/drowned/BuoyPuffer.png
-draw 07_pearl_pony_views.png "PEARL PONY" RARE "PEARL FLASH" "A teal seahorse with a big cube head, a short box snout, a slate crest, a square-curled tail and one glowing pearl at its throat."
-draw 08_mist_heron_views.png "MIST HERON" EPIC "MIST STAB" "A foam-white box heron with a slate slab-wing cape, short sturdy legs, a long orange wedge bill and glowing turquoise feather markings."
-draw 09_inkpot_views.png "INKPOT" EPIC "INK SQUIRT" "A deep slate-blue cube octopus with eight short thick slab arms, cream sucker squares and glowing teal ink-drop markings." $P/drowned/Inkpot.png
-draw 10_tide_wilf_views.png "TIDE WILF" LEGENDARY "TIDE SLASH" "The Wilf family shape in sea teal and foam white, fin-shaped ears and tail slabs, a slate sailor neckerchief and a gold anchor tag. $GLOW_L" $P/drowned/TideWilf.png $P/wilfs/03_tide_wilf.png
 draw 11_toll_prince_views.png "TOLL PRINCE" LEGENDARY "BELL TOLL" "A cute coral-red baby crab with cream mitten claws, teal square eye stalks and ONE oversized teal bell shell with gold bands; a tiny gold crown, moss tabs and two cream flowers. Heir to the Old Tollcrab boss. $GLOW_L"
-draw 12_abyss_jelly_views.png "ABYSS JELLY" MYTHIC "TENTACLE STING" "A floating abyss-blue cube jellyfish with a pearl face panel, four broad stepped ribbon arms and four shorter tentacle slabs, teal luminous seams. Ribbons broad and few, never thin strands. $GLOW_M" $P/drowned/AbyssJelly.png
 
 # Bosses: layout from the King Bloblin views sheet; identity from each boss's concept.
 boss() { # out name concept arena look

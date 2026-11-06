@@ -62,7 +62,7 @@ local WeaponStats = {
 		`tests/ConfigConsistency.spec` now holds to areas that have stages
 		to earn them in.
 	]]
-	areaScale = { 1, 1.125, 1.25 } :: { number },
+	areaScale = { 1, 1.125, 1.25, 1.375 } :: { number },
 
 	weapons = {
 		-- The classes' own (area 1, Common).

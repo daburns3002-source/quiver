@@ -1,4 +1,4 @@
-"""Write Config/ModelClips/<Pet> for the Drowned Village's five single-mesh pets.
+"""Write Config/ModelClips/<Pet> for the single-mesh Tripo pets (Drowned Village, Bogheart Caverns).
 
 Every other animated model in the game comes out of Claude Design as a GLB, and
 `tools/glb_clips_to_luau.py` reads its joints and clips straight off the file.

@@ -24,6 +24,7 @@ local EggRules = require(ReplicatedStorage.Shared.Util.EggRules)
 local Eggs = require(ReplicatedStorage.Shared.Config.Eggs)
 local PetCombat = require(ReplicatedStorage.Shared.Config.PetCombat)
 local PetPower = require(ReplicatedStorage.Shared.Util.PetPower)
+local Pets = require(ReplicatedStorage.Shared.Config.Pets)
 local Rarities = require(ReplicatedStorage.Shared.Config.Rarities)
 local TestRunner = require(script.Parent.TestRunner)
 
@@ -95,11 +96,55 @@ return function(t: TestRunner.Helper)
 		end
 	end)
 
+	--[[ Bogheart Caverns has no egg yet (`Config/Eggs`), so the two tests
+	     above cannot see its pets. They are held to area 4's bands here by
+	     name, so the egg can open on a ladder that already climbs. ]]
+	t.test("the Bogheart Caverns pets sit on area 4's bands and climb", function()
+		local bogheart = {
+			"CaveCricket",
+			"LichenGecko",
+			"BogBeaver",
+			"Lanternfin",
+			"Olm",
+			"GlowcapWilf",
+			"Gulpling",
+			"PrismLeviathan",
+		}
+		local best: { [number]: number } = {}
+		local worst: { [number]: number } = {}
+		for _, key in bogheart do
+			local spec = PetCombat.pets[key]
+			local pet = Pets[key]
+			t.notNil(spec, `{key} has a combat spec`)
+			t.notNil(pet, `{key} is in Config/Pets`)
+			if not spec or not pet then
+				continue
+			end
+			local dps = PetPower.dps(spec)
+			local band = PetPower.band(pet.rarity, 4)
+			if band then
+				t.near(dps, band, band * SLACK, `{key} ({pet.rarity})`)
+			end
+			if dps > 0 then
+				local tier = Rarities.byName[pet.rarity].tier
+				best[tier] = math.max(best[tier] or 0, dps)
+				worst[tier] = math.min(worst[tier] or math.huge, dps)
+			end
+		end
+		for tier, low in worst do
+			for under, high in best do
+				if under < tier then
+					t.isTrue(low > high, `tier {tier} does {low}, under tier {under}'s {high}`)
+				end
+			end
+		end
+	end)
+
 	--[[ The bands themselves, so a hand-edit to one cannot quietly flatten
 	     the ladder it is there to describe. ]]
 	t.test("the bands climb, and climb again by area", function()
 		local order = { "Common", "Rare", "Epic", "Legendary", "Mythic" }
-		for area = 1, 3 do
+		for area = 1, 4 do
 			local last = 0
 			for _, rarity in order do
 				local band = PetPower.band(rarity, area)

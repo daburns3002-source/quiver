@@ -37,19 +37,17 @@ return function(t: TestRunner.Helper)
 		end
 	end)
 
-	--[[ Owner's standing rule: every Legendary and Mythic glows, and a
-	     Mythic's glow is the rainbow (`Config/PetAuras`). ]]
-	t.test("every modelled Legendary and Mythic wears an aura", function()
-		for _, model in ReplicatedStorage.Shared.Config.PetModels:GetChildren() do
-			local info = Pets[model.Name]
-			if not info or (info.rarity ~= "Legendary" and info.rarity ~= "Mythic") then
+	--[[ Owner's standing rule: every Legendary and Mythic glows
+	     (`Config/PetAuras`). Since 2026-11-06 a Mythic need not be
+	     rainbow (CLAUDE.md rule 12), so this asks for a glow, any glow --
+	     and of every such pet in `Config/Pets`, modelled yet or not, so
+	     one cannot be imported dark. ]]
+	t.test("every Legendary and Mythic wears an aura", function()
+		for key, info in Pets do
+			if info.rarity ~= "Legendary" and info.rarity ~= "Mythic" then
 				continue
 			end
-			local look = PetAuras.looks[PetAuras.pets[model.Name]]
-			t.notNil(look, model.Name)
-			if look and info.rarity == "Mythic" then
-				t.notNil(look.rainbow, model.Name)
-			end
+			t.notNil(PetAuras.looks[PetAuras.pets[key]], key)
 		end
 	end)
 

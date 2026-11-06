@@ -27,6 +27,7 @@ local HeldWeaponChoice = require(ReplicatedStorage.Shared.Combat.HeldWeaponChoic
 local Loadout = require(script.Parent.Loadout)
 local LobbyConfig = require(ReplicatedStorage.Shared.Config.Lobby)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
+local MudCoat = require(ReplicatedStorage.Shared.Util.MudCoat)
 local NewEnemies = require(ReplicatedStorage.Shared.Config.NewEnemies)
 local PetCombat = require(ReplicatedStorage.Shared.Config.PetCombat)
 local Pickups = require(script.Parent.Pickups)
@@ -104,6 +105,11 @@ export type Session = {
 	     `petShelterCut`. A cut, not a block: see `Util/Shelter`. ]]
 	petShelterCut: number,
 	petShelterUntil: number,
+	--[[ The Bog Beaver's Mud Plaster (`Shared/Util/MudCoat`): while
+	     `petCoatUntil` (os.clock) is ahead, hits drain `petCoat` before
+	     they reach health. A pool, not a cut or a block. ]]
+	petCoat: number,
+	petCoatUntil: number,
 	--[[ `os.clock()` the owner last actually lost health, which is what
 	     arms the Buoy Puffer's Payback Puff (`Combat/PetCombat`). Set only
 	     where damage landed: a dodge, a guard and a shelter that took it
@@ -273,6 +279,8 @@ function RunSession.create(player: Player): Session
 		petHasteUntil = 0,
 		petShelterCut = 0,
 		petShelterUntil = 0,
+		petCoat = 0,
+		petCoatUntil = 0,
 		lastHurtAt = 0,
 		swingCount = 0,
 		battleCryStacks = 0,
@@ -1189,6 +1197,14 @@ function RunSession.applyDamage(session: Session, amount: number)
 	     reduction, so it cuts what would actually have landed. ]]
 	if os.clock() < session.petShelterUntil then
 		amount = Shelter.reduce(amount, session.petShelterCut)
+	end
+	--[[ The Bog Beaver's mud soaks what is left, until it is spent
+	     (`Shared/Util/MudCoat`). Last, so it pays out only for damage that
+	     would really have landed. ]]
+	if session.petCoat > 0 and os.clock() < session.petCoatUntil then
+		local through, left = MudCoat.soak(session.petCoat, amount)
+		session.petCoat = left
+		amount = through
 	end
 	if amount <= 0 then
 		return

@@ -50,6 +50,12 @@ local PetAuras = {
 		-- family's gold aura and sparkles, the Abyss Jelly the Mythic rainbow
 		TideWilf = "Legendary",
 		AbyssJelly = "Mythic",
+		-- Bogheart Caverns (docs/PETS-BOGHEART.md): the Wilf and the boss
+		-- heir in the gold; the Prism Leviathan glows its own lake cyan
+		-- (owner, 2026-11-06: a Mythic no longer has to be rainbow)
+		GlowcapWilf = "Legendary",
+		Gulpling = "Legendary",
+		PrismLeviathan = "MythicLake",
 	} :: { [string]: string },
 	looks = {
 		Mythic = {
@@ -87,6 +93,27 @@ local PetAuras = {
 			sparkleLife = 1,
 			sparkleSize = 0.3,
 			trail = 0.5,
+		},
+		--[[ A Mythic that is not rainbow: the Prism Leviathan's crystal
+		     cyan and teal, glowing harder and sparkling thicker than any
+		     Legendary so it still reads as the top of the ladder. ]]
+		MythicLake = {
+			rainbow = nil,
+			glow = Color3.fromRGB(110, 245, 255),
+			colours = {
+				Color3.fromRGB(225, 255, 255),
+				Color3.fromRGB(110, 245, 255),
+				Color3.fromRGB(40, 200, 190),
+				Color3.fromRGB(150, 120, 255),
+			},
+			fill = 0.72,
+			outline = 0.1,
+			lightRange = 10,
+			lightBrightness = 2.5,
+			sparkleRate = 18,
+			sparkleLife = 1.1,
+			sparkleSize = 0.32,
+			trail = 0.6,
 		},
 		--[[ The Legendary aura in the Bramble Wilf's purple. ]]
 		LegendaryPurple = {

@@ -69,7 +69,8 @@ class Obj:
                     v.append([hi[i] if k[i] else lo[i] for i in range(3)])
                     n.append(normal)
                     c.append([*((255, 255, 255) if self.glow else col), 255])
-                f += [[base, base + 2, base + 1], [base, base + 3, base + 2]]
+                # counter-clockwise seen from outside, so the faces point out
+                f += [[base, base + 1, base + 2], [base, base + 2, base + 3]]
         return trimesh.Trimesh(
             vertices=np.array(v, float),
             faces=np.array(f, int),

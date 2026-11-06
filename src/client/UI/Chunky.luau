@@ -476,6 +476,40 @@ function Chunky.tile(
 	return t
 end
 
+--[[ Makes any piece pressable the way the kit's buttons are: it swells a
+     touch under the pointer, squashes when pressed and springs back past
+     full size on release (owner, 2026-11-05: "the bounce on click"). ]]
+function Chunky.press(holder: GuiObject, action: () -> ())
+	pressable(holder, holder, action)
+end
+
+--[[ A bright slanted streak that sweeps across `item` every few seconds,
+     the shine on something the player can equip (owner, 2026-11-05: "the
+     gleam on equippables"). `phase` staggers neighbours so a row of tiles
+     does not flash in step. ]]
+function Chunky.gleam(item: GuiObject, phase: number?)
+	local shine = fill(item, Color3.new(1, 1, 1), item.ZIndex + 7)
+	shine.Name = "Gleam"
+	shine.BackgroundTransparency = 0.35
+	Chunky.round(shine, 18)
+	local slant = Instance.new("UIGradient")
+	slant.Rotation = 30
+	slant.Transparency = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, 1),
+		NumberSequenceKeypoint.new(0.42, 1),
+		NumberSequenceKeypoint.new(0.5, 0.2),
+		NumberSequenceKeypoint.new(0.58, 1),
+		NumberSequenceKeypoint.new(1, 1),
+	})
+	slant.Offset = Vector2.new(-1.5, 0)
+	slant.Parent = shine
+	local start = phase or 0
+	Kit.animate(shine, function(t)
+		local cycle = (t * 0.6 + start) % 2.4
+		slant.Offset = Vector2.new(if cycle < 1 then -1.2 + cycle * 2.4 else 1.5, 0)
+	end)
+end
+
 --[[ Pops a freshly opened panel in: from a little small, past full size,
      back to rest. ]]
 function Chunky.pop(item: GuiObject)

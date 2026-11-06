@@ -28,6 +28,7 @@ local ShopRules = require(ReplicatedStorage.Shared.Util.ShopRules)
 local Hatchery = require(script.Parent.Hatchery)
 local Lobby = require(script.Parent.Parent.Run.Lobby)
 local Pity = require(ReplicatedStorage.Shared.Util.Pity)
+local PlayerBody = require(script.Parent.Parent.Run.PlayerBody)
 local PlayerData = require(script.Parent.PlayerData)
 local RoomController = require(script.Parent.Parent.Run.RoomController)
 local RunSession = require(script.Parent.Parent.Run.RunSession)
@@ -181,11 +182,9 @@ local function chooseClass(player: Player, class: unknown, look: unknown)
 	if not starter or not Wallet.owns(player, starter) then
 		return
 	end
-	--[[ The look is remembered, not worn. The player keeps their own Roblox
-	     avatar in game (owner, 2026-10-30: "own avatar is fine"), so there are
-	     no class bodies to build and nothing applies this to the character.
-	     `look` is read in one place only — `UI/ClassScreen`, to decide whether
-	     the class screen has already been answered. ]]
+	--[[ The look is worn: the class's Tripo body for it (`Run/PlayerBody`,
+	     owner, 2026-11-06), once its meshes are uploaded; until then the
+	     player keeps their own avatar. ]]
 	Wallet.setLook(player, look)
 	Wallet.equip(player, starter)
 	if RoomController.inLobby() then
@@ -195,6 +194,7 @@ local function chooseClass(player: Player, class: unknown, look: unknown)
 			Lobby.place(player.Character)
 		end
 	end
+	PlayerBody.refresh(player)
 	log.info("%s chose the %s (%s)", player.Name, class, look)
 end
 

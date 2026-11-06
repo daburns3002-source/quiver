@@ -191,6 +191,12 @@ What exists and works, all verified in Studio rather than only by the gates:
 - **Phases 1 and 2:** move-or-shoot, five enemy archetypes, ten-room runs,
   death and restart. Playtest 1 passed. Playtest 2's question — *after five
   rooms, do you want a sixth?* — was never formally answered.
+- **Class bodies** (`Run/PlayerBody`, `Config/PlayerModels`, 2026-11-06): each player wears
+  the Tripo body for their class and look, an R15 rig split from the Tripo model by
+  `tools/player_rigs/split_r15.py` (Blender, headless) and generated into config by
+  `rigs_to_luau.py`. It is built on a copy of the character, which then becomes the
+  player's character (a second `CharacterAdded`, marked `Body`). A body whose meshes
+  are not uploaded (`uploaded = false`) leaves the player in their own avatar.
 - **Upgrades follow the owner's card design** (`design_handoff_upgrade_cards`,
   chosen 2026-10-22): 27 skills (Dual Bows added 2026-10-22), each with levels, a rarity and a stat line per
   level (`Config/Abilities`, `Config/Rarities`), dealt weighted by rarity with

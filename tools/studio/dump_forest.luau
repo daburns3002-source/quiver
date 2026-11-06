@@ -16,6 +16,8 @@ local HttpService = game:GetService("HttpService")
 
 -- "GlowCaps" -> assets/models/arenas/mossy_glade_outer_ids.json
 -- "Snags" -> assets/models/arenas/thornwood_outer_ids.json
+-- "Houses" -> assets/models/arenas/drowned_village_outer_ids.json
+-- "Mushrooms" -> assets/models/arenas/bogheart_caverns_outer_ids.json
 local FOREST = "GlowCaps"
 
 local function isForest(model)

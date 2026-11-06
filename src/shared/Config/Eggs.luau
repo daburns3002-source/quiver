@@ -39,6 +39,18 @@ local Eggs = {
 			-- egg and thornwood egg should be unlocked for now"); its unlock
 			-- once that ends: unlock = "MossyGlade"
 		},
+		--[[ Bogheart Caverns, area 4 (2026-11-06): its eight Tripo pets
+		     imported. Priced off the area's crate (`Config/Shop`, 4000), a
+		     placeholder like the others. Open from the start while the game
+		     is in playtest, as Thornwood's is: its area has no portal yet,
+		     so an unlock would shut it for good. Once that ends:
+		     unlock = "DrownedVillage". ]]
+		{
+			key = "BogheartEgg",
+			name = "BOGHEART EGG",
+			area = "BogheartCaverns",
+			price = 4000,
+		},
 	} :: { Egg },
 
 	--[[ An egg's odds, by rarity (weights out of 100, shared evenly by the

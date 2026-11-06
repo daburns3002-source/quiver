@@ -35,17 +35,27 @@ return function(t: TestRunner.Helper)
 			t.isTrue(art ~= nil and art.closed ~= "", crate.area)
 		end
 	end)
-	t.test("every egg has all four stages", function()
+	--[[ An egg hatches from its four cut stages, or from its area's Tripo
+	     model with the area's one picture on the hatchery stand
+	     (`UI/Reveal` draws the cracks and burst over a model itself). ]]
+	t.test("every egg has all four stages, or a model and a picture", function()
 		for _, egg in Eggs.list do
 			local art = GearAssets.eggs[egg.key]
-			t.isTrue(
-				art ~= nil
-					and art.whole ~= ""
-					and art.crack1 ~= ""
-					and art.crack2 ~= ""
-					and art.burst ~= "",
-				egg.key
-			)
+			local staged = art ~= nil
+				and art.whole ~= ""
+				and art.crack1 ~= ""
+				and art.crack2 ~= ""
+				and art.burst ~= ""
+			local modelled = GearAssets.models.eggs[egg.area] ~= nil
+				and (GearAssets.areaPictures.eggs[egg.area] or "") ~= ""
+			t.isTrue(staged or modelled, egg.key)
+		end
+	end)
+
+	t.test("every area has its own egg and chest model", function()
+		for _, crate in Shop.crates do
+			t.notNil(GearAssets.models.eggs[crate.area], crate.area)
+			t.notNil(GearAssets.models.chests[crate.area], crate.area)
 		end
 	end)
 end

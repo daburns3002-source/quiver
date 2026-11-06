@@ -179,6 +179,60 @@ local WeaponStats = {
 			innate = { Execute = 1 },
 			effect = "Stormglass: a wounded enemy is sheared clean through.",
 		},
+
+		--[[ Area 4, Bogheart Caverns (docs/WEAPONS-BOGHEART.md), the low-poly
+		     Tripo set imported 2026-11-06. Not stocked yet, like area 3
+		     (`Config/Shop`): held and fought with in the sandbox until the
+		     area has its enemies, its stages behind a portal and an
+		     `Config/Economy` entry. The five daggers wait for the Assassin.
+		     Each effect is a card its own class can draw. ]]
+		PeatwoodBow = { rarity = "Uncommon", area = 4 },
+		SporestringBow = { rarity = "Rare", area = 4 },
+		GlowcapLongbow = { rarity = "Epic", area = 4 },
+		GulpstringBow = {
+			rarity = "Legendary",
+			area = 4,
+			innate = { PiercingShot = 1 },
+			effect = "Gulp's tongue: the shot runs on through everything in line.",
+		},
+		LumenveilBow = {
+			rarity = "Mythic",
+			area = 4,
+			innate = { RainOfArrows = 1 },
+			effect = "Lumenveil: light rains down in arrows round the mark.",
+		},
+
+		LichenStaff = { rarity = "Uncommon", area = 4 },
+		PuffballStaff = { rarity = "Rare", area = 4 },
+		VentstoneStaff = { rarity = "Epic", area = 4 },
+		GrandmothersStaff = {
+			rarity = "Legendary",
+			area = 4,
+			innate = { ArcaneEcho = 1 },
+			effect = "Grandmother's echo: every spell is croaked once more.",
+		},
+		MyceliadStaff = {
+			rarity = "Mythic",
+			area = 4,
+			innate = { BlackHole = 1 },
+			effect = "Myceliad: the roots drag the crowd into the glowing core.",
+		},
+
+		BogironBlade = { rarity = "Uncommon", area = 4 },
+		ShellbackCleaver = { rarity = "Rare", area = 4 },
+		CaplightBlade = { rarity = "Epic", area = 4 },
+		GulpfangBlade = {
+			rarity = "Legendary",
+			area = 4,
+			innate = { CounterStrike = 1 },
+			effect = "Gulpfang: a blow taken is snapped straight back.",
+		},
+		DeepglowBlade = {
+			rarity = "Mythic",
+			area = 4,
+			innate = { Earthbreaker = 1 },
+			effect = "Deepglow: the lake crystal splits the cavern floor.",
+		},
 	} :: { [string]: Stats },
 }
 

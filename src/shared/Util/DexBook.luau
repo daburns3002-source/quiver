@@ -73,7 +73,7 @@ local RANK = {
 --[[ The areas in the order the game plays them, so enemies group by where
      they are met rather than by name. An area not listed here sorts after
      all of them, which is what a new one does until it is added. ]]
-local AREAS = { MossyGlade = 1, Thornwood = 2, DrownedVillage = 3 }
+local AREAS = { MossyGlade = 1, Thornwood = 2, DrownedVillage = 3, BogheartCaverns = 4 }
 local LAST_AREA = 99
 
 local function label(weapon: string): string

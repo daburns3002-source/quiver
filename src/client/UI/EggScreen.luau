@@ -122,7 +122,10 @@ function EggScreen.start()
 				elseif #pool == 0 then "COMING SOON"
 				else nil,
 			pity = if p then p.pity.eggs else 0,
-			picture = GearAssets.eggs[egg.key].whole,
+			-- its cut frames' whole egg, else its area's one picture
+			picture = if GearAssets.eggs[egg.key]
+				then GearAssets.eggs[egg.key].whole
+				else (GearAssets.areaPictures.eggs[egg.area] or ""),
 			backdrop = GearAssets.backgrounds.hatchery,
 			counts = Eggs.counts,
 			verb = "HATCH",

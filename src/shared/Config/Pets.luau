@@ -83,17 +83,16 @@ local Pets: { [string]: Pet } = {
 	TideWilf = { name = "TIDE WILF", rarity = "Legendary" },
 	AbyssJelly = { name = "ABYSS JELLY", rarity = "Mythic" },
 	--[[ Bogheart Caverns (docs/PETS-BOGHEART.md), all eight, modelled on
-	     Tripo 2026-11-06. No egg yet: `Config/Eggs` has no Bogheart egg,
-	     and `Util/EggRules` hides each one until the owner imports its
-	     mesh (`Config/PetModels`). Their attacks and clips are in. ]]
-	CaveCricket = { name = "CAVE CRICKET", rarity = "Common" },
-	LichenGecko = { name = "LICHEN GECKO", rarity = "Common" },
-	BogBeaver = { name = "BOG BEAVER", rarity = "Uncommon" },
-	Lanternfin = { name = "LANTERNFIN", rarity = "Rare" },
-	Olm = { name = "OLM", rarity = "Epic" },
-	GlowcapWilf = { name = "GLOWCAP WILF", rarity = "Legendary" },
-	Gulpling = { name = "GULPLING", rarity = "Legendary" },
-	PrismLeviathan = { name = "PRISM LEVIATHAN", rarity = "Mythic" },
+	     Tripo and imported 2026-11-06 (`Config/PetModels`), so the Bogheart
+	     Egg holds the full eight. Their attacks and clips are in. ]]
+	CaveCricket = { name = "CAVE CRICKET", rarity = "Common", egg = "BogheartEgg" },
+	LichenGecko = { name = "LICHEN GECKO", rarity = "Common", egg = "BogheartEgg" },
+	BogBeaver = { name = "BOG BEAVER", rarity = "Uncommon", egg = "BogheartEgg" },
+	Lanternfin = { name = "LANTERNFIN", rarity = "Rare", egg = "BogheartEgg" },
+	Olm = { name = "OLM", rarity = "Epic", egg = "BogheartEgg" },
+	GlowcapWilf = { name = "GLOWCAP WILF", rarity = "Legendary", egg = "BogheartEgg" },
+	Gulpling = { name = "GULPLING", rarity = "Legendary", egg = "BogheartEgg" },
+	PrismLeviathan = { name = "PRISM LEVIATHAN", rarity = "Mythic", egg = "BogheartEgg" },
 }
 
 return table.freeze(Pets)

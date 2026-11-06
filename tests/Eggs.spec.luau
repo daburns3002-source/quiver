@@ -82,6 +82,17 @@ return function(t: TestRunner.Helper)
 		end
 	end)
 
+	--[[ Bogheart Caverns (docs/PETS-BOGHEART.md): all eight imported
+	     2026-11-06 and in the Bogheart Egg, one Mythic among them. ]]
+	t.test("the Bogheart Egg holds the Bogheart eight", function()
+		local pool = EggRules.pool("BogheartEgg")
+		t.equal(#pool, 8)
+		for _, entry in pool do
+			t.equal(Pets[entry.pet].egg, "BogheartEgg", entry.pet)
+		end
+		t.equal(pool[#pool].pet, "PrismLeviathan")
+	end)
+
 	t.test("rolls follow the chances across the whole range", function()
 		local pool = EggRules.pool("MossyEgg")
 		local counts: { [string]: number } = {}
@@ -104,8 +115,8 @@ return function(t: TestRunner.Helper)
 	     what is pinned here is that neither asks for a boss, and that the
 	     gate still works for the egg that takes one up when `unlock` comes
 	     back. ]]
-	t.test("both eggs are open from the start", function()
-		for _, key in { "MossyEgg", "ThornwoodEgg" } do
+	t.test("the eggs are open from the start", function()
+		for _, key in { "MossyEgg", "ThornwoodEgg", "BogheartEgg" } do
 			local egg = EggRules.find(key)
 			t.notNil(egg, key)
 			if egg then

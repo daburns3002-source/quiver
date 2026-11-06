@@ -35,6 +35,11 @@ PlayerBody.ATTRIBUTE = "Body"
      on, so its accessories do not arrive on the body after it is dressed. ]]
 local APPEARANCE_WAIT = 6
 
+--[[ Studio's 3D import keeps the glTF's +Z front in each mesh, so every
+     piece is turned half round to face the body's -Z. Attachments and
+     welds are placed in the body's own axes through it. ]]
+local TURN = CFrame.Angles(0, math.pi, 0)
+
 local templates: { [string]: MeshPart } = {}
 local busy: { [Player]: boolean } = {}
 
@@ -101,7 +106,9 @@ local function attach(part: BasePart, name: string, at: Vector3, rotation: CFram
 	end
 	local attachment = Instance.new("Attachment")
 	attachment.Name = name
-	attachment.CFrame = CFrame.new(at) * (rotation or CFrame.identity)
+	-- the root is the avatar's own part, never turned: only the mesh pieces are
+	local turn = if part.Name == "HumanoidRootPart" then CFrame.identity else TURN
+	attachment.CFrame = turn * CFrame.new(at) * (rotation or CFrame.identity)
 	attachment.Parent = part
 end
 
@@ -141,7 +148,7 @@ local function build(character: Model, key: string): Model?
 	local made: { [string]: BasePart } = { HumanoidRootPart = root }
 	for _, piece in spec.parts do
 		local part = meshPart(piece, old[piece.name])
-		part.CFrame = rootFrame * CFrame.new(vec(piece.position))
+		part.CFrame = rootFrame * CFrame.new(vec(piece.position)) * TURN
 		made[piece.name] = part
 	end
 	for _, part in old do
@@ -191,13 +198,13 @@ local function build(character: Model, key: string): Model?
 		handle.Massless = true
 		handle.CanQuery = false
 		local offset = CFrame.new(vec(piece.position) - vec(parentPiece.position))
-		handle.CFrame = parent.CFrame * offset
+		handle.CFrame = parent.CFrame * TURN * offset * TURN
 		handle.Parent = accessory
 		local weld = Instance.new("Weld")
 		weld.Name = "AccessoryWeld"
 		weld.Part0 = handle
 		weld.Part1 = parent
-		weld.C1 = offset
+		weld.C1 = TURN * offset * TURN
 		weld.Parent = handle
 		accessory.Parent = copy
 	end

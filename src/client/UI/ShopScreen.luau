@@ -84,6 +84,7 @@ local function drawStore(s: StationScreen.Screen, area: HatchStand.Area)
 	Chunky.button(sheet, ">", Chunky.blue, area.x + area.w - 100, area.y, 100, 84, step(1))
 	local nameBox = Instance.new("Frame")
 	nameBox.BackgroundTransparency = 1
+	nameBox.ZIndex = 6
 	Chunky.put(sheet, nameBox, area.x + 120, area.y + 4, area.w - 240, 76)
 	Chunky.text(nameBox, Shop.crates[selected].name .. " STORE", nil, 6)
 
@@ -133,6 +134,8 @@ local function drawStore(s: StationScreen.Screen, area: HatchStand.Area)
 		holder.Position, holder.Size =
 			UDim2.fromScale(12 / colW, 12 / rowH), UDim2.fromScale(126 / colW, 126 / rowH)
 		holder.ZIndex = 7
+		local square = Instance.new("UIAspectRatioConstraint")
+		square.Parent = holder
 		holder.Parent = row
 		Chunky.tile(holder, entry.rarity, picture(entry.weapon), nil, false, owned)
 		local nameText = Chunky.text(row, entry.label, Chunky.navy, 0)

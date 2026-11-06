@@ -364,6 +364,13 @@ Shift / gamepad X / the phone's SPRINT runs (`Config/Lobby.sprint`) and Space / 
 (`Main.refreshWeapon`, `HeldWeapon.unequip`) and `Fx/WeaponPose` writes no pose there, so
 Roblox's own animation has the arms; the weapon comes back as a run starts.
 
+**The chunky UI** (owner, 2026-11-05: "WE NEED TO DO SEVERE WORK ON THE UI FOR EVERYTHING"; approved
+mockups in `assets/concepts/ui_refs/mockups/`, top-game references and the audit beside them): `UI/Chunky`
+is the kit (blue panel, gold ribbon title, red corner X, glossy lipped buttons, tabs, currency pills,
+rarity tiles, pop-in), laid out in sheet pixels on 1920 x 1080 or, held upright, 1080 x 1920
+(`Chunky.sheet`). `HatchStand.chrome` frames a station screen in it. Done: Hatchery, Blacksmith
+(crates and store). Next: Gear, Dex, the Mossy Glade level screen.
+
 **The weapon shop** (owner, 2026-10-25; `Config/Shop`, `Util/ShopRules`, `Server/Data/Shop`,
 `UI/ShopScreen`): at the lobby's Blacksmith, SHOP (or E) opens CRATES, STORE and MY WEAPONS.
 A crate per area for coins (500, 1,000, 2,000, 4,000, 10,000, 20,000) rolls on the server

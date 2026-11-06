@@ -240,7 +240,7 @@ function HatchStand.draw(
 	local up = sheet.upright
 	-- the stand's column, and the white card beside it (under it, upright)
 	local cx, cy, cw = area.x, area.y, if up then area.w else 620
-	local cBottom = if up then cy + 700 else area.bottom
+	local cBottom = if up then cy + 820 else area.bottom
 	local kx = if up then area.x else 850
 	local ky = if up then cBottom + 30 else area.y
 	local kw = if up then area.w else 880

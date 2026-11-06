@@ -47,6 +47,12 @@ export type Entry = {
 	picture: string,
 	description: string,
 	unlocked: boolean,
+	--[[ The frame the tile wears: a weapon's or pet's rarity. Enemies
+	     carry none, so they wear Common. ]]
+	rarity: string,
+	--[[ One short fact for the line under the name: where an enemy is met,
+	     or a weapon's or pet's rarity. ]]
+	detail: string,
 }
 
 local DexBook = {}
@@ -141,6 +147,8 @@ function DexBook.entries(book: string, profile: SaveSchema.Profile?): { Entry }
 						picture = enemy.picture,
 						description = enemy.description,
 						unlocked = seen[key] == true,
+						rarity = "Common",
+						detail = (string.gsub(enemy.area, "(%l)(%u)", "%1 %2")),
 					},
 				})
 			end
@@ -159,6 +167,8 @@ function DexBook.entries(book: string, profile: SaveSchema.Profile?): { Entry }
 						picture = art,
 						description = LoadingPick.describeWeapon(key),
 						unlocked = owned[key] == true,
+						rarity = stats.rarity,
+						detail = stats.rarity,
 					},
 				})
 			end
@@ -177,6 +187,8 @@ function DexBook.entries(book: string, profile: SaveSchema.Profile?): { Entry }
 						picture = icon,
 						description = describePet(pet),
 						unlocked = (hatched[key] or 0) > 0,
+						rarity = pet.rarity,
+						detail = pet.rarity,
 					},
 				})
 			end

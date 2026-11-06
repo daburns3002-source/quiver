@@ -16,6 +16,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 
 local PetAttacks = require(ReplicatedStorage.Shared.Config.PetAttacks)
+local PetCrowd = require(ReplicatedStorage.Shared.Util.PetCrowd)
 local PetShots = require(ReplicatedStorage.Shared.Combat.PetShots)
 local PetSounds = require(ReplicatedStorage.Shared.Config.PetSounds)
 local SoundFx = require(script.Parent.SoundFx)
@@ -107,6 +108,23 @@ local function fire(shot: PetAttacks.Shot, pet: Model, index: number)
 	local pivot = pet:GetPivot()
 	local from = pivot.Position + Vector3.new(0, MOUTH, 0)
 	local targets = enemies(from)
+	--[[ A Bogheart pet that picks its enemy by the crowd rather than by
+	     distance (`Shared/Util/PetCrowd`): the one the server hits goes
+	     first, so the piece lands where the blow does. ]]
+	local aim = shot.aim
+	if aim and #targets > 0 then
+		local spots: { PetCrowd.Spot } = {}
+		for _, model in targets do
+			table.insert(spots, { model = model, position = model:GetPivot().Position })
+		end
+		local pick = if aim == "Farthest"
+			then PetCrowd.farthest(spots, from)
+			else PetCrowd.densest(spots, shot.aimRadius or 7)
+		local at = pick and table.find(targets, pick.model)
+		if at then
+			table.insert(targets, 1, table.remove(targets, at) :: Model)
+		end
+	end
 	local nearest = targets[1]
 	local ahead =
 		UpgradeFx.flat(if nearest then nearest:GetPivot().Position - from else pivot.LookVector)

@@ -17,16 +17,17 @@
 	number — damage a second against a full room — and these are the
 	bands each rarity is aimed at:
 
-		          area 1   area 2   area 3
-		Common        16       18       20
-		Rare          24       27       30
-		Epic          34       38       43
-		Legendary     44       50       55
-		Mythic        56       64       70
+		          area 1   area 2   area 3   area 4
+		Common        16       18       20       22
+		Rare          24       27       30       33
+		Epic          34       38       43       47
+		Legendary     44       50       55       61
+		Mythic        56       64       70       77
 
-	Area 2's are area 1's times `WeaponStats.areaScale[2]` (1.125) and area
-	3's times 1.25, the same step a weapon of that area takes, because a pet
-	has to keep up with that area's health the same way.
+	Area 2's are area 1's times `WeaponStats.areaScale[2]` (1.125), area
+	3's times 1.25 and area 4's times 1.375, the same step a weapon of that
+	area takes, because a pet has to keep up with that area's health the
+	same way.
 
 	Uncommon has no band: both eggs' Uncommon is a guard, which trades its
 	damage for blocking a hit outright, and the Drowned Village's is a
@@ -49,6 +50,8 @@
 
 local Bleed = require(script.Parent.Parent.Combat.Bleed)
 local DeepAccord = require(script.Parent.Parent.Util.DeepAccord)
+local MudCoat = require(script.Parent.Parent.Util.MudCoat)
+local PetCrowd = require(script.Parent.Parent.Util.PetCrowd)
 local PetDash = require(script.Parent.Parent.Util.PetDash)
 local PetWake = require(script.Parent.Parent.Util.PetWake)
 local RootHold = require(script.Parent.Parent.Util.RootHold)
@@ -145,6 +148,33 @@ export type Spec = {
 	     takes (the Abyss Jelly's Deep Accord; `Shared/Util/DeepAccord`).
 	     It never multiplies damage: the total is what the player dealt. ]]
 	accord: DeepAccord.Accord?,
+	--[[ Bogheart Caverns (docs/PETS-BOGHEART.md). The crowded area, so
+	     most of these read the room as a crowd; every rule is in
+	     `Shared/Util/PetCrowd` (or `Shared/Util/MudCoat`). ]]
+	--[[ Picks the furthest enemy in reach instead of the nearest (the Cave
+	     Cricket's Long Chirp). ]]
+	farthest: boolean?,
+	--[[ Every `every`th attack hits `scale` times as hard (the Lichen
+	     Gecko's Fourth Lick). ]]
+	combo: PetCrowd.Combo?,
+	--[[ A pool of mud on the owner that soaks `amount` damage in all, for
+	     at most `duration` seconds (the Bog Beaver's Mud Plaster). ]]
+	coat: MudCoat.Coat?,
+	--[[ The hit lands `fuse` seconds late, on the target and everything
+	     near it then (the Lanternfin's Glow Mote). ]]
+	burst: PetCrowd.Burst?,
+	--[[ A bite that grows with the crowd round its target (the Olm's
+	     Tremor Snap). ]]
+	crowd: PetCrowd.Crowd?,
+	--[[ Everything in a wedge toward the nearest enemy, out to `range`
+	     (the Glowcap Wilf's Spore Sneeze). ]]
+	cone: PetCrowd.Cone?,
+	--[[ Lands on the biggest crowd in reach and hits all of it (the
+	     Gulpling's Little Belly Flop). ]]
+	flop: PetCrowd.Flop?,
+	--[[ The bolt breaks into shards on the enemies beside its target (the
+	     Prism Leviathan's Prism Split). ]]
+	split: PetCrowd.Split?,
 }
 
 local PetCombat: { pets: { [string]: Spec } } = {
@@ -410,6 +440,52 @@ local PetCombat: { pets: { [string]: Spec } } = {
 			hits = 3,
 			targets = 3,
 			accord = { targets = 3, duration = 4 },
+		},
+
+		--[[ Bogheart Caverns (docs/PETS-BOGHEART.md, Attacks). PLACEHOLDER
+		     NUMBERS until the owner plays them; area 4's enemies are not
+		     built. Each sits on area 4's band (1.375x area 1's) by
+		     `Shared/Util/PetPower`'s reckoning, where a crowd, a sneeze, a
+		     flop, a burst or a split is credited with two enemies -- what
+		     a room tends to put in front of a player at once.
+
+		     Bogheart leans crowded (docs/ENEMIES-AND-ARENAS.md), so five of
+		     the eight answer a pack rather than one enemy. None of them
+		     repeats an attack from areas 1-3. ]]
+		--[[ Long Chirp: the enemy furthest off, the one the player is least
+		     likely to be dealing with. 55 every 2.5 s is 22 a second. ]]
+		CaveCricket = { every = 2.5, range = 60, damage = 55, farthest = true },
+		--[[ Fourth Lick: short nips, every fourth one triple. Short reach,
+		     so it skitters in close. 30 x 1.5 / 2 is 22.5 a second. ]]
+		LichenGecko = { every = 2, range = 16, damage = 30, combo = { every = 4, scale = 3 } },
+		--[[ Mud Plaster: the egg's shelter. Soaks 60 in all over at most 6
+		     s, every 15 s -- small hits vanish, a big one breaks through.
+		     No damage of its own. ]]
+		BogBeaver = { every = 15, range = 0, coat = { amount = 60, duration = 6 } },
+		--[[ Glow Mote: the light sticks to the nearest enemy and bursts 1.5
+		     s later on it and all within 6 studs of where it has walked.
+		     66 x 2 / 4 is 33 a second. ]]
+		Lanternfin = { every = 4, range = 60, damage = 66, burst = { radius = 6, fuse = 1.5 } },
+		--[[ Tremor Snap: blind, it feels the crowd's footsteps. A quarter
+		     harder for each other enemy within 8 studs of its target, up to
+		     double. 94 x 1.5 / 3 is 47 a second. ]]
+		Olm = { every = 3, range = 60, damage = 94, crowd = { radius = 8, per = 0.25, most = 4 } },
+		--[[ Spore Sneeze (docs/PETS-WILFS.md, #4): a 60-degree wedge of
+		     spores, 16 studs long, toward the nearest enemy. Everything in
+		     it is hit. 121 x 2 / 4 is 60.5 a second. ]]
+		GlowcapWilf = { every = 4, range = 16, damage = 121, cone = { angle = 60 } },
+		--[[ Little Belly Flop: Grandmother Gulp's leap, small. Lands on
+		     the enemy with the most others round it and hits everything
+		     within 7 studs. 151 x 2 / 5 is 60.4 a second. ]]
+		Gulpling = { every = 5, range = 60, damage = 151, flop = { radius = 7 } },
+		--[[ Prism Split: a crystal bolt that breaks as it lands into three
+		     shards, each at half weight, on the three nearest others within
+		     12 studs. 116 x 2 / 3 is 77.3 a second. ]]
+		PrismLeviathan = {
+			every = 3,
+			range = 60,
+			damage = 116,
+			split = { shards = 3, share = 0.5, radius = 12 },
 		},
 	},
 }

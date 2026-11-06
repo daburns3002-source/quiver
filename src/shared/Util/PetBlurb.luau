@@ -15,6 +15,7 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Bleed = require(ReplicatedStorage.Shared.Combat.Bleed)
+local MudCoat = require(ReplicatedStorage.Shared.Util.MudCoat)
 local PetCombat = require(ReplicatedStorage.Shared.Config.PetCombat)
 local PetWake = require(ReplicatedStorage.Shared.Util.PetWake)
 local Shelter = require(ReplicatedStorage.Shared.Util.Shelter)
@@ -289,6 +290,89 @@ function PetBlurb.lines(key: string): { string }
 				spec.every,
 				accord.targets,
 				accord.duration
+			)
+		)
+	end
+
+	--[[ Bogheart Caverns (docs/PETS-BOGHEART.md, `Shared/Util/PetCrowd`). ]]
+	if spec.farthest then
+		add("Long Chirp: always goes for the enemy furthest away, not the nearest.")
+	end
+	local combo = spec.combo
+	if combo then
+		add(
+			string.format(
+				"Fourth Lick: every %s attack hits %gx as hard.",
+				if combo.every == 4 then "fourth" else string.format("%gth", combo.every),
+				combo.scale
+			)
+		)
+	end
+	local coat = spec.coat
+	if coat then
+		add(
+			string.format(
+				"Mud Plaster: every %g seconds it coats you in mud that soaks up %g damage in all, for up to %g seconds. Small hits vanish into it; a big one breaks through with whatever the mud cannot hold.",
+				spec.every,
+				coat.amount,
+				coat.duration
+			)
+		)
+		add(
+			string.format(
+				"Saves you up to %g damage a second over a long fight.",
+				math.floor(MudCoat.perSecond(coat, spec.every) * 10 + 0.5) / 10
+			)
+		)
+	end
+	local burst = spec.burst
+	if burst then
+		add(
+			string.format(
+				"Glow Mote: the hit sticks to its target and bursts %g seconds later, on it and every enemy within %g studs of where it has walked.",
+				burst.fuse,
+				burst.radius
+			)
+		)
+	end
+	local crowd = spec.crowd
+	if crowd then
+		add(
+			string.format(
+				"Tremor Snap: %s harder for every other enemy within %g studs of its target, up to %s.",
+				percent(crowd.per * 100),
+				crowd.radius,
+				percent(crowd.per * crowd.most * 100)
+			)
+		)
+	end
+	local cone = spec.cone
+	if cone then
+		add(
+			string.format(
+				"Spore Sneeze: hits everything in a %g-degree wedge, %g studs long, toward the nearest enemy.",
+				cone.angle,
+				spec.range
+			)
+		)
+	end
+	local flop = spec.flop
+	if flop then
+		add(
+			string.format(
+				"Little Belly Flop: lands on the biggest crowd in reach and hits everything within %g studs.",
+				flop.radius
+			)
+		)
+	end
+	local split = spec.split
+	if split and spec.damage then
+		add(
+			string.format(
+				"Prism Split: as the bolt lands it breaks into %g shards of %g each, on the nearest other enemies within %g studs.",
+				split.shards,
+				spec.damage * split.share,
+				split.radius
 			)
 		)
 	end

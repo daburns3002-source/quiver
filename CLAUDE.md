@@ -807,9 +807,9 @@ use the rounded font, some things are going to be in that font, especially in th
 
 **12. Every Legendary and Mythic glows.**
 Weapons, skins, pets, anything with a rarity (owner, 2026-10-24: "anything that is a legendary
-or a mythic NEEDS a glow to it"). A Mythic's glow cycles through the rainbow. Weapons: their
-glow parts are Neon with a light (`Combat/HeldWeapon`), a Mythic's turned round the hue wheel
-(`Fx/WeaponGlow`); `skins_to_luau.py` gives every Epic and up a glow. Pets: `Config/PetAuras`
+or a mythic NEEDS a glow to it"). Since 2026-11-06 a Mythic no longer has to be rainbow; existing rainbow
+Mythics stay. Weapons: their glow parts are Neon with a light (`Combat/HeldWeapon`), a rainbow
+Mythic's turned round the hue wheel (`Fx/WeaponGlow`); `skins_to_luau.py` gives every Epic and up a glow. Pets: `Config/PetAuras`
 lists every Legendary and Mythic pet.
 
 **13. Arenas and models match their reference 1:1 in the game.**

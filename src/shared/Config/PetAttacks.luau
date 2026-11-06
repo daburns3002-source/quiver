@@ -50,6 +50,11 @@ export type Shot = {
 	flip: boolean?,
 	targets: number?,
 	impact: Impact?,
+	--[[ Which enemy goes first, for a pet that does not pick the nearest
+	     (`Shared/Util/PetCrowd`): the furthest (the Cave Cricket), or the
+	     one with the most others within `aimRadius` (the Gulpling). ]]
+	aim: ("Farthest" | "Densest")?,
+	aimRadius: number?,
 }
 
 local PetAttacks: { [string]: { Shot } } = {
@@ -431,6 +436,122 @@ local PetAttacks: { [string]: { Shot } } = {
 			at = 0.42,
 			life = 0.35,
 			sweep = 70,
+		},
+	},
+
+	--[[ Bogheart Caverns (docs/PETS-BOGHEART.md, Attacks). Every effect
+	     here is an earlier area's piece standing in, as the Drowned
+	     Village's did before its own; the Bogheart pieces still to make
+	     are listed in the doc. Times match each pet's Attack clip in
+	     assets/models/pet_motions.json. ]]
+	--[[ Long Chirp: a chirp flung at the furthest enemy as the cricket
+	     lands its hop (0.32). A feather dart stands in for a sound ring. ]]
+	CaveCricket = {
+		{
+			effect = "FxPetFeatherDart",
+			clip = "Fly",
+			kind = "Projectile",
+			at = 0.32,
+			speed = 44,
+			arc = 3,
+			homing = true,
+			aim = "Farthest",
+		},
+	},
+	--[[ Fourth Lick: a quick lick at the end of the skitter (0.3); its
+	     reach is 16 studs, so nothing flies. ]]
+	LichenGecko = {
+		{
+			effect = "FxPetTongueLash",
+			clip = "Lash",
+			kind = "Reach",
+			at = 0.3,
+			life = 0.3,
+			flip = true,
+		},
+	},
+	--[[ Mud Plaster: on the owner as the beaver slaps its tail (0.35),
+	     held the 6 s the coat can last. A howl ring stands in for mud. ]]
+	BogBeaver = {
+		{
+			effect = "FxPetHowlAura",
+			clip = "Play",
+			kind = "Owner",
+			at = 0.35,
+			life = 6,
+			sweep = 90,
+		},
+	},
+	--[[ Glow Mote: the mote rides its target from the lure flash (0.35)
+	     for the 1.5 s fuse, and the burst goes off under it at 1.85, when
+	     `Combat/PetCombat` lands it. ]]
+	Lanternfin = {
+		{
+			effect = "FxPetLureMark",
+			clip = "Spin",
+			kind = "Overhead",
+			at = 0.35,
+			lift = 1.2,
+			life = 1.5,
+		},
+		{
+			effect = "FxPetCrownShockwave",
+			clip = "Play",
+			kind = "Ground",
+			at = 1.85,
+			life = 0.8,
+		},
+	},
+	--[[ Tremor Snap: a ripple under its target as the olm slaps the
+	     ground (0.4). The blow lands at once. ]]
+	Olm = {
+		{
+			effect = "FxPetCrownShockwave",
+			clip = "Play",
+			kind = "Ground",
+			at = 0.4,
+			life = 0.7,
+		},
+	},
+	--[[ Spore Sneeze: the wedge thrown on the sneeze (0.5), turned
+	     through its 60 degrees. A leaf slash stands in for spores. ]]
+	GlowcapWilf = {
+		{
+			effect = "FxPetLeafSlash",
+			clip = "Slash",
+			kind = "Reach",
+			at = 0.5,
+			life = 0.4,
+			sweep = 60,
+		},
+	},
+	--[[ Little Belly Flop: the landing ring under the biggest crowd as
+	     the gulpling comes down (0.55). ]]
+	Gulpling = {
+		{
+			effect = "FxPetCrownShockwave",
+			clip = "Play",
+			kind = "Ground",
+			at = 0.55,
+			life = 0.9,
+			aim = "Densest",
+			aimRadius = 7,
+		},
+	},
+	--[[ Prism Split: a crystal bolt from the coil's strike (0.45) that
+	     shatters where it lands; the server lands the bolt and its shards
+	     as the piece arrives (`Shared/Combat/PetShots`). An ember bolt and
+	     a crown flash stand in. ]]
+	PrismLeviathan = {
+		{
+			effect = "FxPetEmberBolt",
+			clip = "Fly",
+			kind = "Projectile",
+			at = 0.45,
+			speed = 40,
+			arc = 1,
+			homing = true,
+			impact = { effect = "FxPetCrownShockwave", clip = "Play", life = 0.6 },
 		},
 	},
 }

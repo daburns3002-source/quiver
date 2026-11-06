@@ -82,6 +82,18 @@ local Pets: { [string]: Pet } = {
 	Inkpot = { name = "INKPOT", rarity = "Epic" },
 	TideWilf = { name = "TIDE WILF", rarity = "Legendary" },
 	AbyssJelly = { name = "ABYSS JELLY", rarity = "Mythic" },
+	--[[ Bogheart Caverns (docs/PETS-BOGHEART.md), all eight, modelled on
+	     Tripo 2026-11-06. No egg yet: `Config/Eggs` has no Bogheart egg,
+	     and `Util/EggRules` hides each one until the owner imports its
+	     mesh (`Config/PetModels`). Their attacks and clips are in. ]]
+	CaveCricket = { name = "CAVE CRICKET", rarity = "Common" },
+	LichenGecko = { name = "LICHEN GECKO", rarity = "Common" },
+	BogBeaver = { name = "BOG BEAVER", rarity = "Uncommon" },
+	Lanternfin = { name = "LANTERNFIN", rarity = "Rare" },
+	Olm = { name = "OLM", rarity = "Epic" },
+	GlowcapWilf = { name = "GLOWCAP WILF", rarity = "Legendary" },
+	Gulpling = { name = "GULPLING", rarity = "Legendary" },
+	PrismLeviathan = { name = "PRISM LEVIATHAN", rarity = "Mythic" },
 }
 
 return table.freeze(Pets)

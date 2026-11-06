@@ -106,7 +106,9 @@ local function attach(part: BasePart, name: string, at: Vector3, rotation: CFram
 	end
 	local attachment = Instance.new("Attachment")
 	attachment.Name = name
-	attachment.CFrame = TURN * CFrame.new(at) * (rotation or CFrame.identity)
+	-- the root is the avatar's own part, never turned: only the mesh pieces are
+	local turn = if part.Name == "HumanoidRootPart" then CFrame.identity else TURN
+	attachment.CFrame = turn * CFrame.new(at) * (rotation or CFrame.identity)
 	attachment.Parent = part
 end
 

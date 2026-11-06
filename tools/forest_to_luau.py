@@ -91,8 +91,10 @@ FORESTS = {
             "giant mushroom groves, bog sprouts, the glowing stream and its pools,",
             "two side cave mouths, with a hole where the room goes.",
         ],
-        # Drawn white in the GLB; the room kit's glow tints, so both match.
-        "glow": {"GlowCap": (150, 175, 180), "Sprout": (170, 175, 150), "GlowWater": (70, 170, 180)},
+        # Drawn white in the GLB. Deep enough that the caps read cyan, not
+        # white, under the outer arena's 0.8 glow (checked in Studio
+        # against the sheet, 2026-11-05).
+        "glow": {"GlowCap": (50, 188, 206), "Sprout": (150, 212, 50), "GlowWater": (70, 170, 180)},
         "matte": ("Ground",),
         "separate": False,
     },

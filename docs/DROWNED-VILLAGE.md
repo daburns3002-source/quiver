@@ -33,10 +33,20 @@ its rosters are stand-ins: the Hollow Fisherman among Thornwood's enemies.
 (`area03_drowned_village_ambience_v2.png`, `area03_outer_redraw.sh`; owner: "THE
 OUTER ARENAS NEED TO ALSO BE BUILT FOR ARENA 3 AND 4"). The first master was
 drawn round the cluttered first room; the flooded village outside is unchanged,
-and the kit sheet still holds. Waiting on the owner's approval, then the
-Claude Design build. Bogheart Caverns' pair is beside it
+and the kit sheet still holds. Bogheart Caverns' pair is beside it
 (`area04_bogheart_caverns_ambience.png`, `_ambience_kit.png`,
 `area04_outer_sheets.sh`).
+
+**Built 2026-11-05, both areas.** The owner approved the sheets. Claude Design
+closes on December 14, so `assets/models/arenas/outer34_build.py` builds each
+outer arena block by block in Python, after its sheet, in the room's frame
+(hole and gate lanes checked). The owner imported both GLBs, and
+`tools/forest_to_luau.py drowned|bogheart` wrote `Config/DrownedForest` (72
+parts) and `Config/BogheartForest` (304), the areas' `ArenaModels` `parts`,
+with `Balance.Ambience.Drowned` and `.Bogheart`. Two lessons from the first
+imports: face winding must be counter-clockwise from outside (inside-out boxes
+drew every top dark, with a grid of edges), and the Bogheart caps need a deep
+cyan tint to read cyan rather than white under the outer glow.
 
 Owner, 2026-11-03: *"i have the arena made, but i need the outer arena made.
 give me the kit pieces for the outer arena."*

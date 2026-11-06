@@ -26,7 +26,7 @@ local StoryTimeline = require(script.Parent.Parent.Util.StoryTimeline)
 
 local Story = {
 	--[[ The longest the black waits before the clock starts anyway (seconds).
-	     It waits for the first `leadShots` shots only — not for all forty
+	     It waits for the first `leadShots` shots only — not for all thirty-eight
 	     frames, which is what made this slow (owner, 2026-10-27: "the King
 	     Bloblin story cutscene loads very slowly"). The rest come down while
 	     the cutscene plays, which gives them the twenty-odd seconds of
@@ -34,8 +34,8 @@ local Story = {
 	     in by its turn never shows, so the frame before it stays up and the
 	     clock and music run on. ]]
 	loadWait = 5,
-	--[[ How many shots' frames the black waits for. Four is nine frames —
-	     about seven seconds of cutscene, far longer than the rest take to
+	--[[ How many shots' frames the black waits for. Four is five frames —
+	     about eight seconds of cutscene, far longer than the rest take to
 	     arrive behind it, so the picture never catches up with the loading
 	     (`StoryCutscene.preload`). ]]
 	leadShots = 4,
@@ -163,12 +163,14 @@ local Story = {
 		},
 		{
 			name = "Chest",
-			frames = { { picture = "f02c", hold = 1.3 }, { picture = "f02d", hold = 1.3 } },
+			-- f02c cut (owner, 2026-11-06)
+			frames = { { picture = "f02d", hold = 1.3 } },
 		},
 		{ name = "Lounge", frames = { { picture = "f03b", hold = 1.7 } } },
 		{
 			name = "Yawn",
-			frames = { { picture = "f04b", hold = 0.6 }, { picture = "f04a", hold = 1.2 } },
+			-- f04b cut (owner, 2026-11-06)
+			frames = { { picture = "f04a", hold = 1.2 } },
 		},
 		{
 			name = "Bushes",
@@ -201,7 +203,8 @@ local Story = {
 		},
 		{
 			name = "Steam",
-			frames = { { picture = "f13a", hold = 1.2 }, { picture = "f13b", hold = 1.2 } },
+			-- longer (owner, 2026-11-06: "panels 23 and 24 need to be longer"; were 1.2 each)
+			frames = { { picture = "f13a", hold = 2.0 }, { picture = "f13b", hold = 2.0 } },
 		},
 		{
 			name = "Crumple",

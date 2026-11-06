@@ -22,6 +22,7 @@ before this one.
 
 ## Waiting on the owner - a decision
 
+- **The outer arenas for areas 3 and 4 (2026-11-05): approve the Codex sheets.** `assets/concepts/blocky/arenas/area03_drowned_village_ambience_v2.png` (the flooded village round the built room) and `area04_bogheart_caverns_ambience.png` with its kit `area04_bogheart_caverns_ambience_kit.png` (the cavern continuing outward). On approval Claude builds each in Claude Design; then you import `drowned_village_outer_arena_roblox.glb` and `bogheart_caverns_outer_arena_roblox.glb` (Merge Meshes off) and save the place.
 - **The rename to Arrowborne (2026-11-04), the part only you can do:** on the Creator Dashboard, the experience and place name and description, the group if it carries the old name, and the icon and thumbnails.
 
 Nothing moves on these until you answer, so they keep their full detail.

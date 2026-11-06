@@ -29,6 +29,15 @@ its rosters are stand-ins: the Hollow Fisherman among Thornwood's enemies.
 
 ## The outer arena: the kit pieces
 
+**2026-11-05: the master is redrawn round the built room**
+(`area03_drowned_village_ambience_v2.png`, `area03_outer_redraw.sh`; owner: "THE
+OUTER ARENAS NEED TO ALSO BE BUILT FOR ARENA 3 AND 4"). The first master was
+drawn round the cluttered first room; the flooded village outside is unchanged,
+and the kit sheet still holds. Waiting on the owner's approval, then the
+Claude Design build. Bogheart Caverns' pair is beside it
+(`area04_bogheart_caverns_ambience.png`, `_ambience_kit.png`,
+`area04_outer_sheets.sh`).
+
 Owner, 2026-11-03: *"i have the arena made, but i need the outer arena made.
 give me the kit pieces for the outer arena."*
 

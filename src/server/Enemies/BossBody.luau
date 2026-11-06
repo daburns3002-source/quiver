@@ -102,6 +102,14 @@ function BossBody.new(
 		return body
 	end
 
+	--[[ The tube is its arm's own colour: the Slime King's lime jelly,
+	     Grandmother Gulp's pink tongue. ]]
+	local colour = JELLY
+	for _, arm in body.arms do
+		colour = arm.part.Color
+		break
+	end
+
 	local tube = Instance.new("Folder")
 	tube.Name = "ArmTube"
 	tube.Parent = model
@@ -114,7 +122,7 @@ function BossBody.new(
 		part.CanTouch = false
 		part.CastShadow = false
 		part.Material = Enum.Material.Glass
-		part.Color = JELLY
+		part.Color = colour
 		part.Transparency = 1
 		part.Size = Vector3.one * 0.1
 		part.Parent = tube

@@ -544,6 +544,92 @@ local hollowFisherman: Design = {
 	},
 }
 
+--[[
+	Bogheart Caverns' three (the low-poly Tripo meshes, 2026-11-06,
+	`Workspace/TripoImports/Enemies` in the owner's place): one textured
+	mesh each, like the Hollow Fisherman, with the colour map as its texture
+	and its face painted on. Each is its import x its scale, stood on the
+	floor of its box. Their whole bodies hop and breathe (`Balance.SlimeHop`)
+	since a single mesh has nothing to swing.
+
+	Facing: left untruned, facing -Z, as every Tripo import checked so far
+	has stood (the Drowned and Bogheart pets). If one walks backwards in a
+	playtest, a `rotation = Vector3.new(0, 180, 0)` here is the fix.
+]]
+local sporePuff: Design = {
+	shadow(2.7, 2.4, 2.7),
+	{
+		name = "Body",
+		shape = "Mesh",
+		meshId = "rbxassetid://91854796781988",
+		textureId = "rbxassetid://82697091972010",
+		size = Vector3.new(2.643, 2.627, 2.255),
+		offset = Vector3.new(0, -0.037, 0),
+		shade = 1,
+		color = WHITE,
+	},
+}
+
+local glowcap: Design = {
+	shadow(3.2, 3.1, 3.6),
+	{
+		name = "Body",
+		shape = "Mesh",
+		meshId = "rbxassetid://73819450219386",
+		textureId = "rbxassetid://105806846402293",
+		size = Vector3.new(3.096, 3.532, 2.999),
+		offset = Vector3.new(0, -0.034, 0),
+		shade = 1,
+		color = WHITE,
+	},
+}
+
+local shellback: Design = {
+	shadow(5, 5, 4.8),
+	{
+		name = "Body",
+		shape = "Mesh",
+		meshId = "rbxassetid://109711439301102",
+		textureId = "rbxassetid://105752614953960",
+		size = Vector3.new(4.9, 4.705, 4.845),
+		offset = Vector3.new(0, -0.047, 0),
+		shade = 1,
+		color = WHITE,
+	},
+}
+
+--[[
+	Grandmother Gulp (the low-poly Tripo mesh, `TripoImports/Enemies/
+	GrandmotherGulp`): her import x10, stood on the floor of her box, posed
+	whole by `Enemies/BossBody`. `Arm_Tongue` is her tongue's tip, tucked at
+	her mouth: `BossBody` throws it as the lash's fist and draws the pink
+	tube to it from there (the tube takes the arm's colour). Unturned, facing
+	-Z, as the other Tripo imports are; if she lashes over her shoulder, a
+	180 degree `rotation` on both parts is the fix.
+]]
+local GULP_TONGUE = Color3.fromRGB(240, 116, 156)
+local grandmotherGulp: Design = {
+	shadow(9.8, 10, 9.8),
+	{
+		name = "Body",
+		shape = "Mesh",
+		meshId = "rbxassetid://121420582897209",
+		textureId = "rbxassetid://105734204599318",
+		size = Vector3.new(9.67, 9.66, 9.81),
+		offset = Vector3.new(0, -0.07, 0),
+		shade = 1,
+		color = WHITE,
+	},
+	{
+		name = "Arm_Tongue",
+		shape = "Ball",
+		size = Vector3.one * 1.8,
+		offset = Vector3.new(0, -1.9, -4),
+		shade = 1,
+		color = GULP_TONGUE,
+	},
+}
+
 --[[ Keyed by `EnemyConfig.displayName`, which is what the model is named and
      the only identifier an archetype actually carries. ]]
 local EnemyDesigns = {
@@ -569,6 +655,11 @@ local EnemyDesigns = {
 	Thornling = thornling,
 	-- Drowned Village
 	HollowFisherman = hollowFisherman,
+	-- Bogheart Caverns
+	SporePuff = sporePuff,
+	Glowcap = glowcap,
+	Shellback = shellback,
+	GrandmotherGulp = grandmotherGulp,
 
 	--[[ Archetypes built from an imported model, by display name. ]]
 	Imported = {

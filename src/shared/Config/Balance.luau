@@ -55,6 +55,7 @@ export type TelegraphTell =
 	| "GroundSlam"
 	| "Cracks"
 	| "Erupt"
+	| "SporeCloud"
 
 --[[
 	What an enemy becomes when it dies, if anything: `count` of `into`,
@@ -127,6 +128,35 @@ export type EnemyShot = {
 		Nil pulls nobody, which is every other shot in the game.
 	]]
 	reel: number?,
+	--[[
+		Radians the volley's aim turns by each time it fires, in place of
+		aiming at anyone: the Glowcap's spiral (docs/ENEMIES-AND-ARENAS.md,
+		"a mushroom turret that sprays spores in a spiral"). With `count`
+		spread evenly round the circle, each volley is a ring of spores
+		turned a little further than the last, so the gaps sweep round and
+		the answer is to walk with them rather than to stand off.
+
+		Nil aims at the target, which is every other shot in the game.
+	]]
+	spin: number?,
+}
+
+--[[
+	A cloud of spores where an enemy died (the Spore Puff: "bursts into a
+	poison cloud when killed close", docs/ENEMIES-AND-ARENAS.md). It puffs
+	out `radius` studs round the body the moment it falls and hangs there
+	for `linger` seconds; anyone inside takes `damageScale` of the enemy's
+	`attackDamage` every `every` seconds, the first tick `delay` after the
+	puff, so a player who sees it bloom can step out before it bites. The
+	counterplay is killing it from range: a death across the room hurts
+	nobody.
+]]
+export type EnemyBurst = {
+	radius: number,
+	delay: number,
+	linger: number,
+	every: number,
+	damageScale: number,
 }
 
 --[[
@@ -374,6 +404,8 @@ export type EnemyConfig = {
 	shot: EnemyShot?,
 	burrow: EnemyBurrow?,
 	split: EnemySplit?,
+	--[[ A cloud of spores where it dies (`EnemyBurst`). ]]
+	burst: EnemyBurst?,
 	boss: EnemyBoss?,
 	--[[ Lunging attacks, in place of the plain melee hit. ]]
 	lunges: { EnemyLunge }?,
@@ -1033,6 +1065,204 @@ local hollowFisherman: EnemyConfig = {
 		--[[ The reel. Less than half the distance it fires from, so being
 		     caught costs ground and never puts you inside its swing. ]]
 		reel = 6,
+	},
+}
+
+--[[
+	Act 2, area 4: Bogheart Caverns (docs/ENEMIES-AND-ARENAS.md, "4. Bogheart
+	Caverns"; the low-poly Tripo models, 2026-11-06). Each is one textured
+	mesh, so its whole body moves as one (`SlimeHop`) rather than playing
+	clips. PLACEHOLDER NUMBERS until the owner plays them: health a step past
+	Thornwood's, set against the stage's own multipliers.
+
+	The Spore Puff: the cavern's charger. A pink puffball that hops straight
+	at you, and when it dies it bursts into a cloud of spores that hurts
+	whoever is standing next to it -- so the lesson is the one its card
+	says: kill it from range.
+]]
+local sporePuff: EnemyConfig = {
+	displayName = "SporePuff",
+	--[[ Small and quick, a Moss Slime's turn. ]]
+	turnRate = 540,
+	--[[ Frail, like every charger: its threat is the cloud, not the bite. ]]
+	health = 260,
+	moveSpeed = 6.6,
+	attackRange = 3.8,
+	attackDamage = 50,
+	attackCooldown = 1.1,
+	knockback = 3,
+	--[[ Its model x2.7: 2.64 across, 2.63 tall, 2.25 deep. ]]
+	hitboxSize = Vector3.new(2.7, 2.7, 2.4),
+	color = Color3.fromRGB(236, 104, 150),
+	xpReward = 12,
+	shot = nil,
+	--[[ About a room-tile round it (the player is 2 across), so dying at
+	     arm's length catches you and dying three steps away does not. Three
+	     ticks over 1.8 s at most, the first after 0.35 s: long enough to
+	     see it bloom and step out. ]]
+	burst = {
+		radius = 4,
+		delay = 0.35,
+		linger = 1.8,
+		every = 0.6,
+		damageScale = 0.4,
+	},
+}
+
+--[[ The Glowcap: a mushroom turret that never moves. It sprays a ring of
+     four spores from its gills, and every ring is turned a little further
+     round than the last (`EnemyShot.spin`), so its gaps sweep the room like
+     a lighthouse beam. It holds a zone rather than chasing anyone. ]]
+local glowcap: EnemyConfig = {
+	displayName = "Glowcap",
+	--[[ It only turns to face whoever it is near; its rings never aim. ]]
+	turnRate = 120,
+	health = 380,
+	--[[ Stationary (docs/ENEMIES-AND-ARENAS.md: "New: stationary"). ]]
+	moveSpeed = 0,
+	attackRange = 13.3,
+	attackDamage = 40,
+	--[[ A ring every 1.1 s: the sweep has to be steady to be walkable. ]]
+	attackCooldown = 1.1,
+	--[[ Rooted, but a hit still shows: a short shove that it never walks
+	     back from, so it is kept small (memory: every enemy is knocked
+	     back). ]]
+	knockback = 0.8,
+	--[[ Its model x3.6: 3.10 across, 3.53 tall, 3.00 deep. ]]
+	hitboxSize = Vector3.new(3.2, 3.6, 3.1),
+	color = Color3.fromRGB(70, 170, 160),
+	xpReward = 16,
+	shot = {
+		--[[ A ring of four, 90 degrees apart. ]]
+		count = 4,
+		spread = math.rad(90),
+		--[[ Slow spores: a ring is a pattern to walk through, not a shot to
+		     outrun. ]]
+		speed = 9,
+		lifetime = 22 / 9,
+		telegraph = 0.35,
+		tell = "Flash",
+		locksAim = false,
+		--[[ Fires at anyone in the room. ]]
+		range = 70,
+		--[[ 25 degrees further round each ring: a gap passes any one spot
+		     about every 4 rings. ]]
+		spin = math.rad(25),
+	},
+}
+
+--[[ The Shellback: the Bulwark as a mossy beetle-turtle. Slow, heavy and
+     hard to kill: the wall that walks between you and the turrets. ]]
+local shellback: EnemyConfig = {
+	displayName = "Shellback",
+	turnRate = 90,
+	health = 900,
+	moveSpeed = 3.3,
+	attackRange = 4.6,
+	attackDamage = 80,
+	attackCooldown = 1.6,
+	--[[ Heavier than anything else here, but a hit still moves it a little
+	     (the Bulwark's 0.6 did not read as a hit at all). ]]
+	knockback = 1.2,
+	--[[ Its model x5: 4.90 across, 4.71 tall, 4.85 deep. ]]
+	hitboxSize = Vector3.new(5, 4.8, 5),
+	color = Color3.fromRGB(40, 110, 110),
+	xpReward = 26,
+	shot = nil,
+}
+
+--[[
+	Grandmother Gulp, Bogheart Caverns' boss (docs/BOSSES.md §4; her sheets
+	`assets/concepts/blocky/boss06_grandmother_gulp.jpg` and the Tripo
+	`ref_gulp_views.png`). Alone in the caverns' last room. One textured
+	Tripo mesh, so the server poses her whole body (`Enemies/BossBody`) the
+	way the Slime King was posed before his rig: she squashes, leans and
+	rises, and her tongue is the thrown arm, a pink tube from her mouth.
+
+	Her fight is the Slime King's two moves in her own shape:
+	- **Tongue** (`lash`): a long lane, marked and then locked, down which
+	  her tongue lashes; it catches the first player in it, reels her in to
+	  them and ends in a belly bump. One tongue, so one lash a turn.
+	- **Belly Flop** (`bounce`): two leaps, each to where the target stood
+	  at takeoff, marked on the floor from the wind-up, landing in a
+	  shockwave, then a winded pause that is the punish window.
+	- **Spore Puffs at her thirds** (`summon`, as King Bloblin's): as her
+	  health falls through 2/3 and 1/3 she coughs up three Spore Puffs,
+	  the doc's "swallows Spore Puffs and spits them as bursting clouds".
+
+	Not built: the doc's phase 3 flood that shrinks the dry floor. The
+	engine has no rising-hazard piece yet (docs/BOSSES.md, "What bosses
+	ask the engine for": arena change mid-fight).
+
+	PLACEHOLDER NUMBERS until the owner plays her. Health a step past the
+	Broodmother's 6,600; her stage's multiplier and the room ramp sit on
+	top, and the ramp is kept for last-room bosses (owner, 2026-11-05).
+]]
+local grandmotherGulp: EnemyConfig = {
+	displayName = "GrandmotherGulp",
+	turnRate = 90,
+	health = 6800,
+	moveSpeed = 0,
+	attackRange = 0,
+	attackDamage = 0,
+	attackCooldown = 0,
+	knockback = 0,
+	--[[ Her model x10: 9.67 across, 9.66 tall, 9.81 deep. ]]
+	hitboxSize = Vector3.new(9.8, 9.8, 10),
+	color = Color3.fromRGB(150, 90, 190),
+	xpReward = 120,
+	boss = {
+		title = "Grandmother Gulp",
+		bounce = {
+			--[[ Two flops, not three: she is heavier than the king, so each
+			     hangs a little longer and lands a little wider. ]]
+			bounces = 2,
+			windup = 1,
+			launch = 0.2,
+			air = 1.5,
+			recover = 0.6,
+			winded = 1.6,
+			height = 13,
+			maxRange = 22,
+			radius = 7.5,
+			damage = 60,
+			shove = 8,
+			shockRadius = 13,
+		},
+		lash = {
+			arms = { "Arm_Tongue" },
+			wind = 0.9,
+			track = 0.45,
+			strike = 0.18,
+			hold = 0.4,
+			retract = 0.45,
+			--[[ Longer than the king's 18: a toad's tongue is her reach. ]]
+			reach = 21,
+			minReach = 6,
+			width = 3,
+			damage = 48,
+			shove = 4,
+			pull = 0.4,
+			bump = 0.22,
+			bumpDamage = 36,
+			bumpShove = 9,
+			recover = 0.7,
+			stopDistance = 7,
+			--[[ Only a body that draws a chain from its clips reads these. ]]
+			chainRoot = 3,
+			chainReach = 20,
+		},
+		restAfterBounce = 1.6,
+		restAfterLash = 1.2,
+		loop = { "Lash", "Bounce" },
+		opening = 1.5,
+		summon = {
+			into = sporePuff,
+			count = 3,
+			atFractions = { 2 / 3, 1 / 3 },
+			clip = "",
+			windup = 1.4,
+		} :: BossSummon,
 	},
 }
 
@@ -2462,7 +2692,7 @@ local bogheartRooms: { RoomConfig } = {
 			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
 		},
 		enemyCount = 3,
-		roster = { brambleBoar, burrThistle },
+		roster = { sporePuff },
 	},
 	{
 		name = "Bogheart Caverns 2",
@@ -2475,8 +2705,8 @@ local bogheartRooms: { RoomConfig } = {
 			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
 			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
 		},
-		enemyCount = 4,
-		roster = { brambleBoar, burrThistle },
+		enemyCount = 3,
+		roster = { sporePuff, glowcap },
 	},
 	{
 		name = "Bogheart Caverns 3",
@@ -2492,7 +2722,7 @@ local bogheartRooms: { RoomConfig } = {
 			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
 		},
 		enemyCount = 4,
-		roster = { burrThistle, brambleBoar, brambleSow },
+		roster = { sporePuff, glowcap },
 	},
 	{
 		name = "Bogheart Caverns 4",
@@ -2503,8 +2733,8 @@ local bogheartRooms: { RoomConfig } = {
 			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
 			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
 		},
-		enemyCount = 5,
-		roster = { brambleBoar, brambleLurker, burrThistle },
+		enemyCount = 4,
+		roster = { glowcap, sporePuff, sporePuff },
 	},
 	{
 		name = "Bogheart Caverns 5",
@@ -2517,8 +2747,8 @@ local bogheartRooms: { RoomConfig } = {
 			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
 			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
 		},
-		enemyCount = 5,
-		roster = { brambleSow, burrThistle, brambleBoar },
+		enemyCount = 4,
+		roster = { shellback, sporePuff },
 	},
 	{
 		name = "Bogheart Caverns 6",
@@ -2534,7 +2764,7 @@ local bogheartRooms: { RoomConfig } = {
 			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
 		},
 		enemyCount = 5,
-		roster = { brambleLurker, brambleBoar, brambleSow },
+		roster = { sporePuff, glowcap, shellback },
 	},
 	{
 		name = "Bogheart Caverns 7",
@@ -2545,11 +2775,67 @@ local bogheartRooms: { RoomConfig } = {
 			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
 			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
 		},
-		enemyCount = 6,
-		roster = { burrThistle, brambleLurker, brambleBoar, brambleSow },
+		enemyCount = 5,
+		roster = { shellback, sporePuff, glowcap },
 	},
 	{
 		name = "Bogheart Caverns 8",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 5,
+		roster = { glowcap, sporePuff, sporePuff, shellback },
+	},
+	{
+		name = "Bogheart Caverns 9",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 5,
+		roster = { shellback, glowcap, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 10",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 6,
+		roster = { sporePuff, sporePuff, glowcap, shellback },
+	},
+	{
+		name = "Bogheart Caverns 11",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 6,
+		roster = { glowcap, shellback, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 12",
 		arena = "BogheartStream",
 		obstacles = {
 			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
@@ -2562,10 +2848,22 @@ local bogheartRooms: { RoomConfig } = {
 			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
 		},
 		enemyCount = 6,
-		roster = { brambleBoar, brambleSow, burrThistle, brambleLurker },
+		roster = { shellback, sporePuff, glowcap, sporePuff },
 	},
 	{
-		name = "Bogheart Caverns 9",
+		name = "Bogheart Caverns 13",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 6,
+		roster = { glowcap, glowcap, sporePuff, shellback },
+	},
+	{
+		name = "Bogheart Caverns 14",
 		arena = "BogheartStream",
 		obstacles = {
 			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
@@ -2575,8 +2873,82 @@ local bogheartRooms: { RoomConfig } = {
 			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
 			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
 		},
-		enemyCount = 6,
-		roster = { brambleSow, brambleLurker, burrThistle, brambleBoar },
+		enemyCount = 7,
+		roster = { sporePuff, shellback, glowcap, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 15",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 7,
+		roster = { shellback, glowcap, sporePuff, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 16",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 7,
+		roster = { glowcap, sporePuff, shellback, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 17",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 7,
+		roster = { shellback, shellback, glowcap, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 18",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 8,
+		roster = { sporePuff, glowcap, shellback, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 19",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 8,
+		roster = { shellback, glowcap, sporePuff, glowcap, sporePuff },
 	},
 	{
 		name = "Bogheart Heart",
@@ -2591,8 +2963,8 @@ local bogheartRooms: { RoomConfig } = {
 			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
 			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
 		},
-		enemyCount = 7,
-		roster = { brambleSow, brambleBoar, burrThistle, brambleLurker },
+		enemyCount = 1,
+		roster = { grandmotherGulp },
 	},
 }
 -- END area34Rooms
@@ -4006,6 +4378,11 @@ local Balance = {
 		BrambleLurker = brambleLurker,
 		Broodmother = broodmother,
 		Thornling = thornling,
+		-- Bogheart Caverns
+		SporePuff = sporePuff,
+		Glowcap = glowcap,
+		Shellback = shellback,
+		GrandmotherGulp = grandmotherGulp,
 	},
 
 	--[[
@@ -4175,6 +4552,10 @@ local Balance = {
 		     Wider than the enemy so stepping to its edge is not enough. ]]
 		groundRadius = 3,
 		groundColor = Color3.fromRGB(255, 150, 60),
+		--[[ A Spore Puff's cloud (`EnemyBurst`): the ring it hurts inside,
+		     and the puff that blooms in it, the puff's own pink gone sickly. ]]
+		sporeColor = Color3.fromRGB(170, 230, 90),
+		sporeCloudColor = Color3.fromRGB(214, 150, 190),
 		--[[
 			The footprint, drawn instantly at full size and left there.
 
@@ -4669,16 +5050,13 @@ local Balance = {
 		--[[
 			The Drowned Village and Bogheart Caverns (2026-11-05): ten rooms
 			each from `tools/area34_rooms.py`, built from the owner's kits.
-			After Endless so no stage's index moves. **Behind no portal
-			yet**: their own enemies are not modelled, so their rosters are
-			stand-ins (Thornwood's, with the Hollow Fisherman in area 3), and
-			each ends in an elite fight where its boss will stand
+			After Endless so no stage's index moves. **The Drowned Village
+			is behind no portal yet**: its own enemies are not modelled, so
+			its rosters are stand-ins (Thornwood's, with the Hollow
+			Fisherman), and it ends in an elite fight where its boss will
+			stand. Bogheart Caverns has its own since 2026-11-06 (below)
 			(`docs/DROWNED-VILLAGE.md`). A step harder than Thornwood each,
 			placeholder numbers until they are played.
-
-			Bogheart Caverns carries no `area` yet: an area needs a NEW
-			ENEMY! sheet (`Config/NewEnemies`, `tests/NewEnemies.spec`), and
-			it has neither a sheet nor an enemy of its own.
 		]]
 		{
 			name = "Drowned Village",
@@ -4688,12 +5066,16 @@ local Balance = {
 			enemyHealth = 2.3,
 			area = "DrownedVillage",
 		},
+		--[[ Bogheart Caverns (2026-11-06): its own enemies, twenty rooms
+		     like Thornwood's, Grandmother Gulp alone in the last. Behind the
+		     lobby's Bogheart portal (`Config/Lobby`). ]]
 		{
 			name = "Bogheart Caverns",
 			mode = "Rooms",
 			rooms = roomsAfter(BOGHEART_BASE, #bogheartRooms),
 			enemyDamage = 1.15,
 			enemyHealth = 2.5,
+			area = "BogheartCaverns",
 		},
 	} :: { StageConfig },
 
@@ -4706,7 +5088,8 @@ local Balance = {
 	endlessStage = 17,
 
 	--[[ The Drowned Village's and Bogheart Caverns' stages (above), for
-	     the portals once their enemies are built. ]]
+	     the portals once their enemies are built. Bogheart's is open
+	     (2026-11-06). ]]
 	drownedStage = 18,
 	bogheartStage = 19,
 
@@ -5192,6 +5575,13 @@ local Balance = {
 			BroodSlime = { hop = 3.6, height = 0.6 },
 			-- A quick skitter.
 			BabySlime = { hop = 1.6, height = 0.5 },
+			--[[ Bogheart Caverns' single-mesh Tripo bodies move whole, by
+			     this hop (they have no clips): the Spore Puff bounces like
+			     the puffball it is, the Shellback plods in long, low
+			     stomps, and the Glowcap, which never moves, only breathes. ]]
+			SporePuff = { hop = 2.6, height = 0.7 },
+			Shellback = { hop = 4.4, height = 0.18 },
+			Glowcap = { hop = 3, height = 0.05 },
 		},
 		--[[ The breath when standing: this share of height, over this many
 		     seconds. ]]
@@ -5297,6 +5687,30 @@ local Balance = {
 				moss = Color3.fromRGB(44, 104, 56),
 				size = 1.0,
 				count = 7,
+			},
+			--[[ Bogheart Caverns (they hop, so they throw): pink puff and
+			     its pale spots; the Glowcap's teal cap and glowing gills;
+			     the Shellback's teal shell and its moss. ]]
+			SporePuff = {
+				light = Color3.fromRGB(246, 140, 176),
+				dark = Color3.fromRGB(214, 84, 128),
+				moss = Color3.fromRGB(250, 222, 200),
+				size = 0.38,
+				count = 5,
+			},
+			Glowcap = {
+				light = Color3.fromRGB(70, 168, 160),
+				dark = Color3.fromRGB(32, 104, 104),
+				moss = Color3.fromRGB(196, 248, 140),
+				size = 0.4,
+				count = 5,
+			},
+			Shellback = {
+				light = Color3.fromRGB(46, 120, 120),
+				dark = Color3.fromRGB(24, 76, 80),
+				moss = Color3.fromRGB(130, 210, 60),
+				size = 0.55,
+				count = 6,
 			},
 		},
 		--[[ Share of the cubes that are moss rather than jelly. ]]

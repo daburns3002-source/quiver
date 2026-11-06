@@ -30,9 +30,9 @@ from scipy import ndimage
 ROOT = pathlib.Path(__file__).resolve().parents[3]
 RAW = ROOT / "assets/concepts/blocky/ui/new_enemy"
 OUT = pathlib.Path(__file__).resolve().parent / "art"
-AREAS = ["mossy_glade", "thornwood", "drowned_village"]
+AREAS = ["mossy_glade", "thornwood", "drowned_village", "bogheart_caverns"]
 # drawn on blue, because their own colours are magenta-pink
-BLUE = {"burr_thistle", "bramble_lurker"}
+BLUE = {"burr_thistle", "bramble_lurker", "spore_puff"}
 SIZE = 512
 PAD = 0.03
 # the card's border: sheet pixels thick, the sheets' own ink

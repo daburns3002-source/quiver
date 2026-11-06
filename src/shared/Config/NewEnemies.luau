@@ -22,7 +22,7 @@
 
 	Keyed by the kind's `EnemyConfig.displayName`. The sheet is the stage's
 	area's (`Balance.Stages` `area`), or the enemy's own `area` in a stage
-	with none. Acts 1–3 only; Drowned Village's four wait for their enemies.
+	with none. Areas 1-4; Drowned Village's four wait for their enemies.
 ]]
 
 export type Box = { x: number, y: number, w: number, h: number }
@@ -112,6 +112,17 @@ local NewEnemies = {
 			button = { x = 228, y = 1302, w = 568, h = 186 },
 			text = WHITE,
 		},
+		--[[ Bogheart Caverns (Codex, 2026-11-06, `sheet_bogheart_caverns_a.png`):
+		     not yet approved by the owner. ]]
+		BogheartCaverns = {
+			top = "rbxassetid://115969921487794",
+			bottom = "rbxassetid://114438065574510",
+			picture = { x = 257, y = 420, w = 510, h = 510 },
+			name = { x = 230, y = 975, w = 564, h = 90 },
+			description = { x = 130, y = 1110, w = 764, h = 170 },
+			button = { x = 200, y = 1320, w = 630, h = 150 },
+			text = WHITE,
+		},
 	} :: { [string]: Sheet },
 
 	enemies = {
@@ -195,6 +206,25 @@ local NewEnemies = {
 			description = "Casts its hook and reels you in. Dodge the line and keep your distance!",
 			picture = "rbxassetid://114005826538649",
 			area = "DrownedVillage",
+		},
+		-- Bogheart Caverns
+		SporePuff = {
+			name = "SPORE PUFF",
+			description = "Rushes right at you and bursts into poison spores. Kill it from range!",
+			picture = "rbxassetid://136475916127415",
+			area = "BogheartCaverns",
+		},
+		Glowcap = {
+			name = "GLOWCAP",
+			description = "Never moves, but sprays spores in a turning spiral. Walk with the gaps!",
+			picture = "rbxassetid://121343854223078",
+			area = "BogheartCaverns",
+		},
+		Shellback = {
+			name = "SHELLBACK",
+			description = "Slow, heavy and tough. A walking wall - shoot past it at the turrets!",
+			picture = "rbxassetid://127886942453836",
+			area = "BogheartCaverns",
 		},
 	} :: { [string]: Enemy },
 }

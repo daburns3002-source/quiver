@@ -171,25 +171,28 @@ return function(t: TestRunner.Helper)
 		t.equal(bobbing[1], "EggHatchery.FloatingEgg", "which piece bobs")
 	end)
 
-	t.test("the working portals are Mossy Glade, Thornwood and Endless", function()
-		local open = {}
-		for _, portal in LobbyConfig.portals do
-			if portal.levels then
-				t.isTrue(#portal.levels >= 1, `{portal.name}'s portal has no levels`)
-				for _, index in portal.levels do
-					local stage = Balance.Stages[index]
-					t.notNil(stage, `{portal.name}'s portal names a stage that does not exist`)
-					t.isTrue(not stage.tutorial, `{portal.name}'s portal plays the tutorial`)
+	t.test(
+		"the working portals are Mossy Glade, Thornwood, Bogheart Caverns and Endless",
+		function()
+			local open = {}
+			for _, portal in LobbyConfig.portals do
+				if portal.levels then
+					t.isTrue(#portal.levels >= 1, `{portal.name}'s portal has no levels`)
+					for _, index in portal.levels do
+						local stage = Balance.Stages[index]
+						t.notNil(stage, `{portal.name}'s portal names a stage that does not exist`)
+						t.isTrue(not stage.tutorial, `{portal.name}'s portal plays the tutorial`)
+					end
+					-- more than the cards hold are a grid, its rows full but the last
+					if #portal.levels > LobbyConfig.levelSlots then
+						t.isTrue(LobbyConfig.levelColumns >= 1, "a grid needs columns")
+					end
+					table.insert(open, portal.name)
 				end
-				-- more than the cards hold are a grid, its rows full but the last
-				if #portal.levels > LobbyConfig.levelSlots then
-					t.isTrue(LobbyConfig.levelColumns >= 1, "a grid needs columns")
-				end
-				table.insert(open, portal.name)
 			end
+			t.equal(table.concat(open, ","), "Mossy Glade,Thornwood,Bogheart Caverns,Endless")
 		end
-		t.equal(table.concat(open, ","), "Mossy Glade,Thornwood,Endless")
-	end)
+	)
 
 	t.test("at least ten portals, in two rows, every mouth on the lawn", function()
 		t.isTrue(#LobbyConfig.portals >= 10, "fewer than ten portals")

@@ -1,7 +1,28 @@
 --!strict
 --[[
-	The shops' single-clock celebrations (owner, 2026-10-26: "heavy on dopamine").
-	Only server answers supply prizes. A tap advances the clock; a second closes.
+	The shops' celebrations (owner, 2026-10-26: "heavy on dopamine"; redone
+	2026-11-06: "right now they look terrible"): the egg hatch and the chest
+	opening, one sequence drawn from `Util/RevealTimeline`'s clock.
+
+	Egg: it drops in and bounces, wobbles harder and harder as cracks spread
+	and light leaks out, bursts into shell pieces with a flash and confetti,
+	and the pet pops out with a bounce; its rarity's colour bursts behind it
+	and its banner slams down. Chest: it rattles, the padlocks pop off, light
+	leaks from the lid's seam, the lid bursts open with beams and a fountain
+	of coins, and the weapon rises out and lands with a pop. Legendary and
+	Mythic build longer, darken the screen, shake the camera and glow; a
+	Mythic says it is something special while it builds.
+
+	What is opened (`look`), best first: the area's Tripo model
+	(`GearAssets.models`, keyed by egg key or crate area) once it is
+	imported and loaded, then its cut frames (`GearAssets.eggs` /
+	`GearAssets.crates`), then the area's single picture
+	(`GearAssets.areaPictures`, then Victory's chest), and last an egg or
+	chest drawn here in the area's colours (`Config/Reveal.shells`), so an
+	area with nothing yet still opens.
+
+	Only server answers supply prizes. A tap skips ahead; the screen closes
+	by itself.
 ]]
 local AssetService = game:GetService("AssetService")
 local Players = game:GetService("Players")
@@ -9,49 +30,89 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local Beats = require(ReplicatedStorage.Shared.Config.Reveal)
 local EggRules = require(ReplicatedStorage.Shared.Util.EggRules)
+local EndScreenAssets = require(ReplicatedStorage.Shared.Config.EndScreenAssets)
 local GearAssets = require(ReplicatedStorage.Shared.Config.GearAssets)
 local Kit = require(script.Parent.Kit)
 local Pets = require(ReplicatedStorage.Shared.Config.Pets)
+local RevealTimeline = require(ReplicatedStorage.Shared.Util.RevealTimeline)
 local Shop = require(ReplicatedStorage.Shared.Config.Shop)
 local ShopAssets = require(ReplicatedStorage.Shared.Config.ShopAssets)
 local ShopRules = require(ReplicatedStorage.Shared.Util.ShopRules)
 local SoundFx = require(script.Parent.Parent.Fx.SoundFx)
 local Reveal = {}
 export type Prize = { icon: string, name: string, rarity: string, note: string, fresh: boolean }
---[[ What is opened: the egg or crate's pictures (whole and two cracked
-     stages), its opening sound, where that sound's burst falls and how
-     long it runs, and the Mythic cinematic's first line. ]]
+--[[ What is opened. The pictures are "" where it has none: `whole` alone
+     is a single picture (cracks are drawn over it), `crack1`/`crack2` an
+     egg's cut stages, `bare`/`open` a chest's padlock-less and open
+     frames. ]]
 type Look = {
+	kind: RevealTimeline.Kind,
 	whole: string,
 	crack1: string,
 	crack2: string,
-	sound: string,
-	soundBurst: number,
-	jingle: number,
-	special: string,
-	--[[ The model to show instead of the pictures, where one was made
-	     (`GearAssets.models`). ]]
+	bare: string,
+	open: string,
 	model: GearAssets.RevealModel?,
+	--[[ The shell's (or wood's) two colours, for its pieces and the drawn
+	     stand-in. ]]
+	colours: { Color3 },
+	--[[ The light inside it, in its area's colour (`Config/Reveal.glows`). ]]
+	glow: Color3,
+	special: string,
 }
---[[ One egg or chest of a reveal and the trimmings around it. `view`,
-     `mesh` and `block` are the model's, and are nil together when the
-     opened thing has none and `shell` carries it as pictures. ]]
-type ShellPart = {
+--[[ Something thrown: launched at `at` from (`x`, `y`). With `drag` it
+     slows and drifts down at `g` (confetti); without, it falls under `g`. ]]
+type Bit = {
+	item: GuiObject,
+	image: boolean,
+	at: number,
+	life: number,
 	x: number,
-	glow: ImageLabel,
-	rays: ImageLabel,
-	ring: ImageLabel,
+	y: number,
+	vx: number,
+	vy: number,
+	g: number,
+	drag: number,
+	spin: number,
+	phase: number,
+	w: number,
+	h: number,
+	flip: boolean,
+}
+type Crack = { item: Frame, stage: number, a: Vector2, b: Vector2 }
+--[[ One egg or chest of a reveal and everything around it. ]]
+type Part = {
+	prize: Prize,
+	x: number,
+	y: number,
+	size: number,
+	burst: number,
+	colour: Color3,
+	tier: Beats.Tier,
+	leak: ImageLabel,
+	aura: ImageLabel,
+	inner: ImageLabel,
+	leakRays: ImageLabel,
 	shell: ImageLabel,
-	white: ImageLabel,
-	icon: ImageLabel,
-	name: TextLabel,
-	nameScale: UIScale,
-	rarity: TextLabel,
-	note: TextLabel,
+	drawn: Frame,
 	view: ViewportFrame?,
 	block: MeshPart?,
-	--[[ The mesh's own size, which the squash is taken against. ]]
 	native: Vector3?,
+	cracks: { Crack },
+	beams: { Frame },
+	bits: { Bit },
+	ring: ImageLabel,
+	ring2: ImageLabel,
+	rays: ImageLabel,
+	rays2: ImageLabel,
+	glow: ImageLabel,
+	sparkles: { ImageLabel },
+	icon: ImageLabel,
+	name: TextLabel,
+	banner: ImageLabel,
+	rarity: TextLabel,
+	note: TextLabel,
+	odds: TextLabel,
 }
 local showing = false
 local pendingUntil = 0
@@ -65,9 +126,10 @@ function Reveal.request(action: () -> ())
 	pendingUntil = os.clock() + 5
 	action()
 end
---[[ A full-screen layer for the reveals: its canvas, a white flash over
-     it and a tap catcher over everything. ]]
-local function layer(dimming: number): (ScreenGui, Frame, Frame, Frame, TextButton)
+local INK = Color3.fromRGB(58, 36, 18)
+--[[ A full-screen layer for the reveals: its dimmer, the shaken frame and
+     its canvas, a white flash over it and a tap catcher over everything. ]]
+local function layer(): (ScreenGui, Frame, Frame, Frame, Frame, TextButton)
 	local gui = Instance.new("ScreenGui")
 	gui.Name = "GearReveal"
 	gui.IgnoreGuiInset = true
@@ -76,18 +138,20 @@ local function layer(dimming: number): (ScreenGui, Frame, Frame, Frame, TextButt
 	gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 	gui.Parent = Players.LocalPlayer.PlayerGui
 	local dim = Instance.new("Frame")
-	dim.BackgroundColor3 = Color3.new(0, 0, 0)
-	dim.BackgroundTransparency = dimming
+	dim.BackgroundColor3 = Color3.fromRGB(8, 6, 20)
+	dim.BackgroundTransparency = 1
+	dim.BorderSizePixel = 0
 	dim.Size = UDim2.fromScale(1, 1)
 	dim.Parent = gui
 	local shake = Instance.new("Frame")
 	shake.BackgroundTransparency = 1
 	shake.Size = UDim2.fromScale(1, 1)
-	shake.Parent = dim
+	shake.Parent = gui
 	local canvas = Kit.canvas(shake)
 	local flash = Instance.new("Frame")
 	flash.BackgroundColor3 = Color3.new(1, 1, 1)
 	flash.BackgroundTransparency = 1
+	flash.BorderSizePixel = 0
 	flash.Size = UDim2.fromScale(1, 1)
 	flash.ZIndex = 10
 	flash.Parent = gui
@@ -97,18 +161,99 @@ local function layer(dimming: number): (ScreenGui, Frame, Frame, Frame, TextButt
 	tap.BackgroundTransparency = 1
 	tap.Size = UDim2.fromScale(1, 1)
 	tap.ZIndex = 20
-	tap.Parent = dim
-	return gui, shake, canvas, flash, tap
+	tap.Parent = gui
+	return gui, dim, shake, canvas, flash, tap
 end
-local function centre(item: GuiObject, x: number, y: number, w: number, h: number)
-	Kit.put(item, x - w / 2, y - h / 2, w, h)
+-- places a centred item in the 1920 x 1080 canvas
+local function put(item: GuiObject, x: number, y: number, w: number, h: number)
+	item.Position = UDim2.fromScale(x / 1920, y / 1080)
+	item.Size = UDim2.fromScale(math.max(w, 0) / 1920, math.max(h, 0) / 1080)
 end
-local function rainbow(t: number, rarity: string): Color3
-	return if rarity == "Mythic" then Color3.fromHSV((t * 0.3) % 1, 0.8, 1) else Kit.colour(rarity)
+local function centred<T>(item: T, z: number): T
+	local gui = item :: any
+	gui.AnchorPoint = Vector2.new(0.5, 0.5)
+	gui.ZIndex = z
+	return item
+end
+local function clamp01(k: number): number
+	return math.clamp(k, 0, 1)
 end
 -- 0 to 1 with a little overshoot, for things that pop in
 local function popIn(k: number): number
+	k = clamp01(k)
 	return 1 + 2.7 * (k - 1) ^ 3 + 1.7 * (k - 1) ^ 2
+end
+--[[ A decaying wobble after an impact at `since` seconds: 1 at the hit. ]]
+local function decay(since: number, rate: number, speed: number): number
+	if since < 0 then
+		return 0
+	end
+	return math.exp(-since * rate) * math.cos(since * speed)
+end
+local function block(parent: Instance, colour: Color3, z: number): Frame
+	local f = Instance.new("Frame")
+	f.BackgroundColor3 = colour
+	f.BorderSizePixel = 0
+	f.AnchorPoint = Vector2.new(0.5, 0.5)
+	f.ZIndex = z
+	f.Parent = parent
+	return f
+end
+local function outline(item: GuiObject, thickness: number)
+	local stroke = Instance.new("UIStroke")
+	stroke.Color = INK
+	stroke.Thickness = thickness
+	stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	stroke.Parent = item
+end
+local function round(item: GuiObject, radius: number)
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(radius, 0)
+	corner.Parent = item
+end
+--[[ The egg or chest drawn in its colours, for an area with no picture or
+     model yet: an egg with spots, or a chest with its bands and lock. ]]
+local function drawn(parent: Instance, look: Look): Frame
+	local main, trim = look.colours[1], look.colours[2] or Color3.new(1, 1, 1)
+	local box = Instance.new("Frame")
+	box.BackgroundTransparency = 1
+	box.AnchorPoint = Vector2.new(0.5, 0.5)
+	box.ZIndex = 4
+	box.Parent = parent
+	local body = block(box, main, 4)
+	body.Position = UDim2.fromScale(0.5, 0.5)
+	outline(body, 4)
+	local shine = Instance.new("UIGradient")
+	shine.Rotation = 90
+	shine.Color = ColorSequence.new(main:Lerp(Color3.new(1, 1, 1), 0.35), main:Lerp(INK, 0.25))
+	shine.Parent = body
+	if look.kind == "egg" then
+		body.Size = UDim2.fromScale(0.68, 0.86)
+		round(body, 0.5)
+		for _, spot in { { 0.32, 0.3, 0.2 }, { 0.66, 0.46, 0.15 }, { 0.42, 0.68, 0.17 } } do
+			local s = block(body, trim, 5)
+			s.Position = UDim2.fromScale(spot[1], spot[2])
+			s.Size = UDim2.fromScale(spot[3], spot[3] * 0.8)
+			round(s, 0.5)
+		end
+	else
+		body.Size = UDim2.fromScale(0.9, 0.62)
+		body.Position = UDim2.fromScale(0.5, 0.58)
+		round(body, 0.08)
+		local lid = block(box, main:Lerp(Color3.new(1, 1, 1), 0.12), 5)
+		lid.Position, lid.Size = UDim2.fromScale(0.5, 0.33), UDim2.fromScale(0.94, 0.24)
+		round(lid, 0.3)
+		outline(lid, 4)
+		for _, x in { 0.2, 0.8 } do
+			local band = block(box, trim, 6)
+			band.Position, band.Size = UDim2.fromScale(x, 0.55), UDim2.fromScale(0.08, 0.66)
+			outline(band, 3)
+		end
+		local lock = block(box, trim, 7)
+		lock.Position, lock.Size = UDim2.fromScale(0.5, 0.47), UDim2.fromScale(0.14, 0.16)
+		outline(lock, 3)
+	end
+	return box
 end
 --[[ How much of the viewport's height the model fills when it is sitting
      still. The rest is room for the squash, the shake and the chest's tip,
@@ -159,97 +304,375 @@ local function shellModel(root: Instance, template: MeshPart): (ViewportFrame, M
 	view.LightColor = Color3.new(1, 0.94, 0.8)
 	view.LightDirection = Vector3.new(-0.3, -1, -0.5)
 	view.AnchorPoint = Vector2.new(0.5, 0.5)
-	view.ZIndex = 3
+	view.ZIndex = 4
 	view.Parent = root
 	local world = Instance.new("WorldModel")
 	world.Parent = view
-	local block = template:Clone()
-	block.CFrame = CFrame.new()
-	block.Parent = world
+	local made = template:Clone()
+	made.CFrame = CFrame.new()
+	made.Parent = world
 	local camera = Instance.new("Camera")
 	camera.FieldOfView = MODEL_FOV
-	local away = (block.Size.Y / MODEL_FILL) / 2 / math.tan(math.rad(MODEL_FOV) / 2)
+	local away = (made.Size.Y / MODEL_FILL) / 2 / math.tan(math.rad(MODEL_FOV) / 2)
 	camera.CFrame = CFrame.lookAt(Vector3.new(0, 0, away), Vector3.zero)
 	camera.Parent = view
 	view.CurrentCamera = camera
-	return view, block
+	return view, made
 end
 
---[[ The eggs hatch over the world, in step (docs/EGG-HATCH-REFERENCE.md):
-     they drop in, a ring sweeps out, they flash white, shake as cracks
-     spread, the screen flashes and each pet stands where its egg was with
-     rays behind it and its name, rarity and note under it, then they shrink
-     away and the layer closes by itself. A tap skips to the next beat. ]]
-local function hatch(look: Look, prizes: { Prize }, finished: () -> ())
-	local beats = Beats.egg
-	local model = look.model
-	local skin = if model then model.texture else ""
-	--[[ A chest has a lid, so it rocks open and stays on screen while the
-	     weapon rises out of it; an egg has none and is gone on the burst. ]]
-	local tips = model ~= nil and model.tips
-	local gui, shake, canvas, flash, tap = layer(1)
-	local single = #prizes == 1
-	local size = if single then 560 else 440
-	local rare, fresh = false, false
-	for _, prize in prizes do
-		rare = rare or Beats.rare[prize.rarity] == true
-		fresh = fresh or prize.fresh
+--[[ The cracks, per stage, as lines in the shell's own box (-0.5..0.5,
+     down positive). An egg's zigzag spreads from its middle; a chest's
+     light runs out along its lid's seam. ]]
+local EGG_CRACKS: { { { number } } } = {
+	{ { -0.05, -0.05, 0.06, 0.02 }, { 0.06, 0.02, 0, 0.1 }, { 0, 0.1, 0.1, 0.18 } },
+	{
+		{ -0.05, -0.05, -0.16, -0.12 },
+		{ -0.16, -0.12, -0.1, -0.22 },
+		{ 0.06, 0.02, 0.2, -0.02 },
+		{ 0.2, -0.02, 0.24, 0.08 },
+	},
+	{
+		{ 0, 0.1, -0.14, 0.14 },
+		{ -0.14, 0.14, -0.24, 0.06 },
+		{ -0.1, -0.22, 0.02, -0.3 },
+		{ 0.1, 0.18, 0.18, 0.28 },
+	},
+}
+local CHEST_CRACKS: { { { number } } } = {
+	{ { -0.1, -0.06, 0.1, -0.06 } },
+	{ { -0.26, -0.06, -0.1, -0.06 }, { 0.1, -0.06, 0.26, -0.06 } },
+	{ { -0.38, -0.06, -0.26, -0.06 }, { 0.26, -0.06, 0.38, -0.06 }, { 0, -0.06, 0, 0.04 } },
+}
+--[[ Draws a thrown bit at `t`: closed form, so a skip lands it right. ]]
+local function fly(bit: Bit, t: number)
+	local u = t - bit.at
+	local item = bit.item
+	if u < 0 or u > bit.life then
+		item.Visible = false
+		return
 	end
-	local soundAt = beats.burst - look.soundBurst
-	-- an Epic or better holds until its reveal sound has played over it
-	local leave = if rare then math.max(beats.leave, soundAt + look.jingle + 0.6) else beats.leave
-	local done = leave + beats.done - beats.leave
-	local parts: { ShellPart } = {}
+	item.Visible = true
+	local x: number, y: number
+	if bit.drag > 0 then
+		local slowed = (1 - math.exp(-bit.drag * u)) / bit.drag
+		x = bit.x + bit.vx * slowed + math.sin(u * 5 + bit.phase) * 24
+		y = bit.y + bit.vy * slowed + bit.g * u
+	else
+		x = bit.x + bit.vx * u
+		y = bit.y + bit.vy * u + 0.5 * bit.g * u * u
+	end
+	local w = if bit.flip
+		then bit.w * math.max(0.15, math.abs(math.cos(u * 9 + bit.phase)))
+		else bit.w
+	put(item, x, y, w, bit.h)
+	item.Rotation = bit.phase * 57 + bit.spin * u
+	local fade = 1 - clamp01((bit.life - u) / 0.35)
+	if bit.image then
+		(item :: ImageLabel).ImageTransparency = fade
+	else
+		item.BackgroundTransparency = fade
+	end
+end
+--[[ Nudges the world's camera by the shake, on top of whatever moves it:
+     the offset is taken back off before the camera script's next frame
+     can be mistaken for it. Returns the stop. ]]
+local function shakeCamera(amount: () -> number, clock: () -> number): () -> ()
+	local name = "RevealShake"
+	local written: CFrame? = nil
+	local base: CFrame? = nil
+	RunService:BindToRenderStep(name, Enum.RenderPriority.Camera.Value + 1, function()
+		local camera = workspace.CurrentCamera
+		if not camera then
+			return
+		end
+		local now = camera.CFrame
+		local from = if written and base and now == written then base else now
+		local a = amount()
+		local t = clock()
+		local nudge = CFrame.Angles(
+			math.rad(math.sin(t * 61) * a * 0.5),
+			math.rad(math.cos(t * 53) * a * 0.5),
+			math.rad(math.sin(t * 47) * a * 0.35)
+		)
+		base = from
+		written = from * nudge
+		camera.CFrame = written :: CFrame
+	end)
+	return function()
+		RunService:UnbindFromRenderStep(name)
+		local camera = workspace.CurrentCamera
+		if camera and written and base and camera.CFrame == written then
+			camera.CFrame = base
+		end
+	end
+end
+
+--[[ The reveal: every egg or chest of the press, in step. ]]
+local function play(look: Look, prizes: { Prize }, chanceOf: (Prize) -> number, finished: () -> ())
+	local rarities = {}
+	for _, prize in prizes do
+		table.insert(rarities, prize.rarity)
+	end
+	local line = RevealTimeline.build(look.kind, rarities)
+	local top = line.tier
+	local gui, dim, shake, canvas, flash, tap = layer()
+	local random = Random.new()
+	local single = #prizes == 1
+	local size = if single then 480 else 330
+	local chest = look.kind == "crate"
+	local model = look.model
+	local template = if model then templates[model.mesh] else nil
+	-- a picture with no cut stages gets drawn cracks; a chest always leaks
+	local drawCracks = chest or look.crack1 == "" or template ~= nil
+	local parts: { Part } = {}
 	for index, prize in prizes do
 		local root = Instance.new("Frame")
 		root.BackgroundTransparency = 1
 		root.Size = UDim2.fromScale(1, 1)
 		root.Parent = canvas
-		local glow = Kit.image(root, GearAssets.fx.glow)
-		local rays = Kit.image(root, GearAssets.fx.rays)
-		local ring = Kit.image(root, GearAssets.fx.ring)
-		ring.ImageColor3 = Color3.new(1, 1, 1)
-		local shell = Kit.image(root, look.whole)
-		shell.AnchorPoint = Vector2.new(0.5, 0.5)
-		local white = Kit.image(root, GearAssets.fx.glow)
-		white.ImageColor3 = Color3.new(1, 1, 1)
-		local icon = Kit.image(root, prize.icon)
-		icon.AnchorPoint = Vector2.new(0.5, 0.5)
-		local name = Kit.label(root, prize.name)
-		local nameScale = Instance.new("UIScale")
-		nameScale.Parent = name
-		local rarity = Kit.label(root, string.upper(prize.rarity))
-		local note = Kit.label(root, prize.note, Kit.gold)
-		--[[ With a model the pictures are built and left hidden rather than
-		     skipped, so `pose` keeps one shape and the fallback stays one
-		     `Visible` away. ]]
-		local view: ViewportFrame?, block: MeshPart?, native: Vector3? = nil, nil, nil
-		local template = if model then templates[model.mesh] else nil
-		if template then
-			local frame, made = shellModel(root, template)
-			view, block, native = frame, made, made.Size
-			shell.Visible = false
+		local colour = Kit.colour(prize.rarity)
+		local tier = Beats.tiers[prize.rarity] or Beats.tiers.Common
+		local x = if single then 960 else 960 + (index - 2) * 560
+		local y = if single then 470 else 450
+		local burst = line.bursts[index]
+		local part: Part = {
+			prize = prize,
+			x = x,
+			y = y,
+			size = size,
+			burst = burst,
+			colour = colour,
+			tier = tier,
+			leakRays = centred(Kit.image(root, GearAssets.fx.rays), 1),
+			leak = centred(Kit.image(root, GearAssets.fx.glow), 2),
+			aura = centred(Kit.image(root, GearAssets.fx.glow), 2),
+			inner = centred(Kit.image(root, GearAssets.fx.glow), 5),
+			rays2 = centred(Kit.image(root, GearAssets.fx.rays), 2),
+			rays = centred(Kit.image(root, GearAssets.fx.rays), 2),
+			glow = centred(Kit.image(root, GearAssets.fx.glow), 3),
+			ring = centred(Kit.image(root, GearAssets.fx.ring), 3),
+			ring2 = centred(Kit.image(root, GearAssets.fx.ring), 3),
+			shell = centred(Kit.image(root, look.whole), 4),
+			drawn = drawn(root, look),
+			cracks = {},
+			beams = {},
+			bits = {},
+			sparkles = {},
+			icon = centred(Kit.image(root, prize.icon), 7),
+			name = centred(Kit.label(root, string.upper(prize.name)), 9),
+			banner = centred(Kit.image(root, GearAssets.showcase.banner), 9),
+			rarity = Kit.label(root, string.upper(prize.rarity)),
+			note = centred(Kit.label(root, prize.note, Kit.gold), 11),
+			odds = centred(Kit.label(root, "", Kit.gold), 9),
+		}
+		part.rarity.Parent = part.banner
+		part.rarity.ZIndex = 10
+		part.rarity.AnchorPoint = Vector2.new(0.5, 0.5)
+		part.rarity.Position, part.rarity.Size =
+			UDim2.fromScale(0.5, 0.44), UDim2.fromScale(0.7, 0.36)
+		part.banner.ImageColor3 = colour
+		part.ring.ImageColor3 = colour
+		part.ring2.ImageColor3 = colour:Lerp(Color3.new(1, 1, 1), 0.4)
+		part.glow.ImageColor3 = colour
+		part.rays.ImageColor3 = Color3.new(1, 1, 1):Lerp(colour, 0.7)
+		part.rays2.ImageColor3 = colour
+		if tier.glow or tier.special then
+			local chance = chanceOf(prize)
+			if chance > 0 then
+				part.odds.Text = "1 IN " .. tostring(math.round(1 / chance))
+			end
 		end
-		table.insert(parts, {
-			x = if single then 960 else 960 + (index - 2) * 400,
-			glow = glow,
-			rays = rays,
-			ring = ring,
-			shell = shell,
-			white = white,
-			icon = icon,
-			name = name,
-			nameScale = nameScale,
-			rarity = rarity,
-			note = note,
-			view = view,
-			block = block,
-			native = native,
-		})
+		if template then
+			local view, made = shellModel(root, template)
+			part.view, part.block, part.native = view, made, made.Size
+		end
+		if drawCracks then
+			local pattern: { { { number } } } = if chest then CHEST_CRACKS else EGG_CRACKS
+			for stage, lines in ipairs(pattern) do
+				for _, l in lines do
+					table.insert(part.cracks, {
+						item = block(root, Color3.new(1, 1, 1), 5),
+						stage = stage,
+						a = Vector2.new(l[1], l[2]),
+						b = Vector2.new(l[3], l[4]),
+					})
+				end
+			end
+		end
+		if chest then
+			for n = 1, 5 do
+				local beam = block(root, Color3.new(1, 1, 1):Lerp(colour, 0.45), 3)
+				beam.AnchorPoint = Vector2.new(0.5, 1)
+				beam.Rotation = (n - 3) * 18
+				local fade = Instance.new("UIGradient")
+				fade.Rotation = 90
+				fade.Transparency = NumberSequence.new(1, 0.05)
+				fade.Parent = beam
+				table.insert(part.beams, beam)
+			end
+		end
+		if tier.glow then
+			for _ = 1, 8 do
+				local sparkle = centred(Kit.image(root, GearAssets.fx.sparkle), 8)
+				sparkle.ImageColor3 = Color3.new(1, 1, 1):Lerp(colour, 0.3)
+				table.insert(part.sparkles, sparkle)
+			end
+		end
+		local scale = size / 480
+		local function throw(
+			item: GuiObject,
+			image: boolean,
+			launch: number,
+			bit: { [string]: any }
+		)
+			local b: Bit = {
+				item = item,
+				image = image,
+				at = launch,
+				life = bit.life or 1.2,
+				x = bit.x or x,
+				y = bit.y or y,
+				vx = bit.vx,
+				vy = bit.vy,
+				g = bit.g or 2600,
+				drag = bit.drag or 0,
+				spin = bit.spin or random:NextNumber(-540, 540),
+				phase = random:NextNumber(0, math.pi * 2),
+				w = bit.w,
+				h = bit.h,
+				flip = bit.flip == true,
+			}
+			item.Visible = false
+			table.insert(part.bits, b)
+		end
+		if chest then
+			-- the two padlocks pop off on the second crack
+			for side = -1, 1, 2 do
+				local lock = block(root, look.colours[2], 6)
+				outline(lock, 3)
+				throw(lock, false, line.cracks[2], {
+					x = x + side * 60 * scale,
+					y = y,
+					vx = side * random:NextNumber(300, 520),
+					vy = -random:NextNumber(700, 950),
+					w = 46 * scale,
+					h = 52 * scale,
+				})
+			end
+			for _ = 1, 6 do
+				local splinter = block(root, look.colours[1], 6)
+				outline(splinter, 2)
+				throw(splinter, false, burst, {
+					y = y - 40 * scale,
+					vx = random:NextNumber(-700, 700),
+					vy = -random:NextNumber(600, 1100),
+					w = random:NextNumber(18, 30) * scale,
+					h = random:NextNumber(50, 80) * scale,
+				})
+			end
+			for _ = 1, Beats.crate.coins do
+				local coin = Kit.image(root, EndScreenAssets.coin)
+				coin.AnchorPoint = Vector2.new(0.5, 0.5)
+				coin.ZIndex = 6
+				local s = random:NextNumber(44, 64) * scale
+				throw(coin, true, burst + random:NextNumber(0, 0.25), {
+					y = y - 60 * scale,
+					vx = random:NextNumber(-560, 560),
+					vy = -random:NextNumber(1150, 1650),
+					w = s,
+					h = s,
+					life = 1.4,
+					spin = 0,
+					flip = true,
+				})
+			end
+		else
+			for n = 1, Beats.shards do
+				local shard = block(root, look.colours[(n % 2) + 1] or look.colours[1], 6)
+				outline(shard, 3)
+				local angle = (n / Beats.shards) * math.pi * 2 + random:NextNumber(-0.3, 0.3)
+				local speed = random:NextNumber(700, 1250)
+				throw(shard, false, burst, {
+					x = x + math.cos(angle) * 60 * scale,
+					y = y + math.sin(angle) * 70 * scale,
+					vx = math.cos(angle) * speed,
+					vy = math.sin(angle) * speed - 650,
+					w = random:NextNumber(46, 96) * scale,
+					h = random:NextNumber(40, 80) * scale,
+				})
+			end
+		end
+		-- the confetti, out of the burst; a Legendary or Mythic gets a rain of it too
+		local palette =
+			{ colour, Kit.gold, Color3.new(1, 1, 1), colour:Lerp(Color3.new(1, 1, 1), 0.5) }
+		local count = math.ceil(Beats.confetti / #prizes)
+		for n = 1, count do
+			local bit = block(root, palette[(n % #palette) + 1], 12)
+			throw(bit, false, burst, {
+				vx = random:NextNumber(-1500, 1500),
+				vy = random:NextNumber(-1700, -500),
+				g = random:NextNumber(150, 260),
+				drag = 3,
+				w = 18,
+				h = 28,
+				life = 2.4,
+				flip = true,
+			})
+			if tier.glow then
+				local rain = block(root, palette[(n % #palette) + 1], 12)
+				throw(rain, false, line.banner + random:NextNumber(0, 0.8), {
+					x = random:NextNumber(0, 1920),
+					y = -40,
+					vx = random:NextNumber(-80, 80),
+					vy = 0,
+					g = random:NextNumber(260, 380),
+					drag = 2,
+					w = 18,
+					h = 28,
+					life = 3.2,
+					flip = true,
+				})
+			end
+		end
+		table.insert(parts, part)
+	end
+	local special = centred(Kit.label(canvas, look.special, Kit.colour(line.top)), 12)
+	put(special, 960, 960, 1300, 64)
+	special.Visible = false
+
+	-- the shake: impacts that ring out, and a rumble under a big build
+	local hits: { { number } } = { { line.drop, 0.3 } }
+	for _, crack in line.cracks do
+		table.insert(hits, { crack, 0.2 * (1 + top.build) })
+	end
+	for _, burst in line.bursts do
+		table.insert(hits, { burst, top.shake })
+	end
+	if top.glow then
+		table.insert(hits, { line.banner, top.shake * 0.6 })
 	end
 	local started = os.clock()
 	local offset = 0
-	local played = { hatch = false, rare = false, fresh = false }
+	local function clock(): number
+		return os.clock() - started + offset
+	end
+	local shakeNow = 0
+	local function shaking(t: number): number
+		local a = 0
+		for _, hit in hits do
+			if t >= hit[1] then
+				a += hit[2] * math.exp(-(t - hit[1]) * 9)
+			end
+		end
+		if top.glow and t < line.burst then
+			a += top.shake * 0.18 * clamp01((t - line.settle) / (line.burst - line.settle))
+		end
+		return a
+	end
+	local stopCamera = shakeCamera(function()
+		return shakeNow
+	end, clock)
+	local played = { open = false, rare = false, fresh = false }
 	local stopGlitter: (() -> ())? = nil
 	local closed = false
 	local function close()
@@ -261,137 +684,311 @@ local function hatch(look: Look, prizes: { Prize }, finished: () -> ())
 		finished()
 	end
 	local function pose()
-		local t = os.clock() - started + offset
-		if t >= done then
+		local t = clock()
+		if t >= line.done then
 			close()
 			return
 		end
-		local y = 500
-		local fall = math.clamp(t / beats.drop, 0, 1)
-		local squash = math.sin(math.clamp((t - beats.drop) / 0.3, 0, 1) * math.pi) * 0.08
-		local whiten = math.sin(
-			math.clamp((t - beats.whiten[1]) / (beats.whiten[2] - beats.whiten[1]), 0, 1) * math.pi
-		)
-		local power = math.clamp((t - beats.whiten[2]) / (beats.burst - beats.whiten[2]), 0, 1)
-		local swept = t - beats.drop
-		local shown = math.clamp((t - beats.burst) / (beats.land - beats.burst + 0.15), 0, 1)
-		local gone = math.clamp((t - leave) / (done - leave), 0, 1)
-		--[[ A lid swings open from the second crack and is wide by the time
-		     the prize stands there; the chest then fades out behind it. ]]
-		local opens = math.clamp((t - beats.cracks[2]) / (beats.land - beats.cracks[2]), 0, 1)
-		local sank = math.clamp((t - beats.burst) / math.max(beats.land - beats.burst, 0.01), 0, 1)
-		local shellGone = if tips then beats.land else beats.burst
-		local scale = math.max(0.02, popIn(shown) * (1 - gone))
-		for index, part in parts do
-			local x = part.x
-			local colour = rainbow(t, prizes[index].rarity)
-			-- the egg
-			local egg = t < shellGone
-			part.shell.Visible = egg and part.view == nil
-			part.shell.Image = if t >= beats.cracks[2]
-				then look.crack2
-				elseif t >= beats.cracks[1] then look.crack1
-				else look.whole
-			part.shell.Rotation = math.sin(t * (28 + power * 30)) * power * 12
-			part.shell.Position = UDim2.fromScale(
-				(x + math.sin(t * 67) * power * 10) / 1920,
-				(y - (1 - fall) ^ 2 * 900) / 1080
-			)
-			part.shell.Size =
-				UDim2.fromScale(size * (1 + squash) / 1920, size * (1 - squash) / 1080)
-			local view, block, native = part.view, part.block, part.native
-			if view and block and native then
-				view.Visible = egg
-				view.Position = part.shell.Position
-				view.Size = UDim2.fromScale(size / 1920, size / 1080)
-				view.ImageTransparency = sank
-				--[[ The squash rides the mesh rather than the frame, so the
-				     model deforms inside a frame that never moves out from
-				     under it. Each crack beat gets a jolt of its own: a mesh
-				     has no second picture to swap to, so the two moments the
-				     sound is cut for have to be felt instead of seen. ]]
-				local jolt = math.sin(math.clamp((t - beats.cracks[1]) / 0.18, 0, 1) * math.pi)
-						* 0.07
-					+ math.sin(math.clamp((t - beats.cracks[2]) / 0.18, 0, 1) * math.pi) * 0.09
-				local fat = 1 + squash + jolt
-				block.Size = native * Vector3.new(fat, 1 - squash - jolt, fat)
-				local tilt = math.rad(math.sin(t * (28 + power * 30)) * power * 12)
-				block.CFrame =
-					CFrame.Angles(if tips then -opens * math.rad(38) else 0, t * 0.5, tilt)
-				--[[ Whitening a textured mesh: `Neon` ignores the viewport's
-				     own light, so the texture goes bright, and dropping the
-				     texture at the peak gives the pure white the pictures got
-				     from a frame drawn white. ]]
-				if whiten > 0.02 then
-					block.Material = Enum.Material.Neon
-					block.Color = Color3.new(1, 1, 1)
-					block.TextureID = if whiten > 0.5 then "" else skin
-				else
-					block.Material = Enum.Material.SmoothPlastic
-					block.TextureID = skin
+		local gone = clamp01((t - line.leave) / (line.done - line.leave))
+		-- the screen dims, darker as a big pull builds, easing back after
+		local build = clamp01((t - line.settle) / (line.burst - line.settle))
+		local darkness = 0.4 + top.dark * 0.55 * build ^ 2
+		if t >= line.burst then
+			darkness = 0.4 + top.dark * 0.55 * (1 - 0.5 * clamp01((t - line.burst) / 0.6))
+		end
+		darkness *= clamp01(t / 0.2) * (1 - gone)
+		dim.BackgroundTransparency = 1 - darkness
+		special.Visible = top.special and t >= line.settle and t < line.burst
+		special.TextTransparency = 0.5 - 0.5 * math.sin(t * 6)
+		for _, part in parts do
+			local x, y = part.x, part.y
+			local b = part.burst
+			local u = t - line.drop
+			-- the fall, the landing's squash and the bounce
+			local fall = clamp01(t / line.drop)
+			local px, py = x, y - (1 - fall) ^ 2 * 900
+			local sx, sy = 1 - 0.1 * fall, 1 + 0.16 * fall
+			if u >= 0 then
+				local squash = 0.26 * decay(u, 7, 26)
+				sx, sy = 1 + squash, 1 - squash
+				py = y - math.abs(math.sin(u * math.pi / 0.2)) * 70 * math.exp(-u * 6)
+			end
+			-- the wobble: harder and faster to the burst, a hop on each crack
+			local w = clamp01((t - line.settle) / (b - line.settle)) ^ 1.6
+			local rot = math.sin(t * (9 + 24 * w)) * w * (12 + 6 * top.shake)
+			px += math.sin(t * 57) * w * 6 * top.shake
+			if chest then
+				rot *= 0.4
+				py -= math.abs(math.sin(t * 38)) * w * 16
+			end
+			for n, crack in line.cracks do
+				local since = t - crack
+				if since >= 0 and since < 0.4 then
+					py -= math.sin(clamp01(since / 0.22) * math.pi) * (24 + n * 10)
+					local jolt = 0.12 * decay(since, 10, 30)
+					sx, sy = sx + jolt, sy - jolt
 				end
 			end
-			part.white.Visible = egg and whiten > 0
-			centre(part.white, x, y, size * 1.3, size * 1.3)
-			part.white.ImageTransparency = 1 - whiten
-			part.ring.Visible = swept >= 0 and swept < 0.5
-			local ringSize = size * (0.8 + math.max(0, swept) * 2)
-			centre(part.ring, x, y, ringSize, ringSize)
-			part.ring.ImageTransparency = math.clamp(swept / 0.5, 0, 1)
-			-- the glow builds as it cracks (white: it gives nothing away), and is
-			-- the white puff the pet leaves in
-			part.glow.Visible = (egg and power > 0) or gone > 0
-			part.glow.ImageColor3 = Color3.new(1, 1, 1)
-			local glowSize = if egg then size * (1.1 + power * 0.5) else size * (1 + gone)
-			centre(part.glow, x, y, glowSize, glowSize)
-			part.glow.ImageTransparency = if egg then 1 - power * 0.7 else 0.2 + gone * 0.8
-			-- the pet
-			local pet = t >= beats.burst
-			local petSize = (if single then 460 else 380) * scale
+			-- the breath in before it bursts
+			local inhale = clamp01((t - (b - 0.16)) / 0.16)
+			sx, sy = sx + inhale * 0.16, sy - inhale * 0.14
+			-- the burst: an egg is gone, a chest's lid flies open
+			local burst = t >= b
+			local since = t - b
+			local open = 0
+			if chest and burst then
+				open = clamp01(since / 0.12)
+				local pop = 0.18 * decay(since, 8, 24)
+				sx, sy = 1 + pop, 1 - pop
+				rot = 0
+				py = y + clamp01((since - 0.35) / 0.5) * 140
+			end
+			local shellAlpha = if chest
+				then clamp01((t - (line.banner - 0.1)) / 0.35)
+				else (if burst then 1 else 0)
+			local cracked = 0
+			for n, crack in line.cracks do
+				if t >= crack then
+					cracked = n
+				end
+			end
+			local picture = look.whole
+			if chest then
+				picture = if burst and look.open ~= ""
+					then look.open
+					elseif cracked >= 2 and look.bare ~= "" then look.bare
+					else look.whole
+			elseif not drawCracks then
+				picture = if cracked >= 3
+					then look.crack2
+					elseif cracked >= 2 then look.crack1
+					else look.whole
+			end
+			local view, made, native = part.view, part.block, part.native
+			local hasPicture = picture ~= "" and view == nil
+			part.shell.Visible = hasPicture and shellAlpha < 1
+			part.shell.Image = picture
+			part.shell.Rotation = rot
+			part.shell.ImageTransparency = shellAlpha
+			put(part.shell, px, py, size * sx, size * sy)
+			part.drawn.Visible = not hasPicture and view == nil and shellAlpha < 1
+			part.drawn.Rotation = rot
+			put(part.drawn, px, py, size * sx, size * sy)
+			if view and made and native then
+				view.Visible = shellAlpha < 1
+				view.ImageTransparency = shellAlpha
+				put(view, px, py, size, size)
+				made.Size = native * Vector3.new(sx, sy, sx)
+				local tips = model ~= nil and model.tips
+				made.CFrame =
+					CFrame.Angles(if tips then -open * math.rad(38) else 0, t * 0.6, math.rad(-rot))
+			end
+			-- the cracks, glowing, turning with the shell
+			-- the light inside: the area's, warming to the rarity's in a big pull
+			local light = look.glow:Lerp(Color3.new(1, 1, 1), 0.25)
+			if part.tier.glow then
+				light = light:Lerp(part.colour, w * 0.7)
+			end
+			local angle = math.rad(rot)
+			local cosA, sinA = math.cos(angle), math.sin(angle)
+			local function place(v: Vector2): Vector2
+				local lx, ly = v.X * size * sx, v.Y * size * sy
+				return Vector2.new(px + lx * cosA - ly * sinA, py + lx * sinA + ly * cosA)
+			end
+			for _, crack in part.cracks do
+				local shown = cracked >= crack.stage and (not burst or (chest and open < 1))
+				crack.item.Visible = shown
+				if shown then
+					local grow = popIn((t - line.cracks[crack.stage]) / 0.1)
+					local a, c = place(crack.a), place(crack.b)
+					local mid = (a + c) / 2
+					local length = (c - a).Magnitude * grow
+					put(crack.item, mid.X, mid.Y, length + 6, 8 * size / 480)
+					crack.item.Rotation = math.deg(math.atan2(c.Y - a.Y, c.X - a.X))
+					crack.item.BackgroundColor3 = light
+				end
+			end
+			-- the light leaking out as it cracks
+			local leaking = clamp01((t - line.cracks[1]) / (b - line.cracks[1]))
+			part.leak.Visible = not burst and w > 0
+			part.leak.ImageColor3 = light
+			put(part.leak, px, py, size * (1 + 0.7 * w), size * (1 + 0.7 * w))
+			part.leak.ImageTransparency = 1 - 0.8 * w
+			part.leakRays.Visible = not burst and leaking > 0
+			part.leakRays.ImageColor3 = light
+			part.leakRays.Rotation = t * 80
+			put(part.leakRays, px, py, size * (1.1 + leaking), size * (1.1 + leaking))
+			part.leakRays.ImageTransparency = 1 - 0.65 * leaking
+			--[[ The glow of the thing itself (owner, 2026-11-06: "make sure there
+			     is a glow in the egg and chest"): a halo from the landing that
+			     swells and pulses as it wobbles, and a light inside it -- over
+			     the egg's middle, out of the chest's seam -- that flares on the
+			     burst, stronger the better the pull. ]]
+			local strength = part.tier.aura
+			local arrived = clamp01(u / 0.3)
+			local pulse = 0.85 + 0.15 * math.sin(t * (6 + 10 * w))
+			local flare = if burst then 1 - clamp01(since / (if chest then 0.9 else 0.35)) else 0
+			local halo = (0.3 + 0.7 * w) * strength * arrived * pulse
+			part.aura.Visible = (halo > 0.01 and not burst) or flare > 0.01
+			part.aura.ImageColor3 = light
+			local auraSize = size * (1.25 + 0.55 * w * strength + flare * 0.9)
+			put(part.aura, px, py, auraSize, auraSize)
+			part.aura.ImageTransparency = 1
+				- math.min(0.95, if burst then flare * strength else halo)
+			local seam = if chest then py - size * 0.06 * sy else py
+			local within = (0.15 + 0.55 * w ^ 1.3) * strength * arrived * pulse
+			part.inner.Visible = (within > 0.01 and not burst) or flare > 0.01
+			part.inner.ImageColor3 = light:Lerp(Color3.new(1, 1, 1), 0.35)
+			local innerW = size * (if chest then 0.95 + 0.4 * w else 0.6 + 0.25 * w) * (1 + flare)
+			local innerH = size * (if chest then 0.32 + 0.3 * w else 0.7 + 0.25 * w) * (1 + flare)
+			put(part.inner, px, seam, innerW, innerH)
+			part.inner.ImageTransparency = 1
+				- math.min(0.9, if burst then flare * strength else within)
+			-- the chest's beams out of its open lid
+			for n, beam in part.beams do
+				local up = popIn(since / 0.3) * (1 - clamp01((t - line.banner) / 0.6))
+				beam.Visible = burst and up > 0.01
+				put(
+					beam,
+					px,
+					py - size * 0.12,
+					(34 + (n % 2) * 26) * size / 480,
+					820 * up * size / 480
+				)
+				beam.Rotation = (n - 3) * 18 + math.sin(t * 2 + n) * 4
+			end
+			for _, bit in part.bits do
+				fly(bit, t)
+			end
+			-- the prize pops out, arcs up and lands with a squash
+			local pet = burst and gone < 1
+			local rise = clamp01(since / Beats.egg.pop)
+			local petY = y - 30 - math.sin(rise * math.pi) * 170
+			if chest then
+				petY = y + 40 - math.sin(rise * math.pi * 0.5) * 140
+			end
+			local landed = since - Beats.egg.pop
+			local psx, psy = 1, 1
+			if landed >= 0 then
+				local squash = 0.24 * decay(landed, 8, 28)
+				psx, psy = 1 + squash, 1 - squash
+				petY += math.sin(t * 3.9) * 8
+			end
+			local grown = popIn(since / 0.25) * (1 - gone)
+			local petSize = size * 0.9 * grown
 			part.icon.Visible = pet
-			part.icon.Position =
-				UDim2.fromScale(x / 1920, (y + math.sin(t * math.pi * 2 / 1.6) * 8) / 1080)
-			part.icon.Size = UDim2.fromScale(petSize / 1920, petSize / 1080)
+			put(part.icon, x, petY, petSize * psx, petSize * psy)
+			-- its colour bursts behind it
+			local spread = clamp01(since / 0.45)
+			part.ring.Visible = burst and spread < 1
+			put(part.ring, x, y, size * (0.5 + spread * 2.2), size * (0.5 + spread * 2.2))
+			part.ring.ImageTransparency = spread
+			local second = clamp01((t - line.banner) / 0.5)
+			part.ring2.Visible = part.tier.glow and t >= line.banner and second < 1
+			put(part.ring2, x, y, size * (0.6 + second * 2.6), size * (0.6 + second * 2.6))
+			part.ring2.ImageTransparency = second
+			local raysSize = size * 1.9 * popIn(since / 0.35) * (1 - gone)
 			part.rays.Visible = pet
-			part.rays.Rotation = t * 40
-			part.rays.ImageColor3 = Color3.new(1, 1, 1):Lerp(colour, 0.25)
-			local raySize = (if single then 900 else 700) * scale
-			centre(part.rays, x, y, raySize, raySize)
-			part.rays.ImageTransparency = 0.15 + gone * 0.85
-			local words = t >= beats.land and t < leave
-			local wide = if single then 720 else 420
-			part.name.Visible = words
-			Kit.put(part.name, x - wide / 2, y + 230, wide, 72)
-			part.nameScale.Scale = 1
-				+ math.sin(math.clamp((t - beats.land) / 0.25, 0, 1) * math.pi) * 0.28
-			part.rarity.Visible = words
-			part.rarity.TextColor3 = colour
-			Kit.put(part.rarity, x - wide / 2, y + 304, wide, 52)
-			part.note.Visible = words
-			Kit.put(part.note, x - wide / 2, y + 360, wide, 44)
+			part.rays.Rotation = t * 35
+			put(part.rays, x, y - 20, raysSize, raysSize)
+			part.rays.ImageTransparency = if part.tier.glow then 0.05 else 0.3
+			part.rays2.Visible = pet and part.tier.glow
+			part.rays2.Rotation = -t * 22
+			put(part.rays2, x, y - 20, raysSize * 1.35, raysSize * 1.35)
+			part.rays2.ImageTransparency = 0.45
+			part.glow.Visible = pet
+			put(part.glow, x, y - 20, size * 1.4 * grown, size * 1.4 * grown)
+			part.glow.ImageTransparency = if part.tier.glow
+				then 0.25 + 0.2 * math.sin(t * 5)
+				else 0.55
+			for n, sparkle in part.sparkles do
+				local orbit = n * 2.399 + t * 1.3
+				local reach = size * (0.55 + 0.12 * math.sin(t * 2 + n))
+				local twinkle = (0.5 + 0.5 * math.sin(t * 7 + n * 1.7)) * grown
+				sparkle.Visible = pet
+				put(
+					sparkle,
+					x + math.cos(orbit) * reach,
+					y - 20 + math.sin(orbit) * reach * 0.8,
+					60 * twinkle * size / 480,
+					60 * twinkle * size / 480
+				)
+			end
+			-- the banner slams down, the name and the note pop
+			local slam = clamp01((t - line.banner) / 0.2)
+			local words = t >= line.banner and gone < 1
+			local bannerScale = if slam < 1
+				then 1 + 1.4 * (1 - slam) ^ 2
+				else 1 + 0.1 * decay(t - line.banner - 0.2, 9, 30)
+			local wide = if single then 620 else 430
+			local bannerY = y + size * 0.62 + (if single then 80 else 50)
+			part.banner.Visible = words
+			part.banner.ImageTransparency = 1 - slam
+			put(part.banner, x, bannerY, wide * bannerScale * (1 - gone), wide * 0.4 * bannerScale)
+			part.rarity.TextTransparency = 1 - slam
+			local named = popIn((t - line.banner - 0.06) / 0.25) * (1 - gone)
+			part.name.Visible = words and named > 0.01
+			put(
+				part.name,
+				x,
+				bannerY - wide * 0.27,
+				wide * 1.15 * named,
+				64 * named * size / 480 + 12
+			)
+			local stamped = popIn((t - line.banner - 0.18) / 0.22) * (1 - gone)
+			part.note.Visible = words and stamped > 0.01
+			part.note.Rotation = -14
+			put(
+				part.note,
+				x + size * 0.36,
+				y - size * 0.42,
+				220 * stamped * size / 480,
+				64 * stamped * size / 480
+			)
+			local counted = clamp01((t - line.banner - 0.3) / 0.25) * (1 - gone)
+			part.odds.Visible = words and part.odds.Text ~= "" and counted > 0
+			part.odds.TextTransparency = 1 - counted
+			put(part.odds, x, bannerY + wide * 0.26, wide * 0.8, 44 * size / 480)
 		end
-		-- the full-screen flash: up fast to the burst, fading after
-		local white = if t < beats.burst
-			then math.clamp(1 - (beats.burst - t) / 0.1, 0, 1)
-			else math.clamp(1 - (t - beats.burst) / 0.35, 0, 1)
+		-- the full-screen flash on the bursts (a bright one for a big pull)
+		local white = 0
+		for _, b in line.bursts do
+			local peak = if b == line.burst then (if top.glow then 1 else 0.85) else 0.5
+			local k = if t < b then clamp01(1 - (b - t) / 0.07) else clamp01(1 - (t - b) / 0.4)
+			white = math.max(white, k * peak)
+		end
+		if top.glow then
+			white = math.max(white, 0.5 * clamp01(1 - math.abs(t - line.banner) / 0.15))
+		end
 		flash.BackgroundTransparency = 1 - white
-		shake.Position =
-			UDim2.fromScale(math.sin(t * 83) * white * 0.009, math.cos(t * 71) * white * 0.009)
-		if t >= soundAt and not played.hatch then
-			played.hatch = true
-			SoundFx.play(look.sound)
+		shakeNow = shaking(t)
+		shake.Position = UDim2.fromScale(
+			math.sin(t * 83) * shakeNow * 0.006,
+			math.cos(t * 71) * shakeNow * 0.006
+		)
+		if t >= line.soundAt and not played.open then
+			played.open = true
+			-- a skip past the sound's burst would play it late: leave it out
+			if t < line.burst + 0.2 then
+				SoundFx.play(line.sound)
+			end
 		end
-		if rare and t >= soundAt + look.jingle and not played.rare then
+		local rareAt, rareSound = line.rareAt, line.rareSound
+		if rareAt and rareSound and t >= rareAt and not played.rare then
 			played.rare = true
-			SoundFx.play("reveal_rare")
+			SoundFx.play(rareSound)
 		end
-		if fresh and t >= beats.land and not played.fresh then
+		local fresh = false
+		for _, prize in prizes do
+			fresh = fresh or prize.fresh
+		end
+		if fresh and t >= line.banner and not played.fresh then
 			played.fresh = true
 			SoundFx.play("new_item")
 		end
-		if t >= beats.land and t < leave and not stopGlitter then
+		if t >= line.banner and t < line.leave and not stopGlitter then
 			stopGlitter = SoundFx.loop("reveal_glitter")
-		elseif t >= leave and stopGlitter then
+		elseif t >= line.leave and stopGlitter then
 			stopGlitter()
 			stopGlitter = nil
 		end
@@ -399,12 +996,13 @@ local function hatch(look: Look, prizes: { Prize }, finished: () -> ())
 	pose()
 	local step = RunService.RenderStepped:Connect(pose)
 	tap.Activated:Connect(function()
-		local t = os.clock() - started + offset
-		offset += (if t < beats.land then beats.land elseif t < leave then leave else done) - t
+		local t = clock()
+		offset += RevealTimeline.skip(line, t) - t
 		pose()
 	end)
 	gui.Destroying:Once(function()
 		step:Disconnect()
+		stopCamera()
 		if stopGlitter then
 			stopGlitter()
 		end
@@ -414,192 +1012,63 @@ local function hatch(look: Look, prizes: { Prize }, finished: () -> ())
 		end
 	end)
 end
---[[ A Mythic's own cinematic (Tap Simulator Reborn's top-rarity hatch):
-     a dark screen with the pet's silhouette, a bobbing "?", a white flash,
-     a glide through the hatchery, the lone egg glowing, then the pet on its
-     pedestal as "MYTHIC DISCOVERED" with its odds. A tap skips to the pet;
-     another closes it. ]]
-local function cinematic(look: Look, prize: Prize, chance: number, finished: () -> ())
-	local beats = Beats.mythic
-	local gui, shake, canvas, flash, tap = layer(0)
-	local hall = Kit.image(canvas, GearAssets.backgrounds.hatchery)
-	hall.AnchorPoint = Vector2.new(0.5, 0.5)
-	hall.ScaleType = Enum.ScaleType.Crop
-	local silhouette = Kit.image(canvas, prize.icon)
-	silhouette.ImageColor3 = Color3.new(0, 0, 0)
-	centre(silhouette, 960, 470, 520, 520)
-	local special = Kit.label(canvas, look.special)
-	Kit.put(special, 360, 860, 1200, 64)
-	local badge = Kit.image(canvas, GearAssets.fx.badge)
-	badge.AnchorPoint = Vector2.new(0.5, 0.5)
-	local question = Kit.label(badge, "?")
-	question.Size = UDim2.fromScale(1, 1)
-	local sparkles = {}
-	for _ = 1, 14 do
-		local sparkle = Kit.image(canvas, GearAssets.fx.sparkle)
-		sparkle.AnchorPoint = Vector2.new(0.5, 0.5)
-		table.insert(sparkles, sparkle)
-	end
-	local glow = Kit.image(canvas, GearAssets.fx.glow)
-	glow.AnchorPoint = Vector2.new(0.5, 0.5)
-	glow.ImageColor3 = Kit.gold
-	local egg = Kit.image(canvas, look.whole)
-	egg.AnchorPoint = Vector2.new(0.5, 0.5)
-	local rays = Kit.image(canvas, GearAssets.fx.rays)
-	rays.AnchorPoint = Vector2.new(0.5, 0.5)
-	local pedestal = Kit.image(canvas, GearAssets.showcase.pedestal)
-	centre(pedestal, 960, 760, 460, 460 * 318 / 642)
-	local icon = Kit.image(canvas, prize.icon)
-	icon.AnchorPoint = Vector2.new(0.5, 0.5)
-	local discovered = Kit.label(canvas, "MYTHIC DISCOVERED", Kit.gold)
-	Kit.put(discovered, 560, 852, 800, 48)
-	local name = Kit.label(canvas, string.upper(prize.name))
-	Kit.put(name, 360, 900, 1200, 88)
-	local odds =
-		Kit.label(canvas, "1 / " .. tostring(math.round(1 / math.max(chance, 1e-6))), Kit.gold)
-	Kit.put(odds, 560, 988, 800, 52)
-	local started = os.clock()
-	local offset = 0
-	local reveal = false
-	local stopGlitter: (() -> ())? = nil
-	local closed = false
-	local function pose()
-		local t = os.clock() - started + offset
-		local dark = t < beats.flash
-		local gliding = t >= beats.flash and t < beats.discovered
-		local shown = t >= beats.discovered
-		-- the hatchery glides past, slowly closing in; dim while dark
-		hall.Visible = gliding or shown
-		local glide = math.clamp((t - beats.flash) / (beats.egg - beats.flash), 0, 1)
-		local zoom = 1 + glide * 0.35
-		hall.Position = UDim2.fromScale((960 - glide * 160) / 1920, 0.5)
-		hall.Size = UDim2.fromScale(zoom * 1.1, zoom * 1.1)
-		hall.ImageColor3 = if t >= beats.egg
-			then Color3.fromRGB(150, 140, 170)
-			else Color3.new(1, 1, 1)
-		silhouette.Visible = t < beats.question
-		special.Visible = t < beats.question
-		-- the "?" pops in and bobs, then whitens in sparkles
-		local asked = math.clamp((t - beats.question) / 0.35, 0, 1)
-		local whitened = math.clamp((t - beats.whiten) / (beats.flash - beats.whiten), 0, 1)
-		badge.Visible = dark and t >= beats.question
-		local badgeSize = 420 * popIn(asked)
-		centre(badge, 960, 480 + math.sin(t * 2.4) * 18, badgeSize, badgeSize)
-		badge.ImageColor3 = Color3.new(1, 1, 1)
-		badge.ImageTransparency = whitened * 0.6
-		for n, sparkle in sparkles do
-			local angle = n * 2.399 + t
-			local reach = 160 + whitened * 260 + n % 3 * 40
-			sparkle.Visible = dark and t >= beats.whiten
-			centre(sparkle, 960 + math.cos(angle) * reach, 480 + math.sin(angle) * reach, 56, 56)
-			sparkle.ImageTransparency = whitened * 0.5
-		end
-		-- the lone egg, glowing brighter and bigger until it bursts
-		local building = math.clamp((t - beats.egg) / (beats.discovered - beats.egg), 0, 1)
-		local hatching = t >= beats.egg and not shown
-		egg.Visible = hatching
-		egg.Rotation = math.sin(t * (20 + building * 40)) * building * 8
-		local eggSize = 420 + building * 160
-		centre(egg, 960, 500, eggSize, eggSize)
-		glow.Visible = hatching
-		local glowSize = eggSize * (1.3 + building)
-		centre(glow, 960, 500, glowSize, glowSize)
-		glow.ImageTransparency = 0.7 - building * 0.6
-		-- the pet on its pedestal
-		local landed = math.clamp((t - beats.discovered) / 0.4, 0, 1)
-		pedestal.Visible = shown
-		pedestal.ImageColor3 = rainbow(t, "Mythic")
-		icon.Visible = shown
-		local petSize = 420 * math.max(0.02, popIn(landed))
-		centre(icon, 960, 560 + math.sin(t * math.pi * 2 / 1.6) * 10, petSize, petSize)
-		rays.Visible = shown
-		rays.Rotation = t * 30
-		rays.ImageColor3 = rainbow(t, "Mythic")
-		centre(rays, 960, 560, 1000 * popIn(landed), 1000 * popIn(landed))
-		discovered.Visible = shown
-		name.Visible = shown
-		name.TextColor3 = rainbow(t + 1, "Mythic")
-		odds.Visible = shown and chance > 0
-		local white = math.max(
-			math.clamp(1 - math.abs(t - beats.flash) / 0.25, 0, 1),
-			math.clamp(1 - math.abs(t - beats.discovered) / 0.3, 0, 1)
-		)
-		flash.BackgroundTransparency = 1 - white
-		shake.Position =
-			UDim2.fromScale(math.sin(t * 83) * white * 0.008, math.cos(t * 71) * white * 0.008)
-		if shown and not reveal then
-			reveal = true
-			SoundFx.play("mythic_reveal")
-			if prize.fresh then
-				SoundFx.play("new_item")
-			end
-			stopGlitter = SoundFx.loop("reveal_glitter")
-		end
-	end
-	pose()
-	local step = RunService.RenderStepped:Connect(pose)
-	tap.Activated:Connect(function()
-		local t = os.clock() - started + offset
-		if t < beats.discovered then
-			offset += beats.discovered - t
-			pose()
-		elseif t >= beats.done then
-			gui:Destroy()
-		end
-	end)
-	gui.Destroying:Once(function()
-		step:Disconnect()
-		if stopGlitter then
-			stopGlitter()
-		end
-		if not closed then
-			closed = true
-			finished()
-		end
-	end)
-end
---[[ Shows what a press won: a Mythic's cinematic first (its odds from
-     `chanceOf`), then the rest hatch or open together. ]]
+--[[ Shows what a press won: every prize of it at once. ]]
 local function present(look: Look, prizes: { Prize }, chanceOf: (Prize) -> number)
 	if showing or #prizes == 0 then
 		return
 	end
 	pendingUntil = 0
 	showing = true
-	local mythics, rest = {}, {}
-	for _, prize in prizes do
-		table.insert(if prize.rarity == "Mythic" then mythics else rest, prize)
+	play(look, prizes, chanceOf, function()
+		showing = false
+	end)
+end
+--[[ The chest a crate of `area` opens as: its model, its cut frames, its
+     single picture, Victory's chest, or one drawn here. ]]
+local function crateLook(area: string): Look
+	local frames = GearAssets.crates[area]
+	local single = GearAssets.areaPictures.chests[area] or ""
+	if single == "" then
+		local chests: { [string]: string } = EndScreenAssets.chests
+		single = chests[area] or ""
 	end
-	local function after()
-		if #rest > 0 then
-			hatch(look, rest, function()
-				showing = false
-			end)
-		else
-			showing = false
-		end
-	end
-	if #mythics > 0 then
-		cinematic(look, mythics[1], chanceOf(mythics[1]), function()
-			for n = 2, #mythics do
-				table.insert(rest, mythics[n])
-			end
-			after()
-		end)
-	else
-		after()
-	end
+	return {
+		kind = "crate",
+		whole = if frames then frames.closed else single,
+		crack1 = "",
+		crack2 = "",
+		bare = if frames then frames.bare else "",
+		open = if frames then frames.open else "",
+		model = GearAssets.models[area],
+		colours = Beats.wood,
+		glow = Beats.glows[area] or Beats.glows.MossyGlade,
+		special = "YOU FOUND SOMETHING SPECIAL...",
+	}
+end
+--[[ The egg `key` hatches as: its model, its cut frames, its area's single
+     picture, or one drawn here in its area's colours. ]]
+local function eggLook(key: string): Look
+	local egg = EggRules.find(key)
+	local area = if egg then egg.area else "MossyGlade"
+	local frames = GearAssets.eggs[key]
+	return {
+		kind = "egg",
+		whole = if frames then frames.whole else (GearAssets.areaPictures.eggs[area] or ""),
+		crack1 = if frames then frames.crack1 else "",
+		crack2 = if frames then frames.crack2 else "",
+		bare = "",
+		open = "",
+		model = GearAssets.models[key],
+		colours = Beats.shells[area] or Beats.shells.MossyGlade,
+		glow = Beats.glows[area] or Beats.glows.MossyGlade,
+		special = "YOU HATCHED SOMETHING SPECIAL...",
+	}
 end
 --[[ A crate's weapons (owner, 2026-10-27: the chests "changed exactly how
-     you are changing the pets and with the same ui"): the crate in the
-     eggs' place, shaking to its own opening sound. ]]
+     you are changing the pets and with the same ui"). ]]
 function Reveal.crates(index: number, results: { { weapon: string, new: boolean } })
 	local crate = Shop.crates[index]
 	if not crate then
-		return
-	end
-	local art = GearAssets.crates[crate.area]
-	if not art then
 		return
 	end
 	local prizes: { Prize } = {}
@@ -616,40 +1085,20 @@ function Reveal.crates(index: number, results: { { weapon: string, new: boolean 
 			})
 		end
 	end
-	present(
-		{
-			--[[ The padlocks come off, then the lid: `bare` and `open` were
-			     cut for this and were both standing unused, so a chest with
-			     no model still opens rather than only shaking. ]]
-			whole = art.closed,
-			crack1 = art.bare,
-			crack2 = art.open,
-			sound = "crate_open",
-			soundBurst = Beats.crate.soundBurst,
-			jingle = Beats.crate.jingle,
-			special = "YOU FOUND SOMETHING SPECIAL...",
-			model = GearAssets.models[crate.area],
-		},
-		prizes,
-		function(prize)
-			for _, entry in ShopRules.cratePool(index) do
-				if entry.label == prize.name then
-					return ShopRules.chance(index, entry)
-				end
+	present(crateLook(crate.area), prizes, function(prize)
+		for _, entry in ShopRules.cratePool(index) do
+			if entry.label == prize.name then
+				return ShopRules.chance(index, entry)
 			end
-			return 0
 		end
-	)
+		return 0
+	end)
 end
 function Reveal.eggs(
 	key: string,
 	results: { { pet: string, new: boolean } },
 	counts: { [string]: number }?
 )
-	local art = GearAssets.eggs[key]
-	if not art then
-		return
-	end
 	local prizes: { Prize } = {}
 	for _, result in results do
 		local info = Pets[result.pet]
@@ -665,27 +1114,14 @@ function Reveal.eggs(
 			})
 		end
 	end
-	present(
-		{
-			whole = art.whole,
-			crack1 = art.crack1,
-			crack2 = art.crack2,
-			sound = "egg_hatch",
-			soundBurst = Beats.egg.soundBurst,
-			jingle = Beats.egg.jingle,
-			special = "YOU HATCHED SOMETHING SPECIAL...",
-			model = GearAssets.models[key],
-		},
-		prizes,
-		function(prize)
-			for _, entry in EggRules.pool(key) do
-				if entry.name == prize.name then
-					return entry.chance
-				end
+	present(eggLook(key), prizes, function(prize)
+		for _, entry in EggRules.pool(key) do
+			if entry.name == prize.name then
+				return entry.chance
 			end
-			return 0
 		end
-	)
+		return 0
+	end)
 end
 function Reveal.equip(source: GuiObject, target: GuiObject, asset: string, pet: boolean)
 	if Reveal.busy() then

@@ -48,7 +48,37 @@ local BOSS_SPRITE = "rbxassetid://73447077207928"
      file per batch, for Roblox's audio upload limits). Uploaded 2026-10-25. ]]
 local WARDEN_SPRITE = "rbxassetid://123411253404004"
 
+--[[ The Drowned Village's water footsteps (`final/water_step_sprite.mp3`):
+     not uploaded yet, so "" and silent. ]]
+local WATER_SPRITE = ""
+
 local Sounds: { [string]: Sound } = {
+	--[[ Footsteps in the Drowned Village's shallow water (`Fx/WaterSteps`;
+	     owner, 2026-11-05: "the footsteps in the shallow water need to be
+	     emphasized"): three takes from `assets/audio/water_step_synth.py`,
+	     one sprite (`final/water_step_sprite.mp3`, one upload), played in
+	     turn at random. Silent until it is uploaded and `WATER_SPRITE` set. ]]
+	water_step_1 = {
+		id = WATER_SPRITE,
+		volume = 0.55,
+		pitchJitter = 0.1,
+		minGap = 0.1,
+		region = { 0, 0.48 },
+	},
+	water_step_2 = {
+		id = WATER_SPRITE,
+		volume = 0.55,
+		pitchJitter = 0.1,
+		minGap = 0.1,
+		region = { 0.92, 0.48 },
+	},
+	water_step_3 = {
+		id = WATER_SPRITE,
+		volume = 0.55,
+		pitchJitter = 0.1,
+		minGap = 0.1,
+		region = { 1.84, 0.48 },
+	},
 	--[[ The Ranger's every arrow (`Config/Weapons.TwigBow.fireSound`). ]]
 	arrow_fire = {
 		id = "rbxassetid://87054967937419",

@@ -1172,6 +1172,101 @@ local shellback: EnemyConfig = {
 }
 
 --[[
+	Grandmother Gulp, Bogheart Caverns' boss (docs/BOSSES.md §4; her sheets
+	`assets/concepts/blocky/boss06_grandmother_gulp.jpg` and the Tripo
+	`ref_gulp_views.png`). Alone in the caverns' last room. One textured
+	Tripo mesh, so the server poses her whole body (`Enemies/BossBody`) the
+	way the Slime King was posed before his rig: she squashes, leans and
+	rises, and her tongue is the thrown arm, a pink tube from her mouth.
+
+	Her fight is the Slime King's two moves in her own shape:
+	- **Tongue** (`lash`): a long lane, marked and then locked, down which
+	  her tongue lashes; it catches the first player in it, reels her in to
+	  them and ends in a belly bump. One tongue, so one lash a turn.
+	- **Belly Flop** (`bounce`): two leaps, each to where the target stood
+	  at takeoff, marked on the floor from the wind-up, landing in a
+	  shockwave, then a winded pause that is the punish window.
+	- **Spore Puffs at her thirds** (`summon`, as King Bloblin's): as her
+	  health falls through 2/3 and 1/3 she coughs up three Spore Puffs,
+	  the doc's "swallows Spore Puffs and spits them as bursting clouds".
+
+	Not built: the doc's phase 3 flood that shrinks the dry floor. The
+	engine has no rising-hazard piece yet (docs/BOSSES.md, "What bosses
+	ask the engine for": arena change mid-fight).
+
+	PLACEHOLDER NUMBERS until the owner plays her. Health a step past the
+	Broodmother's 6,600; her stage's multiplier and the room ramp sit on
+	top, and the ramp is kept for last-room bosses (owner, 2026-11-05).
+]]
+local grandmotherGulp: EnemyConfig = {
+	displayName = "GrandmotherGulp",
+	turnRate = 90,
+	health = 6800,
+	moveSpeed = 0,
+	attackRange = 0,
+	attackDamage = 0,
+	attackCooldown = 0,
+	knockback = 0,
+	--[[ Her model x10: 9.67 across, 9.66 tall, 9.81 deep. ]]
+	hitboxSize = Vector3.new(9.8, 9.8, 10),
+	color = Color3.fromRGB(150, 90, 190),
+	xpReward = 120,
+	boss = {
+		title = "Grandmother Gulp",
+		bounce = {
+			--[[ Two flops, not three: she is heavier than the king, so each
+			     hangs a little longer and lands a little wider. ]]
+			bounces = 2,
+			windup = 1,
+			launch = 0.2,
+			air = 1.5,
+			recover = 0.6,
+			winded = 1.6,
+			height = 13,
+			maxRange = 22,
+			radius = 7.5,
+			damage = 60,
+			shove = 8,
+			shockRadius = 13,
+		},
+		lash = {
+			arms = { "Arm_Tongue" },
+			wind = 0.9,
+			track = 0.45,
+			strike = 0.18,
+			hold = 0.4,
+			retract = 0.45,
+			--[[ Longer than the king's 18: a toad's tongue is her reach. ]]
+			reach = 21,
+			minReach = 6,
+			width = 3,
+			damage = 48,
+			shove = 4,
+			pull = 0.4,
+			bump = 0.22,
+			bumpDamage = 36,
+			bumpShove = 9,
+			recover = 0.7,
+			stopDistance = 7,
+			--[[ Only a body that draws a chain from its clips reads these. ]]
+			chainRoot = 3,
+			chainReach = 20,
+		},
+		restAfterBounce = 1.6,
+		restAfterLash = 1.2,
+		loop = { "Lash", "Bounce" },
+		opening = 1.5,
+		summon = {
+			into = sporePuff,
+			count = 3,
+			atFractions = { 2 / 3, 1 / 3 },
+			clip = "",
+			windup = 1.4,
+		} :: BossSummon,
+	},
+}
+
+--[[
 	The Broodmother, Thornwood's boss (docs/BOSSES.md §2, the owner's
 	Claude Design "Thornweaver", 2026-10-25). Alone in Level 2's last
 	room. Her fight loops two moves, drawn with her own clips: Web Walker
@@ -4165,6 +4260,7 @@ local Balance = {
 		SporePuff = sporePuff,
 		Glowcap = glowcap,
 		Shellback = shellback,
+		GrandmotherGulp = grandmotherGulp,
 	} :: { [string]: EnemyConfig },
 
 	--[[

@@ -149,6 +149,10 @@ ghost Drowned Bellkeeper, 2026-10-22: no ghost in Act 2.)
   sends a shockwave ring and splashes poison.
 - **Phase 3 (33%) — The Bog Rises.** Poison floods the room's edges, shrinking
   the dry floor; she swallows Spore Puffs and spits them as bursting clouds.
+- **Built 2026-11-06** (`Balance` `grandmotherGulp`): Tongue is the Slime
+  King's lash with one arm (a pink tube from her mouth), Belly Flop his
+  bounce (two leaps), and three Spore Puffs at each third of her health.
+  The flood is **not built**: the engine has no rising-hazard piece yet.
 - *Arena:* an underground lake ringed by glowing mushrooms. *Teaches:* every
   Lowlands lesson at once. *Class notes:* Ranger has the safest tongue
   windows; Arcanist's freeze can hold her mid-leap.

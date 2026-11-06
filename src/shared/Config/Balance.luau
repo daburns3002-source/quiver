@@ -2692,7 +2692,7 @@ local bogheartRooms: { RoomConfig } = {
 			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
 		},
 		enemyCount = 3,
-		roster = { brambleBoar, burrThistle },
+		roster = { sporePuff },
 	},
 	{
 		name = "Bogheart Caverns 2",
@@ -2705,8 +2705,8 @@ local bogheartRooms: { RoomConfig } = {
 			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
 			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
 		},
-		enemyCount = 4,
-		roster = { brambleBoar, burrThistle },
+		enemyCount = 3,
+		roster = { sporePuff, glowcap },
 	},
 	{
 		name = "Bogheart Caverns 3",
@@ -2722,7 +2722,7 @@ local bogheartRooms: { RoomConfig } = {
 			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
 		},
 		enemyCount = 4,
-		roster = { burrThistle, brambleBoar, brambleSow },
+		roster = { sporePuff, glowcap },
 	},
 	{
 		name = "Bogheart Caverns 4",
@@ -2733,8 +2733,8 @@ local bogheartRooms: { RoomConfig } = {
 			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
 			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
 		},
-		enemyCount = 5,
-		roster = { brambleBoar, brambleLurker, burrThistle },
+		enemyCount = 4,
+		roster = { glowcap, sporePuff, sporePuff },
 	},
 	{
 		name = "Bogheart Caverns 5",
@@ -2747,8 +2747,8 @@ local bogheartRooms: { RoomConfig } = {
 			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
 			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
 		},
-		enemyCount = 5,
-		roster = { brambleSow, burrThistle, brambleBoar },
+		enemyCount = 4,
+		roster = { shellback, sporePuff },
 	},
 	{
 		name = "Bogheart Caverns 6",
@@ -2764,7 +2764,7 @@ local bogheartRooms: { RoomConfig } = {
 			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
 		},
 		enemyCount = 5,
-		roster = { brambleLurker, brambleBoar, brambleSow },
+		roster = { sporePuff, glowcap, shellback },
 	},
 	{
 		name = "Bogheart Caverns 7",
@@ -2775,11 +2775,67 @@ local bogheartRooms: { RoomConfig } = {
 			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
 			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
 		},
-		enemyCount = 6,
-		roster = { burrThistle, brambleLurker, brambleBoar, brambleSow },
+		enemyCount = 5,
+		roster = { shellback, sporePuff, glowcap },
 	},
 	{
 		name = "Bogheart Caverns 8",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 5,
+		roster = { glowcap, sporePuff, sporePuff, shellback },
+	},
+	{
+		name = "Bogheart Caverns 9",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 5,
+		roster = { shellback, glowcap, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 10",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 6,
+		roster = { sporePuff, sporePuff, glowcap, shellback },
+	},
+	{
+		name = "Bogheart Caverns 11",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 6,
+		roster = { glowcap, shellback, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 12",
 		arena = "BogheartStream",
 		obstacles = {
 			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
@@ -2792,10 +2848,22 @@ local bogheartRooms: { RoomConfig } = {
 			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
 		},
 		enemyCount = 6,
-		roster = { brambleBoar, brambleSow, burrThistle, brambleLurker },
+		roster = { shellback, sporePuff, glowcap, sporePuff },
 	},
 	{
-		name = "Bogheart Caverns 9",
+		name = "Bogheart Caverns 13",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 6,
+		roster = { glowcap, glowcap, sporePuff, shellback },
+	},
+	{
+		name = "Bogheart Caverns 14",
 		arena = "BogheartStream",
 		obstacles = {
 			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
@@ -2805,8 +2873,82 @@ local bogheartRooms: { RoomConfig } = {
 			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
 			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
 		},
-		enemyCount = 6,
-		roster = { brambleSow, brambleLurker, burrThistle, brambleBoar },
+		enemyCount = 7,
+		roster = { sporePuff, shellback, glowcap, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 15",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 7,
+		roster = { shellback, glowcap, sporePuff, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 16",
+		arena = "BogheartOpen",
+		obstacles = {
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 7,
+		roster = { glowcap, sporePuff, shellback, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 17",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 7,
+		roster = { shellback, shellback, glowcap, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 18",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 8,
+		roster = { sporePuff, glowcap, shellback, sporePuff },
+	},
+	{
+		name = "Bogheart Caverns 19",
+		arena = "BogheartStream",
+		obstacles = {
+			{ offset = Vector2.new(-16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(6.6, -2), size = Vector3.new(8.8, 0.4, 3.4) },
+			{ offset = Vector2.new(16.25, -2), size = Vector3.new(2.5, 0.4, 3.4) },
+			{ offset = Vector2.new(-9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, -17.5), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
+			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
+		},
+		enemyCount = 8,
+		roster = { shellback, glowcap, sporePuff, glowcap, sporePuff },
 	},
 	{
 		name = "Bogheart Heart",
@@ -2821,8 +2963,8 @@ local bogheartRooms: { RoomConfig } = {
 			{ offset = Vector2.new(-9, 10), size = Vector3.new(5, 4, 5) },
 			{ offset = Vector2.new(9, 10), size = Vector3.new(5, 4, 5) },
 		},
-		enemyCount = 7,
-		roster = { brambleSow, brambleBoar, burrThistle, brambleLurker },
+		enemyCount = 1,
+		roster = { grandmotherGulp },
 	},
 }
 -- END area34Rooms
@@ -4236,6 +4378,11 @@ local Balance = {
 		BrambleLurker = brambleLurker,
 		Broodmother = broodmother,
 		Thornling = thornling,
+		-- Bogheart Caverns
+		SporePuff = sporePuff,
+		Glowcap = glowcap,
+		Shellback = shellback,
+		GrandmotherGulp = grandmotherGulp,
 	},
 
 	--[[
@@ -4256,11 +4403,6 @@ local Balance = {
 	Benched = {
 		Lancer = _lineSniper,
 		HollowFisherman = hollowFisherman,
-		-- Bogheart Caverns, until its rooms carry them
-		SporePuff = sporePuff,
-		Glowcap = glowcap,
-		Shellback = shellback,
-		GrandmotherGulp = grandmotherGulp,
 	} :: { [string]: EnemyConfig },
 
 	--[[
@@ -4908,16 +5050,13 @@ local Balance = {
 		--[[
 			The Drowned Village and Bogheart Caverns (2026-11-05): ten rooms
 			each from `tools/area34_rooms.py`, built from the owner's kits.
-			After Endless so no stage's index moves. **Behind no portal
-			yet**: their own enemies are not modelled, so their rosters are
-			stand-ins (Thornwood's, with the Hollow Fisherman in area 3), and
-			each ends in an elite fight where its boss will stand
+			After Endless so no stage's index moves. **The Drowned Village
+			is behind no portal yet**: its own enemies are not modelled, so
+			its rosters are stand-ins (Thornwood's, with the Hollow
+			Fisherman), and it ends in an elite fight where its boss will
+			stand. Bogheart Caverns has its own since 2026-11-06 (below)
 			(`docs/DROWNED-VILLAGE.md`). A step harder than Thornwood each,
 			placeholder numbers until they are played.
-
-			Bogheart Caverns carries no `area` yet: an area needs a NEW
-			ENEMY! sheet (`Config/NewEnemies`, `tests/NewEnemies.spec`), and
-			it has neither a sheet nor an enemy of its own.
 		]]
 		{
 			name = "Drowned Village",
@@ -4927,12 +5066,16 @@ local Balance = {
 			enemyHealth = 2.3,
 			area = "DrownedVillage",
 		},
+		--[[ Bogheart Caverns (2026-11-06): its own enemies, twenty rooms
+		     like Thornwood's, Grandmother Gulp alone in the last. Behind the
+		     lobby's Bogheart portal (`Config/Lobby`). ]]
 		{
 			name = "Bogheart Caverns",
 			mode = "Rooms",
 			rooms = roomsAfter(BOGHEART_BASE, #bogheartRooms),
 			enemyDamage = 1.15,
 			enemyHealth = 2.5,
+			area = "BogheartCaverns",
 		},
 	} :: { StageConfig },
 
@@ -4945,7 +5088,8 @@ local Balance = {
 	endlessStage = 17,
 
 	--[[ The Drowned Village's and Bogheart Caverns' stages (above), for
-	     the portals once their enemies are built. ]]
+	     the portals once their enemies are built. Bogheart's is open
+	     (2026-11-06). ]]
 	drownedStage = 18,
 	bogheartStage = 19,
 

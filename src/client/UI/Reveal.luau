@@ -56,6 +56,8 @@ type Look = {
 	--[[ The shell's (or wood's) two colours, for its pieces and the drawn
 	     stand-in. ]]
 	colours: { Color3 },
+	--[[ The light inside it, in its area's colour (`Config/Reveal.glows`). ]]
+	glow: Color3,
 	special: string,
 }
 --[[ Something thrown: launched at `at` from (`x`, `y`). With `drag` it
@@ -88,6 +90,8 @@ type Part = {
 	colour: Color3,
 	tier: Beats.Tier,
 	leak: ImageLabel,
+	aura: ImageLabel,
+	inner: ImageLabel,
 	leakRays: ImageLabel,
 	shell: ImageLabel,
 	drawn: Frame,
@@ -441,6 +445,8 @@ local function play(look: Look, prizes: { Prize }, chanceOf: (Prize) -> number, 
 			tier = tier,
 			leakRays = centred(Kit.image(root, GearAssets.fx.rays), 1),
 			leak = centred(Kit.image(root, GearAssets.fx.glow), 2),
+			aura = centred(Kit.image(root, GearAssets.fx.glow), 2),
+			inner = centred(Kit.image(root, GearAssets.fx.glow), 5),
 			rays2 = centred(Kit.image(root, GearAssets.fx.rays), 2),
 			rays = centred(Kit.image(root, GearAssets.fx.rays), 2),
 			glow = centred(Kit.image(root, GearAssets.fx.glow), 3),
@@ -778,9 +784,11 @@ local function play(look: Look, prizes: { Prize }, chanceOf: (Prize) -> number, 
 					CFrame.Angles(if tips then -open * math.rad(38) else 0, t * 0.6, math.rad(-rot))
 			end
 			-- the cracks, glowing, turning with the shell
-			local light = if part.tier.glow
-				then Color3.new(1, 1, 1):Lerp(part.colour, w * 0.7)
-				else Color3.new(1, 1, 1)
+			-- the light inside: the area's, warming to the rarity's in a big pull
+			local light = look.glow:Lerp(Color3.new(1, 1, 1), 0.25)
+			if part.tier.glow then
+				light = light:Lerp(part.colour, w * 0.7)
+			end
 			local angle = math.rad(rot)
 			local cosA, sinA = math.cos(angle), math.sin(angle)
 			local function place(v: Vector2): Vector2
@@ -811,6 +819,31 @@ local function play(look: Look, prizes: { Prize }, chanceOf: (Prize) -> number, 
 			part.leakRays.Rotation = t * 80
 			put(part.leakRays, px, py, size * (1.1 + leaking), size * (1.1 + leaking))
 			part.leakRays.ImageTransparency = 1 - 0.65 * leaking
+			--[[ The glow of the thing itself (owner, 2026-11-06: "make sure there
+			     is a glow in the egg and chest"): a halo from the landing that
+			     swells and pulses as it wobbles, and a light inside it -- over
+			     the egg's middle, out of the chest's seam -- that flares on the
+			     burst, stronger the better the pull. ]]
+			local strength = part.tier.aura
+			local arrived = clamp01(u / 0.3)
+			local pulse = 0.85 + 0.15 * math.sin(t * (6 + 10 * w))
+			local flare = if burst then 1 - clamp01(since / (if chest then 0.9 else 0.35)) else 0
+			local halo = (0.3 + 0.7 * w) * strength * arrived * pulse
+			part.aura.Visible = (halo > 0.01 and not burst) or flare > 0.01
+			part.aura.ImageColor3 = light
+			local auraSize = size * (1.25 + 0.55 * w * strength + flare * 0.9)
+			put(part.aura, px, py, auraSize, auraSize)
+			part.aura.ImageTransparency = 1
+				- math.min(0.95, if burst then flare * strength else halo)
+			local seam = if chest then py - size * 0.06 * sy else py
+			local within = (0.15 + 0.55 * w ^ 1.3) * strength * arrived * pulse
+			part.inner.Visible = (within > 0.01 and not burst) or flare > 0.01
+			part.inner.ImageColor3 = light:Lerp(Color3.new(1, 1, 1), 0.35)
+			local innerW = size * (if chest then 0.95 + 0.4 * w else 0.6 + 0.25 * w) * (1 + flare)
+			local innerH = size * (if chest then 0.32 + 0.3 * w else 0.7 + 0.25 * w) * (1 + flare)
+			put(part.inner, px, seam, innerW, innerH)
+			part.inner.ImageTransparency = 1
+				- math.min(0.9, if burst then flare * strength else within)
 			-- the chest's beams out of its open lid
 			for n, beam in part.beams do
 				local up = popIn(since / 0.3) * (1 - clamp01((t - line.banner) / 0.6))
@@ -1008,6 +1041,7 @@ local function crateLook(area: string): Look
 		open = if frames then frames.open else "",
 		model = GearAssets.models[area],
 		colours = Beats.wood,
+		glow = Beats.glows[area] or Beats.glows.MossyGlade,
 		special = "YOU FOUND SOMETHING SPECIAL...",
 	}
 end
@@ -1026,6 +1060,7 @@ local function eggLook(key: string): Look
 		open = "",
 		model = GearAssets.models[key],
 		colours = Beats.shells[area] or Beats.shells.MossyGlade,
+		glow = Beats.glows[area] or Beats.glows.MossyGlade,
 		special = "YOU HATCHED SOMETHING SPECIAL...",
 	}
 end

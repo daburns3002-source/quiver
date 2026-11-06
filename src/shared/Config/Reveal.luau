@@ -36,6 +36,10 @@ export type Tier = {
 	glow: boolean,
 	--[[ "...SOMETHING SPECIAL..." while it builds, and its odds shown. ]]
 	special: boolean,
+	--[[ How strongly the egg or chest itself glows, in its area's colour
+	     (`glows`), from the landing to the burst (owner, 2026-11-06: "make
+	     sure there is a glow in the egg and chest in the animations"). ]]
+	aura: number,
 }
 
 local Reveal = {
@@ -75,10 +79,42 @@ local Reveal = {
 	},
 	--[[ Each rarity's build-up and payoff. ]]
 	tiers = {
-		Common = { build = 0, shake = 1, dark = 0, hold = 0, glow = false, special = false },
-		Uncommon = { build = 0, shake = 1.1, dark = 0, hold = 0, glow = false, special = false },
-		Rare = { build = 0.15, shake = 1.25, dark = 0.1, hold = 0.2, glow = false, special = false },
-		Epic = { build = 0.35, shake = 1.5, dark = 0.2, hold = 0.4, glow = false, special = false },
+		Common = {
+			build = 0,
+			shake = 1,
+			dark = 0,
+			hold = 0,
+			glow = false,
+			special = false,
+			aura = 0.34,
+		},
+		Uncommon = {
+			build = 0,
+			shake = 1.1,
+			dark = 0,
+			hold = 0,
+			glow = false,
+			special = false,
+			aura = 0.4,
+		},
+		Rare = {
+			build = 0.15,
+			shake = 1.25,
+			dark = 0.1,
+			hold = 0.2,
+			glow = false,
+			special = false,
+			aura = 0.48,
+		},
+		Epic = {
+			build = 0.35,
+			shake = 1.5,
+			dark = 0.2,
+			hold = 0.4,
+			glow = false,
+			special = false,
+			aura = 0.58,
+		},
 		Legendary = {
 			build = 0.9,
 			shake = 2.2,
@@ -86,8 +122,17 @@ local Reveal = {
 			hold = 1,
 			glow = true,
 			special = false,
+			aura = 0.82,
 		},
-		Mythic = { build = 1.8, shake = 3, dark = 0.75, hold = 1.6, glow = true, special = true },
+		Mythic = {
+			build = 1.8,
+			shake = 3,
+			dark = 0.75,
+			hold = 1.6,
+			glow = true,
+			special = true,
+			aura = 1,
+		},
 	} :: { [string]: Tier },
 	--[[ How many bits fly: shell pieces per egg, confetti per reveal. ]]
 	shards = 10,
@@ -102,6 +147,16 @@ local Reveal = {
 		WindsweptCliffs = { Color3.fromRGB(206, 204, 170), Color3.fromRGB(120, 172, 226) },
 		FrostpeakPass = { Color3.fromRGB(176, 220, 250), Color3.fromRGB(255, 255, 255) },
 	} :: { [string]: { Color3 } },
+	--[[ The light inside each area's egg and chest: its glow while it
+	     wobbles and the light out of its cracks and lid. ]]
+	glows = {
+		MossyGlade = Color3.fromRGB(150, 255, 120),
+		Thornwood = Color3.fromRGB(255, 120, 200),
+		DrownedVillage = Color3.fromRGB(110, 220, 255),
+		BogheartCaverns = Color3.fromRGB(200, 120, 255),
+		WindsweptCliffs = Color3.fromRGB(170, 225, 255),
+		FrostpeakPass = Color3.fromRGB(190, 245, 255),
+	} :: { [string]: Color3 },
 	--[[ A chest's wood and its bands, for its splinters and the chest drawn
 	     when there is none. ]]
 	wood = { Color3.fromRGB(150, 96, 50), Color3.fromRGB(255, 205, 40) },

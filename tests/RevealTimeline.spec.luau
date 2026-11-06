@@ -16,12 +16,14 @@ local TestRunner = require(script.Parent.TestRunner)
 
 return function(t: TestRunner.Helper)
 	t.test("every rarity has a tier, building and shaking more as it climbs", function()
-		local build, shake = -1, 0
+		local build, shake, aura = -1, 0, 0
 		for _, rarity in Rarities.list do
 			local tier = Reveal.tiers[rarity.name]
 			t.notNil(tier, rarity.name)
 			t.isTrue(tier.build >= build and tier.shake >= shake, rarity.name)
-			build, shake = tier.build, tier.shake
+			-- the egg's and chest's own glow is stronger the better the pull
+			t.isTrue(tier.aura > aura, rarity.name)
+			build, shake, aura = tier.build, tier.shake, tier.aura
 		end
 	end)
 

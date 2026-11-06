@@ -207,6 +207,32 @@ local GearAssets = {
 			tips = true,
 		},
 	} :: { [string]: RevealModel },
+	--[[ Each area's egg and chest as one picture (Codex's per-area art,
+	     `assets/concepts/blocky/eggs_chests/egg_<area>.png` and
+	     `chest_<area>.png`, 2026-11-06), for an egg or chest with no model
+	     and no cut frames above: `UI/Reveal` draws its cracks and light over
+	     it. "" until uploaded, and then the reveal draws its own in the
+	     area's colours (`Config/Reveal.shells`; a chest falls back to
+	     Victory's first). A Tripo model, once imported, goes in `models`
+	     under the egg's key or the chest's area and wins over all of it. ]]
+	areaPictures = {
+		eggs = {
+			MossyGlade = "",
+			Thornwood = "",
+			DrownedVillage = "",
+			BogheartCaverns = "",
+			WindsweptCliffs = "",
+			FrostpeakPass = "",
+		} :: { [string]: string },
+		chests = {
+			MossyGlade = "",
+			Thornwood = "",
+			DrownedVillage = "",
+			BogheartCaverns = "",
+			WindsweptCliffs = "",
+			FrostpeakPass = "",
+		} :: { [string]: string },
+	},
 	--[[ The showcase behind a pulled prize (owner, 2026-10-26: option 4, "the
 	     showcase pedestal with the rarity banner and confetti"): white, tinted
 	     by rarity. The banner is 748 x 297, the pedestal 642 x 318. ]]

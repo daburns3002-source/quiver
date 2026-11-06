@@ -106,6 +106,7 @@ where you would be standing. Say what reads wrong and Claude retunes it.
 - **The tutorial.** Five glade rooms of Moss Slimes and Spitters: does it teach well, at the right difficulty?
 - **The class-select cover.** The 1.8 s wait should be a spotlight with a tip and a bar, never the old green backdrop with a weapon panel.
 - **The end screens.** Press V and B in a playtest and hold them against `end_victory_chest.jpg` and `end_defeat.jpg`.
+- **The new egg hatch and chest opening (2026-11-06).** Hatch 1 and 3 at the Hatchery and open a crate at the Blacksmith. Egg: drops and bounces, wobbles harder as cracks glow, bursts into shell pieces with a flash and confetti, the pet hops out, its colour bursts and its banner slams down. Chest: rattles, padlocks pop, light leaks from the lid, it bursts open with beams and coins, the weapon rises out. A Legendary or Mythic builds longer, darkens the screen, shakes the camera and glows (a Mythic also says "something special"; no rainbow). Not yet seen in Studio or on a phone. Per-area egg and chest pictures go in `GearAssets.areaPictures` once uploaded, Tripo models in `GearAssets.models`; until then areas 3-6 open as an egg or chest drawn in their colours.
 - **The in-run MENU button.** It sits on the left edge at mid-height, which is where a floating thumbstick is most often grabbed - is it under your thumb on a phone?
 - **Endless.** Beat 1-10 and walk into the Endless arch: a draft every 3rd floor, a mini-boss every 5th, a boss every 10th, the area changing every 10. Health x1.045 a floor, damage x1.030.
 

@@ -53,8 +53,12 @@ function EggScreen.start()
 	     scene belongs inside the odds panel and nowhere else (owner,
 	     2026-10-31, on the full-screen art). The layer stays, because it is
 	     what covers Roblox's own top bar; what it carries goes dark. ]]
+	--[[ The approved mockups (2026-11-05) stand the panel over the lobby
+	     itself, dimmed, rather than over a black screen. ]]
+	backdrop.Visible = false
 	local veil = Instance.new("Frame")
-	veil.BackgroundColor3 = Color3.fromRGB(14, 16, 20)
+	veil.BackgroundColor3 = Color3.fromRGB(10, 14, 40)
+	veil.BackgroundTransparency = 0.45
 	veil.BorderSizePixel = 0
 	veil.Size = UDim2.fromScale(1, 1)
 	veil.ZIndex = 50
@@ -123,6 +127,7 @@ function EggScreen.start()
 			counts = Eggs.counts,
 			verb = "HATCH",
 			noun = "PETS",
+			heading = "HATCHERY",
 		}, control, press, affordable)
 	end
 	s.connect(Remotes.event(Remotes.EggHatched).OnClientEvent, function(key, results)

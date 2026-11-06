@@ -791,6 +791,9 @@ Press Start 2P, Roblox's `Enum.Font.Arcade` (`Font.fromEnum(Enum.Font.Arcade)` f
 `FontFace`): HUD, cards, end screens, banners, damage numbers, billboards, dev labels, all
 of it (owner, 2026-10-24: "anywhere there is writing it should be in a blocky font … have
 it as a rule going forward"). The room sign's own pixel font (`Config/PixelFont`) counts.
+The one exception is the **rounded font**, Fredoka One (`Enum.Font.FredokaOne`, via
+`UI/Chunky`), for the chunky restyled screens and the lobby (owner, 2026-11-05: "they should
+use the rounded font, some things are going to be in that font, especially in the lobby").
 `tools/check.sh` fails on any other font.
 
 **12. Every Legendary and Mythic glows.**

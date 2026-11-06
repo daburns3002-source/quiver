@@ -9,6 +9,7 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
+local Chunky = require(script.Parent.Chunky)
 local GearAssets = require(ReplicatedStorage.Shared.Config.GearAssets)
 local HatchStand = require(script.Parent.HatchStand)
 local Kit = require(script.Parent.Kit)
@@ -42,6 +43,10 @@ function ShopScreen.close()
 	end
 end
 local function priceText(cost: Purse.Cost): string
+	-- coins alone read as the number beside the coin on the button
+	if cost.coins and not cost.gems and next(cost.items or {}) == nil then
+		return Chunky.commas(cost.coins)
+	end
 	local parts = {}
 	if cost.coins then
 		table.insert(parts, tostring(cost.coins) .. " COINS")
@@ -57,81 +62,119 @@ end
 local function picture(weapon: string): string
 	return ShopAssets.weapons[weapon] or GearAssets.weapons[weapon] or ""
 end
--- The store: the selected area's weapons for sale, five to a row.
-local function drawStore(s: StationScreen.Screen)
-	local c, p = s.canvas, s.profile
-	local plate = Kit.plate(c)
-	Kit.put(plate, 552, 248, 816, 104)
-	Kit.label(plate, Shop.crates[selected].name .. " STORE")
-	for i, direction in { -1, 1 } do
-		local b = Kit.imageButton(
-			c,
-			if direction < 0 then GearAssets.buttons.left else GearAssets.buttons.right,
-			function()
-				if not Reveal.busy() then
-					selected = (selected - 1 + direction) % #Shop.crates + 1
-					s.open()
-				end
+--[[ The store: the selected area's weapons for sale, as the approved style
+     sheet's SHOP rows (owner, 2026-11-05): a white card per weapon with its
+     2D art in its rarity's frame, its name and rarity, its price and a fat
+     BUY. Two columns across a landscape screen, one upright; the list
+     scrolls when the area sells more than fit. ]]
+local function drawStore(s: StationScreen.Screen, area: HatchStand.Area)
+	local p = s.profile
+	local sheet = area.sheet
+	local up = sheet.upright
+	local function step(direction: number): () -> ()
+		return function()
+			if not Reveal.busy() then
+				selected = (selected - 1 + direction) % #Shop.crates + 1
+				s.open()
 			end
-		)
-		Kit.put(b, if i == 1 then 408 else 1392, 240, 120, 120)
+		end
 	end
+	-- the area picker across the head of the list
+	Chunky.button(sheet, "<", Chunky.blue, area.x, area.y, 100, 84, step(-1))
+	Chunky.button(sheet, ">", Chunky.blue, area.x + area.w - 100, area.y, 100, 84, step(1))
+	local nameBox = Instance.new("Frame")
+	nameBox.BackgroundTransparency = 1
+	Chunky.put(sheet, nameBox, area.x + 120, area.y + 4, area.w - 240, 76)
+	Chunky.text(nameBox, Shop.crates[selected].name .. " STORE", nil, 6)
+
+	local entries = {}
+	for _, entry in ShopRules.catalog() do
+		if entry.area == selected and ShopRules.price(entry) then
+			table.insert(entries, entry)
+		end
+	end
+	local top = area.y + 104
+	local viewW, viewH = area.w, area.bottom - top
+	local cols = if up then 1 else 2
+	local gap, rowH = 18, 150
+	local rows = math.max(math.ceil(#entries / cols), 1)
+	local contentH = math.max(viewH, rows * (rowH + gap))
 	local list = Instance.new("ScrollingFrame")
 	list.BackgroundTransparency = 1
 	list.BorderSizePixel = 0
-	local saleCount = 0
-	for _, entry in ShopRules.catalog() do
-		if entry.area == selected and ShopRules.price(entry) then
-			saleCount += 1
-		end
+	list.ScrollBarThickness = 10
+	list.ScrollBarImageColor3 = Chunky.navy
+	list.CanvasSize = UDim2.fromScale(0, contentH / viewH)
+	list.ScrollingDirection = Enum.ScrollingDirection.Y
+	list.ZIndex = 6
+	Chunky.put(sheet, list, area.x, top, viewW, viewH)
+	local colW = (viewW - 24 - (cols - 1) * gap) / cols
+	local function inList(item: GuiObject, x: number, y: number, w: number, h: number)
+		item.Position = UDim2.fromScale(x / viewW, y / contentH)
+		item.Size = UDim2.fromScale(w / viewW, h / contentH)
+		item.Parent = list
 	end
-	local viewHeight = 632
-	local canvasHeight = math.max(viewHeight, math.ceil(saleCount / 5) * 288 + 16)
-	list.CanvasSize = UDim2.fromScale(0, canvasHeight / viewHeight)
-	list.ScrollBarThickness = 8
-	Kit.put(list, 200, 368, 1520, 632)
-	list.Parent = c
-	local n = 0
-	for _, entry in ShopRules.catalog() do
-		local price = ShopRules.price(entry)
-		if entry.area ~= selected or not price then
-			continue
-		end
+	for n, entry in entries do
+		local price = assert(ShopRules.price(entry), "for sale")
+		local x = ((n - 1) % cols) * (colW + gap)
+		local y = ((n - 1) // cols) * (rowH + gap) + 6
 		local owned = p ~= nil and p.weapons[entry.weapon] == true
-		local art = picture(entry.weapon)
-		local tile = Kit.tile(list, entry.rarity, art, art == "")
-		tile.Position =
-			UDim2.fromScale((8 + n % 5 * 304) / 1520, (8 + math.floor(n / 5) * 288) / canvasHeight)
-		tile.Size = UDim2.fromScale(280 / 1520, 264 / canvasHeight)
-		for _, child in tile:GetChildren() do
-			if child:IsA("ImageLabel") and child.Image == art then
-				child.Size = UDim2.fromScale(0.94, 0.48)
-			end
-		end
-		local name = Kit.label(tile, entry.label)
-		name.Position, name.Size = UDim2.fromScale(0.04, 0.5), UDim2.fromScale(0.92, 0.12)
-		local priceLabel = Kit.label(tile, priceText(price))
-		priceLabel.Position, priceLabel.Size =
-			UDim2.fromScale(0.04, 0.62), UDim2.fromScale(0.92, 0.12)
 		local can = p ~= nil and Purse.canAfford(p, price)
-		local buy = Kit.button(
-			tile,
-			if owned then "OWNED" elseif can then "BUY" else "NEED FUNDS",
-			if can and not owned then Kit.green else Kit.slate,
-			function()
-				if owned or not can then
-					return
-				end
-				Reveal.request(function()
-					Remotes.event(Remotes.ShopBuy):FireServer(entry.weapon)
-				end)
-			end
+		local row = Instance.new("Frame")
+		row.BorderSizePixel = 0
+		row.BackgroundColor3 = Chunky.white
+		row.ZIndex = 6
+		inList(row, x, y, colW, rowH)
+		Chunky.round(row, 22)
+		Chunky.outline(row, 5)
+		-- the weapon in its rarity's frame (always the 2D art)
+		local holder = Instance.new("Frame")
+		holder.BackgroundTransparency = 1
+		holder.Position, holder.Size =
+			UDim2.fromScale(12 / colW, 12 / rowH), UDim2.fromScale(126 / colW, 126 / rowH)
+		holder.ZIndex = 7
+		holder.Parent = row
+		Chunky.tile(holder, entry.rarity, picture(entry.weapon), nil, false, owned)
+		local nameText = Chunky.text(row, entry.label, Chunky.navy, 0)
+		nameText.TextXAlignment = Enum.TextXAlignment.Left
+		nameText.Position, nameText.Size =
+			UDim2.fromScale(156 / colW, 18 / rowH),
+			UDim2.fromScale((colW - 156 - 250) / colW, 56 / rowH)
+		local rarityText = Chunky.text(
+			row,
+			string.upper(entry.rarity),
+			Chunky.rarity[entry.rarity] or Chunky.grey,
+			3
 		)
-		buy.Position, buy.Size = UDim2.fromScale(0.04, 0.74), UDim2.fromScale(0.92, 0.26)
-		n += 1
+		rarityText.TextXAlignment = Enum.TextXAlignment.Left
+		rarityText.Position, rarityText.Size =
+			UDim2.fromScale(156 / colW, 80 / rowH),
+			UDim2.fromScale((colW - 156 - 250) / colW, 40 / rowH)
+		-- the price on its button; BUY when it can be paid
+		local buyHolder = Instance.new("Frame")
+		buyHolder.BackgroundTransparency = 1
+		buyHolder.ZIndex = 8
+		buyHolder.Position, buyHolder.Size =
+			UDim2.fromScale((colW - 236) / colW, 30 / rowH), UDim2.fromScale(220 / colW, 96 / rowH)
+		buyHolder.Parent = row
+		local label = if owned then "OWNED" else priceText(price)
+		local colour = if owned then Chunky.grey elseif can then Chunky.green else Chunky.grey
+		local miniSheet: Chunky.Sheet =
+			{ canvas = buyHolder :: any, w = 220, h = 96, upright = false }
+		Chunky.button(miniSheet, label, colour, 0, 0, 220, 96, function()
+			if owned or not can then
+				return
+			end
+			Reveal.request(function()
+				Remotes.event(Remotes.ShopBuy):FireServer(entry.weapon)
+			end)
+		end, if owned or price.gems then nil else ShopAssets.coin)
 	end
-	if n == 0 then
-		Kit.label(list, "NO WEAPONS YET")
+	if #entries == 0 then
+		local empty = Instance.new("Frame")
+		empty.BackgroundTransparency = 1
+		inList(empty, 0, 40, viewW, 90)
+		Chunky.text(empty, "NO WEAPONS YET")
 	end
 end
 function ShopScreen.start()
@@ -158,8 +201,12 @@ function ShopScreen.start()
 	     scene belongs inside the odds panel and nowhere else (owner,
 	     2026-10-31, on the full-screen art). The layer stays, because it is
 	     what covers Roblox's own top bar; what it carries goes dark. ]]
+	--[[ The approved mockups (2026-11-05) stand the panel over the lobby
+	     itself, dimmed, rather than over a black screen. ]]
+	backdrop.Visible = false
 	local veil = Instance.new("Frame")
-	veil.BackgroundColor3 = Color3.fromRGB(14, 16, 20)
+	veil.BackgroundColor3 = Color3.fromRGB(10, 14, 40)
+	veil.BackgroundTransparency = 0.45
 	veil.BorderSizePixel = 0
 	veil.Size = UDim2.fromScale(1, 1)
 	veil.ZIndex = 50
@@ -192,27 +239,22 @@ function ShopScreen.start()
 		return not store
 	end)
 	s.draw = function()
-		local c, p = s.canvas, s.profile
+		local p = s.profile
+		-- the Blacksmith's two modes, as tabs along the panel's head
+		local modes = {}
 		for index, words in { "CRATES", "STORE" } do
-			local b = Kit.button(
-				c,
-				words,
-				if store == (index == 2) then Kit.gold else Kit.slate,
-				function()
-					if not Reveal.busy() then
-						store = index == 2
-						control.auto = false
-						s.open()
-					end
-				end
-			)
-			--[[ Under the left column rather than across the top: Codex's
-			     name hangs in that band, and the Blacksmith's own two modes
-			     are the game's furniture, not his. ]]
-			Kit.put(b, if index == 1 then 202 else 522, 930, 300, 84)
+			table.insert(modes, {
+				words = words,
+				on = store == (index == 2),
+				pick = function()
+					store = index == 2
+					control.auto = false
+					s.open()
+				end,
+			})
 		end
 		if store then
-			drawStore(s)
+			drawStore(s, HatchStand.chrome(s, "BLACKSMITH", modes))
 			return
 		end
 		local crate = Shop.crates[selected]
@@ -265,6 +307,8 @@ function ShopScreen.start()
 			counts = Shop.counts,
 			verb = "OPEN",
 			noun = "WEAPONS",
+			heading = "BLACKSMITH",
+			modes = modes,
 		}, control, press, affordable)
 	end
 	s.connect(Remotes.event(Remotes.ShopCrateOpened).OnClientEvent, function(index, results)

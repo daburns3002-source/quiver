@@ -141,7 +141,7 @@ local GearAssets = {
 		BogBeaver = "rbxassetid://112831862812693",
 		Lanternfin = "rbxassetid://81684013821583",
 		Olm = "rbxassetid://109387352166966",
-		GlowcapWilf = "rbxassetid://112157011551762",
+		GlowcapWilf = "rbxassetid://86027144186651",
 		Gulpling = "rbxassetid://97124284184604",
 		PrismLeviathan = "rbxassetid://85422430099871",
 	} :: { [string]: string },

@@ -16,6 +16,23 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## Tutorial prompts hard to read
+
+Owner, 2026-11-07: "i need to make it easier for the player to see everything
+that the tutorial is saying, i want the text to be in the same text as the ui
+now". The prompts were dark Arcade-font boxes of fixed height with
+`TextScaled`, so the long level-up text shrank to fit (smallest on a phone);
+the move prompt went after 8 studs, about half a second of walking; and the
+panel tied the skill bar on DisplayOrder 101. Now `UI/TutorialPrompts` draws
+the chunky UI's blue panel (`UI/Chunky` colours, Fredoka One, gold title,
+white words with a navy stroke) that grows to fit words sized from the screen
+(body 20-36 px, title 26-50 px), on DisplayOrder 102, and the move and dash
+prompts stay at least `Tutorial.minShow` (3 s), the shooting one 7 s.
+Measured in Play at 2333 x 1153: level-up panel 1000 x 202 with body 36 px
+(`TextFits` true); at phone width (367 px wide) it is 170 px tall.
+
+---
+
 ## Holes in the player bodies (Ranger Female)
 
 *Moot since 2026-11-07: the owner had the class bodies removed after the capped

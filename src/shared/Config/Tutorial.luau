@@ -80,7 +80,10 @@ local Tutorial = {
 	--[[ Studs the player walks before the move prompt goes, and how long the
 	     shooting one stays at the next fight (seconds). ]]
 	moveDistance = 8,
-	shootFor = 5,
+	shootFor = 7,
+	--[[ Seconds the move and dash prompts stay on screen at least, even when
+	     the player walks or dashes at once, so they can be read. ]]
+	minShow = 3,
 }
 
 return table.freeze(Tutorial)

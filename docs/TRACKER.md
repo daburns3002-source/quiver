@@ -118,6 +118,13 @@ where you would be standing. Say what reads wrong and Claude retunes it.
 
 - **The UI restyle (2026-11-05).** The Hatchery, the Blacksmith (CRATES and STORE) and Gear are in the chunky style you approved (assets/concepts/ui_refs/mockups/). Open them on a phone held each way. Gear has your four real slots (WEAPON, TRAIL, PET 1, PET 2) rather than the mockup's six, ATK and HP on the gold plate where the mockup says POWER, and BY RARITY / SMITH / HATCH under the grid where it shows EQUIP BEST and SELL, which the game does not have. The Dex is restyled too: your painted book and its page-turn frames give way to the mockup's panel (tabs, FOUND count, an entry card on the left, 15 rarity tiles a page that slide in when turned). The portal's level screen is restyled too: round level buttons in rows of five joined by dotted paths (green beaten, blue open, gold ring on the pick, grey under a lock, the boss's icon on its level) and a white card naming the level, its rooms and its boss, with PLAY. The mockup's stars and REWARD row are left out, as the game keeps neither per level.
 
+### Co-op (2026-11-06)
+
+- **Two players, live.** Studio cannot teleport, so the run servers have only been tested in place. In the published game, with a friend: stand in the same portal (the bar under the screen should read PARTY 2/2), START, and both of you should land together on a private server and start the level. LOBBY should bring both of you back to a lobby together, past the title screen. Solo runs and the tutorial now travel to a private server too: is the extra loading screen acceptable? Max Players in Game Settings must be above 1.
+- **Down and revive.** At zero health with a teammate up, you go down (DOWN! over your head, a bar and a countdown). Your teammate stands close for 2.5 s to bring you back at 40%; after 20 s you are OUT until the next room, which you start at 30%. The run ends only when nobody is standing. Are the numbers right?
+- **Scaling.** Two players get 1.65x the enemies, enemy health x1.10, boss health x1.7. Too easy, too hard? The arena does not grow (the art is 1:1 with its sheets).
+- **The teammate arrow** at the screen edge when your teammate is off screen, and shared XP and kill coins.
+
 ### The big one
 
 - **A run-through with every class, weapon and pet, on both maps.** 1-1..1-10 once with each class (C switches class, O opens the sandbox), then Thornwood. This is the row that would answer most of the others at once, and the Phase 3 question behind it: *did two runs in a row feel meaningfully different?*

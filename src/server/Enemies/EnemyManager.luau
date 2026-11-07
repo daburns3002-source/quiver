@@ -24,6 +24,7 @@ local BossBody = require(script.Parent.BossBody)
 local BossMoves = require(script.Parent.BossMoves)
 local BossThresholds = require(ReplicatedStorage.Shared.Util.BossThresholds)
 local CombatTuning = require(ReplicatedStorage.Shared.Config.CombatTuning)
+local Coop = require(ReplicatedStorage.Shared.Util.Coop)
 local CurrentStage = require(ReplicatedStorage.Shared.Util.CurrentStage)
 local DeepAccord = require(ReplicatedStorage.Shared.Util.DeepAccord)
 local EnemyDesigns = require(ReplicatedStorage.Shared.Config.EnemyDesigns)
@@ -327,6 +328,13 @@ local function difficulty(): { damage: number, health: number, fireRate: number 
 		health = (stage and stage.enemyHealth or 1) * healthScale,
 		fireRate = 1,
 	}
+end
+
+--[[ Co-op's health on top (`Shared/Util/Coop`): a boss takes the party's
+     whole scaling, since a boss fight's count never scales; the rest a
+     little, since their count does. ]]
+local function partyHealth(config: EnemyConfig): number
+	return Coop.healthScale(Coop.partySize(), config.boss ~= nil)
 end
 
 --[[ Volleys decided this step, drained by EnemyFiring. ]]
@@ -934,8 +942,8 @@ function EnemyManager.spawn(
 		hitbox = hitbox,
 		skin = skin,
 		config = config,
-		health = config.health * difficulty().health,
-		maxHealth = config.health * difficulty().health,
+		health = config.health * difficulty().health * partyHealth(config),
+		maxHealth = config.health * difficulty().health * partyHealth(config),
 		position = position,
 		knockbackVelocity = Vector3.zero,
 		staggerUntil = 0,
@@ -1041,8 +1049,8 @@ function EnemyManager.spawn(
 
 	--[[ Health travels as attributes so each client can draw the enemy's
 	     bar. Read for drawing only; the server's own number is the truth. ]]
-	model:SetAttribute("MaxHealth", config.health * difficulty().health)
-	model:SetAttribute("Health", config.health * difficulty().health)
+	model:SetAttribute("MaxHealth", config.health * difficulty().health * partyHealth(config))
+	model:SetAttribute("Health", config.health * difficulty().health * partyHealth(config))
 
 	model.Parent = parent
 
@@ -1096,6 +1104,18 @@ function EnemyManager.spawnWave(count: number, roster: { EnemyConfig })
 	if #roster == 0 then
 		log.warn("room has no roster, nothing to spawn")
 		return
+	end
+
+	--[[ Co-op brings more of them (`Shared/Util/Coop`), but never a second
+	     boss: a fight with a boss in it keeps its count. ]]
+	local hasBoss = false
+	for _, config in roster do
+		if config.boss ~= nil then
+			hasBoss = true
+		end
+	end
+	if not hasBoss then
+		count = Coop.enemyCount(count, Coop.partySize())
 	end
 
 	local clusterSize = math.max(Balance.Spawning.clusterSize, 1)

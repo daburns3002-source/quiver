@@ -34,6 +34,9 @@ local story = false
 local checkpoint = false
 --[[ And again: MENU's LEAVE THE RUN? panel (`UI/ControlMenu`), until it shuts. ]]
 local menu = false
+--[[ And again: this player is downed in co-op (`Shared/Util/Coop`), until a
+     teammate stands them up or the next room brings them back. ]]
+local downed = false
 local changed = Instance.new("BindableEvent")
 
 --[[ Whether the title or the story is still up: the player has not arrived. ]]
@@ -42,7 +45,7 @@ function RunPaused.beforeArrival(): boolean
 end
 
 function RunPaused.get(): boolean
-	return paused or intro or title or meeting or story or checkpoint or menu
+	return paused or intro or title or meeting or story or checkpoint or menu or downed
 end
 
 --[[ Idempotent, so callers can set it from several places without having to
@@ -147,6 +150,17 @@ end
 
 --[[ Fired on every change, so a listener can clear the state that only makes
      sense while the run is moving — a settle timer, say. ]]
+function RunPaused.setDowned(value: boolean)
+	if downed == value then
+		return
+	end
+	local was = RunPaused.get()
+	downed = value
+	if RunPaused.get() ~= was then
+		changed:Fire(RunPaused.get())
+	end
+end
+
 function RunPaused.onChanged(callback: (boolean) -> ()): RBXScriptConnection
 	return changed.Event:Connect(callback)
 end

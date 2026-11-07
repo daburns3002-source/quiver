@@ -14,6 +14,7 @@
 	expects it.
 ]]
 
+local PhysicsService = game:GetService("PhysicsService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -44,6 +45,7 @@ local Lobby = require(script.Parent.Run.Lobby)
 local LobbyConfig = require(ReplicatedStorage.Shared.Config.Lobby)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
 local MeleeSystem = require(script.Parent.Combat.MeleeSystem)
+local Party = require(script.Parent.Run.Party)
 local PetCombat = require(script.Parent.Combat.PetCombat)
 local PetCombatConfig = require(ReplicatedStorage.Shared.Config.PetCombat)
 local PetPreview = require(script.Parent.Dev.PetPreview)
@@ -136,6 +138,8 @@ UpgradeEffects.start()
 -- The lobby, where players arrive after BEGIN ADVENTURE.
 Lobby.build(workspace)
 RoomController.start()
+-- a party's run server waits for its party (`Run/Party`)
+Party.init()
 -- The FARTHEST ADVENTURERS board's store (`Run/StoryLeaderboard`).
 StoryLeaderboard.start()
 do
@@ -198,8 +202,25 @@ local function refreshWeapon(player: Player)
 	end
 end
 
+--[[ Players never block each other (`docs/COOP.md`): every part of every
+     character, the class body's too, is in a group that does not collide
+     with itself. ]]
+local PLAYERS_GROUP = "Players"
+PhysicsService:RegisterCollisionGroup(PLAYERS_GROUP)
+PhysicsService:CollisionGroupSetCollidable(PLAYERS_GROUP, PLAYERS_GROUP, false)
+
+local function joinPlayersGroup(part: Instance)
+	if part:IsA("BasePart") then
+		part.CollisionGroup = PLAYERS_GROUP
+	end
+end
+
 local function onCharacterAdded(player: Player, character: Model)
 	local session = RunSession.get(player) or RunSession.create(player)
+	for _, part in character:GetDescendants() do
+		joinPlayersGroup(part)
+	end
+	character.DescendantAdded:Connect(joinPlayersGroup)
 	RunSession.bindCharacter(session, character)
 	refreshWeapon(player)
 	-- the class's body, if it is not worn yet (a second CharacterAdded follows)
@@ -343,6 +364,26 @@ Remotes.event(Remotes.DebugRoom).OnServerEvent:Connect(function(player, position
 	end
 	RoomController.debugEnterRoom(math.floor(position))
 	log.info("%s jumped to room %d (Studio)", player.Name, math.floor(position))
+end)
+
+--[[ Testing only: a killing blow past every save (Second Wind, a pet's
+     revive, a shield), for co-op's downed and revive. Studio only. ]]
+Remotes.event(Remotes.DebugDown).OnServerEvent:Connect(function(player)
+	local session = RunSession.get(player)
+	if not RunService:IsStudio() or not session then
+		return
+	end
+	session.invulnerableUntil = 0
+	session.guardUntil = 0
+	session.dodgeChance = 0
+	session.petGuard = false
+	session.petCoat = 0
+	session.petShelterUntil = 0
+	session.secondWindUsed = true
+	session.petReviveUsed = true
+	session.revivesLeft = 0
+	RunSession.applyDamage(session, session.maxHealth * 100)
+	log.info("%s took a killing blow (Studio)", player.Name)
 end)
 
 Remotes.event(Remotes.DebugSpawnEnemy).OnServerEvent:Connect(function(_player, name)
@@ -525,7 +566,7 @@ Remotes.event(Remotes.IntroBegin).OnServerEvent:Connect(function(player)
 	     areas at once (`Config/Sandbox`). Never honoured in a live server. ]]
 	local forced = RunService:IsStudio() and Sandbox.forceTutorial == true
 	if forced or LevelUnlocks.tutorialOwed(beaten, Tutorial.untilBeaten) then
-		RoomController.beginStage(Balance.tutorialStage)
+		Party.startTutorial(player, Balance.tutorialStage)
 	else
 		local character = player.Character
 		if character then
@@ -549,7 +590,8 @@ Remotes.event(Remotes.PortalStart).OnServerEvent:Connect(function(player, index,
 	local beaten = if profile then profile.levelsBeaten else nil
 	local stage = Lobby.startFor(root.Position, index, level, beaten)
 	if stage then
-		RoomController.beginStage(stage)
+		-- with whoever else stands at the portal (`Run/Party`)
+		Party.start(player, index :: number, level :: number, stage)
 	end
 end)
 
@@ -626,6 +668,8 @@ RunService.Heartbeat:Connect(function(deltaTime: number)
 			local shown = index or 0
 			if portalShown[player] ~= shown then
 				portalShown[player] = shown
+				-- read by the other players' portal screens, for the party
+				player:SetAttribute("Portal", if shown ~= 0 then shown else nil)
 				Remotes.event(Remotes.PortalOpen):FireClient(player, shown)
 			end
 		end
@@ -636,6 +680,7 @@ RunService.Heartbeat:Connect(function(deltaTime: number)
 	if next(portalShown) then
 		for player, shown in portalShown do
 			if shown ~= 0 then
+				player:SetAttribute("Portal", nil)
 				Remotes.event(Remotes.PortalOpen):FireClient(player, 0)
 			end
 		end
@@ -705,6 +750,9 @@ RunService.Heartbeat:Connect(function(deltaTime: number)
 	RunSession.landXp(now)
 	--[[ Mending. ]]
 	RunSession.regenerate(deltaTime, now)
+	--[[ Co-op: revives filling, bleed-outs running down, and a wipe when
+	     nobody is left standing (`Shared/Util/Coop`). ]]
+	RunSession.stepDowned(deltaTime, now)
 
 	--[[ Last, so a room is only ever declared clear after everything that
 	     could still kill something has had its turn this frame. ]]

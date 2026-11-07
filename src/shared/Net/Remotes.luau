@@ -198,6 +198,13 @@ Remotes.PortalOpen = "PortalOpen"
 Remotes.PortalStart = "PortalStart"
 
 --[[
+	Server → one client. A party portal's word on the run it is starting
+	(`Run/Party`): "TRAVELLING..." while the teleport is under way, or why it
+	failed. Shown on the portal screen (`UI/PortalScreen`).
+]]
+Remotes.PartyNotice = "PartyNotice"
+
+--[[
 	Server → one client. A kind of enemy this player has not met before has
 	landed (its `EnemyConfig.displayName`): show its NEW ENEMY! screen
 	(`Config/NewEnemies`). The server holds the run until it is closed.
@@ -305,6 +312,9 @@ Remotes.DebugNextClass = "DebugNextClass"
 Remotes.DebugGrant = "DebugGrant"
 --[[ Client → server, Studio only: jump to a room of a Rooms stage. ]]
 Remotes.DebugRoom = "DebugRoom"
+--[[ Client → server, Studio only: a killing blow past every save, so a
+     co-op probe can test downed and revive (`Shared/Util/Coop`). ]]
+Remotes.DebugDown = "DebugDown"
 --[[ Client → server, Studio only: spawn one enemy of the named archetype
      (a `Balance.Enemies` key), to test it without reaching its room. ]]
 Remotes.DebugSpawnEnemy = "DebugSpawnEnemy"

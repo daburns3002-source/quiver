@@ -1382,6 +1382,19 @@ function Lobby.startFor(
 	level: unknown,
 	beaten: LevelUnlocks.Beaten?
 ): number?
+	local stage = Lobby.levelOpen(index, level, beaten)
+	if not stage or Lobby.portalAt(position, LobbyConfig.startSlack) ~= index then
+		return nil
+	end
+	return stage
+end
+
+--[[ `startFor` without the standing-at-the-portal check: the stage level
+     `level` of portal `index` plays for a player who has beaten `beaten`,
+     or nil. A party's run server checks its leader's request again with
+     this (`Run/Party`), since what a teleport carries passes through the
+     client. ]]
+function Lobby.levelOpen(index: unknown, level: unknown, beaten: LevelUnlocks.Beaten?): number?
 	if type(index) ~= "number" or type(level) ~= "number" then
 		return nil
 	end
@@ -1400,9 +1413,6 @@ function Lobby.startFor(
 		return nil
 	end
 	if not LevelUnlocks.isUnlocked(levels, Balance.Stages, beaten, level) then
-		return nil
-	end
-	if Lobby.portalAt(position, LobbyConfig.startSlack) ~= index then
 		return nil
 	end
 	return stage

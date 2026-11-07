@@ -366,6 +366,26 @@ Remotes.event(Remotes.DebugRoom).OnServerEvent:Connect(function(player, position
 	log.info("%s jumped to room %d (Studio)", player.Name, math.floor(position))
 end)
 
+--[[ Testing only: a killing blow past every save (Second Wind, a pet's
+     revive, a shield), for co-op's downed and revive. Studio only. ]]
+Remotes.event(Remotes.DebugDown).OnServerEvent:Connect(function(player)
+	local session = RunSession.get(player)
+	if not RunService:IsStudio() or not session then
+		return
+	end
+	session.invulnerableUntil = 0
+	session.guardUntil = 0
+	session.dodgeChance = 0
+	session.petGuard = false
+	session.petCoat = 0
+	session.petShelterUntil = 0
+	session.secondWindUsed = true
+	session.petReviveUsed = true
+	session.revivesLeft = 0
+	RunSession.applyDamage(session, session.maxHealth * 100)
+	log.info("%s took a killing blow (Studio)", player.Name)
+end)
+
 Remotes.event(Remotes.DebugSpawnEnemy).OnServerEvent:Connect(function(_player, name)
 	if not RunService:IsStudio() or type(name) ~= "string" then
 		return

@@ -312,6 +312,9 @@ Remotes.DebugNextClass = "DebugNextClass"
 Remotes.DebugGrant = "DebugGrant"
 --[[ Client → server, Studio only: jump to a room of a Rooms stage. ]]
 Remotes.DebugRoom = "DebugRoom"
+--[[ Client → server, Studio only: a killing blow past every save, so a
+     co-op probe can test downed and revive (`Shared/Util/Coop`). ]]
+Remotes.DebugDown = "DebugDown"
 --[[ Client → server, Studio only: spawn one enemy of the named archetype
      (a `Balance.Enemies` key), to test it without reaching its room. ]]
 Remotes.DebugSpawnEnemy = "DebugSpawnEnemy"

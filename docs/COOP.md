@@ -3,7 +3,13 @@
 Owner, 2026-10-27: **two players first, raised to three later.** Built after Endless
 (`docs/ENDLESS.md`), which is why this doc is decisions-locked rather than a build plan.
 
-Roadmap Phase 9. Everything below is settled; nothing is implemented.
+Roadmap Phase 9. **Built 2026-11-06** (`Shared/Util/Coop`, `Run/Party`, `UI/CoopHud`, downed and
+revive in `Run/RunSession`): party portals, a reserved run server per run (solo and the tutorial
+too; in Studio, which cannot teleport, runs play in place), scaling locked at start, downed and
+revive (radius 6, hold 2.5 s, 40%; 20 s bleed-out, then out until the next fight at 30%), shared
+XP and kill coins, no player collision, the teammate arrow. **Not built:** the arena footprint
+(the arenas are art imports now, 1:1 with their sheets, so they cannot stretch), friend invite
+beyond Roblox's own invite prompt, a public queue, three players.
 
 ---
 

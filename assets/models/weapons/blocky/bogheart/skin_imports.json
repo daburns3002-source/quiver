@@ -7,14 +7,14 @@
      0,
      0
     ],
-    "meshId": "rbxassetid://79090622526288",
+    "meshId": "rbxassetid://106626851576904",
     "name": "Blade",
     "size": [
-     0.366,
+     0.365,
      0.98,
-     0.231
+     0.215
     ],
-    "textureId": "rbxassetid://112883282679657"
+    "textureId": "rbxassetid://85082672046783"
    }
   ],
   "size": [
@@ -31,14 +31,14 @@
      0,
      0
     ],
-    "meshId": "rbxassetid://123715475838154",
+    "meshId": "rbxassetid://78732110431221",
     "name": "Blade",
     "size": [
-     0.442,
+     0.447,
      0.98,
-     0.449
+     0.441
     ],
-    "textureId": "rbxassetid://71950662762116"
+    "textureId": "rbxassetid://105810499031996"
    }
   ],
   "size": [
@@ -55,14 +55,14 @@
      0,
      0
     ],
-    "meshId": "rbxassetid://101210643934322",
+    "meshId": "rbxassetid://132847635057810",
     "name": "Blade",
     "size": [
      0.475,
-     0.982,
-     0.146
+     0.981,
+     0.155
     ],
-    "textureId": "rbxassetid://117869830486634"
+    "textureId": "rbxassetid://93900761687877"
    }
   ],
   "size": [
@@ -79,14 +79,14 @@
      0,
      0
     ],
-    "meshId": "rbxassetid://104591892675942",
+    "meshId": "rbxassetid://85684342392121",
     "name": "Bow",
     "size": [
-     0.355,
-     0.978,
-     0.172
+     0.352,
+     0.979,
+     0.16
     ],
-    "textureId": "rbxassetid://139985030298891"
+    "textureId": "rbxassetid://140691179436768"
    }
   ],
   "size": [
@@ -103,14 +103,14 @@
      0,
      0
     ],
-    "meshId": "rbxassetid://91308112810741",
+    "meshId": "rbxassetid://90956375054285",
     "name": "Staff",
     "size": [
-     0.282,
-     0.982,
-     0.282
+     0.284,
+     0.984,
+     0.269
     ],
-    "textureId": "rbxassetid://75619327618221"
+    "textureId": "rbxassetid://80572155464574"
    }
   ],
   "size": [
@@ -127,14 +127,14 @@
      0,
      0
     ],
-    "meshId": "rbxassetid://135950284493280",
+    "meshId": "rbxassetid://70750010208640",
     "name": "Blade",
     "size": [
-     0.358,
-     0.981,
-     0.167
+     0.355,
+     0.982,
+     0.164
     ],
-    "textureId": "rbxassetid://136223254568313"
+    "textureId": "rbxassetid://97419873120402"
    }
   ],
   "size": [
@@ -151,14 +151,14 @@
      0,
      0
     ],
-    "meshId": "rbxassetid://99382341866581",
+    "meshId": "rbxassetid://80628391762625",
     "name": "Bow",
     "size": [
-     0.395,
-     0.982,
-     0.13
+     0.396,
+     0.98,
+     0.12
     ],
-    "textureId": "rbxassetid://90212931991948"
+    "textureId": "rbxassetid://137735639693578"
    }
   ],
   "size": [
@@ -175,14 +175,14 @@
      0,
      0
     ],
-    "meshId": "rbxassetid://136088403192549",
+    "meshId": "rbxassetid://128370773687924",
     "name": "Staff",
     "size": [
-     0.327,
-     0.979,
-     0.278
+     0.322,
+     0.978,
+     0.24
     ],
-    "textureId": "rbxassetid://122121403422209"
+    "textureId": "rbxassetid://97626502629734"
    }
   ],
   "size": [
@@ -199,14 +199,14 @@
      0,
      0
     ],
-    "meshId": "rbxassetid://94069705695978",
+    "meshId": "rbxassetid://108849383826297",
     "name": "Bow",
     "size": [
-     0.496,
-     0.976,
-     0.163
+     0.499,
+     0.986,
+     0.173
     ],
-    "textureId": "rbxassetid://85513665096011"
+    "textureId": "rbxassetid://110956143308073"
    }
   ],
   "size": [
@@ -223,14 +223,14 @@
      0,
      0
     ],
-    "meshId": "rbxassetid://115347501743312",
+    "meshId": "rbxassetid://114017100747129",
     "name": "Staff",
     "size": [
-     0.478,
-     0.982,
-     0.339
+     0.479,
+     0.975,
+     0.354
     ],
-    "textureId": "rbxassetid://136450464150422"
+    "textureId": "rbxassetid://112810987557095"
    }
   ],
   "size": [
@@ -247,14 +247,14 @@
      0,
      0
     ],
-    "meshId": "rbxassetid://94551202011556",
+    "meshId": "rbxassetid://134793521712254",
     "name": "Bow",
     "size": [
-     0.315,
+     0.309,
      0.98,
-     0.127
+     0.123
     ],
-    "textureId": "rbxassetid://80292125067109"
+    "textureId": "rbxassetid://122181203004125"
    }
   ],
   "size": [
@@ -271,14 +271,14 @@
      0,
      0
     ],
-    "meshId": "rbxassetid://90887222301769",
+    "meshId": "rbxassetid://108312008882565",
     "name": "Staff",
     "size": [
-     0.323,
-     0.991,
-     0.327
+     0.319,
+     0.987,
+     0.326
     ],
-    "textureId": "rbxassetid://77568163002092"
+    "textureId": "rbxassetid://88895094742911"
    }
   ],
   "size": [
@@ -295,14 +295,14 @@
      0,
      0
     ],
-    "meshId": "rbxassetid://90706887602960",
+    "meshId": "rbxassetid://102547166808602",
     "name": "Blade",
     "size": [
-     0.355,
-     0.98,
-     0.25
+     0.354,
+     0.979,
+     0.249
     ],
-    "textureId": "rbxassetid://96134853426694"
+    "textureId": "rbxassetid://76281554635101"
    }
   ],
   "size": [
@@ -319,14 +319,14 @@
      0,
      0
     ],
-    "meshId": "rbxassetid://103321901285946",
+    "meshId": "rbxassetid://96366000244536",
     "name": "Bow",
     "size": [
-     0.356,
-     0.981,
-     0.286
+     0.355,
+     0.978,
+     0.3
     ],
-    "textureId": "rbxassetid://79533440065634"
+    "textureId": "rbxassetid://138494610719022"
    }
   ],
   "size": [
@@ -343,14 +343,14 @@
      0,
      0
     ],
-    "meshId": "rbxassetid://98596101865515",
+    "meshId": "rbxassetid://114311529112134",
     "name": "Staff",
     "size": [
      0.263,
-     0.988,
-     0.181
+     0.982,
+     0.194
     ],
-    "textureId": "rbxassetid://76057306819133"
+    "textureId": "rbxassetid://110542643129302"
    }
   ],
   "size": [

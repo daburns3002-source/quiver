@@ -130,8 +130,8 @@
   },
 
   "CaveCricket": {
-    "size": [0.66641, 0.90815, 0.99951],
-    "rest": [0, 0.45408, 0],
+    "size": [0.98126, 0.89038, 0.96347],
+    "rest": [0, 0.44519, 0],
     "note": "Twitches its antennae, hops after its owner in long springs, and leaps to chirp at the furthest enemy.",
     "clips": {
       "Idle": {
@@ -159,8 +159,8 @@
   },
 
   "LichenGecko": {
-    "size": [0.82963, 0.63132, 0.99951],
-    "rest": [0, 0.31566, 0],
+    "size": [0.80618, 0.63495, 0.98053],
+    "rest": [0, 0.31747, 0],
     "note": "Clings low and still, head flicking side to side; skitters in quick wiggling darts and licks out at the end of one.",
     "clips": {
       "Idle": {
@@ -186,8 +186,8 @@
   },
 
   "BogBeaver": {
-    "size": [0.83881, 0.84707, 0.99951],
-    "rest": [0, 0.42353, 0],
+    "size": [0.86316, 0.84940, 0.98019],
+    "rest": [0, 0.4247, 0],
     "note": "Sits up and gnaws, waddles after its owner with a rolling side-to-side gait, and rears to slap mud on with its tail.",
     "clips": {
       "Idle": {
@@ -214,8 +214,8 @@
   },
 
   "Lanternfin": {
-    "size": [0.87313, 0.82988, 0.99951],
-    "rest": [0, 0.41494, 0],
+    "size": [0.91904, 0.86411, 0.98044],
+    "rest": [0, 0.43205, 0],
     "note": "Hangs in the dark water off the ground, bobbing and rocking; paddles after its owner nose-down; flares its lure to stick a mote, then pulses as the mote bursts.",
     "clips": {
       "Idle": {
@@ -241,8 +241,8 @@
   },
 
   "Olm": {
-    "size": [0.71924, 0.51842, 0.99951],
-    "rest": [0, 0.25921, 0],
+    "size": [0.69858, 0.48973, 0.98233],
+    "rest": [0, 0.24487, 0],
     "note": "Lies long and low, slowly swinging its blind head as it feels for footsteps; slithers after its owner in an S; rears and slaps the ground to strike.",
     "clips": {
       "Idle": {
@@ -298,8 +298,8 @@
   },
 
   "Gulpling": {
-    "size": [0.99951, 0.90219, 0.79875],
-    "rest": [0, 0.4511, 0],
+    "size": [0.97998, 0.91095, 0.79025],
+    "rest": [0, 0.45547, 0],
     "note": "A baby toad: sits and puffs its throat, hops after its owner, and leaps for a belly flop like its grandmother's.",
     "clips": {
       "Idle": {
@@ -327,8 +327,8 @@
   },
 
   "PrismLeviathan": {
-    "size": [0.95701, 0.99951, 0.60784],
-    "rest": [0, 0.49976, 0],
+    "size": [0.93005, 0.97144, 0.50525],
+    "rest": [0, 0.48572, 0],
     "note": "A floating sea-serpent: drifts in a slow, grand bob with a sway; glides after its owner in an undulating swim; rises and strikes forward to loose the prism bolt.",
     "clips": {
       "Idle": {

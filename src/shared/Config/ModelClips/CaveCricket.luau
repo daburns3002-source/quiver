@@ -22,8 +22,8 @@ return table.freeze({
 	parts = {
 		Body = {
 			joint = "Body",
-			cframe = { 0, 0.45408, 0, 0, 0, 0, 1 },
-			size = { 0.66641, 0.90815, 0.99951 },
+			cframe = { 0, 0.44519, 0, 0, 0, 0, 1 },
+			size = { 0.98126, 0.89038, 0.96347 },
 		},
 	},
 	clips = {

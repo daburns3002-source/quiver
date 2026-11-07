@@ -14,12 +14,12 @@
 return table.freeze({
 	{
 		name = "Body",
-		meshId = "rbxassetid://73772344432448",
-		textureId = "rbxassetid://138794188431790",
+		meshId = "rbxassetid://75811358076740",
+		textureId = "rbxassetid://95214713723147",
 		color = { 0.63922, 0.63529, 0.64706 },
 		material = "Plastic",
 		transparency = 0,
-		size = { 0.708, 0.505, 0.983 },
-		cframe = { 0, 0.2525, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1 },
+		size = { 0.699, 0.49, 0.982 },
+		cframe = { 0, 0.2450, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1 },
 	},
 })

@@ -92,8 +92,9 @@ local function send(members: { Player }, index: number, level: number, leader: P
 	local ok, err = pcall(function()
 		local code = TeleportService:ReserveServer(game.PlaceId)
 		local options = Instance.new("TeleportOptions")
-		-- cast: CI's type definitions predate this property
-		(options :: any).ReservedServerAccessCode = code
+		-- through `any`: CI's type definitions predate this property
+		local untyped: any = options
+		untyped.ReservedServerAccessCode = code
 		options:SetTeleportData({
 			arrowborne = true,
 			portal = index,
@@ -162,8 +163,9 @@ function Party.startTutorial(player: Player, stage: number)
 		local ok, err = pcall(function()
 			local code = TeleportService:ReserveServer(game.PlaceId)
 			local options = Instance.new("TeleportOptions")
-			-- cast: CI's type definitions predate this property
-		(options :: any).ReservedServerAccessCode = code
+			-- through `any`: CI's type definitions predate this property
+			local untyped: any = options
+			untyped.ReservedServerAccessCode = code
 			options:SetTeleportData({
 				arrowborne = true,
 				tutorial = stage,

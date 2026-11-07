@@ -18,6 +18,10 @@ start from the cause recorded here rather than from the code.
 
 ## Holes in the player bodies (Ranger Female)
 
+*Moot since 2026-11-07: the owner had the class bodies removed after the capped
+bodies showed streaks ("this looks terrible", "get rid of the class models
+entirely").*
+
 Owner, 2026-11-07: "there are holes in the female ranger when i selected her".
 `split_r15.py` cut each Tripo body into R15 parts but left every cut open, so
 a bent knee, turned head or swung arm showed the inside of the shell. Thin

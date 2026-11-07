@@ -49,7 +49,6 @@ local Party = require(script.Parent.Run.Party)
 local PetCombat = require(script.Parent.Combat.PetCombat)
 local PetCombatConfig = require(ReplicatedStorage.Shared.Config.PetCombat)
 local PetPreview = require(script.Parent.Dev.PetPreview)
-local PlayerBody = require(script.Parent.Run.PlayerBody)
 local PlayerData = require(script.Parent.Data.PlayerData)
 local ProjectileSystem = require(script.Parent.Combat.ProjectileSystem)
 local Remotes = require(game:GetService("ReplicatedStorage").Shared.Net.Remotes)
@@ -130,8 +129,6 @@ EnemyModel.preload()
 Arena.preload()
 -- The archer's bow.
 HeldWeapon.preload()
--- The class bodies (`Config/PlayerModels`), once uploaded.
-PlayerBody.preload()
 HeldWeapon.buildPreviews()
 -- The upgrade cards' effects, built in the background for clients to copy.
 UpgradeEffects.start()
@@ -223,8 +220,6 @@ local function onCharacterAdded(player: Player, character: Model)
 	character.DescendantAdded:Connect(joinPlayersGroup)
 	RunSession.bindCharacter(session, character)
 	refreshWeapon(player)
-	-- the class's body, if it is not worn yet (a second CharacterAdded follows)
-	PlayerBody.refresh(player)
 	--[[ In the lobby, a new body appears on the arrival circle, behind the title
 	     screen too. Left where it spawned, over the arena that is not built yet,
 	     it fell into the void and died over and over until BEGIN ADVENTURE. ]]
@@ -252,7 +247,6 @@ local function onPlayerAdded(player: Player)
 	     the weapon mid-run. ]]
 	player:GetAttributeChangedSignal("Weapon"):Connect(function()
 		refreshWeapon(player)
-		PlayerBody.refresh(player)
 	end)
 
 	if player.Character then

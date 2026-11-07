@@ -26,6 +26,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local SoundService = game:GetService("SoundService")
+local TeleportService = game:GetService("TeleportService")
 local Workspace = game:GetService("Workspace")
 
 local Intro = require(ReplicatedStorage.Shared.Config.Intro)
@@ -81,10 +82,18 @@ local held: number? = nil
 local connection: RBXScriptConnection? = nil
 local onBegin: (() -> ())? = nil
 
---[[ Whether this play skips the intro: in Studio only, by the `SkipIntro`
-     attribute on Workspace (the server reads the same one). ]]
+--[[ Whether this play skips the intro: in Studio, by the `SkipIntro`
+     attribute on Workspace (the server reads the same one); and anywhere
+     for a player the game itself teleported here — a party portal's run
+     server, or back from one — who has seen it already (`Run/Party`). ]]
 function IntroCutscene.skipped(): boolean
-	return RunService:IsStudio() and Workspace:GetAttribute("SkipIntro") == true
+	if RunService:IsStudio() and Workspace:GetAttribute("SkipIntro") == true then
+		return true
+	end
+	local ok, data = pcall(function()
+		return TeleportService:GetLocalPlayerTeleportData()
+	end)
+	return ok and type(data) == "table" and (data :: any).arrowborne == true
 end
 
 --[[ The screen's size. Read from the camera rather than from the ScreenGui:

@@ -19,6 +19,7 @@ local Arena = require(script.Parent.Parent.Arena.Arena)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Classes = require(ReplicatedStorage.Shared.Config.Classes)
 local CombatTuning = require(ReplicatedStorage.Shared.Config.CombatTuning)
+local Coop = require(ReplicatedStorage.Shared.Util.Coop)
 local CurrentStage = require(ReplicatedStorage.Shared.Util.CurrentStage)
 local Economy = require(ReplicatedStorage.Shared.Config.Economy)
 local Eggs = require(ReplicatedStorage.Shared.Config.Eggs)
@@ -150,6 +151,15 @@ export type Session = {
 	--[[ Revives left this stage, and `os.clock()` until which nothing hurts
 	     the player — set by a revive. ]]
 	revivesLeft: number,
+	--[[ Co-op (`Shared/Util/Coop`): down at zero health, waiting on a
+	     teammate (`downedAt` is when, `reviveProgress` how far a revive has
+	     come, seconds), or `out` once the bleed-out ran down, until the
+	     next room. Either way `alive` is false, so nothing targets them,
+	     they fire nothing and heal nothing. ]]
+	downed: boolean,
+	out: boolean,
+	downedAt: number,
+	reviveProgress: number,
 	invulnerableUntil: number,
 	--[[ A melee class's guard: untouchable from `guardFrom` until
 	     `guardUntil`, while its blade is moving (`Combat/MeleeSystem`). ]]
@@ -230,6 +240,16 @@ local petAttack = Remotes.event(Remotes.PetAttack)
 --[[ Seconds between health updates sent for regeneration alone. ]]
 local REGEN_SEND_INTERVAL = 0.25
 
+--[[ Whether `player` came here by the game's own teleport (a party portal
+     to a run server, or a run server back to a lobby, `Run/Party`), and so
+     has already been through the title screen. ]]
+function RunSession.arrivedByTeleport(player: Player): boolean
+	local ok, data = pcall(function()
+		return player:GetJoinData().TeleportData
+	end)
+	return ok and type(data) == "table" and (data :: any).arrowborne == true
+end
+
 function RunSession.create(player: Player): Session
 	local session: Session = {
 		player = player,
@@ -290,7 +310,10 @@ function RunSession.create(player: Player): Session
 		stageGems = 0,
 		stageStartedAt = os.clock(),
 		-- in Studio, `SkipIntro` on Workspace starts without the title (`Config/Intro`)
-		atTitle = not (RunService:IsStudio() and Workspace:GetAttribute("SkipIntro") == true),
+		-- and a player teleported here by a party portal or back from a run
+		-- has already been through it (`Run/Party`)
+		atTitle = not (RunService:IsStudio() and Workspace:GetAttribute("SkipIntro") == true)
+			and not RunSession.arrivedByTeleport(player),
 		seenEnemies = {},
 		meeting = {},
 		menuUntil = 0,
@@ -298,6 +321,10 @@ function RunSession.create(player: Player): Session
 		healthSentAt = 0,
 		xpArriving = {},
 		revivesLeft = Balance.Revive.perStage,
+		downed = false,
+		out = false,
+		downedAt = 0,
+		reviveProgress = 0,
 		invulnerableUntil = 0,
 		guardFrom = 0,
 		guardUntil = 0,
@@ -796,6 +823,16 @@ function RunSession.creditKill(owner: Player?, xp: number, position: Vector3?)
 	end
 
 	RunSession.onEnemyKilled(session)
+	--[[ Co-op: the rest of the party is paid the kill's coins too. The kill
+	     count and what a kill triggers (Battle Cry, healing) stay the
+	     killer's. ]]
+	if Coop.partySize() > 1 then
+		for _, other in sessions do
+			if other ~= session then
+				RunSession.payCoins(other, RunSession.areaPay().killCoins)
+			end
+		end
+	end
 
 	if position then
 		Pickups.dropForKill(owner, position, xp, session.random, function(point)
@@ -814,6 +851,18 @@ local function xpSetOff(session: Session, amount: number)
 		session.xpArriving,
 		{ amount = amount, at = os.clock() + Balance.Pickups.collectFlight }
 	)
+end
+
+--[[ XP taken from the floor: to the taker solo, and to every player in a
+     co-op run, whoever's kill it was (`docs/COOP.md`). ]]
+local function shareXp(session: Session, amount: number)
+	if Coop.partySize() <= 1 then
+		xpSetOff(session, amount)
+		return
+	end
+	for _, other in sessions do
+		xpSetOff(other, amount)
+	end
 end
 
 --[[ Credits every batch of crystals that has reached its player by `now`.
@@ -841,7 +890,7 @@ function RunSession.collectCrystals()
 	for player, xp in Pickups.collectCrystals() do
 		local session = RunSession.get(player)
 		if session then
-			xpSetOff(session, xp)
+			shareXp(session, xp)
 		end
 	end
 end
@@ -883,9 +932,9 @@ function RunSession.pickUpFloor()
 			RunSession.heal(session, taken * Balance.Pickups.heartHeal * session.maxHealth, true)
 		end
 
-		local xp = Pickups.takeCrystals(session.player, root.Position)
+		local xp = Pickups.takeCrystals(session.player, root.Position, nil, Coop.partySize() > 1)
 		if xp > 0 then
-			xpSetOff(session, xp)
+			shareXp(session, xp)
 		end
 	end
 end
@@ -972,8 +1021,164 @@ function RunSession.resetRun(session: Session)
 	healthChanged:FireClient(session.player, session.health, session.maxHealth)
 end
 
+--[[ Defined with the damage path below; the co-op revive uses it too. ]]
+local revive: (session: Session, health: number, kind: string) -> ()
+
+--[[ Who sits in this server's run: a player off the title. ]]
+local function inRun(session: Session): boolean
+	return not session.atTitle and session.character ~= nil
+end
+
+--[[ Whether any player in the run other than `except` is up and fighting. ]]
+function RunSession.anyStanding(except: Session?): boolean
+	for _, other in sessions do
+		if other ~= except and other.alive and inRun(other) then
+			return true
+		end
+	end
+	return false
+end
+
+--[[ Whether anyone in the run is down or out (co-op). ]]
+function RunSession.anyDowned(): boolean
+	for _, session in sessions do
+		if session.downed or session.out then
+			return true
+		end
+	end
+	return false
+end
+
+local function publishDowned(session: Session)
+	local player = session.player
+	player:SetAttribute(
+		"Downed",
+		if session.downed then true elseif session.out then false else nil
+	)
+	player:SetAttribute(
+		"ReviveProgress",
+		if session.downed then session.reviveProgress / Coop.revive.hold else nil
+	)
+	player:SetAttribute(
+		"DownedEndsAt",
+		if session.downed
+			then Workspace:GetServerTimeNow() + Coop.revive.bleedOut - (os.clock() - session.downedAt)
+			else nil
+	)
+end
+
+--[[ At zero health in a party with someone still standing. ]]
+function RunSession.goDown(session: Session)
+	session.alive = false
+	session.downed = true
+	session.out = false
+	session.downedAt = os.clock()
+	session.reviveProgress = 0
+	session.stationarySince = nil
+	log.info("%s is down", session.player.Name)
+	publishDowned(session)
+	healthChanged:FireClient(session.player, 0, session.maxHealth)
+end
+
+local function standUp(session: Session, share: number, kind: string)
+	session.downed = false
+	session.out = false
+	session.reviveProgress = 0
+	session.alive = session.character ~= nil
+	publishDowned(session)
+	revive(session, session.maxHealth * share, kind)
+	healthChanged:FireClient(session.player, session.health, session.maxHealth)
+end
+
+--[[
+	Every frame the run moves (co-op): a teammate in range fills a downed
+	player's revive, leaving drains it, and the bleed-out puts them out for
+	the room. Then, if nobody is standing any more, the run is lost — the
+	last player standing going down, or leaving, is a wipe.
+]]
+function RunSession.stepDowned(deltaTime: number, now: number)
+	local any = false
+	for _, session in sessions do
+		if not session.downed then
+			if session.out then
+				any = true
+			end
+			continue
+		end
+		any = true
+		local root = session.root
+		local inRange = false
+		if root then
+			for _, other in sessions do
+				local helper = other.root
+				if other ~= session and other.alive and helper then
+					local flat = (helper.Position - root.Position) * Vector3.new(1, 0, 1)
+					if flat.Magnitude <= Coop.revive.radius then
+						inRange = true
+						break
+					end
+				end
+			end
+		end
+		local before = session.reviveProgress
+		session.reviveProgress = Coop.reviveStep(before, deltaTime, inRange)
+		if session.reviveProgress >= Coop.revive.hold then
+			log.info("%s was stood up by a teammate", session.player.Name)
+			standUp(session, Coop.revive.health, "Revive")
+		elseif now - session.downedAt >= Coop.revive.bleedOut and not inRange then
+			session.downed = false
+			session.out = true
+			session.reviveProgress = 0
+			log.info("%s bled out: out until the next room", session.player.Name)
+			publishDowned(session)
+		elseif session.reviveProgress ~= before then
+			publishDowned(session)
+		end
+	end
+	if any and not RunSession.anyStanding() then
+		log.info("nobody standing: the run is lost")
+		local handler = RunSession.onDeath
+		for _, session in sessions do
+			if session.downed or session.out then
+				session.downed = false
+				session.out = false
+				publishDowned(session)
+				local humanoid = session.humanoid
+				if humanoid then
+					humanoid.Health = 0
+				end
+			end
+		end
+		if handler then
+			handler(nil :: any)
+		end
+	end
+end
+
+--[[ A new room (co-op): everyone down or out comes back into it, at the
+     share of health the out ones return at. ]]
+function RunSession.returnTheDowned()
+	for _, session in sessions do
+		if session.downed or session.out then
+			standUp(session, Coop.revive.returnHealth, "Revive")
+		end
+	end
+end
+
+--[[ Clears down and out without a revive: a run reset. ]]
+local function clearDowned(session: Session)
+	if session.downed or session.out then
+		session.downed = false
+		session.out = false
+		session.reviveProgress = 0
+		session.alive = session.character ~= nil
+		publishDowned(session)
+	end
+end
+
 --[[ A stage is starting: its revives are full again. ]]
 function RunSession.newStage(session: Session)
+	clearDowned(session)
 	session.revivesLeft = Balance.Revive.perStage
 	session.stageKills = 0
 	session.stageCoins = 0
@@ -1133,7 +1338,7 @@ local function guardPet(session: Session): string?
 	return nil
 end
 
-local function revive(session: Session, health: number, kind: string)
+function revive(session: Session, health: number, kind: string)
 	session.health = math.max(1, health)
 	session.invulnerableUntil = os.clock() + Balance.Revive.invulnerable
 
@@ -1245,6 +1450,14 @@ function RunSession.applyDamage(session: Session, amount: number)
 	healthChanged:FireClient(session.player, session.health, session.maxHealth)
 
 	if session.health > 0 then
+		return
+	end
+
+	--[[ Co-op: down rather than dead while a teammate still stands, who
+	     can stand them up (`Coop.revive`). The run ends only when nobody
+	     does. ]]
+	if Coop.partySize() > 1 and RunSession.anyStanding(session) then
+		RunSession.goDown(session)
 		return
 	end
 

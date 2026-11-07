@@ -50,6 +50,7 @@ local Arena = require(script.Parent.Parent.Arena.Arena)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Burning = require(script.Parent.Parent.Combat.Burning)
 local ClassUpgrades = require(script.Parent.Parent.Combat.ClassUpgrades)
+local Coop = require(ReplicatedStorage.Shared.Util.Coop)
 local CurrentStage = require(ReplicatedStorage.Shared.Util.CurrentStage)
 local EndlessLeaderboard = require(script.Parent.EndlessLeaderboard)
 local EnemyManager = require(script.Parent.Parent.Enemies.EnemyManager)
@@ -72,6 +73,10 @@ local Waves = require(script.Parent.Waves)
 local log = Log.forTag("Run")
 
 local RoomController = {}
+
+--[[ Set on a party's run server (`Run/Party`): leaving the run leaves the
+     server, back to a public lobby. ]]
+RoomController.leaveServer = nil :: (() -> boolean)?
 
 --[[ `Lobby`: before a run, everyone in the lobby (`Run/Lobby`), nothing
      fighting; a portal starts the next run (`beginStage`).
@@ -342,6 +347,8 @@ local function setCombatEncounter(position: number)
 end
 
 local function enterRoom(position: number)
+	-- co-op: whoever is down or out comes back into the next fight
+	RunSession.returnTheDowned()
 	progress = position
 	state = "Fighting"
 	resumeAt = nil
@@ -398,6 +405,8 @@ end
 	every player and the run waits on their choice, paused like a level-up.
 ]]
 local function startWave(wave: number)
+	-- co-op: whoever is down or out comes back into the next fight
+	RunSession.returnTheDowned()
 	progress = wave
 	resumeAt = nil
 
@@ -440,6 +449,8 @@ end
 	the floor's curve as they are built (`EnemyManager`'s `difficulty`).
 ]]
 local function startFloor(floor: number)
+	-- co-op: whoever is down or out comes back into the next fight
+	RunSession.returnTheDowned()
 	progress = floor
 	resumeAt = nil
 	state = "Fighting"
@@ -1015,6 +1026,13 @@ end
 --[[ Everyone back to the lobby's campfire, the run put away: after the
      tutorial, and after an area's last level. ]]
 local function toLobby()
+	--[[ A party's run server sends everyone back to a public lobby
+	     (`Run/Party`); the lobby here stands in until they land. ]]
+	local leave = RoomController.leaveServer
+	if leave then
+		leave()
+	end
+	workspace:SetAttribute(Coop.ATTRIBUTE, nil)
 	for _, session in RunSession.all() do
 		RunSession.resetRun(session)
 	end

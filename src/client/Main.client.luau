@@ -26,6 +26,7 @@ local ClassScreen = require(script.Parent.UI.ClassScreen)
 local Classes = require(Shared.Config.Classes)
 local CombatMarkers = require(script.Parent.Fx.CombatMarkers)
 local ControlMenu = require(script.Parent.UI.ControlMenu)
+local CoopHud = require(script.Parent.UI.CoopHud)
 local DashBar = require(script.Parent.UI.DashBar)
 local DevKeys = require(script.Parent.DevKeys)
 local Device = require(script.Parent.Device)
@@ -184,6 +185,8 @@ end
 player:SetAttribute("ClientReady", true)
 
 NameTags.start()
+-- co-op: the party line, downed players, the teammate arrow
+CoopHud.start()
 HealthBar.start()
 DashBar.start()
 EndScreen.start(function()

@@ -212,6 +212,79 @@ def bisect(me, cfg, j):
     bm.free()
 
 
+def close_up(bm, accessory):
+    """Closes a piece so nothing shows through it in game (owner, 2026-11-07:
+    "there are holes in the female ranger"). A body piece's open cuts get a
+    cap, so a bent knee or a turned head shows the cap rather than the
+    inside of the shell. An accessory (a thin hood, hat or cape) gets its
+    back faces, so it reads from underneath too. Each new face takes the UVs
+    of the edge it closes, so it is coloured like what is around it."""
+    if accessory:
+        dup = bmesh.ops.duplicate(bm, geom=list(bm.faces))
+        faces = [g for g in dup["geom"] if isinstance(g, bmesh.types.BMFace)]
+        bmesh.ops.reverse_faces(bm, faces=faces)
+        return
+    # glTF splits vertices along UV seams; weld them (UVs live on the loops,
+    # so they survive) or every seam reads as a hole and the real cuts
+    # tangle with them, leaving most of them open
+    bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=1e-5)
+    uv = bm.loops.layers.uv.active
+    # each boundary vertex's UV, from a face it already has
+    at = {}
+    for e in bm.edges:
+        if e.is_boundary:
+            for v in e.verts:
+                if v not in at:
+                    at[v] = v.link_loops[0][uv].uv.copy()
+    edges = [e for e in bm.edges if e.is_boundary]
+    if not edges:
+        return
+    new = bmesh.ops.holes_fill(bm, edges=edges, sides=0)["faces"]
+    if new:
+        tri = bmesh.ops.triangulate(bm, faces=new)["faces"]
+        for f in tri:
+            for loop in f.loops:
+                if loop.vert in at:
+                    loop[uv].uv = at[loop.vert]
+    fan_fill(bm, uv, at)
+
+
+def fan_fill(bm, uv, at):
+    """Fans a cap from the centre of each hole holes_fill left (it skips a
+    loop that touches another, where two cuts meet at one vertex). Each new
+    triangle runs against the face beside its edge, so it faces outward."""
+    left = {e for e in bm.edges if e.is_boundary}
+    while left:
+        e = left.pop()
+        ring = [e]
+        start, cur = e.verts[0], e.verts[1]
+        while cur is not start:
+            nxt = next((x for x in cur.link_edges if x in left), None)
+            if nxt is None:
+                break
+            left.discard(nxt)
+            ring.append(nxt)
+            cur = nxt.other_vert(cur)
+        vs = {v for x in ring for v in x.verts}
+        if len(vs) < 3:
+            continue
+        c = bm.verts.new(sum((v.co for v in vs), Vector()) / len(vs))
+        for x in ring:
+            a, b = x.verts
+            f0 = x.link_faces[0]
+            for lp in f0.loops:
+                if lp.vert is a and lp.link_loop_next.vert is b:
+                    a, b = b, a
+                    break
+            try:
+                f = bm.faces.new((a, b, c))
+            except ValueError:
+                continue
+            for lp in f.loops:
+                v = lp.vert if lp.vert is not c else a
+                lp[uv].uv = at.get(v, v.link_loops[0][uv].uv)
+
+
 def to_roblox(v):
     """Blender (X left of the character, -Y front, Z up) to Roblox."""
     return [-v[0], v[2], v[1]]
@@ -284,6 +357,7 @@ def run(low_dir, out_dir, only=None):
             bm.faces.ensure_lookup_table()
             bmesh.ops.delete(bm, geom=[f for f in bm.faces if labels[f.index] != lab], context="FACES")
             bmesh.ops.delete(bm, geom=[v for v in bm.verts if not v.link_faces], context="VERTS")
+            close_up(bm, lab in cfg["accessories"])
             bm.to_mesh(dup.data)
             bm.free()
             pieces[lab] = dup

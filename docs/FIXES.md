@@ -16,6 +16,19 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## Holes in the player bodies (Ranger Female)
+
+Owner, 2026-11-07: "there are holes in the female ranger when i selected her".
+`split_r15.py` cut each Tripo body into R15 parts but left every cut open, so
+a bent knee, turned head or swung arm showed the inside of the shell. Thin
+hoods and capes were one-sided. A first cap pass barely helped: glTF splits
+vertices along UV seams, so every seam read as a hole and `holes_fill` gave up
+on the real cuts tangled with them. Now `close_up` welds the seams first, fills
+with `holes_fill`, fans a cap over any loop it skips, and gives accessories
+back faces. Measured in Blender, Ranger Female's open edge on her body parts went
+from about 7 m (1,420 edges) to 0.6 m, most of it under the hood; the other 7
+bodies dropped the same way. Bodies are now about 9,700 to 11,200 tris.
+
 ## The lobby camera could swing under the floor
 
 **Seen:** pitching Roblox's own lobby camera up swung it below the courtyard, showing the underside of

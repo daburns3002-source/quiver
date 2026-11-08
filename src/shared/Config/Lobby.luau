@@ -416,9 +416,11 @@ local Lobby = {
 		--[[ The owner's lighting, set by hand in Studio (2026-11-08): these
 		     two ambients, the brightness, the shadow softness, the grade's
 		     brightness and the three `glow`, `colour` and `sunRays` effects. ]]
-		ambient = Color3.fromRGB(124, 155, 184),
-		outdoorAmbient = Color3.fromRGB(157, 178, 255),
-		brightness = 4,
+		--[[ Then about a quarter off (owner, 2026-11-08: "take some lighting
+		     off of the objects"): was 124/155/184, 157/178/255 and 4. ]]
+		ambient = Color3.fromRGB(99, 124, 147),
+		outdoorAmbient = Color3.fromRGB(126, 142, 204),
+		brightness = 3,
 		clockTime = 9.5,
 		geographicLatitude = -20,
 		sunTint = Color3.fromRGB(255, 186, 128),

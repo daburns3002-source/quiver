@@ -938,11 +938,18 @@ function LobbyCourtyard.sky()
 	sky.CelestialBodiesShown = true
 	sky.SunAngularSize = spec.sunSize
 	sky.MoonAngularSize = 0
+	sky.SkyboxBk = spec.skybox.SkyboxBk
+	sky.SkyboxDn = spec.skybox.SkyboxDn
+	sky.SkyboxFt = spec.skybox.SkyboxFt
+	sky.SkyboxLf = spec.skybox.SkyboxLf
+	sky.SkyboxRt = spec.skybox.SkyboxRt
+	sky.SkyboxUp = spec.skybox.SkyboxUp
 	sky.Parent = Lighting
 	local clouds = Workspace.Terrain:FindFirstChildOfClass("Clouds") or Instance.new("Clouds")
 	clouds.Cover = spec.cloudCover
 	clouds.Density = spec.cloudDensity
 	clouds.Color = Color3.new(1, 1, 1)
+	clouds.Enabled = spec.cloudsShown
 	clouds.Parent = Workspace.Terrain
 end
 

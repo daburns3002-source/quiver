@@ -453,7 +453,23 @@ local Lobby = {
 	--[[ The sky stays blue, with clouds and a sun (owner, 2026-11-05: "make
 	     sure the sky is blue still with clouds and a sun"), over the sheet's
 	     warm floor. No moon: at this hour it would hang beside the sun. ]]
-	sky = { cloudCover = 0.62, cloudDensity = 0.72, sunSize = 16 },
+	--[[ The picture on the sky is the owner's Toolbox pick (2026-11-08, "Anime
+	     Sky", asset 72835926026092). It has its clouds painted on, so the
+	     3D ones are off: at this cover they would hide it. ]]
+	sky = {
+		cloudsShown = false,
+		cloudCover = 0.62,
+		cloudDensity = 0.72,
+		sunSize = 16,
+		skybox = {
+			SkyboxBk = "rbxassetid://18351376859",
+			SkyboxDn = "rbxassetid://18351374919",
+			SkyboxFt = "rbxassetid://18351376800",
+			SkyboxLf = "rbxassetid://18351376469",
+			SkyboxRt = "rbxassetid://18351376457",
+			SkyboxUp = "rbxassetid://18351377189",
+		},
+	},
 
 	--[[ The life in the air (`Fx/LobbyMotes`), each scaled by the device's
 	     `ambienceShare`: gold motes drifting over the courtyard, and mist at

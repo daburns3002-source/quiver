@@ -105,6 +105,17 @@ task.spawn(function()
 	if bloom and bloom:IsA("BloomEffect") then
 		bloom.Enabled = Device.tier().enableBloom
 	end
+	--[[ The lobby's wide glow: the server turns it on and off with the
+	     lobby, so a low tier has to keep turning its own copy off. ]]
+	local glow = Lighting:WaitForChild("Bloom", 10)
+	if glow and glow:IsA("BloomEffect") and not Device.tier().enableBloom then
+		glow.Enabled = false
+		glow:GetPropertyChangedSignal("Enabled"):Connect(function()
+			if glow.Enabled then
+				glow.Enabled = false
+			end
+		end)
+	end
 end)
 
 --[[

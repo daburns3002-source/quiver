@@ -23,6 +23,7 @@ local Atmosphere = {}
 --[[ Names the client looks these up by, to tier-gate the bloom. ]]
 Atmosphere.BloomName = "ArenaBloom"
 Atmosphere.GradeName = "ArenaGrade"
+Atmosphere.GlowName = "Bloom"
 
 local function ensure<T>(className: string, name: string): T
 	local existing = Lighting:FindFirstChild(name)
@@ -83,6 +84,32 @@ local function show(overrides: { [string]: any }?)
 	grade.Contrast = config.contrast
 	grade.Brightness = config.gradeBrightness
 	grade.TintColor = config.gradeTint
+
+	--[[ The lobby's extra effects, under the names the owner made them with
+	     in Studio so these take those over; off everywhere else. ]]
+	local glow: BloomEffect = ensure("BloomEffect", Atmosphere.GlowName)
+	glow.Enabled = config.glow ~= nil
+	if config.glow then
+		glow.Intensity = config.glow.intensity
+		glow.Size = config.glow.size
+		glow.Threshold = config.glow.threshold
+	end
+
+	local colour: ColorCorrectionEffect = ensure("ColorCorrectionEffect", "ColorCorrection")
+	colour.Enabled = config.colour ~= nil
+	if config.colour then
+		colour.Saturation = config.colour.saturation
+		colour.Contrast = config.colour.contrast
+		colour.Brightness = config.colour.brightness
+		colour.TintColor = config.colour.tint
+	end
+
+	local rays: SunRaysEffect = ensure("SunRaysEffect", "SunRays")
+	rays.Enabled = config.sunRays ~= nil
+	if config.sunRays then
+		rays.Intensity = config.sunRays.intensity
+		rays.Spread = config.sunRays.spread
+	end
 end
 
 --[[ `overrides` is an area's own (`ArenaModels.lighting`): those fields in

@@ -291,6 +291,62 @@ export type BossSpin = {
 	height: number,
 }
 
+--[[ The Old Tollcrab's Toll Wave (owner, 2026-11-07): he plants his bell
+     and rings it; a ring `band` studs thick rolls out from him at `speed`
+     to `reach`, through cover, with one gap `gap` degrees wide lit on the
+     floor through the `windup`. Stand in the gap or beyond `reach`. The
+     gap is set `gapFrom` to `gapTo` degrees round from the player, so
+     they must move but can. Enraged, a second ring follows `pairDelay`
+     later, its gap `pairTurn` degrees round from the first. Then the
+     bell is `stuck` in the floor (at least until the rings are done). ]]
+export type BossToll = {
+	windup: number,
+	speed: number,
+	reach: number,
+	band: number,
+	gap: number,
+	gapFrom: number,
+	gapTo: number,
+	pairDelay: number,
+	pairTurn: number,
+	damage: number,
+	shove: number,
+	stuck: number,
+	recover: number,
+}
+
+--[[ Echo Mark: he raps his bell at the player `marks` times, `every`
+     seconds apart; each rap drops a glowing ring of `radius` under
+     their feet that strikes `delay` later. Enraged, each rap drops a
+     second mark where they will be in `lead` seconds. ]]
+export type BossEcho = {
+	windup: number,
+	marks: number,
+	every: number,
+	delay: number,
+	radius: number,
+	lead: number,
+	damage: number,
+	shove: number,
+	recover: number,
+}
+
+--[[ Crab Scuttle: he pulls into his bell and turns side-on, the lane
+     `width` wide marked to the player and on to the first wall or house
+     (at most `maxRange`) for `windup`, then charges sideways along it at
+     `speed`, hitting whoever he runs into, and crashes, `stunned` there
+     with his shell open: the punish window. ]]
+export type BossScuttle = {
+	windup: number,
+	speed: number,
+	maxRange: number,
+	width: number,
+	damage: number,
+	shove: number,
+	stunned: number,
+	recover: number,
+}
+
 export type BossChase = {
 	speed: number,
 	stopDistance: number,
@@ -343,6 +399,13 @@ export type EnemyBoss = {
 	     bar and a roar (`roar` seconds) before its next move. ]]
 	notches: { number }?,
 	roar: number?,
+	--[[ The Old Tollcrab's own moves ("Toll", "Echo", "Scuttle" in his
+	     `loop`), and the share of his health at which he enrages (paired
+	     rings, double marks). ]]
+	toll: BossToll?,
+	echo: BossEcho?,
+	scuttle: BossScuttle?,
+	enrageAt: number?,
 }
 
 --[[ Spore Spit: her throat swells for `swell` seconds while `globs`
@@ -1167,17 +1230,18 @@ local hollowFisherman: EnemyConfig = {
 	owner's place at `ServerStorage.Imports`), posed whole by
 	`Enemies/BossBody` as Grandmother Gulp is, with one claw thrown as the arm.
 
-	Built 2026-11-07 (owner: "MAKE SURE ARENA 3 AND 4 ARE PLAYABLE") from the
-	moves the engine already has, standing in for the doc's:
-	- **Toll** (`bounce`): the bell slams down where you stood at takeoff,
-	  marked from the wind-up, ringing a wide shockwave on landing -- the
-	  Echo Mark and the Toll ring in one. Three slams.
-	- **Claw** (`lash`): a short, wide lane down which his claw snaps and
-	  drags the first player caught back to the bell.
-	- **The Drowned Rise** (`summon`): Hollow Fishermen at 2/3 and 1/3 of
-	  his health, until the Drowned Zombie is modelled.
-	Not built: the ring that smashes through houses, and paired rings in
-	phase 2 (both new engine work).
+	His own fight (owner, 2026-11-07: Gulp's and his first moves were King
+	Bloblin's, "give me unique moves"), `Enemies/BossMoves`:
+	- **Toll Wave** (`toll`): he plants the bell and rings it; one bronze
+	  ring rolls out through the houses with one lit gap to stand in.
+	- **Echo Mark** (`echo`): three raps, each dropping a glowing ring
+	  under the player that strikes a beat later.
+	- **Crab Scuttle** (`scuttle`): into the bell and a sideways charge
+	  down a marked lane to the wall, then stunned with his shell open.
+	- **The Drowned Rise** at half health (`enrageAt`, `summon`): Hollow
+	  Fishermen until the Drowned Zombie is modelled; from then on the
+	  rings come in pairs and each rap drops two marks.
+	`bounce` and `lash` are not in his loop (every boss carries them).
 
 	PLACEHOLDER NUMBERS until the owner plays him: a step below Gulp, as
 	his stage is a step below hers.
@@ -1197,20 +1261,21 @@ local oldTollcrab: EnemyConfig = {
 	xpReward = 115,
 	boss = {
 		title = "Old Tollcrab",
+		--[[ Not in his loop: every boss's config carries a bounce and a
+		     lash (`EnemyBoss`). ]]
 		bounce = {
-			bounces = 3,
-			windup = 0.95,
+			bounces = 1,
+			windup = 1,
 			launch = 0.2,
-			air = 1.35,
-			recover = 0.55,
-			winded = 1.4,
-			height = 10,
-			maxRange = 20,
-			radius = 7,
-			damage = 56,
-			shove = 9,
-			--[[ The toll: wider than Gulp's flop, the ring is his fight. ]]
-			shockRadius = 15,
+			air = 1,
+			recover = 0.5,
+			winded = 1,
+			height = 8,
+			maxRange = 15,
+			radius = 6,
+			damage = 50,
+			shove = 8,
+			shockRadius = 10,
 		},
 		lash = {
 			arms = { "Arm_Claw" },
@@ -1230,17 +1295,56 @@ local oldTollcrab: EnemyConfig = {
 			bumpShove = 9,
 			recover = 0.7,
 			stopDistance = 7,
-			chainRoot = 3,
-			chainReach = 15,
 		},
 		restAfterBounce = 1.5,
 		restAfterLash = 1.1,
-		loop = { "Bounce", "Lash" },
+		toll = {
+			windup = 1.3,
+			speed = 20,
+			--[[ The room is 35 x 58: from mid-room the far ends are past
+			     this, so running away is the other way out. ]]
+			reach = 24,
+			band = 2.4,
+			gap = 70,
+			gapFrom = 50,
+			gapTo = 100,
+			pairDelay = 1.0,
+			pairTurn = 90,
+			damage = 52,
+			shove = 7,
+			stuck = 1.6,
+			recover = 0.5,
+		},
+		echo = {
+			windup = 0.4,
+			marks = 3,
+			every = 0.75,
+			delay = 1.0,
+			radius = 4.5,
+			lead = 0.8,
+			damage = 44,
+			shove = 5,
+			recover = 0.8,
+		},
+		scuttle = {
+			windup = 1.0,
+			speed = 32,
+			maxRange = 40,
+			--[[ His body side-on: as deep as he is. ]]
+			width = 9,
+			damage = 58,
+			shove = 10,
+			stunned = 2.5,
+			recover = 0.5,
+		},
+		restAfter = { Toll = 1.0, Echo = 1.0, Scuttle = 0.8 },
+		loop = { "Toll", "Echo", "Scuttle", "Echo" },
+		enrageAt = 0.5,
 		opening = 1.5,
 		summon = {
 			into = hollowFisherman,
-			count = 2,
-			atFractions = { 2 / 3, 1 / 3 },
+			count = 3,
+			atFractions = { 1 / 2 },
 			clip = "",
 			windup = 1.4,
 		} :: BossSummon,

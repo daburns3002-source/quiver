@@ -25,6 +25,7 @@ local FxEvents = require(script.Parent.Upgrades.FxEvents)
 local GulpFx = require(script.Parent.GulpFx)
 local MythicFx = require(script.Parent.MythicFx)
 local SplitFx = require(script.Parent.SplitFx)
+local TollFx = require(script.Parent.TollFx)
 local TopDownCamera = require(script.Parent.Parent.Camera.TopDownCamera)
 
 local TelegraphRenderer = {}
@@ -431,6 +432,19 @@ function TelegraphRenderer.onTelegraph(
 			return
 		elseif tell == "WebSplat" then
 			BroodWebFx.splat(origin, direction, duration, reach)
+			return
+		elseif tell == "TollTell" then
+			-- the Old Tollcrab's: `reach` the ring's, `width` its gap in degrees
+			TollFx.tell(parent, origin, direction, duration, reach, width or 60)
+			return
+		elseif tell == "TollRing" then
+			TollFx.ring(parent, origin, direction, duration, reach, width or 60)
+			return
+		elseif tell == "EchoTell" then
+			TollFx.echoTell(parent, origin, duration, reach)
+			return
+		elseif tell == "EchoStrike" then
+			TollFx.echoStrike(parent, origin, duration, reach)
 			return
 		elseif tell == "WheelTell" then
 			-- `reach` is the web's radius, `width` its arms' length

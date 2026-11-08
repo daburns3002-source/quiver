@@ -52,7 +52,18 @@ type EnemyBoss = Balance.EnemyBoss
 
 local BossMoves = {}
 
-export type Kind = "Bounce" | "Lash" | "Spin" | "Spit" | "Slide" | "Gulp"
+--[[ "Toll", "Echo" and "Scuttle" are the Old Tollcrab's, run by
+     `TollcrabMoves`. ]]
+export type Kind =
+	"Bounce"
+	| "Lash"
+	| "Spin"
+	| "Spit"
+	| "Slide"
+	| "Gulp"
+	| "Toll"
+	| "Echo"
+	| "Scuttle"
 
 --[[ The order the moves loop in, unless the boss names its own. ]]
 BossMoves.LOOP = { "Bounce", "Lash" } :: { Kind }

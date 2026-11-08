@@ -144,8 +144,8 @@ ghost Drowned Bellkeeper, 2026-10-22: no ghost in Act 2.)
   houses, one 70° gap lit on the floor through the wind-up, set 50–100° round
   from the player; then the bell sticks (punish). **Echo Mark** — three raps,
   each a red ring under the player that strikes 1 s later. **Crab Scuttle** —
-  into the bell, side-on, a lane to the player and on to the wall, a sideways
-  charge, then stunned 2.5 s. **The Drowned Rise** at 50%: Hollow Fishermen
+  into the bell, side-on, then a zigzag of three short sideways dashes, each
+  down its own lane marked at the player, then stunned 2.5 s. **The Drowned Rise** at 50%: Hollow Fishermen
   (until the Drowned Zombie is modelled); from then on rings come in pairs
   (second gap 90° back) and each rap drops two marks, the second where the
   player is heading. The claw lash is gone.

@@ -8,8 +8,10 @@
 	safe, its band is not, it goes through cover and dies at its reach; the
 	gap is always reachable at the player's pace; the paired ring's gap is
 	reachable from the first's; each ring and each charge hits once; marks
-	land under the player and strike a beat later; the scuttle stops at
-	the wall and leaves him stunned long enough to punish.
+	land under the player and strike a beat later; the scuttle is a
+	zigzag of dashes, each marked at the player and hitting once, a lane
+	can be stepped out of in the beat before it, it stops at a wall, and
+	it leaves him stunned long enough to punish.
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -240,11 +242,7 @@ return function(t: TestRunner.Helper)
 		t.isTrue(tells[2].at.X > tells[1].at.X + 2, "the second leads the runner")
 	end)
 
-	t.test("the scuttle runs side-on to the wall, hits once, and leaves him stunned", function()
-		local wall = 15
-		local function clamp(point: Vector3): Vector3
-			return Vector3.new(math.clamp(point.X, -wall, wall), 0, point.Z)
-		end
+	t.test("the scuttle zigzags: a lane at the player for each dash, then stunned", function()
 		local move = TollcrabMoves.start("Scuttle", 100, Vector3.zero, 0, false)
 		local player = Vector3.new(8, 0, 0)
 		local hits = 0
@@ -254,7 +252,7 @@ return function(t: TestRunner.Helper)
 			function()
 				return player
 			end,
-			clamp,
+			identity,
 			function(now)
 				if TollcrabMoves.touch(move, boss, now, "p", player, PAD) then
 					hits += 1
@@ -265,13 +263,53 @@ return function(t: TestRunner.Helper)
 			end
 		)
 		local lanes = ofKind(events, "Lane")
-		t.equal(#lanes, 1)
+		t.equal(#lanes, scuttle.dashes)
 		t.near(lanes[1].direction.X, 1, 1e-6, "aimed at the player")
-		t.isTrue(lanes[1].length > 8 and lanes[1].length <= wall, "on past them to the wall")
+		t.near(lanes[2].direction.X, -1, 1e-6, "and back at them from past them")
+		t.near(lanes[3].direction.X, 1, 1e-6, "and back again")
+		t.near(lanes[1].length, 8 + scuttle.overshoot, 1e-6, "on past them")
+		t.near(lanes[2].at.X, lanes[1].at.X + lanes[1].length, 1e-6, "from where the last ended")
 		t.near(lanes[1].width, scuttle.width, 1e-9)
-		t.equal(hits, 1)
-		t.near(move.feet.X, lanes[1].length, 1e-6, "ends at the wall")
+		t.equal(hits, scuttle.dashes, "standing still, once by each dash")
 		t.isTrue(stunnedFor >= scuttle.stunned - FRAME * 2, "the punish window")
-		t.isTrue(#ofKind(events, "BumpShock") == 1, "a crash")
+		t.equal(#ofKind(events, "BumpShock"), 1, "one crash, at the end")
+	end)
+
+	t.test("each dash aims at where the player is then, and a lane can be left in time", function()
+		local move = TollcrabMoves.start("Scuttle", 100, Vector3.zero, 0, false)
+		local events = run(move, function(now)
+			return Vector3.new(10, 0, -12 + (now - 100) * 8)
+		end, identity)
+		local lanes = ofKind(events, "Lane")
+		t.isTrue(
+			degreesBetween(lanes[1].direction, lanes[2].direction) > 10,
+			"a new line each dash"
+		)
+		local leave = scuttle.width / 2 + PAD
+		t.isTrue(
+			leave <= Balance.Player.moveSpeed * scuttle.between * 0.85,
+			"out of the lane in the beat before the dash"
+		)
+	end)
+
+	t.test("a dash stops at the wall, and is short", function()
+		local wall = 12
+		local function clamp(point: Vector3): Vector3
+			return Vector3.new(math.clamp(point.X, -wall, wall), 0, point.Z)
+		end
+		local move = TollcrabMoves.start("Scuttle", 100, Vector3.zero, 0, false)
+		local events = run(move, function()
+			return Vector3.new(10, 0, 0)
+		end, clamp)
+		local lanes = ofKind(events, "Lane")
+		t.near(lanes[1].length, wall, 1e-6, "stopped short of its overshoot by the wall")
+
+		local far = TollcrabMoves.start("Scuttle", 100, Vector3.zero, 0, false)
+		local farEvents = run(far, function()
+			return Vector3.new(0, 0, 50)
+		end, identity)
+		for _, lane in ofKind(farEvents, "Lane") do
+			t.isTrue(lane.length <= scuttle.range, "never a long run")
+		end
 	end)
 end

@@ -15,9 +15,11 @@
 	- **Echo** (`EnemyBoss.echo`): raps at the player; each drops a glowing
 	  ring under their feet that strikes a beat later. Enraged, a second
 	  mark lands where they are heading.
-	- **Scuttle** (`EnemyBoss.scuttle`): into the bell, side-on, a lane
-	  marked to the player and on to the wall; then a sideways charge down
-	  it and a crash that leaves him stunned.
+	- **Scuttle** (`EnemyBoss.scuttle`): into the bell, side-on, then a
+	  zigzag of short sideways dashes (owner, 2026-11-08: it was one long
+	  charge, too like Grandmother Gulp's Belly Slide). Each dash has its
+	  own lane marked at where the player is then, and the last ends in a
+	  crash that leaves him stunned.
 
 	Enraged is decided when a move starts (`EnemyBoss.enrageAt`), so a move
 	never changes its rules halfway.
@@ -43,14 +45,14 @@ type State = {
 	enraged: boolean,
 	rings: { Ring },
 	marks: { Mark },
-	--[[ Who each ring, or the charge, has already hit: once each. ]]
+	--[[ Who each ring, or each dash, has already hit: once each. ]]
 	struck: { [any]: { [any]: boolean } },
 	--[[ The target's last position and its smoothed velocity, for the
 	     enraged mark that lands where they are heading. ]]
 	seen: Vector3?,
 	seenAt: number,
 	velocity: Vector3,
-	--[[ A scuttle's lane: from, to, and the side-on yaw. ]]
+	--[[ The scuttle's current dash: its lane. ]]
 	from: Vector3,
 	to: Vector3,
 	along: Vector3,
@@ -233,6 +235,8 @@ local function duration(move: Move, boss: EnemyBoss, state: State): number
 	local s = scuttle(boss)
 	if phase == "windup" then
 		return s.windup
+	elseif phase == "aim" then
+		return s.between
 	elseif phase == "charge" then
 		return state.length / s.speed
 	elseif phase == "crash" then
@@ -264,10 +268,10 @@ local function nextPhase(move: Move, boss: EnemyBoss, state: State): string
 		end
 		return ""
 	end
-	if phase == "windup" then
+	if phase == "windup" or phase == "aim" then
 		return "charge"
 	elseif phase == "charge" then
-		return "crash"
+		return if move.index < scuttle(boss).dashes then "aim" else "crash"
 	elseif phase == "crash" then
 		return "recover"
 	end
@@ -296,6 +300,54 @@ local function markEvent(at: Vector3, e: Balance.BossEcho): Event
 	tell.radius = e.radius
 	tell.duration = e.delay
 	return tell
+end
+
+--[[
+	Marks the next dash from his feet for `warning` seconds: at the player
+	and `overshoot` on past them, at most `range`, stopped by the first
+	wall or house at the last spot his body fits.
+]]
+local function planDash(
+	move: Move,
+	s: Balance.BossScuttle,
+	state: State,
+	warning: number,
+	target: Vector3,
+	clamp: (Vector3) -> Vector3
+): Event
+	local toward = flat(target) - move.feet
+	local along = if toward.Magnitude > 0.1 then toward.Unit else move.direction
+	local wanted = math.min(toward.Magnitude + s.overshoot, s.range)
+	local to = move.feet
+	local d = LANE_STEP
+	while d <= wanted do
+		local probe = move.feet + along * d
+		if (flat(clamp(probe)) - probe).Magnitude > 0.3 then
+			break
+		end
+		to = probe
+		d += LANE_STEP
+	end
+	state.from = move.feet
+	state.to = to
+	state.along = along
+	state.length = (to - move.feet).Magnitude
+	move.index += 1
+	move.direction = along
+	move.length = state.length
+	move.fromYaw = move.yaw
+	--[[ Side-on, whichever side is nearer: a crab never turns round to
+	     run back the way it came. ]]
+	local side = yawOf(along, move.yaw) + math.pi / 2
+	local delta = math.abs(((side - move.yaw + math.pi) % (2 * math.pi)) - math.pi)
+	move.toYaw = if delta <= math.pi / 2 then side else side + math.pi
+	local lane = event("Lane")
+	lane.at = move.feet
+	lane.direction = along
+	lane.length = math.max(state.length, 1)
+	lane.width = s.width
+	lane.duration = warning + state.length / s.speed
+	return lane
 end
 
 local function enter(
@@ -383,37 +435,10 @@ local function enter(
 
 	local s = scuttle(boss)
 	if phase == "windup" then
-		--[[ The lane runs at the player and on until a wall or a house
-		     stops it: sampled out from his feet, it ends at the last spot
-		     his body fits. ]]
-		local toward = flat(target) - move.feet
-		local along = if toward.Magnitude > 0.1 then toward.Unit else move.direction
-		local to = move.feet
-		local d = LANE_STEP
-		while d <= s.maxRange do
-			local probe = move.feet + along * d
-			if (flat(clamp(probe)) - probe).Magnitude > 0.3 then
-				break
-			end
-			to = probe
-			d += LANE_STEP
-		end
-		state.from = move.feet
-		state.to = to
-		state.along = along
-		state.length = (to - move.feet).Magnitude
-		move.direction = along
-		move.length = state.length
-		move.fromYaw = move.yaw
-		--[[ Side-on: a crab runs sideways. ]]
-		move.toYaw = yawOf(along, move.yaw) + math.pi / 2
-		local lane = event("Lane")
-		lane.at = move.feet
-		lane.direction = along
-		lane.length = math.max(state.length, 1)
-		lane.width = s.width
-		lane.duration = s.windup + state.length / s.speed
-		table.insert(events, lane)
+		table.insert(events, planDash(move, s, state, s.windup, target, clamp))
+	elseif phase == "aim" then
+		move.feet = state.to
+		table.insert(events, planDash(move, s, state, s.between, target, clamp))
 	elseif phase == "charge" then
 		move.yaw = move.toYaw
 	elseif phase == "crash" then
@@ -484,6 +509,12 @@ local function pose(move: Move, state: State, t: number, now: number): Pose
 		p.squash = 1 - 0.22 * e
 		p.spread = 1 + 0.06 * e
 		p.twist = 0.05 * e * math.sin(now * 35)
+	elseif phase == "aim" then
+		--[[ A beat low in the bell, legs drumming, before the next dart. ]]
+		p.yaw = lerpAngle(move.fromYaw, move.toYaw, math.min(1, t * 3))
+		p.squash = 0.78 + 0.04 * math.sin(now * 40)
+		p.spread = 1.06
+		p.twist = 0.05 * math.sin(now * 35)
 	elseif phase == "charge" then
 		p.feet = state.from:Lerp(state.to, t)
 		move.feet = p.feet
@@ -576,7 +607,7 @@ end
 --[[
 	What of his move touches a body `pad` studs across its middle at
 	`point` now: the damage, the way it is pushed and how far, or nil.
-	`who` is hit at most once by each ring, and once by a charge.
+	`who` is hit at most once by each ring, and once by each dash.
 ]]
 function TollcrabMoves.touch(
 	move: Move,
@@ -618,7 +649,7 @@ function TollcrabMoves.touch(
 	elseif move.kind == "Scuttle" and move.phase == "charge" then
 		local s = scuttle(boss)
 		local offset = flat(point) - move.feet
-		if offset.Magnitude <= s.width / 2 + pad and first("charge") then
+		if offset.Magnitude <= s.width / 2 + pad and first(move.index) then
 			--[[ Knocked out of his path, to whichever side they were on. ]]
 			local side = Vector3.new(-state.along.Z, 0, state.along.X)
 			local push = if offset:Dot(side) >= 0 then side else -side

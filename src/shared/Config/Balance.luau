@@ -331,15 +331,19 @@ export type BossEcho = {
 	recover: number,
 }
 
---[[ Crab Scuttle: he pulls into his bell and turns side-on, the lane
-     `width` wide marked to the player and on to the first wall or house
-     (at most `maxRange`) for `windup`, then charges sideways along it at
-     `speed`, hitting whoever he runs into, and crashes, `stunned` there
-     with his shell open: the punish window. ]]
+--[[ Crab Scuttle: he pulls into his bell and turns side-on for `windup`,
+     then zigzags: `dashes` short sideways darts at `speed`, `between`
+     seconds apart. Each has its own lane `width` wide, marked at where the
+     player is then and `overshoot` past them, at most `range` and stopped
+     by a wall or house; each hits once. The last ends in a crash,
+     `stunned` there with his shell open: the punish window. ]]
 export type BossScuttle = {
 	windup: number,
+	dashes: number,
+	between: number,
 	speed: number,
-	maxRange: number,
+	range: number,
+	overshoot: number,
 	width: number,
 	damage: number,
 	shove: number,
@@ -1236,8 +1240,9 @@ local hollowFisherman: EnemyConfig = {
 	  ring rolls out through the houses with one lit gap to stand in.
 	- **Echo Mark** (`echo`): three raps, each dropping a glowing ring
 	  under the player that strikes a beat later.
-	- **Crab Scuttle** (`scuttle`): into the bell and a sideways charge
-	  down a marked lane to the wall, then stunned with his shell open.
+	- **Crab Scuttle** (`scuttle`): into the bell, then a zigzag of three
+	  short sideways dashes, each down its own marked lane, then stunned
+	  with his shell open.
 	- **The Drowned Rise** at half health (`enrageAt`, `summon`): Hollow
 	  Fishermen until the Drowned Zombie is modelled; from then on the
 	  rings come in pairs and each rap drops two marks.
@@ -1327,13 +1332,16 @@ local oldTollcrab: EnemyConfig = {
 			recover = 0.8,
 		},
 		scuttle = {
-			windup = 1.0,
-			speed = 32,
-			maxRange = 40,
+			windup = 0.9,
+			dashes = 3,
+			between = 0.55,
+			speed = 34,
+			range = 18,
+			overshoot = 6,
 			--[[ His body side-on: as deep as he is. ]]
-			width = 9,
-			damage = 58,
-			shove = 10,
+			width = 7,
+			damage = 46,
+			shove = 8,
 			stunned = 2.5,
 			recover = 0.5,
 		},

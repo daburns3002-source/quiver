@@ -291,6 +291,13 @@ Remotes.PlayerShoved = "PlayerShoved"
      that dies mid-grab cannot leave anyone stuck. ]]
 Remotes.PlayerGrabbed = "PlayerGrabbed"
 
+--[[ Server → all clients. Grandmother Gulp's Big Gulp drags whoever stands
+     in its cone toward her mouth: the mouth, the way the cone faces, its
+     reach and half angle (radians), the pull in studs a second, and for
+     how many seconds; 0 seconds lets go. Each client tests its own
+     character against the cone and adds the pull to its walking. ]]
+Remotes.PlayerDragged = "PlayerDragged"
+
 --[[ Client → server. This player's dash began (the dash itself is the
      client's movement). Only Earthbreaker cares; the server ignores it for
      anyone without the card and any sooner than the dash's cooldown. ]]

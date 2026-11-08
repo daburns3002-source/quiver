@@ -26,6 +26,8 @@ local log = Log.forTag("Arena")
 type Box = {
 	centre: Vector2,
 	halfExtents: Vector2,
+	--[[ Studs tall: low cover (a ledge) can be slid over (`resolveOverLow`). ]]
+	height: number,
 }
 
 local Arena = {}
@@ -660,6 +662,7 @@ local function construct(obstacles: { Balance.Obstacle }, arena: string?): Prepa
 		table.insert(roomBoxes, {
 			centre = obstacle.offset,
 			halfExtents = Vector2.new(obstacle.size.X / 2, obstacle.size.Z / 2),
+			height = obstacle.size.Y,
 		})
 	end
 
@@ -862,6 +865,40 @@ function Arena.resolveBox(position: Vector3, half: Vector2): Vector3
 	point = Vector2.new(math.clamp(point.X, -limitX, limitX), math.clamp(point.Y, -limitZ, limitZ))
 
 	return Vector3.new(point.X, position.Y, point.Y)
+end
+
+--[[ Studs of cover a body on its belly slides over (`resolveOverLow`). ]]
+local LOW_COVER = 1
+
+--[[ `resolve` that slides over low cover (under `LOW_COVER` tall, such as
+     the Bogheart Heart's ledges) and stops only at taller cover and the
+     walls: Grandmother Gulp's Belly Slide. ]]
+function Arena.resolveOverLow(position: Vector3, radius: number): Vector3
+	local point = Vector2.new(position.X, position.Z)
+	for _, box in boxes do
+		if box.height < LOW_COVER then
+			continue
+		end
+		local delta = point - box.centre
+		local overlapX = (box.halfExtents.X + radius) - math.abs(delta.X)
+		local overlapZ = (box.halfExtents.Y + radius) - math.abs(delta.Y)
+		if overlapX > 0 and overlapZ > 0 then
+			if overlapX < overlapZ then
+				local sign = if delta.X >= 0 then 1 else -1
+				point = Vector2.new(box.centre.X + sign * (box.halfExtents.X + radius), point.Y)
+			else
+				local sign = if delta.Y >= 0 then 1 else -1
+				point = Vector2.new(point.X, box.centre.Y + sign * (box.halfExtents.Y + radius))
+			end
+		end
+	end
+	local limitX = math.max(halfSize.X - radius, 0)
+	local limitZ = math.max(halfSize.Y - radius, 0)
+	return Vector3.new(
+		math.clamp(point.X, -limitX, limitX),
+		position.Y,
+		math.clamp(point.Y, -limitZ, limitZ)
+	)
 end
 
 --[[ `resolveBox` for something the same width on both axes — a body that

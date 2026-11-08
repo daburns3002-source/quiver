@@ -104,10 +104,11 @@ out of order.
 3. **Three enemy models** — Drowned Zombie, Ditch Eel, Bell Ringer. Their cards
    and pictures are already waiting for them. Then rosters, and the Hollow
    Fisherman comes off the bench.
-4. **The Old Tollcrab.** The design and the model are ready; it needs its
-   `Balance` boss entry, its moves built (the ring is new work — it smashes
-   through cover rather than going round it), and a boss arena from the kit.
-5. **The boss item.** `Config/Economy` has no `DrownedVillage` entry at all, so
+4. ~~**The Old Tollcrab.**~~ Built 2026-11-07 and the portal opened (owner:
+   "MAKE SURE ARENA 3 AND 4 ARE PLAYABLE"): `Balance.oldTollcrab`, Gulp's slam,
+   lash and summon in his numbers, Hollow Fishermen at his thirds. Still new
+   work: the ring that smashes through cover, and phase 2's paired rings.
+5. **The boss item's name and icon.** `Config/Economy.DrownedVillage` is in (2026-11-07) with a placeholder item, TOLL BRONZE. Before that it had no entry at all, so
    there is nothing to price a Legendary against — the Royal Jelly and the Brood
    Silk each need an opposite number here, with a name, a price and a Codex
    icon. It can only drop once step 4 can be fought.

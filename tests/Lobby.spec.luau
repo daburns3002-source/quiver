@@ -172,7 +172,7 @@ return function(t: TestRunner.Helper)
 	end)
 
 	t.test(
-		"the working portals are Mossy Glade, Thornwood, Bogheart Caverns and Endless",
+		"the working portals are Mossy Glade, Thornwood, Drowned Village, Bogheart Caverns and Endless",
 		function()
 			local open = {}
 			for _, portal in LobbyConfig.portals do
@@ -190,7 +190,10 @@ return function(t: TestRunner.Helper)
 					table.insert(open, portal.name)
 				end
 			end
-			t.equal(table.concat(open, ","), "Mossy Glade,Thornwood,Bogheart Caverns,Endless")
+			t.equal(
+				table.concat(open, ","),
+				"Mossy Glade,Thornwood,Drowned Village,Bogheart Caverns,Endless"
+			)
 		end
 	)
 

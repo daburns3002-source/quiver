@@ -49,10 +49,9 @@ export type Enemy = {
 	--[[ The area it is from, for a stage without one. ]]
 	area: string,
 	--[[ Out of the game but kept here, so it shows on neither the loading
-	     screen nor the dex. No enemy is benched at the moment: the Ember
-	     Wilf was, and on 2026-11-01 the owner took it out for good ("take
-	     the ember wilf out all the way"), so the field is here for the
-	     next one rather than for anything in the game today. ]]
+	     screen nor the dex. The Drowned Village's three unbuilt
+	     enemies are (2026-11-07); the Ember Wilf was, until the owner took
+	     it out for good on 2026-11-01. ]]
 	benched: boolean?,
 }
 
@@ -182,24 +181,29 @@ local NewEnemies = {
 			picture = "rbxassetid://98588195192346",
 			area = "Thornwood",
 		},
-		-- Drowned Village: designed, not built yet; named as they will be
+		--[[ Drowned Village: designed, not built yet; named as they will be,
+		     and benched until each is modelled and in a roster (the area
+		     opened 2026-11-07 with the Hollow Fisherman alone). ]]
 		DrownedZombie = {
 			name = "DROWNED ZOMBIE",
 			description = "Slow but relentless. Rises again after it falls - unless it burns!",
 			picture = "rbxassetid://135335649602513",
 			area = "DrownedVillage",
+			benched = true,
 		},
 		DitchEel = {
 			name = "DITCH EEL",
 			description = "Slides through the flooded ground, under walls, and surfaces to bite!",
 			picture = "rbxassetid://108442404362621",
 			area = "DrownedVillage",
+			benched = true,
 		},
 		BellRinger = {
 			name = "BELL RINGER",
 			description = "Rings out a wide cone of sound. Step outside the wave!",
 			picture = "rbxassetid://79054509181559",
 			area = "DrownedVillage",
+			benched = true,
 		},
 		HollowFisherman = {
 			name = "HOLLOW FISHERMAN",

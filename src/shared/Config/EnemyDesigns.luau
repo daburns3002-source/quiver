@@ -630,6 +630,38 @@ local grandmotherGulp: Design = {
 	},
 }
 
+--[[
+	The Old Tollcrab (the Tripo mesh `crab_arena_3`, uploaded in the owner's
+	place at `ServerStorage.Imports.crab_arena_3`): its 0.97 x 1.00 x 0.88
+	import x10, stood on the floor of his box, posed whole by
+	`Enemies/BossBody`. `Arm_Claw` is a claw tucked at his front, thrown as
+	the lash's fist. Unturned, facing -Z, as the other Tripo imports are; if
+	he snaps over his shoulder, a 180 degree `rotation` on both parts is the
+	fix.
+]]
+local TOLLCRAB_CLAW = Color3.fromRGB(214, 112, 60)
+local oldTollcrab: Design = {
+	shadow(9.8, 9, 9.8),
+	{
+		name = "Body",
+		shape = "Mesh",
+		meshId = "rbxassetid://102620947888543",
+		textureId = "rbxassetid://80440252726483",
+		size = Vector3.new(9.702, 9.995, 8.823),
+		offset = Vector3.new(0, 0, 0),
+		shade = 1,
+		color = WHITE,
+	},
+	{
+		name = "Arm_Claw",
+		shape = "Ball",
+		size = Vector3.one * 2,
+		offset = Vector3.new(0, -3, -3.4),
+		shade = 1,
+		color = TOLLCRAB_CLAW,
+	},
+}
+
 --[[ Keyed by `EnemyConfig.displayName`, which is what the model is named and
      the only identifier an archetype actually carries. ]]
 local EnemyDesigns = {
@@ -655,6 +687,7 @@ local EnemyDesigns = {
 	Thornling = thornling,
 	-- Drowned Village
 	HollowFisherman = hollowFisherman,
+	OldTollcrab = oldTollcrab,
 	-- Bogheart Caverns
 	SporePuff = sporePuff,
 	Glowcap = glowcap,

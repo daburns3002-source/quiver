@@ -45,11 +45,32 @@ local Economy = {
 			firstBossGems = 80,
 			bossGems = 15,
 		},
+		--[[ Areas 3 and 4 (2026-11-07), so their kills, clears and bosses
+		     pay. A step up each, on Thornwood's curve. The two boss items'
+		     names are placeholders until the owner names them, and they have
+		     no icons yet: `ShopAssets.items` only has to carry one once the
+		     area's crate is stocked (`tests/ConfigConsistency.spec`). ]]
+		DrownedVillage = {
+			killCoins = 11,
+			clearCoins = 600,
+			bossItem = "TollBronze",
+			firstBossGems = 110,
+			bossGems = 20,
+		},
+		BogheartCaverns = {
+			killCoins = 14,
+			clearCoins = 800,
+			bossItem = "BogPearl",
+			firstBossGems = 140,
+			bossGems = 25,
+		},
 	} :: { [string]: Area },
 
 	items = {
 		RoyalJelly = { name = "ROYAL JELLY", boss = "King Bloblin", area = "MossyGlade" },
 		BroodSilk = { name = "BROOD SILK", boss = "The Broodmother", area = "Thornwood" },
+		TollBronze = { name = "TOLL BRONZE", boss = "Old Tollcrab", area = "DrownedVillage" },
+		BogPearl = { name = "BOG PEARL", boss = "Grandmother Gulp", area = "BogheartCaverns" },
 	} :: { [string]: Item },
 }
 

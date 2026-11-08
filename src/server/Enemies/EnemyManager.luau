@@ -36,6 +36,7 @@ local PetWake = require(ReplicatedStorage.Shared.Util.PetWake)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local RootHold = require(ReplicatedStorage.Shared.Util.RootHold)
 local RunSession = require(script.Parent.Parent.Run.RunSession)
+local TollcrabMoves = require(script.Parent.TollcrabMoves)
 local Types = require(ReplicatedStorage.Shared.Types)
 local Waves = require(script.Parent.Parent.Run.Waves)
 local WebWheel = require(ReplicatedStorage.Shared.Util.WebWheel)
@@ -1691,6 +1692,9 @@ local function hurt(session: RunSession.Session, amount: number): boolean
 	return session.health < before or not session.alive
 end
 
+--[[ Studs a player's body reaches out from its centre, for a lunge's touch. ]]
+local PLAYER_REACH = 1
+
 --[[ Resolves what a boss's move did this step: draws its warnings, and
      hits, shoves, grabs and releases players. ]]
 local function resolveBossEvent(
@@ -1914,6 +1918,30 @@ local function resolveBossEvent(
 				shove(session, e.direction, boss.lash.bumpShove)
 			end
 		end
+	elseif e.kind == "TollTell" or e.kind == "TollRing" or e.kind == "EchoTell" then
+		--[[ The Old Tollcrab's (`Fx/TollFx`): a ring's reach and its gap's
+		     width in degrees, or a mark's radius. ]]
+		enemyTelegraph:FireAllClients(e.at, e.direction, e.duration, e.kind, e.radius, e.width)
+	elseif e.kind == "EchoStrike" then
+		local echo = boss.echo :: Balance.BossEcho
+		enemyTelegraph:FireAllClients(
+			e.at,
+			Vector3.zAxis,
+			Balance.Telegraph.shockDuration,
+			"EchoStrike",
+			e.radius
+		)
+		for _, session in RunSession.all() do
+			local root = session.root
+			if not root or not session.alive then
+				continue
+			end
+			local away = Vector3.new(root.Position.X - e.at.X, 0, root.Position.Z - e.at.Z)
+			if away.Magnitude <= e.radius + PLAYER_REACH then
+				hurt(session, echo.damage * scale)
+				shove(session, if away.Magnitude > 0.1 then away else Vector3.zAxis, echo.shove)
+			end
+		end
 	end
 end
 
@@ -1941,9 +1969,6 @@ local function showClip(
 	model:SetAttribute("ModelClipSpan", if span > 0 then span else nil)
 	model:SetAttribute("ModelClip", if clip ~= "" then clip else nil)
 end
-
---[[ Studs a player's body reaches out from its centre, for a lunge's touch. ]]
-local PLAYER_REACH = 1
 
 --[[ A spinning web's turn to touch the players (`BossMoves.wheelHit`):
      each one it touches is hurt, at most every `hitEvery`, and pushed out
@@ -1973,6 +1998,23 @@ local function sweepWheel(
 			then Vector3.new(root.Position.X - move.feet.X, 0, root.Position.Z - move.feet.Z)
 			else WebWheel.sweep(move.feet, root.Position)
 		shove(session, if push.Magnitude > 0.1 then push else Vector3.zAxis, s.shove)
+	end
+end
+
+--[[ The Old Tollcrab's rolling rings and scuttling body touching the
+     players (`TollcrabMoves.touch`): each is hit once by each. ]]
+local function sweepCrab(boss: Balance.EnemyBoss, move: BossMoves.Move, now: number)
+	for _, session in RunSession.all() do
+		local root = session.root
+		if not root or not session.alive then
+			continue
+		end
+		local damage, push, distance =
+			TollcrabMoves.touch(move, boss, now, session.player, root.Position, PLAYER_REACH)
+		if damage then
+			hurt(session, damage * difficulty().damage)
+			shove(session, push, distance)
+		end
 	end
 end
 
@@ -2131,7 +2173,15 @@ local function stepBoss(enemy: Enemy, state: BossState, now: number)
 			state.next = state.next % #loop + 1
 			kind = loop[(state.next - 1) % #loop + 1]
 		end
-		move = BossMoves.start(kind, now, feet, enemy.yaw or 0)
+		if TollcrabMoves.owns(kind) then
+			--[[ Enraged from `enrageAt` of his health down (docs/BOSSES.md
+			     §3: the Drowned Rise). ]]
+			local enrageAt = boss.enrageAt
+			local enraged = enrageAt ~= nil and enemy.health <= enemy.maxHealth * enrageAt
+			move = TollcrabMoves.start(kind, now, feet, enemy.yaw or 0, enraged)
+		else
+			move = BossMoves.start(kind, now, feet, enemy.yaw or 0)
+		end
 		state.move = move
 	end
 	assert(move, "a boss move")
@@ -2141,7 +2191,13 @@ local function stepBoss(enemy: Enemy, state: BossState, now: number)
 		local resolved = Arena.resolveOverLow(Vector3.new(point.X, half, point.Z), radius)
 		return Vector3.new(resolved.X, 0, resolved.Z)
 	end
-	local pose, events, done = BossMoves.step(move, boss, now, target, clamp, over)
+	local crab = TollcrabMoves.owns(move.kind)
+	local pose: BossMoves.Pose, events: { BossMoves.Event }, done: boolean
+	if crab then
+		pose, events, done = TollcrabMoves.step(move, boss, now, target, clamp)
+	else
+		pose, events, done = BossMoves.step(move, boss, now, target, clamp, over)
+	end
 
 	enemy.position = pose.feet + Vector3.new(0, half + pose.lift, 0)
 	enemy.yaw = pose.yaw
@@ -2157,6 +2213,8 @@ local function stepBoss(enemy: Enemy, state: BossState, now: number)
 	end
 	if move.kind == "Spin" then
 		sweepWheel(state, boss, move, now)
+	elseif crab then
+		sweepCrab(boss, move, now)
 	end
 	--[[ Belly Slide: her body hurts whoever it touches on the way, once a
 	     slide, and shoves them out to the side. ]]

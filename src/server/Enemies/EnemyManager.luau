@@ -344,9 +344,11 @@ end
 
 --[[ Co-op's health on top (`Shared/Util/Coop`): a boss takes the party's
      whole scaling, since a boss fight's count never scales; the rest a
-     little, since their count does. ]]
+     little, since their count does. A boss also takes
+     `CombatTuning.bossHealth`. ]]
 local function partyHealth(config: EnemyConfig): number
-	return Coop.healthScale(Coop.partySize(), config.boss ~= nil)
+	local boss = config.boss ~= nil
+	return Coop.healthScale(Coop.partySize(), boss) * (if boss then CombatTuning.bossHealth else 1)
 end
 
 --[[ Volleys decided this step, drained by EnemyFiring. ]]

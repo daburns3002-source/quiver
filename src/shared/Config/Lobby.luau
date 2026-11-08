@@ -413,13 +413,16 @@ local Lobby = {
 	     negative latitude is what puts Roblox's sun north. These are the
 	     fields of `Balance.Lighting`, for `Arena/Atmosphere`. ]]
 	light = {
-		ambient = Color3.fromRGB(170, 122, 114),
-		outdoorAmbient = Color3.fromRGB(216, 160, 148),
-		brightness = 1.9,
+		--[[ The owner's lighting, set by hand in Studio (2026-11-08): these
+		     two ambients, the brightness, the shadow softness, the grade's
+		     brightness and the three `glow`, `colour` and `sunRays` effects. ]]
+		ambient = Color3.fromRGB(124, 155, 184),
+		outdoorAmbient = Color3.fromRGB(157, 178, 255),
+		brightness = 4,
 		clockTime = 9.5,
 		geographicLatitude = -20,
 		sunTint = Color3.fromRGB(255, 186, 128),
-		shadowSoftness = 0.4,
+		shadowSoftness = 1,
 		environmentDiffuse = 0.8,
 		environmentSpecular = 0.2,
 		bloomIntensity = 0.3,
@@ -427,8 +430,17 @@ local Lobby = {
 		bloomThreshold = 1.6,
 		saturation = 0.08,
 		contrast = 0.08,
-		gradeBrightness = 0,
+		gradeBrightness = -0.06,
 		gradeTint = Color3.fromRGB(255, 238, 226),
+		--[[ On top of the bloom and grade above, in the lobby only. ]]
+		glow = { intensity = 1, size = 56, threshold = 2 },
+		colour = {
+			saturation = 0.5,
+			contrast = 0.5,
+			brightness = 0,
+			tint = Color3.fromRGB(243, 234, 255),
+		},
+		sunRays = { intensity = 0.01, spread = 0.1 },
 		--[[ Thin and blue: the warm haze this used to be turned the whole sky
 		     grey, and its glare whitened the trees towards the sun. ]]
 		hazeDensity = 0.1,

@@ -44,7 +44,8 @@ local function run(
 	each: ((number) -> ())?
 ): ({ BossMoves.Event }, number)
 	local all = {}
-	local now = move.phaseAt
+	local began = move.phaseAt
+	local now = began
 	for _ = 1, 3000 do
 		local _, events, done = TollcrabMoves.step(move, boss, now, target(now), clamp)
 		for _, e in events do
@@ -54,7 +55,7 @@ local function run(
 			each(now)
 		end
 		if done then
-			return all, now - move.phaseAt
+			return all, now - began
 		end
 		now += FRAME
 	end

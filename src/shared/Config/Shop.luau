@@ -32,17 +32,12 @@ export type Crate = {
 	     store cannot cost. Unstocked areas' weapons are still held and
 	     fought with in the sandbox; they are simply not for sale.
 
-	     **The Drowned Village is still unstocked, and the art is no longer
-	     why** (2026-11-02): all fourteen of its weapons now have their
-	     pictures in `Config/ShopAssets`. Two things that art cannot supply
-	     are left. It has no `Config/Economy` entry, which needs the Old
-	     Tollcrab's boss item -- a name, a price and an icon of its own,
-	     beside the Royal Jelly and the Brood Silk. And it has no stages in
-	     `Config/Balance`, so that boss never spawns and the item could not
-	     drop even if it existed; stocking it would put area-3 gear, which
-	     is a quarter stronger than anything native (`WeaponStats.areaScale`),
-	     on sale to a player who has only ever seen the glade. The crate
-	     opens when the area does.
+	     **The Drowned Village and Bogheart Caverns are unstocked**
+	     (2026-11-07): both have stages behind open portals and a
+	     `Config/Economy` entry now, but their boss items have placeholder
+	     names and no icons, and whether to sell gear a quarter or a half
+	     stronger than anything native (`WeaponStats.areaScale`) to a
+	     glade-only player is the owner's call.
 
 	     `Util/ShopRules.catalog` is the one gate, so the store, the
 	     crates and the gear screen all agree about what exists. ]]

@@ -54,7 +54,9 @@ return function(t: TestRunner.Helper)
 			if config.boss then
 				continue
 			end
-			t.isTrue(config.moveSpeed > 0, `{name} needs positive move speed`)
+			--[[ A turret that never moves (the Glowcap) holds its ground and
+			     shoots; anything else must walk. ]]
+			t.isTrue(config.moveSpeed > 0 or config.shot ~= nil, `{name} needs positive move speed`)
 			t.isTrue(config.attackRange > 0, `{name} needs positive attack range`)
 			t.isTrue(config.attackDamage > 0, `{name} needs positive damage`)
 			t.isTrue(config.attackCooldown > 0, `{name} needs a positive cooldown`)

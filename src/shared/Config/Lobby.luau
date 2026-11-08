@@ -107,6 +107,7 @@ end
 local GREEN = Color3.fromRGB(80, 230, 70)
 local PURPLE = Color3.fromRGB(140, 60, 235)
 local CYAN = Color3.fromRGB(70, 220, 224)
+local BLUE = Color3.fromRGB(60, 150, 235)
 
 local Lobby = {
 	--[[ Which way a building faces, and where a thing placed in front of
@@ -150,7 +151,9 @@ local Lobby = {
 			tint = GREEN,
 		},
 		{ name = "Thornwood", levels = { 4 }, tint = PURPLE },
-		{ name = "Drowned Village" },
+		--[[ The Drowned Village (2026-11-07, owner: "MAKE SURE ARENA 3 AND 4
+		     ARE PLAYABLE"): one level, ten rooms ending in the Old Tollcrab. ]]
+		{ name = "Drowned Village", levels = { 18 }, tint = BLUE },
 		--[[ Bogheart Caverns (2026-11-06): one level, twenty rooms ending in
 		     Grandmother Gulp, as Thornwood's is. ]]
 		{ name = "Bogheart Caverns", levels = { 19 }, tint = CYAN },

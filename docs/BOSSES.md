@@ -138,6 +138,11 @@ ghost Drowned Bellkeeper, 2026-10-22: no ghost in Act 2.)
 - **Phase 2 (50%) — The Drowned Rise.** Each toll raises Drowned Zombies; the
   bell's rings now come in pairs, and Echo Mark drops two marks at once (one on
   the player, one where they are heading).
+- **Built 2026-11-07** (`Balance` `oldTollcrab`): Toll is Gulp's flop as
+  three bell slams with a wide ring, Echo Mark folded into it (each lands
+  where you stood); a claw lash; Hollow Fishermen at each third in place of
+  the Drowned Rise until the Drowned Zombie is modelled. Not built: the ring
+  through walls and the paired rings.
 - *Teaches:* ring timing; nothing can hide behind a wall here. *Class notes:*
   Warden can stand inside the ring's gap; Ranger must keep line of sight.
 

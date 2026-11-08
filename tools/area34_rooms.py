@@ -147,8 +147,8 @@ DROWNED = [
     ("Drowned Village 7", "DrownedVillage", WELL + CRATES, 5, "brambleSow, hollowFisherman, brambleLurker"),
     ("Drowned Village 8", "DrownedVillage", WELL + RUINS + CRATES, 6, "hollowFisherman, brambleBoar, brambleLurker, burrThistle"),
     ("Drowned Village 9", "DrownedOpen", [], 6, "hollowFisherman, brambleSow, burrThistle, brambleBoar"),
-    #: The Old Tollcrab's room, until he is built: an elite fight.
-    ("Toll Gate", "DrownedBoss", WELL + RUINS + CRATES, 7, "hollowFisherman, brambleSow, brambleBoar, brambleLurker, burrThistle"),
+    #: The Old Tollcrab alone (2026-11-07). No well: he stands where it was.
+    ("Toll Gate", "DrownedBoss", RUINS + CRATES, 1, "oldTollcrab"),
 ]
 
 TWO_NORTH = MUSHROOMS[:2]

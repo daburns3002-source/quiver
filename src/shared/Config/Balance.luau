@@ -1069,6 +1069,93 @@ local hollowFisherman: EnemyConfig = {
 }
 
 --[[
+	The Old Tollcrab, the Drowned Village's boss (docs/BOSSES.md §3): a
+	giant hermit crab in a sunken bronze bell. Alone in the village's last
+	room, the Toll Gate. One textured Tripo mesh (`crab_arena_3`, in the
+	owner's place at `ServerStorage.Imports`), posed whole by
+	`Enemies/BossBody` as Grandmother Gulp is, with one claw thrown as the arm.
+
+	Built 2026-11-07 (owner: "MAKE SURE ARENA 3 AND 4 ARE PLAYABLE") from the
+	moves the engine already has, standing in for the doc's:
+	- **Toll** (`bounce`): the bell slams down where you stood at takeoff,
+	  marked from the wind-up, ringing a wide shockwave on landing -- the
+	  Echo Mark and the Toll ring in one. Three slams.
+	- **Claw** (`lash`): a short, wide lane down which his claw snaps and
+	  drags the first player caught back to the bell.
+	- **The Drowned Rise** (`summon`): Hollow Fishermen at 2/3 and 1/3 of
+	  his health, until the Drowned Zombie is modelled.
+	Not built: the ring that smashes through houses, and paired rings in
+	phase 2 (both new engine work).
+
+	PLACEHOLDER NUMBERS until the owner plays him: a step below Gulp, as
+	his stage is a step below hers.
+]]
+local oldTollcrab: EnemyConfig = {
+	displayName = "OldTollcrab",
+	turnRate = 90,
+	health = 6700,
+	moveSpeed = 0,
+	attackRange = 0,
+	attackDamage = 0,
+	attackCooldown = 0,
+	knockback = 0,
+	--[[ His model x10: 9.70 across, 10.0 tall, 8.82 deep. ]]
+	hitboxSize = Vector3.new(9.8, 10, 9),
+	color = Color3.fromRGB(196, 140, 70),
+	xpReward = 115,
+	boss = {
+		title = "Old Tollcrab",
+		bounce = {
+			bounces = 3,
+			windup = 0.95,
+			launch = 0.2,
+			air = 1.35,
+			recover = 0.55,
+			winded = 1.4,
+			height = 10,
+			maxRange = 20,
+			radius = 7,
+			damage = 56,
+			shove = 9,
+			--[[ The toll: wider than Gulp's flop, the ring is his fight. ]]
+			shockRadius = 15,
+		},
+		lash = {
+			arms = { "Arm_Claw" },
+			wind = 0.8,
+			track = 0.4,
+			strike = 0.16,
+			hold = 0.35,
+			retract = 0.4,
+			reach = 16,
+			minReach = 5,
+			width = 3.6,
+			damage = 46,
+			shove = 4,
+			pull = 0.35,
+			bump = 0.2,
+			bumpDamage = 34,
+			bumpShove = 9,
+			recover = 0.7,
+			stopDistance = 7,
+			chainRoot = 3,
+			chainReach = 15,
+		},
+		restAfterBounce = 1.5,
+		restAfterLash = 1.1,
+		loop = { "Bounce", "Lash" },
+		opening = 1.5,
+		summon = {
+			into = hollowFisherman,
+			count = 2,
+			atFractions = { 2 / 3, 1 / 3 },
+			clip = "",
+			windup = 1.4,
+		} :: BossSummon,
+	},
+}
+
+--[[
 	Act 2, area 4: Bogheart Caverns (docs/ENEMIES-AND-ARENAS.md, "4. Bogheart
 	Caverns"; the low-poly Tripo models, 2026-11-06). Each is one textured
 	mesh, so its whole body moves as one (`SlimeHop`) rather than playing
@@ -1082,8 +1169,9 @@ local hollowFisherman: EnemyConfig = {
 ]]
 local sporePuff: EnemyConfig = {
 	displayName = "SporePuff",
-	--[[ Small and quick, a Moss Slime's turn. ]]
-	turnRate = 540,
+	--[[ Small and quick: the Boarlet's turn, which is bigger (`Balance.spec`:
+	     nothing bigger turns faster). ]]
+	turnRate = 600,
 	--[[ Frail, like every charger: its threat is the cloud, not the bite. ]]
 	health = 260,
 	moveSpeed = 6.6,
@@ -1091,8 +1179,9 @@ local sporePuff: EnemyConfig = {
 	attackDamage = 50,
 	attackCooldown = 1.1,
 	knockback = 3,
-	--[[ Its model x2.7: 2.64 across, 2.63 tall, 2.25 deep. ]]
-	hitboxSize = Vector3.new(2.7, 2.7, 2.4),
+	--[[ Its model x2.7: 2.64 across, 2.63 tall, 2.25 deep, stood 0.04 low,
+	     so 2.71 tall to hold it (`EnemyDesigns.spec`). ]]
+	hitboxSize = Vector3.new(2.7, 2.71, 2.4),
 	color = Color3.fromRGB(236, 104, 150),
 	xpReward = 12,
 	shot = nil,
@@ -1115,8 +1204,9 @@ local sporePuff: EnemyConfig = {
      a lighthouse beam. It holds a zone rather than chasing anyone. ]]
 local glowcap: EnemyConfig = {
 	displayName = "Glowcap",
-	--[[ It only turns to face whoever it is near; its rings never aim. ]]
-	turnRate = 120,
+	--[[ It only turns to face whoever it is near; its rings never aim. 240,
+	     its size's turn (`Balance.spec`: nothing bigger turns faster). ]]
+	turnRate = 240,
 	health = 380,
 	--[[ Stationary (docs/ENEMIES-AND-ARENAS.md: "New: stationary"). ]]
 	moveSpeed = 0,
@@ -1139,12 +1229,14 @@ local glowcap: EnemyConfig = {
 		--[[ Slow spores: a ring is a pattern to walk through, not a shot to
 		     outrun. ]]
 		speed = 9,
-		lifetime = 22 / 9,
+		--[[ Its reach is its range (`Balance.spec`): a ring never opens on a
+		     player it cannot touch. Was 22 studs against a 70 range. ]]
+		lifetime = 30 / 9,
 		telegraph = 0.35,
 		tell = "Flash",
 		locksAim = false,
-		--[[ Fires at anyone in the room. ]]
-		range = 70,
+		--[[ Fires at anyone within most of the room's length. ]]
+		range = 30,
 		--[[ 25 degrees further round each ring: a gap passes any one spot
 		     about every 4 rings. ]]
 		spin = math.rad(25),
@@ -1155,7 +1247,8 @@ local glowcap: EnemyConfig = {
      hard to kill: the wall that walks between you and the turrets. ]]
 local shellback: EnemyConfig = {
 	displayName = "Shellback",
-	turnRate = 90,
+	--[[ The Bramble Sow's turn: it is smaller, so no slower (`Balance.spec`). ]]
+	turnRate = 220,
 	health = 900,
 	moveSpeed = 3.3,
 	attackRange = 4.6,
@@ -1208,7 +1301,9 @@ local grandmotherGulp: EnemyConfig = {
 	attackCooldown = 0,
 	knockback = 0,
 	--[[ Her model x10: 9.67 across, 9.66 tall, 9.81 deep. ]]
-	hitboxSize = Vector3.new(9.8, 9.8, 10),
+	--[[ 9.82 wide and 9.9 tall, so her 9.804 x 9.754 mesh, stood 0.07
+	     low, sits inside it (`EnemyDesigns.spec`). ]]
+	hitboxSize = Vector3.new(9.82, 9.9, 10),
 	color = Color3.fromRGB(150, 90, 190),
 	xpReward = 120,
 	boss = {
@@ -2670,14 +2765,13 @@ local drownedRooms: { RoomConfig } = {
 		name = "Toll Gate",
 		arena = "DrownedBoss",
 		obstacles = {
-			{ offset = Vector2.new(0, 0), size = Vector3.new(5.4, 1.6, 5) },
 			{ offset = Vector2.new(-9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
 			{ offset = Vector2.new(9, -16), size = Vector3.new(4.6, 1.6, 3.2) },
 			{ offset = Vector2.new(-9, 11), size = Vector3.new(5, 1.6, 2.5) },
 			{ offset = Vector2.new(9, 11), size = Vector3.new(5, 1.6, 2.5) },
 		},
-		enemyCount = 7,
-		roster = { hollowFisherman, brambleSow, brambleBoar, brambleLurker, burrThistle },
+		enemyCount = 1,
+		roster = { oldTollcrab },
 	},
 }
 
@@ -4383,6 +4477,9 @@ local Balance = {
 		Glowcap = glowcap,
 		Shellback = shellback,
 		GrandmotherGulp = grandmotherGulp,
+		-- Drowned Village (2026-11-07: its portal opened)
+		HollowFisherman = hollowFisherman,
+		OldTollcrab = oldTollcrab,
 	},
 
 	--[[
@@ -4392,8 +4489,8 @@ local Balance = {
 		it to that: everything in it is introduced somewhere in the game.
 		That is the right rule and it leaves nowhere to put a finished
 		enemy whose area is not built -- the Lancer has been homeless since
-		the Ember Wilf stopped standing in for it, and the Hollow Fisherman
-		arrives with no Drowned Village to stand in.
+		the Ember Wilf stopped standing in for it. (The Hollow Fisherman was
+		here until the Drowned Village opened, 2026-11-07.)
 
 		So they live here instead: real configs, out of every roster, and
 		`Remotes.DebugSpawnEnemy` reaches them in Studio so one can be
@@ -4402,7 +4499,6 @@ local Balance = {
 	]]
 	Benched = {
 		Lancer = _lineSniper,
-		HollowFisherman = hollowFisherman,
 	} :: { [string]: EnemyConfig },
 
 	--[[
@@ -5050,12 +5146,11 @@ local Balance = {
 		--[[
 			The Drowned Village and Bogheart Caverns (2026-11-05): ten rooms
 			each from `tools/area34_rooms.py`, built from the owner's kits.
-			After Endless so no stage's index moves. **The Drowned Village
-			is behind no portal yet**: its own enemies are not modelled, so
-			its rosters are stand-ins (Thornwood's, with the Hollow
-			Fisherman), and it ends in an elite fight where its boss will
-			stand. Bogheart Caverns has its own since 2026-11-06 (below)
-			(`docs/DROWNED-VILLAGE.md`). A step harder than Thornwood each,
+			After Endless so no stage's index moves. The Drowned Village's
+			portal opened 2026-11-07: its own enemies but the Hollow
+			Fisherman are not modelled, so its rosters are Thornwood's with
+			the Fisherman, ending in the Old Tollcrab. Bogheart Caverns has
+			its own since 2026-11-06 (below) (`docs/DROWNED-VILLAGE.md`). A step harder than Thornwood each,
 			placeholder numbers until they are played.
 		]]
 		{
@@ -5087,9 +5182,9 @@ local Balance = {
 	     portal once Mossy Glade 1-10 is beaten. The last of `Stages`. ]]
 	endlessStage = 17,
 
-	--[[ The Drowned Village's and Bogheart Caverns' stages (above), for
-	     the portals once their enemies are built. Bogheart's is open
-	     (2026-11-06). ]]
+	--[[ The Drowned Village's and Bogheart Caverns' stages (above), behind
+	     their portals: Bogheart's opened 2026-11-06, the Drowned Village's
+	     2026-11-07. ]]
 	drownedStage = 18,
 	bogheartStage = 19,
 

@@ -1571,3 +1571,15 @@ from `execute_luau`. `SetThreadExecutionState` with display-required and returni
 drawing. Also, a computer-use click teleports the cursor, and a Roblox button needs `MouseEnter` first:
 `mouse_move`, a short wait, then click, or the click is lost and looks like a dead button.
 
+## Glowcaps opened fire on players their spores could never reach (2026-11-07)
+
+`range = 70` against spores that died at 22 studs, so a Glowcap fired rings at the far end of the
+room. Range 30 and spores that last 30 studs now (`Balance.spec`, "can hold its distance"). The same
+suite run caught three more Bogheart numbers: the Glowcap (120) and Shellback (90) turned slower than
+smaller enemies, and Gulp's and the Spore Puff's meshes poked a few hundredths past their hitboxes.
+
+## Areas 3 and 4 paid nothing (2026-11-07)
+
+Neither had a `Config/Economy` entry, so `RunSession.areaPay` paid no coins for kills or clears and
+no boss item or gems. Both have one now.
+

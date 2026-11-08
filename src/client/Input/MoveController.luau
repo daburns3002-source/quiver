@@ -305,6 +305,17 @@ local function step()
 	end
 	humanoid.WalkSpeed = PlayerStats.get().moveSpeed * rush
 
+	--[[ Big Gulp's drag is added to walking, not put in its place: walking
+	     straight away is slowed, walking sideways out of the cone works. ]]
+	local root = character:FindFirstChild("HumanoidRootPart") :: BasePart?
+	local drag = if root then Shove.dragVelocity(now, root.Position) else Vector3.zero
+	if drag.Magnitude > 1e-3 then
+		local velocity = desiredDirection() * humanoid.WalkSpeed + drag
+		humanoid.WalkSpeed = velocity.Magnitude
+		humanoid:Move(if velocity.Magnitude > 1e-3 then velocity.Unit else Vector3.zero, false)
+		return
+	end
+
 	-- World space, not camera-relative: the second argument must stay false.
 	humanoid:Move(desiredDirection(), false)
 end

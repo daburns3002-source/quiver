@@ -87,6 +87,17 @@ type BossState = {
 	wheelHitAt: { [Player]: number },
 	--[[ When it last stepped (`os.clock()`), for a chase's stride. ]]
 	steppedAt: number,
+	--[[ Its notches (`EnemyBoss.notches`) fallen through, how many roars
+	     it owes for them, and when the roar it is giving began and ends
+	     (`os.clock()`), or 0. ]]
+	notchesPassed: number,
+	roarsOwed: number,
+	roarAt: number,
+	roarUntil: number,
+	--[[ Belly Slide: who it has already hit this slide. ]]
+	slideHit: { [Player]: boolean },
+	--[[ Big Gulp: whether the clients are being told to drag. ]]
+	dragging: boolean,
 }
 
 type Enemy = {
@@ -247,6 +258,7 @@ local enemyDied = Remotes.event(Remotes.EnemyDied)
 local enemyTelegraph = Remotes.event(Remotes.EnemyTelegraph)
 local playerShoved = Remotes.event(Remotes.PlayerShoved)
 local playerGrabbed = Remotes.event(Remotes.PlayerGrabbed)
+local playerDragged = Remotes.event(Remotes.PlayerDragged)
 
 --[[ Studs enemies try to keep between each other, so a wave reads as a group
      rather than one overlapping blob. ]]
@@ -345,6 +357,37 @@ local pendingVolleys: { Volley } = {}
 --[[ Spore clouds still hanging where their enemies died. ]]
 local clouds: { Cloud } = {}
 
+--[[ Grandmother Gulp's slime trails (`BossSlide`): each hurts whoever
+     stands on it, every `every` seconds until `endsAt`, but only as far
+     along as she has slid (`speed` from `startAt`). ]]
+type Strip = {
+	from: Vector3,
+	direction: Vector3,
+	length: number,
+	width: number,
+	startAt: number,
+	speed: number,
+	damage: number,
+	every: number,
+	nextAt: number,
+	endsAt: number,
+}
+local strips: { Strip } = {}
+
+--[[ The Bog Rises (`BossFlood`): the poison creeping in from the walls
+     from `startAt` over `rise` seconds to `inset`, then staying, until the
+     boss who raised it dies. ]]
+type Flood = {
+	owner: Model,
+	inset: Vector2,
+	startAt: number,
+	rise: number,
+	damage: number,
+	every: number,
+	nextAt: number,
+}
+local flood: Flood? = nil
+
 --[[ Until when (os.clock) the run holds still for a boss's entry banner. ]]
 local introUntil = 0
 
@@ -362,6 +405,8 @@ function EnemyManager.init(parent: Instance)
 	table.clear(enemies)
 	table.clear(positions)
 	table.clear(clouds)
+	table.clear(strips)
+	flood = nil
 	aliveCount = 0
 	introUntil = 0
 end
@@ -1031,6 +1076,12 @@ function EnemyManager.spawn(
 			summonOwed = 0,
 			wheelHitAt = {},
 			steppedAt = 0,
+			notchesPassed = 0,
+			roarsOwed = 0,
+			roarAt = 0,
+			roarUntil = 0,
+			slideHit = {},
+			dragging = false,
 		}
 		--[[ For the client: the boss bar, and no hit squash on a body the
 		     server is posing. ]]
@@ -1040,7 +1091,7 @@ function EnemyManager.spawn(
 		     thresholds, so King Bloblin's two give thirds. Drawing only —
 		     the health above it is still the truth. ]]
 		local summon = config.boss.summon
-		local fractions = summon and summon.atFractions
+		local fractions = (summon and summon.atFractions) or config.boss.notches
 		if fractions and #fractions > 0 then
 			model:SetAttribute("HealthSegments", #fractions + 1)
 		end
@@ -1393,6 +1444,16 @@ function EnemyManager.damage(
 	local holding = enemy.boss and enemy.boss.holding
 	if holding then
 		playerGrabbed:FireClient(holding, 0)
+	end
+	--[[ Grandmother Gulp killed mid-inhale lets go too, and her flood
+	     drains with her, so the walk to the exit is dry. ]]
+	if enemy.boss and enemy.boss.dragging then
+		playerDragged:FireAllClients(Vector3.zero, Vector3.zAxis, 0, 0, 0, 0)
+	end
+	local raised = flood
+	if raised and raised.owner == model then
+		flood = nil
+		enemyTelegraph:FireAllClients(Vector3.zero, Vector3.zAxis, 1, "BogFloodEnd", 0)
 	end
 
 	--[[
@@ -1749,6 +1810,99 @@ local function resolveBossEvent(
 		if held and move then
 			BossMoves.grab(move, boss, now, held, clamp)
 		end
+	elseif e.kind == "Glob" then
+		--[[ From her mouth, high, to the spot; `direction` carries the
+		     whole throw for the client (`Fx/GulpFx`). ]]
+		local move = state.move
+		local mouth = if move then BossMoves.mouth(move) else e.at
+		local from = mouth + Vector3.new(0, 4, 0)
+		enemyTelegraph:FireAllClients(from, e.at - from, e.duration, "GulpGlob", 1.4)
+	elseif e.kind == "GlobLand" then
+		local spit = boss.spit :: Balance.BossSpit
+		table.insert(clouds, {
+			at = e.at,
+			radius = spit.cloudRadius,
+			damage = spit.cloudDamage * scale,
+			every = spit.cloudEvery,
+			nextAt = now + spit.cloudEvery,
+			endsAt = now + spit.cloudLinger,
+		})
+		enemyTelegraph:FireAllClients(
+			e.at,
+			Vector3.zAxis,
+			spit.cloudLinger,
+			"SporeCloud",
+			spit.cloudRadius
+		)
+		for _, session in RunSession.all() do
+			local root = session.root
+			if not root or not session.alive then
+				continue
+			end
+			local away = Vector3.new(root.Position.X - e.at.X, 0, root.Position.Z - e.at.Z)
+			if away.Magnitude <= e.radius then
+				hurt(session, spit.damage * scale)
+			end
+		end
+	elseif e.kind == "Trail" then
+		local belly = boss.slide :: Balance.BossSlide
+		table.insert(strips, {
+			from = e.at,
+			direction = e.direction,
+			length = e.length,
+			width = e.width,
+			startAt = now,
+			speed = belly.speed,
+			damage = belly.trailDamage * scale,
+			every = belly.trailEvery,
+			nextAt = now + belly.trailEvery,
+			endsAt = now + e.duration + belly.trailLinger,
+		})
+		table.clear(state.slideHit)
+		enemyTelegraph:FireAllClients(
+			e.at,
+			e.direction,
+			e.duration + belly.trailLinger,
+			"SlimeTrail",
+			e.length,
+			e.width
+		)
+	elseif e.kind == "SlideEnd" then
+		enemyTelegraph:FireAllClients(
+			e.at,
+			Vector3.zAxis,
+			Balance.Telegraph.shockDuration,
+			"BumpShock",
+			6
+		)
+	elseif e.kind == "ConeTell" then
+		enemyTelegraph:FireAllClients(e.at, e.direction, e.duration, "GulpCone", e.length, e.width)
+	elseif e.kind == "Inhale" then
+		local gulp = boss.gulp :: Balance.BossGulp
+		local move = state.move
+		local mouth = if move then BossMoves.mouth(move) else e.at
+		state.dragging = true
+		playerDragged:FireAllClients(
+			mouth,
+			e.direction,
+			gulp.reach,
+			gulp.halfAngle,
+			gulp.pull,
+			e.duration
+		)
+		enemyTelegraph:FireAllClients(
+			mouth,
+			e.direction,
+			e.duration,
+			"GulpInhale",
+			e.length,
+			e.width
+		)
+	elseif e.kind == "InhaleEnd" then
+		if state.dragging then
+			state.dragging = false
+			playerDragged:FireAllClients(Vector3.zero, Vector3.zAxis, 0, 0, 0, 0)
+		end
 	elseif e.kind == "Bump" then
 		local player = state.holding
 		state.holding = nil
@@ -1862,6 +2016,57 @@ local function stepBoss(enemy: Enemy, state: BossState, now: number)
 	     and it is why the hold is short. ]]
 	local caged = move == nil and RootHold.held(enemy.rootedUntil, now)
 
+	--[[ Her notches (`EnemyBoss.notches`): each one fallen through is owed
+	     a roar, given between moves, the pause that says the rules just
+	     changed. The flood's notch raises the flood as she roars. ]]
+	local notches = boss.notches
+	if notches then
+		local passed = BossThresholds.reached(notches, enemy.health, enemy.maxHealth)
+		if passed > state.notchesPassed then
+			state.roarsOwed += passed - state.notchesPassed
+			state.notchesPassed = passed
+		end
+	end
+	if not move and state.roarUntil == 0 and state.roarsOwed > 0 then
+		state.roarsOwed -= 1
+		local roar = boss.roar or 1.5
+		state.roarAt = now
+		state.roarUntil = now + roar
+		state.restUntil = math.max(state.restUntil, now + roar + 0.4)
+		enemyTelegraph:FireAllClients(Vector3.zero, Vector3.zAxis, 0.6, "Shake", 0.7)
+		local rising = boss.flood
+		if rising and not flood and enemy.health <= enemy.maxHealth * rising.atFraction then
+			flood = {
+				owner = enemy.model,
+				inset = rising.inset,
+				startAt = now,
+				rise = rising.rise,
+				damage = rising.damage * difficulty().damage,
+				every = rising.every,
+				nextAt = now + rising.every,
+			}
+			local floor = Arena.halfSize()
+			--[[ The floor's half size and the inset, packed into the
+			     channel (`Fx/GulpFx`); `reach` is how long it rises. ]]
+			enemyTelegraph:FireAllClients(
+				Vector3.new(floor.X, 0, floor.Y),
+				Vector3.new(rising.inset.X, 0, rising.inset.Y),
+				3600,
+				"BogFlood",
+				rising.rise
+			)
+		end
+	end
+	if state.roarUntil > 0 then
+		if now < state.roarUntil then
+			local roar = state.roarUntil - state.roarAt
+			local t = math.clamp((now - state.roarAt) / roar, 0, 1)
+			BossBody.pose(state.body, BossMoves.roar(boss, feet, enemy.yaw or 0, t))
+			return
+		end
+		state.roarUntil = 0
+	end
+
 	if not move then
 		local summon = boss.summon
 		--[[ A health-driven clutch (`BossSummon.atFractions`) comes due
@@ -1919,13 +2124,24 @@ local function stepBoss(enemy: Enemy, state: BossState, now: number)
 			return
 		end
 		local loop = BossMoves.loopOf(boss)
-		move = BossMoves.start(loop[(state.next - 1) % #loop + 1], now, feet, enemy.yaw or 0)
+		local kind: BossMoves.Kind = loop[(state.next - 1) % #loop + 1]
+		--[[ Big Gulp waits until her health is below its fraction. ]]
+		local gulp = boss.gulp
+		if kind == "Gulp" and gulp and enemy.health > enemy.maxHealth * gulp.fromFraction then
+			state.next = state.next % #loop + 1
+			kind = loop[(state.next - 1) % #loop + 1]
+		end
+		move = BossMoves.start(kind, now, feet, enemy.yaw or 0)
 		state.move = move
 	end
 	assert(move, "a boss move")
 
 	local target = if targetRoot then targetRoot.Position else feet
-	local pose, events, done = BossMoves.step(move, boss, now, target, clamp)
+	local function over(point: Vector3): Vector3
+		local resolved = Arena.resolveOverLow(Vector3.new(point.X, half, point.Z), radius)
+		return Vector3.new(resolved.X, 0, resolved.Z)
+	end
+	local pose, events, done = BossMoves.step(move, boss, now, target, clamp, over)
 
 	enemy.position = pose.feet + Vector3.new(0, half + pose.lift, 0)
 	enemy.yaw = pose.yaw
@@ -1941,6 +2157,59 @@ local function stepBoss(enemy: Enemy, state: BossState, now: number)
 	end
 	if move.kind == "Spin" then
 		sweepWheel(state, boss, move, now)
+	end
+	--[[ Belly Slide: her body hurts whoever it touches on the way, once a
+	     slide, and shoves them out to the side. ]]
+	local belly = boss.slide
+	if belly and BossMoves.sliding(move) then
+		local side = Vector3.new(-move.direction.Z, 0, move.direction.X)
+		for _, session in RunSession.all() do
+			local root = session.root
+			if not root or not session.alive or state.slideHit[session.player] then
+				continue
+			end
+			local away =
+				Vector3.new(root.Position.X - pose.feet.X, 0, root.Position.Z - pose.feet.Z)
+			if away.Magnitude <= radius + PLAYER_REACH then
+				state.slideHit[session.player] = true
+				hurt(session, belly.damage * difficulty().damage)
+				shove(session, side * (if away:Dot(side) >= 0 then 1 else -1), belly.shove)
+			end
+		end
+	end
+	--[[ Big Gulp: whoever the drag brings to her mouth is swallowed, hurt
+	     and spat back out across the room, and the inhale ends. ]]
+	local gulp = boss.gulp
+	if gulp and BossMoves.inhaling(move) then
+		local mouth = BossMoves.mouth(move)
+		local swallowed = false
+		for _, session in RunSession.all() do
+			local root = session.root
+			if not root or not session.alive then
+				continue
+			end
+			local away = Vector3.new(root.Position.X - mouth.X, 0, root.Position.Z - mouth.Z)
+			if away.Magnitude <= gulp.mouth then
+				swallowed = true
+				hurt(session, gulp.damage * difficulty().damage)
+				shove(session, move.direction, gulp.spit)
+				enemyTelegraph:FireAllClients(
+					root.Position,
+					move.direction,
+					Balance.Telegraph.grabDuration,
+					"Grab",
+					Balance.Telegraph.grabSize
+				)
+			end
+		end
+		if swallowed then
+			BossMoves.swallow(move, now)
+			if state.dragging then
+				state.dragging = false
+				playerDragged:FireAllClients(Vector3.zero, Vector3.zAxis, 0, 0, 0, 0)
+			end
+			enemyTelegraph:FireAllClients(Vector3.zero, Vector3.zAxis, 0.3, "Shake", 0.5)
+		end
 	end
 
 	--[[ After the events: a grab switches the clip to the pull. ]]
@@ -2759,8 +3028,63 @@ local function stepClouds(now: number)
 	end
 end
 
+--[[ Ticks Grandmother Gulp's slime trails and her flood: each hurts
+     whoever stands in it, every `every` seconds. A trail only as far as
+     she has slid; the flood as far in as it has risen. ]]
+local function stepBogHazards(now: number)
+	local index = 1
+	while index <= #strips do
+		local strip = strips[index]
+		if now >= strip.endsAt then
+			table.remove(strips, index)
+			continue
+		end
+		if now >= strip.nextAt then
+			strip.nextAt += strip.every
+			local laid = math.min(strip.length, (now - strip.startAt) * strip.speed)
+			local side = Vector3.new(-strip.direction.Z, 0, strip.direction.X)
+			for _, session in RunSession.all() do
+				local root = session.root
+				if not root or not session.alive then
+					continue
+				end
+				local offset =
+					Vector3.new(root.Position.X - strip.from.X, 0, root.Position.Z - strip.from.Z)
+				local along = offset:Dot(strip.direction)
+				if
+					along >= 0
+					and along <= laid
+					and math.abs(offset:Dot(side)) <= strip.width / 2
+				then
+					hurt(session, strip.damage)
+				end
+			end
+		end
+		index += 1
+	end
+
+	local rising = flood
+	if rising and now >= rising.nextAt then
+		rising.nextAt += rising.every
+		local risen = math.clamp((now - rising.startAt) / rising.rise, 0, 1)
+		local half = Arena.halfSize()
+		local dryX = half.X - rising.inset.X * risen
+		local dryZ = half.Y - rising.inset.Y * risen
+		for _, session in RunSession.all() do
+			local root = session.root
+			if not root or not session.alive then
+				continue
+			end
+			if math.abs(root.Position.X) > dryX or math.abs(root.Position.Z) > dryZ then
+				hurt(session, rising.damage)
+			end
+		end
+	end
+end
+
 function EnemyManager.step(deltaTime: number, now: number)
 	stepClouds(now)
+	stepBogHazards(now)
 	for _, enemy in enemies do
 		stepEnemy(enemy, deltaTime, now)
 		if enemy.arrivesAt == nil then

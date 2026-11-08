@@ -331,6 +331,19 @@ Remotes.event(Remotes.PlayerGrabbed).OnClientEvent:Connect(function(seconds)
 		Shove.hold(os.clock(), seconds)
 	end
 end)
+Remotes.event(Remotes.PlayerDragged).OnClientEvent
+	:Connect(function(mouth, facing, reach, halfAngle, pull, seconds)
+		if
+			typeof(mouth) == "Vector3"
+			and typeof(facing) == "Vector3"
+			and type(reach) == "number"
+			and type(halfAngle) == "number"
+			and type(pull) == "number"
+			and type(seconds) == "number"
+		then
+			Shove.drag(os.clock(), mouth, facing, reach, halfAngle, pull, seconds)
+		end
+	end)
 Remotes.event(Remotes.PickupDropped).OnClientEvent:Connect(PickupFx.onDropped)
 Remotes.event(Remotes.PickupsTaken).OnClientEvent:Connect(PickupFx.onTaken)
 Remotes.event(Remotes.PickupsCleared).OnClientEvent:Connect(PickupFx.onCleared)

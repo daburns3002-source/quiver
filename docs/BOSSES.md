@@ -154,10 +154,18 @@ ghost Drowned Bellkeeper, 2026-10-22: no ghost in Act 2.)
   sends a shockwave ring and splashes poison.
 - **Phase 3 (33%) — The Bog Rises.** Poison floods the room's edges, shrinking
   the dry floor; she swallows Spore Puffs and spits them as bursting clouds.
-- **Built 2026-11-06** (`Balance` `grandmotherGulp`): Tongue is the Slime
-  King's lash with one arm (a pink tube from her mouth), Belly Flop his
-  bounce (two leaps), and three Spore Puffs at each third of her health.
-  The flood is **not built**: the engine has no rising-hazard piece yet.
+- **Built 2026-11-08, her own fight** (`Balance` `grandmotherGulp`; owner,
+  2026-11-07: "no these are copies of king bloblin fight, give me unique
+  moves"; the list below is the one the owner OK'd). The Slime King's lash,
+  bounce and summon are gone. **Spore Spit:** her throat swells while three
+  circles are marked (on you and either side), globs land in spore clouds;
+  she pants after. **Belly Slide:** a lane as wide as she is, marked to the
+  wall past you; she slides down it on her belly (over the low ledges, not
+  the rocks), leaving a slime trail, and lies stuck after. **Big Gulp**
+  (below 2/3): a marked cone she inhales through, dragging you toward her
+  mouth slower than you walk; reaching it is being swallowed and spat out;
+  she burps after. **The Bog Rises** (1/3): a roar, then poison creeps in
+  from the walls and stays until she dies. Each notch is a roar and a pause.
 - *Arena:* an underground lake ringed by glowing mushrooms. *Teaches:* every
   Lowlands lesson at once. *Class notes:* Ranger has the safest tongue
   windows; Arcanist's freeze can hold her mid-leap.

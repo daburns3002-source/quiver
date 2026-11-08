@@ -328,6 +328,98 @@ export type EnemyBoss = {
 	     as its health falls through fractions of its max (`atFractions`,
 	     King Bloblin's thirds). ]]
 	summon: BossSummon?,
+	--[[ Grandmother Gulp's own moves (`Enemies/BossMoves`): Spore Spit,
+	     Belly Slide and Big Gulp, for a boss whose `loop` names them, and
+	     The Bog Rises at a fraction of her health. ]]
+	spit: BossSpit?,
+	slide: BossSlide?,
+	gulp: BossGulp?,
+	flood: BossFlood?,
+	--[[ Seconds it rests after a move of each kind, for the kinds above;
+	     the `restAfter*` fields cover the King's. ]]
+	restAfter: { [string]: number }?,
+	--[[ Fractions of max health where its fight changes, for a boss with
+	     no health-driven summon: each one crossed is a notch on the boss
+	     bar and a roar (`roar` seconds) before its next move. ]]
+	notches: { number }?,
+	roar: number?,
+}
+
+--[[ Spore Spit: her throat swells for `swell` seconds while `globs`
+     circles are marked (one where the target stood, the rest `spread`
+     studs either side of it), then she spits, and each glob takes
+     `flight` seconds to land: `damage` to anyone in its `radius`, then a
+     spore cloud (`cloud*`) that hangs there. She pants open-mouthed for
+     `pant` seconds after: the punish window. ]]
+export type BossSpit = {
+	globs: number,
+	spread: number,
+	swell: number,
+	flight: number,
+	pant: number,
+	radius: number,
+	damage: number,
+	cloudRadius: number,
+	cloudLinger: number,
+	cloudEvery: number,
+	cloudDamage: number,
+}
+
+--[[ Belly Slide: she braces for `brace` seconds behind a lane marked
+     from her to the wall past the target (`maxLength` at most, as wide as
+     she is), then flops on her belly and slides down it at `speed`:
+     `damage` and a `shove` out of the way to anyone she touches, and a
+     slime trail `trailWidth` across behind her that hurts
+     (`trailDamage` every `trailEvery`) for `trailLinger` seconds. Stuck
+     flat for `stuck` seconds at the end (the punish window), then
+     `rise` to get up. ]]
+export type BossSlide = {
+	brace: number,
+	--[[ Studs across the lane she slides down: her own width. ]]
+	width: number,
+	speed: number,
+	maxLength: number,
+	damage: number,
+	shove: number,
+	trailWidth: number,
+	trailLinger: number,
+	trailEvery: number,
+	trailDamage: number,
+	stuck: number,
+	rise: number,
+}
+
+--[[ Big Gulp: her mouth opens for `open` seconds behind a cone marked in
+     front of her (`reach` long, `halfAngle` radians either side), then
+     she inhales for `inhale`: anyone in the cone is dragged toward her
+     mouth at `pull` studs a second (slower than walking, so stepping out
+     sideways works). Reaching her mouth (`mouth` studs from it) is being
+     swallowed: `damage`, spat `spit` studs away, and the inhale ends.
+     She burps and gasps for `burp` seconds after: the punish window.
+     Only once her health is below `fromFraction`. ]]
+export type BossGulp = {
+	open: number,
+	inhale: number,
+	burp: number,
+	reach: number,
+	halfAngle: number,
+	pull: number,
+	mouth: number,
+	damage: number,
+	spit: number,
+	fromFraction: number,
+}
+
+--[[ The Bog Rises: when her health falls through `atFraction`, poison
+     floods in from the room's edges over `rise` seconds, to `inset`
+     studs in from the side walls (X) and the end walls (Y), and stays
+     until she dies: `damage` every `every` seconds to anyone in it. ]]
+export type BossFlood = {
+	atFraction: number,
+	rise: number,
+	inset: Vector2,
+	every: number,
+	damage: number,
 }
 
 export type BossSummon = {
@@ -1270,22 +1362,31 @@ local shellback: EnemyConfig = {
 	`ref_gulp_views.png`). Alone in the caverns' last room. One textured
 	Tripo mesh, so the server poses her whole body (`Enemies/BossBody`) the
 	way the Slime King was posed before his rig: she squashes, leans and
-	rises, and her tongue is the thrown arm, a pink tube from her mouth.
+	rises, and tips; her pink tongue ball swells as she spits and gulps.
 
-	Her fight is the Slime King's two moves in her own shape:
-	- **Tongue** (`lash`): a long lane, marked and then locked, down which
-	  her tongue lashes; it catches the first player in it, reels her in to
-	  them and ends in a belly bump. One tongue, so one lash a turn.
-	- **Belly Flop** (`bounce`): two leaps, each to where the target stood
-	  at takeoff, marked on the floor from the wind-up, landing in a
-	  shockwave, then a winded pause that is the punish window.
-	- **Spore Puffs at her thirds** (`summon`, as King Bloblin's): as her
-	  health falls through 2/3 and 1/3 she coughs up three Spore Puffs,
-	  the doc's "swallows Spore Puffs and spits them as bursting clouds".
+	Her fight is her own (owner, 2026-11-07: "no these are copies of king
+	bloblin fight, give me unique moves"; the four below are the list the
+	owner OK'd):
+	- **Spore Spit** (`spit`): her throat swells while three circles are
+	  marked, one where you stand and one either side; she lobs a glob of
+	  spores onto each, and each lands in a spore cloud that hangs there
+	  (the Spore Puff's cloud, bigger). She pants after: punish window.
+	- **Belly Slide** (`slide`): she braces behind a lane as wide as she is,
+	  marked from her to the wall past you, then flops on her belly and
+	  slides down it, leaving a poison slime trail. Stuck flat at the end:
+	  punish window.
+	- **Big Gulp** (`gulp`, from 2/3 health): mouth wide behind a marked
+	  cone, then she inhales and drags anyone in it toward her (slower
+	  than walking: step out sideways, or dash). Reaching her mouth is
+	  being swallowed and spat across the room. She burps after: punish
+	  window.
+	- **The Bog Rises** (`flood`, at 1/3): a roar, and poison floods in
+	  from the room's edges and stays until she dies, so the end of the
+	  fight is on a smaller dry floor (the doc's phase 3).
+	Each notch (2/3, 1/3) is a roar and a pause before her next move.
 
-	Not built: the doc's phase 3 flood that shrinks the dry floor. The
-	engine has no rising-hazard piece yet (docs/BOSSES.md, "What bosses
-	ask the engine for": arena change mid-fight).
+	`bounce` and `lash` are only there because every boss carries them
+	(`EnemyBoss`); her loop never plays them.
 
 	PLACEHOLDER NUMBERS until the owner plays her. Health a step past the
 	Broodmother's 6,600; her stage's multiplier and the room ramp sit on
@@ -1349,15 +1450,64 @@ local grandmotherGulp: EnemyConfig = {
 		},
 		restAfterBounce = 1.6,
 		restAfterLash = 1.2,
-		loop = { "Lash", "Bounce" },
+		--[[ Big Gulp is skipped until her health is below 2/3
+		     (`gulp.fromFraction`), so the first third is Spit, Slide. ]]
+		loop = { "Spit", "Slide", "Gulp", "Spit", "Slide" },
 		opening = 1.5,
-		summon = {
-			into = sporePuff,
-			count = 3,
-			atFractions = { 2 / 3, 1 / 3 },
-			clip = "",
-			windup = 1.4,
-		} :: BossSummon,
+		restAfter = { Spit = 0.9, Slide = 1, Gulp = 1 },
+		notches = { 2 / 3, 1 / 3 },
+		roar = 1.6,
+		spit = {
+			globs = 3,
+			--[[ A circle and a half apart: the gap between two is too
+			     narrow to stand in, so the dodge is forward or back. ]]
+			spread = 6,
+			swell = 1.1,
+			flight = 0.75,
+			pant = 1.6,
+			radius = 3.6,
+			damage = 44,
+			--[[ The Spore Puff's cloud is 4 across 1.8 s; hers hang longer. ]]
+			cloudRadius = 4.2,
+			cloudLinger = 4,
+			cloudEvery = 0.5,
+			cloudDamage = 14,
+		},
+		slide = {
+			brace = 1.2,
+			width = 9.8,
+			speed = 26,
+			maxLength = 44,
+			damage = 58,
+			shove = 9,
+			trailWidth = 6,
+			trailLinger = 4,
+			trailEvery = 0.5,
+			trailDamage = 16,
+			stuck = 1.8,
+			rise = 0.5,
+		},
+		gulp = {
+			open = 1.1,
+			inhale = 2.2,
+			burp = 1.8,
+			reach = 24,
+			halfAngle = math.rad(32),
+			--[[ About half a player's 13.5 walk. ]]
+			pull = 7,
+			mouth = 3,
+			damage = 70,
+			spit = 16,
+			fromFraction = 2 / 3,
+		},
+		flood = {
+			atFraction = 1 / 3,
+			rise = 3,
+			--[[ The 35 x 58 floor down to 25 x 42. ]]
+			inset = Vector2.new(5, 8),
+			every = 0.5,
+			damage = 18,
+		},
 	},
 }
 

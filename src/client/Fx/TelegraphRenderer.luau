@@ -22,11 +22,19 @@ local BroodWebFx = require(script.Parent.BroodWebFx)
 local BroodWheelFx = require(script.Parent.BroodWheelFx)
 local Device = require(script.Parent.Parent.Device)
 local FxEvents = require(script.Parent.Upgrades.FxEvents)
+local GulpFx = require(script.Parent.GulpFx)
 local MythicFx = require(script.Parent.MythicFx)
 local SplitFx = require(script.Parent.SplitFx)
 local TopDownCamera = require(script.Parent.Parent.Camera.TopDownCamera)
 
 local TelegraphRenderer = {}
+
+--[[ How fast Grandmother Gulp's slime trail is laid: as fast as she slides. ]]
+local GULP_SLIDE_SPEED = (function(): number
+	local boss = Balance.Enemies.GrandmotherGulp.boss
+	local slide = boss and boss.slide
+	return if slide then slide.speed else 26
+end)()
 
 local folder: Folder? = nil
 local activeLines = 0
@@ -442,6 +450,33 @@ function TelegraphRenderer.onTelegraph(
 			return
 		elseif tell == "BumpShock" then
 			BossFx.bump(parent, origin, direction, duration)
+			return
+		elseif tell == "GulpGlob" then
+			-- `direction` is the whole throw, `reach` the glob's size
+			GulpFx.glob(parent, origin, direction, duration, reach)
+			return
+		elseif tell == "GulpCone" then
+			-- `reach` the cone's length, `width` its half angle
+			GulpFx.cone(parent, origin, direction, duration, reach, width or 0.5)
+			return
+		elseif tell == "GulpInhale" then
+			GulpFx.inhale(parent, origin, direction, duration, reach, width or 0.5)
+			return
+		elseif tell == "SlimeTrail" then
+			GulpFx.trail(parent, origin, direction, duration, reach, width or 6, GULP_SLIDE_SPEED)
+			return
+		elseif tell == "BogFlood" then
+			-- `origin` the floor's half size, `direction` the inset, `reach`
+			-- how long it rises
+			GulpFx.flood(
+				parent,
+				Vector2.new(origin.X, origin.Z),
+				Vector2.new(direction.X, direction.Z),
+				reach
+			)
+			return
+		elseif tell == "BogFloodEnd" then
+			GulpFx.drain()
 			return
 		elseif tell == "LaneAim" or tell == "Lane" then
 			if direction.Magnitude > 1e-3 then

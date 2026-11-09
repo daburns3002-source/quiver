@@ -89,6 +89,9 @@ export type Pose = {
 	--[[ Radians the body is twisted round from `yaw`, as a lash winds up
 	     and whips through; never part of the way it faces. ]]
 	twist: number,
+	--[[ Radians the body rocks over sideways, top toward -X: a static
+	     mesh's whole-body stand-in for the limbs it does not have. ]]
+	roll: number,
 	--[[ Studs both arms are raised (a bounce's wind-up and flight). ]]
 	armsLift: number,
 	--[[ The arm a lash is throwing; where it is balled up behind the
@@ -253,6 +256,15 @@ local function yawOf(direction: Vector3, fallback: number): number
 	return math.atan2(-direction.X, -direction.Z)
 end
 
+--[[ How far `t` is through the stretch from `from` to `to`, 0 to 1. ]]
+local function window(t: number, from: number, to: number): number
+	return math.clamp((t - from) / (to - from), 0, 1)
+end
+
+local function mix(a: number, b: number, t: number): number
+	return a + (b - a) * t
+end
+
 local function lerpAngle(a: number, b: number, t: number): number
 	local delta = ((b - a + math.pi) % (2 * math.pi)) - math.pi
 	return a + delta * t
@@ -294,6 +306,7 @@ local function rest(move: Move): Pose
 		lean = 0,
 		pitch = 0,
 		twist = 0,
+		roll = 0,
 		armsLift = 0,
 		arm = nil,
 		armOffset = Vector3.zero,
@@ -774,7 +787,7 @@ function BossMoves.grab(
 end
 
 --[[ The pose partway (`t`, 0 to 1) through the current phase. ]]
-local function pose(move: Move, boss: EnemyBoss, t: number): Pose
+local function pose(move: Move, boss: EnemyBoss, t: number, now: number): Pose
 	local p = rest(move)
 	local phase = move.phase
 
@@ -796,27 +809,39 @@ local function pose(move: Move, boss: EnemyBoss, t: number): Pose
 		p.arm = boss.lash.arms[1]
 	end
 	if move.kind == "Spit" then
+		local side = if move.index % 2 == 0 then 1 else -1
 		if phase == "swell" then
+			--[[ Three swallows fill her throat as she rears back. ]]
 			local e = ease(t)
-			local gulp = 0.04 * math.sin(t * 30) * e
+			local swallow = math.abs(math.sin(t * math.pi * 3))
 			p.yaw = lerpAngle(move.fromYaw, move.toYaw, math.min(1, t * 3))
-			p.pitch = -0.22 * e
-			p.squash = 1 + 0.08 * e
-			p.spread = 1 + 0.06 * e + gulp
-			p.armSwell = Vector3.one * (1 + 0.7 * e + gulp * 3)
+			p.pitch = -0.32 * e
+			p.lift = 0.25 * e
+			p.squash = 1 + 0.12 * e
+			p.spread = 1 + 0.1 * e + 0.06 * swallow * (1 - e)
+			p.roll = 0.03 * e * math.sin(now * 26)
+			p.armSwell = Vector3.one * (1 + 0.9 * e + 0.25 * swallow * (1 - e))
 		elseif phase == "spit" then
-			local snap = math.sin(math.pi * math.min(1, t * 2.5))
-			p.pitch = -0.22 * (1 - math.min(1, t * 4)) + 0.3 * snap
-			p.lean = 1.4 * snap
-			p.squash = 1 - 0.08 * snap
-			p.spread = 1 + 0.08 * snap
-			p.armSwell = Vector3.one * (1.7 - 0.6 * math.min(1, t * 3))
+			--[[ Whipped forward on each glob, then hauled back for the next,
+			     rocking to alternate sides. ]]
+			local hit = ease(window(t, 0, 0.16)) * (1 - ease(window(t, 0.3, 1)))
+			p.pitch = -0.32 + 0.76 * hit
+			p.lean = 1.9 * hit
+			p.lift = 0.25 * (1 - hit)
+			p.squash = 1.12 - 0.3 * hit
+			p.spread = 1.1 + 0.1 * hit
+			p.roll = side * 0.08 * hit
+			p.armSwell = Vector3.one * (1.9 - 0.7 * hit)
 		else
-			--[[ Panting, tongue lolling out: the punish window. ]]
+			--[[ Slumps, panting, tongue lolling, her head swaying: the punish
+			     window. ]]
+			local blend = ease(window(t, 0, 0.2))
 			local breath = 0.05 * math.sin(t * math.pi * 6)
-			p.pitch = 0.1
-			p.squash = 0.92 + breath
-			p.spread = 1.05 - breath * 0.5
+			p.pitch = mix(-0.32, 0.12, blend) + 0.04 * math.sin(t * math.pi * 4)
+			p.lift = 0.25 * (1 - blend)
+			p.squash = mix(1.12, 0.92, blend) + breath
+			p.spread = mix(1.1, 1.05, blend) - breath * 0.5
+			p.roll = 0.05 * math.sin(t * math.pi * 3) * blend
 			p.armOffset = Vector3.new(0, -0.3, -0.9)
 			p.armSwell = Vector3.one * (1.15 + breath * 2)
 		end
@@ -824,58 +849,81 @@ local function pose(move: Move, boss: EnemyBoss, t: number): Pose
 	end
 	if move.kind == "Slide" then
 		if phase == "brace" then
+			--[[ Rocks back on her haunches, jiggling, gathering herself. ]]
 			local e = ease(t)
 			p.yaw = lerpAngle(move.fromYaw, move.toYaw, math.min(1, t * 4))
-			p.squash = 1 - 0.25 * e
-			p.spread = 1 + 0.15 * e
-			p.pitch = -0.15 * e
+			p.squash = 1 - 0.28 * e
+			p.spread = 1 + 0.16 * e
+			p.lean = -0.9 * e
+			p.pitch = -0.2 * e
 			p.twist = math.sin(t * 30) * 0.07 * e
+			p.roll = 0.05 * e * math.sin(now * 22)
 		elseif phase == "slide" then
-			--[[ Flopped forward onto her belly, flat and wide. ]]
+			--[[ A hop forward onto her belly, then flat and rippling. ]]
 			local flop = math.min(1, t * 6)
+			local ripple = math.sin(now * 24)
 			p.feet = move.from:Lerp(move.land, t)
-			p.pitch = -0.15 + 0.7 * ease(flop)
-			p.squash = 0.75 - 0.15 * flop
-			p.spread = 1.15 + 0.1 * flop
-			p.twist = math.sin(t * 18) * 0.04
+			p.lift = 0.9 * math.sin(math.pi * math.min(1, t * 5))
+			p.lean = -0.9 * (1 - flop)
+			p.pitch = -0.2 + 0.75 * ease(flop)
+			p.squash = 0.72 - 0.12 * flop + 0.05 * ripple
+			p.spread = 1.16 + 0.09 * flop - 0.03 * ripple
+			p.twist = math.sin(t * 18) * 0.05
+			p.roll = 0.09 * math.sin(now * 14)
 		elseif phase == "stuck" then
-			--[[ Stuck flat, kicking: the punish window. ]]
+			--[[ Smacked flat, then kicking: the punish window. ]]
+			local impact = math.max(0, 1 - t * 8)
 			p.pitch = 0.55 + 0.04 * math.sin(t * 20)
-			p.squash = 0.6 + 0.04 * math.sin(t * 20)
-			p.spread = 1.25
+			p.squash = 0.6 + 0.04 * math.sin(t * 20) - 0.08 * impact
+			p.spread = 1.25 + 0.08 * impact
 			p.twist = math.sin(t * 14) * 0.08
+			p.roll = 0.06 * math.sin(t * 17)
 		else
+			--[[ Heaves herself up with a hop and a shake. ]]
 			local e = ease(t)
+			local hop = math.sin(math.pi * e)
 			p.pitch = 0.55 * (1 - e)
-			p.squash = 0.6 + 0.4 * e
-			p.spread = 1.25 - 0.25 * e
+			p.lift = 0.8 * hop
+			p.squash = mix(0.6, 1, e) + 0.1 * hop
+			p.spread = mix(1.25, 1, e) - 0.04 * hop
+			p.roll = 0.08 * math.sin(t * 22) * (1 - e)
 		end
 		return p
 	end
 	if move.kind == "Gulp" then
 		if phase == "open" then
+			--[[ Rears up tall, mouth gaping, trembling as it opens. ]]
 			local e = ease(t)
 			p.yaw = lerpAngle(move.fromYaw, move.toYaw, math.min(1, t * 4))
-			p.pitch = -0.3 * e
-			p.lift = 0.6 * e
-			p.squash = 1 + 0.12 * e
-			p.armSwell = Vector3.one * (1 + 1.0 * e)
+			p.pitch = -0.4 * e
+			p.lift = 1 * e
+			p.squash = 1 + 0.18 * e
+			p.spread = 1 - 0.04 * e
+			p.roll = 0.04 * e * math.sin(now * 30)
+			p.armSwell = Vector3.one * (1 + 1.1 * e)
 		elseif phase == "inhale" then
-			--[[ Sucking in, shuddering, swelling up as she fills. ]]
+			--[[ Balloons as she fills, shuddering. ]]
 			local shudder = math.sin(t * 40)
-			p.pitch = -0.18
-			p.lift = 0.6
-			p.squash = 1.12 + 0.03 * shudder
-			p.spread = 1 + 0.18 * t + 0.02 * shudder
-			p.armSwell = Vector3.one * (2 + 0.12 * shudder)
+			local grow = ease(t)
+			p.pitch = -0.4 + 0.1 * grow
+			p.lift = 1 - 0.4 * grow
+			p.squash = 1.18 - 0.04 * grow + 0.03 * shudder
+			p.spread = 0.96 + 0.4 * grow + 0.02 * shudder
+			p.twist = 0.05 * math.sin(now * 5)
+			p.roll = 0.05 * math.sin(now * 38)
+			p.armSwell = Vector3.one * (2.1 + 0.12 * shudder)
 		else
-			--[[ The burp, then gasping: the punish window. ]]
-			local jolt = math.sin(math.pi * math.min(1, t * 5))
+			--[[ The burp blasts her forward, then she deflates and gasps: the
+			     punish window. ]]
+			local blast = math.sin(math.pi * math.min(1, t * 5))
+			local blend = ease(math.min(1, t * 2.5))
 			local gasp = 0.05 * math.sin(t * math.pi * 8)
-			p.pitch = 0.25 * jolt
-			p.lean = 1.2 * jolt
-			p.squash = 0.9 + gasp
-			p.spread = 1.15 - 0.1 * t
+			p.pitch = mix(-0.3, 0.1, blend) + 0.3 * blast
+			p.lean = 1.6 * blast
+			p.lift = 0.6 * (1 - blend)
+			p.squash = mix(1.14, 0.9, blend) - 0.1 * blast + gasp
+			p.spread = mix(1.36, 1.05, blend) + 0.08 * blast
+			p.roll = 0.06 * math.sin(t * math.pi * 5) * (1 - t)
 			p.armSwell = Vector3.one * 1.3
 		end
 		return p
@@ -1095,7 +1143,7 @@ function BossMoves.step(
 
 	local length = duration(move, boss)
 	local t = if length > 0 then math.clamp((now - move.phaseAt) / length, 0, 1) else 1
-	local p = pose(move, boss, t)
+	local p = pose(move, boss, t, now)
 	move.yaw = p.yaw
 	return p, events, false
 end
@@ -1112,6 +1160,7 @@ function BossMoves.idle(feet: Vector3, yaw: number, now: number): Pose
 		lean = 0,
 		pitch = 0,
 		twist = 0,
+		roll = 0,
 		armsLift = 0,
 		arm = nil,
 		armOffset = Vector3.zero,
@@ -1265,12 +1314,15 @@ end
      1: she rears up, mouth wide, and settles. ]]
 function BossMoves.roar(boss: EnemyBoss, feet: Vector3, yaw: number, t: number): Pose
 	local p = BossMoves.idle(feet, yaw, 0)
-	local up = math.sin(math.pi * t)
+	local crouch = window(t, 0, 0.16) * (1 - window(t, 0.16, 0.3))
+	local up = math.sin(math.pi * window(t, 0.12, 1))
+	local tremble = math.sin(t * 50) * up
 	p.arm = boss.lash.arms[1]
-	p.pitch = -0.35 * up
+	p.pitch = 0.12 * crouch - 0.42 * up
 	p.lift = 1.2 * up
-	p.squash = 1 + 0.15 * up + 0.03 * math.sin(t * 50) * up
-	p.spread = 1 + 0.08 * up
+	p.squash = 1 - 0.14 * crouch + 0.2 * up + 0.03 * tremble
+	p.spread = 1 + 0.08 * crouch + 0.08 * up
+	p.roll = 0.06 * tremble
 	p.armSwell = Vector3.one * (1 + 0.9 * up)
 	return p
 end

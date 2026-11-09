@@ -264,8 +264,8 @@ What exists and works, all verified in Studio rather than only by the gates:
   the player, a segmented red ring under the aimed-at enemy, a red "!" over
   enemies winding up; a dressed arena (flagstones, caps, orb lamps, grass
   edge) under soft bright lighting with tier-gated bloom; sparkling enemy
-  shots (since 2026-10-24 the Spitter's seed: a leaf-green outlined cube,
-  tumbling, `Fx/ProjectileRenderer`). Presentation only.
+  shots (since 2026-11-08 each shooter has its own, `Config/EnemyShots`, drawn by
+  `Fx/ProjectileRenderer`; a new shooter brings a new look, `tests/EnemyShots.spec`). Presentation only.
 - **The dash** (4-second cooldown, readiness bar), player hit feedback, and
   draft enemy bodies.
 - **Archero 2 proportions:** a portrait 35 × 58 room, a camera that fits the

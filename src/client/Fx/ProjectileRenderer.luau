@@ -26,6 +26,7 @@ local Workspace = game:GetService("Workspace")
 
 local Classes = require(ReplicatedStorage.Shared.Config.Classes)
 local Device = require(script.Parent.Parent.Device)
+local EnemyShots = require(ReplicatedStorage.Shared.Config.EnemyShots)
 local FxEvents = require(script.Parent.Upgrades.FxEvents)
 local HitFeedback = require(script.Parent.HitFeedback)
 local ProjectileFlight = require(ReplicatedStorage.Shared.Combat.ProjectileFlight)
@@ -43,16 +44,9 @@ type Faction = Types.Faction
      rather than as objects, and at phone size a merely-coloured dart against a
      lit floor is close to invisible. ]]
 local PLAYER_COLOUR = Color3.fromRGB(255, 244, 196)
---[[ The enemy shot: the Splitter Spitter's seed, a glowing leaf-green cube
-     with a dark outline, tumbling as it flies (owner, 2026-10-24: "make sure
-     that the projectiles from the spitter are green and match the design
-     language of the game"). Was Archero 2's magenta ball. The outline is
-     what keeps a green shot readable on the glade's green lawn. ]]
+--[[ An enemy's shot is its own look (`Config/EnemyShots`); this is only what
+     an enemy-style burst falls back to for a player orb on a wall. ]]
 local ENEMY_COLOUR = Color3.fromRGB(150, 255, 70)
-local ENEMY_SPARKLE = Color3.fromRGB(215, 255, 170)
-local ENEMY_OUTLINE = Color3.fromRGB(20, 52, 16)
---[[ Turns a second the seed tumbles through, about two axes. ]]
-local ENEMY_TUMBLE = Vector2.new(1.6, 1.1)
 --[[ The Arcanist's orb (`Config/Classes.look`): the staff kit's bolt
      (the Arcanist's weapon's `bolt`, `Config/Weapons`), drawn about three times an arrow's
      width so it reads as magic at a glance, lit in its class's blue. ]]
@@ -82,9 +76,23 @@ local shotRainbow = false
 local RAINBOW_SPEED = 0.25
 local RAINBOW_SATURATION = 0.7
 
---[[ What a drawn shot is: an arrow, an enemy orb, or a player's orb. One
-     pool each, since each is its own shape. ]]
-type Pool = "Player" | "Enemy" | "PlayerOrb"
+--[[ What a drawn shot is: an arrow, a player's orb, or an enemy's shot, one
+     pool for each enemy look (`Config/EnemyShots`), named "Enemy:<look>".
+     One pool each, since each is its own shape. ]]
+type Pool = string
+type Look = EnemyShots.Look
+local ENEMY_POOL = "Enemy:"
+
+--[[ The enemy look a pool draws, or nil for the player's. ]]
+local function lookOf(pool: Pool): Look?
+	if string.sub(pool, 1, #ENEMY_POOL) ~= ENEMY_POOL then
+		return nil
+	end
+	return EnemyShots.looks[string.sub(pool, #ENEMY_POOL + 1)]
+end
+
+--[[ One of a look's spines: the part and where it sits on the shot. ]]
+type ArmPart = { part: BasePart, offset: CFrame }
 
 --[[ Studs of streak behind an arrow. Set as a length and turned into a
      lifetime per arrow, because at footage speed a fixed lifetime draws a
@@ -102,6 +110,10 @@ local ORB_TRAIL_LIFETIME = 0.6
 type Visual = ProjectileFlight.Flight & {
 	part: BasePart,
 	pool: Pool,
+	look: Look?,
+	arms: { ArmPart }?,
+	--[[ Where in its spin and sway this one starts, so a fan is not in step. ]]
+	phase: number,
 	expiresAt: number,
 	--[[ Set on the frame the flight ends, and released on the next. Without
 	     that frame the part is gone before it is ever drawn where it
@@ -117,7 +129,9 @@ local folder: Folder? = nil
      handed an orb to an arrow and an arrow to an orb, and resizing a part
      on every reuse is exactly the allocation-shaped cost the pool exists to
      avoid. ]]
-local pools: { [Pool]: { BasePart } } = { Player = {}, Enemy = {}, PlayerOrb = {} }
+local pools: { [Pool]: { BasePart } } = { Player = {}, PlayerOrb = {} }
+--[[ Each pooled part's spines, kept with it. ]]
+local armsOf: { [BasePart]: { ArmPart } } = setmetatable({} :: any, { __mode = "k" })
 local live: { Visual } = {}
 --[[ Arrows queued behind their volley (Double Shot), launched when due. ]]
 type Pending = {
@@ -163,11 +177,17 @@ local enemyOverlap: OverlapParams? = nil
 local function createPart(pool: Pool): BasePart
 	local tier = Device.tier()
 	local isOrb = pool ~= "Player"
-	local faction: Faction = if pool == "Enemy" then "Enemy" else "Player"
-	local partSize = if pool == "PlayerOrb" then PLAYER_ORB_SIZE else ProjectileFlight.size(faction)
+	local look = lookOf(pool)
+	local faction: Faction = if look then "Enemy" else "Player"
+	local partSize = if look
+		then look.scale * ProjectileFlight.size("Enemy")
+		elseif pool == "PlayerOrb" then PLAYER_ORB_SIZE
+		else ProjectileFlight.size(faction)
 
 	local part: BasePart
-	if pool ~= "Enemy" and boltTemplate and boltSize then
+	if look and look.shape == "Wedge" then
+		part = Instance.new("WedgePart")
+	elseif not look and boltTemplate and boltSize then
 		part = boltTemplate:Clone()
 		if pool == "Player" then
 			--[[ An arrow mesh keeps its own shape, stretched to the
@@ -176,8 +196,8 @@ local function createPart(pool: Pool): BasePart
 		end
 	else
 		local plain = Instance.new("Part")
-		plain.Shape = if pool == "Enemy"
-			then Enum.PartType.Block
+		plain.Shape = if look
+			then (if look.shape == "Ball" then Enum.PartType.Ball else Enum.PartType.Block)
 			elseif isOrb then Enum.PartType.Ball
 			elseif tier.projectileIsRound then Enum.PartType.Cylinder
 			else Enum.PartType.Block
@@ -190,22 +210,50 @@ local function createPart(pool: Pool): BasePart
 	part.CanQuery = false
 	part.CanTouch = false
 	part.CastShadow = false
-	part.Material = Enum.Material.Neon
+	part.Material = if look
+		then (Enum.Material :: any)[look.material] :: Enum.Material
+		else Enum.Material.Neon
 	part.Color = PLAYER_COLOUR
 
-	if pool == "Enemy" then
+	if look and look.outline then
 		local outline = Instance.new("SelectionBox")
 		outline.Name = "Outline"
 		outline.Adornee = part
-		outline.Color3 = ENEMY_OUTLINE
+		outline.Color3 = look.outline
 		outline.LineThickness = 0.06
 		outline.SurfaceTransparency = 1
 		outline.Parent = part
 	end
 
+	if look and look.arms then
+		local arms: { ArmPart } = {}
+		for _, arm in look.arms do
+			local spine = Instance.new("Part")
+			spine.Name = "ProjectileArm"
+			spine.Size = arm.scale * ProjectileFlight.size("Enemy")
+			spine.Anchored = true
+			spine.CanCollide = false
+			spine.CanQuery = false
+			spine.CanTouch = false
+			spine.CastShadow = false
+			spine.Material = part.Material
+			spine.Color = look.armColour or look.colour
+			spine.Parent = part
+			table.insert(arms, {
+				part = spine :: BasePart,
+				offset = CFrame.Angles(
+					math.rad(arm.angles.X),
+					math.rad(arm.angles.Y),
+					math.rad(arm.angles.Z)
+				),
+			})
+		end
+		armsOf[part] = arms
+	end
+
 	--[[ A Legendary's or Mythic's shot: its own light and sparkles, in its
 	     glow colour (recoloured each frame for a Mythic, in `step`). ]]
-	local glow = if pool ~= "Enemy" then shotGlow else nil
+	local glow = if not look then shotGlow else nil
 	if glow then
 		if tier.projectileTrails then
 			local light = Instance.new("PointLight")
@@ -260,19 +308,22 @@ local function createPart(pool: Pool): BasePart
 	--[[ The footage's orbs shed small sparkles as they fly, which is half of
 	     what makes a slow shot readable as moving. Rate from the device
 	     tier; none at all on the lowest. ]]
-	if isOrb and tier.orbSparkleRate > 0 then
+	local shed = if look then look.sparkle else nil
+	if isOrb and tier.orbSparkleRate > 0 and (shed or not look) then
 		local sparkles = Instance.new("ParticleEmitter")
 		sparkles.Name = "Sparkles"
-		sparkles.Rate = tier.orbSparkleRate
-		sparkles.Lifetime = NumberRange.new(0.25, 0.45)
-		sparkles.Speed = NumberRange.new(0.5, 1.5)
+		sparkles.Rate = tier.orbSparkleRate * (if shed then shed.rate else 1)
+		local lifetime = if shed then shed.lifetime else 0.35
+		sparkles.Lifetime = NumberRange.new(lifetime * 0.7, lifetime * 1.3)
+		local speed = if shed then shed.speed else 1
+		sparkles.Speed = NumberRange.new(speed * 0.5, speed * 1.5)
 		sparkles.SpreadAngle = Vector2.new(180, 180)
-		sparkles.LightEmission = 1
-		sparkles.Color = ColorSequence.new(
-			if pool == "PlayerOrb" then Color3.fromRGB(200, 240, 255) else ENEMY_SPARKLE
-		)
+		sparkles.LightEmission = if look and look.material ~= "Neon" then 0 else 1
+		sparkles.Acceleration = Vector3.yAxis * (if shed then shed.rise else 0)
+		sparkles.Color =
+			ColorSequence.new(if shed then shed.colour else Color3.fromRGB(200, 240, 255))
 		sparkles.Size = NumberSequence.new({
-			NumberSequenceKeypoint.new(0, 0.28),
+			NumberSequenceKeypoint.new(0, if shed then shed.size else 0.28),
 			NumberSequenceKeypoint.new(1, 0),
 		})
 		sparkles.Transparency = NumberSequence.new({
@@ -282,8 +333,10 @@ local function createPart(pool: Pool): BasePart
 		sparkles.Parent = part
 	end
 
-	if tier.projectileTrails then
-		local size = partSize
+	if tier.projectileTrails and (not look or look.trail) then
+		local size = if look and look.trailWidth
+			then Vector3.new(look.trailWidth, partSize.Y, partSize.Z)
+			else partSize
 		local nose = if isOrb then 0 else size.Z / 2
 
 		local left = Instance.new("Attachment")
@@ -301,7 +354,7 @@ local function createPart(pool: Pool): BasePart
 		trail.Attachment0 = left
 		trail.Attachment1 = right
 		--[[ An arrow's is set per shot in `spawnVolley`, from its speed. ]]
-		trail.Lifetime = ORB_TRAIL_LIFETIME
+		trail.Lifetime = if look then look.trail :: number else ORB_TRAIL_LIFETIME
 		trail.LightEmission = 1
 		trail.LightInfluence = 0
 		trail.FaceCamera = true
@@ -322,7 +375,12 @@ end
 --[[ Colour is still set on acquire rather than on create, so retuning a
      faction colour does not need the pool emptied first. ]]
 local function acquire(pool: Pool, colour: Color3): BasePart
-	local part = table.remove(pools[pool])
+	local free = pools[pool]
+	if not free then
+		free = {}
+		pools[pool] = free
+	end
+	local part = table.remove(free)
 
 	if not part then
 		part = createPart(pool)
@@ -417,14 +475,31 @@ local function placeAt(position: Vector3, direction: Vector3): CFrame
 	return CFrame.lookAt(position, position + direction)
 end
 
---[[ An enemy seed tumbles as it goes; everything else points along its
-     flight. ]]
+--[[ An enemy's shot moves as its look says, off its line only by a little
+     and never in what it hits; everything else points along its flight. ]]
 local function pose(visual: Visual, now: number): CFrame
 	local frame = placeAt(visual.position, visual.direction)
-	if visual.pool == "Enemy" then
-		return frame * CFrame.Angles(now * ENEMY_TUMBLE.X, now * ENEMY_TUMBLE.Y, 0)
+	local look = visual.look
+	if not look then
+		return frame
 	end
+	local phase = visual.phase
+	local sideways, up = 0, 0
+	local wobble, bob, helix = look.wobble, look.bob, look.helix
+	if wobble then
+		sideways += math.sin(now * wobble.rate + phase) * wobble.amount
+	end
+	if bob then
+		up += math.sin(now * bob.rate + phase) * bob.amount
+	end
+	if helix then
+		sideways += math.cos(now * helix.rate + phase) * helix.amount
+		up += math.sin(now * helix.rate + phase) * helix.amount
+	end
+	local spin = look.spin
 	return frame
+		* CFrame.new(sideways, up, 0)
+		* CFrame.Angles((now + phase) * spin.X, (now + phase) * spin.Y, (now + phase) * spin.Z)
 end
 
 --[[
@@ -443,6 +518,8 @@ end
 local STUCK_TIME = 0.55
 local STUCK_FADE = 0.25
 local RING_TIME = 0.3
+--[[ Seconds between a look's rings, when it has more than one. ]]
+local RING_GAP = 0.12
 local CHIP_TIME = 0.28
 local CHIPS = 4
 local SHAFT_COLOUR = Color3.fromRGB(92, 60, 44)
@@ -468,7 +545,8 @@ local function spawnImpact(
 	normal: Vector3,
 	direction: Vector3,
 	faction: Faction,
-	bounced: boolean
+	bounced: boolean,
+	look: Look?
 )
 	local tier = Device.tier()
 
@@ -481,20 +559,33 @@ local function spawnImpact(
 		impacts -= 1
 	end)
 
-	local colour = if faction == "Enemy" then ENEMY_COLOUR else PLAYER_COLOUR
+	local burst = if look then look.impact else nil
+	local colour = if burst
+		then burst.colour
+		elseif faction == "Enemy" then ENEMY_COLOUR
+		else PLAYER_COLOUR
 	local surface = position + normal * 0.05
 
 	-- A ring flat on the surface: a thin cylinder whose axis is the normal.
-	local ring = effectPart("Impact", Vector3.new(0.05, 0.7, 0.7), colour)
-	ring.Shape = Enum.PartType.Cylinder
-	ring.Material = Enum.Material.Neon
-	ring.Transparency = 0.1
-	ring.CFrame = CFrame.lookAt(surface, surface + normal) * CFrame.Angles(0, math.rad(90), 0)
-	TweenService:Create(ring, TweenInfo.new(RING_TIME, Enum.EasingStyle.Quad), {
-		Size = Vector3.new(0.05, 2.4, 2.4),
-		Transparency = 1,
-	}):Play()
-	Debris:AddItem(ring, RING_TIME)
+	local ringSize = if burst then burst.ring else 2.4
+	local function ringOut()
+		local ring = effectPart("Impact", Vector3.new(0.05, 0.7, 0.7), colour)
+		ring.Shape = Enum.PartType.Cylinder
+		ring.Material = Enum.Material.Neon
+		ring.Transparency = 0.1
+		ring.CFrame = CFrame.lookAt(surface, surface + normal) * CFrame.Angles(0, math.rad(90), 0)
+		TweenService:Create(ring, TweenInfo.new(RING_TIME, Enum.EasingStyle.Quad), {
+			Size = Vector3.new(0.05, ringSize, ringSize),
+			Transparency = 1,
+		}):Play()
+		Debris:AddItem(ring, RING_TIME)
+	end
+	if ringSize > 0 then
+		ringOut()
+		for n = 2, if burst then burst.rings else 1 do
+			task.delay((n - 1) * RING_GAP, ringOut)
+		end
+	end
 
 	-- Chips thrown off the surface, back towards where the shot came from.
 	local across = normal:Cross(Vector3.yAxis)
@@ -504,13 +595,18 @@ local function spawnImpact(
 	across = across.Unit
 	local up = across:Cross(normal).Unit
 
-	for index = 1, CHIPS do
-		local angle = (index / CHIPS) * 2 * math.pi + math.random() * 0.8
+	local chips = if burst then burst.chips else CHIPS
+	for index = 1, chips do
+		local angle = (index / chips) * 2 * math.pi + math.random() * 0.8
 		local spread = across * math.cos(angle) + up * math.sin(angle)
-		local chip = effectPart("Impact", Vector3.one * 0.22, colour)
-		chip.Material = Enum.Material.Neon
+		local chip = effectPart("Impact", if burst then burst.chip else Vector3.one * 0.22, colour)
+		chip.Material = if burst and not burst.neon
+			then Enum.Material.SmoothPlastic
+			else Enum.Material.Neon
 		chip.CFrame = CFrame.new(surface)
-		local landing = surface + (normal * 1.1 + spread * 0.9) * (0.8 + math.random() * 0.6)
+		local landing = surface
+			+ (normal * 1.1 + spread * 0.9) * (0.8 + math.random() * 0.6)
+			+ Vector3.yAxis * (if burst then burst.rise else 0)
 		TweenService
 			:Create(
 				chip,
@@ -591,7 +687,7 @@ local contact: ProjectileFlight.Contact = {
 		--[[ An orb bursts like an enemy orb; only an arrow sticks in the wall. ]]
 		local pool = (flight :: any).pool
 		local style: Faction = if pool == "PlayerOrb" then "Enemy" else flight.faction
-		spawnImpact(position, normal, flight.direction, style, bounced)
+		spawnImpact(position, normal, flight.direction, style, bounced, (flight :: any).look)
 		if flight.faction == "Player" then
 			FxEvents.wall:fire(position, normal, flight.direction, pool, bounced)
 		end
@@ -625,12 +721,16 @@ local function launch(
 	look: string?
 )
 	-- the Arcane Turret's orbs are orbs too (`Fx/Upgrades/ArcanistBuildFx`)
-	local pool: Pool = if faction == "Enemy"
-		then "Enemy"
+	local enemyLook = if faction == "Enemy"
+		then (if look and EnemyShots.looks[look] then look else EnemyShots.default)
+		else nil
+	local pool: Pool = if enemyLook
+		then ENEMY_POOL .. enemyLook
 		elseif look == "Orb" or look == "TurretOrb" then "PlayerOrb"
 		else "Player"
-	local colour = if pool == "Enemy"
-		then ENEMY_COLOUR
+	local drawn = if enemyLook then EnemyShots.looks[enemyLook] else nil
+	local colour = if drawn
+		then drawn.colour
 		elseif shotGlow then shotGlow
 		elseif pool == "PlayerOrb" then PLAYER_ORB_COLOUR
 		else PLAYER_COLOUR
@@ -645,6 +745,9 @@ local function launch(
 	     one does not draw a ribbon from where the last shot expired. ]]
 	local trail = part:FindFirstChildOfClass("Trail")
 	if trail then
+		if drawn and drawn.trailColour then
+			trail.Color = ColorSequence.new(drawn.trailColour)
+		end
 		if pool == "Player" then
 			trail.Lifetime = ARROW_TRAIL_STUDS / math.max(spec.speed, 1e-3)
 		elseif pool == "PlayerOrb" then
@@ -656,6 +759,9 @@ local function launch(
 	table.insert(live, {
 		part = part,
 		pool = pool,
+		look = drawn,
+		arms = armsOf[part],
+		phase = math.random() * 2 * math.pi,
 		faction = faction,
 		position = position,
 		direction = aim,
@@ -667,7 +773,7 @@ local function launch(
 		expiresAt = os.clock() + (spec.lifetime - headStart),
 		stopped = false,
 	})
-	FxEvents.launched:fire(part, pool, aim, from, look)
+	FxEvents.launched:fire(part, if drawn then "Enemy" else pool, aim, from, look)
 end
 
 local function step(deltaTime: number)
@@ -722,8 +828,16 @@ local function step(deltaTime: number)
 			end
 		end
 
+		local frame = pose(visual, now)
 		table.insert(moveParts, visual.part)
-		table.insert(moveFrames, pose(visual, now))
+		table.insert(moveFrames, frame)
+		local arms = visual.arms
+		if arms then
+			for _, arm in arms do
+				table.insert(moveParts, arm.part)
+				table.insert(moveFrames, frame * arm.offset)
+			end
+		end
 		visual.stopped = not alive
 	end
 

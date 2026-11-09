@@ -57,6 +57,8 @@ type State = {
 	to: Vector3,
 	along: Vector3,
 	length: number,
+	--[[ The Echo's `wait` ran, so his claw is already down for `recover`. ]]
+	settled: boolean,
 }
 
 local states: { [Move]: State } = setmetatable({} :: any, { __mode = "k" })
@@ -189,6 +191,7 @@ function TollcrabMoves.start(
 		to = flat(feet),
 		along = move.direction,
 		length = 0,
+		settled = false,
 	}
 	return move
 end
@@ -429,6 +432,8 @@ local function enter(
 				table.insert(events, markEvent(spot, e))
 			end
 			table.insert(events, shake(SHAKE_ECHO))
+		elseif phase == "wait" then
+			state.settled = e.delay > e.every
 		end
 		return events
 	end
@@ -453,6 +458,37 @@ local function enter(
 	return events
 end
 
+--[[ How far `t` is through the stretch from `from` to `to`, 0 to 1. ]]
+local function window(t: number, from: number, to: number): number
+	return math.clamp((t - from) / (to - from), 0, 1)
+end
+
+local function mix(a: number, b: number, t: number): number
+	return a + (b - a) * t
+end
+
+--[[ He is one static mesh (`EnemyDesigns.OldTollcrab`), so every move is his
+     whole body: wind-up, strike and recovery in lift, tip, rock and squash. ]]
+
+--[[ How high the bell is hauled in the Toll's wind-up, how far an enraged
+     second ring hauls it, and the seconds it takes to fall. ]]
+local TOLL_HAUL = 1.6
+local TOLL_HAUL_AGAIN = 1
+local TOLL_DROP = 0.07
+
+--[[ Falling from `height` into the floor, then ringing like the bell he is. ]]
+local function plant(p: Pose, seconds: number, height: number)
+	local fall = math.clamp(1 - seconds / TOLL_DROP, 0, 1)
+	local impact = 1 - math.clamp(seconds / 0.12, 0, 1)
+	local ring = math.exp(-seconds * 4) * math.cos(seconds * 38)
+	p.lift = height * fall * fall
+	p.squash = 0.8 - 0.12 * impact + 0.06 * ring
+	p.spread = 1.1 + 0.1 * impact - 0.04 * ring
+	p.pitch = 0.1
+	p.roll = 0.05 * ring
+	p.twist = 0.04 * math.exp(-seconds * 3) * math.sin(seconds * 60)
+end
+
 local function pose(move: Move, state: State, t: number, now: number): Pose
 	local p = BossMoves.idle(move.feet, move.yaw, now)
 	p.direction = move.direction
@@ -461,26 +497,41 @@ local function pose(move: Move, state: State, t: number, now: number): Pose
 
 	if move.kind == "Toll" then
 		if phase == "windup" then
-			--[[ The bell hauled up and back, trembling as it tops out. ]]
-			local e = ease(t)
+			--[[ A dip to gather, the bell hauled up and back, trembling as
+			     it tops out. ]]
+			local dip = window(t, 0, 0.3)
+			local rise = ease(window(t, 0.3, 0.9))
+			local tremble = window(t, 0.75, 1)
 			p.yaw = lerpAngle(move.fromYaw, move.toYaw, math.min(1, t * 3))
-			p.lift = 1.6 * e
-			p.pitch = -0.22 * e
-			p.squash = 1 + 0.12 * e
-			p.spread = 1 - 0.05 * e
-			p.twist = 0.04 * e * math.sin(now * 40)
-		elseif phase == "ring" or phase == "ring2" or phase == "stuck" then
-			--[[ Planted: squashed into the floor, ringing, then still. ]]
-			local seconds = (now - move.phaseAt)
-			local w = math.exp(-seconds * 3) * math.cos(seconds * 30)
-			p.squash = 0.82 + 0.06 * w
-			p.spread = 1.08 - 0.04 * w
-			p.pitch = 0.08
+			p.lift = TOLL_HAUL * rise
+			p.pitch = 0.12 * dip * (1 - rise) - 0.32 * rise
+			p.squash = 1 - 0.16 * dip * (1 - rise) + 0.2 * rise
+			p.spread = 1 + 0.09 * dip * (1 - rise) - 0.07 * rise
+			p.twist = 0.05 * tremble * math.sin(now * 42)
+			p.roll = 0.05 * tremble * math.sin(now * 37)
+			p.armsLift = 1.4 * rise
+		elseif phase == "ring" or phase == "ring2" then
+			--[[ Only an enraged toll holds here: slammed, then hauled part
+			     way up again for the second ring. ]]
+			plant(p, now - move.phaseAt, TOLL_HAUL)
+			local again = ease(window(t, 0.55, 1))
+			p.lift = math.max(p.lift, TOLL_HAUL_AGAIN * again)
+			p.squash += 0.3 * again
+		elseif phase == "stuck" then
+			--[[ Stuck in the floor and ringing, then straining to pull free. ]]
+			plant(p, now - move.phaseAt, if state.enraged then TOLL_HAUL_AGAIN else TOLL_HAUL)
+			local tug = window(t, 0.55, 1)
+			p.pitch += 0.1 * tug * math.sin(now * 16)
+			p.roll += 0.06 * tug * math.sin(now * 22)
 		elseif phase == "recover" then
+			--[[ Yanks himself out with a hop and shakes it off. ]]
 			local e = ease(t)
-			p.squash = 0.82 + 0.18 * e
-			p.spread = 1.08 - 0.08 * e
-			p.pitch = 0.08 * (1 - e)
+			local yank = math.sin(math.pi * window(t, 0, 0.5))
+			p.lift = 0.9 * yank
+			p.squash = mix(0.8, 1, e) + 0.12 * yank
+			p.spread = mix(1.1, 1, e) - 0.05 * yank
+			p.pitch = 0.1 * (1 - e)
+			p.roll = 0.05 * math.sin(t * 18) * (1 - e)
 		end
 		return p
 	end
@@ -488,49 +539,84 @@ local function pose(move: Move, state: State, t: number, now: number): Pose
 	if move.kind == "Echo" then
 		p.yaw = lerpAngle(move.fromYaw, move.toYaw, math.min(1, t * 2))
 		if phase == "windup" then
-			p.pitch = -0.18 * ease(t)
-			p.armsLift = 1.2 * ease(t)
+			--[[ Rears back, coiling, claw raised. ]]
+			local e = ease(t)
+			p.pitch = -0.3 * e
+			p.armsLift = 1.6 * e
+			p.twist = 0.16 * e
+			p.squash = 1 + 0.06 * e
 		elseif phase == "rap" then
-			--[[ A sharp rap forward, then back up for the next. ]]
-			local hit = if t < 0.25 then t / 0.25 else 1 - (t - 0.25) / 0.75
-			p.pitch = -0.18 + 0.36 * ease(math.clamp(hit, 0, 1))
-			p.squash = 1 - 0.08 * hit
-			p.armsLift = 1.2 * (1 - hit)
-		elseif phase == "recover" then
-			p.pitch = 0
+			--[[ A sharp rap forward, rocking to alternate sides, then back up
+			     for the next. ]]
+			local side = if move.index % 2 == 0 then 1 else -1
+			local hit = ease(window(t, 0, 0.18)) * (1 - ease(window(t, 0.35, 1)))
+			p.pitch = -0.3 + 0.75 * hit
+			p.lean = 0.9 * hit
+			p.squash = 1.06 - 0.2 * hit
+			p.spread = 1 + 0.08 * hit
+			p.armsLift = 1.6 * (1 - hit)
+			p.twist = 0.16 * (1 - 1.6 * hit)
+			p.roll = side * 0.08 * hit
+		elseif phase == "wait" or not state.settled then
+			--[[ Lowers the claw and watches the mark land. ]]
+			local e = ease(math.min(1, t * 3))
+			p.pitch = -0.3 * (1 - e)
+			p.armsLift = 1.6 * (1 - e)
+			p.twist = 0.16 * (1 - e)
+			p.squash = mix(1.06, p.squash, e)
 		end
 		return p
 	end
 
+	--[[ Which way along his side the dash goes, as a sign on his own X. ]]
+	local right = Vector3.new(math.cos(move.toYaw), 0, -math.sin(move.toYaw))
+	local sign = if state.along:Dot(right) >= 0 then 1 else -1
+
 	if phase == "windup" then
-		--[[ Down into the bell, turning side-on, legs drumming. ]]
+		--[[ Down into the bell, turning side-on, legs drumming, then
+		     leaning away from where he is about to go. ]]
 		local e = ease(t)
 		p.yaw = lerpAngle(move.fromYaw, move.toYaw, math.min(1, t * 2.5))
 		p.squash = 1 - 0.22 * e
 		p.spread = 1 + 0.06 * e
 		p.twist = 0.05 * e * math.sin(now * 35)
+		p.roll = 0.07 * e * math.sin(now * 30) + sign * 0.16 * window(t, 0.7, 1)
 	elseif phase == "aim" then
-		--[[ A beat low in the bell, legs drumming, before the next dart. ]]
+		--[[ A beat low in the bell, cocked away from the next dart. ]]
 		p.yaw = lerpAngle(move.fromYaw, move.toYaw, math.min(1, t * 3))
 		p.squash = 0.78 + 0.04 * math.sin(now * 40)
 		p.spread = 1.06
 		p.twist = 0.05 * math.sin(now * 35)
+		p.roll = sign * 0.16 * ease(t)
 	elseif phase == "charge" then
+		--[[ Tipped into the run, legs galloping under him. ]]
+		local stride = math.sin(now * 26)
 		p.feet = state.from:Lerp(state.to, t)
 		move.feet = p.feet
-		p.squash = 0.78 + 0.04 * math.sin(now * 40)
+		p.squash = 0.8 + 0.05 * math.abs(stride)
 		p.spread = 1.06
-		p.lift = 0.3 * math.abs(math.sin(now * 25))
+		p.lift = 0.45 * math.abs(stride)
+		p.roll = -sign * 0.2 + 0.07 * stride
+		p.twist = 0.06 * math.sin(now * 26 + 1)
 	elseif phase == "crash" then
-		--[[ Rocked back off the wall and reeling: the shell is open. ]]
+		--[[ Crushed against the wall, rocked back, then reeling, dizzy: the
+		     shell is open. ]]
 		local seconds = now - move.phaseAt
 		local w = math.exp(-seconds * 2.5)
+		local impact = math.max(0, 1 - seconds / 0.14)
 		p.pitch = -0.25 * w * math.cos(seconds * 9) - 0.1
 		p.twist = 0.18 * math.sin(seconds * 4.5) * (1 - 0.5 * t)
-		p.squash = 0.9 + 0.1 * (1 - w)
+		p.squash = 0.9 + 0.1 * (1 - w) - 0.2 * impact
+		p.spread = 1 + 0.16 * impact
+		p.lean = -0.8 * impact
+		p.roll = 0.12 * math.sin(seconds * 6) * (1 - 0.5 * t)
 		p.armsLift = 0.6 * math.abs(math.sin(seconds * 3))
 	elseif phase == "recover" then
-		p.pitch = -0.1 * (1 - ease(t))
+		--[[ Stands himself up and shakes off the daze. ]]
+		local e = ease(t)
+		p.pitch = -0.1 * (1 - e)
+		p.squash = 1 + 0.08 * math.sin(math.pi * e)
+		p.roll = 0.08 * (1 - e) * math.sin(now * 30)
 	end
 	return p
 end

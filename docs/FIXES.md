@@ -1623,3 +1623,10 @@ The lobby's brighter daylight washed out a rare pet's aura, so `PetAuras.lobby` 
 pet in the game faces -Z and `ModelClip.fit` picks no turn for a single part, so
 every lunge went backwards and every nose-up went nose-down. `tools/pet_motions.py`
 now gives each clip a half turn. Keep authoring the JSON the way it reads.
+
+## The chest opening copied a video's seven steps (2026-11-08)
+
+A 3D chest now shakes faster and faster, squashes, springs up tall, slams, lights up, sends a ring
+along the ground, shoots stars that pop, and leaves rising dust (`Config/Reveal.crate`, `UI/Reveal`).
+Padlock blocks, splinters, coins, cracks and burst confetti are gone from it; a chest whose model has
+not loaded still plays the old frames. The chests are one mesh, so no lid swings open.

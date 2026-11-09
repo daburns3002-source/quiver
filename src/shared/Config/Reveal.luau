@@ -76,6 +76,17 @@ local Reveal = {
 		jingle = 3.75,
 		--[[ Coins thrown out of the open chest. ]]
 		coins = 14,
+		--[[ A 3D chest's opening (owner, 2026-11-08, after a video of seven
+		     steps): it shakes faster and faster, squashes for `squash`
+		     seconds, springs `height` up over `stretch`, slams on the burst,
+		     then light, a ring along the ground, big stars that pop like
+		     bubbles and fine dust that keeps rising. ]]
+		squash = 0.34,
+		stretch = 0.2,
+		height = 170,
+		stars = 8,
+		rareStars = 13,
+		dust = 18,
 	},
 	--[[ Each rarity's build-up and payoff. ]]
 	tiers = {

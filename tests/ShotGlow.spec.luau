@@ -9,17 +9,21 @@
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local Sandbox = require(ReplicatedStorage.Shared.Config.Sandbox)
 local TestRunner = require(script.Parent.TestRunner)
 local Weapons = require(ReplicatedStorage.Shared.Config.Weapons)
+
+local classOf: { [string]: string } = {}
+for _, entry in Sandbox.weapons do
+	classOf[entry.weapon] = entry.class
+end
 
 return function(t: TestRunner.Helper)
 	t.test("every Mythic's shot glows, and every glowing shot has a shot", function()
 		local glowing = 0
 		for key, weapon in (Weapons :: any) :: { [string]: Weapons.Weapon } do
 			-- a bow with no arrow of its own fires the plain arrow
-			local shoots = weapon.bolt ~= nil
-				or (weapon :: any).skinOf == "TwigBow"
-				or weapon.dualOf ~= nil
+			local shoots = weapon.bolt ~= nil or classOf[key] == "Ranger" or weapon.dualOf ~= nil
 			if weapon.rainbow and shoots then
 				t.isTrue(weapon.shotGlow ~= nil, `{key} is a Mythic whose shot does not glow`)
 			end

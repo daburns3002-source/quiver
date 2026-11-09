@@ -32,7 +32,8 @@ export type RevealPiece = {
      2026-11-09) and measured in
      `assets/concepts/blocky/eggs_chests/design_final/assembly.json`. `size` is
      the closed chest's and `hinge` the line the lid turns on, from its centre.
-     The model's own `mesh` is only drawn if a piece fails to load. ]]
+     With these the model's own `mesh` is never loaded: a chest whose piece
+     fails plays its pictures. ]]
 export type RevealParts = {
 	size: Vector3,
 	hinge: Vector3,
@@ -166,45 +167,45 @@ local GearAssets = {
 	} :: { [string]: string },
 	crates = {
 		MossyGlade = {
-			closed = "rbxassetid://115732608547127",
+			closed = "rbxassetid://120544977723441",
 			bare = "rbxassetid://132518924413005",
 			open = "rbxassetid://110805001270540",
 		},
 		Thornwood = {
-			closed = "rbxassetid://139411907605270",
+			closed = "rbxassetid://124847317110705",
 			bare = "rbxassetid://130462577945262",
 			open = "rbxassetid://132986191598031",
 		},
 		DrownedVillage = {
-			closed = "rbxassetid://129406927323412",
+			closed = "rbxassetid://78250046012977",
 			bare = "rbxassetid://93374148317621",
 			open = "rbxassetid://78736767331636",
 		},
 		BogheartCaverns = {
-			closed = "rbxassetid://74264485531007",
+			closed = "rbxassetid://86834655328819",
 			bare = "rbxassetid://88397231327506",
 			open = "rbxassetid://100424663327388",
 		},
 		WindsweptCliffs = {
-			closed = "rbxassetid://109820030254804",
+			closed = "rbxassetid://93546563759704",
 			bare = "rbxassetid://123984843499980",
 			open = "rbxassetid://126672295487581",
 		},
 		FrostpeakPass = {
-			closed = "rbxassetid://84025185082724",
+			closed = "rbxassetid://125278204199154",
 			bare = "rbxassetid://94739226508814",
 			open = "rbxassetid://96625859132471",
 		},
 	} :: { [string]: { closed: string, bare: string, open: string } },
 	eggs = {
 		MossyEgg = {
-			whole = "rbxassetid://106270870780677",
+			whole = "rbxassetid://71290289361540",
 			crack1 = "rbxassetid://83969750477878",
 			crack2 = "rbxassetid://71861915568555",
 			burst = "rbxassetid://140609227414793",
 		},
 		ThornwoodEgg = {
-			whole = "rbxassetid://104439505138184",
+			whole = "rbxassetid://93626599138369",
 			crack1 = "rbxassetid://114936238157331",
 			crack2 = "rbxassetid://116737796954527",
 			burst = "rbxassetid://80786736493750",
@@ -382,7 +383,10 @@ local GearAssets = {
 			},
 		} :: { [string]: RevealModel },
 	},
-	--[[ Each area's egg and chest as one picture (Codex's per-area art,
+	--[[ The eggs' and chests' pictures here and each `closed` / `whole` above
+	     are rendered from their Claude Design models (owner, 2026-11-09;
+	     `assets/ui/reveal/design/`), so a screen shows the model that opens.
+	     Each area's egg and chest as one picture (Codex's per-area art,
 	     `assets/concepts/blocky/eggs_chests/egg_<area>.png` and
 	     `chest_<area>.png`, 2026-11-06), for an egg or chest with no model
 	     and no cut frames above: `UI/Reveal` draws its cracks and light over
@@ -393,20 +397,20 @@ local GearAssets = {
 	     under the egg's key or the chest's area and wins over all of it. ]]
 	areaPictures = {
 		eggs = {
-			MossyGlade = "rbxassetid://76065283088869",
-			Thornwood = "rbxassetid://108887450586880",
-			DrownedVillage = "rbxassetid://121474380981161",
-			BogheartCaverns = "rbxassetid://83295936746424",
-			WindsweptCliffs = "rbxassetid://92920546659530",
-			FrostpeakPass = "rbxassetid://116457878440348",
+			MossyGlade = "rbxassetid://71290289361540",
+			Thornwood = "rbxassetid://93626599138369",
+			DrownedVillage = "rbxassetid://98073349929486",
+			BogheartCaverns = "rbxassetid://137492703455068",
+			WindsweptCliffs = "rbxassetid://140562721549375",
+			FrostpeakPass = "rbxassetid://91258746426854",
 		} :: { [string]: string },
 		chests = {
-			MossyGlade = "rbxassetid://125919531196238",
-			Thornwood = "rbxassetid://76697875072018",
-			DrownedVillage = "rbxassetid://112729800271804",
-			BogheartCaverns = "rbxassetid://130442503309827",
-			WindsweptCliffs = "rbxassetid://134250106942954",
-			FrostpeakPass = "rbxassetid://109095257627714",
+			MossyGlade = "rbxassetid://120544977723441",
+			Thornwood = "rbxassetid://124847317110705",
+			DrownedVillage = "rbxassetid://78250046012977",
+			BogheartCaverns = "rbxassetid://86834655328819",
+			WindsweptCliffs = "rbxassetid://93546563759704",
+			FrostpeakPass = "rbxassetid://125278204199154",
 		} :: { [string]: string },
 	},
 	--[[ The showcase behind a pulled prize (owner, 2026-10-26: option 4, "the

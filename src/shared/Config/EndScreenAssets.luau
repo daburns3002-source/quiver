@@ -36,12 +36,12 @@ local EndScreenAssets = {
 	     "codex needs to draw a chest per area"), keyed by the stage's
 	     `area` in `Balance.Stages`. Acts 1–3 only. ]]
 	chests = {
-		MossyGlade = "rbxassetid://139169356487754",
-		Thornwood = "rbxassetid://121658796918340",
-		DrownedVillage = "rbxassetid://124545791980392",
-		BogheartCaverns = "rbxassetid://107033812916752",
-		WindsweptCliffs = "rbxassetid://76194147797596",
-		FrostpeakPass = "rbxassetid://99991548828480",
+		MossyGlade = "rbxassetid://120544977723441",
+		Thornwood = "rbxassetid://124847317110705",
+		DrownedVillage = "rbxassetid://78250046012977",
+		BogheartCaverns = "rbxassetid://86834655328819",
+		WindsweptCliffs = "rbxassetid://93546563759704",
+		FrostpeakPass = "rbxassetid://125278204199154",
 	},
 }
 

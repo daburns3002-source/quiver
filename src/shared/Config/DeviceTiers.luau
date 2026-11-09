@@ -71,6 +71,11 @@ export type Tier = {
 	     is about 120 MB of texture on a device that has just been asked to
 	     load an arena as well. A high tier can afford the lot. ]]
 	warmStoryFrames: number,
+	--[[ How many of the lobby screens' pictures and model textures are held in
+	     video memory while the player is in the lobby (`Fx/LobbyPreload`), most
+	     important first, so a screen is whole the moment it opens. Every tier
+	     downloads them all; a run drops them. ]]
+	warmLobbyImages: number,
 }
 
 --[[
@@ -97,6 +102,7 @@ local low: Tier = {
 	maxUpgradeFx = 10,
 	warmCardImages = false,
 	warmStoryFrames = 4,
+	warmLobbyImages = 60,
 }
 
 local medium: Tier = {
@@ -118,6 +124,7 @@ local medium: Tier = {
 	maxUpgradeFx = 20,
 	warmCardImages = true,
 	warmStoryFrames = 10,
+	warmLobbyImages = 180,
 }
 
 local high: Tier = {
@@ -139,6 +146,7 @@ local high: Tier = {
 	maxUpgradeFx = 32,
 	warmCardImages = true,
 	warmStoryFrames = 40,
+	warmLobbyImages = 600,
 }
 
 local DeviceTiers = {

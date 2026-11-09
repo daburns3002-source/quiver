@@ -341,11 +341,12 @@ function Reveal.preloadModels()
 		table.insert(specs, spec)
 	end
 	for _, spec in GearAssets.models.chests do
-		table.insert(specs, spec)
 		local parts = spec.parts
 		if parts then
 			table.insert(specs, parts.base)
 			table.insert(specs, parts.lid)
+		else
+			table.insert(specs, spec)
 		end
 	end
 	--[[ A texture is only fetched once it is drawn, so without this the first

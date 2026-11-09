@@ -1648,3 +1648,12 @@ unseen copies of their enemy meshes, dropped by `Arena.build`.
 Each chest was one mesh. Tripo's "Generate in Parts" cannot be told how many parts, so each chest's
 lid and body were drawn apart and generated as two models (`assets/concepts/blocky/eggs_chests/two_part/`,
 fitted in Blender). `UI/Reveal` swings the lid on its hinge on the slam, and the body has gold in it.
+
+## Lobby screens opened half loaded, with the old chests and eggs (2026-11-09)
+
+`LobbyPreload` only downloaded: pictures were never kept drawn, so each still decoded on its screen's
+first open, and the weapons in `WeaponPreview` were never asked for at all (18 of 107 meshes in, 0 of 38
+textures, read off a live client). It now holds the pictures in video memory while in the lobby
+(`DeviceTiers.warmLobbyImages`) and fetches and draws every pet and weapon preview once. The portal mesh
+ids it was handed as pictures only errored. The eggs' and chests' screen pictures are rendered from the
+Design models (`assets/ui/reveal/design/`).

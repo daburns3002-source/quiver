@@ -1616,3 +1616,10 @@ in the entry's PR: 0 enemies and no bar a moment after leaving.
 The lobby's brighter daylight washed out a rare pet's aura, so `PetAuras.lobby` strengthens it while
 `InLobby` is set. Players hold no weapon in the lobby, so a weapon's glow there is its tile:
 `Chunky.tile`'s halo rings are wider and more solid, and a Mythic's ring is thicker.
+
+## The Tripo pets' clips ran backwards
+
+2026-11-08. `assets/models/pet_motions.json` is written with +Z as forward, but a
+pet in the game faces -Z and `ModelClip.fit` picks no turn for a single part, so
+every lunge went backwards and every nose-up went nose-down. `tools/pet_motions.py`
+now gives each clip a half turn. Keep authoring the JSON the way it reads.

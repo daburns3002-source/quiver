@@ -514,7 +514,7 @@ any card (Studio only), to test a card's effect without drafting it.
 **K** — spawn a wilf (`Remotes.DebugSpawnEnemy`, any `Balance.Enemies` key from a probe).
 **P** — the pets the owner imported follow you, playing their own clips
 (`Fx/PetPreview`, built by `Server/Dev/PetPreview` from `Config/PetModels`); P again
-puts them away. A look only, until Phase 6's pet system.
+puts them away. Each moves as itself (`Config/PetGaits`, `Util/PetGait`: its pace, tilts, hover and fidget, one per pet, pinned by `tests/PetGaits.spec`). A look only, until Phase 6's pet system.
 **O** — the playtest sandbox (owner, 2026-10-24), also the SANDBOX tab on the left edge
 (`UI/SandboxMenu`, `Config/Sandbox`): ENTER turns the room into training dummies that
 never die or hit back (`EnemyConfig.dummy`) with every player untouchable and the run

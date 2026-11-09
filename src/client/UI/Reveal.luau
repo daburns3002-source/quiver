@@ -34,6 +34,8 @@ local EggRules = require(ReplicatedStorage.Shared.Util.EggRules)
 local EndScreenAssets = require(ReplicatedStorage.Shared.Config.EndScreenAssets)
 local GearAssets = require(ReplicatedStorage.Shared.Config.GearAssets)
 local Kit = require(script.Parent.Kit)
+local PetGait = require(ReplicatedStorage.Shared.Util.PetGait)
+local PetGaits = require(ReplicatedStorage.Shared.Config.PetGaits)
 local Pets = require(ReplicatedStorage.Shared.Config.Pets)
 local RevealTimeline = require(ReplicatedStorage.Shared.Util.RevealTimeline)
 local Shop = require(ReplicatedStorage.Shared.Config.Shop)
@@ -122,6 +124,8 @@ type Part = {
 	icon: ImageLabel,
 	petView: ViewportFrame?,
 	petModel: Model?,
+	petGait: PetGaits.Gait?,
+	petSize: number?,
 	petBase: CFrame?,
 	name: TextLabel,
 	banner: ImageLabel,
@@ -539,6 +543,11 @@ local function play(look: Look, prizes: { Prize }, chanceOf: (Prize) -> number, 
 			local petModel = if world then world:FindFirstChildOfClass("Model") else nil
 			part.petView, part.petModel = petView, petModel
 			part.petBase = if petModel then petModel:GetPivot() else nil
+			if petModel and prize.key then
+				part.petGait = PetGait.of(prize.key)
+				-- a gait is in the studs of a pet at heel, 2.4 tall
+				part.petSize = petModel:GetExtentsSize().Y / 2.4
+			end
 		end
 		if drawCracks then
 			local pattern: { { { number } } } = if chest then CHEST_CRACKS else EGG_CRACKS
@@ -938,7 +947,10 @@ local function play(look: Look, prizes: { Prize }, chanceOf: (Prize) -> number, 
 			if landed >= 0 then
 				local squash = 0.24 * decay(landed, 8, 28)
 				psx, psy = 1 + squash, 1 - squash
-				petY += math.sin(t * 3.9) * 8
+				-- a model stands as that pet stands (below); only a picture bobs
+				if not part.petView then
+					petY += math.sin(t * 3.9) * 8
+				end
 			end
 			local grown = popIn(since / 0.25) * (1 - gone)
 			local petSize = size * 0.9 * grown
@@ -950,8 +962,20 @@ local function play(look: Look, prizes: { Prize }, chanceOf: (Prize) -> number, 
 				-- a viewport draws to its height, so its squash is one number
 				put(petView, x, petY, petSize, petSize * psy)
 				if pet and petModel and petBase then
+					-- shown turning, and moving as it stands at the player's heel
+					local gait = part.petGait
+					local petScale = part.petSize or 1
+					local stands = if gait
+						then PetGait.pose(gait, t, 0, 0, 1, 0, petScale) * CFrame.new(
+							0,
+							-(gait.float or 0) * size,
+							0
+						)
+						else CFrame.identity
 					petModel:PivotTo(
-						CFrame.Angles(0, math.sin(t * PET_SWAY_SPEED) * PET_SWAY, 0) * petBase
+						CFrame.Angles(0, math.sin(t * PET_SWAY_SPEED) * PET_SWAY, 0)
+							* petBase
+							* stands
 					)
 				end
 			end

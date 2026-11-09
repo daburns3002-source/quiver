@@ -62,6 +62,32 @@ return table.freeze({
 				},
 			},
 		},
+		Follow = {
+			length = 2.4,
+			-- Leans into its drift, turning slowly round its own middle like something towed on a line.
+			joints = {
+				Body = {
+					pos = { times = { 0, 1.2, 2.4 }, values = { 0, 0, 0, 0, 0.05, 0, 0, 0, 0 } },
+					rot = {
+						times = { 0, 1.2, 2.4 },
+						values = {
+							-0.04975,
+							-0.07144,
+							-0.03112,
+							0.99572,
+							-0.08447,
+							0.07248,
+							0.02861,
+							0.99337,
+							-0.04975,
+							-0.07144,
+							-0.03112,
+							0.99572,
+						},
+					},
+				},
+			},
+		},
 		Idle = {
 			length = 3,
 			joints = {
@@ -77,13 +103,13 @@ return table.freeze({
 							0,
 							0,
 							1,
-							0.02615,
+							-0.02615,
 							-0.00114,
-							0.0436,
+							-0.0436,
 							0.99871,
-							-0.01744,
+							0.01744,
 							-0.00061,
-							-0.03489,
+							0.03489,
 							0.99924,
 							0,
 							0,

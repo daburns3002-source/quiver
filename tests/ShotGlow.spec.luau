@@ -16,12 +16,16 @@ return function(t: TestRunner.Helper)
 	t.test("every Mythic's shot glows, and every glowing shot has a shot", function()
 		local glowing = 0
 		for key, weapon in (Weapons :: any) :: { [string]: Weapons.Weapon } do
-			if weapon.rainbow and weapon.bolt then
+			-- a bow with no arrow of its own fires the plain arrow
+			local shoots = weapon.bolt ~= nil
+				or (weapon :: any).skinOf == "TwigBow"
+				or weapon.dualOf ~= nil
+			if weapon.rainbow and shoots then
 				t.isTrue(weapon.shotGlow ~= nil, `{key} is a Mythic whose shot does not glow`)
 			end
 			if weapon.shotGlow then
 				glowing += 1
-				t.isTrue(weapon.bolt ~= nil, `{key} has a shot glow and no shot`)
+				t.isTrue(shoots, `{key} has a shot glow and no shot`)
 			end
 		end
 		t.isTrue(glowing >= 4, "the Legendary and Mythic shots have lost their glow")

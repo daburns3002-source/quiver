@@ -1100,6 +1100,7 @@ local function play(look: Look, prizes: { Prize }, chanceOf: (Prize) -> number, 
 			-- a chest's ring of light rushes out along the ground
 			if juicy then
 				local across = size * (0.6 + spread * 3)
+				part.ring.ScaleType = Enum.ScaleType.Stretch
 				put(part.ring, x, y + size * 0.3, across, across * 0.3)
 				part.ring.ImageColor3 = light:Lerp(Color3.new(1, 1, 1), 0.4)
 				part.ring.ImageTransparency = spread ^ 1.5

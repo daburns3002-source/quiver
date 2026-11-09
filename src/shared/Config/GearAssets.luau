@@ -21,10 +21,27 @@
 
 --[[ One reveal's model: its mesh, its texture, and whether it tips open
      like a lid. The size is the mesh's own, read off the loaded part. ]]
+export type RevealPiece = {
+	mesh: string,
+	texture: string,
+	size: Vector3,
+	--[[ Its centre from the whole chest's. ]]
+	offset: Vector3,
+}
+--[[ A chest as Tripo's two models (owner, 2026-11-08), measured against each
+     other in `assets/concepts/blocky/eggs_chests/two_part/`. `size` is the
+     closed chest's and `hinge` the line the lid turns on, from its centre. ]]
+export type RevealParts = {
+	size: Vector3,
+	hinge: Vector3,
+	base: RevealPiece,
+	lid: RevealPiece,
+}
 export type RevealModel = {
 	mesh: string,
 	texture: string,
 	tips: boolean,
+	parts: RevealParts?,
 }
 
 local GearAssets = {
@@ -239,31 +256,127 @@ local GearAssets = {
 				mesh = "rbxassetid://113330487163741",
 				texture = "rbxassetid://114390284272834",
 				tips = false,
+				parts = {
+					size = Vector3.new(0.9805, 1.082, 0.8009),
+					hinge = Vector3.new(0, 0.0266, 0.4005),
+					base = {
+						mesh = "rbxassetid://135892239281164",
+						texture = "rbxassetid://131836554502455",
+						size = Vector3.new(0.9805, 0.687, 0.8009),
+						offset = Vector3.new(0, -0.1975, 0),
+					},
+					lid = {
+						mesh = "rbxassetid://81973836639492",
+						texture = "rbxassetid://74167299333466",
+						size = Vector3.new(0.9805, 0.5224, 0.8009),
+						offset = Vector3.new(0, 0.2798, 0),
+					},
+				},
 			},
 			Thornwood = {
 				mesh = "rbxassetid://78975216964906",
 				texture = "rbxassetid://130024333307677",
 				tips = false,
+				parts = {
+					size = Vector3.new(0.9864, 0.9671, 0.8202),
+					hinge = Vector3.new(0, 0.0382, 0.4101),
+					base = {
+						mesh = "rbxassetid://124771487856216",
+						texture = "rbxassetid://104227547789617",
+						size = Vector3.new(0.9864, 0.5977, 0.8202),
+						offset = Vector3.new(0, -0.1847, 0),
+					},
+					lid = {
+						mesh = "rbxassetid://104685735508381",
+						texture = "rbxassetid://88616709357164",
+						size = Vector3.new(0.9864, 0.4533, 0.8202),
+						offset = Vector3.new(0, 0.2569, 0),
+					},
+				},
 			},
 			DrownedVillage = {
 				mesh = "rbxassetid://73700749705895",
 				texture = "rbxassetid://134194978002263",
 				tips = false,
+				parts = {
+					size = Vector3.new(0.9809, 0.9855, 0.7987),
+					hinge = Vector3.new(0, 0.0368, 0.3993),
+					base = {
+						mesh = "rbxassetid://98867367079462",
+						texture = "rbxassetid://98701113890605",
+						size = Vector3.new(0.9809, 0.6107, 0.7987),
+						offset = Vector3.new(0, -0.1874, 0),
+					},
+					lid = {
+						mesh = "rbxassetid://123080051677159",
+						texture = "rbxassetid://103393310686032",
+						size = Vector3.new(0.9809, 0.4639, 0.7987),
+						offset = Vector3.new(0, 0.2608, 0),
+					},
+				},
 			},
 			BogheartCaverns = {
 				mesh = "rbxassetid://98295346767225",
 				texture = "rbxassetid://115463165012046",
 				tips = false,
+				parts = {
+					size = Vector3.new(0.981, 0.9775, 0.822),
+					hinge = Vector3.new(0, 0.0594, 0.411),
+					base = {
+						mesh = "rbxassetid://123426397997839",
+						texture = "rbxassetid://115138932645043",
+						size = Vector3.new(0.981, 0.632, 0.822),
+						offset = Vector3.new(0, -0.1728, 0),
+					},
+					lid = {
+						mesh = "rbxassetid://105799878792834",
+						texture = "rbxassetid://136509349093708",
+						size = Vector3.new(0.981, 0.4374, 0.822),
+						offset = Vector3.new(0, 0.2701, 0),
+					},
+				},
 			},
 			WindsweptCliffs = {
 				mesh = "rbxassetid://124902873841536",
 				texture = "rbxassetid://108531951634378",
 				tips = false,
+				parts = {
+					size = Vector3.new(0.982, 0.9355, 0.7825),
+					hinge = Vector3.new(0, 0.0219, 0.3913),
+					base = {
+						mesh = "rbxassetid://71192920658239",
+						texture = "rbxassetid://114248985447078",
+						size = Vector3.new(0.982, 0.6822, 0.7825),
+						offset = Vector3.new(0, -0.1267, 0),
+					},
+					lid = {
+						mesh = "rbxassetid://98152446521174",
+						texture = "rbxassetid://112258537896151",
+						size = Vector3.new(0.982, 0.4538, 0.7825),
+						offset = Vector3.new(0, 0.2409, 0),
+					},
+				},
 			},
 			FrostpeakPass = {
 				mesh = "rbxassetid://116730027578371",
 				texture = "rbxassetid://81088159126838",
 				tips = false,
+				parts = {
+					size = Vector3.new(0.9805, 0.9896, 0.9455),
+					hinge = Vector3.new(0, 0.0656, 0.4727),
+					base = {
+						mesh = "rbxassetid://80481437497082",
+						texture = "rbxassetid://133361961899496",
+						size = Vector3.new(0.9805, 0.6285, 0.9455),
+						offset = Vector3.new(0, -0.1806, 0),
+					},
+					lid = {
+						mesh = "rbxassetid://115125153213374",
+						texture = "rbxassetid://126691683522131",
+						size = Vector3.new(0.9805, 0.4372, 0.9455),
+						offset = Vector3.new(0, 0.2762, 0),
+					},
+				},
 			},
 		} :: { [string]: RevealModel },
 	},

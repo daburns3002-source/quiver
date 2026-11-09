@@ -135,6 +135,7 @@ type Part = {
 	view: ViewportFrame?,
 	block: MeshPart?,
 	native: Vector3?,
+	lid: MeshPart?,
 	cracks: { Crack },
 	beams: { Frame },
 	bits: { Bit },
@@ -308,6 +309,11 @@ local MODEL_FOV = 40
      away from the viewport's camera (measured on all twelve, 2026-11-08), so
      each is turned to face it. ]]
 local MODEL_FACING = math.pi
+--[[ A two-piece chest's viewport, this much bigger with the chest the same size
+     in it, so a lid thrown open has room. ]]
+local CHEST_VIEW = 1.5
+--[[ How far a two-piece chest's lid opens. ]]
+local LID_OPEN = math.rad(108)
 --[[ The rock either side of facing the camera, in radians, and its speed. It
      replaced a slow full turn, which swung the padlock away as the chest opened. ]]
 local MODEL_SWAY = math.rad(14)
@@ -330,12 +336,17 @@ local PET_SWAY_SPEED = 1.3
 local templates: { [string]: MeshPart } = {}
 
 function Reveal.preloadModels()
-	local specs = {}
+	local specs: { { mesh: string, texture: string } } = {}
 	for _, spec in GearAssets.models.eggs do
 		table.insert(specs, spec)
 	end
 	for _, spec in GearAssets.models.chests do
 		table.insert(specs, spec)
+		local parts = spec.parts
+		if parts then
+			table.insert(specs, parts.base)
+			table.insert(specs, parts.lid)
+		end
 	end
 	--[[ A texture is only fetched once it is drawn, so without this the first
 	     chest of a session opened plain grey (seen 2026-11-08). ]]
@@ -394,6 +405,36 @@ local function shellModel(root: Instance, template: MeshPart): (ViewportFrame, M
 	camera.Parent = view
 	view.CurrentCamera = camera
 	return view, made
+end
+
+--[[ A chest as its lid and base, in one viewport framed on the closed chest. ]]
+local function chestModel(
+	root: Instance,
+	parts: GearAssets.RevealParts,
+	baseTemplate: MeshPart,
+	lidTemplate: MeshPart
+): (ViewportFrame, MeshPart, MeshPart)
+	local view = Instance.new("ViewportFrame")
+	view.BackgroundTransparency = 1
+	view.Ambient = Color3.fromRGB(200, 200, 200)
+	view.LightColor = Color3.new(1, 0.94, 0.8)
+	view.LightDirection = Vector3.new(-0.3, -1, -0.5)
+	view.AnchorPoint = Vector2.new(0.5, 0.5)
+	view.ZIndex = 4
+	view.Parent = root
+	local world = Instance.new("WorldModel")
+	world.Parent = view
+	local base = baseTemplate:Clone()
+	base.Parent = world
+	local lid = lidTemplate:Clone()
+	lid.Parent = world
+	local camera = Instance.new("Camera")
+	camera.FieldOfView = MODEL_FOV
+	local away = (parts.size.Y * CHEST_VIEW / MODEL_FILL) / 2 / math.tan(math.rad(MODEL_FOV) / 2)
+	camera.CFrame = CFrame.lookAt(Vector3.new(0, 0, away), Vector3.zero)
+	camera.Parent = view
+	view.CurrentCamera = camera
+	return view, base, lid
 end
 
 --[[ The cracks, per stage, as lines in the shell's own box (-0.5..0.5,
@@ -501,7 +542,11 @@ local function play(look: Look, prizes: { Prize }, chanceOf: (Prize) -> number, 
 	-- a picture with no cut stages gets drawn cracks; a chest always leaks
 	local drawCracks = chest or look.crack1 == "" or template ~= nil
 	-- a chest with its 3D model plays the seven steps; without it, the frames
-	local juicy = chest and template ~= nil
+	local pieces = if chest and model then model.parts else nil
+	local baseTemplate = if pieces then templates[pieces.base.mesh] else nil
+	local lidTemplate = if pieces then templates[pieces.lid.mesh] else nil
+	local twoPiece = baseTemplate ~= nil and lidTemplate ~= nil
+	local juicy = chest and (template ~= nil or twoPiece)
 	local chestBeats = Beats.crate
 	local parts: { Part } = {}
 	for index, prize in prizes do
@@ -563,7 +608,10 @@ local function play(look: Look, prizes: { Prize }, chanceOf: (Prize) -> number, 
 				part.odds.Text = "1 IN " .. tostring(math.round(1 / chance))
 			end
 		end
-		if template then
+		if pieces and baseTemplate and lidTemplate then
+			local view, base, lid = chestModel(root, pieces, baseTemplate, lidTemplate)
+			part.view, part.block, part.native, part.lid = view, base, pieces.size, lid
+		elseif template then
 			local view, made = shellModel(root, template)
 			part.view, part.block, part.native = view, made, made.Size
 		end
@@ -914,7 +962,7 @@ local function play(look: Look, prizes: { Prize }, chanceOf: (Prize) -> number, 
 				sx, sy = 1 + pop, 1 - pop
 				rot = 0
 				py = if juicy
-					then y + clamp01((since - 0.5) / 0.5) * 100
+					then y + clamp01((since - 0.5) / 0.5) * (if twoPiece then 60 else 100)
 					else y - math.sin(clamp01(since / 0.3) * math.pi) * 90 + clamp01(
 						(since - 0.35) / 0.5
 					) * 140
@@ -923,8 +971,9 @@ local function play(look: Look, prizes: { Prize }, chanceOf: (Prize) -> number, 
 			if juicy and u >= 0 then
 				py += size * MODEL_FILL * 0.5 * (1 - sy)
 			end
-			local shellAlpha = if chest
-				then clamp01((t - (line.banner - 0.1)) / 0.35)
+			local shellAlpha = if twoPiece
+				then clamp01((t - (line.banner + 0.6)) / 0.4)
+				elseif chest then clamp01((t - (line.banner - 0.1)) / 0.35)
 				else (if burst then 1 else 0)
 			local cracked = 0
 			for n, crack in line.cracks do
@@ -957,8 +1006,12 @@ local function play(look: Look, prizes: { Prize }, chanceOf: (Prize) -> number, 
 			if view and made and native then
 				view.Visible = shellAlpha < 1
 				view.ImageTransparency = shellAlpha
-				put(view, px, py, size, size)
-				made.Size = native * Vector3.new(sx, sy, sx)
+				local lidPart = part.lid
+				local across = if lidPart then size * CHEST_VIEW else size
+				put(view, px, py, across, across)
+				if not lidPart then
+					made.Size = native * Vector3.new(sx, sy, sx)
+				end
 				local tips = model ~= nil and model.tips
 				-- turned to the camera first, so the wobble is still a wobble on screen
 				-- an egg keeps turning through its hatch; a chest only rocks
@@ -970,6 +1023,29 @@ local function play(look: Look, prizes: { Prize }, chanceOf: (Prize) -> number, 
 					0,
 					math.rad(-rot)
 				) * CFrame.Angles(0, MODEL_FACING + turn, 0)
+				if lidPart and pieces then
+					--[[ Squashed with the chest, then the lid turned on its
+					     hinge: it rattles as the chest shakes, and on the slam
+					     it is thrown open and bounces. ]]
+					local frame = made.CFrame
+					local stretch = Vector3.new(sx, sy, sx)
+					local hinge = pieces.hinge * stretch
+					local angle = math.abs(math.sin(t * 40)) * w ^ 2 * math.rad(5)
+					if t >= b - chestBeats.stretch - chestBeats.squash and t < b then
+						angle = 0
+					elseif t >= b then
+						local thrown = clamp01(since / 0.14)
+						angle = LID_OPEN * (1 - (1 - thrown) ^ 3)
+							+ math.rad(12) * decay(since - 0.14, 6, 18)
+					end
+					made.Size = pieces.base.size * stretch
+					made.CFrame = frame * CFrame.new(pieces.base.offset * stretch)
+					lidPart.Size = pieces.lid.size * stretch
+					lidPart.CFrame = frame
+						* CFrame.new(hinge)
+						* CFrame.Angles(angle, 0, 0)
+						* CFrame.new(pieces.lid.offset * stretch - hinge)
+				end
 			end
 			-- the cracks, glowing, turning with the shell
 			-- the light inside: the area's, warming to the rarity's in a big pull
@@ -1056,7 +1132,7 @@ local function play(look: Look, prizes: { Prize }, chanceOf: (Prize) -> number, 
 			local rise = clamp01(since / Beats.egg.pop)
 			local petY = y - 30 - math.sin(rise * math.pi) * 170
 			if chest then
-				petY = y + 40 - math.sin(rise * math.pi * 0.5) * 140
+				petY = y + 40 - math.sin(rise * math.pi * 0.5) * (if twoPiece then 230 else 140)
 			end
 			local landed = since - Beats.egg.pop
 			local psx, psy = 1, 1

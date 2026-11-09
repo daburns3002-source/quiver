@@ -1642,3 +1642,9 @@ An area's first level now holds a loading screen until its first room, that room
 textures, and their NEW ENEMY! cards are fetched (`Run/Party`, `UI/AreaLoading`, `Fx/RoomPreload`),
 for at most 20 seconds. A client fetches a mesh only through an instance, so parked rooms now carry
 unseen copies of their enemy meshes, dropped by `Arena.build`.
+
+## Chests had no lid to open (2026-11-09)
+
+Each chest was one mesh. Tripo's "Generate in Parts" cannot be told how many parts, so each chest's
+lid and body were drawn apart and generated as two models (`assets/concepts/blocky/eggs_chests/two_part/`,
+fitted in Blender). `UI/Reveal` swings the lid on its hinge on the slam, and the body has gold in it.

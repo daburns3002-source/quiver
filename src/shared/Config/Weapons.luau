@@ -924,6 +924,7 @@ local skins: { [string]: any } = {
 				textureId = "rbxassetid://87111981155450",
 			},
 		} :: { WeaponPart },
+		shotGlow = Color3.fromRGB(255, 255, 255),
 	},
 	TollkeeperStaff = {
 		-- `tollkeeper staff arena 3`, held as the BranchStaff is, playing its kit until it has its own
@@ -992,6 +993,7 @@ local skins: { [string]: any } = {
 			},
 		} :: { WeaponPart },
 		rainbow = true,
+		shotGlow = Color3.fromRGB(255, 255, 255),
 	},
 	MaelstromStaff = {
 		-- `maelstrom staff arena 3`, held as the BranchStaff is, playing its kit until it has its own
@@ -1097,6 +1099,7 @@ local skins: { [string]: any } = {
 			},
 		} :: { WeaponPart },
 		aura = Color3.fromRGB(233, 185, 46),
+		shotGlow = Color3.fromRGB(233, 185, 46),
 	},
 	LumenveilBow = {
 		-- `LumenveilBow`, held as the TwigBow is, playing its kit until it has its own
@@ -1115,6 +1118,7 @@ local skins: { [string]: any } = {
 			},
 		} :: { WeaponPart },
 		aura = Color3.fromRGB(63, 230, 242),
+		shotGlow = Color3.fromRGB(63, 230, 242),
 	},
 	LichenStaff = {
 		-- `LichenStaff`, held as the BranchStaff is, playing its kit until it has its own

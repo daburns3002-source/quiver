@@ -36,7 +36,8 @@ export type Impact = {
 	rise: number,
 }
 export type Look = {
-	shape: "Block" | "Ball" | "Wedge",
+	--[[ "Bolt" is a player's only (`Config/WeaponFx`): its weapon's own shot. ]]
+	shape: "Block" | "Ball" | "Wedge" | "Bolt",
 	scale: Vector3,
 	colour: Color3,
 	material: string,

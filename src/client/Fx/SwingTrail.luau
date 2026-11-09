@@ -16,23 +16,27 @@
 	began, facing the way it faced. Presentation only, and local: other
 	players see the sword swing without it.
 
-	A Legendary or Mythic blade's streak glows in its own colour
-	(`Config/Weapons.trailGlow`), a Mythic's turning round the rainbow at
-	its weapon's pace (`Fx/WeaponGlow`; owner, 2026-10-25). A Mythic's
-	slash also scatters little cross-shaped stars over the ground it sweeps
-	("for the mythic sword add little cross shaped stars as well in the swing
-	area"): two crossed bars each, in the rainbow, popping in, turning and
-	fading, from a pool of `STAR_POOL`, so a swing costs no new parts.
+	Each blade cuts its own cleave (`Config/WeaponFx`, owner 2026-11-08): the
+	streak's colours, length and taper, and the motes it scatters over the
+	ground it sweeps, popping in, turning and fading, from a pool of
+	`MOTE_POOL`, so a swing costs no new parts. A Legendary or Mythic blade's
+	streak glows (`Config/Weapons.trailGlow`), a rainbow Mythic's streak and
+	motes turning round the hue wheel at its weapon's pace (`Fx/WeaponGlow`).
+	The Gladeheart's motes are the little cross-shaped stars the owner asked
+	for on 2026-10-25.
 ]]
 
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
 
 local Classes = require(ReplicatedStorage.Shared.Config.Classes)
+local Device = require(script.Parent.Parent.Device)
 local PlayerStats = require(script.Parent.Parent.PlayerStats)
 local SwingBox = require(ReplicatedStorage.Shared.Combat.SwingBox)
 local SwingSweep = require(ReplicatedStorage.Shared.Combat.SwingSweep)
+local WeaponFx = require(ReplicatedStorage.Shared.Config.WeaponFx)
 
 local SwingTrail = {}
 
@@ -51,22 +55,28 @@ type Active = {
 	finished: boolean,
 }
 
---[[ A Mythic's stars: how many a second while the slash sweeps, how long
-     each lives, its arm's length and thickness in studs, and the most alive
-     at once. ]]
-local STARS_PER_SECOND = 45
-local STAR_LIFE = 0.45
-local STAR_SIZE = 0.75
-local STAR_THICK = 0.14
-local STAR_POOL = 24
+--[[ The thin side of a mote's bars and the most alive at once. ]]
+local MOTE_THICK = 0.14
+local MOTE_POOL = 24
 
-type Star = { arms: { Part }, born: number, at: Vector3, hue: number, spin: number }
+--[[ One thrown-off mote: its bars (the second is a `Star`'s alone), each
+     bar's full size, and how it flies. ]]
+type Mote = {
+	arms: { Part },
+	sizes: { Vector3 },
+	born: number,
+	at: Vector3,
+	hue: number?,
+	spin: number,
+	rise: number,
+	life: number,
+}
 
-local stars: { Star } = {}
-local idleStars: { Star } = {}
-local starDebt = 0
-local starFolder: Folder? = nil
-local starConnection: RBXScriptConnection? = nil
+local motes: { Mote } = {}
+local idleMotes: { Mote } = {}
+local moteDebt = 0
+local moteFolder: Folder? = nil
+local moteConnection: RBXScriptConnection? = nil
 
 local holder: Part? = nil
 local ends: { Attachment } = {}
@@ -121,126 +131,163 @@ end
 local RAINBOW_SPEED = 0.25
 local RAINBOW_SATURATION = 0.7
 
---[[ The streak's colour and glow for the weapon in hand: its own glow colour
-     when it has one (a Mythic's turned round the rainbow), else the base
-     ribbon's colours, blended normally. ]]
-local function tint(weapon: any)
+--[[ The held blade's cleave, a pair being drawn as the blade it pairs. ]]
+local function cleaveOf(weapon: any): WeaponFx.Cleave?
+	local held = Players.LocalPlayer:GetAttribute("Weapon")
+	return (if type(held) == "string" then WeaponFx.cleaves[held] else nil)
+		or WeaponFx.cleaves[weapon.dualOf or ""]
+end
+
+--[[ The streak's look for the blade in hand: its own colours and shape,
+     glowing and blended bright for a Legendary or Mythic, a rainbow
+     Mythic's turned round the wheel. ]]
+local function tint(weapon: any, cleave: WeaponFx.Cleave?)
 	local trail = ribbon
 	if not trail then
 		return
 	end
-	local glow: Color3? = weapon.trailGlow
-	if glow then
-		local colour = if weapon.rainbow
-			then Color3.fromHSV((os.clock() * RAINBOW_SPEED) % 1, RAINBOW_SATURATION, 1)
-			else glow
-		trail.Color = ColorSequence.new(colour, colour:Lerp(Color3.new(1, 1, 1), 0.35))
+	local colours = if cleave then cleave.colour else weapon.swingTrail.colour
+	local first, last = colours[1], colours[#colours]
+	if weapon.trailGlow then
+		if weapon.rainbow then
+			first = Color3.fromHSV((os.clock() * RAINBOW_SPEED) % 1, RAINBOW_SATURATION, 1)
+			last = first:Lerp(Color3.new(1, 1, 1), 0.35)
+		end
 		trail.LightEmission = 1
 	else
-		local colours = weapon.swingTrail.colour
-		trail.Color = ColorSequence.new(colours[1], colours[#colours])
 		trail.LightEmission = 0
 	end
+	trail.Color = ColorSequence.new(first, last)
+	trail.Lifetime = if cleave then cleave.tail else TAIL
+	trail.WidthScale = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, 1),
+		NumberSequenceKeypoint.new(1, if cleave then cleave.taper else 0.25),
+	})
 end
 
-local function newStar(): Star
-	local folder = starFolder
+local function newMote(): Mote
+	local folder = moteFolder
 	if not (folder and folder.Parent) then
 		local made = Instance.new("Folder")
-		made.Name = "SwingStars"
+		made.Name = "SwingMotes"
 		made.Parent = Workspace.CurrentCamera
-		starFolder = made
+		moteFolder = made
 		folder = made
 	end
 	local arms: { Part } = {}
 	for index = 1, 2 do
 		local arm = Instance.new("Part")
-		arm.Name = "StarArm"
+		arm.Name = "Mote"
 		arm.Anchored = true
 		arm.CanCollide = false
 		arm.CanQuery = false
 		arm.CanTouch = false
 		arm.CastShadow = false
-		arm.Material = Enum.Material.Neon
-		arm.Size = if index == 1
-			then Vector3.new(STAR_SIZE, STAR_THICK, STAR_THICK)
-			else Vector3.new(STAR_THICK, STAR_THICK, STAR_SIZE)
 		arm.Transparency = 1
 		arm.Parent = folder
 		arms[index] = arm
 	end
-	return { arms = arms, born = 0, at = Vector3.zero, hue = 0, spin = 0 }
+	return {
+		arms = arms,
+		sizes = { Vector3.one, Vector3.one },
+		born = 0,
+		at = Vector3.zero,
+		hue = nil,
+		spin = 0,
+		rise = 0,
+		life = 1,
+	}
 end
 
---[[ Poses every live star, and parks the ones whose time is up. ]]
-local function stepStars()
+--[[ Poses every live mote, and parks the ones whose time is up. ]]
+local function stepMotes()
 	local now = os.clock()
-	for index = #stars, 1, -1 do
-		local star = stars[index]
-		local t = (now - star.born) / STAR_LIFE
+	for index = #motes, 1, -1 do
+		local mote = motes[index]
+		local t = (now - mote.born) / mote.life
 		if t >= 1 then
-			for _, arm in star.arms do
+			for _, arm in mote.arms do
 				arm.Transparency = 1
 			end
-			table.remove(stars, index)
-			table.insert(idleStars, star)
+			table.remove(motes, index)
+			table.insert(idleMotes, mote)
 			continue
 		end
 		-- pops in over the first fifth, shrinks away over the rest
 		local scale = if t < 0.2 then t / 0.2 else 1 - (t - 0.2) / 0.8 * 0.7
-		local colour =
-			Color3.fromHSV((star.hue + now * RAINBOW_SPEED) % 1, RAINBOW_SATURATION * 0.8, 1)
-		local frame = CFrame.new(star.at + Vector3.new(0, t * 0.6, 0))
-			* CFrame.Angles(0, star.spin + t * 2.5, 0)
-		for _, arm in star.arms do
-			arm.Color = colour
+		local frame = CFrame.new(mote.at + Vector3.new(0, t * mote.rise, 0))
+			* CFrame.Angles(0, mote.spin + t * 2.5, 0)
+		local hue = mote.hue
+		for at, arm in mote.arms do
+			if mote.sizes[at].Magnitude < 1e-3 then
+				continue
+			end
+			if hue then
+				arm.Color =
+					Color3.fromHSV((hue + now * RAINBOW_SPEED) % 1, RAINBOW_SATURATION * 0.8, 1)
+			end
 			arm.Transparency = 0.1 + 0.8 * math.max(0, (t - 0.55) / 0.45)
 			arm.CFrame = frame
-			arm.Size = Vector3.new(
-				if arm.Size.X > arm.Size.Z then STAR_SIZE * scale else STAR_THICK,
-				STAR_THICK,
-				if arm.Size.Z > arm.Size.X then STAR_SIZE * scale else STAR_THICK
-			)
+			arm.Size = (mote.sizes[at] * scale):Max(Vector3.one * 0.05)
 		end
 	end
-	if #stars == 0 and starConnection then
-		starConnection:Disconnect()
-		starConnection = nil
+	if #motes == 0 and moteConnection then
+		moteConnection:Disconnect()
+		moteConnection = nil
 	end
 end
 
---[[ Scatters a Mythic's stars over the streak between its two ends, at a
-     steady rate, from the pool. ]]
-local function scatterStars(dt: number)
+--[[ Shapes a pooled mote as `spec` says. ]]
+local function shapeMote(mote: Mote, spec: WeaponFx.Motes, glowing: boolean)
+	local size, form = spec.size, spec.form
+	local first = if form == "Star" or form == "Shard"
+		then Vector3.new(size, MOTE_THICK, MOTE_THICK)
+		elseif form == "Leaf" then Vector3.new(size, 0.06, size * 0.6)
+		else Vector3.one * size
+	mote.sizes[1] = first
+	mote.sizes[2] = if form == "Star"
+		then Vector3.new(MOTE_THICK, MOTE_THICK, size)
+		else Vector3.zero
+	for _, arm in mote.arms do
+		arm.Shape = if form == "Ball" then Enum.PartType.Ball else Enum.PartType.Block
+		arm.Material = if glowing then Enum.Material.Neon else Enum.Material.SmoothPlastic
+		arm.Color = spec.colour
+	end
+	mote.rise, mote.life = spec.rise, spec.life
+end
+
+--[[ Scatters the cleave's motes over the streak between its two ends, at
+     a steady rate, from the pool. ]]
+local function scatterMotes(dt: number, spec: WeaponFx.Motes, weapon: any)
 	local part = holder
 	if not part or #ends < 2 then
 		return
 	end
-	starDebt += dt * STARS_PER_SECOND
-	while starDebt >= 1 do
-		starDebt -= 1
-		local star = table.remove(idleStars)
-		if not star then
-			if #stars >= STAR_POOL then
+	moteDebt += dt * spec.rate
+	while moteDebt >= 1 do
+		moteDebt -= 1
+		local mote = table.remove(idleMotes)
+		if not mote then
+			if #motes >= MOTE_POOL then
 				break
 			end
-			star = newStar()
+			mote = newMote()
 		end
+		local m = mote :: Mote
+		shapeMote(m, spec, weapon.trailGlow ~= nil)
 		local along = 0.2 + math.random() * 0.8
-		local point = ends[1].Position:Lerp(ends[2].Position, along)
-		local s = star :: Star
-		s.at = part.CFrame:PointToWorldSpace(point)
-		s.born = os.clock()
-		s.hue = math.random()
-		s.spin = math.random() * math.pi
-		table.insert(stars, s)
+		m.at = part.CFrame:PointToWorldSpace(ends[1].Position:Lerp(ends[2].Position, along))
+		m.born = os.clock()
+		m.hue = if weapon.rainbow then math.random() else nil
+		m.spin = math.random() * math.pi
+		table.insert(motes, m)
 	end
-	if not starConnection then
-		starConnection = RunService.RenderStepped:Connect(stepStars)
+	if not moteConnection then
+		moteConnection = RunService.RenderStepped:Connect(stepMotes)
 	end
 end
 
-local lastStarStep = os.clock()
+local lastMoteStep = os.clock()
 
 local function place(swing: Active, progress: number)
 	local a, b = SwingSweep.edge(swing.shape, swing.sweep, progress)
@@ -284,20 +331,22 @@ function SwingTrail.step(
 	if not (holder and holder.Parent) then
 		build(config.colour)
 	end
-	tint(weapon)
+	local cleave = cleaveOf(weapon)
+	tint(weapon, cleave)
 
 	local current = active
 	if current and not current.finished then
 		place(current, progress)
-		-- a Mythic's stars over the ground the slash is sweeping
+		-- its motes over the ground the slash is sweeping
 		local now = os.clock()
-		if weapon.rainbow and weapon.trailGlow then
-			scatterStars(math.min(now - lastStarStep, 0.1))
+		local spec = cleave and cleave.motes
+		if spec and Device.tier().orbSparkleRate > 0 then
+			scatterMotes(math.min(now - lastMoteStep, 0.1), spec, weapon)
 		end
-		lastStarStep = now
+		lastMoteStep = now
 		return
 	end
-	lastStarStep = os.clock()
+	lastMoteStep = os.clock()
 
 	local root = character:FindFirstChild("HumanoidRootPart") :: BasePart?
 	if not root then

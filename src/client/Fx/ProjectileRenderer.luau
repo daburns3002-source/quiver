@@ -32,6 +32,7 @@ local HitFeedback = require(script.Parent.HitFeedback)
 local ProjectileFlight = require(ReplicatedStorage.Shared.Combat.ProjectileFlight)
 local ShotPipeline = require(ReplicatedStorage.Shared.Combat.ShotPipeline)
 local Types = require(ReplicatedStorage.Shared.Types)
+local WeaponFx = require(ReplicatedStorage.Shared.Config.WeaponFx)
 local Weapons = require(ReplicatedStorage.Shared.Config.Weapons)
 
 type ShotSpec = Types.ShotSpec
@@ -72,6 +73,9 @@ local weaponConnection: RBXScriptConnection? = nil
      shots drawn in that colour with a light and sparkles, a Mythic's turned
      round the hue wheel every frame at its weapon's pace (`Fx/WeaponGlow`). ]]
 local shotGlow: Color3? = nil
+--[[ How the held weapon's shots look (`Config/WeaponFx`). The player's two
+     pools are emptied when it changes, so a pooled part always has this. ]]
+local weaponLook: WeaponFx.Look? = nil
 local shotRainbow = false
 local RAINBOW_SPEED = 0.25
 local RAINBOW_SATURATION = 0.7
@@ -179,15 +183,17 @@ local function createPart(pool: Pool): BasePart
 	local isOrb = pool ~= "Player"
 	local look = lookOf(pool)
 	local faction: Faction = if look then "Enemy" else "Player"
+	-- what it is drawn as: an enemy's look, or the held weapon's
+	local shown: Look? = look or weaponLook
 	local partSize = if look
 		then look.scale * ProjectileFlight.size("Enemy")
 		elseif pool == "PlayerOrb" then PLAYER_ORB_SIZE
 		else ProjectileFlight.size(faction)
 
 	local part: BasePart
-	if look and look.shape == "Wedge" then
+	if shown and shown.shape == "Wedge" then
 		part = Instance.new("WedgePart")
-	elseif not look and boltTemplate and boltSize then
+	elseif not look and (not shown or shown.shape == "Bolt") and boltTemplate and boltSize then
 		part = boltTemplate:Clone()
 		if pool == "Player" then
 			--[[ An arrow mesh keeps its own shape, stretched to the
@@ -196,12 +202,15 @@ local function createPart(pool: Pool): BasePart
 		end
 	else
 		local plain = Instance.new("Part")
-		plain.Shape = if look
-			then (if look.shape == "Ball" then Enum.PartType.Ball else Enum.PartType.Block)
+		plain.Shape = if shown and shown.shape ~= "Bolt"
+			then (if shown.shape == "Ball" then Enum.PartType.Ball else Enum.PartType.Block)
 			elseif isOrb then Enum.PartType.Ball
 			elseif tier.projectileIsRound then Enum.PartType.Cylinder
 			else Enum.PartType.Block
 		part = plain
+	end
+	if shown and not look then
+		partSize *= shown.scale
 	end
 	part.Name = "Projectile"
 	part.Size = partSize
@@ -225,9 +234,9 @@ local function createPart(pool: Pool): BasePart
 		outline.Parent = part
 	end
 
-	if look and look.arms then
+	if shown and shown.arms then
 		local arms: { ArmPart } = {}
-		for _, arm in look.arms do
+		for _, arm in shown.arms do
 			local spine = Instance.new("Part")
 			spine.Name = "ProjectileArm"
 			spine.Size = arm.scale * ProjectileFlight.size("Enemy")
@@ -237,7 +246,7 @@ local function createPart(pool: Pool): BasePart
 			spine.CanTouch = false
 			spine.CastShadow = false
 			spine.Material = part.Material
-			spine.Color = look.armColour or look.colour
+			spine.Color = shown.armColour or shown.colour
 			spine.Parent = part
 			table.insert(arms, {
 				part = spine :: BasePart,
@@ -253,7 +262,7 @@ local function createPart(pool: Pool): BasePart
 
 	--[[ A Legendary's or Mythic's shot: its own light and sparkles, in its
 	     glow colour (recoloured each frame for a Mythic, in `step`). ]]
-	local glow = if not look then shotGlow else nil
+	local glow = if look then nil elseif shotGlow and shown then shown.colour else shotGlow
 	if glow then
 		if tier.projectileTrails then
 			local light = Instance.new("PointLight")
@@ -308,8 +317,8 @@ local function createPart(pool: Pool): BasePart
 	--[[ The footage's orbs shed small sparkles as they fly, which is half of
 	     what makes a slow shot readable as moving. Rate from the device
 	     tier; none at all on the lowest. ]]
-	local shed = if look then look.sparkle else nil
-	if isOrb and tier.orbSparkleRate > 0 and (shed or not look) then
+	local shed = if shown then shown.sparkle else nil
+	if (isOrb or shed) and tier.orbSparkleRate > 0 and (shed or not shown) then
 		local sparkles = Instance.new("ParticleEmitter")
 		sparkles.Name = "Sparkles"
 		sparkles.Rate = tier.orbSparkleRate * (if shed then shed.rate else 1)
@@ -318,7 +327,7 @@ local function createPart(pool: Pool): BasePart
 		local speed = if shed then shed.speed else 1
 		sparkles.Speed = NumberRange.new(speed * 0.5, speed * 1.5)
 		sparkles.SpreadAngle = Vector2.new(180, 180)
-		sparkles.LightEmission = if look and look.material ~= "Neon" then 0 else 1
+		sparkles.LightEmission = if shown and shown.material ~= "Neon" then 0 else 1
 		sparkles.Acceleration = Vector3.yAxis * (if shed then shed.rise else 0)
 		sparkles.Color =
 			ColorSequence.new(if shed then shed.colour else Color3.fromRGB(200, 240, 255))
@@ -729,8 +738,10 @@ local function launch(
 		elseif look == "Orb" or look == "TurretOrb" then "PlayerOrb"
 		else "Player"
 	local drawn = if enemyLook then EnemyShots.looks[enemyLook] else nil
+	local weapon = if enemyLook then nil else weaponLook
 	local colour = if drawn
 		then drawn.colour
+		elseif weapon then weapon.colour
 		elseif shotGlow then shotGlow
 		elseif pool == "PlayerOrb" then PLAYER_ORB_COLOUR
 		else PLAYER_COLOUR
@@ -745,13 +756,15 @@ local function launch(
 	     one does not draw a ribbon from where the last shot expired. ]]
 	local trail = part:FindFirstChildOfClass("Trail")
 	if trail then
-		if drawn and drawn.trailColour then
-			trail.Color = ColorSequence.new(drawn.trailColour)
+		local tinted = drawn or weapon
+		if tinted and tinted.trailColour then
+			trail.Color = ColorSequence.new(tinted.trailColour)
 		end
+		local longer = if weapon and weapon.trail then weapon.trail else 1
 		if pool == "Player" then
-			trail.Lifetime = ARROW_TRAIL_STUDS / math.max(spec.speed, 1e-3)
+			trail.Lifetime = ARROW_TRAIL_STUDS * longer / math.max(spec.speed, 1e-3)
 		elseif pool == "PlayerOrb" then
-			trail.Lifetime = PLAYER_ORB_TRAIL_STUDS / math.max(spec.speed, 1e-3)
+			trail.Lifetime = PLAYER_ORB_TRAIL_STUDS * longer / math.max(spec.speed, 1e-3)
 		end
 		trail.Enabled = true
 	end
@@ -759,7 +772,7 @@ local function launch(
 	table.insert(live, {
 		part = part,
 		pool = pool,
-		look = drawn,
+		look = drawn or weapon,
 		arms = armsOf[part],
 		phase = math.random() * 2 * math.pi,
 		faction = faction,
@@ -919,7 +932,14 @@ end
      weapon before a run sets one), loading it the first time. ]]
 local function loadBolt()
 	local held = Players.LocalPlayer:GetAttribute("Weapon")
-	local weapon = (Weapons :: any)[if type(held) == "string" then held else Classes.Arcanist.weapon]
+	local name: string = if type(held) == "string" then held else Classes.Arcanist.weapon
+	local weapon = (Weapons :: any)[name]
+	-- a pair of bows fires as the bow it pairs
+	local looks = WeaponFx.shots[name] or WeaponFx.shots[weapon and weapon.dualOf or ""]
+	if looks ~= weaponLook then
+		weaponLook = looks
+		dropPlayerPools()
+	end
 	local bolt = (weapon and weapon.bolt) :: { meshId: string, size: Vector3 }?
 	local meshId = bolt and bolt.meshId
 	local glow = (weapon and weapon.shotGlow) :: Color3?

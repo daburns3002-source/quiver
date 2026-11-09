@@ -1635,3 +1635,10 @@ not loaded still plays the old frames. The chests are one mesh, so no lid swings
 
 Shop, gear, hatchery and dex pictures and the pet models were only fetched when first drawn.
 `Fx/LobbyPreload` fetches them as soon as the player is in the lobby.
+
+## Areas popped in unloaded (2026-11-08)
+
+An area's first level now holds a loading screen until its first room, that room's enemy meshes and
+textures, and their NEW ENEMY! cards are fetched (`Run/Party`, `UI/AreaLoading`, `Fx/RoomPreload`),
+for at most 20 seconds. A client fetches a mesh only through an instance, so parked rooms now carry
+unseen copies of their enemy meshes, dropped by `Arena.build`.

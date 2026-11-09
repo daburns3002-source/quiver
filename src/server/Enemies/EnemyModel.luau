@@ -262,6 +262,45 @@ function EnemyModel.preload()
 	meshTemplates = MeshTemplates.load(ids)
 end
 
+--[[ One unseen copy of each mesh the enemies called `names` are drawn with, for
+     `Arena.prepare` to send ahead: a client can only fetch a mesh through an
+     instance that holds it. ]]
+function EnemyModel.meshesFor(names: { string }): { Instance }
+	local out: { Instance } = {}
+	local seen: { [string]: boolean } = {}
+	local function add(id: any)
+		local template = if type(id) == "string" and not seen[id] then meshTemplates[id] else nil
+		if template then
+			seen[id] = true
+			local copy = template:Clone()
+			copy.Anchored = true
+			copy.CanCollide = false
+			copy.CanQuery = false
+			copy.CanTouch = false
+			copy.Transparency = 1
+			table.insert(out, copy)
+		end
+	end
+	for _, name in names do
+		local design = (EnemyDesigns :: any)[name]
+		if type(design) == "table" then
+			for _, spec in design do
+				if type(spec) == "table" then
+					add(spec.meshId)
+				end
+			end
+		end
+		local imported = (EnemyDesigns.Imported :: any)[name]
+		if type(imported) == "table" and type(imported.model) == "string" then
+			local rows: { ImportedPart } = importedParts(imported.model) or {}
+			for _, row in rows do
+				add(row.meshId)
+			end
+		end
+	end
+	return out
+end
+
 --[[ A skinned mesh's bones, from its rig (`Config/EnemyRigs`), shrunk to
      the size the body is drawn at: a skinned mesh binds its vertices to
      bones by name, so these are what bend it. ]]

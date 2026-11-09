@@ -18,6 +18,7 @@ local Dex = require(ReplicatedStorage.Shared.Config.Dex)
 local GearAssets = require(ReplicatedStorage.Shared.Config.GearAssets)
 local GearUiAssets = require(ReplicatedStorage.Shared.Config.GearUiAssets)
 local HatchUiAssets = require(ReplicatedStorage.Shared.Config.HatchUiAssets)
+local LoadingScreen = require(ReplicatedStorage.Shared.Config.LoadingScreen)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
 local NewEnemies = require(ReplicatedStorage.Shared.Config.NewEnemies)
 local OptcAssets = require(ReplicatedStorage.Shared.Config.OptcAssets)
@@ -47,6 +48,7 @@ local function pictures(): { string }
 		HatchUiAssets,
 		OptcAssets,
 		Dex,
+		LoadingScreen,
 		enemies,
 	}
 	return Preload.idsIn(all, GearAssets.models)

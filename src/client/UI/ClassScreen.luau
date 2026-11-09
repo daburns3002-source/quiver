@@ -23,7 +23,7 @@ local LOAD_SECONDS = 1.8
 
 --[[ The game's loading screen over everything in `parent`: one of Codex's
      spotlights, a tip, and a bar filling over `LOAD_SECONDS`. ]]
-local function loadingCover(parent: Instance): Frame
+function ClassScreen.loadingCover(parent: Instance, seconds: number?): Frame
 	local cover = Instance.new("Frame")
 	cover.Name = "Loading"
 	cover.BackgroundColor3 = Color3.new(0, 0, 0)
@@ -96,9 +96,11 @@ local function loadingCover(parent: Instance): Frame
 	bar.Size = UDim2.fromScale(0, 1)
 	bar.ZIndex = 52
 	bar.Parent = trough
-	TweenService:Create(bar, TweenInfo.new(LOAD_SECONDS - 0.2, Enum.EasingStyle.Quad), {
-		Size = UDim2.fromScale(1, 1),
-	}):Play()
+	TweenService
+		:Create(bar, TweenInfo.new((seconds or LOAD_SECONDS) - 0.2, Enum.EasingStyle.Quad), {
+			Size = UDim2.fromScale(1, 1),
+		})
+		:Play()
 	return cover
 end
 
@@ -435,7 +437,7 @@ function ClassScreen.start()
 			if not gui.Parent then
 				return
 			end
-			local cover = loadingCover(dim)
+			local cover = ClassScreen.loadingCover(dim)
 			task.delay(LOAD_SECONDS, function()
 				if not gui.Parent then
 					return

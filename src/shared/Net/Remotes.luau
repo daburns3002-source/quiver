@@ -130,6 +130,12 @@ Remotes.RunRestart = "RunRestart"
      a run keeps nothing -- the stage is not counted beaten. ]]
 Remotes.RunLobby = "RunLobby"
 
+--[[ Into an area's first level (owner, 2026-11-08): the server parks the first
+     room and says `AreaLoading`; each client holds a loading screen until that
+     room and its NEW ENEMY! cards are fetched, and says `AreaLoaded`. ]]
+Remotes.AreaLoading = "AreaLoading"
+Remotes.AreaLoaded = "AreaLoaded"
+
 --[[
 	Client → server. MENU's LEAVE THE RUN? panel opened (true) or shut (false).
 	The world holds while it is open, for at most `CombatTuning.menuHold`

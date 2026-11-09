@@ -726,7 +726,8 @@ function Arena.prepare(
 	obstacles: { Balance.Obstacle },
 	arena: string?,
 	roster: { string }?,
-	park: Instance?
+	park: Instance?,
+	preloads: { Instance }?
 )
 	local current = prepared
 	if current and current.obstacles == obstacles and current.arena == arena then
@@ -736,6 +737,18 @@ function Arena.prepare(
 
 	local made = construct(obstacles, arena)
 	made.root:SetAttribute("Roster", table.concat(roster or {}, ","))
+	--[[ Unseen copies of the room's enemy meshes, so a client fetches them with
+	     the room; `Arena.build` drops them before the room is shown. ]]
+	if preloads and #preloads > 0 then
+		local folder = Instance.new("Folder")
+		folder.Name = "Preloads"
+		for _, item in preloads do
+			item.Parent = folder
+		end
+		folder.Parent = made.root
+	end
+	-- how much a client must have received before the room counts as arrived
+	made.root:SetAttribute("Parts", #made.root:GetDescendants())
 	local holder = park or ReplicatedStorage:FindFirstChild("NextArena")
 	if not holder then
 		local folder = Instance.new("Folder")
@@ -773,6 +786,10 @@ function Arena.build(parent: Instance, obstacles: { Balance.Obstacle }, arena: s
 	if ready and ready.obstacles == obstacles and ready.arena == arena then
 		prepared = nil
 		made = ready
+		local preloads = made.root:FindFirstChild("Preloads")
+		if preloads then
+			preloads:Destroy()
+		end
 	else
 		dropPrepared()
 		made = construct(obstacles, arena)

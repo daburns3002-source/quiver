@@ -63,9 +63,8 @@ local Reveal = {
 		     the fade out. ]]
 		hold = 1.7,
 		fade = 0.35,
-		--[[ The hatch sound's length (round 25 A with D's chord), and where its
-		     burst falls in it. ]]
-		jingle = 3.73,
+		--[[ Where the hatch sound's burst falls in it (round 25 A with D's
+		     chord). ]]
 		soundBurst = 1.3,
 	},
 	--[[ The chest opens to the egg's beats, the padlocks popping on the
@@ -73,7 +72,6 @@ local Reveal = {
 	     burst. ]]
 	crate = {
 		soundBurst = 1.1,
-		jingle = 3.75,
 		--[[ Coins thrown out of the open chest. ]]
 		coins = 14,
 		--[[ A 3D chest's opening (owner, 2026-11-08, after a video of seven
@@ -178,9 +176,12 @@ local Reveal = {
 		--[[ The pet slot's pet hops; the weapon slot flashes. ]]
 		settle = 0.5,
 	},
-	--[[ Rarities that, after the jingle, get `reveal_rare` (a Mythic gets
+	--[[ Rarities that get `reveal_rare` as the prize appears (a Mythic gets
 	     `mythic_reveal` in its place). ]]
 	rare = { Epic = true, Legendary = true, Mythic = true },
+	--[[ `mythic_reveal` opens on a quiet riser and hits this far in, so it
+	     starts early and the hit lands on the prize. ]]
+	mythicHit = 1.6,
 }
 
 return table.freeze(Reveal)

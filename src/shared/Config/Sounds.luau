@@ -213,7 +213,7 @@ local Sounds: { [string]: Sound } = {
 		minGap = 0.2,
 		region = { 14.215, 1.05 },
 	},
-	--[[ A Mythic pulled from a crate or egg, after the jingle, in place of
+	--[[ A Mythic pulled from a crate or egg, as it appears, in place of
 	     reveal_rare (owner, 2026-10-26: "super over the top"; round 26).
 	     `assets/audio/final/mythic_reveal_r26.mp3`, uploaded 2026-10-26. ]]
 	--[[ The class select screen (owner, 2026-10-27: "there should be sounds

@@ -47,6 +47,15 @@ def quaternion(degrees):
     )
 
 
+def about_face_pos(v):
+    """The spec's forward is +Z; a pet in the game faces -Z, so a half turn about Y."""
+    return (-v[0], v[1], -v[2])
+
+
+def about_face_rot(degrees):
+    return quaternion((-degrees[0], degrees[1], -degrees[2]))
+
+
 def number(value):
     """Trim a float the way the GLB generator's output reads."""
     text = f"{value:.5f}".rstrip("0").rstrip(".")
@@ -62,9 +71,9 @@ def track(keys, convert):
 def clip_luau(name, clip):
     tracks = []
     if "pos" in clip:
-        tracks.append(f"\t\t\t\t\tpos = {track(clip['pos'], lambda v: v)},")
+        tracks.append(f"\t\t\t\t\tpos = {track(clip['pos'], about_face_pos)},")
     if "rot" in clip:
-        tracks.append(f"\t\t\t\t\trot = {track(clip['rot'], quaternion)},")
+        tracks.append(f"\t\t\t\t\trot = {track(clip['rot'], about_face_rot)},")
     if "scale" in clip:
         tracks.append(f"\t\t\t\t\tscale = {track(clip['scale'], lambda v: v)},")
     if not tracks:

@@ -10,8 +10,8 @@
 
 	The server builds the models once (`Server/Dev/PetPreview`, from
 	`Config/PetModels`); this clones them into the Workspace, scales them to
-	pet size, tags them for `Fx/ModelAnimator`, and walks them after the
-	player in rows behind it.
+	pet size, tags them for `Fx/ModelAnimator`, and takes them after the
+	player in rows behind it, each in its own way (`Config/PetGaits`).
 
 	In a run the server's pet attacks (`Combat/PetCombat`) play here too. A
 	pet that dashes (the Glade Fox) runs the server's plan
@@ -31,6 +31,8 @@ local ModelClip = require(ReplicatedStorage.Shared.Util.ModelClip)
 local PetAttackFx = require(script.Parent.PetAttackFx)
 local PetCombat = require(ReplicatedStorage.Shared.Config.PetCombat)
 local PetDash = require(ReplicatedStorage.Shared.Util.PetDash)
+local PetGait = require(ReplicatedStorage.Shared.Util.PetGait)
+local PetGaits = require(ReplicatedStorage.Shared.Config.PetGaits)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 
 local PetAura = require(script.Parent.PetAura)
@@ -44,10 +46,9 @@ local PET_HEIGHT = 2.4
 local PER_ROW = 4
 local SPACING = 2.8
 local BEHIND = 4
---[[ How quickly a pet closes on its place (per second), and the speed
-     over which it counts as walking. ]]
-local FOLLOW_RATE = 6
-local WALKING = 1.5
+--[[ Seconds a pet stands between fidgets (`Config/PetGaits`). ]]
+local FIDGET_MIN = 7
+local FIDGET_MAX = 15
 --[[ A guarding pet (the Mossback Snail's Shell Guard, `Config/PetCombat`)
      flies this far in front of the player while its Attack plays, at this
      rate, so the shell is between them and the hit. ]]
@@ -77,7 +78,17 @@ type Pet = {
 	lift: number,
 	idle: string?,
 	move: string?,
-	last: Vector3,
+	--[[ How it moves (`Config/PetGaits`) and how far along it is, and how
+	     far above its pivot it turns. ]]
+	gait: PetGaits.Gait,
+	state: PetGait.State,
+	axis: number,
+	--[[ The clip it plays now and then while standing, the clip's length,
+	     and when one next starts and the one under way ends. ]]
+	fidget: string?,
+	fidgetLength: number,
+	fidgetAt: number,
+	fidgetUntil: number,
 	--[[ The length of its Attack clip (`docs/PETS-FOREST.md`, Attacks), when
 	     it has one, and the clock time an Attack under way ends. ]]
 	attack: number?,
@@ -92,6 +103,7 @@ type Pet = {
 }
 
 local pets: { Pet } = {}
+local rng = Random.new()
 local holder: Folder? = nil
 local stepping: RBXScriptConnection? = nil
 
@@ -218,6 +230,10 @@ local function spawnAll(source: Instance, only: { string }?)
 		local dataKey = if type(key) == "string" then key else model.Name
 		local idle, move, attack = clipNames(dataKey)
 		local data = clipData(dataKey)
+		local gait = PetGait.of(template.Name)
+		idle, move = gait.idleClip or idle, gait.moveClip or move
+		local fidget = gait.fidget
+		local fidgetClip = if fidget and data then data.clips[fidget] else nil
 		if idle then
 			model:SetAttribute("ModelClip", idle)
 		end
@@ -231,7 +247,13 @@ local function spawnAll(source: Instance, only: { string }?)
 			lift = lift,
 			idle = idle,
 			move = move,
-			last = model:GetPivot().Position,
+			gait = gait,
+			state = PetGait.new(model:GetPivot().Position, model:GetPivot().LookVector),
+			axis = if gait.about == "Middle" then scaled.Y / 2 - lift else -lift,
+			fidget = if fidgetClip then fidget else nil,
+			fidgetLength = if fidgetClip then fidgetClip.length else 0,
+			fidgetAt = os.clock() + rng:NextNumber(FIDGET_MIN, FIDGET_MAX),
+			fidgetUntil = 0,
 			attack = attack,
 			actingUntil = 0,
 			data = data,
@@ -304,7 +326,6 @@ local function step(dt: number)
 	end
 	local ignore: { Instance } = { holder, character :: Instance }
 	local base = root.CFrame
-	local alpha = 1 - math.exp(-FOLLOW_RATE * dt)
 	for i, pet in pets do
 		local row = (i - 1) // PER_ROW
 		local column = (i - 1) % PER_ROW - (PER_ROW - 1) / 2
@@ -312,37 +333,62 @@ local function step(dt: number)
 		local place = if guarding
 			then base * Vector3.new(0, 0, -GUARD_AHEAD)
 			else base * Vector3.new(column * SPACING, 0, BEHIND + row * SPACING)
-		local now = pet.model:GetPivot().Position
 		local goal = Vector3.new(place.X, ground(place, ignore) + pet.lift, place.Z)
 		local dash = pet.dash
 		if dash then
 			local posed = dashPose(pet, dash, goal)
 			if posed then
 				pet.model:PivotTo(posed)
-				pet.last = posed.Position
+				pet.state.at = posed.Position
 				continue
 			end
 			pet.dash = nil
 			pet.model:SetAttribute("ModelClipAt", nil)
 			pet.actingUntil = 0
 		end
-		local next = now:Lerp(goal, if guarding then 1 - math.exp(-GUARD_RATE * dt) else alpha)
-		local moved = Vector3.new(next.X - pet.last.X, 0, next.Z - pet.last.Z)
-		local speed = moved.Magnitude / math.max(dt, 1e-3)
-		-- a guard faces out, the way the player faces
-		local facing = if moved.Magnitude > 1e-3 and not guarding
-			then moved.Unit
-			else base.LookVector * Vector3.new(1, 0, 1)
-		if facing.Magnitude < 1e-3 then
-			facing = Vector3.new(0, 0, -1)
+		local state = pet.state
+		local before = state.at
+		local travelling = false
+		if guarding then
+			-- a guard runs to its post flat out, whatever its usual pace
+			state.at = before:Lerp(goal, 1 - math.exp(-GUARD_RATE * dt))
+			state.going = false
+		else
+			travelling = PetGait.advance(state, pet.gait.pace, goal, dt)
 		end
+		local clock = os.clock()
+		local acting = clock < pet.actingUntil
+		PetGait.blend(state, travelling, acting, dt)
+		local moved = Vector3.new(state.at.X - before.X, 0, state.at.Z - before.Z)
+		-- a guard faces out, the way the player faces; a pet between two steps
+		-- keeps the way it was going
+		local wanted = if moved.Magnitude > 1e-3 and not guarding
+			then moved.Unit
+			elseif travelling then state.facing
+			else base.LookVector * Vector3.new(1, 0, 1)
+		if wanted.Magnitude < 1e-3 then
+			wanted = Vector3.new(0, 0, -1)
+		end
+		local facing = PetGait.face(state, wanted.Unit, pet.gait.turn, dt)
 		-- Config/PetModels is already in Roblox's frame: the pet's front is its
 		-- pivot's look vector
-		pet.model:PivotTo(CFrame.lookAt(next, next + facing.Unit))
-		pet.last = next
-		local clip = if speed > WALKING then pet.move else pet.idle
+		pet.model:PivotTo(
+			CFrame.lookAt(state.at, state.at + facing)
+				* PetGait.pose(pet.gait, clock, state.stride, state.moving, state.free, pet.axis, 1)
+		)
+		local clip = if travelling then pet.move else pet.idle
+		if travelling then
+			pet.fidgetUntil = 0
+			pet.fidgetAt = clock + rng:NextNumber(FIDGET_MIN, FIDGET_MAX)
+		elseif pet.fidget and clock >= pet.fidgetAt and not acting then
+			pet.fidgetUntil = clock + pet.fidgetLength
+			pet.fidgetAt = pet.fidgetUntil + rng:NextNumber(FIDGET_MIN, FIDGET_MAX)
+		end
+		if not travelling and clock < pet.fidgetUntil then
+			clip = pet.fidget
+		end
 		-- an Attack plays through, walking or not
-		if os.clock() < pet.actingUntil then
+		if acting then
 			clip = nil
 		end
 		if clip and pet.model:GetAttribute("ModelClip") ~= clip then

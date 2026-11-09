@@ -306,6 +306,7 @@ local GearAssets = {
 		rays = "rbxassetid://123315883761316",
 		glow = "rbxassetid://72053512669132",
 		sparkle = "rbxassetid://140286080633760",
+		star = "rbxassetid://75276390003946",
 		ring = "rbxassetid://119651633511726",
 		confetti = "rbxassetid://86883153796302",
 		badge = "rbxassetid://108895879713593",

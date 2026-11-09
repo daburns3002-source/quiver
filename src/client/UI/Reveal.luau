@@ -94,6 +94,29 @@ type Bit = {
 	flip: boolean,
 }
 type Crack = { item: Frame, stage: number, a: Vector2, b: Vector2 }
+--[[ A big star shot out of a chest: it flies, slows, swells and pops. ]]
+type Star = {
+	item: Frame,
+	star: ImageLabel,
+	halo: ImageLabel,
+	at: number,
+	life: number,
+	vx: number,
+	vy: number,
+	size: number,
+	spin: number,
+}
+--[[ A speck of the dust that keeps rising off an open chest. `at` is after
+     the burst, and it loops every `life`. ]]
+type Dust = {
+	item: ImageLabel,
+	at: number,
+	life: number,
+	x: number,
+	drift: number,
+	size: number,
+	phase: number,
+}
 --[[ One egg or chest of a reveal and everything around it. ]]
 type Part = {
 	prize: Prize,
@@ -115,6 +138,8 @@ type Part = {
 	cracks: { Crack },
 	beams: { Frame },
 	bits: { Bit },
+	stars: { Star },
+	dust: { Dust },
 	ring: ImageLabel,
 	ring2: ImageLabel,
 	rays: ImageLabel,
@@ -472,6 +497,9 @@ local function play(look: Look, prizes: { Prize }, chanceOf: (Prize) -> number, 
 	local template = if model then templates[model.mesh] else nil
 	-- a picture with no cut stages gets drawn cracks; a chest always leaks
 	local drawCracks = chest or look.crack1 == "" or template ~= nil
+	-- a chest with its 3D model plays the seven steps; without it, the frames
+	local juicy = chest and template ~= nil
+	local chestBeats = Beats.crate
 	local parts: { Part } = {}
 	for index, prize in prizes do
 		local root = Instance.new("Frame")
@@ -505,6 +533,8 @@ local function play(look: Look, prizes: { Prize }, chanceOf: (Prize) -> number, 
 			cracks = {},
 			beams = {},
 			bits = {},
+			stars = {},
+			dust = {},
 			sparkles = {},
 			icon = centred(Kit.image(root, prize.icon), 7),
 			name = centred(Kit.label(root, string.upper(prize.name)), 9),
@@ -549,7 +579,7 @@ local function play(look: Look, prizes: { Prize }, chanceOf: (Prize) -> number, 
 				part.petSize = petModel:GetExtentsSize().Y / 2.4
 			end
 		end
-		if drawCracks then
+		if drawCracks and not juicy then
 			local pattern: { { { number } } } = if chest then CHEST_CRACKS else EGG_CRACKS
 			for stage, lines in ipairs(pattern) do
 				for _, l in lines do
@@ -608,7 +638,58 @@ local function play(look: Look, prizes: { Prize }, chanceOf: (Prize) -> number, 
 			item.Visible = false
 			table.insert(part.bits, b)
 		end
-		if chest then
+		if juicy then
+			local count = if tier.glow then chestBeats.rareStars else chestBeats.stars
+			if not single then
+				count = math.ceil(count * 0.6)
+			end
+			for n = 1, count do
+				local holder = centred(Instance.new("Frame"), 6)
+				holder.BackgroundTransparency = 1
+				holder.Visible = false
+				holder.Parent = root
+				local halo = Kit.image(holder, GearAssets.fx.glow)
+				halo.AnchorPoint = Vector2.new(0.5, 0.5)
+				halo.Position, halo.Size = UDim2.fromScale(0.5, 0.5), UDim2.fromScale(2.6, 2.6)
+				halo.ImageColor3 = Kit.gold
+				halo.ZIndex = 1
+				local star = Kit.image(holder, GearAssets.fx.star)
+				star.AnchorPoint = Vector2.new(0.5, 0.5)
+				star.Position, star.Size = UDim2.fromScale(0.5, 0.5), UDim2.fromScale(1, 1)
+				star.ImageColor3 = Color3.fromRGB(255, 240, 175)
+					:Lerp(colour, if tier.glow then 0.4 else 0)
+				star.ZIndex = 2
+				-- a fan upward, out of the top of the chest
+				local across = (n - 0.5) / count + random:NextNumber(-0.05, 0.05)
+				local angle = math.rad(-90 + (across - 0.5) * 110)
+				local speed = random:NextNumber(1050, 1700) * scale
+				table.insert(part.stars, {
+					item = holder,
+					star = star,
+					halo = halo,
+					at = burst + random:NextNumber(0.03, 0.24),
+					life = random:NextNumber(0.75, 1.1),
+					vx = math.cos(angle) * speed,
+					vy = math.sin(angle) * speed,
+					size = random:NextNumber(70, 130) * scale,
+					spin = random:NextNumber(-220, 220),
+				})
+			end
+			for _ = 1, if single then chestBeats.dust else math.ceil(chestBeats.dust * 0.6) do
+				local speck = centred(Kit.image(root, GearAssets.fx.sparkle), 8)
+				speck.ImageColor3 = Color3.fromRGB(255, 236, 170)
+				speck.Visible = false
+				table.insert(part.dust, {
+					item = speck,
+					at = random:NextNumber(0.2, 1.1),
+					life = random:NextNumber(1.1, 1.9),
+					x = random:NextNumber(-0.36, 0.36) * size,
+					drift = random:NextNumber(10, 34),
+					size = random:NextNumber(14, 30) * scale,
+					phase = random:NextNumber(0, math.pi * 2),
+				})
+			end
+		elseif chest then
 			-- the two padlocks pop off on the second crack
 			for side = -1, 1, 2 do
 				local lock = block(root, look.colours[2], 6)
@@ -670,17 +751,20 @@ local function play(look: Look, prizes: { Prize }, chanceOf: (Prize) -> number, 
 			{ colour, Kit.gold, Color3.new(1, 1, 1), colour:Lerp(Color3.new(1, 1, 1), 0.5) }
 		local count = math.ceil(Beats.confetti / #prizes)
 		for n = 1, count do
-			local bit = block(root, palette[(n % #palette) + 1], 12)
-			throw(bit, false, burst, {
-				vx = random:NextNumber(-1500, 1500),
-				vy = random:NextNumber(-1700, -500),
-				g = random:NextNumber(150, 260),
-				drag = 3,
-				w = 18,
-				h = 28,
-				life = 2.4,
-				flip = true,
-			})
+			-- a 3D chest's burst is its stars
+			if not juicy then
+				local bit = block(root, palette[(n % #palette) + 1], 12)
+				throw(bit, false, burst, {
+					vx = random:NextNumber(-1500, 1500),
+					vy = random:NextNumber(-1700, -500),
+					g = random:NextNumber(150, 260),
+					drag = 3,
+					w = 18,
+					h = 28,
+					life = 2.4,
+					flip = true,
+				})
+			end
 			if tier.glow then
 				local rain = block(root, palette[(n % #palette) + 1], 12)
 				throw(rain, false, line.banner + random:NextNumber(0, 0.8), {
@@ -781,20 +865,40 @@ local function play(look: Look, prizes: { Prize }, chanceOf: (Prize) -> number, 
 			local rot = math.sin(t * (9 + 24 * w)) * w * (12 + 6 * top.shake)
 			px += math.sin(t * 57) * w * 6 * top.shake
 			if chest then
-				rot *= 0.4
+				rot *= if juicy then 0.7 else 0.4
 				py -= math.abs(math.sin(t * 38)) * w * 16
 			end
 			for n, crack in line.cracks do
 				local since = t - crack
-				if since >= 0 and since < 0.4 then
+				if not juicy and since >= 0 and since < 0.4 then
 					py -= math.sin(clamp01(since / 0.22) * math.pi) * (24 + n * 10)
 					local jolt = 0.12 * decay(since, 10, 30)
 					sx, sy = sx + jolt, sy - jolt
 				end
 			end
 			-- the breath in before it bursts
-			local inhale = clamp01((t - (b - 0.16)) / 0.16)
+			local inhale = if juicy then 0 else clamp01((t - (b - 0.16)) / 0.16)
 			sx, sy = sx + inhale * 0.16, sy - inhale * 0.14
+			--[[ A 3D chest stops shaking, squashes down, then springs up tall
+			     and comes back down on the burst. ]]
+			if juicy and t < b then
+				local stretchAt = b - chestBeats.stretch
+				local squashed = clamp01((t - (stretchAt - chestBeats.squash)) / chestBeats.squash)
+				squashed = 1 - (1 - squashed) ^ 2
+				local risen = clamp01((t - stretchAt) / chestBeats.stretch)
+				rot *= 1 - squashed
+				px = x + (px - x) * (1 - squashed)
+				sx, sy = sx + 0.26 * squashed, sy - 0.36 * squashed
+				if risen > 0 then
+					local tall = 1 - (1 - math.min(risen / 0.5, 1)) ^ 2
+					sx, sy = 1.26 + (0.8 - 1.26) * tall, 0.64 + (1.38 - 0.64) * tall
+					local height = chestBeats.height * size / 480
+					local up = if risen < 0.65
+						then 1 - (1 - risen / 0.65) ^ 2
+						else 1 - ((risen - 0.65) / 0.35) ^ 2
+					py -= up * height
+				end
+			end
 			-- the burst: an egg is gone, a chest's lid flies open
 			local burst = t >= b
 			local since = t - b
@@ -802,13 +906,19 @@ local function play(look: Look, prizes: { Prize }, chanceOf: (Prize) -> number, 
 			if chest and burst then
 				open = clamp01(since / 0.12)
 				-- a one-piece chest has no lid to fling: the whole chest
-				-- bursts wide, hops and lands before it sinks away
+				-- bursts wide, and (no 3D model) hops, before it sinks away
 				local pop = (if template then 0.3 else 0.18) * decay(since, 8, 24)
 				sx, sy = 1 + pop, 1 - pop
 				rot = 0
-				py = y
-					- math.sin(clamp01(since / 0.3) * math.pi) * 90
-					+ clamp01((since - 0.35) / 0.5) * 140
+				py = if juicy
+					then y + clamp01((since - 0.5) / 0.5) * 100
+					else y - math.sin(clamp01(since / 0.3) * math.pi) * 90 + clamp01(
+						(since - 0.35) / 0.5
+					) * 140
+			end
+			-- its squash is from the ground up, not the middle
+			if juicy and u >= 0 then
+				py += size * MODEL_FILL * 0.5 * (1 - sy)
 			end
 			local shellAlpha = if chest
 				then clamp01((t - (line.banner - 0.1)) / 0.35)
@@ -889,7 +999,7 @@ local function play(look: Look, prizes: { Prize }, chanceOf: (Prize) -> number, 
 			part.leak.ImageColor3 = light
 			put(part.leak, px, py, size * (1 + 0.7 * w), size * (1 + 0.7 * w))
 			part.leak.ImageTransparency = 1 - 0.8 * w
-			part.leakRays.Visible = not burst and leaking > 0
+			part.leakRays.Visible = not juicy and not burst and leaking > 0
 			part.leakRays.ImageColor3 = light
 			part.leakRays.Rotation = t * 80
 			put(part.leakRays, px, py, size * (1.1 + leaking), size * (1.1 + leaking))
@@ -902,7 +1012,9 @@ local function play(look: Look, prizes: { Prize }, chanceOf: (Prize) -> number, 
 			local strength = part.tier.aura
 			local arrived = clamp01(u / 0.3)
 			local pulse = 0.85 + 0.15 * math.sin(t * (6 + 10 * w))
-			local flare = if burst then 1 - clamp01(since / (if chest then 0.9 else 0.35)) else 0
+			local flare = if burst
+				then 1 - clamp01(since / (if juicy then 1.3 elseif chest then 0.9 else 0.35))
+				else 0
 			local halo = (0.3 + 0.7 * w) * strength * arrived * pulse
 			part.aura.Visible = (halo > 0.01 and not burst) or flare > 0.01
 			part.aura.ImageColor3 = light
@@ -917,8 +1029,9 @@ local function play(look: Look, prizes: { Prize }, chanceOf: (Prize) -> number, 
 			local innerW = size * (if chest then 0.95 + 0.4 * w else 0.6 + 0.25 * w) * (1 + flare)
 			local innerH = size * (if chest then 0.32 + 0.3 * w else 0.7 + 0.25 * w) * (1 + flare)
 			put(part.inner, px, seam, innerW, innerH)
+			local inside = if juicy then math.max(strength, 0.85) else strength
 			part.inner.ImageTransparency = 1
-				- math.min(0.9, if burst then flare * strength else within)
+				- math.min(0.9, if burst then flare * inside else within)
 			-- the chest's beams out of its open lid
 			for n, beam in part.beams do
 				local up = popIn(since / 0.3) * (1 - clamp01((t - line.banner) / 0.6))
@@ -928,7 +1041,7 @@ local function play(look: Look, prizes: { Prize }, chanceOf: (Prize) -> number, 
 					px,
 					py - size * 0.12,
 					(34 + (n % 2) * 26) * size / 480,
-					820 * up * size / 480
+					(if juicy then 520 else 820) * up * size / 480
 				)
 				beam.Rotation = (n - 3) * 18 + math.sin(t * 2 + n) * 4
 			end
@@ -984,6 +1097,53 @@ local function play(look: Look, prizes: { Prize }, chanceOf: (Prize) -> number, 
 			part.ring.Visible = burst and spread < 1
 			put(part.ring, x, y, size * (0.5 + spread * 2.2), size * (0.5 + spread * 2.2))
 			part.ring.ImageTransparency = spread
+			-- a chest's ring of light rushes out along the ground
+			if juicy then
+				local across = size * (0.6 + spread * 3)
+				put(part.ring, x, y + size * 0.3, across, across * 0.3)
+				part.ring.ImageColor3 = light:Lerp(Color3.new(1, 1, 1), 0.4)
+				part.ring.ImageTransparency = spread ^ 1.5
+			end
+			for _, s in part.stars do
+				local age = t - s.at
+				local k = age / s.life
+				local live = k >= 0 and k < 1
+				s.item.Visible = live
+				if live then
+					local slowed = (1 - math.exp(-age * 3.2)) / 3.2
+					local bursting = clamp01((k - 0.78) / 0.22)
+					local across = s.size * popIn(k / 0.18) * (1 + 0.7 * bursting)
+					put(
+						s.item,
+						x + s.vx * slowed,
+						y - size * 0.12 + s.vy * slowed + 260 * age * age,
+						across,
+						across
+					)
+					s.item.Rotation = s.spin * age
+					s.star.ImageTransparency = bursting
+					s.halo.ImageTransparency = 0.45 + 0.55 * bursting
+				end
+			end
+			for _, d in part.dust do
+				local age = since - d.at
+				local live = age >= 0 and gone < 1
+				d.item.Visible = live
+				if live then
+					local k = (age % d.life) / d.life
+					local across = d.size
+						* math.sin(k * math.pi)
+						* (0.6 + 0.4 * math.sin(t * 9 + d.phase))
+						* (1 - gone)
+					put(
+						d.item,
+						x + d.x + math.sin(t * 1.6 + d.phase) * d.drift,
+						y - size * 0.05 - k * size * 0.95,
+						across,
+						across
+					)
+				end
+			end
 			local second = clamp01((t - line.banner) / 0.5)
 			part.ring2.Visible = part.tier.glow and t >= line.banner and second < 1
 			put(part.ring2, x, y, size * (0.6 + second * 2.6), size * (0.6 + second * 2.6))
@@ -1055,6 +1215,10 @@ local function play(look: Look, prizes: { Prize }, chanceOf: (Prize) -> number, 
 		local white = 0
 		for _, b in line.bursts do
 			local peak = if b == line.burst then (if top.glow then 1 else 0.85) else 0.5
+			-- so the slam itself can be seen
+			if juicy and not top.glow then
+				peak *= 0.4
+			end
 			local k = if t < b then clamp01(1 - (b - t) / 0.07) else clamp01(1 - (t - b) / 0.4)
 			white = math.max(white, k * peak)
 		end

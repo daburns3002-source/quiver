@@ -7,18 +7,19 @@
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local Sandbox = require(ReplicatedStorage.Shared.Config.Sandbox)
 local TestRunner = require(script.Parent.TestRunner)
 local WeaponFx = require(ReplicatedStorage.Shared.Config.WeaponFx)
 local WeaponStats = require(ReplicatedStorage.Shared.Config.WeaponStats)
 local Weapons = require(ReplicatedStorage.Shared.Config.Weapons) :: any
 
---[[ The weapons this covers: each of the three classes' own and its skins,
-     a pair of bows being drawn as the bow it pairs. ]]
-local function ofClass(base: string): { string }
+--[[ The weapons a class holds (`Config/Sandbox` lists every one), a pair of
+     bows being drawn as the bow it pairs. ]]
+local function ofClass(class: string): { string }
 	local out = {}
-	for key, weapon in Weapons do
-		if not weapon.dualOf and (key == base or weapon.skinOf == base) then
-			table.insert(out, key)
+	for _, entry in Sandbox.weapons do
+		if entry.class == class and not Weapons[entry.weapon].dualOf then
+			table.insert(out, entry.weapon)
 		end
 	end
 	table.sort(out)
@@ -49,11 +50,13 @@ local function glows(key: string): boolean
 end
 
 return function(t: TestRunner.Helper)
-	for _, base in { "TwigBow", "BranchStaff" } do
-		t.test(`every {base} shot is its own`, function()
+	for _, class in { "Ranger", "Arcanist" } do
+		t.test(`every {class} shot is its own`, function()
 			local shapes: { [string]: string } = {}
 			local colours: { [string]: string } = {}
-			for _, key in ofClass(base) do
+			local weapons = ofClass(class)
+			t.isTrue(#weapons >= 15, `only {#weapons} {class} weapons`)
+			for _, key in weapons do
 				local look = WeaponFx.shots[key]
 				t.notNil(look, `{key} has no shot`)
 				local mark = shape(key, look)
@@ -65,8 +68,8 @@ return function(t: TestRunner.Helper)
 			end
 		end)
 
-		t.test(`every Legendary and Mythic {base} shot glows`, function()
-			for _, key in ofClass(base) do
+		t.test(`every Legendary and Mythic {class} shot glows`, function()
+			for _, key in ofClass(class) do
 				if glows(key) then
 					t.notNil(Weapons[key].shotGlow, `{key}'s shots do not glow`)
 				end
@@ -77,7 +80,9 @@ return function(t: TestRunner.Helper)
 	t.test("every blade cuts its own cleave", function()
 		local colours: { [string]: string } = {}
 		local cuts: { [string]: string } = {}
-		for _, key in ofClass("TimberBlade") do
+		local blades = ofClass("Warden")
+		t.isTrue(#blades >= 16, `only {#blades} blades`)
+		for _, key in blades do
 			local cleave = WeaponFx.cleaves[key]
 			t.notNil(cleave, `{key} has no cleave`)
 			local hue = colourKey(cleave.colour[1])
@@ -91,7 +96,7 @@ return function(t: TestRunner.Helper)
 	end)
 
 	t.test("every Legendary and Mythic blade's cleave glows", function()
-		for _, key in ofClass("TimberBlade") do
+		for _, key in ofClass("Warden") do
 			if glows(key) then
 				t.notNil(Weapons[key].trailGlow, `{key}'s cleave does not glow`)
 			end

@@ -1630,3 +1630,8 @@ A 3D chest now shakes faster and faster, squashes, springs up tall, slams, light
 along the ground, shoots stars that pop, and leaves rising dust (`Config/Reveal.crate`, `UI/Reveal`).
 Padlock blocks, splinters, coins, cracks and burst confetti are gone from it; a chest whose model has
 not loaded still plays the old frames. The chests are one mesh, so no lid swings open.
+
+## Lobby screens stuttered or showed untextured models (2026-11-08)
+
+Shop, gear, hatchery and dex pictures and the pet models were only fetched when first drawn.
+`Fx/LobbyPreload` fetches them as soon as the player is in the lobby.

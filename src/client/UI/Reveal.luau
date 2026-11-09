@@ -312,6 +312,9 @@ local MODEL_FACING = math.pi
      replaced a slow full turn, which swung the padlock away as the chest opened. ]]
 local MODEL_SWAY = math.rad(14)
 local MODEL_SWAY_SPEED = 1.1
+--[[ An egg's spin while it wobbles and cracks, in radians a second (owner,
+     2026-11-08: "make sure the egg spins"). ]]
+local EGG_SPIN = 1.4
 --[[ The same rock for a pet standing out of its egg, a little less. ]]
 local PET_SWAY = math.rad(10)
 local PET_SWAY_SPEED = 1.3
@@ -958,15 +961,15 @@ local function play(look: Look, prizes: { Prize }, chanceOf: (Prize) -> number, 
 				made.Size = native * Vector3.new(sx, sy, sx)
 				local tips = model ~= nil and model.tips
 				-- turned to the camera first, so the wobble is still a wobble on screen
+				-- an egg keeps turning through its hatch; a chest only rocks
+				local turn = if chest
+					then math.sin(t * MODEL_SWAY_SPEED) * MODEL_SWAY
+					else t * EGG_SPIN
 				made.CFrame = CFrame.Angles(
 					if tips then -open * math.rad(38) else 0,
 					0,
 					math.rad(-rot)
-				) * CFrame.Angles(
-					0,
-					MODEL_FACING + math.sin(t * MODEL_SWAY_SPEED) * MODEL_SWAY,
-					0
-				)
+				) * CFrame.Angles(0, MODEL_FACING + turn, 0)
 			end
 			-- the cracks, glowing, turning with the shell
 			-- the light inside: the area's, warming to the rarity's in a big pull

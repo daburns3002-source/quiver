@@ -813,7 +813,7 @@ Weapons, skins, pets, anything with a rarity (owner, 2026-10-24: "anything that 
 or a mythic NEEDS a glow to it"). Since 2026-11-06 a Mythic no longer has to be rainbow; existing rainbow
 Mythics stay. Weapons: their glow parts are Neon with a light (`Combat/HeldWeapon`), a rainbow
 Mythic's turned round the hue wheel (`Fx/WeaponGlow`); `skins_to_luau.py` gives every Epic and up a glow. Pets: `Config/PetAuras`
-lists every Legendary and Mythic pet.
+lists every Legendary and Mythic pet. Every bow's and staff's shot and every blade's cleave is its own (`Config/WeaponFx`, pinned by `tests/WeaponFx.spec`); a new weapon needs an entry there.
 
 **13. Arenas and models match their reference 1:1 in the game.**
 Colours, brightness, pieces and layout, as seen in Studio, against the reference sheet they were

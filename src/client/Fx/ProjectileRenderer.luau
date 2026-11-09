@@ -136,6 +136,8 @@ local folder: Folder? = nil
 local pools: { [Pool]: { BasePart } } = { Player = {}, PlayerOrb = {} }
 --[[ Each pooled part's spines, kept with it. ]]
 local armsOf: { [BasePart]: { ArmPart } } = setmetatable({} :: any, { __mode = "k" })
+--[[ The weapon look each player part was built as. ]]
+local builtAs: { [BasePart]: Look } = setmetatable({} :: any, { __mode = "k" })
 local live: { Visual } = {}
 --[[ Arrows queued behind their volley (Double Shot), launched when due. ]]
 type Pending = {
@@ -211,6 +213,9 @@ local function createPart(pool: Pool): BasePart
 	end
 	if shown and not look then
 		partSize *= shown.scale
+	end
+	if shown and not look then
+		builtAs[part] = shown
 	end
 	part.Name = "Projectile"
 	part.Size = partSize
@@ -411,6 +416,13 @@ local function acquire(pool: Pool, colour: Color3): BasePart
 end
 
 local function release(part: BasePart, pool: Pool)
+	--[[ Still in flight when the weapon changed: the pool was emptied without
+	     it, and it is the old weapon's shape. ]]
+	local built = builtAs[part]
+	if built and built ~= weaponLook then
+		part:Destroy()
+		return
+	end
 	part.Parent = nil
 	table.insert(pools[pool], part)
 end

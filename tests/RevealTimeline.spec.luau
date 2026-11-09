@@ -73,6 +73,15 @@ return function(t: TestRunner.Helper)
 		t.isNil(RevealTimeline.build("egg", { "Rare" }).rareSound)
 	end)
 
+	t.test("the rarity sound lands as the rarest prize appears", function()
+		local epic = RevealTimeline.build("crate", { "Epic" })
+		t.near(epic.rareAt :: number, epic.burst, 1e-6)
+		local third = RevealTimeline.build("egg", { "Common", "Rare", "Legendary" })
+		t.near(third.rareAt :: number, third.bursts[3], 1e-6)
+		local mythic = RevealTimeline.build("crate", { "Mythic" })
+		t.near((mythic.rareAt :: number) + Reveal.mythicHit, mythic.burst, 1e-6)
+	end)
+
 	t.test("a tap only moves the clock forward, and ends it", function()
 		local line = RevealTimeline.build("egg", { "Epic" })
 		local at = 0

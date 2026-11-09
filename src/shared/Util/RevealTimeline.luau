@@ -4,7 +4,7 @@
 	`UI/Reveal` draws from it and `tests/RevealTimeline.spec` pins it: the
 	best rarity in the press picks the build-up, every prize bursts in turn,
 	the opening sound starts so its burst lands on the first one, and a rare
-	pull holds until its reveal sound has played.
+	pull's reveal sound lands as its rarest prize appears.
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -68,13 +68,14 @@ function RevealTimeline.build(kind: Kind, rarities: { string }): Timeline
 		cracks[index] = burst - before - (if index == 1 then tier.build * 0.6 else 0)
 	end
 	local soundBurst = if kind == "crate" then Reveal.crate.soundBurst else beats.soundBurst
-	local jingle = if kind == "crate" then Reveal.crate.jingle else beats.jingle
 	local soundAt = burst - soundBurst
-	local rare = false
-	for _, name in rarities do
-		rare = rare or Reveal.rare[name] == true
+	-- the rarest prize's sound lands as that prize appears (owner,
+	-- 2026-11-09: "right when the item gets revealed")
+	local rareAt = nil
+	if Reveal.rare[top] then
+		local at = table.find(rarities, top) or 1
+		rareAt = bursts[at] - (if top == "Mythic" then Reveal.mythicHit else 0)
 	end
-	local rareAt = if rare then soundAt + jingle else nil
 	local banner = last + beats.banner
 	local leave = banner + beats.hold + tier.hold
 	if rareAt then
@@ -94,7 +95,7 @@ function RevealTimeline.build(kind: Kind, rarities: { string }): Timeline
 		done = leave + beats.fade,
 		sound = if kind == "crate" then "crate_open" else "egg_hatch",
 		soundAt = soundAt,
-		rareSound = if rare
+		rareSound = if rareAt
 			then (if top == "Mythic" then "mythic_reveal" else "reveal_rare")
 			else nil,
 		rareAt = rareAt,

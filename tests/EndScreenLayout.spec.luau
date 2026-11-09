@@ -44,7 +44,9 @@ return function(t: TestRunner.Helper)
 				inside(panel, { x = 0, y = 0, w = canvas.X, h = canvas.Y }),
 				"panel off the sheet"
 			)
-			for _, key in { "ribbon", "sub", "hero", "tab", "stats", "rewards", "button" } do
+			for _, key in
+				{ "ribbon", "sub", "hero", "tab", "stats", "rewards", "button", "lobbyButton" }
+			do
 				t.isTrue(inside(layout[key], panel), `{key} off the panel`)
 			end
 		end)
@@ -68,6 +70,10 @@ return function(t: TestRunner.Helper)
 				end
 			end
 			t.isTrue(layout.button.y >= stats.y + stats.h - 30, "the button overlaps the stats")
+			t.isTrue(
+				layout.lobbyButton.y >= layout.button.y + layout.button.h,
+				"BACK TO LOBBY is not under the main button"
+			)
 		end)
 
 		if layout.bar then

@@ -1591,3 +1591,13 @@ The tint is pure black, so anything pale was a transparent hole in the art showi
 colour. Pets and enemies are filled solid (the Lanternfin's lure loop stays open); a weapon keeps a
 gap of 2% of its area or more, such as the space inside a bow. A picture cut or generated later can
 bring holes back: check it as a black shape before uploading.
+
+
+## Chest opens facing backwards (2026-11-08)
+
+Owner: "the chest faces backwards". All 12 egg and chest models have their front on -Z after import,
+and `UI/Reveal`'s camera sits on +Z, so at yaw 0 it saw the backs (6 chests with no lock showing;
+turned 180 degrees, all 6 show their lock). `MODEL_FACING` turns them, applied before the wobble so
+the wobble's direction on screen does not flip. A slow full spin (0.6 rad/s) also swung the front
+away as the chest opened, so it is now a 14 degree rock. A Tripo model imported later may face
+another way: look at it in a viewport first.

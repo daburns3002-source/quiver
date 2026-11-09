@@ -40,7 +40,18 @@ local ShopAssets = require(ReplicatedStorage.Shared.Config.ShopAssets)
 local ShopRules = require(ReplicatedStorage.Shared.Util.ShopRules)
 local SoundFx = require(script.Parent.Parent.Fx.SoundFx)
 local Reveal = {}
-export type Prize = { icon: string, name: string, rarity: string, note: string, fresh: boolean }
+--[[ `key` is a pet's `Config/PetModels` name: the prize stands up as the same
+     3D model the egg screen shows (`Kit.petModel`), and `icon` is only used if
+     that model is not built. A weapon has none: the chest screen shows it as
+     2D art, so its reveal does too (CLAUDE.md rule 14). ]]
+export type Prize = {
+	icon: string,
+	name: string,
+	rarity: string,
+	note: string,
+	fresh: boolean,
+	key: string?,
+}
 --[[ What is opened. The pictures are "" where it has none: `whole` alone
      is a single picture (cracks are drawn over it), `crack1`/`crack2` an
      egg's cut stages, `bare`/`open` a chest's padlock-less and open
@@ -108,6 +119,9 @@ type Part = {
 	glow: ImageLabel,
 	sparkles: { ImageLabel },
 	icon: ImageLabel,
+	petView: ViewportFrame?,
+	petModel: Model?,
+	petBase: CFrame?,
 	name: TextLabel,
 	banner: ImageLabel,
 	rarity: TextLabel,
@@ -260,6 +274,17 @@ end
      none of which may clip the frame's edge. ]]
 local MODEL_FILL = 0.68
 local MODEL_FOV = 40
+--[[ Every egg and chest model comes out of its import with its front on -Z,
+     away from the viewport's camera (measured on all twelve, 2026-11-08), so
+     each is turned to face it. ]]
+local MODEL_FACING = math.pi
+--[[ The rock either side of facing the camera, in radians, and its speed. It
+     replaced a slow full turn, which swung the padlock away as the chest opened. ]]
+local MODEL_SWAY = math.rad(14)
+local MODEL_SWAY_SPEED = 1.1
+--[[ The same rock for a pet standing out of its egg, a little less. ]]
+local PET_SWAY = math.rad(10)
+local PET_SWAY_SPEED = 1.3
 
 --[[ The reveals' models, loaded once and cloned per reveal.
 
@@ -492,6 +517,16 @@ local function play(look: Look, prizes: { Prize }, chanceOf: (Prize) -> number, 
 		if template then
 			local view, made = shellModel(root, template)
 			part.view, part.block, part.native = view, made, made.Size
+		end
+		local petView = if prize.key then Kit.petModel(root, prize.key, false) else nil
+		if petView then
+			petView.AnchorPoint = Vector2.new(0.5, 0.5)
+			petView.ZIndex = 7
+			petView.Visible = false
+			local world = petView:FindFirstChildOfClass("WorldModel")
+			local petModel = if world then world:FindFirstChildOfClass("Model") else nil
+			part.petView, part.petModel = petView, petModel
+			part.petBase = if petModel then petModel:GetPivot() else nil
 		end
 		if drawCracks then
 			local pattern: { { { number } } } = if chest then CHEST_CRACKS else EGG_CRACKS
@@ -791,8 +826,16 @@ local function play(look: Look, prizes: { Prize }, chanceOf: (Prize) -> number, 
 				put(view, px, py, size, size)
 				made.Size = native * Vector3.new(sx, sy, sx)
 				local tips = model ~= nil and model.tips
-				made.CFrame =
-					CFrame.Angles(if tips then -open * math.rad(38) else 0, t * 0.6, math.rad(-rot))
+				-- turned to the camera first, so the wobble is still a wobble on screen
+				made.CFrame = CFrame.Angles(
+					if tips then -open * math.rad(38) else 0,
+					0,
+					math.rad(-rot)
+				) * CFrame.Angles(
+					0,
+					MODEL_FACING + math.sin(t * MODEL_SWAY_SPEED) * MODEL_SWAY,
+					0
+				)
 			end
 			-- the cracks, glowing, turning with the shell
 			-- the light inside: the area's, warming to the rarity's in a big pull
@@ -887,8 +930,19 @@ local function play(look: Look, prizes: { Prize }, chanceOf: (Prize) -> number, 
 			end
 			local grown = popIn(since / 0.25) * (1 - gone)
 			local petSize = size * 0.9 * grown
-			part.icon.Visible = pet
+			local petView, petModel, petBase = part.petView, part.petModel, part.petBase
+			part.icon.Visible = pet and petView == nil
 			put(part.icon, x, petY, petSize * psx, petSize * psy)
+			if petView then
+				petView.Visible = pet
+				-- a viewport draws to its height, so its squash is one number
+				put(petView, x, petY, petSize, petSize * psy)
+				if pet and petModel and petBase then
+					petModel:PivotTo(
+						CFrame.Angles(0, math.sin(t * PET_SWAY_SPEED) * PET_SWAY, 0) * petBase
+					)
+				end
+			end
 			-- its colour bursts behind it
 			local spread = clamp01(since / 0.45)
 			part.ring.Visible = burst and spread < 1
@@ -1116,6 +1170,7 @@ function Reveal.eggs(
 		if info then
 			table.insert(prizes, {
 				icon = GearAssets.pets[result.pet] or "",
+				key = result.pet,
 				name = info.name,
 				rarity = info.rarity,
 				fresh = result.new,

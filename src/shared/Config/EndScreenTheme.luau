@@ -56,6 +56,8 @@ local EndScreenTheme = {
 			rewardStroke = 5,
 			button = 78,
 			buttonStroke = 6,
+			lobbyButton = 50,
+			lobbyButtonStroke = 5,
 		},
 		--[[ The title's letters: white over a gold lower half. ]]
 		title = rgb(255, 255, 255),
@@ -133,6 +135,17 @@ local EndScreenTheme = {
 			bottom = rgb(19, 130, 45),
 			bottomH = 46,
 		} :: Block,
+		--[[ BACK TO LOBBY, under the main button: the same block, red so it
+		     reads as leaving and never as the way on. ]]
+		lobbyButton = {
+			ink = INK,
+			inkW = 8,
+			fill = rgb(214, 62, 56),
+			top = rgb(250, 128, 104),
+			topH = 11,
+			bottom = rgb(132, 30, 34),
+			bottomH = 22,
+		} :: Block,
 		--[[ The button's segmented foot: its band and the lines across it. ]]
 		buttonFoot = rgb(10, 114, 35),
 		buttonFootLine = rgb(4, 56, 22),
@@ -169,6 +182,8 @@ local EndScreenTheme = {
 			rewardStroke = 5,
 			button = 78,
 			buttonStroke = 6,
+			lobbyButton = 50,
+			lobbyButtonStroke = 5,
 		},
 		title = rgb(232, 236, 246),
 		titleLow = rgb(188, 198, 220),
@@ -252,6 +267,17 @@ local EndScreenTheme = {
 			topH = 12,
 			bottom = rgb(194, 97, 6),
 			bottomH = 24,
+		} :: Block,
+		--[[ BACK TO LOBBY, under the main button: the same block, red so it
+		     reads as leaving and never as the way on. ]]
+		lobbyButton = {
+			ink = INK,
+			inkW = 8,
+			fill = rgb(214, 62, 56),
+			top = rgb(250, 128, 104),
+			topH = 11,
+			bottom = rgb(132, 30, 34),
+			bottomH = 22,
 		} :: Block,
 		--[[ The lower half of the button's face, a shade deeper. ]]
 		buttonLow = rgb(246, 172, 34),

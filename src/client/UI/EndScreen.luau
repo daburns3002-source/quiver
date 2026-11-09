@@ -83,6 +83,7 @@ local viewportConnection: RBXScriptConnection? = nil
 local inputConnection: RBXScriptConnection? = nil
 local motion: EndScreenMotion.Motion? = nil
 local onRestart: (() -> ())? = nil
+local onLobby: (() -> ())? = nil
 
 local function frame(parent: Instance, name: string, b: Box, z: number): Frame
 	local f = Instance.new("Frame")
@@ -812,6 +813,40 @@ local function buildButton(content: Instance, look: any, layout: any, won: boole
 	return { group = group, button = button, icon = icon, shine = shine }
 end
 
+--[[ BACK TO LOBBY, under the main button (owner, 2026-11-08). Its face is the
+     main button's block; what takes the press reaches past the face at the
+     bottom and sides, since on a phone held sideways this button is short. ]]
+local function buildLobbyButton(content: Instance, look: any, layout: any): (Frame, TextButton)
+	local lb: Box = layout.lobbyButton
+	local group = frame(content, "LobbyButtonGroup", lb, 50)
+	block(group, "Face", { x = 0, y = 0, w = lb.w, h = lb.h }, 50, look.lobbyButton)
+	local words = "BACK TO LOBBY"
+	local size = look.text.lobbyButton
+	local wide = width(words, size) + 12
+	local faceHeight = lb.h - look.lobbyButton.bottomH
+	text(
+		group,
+		"Text",
+		{ x = (lb.w - wide) / 2, y = (faceHeight - 70) / 2, w = wide, h = 70 },
+		57,
+		words,
+		size,
+		WHITE,
+		look.text.lobbyButtonStroke
+	)
+	local press = Instance.new("TextButton")
+	press.Name = "Button"
+	press.Position = UDim2.fromOffset(-16, 0)
+	press.Size = UDim2.new(1, 32, 1, 18)
+	press.BackgroundTransparency = 1
+	press.AutoButtonColor = false
+	press.Text = ""
+	press.ZIndex = 60
+	press.Parent = group
+	pivot(group)
+	return group, press
+end
+
 local function fit()
 	if not scaler then
 		return
@@ -979,6 +1014,7 @@ function EndScreen.show(summary: Summary)
 	local stats = buildStats(content, look, layout, summary)
 	local buttonParts = buildButton(content, look, layout, won)
 	local button = buttonParts.button
+	local lobbyGroup, lobbyPress = buildLobbyButton(content, look, layout)
 
 	local played = EndScreenMotion.play({
 		won = won,
@@ -1001,6 +1037,7 @@ function EndScreen.show(summary: Summary)
 		rewards = stats.rewards,
 		rewardCounts = stats.rewardCounts,
 		buttonGroup = buttonParts.group,
+		lobbyGroup = lobbyGroup,
 		icon = buttonParts.icon,
 		shine = buttonParts.shine,
 	})
@@ -1040,6 +1077,18 @@ function EndScreen.show(summary: Summary)
 		end)
 	end)
 
+	--[[ Straight away, unlike the main button: the server has no wait on
+	     leaving. Coins and a beaten level were banked as the run ended. ]]
+	lobbyPress.Activated:Connect(function()
+		if pressed or not readyAtTap then
+			return
+		end
+		pressed = true
+		if onLobby and gui == screen then
+			onLobby()
+		end
+	end)
+
 	fit()
 	local camera = Workspace.CurrentCamera
 	if camera then
@@ -1057,10 +1106,11 @@ function EndScreen.hold(ms: number?)
 	end
 end
 
---[[ `restart` is called when the player presses the button; the caller asks
-     the server, which decides. ]]
-function EndScreen.start(restart: () -> ())
+--[[ `restart` and `lobby` are called when the player presses those buttons;
+     the caller asks the server, which decides. ]]
+function EndScreen.start(restart: () -> (), lobby: () -> ())
 	onRestart = restart
+	onLobby = lobby
 	--[[ Load the screens' images now, in the background: a run can end at
 	     any moment, and art fetched only then pops in after the screen
 	     (seen in Studio: the icons and the retry arrow came in late). ]]

@@ -11,12 +11,14 @@
 ]]
 
 local EndScreenLayout = {
-	canvas = Vector2.new(1024, 1536),
+	--[[ 1536 was the sheets' height; the extra is BACK TO LOBBY under the
+	     main button (owner, 2026-11-08), each panel grown down to hold it. ]]
+	canvas = Vector2.new(1024, 1684),
 
 	--[[ Victory as re-drawn with the chest slot under the coins and gems
 	     (`end_victory_chest.jpg`, owner's yes 2026-10-25). ]]
 	victory = {
-		panel = { x = 34, y = 44, w = 955, h = 1478 },
+		panel = { x = 34, y = 44, w = 955, h = 1626 },
 		panelSteps = 3,
 		panelStep = 45,
 		panelStepY = 36,
@@ -64,6 +66,7 @@ local EndScreenLayout = {
 			countRight = 650,
 		},
 		button = { x = 166, y = 1360, w = 692, h = 150 },
+		lobbyButton = { x = 166, y = 1526, w = 692, h = 130 },
 		--[[ The button's segmented foot, from its top: where the face ends,
 		     the ink line, the band; and its studs' heights. ]]
 		buttonFoot = { face = 116, line = 122, band = 127 },
@@ -84,7 +87,7 @@ local EndScreenLayout = {
 	},
 
 	defeat = {
-		panel = { x = 40, y = 30, w = 942, h = 1452 },
+		panel = { x = 40, y = 30, w = 942, h = 1596 },
 		panelSteps = 2,
 		panelStep = 14,
 		ribbon = { x = 68, y = 80, w = 882, h = 266 },
@@ -115,6 +118,7 @@ local EndScreenLayout = {
 		slotIcon = 70,
 		slotTextX = 140,
 		button = { x = 146, y = 1288, w = 734, h = 172 },
+		lobbyButton = { x = 146, y = 1474, w = 734, h = 130 },
 		--[[ Defeat's third row: the segmented progress bar. ]]
 		bar = { x = 428, y = 1020, w = 360, h = 44, segments = 12 },
 		cubes = {

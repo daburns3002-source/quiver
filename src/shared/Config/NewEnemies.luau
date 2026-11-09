@@ -160,25 +160,25 @@ local NewEnemies = {
 		BurrThistle = {
 			name = "BURR THISTLE",
 			description = "Throws three burrs from anywhere in the room. Find the gaps!",
-			picture = "rbxassetid://81570620844062",
+			picture = "rbxassetid://139645328652669",
 			area = "Thornwood",
 		},
 		BrambleLurker = {
 			name = "BRAMBLE LURKER",
 			description = "Dives underground, then bursts up on a marked spot spraying thorns. Move!",
-			picture = "rbxassetid://95764970646025",
+			picture = "rbxassetid://135528365602715",
 			area = "Thornwood",
 		},
 		BrambleSow = {
 			name = "BRAMBLE SOW",
 			description = "Big and slow. When it falls, three Boarlets tumble out of its brambles!",
-			picture = "rbxassetid://103634987119000",
+			picture = "rbxassetid://136498803142994",
 			area = "Thornwood",
 		},
 		Boarlet = {
 			name = "BOARLET",
 			description = "A quick little piglet from a Bramble Sow. Don't let it nip you!",
-			picture = "rbxassetid://98588195192346",
+			picture = "rbxassetid://98945040362699",
 			area = "Thornwood",
 		},
 		--[[ Drowned Village: designed, not built yet; named as they will be,
@@ -187,14 +187,14 @@ local NewEnemies = {
 		DrownedZombie = {
 			name = "DROWNED ZOMBIE",
 			description = "Slow but relentless. Rises again after it falls - unless it burns!",
-			picture = "rbxassetid://135335649602513",
+			picture = "rbxassetid://94789496316745",
 			area = "DrownedVillage",
 			benched = true,
 		},
 		DitchEel = {
 			name = "DITCH EEL",
 			description = "Slides through the flooded ground, under walls, and surfaces to bite!",
-			picture = "rbxassetid://108442404362621",
+			picture = "rbxassetid://103799368773499",
 			area = "DrownedVillage",
 			benched = true,
 		},
@@ -208,7 +208,7 @@ local NewEnemies = {
 		HollowFisherman = {
 			name = "HOLLOW FISHERMAN",
 			description = "Casts its hook and reels you in. Dodge the line and keep your distance!",
-			picture = "rbxassetid://114005826538649",
+			picture = "rbxassetid://121382456047030",
 			area = "DrownedVillage",
 		},
 		-- Bogheart Caverns

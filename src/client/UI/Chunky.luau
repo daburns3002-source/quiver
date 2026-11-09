@@ -449,7 +449,7 @@ function Chunky.tile(
 		c.ZIndex = 12
 	end
 	if rarity == "Legendary" or rarity == "Mythic" then
-		for ring, spread in { 12, 7, 3 } do
+		for ring, spread in { 16, 9, 4 } do
 			local halo = Instance.new("Frame")
 			halo.BackgroundTransparency = 1
 			halo.Size = UDim2.fromScale(1, 1)
@@ -457,7 +457,7 @@ function Chunky.tile(
 			halo.Parent = t
 			Chunky.round(halo, 18)
 			local glow = Chunky.outline(halo, spread * 2 + 6, tone)
-			glow.Transparency = ({ 0.88, 0.72, 0.45 })[ring]
+			glow.Transparency = ({ 0.76, 0.54, 0.24 })[ring]
 		end
 	end
 	if rarity == "Mythic" then
@@ -466,7 +466,7 @@ function Chunky.tile(
 		local ring = t:FindFirstChildOfClass("UIStroke")
 		if ring then
 			scaled(t, function(unit)
-				ring.Thickness = math.max(2, 7 * unit)
+				ring.Thickness = math.max(3, 9 * unit)
 			end)
 		end
 	end

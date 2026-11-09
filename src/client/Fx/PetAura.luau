@@ -15,6 +15,7 @@
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
+local Workspace = game:GetService("Workspace")
 
 local PetAuras = require(ReplicatedStorage.Shared.Config.PetAuras)
 
@@ -53,6 +54,22 @@ local function rainbowAt(h: number): ColorSequence
 		table.insert(colours, Color3.fromHSV((h + i * 0.2) % 1, 0.75, 1))
 	end
 	return sequence(colours)
+end
+
+--[[ Sets the parts of an aura the lobby strengthens (`PetAuras.lobby`). ]]
+local function shine(w: Worn)
+	local boost = if Workspace:GetAttribute("InLobby") == true then PetAuras.lobby else nil
+	local look = w.look
+	w.glow.FillTransparency = look.fill + (if boost then boost.fill else 0)
+	w.glow.OutlineTransparency = math.max(0, look.outline + (if boost then boost.outline else 0))
+	w.light.Brightness = look.lightBrightness * (if boost then boost.brightness else 1)
+	w.light.Range = look.lightRange * (if boost then boost.range else 1)
+	w.sparkles.Rate = look.sparkleRate * (if boost then boost.rate else 1)
+	local size = look.sparkleSize * (if boost then boost.size else 1)
+	w.sparkles.Size = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, size),
+		NumberSequenceKeypoint.new(1, 0),
+	})
 end
 
 local function step()
@@ -184,9 +201,16 @@ function PetAura.wear(model: Model, key: string)
 		sparkles = sparkles,
 		trail = trail,
 	})
+	shine(worn[#worn])
 	if not stepping then
 		stepping = RunService.RenderStepped:Connect(step)
 	end
 end
+
+Workspace:GetAttributeChangedSignal("InLobby"):Connect(function()
+	for _, w in worn do
+		shine(w)
+	end
+end)
 
 return PetAura

@@ -1601,3 +1601,12 @@ turned 180 degrees, all 6 show their lock). `MODEL_FACING` turns them, applied b
 the wobble's direction on screen does not flip. A slow full spin (0.6 rad/s) also swung the front
 away as the chest opened, so it is now a 14 degree rock. A Tripo model imported later may face
 another way: look at it in a viewport first.
+
+
+## Boss health bar stuck on screen in the lobby (2026-11-08)
+
+After leaving a fight for the lobby, OLD TOLL CRAB's bar stayed up over the lobby. `RoomController.toLobby`
+never cleared the fight: 8 enemies stayed in `workspace.Enemies`, frozen, and `Fx/BossWatch` still saw a
+`Boss` until the next room was built. It has been there since the HUD's exit, and BACK TO LOBBY made it
+easy to reach. `toLobby` now runs `clearFight`, the same clear a new room does. Measured after the fix
+in the entry's PR: 0 enemies and no bar a moment after leaving.

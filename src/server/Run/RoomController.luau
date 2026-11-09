@@ -240,9 +240,8 @@ end
 	an arrow fired at the last enemy of the old room would otherwise arrive in
 	the new one.
 ]]
-local function buildArena(layout: Balance.RoomConfig)
-	Arena.build(workspace, layout.obstacles, layout.arena)
-	--[[ A new room's gate is built shut. ]]
+local function clearFight()
+	--[[ A new room's gate is shut, and so is the last one's when leaving. ]]
 	workspace:SetAttribute("ExitOpen", false)
 	EnemyManager.init(workspace)
 
@@ -253,6 +252,11 @@ local function buildArena(layout: Balance.RoomConfig)
 	ClassUpgrades.clear()
 	Pickups.clear()
 	collectAt = nil
+end
+
+local function buildArena(layout: Balance.RoomConfig)
+	Arena.build(workspace, layout.obstacles, layout.arena)
+	clearFight()
 	ProjectileSystem.refreshFilters()
 
 	--[[ Players are put back at the start. Without this they would begin the
@@ -1037,6 +1041,9 @@ local function toLobby()
 		RunSession.resetRun(session)
 	end
 	RunSession.setTutorial(false)
+	--[[ Nothing of the fight comes along: a boss left alive here kept its
+	     health bar on screen in the lobby. ]]
+	clearFight()
 	resumeAt = nil
 	state = "Lobby"
 	broadcast()

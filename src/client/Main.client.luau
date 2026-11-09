@@ -17,6 +17,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 
 local ArcanistBuildFx = require(script.Parent.Fx.Upgrades.ArcanistBuildFx)
 local ArcanistFx = require(script.Parent.Fx.Upgrades.ArcanistFx)
+local AreaLoading = require(script.Parent.UI.AreaLoading)
 local Balance = require(Shared.Config.Balance)
 local BossBanner = require(script.Parent.UI.BossBanner)
 local BossBar = require(script.Parent.UI.BossBar)
@@ -191,6 +192,9 @@ else
 		beginRun()
 	end
 end
+
+-- before the join screen lifts, so a run server's cover follows it at once
+AreaLoading.start()
 
 --[[ The intro is up (or skipped): the loading screen can lift
      (`first/Loading`). ]]

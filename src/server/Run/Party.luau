@@ -71,10 +71,51 @@ local function lock(size: number)
 	Workspace:SetAttribute(Coop.ATTRIBUTE, math.clamp(size, 1, Coop.maxParty))
 end
 
+--[[ The longest an area's loading screen holds the run for one slow client. ]]
+local AREA_LOAD_LIMIT = 20
+local areaLoading = false
+
+--[[ An area's first level: the first room is sent ahead and everyone holds on
+     a loading screen until they have it, or until `AREA_LOAD_LIMIT`. ]]
+local function loadArea(stage: number)
+	if not Lobby.isFirstLevel(stage) or not RoomController.prepareFirstRoom(stage) then
+		return
+	end
+	local waiting: { [Player]: boolean } = {}
+	for _, player in Players:GetPlayers() do
+		waiting[player] = true
+	end
+	local connection = Remotes.event(Remotes.AreaLoaded).OnServerEvent:Connect(function(player)
+		waiting[player] = nil
+	end)
+	Remotes.event(Remotes.AreaLoading):FireAllClients()
+	local deadline = os.clock() + AREA_LOAD_LIMIT
+	while next(waiting) and os.clock() < deadline do
+		task.wait(0.1)
+		for player in waiting do
+			if player.Parent == nil then
+				waiting[player] = nil
+			end
+		end
+	end
+	connection:Disconnect()
+end
+
 --[[ Starts `stage` here, with the party size locked first so the first
      fight is built for it. ]]
 local function startHere(stage: number, size: number)
+	if areaLoading then
+		return
+	end
+	areaLoading = true
 	lock(size)
+	local ok, problem = pcall(function()
+		loadArea(stage)
+	end)
+	if not ok then
+		log.warn("area load failed: %s", tostring(problem))
+	end
+	areaLoading = false
 	RoomController.beginStage(stage)
 end
 

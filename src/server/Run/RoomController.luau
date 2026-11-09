@@ -54,6 +54,7 @@ local Coop = require(ReplicatedStorage.Shared.Util.Coop)
 local CurrentStage = require(ReplicatedStorage.Shared.Util.CurrentStage)
 local EndlessLeaderboard = require(script.Parent.EndlessLeaderboard)
 local EnemyManager = require(script.Parent.Parent.Enemies.EnemyManager)
+local EnemyModel = require(script.Parent.Parent.Enemies.EnemyModel)
 local LevelUnlocks = require(ReplicatedStorage.Shared.Util.LevelUnlocks)
 local Lobby = require(script.Parent.Lobby)
 local LobbyConfig = require(ReplicatedStorage.Shared.Config.Lobby)
@@ -312,7 +313,8 @@ local function prepareNext(position: number)
 			return
 		end
 		local began = os.clock()
-		Arena.prepare(nextRoom.obstacles, nextRoom.arena, rosterNames(nextRoom))
+		local names = rosterNames(nextRoom)
+		Arena.prepare(nextRoom.obstacles, nextRoom.arena, names, nil, EnemyModel.meshesFor(names))
 		log.info(
 			"prepared room %d (%s) in %.1f ms",
 			position + 1,
@@ -542,6 +544,24 @@ function RoomController.beginStage(index: number)
 		RunSession.resetRun(session)
 	end
 	startStage()
+end
+
+--[[ Builds stage `index`'s first room ahead and parks it where clients fetch it
+     (`Fx/RoomPreload`). False for a stage with no first room to send ahead. ]]
+function RoomController.prepareFirstRoom(index: number): boolean
+	local target = Balance.Stages[index]
+	if state ~= "Lobby" or not target or target.mode == "Endless" then
+		return false
+	end
+	local room = if target.mode == "Waves"
+		then Balance.Rooms[target.arena or 1]
+		else Balance.Rooms[(target.rooms or {})[1]]
+	if not room then
+		return false
+	end
+	local names = if room.roster then rosterNames(room) else {}
+	Arena.prepare(room.obstacles, room.arena, names, nil, EnemyModel.meshesFor(names))
+	return true
 end
 
 --[[ Everyone in the lobby, before a run. ]]

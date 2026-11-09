@@ -119,6 +119,22 @@ local function bossSounds(): { Instance }
 	return sounds
 end
 
+--[[ Waits for the parked room to have fully arrived, so what is fetched is the
+     whole of it and not the first few parts. Bounded: a room that never
+     finishes arriving is fetched as it stands. ]]
+local ARRIVAL_LIMIT = 10
+
+local function arrived(arena: Instance)
+	local want = arena:GetAttribute("Parts")
+	if type(want) ~= "number" then
+		return
+	end
+	local deadline = os.clock() + ARRIVAL_LIMIT
+	while #arena:GetDescendants() < want and os.clock() < deadline do
+		task.wait(0.05)
+	end
+end
+
 local function load(arena: Instance)
 	local began = os.clock()
 	local ids: { string } = {}
@@ -139,6 +155,7 @@ local function load(arena: Instance)
 	     one asks the network for nothing again, and so does anything else
 	     that has already fetched the same mesh. ]]
 	task.spawn(function()
+		arrived(arena)
 		-- the arena's own meshes and textures, then the enemies'
 		Preload.fetchInstances({ arena })
 		if hasBoss then
@@ -148,6 +165,22 @@ local function load(arena: Instance)
 		log.info("next room loaded in %.2f s (%d new enemy assets)", os.clock() - began, count)
 		arena:SetAttribute("PreloadedIn", os.clock() - began)
 	end)
+end
+
+--[[ Yields until the room parked in `NextArena` is fetched, up to `limit`
+     seconds. False when it was not in time. ]]
+function RoomPreload.awaitNext(limit: number): boolean
+	local deadline = os.clock() + limit
+	while os.clock() < deadline do
+		local park = ReplicatedStorage:FindFirstChild("NextArena")
+		for _, arena in if park then park:GetChildren() else {} do
+			if arena:GetAttribute("PreloadedIn") ~= nil then
+				return true
+			end
+		end
+		task.wait(0.05)
+	end
+	return false
 end
 
 function RoomPreload.start()

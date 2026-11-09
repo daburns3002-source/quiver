@@ -1349,6 +1349,18 @@ function Lobby.place(character: Model)
 	character:PivotTo(CFrame.lookAt(at, at + Vector3.new(0, 0, -1)))
 end
 
+--[[ Whether `stage` is the first level of a portal's area. Endless has no
+     area to load into. ]]
+function Lobby.isFirstLevel(stage: number): boolean
+	for _, portal in LobbyConfig.portals do
+		local levels = portal.levels
+		if levels and levels[1] == stage and portal.name ~= "Endless" then
+			return true
+		end
+	end
+	return false
+end
+
 --[[ The index of the nearest active portal whose mouth `position` stands
      within `LobbyConfig.portalReach` (plus `slack`) of, or nil. ]]
 function Lobby.portalAt(position: Vector3, slack: number?): number?

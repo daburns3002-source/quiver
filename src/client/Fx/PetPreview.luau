@@ -83,6 +83,8 @@ type Pet = {
 	gait: PetGaits.Gait,
 	state: PetGait.State,
 	axis: number,
+	--[[ The clip pace last set, which a `Steps` pet hurries with its beat. ]]
+	clipPace: number,
 	--[[ The clip it plays now and then while standing, the clip's length,
 	     and when one next starts and the one under way ends. ]]
 	fidget: string?,
@@ -250,6 +252,7 @@ local function spawnAll(source: Instance, only: { string }?)
 			gait = gait,
 			state = PetGait.new(model:GetPivot().Position, model:GetPivot().LookVector),
 			axis = if gait.about == "Middle" then scaled.Y / 2 - lift else -lift,
+			clipPace = 1,
 			fidget = if fidgetClip then fidget else nil,
 			fidgetLength = if fidgetClip then fidgetClip.length else 0,
 			fidgetAt = os.clock() + rng:NextNumber(FIDGET_MIN, FIDGET_MAX),
@@ -359,6 +362,11 @@ local function step(dt: number)
 		local clock = os.clock()
 		local acting = clock < pet.actingUntil
 		PetGait.blend(state, travelling, acting, dt)
+		local clipPace = if travelling then state.rush else 1
+		if math.abs(clipPace - pet.clipPace) > 0.05 then
+			pet.clipPace = clipPace
+			pet.model:SetAttribute("ModelClipSpeed", clipPace)
+		end
 		local moved = Vector3.new(state.at.X - before.X, 0, state.at.Z - before.Z)
 		-- a guard faces out, the way the player faces; a pet between two steps
 		-- keeps the way it was going

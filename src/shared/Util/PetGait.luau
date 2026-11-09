@@ -24,6 +24,8 @@ export type State = {
 	stride: number,
 	--[[ How far through the change from standing (0) to moving (1). ]]
 	moving: number,
+	--[[ How much faster than its beat a `Steps` pet is going, to catch up. ]]
+	rush: number,
 	--[[ 1, or fading to 0 while its Attack clip has the body. ]]
 	free: number,
 	facing: Vector3,
@@ -38,6 +40,9 @@ local ARRIVED = 0.25
 --[[ How quickly it changes between standing, moving and acting. ]]
 local BLEND_RATE = 8
 
+--[[ The most a single step covers, as a share of its `reach`. ]]
+local MAX_REACH = 4
+
 local TAU = 2 * math.pi
 
 function PetGait.new(at: Vector3, facing: Vector3): State
@@ -49,6 +54,7 @@ function PetGait.new(at: Vector3, facing: Vector3): State
 		from = at,
 		stride = 0,
 		moving = 0,
+		rush = 1,
 		free = 1,
 		facing = facing,
 	}
@@ -91,7 +97,10 @@ function PetGait.advance(state: State, pace: PetGaits.Pace, goal: Vector3, dt: n
 			end
 			state.going, state.time, state.beat, state.from = true, 0, 0, before
 		end
-		state.time += dt
+		-- left behind, it steps twice as often and further, or a running
+		-- player would leave a frog miles back
+		state.rush = 1 + math.clamp((distance - pace.reach) / (pace.reach * 2), 0, 1)
+		state.time += dt * state.rush
 		local beats = state.time / pace.period
 		local beat = math.floor(beats)
 		if beat > state.beat then
@@ -104,7 +113,7 @@ function PetGait.advance(state: State, pace: PetGaits.Pace, goal: Vector3, dt: n
 		local through = math.clamp((beats - beat - pace.from) / (pace.to - pace.from), 0, 1)
 		local fromAway = goal - state.from
 		local flat = Vector3.new(fromAway.X, 0, fromAway.Z)
-		local length = math.min(flat.Magnitude, pace.reach)
+		local length = math.min(flat.Magnitude, pace.reach * MAX_REACH)
 		local landing = state.from
 			+ (if flat.Magnitude > 1e-3 then flat.Unit else Vector3.zero) * length
 		landing = Vector3.new(landing.X, goal.Y, landing.Z)

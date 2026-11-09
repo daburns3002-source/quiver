@@ -13,7 +13,8 @@
 	- `Steps`: stop and go. Each `period` seconds it travels up to `reach`
 	  studs in the part of the beat from `from` to `to` (shares of the beat)
 	  and stands still for the rest. A hop's window is its clip's time in the
-	  air, so the feet leave the floor as the ground starts to pass.
+	  air, so the feet leave the floor as the ground starts to pass. Left
+	  behind, it steps further and up to twice as often.
 	- `Surge`: pulses of speed, `beat` a second, drifting between them.
 
 	`moving` and `idle` are layers added together, each one motion on one axis:

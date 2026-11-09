@@ -74,7 +74,7 @@ return function(t: TestRunner.Helper)
 	t.test("a stepping pet stands still between its steps and lands at its reach", function()
 		local pace: PetGaits.Pace = { kind = "Steps", period = 1, from = 0, to = 0.5, reach = 3 }
 		local state = PetGait.new(Vector3.zero, Vector3.new(0, 0, -1))
-		local goal = Vector3.new(0, 0, -30)
+		local goal = Vector3.new(0, 0, -3)
 		for _ = 1, 31 do
 			PetGait.advance(state, pace, goal, 1 / 60)
 		end
@@ -84,6 +84,15 @@ return function(t: TestRunner.Helper)
 			PetGait.advance(state, pace, goal, 1 / 60)
 		end
 		t.isTrue((state.at - landed).Magnitude < 1e-3, "it moved in the still part of the beat")
+	end)
+
+	t.test("a stepping pet left far behind catches up", function()
+		local pace: PetGaits.Pace = { kind = "Steps", period = 1, from = 0, to = 0.5, reach = 3 }
+		local state = PetGait.new(Vector3.zero, Vector3.new(0, 0, -1))
+		for _ = 1, 60 do
+			PetGait.advance(state, pace, Vector3.new(0, 0, -30), 1 / 60)
+		end
+		t.isTrue(state.at.Magnitude > 20, `only {state.at.Magnitude} studs in a second`)
 	end)
 
 	t.test("a creeping pet keeps its pace and its leash", function()

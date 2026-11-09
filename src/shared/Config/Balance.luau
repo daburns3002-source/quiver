@@ -82,6 +82,8 @@ export type EnemySplit = {
 	`attackRange` instead.
 ]]
 export type EnemyShot = {
+	--[[ How it is drawn (`Config/EnemyShots`): every enemy's its own. ]]
+	look: string,
 	count: number,
 	spread: number,
 	speed: number,
@@ -678,6 +680,7 @@ local spreadShooter: EnemyConfig = {
 	color = Color3.fromRGB(70, 206, 236),
 	xpReward = 14,
 	shot = {
+		look = "Seed",
 		--[[ Two, either side of the aim (owner, 2026-10-22: "only fire two
 		     projectiles"). Was three, one down the centre; standing still
 		     in its line is now safe for a moment, moving through the gap is
@@ -742,6 +745,7 @@ local _lineSniper: EnemyConfig = {
 	color = Color3.fromRGB(140, 82, 210),
 	xpReward = 16,
 	shot = {
+		look = "Needle",
 		count = 1,
 		spread = 0,
 		--[[ Fast, unlike the Spitter. The telegraph is the counterplay here,
@@ -810,6 +814,7 @@ local burrower: EnemyConfig = {
 	color = Color3.fromRGB(124, 62, 178),
 	xpReward = 20,
 	shot = {
+		look = "Clod",
 		--[[ Wider and denser than the Spitter's: it surfaces at close range,
 		     so the fan has to threaten the space around the player rather than
 		     a lane across the room. ]]
@@ -1050,6 +1055,7 @@ local burrThistle: EnemyConfig = {
 	color = Color3.fromRGB(150, 70, 170),
 	xpReward = 14,
 	shot = {
+		look = "Burr",
 		count = 3,
 		spread = math.rad(20),
 		--[[ One burr per "ptoo" of its spit (`enemy_thistle_spit`, round
@@ -1130,6 +1136,7 @@ local brambleLurker: EnemyConfig = {
 	color = Color3.fromRGB(110, 140, 60),
 	xpReward = 20,
 	shot = {
+		look = "Thorn",
 		count = 5,
 		spread = math.rad(24),
 		speed = 18,
@@ -1207,6 +1214,7 @@ local hollowFisherman: EnemyConfig = {
 	color = Color3.fromRGB(120, 196, 206),
 	xpReward = 22,
 	shot = {
+		look = "Bobber",
 		--[[ One hook, never a fan: a line with a gap in it is not a line. ]]
 		count = 1,
 		spread = 0,
@@ -1427,6 +1435,7 @@ local glowcap: EnemyConfig = {
 	color = Color3.fromRGB(70, 170, 160),
 	xpReward = 16,
 	shot = {
+		look = "Spore",
 		--[[ A ring of four, 90 degrees apart. ]]
 		count = 4,
 		spread = math.rad(90),

@@ -211,7 +211,7 @@ function BossBody.pose(body: Body, pose: BossMoves.Pose)
 	local base = ground
 		* CFrame.Angles(0, pose.twist, 0)
 		* CFrame.new(0, pose.lift, -pose.lean)
-		* CFrame.Angles(-pose.pitch, 0, 0)
+		* CFrame.Angles(-pose.pitch, 0, pose.roll)
 
 	for _, rest in body.rests do
 		local r = rest.offset

@@ -99,6 +99,7 @@ local function release(volley: EnemyManager.Volley, specs: { Types.ShotSpec }, n
 		direction = volley.direction,
 		specs = specs,
 		firedAt = now,
+		look = volley.shot.look,
 		--[[ Nobody predicts an enemy volley; every client draws it from
 		     this event. ]]
 		predicted = false,

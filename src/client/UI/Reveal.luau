@@ -25,6 +25,7 @@
 	by itself.
 ]]
 local AssetService = game:GetService("AssetService")
+local ContentProvider = game:GetService("ContentProvider")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -304,6 +305,17 @@ function Reveal.preloadModels()
 	for _, spec in GearAssets.models.chests do
 		table.insert(specs, spec)
 	end
+	--[[ A texture is only fetched once it is drawn, so without this the first
+	     chest of a session opened plain grey (seen 2026-11-08). ]]
+	local textures = {}
+	for _, spec in specs do
+		table.insert(textures, spec.texture)
+	end
+	task.spawn(function()
+		pcall(function()
+			ContentProvider:PreloadAsync(textures)
+		end)
+	end)
 	for _, spec in specs do
 		if templates[spec.mesh] then
 			continue

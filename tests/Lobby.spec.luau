@@ -197,6 +197,12 @@ return function(t: TestRunner.Helper)
 		end
 	)
 
+	t.test("a portal model fits between its neighbours", function()
+		for name, spec in LobbyConfig.portalModels do
+			t.isTrue(spec.size.X < LobbyConfig.archSpacing, name)
+		end
+	end)
+
 	t.test("at least ten portals, in two rows, every mouth on the lawn", function()
 		t.isTrue(#LobbyConfig.portals >= 10, "fewer than ten portals")
 		t.equal(Lobby.rowOf(#LobbyConfig.portals), 2)

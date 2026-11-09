@@ -42,6 +42,16 @@ export type DexPiece = {
 	across: number,
 }
 
+--[[ An area's portal as its doorway is built from the area itself: the frame's
+     import, and its vortex's sheet (`portalVortex`). ]]
+export type PortalModel = {
+	mesh: string,
+	texture: string,
+	size: Vector3,
+	vortex: string,
+	glow: Color3,
+}
+
 export type Portal = {
 	--[[ The area's name on its sign, and its levels: the `Balance.Stages`
 	     index each plays, in order, offered on the portal's screen
@@ -222,6 +232,72 @@ local Lobby = {
 	archWidth = 11,
 	archSides = 7.5,
 	archWall = 19,
+	--[[ The first six areas' portals (owner, 2026-11-09: "these portals should
+	     make the player want to go into them"), built in Claude Design from
+	     `assets/concepts/blocky/lobby/portals/all_portals_sheet.png`. An area
+	     with none here, or whose mesh fails to load, keeps the stone arch. ]]
+	portalModels = {
+		["Mossy Glade"] = {
+			mesh = "rbxassetid://138140072246137",
+			texture = "rbxassetid://85684207475910",
+			size = Vector3.new(14, 16, 4.11),
+			vortex = "rbxassetid://115423428634010",
+			glow = Color3.fromRGB(98, 255, 82),
+		},
+		["Thornwood"] = {
+			mesh = "rbxassetid://84206817791982",
+			texture = "rbxassetid://100841004022404",
+			size = Vector3.new(14, 16, 4),
+			vortex = "rbxassetid://127070896945127",
+			glow = Color3.fromRGB(255, 92, 240),
+		},
+		["Drowned Village"] = {
+			mesh = "rbxassetid://88110060463725",
+			texture = "rbxassetid://98345996998810",
+			size = Vector3.new(14, 16, 4),
+			vortex = "rbxassetid://121845901049381",
+			glow = Color3.fromRGB(82, 255, 216),
+		},
+		["Bogheart Caverns"] = {
+			mesh = "rbxassetid://108435223996759",
+			texture = "rbxassetid://103828695589809",
+			size = Vector3.new(14, 16, 4),
+			vortex = "rbxassetid://85884628214680",
+			glow = Color3.fromRGB(82, 243, 255),
+		},
+		["Windswept Cliffs"] = {
+			mesh = "rbxassetid://132513326915749",
+			texture = "rbxassetid://105533971775105",
+			size = Vector3.new(14, 16, 4),
+			vortex = "rbxassetid://93801931241590",
+			glow = Color3.fromRGB(92, 176, 255),
+		},
+		["Frostpeak Pass"] = {
+			mesh = "rbxassetid://132514192792899",
+			texture = "rbxassetid://73042383764143",
+			size = Vector3.new(14, 15.9, 4),
+			vortex = "rbxassetid://89240563088907",
+			glow = Color3.fromRGB(154, 223, 255),
+		},
+	} :: { [string]: PortalModel },
+	--[[ Every portal's vortex is Bogheart Caverns's, cell for cell, recoloured
+	     (owner, 2026-11-09: "take the exact inner portal for bogheart and put
+	     it into the rest"): `assets/ui/portals/`, four rows of four frames of
+	     its stepped spin. Studs across and high, its foot above the portal's,
+	     how far forward of the portal's middle it stands, and the height of
+	     the spiral's heart, which pulses. `step` is seconds a frame. ]]
+	portalVortex = {
+		size = Vector2.new(7, 8),
+		foot = 1,
+		forward = 0.2,
+		heart = 5.1,
+		cell = Vector2.new(224, 256),
+		columns = 4,
+		frames = 16,
+		step = 0.11,
+		pulse = "rbxassetid://72053512669132",
+		tag = "PortalVortex",
+	},
 	--[[ The dark of a locked arch, and each open arch's plaque, by its name. ]]
 	archDark = Color3.fromRGB(32, 26, 34),
 	plaques = {
@@ -233,7 +309,7 @@ local Lobby = {
 	--[[ Studs from an active arch's mouth a player must come within for its
 	     screen to open (`UI/PortalScreen`), and how much further the server
 	     still grants START from, for the time the press takes to arrive. ]]
-	portalReach = 7,
+	portalReach = 8.5,
 	startSlack = 4,
 	--[[ The level selector's slots per area: its levels, then locked ones
 	     (COMING SOON) up to this many. ]]

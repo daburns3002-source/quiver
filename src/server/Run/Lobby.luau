@@ -21,6 +21,7 @@
 	Seeded, so the lobby is the same every time.
 ]]
 
+local CollectionService = game:GetService("CollectionService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
 local Workspace = game:GetService("Workspace")
@@ -713,6 +714,106 @@ local function standOut(kind: string, key: string, centre: Vector3, parent: Inst
 	model.Parent = parent
 end
 
+--[[ A gold padlock hanging at `centre`, across a locked opening. ]]
+local function padlock(centre: CFrame, model: Instance)
+	local lock = centre * CFrame.new(0, -1, 0.3)
+	part("Lock", Vector3.new(3.2, 2.8, 1), lock, COLOURS.gold, model)
+	part(
+		"Keyhole",
+		Vector3.new(0.6, 1, 0.2),
+		lock * CFrame.new(0, 0, 0.55),
+		COLOURS.woodDark,
+		model
+	)
+	for _, side in { -1, 1 } do
+		part(
+			"Shackle",
+			Vector3.new(0.5, 2, 0.5),
+			lock * CFrame.new(side, 2, 0),
+			COLOURS.gold,
+			model
+		)
+	end
+	part("Shackle", Vector3.new(2.5, 0.5, 0.5), lock * CFrame.new(0, 3, 0), COLOURS.gold, model)
+end
+
+--[[ An area's portal from its import (`LobbyConfig.portalModels`), standing out
+     from the wall on `base`, its spinning vortex a picture in the doorway that
+     `Fx/PortalVortex` steps through on each client. ]]
+local function meshPortal(
+	spec: LobbyConfig.PortalModel,
+	template: MeshPart,
+	base: CFrame,
+	active: boolean,
+	model: Instance
+)
+	local vortex = LobbyConfig.portalVortex
+	local middle = base * CFrame.new(0, 0, 1 + spec.size.Z / 2)
+	local frame = template:Clone()
+	frame.Name = "Frame"
+	frame.Anchored = true
+	frame.CanCollide = false
+	frame.CanQuery = false
+	frame.CanTouch = false
+	frame.Material = Enum.Material.SmoothPlastic
+	frame.Size = spec.size
+	frame.TextureID = spec.texture
+	frame.Color = Color3.new(1, 1, 1)
+	-- an import's front is its -Z, and the portals face south
+	frame.CFrame = middle * CFrame.new(0, spec.size.Y / 2, 0) * CFrame.Angles(0, math.pi, 0)
+	frame.Parent = model
+
+	local plane = part(
+		"Vortex",
+		Vector3.new(vortex.size.X, vortex.size.Y, 0.2),
+		middle * CFrame.new(0, vortex.foot + vortex.size.Y / 2, vortex.forward),
+		spec.glow,
+		model
+	)
+	plane.Transparency = 1
+	plane.CanCollide = false
+	plane.CanQuery = false
+	plane.CanTouch = false
+	plane.CastShadow = false
+
+	local gui = Instance.new("SurfaceGui")
+	gui.Face = Enum.NormalId.Back
+	gui.SizingMode = Enum.SurfaceGuiSizingMode.FixedSize
+	gui.CanvasSize = vortex.cell
+	gui.LightInfluence = 0
+	gui.Parent = plane
+
+	local image = Instance.new("ImageLabel")
+	image.BackgroundTransparency = 1
+	image.Size = UDim2.fromScale(1, 1)
+	image.Image = spec.vortex
+	image.ImageRectSize = vortex.cell
+	image.ResampleMode = Enum.ResamplerMode.Pixelated
+	image.Parent = gui
+	CollectionService:AddTag(image, vortex.tag)
+
+	local pulse = Instance.new("ImageLabel")
+	pulse.Name = "Pulse"
+	pulse.BackgroundTransparency = 1
+	pulse.AnchorPoint = Vector2.new(0.5, 0.5)
+	pulse.Position = UDim2.fromScale(0.5, 1 - (vortex.heart - vortex.foot) / vortex.size.Y)
+	pulse.Size = UDim2.fromScale(0.45, 0.39)
+	pulse.Image = vortex.pulse
+	pulse.ImageTransparency = 0.5
+	pulse.ZIndex = 2
+	pulse.Parent = image
+
+	local light = Instance.new("PointLight")
+	light.Color = spec.glow
+	light.Range = 18
+	light.Brightness = 2
+	light.Parent = plane
+
+	if not active then
+		padlock(middle * CFrame.new(0, vortex.foot + vortex.size.Y / 2, 1.2), model)
+	end
+end
+
 --[[ A portal, set in its row's wall (`terrace` builds the wall): a stone arch
      with a gold keystone round an opening that holds a swirl in its colour, or
      the dark and a gold padlock while its area is locked, and its name on a
@@ -725,6 +826,21 @@ local function portalArch(index: number, portal: LobbyConfig.Portal, parent: Ins
 	local across = LobbyConfig.archWidth
 	local sides = LobbyConfig.archSides
 	local active = portal.levels ~= nil
+	local spec = if portal.name then LobbyConfig.portalModels[portal.name] else nil
+	local template = if spec then lobbyTemplates[spec.mesh] else nil
+	if spec and template then
+		meshPortal(spec, template, base, active, model)
+		signboard(
+			string.upper(portal.name :: string),
+			base * CFrame.new(0, spec.size.Y + 1.8, 1.6),
+			LobbyConfig.archSpacing - 5.5,
+			3.4,
+			LobbyConfig.plaques[portal.name :: string] or COLOURS.woodDark,
+			model
+		)
+		model.Parent = parent
+		return
+	end
 	local fill = if active
 		then (portal.tint or COLOURS.gold):Lerp(Color3.new(0, 0, 0), 0.35)
 		else LobbyConfig.archDark
@@ -801,26 +917,7 @@ local function portalArch(index: number, portal: LobbyConfig.Portal, parent: Ins
 		light.Brightness = 2
 		light.Parent = top
 	else
-		-- a padlock across the dark
-		local lock = centre * CFrame.new(0, -1, 0.3)
-		part("Lock", Vector3.new(3.2, 2.8, 1), lock, COLOURS.gold, model)
-		part(
-			"Keyhole",
-			Vector3.new(0.6, 1, 0.2),
-			lock * CFrame.new(0, 0, 0.55),
-			COLOURS.woodDark,
-			model
-		)
-		for _, side in { -1, 1 } do
-			part(
-				"Shackle",
-				Vector3.new(0.5, 2, 0.5),
-				lock * CFrame.new(side, 2, 0),
-				COLOURS.gold,
-				model
-			)
-		end
-		part("Shackle", Vector3.new(2.5, 0.5, 0.5), lock * CFrame.new(0, 3, 0), COLOURS.gold, model)
+		padlock(centre, model)
 	end
 	if portal.name then
 		signboard(
@@ -942,6 +1039,9 @@ function Lobby.build(parent: Instance)
 			for _, piece in design.pieces do
 				table.insert(ids, piece.mesh)
 			end
+		end
+		for _, spec in LobbyConfig.portalModels do
+			table.insert(ids, spec.mesh)
 		end
 		dexTemplates = MeshTemplates.load(ids)
 		lobbyTemplates = dexTemplates

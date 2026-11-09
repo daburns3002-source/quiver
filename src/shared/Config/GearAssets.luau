@@ -221,33 +221,33 @@ local GearAssets = {
 	models = {
 		eggs = {
 			MossyGlade = {
-				mesh = "rbxassetid://110872804534404",
-				texture = "rbxassetid://138523988202666",
+				mesh = "rbxassetid://125867266786213",
+				texture = "rbxassetid://88101998773359",
 				tips = false,
 			},
 			Thornwood = {
-				mesh = "rbxassetid://131135211719829",
-				texture = "rbxassetid://72502064715956",
+				mesh = "rbxassetid://102746537804804",
+				texture = "rbxassetid://98814346500854",
 				tips = false,
 			},
 			DrownedVillage = {
-				mesh = "rbxassetid://119687601447639",
-				texture = "rbxassetid://115912952901561",
+				mesh = "rbxassetid://77063469221556",
+				texture = "rbxassetid://105911424244162",
 				tips = false,
 			},
 			BogheartCaverns = {
-				mesh = "rbxassetid://127228698242978",
-				texture = "rbxassetid://103981750935904",
+				mesh = "rbxassetid://93989135243338",
+				texture = "rbxassetid://71557278954501",
 				tips = false,
 			},
 			WindsweptCliffs = {
-				mesh = "rbxassetid://106669072404570",
-				texture = "rbxassetid://76597900175207",
+				mesh = "rbxassetid://76453930741578",
+				texture = "rbxassetid://126548549316247",
 				tips = false,
 			},
 			FrostpeakPass = {
-				mesh = "rbxassetid://96120168915035",
-				texture = "rbxassetid://73121541765287",
+				mesh = "rbxassetid://123593322311810",
+				texture = "rbxassetid://116560519897545",
 				tips = false,
 			},
 		} :: { [string]: RevealModel },

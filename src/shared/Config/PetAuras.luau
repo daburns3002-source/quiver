@@ -37,6 +37,11 @@ export type Look = {
 local PetAuras = {
 	--[[ The square every sparkle is (a white 64 x 64, tinted). ]]
 	square = "rbxassetid://96921977657831",
+	--[[ What the lobby adds to any aura, so it holds up against the lobby's
+	     bright daylight (owner, 2026-11-08: the glow "needs to stand out a
+	     little more in the lobby"): less see-through, a stronger and wider
+	     light, more and bigger sparkles. ]]
+	lobby = { fill = -0.15, outline = -0.1, brightness = 1.8, range = 1.3, rate = 1.6, size = 1.25 },
 	pets = {
 		Glimmerhorn = "Mythic",
 		SlimePrince = "Legendary",

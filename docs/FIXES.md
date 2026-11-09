@@ -1610,3 +1610,9 @@ never cleared the fight: 8 enemies stayed in `workspace.Enemies`, frozen, and `F
 `Boss` until the next room was built. It has been there since the HUD's exit, and BACK TO LOBBY made it
 easy to reach. `toLobby` now runs `clearFight`, the same clear a new room does. Measured after the fix
 in the entry's PR: 0 enemies and no bar a moment after leaving.
+
+## Legendary and Mythic glow was faint in the lobby (2026-11-08)
+
+The lobby's brighter daylight washed out a rare pet's aura, so `PetAuras.lobby` strengthens it while
+`InLobby` is set. Players hold no weapon in the lobby, so a weapon's glow there is its tile:
+`Chunky.tile`'s halo rings are wider and more solid, and a Mythic's ring is thicker.

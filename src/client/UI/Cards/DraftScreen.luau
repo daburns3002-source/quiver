@@ -1149,10 +1149,21 @@ local function step(deltaTime: number)
 
 		-- Held in the deck until dealt, then chasing its place.
 		if now >= slot.dealAt then
-			local frames = math.clamp(math.floor(deltaTime * 60 + 0.5), 1, 4)
-			for _ = 1, frames do
+			--[[ The design's 60 fps spring, run for this frame's real
+			     length: whole steps, then the part left over, as
+			     `Motion.step` does. Rounding to whole steps ran it fast on a
+			     120 Hz screen and jerked between one and two steps at 40. ]]
+			local frames = math.clamp(deltaTime * 60, 0, 4)
+			local whole = math.floor(frames)
+			for _ = 1, whole do
 				slot.vel = (slot.vel + (target - slot.pos) * FOLLOW_K) * FOLLOW_D
 				slot.pos += slot.vel
+			end
+			local part = frames - whole
+			if part > 0 then
+				local vel = (slot.vel + (target - slot.pos) * FOLLOW_K) * FOLLOW_D
+				slot.pos += vel * part
+				slot.vel += (vel - slot.vel) * part
 			end
 		end
 		local leanTarget = math.clamp(slot.vel.X * LEAN_PER_PX, -LEAN_MAX, LEAN_MAX)

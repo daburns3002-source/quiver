@@ -841,6 +841,11 @@ ImageLabel. The 3D models stay for the weapon in hand in the world.
 - Services via `game:GetService()` at the top of the file, never mid-function.
 - Config modules end with `table.freeze(...)`.
 - Log through `Shared.Util.Log.forTag("Subsystem")` so MCP console reads are greppable.
+- Everything that animates runs at the screen's frame rate, not a fixed step (owner,
+  2026-11-10: "everything else that animates should be at 60fps"; the story cutscene is
+  its own clip). An anchored part the server moves gets the `SmoothMotion` tag
+  (`Fx/SmoothMotion` draws it between network updates); a client spring steps by the
+  frame's real length, fractions included (`UI/Cards/Motion`, `DraftScreen`).
 
 ## Workflow
 

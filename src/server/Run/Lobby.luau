@@ -566,6 +566,8 @@ local function building(name: string, at: Vector2, parent: Instance): Vector3?
 	model.WorldPivot = base
 	model:ScaleTo(scale)
 	if bobbing then
+		-- drawn at the screen's frame rate on each client (`Fx/SmoothMotion`)
+		CollectionService:AddTag(bobbing, "SmoothMotion")
 		TweenService
 			:Create(bobbing, BOB, { CFrame = bobbing.CFrame * CFrame.new(0, BOB_HEIGHT, 0) })
 			:Play()

@@ -14,6 +14,7 @@
 	arrow.
 ]]
 
+local CollectionService = game:GetService("CollectionService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
 
@@ -84,6 +85,8 @@ local function buildLeaf(
 	local hingeAt = CFrame.new(side * width / 2, height / 2, z)
 
 	local hinge = piece("DoorHinge", Vector3.new(0.2, 0.2, 0.2), hingeAt, config.doorColor, folder)
+	-- drawn at the screen's frame rate on each client (`Fx/SmoothMotion`)
+	CollectionService:AddTag(hinge, "SmoothMotion")
 	hinge.Transparency = 1
 
 	local function attach(

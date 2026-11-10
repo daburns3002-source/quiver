@@ -147,7 +147,7 @@ a backlog. What is genuinely not built is the last three.
 - **Lobby** in the same top-down style as the gameplay - **not built** (its music is ready: `Config/Music` Lobby, Mossy Glade take B).
 - ~~**Eggs for pet hatching**~~ - built: `Config/Eggs`, two eggs of eight pets, rolled on the server.
 - ~~**2D animated intro cutscene** when the player opens the game~~ — built 2026-10-25 (owner asked): see the intro row above. Its own sounds beyond the music are not made.
-- ~~**Story cutscene** after BEGIN ADVENTURE~~ — built 2026-10-25 (owner asked): see the story row above.
+- ~~**Story cutscene** after BEGIN ADVENTURE~~ — built 2026-10-25 (owner asked): see the story row above. Animated as the owner's approved Claude Design clip 2026-11-10 (`Config/StoryMotion`); the portrait stage is not yet seen on a phone.
 - ~~**Tutorial** after the story cutscene~~ — built 2026-10-25 (owner's design): see the tutorial row above.
 - **Character creation screen** right after that cutscene - **not built** as such; `UI/ClassScreen` picks a class and a look, which may be as far as this needs to go.
 - **Egg breeder** for the eggs - **not built**, and nothing in the game points at it.

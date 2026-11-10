@@ -12,6 +12,7 @@
 	that root, so it stays on the floor while the figure rises over it.
 ]]
 
+local CollectionService = game:GetService("CollectionService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
 
@@ -97,6 +98,8 @@ function AngelProp.build(parent: Instance, at: Vector3, look: Vector3): Model
 	root.Size = Vector3.new(0.2, 0.2, 0.2)
 	root.Transparency = 1
 	root.Anchored = true
+	-- drawn at the screen's frame rate on each client (`Fx/SmoothMotion`)
+	CollectionService:AddTag(root, "SmoothMotion")
 	root.CanCollide = false
 	root.CanQuery = false
 	root.CanTouch = false

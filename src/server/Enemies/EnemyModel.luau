@@ -24,6 +24,7 @@
 	draws him where the server has him; one that does unwelds them locally.
 ]]
 
+local CollectionService = game:GetService("CollectionService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
@@ -428,6 +429,8 @@ function EnemyModel.build(config: EnemyConfig, position: Vector3): (Model, BaseP
 	hitbox.Size = config.hitboxSize
 	hitbox.Position = position
 	hitbox.Anchored = true
+	-- drawn at the screen's frame rate on each client (`Fx/SmoothMotion`)
+	CollectionService:AddTag(hitbox, "SmoothMotion")
 	--[[
 		Collision is resolved analytically in Arena.resolve, so the hitbox is
 		only ever a raycast target. Leaving CanCollide on would let enemies shove

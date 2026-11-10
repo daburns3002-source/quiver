@@ -23,6 +23,8 @@
 	jelly tube: his chain is part of his rig.
 ]]
 
+local CollectionService = game:GetService("CollectionService")
+
 local BossMoves = require(script.Parent.BossMoves)
 
 local BossBody = {}
@@ -86,6 +88,8 @@ function BossBody.new(
 			end
 		end
 		part.Anchored = true
+		-- drawn at the screen's frame rate on each client (`Fx/SmoothMotion`)
+		CollectionService:AddTag(part, "SmoothMotion")
 		local rest: Rest =
 			{ part = part, size = part.Size, offset = feet:ToObjectSpace(part.CFrame) }
 		if part.Name == "Shadow" then
@@ -125,6 +129,7 @@ function BossBody.new(
 		part.Color = colour
 		part.Transparency = 1
 		part.Size = Vector3.one * 0.1
+		CollectionService:AddTag(part, "SmoothMotion")
 		part.Parent = tube
 		return part
 	end

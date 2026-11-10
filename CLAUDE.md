@@ -73,10 +73,14 @@ the shared contract with the intro music, `Config/Music.intro`) to the Codex tit
 picture (logo painted in; a portrait one on upright screens, phones; both 2x tiles, `Intro.pictures`), which never moves once up (owner) and shows whole at
 the screen's height with dimmed copies filling the sides, and BEGIN ADVENTURE,
 still until hovered or pressed. BEGIN ADVENTURE plays **the story cutscene**
-(`UI/StoryCutscene`, `Config/Story`, `Util/StoryTimeline`, owner 2026-10-25): **one
-frame at a time** (owner: "stop changing the frames and adding effects"), 40
-Codex frames from the owner's approved storyboard (`assets/concepts/blocky/ui/story/`),
-each shown once, whole and still, with straight cuts: King Bloblin asleep in the
+(`UI/StoryCutscene`, `Config/Story`, `Util/StoryTimeline`, owner 2026-10-25), **animated
+as the owner's approved Claude Design clip** (owner, 2026-11-10; `Config/StoryMotion`,
+`Util/StoryMotion`, ported number for number from the Design project "King Bloblin's
+Roar"): 38 Codex frames from the owner's approved storyboard (`assets/concepts/blocky/ui/story/`)
+pan, zoom, shake and dissolve under crisp pixel-block overlays (fireflies, leaves, steam,
+droplets, rings, speed lines), a landscape stage on wide screens and the Design's portrait
+stage (the same frames, reframed) on tall ones; no video upload (it costs Robux). The frames
+still come in on their holds, so the music and sound cues are unchanged: King Bloblin asleep in the
 glade with his over-the-top slimy chest, a Slime Soldier brings a WANTED poster
 (WANTED: his icon, REWARD: the chest icon, the three class icons signed), he
 roars, the heroes (never in a frame with the king) run into the forest, black.

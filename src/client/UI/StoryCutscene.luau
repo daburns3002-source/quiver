@@ -358,6 +358,8 @@ local function build(playerGui: PlayerGui): Parts
 	gui.ResetOnSpawn = false
 	gui.IgnoreGuiInset = true
 	gui.ScreenInsets = Enum.ScreenInsets.None
+	-- layers stack by their parents' order (groups, then overlays, flash, fade)
+	gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 	-- under the title (110), which fades away over it, over everything else
 	gui.DisplayOrder = 109
 	gui.Parent = playerGui

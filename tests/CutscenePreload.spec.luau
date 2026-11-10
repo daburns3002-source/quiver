@@ -81,21 +81,15 @@ return function(t: TestRunner.Helper)
 		t.isTrue(leadSeconds >= #leadFrames, `{leadSeconds}s over {#leadFrames} frames`)
 	end)
 
-	--[[ Only one orientation is fetched now, so each set has to be able to
-	     draw the whole cutscene by itself. `StoryTimeline.spec` pins that
-	     every frame has a portrait; this pins that neither set is short of a
-	     half, which is what would make a frame fetch as "in" and then draw
-	     with a hole in it. ]]
-	t.test("either orientation alone is a complete set of frames", function()
+	--[[ Both stages draw the landscape frames (`Config/StoryMotion`), so
+	     that set has to be whole: a missing half would fetch as "in" and
+	     then draw with a hole in it. ]]
+	t.test("the landscape frames are a complete set", function()
 		for _, name in all do
 			local wide = Story.pictures[name]
 			t.notNil(wide, `{name} has landscape halves`)
 			if wide then
 				t.isTrue(wide.left ~= "" and wide.right ~= "", `{name}'s landscape halves`)
-			end
-			local tall = Story.portraits[name]
-			if tall then
-				t.isTrue(tall.top ~= "" and tall.bottom ~= "", `{name}'s portrait halves`)
 			end
 		end
 	end)

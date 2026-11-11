@@ -312,7 +312,11 @@ Remotes.event(Remotes.ShotFired).OnClientEvent:Connect(function(event: ShotEvent
 		     server's own origin and aim for a volley the client drew itself
 		     ever reach the client (`Fx/ShotDrift`). ]]
 		ShotDrift.server(event.origin, event.direction)
-		return
+		--[[ Unless this client never drew it: then it is drawn here, so no
+		     damage lands without its arrow (`LocalFiring.serverVolley`). ]]
+		if LocalFiring.serverVolley(event.direction) then
+			return
+		end
 	end
 
 	ProjectileRenderer.spawnVolley(

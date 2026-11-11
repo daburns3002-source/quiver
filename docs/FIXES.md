@@ -69,6 +69,16 @@ camera, and the boards had been turned to read north. **Fix:** a thin blue haze 
 clock 9.5; buildings face south turned 0.25 rad in, the boards read south. **Measured:** in Play from
 the sheet's angle, the sky reads blue with clouds and all four doors and both board faces are in view.
 
+## The Warden's swing on screen was not the blow that landed
+
+**Symptom**: 2026-11-11 playtest, measured at King Bloblin: 13 swings played on screen with no server swing (nothing hit), 12 server swings landed with no swing on screen, and from the first of them on the client's combo ran a blow ahead -- a side swipe drawn over the server's slam, and the reverse.
+
+**Cause**: a swing the server started in the frame or two after the player began moving (before the server saw it) was called off at its Hit marker, but kept its booked cooldown, while the client had never swung; the server's next swing came a cooldown after the phantom, the client's on time. And when the two decided a cancel differently (the client's blade past its marker just before the move), the client's combo place drifted for the rest of the run.
+
+**Fix**: a cancelled swing gives its cooldown back on both sides (`MeleeSystem`, `LocalFiring.cancelSwing` from `WeaponPose`), and the server publishes its settled combo place as `Combo`; `WeaponPose` takes each melee blow from it.
+
+**Measured**: Warden, 1-10 rooms 1-2 and King Bloblin: 1 client-only swing and 0 server-only landed swings of 96 (was 13 / 12 of 90); the blow drawn matched the blow landed on 81 of 82 (was about half).
+
 ## The first player into a new server fell through the world at join
 
 **Symptom**: 2026-11-11 playtest: on every Play the character dropped from the arena's spawn pad to y -480 before the lobby caught it, 20 studs short of the height Roblox destroys a fallen body at.

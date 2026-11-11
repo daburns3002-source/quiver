@@ -69,6 +69,16 @@ camera, and the boards had been turned to read north. **Fix:** a thin blue haze 
 clock 9.5; buildings face south turned 0.25 rad in, the boards read south. **Measured:** in Play from
 the sheet's angle, the sky reads blue with clouds and all four doors and both board faces are in view.
 
+## Two quick shots right after stopping (double shot, fire rate above the weapon's)
+
+**Symptom**: 2026-11-11 playtest, measured: right after the player stops (or a target comes into line), the next volley goes far sooner than the cooldown — staff volleys 0.1-0.67 s apart on its 1.4 s cooldown, a bow volley 0.4 s after the last on 0.7 s. The two sides then sat out of step for the whole stand (the drawn orb 0.48 s ahead of its damage for 20 s).
+
+**Cause**: `FireRhythm.fired` booked a volley at its due time unless it was a whole cooldown late. Any volley that waited for something real — the settle after a move, a target in line — but less than a whole cooldown was booked as if it had gone on time, so the wait was banked and the next volley came that much sooner. Each side banks or restarts on its own lateness, so when one banked and the other restarted, they held an offset of up to a cooldown.
+
+**Fix**: only a frame's rounding is carried: a volley more than `FireRhythm.CARRY` (0.1 s, one frame at 10 fps) late starts the cadence again from now. `tests/FireRhythm.spec` pins that a late volley banks no more than that, and that stop-start never puts two volleys inside one cooldown.
+
+**Measured**: Ranger, 1-2, 115 standing gaps after the fix: 0 shorter than the cooldown (before: 1 in 81 bow, 7 in 47 staff).
+
 ## The enemy took the damage after the arrow had flown past it
 
 **Symptom**: 2026-11-03, the owner: "the enemy does take damage, but the arrow has already flown past, or the spark is in the wrong place."

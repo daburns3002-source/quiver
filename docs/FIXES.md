@@ -69,6 +69,16 @@ camera, and the boards had been turned to read north. **Fix:** a thin blue haze 
 clock 9.5; buildings face south turned 0.25 rad in, the boards read south. **Measured:** in Play from
 the sheet's angle, the sky reads blue with clouds and all four doors and both board faces are in view.
 
+## After a room started, the damage landed before the arrow did
+
+**Symptom**: 2026-11-11 playtest, measured: at most room starts the Ranger's drawn arrows went 0.05-0.2 s after the server's volleys and stayed that far behind for the whole stand, so each enemy flashed and took its hit before the arrow reached it.
+
+**Cause**: the server sees a room's enemies become targetable a frame or two before the client does, so it fires first; the client's aim cache also reused a "nothing in line" answer for 80 ms. Both sides then kept their own cadence, so the first shot's lag lasted the stand. And the server's copy of the player's own volley was always thrown away, so a volley the client had not drawn was never drawn at all.
+
+**Fix**: `LocalFiring.serverVolley` matches each server copy to a volley the client drew in the last second; a copy with no match is drawn from the server's copy and re-bases the client's rhythm on it. The aim cache keeps only answers that found a target.
+
+**Measured**: Ranger, 1-4, 172 server volleys: 168 drawn within 0.05 s of them (before: 24 of 122), none drawn twice, none early.
+
 ## Sword blows (and arrows) landed with no attack on screen while hasted
 
 **Symptom**: 2026-11-11 playtest, measured: a Warden with Battle Cry stacks and the Ember Wilf's howl took damage-dealing swings the client never played — the server swung 53 times, the client 42; damage landed with no swing, and the blade arrived after the damage on the hasted swings it did play.

@@ -69,6 +69,16 @@ camera, and the boards had been turned to read north. **Fix:** a thin blue haze 
 clock 9.5; buildings face south turned 0.25 rad in, the boards read south. **Measured:** in Play from
 the sheet's angle, the sky reads blue with clouds and all four doors and both board faces are in view.
 
+## Sword blows (and arrows) landed with no attack on screen while hasted
+
+**Symptom**: 2026-11-11 playtest, measured: a Warden with Battle Cry stacks and the Ember Wilf's howl took damage-dealing swings the client never played — the server swung 53 times, the client 42; damage landed with no swing, and the blade arrived after the damage on the hasted swings it did play.
+
+**Cause**: the server divides the cooldown by the pet's howl and Battle Cry's stacks (`Combat/FiringSystem`), but neither reached the client: `LocalFiring` predicted on the unhasted cooldown, and `WeaponPose` timed every clip to the base cooldown even under Momentum, while `MeleeSystem` lands the blow at the Hit marker of the clip played at the hasted speed.
+
+**Fix**: the server publishes its haste as the player's `AttackHaste` attribute; `LocalFiring` divides by it, and passes each attack's cooldown to `WeaponPose.release`, which plays that attack's clip at the speed the server times its blow by.
+
+**Measured**: Warden, 1-3, Battle Cry + Ember Wilf: server 78 swings, client 73 (was 53 / 42), every paired swing on the same cooldown across 18 distinct hasted cooldowns, blade within 0.1 s of its damage on 65 of 69.
+
 ## Two quick shots right after stopping (double shot, fire rate above the weapon's)
 
 **Symptom**: 2026-11-11 playtest, measured: right after the player stops (or a target comes into line), the next volley goes far sooner than the cooldown — staff volleys 0.1-0.67 s apart on its 1.4 s cooldown, a bow volley 0.4 s after the last on 0.7 s. The two sides then sat out of step for the whole stand (the drawn orb 0.48 s ahead of its damage for 20 s).

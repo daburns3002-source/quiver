@@ -184,7 +184,7 @@ local function face(root: BasePart, direction: Vector3)
 	root.CFrame = CFrame.lookAt(root.Position, root.Position + flat)
 end
 
-local firedListeners: { () -> () } = {}
+local firedListeners: { (cooldown: number) -> () } = {}
 
 local function step()
 	--[[ Nothing is being simulated behind the cards, so nothing should be
@@ -229,12 +229,15 @@ local function step()
 	     Momentum quickens the predicted rhythm too. A client predicting the
 	     base rate drifts further from the server with every volley it draws. ]]
 	local stats = PlayerStats.get()
+	--[[ And the server's haste right now (the Ember Wilf's howl, Battle
+	     Cry), which it publishes for exactly this (`Combat/FiringSystem`). ]]
+	local haste = player:GetAttribute("AttackHaste")
 	local cooldown = AbilityEffects.cooldownAt(
 		stats.attackCooldown,
 		stats.momentumBonus,
 		rhythm.movedFor,
 		now - (rhythm.stationarySince or now)
-	)
+	) / (if type(haste) == "number" and haste > 0 then haste else 1)
 	if now - rhythm.lastFiredAt < cooldown then
 		return
 	end
@@ -261,7 +264,7 @@ local function step()
 	local class = Classes[stats.class]
 	if class and class.swing then
 		for _, listener in firedListeners do
-			listener()
+			listener(cooldown)
 		end
 		FxEvents.fired:fire(aim.Unit)
 		return
@@ -282,13 +285,15 @@ local function step()
 	     `Fx/ShotDrift` keeps the two so they can be compared. ]]
 	ShotDrift.predicted(origin, aim.Unit)
 	for _, listener in firedListeners do
-		listener()
+		listener(cooldown)
 	end
 	FxEvents.fired:fire(aim.Unit)
 end
 
---[[ Called on every volley this client fires, for the archer's release. ]]
-function LocalFiring.onFired(listener: () -> ())
+--[[ Called on every volley this client fires, for the archer's release,
+     with the cooldown it was fired on (Momentum and haste included), which
+     the attack's clip is timed to, as the server times its blow. ]]
+function LocalFiring.onFired(listener: (cooldown: number) -> ())
 	table.insert(firedListeners, listener)
 end
 

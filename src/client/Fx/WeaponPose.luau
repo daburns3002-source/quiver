@@ -188,9 +188,19 @@ local function play(nextRole: string, speed: number, now: number)
 	fadeStarted = now
 end
 
+--[[ The cooldown the last attack went out on (`LocalFiring.onFired`):
+     Momentum and haste shorten it, and the server lands a blow at the clip's
+     Hit marker played at that speed (`Combat/MeleeSystem`), so the clip must
+     play at it too or the blade arrives after its damage. ]]
+local attackCooldown: number? = nil
+
 local function cycleSpeed(): number
 	local name = currentWeapon()
-	return WeaponTiming.cycleSpeed(name, math.max(comboIndex, 1), PlayerStats.get().attackCooldown)
+	return WeaponTiming.cycleSpeed(
+		name,
+		math.max(comboIndex, 1),
+		attackCooldown or PlayerStats.get().attackCooldown
+	)
 end
 
 local function stepPose(character: Model, now: number, dt: number)
@@ -395,7 +405,8 @@ local function resume()
 end
 
 --[[ An attack left the weapon: the next clip of its combo plays. ]]
-function WeaponPose.release()
+function WeaponPose.release(cooldown: number?)
+	attackCooldown = cooldown
 	local now = os.clock()
 	local name, weapon = currentWeapon()
 	comboPrevious = comboIndex

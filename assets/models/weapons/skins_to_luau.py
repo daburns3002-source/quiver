@@ -42,7 +42,7 @@ SKINS = [
     ("FireflyBow", "FIREFLY BOW", "Ranger", "bow_2rare_firefly_bow", "bow_2rare_firefly_dart", (249, 227, 109)),
     ("MossSlimeBow", "MOSS SLIME BOW", "Ranger", "bow_3epic_moss_slime_bow", "bow_3epic_moss_slime_arrow", (215, 230, 83)),
     ("EmberFangBow", "EMBER FANG BOW", "Ranger", "bow_4legendary_ember_fang_bow", "bow_4legendary_ember_fang_arrow", (254, 212, 61)),
-    ("GladeSpiritBow", "GLADE SPIRIT BOW", "Ranger", "bow_5mythic_glade_spirit_bow", "bow_5mythic_glade_spirit_arrow", None),
+    ("GladeSpiritBow", "GLADE SPIRIT BOW", "Ranger", "bow_5mythic_glade_spirit_bow", "bow_5mythic_glade_spirit_arrow", (150, 255, 170)),
     ("ToadstoolStaff", "TOADSTOOL STAFF", "Arcanist", "staff_1uncommon_toadstool_staff", "staff_1uncommon_toadstool_bolt", None),
     ("LanternStaff", "LANTERN STAFF", "Arcanist", "staff_2rare_lantern_staff", "staff_2rare_lantern_staff_bolt", None),
     ("HootmossStaff", "HOOTMOSS STAFF", "Arcanist", "staff_3epic_hootmoss_staff", "staff_3epic_hootmoss_staff_bolt", (230, 173, 207)),
@@ -115,6 +115,15 @@ YAW = {
     "GlowcapLongbow": "math.pi / 2",
     "GulpstringBow": "math.pi / 2",
     "LumenveilBow": "math.pi / 2",
+    # the Tripo remake of the Glade Spirit Bow (2026-11-10) is too
+    "GladeSpiritBow": "math.pi / 2",
+}
+# Mossy Glade skins remade in Tripo (2026-11-10, owner's fix list): one
+# textured mesh each, so a Legendary's or Mythic's glow is an `aura`, as
+# Bogheart's are, not a Neon gem group.
+TRIPO_FOREST = {
+    "GladeSpiritBow", "MossSlimeBow", "LanternStaff", "SlimeCrownStaff",
+    "WorldrootStaff", "ThornBlade", "GladeheartBlade",
 }
 GLOWS = ("Gems", "Glow")
 # Epics and up always glow (owner, 2026-10-24); one with no colour of its own
@@ -220,7 +229,7 @@ def splice(path: pathlib.Path, block: str, anchor: str):
 def main():
     imports = json.loads(IMPORTS.read_text(encoding="utf-8"))
     drowned = json.loads(DROWNED_IMPORTS.read_text(encoding="utf-8"))
-    rows = [(imports, k, c, n, p, g, None) for k, _, c, n, p, g in SKINS]
+    rows = [(imports, k, c, n, p, g, None, k in TRIPO_FOREST) for k, _, c, n, p, g in SKINS]
     rows += [(drowned, k, c, n, p, g, t) for k, _, c, n, p, g, t in DROWNED]
     bogheart = json.loads(BOGHEART_IMPORTS.read_text(encoding="utf-8"))
     rows += [(bogheart, k, c, n, p, g, t, True) for k, _, c, n, p, g, t in BOGHEART]

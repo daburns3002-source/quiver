@@ -69,6 +69,16 @@ camera, and the boards had been turned to read north. **Fix:** a thin blue haze 
 clock 9.5; buildings face south turned 0.25 rad in, the boards read south. **Measured:** in Play from
 the sheet's angle, the sky reads blue with clouds and all four doors and both board faces are in view.
 
+## The first player into a new server fell through the world at join
+
+**Symptom**: 2026-11-11 playtest: on every Play the character dropped from the arena's spawn pad to y -480 before the lobby caught it, 20 studs short of the height Roblox destroys a fallen body at.
+
+**Cause**: the server loads its meshes and builds the lobby before it handles players; a body that spawned meanwhile sat on the arena's non-colliding spawn pad over nothing and fell until `onCharacterAdded` ran.
+
+**Fix**: from the moment the spawn pad exists until players are handled, `Main.server` anchors every new body where it spawned, then puts it in the lobby and lets it go.
+
+**Measured**: Studio Play, autopilot watching the root: no position below y -3 at join (before: -24 to -480 on every Play).
+
 ## After a room started, the damage landed before the arrow did
 
 **Symptom**: 2026-11-11 playtest, measured: at most room starts the Ranger's drawn arrows went 0.05-0.2 s after the server's volleys and stayed that far behind for the whole stand, so each enemy flashed and took its hit before the arrow reached it.

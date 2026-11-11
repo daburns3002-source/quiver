@@ -107,6 +107,34 @@ end
 
 buildSpawn(workspace)
 
+--[[
+	The first player into a new server arrives while it is still loading its
+	meshes and building the lobby, and their body spawns on the arena's spawn
+	pad, over nothing. It fell for as long as that took (to y -480 in a
+	2026-11-11 Studio playtest, 20 studs short of the height Roblox destroys
+	a fallen body at) before `onCharacterAdded` could put it in the lobby.
+	So until then every body is held where it spawned.
+]]
+local held: { BasePart } = {}
+local holding = true
+local function holdWhileLoading(character: Model)
+	local root = character:WaitForChild("HumanoidRootPart", 10)
+	if holding and root and root:IsA("BasePart") then
+		root.Anchored = true
+		table.insert(held, root)
+	end
+end
+local function watchArrival(player: Player)
+	player.CharacterAdded:Connect(holdWhileLoading)
+	if player.Character then
+		task.spawn(holdWhileLoading, player.Character)
+	end
+end
+local arrivals = Players.PlayerAdded:Connect(watchArrival)
+for _, player in Players:GetPlayers() do
+	watchArrival(player)
+end
+
 --[[ Counter Strike charges on a hit taken (`Combat/ClassUpgrades`). ]]
 RunSession.onHurt = ClassUpgrades.onHurt
 
@@ -259,6 +287,21 @@ for _, player in Players:GetPlayers() do
 end
 
 Players.PlayerAdded:Connect(onPlayerAdded)
+
+--[[ Everyone who arrived while the server loaded goes to the lobby now,
+     and is let go there. ]]
+holding = false
+arrivals:Disconnect()
+task.defer(function()
+	for _, root in held do
+		local character = root.Parent
+		if character and character:IsA("Model") and RoomController.inLobby() then
+			Lobby.place(character)
+		end
+		root.Anchored = false
+	end
+	table.clear(held)
+end)
 
 -- into the lobby and out of it: the weapon goes away and comes back, and the
 -- golden hour comes and goes with it

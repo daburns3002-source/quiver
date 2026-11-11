@@ -1282,6 +1282,7 @@ function RunSession.bindCharacter(session: Session, character: Model)
 	session.alive = true
 	session.lastFiredAt = 0
 	session.swingIndex = 0
+	session.player:SetAttribute("Combo", nil)
 	session.stationarySince = nil
 
 	healthChanged:FireClient(session.player, session.health, session.maxHealth)

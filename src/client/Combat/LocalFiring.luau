@@ -196,6 +196,11 @@ local lastCooldown: number? = nil
      has not answered yet, oldest first. A copy answers the oldest; one that
      finds none means the server fired a volley this client never drew. ]]
 local unanswered: { number } = {}
+
+--[[ The last swing's booking, and the rhythm's last attack before it, while
+     a melee swing may still be cancelled (`cancelSwing`). ]]
+local swingBooked: number? = nil
+local swingBefore = 0
 --[[ Longer than any round trip worth playing on, and short enough that a
      prediction the server never fired cannot answer a later volley for
      long. ]]
@@ -272,13 +277,17 @@ local function step()
 	     rather than on the frame it went out, or this prediction's cadence
 	     creeps away from the server's for as long as the player stands still
 	     (`FireRhythm.fired`). ]]
+	local before = rhythm.lastFiredAt
 	FireRhythm.fired(rhythm, now, cooldown)
 	lastCooldown = cooldown
+	swingBooked = nil
 
 	--[[ A melee class's swing is the server's to land (`Combat/MeleeSystem`);
 	     this client only plays it. ]]
 	local class = Classes[stats.class]
 	if class and class.swing then
+		swingBefore = before
+		swingBooked = rhythm.lastFiredAt
 		for _, listener in firedListeners do
 			listener(cooldown)
 		end
@@ -336,6 +345,17 @@ function LocalFiring.serverVolley(direction: Vector3): boolean
 	end
 	FxEvents.fired:fire(direction)
 	return false
+end
+
+--[[ The swing under way was cut short by moving before its blow landed
+     (`Fx/WeaponPose`): it never happened, so it gives its cooldown back,
+     as the server's does (`Combat/MeleeSystem`), and the two keep the same
+     beat and the same place in the combo. ]]
+function LocalFiring.cancelSwing()
+	if swingBooked and rhythm.lastFiredAt == swingBooked then
+		rhythm.lastFiredAt = swingBefore
+	end
+	swingBooked = nil
 end
 
 --[[ Called on every volley this client fires, for the archer's release,

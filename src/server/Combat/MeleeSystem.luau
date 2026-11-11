@@ -58,9 +58,25 @@ type Pending = {
 	previous: number,
 	--[[ Whirlwind: this swing is the spin, hitting all round. ]]
 	spin: boolean,
+	--[[ The rhythm's last attack before this swing, and as this swing
+	     booked it, so a swing that never lands gives its cooldown back. ]]
+	firedBefore: number,
+	booked: number,
 }
 
 local pending: { Pending } = {}
+
+--[[ The combo's place once a swing has landed or been called off, on the
+     player as `Combo`: the client takes its next blow from it
+     (`Fx/WeaponPose`), so a swing the two sides decided differently -- the
+     client's blade past its Hit marker the frame before the server saw the
+     player move -- cannot leave the client a blow ahead for the rest of the
+     run (2026-11-11 playtest: the client's slam over the server's side
+     swipe, every swing after one such cancel). Published only when settled,
+     never at a swing's start, so it always names the blow before the next. ]]
+local function publishCombo(session: Session)
+	session.player:SetAttribute("Combo", session.swingIndex)
+end
 
 --[[ Every enemy's position and half its width, for targeting and the box. ]]
 local function candidates(): { Aim.Candidate }
@@ -110,6 +126,7 @@ function MeleeSystem.swing(session: Session, root: BasePart, now: number, cooldo
 	local every = session.melee.whirlwindEvery
 	local spin = every > 0 and session.swingCount % every == 0
 	session.swingEndsAt = now + clip.length / speed
+	local firedBefore = session.lastFiredAt
 	FireRhythm.fired(session, now, cooldown)
 
 	--[[ Untouchable for the whole swing, and for a while after with
@@ -127,6 +144,8 @@ function MeleeSystem.swing(session: Session, root: BasePart, now: number, cooldo
 		index = index,
 		previous = previous,
 		spin = spin,
+		firedBefore = firedBefore,
+		booked = session.lastFiredAt,
 	})
 	return true
 end
@@ -149,11 +168,24 @@ local function land(swing: Pending, now: number)
 		if session.swingIndex == swing.index then
 			session.swingIndex = swing.previous
 		end
+		--[[ And its cooldown: the swing never happened. Most of these are
+		     the frame or two after the player starts moving, before the
+		     server sees it, when the client never swung at all; kept, the
+		     server's next swing came a whole cooldown after this phantom,
+		     the client's on time, and the two combos drifted a blow apart
+		     (2026-11-11 playtest: the client's side swipe over the
+		     server's slam, and swings on screen that dealt nothing). The
+		     client gives it back the same way (`LocalFiring.cancelSwing`). ]]
+		if session.lastFiredAt == swing.booked then
+			session.lastFiredAt = swing.firedBefore
+		end
+		publishCombo(session)
 		return
 	end
 	--[[ Which blow of the combo landed last, for anything that wants to
 	     show or check it. ]]
 	session.player:SetAttribute("ComboBlow", swing.index)
+	publishCombo(session)
 
 	local lead = session.pipeline:build({
 		damage = session.damage,
@@ -300,6 +332,7 @@ function MeleeSystem.resume()
 		if session.swingIndex == swing.index then
 			session.swingIndex = swing.previous
 		end
+		publishCombo(session)
 	end
 	table.clear(pending)
 end

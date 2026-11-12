@@ -62,7 +62,7 @@ return function(t: TestRunner.Helper)
 
 	t.test("a new profile has beaten no level", function()
 		local p = SaveSchema.migrate(nil)
-		t.equal(SaveSchema.VERSION, 8)
+		t.equal(SaveSchema.VERSION, 9)
 		t.isNil((next(p.levelsBeaten)))
 	end)
 
@@ -206,6 +206,16 @@ return function(t: TestRunner.Helper)
 
 	t.test("the Soulstones' name is one string every screen reads", function()
 		t.equal(SaveSchema.SOULSTONES, "SOULSTONES")
+	end)
+
+	t.test("7 -> 8: the tutorial counts as won only if saved so, or 1-1 is beaten", function()
+		t.isFalse(SaveSchema.default().tutorialDone)
+		t.isFalse(SaveSchema.migrate({ version = 7, coins = 5 }).tutorialDone)
+		t.isFalse(SaveSchema.migrate({ version = 8, tutorialDone = "yes" }).tutorialDone)
+		t.isTrue(SaveSchema.migrate({ version = 8, tutorialDone = true }).tutorialDone)
+		local old = SaveSchema.migrate({ version = 7, levelsBeaten = { ["1-1"] = true } })
+		t.isTrue(old.tutorialDone)
+		t.equal(old.version, SaveSchema.VERSION)
 	end)
 
 	t.test("a newer game's save is not readable here", function()

@@ -1,6 +1,6 @@
 --!strict
 --[[
-	Merge tiers (`Util/MergeRules`) and the version 8 save (`Util/SaveSchema`):
+	Merge tiers (`Util/MergeRules`) and the version 9 save (`Util/SaveSchema`):
 	three of a tier make one of the next up to S, the best tier is the one
 	in hand, and an older save holds what it owned at C, so a duplicate is
 	saved as a copy from then on.
@@ -72,17 +72,19 @@ return function(t: TestRunner.Helper)
 		t.isNil((next(p.tiers.pets)))
 	end)
 
-	t.test("7 -> 8: owned weapons are one C, each pet's count is that many C", function()
+	t.test("8 -> 9: owned weapons are one C, each pet's count is that many C", function()
 		local p = SaveSchema.migrate({
-			version = 7,
+			version = 8,
+			tutorialDone = true,
 			coins = 12,
 			weapons = { AcornBow = true },
 			equipped = "AcornBow",
 			pets = { Mosslet = 3, GladeFox = 1 },
 			equippedPets = { "Mosslet" },
 		})
-		t.equal(p.version, 8)
+		t.equal(p.version, 9)
 		t.equal(p.coins, 12, "nothing else is touched")
+		t.isTrue(p.tutorialDone, "version 8's own field comes across")
 		t.equal(p.equipped, "AcornBow")
 		t.equal(p.equippedPets[1], "Mosslet")
 		t.equal(p.tiers.weapons.AcornBow.C, 1)
@@ -97,9 +99,9 @@ return function(t: TestRunner.Helper)
 		t.equal(p.tiers.weapons.AcornBow.C, 1)
 	end)
 
-	t.test("8 keeps its tiers; a pet's count is its copies; junk is dropped", function()
+	t.test("9 keeps its tiers; a pet's count is its copies; junk is dropped", function()
 		local p = SaveSchema.migrate({
-			version = 8,
+			version = 9,
 			weapons = { AcornBow = true },
 			pets = { Mosslet = 9 },
 			tiers = {
@@ -115,7 +117,7 @@ return function(t: TestRunner.Helper)
 		t.isNil(p.tiers.pets.NotHatched)
 		-- broken tiers fall back to one C, never to nothing
 		local broken = SaveSchema.migrate({
-			version = 8,
+			version = 9,
 			weapons = { AcornBow = true },
 			tiers = { weapons = { AcornBow = "junk" } },
 		})

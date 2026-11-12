@@ -40,10 +40,15 @@
 	has — nothing of an older save is interpreted as Endless progress,
 	because there was none.
 
-	Version 7 (the Dex Hall): `enemiesSeen`, the enemies ever
-	met. An older profile has met none.
+	Version 7 (the Dex Hall): `enemiesSeen`, the enemies ever met. An older
+	profile has met none.
 
-	Version 8 (2026-11-11, merge tiers — owner, 2026-10-28): `tiers`, the
+	Version 8 (2026-11-11, SKIP TUTORIAL): `tutorialDone`, set once the
+	tutorial has been won. The tutorial still plays on every join until 1-1
+	is beaten; a player who has won it before may skip it. An older profile
+	has it only if it has beaten 1-1 (who must have been through it).
+
+	Version 9 (2026-11-11, merge tiers — owner, 2026-10-28): `tiers`, the
 	copies of each weapon and pet held at each merge tier C, B, A and S
 	(`Util/MergeRules`). Every crate or egg duplicate is one more C copy,
 	and three of a tier merge into one of the next. Before this a weapon
@@ -56,7 +61,7 @@ local MergeRules = require(script.Parent.MergeRules)
 
 local SaveSchema = {}
 
-SaveSchema.VERSION = 8
+SaveSchema.VERSION = 9
 
 --[[ The classes' own weapons, owned from the start. ]]
 local STARTERS = { "TwigBow", "BranchStaff", "TimberBlade" }
@@ -98,7 +103,10 @@ export type Profile = {
 	     show the NEW ENEMY! card -- and this is the lasting copy: the card
 	     shows once ever, and the dex remembers. ]]
 	enemiesSeen: { [string]: boolean },
-	--[[ Copies at each merge tier, by weapon and by pet (version 8); a
+	--[[ The tutorial has been won once (version 8): later joins may skip
+	     it (`UI/TutorialPrompts`' SKIP TUTORIAL). ]]
+	tutorialDone: boolean,
+	--[[ Copies at each merge tier, by weapon and by pet (version 9); a
 	     pet's `pets` count is their total, an owned weapon has at least one. ]]
 	tiers: { weapons: { [string]: MergeRules.Counts }, pets: { [string]: MergeRules.Counts } },
 }
@@ -138,6 +146,7 @@ function SaveSchema.default(): Profile
 		endlessMilestones = {},
 		soulstones = 0,
 		enemiesSeen = {},
+		tutorialDone = false,
 		tiers = { weapons = weaponTiers, pets = {} },
 	}
 end
@@ -243,7 +252,11 @@ function SaveSchema.migrate(raw: unknown): Profile
 	     fills in; inventing entries would show creatures somebody has
 	     never seen. ]]
 	profile.enemiesSeen = flags(data.enemiesSeen)
-	--[[ 7 -> 8: what was owned is held at C -- one copy of each weapon
+	--[[ 7 → 8: nobody's tutorial win was written down. Whoever has beaten
+	     1-1 came through it; anyone else plays it once more before they
+	     may skip. ]]
+	profile.tutorialDone = data.tutorialDone == true or profile.levelsBeaten["1-1"] == true
+	--[[ 8 -> 9: what was owned is held at C -- one copy of each weapon
 	     (duplicates were never saved), each pet's count as that many C.
 	     A stored pet's tiers are its count from then on. ]]
 	local stored = if type(data.tiers) == "table" then data.tiers else {}

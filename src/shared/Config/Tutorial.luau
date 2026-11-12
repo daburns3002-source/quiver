@@ -18,10 +18,20 @@
 	worth 10, a Spitter 14). If room 3 clears without a level-up anyway, the
 	XP still owed is granted so it gets one (`levelUpIn`).
 
-	On screen (`UI/TutorialPrompts`): how to move until the player has, then
-	that standing still shoots at the next fight, then how to dash until they
-	have; and how levelling up works, over the first upgrade hand.
+	On screen (`UI/TutorialPrompts`, redone 2026-11-11): how to move, that
+	standing still shoots, the crystals, the dash, the gate out of a cleared
+	room, and picking a card, each in the words for the device in hand with
+	its control and its action highlighted (`prompts`, `Util/TutorialSteps`).
+	The music ducks while one is up.
 ]]
+
+--[[ A prompt: its heading, and its words for each kind of device. ]]
+export type Prompt = {
+	title: string,
+	keyboard: string,
+	touch: string,
+	gamepad: string,
+}
 
 local Tutorial = {
 	--[[ The tutorial plays after the story cutscene on every join until the
@@ -56,34 +66,72 @@ local Tutorial = {
 		{ "DiagonalArrows", "Bloodthirst", "Ricochet" },
 	},
 
-	--[[ What the prompts say. Each device is told its own controls. ]]
+	--[[ What the prompts say (owner, 2026-11-11: "highlight the important
+	     words and have the tutorial clearly explain the controls"). One idea
+	     each, in the words for the device in hand, and short enough to read
+	     at a glance on a phone held upright. Two marks (`Util/PromptText`):
+	     `[..]` is a control, the thing to press, drag or look for, and
+	     `*..*` is the action; each is drawn in its own strong colour.
+	     Which one shows when is `Util/TutorialSteps`; `tests/TutorialPrompts.spec`
+	     holds every prompt to the rules. ]]
 	prompts = {
 		move = {
-			keyboard = "MOVE WITH W A S D OR THE ARROW KEYS",
-			touch = "DRAG ANYWHERE ON THE SCREEN TO MOVE",
-			gamepad = "MOVE WITH THE LEFT STICK",
+			title = "MOVE",
+			keyboard = "*MOVE* WITH [W A S D] OR THE [ARROW KEYS]",
+			touch = "*DRAG* YOUR [THUMB] ANYWHERE ON THE SCREEN TO *MOVE*",
+			gamepad = "*MOVE* WITH THE [LEFT STICK]",
 		},
-		shoot = "STOP MOVING TO SHOOT! YOUR BOW FIRES BY ITSELF WHILE YOU STAND STILL",
-		--[[ After the shooting one, until the player dashes (owner,
-		     2026-10-27: "there needs to be a part in the tutorial that
-		     shows the player to dash"). ]]
+		shoot = {
+			title = "SHOOT",
+			keyboard = "*STAND STILL* TO SHOOT: LET GO OF THE [KEYS] AND YOUR BOW FIRES BY ITSELF",
+			touch = "*STAND STILL* TO SHOOT: LIFT YOUR [THUMB] AND YOUR BOW FIRES BY ITSELF",
+			gamepad = "*STAND STILL* TO SHOOT: LET GO OF THE [STICK] AND YOUR BOW FIRES BY ITSELF",
+		},
+		crystals = {
+			title = "COLLECT XP",
+			keyboard = "*WALK OVER* THE [BLUE CRYSTALS] ENEMIES DROP TO FILL YOUR [XP BAR]",
+			touch = "*WALK OVER* THE [BLUE CRYSTALS] ENEMIES DROP TO FILL YOUR [XP BAR]",
+			gamepad = "*WALK OVER* THE [BLUE CRYSTALS] ENEMIES DROP TO FILL YOUR [XP BAR]",
+		},
+		--[[ Until the player dashes (owner, 2026-10-27: "there needs to be a
+		     part in the tutorial that shows the player to dash"). ]]
 		dash = {
-			keyboard = "PRESS SPACE TO DASH OUT OF DANGER!",
-			touch = "TAP THE DASH BUTTON TO DASH OUT OF DANGER!",
-			gamepad = "PRESS A TO DASH OUT OF DANGER!",
+			title = "DASH",
+			keyboard = "PRESS [SPACE] TO *DASH* THROUGH DANGER",
+			touch = "TAP THE [DASH] BUTTON TO *DASH* THROUGH DANGER",
+			gamepad = "PRESS [A] TO *DASH* THROUGH DANGER",
 		},
-		levelUp = {
+		gate = {
+			title = "ROOM CLEAR!",
+			keyboard = "*WALK* INTO THE GLOWING [GATE] AT THE TOP TO GO ON",
+			touch = "*WALK* INTO THE GLOWING [GATE] AT THE TOP TO GO ON",
+			gamepad = "*WALK* INTO THE GLOWING [GATE] AT THE TOP TO GO ON",
+		},
+		--[[ Over the first upgrade hand, until a card is picked. ]]
+		card = {
 			title = "LEVEL UP!",
-			body = "DEFEAT ENEMIES AND COLLECT THEIR BLUE CRYSTALS TO FILL YOUR XP BAR. EVERY LEVEL, PICK ONE UPGRADE. UPGRADES LAST FOR THE WHOLE RUN AND STACK.",
+			keyboard = "*PICK ONE* UPGRADE: CLICK A CARD, THEN [CHOOSE!] TO KEEP IT ALL RUN",
+			touch = "*PICK ONE* UPGRADE: TAP A CARD, THEN [CHOOSE!] TO KEEP IT ALL RUN",
+			gamepad = "*PICK ONE* UPGRADE: PICK A CARD WITH THE [LEFT STICK], THEN PRESS [A]",
 		},
-	},
+	} :: { [string]: Prompt },
 	--[[ Studs the player walks before the move prompt goes, and how long the
-	     shooting one stays at the next fight (seconds). ]]
+	     shooting and crystal prompts stay on screen (seconds; their time only
+	     runs while they show). ]]
 	moveDistance = 8,
 	shootFor = 7,
+	crystalsFor = 6,
 	--[[ Seconds the move and dash prompts stay on screen at least, even when
 	     the player walks or dashes at once, so they can be read. ]]
 	minShow = 3,
+	--[[ The most letters a prompt's words may run to, marks left out: more
+	     is not read mid-fight. ]]
+	maxLetters = 76,
+	--[[ The egg the tutorial's win pays for (Fable's loop review, 2026-11-11,
+	     approved: players reached the lobby ~150 coins short of it): the win
+	     tops the player's coins up to its price (`Util/FirstEgg`), and the
+	     lobby points at the Hatchery until they own a pet. ]]
+	firstEgg = "MossyEgg",
 }
 
 return table.freeze(Tutorial)

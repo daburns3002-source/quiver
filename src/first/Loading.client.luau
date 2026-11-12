@@ -29,6 +29,7 @@ local Players = game:GetService("Players")
 local ReplicatedFirst = game:GetService("ReplicatedFirst")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
+local TeleportService = game:GetService("TeleportService")
 
 local player = Players.LocalPlayer
 
@@ -213,6 +214,18 @@ local function build()
 end
 
 task.spawn(build)
+
+--[[ Sent to the tutorial's server on join (`Run/Party.ROUTE`): this screen
+     goes along, so the trip reads as the same loading screen. ]]
+local function carryAlong()
+	if player:GetAttribute("JoinRoute") == "Tutorial" then
+		pcall(function()
+			TeleportService:SetTeleportGui(gui)
+		end)
+	end
+end
+player:GetAttributeChangedSignal("JoinRoute"):Connect(carryAlong)
+carryAlong()
 
 local started = os.clock()
 local connection: RBXScriptConnection

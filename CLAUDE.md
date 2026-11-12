@@ -97,13 +97,29 @@ fixed, the same for everyone (`Util/TutorialHands`, `tests/Tutorial.spec`): a
 Common, an Uncommon and a Rare first; on room 3's level-up Multishot (Legendary)
 in the middle; Legendaries and Mythics banned from its pool (`Loadout.State.banned`,
 which a fixed hand ignores), no rerolls. The rooms' XP lands the level-ups in rooms
-1-3, and room 3 is granted the XP it owes if not. `UI/TutorialPrompts` says how to
-move (per device) until the player has, that standing still shoots at the next
-fight, and how levelling up works over the first hand.
+1-3, and room 3 is granted the XP it owes if not. `UI/TutorialPrompts` (redone 2026-11-11, owner:
+"highlight the important words and have the tutorial clearly explain the controls and have the music quiet
+down when there is something on the screen to read") shows one idea at a time in the words for the device in
+hand: move, stand still to shoot, the crystals, the dash, the gate out of the first cleared room, and picking
+a card over the first hand (`Util/TutorialSteps` decides which, `Config/Tutorial.prompts` has the words). In a
+prompt `[..]` marks a control and `*..*` an action, each drawn in its own strong colour chosen for the panel's
+ground (`Util/PromptText`); the panel is built from `UI/Chunky`'s palette. The music ducks to `Music.readDuck`
+while one is up, and under a NEW ENEMY! screen in the tutorial (`MusicFx.setReading`).
+`tests/TutorialPrompts.spec` holds every prompt to the rules; `TutorialPrompts.preview` builds one in a
+phone-sized frame for a Studio look.
 The run holds still until the story's black has held: the server skips
 its step while any player is still on the title (`RunSession.anyAtTitle`,
 cleared by `Remotes.IntroBegin`, fired at the story's end), the client holds on
-`RunPaused.setTitle` then `setStory`, the room's music and its ROOM sign wait. **In Studio, set a `SkipIntro` attribute
+`RunPaused.setTitle` then `setStory`, the room's music and its ROOM sign wait. **The road in is short** (Fable's loop review, 2026-11-11): on a fresh join the server decides
+from the profile and tells the client as the `JoinRoute` Player attribute (`Party.ROUTE`,
+`Main.server` `routeJoin`): a player who owes the tutorial is teleported to its server behind the
+join's loading screen and sees the title and story there (`story` in the teleport data; `seen`
+skips the story); one who has beaten 1-1, or won the tutorial before (`SaveSchema` v8
+`tutorialDone`), sees the title and no story. Studio cannot teleport, so there the title (and story)
+play first and the tutorial starts in place. The tutorial's first win tops coins up to the first egg
+(`Tutorial.firstEgg`, `Util/FirstEgg`, `tests/FirstEgg.spec`) and `Fx/HatcheryPointer` points at
+the Hatchery until a pet is owned; `UI/TutorialSkip` is SKIP TUTORIAL for a player who has won it
+once. **In Studio, set a `SkipIntro` attribute
 on Workspace in Edit before Play** to skip it on both sides, for probes that
 need the run going, into the lobby (firing `Remotes.IntroBegin` from a probe now
 starts the tutorial, as the story's end does).
@@ -357,6 +373,19 @@ and the boss's item every time it falls plus gems, more the first time; the end 
 box shows the stage's take. Any schema change bumps `SaveSchema.VERSION` with a migration and a
 `SaveSchema.spec` case. Version 2 (2026-10-26) adds `levelsBeaten` (by `StageConfig.level`); a
 version 1 profile that had beaten King Bloblin counts 1-1 as beaten.
+
+**Payouts land where the player is looking** (owner's review, 2026-11-11, items 5, 9, 10): the
+first clear of a level (`Wallet.beatLevel` returns true) gives its area's egg free
+(`Config/Economy.firstClearEgg`, rolled by `Hatchery.grantFree` in `RoomController.complete`); it
+fills Victory's chest slot and opens with the hatchery's reveal over the end screen
+(`RunSummary.egg`). The boss item shows there too (`RunSummary.item`). Every coin paid is told to
+the client (`Remotes.CoinsGained(amount, position?)`): `Fx/CoinDrops` pops a kill's coins out of
+the kill and flies them to the GuiObject tagged `CoinCounter` (the top of the screen without one)
+and keeps the client-only `CoinsShown` Player attribute, the wallet less the coins in the air,
+for a run coin counter to show. Victory's plate says YOU CAN HATCH AN EGG! when the server says the
+coins buy an open egg (`RunSummary.canHatch`, `Hatchery.canHatch`); Defeat's is a line on getting
+stronger. The portal's level card lists what a level pays (`PortalScreen` `rewardsOf`). Only stages
+with a `level` have a first clear (Mossy Glade's ten); `tests/Payouts.spec`.
 
 **Portals open a screen; the lobby sprints and jumps** (owner, 2026-10-26): walking into a lit
 portal opens `UI/PortalScreen` (the area, its levels from `Config/Lobby.portals[i].levels`, START;

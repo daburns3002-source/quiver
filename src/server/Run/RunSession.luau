@@ -127,6 +127,8 @@ export type Session = {
 	--[[ This stage's payouts so far, for the end screen's REWARDS box. ]]
 	stageCoins: number,
 	stageGems: number,
+	--[[ The boss item this stage paid (`payBoss`), shown on Victory. ]]
+	stageItem: string?,
 	stageStartedAt: number,
 	--[[ Still on the intro's title screen: the run holds until they press
 	     BEGIN ADVENTURE (`Remotes.IntroBegin`). ]]
@@ -248,7 +250,11 @@ function RunSession.arrivedByTeleport(player: Player): boolean
 	local ok, data = pcall(function()
 		return player:GetJoinData().TeleportData
 	end)
-	return ok and type(data) == "table" and (data :: any).arrowborne == true
+	return ok
+		and type(data) == "table"
+		and (data :: any).arrowborne == true
+		-- sent to the tutorial on join, before the title: it plays here
+		and (data :: any).story ~= true
 end
 
 function RunSession.create(player: Player): Session
@@ -309,6 +315,7 @@ function RunSession.create(player: Player): Session
 		stageKills = 0,
 		stageCoins = 0,
 		stageGems = 0,
+		stageItem = nil,
 		stageStartedAt = os.clock(),
 		-- in Studio, `SkipIntro` on Workspace starts without the title (`Config/Intro`)
 		-- and a player teleported here by a party portal or back from a run
@@ -720,9 +727,9 @@ end
 	heal into the XP call would make a future "XP without a kill" source heal
 	the player for no reason.
 ]]
-function RunSession.onEnemyKilled(session: Session)
+function RunSession.onEnemyKilled(session: Session, position: Vector3?)
 	session.stageKills += 1
-	RunSession.payCoins(session, RunSession.areaPay().killCoins)
+	RunSession.payCoins(session, RunSession.areaPay().killCoins, position)
 	--[[ Battle Cry: a stack per kill, up to the cap; they lapse together
 	     `duration` seconds after the last kill. The attribute tells the
 	     client to play its cry. ]]
@@ -783,13 +790,17 @@ function RunSession.areaPay(): Economy.Area
 end
 
 --[[ Coins into the player's saved wallet, counted for this stage's
-     summary. ]]
-function RunSession.payCoins(session: Session, amount: number)
+     summary, and told to the player (`Remotes.CoinsGained`: how many, and
+     where they dropped, for a kill), so the coins can fly to the run's coin
+     counter (`Fx/CoinDrops`). ]]
+local coinsGained = Remotes.event(Remotes.CoinsGained)
+function RunSession.payCoins(session: Session, amount: number, position: Vector3?)
 	if amount <= 0 then
 		return
 	end
 	session.stageCoins += amount
 	Wallet.addCoins(session.player, amount)
+	coinsGained:FireClient(session.player, amount, position)
 end
 
 --[[ This stage's boss is beaten: every player in the run gets its item and
@@ -800,8 +811,9 @@ function RunSession.payBoss()
 		return
 	end
 	for _, session in sessions do
-		local gems = Wallet.beatBoss(session.player, area)
+		local gems, item = Wallet.beatBoss(session.player, area)
 		session.stageGems += gems
+		session.stageItem = item
 	end
 end
 
@@ -826,7 +838,7 @@ function RunSession.creditKill(owner: Player?, xp: number, position: Vector3?)
 		return
 	end
 
-	RunSession.onEnemyKilled(session)
+	RunSession.onEnemyKilled(session, position)
 	--[[ Co-op: the rest of the party is paid the kill's coins too. The kill
 	     count and what a kill triggers (Battle Cry, healing) stay the
 	     killer's. ]]
@@ -1187,6 +1199,7 @@ function RunSession.newStage(session: Session)
 	session.stageKills = 0
 	session.stageCoins = 0
 	session.stageGems = 0
+	session.stageItem = nil
 	session.stageStartedAt = os.clock()
 	session.invulnerableUntil = 0
 end

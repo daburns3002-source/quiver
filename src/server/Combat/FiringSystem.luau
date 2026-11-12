@@ -187,9 +187,34 @@ local function fire(session: Session, root: BasePart, now: number, cooldown: num
 	} :: Types.ShotEvent)
 end
 
+--[[ How much faster than its cooldown the player attacks right now: the
+     Ember Wilf's howl (`Combat/PetCombat`) and Battle Cry's kill stacks. ]]
+local function haste(session: Session, now: number): number
+	local pet = if now < session.petHasteUntil then 1 + session.petHaste else 1
+	local cry = if now < session.battleCryUntil
+		then 1 + session.battleCryStacks * session.melee.battleCry
+		else 1
+	return pet * cry
+end
+
+--[[ Published on the player as `AttackHaste` (nil for none), so the
+     client's prediction attacks on the same beat and plays its swing at the
+     same speed (`Combat/LocalFiring`). Without it a hasted server attacked
+     up to twice as often as the client drew: blows landed with no swing on
+     screen (2026-11-11 playtest, 11 of 53 swings). Presentation only; the
+     server never reads it back. ]]
+local function publishHaste(session: Session, value: number)
+	local shown = if value ~= 1 then value else nil
+	if session.player:GetAttribute("AttackHaste") ~= shown then
+		session.player:SetAttribute("AttackHaste", shown)
+	end
+end
+
 function FiringSystem.step(_deltaTime: number, now: number)
 	for _, session in RunSession.all() do
 		local root = session.root
+		local hasted = haste(session, now)
+		publishHaste(session, hasted)
 
 		if not root or not session.alive then
 			continue
@@ -216,15 +241,7 @@ function FiringSystem.step(_deltaTime: number, now: number)
 			session.momentumBonus,
 			session.movedFor,
 			now - (session.stationarySince or now)
-		)
-			-- the Ember Wilf's howl (`Combat/PetCombat`)
-			/ (if now < session.petHasteUntil then 1 + session.petHaste else 1)
-			-- Battle Cry's kill stacks
-			/ (
-				if now < session.battleCryUntil
-					then 1 + session.battleCryStacks * session.melee.battleCry
-					else 1
-			)
+		) / hasted
 		if now - session.lastFiredAt < cooldown then
 			continue
 		end

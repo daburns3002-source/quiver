@@ -47,6 +47,7 @@ local BladeFx = require(script.Parent.BladeFx)
 local BowString = require(script.Parent.BowString)
 local Classes = require(ReplicatedStorage.Shared.Config.Classes)
 local FxEvents = require(script.Parent.Upgrades.FxEvents)
+local LocalFiring = require(script.Parent.Parent.Combat.LocalFiring)
 local PlayerStats = require(script.Parent.Parent.PlayerStats)
 local RunPaused = require(script.Parent.Parent.RunPaused)
 local StaffOrb = require(script.Parent.StaffOrb)
@@ -188,9 +189,19 @@ local function play(nextRole: string, speed: number, now: number)
 	fadeStarted = now
 end
 
+--[[ The cooldown the last attack went out on (`LocalFiring.onFired`):
+     Momentum and haste shorten it, and the server lands a blow at the clip's
+     Hit marker played at that speed (`Combat/MeleeSystem`), so the clip must
+     play at it too or the blade arrives after its damage. ]]
+local attackCooldown: number? = nil
+
 local function cycleSpeed(): number
 	local name = currentWeapon()
-	return WeaponTiming.cycleSpeed(name, math.max(comboIndex, 1), PlayerStats.get().attackCooldown)
+	return WeaponTiming.cycleSpeed(
+		name,
+		math.max(comboIndex, 1),
+		attackCooldown or PlayerStats.get().attackCooldown
+	)
 end
 
 local function stepPose(character: Model, now: number, dt: number)
@@ -215,6 +226,8 @@ local function stepPose(character: Model, now: number, dt: number)
 			local want = if weapon.clips.move then "move" else "hold"
 			if role == "fire" and not blowLanded then
 				comboIndex = comboPrevious
+				blowLanded = true
+				LocalFiring.cancelSwing()
 			end
 			if role ~= want then
 				play(want, 1, now)
@@ -395,9 +408,18 @@ local function resume()
 end
 
 --[[ An attack left the weapon: the next clip of its combo plays. ]]
-function WeaponPose.release()
+function WeaponPose.release(cooldown: number?)
+	attackCooldown = cooldown
 	local now = os.clock()
 	local name, weapon = currentWeapon()
+	--[[ A melee combo follows the server's place in it, settled after its
+	     last swing (`Combat/MeleeSystem`'s `Combo`), so the blow drawn is
+	     the blow that lands. ]]
+	local served = Players.LocalPlayer:GetAttribute("Combo")
+	local class = Classes[Players.LocalPlayer:GetAttribute("Class") :: string? or ""]
+	if class and class.swing and type(served) == "number" then
+		comboIndex = served
+	end
 	comboPrevious = comboIndex
 	comboIndex = WeaponTiming.nextInCombo(name, comboIndex)
 	blowLanded = WeaponTiming.clips(name)[weapon.clips.fire[comboIndex]].markers.Hit == nil

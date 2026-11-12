@@ -80,6 +80,56 @@ camera, and the boards had been turned to read north. **Fix:** a thin blue haze 
 clock 9.5; buildings face south turned 0.25 rad in, the boards read south. **Measured:** in Play from
 the sheet's angle, the sky reads blue with clouds and all four doors and both board faces are in view.
 
+## The Warden's swing on screen was not the blow that landed
+
+**Symptom**: 2026-11-11 playtest, measured at King Bloblin: 13 swings played on screen with no server swing (nothing hit), 12 server swings landed with no swing on screen, and from the first of them on the client's combo ran a blow ahead -- a side swipe drawn over the server's slam, and the reverse.
+
+**Cause**: a swing the server started in the frame or two after the player began moving (before the server saw it) was called off at its Hit marker, but kept its booked cooldown, while the client had never swung; the server's next swing came a cooldown after the phantom, the client's on time. And when the two decided a cancel differently (the client's blade past its marker just before the move), the client's combo place drifted for the rest of the run.
+
+**Fix**: a cancelled swing gives its cooldown back on both sides (`MeleeSystem`, `LocalFiring.cancelSwing` from `WeaponPose`), and the server publishes its settled combo place as `Combo`; `WeaponPose` takes each melee blow from it.
+
+**Measured**: Warden, 1-10 rooms 1-2 and King Bloblin: 1 client-only swing and 0 server-only landed swings of 96 (was 13 / 12 of 90); the blow drawn matched the blow landed on 81 of 82 (was about half).
+
+## The first player into a new server fell through the world at join
+
+**Symptom**: 2026-11-11 playtest: on every Play the character dropped from the arena's spawn pad to y -480 before the lobby caught it, 20 studs short of the height Roblox destroys a fallen body at.
+
+**Cause**: the server loads its meshes and builds the lobby before it handles players; a body that spawned meanwhile sat on the arena's non-colliding spawn pad over nothing and fell until `onCharacterAdded` ran.
+
+**Fix**: from the moment the spawn pad exists until players are handled, `Main.server` anchors every new body where it spawned, then puts it in the lobby and lets it go.
+
+**Measured**: Studio Play, autopilot watching the root: no position below y -3 at join (before: -24 to -480 on every Play).
+
+## After a room started, the damage landed before the arrow did
+
+**Symptom**: 2026-11-11 playtest, measured: at most room starts the Ranger's drawn arrows went 0.05-0.2 s after the server's volleys and stayed that far behind for the whole stand, so each enemy flashed and took its hit before the arrow reached it.
+
+**Cause**: the server sees a room's enemies become targetable a frame or two before the client does, so it fires first; the client's aim cache also reused a "nothing in line" answer for 80 ms. Both sides then kept their own cadence, so the first shot's lag lasted the stand. And the server's copy of the player's own volley was always thrown away, so a volley the client had not drawn was never drawn at all.
+
+**Fix**: `LocalFiring.serverVolley` matches each server copy to a volley the client drew in the last second; a copy with no match is drawn from the server's copy and re-bases the client's rhythm on it. The aim cache keeps only answers that found a target.
+
+**Measured**: Ranger, 1-4, 172 server volleys: 168 drawn within 0.05 s of them (before: 24 of 122), none drawn twice, none early.
+
+## Sword blows (and arrows) landed with no attack on screen while hasted
+
+**Symptom**: 2026-11-11 playtest, measured: a Warden with Battle Cry stacks and the Ember Wilf's howl took damage-dealing swings the client never played — the server swung 53 times, the client 42; damage landed with no swing, and the blade arrived after the damage on the hasted swings it did play.
+
+**Cause**: the server divides the cooldown by the pet's howl and Battle Cry's stacks (`Combat/FiringSystem`), but neither reached the client: `LocalFiring` predicted on the unhasted cooldown, and `WeaponPose` timed every clip to the base cooldown even under Momentum, while `MeleeSystem` lands the blow at the Hit marker of the clip played at the hasted speed.
+
+**Fix**: the server publishes its haste as the player's `AttackHaste` attribute; `LocalFiring` divides by it, and passes each attack's cooldown to `WeaponPose.release`, which plays that attack's clip at the speed the server times its blow by.
+
+**Measured**: Warden, 1-3, Battle Cry + Ember Wilf: server 78 swings, client 73 (was 53 / 42), every paired swing on the same cooldown across 18 distinct hasted cooldowns, blade within 0.1 s of its damage on 65 of 69.
+
+## Two quick shots right after stopping (double shot, fire rate above the weapon's)
+
+**Symptom**: 2026-11-11 playtest, measured: right after the player stops (or a target comes into line), the next volley goes far sooner than the cooldown — staff volleys 0.1-0.67 s apart on its 1.4 s cooldown, a bow volley 0.4 s after the last on 0.7 s. The two sides then sat out of step for the whole stand (the drawn orb 0.48 s ahead of its damage for 20 s).
+
+**Cause**: `FireRhythm.fired` booked a volley at its due time unless it was a whole cooldown late. Any volley that waited for something real — the settle after a move, a target in line — but less than a whole cooldown was booked as if it had gone on time, so the wait was banked and the next volley came that much sooner. Each side banks or restarts on its own lateness, so when one banked and the other restarted, they held an offset of up to a cooldown.
+
+**Fix**: only a frame's rounding is carried: a volley more than `FireRhythm.CARRY` (0.1 s, one frame at 10 fps) late starts the cadence again from now. `tests/FireRhythm.spec` pins that a late volley banks no more than that, and that stop-start never puts two volleys inside one cooldown.
+
+**Measured**: Ranger, 1-2, 115 standing gaps after the fix: 0 shorter than the cooldown (before: 1 in 81 bow, 7 in 47 staff).
+
 ## The enemy took the damage after the arrow had flown past it
 
 **Symptom**: 2026-11-03, the owner: "the enemy does take damage, but the arrow has already flown past, or the spark is in the wrong place."

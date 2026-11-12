@@ -8,12 +8,10 @@
 	released, instead of a round trip later. Move-or-shoot lives or dies on that
 	latency — see CLAUDE.md, "Feel beats correctness in the input path".
 
-	Because both sides evaluate independently, cadence can drift by up to one
-	cooldown under bad ping: the player may see a volley the server has not
-	fired yet, or vice versa. Visual only; damage is always the server's. If
-	playtesting shows the drift reads as "my arrows did nothing", the fix is to
-	have the server stamp volleys with a sequence number and let the client
-	reconcile, not to move the decision back to the client.
+	Because both sides evaluate independently, the server can fire first or
+	fire a volley this client never predicted. Its copy of each volley is
+	matched against the ones drawn here (`serverVolley`): an unmatched copy is
+	drawn, and this rhythm re-bases on it. Damage is always the server's.
 ]]
 
 local Players = game:GetService("Players")
@@ -88,7 +86,11 @@ local cachedAim: Vector3? = nil
 local function nearestEnemy(origin: Vector3): (Model?, Vector3?)
 	local now = os.clock()
 	if now - cachedAt < AIM_REUSE and (origin - cachedOrigin).Magnitude < 0.5 then
-		if cachedModel == nil or cachedModel.Parent then
+		--[[ Only an answer that found something: a cached "nothing in
+		     line" held the first shot at each room's start up to 80 ms
+		     after the server's, which saw the enemies arrive first, and the
+		     whole stand kept that lag (2026-11-11 playtest). ]]
+		if cachedModel and cachedModel.Parent then
 			return cachedModel, cachedAim
 		end
 	end
@@ -184,7 +186,25 @@ local function face(root: BasePart, direction: Vector3)
 	root.CFrame = CFrame.lookAt(root.Position, root.Position + flat)
 end
 
-local firedListeners: { () -> () } = {}
+local firedListeners: { (cooldown: number) -> () } = {}
+
+--[[ The cooldown of the last attack this client made, for a volley it
+     catches up on (`serverVolley`). ]]
+local lastCooldown: number? = nil
+
+--[[ When this client drew each of its own volleys that the server's copy
+     has not answered yet, oldest first. A copy answers the oldest; one that
+     finds none means the server fired a volley this client never drew. ]]
+local unanswered: { number } = {}
+
+--[[ The last swing's booking, and the rhythm's last attack before it, while
+     a melee swing may still be cancelled (`cancelSwing`). ]]
+local swingBooked: number? = nil
+local swingBefore = 0
+--[[ Longer than any round trip worth playing on, and short enough that a
+     prediction the server never fired cannot answer a later volley for
+     long. ]]
+local ANSWER_WITHIN = 1.0
 
 local function step()
 	--[[ Nothing is being simulated behind the cards, so nothing should be
@@ -229,12 +249,15 @@ local function step()
 	     Momentum quickens the predicted rhythm too. A client predicting the
 	     base rate drifts further from the server with every volley it draws. ]]
 	local stats = PlayerStats.get()
+	--[[ And the server's haste right now (the Ember Wilf's howl, Battle
+	     Cry), which it publishes for exactly this (`Combat/FiringSystem`). ]]
+	local haste = player:GetAttribute("AttackHaste")
 	local cooldown = AbilityEffects.cooldownAt(
 		stats.attackCooldown,
 		stats.momentumBonus,
 		rhythm.movedFor,
 		now - (rhythm.stationarySince or now)
-	)
+	) / (if type(haste) == "number" and haste > 0 then haste else 1)
 	if now - rhythm.lastFiredAt < cooldown then
 		return
 	end
@@ -254,14 +277,19 @@ local function step()
 	     rather than on the frame it went out, or this prediction's cadence
 	     creeps away from the server's for as long as the player stands still
 	     (`FireRhythm.fired`). ]]
+	local before = rhythm.lastFiredAt
 	FireRhythm.fired(rhythm, now, cooldown)
+	lastCooldown = cooldown
+	swingBooked = nil
 
 	--[[ A melee class's swing is the server's to land (`Combat/MeleeSystem`);
 	     this client only plays it. ]]
 	local class = Classes[stats.class]
 	if class and class.swing then
+		swingBefore = before
+		swingBooked = rhythm.lastFiredAt
 		for _, listener in firedListeners do
-			listener()
+			listener(cooldown)
 		end
 		FxEvents.fired:fire(aim.Unit)
 		return
@@ -278,17 +306,62 @@ local function step()
 
 	local look = if class then class.look else "Arrow"
 	ProjectileRenderer.spawnVolley("Player", origin, aim.Unit, specs, 0, nil, look)
+	table.insert(unanswered, now)
 	--[[ The arrow drawn here is this client's; the damage is the server's.
 	     `Fx/ShotDrift` keeps the two so they can be compared. ]]
 	ShotDrift.predicted(origin, aim.Unit)
 	for _, listener in firedListeners do
-		listener()
+		listener(cooldown)
 	end
 	FxEvents.fired:fire(aim.Unit)
 end
 
---[[ Called on every volley this client fires, for the archer's release. ]]
-function LocalFiring.onFired(listener: () -> ())
+--[[
+	The server's copy of one of this player's own volleys has arrived.
+	Returns true when this client already drew it, so the copy is dropped.
+
+	False means it did not: the server fired first (it saw the room's
+	enemies arrive a frame or two before this client did) or fired a volley
+	this client never predicted. The caller then draws the server's copy, so
+	no damage ever lands without its arrow, and this client's rhythm is
+	re-based on it, so its next volley goes with the server's next instead
+	of trailing it for the whole stand (2026-11-11 playtest: 0.05-0.2 s
+	behind after most room starts, the damage landing before the arrow).
+]]
+function LocalFiring.serverVolley(direction: Vector3): boolean
+	local now = os.clock()
+	while unanswered[1] and now - unanswered[1] > ANSWER_WITHIN do
+		table.remove(unanswered, 1)
+	end
+	if unanswered[1] then
+		table.remove(unanswered, 1)
+		return true
+	end
+
+	rhythm.lastFiredAt = now
+	local cooldown = lastCooldown or PlayerStats.get().attackCooldown
+	for _, listener in firedListeners do
+		listener(cooldown)
+	end
+	FxEvents.fired:fire(direction)
+	return false
+end
+
+--[[ The swing under way was cut short by moving before its blow landed
+     (`Fx/WeaponPose`): it never happened, so it gives its cooldown back,
+     as the server's does (`Combat/MeleeSystem`), and the two keep the same
+     beat and the same place in the combo. ]]
+function LocalFiring.cancelSwing()
+	if swingBooked and rhythm.lastFiredAt == swingBooked then
+		rhythm.lastFiredAt = swingBefore
+	end
+	swingBooked = nil
+end
+
+--[[ Called on every volley this client fires, for the archer's release,
+     with the cooldown it was fired on (Momentum and haste included), which
+     the attack's clip is timed to, as the server times its blow. ]]
+function LocalFiring.onFired(listener: (cooldown: number) -> ())
 	table.insert(firedListeners, listener)
 end
 
@@ -318,6 +391,7 @@ function LocalFiring.start()
 	pauseConnection = RunPaused.onChanged(function(value: boolean)
 		if not value then
 			FireRhythm.resume(rhythm, os.clock())
+			table.clear(unanswered)
 		end
 	end)
 
@@ -327,6 +401,7 @@ end
 function LocalFiring.reset()
 	rhythm.lastFiredAt = 0
 	rhythm.stationarySince = nil
+	table.clear(unanswered)
 	rebuildPipeline()
 end
 

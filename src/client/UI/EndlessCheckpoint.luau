@@ -55,7 +55,7 @@ local EndlessCheckpoint = {}
 
 --[[ The panel, in points, and how clear of the screen's edges it stays. ]]
 local WIDTH = 560
-local HEIGHT = 380
+local HEIGHT = 356
 local MARGIN = 12
 --[[ Each gift's colour, by its key in `Balance.Endless.checkpoint.picks`. ]]
 local TONES: { [string]: Color3 } = {

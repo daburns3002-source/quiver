@@ -815,7 +815,7 @@ local function layoutPanel(count: number)
 		else
 			-- under the hand, side by side
 			pair.AnchorPoint = Vector2.new(0.5, 1)
-			pair.Position = UDim2.new(0.5, 0, 1, -24)
+			pair.Position = UDim2.new(0.5, 0, 1, -40)
 			pair.Size = UDim2.fromOffset(440, 62)
 			pair:SetAttribute("SheetW", 880)
 			pairReroll.Position, pairReroll.Size = UDim2.fromScale(0, 0), UDim2.fromScale(0.4, 1)
@@ -1576,11 +1576,13 @@ function DraftScreen.start(chosen: (number) -> (), rerolled: () -> ())
 	heading.Size = UDim2.new(1, -40, 0, 48)
 	title = heading
 
-	local sub = stroked(root, "", CardTheme.fonts.body, 16, WHITE, 4)
+	--[[ 22, not the 16 the wide blocky font needed: the rounded one is
+	     narrower and read small at that size (Studio, 2026-11-12). ]]
+	local sub = stroked(root, "", CardTheme.fonts.body, 22, WHITE, 4)
 	sub.Name = "Subtitle"
 	sub.AnchorPoint = Vector2.new(0.5, 0)
-	sub.Position = UDim2.new(0.5, 0, 0, 84)
-	sub.Size = UDim2.new(1, -40, 0, 20)
+	sub.Position = UDim2.new(0.5, 0, 0, 82)
+	sub.Size = UDim2.new(1, -40, 0, 28)
 	subtitle = sub
 
 	local row = Instance.new("Frame")

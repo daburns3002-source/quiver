@@ -214,6 +214,23 @@ What exists and works, all verified in Studio rather than only by the gates:
 - **No class bodies** (owner, 2026-11-07): the Tripo class bodies (PR #499, #500) were
   removed; every player wears their own Roblox avatar. The class screen's look is still
   saved but changes nothing in game.
+- **Class armour sets** (Outfit C; owner, 2026-11-12: "make sure its not just that base male
+  model. add some clothing that resembles the class", then "for the class choosing make it C"):
+  over that avatar each class wears a full blocky set, only the face showing: the Ranger a leaf
+  hood, wooden shoulder guard, leaf cloak and big boots; the Arcanist a giant stepped star hat,
+  crystal shoulders and a wide robe; the Warden a horned helm, huge shoulder plates, a tabard
+  and a red cape. `Config/ClassOutfits` is the pieces (each a closed solid on one R15 body part,
+  measured on the standard blocky body; never a body cut into parts, which is what left holes
+  in the class bodies), `Util/ClassOutfit` dresses a character: it hides the avatar's own
+  accessories, sets its proportions to the standard ones in a run, welds every piece on
+  (massless, no collision, no raycast, like the weapon) and stretches it to the body part's
+  real size. Worn in a run (`Main` `refreshWeapon`, beside the weapon), on each class select
+  card and on the Gear portrait (`GearScreen.portrait`); the lobby keeps the player's own
+  avatar. **The pieces are plain blocks until the Claude Design models are imported**
+  (`docs/PIPELINES.md` 12, prompts in `docs/design-prompts/class-armour-2026-11.md`, sheets in
+  `assets/concepts/blocky/players/armour/`). `tests/ClassOutfits.spec` holds a set to its rules:
+  a full set per class, real body parts, the face open, nothing under the floor, no two faces
+  in one plane.
 - **Upgrades follow the owner's card design** (`design_handoff_upgrade_cards`,
   chosen 2026-10-22): 27 skills (Dual Bows added 2026-10-22), each with levels, a rarity and a stat line per
   level (`Config/Abilities`, `Config/Rarities`), dealt weighted by rarity with

@@ -37,6 +37,9 @@ local EndScreenTheme = {
 	victory = {
 		titleText = "VICTORY!",
 		subText = "LEVEL COMPLETE",
+		--[[ In its place when the player's coins buy an open egg (review
+		     item 9, owner 2026-11-11). ]]
+		hatchText = "YOU CAN HATCH AN EGG!",
 		buttonText = "NEXT LEVEL",
 		labels = { "ENEMIES DEFEATED", "TIME", "HEALTH LEFT" },
 		--[[ Type sizes (TextSize, sheet pixels) and the ink outline round
@@ -162,7 +165,9 @@ local EndScreenTheme = {
 
 	defeat = {
 		titleText = "DEFEAT",
-		subText = "SO CLOSE! TRY AGAIN",
+		--[[ One line on getting stronger (review item 9; was "SO CLOSE!
+		     TRY AGAIN"). ]]
+		subText = "HATCH PETS TO GET STRONGER",
 		buttonText = "TRY AGAIN",
 		labels = { "ENEMIES DEFEATED", "TIME SURVIVED", "PROGRESS" },
 		--[[ Type sizes (TextSize, sheet pixels) and the ink outline round

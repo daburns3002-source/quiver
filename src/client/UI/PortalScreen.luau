@@ -36,6 +36,7 @@ local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local BossBanners = require(ReplicatedStorage.Shared.Config.BossBanners)
 local Economy = require(ReplicatedStorage.Shared.Config.Economy)
 local GearAssets = require(ReplicatedStorage.Shared.Config.GearAssets)
+local LaunchLocks = require(ReplicatedStorage.Shared.Util.LaunchLocks)
 local LevelUnlocks = require(ReplicatedStorage.Shared.Util.LevelUnlocks)
 local LobbyConfig = require(ReplicatedStorage.Shared.Config.Lobby)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
@@ -121,6 +122,11 @@ end
 local function beaten(): LevelUnlocks.Beaten?
 	local p = profile
 	return if p then p.levelsBeaten else nil
+end
+
+local function bosses(): { [string]: boolean }?
+	local p = profile
+	return if p then p.bossesBeaten else nil
 end
 
 local function close()
@@ -386,7 +392,7 @@ local function start()
 	--[[ The portal's own gate (Endless waits on 1-10), then the level's.
 	     The server checks both again on START, and its answer is the one
 	     that decides (`Run/Lobby.startFor`). ]]
-	if not LevelUnlocks.portalOpen(portal and portal.requires, beaten()) then
+	if not portal or not LaunchLocks.portalOpen(portal, beaten(), bosses()) then
 		return
 	end
 	if not LevelUnlocks.isUnlocked(levels, Balance.Stages, beaten(), picked) then
@@ -418,7 +424,7 @@ fill = function(index: number)
 	--[[ A portal with a `requires` this player has not beaten (Endless
 	     before 1-10) draws every level locked and says what opens it,
 	     rather than looking playable and being refused on START. ]]
-	local portalOpen = LevelUnlocks.portalOpen(portal.requires, done)
+	local portalOpen = LaunchLocks.portalOpen(portal, done, bosses())
 	if portalOpen and not LevelUnlocks.isUnlocked(levels, Balance.Stages, done, picked) then
 		picked = LevelUnlocks.suggested(levels, Balance.Stages, done)
 	end
@@ -497,7 +503,7 @@ fill = function(index: number)
 	Chunky.put(sheet, title, table.unpack(L.title))
 	title.ZIndex = 8
 	if not portalOpen then
-		pill(sheet, `BEAT {portal.requires or ""}`, L.size)
+		pill(sheet, LaunchLocks.portalWords(portal), L.size)
 	elseif stage then
 		pill(sheet, sizeOf(stage), L.size)
 		pill(sheet, bossLine(stage), L.boss)

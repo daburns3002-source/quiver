@@ -659,7 +659,8 @@ Remotes.event(Remotes.PortalStart).OnServerEvent:Connect(function(player, index,
 	-- only a level this player has opened (`Util/LevelUnlocks`)
 	local profile = PlayerData.get(player)
 	local beaten = if profile then profile.levelsBeaten else nil
-	local stage = Lobby.startFor(root.Position, index, level, beaten)
+	local bosses = if profile then profile.bossesBeaten else nil
+	local stage = Lobby.startFor(root.Position, index, level, beaten, bosses)
 	if stage then
 		-- with whoever else stands at the portal (`Run/Party`)
 		Party.start(player, index :: number, level :: number, stage)

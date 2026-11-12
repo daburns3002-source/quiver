@@ -51,13 +51,18 @@ local skin = Chunky :: any
 local EDGE: Color3 = skin.edge or Chunky.navy
 local HEADER_TOP: Color3 = skin.headerTop or Color3.fromRGB(255, 164, 52)
 local HEADER_BOTTOM: Color3 = skin.headerBottom or Color3.fromRGB(240, 116, 24)
---[[ Stripes across a header band, and their slant in degrees. ]]
-local STRIPES = 8
-local SLANT = 115
+--[[ A header band's stripes: each this share of the band's height wide, a
+     stripe apart, leaning this many degrees from upright. They are frames
+     in a CanvasGroup, which clips turned children to its rounded corners; a
+     turned UIGradient bunched its stripes into the middle of a wide band
+     (`docs/FIXES.md`). ]]
+local STRIPE = 0.42
+local SLANT = 20
 
 type Panel = {
 	group: Frame,
 	header: Frame,
+	band: CanvasGroup,
 	title: TextLabel,
 	body: TextLabel,
 	titleStroke: UIStroke,
@@ -66,6 +71,7 @@ type Panel = {
 	headerOutline: UIStroke,
 	corner: UICorner,
 	headerCorner: UICorner,
+	bandCorner: UICorner,
 	padding: UIPadding,
 	gap: UIListLayout,
 	--[[ What it is showing, so the same prompt does not pop in every frame. ]]
@@ -106,20 +112,26 @@ local function palette(): PromptText.Palette
 	}
 end
 
---[[ Hard-edged stripes of two colours, slanted, as a gradient. ]]
-local function stripes(top: Color3, bottom: Color3): ColorSequence
-	local points = {}
-	local edge = 0.001
-	for i = 0, STRIPES - 1 do
-		local colour = if i % 2 == 0 then top else bottom
-		local from, to = i / STRIPES, (i + 1) / STRIPES
-		table.insert(points, ColorSequenceKeypoint.new(if i == 0 then 0 else from, colour))
-		table.insert(
-			points,
-			ColorSequenceKeypoint.new(if i == STRIPES - 1 then 1 else to - edge, colour)
-		)
+--[[ Lays a band's leaning stripes for its size: the second header colour
+     over the first, from past its left end to past its right. ]]
+local function layStripes(band: CanvasGroup, width: number, height: number)
+	for _, child in band:GetChildren() do
+		if child:IsA("Frame") then
+			child:Destroy()
+		end
 	end
-	return ColorSequence.new(points)
+	local stripe = math.max(8, math.floor(height * STRIPE))
+	for i = 0, math.ceil(width / (stripe * 2)) + 1 do
+		local bar = Instance.new("Frame")
+		bar.Name = "Stripe"
+		bar.AnchorPoint = Vector2.new(0.5, 0.5)
+		bar.BackgroundColor3 = HEADER_BOTTOM
+		bar.BorderSizePixel = 0
+		bar.Rotation = SLANT
+		bar.Size = UDim2.fromOffset(stripe, math.ceil(height * 2.2))
+		bar.Position = UDim2.new(0, i * stripe * 2 - stripe, 0.5, 0)
+		bar.Parent = band
+	end
 end
 
 local function label(parent: Instance, name: string, order: number): (TextLabel, UIStroke)
@@ -184,15 +196,11 @@ local function panel(gui: Instance, name: string, y: number): Panel
 
 	local header = Instance.new("Frame")
 	header.Name = "Header"
-	header.BackgroundColor3 = Color3.new(1, 1, 1)
+	header.BackgroundTransparency = 1
 	header.BorderSizePixel = 0
 	header.LayoutOrder = 1
 	header.ZIndex = 4
 	header.Parent = content
-	local band = Instance.new("UIGradient")
-	band.Rotation = SLANT
-	band.Color = stripes(HEADER_TOP, HEADER_BOTTOM)
-	band.Parent = header
 	local headerCorner = Instance.new("UICorner")
 	headerCorner.Parent = header
 	local headerOutline = Instance.new("UIStroke")
@@ -200,6 +208,15 @@ local function panel(gui: Instance, name: string, y: number): Panel
 	headerOutline.LineJoinMode = Enum.LineJoinMode.Round
 	headerOutline.Color = EDGE
 	headerOutline.Parent = header
+	local band = Instance.new("CanvasGroup")
+	band.Name = "Band"
+	band.BackgroundColor3 = HEADER_TOP
+	band.BorderSizePixel = 0
+	band.Size = UDim2.fromScale(1, 1)
+	band.ZIndex = 4
+	band.Parent = header
+	local bandCorner = Instance.new("UICorner")
+	bandCorner.Parent = band
 	local title, titleStroke = label(header, "Title", 1)
 	title.AutomaticSize = Enum.AutomaticSize.None
 	title.Size = UDim2.fromScale(1, 1)
@@ -210,6 +227,7 @@ local function panel(gui: Instance, name: string, y: number): Panel
 	return {
 		group = group,
 		header = header,
+		band = band,
 		title = title,
 		body = body,
 		titleStroke = titleStroke,
@@ -218,6 +236,7 @@ local function panel(gui: Instance, name: string, y: number): Panel
 		headerOutline = headerOutline,
 		corner = corner,
 		headerCorner = headerCorner,
+		bandCorner = bandCorner,
 		padding = padding,
 		gap = gap,
 		showing = nil,
@@ -247,8 +266,11 @@ local function fit(p: Panel?, maxWidth: number, view: Vector2, phone: boolean)
 	p.headerOutline.Thickness = math.max(2, edge - 1)
 	p.corner.CornerRadius = UDim.new(0, edge * 4)
 	p.headerCorner.CornerRadius = UDim.new(0, edge * 3)
-	p.header.Size = UDim2.new(1, 0, 0, math.floor(titleSize * 1.5))
+	p.bandCorner.CornerRadius = UDim.new(0, edge * 3)
+	local bandHeight = math.floor(titleSize * 1.5)
+	p.header.Size = UDim2.new(1, 0, 0, bandHeight)
 	local pad = math.floor(bodySize * 0.6)
+	layStripes(p.band, width - pad * 2, bandHeight)
 	p.padding.PaddingLeft = UDim.new(0, pad)
 	p.padding.PaddingRight = UDim.new(0, pad)
 	p.padding.PaddingTop = UDim.new(0, pad)
@@ -387,7 +409,8 @@ end
 --[[ One prompt, built inside `parent` and sized as if `parent` were the
      screen (a phone's when `phone`), in the words for `device`: for looking
      at a phone's layout in Studio, which cannot emulate one over MCP. Runs
-     nothing; the caller destroys what it returns. ]]
+     nothing; the caller destroys what it returns. `parent`'s ScreenGui
+     must be in sibling order (`ZIndexBehavior`), as this one's is. ]]
 function TutorialPrompts.preview(
 	parent: GuiObject,
 	id: string,
@@ -406,6 +429,8 @@ function TutorialPrompts.start()
 	gui.Name = "TutorialPrompts"
 	gui.ResetOnSpawn = false
 	gui.ScreenInsets = Enum.ScreenInsets.DeviceSafeInsets
+	-- sibling order: a header's CanvasGroup only clips its stripes in it
+	gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 	-- over the draft (100) and the skill bar (101), so nothing on the fight's
 	-- screen covers the words (the tutorial has no boss banner, 102); under a
 	-- NEW ENEMY! screen (103), which the room prompts wait behind anyway

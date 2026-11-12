@@ -110,8 +110,8 @@ local Tutorial = {
 		--[[ Over the first upgrade hand, until a card is picked. ]]
 		card = {
 			title = "LEVEL UP!",
-			keyboard = "*PICK ONE* UPGRADE: CLICK A CARD, THEN [CHOOSE!]. YOU KEEP IT ALL RUN",
-			touch = "*PICK ONE* UPGRADE: TAP A CARD, THEN [CHOOSE!]. YOU KEEP IT ALL RUN",
+			keyboard = "*PICK ONE* UPGRADE: CLICK A CARD, THEN [CHOOSE!] TO KEEP IT ALL RUN",
+			touch = "*PICK ONE* UPGRADE: TAP A CARD, THEN [CHOOSE!] TO KEEP IT ALL RUN",
 			gamepad = "*PICK ONE* UPGRADE: PICK A CARD WITH THE [LEFT STICK], THEN PRESS [A]",
 		},
 	} :: { [string]: Prompt },

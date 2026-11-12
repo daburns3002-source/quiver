@@ -67,6 +67,12 @@ export type Portal = {
 	     boss is the proof the mode is worth opening (`docs/ENDLESS.md`).
 	     Nil for a portal that needs nothing. ]]
 	requires: string?,
+	--[[ What this portal waits on once the game is locked for launch
+	     (`Config/Launch.locks`, read through `Util/LaunchLocks`): a level
+	     that must be beaten, as `requires`, or an area whose boss must be.
+	     Nil for the first area, which nothing gates. While the switch is
+	     off this is not read, and the portal is as open as it is today. ]]
+	atLaunch: { requires: string?, boss: string? }?,
 }
 
 --[[ A station's footprint and height, which the spacing between stations is
@@ -160,13 +166,23 @@ local Lobby = {
 			levels = { 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 },
 			tint = GREEN,
 		},
-		{ name = "Thornwood", levels = { 4 }, tint = PURPLE },
+		{ name = "Thornwood", levels = { 4 }, tint = PURPLE, atLaunch = { requires = "1-10" } },
 		--[[ The Drowned Village (2026-11-07, owner: "MAKE SURE ARENA 3 AND 4
 		     ARE PLAYABLE"): one level, ten rooms ending in the Old Tollcrab. ]]
-		{ name = "Drowned Village", levels = { 18 }, tint = BLUE },
+		{
+			name = "Drowned Village",
+			levels = { 18 },
+			tint = BLUE,
+			atLaunch = { boss = "Thornwood" },
+		},
 		--[[ Bogheart Caverns (2026-11-06): one level, twenty rooms ending in
 		     Grandmother Gulp, as Thornwood's is. ]]
-		{ name = "Bogheart Caverns", levels = { 19 }, tint = CYAN },
+		{
+			name = "Bogheart Caverns",
+			levels = { 19 },
+			tint = CYAN,
+			atLaunch = { boss = "DrownedVillage" },
+		},
 		{ name = "Windswept Cliffs" },
 		{ name = "Frostpeak Pass" },
 		{ name = "Ember Mines" },
@@ -178,10 +194,10 @@ local Lobby = {
 		     of the arches so the ten areas keep their order in the rows. ]]
 		--[[ Open to everyone while the game is in playtest (owner,
 		     2026-10-28: "since its still in playtest phase, that should
-		     just be unlocked for now"). Before launch this takes
-		     `requires = "1-10"` back: with no cards and no gear Endless
-		     is a death at floor 6 (`docs/ENDLESS.md`). ]]
-		{ name = "Endless", levels = { 17 }, tint = CYAN },
+		     just be unlocked for now"). At launch (`Config/Launch.locks`)
+		     it waits on 1-10 again: with no cards and no gear Endless is
+		     a death at floor 6 (`docs/ENDLESS.md`). ]]
+		{ name = "Endless", levels = { 17 }, tint = CYAN, atLaunch = { requires = "1-10" } },
 	} :: { Portal },
 	--[[
 		The owner's imported lobby models (2026-11-01). `native` is each

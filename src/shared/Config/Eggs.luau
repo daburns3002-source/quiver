@@ -24,6 +24,10 @@ export type Egg = {
 	area: string,
 	price: number,
 	unlock: string?,
+	--[[ The area whose boss must be beaten before this egg can be bought
+	     once the game is locked for launch (`Config/Launch.locks`, read
+	     through `Util/LaunchLocks`). Not read while the switch is off. ]]
+	atLaunch: string?,
 }
 
 local Eggs = {
@@ -36,20 +40,21 @@ local Eggs = {
 			area = "Thornwood",
 			price = 1000,
 			-- open from the start for now (owner, 2026-10-27: "the mossy glade
-			-- egg and thornwood egg should be unlocked for now"); its unlock
-			-- once that ends: unlock = "MossyGlade"
+			-- egg and thornwood egg should be unlocked for now"); at launch
+			-- it waits on King Bloblin
+			atLaunch = "MossyGlade",
 		},
 		--[[ Bogheart Caverns, area 4 (2026-11-06): its eight Tripo pets
 		     imported. Priced off the area's crate (`Config/Shop`, 4000), a
 		     placeholder like the others. Open from the start while the game
-		     is in playtest, as Thornwood's is: its area has no portal yet,
-		     so an unlock would shut it for good. Once that ends:
-		     unlock = "DrownedVillage". ]]
+		     is in playtest, as Thornwood's is. At launch it waits on the
+		     Drowned Village's boss. ]]
 		{
 			key = "BogheartEgg",
 			name = "BOGHEART EGG",
 			area = "BogheartCaverns",
 			price = 4000,
+			atLaunch = "DrownedVillage",
 		},
 	} :: { Egg },
 

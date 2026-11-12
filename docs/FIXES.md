@@ -16,6 +16,49 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## A duplicate weapon said "+1 COPY" and nothing was saved; the 40% refund was never paid
+
+The 2026-11-11 loop and UI review, item 1. A crate that rolled a weapon
+already owned showed "+1 COPY" and kept nothing: `Wallet.grantWeapon` set
+`weapons[name] = true` again, and the 40% back that CLAUDE.md promised was
+config and a function (`Shop.duplicateRefund`, `ShopRules.refund`) that
+nothing called. The owner's merge (2026-10-28) had been built on a branch
+that never reached main. It is in now, as save version 10: every copy is
+kept at tier C (`profile.tiers`), three of a tier make one of the next, C to
+B to A to S, and the best tier held scales the damage (`Util/MergeRules`,
+MERGE on the gear screen's item card). Measured in Studio, 2026-11-12:
+twelve Mossy Glade crates left the Acorn Bow at C 10 in the save (and the
+reveal's note reads "+1 C COPY TO MERGE"); MERGE on its card made it C 7,
+B 1 and its tile "B x8"; merged to A and equipped, the ATK plate went from
+100 to 151 and the server's hits on a training dummy from 100.00 (Twig Bow,
+C) to 151.20 (the bow's own 1.05 times A's 1.44). A Mosslet merged to B hit
+for 38.40 against its 32. Five bad requests to the remote (a tier with fewer
+than three, a weapon not owned, a wrong kind or type) changed nothing, and
+two sent at once merged once. Words on a reveal that promise something kept
+must be checked against what the save holds afterwards.
+
+## Run banner said "You died - restarting"; the leave panel said progress is lost
+
+The 2026-11-11 loop and UI review. Nothing restarts by itself after a death:
+the Defeat screen offers the retry. And leaving a run keeps the coins its
+kills paid, which are in the wallet the moment they are earned
+(`RunSession.payCoins`); what ends is the run. The banner now says DEFEATED
+(`Util/RunHudRules.status`, pinned by `tests/RunHud.spec`) and the panel
+"You keep your coins. The run ends here." (`UI/ControlMenu`). Words on a
+screen that describe what the server does must be checked against the server.
+
+## Phone: MENU under the moving thumb, draft buttons 27 points tall
+
+The 2026-11-11 review, on an upright 390 x 844 phone. The MENU button stood
+136 x 64 at the left edge at mid-height, where the left thumb moves, and its
+confirm panel, laid on the 1920 x 1080 sheet, came to about 142 points wide.
+The draft is fitted to the screen's width, about half size, which left
+Choose! and Reroll some 87 x 27 points over an empty lower half. Now the MENU
+is a 48-point pause icon at the top left with a panel sized in points, and
+the upright draft has a tray under it with 56-point buttons and the selected
+card read out (`Util/RunHudRules`, `Config/Hud`). Anything a thumb presses is
+sized in screen points and checked at 390 wide, not placed on a 16:9 sheet.
+
 ## Howl Aura arrows invisible from above
 
 Owner, 2026-11-10, on the review sheet: the pet Howl Aura's arrow could not be
@@ -1732,3 +1775,35 @@ join nothing held `RunPaused.beforeArrival()`: the class screen saw a loaded pro
 opened under the loading screen, and was still up when the tutorial began. `Main.client` now calls
 `RunPaused.setTitle(true)` on its first frame, before the wait. Anything that opens "once the player
 has arrived" must be held from the first frame, not from when the title is drawn.
+
+## SKIP TUTORIAL fired on a Return or gamepad A meant for something else (2026-11-11)
+
+A `GuiButton` is `Selectable` by default, and when the selected one goes away (the draft's Choose!,
+the story's SKIP) Roblox moves the selection to the nearest one left: SKIP TUTORIAL. The next Return
+or gamepad A (the dash!) pressed it and the tutorial ended in the lobby. `UI/TutorialSkip` now makes
+its button unselectable. Any always-on HUD button that must not be hit by accident needs the same.
+
+## A slanted UIGradient's stripes bunched into the middle of a wide band (2026-11-11)
+
+The tutorial prompt's striped header was one `UIGradient` of hard-edged keypoints, turned 20 degrees.
+On a band 790 by 70 all nine stripes sat in the middle ~200 px and the rest was one flat colour: a
+turned gradient spans the element's short side, not its width. The stripes are now turned frames in
+a `CanvasGroup` (`UI/TutorialPrompts` `layStripes`), which clips turned children to its rounded
+corners; a plain frame's `ClipsDescendants` does not clip them. Keep text outside the CanvasGroup.
+The ScreenGui must be `ZIndexBehavior.Sibling`: one made with `Instance.new` is `Global`, and there
+the stripes were drawn behind the panel, unclipped, sticking out of its top.
+
+## The lobby's coins and gems vanished after the Blacksmith opened (2026-11-11)
+
+The lobby wallet was the Blacksmith screen's own, and `HatchStand.chrome` hid it each time the shop
+drew; only a wallet change drew it again. The lobby now has its own pills (`UI/LobbyHud`, from
+`StationScreen.onProfile`), shown whenever no station or portal screen is open, and the shop hides
+nothing outside itself.
+
+## The station button and the close X were too small for a finger on an upright phone (2026-11-11)
+
+"HATCH EGGS" sat on the 16:9 sheet (~97 x 21 points upright) and the chunky X was 110 sheet pixels
+(~39 points; since the re-skin it is drawn in the panel's header, ~24 points). On a touch layout the
+station button is now laid out in points, full width and 60 tall (`StationScreen`'s prompt,
+`Config/LobbyHud`). The X keeps its drawn size and takes presses over at least 48 points round it
+(`Chunky.close`), on every chunky screen.

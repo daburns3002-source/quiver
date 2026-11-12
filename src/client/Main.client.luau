@@ -39,17 +39,21 @@ local DraftScreen = require(script.Parent.UI.Cards.DraftScreen)
 local EggScreen = require(script.Parent.UI.EggScreen)
 local EndScreen = require(script.Parent.UI.EndScreen)
 local EndlessCheckpoint = require(script.Parent.UI.EndlessCheckpoint)
+local EndlessPrize = require(script.Parent.UI.EndlessPrize)
 local EnemyHealthBars = require(script.Parent.Fx.EnemyHealthBars)
 local EnemyRig = require(script.Parent.Fx.EnemyRig)
 local EnemySounds = require(script.Parent.Fx.EnemySounds)
 local ForestAmbience = require(script.Parent.Fx.ForestAmbience)
+local FxEvents = require(script.Parent.Fx.Upgrades.FxEvents)
 local Game = require(Shared.Config.Game)
 local GearScreen = require(script.Parent.UI.GearScreen)
+local Haptics = require(script.Parent.Fx.Haptics)
 local HatcheryPointer = require(script.Parent.Fx.HatcheryPointer)
 local HealthBar = require(script.Parent.UI.HealthBar)
 local HitFeedback = require(script.Parent.Fx.HitFeedback)
 local HitSquash = require(script.Parent.Fx.HitSquash)
 local IntroCutscene = require(script.Parent.UI.IntroCutscene)
+local LobbyHud = require(script.Parent.UI.LobbyHud)
 local LobbyMotes = require(script.Parent.Fx.LobbyMotes)
 local LobbyPreload = require(script.Parent.Fx.LobbyPreload)
 local LocalFiring = require(script.Parent.Combat.LocalFiring)
@@ -77,6 +81,7 @@ local RootHoldFx = require(script.Parent.Fx.RootHoldFx)
 local RunBanner = require(script.Parent.UI.RunBanner)
 local RunPaused = require(script.Parent.RunPaused)
 local SandboxMenu = require(script.Parent.UI.SandboxMenu)
+local SettingsScreen = require(script.Parent.UI.SettingsScreen)
 local SharedFx = require(script.Parent.Fx.Upgrades.SharedFx)
 local ShopScreen = require(script.Parent.UI.ShopScreen)
 local ShotDrift = require(script.Parent.Fx.ShotDrift)
@@ -85,6 +90,8 @@ local SkillBar = require(script.Parent.UI.Cards.SkillBar)
 local SlimeHop = require(script.Parent.Fx.SlimeHop)
 local SlimeResidue = require(script.Parent.Fx.SlimeResidue)
 local SmoothMotion = require(script.Parent.Fx.SmoothMotion)
+local SoulFireFx = require(script.Parent.Fx.Upgrades.SoulFireFx)
+local SoulstoneShop = require(script.Parent.UI.SoulstoneShop)
 local SoundFx = require(script.Parent.Fx.SoundFx)
 local StoryCutscene = require(script.Parent.UI.StoryCutscene)
 local TelegraphRenderer = require(script.Parent.Fx.TelegraphRenderer)
@@ -295,6 +302,7 @@ RangerFx.start()
 WardenFx.start()
 WeaponGlow.start()
 ArcanistFx.start(Workspace)
+SoulFireFx.start(Workspace)
 -- the class upgrades of 2026-10-27, drawn big
 RangerBuildFx.start()
 ArcanistBuildFx.start()
@@ -313,6 +321,9 @@ BossBar.start()
 BossBanner.start()
 NewEnemyScreen.start()
 EndlessCheckpoint.start()
+EndlessPrize.start()
+SoulstoneShop.start()
+SettingsScreen.start()
 TutorialPrompts.start()
 TutorialSkip.start()
 PickupFx.start(Workspace)
@@ -370,6 +381,20 @@ Remotes.event(Remotes.ShotFired).OnClientEvent:Connect(function(event: ShotEvent
 		on ownership alone would make the one ability that fires free arrows
 		fire invisible ones.
 	]]
+	--[[ Chain Lightning's arc is lightning between two bodies, not a shot in
+	     flight: the server still flies it, and only the bolt is drawn. ]]
+	if event.arc then
+		local spec = event.specs[1]
+		FxEvents.arc:fire(
+			event.origin,
+			event.direction,
+			event.from,
+			event.to,
+			if spec then spec.speed else Balance.Projectile.arcSpeed
+		)
+		return
+	end
+
 	if event.faction == "Player" and event.shooterId == player.UserId and event.predicted then
 		--[[ Thrown away, but measured first: this is the only place the
 		     server's own origin and aim for a volley the client drew itself
@@ -406,9 +431,9 @@ Remotes.event(Remotes.EnemyDied).OnClientEvent:Connect(function()
 end)
 Remotes.event(Remotes.PlayerDamaged).OnClientEvent:Connect(function()
 	SoundFx.play("player_hurt")
+	Haptics.play("hit")
 end)
 Remotes.event(Remotes.Explosion).OnClientEvent:Connect(HitFeedback.onExplosion)
-Remotes.event(Remotes.SoulLink).OnClientEvent:Connect(HitFeedback.onSoulLink)
 Remotes.event(Remotes.PlayerDodged).OnClientEvent:Connect(HitFeedback.onPlayerDodged)
 --[[ A boss's hit moving this player: pushed, or held still by a grab. ]]
 Remotes.event(Remotes.PlayerShoved).OnClientEvent:Connect(function(direction, distance)
@@ -447,6 +472,7 @@ Remotes.event(Remotes.RunStateChanged).OnClientEvent
 		TutorialPrompts.onRunStateChanged(index, total, state)
 		TutorialSkip.onRunStateChanged(state)
 		ControlMenu.onRunStateChanged(index, total, state)
+		EndlessPrize.onRunStateChanged(state)
 
 		--[[ The end screen belongs to the run that ended, so it clears the
 		     moment the next one starts fighting. ]]
@@ -508,6 +534,8 @@ BoardYou.start()
 PetPreview.follow()
 -- a lit portal's screen and its level selector, in the lobby
 PortalScreen.start()
+-- the lobby's pills, PLAY, and the fight HUD put away there
+LobbyHud.start()
 
 DraftScreen.start(function(index: number)
 	DraftScreen.hide()

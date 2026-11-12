@@ -14,6 +14,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Economy = require(ReplicatedStorage.Shared.Config.Economy)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
+local MergeRules = require(ReplicatedStorage.Shared.Util.MergeRules)
 local Purse = require(ReplicatedStorage.Shared.Util.Purse)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local SaveSchema = require(ReplicatedStorage.Shared.Util.SaveSchema)
@@ -83,15 +84,66 @@ function Wallet.pay(player: Player, cost: Purse.Cost): boolean
 	return true
 end
 
---[[ Adds a weapon; false if it was owned already. ]]
+--[[ One more C copy of a weapon or pet (`Util/MergeRules`). ]]
+local function addCopy(store: { [string]: MergeRules.Counts }, key: string): MergeRules.Counts
+	local held: MergeRules.Counts = store[key] or {}
+	held.C = (held.C or 0) + 1
+	store[key] = held
+	return held
+end
+
+--[[ Adds a weapon, one C copy to merge (`Util/MergeRules`); true if it was
+     the player's first. A duplicate is saved as that copy, never lost. ]]
 function Wallet.grantWeapon(player: Player, weapon: string): boolean
 	local profile = PlayerData.get(player)
-	if not profile or profile.weapons[weapon] then
+	if not profile then
 		return false
 	end
+	local new = not profile.weapons[weapon]
 	profile.weapons[weapon] = true
+	addCopy(profile.tiers.weapons, weapon)
 	DexPay.pay(player, profile, "Weapons", weapon)
-	log.info("%s gets the %s", player.Name, weapon)
+	log.info("%s gets the %s%s", player.Name, weapon, if new then "" else " (another copy)")
+	changed(player, profile)
+	return new
+end
+
+--[[ The best merge tier held of a weapon, "C" for one not in the save
+     (`Run/RunSession` scales the run's damage by it). ]]
+function Wallet.weaponTier(player: Player, weapon: string?): string
+	local profile = PlayerData.get(player)
+	local held = profile and weapon and profile.tiers.weapons[weapon]
+	return MergeRules.best(held) or "C"
+end
+
+--[[ The best merge tier held of a pet, "C" for one not in the save (a
+     Studio sandbox pet); `Combat/PetCombat` scales its blows by it. Read
+     from the save each time, so a merge counts from the next blow. ]]
+function Wallet.petTier(player: Player, pet: string): string
+	local profile = PlayerData.get(player)
+	return MergeRules.best(profile and profile.tiers.pets[pet]) or "C"
+end
+
+--[[ Merges three copies of a weapon or pet at `tier` into one of the next
+     (`Util/MergeRules`); false, and nothing changed, when the player has
+     not three or `tier` is S. ]]
+function Wallet.merge(player: Player, kind: string, key: string, tier: string): boolean
+	local profile = PlayerData.get(player)
+	if not profile then
+		return false
+	end
+	local store = if kind == "weapon"
+		then profile.tiers.weapons
+		elseif kind == "pet" then profile.tiers.pets
+		else nil
+	local held = store and store[key]
+	if not held or not MergeRules.merge(held, tier) then
+		return false
+	end
+	if kind == "pet" then
+		profile.pets[key] = MergeRules.total(held)
+	end
+	log.info("%s merged three %s %s", player.Name, tier, key)
 	changed(player, profile)
 	return true
 end
@@ -220,12 +272,10 @@ end
 	account: a milestone already in `endlessMilestones` is skipped, so a
 	second run that passes floor 10 pays nothing for it.
 
-	Each entry's reward pays its Soulstones today. **The egg, gear, cosmetic
-	and title grants do not exist yet**: when they do, this is where they
-	are granted from, reading the entry's `kind` and `rarity`, and nothing
-	else about the mode changes. The milestone table itself is still
-	unconfirmed by the owner, so it stays one table to swap
-	(`Balance.Endless.milestones`).
+	This pays each entry's Soulstones and records it. Its eggs and crates
+	are opened by the caller with what this returns (`Data/EndlessPrizes`,
+	from `Run/RoomController`), since rolling them needs the hatchery and
+	this module sits under it.
 
 	A milestone's Soulstones are **not** under the run cap: the cap is there
 	so depth cannot be farmed for currency, and a milestone can be claimed
@@ -264,7 +314,8 @@ function Wallet.grantPet(player: Player, pet: string): boolean
 		return false
 	end
 	local had = profile.pets[pet] or 0
-	profile.pets[pet] = had + 1
+	-- a duplicate is one more C copy to merge (`Util/MergeRules`)
+	profile.pets[pet] = MergeRules.total(addCopy(profile.tiers.pets, pet))
 	DexPay.pay(player, profile, "Pets", pet)
 	log.info("%s hatches a %s%s", player.Name, pet, if had > 0 then " (again)" else "")
 	changed(player, profile)

@@ -6,8 +6,8 @@
 	non-negotiable 2), every egg paid whole through `Data/Wallet`.
 
 	- `Remotes.HatchEgg(key, count)`: pays `count` eggs (1 or 3), rolls each,
-	  keeps every pet (a second of one is counted, for fusing later), and
-	  answers `EggHatched`.
+	  keeps every pet (a second of one is another C copy to merge,
+	  `Util/MergeRules`), and answers `EggHatched`.
 	- `Remotes.EquipPet(slot, pet)`: an owned pet into slot 1 or 2, or nil to
 	  empty it; saved.
 
@@ -28,6 +28,7 @@ local Sandbox = require(ReplicatedStorage.Shared.Config.Sandbox)
 
 local Pity = require(ReplicatedStorage.Shared.Util.Pity)
 local PlayerData = require(script.Parent.PlayerData)
+local PrizeRules = require(ReplicatedStorage.Shared.Util.PrizeRules)
 local Rewards = require(script.Parent.Rewards)
 local Wallet = require(script.Parent.Wallet)
 
@@ -103,6 +104,32 @@ function Hatchery.grantFree(player: Player, key: string): Result?
 	local results = rollEggs(player, profile, pool, 1)
 	log.info("%s was given a free %s", player.Name, key)
 	return results[1]
+end
+
+--[[ `n` free eggs at once, a prize's to give (an Endless milestone,
+     `Data/EndlessPrizes`): rolled and kept as bought ones are, the pity
+     counted. With `least`, the first is sure to be at least that rarity
+     (`Util/PrizeRules.guaranteed`). Returns the pets, to show. ]]
+function Hatchery.grantMany(player: Player, key: string, n: number, least: string?): { Result }
+	local profile = PlayerData.get(player)
+	local pool = EggRules.pool(key)
+	if not profile or not EggRules.find(key) or #pool == 0 or n < 1 then
+		return {}
+	end
+	local results: { Result } = {}
+	local left = n
+	if least then
+		local sure = PrizeRules.guaranteed(pool, least)
+		local entry = sure[random:NextInteger(1, #sure)]
+		profile.pity.eggs = Pity.after(profile.pity.eggs, entry.rarity == "Mythic")
+		table.insert(results, { pet = entry.pet, new = Wallet.grantPet(player, entry.pet) })
+		left -= 1
+	end
+	for _, result in rollEggs(player, profile, pool, left) do
+		table.insert(results, result)
+	end
+	log.info("%s was given %d free %s", player.Name, n, key)
+	return results
 end
 
 --[[ Whether the player's coins buy an open egg, for Victory's nudge. ]]

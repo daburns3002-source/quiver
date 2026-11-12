@@ -120,6 +120,7 @@ local function fire(session: Session, root: BasePart, now: number, cooldown: num
 			splashScale = spec.splashScale,
 			bounces = spec.bounces,
 			ricochet = spec.ricochet,
+			arcSpeed = spec.arcSpeed,
 			homing = spec.homing,
 			delay = spec.delay,
 			burn = spec.burn,

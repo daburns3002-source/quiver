@@ -62,7 +62,7 @@ return function(t: TestRunner.Helper)
 
 	t.test("a new profile has beaten no level", function()
 		local p = SaveSchema.migrate(nil)
-		t.isTrue(SaveSchema.VERSION >= 9)
+		t.equal(SaveSchema.VERSION, 11)
 		t.isNil((next(p.levelsBeaten)))
 	end)
 
@@ -218,6 +218,32 @@ return function(t: TestRunner.Helper)
 		t.equal(old.version, SaveSchema.VERSION)
 	end)
 
+	t.test("8 -> 9: settings are the defaults unless a clean copy was saved", function()
+		local fresh = SaveSchema.default().settings
+		t.equal(fresh.music, 1)
+		t.equal(fresh.sound, 1)
+		t.isTrue(fresh.haptics)
+		local old = SaveSchema.migrate({ version = 8, coins = 5 })
+		t.equal(old.settings.music, 1, "an older save invented a volume")
+		t.isTrue(old.settings.haptics)
+		t.equal(old.version, SaveSchema.VERSION)
+		local kept = SaveSchema.migrate({
+			version = 9,
+			settings = { music = 0.5, sound = 0, haptics = false },
+		})
+		t.equal(kept.settings.music, 0.5)
+		t.equal(kept.settings.sound, 0)
+		t.isFalse(kept.settings.haptics)
+		local broken = SaveSchema.migrate({
+			version = 9,
+			settings = { music = "loud", sound = 7, haptics = 1 },
+		})
+		t.equal(broken.settings.music, 1, "a string was kept as a volume")
+		t.equal(broken.settings.sound, 1, "a volume over full was not clamped")
+		t.isTrue(broken.settings.haptics, "a number was kept as a yes/no")
+		t.equal(SaveSchema.migrate({ version = 9, settings = "x" }).settings.music, 1)
+	end)
+
 	t.test("a newer game's save is not readable here", function()
 		t.isFalse(SaveSchema.readable({ version = SaveSchema.VERSION + 1 }))
 		t.isTrue(SaveSchema.readable({ version = SaveSchema.VERSION }))
@@ -235,9 +261,9 @@ return function(t: TestRunner.Helper)
 		t.isNil(p.items.RoyalJelly)
 		t.isFalse(Purse.pay(p, { gems = 1 }))
 	end)
-	t.test("version 8 migrates up to the rewards: nothing claimed, nothing a windfall", function()
+	t.test("version 10 migrates up to the rewards: nothing claimed, nothing a windfall", function()
 		local p = SaveSchema.migrate({
-			version = 8,
+			version = 10,
 			pets = { EmberWilf = 1 },
 			weapons = { AcornBow = true },
 			enemiesSeen = { MossSlime = true },
@@ -254,9 +280,9 @@ return function(t: TestRunner.Helper)
 		t.isTrue(r.dexPaid["Weapons:TwigBow"], "the starters count as paid")
 	end)
 
-	t.test("version 9 keeps its rewards and drops what is broken", function()
+	t.test("version 11 keeps its rewards and drops what is broken", function()
 		local p = SaveSchema.migrate({
-			version = 9,
+			version = 11,
 			rewards = {
 				loginDay = 20400,
 				loginCount = 9,

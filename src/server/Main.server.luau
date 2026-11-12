@@ -49,13 +49,17 @@ local Party = require(script.Parent.Run.Party)
 local PetCombat = require(script.Parent.Combat.PetCombat)
 local PetCombatConfig = require(ReplicatedStorage.Shared.Config.PetCombat)
 local PetPreview = require(script.Parent.Dev.PetPreview)
+local PlayPortal = require(ReplicatedStorage.Shared.Util.PlayPortal)
 local PlayerData = require(script.Parent.Data.PlayerData)
+local PlayerSettings = require(script.Parent.Data.Settings)
 local ProjectileSystem = require(script.Parent.Combat.ProjectileSystem)
 local Remotes = require(game:GetService("ReplicatedStorage").Shared.Net.Remotes)
 local Rewards = require(script.Parent.Data.Rewards)
 local RoomController = require(script.Parent.Run.RoomController)
 local RunSession = require(script.Parent.Run.RunSession)
 local Sandbox = require(ReplicatedStorage.Shared.Config.Sandbox)
+local SoulLink = require(script.Parent.Combat.SoulLink)
+local SoulstoneShop = require(script.Parent.Data.SoulstoneShop)
 local StoryLeaderboard = require(script.Parent.Run.StoryLeaderboard)
 local Tutorial = require(ReplicatedStorage.Shared.Config.Tutorial)
 local UpgradeEffects = require(script.Parent.Fx.UpgradeEffects)
@@ -76,6 +80,8 @@ PlayerData.onLoaded(Wallet.send)
 PlayerData.start()
 WeaponShop.start()
 Hatchery.start()
+SoulstoneShop.start()
+PlayerSettings.start()
 Rewards.start()
 --[[ The pets' models, for every player's pets at heel (`Fx/PetPreview`). ]]
 task.spawn(PetPreview.build)
@@ -661,10 +667,49 @@ Remotes.event(Remotes.PortalStart).OnServerEvent:Connect(function(player, index,
 	-- only a level this player has opened (`Util/LevelUnlocks`)
 	local profile = PlayerData.get(player)
 	local beaten = if profile then profile.levelsBeaten else nil
-	local stage = Lobby.startFor(root.Position, index, level, beaten)
+	local bosses = if profile then profile.bossesBeaten else nil
+	local stage = Lobby.startFor(root.Position, index, level, beaten, bosses)
 	if stage then
 		-- with whoever else stands at the portal (`Run/Party`)
 		Party.start(player, index :: number, level :: number, stage)
+	end
+end)
+
+--[[ PLAY in the lobby (`UI/LobbyHud`): to the player's frontier portal
+     (`Util/PlayPortal`), whose screen then opens by the heartbeat below as
+     if they had walked in. Asks nothing of the client but the press. ]]
+local lastPlay: { [Player]: number } = {}
+Players.PlayerRemoving:Connect(function(player)
+	lastPlay[player] = nil
+end)
+Remotes.event(Remotes.LobbyPlay).OnServerEvent:Connect(function(player)
+	local session = RunSession.get(player)
+	local root = session and session.root
+	local character = player.Character
+	if
+		not session
+		or session.atTitle
+		or not root
+		or not character
+		or not RoomController.inLobby()
+	then
+		return
+	end
+	local now = os.clock()
+	if now - (lastPlay[player] or -math.huge) < 0.5 then
+		return
+	end
+	lastPlay[player] = now
+	local profile = PlayerData.get(player)
+	local index = PlayPortal.pick(
+		LobbyConfig.portals,
+		Balance.Stages,
+		if profile then profile.levelsBeaten else nil,
+		if profile then profile.bossesBeaten else nil,
+		Balance.endlessStage
+	)
+	if index then
+		character:PivotTo(Lobby.mouthAt(index))
 	end
 end)
 
@@ -807,6 +852,8 @@ RunService.Heartbeat:Connect(function(deltaTime: number)
 	ProjectileSystem.step(deltaTime, now)
 	--[[ After projectiles, so a burn lit this frame does not tick in it. ]]
 	Burning.step(now)
+	--[[ Soul Chain's fireball landing on each enemy it leaps to. ]]
+	SoulLink.step(now)
 	--[[ Meteors landing and cracked ground erupting (the Mythics). ]]
 	AreaStrikes.step(now)
 	--[[ The class upgrades: black holes dragging, the phoenix's fire, the

@@ -30,6 +30,7 @@ local Workspace = game:GetService("Workspace")
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Dash = require(script.Parent.Dash)
 local DashButton = require(script.Parent.DashButton)
+local Haptics = require(script.Parent.Parent.Fx.Haptics)
 local LobbyButtons = require(script.Parent.LobbyButtons)
 local LobbyConfig = require(ReplicatedStorage.Shared.Config.Lobby)
 local PlayerStats = require(script.Parent.Parent.PlayerStats)
@@ -178,6 +179,7 @@ local function requestDash()
 
 	if Dash.request(os.clock(), desiredDirection(), root.CFrame.LookVector) then
 		SoundFx.play("dash")
+		Haptics.play("dash")
 		--[[ The server's Earthbreaker slams where this dash ends; it is told
 		     the dash began, and decides for itself whether it counts. ]]
 		dashStarted:FireServer()

@@ -53,6 +53,7 @@ local ClassUpgrades = require(script.Parent.Parent.Combat.ClassUpgrades)
 local Coop = require(ReplicatedStorage.Shared.Util.Coop)
 local CurrentStage = require(ReplicatedStorage.Shared.Util.CurrentStage)
 local EndlessLeaderboard = require(script.Parent.EndlessLeaderboard)
+local EndlessPrizes = require(script.Parent.Parent.Data.EndlessPrizes)
 local EnemyManager = require(script.Parent.Parent.Enemies.EnemyManager)
 local EnemyModel = require(script.Parent.Parent.Enemies.EnemyModel)
 local FirstEgg = require(ReplicatedStorage.Shared.Util.FirstEgg)
@@ -70,6 +71,7 @@ local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local Rewards = require(script.Parent.Parent.Data.Rewards)
 local RunSession = require(script.Parent.RunSession)
 local Sandbox = require(ReplicatedStorage.Shared.Config.Sandbox)
+local SoulLink = require(script.Parent.Parent.Combat.SoulLink)
 local StoryLeaderboard = require(script.Parent.StoryLeaderboard)
 local StoryProgress = require(ReplicatedStorage.Shared.Util.StoryProgress)
 local Wallet = require(script.Parent.Parent.Data.Wallet)
@@ -253,6 +255,7 @@ local function clearFight()
 	ProjectileSystem.clear()
 	MeleeSystem.clear()
 	Burning.clear()
+	SoulLink.clear()
 	AreaStrikes.clear()
 	ClassUpgrades.clear()
 	Pickups.clear()
@@ -839,6 +842,16 @@ local function clearedFloor(floor: number)
 					player.Name,
 					milestone.name
 				)
+				--[[ Its eggs and crates, opened on the spot. Guarded: the
+				     floor's own bookkeeping below must run whatever
+				     happens to a prize. ]]
+				local granted, problem = pcall(function()
+					EndlessPrizes.grant(player, milestone)
+					return nil
+				end)
+				if not granted then
+					log.warn("floor %d prize failed: %s", milestone.floor, tostring(problem))
+				end
 			end
 		end
 	end

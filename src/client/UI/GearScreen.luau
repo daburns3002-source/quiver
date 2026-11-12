@@ -20,6 +20,7 @@ local EggScreen = require(script.Parent.EggScreen)
 local GearAssets = require(ReplicatedStorage.Shared.Config.GearAssets)
 local HatchStand = require(script.Parent.HatchStand)
 local Kit = require(script.Parent.Kit)
+local MergeRules = require(ReplicatedStorage.Shared.Util.MergeRules)
 local Pets = require(ReplicatedStorage.Shared.Config.Pets)
 local Rarities = require(ReplicatedStorage.Shared.Config.Rarities)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
@@ -198,7 +199,26 @@ type Entry = {
 	icon: string,
 	owned: boolean,
 	count: number,
+	--[[ Copies at each merge tier (`Util/MergeRules`), nil when none. ]]
+	tiers: MergeRules.Counts?,
 }
+--[[ "C 2  B 1  A 0  S 0": the copies held at each merge tier. ]]
+local function tierLine(tiers: MergeRules.Counts?): string
+	local parts = {}
+	for _, tier in MergeRules.TIERS do
+		table.insert(parts, tier .. " " .. tostring(if tiers then tiers[tier] or 0 else 0))
+	end
+	return table.concat(parts, "   ")
+end
+--[[ The lowest tier with three copies to merge, nil for none. ]]
+local function mergeable(tiers: MergeRules.Counts?): string?
+	for _, tier in MergeRules.TIERS do
+		if MergeRules.canMerge(tiers, tier) then
+			return tier
+		end
+	end
+	return nil
+end
 --[[ A fresh sheet that draws over everything already on `sheet`: the
      same sheet pixels, laid on `over` (which covers the whole canvas). ]]
 local function overlay(sheet: Chunky.Sheet, over: GuiObject): Chunky.Sheet
@@ -229,7 +249,8 @@ end
      the reference game: tapping an item opens its card first), in the
      chunky style: a blue panel, the name on the gold ribbon, the rarity on
      a plate in its colour, the item big in its rarity frame, what it does
-     on a white card, and EQUIP (or EQUIPPED / UNEQUIP / LOCKED) and CLOSE. ]]
+     on a white card, MERGE (three copies of a tier into one of the next,
+     `Util/MergeRules`), and EQUIP (or EQUIPPED / UNEQUIP / LOCKED) and CLOSE. ]]
 local function details(
 	sheet: Chunky.Sheet,
 	entry: Entry,
@@ -255,22 +276,24 @@ local function details(
 	-- panel, ribbon, X, rarity, tile, lines card, buttons (sheet pixels)
 	local L = if up
 		then {
-			panel = { 90, 480, 900, 1010 },
-			ribbon = { 150, 404, 780, 150 },
-			x = { 920, 436, 104 },
-			rarity = { 380, 590, 320, 64 },
-			tile = { 370, 676, 340, 340 },
-			lines = { 150, 1040, 780, 230 },
-			equip = { 150, 1310, 460, 116 },
-			shut = { 640, 1310, 290, 116 },
+			panel = { 90, 430, 900, 1110 },
+			ribbon = { 150, 354, 780, 150 },
+			x = { 920, 386, 104 },
+			rarity = { 380, 540, 320, 64 },
+			tile = { 370, 626, 340, 340 },
+			lines = { 150, 990, 780, 230 },
+			merge = { 150, 1240, 780, 96 },
+			equip = { 150, 1356, 460, 116 },
+			shut = { 640, 1356, 290, 116 },
 		}
 		else {
 			panel = { 560, 140, 800, 840 },
 			ribbon = { 590, 68, 740, 144 },
 			x = { 1296, 100, 100 },
 			rarity = { 800, 230, 320, 60 },
-			tile = { 805, 306, 310, 310 },
-			lines = { 620, 640, 680, 180 },
+			tile = { 835, 300, 250, 250 },
+			lines = { 620, 562, 680, 180 },
+			merge = { 620, 754, 680, 78 },
 			equip = { 620, 846, 400, 104 },
 			shut = { 1040, 846, 260, 104 },
 		}
@@ -307,10 +330,18 @@ local function details(
 	if isPet then
 		local info = Pets[entry.key]
 		local egg = if info and info.egg then EggRules.find(info.egg) else nil
-		table.insert(lines, "FIGHTS BESIDE YOU IN RUNS")
+		-- an owned pet's card says its tier and copies in that line's place
+		if not entry.owned then
+			table.insert(lines, "FIGHTS BESIDE YOU IN RUNS")
+		end
 		table.insert(lines, "FROM THE " .. string.upper(if egg then egg.name else "EGG"))
 		if entry.owned then
-			table.insert(lines, "OWNED x" .. tostring(entry.count))
+			local best = MergeRules.best(entry.tiers) or "C"
+			table.insert(
+				lines,
+				"TIER " .. best .. "   DAMAGE x" .. string.format("%.2f", MergeRules.petScale[best])
+			)
+			table.insert(lines, tierLine(entry.tiers))
 		end
 	else
 		local stats = WeaponStats.weapons[entry.key]
@@ -318,7 +349,17 @@ local function details(
 		if stats then
 			local boost = WeaponStats.bonus[stats.rarity] or 0
 			local scale = WeaponStats.areaScale[stats.area] or 1
-			table.insert(lines, "DAMAGE x" .. string.format("%.2f", (1 + boost) * scale))
+			local best = if entry.owned then MergeRules.best(entry.tiers) or "C" else "C"
+			local tierScale = MergeRules.weaponScale[best]
+			table.insert(
+				lines,
+				(if entry.owned then "TIER " .. best .. "   " else "")
+					.. "DAMAGE x"
+					.. string.format("%.2f", (1 + boost) * scale * tierScale)
+			)
+		end
+		if entry.owned then
+			table.insert(lines, tierLine(entry.tiers))
 		end
 		if shop then
 			table.insert(lines, string.upper(shop.class) .. " WEAPON")
@@ -364,6 +405,38 @@ local function details(
 	)
 	local c = L.shut
 	Chunky.button(pop, "CLOSE", Chunky.blue, c[1], c[2], c[3], c[4], close)
+	--[[ MERGE (owner, 2026-10-28: "the player has to get 3 of 1 tier and then
+	     they can merge into the next tier. starting at C going to B, then A,
+	     then S"): three of the lowest tier that has them; the server checks. ]]
+	if entry.owned then
+		local from = mergeable(entry.tiers)
+		local nextUp = from and MergeRules.nextTier(from)
+		local low = MergeRules.TIERS[1]
+		local words = if from and nextUp
+			then "MERGE " .. tostring(MergeRules.COST) .. " " .. from .. " INTO " .. nextUp
+			elseif MergeRules.best(entry.tiers) == "S" then "TOP TIER S"
+			else "MERGE: " .. tostring((entry.tiers and entry.tiers[low]) or 0) .. "/" .. tostring(
+				MergeRules.COST
+			) .. " " .. low .. " COPIES"
+		local m = L.merge
+		Chunky.button(
+			pop,
+			words,
+			if from then Chunky.gold else Chunky.grey,
+			m[1],
+			m[2],
+			m[3],
+			m[4],
+			function()
+				if from then
+					close()
+					Remotes.event(Remotes.MergeItem)
+						:FireServer(if isPet then "pet" else "weapon", entry.key, from)
+					SoundFx.play("new_item")
+				end
+			end
+		)
+	end
 	SoundFx.play("new_item")
 end
 
@@ -487,7 +560,14 @@ local function draw(s: StationScreen.Screen)
 		then (1 + WeaponStats.bonus[stats.rarity]) * (WeaponStats.areaScale[stats.area] or 1)
 		else 1
 	local chosenClass = if weapon then Classes[weapon.class] or class else class
-	local atk = math.round(Balance.Player.baseDamage * chosenClass.damageScale * scale)
+	-- the held weapon's merge tier is in its damage (`Util/MergeRules`)
+	local held = if p then MergeRules.best(p.tiers.weapons[equipped]) else nil
+	local atk = math.round(
+		Balance.Player.baseDamage
+			* chosenClass.damageScale
+			* scale
+			* (MergeRules.weaponScale[held or "C"] or 1)
+	)
 	local power = plate(sheet, Chunky.gold, table.unpack(L.plate))
 	local words = Chunky.text(
 		power,
@@ -575,7 +655,8 @@ local function draw(s: StationScreen.Screen)
 				rarity = entry.rarity,
 				icon = weaponArt(entry.weapon),
 				owned = p ~= nil and p.weapons[entry.weapon] == true,
-				count = 1,
+				count = if p then MergeRules.total(p.tiers.weapons[entry.weapon]) else 0,
+				tiers = if p then p.tiers.weapons[entry.weapon] else nil,
 			})
 		end
 	elseif tab == "PETS" then
@@ -587,6 +668,7 @@ local function draw(s: StationScreen.Screen)
 				icon = GearAssets.pets[key] or "",
 				owned = p ~= nil and (p.pets[key] or 0) > 0,
 				count = if p then p.pets[key] or 0 else 0,
+				tiers = if p then p.tiers.pets[key] else nil,
 			})
 		end
 	end
@@ -683,9 +765,12 @@ local function draw(s: StationScreen.Screen)
 			holder,
 			entry.rarity,
 			entry.icon,
-			if isPet and entry.owned
-				then "x" .. tostring(entry.count)
-				elseif isEquipped then "EQUIPPED"
+			-- the best merge tier and every copy held ("B x4")
+			if isEquipped and not isPet
+				then "EQUIPPED"
+				elseif entry.owned then (MergeRules.best(entry.tiers) or "C") .. " x" .. tostring(
+					entry.count
+				)
 				else nil,
 			not entry.owned,
 			isEquipped,

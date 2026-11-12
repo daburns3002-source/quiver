@@ -29,6 +29,7 @@ local UserInputService = game:GetService("UserInputService")
 
 local Log = require(ReplicatedStorage.Shared.Util.Log)
 local Music = require(ReplicatedStorage.Shared.Config.Music)
+local Options = require(script.Parent.Parent.Options)
 local Story = require(ReplicatedStorage.Shared.Config.Story)
 local StoryMotion = require(ReplicatedStorage.Shared.Util.StoryMotion)
 local StoryMotionConfig = require(ReplicatedStorage.Shared.Config.StoryMotion)
@@ -688,7 +689,7 @@ function StoryCutscene.start(done: () -> ())
 		local sound = Instance.new("Sound")
 		sound.Name = "Music_Story"
 		sound.SoundId = Music.story.id
-		sound.Volume = Music.volume
+		sound.Volume = Music.volume * Options.music()
 		sound.Parent = SoundService
 		music = sound
 	end
@@ -707,7 +708,9 @@ function StoryCutscene.start(done: () -> ())
 			end
 		end
 		if sound and skipped then
-			sound.Volume = Music.volume * math.max(0, 1 - (clock() - skipped) / MUSIC_OUT)
+			sound.Volume = Music.volume
+				* math.max(0, 1 - (clock() - skipped) / MUSIC_OUT)
+				* Options.music()
 		end
 		pose(held or clock())
 	end)

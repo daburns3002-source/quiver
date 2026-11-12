@@ -635,52 +635,6 @@ function HitFeedback.onExplosion(position: Vector3, radius: number)
 	Debris:AddItem(core, duration)
 end
 
---[[
-	Soul Chain: a glowing link from the enemy hit to each enemy sharing the
-	hit, gone in a moment. Drawn as thin neon bars at body height, so it
-	reads as a chain between bodies rather than a mark on the floor.
-]]
-local LINK_COLOUR = Color3.fromRGB(190, 120, 255)
-local LINK_DURATION = 0.28
-
-function HitFeedback.onSoulLink(from: Vector3, reached: { Vector3 })
-	if typeof(reached) ~= "table" then
-		return
-	end
-
-	for _, to in reached do
-		if typeof(to) ~= "Vector3" then
-			continue
-		end
-
-		local a = Vector3.new(from.X, 1.6, from.Z)
-		local b = Vector3.new(to.X, 1.6, to.Z)
-		local length = (b - a).Magnitude
-		if length < 1e-3 then
-			continue
-		end
-
-		local bar = Instance.new("Part")
-		bar.Name = "SoulLink"
-		bar.Size = Vector3.new(0.22, 0.22, length)
-		bar.CFrame = CFrame.lookAt((a + b) / 2, b)
-		bar.Anchored = true
-		bar.CanCollide = false
-		bar.CanQuery = false
-		bar.CanTouch = false
-		bar.CastShadow = false
-		bar.Material = Enum.Material.Neon
-		bar.Color = LINK_COLOUR
-		bar.Parent = folder
-
-		TweenService:Create(bar, TweenInfo.new(LINK_DURATION, Enum.EasingStyle.Quad), {
-			Size = Vector3.new(0.05, 0.05, length),
-			Transparency = 1,
-		}):Play()
-		Debris:AddItem(bar, LINK_DURATION)
-	end
-end
-
 --[[ Agility: a hit missed. A word over the player, so a dodge reads as the
      card working rather than as the enemy missing by luck. ]]
 function HitFeedback.onPlayerDodged(kind: string?)

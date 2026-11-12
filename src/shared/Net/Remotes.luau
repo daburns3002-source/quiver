@@ -182,6 +182,10 @@ Remotes.ChooseClass = "ChooseClass"
      server puts that class's own weapon in hand and empties the pet slots
      (`Data/Shop`). ]]
 Remotes.SwitchClass = "SwitchClass"
+--[[ Client -> server: the item card's MERGE ("weapon" or "pet", its key,
+     the tier to merge from); the server checks there are three
+     (`Data/Shop`, `Util/MergeRules`) and answers with `ProfileChanged`. ]]
+Remotes.MergeItem = "MergeItem"
 --[[ Client → server, Studio only: coins, gems and boss items into the
      wallet (`Data/Shop`), to test the shop without playing for them. ]]
 Remotes.DebugWallet = "DebugWallet"
@@ -218,6 +222,14 @@ Remotes.PortalOpen = "PortalOpen"
 Remotes.PortalStart = "PortalStart"
 
 --[[
+	Client → server. The lobby's PLAY button (`UI/LobbyHud`), no payload. The
+	server picks the player's frontier portal (`Util/PlayPortal`) and walks
+	them to its mouth, where its screen opens as any portal's does; START is
+	still checked by `Run/Lobby.startFor` there.
+]]
+Remotes.LobbyPlay = "LobbyPlay"
+
+--[[
 	Server → one client. A party portal's word on the run it is starting
 	(`Run/Party`): "TRAVELLING..." while the teleport is under way, or why it
 	failed. Shown on the portal screen (`UI/PortalScreen`).
@@ -236,6 +248,35 @@ Remotes.PartyNotice = "PartyNotice"
 	client already has (`Balance.Endless.checkpoint.picks`).
 ]]
 Remotes.EndlessCheckpoint = "EndlessCheckpoint"
+
+--[[
+	Server → one client. An Endless milestone was claimed and its eggs and
+	crates opened (`Server/Data/EndlessPrizes`): the floor, what the
+	milestone is called, and what came out, `{ pet, new }` and
+	`{ weapon, new }` lists. Already granted; this is only to show it.
+	Floor 0 is a Soulstone shop purchase, shown the same way.
+]]
+Remotes.EndlessPrize = "EndlessPrize"
+
+--[[
+	Client → server. "Buy `count` of this from the Soulstone shop": the
+	offer's kind ("Egg" or "Crate") and key (`Util/SoulstoneShopRules`).
+	A request: the server checks the offer, the count and the Soulstones
+	(`Server/Data/SoulstoneShop`), and answers with `EndlessPrize`, floor 0.
+]]
+Remotes.SoulstoneBuy = "SoulstoneBuy"
+
+--[[
+	Client → server. "Keep this setting": its name ("music", "sound",
+	"haptics") and its value (`Config/Settings`). A request: the server
+	cleans both (`Util/SettingsRules.clean`) and drops anything else.
+]]
+Remotes.SettingSet = "SettingSet"
+
+--[[ Client → server, Studio only: Soulstones into the wallet
+     (`Server/Data/SoulstoneShop`), to test the Soulstone shop without
+     playing Endless for them. ]]
+Remotes.DebugSoulstones = "DebugSoulstones"
 
 --[[
 	Client → server. "I pick the nth option at the checkpoint", or 0 to bank
@@ -283,8 +324,9 @@ Remotes.PickupsCleared = "PickupsCleared"
      for this many seconds; and by what ("SecondWind" or "Revive"). ]]
 Remotes.PlayerRevived = "PlayerRevived"
 
---[[ Server → all clients. A Soul Chain link: from the enemy hit, to each of
-     these. ]]
+--[[ Server → all clients. A Soul Chain link, drawn as a fireball: where the
+     enemy hit stood, then the linked enemies in the order it leaps to them,
+     where each stood, and the seconds from now it lands on each. ]]
 Remotes.SoulLink = "SoulLink"
 
 --[[ Server → all clients. A Warden's Parry knocked the enemy shots within

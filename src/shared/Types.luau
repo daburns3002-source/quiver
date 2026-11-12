@@ -79,6 +79,11 @@ export type ShotSpec = {
 	     the server at contact, like splash, since what is nearby is not
 	     knowable when the volley is built. ]]
 	ricochet: number,
+	--[[ Studs a second a ricochet off this shot leaves at, when that is not
+	     the shot's own speed: Chain Lightning's arc, which is a bolt between
+	     two bodies and not an orb in flight (`Balance.Projectile.arcSpeed`).
+	     Nil for every other shot. ]]
+	arcSpeed: number?,
 	--[[ Radians a second the arrow may turn towards the nearest enemy ahead
 	     of it. 0 flies straight. Tracking Eye. ]]
 	homing: number,
@@ -158,6 +163,11 @@ export type ShotEvent = {
 	     stop in, exactly as the simulated one does. Nil for everything a
 	     shooter fired. ]]
 	from: Model?,
+	--[[ The enemy a server-invented shot was sent at, and whether it is an
+	     arc: lightning drawn between the two bodies (`Fx/Upgrades/LightningFx`)
+	     with no shot drawn in flight. Chain Lightning. Nil for the rest. ]]
+	to: Model?,
+	arc: boolean?,
 }
 
 return {}

@@ -168,10 +168,6 @@
   "glb": "assets/models/effects/fx_bouncywall.glb",
   "loops": []
  },
- "FxChainLightning": {
-  "glb": "assets/models/effects/fx_chainlightning.glb",
-  "loops": []
- },
  "FxCleave": {
   "glb": "assets/models/effects/fx_cleave.glb",
   "loops": []
@@ -202,10 +198,6 @@
  },
  "FxSecondWind": {
   "glb": "assets/models/effects/fx_secondwind.glb",
-  "loops": []
- },
- "FxSoulChain": {
-  "glb": "assets/models/effects/fx_soulchain.glb",
   "loops": []
  },
  "FxSpellPierce": {

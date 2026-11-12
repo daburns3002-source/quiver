@@ -97,9 +97,16 @@ fixed, the same for everyone (`Util/TutorialHands`, `tests/Tutorial.spec`): a
 Common, an Uncommon and a Rare first; on room 3's level-up Multishot (Legendary)
 in the middle; Legendaries and Mythics banned from its pool (`Loadout.State.banned`,
 which a fixed hand ignores), no rerolls. The rooms' XP lands the level-ups in rooms
-1-3, and room 3 is granted the XP it owes if not. `UI/TutorialPrompts` says how to
-move (per device) until the player has, that standing still shoots at the next
-fight, and how levelling up works over the first hand.
+1-3, and room 3 is granted the XP it owes if not. `UI/TutorialPrompts` (redone 2026-11-11, owner:
+"highlight the important words and have the tutorial clearly explain the controls and have the music quiet
+down when there is something on the screen to read") shows one idea at a time in the words for the device in
+hand: move, stand still to shoot, the crystals, the dash, the gate out of the first cleared room, and picking
+a card over the first hand (`Util/TutorialSteps` decides which, `Config/Tutorial.prompts` has the words). In a
+prompt `[..]` marks a control and `*..*` an action, each drawn in its own strong colour chosen for the panel's
+ground (`Util/PromptText`); the panel is built from `UI/Chunky`'s palette. The music ducks to `Music.readDuck`
+while one is up, and under a NEW ENEMY! screen in the tutorial (`MusicFx.setReading`).
+`tests/TutorialPrompts.spec` holds every prompt to the rules; `TutorialPrompts.preview` builds one in a
+phone-sized frame for a Studio look.
 The run holds still until the story's black has held: the server skips
 its step while any player is still on the title (`RunSession.anyAtTitle`,
 cleared by `Remotes.IntroBegin`, fired at the story's end), the client holds on
@@ -388,7 +395,7 @@ of the config and `tests/RewardRules.spec` pins its shape. The client only asks 
 kind and a key): quest progress is counted by the server from its own events (`Rewards.note(player, kind,
 amount)` in the run, the hatchery and the shop; anything new that should count calls it), the starter list
 is read from the saved profile, and the day is the server's clock, published as the Player's `RewardDay`.
-Save version 9 holds it (`rewards`). Each new Dex entry pays `Rewards.dexGems` once ever (`Data/DexPay`,
+Save version 11 holds it (`rewards`). Each new Dex entry pays `Rewards.dexGems` once ever (`Data/DexPay`,
 called by `Wallet.grantWeapon`, `grantPet` and `meetEnemy`), with a toast. Each lobby leaderboard has a
 "YOU: #N" row (`Run/BoardYou`, `Util/BoardRank`, `UI/BoardYou`; `docs/LEADERBOARD.md`). Studio:
 `Remotes.DebugDay:FireServer(n)` moves the player's reward day on.
@@ -401,6 +408,16 @@ stands at and the levels they have opened (`Remotes.PortalStart`, `Run/Lobby.sta
 `Util/LevelUnlocks`, `tests/Lobby.spec`). In the lobby there is no dash:
 Shift / gamepad X / the phone's SPRINT runs (`Config/Lobby.sprint`) and Space / A / JUMP jumps
 (`RunSession.allowJump`, `Input/LobbyButtons`); a run still dashes and never jumps.
+
+**The lobby HUD** (Fable's loop review item 3, owner 2026-11-11; `UI/LobbyHud`, `Config/LobbyHud`):
+coin and gem pills pinned to the top, a PLAY button, and the fight HUD (health, skill tray, XP bar,
+level) put away while `InLobby`. PLAY asks the server (`Remotes.LobbyPlay`), which walks the player
+into their frontier portal's mouth (`Util/PlayPortal`: the first open portal with a level not beaten,
+never Endless, never one still locked), where its screen opens as usual; START is still checked there. On a touch layout
+(upright, or a phone) PLAY and the station button are laid out in points, full width, 64 and 60 tall,
+under the phone's JUMP (`tests/LobbyHud.spec`); a wide screen keeps the `[E]` prompt on the sheet.
+Both stand on a `Chunky.pointSheet`. The chunky X takes presses over at least 48 points however
+small its header draws it (`Chunky.close`).
 
 **Empty hands in the lobby** (owner, 2026-10-25): the server holds no weapon while `InLobby`
 (`Main.refreshWeapon`, `HeldWeapon.unequip`) and `Fx/WeaponPose` writes no pose there, so
@@ -415,11 +432,52 @@ rarity tiles, pop-in), laid out in sheet pixels on 1920 x 1080 or, held upright,
 (`Chunky.press`, or a `Chunky.button`) and anything equippable or equipped gleams (`Chunky.gleam`,
 owner, 2026-11-05: "the gleam on equippables, the bounce on click").
 
+**The kit's look is the owner's major reference of 2026-11-11** ("use this as the major reference
+image": a house-tycoon game's store screen; memory `ui-major-reference`), which replaced the royal-blue
+panels: a cream panel with a dark-brown outline, an orange striped header bar across its top with the
+title at its left and a red hexagon X at its right (`Chunky.ribbon` and `Chunky.close` drawn after a
+`Chunky.panel` become that header, whatever box they are given), striped buttons outlined in a darker
+shade of their own colour (`Chunky.shade`), filled rarity tiles, cream currency pills, brown
+`Chunky.ink` words on cream. `Chunky.navy` is now that brown (`Chunky.edge`), kept under its old name.
+**Effects are in the kit** (owner, the same day: "make sure there are effects as well"): every button
+clicks, throws sparks (`Chunky.burst`) and bounces, gold ones carry a sweeping shine, `Chunky.twinkle`
+sparkles what is selected or new, `Chunky.count` runs a number up. A screen laid out in screen points
+rather than on the station canvas draws on `Chunky.pointSheet` (the run's MENU, the draft's phone tray,
+settings, the Soulstone shop). **Not seen in Studio yet** (2026-11-11): the re-skin changes every chunky
+screen at once and waits on a look.
+
+**The run's top HUD** (`UI/RunBanner`, `Util/RunHudRules`, `Config/Hud` `top`; 2026-11-11): a thick XP
+bar with the hero's level on a gold badge, the coin counter (`Fx/CoinDrops` flies kill coins to its
+`CoinCounter`-tagged icon and counts `CoinsShown` up), the room counter with the stage's rooms as pips
+(up to `maxPips`; more keep the counter and name the room), and a status line. On a phone the MENU is a
+48-point pause icon at the top left (`UI/ControlMenu`) and the draft, held upright, gets a tray under
+its panel with the selected card read out and REROLL / CHOOSE! 56 points tall (`Config/Hud`
+`draftUpright`). All in screen points.
+
+**Settings** (`Config/Settings`, `Util/SettingsRules`, `Server/Data/Settings`, `client/Options`,
+`UI/SettingsScreen`, save version 9): music and sound volume in steps and vibration on or off, kept in
+the save, read on the client from Player attributes. `Fx/Haptics` shakes the device on a hit taken, a
+dash and a level gained. The SETTINGS button is on the lobby's left edge.
+
+**Launch locks** (`Config/Launch.locks`, **off**; `Util/LaunchLocks`): one switch that makes every area
+after the first, its egg, and Endless wait on the boss before it (`atLaunch` in `Config/Lobby` and
+`Config/Eggs`). Off, the playtest is as open as the owner asked. `tests/LaunchLocks.spec` holds both.
+
+**Endless pays in eggs and crates** (owner, 2026-11-11: "MAKE IT MORE LIKE 5 EGGS AND 5 CRATES ... I WANT
+IT TO FEEL NECESSARY TO BEAT THESE ROOMS"): each milestone (`Balance.Endless.milestones`) hatches its
+eggs and opens its crates for the player on the spot, free, one of each batch sure to be at least its
+`rarity` (`Server/Data/EndlessPrizes`, `Util/PrizeRules`, shown by `UI/EndlessPrize`). **Soulstones buy
+eggs and crates** at the Soulstone shop (`Config/SoulstoneShop`, `Util/SoulstoneShopRules`,
+`Server/Data/SoulstoneShop`, `UI/SoulstoneShop`), opened from the Endless portal's screen: 100 for the
+first area's, doubling an area, 1 or 5 a press.
+
 **The weapon shop** (owner, 2026-10-25; `Config/Shop`, `Util/ShopRules`, `Server/Data/Shop`,
 `UI/ShopScreen`): at the lobby's Blacksmith, SHOP (or E) opens CRATES, STORE and MY WEAPONS.
 A crate per area for coins (500, 1,000, 2,000, 4,000, 10,000, 20,000) rolls on the server
 (Uncommon 60, Rare 28, Epic 11, Mythic 1) one of that area's weapons; a weapon already owned
-pays back 40%; areas with no weapons yet are black silhouettes. The store sells an area's
+is one more C copy, saved: three of a merge tier make one of the next, C -> B -> A -> S, each
+1.2x the damage before and S 1.5x over A (owner, 2026-10-28; `Util/MergeRules`, MERGE on the
+gear screen's item card), and pets merge the same way; areas with no weapons yet are black silhouettes. The store sells an area's
 weapons for gems by rarity, its Legendaries for coins and 3 of its boss's item; Mythics only
 come out of crates. EQUIP holds an owned weapon (its class with it), saved, in hand at once in
 the lobby. Every weapon picture is the THREE-QUARTER view of the reference sheet its 3D model was
@@ -497,6 +555,17 @@ meaningfully different?* — which needs the owner.
 Highlight, and for `Balance.Knockback.stagger` after a hit an enemy only slides
 with the shove (`EnemyManager` `staggerUntil`), so its own walking and charges
 cannot cancel it. A new enemy needs a `knockback` above 0 (`Balance.spec`).
+
+**Chain Lightning is a bolt and Soul Chain a fireball** (owner, 2026-11-11: "chain lightning
+should be like the stattik shiv effect ... soul link should be like brand ult"), both built in
+code, no imported model. Chain Lightning is still Ricochet's stage, but its arcs leave at
+`Balance.Projectile.arcSpeed` (`ShotSpec.arcSpeed`), so each hop lands a few hundredths of a
+second after the last; the server marks the hop (`ShotEvent.arc`, `to`) and the client draws a
+jagged, forked bolt between the two bodies in place of an orb (`Fx/Upgrades/LightningFx`,
+`Util/BoltPath`). Soul Chain links the same enemies for the same share, but each takes it as a
+fireball lands on it, leaping to the nearest one next (`Shared/Combat/SoulBounce`,
+`Server/Combat/SoulLink`'s queue, `Fx/Upgrades/SoulFireFx`). An effect seen from above must lie
+in the ground plane; `tests/ChainSoulFx.spec` holds both.
 
 **Enemies arrive in triangles of three** (`Balance.Spawning.clusterSize`),
 the tip pointing at the player; the row swings round the tip when a wall is

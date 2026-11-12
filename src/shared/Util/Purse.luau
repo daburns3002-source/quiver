@@ -11,6 +11,8 @@ local SaveSchema = require(script.Parent.SaveSchema)
 export type Cost = {
 	coins: number?,
 	gems: number?,
+	--[[ Soulstones, the Endless currency (the Soulstone shop). ]]
+	soulstones: number?,
 	--[[ Boss items by id, how many of each. ]]
 	items: { [string]: number }?,
 }
@@ -21,6 +23,9 @@ local NONE: { [string]: number } = {}
 
 function Purse.canAfford(profile: SaveSchema.Profile, cost: Cost): boolean
 	if profile.coins < (cost.coins or 0) or profile.gems < (cost.gems or 0) then
+		return false
+	end
+	if profile.soulstones < (cost.soulstones or 0) then
 		return false
 	end
 	for id, n in cost.items or NONE do
@@ -38,6 +43,7 @@ function Purse.pay(profile: SaveSchema.Profile, cost: Cost): boolean
 	end
 	profile.coins -= cost.coins or 0
 	profile.gems -= cost.gems or 0
+	profile.soulstones -= cost.soulstones or 0
 	for id, n in cost.items or NONE do
 		local left = (profile.items[id] or 0) - n
 		if left > 0 then

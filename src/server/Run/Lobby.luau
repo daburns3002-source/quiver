@@ -28,6 +28,7 @@ local Workspace = game:GetService("Workspace")
 
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Eggs = require(ReplicatedStorage.Shared.Config.Eggs)
+local LaunchLocks = require(ReplicatedStorage.Shared.Util.LaunchLocks)
 local LevelUnlocks = require(ReplicatedStorage.Shared.Util.LevelUnlocks)
 local LobbyBackdrop = require(script.Parent.LobbyBackdrop)
 local LobbyConfig = require(ReplicatedStorage.Shared.Config.Lobby)
@@ -1479,6 +1480,14 @@ function Lobby.portalAt(position: Vector3, slack: number?): number?
 	return best
 end
 
+--[[ Where a player stands to be in portal `index`'s mouth, facing the
+     arch: where PLAY puts them (`Remotes.LobbyPlay`). ]]
+function Lobby.mouthAt(index: number): CFrame
+	local arch = world(Lobby.archAt(index), 3)
+	local at = world(Lobby.archAt(index) + Vector2.new(0, LobbyConfig.mouthAhead), 3)
+	return CFrame.lookAt(at, Vector3.new(arch.X, at.Y, arch.Z))
+end
+
 --[[
 	START on a portal's screen: the stage level `level` of portal `index`
 	plays, or nil when the request is not one this player may make. Both
@@ -1494,9 +1503,10 @@ function Lobby.startFor(
 	position: Vector3,
 	index: unknown,
 	level: unknown,
-	beaten: LevelUnlocks.Beaten?
+	beaten: LevelUnlocks.Beaten?,
+	bosses: { [string]: boolean }?
 ): number?
-	local stage = Lobby.levelOpen(index, level, beaten)
+	local stage = Lobby.levelOpen(index, level, beaten, bosses)
 	if not stage or Lobby.portalAt(position, LobbyConfig.startSlack) ~= index then
 		return nil
 	end
@@ -1508,7 +1518,12 @@ end
      or nil. A party's run server checks its leader's request again with
      this (`Run/Party`), since what a teleport carries passes through the
      client. ]]
-function Lobby.levelOpen(index: unknown, level: unknown, beaten: LevelUnlocks.Beaten?): number?
+function Lobby.levelOpen(
+	index: unknown,
+	level: unknown,
+	beaten: LevelUnlocks.Beaten?,
+	bosses: { [string]: boolean }?
+): number?
 	if type(index) ~= "number" or type(level) ~= "number" then
 		return nil
 	end
@@ -1521,9 +1536,11 @@ function Lobby.levelOpen(index: unknown, level: unknown, beaten: LevelUnlocks.Be
 	if not stage or not levels then
 		return nil
 	end
-	--[[ The portal's own gate first (Endless waits on 1-10), then the
-	     level's. Both are checked here because both come from the client. ]]
-	if not LevelUnlocks.portalOpen(portal.requires, beaten) then
+	--[[ The portal's own gate first (at launch each area waits on the
+	     one before it, `Util/LaunchLocks`), then the level's. Both are
+	     checked here because both come from the client. `bosses` is the
+	     player's beaten bosses, for a gate that waits on one. ]]
+	if not LaunchLocks.portalOpen(portal, beaten, bosses) then
 		return nil
 	end
 	if not LevelUnlocks.isUnlocked(levels, Balance.Stages, beaten, level) then

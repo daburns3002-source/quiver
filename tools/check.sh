@@ -18,5 +18,10 @@ echo "== fonts"
 bad=$(grep -rnE "Enum\.Font\.[A-Za-z]+|Font\.(new|fromName|fromId)\(" src | grep -v "Enum\.Font\.FredokaOne" || true)
 if [ -n "$bad" ]; then echo "$bad"; echo "Use Enum.Font.FredokaOne (or Chunky.font): CLAUDE.md rule 11."; exit 1; fi
 echo "rounded"
+echo "== currency icons"
+# One coin and one diamond in the whole game, Config/ShopAssets' (CLAUDE.md rule 15).
+bad=$(grep -rnEi "^\s*[A-Za-z]*(coin|gem|diamond)[A-Za-z]*\s*=\s*\"rbxassetid" src | grep -v "src/shared/Config/ShopAssets.luau" || true)
+if [ -n "$bad" ]; then echo "$bad"; echo "Use ShopAssets.coin / ShopAssets.gem: CLAUDE.md rule 15."; exit 1; fi
+echo "one of each"
 echo "== rojo build"; rojo build -o "${TMPDIR:-/tmp}/check.rbxl" | tail -1
 echo "All gates pass."

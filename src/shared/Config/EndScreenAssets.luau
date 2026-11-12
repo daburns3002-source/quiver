@@ -23,8 +23,8 @@ local EndScreenAssets = {
 	hourglass = "rbxassetid://93832562742445",
 	heart = "rbxassetid://132016175854758",
 	chart = "rbxassetid://89255397360408",
-	coin = "rbxassetid://105417892155855",
-	gem = "rbxassetid://110312361811467",
+	--[[ No coin or gem here: the game has one of each, `Config/ShopAssets`'s
+	     (CLAUDE.md rule 15). ]]
 	chevron = "rbxassetid://102496291506472",
 	refresh = "rbxassetid://131860825119130",
 	cube = "rbxassetid://93394386923395",

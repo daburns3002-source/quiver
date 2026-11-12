@@ -953,6 +953,14 @@ Codex weapon art (`assets/concepts/blocky/weapons/`); cut an icon from it or hav
 single view in the same style, upload it (Studio MCP `upload_image`) and show it as an
 ImageLabel. The 3D models stay for the weapon in hand in the world.
 
+**15. One coin and one diamond, everywhere.**
+Coins and gems are drawn with the same two pictures wherever they show (owner, 2026-11-12: "make
+sure that the coin and diamond icons are universal across the game"; "i like the blue diamond"):
+`ShopAssets.coin` and `ShopAssets.gem`, on every screen, the run HUD, the coins a kill throws and
+the lobby's price signs. A price or a reward shows the picture beside the number, not the word.
+No other config holds a coin or gem picture; `tools/check.sh` fails on one. Soulstones are their
+own currency and keep their own drawn purple stone (`UI/SoulstoneShop`).
+
 ## Code conventions
 
 - `--!strict` at the top of every Luau file. No exceptions.

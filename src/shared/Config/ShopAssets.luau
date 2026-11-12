@@ -15,6 +15,12 @@ local ShopAssets = {
 	crates = {
 		MossyGlade = "rbxassetid://103986301765766",
 	} :: { [string]: string },
+	--[[ The game's ONE coin and ONE diamond (owner, 2026-11-12: "make sure
+	     that the coin and diamond icons are universal across the game"; "i
+	     like the blue diamond"). Every screen, the run HUD, the coins a kill
+	     throws and the lobby's price signs draw these two; no other file
+	     holds a coin or gem picture (CLAUDE.md rule 15, and
+	     `tools/check.sh` fails on one). ]]
 	coin = "rbxassetid://118507342118817",
 	gem = "rbxassetid://97625421794441",
 	lock = "rbxassetid://111797935148821",

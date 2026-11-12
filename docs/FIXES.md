@@ -1754,3 +1754,20 @@ join nothing held `RunPaused.beforeArrival()`: the class screen saw a loaded pro
 opened under the loading screen, and was still up when the tutorial began. `Main.client` now calls
 `RunPaused.setTitle(true)` on its first frame, before the wait. Anything that opens "once the player
 has arrived" must be held from the first frame, not from when the title is drawn.
+
+## SKIP TUTORIAL fired on a Return or gamepad A meant for something else (2026-11-11)
+
+A `GuiButton` is `Selectable` by default, and when the selected one goes away (the draft's Choose!,
+the story's SKIP) Roblox moves the selection to the nearest one left: SKIP TUTORIAL. The next Return
+or gamepad A (the dash!) pressed it and the tutorial ended in the lobby. `UI/TutorialSkip` now makes
+its button unselectable. Any always-on HUD button that must not be hit by accident needs the same.
+
+## A slanted UIGradient's stripes bunched into the middle of a wide band (2026-11-11)
+
+The tutorial prompt's striped header was one `UIGradient` of hard-edged keypoints, turned 20 degrees.
+On a band 790 by 70 all nine stripes sat in the middle ~200 px and the rest was one flat colour: a
+turned gradient spans the element's short side, not its width. The stripes are now turned frames in
+a `CanvasGroup` (`UI/TutorialPrompts` `layStripes`), which clips turned children to its rounded
+corners; a plain frame's `ClipsDescendants` does not clip them. Keep text outside the CanvasGroup.
+The ScreenGui must be `ZIndexBehavior.Sibling`: one made with `Instance.new` is `Global`, and there
+the stripes were drawn behind the panel, unclipped, sticking out of its top.

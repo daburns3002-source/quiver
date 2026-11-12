@@ -33,6 +33,9 @@ local players: { [string]: Player } = {}
 local current = "Rooms"
 --[[ Everything faded out: the intro's title plays its own music. ]]
 local quiet = false
+--[[ Something is on screen to read (a tutorial prompt): the music drops to
+     `Music.readDuck` of itself and comes back after, on the duck's own fade. ]]
+local reading = false
 
 local function load(p: Player, index: number)
 	local track = p.list[index]
@@ -98,6 +101,7 @@ local function step(dt: number)
 	local duckTo = if player:GetAttribute("ClassSelecting") == true
 		then 0
 		elseif ducked then DUCK
+		elseif reading then Music.readDuck
 		else 1
 	duck += (duckTo - duck) * math.min(1, dt * 6)
 	for name: string in Music.playlists :: { [string]: any } do
@@ -127,6 +131,12 @@ end
      the run's music waits, then fades in when it ends. ]]
 function MusicFx.setQuiet(value: boolean)
 	quiet = value
+end
+
+--[[ While there is something to read (`UI/TutorialPrompts`): quieter, not
+     silent, and back up when it goes. ]]
+function MusicFx.setReading(value: boolean)
+	reading = value
 end
 
 function MusicFx.start()

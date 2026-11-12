@@ -60,6 +60,14 @@ function TutorialSkip.start()
 	button.AnchorPoint = Vector2.new(1, 0)
 	button.Position = UDim2.new(1, -MARGIN, 0, MARGIN)
 	button.Size = UDim2.fromOffset(WIDTH, HEIGHT)
+	--[[ Never the gamepad's selection: A is the dash, and a selected SKIP
+	     would leave the tutorial on the first dash (a Return key did, in the
+	     playtest; `docs/FIXES.md`). A pad leaves through MENU. ]]
+	for _, item in gui:GetDescendants() do
+		if item:IsA("GuiObject") then
+			item.Selectable = false
+		end
+	end
 
 	local function update()
 		local inTutorial = CurrentStage.index() == Balance.tutorialStage

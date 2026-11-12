@@ -28,6 +28,11 @@ local Music = {
 	volume = 0.3,
 	--[[ Seconds one playlist takes to fade into another. ]]
 	fade = 1.5,
+	--[[ The share of its volume the music keeps while there is something on
+	     screen to read (owner, 2026-11-11: "have the music quiet down when
+	     there is something on the screen to read"): a tutorial prompt, or a
+	     NEW ENEMY! screen in the tutorial (`MusicFx.setReading`). ]]
+	readDuck = 0.3,
 	--[[ The intro cutscene's music (`UI/IntroCutscene`): from the top on
 	     the cutscene's first frame, a quiet build into the theme's hit at
 	     `Config/Intro.revealAt` (5.0 s), then looping round its region

@@ -97,9 +97,16 @@ fixed, the same for everyone (`Util/TutorialHands`, `tests/Tutorial.spec`): a
 Common, an Uncommon and a Rare first; on room 3's level-up Multishot (Legendary)
 in the middle; Legendaries and Mythics banned from its pool (`Loadout.State.banned`,
 which a fixed hand ignores), no rerolls. The rooms' XP lands the level-ups in rooms
-1-3, and room 3 is granted the XP it owes if not. `UI/TutorialPrompts` says how to
-move (per device) until the player has, that standing still shoots at the next
-fight, and how levelling up works over the first hand.
+1-3, and room 3 is granted the XP it owes if not. `UI/TutorialPrompts` (redone 2026-11-11, owner:
+"highlight the important words and have the tutorial clearly explain the controls and have the music quiet
+down when there is something on the screen to read") shows one idea at a time in the words for the device in
+hand: move, stand still to shoot, the crystals, the dash, the gate out of the first cleared room, and picking
+a card over the first hand (`Util/TutorialSteps` decides which, `Config/Tutorial.prompts` has the words). In a
+prompt `[..]` marks a control and `*..*` an action, each drawn in its own strong colour chosen for the panel's
+ground (`Util/PromptText`); the panel is built from `UI/Chunky`'s palette. The music ducks to `Music.readDuck`
+while one is up, and under a NEW ENEMY! screen in the tutorial (`MusicFx.setReading`).
+`tests/TutorialPrompts.spec` holds every prompt to the rules; `TutorialPrompts.preview` builds one in a
+phone-sized frame for a Studio look.
 The run holds still until the story's black has held: the server skips
 its step while any player is still on the title (`RunSession.anyAtTitle`,
 cleared by `Remotes.IntroBegin`, fired at the story's end), the client holds on

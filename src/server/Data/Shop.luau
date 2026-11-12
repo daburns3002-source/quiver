@@ -32,6 +32,7 @@ local Hatchery = require(script.Parent.Hatchery)
 local Lobby = require(script.Parent.Parent.Run.Lobby)
 local Pity = require(ReplicatedStorage.Shared.Util.Pity)
 local PlayerData = require(script.Parent.PlayerData)
+local Rewards = require(script.Parent.Rewards)
 local RoomController = require(script.Parent.Parent.Run.RoomController)
 local RunSession = require(script.Parent.Parent.Run.RunSession)
 local Wallet = require(script.Parent.Wallet)
@@ -119,6 +120,7 @@ local function openCrate(player: Player, index: unknown, count: unknown, class: 
 			table.insert(results, { weapon = entry.weapon, new = new })
 		end
 	end
+	Rewards.note(player, "crates", #results)
 	crateOpened:FireClient(player, index, results, chest.class)
 end
 

@@ -61,6 +61,16 @@
 	was only owned or not, so a duplicate saved nothing; an older profile
 	holds every owned weapon at one C and every pet's count at C, and a
 	pet's `pets` count is from now on the total of its copies.
+
+	Version 11 (2026-11-11, reasons to come back — `Config/Rewards`):
+	`rewards`, the login calendar's last day and count, today's quest
+	progress and claims, the starter list's claims, the crates ever opened
+	(the starter list's "open a crate") and the Dex entries already paid
+	for. An older profile starts with nothing claimed, so its next login
+	takes day 1 and the starter list pays what it has already done. Its
+	crates count from its pity counter (a lower bound, nothing invented),
+	and everything it already owns or has met counts as a Dex entry paid,
+	so the update is no windfall.
 ]]
 
 local MergeRules = require(script.Parent.MergeRules)
@@ -68,7 +78,7 @@ local SettingsRules = require(script.Parent.SettingsRules)
 
 local SaveSchema = {}
 
-SaveSchema.VERSION = 10
+SaveSchema.VERSION = 11
 
 --[[ The classes' own weapons, owned from the start. ]]
 local STARTERS = { "TwigBow", "BranchStaff", "TimberBlade" }
@@ -118,6 +128,23 @@ export type Profile = {
 	--[[ Copies at each merge tier, by weapon and by pet (version 10); a
 	     pet's `pets` count is their total, an owned weapon has at least one. ]]
 	tiers: { weapons: { [string]: MergeRules.Counts }, pets: { [string]: MergeRules.Counts } },
+	--[[ The login calendar, quests, starter list and Dex payouts
+	     (version 11, `Util/RewardRules`). Days are whole UTC days since 1970. ]]
+	rewards: RewardState,
+}
+
+export type RewardState = {
+	--[[ The last day the calendar paid, 0 never; and how many times. ]]
+	loginDay: number,
+	loginCount: number,
+	--[[ The day the quest progress below belongs to. ]]
+	questDay: number,
+	questProgress: { [string]: number },
+	questClaimed: { [string]: boolean },
+	starterClaimed: { [string]: boolean },
+	cratesOpened: number,
+	--[[ Dex entries paid for, "Enemies:MossSlime", "Pets:EmberWilf". ]]
+	dexPaid: { [string]: boolean },
 }
 
 --[[ The looks the class select screen offers. ]]
@@ -156,6 +183,16 @@ function SaveSchema.default(): Profile
 		soulstones = 0,
 		enemiesSeen = {},
 		tutorialDone = false,
+		rewards = {
+			loginDay = 0,
+			loginCount = 0,
+			questDay = 0,
+			questProgress = {},
+			questClaimed = {},
+			starterClaimed = {},
+			cratesOpened = 0,
+			dexPaid = {},
+		},
 		settings = SettingsRules.default(),
 		tiers = { weapons = weaponTiers, pets = {} },
 	}
@@ -285,6 +322,32 @@ function SaveSchema.migrate(raw: unknown): Profile
 		end
 		profile.tiers.pets[pet] = held
 		profile.pets[pet] = MergeRules.total(held)
+	end
+	--[[ 10 → 11: the rewards. A stored copy is read field by field; an older
+	     one has none, so nothing is claimed, its crates are its pity count,
+	     and what it already has counts as paid for in the Dex. ]]
+	local storedRewards = if type(data.rewards) == "table" then data.rewards else nil
+	local rewards = profile.rewards
+	if storedRewards then
+		rewards.loginDay = count(storedRewards.loginDay)
+		rewards.loginCount = count(storedRewards.loginCount)
+		rewards.questDay = count(storedRewards.questDay)
+		rewards.questProgress = counts(storedRewards.questProgress)
+		rewards.questClaimed = flags(storedRewards.questClaimed)
+		rewards.starterClaimed = flags(storedRewards.starterClaimed)
+		rewards.cratesOpened = count(storedRewards.cratesOpened)
+		rewards.dexPaid = flags(storedRewards.dexPaid)
+	else
+		rewards.cratesOpened = profile.pity.crates
+		for kind in profile.enemiesSeen do
+			rewards.dexPaid["Enemies:" .. kind] = true
+		end
+		for weapon in profile.weapons do
+			rewards.dexPaid["Weapons:" .. weapon] = true
+		end
+		for pet in profile.pets do
+			rewards.dexPaid["Pets:" .. pet] = true
+		end
 	end
 	return profile
 end

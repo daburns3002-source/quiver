@@ -189,6 +189,16 @@ Remotes.MergeItem = "MergeItem"
 --[[ Client → server, Studio only: coins, gems and boss items into the
      wallet (`Data/Shop`), to test the shop without playing for them. ]]
 Remotes.DebugWallet = "DebugWallet"
+--[[ Client → server: claim a reward (`Data/Rewards`): "login", or "quest" /
+     "starter" with its key. Carries no progress and no day; the server
+     judges the claim from the saved profile and its own clock. ]]
+Remotes.RewardClaim = "RewardClaim"
+--[[ Server → client: a reward just landed by itself (a new Dex entry):
+     its words, gems and coins, for the toast (`UI/RewardsScreen`). ]]
+Remotes.RewardToast = "RewardToast"
+--[[ Client → server, Studio only: move this player's reward day on by a
+     number of days (1 if none), to see a day roll (`Data/Rewards`). ]]
+Remotes.DebugDay = "DebugDay"
 
 --[[
 	Client → server. The intro's BEGIN ADVENTURE button: this player has

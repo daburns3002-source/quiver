@@ -82,7 +82,7 @@ return function(t: TestRunner.Helper)
 			pets = { Mosslet = 3, GladeFox = 1 },
 			equippedPets = { "Mosslet" },
 		})
-		t.equal(p.version, 10)
+		t.equal(p.version, SaveSchema.VERSION)
 		t.equal(p.coins, 12, "nothing else is touched")
 		t.isTrue(p.tutorialDone, "an earlier version's own field comes across")
 		t.equal(p.equipped, "AcornBow")

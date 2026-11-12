@@ -55,6 +55,17 @@ improves; it is written at most every 30 s per player
 The top ten are read every 60 s (`Leaderboard.refreshEvery`) with
 `GetSortedAsync`; names come from `Players:GetNameFromUserIdAsync`, cached.
 
+**The YOU row** (2026-11-11). Under the ten rows of each board is an eleventh,
+"YOU: #N" with the player's own best. The same read now asks for
+`Leaderboard.rankDepth` (100) entries, still one page and one call, and names
+are looked up only for the ten drawn. `Util/BoardRank` places each player in
+that list with this server's bests folded in; a best under the last entry of a
+full read is "#100+", never a made-up place. A board is one SurfaceGui for
+everyone, so `Run/BoardYou` builds the row empty (tag `BoardYou`) and
+publishes each player's two texts as attributes on their Player
+(`StoryYouRank`, `StoryYouBest`, `EndlessYouRank`, `EndlessYouBest`), and each
+client writes its own into the row (`UI/BoardYou`). `tests/BoardRank.spec`.
+
 **Failure.** Every DataStore call is in a `pcall`. In Studio without API access,
 or when a call fails, the board shows what this server knows (the last top it
 read, with its own players' bests folded in), and that is logged once. Studio

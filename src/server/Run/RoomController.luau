@@ -1119,6 +1119,12 @@ local function toLobby()
 		if character then
 			Lobby.place(character)
 		end
+		--[[ They stand in the lobby now (`RunSession.ARRIVED`): everyone who
+		     was in the run, never someone still on the title, and not on a
+		     run server, whose lobby only stands in until the teleport. ]]
+		if not leave and not session.atTitle then
+			RunSession.arrive(session)
+		end
 	end
 end
 

@@ -37,6 +37,7 @@ local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Economy = require(ReplicatedStorage.Shared.Config.Economy)
 local EndScreenAssets = require(ReplicatedStorage.Shared.Config.EndScreenAssets)
 local EndScreenLayout = require(ReplicatedStorage.Shared.Config.EndScreenLayout)
+local EndScreenRules = require(ReplicatedStorage.Shared.Util.EndScreenRules)
 local EndScreenTheme = require(ReplicatedStorage.Shared.Config.EndScreenTheme)
 local GearAssets = require(ReplicatedStorage.Shared.Config.GearAssets)
 local ShopAssets = require(ReplicatedStorage.Shared.Config.ShopAssets)
@@ -531,8 +532,9 @@ end
 --[[ Victory's chest slot, under the coins and gems: what the run gave
      beyond them. A level's first clear gives its area's egg (shown, then
      opened with the hatchery's reveal); a boss its item, at the slot's right
-     end beside the egg, or in the slot when there is no egg.
-     Dimmed, the area's chest at x0, when the run gave neither. ]]
+     end beside the egg, or in the slot when there is no egg. A run that
+     gave none of them has no row at all (`EndScreenRules.chestRow`): a
+     dimmed "CHEST x0" read as "you got nothing". ]]
 local function chestSlot(rewards: Frame, look: any, layout: any, summary: Summary): Count
 	local c = layout.chest
 	local rb: Box = layout.rewards
@@ -707,11 +709,20 @@ local function buildStats(content: Instance, look: any, layout: any, summary: Su
 		if look.rewardsTabBlock then nil else look.tabStuds
 	)
 	local rewardCounts: { Count } = {}
+	--[[ Without the chest row the coins and gems move down into the middle
+	     of what the two rows took between them. ]]
+	local chestRow = layout.chest ~= nil and EndScreenRules.chestRow(summary)
+	local drop = 0
+	if layout.chest and not chestRow then
+		local cs: Box = layout.chest.slot
+		local first: Box = layout.slots[1]
+		drop = math.floor((cs.y + cs.h - first.y - first.h) / 2)
+	end
 	for i, sb in layout.slots do
 		local slot = block(
 			rewards,
 			"Slot" .. i,
-			{ x = sb.x - rb.x, y = sb.y - rb.y, w = sb.w, h = sb.h },
+			{ x = sb.x - rb.x, y = sb.y - rb.y + drop, w = sb.w, h = sb.h },
 			34,
 			look.slot
 		)
@@ -737,7 +748,7 @@ local function buildStats(content: Instance, look: any, layout: any, summary: Su
 		v.TextXAlignment = Enum.TextXAlignment.Left
 		table.insert(rewardCounts, { label = v, kind = "Plus", target = target })
 	end
-	if layout.chest then
+	if chestRow then
 		table.insert(rewardCounts, chestSlot(rewards, look, layout, summary))
 	end
 	pivot(rewards)
@@ -760,7 +771,13 @@ export type ButtonParts = {
 	shine: Frame,
 }
 
-local function buildButton(content: Instance, look: any, layout: any, won: boolean): ButtonParts
+local function buildButton(
+	content: Instance,
+	look: any,
+	layout: any,
+	won: boolean,
+	words: string
+): ButtonParts
 	local lb: Box = layout.button
 	local group = frame(content, "ButtonGroup", lb, 50)
 	local face = block(group, "Face", { x = 0, y = 0, w = lb.w, h = lb.h }, 50, look.button)
@@ -849,7 +866,6 @@ local function buildButton(content: Instance, look: any, layout: any, won: boole
 	list.SortOrder = Enum.SortOrder.LayoutOrder
 	list.Parent = inner
 
-	local words = look.buttonText
 	local label = text(
 		inner,
 		"Text",
@@ -1083,7 +1099,9 @@ function EndScreen.show(summary: Summary)
 	local ribbon, sub = buildRibbon(content, look, layout, won, subText)
 	local hero = buildHero(content, layout, won)
 	local stats = buildStats(content, look, layout, summary)
-	local buttonParts = buildButton(content, look, layout, won)
+	-- NEXT LEVEL, or CONTINUE where it leads to the lobby (`EndScreenRules`)
+	local buttonParts =
+		buildButton(content, look, layout, won, EndScreenRules.buttonWords(won, summary.stage))
 	local button = buttonParts.button
 	local lobbyGroup, lobbyPress = buildLobbyButton(content, look, layout)
 

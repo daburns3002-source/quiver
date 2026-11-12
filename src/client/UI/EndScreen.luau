@@ -1122,7 +1122,8 @@ function EndScreen.show(summary: Summary)
 	local shownAt = os.clock()
 	local pressed = false
 	button.Activated:Connect(function()
-		if pressed or not readyAtTap then
+		-- never under the free egg's reveal (a gamepad's A reaches both)
+		if pressed or not readyAtTap or Reveal.busy() then
 			return
 		end
 		pressed = true
@@ -1140,7 +1141,7 @@ function EndScreen.show(summary: Summary)
 	--[[ Straight away, unlike the main button: the server has no wait on
 	     leaving. Coins and a beaten level were banked as the run ended. ]]
 	lobbyPress.Activated:Connect(function()
-		if pressed or not readyAtTap then
+		if pressed or not readyAtTap or Reveal.busy() then
 			return
 		end
 		pressed = true

@@ -263,7 +263,7 @@ local function rewardRow(sheet: Chunky.Sheet, rewards: { Reward }, box: { number
 		icon.ZIndex = 7
 		icon.Parent = row
 		local words = reward.words
-		local t = Chunky.text(row, words or "", nil, 4)
+		local t = Chunky.text(row, words or "", Chunky.ink, 0)
 		t.Name = "Words"
 		t.Size = UDim2.fromScale(unit * (if words then 0.2 + 0.5 * #words else 0.15), 0.6)
 		t.TextXAlignment = Enum.TextXAlignment.Left
@@ -272,16 +272,18 @@ local function rewardRow(sheet: Chunky.Sheet, rewards: { Reward }, box: { number
 	end
 end
 
---[[ A pale blue pill with words, as the mockup's ROOMS and REWARD rows. ]]
+--[[ A pale pill with dark words, as the mockup's ROOMS and REWARD rows; in
+     a `colour` of the kit's it takes that colour's own words. ]]
 local function pill(sheet: Chunky.Sheet, words: string, box: { number }, colour: Color3?)
 	local p = Instance.new("Frame")
 	p.Name = "Pill"
 	p.BorderSizePixel = 0
-	p.BackgroundColor3 = colour or Color3.fromRGB(170, 204, 255)
+	local ground = colour or Chunky.pale
+	p.BackgroundColor3 = ground
 	p.ZIndex = 6
 	Chunky.put(sheet, p, box[1], box[2], box[3], box[4])
 	Chunky.round(p, math.min(box[4], 60))
-	local t = Chunky.text(p, words, nil, 4)
+	local t = Chunky.textOn(p, words, ground, 4)
 	t.Position, t.Size = UDim2.fromScale(0.06, 0.16), UDim2.fromScale(0.88, 0.68)
 	t.ZIndex = 7
 end
@@ -326,28 +328,25 @@ local function node(
 		else Chunky.blue
 	local ball = Instance.new("Frame")
 	ball.BorderSizePixel = 0
-	ball.BackgroundColor3 = Color3.new(1, 1, 1)
 	ball.Size = UDim2.fromScale(1, 1)
 	ball.ZIndex = 6
 	ball.Parent = holder
-	local shade = Instance.new("UIGradient")
-	shade.Rotation = 90
-	shade.Color =
-		ColorSequence.new(tone:Lerp(Color3.new(1, 1, 1), 0.3), tone:Lerp(Color3.new(0, 0, 0), 0.12))
-	shade.Parent = ball
+	Chunky.light(ball, tone)
 	Chunky.round(ball, size)
 	Chunky.outline(ball, 7)
+	-- a sliver of shine along the crown, clear of the number: a shine under
+	-- white words would lose them
 	local gloss = Instance.new("Frame")
 	gloss.BorderSizePixel = 0
 	gloss.BackgroundColor3 = Color3.new(1, 1, 1)
-	gloss.BackgroundTransparency = 0.55
-	gloss.Position, gloss.Size = UDim2.fromScale(0.2, 0.08), UDim2.fromScale(0.6, 0.26)
+	gloss.BackgroundTransparency = 0.6
+	gloss.Position, gloss.Size = UDim2.fromScale(0.26, 0.045), UDim2.fromScale(0.48, 0.06)
 	gloss.ZIndex = 7
 	gloss.Parent = ball
 	Chunky.round(gloss, size)
 
 	local lower = not open or (bossIcon ~= nil and bossIcon ~= "")
-	local number = Chunky.text(ball, words, nil, 6)
+	local number = Chunky.textOn(ball, words, tone, 6)
 	number.Position = UDim2.fromScale(0.12, if lower then 0.1 else 0.22)
 	number.Size = UDim2.fromScale(0.76, if lower then 0.36 else 0.5)
 	number.ZIndex = 9
@@ -374,9 +373,19 @@ local function node(
 			else UDim2.fromScale(0.4, 0.4)
 		lock.ZIndex = 10
 	elseif cleared then
-		local tick = Chunky.text(ball, "CLEARED", Chunky.gold, 4)
-		tick.Position, tick.Size = UDim2.fromScale(0.1, 0.72), UDim2.fromScale(0.8, 0.18)
-		tick.ZIndex = 10
+		-- small words: on a white chip, as a tile's caption is
+		local chip = Instance.new("Frame")
+		chip.Name = "Cleared"
+		chip.BorderSizePixel = 0
+		chip.BackgroundColor3 = Chunky.white
+		chip.Position, chip.Size = UDim2.fromScale(0.08, 0.72), UDim2.fromScale(0.84, 0.19)
+		chip.ZIndex = 10
+		chip.Parent = ball
+		Chunky.round(chip, size)
+		Chunky.outline(chip, 3, Chunky.shade(tone))
+		local tick = Chunky.text(chip, "CLEARED", Chunky.ink, 0)
+		tick.Position, tick.Size = UDim2.fromScale(0.08, 0.1), UDim2.fromScale(0.84, 0.8)
+		tick.ZIndex = 11
 	end
 	Chunky.press(holder, action)
 end
@@ -474,7 +483,7 @@ fill = function(index: number)
 			for dot = 1, 3 do
 				local d = Instance.new("Frame")
 				d.BorderSizePixel = 0
-				d.BackgroundColor3 = Chunky.white
+				d.BackgroundColor3 = Chunky.inkSoft
 				d.ZIndex = 5
 				local step = (cell - size) / 4
 				Chunky.put(sheet, d, cx + size / 2 + step * dot - 5, cy - 5, 10, 10)
@@ -515,8 +524,8 @@ fill = function(index: number)
 			then "LOCKED"
 			elseif stage then `LEVEL {stage.level or picked}`
 			else "COMING SOON",
-		nil,
-		7
+		Chunky.ink,
+		0
 	)
 	Chunky.put(sheet, title, table.unpack(L.title))
 	title.ZIndex = 8

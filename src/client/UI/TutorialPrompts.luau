@@ -46,18 +46,20 @@ local RunPaused = require(script.Parent.Parent.RunPaused)
 
 local TutorialPrompts = {}
 
---[[ The chunky palette's newer names (the cream re-skin's dark-brown edge
-     and its orange header), with what stands in until it has them. ]]
-local skin = Chunky :: any
-local EDGE: Color3 = skin.edge or Chunky.navy
-local HEADER_TOP: Color3 = skin.headerTop or Color3.fromRGB(255, 164, 52)
-local HEADER_BOTTOM: Color3 = skin.headerBottom or Color3.fromRGB(240, 116, 24)
+--[[ From the chunky palette (Lagoon, `Config/UiPalette`): its edge, the
+     header's colour and the dark shade that strokes the heading, and the
+     faint dark wash a header's stripes are (a second header colour as the
+     stripe would put the heading on a ground the palette never checked). ]]
+local EDGE: Color3 = Chunky.edge
+local HEADER_TOP: Color3 = Chunky.headerTop
+local HEADER_STROKE: Color3 = Chunky.shade(Chunky.headerTop)
+local STRIPE: Color3 = Chunky.headerTop:Lerp(Chunky.edge, 0.1)
 --[[ A header band's stripes: each this share of the band's height wide, a
      stripe apart, leaning this many degrees from upright. They are frames
      in a CanvasGroup, which clips turned children to its rounded corners; a
      turned UIGradient bunched its stripes into the middle of a wide band
      (`docs/FIXES.md`). ]]
-local STRIPE = 0.42
+local STRIPE_WIDTH = 0.42
 local SLANT = 20
 
 type Panel = {
@@ -117,20 +119,20 @@ local function palette(): PromptText.Palette
 	}
 end
 
---[[ Lays a band's leaning stripes for its size: the second header colour
-     over the first, from past its left end to past its right. ]]
+--[[ Lays a band's leaning stripes for its size: the header's colour a
+     touch darker over it, from past its left end to past its right. ]]
 local function layStripes(band: CanvasGroup, width: number, height: number)
 	for _, child in band:GetChildren() do
 		if child:IsA("Frame") then
 			child:Destroy()
 		end
 	end
-	local stripe = math.max(8, math.floor(height * STRIPE))
+	local stripe = math.max(8, math.floor(height * STRIPE_WIDTH))
 	for i = 0, math.ceil(width / (stripe * 2)) + 1 do
 		local bar = Instance.new("Frame")
 		bar.Name = "Stripe"
 		bar.AnchorPoint = Vector2.new(0.5, 0.5)
-		bar.BackgroundColor3 = HEADER_BOTTOM
+		bar.BackgroundColor3 = STRIPE
 		bar.BorderSizePixel = 0
 		bar.Rotation = SLANT
 		bar.Size = UDim2.fromOffset(stripe, math.ceil(height * 2.2))
@@ -227,6 +229,7 @@ local function panel(gui: Instance, name: string, y: number): Panel
 	title.Size = UDim2.fromScale(1, 1)
 	title.TextWrapped = false
 	title.TextColor3 = Chunky.white
+	titleStroke.Color = HEADER_STROKE
 
 	local body, bodyStroke = label(content, "Body", 2)
 	return {

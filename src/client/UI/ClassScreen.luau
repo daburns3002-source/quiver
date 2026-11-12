@@ -20,6 +20,7 @@ local SaveSchema = require(ReplicatedStorage.Shared.Util.SaveSchema)
 local ShopAssets = require(ReplicatedStorage.Shared.Config.ShopAssets)
 local SoundFx = require(script.Parent.Parent.Fx.SoundFx)
 local SpotlightArt = require(ReplicatedStorage.Shared.Util.SpotlightArt)
+local TipPlate = require(ReplicatedStorage.Shared.Util.TipPlate)
 local ClassScreen = {}
 local started = false
 --[[ Seconds the loading screen stays up after CHOOSE. ]]
@@ -79,18 +80,8 @@ function ClassScreen.loadingCover(parent: Instance, seconds: number?): Frame
 	if art then
 		SpotlightArt.draw(screen, art, 50, size, LoadingScreen.tileOverlap, layout.columns)
 	end
-	local tip = Instance.new("TextLabel")
-	tip.BackgroundTransparency = 1
-	tip.Font = Enum.Font.FredokaOne
-	tip.Text = LoadingTips[math.random(1, #LoadingTips)]
-	tip.TextColor3 = LoadingScreen.tipText
-	tip.TextScaled = true
-	tip.TextWrapped = true
-	tip.TextXAlignment = Enum.TextXAlignment.Left
-	place(tip, layout.tip)
-	local limit = Instance.new("UITextSizeConstraint")
-	limit.MaxTextSize = 40
-	limit.Parent = tip
+	-- the tip, on its plate rather than on the picture (`Util/TipPlate`)
+	TipPlate.draw(screen, size, layout.tip, LoadingTips[math.random(1, #LoadingTips)], 51)
 	local trough = Instance.new("Frame")
 	trough.BackgroundTransparency = 1
 	place(trough, layout.bar)
@@ -210,6 +201,8 @@ function ClassScreen.start()
 						tween(d, 0.4, { TextTransparency = 1 })
 					elseif d:IsA("Frame") then
 						tween(d, 0.4, { BackgroundTransparency = 1 })
+					elseif d:IsA("UIStroke") then
+						tween(d, 0.4, { Transparency = 1 })
 					end
 				end
 				tween(cover, 0.4, { BackgroundTransparency = 1 })
@@ -295,7 +288,15 @@ function ClassScreen.start()
 		scale.Parent = tile
 		local light = Instance.new("UIGradient")
 		light.Rotation = 90
-		light.Color = ColorSequence.new(tone:Lerp(Color3.new(1, 1, 1), 0.45), tone)
+		--[[ Lit pale behind the character, deepening under the name and the
+		     pitch to a shade small white words stand 4.5:1 on. ]]
+		local deep = Chunky.deep(tone)
+		light.Color = ColorSequence.new({
+			ColorSequenceKeypoint.new(0, tone:Lerp(Color3.new(1, 1, 1), 0.45)),
+			ColorSequenceKeypoint.new(0.42, tone),
+			ColorSequenceKeypoint.new(0.57, deep),
+			ColorSequenceKeypoint.new(1, deep),
+		})
 		light.Parent = tile
 		Chunky.round(tile, 22)
 		Chunky.outline(tile, 7, Chunky.shade(tone))
@@ -329,7 +330,7 @@ function ClassScreen.start()
 		local pitch = Chunky.text(tile, card.pitch, nil, 4, Chunky.shade(tone))
 		pitch.Position, pitch.Size = UDim2.fromScale(0.06, 0.7), UDim2.fromScale(0.88, 0.055)
 
-		--[[ The three bars, on a cream plate: what `Config/Classes` says. ]]
+		--[[ The three bars, on a pale plate: what `Config/Classes` says. ]]
 		local plate = Instance.new("Frame")
 		plate.Name = "Stats"
 		plate.BorderSizePixel = 0
@@ -364,7 +365,7 @@ function ClassScreen.start()
 				Chunky.round(trough, 8)
 				local fill = Instance.new("Frame")
 				fill.BorderSizePixel = 0
-				fill.BackgroundColor3 = row.colour
+				fill.BackgroundColor3 = Chunky.lit(row.colour)
 				fill.Size = UDim2.fromScale(math.clamp(row.share, 0.06, 1), 1)
 				fill.ZIndex = 8
 				fill.Parent = trough

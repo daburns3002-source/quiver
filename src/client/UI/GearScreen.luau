@@ -253,13 +253,9 @@ local function plate(
 ): Frame
 	local f = Instance.new("Frame")
 	f.BorderSizePixel = 0
-	f.BackgroundColor3 = Color3.new(1, 1, 1)
 	f.ZIndex = 8
 	Chunky.put(sheet, f, x, y, w, h)
-	local shade = Instance.new("UIGradient")
-	shade.Rotation = 90
-	shade.Color = ColorSequence.new(colour:Lerp(Color3.new(1, 1, 1), 0.3), colour)
-	shade.Parent = f
+	Chunky.light(f, colour)
 	Chunky.round(f, math.min(26, h * 0.4))
 	Chunky.outline(f, 6)
 	return f
@@ -327,7 +323,7 @@ local function details(
 	Chunky.close(pop, L.x[1], L.x[2], L.x[3], close)
 	local colour = if entry.owned then Chunky.rarity[entry.rarity] or Chunky.grey else Chunky.grey
 	local badge = plate(pop, colour, table.unpack(L.rarity))
-	Chunky.text(badge, string.upper(entry.rarity), nil, 5).Position = UDim2.fromScale(0, 0)
+	Chunky.textOn(badge, string.upper(entry.rarity), colour, 5).Position = UDim2.fromScale(0, 0)
 	local holder = Instance.new("Frame")
 	holder.BackgroundTransparency = 1
 	holder.ZIndex = 6
@@ -479,7 +475,7 @@ local function slot(
 	holder.ZIndex = 6
 	local tall = size + 58
 	Chunky.put(sheet, holder, x, y, size, tall)
-	local name = Chunky.text(holder, words, nil, 5)
+	local name = Chunky.text(holder, words, Chunky.ink, 0)
 	name.Size = UDim2.fromScale(1, 50 / tall)
 	local box = Instance.new("Frame")
 	box.BackgroundTransparency = 1
@@ -495,7 +491,7 @@ local function slot(
 		lock.Position, lock.Size = UDim2.fromScale(0.25, 0.22), UDim2.fromScale(0.5, 0.5)
 		lock.ZIndex = 12
 	else
-		local plus = Chunky.text(tile, "+", nil, 6)
+		local plus = Chunky.text(tile, "+", Chunky.inkSoft, 0)
 		plus.Position, plus.Size = UDim2.fromScale(0.25, 0.18), UDim2.fromScale(0.5, 0.56)
 	end
 	Chunky.press(holder, function()
@@ -588,10 +584,10 @@ local function draw(s: StationScreen.Screen)
 			* (MergeRules.weaponScale[held or "C"] or 1)
 	)
 	local power = plate(sheet, Chunky.gold, table.unpack(L.plate))
-	local words = Chunky.text(
+	local words = Chunky.textOn(
 		power,
 		"ATK " .. Chunky.commas(atk) .. "   HP " .. Chunky.commas(Balance.Player.maxHealth),
-		nil,
+		Chunky.gold,
 		6
 	)
 	words.Position, words.Size = UDim2.fromScale(0.06, 0.16), UDim2.fromScale(0.88, 0.68)
@@ -633,10 +629,10 @@ local function draw(s: StationScreen.Screen)
 	local cx, cy, cw, ch = table.unpack(L.card)
 	Chunky.card(sheet, cx, cy, cw, ch)
 	local tabs = {
-		{ id = "CLASSES", words = "CLASSES", colour = Chunky.purple },
-		{ id = "GEAR", words = "WEAPONS", colour = Chunky.gold },
-		{ id = "PETS", words = "PETS", colour = Chunky.blue },
-		{ id = "TRAILS", words = "TRAILS", colour = Chunky.green },
+		{ id = "CLASSES", words = "CLASSES" },
+		{ id = "GEAR", words = "WEAPONS" },
+		{ id = "PETS", words = "PETS" },
+		{ id = "TRAILS", words = "TRAILS" },
 	}
 	local tabGap = 10
 	local tabW = (cw - 44 - tabGap * (#tabs - 1)) / #tabs
@@ -644,7 +640,6 @@ local function draw(s: StationScreen.Screen)
 		Chunky.tab(
 			sheet,
 			entry.words,
-			entry.colour,
 			tab == entry.id,
 			cx + 22 + (i - 1) * (tabW + tabGap),
 			cy + 20,

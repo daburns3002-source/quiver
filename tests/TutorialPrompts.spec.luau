@@ -16,6 +16,7 @@ local PromptText = require(ReplicatedStorage.Shared.Util.PromptText)
 local TestRunner = require(script.Parent.TestRunner)
 local Tutorial = require(ReplicatedStorage.Shared.Config.Tutorial)
 local TutorialSteps = require(ReplicatedStorage.Shared.Util.TutorialSteps)
+local UiPalette = require(ReplicatedStorage.Shared.Config.UiPalette)
 
 local DEVICES = { "keyboard", "touch", "gamepad" }
 
@@ -36,9 +37,9 @@ local ABOUT: { [string]: { string } } = {
 	card = { "PICK ONE", "CARD" },
 }
 
---[[ Grounds a prompt may be read on: the cream panel (top and bottom of its
-     light) and the blue one's body. ]]
-local CREAM = { Color3.fromRGB(255, 246, 222), Color3.fromRGB(248, 228, 190) }
+--[[ Grounds a prompt may be read on: the kit's panel (top and bottom of its
+     light, `Config/UiPalette`) and a dark one. ]]
+local PANEL = { UiPalette.panelTop, UiPalette.panelBottom }
 local BLUE = Color3.fromRGB(34, 70, 186)
 
 local function world(overrides: { [string]: any }?): TutorialSteps.World
@@ -163,13 +164,13 @@ return function(t: TestRunner.Helper)
 	end)
 
 	t.test("the highlights and the words stand out on the panel they are read on", function()
-		for _, ground in CREAM do
+		for _, ground in PANEL do
 			local palette = PromptText.palette(ground)
 			t.isTrue(PromptText.isLight(ground))
 			-- no outline on a light panel: the colours carry it alone
-			t.isTrue(PromptText.contrast(palette.words, ground) >= 7, "words on cream")
-			t.isTrue(PromptText.contrast(palette.control, ground) >= 3.5, "control on cream")
-			t.isTrue(PromptText.contrast(palette.action, ground) >= 3.5, "action on cream")
+			t.isTrue(PromptText.contrast(palette.words, ground) >= 7, "words on the panel")
+			t.isTrue(PromptText.contrast(palette.control, ground) >= 4.5, "control on the panel")
+			t.isTrue(PromptText.contrast(palette.action, ground) >= 4.5, "action on the panel")
 		end
 		local dark = PromptText.palette(BLUE)
 		t.isFalse(PromptText.isLight(BLUE))
@@ -177,7 +178,7 @@ return function(t: TestRunner.Helper)
 		t.isTrue(PromptText.contrast(dark.control, BLUE) >= 4.5, "control on blue")
 		t.isTrue(PromptText.contrast(dark.action, BLUE) >= 4.5, "action on blue")
 		-- the two highlights must not be mistaken for each other
-		for _, palette in { PromptText.palette(CREAM[1]), dark } do
+		for _, palette in { PromptText.palette(PANEL[1]), dark } do
 			t.isTrue(palette.control ~= palette.action)
 		end
 	end)

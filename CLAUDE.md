@@ -455,13 +455,33 @@ rarity tiles, pop-in), laid out in sheet pixels on 1920 x 1080 or, held upright,
 (`Chunky.press`, or a `Chunky.button`) and anything equippable or equipped gleams (`Chunky.gleam`,
 owner, 2026-11-05: "the gleam on equippables, the bounce on click").
 
-**The kit's look is the owner's major reference of 2026-11-11** ("use this as the major reference
+**The kit's shapes are the owner's major reference of 2026-11-11** ("use this as the major reference
 image": a house-tycoon game's store screen; memory `ui-major-reference`), which replaced the royal-blue
-panels: a cream panel with a dark-brown outline, an orange striped header bar across its top with the
-title at its left and a red hexagon X at its right (`Chunky.ribbon` and `Chunky.close` drawn after a
-`Chunky.panel` become that header, whatever box they are given), striped buttons outlined in a darker
-shade of their own colour (`Chunky.shade`), filled rarity tiles, cream currency pills, brown
-`Chunky.ink` words on cream. `Chunky.navy` is now that brown (`Chunky.edge`), kept under its old name.
+panels: a panel with a thick outline, a striped header bar across its top with the title at its left
+and a red hexagon X at its right (`Chunky.ribbon` and `Chunky.close` drawn after a `Chunky.panel` become
+that header, whatever box they are given), striped buttons outlined in the dark shade of their own
+colour (`Chunky.shade`), rarity tiles, currency pills.
+
+**The kit's colours are Lagoon** (owner, 2026-11-12, of the reference's cream, brown and orange: "awful
+bland colors. make it have nice soft colors but still have everything be readable", then, of three
+palettes drawn with a contrast check, "Lagoon colors"): mint-white panels, deep-sea outlines, a sea-blue
+header, leaf-green go (PLAY, EQUIP, CLAIM), a sunny main button with dark words, teal second and coral
+station buttons, white words with a dark outline on anything coloured and `Chunky.ink` unstroked on a
+panel, card, chip or pill. **`Config/UiPalette` is the one place a UI colour is written** (data only;
+what a colour needs worked out, a contrast or the face for a colour that is not the kit's own, is
+`Util/UiContrast`): `UI/Chunky`
+and `UI/Kit` read it, and so do the end screens (`Config/EndScreenTheme`), the class cards
+(`Config/ClassSelect`), the tutorial pop-ups (`Util/PromptText`), the loading tip (`Util/TipPlate`) and
+the lobby's JUMP and SPRINT. A screen takes its colours from the kit, never from a hex of its own.
+**Readable is a rule**: small words stand 4.5:1 on their ground and big ones 3:1, and
+`tests/UiPalette.spec` holds every pair the kit draws (`UiContrast.pairs`) to it. What that needs, and must keep: a button's
+face is lit only between its two listed colours and striped with a faint dark wash (a lighter top, a
+white stripe or a gloss under the words drops white ones under 3:1); tabs are pale pieces with dark
+words (`Chunky.tab` takes no colour); a tile's caption sits on a white chip; coin and gem amounts are
+dark; words on a piece of any colour go through `Chunky.textOn` / `Chunky.face`, which picks white or
+ink for it, and a plate is lit with `Chunky.light`; a coloured piece's frame is white under the
+gradient that carries its colour (the two multiply). The loading tip stands on a white plate with a TIP
+tag, not on the picture, three lines tall on an upright phone. `Chunky.navy` is the outline colour (`Chunky.edge`), kept under its old name.
 **Effects are in the kit** (owner, the same day: "make sure there are effects as well"): every button
 clicks, throws sparks (`Chunky.burst`) and bounces, gold ones carry a sweeping shine, `Chunky.twinkle`
 sparkles what is selected or new, `Chunky.count` runs a number up. A screen laid out in screen points
@@ -476,7 +496,8 @@ chunky panel of class cards, each drawing the player's own character holding the
 and `ClassSelectHit` are gone and the look sent to the server is only saved. The **Endless checkpoint**
 is a chunky panel of coloured gift tiles. The **draft** keeps its cards and their dark stage (the
 owner's card design) and has chunky REROLL / CHOOSE! on every layout. The **end screens** keep their
-blocks and motion and take the reference's colours and rounded font (`Config/EndScreenTheme`). Still in
+blocks and motion and take the kit's colours and rounded font (`Config/EndScreenTheme`, read from
+`Config/UiPalette`). Still in
 their own look: NEW ENEMY! (its pixel card is approved art) and the Studio sandbox menu.
 
 **The run's top HUD** (`UI/RunBanner`, `Util/RunHudRules`, `Config/Hud` `top`; 2026-11-11): a thick XP

@@ -5,7 +5,8 @@
 	fixed. it looks too ai right now").
 
 	Each is a class from `Config/Classes`, the colour its card is filled
-	with, and a line on how it plays. The picture on the card is not here:
+	with (from the UI's palette, `Config/UiPalette`), and a line on how it
+	plays. The picture on the card is not here:
 	it is the player's own character holding the class's weapon, drawn live.
 	`locked` is a class that is not playable yet: its card shows a lock and
 	cannot be chosen, on the screen or on the server (`Data/Shop`'s own
@@ -19,29 +20,31 @@ export type Card = {
 	pitch: string,
 }
 
+local UiPalette = require(script.Parent.UiPalette)
+
 local ClassCards: { Card } = {
 	{
 		class = "Ranger",
 		locked = false,
-		colour = Color3.fromRGB(104, 214, 46),
+		colour = UiPalette.go.top,
 		pitch = "FAST SHOTS FROM FAR AWAY",
 	},
 	{
 		class = "Arcanist",
 		locked = false,
-		colour = Color3.fromRGB(28, 168, 255),
+		colour = UiPalette.header.top,
 		pitch = "SLOW ORBS THAT BLAST",
 	},
 	{
 		class = "Warden",
 		locked = false,
-		colour = Color3.fromRGB(238, 60, 60),
+		colour = UiPalette.danger.top,
 		pitch = "A BIG SWORD, UP CLOSE",
 	},
 	{
 		class = "Assassin",
 		locked = true,
-		colour = Color3.fromRGB(150, 160, 178),
+		colour = UiPalette.off.top,
 		pitch = "NOT HERE YET",
 	},
 }

@@ -109,7 +109,7 @@ from the profile and tells the client as the `JoinRoute` Player attribute (`Part
 join's loading screen and sees the title and story there (`story` in the teleport data; `seen`
 skips the story); one who has beaten 1-1, or won the tutorial before (`SaveSchema` v8
 `tutorialDone`), sees the title and no story. Studio cannot teleport, so there the title (and story)
-play first and the tutorial starts in place. The tutorial's win tops coins up to the first egg
+play first and the tutorial starts in place. The tutorial's first win tops coins up to the first egg
 (`Tutorial.firstEgg`, `Util/FirstEgg`, `tests/FirstEgg.spec`) and `Fx/HatcheryPointer` points at
 the Hatchery until a pet is owned; `UI/TutorialSkip` is SKIP TUTORIAL for a player who has won it
 once. **In Studio, set a `SkipIntro` attribute

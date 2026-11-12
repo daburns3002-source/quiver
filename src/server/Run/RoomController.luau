@@ -716,12 +716,12 @@ local function complete(now: number)
 	-- the area's clear bonus, before the summary that shows it
 	for _, session in RunSession.all() do
 		RunSession.payCoins(session, RunSession.areaPay().clearCoins)
-		--[[ The tutorial's win pays for the first egg (`Util/FirstEgg`):
-		     what the player is still short of it, so the lobby opens on a
-		     hatch. A top-up, never a flat sum, so replaying the tutorial
-		     (owed until 1-1 is won) farms nothing. ]]
+		--[[ The tutorial's first win pays for the first egg
+		     (`Util/FirstEgg`): what the player is still short of it, so the
+		     lobby opens on a hatch. Once only (`tutorialDone`): the tutorial
+		     is owed until 1-1 is won, and replaying it must farm nothing. ]]
 		local profile = if stage().tutorial then PlayerData.get(session.player) else nil
-		if profile then
+		if profile and not profile.tutorialDone then
 			RunSession.payCoins(session, FirstEgg.topUp(profile.coins))
 		end
 		if stage().tutorial then

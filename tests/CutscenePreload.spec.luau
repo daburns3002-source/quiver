@@ -5,9 +5,10 @@
 	`client/Preload`).
 
 	Both used to ask for every asset they could ever draw before showing
-	anything: the title fetched its picture in both orientations and timed its
-	cut off the music alone, and the story fetched all forty frames in both
-	orientations and waited for the lot. On a phone neither finished in time,
+	anything: the title fetched its painted picture in both orientations and
+	timed its cut off the music alone (since 2026-11-12 the title is built
+	from Frames and loads one small picture), and the story fetched all forty
+	frames in both orientations and waited for the lot. On a phone neither finished in time,
 	so the title cut to black and the story skipped its way through
 	(owner, 2026-10-27).
 
@@ -111,26 +112,13 @@ return function(t: TestRunner.Helper)
 		)
 	end)
 
-	--[[ The title's cut is timed from the clock, which is held until the
-	     tiles are in, so the cap has to leave room for a picture to arrive
-	     before the cut lands on it. ]]
-	t.test("the title screen waits for its tiles before it cuts to them", function()
-		t.isTrue(Intro.tilesWait > 0, "there is a wait at all")
-		t.isTrue(Intro.tilesWait >= Intro.musicWait, "at least as long as the music is given")
-	end)
-
-	--[[ One orientation is fetched, so each has to be a whole picture: a grid
-	     with a tile for every cell, and the water the motion draws on it. ]]
-	t.test("either title picture alone covers its own grid", function()
-		local count = 0
-		for key, art in Intro.pictures :: { [string]: any } do
-			count += 1
-			t.equal(#art.tiles, art.cols * art.rows, `{key} has a tile per cell`)
-			t.isTrue(art.water.image ~= "", `{key} has its water`)
-		end
-		t.equal(count, 2, "a landscape and a portrait picture")
-		t.notNil((Intro.pictures :: any).landscape, "landscape")
-		t.notNil((Intro.pictures :: any).portrait, "portrait")
+	--[[ The title's cut is timed from the clock, which is held until its one
+	     picture (the soft glow) is in, so there is a wait, and it is no
+	     longer than the music is given: the title is Frames, and must never
+	     hold the cut the way the painted picture's tiles did. ]]
+	t.test("the title screen waits briefly for its one picture before the cut", function()
+		t.isTrue(Intro.artWait > 0, "there is a wait at all")
+		t.isTrue(Intro.artWait <= Intro.musicWait, "no longer than the music is given")
 	end)
 
 	--[[ `Preload.idsIn` is what walks a config table for things to fetch.

@@ -3,10 +3,10 @@
 	The intro cutscene as the game starts (owner, 2026-10-25; `Config/Intro`),
 	after Pixel Lineage's intro: a black screen where DYL.DEVS PRESENTS fades
 	in in dark gold, then, on the intro music's hit at 5.0 s, a cut to the
-	full-screen title picture (Codex, the owner's pick A, its logo painted
-	in), which stands still once it is up (owner: "the screen should not
-	move at all after it fully appears"),
-	with a big BEGIN ADVENTURE button at the bottom.
+	title screen: "The World Tree at night" (owner, 2026-11-12; `UI/TitleScene`,
+	built by hand from flat blocks, no painted picture), which stands still
+	once it is up but for its slow motes, with the kit's green BEGIN ADVENTURE
+	button, gently pulsing, at the bottom.
 
 	The music (`Config/Music.intro`) starts on the cutscene's first frame,
 	which waits on the black screen until the track has loaded, so its hit
@@ -18,7 +18,8 @@
 
 	One RenderStepped loop poses everything from the time since the start
 	(`Util/IntroTimeline`), so `IntroCutscene.hold(t)` can freeze it at a
-	moment for a Studio capture. Presentation only.
+	moment for a Studio capture, and `IntroCutscene.preview(w, h)` shows the
+	title alone in a phone-sized frame. Presentation only.
 ]]
 
 local GuiService = game:GetService("GuiService")
@@ -37,22 +38,11 @@ local Options = require(script.Parent.Parent.Options)
 local Device = require(script.Parent.Parent.Device)
 local Preload = require(script.Parent.Parent.Preload)
 local RunPaused = require(script.Parent.Parent.RunPaused)
-local TitleMotion = require(script.Parent.TitleMotion)
+local TitleScene = require(script.Parent.TitleScene)
 
 local IntroCutscene = {}
 
 local FONT = Font.fromEnum(Enum.Font.FredokaOne)
-local INK = Color3.fromRGB(20, 14, 6)
-local SHINE = Color3.fromRGB(140, 222, 110)
-local FOOT = Color3.fromRGB(40, 120, 34)
-local STUD = Color3.fromRGB(255, 210, 63)
-
-type Set = {
-	art: any,
-	picture: Frame,
-	backdrop: Frame,
-	motion: TitleMotion.Motion,
-}
 
 type Parts = {
 	gui: ScreenGui,
@@ -61,16 +51,11 @@ type Parts = {
 	presents: TextLabel,
 	presentsSub: TextLabel,
 	presentsScale: UIScale,
-	--[[ Each of `Intro.pictures` (landscape, portrait), built once; the one
-	     that fits the screen's shape shows. ]]
-	sets: { [string]: Set },
-	shade: Frame,
+	--[[ The picture and the button, built for the screen's shape and built
+	     again when that changes (a phone turned over, a window resized). ]]
+	scene: TitleScene.Scene,
+	button: TitleScene.Button,
 	flash: Frame,
-	button: TextButton,
-	buttonGroup: Frame,
-	buttonScale: UIScale,
-	buttonFace: { Frame },
-	buttonWords: TextLabel,
 }
 
 local parts: Parts? = nil
@@ -109,27 +94,6 @@ local function viewport(): Vector2
 	return if camera then camera.ViewportSize else Vector2.new(1280, 720)
 end
 
---[[ Which of `Intro.pictures` fits a screen this shape: the phone art on one
-     taller than wide. ]]
-local function orientationFor(size: Vector2): string
-	return if size.Y > size.X then "portrait" else "landscape"
-end
-
---[[ Every content id one of `Intro.pictures` draws: its tiles and its
-     water. ]]
-local function idsOf(key: string): { string }
-	local art = (Intro.pictures :: { [string]: any })[key]
-	if not art then
-		return {}
-	end
-	local ids: { string } = {}
-	for _, id in art.tiles do
-		table.insert(ids, id)
-	end
-	table.insert(ids, art.water.image)
-	return ids
-end
-
 local function rect(parent: Instance, name: string, colour: Color3, z: number): Frame
 	local f = Instance.new("Frame")
 	f.Name = name
@@ -140,126 +104,9 @@ local function rect(parent: Instance, name: string, colour: Color3, z: number): 
 	return f
 end
 
---[[ A block with stepped corners: a wide bar and a tall bar, `step` (a
-     share of the height) in from the edges, as the end screens' blocks. ]]
-local function stepped(parent: Instance, name: string, colour: Color3, z: number, step: number)
-	local holder = Instance.new("Frame")
-	holder.Name = name
-	holder.BackgroundTransparency = 1
-	holder.Size = UDim2.fromScale(1, 1)
-	holder.ZIndex = z
-	holder.Parent = parent
-	local wide = rect(holder, "Wide", colour, z)
-	wide.Position = UDim2.fromScale(0, step)
-	wide.Size = UDim2.fromScale(1, 1 - 2 * step)
-	-- inset across by the same pixels as down, so the steps are square
-	local tall = rect(holder, "Tall", colour, z)
-	local function fit()
-		local px = math.floor(holder.AbsoluteSize.Y * step + 0.5)
-		tall.Position = UDim2.fromOffset(px, 0)
-		tall.Size = UDim2.new(1, -2 * px, 1, 0)
-	end
-	holder:GetPropertyChangedSignal("AbsoluteSize"):Connect(fit)
-	fit()
-	return holder
-end
-
-type ButtonParts = {
-	group: Frame,
-	button: TextButton,
-	scale: UIScale,
-	face: { Frame },
-	words: TextLabel,
-}
-
-local function buildButton(safe: ScreenGui): ButtonParts
-	local phone = Device.isPhone()
-	local group = Instance.new("Frame")
-	group.Name = "BeginAdventure"
-	group.AnchorPoint = Vector2.new(0.5, 1)
-	group.Position = UDim2.new(0.5, 0, 1, -16)
-	-- an upright screen (a phone) gets a button most of its width, over the phone art
-	local view = viewport()
-	local upright = view.Y > view.X
-	group.Size = UDim2.fromScale(if upright then 0.8 elseif phone then 0.5 else 0.3, 1)
-	group.BackgroundTransparency = 1
-	group.ZIndex = 20
-	group.Parent = safe
-	local ratio = Instance.new("UIAspectRatioConstraint")
-	ratio.AspectRatio = 5.2
-	ratio.Parent = group
-	local size = Instance.new("UISizeConstraint")
-	size.MaxSize = Vector2.new(560, 108)
-	size.Parent = group
-	local scale = Instance.new("UIScale")
-	scale.Parent = group
-
-	stepped(group, "Ink", INK, 20, 0.12)
-	local face = Instance.new("Frame")
-	face.Name = "FaceHolder"
-	face.BackgroundTransparency = 1
-	face.Position = UDim2.fromScale(0.012, 0.06)
-	face.Size = UDim2.fromScale(0.976, 0.88)
-	face.ZIndex = 21
-	face.Parent = group
-	local faceBlock = stepped(face, "Face", Intro.buttonColour, 21, 0.1)
-	local foot = rect(face, "Foot", FOOT, 22)
-	foot.Position = UDim2.fromScale(0.03, 0.78)
-	foot.Size = UDim2.fromScale(0.94, 0.12)
-	local shine = rect(face, "Shine", SHINE, 22)
-	shine.Position = UDim2.fromScale(0.06, 0.12)
-	shine.Size = UDim2.fromScale(0.88, 0.07)
-	-- four gold studs, as on the end screens' button
-	for _, at in { { 0.04, 0.2 }, { 0.96, 0.2 }, { 0.04, 0.66 }, { 0.96, 0.66 } } do
-		local stud = rect(face, "Stud", STUD, 23)
-		stud.AnchorPoint = Vector2.new(0.5, 0)
-		stud.Position = UDim2.fromScale(at[1], at[2])
-		stud.Size = UDim2.fromScale(0.022, 0.13)
-		local square = Instance.new("UIAspectRatioConstraint")
-		square.Parent = stud
-	end
-
-	local words = Instance.new("TextLabel")
-	words.Name = "Words"
-	words.BackgroundTransparency = 1
-	words.AnchorPoint = Vector2.new(0.5, 0.5)
-	words.Position = UDim2.fromScale(0.5, 0.47)
-	words.Size = UDim2.fromScale(0.86, 0.5)
-	words.FontFace = FONT
-	words.Text = Intro.button
-	words.TextColor3 = Intro.buttonText
-	words.TextScaled = true
-	words.ZIndex = 24
-	words.Parent = face
-	local stroke = Instance.new("UIStroke")
-	stroke.Color = INK
-	stroke.Thickness = if phone then 3 else 4
-	stroke.LineJoinMode = Enum.LineJoinMode.Miter
-	stroke.Parent = words
-	-- a hard blocky shadow under the words, so they read on the green
-	local shadow = words:Clone()
-	shadow.Name = "Shadow"
-	shadow.TextColor3 = INK
-	shadow.Position = UDim2.new(0.5, 0, 0.47, if phone then 3 else 4)
-	shadow.ZIndex = 23
-	shadow.Parent = face
-
-	local button = Instance.new("TextButton")
-	button.Name = "Button"
-	button.BackgroundTransparency = 1
-	button.Size = UDim2.fromScale(1, 1)
-	button.Text = ""
-	button.AutoButtonColor = false
-	button.ZIndex = 30
-	button.Parent = group
-	local blocks = {}
-	for _, block in faceBlock:GetChildren() do
-		if block:IsA("Frame") then
-			table.insert(blocks, block)
-		end
-	end
-	return { group = group, button = button, scale = scale, face = blocks, words = words }
-end
+--[[ BEGIN ADVENTURE was pressed: forward-declared, since the button is
+     built before it. ]]
+local press: () -> ()
 
 local function build(playerGui: PlayerGui): Parts
 	local gui = Instance.new("ScreenGui")
@@ -269,6 +116,8 @@ local function build(playerGui: PlayerGui): Parts
 	-- over everything, the notch and the corners too
 	gui.ScreenInsets = Enum.ScreenInsets.None
 	gui.DisplayOrder = 110
+	-- the picture is stacked blocks: each layer sorts inside its own parent
+	gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 	gui.Parent = playerGui
 
 	-- the button stays inside the device's safe area
@@ -277,10 +126,10 @@ local function build(playerGui: PlayerGui): Parts
 	safe.ResetOnSpawn = false
 	safe.ScreenInsets = Enum.ScreenInsets.DeviceSafeInsets
 	safe.DisplayOrder = 111
+	safe.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 	safe.Parent = playerGui
 
-	-- under everything, the picture's tiles too, until the title leaves:
-	-- nothing of the game shows through a tile still loading
+	-- under everything, the picture too, until the title leaves
 	local black = rect(gui, "Black", Color3.new(0, 0, 0), 0)
 	black.Size = UDim2.fromScale(1, 1)
 	black.Active = true
@@ -321,64 +170,20 @@ local function build(playerGui: PlayerGui): Parts
 	subFit.MaxTextSize = 26
 	subFit.Parent = sub
 
-	--[[ The whole picture shows at the screen's height (or width), so neither
-	     the logo at its top nor the heroes at its bottom are ever cut off; on
-	     a screen of another shape, the bars at its sides are the same picture
-	     stretched to cover and darkened. Each picture is a grid of tiles
-	     (`Intro.pictures`), which `pose` sizes in whole pixels so no hairline
-	     shows between them. ]]
-	local function tiles(art: any, name: string, z: number): Frame
-		local holder = Instance.new("Frame")
-		holder.Name = name
-		holder.AnchorPoint = Vector2.new(0.5, 0.5)
-		holder.Position = UDim2.fromScale(0.5, 0.5)
-		holder.BackgroundTransparency = 1
-		holder.Visible = false
-		holder.ZIndex = z
-		holder.Parent = gui
-		for index, id in art.tiles do
-			local image = Instance.new("ImageLabel")
-			image.Name = `Tile{index}`
-			image.BackgroundTransparency = 1
-			image.Image = id
-			image.ZIndex = z
-			image.Parent = holder
-		end
-		return holder
-	end
-	local sets: { [string]: Set } = {}
-	for key, art in Intro.pictures :: { [string]: any } do
-		local backdrop = tiles(art, `Backdrop_{key}`, 1)
-		local dim = rect(backdrop, "Dim", Color3.new(0, 0, 0), 2)
-		dim.Size = UDim2.fromScale(1, 1)
-		dim.BackgroundTransparency = Intro.sidesDim
-		dim.ZIndex = 2
-		local picture = tiles(art, `Picture_{key}`, 3)
-		sets[key] = {
-			art = art,
-			picture = picture,
-			backdrop = backdrop,
-			motion = TitleMotion.build(picture, art),
-		}
-	end
-
-	-- the bottom darkens a little under the button
-	local shade = rect(gui, "Shade", Color3.new(0, 0, 0), 6)
-	shade.AnchorPoint = Vector2.new(0, 1)
-	shade.Position = UDim2.fromScale(0, 1)
-	shade.Size = UDim2.fromScale(1, 0.3)
-	shade.Visible = false
-	local shadeFade = Instance.new("UIGradient")
-	shadeFade.Rotation = 90
-	shadeFade.Transparency = NumberSequence.new(1, 0.45)
-	shadeFade.Parent = shade
+	--[[ The title picture, for the screen as it is now (`pose` builds it
+	     again if the screen changes shape), hidden until the cut. ]]
+	local view = viewport()
+	local scene = TitleScene.build(gui, view)
+	scene.root.Visible = false
 
 	local flash = rect(gui, "Flash", Color3.new(1, 1, 1), 15)
 	flash.Size = UDim2.fromScale(1, 1)
 	flash.BackgroundTransparency = 1
 
-	local made = buildButton(safe)
-	made.group.Visible = false
+	local button = TitleScene.button(safe, view, Intro.button, function()
+		press()
+	end)
+	button.group.Visible = false
 
 	return {
 		gui = gui,
@@ -387,14 +192,9 @@ local function build(playerGui: PlayerGui): Parts
 		presents = presents,
 		presentsSub = sub,
 		presentsScale = presentsScale,
-		sets = sets,
-		shade = shade,
+		scene = scene,
+		button = button,
 		flash = flash,
-		button = made.button,
-		buttonGroup = made.group,
-		buttonScale = made.scale,
-		buttonFace = made.face,
-		buttonWords = made.words,
 	}
 end
 
@@ -430,21 +230,13 @@ end
      `Intro.musicWait`), so its hit lands on the cut, then starts the clock
      and the music on the same frame. ]]
 local function startClock(built: Parts)
-	--[[ The title's tiles and the music both load during the black screen,
-	     and the clock waits for both: the cut at `revealAt` is counted from
-	     here, so holding the clock holds the music's hit with it and the two
-	     still land together.
-
-	     Only the orientation on screen is waited for. Loading both was twice
-	     the bytes for a picture only one of them would ever draw, which is
-	     what put the cut ahead of the tiles on a phone. The other follows in
-	     the background, because a phone can be turned over mid-title. ]]
-	local showing = orientationFor(viewport())
-	local other = if showing == "landscape" then "portrait" else "landscape"
-	local tilesIn = false
+	--[[ The title's one picture (its soft glow) and the music both load
+	     during the black screen, and the clock waits for both: the cut at
+	     `revealAt` is counted from here, so holding the clock holds the
+	     music's hit with it and the two still land together. ]]
+	local artIn = false
 	task.spawn(function()
-		tilesIn = Preload.await(idsOf(showing), Intro.tilesWait)
-		Preload.fetchAsync(idsOf(other))
+		artIn = Preload.await(TitleScene.images, Intro.artWait)
 	end)
 
 	local sound = loadMusic()
@@ -452,7 +244,7 @@ local function startClock(built: Parts)
 	while parts == built do
 		local waited = os.clock() - began
 		local musicIn = sound == nil or sound.IsLoaded or waited >= Intro.musicWait
-		if (tilesIn or waited >= Intro.tilesWait) and musicIn then
+		if (artIn or waited >= Intro.artWait) and musicIn then
 			break
 		end
 		task.wait(0.05)
@@ -468,7 +260,7 @@ local function startClock(built: Parts)
 	-- a gamepad lands on the button once it is up
 	task.delay(Intro.buttonAt, function()
 		if parts == built and not pressedAt then
-			GuiService.SelectedObject = built.button
+			GuiService.SelectedObject = built.button.hit
 		end
 	end)
 end
@@ -493,80 +285,34 @@ local function pose(t: number)
 	p.presentsScale.Scale = now.presentsScale
 	p.black.BackgroundTransparency = fade
 
-	local size = viewport()
-	-- the picture whose shape fits: the phone art on a screen taller than wide
-	local showing = orientationFor(size)
-	local function place(set: Set, holder: Frame, scale: number, x: number?, y: number?)
-		local art = set.art
-		local wide = math.floor(art.width * scale + 0.5)
-		local tall = math.floor(art.height * scale + 0.5)
-		holder.Size = UDim2.fromOffset(wide, tall)
-		if x and y then
-			holder.AnchorPoint = Vector2.zero
-			holder.Position = UDim2.fromOffset(math.floor(x + 0.5), math.floor(y + 0.5))
+	--[[ A screen that has changed shape (a phone turned over, a window
+	     resized) gets the picture and the button built again for it. ]]
+	local view = viewport()
+	if (view - p.scene.view).Magnitude > 0.5 then
+		local focused = GuiService.SelectedObject == p.button.hit
+		p.scene.root:Destroy()
+		p.button.group:Destroy()
+		p.scene = TitleScene.build(p.gui, view)
+		p.button = TitleScene.button(p.safe, view, Intro.button, function()
+			press()
+		end)
+		if focused then
+			GuiService.SelectedObject = p.button.hit
 		end
-		for index = 1, #art.tiles do
-			local tile = holder:FindFirstChild(`Tile{index}`) :: ImageLabel
-			local col, row = (index - 1) % art.cols, (index - 1) // art.cols
-			local x0, x1 = wide * col // art.cols, wide * (col + 1) // art.cols
-			local y0, y1 = tall * row // art.rows, tall * (row + 1) // art.rows
-			tile.Position = UDim2.fromOffset(x0, y0)
-			tile.Size = UDim2.fromOffset(x1 - x0, y1 - y0)
-			tile.ImageTransparency = fade
-		end
-	end
-	for key, set in p.sets do
-		local shown = now.revealed and key == showing
-		set.picture.Visible = shown
-		set.backdrop.Visible = shown
-		if not shown then
-			continue
-		end
-		local art = set.art
-		-- the picture filling the screen if a small crop does it, else whole; the sides, covered
-		local scale, x, y =
-			IntroTimeline.fit(art.width, art.height, size.X, size.Y, Intro.maxCrop, Intro.cropTop)
-		place(set, set.picture, scale, x, y)
-		place(set, set.backdrop, math.max(size.X / art.width, size.Y / art.height))
-		-- the water and the falling leaves, from the moment the picture appears
-		TitleMotion.step(set.motion, t - Intro.revealAt, fade)
-		local dim = set.backdrop:FindFirstChild("Dim") :: Frame
-		dim.BackgroundTransparency = Intro.sidesDim + (1 - Intro.sidesDim) * fade
 	end
 
-	p.shade.Visible = now.revealed
-	p.shade.BackgroundTransparency = fade
+	-- the picture and its motes, from the moment it appears
+	local sinceCut = t - Intro.revealAt
+	p.scene.root.Visible = now.revealed
+	TitleScene.step(p.scene, sinceCut, now.shown)
 
 	p.flash.BackgroundTransparency = 1 - now.flash * 0.85
 
-	p.buttonGroup.Visible = now.button > 0 and now.shown > 0
-	p.buttonGroup.Position = UDim2.new(0.5, 0, 1 + 0.25 * (1 - now.button), -16)
-	--[[ Still until the player reaches for it: brighter and a little larger
-	     under the mouse (or a gamepad's focus), darker and pressed in while
-	     held. ]]
+	--[[ The button rises in after the cut and pulses gently until it is
+	     pressed; the kit gives it its swell under the pointer, its squash
+	     and its click. ]]
 	local ready = now.button >= 1 and not pressedAt
-	local state = p.button.GuiState
-	local pressing = ready and state == Enum.GuiState.Press
-	local hovering = ready
-		and not pressing
-		and (state == Enum.GuiState.Hover or GuiService.SelectedObject == p.button)
-	local look = if pressing then Intro.buttonPress elseif hovering then Intro.buttonHover else nil
-	for _, block in p.buttonFace do
-		block.BackgroundColor3 = if look then look.colour else Intro.buttonColour
-	end
-	p.buttonWords.Position = UDim2.new(0.5, 0, 0.47, if pressing then 3 else 0)
-	p.buttonScale.Scale = (if look then look.scale else 1) * (1 - 0.1 * fade)
-	for _, piece in p.buttonGroup:GetDescendants() do
-		if piece:IsA("Frame") then
-			piece:SetAttribute("Base", piece:GetAttribute("Base") or piece.BackgroundTransparency)
-			piece.BackgroundTransparency = 1
-				- (1 - (piece:GetAttribute("Base") :: number)) * now.shown
-		elseif piece:IsA("TextLabel") then
-			piece.TextTransparency = fade
-		elseif piece:IsA("UIStroke") then
-			piece.Transparency = fade
-		end
-	end
+	TitleScene.poseButton(p.button, sinceCut, now.button, now.shown, ready)
 
 	if pressedAt then
 		fadeMusic(now.shown)
@@ -576,7 +322,7 @@ local function pose(t: number)
 	end
 end
 
-local function press()
+function press()
 	local t = clock()
 	if pressedAt or held or not IntroTimeline.canPress(Intro :: any, t) then
 		return
@@ -599,7 +345,6 @@ function IntroCutscene.start(begin: () -> ())
 	local playerGui = Players.LocalPlayer:WaitForChild("PlayerGui") :: PlayerGui
 	local built = build(playerGui)
 	parts = built
-	built.button.Activated:Connect(press)
 	RunPaused.setTitle(true)
 	startedAt = nil
 	pressedAt = nil
@@ -618,6 +363,45 @@ function IntroCutscene.hold(t: number?)
 	end
 end
 
+--[[ Studio looks: the title alone, as it stands once it is up, in a frame
+     `width` by `height` points in the middle of the screen (390 by 844 is
+     a phone held upright, 844 by 390 one on its side), over whatever is
+     showing. Returns the ScreenGui; destroy it to take the preview away. ]]
+function IntroCutscene.preview(width: number, height: number): ScreenGui
+	local playerGui = Players.LocalPlayer:WaitForChild("PlayerGui") :: PlayerGui
+	local old = playerGui:FindFirstChild("TitlePreview")
+	if old then
+		old:Destroy()
+	end
+	local gui = Instance.new("ScreenGui")
+	gui.Name = "TitlePreview"
+	gui.ResetOnSpawn = false
+	gui.IgnoreGuiInset = true
+	gui.DisplayOrder = 200
+	gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+	gui.Parent = playerGui
+	local backdrop = rect(gui, "Backdrop", Color3.fromRGB(40, 40, 46), 0)
+	backdrop.Size = UDim2.fromScale(1, 1)
+	local phone = rect(gui, "Phone", Color3.new(0, 0, 0), 1)
+	phone.AnchorPoint = Vector2.new(0.5, 0.5)
+	phone.Position = UDim2.fromScale(0.5, 0.5)
+	phone.Size = UDim2.fromOffset(width, height)
+	phone.ClipsDescendants = true
+	local view = Vector2.new(width, height)
+	local scene = TitleScene.build(phone, view)
+	local button = TitleScene.button(phone, view, Intro.button, function() end)
+	local began = os.clock()
+	local step = RunService.RenderStepped:Connect(function()
+		local t = os.clock() - began
+		TitleScene.step(scene, t, 1)
+		TitleScene.poseButton(button, t, 1, 1, true)
+	end)
+	gui.Destroying:Once(function()
+		step:Disconnect()
+	end)
+	return gui
+end
+
 function IntroCutscene.stop()
 	local p = parts
 	if connection then
@@ -625,7 +409,7 @@ function IntroCutscene.stop()
 		connection = nil
 	end
 	if p then
-		if GuiService.SelectedObject == p.button then
+		if GuiService.SelectedObject == p.button.hit then
 			GuiService.SelectedObject = nil
 		end
 		p.gui:Destroy()

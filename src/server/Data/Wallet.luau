@@ -18,6 +18,7 @@ local Purse = require(ReplicatedStorage.Shared.Util.Purse)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local SaveSchema = require(ReplicatedStorage.Shared.Util.SaveSchema)
 
+local DexPay = require(script.Parent.DexPay)
 local PlayerData = require(script.Parent.PlayerData)
 
 local log = Log.forTag("Wallet")
@@ -88,6 +89,7 @@ function Wallet.grantWeapon(player: Player, weapon: string): boolean
 		return false
 	end
 	profile.weapons[weapon] = true
+	DexPay.pay(player, profile, "Weapons", weapon)
 	log.info("%s gets the %s", player.Name, weapon)
 	changed(player, profile)
 	return true
@@ -106,6 +108,17 @@ function Wallet.setLook(player: Player, look: string)
 	local profile = PlayerData.get(player)
 	if profile and table.find(SaveSchema.LOOKS, look) then
 		profile.look = look
+		changed(player, profile)
+	end
+end
+
+--[[ An enemy is met (`Run/RunSession.meetEnemy`): written down for the
+     Dex, with its gems the first time (`Data/DexPay`). ]]
+function Wallet.meetEnemy(player: Player, kind: string)
+	local profile = PlayerData.get(player)
+	if profile and not profile.enemiesSeen[kind] then
+		profile.enemiesSeen[kind] = true
+		DexPay.pay(player, profile, "Enemies", kind)
 		changed(player, profile)
 	end
 end
@@ -233,6 +246,7 @@ function Wallet.grantPet(player: Player, pet: string): boolean
 	end
 	local had = profile.pets[pet] or 0
 	profile.pets[pet] = had + 1
+	DexPay.pay(player, profile, "Pets", pet)
 	log.info("%s hatches a %s%s", player.Name, pet, if had > 0 then " (again)" else "")
 	changed(player, profile)
 	return had == 0

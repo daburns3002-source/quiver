@@ -358,6 +358,19 @@ box shows the stage's take. Any schema change bumps `SaveSchema.VERSION` with a 
 `SaveSchema.spec` case. Version 2 (2026-10-26) adds `levelsBeaten` (by `StageConfig.level`); a
 version 1 profile that had beaten King Bloblin counts 1-1 as beaten.
 
+**Reasons to come back** (owner-approved loop review, 2026-11-11; `Config/Rewards`, `Util/RewardRules`,
+`Server/Data/Rewards`, `UI/RewardsScreen`): a 7-day login calendar (a missed day does not reset it), three
+daily quests dealt one per group from the day's number, and a one-time starter list (beat 1-1, hatch, equip
+a pet, open a crate), paying mostly gems so an Epic is about six days of play; the arithmetic is at the top
+of the config and `tests/RewardRules.spec` pins its shape. The client only asks (`Remotes.RewardClaim`, a
+kind and a key): quest progress is counted by the server from its own events (`Rewards.note(player, kind,
+amount)` in the run, the hatchery and the shop; anything new that should count calls it), the starter list
+is read from the saved profile, and the day is the server's clock, published as the Player's `RewardDay`.
+Save version 8 holds it (`rewards`). Each new Dex entry pays `Rewards.dexGems` once ever (`Data/DexPay`,
+called by `Wallet.grantWeapon`, `grantPet` and `meetEnemy`), with a toast. Each lobby leaderboard has a
+"YOU: #N" row (`Run/BoardYou`, `Util/BoardRank`, `UI/BoardYou`; `docs/LEADERBOARD.md`). Studio:
+`Remotes.DebugDay:FireServer(n)` moves the player's reward day on.
+
 **Portals open a screen; the lobby sprints and jumps** (owner, 2026-10-26): walking into a lit
 portal opens `UI/PortalScreen` (the area, its levels from `Config/Lobby.portals[i].levels`, START;
 Mossy Glade's ten as numbered buttons in two rows of five, locked ones dimmed under a lock, beaten

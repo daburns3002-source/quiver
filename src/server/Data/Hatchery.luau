@@ -28,6 +28,7 @@ local Sandbox = require(ReplicatedStorage.Shared.Config.Sandbox)
 
 local Pity = require(ReplicatedStorage.Shared.Util.Pity)
 local PlayerData = require(script.Parent.PlayerData)
+local Rewards = require(script.Parent.Rewards)
 local Wallet = require(script.Parent.Wallet)
 
 local log = Log.forTag("Hatchery")
@@ -98,6 +99,7 @@ local function hatch(player: Player, key: unknown, count: unknown)
 		Wallet.equipPet(player, 1, results[1].pet)
 		Hatchery.apply(player)
 	end
+	Rewards.note(player, "hatches", #results)
 	log.info("%s hatched %d %s", player.Name, n, egg.name)
 	eggHatched:FireClient(player, key, results)
 end

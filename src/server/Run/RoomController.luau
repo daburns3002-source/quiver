@@ -64,6 +64,7 @@ local PetCombat = require(script.Parent.Parent.Combat.PetCombat)
 local Pickups = require(script.Parent.Pickups)
 local ProjectileSystem = require(script.Parent.Parent.Combat.ProjectileSystem)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
+local Rewards = require(script.Parent.Parent.Data.Rewards)
 local RunSession = require(script.Parent.RunSession)
 local Sandbox = require(ReplicatedStorage.Shared.Config.Sandbox)
 local StoryLeaderboard = require(script.Parent.StoryLeaderboard)
@@ -709,6 +710,7 @@ local function complete(now: number)
 		     (`debugEnterRoom`) counts, so unlocking can be tested there. ]]
 		if level then
 			Wallet.beatLevel(session.player, level)
+			Rewards.note(session.player, "levels", 1)
 		end
 	end
 	resumeAt = now + Balance.Run.deathPause

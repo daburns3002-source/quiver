@@ -32,8 +32,8 @@ local MudCoat = require(ReplicatedStorage.Shared.Util.MudCoat)
 local NewEnemies = require(ReplicatedStorage.Shared.Config.NewEnemies)
 local PetCombat = require(ReplicatedStorage.Shared.Config.PetCombat)
 local Pickups = require(script.Parent.Pickups)
-local PlayerData = require(script.Parent.Parent.Data.PlayerData)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
+local Rewards = require(script.Parent.Parent.Data.Rewards)
 local Shelter = require(ReplicatedStorage.Shared.Util.Shelter)
 local ShotPipeline = require(ReplicatedStorage.Shared.Combat.ShotPipeline)
 local Tutorial = require(ReplicatedStorage.Shared.Config.Tutorial)
@@ -477,12 +477,7 @@ function RunSession.meetEnemy(kind: string)
 			     or not they read the card, and closing the game on an open
 			     card should still fill in the dex (`Util/DexBook`, save
 			     version 7). ]]
-			local profile = PlayerData.get(session.player)
-			if profile and not profile.enemiesSeen[kind] then
-				profile.enemiesSeen[kind] = true
-				PlayerData.touch(session.player)
-				Wallet.send(session.player)
-			end
+			Wallet.meetEnemy(session.player, kind)
 		end
 	end
 end
@@ -718,6 +713,7 @@ end
 ]]
 function RunSession.onEnemyKilled(session: Session)
 	session.stageKills += 1
+	Rewards.note(session.player, "kills", 1)
 	RunSession.payCoins(session, RunSession.areaPay().killCoins)
 	--[[ Battle Cry: a stack per kill, up to the cap; they lapse together
 	     `duration` seconds after the last kill. The attribute tells the
@@ -785,6 +781,7 @@ function RunSession.payCoins(session: Session, amount: number)
 		return
 	end
 	session.stageCoins += amount
+	Rewards.note(session.player, "coins", amount)
 	Wallet.addCoins(session.player, amount)
 end
 
@@ -797,6 +794,7 @@ function RunSession.payBoss()
 	end
 	for _, session in sessions do
 		local gems = Wallet.beatBoss(session.player, area)
+		Rewards.note(session.player, "bosses", 1)
 		session.stageGems += gems
 	end
 end

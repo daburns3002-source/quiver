@@ -62,7 +62,7 @@ return function(t: TestRunner.Helper)
 
 	t.test("a new profile has beaten no level", function()
 		local p = SaveSchema.migrate(nil)
-		t.equal(SaveSchema.VERSION, 7)
+		t.isTrue(SaveSchema.VERSION >= 8)
 		t.isNil((next(p.levelsBeaten)))
 	end)
 
@@ -224,5 +224,50 @@ return function(t: TestRunner.Helper)
 		t.equal(p.gems, 0)
 		t.isNil(p.items.RoyalJelly)
 		t.isFalse(Purse.pay(p, { gems = 1 }))
+	end)
+	t.test("version 7 migrates up to the rewards: nothing claimed, nothing a windfall", function()
+		local p = SaveSchema.migrate({
+			version = 7,
+			pets = { EmberWilf = 1 },
+			weapons = { AcornBow = true },
+			enemiesSeen = { MossSlime = true },
+			pity = { crates = 3, eggs = 0 },
+		})
+		local r = p.rewards
+		t.equal(r.loginDay, 0)
+		t.equal(r.loginCount, 0)
+		t.isNil((next(r.starterClaimed)), "the starter list pays what was already done")
+		t.equal(r.cratesOpened, 3, "crates count from the pity counter")
+		t.isTrue(r.dexPaid["Pets:EmberWilf"], "what was owned is not paid again")
+		t.isTrue(r.dexPaid["Weapons:AcornBow"])
+		t.isTrue(r.dexPaid["Enemies:MossSlime"])
+		t.isTrue(r.dexPaid["Weapons:TwigBow"], "the starters count as paid")
+	end)
+
+	t.test("version 8 keeps its rewards and drops what is broken", function()
+		local p = SaveSchema.migrate({
+			version = 8,
+			rewards = {
+				loginDay = 20400,
+				loginCount = 9,
+				questDay = 20400,
+				questProgress = { kills50 = 12, bad = "x" },
+				questClaimed = { boss1 = true, nope = 1 },
+				starterClaimed = { hatch = true },
+				cratesOpened = 2.6,
+				dexPaid = { ["Pets:Bramble"] = true },
+			},
+		})
+		local r = p.rewards
+		t.equal(r.loginDay, 20400)
+		t.equal(r.loginCount, 9)
+		t.equal(r.questProgress.kills50, 12)
+		t.isNil(r.questProgress.bad)
+		t.isTrue(r.questClaimed.boss1)
+		t.isNil(r.questClaimed.nope)
+		t.isTrue(r.starterClaimed.hatch)
+		t.equal(r.cratesOpened, 2)
+		t.isTrue(r.dexPaid["Pets:Bramble"])
+		t.isNil(r.dexPaid["Weapons:TwigBow"], "a stored copy is read as it is")
 	end)
 end

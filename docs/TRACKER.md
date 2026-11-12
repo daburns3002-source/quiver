@@ -60,6 +60,7 @@ where you would be standing. Say what reads wrong and Claude retunes it.
 - **The hatchery and crate screens.** Four cards across for an egg's eight pets, three for a crate's six weapons, full rarity colour, the chance in the corner, an unowned Mythic a black silhouette.
 - **The shop.** Open a Mossy Glade crate, buy from the store, equip from MY WEAPONS (`Remotes.DebugWallet:FireServer(5000, 2000, 5)` fills the wallet).
 - **The Gear Station** stands clear of the Blacksmith; the portal screen reads; Shift sprints and Space jumps instead of the old dash.
+- **REWARDS** (2026-11-11, loop review items 4 and 13): the gold REWARDS button top left opens the 7-day login calendar, three daily quests and the GETTING STARTED list; it opens by itself once a day when the calendar has a gift. Are the payouts right (`Config/Rewards`, the arithmetic is at its top: about 77 gems a day, an Epic in about 6 days)? Each new Dex entry pays 5 gems with a toast, and each leaderboard has a "YOU: #N" row under its ten. In Studio, `Remotes.DebugDay:FireServer(1)` rolls a day. The button is a stand-in place until the lobby HUD session's bar takes it.
 - **The leaderboards** are behind you as you spawn, side by side and readable, with the walk north clear of them.
 
 ### In a Mossy Glade run

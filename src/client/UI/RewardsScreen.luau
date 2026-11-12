@@ -58,8 +58,8 @@ local function claim(kind: string, key: string?)
 	Remotes.event(Remotes.RewardClaim):FireServer(kind, key)
 end
 
---[[ Words on the sheet, in sheet pixels. Ink with no stroke on a white
-     card; white with the navy stroke on the blue panel. ]]
+--[[ Words on the sheet, in sheet pixels: ink with no stroke, which reads
+     on a white card and on the kit's cream panel alike. ]]
 local function words(
 	sheet: Chunky.Sheet,
 	text: string,
@@ -67,12 +67,9 @@ local function words(
 	y: number,
 	w: number,
 	h: number,
-	onCard: boolean,
 	align: Enum.TextXAlignment?
 ): TextLabel
-	local t = if onCard
-		then Chunky.text(sheet.canvas, text, Chunky.ink, 0)
-		else Chunky.text(sheet.canvas, text, nil, 5)
+	local t = Chunky.text(sheet.canvas, text, Chunky.ink, 0)
 	Chunky.put(sheet, t, x, y, w, h)
 	t.TextXAlignment = align or Enum.TextXAlignment.Left
 	return t
@@ -109,8 +106,7 @@ local function giftAt(
 				x + line + 6,
 				ly + line * 0.1,
 				w - line - 6,
-				line * 0.8,
-				true
+				line * 0.8
 			)
 		end
 	end
@@ -135,7 +131,7 @@ local function row(
 	local ready = have >= goal and not claimed
 	local buttonW, giftW = 176, 150
 	local left = w - buttonW - giftW - 60
-	words(sheet, title, x + 22, y + h * 0.1, left, h * 0.38, true)
+	words(sheet, title, x + 22, y + h * 0.1, left, h * 0.38)
 	local barW = left - 130
 	Chunky.bar(
 		sheet,
@@ -152,14 +148,13 @@ local function row(
 		x + 22 + barW + 12,
 		y + h * 0.54,
 		118,
-		h * 0.34,
-		true
+		h * 0.34
 	)
 	giftAt(sheet, gift, x + w - buttonW - giftW - 30, y + 8, giftW, h - 16)
 	local bx, by, bh = x + w - buttonW - 18, y + (h - 76) / 2, 76
 	if claimed then
 		card.BackgroundColor3 = Color3.fromRGB(206, 212, 226)
-		words(sheet, "DONE", bx, by + 16, buttonW, bh - 32, true, Enum.TextXAlignment.Center).TextColor3 =
+		words(sheet, "DONE", bx, by + 16, buttonW, bh - 32, Enum.TextXAlignment.Center).TextColor3 =
 			Chunky.grey
 	elseif ready then
 		Chunky.gleam(Chunky.button(sheet, "CLAIM", Chunky.green, bx, by, buttonW, bh, onClaim))
@@ -181,16 +176,7 @@ local function dayCard(
 	if state == "ready" then
 		Chunky.outline(card, 9, Chunky.gold)
 	end
-	words(
-		sheet,
-		`DAY {index}`,
-		x + 10,
-		y + h * 0.05,
-		w - 20,
-		h * 0.17,
-		true,
-		Enum.TextXAlignment.Center
-	)
+	words(sheet, `DAY {index}`, x + 10, y + h * 0.05, w - 20, h * 0.17, Enum.TextXAlignment.Center)
 	local size = h * 0.3
 	icon(sheet, ShopAssets.gem, x + (w - size) / 2, y + h * 0.22, size)
 	words(
@@ -200,7 +186,6 @@ local function dayCard(
 		y + h * 0.52,
 		w - 20,
 		h * 0.16,
-		true,
 		Enum.TextXAlignment.Center
 	)
 	if gift.coins > 0 then
@@ -213,8 +198,7 @@ local function dayCard(
 			x + w / 2 - half + line + 6,
 			y + h * 0.68,
 			w * 0.34,
-			line,
-			true
+			line
 		)
 	end
 	local by, bh = y + h * 0.8, h * 0.26
@@ -235,16 +219,7 @@ local function dayCard(
 			claim("login")
 		end))
 	elseif state == "next" then
-		words(
-			sheet,
-			"TOMORROW",
-			x + 10,
-			y + h * 0.83,
-			w - 20,
-			h * 0.12,
-			true,
-			Enum.TextXAlignment.Center
-		).TextColor3 =
+		words(sheet, "TOMORROW", x + 10, y + h * 0.83, w - 20, h * 0.12, Enum.TextXAlignment.Center).TextColor3 =
 			Chunky.grey
 	end
 end
@@ -260,16 +235,7 @@ local function draw(s: StationScreen.Screen)
 	local sheet = area.sheet
 	local profile = s.profile
 	if not profile or not (profile :: any).rewards then
-		words(
-			sheet,
-			"LOADING...",
-			area.x,
-			area.y + 200,
-			area.w,
-			80,
-			false,
-			Enum.TextXAlignment.Center
-		)
+		words(sheet, "LOADING...", area.x, area.y + 200, area.w, 80, Enum.TextXAlignment.Center)
 		return
 	end
 	local p = profile :: SaveSchema.Profile
@@ -279,7 +245,7 @@ local function draw(s: StationScreen.Screen)
 	local x, y, w = area.x, area.y, area.w
 
 	-- the calendar
-	words(sheet, "DAILY LOGIN", x, y, 520, 44, false)
+	words(sheet, "DAILY LOGIN", x, y, 520, 44)
 	local ready = RewardRules.loginReady(r, day)
 	local slot = RewardRules.loginSlot(r)
 	-- day 7 taken today: the whole week stays filled in until tomorrow
@@ -328,7 +294,7 @@ local function draw(s: StationScreen.Screen)
 	-- today's quests, and the starter list beside (or under) them
 	local colW = if up then w else (w - 18) / 2
 	local rowH, rowGap = if up then 108 else 104, 12
-	words(sheet, "DAILY QUESTS", x, below, 420, 44, false)
+	words(sheet, "DAILY QUESTS", x, below, 420, 44)
 	words(
 		sheet,
 		"NEW IN " .. untilReset(),
@@ -336,7 +302,6 @@ local function draw(s: StationScreen.Screen)
 		below + 8,
 		330,
 		32,
-		false,
 		Enum.TextXAlignment.Right
 	)
 	local qy = below + 52
@@ -361,7 +326,7 @@ local function draw(s: StationScreen.Screen)
 
 	local sx = if up then x else x + colW + 18
 	local sy = if up then qy + 3 * (rowH + rowGap) + 12 else below
-	words(sheet, "GETTING STARTED", sx, sy, 520, 44, false)
+	words(sheet, "GETTING STARTED", sx, sy, 520, 44)
 	for index, entry in Rewards.starter do
 		row(
 			sheet,
@@ -499,7 +464,7 @@ local function startToasts()
 			local pill = Instance.new("Frame")
 			pill.Name = "Toast"
 			pill.BorderSizePixel = 0
-			pill.BackgroundColor3 = Color3.fromRGB(28, 34, 78)
+			pill.BackgroundColor3 = Chunky.navy
 			pill.ZIndex = 20
 			Chunky.put(sheet, pill, x, y, w, h)
 			Chunky.round(pill, h / 2)

@@ -25,6 +25,8 @@ local MARGIN = 12
 
 local done = false
 local asked = false
+-- the tutorial is over (won or lost): its end screen has the way on
+local over = false
 local refresh: (() -> ())? = nil
 
 Remotes.event(Remotes.ProfileChanged).OnClientEvent:Connect(function(profile)
@@ -65,12 +67,20 @@ function TutorialSkip.start()
 		if not inTutorial then
 			asked = false
 		end
-		gui.Enabled = inTutorial and done and not asked
+		gui.Enabled = inTutorial and done and not asked and not over
 	end
 	refresh = update
 	Workspace:GetAttributeChangedSignal("Stage"):Connect(update)
 	Workspace:GetAttributeChangedSignal("InLobby"):Connect(update)
 	update()
+end
+
+--[[ The run's state, as `Remotes.RunStateChanged` tells it. ]]
+function TutorialSkip.onRunStateChanged(state: string)
+	over = state == "Complete" or state == "Dead"
+	if refresh then
+		refresh()
+	end
 end
 
 return TutorialSkip

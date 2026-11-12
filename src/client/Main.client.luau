@@ -436,6 +436,7 @@ Remotes.event(Remotes.RunStateChanged).OnClientEvent
 		RunBanner.onRunStateChanged(index, total, state, name, unit)
 		RoomSign.onRunStateChanged(index, total, state, name, unit)
 		TutorialPrompts.onRunStateChanged(index, total, state)
+		TutorialSkip.onRunStateChanged(state)
 		ControlMenu.onRunStateChanged(index, total, state)
 
 		--[[ The end screen belongs to the run that ended, so it clears the

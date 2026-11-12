@@ -266,7 +266,7 @@ end
      story there; one who has beaten 1-1 sees the title and skips the story.
      Told to the client as `Party.ROUTE`; until then it holds its loading
      screen. A profile that never loads owes the tutorial. ]]
-local function tutorialOwed(player: Player): boolean
+local function tutorialOwed(player: Player): (boolean, boolean)
 	local deadline = os.clock() + PROFILE_WAIT
 	while not PlayerData.get(player) and player.Parent and os.clock() < deadline do
 		task.wait(0.25)
@@ -277,18 +277,19 @@ local function tutorialOwed(player: Player): boolean
 	     it is done, so a playtest can have the tutorial and the unlocked
 	     areas at once (`Config/Sandbox`). Never honoured in a live server. ]]
 	local forced = RunService:IsStudio() and Sandbox.forceTutorial == true
-	return forced or LevelUnlocks.tutorialOwed(beaten, Tutorial.untilBeaten)
+	return forced or LevelUnlocks.tutorialOwed(beaten, Tutorial.untilBeaten), forced
 end
 
 local function routeJoin(player: Player)
-	local owed = tutorialOwed(player)
+	local owed, forced = tutorialOwed(player)
 	if not player.Parent then
 		return
 	end
 	--[[ The story is for a first visit: whoever has won the tutorial before
-	     (and so anyone who has beaten 1-1) has seen it. ]]
+	     (and so anyone who has beaten 1-1) has seen it. Studio's forced
+	     tutorial is the owner's run-through from the intro, story and all. ]]
 	local profile = PlayerData.get(player)
-	local seen = not owed or (profile ~= nil and profile.tutorialDone)
+	local seen = not forced and (not owed or (profile ~= nil and profile.tutorialDone))
 	if owed and Party.canTravel() and RoomController.inLobby() then
 		player:SetAttribute(Party.ROUTE, "Tutorial")
 		Party.startTutorial(player, Balance.tutorialStage, true, seen)

@@ -17,6 +17,7 @@ local Log = require(ReplicatedStorage.Shared.Util.Log)
 local Purse = require(ReplicatedStorage.Shared.Util.Purse)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local SaveSchema = require(ReplicatedStorage.Shared.Util.SaveSchema)
+local Tutorial = require(ReplicatedStorage.Shared.Config.Tutorial)
 
 local PlayerData = require(script.Parent.PlayerData)
 
@@ -119,6 +120,11 @@ function Wallet.beatLevel(player: Player, level: string)
 		return
 	end
 	profile.levelsBeaten[level] = true
+	-- whoever has beaten the level the tutorial waits on has been through it
+	-- (`SaveSchema.migrate` reads an older profile the same way)
+	if level == Tutorial.untilBeaten then
+		profile.tutorialDone = true
+	end
 	log.info("%s beat level %s", player.Name, level)
 	changed(player, profile)
 end

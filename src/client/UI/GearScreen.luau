@@ -186,6 +186,14 @@ local function portrait(
 		resized:Disconnect()
 	end)
 end
+--[[ The player's own character holding `weaponName`, turning gently,
+     filling `parent`: the gear screen's portrait for another screen (class
+     select draws one a class). ]]
+function GearScreen.portrait(parent: GuiObject, weaponName: string?)
+	portrait(parent, function(item)
+		item.Size = UDim2.fromScale(1, 1)
+	end, { 0, 0, 0, 0 }, weaponName, nil)
+end
 --[[ A weapon's 2D art, the same picture the Blacksmith shows (never a
      render: owner's standing rule). ]]
 local function weaponArt(weapon: string): string

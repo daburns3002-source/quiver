@@ -10,6 +10,7 @@
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local Sounds = require(ReplicatedStorage.Shared.Config.Sounds)
 local Story = require(ReplicatedStorage.Shared.Config.Story)
 local StoryTimeline = require(ReplicatedStorage.Shared.Util.StoryTimeline)
 local TestRunner = require(script.Parent.TestRunner)
@@ -26,6 +27,42 @@ local function indexOf(name: string): number?
 end
 
 return function(t: TestRunner.Helper)
+	t.test("every sound cue is a real sound, inside a real shot", function()
+		for _, cue in Story.sounds do
+			t.notNil(Sounds[cue.sound], `the story plays unknown sound {cue.sound}`)
+			local index = indexOf(cue.shot)
+			t.notNil(index, `a sound is cued on unknown shot {cue.shot}`)
+			if index then
+				local length = 0
+				for _, frame in Story.shots[index].frames do
+					length += frame.hold
+				end
+				t.isTrue(cue.at >= 0 and cue.at < length, `{cue.sound} is cued outside {cue.shot}`)
+			end
+		end
+	end)
+
+	t.test("the ding lands as the King's small eyes and raised brow come in", function()
+		--[[ The Eyes shot is two pictures: reading, then the small pupils and
+		     the lifted eyebrow (f12b, drawn with the ding's marks). ]]
+		local index = indexOf("Eyes")
+		t.notNil(index, "the story has no Eyes shot")
+		local found = false
+		for _, cue in Story.sounds do
+			if cue.sound == "story_king_ding" then
+				found = true
+				t.equal(cue.shot, "Eyes")
+				if index then
+					local frames = Story.shots[index].frames
+					t.equal(#frames, 2, "the Eyes shot's pictures")
+					t.equal(frames[2].picture, "f12b")
+					t.near(cue.at, frames[1].hold, 1e-6)
+				end
+			end
+		end
+		t.isTrue(found, "the story never plays the ding")
+	end)
+
 	t.test("it opens black and ends black, held, before the run is let go", function()
 		t.isTrue(StoryTimeline.pose(c, 0).picture == nil)
 		local length = StoryTimeline.length(c)

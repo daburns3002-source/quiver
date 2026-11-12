@@ -34,15 +34,19 @@ local Music = {
 	     NEW ENEMY! screen in the tutorial (`MusicFx.setReading`). ]]
 	readDuck = 0.3,
 	--[[ The intro cutscene's music (`UI/IntroCutscene`): from the top on
-	     the cutscene's first frame, a quiet build into the theme's hit at
-	     `Config/Intro.revealAt` (5.0 s), then looping round its region
+	     the cutscene's first frame, a quiet build into the theme's arrival
+	     at `Config/Intro.revealAt` (5.0 s), then looping round its region
 	     while the title waits; it fades out as BEGIN ADVENTURE starts the
-	     run. The title theme (`title_theme.py`), 71.5 s: the 5.0 s build,
-	     then the 60 s loop from 11.0 s (after the build's tail). An empty
-	     id is silent. ]]
+	     run. The night title theme, "Moonrise" (owner's pick of four,
+	     2026-11-12, for the World Tree title: "the pokemon synths still to
+	     match the game but a dark souls/elden ring like tone"; the tone
+	     only, the tune is ours): `title_night.py` take d, 71.5 s: the 5.0 s
+	     build, then the 60 s loop from 11.0 s (after the build's tail), the
+	     same region the old theme had (Soar, `title_theme.py`,
+	     rbxassetid://115433438359101). An empty id is silent. ]]
 	intro = {
-		id = "rbxassetid://115433438359101",
-		name = "Title theme (Soar)",
+		id = "rbxassetid://78573546600610",
+		name = "Title theme (Moonrise)",
 		loopStart = 11.0,
 		loopEnd = 71.0,
 	} :: Track,

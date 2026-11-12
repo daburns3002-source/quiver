@@ -134,7 +134,7 @@ return function(t: TestRunner.Helper)
 					end
 				end
 				t.isTrue(onBolt > 0, "a fork starts off the bolt")
-				t.isFalse(used[onBolt], "two forks sprout from one joint")
+				t.isNil(used[onBolt], "two forks sprout from one joint")
 				used[onBolt] = true
 				local length = (fork[#fork] - fork[1]).Magnitude
 				t.isTrue(length > 0, "a fork has no length")
@@ -209,7 +209,7 @@ return function(t: TestRunner.Helper)
 		local seen: { [number]: boolean } = {}
 		local at = centre
 		for _, index in order do
-			t.isFalse(seen[index], "an enemy is visited twice")
+			t.isNil(seen[index], "an enemy is visited twice")
 			seen[index] = true
 			for other, stop in stops do
 				if not seen[other] then
@@ -284,5 +284,7 @@ return function(t: TestRunner.Helper)
 		t.isTrue(Bolt.sparks > 0 and Soul.burst > 0 and Soul.embers > 0, "no sparks or flames")
 		t.isTrue(Soul.core < Soul.shell, "the heart is wider than the fire round it")
 		t.isTrue(Soul.trailLife > 0 and Soul.trailWidth > 0, "no flame trail")
+		t.isTrue(Soul.trailGlow > 0 and Soul.trailGlow < 1, "the trail burns out to a white band")
+		t.isTrue(Soul.flameGlow > 0 and Soul.flameGlow < 1, "the flames burn out to white light")
 	end)
 end

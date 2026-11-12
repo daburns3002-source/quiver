@@ -5,7 +5,7 @@ this in the same PR as the work it describes (CLAUDE.md): add a row when
 something starts or gets blocked, strike it when it lands. How each kind of
 thing gets made is in [PIPELINES.md](PIPELINES.md).
 
-Last brought up to date: 2026-11-11.
+Last brought up to date: 2026-11-12.
 
 **Scope:** Acts 1-3 only (areas 1-6) until the owner says otherwise (2026-10-24). Acts 4-5 work is on hold.
 
@@ -67,6 +67,7 @@ where you would be standing. Say what reads wrong and Claude retunes it.
 
 ### In a Mossy Glade run
 
+- **Chain Lightning's bolt and Soul Chain's fireball (2026-11-12).** In the sandbox (O), as an Arcanist with Chain Lightning and as anyone with Soul Chain: does the bolt read as a Statikk Shiv proc (thick enough, blue enough, gone fast enough) and the fireball as a bouncing fireball (leap height, flame colour, how long an enemy burns)? Seen in Studio at desktop size only. **Your calls:** the arcs now fly at 320 studs a second where the orb flies 49.5, so they almost never miss; a linked enemy takes its share when the fireball lands, 0.14 to 0.26 s a leap, and is now knocked back by it. Elemental Orbs' lightning still bounces as a slow orb: say if it should arc as a bolt too.
 - **The level grid.** 2 x 5, locked dimmed under a lock, CLEARED in gold. After beating 1-1, rejoining should go straight to the lobby.
 - **1-10 as rooms** rather than waves (1-6..1-9 went back to waves, 2026-11-05). Does 1-10 feel starved of upgrades?
 - **1-8, 1-9 and 1-10: still long?** Enemy health now rises 0.04 a level instead of 0.1, so 1-10 asks 87,074 health instead of 119,280.

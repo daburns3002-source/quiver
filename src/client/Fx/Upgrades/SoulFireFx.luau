@@ -43,10 +43,14 @@ local BURST_ANCHORS = 4
 local FLAME_TAIL = 0.7
 
 local FIRE = ColorSequence.new({
-	ColorSequenceKeypoint.new(0, K.coreColour),
-	ColorSequenceKeypoint.new(0.45, K.fireColour),
+	ColorSequenceKeypoint.new(0, K.flameColour),
+	ColorSequenceKeypoint.new(0.4, K.fireColour),
 	ColorSequenceKeypoint.new(1, K.emberColour),
 })
+
+--[[ The trail is fire from its first inch: with the white-hot heart's own
+     colour at its head it burned out to a white band. ]]
+local TRAIL = ColorSequence.new(K.fireColour, K.emberColour)
 
 local SoulFireFx = {}
 
@@ -97,7 +101,7 @@ end
 local function fire(emitter: ParticleEmitter)
 	emitter.Texture = PetAuras.square
 	emitter.Color = FIRE
-	emitter.LightEmission = 1
+	emitter.LightEmission = K.flameGlow
 	emitter.Rotation = NumberRange.new(0, 90)
 	emitter.RotSpeed = NumberRange.new(-180, 180)
 	emitter.Transparency = NumberSequence.new({
@@ -132,10 +136,10 @@ local function makeBall(): Ball
 	trail.FaceCamera = true
 	trail.Lifetime = K.trailLife
 	trail.MinLength = 0.05
-	trail.LightEmission = 1
-	trail.Color = FIRE
+	trail.LightEmission = K.trailGlow
+	trail.Color = TRAIL
 	trail.Transparency = NumberSequence.new({
-		NumberSequenceKeypoint.new(0, 0.1),
+		NumberSequenceKeypoint.new(0, 0.2),
 		NumberSequenceKeypoint.new(1, 1),
 	})
 	trail.WidthScale = NumberSequence.new({

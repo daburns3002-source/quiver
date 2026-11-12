@@ -6610,9 +6610,12 @@ local Balance = {
 			core = 0.95,
 			shell = 1.6,
 			spin = 11,
-			-- the flame trail: its width and how long it hangs (seconds)
-			trailWidth = 1.3,
-			trailLife = 0.24,
+			-- the flame trail: its width, how long it hangs (seconds) and how
+			-- much it glows. Fire-coloured from the first inch and well short of
+			-- full glow: at 1 it burned out to a white band (Studio, 2026-11-12)
+			trailWidth = 1,
+			trailLife = 0.2,
+			trailGlow = 0.45,
 			-- embers shed a second on the best device
 			embers = 46,
 			-- the warm light it throws on the floor under it, widest on the ground
@@ -6627,9 +6630,15 @@ local Balance = {
 			-- for each of the device's `burnParticleRate`
 			burn = 0.75,
 			burnRate = 2,
+			-- the heart is white-hot; every flame (embers, bursts, the burning)
+			-- starts at `flameColour` and glows `flameGlow`: started from the
+			-- heart's white at full glow, the fire read as yellow-white light
+			-- (Studio, 2026-11-12)
 			coreColour = Color3.fromRGB(255, 244, 196),
-			fireColour = Color3.fromRGB(255, 138, 36),
-			emberColour = Color3.fromRGB(214, 48, 20),
+			flameColour = Color3.fromRGB(255, 190, 70),
+			fireColour = Color3.fromRGB(255, 122, 30),
+			emberColour = Color3.fromRGB(206, 40, 18),
+			flameGlow = 0.55,
 		},
 		slamLife = 0.6,
 		cleaveLife = 0.4,
@@ -6673,13 +6682,15 @@ local Balance = {
 			forkAngle = { min = math.rad(22), max = math.rad(55) },
 			forkSegments = 2,
 			-- studs wide: the white-hot core, the glow round it, and a fork as
-			-- a share of both; and how clear the glow is
-			core = 0.22,
-			glow = 0.7,
+			-- a share of both; and how clear the glow is. Thick and deep blue:
+			-- at 0.22 and 0.7, half clear, it was a thin white line whose glow
+			-- was lost against the grass (Studio, 2026-11-12)
+			core = 0.3,
+			glow = 1,
 			forkWidth = 0.6,
-			glowClear = 0.45,
+			glowClear = 0.28,
 			coreColour = Color3.fromRGB(246, 252, 255),
-			glowColour = Color3.fromRGB(64, 168, 255),
+			glowColour = Color3.fromRGB(44, 132, 255),
 			-- seconds it shows, seconds between re-kinks, and the share of its
 			-- life it spends thinning away
 			life = 0.17,

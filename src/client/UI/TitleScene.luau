@@ -135,14 +135,16 @@ local function buildLogo(holder: Frame, design: Config.Design, at: TitleLayout.L
 		UDim2.fromOffset(round(at.width * look.haze.wide), round(wordsTall * look.haze.tall))
 
 	local function word(index: number, name: string, colour: Color3, drop: number): TextLabel
+		--[[ The label is exactly one line of the font tall and the word fills
+		     it (a TextSize may not pass 100, and BORNE's does). ]]
 		local line = at.lines[index]
-		local tall = line.size * look.box
+		local tall = line.size * Config.letterLine
 		local label = Instance.new("TextLabel")
 		label.Name = `{name}{index}`
 		label.BackgroundTransparency = 1
 		label.Font = Chunky.font
 		label.Text = look.words[index]
-		label.TextSize = line.size
+		label.TextScaled = true
 		label.TextColor3 = colour
 		label.Position =
 			UDim2.fromOffset(0, round(line.top - at.top + line.tall / 2 - tall / 2 + drop))
@@ -604,22 +606,25 @@ function TitleScene.button(parent: Instance, view: Vector2, words: string, actio
 	--[[ The words at the reference's size with the triangle to their left,
 	     the pair centred on the face; smaller only if they would not fit. ]]
 	local faceWide, faceTall = at.width, at.height * face.Size.Y.Scale
-	local letters = math.max(1, round(at.words))
+	-- the letters' own size, and the line Roblox measures a TextSize by
+	local letters = at.words
+	local line = math.max(1, round(letters * Config.letterLine))
 	local ok, bounds = pcall(function()
-		return TextService:GetTextSize(words, letters, Chunky.font, Vector2.new(1e4, 1e4))
+		return TextService:GetTextSize(words, line, Chunky.font, Vector2.new(1e4, 1e4))
 	end)
 	local wordsWide = if ok then bounds.X else letters * #words * 0.62
 	local iconWide, gap = look.icon.wide * letters, look.icon.gap * letters
 	local room = faceWide * 0.9
 	local shrink = math.min(1, room / (iconWide + gap + wordsWide))
-	letters = math.max(1, math.floor(letters * shrink))
+	line = math.max(1, math.floor(line * shrink))
+	letters *= shrink
 	iconWide, gap, wordsWide = iconWide * shrink, gap * shrink, wordsWide * shrink
 	local start = (faceWide - (iconWide + gap + wordsWide)) / 2
 	local slack = wordsWide * 0.04
 	label.Position = UDim2.fromScale((start + iconWide + gap - slack) / faceWide, 0.16)
 	label.Size = UDim2.fromScale((wordsWide + 2 * slack) / faceWide, 0.66)
 	local limit = Instance.new("UITextSizeConstraint")
-	limit.MaxTextSize = letters
+	limit.MaxTextSize = line
 	limit.Parent = label
 
 	local icon = Instance.new("Frame")

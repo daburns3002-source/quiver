@@ -54,6 +54,12 @@ export type Design = {
 }
 
 local TitleScene = {
+	--[[ Every letter size here is the drawing's: the size of the letters
+	     themselves. Roblox's TextSize is the font's whole line instead, and
+	     Fredoka One's line is this many times its letters' size, so a size
+	     here is multiplied by it on its way to the screen. ]]
+	letterLine = 1.21,
+
 	--[[ The sky, top to bottom: the stops are at 0, 40%, the layout's
 	     `horizon` and 100%. ]]
 	sky = {
@@ -220,9 +226,8 @@ local TitleScene = {
 		sizes = { 46, 82 },
 		--[[ A line is this share of its letters' size tall. ]]
 		line = 0.92,
-		--[[ The gold runs over the letters' own box, this share of their
-		     size tall, with these stops. ]]
-		box = 1.21,
+		--[[ The gold runs over the letters' own box (`letterLine`), with
+		     these stops. ]]
 		gold = {
 			{ at = 0, colour = Color3.fromHex("#FFFBE6") },
 			{ at = 0.08, colour = Color3.fromHex("#FFFBE6") },

@@ -264,8 +264,6 @@ return function(t: TestRunner.Helper)
 				)
 				t.near(logo.left + logo.width / 2, design.width / 2, 1e-9, `{key}: centred`)
 				t.near(logo.streakLeft + logo.streakWide / 2, design.width / 2, 1e-9)
-				-- Roblox draws letters no larger than 100 before the layout is scaled
-				t.isTrue(logo.lines[2].size <= 100, `{key}: within TextSize's limit`)
 			end
 			local upright = Scene.portrait
 			local crownTop = math.huge
@@ -301,6 +299,13 @@ return function(t: TestRunner.Helper)
 			end
 		end
 	)
+
+	--[[ The drawing's sizes are the letters'; Roblox's TextSize is the font's
+	     whole line. Without this the logo and BEGIN ADVENTURE come out a fifth
+	     small (seen in Studio, 2026-11-12). ]]
+	t.test("letter sizes are turned into Roblox's line sizes", function()
+		t.near(Scene.letterLine, 1.21, 0.02, "Fredoka One's line over its letters' size")
+	end)
 
 	t.test("the button pulses gently and comes back to rest", function()
 		local look = Scene.button

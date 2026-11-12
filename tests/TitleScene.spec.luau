@@ -438,6 +438,12 @@ return function(t: TestRunner.Helper)
 			t.isTrue(path.from[2] < design.stars.below and path.to[2] < design.stars.below)
 		end
 		t.isTrue(Scene.shooting.lasts < Scene.shooting.every, "a shooting star is rare")
+		-- a mushroom's light is the round glow, never a square (owner, 2026-11-12)
+		t.isNil((Scene.glowcap :: any).halo, "no square of light round a mushroom")
+		t.isTrue(
+			Scene.glowcap.glow > 1 and Scene.glowcap.glowAlpha > 0,
+			"a soft round light instead"
+		)
 	end)
 
 	--[[ The drawing's sizes are the letters'; Roblox's TextSize is the font's

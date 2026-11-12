@@ -660,19 +660,14 @@ function TitleScene.build(parent: Instance, view: Vector2): Scene
 		shape.lanternHaloAlpha
 	)
 	light("PostLantern", hang, stands.y - post.tall + 5, post.lantern, post.lantern, shape.lantern)
-	-- glowing mushrooms: a pale stem under a mint cap, in a faint light
+	-- glowing mushrooms: a pale stem under a mint cap, in a soft round light
 	local cap = Config.glowcap
 	for _, at in design.glowcaps do
 		local x, foot, size = at[1], at[2], at[3]
-		light(
-			"GlowcapHalo",
-			x + size / 2 - size * cap.halo / 2,
-			foot - size * 0.8 - size * cap.halo / 2,
-			size * cap.halo,
-			size * cap.halo,
-			shape.lanternHalo,
-			cap.haloAlpha
-		)
+		local soft = glowImage("GlowcapGlow", shape.lanternHalo, cap.glowAlpha)
+		layer(soft)
+		soft.Position = UDim2.fromScale((x + size / 2) / wide, (foot - size * 0.8) / tall)
+		soft.Size = UDim2.fromScale(size * cap.glow / wide, size * cap.glow / tall)
 		light(
 			"GlowcapStem",
 			x + size * 0.35,

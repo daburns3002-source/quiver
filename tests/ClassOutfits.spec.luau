@@ -103,10 +103,26 @@ return function(t: TestRunner.Helper)
 						`{where} has a block with no size`
 					)
 				end
-				--[[ An imported piece says how big its mesh is and where it sits. ]]
+				--[[ An imported piece says how big its mesh is and where it sits,
+				     and that is where its blocks are: a mesh wired to the wrong
+				     piece (a hood's id on a belt) would stand far from them. The
+				     Design models keep to the plan within half a stud a face. ]]
 				if piece.meshId and piece.meshId ~= "" then
 					t.notNil(piece.size, `{where} has a mesh and no size`)
 					t.notNil(piece.at, `{where} has a mesh and no place`)
+					local size, at = piece.size, piece.at
+					if size and at then
+						local low, high = Vector3.one * math.huge, Vector3.one * -math.huge
+						for _, block in piece.blocks do
+							low = low:Min(block.at - block.size / 2)
+							high = high:Max(block.at + block.size / 2)
+						end
+						local off = (at - size / 2 - low):Abs():Max((at + size / 2 - high):Abs())
+						t.isTrue(
+							math.max(off.X, off.Y, off.Z) <= 0.5,
+							`{where}'s mesh stands {math.max(off.X, off.Y, off.Z)} from its blocks`
+						)
+					end
 				end
 			end
 		end
@@ -296,22 +312,40 @@ return function(t: TestRunner.Helper)
 				ClassOutfit.dress(model, class)
 				t.equal(ClassOutfit.worn(model), class)
 				local outfit = model:FindFirstChild(ClassOutfit.NAME)
+				--[[ A piece whose model has loaded (the server's templates, in a
+				     running game) is that one mesh; any other is its blocks. ]]
+				local templates = ReplicatedStorage:FindFirstChild(ClassOutfit.MESHES)
+				local loaded = templates and templates:FindFirstChild(class)
+				local function meshed(piece: ClassOutfits.Piece): boolean
+					return piece.meshId ~= nil
+						and piece.size ~= nil
+						and piece.at ~= nil
+						and loaded ~= nil
+						and loaded:FindFirstChild(piece.name) ~= nil
+				end
 				local count = 0
 				for _, piece in set.pieces do
-					count += #piece.blocks
+					count += if meshed(piece) then 1 else #piece.blocks
 				end
 				t.equal(if outfit then #outfit:GetChildren() else 0, count, `{class}'s solids`)
-				--[[ Each stands where its block says, on a body `scale` times the
-				     standard one. ]]
+				--[[ Each stands where its mesh or its block says, on a body
+				     `scale` times the standard one, a mesh turned back to face
+				     the way the body does. ]]
 				local piece = set.pieces[1]
 				local body = model:FindFirstChild(piece.part) :: BasePart
 				local first = outfit and outfit:FindFirstChild(piece.name)
 				t.notNil(first, `{class}'s {piece.name} was not built`)
 				if first and first:IsA("BasePart") then
-					local block = piece.blocks[1]
-					t.near((first.Size - block.size * scale).Magnitude, 0, 1e-4)
+					local size, place = piece.blocks[1].size, piece.blocks[1].at
+					if meshed(piece) and piece.size and piece.at then
+						size, place = piece.size, piece.at
+						t.isTrue(first:IsA("MeshPart"), `{class}'s {piece.name} is not its mesh`)
+						local facing = body.CFrame.LookVector:Dot(first.CFrame.LookVector)
+						t.near(facing, if piece.turned then -1 else 1, 1e-4)
+					end
+					t.near((first.Size - size * scale).Magnitude, 0, 1e-4)
 					local at = body.CFrame:PointToObjectSpace(first.Position)
-					t.near((at - block.at * scale).Magnitude, 0, 1e-4)
+					t.near((at - place * scale).Magnitude, 0, 1e-4)
 					t.isFalse(first.CanCollide, "a piece collides")
 					t.isFalse(first.CanQuery, "a piece answers raycasts")
 					t.isFalse(first.CanTouch, "a piece touches")

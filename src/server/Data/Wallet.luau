@@ -13,7 +13,6 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Economy = require(ReplicatedStorage.Shared.Config.Economy)
-local Eggs = require(ReplicatedStorage.Shared.Config.Eggs)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
 local MergeRules = require(ReplicatedStorage.Shared.Util.MergeRules)
 local Purse = require(ReplicatedStorage.Shared.Util.Purse)
@@ -114,20 +113,12 @@ function Wallet.weaponTier(player: Player, weapon: string?): string
 	return MergeRules.best(held) or "C"
 end
 
---[[ The equipped pets' best tiers onto the Player, `PetTier` and `Pet2Tier`
-     beside the `Config/Eggs.slots` attributes, for `Combat/PetCombat`. ]]
-function Wallet.applyTiers(player: Player)
+--[[ The best merge tier held of a pet, "C" for one not in the save (a
+     Studio sandbox pet); `Combat/PetCombat` scales its blows by it. Read
+     from the save each time, so a merge counts from the next blow. ]]
+function Wallet.petTier(player: Player, pet: string): string
 	local profile = PlayerData.get(player)
-	if not profile then
-		return
-	end
-	for slot, attribute in Eggs.slots do
-		local pet = profile.equippedPets[slot]
-		player:SetAttribute(
-			attribute .. "Tier",
-			if pet then MergeRules.best(profile.tiers.pets[pet]) or "C" else nil
-		)
-	end
+	return MergeRules.best(profile and profile.tiers.pets[pet]) or "C"
 end
 
 --[[ Merges three copies of a weapon or pet at `tier` into one of the next
@@ -150,7 +141,6 @@ function Wallet.merge(player: Player, kind: string, key: string, tier: string): 
 		profile.pets[key] = MergeRules.total(held)
 	end
 	log.info("%s merged three %s %s", player.Name, tier, key)
-	Wallet.applyTiers(player)
 	changed(player, profile)
 	return true
 end
@@ -318,7 +308,6 @@ function Wallet.equipPet(player: Player, slot: number, pet: string?)
 		end
 	end
 	(profile.equippedPets :: { [number]: string? })[slot] = pet
-	Wallet.applyTiers(player)
 	changed(player, profile)
 end
 

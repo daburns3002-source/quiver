@@ -276,24 +276,24 @@ local function details(
 	-- panel, ribbon, X, rarity, tile, lines card, buttons (sheet pixels)
 	local L = if up
 		then {
-			panel = { 90, 480, 900, 1010 },
-			ribbon = { 150, 404, 780, 150 },
-			x = { 920, 436, 104 },
-			rarity = { 380, 590, 320, 64 },
-			tile = { 370, 676, 340, 340 },
-			lines = { 150, 1036, 780, 170 },
-			merge = { 150, 1218, 780, 80 },
-			equip = { 150, 1310, 460, 116 },
-			shut = { 640, 1310, 290, 116 },
+			panel = { 90, 430, 900, 1110 },
+			ribbon = { 150, 354, 780, 150 },
+			x = { 920, 386, 104 },
+			rarity = { 380, 540, 320, 64 },
+			tile = { 370, 626, 340, 340 },
+			lines = { 150, 990, 780, 230 },
+			merge = { 150, 1240, 780, 96 },
+			equip = { 150, 1356, 460, 116 },
+			shut = { 640, 1356, 290, 116 },
 		}
 		else {
 			panel = { 560, 140, 800, 840 },
 			ribbon = { 590, 68, 740, 144 },
 			x = { 1296, 100, 100 },
 			rarity = { 800, 230, 320, 60 },
-			tile = { 805, 306, 310, 310 },
-			lines = { 620, 634, 680, 132 },
-			merge = { 620, 774, 680, 62 },
+			tile = { 835, 300, 250, 250 },
+			lines = { 620, 562, 680, 180 },
+			merge = { 620, 754, 680, 78 },
 			equip = { 620, 846, 400, 104 },
 			shut = { 1040, 846, 260, 104 },
 		}
@@ -330,7 +330,10 @@ local function details(
 	if isPet then
 		local info = Pets[entry.key]
 		local egg = if info and info.egg then EggRules.find(info.egg) else nil
-		table.insert(lines, "FIGHTS BESIDE YOU IN RUNS")
+		-- an owned pet's card says its tier and copies in that line's place
+		if not entry.owned then
+			table.insert(lines, "FIGHTS BESIDE YOU IN RUNS")
+		end
 		table.insert(lines, "FROM THE " .. string.upper(if egg then egg.name else "EGG"))
 		if entry.owned then
 			local best = MergeRules.best(entry.tiers) or "C"
@@ -557,7 +560,14 @@ local function draw(s: StationScreen.Screen)
 		then (1 + WeaponStats.bonus[stats.rarity]) * (WeaponStats.areaScale[stats.area] or 1)
 		else 1
 	local chosenClass = if weapon then Classes[weapon.class] or class else class
-	local atk = math.round(Balance.Player.baseDamage * chosenClass.damageScale * scale)
+	-- the held weapon's merge tier is in its damage (`Util/MergeRules`)
+	local held = if p then MergeRules.best(p.tiers.weapons[equipped]) else nil
+	local atk = math.round(
+		Balance.Player.baseDamage
+			* chosenClass.damageScale
+			* scale
+			* (MergeRules.weaponScale[held or "C"] or 1)
+	)
 	local power = plate(sheet, Chunky.gold, table.unpack(L.plate))
 	local words = Chunky.text(
 		power,

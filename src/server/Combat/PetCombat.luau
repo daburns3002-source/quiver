@@ -40,6 +40,7 @@ local PetShots = require(ReplicatedStorage.Shared.Combat.PetShots)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local RootHold = require(ReplicatedStorage.Shared.Util.RootHold)
 local RunSession = require(script.Parent.Parent.Run.RunSession)
+local Wallet = require(script.Parent.Parent.Data.Wallet)
 
 type Spec = PetCombatConfig.Spec
 type Session = RunSession.Session
@@ -69,16 +70,10 @@ type State = {
 --[[ Each player's pets, by slot. ]]
 local states: { [Player]: { [number]: State } } = {}
 
---[[ A pet's damage multiplier from its merge tier (`Data/Wallet.applyTiers`
-     puts each slot's on `PetTier` / `Pet2Tier`; `Util/MergeRules`). ]]
+--[[ A pet's damage multiplier from its merge tier (`Util/MergeRules`: the
+     best tier its owner holds, `Data/Wallet.petTier`). ]]
 local function tierScale(player: Player, pet: string): number
-	for _, attribute in Eggs.slots do
-		if player:GetAttribute(attribute) == pet then
-			local tier = player:GetAttribute(attribute .. "Tier")
-			return if type(tier) == "string" then MergeRules.petScale[tier] or 1 else 1
-		end
-	end
-	return 1
+	return MergeRules.petScale[Wallet.petTier(player, pet)] or 1
 end
 
 --[[ The pets in a player's slots that can fight, by slot. ]]

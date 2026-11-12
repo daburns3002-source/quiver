@@ -61,6 +61,39 @@ labelled beauty row of the five pieces on their own.
 
 ## Chain Lightning — Epic
 
+**Since 2026-11-11 this is a different effect** (owner: "chain lightning
+should be like the stattik shiv effect in league of legends"), built in code
+with no imported model, so what follows the rule below is history.
+
+- **What it does now:** still `Stages.ricochet`, with the same reach, damage
+  and number of arcs, but the arcs leave at a bolt's speed
+  (`Balance.Projectile.arcSpeed`, 320 studs a second against the orb's 49.5,
+  carried on the shot as `ShotSpec.arcSpeed`), so each hop lands a few
+  hundredths of a second after the last. The server marks each as an arc and
+  names the enemy it was sent at (`ShotEvent.arc`, `to`); no orb is drawn in
+  flight. A weapon's innate Chain Lightning (the Worldroot Staff) arcs the
+  same way, and every player's arcs are drawn, not only the card holder's.
+- **The look:** `Fx/Upgrades/LightningFx`, shaped by `Shared/Util/BoltPath`.
+  A jagged bolt from the enemy struck to the next: a thin white-hot core
+  inside a wider blue glow, cut into 4 to 9 pieces with every joint thrown
+  off the line, re-kinked every 0.04 s so it crackles, with up to three small
+  forks splitting off it. It snaps out along its length as the server's arc
+  travels, thins in three steps and is gone in 0.17 s. Each enemy it touches
+  gets a burst of square sparks and a flat white flash, on top of the white
+  hit flash and knockback every hit gives. The bolt and its forks lie in the
+  ground plane, drawn over the bodies' heads, so the camera above sees their
+  whole width.
+- **Phones:** boxes and spark emitters are pooled; bolts at once, forks and
+  sparks are the device's share (`UpgradeFx.budget`: 3 bolts, 1 fork and 4
+  sparks on the lowest tier, 9, 3 and 12 on the best).
+- `tests/ChainSoulFx.spec` holds the shape, the hop timing and the budgets.
+  `fx_chainlightning.glb` stays in `assets/models/effects/` but is no longer
+  in `model_clips.json` or built by the game.
+
+---
+
+*The first effect, 2026-10-24 to 2026-11-11:*
+
 - **Claude Design:** https://claude.ai/design/p/90ed5249-1954-4838-8ef2-017087ea08b9
 - **GLB:** `fx_chainlightning.glb`
 - **Icon:** `assets/concepts/icons/chain-lightning.png`

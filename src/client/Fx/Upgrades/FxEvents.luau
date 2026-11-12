@@ -40,6 +40,10 @@ end
      off one (a ricochet, a chain), and its look (`Config/Classes.look`, or
      an upgrade's own: "Phoenix"). ]]
 FxEvents.launched = signal() :: Signal<BasePart, string, Vector3, Model?, string?>
+--[[ An arc of Chain Lightning left an enemy: lightning between two bodies,
+     with no shot drawn in flight. Its origin and aim, the enemy it leaves and
+     the one the server sent it at (either may be gone), and its speed. ]]
+FxEvents.arc = signal() :: Signal<Vector3, Vector3, Model?, Model?, number>
 --[[ A drawn player shot reached a body: where, its heading, its pool, and
      how many more bodies it may pass through. ]]
 FxEvents.contact = signal() :: Signal<Vector3, Vector3, string, number>

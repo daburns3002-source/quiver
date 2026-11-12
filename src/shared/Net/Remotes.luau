@@ -310,8 +310,9 @@ Remotes.PickupsCleared = "PickupsCleared"
      for this many seconds; and by what ("SecondWind" or "Revive"). ]]
 Remotes.PlayerRevived = "PlayerRevived"
 
---[[ Server → all clients. A Soul Chain link: from the enemy hit, to each of
-     these. ]]
+--[[ Server → all clients. A Soul Chain link, drawn as a fireball: where the
+     enemy hit stood, then the linked enemies in the order it leaps to them,
+     where each stood, and the seconds from now it lands on each. ]]
 Remotes.SoulLink = "SoulLink"
 
 --[[ Server → all clients. A Warden's Parry knocked the enemy shots within

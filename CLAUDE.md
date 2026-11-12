@@ -541,6 +541,17 @@ Highlight, and for `Balance.Knockback.stagger` after a hit an enemy only slides
 with the shove (`EnemyManager` `staggerUntil`), so its own walking and charges
 cannot cancel it. A new enemy needs a `knockback` above 0 (`Balance.spec`).
 
+**Chain Lightning is a bolt and Soul Chain a fireball** (owner, 2026-11-11: "chain lightning
+should be like the stattik shiv effect ... soul link should be like brand ult"), both built in
+code, no imported model. Chain Lightning is still Ricochet's stage, but its arcs leave at
+`Balance.Projectile.arcSpeed` (`ShotSpec.arcSpeed`), so each hop lands a few hundredths of a
+second after the last; the server marks the hop (`ShotEvent.arc`, `to`) and the client draws a
+jagged, forked bolt between the two bodies in place of an orb (`Fx/Upgrades/LightningFx`,
+`Util/BoltPath`). Soul Chain links the same enemies for the same share, but each takes it as a
+fireball lands on it, leaping to the nearest one next (`Shared/Combat/SoulBounce`,
+`Server/Combat/SoulLink`'s queue, `Fx/Upgrades/SoulFireFx`). An effect seen from above must lie
+in the ground plane; `tests/ChainSoulFx.spec` holds both.
+
 **Enemies arrive in triangles of three** (`Balance.Spawning.clusterSize`),
 the tip pointing at the player; the row swings round the tip when a wall is
 behind it. Blocked arrows stick in the wall for a moment.

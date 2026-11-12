@@ -255,8 +255,10 @@ end
 
 --[[ Sends an arrow on to the nearest other enemy after each hit. OnHit
      rather than Flight: where it goes next is decided by what it struck,
-     which is only known at the moment of contact. ]]
-function Stages.ricochet(count: number): ShotStage
+     which is only known at the moment of contact. With `arcSpeed` the
+     ricochets leave at that speed and are drawn as lightning: Chain
+     Lightning's arcs. ]]
+function Stages.ricochet(count: number, arcSpeed: number?): ShotStage
 	return {
 		name = "Ricochet",
 		order = ShotPipeline.Stage.OnHit,
@@ -267,6 +269,7 @@ function Stages.ricochet(count: number): ShotStage
 			for _, spec in specs do
 				local copy = table.clone(spec)
 				copy.ricochet = spec.ricochet + count
+				copy.arcSpeed = arcSpeed or spec.arcSpeed
 				table.insert(out, copy)
 			end
 

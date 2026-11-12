@@ -57,6 +57,7 @@ local Remotes = require(game:GetService("ReplicatedStorage").Shared.Net.Remotes)
 local RoomController = require(script.Parent.Run.RoomController)
 local RunSession = require(script.Parent.Run.RunSession)
 local Sandbox = require(ReplicatedStorage.Shared.Config.Sandbox)
+local SoulLink = require(script.Parent.Combat.SoulLink)
 local SoulstoneShop = require(script.Parent.Data.SoulstoneShop)
 local StoryLeaderboard = require(script.Parent.Run.StoryLeaderboard)
 local Tutorial = require(ReplicatedStorage.Shared.Config.Tutorial)
@@ -849,6 +850,8 @@ RunService.Heartbeat:Connect(function(deltaTime: number)
 	ProjectileSystem.step(deltaTime, now)
 	--[[ After projectiles, so a burn lit this frame does not tick in it. ]]
 	Burning.step(now)
+	--[[ Soul Chain's fireball landing on each enemy it leaps to. ]]
+	SoulLink.step(now)
 	--[[ Meteors landing and cracked ground erupting (the Mythics). ]]
 	AreaStrikes.step(now)
 	--[[ The class upgrades: black holes dragging, the phoenix's fire, the

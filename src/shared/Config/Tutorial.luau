@@ -84,6 +84,11 @@ local Tutorial = {
 	--[[ Seconds the move and dash prompts stay on screen at least, even when
 	     the player walks or dashes at once, so they can be read. ]]
 	minShow = 3,
+	--[[ The egg the tutorial's win pays for (Fable's loop review, 2026-11-11,
+	     approved: players reached the lobby ~150 coins short of it): the win
+	     tops the player's coins up to its price (`Util/FirstEgg`), and the
+	     lobby points at the Hatchery until they own a pet. ]]
+	firstEgg = "MossyEgg",
 }
 
 return table.freeze(Tutorial)

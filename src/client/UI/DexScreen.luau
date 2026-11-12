@@ -39,13 +39,6 @@ local DexScreen = {}
 local COLUMNS, ROWS = 5, 3
 local PER_PAGE = COLUMNS * ROWS
 
---[[ Each book's tab colour, as the mockup paints them. ]]
-local TAB_COLOUR = {
-	Enemies = Chunky.red,
-	Weapons = Chunky.blue,
-	Pets = Chunky.green,
-}
-
 local screen: StationScreen.Screen? = nil
 --[[ Which book is open, which page of it, and which entry is written out
      on the left. The page and the choice reset with the book, because
@@ -116,12 +109,12 @@ local TALL: Layout = {
 	page = { 300, 1670, 480, 80 },
 }
 
---[[ A dark navy pill with white words, for the FOUND count and the page. ]]
+--[[ A deep-sea pill with white words, for the FOUND count and the page. ]]
 local function plate(sheet: Chunky.Sheet, words: string, box: { number }): Frame
 	local p = Instance.new("Frame")
 	p.Name = "Plate"
 	p.BorderSizePixel = 0
-	p.BackgroundColor3 = Color3.fromRGB(28, 40, 108)
+	p.BackgroundColor3 = Chunky.edge
 	p.ZIndex = 6
 	Chunky.put(sheet, p, box[1], box[2], box[3], box[4])
 	Chunky.round(p, box[4])
@@ -148,7 +141,6 @@ function DexScreen.start()
 			Chunky.tab(
 				sheet,
 				string.upper(name),
-				TAB_COLOUR[name] or Chunky.blue,
 				name == book,
 				L.tab[1] + (index - 1) * (L.tab[3] + 18),
 				L.tab[2],
@@ -246,8 +238,12 @@ function DexScreen.start()
 				if not pick.unlocked then
 					picture.ImageColor3 = Dex.silhouette
 				end
-				local name =
-					Chunky.text(pages, if pick.unlocked then pick.name else Dex.unknownName, nil, 6)
+				local name = Chunky.text(
+					pages,
+					if pick.unlocked then pick.name else Dex.unknownName,
+					Chunky.ink,
+					0
+				)
 				Chunky.put(on, name, table.unpack(L.name))
 				name.ZIndex = 8
 
@@ -260,10 +256,10 @@ function DexScreen.start()
 				Chunky.put(on, tag, table.unpack(L.detail))
 				Chunky.round(tag, L.detail[4])
 				Chunky.outline(tag, 5)
-				local tagWords = Chunky.text(
+				local tagWords = Chunky.textOn(
 					tag,
 					string.upper(if pick.unlocked then pick.detail else "???"),
-					nil,
+					tone,
 					4
 				)
 				tagWords.Position, tagWords.Size =
@@ -327,7 +323,7 @@ function DexScreen.start()
 					ring.ZIndex = 15
 					ring.Parent = slot
 					Chunky.round(ring, 22)
-					Chunky.outline(ring, 7, Chunky.white)
+					Chunky.outline(ring, 7, Chunky.edge)
 				end
 				Chunky.press(slot, function()
 					if chosen ~= entry.key then

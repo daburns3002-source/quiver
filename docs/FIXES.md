@@ -16,6 +16,29 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## A station's `[E]` prompt was a harsher colour than the kit's; the loading tip was 8 points tall on a phone (2026-11-12)
+
+Found while putting the UI in Lagoon (`Config/UiPalette`, `Util/UiContrast`). Two things that had been wrong before it:
+
+**The old kit drew every piece in its colour squared.** `Kit.panel` set the frame's
+`BackgroundColor3` to the colour *and* gave it a gradient of the same colour, and Roblox multiplies
+the two. The station prompt (`GEAR [E]`, a `Kit.button`) asked for the palette's coral, (235, 102,
+82), and drew (217, 41, 26): a hard red, under white words. The frame is white now and the gradient
+alone carries the colour; the next capture shows the coral.
+
+**The loading tip was written in a box sized for a wide screen.** On a phone held upright the
+spotlight picture is 390 points wide, the tip's box was 33 points tall, and the longest tip (88
+letters) came out at text size 8, two lines in 28 points. The box is 116 picture pixels tall there
+now (60 on a wide picture), on its white plate (`Util/TipPlate`): the same tip is three lines in 51
+points, about size 14, and the plate ends 5 pixels above the foot of the lowest-barred picture.
+Measured in a 390 x 844 frame in Studio, not on a phone.
+
+Also from the same look: DEFEAT's TRY AGAIN is dark words on the sunny button, and the dark outline
+every end-screen word carries smeared them, so that one line has none (`EndScreenTheme`
+`defeat.text.buttonStroke`).
+
+---
+
 ## The daily REWARDS screen opened over the tutorial's first room after SKIP (2026-11-12)
 
 First-five-minutes playtest, BUG 1: pressing SKIP on the story put the login calendar on top of

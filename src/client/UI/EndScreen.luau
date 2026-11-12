@@ -873,7 +873,7 @@ local function buildButton(
 		57,
 		words,
 		look.text.button,
-		WHITE,
+		look.buttonWords,
 		look.text.buttonStroke
 	)
 	local icon: ImageLabel

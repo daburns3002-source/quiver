@@ -117,11 +117,11 @@ local function draw(): Frame?
 	Chunky.ribbon(sheet, "SOULSTONE SHOP", 0, 0, w, header)
 	Chunky.close(sheet, 0, 0, 0, close)
 
-	-- What is held: a gem on a cream pill.
+	-- What is held: a gem on a white pill, the amount in dark ink.
 	local pill = Instance.new("Frame")
 	pill.Name = "Held"
 	pill.BorderSizePixel = 0
-	pill.BackgroundColor3 = Chunky.panelTop
+	pill.BackgroundColor3 = Chunky.white
 	pill.ZIndex = 6
 	Chunky.put(sheet, pill, pad, pillTop, 420, 72)
 	Chunky.round(pill, 36)
@@ -132,8 +132,7 @@ local function draw(): Frame?
 	icon.ZIndex = 7
 	icon.Parent = pill
 	gem(icon, 7)
-	local amount =
-		Chunky.text(pill, Chunky.commas(held), Chunky.purple, 4, Chunky.shade(Chunky.purple))
+	local amount = Chunky.text(pill, Chunky.commas(held), Chunky.ink, 0)
 	amount.Position, amount.Size = UDim2.fromScale(0.2, 0.12), UDim2.fromScale(0.74, 0.76)
 	amount.TextXAlignment = Enum.TextXAlignment.Left
 	local earn = Chunky.text(box, "EARNED IN ENDLESS", Chunky.ink, 0)

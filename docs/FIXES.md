@@ -16,6 +16,17 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## Howl Aura arrows invisible from above
+
+Owner, 2026-11-10, on the review sheet: the pet Howl Aura's arrow could not be
+seen in game. Its two chevrons (`FxPetHowlAura`) stood upright, drawn in the
+GLB's XY plane and 0.42 thick, so the top-down camera saw only their edge.
+Fixed by a 90 degree turn about X on the `Chevron1` and `Chevron2` nodes of
+`assets/models/effects/fx_pet_howl_aura.glb` (and its source), which lays the
+">" flat; their clips move only translation and scale along X, so the outward
+pulse is unchanged. Re-imported; `ModelClips` and `ImportedModels` regenerated.
+An effect meant to be read from above must lie in the ground plane.
+
 ## Tutorial prompts hard to read
 
 Owner, 2026-11-07: "i need to make it easier for the player to see everything

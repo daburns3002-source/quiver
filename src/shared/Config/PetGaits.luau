@@ -289,7 +289,7 @@ local Gaits: { [string]: Gait } = {
 	BrambleWilf = { -- a rocking-horse bound, chest up and over
 		pace = { kind = "Chase", rate = 8 },
 		turn = 12,
-		fidget = "Pounce Play",
+		fidget = "PouncePlay",
 		moving = {
 			{ axis = "Pitch", wave = "Saw", amount = 5, rate = 1.4 },
 			{ axis = "Y", wave = "Bounce", amount = 0.25, rate = 1.4 },
@@ -311,7 +311,6 @@ local Gaits: { [string]: Gait } = {
 		turn = 6,
 		float = 1,
 		idleClip = "Hover",
-		fidget = "Tail Spin",
 		moving = {
 			{ axis = "Side", wave = "Sine", amount = 1.4, rate = 0.3 },
 			{ axis = "Ahead", wave = "Sine", amount = 1.4, rate = 0.3, phase = 0.25 },

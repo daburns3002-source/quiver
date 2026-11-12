@@ -1,0 +1,586 @@
+{
+	"class": "Warden",
+	"units": "studs",
+	"front": "-Z",
+	"source": "warden_set.glb",
+	"fit": {
+		"scale": 1.9996,
+		"body_meshes": [
+			"Avatar_Head",
+			"Avatar_Torso",
+			"Avatar_Arm_R",
+			"Avatar_Arm_L",
+			"Avatar_Leg_R",
+			"Avatar_Leg_L"
+		],
+		"region_stretch": {
+			"Head": [
+				0.979,
+				0.999,
+				0.981
+			],
+			"Torso": [
+				1.004,
+				1.033,
+				1.021
+			],
+			"RightArm": [
+				1.017,
+				1.007,
+				1.045
+			],
+			"LeftArm": [
+				1.017,
+				1.007,
+				1.045
+			],
+			"RightLeg": [
+				1.026,
+				1.011,
+				1.017
+			],
+			"LeftLeg": [
+				1.026,
+				1.011,
+				1.017
+			]
+		},
+		"front": "+z",
+		"miss": 0.0322,
+		"miss_other_way": 0.0354
+	},
+	"triangles": 1730,
+	"colours": {
+		"#F5DC8E": "#FFE596",
+		"#E8BA3F": "#E8BA3F",
+		"#C9D0DC": "#BAC2D0",
+		"#E0453A": "#E0453A",
+		"#F3F5F9": "#D6DCE8",
+		"#808A9C": "#808A9C"
+	},
+	"pieces": {
+		"Helm": {
+			"part": "Head",
+			"size": [
+				2.8329,
+				1.8409,
+				1.514
+			],
+			"at": [
+				0.0,
+				0.3245,
+				0.0245
+			],
+			"triangles": 404,
+			"open_edges": 0,
+			"glows": [],
+			"plan_size": [
+				2.68,
+				2.22,
+				1.62
+			],
+			"from_plan": {
+				"min": [
+					-0.076,
+					0.184,
+					0.048
+				],
+				"max": [
+					0.076,
+					-0.195,
+					-0.058
+				]
+			},
+			"face_blocked": 0.0,
+			"face_clear": [
+				-0.44,
+				0.44,
+				-0.44,
+				0.3
+			]
+		},
+		"Breastplate": {
+			"part": "UpperTorso",
+			"size": [
+				4.6215,
+				2.1917,
+				1.4223
+			],
+			"at": [
+				0.0,
+				0.3034,
+				-0.102
+			],
+			"triangles": 448,
+			"open_edges": 0,
+			"glows": [],
+			"plan_size": [
+				4.6,
+				2.37,
+				1.6
+			],
+			"from_plan": {
+				"min": [
+					-0.011,
+					0.078,
+					0.027
+				],
+				"max": [
+					0.011,
+					-0.101,
+					-0.151
+				]
+			}
+		},
+		"Cape": {
+			"part": "UpperTorso",
+			"size": [
+				2.6032,
+				2.5763,
+				0.402
+			],
+			"at": [
+				0.0,
+				-0.589,
+				0.8163
+			],
+			"triangles": 48,
+			"open_edges": 0,
+			"glows": [],
+			"plan_size": [
+				2.6,
+				2.48,
+				0.32
+			],
+			"from_plan": {
+				"min": [
+					-0.002,
+					-0.197,
+					-0.005
+				],
+				"max": [
+					0.002,
+					-0.101,
+					0.077
+				]
+			}
+		},
+		"Belt": {
+			"part": "LowerTorso",
+			"size": [
+				2.2017,
+				0.8202,
+				1.5754
+			],
+			"at": [
+				0.0,
+				-0.2088,
+				-0.0765
+			],
+			"triangles": 90,
+			"open_edges": 0,
+			"glows": [],
+			"plan_size": [
+				2.4,
+				0.82,
+				1.46
+			],
+			"from_plan": {
+				"min": [
+					0.099,
+					-0.019,
+					-0.134
+				],
+				"max": [
+					-0.099,
+					-0.019,
+					-0.019
+				]
+			}
+		},
+		"RightRerebrace": {
+			"part": "RightUpperArm",
+			"size": [
+				1.1589,
+				0.8343,
+				1.1432
+			],
+			"at": [
+				0.0794,
+				0.1429,
+				-0.0001
+			],
+			"triangles": 72,
+			"open_edges": 0,
+			"glows": [],
+			"plan_size": [
+				1.12,
+				0.92,
+				1.16
+			],
+			"from_plan": {
+				"min": [
+					0.02,
+					0.086,
+					0.008
+				],
+				"max": [
+					0.059,
+					0.0,
+					-0.009
+				]
+			}
+		},
+		"LeftRerebrace": {
+			"part": "LeftUpperArm",
+			"size": [
+				1.1589,
+				0.8343,
+				1.1432
+			],
+			"at": [
+				-0.0794,
+				0.1429,
+				-0.0001
+			],
+			"triangles": 68,
+			"open_edges": 0,
+			"glows": [],
+			"plan_size": [
+				1.12,
+				0.92,
+				1.16
+			],
+			"from_plan": {
+				"min": [
+					-0.059,
+					0.086,
+					0.008
+				],
+				"max": [
+					-0.02,
+					0.0,
+					-0.009
+				]
+			}
+		},
+		"RightVambrace": {
+			"part": "RightLowerArm",
+			"size": [
+				1.1638,
+				0.6989,
+				1.3519
+			],
+			"at": [
+				0.0763,
+				-0.0368,
+				0.0
+			],
+			"triangles": 42,
+			"open_edges": 0,
+			"glows": [],
+			"plan_size": [
+				1.32,
+				0.78,
+				1.4
+			],
+			"from_plan": {
+				"min": [
+					0.094,
+					0.094,
+					0.024
+				],
+				"max": [
+					-0.062,
+					0.013,
+					-0.024
+				]
+			}
+		},
+		"LeftVambrace": {
+			"part": "LeftLowerArm",
+			"size": [
+				1.1638,
+				0.6989,
+				1.3519
+			],
+			"at": [
+				-0.0763,
+				-0.0368,
+				0.0
+			],
+			"triangles": 40,
+			"open_edges": 0,
+			"glows": [],
+			"plan_size": [
+				1.32,
+				0.78,
+				1.4
+			],
+			"from_plan": {
+				"min": [
+					0.062,
+					0.094,
+					0.024
+				],
+				"max": [
+					-0.094,
+					0.013,
+					-0.024
+				]
+			}
+		},
+		"RightCuisse": {
+			"part": "RightUpperLeg",
+			"size": [
+				1.0193,
+				0.5023,
+				1.2655
+			],
+			"at": [
+				0.0513,
+				-0.1288,
+				-0.0254
+			],
+			"triangles": 80,
+			"open_edges": 0,
+			"glows": [],
+			"plan_size": [
+				1.1,
+				0.8,
+				1.16
+			],
+			"from_plan": {
+				"min": [
+					0.042,
+					-0.0,
+					-0.078
+				],
+				"max": [
+					-0.039,
+					-0.298,
+					0.027
+				]
+			}
+		},
+		"LeftCuisse": {
+			"part": "LeftUpperLeg",
+			"size": [
+				1.0193,
+				0.5023,
+				1.2655
+			],
+			"at": [
+				-0.0513,
+				-0.1288,
+				-0.0254
+			],
+			"triangles": 84,
+			"open_edges": 0,
+			"glows": [],
+			"plan_size": [
+				1.1,
+				0.8,
+				1.16
+			],
+			"from_plan": {
+				"min": [
+					0.039,
+					-0.0,
+					-0.078
+				],
+				"max": [
+					-0.042,
+					-0.298,
+					0.027
+				]
+			}
+		},
+		"RightGreave": {
+			"part": "RightLowerLeg",
+			"size": [
+				1.0705,
+				0.9657,
+				1.4181
+			],
+			"at": [
+				0.0769,
+				0.0771,
+				-0.0509
+			],
+			"triangles": 126,
+			"open_edges": 0,
+			"glows": [],
+			"plan_size": [
+				1.16,
+				1.01,
+				1.38
+			],
+			"from_plan": {
+				"min": [
+					0.042,
+					0.044,
+					-0.02
+				],
+				"max": [
+					-0.048,
+					0.0,
+					0.018
+				]
+			}
+		},
+		"LeftGreave": {
+			"part": "LeftLowerLeg",
+			"size": [
+				1.0705,
+				0.9657,
+				1.4181
+			],
+			"at": [
+				-0.0769,
+				0.0771,
+				-0.0509
+			],
+			"triangles": 132,
+			"open_edges": 0,
+			"glows": [],
+			"plan_size": [
+				1.16,
+				1.01,
+				1.38
+			],
+			"from_plan": {
+				"min": [
+					0.048,
+					0.044,
+					-0.02
+				],
+				"max": [
+					-0.042,
+					0.0,
+					0.018
+				]
+			}
+		},
+		"RightSabaton": {
+			"part": "RightFoot",
+			"size": [
+				1.0193,
+				0.3932,
+				1.4181
+			],
+			"at": [
+				0.0513,
+				0.0406,
+				-0.1017
+			],
+			"triangles": 48,
+			"open_edges": 0,
+			"glows": [],
+			"plan_size": [
+				1.145,
+				0.35,
+				1.64
+			],
+			"from_plan": {
+				"min": [
+					0.047,
+					-0.006,
+					0.209
+				],
+				"max": [
+					-0.079,
+					0.037,
+					-0.013
+				]
+			}
+		},
+		"LeftSabaton": {
+			"part": "LeftFoot",
+			"size": [
+				1.0193,
+				0.3932,
+				1.4181
+			],
+			"at": [
+				-0.0513,
+				0.0406,
+				-0.1017
+			],
+			"triangles": 48,
+			"open_edges": 0,
+			"glows": [],
+			"plan_size": [
+				1.145,
+				0.35,
+				1.64
+			],
+			"from_plan": {
+				"min": [
+					0.079,
+					-0.006,
+					0.209
+				],
+				"max": [
+					-0.047,
+					0.037,
+					-0.013
+				]
+			}
+		}
+	},
+	"meshes": {
+		"Helm": [
+			"Helm"
+		],
+		"Breastplate": [
+			"Breastplate"
+		],
+		"Cape": [
+			"Cape"
+		],
+		"Belt_Skirt": [
+			"Belt"
+		],
+		"UpperArm_R": [
+			"Breastplate",
+			"LeftRerebrace"
+		],
+		"UpperArm_L": [
+			"Breastplate",
+			"RightRerebrace"
+		],
+		"Forearm_R": [
+			"LeftVambrace"
+		],
+		"Forearm_L": [
+			"RightVambrace"
+		],
+		"Thigh_R": [
+			"LeftCuisse",
+			"LeftGreave"
+		],
+		"Thigh_L": [
+			"RightCuisse",
+			"RightGreave"
+		],
+		"Shin_R": [
+			"LeftGreave"
+		],
+		"Shin_L": [
+			"RightGreave"
+		],
+		"Boot_R": [
+			"LeftSabaton"
+		],
+		"Boot_L": [
+			"RightSabaton"
+		]
+	},
+	"notes": [
+		"UpperArm_R: one solid cut between Breastplate, LeftRerebrace",
+		"UpperArm_L: one solid cut between Breastplate, RightRerebrace",
+		"Thigh_R: one solid cut between LeftCuisse, LeftGreave",
+		"Thigh_L: one solid cut between RightCuisse, RightGreave"
+	]
+}

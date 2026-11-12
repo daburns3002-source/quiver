@@ -252,7 +252,10 @@ What exists and works, all verified in Studio rather than only by the gates:
   is larger than the standard one, never shrinking it, so a slim avatar still wears the chunky
   set. Worn in a run (`Main` `refreshWeapon`, beside the weapon), on each class select
   card and on the Gear portrait (`GearScreen.portrait`); the lobby keeps the player's own
-  avatar. **The pieces are plain blocks until the Claude Design models are imported**
+  avatar. **Every piece is its Claude Design model** (41 meshes, imported 2026-11-12; `MESHES`
+  in the config, written by `tools/class_armour/meshes_to_luau.py`), and its blocks are only
+  the fallback for a mesh that fails to load; a mesh cannot be Neon, so the Arcanist's
+  crystals do not glow
   (`docs/PIPELINES.md` 12, prompts in `docs/design-prompts/class-armour-2026-11.md`, sheets in
   `assets/concepts/blocky/players/armour/`). `tests/ClassOutfits.spec` holds a set to its rules:
   a full set per class, real body parts, the face open, nothing under the floor, no two faces

@@ -20,9 +20,9 @@
 	standard proportions first (`scales`).
 
 	`blocks` is the piece built from plain coloured boxes: the plan the
-	Claude Design model is made to, and what is worn until that model is
-	imported. Once it is, `meshId`, `size` and `at` are its mesh, and the
-	blocks are only the fallback for a mesh that fails to load.
+	Claude Design model was made to. `meshId`, `size` and `at` are that
+	model's mesh (`MESHES` below), and the blocks are only the fallback for
+	a mesh that fails to load.
 
 	Rules the data keeps (`tests/ClassOutfits.spec`): every class has a set
 	that covers the head, both halves of the torso, and every arm and leg
@@ -412,6 +412,246 @@ local function warden(): Outfit
 	}
 end
 
+type Mesh = { id: string, size: Vector3, at: Vector3 }
+
+--[[ The Claude Design models (locked and imported by the owner on
+     2026-11-12; docs/PIPELINES.md 12): each piece's mesh, its size on the
+     standard body and its centre from its body part's centre. Written by
+     `tools/class_armour/meshes_to_luau.py` from the Studio import's ids and
+     `assets/models/armour/<class>_pieces.json`; change those, not this. ]]
+local MESHES: { [string]: { [string]: Mesh } } = {
+	-- <meshes>
+	Ranger = {
+		Hood = {
+			id = "rbxassetid://74157358416773",
+			size = Vector3.new(2.6077, 2.0193, 1.4595),
+			at = Vector3.new(0, 0.1724, 0.1351),
+		},
+		Tunic = {
+			id = "rbxassetid://133549744518395",
+			size = Vector3.new(4.3213, 2.1736, 1.4525),
+			at = Vector3.new(0.01, 0.1527, -0.0067),
+		},
+		Cloak = {
+			id = "rbxassetid://133455827840652",
+			size = Vector3.new(2.7874, 2.6951, 0.5813),
+			at = Vector3.new(0, -0.4166, 0.874),
+		},
+		Belt = {
+			id = "rbxassetid://136768914250201",
+			size = Vector3.new(2.3494, 0.8616, 1.3654),
+			at = Vector3.new(0, -0.2308, 0),
+		},
+		RightSleeve = {
+			id = "rbxassetid://136247475588694",
+			size = Vector3.new(1.1707, 0.928, 1.4392),
+			at = Vector3.new(0.0853, 0.096, 0),
+		},
+		LeftSleeve = {
+			id = "rbxassetid://109763299296358",
+			size = Vector3.new(1.1507, 0.928, 1.3981),
+			at = Vector3.new(-0.0753, 0.096, 0),
+		},
+		RightBracer = {
+			id = "rbxassetid://96563350295950",
+			size = Vector3.new(1.2012, 0.7792, 1.3981),
+			at = Vector3.new(0.1001, -0.1746, 0),
+		},
+		LeftBracer = {
+			id = "rbxassetid://77947960262650",
+			size = Vector3.new(1.2012, 0.7792, 1.3981),
+			at = Vector3.new(-0.1001, -0.1746, 0),
+		},
+		RightTrouser = {
+			id = "rbxassetid://107042237521091",
+			size = Vector3.new(1.1118, 0.7941, 1.2012),
+			at = Vector3.new(0.0559, 0.0133, 0),
+		},
+		LeftTrouser = {
+			id = "rbxassetid://131316447316162",
+			size = Vector3.new(1.1118, 0.7941, 1.2012),
+			at = Vector3.new(-0.0559, 0.0133, 0),
+		},
+		RightBoot = {
+			id = "rbxassetid://81115978906707",
+			size = Vector3.new(1.2192, 0.8551, 1.4014),
+			at = Vector3.new(0.1096, -0.0415, -0.02),
+		},
+		LeftBoot = {
+			id = "rbxassetid://131826107438460",
+			size = Vector3.new(1.2192, 0.8551, 1.4014),
+			at = Vector3.new(-0.1096, -0.0415, -0.02),
+		},
+		RightSole = {
+			id = "rbxassetid://92091582812345",
+			size = Vector3.new(1.1977, 0.3258, 1.6316),
+			at = Vector3.new(0.0989, 0.0069, -0.1552),
+		},
+		LeftSole = {
+			id = "rbxassetid://95412752377249",
+			size = Vector3.new(1.1977, 0.3258, 1.6316),
+			at = Vector3.new(-0.0989, 0.0069, -0.1552),
+		},
+	},
+	Arcanist = {
+		StarHat = {
+			id = "rbxassetid://100321072961120",
+			size = Vector3.new(2.5112, 2.9058, 2.3704),
+			at = Vector3.new(0, 0.852, 0.0242),
+		},
+		Robe = {
+			id = "rbxassetid://138872124137806",
+			size = Vector3.new(4.2012, 2.6351, 1.31),
+			at = Vector3.new(0, 0.5375, -0.0177),
+		},
+		Sash = {
+			id = "rbxassetid://94452063432621",
+			size = Vector3.new(2.1602, 0.4205, 1.2199),
+			at = Vector3.new(0, 0.0098, -0.0075),
+		},
+		RightSleeve = {
+			id = "rbxassetid://82281960210689",
+			size = Vector3.new(1.1006, 0.938, 1.2747),
+			at = Vector3.new(0.0503, 0.091, 0),
+		},
+		LeftSleeve = {
+			id = "rbxassetid://133071294747612",
+			size = Vector3.new(1.1006, 0.938, 1.2747),
+			at = Vector3.new(-0.0503, 0.091, 0),
+		},
+		RightCuff = {
+			id = "rbxassetid://73932206064191",
+			size = Vector3.new(1.2212, 0.7347, 1.4803),
+			at = Vector3.new(0.0701, -0.1564, 0),
+		},
+		LeftCuff = {
+			id = "rbxassetid://81345525461225",
+			size = Vector3.new(1.2212, 0.7347, 1.4803),
+			at = Vector3.new(-0.0701, -0.1564, 0),
+		},
+		RightSkirt = {
+			id = "rbxassetid://130854875718236",
+			size = Vector3.new(1.488, 0.8246, 1.5415),
+			at = Vector3.new(0.244, 0.0103, 0),
+		},
+		LeftSkirt = {
+			id = "rbxassetid://81937878309114",
+			size = Vector3.new(1.488, 0.8246, 1.5415),
+			at = Vector3.new(-0.244, 0.0103, 0),
+		},
+		RightHem = {
+			id = "rbxassetid://124789866180466",
+			size = Vector3.new(1.7087, 0.8059, 1.8418),
+			at = Vector3.new(0.3543, -0.0291, 0),
+		},
+		LeftHem = {
+			id = "rbxassetid://103500491772423",
+			size = Vector3.new(1.7087, 0.8059, 1.8418),
+			at = Vector3.new(-0.3543, -0.0291, 0),
+		},
+		RightShoe = {
+			id = "rbxassetid://130430741011118",
+			size = Vector3.new(1.0213, 0.3543, 1.1812),
+			at = Vector3.new(0.0107, 0.0211, -0.05),
+		},
+		LeftShoe = {
+			id = "rbxassetid://103307754883606",
+			size = Vector3.new(1.0213, 0.3543, 1.1812),
+			at = Vector3.new(-0.0107, 0.0211, -0.05),
+		},
+	},
+	Warden = {
+		Helm = {
+			id = "rbxassetid://105465383914819",
+			size = Vector3.new(2.8329, 1.8409, 1.514),
+			at = Vector3.new(0, 0.3245, 0.0245),
+		},
+		Breastplate = {
+			id = "rbxassetid://77698836468022",
+			size = Vector3.new(4.6215, 2.1917, 1.4223),
+			at = Vector3.new(0, 0.3034, -0.102),
+		},
+		Cape = {
+			id = "rbxassetid://78766958373005",
+			size = Vector3.new(2.6032, 2.5763, 0.402),
+			at = Vector3.new(0, -0.589, 0.8163),
+		},
+		Belt = {
+			id = "rbxassetid://133299759249612",
+			size = Vector3.new(2.2017, 0.8202, 1.5754),
+			at = Vector3.new(0, -0.2088, -0.0765),
+		},
+		RightRerebrace = {
+			id = "rbxassetid://79556042972133",
+			size = Vector3.new(1.1589, 0.8343, 1.1432),
+			at = Vector3.new(0.0794, 0.1429, -0.0001),
+		},
+		LeftRerebrace = {
+			id = "rbxassetid://90716828952437",
+			size = Vector3.new(1.1589, 0.8343, 1.1432),
+			at = Vector3.new(-0.0794, 0.1429, -0.0001),
+		},
+		RightVambrace = {
+			id = "rbxassetid://78873303959352",
+			size = Vector3.new(1.1638, 0.6989, 1.3519),
+			at = Vector3.new(0.0763, -0.0368, 0),
+		},
+		LeftVambrace = {
+			id = "rbxassetid://119243469824166",
+			size = Vector3.new(1.1638, 0.6989, 1.3519),
+			at = Vector3.new(-0.0763, -0.0368, 0),
+		},
+		RightCuisse = {
+			id = "rbxassetid://112282686321918",
+			size = Vector3.new(1.0193, 0.5023, 1.2655),
+			at = Vector3.new(0.0513, -0.1288, -0.0254),
+		},
+		LeftCuisse = {
+			id = "rbxassetid://100742796733641",
+			size = Vector3.new(1.0193, 0.5023, 1.2655),
+			at = Vector3.new(-0.0513, -0.1288, -0.0254),
+		},
+		RightGreave = {
+			id = "rbxassetid://122801147018587",
+			size = Vector3.new(1.0705, 0.9657, 1.4181),
+			at = Vector3.new(0.0769, 0.0771, -0.0509),
+		},
+		LeftGreave = {
+			id = "rbxassetid://90796227412920",
+			size = Vector3.new(1.0705, 0.9657, 1.4181),
+			at = Vector3.new(-0.0769, 0.0771, -0.0509),
+		},
+		RightSabaton = {
+			id = "rbxassetid://128784565642756",
+			size = Vector3.new(1.0193, 0.3932, 1.4181),
+			at = Vector3.new(0.0513, 0.0406, -0.1017),
+		},
+		LeftSabaton = {
+			id = "rbxassetid://87737533770634",
+			size = Vector3.new(1.0193, 0.3932, 1.4181),
+			at = Vector3.new(-0.0513, 0.0406, -0.1017),
+		},
+	},
+	-- </meshes>
+}
+
+--[[ A set with its imported models on. The importer turns a model half
+     round, so every mesh is worn turned back. A mesh is one colour of
+     material, so a piece's crystals do not glow as its blocks' do. ]]
+local function meshed(class: string, outfit: Outfit): Outfit
+	local meshes = MESHES[class]
+	for _, piece in outfit.pieces do
+		local mesh = meshes and meshes[piece.name]
+		if mesh then
+			piece.meshId = mesh.id
+			piece.size = mesh.size
+			piece.at = mesh.at
+			piece.turned = true
+		end
+	end
+	return outfit
+end
+
 local ClassOutfits = {
 	--[[ The standard blocky R15 body the sets are sized for: each part's
 	     size and its centre from the HumanoidRootPart, read off
@@ -498,9 +738,9 @@ local ClassOutfits = {
 	     foot needs for its sole to reach the floor. ]]
 	stretch = { min = 1, max = 3 },
 	sets = {
-		Ranger = ranger(),
-		Arcanist = arcanist(),
-		Warden = warden(),
+		Ranger = meshed("Ranger", ranger()),
+		Arcanist = meshed("Arcanist", arcanist()),
+		Warden = meshed("Warden", warden()),
 	} :: { [string]: Outfit },
 }
 

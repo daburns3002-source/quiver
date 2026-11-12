@@ -1427,7 +1427,7 @@ function Reveal.crates(index: number, results: { { weapon: string, new: boolean 
 				name = entry.label,
 				rarity = entry.rarity,
 				fresh = result.new,
-				note = if result.new then "NEW!" else "+1 COPY",
+				note = if result.new then "NEW!" else "+1 C COPY TO MERGE",
 			})
 		end
 	end

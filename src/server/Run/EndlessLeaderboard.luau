@@ -41,6 +41,8 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
+local BoardRank = require(ReplicatedStorage.Shared.Util.BoardRank)
+local BoardYou = require(script.Parent.BoardYou)
 local Leaderboard = require(ReplicatedStorage.Shared.Config.Leaderboard)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
 
@@ -150,9 +152,6 @@ local function merge(): { Entry }
 		end
 		return a.userId < b.userId
 	end)
-	while #list > Leaderboard.rows do
-		table.remove(list)
-	end
 	return list
 end
 
@@ -190,7 +189,25 @@ end
 
 --[[ Recomputes the top and redraws every board if it changed. ]]
 local function refreshBoards()
-	local top = merge()
+	local all = merge()
+	-- each player's own place, which can move while the top ten stand still
+	local scored: { BoardRank.Scored } = {}
+	for _, entry in all do
+		table.insert(scored, { userId = entry.userId, score = entry.floor })
+	end
+	local read: { BoardRank.Scored } = {}
+	for _, entry in fetched do
+		table.insert(read, { userId = entry.userId, score = entry.floor })
+	end
+	BoardYou.publish(
+		"Endless",
+		scored,
+		BoardRank.cutoff(read, Leaderboard.rankDepth),
+		function(floor)
+			return `FLOOR {floor}`
+		end
+	)
+	local top = table.move(all, 1, math.min(#all, Leaderboard.rows), 1, {})
 	local parts = {}
 	for _, entry in top do
 		table.insert(parts, `{entry.userId}:{entry.floor}:{entry.name}`)
@@ -253,7 +270,7 @@ local function readTop()
 		return
 	end
 	local ok, result = pcall(function()
-		local pages = target:GetSortedAsync(false, Leaderboard.rows)
+		local pages = target:GetSortedAsync(false, Leaderboard.rankDepth)
 		return pages:GetCurrentPage()
 	end)
 	if not ok then
@@ -265,7 +282,12 @@ local function readTop()
 		local userId = tonumber(item.key)
 		local floor = tonumber(item.value)
 		if userId and floor then
-			table.insert(list, { userId = userId, name = nameOf(userId), floor = floor })
+			--[[ Only the rows drawn need a name looked up (a web call
+			     each); the rest are read for the YOU row's rank alone. ]]
+			local name = if #list < Leaderboard.rows
+				then nameOf(userId)
+				else names[userId] or `#{userId}`
+			table.insert(list, { userId = userId, name = name, floor = floor })
 		end
 	end
 	fetched = list
@@ -319,6 +341,8 @@ function EndlessLeaderboard.start()
 	local function load(player: Player)
 		local userId = player.UserId
 		if not store then
+			-- no store to ask: their own row from what this server knows
+			refreshBoards()
 			return
 		end
 		local loaded, stored = pcall(function(): any
@@ -329,6 +353,8 @@ function EndlessLeaderboard.start()
 		elseif type(stored) == "number" and stored > (best[userId] or 0) then
 			best[userId] = stored
 		end
+		-- their own row, now that their best is known
+		refreshBoards()
 	end
 	Players.PlayerAdded:Connect(load)
 	for _, player in Players:GetPlayers() do
@@ -429,7 +455,8 @@ function EndlessLeaderboard.attach(face: BasePart)
 	local count = Leaderboard.rows
 	local pad = Leaderboard.padding
 	local gap = Leaderboard.gap
-	local height = (1 - pad * 2 - gap * (count - 1)) / count
+	-- one more slot than the rows: the YOU row under them (`Run/BoardYou`)
+	local height = (1 - pad * 2 - gap * count) / (count + 1)
 	local columns = Leaderboard.endlessColumns
 	local rows: { Row } = {}
 	for rank = 1, count do
@@ -463,9 +490,11 @@ function EndlessLeaderboard.attach(face: BasePart)
 		}
 	end
 
+	BoardYou.row(back, "Endless", pad + count * (height + gap), height)
 	local board = { gui = gui, rows = rows }
 	table.insert(boards, board)
 	draw(board)
+	refreshBoards()
 	gui.Parent = face
 end
 

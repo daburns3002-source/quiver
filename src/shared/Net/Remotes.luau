@@ -182,9 +182,23 @@ Remotes.ChooseClass = "ChooseClass"
      server puts that class's own weapon in hand and empties the pet slots
      (`Data/Shop`). ]]
 Remotes.SwitchClass = "SwitchClass"
+--[[ Client -> server: the item card's MERGE ("weapon" or "pet", its key,
+     the tier to merge from); the server checks there are three
+     (`Data/Shop`, `Util/MergeRules`) and answers with `ProfileChanged`. ]]
+Remotes.MergeItem = "MergeItem"
 --[[ Client → server, Studio only: coins, gems and boss items into the
      wallet (`Data/Shop`), to test the shop without playing for them. ]]
 Remotes.DebugWallet = "DebugWallet"
+--[[ Client → server: claim a reward (`Data/Rewards`): "login", or "quest" /
+     "starter" with its key. Carries no progress and no day; the server
+     judges the claim from the saved profile and its own clock. ]]
+Remotes.RewardClaim = "RewardClaim"
+--[[ Server → client: a reward just landed by itself (a new Dex entry):
+     its words, gems and coins, for the toast (`UI/RewardsScreen`). ]]
+Remotes.RewardToast = "RewardToast"
+--[[ Client → server, Studio only: move this player's reward day on by a
+     number of days (1 if none), to see a day roll (`Data/Rewards`). ]]
+Remotes.DebugDay = "DebugDay"
 
 --[[
 	Client → server. The intro's BEGIN ADVENTURE button: this player has
@@ -206,6 +220,14 @@ Remotes.PortalOpen = "PortalOpen"
 	portal (`Run/Lobby.startFor`) before starting the run.
 ]]
 Remotes.PortalStart = "PortalStart"
+
+--[[
+	Client → server. The lobby's PLAY button (`UI/LobbyHud`), no payload. The
+	server picks the player's frontier portal (`Util/PlayPortal`) and walks
+	them to its mouth, where its screen opens as any portal's does; START is
+	still checked by `Run/Lobby.startFor` there.
+]]
+Remotes.LobbyPlay = "LobbyPlay"
 
 --[[
 	Server → one client. A party portal's word on the run it is starting
@@ -302,8 +324,9 @@ Remotes.PickupsCleared = "PickupsCleared"
      for this many seconds; and by what ("SecondWind" or "Revive"). ]]
 Remotes.PlayerRevived = "PlayerRevived"
 
---[[ Server → all clients. A Soul Chain link: from the enemy hit, to each of
-     these. ]]
+--[[ Server → all clients. A Soul Chain link, drawn as a fireball: where the
+     enemy hit stood, then the linked enemies in the order it leaps to them,
+     where each stood, and the seconds from now it lands on each. ]]
 Remotes.SoulLink = "SoulLink"
 
 --[[ Server → all clients. A Warden's Parry knocked the enemy shots within

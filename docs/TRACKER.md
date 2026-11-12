@@ -5,7 +5,7 @@ this in the same PR as the work it describes (CLAUDE.md): add a row when
 something starts or gets blocked, strike it when it lands. How each kind of
 thing gets made is in [PIPELINES.md](PIPELINES.md).
 
-Last brought up to date: 2026-11-11.
+Last brought up to date: 2026-11-12.
 
 **Scope:** Acts 1-3 only (areas 1-6) until the owner says otherwise (2026-10-24). Acts 4-5 work is on hold.
 
@@ -61,13 +61,17 @@ where you would be standing. Say what reads wrong and Claude retunes it.
 - **The trees.** Different enough heights, and enough of them? Do the seven black arches read as locked?
 - **The Dex Hall.** Porch columns flush to the grass on stone with no timber cutting through them, no daylight at the roof/wall join, chimneys gone.
 - **The dexes.** Press E: the page should curl the other way coming back, and the book must not shift. All three tabs, nine slots a spread.
+- **Merge tiers (2026-11-11).** Open GEAR and tap a weapon or pet you hold three copies of: MERGE 3 C INTO B on its card, then the tile says "B x1" and ATK goes up 1.2x (A 1.44x, S 2.16x). Does the item card read on a phone held upright, and is 3 copies the right price for each step? A crate duplicate now says "+1 C COPY TO MERGE" and is saved.
 - **The hatchery and crate screens.** Four cards across for an egg's eight pets, three for a crate's six weapons, full rarity colour, the chance in the corner, an unowned Mythic a black silhouette.
 - **The shop.** Open a Mossy Glade crate, buy from the store, equip from MY WEAPONS (`Remotes.DebugWallet:FireServer(5000, 2000, 5)` fills the wallet).
 - **The Gear Station** stands clear of the Blacksmith; the portal screen reads; Shift sprints and Space jumps instead of the old dash.
+- **The lobby HUD on a phone** (2026-11-11). Upright: coins and gems top right, PLAY across the bottom, the station button (HATCH EGGS, SHOP...) full width above it and clear of JUMP, no health, skill tray or XP bar. PLAY walks you into the portal of your next unbeaten level.
+- **REWARDS** (2026-11-11, loop review items 4 and 13): the gold REWARDS button top left opens the 7-day login calendar, three daily quests and the GETTING STARTED list; it opens by itself once a day when the calendar has a gift. Are the payouts right (`Config/Rewards`, the arithmetic is at its top: about 77 gems a day, an Epic in about 6 days)? Each new Dex entry pays 5 gems with a toast, and each leaderboard has a "YOU: #N" row under its ten. In Studio, `Remotes.DebugDay:FireServer(1)` rolls a day. The button is a stand-in place until the lobby HUD session's bar takes it.
 - **The leaderboards** are behind you as you spawn, side by side and readable, with the walk north clear of them.
 
 ### In a Mossy Glade run
 
+- **Chain Lightning's bolt and Soul Chain's fireball (2026-11-12).** In the sandbox (O), as an Arcanist with Chain Lightning and as anyone with Soul Chain: does the bolt read as a Statikk Shiv proc (thick enough, blue enough, gone fast enough) and the fireball as a bouncing fireball (leap height, flame colour, how long an enemy burns)? Seen in Studio at desktop size only. **Your calls:** the arcs now fly at 320 studs a second where the orb flies 49.5, so they almost never miss; a linked enemy takes its share when the fireball lands, 0.14 to 0.26 s a leap, and is now knocked back by it. Elemental Orbs' lightning casts arc as the same bolt (your call, 2026-11-12).
 - **The level grid.** 2 x 5, locked dimmed under a lock, CLEARED in gold. After beating 1-1, rejoining should go straight to the lobby.
 - **1-10 as rooms** rather than waves (1-6..1-9 went back to waves, 2026-11-05). Does 1-10 feel starved of upgrades?
 - **1-8, 1-9 and 1-10: still long?** Enemy health now rises 0.04 a level instead of 0.1, so 1-10 asks 87,074 health instead of 119,280.

@@ -171,10 +171,4 @@ function ShopRules.price(entry: Entry): Purse.Cost?
 	return { gems = gems * entry.area }
 end
 
---[[ Coins paid back when a crate gives a weapon already owned. ]]
-function ShopRules.refund(index: number): number
-	local crate = Shop.crates[index]
-	return if crate then math.floor(crate.price * Shop.duplicateRefund) else 0
-end
-
 return ShopRules

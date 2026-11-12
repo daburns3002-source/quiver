@@ -38,6 +38,9 @@ local ShopAssets = require(ReplicatedStorage.Shared.Config.ShopAssets)
 local SoundFx = require(script.Parent.Parent.Fx.SoundFx)
 local Chunky = {}
 
+--[[ The smallest a pressable's hit area may be, in screen points. ]]
+local MIN_TOUCH = 48
+
 Chunky.font = Enum.Font.FredokaOne
 --[[ The outline round the cream and orange pieces and the stroke round the
      kit's words: the reference's dark brown. `navy` is the same colour
@@ -441,7 +444,7 @@ end
 
 --[[ Squash on press, swell a touch on hover; the click, its sound and its
      sparks. ]]
-local function pressable(holder: GuiObject, visual: GuiObject, action: () -> ())
+local function pressable(holder: GuiObject, visual: GuiObject, action: () -> ()): TextButton
 	local hit = Instance.new("TextButton")
 	hit.BackgroundTransparency = 1
 	hit.Text = ""
@@ -454,6 +457,7 @@ local function pressable(holder: GuiObject, visual: GuiObject, action: () -> ())
 		action()
 	end)
 	Kit.pressFx(hit, visual, false)
+	return hit
 end
 
 --[[ A fat striped button: a darker lip under a face lit from the top, soft
@@ -586,7 +590,16 @@ function Chunky.close(sheet: Sheet, x: number, y: number, size: number, action: 
 	local cross = Chunky.text(body, "X", nil, 5, Chunky.shade(Chunky.red))
 	cross.Position, cross.Size = UDim2.fromScale(0.24, 0.24), UDim2.fromScale(0.52, 0.52)
 	cross.ZIndex = 33
-	pressable(holder, body, action)
+	--[[ In a header the X is drawn only as tall as the bar, about 24 points
+	     on an upright phone, so the area that takes the press grows round
+	     it to a finger's `MIN_TOUCH` (the 2026-11-11 loop and UI review). ]]
+	local hit = pressable(holder, body, action)
+	hit.AnchorPoint = Vector2.new(0.5, 0.5)
+	hit.Position = UDim2.fromScale(0.5, 0.5)
+	scaled(holder, function(unit)
+		local grow = math.max(1, MIN_TOUCH / math.max(size * unit, 1))
+		hit.Size = UDim2.fromScale(grow, grow)
+	end)
 end
 
 --[[ A tab: raised and bright when chosen, sunk and dull when not. ]]

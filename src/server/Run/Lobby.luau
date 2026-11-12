@@ -1480,6 +1480,14 @@ function Lobby.portalAt(position: Vector3, slack: number?): number?
 	return best
 end
 
+--[[ Where a player stands to be in portal `index`'s mouth, facing the
+     arch: where PLAY puts them (`Remotes.LobbyPlay`). ]]
+function Lobby.mouthAt(index: number): CFrame
+	local arch = world(Lobby.archAt(index), 3)
+	local at = world(Lobby.archAt(index) + Vector2.new(0, LobbyConfig.mouthAhead), 3)
+	return CFrame.lookAt(at, Vector3.new(arch.X, at.Y, arch.Z))
+end
+
 --[[
 	START on a portal's screen: the stage level `level` of portal `index`
 	plays, or nil when the request is not one this player may make. Both

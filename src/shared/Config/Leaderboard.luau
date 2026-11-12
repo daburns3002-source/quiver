@@ -37,8 +37,15 @@ local Leaderboard = {
 	     (room jumps, granted cards) make runs that are not real, so Studio
 	     reads the board but keeps its own scores in memory. ]]
 	writeFromStudio = false,
-	--[[ Rows on the board, and so how many are read. ]]
+	--[[ Rows on the board. ]]
 	rows = 10,
+	--[[ How many of the store's best are read (one page, the same one call
+	     the top ten cost), so the "YOU: #N" row under each board
+	     (`Run/BoardYou`) can place a player down to this rank; past it the
+	     row says "#100+". ]]
+	rankDepth = 100,
+	--[[ What the YOU row shows for a best that does not exist yet. ]]
+	youEmpty = "NO RUN YET",
 	--[[ The SurfaceGui's pixels per stud of the part's face. ]]
 	pixelsPerStud = 50,
 	--[[ Shares of a row's width: rank, name, area, room. ]]
@@ -62,6 +69,9 @@ local Leaderboard = {
 		silver = Color3.fromRGB(204, 212, 224),
 		bronze = Color3.fromRGB(222, 136, 64),
 		empty = Color3.fromRGB(110, 112, 130),
+		--[[ The YOU row under the top ten. ]]
+		you = Color3.fromRGB(52, 44, 96),
+		youOutline = Color3.fromRGB(255, 204, 64),
 	},
 }
 

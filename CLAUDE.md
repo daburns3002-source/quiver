@@ -387,6 +387,19 @@ coins buy an open egg (`RunSummary.canHatch`, `Hatchery.canHatch`); Defeat's is 
 stronger. The portal's level card lists what a level pays (`PortalScreen` `rewardsOf`). Only stages
 with a `level` have a first clear (Mossy Glade's ten); `tests/Payouts.spec`.
 
+**Reasons to come back** (owner-approved loop review, 2026-11-11; `Config/Rewards`, `Util/RewardRules`,
+`Server/Data/Rewards`, `UI/RewardsScreen`): a 7-day login calendar (a missed day does not reset it), three
+daily quests dealt one per group from the day's number, and a one-time starter list (beat 1-1, hatch, equip
+a pet, open a crate), paying mostly gems so an Epic is about six days of play; the arithmetic is at the top
+of the config and `tests/RewardRules.spec` pins its shape. The client only asks (`Remotes.RewardClaim`, a
+kind and a key): quest progress is counted by the server from its own events (`Rewards.note(player, kind,
+amount)` in the run, the hatchery and the shop; anything new that should count calls it), the starter list
+is read from the saved profile, and the day is the server's clock, published as the Player's `RewardDay`.
+Save version 11 holds it (`rewards`). Each new Dex entry pays `Rewards.dexGems` once ever (`Data/DexPay`,
+called by `Wallet.grantWeapon`, `grantPet` and `meetEnemy`), with a toast. Each lobby leaderboard has a
+"YOU: #N" row (`Run/BoardYou`, `Util/BoardRank`, `UI/BoardYou`; `docs/LEADERBOARD.md`). Studio:
+`Remotes.DebugDay:FireServer(n)` moves the player's reward day on.
+
 **Portals open a screen; the lobby sprints and jumps** (owner, 2026-10-26): walking into a lit
 portal opens `UI/PortalScreen` (the area, its levels from `Config/Lobby.portals[i].levels`, START;
 Mossy Glade's ten as numbered buttons in two rows of five, locked ones dimmed under a lock, beaten
@@ -395,6 +408,16 @@ stands at and the levels they have opened (`Remotes.PortalStart`, `Run/Lobby.sta
 `Util/LevelUnlocks`, `tests/Lobby.spec`). In the lobby there is no dash:
 Shift / gamepad X / the phone's SPRINT runs (`Config/Lobby.sprint`) and Space / A / JUMP jumps
 (`RunSession.allowJump`, `Input/LobbyButtons`); a run still dashes and never jumps.
+
+**The lobby HUD** (Fable's loop review item 3, owner 2026-11-11; `UI/LobbyHud`, `Config/LobbyHud`):
+coin and gem pills pinned to the top, a PLAY button, and the fight HUD (health, skill tray, XP bar,
+level) put away while `InLobby`. PLAY asks the server (`Remotes.LobbyPlay`), which walks the player
+into their frontier portal's mouth (`Util/PlayPortal`: the first open portal with a level not beaten,
+never Endless, never one still locked), where its screen opens as usual; START is still checked there. On a touch layout
+(upright, or a phone) PLAY and the station button are laid out in points, full width, 64 and 60 tall,
+under the phone's JUMP (`tests/LobbyHud.spec`); a wide screen keeps the `[E]` prompt on the sheet.
+Both stand on a `Chunky.pointSheet`. The chunky X takes presses over at least 48 points however
+small its header draws it (`Chunky.close`).
 
 **Empty hands in the lobby** (owner, 2026-10-25): the server holds no weapon while `InLobby`
 (`Main.refreshWeapon`, `HeldWeapon.unequip`) and `Fx/WeaponPose` writes no pose there, so
@@ -462,7 +485,9 @@ first area's, doubling an area, 1 or 5 a press.
 `UI/ShopScreen`): at the lobby's Blacksmith, SHOP (or E) opens CRATES, STORE and MY WEAPONS.
 A crate per area for coins (500, 1,000, 2,000, 4,000, 10,000, 20,000) rolls on the server
 (Uncommon 60, Rare 28, Epic 11, Mythic 1) one of that area's weapons; a weapon already owned
-pays back 40%; areas with no weapons yet are black silhouettes. The store sells an area's
+is one more C copy, saved: three of a merge tier make one of the next, C -> B -> A -> S, each
+1.2x the damage before and S 1.5x over A (owner, 2026-10-28; `Util/MergeRules`, MERGE on the
+gear screen's item card), and pets merge the same way; areas with no weapons yet are black silhouettes. The store sells an area's
 weapons for gems by rarity, its Legendaries for coins and 3 of its boss's item; Mythics only
 come out of crates. EQUIP holds an owned weapon (its class with it), saved, in hand at once in
 the lobby. Every weapon picture is the THREE-QUARTER view of the reference sheet its 3D model was
@@ -540,6 +565,17 @@ meaningfully different?* — which needs the owner.
 Highlight, and for `Balance.Knockback.stagger` after a hit an enemy only slides
 with the shove (`EnemyManager` `staggerUntil`), so its own walking and charges
 cannot cancel it. A new enemy needs a `knockback` above 0 (`Balance.spec`).
+
+**Chain Lightning is a bolt and Soul Chain a fireball** (owner, 2026-11-11: "chain lightning
+should be like the stattik shiv effect ... soul link should be like brand ult"), both built in
+code, no imported model. Chain Lightning is still Ricochet's stage, but its arcs leave at
+`Balance.Projectile.arcSpeed` (`ShotSpec.arcSpeed`), so each hop lands a few hundredths of a
+second after the last; the server marks the hop (`ShotEvent.arc`, `to`) and the client draws a
+jagged, forked bolt between the two bodies in place of an orb (`Fx/Upgrades/LightningFx`,
+`Util/BoltPath`). Soul Chain links the same enemies for the same share, but each takes it as a
+fireball lands on it, leaping to the nearest one next (`Shared/Combat/SoulBounce`,
+`Server/Combat/SoulLink`'s queue, `Fx/Upgrades/SoulFireFx`). An effect seen from above must lie
+in the ground plane; `tests/ChainSoulFx.spec` holds both.
 
 **Enemies arrive in triangles of three** (`Balance.Spawning.clusterSize`),
 the tip pointing at the player; the row swings round the tip when a wall is

@@ -40,6 +40,9 @@
 	has — nothing of an older save is interpreted as Endless progress,
 	because there was none.
 
+	Version 7 (the Dex Hall): `enemiesSeen`, the enemies ever met. An older
+	profile has met none.
+
 	Version 8 (2026-11-11, SKIP TUTORIAL): `tutorialDone`, set once the
 	tutorial has been won. The tutorial still plays on every join until 1-1
 	is beaten; a player who has won it before may skip it. An older profile
@@ -50,13 +53,32 @@
 	(`Config/Settings`). An older profile has the defaults: nobody had
 	chosen anything. Read through `Util/SettingsRules.read`, so a stored
 	value that is not a volume step or a yes/no is its default.
+
+	Version 10 (2026-11-11, merge tiers — owner, 2026-10-28): `tiers`, the
+	copies of each weapon and pet held at each merge tier C, B, A and S
+	(`Util/MergeRules`). Every crate or egg duplicate is one more C copy,
+	and three of a tier merge into one of the next. Before this a weapon
+	was only owned or not, so a duplicate saved nothing; an older profile
+	holds every owned weapon at one C and every pet's count at C, and a
+	pet's `pets` count is from now on the total of its copies.
+
+	Version 11 (2026-11-11, reasons to come back — `Config/Rewards`):
+	`rewards`, the login calendar's last day and count, today's quest
+	progress and claims, the starter list's claims, the crates ever opened
+	(the starter list's "open a crate") and the Dex entries already paid
+	for. An older profile starts with nothing claimed, so its next login
+	takes day 1 and the starter list pays what it has already done. Its
+	crates count from its pity counter (a lower bound, nothing invented),
+	and everything it already owns or has met counts as a Dex entry paid,
+	so the update is no windfall.
 ]]
 
+local MergeRules = require(script.Parent.MergeRules)
 local SettingsRules = require(script.Parent.SettingsRules)
 
 local SaveSchema = {}
 
-SaveSchema.VERSION = 9
+SaveSchema.VERSION = 11
 
 --[[ The classes' own weapons, owned from the start. ]]
 local STARTERS = { "TwigBow", "BranchStaff", "TimberBlade" }
@@ -103,6 +125,26 @@ export type Profile = {
 	tutorialDone: boolean,
 	--[[ The player's own settings (version 9): volumes and vibration. ]]
 	settings: SettingsRules.Settings,
+	--[[ Copies at each merge tier, by weapon and by pet (version 10); a
+	     pet's `pets` count is their total, an owned weapon has at least one. ]]
+	tiers: { weapons: { [string]: MergeRules.Counts }, pets: { [string]: MergeRules.Counts } },
+	--[[ The login calendar, quests, starter list and Dex payouts
+	     (version 11, `Util/RewardRules`). Days are whole UTC days since 1970. ]]
+	rewards: RewardState,
+}
+
+export type RewardState = {
+	--[[ The last day the calendar paid, 0 never; and how many times. ]]
+	loginDay: number,
+	loginCount: number,
+	--[[ The day the quest progress below belongs to. ]]
+	questDay: number,
+	questProgress: { [string]: number },
+	questClaimed: { [string]: boolean },
+	starterClaimed: { [string]: boolean },
+	cratesOpened: number,
+	--[[ Dex entries paid for, "Enemies:MossSlime", "Pets:EmberWilf". ]]
+	dexPaid: { [string]: boolean },
 }
 
 --[[ The looks the class select screen offers. ]]
@@ -118,8 +160,10 @@ SaveSchema.SOULSTONES = "SOULSTONES"
 
 function SaveSchema.default(): Profile
 	local weapons = {}
+	local weaponTiers = {}
 	for _, name in STARTERS do
 		weapons[name] = true
+		weaponTiers[name] = { C = 1 }
 	end
 	return {
 		version = SaveSchema.VERSION,
@@ -139,7 +183,18 @@ function SaveSchema.default(): Profile
 		soulstones = 0,
 		enemiesSeen = {},
 		tutorialDone = false,
+		rewards = {
+			loginDay = 0,
+			loginCount = 0,
+			questDay = 0,
+			questProgress = {},
+			questClaimed = {},
+			starterClaimed = {},
+			cratesOpened = 0,
+			dexPaid = {},
+		},
 		settings = SettingsRules.default(),
+		tiers = { weapons = weaponTiers, pets = {} },
 	}
 end
 
@@ -250,6 +305,50 @@ function SaveSchema.migrate(raw: unknown): Profile
 	profile.tutorialDone = data.tutorialDone == true or profile.levelsBeaten["1-1"] == true
 	--[[ 8 → 9: no settings were kept, so an older profile has the defaults. ]]
 	profile.settings = SettingsRules.read(data.settings)
+	--[[ 9 -> 10: what was owned is held at C -- one copy of each weapon
+	     (duplicates were never saved), each pet's count as that many C.
+	     A stored pet's tiers are its count from then on. ]]
+	local stored = if type(data.tiers) == "table" then data.tiers else {}
+	local storedWeapons = if type(stored.weapons) == "table" then stored.weapons else {}
+	local storedPets = if type(stored.pets) == "table" then stored.pets else {}
+	for name in profile.weapons do
+		local held = MergeRules.clean(storedWeapons[name])
+		profile.tiers.weapons[name] = if MergeRules.total(held) > 0 then held else { C = 1 }
+	end
+	for pet, n in profile.pets do
+		local held = MergeRules.clean(storedPets[pet])
+		if MergeRules.total(held) == 0 then
+			held = { C = n }
+		end
+		profile.tiers.pets[pet] = held
+		profile.pets[pet] = MergeRules.total(held)
+	end
+	--[[ 10 → 11: the rewards. A stored copy is read field by field; an older
+	     one has none, so nothing is claimed, its crates are its pity count,
+	     and what it already has counts as paid for in the Dex. ]]
+	local storedRewards = if type(data.rewards) == "table" then data.rewards else nil
+	local rewards = profile.rewards
+	if storedRewards then
+		rewards.loginDay = count(storedRewards.loginDay)
+		rewards.loginCount = count(storedRewards.loginCount)
+		rewards.questDay = count(storedRewards.questDay)
+		rewards.questProgress = counts(storedRewards.questProgress)
+		rewards.questClaimed = flags(storedRewards.questClaimed)
+		rewards.starterClaimed = flags(storedRewards.starterClaimed)
+		rewards.cratesOpened = count(storedRewards.cratesOpened)
+		rewards.dexPaid = flags(storedRewards.dexPaid)
+	else
+		rewards.cratesOpened = profile.pity.crates
+		for kind in profile.enemiesSeen do
+			rewards.dexPaid["Enemies:" .. kind] = true
+		end
+		for weapon in profile.weapons do
+			rewards.dexPaid["Weapons:" .. weapon] = true
+		end
+		for pet in profile.pets do
+			rewards.dexPaid["Pets:" .. pet] = true
+		end
+	end
 	return profile
 end
 

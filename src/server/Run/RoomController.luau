@@ -68,8 +68,10 @@ local Pickups = require(script.Parent.Pickups)
 local PlayerData = require(script.Parent.Parent.Data.PlayerData)
 local ProjectileSystem = require(script.Parent.Parent.Combat.ProjectileSystem)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
+local Rewards = require(script.Parent.Parent.Data.Rewards)
 local RunSession = require(script.Parent.RunSession)
 local Sandbox = require(ReplicatedStorage.Shared.Config.Sandbox)
+local SoulLink = require(script.Parent.Parent.Combat.SoulLink)
 local StoryLeaderboard = require(script.Parent.StoryLeaderboard)
 local StoryProgress = require(ReplicatedStorage.Shared.Util.StoryProgress)
 local Wallet = require(script.Parent.Parent.Data.Wallet)
@@ -253,6 +255,7 @@ local function clearFight()
 	ProjectileSystem.clear()
 	MeleeSystem.clear()
 	Burning.clear()
+	SoulLink.clear()
 	AreaStrikes.clear()
 	ClassUpgrades.clear()
 	Pickups.clear()
@@ -734,6 +737,10 @@ local function complete(now: number)
 		     (`debugEnterRoom`) counts, so unlocking can be tested there.
 		     The first time, the area's egg is given free (review item 5),
 		     rolled here and revealed on Victory. ]]
+		if level then
+			-- every win counts for the daily quests, not only the first
+			Rewards.note(session.player, "levels", 1)
+		end
 		if level and Wallet.beatLevel(session.player, level) and eggKey then
 			local pet = Hatchery.grantFree(session.player, eggKey)
 			if pet then

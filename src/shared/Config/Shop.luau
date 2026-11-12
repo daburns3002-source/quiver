@@ -6,8 +6,8 @@
 	- **Crates**, one per area, for coins ("start at 500 for mossy glade",
 	  then 1,000, 2,000, 4,000, 10,000, 20,000): each opens one of that
 	  area's weapons, rolled on the server by rarity ("uncommon, rare, epic,
-	  and a small mythic chance"). A weapon already owned pays back
-	  `duplicateRefund` of the price. An area with no weapons yet shows its
+	  and a small mythic chance"). A weapon already owned is one more C
+	  copy to merge (`Util/MergeRules`, owner 2026-10-28). An area with no weapons yet shows its
 	  crate as a black silhouette.
 	- **The store** sells an area's weapons for gems, by rarity; its
 	  Legendaries ("the legendary weapon will cost coins and a certain item
@@ -80,9 +80,6 @@ local Shop = {
 		Epic = 11,
 		Mythic = 1,
 	} :: { [string]: number },
-
-	--[[ Share of a crate's price paid back for a weapon already owned. ]]
-	duplicateRefund = 0.4,
 
 	--[[ The store's gem prices, by rarity, times the area's number. ]]
 	gemPrices = {

@@ -136,10 +136,6 @@ return function(t: TestRunner.Helper)
 		end
 	)
 
-	t.test("a duplicate pays back part of the crate, never all of it", function()
-		t.isTrue(ShopRules.refund(1) > 0 and ShopRules.refund(1) < Shop.crates[1].price)
-	end)
-
 	t.test("every weapon a player can own has its 2D icon, and every boss item too", function()
 		for _, entry in ShopRules.catalog() do
 			t.notNil(ShopAssets.weapons[entry.weapon], entry.weapon)

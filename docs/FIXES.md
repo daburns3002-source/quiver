@@ -16,6 +16,27 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## A duplicate weapon said "+1 COPY" and nothing was saved; the 40% refund was never paid
+
+The 2026-11-11 loop and UI review, item 1. A crate that rolled a weapon
+already owned showed "+1 COPY" and kept nothing: `Wallet.grantWeapon` set
+`weapons[name] = true` again, and the 40% back that CLAUDE.md promised was
+config and a function (`Shop.duplicateRefund`, `ShopRules.refund`) that
+nothing called. The owner's merge (2026-10-28) had been built on a branch
+that never reached main. It is in now, as save version 10: every copy is
+kept at tier C (`profile.tiers`), three of a tier make one of the next, C to
+B to A to S, and the best tier held scales the damage (`Util/MergeRules`,
+MERGE on the gear screen's item card). Measured in Studio, 2026-11-12:
+twelve Mossy Glade crates left the Acorn Bow at C 10 in the save (and the
+reveal's note reads "+1 C COPY TO MERGE"); MERGE on its card made it C 7,
+B 1 and its tile "B x8"; merged to A and equipped, the ATK plate went from
+100 to 151 and the server's hits on a training dummy from 100.00 (Twig Bow,
+C) to 151.20 (the bow's own 1.05 times A's 1.44). A Mosslet merged to B hit
+for 38.40 against its 32. Five bad requests to the remote (a tier with fewer
+than three, a weapon not owned, a wrong kind or type) changed nothing, and
+two sent at once merged once. Words on a reveal that promise something kept
+must be checked against what the save holds afterwards.
+
 ## Run banner said "You died - restarting"; the leave panel said progress is lost
 
 The 2026-11-11 loop and UI review. Nothing restarts by itself after a death:
@@ -1771,3 +1792,18 @@ a `CanvasGroup` (`UI/TutorialPrompts` `layStripes`), which clips turned children
 corners; a plain frame's `ClipsDescendants` does not clip them. Keep text outside the CanvasGroup.
 The ScreenGui must be `ZIndexBehavior.Sibling`: one made with `Instance.new` is `Global`, and there
 the stripes were drawn behind the panel, unclipped, sticking out of its top.
+
+## The lobby's coins and gems vanished after the Blacksmith opened (2026-11-11)
+
+The lobby wallet was the Blacksmith screen's own, and `HatchStand.chrome` hid it each time the shop
+drew; only a wallet change drew it again. The lobby now has its own pills (`UI/LobbyHud`, from
+`StationScreen.onProfile`), shown whenever no station or portal screen is open, and the shop hides
+nothing outside itself.
+
+## The station button and the close X were too small for a finger on an upright phone (2026-11-11)
+
+"HATCH EGGS" sat on the 16:9 sheet (~97 x 21 points upright) and the chunky X was 110 sheet pixels
+(~39 points; since the re-skin it is drawn in the panel's header, ~24 points). On a touch layout the
+station button is now laid out in points, full width and 60 tall (`StationScreen`'s prompt,
+`Config/LobbyHud`). The X keeps its drawn size and takes presses over at least 48 points round it
+(`Chunky.close`), on every chunky screen.

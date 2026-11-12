@@ -48,6 +48,15 @@ return function(t: TestRunner.Helper)
 			{ { levels = { 3 }, requires = "1-2" }, { levels = { 1 } } }
 		t.equal(PlayPortal.pick(gated, stages, {}, nil, nil), 2)
 	end)
+	t.test("an area that saves no level is behind you once its boss is", function()
+		local single: { [number]: LevelUnlocks.Stage } = {
+			[1] = { name = "A", mode = "Rooms", rooms = { 1 }, area = "First" },
+			[2] = { name = "B", mode = "Rooms", rooms = { 1 }, area = "Second" },
+		}
+		local two: { PlayPortal.Portal } = { { levels = { 1 } }, { levels = { 2 } } }
+		t.equal(PlayPortal.pick(two, single, {}, {}, nil), 1)
+		t.equal(PlayPortal.pick(two, single, {}, { First = true }, nil), 2)
+	end)
 	t.test("at launch a locked area waits its turn", function()
 		local locked: { PlayPortal.Portal } = {
 			{ levels = { 1, 2 } },

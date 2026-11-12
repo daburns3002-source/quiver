@@ -62,7 +62,7 @@ where you would be standing. Say what reads wrong and Claude retunes it.
 - **The hatchery and crate screens.** Four cards across for an egg's eight pets, three for a crate's six weapons, full rarity colour, the chance in the corner, an unowned Mythic a black silhouette.
 - **The shop.** Open a Mossy Glade crate, buy from the store, equip from MY WEAPONS (`Remotes.DebugWallet:FireServer(5000, 2000, 5)` fills the wallet).
 - **The Gear Station** stands clear of the Blacksmith; the portal screen reads; Shift sprints and Space jumps instead of the old dash.
-- **The lobby HUD on a phone** (2026-11-11). Upright: coins and gems top right, PLAY across the bottom, the station button (HATCH EGGS, SHOP...) full width above it and clear of JUMP, no health, skill tray or XP bar. PLAY walks you into the portal of your next unbeaten level. Thornwood and later have no saved level yet, so PLAY stops at Thornwood once 1-10 is beaten.
+- **The lobby HUD on a phone** (2026-11-11). Upright: coins and gems top right, PLAY across the bottom, the station button (HATCH EGGS, SHOP...) full width above it and clear of JUMP, no health, skill tray or XP bar. PLAY walks you into the portal of your next unbeaten level.
 - **The leaderboards** are behind you as you spawn, side by side and readable, with the walk north clear of them.
 
 ### In a Mossy Glade run

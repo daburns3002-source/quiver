@@ -27,6 +27,24 @@ local function holds(levels: { number }, stage: number?): boolean
 	return stage ~= nil and table.find(levels, stage) ~= nil
 end
 
+--[[ Whether a stage is behind the player: its level saved as beaten, or,
+     for an area's single stage that saves no level (Thornwood and later),
+     that area's boss beaten. ]]
+local function done(
+	stage: LevelUnlocks.Stage?,
+	beaten: LevelUnlocks.Beaten?,
+	bosses: { [string]: boolean }?
+): boolean
+	if LevelUnlocks.isBeaten(stage, beaten) then
+		return true
+	end
+	if not stage or stage.level ~= nil or not bosses then
+		return false
+	end
+	local area = stage.area
+	return area ~= nil and bosses[area] == true
+end
+
 function PlayPortal.pick(
 	portals: { Portal },
 	stages: { [number]: LevelUnlocks.Stage },
@@ -49,7 +67,7 @@ function PlayPortal.pick(
 			     first always is, every other once the one before is
 			     beaten), so a portal with any is the frontier. ]]
 			for _, stage in levels do
-				if LevelUnlocks.isBeaten(stages[stage], beaten) then
+				if done(stages[stage], beaten, bosses) then
 					played = index
 				else
 					return index

@@ -52,6 +52,7 @@ local HealthBar = require(script.Parent.UI.HealthBar)
 local HitFeedback = require(script.Parent.Fx.HitFeedback)
 local HitSquash = require(script.Parent.Fx.HitSquash)
 local IntroCutscene = require(script.Parent.UI.IntroCutscene)
+local LobbyHud = require(script.Parent.UI.LobbyHud)
 local LobbyMotes = require(script.Parent.Fx.LobbyMotes)
 local LobbyPreload = require(script.Parent.Fx.LobbyPreload)
 local LocalFiring = require(script.Parent.Combat.LocalFiring)
@@ -528,6 +529,8 @@ DexScreen.start()
 PetPreview.follow()
 -- a lit portal's screen and its level selector, in the lobby
 PortalScreen.start()
+-- the lobby's pills, PLAY, and the fight HUD put away there
+LobbyHud.start()
 
 DraftScreen.start(function(index: number)
 	DraftScreen.hide()

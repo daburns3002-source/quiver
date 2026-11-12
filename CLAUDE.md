@@ -396,6 +396,16 @@ stands at and the levels they have opened (`Remotes.PortalStart`, `Run/Lobby.sta
 Shift / gamepad X / the phone's SPRINT runs (`Config/Lobby.sprint`) and Space / A / JUMP jumps
 (`RunSession.allowJump`, `Input/LobbyButtons`); a run still dashes and never jumps.
 
+**The lobby HUD** (Fable's loop review item 3, owner 2026-11-11; `UI/LobbyHud`, `Config/LobbyHud`):
+coin and gem pills pinned to the top, a PLAY button, and the fight HUD (health, skill tray, XP bar,
+level) put away while `InLobby`. PLAY asks the server (`Remotes.LobbyPlay`), which walks the player
+into their frontier portal's mouth (`Util/PlayPortal`: the first open portal with a level not beaten,
+never Endless, never one still locked), where its screen opens as usual; START is still checked there. On a touch layout
+(upright, or a phone) PLAY and the station button are laid out in points, full width, 64 and 60 tall,
+under the phone's JUMP (`tests/LobbyHud.spec`); a wide screen keeps the `[E]` prompt on the sheet.
+Both stand on a `Chunky.pointSheet`. The chunky X takes presses over at least 48 points however
+small its header draws it (`Chunky.close`).
+
 **Empty hands in the lobby** (owner, 2026-10-25): the server holds no weapon while `InLobby`
 (`Main.refreshWeapon`, `HeldWeapon.unequip`) and `Fx/WeaponPose` writes no pose there, so
 Roblox's own animation has the arms; the weapon comes back as a run starts.

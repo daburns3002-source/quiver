@@ -52,7 +52,7 @@ function BoardYou.row(back: Frame, kind: string, y: number, height: number)
 		text.BackgroundTransparency = 1
 		text.Position = UDim2.fromScale(spec.x, 0.12)
 		text.Size = UDim2.fromScale(spec.w, 0.76)
-		text.Font = Enum.Font.Arcade
+		text.Font = Enum.Font.FredokaOne
 		text.TextScaled = true
 		text.TextXAlignment = if spec.right
 			then Enum.TextXAlignment.Right

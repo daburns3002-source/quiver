@@ -325,7 +325,8 @@ return function(t: TestRunner.Helper)
 				end
 				local count = 0
 				for _, piece in set.pieces do
-					count += if meshed(piece) then 1 else #piece.blocks
+					local lit: { ClassOutfits.Block } = piece.glows or {}
+					count += if meshed(piece) then 1 + #lit else #piece.blocks
 				end
 				t.equal(if outfit then #outfit:GetChildren() else 0, count, `{class}'s solids`)
 				--[[ Each stands where its mesh or its block says, on a body
@@ -335,6 +336,34 @@ return function(t: TestRunner.Helper)
 				local body = model:FindFirstChild(piece.part) :: BasePart
 				local first = outfit and outfit:FindFirstChild(piece.name)
 				t.notNil(first, `{class}'s {piece.name} was not built`)
+				--[[ A mesh cannot glow in part, so its crystals are worn over
+				     it as Neon, inside the piece's own box. ]]
+				for _, worn in set.pieces do
+					local glows: { ClassOutfits.Block } = worn.glows or {}
+					for _, lit in glows do
+						t.isTrue(
+							lit.glow == true,
+							`{class}'s {worn.name} has a glow block that does not glow`
+						)
+						local size, at = worn.size, worn.at
+						if size and at then
+							local out = (lit.at - at):Abs() + lit.size / 2 - size / 2
+							t.isTrue(
+								math.max(out.X, out.Y, out.Z) <= 0.05,
+								`{class}'s {worn.name} glows outside its mesh`
+							)
+						end
+					end
+					if meshed(worn) and outfit then
+						local neon = 0
+						for _, child in outfit:GetChildren() do
+							if child.Name == worn.name and child:IsA("Part") then
+								neon += if child.Material == Enum.Material.Neon then 1 else 0
+							end
+						end
+						t.equal(neon, #glows, `{class}'s {worn.name} glow blocks`)
+					end
+				end
 				if first and first:IsA("BasePart") then
 					local size, place = piece.blocks[1].size, piece.blocks[1].at
 					if meshed(piece) and piece.size and piece.at then

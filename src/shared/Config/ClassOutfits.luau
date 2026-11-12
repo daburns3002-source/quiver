@@ -52,6 +52,9 @@ export type Piece = {
 	size: Vector3?,
 	at: Vector3?,
 	turned: boolean?,
+	--[[ The model's glowing blocks (a crystal), worn over its mesh as Neon:
+	     a mesh is one material and cannot glow in part. ]]
+	glows: { Block }?,
 }
 
 export type Outfit = { pieces: { Piece } }
@@ -412,7 +415,16 @@ local function warden(): Outfit
 	}
 end
 
-type Mesh = { id: string, size: Vector3, at: Vector3 }
+type Mesh = {
+	id: string,
+	size: Vector3,
+	at: Vector3,
+	glow: { { size: Vector3, at: Vector3, colour: Color3 } }?,
+}
+
+--[[ How far a glowing block stands proud of the mesh's own copy of it, a
+     side: enough to cover it without the two flickering in one plane. ]]
+local PROUD = 0.02
 
 --[[ The Claude Design models (locked and imported by the owner on
      2026-11-12; docs/PIPELINES.md 12): each piece's mesh, its size on the
@@ -503,6 +515,18 @@ local MESHES: { [string]: { [string]: Mesh } } = {
 			id = "rbxassetid://138872124137806",
 			size = Vector3.new(4.2012, 2.6351, 1.31),
 			at = Vector3.new(0, 0.5375, -0.0177),
+			glow = {
+				{
+					size = Vector3.new(0.4605, 0.6106, 0.4112),
+					at = Vector3.new(-1.53, 1.2595, 0),
+					colour = Color3.fromRGB(64, 200, 255),
+				},
+				{
+					size = Vector3.new(0.4605, 0.6106, 0.4112),
+					at = Vector3.new(1.53, 1.2595, 0),
+					colour = Color3.fromRGB(64, 200, 255),
+				},
+			},
 		},
 		Sash = {
 			id = "rbxassetid://94452063432621",
@@ -636,8 +660,9 @@ local MESHES: { [string]: { [string]: Mesh } } = {
 }
 
 --[[ A set with its imported models on. The importer turns a model half
-     round, so every mesh is worn turned back. A mesh is one colour of
-     material, so a piece's crystals do not glow as its blocks' do. ]]
+     round, so every mesh is worn turned back. A mesh is one material, so a
+     piece's crystals are also worn over it as Neon blocks (`glows`), the
+     model's own, a hair larger (owner, 2026-11-12: "Make them glow"). ]]
 local function meshed(class: string, outfit: Outfit): Outfit
 	local meshes = MESHES[class]
 	for _, piece in outfit.pieces do
@@ -647,6 +672,18 @@ local function meshed(class: string, outfit: Outfit): Outfit
 			piece.size = mesh.size
 			piece.at = mesh.at
 			piece.turned = true
+			if mesh.glow then
+				local glows: { Block } = {}
+				for _, lit in mesh.glow do
+					table.insert(glows, {
+						size = lit.size + Vector3.one * PROUD * 2,
+						at = lit.at,
+						colour = lit.colour,
+						glow = true,
+					})
+				end
+				piece.glows = glows
+			end
 		end
 	end
 	return outfit

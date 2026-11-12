@@ -74,6 +74,7 @@
 			"triangles": 404,
 			"open_edges": 0,
 			"glows": [],
+			"glow": [],
 			"plan_size": [
 				2.68,
 				2.22,
@@ -114,6 +115,7 @@
 			"triangles": 448,
 			"open_edges": 0,
 			"glows": [],
+			"glow": [],
 			"plan_size": [
 				4.6,
 				2.37,
@@ -147,6 +149,7 @@
 			"triangles": 48,
 			"open_edges": 0,
 			"glows": [],
+			"glow": [],
 			"plan_size": [
 				2.6,
 				2.48,
@@ -180,6 +183,7 @@
 			"triangles": 90,
 			"open_edges": 0,
 			"glows": [],
+			"glow": [],
 			"plan_size": [
 				2.4,
 				0.82,
@@ -213,6 +217,7 @@
 			"triangles": 72,
 			"open_edges": 0,
 			"glows": [],
+			"glow": [],
 			"plan_size": [
 				1.12,
 				0.92,
@@ -246,6 +251,7 @@
 			"triangles": 68,
 			"open_edges": 0,
 			"glows": [],
+			"glow": [],
 			"plan_size": [
 				1.12,
 				0.92,
@@ -279,6 +285,7 @@
 			"triangles": 42,
 			"open_edges": 0,
 			"glows": [],
+			"glow": [],
 			"plan_size": [
 				1.32,
 				0.78,
@@ -312,6 +319,7 @@
 			"triangles": 40,
 			"open_edges": 0,
 			"glows": [],
+			"glow": [],
 			"plan_size": [
 				1.32,
 				0.78,
@@ -345,6 +353,7 @@
 			"triangles": 80,
 			"open_edges": 0,
 			"glows": [],
+			"glow": [],
 			"plan_size": [
 				1.1,
 				0.8,
@@ -378,6 +387,7 @@
 			"triangles": 84,
 			"open_edges": 0,
 			"glows": [],
+			"glow": [],
 			"plan_size": [
 				1.1,
 				0.8,
@@ -411,6 +421,7 @@
 			"triangles": 126,
 			"open_edges": 0,
 			"glows": [],
+			"glow": [],
 			"plan_size": [
 				1.16,
 				1.01,
@@ -444,6 +455,7 @@
 			"triangles": 132,
 			"open_edges": 0,
 			"glows": [],
+			"glow": [],
 			"plan_size": [
 				1.16,
 				1.01,
@@ -477,6 +489,7 @@
 			"triangles": 48,
 			"open_edges": 0,
 			"glows": [],
+			"glow": [],
 			"plan_size": [
 				1.145,
 				0.35,
@@ -510,6 +523,7 @@
 			"triangles": 48,
 			"open_edges": 0,
 			"glows": [],
+			"glow": [],
 			"plan_size": [
 				1.145,
 				0.35,

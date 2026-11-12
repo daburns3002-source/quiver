@@ -113,32 +113,39 @@ local function glowImage(name: string, colour: Color3, alpha: number): ImageLabe
 	return image
 end
 
---[[ The logo, in its own points inside `holder` (which a UIScale sizes to
-     the screen): a faint gold haze, then for each word a soft ring, a hard
-     shadow, the near-black outline and the gold face, then the streak of
-     light and its arrowhead. ]]
+--[[ Roblox draws no letters larger than a TextSize of 100 unless a UIScale
+     enlarges them, and BORNE's line is 113 points on an upright phone. So the
+     logo is laid out at this share of its size and its UIScale makes up the
+     rest. ]]
+local LOGO_INNER = 0.5
+
+--[[ The logo inside `holder`, every piece placed by share of it (`holder`
+     is the logo's box at `LOGO_INNER` of its size, under a UIScale): a faint
+     gold haze, then for each word soft rings, a hard shadow, the near-black
+     outline and the gold face, then the streak of light and its arrowhead. ]]
 local function buildLogo(holder: Frame, design: Config.Design, at: TitleLayout.Logo)
 	local look = Config.logo
 	local unit = design.logo.unit
+	local wide, tall = at.width, at.bottom - at.top
 	local z = 0
-	local function layer(item: GuiObject)
+	--[[ Places `item` in the logo's own points, measured from its top-left. ]]
+	local function place(item: GuiObject, x: number, y: number, w: number, h: number)
 		z += 1
 		item.ZIndex = z
+		item.Position = UDim2.fromScale(x / wide, y / tall)
+		item.Size = UDim2.fromScale(w / wide, h / tall)
 		item.Parent = holder
 	end
 	local wordsTall = at.lines[#at.lines].top + at.lines[#at.lines].tall - at.top
 
 	local haze = glowImage("Haze", look.glow, look.haze.alpha)
-	layer(haze)
-	haze.Position = UDim2.fromOffset(round(at.width / 2), round(wordsTall / 2))
-	haze.Size =
-		UDim2.fromOffset(round(at.width * look.haze.wide), round(wordsTall * look.haze.tall))
+	place(haze, wide / 2, wordsTall / 2, wide * look.haze.wide, wordsTall * look.haze.tall)
 
 	local function word(index: number, name: string, colour: Color3, drop: number): TextLabel
-		--[[ The label is exactly one line of the font tall and the word fills
-		     it (a TextSize may not pass 100, and BORNE's does). ]]
+		--[[ The label is exactly one line of the font tall and the word
+		     fills it. ]]
 		local line = at.lines[index]
-		local tall = line.size * Config.letterLine
+		local high = line.size * Config.letterLine
 		local label = Instance.new("TextLabel")
 		label.Name = `{name}{index}`
 		label.BackgroundTransparency = 1
@@ -146,10 +153,7 @@ local function buildLogo(holder: Frame, design: Config.Design, at: TitleLayout.L
 		label.Text = look.words[index]
 		label.TextScaled = true
 		label.TextColor3 = colour
-		label.Position =
-			UDim2.fromOffset(0, round(line.top - at.top + line.tall / 2 - tall / 2 + drop))
-		label.Size = UDim2.fromOffset(at.width, round(tall))
-		layer(label)
+		place(label, 0, line.top - at.top + line.tall / 2 - high / 2 + drop, wide, high)
 		return label
 	end
 	local function outlined(label: TextLabel, colour: Color3, thick: number, clear: number)
@@ -157,7 +161,7 @@ local function buildLogo(holder: Frame, design: Config.Design, at: TitleLayout.L
 		stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Contextual
 		stroke.LineJoinMode = Enum.LineJoinMode.Round
 		stroke.Color = colour
-		stroke.Thickness = thick
+		stroke.Thickness = thick * LOGO_INNER
 		stroke.Transparency = clear
 		stroke.Parent = label
 	end
@@ -189,16 +193,14 @@ local function buildLogo(holder: Frame, design: Config.Design, at: TitleLayout.L
 
 	-- the streak: clear at its left end, brightest at its right
 	local streak = look.streak
-	local left = round(at.streakLeft - at.left)
-	local top = round(at.streakTop - at.top)
-	local wide = round(at.streakWide)
+	local left = at.streakLeft - at.left
+	local top = at.streakTop - at.top
 	local function bar(name: string, colour: Color3, grow: number, clear: number): Frame
 		local frame = Instance.new("Frame")
 		frame.Name = name
 		frame.BorderSizePixel = 0
 		frame.BackgroundColor3 = colour
-		frame.Position = UDim2.fromOffset(left, top - grow)
-		frame.Size = UDim2.fromOffset(wide, streak.thick + 2 * grow)
+		place(frame, left, top - grow, at.streakWide, streak.thick + 2 * grow)
 		local corner = Instance.new("UICorner")
 		corner.CornerRadius = UDim.new(0.5, 0)
 		corner.Parent = frame
@@ -209,7 +211,6 @@ local function buildLogo(holder: Frame, design: Config.Design, at: TitleLayout.L
 			NumberSequenceKeypoint.new(1, clear),
 		})
 		fadeIn.Parent = frame
-		layer(frame)
 		return frame
 	end
 	bar("StreakGlow", streak.glow, 6, 0.9)
@@ -224,7 +225,7 @@ local function buildLogo(holder: Frame, design: Config.Design, at: TitleLayout.L
 
 	-- the arrowhead: a small triangle of thin columns, pointing right
 	local head = streak.head
-	local tip = left + wide + head.overhang
+	local tip = left + at.streakWide + head.overhang
 	local middle = top + streak.thick / 2
 	local halo = Instance.new("Frame")
 	halo.Name = "HeadGlow"
@@ -232,21 +233,17 @@ local function buildLogo(holder: Frame, design: Config.Design, at: TitleLayout.L
 	halo.BackgroundColor3 = streak.glow
 	halo.BackgroundTransparency = 0.84
 	halo.AnchorPoint = Vector2.new(0.5, 0.5)
-	halo.Position = UDim2.fromOffset(tip - head.long / 2, round(middle))
-	halo.Size = UDim2.fromOffset(head.long + 8, head.tall + 6)
+	place(halo, tip - head.long / 2, middle, head.long + 8, head.tall + 6)
 	local soft = Instance.new("UICorner")
 	soft.CornerRadius = UDim.new(0.5, 0)
 	soft.Parent = halo
-	layer(halo)
 	for column = 0, head.long - 1 do
 		local half = head.tall / 2 * (1 - column / head.long)
 		local piece = Instance.new("Frame")
 		piece.Name = "Head"
 		piece.BorderSizePixel = 0
 		piece.BackgroundColor3 = streak.to
-		piece.Position = UDim2.fromOffset(tip - head.long + column, round(middle - half))
-		piece.Size = UDim2.fromOffset(2, math.max(1, round(2 * half)))
-		layer(piece)
+		place(piece, tip - head.long + column, middle - half, 1.6, math.max(0.6, 2 * half))
 	end
 end
 
@@ -507,8 +504,8 @@ function TitleScene.build(parent: Instance, view: Vector2): Scene
 		})
 	end
 
-	--[[ The logo's own points are scaled inside a holder that is placed in
-	     pixels, so the scale sizes the logo and never moves it. ]]
+	--[[ The logo is scaled inside a holder that is placed in pixels, so the
+	     scale sizes the logo and never moves it. ]]
 	local logoHolder = Instance.new("Frame")
 	logoHolder.Name = "LogoHolder"
 	logoHolder.BackgroundTransparency = 1
@@ -519,10 +516,13 @@ function TitleScene.build(parent: Instance, view: Vector2): Scene
 	local logo = Instance.new("Frame")
 	logo.Name = "Logo"
 	logo.BackgroundTransparency = 1
-	logo.Size = UDim2.fromOffset(logoAt.width, math.ceil(logoAt.bottom - logoAt.top))
+	logo.Size = UDim2.fromOffset(
+		round(logoAt.width * LOGO_INNER),
+		round((logoAt.bottom - logoAt.top) * LOGO_INNER)
+	)
 	logo.Parent = logoHolder
 	local size = Instance.new("UIScale")
-	size.Scale = k
+	size.Scale = k / LOGO_INNER
 	size.Parent = logo
 	buildLogo(logo, design, logoAt)
 

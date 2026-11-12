@@ -49,6 +49,7 @@ local Party = require(script.Parent.Run.Party)
 local PetCombat = require(script.Parent.Combat.PetCombat)
 local PetCombatConfig = require(ReplicatedStorage.Shared.Config.PetCombat)
 local PetPreview = require(script.Parent.Dev.PetPreview)
+local PlayPortal = require(ReplicatedStorage.Shared.Util.PlayPortal)
 local PlayerData = require(script.Parent.Data.PlayerData)
 local PlayerSettings = require(script.Parent.Data.Settings)
 local ProjectileSystem = require(script.Parent.Combat.ProjectileSystem)
@@ -668,6 +669,43 @@ Remotes.event(Remotes.PortalStart).OnServerEvent:Connect(function(player, index,
 	if stage then
 		-- with whoever else stands at the portal (`Run/Party`)
 		Party.start(player, index :: number, level :: number, stage)
+	end
+end)
+
+--[[ PLAY in the lobby (`UI/LobbyHud`): to the player's frontier portal
+     (`Util/PlayPortal`), whose screen then opens by the heartbeat below as
+     if they had walked in. Asks nothing of the client but the press. ]]
+local lastPlay: { [Player]: number } = {}
+Players.PlayerRemoving:Connect(function(player)
+	lastPlay[player] = nil
+end)
+Remotes.event(Remotes.LobbyPlay).OnServerEvent:Connect(function(player)
+	local session = RunSession.get(player)
+	local root = session and session.root
+	local character = player.Character
+	if
+		not session
+		or session.atTitle
+		or not root
+		or not character
+		or not RoomController.inLobby()
+	then
+		return
+	end
+	local now = os.clock()
+	if now - (lastPlay[player] or -math.huge) < 0.5 then
+		return
+	end
+	lastPlay[player] = now
+	local profile = PlayerData.get(player)
+	local index = PlayPortal.pick(
+		LobbyConfig.portals,
+		Balance.Stages,
+		if profile then profile.levelsBeaten else nil,
+		Balance.endlessStage
+	)
+	if index then
+		character:PivotTo(Lobby.mouthAt(index))
 	end
 end)
 

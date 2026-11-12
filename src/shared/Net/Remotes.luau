@@ -208,6 +208,14 @@ Remotes.PortalOpen = "PortalOpen"
 Remotes.PortalStart = "PortalStart"
 
 --[[
+	Client → server. The lobby's PLAY button (`UI/LobbyHud`), no payload. The
+	server picks the player's frontier portal (`Util/PlayPortal`) and walks
+	them to its mouth, where its screen opens as any portal's does; START is
+	still checked by `Run/Lobby.startFor` there.
+]]
+Remotes.LobbyPlay = "LobbyPlay"
+
+--[[
 	Server → one client. A party portal's word on the run it is starting
 	(`Run/Party`): "TRAVELLING..." while the teleport is under way, or why it
 	failed. Shown on the portal screen (`UI/PortalScreen`).

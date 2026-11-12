@@ -9,9 +9,12 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local Workspace = game:GetService("Workspace")
+local Chunky = require(script.Parent.Chunky)
+local Device = require(script.Parent.Parent.Device)
 local GearAssets = require(ReplicatedStorage.Shared.Config.GearAssets)
 local Kit = require(script.Parent.Kit)
 local Lobby = require(ReplicatedStorage.Shared.Config.Lobby)
+local LobbyHud = require(ReplicatedStorage.Shared.Config.LobbyHud)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local Reveal = require(script.Parent.Reveal)
 local SaveSchema = require(ReplicatedStorage.Shared.Util.SaveSchema)
@@ -57,6 +60,30 @@ task.spawn(function()
 		task.wait(1)
 	end
 end)
+--[[ `callback(profile)` now if the profile has come, and on every change:
+     for the lobby's own wallet (`UI/LobbyHud`). ]]
+function StationScreen.onProfile(callback: (SaveSchema.Profile) -> ()): RBXScriptConnection
+	if latest then
+		task.spawn(callback, latest)
+	end
+	return profileArrived.Event:Connect(callback)
+end
+
+--[[ Whether this screen is laid out for touch: held upright, or a phone. ]]
+function StationScreen.touchLayout(gui: GuiBase2d): boolean
+	return gui.AbsoluteSize.Y > gui.AbsoluteSize.X or Device.isPhone()
+end
+
+--[[ A Chunky sheet over the whole of `gui`, `Config/LobbyHud.point` sheet pixels
+     to the point, for HUD laid out in points instead of on the 16:9 canvas. ]]
+function StationScreen.pointSheet(frame: Frame, gui: GuiBase2d): Chunky.Sheet
+	local size = gui.AbsoluteSize
+	local w = math.max(size.X, 1) * LobbyHud.point
+	local h = math.max(size.Y, 1) * LobbyHud.point
+	frame:SetAttribute("SheetW", w)
+	return { canvas = frame, w = w, h = h, upright = h > w }
+end
+
 function StationScreen.new(name: string, stationName: string, promptWords: string): Screen
 	local player = Players.LocalPlayer
 	local gui = Instance.new("ScreenGui")
@@ -77,8 +104,6 @@ function StationScreen.new(name: string, stationName: string, promptWords: strin
 	dim.Parent = gui
 	local canvas = Kit.canvas(dim)
 	local promptCanvas = Kit.canvas(gui)
-	local walletCanvas = Kit.canvas(gui)
-	walletCanvas.Visible = false
 	local connections: { RBXScriptConnection } = {}
 	local dirty = false
 	local fromShortcut = false
@@ -150,14 +175,55 @@ function StationScreen.new(name: string, stationName: string, promptWords: strin
 		player:SetAttribute("InStation", true)
 		draw()
 	end
-	local prompt = Kit.button(
-		promptCanvas,
-		promptWords .. (if UserInputService.KeyboardEnabled then " [E]" else ""),
-		Kit.gold,
-		self.open
-	)
-	Kit.put(prompt, 720, 952, 480, 104)
-	prompt.Visible = false
+	--[[ The station button. On a touch layout there is no E key and the
+	     button is the way in: full width, 60 points tall, above the lobby's
+	     PLAY (Fable's loop review item 3, 2026-11-11). Otherwise it stays on
+	     the 16:9 sheet where it always was. Built again when the screen
+	     changes shape. ]]
+	local promptLayer = Instance.new("Frame")
+	promptLayer.Name = "PromptLayer"
+	promptLayer.BackgroundTransparency = 1
+	promptLayer.Size = UDim2.fromScale(1, 1)
+	promptLayer.Parent = gui
+	local prompt: GuiObject? = nil
+	local promptShown = false
+	local function buildPrompt()
+		if prompt then
+			prompt:Destroy()
+		end
+		local made: GuiObject
+		if StationScreen.touchLayout(gui) then
+			local sheet = StationScreen.pointSheet(promptLayer, gui)
+			local k = LobbyHud.point
+			local g = LobbyHud.gutter
+			local w = math.min(sheet.w - g * 2 * k, LobbyHud.barWidth * k)
+			local h = LobbyHud.stationHeight * k
+			local above = (g + LobbyHud.playHeight + LobbyHud.stackGap) * k
+			made = Chunky.button(
+				sheet,
+				promptWords,
+				Chunky.gold,
+				(sheet.w - w) / 2,
+				sheet.h - above - h,
+				w,
+				h,
+				self.open
+			)
+		else
+			made = Kit.button(
+				promptCanvas,
+				promptWords .. (if UserInputService.KeyboardEnabled then " [E]" else ""),
+				Kit.gold,
+				self.open
+			)
+			Kit.put(made, 720, 952, 480, 104)
+		end
+		made.Name = "Prompt"
+		made.Visible = promptShown
+		prompt = made
+	end
+	self.connect(gui:GetPropertyChangedSignal("AbsoluteSize"), buildPrompt)
+	buildPrompt()
 	self.connect(player.CharacterAppearanceLoaded, function()
 		dirty = true
 	end)
@@ -244,14 +310,6 @@ function StationScreen.new(name: string, stationName: string, promptWords: strin
 			end
 		end
 		self.wallet(canvas, nextProfile.coins, nextProfile.gems)
-		if stationName == "Blacksmith" then
-			for _, child in walletCanvas:GetChildren() do
-				if child:IsA("GuiObject") then
-					child:Destroy()
-				end
-			end
-			Kit.wallet(walletCanvas, nextProfile.coins, nextProfile.gems)
-		end
 		dirty = true
 	end
 	self.connect(profileArrived.Event, received)
@@ -262,7 +320,7 @@ function StationScreen.new(name: string, stationName: string, promptWords: strin
 		if processed then
 			return
 		end
-		if input.KeyCode == Enum.KeyCode.E and prompt.Visible then
+		if input.KeyCode == Enum.KeyCode.E and promptShown then
 			self.open()
 		elseif input.KeyCode == Enum.KeyCode.Escape and active == self then
 			self.close()
@@ -273,20 +331,11 @@ function StationScreen.new(name: string, stationName: string, promptWords: strin
 		if dirty and dim.Visible and not Reveal.busy() then
 			draw()
 		end
-		local character = player.Character
-		local body = character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
-		local delta = if body
-			then body.Position - Lobby.origin
-			else Vector3.new(math.huge, 0, math.huge)
-		walletCanvas.Visible = stationName == "Blacksmith"
-			and active == nil
-			and Workspace:GetAttribute("InLobby") == true
-			and math.abs(delta.X) <= Lobby.size.X / 2 + 8
-			and math.abs(delta.Z) <= Lobby.size.Y / 2 + 8
-			and player.PlayerGui:FindFirstChild("IntroCutscene") == nil
-			and player.PlayerGui:FindFirstChild("StoryCutscene") == nil
 		local near = nearby()
-		prompt.Visible = near and active == nil
+		promptShown = near and active == nil
+		if prompt then
+			prompt.Visible = promptShown
+		end
 		-- the Blacksmith opens by itself as the player walks up to him
 		-- (owner, 2026-10-26); closed, it waits until they walk away and back
 		if near and not wasNear and stationName == "Blacksmith" and active == nil then

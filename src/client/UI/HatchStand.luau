@@ -95,19 +95,6 @@ end
 function HatchStand.chrome(s: StationScreen.Screen, title: string, modes: { Mode }?): Area
 	local c = s.canvas
 	local dim = c.Parent :: GuiObject
-	local layer = c:FindFirstAncestorWhichIsA("ScreenGui")
-	if layer then
-		-- the Blacksmith's own lobby wallet; this frame carries its own
-		for _, other in layer:GetDescendants() do
-			if
-				other.Name == "Wallet"
-				and other:IsA("GuiObject")
-				and not other:IsDescendantOf(c)
-			then
-				other.Visible = false
-			end
-		end
-	end
 	-- the station's back arrow and old wallet give way to the X and the pills
 	for _, child in c:GetChildren() do
 		if child:IsA("ImageButton") or child.Name == "Wallet" then
@@ -139,11 +126,13 @@ function HatchStand.chrome(s: StationScreen.Screen, title: string, modes: { Mode
 	if up then
 		Chunky.panel(sheet, 30, 196, 1020, 1694)
 		Chunky.ribbon(sheet, title, 170, 116, 740, 150)
-		Chunky.close(sheet, 956, 150, 110, s.close)
+		--[[ 150 sheet px is ~54 pt on a 390 pt phone, a finger's target
+		     (it was 110, ~39 pt: Fable's loop review, 2026-11-11). ]]
+		Chunky.close(sheet, 918, 128, 150, s.close)
 	else
 		Chunky.panel(sheet, 150, 104, 1620, 940)
 		Chunky.ribbon(sheet, title, 630, 22, 660, 144)
-		Chunky.close(sheet, 1688, 66, 108, s.close)
+		Chunky.close(sheet, 1680, 58, 124, s.close)
 	end
 	local p = s.profile
 	Chunky.wallet(

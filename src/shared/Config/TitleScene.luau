@@ -232,12 +232,14 @@ local TitleScene = {
 		outline = Color3.fromHex("#03080D"),
 		outlineThick = 4.5,
 		shadowDrop = 5,
-		--[[ The glow: a ring round the letters (how far past them it reaches
-		     and how see-through it is) over a wide soft haze (the round glow
-		     picture, this many times the logo's width and the words' height,
-		     this solid at its middle; faint, so the tree under it stays teal). ]]
+		--[[ The glow: soft rings round the letters (how far past the outline
+		     each reaches; each is this see-through, so they add up towards
+		     the letters) over a wide faint haze (the round glow picture, this
+		     many times the logo's width and the words' height, this solid at
+		     its middle; faint, so the tree under it stays teal). ]]
 		glow = Color3.fromHex("#FFCE6E"),
-		glowRing = { reach = 8, clear = 0.82 },
+		glowRings = { 5, 10, 16 },
+		glowRingClear = 0.9,
 		haze = { wide = 1.15, tall = 2, alpha = 0.22 },
 		--[[ The streak of light under the words: this share of the logo's
 		     width, this far under them, fading in from the left and ending

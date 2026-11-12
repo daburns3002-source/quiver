@@ -160,10 +160,12 @@ local function buildLogo(holder: Frame, design: Config.Design, at: TitleLayout.L
 		stroke.Parent = label
 	end
 	local edge = look.outlineThick * unit
-	for index in look.words do
-		local ring = word(index, "Glow", look.glow, 0)
-		ring.TextTransparency = look.glowRing.clear
-		outlined(ring, look.glow, edge + look.glowRing.reach * unit, look.glowRing.clear)
+	for ring = #look.glowRings, 1, -1 do
+		for index in look.words do
+			local soft = word(index, "Glow", look.glow, 0)
+			soft.TextTransparency = look.glowRingClear
+			outlined(soft, look.glow, edge + look.glowRings[ring] * unit, look.glowRingClear)
+		end
 	end
 	for index in look.words do
 		outlined(word(index, "Shadow", look.outline, look.shadowDrop * unit), look.outline, edge, 0)
@@ -226,10 +228,10 @@ local function buildLogo(holder: Frame, design: Config.Design, at: TitleLayout.L
 	halo.Name = "HeadGlow"
 	halo.BorderSizePixel = 0
 	halo.BackgroundColor3 = streak.glow
-	halo.BackgroundTransparency = 0.72
+	halo.BackgroundTransparency = 0.84
 	halo.AnchorPoint = Vector2.new(0.5, 0.5)
 	halo.Position = UDim2.fromOffset(tip - head.long / 2, round(middle))
-	halo.Size = UDim2.fromOffset(head.long + 12, head.tall + 10)
+	halo.Size = UDim2.fromOffset(head.long + 8, head.tall + 6)
 	local soft = Instance.new("UICorner")
 	soft.CornerRadius = UDim.new(0.5, 0)
 	soft.Parent = halo

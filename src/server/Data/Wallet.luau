@@ -113,14 +113,16 @@ end
 --[[ A level is won (`StageConfig.level`, "1-3"): saved, so the next one
      opens (`Util/LevelUnlocks`). Only `RoomController` calls it, as a run
      completes; a client never reports a win. ]]
-function Wallet.beatLevel(player: Player, level: string)
+function Wallet.beatLevel(player: Player, level: string): boolean
 	local profile = PlayerData.get(player)
 	if not profile or profile.levelsBeaten[level] then
-		return
+		return false
 	end
 	profile.levelsBeaten[level] = true
 	log.info("%s beat level %s", player.Name, level)
 	changed(player, profile)
+	-- true the first time, which pays the level's free egg
+	return true
 end
 
 --[[

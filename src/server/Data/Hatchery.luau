@@ -57,6 +57,67 @@ function Hatchery.apply(player: Player)
 	end
 end
 
+type Result = { pet: string, new: boolean }
+
+--[[ Rolls `n` of an egg's pool for a player and keeps every pet, the
+     pity counted; a player's very first pet goes straight into slot 1. ]]
+local function rollEggs(
+	player: Player,
+	profile: any,
+	pool: { EggRules.Entry },
+	n: number
+): { Result }
+	local results: { Result } = {}
+	local firstFree = profile.equippedPets[1] == nil
+	local mythics = Pity.mythics(pool)
+	for _ = 1, n do
+		-- the 100th egg since the last Mythic hatches one (`Util/Pity`)
+		local since = profile.pity.eggs
+		local entry = if Pity.forced(since) and #mythics > 0
+			then mythics[random:NextInteger(1, #mythics)]
+			else EggRules.roll(pool, random:NextNumber())
+		if entry then
+			profile.pity.eggs = Pity.after(since, entry.rarity == "Mythic")
+			local new = Wallet.grantPet(player, entry.pet)
+			table.insert(results, { pet = entry.pet, new = new })
+		end
+	end
+	if firstFree and next(profile.equippedPets) == nil and results[1] then
+		Wallet.equipPet(player, 1, results[1].pet)
+		Hatchery.apply(player)
+	end
+	return results
+end
+
+--[[ A free egg, the run's to give (a level's first clear,
+     `Run/RoomController`): rolled and kept as a bought one is, unpaid and
+     whether or not its area is open yet. Returns the pet, for the Victory
+     screen to reveal; nil if there is nothing to give. ]]
+function Hatchery.grantFree(player: Player, key: string): Result?
+	local profile = PlayerData.get(player)
+	local pool = EggRules.pool(key)
+	if not profile or not EggRules.find(key) or #pool == 0 then
+		return nil
+	end
+	local results = rollEggs(player, profile, pool, 1)
+	log.info("%s was given a free %s", player.Name, key)
+	return results[1]
+end
+
+--[[ Whether the player's coins buy an open egg, for Victory's nudge. ]]
+function Hatchery.canHatch(player: Player): boolean
+	local profile = PlayerData.get(player)
+	if not profile then
+		return false
+	end
+	for _, egg in Eggs.list do
+		if profile.coins >= egg.price and EggRules.open(egg, profile.bossesBeaten) then
+			return true
+		end
+	end
+	return false
+end
+
 local function hatch(player: Player, key: unknown, count: unknown)
 	if
 		type(key) ~= "string"
@@ -76,28 +137,7 @@ local function hatch(player: Player, key: unknown, count: unknown)
 	if not Wallet.pay(player, { coins = egg.price * n }) then
 		return
 	end
-	local results = {}
-	local firstFree = profile.equippedPets[1] == nil
-	local mythics = Pity.mythics(pool)
-	for _ = 1, n do
-		-- the 100th egg since the last Mythic hatches one (`Util/Pity`)
-		local since = profile.pity.eggs
-		local entry = if Pity.forced(since) and #mythics > 0
-			then mythics[random:NextInteger(1, #mythics)]
-			else EggRules.roll(pool, random:NextNumber())
-		if entry then
-			profile.pity.eggs = Pity.after(since, entry.rarity == "Mythic")
-		end
-		if entry then
-			local new = Wallet.grantPet(player, entry.pet)
-			table.insert(results, { pet = entry.pet, new = new })
-		end
-	end
-	-- a player's very first pet goes straight into slot 1
-	if firstFree and next(profile.equippedPets) == nil and results[1] then
-		Wallet.equipPet(player, 1, results[1].pet)
-		Hatchery.apply(player)
-	end
+	local results = rollEggs(player, profile, pool, n)
 	log.info("%s hatched %d %s", player.Name, n, egg.name)
 	eggHatched:FireClient(player, key, results)
 end

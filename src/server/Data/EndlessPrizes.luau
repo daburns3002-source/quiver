@@ -44,18 +44,18 @@ local random = Random.new()
 
 type Weapon = { weapon: string, new: boolean }
 
---[[ Opens `n` of the best crate for the class the player is playing, free:
-     rolled as a bought crate is, the pity counted, the first sure to be at
-     least `least` when one is named. ]]
-local function openCrates(player: Player, n: number, least: string?): { Weapon }
+--[[ Opens `n` of area `index`'s crate for the class the player is
+     playing, unpaid (a milestone's, or the Soulstone shop's once it has
+     been paid for): rolled as a bought crate is, the pity counted, the
+     first sure to be at least `least` when one is named. ]]
+function EndlessPrizes.crates(player: Player, index: number, n: number, least: string?): { Weapon }
 	local profile = PlayerData.get(player)
 	local session = RunSession.get(player)
 	local class = if session then session.loadout.class else nil
-	local index = PrizeRules.crateIndex(class)
-	if not profile or not index or n < 1 then
+	local pool = ShopRules.cratePool(index, class)
+	if not profile or #pool == 0 or n < 1 then
 		return {}
 	end
-	local pool = ShopRules.cratePool(index, class)
 	local mythics = Pity.mythics(pool)
 	local results: { Weapon } = {}
 	for i = 1, n do
@@ -77,8 +77,14 @@ local function openCrates(player: Player, n: number, least: string?): { Weapon }
 			})
 		end
 	end
-	log.info("%s was given %d free crates of area %d", player.Name, n, index)
+	log.info("%s opened %d crates of area %d", player.Name, n, index)
 	return results
+end
+
+--[[ The best crate that has weapons for the class the player is playing. ]]
+local function bestCrate(player: Player): number?
+	local session = RunSession.get(player)
+	return PrizeRules.crateIndex(if session then session.loadout.class else nil)
 end
 
 --[[ Hatches and opens what `milestone` gives `player`, and tells their
@@ -98,8 +104,9 @@ function EndlessPrizes.grant(player: Player, milestone: Balance.EndlessMilestone
 	end
 	local weapons: { Weapon } = {}
 	local crates = milestone.crates or 0
-	if crates > 0 then
-		weapons = openCrates(player, crates, milestone.rarity)
+	local index = if crates > 0 then bestCrate(player) else nil
+	if index then
+		weapons = EndlessPrizes.crates(player, index, crates, milestone.rarity)
 	end
 	if #pets + #weapons > 0 then
 		Remotes.event(Remotes.EndlessPrize)

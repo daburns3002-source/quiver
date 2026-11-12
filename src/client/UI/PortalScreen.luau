@@ -42,6 +42,7 @@ local LobbyConfig = require(ReplicatedStorage.Shared.Config.Lobby)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local SaveSchema = require(ReplicatedStorage.Shared.Util.SaveSchema)
 local ShopAssets = require(ReplicatedStorage.Shared.Config.ShopAssets)
+local SoulstoneShop = require(script.Parent.SoulstoneShop)
 
 local Chunky = require(script.Parent.Chunky)
 local Kit = require(script.Parent.Kit)
@@ -436,6 +437,23 @@ fill = function(index: number)
 		pill(sheet, string.upper(banner.act), L.act, Chunky.blue)
 	end
 	Chunky.close(sheet, L.close[1], L.close[2], L.close[3], close)
+	--[[ Endless pays Soulstones, and this is where they are spent
+	     (`UI/SoulstoneShop`): a purple button in the header, left of the X. ]]
+	local on, deep = sheet.panel, sheet.header
+	if portal.name == "Endless" and on and deep then
+		local bw, bh = 300, deep * 0.72
+		Chunky.button(
+			sheet,
+			"SOUL SHOP",
+			Chunky.purple,
+			on.x + on.w - deep * 1.16 - bw,
+			on.y + (deep - bh) / 2,
+			bw,
+			bh,
+			SoulstoneShop.open
+		).ZIndex =
+			30
+	end
 
 	--[[ The level buttons, `levelColumns` to a row, as big as fits, with a
 	     dotted path from each to the next along its row. ]]

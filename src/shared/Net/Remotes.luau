@@ -232,8 +232,17 @@ Remotes.EndlessCheckpoint = "EndlessCheckpoint"
 	crates opened (`Server/Data/EndlessPrizes`): the floor, what the
 	milestone is called, and what came out, `{ pet, new }` and
 	`{ weapon, new }` lists. Already granted; this is only to show it.
+	Floor 0 is a Soulstone shop purchase, shown the same way.
 ]]
 Remotes.EndlessPrize = "EndlessPrize"
+
+--[[
+	Client → server. "Buy `count` of this from the Soulstone shop": the
+	offer's kind ("Egg" or "Crate") and key (`Util/SoulstoneShopRules`).
+	A request: the server checks the offer, the count and the Soulstones
+	(`Server/Data/SoulstoneShop`), and answers with `EndlessPrize`, floor 0.
+]]
+Remotes.SoulstoneBuy = "SoulstoneBuy"
 
 --[[
 	Client → server. "I pick the nth option at the checkpoint", or 0 to bank

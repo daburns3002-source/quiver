@@ -42,6 +42,13 @@ local log = Log.forTag("Party")
 
 local Party = {}
 
+--[[ The Player attribute that tells a client fresh from the join what comes
+     after its loading screen (`Main.client`): "Tutorial" (it is on its way to
+     the tutorial's server: the loading screen stays), "Story" (the title,
+     then the story) or "Lobby" (a returning player: the title only, then
+     whatever BEGIN ADVENTURE owes them). ]]
+Party.ROUTE = "JoinRoute"
+
 local notice = Remotes.event(Remotes.PartyNotice)
 
 --[[ Whether this server is a party's run server: a reserved server, which
@@ -189,8 +196,17 @@ function Party.start(starter: Player, index: number, level: number, stage: numbe
 	task.spawn(send, members, index, level, starter)
 end
 
---[[ The tutorial, owed on BEGIN ADVENTURE: always solo. ]]
-function Party.startTutorial(player: Player, stage: number)
+--[[ The tutorial: always solo. On BEGIN ADVENTURE's end, or with `story` on
+     join, before the title (Fable's loop review, 2026-11-11: one loading
+     screen fewer): the player goes while the join's loading screen is still
+     up and plays the intro and the story on the tutorial's server
+     (`story = true` in the teleport data). Whether it can go now is
+     `Party.canTravel`. ]]
+function Party.canTravel(): boolean
+	return teleports()
+end
+
+function Party.startTutorial(player: Player, stage: number, story: boolean?, seen: boolean?)
 	if not teleports() then
 		startHere(stage, 1)
 		return
@@ -210,14 +226,24 @@ function Party.startTutorial(player: Player, stage: number)
 			options:SetTeleportData({
 				arrowborne = true,
 				tutorial = stage,
+				story = story == true,
+				-- the title only: this player has seen the story
+				seen = seen == true,
 				leader = player.UserId,
 				party = { player.UserId },
 			})
 			TeleportService:TeleportAsync(game.PlaceId, { player }, options)
 		end)
 		if not ok then
-			-- a tutorial that cannot travel plays here instead
 			busy[player] = nil
+			if story then
+				-- on join: the title and the story play here, and their end
+				-- tries again (`Main` IntroBegin)
+				log.warn("tutorial teleport on join failed, story here: %s", tostring(err))
+				player:SetAttribute(Party.ROUTE, if seen then "Lobby" else "Story")
+				return
+			end
+			-- a tutorial that cannot travel plays here instead
 			log.warn("tutorial teleport failed, playing in place: %s", tostring(err))
 			startHere(stage, 1)
 		end
@@ -300,7 +326,10 @@ local function runServer()
 				return false
 			end
 		end
-		return #Players:GetPlayers() > 0
+		--[[ A player sent to the tutorial on join is still on the title or
+		     the story here (`story` in the teleport data): the run starts
+		     as they leave it, as it does in place. ]]
+		return #Players:GetPlayers() > 0 and not RunSession.anyAtTitle()
 	end
 
 	task.spawn(function()
@@ -344,6 +373,20 @@ function Party.init()
 	end
 	Players.PlayerRemoving:Connect(function(player)
 		busy[player] = nil
+	end)
+	--[[ A teleport can fail after `TeleportAsync` returned. A player sent on
+	     join is still behind the loading screen: let them see the title and
+	     the story here instead, whose end tries again. ]]
+	TeleportService.TeleportInitFailed:Connect(function(player, result, message)
+		busy[player] = nil
+		if player:GetAttribute(Party.ROUTE) == "Tutorial" then
+			log.warn(
+				"tutorial teleport on join failed (%s), story here: %s",
+				tostring(result),
+				message
+			)
+			player:SetAttribute(Party.ROUTE, "Story")
+		end
 	end)
 end
 

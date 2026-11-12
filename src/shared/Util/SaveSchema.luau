@@ -39,11 +39,16 @@
 	no milestones and no Soulstones, which is also exactly what a new one
 	has — nothing of an older save is interpreted as Endless progress,
 	because there was none.
+
+	Version 8 (2026-11-11, SKIP TUTORIAL): `tutorialDone`, set once the
+	tutorial has been won. The tutorial still plays on every join until 1-1
+	is beaten; a player who has won it before may skip it. An older profile
+	has it only if it has beaten 1-1 (who must have been through it).
 ]]
 
 local SaveSchema = {}
 
-SaveSchema.VERSION = 7
+SaveSchema.VERSION = 8
 
 --[[ The classes' own weapons, owned from the start. ]]
 local STARTERS = { "TwigBow", "BranchStaff", "TimberBlade" }
@@ -85,6 +90,9 @@ export type Profile = {
 	     show the NEW ENEMY! card -- and this is the lasting copy: the card
 	     shows once ever, and the dex remembers. ]]
 	enemiesSeen: { [string]: boolean },
+	--[[ The tutorial has been won once (version 8): later joins may skip
+	     it (`UI/TutorialPrompts`' SKIP TUTORIAL). ]]
+	tutorialDone: boolean,
 }
 
 --[[ The looks the class select screen offers. ]]
@@ -120,6 +128,7 @@ function SaveSchema.default(): Profile
 		endlessMilestones = {},
 		soulstones = 0,
 		enemiesSeen = {},
+		tutorialDone = false,
 	}
 end
 
@@ -224,6 +233,10 @@ function SaveSchema.migrate(raw: unknown): Profile
 	     fills in; inventing entries would show creatures somebody has
 	     never seen. ]]
 	profile.enemiesSeen = flags(data.enemiesSeen)
+	--[[ 7 → 8: nobody's tutorial win was written down. Whoever has beaten
+	     1-1 came through it; anyone else plays it once more before they
+	     may skip. ]]
+	profile.tutorialDone = data.tutorialDone == true or profile.levelsBeaten["1-1"] == true
 	return profile
 end
 

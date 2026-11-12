@@ -9,7 +9,7 @@
 local LoadingTips = {
 	"Stand still to shoot. Your archer fires on its own at the nearest enemy.",
 	"Move to dodge, stop to fire. Timing the two is the whole game.",
-	"Press SPACE (or A on a controller) to dash through danger.",
+	"Dash through danger: SPACE on a keyboard, A on a controller, the DASH button on a phone.",
 	"A red marker on the floor shows where an attack will land. Get out of it!",
 	"Fallen enemies drop crystals. Collect them to level up and pick an upgrade.",
 	"Upgrades stack: take the same one again and it gets stronger.",

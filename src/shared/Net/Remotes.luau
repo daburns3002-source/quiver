@@ -228,6 +228,14 @@ Remotes.PartyNotice = "PartyNotice"
 Remotes.EndlessCheckpoint = "EndlessCheckpoint"
 
 --[[
+	Server → one client. An Endless milestone was claimed and its eggs and
+	crates opened (`Server/Data/EndlessPrizes`): the floor, what the
+	milestone is called, and what came out, `{ pet, new }` and
+	`{ weapon, new }` lists. Already granted; this is only to show it.
+]]
+Remotes.EndlessPrize = "EndlessPrize"
+
+--[[
 	Client → server. "I pick the nth option at the checkpoint", or 0 to bank
 	and leave.
 

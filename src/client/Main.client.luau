@@ -38,6 +38,7 @@ local DraftScreen = require(script.Parent.UI.Cards.DraftScreen)
 local EggScreen = require(script.Parent.UI.EggScreen)
 local EndScreen = require(script.Parent.UI.EndScreen)
 local EndlessCheckpoint = require(script.Parent.UI.EndlessCheckpoint)
+local EndlessPrize = require(script.Parent.UI.EndlessPrize)
 local EnemyHealthBars = require(script.Parent.Fx.EnemyHealthBars)
 local EnemyRig = require(script.Parent.Fx.EnemyRig)
 local EnemySounds = require(script.Parent.Fx.EnemySounds)
@@ -311,6 +312,7 @@ BossBar.start()
 BossBanner.start()
 NewEnemyScreen.start()
 EndlessCheckpoint.start()
+EndlessPrize.start()
 TutorialPrompts.start()
 TutorialSkip.start()
 PickupFx.start(Workspace)
@@ -445,6 +447,7 @@ Remotes.event(Remotes.RunStateChanged).OnClientEvent
 		TutorialPrompts.onRunStateChanged(index, total, state)
 		TutorialSkip.onRunStateChanged(state)
 		ControlMenu.onRunStateChanged(index, total, state)
+		EndlessPrize.onRunStateChanged(state)
 
 		--[[ The end screen belongs to the run that ended, so it clears the
 		     moment the next one starts fighting. ]]

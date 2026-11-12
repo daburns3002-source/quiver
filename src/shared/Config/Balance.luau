@@ -1887,14 +1887,18 @@ export type EndlessPick = {
      the save (`SaveSchema.endlessMilestones`). ]]
 export type EndlessMilestone = {
 	floor: number,
-	--[[ What it is: "Egg", "Gear", "Cosmetic", "Title". ]]
+	--[[ What it is: "Egg", "Gear" or "Both". ]]
 	kind: string,
-	--[[ What the end screen calls it. ]]
+	--[[ What the screens call it. ]]
 	name: string,
-	--[[ The rarity floor the grant must meet, nil for none. ]]
+	--[[ Eggs hatched and crates opened for the player on the spot, free
+	     (`Server/Data/EndlessPrizes`): the best egg open to them and the
+	     best stocked crate for the class they are playing. ]]
+	eggs: number?,
+	crates: number?,
+	--[[ A rarity one of each batch is sure to be at least, nil for none. ]]
 	rarity: string?,
-	--[[ Soulstones paid with it. Until the egg, gear, cosmetic and title
-	     grants exist, this is the whole payout — see `Endless`. ]]
+	--[[ Soulstones paid with it. ]]
 	soulstones: number,
 }
 
@@ -5700,35 +5704,55 @@ local Balance = {
 			purpose so no one of them is skippable because you already have
 			enough of that thing (`docs/ENDLESS.md`).
 
-			**This table is the swap point, and the owner has not confirmed
-			it.** The egg, gear, cosmetic and title grants do not exist yet
-			either, so a claim today records the milestone and pays its
-			`soulstones`; when those systems land, each entry's `kind`,
-			`rarity` and `name` is what they read, and nothing else about
-			the mode changes.
+			**The owner's call, 2026-11-11:** real rewards, and big ones
+			("MAKE IT MORE LIKE 5 EGGS AND 5 CRATES. ROBLOX GAMES HAVE THAT
+			EXTREME REWARD. I WANT IT TO FEEL NECESSARY TO BEAT THESE
+			ROOMS"). Each milestone hatches its `eggs` and opens its
+			`crates` for the player on the spot, free, with one of each
+			batch sure to be at least its `rarity`, on top of its
+			`soulstones` (`Server/Data/EndlessPrizes`). The cosmetic and
+			title the first table promised at 30 and 100 do not exist, so
+			those floors pay in eggs and crates too.
 		]]
 		milestones = {
-			{ floor = 10, kind = "Egg", name = "A PET EGG", soulstones = 50 },
-			{ floor = 20, kind = "Gear", name = "A GEAR PIECE", soulstones = 100 },
-			{ floor = 30, kind = "Cosmetic", name = "A TRAIL OR AURA", soulstones = 200 },
+			{ floor = 10, kind = "Egg", name = "5 PET EGGS", eggs = 5, soulstones = 50 },
+			{
+				floor = 20,
+				kind = "Gear",
+				name = "5 WEAPON CRATES",
+				crates = 5,
+				soulstones = 100,
+			},
+			{
+				floor = 30,
+				kind = "Both",
+				name = "5 EGGS AND 5 CRATES",
+				eggs = 5,
+				crates = 5,
+				soulstones = 200,
+			},
 			{
 				floor = 50,
 				kind = "Egg",
-				name = "A LEGENDARY PET EGG",
+				name = "5 EGGS, ONE LEGENDARY",
+				eggs = 5,
 				rarity = "Legendary",
 				soulstones = 400,
 			},
 			{
 				floor = 75,
 				kind = "Gear",
-				name = "A LEGENDARY GEAR PIECE",
+				name = "5 CRATES, ONE LEGENDARY",
+				crates = 5,
 				rarity = "Legendary",
 				soulstones = 700,
 			},
 			{
 				floor = 100,
-				kind = "Title",
-				name = "A TITLE AND A MYTHIC COSMETIC",
+				kind = "Both",
+				name = "10 EGGS AND 10 CRATES, A MYTHIC IN EACH",
+				eggs = 10,
+				crates = 10,
 				rarity = "Mythic",
 				soulstones = 1200,
 			},

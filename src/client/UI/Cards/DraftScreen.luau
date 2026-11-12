@@ -772,6 +772,18 @@ local function reroll()
 	end)
 end
 
+--[[ Something standing in for the panel's heading (`DraftScreen.setHeading`,
+     the tutorial's prompt over the first hand): how tall it is and the
+     highest its top may go, in this gui's pixels; nil for the panel's own
+     heading. `standLine` is where its bottom edge then goes. ]]
+local stand: { height: number, ceiling: number }? = nil
+local standLine: number? = nil
+--[[ Design pixels down the panel to the cards' room: past the heading's 110,
+     less the rise of a picked card, so no crown is ever under the stand-in. ]]
+local HEAD_CLEAR = 40 + 70 + CARD_SELECT_LIFT
+--[[ Pixels between the stand-in and that room. ]]
+local STAND_GAP = 8
+
 local function layoutPanel(count: number)
 	local p = panel
 	local row = cardRow
@@ -800,16 +812,22 @@ local function layoutPanel(count: number)
 		UDim2.new(0.5, if column then -PHONE_BUTTON_COLUMN / 2 else 0, 0, 40 + 70 + CROWN_ROOM)
 	rowWidth = width
 
+	--[[ REROLL is drawn only when the hand has a redeal to give
+	     (`RunHudRules.draftReroll`); without it CHOOSE! takes the middle. ]]
+	local hand = shown
+	local offered = hand ~= nil and RunHudRules.draftReroll(hand.source, hand.rerolls)
 	local pair, pairReroll, pairChoose = panelButtons, panelReroll, panelChoose
 	if pair and pairReroll and pairChoose then
 		pair.Visible = not stack
+		pairReroll.Visible = offered
 		if column then
 			-- beside the hand, one over the other
 			pair.AnchorPoint = Vector2.new(1, 0.5)
 			pair.Position = UDim2.new(1, -24, 0, 40 + 70 + CROWN_ROOM + CARD.Y / 2)
 			pair.Size = UDim2.fromOffset(182, 140)
 			pair:SetAttribute("SheetW", 364)
-			pairChoose.Position, pairChoose.Size = UDim2.fromScale(0, 0), UDim2.fromScale(1, 0.46)
+			pairChoose.Position, pairChoose.Size =
+				UDim2.fromScale(0, if offered then 0 else 0.27), UDim2.fromScale(1, 0.46)
 			pairReroll.Position, pairReroll.Size =
 				UDim2.fromScale(0, 0.54), UDim2.fromScale(1, 0.46)
 		else
@@ -820,8 +838,19 @@ local function layoutPanel(count: number)
 			pair:SetAttribute("SheetW", 880)
 			pairReroll.Position, pairReroll.Size = UDim2.fromScale(0, 0), UDim2.fromScale(0.4, 1)
 			pairChoose.Position, pairChoose.Size =
-				UDim2.fromScale(0.44, 0), UDim2.fromScale(0.56, 1)
+				UDim2.fromScale(if offered then 0.44 else 0.22, 0), UDim2.fromScale(0.56, 1)
 		end
+	end
+	local underReroll, underChoose = trayReroll, trayChoose
+	if underReroll and underChoose then
+		-- the phone's tray, in its sheet's own pixels (`Config/Hud` `draftUpright`)
+		local d = Hud.draftUpright
+		local wide = d.sheet.X - d.rerollWidth - d.gap
+		underReroll.Visible = offered
+		underChoose.Position = UDim2.fromScale(
+			(if offered then d.rerollWidth + d.gap else (d.sheet.X - wide) / 2) / d.sheet.X,
+			(d.sheet.Y - d.buttonsHeight) / d.sheet.Y
+		)
 	end
 	local b, list = buttonsFrame, buttonsList
 	if b and list then
@@ -851,24 +880,52 @@ local function layoutPanel(count: number)
 		(viewport.Y - margin - barRoom - trayRoom) / height
 	)
 	scale = math.max(scale, 0.3)
+	--[[ The panel's own place: with its tray, centred as one stack; without,
+	     lifted clear of the skill bar beneath it, where there is one. ]]
+	local top = if under
+		then math.max(0, (viewport.Y - height * scale - trayRoom) / 2)
+		else (viewport.Y - barRoom * scale - height * scale) / 2
+	--[[ Something stands in for the heading: the panel's own is put away
+	     (never the same words twice) and the panel moves down, shrinking
+	     only if it must, until its cards are clear of the stand-in. ]]
+	local standing = stand
+	if standing then
+		local place = RunHudRules.draftUnder({
+			scale = scale,
+			top = top,
+			height = height,
+			clear = HEAD_CLEAR,
+			stand = standing.height,
+			gap = STAND_GAP,
+			ceiling = standing.ceiling,
+			floor = viewport.Y - margin / 2 - barRoom,
+			below = trayRoom,
+		})
+		scale, top = place.scale, place.top
+		standLine = place.line
+	else
+		standLine = nil
+	end
+	if title then
+		title.Visible = standing == nil
+	end
+	if subtitle then
+		subtitle.Visible = standing == nil
+	end
 	local s = panelScale
 	if s then
 		s.Scale = scale
 	end
+	p.Position = if standing or under
+		then UDim2.new(0.5, 0, 0, top + height * scale / 2)
+		else UDim2.new(0.5, 0, 0.5, -barRoom * scale / 2)
 	local t = tray
 	if under and t then
-		-- The panel and the tray under it, centred as one stack.
-		local top = math.max(0, (viewport.Y - height * scale - trayRoom) / 2)
-		p.Position = UDim2.new(0.5, 0, 0, top + height * scale / 2)
 		t.Size = UDim2.fromOffset(under.width, under.height)
 		t.Position = UDim2.new(0.5, 0, 0, top + height * scale + Hud.draftUpright.rowGap)
 		t.Visible = true
-	else
-		-- Lifted clear of the skill bar beneath it, where there is one.
-		p.Position = UDim2.new(0.5, 0, 0.5, -barRoom * scale / 2)
-		if t then
-			t.Visible = false
-		end
+	elseif t then
+		t.Visible = false
 	end
 	if phone then
 		SkillBar.setVisible(false)
@@ -1881,11 +1938,15 @@ function DraftScreen.start(chosen: (number) -> (), rerolled: () -> ())
 		glyph.Size = UDim2.fromOffset(22, 22)
 		glyph.Image = UserInputService:GetImageForKeyCode(key)
 		glyph.Parent = promptRow
+		-- put away with REROLL when the hand has no redeal (`DraftScreen.show`)
+		local isReroll = key == Enum.KeyCode.ButtonX
+		glyph:SetAttribute("Reroll", isReroll)
 		if captions[index] ~= "" then
 			local word = stroked(promptRow, captions[index], CardTheme.fonts.display, 14, WHITE, 3)
 			word.LayoutOrder = index * 2
 			word.AutomaticSize = Enum.AutomaticSize.X
 			word.Size = UDim2.fromOffset(0, 22)
+			word:SetAttribute("Reroll", isReroll)
 		end
 	end
 	prompts = promptRow
@@ -1986,10 +2047,13 @@ function DraftScreen.show(offer: { string }, level: number, source: string?, rer
 	end
 
 	local left = rerolls or 0
+	--[[ No REROLL without a redeal to give (`RunHudRules.draftReroll`):
+	     `layoutPanel` puts the chunky ones away and centres CHOOSE!. ]]
+	local offered = RunHudRules.draftReroll(source, rerolls)
 	local rerollB = rerollButton
 	if rerollB then
 		local shadow = rerollB.Parent :: Frame
-		shadow.Visible = source ~= "Angel"
+		shadow.Visible = offered
 		setButton(
 			rerollB,
 			left > 0,
@@ -2004,7 +2068,7 @@ function DraftScreen.show(offer: { string }, level: number, source: string?, rer
 	end
 	local function count(bigReroll: Frame?)
 		if bigReroll then
-			bigReroll.Visible = source ~= "Angel"
+			bigReroll.Visible = offered
 			Chunky.repaint(
 				bigReroll,
 				if left > 0 then Chunky.blue else Chunky.grey,
@@ -2014,6 +2078,15 @@ function DraftScreen.show(offer: { string }, level: number, source: string?, rer
 	end
 	count(trayReroll)
 	count(panelReroll)
+	-- and no X on a gamepad's strip for a redeal that is not there
+	local padRow = prompts
+	if padRow then
+		for _, child in padRow:GetChildren() do
+			if child:IsA("GuiObject") and child:GetAttribute("Reroll") == true then
+				child.Visible = offered
+			end
+		end
+	end
 
 	layoutPanel(#offer)
 
@@ -2084,6 +2157,42 @@ function DraftScreen.show(offer: { string }, level: number, source: string?, rer
 	end
 
 	created.Enabled = true
+end
+
+--[[ Something `height` pixels tall stands in for the panel's heading, its
+     top no higher than `ceiling` (AbsolutePosition's y): the tutorial's
+     prompt over the first hand (`UI/TutorialPrompts`), which used to sit on
+     the heading and the tops of the cards. The panel puts its own heading
+     away and makes room (`layoutPanel`). nil gives the heading back. ]]
+function DraftScreen.setHeading(height: number?, ceiling: number?)
+	local created = gui
+	local top = if created then created.AbsolutePosition.Y else 0
+	local next = if height and height > 0
+		then { height = height, ceiling = (ceiling or top) - top }
+		else nil
+	local was = stand
+	if
+		(next == nil and was == nil)
+		or (next and was and next.height == was.height and next.ceiling == was.ceiling)
+	then
+		return
+	end
+	stand = next
+	local hand = shown
+	if created and created.Enabled and hand then
+		layoutPanel(#hand.offer)
+	end
+end
+
+--[[ Where that stand-in's bottom edge goes, as AbsolutePosition's y: just
+     over the cards' room. nil with no hand up or nothing standing in. ]]
+function DraftScreen.headingLine(): number?
+	local created = gui
+	local line = standLine
+	if not created or not created.Enabled or not line then
+		return nil
+	end
+	return created.AbsolutePosition.Y + line
 end
 
 --[[ Hides the screen. Called once a pick is sent, and on death, so a draft

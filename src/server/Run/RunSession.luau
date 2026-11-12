@@ -469,6 +469,21 @@ function RunSession.leaveTitle(session: Session)
 	session.stageStartedAt = os.clock()
 end
 
+--[[ The Player attribute that says this player really stands in the lobby,
+     or has: off the title and the story, and not on the way into the
+     tutorial. The Workspace's `InLobby` alone cannot say it: it is true
+     under the title, and still true in the moment between the story's end
+     and the tutorial starting, which is when the daily REWARDS screen once
+     opened itself over the tutorial's first room (`docs/FIXES.md`). Set by
+     whoever puts the player there (`Main` on a join that skips the title
+     and at the title's end, `RoomController.toLobby` after a run) and never
+     cleared: from then on `InLobby` tells the truth for them. ]]
+RunSession.ARRIVED = "Arrived"
+
+function RunSession.arrive(session: Session)
+	session.player:SetAttribute(RunSession.ARRIVED, true)
+end
+
 --[[ A kind of enemy has landed (`EnemyManager`): everyone who has not met
      it yet this visit is shown its NEW ENEMY! screen, and the run holds
      until they close it (owner, 2026-10-25: pause until GOT IT!). Kinds

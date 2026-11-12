@@ -16,6 +16,54 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## The daily REWARDS screen opened over the tutorial's first room after SKIP (2026-11-12)
+
+First-five-minutes playtest, BUG 1: pressing SKIP on the story put the login calendar on top of
+tutorial room 1 and its NEW ENEMY! card, and spent the day's one automatic opening there.
+`UI/RewardsScreen`'s loop called the player "in the lobby" when `InLobby` was true and no cutscene
+gui was up, and that is also true in the moment between the story's end and the tutorial starting:
+0.1 s in Studio (story gone at 35.9 s, stage 6 at 36.0 s), against a loop that looks every 0.5 s, so
+about one SKIP in five; on a live server it lasts as long as the teleport. `InLobby` cannot say
+"this player stands in the lobby", so the server now says it: the Player attribute `Arrived`
+(`RunSession.ARRIVED`), set at the title's end only once the tutorial is ruled out, on a join that
+skips the title, and by `RoomController.toLobby` after a run (never on a run server, whose lobby
+only stands in until the teleport). The automatic opening waits for it, and a station screen opened
+from a button closes if a run starts under it (`UI/StationScreen`). Measured in Studio: through
+title, SKIP, the tutorial and Victory `Arrived` stayed unset and REWARDS shut; it was set as the
+lobby came up at 218.4 s, and REWARDS opened by itself 0.4 s after class select closed; left open
+when a run started, it was gone 0.1 s later. Anything else that must wait for the lobby should read
+`Arrived`, not `InLobby` alone (the class screen still gets by on a 2 s delay).
+
+## The tutorial's LEVEL UP! prompt sat on the first draft's heading and card tops; a dead REROLL was drawn (2026-11-12)
+
+Same playtest (B6 and section 4). `UI/TutorialPrompts` hung its card prompt at 1.2% down the
+screen, whatever the draft did: at 2091 x 1113 it covered y 13 to 220, the draft's LEVEL UP! and
+subtitle whole (82 to 162) and the crowns of all three cards, and a picked card rose 28 pixels
+further under it. Under the hand a grey REROLL was drawn although the tutorial's hands are fixed
+and have no redeal. Now the prompt stands in for the heading: `DraftScreen.setHeading` puts the
+panel's own heading away (never the same words twice) and `RunHudRules.draftUnder` moves the panel
+down, shrinking it only if it must, until the cards' room (crowns, and a picked card's rise) starts
+under the prompt, which follows the panel (`DraftScreen.headingLine`). REROLL is drawn only when
+the hand has a redeal to give (`RunHudRules.draftReroll`: not the tutorial, not an Angel, not a run
+that has spent them; the gamepad strip's X goes with it) and CHOOSE! is centred without it.
+Measured at 2091 x 1113: panel at 0.93 with the prompt ending 7 pixels over the cards' room, card
+tops 121 pixels under it, REROLL hidden, CHOOSE! centred on 1044.5 of 2091; the next tutorial hand
+(no prompt) had its heading back and the panel exactly where it was before, 986 x 898 at scale 1.
+`tests/RunHud.spec` holds both rules, with phone sizes; no phone has been looked at. On a short
+computer screen (768 high) the first hand's cards come out at about three quarters of their usual
+size while the prompt is up.
+
+## VICTORY showed "CHEST x0", and NEXT LEVEL after the tutorial went to the lobby (2026-11-12)
+
+Same playtest, B8. The tutorial pays coins and no chest, egg or item, and Victory's chest slot drew
+the area's chest dimmed at x0, which reads as "you got nothing"; its button said NEXT LEVEL and
+went to the lobby and class select, as the tutorial is meant to (`RoomController.requestRestart`).
+`Util/EndScreenRules` decides both now: the chest row is built only when the run paid a chest, a
+first clear's egg or a boss's item (otherwise the coins and gems move to the middle of the box),
+and the tutorial's Victory says CONTINUE (`EndScreenTheme.victory.lobbyText`). Seen in Studio: no
+row, the two slots centred in the REWARDS box, CONTINUE into the lobby. `tests/EndScreenRules.spec`.
+BACK TO LOBBY is still under it there and does the same thing.
+
 ## A duplicate weapon said "+1 COPY" and nothing was saved; the 40% refund was never paid
 
 The 2026-11-11 loop and UI review, item 1. A crate that rolled a weapon

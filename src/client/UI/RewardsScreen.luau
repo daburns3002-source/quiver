@@ -26,6 +26,7 @@ local Kit = require(script.Parent.Kit)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local RewardRules = require(ReplicatedStorage.Shared.Util.RewardRules)
 local Rewards = require(ReplicatedStorage.Shared.Config.Rewards)
+local RunPaused = require(script.Parent.Parent.RunPaused)
 local SaveSchema = require(ReplicatedStorage.Shared.Util.SaveSchema)
 local ShopAssets = require(ReplicatedStorage.Shared.Config.ShopAssets)
 local StationScreen = require(script.Parent.StationScreen)
@@ -400,10 +401,18 @@ local function startButton(s: StationScreen.Screen)
 			local gui2 = player:FindFirstChild("PlayerGui")
 			local inLobby = Workspace:GetAttribute("InLobby") == true
 				and player:GetAttribute("ClassSelecting") ~= true
+				and not RunPaused.beforeArrival()
 				and gui2 ~= nil
 				and gui2:FindFirstChild("IntroCutscene") == nil
 				and gui2:FindFirstChild("StoryCutscene") == nil
 			local free = inLobby and player:GetAttribute("InStation") ~= true
+			--[[ `InLobby` is also true under the title and in the moment
+			     between the story's end and the tutorial starting, so the
+			     screen opens by itself only once the server says this player
+			     stands in the lobby (`RunSession.ARRIVED`). Without it, SKIP
+			     on the story could open the calendar over the tutorial's
+			     first room, and spend the day's opening there. ]]
+			local arrived = player:GetAttribute("Arrived") == true
 			gui.Enabled = free
 			if free then
 				local upright = gui.AbsoluteSize.Y > gui.AbsoluteSize.X
@@ -416,7 +425,11 @@ local function startButton(s: StationScreen.Screen)
 				if profile and (profile :: any).rewards then
 					waiting = RewardRules.ready(profile, day)
 					-- once a day, the calendar's gift opens the screen by itself
-					if shownFor ~= day and RewardRules.loginReady(profile.rewards, day) then
+					if
+						arrived
+						and shownFor ~= day
+						and RewardRules.loginReady(profile.rewards, day)
+					then
 						shownFor = day
 						RewardsScreen.open()
 					end

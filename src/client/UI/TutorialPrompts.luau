@@ -40,6 +40,7 @@ local TutorialSteps = require(ReplicatedStorage.Shared.Util.TutorialSteps)
 local Chunky = require(script.Parent.Chunky)
 local Dash = require(script.Parent.Parent.Input.Dash)
 local Device = require(script.Parent.Parent.Device)
+local DraftScreen = require(script.Parent.Cards.DraftScreen)
 local MusicFx = require(script.Parent.Parent.Fx.MusicFx)
 local RunPaused = require(script.Parent.Parent.RunPaused)
 
@@ -90,6 +91,10 @@ local cleared = false
 local over = false
 local lastPosition: Vector3? = nil
 local cardShowing = false
+--[[ The card prompt's place: this share of the screen down at the highest
+     (`placeCard`), and how tall it has measured since it came up. ]]
+local CARD_TOP = 0.012
+local cardTall = 0
 
 local function inTutorial(): boolean
 	return CurrentStage.index() == Balance.tutorialStage
@@ -349,13 +354,45 @@ local function meeting(): boolean
 	return gui ~= nil and gui.Enabled
 end
 
+--[[ The card prompt stands in for the draft's own heading: the draft puts
+     its LEVEL UP! away and makes room (`DraftScreen.setHeading`), and the
+     prompt sits just over the cards' room, wherever the panel is. It used to
+     hang at the top of the screen, on the heading and on the tops of the
+     three cards (`docs/FIXES.md`). ]]
+local function placeCard()
+	local p = cardPanel
+	local screen = if p then p.group:FindFirstAncestorOfClass("ScreenGui") else nil
+	if not p or not screen or not cardShowing then
+		cardTall = 0
+		DraftScreen.setHeading(nil)
+		return
+	end
+	--[[ Its full height, not the height part-way through its pop-in: the
+	     tallest seen, so the draft is not laid out again every frame. ]]
+	local pop = p.group:FindFirstChild("PopScale")
+	local grown = if pop and pop:IsA("UIScale") then math.max(pop.Scale, 0.1) else 1
+	cardTall = math.max(cardTall, math.ceil(p.group.AbsoluteSize.Y / grown))
+	if cardTall <= 0 then
+		return
+	end
+	local top = screen.AbsolutePosition.Y
+	DraftScreen.setHeading(cardTall, top + math.floor(screen.AbsoluteSize.Y * CARD_TOP))
+	local line = DraftScreen.headingLine()
+	if line then
+		p.group.Position = UDim2.new(0.5, 0, 0, line - top - cardTall)
+	end
+end
+
 local function step(dt: number)
 	if not inTutorial() then
 		hide(roomPanel)
 		hide(cardPanel)
+		cardShowing = false
+		placeCard()
 		MusicFx.setReading(false)
 		return
 	end
+	placeCard()
 	local paused = RunPaused.get() or over
 	if paused then
 		-- a walk is not measured across a hold
@@ -437,11 +474,13 @@ function TutorialPrompts.start()
 	gui.DisplayOrder = 102
 	gui.Parent = playerGui
 	roomPanel = panel(gui, "RoomPrompt", 0.16)
-	-- over the draft's own heading, clear of its cards
-	cardPanel = panel(gui, "CardPrompt", 0.012)
+	-- in place of the draft's own heading, clear of its cards (`placeCard`)
+	cardPanel = panel(gui, "CardPrompt", CARD_TOP)
 	local function refit()
 		fit(roomPanel, 900, viewport(), Device.isPhone())
 		fit(cardPanel, 1000, viewport(), Device.isPhone())
+		-- measured again at its new size
+		cardTall = 0
 	end
 	refit()
 	local function watchCamera()

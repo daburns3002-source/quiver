@@ -689,7 +689,6 @@ function TitleScene.poseButton(
 	button.group.Position = UDim2.new(0.5, 0, 1 + 0.25 * (1 - rise), -button.gap)
 	local pulse = if pulsing and not button.still then TitleLayout.pulse(t) else 1
 	button.scale.Scale = pulse * (0.9 + 0.1 * shown)
-	button.hit.Active = pulsing
 	if shown ~= button.shown then
 		button.shown = shown
 		fade(button.fading, shown)

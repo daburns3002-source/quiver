@@ -384,7 +384,9 @@ owner, 2026-11-05: "the gleam on equippables, the bounce on click").
 `UI/ShopScreen`): at the lobby's Blacksmith, SHOP (or E) opens CRATES, STORE and MY WEAPONS.
 A crate per area for coins (500, 1,000, 2,000, 4,000, 10,000, 20,000) rolls on the server
 (Uncommon 60, Rare 28, Epic 11, Mythic 1) one of that area's weapons; a weapon already owned
-pays back 40%; areas with no weapons yet are black silhouettes. The store sells an area's
+is one more C copy, saved: three of a merge tier make one of the next, C -> B -> A -> S, each
+1.2x the damage before and S 1.5x over A (owner, 2026-10-28; `Util/MergeRules`, MERGE on the
+gear screen's item card), and pets merge the same way; areas with no weapons yet are black silhouettes. The store sells an area's
 weapons for gems by rarity, its Legendaries for coins and 3 of its boss's item; Mythics only
 come out of crates. EQUIP holds an owned weapon (its class with it), saved, in hand at once in
 the lobby. Every weapon picture is the THREE-QUARTER view of the reference sheet its 3D model was

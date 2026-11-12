@@ -39,11 +39,24 @@
 	no milestones and no Soulstones, which is also exactly what a new one
 	has — nothing of an older save is interpreted as Endless progress,
 	because there was none.
+
+	Version 7 (the Dex Hall): `enemiesSeen`, the enemies ever
+	met. An older profile has met none.
+
+	Version 8 (2026-11-11, merge tiers — owner, 2026-10-28): `tiers`, the
+	copies of each weapon and pet held at each merge tier C, B, A and S
+	(`Util/MergeRules`). Every crate or egg duplicate is one more C copy,
+	and three of a tier merge into one of the next. Before this a weapon
+	was only owned or not, so a duplicate saved nothing; an older profile
+	holds every owned weapon at one C and every pet's count at C, and a
+	pet's `pets` count is from now on the total of its copies.
 ]]
+
+local MergeRules = require(script.Parent.MergeRules)
 
 local SaveSchema = {}
 
-SaveSchema.VERSION = 7
+SaveSchema.VERSION = 8
 
 --[[ The classes' own weapons, owned from the start. ]]
 local STARTERS = { "TwigBow", "BranchStaff", "TimberBlade" }
@@ -85,6 +98,9 @@ export type Profile = {
 	     show the NEW ENEMY! card -- and this is the lasting copy: the card
 	     shows once ever, and the dex remembers. ]]
 	enemiesSeen: { [string]: boolean },
+	--[[ Copies at each merge tier, by weapon and by pet (version 8); a
+	     pet's `pets` count is their total, an owned weapon has at least one. ]]
+	tiers: { weapons: { [string]: MergeRules.Counts }, pets: { [string]: MergeRules.Counts } },
 }
 
 --[[ The looks the class select screen offers. ]]
@@ -100,8 +116,10 @@ SaveSchema.SOULSTONES = "SOULSTONES"
 
 function SaveSchema.default(): Profile
 	local weapons = {}
+	local weaponTiers = {}
 	for _, name in STARTERS do
 		weapons[name] = true
+		weaponTiers[name] = { C = 1 }
 	end
 	return {
 		version = SaveSchema.VERSION,
@@ -120,6 +138,7 @@ function SaveSchema.default(): Profile
 		endlessMilestones = {},
 		soulstones = 0,
 		enemiesSeen = {},
+		tiers = { weapons = weaponTiers, pets = {} },
 	}
 end
 
@@ -224,6 +243,24 @@ function SaveSchema.migrate(raw: unknown): Profile
 	     fills in; inventing entries would show creatures somebody has
 	     never seen. ]]
 	profile.enemiesSeen = flags(data.enemiesSeen)
+	--[[ 7 -> 8: what was owned is held at C -- one copy of each weapon
+	     (duplicates were never saved), each pet's count as that many C.
+	     A stored pet's tiers are its count from then on. ]]
+	local stored = if type(data.tiers) == "table" then data.tiers else {}
+	local storedWeapons = if type(stored.weapons) == "table" then stored.weapons else {}
+	local storedPets = if type(stored.pets) == "table" then stored.pets else {}
+	for name in profile.weapons do
+		local held = MergeRules.clean(storedWeapons[name])
+		profile.tiers.weapons[name] = if MergeRules.total(held) > 0 then held else { C = 1 }
+	end
+	for pet, n in profile.pets do
+		local held = MergeRules.clean(storedPets[pet])
+		if MergeRules.total(held) == 0 then
+			held = { C = n }
+		end
+		profile.tiers.pets[pet] = held
+		profile.pets[pet] = MergeRules.total(held)
+	end
 	return profile
 end
 

@@ -30,6 +30,7 @@ local Burning = require(script.Parent.Burning)
 local Eggs = require(ReplicatedStorage.Shared.Config.Eggs)
 local EnemyManager = require(script.Parent.Parent.Enemies.EnemyManager)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
+local MergeRules = require(ReplicatedStorage.Shared.Util.MergeRules)
 local Pathing = require(script.Parent.Parent.Enemies.Pathing)
 local PetAttacks = require(ReplicatedStorage.Shared.Config.PetAttacks)
 local PetCombatConfig = require(ReplicatedStorage.Shared.Config.PetCombat)
@@ -67,6 +68,18 @@ type State = {
 
 --[[ Each player's pets, by slot. ]]
 local states: { [Player]: { [number]: State } } = {}
+
+--[[ A pet's damage multiplier from its merge tier (`Data/Wallet.applyTiers`
+     puts each slot's on `PetTier` / `Pet2Tier`; `Util/MergeRules`). ]]
+local function tierScale(player: Player, pet: string): number
+	for _, attribute in Eggs.slots do
+		if player:GetAttribute(attribute) == pet then
+			local tier = player:GetAttribute(attribute .. "Tier")
+			return if type(tier) == "string" then MergeRules.petScale[tier] or 1 else 1
+		end
+	end
+	return 1
+end
 
 --[[ The pets in a player's slots that can fight, by slot. ]]
 local function petsOf(player: Player): { [number]: string }
@@ -340,7 +353,7 @@ local function strike(session: Session, state: State, spec: Spec, origin: Vector
 	     everything round wherever it has walked -- or where it fell, if it
 	     died first. Nothing else lands now. ]]
 	local burst = spec.burst
-	local damage = spec.damage
+	local damage = if spec.damage then spec.damage * tierScale(session.player, state.pet) else nil
 	if burst and damage then
 		local player = session.player
 		local seen = EnemyManager.positions()
@@ -368,9 +381,9 @@ local function strike(session: Session, state: State, spec: Spec, origin: Vector
 	local hits = spec.hits or 1
 	for index, model in struck do
 		local amount = if spec.damage
-			then spec.damage + (if spec.bossDamage and EnemyManager.isBoss(model)
+			then (spec.damage + (if spec.bossDamage and EnemyManager.isBoss(model)
 				then spec.bossDamage
-				else 0)
+				else 0)) * tierScale(session.player, state.pet)
 			else 0
 		if payback then
 			amount *= payback.scale
@@ -486,12 +499,14 @@ local function dashAt(
 			local live = RunSession.get(player)
 			if live and live.alive and current(player, state) then
 				if spec.damage then
-					local amount = spec.damage
+					local amount = (
+						spec.damage
 						+ (
 							if spec.bossDamage and EnemyManager.isBoss(model)
 								then spec.bossDamage
 								else 0
 						)
+					) * tierScale(player, state.pet)
 					for _ = 1, spec.hits or 1 do
 						hit(live, model, amount, landed)
 					end
@@ -552,7 +567,7 @@ local function stepPet(
 		     of them are priced for. A pet with a ring carries no other
 		     affliction for exactly that reason. ]]
 		for _, target in inRange(origin, aura.radius) do
-			hit(session, target.model, aura.damage, origin)
+			hit(session, target.model, aura.damage * tierScale(session.player, state.pet), origin)
 		end
 	end
 
@@ -672,7 +687,7 @@ function PetCombat.shellBlocked(session: Session, pet: string)
 	end
 	local origin = root.Position
 	for _, target in inRange(origin, reflect.radius) do
-		hit(session, target.model, reflect.damage, origin)
+		hit(session, target.model, reflect.damage * tierScale(session.player, pet), origin)
 	end
 end
 

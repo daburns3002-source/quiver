@@ -55,6 +55,7 @@ function Hatchery.apply(player: Player)
 	for slot, attribute in Eggs.slots do
 		player:SetAttribute(attribute, if profile then profile.equippedPets[slot] else nil)
 	end
+	Wallet.applyTiers(player)
 end
 
 local function hatch(player: Player, key: unknown, count: unknown)

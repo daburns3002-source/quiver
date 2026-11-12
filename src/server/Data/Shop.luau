@@ -7,8 +7,11 @@
 	says sets a total, a roll or an owned weapon.
 
 	- `Remotes.ShopOpenCrate(index, count, class)`: pays the chest, rolls
-	  among that class's weapons, grants it or pays back `duplicateRefund`,
-	  and answers `ShopCrateOpened`.
+	  among that class's weapons, grants it (a duplicate is one more C copy
+	  to merge, `Util/MergeRules`), and answers `ShopCrateOpened`.
+	- `Remotes.MergeItem(kind, key, tier)`: three copies of a weapon or pet
+	  at one tier into one of the next, checked here; the held weapon's new
+	  damage applies at once.
 	- `Remotes.ShopBuy(weapon)`: pays the store's price and grants it.
 	- `Remotes.ShopEquip(weapon)`: holds an owned weapon in runs (its class
 	  with it), saved; applied at once in the lobby, else from the next run.
@@ -103,7 +106,7 @@ local function openCrate(player: Player, index: unknown, count: unknown, class: 
 			if profile then
 				profile.pity.crates = Pity.after(since, entry.rarity == "Mythic")
 			end
-			-- a duplicate is a C copy to merge (owner, 2026-10-28), so no refund
+			-- a duplicate is a saved C copy to merge (owner, 2026-10-28), so no refund
 			local new = Wallet.grantWeapon(player, entry.weapon)
 			log.info(
 				"%s opened the %s %s chest: %s%s",
@@ -221,12 +224,33 @@ local function switchClass(player: Player, class: unknown)
 	log.info("%s switched to the %s", player.Name, class)
 end
 
+--[[ The item card's MERGE (owner, 2026-10-28: "the player has to get 3 of 1
+     tier and then they can merge into the next tier"). `Data/Wallet.merge`
+     checks the three; a merged weapon in hand gets its damage now. ]]
+local function merge(player: Player, kind: unknown, key: unknown, tier: unknown)
+	if
+		type(kind) ~= "string"
+		or type(key) ~= "string"
+		or type(tier) ~= "string"
+		or not allowed(player)
+	then
+		return
+	end
+	if Wallet.merge(player, kind, key, tier) then
+		local session = RunSession.get(player)
+		if session and RoomController.inLobby() then
+			RunSession.applyLoadout(session)
+		end
+	end
+end
+
 function ShopServer.start()
 	Remotes.event(Remotes.ChooseClass).OnServerEvent:Connect(chooseClass)
 	Remotes.event(Remotes.SwitchClass).OnServerEvent:Connect(switchClass)
 	Remotes.event(Remotes.ShopOpenCrate).OnServerEvent:Connect(openCrate)
 	Remotes.event(Remotes.ShopBuy).OnServerEvent:Connect(buy)
 	Remotes.event(Remotes.ShopEquip).OnServerEvent:Connect(equip)
+	Remotes.event(Remotes.MergeItem).OnServerEvent:Connect(merge)
 	-- Studio only: fill the wallet to test the shop
 	Remotes.event(Remotes.DebugWallet).OnServerEvent:Connect(function(player, coins, gems, items)
 		if not RunService:IsStudio() then

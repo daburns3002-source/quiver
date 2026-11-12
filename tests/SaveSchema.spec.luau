@@ -62,7 +62,7 @@ return function(t: TestRunner.Helper)
 
 	t.test("a new profile has beaten no level", function()
 		local p = SaveSchema.migrate(nil)
-		t.equal(SaveSchema.VERSION, 7)
+		t.equal(SaveSchema.VERSION, 8)
 		t.isNil((next(p.levelsBeaten)))
 	end)
 

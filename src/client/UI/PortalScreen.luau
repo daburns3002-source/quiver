@@ -36,11 +36,13 @@ local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local BossBanners = require(ReplicatedStorage.Shared.Config.BossBanners)
 local Economy = require(ReplicatedStorage.Shared.Config.Economy)
 local GearAssets = require(ReplicatedStorage.Shared.Config.GearAssets)
+local LaunchLocks = require(ReplicatedStorage.Shared.Util.LaunchLocks)
 local LevelUnlocks = require(ReplicatedStorage.Shared.Util.LevelUnlocks)
 local LobbyConfig = require(ReplicatedStorage.Shared.Config.Lobby)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local SaveSchema = require(ReplicatedStorage.Shared.Util.SaveSchema)
 local ShopAssets = require(ReplicatedStorage.Shared.Config.ShopAssets)
+local SoulstoneShop = require(script.Parent.SoulstoneShop)
 
 local Chunky = require(script.Parent.Chunky)
 local Kit = require(script.Parent.Kit)
@@ -121,6 +123,11 @@ end
 local function beaten(): LevelUnlocks.Beaten?
 	local p = profile
 	return if p then p.levelsBeaten else nil
+end
+
+local function bosses(): { [string]: boolean }?
+	local p = profile
+	return if p then p.bossesBeaten else nil
 end
 
 local function close()
@@ -386,7 +393,7 @@ local function start()
 	--[[ The portal's own gate (Endless waits on 1-10), then the level's.
 	     The server checks both again on START, and its answer is the one
 	     that decides (`Run/Lobby.startFor`). ]]
-	if not LevelUnlocks.portalOpen(portal and portal.requires, beaten()) then
+	if not portal or not LaunchLocks.portalOpen(portal, beaten(), bosses()) then
 		return
 	end
 	if not LevelUnlocks.isUnlocked(levels, Balance.Stages, beaten(), picked) then
@@ -418,7 +425,7 @@ fill = function(index: number)
 	--[[ A portal with a `requires` this player has not beaten (Endless
 	     before 1-10) draws every level locked and says what opens it,
 	     rather than looking playable and being refused on START. ]]
-	local portalOpen = LevelUnlocks.portalOpen(portal.requires, done)
+	local portalOpen = LaunchLocks.portalOpen(portal, done, bosses())
 	if portalOpen and not LevelUnlocks.isUnlocked(levels, Balance.Stages, done, picked) then
 		picked = LevelUnlocks.suggested(levels, Balance.Stages, done)
 	end
@@ -430,6 +437,23 @@ fill = function(index: number)
 		pill(sheet, string.upper(banner.act), L.act, Chunky.blue)
 	end
 	Chunky.close(sheet, L.close[1], L.close[2], L.close[3], close)
+	--[[ Endless pays Soulstones, and this is where they are spent
+	     (`UI/SoulstoneShop`): a purple button in the header, left of the X. ]]
+	local on, deep = sheet.panel, sheet.header
+	if portal.name == "Endless" and on and deep then
+		local bw, bh = 300, deep * 0.72
+		Chunky.button(
+			sheet,
+			"SOUL SHOP",
+			Chunky.purple,
+			on.x + on.w - deep * 1.16 - bw,
+			on.y + (deep - bh) / 2,
+			bw,
+			bh,
+			SoulstoneShop.open
+		).ZIndex =
+			30
+	end
 
 	--[[ The level buttons, `levelColumns` to a row, as big as fits, with a
 	     dotted path from each to the next along its row. ]]
@@ -497,7 +521,7 @@ fill = function(index: number)
 	Chunky.put(sheet, title, table.unpack(L.title))
 	title.ZIndex = 8
 	if not portalOpen then
-		pill(sheet, `BEAT {portal.requires or ""}`, L.size)
+		pill(sheet, LaunchLocks.portalWords(portal), L.size)
 	elseif stage then
 		pill(sheet, sizeOf(stage), L.size)
 		pill(sheet, bossLine(stage), L.boss)

@@ -50,11 +50,13 @@ local PetCombat = require(script.Parent.Combat.PetCombat)
 local PetCombatConfig = require(ReplicatedStorage.Shared.Config.PetCombat)
 local PetPreview = require(script.Parent.Dev.PetPreview)
 local PlayerData = require(script.Parent.Data.PlayerData)
+local PlayerSettings = require(script.Parent.Data.Settings)
 local ProjectileSystem = require(script.Parent.Combat.ProjectileSystem)
 local Remotes = require(game:GetService("ReplicatedStorage").Shared.Net.Remotes)
 local RoomController = require(script.Parent.Run.RoomController)
 local RunSession = require(script.Parent.Run.RunSession)
 local Sandbox = require(ReplicatedStorage.Shared.Config.Sandbox)
+local SoulstoneShop = require(script.Parent.Data.SoulstoneShop)
 local StoryLeaderboard = require(script.Parent.Run.StoryLeaderboard)
 local Tutorial = require(ReplicatedStorage.Shared.Config.Tutorial)
 local UpgradeEffects = require(script.Parent.Fx.UpgradeEffects)
@@ -75,6 +77,8 @@ PlayerData.onLoaded(Wallet.send)
 PlayerData.start()
 WeaponShop.start()
 Hatchery.start()
+SoulstoneShop.start()
+PlayerSettings.start()
 --[[ The pets' models, for every player's pets at heel (`Fx/PetPreview`). ]]
 task.spawn(PetPreview.build)
 
@@ -659,7 +663,8 @@ Remotes.event(Remotes.PortalStart).OnServerEvent:Connect(function(player, index,
 	-- only a level this player has opened (`Util/LevelUnlocks`)
 	local profile = PlayerData.get(player)
 	local beaten = if profile then profile.levelsBeaten else nil
-	local stage = Lobby.startFor(root.Position, index, level, beaten)
+	local bosses = if profile then profile.bossesBeaten else nil
+	local stage = Lobby.startFor(root.Position, index, level, beaten, bosses)
 	if stage then
 		-- with whoever else stands at the portal (`Run/Party`)
 		Party.start(player, index :: number, level :: number, stage)

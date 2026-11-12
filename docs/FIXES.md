@@ -16,6 +16,28 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## Run banner said "You died - restarting"; the leave panel said progress is lost
+
+The 2026-11-11 loop and UI review. Nothing restarts by itself after a death:
+the Defeat screen offers the retry. And leaving a run keeps the coins its
+kills paid, which are in the wallet the moment they are earned
+(`RunSession.payCoins`); what ends is the run. The banner now says DEFEATED
+(`Util/RunHudRules.status`, pinned by `tests/RunHud.spec`) and the panel
+"You keep your coins. The run ends here." (`UI/ControlMenu`). Words on a
+screen that describe what the server does must be checked against the server.
+
+## Phone: MENU under the moving thumb, draft buttons 27 points tall
+
+The 2026-11-11 review, on an upright 390 x 844 phone. The MENU button stood
+136 x 64 at the left edge at mid-height, where the left thumb moves, and its
+confirm panel, laid on the 1920 x 1080 sheet, came to about 142 points wide.
+The draft is fitted to the screen's width, about half size, which left
+Choose! and Reroll some 87 x 27 points over an empty lower half. Now the MENU
+is a 48-point pause icon at the top left with a panel sized in points, and
+the upright draft has a tray under it with 56-point buttons and the selected
+card read out (`Util/RunHudRules`, `Config/Hud`). Anything a thumb presses is
+sized in screen points and checked at 390 wide, not placed on a 16:9 sheet.
+
 ## Howl Aura arrows invisible from above
 
 Owner, 2026-11-10, on the review sheet: the pet Howl Aura's arrow could not be

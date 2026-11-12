@@ -19,6 +19,7 @@ local Workspace = game:GetService("Workspace")
 
 local BossWatch = require(script.Parent.BossWatch)
 local Music = require(ReplicatedStorage.Shared.Config.Music)
+local Options = require(script.Parent.Parent.Options)
 
 --[[ The share of its volume the music keeps while a lobby screen is open. ]]
 local DUCK = 0.12
@@ -122,7 +123,7 @@ local function step(dt: number)
 			-- paused, so a room's music picks up where it left off
 			p.sound:Pause()
 		end
-		p.sound.Volume = Music.volume * p.level * duck
+		p.sound.Volume = Music.volume * p.level * duck * Options.music()
 	end
 end
 

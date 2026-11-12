@@ -44,11 +44,19 @@
 	tutorial has been won. The tutorial still plays on every join until 1-1
 	is beaten; a player who has won it before may skip it. An older profile
 	has it only if it has beaten 1-1 (who must have been through it).
+
+	Version 9 (2026-11-11, the settings screen): `settings`, the player's
+	own music and sound volume and whether the device shakes
+	(`Config/Settings`). An older profile has the defaults: nobody had
+	chosen anything. Read through `Util/SettingsRules.read`, so a stored
+	value that is not a volume step or a yes/no is its default.
 ]]
+
+local SettingsRules = require(script.Parent.SettingsRules)
 
 local SaveSchema = {}
 
-SaveSchema.VERSION = 8
+SaveSchema.VERSION = 9
 
 --[[ The classes' own weapons, owned from the start. ]]
 local STARTERS = { "TwigBow", "BranchStaff", "TimberBlade" }
@@ -93,6 +101,8 @@ export type Profile = {
 	--[[ The tutorial has been won once (version 8): later joins may skip
 	     it (`UI/TutorialPrompts`' SKIP TUTORIAL). ]]
 	tutorialDone: boolean,
+	--[[ The player's own settings (version 9): volumes and vibration. ]]
+	settings: SettingsRules.Settings,
 }
 
 --[[ The looks the class select screen offers. ]]
@@ -129,6 +139,7 @@ function SaveSchema.default(): Profile
 		soulstones = 0,
 		enemiesSeen = {},
 		tutorialDone = false,
+		settings = SettingsRules.default(),
 	}
 end
 
@@ -237,6 +248,8 @@ function SaveSchema.migrate(raw: unknown): Profile
 	     1-1 came through it; anyone else plays it once more before they
 	     may skip. ]]
 	profile.tutorialDone = data.tutorialDone == true or profile.levelsBeaten["1-1"] == true
+	--[[ 8 → 9: no settings were kept, so an older profile has the defaults. ]]
+	profile.settings = SettingsRules.read(data.settings)
 	return profile
 end
 

@@ -9,6 +9,7 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Eggs = require(ReplicatedStorage.Shared.Config.Eggs)
+local LaunchLocks = require(ReplicatedStorage.Shared.Util.LaunchLocks)
 local Pets = require(ReplicatedStorage.Shared.Config.Pets)
 
 local EggRules = {}
@@ -74,9 +75,12 @@ function EggRules.roll(pool: { Entry }, r: number): Entry?
 	return pool[#pool]
 end
 
---[[ Whether a profile may buy this egg: its area is open. ]]
+--[[ Whether a profile may buy this egg: its area is open. What it waits
+     on is its own `unlock`, or at launch its `atLaunch`
+     (`Util/LaunchLocks.eggUnlock`). ]]
 function EggRules.open(egg: Eggs.Egg, bossesBeaten: { [string]: boolean }): boolean
-	return egg.unlock == nil or bossesBeaten[egg.unlock] == true
+	local unlock = LaunchLocks.eggUnlock(egg)
+	return unlock == nil or bossesBeaten[unlock] == true
 end
 
 --[[ A pet's rarity, Common for one not listed. ]]

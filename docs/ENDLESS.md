@@ -138,15 +138,21 @@ repeatable currency keeps the mode worth replaying once the milestones are claim
 
 | Floor | Reward |
 |---|---|
-| 10 | a pet egg |
-| 20 | a gear piece |
-| 30 | a cosmetic (trail or aura) |
-| 50 | a pet egg, guaranteed Legendary or better |
-| 75 | a gear piece, guaranteed Legendary |
-| 100 | a title, and a Mythic-tier cosmetic |
+| 10 | 5 pet eggs |
+| 20 | 5 weapon crates |
+| 30 | 5 eggs and 5 crates |
+| 50 | 5 eggs, one guaranteed Legendary or better |
+| 75 | 5 crates, one guaranteed Legendary |
+| 100 | 10 eggs and 10 crates, a Mythic in each |
 
-Each hits a different system on purpose, so no one milestone is skippable because you already
-have enough of that thing.
+**Built 2026-11-11, at the owner's word** ("MAKE IT MORE LIKE 5 EGGS AND 5 CRATES. ROBLOX GAMES HAVE
+THAT EXTREME REWARD. I WANT IT TO FEEL NECESSARY TO BEAT THESE ROOMS"): each is hatched and opened for
+the player the moment its floor is cleared, free, the best egg open to them and the best stocked crate
+for their class, on top of its Soulstones (`Server/Data/EndlessPrizes`). The cosmetic and the title the
+first table had at 30 and 100 do not exist, so those floors pay in eggs and crates too.
+
+Soulstones themselves now buy eggs and crates at the Soulstone shop on the Endless portal's screen
+(`Config/SoulstoneShop`).
 
 ### The reward set — designed, not built
 

@@ -83,6 +83,88 @@ local Hud = {
 	--[[ The skill bar's full width and height on a touch screen: six 44-point
 	     slots, 10 apart, 14 of padding a side; 44 + 18 + 24 tall. ]]
 	touchTray = Vector2.new(342, 86),
+	--[[
+		The run's top HUD (`UI/RunBanner`, placed by `Util/RunHudRules.top`):
+		the level badge on a thick XP bar, the coins, the room pips and the
+		line that says what the run wants next. It replaced a placeholder
+		whose room line came to about 11 points on a phone over a 6-pixel XP
+		bar (the 2026-11-11 loop and UI review).
+
+		It hangs `gap` under Roblox's own top bar. On a phone the MENU icon
+		(`UI/ControlMenu`) stands at its left, `menuIcon` square and `edge`
+		from the screen's side, a thumb's 48 points and out of the way of
+		the thumb that moves; the HUD takes the rest of the row, up to
+		`phoneMax` wide, centred when the screen is wider than that. A
+		computer centres it at `desktopShare` of the screen, between
+		`desktopMin` and `desktopMax`.
+	]]
+	top = {
+		gap = 6,
+		edge = 8,
+		menuIcon = 48,
+		phoneMax = 460,
+		desktopShare = 0.3,
+		desktopMin = 420,
+		desktopMax = 620,
+		--[[ A computer's HUD is drawn larger on a tall screen, where a
+		     point is small: by the screen's height over `desktopTall`,
+		     up to `desktopGrow` times. Panels laid out in points (the
+		     MENU's, settings, the Soulstone shop, a prize) grow the same
+		     way, to `panelGrow` at most (`RunHudRules.fit`). ]]
+		desktopTall = 800,
+		desktopGrow = 1.75,
+		panelGrow = 1.8,
+		--[[ The XP row: the bar's height, the badge square that overlaps
+		     its left end, and the coin pill at its right. ]]
+		xpHeight = 18,
+		badge = 34,
+		coinHeight = 28,
+		coinWidth = 104,
+		--[[ The room row and the status line under it, and the space
+		     between rows. ]]
+		roomHeight = 18,
+		statusHeight = 20,
+		rowGap = 4,
+		--[[ Rooms drawn as pips. A stage with more than this many (the
+		     twenty and forty-room areas, Endless) keeps the counter and
+		     adds the room's name where the pips would be. ]]
+		maxPips = 12,
+		--[[ The MENU panel on a phone: this wide at most, `panelMargin`
+		     clear of the screen's sides, `panelShape` as tall as it is
+		     wide. ]]
+		panelWidth = 440,
+		panelMargin = 16,
+		panelShape = 0.62,
+	},
+	--[[
+		The draft on a phone held upright (`UI/Cards/DraftScreen`). The hand
+		is fitted to the screen's width, which left Choose! and Reroll about
+		87 x 27 points and half the screen empty (the 2026-11-11 review).
+		Now a tray stands under the panel: a box that reads out the selected
+		card in large words, and under it REROLL and CHOOSE! as the chunky
+		UI's fat buttons, across the whole width.
+
+		The tray is a `UI/Chunky` sheet `sheet` pixels in size, two to a
+		screen point on the narrowest phone, scaled as one piece to the
+		screen's width less `margin` a side and never wider than `maxWidth`
+		points: the box is its top `wordsHeight`, the buttons its bottom
+		`buttonsHeight` (56 points on a 390-point phone), REROLL
+		`rerollWidth` wide with `gap` between the two. `rowGap` points keep
+		the tray off the panel, and `wordsSize` and `titleSize` are the
+		tallest the box's words and the card's name are drawn, in points.
+	]]
+	draftUpright = {
+		margin = 8,
+		maxWidth = 460,
+		sheet = Vector2.new(748, 340),
+		wordsHeight = 208,
+		buttonsHeight = 112,
+		rerollWidth = 296,
+		gap = 20,
+		rowGap = 10,
+		wordsSize = 18,
+		titleSize = 22,
+	},
 }
 
 return table.freeze(Hud)

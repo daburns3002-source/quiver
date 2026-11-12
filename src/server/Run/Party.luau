@@ -181,7 +181,8 @@ function Party.start(starter: Player, index: number, level: number, stage: numbe
 		if player ~= starter and root and not session.atTitle and not busy[player] then
 			local profile = PlayerData.get(player)
 			local beaten = if profile then profile.levelsBeaten else nil
-			if Lobby.startFor(root.Position, index, level, beaten) == stage then
+			local bosses = if profile then profile.bossesBeaten else nil
+			if Lobby.startFor(root.Position, index, level, beaten, bosses) == stage then
 				table.insert(standing, player.UserId)
 				byId[player.UserId] = player
 			end
@@ -350,10 +351,11 @@ local function runServer()
 			local leader = Players:GetPlayerByUserId(data.leader)
 			local profile = leader and PlayerData.get(leader)
 			local beaten = if profile then profile.levelsBeaten else nil
+			local bosses = if profile then profile.bossesBeaten else nil
 			-- only ever the tutorial: the number came through the client
 			local stage = if data.tutorial ~= nil
 				then (if data.tutorial == Balance.tutorialStage then Balance.tutorialStage else nil)
-				else Lobby.levelOpen(data.portal, data.level, beaten)
+				else Lobby.levelOpen(data.portal, data.level, beaten, bosses)
 			started = true
 			if not stage then
 				log.warn("the leader may not play that level: to the lobby")

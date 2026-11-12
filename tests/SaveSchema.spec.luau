@@ -62,7 +62,7 @@ return function(t: TestRunner.Helper)
 
 	t.test("a new profile has beaten no level", function()
 		local p = SaveSchema.migrate(nil)
-		t.equal(SaveSchema.VERSION, 7)
+		t.equal(SaveSchema.VERSION, 9)
 		t.isNil((next(p.levelsBeaten)))
 	end)
 
@@ -216,6 +216,32 @@ return function(t: TestRunner.Helper)
 		local old = SaveSchema.migrate({ version = 7, levelsBeaten = { ["1-1"] = true } })
 		t.isTrue(old.tutorialDone)
 		t.equal(old.version, SaveSchema.VERSION)
+	end)
+
+	t.test("8 -> 9: settings are the defaults unless a clean copy was saved", function()
+		local fresh = SaveSchema.default().settings
+		t.equal(fresh.music, 1)
+		t.equal(fresh.sound, 1)
+		t.isTrue(fresh.haptics)
+		local old = SaveSchema.migrate({ version = 8, coins = 5 })
+		t.equal(old.settings.music, 1, "an older save invented a volume")
+		t.isTrue(old.settings.haptics)
+		t.equal(old.version, SaveSchema.VERSION)
+		local kept = SaveSchema.migrate({
+			version = 9,
+			settings = { music = 0.5, sound = 0, haptics = false },
+		})
+		t.equal(kept.settings.music, 0.5)
+		t.equal(kept.settings.sound, 0)
+		t.isFalse(kept.settings.haptics)
+		local broken = SaveSchema.migrate({
+			version = 9,
+			settings = { music = "loud", sound = 7, haptics = 1 },
+		})
+		t.equal(broken.settings.music, 1, "a string was kept as a volume")
+		t.equal(broken.settings.sound, 1, "a volume over full was not clamped")
+		t.isTrue(broken.settings.haptics, "a number was kept as a yes/no")
+		t.equal(SaveSchema.migrate({ version = 9, settings = "x" }).settings.music, 1)
 	end)
 
 	t.test("a newer game's save is not readable here", function()

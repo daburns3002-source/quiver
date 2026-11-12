@@ -9,10 +9,12 @@
 	out where.
 ]]
 
+local GuiService = game:GetService("GuiService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 
 local Hud = require(ReplicatedStorage.Shared.Config.Hud)
+local RunHudRules = require(ReplicatedStorage.Shared.Util.RunHudRules)
 
 local Device = require(script.Parent.Parent.Device)
 
@@ -97,6 +99,39 @@ function HudLayout.current(): Layout
 		skillBarPosition = UDim2.new(0.5, 0, 1, -u.skillBarBottom),
 		dashButtonPosition = UDim2.new(1, -u.dashButtonMargin, 1, -buttonBottom),
 	}
+end
+
+--[[ Where Roblox's own top bar ends, in points from the top of the screen:
+     the top HUD hangs under it. `TopbarInset` knows a notched phone's safe
+     area; until it has been measured, the plain inset stands in. ]]
+local function topBar(): number
+	local rect = GuiService.TopbarInset
+	if rect.Height > 0 then
+		return rect.Min.Y + rect.Height
+	end
+	local inset = GuiService:GetGuiInset()
+	return inset.Y
+end
+
+--[[ Where the run's top HUD, the phone's MENU icon and its panel go
+     (`Util/RunHudRules.top`). ]]
+function HudLayout.top(): RunHudRules.Top
+	return RunHudRules.top(viewport(), Device.isPhone(), topBar())
+end
+
+--[[ Calls `place` with the top layout now and whenever the screen changes
+     shape or Roblox's top bar does. ]]
+function HudLayout.bindTop(place: (RunHudRules.Top) -> ())
+	place(HudLayout.top())
+	GuiService:GetPropertyChangedSignal("TopbarInset"):Connect(function()
+		place(HudLayout.top())
+	end)
+	local camera = Workspace.CurrentCamera
+	if camera then
+		camera:GetPropertyChangedSignal("ViewportSize"):Connect(function()
+			place(HudLayout.top())
+		end)
+	end
 end
 
 --[[ Calls `place` with the layout now and whenever the screen changes

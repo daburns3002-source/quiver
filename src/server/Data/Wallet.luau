@@ -207,12 +207,10 @@ end
 	account: a milestone already in `endlessMilestones` is skipped, so a
 	second run that passes floor 10 pays nothing for it.
 
-	Each entry's reward pays its Soulstones today. **The egg, gear, cosmetic
-	and title grants do not exist yet**: when they do, this is where they
-	are granted from, reading the entry's `kind` and `rarity`, and nothing
-	else about the mode changes. The milestone table itself is still
-	unconfirmed by the owner, so it stays one table to swap
-	(`Balance.Endless.milestones`).
+	This pays each entry's Soulstones and records it. Its eggs and crates
+	are opened by the caller with what this returns (`Data/EndlessPrizes`,
+	from `Run/RoomController`), since rolling them needs the hatchery and
+	this module sits under it.
 
 	A milestone's Soulstones are **not** under the run cap: the cap is there
 	so depth cannot be farmed for currency, and a milestone can be claimed

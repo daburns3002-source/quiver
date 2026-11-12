@@ -49,6 +49,14 @@ export type Design = {
 	village: { Block },
 	tufts: { Block },
 	post: { x: number, y: number },
+	--[[ The third pass (owner, 2026-11-12: "a little bit more detail still"):
+	     a few far birds (middle, height, span), glowing mushrooms on the
+	     ridge (left, foot, size), a signpost pointing to the tree (foot), and
+	     where a shooting star crosses now and then. ]]
+	birds: { Block },
+	glowcaps: { Block },
+	sign: { x: number, y: number },
+	shooting: { from: { number }, to: { number } },
 	--[[ The trunk's foot (`x`, `y`) and how many points a tree unit is. ]]
 	tree: { x: number, y: number, unit: number },
 	hills: { Block },
@@ -115,6 +123,18 @@ local TitleScene = {
 	--[[ The far ground, from a little above the trunk's foot. ]]
 	ground = { colour = Color3.fromHex("#061E27"), above = 8 },
 	ridge = Color3.fromHex("#02070C"),
+	--[[ A far bird is two short strokes, a shallow V, pale and faint. ]]
+	bird = { thick = 1.2, tilt = 24, alpha = 0.5 },
+	--[[ A glowing mushroom: a pale stem under a mint cap, on a faint square
+	     of light this many times its size. ]]
+	glowcap = { stem = Color3.fromHex("#BFEFE0"), halo = 2.6, haloAlpha = 0.16 },
+	--[[ The signpost: a post this tall with a board this wide and tall near
+	     its top, and a small step for the board's point. ]]
+	sign = { tall = 18, wide = 12, board = 6 },
+	--[[ A shooting star: every so many seconds one crosses in this long, a
+	     streak this long and thick, the first this soon after the title
+	     appears (none under reduced motion). ]]
+	shooting = { every = 13, lasts = 0.9, long = 30, thick = 1.6, first = 4 },
 	--[[ Grass on the ridge: three blades (left, height) two points wide. ]]
 	tuft = { { 0, 4 }, { 3, 7 }, { 6, 3 } },
 	--[[ The lantern post on the ridge: a post, an arm and a mint lantern
@@ -172,6 +192,21 @@ local TitleScene = {
 			{ -140, -214, 26 },
 			{ 120, -206, 28 },
 		},
+		--[[ Vines hanging under the crown (left, top, length), two units wide,
+		     and a few small warm windows up in it (left, top), 5 by 6. ]]
+		vines = {
+			{ -186, -190, 22 },
+			{ -150, -194, 30 },
+			{ -118, -194, 18 },
+			{ -58, -202, 34 },
+			{ -22, -202, 20 },
+			{ 38, -202, 28 },
+			{ 96, -190, 36 },
+			{ 134, -190, 16 },
+			{ 176, -176, 26 },
+			{ 212, -176, 14 },
+		},
+		crownWindows = { { -150, -250 }, { -52, -318 }, { 104, -290 } },
 		--[[ The first of the lanterns hang on strings this long. ]]
 		strings = { count = 11, long = 12 },
 		--[[ A lit doorway at the trunk's foot: its dark frame and the warm
@@ -221,8 +256,12 @@ local TitleScene = {
 	rim = Color3.fromHex("#58D8BC"),
 	hero = {
 		--[[ The bow across the back: a curve from above the left shoulder,
-		     bowed out to the right, down to the right hip. ]]
-		bow = { from = { -15, -54 }, bend = { 8, -36 }, to = { 15, -8 }, thick = 2.8, pieces = 7 },
+		     bowed out to the right, down past the right hip, its ends
+		     standing clear of the body. A thin line of light runs along it
+		     and along its string, so it reads on the dark back. ]]
+		bow = { from = { -19, -60 }, bend = { 12, -36 }, to = { 19, -4 }, thick = 3, pieces = 9 },
+		bowRim = { thick = 1, alpha = 0.5 },
+		bowString = { thick = 0.8, alpha = 0.3 },
 		--[[ The tunic, wider at its hem than at the shoulders, in steps. ]]
 		body = {
 			{ -10, -40, 20, 8 },
@@ -235,15 +274,45 @@ local TitleScene = {
 			{ -14, -39, 4, 17 },
 			{ 10, -39, 4, 17 },
 			{ -8, -57, 16, 16 },
+			-- a hood's fall behind the neck, boots, and three arrows in a quiver
+			{ -9, -45, 18, 6 },
+			{ -9, -3, 8, 3 },
+			{ 1, -3, 8, 3 },
+			{ 7, -53, 2, 10 },
+			{ 10, -55, 2, 11 },
+			{ 13, -52, 2, 9 },
 		} :: { Block },
-		--[[ The light catching the head and the shoulders; the fifth number
-		     is how solid. ]]
+		--[[ The light catching the head and the shoulders, then the side that
+		     faces the tree (head, arm, hem, leg) and the arrows' tips; the
+		     fifth number is how solid. ]]
 		rims = {
 			{ -8, -57, 16, 1.6, 0.85 },
 			{ -14, -39, 4, 1.3, 0.7 },
 			{ 10, -39, 4, 1.3, 0.7 },
 			{ -10, -41, 20, 1.3, 0.45 },
+			{ 7, -57, 1.2, 16, 0.6 },
+			{ 13, -39, 1.2, 17, 0.5 },
+			{ 11, -22, 1.2, 5, 0.5 },
+			{ 12, -17, 1.2, 7, 0.5 },
+			{ 7, -16, 1.2, 13, 0.4 },
+			{ 7, -53, 2, 1.2, 0.7 },
+			{ 10, -55, 2, 1.2, 0.8 },
+			{ 13, -52, 2, 1.2, 0.7 },
 		} :: { Block },
+		--[[ A scarf trailing from the neck, the one warm thing on the hero, so
+		     the eye finds them (owner, 2026-11-12: the hero "should be a little
+		     bit more noticeable"). It sways: its end moves this many units up
+		     and down, this many times a second. ]]
+		scarf = {
+			colour = Color3.fromHex("#E8A84A"),
+			alpha = 0.95,
+			pieces = { { -16, -44, 9, 4 }, { -23, -42, 8, 4 }, { -29, -39, 7, 3 } },
+			sway = 1.6,
+			speed = 0.3,
+		},
+		--[[ A pool of the tree's light behind the hero: this far above their
+		     feet, this wide, this solid at its middle. ]]
+		glow = { rise = 30, radius = 64, alpha = 0.24 },
 	},
 	pet = {
 		-- body, head, two ears, tail
@@ -254,7 +323,12 @@ local TitleScene = {
 			{ 21, -22, 3, 5 },
 			{ -4, -16, 4, 9 },
 		} :: { Block },
-		rims = { { 13, -18, 11, 1.3, 0.8 }, { 0, -10, 13, 1.2, 0.6 } } :: { Block },
+		-- the light on its head and back, and one bright eye
+		rims = {
+			{ 13, -18, 11, 1.3, 0.8 },
+			{ 0, -10, 13, 1.2, 0.6 },
+			{ 20.5, -15.5, 1.6, 1.6, 0.9 },
+		} :: { Block },
 	},
 
 	--[[ Small square motes that drift up and to the right and fade, each on
@@ -373,6 +447,17 @@ local TitleScene = {
 			{ 372, 644 },
 		},
 		post = { x = 340, y = 644 },
+		birds = { { 58, 50, 7 }, { 76, 42, 6 }, { 92, 54, 5 } },
+		glowcaps = {
+			{ 66, 600, 4 },
+			{ 183, 616, 5 },
+			{ 232, 636, 6 },
+			{ 262, 636, 4 },
+			{ 324, 644, 5 },
+			{ 358, 644, 4 },
+		},
+		sign = { x = 36, y = 616 },
+		shooting = { from = { 330, 14 }, to = { 262, 52 } },
 		tree = { x = 195, y = 612, unit = 0.9 },
 		hills = {
 			{ 0, 566, 70 },
@@ -389,8 +474,8 @@ local TitleScene = {
 			{ 50, 600, 104, 20 },
 			{ 300, 644, 90, 20 },
 		},
-		hero = { x = 100, y = 600, unit = 1.05 },
-		pet = { x = 128, y = 600, unit = 1.05 },
+		hero = { x = 96, y = 600, unit = 1.5 },
+		pet = { x = 122, y = 600, unit = 1.25 },
 		motes = { count = 12, seed = 3, box = { 40, 300, 310, 270 } },
 		logo = { y = 78, width = 390, unit = 1.14 },
 		button = { width = 358, height = 84, gap = 22, words = 29 },
@@ -440,6 +525,19 @@ local TitleScene = {
 			{ 790, 330 },
 		},
 		post = { x = 716, y = 330 },
+		birds = { { 640, 200, 7 }, { 660, 190, 6 }, { 676, 204, 5 } },
+		glowcaps = {
+			{ 114, 300, 4 },
+			{ 62, 318, 5 },
+			{ 290, 318, 5 },
+			{ 334, 318, 4 },
+			{ 600, 330, 5 },
+			{ 668, 330, 4 },
+			{ 742, 330, 5 },
+			{ 820, 330, 4 },
+		},
+		sign = { x = 86, y = 318 },
+		shooting = { from = { 760, 40 }, to = { 690, 84 } },
 		tree = { x = 422, y = 334, unit = 0.78 },
 		hills = {
 			{ 0, 290, 90 },
@@ -456,8 +554,8 @@ local TitleScene = {
 			{ 96, 300, 150, 22 },
 			{ 560, 330, 284, 20 },
 		},
-		hero = { x = 166, y = 300, unit = 0.95 },
-		pet = { x = 196, y = 300, unit = 0.95 },
+		hero = { x = 160, y = 300, unit = 1.35 },
+		pet = { x = 188, y = 300, unit = 1.15 },
 		motes = { count = 14, seed = 3, box = { 250, 100, 360, 190 } },
 		logo = { y = 16, width = 430, unit = 0.84 },
 		button = { width = 380, height = 72, gap = 14, words = 29 },

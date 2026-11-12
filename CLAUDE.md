@@ -89,7 +89,11 @@ still needs a little bit more to it"): thin cloud bands, a few plus-shaped stars
 a halo and craters on the moon, a farther row of hills, small stepped pines and village lights on the near ones,
 roots, leaf blocks round the crown's edge, lantern strings and a lit doorway on the tree, grass on the ridge and
 one lantern post. All of it is numbers in `Config/TitleScene`; `tests/TitleScene.spec` holds each piece on what it
-stands on. `IntroCutscene.preview(w, h)` shows it in a phone-sized frame in Studio. BEGIN ADVENTURE plays **the story cutscene**
+stands on. A third pass made the hero noticeable (owner, the same day: "the player model ... should be a little
+bit more noticeable"): half as large again, a bow whose ends stand clear with a line of light along it and its
+string, arrows in a quiver, light on the side facing the tree, a pool of the tree's light behind them, and an
+amber scarf that sways, the one warm thing that is not a window; plus far birds, a rare shooting star, vines and
+small windows in the crown, glowing mushrooms and a signpost on the ridge. `IntroCutscene.preview(w, h)` shows it in a phone-sized frame in Studio. BEGIN ADVENTURE plays **the story cutscene**
 (`UI/StoryCutscene`, `Config/Story`, `Util/StoryTimeline`, owner 2026-10-25), **animated
 as the owner's approved Claude Design clip** (owner, 2026-11-10; `Config/StoryMotion`,
 `Util/StoryMotion`, ported number for number from the Design project "King Bloblin's

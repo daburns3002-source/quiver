@@ -43,10 +43,13 @@ type Mote = {
 }
 
 type Twinkle = { frame: Frame, base: number, phase: number }
+type Sway = { frame: Frame, x: number, y: number, reach: number, phase: number }
 
 export type Scene = {
 	root: Frame,
 	twinkles: { Twinkle },
+	sways: { Sway },
+	shooting: Frame,
 	view: Vector2,
 	design: Config.Design,
 	motes: { Mote },
@@ -364,6 +367,37 @@ function TitleScene.build(parent: Instance, view: Vector2): Scene
 			big.alpha
 		)
 	end
+	-- a few far birds: each a shallow V of two strokes
+	local bird = Config.bird
+	for _, at in design.birds do
+		for side = -1, 1, 2 do
+			local wing = light(
+				"Bird",
+				at[1] + (side - 1) * at[3] / 2,
+				at[2],
+				at[3],
+				bird.thick,
+				Config.star,
+				bird.alpha
+			)
+			wing.Rotation = side * bird.tilt
+		end
+	end
+	--[[ The shooting star: a streak that is clear at its tail, turned along
+	     its path, shown only while it crosses (`step`). ]]
+	local path, streak = design.shooting, Config.shooting
+	local shooting = Instance.new("Frame")
+	shooting.Name = "Shooting"
+	shooting.BorderSizePixel = 0
+	shooting.BackgroundColor3 = Config.star
+	shooting.BackgroundTransparency = 1
+	shooting.AnchorPoint = Vector2.new(0.5, 0.5)
+	shooting.Size = UDim2.fromOffset(round(streak.long * k), math.max(1, round(streak.thick * k)))
+	shooting.Rotation = math.deg(math.atan2(path.to[2] - path.from[2], path.to[1] - path.from[1]))
+	local tail = Instance.new("UIGradient")
+	tail.Transparency = NumberSequence.new(1, 0)
+	tail.Parent = shooting
+	layer(shooting)
 	local moon = Config.moon
 	local function rounded(frame: Frame, share: number)
 		local curve = Instance.new("UICorner")
@@ -552,6 +586,23 @@ function TitleScene.build(parent: Instance, view: Vector2): Scene
 		)
 		light("Window", x, y, 8 * u, 10 * u, shape.window)
 	end
+	-- vines under the crown, and a few small warm windows up in it
+	for _, vine in shape.vines do
+		onTree("Vine", { vine[1], vine[2], 2, vine[3] }, shape.crownColours[1])
+	end
+	for _, at in shape.crownWindows do
+		local x, y = tree.x + at[1] * u, tree.y + at[2] * u
+		light(
+			"CrownWindowHalo",
+			x - 2 * u,
+			y - 2 * u,
+			9 * u,
+			10 * u,
+			shape.windowHalo,
+			shape.windowHaloAlpha
+		)
+		light("CrownWindow", x, y, 5 * u, 6 * u, shape.window)
+	end
 	-- the lit doorway at the trunk's foot
 	local door = shape.door
 	onTree("DoorFrame", door.frame, shape.doorFrame)
@@ -609,6 +660,43 @@ function TitleScene.build(parent: Instance, view: Vector2): Scene
 		shape.lanternHaloAlpha
 	)
 	light("PostLantern", hang, stands.y - post.tall + 5, post.lantern, post.lantern, shape.lantern)
+	-- glowing mushrooms: a pale stem under a mint cap, in a faint light
+	local cap = Config.glowcap
+	for _, at in design.glowcaps do
+		local x, foot, size = at[1], at[2], at[3]
+		light(
+			"GlowcapHalo",
+			x + size / 2 - size * cap.halo / 2,
+			foot - size * 0.8 - size * cap.halo / 2,
+			size * cap.halo,
+			size * cap.halo,
+			shape.lanternHalo,
+			cap.haloAlpha
+		)
+		light(
+			"GlowcapStem",
+			x + size * 0.35,
+			foot - size * 0.7,
+			size * 0.3,
+			size * 0.7 + 0.5,
+			cap.stem,
+			0.8
+		)
+		light("Glowcap", x, foot - size * 1.1, size, size * 0.5, shape.lantern)
+	end
+	-- the signpost, its board pointing at the tree
+	local sign, signAt = Config.sign, design.sign
+	block("Sign", signAt.x, signAt.y - sign.tall, 2, sign.tall + 1, Config.figure)
+	block("Sign", signAt.x - 2, signAt.y - sign.tall, sign.wide, sign.board, Config.figure)
+	block(
+		"Sign",
+		signAt.x - 2 + sign.wide,
+		signAt.y - sign.tall + 1.5,
+		3,
+		sign.board - 3,
+		Config.figure
+	)
+	light("SignRim", signAt.x - 2, signAt.y - sign.tall, sign.wide, 1, Config.rim, 0.5)
 
 	-- the hero from behind, bow across the back, and the pet at their heel
 	local function figure(
@@ -639,25 +727,78 @@ function TitleScene.build(parent: Instance, view: Vector2): Scene
 			)
 		end
 	end
-	local hero, bow = design.hero, Config.hero.bow
-	for _, piece in TitleLayout.curve(bow.from, bow.bend, bow.to, bow.pieces) do
-		local frame = Instance.new("Frame")
-		frame.Name = "Bow"
-		frame.BorderSizePixel = 0
-		frame.BackgroundColor3 = Config.figure
-		frame.AnchorPoint = Vector2.new(0.5, 0.5)
-		frame.Position = UDim2.fromScale(
-			(hero.x + piece.x * hero.unit) / wide,
-			(hero.y + piece.y * hero.unit) / tall
+	local hero, heroLook = design.hero, Config.hero
+	-- a pool of the tree's light behind the hero, so the dark shape stands out
+	local pool = glowImage("HeroGlow", Config.glow.colour, heroLook.glow.alpha)
+	layer(pool)
+	pool.Position = UDim2.fromScale(hero.x / wide, (hero.y - heroLook.glow.rise * hero.unit) / tall)
+	pool.Size = UDim2.fromScale(
+		2 * heroLook.glow.radius * hero.unit / wide,
+		2 * heroLook.glow.radius * hero.unit / tall
+	)
+	-- the scarf, which sways (`step`): the further along it, the more
+	local sways: { Sway } = {}
+	local scarf = heroLook.scarf
+	for index, piece in scarf.pieces do
+		local x, y = hero.x + piece[1] * hero.unit, hero.y + piece[2] * hero.unit
+		local frame = light(
+			"Scarf",
+			x,
+			y,
+			piece[3] * hero.unit,
+			piece[4] * hero.unit,
+			scarf.colour,
+			scarf.alpha
 		)
-		frame.Size = UDim2.fromOffset(
-			math.ceil(piece.long * hero.unit * k) + 1,
-			math.max(1, round(bow.thick * hero.unit * k))
-		)
-		frame.Rotation = piece.turn
-		layer(frame)
+		table.insert(sways, {
+			frame = frame,
+			x = x,
+			y = y,
+			reach = scarf.sway * hero.unit * index / #scarf.pieces,
+			phase = index * 0.9,
+		})
 	end
-	figure("Hero", hero, Config.hero.body, Config.hero.rims)
+	--[[ A line on the hero, as straight pieces: the bow's curve, the light
+	     along it, and its string. ]]
+	local bow = heroLook.bow
+	local function stroke(
+		name: string,
+		pieces: { TitleLayout.Piece },
+		colour: Color3,
+		thick: number,
+		alpha: number
+	)
+		for _, piece in pieces do
+			local frame = Instance.new("Frame")
+			frame.Name = name
+			frame.BorderSizePixel = 0
+			frame.BackgroundColor3 = colour
+			frame.BackgroundTransparency = 1 - alpha
+			frame.AnchorPoint = Vector2.new(0.5, 0.5)
+			frame.Position = UDim2.fromScale(
+				(hero.x + piece.x * hero.unit) / wide,
+				(hero.y + piece.y * hero.unit) / tall
+			)
+			frame.Size = UDim2.fromOffset(
+				math.ceil(piece.long * hero.unit * k) + 1,
+				math.max(1, round(thick * hero.unit * k))
+			)
+			frame.Rotation = piece.turn
+			layer(frame)
+		end
+	end
+	local arc = TitleLayout.curve(bow.from, bow.bend, bow.to, bow.pieces)
+	stroke("Bow", arc, Config.figure, bow.thick, 1)
+	figure("Hero", hero, heroLook.body, heroLook.rims)
+	stroke("BowRim", arc, Config.rim, heroLook.bowRim.thick, heroLook.bowRim.alpha)
+	local middle = { (bow.from[1] + bow.to[1]) / 2, (bow.from[2] + bow.to[2]) / 2 }
+	stroke(
+		"BowString",
+		TitleLayout.curve(bow.from, middle, bow.to, 1),
+		Config.rim,
+		heroLook.bowString.thick,
+		heroLook.bowString.alpha
+	)
 	figure("Pet", design.pet, Config.pet.body, Config.pet.rims)
 
 	local fading: { Fading } = {}
@@ -727,6 +868,8 @@ function TitleScene.build(parent: Instance, view: Vector2): Scene
 		design = design,
 		motes = motes,
 		twinkles = twinkles,
+		sways = sways,
+		shooting = shooting,
 		fading = fading,
 		shown = 1,
 		still = reducedMotion(),
@@ -756,6 +899,27 @@ function TitleScene.step(scene: Scene, t: number, shown: number)
 		mote.frame.BackgroundTransparency = 1 - alpha
 		mote.halo.Position = at
 		mote.halo.BackgroundTransparency = 1 - alpha * look.haloAlpha
+	end
+	-- the scarf's end lifts and falls
+	local scarf = Config.hero.scarf
+	for _, piece in scene.sways do
+		local lift = if scene.still
+			then 0
+			else piece.reach * math.sin(2 * math.pi * scarf.speed * t + piece.phase)
+		piece.frame.Position = UDim2.fromScale(piece.x / wide, (piece.y + lift) / tall)
+	end
+	-- a shooting star crosses now and then
+	local streak, path = Config.shooting, scene.design.shooting
+	local since = (t - streak.first) % streak.every
+	if scene.still or t < streak.first or since > streak.lasts then
+		scene.shooting.BackgroundTransparency = 1
+	else
+		local share = since / streak.lasts
+		scene.shooting.Position = UDim2.fromScale(
+			(path.from[1] + (path.to[1] - path.from[1]) * share) / wide,
+			(path.from[2] + (path.to[2] - path.from[2]) * share) / tall
+		)
+		scene.shooting.BackgroundTransparency = 1 - 0.9 * math.sin(math.pi * share) * shown
 	end
 	local twinkle = Config.twinkle
 	for _, star in scene.twinkles do

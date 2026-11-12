@@ -382,6 +382,63 @@ return function(t: TestRunner.Helper)
 		)
 	end)
 
+	--[[ The third pass (owner, 2026-11-12: the hero "should be a little bit
+	     more noticeable"). The hero is larger than the first drawing's and
+	     carries the one warm colour that is not a window; still small against
+	     the tree, which the test above holds. ]]
+	t.test("the hero is noticeable: larger, a warm scarf, a bow that stands clear", function()
+		local look = Scene.hero
+		for key, design in LAYOUTS do
+			t.isTrue(design.hero.unit >= 1.3, `{key}: larger than the first drawing's hero`)
+			t.isTrue(design.pet.unit < design.hero.unit, `{key}: the pet stays the smaller`)
+		end
+		local warm = hue(look.scarf.colour)
+		t.isTrue(warm >= 20 and warm <= 50, `the scarf is warm, hue {warm}`)
+		t.isTrue(look.scarf.alpha > 0.8, "and solid")
+		-- the bow's ends reach past the tunic's widest step, so they show
+		local widest = 0
+		for index = 1, 4 do
+			widest = math.max(widest, look.body[index][1] + look.body[index][3])
+		end
+		t.isTrue(look.bow.to[1] > widest and look.bow.from[1] < -widest, "the bow's ends show")
+		t.isTrue(
+			look.glow.alpha > 0 and look.glow.alpha < 0.4,
+			"a faint pool of light, not a spotlight"
+		)
+		for key, design in LAYOUTS do
+			for index, cap in design.glowcaps do
+				local on = false
+				for _, step in design.ridge do
+					on = on
+						or (
+							cap[2] == step[2]
+							and cap[1] >= step[1]
+							and cap[1] + cap[3] <= step[1] + step[3]
+						)
+				end
+				t.isTrue(on, `{key} mushroom {index} grows on a ridge step`)
+			end
+			local sign, standing = design.sign, false
+			for _, step in design.ridge do
+				standing = standing
+					or (
+						sign.y == step[2]
+						and sign.x - 2 >= step[1]
+						and sign.x + 13 <= step[1] + step[3]
+					)
+			end
+			t.isTrue(standing, `{key}: the signpost stands on a ridge step`)
+			for index, bird in design.birds do
+				for _, hill in design.farHills do
+					t.isTrue(bird[2] + 10 < hill[2], `{key} bird {index} is in the sky`)
+				end
+			end
+			local path = design.shooting
+			t.isTrue(path.from[2] < design.stars.below and path.to[2] < design.stars.below)
+		end
+		t.isTrue(Scene.shooting.lasts < Scene.shooting.every, "a shooting star is rare")
+	end)
+
 	--[[ The drawing's sizes are the letters'; Roblox's TextSize is the font's
 	     whole line. Without this the logo and BEGIN ADVENTURE come out a fifth
 	     small (seen in Studio, 2026-11-12). ]]
@@ -429,7 +486,8 @@ return function(t: TestRunner.Helper)
 				)
 
 				local hero, pet = design.hero, design.pet
-				local heroLeft, heroTop = sx(hero.x - 15 * hero.unit), sy(hero.y - 57 * hero.unit)
+				-- out to the scarf's end and up to the bow's tip
+				local heroLeft, heroTop = sx(hero.x - 30 * hero.unit), sy(hero.y - 61 * hero.unit)
 				local petRight, feet = sx(pet.x + 24 * pet.unit), sy(hero.y)
 				t.isTrue(heroLeft >= 0 and petRight <= w, `{name}: the hero and pet across`)
 				t.isTrue(heroTop >= 0 and feet <= h, `{name}: the hero and pet down`)

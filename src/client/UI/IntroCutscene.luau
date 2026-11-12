@@ -32,6 +32,7 @@ local Workspace = game:GetService("Workspace")
 local Intro = require(ReplicatedStorage.Shared.Config.Intro)
 local IntroTimeline = require(ReplicatedStorage.Shared.Util.IntroTimeline)
 local Music = require(ReplicatedStorage.Shared.Config.Music)
+local Options = require(script.Parent.Parent.Options)
 
 local Device = require(script.Parent.Parent.Device)
 local Preload = require(script.Parent.Parent.Preload)
@@ -413,7 +414,7 @@ local function loadMusic(): Sound?
 	local sound = Instance.new("Sound")
 	sound.Name = "Music_Intro"
 	sound.SoundId = track.id
-	sound.Volume = Music.volume
+	sound.Volume = Music.volume * Options.music()
 	local from, to = track.loopStart, track.loopEnd
 	sound.PlaybackRegionsEnabled = from ~= nil and to ~= nil
 	if from and to then
@@ -475,7 +476,7 @@ end
 local function fadeMusic(level: number)
 	local sound = music
 	if sound then
-		sound.Volume = Music.volume * level
+		sound.Volume = Music.volume * level * Options.music()
 	end
 end
 

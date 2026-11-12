@@ -245,6 +245,13 @@ Remotes.EndlessPrize = "EndlessPrize"
 Remotes.SoulstoneBuy = "SoulstoneBuy"
 
 --[[
+	Client → server. "Keep this setting": its name ("music", "sound",
+	"haptics") and its value (`Config/Settings`). A request: the server
+	cleans both (`Util/SettingsRules.clean`) and drops anything else.
+]]
+Remotes.SettingSet = "SettingSet"
+
+--[[
 	Client → server. "I pick the nth option at the checkpoint", or 0 to bank
 	and leave.
 

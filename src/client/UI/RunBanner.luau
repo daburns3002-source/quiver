@@ -39,6 +39,7 @@ local RunHudRules = require(ReplicatedStorage.Shared.Util.RunHudRules)
 local ShopAssets = require(ReplicatedStorage.Shared.Config.ShopAssets)
 
 local Chunky = require(script.Parent.Chunky)
+local Haptics = require(script.Parent.Parent.Fx.Haptics)
 local HudLayout = require(script.Parent.HudLayout)
 
 local RunBanner = {}
@@ -420,6 +421,7 @@ function RunBanner.onXpChanged(xp: number, toNext: number, level: number)
 		fill.Size = UDim2.fromScale(share, 1)
 		if level > shownLevel then
 			pop(badgeScale, 1.35)
+			Haptics.play("level")
 		end
 		shownLevel = level
 	else

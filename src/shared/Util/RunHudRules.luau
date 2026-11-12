@@ -154,4 +154,53 @@ function RunHudRules.draftTray(viewWidth: number): DraftTray
 	return { width = width, height = d.sheet.Y * unit, buttonHeight = d.buttonsHeight * unit }
 end
 
+--[[ Whether the draft draws REROLL: only when it has a redeal to give. An
+     Angel's gift is never redealt, the tutorial's hands are fixed
+     (`Util/TutorialHands`), and a run that has spent its rerolls has none;
+     a grey REROLL that could not be pressed read as broken (the
+     first-five-minutes playtest, 2026-11-12). CHOOSE! is centred without it. ]]
+function RunHudRules.draftReroll(source: string?, rerolls: number?): boolean
+	return source ~= "Angel" and (rerolls or 0) > 0
+end
+
+export type DraftPlace = {
+	--[[ The panel's scale, and where its top edge is. ]]
+	scale: number,
+	top: number,
+	--[[ Where the stand-in's bottom edge goes: just over the cards' room. ]]
+	line: number,
+}
+
+--[[ Where the draft's panel goes when something `stand` tall stands in for
+     its heading (the tutorial's prompt over the first hand,
+     `UI/TutorialPrompts`), which must cover no card and stay on the screen.
+     The panel's own fit is `scale` with its top edge at `top`; it is
+     `height` design pixels tall and its cards' room (crowns, and a picked
+     card's rise) starts `clear` of them down it. The stand-in sits with its
+     bottom edge `gap` over that room and may reach no higher than `ceiling`;
+     the panel, and the `below` of screen that goes with it (the phone's
+     tray), no lower than `floor`. A panel with the room already keeps its
+     place; otherwise it moves down, and shrinks only if it must. ]]
+function RunHudRules.draftUnder(q: {
+	scale: number,
+	top: number,
+	height: number,
+	clear: number,
+	stand: number,
+	gap: number,
+	ceiling: number,
+	floor: number,
+	below: number,
+}): DraftPlace
+	local need = q.ceiling + q.stand + q.gap
+	local scale, top = q.scale, q.top
+	if top + q.clear * scale < need then
+		scale = math.min(scale, (q.floor - q.below - need) / (q.height - q.clear))
+		-- a screen too short for both keeps the cards readable over the floor
+		scale = math.max(scale, 0.3)
+		top = need - q.clear * scale
+	end
+	return { scale = scale, top = top, line = top + q.clear * scale - q.gap }
+end
+
 return RunHudRules

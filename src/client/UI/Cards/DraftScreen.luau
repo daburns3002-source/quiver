@@ -15,6 +15,15 @@
 	touch screen the cards sit closer together, as the design's phone layout
 	does, and the lower rarities draw over the higher so the big crystal
 	wings tuck behind their neighbours.
+
+	**A phone held upright** gets a tray under the panel (`Config/Hud`
+	`draftUpright`, `Util/RunHudRules.draftTray`; the 2026-11-11 loop and
+	UI review). The hand is fitted to the screen's width there, about half
+	size, which left Choose! and Reroll some 87 x 27 points and the bottom
+	half of the screen empty. The tray reads out the selected card's name
+	and description in large words and carries REROLL and CHOOSE! as the
+	chunky kit's fat buttons (`UI/Chunky`), 56 points tall across the
+	width. The cards keep their size: nothing about them springs or pops.
 ]]
 
 local ContextActionService = game:GetService("ContextActionService")
@@ -29,13 +38,16 @@ local CardAssets = require(ReplicatedStorage.Shared.Config.CardAssets)
 local CardBuilder = require(script.Parent.CardBuilder)
 local CardPanel = require(ReplicatedStorage.Shared.Config.CardPanel)
 local CardTheme = require(ReplicatedStorage.Shared.Config.CardTheme)
+local Chunky = require(script.Parent.Parent.Chunky)
 local DetailPanel = require(script.Parent.DetailPanel)
 local Device = require(script.Parent.Parent.Parent.Device)
 local FxEvents = require(script.Parent.Parent.Parent.Fx.Upgrades.FxEvents)
+local Hud = require(ReplicatedStorage.Shared.Config.Hud)
 local Motion = require(script.Parent.Motion)
 local MythicReveal = require(script.Parent.MythicReveal)
 local PlayerStats = require(script.Parent.Parent.Parent.PlayerStats)
 local Rarities = require(ReplicatedStorage.Shared.Config.Rarities)
+local RunHudRules = require(ReplicatedStorage.Shared.Util.RunHudRules)
 local SkillBar = require(script.Parent.SkillBar)
 local SoundFx = require(script.Parent.Parent.Parent.Fx.SoundFx)
 
@@ -106,6 +118,14 @@ local buttonsList: UIListLayout? = nil
      and both of those were costing the cards their size. ]]
 local PHONE_BUTTON_COLUMN = 210
 local PHONE_MARGIN = 8
+--[[ The tray under the panel on a phone held upright: the selected card
+     read out in large words, and the two big buttons. ]]
+local tray: Frame? = nil
+local trayTitle: TextLabel? = nil
+local trayWords: TextLabel? = nil
+local trayChoose: Frame? = nil
+local trayReroll: Frame? = nil
+local TRAY_HINT = "TAP A CARD TO READ IT"
 local cardRow: Frame? = nil
 local title: TextLabel? = nil
 local subtitle: TextLabel? = nil
@@ -571,6 +591,31 @@ local function setChooseEnabled(enabled: boolean)
 			wobble(b, 6)
 		end
 	end
+	local big = trayChoose
+	if big then
+		Chunky.repaint(big, if enabled then Chunky.green else Chunky.grey)
+	end
+end
+
+--[[ Says the selected card in the tray, or how to select one. ]]
+local function readOut(id: string?)
+	local name, words = trayTitle, trayWords
+	if not name or not words then
+		return
+	end
+	local ability = if id then Abilities.byId[id] else nil
+	if not ability then
+		name.Text = TRAY_HINT
+		name.TextColor3 = Chunky.ink
+		words.Text = ""
+		return
+	end
+	local rarity = Rarities.byName[ability.rarity]
+	name.Text = string.upper(ability.name)
+	name.TextColor3 = if rarity
+		then Chunky.shade(rarity.color):Lerp(rarity.color, 0.45)
+		else Chunky.ink
+	words.Text = ability.description
 end
 
 --[[
@@ -618,6 +663,8 @@ local function pick(index: number?)
 		end
 	end
 	setChooseEnabled(index ~= nil)
+	local chosen = if index then slots[index] else nil
+	readOut(if chosen then chosen.id else nil)
 end
 
 local function confirm()
@@ -627,6 +674,10 @@ local function confirm()
 	end
 
 	locked = true
+	-- The tray steps aside for the celebration.
+	if tray then
+		tray.Visible = false
+	end
 	SoundFx.play("card_choose")
 	local chosen = slots[index]
 	if chosen then
@@ -720,13 +771,19 @@ local function layoutPanel(count: number)
 	--[[ Held sideways the buttons go beside the hand, for height; held
 	     upright they stay under it, for width. ]]
 	local column = phone and viewport.X >= viewport.Y
+	--[[ Held upright the buttons leave the panel for the tray under it. ]]
+	local stack = phone and not column and tray ~= nil
 	-- A phone keeps little padding at the panel's sides (room for the NEW
 	-- sticker over the last card); a computer 70.
 	local sidePad = if phone then 36 else 70
 	local width = count * CARD.X + (count - 1) * gap() + 2 * sidePad
 	local panelWidth = math.max(width, if phone then 400 else 460)
 		+ (if column then PHONE_BUTTON_COLUMN else 0)
-	local height = 40 + 70 + CROWN_ROOM + CARD.Y + (if column then 40 else 50 + 76 + 30)
+	local height = 40
+		+ 70
+		+ CROWN_ROOM
+		+ CARD.Y
+		+ (if column or stack then 40 else 50 + 76 + 30)
 	p.Size = UDim2.fromOffset(panelWidth, height)
 	row.Size = UDim2.fromOffset(width, CARD.Y)
 	row.Position =
@@ -735,6 +792,7 @@ local function layoutPanel(count: number)
 
 	local b, list = buttonsFrame, buttonsList
 	if b and list then
+		b.Visible = not stack
 		if column then
 			b.AnchorPoint = Vector2.new(1, 0.5)
 			b.Position = UDim2.new(1, -30, 0, 40 + 70 + CROWN_ROOM + CARD.Y / 2)
@@ -752,15 +810,33 @@ local function layoutPanel(count: number)
 	-- Fit the whole panel to the screen, never above design size.
 	local margin = if phone then PHONE_MARGIN else 32
 	local barRoom = if phone then 0 else BAR_ROOM
-	local scale =
-		math.min(1, (viewport.X - margin) / panelWidth, (viewport.Y - margin - barRoom) / height)
+	local under = if stack then RunHudRules.draftTray(viewport.X) else nil
+	local trayRoom = if under then under.height + Hud.draftUpright.rowGap else 0
+	local scale = math.min(
+		1,
+		(viewport.X - margin) / panelWidth,
+		(viewport.Y - margin - barRoom - trayRoom) / height
+	)
 	scale = math.max(scale, 0.3)
 	local s = panelScale
 	if s then
 		s.Scale = scale
 	end
-	-- Lifted clear of the skill bar beneath it, where there is one.
-	p.Position = UDim2.new(0.5, 0, 0.5, -barRoom * scale / 2)
+	local t = tray
+	if under and t then
+		-- The panel and the tray under it, centred as one stack.
+		local top = math.max(0, (viewport.Y - height * scale - trayRoom) / 2)
+		p.Position = UDim2.new(0.5, 0, 0, top + height * scale / 2)
+		t.Size = UDim2.fromOffset(under.width, under.height)
+		t.Position = UDim2.new(0.5, 0, 0, top + height * scale + Hud.draftUpright.rowGap)
+		t.Visible = true
+	else
+		-- Lifted clear of the skill bar beneath it, where there is one.
+		p.Position = UDim2.new(0.5, 0, 0.5, -barRoom * scale / 2)
+		if t then
+			t.Visible = false
+		end
+	end
 	if phone then
 		SkillBar.setVisible(false)
 	else
@@ -1287,6 +1363,7 @@ end
 
 function DraftScreen.stop()
 	clearSlots()
+	tray, trayTitle, trayWords, trayChoose, trayReroll = nil, nil, nil, nil, nil
 	table.clear(buttonFeels)
 	if connection then
 		connection:Disconnect()
@@ -1538,6 +1615,60 @@ function DraftScreen.start(chosen: (number) -> (), rerolled: () -> ())
 		disabled = CardAssets.buttons.chooseDisabled,
 		words = "CHOOSE!",
 	})
+
+	--[[ The phone's tray (see the top of the file): a `UI/Chunky` sheet of
+	     `Config/Hud` `draftUpright`, sized as one piece by `layoutPanel`. ]]
+	local d = Hud.draftUpright
+	local under = Instance.new("Frame")
+	under.Name = "Tray"
+	under.BackgroundTransparency = 1
+	under.AnchorPoint = Vector2.new(0.5, 0)
+	under.Visible = false
+	under.ZIndex = 2
+	under.Parent = created
+	tray = under
+	local sheet = Chunky.pointSheet(under, d.sheet.X / 2, d.sheet.Y / 2)
+	local box = Chunky.card(sheet, 0, 0, d.sheet.X, d.wordsHeight)
+	local name = Chunky.text(box, TRAY_HINT, Chunky.ink, 0)
+	name.Name = "Name"
+	name.Position = UDim2.fromScale(0.04, 0.08)
+	name.Size = UDim2.fromScale(0.92, 0.3)
+	local nameCap = Instance.new("UITextSizeConstraint")
+	nameCap.MaxTextSize = d.titleSize
+	nameCap.Parent = name
+	trayTitle = name
+	local words = Chunky.text(box, "", Chunky.ink, 0)
+	words.Name = "Words"
+	words.Position = UDim2.fromScale(0.04, 0.4)
+	words.Size = UDim2.fromScale(0.92, 0.52)
+	words.TextWrapped = true
+	words.TextYAlignment = Enum.TextYAlignment.Top
+	local wordsCap = Instance.new("UITextSizeConstraint")
+	wordsCap.MaxTextSize = d.wordsSize
+	wordsCap.Parent = words
+	trayWords = words
+	local buttonsTop = d.sheet.Y - d.buttonsHeight
+	trayReroll = Chunky.button(
+		sheet,
+		"REROLL",
+		Chunky.blue,
+		0,
+		buttonsTop,
+		d.rerollWidth,
+		d.buttonsHeight,
+		reroll,
+		CardAssets.buttons.dice
+	)
+	trayChoose = Chunky.button(
+		sheet,
+		"CHOOSE!",
+		Chunky.grey,
+		d.rerollWidth + d.gap,
+		buttonsTop,
+		d.sheet.X - d.rerollWidth - d.gap,
+		d.buttonsHeight,
+		confirm
+	)
 
 	-- The overlay: rays, a flash, a shockwave ring, words and a flying icon.
 	local over = Instance.new("Frame")
@@ -1803,6 +1934,15 @@ function DraftScreen.show(offer: { string }, level: number, source: string?, rer
 			count.Visible = left > 0
 		end
 	end
+	local bigReroll = trayReroll
+	if bigReroll then
+		bigReroll.Visible = source ~= "Angel"
+		Chunky.repaint(
+			bigReroll,
+			if left > 0 then Chunky.blue else Chunky.grey,
+			if left > 0 then `REROLL {left}` else "REROLL"
+		)
+	end
 
 	layoutPanel(#offer)
 
@@ -1883,6 +2023,9 @@ function DraftScreen.hide()
 	clearSlots()
 	if gui then
 		gui.Enabled = false
+	end
+	if tray then
+		tray.Visible = false
 	end
 	--[[ The bar stays up through the fight, back at its combat size; after
 	     a pick it waits a moment first, so the icon landing and its slot

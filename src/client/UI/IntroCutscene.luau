@@ -41,7 +41,7 @@ local TitleMotion = require(script.Parent.TitleMotion)
 
 local IntroCutscene = {}
 
-local FONT = Font.fromEnum(Enum.Font.Arcade)
+local FONT = Font.fromEnum(Enum.Font.FredokaOne)
 local INK = Color3.fromRGB(20, 14, 6)
 local SHINE = Color3.fromRGB(140, 222, 110)
 local FOOT = Color3.fromRGB(40, 120, 34)

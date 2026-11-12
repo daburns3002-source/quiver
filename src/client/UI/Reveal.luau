@@ -201,7 +201,7 @@ local function layer(): (ScreenGui, Frame, Frame, Frame, Frame, TextButton)
 	flash.ZIndex = 10
 	flash.Parent = gui
 	local tap = Instance.new("TextButton")
-	tap.Font = Enum.Font.Arcade
+	tap.Font = Enum.Font.FredokaOne
 	tap.Text = ""
 	tap.BackgroundTransparency = 1
 	tap.Size = UDim2.fromScale(1, 1)
@@ -1493,7 +1493,7 @@ function Reveal.equip(source: GuiObject, target: GuiObject, asset: string, pet: 
 	local began = os.clock()
 	local offset = 0
 	local overlay = Instance.new("TextButton")
-	overlay.Font = Enum.Font.Arcade
+	overlay.Font = Enum.Font.FredokaOne
 	overlay.Text = ""
 	overlay.BackgroundTransparency = 1
 	overlay.Size = UDim2.fromScale(1, 1)

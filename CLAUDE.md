@@ -880,14 +880,12 @@ for now"): the Blender MCP stays set up (`~/.claude.json`, the `blender-mcp` add
 comparisons are on branch `phase-3/blender-swords`, but no model is made there until the
 owner says otherwise.
 
-**11. Every word on screen is in the blocky font.**
-Press Start 2P, Roblox's `Enum.Font.Arcade` (`Font.fromEnum(Enum.Font.Arcade)` for a
-`FontFace`): HUD, cards, end screens, banners, damage numbers, billboards, dev labels, all
-of it (owner, 2026-10-24: "anywhere there is writing it should be in a blocky font … have
-it as a rule going forward"). The room sign's own pixel font (`Config/PixelFont`) counts.
-The one exception is the **rounded font**, Fredoka One (`Enum.Font.FredokaOne`, via
-`UI/Chunky`), for the chunky restyled screens and the lobby (owner, 2026-11-05: "they should
-use the rounded font, some things are going to be in that font, especially in the lobby").
+**11. Every word on screen is in the one rounded font.**
+Fredoka One, Roblox's `Enum.Font.FredokaOne` (`Chunky.font`; `Font.fromEnum(Enum.Font.FredokaOne)` for a
+`FontFace`): HUD, cards, end screens, banners, damage numbers, billboards, dev labels, all of it (owner,
+2026-11-11: "the ui font for everything should match the new ui text font, replacing the previous rule").
+It replaced the blocky font, Press Start 2P, which the rule named from 2026-10-24 with the rounded one as
+its exception. The room sign's own pixel letters (`Config/PixelFont`) are drawn, not typed, and stay.
 `tools/check.sh` fails on any other font.
 
 **12. Every Legendary and Mythic glows.**

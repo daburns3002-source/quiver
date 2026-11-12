@@ -314,7 +314,7 @@ end
 --[[ The Glow Toy buttons (`CardAssets.buttons`): the plate is 713 x 230 of
      the 804 x 324 art, from (45, 48); the art is drawn so that plate fills
      the button. The plates are blank: the words (and Reroll's dice) are
-     written live in the blocky font (CLAUDE.md rule 11), centred on the
+     written live in the game's font (CLAUDE.md rule 11), centred on the
      plate's face, rows 9..159 of its 230, and move down with the pressed
      art, which sits 30 lower. ]]
 local ART_SIZE = Vector2.new(804, 324)

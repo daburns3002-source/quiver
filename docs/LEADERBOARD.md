@@ -72,7 +72,7 @@ this separate ordered store, written only by the max rule above.
 ## Drawing it
 
 `StoryLeaderboard.attach(face, areaNames)` builds a `SurfaceGui` on the front
-of `face` (sized by `Leaderboard.pixelsPerStud`, `Enum.Font.Arcade`), with
+of `face` (sized by `Leaderboard.pixelsPerStud`, `Enum.Font.FredokaOne`), with
 `Leaderboard.rows` rows, and redraws it whenever the top changes. `areaNames`
 maps a stage index to its area's name, e.g. `{ [7] = "Mossy Glade 1-1",
 [4] = "Thornwood" }` (an area of several levels names the level too). The board's title, FARTHEST ADVENTURERS, is the frame's,

@@ -59,7 +59,7 @@ local function text(parent: Instance, name: string, words: string, colour: Color
 	local label = Instance.new("TextLabel")
 	label.Name = name
 	label.BackgroundTransparency = 1
-	label.Font = Enum.Font.Arcade
+	label.Font = Enum.Font.FredokaOne
 	label.Text = words
 	label.TextColor3 = colour
 	label.TextScaled = true

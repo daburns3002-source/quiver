@@ -83,7 +83,7 @@ function HealthBar.start()
 	text.Position = UDim2.fromScale(0.5, 0.5)
 	text.Size = UDim2.fromScale(1, Hud.barText.health)
 	text.BackgroundTransparency = 1
-	text.Font = Enum.Font.Arcade
+	text.Font = Enum.Font.FredokaOne
 	text.TextScaled = true
 	text.TextColor3 = Color3.fromRGB(255, 255, 255)
 	text.TextStrokeTransparency = 0
@@ -118,7 +118,7 @@ local function showHeal(amount: number)
 	number.Position = UDim2.fromScale(config.x, 0.5)
 	number.Size = UDim2.fromScale(0.26, config.height)
 	number.BackgroundTransparency = 1
-	number.Font = Enum.Font.Arcade
+	number.Font = Enum.Font.FredokaOne
 	number.TextScaled = true
 	number.TextColor3 = config.colour
 	number.Text = `+{math.max(1, math.floor(amount + 0.5))}`

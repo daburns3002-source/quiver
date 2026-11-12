@@ -10,7 +10,7 @@
 	outline, a fill with a lighter strip on top and a darker band below,
 	and stair-stepped corners made of overlapping rectangles. The art the
 	sheets draw (ribbons, the pictures, icons, cubes) is Codex's, in
-	`Config/EndScreenAssets`; every word is live, in the blocky font.
+	`Config/EndScreenAssets`; every word is live, in the game's font.
 
 	Presentation only. The server decides that the run is over, whether it
 	was won, and every number shown; the button only asks it for the next

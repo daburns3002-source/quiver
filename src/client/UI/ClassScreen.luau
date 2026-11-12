@@ -81,7 +81,7 @@ function ClassScreen.loadingCover(parent: Instance, seconds: number?): Frame
 	end
 	local tip = Instance.new("TextLabel")
 	tip.BackgroundTransparency = 1
-	tip.Font = Enum.Font.Arcade
+	tip.Font = Enum.Font.FredokaOne
 	tip.Text = LoadingTips[math.random(1, #LoadingTips)]
 	tip.TextColor3 = LoadingScreen.tipText
 	tip.TextScaled = true

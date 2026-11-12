@@ -251,6 +251,11 @@ Remotes.SoulstoneBuy = "SoulstoneBuy"
 ]]
 Remotes.SettingSet = "SettingSet"
 
+--[[ Client → server, Studio only: Soulstones into the wallet
+     (`Server/Data/SoulstoneShop`), to test the Soulstone shop without
+     playing Endless for them. ]]
+Remotes.DebugSoulstones = "DebugSoulstones"
+
 --[[
 	Client → server. "I pick the nth option at the checkpoint", or 0 to bank
 	and leave.

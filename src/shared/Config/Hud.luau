@@ -106,6 +106,14 @@ local Hud = {
 		desktopShare = 0.3,
 		desktopMin = 420,
 		desktopMax = 620,
+		--[[ A computer's HUD is drawn larger on a tall screen, where a
+		     point is small: by the screen's height over `desktopTall`,
+		     up to `desktopGrow` times. Panels laid out in points (the
+		     MENU's, settings, the Soulstone shop, a prize) grow the same
+		     way, to `panelGrow` at most (`RunHudRules.fit`). ]]
+		desktopTall = 800,
+		desktopGrow = 1.75,
+		panelGrow = 1.8,
 		--[[ The XP row: the bar's height, the badge square that overlaps
 		     its left end, and the coin pill at its right. ]]
 		xpHeight = 18,

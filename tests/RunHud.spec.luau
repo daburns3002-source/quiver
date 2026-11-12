@@ -50,19 +50,23 @@ return function(t: TestRunner.Helper)
 		local view = Vector2.new(1920, 1080)
 		local top = RunHudRules.top(view, false, 36)
 		t.isNil(top.menu, "no icon on a computer")
-		t.isNil(top.panel, "the panel keeps its own size on a computer")
 		t.near(top.banner.x + top.banner.w / 2, view.X / 2, 0.5, "centred")
+		t.isTrue(top.scale > 1, "a tall screen draws the HUD larger")
+		t.isTrue(top.scale <= Hud.top.desktopGrow, "and no larger than the cap")
+		t.equal(RunHudRules.top(Vector2.new(1280, 720), false, 36).scale, 1, "not a small one")
+		t.isTrue(top.panel.w > Hud.top.panelWidth, "its panels grow too")
+		t.isTrue(top.panel.w <= Hud.top.panelWidth * Hud.top.panelGrow)
 	end)
 
 	t.test("a phone's MENU panel fits the screen it is on", function()
 		for _, view in { UPRIGHT, SIDEWAYS, Vector2.new(320, 568) } do
-			local panel = RunHudRules.top(view, true, TOP_BAR).panel
-			t.notNil(panel, "a phone has a panel box")
-			if panel then
-				t.isTrue(panel.x >= 0 and panel.x + panel.w <= view.X, "fits across")
-				t.isTrue(panel.y >= 0 and panel.y + panel.h <= view.Y, "fits down")
-				t.isTrue(panel.w >= 280, "wide enough to read on the narrowest phone")
-			end
+			local top = RunHudRules.top(view, true, TOP_BAR)
+			local panel = top.panel
+			t.equal(top.scale, 1, "a phone's HUD is drawn at its points")
+			t.isTrue(panel.x >= 0 and panel.x + panel.w <= view.X, "fits across")
+			t.isTrue(panel.y >= 0 and panel.y + panel.h <= view.Y, "fits down")
+			t.isTrue(panel.w >= 280, "wide enough to read on the narrowest phone")
+			t.isTrue(panel.w <= Hud.top.panelWidth, "never larger than built on a phone")
 		end
 	end)
 

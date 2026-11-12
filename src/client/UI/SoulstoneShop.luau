@@ -21,6 +21,7 @@ local Workspace = game:GetService("Workspace")
 
 local Config = require(ReplicatedStorage.Shared.Config.SoulstoneShop)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
+local RunHudRules = require(ReplicatedStorage.Shared.Util.RunHudRules)
 local SaveSchema = require(ReplicatedStorage.Shared.Util.SaveSchema)
 local SoulstoneShopRules = require(ReplicatedStorage.Shared.Util.SoulstoneShopRules)
 
@@ -92,7 +93,7 @@ local function draw(): Frame?
 	local rowsTop = pillTop + 92
 	local rowH, rowGap = 132, 14
 	local h = rowsTop + #offers * (rowH + rowGap) + 24 + 12
-	local fit = math.min(1, (view.X - 2 * MARGIN) / WIDTH, (view.Y - 2 * MARGIN) / (h / 2))
+	local fit = RunHudRules.fit(view, WIDTH, h / 2, MARGIN)
 
 	local shade = Instance.new("TextButton")
 	shade.Name = "Shade"
@@ -144,9 +145,14 @@ local function draw(): Frame?
 		local y = rowsTop + (n - 1) * (rowH + rowGap)
 		local card = Chunky.card(sheet, pad, y, w - 2 * pad, rowH)
 		local name = Chunky.text(card, offer.name, Chunky.ink, 0)
-		name.Position, name.Size = UDim2.fromScale(0.03, 0.2), UDim2.fromScale(0.36, 0.6)
+		name.Position, name.Size = UDim2.fromScale(0.03, 0.14), UDim2.fromScale(0.42, 0.72)
 		name.TextXAlignment = Enum.TextXAlignment.Left
-		local buttonW, buttonGap = 262, 14
+		name.TextWrapped = true
+		--[[ One size down the list, however long a name is. ]]
+		local cap = Instance.new("UITextSizeConstraint")
+		cap.MaxTextSize = math.max(8, math.floor(17 * fit))
+		cap.Parent = name
+		local buttonW, buttonGap = 236, 12
 		local right = w - pad - 20
 		for i = #Config.counts, 1, -1 do
 			local count = Config.counts[i]

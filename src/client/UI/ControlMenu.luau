@@ -51,9 +51,9 @@ local ControlMenu = {}
      offset to sit under the SANDBOX tab, which is 44 tall and centred, so
      its bottom edge is 22 below the middle and this starts 12 clear of it. ]]
 local MENU = { x = 8, drop = 34, w = 136, h = 64 }
---[[ The confirm panel on a computer, in screen points, centred. A phone's
-     comes from `RunHudRules.top`. Both keep the shape the panel is built
-     in, `PANEL.w` by `PANEL.h`. ]]
+--[[ The shape the confirm panel is built in, in screen points. How large
+     it is drawn comes from `RunHudRules.top`: fitted to a phone, grown on a
+     computer's big screen. ]]
 local PANEL = { w = 440, h = 273 }
 
 local screen: ScreenGui? = nil
@@ -201,7 +201,7 @@ local function build()
 			iconNow.Size = UDim2.fromOffset(at.w, at.h)
 		end
 		local room = layout.panel
-		local width = if room then math.min(room.w, room.h * PANEL.w / PANEL.h) else PANEL.w
+		local width = math.min(room.w, room.h * PANEL.w / PANEL.h)
 		boxNow.Size = UDim2.fromOffset(width, width * PANEL.h / PANEL.w)
 	end)
 end

@@ -20,6 +20,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 
 local Config = require(ReplicatedStorage.Shared.Config.Settings)
+local RunHudRules = require(ReplicatedStorage.Shared.Util.RunHudRules)
 
 local Chunky = require(script.Parent.Chunky)
 local Options = require(script.Parent.Parent.Options)
@@ -95,7 +96,7 @@ local function draw()
 	box:ClearAllChildren()
 	local camera = Workspace.CurrentCamera
 	local view = if camera then camera.ViewportSize else Vector2.new(1280, 720)
-	local fit = math.min(1, (view.X - 2 * MARGIN) / WIDTH, (view.Y - 2 * MARGIN) / HEIGHT)
+	local fit = RunHudRules.fit(view, WIDTH, HEIGHT, MARGIN)
 	box.Size = UDim2.fromOffset(WIDTH * fit, HEIGHT * fit)
 
 	local sheet = Chunky.pointSheet(box, WIDTH, HEIGHT)

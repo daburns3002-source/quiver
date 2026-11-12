@@ -163,6 +163,9 @@ local function build(gui: ScreenGui)
 	top.Name = "Top"
 	top.BackgroundTransparency = 1
 	top.Parent = gui
+	--[[ A computer's big screen draws it larger (`RunHudRules.top`). ]]
+	local grow = Instance.new("UIScale")
+	grow.Parent = top
 	root = top
 
 	-- The XP row: badge, bar, coins.
@@ -394,7 +397,11 @@ function RunBanner.start()
 		if top then
 			local at = layout.banner
 			top.Position = UDim2.fromOffset(at.x, at.y)
-			top.Size = UDim2.fromOffset(at.w, at.h)
+			top.Size = UDim2.fromOffset(at.w / layout.scale, at.h / layout.scale)
+			local grow = top:FindFirstChildOfClass("UIScale")
+			if grow then
+				grow.Scale = layout.scale
+			end
 		end
 	end)
 

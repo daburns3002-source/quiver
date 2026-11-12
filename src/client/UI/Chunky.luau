@@ -89,6 +89,7 @@ export type Sheet = {
 	     top, in sheet pixels, so the title and the X know where it is. ]]
 	panel: Box?,
 	panelFrame: Frame?,
+	panelFoot: Frame?,
 	header: number?,
 }
 
@@ -110,6 +111,7 @@ function Chunky.sheet(canvas: Frame): Sheet
 		upright = upright,
 		panel = nil,
 		panelFrame = nil,
+		panelFoot = nil,
 		header = nil,
 	}
 end
@@ -128,6 +130,7 @@ function Chunky.pointSheet(frame: Frame, w: number, h: number): Sheet
 		upright = h > w,
 		panel = nil,
 		panelFrame = nil,
+		panelFoot = nil,
 		header = nil,
 	}
 end
@@ -244,7 +247,7 @@ local function stripes(parent: GuiObject, z: number, radius: number, strength: n
 	end
 	local bands = Instance.new("UIGradient")
 	bands.Rotation = -58
-	local clear, solid = 1, 1 - (strength or 0.16)
+	local clear, solid = 1, 1 - (strength or 0.3)
 	local keys = {}
 	local last = 19
 	for n = 0, last do
@@ -290,6 +293,7 @@ function Chunky.panel(sheet: Sheet, x: number, y: number, w: number, h: number):
 	Chunky.outline(rim, 3, Color3.new(1, 1, 1)).Transparency = 0.25
 	sheet.panel = { x = x, y = y, w = w, h = h }
 	sheet.panelFrame = p
+	sheet.panelFoot = foot
 	sheet.header = nil
 	return p
 end
@@ -328,7 +332,7 @@ local function orangeBar(parent: Instance, radius: number, skirt: boolean): Fram
 		square.Name = "Skirt"
 		square.Position, square.Size = UDim2.fromScale(0, 0.5), UDim2.fromScale(1, 0.5)
 	end
-	stripes(bar, 4, radius, 0.2)
+	stripes(bar, 4, radius, 0.36)
 	return bar
 end
 
@@ -355,7 +359,24 @@ function Chunky.ribbon(sheet: Sheet, words: string, x: number, y: number, w: num
 		t.Position, t.Size = UDim2.fromScale(0.06, 0.16), UDim2.fromScale(0.88, 0.7)
 		return
 	end
-	local deep = math.clamp(y + h - on.y, 84, on.h * 0.3)
+	--[[ The bar is as deep as the old ribbon reached into the panel, so it
+	     never covers what the screen laid out under it. Where that is too
+	     shallow to carry the title, the panel's top rises to make room
+	     rather than the bar coming down. ]]
+	local natural = math.max(1, y + h - on.y)
+	local grow = math.clamp(80 - natural, 0, 26)
+	if grow > 0 then
+		on = { x = on.x, y = on.y - grow, w = on.w, h = on.h + grow }
+		sheet.panel = on
+		frame.Position = UDim2.fromScale(on.x / sheet.w, on.y / sheet.h)
+		frame.Size = UDim2.fromScale(on.w / sheet.w, on.h / sheet.h)
+		local foot = sheet.panelFoot
+		if foot then
+			foot.Position = UDim2.fromScale(on.x / sheet.w, (on.y + 12) / sheet.h)
+			foot.Size = frame.Size
+		end
+	end
+	local deep = math.min(natural + grow, on.h * 0.3)
 	sheet.header = deep
 	local bar = orangeBar(frame, 24, true)
 	bar.Size = UDim2.fromScale(1, deep / on.h)

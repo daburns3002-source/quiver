@@ -17,6 +17,7 @@
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 
 local Log = require(ReplicatedStorage.Shared.Util.Log)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
@@ -64,6 +65,18 @@ end
 
 function SoulstoneShop.start()
 	Remotes.event(Remotes.SoulstoneBuy).OnServerEvent:Connect(buy)
+	-- Studio only: Soulstones to test the shop with
+	Remotes.event(Remotes.DebugSoulstones).OnServerEvent:Connect(function(player, amount)
+		local profile = PlayerData.get(player)
+		if not RunService:IsStudio() or not profile then
+			return
+		end
+		if type(amount) == "number" and amount == amount then
+			profile.soulstones += math.clamp(math.floor(amount), 0, 100000)
+			PlayerData.touch(player)
+			Wallet.send(player)
+		end
+	end)
 	Players.PlayerRemoving:Connect(function(player)
 		lastAsk[player] = nil
 	end)

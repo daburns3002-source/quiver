@@ -21,6 +21,7 @@ local Workspace = game:GetService("Workspace")
 local EggRules = require(ReplicatedStorage.Shared.Util.EggRules)
 local GearAssets = require(ReplicatedStorage.Shared.Config.GearAssets)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
+local RunHudRules = require(ReplicatedStorage.Shared.Util.RunHudRules)
 local ShopAssets = require(ReplicatedStorage.Shared.Config.ShopAssets)
 local ShopRules = require(ReplicatedStorage.Shared.Util.ShopRules)
 
@@ -106,7 +107,7 @@ local function show(floor: number, name: string, list: { Prize })
 	local gridTop = nameTop + 64
 	local buttonTop = gridTop + rows * tile + (rows - 1) * gap + 28
 	local h = buttonTop + 110 + 36 + 12
-	local fit = math.min(1, (view.X - 2 * MARGIN) / WIDTH, (view.Y - 2 * MARGIN) / (h / 2))
+	local fit = RunHudRules.fit(view, WIDTH, h / 2, MARGIN)
 
 	local shade = Instance.new("Frame")
 	shade.Name = "Shade"

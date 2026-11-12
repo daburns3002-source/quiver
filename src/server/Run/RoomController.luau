@@ -835,8 +835,16 @@ local function clearedFloor(floor: number)
 					player.Name,
 					milestone.name
 				)
-				-- its eggs and crates, opened on the spot
-				EndlessPrizes.grant(player, milestone)
+				--[[ Its eggs and crates, opened on the spot. Guarded: the
+				     floor's own bookkeeping below must run whatever
+				     happens to a prize. ]]
+				local granted, problem = pcall(function()
+					EndlessPrizes.grant(player, milestone)
+					return nil
+				end)
+				if not granted then
+					log.warn("floor %d prize failed: %s", milestone.floor, tostring(problem))
+				end
 			end
 		end
 	end

@@ -19,9 +19,23 @@ export type Top = {
 	     keeps its place on the left edge. ]]
 	menu: Box?,
 	banner: Box,
-	--[[ The MENU's confirm panel on a phone, centred; nil on a computer. ]]
-	panel: Box?,
+	--[[ How much larger than its points the HUD is drawn: 1 on a phone,
+	     more on a computer's big screen, where a point is small. The
+	     banner's box is already that much larger. ]]
+	scale: number,
+	--[[ The MENU's confirm panel, centred and fitted to the screen. ]]
+	panel: Box,
 }
+
+--[[ How much a panel `w` by `h` points is scaled to suit a screen: down to
+     fit a small one with `margin` clear at each edge, up on a big one, to
+     `Hud.top.panelGrow` at most. ]]
+function RunHudRules.fit(view: Vector2, w: number, h: number, margin: number): number
+	return math.max(
+		0.2,
+		math.min(Hud.top.panelGrow, (view.X - 2 * margin) / w, (view.Y - 2 * margin) / h)
+	)
+end
 
 --[[ How tall the top HUD stands with its status line showing. ]]
 function RunHudRules.height(): number
@@ -35,10 +49,24 @@ function RunHudRules.top(view: Vector2, phone: boolean, topBar: number): Top
 	local t = Hud.top
 	local y = topBar + t.gap
 	local height = RunHudRules.height()
+	local panelH = t.panelWidth * t.panelShape
 	if not phone then
-		local w = math.clamp(view.X * t.desktopShare, t.desktopMin, t.desktopMax)
+		--[[ A point is small on a big screen: the HUD grows with the
+		     screen's height, from `desktopTall` up. ]]
+		local scale = math.clamp(view.Y / t.desktopTall, 1, t.desktopGrow)
+		local w = math.clamp(view.X * t.desktopShare, t.desktopMin, t.desktopMax) * scale
 		w = math.min(w, view.X - 2 * t.edge)
-		return { banner = { x = (view.X - w) / 2, y = y, w = w, h = height } }
+		local grow = RunHudRules.fit(view, t.panelWidth, panelH, t.panelMargin)
+		return {
+			banner = { x = (view.X - w) / 2, y = y, w = w, h = height * scale },
+			scale = scale,
+			panel = {
+				x = (view.X - t.panelWidth * grow) / 2,
+				y = (view.Y - panelH * grow) / 2,
+				w = t.panelWidth * grow,
+				h = panelH * grow,
+			},
+		}
 	end
 
 	local left = t.edge + t.menuIcon + t.edge
@@ -47,16 +75,16 @@ function RunHudRules.top(view: Vector2, phone: boolean, topBar: number): Top
 	--[[ A phone held sideways has more width than the HUD wants: centred,
 	     unless that would put it under the MENU icon. ]]
 	local x = math.max(left, (view.X - w) / 2)
-	local panelW = math.min(view.X - 2 * t.panelMargin, t.panelWidth)
-	local panelH = math.min(panelW * t.panelShape, view.Y - 2 * t.panelMargin)
+	local shrink = math.min(1, RunHudRules.fit(view, t.panelWidth, panelH, t.panelMargin))
 	return {
 		menu = { x = t.edge, y = y, w = t.menuIcon, h = t.menuIcon },
 		banner = { x = x, y = y, w = w, h = height },
+		scale = 1,
 		panel = {
-			x = (view.X - panelW) / 2,
-			y = (view.Y - panelH) / 2,
-			w = panelW,
-			h = panelH,
+			x = (view.X - t.panelWidth * shrink) / 2,
+			y = (view.Y - panelH * shrink) / 2,
+			w = t.panelWidth * shrink,
+			h = panelH * shrink,
 		},
 	}
 end

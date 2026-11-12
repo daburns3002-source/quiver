@@ -732,7 +732,7 @@ local function buildStats(content: Instance, look: any, layout: any, summary: Su
 			"Icon",
 			{ x = layout.slotIconX, y = (sb.h - size) / 2, w = size, h = size },
 			36,
-			if i == 1 then EndScreenAssets.coin else EndScreenAssets.gem
+			if i == 1 then ShopAssets.coin else ShopAssets.gem
 		)
 		local target = (if i == 1 then summary.coins else summary.gems) or 0
 		local v = text(

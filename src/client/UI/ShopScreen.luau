@@ -43,9 +43,13 @@ function ShopScreen.close()
 	end
 end
 local function priceText(cost: Purse.Cost): string
-	-- coins alone read as the number beside the coin on the button
-	if cost.coins and not cost.gems and next(cost.items or {}) == nil then
-		return Chunky.commas(cost.coins)
+	-- coins or gems alone read as the number beside their picture on the button
+	if next(cost.items or {}) == nil then
+		if cost.coins and not cost.gems then
+			return Chunky.commas(cost.coins)
+		elseif cost.gems and not cost.coins then
+			return Chunky.commas(cost.gems)
+		end
 	end
 	local parts = {}
 	if cost.coins then
@@ -156,6 +160,13 @@ local function drawStore(s: StationScreen.Screen, area: HatchStand.Area)
 			UDim2.fromScale((colW - 236) / colW, 30 / rowH), UDim2.fromScale(220 / colW, 96 / rowH)
 		buyHolder.Parent = row
 		local label = if owned then "OWNED" else priceText(price)
+		--[[ The currency's own picture beside the price: the diamond for a
+		     gem price, the coin for a coin one (a Legendary's coins and boss
+		     item keep the coin, with the rest in words). ]]
+		local icon: string? = nil
+		if not owned then
+			icon = if price.gems and not price.coins then ShopAssets.gem else ShopAssets.coin
+		end
 		local colour = if owned then Chunky.grey elseif can then Chunky.green else Chunky.grey
 		local miniSheet: Chunky.Sheet =
 			{ canvas = buyHolder :: any, w = 220, h = 96, upright = false }
@@ -166,7 +177,7 @@ local function drawStore(s: StationScreen.Screen, area: HatchStand.Area)
 			Reveal.request(function()
 				Remotes.event(Remotes.ShopBuy):FireServer(entry.weapon)
 			end)
-		end, if owned or price.gems then nil else ShopAssets.coin)
+		end, icon)
 	end
 	if #entries == 0 then
 		local empty = Instance.new("Frame")

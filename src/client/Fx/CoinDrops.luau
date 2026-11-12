@@ -23,8 +23,8 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
 
-local EndScreenAssets = require(ReplicatedStorage.Shared.Config.EndScreenAssets)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
+local ShopAssets = require(ReplicatedStorage.Shared.Config.ShopAssets)
 
 --[[ How it moves: coins per drop, their size (px), how far they burst
      (px) and how long the burst and the flight last (s). ]]
@@ -106,7 +106,8 @@ local function drop(amount: number, position: Vector3)
 		local coin = Instance.new("ImageLabel")
 		coin.Name = "Coin"
 		coin.BackgroundTransparency = 1
-		coin.Image = EndScreenAssets.coin
+		-- the same coin as the counter it flies to
+		coin.Image = ShopAssets.coin
 		coin.ResampleMode = Enum.ResamplerMode.Pixelated
 		coin.AnchorPoint = Vector2.new(0.5, 0.5)
 		coin.Size = UDim2.fromOffset(SIZE, SIZE)

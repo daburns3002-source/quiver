@@ -36,6 +36,7 @@ local LobbyCourtyard = require(script.Parent.LobbyCourtyard)
 local MeshTemplates = require(script.Parent.Parent.Util.MeshTemplates)
 local PalaceBuildings = require(ReplicatedStorage.Shared.Config.PalaceBuildings)
 local Shop = require(ReplicatedStorage.Shared.Config.Shop)
+local ShopAssets = require(ReplicatedStorage.Shared.Config.ShopAssets)
 
 local Lobby = {}
 
@@ -699,20 +700,39 @@ local function standOut(kind: string, key: string, centre: Vector3, parent: Inst
 		board.LightInfluence = 0
 		board.MaxDistance = 140
 		board.Parent = anchor
-		for line, text in { item.name, tostring(item.price) .. " COINS" } do
+		local function line(row: number, text: string, colour: Color3): TextLabel
 			local label = Instance.new("TextLabel")
 			label.BackgroundTransparency = 1
 			label.Size = UDim2.fromScale(1, 0.5)
-			label.Position = UDim2.fromScale(0, (line - 1) * 0.5)
+			label.Position = UDim2.fromScale(0, (row - 1) * 0.5)
 			label.Font = Enum.Font.FredokaOne
 			label.TextScaled = true
 			label.Text = text
-			label.TextColor3 = if line == 1
-				then Color3.new(1, 1, 1)
-				else Color3.fromRGB(255, 205, 40)
+			label.TextColor3 = colour
 			label.TextStrokeTransparency = 0
 			label.Parent = board
+			return label
 		end
+		line(1, item.name, Color3.new(1, 1, 1))
+		--[[ The price as every screen shows one: the game's coin, then the
+		     number (CLAUDE.md rule 15). The pair is centred by the number's
+		     length; a digit is about half the line's height wide (measured
+		     in Studio, 2026-11-12). ]]
+		local amount = tostring(item.price)
+		local tall = board.Size.Y.Scale / 2 / board.Size.X.Scale
+		local wide = #amount * 0.5 * tall
+		local left = 0.5 - (tall * 1.1 + wide) / 2
+		local coin = Instance.new("ImageLabel")
+		coin.Name = "Coin"
+		coin.BackgroundTransparency = 1
+		coin.Image = ShopAssets.coin
+		coin.Position = UDim2.fromScale(left, 0.5)
+		coin.Size = UDim2.fromScale(tall, 0.5)
+		coin.Parent = board
+		local price = line(2, amount, Color3.fromRGB(255, 205, 40))
+		price.Position = UDim2.fromScale(left + tall * 1.1, 0.5)
+		price.Size = UDim2.fromScale(wide + tall, 0.5)
+		price.TextXAlignment = Enum.TextXAlignment.Left
 	end
 	model.Parent = parent
 end

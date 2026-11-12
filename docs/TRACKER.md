@@ -59,6 +59,7 @@ where you would be standing. Say what reads wrong and Claude retunes it.
 - **The trees.** Different enough heights, and enough of them? Do the seven black arches read as locked?
 - **The Dex Hall.** Porch columns flush to the grass on stone with no timber cutting through them, no daylight at the roof/wall join, chimneys gone.
 - **The dexes.** Press E: the page should curl the other way coming back, and the book must not shift. All three tabs, nine slots a spread.
+- **Merge tiers (2026-11-11).** Open GEAR and tap a weapon or pet you hold three copies of: MERGE 3 C INTO B on its card, then the tile says "B x1" and ATK goes up 1.2x (A 1.44x, S 2.16x). Does the item card read on a phone held upright, and is 3 copies the right price for each step? A crate duplicate now says "+1 C COPY TO MERGE" and is saved.
 - **The hatchery and crate screens.** Four cards across for an egg's eight pets, three for a crate's six weapons, full rarity colour, the chance in the corner, an unowned Mythic a black silhouette.
 - **The shop.** Open a Mossy Glade crate, buy from the store, equip from MY WEAPONS (`Remotes.DebugWallet:FireServer(5000, 2000, 5)` fills the wallet).
 - **The Gear Station** stands clear of the Blacksmith; the portal screen reads; Shift sprints and Space jumps instead of the old dash.

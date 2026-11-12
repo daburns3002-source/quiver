@@ -16,6 +16,27 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## A duplicate weapon said "+1 COPY" and nothing was saved; the 40% refund was never paid
+
+The 2026-11-11 loop and UI review, item 1. A crate that rolled a weapon
+already owned showed "+1 COPY" and kept nothing: `Wallet.grantWeapon` set
+`weapons[name] = true` again, and the 40% back that CLAUDE.md promised was
+config and a function (`Shop.duplicateRefund`, `ShopRules.refund`) that
+nothing called. The owner's merge (2026-10-28) had been built on a branch
+that never reached main. It is in now, as save version 10: every copy is
+kept at tier C (`profile.tiers`), three of a tier make one of the next, C to
+B to A to S, and the best tier held scales the damage (`Util/MergeRules`,
+MERGE on the gear screen's item card). Measured in Studio, 2026-11-12:
+twelve Mossy Glade crates left the Acorn Bow at C 10 in the save (and the
+reveal's note reads "+1 C COPY TO MERGE"); MERGE on its card made it C 7,
+B 1 and its tile "B x8"; merged to A and equipped, the ATK plate went from
+100 to 151 and the server's hits on a training dummy from 100.00 (Twig Bow,
+C) to 151.20 (the bow's own 1.05 times A's 1.44). A Mosslet merged to B hit
+for 38.40 against its 32. Five bad requests to the remote (a tier with fewer
+than three, a weapon not owned, a wrong kind or type) changed nothing, and
+two sent at once merged once. Words on a reveal that promise something kept
+must be checked against what the save holds afterwards.
+
 ## Run banner said "You died - restarting"; the leave panel said progress is lost
 
 The 2026-11-11 loop and UI review. Nothing restarts by itself after a death:

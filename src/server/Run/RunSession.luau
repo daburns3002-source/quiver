@@ -28,6 +28,7 @@ local HeldWeaponChoice = require(ReplicatedStorage.Shared.Combat.HeldWeaponChoic
 local Loadout = require(script.Parent.Loadout)
 local LobbyConfig = require(ReplicatedStorage.Shared.Config.Lobby)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
+local MergeRules = require(ReplicatedStorage.Shared.Util.MergeRules)
 local MudCoat = require(ReplicatedStorage.Shared.Util.MudCoat)
 local NewEnemies = require(ReplicatedStorage.Shared.Config.NewEnemies)
 local PetCombat = require(ReplicatedStorage.Shared.Config.PetCombat)
@@ -376,7 +377,10 @@ function RunSession.applyLoadout(session: Session)
 
 	local ratio = if session.maxHealth > 0 then session.health / session.maxHealth else 1
 
-	session.damage = stats.damage
+	-- the held weapon's merge tier (`Util/MergeRules`, owner 2026-10-28)
+	local own = Classes[class]
+	local tier = Wallet.weaponTier(session.player, equipped or (own and own.weapon))
+	session.damage = stats.damage * (MergeRules.weaponScale[tier] or 1)
 	session.maxHealth = stats.maxHealth
 	session.health = math.clamp(stats.maxHealth * ratio, 1, stats.maxHealth)
 	session.attackCooldown = stats.attackCooldown

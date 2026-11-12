@@ -182,6 +182,10 @@ Remotes.ChooseClass = "ChooseClass"
      server puts that class's own weapon in hand and empties the pet slots
      (`Data/Shop`). ]]
 Remotes.SwitchClass = "SwitchClass"
+--[[ Client -> server: the item card's MERGE ("weapon" or "pet", its key,
+     the tier to merge from); the server checks there are three
+     (`Data/Shop`, `Util/MergeRules`) and answers with `ProfileChanged`. ]]
+Remotes.MergeItem = "MergeItem"
 --[[ Client → server, Studio only: coins, gems and boss items into the
      wallet (`Data/Shop`), to test the shop without playing for them. ]]
 Remotes.DebugWallet = "DebugWallet"

@@ -423,6 +423,16 @@ rather than on the station canvas draws on `Chunky.pointSheet` (the run's MENU, 
 settings, the Soulstone shop). **Not seen in Studio yet** (2026-11-11): the re-skin changes every chunky
 screen at once and waits on a look.
 
+**Screens converted to the reference since** (2026-11-11, owner: "Yes, convert them"): **class select**
+(`UI/ClassScreen`, `Config/ClassSelect`, `Util/ClassStats`; owner: "it looks too ai right now") is a
+chunky panel of class cards, each drawing the player's own character holding the class's weapon
+(`GearScreen.portrait`) over three bars read off `Config/Classes`; the painted art, `ClassSelectAssets`
+and `ClassSelectHit` are gone and the look sent to the server is only saved. The **Endless checkpoint**
+is a chunky panel of coloured gift tiles. The **draft** keeps its cards and their dark stage (the
+owner's card design) and has chunky REROLL / CHOOSE! on every layout. The **end screens** keep their
+blocks and motion and take the reference's colours and rounded font (`Config/EndScreenTheme`). Still in
+their own look: NEW ENEMY! (its pixel card is approved art) and the Studio sandbox menu.
+
 **The run's top HUD** (`UI/RunBanner`, `Util/RunHudRules`, `Config/Hud` `top`; 2026-11-11): a thick XP
 bar with the hero's level on a gold badge, the coin counter (`Fx/CoinDrops` flies kill coins to its
 `CoinCounter`-tagged icon and counts `CoinsShown` up), the room counter with the stage's rooms as pips

@@ -113,10 +113,9 @@ local function glowImage(name: string, colour: Color3, alpha: number): ImageLabe
 	return image
 end
 
---[[ Roblox draws no letters larger than a TextSize of 100 unless a UIScale
-     enlarges them, and BORNE's line is 113 points on an upright phone. So the
-     logo is laid out at this share of its size and its UIScale makes up the
-     rest. ]]
+--[[ A TextSize may not pass 100, and BORNE's line is 113 points on an
+     upright phone. A UIScale enlarges letters past that, so the logo is laid
+     out at this share of its size and its UIScale makes up the rest. ]]
 local LOGO_INNER = 0.5
 
 --[[ The logo inside `holder`, every piece placed by share of it (`holder`
@@ -142,8 +141,9 @@ local function buildLogo(holder: Frame, design: Config.Design, at: TitleLayout.L
 	place(haze, wide / 2, wordsTall / 2, wide * look.haze.wide, wordsTall * look.haze.tall)
 
 	local function word(index: number, name: string, colour: Color3, drop: number): TextLabel
-		--[[ The label is exactly one line of the font tall and the word
-		     fills it. ]]
+		--[[ The label is exactly one line of the font tall, and the letters
+		     are given that line as their size (TextScaled would stop at 100
+		     on the screen, UIScale or not; a set TextSize does not). ]]
 		local line = at.lines[index]
 		local high = line.size * Config.letterLine
 		local label = Instance.new("TextLabel")
@@ -151,7 +151,7 @@ local function buildLogo(holder: Frame, design: Config.Design, at: TitleLayout.L
 		label.BackgroundTransparency = 1
 		label.Font = Chunky.font
 		label.Text = look.words[index]
-		label.TextScaled = true
+		label.TextSize = high * LOGO_INNER
 		label.TextColor3 = colour
 		place(label, 0, line.top - at.top + line.tall / 2 - high / 2 + drop, wide, high)
 		return label

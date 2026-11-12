@@ -21,14 +21,6 @@
 	not read as a glowing golden tree.
 ]]
 
-local function hex(value: number): Color3
-	return Color3.fromRGB(
-		bit32.band(bit32.rshift(value, 16), 255),
-		bit32.band(bit32.rshift(value, 8), 255),
-		bit32.band(value, 255)
-	)
-end
-
 --[[ A block: left, top, width, height, in the units of whatever it is
      part of. ]]
 export type Block = { number }
@@ -64,30 +56,35 @@ export type Design = {
 local TitleScene = {
 	--[[ The sky, top to bottom: the stops are at 0, 40%, the layout's
 	     `horizon` and 100%. ]]
-	sky = { hex(0x040B16), hex(0x0A2233), hex(0x1A5A5E), hex(0x0B2A33) },
+	sky = {
+		Color3.fromHex("#040B16"),
+		Color3.fromHex("#0A2233"),
+		Color3.fromHex("#1A5A5E"),
+		Color3.fromHex("#0B2A33"),
+	},
 	skyMid = 0.4,
 
-	star = hex(0xDDF6F0),
+	star = Color3.fromHex("#DDF6F0"),
 	--[[ A star is 2 points square, one in four is 3; each as see-through as
 	     its own draw says, between these. ]]
 	starFaint = 0.2,
 	starBright = 0.8,
-	moon = { colour = hex(0xEAF7E6), size = 26, corner = 5, alpha = 0.92 },
+	moon = { colour = Color3.fromHex("#EAF7E6"), size = 26, corner = 5, alpha = 0.92 },
 
 	--[[ The soft round light behind the crown, in tree units: how far above
 	     the trunk's foot its middle is, how far it reaches, and how strong
 	     it is at its middle. ]]
-	glow = { colour = hex(0x3FE0C0), rise = 250, radius = 260, alpha = 0.5 },
+	glow = { colour = Color3.fromHex("#3FE0C0"), rise = 250, radius = 260, alpha = 0.5 },
 
-	hill = { colour = hex(0x082630), tall = 90 },
+	hill = { colour = Color3.fromHex("#082630"), tall = 90 },
 	--[[ The far ground, from a little above the trunk's foot. ]]
-	ground = { colour = hex(0x061E27), above = 8 },
-	ridge = hex(0x02070C),
+	ground = { colour = Color3.fromHex("#061E27"), above = 8 },
+	ridge = Color3.fromHex("#02070C"),
 
 	--[[ The World Tree, in tree units from the trunk's foot (x right, y down,
 	     so every y is negative). ]]
 	tree = {
-		trunkColour = hex(0x061C22),
+		trunkColour = Color3.fromHex("#061C22"),
 		--[[ Roots, two steps of trunk, the top of the trunk, then two
 		     branches, each an arm and an upright. ]]
 		trunk = {
@@ -114,8 +111,8 @@ local TitleScene = {
 			{ 36, -378, 84 },
 			{ -8, -290, 90 },
 		},
-		crownColours = { hex(0x0B3136), hex(0x0E3A3E) },
-		crownLit = hex(0x1C6A63),
+		crownColours = { Color3.fromHex("#0B3136"), Color3.fromHex("#0E3A3E") },
+		crownLit = Color3.fromHex("#1C6A63"),
 		--[[ The strip is this share of the square's side deep; the patch
 		     sits this far in and down, this wide and tall, this solid. ]]
 		crownStrip = 0.12,
@@ -139,22 +136,22 @@ local TitleScene = {
 			{ 92, -270, 3 },
 			{ 14, -252, 3 },
 		},
-		lantern = hex(0xC9FFF0),
-		lanternHalo = hex(0x7FF5D6),
+		lantern = Color3.fromHex("#C9FFF0"),
+		lanternHalo = Color3.fromHex("#7FF5D6"),
 		lanternHaloAlpha = 0.22,
 		--[[ Lit windows on the trunk (left, top), 8 by 10, each on a faint
 		     warm block 14 by 16. ]]
 		windows = { { -12, -120 }, { 8, -96 }, { -14, -70 }, { 8, -150 }, { -5, -178 } },
-		window = hex(0xFFD98A),
-		windowHalo = hex(0xFFC76A),
+		window = Color3.fromHex("#FFD98A"),
+		windowHalo = Color3.fromHex("#FFC76A"),
 		windowHaloAlpha = 0.2,
 	},
 
 	--[[ The hero seen from behind and the pet at their heel: near-black
 	     blocks with a thin mint rim of light, in their own units from where
 	     they stand. A plain silhouette, never the player's avatar. ]]
-	figure = hex(0x02060B),
-	rim = hex(0x58D8BC),
+	figure = Color3.fromHex("#02060B"),
+	rim = Color3.fromHex("#58D8BC"),
 	hero = {
 		--[[ The bow across the back: a curve from above the left shoulder,
 		     bowed out to the right, down to the right hip. ]]
@@ -196,7 +193,7 @@ local TitleScene = {
 	--[[ Small square motes that drift up and to the right and fade, each on
 	     its own loop. Under Roblox's reduced motion they stand still. ]]
 	mote = {
-		colour = hex(0x8FF5D8),
+		colour = Color3.fromHex("#8FF5D8"),
 		small = 3,
 		large = 5,
 		--[[ One in this share is the large one. ]]
@@ -227,19 +224,19 @@ local TitleScene = {
 		     size tall, with these stops. ]]
 		box = 1.21,
 		gold = {
-			{ at = 0, colour = hex(0xFFFBE6) },
-			{ at = 0.08, colour = hex(0xFFFBE6) },
-			{ at = 0.55, colour = hex(0xFFE49C) },
-			{ at = 1, colour = hex(0xE6AE48) },
+			{ at = 0, colour = Color3.fromHex("#FFFBE6") },
+			{ at = 0.08, colour = Color3.fromHex("#FFFBE6") },
+			{ at = 0.55, colour = Color3.fromHex("#FFE49C") },
+			{ at = 1, colour = Color3.fromHex("#E6AE48") },
 		},
-		outline = hex(0x03080D),
+		outline = Color3.fromHex("#03080D"),
 		outlineThick = 4.5,
 		shadowDrop = 5,
 		--[[ The glow: a ring round the letters (how far past them it reaches
 		     and how see-through it is) over a wide soft haze (the round glow
 		     picture, this many times the logo's width and the words' height,
 		     this solid at its middle; faint, so the tree under it stays teal). ]]
-		glow = hex(0xFFCE6E),
+		glow = Color3.fromHex("#FFCE6E"),
 		glowRing = { reach = 8, clear = 0.82 },
 		haze = { wide = 1.15, tall = 2, alpha = 0.22 },
 		--[[ The streak of light under the words: this share of the logo's
@@ -249,11 +246,11 @@ local TitleScene = {
 			width = 0.86,
 			gap = 13,
 			thick = 3,
-			from = hex(0xFFF0BE),
-			mid = hex(0xFFE9A8),
-			to = hex(0xFFFFFF),
+			from = Color3.fromHex("#FFF0BE"),
+			mid = Color3.fromHex("#FFE9A8"),
+			to = Color3.fromHex("#FFFFFF"),
 			midAt = 0.55,
-			glow = hex(0xFFD678),
+			glow = Color3.fromHex("#FFD678"),
 			head = { long = 14, tall = 15, overhang = 10 },
 		},
 	},

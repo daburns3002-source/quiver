@@ -69,10 +69,22 @@ the same name = the data's name, `ModelClip` = the clip) is played by
 **The game opens on the intro cutscene** (`UI/IntroCutscene`, `Config/Intro`,
 owner 2026-10-25, after Pixel Lineage's): black, DYL.DEVS in dark gold with
 PRESENTS small and white under it, a cut on the music's hit at 5.0 s (`revealAt`,
-the shared contract with the intro music, `Config/Music.intro`) to the Codex title
-picture (logo painted in; a portrait one on upright screens, phones; both 2x tiles, `Intro.pictures`), which never moves once up (owner) and shows whole at
-the screen's height with dimmed copies filling the sides, and BEGIN ADVENTURE,
-still until hovered or pressed. BEGIN ADVENTURE plays **the story cutscene**
+the shared contract with the intro music, `Config/Music.intro`) to **the title screen,
+"The World Tree at night"** (owner, 2026-11-12, picked as Dark 1 from drawn references
+after "take inspiration from elden ring and dark souls": the feeling only, dark, quiet and
+grand, nothing copied; the painted title before it "looks AI"). **No painted or generated
+picture: it is built by hand from flat blocks** (`UI/TitleScene` draws Frames from
+`Config/TitleScene`; `Util/TitleLayout` and `tests/TitleScene.spec` hold it on screen at every
+shape): a night sky with square stars and a moon, the World Tree in teal with mint lanterns and
+warm windows (never a glowing golden tree), far hills, a near-black ridge with a tiny hero
+seen from behind, bow on their back, and a pet at their heel (a plain silhouette, not the
+player's avatar), the ARROW BORNE logo as live words in pale gold over a streak of light, slow
+motes, and the kit's green BEGIN ADVENTURE (`Chunky.button`, with a play triangle), gently
+pulsing. Two layouts in points, a phone upright (390 x 844) and on its side (844 x 390); any
+other screen scales the layout until its `safe` box fills it and runs the sky and ridge to the
+edges. Its one image is the game's soft glow (`GearAssets.fx.glow`). The picture never moves
+once up (owner) but for the motes; Roblox's reduced motion stills them and the pulse.
+`IntroCutscene.preview(w, h)` shows it in a phone-sized frame in Studio. BEGIN ADVENTURE plays **the story cutscene**
 (`UI/StoryCutscene`, `Config/Story`, `Util/StoryTimeline`, owner 2026-10-25), **animated
 as the owner's approved Claude Design clip** (owner, 2026-11-10; `Config/StoryMotion`,
 `Util/StoryMotion`, ported number for number from the Design project "King Bloblin's

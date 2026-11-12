@@ -36,6 +36,19 @@ export type Design = {
 	horizon: number,
 	stars: { count: number, seed: number, below: number },
 	moon: { x: number, y: number },
+	--[[ The second pass of detail (owner, 2026-11-12: "a little bit more
+	     detailed, i like the minimalist approach but still needs a little bit
+	     more to it"): thin cloud bands (left, top, width), a few large stars,
+	     a farther row of hills (left, top, width), small pines on the near
+	     hills (middle, foot, height), village lights, grass on the ridge
+	     (left, foot) and one lantern post (foot). ]]
+	clouds: { Block },
+	bigStars: { Block },
+	farHills: { Block },
+	pines: { Block },
+	village: { Block },
+	tufts: { Block },
+	post: { x: number, y: number },
 	--[[ The trunk's foot (`x`, `y`) and how many points a tree unit is. ]]
 	tree: { x: number, y: number, unit: number },
 	hills: { Block },
@@ -76,6 +89,18 @@ local TitleScene = {
 	starFaint = 0.2,
 	starBright = 0.8,
 	moon = { colour = Color3.fromHex("#EAF7E6"), size = 26, corner = 5, alpha = 0.92 },
+	--[[ A faint square of light round the moon, this much larger each side,
+	     and three shallow craters on it (left, top, side). ]]
+	moonHalo = { grow = 8, alpha = 0.1 },
+	moonCraters = { { 5, 6, 5 }, { 14, 15, 6 }, { 17, 5, 3 } },
+	moonCrater = Color3.fromHex("#C9DDD2"),
+	--[[ One star in this many twinkles: it dims by this share and back, this
+	     many times a second (stilled under reduced motion). ]]
+	twinkle = { every = 5, depth = 0.6, speed = 0.14 },
+	--[[ A large star is a small plus: this long and this thick. ]]
+	bigStar = { long = 7, thick = 1.6, alpha = 0.85 },
+	--[[ A cloud is a thin band with a shorter step above and below it. ]]
+	cloud = { colour = Color3.fromHex("#16434C"), alpha = 0.45, tall = 5 },
 
 	--[[ The soft round light behind the crown, in tree units: how far above
 	     the trunk's foot its middle is, how far it reaches, and how strong
@@ -83,9 +108,18 @@ local TitleScene = {
 	glow = { colour = Color3.fromHex("#3FE0C0"), rise = 250, radius = 260, alpha = 0.5 },
 
 	hill = { colour = Color3.fromHex("#082630"), tall = 90 },
+	--[[ The farther hills, paler, behind the near ones; the village's lit
+	     windows on the near hills. ]]
+	farHill = { colour = Color3.fromHex("#0F3B44"), tall = 120 },
+	villageLight = { colour = Color3.fromHex("#FFD98A"), size = 2.5, alpha = 0.85 },
 	--[[ The far ground, from a little above the trunk's foot. ]]
 	ground = { colour = Color3.fromHex("#061E27"), above = 8 },
 	ridge = Color3.fromHex("#02070C"),
+	--[[ Grass on the ridge: three blades (left, height) two points wide. ]]
+	tuft = { { 0, 4 }, { 3, 7 }, { 6, 3 } },
+	--[[ The lantern post on the ridge: a post, an arm and a mint lantern
+	     hanging from it. ]]
+	post = { tall = 24, arm = 9, lantern = 5 },
 
 	--[[ The World Tree, in tree units from the trunk's foot (x right, y down,
 	     so every y is negative). ]]
@@ -117,6 +151,33 @@ local TitleScene = {
 			{ 36, -378, 84 },
 			{ -8, -290, 90 },
 		},
+		--[[ Roots stepping out from the trunk's foot, and smaller leaf blocks
+		     (left, top, side) round the crown's edge, so its outline is less
+		     square; they are drawn behind the crown. ]]
+		roots = {
+			{ -74, -8, 22, 8 },
+			{ -64, -14, 10, 8 },
+			{ 52, -8, 22, 8 },
+			{ 54, -14, 10, 8 },
+		} :: { Block },
+		leaves = {
+			{ -216, -240, 32 },
+			{ -178, -326, 36 },
+			{ -104, -394, 30 },
+			{ 118, -346, 36 },
+			{ 214, -236, 32 },
+			{ 86, -400, 30 },
+			{ -58, -404, 28 },
+			{ 6, -404, 26 },
+			{ -140, -214, 26 },
+			{ 120, -206, 28 },
+		},
+		--[[ The first of the lanterns hang on strings this long. ]]
+		strings = { count = 11, long = 12 },
+		--[[ A lit doorway at the trunk's foot: its dark frame and the warm
+		     light in it. ]]
+		door = { frame = { -8, -30, 16, 30 }, light = { -5, -25, 10, 25 } },
+		doorFrame = Color3.fromHex("#03121A"),
 		crownColours = { Color3.fromHex("#0B3136"), Color3.fromHex("#0E3A3E") },
 		crownLit = Color3.fromHex("#1C6A63"),
 		--[[ The strip is this share of the square's side deep; the patch
@@ -280,6 +341,38 @@ local TitleScene = {
 		horizon = 0.71,
 		stars = { count = 70, seed = 7, below = 450 },
 		moon = { x = 312, y = 262 },
+		clouds = { { 236, 36, 150 }, { -24, 268, 120 }, { 290, 500, 120 } },
+		bigStars = { { 34, 52 }, { 350, 150 }, { 22, 330 }, { 368, 420 } },
+		farHills = {
+			{ -6, 548, 52 },
+			{ 36, 556, 40 },
+			{ 96, 560, 44 },
+			{ 236, 558, 50 },
+			{ 296, 548, 46 },
+			{ 350, 540, 50 },
+		},
+		pines = {
+			{ 16, 566, 12 },
+			{ 40, 566, 9 },
+			{ 92, 580, 10 },
+			{ 136, 572, 11 },
+			{ 268, 576, 10 },
+			{ 296, 576, 8 },
+			{ 330, 562, 12 },
+			{ 368, 562, 9 },
+		},
+		village = { { 346, 570 }, { 356, 576 }, { 338, 578 }, { 24, 574 }, { 34, 580 } },
+		tufts = {
+			{ 56, 600 },
+			{ 20, 616 },
+			{ 172, 616 },
+			{ 192, 616 },
+			{ 216, 636 },
+			{ 250, 636 },
+			{ 306, 644 },
+			{ 372, 644 },
+		},
+		post = { x = 340, y = 644 },
 		tree = { x = 195, y = 612, unit = 0.9 },
 		hills = {
 			{ 0, 566, 70 },
@@ -310,6 +403,43 @@ local TitleScene = {
 		horizon = 0.76,
 		stars = { count = 80, seed = 7, below = 230 },
 		moon = { x = 704, y = 52 },
+		clouds = { { 40, 70, 170 }, { 590, 120, 190 }, { 150, 190, 120 } },
+		bigStars = { { 120, 36 }, { 300, 96 }, { 566, 44 }, { 800, 150 } },
+		farHills = {
+			{ -10, 272, 70 },
+			{ 50, 282, 60 },
+			{ 150, 280, 60 },
+			{ 230, 290, 50 },
+			{ 520, 288, 60 },
+			{ 600, 272, 60 },
+			{ 690, 278, 70 },
+			{ 780, 284, 70 },
+		},
+		pines = {
+			{ 20, 290, 11 },
+			{ 56, 290, 9 },
+			{ 110, 300, 10 },
+			{ 150, 300, 8 },
+			{ 210, 296, 10 },
+			{ 590, 298, 10 },
+			{ 668, 288, 12 },
+			{ 706, 288, 9 },
+			{ 770, 300, 10 },
+			{ 812, 300, 8 },
+		},
+		village = { { 676, 296 }, { 688, 302 }, { 700, 298 }, { 34, 300 }, { 46, 306 } },
+		tufts = {
+			{ 104, 300 },
+			{ 234, 300 },
+			{ 50, 318 },
+			{ 72, 318 },
+			{ 272, 318 },
+			{ 322, 318 },
+			{ 580, 330 },
+			{ 650, 330 },
+			{ 790, 330 },
+		},
+		post = { x = 716, y = 330 },
 		tree = { x = 422, y = 334, unit = 0.78 },
 		hills = {
 			{ 0, 290, 90 },

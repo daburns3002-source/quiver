@@ -42,8 +42,11 @@ type Mote = {
 	loop: number,
 }
 
+type Twinkle = { frame: Frame, base: number, phase: number }
+
 export type Scene = {
 	root: Frame,
+	twinkles: { Twinkle },
 	view: Vector2,
 	design: Config.Design,
 	motes: { Mote },
@@ -328,15 +331,96 @@ function TitleScene.build(parent: Instance, view: Vector2): Scene
 	})
 	dusk.Parent = sky
 
-	for _, star in TitleLayout.stars(design, fit) do
-		light("Star", star.x, star.y, star.size, star.size, Config.star, star.alpha)
+	-- the stars; one in a few twinkles (`step`), and a few large ones are small pluses
+	local twinkles: { Twinkle } = {}
+	for index, star in TitleLayout.stars(design, fit) do
+		if index % Config.twinkle.every == 0 then
+			local frame =
+				light("Twinkle", star.x, star.y, star.size, star.size, Config.star, star.alpha)
+			table.insert(twinkles, { frame = frame, base = star.alpha, phase = index * 1.7 })
+		else
+			light("Star", star.x, star.y, star.size, star.size, Config.star, star.alpha)
+		end
+	end
+	local big = Config.bigStar
+	for _, star in design.bigStars do
+		local x, y = star[1], star[2]
+		light(
+			"BigStar",
+			x - big.long / 2,
+			y - big.thick / 2,
+			big.long,
+			big.thick,
+			Config.star,
+			big.alpha
+		)
+		light(
+			"BigStar",
+			x - big.thick / 2,
+			y - big.long / 2,
+			big.thick,
+			big.long,
+			Config.star,
+			big.alpha
+		)
 	end
 	local moon = Config.moon
-	local disc =
-		light("Moon", design.moon.x, design.moon.y, moon.size, moon.size, moon.colour, moon.alpha)
-	local curve = Instance.new("UICorner")
-	curve.CornerRadius = UDim.new(moon.corner / moon.size, 0)
-	curve.Parent = disc
+	local function rounded(frame: Frame, share: number)
+		local curve = Instance.new("UICorner")
+		curve.CornerRadius = UDim.new(share, 0)
+		curve.Parent = frame
+	end
+	local halo = Config.moonHalo
+	rounded(
+		light(
+			"MoonHalo",
+			design.moon.x - halo.grow,
+			design.moon.y - halo.grow,
+			moon.size + 2 * halo.grow,
+			moon.size + 2 * halo.grow,
+			moon.colour,
+			halo.alpha
+		),
+		(moon.corner + halo.grow) / (moon.size + 2 * halo.grow)
+	)
+	rounded(
+		light("Moon", design.moon.x, design.moon.y, moon.size, moon.size, moon.colour, moon.alpha),
+		moon.corner / moon.size
+	)
+	for _, crater in Config.moonCraters do
+		light(
+			"MoonCrater",
+			design.moon.x + crater[1],
+			design.moon.y + crater[2],
+			crater[3],
+			crater[3],
+			Config.moonCrater
+		)
+	end
+	-- thin clouds: a band with a shorter step above and one below
+	local cloud = Config.cloud
+	for _, band in design.clouds do
+		local x, y, w = band[1], band[2], band[3]
+		light("Cloud", x, y, w, cloud.tall, cloud.colour, cloud.alpha)
+		light(
+			"Cloud",
+			x + w * 0.18,
+			y - cloud.tall * 0.8,
+			w * 0.5,
+			cloud.tall * 0.8,
+			cloud.colour,
+			cloud.alpha
+		)
+		light(
+			"Cloud",
+			x + w * 0.46,
+			y + cloud.tall,
+			w * 0.42,
+			cloud.tall * 0.6,
+			cloud.colour,
+			cloud.alpha
+		)
+	end
 
 	-- the soft light behind the crown
 	local tree = design.tree
@@ -347,7 +431,17 @@ function TitleScene.build(parent: Instance, view: Vector2): Scene
 	glow.Size =
 		UDim2.fromScale(2 * Config.glow.radius * u / wide, 2 * Config.glow.radius * u / tall)
 
-	-- far hills, again to either side on a screen wider than the layout
+	--[[ The hills, again to either side on a screen wider than the layout:
+	     a farther, paler row, the near ones with small stepped pines on
+	     them, and a few lit windows. ]]
+	for shift = -1, 1 do
+		for _, hill in design.farHills do
+			local x = hill[1] + shift * wide
+			if x + hill[3] > left and x < right then
+				block("FarHill", x, hill[2], hill[3], Config.farHill.tall, Config.farHill.colour)
+			end
+		end
+	end
 	for shift = -1, 1 do
 		for _, hill in design.hills do
 			local x = hill[1] + shift * wide
@@ -355,6 +449,29 @@ function TitleScene.build(parent: Instance, view: Vector2): Scene
 				block("Hill", x, hill[2], hill[3], Config.hill.tall, Config.hill.colour)
 			end
 		end
+		for _, pine in design.pines do
+			local x, foot, high = pine[1] + shift * wide, pine[2], pine[3]
+			if x + high > left and x - high < right then
+				-- three steps narrowing to the top, on a short stem
+				for step = 0, 2 do
+					local half = high * (0.42 - 0.13 * step)
+					local rung = foot - high * (0.5 + 0.25 * step)
+					block("Pine", x - half, rung, 2 * half, high * 0.27, Config.hill.colour)
+				end
+				block(
+					"Pine",
+					x - high * 0.08,
+					foot - high * 0.26,
+					high * 0.16,
+					high * 0.28,
+					Config.hill.colour
+				)
+			end
+		end
+	end
+	local lit = Config.villageLight
+	for _, at in design.village do
+		light("Village", at[1], at[2], lit.size, lit.size, lit.colour, lit.alpha)
 	end
 	local groundTop = tree.y - Config.ground.above
 	block(
@@ -374,6 +491,15 @@ function TitleScene.build(parent: Instance, view: Vector2): Scene
 	for _, part in shape.trunk do
 		onTree("Trunk", part, shape.trunkColour)
 	end
+	for _, part in shape.roots do
+		onTree("Root", part, shape.trunkColour)
+	end
+	-- leaf blocks round the crown's edge, behind it
+	for index, square in shape.leaves do
+		local x, y, side = square[1], square[2], square[3]
+		onTree("Leaves", { x, y, side, side }, shape.crownColours[index % 2 + 1])
+		onTree("LeavesLit", { x, y, side, side * shape.crownStrip }, shape.crownLit)
+	end
 	for index, square in shape.crown do
 		local x, y, side = square[1], square[2], square[3]
 		onTree("Crown", { x, y, side, side }, shape.crownColours[(index - 1) % 2 + 1])
@@ -389,8 +515,19 @@ function TitleScene.build(parent: Instance, view: Vector2): Scene
 			patch.alpha
 		)
 	end
-	for _, lantern in shape.lanterns do
+	for index, lantern in shape.lanterns do
 		local x, y, side = lantern[1], lantern[2], lantern[3]
+		if index <= shape.strings.count then
+			local long = shape.strings.long
+			light(
+				"LanternString",
+				tree.x + (x + side / 2 - 0.5) * u,
+				tree.y + (y - long) * u,
+				u,
+				long * u,
+				shape.trunkColour
+			)
+		end
 		light(
 			"LanternHalo",
 			tree.x + (x - side) * u,
@@ -415,6 +552,26 @@ function TitleScene.build(parent: Instance, view: Vector2): Scene
 		)
 		light("Window", x, y, 8 * u, 10 * u, shape.window)
 	end
+	-- the lit doorway at the trunk's foot
+	local door = shape.door
+	onTree("DoorFrame", door.frame, shape.doorFrame)
+	light(
+		"DoorHalo",
+		tree.x + (door.light[1] - 3) * u,
+		tree.y + (door.light[2] - 3) * u,
+		(door.light[3] + 6) * u,
+		(door.light[4] + 3) * u,
+		shape.windowHalo,
+		shape.windowHaloAlpha
+	)
+	light(
+		"Door",
+		tree.x + door.light[1] * u,
+		tree.y + door.light[2] * u,
+		door.light[3] * u,
+		door.light[4] * u,
+		shape.window
+	)
 
 	--[[ The near ridge: its base runs to the bottom of the screen, and a
 	     step that touches the layout's side runs on to the screen's. ]]
@@ -424,6 +581,34 @@ function TitleScene.build(parent: Instance, view: Vector2): Scene
 		local x0 = if x <= 0 then left else x
 		block("Ridge", x0, y, x1 - x0, if index == 1 then bottom - y else h, Config.ridge)
 	end
+	-- grass on the ridge, and a lantern post with a mint light
+	for _, tuft in design.tufts do
+		for _, blade in Config.tuft do
+			block("Grass", tuft[1] + blade[1], tuft[2] - blade[2], 2, blade[2] + 1, Config.ridge)
+		end
+	end
+	local post, stands = Config.post, design.post
+	block("Post", stands.x, stands.y - post.tall, 2, post.tall + 1, Config.figure)
+	block("Post", stands.x, stands.y - post.tall, post.arm, 2, Config.figure)
+	local hang = stands.x + post.arm - post.lantern / 2 - 1
+	light(
+		"PostString",
+		hang + post.lantern / 2 - 0.5,
+		stands.y - post.tall + 2,
+		1,
+		3,
+		Config.figure
+	)
+	light(
+		"PostHalo",
+		hang - post.lantern,
+		stands.y - post.tall + 5 - post.lantern,
+		post.lantern * 3,
+		post.lantern * 3,
+		shape.lanternHalo,
+		shape.lanternHaloAlpha
+	)
+	light("PostLantern", hang, stands.y - post.tall + 5, post.lantern, post.lantern, shape.lantern)
 
 	-- the hero from behind, bow across the back, and the pet at their heel
 	local function figure(
@@ -527,10 +712,10 @@ function TitleScene.build(parent: Instance, view: Vector2): Scene
 	buildLogo(logo, design, logoAt)
 
 	collect(root, fading)
-	-- the motes fade on their own loops (`step`)
+	-- the motes and the twinkling stars fade on their own loops (`step`)
 	for index = #fading, 1, -1 do
 		local name = fading[index].item.Name
-		if name == "Mote" or name == "MoteHalo" then
+		if name == "Mote" or name == "MoteHalo" or name == "Twinkle" then
 			table.remove(fading, index)
 		end
 	end
@@ -541,6 +726,7 @@ function TitleScene.build(parent: Instance, view: Vector2): Scene
 		view = view,
 		design = design,
 		motes = motes,
+		twinkles = twinkles,
 		fading = fading,
 		shown = 1,
 		still = reducedMotion(),
@@ -570,6 +756,15 @@ function TitleScene.step(scene: Scene, t: number, shown: number)
 		mote.frame.BackgroundTransparency = 1 - alpha
 		mote.halo.Position = at
 		mote.halo.BackgroundTransparency = 1 - alpha * look.haloAlpha
+	end
+	local twinkle = Config.twinkle
+	for _, star in scene.twinkles do
+		local dim = if scene.still
+			then 0
+			else twinkle.depth * (0.5 + 0.5 * math.sin(
+				2 * math.pi * twinkle.speed * t + star.phase
+			))
+		star.frame.BackgroundTransparency = 1 - star.base * (1 - dim) * shown
 	end
 end
 

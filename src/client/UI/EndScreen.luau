@@ -298,12 +298,22 @@ local function pivot(obj: GuiObject): UIScale
 	return scale
 end
 
---[[ A label whose words shrink to fit their box, never past `size`. ]]
+--[[ A label whose words shrink to fit their box, never past `size`,
+     wrapping onto a second line where that keeps them larger. ]]
 local function fitted(t: TextLabel, size: number)
 	t.TextScaled = true
 	local limit = Instance.new("UITextSizeConstraint")
 	limit.MaxTextSize = math.min(size, 100)
 	limit.Parent = t
+end
+
+--[[ A label whose words stay on one line, shrunk to `room` (sheet
+     pixels) if they are wider than it at `size`. ]]
+local function oneLine(t: TextLabel, size: number, room: number)
+	local wide = width(t.Text, size)
+	if wide > room then
+		t.TextSize = math.floor(size * room / wide)
+	end
 end
 
 local function buildRibbon(
@@ -371,7 +381,7 @@ local function buildRibbon(
 		look.subTextColour,
 		look.text.subStroke
 	)
-	fitted(words, look.text.sub)
+	oneLine(words, look.text.sub, sb.w - 32)
 	if look.studs then
 		for _, at in { { 30, 30 }, { sb.w - 30, 30 }, { 30, sb.h - 34 }, { sb.w - 30, sb.h - 34 } } do
 			cube(sub, at[1], at[2], 30, 28, look.studs)
@@ -520,8 +530,8 @@ end
 
 --[[ Victory's chest slot, under the coins and gems: what the run gave
      beyond them. A level's first clear gives its area's egg (shown, then
-     opened with the hatchery's reveal); a boss its item, as a badge on the
-     slot's corner beside the egg, or in the slot when there is no egg.
+     opened with the hatchery's reveal); a boss its item, at the slot's right
+     end beside the egg, or in the slot when there is no egg.
      Dimmed, the area's chest at x0, when the run gave neither. ]]
 local function chestSlot(rewards: Frame, look: any, layout: any, summary: Summary): Count
 	local c = layout.chest
@@ -568,13 +578,14 @@ local function chestSlot(rewards: Frame, look: any, layout: any, summary: Summar
 	)
 	label.TextXAlignment = Enum.TextXAlignment.Left
 	fitted(label, look.text.reward)
-	--[[ The boss item beside an egg: its picture on the slot's corner. ]]
+	--[[ The boss item beside an egg: its picture at the slot's right end,
+	     past the count. ]]
 	if egg and item and ShopAssets.items[item] then
-		local size = sb.h
+		local size = math.min(sb.w - c.countRight - 8, sb.h - 16)
 		image(
 			slot,
 			"Item",
-			{ x = sb.w - size * 0.6, y = -size * 0.4, w = size, h = size },
+			{ x = c.countRight + 4, y = (sb.h - size) / 2, w = size, h = size },
 			37,
 			ShopAssets.items[item]
 		)

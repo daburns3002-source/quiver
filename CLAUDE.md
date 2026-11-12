@@ -402,6 +402,45 @@ rarity tiles, pop-in), laid out in sheet pixels on 1920 x 1080 or, held upright,
 (`Chunky.press`, or a `Chunky.button`) and anything equippable or equipped gleams (`Chunky.gleam`,
 owner, 2026-11-05: "the gleam on equippables, the bounce on click").
 
+**The kit's look is the owner's major reference of 2026-11-11** ("use this as the major reference
+image": a house-tycoon game's store screen; memory `ui-major-reference`), which replaced the royal-blue
+panels: a cream panel with a dark-brown outline, an orange striped header bar across its top with the
+title at its left and a red hexagon X at its right (`Chunky.ribbon` and `Chunky.close` drawn after a
+`Chunky.panel` become that header, whatever box they are given), striped buttons outlined in a darker
+shade of their own colour (`Chunky.shade`), filled rarity tiles, cream currency pills, brown
+`Chunky.ink` words on cream. `Chunky.navy` is now that brown (`Chunky.edge`), kept under its old name.
+**Effects are in the kit** (owner, the same day: "make sure there are effects as well"): every button
+clicks, throws sparks (`Chunky.burst`) and bounces, gold ones carry a sweeping shine, `Chunky.twinkle`
+sparkles what is selected or new, `Chunky.count` runs a number up. A screen laid out in screen points
+rather than on the station canvas draws on `Chunky.pointSheet` (the run's MENU, the draft's phone tray,
+settings, the Soulstone shop). **Not seen in Studio yet** (2026-11-11): the re-skin changes every chunky
+screen at once and waits on a look.
+
+**The run's top HUD** (`UI/RunBanner`, `Util/RunHudRules`, `Config/Hud` `top`; 2026-11-11): a thick XP
+bar with the hero's level on a gold badge, the coin counter (`Fx/CoinDrops` flies kill coins to its
+`CoinCounter`-tagged icon and counts `CoinsShown` up), the room counter with the stage's rooms as pips
+(up to `maxPips`; more keep the counter and name the room), and a status line. On a phone the MENU is a
+48-point pause icon at the top left (`UI/ControlMenu`) and the draft, held upright, gets a tray under
+its panel with the selected card read out and REROLL / CHOOSE! 56 points tall (`Config/Hud`
+`draftUpright`). All in screen points.
+
+**Settings** (`Config/Settings`, `Util/SettingsRules`, `Server/Data/Settings`, `client/Options`,
+`UI/SettingsScreen`, save version 9): music and sound volume in steps and vibration on or off, kept in
+the save, read on the client from Player attributes. `Fx/Haptics` shakes the device on a hit taken, a
+dash and a level gained. The SETTINGS button is on the lobby's left edge.
+
+**Launch locks** (`Config/Launch.locks`, **off**; `Util/LaunchLocks`): one switch that makes every area
+after the first, its egg, and Endless wait on the boss before it (`atLaunch` in `Config/Lobby` and
+`Config/Eggs`). Off, the playtest is as open as the owner asked. `tests/LaunchLocks.spec` holds both.
+
+**Endless pays in eggs and crates** (owner, 2026-11-11: "MAKE IT MORE LIKE 5 EGGS AND 5 CRATES ... I WANT
+IT TO FEEL NECESSARY TO BEAT THESE ROOMS"): each milestone (`Balance.Endless.milestones`) hatches its
+eggs and opens its crates for the player on the spot, free, one of each batch sure to be at least its
+`rarity` (`Server/Data/EndlessPrizes`, `Util/PrizeRules`, shown by `UI/EndlessPrize`). **Soulstones buy
+eggs and crates** at the Soulstone shop (`Config/SoulstoneShop`, `Util/SoulstoneShopRules`,
+`Server/Data/SoulstoneShop`, `UI/SoulstoneShop`), opened from the Endless portal's screen: 100 for the
+first area's, doubling an area, 1 or 5 a press.
+
 **The weapon shop** (owner, 2026-10-25; `Config/Shop`, `Util/ShopRules`, `Server/Data/Shop`,
 `UI/ShopScreen`): at the lobby's Blacksmith, SHOP (or E) opens CRATES, STORE and MY WEAPONS.
 A crate per area for coins (500, 1,000, 2,000, 4,000, 10,000, 20,000) rolls on the server

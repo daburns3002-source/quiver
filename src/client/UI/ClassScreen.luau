@@ -104,10 +104,10 @@ end
 	be fixed. it looks too ai right now", and the major UI reference of the
 	same day). It was four slanted panels of painted class art; now it is a
 	chunky panel (`UI/Chunky`) over the lobby with a card for each class
-	(`Config/ClassSelect`), and on every card the player's own character, as
-	it stands in the game, holding that class's weapon (`GearScreen.portrait`;
-	the class bodies were taken out on 2026-11-07, so the character is the
-	player's avatar). Under it the class's name, what it plays like, and
+	(`Config/ClassSelect`), and on every card the player's own character in
+	that class's armour set, holding its weapon (`GearScreen.portrait`,
+	`Util/ClassOutfit`; owner, 2026-11-12: "make sure its not just that base
+	male model", then Outfit C). Under it the class's name, what it plays like, and
 	three bars read off `Config/Classes` (`Util/ClassStats`), so the card
 	says what the numbers say. Tap a card, then CHOOSE.
 
@@ -304,7 +304,8 @@ function ClassScreen.start()
 		ring.Enabled = false
 		Chunky.round(holder, 22)
 
-		--[[ The player's own character, holding this class's weapon. ]]
+		--[[ The player's own character, in this class's armour, holding its
+		     weapon. ]]
 		local stage = Instance.new("Frame")
 		stage.Name = "Stage"
 		stage.BackgroundTransparency = 1
@@ -321,7 +322,7 @@ function ClassScreen.start()
 			local square = Instance.new("UIAspectRatioConstraint")
 			square.Parent = lock
 		else
-			GearScreen.portrait(stage, Classes[card.class].weapon)
+			GearScreen.portrait(stage, Classes[card.class].weapon, card.class)
 		end
 
 		local name = Chunky.text(tile, string.upper(card.class), nil, 6, Chunky.shade(tone))

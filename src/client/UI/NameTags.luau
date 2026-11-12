@@ -3,7 +3,7 @@
 	Player name tags in the game's own font (owner, 2026-10-26: "make every
 	piece of text in the lobby the same font"). Roblox draws a player's name
 	over their head in its own typeface; this turns that off and puts the
-	name up in the blocky font (CLAUDE.md rule 11) instead, for every player
+	name up in the game's font (CLAUDE.md rule 11) instead, for every player
 	this client sees.
 ]]
 
@@ -40,7 +40,7 @@ local function tag(player: Player, character: Model)
 	label.Name = "Name"
 	label.BackgroundTransparency = 1
 	label.Size = UDim2.fromScale(1, 1)
-	label.Font = Enum.Font.Arcade
+	label.Font = Enum.Font.FredokaOne
 	label.Text = player.DisplayName
 	label.TextColor3 = Color3.new(1, 1, 1)
 	label.TextStrokeColor3 = Color3.new(0, 0, 0)

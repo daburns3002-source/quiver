@@ -13,7 +13,7 @@
 	   and description from `Config/Abilities` (the set's own stat lines are
 	   placeholders), the level pips;
 	5. the rarity's name banner across the top, the card's name and rarity
-	   written on it in the blocky font;
+	   written on it in the game's font;
 	6. the NEW! sticker, the Maxed or Locked overlay, the selection ring.
 
 	Presentation only: a card does not know what an ability does, only what
@@ -400,7 +400,7 @@ function CardBuilder.build(abilityId: string, options: Options): Card
 	banner.Size = UDim2.fromOffset(GLOW_TOY.banner.X * bannerScale, GLOW_TOY.banner.Y * bannerScale)
 
 	--[[ The name across the ribbon and the rarity on its plate, written in
-	     the blocky font (CLAUDE.md rule 11) where the set printed them in its
+	     the game's font (CLAUDE.md rule 11) where the set printed them in its
 	     own. ]]
 	local function onBanner(text: TextLabel, box: Rect)
 		text.Position =

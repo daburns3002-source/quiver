@@ -39,12 +39,12 @@ local CardTheme = {
 		Mythic = rgb(152, 8, 40),
 	},
 
-	--[[ Both blocky: Press Start 2P (CLAUDE.md rule 11, owner 2026-10-24). ]]
+	--[[ Both the game's one font: Fredoka One (CLAUDE.md rule 11, owner 2026-10-24). ]]
 	fonts = {
 		--[[ Headings, rarity labels, names, badges, buttons. ]]
-		display = Enum.Font.Arcade,
+		display = Enum.Font.FredokaOne,
 		--[[ Descriptions, stat pills, other copy. ]]
-		body = Enum.Font.Arcade,
+		body = Enum.Font.FredokaOne,
 	},
 
 	card = {
@@ -85,7 +85,7 @@ local CardTheme = {
 		     inside it. All in the face's 168-wide units. ]]
 		statText = 14,
 		-- a long stat line steps its own size down to fit across the card, to
-		-- no less than this (the blocky font is wide; CLAUDE.md rule 11)
+		-- no less than this (the game's font is wide; CLAUDE.md rule 11)
 		statTextMin = 9,
 		-- the name on the banner, as large as fits its ribbon on one line or
 		-- two, up to the first and no smaller than the second

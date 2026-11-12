@@ -32,7 +32,7 @@ local SoundFx = require(script.Parent.Parent.Fx.SoundFx)
 
 local NewEnemyScreen = {}
 
-local FONT = Font.fromEnum(Enum.Font.Arcade)
+local FONT = Font.fromEnum(Enum.Font.FredokaOne)
 
 type Parts = {
 	gui: ScreenGui,

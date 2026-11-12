@@ -44,7 +44,7 @@ local StoryCutscene = {}
 
 local log = Log.forTag("StoryCutscene")
 
-local FONT = Font.fromEnum(Enum.Font.Arcade)
+local FONT = Font.fromEnum(Enum.Font.FredokaOne)
 local INK = Color3.fromRGB(20, 14, 6)
 local FACE = Color3.fromRGB(46, 40, 34)
 local FACE_HOVER = Color3.fromRGB(78, 70, 60)

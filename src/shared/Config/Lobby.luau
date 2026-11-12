@@ -13,7 +13,7 @@
 	sides, round grey boulders, puffy round trees, waterfalls, cottages with
 	coloured roofs, wooden signs and round wooden egg platforms. Everything is
 	built at boot from plain smooth parts (`Run/Lobby`); the words alone are
-	in the blocky font. The one exception is the Dex Hall's two books
+	in the game's font. The one exception is the Dex Hall's two books
 	(`dex` below), which the owner modelled and imported himself
 	(2026-11-01: "i made the book that goes on the roof and also the book
 	stand that is on the ground in front of it") -- an open book's pages

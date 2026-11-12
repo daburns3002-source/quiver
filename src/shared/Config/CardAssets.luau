@@ -82,7 +82,7 @@ local CardAssets = {
 	},
 	--[[ The name banner for each rarity, 984 x 558, its plate cleared
 	     (`assets/ui/glow_toy_cards/clear_plates.py`): the card writes its name
-	     and rarity on it in the blocky font (CLAUDE.md rule 11). ]]
+	     and rarity on it in the game's font (CLAUDE.md rule 11). ]]
 	banners = {
 		Common = "rbxassetid://99271147813779",
 		Uncommon = "rbxassetid://107353888465461",
@@ -105,7 +105,7 @@ local CardAssets = {
 	--[[ The draft screen's buttons in the Glow Toy set (804 x 324, the plate
 	     inside 45..758 x 48..278; pressed, it sits 30 lower): its blank
 	     plates, green, blue and grey for one that cannot be pressed, with
-	     their words written live in the blocky font (CLAUDE.md rule 11); and
+	     their words written live in the game's font (CLAUDE.md rule 11); and
 	     the dice the Reroll art carried, cut out by
 	     `assets/ui/glow_toy_cards/cut_dice.py`. ]]
 	buttons = {

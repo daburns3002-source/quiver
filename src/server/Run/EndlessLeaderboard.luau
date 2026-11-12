@@ -419,7 +419,7 @@ local function label(
 	text.BackgroundTransparency = 1
 	text.Position = UDim2.fromScale(x, 0.12)
 	text.Size = UDim2.fromScale(width, 0.76)
-	text.Font = Enum.Font.Arcade
+	text.Font = Enum.Font.FredokaOne
 	text.TextScaled = true
 	text.TextXAlignment = align
 	text.TextColor3 = Leaderboard.colors.text

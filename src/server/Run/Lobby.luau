@@ -214,7 +214,7 @@ local function words(board: Part, text: string, colour: Color3)
 	label.Position = UDim2.fromScale(0.5, 0.5)
 	label.Size = UDim2.fromScale(0.92, 0.84)
 	label.TextWrapped = true
-	label.Font = Enum.Font.Arcade
+	label.Font = Enum.Font.FredokaOne
 	label.Text = text
 	label.TextColor3 = colour
 	label.TextStrokeColor3 = Color3.fromRGB(60, 36, 20)
@@ -464,7 +464,7 @@ local function floatingTitle(spec: LobbyConfig.Building, at: CFrame, model: Mode
 	local label = Instance.new("TextLabel")
 	label.BackgroundTransparency = 1
 	label.Size = UDim2.fromScale(1, 1)
-	label.Font = Enum.Font.Arcade
+	label.Font = Enum.Font.FredokaOne
 	label.TextScaled = true
 	-- two chunky lines, as the sheet letters them
 	label.Text = string.gsub(spec.title or "", " ", "\n")
@@ -704,7 +704,7 @@ local function standOut(kind: string, key: string, centre: Vector3, parent: Inst
 			label.BackgroundTransparency = 1
 			label.Size = UDim2.fromScale(1, 0.5)
 			label.Position = UDim2.fromScale(0, (line - 1) * 0.5)
-			label.Font = Enum.Font.Arcade
+			label.Font = Enum.Font.FredokaOne
 			label.TextScaled = true
 			label.Text = text
 			label.TextColor3 = if line == 1

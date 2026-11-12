@@ -16,7 +16,7 @@
 
 local Hud = {
 	--[[ How tall the numbers on the health and dash bars stand against
-	     their bar, centred on it and outlined: the blocky font (CLAUDE.md
+	     their bar, centred on it and outlined: the game's font (CLAUDE.md
 	     rule 11) is unreadable squeezed inside a bar's own height (owner,
 	     2026-10-24: "make the small HUD labels … bigger"). ]]
 	barText = { health = 1.6, dash = 2.6 },

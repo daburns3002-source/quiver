@@ -125,6 +125,14 @@ local trayTitle: TextLabel? = nil
 local trayWords: TextLabel? = nil
 local trayChoose: Frame? = nil
 local trayReroll: Frame? = nil
+--[[ REROLL and CHOOSE! on every other screen: the same chunky buttons, in
+     the panel, under the hand or beside it (owner, 2026-11-11: everything
+     the player clicks is in the reference's look). They replaced the
+     picture-plate buttons, which are still built and still hold whether a
+     press counts (`Active`), but are no longer shown. ]]
+local panelButtons: Frame? = nil
+local panelChoose: Frame? = nil
+local panelReroll: Frame? = nil
 local TRAY_HINT = "TAP A CARD TO READ IT"
 local cardRow: Frame? = nil
 local title: TextLabel? = nil
@@ -306,7 +314,7 @@ end
 --[[ The Glow Toy buttons (`CardAssets.buttons`): the plate is 713 x 230 of
      the 804 x 324 art, from (45, 48); the art is drawn so that plate fills
      the button. The plates are blank: the words (and Reroll's dice) are
-     written live in the blocky font (CLAUDE.md rule 11), centred on the
+     written live in the game's font (CLAUDE.md rule 11), centred on the
      plate's face, rows 9..159 of its 230, and move down with the pressed
      art, which sits 30 lower. ]]
 local ART_SIZE = Vector2.new(804, 324)
@@ -591,9 +599,12 @@ local function setChooseEnabled(enabled: boolean)
 			wobble(b, 6)
 		end
 	end
-	local big = trayChoose
-	if big then
-		Chunky.repaint(big, if enabled then Chunky.green else Chunky.grey)
+	local tone = if enabled then Chunky.green else Chunky.grey
+	if trayChoose then
+		Chunky.repaint(trayChoose, tone)
+	end
+	if panelChoose then
+		Chunky.repaint(panelChoose, tone)
 	end
 end
 
@@ -674,9 +685,12 @@ local function confirm()
 	end
 
 	locked = true
-	-- The tray steps aside for the celebration.
+	-- The buttons step aside for the celebration.
 	if tray then
 		tray.Visible = false
+	end
+	if panelButtons then
+		panelButtons.Visible = false
 	end
 	SoundFx.play("card_choose")
 	local chosen = slots[index]
@@ -786,9 +800,32 @@ local function layoutPanel(count: number)
 		UDim2.new(0.5, if column then -PHONE_BUTTON_COLUMN / 2 else 0, 0, 40 + 70 + CROWN_ROOM)
 	rowWidth = width
 
+	local pair, pairReroll, pairChoose = panelButtons, panelReroll, panelChoose
+	if pair and pairReroll and pairChoose then
+		pair.Visible = not stack
+		if column then
+			-- beside the hand, one over the other
+			pair.AnchorPoint = Vector2.new(1, 0.5)
+			pair.Position = UDim2.new(1, -24, 0, 40 + 70 + CROWN_ROOM + CARD.Y / 2)
+			pair.Size = UDim2.fromOffset(182, 140)
+			pair:SetAttribute("SheetW", 364)
+			pairChoose.Position, pairChoose.Size = UDim2.fromScale(0, 0), UDim2.fromScale(1, 0.46)
+			pairReroll.Position, pairReroll.Size =
+				UDim2.fromScale(0, 0.54), UDim2.fromScale(1, 0.46)
+		else
+			-- under the hand, side by side
+			pair.AnchorPoint = Vector2.new(0.5, 1)
+			pair.Position = UDim2.new(0.5, 0, 1, -40)
+			pair.Size = UDim2.fromOffset(440, 62)
+			pair:SetAttribute("SheetW", 880)
+			pairReroll.Position, pairReroll.Size = UDim2.fromScale(0, 0), UDim2.fromScale(0.4, 1)
+			pairChoose.Position, pairChoose.Size =
+				UDim2.fromScale(0.44, 0), UDim2.fromScale(0.56, 1)
+		end
+	end
 	local b, list = buttonsFrame, buttonsList
 	if b and list then
-		b.Visible = not stack
+		b.Visible = false
 		if column then
 			b.AnchorPoint = Vector2.new(1, 0.5)
 			b.Position = UDim2.new(1, -30, 0, 40 + 70 + CROWN_ROOM + CARD.Y / 2)
@@ -1360,6 +1397,7 @@ end
 function DraftScreen.stop()
 	clearSlots()
 	tray, trayTitle, trayWords, trayChoose, trayReroll = nil, nil, nil, nil, nil
+	panelButtons, panelChoose, panelReroll = nil, nil, nil
 	table.clear(buttonFeels)
 	if connection then
 		connection:Disconnect()
@@ -1538,11 +1576,13 @@ function DraftScreen.start(chosen: (number) -> (), rerolled: () -> ())
 	heading.Size = UDim2.new(1, -40, 0, 48)
 	title = heading
 
-	local sub = stroked(root, "", CardTheme.fonts.body, 16, WHITE, 4)
+	--[[ 22, not the 16 the wide blocky font needed: the rounded one is
+	     narrower and read small at that size (Studio, 2026-11-12). ]]
+	local sub = stroked(root, "", CardTheme.fonts.body, 22, WHITE, 4)
 	sub.Name = "Subtitle"
 	sub.AnchorPoint = Vector2.new(0.5, 0)
-	sub.Position = UDim2.new(0.5, 0, 0, 84)
-	sub.Size = UDim2.new(1, -40, 0, 20)
+	sub.Position = UDim2.new(0.5, 0, 0, 82)
+	sub.Size = UDim2.new(1, -40, 0, 28)
 	subtitle = sub
 
 	local row = Instance.new("Frame")
@@ -1663,6 +1703,38 @@ function DraftScreen.start(chosen: (number) -> (), rerolled: () -> ())
 		buttonsTop,
 		d.sheet.X - d.rerollWidth - d.gap,
 		d.buttonsHeight,
+		confirm
+	)
+
+	--[[ The panel's own pair, in the panel's design pixels (`layoutPanel`
+	     places and shapes it): a sheet two pixels to each of them. ]]
+	local pair = Instance.new("Frame")
+	pair.Name = "ChunkyButtons"
+	pair.BackgroundTransparency = 1
+	pair.Size = UDim2.fromOffset(440, 62)
+	pair.ZIndex = 5
+	pair.Parent = root
+	panelButtons = pair
+	local pairSheet = Chunky.pointSheet(pair, 440, 62)
+	panelReroll = Chunky.button(
+		pairSheet,
+		"REROLL",
+		Chunky.blue,
+		0,
+		0,
+		pairSheet.w * 0.4,
+		pairSheet.h,
+		reroll,
+		CardAssets.buttons.dice
+	)
+	panelChoose = Chunky.button(
+		pairSheet,
+		"CHOOSE!",
+		Chunky.grey,
+		pairSheet.w * 0.44,
+		0,
+		pairSheet.w * 0.56,
+		pairSheet.h,
 		confirm
 	)
 
@@ -1930,15 +2002,18 @@ function DraftScreen.show(offer: { string }, level: number, source: string?, rer
 			count.Visible = left > 0
 		end
 	end
-	local bigReroll = trayReroll
-	if bigReroll then
-		bigReroll.Visible = source ~= "Angel"
-		Chunky.repaint(
-			bigReroll,
-			if left > 0 then Chunky.blue else Chunky.grey,
-			if left > 0 then `REROLL {left}` else "REROLL"
-		)
+	local function count(bigReroll: Frame?)
+		if bigReroll then
+			bigReroll.Visible = source ~= "Angel"
+			Chunky.repaint(
+				bigReroll,
+				if left > 0 then Chunky.blue else Chunky.grey,
+				if left > 0 then `REROLL {left}` else "REROLL"
+			)
+		end
 	end
+	count(trayReroll)
+	count(panelReroll)
 
 	layoutPanel(#offer)
 

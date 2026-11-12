@@ -180,7 +180,7 @@ function Kit.label(parent: Instance, words: string, colour: Color3?): TextLabel
 	if parent.Name == "TitlePlate" then
 		l.Position, l.Size = UDim2.fromScale(0.08, 0.12), UDim2.fromScale(0.84, 0.76)
 	end
-	l.Font = Enum.Font.Arcade
+	l.Font = Enum.Font.FredokaOne
 	l.Text = words
 	l.TextColor3 = colour or Kit.white
 	l.TextStrokeColor3 = INK
@@ -374,7 +374,7 @@ function Kit.button(parent: Instance, words: string, colour: Color3, action: () 
 	local scale = Instance.new("UIScale")
 	scale.Parent = f
 	local b = Instance.new("TextButton")
-	b.Font = Enum.Font.Arcade
+	b.Font = Enum.Font.FredokaOne
 	b.Text = ""
 	b.BackgroundTransparency = 1
 	b.Size = UDim2.fromScale(1, 1)
@@ -795,7 +795,7 @@ function Kit.pixelPanel(parent: Instance, w: number, h: number, colour: Color3):
 	return f
 end
 
---[[ A word on a pixel panel: Press Start 2P with Codex's ink outline,
+--[[ A word on a pixel panel: Fredoka One with Codex's ink outline,
      scaled to fit its box and capped at the size it was drawn for, so it
      may shrink to stay inside but never grow (CLAUDE.md rule 11). ]]
 function Kit.pixelText(parent: Instance, words: string, size: number, colour: Color3?): TextLabel
@@ -803,7 +803,7 @@ function Kit.pixelText(parent: Instance, words: string, size: number, colour: Co
 	t.Name = "PixelText"
 	t.BackgroundTransparency = 1
 	t.Size = UDim2.fromScale(1, 1)
-	t.Font = Enum.Font.Arcade
+	t.Font = Enum.Font.FredokaOne
 	t.Text = words
 	t.TextSize = size
 	t.TextScaled = true
@@ -1316,7 +1316,7 @@ function Kit.nativeText(parent: Instance, words: string, colour: Color3?): TextL
 	text.BackgroundTransparency = 1
 	text.Size = UDim2.fromScale(0.88, 0.72)
 	text.Position = UDim2.fromScale(0.06, 0.14)
-	text.Font = Enum.Font.Arcade
+	text.Font = Enum.Font.FredokaOne
 	text.Text = words
 	text.TextColor3 = colour or Color3.new(1, 1, 1)
 	text.TextStrokeTransparency = 1
@@ -1353,7 +1353,7 @@ function Kit.nativeText(parent: Instance, words: string, colour: Color3?): TextL
 end
 function Kit.nativePress(frame: Frame, action: () -> ()): TextButton
 	local hit = Instance.new("TextButton")
-	hit.Font = Enum.Font.Arcade
+	hit.Font = Enum.Font.FredokaOne
 	hit.Text = ""
 	hit.BackgroundTransparency = 1
 	hit.AutoButtonColor = false

@@ -446,6 +446,16 @@ rather than on the station canvas draws on `Chunky.pointSheet` (the run's MENU, 
 settings, the Soulstone shop). **Not seen in Studio yet** (2026-11-11): the re-skin changes every chunky
 screen at once and waits on a look.
 
+**Screens converted to the reference since** (2026-11-11, owner: "Yes, convert them"): **class select**
+(`UI/ClassScreen`, `Config/ClassSelect`, `Util/ClassStats`; owner: "it looks too ai right now") is a
+chunky panel of class cards, each drawing the player's own character holding the class's weapon
+(`GearScreen.portrait`) over three bars read off `Config/Classes`; the painted art, `ClassSelectAssets`
+and `ClassSelectHit` are gone and the look sent to the server is only saved. The **Endless checkpoint**
+is a chunky panel of coloured gift tiles. The **draft** keeps its cards and their dark stage (the
+owner's card design) and has chunky REROLL / CHOOSE! on every layout. The **end screens** keep their
+blocks and motion and take the reference's colours and rounded font (`Config/EndScreenTheme`). Still in
+their own look: NEW ENEMY! (its pixel card is approved art) and the Studio sandbox menu.
+
 **The run's top HUD** (`UI/RunBanner`, `Util/RunHudRules`, `Config/Hud` `top`; 2026-11-11): a thick XP
 bar with the hero's level on a gold badge, the coin counter (`Fx/CoinDrops` flies kill coins to its
 `CoinCounter`-tagged icon and counts `CoinsShown` up), the room counter with the stage's rooms as pips
@@ -906,14 +916,12 @@ for now"): the Blender MCP stays set up (`~/.claude.json`, the `blender-mcp` add
 comparisons are on branch `phase-3/blender-swords`, but no model is made there until the
 owner says otherwise.
 
-**11. Every word on screen is in the blocky font.**
-Press Start 2P, Roblox's `Enum.Font.Arcade` (`Font.fromEnum(Enum.Font.Arcade)` for a
-`FontFace`): HUD, cards, end screens, banners, damage numbers, billboards, dev labels, all
-of it (owner, 2026-10-24: "anywhere there is writing it should be in a blocky font … have
-it as a rule going forward"). The room sign's own pixel font (`Config/PixelFont`) counts.
-The one exception is the **rounded font**, Fredoka One (`Enum.Font.FredokaOne`, via
-`UI/Chunky`), for the chunky restyled screens and the lobby (owner, 2026-11-05: "they should
-use the rounded font, some things are going to be in that font, especially in the lobby").
+**11. Every word on screen is in the one rounded font.**
+Fredoka One, Roblox's `Enum.Font.FredokaOne` (`Chunky.font`; `Font.fromEnum(Enum.Font.FredokaOne)` for a
+`FontFace`): HUD, cards, end screens, banners, damage numbers, billboards, dev labels, all of it (owner,
+2026-11-11: "the ui font for everything should match the new ui text font, replacing the previous rule").
+It replaced the blocky font, Press Start 2P, which the rule named from 2026-10-24 with the rounded one as
+its exception. The room sign's own pixel letters (`Config/PixelFont`) are drawn, not typed, and stay.
 `tools/check.sh` fails on any other font.
 
 **12. Every Legendary and Mythic glows.**

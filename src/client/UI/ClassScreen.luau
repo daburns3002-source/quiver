@@ -1,19 +1,23 @@
 --!strict
---[[ The owner's approved class cutouts: select a look, then CHOOSE (2026-10-27). ]]
+--[[ Class select: pick a class on its card, then CHOOSE; and the game's
+     loading cover, which the area loading screen shares. ]]
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 local Workspace = game:GetService("Workspace")
-local Assets = require(ReplicatedStorage.Shared.Config.ClassSelectAssets)
-local GearAssets = require(ReplicatedStorage.Shared.Config.GearAssets)
-local Hit = require(ReplicatedStorage.Shared.Util.ClassSelectHit)
+local Chunky = require(script.Parent.Chunky)
+local ClassCards = require(ReplicatedStorage.Shared.Config.ClassSelect)
+local ClassStats = require(ReplicatedStorage.Shared.Util.ClassStats)
+local Classes = require(ReplicatedStorage.Shared.Config.Classes)
+local GearScreen = require(script.Parent.GearScreen)
 local Kit = require(script.Parent.Kit)
 local LoadingPick = require(ReplicatedStorage.Shared.Util.LoadingPick)
 local LoadingScreen = require(ReplicatedStorage.Shared.Config.LoadingScreen)
 local LoadingTips = require(ReplicatedStorage.Shared.Config.LoadingTips)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local RunPaused = require(script.Parent.Parent.RunPaused)
+local SaveSchema = require(ReplicatedStorage.Shared.Util.SaveSchema)
+local ShopAssets = require(ReplicatedStorage.Shared.Config.ShopAssets)
 local SoundFx = require(script.Parent.Parent.Fx.SoundFx)
 local SpotlightArt = require(ReplicatedStorage.Shared.Util.SpotlightArt)
 local ClassScreen = {}
@@ -77,7 +81,7 @@ function ClassScreen.loadingCover(parent: Instance, seconds: number?): Frame
 	end
 	local tip = Instance.new("TextLabel")
 	tip.BackgroundTransparency = 1
-	tip.Font = Enum.Font.Arcade
+	tip.Font = Enum.Font.FredokaOne
 	tip.Text = LoadingTips[math.random(1, #LoadingTips)]
 	tip.TextColor3 = LoadingScreen.tipText
 	tip.TextScaled = true
@@ -104,6 +108,21 @@ function ClassScreen.loadingCover(parent: Instance, seconds: number?): Frame
 	return cover
 end
 
+--[[
+	The screen itself (owner, 2026-11-11: "the change class screen needs to
+	be fixed. it looks too ai right now", and the major UI reference of the
+	same day). It was four slanted panels of painted class art; now it is a
+	chunky panel (`UI/Chunky`) over the lobby with a card for each class
+	(`Config/ClassSelect`), and on every card the player's own character, as
+	it stands in the game, holding that class's weapon (`GearScreen.portrait`;
+	the class bodies were taken out on 2026-11-07, so the character is the
+	player's avatar). Under it the class's name, what it plays like, and
+	three bars read off `Config/Classes` (`Util/ClassStats`), so the card
+	says what the numbers say. Tap a card, then CHOOSE.
+
+	A phone held upright gets the cards two by two on the kit's upright
+	sheet; the screen is laid out again when it turns.
+]]
 function ClassScreen.start()
 	if started then
 		return
@@ -116,7 +135,7 @@ function ClassScreen.start()
 	gui.ScreenInsets = Enum.ScreenInsets.None
 	gui.ResetOnSpawn = false
 	gui.DisplayOrder = 200
-	gui.ZIndexBehavior = Enum.ZIndexBehavior.Global
+	gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 	gui.Enabled = false
 	gui.Parent = player:WaitForChild("PlayerGui")
 	local connections: { RBXScriptConnection } = {}
@@ -124,304 +143,46 @@ function ClassScreen.start()
 	local function connect(signal: RBXScriptSignal, callback: (...any) -> ())
 		table.insert(connections, signal:Connect(callback))
 	end
-	local function tween(
-		object: Instance,
-		duration: number,
-		properties: { [string]: any },
-		back: boolean?
-	)
+	local function tween(object: Instance, duration: number, properties: { [string]: any })
 		if tweens[object] then
 			tweens[object]:Cancel()
 		end
 		local motion = TweenService:Create(
 			object,
-			TweenInfo.new(
-				duration,
-				if back then Enum.EasingStyle.Back else Enum.EasingStyle.Quad,
-				Enum.EasingDirection.Out
-			),
+			TweenInfo.new(duration, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
 			properties
 		)
 		tweens[object] = motion
 		motion:Play()
 	end
+	--[[ The lobby shows through, dimmed: the game itself is the backdrop. ]]
 	local dim = Instance.new("Frame")
 	dim.BackgroundColor3 = Color3.new(0, 0, 0)
+	dim.BackgroundTransparency = 0.4
 	dim.BorderSizePixel = 0
 	dim.Size = UDim2.fromScale(1, 1)
 	dim.Active = true
 	dim.Parent = gui
 	local canvas = Kit.canvas(dim)
-	canvas.Size = UDim2.fromScale(1, 1)
-	local function piece(data: Assets.Piece, z: number): ImageLabel
-		local image = Kit.image(canvas, data.image)
-		image.ScaleType = Enum.ScaleType.Stretch
-		image.ResampleMode = Enum.ResamplerMode.Default
-		Kit.put(image, data.box.x, data.box.y, data.box.w, data.box.h)
-		image.ZIndex = z
-		return image
-	end
-	piece(Assets.base, 1)
-	local panels: { ImageLabel } = {}
-	local scales: { UIScale } = {}
-	local shakes: { [number]: number } = {}
-	local glows: { ImageLabel } = {}
-	for i, section in Assets.sections do
-		local panel = piece(section.piece, 3)
-		panel.AnchorPoint = Vector2.new(0.5, 0.5)
-		local box = section.piece.box
-		panel.Position = UDim2.fromScale((box.x + box.w / 2) / 1920, (box.y + box.h / 2) / 1080)
-		panels[i] = panel
-		local scale = Instance.new("UIScale")
-		scale.Parent = panel
-		scales[i] = scale
-		local glow = Kit.image(canvas, GearAssets.fx.glow)
-		glow.ScaleType = Enum.ScaleType.Stretch
-		glow.AnchorPoint = Vector2.new(0.5, 0.5)
-		glow.Position = panel.Position
-		glow.Size = UDim2.fromScale(box.w / 1920 * 1.2, 1.15)
-		glow.ImageColor3 = Color3.fromRGB(255, 206, 85)
-		glow.ImageTransparency = 0.35
-		glow.ZIndex = 9
-		glow.Visible = false
-		glows[i] = glow
-	end
-	piece(Assets.title, 20)
-	for _, data in
-		{ Assets.plateRanger, Assets.plateArcanist, Assets.plateWarden, Assets.plateAssassin }
-	do
-		piece(data, 20)
-	end
-	local hit = Instance.new("TextButton")
-	hit.Text = ""
-	hit.Font = Enum.Font.Arcade
-	hit.BackgroundTransparency = 1
-	hit.Size = UDim2.fromScale(1, 1)
-	hit.ZIndex = 25
-	hit.Parent = canvas
-	local choose = Instance.new("ImageButton")
-	choose.BackgroundTransparency = 1
-	choose.AutoButtonColor = false
-	choose.Image = Assets.choose
-	choose.ScaleType = Enum.ScaleType.Stretch
-	choose.AnchorPoint = Vector2.new(0.5, 0.5)
-	choose.Position = UDim2.fromScale(0.5, 820 / 1080)
-	choose.Size = UDim2.fromScale(480 / 1920, 126 / 1080)
-	choose.ZIndex = 30
-	choose.Visible = false
-	choose.Parent = canvas
-	local chooseScale = Instance.new("UIScale")
-	chooseScale.Parent = choose
 
-	--[[ The upright screen, shown instead on a screen taller than wide
-	     (owner, 2026-11-05: "make the character select screen the classes on
-	     top of eachother instead of next to eachother horizontally"): the
-	     classes stacked in bands, male left and female right. The picked
-	     half is outlined in gold and the rest darkened, as the landscape
-	     panels grow and grey. ]]
-	local upright = Assets.portrait
-	local tall = Instance.new("Frame")
-	tall.Name = "UprightCanvas"
-	tall.BackgroundTransparency = 1
-	tall.AnchorPoint = Vector2.new(0.5, 0.5)
-	tall.Position = UDim2.fromScale(0.5, 0.5)
-	tall.Size = UDim2.fromScale(1, 1)
-	tall.Visible = false
-	tall.Parent = dim
-	local tallAspect = Instance.new("UIAspectRatioConstraint")
-	tallAspect.AspectRatio = upright.size.X / upright.size.Y
-	tallAspect.AspectType = Enum.AspectType.FitWithinMaxSize
-	tallAspect.Parent = tall
-	if #upright.tiles > 0 then
-		SpotlightArt.draw(tall, upright.tiles, 1, upright.size, upright.overlap, upright.columns)
-	end
-	local halves: { Frame } = {}
-	local outlines: { UIStroke } = {}
-	for i in Assets.sections do
-		local edges = upright.bands[math.ceil(i / 2)]
-		local left = i % 2 == 1
-		local half = Instance.new("Frame")
-		half.Name = "Half" .. i
-		half.BackgroundColor3 = Color3.new(0, 0, 0)
-		half.BackgroundTransparency = 1
-		half.BorderSizePixel = 0
-		half.Position = UDim2.fromScale(
-			(if left then 0 else upright.split) / upright.size.X,
-			edges.top / upright.size.Y
-		)
-		half.Size = UDim2.fromScale(
-			(if left then upright.split else upright.size.X - upright.split) / upright.size.X,
-			(edges.bottom - edges.top) / upright.size.Y
-		)
-		half.ZIndex = 5
-		half.Parent = tall
-		local outline = Instance.new("UIStroke")
-		outline.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-		outline.Color = Color3.fromRGB(255, 206, 85)
-		outline.Thickness = 5
-		outline.Enabled = false
-		outline.Parent = half
-		halves[i] = half
-		outlines[i] = outline
-	end
-	local tallHit = hit:Clone()
-	tallHit.Parent = tall
-	--[[ Which screen shows, and where CHOOSE sits on it, for the screen's
-	     shape now; again whenever it changes, as when a phone turns. ]]
-	local isUpright = false
-	local chooseY, chooseOf = 820, 1080
-	local function arrange()
-		local camera = Workspace.CurrentCamera
-		local viewport = if camera then camera.ViewportSize else Vector2.new(16, 9)
-		isUpright = viewport.Y > viewport.X and #upright.tiles > 0
-		tall.Visible = isUpright
-		canvas.Visible = not isUpright
-		choose.Parent = if isUpright then tall else canvas
-		choose.Size = if isUpright
-			then UDim2.fromScale(480 / upright.size.X, 126 / upright.size.Y)
-			else UDim2.fromScale(480 / 1920, 126 / 1080)
-		chooseY = if isUpright then upright.choose else 820
-		chooseOf = if isUpright then upright.size.Y else 1080
-	end
-	arrange()
-	if Workspace.CurrentCamera then
-		connect(Workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"), arrange)
-	end
 	local selected: number? = nil
-	local hovered: number? = nil
 	local closing = false
 	local shown = false
 	local hasProfile = false
 	local hasLook = false
-	local function tint()
-		for i, glow in glows do
-			local isSelected = selected == i
-			glow.Visible = isSelected or (hovered == i and selected == nil)
-			glow.ZIndex = if isSelected then 9 else 11
-			glow.ImageTransparency = if isSelected then 0.35 else 0.9
-		end
-		for i, panel in panels do
-			local colour = if selected and selected ~= i
-				then Color3.fromRGB(90, 90, 90)
-				else (if hovered == i then Color3.new(1, 1, 1) else Color3.new(1, 1, 1))
-			tween(panel, 0.2, { ImageColor3 = colour })
-		end
-		for i, half in halves do
-			local isSelected = selected == i
-			outlines[i].Enabled = isSelected or (hovered == i and selected == nil)
-			outlines[i].Transparency = if isSelected then 0 else 0.5
-			tween(half, 0.2, {
-				BackgroundTransparency = if selected and not isSelected then 0.55 else 1,
-			})
-		end
-	end
-	local function sectionAt(position: Vector3): number?
-		if isUpright then
-			local size = tall.AbsoluteSize
-			if size.X <= 0 or size.Y <= 0 then
-				return nil
-			end
-			return Hit.upright(
-				upright,
-				(position.X - tall.AbsolutePosition.X) / size.X * upright.size.X,
-				(position.Y - tall.AbsolutePosition.Y) / size.Y * upright.size.Y
-			)
-		end
-		local size = canvas.AbsoluteSize
-		if size.X <= 0 or size.Y <= 0 then
-			return nil
-		end
-		return Hit.section(
-			(position.X - canvas.AbsolutePosition.X) / size.X * 1920,
-			(position.Y - canvas.AbsolutePosition.Y) / size.Y * 1080
-		)
-	end
-	local function press(input: InputObject)
-		if
-			closing
-			or (
-				input.UserInputType ~= Enum.UserInputType.MouseButton1
-				and input.UserInputType ~= Enum.UserInputType.Touch
-			)
-		then
-			return
-		end
-		local index = sectionAt(input.Position)
-		if not index then
-			return
-		end
-		if Assets.sections[index].locked then
-			shakes[index] = os.clock()
-			-- a red flash on the upright screen, whose halves cannot shake
-			local half = halves[index]
-			half.BackgroundColor3 = Color3.fromRGB(150, 20, 20)
-			half.BackgroundTransparency = 0.5
-			tween(half, 0.35, { BackgroundTransparency = 1 })
-			task.delay(0.36, function()
-				half.BackgroundColor3 = Color3.new(0, 0, 0)
-			end)
-			return
-		end
-		if selected == index then
-			return
-		end
-		selected = index
-		SoundFx.play("class_select")
-		for i, panel in panels do
-			panel.ZIndex = if i == index then 10 else 3
-			glows[i].Visible = i == index
-			tween(scales[i], 0.25, { Scale = if i == index then 1.1 else 1 }, true)
-		end
-		tint()
-		if not choose.Visible then
-			choose.Visible = true
-			chooseScale.Scale = 0
-			tween(chooseScale, 0.25, { Scale = 1 }, true)
-		end
-	end
-	local function move(input: InputObject)
-		if input.UserInputType == Enum.UserInputType.MouseMovement then
-			local index = sectionAt(input.Position)
-			if index ~= hovered then
-				hovered = index
-				tint()
-			end
-		end
-	end
-	local function leave()
-		hovered = nil
-		tint()
-	end
-	for _, button in { hit, tallHit } do
-		connect(button.InputEnded, press)
-		connect(button.InputChanged, move)
-		connect(button.MouseLeave, leave)
-	end
-	connect(choose.InputBegan, function(input: InputObject)
-		if
-			input.UserInputType == Enum.UserInputType.MouseButton1
-			or input.UserInputType == Enum.UserInputType.Touch
-		then
-			choose.Image = Assets.choosePressed
-			tween(chooseScale, 0.08, { Scale = 0.94 })
-		end
-	end)
-	connect(choose.InputEnded, function()
-		if not closing then
-			choose.Image = Assets.choose
-			tween(chooseScale, 0.15, { Scale = 1 }, true)
-		end
-	end)
-	connect(choose.Activated, function()
+	local chooseButton: Frame? = nil
+	local cards: { { holder: Frame, shade: Frame, ring: UIStroke, scale: UIScale } } = {}
+
+	local function choose()
 		local index = selected
-		if not index or closing then
+		local card = if index then ClassCards[index] else nil
+		if not card or card.locked or closing then
 			return
 		end
 		closing = true
-		choose.Image = Assets.choosePressed
-		tween(chooseScale, 0.08, { Scale = 0.94 })
-		local section = Assets.sections[index]
-		Remotes.event(Remotes.ChooseClass):FireServer(section.class, section.look)
+		--[[ The look is only saved (`Data/Shop.chooseClass`): every player
+		     wears their own avatar. ]]
+		Remotes.event(Remotes.ChooseClass):FireServer(card.class, SaveSchema.LOOKS[1])
 		SoundFx.play("class_choose")
 		local flash = Instance.new("Frame")
 		flash.BorderSizePixel = 0
@@ -465,7 +226,221 @@ function ClassScreen.start()
 				end)
 			end)
 		end)
-	end)
+	end
+
+	--[[ The picked card stands forward with a gold ring; the rest step back. ]]
+	local function paint()
+		for i, card in cards do
+			local on = selected == i
+			card.ring.Enabled = on
+			card.shade.BackgroundTransparency = if selected and not on then 0.5 else 1
+			tween(card.scale, 0.18, { Scale = if on then 1.05 else 1 })
+		end
+		local button = chooseButton
+		local picked = if selected then ClassCards[selected] else nil
+		if button then
+			Chunky.repaint(
+				button,
+				if picked then Chunky.gold else Chunky.grey,
+				if picked then `PLAY AS {string.upper(picked.class)}` else "TAP A CLASS"
+			)
+		end
+	end
+
+	local function pick(index: number)
+		if closing then
+			return
+		end
+		local card = ClassCards[index]
+		if card.locked then
+			-- a locked card shakes its head
+			local holder = cards[index] and cards[index].holder
+			if holder then
+				holder.Rotation = 3
+				tween(holder, 0.25, { Rotation = 0 })
+			end
+			return
+		end
+		if selected ~= index then
+			selected = index
+			SoundFx.play("class_select")
+			paint()
+		end
+	end
+
+	--[[ One class's card at (`x`, `y`), `w` by `h` sheet pixels. ]]
+	local function drawCard(
+		sheet: Chunky.Sheet,
+		index: number,
+		x: number,
+		y: number,
+		w: number,
+		h: number
+	)
+		local card = ClassCards[index]
+		local tone = card.colour
+		local holder = Instance.new("Frame")
+		holder.Name = card.class
+		holder.BackgroundTransparency = 1
+		holder.ZIndex = 5
+		Chunky.put(sheet, holder, x, y, w, h)
+		local tile = Instance.new("Frame")
+		tile.Name = "Tile"
+		tile.BorderSizePixel = 0
+		tile.BackgroundColor3 = Color3.new(1, 1, 1)
+		tile.Size = UDim2.fromScale(1, 1)
+		tile.ZIndex = 5
+		tile.Parent = holder
+		local scale = Instance.new("UIScale")
+		scale.Parent = tile
+		local light = Instance.new("UIGradient")
+		light.Rotation = 90
+		light.Color = ColorSequence.new(tone:Lerp(Color3.new(1, 1, 1), 0.45), tone)
+		light.Parent = tile
+		Chunky.round(tile, 22)
+		Chunky.outline(tile, 7, Chunky.shade(tone))
+		local ring = Chunky.outline(holder, 12, Chunky.gold)
+		ring.Enabled = false
+		Chunky.round(holder, 22)
+
+		--[[ The player's own character, holding this class's weapon. ]]
+		local stage = Instance.new("Frame")
+		stage.Name = "Stage"
+		stage.BackgroundTransparency = 1
+		stage.Position = UDim2.fromScale(0.04, 0.02)
+		stage.Size = UDim2.fromScale(0.92, 0.56)
+		stage.ZIndex = 6
+		stage.Parent = tile
+		if card.locked then
+			local lock = Kit.image(stage, ShopAssets.lock)
+			lock.AnchorPoint = Vector2.new(0.5, 0.5)
+			lock.Position = UDim2.fromScale(0.5, 0.55)
+			lock.Size = UDim2.fromScale(0.5, 0.5)
+			lock.ZIndex = 7
+			local square = Instance.new("UIAspectRatioConstraint")
+			square.Parent = lock
+		else
+			GearScreen.portrait(stage, Classes[card.class].weapon)
+		end
+
+		local name = Chunky.text(tile, string.upper(card.class), nil, 6, Chunky.shade(tone))
+		name.Position, name.Size = UDim2.fromScale(0.06, 0.585), UDim2.fromScale(0.88, 0.11)
+		local pitch = Chunky.text(tile, card.pitch, nil, 4, Chunky.shade(tone))
+		pitch.Position, pitch.Size = UDim2.fromScale(0.06, 0.7), UDim2.fromScale(0.88, 0.055)
+
+		--[[ The three bars, on a cream plate: what `Config/Classes` says. ]]
+		local plate = Instance.new("Frame")
+		plate.Name = "Stats"
+		plate.BorderSizePixel = 0
+		plate.BackgroundColor3 = Chunky.panelTop
+		plate.Position, plate.Size = UDim2.fromScale(0.06, 0.775), UDim2.fromScale(0.88, 0.2)
+		plate.ZIndex = 6
+		plate.Parent = tile
+		Chunky.round(plate, 14)
+		Chunky.outline(plate, 4, Chunky.shade(tone))
+		if card.locked then
+			local soon = Chunky.text(plate, "LOCKED", Chunky.ink, 0)
+			soon.Position, soon.Size = UDim2.fromScale(0.1, 0.25), UDim2.fromScale(0.8, 0.5)
+		else
+			local bars = ClassStats.bars(card.class)
+			local rows: { { name: string, share: number, colour: Color3 } } = {
+				{ name = "DAMAGE", share = bars.damage, colour = Chunky.red },
+				{ name = "SPEED", share = bars.speed, colour = Chunky.blue },
+				{ name = "HEALTH", share = bars.health, colour = Chunky.green },
+			}
+			for n, row in rows do
+				local top = 0.08 + (n - 1) * 0.3
+				local label = Chunky.text(plate, row.name, Chunky.ink, 0)
+				label.Position, label.Size = UDim2.fromScale(0.05, top), UDim2.fromScale(0.36, 0.25)
+				label.TextXAlignment = Enum.TextXAlignment.Left
+				local trough = Instance.new("Frame")
+				trough.BorderSizePixel = 0
+				trough.BackgroundColor3 = Chunky.trough
+				trough.Position, trough.Size =
+					UDim2.fromScale(0.43, top + 0.03), UDim2.fromScale(0.52, 0.19)
+				trough.ZIndex = 7
+				trough.Parent = plate
+				Chunky.round(trough, 8)
+				local fill = Instance.new("Frame")
+				fill.BorderSizePixel = 0
+				fill.BackgroundColor3 = row.colour
+				fill.Size = UDim2.fromScale(math.clamp(row.share, 0.06, 1), 1)
+				fill.ZIndex = 8
+				fill.Parent = trough
+				Chunky.round(fill, 8)
+			end
+		end
+
+		local shade = Instance.new("Frame")
+		shade.Name = "Shade"
+		shade.BorderSizePixel = 0
+		shade.BackgroundColor3 = Color3.new(0, 0, 0)
+		shade.BackgroundTransparency = 1
+		shade.Size = UDim2.fromScale(1, 1)
+		shade.ZIndex = 20
+		shade.Parent = tile
+		Chunky.round(shade, 22)
+
+		cards[index] = { holder = holder, shade = shade, ring = ring, scale = scale }
+		Chunky.press(holder, function()
+			pick(index)
+		end)
+	end
+
+	--[[ Lays the whole screen out for the screen's shape now. ]]
+	local function draw()
+		canvas:ClearAllChildren()
+		local aspect = Instance.new("UIAspectRatioConstraint")
+		aspect.AspectType = Enum.AspectType.FitWithinMaxSize
+		aspect.Parent = canvas
+		table.clear(cards)
+		chooseButton = nil
+		local sheet = Chunky.sheet(canvas)
+		local count = #ClassCards
+		if sheet.upright then
+			local px, py, pw, ph = 40, 150, 1000, 1640
+			Chunky.panel(sheet, px, py, pw, ph)
+			Chunky.ribbon(sheet, "CHOOSE YOUR CLASS", px, py, pw, 120)
+			local w, h, gap = 450, 640, 30
+			local left = px + (pw - 2 * w - gap) / 2
+			for index = 1, count do
+				local column, row = (index - 1) % 2, math.floor((index - 1) / 2)
+				drawCard(sheet, index, left + column * (w + gap), py + 150 + row * (h + gap), w, h)
+			end
+			chooseButton = Chunky.button(
+				sheet,
+				"TAP A CLASS",
+				Chunky.grey,
+				px + 120,
+				py + ph - 170,
+				pw - 240,
+				130,
+				choose
+			)
+		else
+			local px, py, pw, ph = 130, 70, 1660, 950
+			Chunky.panel(sheet, px, py, pw, ph)
+			Chunky.ribbon(sheet, "CHOOSE YOUR CLASS", px, py, pw, 110)
+			local gap = 30
+			local w = (pw - 80 - (count - 1) * gap) / count
+			local h = 610
+			for index = 1, count do
+				drawCard(sheet, index, px + 40 + (index - 1) * (w + gap), py + 140, w, h)
+			end
+			chooseButton = Chunky.button(
+				sheet,
+				"TAP A CLASS",
+				Chunky.grey,
+				px + pw / 2 - 330,
+				py + ph - 170,
+				660,
+				130,
+				choose
+			)
+		end
+		paint()
+	end
+
 	local function maybeOpen()
 		if
 			not shown
@@ -477,9 +452,28 @@ function ClassScreen.start()
 			shown = true
 			player:SetAttribute("ClassSelecting", true)
 			player:SetAttribute("InStation", true)
+			draw()
 			gui.Enabled = true
+			Chunky.pop(canvas)
 		end
 	end
+	--[[ Laid out again when the screen changes shape, as when a phone
+	     turns, or when the character it draws arrives. ]]
+	local wasUpright: boolean? = nil
+	connect(dim:GetPropertyChangedSignal("AbsoluteSize"), function()
+		local upright = dim.AbsoluteSize.Y > dim.AbsoluteSize.X
+		if shown and not closing and upright ~= wasUpright then
+			wasUpright = upright
+			draw()
+		end
+	end)
+	connect(player.CharacterAdded, function()
+		task.delay(1, function()
+			if shown and not closing and gui.Parent then
+				draw()
+			end
+		end)
+	end)
 	connect(Remotes.event(Remotes.ProfileChanged).OnClientEvent, function(profile)
 		if type(profile) ~= "table" then
 			return
@@ -501,22 +495,6 @@ function ClassScreen.start()
 			end
 		end)
 	)
-	connect(RunService.RenderStepped, function()
-		if not gui.Enabled then
-			return
-		end
-		local now = os.clock()
-		choose.Position = UDim2.fromScale(0.5, (chooseY + math.sin(now * 2) * 4) / chooseOf)
-		for i, began in shakes do
-			local elapsed = now - began
-			panels[i].Rotation = if elapsed < 0.35
-				then math.sin(elapsed * 65) * 1.2 * (1 - elapsed / 0.35)
-				else 0
-			if elapsed >= 0.35 then
-				shakes[i] = nil
-			end
-		end
-	end)
 	gui.Destroying:Once(function()
 		for _, connection in connections do
 			connection:Disconnect()

@@ -84,7 +84,7 @@ local function button(parent: Instance, name: string, text: string, size: number
 	word.BackgroundTransparency = 1
 	word.Position = UDim2.fromScale(0.1, 0.3)
 	word.Size = UDim2.fromScale(0.8, 0.4)
-	word.FontFace = Font.fromEnum(Enum.Font.Arcade)
+	word.FontFace = Font.fromEnum(Enum.Font.FredokaOne)
 	word.TextScaled = true
 	word.TextColor3 = Color3.new(1, 1, 1)
 	word.Text = text

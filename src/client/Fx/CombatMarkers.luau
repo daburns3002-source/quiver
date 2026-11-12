@@ -194,7 +194,7 @@ local function addWarning(model: Model, root: BasePart)
 	local mark = Instance.new("TextLabel")
 	mark.Size = UDim2.fromScale(1, 1)
 	mark.BackgroundTransparency = 1
-	mark.Font = Enum.Font.Arcade
+	mark.Font = Enum.Font.FredokaOne
 	mark.Text = "!"
 	mark.TextScaled = true
 	mark.TextColor3 = Color3.fromRGB(255, 255, 255)

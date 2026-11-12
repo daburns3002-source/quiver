@@ -29,7 +29,7 @@ local RunPaused = require(script.Parent.Parent.RunPaused)
 
 local CoopHud = {}
 
-local FONT = Enum.Font.Arcade
+local FONT = Enum.Font.FredokaOne
 local GOLD = Color3.fromRGB(255, 214, 92)
 local RED = Color3.fromRGB(235, 76, 76)
 local WHITE = Color3.new(1, 1, 1)

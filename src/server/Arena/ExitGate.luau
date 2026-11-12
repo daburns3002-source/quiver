@@ -246,7 +246,7 @@ function ExitGate.build(root: Instance, framed: number?): Gate
 	local label = Instance.new("TextLabel")
 	label.Size = UDim2.fromScale(1, 1)
 	label.BackgroundTransparency = 1
-	label.Font = Enum.Font.Arcade
+	label.Font = Enum.Font.FredokaOne
 	label.TextScaled = true
 	label.TextColor3 = config.plaqueTextColor
 	label.Text = ""

@@ -194,7 +194,7 @@ function StationScreen.new(name: string, stationName: string, promptWords: strin
 			made = Chunky.button(
 				sheet,
 				promptWords,
-				Chunky.gold,
+				Chunky.orange,
 				(sheet.w - w) / 2,
 				sheet.h - above - h,
 				w,
@@ -205,7 +205,7 @@ function StationScreen.new(name: string, stationName: string, promptWords: strin
 			made = Kit.button(
 				promptCanvas,
 				promptWords .. (if UserInputService.KeyboardEnabled then " [E]" else ""),
-				Kit.gold,
+				Chunky.orange,
 				self.open
 			)
 			Kit.put(made, 720, 952, 480, 104)

@@ -148,7 +148,6 @@ function HatchStand.chrome(s: StationScreen.Screen, title: string, modes: { Mode
 			Chunky.tab(
 				sheet,
 				mode.words,
-				if i == 1 then Chunky.gold else Chunky.blue,
 				mode.on,
 				(if up then 70 else 190) + (i - 1) * (w + 18),
 				top,
@@ -251,7 +250,6 @@ function HatchStand.draw(
 			Chunky.tab(
 				sheet,
 				tab.words,
-				Chunky.purple,
 				tab.on,
 				cx + (i - 1) * (w + gap),
 				y,
@@ -288,12 +286,12 @@ function HatchStand.draw(
 	end
 	y = cBottom - 316
 
-	words(sheet, spec.title, cx, y, cw, 76, nil, 6)
+	words(sheet, spec.title, cx, y, cw, 76, Chunky.ink, 0)
 	y += 92
 
 	-- the price, and beside it the area picker when the chests took the tabs
 	if #spec.tabs > 0 then
-		Chunky.pill(sheet, ShopAssets.coin, Chunky.commas(spec.price), cx, y, 250, 82, Chunky.gold)
+		Chunky.pill(sheet, ShopAssets.coin, Chunky.commas(spec.price), cx, y, 250, 82)
 		Chunky.button(
 			sheet,
 			`<  {spec.picker}  >`,
@@ -312,8 +310,7 @@ function HatchStand.draw(
 			cx + cw / 2 - 140,
 			y,
 			280,
-			82,
-			Chunky.gold
+			82
 		)
 	end
 	y += 104
@@ -411,7 +408,7 @@ function HatchStand.draw(
 		ky + kh - 112,
 		kw - 60,
 		44,
-		Chunky.purple,
+		Chunky.shade(Chunky.purple),
 		0
 	)
 	line.Name = "PityLine"
@@ -463,7 +460,7 @@ function HatchStand.controller(
 	local stopCanvas = Kit.canvas(stopLayer)
 	local autoLabel = Kit.label(stopCanvas, "AUTO", Kit.white)
 	Kit.put(autoLabel, 24, 788, 320, 48)
-	local stop = Kit.button(stopCanvas, "STOP", Color3.fromRGB(230, 60, 50), function()
+	local stop = Kit.button(stopCanvas, "STOP", Chunky.red, function()
 		control.auto = false
 		if s.isOpen() and not Reveal.busy() then
 			s.open()

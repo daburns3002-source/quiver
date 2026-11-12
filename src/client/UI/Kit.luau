@@ -2,7 +2,10 @@
 --[[
 	The shops' drawing kit (owner, 2026-10-26: "Scale, never Offset").
 	All layout rectangles use the 1920 by 1080 sheet's 8px grid.
-	Candy gloss (owner: "Match option B"): cream, gold and warm ink.
+	Candy gloss (owner: "Match option B"), in Lagoon's colours since
+	2026-11-12 (`Config/UiPalette`): mint-white, sunny gold and deep-sea ink.
+	A piece with white words carries no gloss: a white shine over the face
+	would drop them under 3:1.
 ]]
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -10,17 +13,24 @@ local TweenService = game:GetService("TweenService")
 local Device = require(script.Parent.Parent.Device)
 local GearAssets = require(ReplicatedStorage.Shared.Config.GearAssets)
 local OptcAssets = require(ReplicatedStorage.Shared.Config.OptcAssets)
+local Palette = require(ReplicatedStorage.Shared.Config.UiPalette)
 local Pity = require(ReplicatedStorage.Shared.Util.Pity)
 local Rarities = require(ReplicatedStorage.Shared.Config.Rarities)
 local ShopAssets = require(ReplicatedStorage.Shared.Config.ShopAssets)
 local SoundFx = require(script.Parent.Parent.Fx.SoundFx)
 local Kit = {}
-Kit.wood = Color3.fromRGB(255, 236, 196)
-Kit.slate = Color3.fromRGB(235, 211, 164)
-Kit.gold = Color3.fromRGB(255, 205, 40)
-Kit.green = Color3.fromRGB(46, 220, 46)
-Kit.white = Color3.fromRGB(255, 248, 220)
-local INK = Color3.fromRGB(58, 36, 18)
+--[[ The panel's two colours (their old names), the main button's sunny
+     gold, go's green, white, and the ink of outlines and dark words. ]]
+Kit.wood = Palette.panelTop
+Kit.slate = Palette.panelBottom
+Kit.gold = Palette.primary.top
+Kit.green = Palette.go.top
+Kit.white = Palette.white
+local INK = Palette.edge
+--[[ Whether a piece in `colour` is pale: dark words, and a gloss. ]]
+local function pale(colour: Color3): boolean
+	return colour == Kit.wood or colour == Kit.slate or Palette.faceOf(colour).stroke == nil
+end
 function Kit.box(x: number, y: number, w: number, h: number): (UDim2, UDim2)
 	return UDim2.fromScale(x / 1920, y / 1080), UDim2.fromScale(w / 1920, h / 1080)
 end
@@ -65,17 +75,10 @@ function Kit.panel(parent: Instance, colour: Color3): Frame
 	rounded(f, 0.06)
 	f:SetAttribute("CornerPixels", 28)
 	local gradient = Instance.new("UIGradient")
-	gradient.Color = if colour == Kit.green
-		then ColorSequence.new(Color3.fromRGB(123, 234, 58), Kit.green)
-		elseif colour == Kit.gold then ColorSequence.new(
-			Kit.gold,
-			Color3.fromRGB(247, 165, 49)
-		)
-		elseif colour == Kit.wood or colour == Kit.slate then ColorSequence.new(
-			Kit.wood,
-			Kit.slate
-		)
-		else ColorSequence.new(colour:Lerp(Kit.white, 0.22), colour:Lerp(INK, 0.12))
+	local look = Palette.faceOf(colour)
+	gradient.Color = if colour == Kit.wood or colour == Kit.slate
+		then ColorSequence.new(Kit.wood, Kit.slate)
+		else ColorSequence.new(look.top, look.bottom)
 	gradient.Rotation = 90
 	gradient.Parent = f
 	local bevel = Instance.new("Frame")
@@ -85,7 +88,7 @@ function Kit.panel(parent: Instance, colour: Color3): Frame
 	bevel.Parent = f
 	rounded(bevel, 0.06)
 	local edge = Instance.new("UIStroke")
-	edge.Color, edge.Thickness = Kit.gold, 2
+	edge.Color, edge.Thickness, edge.Transparency = Kit.white, 2, 0.25
 	edge.Parent = bevel
 	local function resizeSurface()
 		local unit = canvasUnit(f)
@@ -115,7 +118,9 @@ function Kit.panel(parent: Instance, colour: Color3): Frame
 		radiusChanged:Disconnect()
 	end)
 	resizeSurface()
-	gloss(f, false)
+	if pale(colour) then
+		gloss(f, false)
+	end
 	return f
 end
 function Kit.pill(f: Frame)
@@ -134,8 +139,8 @@ function Kit.pill(f: Frame)
 	local old = f:FindFirstChild("Gloss")
 	if old then
 		old:Destroy()
+		gloss(f, true)
 	end
-	gloss(f, true)
 end
 function Kit.plate(parent: Instance): Frame
 	local f = Kit.panel(parent, Color3.fromRGB(132, 49, 14))
@@ -366,7 +371,11 @@ function Kit.button(parent: Instance, words: string, colour: Color3, action: () 
 	local l = Kit.label(f, words)
 	l.Position = UDim2.fromScale(0.04, 0.12)
 	l.Size = UDim2.fromScale(0.92, 0.76)
-	l.TextColor3 = if colour == Kit.gold or colour == Kit.slate then INK else Kit.white
+	if pale(colour) then
+		l.TextColor3, l.TextStrokeTransparency = Palette.ink, 1
+	else
+		l.TextStrokeColor3 = Palette.faceOf(colour).edge
+	end
 	local limit = l:FindFirstChildOfClass("UITextSizeConstraint")
 	if limit then
 		limit.MaxTextSize = 72
@@ -729,14 +738,15 @@ function Kit.stage(parent: Instance, x: number, y: number, w: number, moss: bool
 end
 function Kit.wallet(parent: Instance, coins: number, gems: number)
 	for index, entry in { { ShopAssets.coin, tostring(coins) }, { ShopAssets.gem, tostring(gems) } } do
-		local p = Kit.panel(parent, Color3.fromRGB(70, 29, 12))
+		local p = Kit.panel(parent, Palette.pill)
 		Kit.pill(p)
 		p.Name = "Wallet"
 		Kit.put(p, if index == 1 then 1352 else 1632, 52, if index == 1 then 264 else 240, 100)
 		local i = Kit.image(p, entry[1])
 		i.Size = UDim2.fromScale(0.24, 0.8)
 		i.Position = UDim2.fromScale(0.04, 0.1)
-		local l = Kit.label(p, entry[2])
+		local l = Kit.label(p, entry[2], Palette.pillText)
+		l.TextStrokeTransparency = 1
 		l.Position = UDim2.fromScale(0.3, 0.2)
 		l.Size = UDim2.fromScale(0.66, 0.6)
 	end

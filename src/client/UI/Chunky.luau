@@ -3,23 +3,29 @@
 	The chunky UI kit (owner, 2026-11-05: "WE NEED TO DO SEVERE WORK ON THE
 	UI FOR EVERYTHING").
 
-	**Its look is the owner's major reference of 2026-11-11** ("use this as
-	the major reference image": a house-tycoon game's store screen), which
-	replaced the royal-blue panels of the first pass:
+	**Its shapes are the owner's major reference of 2026-11-11** ("use this
+	as the major reference image": a house-tycoon game's store screen) and
+	**its colours are Lagoon** (owner, 2026-11-12, of the reference's cream,
+	brown and orange: "awful bland colors. make it have nice soft colors but
+	still have everything be readable"; `Config/UiPalette`, which lists
+	every colour and holds every words-on-ground pair to its contrast):
 
-	- a cream panel with a thick dark-brown outline and modest corners, an
-	  orange header bar across its top with soft diagonal stripes, the
+	- a mint-white panel with a thick deep-sea outline and modest corners, a
+	  sea-blue header bar across its top with soft diagonal stripes, the
 	  title at the bar's left and a red hexagon X at its right;
 	- buttons that are rounded rectangles with the same diagonal stripes,
-	  outlined in a darker shade of their own colour (green buy, gold
-	  primary, orange action, blue secondary, red danger, purple gems) over
-	  a darker lip, the words in white with that dark shade as their stroke;
-	- item tiles filled with their colour, not washed out, and outlined in
-	  its dark shade; white row cards on the cream;
-	- currency as an icon on a cream pill with the amount in the currency's
-	  colour;
+	  outlined in the dark shade of their own colour (leaf-green go, sunny
+	  primary, coral action, teal secondary, red danger, violet gems) over a
+	  darker lip, the words in white with that dark shade as their stroke
+	  (dark and unstroked on the sunny one). A face is lit only between its
+	  two colours and its stripes are a faint dark wash, never white: either
+	  would drop white words under 3:1 (`Chunky.face`);
+	- item tiles washed pale in their rarity's colour inside its frame, the
+	  caption on a white chip; white row cards on the panel; tabs as pale
+	  pieces with dark words;
+	- currency as an icon on a white pill with the amount in dark ink;
 	- one bold rounded font: white with a dark stroke on anything coloured,
-	  `Chunky.ink` brown and unstroked on cream and white;
+	  `Chunky.ink` unstroked on a panel, a card, a chip or a pill;
 	- **effects** (owner, the same day: "make sure there are effects as
 	  well, the top games have effects"): panels pop in, every button
 	  swells under the pointer, squashes when pressed, clicks and throws a
@@ -34,6 +40,7 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
 local Kit = require(script.Parent.Kit)
+local Palette = require(ReplicatedStorage.Shared.Config.UiPalette)
 local ShopAssets = require(ReplicatedStorage.Shared.Config.ShopAssets)
 local SoundFx = require(script.Parent.Parent.Fx.SoundFx)
 local Chunky = {}
@@ -42,44 +49,73 @@ local Chunky = {}
 local MIN_TOUCH = 48
 
 Chunky.font = Enum.Font.FredokaOne
---[[ The outline round the cream and orange pieces and the stroke round the
-     kit's words: the reference's dark brown. `navy` is the same colour
-     under the name the blue look gave it, which the screens still use. ]]
-Chunky.edge = Color3.fromRGB(86, 44, 16)
+--[[ The outline round the panel and header pieces and the stroke round the
+     kit's words: Lagoon's deep sea. `navy` is the same colour under the
+     name the first blue look gave it, which the screens still use. ]]
+Chunky.edge = Palette.edge
 Chunky.navy = Chunky.edge
---[[ Words on cream and white: brown, with no stroke. ]]
-Chunky.ink = Color3.fromRGB(112, 62, 24)
-Chunky.white = Color3.fromRGB(255, 252, 244)
-Chunky.green = Color3.fromRGB(104, 214, 46)
-Chunky.gold = Color3.fromRGB(255, 196, 38)
-Chunky.orange = Color3.fromRGB(250, 152, 40)
-Chunky.blue = Color3.fromRGB(28, 168, 255)
-Chunky.red = Color3.fromRGB(238, 60, 60)
-Chunky.purple = Color3.fromRGB(168, 86, 255)
-Chunky.grey = Color3.fromRGB(150, 160, 178)
-Chunky.panelTop = Color3.fromRGB(255, 248, 232)
-Chunky.panelBottom = Color3.fromRGB(252, 236, 206)
-Chunky.headerTop = Color3.fromRGB(255, 192, 84)
-Chunky.headerBottom = Color3.fromRGB(246, 146, 40)
---[[ The dark inside of a bar. ]]
-Chunky.trough = Color3.fromRGB(104, 62, 30)
+--[[ Words on a panel, a card, a chip or a pill: dark, with no stroke.
+     `inkSoft` is for the small grey ones. ]]
+Chunky.ink = Palette.ink
+Chunky.inkSoft = Palette.inkSoft
+Chunky.white = Palette.white
+--[[ The button colours, each the top of its face (`Chunky.face` knows the
+     rest): leaf-green go, sunny primary, coral action, teal secondary, red
+     danger, violet gems, and the grey of one that cannot be pressed. ]]
+Chunky.green = Palette.go.top
+Chunky.gold = Palette.primary.top
+Chunky.orange = Palette.action.top
+Chunky.blue = Palette.secondary.top
+Chunky.red = Palette.danger.top
+Chunky.purple = Palette.gems.top
+Chunky.grey = Palette.off.top
+Chunky.panelTop = Palette.panelTop
+Chunky.panelBottom = Palette.panelBottom
+Chunky.headerTop = Palette.header.top
+Chunky.headerBottom = Palette.header.bottom
+--[[ The dark inside of a bar, and the bright green that reads on it or on
+     any dark ground (a bar's fill, CLAIMED over a dimmed card). ]]
+Chunky.trough = Palette.trough
+Chunky.lime = Palette.barFill
+--[[ A pale piece on a panel or a card that is not a button (an unchosen
+     tab, a detail pill): dark words. ]]
+Chunky.pale = Palette.tabOff
 
---[[ The darker shade of a colour that outlines it and strokes the words on
-     it, as the reference's green button is edged dark green and its red
-     one dark red. ]]
-function Chunky.shade(colour: Color3): Color3
-	return colour:Lerp(Color3.new(0, 0, 0), 0.62)
+--[[ How a piece in `colour` is drawn: the two colours its face is lit
+     between, its words and their stroke, and its outline. One of the kit's
+     own colours has all of that listed (`Config/UiPalette`); any other gets
+     a face worked out to keep its words readable. ]]
+function Chunky.face(colour: Color3): Palette.Face
+	return Palette.faceOf(colour)
 end
 
---[[ The six rarity frames, as the style sheet draws them. ]]
+--[[ The dark shade of a colour that outlines it and strokes the white
+     words on it, as the green button is edged dark green and the red one
+     dark red. ]]
+function Chunky.shade(colour: Color3): Color3
+	return Chunky.face(colour).edge
+end
+
+--[[ A colour deepened until small white words stand 4.5:1 on it. ]]
+function Chunky.deep(colour: Color3): Color3
+	return Palette.deepFor(colour, 4.5)
+end
+
+--[[ A colour as it reads on a dark ground (a bar's fill in its trough). ]]
+function Chunky.lit(colour: Color3): Color3
+	return if colour == Chunky.green then Chunky.lime else colour:Lerp(Chunky.white, 0.3)
+end
+
+--[[ The six rarity frames; `rarityTile` has the pale wash inside each. ]]
 Chunky.rarity = {
-	Common = Color3.fromRGB(160, 170, 186),
-	Uncommon = Color3.fromRGB(70, 200, 80),
-	Rare = Color3.fromRGB(28, 168, 255),
-	Epic = Color3.fromRGB(168, 80, 255),
-	Legendary = Color3.fromRGB(255, 190, 30),
-	Mythic = Color3.fromRGB(255, 70, 150),
+	Common = Palette.rarity.Common.frame,
+	Uncommon = Palette.rarity.Uncommon.frame,
+	Rare = Palette.rarity.Rare.frame,
+	Epic = Palette.rarity.Epic.frame,
+	Legendary = Palette.rarity.Legendary.frame,
+	Mythic = Palette.rarity.Mythic.frame,
 }
+Chunky.rarityTile = Palette.rarity
 
 export type Box = { x: number, y: number, w: number, h: number }
 
@@ -239,18 +275,40 @@ function Chunky.text(
 	return t
 end
 
+--[[ Words on a piece of `colour`, in the words colour that colour's face
+     has (`Chunky.face`): white with its dark shade round them `strokePx`
+     thick, or dark and unstroked on a pale one. ]]
+function Chunky.textOn(
+	parent: Instance,
+	words: string,
+	colour: Color3,
+	strokePx: number?
+): TextLabel
+	local look = Chunky.face(colour)
+	return Chunky.text(parent, words, look.text, if look.stroke then strokePx else 0, look.stroke)
+end
+
+--[[ Lights a piece from top to bottom between `colour`'s own two shades
+     (never towards white, which would lose white words on it). ]]
+function Chunky.light(item: GuiObject, colour: Color3)
+	local look = Chunky.face(colour)
+	item.BackgroundColor3 = Color3.new(1, 1, 1)
+	gradient(item, look.top, look.bottom)
+end
+
 --[[ Soft diagonal stripes over a coloured piece, as the reference's
-     header and buttons carry: a white wash whose see-through runs in bands
-     along a slanted line. `strength` is how solid a band gets (0 none). ]]
-local function stripes(parent: GuiObject, z: number, radius: number, strength: number?): Frame
-	local wash = fill(parent, Color3.new(1, 1, 1), z)
+     header and buttons carry: a faint dark wash whose see-through runs in
+     bands along a slanted line (dark, because a white stripe lightens the
+     face under white words). ]]
+local function stripes(parent: GuiObject, z: number, radius: number): Frame
+	local wash = fill(parent, Palette.stripe, z)
 	wash.Name = "Stripes"
 	if radius > 0 then
 		Chunky.round(wash, radius)
 	end
 	local bands = Instance.new("UIGradient")
 	bands.Rotation = -58
-	local clear, solid = 1, 1 - (strength or 0.3)
+	local clear, solid = 1, 1 - Palette.stripeStrength
 	local keys = {}
 	local last = 19
 	for n = 0, last do
@@ -264,7 +322,7 @@ local function stripes(parent: GuiObject, z: number, radius: number, strength: n
 	return wash
 end
 
---[[ The cream panel: a dark-brown outline, a pale rim just inside its
+--[[ The mint-white panel: a deep-sea outline, a white rim just inside its
      edge, and a darker foot under it so it stands off the screen. A
      `Chunky.ribbon` drawn after it becomes its header bar. ]]
 function Chunky.panel(sheet: Sheet, x: number, y: number, w: number, h: number): Frame
@@ -309,16 +367,16 @@ function Chunky.card(sheet: Sheet, x: number, y: number, w: number, h: number): 
 	c.BackgroundColor3 = Color3.new(1, 1, 1)
 	c.ZIndex = 4
 	Chunky.put(sheet, c, x, y, w, h)
-	gradient(c, Color3.new(1, 1, 1), Color3.fromRGB(255, 244, 224))
+	gradient(c, Palette.card, Palette.card:Lerp(Palette.panelBottom, 0.4))
 	Chunky.round(c, 18)
 	Chunky.outline(c, 5)
 	return c
 end
 
---[[ The orange striped bar, lit from the top: a header across a panel, or
+--[[ The sea-blue striped bar, lit from the top: a header across a panel, or
      a title plate standing alone. Its lower half is one colour so a square
      skirt can hide the rounded bottom corners where it meets the panel. ]]
-local function orangeBar(parent: Instance, radius: number, skirt: boolean): Frame
+local function headerBar(parent: Instance, radius: number, skirt: boolean): Frame
 	local bar = fill(parent, Color3.new(1, 1, 1), 3)
 	bar.Name = "Header"
 	local light = Instance.new("UIGradient")
@@ -335,15 +393,15 @@ local function orangeBar(parent: Instance, radius: number, skirt: boolean): Fram
 		square.Name = "Skirt"
 		square.Position, square.Size = UDim2.fromScale(0, 0.5), UDim2.fromScale(1, 0.5)
 	end
-	stripes(bar, 4, radius, 0.36)
+	stripes(bar, 4, radius)
 	return bar
 end
 
 --[[
 	A screen's title. Drawn after a `Chunky.panel` it is that panel's
-	header: the orange striped bar across its top, as deep as the old gold
+	header: the sea-blue striped bar across its top, as deep as the old gold
 	ribbon reached into the panel, the title at its left in white with the
-	brown stroke and a brown line under the bar. `x`, `y`, `w` and `h` are
+	header's dark stroke and a deep-sea line under the bar. `x`, `y`, `w` and `h` are
 	the box the ribbon used to hang in; with no panel on the sheet the title
 	stands in that box on a plate of its own.
 ]]
@@ -355,10 +413,10 @@ function Chunky.ribbon(sheet: Sheet, words: string, x: number, y: number, w: num
 		holder.BackgroundTransparency = 1
 		holder.ZIndex = 20
 		Chunky.put(sheet, holder, x, y, w, h)
-		local plate = orangeBar(holder, 18, false)
+		local plate = headerBar(holder, 18, false)
 		plate.ZIndex = 20
 		Chunky.outline(plate, 7)
-		local t = Chunky.text(plate, words, nil, 6)
+		local t = Chunky.text(plate, words, Palette.header.text, 6, Palette.header.stroke)
 		t.Position, t.Size = UDim2.fromScale(0.06, 0.16), UDim2.fromScale(0.88, 0.7)
 		return
 	end
@@ -381,13 +439,13 @@ function Chunky.ribbon(sheet: Sheet, words: string, x: number, y: number, w: num
 	end
 	local deep = math.min(natural + grow, on.h * 0.3)
 	sheet.header = deep
-	local bar = orangeBar(frame, 24, true)
+	local bar = headerBar(frame, 24, true)
 	bar.Size = UDim2.fromScale(1, deep / on.h)
 	local line = fill(bar, Chunky.edge, 5)
 	line.Name = "Line"
 	line.AnchorPoint = Vector2.new(0, 0.5)
 	line.Position, line.Size = UDim2.fromScale(0, 1), UDim2.fromScale(1, 7 / deep)
-	local t = Chunky.text(bar, words, nil, 6)
+	local t = Chunky.text(bar, words, Palette.header.text, 6, Palette.header.stroke)
 	t.Name = "Title"
 	t.Position, t.Size = UDim2.fromScale(28 / on.w, 0.16), UDim2.fromScale(0.72, 0.66)
 	t.TextXAlignment = Enum.TextXAlignment.Left
@@ -462,8 +520,10 @@ end
 
 --[[ A fat striped button: a darker lip under a face lit from the top, soft
      diagonal stripes across it, all of it outlined in the colour's dark
-     shade, the words (and an icon) in white with that shade round them. A
-     gold one, the screen's main action, carries a shine that sweeps it. ]]
+     shade, the words (and an icon) in white with that shade round them
+     (`Chunky.face`; dark and unstroked on a pale colour such as the sunny
+     one). A gold one, the screen's main action, carries a shine that sweeps
+     it. ]]
 function Chunky.button(
 	sheet: Sheet,
 	words: string,
@@ -485,9 +545,10 @@ function Chunky.button(
 	body.Size = UDim2.fromScale(1, 1)
 	body.ZIndex = 10
 	body.Parent = holder
-	local dark = Chunky.shade(colour)
+	local look = Chunky.face(colour)
+	local dark = look.edge
 	local radius = math.min(18, h * 0.22)
-	local lip = fill(body, colour:Lerp(Color3.new(0, 0, 0), 0.38), 10)
+	local lip = fill(body, look.bottom:Lerp(Color3.new(0, 0, 0), 0.2), 10)
 	lip.Name = "Lip"
 	lip.Position, lip.Size = UDim2.fromScale(0, 0.1), UDim2.fromScale(1, 0.9)
 	Chunky.round(lip, radius)
@@ -495,7 +556,7 @@ function Chunky.button(
 	local face = fill(body, Color3.new(1, 1, 1), 11)
 	face.Name = "Face"
 	face.Size = UDim2.fromScale(1, 0.88)
-	gradient(face, colour:Lerp(Color3.new(1, 1, 1), 0.3), colour)
+	gradient(face, look.top, look.bottom)
 	Chunky.round(face, radius)
 	Chunky.outline(face, 6, dark)
 	stripes(face, 12, radius)
@@ -508,9 +569,13 @@ function Chunky.button(
 		square.Parent = picture
 		left = 0.3
 	end
-	local t = Chunky.text(face, words, nil, 5, dark)
+	local t = Chunky.text(face, words, look.text, 5, look.stroke)
 	t.Name = "Words"
 	t.Position, t.Size = UDim2.fromScale(left, 0.16), UDim2.fromScale(0.92 - left, 0.66)
+	local stroke = t:FindFirstChildOfClass("UIStroke")
+	if stroke then
+		stroke.Enabled = look.stroke ~= nil
+	end
 	pressable(holder, body, action)
 	if colour == Chunky.gold then
 		Chunky.gleam(face)
@@ -522,28 +587,35 @@ end
      something else on it: a button that greys out until it can be pressed
      (the draft's CHOOSE!), or counts something down (its REROLL). ]]
 function Chunky.repaint(button: Frame, colour: Color3, words: string?)
-	local dark = Chunky.shade(colour)
-	local function edge(item: Instance?)
+	local look = Chunky.face(colour)
+	local function edge(item: Instance?): UIStroke?
 		local stroke = if item then item:FindFirstChildOfClass("UIStroke") else nil
 		if stroke then
-			stroke.Color = dark
+			stroke.Color = look.edge
 		end
+		return stroke
 	end
 	local lip = button:FindFirstChild("Lip", true)
 	if lip and lip:IsA("Frame") then
-		lip.BackgroundColor3 = colour:Lerp(Color3.new(0, 0, 0), 0.38)
+		lip.BackgroundColor3 = look.bottom:Lerp(Color3.new(0, 0, 0), 0.2)
 		edge(lip)
 	end
 	local face = button:FindFirstChild("Face", true)
 	local light = if face then face:FindFirstChildOfClass("UIGradient") else nil
 	if light then
-		light.Color = ColorSequence.new(colour:Lerp(Color3.new(1, 1, 1), 0.3), colour)
+		light.Color = ColorSequence.new(look.top, look.bottom)
 	end
 	edge(face)
 	local label = button:FindFirstChild("Words", true)
-	edge(label)
-	if words and label and label:IsA("TextLabel") then
-		label.Text = words
+	local round = edge(label)
+	if round then
+		round.Enabled = look.stroke ~= nil
+	end
+	if label and label:IsA("TextLabel") then
+		label.TextColor3 = look.text
+		if words then
+			label.Text = words
+		end
 	end
 end
 
@@ -584,10 +656,11 @@ function Chunky.close(sheet: Sheet, x: number, y: number, size: number, action: 
 	body.Size = UDim2.fromScale(1, 1)
 	body.ZIndex = 30
 	body.Parent = holder
-	hexagon(body, Chunky.shade(Chunky.red), 1, 30)
-	hexagon(body, Chunky.red, 0.82, 31)
-	hexagon(body, Chunky.red:Lerp(Color3.new(1, 1, 1), 0.22), 0.6, 32)
-	local cross = Chunky.text(body, "X", nil, 5, Chunky.shade(Chunky.red))
+	local red = Palette.danger
+	hexagon(body, red.edge, 1, 30)
+	hexagon(body, red.bottom, 0.82, 31)
+	hexagon(body, red.top, 0.6, 32)
+	local cross = Chunky.text(body, "X", red.text, 5, red.stroke)
 	cross.Position, cross.Size = UDim2.fromScale(0.24, 0.24), UDim2.fromScale(0.52, 0.52)
 	cross.ZIndex = 33
 	--[[ In a header the X is drawn only as tall as the bar, about 24 points
@@ -602,11 +675,12 @@ function Chunky.close(sheet: Sheet, x: number, y: number, size: number, action: 
 	end)
 end
 
---[[ A tab: raised and bright when chosen, sunk and dull when not. ]]
+--[[ A tab: a pale piece with dark words, raised on a foot when chosen and
+     sunk, paler and greyer when not (small words stand 4.5:1 on neither a
+     coloured face nor a white-striped one, so a tab is not a button). ]]
 function Chunky.tab(
 	sheet: Sheet,
 	words: string,
-	colour: Color3,
 	on: boolean,
 	x: number,
 	y: number,
@@ -614,16 +688,40 @@ function Chunky.tab(
 	h: number,
 	action: () -> ()
 ): Frame
-	local tone = if on then colour else colour:Lerp(Chunky.navy, 0.45)
-	local b = Chunky.button(sheet, words, tone, x, if on then y else y + h * 0.08, w, h, action)
-	if not on then
-		b.Size = UDim2.fromScale(w / sheet.w, h * 0.92 / sheet.h)
+	local holder = Instance.new("Frame")
+	holder.Name = "ChunkyTab"
+	holder.BackgroundTransparency = 1
+	holder.ZIndex = 10
+	Chunky.put(sheet, holder, x, if on then y else y + h * 0.08, w, if on then h else h * 0.92)
+	local body = Instance.new("Frame")
+	body.BackgroundTransparency = 1
+	body.Size = UDim2.fromScale(1, 1)
+	body.ZIndex = 10
+	body.Parent = holder
+	local radius = math.min(18, h * 0.22)
+	local edge = if on then Chunky.edge else Palette.tabOff:Lerp(Chunky.edge, 0.45)
+	if on then
+		local lip = fill(body, Chunky.edge, 10)
+		lip.Name = "Lip"
+		lip.Position, lip.Size = UDim2.fromScale(0, 0.1), UDim2.fromScale(1, 0.9)
+		Chunky.round(lip, radius)
+		Chunky.outline(lip, 6, edge)
 	end
-	return b
+	local face = fill(body, if on then Palette.tabOn else Palette.tabOff, 11)
+	face.Name = "Face"
+	face.Size = UDim2.fromScale(1, if on then 0.88 else 1)
+	Chunky.round(face, radius)
+	Chunky.outline(face, if on then 6 else 5, edge)
+	local t = Chunky.text(face, words, if on then Palette.tabOnText else Palette.tabOffText, 0)
+	t.Name = "Words"
+	t.Position, t.Size = UDim2.fromScale(0.08, 0.16), UDim2.fromScale(0.84, 0.66)
+	pressable(holder, body, action)
+	return holder
 end
 
---[[ A currency: its icon, larger than the dark pill and overlapping the
-     pill's left end, and the amount. ]]
+--[[ A currency: its icon, larger than the white pill and overlapping the
+     pill's left end, and the amount in dark ink (a gold or blue amount is
+     lost on a pale pill). ]]
 function Chunky.pill(
 	sheet: Sheet,
 	icon: string,
@@ -631,15 +729,14 @@ function Chunky.pill(
 	x: number,
 	y: number,
 	w: number,
-	h: number,
-	colour: Color3?
+	h: number
 ): Frame
 	local holder = Instance.new("Frame")
 	holder.Name = "ChunkyWallet"
 	holder.BackgroundTransparency = 1
 	holder.ZIndex = 20
 	Chunky.put(sheet, holder, x, y, w, h)
-	local pill = fill(holder, Chunky.panelTop, 20)
+	local pill = fill(holder, Palette.pill, 20)
 	pill.Position, pill.Size =
 		UDim2.fromScale(h * 0.45 / w, 0.14), UDim2.fromScale(1 - h * 0.45 / w, 0.72)
 	Chunky.round(pill, h)
@@ -647,29 +744,16 @@ function Chunky.pill(
 	local picture = Kit.image(holder, icon)
 	picture.Position, picture.Size = UDim2.fromScale(0, 0), UDim2.fromScale(h / w, 1)
 	picture.ZIndex = 22
-	local t = Chunky.text(pill, amount, colour, 4)
+	local t = Chunky.text(pill, amount, Palette.pillText, 0)
 	t.Position, t.Size = UDim2.fromScale(0.36, 0.14), UDim2.fromScale(0.58, 0.72)
 	t.TextXAlignment = Enum.TextXAlignment.Left
 	return holder
 end
 
---[[ The colours a currency's amount is written in on its pill. ]]
-Chunky.coinText = Color3.fromRGB(255, 206, 46)
-Chunky.gemText = Color3.fromRGB(96, 208, 255)
-
 --[[ The player's coins and gems. ]]
 function Chunky.wallet(sheet: Sheet, coins: number, gems: number, x: number, y: number, h: number)
-	Chunky.pill(sheet, ShopAssets.coin, Chunky.commas(coins), x, y, h * 3.4, h, Chunky.coinText)
-	Chunky.pill(
-		sheet,
-		ShopAssets.gem,
-		Chunky.commas(gems),
-		x + h * 3.6,
-		y,
-		h * 2.8,
-		h,
-		Chunky.gemText
-	)
+	Chunky.pill(sheet, ShopAssets.coin, Chunky.commas(coins), x, y, h * 3.4, h)
+	Chunky.pill(sheet, ShopAssets.gem, Chunky.commas(gems), x + h * 3.6, y, h * 2.8, h)
 end
 
 function Chunky.commas(n: number): string
@@ -712,7 +796,8 @@ function Chunky.bar(
 		g.Color = ColorSequence.new(stops)
 		g.Parent = f
 	else
-		gradient(f, colour:Lerp(Color3.new(1, 1, 1), 0.3), colour)
+		local bright = Chunky.lit(colour)
+		gradient(f, bright:Lerp(Chunky.white, 0.25), bright)
 	end
 	return trough
 end
@@ -720,9 +805,11 @@ end
 --[[
 	One item in its rarity's frame, as the style sheet's tiles: a pale wash
 	of the rarity's colour under the picture (or the pet standing as its
-	model), a thick frame in the colour, a small caption along the bottom
-	(the odds, a level). Legendary glows gold and Mythic's frame turns
-	rainbow with a glow (owner's standing rule). `hidden` draws it black.
+	model), a thick frame in the colour, a small caption (the odds, a level)
+	in dark ink on a white chip along the bottom, since small words do not
+	stand 4.5:1 on a tile's wash. Legendary glows gold and Mythic's frame
+	turns rainbow with a glow (owner's standing rule). `hidden` draws it
+	black.
 ]]
 function Chunky.tile(
 	parent: GuiObject,
@@ -733,12 +820,13 @@ function Chunky.tile(
 	owned: boolean?,
 	key: string?
 ): Frame
-	local tone = Chunky.rarity[rarity] or Chunky.grey
+	local wash = Chunky.rarityTile[rarity] or Chunky.rarityTile.Common
+	local tone = wash.frame
 	local t = fill(parent, Color3.new(1, 1, 1), 6)
 	t.Name = "ChunkyTile"
-	gradient(t, tone:Lerp(Color3.new(1, 1, 1), 0.5), tone:Lerp(Color3.new(1, 1, 1), 0.12))
+	gradient(t, wash.top, wash.bottom)
 	Chunky.round(t, 16)
-	local edge = Chunky.outline(t, 6, Chunky.shade(tone))
+	local edge = Chunky.outline(t, 6, tone)
 	local standing = if key then Kit.petModel(t, key, hidden == true) else nil
 	if standing then
 		standing.Position, standing.Size = UDim2.fromScale(0.04, 0.02), UDim2.fromScale(0.92, 0.8)
@@ -752,8 +840,15 @@ function Chunky.tile(
 		end
 	end
 	if caption then
-		local c = Chunky.text(t, caption, nil, 4)
-		c.Position, c.Size = UDim2.fromScale(0.06, 0.74), UDim2.fromScale(0.88, 0.22)
+		local chip = fill(t, Palette.chip, 11)
+		chip.Name = "Caption"
+		chip.Position, chip.Size = UDim2.fromScale(0.08, 0.75), UDim2.fromScale(0.84, 0.2)
+		local curve = Instance.new("UICorner")
+		curve.CornerRadius = UDim.new(0.5, 0)
+		curve.Parent = chip
+		Chunky.outline(chip, 3, tone)
+		local c = Chunky.text(chip, caption, Palette.chipText, 0)
+		c.Position, c.Size = UDim2.fromScale(0.08, 0.1), UDim2.fromScale(0.84, 0.8)
 		c.ZIndex = 12
 	end
 	if rarity == "Legendary" or rarity == "Mythic" then

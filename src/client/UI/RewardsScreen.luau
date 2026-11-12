@@ -153,9 +153,9 @@ local function row(
 	giftAt(sheet, gift, x + w - buttonW - giftW - 30, y + 8, giftW, h - 16)
 	local bx, by, bh = x + w - buttonW - 18, y + (h - 76) / 2, 76
 	if claimed then
-		card.BackgroundColor3 = Color3.fromRGB(206, 212, 226)
+		card.BackgroundColor3 = Chunky.pale
 		words(sheet, "DONE", bx, by + 16, buttonW, bh - 32, Enum.TextXAlignment.Center).TextColor3 =
-			Chunky.grey
+			Chunky.inkSoft
 	elseif ready then
 		Chunky.gleam(Chunky.button(sheet, "CLAIM", Chunky.green, bx, by, buttonW, bh, onClaim))
 	end
@@ -206,11 +206,11 @@ local function dayCard(
 		local shade = Instance.new("Frame")
 		shade.BorderSizePixel = 0
 		shade.BackgroundColor3 = Chunky.navy
-		shade.BackgroundTransparency = 0.45
+		shade.BackgroundTransparency = 0.25
 		shade.ZIndex = 32
 		Chunky.put(sheet, shade, x, y, w, h)
 		Chunky.round(shade, 24)
-		local done = Chunky.text(shade, "CLAIMED", Chunky.green, 5)
+		local done = Chunky.text(shade, "CLAIMED", Chunky.lime, 5)
 		done.Position, done.Size = UDim2.fromScale(0.08, 0.38), UDim2.fromScale(0.84, 0.24)
 		done.ZIndex = 33
 		done.Rotation = -8
@@ -220,7 +220,7 @@ local function dayCard(
 		end))
 	elseif state == "next" then
 		words(sheet, "TOMORROW", x + 10, y + h * 0.83, w - 20, h * 0.12, Enum.TextXAlignment.Center).TextColor3 =
-			Chunky.grey
+			Chunky.inkSoft
 	end
 end
 
@@ -389,7 +389,7 @@ local function startButton(s: StationScreen.Screen)
 		Chunky.put(sheet, dot, bx + bw - 30, by - 16, 52, 52)
 		Chunky.round(dot, 26)
 		Chunky.outline(dot, 5)
-		local n = Chunky.text(dot, "1", nil, 3)
+		local n = Chunky.textOn(dot, "1", Chunky.red, 3)
 		n.Position, n.Size = UDim2.fromScale(0.15, 0.12), UDim2.fromScale(0.7, 0.76)
 		n.ZIndex = 46
 		badge, count = dot, n

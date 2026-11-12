@@ -51,12 +51,12 @@ local T = Hud.top
 local COIN_TAG = "CoinCounter"
 local COINS_SHOWN = "CoinsShown"
 
-local XP_TOP = Color3.fromRGB(255, 226, 92)
-local XP_BOTTOM = Chunky.orange
+local XP_TOP = Chunky.gold
+local XP_BOTTOM = Chunky.face(Chunky.gold).bottom
 local GOOD = Color3.fromRGB(150, 255, 130)
 local BAD = Color3.fromRGB(255, 120, 112)
 local PIP_DARK = Chunky.trough
-local PIP_LIT = Chunky.green
+local PIP_LIT = Chunky.lime
 local PIP_LAST = Chunky.red
 
 local root: Frame? = nil
@@ -116,6 +116,16 @@ local function words(parent: Instance, name: string, size: number): TextLabel
 	stroke.Thickness = 2
 	stroke.Parent = label
 	return label
+end
+
+--[[ Dark words with no stroke: on the sunny level badge and the white
+     coin pill, where white ones are lost. ]]
+local function dark(label: TextLabel)
+	label.TextColor3 = Chunky.ink
+	local stroke = label:FindFirstChildOfClass("UIStroke")
+	if stroke then
+		stroke.Enabled = false
+	end
 end
 
 --[[ A quick swell that settles: a level gained, coins landed. ]]
@@ -218,7 +228,7 @@ local function build(gui: ScreenGui)
 	plate.Parent = xpRow
 	round(plate, T.badge * 0.3)
 	outline(plate, 2.5)
-	lit(plate, Color3.fromRGB(255, 232, 110), Chunky.gold)
+	lit(plate, XP_TOP, XP_BOTTOM)
 	local plateScale = Instance.new("UIScale")
 	plateScale.Parent = plate
 	badgeScale = plateScale
@@ -228,6 +238,7 @@ local function build(gui: ScreenGui)
 	level.TextScaled = true
 	level.ZIndex = 4
 	level.Text = "1"
+	dark(level)
 	local levelCap = Instance.new("UITextSizeConstraint")
 	levelCap.MaxTextSize = math.floor(T.badge * 0.62)
 	levelCap.Parent = level
@@ -252,7 +263,7 @@ local function build(gui: ScreenGui)
 	pill.AnchorPoint = Vector2.new(0, 0.5)
 	pill.Position = UDim2.new(0, T.coinHeight * 0.4, 0.5, 0)
 	pill.Size = UDim2.new(1, -T.coinHeight * 0.4, 0.8, 0)
-	pill.BackgroundColor3 = Chunky.panelTop
+	pill.BackgroundColor3 = Chunky.white
 	pill.BorderSizePixel = 0
 	pill.Parent = coins
 	round(pill, T.coinHeight / 2)
@@ -274,7 +285,7 @@ local function build(gui: ScreenGui)
 	amount.Size = UDim2.new(1, -(T.coinHeight * 0.7 + 8), 1, 0)
 	amount.TextScaled = true
 	amount.TextXAlignment = Enum.TextXAlignment.Right
-	amount.TextColor3 = Chunky.coinText
+	dark(amount)
 	amount.ZIndex = 2
 	local amountCap = Instance.new("UITextSizeConstraint")
 	amountCap.MaxTextSize = math.floor(T.coinHeight * 0.58)

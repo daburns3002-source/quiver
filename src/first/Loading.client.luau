@@ -117,12 +117,15 @@ local function build()
 	-- arrived before they are required, so the plain paths below are safe
 	shared:WaitForChild("Config"):WaitForChild("LoadingScreen")
 	shared:WaitForChild("Config"):WaitForChild("LoadingTips")
+	shared:WaitForChild("Config"):WaitForChild("UiPalette")
+	shared:WaitForChild("Util"):WaitForChild("TipPlate")
 	shared:WaitForChild("Util"):WaitForChild("LoadingPick")
 	shared:WaitForChild("Util"):WaitForChild("SpotlightArt")
 	local LoadingScreen = require(ReplicatedStorage.Shared.Config.LoadingScreen)
 	local LoadingTips = require(ReplicatedStorage.Shared.Config.LoadingTips)
 	local LoadingPick = require(ReplicatedStorage.Shared.Util.LoadingPick)
 	local SpotlightArt = require(ReplicatedStorage.Shared.Util.SpotlightArt)
+	local TipPlate = require(ReplicatedStorage.Shared.Util.TipPlate)
 
 	-- what the player has met, from their save if it comes in time
 	local profile = awaitProfile(LoadingScreen.profileWait)
@@ -183,16 +186,8 @@ local function build()
 	title.Visible = false
 	loading.Visible = false
 
-	-- one of the tips
-	local tip =
-		text(screen, "Tip", LoadingTips[math.random(1, #LoadingTips)], LoadingScreen.tipText)
-	place(tip, layout.tip)
-	tip.TextWrapped = true
-	tip.TextXAlignment = Enum.TextXAlignment.Left
-	tip.ZIndex = 3
-	local limit = Instance.new("UITextSizeConstraint")
-	limit.MaxTextSize = 40
-	limit.Parent = tip
+	-- one of the tips, on its plate rather than on the picture
+	TipPlate.draw(screen, size, layout.tip, LoadingTips[math.random(1, #LoadingTips)], 3)
 
 	-- the bar
 	local trough = Instance.new("Frame")

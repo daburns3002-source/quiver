@@ -857,7 +857,7 @@ local function buildButton(content: Instance, look: any, layout: any, won: boole
 		57,
 		words,
 		look.text.button,
-		WHITE,
+		look.buttonWords,
 		look.text.buttonStroke
 	)
 	local icon: ImageLabel

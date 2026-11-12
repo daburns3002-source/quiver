@@ -168,24 +168,20 @@ local function build(playerGui: PlayerGui): Parts
 		local tile = Instance.new("Frame")
 		tile.Name = "Tile"
 		tile.BorderSizePixel = 0
-		tile.BackgroundColor3 = Color3.new(1, 1, 1)
 		tile.Size = UDim2.fromScale(1, 1)
 		tile.ZIndex = 5
 		tile.Parent = frame
-		local light = Instance.new("UIGradient")
-		light.Rotation = 90
-		light.Color = ColorSequence.new(tone:Lerp(Color3.new(1, 1, 1), 0.4), tone)
-		light.Parent = tile
+		Chunky.light(tile, tone)
 		Chunky.round(tile, 20)
 		Chunky.outline(tile, 7, Chunky.shade(tone))
 
 		--[[ Its number, for the keys 1, 2 and 3. ]]
-		local key = Chunky.text(tile, tostring(index), nil, 5, Chunky.shade(tone))
+		local key = Chunky.textOn(tile, tostring(index), tone, 5)
 		key.Position, key.Size = UDim2.fromScale(0.36, 0.06), UDim2.fromScale(0.28, 0.2)
-		local name = Chunky.text(tile, "", nil, 6, Chunky.shade(tone))
+		local name = Chunky.textOn(tile, "", tone, 6)
 		name.Name = "Name"
 		name.Position, name.Size = UDim2.fromScale(0.06, 0.3), UDim2.fromScale(0.88, 0.26)
-		local words = Chunky.text(tile, "", nil, 4, Chunky.shade(tone))
+		local words = Chunky.textOn(tile, "", tone, 4)
 		words.Name = "Words"
 		words.Position, words.Size = UDim2.fromScale(0.08, 0.6), UDim2.fromScale(0.84, 0.3)
 		words.TextWrapped = true

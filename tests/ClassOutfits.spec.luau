@@ -284,7 +284,7 @@ return function(t: TestRunner.Helper)
 		t.near(wide.X, 1.3, 1e-6)
 		t.near(wide.Y, 1, 1e-6)
 		local limit = ClassOutfits.stretch
-		t.isTrue(limit.min < 1 and limit.max > 1, "the limits do not allow the standard body")
+		t.isTrue(limit.min <= 1 and limit.max > 1, "the limits do not allow the standard body")
 		t.near(ClassOutfit.ratio(standard * 100, standard).X, limit.max, 1e-6)
 		t.near(ClassOutfit.ratio(standard / 100, standard).X, limit.min, 1e-6)
 	end)

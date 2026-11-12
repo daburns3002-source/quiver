@@ -18,8 +18,8 @@
 	- welds every piece to its R15 body part: massless, never colliding,
 	  answering a raycast or touching, like the weapon in hand, so the set
 	  cannot change how the body moves or what hits it. A piece is stretched
-	  to its body part's real size, and again whenever that changes, so a
-	  body that is still not the standard one never pokes through.
+	  to a body part larger than the standard one, and again whenever its
+	  size changes, so the body never pokes through; it is never shrunk.
 
 	A piece is its imported mesh when the server has made its template
 	(`ReplicatedStorage.ClassOutfitMeshes/<Class>/<Piece>`,

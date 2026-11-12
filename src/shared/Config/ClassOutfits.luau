@@ -15,9 +15,9 @@
 	Everything is measured on the standard blocky R15 body (`standard`, read
 	off Roblox's default rig), in the body part's own space: X to the
 	character's right, Y up, the front at -Z, the part's centre at zero. A
-	body of another size has each piece stretched to its part
-	(`ClassOutfit.ratio`), and in a run the avatar is set to the standard
-	proportions first (`scales`).
+	body part that is larger has its piece stretched to it, never shrunk
+	(`ClassOutfit.ratio`, `stretch`), and in a run the avatar is set to the
+	standard proportions first (`scales`).
 
 	`blocks` is the piece built from plain coloured boxes: the plan the
 	Claude Design model is made to, and what is worn until that model is
@@ -223,7 +223,7 @@ end
 local function arcanist(): Outfit
 	local blue, deep, navy = rgb(63, 127, 234), rgb(37, 72, 166), rgb(26, 52, 120)
 	local gold, gem = rgb(243, 200, 71), rgb(255, 230, 128)
-	local crystal, glint = rgb(141, 232, 255), rgb(230, 251, 255)
+	local crystal, glint = rgb(64, 200, 255), rgb(190, 240, 255)
 	local sleeveR, sleeveL = pair("Sleeve", "UpperArm", {
 		box(-0.52, 0.60, -0.36, 0.56, -0.58, 0.58, blue),
 	})
@@ -281,7 +281,7 @@ local function arcanist(): Outfit
 						-- a shoulder, and the crystal growing out of it
 						box(1.00, 2.12, 0.70, 1.18, -0.64, 0.64, deep),
 						box(1.28, 1.80, 1.18, 1.70, -0.26, 0.26, crystal, true),
-						box(1.40, 1.68, 1.70, 1.90, -0.14, 0.14, glint, true),
+						box(1.40, 1.68, 1.70, 1.90, -0.14, 0.14, glint),
 					})
 				),
 			},
@@ -310,7 +310,7 @@ end
 --[[ Warden: a horned helm with a red plume, huge shoulder plates, a
      breastplate under a red tabard and a red cape. ]]
 local function warden(): Outfit
-	local steel, iron, shine = rgb(201, 208, 220), rgb(128, 138, 156), rgb(241, 244, 249)
+	local steel, iron, shine = rgb(186, 194, 208), rgb(128, 138, 156), rgb(214, 220, 232)
 	local red, wine = rgb(224, 69, 58), rgb(163, 42, 34)
 	local gold, pale = rgb(232, 186, 63), rgb(255, 229, 150)
 	local armR, armL = pair("Rerebrace", "UpperArm", {
@@ -492,8 +492,11 @@ local ClassOutfits = {
 		BodyProportionScale = 0,
 	} :: { [string]: number },
 	--[[ How far a piece is stretched to a body part that is still not the
-	     standard size. ]]
-	stretch = { min = 0.6, max = 1.8 },
+	     standard size. Never smaller than it was made: a slim avatar's arm
+	     sits inside a sleeve of the full size, so the set stays as chunky
+	     as its sheet. Up to three times larger, which a tall shoe-shaped
+	     foot needs for its sole to reach the floor. ]]
+	stretch = { min = 1, max = 3 },
 	sets = {
 		Ranger = ranger(),
 		Arcanist = arcanist(),

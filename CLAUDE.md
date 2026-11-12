@@ -367,6 +367,19 @@ box shows the stage's take. Any schema change bumps `SaveSchema.VERSION` with a 
 `SaveSchema.spec` case. Version 2 (2026-10-26) adds `levelsBeaten` (by `StageConfig.level`); a
 version 1 profile that had beaten King Bloblin counts 1-1 as beaten.
 
+**Payouts land where the player is looking** (owner's review, 2026-11-11, items 5, 9, 10): the
+first clear of a level (`Wallet.beatLevel` returns true) gives its area's egg free
+(`Config/Economy.firstClearEgg`, rolled by `Hatchery.grantFree` in `RoomController.complete`); it
+fills Victory's chest slot and opens with the hatchery's reveal over the end screen
+(`RunSummary.egg`). The boss item shows there too (`RunSummary.item`). Every coin paid is told to
+the client (`Remotes.CoinsGained(amount, position?)`): `Fx/CoinDrops` pops a kill's coins out of
+the kill and flies them to the GuiObject tagged `CoinCounter` (the top of the screen without one)
+and keeps the client-only `CoinsShown` Player attribute, the wallet less the coins in the air,
+for a run coin counter to show. Victory's plate says YOU CAN HATCH AN EGG! when the server says the
+coins buy an open egg (`RunSummary.canHatch`, `Hatchery.canHatch`); Defeat's is a line on getting
+stronger. The portal's level card lists what a level pays (`PortalScreen` `rewardsOf`). Only stages
+with a `level` have a first clear (Mossy Glade's ten); `tests/Payouts.spec`.
+
 **Portals open a screen; the lobby sprints and jumps** (owner, 2026-10-26): walking into a lit
 portal opens `UI/PortalScreen` (the area, its levels from `Config/Lobby.portals[i].levels`, START;
 Mossy Glade's ten as numbered buttons in two rows of five, locked ones dimmed under a lock, beaten

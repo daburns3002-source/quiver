@@ -55,6 +55,7 @@ local CurrentStage = require(ReplicatedStorage.Shared.Util.CurrentStage)
 local EndlessLeaderboard = require(script.Parent.EndlessLeaderboard)
 local EnemyManager = require(script.Parent.Parent.Enemies.EnemyManager)
 local EnemyModel = require(script.Parent.Parent.Enemies.EnemyModel)
+local FirstEgg = require(ReplicatedStorage.Shared.Util.FirstEgg)
 local LevelUnlocks = require(ReplicatedStorage.Shared.Util.LevelUnlocks)
 local Lobby = require(script.Parent.Lobby)
 local LobbyConfig = require(ReplicatedStorage.Shared.Config.Lobby)
@@ -62,6 +63,7 @@ local Log = require(ReplicatedStorage.Shared.Util.Log)
 local MeleeSystem = require(script.Parent.Parent.Combat.MeleeSystem)
 local PetCombat = require(script.Parent.Parent.Combat.PetCombat)
 local Pickups = require(script.Parent.Pickups)
+local PlayerData = require(script.Parent.Parent.Data.PlayerData)
 local ProjectileSystem = require(script.Parent.Parent.Combat.ProjectileSystem)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local RunSession = require(script.Parent.RunSession)
@@ -704,6 +706,18 @@ local function complete(now: number)
 	-- the area's clear bonus, before the summary that shows it
 	for _, session in RunSession.all() do
 		RunSession.payCoins(session, RunSession.areaPay().clearCoins)
+		--[[ The tutorial's win pays for the first egg (`Util/FirstEgg`):
+		     what the player is still short of it, so the lobby opens on a
+		     hatch. A top-up, never a flat sum, so replaying the tutorial
+		     (owed until 1-1 is won) farms nothing. ]]
+		local profile = if stage().tutorial then PlayerData.get(session.player) else nil
+		if profile then
+			RunSession.payCoins(session, FirstEgg.topUp(profile.coins))
+		end
+		if stage().tutorial then
+			-- won once: later joins may skip it (SKIP TUTORIAL)
+			Wallet.finishTutorial(session.player)
+		end
 		--[[ The level is won, for everyone in the run: saved, and the next
 		     one opens. Decided here, never asked for. A Studio jump
 		     (`debugEnterRoom`) counts, so unlocking can be tested there. ]]

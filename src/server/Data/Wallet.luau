@@ -123,6 +123,17 @@ function Wallet.beatLevel(player: Player, level: string)
 	changed(player, profile)
 end
 
+--[[ The tutorial is won (`SaveSchema` version 8): saved, so later joins
+     may skip it. Only `RoomController` calls it, as the tutorial completes. ]]
+function Wallet.finishTutorial(player: Player)
+	local profile = PlayerData.get(player)
+	if not profile or profile.tutorialDone then
+		return
+	end
+	profile.tutorialDone = true
+	changed(player, profile)
+end
+
 --[[
 	=== Endless (`docs/ENDLESS.md`) ===
 

@@ -1718,3 +1718,9 @@ textures, read off a live client). It now holds the pictures in video memory whi
 (`DeviceTiers.warmLobbyImages`) and fetches and draws every pet and weapon preview once. The portal mesh
 ids it was handed as pictures only errored. The eggs' and chests' screen pictures are rendered from the
 Design models (`assets/ui/reveal/design/`).
+
+## A loading tip told phone players to press SPACE to dash (2026-11-11)
+
+`Config/LoadingTips` named only the keyboard and the controller. The tip now names all three ways
+(SPACE, A, the DASH button), and `tests/FirstEgg.spec` fails any tip that names SPACE without a
+phone's way to do it.

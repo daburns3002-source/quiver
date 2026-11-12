@@ -11,6 +11,7 @@ local Lighting = game:GetService("Lighting")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local StarterGui = game:GetService("StarterGui")
+local TeleportService = game:GetService("TeleportService")
 local Workspace = game:GetService("Workspace")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
@@ -42,6 +43,7 @@ local EnemySounds = require(script.Parent.Fx.EnemySounds)
 local ForestAmbience = require(script.Parent.Fx.ForestAmbience)
 local Game = require(Shared.Config.Game)
 local GearScreen = require(script.Parent.UI.GearScreen)
+local HatcheryPointer = require(script.Parent.Fx.HatcheryPointer)
 local HealthBar = require(script.Parent.UI.HealthBar)
 local HitFeedback = require(script.Parent.Fx.HitFeedback)
 local HitSquash = require(script.Parent.Fx.HitSquash)
@@ -85,6 +87,7 @@ local StoryCutscene = require(script.Parent.UI.StoryCutscene)
 local TelegraphRenderer = require(script.Parent.Fx.TelegraphRenderer)
 local TopDownCamera = require(script.Parent.Camera.TopDownCamera)
 local TutorialPrompts = require(script.Parent.UI.TutorialPrompts)
+local TutorialSkip = require(script.Parent.UI.TutorialSkip)
 local Types = require(Shared.Types)
 local UpgradeFx = require(script.Parent.Fx.Upgrades.UpgradeFx)
 local VitalFx = require(script.Parent.Fx.Upgrades.VitalFx)
@@ -179,18 +182,56 @@ local function playStory()
 		beginRun()
 	end
 end
-if IntroCutscene.skipped() then
-	CardPreload.start()
-else
-	MusicFx.setQuiet(true)
-	RoomSign.setWaiting(true)
-	StoryCutscene.preload()
+--[[ What follows the loading screen, as the server decides it from the
+     saved profile (`Run/Party.ROUTE`, Fable's loop review, 2026-11-11): a
+     player owed the tutorial is sent to its server behind this loading
+     screen and sees the title and the story there (`story` in the teleport
+     data); a returning player sees the title and skips the story. ]]
+local ROUTE_WAIT = 12
+local TRAVEL_WAIT = 30
+local function sentHere(): string?
+	local ok, data = pcall(function()
+		return TeleportService:GetLocalPlayerTeleportData()
+	end)
+	if ok and type(data) == "table" and (data :: any).story == true then
+		return if (data :: any).seen == true then "Lobby" else "Story"
+	end
+	return nil
+end
+local function awaitRoute(): string
+	local sent = sentHere()
+	if sent then
+		return sent
+	end
+	local deadline = os.clock() + ROUTE_WAIT
+	while player:GetAttribute("JoinRoute") == nil and os.clock() < deadline do
+		task.wait(0.1)
+	end
+	-- on its way to the tutorial: the loading screen stays until it lands,
+	-- or the title plays here if the trip never goes
+	deadline = os.clock() + TRAVEL_WAIT
+	while player:GetAttribute("JoinRoute") == "Tutorial" and os.clock() < deadline do
+		task.wait(0.25)
+	end
+	local route = player:GetAttribute("JoinRoute")
+	return if route == "Lobby" then "Lobby" else "Story"
+end
+local function startIntro(story: boolean)
+	if story then
+		StoryCutscene.preload()
+	end
 	local ok, problem = pcall(function()
-		IntroCutscene.start(playStory)
+		IntroCutscene.start(if story
+			then playStory
+			else function()
+				CardPreload.start()
+				beginRun()
+			end)
 	end)
 	if not ok then
 		log.warn("intro cutscene failed to start: %s", tostring(problem))
 		IntroCutscene.stop()
+		CardPreload.start()
 		beginRun()
 	end
 end
@@ -198,9 +239,19 @@ end
 -- before the join screen lifts, so a run server's cover follows it at once
 AreaLoading.start()
 
---[[ The intro is up (or skipped): the loading screen can lift
-     (`first/Loading`). ]]
-player:SetAttribute("ClientReady", true)
+if IntroCutscene.skipped() then
+	CardPreload.start()
+	-- the loading screen can lift (`first/Loading`)
+	player:SetAttribute("ClientReady", true)
+else
+	MusicFx.setQuiet(true)
+	RoomSign.setWaiting(true)
+	task.spawn(function()
+		startIntro(awaitRoute() == "Story")
+		--[[ The intro is up: the loading screen can lift (`first/Loading`). ]]
+		player:SetAttribute("ClientReady", true)
+	end)
+end
 
 NameTags.start()
 -- co-op: the party line, downed players, the teammate arrow
@@ -242,6 +293,8 @@ WardenBuildFx.start()
 ForestAmbience.start()
 WaterSteps.start()
 LobbyMotes.start()
+-- the way to the first egg, while it is affordable and no pet is owned
+HatcheryPointer.start()
 PortalVortex.start()
 RoomPreload.start()
 BurnFx.start()
@@ -252,6 +305,7 @@ BossBanner.start()
 NewEnemyScreen.start()
 EndlessCheckpoint.start()
 TutorialPrompts.start()
+TutorialSkip.start()
 PickupFx.start(Workspace)
 CombatMarkers.start(Workspace)
 TelegraphRenderer.start(Workspace)

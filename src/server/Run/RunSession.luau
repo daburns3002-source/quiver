@@ -247,7 +247,11 @@ function RunSession.arrivedByTeleport(player: Player): boolean
 	local ok, data = pcall(function()
 		return player:GetJoinData().TeleportData
 	end)
-	return ok and type(data) == "table" and (data :: any).arrowborne == true
+	return ok
+		and type(data) == "table"
+		and (data :: any).arrowborne == true
+		-- sent to the tutorial on join, before the title: it plays here
+		and (data :: any).story ~= true
 end
 
 function RunSession.create(player: Player): Session

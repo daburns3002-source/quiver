@@ -109,6 +109,7 @@ where you would be standing. Say what reads wrong and Claude retunes it.
 
 - **The intro.** Black, DYL.DEVS in dark gold with PRESENTS under it, the cut to the title at 5.0 s, then BEGIN ADVENTURE.
 - **The story** after BEGIN ADVENTURE, about 43 s, SKIP at the top right, ending in the tutorial.
+- **The road in, shortened (2026-11-11, Fable's loop review item 2).** Only the published game can show it (Studio cannot teleport): a brand-new player should see ONE loading screen, then the title and story on the tutorial's own server, then the tutorial; a player who has beaten 1-1 sees the title and no story. The tutorial's win tops coins up to the Mossy Egg's 500 and the lobby shows a gold arrow over the Hatchery with a tile trail until a pet is owned. A player who has won the tutorial once (but not 1-1) gets SKIP TUTORIAL at the top right of the tutorial, and sees no story again.
 - **The tutorial.** Five glade rooms of Moss Slimes and Spitters: does it teach well, at the right difficulty? Its prompts are now chunky blue panels in Fredoka One, sized from the screen, each up at least 3 s (shooting 7 s): easy to read on a computer and on a phone?
 - **The class-select cover.** The 1.8 s wait should be a spotlight with a tip and a bar, never the old green backdrop with a weapon panel.
 - **The end screens.** Press V and B in a playtest and hold them against `end_victory_chest.jpg` and `end_defeat.jpg`.

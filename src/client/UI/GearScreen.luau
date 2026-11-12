@@ -14,6 +14,7 @@ local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Chunky = require(script.Parent.Chunky)
+local ClassOutfit = require(ReplicatedStorage.Shared.Util.ClassOutfit)
 local Classes = require(ReplicatedStorage.Shared.Config.Classes)
 local EggRules = require(ReplicatedStorage.Shared.Util.EggRules)
 local EggScreen = require(script.Parent.EggScreen)
@@ -64,7 +65,8 @@ local function portrait(
 	put: (GuiObject, number, number, number, number) -> (),
 	rect: { number },
 	weaponName: string?,
-	pets: { string }?
+	pets: { string }?,
+	class: string?
 )
 	local viewport = Instance.new("ViewportFrame")
 	viewport.BackgroundTransparency = 1
@@ -124,6 +126,15 @@ local function portrait(
 	end
 	clone.Parent = world
 	clone:PivotTo(CFrame.new())
+	--[[ In the class's armour set (`Util/ClassOutfit`, owner 2026-11-12),
+	     whatever the character itself is wearing: its own avatar in the
+	     lobby. Before the sizes below are read, so pets stand clear of a
+	     wide shoulder and the camera takes in a tall hat. ]]
+	if class then
+		ClassOutfit.dress(clone, class)
+	else
+		ClassOutfit.undress(clone)
+	end
 	-- their weapon in hand and their pets at their feet (owner, 2026-10-26)
 	local body, bodySize = clone:GetBoundingBox()
 	local floor = body.Position.Y - bodySize.Y / 2
@@ -187,13 +198,13 @@ local function portrait(
 		resized:Disconnect()
 	end)
 end
---[[ The player's own character holding `weaponName`, turning gently,
-     filling `parent`: the gear screen's portrait for another screen (class
-     select draws one a class). ]]
-function GearScreen.portrait(parent: GuiObject, weaponName: string?)
+--[[ The player's own character holding `weaponName`, in `class`'s armour
+     set when one is named, turning gently, filling `parent`: the gear
+     screen's portrait for another screen (class select draws one a class). ]]
+function GearScreen.portrait(parent: GuiObject, weaponName: string?, class: string?)
 	portrait(parent, function(item)
 		item.Size = UDim2.fromScale(1, 1)
-	end, { 0, 0, 0, 0 }, weaponName, nil)
+	end, { 0, 0, 0, 0 }, weaponName, nil, class)
 end
 --[[ A weapon's 2D art, the same picture the Blacksmith shows (never a
      render: owner's standing rule). ]]
@@ -560,7 +571,7 @@ local function draw(s: StationScreen.Screen)
 	portrait(c, function(item, x, y, w, h)
 		Chunky.put(sheet, item, x, y, w, h)
 		item.ZIndex = 6
-	end, L.hero, equipped, petKeys)
+	end, L.hero, equipped, petKeys, currentClass())
 
 	-- ATK and HP on the gold plate under the hero (the mockup's POWER plate)
 	local stats = WeaponStats.weapons[equipped]

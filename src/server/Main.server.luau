@@ -30,6 +30,7 @@ local Arena = require(script.Parent.Arena.Arena)
 local Atmosphere = require(script.Parent.Arena.Atmosphere)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Burning = require(script.Parent.Combat.Burning)
+local ClassOutfit = require(ReplicatedStorage.Shared.Util.ClassOutfit)
 local ClassUpgrades = require(script.Parent.Combat.ClassUpgrades)
 local Classes = require(ReplicatedStorage.Shared.Config.Classes)
 local EndlessLeaderboard = require(script.Parent.Run.EndlessLeaderboard)
@@ -45,6 +46,7 @@ local Lobby = require(script.Parent.Run.Lobby)
 local LobbyConfig = require(ReplicatedStorage.Shared.Config.Lobby)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
 local MeleeSystem = require(script.Parent.Combat.MeleeSystem)
+local OutfitMeshes = require(script.Parent.Combat.OutfitMeshes)
 local Party = require(script.Parent.Run.Party)
 local PetCombat = require(script.Parent.Combat.PetCombat)
 local PetCombatConfig = require(ReplicatedStorage.Shared.Config.PetCombat)
@@ -166,6 +168,8 @@ Arena.preload()
 -- The archer's bow.
 HeldWeapon.preload()
 HeldWeapon.buildPreviews()
+-- the class armour sets' meshes, for both sides to dress from
+OutfitMeshes.build()
 -- The upgrade cards' effects, built in the background for clients to copy.
 UpgradeEffects.start()
 -- The lobby, where players arrive after BEGIN ADVENTURE.
@@ -216,9 +220,10 @@ local function weaponFor(player: Player): string
 	return Classes[if session then session.loadout.class else "Ranger"].weapon
 end
 
---[[ The weapon in hand during a run, nothing in the lobby (owner,
-     2026-10-25); and jumping in the lobby only (2026-10-26,
-     `RunSession.allowJump`). Called whenever either can change. ]]
+--[[ The weapon in hand and the class's armour set on (`Util/ClassOutfit`,
+     owner 2026-11-12) during a run; empty hands and the player's own avatar
+     in the lobby (owner, 2026-10-25); and jumping in the lobby only
+     (2026-10-26, `RunSession.allowJump`). Called whenever any can change. ]]
 local function refreshWeapon(player: Player)
 	local character = player.Character
 	if not character then
@@ -230,8 +235,13 @@ local function refreshWeapon(player: Player)
 	end
 	if RoomController.inLobby() then
 		HeldWeapon.unequip(character)
+		ClassOutfit.undress(character)
 	else
 		HeldWeapon.equip(character, weaponFor(player))
+		--[[ `equip` can wait for the hand: the body may have gone since. ]]
+		if character.Parent then
+			ClassOutfit.dress(character, if session then session.loadout.class else "Ranger", true)
+		end
 	end
 end
 
@@ -320,6 +330,9 @@ local function onPlayerAdded(player: Player)
 	--[[ A drafted card (the Dual Bows Mythic) or a class change can swap
 	     the weapon mid-run. ]]
 	player:GetAttributeChangedSignal("Weapon"):Connect(function()
+		refreshWeapon(player)
+	end)
+	player:GetAttributeChangedSignal("Class"):Connect(function()
 		refreshWeapon(player)
 	end)
 

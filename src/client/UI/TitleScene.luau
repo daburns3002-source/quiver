@@ -505,15 +505,23 @@ function TitleScene.build(parent: Instance, view: Vector2): Scene
 		})
 	end
 
+	--[[ The logo's own points are scaled inside a holder that is placed in
+	     pixels, so the scale sizes the logo and never moves it. ]]
+	local logoHolder = Instance.new("Frame")
+	logoHolder.Name = "LogoHolder"
+	logoHolder.BackgroundTransparency = 1
+	logoHolder.Position = UDim2.fromOffset(round(logoAt.left * k), round(logoAt.top * k))
+	logoHolder.Size =
+		UDim2.fromOffset(round(logoAt.width * k), round((logoAt.bottom - logoAt.top) * k))
+	layer(logoHolder)
 	local logo = Instance.new("Frame")
 	logo.Name = "Logo"
 	logo.BackgroundTransparency = 1
-	logo.Position = UDim2.fromOffset(round(logoAt.left * k), round(logoAt.top * k))
 	logo.Size = UDim2.fromOffset(logoAt.width, math.ceil(logoAt.bottom - logoAt.top))
+	logo.Parent = logoHolder
 	local size = Instance.new("UIScale")
 	size.Scale = k
 	size.Parent = logo
-	layer(logo)
 	buildLogo(logo, design, logoAt)
 
 	collect(root, fading)

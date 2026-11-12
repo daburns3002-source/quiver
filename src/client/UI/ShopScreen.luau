@@ -90,7 +90,7 @@ local function drawStore(s: StationScreen.Screen, area: HatchStand.Area)
 	nameBox.BackgroundTransparency = 1
 	nameBox.ZIndex = 6
 	Chunky.put(sheet, nameBox, area.x + 120, area.y + 4, area.w - 240, 76)
-	Chunky.text(nameBox, Shop.crates[selected].name .. " STORE", nil, 6)
+	Chunky.text(nameBox, Shop.crates[selected].name .. " STORE", Chunky.ink, 0)
 
 	local entries = {}
 	for _, entry in ShopRules.catalog() do
@@ -147,12 +147,7 @@ local function drawStore(s: StationScreen.Screen, area: HatchStand.Area)
 		nameText.Position, nameText.Size =
 			UDim2.fromScale(156 / colW, 18 / rowH),
 			UDim2.fromScale((colW - 156 - 250) / colW, 56 / rowH)
-		local rarityText = Chunky.text(
-			row,
-			string.upper(entry.rarity),
-			Chunky.rarity[entry.rarity] or Chunky.grey,
-			3
-		)
+		local rarityText = Chunky.text(row, string.upper(entry.rarity), Chunky.inkSoft, 0)
 		rarityText.TextXAlignment = Enum.TextXAlignment.Left
 		rarityText.Position, rarityText.Size =
 			UDim2.fromScale(156 / colW, 80 / rowH),
@@ -188,7 +183,7 @@ local function drawStore(s: StationScreen.Screen, area: HatchStand.Area)
 		local empty = Instance.new("Frame")
 		empty.BackgroundTransparency = 1
 		inList(empty, 0, 40, viewW, 90)
-		Chunky.text(empty, "NO WEAPONS YET")
+		Chunky.text(empty, "NO WEAPONS YET", Chunky.ink, 0)
 	end
 end
 function ShopScreen.start()

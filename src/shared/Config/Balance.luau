@@ -4488,7 +4488,7 @@ local Balance = {
 		--[[ Elemental Orbs: casts cycle fire, ice, lightning. Fire burns for
 		     `burn` of the hit a second over `burnDuration`; ice slows to
 		     `slow` of an enemy's speed for `slowDuration`; lightning arcs on
-		     `chain` more times. ]]
+		     `chain` more times, as bolts at `Projectile.arcSpeed`. ]]
 		elemental = {
 			burn = 0.18,
 			burnDuration = 3,
@@ -4614,6 +4614,23 @@ local Balance = {
 		     far from the one hit a link reaches. ]]
 		linkShare = 0.4,
 		linkRange = 10,
+		--[[ The link is a fireball that leaps from the enemy hit to each one
+		     linked, landing its share as it lands (owner, 2026-11-11: "soul
+		     link should be like brand ult"; `Shared/Combat/SoulBounce`): its
+		     speed over the ground, and the least and most seconds one leap
+		     takes. Who is linked and for how much is unchanged. ]]
+		linkHop = { speed = 40, min = 0.14, max = 0.26 },
+		--[[ Chain Lightning's arc is a bolt, not an orb in flight (owner,
+		     2026-11-11: "like the stattik shiv effect"): a ricochet off a
+		     shot that carries the card leaves at this speed, so each hop
+		     lands a few hundredths of a second after the last. It lives
+		     `arcLife` seconds, not an arrow's: a projectile only moves on a
+		     server step, so its life is counted in steps, and this is enough
+		     of them to cross the reach on a server running at half speed
+		     while one that finds nothing still dies in a blink. Damage, reach
+		     and the number of arcs are Ricochet's, as before. ]]
+		arcSpeed = 320,
+		arcLife = 0.1,
 		--[[
 			Half the width of the drawn arrow, and half the width of the box
 			the server sweeps. These two numbers are the hitbox *and* the
@@ -6523,12 +6540,10 @@ local Balance = {
 		-- parts are posed every frame
 		maxParts = 40,
 		caps = {
-			FxSoulChain = 6,
 			FxBlaze = 6,
 			FxDeadlyStrike = 3,
 			FxBloodletting = 3,
 			FxCleave = 3,
-			FxChainLightning = 6,
 			-- the Broodmother's web: a strand is up to ten segments
 			FxBroodWebStrand = 12,
 		},
@@ -6577,10 +6592,54 @@ local Balance = {
 		-- at the blast's real radius
 		blastRadius = 2.5,
 		blastLife = 0.45,
-		-- Soul Chain: the chain's own length, its lift off the floor, its life
-		chainLength = 10,
-		chainLift = 1.1,
-		chainLife = 0.35,
+		--[[ Soul Chain's fireball (owner, 2026-11-11: "soul link should be like
+		     brand ult"; `Fx/Upgrades/SoulFireFx`, built in code): a blazing
+		     cube with a flame trail that leaps from enemy to enemy, bursts
+		     into fire on each and leaves it burning for a moment. When it
+		     lands is the server's (`Balance.Projectile.linkHop`). ]]
+		soul = {
+			-- most fireballs in the air at once on the best device; a share of
+			-- it on the others, never under one
+			cap = 6,
+			-- studs above the floor it leaves and lands at, and how high a leap
+			-- rises at its middle: a share of its length, between two heights
+			height = 1.8,
+			leap = { share = 0.34, min = 1.6, max = 4.2 },
+			-- the white-hot heart and the fire round it, in studs, and how fast
+			-- they tumble (radians a second)
+			core = 0.95,
+			shell = 1.6,
+			spin = 11,
+			-- the flame trail: its width, how long it hangs (seconds) and how
+			-- much it glows. Fire-coloured from the first inch and well short of
+			-- full glow: at 1 it burned out to a white band (Studio, 2026-11-12)
+			trailWidth = 1,
+			trailLife = 0.2,
+			trailGlow = 0.45,
+			-- embers shed a second on the best device
+			embers = 46,
+			-- the warm light it throws on the floor under it, widest on the ground
+			floorGlow = 2.6,
+			-- landing: flames thrown on the best device, the flash's size and
+			-- the ring on the floor's, and their seconds
+			burst = 16,
+			flash = 3.4,
+			ring = 5,
+			burstLife = 0.18,
+			-- how long the enemy it landed on burns, and the flames a second
+			-- for each of the device's `burnParticleRate`
+			burn = 0.75,
+			burnRate = 2,
+			-- the heart is white-hot; every flame (embers, bursts, the burning)
+			-- starts at `flameColour` and glows `flameGlow`: started from the
+			-- heart's white at full glow, the fire read as yellow-white light
+			-- (Studio, 2026-11-12)
+			coreColour = Color3.fromRGB(255, 244, 196),
+			flameColour = Color3.fromRGB(255, 190, 70),
+			fireColour = Color3.fromRGB(255, 122, 30),
+			emberColour = Color3.fromRGB(206, 40, 18),
+			flameGlow = 0.55,
+		},
 		slamLife = 0.6,
 		cleaveLife = 0.4,
 		-- Bloodletting: its full length in studs, where its heart sits
@@ -6597,20 +6656,58 @@ local Balance = {
 		-- Arcanist: Twin Cast's and Arcane Echo's beats at the staff
 		twinLife = 0.6,
 		echoLife = 0.9,
-		-- Chain Lightning's bolt: segments, width, how far each kink pushes
-		-- off the line, how often it re-kinks, its colours and life
-		boltSegments = 6,
-		boltWidth = 0.42,
-		boltKink = 0.9,
-		boltCrackle = 0.05,
-		boltCore = Color3.fromRGB(235, 250, 255),
-		boltRim = Color3.fromRGB(60, 190, 255),
-		boltLife = 0.28,
-		nodeLift = 1.4,
-		-- the chain's target is the enemy most nearly along its aim (the
-		-- cosine it must beat), a little past the reach for one that moved
-		boltAimed = 0.8,
-		boltReachSlack = 3,
+		--[[ Chain Lightning's bolt (owner, 2026-11-11: "like the stattik shiv
+		     effect"; `Fx/Upgrades/LightningFx`, built in code from
+		     `Util/BoltPath`): a jagged, forked bolt that snaps from the enemy
+		     struck to the next, white-hot inside a coloured glow, with sparks
+		     and a flash on each enemy it touches, gone in a fraction of a
+		     second. How fast it hops is the server's
+		     (`Balance.Projectile.arcSpeed`). ]]
+		bolt = {
+			-- most bolts drawn at once on the best device; a share of it on
+			-- the others, never under two (one chain is two or three hops)
+			cap = 9,
+			-- studs of bolt to a segment, and the fewest and most segments
+			segmentLength = 1.5,
+			minSegments = 4,
+			maxSegments = 9,
+			-- how far a joint is thrown off the line, as a share of a segment
+			kink = 0.62,
+			-- forks: most on a bolt, each this share of the bolt long and no
+			-- longer than `forkReach` studs, this far off the bolt's heading,
+			-- in this many pieces
+			forks = 3,
+			forkShare = { min = 0.18, max = 0.34 },
+			forkReach = 3.6,
+			forkAngle = { min = math.rad(22), max = math.rad(55) },
+			forkSegments = 2,
+			-- studs wide: the white-hot core, the glow round it, and a fork as
+			-- a share of both; and how clear the glow is. Thick and deep blue:
+			-- at 0.22 and 0.7, half clear, it was a thin white line whose glow
+			-- was lost against the grass (Studio, 2026-11-12)
+			core = 0.3,
+			glow = 1,
+			forkWidth = 0.6,
+			glowClear = 0.28,
+			coreColour = Color3.fromRGB(246, 252, 255),
+			glowColour = Color3.fromRGB(44, 132, 255),
+			-- seconds it shows, seconds between re-kinks, and the share of its
+			-- life it spends thinning away
+			life = 0.17,
+			crackle = 0.04,
+			fade = 0.45,
+			-- studs above the shot's own height it is drawn at, over the bodies
+			lift = 0.7,
+			-- an enemy touched: sparks thrown on the best device, the flash's
+			-- size in studs and its seconds; and the seconds inside which a
+			-- second touch of the same enemy is not drawn again
+			sparks = 12,
+			flash = 3.2,
+			flashLife = 0.1,
+			touchGap = 0.12,
+			-- hops this close together share one sound
+			soundGap = 0.15,
+		},
 		-- Meteor: the rock rides the fall at most this long
 		meteorLife = 2,
 	},

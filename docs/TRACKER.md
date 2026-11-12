@@ -5,7 +5,7 @@ this in the same PR as the work it describes (CLAUDE.md): add a row when
 something starts or gets blocked, strike it when it lands. How each kind of
 thing gets made is in [PIPELINES.md](PIPELINES.md).
 
-Last brought up to date: 2026-11-11.
+Last brought up to date: 2026-11-12.
 
 **Scope:** Acts 1-3 only (areas 1-6) until the owner says otherwise (2026-10-24). Acts 4-5 work is on hold.
 
@@ -63,10 +63,12 @@ where you would be standing. Say what reads wrong and Claude retunes it.
 - **The hatchery and crate screens.** Four cards across for an egg's eight pets, three for a crate's six weapons, full rarity colour, the chance in the corner, an unowned Mythic a black silhouette.
 - **The shop.** Open a Mossy Glade crate, buy from the store, equip from MY WEAPONS (`Remotes.DebugWallet:FireServer(5000, 2000, 5)` fills the wallet).
 - **The Gear Station** stands clear of the Blacksmith; the portal screen reads; Shift sprints and Space jumps instead of the old dash.
+- **The lobby HUD on a phone** (2026-11-11). Upright: coins and gems top right, PLAY across the bottom, the station button (HATCH EGGS, SHOP...) full width above it and clear of JUMP, no health, skill tray or XP bar. PLAY walks you into the portal of your next unbeaten level.
 - **The leaderboards** are behind you as you spawn, side by side and readable, with the walk north clear of them.
 
 ### In a Mossy Glade run
 
+- **Chain Lightning's bolt and Soul Chain's fireball (2026-11-12).** In the sandbox (O), as an Arcanist with Chain Lightning and as anyone with Soul Chain: does the bolt read as a Statikk Shiv proc (thick enough, blue enough, gone fast enough) and the fireball as a bouncing fireball (leap height, flame colour, how long an enemy burns)? Seen in Studio at desktop size only. **Your calls:** the arcs now fly at 320 studs a second where the orb flies 49.5, so they almost never miss; a linked enemy takes its share when the fireball lands, 0.14 to 0.26 s a leap, and is now knocked back by it. Elemental Orbs' lightning casts arc as the same bolt (your call, 2026-11-12).
 - **The level grid.** 2 x 5, locked dimmed under a lock, CLEARED in gold. After beating 1-1, rejoining should go straight to the lobby.
 - **1-10 as rooms** rather than waves (1-6..1-9 went back to waves, 2026-11-05). Does 1-10 feel starved of upgrades?
 - **1-8, 1-9 and 1-10: still long?** Enemy health now rises 0.04 a level instead of 0.1, so 1-10 asks 87,074 health instead of 119,280.

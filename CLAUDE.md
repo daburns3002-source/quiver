@@ -396,6 +396,16 @@ stands at and the levels they have opened (`Remotes.PortalStart`, `Run/Lobby.sta
 Shift / gamepad X / the phone's SPRINT runs (`Config/Lobby.sprint`) and Space / A / JUMP jumps
 (`RunSession.allowJump`, `Input/LobbyButtons`); a run still dashes and never jumps.
 
+**The lobby HUD** (Fable's loop review item 3, owner 2026-11-11; `UI/LobbyHud`, `Config/LobbyHud`):
+coin and gem pills pinned to the top, a PLAY button, and the fight HUD (health, skill tray, XP bar,
+level) put away while `InLobby`. PLAY asks the server (`Remotes.LobbyPlay`), which walks the player
+into their frontier portal's mouth (`Util/PlayPortal`: the first open portal with a level not beaten,
+never Endless, never one still locked), where its screen opens as usual; START is still checked there. On a touch layout
+(upright, or a phone) PLAY and the station button are laid out in points, full width, 64 and 60 tall,
+under the phone's JUMP (`tests/LobbyHud.spec`); a wide screen keeps the `[E]` prompt on the sheet.
+Both stand on a `Chunky.pointSheet`. The chunky X takes presses over at least 48 points however
+small its header draws it (`Chunky.close`).
+
 **Empty hands in the lobby** (owner, 2026-10-25): the server holds no weapon while `InLobby`
 (`Main.refreshWeapon`, `HeldWeapon.unequip`) and `Fx/WeaponPose` writes no pose there, so
 Roblox's own animation has the arms; the weapon comes back as a run starts.
@@ -532,6 +542,17 @@ meaningfully different?* — which needs the owner.
 Highlight, and for `Balance.Knockback.stagger` after a hit an enemy only slides
 with the shove (`EnemyManager` `staggerUntil`), so its own walking and charges
 cannot cancel it. A new enemy needs a `knockback` above 0 (`Balance.spec`).
+
+**Chain Lightning is a bolt and Soul Chain a fireball** (owner, 2026-11-11: "chain lightning
+should be like the stattik shiv effect ... soul link should be like brand ult"), both built in
+code, no imported model. Chain Lightning is still Ricochet's stage, but its arcs leave at
+`Balance.Projectile.arcSpeed` (`ShotSpec.arcSpeed`), so each hop lands a few hundredths of a
+second after the last; the server marks the hop (`ShotEvent.arc`, `to`) and the client draws a
+jagged, forked bolt between the two bodies in place of an orb (`Fx/Upgrades/LightningFx`,
+`Util/BoltPath`). Soul Chain links the same enemies for the same share, but each takes it as a
+fireball lands on it, leaping to the nearest one next (`Shared/Combat/SoulBounce`,
+`Server/Combat/SoulLink`'s queue, `Fx/Upgrades/SoulFireFx`). An effect seen from above must lie
+in the ground plane; `tests/ChainSoulFx.spec` holds both.
 
 **Enemies arrive in triangles of three** (`Balance.Spawning.clusterSize`),
 the tip pointing at the player; the row swings round the tip when a wall is

@@ -76,6 +76,9 @@ type Projectile = {
 	bounces: number,
 	--[[ Hits left that send it on to the nearest other enemy. ]]
 	ricochet: number,
+	--[[ The speed those ricochets leave at when it is not this one's own:
+	     Chain Lightning's arc (`Balance.Projectile.arcSpeed`). ]]
+	arcSpeed: number?,
 	--[[ Radians a second it turns towards the nearest enemy ahead. ]]
 	homing: number,
 	--[[ Fraction of its damage a hit sets burning per second, and for how
@@ -232,6 +235,9 @@ export type SpawnParams = {
 	splashScale: number,
 	bounces: number,
 	ricochet: number,
+	--[[ Chain Lightning: its ricochets leave as arcs, at this speed. Omitted
+	     means at the shot's own. ]]
+	arcSpeed: number?,
 	homing: number,
 	owner: Player?,
 	now: number,
@@ -300,6 +306,7 @@ function ProjectileSystem.spawn(params: SpawnParams)
 		splashScale = params.splashScale,
 		bounces = params.bounces,
 		ricochet = params.ricochet,
+		arcSpeed = params.arcSpeed,
 		homing = params.homing,
 		burn = params.burn or 0,
 		burnDuration = params.burnDuration or 0,
@@ -381,10 +388,17 @@ type Onward = {
 	damage: number,
 	ricochet: number,
 	from: Model?,
+	--[[ Chain Lightning's arc: the enemy it was sent at, that it is drawn as
+	     lightning between the two, and how long it lives
+	     (`Balance.Projectile.arcLife`, not an arrow's life). ]]
+	to: Model?,
+	arc: boolean?,
+	lifetime: number?,
 }
 
 local function fireOnward(projectile: Projectile, onward: Onward)
 	local specs: { Types.ShotSpec } = {}
+	local lifetime = onward.lifetime or Balance.Projectile.lifetime
 
 	for _ = 1, onward.count do
 		ProjectileSystem.spawn({
@@ -392,7 +406,7 @@ local function fireOnward(projectile: Projectile, onward: Onward)
 			origin = onward.origin,
 			direction = onward.direction,
 			speed = onward.speed,
-			lifetime = Balance.Projectile.lifetime,
+			lifetime = lifetime,
 			damage = onward.damage,
 			pierce = 0,
 			critChance = projectile.critChance,
@@ -401,6 +415,7 @@ local function fireOnward(projectile: Projectile, onward: Onward)
 			splashScale = projectile.splashScale,
 			bounces = 0,
 			ricochet = onward.ricochet,
+			arcSpeed = projectile.arcSpeed,
 			homing = projectile.homing,
 			burn = projectile.burn,
 			burnDuration = projectile.burnDuration,
@@ -419,7 +434,7 @@ local function fireOnward(projectile: Projectile, onward: Onward)
 			lateralOffset = 0,
 			damageScale = 1,
 			speed = onward.speed,
-			lifetime = Balance.Projectile.lifetime,
+			lifetime = lifetime,
 			pierce = 0,
 			critChance = projectile.critChance,
 			critMultiplier = projectile.critMultiplier,
@@ -427,6 +442,7 @@ local function fireOnward(projectile: Projectile, onward: Onward)
 			splashScale = projectile.splashScale,
 			bounces = 0,
 			ricochet = onward.ricochet,
+			arcSpeed = projectile.arcSpeed,
 			homing = projectile.homing,
 			delay = 0,
 			burn = projectile.burn,
@@ -447,6 +463,8 @@ local function fireOnward(projectile: Projectile, onward: Onward)
 		firedAt = currentNow,
 		predicted = false,
 		from = onward.from,
+		to = onward.to,
+		arc = onward.arc,
 		look = projectile.look,
 	} :: Types.ShotEvent)
 end
@@ -459,6 +477,11 @@ end
 	that hit stops there as any arrow does, and the client is told about the
 	new one the way it is told about a chain. Every body this arrow has struck
 	is skipped, so a ricochet never bounces straight back.
+
+	Chain Lightning's is an arc (`projectile.arcSpeed`): the same new shot, at
+	a bolt's speed, so the hop lands a few hundredths of a second later, and
+	the client is told the enemy it was sent at and draws lightning between
+	the two bodies in place of a shot in flight.
 ]]
 local function fireRicochet(projectile: Projectile, hit: Model)
 	if projectile.ricochet <= 0 then
@@ -484,14 +507,19 @@ local function fireRicochet(projectile: Projectile, hit: Model)
 		return
 	end
 
+	local arcSpeed = projectile.arcSpeed
+
 	fireOnward(projectile, {
 		origin = Vector3.new(from.X, from.Y, from.Z),
 		direction = direction,
 		count = 1,
-		speed = projectile.speed,
+		speed = arcSpeed or projectile.speed,
 		damage = projectile.damage * Balance.Projectile.ricochetDamageScale,
 		ricochet = projectile.ricochet - 1,
 		from = hit,
+		to = if arcSpeed then target.model else nil,
+		arc = if arcSpeed then true else nil,
+		lifetime = if arcSpeed then Balance.Projectile.arcLife else nil,
 	})
 end
 
@@ -538,7 +566,14 @@ local function applyHit(projectile: Projectile, model: Model): boolean
 			     second enemy has already happened by the time the chain looks
 			     for what is nearest. ]]
 			applySplash(projectile, projectile.position, damage, model)
-			SoulLink.apply(projectile.owner, projectile.link, model, projectile.position, damage)
+			SoulLink.apply(
+				projectile.owner,
+				projectile.link,
+				model,
+				projectile.position,
+				damage,
+				currentNow
+			)
 		end
 
 		if xp > 0 then

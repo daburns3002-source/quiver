@@ -45,7 +45,7 @@ the titans grip, counter strike"). The build-defining cards, drawn big:
 | Phoenix Arrow | Ranger | Mythic | Every 8th volley a phoenix flies through every enemy to the wall (1.8x), the ground burning behind it for 2.5 s. |
 | Rain of Arrows | Ranger | Legendary | Every 6th volley an arrow goes up; 0.6 s later 12 fall within 4.5 studs of the target (0.3x each). |
 | Black Hole | Arcanist | Mythic | Every 7th cast a black orb opens a hole at the target that drags enemies in for 2 s (bosses stand), then implodes (2.4x). |
-| Elemental Orbs | Arcanist | Epic | Casts cycle fire (burn), ice (slow to 50% for 2 s), lightning (+2 chains). |
+| Elemental Orbs | Arcanist | Epic | Casts cycle fire (burn), ice (slow to 50% for 2 s), lightning (+2 arcs, drawn as Chain Lightning's bolt since 2026-11-12). |
 | Arcane Turret | Arcanist | Legendary | Every 10 s of fighting a crystal hovers beside the Arcanist for 6 s, casting an orb every 0.5 s (0.35x). |
 | Titan's Grip | Warden | Mythic | The swing's reach, depth and slam all 2x (`MeleeStats.reachScale`, `SwingBox.shape`); the sword drawn 2x; every slam shakes the room. |
 | Counter Strike | Warden | Epic | A hit taken (not dodged or guarded) makes the next blow 3x. The Warden is untouchable mid-swing, so it charges when he is hit between swings. |

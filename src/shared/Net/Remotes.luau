@@ -212,6 +212,14 @@ Remotes.PortalOpen = "PortalOpen"
 Remotes.PortalStart = "PortalStart"
 
 --[[
+	Client → server. The lobby's PLAY button (`UI/LobbyHud`), no payload. The
+	server picks the player's frontier portal (`Util/PlayPortal`) and walks
+	them to its mouth, where its screen opens as any portal's does; START is
+	still checked by `Run/Lobby.startFor` there.
+]]
+Remotes.LobbyPlay = "LobbyPlay"
+
+--[[
 	Server → one client. A party portal's word on the run it is starting
 	(`Run/Party`): "TRAVELLING..." while the teleport is under way, or why it
 	failed. Shown on the portal screen (`UI/PortalScreen`).
@@ -306,8 +314,9 @@ Remotes.PickupsCleared = "PickupsCleared"
      for this many seconds; and by what ("SecondWind" or "Revive"). ]]
 Remotes.PlayerRevived = "PlayerRevived"
 
---[[ Server → all clients. A Soul Chain link: from the enemy hit, to each of
-     these. ]]
+--[[ Server → all clients. A Soul Chain link, drawn as a fireball: where the
+     enemy hit stood, then the linked enemies in the order it leaps to them,
+     where each stood, and the seconds from now it lands on each. ]]
 Remotes.SoulLink = "SoulLink"
 
 --[[ Server → all clients. A Warden's Parry knocked the enemy shots within

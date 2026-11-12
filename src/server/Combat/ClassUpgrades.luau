@@ -349,15 +349,13 @@ function ClassUpgrades.afterVolley(
 	end
 end
 
---[[ Elemental Orbs: dresses one of this cast's projectiles in the cast's
-     element before it is spawned. Fire burns, ice slows, lightning chains
-     on. Nothing without the card. ]]
-function ClassUpgrades.dress(session: Session, params: ProjectileSystem.SpawnParams)
-	if session.upgrades.elemental <= 0 then
-		return
-	end
+--[[ What an element does to an orb about to be spawned. Fire burns, ice
+     slows, and lightning chains on as arcs: bolts between the enemies, as
+     Chain Lightning's are, not an orb bouncing on (owner, 2026-11-12). Apart
+     from `dress` so `tests/ChainSoulFx.spec` can hold each element to its
+     own. ]]
+function ClassUpgrades.dressAs(element: string, params: ProjectileSystem.SpawnParams)
 	local config = Balance.Player.elemental
-	local element = ELEMENTS[state(session).element]
 	if element == "Fire" then
 		params.burn = math.max(params.burn or 0, config.burn)
 		params.burnDuration = math.max(params.burnDuration or 0, config.burnDuration)
@@ -366,7 +364,17 @@ function ClassUpgrades.dress(session: Session, params: ProjectileSystem.SpawnPar
 		params.slowDuration = config.slowDuration
 	else
 		params.ricochet += config.chain
+		params.arcSpeed = Balance.Projectile.arcSpeed
 	end
+end
+
+--[[ Elemental Orbs: dresses one of this cast's projectiles in the cast's
+     element before it is spawned. Nothing without the card. ]]
+function ClassUpgrades.dress(session: Session, params: ProjectileSystem.SpawnParams)
+	if session.upgrades.elemental <= 0 then
+		return
+	end
+	ClassUpgrades.dressAs(ELEMENTS[state(session).element], params)
 end
 
 --[[ Counter Strike: a hit really landed on the player (`RunSession.onHurt`). ]]

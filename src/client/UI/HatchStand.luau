@@ -95,19 +95,6 @@ end
 function HatchStand.chrome(s: StationScreen.Screen, title: string, modes: { Mode }?): Area
 	local c = s.canvas
 	local dim = c.Parent :: GuiObject
-	local layer = c:FindFirstAncestorWhichIsA("ScreenGui")
-	if layer then
-		-- the Blacksmith's own lobby wallet; this frame carries its own
-		for _, other in layer:GetDescendants() do
-			if
-				other.Name == "Wallet"
-				and other:IsA("GuiObject")
-				and not other:IsDescendantOf(c)
-			then
-				other.Visible = false
-			end
-		end
-	end
 	-- the station's back arrow and old wallet give way to the X and the pills
 	for _, child in c:GetChildren() do
 		if child:IsA("ImageButton") or child.Name == "Wallet" then

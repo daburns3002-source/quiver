@@ -117,17 +117,6 @@
    "Attack"
   ]
  },
- "EmberWilfPet": {
-  "glb": "assets/models/pets/forest/ember_wilf.glb",
-  "loops": [
-   "Idle",
-   "Follow",
-   "Zoomies"
-  ],
-  "moving": [
-   "Attack"
-  ]
- },
  "Glimmerhorn": {
   "glb": "assets/models/pets/forest/glimmerhorn.glb",
   "loops": [
@@ -419,6 +408,27 @@
   "glb": "assets/models/effects/fx_pet_tide_slash.glb",
   "loops": [
    "Slash"
+  ]
+ },
+ "Thornwake": {
+  "glb": "assets/models/pets/thornwood/thornwake.glb",
+  "loops": [
+   "Idle",
+   "Hover",
+   "Follow"
+  ],
+  "moving": [
+   "Attack"
+  ]
+ },
+ "CaveCricket": {
+  "glb": "assets/models/pets/bogheart/cave_cricket.glb",
+  "loops": [
+   "Idle",
+   "Follow"
+  ],
+  "moving": [
+   "Attack"
   ]
  }
 }

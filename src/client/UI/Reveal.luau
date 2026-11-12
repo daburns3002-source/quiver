@@ -767,7 +767,7 @@ local function play(look: Look, prizes: { Prize }, chanceOf: (Prize) -> number, 
 				})
 			end
 			for _ = 1, Beats.crate.coins do
-				local coin = Kit.image(root, EndScreenAssets.coin)
+				local coin = Kit.image(root, ShopAssets.coin)
 				coin.AnchorPoint = Vector2.new(0.5, 0.5)
 				coin.ZIndex = 6
 				local s = random:NextNumber(44, 64) * scale

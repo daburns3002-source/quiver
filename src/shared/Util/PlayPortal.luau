@@ -5,14 +5,16 @@
 	the arches' order that is open to them and still has an open level they
 	have not beaten; with every one beaten, the last they have played. A new
 	player goes to Mossy Glade, someone who has beaten 1-10 to Thornwood.
-	Portals with no levels, and any holding `except` (Endless, a mode and
-	not a step of the campaign), are passed over.
+	Portals with no levels, any holding `except` (Endless, a mode and not a
+	step of the campaign) and any still locked (`Util/LaunchLocks`, as the
+	portal's own screen checks) are passed over.
 
 	The server decides with it (`Remotes.LobbyPlay` walks the player to that
 	portal's mouth, where its screen opens as any portal's does). Pure, so
 	`tests/PlayPortal.spec` pins it with made-up stages and portals.
 ]]
 
+local LaunchLocks = require(script.Parent.LaunchLocks)
 local LevelUnlocks = require(script.Parent.LevelUnlocks)
 local LobbyConfig = require(script.Parent.Parent.Config.Lobby)
 
@@ -29,7 +31,9 @@ function PlayPortal.pick(
 	portals: { Portal },
 	stages: { [number]: LevelUnlocks.Stage },
 	beaten: LevelUnlocks.Beaten?,
-	except: number?
+	bosses: { [string]: boolean }?,
+	except: number?,
+	locks: boolean?
 ): number?
 	local first, played = nil, nil
 	for index, portal in portals do
@@ -38,6 +42,7 @@ function PlayPortal.pick(
 			levels
 			and not holds(levels, except)
 			and LevelUnlocks.portalOpen(portal.requires, beaten)
+			and LaunchLocks.portalOpen(portal, beaten, bosses, locks)
 		then
 			first = first or index
 			--[[ The first unbeaten level of a portal is always open (the

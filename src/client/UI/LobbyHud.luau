@@ -50,8 +50,8 @@ function LobbyHud.start()
 	gui.Enabled = false
 	gui.Parent = playerGui
 
-	--[[ Chunky lays out in sheet pixels; this sheet is the whole screen in
-	     points (`StationScreen.pointSheet`). ]]
+	--[[ Chunky lays out in sheet pixels; these sheets are the whole screen
+	     in points (`Chunky.pointSheet`, two sheet pixels to the point). ]]
 	local canvas = Instance.new("Frame")
 	canvas.Name = "Canvas"
 	canvas.BackgroundTransparency = 1
@@ -64,15 +64,19 @@ function LobbyHud.start()
 	wallet.Parent = canvas
 
 	local profile: SaveSchema.Profile? = nil
-	local k = Config.point
+	local k = 2
 	local g = Config.gutter
 	local drawn = Vector2.zero
+	local function sheetOn(frame: Frame): Chunky.Sheet
+		local size = gui.AbsoluteSize
+		return Chunky.pointSheet(frame, math.max(size.X, 1), math.max(size.Y, 1))
+	end
 	--[[ The pills: top right on a touch layout (the run HUD's MENU keeps the
 	     left), top left on a wide one, where Roblox's player list has the
 	     right and the station screens' own wallet stands. ]]
 	local function drawWallet()
 		wallet:ClearAllChildren()
-		local sheet = StationScreen.pointSheet(wallet, gui)
+		local sheet = sheetOn(wallet)
 		local touch = StationScreen.touchLayout(gui)
 		local h = (
 			if touch then Config.pillHeight else math.clamp(gui.AbsoluteSize.Y * 0.055, 44, 60)
@@ -88,7 +92,7 @@ function LobbyHud.start()
 				child:Destroy()
 			end
 		end
-		local sheet = StationScreen.pointSheet(canvas, gui)
+		local sheet = sheetOn(canvas)
 		local w, h
 		if StationScreen.touchLayout(gui) then
 			-- across the bottom, under the station button

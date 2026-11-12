@@ -1782,6 +1782,7 @@ nothing outside itself.
 ## The station button and the close X were too small for a finger on an upright phone (2026-11-11)
 
 "HATCH EGGS" sat on the 16:9 sheet (~97 x 21 points upright) and the chunky X was 110 sheet pixels
-(~39 points). On a touch layout the station button is now laid out in points, full width and 60 tall
-(`StationScreen`'s prompt, `Config/LobbyHud`), and the X is 150 sheet pixels upright (~54 points),
-124 on a wide screen.
+(~39 points; since the re-skin it is drawn in the panel's header, ~24 points). On a touch layout the
+station button is now laid out in points, full width and 60 tall (`StationScreen`'s prompt,
+`Config/LobbyHud`). The X keeps its drawn size and takes presses over at least 48 points round it
+(`Chunky.close`), on every chunky screen.

@@ -30,22 +30,34 @@ local portals: { PlayPortal.Portal } = {
 
 return function(t: TestRunner.Helper)
 	t.test("a new player goes to the first area", function()
-		t.equal(PlayPortal.pick(portals, stages, {}, 9), 1)
-		t.equal(PlayPortal.pick(portals, stages, nil, 9), 1)
+		t.equal(PlayPortal.pick(portals, stages, {}, nil, 9), 1)
+		t.equal(PlayPortal.pick(portals, stages, nil, nil, 9), 1)
 	end)
 	t.test("the area being played until all of it is beaten", function()
-		t.equal(PlayPortal.pick(portals, stages, { ["1-1"] = true }, 9), 1)
+		t.equal(PlayPortal.pick(portals, stages, { ["1-1"] = true }, nil, 9), 1)
 	end)
 	t.test("then the next area", function()
-		t.equal(PlayPortal.pick(portals, stages, { ["1-1"] = true, ["1-2"] = true }, 9), 2)
+		t.equal(PlayPortal.pick(portals, stages, { ["1-1"] = true, ["1-2"] = true }, nil, 9), 2)
 	end)
 	t.test("never Endless; the last area once all are beaten", function()
 		local all = { ["1-1"] = true, ["1-2"] = true, ["2-1"] = true }
-		t.equal(PlayPortal.pick(portals, stages, all, 9), 2)
+		t.equal(PlayPortal.pick(portals, stages, all, nil, 9), 2)
 	end)
 	t.test("a closed portal is passed over", function()
 		local gated: { PlayPortal.Portal } =
 			{ { levels = { 3 }, requires = "1-2" }, { levels = { 1 } } }
-		t.equal(PlayPortal.pick(gated, stages, {}, nil), 2)
+		t.equal(PlayPortal.pick(gated, stages, {}, nil, nil), 2)
+	end)
+	t.test("at launch a locked area waits its turn", function()
+		local locked: { PlayPortal.Portal } = {
+			{ levels = { 1, 2 } },
+			{ levels = { 3 }, atLaunch = { boss = "First" } },
+		}
+		local all = { ["1-1"] = true, ["1-2"] = true }
+		-- locks on: the second area is shut until the first's boss falls
+		t.equal(PlayPortal.pick(locked, stages, all, {}, nil, true), 1)
+		t.equal(PlayPortal.pick(locked, stages, all, { First = true }, nil, true), 2)
+		-- locks off: as open as it is in playtest
+		t.equal(PlayPortal.pick(locked, stages, all, {}, nil, false), 2)
 	end)
 end

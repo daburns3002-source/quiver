@@ -126,13 +126,11 @@ function HatchStand.chrome(s: StationScreen.Screen, title: string, modes: { Mode
 	if up then
 		Chunky.panel(sheet, 30, 196, 1020, 1694)
 		Chunky.ribbon(sheet, title, 170, 116, 740, 150)
-		--[[ 150 sheet px is ~54 pt on a 390 pt phone, a finger's target
-		     (it was 110, ~39 pt: Fable's loop review, 2026-11-11). ]]
-		Chunky.close(sheet, 918, 128, 150, s.close)
+		Chunky.close(sheet, 956, 150, 110, s.close)
 	else
 		Chunky.panel(sheet, 150, 104, 1620, 940)
 		Chunky.ribbon(sheet, title, 630, 22, 660, 144)
-		Chunky.close(sheet, 1680, 58, 124, s.close)
+		Chunky.close(sheet, 1688, 66, 108, s.close)
 	end
 	local p = s.profile
 	Chunky.wallet(

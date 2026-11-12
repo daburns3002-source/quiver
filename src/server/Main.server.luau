@@ -702,6 +702,7 @@ Remotes.event(Remotes.LobbyPlay).OnServerEvent:Connect(function(player)
 		LobbyConfig.portals,
 		Balance.Stages,
 		if profile then profile.levelsBeaten else nil,
+		if profile then profile.bossesBeaten else nil,
 		Balance.endlessStage
 	)
 	if index then

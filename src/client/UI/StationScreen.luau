@@ -74,16 +74,6 @@ function StationScreen.touchLayout(gui: GuiBase2d): boolean
 	return gui.AbsoluteSize.Y > gui.AbsoluteSize.X or Device.isPhone()
 end
 
---[[ A Chunky sheet over the whole of `gui`, `Config/LobbyHud.point` sheet pixels
-     to the point, for HUD laid out in points instead of on the 16:9 canvas. ]]
-function StationScreen.pointSheet(frame: Frame, gui: GuiBase2d): Chunky.Sheet
-	local size = gui.AbsoluteSize
-	local w = math.max(size.X, 1) * LobbyHud.point
-	local h = math.max(size.Y, 1) * LobbyHud.point
-	frame:SetAttribute("SheetW", w)
-	return { canvas = frame, w = w, h = h, upright = h > w }
-end
-
 function StationScreen.new(name: string, stationName: string, promptWords: string): Screen
 	local player = Players.LocalPlayer
 	local gui = Instance.new("ScreenGui")
@@ -193,8 +183,10 @@ function StationScreen.new(name: string, stationName: string, promptWords: strin
 		end
 		local made: GuiObject
 		if StationScreen.touchLayout(gui) then
-			local sheet = StationScreen.pointSheet(promptLayer, gui)
-			local k = LobbyHud.point
+			local size = gui.AbsoluteSize
+			local sheet = Chunky.pointSheet(promptLayer, math.max(size.X, 1), math.max(size.Y, 1))
+			-- sheet pixels to a point (`Chunky.pointSheet`)
+			local k = 2
 			local g = LobbyHud.gutter
 			local w = math.min(sheet.w - g * 2 * k, LobbyHud.barWidth * k)
 			local h = LobbyHud.stationHeight * k

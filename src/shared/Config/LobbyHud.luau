@@ -21,10 +21,6 @@ local LobbyHud = {
 	minTouch = 56,
 	--[[ The coin and gem pills' height, pinned to the top. ]]
 	pillHeight = 44,
-	--[[ Sheet pixels to a point where Chunky pieces are laid out in points:
-	     2, so their outlines and corners come out as thick as on Chunky's
-	     1080-wide upright sheet on a phone. ]]
-	point = 2,
 }
 
 return table.freeze(LobbyHud)

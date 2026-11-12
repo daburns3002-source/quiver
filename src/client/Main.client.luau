@@ -246,6 +246,11 @@ if IntroCutscene.skipped() then
 else
 	MusicFx.setQuiet(true)
 	RoomSign.setWaiting(true)
+	--[[ Held as on the title from this frame, not from when the route is
+	     known: until then nothing that waits for the arrival may open (the
+	     class screen did, under the loading screen, and stayed up into the
+	     tutorial; `docs/FIXES.md`). ]]
+	RunPaused.setTitle(true)
 	task.spawn(function()
 		startIntro(awaitRoute() == "Story")
 		--[[ The intro is up: the loading screen can lift (`first/Loading`). ]]

@@ -7,7 +7,7 @@ local repo, out = process.args[1], process.args[2]
 local env = setmetatable({ Vector3 = roblox.Vector3, Color3 = roblox.Color3 }, { __index = _G })
 local config = luau.load(fs.readFile(repo .. "/src/shared/Config/ClassOutfits.luau"), { environment = env })()
 local function v(x) return { x.X, x.Y, x.Z } end
-local data = { floor = config.floor, body = {}, sets = {} }
+local data = { floor = config.floor, face = config.face, body = {}, sets = {} }
 for name, body in config.standard do
 	table.insert(data.body, { part = name, min = v(body.at - body.size / 2), max = v(body.at + body.size / 2) })
 end

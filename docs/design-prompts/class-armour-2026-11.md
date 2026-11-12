@@ -98,3 +98,27 @@ Fix: any piece that reaches into another is trimmed to its own body part; the gr
 Motion: none of its own. Each piece is cut out by the body part it sits on (the plan's boxes),
         saved as its own mesh named as in Config/ClassOutfits, and welded to that R15 part.
 ```
+
+## Locked 2026-11-12
+
+Built on Opus 5.5 with the 3D object template, one chat a set. Each version
+was downloaded and run through `tools/class_armour/split_set.py`, and the
+fix rounds were written from its numbers (how far each piece stands from its
+plan box) and its picture under the sheet, not from Design's own preview.
+
+| Set | Design project | Locked | Rounds, in order |
+|---|---|---|---|
+| Ranger | `claude.ai/design/p/c1f4b1dd-876f-40a6-b185-46b2a9865240` | v4 | hood bigger, cloak tiers widening, skirt under the belt, boots to the knee; face window full width, lower crown, bracers to the wrist; chunky two-block ears |
+| Arcanist | `claude.ai/design/p/5726eb1d-744d-4fb4-bdb6-5dbe2a63150b` | v3 | skirt wider and deeper, cowl to the shoulders, star one square block; cone of four equal tiers leaning back only a little, crystals a third taller |
+| Warden | `claude.ai/design/p/6aee234f-7ea2-4cf4-92af-94227a749eac` | v4 | chunky horns, thick plume, boxy shoulder plates, wider cape, short skirt with knee plates at mid-leg; brow band above the eyes, plates' bottom edge at the armpit, cape top below the shoulders; plates taller |
+
+What a first prompt should say next time, to save a round: the head piece
+overhangs the head by a quarter of its width; a cloak's or cape's lowest
+tier is 1.3 to 1.4 times the torso's width; boots and greaves reach the
+knee; a skirt's tiers are 1.35 and 1.5 times the torso's width; shoulder
+plates are their own meshes; the grey body's meshes are named `avatar_*`.
+
+Left as Design made them, against the sheets: the Ranger's collar is a
+stepped V (the sheet draws a T); the Warden's shoulder plates stop under
+the horns; the Warden's dark steel is the plan's #808A9C, lighter than the
+sheet's charcoal.

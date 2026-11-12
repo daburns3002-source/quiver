@@ -167,6 +167,28 @@ return function(t: TestRunner.Helper)
 		t.isTrue(both.ricochet > volley({ ChainLightning = 1 })[1].ricochet, "a bounce was lost")
 	end)
 
+	t.test(
+		"Elemental Orbs' lightning arcs as Chain Lightning does, and only its lightning",
+		function()
+			-- required here, not at the top: it is the one test that needs the server
+			local ServerScriptService = game:GetService("ServerScriptService")
+			local ClassUpgrades = (require :: any)(ServerScriptService.Server.Combat.ClassUpgrades)
+			local function orb(): any
+				return { ricochet = 0 }
+			end
+			local lightning = orb()
+			ClassUpgrades.dressAs("Lightning", lightning)
+			t.isTrue(lightning.ricochet > 0, "lightning chains on to nothing")
+			t.equal(lightning.arcSpeed, Projectile.arcSpeed)
+			for _, element in { "Fire", "Ice" } do
+				local dressed = orb()
+				ClassUpgrades.dressAs(element, dressed)
+				t.isNil(dressed.arcSpeed, `{element} arcs`)
+				t.equal(dressed.ricochet, 0)
+			end
+		end
+	)
+
 	t.test("each hop lands a few hundredths of a second after the last", function()
 		local longest = Projectile.ricochetRange / Projectile.arcSpeed
 		t.isTrue(longest <= 0.06, `the longest hop takes {longest} s`)

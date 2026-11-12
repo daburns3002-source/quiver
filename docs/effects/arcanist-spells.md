@@ -71,8 +71,10 @@ with no imported model, so what follows the rule below is history.
   carried on the shot as `ShotSpec.arcSpeed`), so each hop lands a few
   hundredths of a second after the last. The server marks each as an arc and
   names the enemy it was sent at (`ShotEvent.arc`, `to`); no orb is drawn in
-  flight. A weapon's innate Chain Lightning (the Worldroot Staff) arcs the
-  same way, and every player's arcs are drawn, not only the card holder's.
+  flight. A weapon's innate Chain Lightning (the Worldroot Staff) and
+  Elemental Orbs' lightning casts (`ClassUpgrades.dressAs`, owner 2026-11-12)
+  arc the same way, and every player's arcs are drawn, not only the card
+  holder's.
 - **The look:** `Fx/Upgrades/LightningFx`, shaped by `Shared/Util/BoltPath`.
   A jagged bolt from the enemy struck to the next: a thin white-hot core
   inside a wider blue glow, cut into 4 to 9 pieces with every joint thrown

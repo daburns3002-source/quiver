@@ -4488,7 +4488,7 @@ local Balance = {
 		--[[ Elemental Orbs: casts cycle fire, ice, lightning. Fire burns for
 		     `burn` of the hit a second over `burnDuration`; ice slows to
 		     `slow` of an enemy's speed for `slowDuration`; lightning arcs on
-		     `chain` more times. ]]
+		     `chain` more times, as bolts at `Projectile.arcSpeed`. ]]
 		elemental = {
 			burn = 0.18,
 			burnDuration = 3,

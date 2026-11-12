@@ -383,18 +383,19 @@ return function(t: TestRunner.Helper)
 	end)
 
 	--[[ The third pass (owner, 2026-11-12: the hero "should be a little bit
-	     more noticeable"). The hero is larger than the first drawing's and
-	     carries the one warm colour that is not a window; still small against
-	     the tree, which the test above holds. ]]
-	t.test("the hero is noticeable: larger, a warm scarf, a bow that stands clear", function()
+	     more noticeable"). The hero is larger than the first drawing's, still
+	     small against the tree, which the test above holds. Their scarf is
+	     their own colour, lit along its top, not a colour of its own (owner:
+	     "the color of the scarf should match the player still"). ]]
+	t.test("the hero is noticeable: larger, a lit scarf, a bow that stands clear", function()
 		local look = Scene.hero
 		for key, design in LAYOUTS do
 			t.isTrue(design.hero.unit >= 1.3, `{key}: larger than the first drawing's hero`)
 			t.isTrue(design.pet.unit < design.hero.unit, `{key}: the pet stays the smaller`)
 		end
-		local warm = hue(look.scarf.colour)
-		t.isTrue(warm >= 20 and warm <= 50, `the scarf is warm, hue {warm}`)
-		t.isTrue(look.scarf.alpha > 0.8, "and solid")
+		t.isNil((look.scarf :: any).colour, "the scarf has no colour of its own")
+		t.isTrue(look.scarf.rimAlpha > 0.3 and look.scarf.rim > 0, "and a line of light to show it")
+		t.isTrue(#look.scarf.pieces >= 2, "long enough to trail")
 		-- the bow's ends reach past the tunic's widest step, so they show
 		local widest = 0
 		for index = 1, 4 do

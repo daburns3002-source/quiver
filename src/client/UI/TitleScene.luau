@@ -741,22 +741,21 @@ function TitleScene.build(parent: Instance, view: Vector2): Scene
 	local scarf = heroLook.scarf
 	for index, piece in scarf.pieces do
 		local x, y = hero.x + piece[1] * hero.unit, hero.y + piece[2] * hero.unit
-		local frame = light(
-			"Scarf",
-			x,
-			y,
-			piece[3] * hero.unit,
-			piece[4] * hero.unit,
-			scarf.colour,
-			scarf.alpha
-		)
-		table.insert(sways, {
-			frame = frame,
-			x = x,
-			y = y,
-			reach = scarf.sway * hero.unit * index / #scarf.pieces,
-			phase = index * 0.9,
-		})
+		local wide0 = piece[3] * hero.unit
+		-- the hero's own colour, with a line of light along its top
+		local pair = {
+			light("Scarf", x, y, wide0, piece[4] * hero.unit, Config.figure),
+			light("ScarfRim", x, y, wide0, scarf.rim * hero.unit, Config.rim, scarf.rimAlpha),
+		}
+		for _, frame in pair do
+			table.insert(sways, {
+				frame = frame,
+				x = x,
+				y = y,
+				reach = scarf.sway * hero.unit * index / #scarf.pieces,
+				phase = index * 0.9,
+			})
+		end
 	end
 	--[[ A line on the hero, as straight pieces: the bow's curve, the light
 	     along it, and its string. ]]

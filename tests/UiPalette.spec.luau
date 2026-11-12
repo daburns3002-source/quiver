@@ -1,6 +1,6 @@
 --!strict
 --[[
-	The UI's colours stay readable (`Config/UiPalette`; owner, 2026-11-12:
+	The UI's colours stay readable (`Config/UiPalette`, `Util/UiContrast`; owner, 2026-11-12:
 	"make it have nice soft colors but still have everything be readable").
 
 	Rules, not hexes: any colour may be changed, but every words-on-ground
@@ -15,6 +15,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ClassSelect = require(ReplicatedStorage.Shared.Config.ClassSelect)
 local EndScreenTheme = require(ReplicatedStorage.Shared.Config.EndScreenTheme)
 local TestRunner = require(script.Parent.TestRunner)
+local UiContrast = require(ReplicatedStorage.Shared.Util.UiContrast)
 local UiPalette = require(ReplicatedStorage.Shared.Config.UiPalette)
 
 local WHITE = Color3.new(1, 1, 1)
@@ -26,10 +27,10 @@ end
 
 return function(t: TestRunner.Helper)
 	t.test("every words-on-ground pair keeps its contrast", function()
-		local pairs = UiPalette.pairs()
+		local pairs = UiContrast.pairs()
 		t.isTrue(#pairs >= 20, "the list of pairs has been cut")
 		for _, pair in pairs do
-			local got = UiPalette.worst(pair.text, pair.grounds)
+			local got = UiContrast.worst(pair.text, pair.grounds)
 			t.isTrue(
 				got >= pair.need,
 				string.format("%s: %.2f, needs %.1f", pair.what, got, pair.need)
@@ -38,11 +39,11 @@ return function(t: TestRunner.Helper)
 	end)
 
 	t.test("a face is never lit towards white, and its stripes are a dark wash", function()
-		t.isTrue(UiPalette.luminance(UiPalette.stripe) < 0.1, "a pale stripe lightens the face")
+		t.isTrue(UiContrast.luminance(UiPalette.stripe) < 0.1, "a pale stripe lightens the face")
 		for _, name in { "header", "go", "secondary", "action", "danger", "gems", "off" } do
 			local face = (UiPalette :: any)[name] :: UiPalette.Face
 			t.isTrue(
-				UiPalette.luminance(face.top) >= UiPalette.luminance(face.bottom),
+				UiContrast.luminance(face.top) >= UiContrast.luminance(face.bottom),
 				name .. " is lit from below"
 			)
 			t.equal(face.text, WHITE, name .. " has white words")
@@ -54,8 +55,8 @@ return function(t: TestRunner.Helper)
 	end)
 
 	t.test("the kit's own colours are found, and any other still reads", function()
-		t.equal(UiPalette.faceOf(UiPalette.go.top), UiPalette.go)
-		t.equal(UiPalette.faceOf(UiPalette.primary.top), UiPalette.primary)
+		t.equal(UiContrast.faceOf(UiPalette.go.top), UiPalette.go)
+		t.equal(UiContrast.faceOf(UiPalette.primary.top), UiPalette.primary)
 		for _, colour in
 			{
 				Color3.fromRGB(255, 240, 150),
@@ -65,8 +66,8 @@ return function(t: TestRunner.Helper)
 				Color3.fromRGB(128, 128, 128),
 			}
 		do
-			local face = UiPalette.faceOf(colour)
-			local got = UiPalette.worst(face.text, UiPalette.shades(face.top, face.bottom))
+			local face = UiContrast.faceOf(colour)
+			local got = UiContrast.worst(face.text, UiContrast.shades(face.top, face.bottom))
 			t.isTrue(got >= 3, string.format("words on %s: %.2f", tostring(colour), got))
 			t.equal(face.stroke == nil, face.text ~= WHITE, "only white words are outlined")
 		end
@@ -74,11 +75,11 @@ return function(t: TestRunner.Helper)
 
 	t.test("a colour deepens only as far as small white words need", function()
 		for _, card in ClassSelect do
-			local deep = UiPalette.deepFor(card.colour, 4.5)
-			t.isTrue(UiPalette.contrast(WHITE, deep) >= 4.5, card.class .. "'s pitch")
+			local deep = UiContrast.deepFor(card.colour, 4.5)
+			t.isTrue(UiContrast.contrast(WHITE, deep) >= 4.5, card.class .. "'s pitch")
 		end
 		local dark = Color3.fromRGB(20, 40, 60)
-		t.equal(UiPalette.deepFor(dark, 4.5), dark)
+		t.equal(UiContrast.deepFor(dark, 4.5), dark)
 	end)
 
 	t.test("the tips' two highlights differ by hue", function()
@@ -91,10 +92,10 @@ return function(t: TestRunner.Helper)
 		for _, name in { "victory", "defeat" } do
 			local look = (EndScreenTheme :: any)[name]
 			for _, block in { "sub", "tab", "row", "rewards", "lobbyButton" } do
-				local got = UiPalette.contrast(WHITE, look[block].fill)
+				local got = UiContrast.contrast(WHITE, look[block].fill)
 				t.isTrue(got >= 3, string.format("%s %s: %.2f", name, block, got))
 			end
-			local got = UiPalette.contrast(look.buttonWords, look.button.fill)
+			local got = UiContrast.contrast(look.buttonWords, look.button.fill)
 			t.isTrue(got >= 3, string.format("%s button: %.2f", name, got))
 		end
 	end)

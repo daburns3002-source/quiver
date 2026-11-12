@@ -214,7 +214,8 @@ local EndScreenTheme = {
 			reward = 78,
 			rewardStroke = 5,
 			button = 78,
-			buttonStroke = 6,
+			-- none: the words are dark here, and an outline only smears them
+			buttonStroke = 0,
 			lobbyButton = 50,
 			lobbyButtonStroke = 5,
 		},

@@ -450,18 +450,21 @@ bland colors. make it have nice soft colors but still have everything be readabl
 palettes drawn with a contrast check, "Lagoon colors"): mint-white panels, deep-sea outlines, a sea-blue
 header, leaf-green go (PLAY, EQUIP, CLAIM), a sunny main button with dark words, teal second and coral
 station buttons, white words with a dark outline on anything coloured and `Chunky.ink` unstroked on a
-panel, card, chip or pill. **`Config/UiPalette` is the one place a UI colour is written**: `UI/Chunky`
+panel, card, chip or pill. **`Config/UiPalette` is the one place a UI colour is written** (data only;
+what a colour needs worked out, a contrast or the face for a colour that is not the kit's own, is
+`Util/UiContrast`): `UI/Chunky`
 and `UI/Kit` read it, and so do the end screens (`Config/EndScreenTheme`), the class cards
 (`Config/ClassSelect`), the tutorial pop-ups (`Util/PromptText`), the loading tip (`Util/TipPlate`) and
 the lobby's JUMP and SPRINT. A screen takes its colours from the kit, never from a hex of its own.
 **Readable is a rule**: small words stand 4.5:1 on their ground and big ones 3:1, and
-`tests/UiPalette.spec` holds every pair the kit draws to it. What that needs, and must keep: a button's
+`tests/UiPalette.spec` holds every pair the kit draws (`UiContrast.pairs`) to it. What that needs, and must keep: a button's
 face is lit only between its two listed colours and striped with a faint dark wash (a lighter top, a
 white stripe or a gloss under the words drops white ones under 3:1); tabs are pale pieces with dark
 words (`Chunky.tab` takes no colour); a tile's caption sits on a white chip; coin and gem amounts are
 dark; words on a piece of any colour go through `Chunky.textOn` / `Chunky.face`, which picks white or
-ink for it, and a plate is lit with `Chunky.light`. The loading tip stands on a white plate with a TIP
-tag, not on the picture. `Chunky.navy` is the outline colour (`Chunky.edge`), kept under its old name.
+ink for it, and a plate is lit with `Chunky.light`; a coloured piece's frame is white under the
+gradient that carries its colour (the two multiply). The loading tip stands on a white plate with a TIP
+tag, not on the picture, three lines tall on an upright phone. `Chunky.navy` is the outline colour (`Chunky.edge`), kept under its old name.
 **Effects are in the kit** (owner, the same day: "make sure there are effects as well"): every button
 clicks, throws sparks (`Chunky.burst`) and bounces, gold ones carry a sweeping shine, `Chunky.twinkle`
 sparkles what is selected or new, `Chunky.count` runs a number up. A screen laid out in screen points

@@ -7,7 +7,7 @@
 	The tip (`Config/LoadingTips`) used to be pale words written straight on
 	the spotlight picture, so the picture behind them decided whether they
 	could be read. Now it stands on a white plate with a sunny TIP tag, in
-	dark ink: `Config/UiPalette` holds both pairs to 4.5:1.
+	dark ink: `tests/UiPalette.spec` holds both pairs to 4.5:1.
 
 	Drawn by the join screen (`first/Loading`) and by an area's loading
 	screen (`UI/ClassScreen.loadingCover`, which `UI/AreaLoading` holds up),
@@ -27,7 +27,7 @@ local PAD_X = 18
 local PAD_Y = 12
 local TAG_HEIGHT = 40
 local TAG_GAP = 14
-local MAX_TEXT = 40
+local MAX_TEXT = 28
 
 local function rounded(item: GuiObject, share: number)
 	local corner = Instance.new("UICorner")

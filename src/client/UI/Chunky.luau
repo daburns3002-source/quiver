@@ -7,8 +7,9 @@
 	as the major reference image": a house-tycoon game's store screen) and
 	**its colours are Lagoon** (owner, 2026-11-12, of the reference's cream,
 	brown and orange: "awful bland colors. make it have nice soft colors but
-	still have everything be readable"; `Config/UiPalette`, which lists
-	every colour and holds every words-on-ground pair to its contrast):
+	still have everything be readable"; `Config/UiPalette` lists every
+	colour and `Util/UiContrast` holds every words-on-ground pair to its
+	contrast):
 
 	- a mint-white panel with a thick deep-sea outline and modest corners, a
 	  sea-blue header bar across its top with soft diagonal stripes, the
@@ -43,6 +44,7 @@ local Kit = require(script.Parent.Kit)
 local Palette = require(ReplicatedStorage.Shared.Config.UiPalette)
 local ShopAssets = require(ReplicatedStorage.Shared.Config.ShopAssets)
 local SoundFx = require(script.Parent.Parent.Fx.SoundFx)
+local UiContrast = require(ReplicatedStorage.Shared.Util.UiContrast)
 local Chunky = {}
 
 --[[ The smallest a pressable's hit area may be, in screen points. ]]
@@ -84,9 +86,9 @@ Chunky.pale = Palette.tabOff
 --[[ How a piece in `colour` is drawn: the two colours its face is lit
      between, its words and their stroke, and its outline. One of the kit's
      own colours has all of that listed (`Config/UiPalette`); any other gets
-     a face worked out to keep its words readable. ]]
+     a face worked out to keep its words readable (`Util/UiContrast`). ]]
 function Chunky.face(colour: Color3): Palette.Face
-	return Palette.faceOf(colour)
+	return UiContrast.faceOf(colour)
 end
 
 --[[ The dark shade of a colour that outlines it and strokes the white
@@ -98,7 +100,7 @@ end
 
 --[[ A colour deepened until small white words stand 4.5:1 on it. ]]
 function Chunky.deep(colour: Color3): Color3
-	return Palette.deepFor(colour, 4.5)
+	return UiContrast.deepFor(colour, 4.5)
 end
 
 --[[ A colour as it reads on a dark ground (a bar's fill in its trough). ]]

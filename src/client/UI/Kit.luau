@@ -18,6 +18,7 @@ local Pity = require(ReplicatedStorage.Shared.Util.Pity)
 local Rarities = require(ReplicatedStorage.Shared.Config.Rarities)
 local ShopAssets = require(ReplicatedStorage.Shared.Config.ShopAssets)
 local SoundFx = require(script.Parent.Parent.Fx.SoundFx)
+local UiContrast = require(ReplicatedStorage.Shared.Util.UiContrast)
 local Kit = {}
 --[[ The panel's two colours (their old names), the main button's sunny
      gold, go's green, white, and the ink of outlines and dark words. ]]
@@ -29,7 +30,7 @@ Kit.white = Palette.white
 local INK = Palette.edge
 --[[ Whether a piece in `colour` is pale: dark words, and a gloss. ]]
 local function pale(colour: Color3): boolean
-	return colour == Kit.wood or colour == Kit.slate or Palette.faceOf(colour).stroke == nil
+	return colour == Kit.wood or colour == Kit.slate or UiContrast.faceOf(colour).stroke == nil
 end
 function Kit.box(x: number, y: number, w: number, h: number): (UDim2, UDim2)
 	return UDim2.fromScale(x / 1920, y / 1080), UDim2.fromScale(w / 1920, h / 1080)
@@ -66,7 +67,9 @@ end
 function Kit.panel(parent: Instance, colour: Color3): Frame
 	local f = Instance.new("Frame")
 	f.BorderSizePixel = 0
-	f.BackgroundColor3 = colour
+	-- white under the gradient, which carries the colour: a coloured ground
+	-- would multiply with it and draw the piece darker than its palette
+	f.BackgroundColor3 = Color3.new(1, 1, 1)
 	f.Size = UDim2.fromScale(1, 1)
 	f.Parent = parent
 	local stroke = Instance.new("UIStroke")
@@ -75,7 +78,7 @@ function Kit.panel(parent: Instance, colour: Color3): Frame
 	rounded(f, 0.06)
 	f:SetAttribute("CornerPixels", 28)
 	local gradient = Instance.new("UIGradient")
-	local look = Palette.faceOf(colour)
+	local look = UiContrast.faceOf(colour)
 	gradient.Color = if colour == Kit.wood or colour == Kit.slate
 		then ColorSequence.new(Kit.wood, Kit.slate)
 		else ColorSequence.new(look.top, look.bottom)
@@ -374,7 +377,7 @@ function Kit.button(parent: Instance, words: string, colour: Color3, action: () 
 	if pale(colour) then
 		l.TextColor3, l.TextStrokeTransparency = Palette.ink, 1
 	else
-		l.TextStrokeColor3 = Palette.faceOf(colour).edge
+		l.TextStrokeColor3 = UiContrast.faceOf(colour).edge
 	end
 	local limit = l:FindFirstChildOfClass("UITextSizeConstraint")
 	if limit then

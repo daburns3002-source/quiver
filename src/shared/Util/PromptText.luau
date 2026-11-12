@@ -9,11 +9,12 @@
 
 	The two highlight colours depend on the ground they are read on
 	(`palette`): on the chunky panel as it is now, a light one, they are the
-	UI palette's own (`Config/UiPalette`), which holds them to 4.5:1 there;
+	UI palette's own (`Config/UiPalette`), held to 4.5:1 there by its spec;
 	on a dark ground they are a bright pair, since a colour that is strong
 	on one is lost on the other.
 ]]
 
+local UiContrast = require(script.Parent.UiContrast)
 local UiPalette = require(script.Parent.Parent.Config.UiPalette)
 
 local PromptText = {}
@@ -44,12 +45,12 @@ local DARK: Palette = {
 
 --[[ A colour's relative luminance, 0 (black) to 1 (white), as WCAG has it. ]]
 function PromptText.luminance(colour: Color3): number
-	return UiPalette.luminance(colour)
+	return UiContrast.luminance(colour)
 end
 
 --[[ The contrast between two colours, 1 (none) to 21. ]]
 function PromptText.contrast(a: Color3, b: Color3): number
-	return UiPalette.contrast(a, b)
+	return UiContrast.contrast(a, b)
 end
 
 --[[ Whether a ground is light enough to want dark words. ]]

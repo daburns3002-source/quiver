@@ -242,6 +242,28 @@ function TitleLayout.curve(
 	return out
 end
 
+--[[ A star as a perfect cross on whole pixels: the bar across, then the arm
+     above it and the arm below, each as left, top, width and height in
+     screen pixels from the layout's corner. Its length and thickness are
+     both odd, so it has one middle pixel and four equal arms. ]]
+function TitleLayout.cross(x: number, y: number, size: number, scale: number): { { number } }
+	local look = Scene.cross
+	local function odd(value: number): number
+		local whole = math.max(1, round(value))
+		return if whole % 2 == 0 then whole + 1 else whole
+	end
+	local thick = odd(size * scale * look.thick)
+	local long = math.max(thick + 2, odd(size * scale * look.long))
+	local cx, cy = round(x * scale), round(y * scale)
+	local half, reach = (thick - 1) // 2, (long - 1) // 2
+	local arm = reach - half
+	return {
+		{ cx - reach, cy - half, long, thick },
+		{ cx - half, cy - reach, thick, arm },
+		{ cx - half, cy + half + 1, thick, arm },
+	}
+end
+
 --[[ The button's size as it pulses: 1 up to a little larger and back,
      easing at both ends. ]]
 function TitleLayout.pulse(t: number): number

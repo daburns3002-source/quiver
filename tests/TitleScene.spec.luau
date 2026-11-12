@@ -382,6 +382,42 @@ return function(t: TestRunner.Helper)
 		)
 	end)
 
+	--[[ Owner, 2026-11-12: "make the stars perfect crosses like this +". On a
+	     screen a cross is perfect only if it is built on whole pixels with an
+	     odd length and thickness: one middle pixel, four equal arms. ]]
+	t.test("every star is a perfect cross at every size and scale", function()
+		for _, scale in { 0.76, 0.92, 1, 1.35, 2, 2.85 } do
+			for _, size in { 2, 3, Scene.bigStar.size } do
+				for _, at in { { 10, 10 }, { 33.3, 71.7 }, { 251.5, 12.49 } } do
+					local bars = TitleLayout.cross(at[1], at[2], size, scale)
+					local across, up, down = bars[1], bars[2], bars[3]
+					local name = `size {size} at scale {scale}`
+					for _, bar in bars do
+						for _, value in bar do
+							t.equal(value, math.floor(value), `{name}: whole pixels`)
+						end
+					end
+					t.equal(across[3] % 2, 1, `{name}: an odd length`)
+					t.equal(across[4] % 2, 1, `{name}: an odd thickness`)
+					-- the arms above and below are the same, and as long as the ones to the sides
+					t.equal(up[4], down[4], `{name}: up and down arms equal`)
+					t.equal(up[4] * 2 + across[4], across[3], `{name}: as tall as it is wide`)
+					t.isTrue(up[4] >= 1, `{name}: it has arms`)
+					-- the upright shares the bar's middle, and the three pieces meet without overlapping
+					t.equal(up[1] * 2 + up[3], across[1] * 2 + across[3], `{name}: centred`)
+					t.equal(up[2] + up[4], across[2], `{name}: the top arm meets the bar`)
+					t.equal(down[2], across[2] + across[4], `{name}: the bottom arm meets the bar`)
+					t.equal(up[3], across[4], `{name}: arms as thick as the bar`)
+				end
+			end
+		end
+		-- and no light sits on a square: each glow is the round picture, sized from its light
+		t.isNil((Scene.moonHalo :: any).grow, "the moon's glow is round")
+		t.isTrue(
+			Scene.moonHalo.across > 1 and Scene.tree.lanternGlow > 1 and Scene.mote.haloSize > 1
+		)
+	end)
+
 	--[[ The third pass (owner, 2026-11-12: the hero "should be a little bit
 	     more noticeable"). The hero is larger than the first drawing's, still
 	     small against the tree, which the test above holds. Their scarf is

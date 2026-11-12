@@ -97,16 +97,22 @@ local TitleScene = {
 	starFaint = 0.2,
 	starBright = 0.8,
 	moon = { colour = Color3.fromHex("#EAF7E6"), size = 26, corner = 5, alpha = 0.92 },
-	--[[ A faint square of light round the moon, this much larger each side,
-	     and three shallow craters on it (left, top, side). ]]
-	moonHalo = { grow = 8, alpha = 0.1 },
+	--[[ Every light's glow is the soft round glow picture, never a square
+	     (owner, 2026-11-12, of the mushrooms and then "the other light
+	     sources with squares"). The moon's is this many times the moon
+	     across; then three shallow craters on it (left, top, side). ]]
+	moonHalo = { across = 2.6, alpha = 0.3 },
 	moonCraters = { { 5, 6, 5 }, { 14, 15, 6 }, { 17, 5, 3 } },
 	moonCrater = Color3.fromHex("#C9DDD2"),
 	--[[ One star in this many twinkles: it dims by this share and back, this
 	     many times a second (stilled under reduced motion). ]]
 	twinkle = { every = 5, depth = 0.6, speed = 0.14 },
-	--[[ A large star is a small plus: this long and this thick. ]]
-	bigStar = { long = 7, thick = 1.6, alpha = 0.85 },
+	--[[ Every star is a perfect cross, a "+" (owner, 2026-11-12): its arms
+	     this many times the star's size long from tip to tip and this many
+	     times it thick, on whole pixels with all four arms equal
+	     (`TitleLayout.cross`). A large star is one of this size. ]]
+	cross = { long = 2.2, thick = 0.4 },
+	bigStar = { size = 4.5, alpha = 0.85 },
 	--[[ A cloud is a thin band with a shorter step above and below it. ]]
 	cloud = { colour = Color3.fromHex("#16434C"), alpha = 0.45, tall = 5 },
 
@@ -242,13 +248,19 @@ local TitleScene = {
 		},
 		lantern = Color3.fromHex("#C9FFF0"),
 		lanternHalo = Color3.fromHex("#7FF5D6"),
-		lanternHaloAlpha = 0.22,
-		--[[ Lit windows on the trunk (left, top), 8 by 10, each on a faint
-		     warm block 14 by 16. ]]
+		--[[ A lantern's round glow, this many times its side across. ]]
+		lanternHaloAlpha = 0.4,
+		lanternGlow = 5.5,
+		--[[ Lit windows on the trunk (left, top), 8 by 10, each in a faint
+		     warm round glow; `windowGlow`, `crownWindowGlow` and `doorGlow`
+		     are how far across each one's is, in tree units. ]]
 		windows = { { -12, -120 }, { 8, -96 }, { -14, -70 }, { 8, -150 }, { -5, -178 } },
 		window = Color3.fromHex("#FFD98A"),
 		windowHalo = Color3.fromHex("#FFC76A"),
-		windowHaloAlpha = 0.2,
+		windowHaloAlpha = 0.35,
+		windowGlow = 30,
+		crownWindowGlow = 18,
+		doorGlow = 44,
 	},
 
 	--[[ The hero seen from behind and the pet at their heel: near-black
@@ -351,9 +363,9 @@ local TitleScene = {
 		peak = 0.9,
 		ease = 0.8,
 		settled = 0.7,
-		--[[ The faint square round each, this many times its size. ]]
-		haloSize = 3,
-		haloAlpha = 0.18,
+		--[[ The faint round glow about each, this many times its size. ]]
+		haloSize = 5,
+		haloAlpha = 0.3,
 	},
 
 	--[[ The logo: ARROW over BORNE in the one font, pale gold from top to

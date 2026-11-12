@@ -35,14 +35,14 @@ TitleScene.images = { GearAssets.fx.glow }
 type Fading = { item: Instance, property: string, base: number }
 type Mote = {
 	frame: Frame,
-	halo: Frame,
+	halo: ImageLabel,
 	x: number,
 	y: number,
 	delay: number,
 	loop: number,
 }
 
-type Twinkle = { frame: Frame, base: number, phase: number }
+type Twinkle = { frames: { Frame }, base: number, phase: number }
 type Sway = { frame: Frame, x: number, y: number, reach: number, phase: number }
 
 export type Scene = {
@@ -334,38 +334,49 @@ function TitleScene.build(parent: Instance, view: Vector2): Scene
 	})
 	dusk.Parent = sky
 
-	-- the stars; one in a few twinkles (`step`), and a few large ones are small pluses
+	--[[ A soft round light (the round glow picture) with its middle at
+	     (`x`, `y`), `across` wide: every light's glow, never a square. ]]
+	local function glowAt(
+		name: string,
+		x: number,
+		y: number,
+		across: number,
+		colour: Color3,
+		alpha: number
+	)
+		local image = glowImage(name, colour, alpha)
+		layer(image)
+		image.Position = UDim2.fromScale(x / wide, y / tall)
+		image.Size = UDim2.fromScale(across / wide, across / tall)
+	end
+	--[[ A star: a perfect cross on whole pixels (`TitleLayout.cross`). ]]
+	local function cross(name: string, x: number, y: number, size: number, alpha: number): { Frame }
+		local bars = {}
+		for _, bar in TitleLayout.cross(x, y, size, k) do
+			local frame = Instance.new("Frame")
+			frame.Name = name
+			frame.BorderSizePixel = 0
+			frame.BackgroundColor3 = Config.star
+			frame.BackgroundTransparency = 1 - alpha
+			frame.Position = UDim2.fromOffset(bar[1], bar[2])
+			frame.Size = UDim2.fromOffset(bar[3], bar[4])
+			layer(frame)
+			table.insert(bars, frame)
+		end
+		return bars
+	end
+	-- the stars, each a cross; one in a few twinkles (`step`), and a few are large
 	local twinkles: { Twinkle } = {}
 	for index, star in TitleLayout.stars(design, fit) do
 		if index % Config.twinkle.every == 0 then
-			local frame =
-				light("Twinkle", star.x, star.y, star.size, star.size, Config.star, star.alpha)
-			table.insert(twinkles, { frame = frame, base = star.alpha, phase = index * 1.7 })
+			local bars = cross("Twinkle", star.x, star.y, star.size, star.alpha)
+			table.insert(twinkles, { frames = bars, base = star.alpha, phase = index * 1.7 })
 		else
-			light("Star", star.x, star.y, star.size, star.size, Config.star, star.alpha)
+			cross("Star", star.x, star.y, star.size, star.alpha)
 		end
 	end
-	local big = Config.bigStar
 	for _, star in design.bigStars do
-		local x, y = star[1], star[2]
-		light(
-			"BigStar",
-			x - big.long / 2,
-			y - big.thick / 2,
-			big.long,
-			big.thick,
-			Config.star,
-			big.alpha
-		)
-		light(
-			"BigStar",
-			x - big.thick / 2,
-			y - big.long / 2,
-			big.thick,
-			big.long,
-			Config.star,
-			big.alpha
-		)
+		cross("BigStar", star[1], star[2], Config.bigStar.size, Config.bigStar.alpha)
 	end
 	-- a few far birds: each a shallow V of two strokes
 	local bird = Config.bird
@@ -405,17 +416,13 @@ function TitleScene.build(parent: Instance, view: Vector2): Scene
 		curve.Parent = frame
 	end
 	local halo = Config.moonHalo
-	rounded(
-		light(
-			"MoonHalo",
-			design.moon.x - halo.grow,
-			design.moon.y - halo.grow,
-			moon.size + 2 * halo.grow,
-			moon.size + 2 * halo.grow,
-			moon.colour,
-			halo.alpha
-		),
-		(moon.corner + halo.grow) / (moon.size + 2 * halo.grow)
+	glowAt(
+		"MoonGlow",
+		design.moon.x + moon.size / 2,
+		design.moon.y + moon.size / 2,
+		moon.size * halo.across,
+		moon.colour,
+		halo.alpha
 	)
 	rounded(
 		light("Moon", design.moon.x, design.moon.y, moon.size, moon.size, moon.colour, moon.alpha),
@@ -562,12 +569,11 @@ function TitleScene.build(parent: Instance, view: Vector2): Scene
 				shape.trunkColour
 			)
 		end
-		light(
-			"LanternHalo",
-			tree.x + (x - side) * u,
-			tree.y + (y - side) * u,
-			side * 3 * u,
-			side * 3 * u,
+		glowAt(
+			"LanternGlow",
+			tree.x + (x + side / 2) * u,
+			tree.y + (y + side / 2) * u,
+			side * shape.lanternGlow * u,
 			shape.lanternHalo,
 			shape.lanternHaloAlpha
 		)
@@ -575,12 +581,11 @@ function TitleScene.build(parent: Instance, view: Vector2): Scene
 	end
 	for _, window in shape.windows do
 		local x, y = tree.x + window[1] * u, tree.y + window[2] * u
-		light(
-			"WindowHalo",
-			x - 3 * u,
-			y - 3 * u,
-			14 * u,
-			16 * u,
+		glowAt(
+			"WindowGlow",
+			x + 4 * u,
+			y + 5 * u,
+			shape.windowGlow * u,
 			shape.windowHalo,
 			shape.windowHaloAlpha
 		)
@@ -592,12 +597,11 @@ function TitleScene.build(parent: Instance, view: Vector2): Scene
 	end
 	for _, at in shape.crownWindows do
 		local x, y = tree.x + at[1] * u, tree.y + at[2] * u
-		light(
-			"CrownWindowHalo",
-			x - 2 * u,
-			y - 2 * u,
-			9 * u,
-			10 * u,
+		glowAt(
+			"CrownWindowGlow",
+			x + 2.5 * u,
+			y + 3 * u,
+			shape.crownWindowGlow * u,
 			shape.windowHalo,
 			shape.windowHaloAlpha
 		)
@@ -606,12 +610,11 @@ function TitleScene.build(parent: Instance, view: Vector2): Scene
 	-- the lit doorway at the trunk's foot
 	local door = shape.door
 	onTree("DoorFrame", door.frame, shape.doorFrame)
-	light(
-		"DoorHalo",
-		tree.x + (door.light[1] - 3) * u,
-		tree.y + (door.light[2] - 3) * u,
-		(door.light[3] + 6) * u,
-		(door.light[4] + 3) * u,
+	glowAt(
+		"DoorGlow",
+		tree.x + (door.light[1] + door.light[3] / 2) * u,
+		tree.y + (door.light[2] + door.light[4] / 2) * u,
+		shape.doorGlow * u,
 		shape.windowHalo,
 		shape.windowHaloAlpha
 	)
@@ -650,12 +653,11 @@ function TitleScene.build(parent: Instance, view: Vector2): Scene
 		3,
 		Config.figure
 	)
-	light(
-		"PostHalo",
-		hang - post.lantern,
-		stands.y - post.tall + 5 - post.lantern,
-		post.lantern * 3,
-		post.lantern * 3,
+	glowAt(
+		"PostGlow",
+		hang + post.lantern / 2,
+		stands.y - post.tall + 5 + post.lantern / 2,
+		post.lantern * shape.lanternGlow,
 		shape.lanternHalo,
 		shape.lanternHaloAlpha
 	)
@@ -814,8 +816,15 @@ function TitleScene.build(parent: Instance, view: Vector2): Scene
 			layer(frame)
 			return frame
 		end
+		local function moteGlow(across: number): ImageLabel
+			local image = glowImage("MoteHalo", look.colour, 0)
+			image.Size =
+				UDim2.fromOffset(math.max(1, round(across * k)), math.max(1, round(across * k)))
+			layer(image)
+			return image
+		end
 		table.insert(motes, {
-			halo = square("MoteHalo", mote.size * look.haloSize),
+			halo = moteGlow(mote.size * look.haloSize),
 			frame = square("Mote", mote.size),
 			x = mote.x + mote.size / 2,
 			y = mote.y + mote.size / 2,
@@ -892,7 +901,7 @@ function TitleScene.step(scene: Scene, t: number, shown: number)
 		mote.frame.Position = at
 		mote.frame.BackgroundTransparency = 1 - alpha
 		mote.halo.Position = at
-		mote.halo.BackgroundTransparency = 1 - alpha * look.haloAlpha
+		mote.halo.ImageTransparency = 1 - alpha * look.haloAlpha
 	end
 	-- the scarf's end lifts and falls
 	local scarf = Config.hero.scarf
@@ -922,7 +931,9 @@ function TitleScene.step(scene: Scene, t: number, shown: number)
 			else twinkle.depth * (0.5 + 0.5 * math.sin(
 				2 * math.pi * twinkle.speed * t + star.phase
 			))
-		star.frame.BackgroundTransparency = 1 - star.base * (1 - dim) * shown
+		for _, bar in star.frames do
+			bar.BackgroundTransparency = 1 - star.base * (1 - dim) * shown
+		end
 	end
 end
 

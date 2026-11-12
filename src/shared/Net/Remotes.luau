@@ -167,6 +167,10 @@ Remotes.EquipPet = "EquipPet"
 --[[ Server → one client: what a hatch gave (the egg's key, then each
      pet's key and whether it was new, in order). ]]
 Remotes.EggHatched = "EggHatched"
+--[[ Server → one client: coins were paid (how many, and the world point a
+     kill dropped them at, else nil). The run's coin counter and
+     `Fx/CoinDrops` draw it; the wallet itself is the `Coins` attribute. ]]
+Remotes.CoinsGained = "CoinsGained"
 --[[ Client → server: send me my profile again (`Remotes.ProfileChanged`).
      The one sent on join can reach only whichever listener connected first
      (the loading screen), so the lobby's screens ask for it when they start. ]]

@@ -1718,3 +1718,17 @@ textures, read off a live client). It now holds the pictures in video memory whi
 (`DeviceTiers.warmLobbyImages`) and fetches and draws every pet and weapon preview once. The portal mesh
 ids it was handed as pictures only errored. The eggs' and chests' screen pictures are rendered from the
 Design models (`assets/ui/reveal/design/`).
+
+## A loading tip told phone players to press SPACE to dash (2026-11-11)
+
+`Config/LoadingTips` named only the keyboard and the controller. The tip now names all three ways
+(SPACE, A, the DASH button), and `tests/FirstEgg.spec` fails any tip that names SPACE without a
+phone's way to do it.
+
+## CHOOSE YOUR CLASS came up inside the tutorial (2026-11-11, caught in the playtest, never shipped)
+
+The title now waits for the server's `JoinRoute` before it starts (`Main.client`), so for a moment at
+join nothing held `RunPaused.beforeArrival()`: the class screen saw a loaded profile and `InLobby`,
+opened under the loading screen, and was still up when the tutorial began. `Main.client` now calls
+`RunPaused.setTitle(true)` on its first frame, before the wait. Anything that opens "once the player
+has arrived" must be held from the first frame, not from when the title is drawn.

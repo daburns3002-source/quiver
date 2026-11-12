@@ -93,7 +93,11 @@ function IntroCutscene.skipped(): boolean
 	local ok, data = pcall(function()
 		return TeleportService:GetLocalPlayerTeleportData()
 	end)
-	return ok and type(data) == "table" and (data :: any).arrowborne == true
+	return ok
+		and type(data) == "table"
+		and (data :: any).arrowborne == true
+		-- sent to the tutorial on join, before the title: it plays here
+		and (data :: any).story ~= true
 end
 
 --[[ The screen's size. Read from the camera rather than from the ScreenGui:

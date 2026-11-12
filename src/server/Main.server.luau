@@ -262,6 +262,44 @@ local function onCharacterAdded(player: Player, character: Model)
 	ProjectileSystem.refreshFilters()
 end
 
+--[[ What comes after a fresh join's loading screen (Fable's loop review,
+     2026-11-11, approved): a player who owes the tutorial is sent to its
+     server at once, behind this loading screen, and sees the title and the
+     story there; one who has beaten 1-1 sees the title and skips the story.
+     Told to the client as `Party.ROUTE`; until then it holds its loading
+     screen. A profile that never loads owes the tutorial. ]]
+local function tutorialOwed(player: Player): (boolean, boolean)
+	local deadline = os.clock() + PROFILE_WAIT
+	while not PlayerData.get(player) and player.Parent and os.clock() < deadline do
+		task.wait(0.25)
+	end
+	local profile = PlayerData.get(player)
+	local beaten = if profile then profile.levelsBeaten else nil
+	--[[ Studio's `Sandbox.forceTutorial` plays it even when the profile says
+	     it is done, so a playtest can have the tutorial and the unlocked
+	     areas at once (`Config/Sandbox`). Never honoured in a live server. ]]
+	local forced = RunService:IsStudio() and Sandbox.forceTutorial == true
+	return forced or LevelUnlocks.tutorialOwed(beaten, Tutorial.untilBeaten), forced
+end
+
+local function routeJoin(player: Player)
+	local owed, forced = tutorialOwed(player)
+	if not player.Parent then
+		return
+	end
+	--[[ The story is for a first visit: whoever has won the tutorial before
+	     (and so anyone who has beaten 1-1) has seen it. Studio's forced
+	     tutorial is the owner's run-through from the intro, story and all. ]]
+	local profile = PlayerData.get(player)
+	local seen = not forced and (not owed or (profile ~= nil and profile.tutorialDone))
+	if owed and Party.canTravel() and RoomController.inLobby() then
+		player:SetAttribute(Party.ROUTE, "Tutorial")
+		Party.startTutorial(player, Balance.tutorialStage, true, seen)
+	else
+		player:SetAttribute(Party.ROUTE, if seen then "Lobby" else "Story")
+	end
+end
+
 local function onPlayerAdded(player: Player)
 	local session = RunSession.create(player)
 
@@ -281,6 +319,10 @@ local function onPlayerAdded(player: Player)
 
 	if player.Character then
 		onCharacterAdded(player, player.Character)
+	end
+
+	if session.atTitle and not Party.isRunServer() then
+		task.spawn(routeJoin, player)
 	end
 end
 
@@ -582,29 +624,21 @@ Remotes.event(Remotes.IntroBegin).OnServerEvent:Connect(function(player)
 		return
 	end
 	RunSession.leaveTitle(session)
-	if not RoomController.inLobby() then
+	--[[ On the tutorial's own server (sent there on join, `Party`), leaving
+	     the title is all it takes: the run server starts the stage. ]]
+	if not RoomController.inLobby() or Party.isRunServer() then
 		return
 	end
 	--[[ The tutorial only until the player has beaten Mossy Glade 1-1
 	     (owner, 2026-10-26: "the tutorial should play until they have beaten
 	     the first level of mossy glade"); after that, straight to the lobby.
-	     Their profile is normally in long before the story ends; it is
-	     given a few seconds more if not, and a profile that never loads
-	     owes the tutorial. ]]
-	local deadline = os.clock() + PROFILE_WAIT
-	while not PlayerData.get(player) and player.Parent and os.clock() < deadline do
-		task.wait(0.25)
-	end
-	local profile = PlayerData.get(player)
-	local beaten = if profile then profile.levelsBeaten else nil
+	     Their profile is normally in long before the story ends
+	     (`tutorialOwed`). ]]
+	local owed = tutorialOwed(player)
 	if not RoomController.inLobby() or not player.Parent then
 		return
 	end
-	--[[ Studio's `Sandbox.forceTutorial` plays it even when the profile says
-	     it is done, so a playtest can have the tutorial and the unlocked
-	     areas at once (`Config/Sandbox`). Never honoured in a live server. ]]
-	local forced = RunService:IsStudio() and Sandbox.forceTutorial == true
-	if forced or LevelUnlocks.tutorialOwed(beaten, Tutorial.untilBeaten) then
+	if owed then
 		Party.startTutorial(player, Balance.tutorialStage)
 	else
 		local character = player.Character

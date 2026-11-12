@@ -20,6 +20,10 @@ export type Area = {
 	--[[ Gems for beating the boss: the first time, and every time after. ]]
 	firstBossGems: number,
 	bossGems: number,
+	--[[ The egg (`Config/Eggs` key) the first clear of each of the area's
+	     levels gives free, hatched on Victory (review item 5, owner
+	     2026-11-11). Nil for an area with no egg yet. ]]
+	firstClearEgg: string?,
 }
 
 export type Item = {
@@ -37,6 +41,7 @@ local Economy = {
 			bossItem = "RoyalJelly",
 			firstBossGems = 50,
 			bossGems = 10,
+			firstClearEgg = "MossyEgg",
 		},
 		Thornwood = {
 			killCoins = 8,
@@ -44,6 +49,7 @@ local Economy = {
 			bossItem = "BroodSilk",
 			firstBossGems = 80,
 			bossGems = 15,
+			firstClearEgg = "ThornwoodEgg",
 		},
 		--[[ Areas 3 and 4 (2026-11-07), so their kills, clears and bosses
 		     pay. A step up each, on Thornwood's curve. The two boss items'
@@ -63,6 +69,7 @@ local Economy = {
 			bossItem = "BogPearl",
 			firstBossGems = 140,
 			bossGems = 25,
+			firstClearEgg = "BogheartEgg",
 		},
 	} :: { [string]: Area },
 

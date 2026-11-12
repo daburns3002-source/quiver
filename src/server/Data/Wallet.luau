@@ -17,6 +17,7 @@ local Log = require(ReplicatedStorage.Shared.Util.Log)
 local Purse = require(ReplicatedStorage.Shared.Util.Purse)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local SaveSchema = require(ReplicatedStorage.Shared.Util.SaveSchema)
+local Tutorial = require(ReplicatedStorage.Shared.Config.Tutorial)
 
 local DexPay = require(script.Parent.DexPay)
 local PlayerData = require(script.Parent.PlayerData)
@@ -126,13 +127,31 @@ end
 --[[ A level is won (`StageConfig.level`, "1-3"): saved, so the next one
      opens (`Util/LevelUnlocks`). Only `RoomController` calls it, as a run
      completes; a client never reports a win. ]]
-function Wallet.beatLevel(player: Player, level: string)
+function Wallet.beatLevel(player: Player, level: string): boolean
 	local profile = PlayerData.get(player)
 	if not profile or profile.levelsBeaten[level] then
-		return
+		return false
 	end
 	profile.levelsBeaten[level] = true
+	-- whoever has beaten the level the tutorial waits on has been through it
+	-- (`SaveSchema.migrate` reads an older profile the same way)
+	if level == Tutorial.untilBeaten then
+		profile.tutorialDone = true
+	end
 	log.info("%s beat level %s", player.Name, level)
+	changed(player, profile)
+	-- true the first time, which pays the level's free egg
+	return true
+end
+
+--[[ The tutorial is won (`SaveSchema` version 8): saved, so later joins
+     may skip it. Only `RoomController` calls it, as the tutorial completes. ]]
+function Wallet.finishTutorial(player: Player)
+	local profile = PlayerData.get(player)
+	if not profile or profile.tutorialDone then
+		return
+	end
+	profile.tutorialDone = true
 	changed(player, profile)
 end
 

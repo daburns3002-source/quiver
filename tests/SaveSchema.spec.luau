@@ -62,7 +62,7 @@ return function(t: TestRunner.Helper)
 
 	t.test("a new profile has beaten no level", function()
 		local p = SaveSchema.migrate(nil)
-		t.isTrue(SaveSchema.VERSION >= 8)
+		t.isTrue(SaveSchema.VERSION >= 9)
 		t.isNil((next(p.levelsBeaten)))
 	end)
 
@@ -208,6 +208,16 @@ return function(t: TestRunner.Helper)
 		t.equal(SaveSchema.SOULSTONES, "SOULSTONES")
 	end)
 
+	t.test("7 -> 8: the tutorial counts as won only if saved so, or 1-1 is beaten", function()
+		t.isFalse(SaveSchema.default().tutorialDone)
+		t.isFalse(SaveSchema.migrate({ version = 7, coins = 5 }).tutorialDone)
+		t.isFalse(SaveSchema.migrate({ version = 8, tutorialDone = "yes" }).tutorialDone)
+		t.isTrue(SaveSchema.migrate({ version = 8, tutorialDone = true }).tutorialDone)
+		local old = SaveSchema.migrate({ version = 7, levelsBeaten = { ["1-1"] = true } })
+		t.isTrue(old.tutorialDone)
+		t.equal(old.version, SaveSchema.VERSION)
+	end)
+
 	t.test("a newer game's save is not readable here", function()
 		t.isFalse(SaveSchema.readable({ version = SaveSchema.VERSION + 1 }))
 		t.isTrue(SaveSchema.readable({ version = SaveSchema.VERSION }))
@@ -225,9 +235,9 @@ return function(t: TestRunner.Helper)
 		t.isNil(p.items.RoyalJelly)
 		t.isFalse(Purse.pay(p, { gems = 1 }))
 	end)
-	t.test("version 7 migrates up to the rewards: nothing claimed, nothing a windfall", function()
+	t.test("version 8 migrates up to the rewards: nothing claimed, nothing a windfall", function()
 		local p = SaveSchema.migrate({
-			version = 7,
+			version = 8,
 			pets = { EmberWilf = 1 },
 			weapons = { AcornBow = true },
 			enemiesSeen = { MossSlime = true },
@@ -244,9 +254,9 @@ return function(t: TestRunner.Helper)
 		t.isTrue(r.dexPaid["Weapons:TwigBow"], "the starters count as paid")
 	end)
 
-	t.test("version 8 keeps its rewards and drops what is broken", function()
+	t.test("version 9 keeps its rewards and drops what is broken", function()
 		local p = SaveSchema.migrate({
-			version = 8,
+			version = 9,
 			rewards = {
 				loginDay = 20400,
 				loginCount = 9,

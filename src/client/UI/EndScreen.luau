@@ -34,12 +34,16 @@ local UserInputService = game:GetService("UserInputService")
 local Workspace = game:GetService("Workspace")
 
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
+local Economy = require(ReplicatedStorage.Shared.Config.Economy)
 local EndScreenAssets = require(ReplicatedStorage.Shared.Config.EndScreenAssets)
 local EndScreenLayout = require(ReplicatedStorage.Shared.Config.EndScreenLayout)
 local EndScreenTheme = require(ReplicatedStorage.Shared.Config.EndScreenTheme)
+local GearAssets = require(ReplicatedStorage.Shared.Config.GearAssets)
+local ShopAssets = require(ReplicatedStorage.Shared.Config.ShopAssets)
 
 local Device = require(script.Parent.Parent.Device)
 local EndScreenMotion = require(script.Parent.EndScreenMotion)
+local Reveal = require(script.Parent.Reveal)
 
 local EndScreen = {}
 
@@ -55,6 +59,14 @@ export type Summary = {
 	coins: number?,
 	gems: number?,
 	chests: number?,
+	--[[ The first clear's free egg (`Config/Economy.firstClearEgg`), rolled
+	     by the server: its key, the pet and whether it was new. It fills
+	     the chest slot and is opened with the hatchery's reveal. ]]
+	egg: { key: string, pet: string, new: boolean }?,
+	--[[ The boss item the stage paid, shown in the slot beside it. ]]
+	item: string?,
+	--[[ The player's coins buy an open egg (Victory's nudge). ]]
+	canHatch: boolean?,
 }
 
 type Box = { x: number, y: number, w: number, h: number }
@@ -286,7 +298,31 @@ local function pivot(obj: GuiObject): UIScale
 	return scale
 end
 
-local function buildRibbon(parent: Instance, look: any, layout: any, won: boolean): (Frame, Frame)
+--[[ A label whose words shrink to fit their box, never past `size`,
+     wrapping onto a second line where that keeps them larger. ]]
+local function fitted(t: TextLabel, size: number)
+	t.TextScaled = true
+	local limit = Instance.new("UITextSizeConstraint")
+	limit.MaxTextSize = math.min(size, 100)
+	limit.Parent = t
+end
+
+--[[ A label whose words stay on one line, shrunk to `room` (sheet
+     pixels) if they are wider than it at `size`. ]]
+local function oneLine(t: TextLabel, size: number, room: number)
+	local wide = width(t.Text, size)
+	if wide > room then
+		t.TextSize = math.floor(size * room / wide)
+	end
+end
+
+local function buildRibbon(
+	parent: Instance,
+	look: any,
+	layout: any,
+	won: boolean,
+	subText: string
+): (Frame, Frame)
 	local rb: Box = layout.ribbon
 	local ribbon = frame(parent, "Ribbon", rb, 20)
 	local art = image(
@@ -335,16 +371,17 @@ local function buildRibbon(parent: Instance, look: any, layout: any, won: boolea
 
 	local sb: Box = layout.sub
 	local sub = block(parent, "SubPlate", sb, 26, look.sub)
-	text(
+	local words = text(
 		sub,
 		"Text",
-		{ x = 0, y = 0, w = sb.w, h = sb.h - (look.sub.bottomH or 0) + 4 },
+		{ x = 16, y = 0, w = sb.w - 32, h = sb.h - (look.sub.bottomH or 0) + 4 },
 		29,
-		look.subText,
+		subText,
 		look.text.sub,
 		look.subTextColour,
 		look.text.subStroke
 	)
+	oneLine(words, look.text.sub, sb.w - 32)
 	if look.studs then
 		for _, at in { { 30, 30 }, { sb.w - 30, 30 }, { 30, sb.h - 34 }, { sb.w - 30, sb.h - 34 } } do
 			cube(sub, at[1], at[2], 30, 28, look.studs)
@@ -491,9 +528,11 @@ local function progressBar(r: Frame, look: any, layout: any): (number) -> ()
 	end
 end
 
---[[ Victory's chest slot, under the coins and gems: the chest of the
-     stage's area, its sparkles, CHEST and how many. Dimmed while the run
-     gave none (until chests exist, always). ]]
+--[[ Victory's chest slot, under the coins and gems: what the run gave
+     beyond them. A level's first clear gives its area's egg (shown, then
+     opened with the hatchery's reveal); a boss its item, at the slot's right
+     end beside the egg, or in the slot when there is no egg.
+     Dimmed, the area's chest at x0, when the run gave neither. ]]
 local function chestSlot(rewards: Frame, look: any, layout: any, summary: Summary): Count
 	local c = layout.chest
 	local rb: Box = layout.rewards
@@ -508,9 +547,21 @@ local function chestSlot(rewards: Frame, look: any, layout: any, summary: Summar
 	local stage = Balance.Stages[summary.stage]
 	local area = (stage and stage.area) or "MossyGlade"
 	local chests: { [string]: string } = EndScreenAssets.chests
-	local count = summary.chests or 0
+	local egg = summary.egg
+	local item = summary.item
+	local picture, word = chests[area] or chests.MossyGlade, "CHEST"
+	if egg then
+		local art = GearAssets.eggs[egg.key]
+		picture = if art then art.whole else (GearAssets.areaPictures.eggs[area] or picture)
+		word = "FREE EGG"
+	elseif item then
+		picture = ShopAssets.items[item] or picture
+		local info = Economy.items[item]
+		word = if info then info.name else "BOSS ITEM"
+	end
+	local count = if egg or item then 1 else summary.chests or 0
 	local dim = if count > 0 then 0 else look.chestDim
-	local chest = image(slot, "Chest", c.icon, 36, chests[area] or chests.MossyGlade)
+	local chest = image(slot, "Chest", c.icon, 36, picture)
 	chest.ImageTransparency = dim
 	for _, at in c.sparkles do
 		cube(slot, at[1], at[2], c.sparkle, 36, look.cubes).ImageTransparency = dim
@@ -518,14 +569,27 @@ local function chestSlot(rewards: Frame, look: any, layout: any, summary: Summar
 	local label = text(
 		slot,
 		"Label",
-		{ x = c.labelX, y = 3, w = 260, h = sb.h },
+		{ x = c.labelX, y = 3, w = c.countRight - 160 - c.labelX, h = sb.h },
 		36,
-		"CHEST",
+		word,
 		look.text.reward,
 		WHITE,
 		look.text.rewardStroke
 	)
 	label.TextXAlignment = Enum.TextXAlignment.Left
+	fitted(label, look.text.reward)
+	--[[ The boss item beside an egg: its picture at the slot's right end,
+	     past the count. ]]
+	if egg and item and ShopAssets.items[item] then
+		local size = math.min(sb.w - c.countRight - 8, sb.h - 16)
+		image(
+			slot,
+			"Item",
+			{ x = c.countRight + 4, y = (sb.h - size) / 2, w = size, h = size },
+			37,
+			ShopAssets.items[item]
+		)
+	end
 	local v = text(
 		slot,
 		"Value",
@@ -1009,7 +1073,14 @@ function EndScreen.show(summary: Summary)
 	end
 
 	local cubes = buildCubes(content, look, layout)
-	local ribbon, sub = buildRibbon(content, look, layout, won)
+	--[[ The nudge (review item 9): Victory names an egg the coins buy;
+	     Defeat's line is how to come back stronger. ]]
+	local subText = if won
+			and summary.canHatch
+			and look.hatchText
+		then look.hatchText
+		else look.subText
+	local ribbon, sub = buildRibbon(content, look, layout, won, subText)
 	local hero = buildHero(content, layout, won)
 	local stats = buildStats(content, look, layout, summary)
 	local buttonParts = buildButton(content, look, layout, won)
@@ -1062,7 +1133,8 @@ function EndScreen.show(summary: Summary)
 	local shownAt = os.clock()
 	local pressed = false
 	button.Activated:Connect(function()
-		if pressed or not readyAtTap then
+		-- never under the free egg's reveal (a gamepad's A reaches both)
+		if pressed or not readyAtTap or Reveal.busy() then
 			return
 		end
 		pressed = true
@@ -1080,7 +1152,7 @@ function EndScreen.show(summary: Summary)
 	--[[ Straight away, unlike the main button: the server has no wait on
 	     leaving. Coins and a beaten level were banked as the run ended. ]]
 	lobbyPress.Activated:Connect(function()
-		if pressed or not readyAtTap then
+		if pressed or not readyAtTap or Reveal.busy() then
 			return
 		end
 		pressed = true
@@ -1088,6 +1160,20 @@ function EndScreen.show(summary: Summary)
 			onLobby()
 		end
 	end)
+
+	--[[ The first clear's free egg opens with the hatchery's reveal once
+	     the entrance has played (or been skipped), over this screen. ]]
+	local egg = summary.egg
+	if won and egg then
+		task.spawn(function()
+			while gui == screen and not played.ready() do
+				task.wait(0.1)
+			end
+			if gui == screen then
+				Reveal.eggs(egg.key, { { pet = egg.pet, new = egg.new } })
+			end
+		end)
+	end
 
 	fit()
 	local camera = Workspace.CurrentCamera

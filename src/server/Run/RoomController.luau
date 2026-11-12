@@ -55,6 +55,8 @@ local CurrentStage = require(ReplicatedStorage.Shared.Util.CurrentStage)
 local EndlessLeaderboard = require(script.Parent.EndlessLeaderboard)
 local EnemyManager = require(script.Parent.Parent.Enemies.EnemyManager)
 local EnemyModel = require(script.Parent.Parent.Enemies.EnemyModel)
+local FirstEgg = require(ReplicatedStorage.Shared.Util.FirstEgg)
+local Hatchery = require(script.Parent.Parent.Data.Hatchery)
 local LevelUnlocks = require(ReplicatedStorage.Shared.Util.LevelUnlocks)
 local Lobby = require(script.Parent.Lobby)
 local LobbyConfig = require(ReplicatedStorage.Shared.Config.Lobby)
@@ -62,6 +64,7 @@ local Log = require(ReplicatedStorage.Shared.Util.Log)
 local MeleeSystem = require(script.Parent.Parent.Combat.MeleeSystem)
 local PetCombat = require(script.Parent.Parent.Combat.PetCombat)
 local Pickups = require(script.Parent.Pickups)
+local PlayerData = require(script.Parent.Parent.Data.PlayerData)
 local ProjectileSystem = require(script.Parent.Parent.Combat.ProjectileSystem)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local Rewards = require(script.Parent.Parent.Data.Rewards)
@@ -608,7 +611,7 @@ end
 	through it they got. Sent at the moment the run ends, so the time and
 	health are the ones the player finished with.
 ]]
-local function sendSummary(won: boolean)
+local function sendSummary(won: boolean, eggs: { [Player]: any }?)
 	local finished = if won then progress else progress - 1
 	local progressPercent =
 		math.clamp(math.floor(finished / math.max(total(), 1) * 100 + 0.5), 0, 100)
@@ -627,6 +630,13 @@ local function sendSummary(won: boolean)
 			progressPercent = progressPercent,
 			coins = session.stageCoins,
 			gems = session.stageGems,
+			--[[ Victory's chest slot: the first clear's free egg (its key,
+			     pet and whether new, for the reveal), and the boss item. ]]
+			egg = eggs and eggs[session.player],
+			item = if won then session.stageItem else nil,
+			--[[ The end screen's nudge: Victory says so when the coins buy
+			     an egg. ]]
+			canHatch = Hatchery.canHatch(session.player),
 		})
 	end
 end
@@ -702,15 +712,37 @@ end
 local function complete(now: number)
 	state = "Complete"
 	local level = stage().level
+	local eggKey = RunSession.areaPay().firstClearEgg
+	local eggs: { [Player]: any } = {}
 	-- the area's clear bonus, before the summary that shows it
 	for _, session in RunSession.all() do
 		RunSession.payCoins(session, RunSession.areaPay().clearCoins)
+		--[[ The tutorial's first win pays for the first egg
+		     (`Util/FirstEgg`): what the player is still short of it, so the
+		     lobby opens on a hatch. Once only (`tutorialDone`): the tutorial
+		     is owed until 1-1 is won, and replaying it must farm nothing. ]]
+		local profile = if stage().tutorial then PlayerData.get(session.player) else nil
+		if profile and not profile.tutorialDone then
+			RunSession.payCoins(session, FirstEgg.topUp(profile.coins))
+		end
+		if stage().tutorial then
+			-- won once: later joins may skip it (SKIP TUTORIAL)
+			Wallet.finishTutorial(session.player)
+		end
 		--[[ The level is won, for everyone in the run: saved, and the next
 		     one opens. Decided here, never asked for. A Studio jump
-		     (`debugEnterRoom`) counts, so unlocking can be tested there. ]]
+		     (`debugEnterRoom`) counts, so unlocking can be tested there.
+		     The first time, the area's egg is given free (review item 5),
+		     rolled here and revealed on Victory. ]]
 		if level then
-			Wallet.beatLevel(session.player, level)
+			-- every win counts for the daily quests, not only the first
 			Rewards.note(session.player, "levels", 1)
+		end
+		if level and Wallet.beatLevel(session.player, level) and eggKey then
+			local pet = Hatchery.grantFree(session.player, eggKey)
+			if pet then
+				eggs[session.player] = { key = eggKey, pet = pet.pet, new = pet.new }
+			end
 		end
 	end
 	resumeAt = now + Balance.Run.deathPause
@@ -718,7 +750,7 @@ local function complete(now: number)
 	recordStory()
 	log.info("run complete")
 	broadcast()
-	sendSummary(true)
+	sendSummary(true, eggs)
 end
 
 --[[ Rooms: hold the pause after a clear, light the door, wait for a player

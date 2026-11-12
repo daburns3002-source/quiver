@@ -34,6 +34,8 @@ local Workspace = game:GetService("Workspace")
 
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local BossBanners = require(ReplicatedStorage.Shared.Config.BossBanners)
+local Economy = require(ReplicatedStorage.Shared.Config.Economy)
+local GearAssets = require(ReplicatedStorage.Shared.Config.GearAssets)
 local LevelUnlocks = require(ReplicatedStorage.Shared.Util.LevelUnlocks)
 local LobbyConfig = require(ReplicatedStorage.Shared.Config.Lobby)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
@@ -69,6 +71,9 @@ type Layout = {
 	size: { number },
 	boss: { number },
 	status: { number },
+	--[[ What the level pays, a row of pictures and numbers above PLAY
+	     (review item 10, as the mockup's coin and gem row). ]]
+	rewards: { number },
 	play: { number },
 }
 
@@ -82,7 +87,8 @@ local WIDE: Layout = {
 	title = { 1314, 290, 392, 110 },
 	size = { 1322, 420, 376, 86 },
 	boss = { 1322, 524, 376, 130 },
-	status = { 1342, 676, 336, 72 },
+	status = { 1342, 672, 336, 64 },
+	rewards = { 1314, 748, 392, 86 },
 	play = { 1314, 846, 392, 136 },
 }
 
@@ -94,10 +100,11 @@ local TALL: Layout = {
 	nodes = { 70, 350, 940, 800 },
 	card = { 70, 1180, 940, 670 },
 	title = { 110, 1200, 860, 100 },
-	size = { 110, 1316, 860, 80 },
-	boss = { 110, 1408, 860, 92 },
-	status = { 250, 1512, 580, 70 },
-	play = { 230, 1612, 620, 160 },
+	size = { 110, 1308, 860, 72 },
+	boss = { 110, 1390, 860, 80 },
+	status = { 250, 1480, 580, 58 },
+	rewards = { 110, 1546, 860, 88 },
+	play = { 230, 1648, 620, 160 },
 }
 
 --[[ The boss banner (`Config/BossBanners`) of the area named `area`. ]]
@@ -176,6 +183,86 @@ local function bossLine(stage: Balance.StageConfig): string
 	end
 	local banner = BossBanners.bosses[boss.title]
 	return `BOSS: {string.upper(if banner then banner.name else boss.title)}`
+end
+
+--[[ What winning a level pays (review item 10, owner 2026-11-11), as the
+     server pays it (`Config/Economy`, `RoomController.complete`,
+     `Wallet.beatBoss`): the area's free egg on the level's first clear,
+     the clear's coins, and for a level that ends in its boss the gems
+     (more the first time) and the boss's item. Kill coins come on top.
+     Nothing for Endless, which pays Soulstones by the floor. ]]
+type Reward = { icon: string, words: string? }
+local function rewardsOf(stage: Balance.StageConfig, done: LevelUnlocks.Beaten?): { Reward }
+	local area = stage.area
+	local pay = area and Economy.areas[area]
+	local list: { Reward } = {}
+	if not area or not pay or stage.mode == "Endless" then
+		return list
+	end
+	local egg = pay.firstClearEgg
+	if egg and stage.level and not LevelUnlocks.isBeaten(stage, done) then
+		local art = GearAssets.eggs[egg]
+		local icon = if art then art.whole else GearAssets.areaPictures.eggs[area]
+		if icon then
+			table.insert(list, { icon = icon, words = "FREE" })
+		end
+	end
+	table.insert(list, { icon = ShopAssets.coin, words = tostring(pay.clearCoins) })
+	if bossOf(stage) then
+		local p = profile
+		local first = not (p and p.bossesBeaten[area])
+		local gems = if first then pay.firstBossGems else pay.bossGems
+		table.insert(list, { icon = ShopAssets.gem, words = tostring(gems) })
+		local item = ShopAssets.items[pay.bossItem]
+		if item then
+			table.insert(list, { icon = item })
+		end
+	end
+	return list
+end
+
+--[[ The rewards in a row: each one's picture, then its number, sized to
+     share the row's width and never taller than it. ]]
+local function rewardRow(sheet: Chunky.Sheet, rewards: { Reward }, box: { number })
+	if #rewards == 0 then
+		return
+	end
+	local row = Instance.new("Frame")
+	row.Name = "Rewards"
+	row.BackgroundTransparency = 1
+	row.ZIndex = 6
+	Chunky.put(sheet, row, box[1], box[2], box[3], box[4])
+	local list = Instance.new("UIListLayout")
+	list.FillDirection = Enum.FillDirection.Horizontal
+	list.HorizontalAlignment = Enum.HorizontalAlignment.Center
+	list.VerticalAlignment = Enum.VerticalAlignment.Center
+	list.SortOrder = Enum.SortOrder.LayoutOrder
+	list.Padding = UDim.new(0.015, 0)
+	list.Parent = row
+	-- widths in pictures: a picture is 1, its words about half that a letter
+	local total = 0
+	for _, reward in rewards do
+		total += 1 + (if reward.words then 0.2 + 0.5 * #reward.words else 0.15)
+	end
+	local unit = math.min(0.9 / total, box[4] / box[3])
+	for i, reward in rewards do
+		local icon = Instance.new("ImageLabel")
+		icon.Name = "Icon"
+		icon.BackgroundTransparency = 1
+		icon.Image = reward.icon
+		icon.ScaleType = Enum.ScaleType.Fit
+		icon.Size = UDim2.fromScale(unit, 0.96)
+		icon.LayoutOrder = i * 2
+		icon.ZIndex = 7
+		icon.Parent = row
+		local words = reward.words
+		local t = Chunky.text(row, words or "", nil, 4)
+		t.Name = "Words"
+		t.Size = UDim2.fromScale(unit * (if words then 0.2 + 0.5 * #words else 0.15), 0.6)
+		t.TextXAlignment = Enum.TextXAlignment.Left
+		t.LayoutOrder = i * 2 + 1
+		t.ZIndex = 7
+	end
 end
 
 --[[ A pale blue pill with words, as the mockup's ROOMS and REWARD rows. ]]
@@ -419,6 +506,7 @@ fill = function(index: number)
 		elseif not pickedOpen then
 			pill(sheet, "LOCKED", L.status, Chunky.grey)
 		end
+		rewardRow(sheet, rewardsOf(stage, done), L.rewards)
 	end
 	local idle = starting or not pickedOpen or stage == nil
 	local play = Chunky.button(

@@ -40,7 +40,12 @@
 	has — nothing of an older save is interpreted as Endless progress,
 	because there was none.
 
-	Version 8 (2026-11-11, reasons to come back — `Config/Rewards`):
+	Version 8 (2026-11-11, SKIP TUTORIAL): `tutorialDone`, set once the
+	tutorial has been won. The tutorial still plays on every join until 1-1
+	is beaten; a player who has won it before may skip it. An older profile
+	has it only if it has beaten 1-1 (who must have been through it).
+
+	Version 9 (2026-11-11, reasons to come back — `Config/Rewards`):
 	`rewards`, the login calendar's last day and count, today's quest
 	progress and claims, the starter list's claims, the crates ever opened
 	(the starter list's "open a crate") and the Dex entries already paid
@@ -53,7 +58,7 @@
 
 local SaveSchema = {}
 
-SaveSchema.VERSION = 8
+SaveSchema.VERSION = 9
 
 --[[ The classes' own weapons, owned from the start. ]]
 local STARTERS = { "TwigBow", "BranchStaff", "TimberBlade" }
@@ -95,8 +100,11 @@ export type Profile = {
 	     show the NEW ENEMY! card -- and this is the lasting copy: the card
 	     shows once ever, and the dex remembers. ]]
 	enemiesSeen: { [string]: boolean },
+	--[[ The tutorial has been won once (version 8): later joins may skip
+	     it (`UI/TutorialPrompts`' SKIP TUTORIAL). ]]
+	tutorialDone: boolean,
 	--[[ The login calendar, quests, starter list and Dex payouts
-	     (version 8, `Util/RewardRules`). Days are whole UTC days since 1970. ]]
+	     (version 9, `Util/RewardRules`). Days are whole UTC days since 1970. ]]
 	rewards: RewardState,
 }
 
@@ -147,6 +155,7 @@ function SaveSchema.default(): Profile
 		endlessMilestones = {},
 		soulstones = 0,
 		enemiesSeen = {},
+		tutorialDone = false,
 		rewards = {
 			loginDay = 0,
 			loginCount = 0,
@@ -261,7 +270,11 @@ function SaveSchema.migrate(raw: unknown): Profile
 	     fills in; inventing entries would show creatures somebody has
 	     never seen. ]]
 	profile.enemiesSeen = flags(data.enemiesSeen)
-	--[[ 7 → 8: the rewards. A stored copy is read field by field; an older
+	--[[ 7 → 8: nobody's tutorial win was written down. Whoever has beaten
+	     1-1 came through it; anyone else plays it once more before they
+	     may skip. ]]
+	profile.tutorialDone = data.tutorialDone == true or profile.levelsBeaten["1-1"] == true
+	--[[ 8 → 9: the rewards. A stored copy is read field by field; an older
 	     one has none, so nothing is claimed, its crates are its pity count,
 	     and what it already has counts as paid for in the Dex. ]]
 	local stored = if type(data.rewards) == "table" then data.rewards else nil

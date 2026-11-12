@@ -81,6 +81,8 @@ return function(t: TestRunner.Helper)
 			Scene.glow.colour,
 			Scene.rim,
 			Scene.mote.colour,
+			Scene.farHill.colour,
+			Scene.cloud.colour,
 		}
 		for index, colour in cool do
 			local h = hue(colour)
@@ -270,6 +272,9 @@ return function(t: TestRunner.Helper)
 			for _, square in Scene.tree.crown do
 				crownTop = math.min(crownTop, upright.tree.y + square[2] * upright.tree.unit)
 			end
+			for _, square in Scene.tree.leaves do
+				crownTop = math.min(crownTop, upright.tree.y + square[2] * upright.tree.unit)
+			end
 			t.isTrue(
 				TitleLayout.logo(upright).bottom < crownTop,
 				"upright, the logo sits above the crown"
@@ -299,6 +304,83 @@ return function(t: TestRunner.Helper)
 			end
 		end
 	)
+
+	--[[ The second pass of detail (owner, 2026-11-12: "a little bit more
+	     detailed"). Each piece has to stand on what it belongs to, or it reads
+	     as a mistake: a pine floating over a hill, grass in the air. ]]
+	t.test("the added detail stands where it belongs", function()
+		local tree = Scene.tree
+		-- the doorway is inside the trunk's lowest step, the light inside its frame
+		local foot, frame, glow = tree.trunk[2], tree.door.frame, tree.door.light
+		t.isTrue(frame[1] >= foot[1] and frame[1] + frame[3] <= foot[1] + foot[3], "door across")
+		t.isTrue(frame[2] >= foot[2] and frame[2] + frame[4] <= 0, "door down")
+		t.isTrue(glow[1] >= frame[1] and glow[1] + glow[3] <= frame[1] + frame[3], "light in frame")
+		t.isTrue(tree.strings.count <= #tree.lanterns)
+		for key, design in LAYOUTS do
+			for index, pine in design.pines do
+				local on = false
+				for _, hill in design.hills do
+					on = on
+						or (
+							pine[2] == hill[2]
+							and pine[1] >= hill[1]
+							and pine[1] <= hill[1] + hill[3]
+						)
+				end
+				t.isTrue(on, `{key} pine {index} stands on a hill's top`)
+			end
+			for index, tuft in design.tufts do
+				local on = false
+				for _, step in design.ridge do
+					on = on
+						or (
+							tuft[2] == step[2]
+							and tuft[1] >= step[1]
+							and tuft[1] + 8 <= step[1] + step[3]
+						)
+				end
+				t.isTrue(on, `{key} grass {index} grows on a ridge step`)
+				-- and not under the hero or the pet
+				local clear = tuft[2] ~= design.hero.y
+					or tuft[1] + 8 < design.hero.x - 14 * design.hero.unit
+					or tuft[1] > design.pet.x + 24 * design.pet.unit
+				t.isTrue(clear, `{key} grass {index} is clear of the hero and pet`)
+			end
+			local post, standing = design.post, false
+			for _, step in design.ridge do
+				standing = standing
+					or (
+						post.y == step[2]
+						and post.x >= step[1]
+						and post.x + Scene.post.arm <= step[1] + step[3]
+					)
+			end
+			t.isTrue(standing, `{key}: the lantern post stands on a ridge step`)
+			for index, light in design.village do
+				local on = false
+				for _, hill in design.hills do
+					on = on
+						or (
+							light[1] >= hill[1]
+							and light[1] <= hill[1] + hill[3]
+							and light[2] > hill[2]
+						)
+				end
+				t.isTrue(on, `{key} village light {index} is on a hill`)
+			end
+			-- the farther hills sit under the stars, the clouds above every hill
+			for index, hill in design.farHills do
+				t.isTrue(hill[2] > design.stars.below, `{key} far hill {index} is below the stars`)
+				for _, cloud in design.clouds do
+					t.isTrue(cloud[2] + 10 < hill[2], `{key}: clouds are above far hill {index}`)
+				end
+			end
+		end
+		t.isTrue(
+			Scene.twinkle.depth > 0 and Scene.twinkle.depth < 1,
+			"a twinkling star never goes out"
+		)
+	end)
 
 	--[[ The drawing's sizes are the letters'; Roblox's TextSize is the font's
 	     whole line. Without this the logo and BEGIN ADVENTURE come out a fifth

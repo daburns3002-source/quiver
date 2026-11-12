@@ -125,9 +125,11 @@ local TitleScene = {
 	ridge = Color3.fromHex("#02070C"),
 	--[[ A far bird is two short strokes, a shallow V, pale and faint. ]]
 	bird = { thick = 1.2, tilt = 24, alpha = 0.5 },
-	--[[ A glowing mushroom: a pale stem under a mint cap, on a faint square
-	     of light this many times its size. ]]
-	glowcap = { stem = Color3.fromHex("#BFEFE0"), halo = 2.6, haloAlpha = 0.16 },
+	--[[ A glowing mushroom: a pale stem under a mint cap, in a soft round
+	     light this many times its size (the round glow picture; owner,
+	     2026-11-12: "the mushrooms on the ground shouldnt have a square around
+	     them"). ]]
+	glowcap = { stem = Color3.fromHex("#BFEFE0"), glow = 4, glowAlpha = 0.3 },
 	--[[ The signpost: a post this tall with a board this wide and tall near
 	     its top, and a small step for the board's point. ]]
 	sign = { tall = 18, wide = 12, board = 6 },

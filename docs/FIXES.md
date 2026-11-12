@@ -1771,3 +1771,18 @@ a `CanvasGroup` (`UI/TutorialPrompts` `layStripes`), which clips turned children
 corners; a plain frame's `ClipsDescendants` does not clip them. Keep text outside the CanvasGroup.
 The ScreenGui must be `ZIndexBehavior.Sibling`: one made with `Instance.new` is `Global`, and there
 the stripes were drawn behind the panel, unclipped, sticking out of its top.
+
+## The lobby's coins and gems vanished after the Blacksmith opened (2026-11-11)
+
+The lobby wallet was the Blacksmith screen's own, and `HatchStand.chrome` hid it each time the shop
+drew; only a wallet change drew it again. The lobby now has its own pills (`UI/LobbyHud`, from
+`StationScreen.onProfile`), shown whenever no station or portal screen is open, and the shop hides
+nothing outside itself.
+
+## The station button and the close X were too small for a finger on an upright phone (2026-11-11)
+
+"HATCH EGGS" sat on the 16:9 sheet (~97 x 21 points upright) and the chunky X was 110 sheet pixels
+(~39 points; since the re-skin it is drawn in the panel's header, ~24 points). On a touch layout the
+station button is now laid out in points, full width and 60 tall (`StationScreen`'s prompt,
+`Config/LobbyHud`). The X keeps its drawn size and takes presses over at least 48 points round it
+(`Chunky.close`), on every chunky screen.

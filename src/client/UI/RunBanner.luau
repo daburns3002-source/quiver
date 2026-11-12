@@ -266,7 +266,7 @@ local function build(gui: ScreenGui)
 	CollectionService:AddTag(icon, COIN_TAG)
 
 	local amount = words(pill, "Amount", T.coinHeight * 0.58)
-	amount.Position = UDim2.new(0, T.coinHeight * 0.7, 0, 0)
+	amount.Position = UDim2.fromOffset(T.coinHeight * 0.7, 0)
 	amount.Size = UDim2.new(1, -(T.coinHeight * 0.7 + 8), 1, 0)
 	amount.TextScaled = true
 	amount.TextXAlignment = Enum.TextXAlignment.Right
@@ -345,7 +345,7 @@ local function drawPips(shape: RunHudRules.Pips)
 		pip.Name = "Pip"
 		pip.LayoutOrder = i
 		pip.BorderSizePixel = 0
-		pip.Size = UDim2.new(0, 0, 0, T.roomHeight * 0.56)
+		pip.Size = UDim2.fromOffset(0, T.roomHeight * 0.56)
 		pip.Parent = row
 		round(pip, 3)
 		outline(pip, 1.5)

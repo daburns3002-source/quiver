@@ -38,8 +38,8 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local CombatTuning = require(ReplicatedStorage.Shared.Config.CombatTuning)
 local Chunky = require(script.Parent.Chunky)
+local CombatTuning = require(ReplicatedStorage.Shared.Config.CombatTuning)
 local HudLayout = require(script.Parent.HudLayout)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local RunPaused = require(script.Parent.Parent.RunPaused)

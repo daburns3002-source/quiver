@@ -98,7 +98,8 @@ return function(t: TestRunner.Helper)
 		t.isNil(string.find(string.lower(dead.words), "restart"), "nothing restarts by itself")
 		t.equal(RunHudRules.status("Fighting", "Room").words, "", "a fight needs no line")
 		t.isTrue(
-			RunHudRules.status("Cleared", "Wave").words ~= RunHudRules.status("Cleared", "Room").words,
+			RunHudRules.status("Cleared", "Wave").words
+				~= RunHudRules.status("Cleared", "Room").words,
 			"a wave has no exit to send the player to"
 		)
 		t.equal(RunHudRules.status("Complete", "Room").tone, "Good")

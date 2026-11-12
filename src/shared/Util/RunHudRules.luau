@@ -97,7 +97,9 @@ function RunHudRules.status(state: string, unit: string?): Status
 		--[[ Only a Rooms stage has an exit; a Waves stage brings the next
 		     wave to you. ]]
 		return {
-			words = if unit == "Wave" then "CLEARED! NEXT WAVE INCOMING" else "CLEARED! TAKE THE EXIT",
+			words = if unit == "Wave"
+				then "CLEARED! NEXT WAVE INCOMING"
+				else "CLEARED! TAKE THE EXIT",
 			tone = "Good",
 		}
 	elseif state == "Dead" then

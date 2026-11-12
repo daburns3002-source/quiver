@@ -779,11 +779,7 @@ local function layoutPanel(count: number)
 	local width = count * CARD.X + (count - 1) * gap() + 2 * sidePad
 	local panelWidth = math.max(width, if phone then 400 else 460)
 		+ (if column then PHONE_BUTTON_COLUMN else 0)
-	local height = 40
-		+ 70
-		+ CROWN_ROOM
-		+ CARD.Y
-		+ (if column or stack then 40 else 50 + 76 + 30)
+	local height = 40 + 70 + CROWN_ROOM + CARD.Y + (if column or stack then 40 else 50 + 76 + 30)
 	p.Size = UDim2.fromOffset(panelWidth, height)
 	row.Size = UDim2.fromOffset(width, CARD.Y)
 	row.Position =
@@ -1637,16 +1633,16 @@ function DraftScreen.start(chosen: (number) -> (), rerolled: () -> ())
 	nameCap.MaxTextSize = d.titleSize
 	nameCap.Parent = name
 	trayTitle = name
-	local words = Chunky.text(box, "", Chunky.ink, 0)
-	words.Name = "Words"
-	words.Position = UDim2.fromScale(0.04, 0.4)
-	words.Size = UDim2.fromScale(0.92, 0.52)
-	words.TextWrapped = true
-	words.TextYAlignment = Enum.TextYAlignment.Top
+	local readout = Chunky.text(box, "", Chunky.ink, 0)
+	readout.Name = "Words"
+	readout.Position = UDim2.fromScale(0.04, 0.4)
+	readout.Size = UDim2.fromScale(0.92, 0.52)
+	readout.TextWrapped = true
+	readout.TextYAlignment = Enum.TextYAlignment.Top
 	local wordsCap = Instance.new("UITextSizeConstraint")
 	wordsCap.MaxTextSize = d.wordsSize
-	wordsCap.Parent = words
-	trayWords = words
+	wordsCap.Parent = readout
+	trayWords = readout
 	local buttonsTop = d.sheet.Y - d.buttonsHeight
 	trayReroll = Chunky.button(
 		sheet,

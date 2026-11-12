@@ -299,13 +299,14 @@ local TitleScene = {
 			{ 10, -55, 2, 1.2, 0.8 },
 			{ 13, -52, 2, 1.2, 0.7 },
 		} :: { Block },
-		--[[ A scarf trailing from the neck, the one warm thing on the hero, so
-		     the eye finds them (owner, 2026-11-12: the hero "should be a little
-		     bit more noticeable"). It sways: its end moves this many units up
-		     and down, this many times a second. ]]
+		--[[ A scarf trailing from the neck (owner, 2026-11-12: the hero "should
+		     be a little bit more noticeable"). It is the hero's own dark colour
+		     with a line of light along its top (owner, of an amber one: "the
+		     color of the scarf should match the player still"). It sways: its
+		     end moves this many units up and down, this many times a second. ]]
 		scarf = {
-			colour = Color3.fromHex("#E8A84A"),
-			alpha = 0.95,
+			rim = 1.2,
+			rimAlpha = 0.6,
 			pieces = { { -16, -44, 9, 4 }, { -23, -42, 8, 4 }, { -29, -39, 7, 3 } },
 			sway = 1.6,
 			speed = 0.3,

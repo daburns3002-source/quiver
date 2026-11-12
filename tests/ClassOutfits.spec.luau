@@ -335,12 +335,15 @@ return function(t: TestRunner.Helper)
 		ClassOutfit.dress(model, "Ranger", true)
 		t.equal(handle.Transparency, 1, "the hat still shows")
 		t.isFalse(glow.Enabled, "the hat's light is still on")
-		--[[ One that arrives late is hidden too. ]]
+		--[[ One that arrives late is hidden too: by the set's own listener,
+		     which this place's deferred signals run a moment after the
+		     accessory lands, still inside the frame. ]]
 		local late = Instance.new("Accessory")
 		local lateHandle = Instance.new("Part")
 		lateHandle.Name = "Handle"
 		lateHandle.Parent = late
 		late.Parent = model
+		task.wait()
 		t.equal(lateHandle.Transparency, 1, "a late accessory shows")
 		for name, value in ClassOutfits.scales do
 			local scale = humanoid:FindFirstChild(name) :: NumberValue

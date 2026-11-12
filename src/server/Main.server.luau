@@ -354,6 +354,9 @@ local function onPlayerAdded(player: Player)
 
 	if session.atTitle and not Party.isRunServer() then
 		task.spawn(routeJoin, player)
+	elseif not Party.isRunServer() then
+		-- back from a run, or Studio's `SkipIntro`: in the lobby from the start
+		RunSession.arrive(session)
 	end
 end
 
@@ -676,6 +679,8 @@ Remotes.event(Remotes.IntroBegin).OnServerEvent:Connect(function(player)
 		if character then
 			Lobby.place(character)
 		end
+		-- only now, with the tutorial ruled out, do they stand in the lobby
+		RunSession.arrive(session)
 		log.info("%s has beaten %s: no tutorial", player.Name, Tutorial.untilBeaten)
 	end
 end)

@@ -46,6 +46,9 @@ local EndScreenTheme = {
 		     item 9, owner 2026-11-11). ]]
 		hatchText = "YOU CAN HATCH AN EGG!",
 		buttonText = "NEXT LEVEL",
+		--[[ On the tutorial's Victory, whose button goes to the lobby and
+		     the class screen, not to a level (`Util/EndScreenRules`). ]]
+		lobbyText = "CONTINUE",
 		labels = { "ENEMIES DEFEATED", "TIME", "HEALTH LEFT" },
 		--[[ Type sizes (TextSize, sheet pixels) and the ink outline round
 		     the words, each matched to its sheet's lettering. ]]

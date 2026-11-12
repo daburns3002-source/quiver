@@ -101,7 +101,9 @@ which a fixed hand ignores), no rerolls. The rooms' XP lands the level-ups in ro
 "highlight the important words and have the tutorial clearly explain the controls and have the music quiet
 down when there is something on the screen to read") shows one idea at a time in the words for the device in
 hand: move, stand still to shoot, the crystals, the dash, the gate out of the first cleared room, and picking
-a card over the first hand (`Util/TutorialSteps` decides which, `Config/Tutorial.prompts` has the words). In a
+a card over the first hand (`Util/TutorialSteps` decides which, `Config/Tutorial.prompts` has the words; that one
+stands in for the draft's own heading, which is put away while the panel makes room: `DraftScreen.setHeading`,
+`RunHudRules.draftUnder`; and the draft draws REROLL only when it has a redeal to give). In a
 prompt `[..]` marks a control and `*..*` an action, each drawn in its own strong colour chosen for the panel's
 ground (`Util/PromptText`); the panel is built from `UI/Chunky`'s palette. The music ducks to `Music.readDuck`
 while one is up, and under a NEW ENEMY! screen in the tutorial (`MusicFx.setReading`).
@@ -275,7 +277,9 @@ What exists and works, all verified in Studio rather than only by the gates:
   which nothing sends until the meta loop pays out; Victory's has a chest
   slot under them showing the chest of the stage's `area` (one Codex chest
   per area, owner: "codex needs to draw a chest per area"). BACK TO LOBBY sits under
-  the main button on both (owner, 2026-11-08; `Remotes.RunLobby`).
+  the main button on both (owner, 2026-11-08; `Remotes.RunLobby`). Since 2026-11-12 the chest
+  row is only built when the run paid a chest, an egg or a boss item, and the tutorial's
+  Victory says CONTINUE, since it leads to the lobby (`Util/EndScreenRules`).
 - **Phase 3, mostly:** the shot pipeline with its abilities as data, XP and a
   choose-one-of-three draft that pauses the world, crit, splash, Ricochet
   (enemy to enemy), Bouncy Wall, Tracking Eye (homing), Double Shot
@@ -412,6 +416,8 @@ of the config and `tests/RewardRules.spec` pins its shape. The client only asks 
 kind and a key): quest progress is counted by the server from its own events (`Rewards.note(player, kind,
 amount)` in the run, the hatchery and the shop; anything new that should count calls it), the starter list
 is read from the saved profile, and the day is the server's clock, published as the Player's `RewardDay`.
+The screen opens by itself only once the server says the player stands in the lobby (the Player's `Arrived`,
+`RunSession.ARRIVED`): `InLobby` is also true under the title and just before the tutorial starts.
 Save version 11 holds it (`rewards`). Each new Dex entry pays `Rewards.dexGems` once ever (`Data/DexPay`,
 called by `Wallet.grantWeapon`, `grantPet` and `meetEnemy`), with a toast. Each lobby leaderboard has a
 "YOU: #N" row (`Run/BoardYou`, `Util/BoardRank`, `UI/BoardYou`; `docs/LEADERBOARD.md`). Studio:

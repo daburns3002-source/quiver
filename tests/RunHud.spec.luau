@@ -121,4 +121,111 @@ return function(t: TestRunner.Helper)
 		t.isTrue(d.rerollWidth + d.gap < d.sheet.X, "CHOOSE! has room beside REROLL")
 		t.isTrue(d.wordsSize >= 16, "the card is read out in words a phone can read")
 	end)
+
+	t.test("REROLL is drawn only when the hand has a redeal to give", function()
+		t.isTrue(RunHudRules.draftReroll("Level", 2), "a level-up with rerolls left")
+		t.isTrue(RunHudRules.draftReroll(nil, 1), "the last reroll still shows")
+		t.isFalse(RunHudRules.draftReroll("Level", 0), "the tutorial's hands have none")
+		t.isFalse(RunHudRules.draftReroll("Level", nil), "none sent is none")
+		t.isFalse(RunHudRules.draftReroll("Angel", 2), "an Angel's gift is never redealt")
+	end)
+
+	t.test("the draft makes room for what stands in for its heading", function()
+		--[[ The tutorial's prompt over the first hand (`DraftScreen.setHeading`):
+		     two computers, a phone held each way and a small phone, each with
+		     the panel's design height there, its own fit and place, a prompt
+		     of about the size it comes out, and the tray's room on the
+		     upright ones. ]]
+		local cases = {
+			{
+				view = Vector2.new(2091, 1113),
+				height = 898,
+				scale = 1,
+				top = 53,
+				stand = 207,
+				below = 0,
+				bar = 110,
+			},
+			{
+				view = Vector2.new(1366, 768),
+				height = 898,
+				scale = 0.697,
+				top = 33,
+				stand = 200,
+				below = 0,
+				bar = 110,
+			},
+			{
+				view = UPRIGHT,
+				height = 782,
+				scale = 0.5,
+				top = 136,
+				stand = 140,
+				below = 180,
+				bar = 0,
+			},
+			{
+				view = SIDEWAYS,
+				height = 782,
+				scale = 0.488,
+				top = 4,
+				stand = 97,
+				below = 0,
+				bar = 0,
+			},
+			{
+				view = Vector2.new(320, 568),
+				height = 782,
+				scale = 0.407,
+				top = 51,
+				stand = 145,
+				below = 148,
+				bar = 0,
+			},
+		}
+		local clear, gap = 82, 8
+		for _, c in cases do
+			local ceiling = c.view.Y * 0.012
+			local floor = c.view.Y - 4 - c.bar
+			local place = RunHudRules.draftUnder({
+				scale = c.scale,
+				top = c.top,
+				height = c.height,
+				clear = clear,
+				stand = c.stand,
+				gap = gap,
+				ceiling = ceiling,
+				floor = floor,
+				below = c.below,
+			})
+			local name = `{c.view.X} x {c.view.Y}`
+			local cards = place.top + clear * place.scale
+			t.isTrue(place.line + gap <= cards + 1e-6, `{name}: the stand-in ends over the cards`)
+			t.isTrue(
+				place.line - c.stand >= ceiling - 1e-6,
+				`{name}: the stand-in is on the screen`
+			)
+			t.isTrue(place.scale <= c.scale + 1e-9, `{name}: the panel never grows for it`)
+			t.isTrue(place.scale >= 0.3, `{name}: the cards stay readable`)
+			t.isTrue(
+				place.top + c.height * place.scale + c.below <= floor + 1e-6,
+				`{name}: the panel and its tray stay over the floor`
+			)
+		end
+		-- a panel that already has the room keeps its place and its size
+		local roomy = RunHudRules.draftUnder({
+			scale = 1,
+			top = 576,
+			height = 898,
+			clear = clear,
+			stand = 210,
+			gap = gap,
+			ceiling = 26,
+			floor = 2034,
+			below = 0,
+		})
+		t.equal(roomy.scale, 1, "a tall screen's panel is not shrunk")
+		t.equal(roomy.top, 576, "nor moved")
+		t.near(roomy.line, 576 + clear - gap, 1e-6, "the stand-in comes down to it")
+	end)
 end

@@ -334,7 +334,13 @@ function StationScreen.new(name: string, stationName: string, promptWords: strin
 			self.open()
 		end
 		wasNear = near
-		if dim.Visible and not near and not fromShortcut then
+		--[[ Walked away from its station; or, opened from a button (REWARDS,
+		     the gear screen's shortcuts), a run started under it: no lobby
+		     screen stays up over a fight. ]]
+		if
+			dim.Visible
+			and ((not near and not fromShortcut) or Workspace:GetAttribute("InLobby") ~= true)
+		then
 			self.close()
 		end
 		-- DeviceSafeInsets handles the notch; Roblox's top bar remains outside the sheet.

@@ -1878,3 +1878,14 @@ nothing outside itself.
 station button is now laid out in points, full width and 60 tall (`StationScreen`'s prompt,
 `Config/LobbyHud`). The X keeps its drawn size and takes presses over at least 48 points round it
 (`Chunky.close`), on every chunky screen.
+
+## Victory showed a purple gem and a different coin from the wallet (2026-11-12)
+
+The game held two coin pictures and two gem pictures: the shop sheet's pair (`ShopAssets`: the wallet,
+the run HUD, every chunky screen) and the end screens' own flat coin and purple gem
+(`EndScreenAssets`: Victory and Defeat's reward slots, the crate reveal's coin burst, and the kill
+coins, which flew to a counter showing the other coin). The Blacksmith store also wrote a gem price
+in words ("58 GEMS") beside coin prices drawn with the coin. Owner: "make sure that the coin and
+diamond icons are universal across the game". `ShopAssets.coin` and `ShopAssets.gem` are now the
+only two (CLAUDE.md rule 15), a gem price is the diamond and the number, and `tools/check.sh` fails
+on a coin or gem picture defined anywhere else.

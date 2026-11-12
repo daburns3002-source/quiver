@@ -716,10 +716,11 @@ local function standOut(kind: string, key: string, centre: Vector3, parent: Inst
 		line(1, item.name, Color3.new(1, 1, 1))
 		--[[ The price as every screen shows one: the game's coin, then the
 		     number (CLAUDE.md rule 15). The pair is centred by the number's
-		     length; a digit is about 0.6 of the line's height wide. ]]
+		     length; a digit is about half the line's height wide (measured
+		     in Studio, 2026-11-12). ]]
 		local amount = tostring(item.price)
 		local tall = board.Size.Y.Scale / 2 / board.Size.X.Scale
-		local wide = #amount * 0.6 * tall
+		local wide = #amount * 0.5 * tall
 		local left = 0.5 - (tall * 1.1 + wide) / 2
 		local coin = Instance.new("ImageLabel")
 		coin.Name = "Coin"

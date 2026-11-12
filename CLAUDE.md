@@ -979,8 +979,10 @@ Coins and gems are drawn with the same two pictures wherever they show (owner, 2
 sure that the coin and diamond icons are universal across the game"; "i like the blue diamond"):
 `ShopAssets.coin` and `ShopAssets.gem`, on every screen, the run HUD, the coins a kill throws and
 the lobby's price signs. A price or a reward shows the picture beside the number, not the word.
-No other config holds a coin or gem picture; `tools/check.sh` fails on one. Soulstones are their
-own currency and keep their own drawn purple stone (`UI/SoulstoneShop`).
+No other config holds a coin or gem picture; `tools/check.sh` fails on one. The coin is the gold
+arrow coin ("can you make a coin that has an arrow on it?", then "B gold"), Codex's, cut by
+`assets/ui/shop/coin_arrow_cutout.py`. Soulstones are their own currency and keep their own drawn
+purple stone (`UI/SoulstoneShop`).
 
 ## Code conventions
 

@@ -83,6 +83,7 @@
 			"triangles": 306,
 			"open_edges": 0,
 			"glows": [],
+			"glow": [],
 			"plan_size": [
 				2.4,
 				2.84,
@@ -126,6 +127,34 @@
 				"#40C8FF",
 				"#BEF0FF"
 			],
+			"glow": [
+				{
+					"size": [
+						0.4605,
+						0.6106,
+						0.4112
+					],
+					"at": [
+						-1.53,
+						1.2595,
+						0.0
+					],
+					"colour": "#40C8FF"
+				},
+				{
+					"size": [
+						0.4605,
+						0.6106,
+						0.4112
+					],
+					"at": [
+						1.53,
+						1.2595,
+						0.0
+					],
+					"colour": "#40C8FF"
+				}
+			],
 			"plan_size": [
 				4.24,
 				2.77,
@@ -159,6 +188,7 @@
 			"triangles": 146,
 			"open_edges": 0,
 			"glows": [],
+			"glow": [],
 			"plan_size": [
 				2.4,
 				0.48,
@@ -192,6 +222,7 @@
 			"triangles": 172,
 			"open_edges": 0,
 			"glows": [],
+			"glow": [],
 			"plan_size": [
 				1.12,
 				0.92,
@@ -225,6 +256,7 @@
 			"triangles": 166,
 			"open_edges": 0,
 			"glows": [],
+			"glow": [],
 			"plan_size": [
 				1.12,
 				0.92,
@@ -258,6 +290,7 @@
 			"triangles": 136,
 			"open_edges": 0,
 			"glows": [],
+			"glow": [],
 			"plan_size": [
 				1.34,
 				0.74,
@@ -291,6 +324,7 @@
 			"triangles": 130,
 			"open_edges": 0,
 			"glows": [],
+			"glow": [],
 			"plan_size": [
 				1.34,
 				0.74,
@@ -324,6 +358,7 @@
 			"triangles": 48,
 			"open_edges": 0,
 			"glows": [],
+			"glow": [],
 			"plan_size": [
 				1.36,
 				0.8,
@@ -357,6 +392,7 @@
 			"triangles": 44,
 			"open_edges": 0,
 			"glows": [],
+			"glow": [],
 			"plan_size": [
 				1.36,
 				0.8,
@@ -390,6 +426,7 @@
 			"triangles": 92,
 			"open_edges": 0,
 			"glows": [],
+			"glow": [],
 			"plan_size": [
 				1.56,
 				0.85,
@@ -423,6 +460,7 @@
 			"triangles": 86,
 			"open_edges": 0,
 			"glows": [],
+			"glow": [],
 			"plan_size": [
 				1.56,
 				0.85,
@@ -456,6 +494,7 @@
 			"triangles": 48,
 			"open_edges": 0,
 			"glows": [],
+			"glow": [],
 			"plan_size": [
 				1.125,
 				0.35,
@@ -489,6 +528,7 @@
 			"triangles": 44,
 			"open_edges": 0,
 			"glows": [],
+			"glow": [],
 			"plan_size": [
 				1.125,
 				0.35,

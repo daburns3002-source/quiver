@@ -37,7 +37,9 @@ instead of cutting triangles.
    from its middle). Each face takes the colour of the Design face it lies
    on; a cap takes its solid's main colour. A colour that is plainly one
    of the plan's takes the plan's value (those were tuned in the game);
-   `--keep-colours` leaves Design's.
+   `--keep-colours` leaves Design's. A mesh is one material, so a glowing
+   block (a crystal) is also written to the JSON as a box (`glow`) for the
+   game to wear over the mesh as Neon.
 
 Nothing is cut out of a body: that was the fault of the class bodies taken
 out on 2026-11-07 (docs/FIXES.md, "Holes in the player bodies").
@@ -317,6 +319,7 @@ class Plan:
             self.part[block["piece"]] = block["part"]
         self.names = list(self.pieces)
         self.colours = sorted({tuple(int(round(v * 255)) for v in block["colour"]) for block in data["sets"][cls]})
+        self.glowing = {tuple(int(round(v * 255)) for v in block["colour"]) for block in data["sets"][cls] if block["glow"]}
         self.region = {}
         for name, parts in REGIONS.items():
             lo = np.min([self.body[p][0] for p in parts], axis=0)
@@ -404,7 +407,7 @@ def split(armour, plan):
         return palette.index(key)
 
     parts = {name: [] for name in plan.names}
-    notes, went = [], {}
+    notes, went, glow = [], {}, {}
     for mesh in armour:
         axis, sign, area = facing(mesh["tris"])
         slanted = int(((axis < 0) & (area > 1e-9)).sum())
@@ -418,6 +421,15 @@ def split(armour, plan):
         label = solids(tris)
         for one in np.unique(label):
             t, c = tris[label == one], ids[label == one]
+            # the solid's glowing blocks (a crystal), each as a box: a mesh
+            # is one material, so the game wears these over it as Neon
+            lit = []
+            for colour in np.unique(c[glows[label == one]]):
+                shining = t[c == colour]
+                group = solids(shining)
+                for g in np.unique(group):
+                    corners = shining[group == g].reshape(-1, 3)
+                    lit.append((corners.min(0), corners.max(0), int(colour)))
             side = {"RightLeg": 1, "LeftLeg": -1}.get(mesh["region"], 0)
             middle = [[0.0] if side else [], [plan.floor], []]
             h_lo, h_hi = plan.body["Head"]
@@ -467,6 +479,7 @@ def split(armour, plan):
             if share[best] >= WHOLE:
                 parts[best].append((grid, fill, t, c, main))
                 went.setdefault(mesh["name"], set()).add(best)
+                glow.setdefault(best, []).extend(lit)
                 continue
             # spans pieces: cut it where the plan's pieces meet
             wanted = [name for name in allowed if share[name] >= 0.05]
@@ -487,8 +500,11 @@ def split(armour, plan):
                     parts[name].append((grid, mask, t, c, main))
                     got.append(name)
             went.setdefault(mesh["name"], set()).update(got)
+            for lo, hi, colour in lit:
+                near = min(wanted, key=lambda name: float(plan.distance(((lo + hi) / 2)[None], name)[0]))
+                glow.setdefault(near, []).append((lo, hi, colour))
             notes.append(f"{mesh['name']}: one solid cut between {', '.join(got)}")
-    return parts, palette, notes, {name: sorted(pieces) for name, pieces in went.items()}
+    return parts, palette, notes, {name: sorted(pieces) for name, pieces in went.items()}, glow
 
 
 def build(piece_parts):
@@ -754,7 +770,7 @@ def main(argv):
     _, armour, fit = best if want == "auto" else next(t for t in tries if t[2]["front"] == want)
     fit["miss_other_way"] = next(round(t[0], 4) for t in tries if t[2] is not fit)
     turned_note = None if best[2] is fit else f"the set fits the plan better facing {best[2]['front']} ({best[0]:.4f} against {fit['miss']}): check --front"
-    parts, palette, notes, went = split(armour, plan)
+    parts, palette, notes, went, glow = split(armour, plan)
     if turned_note:
         notes.append(turned_note)
     # The plan's colours are the ones tuned in the game (the steel and the
@@ -795,6 +811,17 @@ def main(argv):
             "triangles": len(faces),
             "open_edges": gaps,
             "glows": sorted({"#%02X%02X%02X" % shade[i] for i in set(colour_ids.tolist()) if palette[i][3]}),
+            # the glowing blocks the plan also has glowing (its tuned Neon
+            # colour), from the body part's centre like the piece itself
+            "glow": [
+                {
+                    "size": np.round(g_hi - g_lo, 4).tolist(),
+                    "at": np.round((g_lo + g_hi) / 2 - (b_lo + b_hi) / 2, 4).tolist(),
+                    "colour": "#%02X%02X%02X" % shade[colour],
+                }
+                for g_lo, g_hi, colour in glow.get(name, [])
+                if shade[colour] in plan.glowing
+            ],
             "plan_size": np.round(p_hi - p_lo, 3).tolist(),
             "from_plan": {"min": np.round(lo - p_lo, 3).tolist(), "max": np.round(hi - p_hi, 3).tolist()},
         }

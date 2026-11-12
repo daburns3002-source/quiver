@@ -239,6 +239,17 @@ function ClassOutfit.dress(character: Model, class: string, toStandard: boolean?
 			part.Material = Enum.Material.SmoothPlastic
 			local turn = if piece.turned then CFrame.Angles(0, math.pi, 0) else CFrame.new()
 			add(body, part, piece.size, piece.at, turn)
+			--[[ A mesh is one material: its crystals glow as blocks over it. ]]
+			local glows: { ClassOutfits.Block } = piece.glows or {}
+			for _, lit in glows do
+				local crystal = Instance.new("Part")
+				crystal.Name = piece.name
+				crystal.Color = lit.colour
+				crystal.Material = Enum.Material.Neon
+				crystal.TopSurface = Enum.SurfaceType.Smooth
+				crystal.BottomSurface = Enum.SurfaceType.Smooth
+				add(body, crystal, lit.size, lit.at, CFrame.new())
+			end
 		else
 			for _, block in piece.blocks do
 				local part = Instance.new("Part")

@@ -6,7 +6,8 @@
 Reads `assets/models/armour/armour_ids.json` (each piece's mesh id, read off
 the owner's Studio import: the three `<class>_pieces` models, by part name)
 and `assets/models/armour/<class>_pieces.json` (each piece's size and its
-centre from its body part's centre, from `split_set.py`). Studio is only
+centre from its body part's centre, and its glowing blocks as boxes, from
+`split_set.py`). Studio is only
 trusted for the ids. The importer turns a model half round (its -Z comes in
 as +Z), so every piece is worn `turned` (the config's `meshed`). Run
 `tools/check.sh` after: StyLua lays the long lines out.
@@ -38,7 +39,16 @@ def main():
         for name, piece in pieces.items():
             size = ", ".join(number(v) for v in piece["size"])
             at = ", ".join(number(v) for v in piece["at"])
-            lines.append(f'\t\t{name} = {{ id = "rbxassetid://{ids[cls][name]}", size = Vector3.new({size}), at = Vector3.new({at}) }},')
+            glow = ""
+            if piece.get("glow"):
+                boxes = []
+                for box in piece["glow"]:
+                    r, g, b = (int(box["colour"][i : i + 2], 16) for i in (1, 3, 5))
+                    box_size = ", ".join(number(v) for v in box["size"])
+                    box_at = ", ".join(number(v) for v in box["at"])
+                    boxes.append(f"{{ size = Vector3.new({box_size}), at = Vector3.new({box_at}), colour = Color3.fromRGB({r}, {g}, {b}) }}")
+                glow = f", glow = {{ {', '.join(boxes)} }}"
+            lines.append(f'\t\t{name} = {{ id = "rbxassetid://{ids[cls][name]}", size = Vector3.new({size}), at = Vector3.new({at}){glow} }},')
         lines.append("\t},")
     text = CONFIG.read_text(encoding="utf-8")
     block = "-- <meshes>\n" + "\n".join(lines) + "\n\t-- </meshes>"

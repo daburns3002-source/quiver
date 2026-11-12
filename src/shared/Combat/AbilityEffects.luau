@@ -346,10 +346,16 @@ function AbilityEffects.stages(drafted: Counts, class: string?, weapon: string?)
 		table.insert(out, Stages.splash(blast, 0.4))
 	end
 
-	--[[ Chain Lightning arcs an orb on as Ricochet bounces an arrow. ]]
-	local ricochet = at(counts, "Ricochet") + at(counts, "ChainLightning")
+	--[[ Chain Lightning arcs an orb on as Ricochet bounces an arrow, but as
+	     lightning: its arcs leave at a bolt's speed
+	     (`Balance.Projectile.arcSpeed`). ]]
+	local arcs = at(counts, "ChainLightning")
+	local ricochet = at(counts, "Ricochet") + arcs
 	if ricochet > 0 then
-		table.insert(out, Stages.ricochet(ricochet))
+		table.insert(
+			out,
+			Stages.ricochet(ricochet, if arcs > 0 then Balance.Projectile.arcSpeed else nil)
+		)
 	end
 
 	local homing = at(counts, "TrackingEye")

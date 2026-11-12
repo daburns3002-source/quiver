@@ -303,7 +303,7 @@ local function land(swing: Pending, now: number)
 			Burning.ignite(enemy.model, blow * lead.burn, lead.burnDuration, session.player, now)
 			--[[ Soul Chain: the nearest others share the blow, as they would
 			     an arrow's. ]]
-			SoulLink.apply(session.player, lead.link, enemy.model, enemy.position, damage)
+			SoulLink.apply(session.player, lead.link, enemy.model, enemy.position, damage, now)
 		end
 	end
 end

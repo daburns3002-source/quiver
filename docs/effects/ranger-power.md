@@ -116,6 +116,37 @@ GLB: **`fx_blastarrows.glb`**
 
 ## Soul Chain — `SoulChain`, Legendary
 
+**Since 2026-11-11 this is a fireball** (owner: "soul link should be like
+brand ult from league of legends"), built in code with no imported model, so
+the chain described after the rule below is history.
+
+- **What it does now:** the same enemies share the same part of the hit (the
+  nearest `link` others within `linkRange`, `linkShare` each), but as a
+  fireball that leaps from the enemy hit to each in turn, always to the
+  nearest one not yet visited (`Shared/Combat/SoulBounce`). Each takes its
+  share as the fireball lands on it (`Balance.Projectile.linkHop`: 40 studs a
+  second, 0.14 to 0.26 s a leap, queued in `Server/Combat/SoulLink` and
+  stepped with the fight), and is pushed away from where it came from, where
+  before a linked enemy was not pushed at all. `Remotes.SoulLink` carries the
+  enemies in order, where each stood and when each is reached.
+- **The look:** `Fx/Upgrades/SoulFireFx`. Two tumbling neon cubes, a
+  white-hot heart inside orange fire, trailing a flame ribbon and square
+  embers, leaping in an arc with a warm light on the floor under it (which is
+  how the camera above reads the height). Where it lands: a flash, a ring on
+  the floor and a burst of flames, and the enemy burns for 0.75 s (a look
+  only, not Blaze's burn) while the fireball leaps on. The white hit flash
+  and knockback come with the damage, at the same moment.
+- **Phones:** fireballs and bursts are pooled; fireballs at once and flames
+  thrown are the device's share (2 fireballs on the lowest tier, 6 on the
+  best), the burn's flames follow `DeviceTiers.burnParticleRate`.
+- `tests/ChainSoulFx.spec` holds the route, the timetable and the arc.
+  `fx_soulchain.glb` stays in `assets/models/effects/` but is no longer in
+  `model_clips.json` or built by the game.
+
+---
+
+*The first effect, 2026-10-24 to 2026-11-11:*
+
 **Effect.** `HitFeedback.onSoulLink` already draws something — thin neon bars at
 body height between the enemy hit and each enemy sharing the damage. It works,
 but a 0.22-stud bar is a beam, and the card's icon is unmistakably a *chain*.

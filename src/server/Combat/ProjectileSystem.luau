@@ -389,8 +389,8 @@ type Onward = {
 	ricochet: number,
 	from: Model?,
 	--[[ Chain Lightning's arc: the enemy it was sent at, that it is drawn as
-	     lightning between the two, and how long it lives (an arc that finds
-	     nothing dies just past its reach, not across the room). ]]
+	     lightning between the two, and how long it lives
+	     (`Balance.Projectile.arcLife`, not an arrow's life). ]]
 	to: Model?,
 	arc: boolean?,
 	lifetime: number?,
@@ -508,7 +508,6 @@ local function fireRicochet(projectile: Projectile, hit: Model)
 	end
 
 	local arcSpeed = projectile.arcSpeed
-	local reach = Balance.Projectile.ricochetRange + Balance.Projectile.arcOvershoot
 
 	fireOnward(projectile, {
 		origin = Vector3.new(from.X, from.Y, from.Z),
@@ -520,7 +519,7 @@ local function fireRicochet(projectile: Projectile, hit: Model)
 		from = hit,
 		to = if arcSpeed then target.model else nil,
 		arc = if arcSpeed then true else nil,
-		lifetime = if arcSpeed then reach / arcSpeed else nil,
+		lifetime = if arcSpeed then Balance.Projectile.arcLife else nil,
 	})
 end
 

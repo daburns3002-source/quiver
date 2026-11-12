@@ -223,6 +223,31 @@ local function ignite(model: Model?, now: number)
 	flames[part] = { emitter = emitter, untilAt = now + K.burn }
 end
 
+--[[ A burst `f` (0 to 1) of the way through its life: the flash swells and
+     clears, and the ring spreads flat on the floor, which is the part of it
+     the camera above sees whole. ]]
+local function poseBurst(made: Burst, f: number)
+	local eased = 1 - (1 - f) * (1 - f)
+	local size = K.flash * made.scale * (0.4 + 0.6 * eased)
+	made.flash.Size = Vector3.one * size
+	made.flash.CFrame = CFrame.new(made.at) * CFrame.Angles(0, f * 2, 0)
+	made.flash.Transparency = 0.1 + 0.9 * f
+	local ring = K.ring * made.scale * (0.3 + 0.7 * eased)
+	made.ring.Size = Vector3.new(ring, 0.08, ring)
+	made.ring.CFrame = CFrame.new(made.at.X, 0.16, made.at.Z) * CFrame.Angles(0, math.pi / 4, 0)
+	made.ring.Transparency = 0.35 + 0.65 * f
+end
+
+--[[ The light the fireball throws on the floor under it, which shrinks and
+     fades as it rises: how the camera above reads the height of a leap. ]]
+local function poseGlow(ball: Ball, at: Vector3)
+	local high = math.clamp((at.Y - K.height) / K.leap.max, 0, 1)
+	local wide = K.floorGlow * (1 - 0.45 * high)
+	ball.glow.Size = Vector3.new(wide, 0.06, wide)
+	ball.glow.CFrame = CFrame.new(at.X, 0.14, at.Z)
+	ball.glow.Transparency = 0.5 + 0.35 * high
+end
+
 --[[ The fireball bursting into fire at `at`; `scale` under 1 for the small
      flare it is born from. ]]
 local function burst(at: Vector3, scale: number, now: number)
@@ -250,6 +275,7 @@ local function burst(at: Vector3, scale: number, now: number)
 	made.at = at
 	made.scale = scale
 	made.started = now
+	poseBurst(made, 0)
 	made.flash.Parent = parent
 	made.ring.Parent = parent
 	table.insert(bursts, made)
@@ -295,12 +321,7 @@ local function step()
 		ball.core.CFrame = CFrame.new(at) * CFrame.Angles(t * K.spin, t * K.spin * 1.3, 0)
 		ball.shell.CFrame = CFrame.new(at) * CFrame.Angles(-t * K.spin * 0.7, t * K.spin * 0.5, 1)
 		ball.shell.Size = Vector3.one * K.shell * (1 + 0.12 * math.sin(t * 38))
-		--[[ The light on the floor under it shrinks and fades as it rises. ]]
-		local high = math.clamp((at.Y - K.height) / K.leap.max, 0, 1)
-		local wide = K.floorGlow * (1 - 0.45 * high)
-		ball.glow.Size = Vector3.new(wide, 0.06, wide)
-		ball.glow.CFrame = CFrame.new(at.X, 0.14, at.Z)
-		ball.glow.Transparency = 0.5 + 0.35 * high
+		poseGlow(ball, at)
 	end
 
 	for i = #bursts, 1, -1 do
@@ -313,17 +334,7 @@ local function step()
 			table.insert(spareBursts, made)
 			continue
 		end
-		local scale = made.scale
-		local eased = 1 - (1 - f) * (1 - f)
-		local size = K.flash * scale * (0.4 + 0.6 * eased)
-		made.flash.Size = Vector3.one * size
-		made.flash.CFrame = CFrame.new(made.at) * CFrame.Angles(0, f * 2, 0)
-		made.flash.Transparency = 0.1 + 0.9 * f
-		-- flat on the floor, the part of the burst the camera above sees whole
-		local ring = K.ring * scale * (0.3 + 0.7 * eased)
-		made.ring.Size = Vector3.new(ring, 0.08, ring)
-		made.ring.CFrame = CFrame.new(made.at.X, 0.16, made.at.Z) * CFrame.Angles(0, math.pi / 4, 0)
-		made.ring.Transparency = 0.35 + 0.65 * f
+		poseBurst(made, f)
 	end
 
 	for part, flame in flames do
@@ -380,7 +391,7 @@ local function onSoulLink(centre: unknown, models: unknown, reached: unknown, ti
 
 	ball.core.CFrame = CFrame.new(ball.from)
 	ball.shell.CFrame = ball.core.CFrame
-	ball.glow.CFrame = CFrame.new(ball.from.X, 0.14, ball.from.Z)
+	poseGlow(ball, ball.from)
 	ball.core.Parent = parent
 	ball.shell.Parent = parent
 	ball.glow.Parent = parent

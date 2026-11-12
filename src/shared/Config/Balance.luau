@@ -4623,11 +4623,14 @@ local Balance = {
 		--[[ Chain Lightning's arc is a bolt, not an orb in flight (owner,
 		     2026-11-11: "like the stattik shiv effect"): a ricochet off a
 		     shot that carries the card leaves at this speed, so each hop
-		     lands a few hundredths of a second after the last, and dies
-		     `arcOvershoot` studs past the reach if it finds nothing. Damage,
-		     reach and the number of arcs are Ricochet's, as before. ]]
+		     lands a few hundredths of a second after the last. It lives
+		     `arcLife` seconds, not an arrow's: a projectile only moves on a
+		     server step, so its life is counted in steps, and this is enough
+		     of them to cross the reach on a server running at half speed
+		     while one that finds nothing still dies in a blink. Damage, reach
+		     and the number of arcs are Ricochet's, as before. ]]
 		arcSpeed = 320,
-		arcOvershoot = 4,
+		arcLife = 0.1,
 		--[[
 			Half the width of the drawn arrow, and half the width of the box
 			the server sweeps. These two numbers are the hitbox *and* the

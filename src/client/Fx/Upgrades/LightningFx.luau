@@ -149,6 +149,11 @@ local function kink(strike: Strike)
 			lay(strike.pieces[index], fork[s], fork[s + 1], width, along)
 		end
 	end
+	--[[ A bolt with no length has no forks: the pieces kept for them are
+	     never reached by the snap, so never shown. ]]
+	for unused = index + 1, #strike.pieces do
+		strike.pieces[unused].along = math.huge
+	end
 end
 
 --[[ Draws the strike at its present moment: the pieces the snap has
@@ -169,6 +174,15 @@ local function draw(strike: Strike, reveal: number, thin: number)
 		piece.core.Transparency = clear * 0.5
 		piece.glow.Transparency = K.glowClear + (1 - K.glowClear) * clear
 	end
+end
+
+--[[ The flash `f` (0 to 1) of the way through its life: it snaps out wide
+     and thins to nothing, flat, so it is seen from above. ]]
+local function poseFlash(flash: Flash, f: number)
+	local size = K.flash * (0.45 + 0.55 * f)
+	flash.part.Size = Vector3.new(size, 0.3, size)
+	flash.part.CFrame = CFrame.new(flash.at) * CFrame.Angles(0, flash.turn, 0)
+	flash.part.Transparency = 0.15 + 0.85 * f
 end
 
 --[[ Sparks and a flash on an enemy the lightning touches. ]]
@@ -194,9 +208,15 @@ local function touch(at: Vector3, model: Model?)
 	end
 	emitter:Emit(UpgradeFx.budget(K.sparks, 4))
 
-	local part = table.remove(spareFlashes) or neon("BoltFlash", K.coreColour)
-	part.Parent = parent
-	table.insert(flashes, { part = part, started = now, turn = math.random() * math.pi, at = at })
+	local flash: Flash = {
+		part = table.remove(spareFlashes) or neon("BoltFlash", K.coreColour),
+		started = now,
+		turn = math.random() * math.pi,
+		at = at,
+	}
+	poseFlash(flash, 0)
+	flash.part.Parent = parent
+	table.insert(flashes, flash)
 end
 
 local function step()
@@ -247,11 +267,7 @@ local function step()
 			table.remove(flashes, i)
 			continue
 		end
-		-- snaps out wide and thins to nothing: flat, so it is seen from above
-		local size = K.flash * (0.45 + 0.55 * f)
-		flash.part.Size = Vector3.new(size, 0.3, size)
-		flash.part.CFrame = CFrame.new(flash.at) * CFrame.Angles(0, flash.turn, 0)
-		flash.part.Transparency = 0.15 + 0.85 * f
+		poseFlash(flash, f)
 	end
 end
 

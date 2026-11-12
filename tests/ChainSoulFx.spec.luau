@@ -171,12 +171,17 @@ return function(t: TestRunner.Helper)
 		local longest = Projectile.ricochetRange / Projectile.arcSpeed
 		t.isTrue(longest <= 0.06, `the longest hop takes {longest} s`)
 		t.isTrue(Projectile.arcSpeed > Projectile.speed, "an arc is slower than an arrow")
-		t.isTrue(Projectile.arcOvershoot > 0, "an arc dies before the edge of its reach")
-		-- and one that finds nothing does not cross the room
+		--[[ A projectile moves only on a server step and not at all once its
+		     life is over, so an arc's life is counted in steps: it must still
+		     cross its whole reach on a server running at 30 steps a second,
+		     and die sooner than an arrow when it finds nothing. ]]
+		local slowStep = 1 / 30
+		local steps = math.floor(Projectile.arcLife / slowStep + 1e-6)
 		t.isTrue(
-			Projectile.arcOvershoot < Projectile.ricochetRange,
-			"a missed arc flies on as far again"
+			steps * slowStep * Projectile.arcSpeed >= Projectile.ricochetRange,
+			"on a slow server an arc dies before the edge of its reach"
 		)
+		t.isTrue(Projectile.arcLife < Projectile.lifetime, "a missed arc outlives an arrow")
 	end)
 
 	t.test("the bolt crackles and is gone in a fraction of a second", function()

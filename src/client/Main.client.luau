@@ -19,6 +19,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local ArcanistBuildFx = require(script.Parent.Fx.Upgrades.ArcanistBuildFx)
 local ArcanistFx = require(script.Parent.Fx.Upgrades.ArcanistFx)
 local AreaLoading = require(script.Parent.UI.AreaLoading)
+local BadgeCase = require(script.Parent.UI.BadgeCase)
 local Balance = require(Shared.Config.Balance)
 local BoardYou = require(script.Parent.UI.BoardYou)
 local BossBanner = require(script.Parent.UI.BossBanner)
@@ -538,6 +539,8 @@ GearScreen.start()
 DexScreen.start()
 -- the login calendar, quests and starter list, and each board's YOU row
 RewardsScreen.start()
+-- the BADGES case: a badge for each boss beaten, under REWARDS
+BadgeCase.start()
 BoardYou.start()
 -- the pets in this player's two slots, at heel
 PetPreview.follow()

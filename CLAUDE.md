@@ -455,7 +455,7 @@ called by `Wallet.grantWeapon`, `grantPet` and `meetEnemy`), with a toast. Each 
 with gym badges"; `Config/BossBadges`, `UI/BadgeCase`): one badge per area boss, the boss's face on a gold-rimmed
 medal in the area's colour (Codex's version A, which the owner picked; `assets/concepts/blocky/ui/badges/`, cut by
 `assets/ui/badges/cutout.py`). Earned the first time the boss falls, which is `profile.bossesBeaten` and nothing
-new; the BADGES button under REWARDS opens the case, an unearned badge drawn as its black silhouette. A new area's
+new; the BADGES button under REWARDS opens the case, an unearned badge dimmed, its boss just showing. A new area's
 boss needs its badge drawn from the same prompt: `tests/BossBadges.spec` fails until every area with a boss has one.
 
 **Portals open a screen; the lobby sprints and jumps** (owner, 2026-10-26): walking into a lit

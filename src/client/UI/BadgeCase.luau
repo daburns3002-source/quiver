@@ -8,9 +8,8 @@
 	A badge is earned the first time its boss is beaten, which the server
 	already keeps (`profile.bossesBeaten`); the screen only reads the profile
 	the server sent. An earned badge is drawn in full with sparkles on it
-	and its area's name under the boss's; one still to earn is its own
-	picture tinted black, as the Dex draws an entry not yet found, so the
-	shape is the hint.
+	and its area's name under the boss's; one still to earn is dimmed, its
+	boss's face just showing, with NOT BEATEN YET under the name.
 ]]
 
 local Players = game:GetService("Players")
@@ -30,6 +29,8 @@ local BadgeCase = {}
 
 local player = Players.LocalPlayer
 local screen: StationScreen.Screen? = nil
+--[[ The tint on a badge still to earn. ]]
+local LOCKED = Color3.fromRGB(64, 70, 92)
 
 function BadgeCase.open()
 	local s = screen
@@ -85,13 +86,16 @@ local function badgeCard(
 	holder.BackgroundTransparency = 1
 	holder.ZIndex = 8
 	Chunky.put(sheet, holder, x + (w - side) / 2, y + w * 0.08, side, side)
-	local medal = Kit.image(holder, badge.image, not earned)
+	local medal = Kit.image(holder, badge.image)
 	medal.ZIndex = 9
 	if earned then
 		Chunky.twinkle(holder)
 	else
-		-- an empty slot, not a dark coin
-		medal.ImageTransparency = 0.45
+		--[[ Dimmed, not black: every badge is round, so a silhouette
+		     would be the same plain disc four times. The boss's face
+		     still shows through, dark, like a medal not yet polished. ]]
+		medal.ImageColor3 = LOCKED
+		medal.ImageTransparency = 0.25
 	end
 	local below = y + w * 0.08 + side + h * 0.03
 	words(sheet, bossOf(badge.area), x + 16, below, w - 32, h * 0.085, Chunky.white, 4)
@@ -132,7 +136,8 @@ local function draw(s: StationScreen.Screen)
 	local top = area.y + 80
 	local room = area.bottom - top
 	local cw = (area.w - (cols - 1) * gap) / cols
-	local ch = math.min(cw * 1.45, (room - (rows - 1) * gap) / rows)
+	-- tall enough for the medal and its two lines, and no more
+	local ch = math.min(cw * 1.2, (room - (rows - 1) * gap) / rows)
 	-- the cards sit in the middle of the room left
 	local used = rows * ch + (rows - 1) * gap
 	local y0 = top + math.max(0, (room - used) / 2)

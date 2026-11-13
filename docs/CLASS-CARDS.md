@@ -34,7 +34,37 @@ codex." This picks option C of `docs/WARDEN-CARDS.md` (a card set per class).
   Whirlwind, Shockwave and Battle Cry have sounds waiting on the owner's picks
   (audition round 19).
 
-## The class upgrades (owner's picks, 2026-10-27)
+## Every class a ladder of four (owner's pick C, 2026-11-13)
+
+Owner: "ALSO OPEN A SESSION ABOUT UPGRADES FOR EACH CLASS"; three options were drawn up
+(https://claude.ai/artifact/GtaYeXMmNJLiCgb9MbHKNR) and the owner picked **C**: every class gets a
+class upgrade at Rare, Epic, Legendary and Mythic, and the pools are evened out. Then, as Sniper
+Shot first read like Overdraw: "sniper shot and wind arrows, sniper shot should replace overdraw".
+So Overdraw is benched and Wind Arrows came in as well. Pools now: Ranger 17, Arcanist 16, Warden 16
+(`tests/ClassCards.spec` keeps them within a card of each other).
+
+| Card | Class | Rarity | What it does |
+|---|---|---|---|
+| Sniper Shot | Ranger | Rare | Stand still 3 s (and 3 s after each one) and the next volley also fires a gold sniper arrow, 1.4x an arrow's speed, through every enemy to the wall, 0.75x and always a crit. A gold cross glints over the archer while it is ready. |
+| Split Shot | Ranger | Epic | An arrow that kills sends 3 green splinters on from the kill, 25 degrees apart, 0.4x each, 14 studs. Splinters never split. |
+| Wind Arrows | Ranger | Uncommon | A hit shoves the enemy its own knockback again; enemy shots within 1.6 studs of a flying arrow are blown away (the Parry path), with a puff. |
+| Mana Surge | Arcanist | Rare | A kill charges the staff (a blue flare); the next cast deals 1.5x and its blast is 1.5x wide, drawn in a big blue shell. |
+| Frost Orb | Arcanist | Uncommon | Orbs slow what they hit by 25% / 40% for 2 s; a chilled enemy has ice round its feet (`FrostUntil`, any orb's slow, Elemental ice too). |
+| Arcane Shield | Arcanist | Uncommon | A ring of violet panels blocks one hit whole, then comes back in 10 s / about 7 (its level is shields a second, so levels rise). |
+| Shield Throw | Warden | Rare | The dash throws a shield at the nearest enemy within 22 studs, then on to the nearest not yet struck within 14, 3 hits of 0.5x, each landing as the shield arrives, and home. Shares Earthbreaker's dash check. |
+| Blade Storm | Warden | Legendary | Every 5th blow that lands throws the sword 12 studs along the swing and back in 0.9 s (stopped by cover), striking each enemy once out and once back, 0.7x a pass. |
+| Sunder | Warden | Rare | What a blow strikes takes +10% / +20% damage from everything for 3 s; red cracks over it (`SunderedUntil`). |
+
+Server: `Combat/ClassUpgrades` (Sniper Shot, Mana Surge's spend, Shield Throw's hops, Blade
+Storm's swords, and `dress` for Split Shot, Wind Arrows and Frost Orb), `Combat/ProjectileSystem`
+(splinters, gusts), `Run/RunSession` (Arcane Shield, Mana Surge's charge),
+`Enemies/EnemyManager` (`sunder`, `knock`, the frost mark). Numbers in `Balance.Player`
+(`sniper`, `splitShot`, `wind`, `manaSurge`, `frost`, `shieldThrow`, `bladeStorm`, `sunder`).
+Client: `Fx/Upgrades/ClassCardFx`, voxel cubes like the rest. Icons: Codex
+(`assets/concepts/blocky/ui/cards/class_upgrades_2026_11_13.sh`, the prompts beside them),
+composed by `compose_icon.py`. Sounds: seven new hooks beside the seven old ones, auditioned on
+page 28 (`assets/audio/class_card_synth.py`).
+
 
 From `docs/UPGRADES-BRAINSTORM.md` ("i like the phoenix arrow idea and rain of
 arrows, i like the black hole idea, elemental orbs, and arcane turret. i like

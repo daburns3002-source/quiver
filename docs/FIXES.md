@@ -16,6 +16,17 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## "ArcaneShield level 2 is no better than level 1" (2026-11-13, caught by the suite before shipping)
+
+The in-Roblox suite failed `AbilityEffects › every card's level count matches its stat lines` on the new
+Arcane Shield card, whose levels were the seconds before the shield comes back (10, then 7): a card's levels
+must rise, because `Loadout` and the card's level pips read a bigger number as a better level. **Write a
+cooldown card's level as a rate** (shields a second, 0.1 then 0.15) and turn it back into seconds where it is
+used (`RunSession.applyDamage`: `1 / rate`). The stat line still says "Back every 10s". Not shipped; recorded
+because the next cooldown card will meet the same test.
+
+---
+
 ## DEFEAT said "LEVEL 18"; the lobby's buttons peeked out beside a portal's panel; the run's bars showed under DEFEAT (2026-11-13)
 
 Found by the polish playthrough (owner: "play through everything and make sure everything is

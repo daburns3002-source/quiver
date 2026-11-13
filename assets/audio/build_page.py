@@ -195,6 +195,29 @@ ROUND_21 = [
     }),
 ]
 
+ROUND_28 = [
+    ("Round 28 · the Ranger's class cards", {
+        "fx_phoenix": ("Phoenix Arrow", "Every 8th shot a firebird flies through every enemy, leaving burning ground. Plays as it leaves the bow.", None),
+        "fx_arrow_rain": ("Rain of Arrows", "Every 6th shot an arrow goes up and 12 rain down on the target 0.6 s later.", None),
+        "fx_sniper": ("Sniper Shot", "Stand still for 3 s and a gold sniper arrow flies through everything with your next shot.", None),
+        "fx_split_shot": ("Split Shot", "An arrow that kills splits into three green splinters. Plays on every such kill.", (0.5, 3)),
+        "fx_wind_gust": ("Wind Arrows", "An arrow blows an enemy shot out of the air in a puff of wind.", (0.4, 3)),
+    }),
+    ("Round 28 · the Arcanist's class cards", {
+        "fx_black_hole": ("Black Hole · opens", "Every 7th cast a hole opens on the target and drags enemies in for 2 s.", None),
+        "fx_black_hole_implode": ("Black Hole · implodes", "The hole snaps shut in a blast.", None),
+        "fx_turret": ("Arcane Turret", "Every 10 s a crystal rises beside you and casts orbs for 6 s.", None),
+        "fx_mana_surge": ("Mana Surge", "A kill charges your staff with a blue flare; the next orb is bigger.", (0.8, 3)),
+        "fx_arcane_shield": ("Arcane Shield", "Your shield takes a hit and shatters; it comes back 10 s later.", None),
+    }),
+    ("Round 28 · the Warden's class cards", {
+        "fx_titan_slam": ("Titan's Grip", "With the giant sword, every slam shakes the room.", (1.2, 3)),
+        "fx_counter_strike": ("Counter Strike", "After you are hit, your next swing deals triple damage with a red burst and COUNTER!", None),
+        "fx_shield_throw": ("Shield Throw", "Your dash throws a spinning shield that bounces between three enemies.", None),
+        "fx_blade_storm": ("Blade Storm", "Every 5th swing throws your sword spinning out and back.", None),
+    }),
+]
+
 # page: (rounds, picks collection, sounds already chosen, shown for context)
 ROUND_18 = [
     ("Round 18 · King Bloblin's attacks, two big takes each", {
@@ -230,6 +253,7 @@ ROUND_18 = [
 ]
 
 PAGES = {
+    "28": (ROUND_28, "picks28cards", []),
     "21": (ROUND_21, "picks21", []),
     "20": (ROUND_20, "picks20", []),
     "19": (ROUND_19, "picks19", []),

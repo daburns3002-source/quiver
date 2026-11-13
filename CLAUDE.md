@@ -357,7 +357,11 @@ Walk at the character's pace) under the upper-body Hold; the sword a
 (`WeaponPose.playSpecial`), whose Impact marker times the server's slam. Each class
 drafts its own cards plus a shared twelve (`Ability.classes`,
 `docs/CLASS-CARDS.md`): wave 1 of the Warden's and the Arcanist's is built,
-wave 2 is designed and has its icons. Each class has one Mythic: Dual Bows,
+wave 2 is designed and has its icons. **Every class has a ladder of four class upgrades, Rare to Mythic** (owner's pick C,
+2026-11-13, `docs/CLASS-CARDS.md`): Ranger Sniper Shot, Split Shot, Rain of Arrows, Phoenix Arrow (and Wind Arrows;
+Overdraw is benched, Sniper Shot took its place); Arcanist Mana Surge, Elemental Orbs, Arcane Turret, Black Hole (and
+Frost Orb, Arcane Shield); Warden Shield Throw, Counter Strike, Blade Storm, Titan's Grip (and Sunder). The new ones are
+drawn by `Fx/Upgrades/ClassCardFx`; the pools stay within a card of each other (`tests/ClassCards.spec`). Each class has one Mythic: Dual Bows,
 **Meteor** (every 5th cast) and **Earthbreaker** (the dash ends in a slam
 and erupting cracks), both resolved by `Combat/AreaStrikes`. They look as the
 owner's mythic-fx.js draws them (`Fx/MythicFx`, `Balance.MythicFx`, budgeted
@@ -737,7 +741,11 @@ stage (Studio only), to test the boss without fighting through the level; a jump
 counts as won, so unlocking can be tested.
 From a probe, `Remotes.DebugGrant:FireServer("Cleave")` grants one level of
 any card (Studio only), to test a card's effect without drafting it.
-**K** — spawn a wilf (`Remotes.DebugSpawnEnemy`, any `Balance.Enemies` key from a probe).
+**K** — spawn a wilf (`Remotes.DebugSpawnEnemy`, any `Balance.Enemies` key from a probe; a name that is not one,
+such as "MossSlime", spawns nothing). `Remotes.RunRestart` does nothing mid-run (only once the run is over), so a
+probe's granted cards and spawned enemies pile up in one run. To start a level from a probe, put the character at
+its portal's mouth from the Server VM (`Workspace.Lobby.Portal_<i>`, about 7 studs toward the courtyard) and fire
+`PortalStart(i, level)`; `LobbyPlay` walks to the frontier portal, which with every Mossy level beaten is not 1.
 **P** — the pets the owner imported follow you, playing their own clips
 (`Fx/PetPreview`, built by `Server/Dev/PetPreview` from `Config/PetModels`); P again
 puts them away. Each moves as itself (`Config/PetGaits`, `Util/PetGait`: its pace, tilts, hover and fidget, one per pet, pinned by `tests/PetGaits.spec`). A look only, until Phase 6's pet system.

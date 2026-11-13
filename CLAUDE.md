@@ -451,6 +451,13 @@ called by `Wallet.grantWeapon`, `grantPet` and `meetEnemy`), with a toast. Each 
 "YOU: #N" row (`Run/BoardYou`, `Util/BoardRank`, `UI/BoardYou`; `docs/LEADERBOARD.md`). Studio:
 `Remotes.DebugDay:FireServer(n)` moves the player's reward day on.
 
+**Boss badges** (owner, 2026-11-12: "a blocky circular icon ... for each boss ... like how they do in pokemon
+with gym badges"; `Config/BossBadges`, `UI/BadgeCase`): one badge per area boss, the boss's face on a gold-rimmed
+medal in the area's colour (Codex's version A, which the owner picked; `assets/concepts/blocky/ui/badges/`, cut by
+`assets/ui/badges/cutout.py`). Earned the first time the boss falls, which is `profile.bossesBeaten` and nothing
+new; the BADGES button under REWARDS opens the case, an unearned badge drawn as its black silhouette. A new area's
+boss needs its badge drawn from the same prompt: `tests/BossBadges.spec` fails until every area with a boss has one.
+
 **Portals open a screen; the lobby sprints and jumps** (owner, 2026-10-26): walking into a lit
 portal opens `UI/PortalScreen` (the area, its levels from `Config/Lobby.portals[i].levels`, START;
 Mossy Glade's ten as numbered buttons in two rows of five, locked ones dimmed under a lock, beaten

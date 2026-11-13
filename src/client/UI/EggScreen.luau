@@ -120,7 +120,7 @@ function EggScreen.start()
 			tabs = {},
 			tiles = tiles,
 			locked = if not unlocked
-				then "BEAT KING BLOBLIN"
+				then EggRules.lockWords(egg, if p then p.bossesBeaten else {}) or "LOCKED"
 				elseif #pool == 0 then "COMING SOON"
 				else nil,
 			pity = if p then p.pity.eggs else 0,

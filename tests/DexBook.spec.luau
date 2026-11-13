@@ -16,6 +16,7 @@ local Eggs = require(ReplicatedStorage.Shared.Config.Eggs)
 local NewEnemies = require(ReplicatedStorage.Shared.Config.NewEnemies)
 local Pets = require(ReplicatedStorage.Shared.Config.Pets)
 local SaveSchema = require(ReplicatedStorage.Shared.Util.SaveSchema)
+local ShopAssets = require(ReplicatedStorage.Shared.Config.ShopAssets)
 local TestRunner = require(script.Parent.TestRunner)
 local UiContrast = require(ReplicatedStorage.Shared.Util.UiContrast)
 
@@ -337,6 +338,14 @@ return function(t: TestRunner.Helper)
 			t.notNil(Dex.books[name], `{name} has art`)
 			local entries = DexBook.entries(name, nil)
 			t.isTrue(#entries > 0, `{name} has entries`)
+		end
+	end)
+
+	t.test("a weapon's picture is the same in the grid, on its page and in the shop", function()
+		-- owner, 2026-11-13: "make sure the icons for everything ... all match"
+		for _, entry in DexBook.entries("Weapons", nil) do
+			t.equal(entry.icon, ShopAssets.weapons[entry.key], entry.key)
+			t.equal(entry.picture, entry.icon, entry.key)
 		end
 	end)
 end

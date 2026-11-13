@@ -184,7 +184,11 @@ function DexBook.entries(book: string, profile: SaveSchema.Profile?): { Entry }
 					entry = {
 						key = key,
 						name = label(key),
-						icon = GearAssets.weapons[key] or art,
+						--[[ the same 2D art as every other screen's (the Blacksmith,
+						     Gear, the reveal); the grid showed the old mini pixel
+						     icons for the first two areas' weapons until
+						     2026-11-13 (owner: "make sure the icons ... all match") ]]
+						icon = art,
 						picture = art,
 						description = LoadingPick.describeWeapon(key),
 						unlocked = owned[key] == true,

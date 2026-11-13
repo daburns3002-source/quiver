@@ -1,0 +1,16 @@
+{
+ "name": "WardenMale",
+ "source": "warden_male_set.glb",
+ "triangles": 2994,
+ "size": [
+  4.659,
+  6.92,
+  1.999
+ ],
+ "centre": [
+  0.0,
+  3.3895,
+  0.0665
+ ],
+ "colours": 20
+}

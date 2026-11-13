@@ -1,0 +1,16 @@
+{
+ "name": "ArcanistMale",
+ "source": "arcanist_male_set.glb",
+ "triangles": 3516,
+ "size": [
+  3.1909,
+  7.2649,
+  2.8495
+ ],
+ "centre": [
+  -0.0891,
+  3.558,
+  0.0128
+ ],
+ "colours": 11
+}

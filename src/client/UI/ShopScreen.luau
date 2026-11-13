@@ -13,6 +13,7 @@ local Chunky = require(script.Parent.Chunky)
 local GearAssets = require(ReplicatedStorage.Shared.Config.GearAssets)
 local HatchStand = require(script.Parent.HatchStand)
 local Kit = require(script.Parent.Kit)
+local MergeRules = require(ReplicatedStorage.Shared.Util.MergeRules)
 local Purse = require(ReplicatedStorage.Shared.Util.Purse)
 local Rarities = require(ReplicatedStorage.Shared.Config.Rarities)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
@@ -141,7 +142,10 @@ local function drawStore(s: StationScreen.Screen, area: HatchStand.Area)
 		local square = Instance.new("UIAspectRatioConstraint")
 		square.Parent = holder
 		holder.Parent = row
-		Chunky.tile(holder, entry.rarity, picture(entry.weapon), nil, false, owned)
+		local tile = Chunky.tile(holder, entry.rarity, picture(entry.weapon), nil, false, owned)
+		if p and owned then
+			Chunky.tier(tile, MergeRules.best(p.tiers.weapons[entry.weapon]) or "C")
+		end
 		local nameText = Chunky.text(row, entry.label, Chunky.navy, 0)
 		nameText.TextXAlignment = Enum.TextXAlignment.Left
 		nameText.Position, nameText.Size =
@@ -296,6 +300,9 @@ function ShopScreen.start()
 				icon = picture(entry.weapon),
 				chance = ShopRules.chance(selected, entry, holds.class),
 				owned = owned,
+				tier = if p and owned
+					then MergeRules.best(p.tiers.weapons[entry.weapon]) or "C"
+					else nil,
 				silhouette = entry.rarity == "Mythic" and not owned,
 			})
 		end

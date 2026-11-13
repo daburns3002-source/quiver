@@ -125,4 +125,17 @@ UiPalette.rarity = {
 	Mythic = tile("#FFDDEA", "#FFB8D4", "#DC5294"),
 } :: { [string]: Tile }
 
+--[[ The merge tiers' badge, a letter in the bottom left of a weapon's or a
+     pet's tile (owner, 2026-11-12: "a letter at the bottom left that is
+     colored as well that indicates which merge level the gear and pets
+     are"), one colour a tier: bronze, steel, gold and ruby, the order of a
+     podium with S above it. None is a rarity's frame colour, so the letter
+     is never read as the rarity. Small words: each stands 4.5:1. ]]
+UiPalette.tier = {
+	C = face("#A35F2B", "#8F4F22", WHITE, "#4A260C"),
+	B = face("#527391", "#456480", WHITE, "#1D3246"),
+	A = face("#FFD95E", "#FFC53A", UiPalette.ink, nil),
+	S = face("#D2315A", "#BC2550", WHITE, "#5C0F25"),
+} :: { [string]: Face }
+
 return table.freeze(UiPalette)

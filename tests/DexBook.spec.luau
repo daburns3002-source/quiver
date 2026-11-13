@@ -1,7 +1,7 @@
 --!strict
 --[[
 	The Dex Hall's three books (`Util/DexBook`): what each one holds, what a
-	player has found of it, and how it falls into pages of nine.
+	player has found of it, and how it falls into a page an area.
 
 	The point of the dex is that it shows everything and hides what you have
 	not found, so the two things worth pinning are that nothing goes missing
@@ -12,9 +12,12 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Dex = require(ReplicatedStorage.Shared.Config.Dex)
 local DexBook = require(ReplicatedStorage.Shared.Util.DexBook)
+local Eggs = require(ReplicatedStorage.Shared.Config.Eggs)
 local NewEnemies = require(ReplicatedStorage.Shared.Config.NewEnemies)
+local Pets = require(ReplicatedStorage.Shared.Config.Pets)
 local SaveSchema = require(ReplicatedStorage.Shared.Util.SaveSchema)
 local TestRunner = require(script.Parent.TestRunner)
+local UiContrast = require(ReplicatedStorage.Shared.Util.UiContrast)
 
 local PER_PAGE = Dex.books[Dex.order[1]].grid.columns * Dex.books[Dex.order[1]].grid.rows
 
@@ -131,6 +134,42 @@ return function(t: TestRunner.Helper)
 		t.isTrue(wasFound(DexBook.entries("Pets", profile), first.key), "a hatched pet is found")
 	end)
 
+	--[[ The letter on a found tile is the best merge tier held of it
+	     (`Util/MergeRules`); nothing not found, and no enemy, wears one. ]]
+	t.test("a found weapon or pet carries its best merge tier", function()
+		local profile = SaveSchema.default()
+		for _, book in DexBook.BOOKS do
+			for _, entry in DexBook.entries(book, profile) do
+				if book == "Enemies" or not entry.unlocked then
+					t.isNil(entry.tier, `{entry.key} has a tier`)
+				else
+					t.equal(entry.tier, "C", `{entry.key} starts at C`)
+				end
+			end
+		end
+		local pet = DexBook.entries("Pets", profile)[1].key
+		profile.pets[pet] = 4
+		profile.tiers.pets[pet] = { C = 1, B = 1 }
+		local weapon: string? = nil
+		for _, entry in DexBook.entries("Weapons", profile) do
+			if entry.unlocked then
+				weapon = entry.key
+				break
+			end
+		end
+		profile.tiers.weapons[weapon :: string] = { S = 1 }
+		for _, entry in DexBook.entries("Pets", profile) do
+			if entry.key == pet then
+				t.equal(entry.tier, "B")
+			end
+		end
+		for _, entry in DexBook.entries("Weapons", profile) do
+			if entry.key == weapon then
+				t.equal(entry.tier, "S")
+			end
+		end
+	end)
+
 	--[[ Zero of a pet is not one: the hatchery writes counts, and a pet
 	     released back down to none should go dark again. ]]
 	t.test("none of a pet is not found", function()
@@ -149,25 +188,97 @@ return function(t: TestRunner.Helper)
 		end
 	end)
 
-	t.test("pages are nine to a spread and lose nothing", function()
-		t.equal(PER_PAGE, 9)
+	--[[ A book is a page an area (owner, 2026-11-12: "the dexes should be 1
+	     page for each area"): the pages are the areas the book has anything
+	     from, in the order the game plays them, and between them they hold
+	     every entry once. ]]
+	t.test("a book is a page an area, in the order played, and loses nothing", function()
 		for _, book in DexBook.BOOKS do
 			local entries = DexBook.entries(book, nil)
-			local pages = DexBook.pages(entries, PER_PAGE)
-			local seen = 0
-			for index = 1, pages do
-				local page = DexBook.page(entries, index, PER_PAGE)
-				t.isTrue(#page <= PER_PAGE, `{book} page {index} fits`)
-				t.isTrue(#page > 0, `{book} page {index} is not empty`)
+			local areas = DexBook.areas(entries)
+			t.isTrue(#areas > 0, `{book} has a page`)
+			local seen, last = 0, 0
+			for _, area in areas do
+				local at = table.find(DexBook.AREAS, area)
+				t.notNil(at, `{book} has a page for {area}, which is not an area`)
+				t.isTrue((at or 0) > last, `{book}'s pages are out of order at {area}`)
+				last = at or last
+				local page = DexBook.inArea(entries, area)
+				t.isTrue(#page > 0, `{book}'s {area} page is empty`)
+				for _, entry in page do
+					t.equal(entry.area, area)
+				end
 				seen += #page
 			end
-			t.equal(seen, #entries, `{book} pages hold every entry`)
+			t.equal(seen, #entries, `{book}'s pages hold every entry`)
 		end
 	end)
 
-	t.test("an empty book is still one page", function()
-		t.equal(DexBook.pages({}, PER_PAGE), 1)
-		t.equal(#DexBook.page({}, 1, PER_PAGE), 0)
+	--[[ "bigger icons on the right page": a page is laid out for at most
+	     `Dex.pageMost` tiles. An area with more would draw them smaller
+	     than the pages of nine this replaced. ]]
+	t.test("no area's page holds more than the page is laid out for", function()
+		for _, book in DexBook.BOOKS do
+			local entries = DexBook.entries(book, nil)
+			for _, area in DexBook.areas(entries) do
+				local count = #DexBook.inArea(entries, area)
+				t.isTrue(count <= Dex.pageMost, `{book}, {area}: {count} tiles on one page`)
+			end
+		end
+	end)
+
+	t.test("an empty book has no pages, and an unknown area's page is empty", function()
+		t.equal(#DexBook.areas({}), 0)
+		t.equal(#DexBook.inArea(DexBook.entries("Pets", nil), "NoSuchArea"), 0)
+	end)
+
+	--[[ "the page should also be themed to match the area": every area a
+	     book has a page for has its look, its name reads on its plate, and
+	     its scenery is cut from inside the area's own NEW ENEMY! sheet. ]]
+	t.test("every area's page has its own look", function()
+		local plates: { Color3 } = {}
+		for _, area in DexBook.AREAS do
+			local theme = Dex.areas[area]
+			t.notNil(theme, `{area} has no page look`)
+			t.isTrue(theme.name ~= "", `{area} has no name`)
+			t.notNil(NewEnemies.sheets[area], `{area} has no sheet to cut its scenery from`)
+			local scene = theme.scene
+			t.isTrue(scene.w > 0 and scene.h > 0, `{area} has no scenery`)
+			t.isTrue(
+				scene.x >= 0 and scene.x + scene.w <= Dex.sceneCanvas.X,
+				`{area} scenery across`
+			)
+			t.isTrue(scene.y >= 0 and scene.y + scene.h <= Dex.sceneCanvas.Y, `{area} scenery down`)
+			local face = UiContrast.faceOf(theme.plate)
+			t.isTrue(
+				UiContrast.contrast(face.text, theme.plate) >= 3,
+				`{area}'s name does not read on its plate`
+			)
+			for _, other in plates do
+				t.isTrue(other ~= theme.plate, `{area} shares another area's plate`)
+			end
+			table.insert(plates, theme.plate)
+		end
+		for _, book in DexBook.BOOKS do
+			for _, area in DexBook.areas(DexBook.entries(book, nil)) do
+				t.notNil(Dex.areas[area], `{book} has a page for {area}, which has no look`)
+			end
+		end
+	end)
+
+	--[[ A pet's page is its area's, and an egg's pets are its area's: a pet
+	     filed under the wrong area would sit on the wrong page. ]]
+	t.test("a pet's area is its egg's", function()
+		for key, pet in Pets do
+			t.notNil(table.find(DexBook.AREAS, pet.area), `{key}'s area is not an area`)
+			if pet.egg then
+				for _, egg in Eggs.list do
+					if egg.key == pet.egg then
+						t.equal(pet.area, egg.area, `{key} is in another area's egg`)
+					end
+				end
+			end
+		end
 	end)
 
 	--[[ Every book needs its spread and its six turn frames, or the screen

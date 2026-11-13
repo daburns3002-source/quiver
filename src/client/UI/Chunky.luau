@@ -835,6 +835,7 @@ function Chunky.tile(
 		standing.ZIndex = 8
 	elseif art ~= "" then
 		local picture = Kit.image(t, art)
+		picture.Name = "Picture"
 		picture.Position, picture.Size = UDim2.fromScale(0.1, 0.06), UDim2.fromScale(0.8, 0.68)
 		picture.ZIndex = 8
 		if hidden then
@@ -879,6 +880,43 @@ function Chunky.tile(
 		Kit.owned(t)
 	end
 	return t
+end
+
+--[[
+	The merge tier of the weapon or pet on a tile (`Util/MergeRules`: C, B,
+	A, S), as a letter on a square of the tier's own colour in the tile's
+	bottom left (owner, 2026-11-12: "a letter at the bottom left that is
+	colored as well that indicates which merge level the gear and pets
+	are"). Every screen that shows a held weapon or pet calls this, so the
+	badge is the same everywhere; the colours are `Config/UiPalette.tier`.
+	The tile's caption, if it has one, moves over to make room. Nil for a
+	tier there is no colour for.
+]]
+function Chunky.tier(tile: GuiObject, tier: string?): Frame?
+	local look = if tier then Palette.tier[tier] else nil
+	if not tier or not look then
+		return nil
+	end
+	local badge = fill(tile, Color3.new(1, 1, 1), 14)
+	badge.Name = "Tier"
+	badge.AnchorPoint = Vector2.new(0, 1)
+	badge.Position, badge.Size = UDim2.fromScale(0.05, 0.95), UDim2.fromScale(0.3, 0.3)
+	gradient(badge, look.top, look.bottom)
+	local square = Instance.new("UIAspectRatioConstraint")
+	square.Parent = badge
+	local curve = Instance.new("UICorner")
+	curve.CornerRadius = UDim.new(0.28, 0)
+	curve.Parent = badge
+	Chunky.outline(badge, 4, look.edge)
+	local letter = Chunky.text(badge, tier, look.text, if look.stroke then 3 else 0, look.stroke)
+	letter.Name = "Letter"
+	letter.Position, letter.Size = UDim2.fromScale(0.12, 0.04), UDim2.fromScale(0.76, 0.92)
+	letter.ZIndex = 15
+	local chip = tile:FindFirstChild("Caption")
+	if chip and chip:IsA("GuiObject") then
+		chip.Position, chip.Size = UDim2.fromScale(0.38, 0.75), UDim2.fromScale(0.56, 0.2)
+	end
+	return badge
 end
 
 --[[ Makes any piece pressable the way the kit's buttons are: it swells a

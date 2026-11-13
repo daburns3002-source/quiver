@@ -478,7 +478,12 @@ mockups in `assets/concepts/ui_refs/mockups/`, top-game references and the audit
 is the kit (blue panel, gold ribbon title, red corner X, glossy lipped buttons, tabs, currency pills,
 rarity tiles, pop-in), laid out in sheet pixels on 1920 x 1080 or, held upright, 1080 x 1920
 (`Chunky.sheet`). `HatchStand.chrome` frames a station screen in it. Done: Hatchery, Blacksmith
-(crates and store), Gear. Next: Dex, the Mossy Glade level screen. Anything pressable bounces
+(crates and store), Gear, Dex. **A Dex book is a page an area** (owner, 2026-11-12: "1 page for
+each area with bigger icons on the right page ... themed to match the area"): `Util/DexBook`
+`areas` / `inArea` make the pages (every entry has an `area`; a pet's is in `Config/Pets`), the
+tiles are fitted as large as the page allows (at most `Dex.pageMost` an area), and
+`Config/Dex.areas` is each area's look, sampled off its NEW ENEMY! sheet, whose scenery stands
+behind the chosen entry. A new area needs an entry there. Anything pressable bounces
 (`Chunky.press`, or a `Chunky.button`) and anything equippable or equipped gleams (`Chunky.gleam`,
 owner, 2026-11-05: "the gleam on equippables, the bounce on click").
 
@@ -558,7 +563,7 @@ A crate per area for coins (500, 1,000, 2,000, 4,000, 10,000, 20,000) rolls on t
 (Uncommon 60, Rare 28, Epic 11, Mythic 1) one of that area's weapons; a weapon already owned
 is one more C copy, saved: three of a merge tier make one of the next, C -> B -> A -> S, each
 1.2x the damage before and S 1.5x over A (owner, 2026-10-28; `Util/MergeRules`, MERGE on the
-gear screen's item card), and pets merge the same way; areas with no weapons yet are black silhouettes. The store sells an area's
+gear screen's item card), and pets merge the same way; every tile of a held weapon or pet wears its best tier as a coloured letter in its bottom left (`Chunky.tier`, `UiPalette.tier`: C bronze, B steel, A gold, S ruby; owner, 2026-11-12); areas with no weapons yet are black silhouettes. The store sells an area's
 weapons for gems by rarity, its Legendaries for coins and 3 of its boss's item; Mythics only
 come out of crates. EQUIP holds an owned weapon (its class with it), saved, in hand at once in
 the lobby. Every weapon picture is the THREE-QUARTER view of the reference sheet its 3D model was

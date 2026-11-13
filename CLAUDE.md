@@ -440,6 +440,11 @@ medal in the area's colour (Codex's version A, which the owner picked; `assets/c
 `assets/ui/badges/cutout.py`). Earned the first time the boss falls, which is `profile.bossesBeaten` and nothing
 new; the BADGES button under REWARDS opens the case, an unearned badge dimmed, its boss just showing. A new area's
 boss needs its badge drawn from the same prompt: `tests/BossBadges.spec` fails until every area with a boss has one.
+The case opens like one (owner, 2026-11-13): the shut lid folds up at its hinge and its velvet inside rises above
+the tray with the count on a gold plate. A boss's first win pops its badge up (`Util/BadgeRules.fromWin`): read off
+the won run's summary (`item`), never off the profile changing, since Studio's test unlock marks bosses beaten in
+the lobby; the case waits for the lobby to be clear (no station, portal, cutscene, story beat or end screen), opens
+by itself reading NEW BADGE!, and the badge drops into its slot with sparks and `reveal_rare`.
 
 **Portals open a screen; the lobby sprints and jumps** (owner, 2026-10-26): walking into a lit
 portal opens `UI/PortalScreen` (the area, its levels from `Config/Lobby.portals[i].levels`, START;

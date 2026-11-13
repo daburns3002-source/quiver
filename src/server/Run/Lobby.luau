@@ -60,6 +60,11 @@ local OUTER_RINGS = {
 	{ out = 86, spacing = 24, grow = { 2.0, 2.8 } },
 }
 local OUTER_FLOOR = 2000
+--[[ The courtyard's south edge, where the stairs down begin. ]]
+local SOUTH_EDGE = -math.huge
+for _, point in LobbyConfig.courtyard.outline do
+	SOUTH_EDGE = math.max(SOUTH_EDGE, point.Y)
+end
 --[[ How far each scatter kind keeps from everything else, studs. ]]
 --[[ How much room each scattered thing keeps to itself, in studs at
      `grow` 1. A tree asked for 6, which with everything else competing
@@ -1115,7 +1120,7 @@ function Lobby.build(parent: Instance)
 
 	-- the portal ledges, back row first, each with its wall of arches
 	local rows = Lobby.rowOf(#LobbyConfig.portals)
-	local across = LobbyConfig.perRow * LobbyConfig.archSpacing + 24
+	local across = LobbyConfig.terraceAcross
 	local drop = LobbyConfig.courtyard.drop
 	local walkWidth = LobbyConfig.courtyard.walkWidth
 	local carpetFoot = 0
@@ -1146,7 +1151,7 @@ function Lobby.build(parent: Instance)
 		local _, below = rowCentre(row - 1)
 		local low = if row == 1 then 0 else below
 		if row == 1 then
-			carpetFoot = steps(0, front, low, height, 52, root, walkWidth)
+			carpetFoot = steps(0, front, low, height, LobbyConfig.terraceSteps, root, walkWidth)
 		else
 			for _, side in { -1, 1 } do
 				steps(side * (across / 2 - 5), front, low, height, 9, root)
@@ -1205,7 +1210,7 @@ function Lobby.build(parent: Instance)
 		local arrival = LobbyConfig.courtyard.arrival
 		LobbyCourtyard.carpet(
 			arrival.at + Vector2.new(0, arrival.across / 2 - 0.5),
-			Vector2.new(0, 88),
+			Vector2.new(0, SOUTH_EDGE),
 			walkWidth,
 			carpets
 		)
@@ -1406,7 +1411,10 @@ function Lobby.build(parent: Instance)
 	local cell = LobbyConfig.scatterCell
 	local scattered: { { at: Vector2, reach: number } } = {}
 	local function blocked(at: Vector2, reach: number): boolean
-		if LobbyCourtyard.inside(at, -(reach + 2)) or (at.Y > 80 and math.abs(at.X) < 20) then
+		if
+			LobbyCourtyard.inside(at, -(reach + 2))
+			or (at.Y > SOUTH_EDGE - 8 and math.abs(at.X) < 20)
+		then
 			return true
 		end
 		if math.abs(at.X) + reach > half.X - 2 or math.abs(at.Y) + reach > half.Y - 2 then

@@ -446,6 +446,13 @@ the won run's summary (`item`), never off the profile changing, since Studio's t
 the lobby; the case waits for the lobby to be clear (no station, portal, cutscene, story beat or end screen), opens
 by itself reading NEW BADGE!, and the badge drops into its slot with sparks and `reveal_rare`.
 
+**The lobby's layout is in plan studs** (owner, 2026-11-12: "a little bigger and more spread out"):
+every place on the courtyard in `Config/Lobby` goes through `plan(x, z)`, which multiplies it by
+`spread` (1.3); sizes never do. Write a new lobby position as `plan(...)`, never a bare Vector2, and
+work out anything that must meet the terrace from `terrace`/`rowDepth`/`terraceAcross` instead
+(the outline's terrace corners do). Everything else, including the station screens' reach and the
+camera, reads the config, so `spread` alone resizes the lobby. `docs/LOBBY.md`, "Spread out".
+
 **Portals open a screen; the lobby sprints and jumps** (owner, 2026-10-26): walking into a lit
 portal opens `UI/PortalScreen` (the area, its levels from `Config/Lobby.portals[i].levels`, START;
 Mossy Glade's ten as numbered buttons in two rows of five, locked ones dimmed under a lock, beaten

@@ -1,21 +1,23 @@
 --!strict
 --[[
 	The class select screen's cards (`Config/ClassSelect`, `Util/ClassStats`).
-	The screen draws the player's own character with each class's weapon, so
-	what is held here is the data under it: every card is a real class with
-	a weapon to hold, the bars say what `Config/Classes` says, and a locked
-	class is one the game cannot play.
+	What is held here is the data under the screen: every card is a real
+	class with a portrait for every look the BOY / GIRL switch offers, the
+	bars say what `Config/Classes` says, and a locked class is one the game
+	cannot play.
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local ClassCards = require(ReplicatedStorage.Shared.Config.ClassSelect)
+local ClassSelect = require(ReplicatedStorage.Shared.Config.ClassSelect)
 local ClassStats = require(ReplicatedStorage.Shared.Util.ClassStats)
 local Classes = require(ReplicatedStorage.Shared.Config.Classes)
 local SaveSchema = require(ReplicatedStorage.Shared.Util.SaveSchema)
 local ShopAssets = require(ReplicatedStorage.Shared.Config.ShopAssets)
 local TestRunner = require(script.Parent.TestRunner)
 local Weapons = require(ReplicatedStorage.Shared.Config.Weapons)
+
+local ClassCards = ClassSelect.cards
 
 return function(t: TestRunner.Helper)
 	t.test("every playable class has one card, and every open card a class", function()
@@ -55,7 +57,7 @@ return function(t: TestRunner.Helper)
 	end)
 
 	t.test("the bars are shares of the best, and the best is full", function()
-		local full = { damage = false, speed = false, health = false }
+		local full = { range = false, power = false, speed = false }
 		for _, card in ClassCards do
 			if not card.locked then
 				local bars = ClassStats.bars(card.class)
@@ -67,20 +69,44 @@ return function(t: TestRunner.Helper)
 				end
 			end
 		end
-		t.isTrue(full.damage and full.speed and full.health, "some bar is never full")
+		t.isTrue(full.range and full.power and full.speed, "some bar is never full")
 	end)
 
 	t.test("the bars follow the numbers", function()
 		local ranger, arcanist, warden =
 			ClassStats.bars("Ranger"), ClassStats.bars("Arcanist"), ClassStats.bars("Warden")
-		t.isTrue(arcanist.damage > ranger.damage, "the Arcanist hits harder than the Ranger")
+		t.isTrue(arcanist.power > ranger.power, "the Arcanist hits harder than the Ranger")
 		t.isTrue(ranger.speed > arcanist.speed, "the Ranger attacks faster than the Arcanist")
-		t.isTrue(warden.health > ranger.health, "the Warden is tougher than the Ranger")
+		t.isTrue(ranger.range > warden.range, "the Ranger reaches further than the Warden")
 		local none = ClassStats.bars("Nobody")
-		t.equal(none.damage + none.speed + none.health, 0)
+		t.equal(none.range + none.power + none.speed, 0)
 	end)
 
-	t.test("the look the screen sends is one the save keeps", function()
-		t.notNil(SaveSchema.LOOKS[1], "there is no look to send")
+	t.test("every bar on a card is one the numbers give", function()
+		local bars = ClassStats.bars("Ranger") :: any
+		for _, stat in ClassSelect.stats do
+			t.equal(type(bars[stat.key]), "number", `{stat.words} has no number`)
+			t.isTrue(string.find(stat.icon, "^rbxassetid://%d+$") ~= nil, `{stat.words}'s icon`)
+		end
+	end)
+
+	t.test("the switch offers exactly the looks the save keeps", function()
+		t.equal(#ClassSelect.looks, #SaveSchema.LOOKS)
+		for _, entry in ClassSelect.looks do
+			t.notNil(table.find(SaveSchema.LOOKS, entry.look), `{entry.look} is not saved`)
+			t.isTrue(entry.words ~= "", `{entry.look} says nothing`)
+		end
+	end)
+
+	t.test("every card has a portrait for every look", function()
+		for _, card in ClassCards do
+			for _, look in SaveSchema.LOOKS do
+				local picture = card.portraits[look]
+				t.isTrue(
+					picture ~= nil and string.find(picture, "^rbxassetid://%d+$") ~= nil,
+					`{card.class} has no {look} portrait`
+				)
+			end
+		end
 	end)
 end

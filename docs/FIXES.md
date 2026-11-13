@@ -16,6 +16,16 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## The picked class card swelled from its top-left corner over its neighbour (2026-11-13)
+
+Seen 2026-11-12 on a wide screen: tapping a class card grew it to the right and down, over the edge
+of the next card and the button under the row. **A `UIScale` grows a frame from its `AnchorPoint`**,
+and the card's tile had the default (0, 0). The tile is anchored at its middle now
+(`AnchorPoint` 0.5, 0.5 at `Position` 0.5, 0.5 in its holder), so it swells evenly on every side.
+Anything else scaled for a press or a pick wants the same.
+
+---
+
 ## A lone pet walked six studs from its player, off to one side (2026-11-13)
 
 Owner: "MAKE THE PETS FOLLOW THE PLAYER CLOSER".

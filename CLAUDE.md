@@ -242,8 +242,8 @@ What exists and works, all verified in Studio rather than only by the gates:
   saved but changes nothing in game.
 - **No class armour either** (owner, 2026-11-13: "scrap the models on the player entirely"): the class armour sets
   (Outfit C, #555, #563, #564) were taken out the day after they shipped. Every player wears
-  their own avatar everywhere, in a run, on the class select cards and on the Gear portrait;
-  only the weapon in hand says the class. Their code, models and tools are in git history.
+  their own avatar everywhere, in a run and on the Gear portrait; only the weapon in hand says
+  the class (the class select cards show drawn heroes since 2026-11-13, pictures only). Their code, models and tools are in git history.
 - **Upgrades follow the owner's card design** (`design_handoff_upgrade_cards`,
   chosen 2026-10-22): 27 skills (Dual Bows added 2026-10-22), each with levels, a rarity and a stat line per
   level (`Config/Abilities`, `Config/Rarities`), dealt weighted by rarity with
@@ -525,10 +525,18 @@ settings, the Soulstone shop). **Not seen in Studio yet** (2026-11-11): the re-s
 screen at once and waits on a look.
 
 **Screens converted to the reference since** (2026-11-11, owner: "Yes, convert them"): **class select**
-(`UI/ClassScreen`, `Config/ClassSelect`, `Util/ClassStats`; owner: "it looks too ai right now") is a
-chunky panel of class cards, each drawing the player's own character holding the class's weapon
-(`GearScreen.portrait`) over three bars read off `Config/Classes`; the painted art, `ClassSelectAssets`
-and `ClassSelectHit` are gone and the look sent to the server is only saved. The **Endless checkpoint**
+(`UI/ClassScreen`, `Config/ClassSelect`, `Util/ClassStats`; owner: "it looks too ai right now") is
+**"option B"** since 2026-11-13 (owner: "I LIKE B BUT MAKE SURE THERE IS A CHOICE IN THERE TO SWITCH
+GENDER AND ALSO MAKE SURE THE ASSASSIN CLASS IS VISIBLE BUT BLACKE DOUT", then "MAKE THE SWORD A
+LITTLE BIGGER AND MAKE THE ASSASSIN MORE NOTICEABLE"; mock-ups and Codex art in
+`assets/concepts/blocky/ui/class_select_b/`, cut by its `cut.py`): the CHOOSE YOUR CLASS plate over a
+mint panel, four cards in a row (two by two on an upright phone), each a round medallion in the
+class's colour holding Codex's head-and-shoulders portrait of its hero, the name on a coloured tag, the
+pitch, and RANGE / POWER / SPEED bars with icons read off `Config/Classes` (`Util/ClassStats`: reach,
+damage a hit, attacks a second, each a share of the best open class). The picked card wears a yellow
+ring; a green CHOOSE is under the row. A BOY / GIRL switch at the panel's top right swaps every portrait
+(pictures only) and is saved as the profile's `look`. The Assassin is visible but blacked out: a
+silhouette with a violet rim and a padlock, empty bars, and it cannot be chosen. The **Endless checkpoint**
 is a chunky panel of coloured gift tiles. The **draft** keeps its cards and their dark stage (the
 owner's card design) and has chunky REROLL / CHOOSE! on every layout. The **end screens** keep their
 blocks and motion and take the kit's colours and rounded font (`Config/EndScreenTheme`, read from

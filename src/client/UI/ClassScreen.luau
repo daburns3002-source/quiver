@@ -1,15 +1,15 @@
 --!strict
---[[ Class select: pick a class on its card, then CHOOSE; and the game's
-     loading cover, which the area loading screen shares. ]]
+--[[ Class select: pick a class on its card, BOY or GIRL, then CHOOSE; and
+     the game's loading cover, which the area loading screen shares. ]]
+local ContentProvider = game:GetService("ContentProvider")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
 local Workspace = game:GetService("Workspace")
 local Chunky = require(script.Parent.Chunky)
-local ClassCards = require(ReplicatedStorage.Shared.Config.ClassSelect)
+local ClassSelect = require(ReplicatedStorage.Shared.Config.ClassSelect)
 local ClassStats = require(ReplicatedStorage.Shared.Util.ClassStats)
-local Classes = require(ReplicatedStorage.Shared.Config.Classes)
-local GearScreen = require(script.Parent.GearScreen)
+local GearAssets = require(ReplicatedStorage.Shared.Config.GearAssets)
 local Kit = require(script.Parent.Kit)
 local LoadingPick = require(ReplicatedStorage.Shared.Util.LoadingPick)
 local LoadingScreen = require(ReplicatedStorage.Shared.Config.LoadingScreen)
@@ -17,7 +17,6 @@ local LoadingTips = require(ReplicatedStorage.Shared.Config.LoadingTips)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local RunPaused = require(script.Parent.Parent.RunPaused)
 local SaveSchema = require(ReplicatedStorage.Shared.Util.SaveSchema)
-local ShopAssets = require(ReplicatedStorage.Shared.Config.ShopAssets)
 local SoundFx = require(script.Parent.Parent.Fx.SoundFx)
 local SpotlightArt = require(ReplicatedStorage.Shared.Util.SpotlightArt)
 local TipPlate = require(ReplicatedStorage.Shared.Util.TipPlate)
@@ -99,18 +98,45 @@ function ClassScreen.loadingCover(parent: Instance, seconds: number?): Frame
 	return cover
 end
 
+--[[ A picture that is drawn art rather than pixel art: smoothed when scaled. ]]
+local function picture(parent: Instance, asset: string, z: number): ImageLabel
+	local image = Kit.image(parent, asset)
+	image.ResampleMode = Enum.ResamplerMode.Default
+	image.ZIndex = z
+	return image
+end
+
+local function square(item: GuiObject)
+	local aspect = Instance.new("UIAspectRatioConstraint")
+	aspect.Parent = item
+end
+
+local function circle(item: GuiObject)
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(0.5, 0)
+	corner.Parent = item
+end
+
+local function lines(words: string): number
+	local _, breaks = string.gsub(words, "\n", "")
+	return breaks + 1
+end
+
 --[[
-	The screen itself (owner, 2026-11-11: "the change class screen needs to
-	be fixed. it looks too ai right now", and the major UI reference of the
-	same day). It was four slanted panels of painted class art; now it is a
-	chunky panel (`UI/Chunky`) over the lobby with a card for each class
-	(`Config/ClassSelect`), and on every card the player's own character, as
-	it stands in the game, holding that class's weapon (`GearScreen.portrait`;
-	the class bodies were taken out on 2026-11-07 and the class armour sets on
-	2026-11-13, owner: "scrap the models on the player entirely", so the
-	character is the player's avatar). Under it the class's name, what it plays like, and
-	three bars read off `Config/Classes` (`Util/ClassStats`), so the card
-	says what the numbers say. Tap a card, then CHOOSE.
+	The screen itself, the owner's "option B" (2026-11-13; the mock-ups are
+	`assets/concepts/blocky/ui/class_select_b/`, `Config/ClassSelect`): the
+	CHOOSE YOUR CLASS plate over a mint panel, and on it four cards in a row,
+	each a round medallion in the class's colour holding its hero's
+	head-and-shoulders portrait (Codex's), the class's name on a tag of that
+	colour, what it plays like, and three bars with icons, RANGE, POWER and
+	SPEED, read off `Config/Classes` (`Util/ClassStats`). The picked card
+	wears a thick yellow ring; a green CHOOSE sits under the row. A BOY / GIRL
+	switch at the panel's top right swaps every portrait between the male and
+	female heroes: pictures only, as every player wears their own avatar in
+	game (PR #572). The look is saved with the class (`Data/Shop.chooseClass`,
+	`SaveSchema` `look`). The Assassin is not playable yet: its card shows a
+	blacked-out figure with a violet rim and a padlock, and empty bars, and
+	shakes its head when tapped.
 
 	A phone held upright gets the cards two by two on the kit's upright
 	sheet; the screen is laid out again when it turns.
@@ -147,34 +173,38 @@ function ClassScreen.start()
 		tweens[object] = motion
 		motion:Play()
 	end
-	--[[ The lobby shows through, dimmed: the game itself is the backdrop. ]]
+	--[[ The mock-up's pale mint round the panel, edge to edge. ]]
 	local dim = Instance.new("Frame")
-	dim.BackgroundColor3 = Color3.new(0, 0, 0)
-	dim.BackgroundTransparency = 0.4
+	dim.BackgroundColor3 = Chunky.pale
 	dim.BorderSizePixel = 0
 	dim.Size = UDim2.fromScale(1, 1)
 	dim.Active = true
 	dim.Parent = gui
 	local canvas = Kit.canvas(dim)
 
-	local selected: number? = nil
+	local cardList = ClassSelect.cards
+	local selected = 1
+	for index, card in cardList do
+		if not card.locked then
+			selected = index
+			break
+		end
+	end
+	local look = SaveSchema.LOOKS[1]
 	local closing = false
 	local shown = false
 	local hasProfile = false
 	local hasLook = false
-	local chooseButton: Frame? = nil
-	local cards: { { holder: Frame, shade: Frame, ring: UIStroke, scale: UIScale } } = {}
+	local cards: { { holder: Frame, ring: Frame, scale: UIScale, portrait: ImageLabel } } = {}
+	local halves: { { face: Frame, ring: UIStroke, look: string } } = {}
 
 	local function choose()
-		local index = selected
-		local card = if index then ClassCards[index] else nil
+		local card = cardList[selected]
 		if not card or card.locked or closing then
 			return
 		end
 		closing = true
-		--[[ The look is only saved (`Data/Shop.chooseClass`): every player
-		     wears their own avatar. ]]
-		Remotes.event(Remotes.ChooseClass):FireServer(card.class, SaveSchema.LOOKS[1])
+		Remotes.event(Remotes.ChooseClass):FireServer(card.class, look)
 		SoundFx.play("class_choose")
 		local flash = Instance.new("Frame")
 		flash.BorderSizePixel = 0
@@ -222,22 +252,24 @@ function ClassScreen.start()
 		end)
 	end
 
-	--[[ The picked card stands forward with a gold ring; the rest step back. ]]
+	--[[ The picked card stands a touch forward in its yellow ring. ]]
 	local function paint()
 		for i, card in cards do
 			local on = selected == i
-			card.ring.Enabled = on
-			card.shade.BackgroundTransparency = if selected and not on then 0.5 else 1
-			tween(card.scale, 0.18, { Scale = if on then 1.05 else 1 })
+			card.ring.Visible = on
+			tween(card.scale, 0.18, { Scale = if on then 1.02 else 1 })
 		end
-		local button = chooseButton
-		local picked = if selected then ClassCards[selected] else nil
-		if button then
-			Chunky.repaint(
-				button,
-				if picked then Chunky.gold else Chunky.grey,
-				if picked then `PLAY AS {string.upper(picked.class)}` else "TAP A CLASS"
-			)
+	end
+
+	--[[ Every portrait in the chosen look, and the switch's half lit. ]]
+	local function paintLook()
+		for i, card in cards do
+			card.portrait.Image = cardList[i].portraits[look] or ""
+		end
+		for _, half in halves do
+			local on = half.look == look
+			half.face.BackgroundColor3 = if on then Chunky.gold else Chunky.panelBottom
+			half.ring.Enabled = on
 		end
 	end
 
@@ -245,7 +277,7 @@ function ClassScreen.start()
 		if closing then
 			return
 		end
-		local card = ClassCards[index]
+		local card = cardList[index]
 		if card.locked then
 			-- a locked card shakes its head
 			local holder = cards[index] and cards[index].holder
@@ -262,7 +294,17 @@ function ClassScreen.start()
 		end
 	end
 
-	--[[ One class's card at (`x`, `y`), `w` by `h` sheet pixels. ]]
+	local function setLook(chosen: string)
+		if closing or chosen == look then
+			return
+		end
+		look = chosen
+		paintLook()
+	end
+
+	--[[ One class's card at (`x`, `y`), `w` by `h` sheet pixels, laid out as
+	     the mock-up's: everything placed as a share of the card, the
+	     medallion as round as the card's width and height allow. ]]
 	local function drawCard(
 		sheet: Chunky.Sheet,
 		index: number,
@@ -271,7 +313,7 @@ function ClassScreen.start()
 		w: number,
 		h: number
 	)
-		local card = ClassCards[index]
+		local card = cardList[index]
 		local tone = card.colour
 		local holder = Instance.new("Frame")
 		holder.Name = card.class
@@ -282,6 +324,11 @@ function ClassScreen.start()
 		tile.Name = "Tile"
 		tile.BorderSizePixel = 0
 		tile.BackgroundColor3 = Color3.new(1, 1, 1)
+		--[[ Anchored at its middle: a UIScale grows a frame from its anchor,
+		     and the picked card swelled from its top-left corner over its
+		     neighbour (docs/FIXES.md). ]]
+		tile.AnchorPoint = Vector2.new(0.5, 0.5)
+		tile.Position = UDim2.fromScale(0.5, 0.5)
 		tile.Size = UDim2.fromScale(1, 1)
 		tile.ZIndex = 5
 		tile.Parent = holder
@@ -289,158 +336,212 @@ function ClassScreen.start()
 		scale.Parent = tile
 		local light = Instance.new("UIGradient")
 		light.Rotation = 90
-		--[[ Lit pale behind the character, deepening under the name and the
-		     pitch to a shade small white words stand 4.5:1 on. ]]
-		local deep = Chunky.deep(tone)
-		light.Color = ColorSequence.new({
-			ColorSequenceKeypoint.new(0, tone:Lerp(Color3.new(1, 1, 1), 0.45)),
-			ColorSequenceKeypoint.new(0.42, tone),
-			ColorSequenceKeypoint.new(0.57, deep),
-			ColorSequenceKeypoint.new(1, deep),
-		})
+		light.Color = ColorSequence.new(Chunky.white, Chunky.white:Lerp(Chunky.panelBottom, 0.4))
 		light.Parent = tile
 		Chunky.round(tile, 22)
-		Chunky.outline(tile, 7, Chunky.shade(tone))
-		local ring = Chunky.outline(holder, 12, Chunky.gold)
-		ring.Enabled = false
-		Chunky.round(holder, 22)
+		Chunky.outline(tile, 5)
+		local ring = Instance.new("Frame")
+		ring.Name = "Ring"
+		ring.BackgroundTransparency = 1
+		ring.Size = UDim2.fromScale(1, 1)
+		ring.ZIndex = 50
+		ring.Visible = false
+		ring.Parent = tile
+		Chunky.round(ring, 22)
+		Chunky.outline(ring, 10, Chunky.gold)
 
-		--[[ The player's own character, holding this class's weapon. ]]
-		local stage = Instance.new("Frame")
-		stage.Name = "Stage"
-		stage.BackgroundTransparency = 1
-		stage.Position = UDim2.fromScale(0.04, 0.02)
-		stage.Size = UDim2.fromScale(0.92, 0.56)
-		stage.ZIndex = 6
-		stage.Parent = tile
+		--[[ The medallion and the hero in it. The portrait is the
+		     medallion's square with `portraitTop` more above it. ]]
+		local d = math.min(w * 0.86, h * 0.553)
+		local medallion = Instance.new("Frame")
+		medallion.Name = "Medallion"
+		medallion.BorderSizePixel = 0
+		medallion.BackgroundColor3 = tone
+		medallion.Position = UDim2.fromScale((w - d) / 2 / w, 0.025)
+		medallion.Size = UDim2.fromScale(d / w, d / h)
+		medallion.ZIndex = 6
+		medallion.Parent = tile
+		circle(medallion)
+		Chunky.outline(medallion, 6, Chunky.shade(tone))
+		local glow = picture(medallion, GearAssets.fx.glow, 7)
+		glow.Name = "Glow"
+		glow.ScaleType = Enum.ScaleType.Stretch
+		glow.ImageColor3 = tone:Lerp(Chunky.white, 0.55)
+		glow.ImageTransparency = 0.2
+		glow.AnchorPoint = Vector2.new(0.5, 0.5)
+		glow.Position, glow.Size = UDim2.fromScale(0.5, 0.45), UDim2.fromScale(0.95, 0.95)
+		local top = ClassSelect.portraitTop
+		local portrait = picture(medallion, card.portraits[look] or "", 8)
+		portrait.Name = "Portrait"
+		portrait.ScaleType = Enum.ScaleType.Stretch
+		portrait.Position, portrait.Size = UDim2.fromScale(0, -top), UDim2.fromScale(1, 1 + top)
 		if card.locked then
-			local lock = Kit.image(stage, ShopAssets.lock)
+			local lock = picture(medallion, ClassSelect.lock, 9)
+			lock.Name = "Lock"
 			lock.AnchorPoint = Vector2.new(0.5, 0.5)
-			lock.Position = UDim2.fromScale(0.5, 0.55)
-			lock.Size = UDim2.fromScale(0.5, 0.5)
-			lock.ZIndex = 7
-			local square = Instance.new("UIAspectRatioConstraint")
-			square.Parent = lock
-		else
-			GearScreen.portrait(stage, Classes[card.class].weapon)
+			lock.Position, lock.Size = UDim2.fromScale(0.5, 0.72), UDim2.fromScale(0.3, 0.3)
+			square(lock)
 		end
 
-		local name = Chunky.text(tile, string.upper(card.class), nil, 6, Chunky.shade(tone))
-		name.Position, name.Size = UDim2.fromScale(0.06, 0.585), UDim2.fromScale(0.88, 0.11)
-		local pitch = Chunky.text(tile, card.pitch, nil, 4, Chunky.shade(tone))
-		pitch.Position, pitch.Size = UDim2.fromScale(0.06, 0.7), UDim2.fromScale(0.88, 0.055)
+		--[[ The name on a tag of the class's colour, over the medallion's foot. ]]
+		local tag = Instance.new("Frame")
+		tag.Name = "Tag"
+		tag.BorderSizePixel = 0
+		tag.Position, tag.Size = UDim2.fromScale(0.056, 0.534), UDim2.fromScale(0.888, 0.093)
+		tag.ZIndex = 10
+		tag.Parent = tile
+		Chunky.light(tag, tone)
+		Chunky.round(tag, h * 0.05)
+		Chunky.outline(tag, 5, Chunky.shade(tone))
+		local name = Chunky.textOn(tag, string.upper(card.class), tone, 5)
+		name.Position, name.Size = UDim2.fromScale(0.06, 0.12), UDim2.fromScale(0.88, 0.76)
+		name.ZIndex = 11
 
-		--[[ The three bars, on a pale plate: what `Config/Classes` says. ]]
-		local plate = Instance.new("Frame")
-		plate.Name = "Stats"
-		plate.BorderSizePixel = 0
-		plate.BackgroundColor3 = Chunky.panelTop
-		plate.Position, plate.Size = UDim2.fromScale(0.06, 0.775), UDim2.fromScale(0.88, 0.2)
-		plate.ZIndex = 6
-		plate.Parent = tile
-		Chunky.round(plate, 14)
-		Chunky.outline(plate, 4, Chunky.shade(tone))
-		if card.locked then
-			local soon = Chunky.text(plate, "LOCKED", Chunky.ink, 0)
-			soon.Position, soon.Size = UDim2.fromScale(0.1, 0.25), UDim2.fromScale(0.8, 0.5)
-		else
-			local bars = ClassStats.bars(card.class)
-			local rows: { { name: string, share: number, colour: Color3 } } = {
-				{ name = "DAMAGE", share = bars.damage, colour = Chunky.red },
-				{ name = "SPEED", share = bars.speed, colour = Chunky.blue },
-				{ name = "HEALTH", share = bars.health, colour = Chunky.green },
-			}
-			for n, row in rows do
-				local top = 0.08 + (n - 1) * 0.3
-				local label = Chunky.text(plate, row.name, Chunky.ink, 0)
-				label.Position, label.Size = UDim2.fromScale(0.05, top), UDim2.fromScale(0.36, 0.25)
-				label.TextXAlignment = Enum.TextXAlignment.Left
-				local trough = Instance.new("Frame")
-				trough.BorderSizePixel = 0
-				trough.BackgroundColor3 = Chunky.trough
-				trough.Position, trough.Size =
-					UDim2.fromScale(0.43, top + 0.03), UDim2.fromScale(0.52, 0.19)
-				trough.ZIndex = 7
-				trough.Parent = plate
-				Chunky.round(trough, 8)
+		--[[ What it plays like: every line the same height on every card. ]]
+		local tall = 0.052 * lines(card.pitch)
+		local pitch = Chunky.text(tile, card.pitch, Chunky.ink, 0)
+		pitch.Name = "Pitch"
+		pitch.Position, pitch.Size =
+			UDim2.fromScale(0.05, 0.69 - tall / 2), UDim2.fromScale(0.9, tall)
+		pitch.ZIndex = 10
+
+		--[[ The three bars, each on its own white row: what `Config/Classes`
+		     says, or an empty trough for a class not here yet. ]]
+		local bars = ClassStats.bars(card.class) :: any
+		for n, stat in ClassSelect.stats do
+			local row = Instance.new("Frame")
+			row.Name = stat.words
+			row.BorderSizePixel = 0
+			row.BackgroundColor3 = Chunky.white
+			row.Position = UDim2.fromScale(0.037, 0.752 + (n - 1) * 0.077)
+			row.Size = UDim2.fromScale(0.926, 0.066)
+			row.ZIndex = 10
+			row.Parent = tile
+			Chunky.round(row, h * 0.033)
+			Chunky.outline(row, 4)
+			local icon = picture(row, stat.icon, 11)
+			icon.AnchorPoint = Vector2.new(0, 0.5)
+			icon.Position, icon.Size = UDim2.fromScale(0.02, 0.5), UDim2.fromScale(0.12, 0.86)
+			square(icon)
+			local label = Chunky.text(row, stat.words, Chunky.ink, 0)
+			label.Position, label.Size = UDim2.fromScale(0.15, 0.19), UDim2.fromScale(0.26, 0.62)
+			label.TextXAlignment = Enum.TextXAlignment.Left
+			label.ZIndex = 11
+			local trough = Instance.new("Frame")
+			trough.Name = "Trough"
+			trough.BorderSizePixel = 0
+			trough.BackgroundColor3 = Chunky.trough
+			trough.Position, trough.Size = UDim2.fromScale(0.43, 0.2), UDim2.fromScale(0.545, 0.6)
+			trough.ZIndex = 11
+			trough.Parent = row
+			circle(trough)
+			local share = if card.locked then 0 else (bars[stat.key] or 0) :: number
+			if share > 0 then
 				local fill = Instance.new("Frame")
+				fill.Name = "Fill"
 				fill.BorderSizePixel = 0
-				fill.BackgroundColor3 = Chunky.lit(row.colour)
-				fill.Size = UDim2.fromScale(math.clamp(row.share, 0.06, 1), 1)
-				fill.ZIndex = 8
+				fill.BackgroundColor3 = Color3.new(1, 1, 1)
+				fill.Size = UDim2.fromScale(math.clamp(share, 0.08, 1), 1)
+				fill.ZIndex = 12
 				fill.Parent = trough
-				Chunky.round(fill, 8)
+				circle(fill)
+				local shine = Instance.new("UIGradient")
+				shine.Rotation = 90
+				shine.Color = ColorSequence.new(Chunky.lime:Lerp(Chunky.white, 0.3), Chunky.lime)
+				shine.Parent = fill
 			end
 		end
 
-		local shade = Instance.new("Frame")
-		shade.Name = "Shade"
-		shade.BorderSizePixel = 0
-		shade.BackgroundColor3 = Color3.new(0, 0, 0)
-		shade.BackgroundTransparency = 1
-		shade.Size = UDim2.fromScale(1, 1)
-		shade.ZIndex = 20
-		shade.Parent = tile
-		Chunky.round(shade, 22)
-
-		cards[index] = { holder = holder, shade = shade, ring = ring, scale = scale }
+		cards[index] = { holder = holder, ring = ring, scale = scale, portrait = portrait }
 		Chunky.press(holder, function()
 			pick(index)
 		end)
 	end
 
-	--[[ Lays the whole screen out for the screen's shape now. ]]
+	--[[ The BOY / GIRL pill: the chosen half sunny with a dark ring, the
+	     other mint, each with its little face. ]]
+	local function drawSwitch(sheet: Chunky.Sheet, x: number, y: number, w: number, h: number)
+		local holder = Instance.new("Frame")
+		holder.Name = "LookSwitch"
+		holder.BorderSizePixel = 0
+		holder.BackgroundColor3 = Chunky.panelBottom
+		holder.ZIndex = 20
+		Chunky.put(sheet, holder, x, y, w, h)
+		circle(holder)
+		Chunky.outline(holder, 6)
+		table.clear(halves)
+		local count = #ClassSelect.looks
+		for n, entry in ClassSelect.looks do
+			local half = Instance.new("Frame")
+			half.Name = entry.words
+			half.BorderSizePixel = 0
+			half.BackgroundColor3 = Chunky.panelBottom
+			half.Position = UDim2.fromScale((n - 1) / count + 0.012, 0.1)
+			half.Size = UDim2.fromScale(1 / count - 0.024, 0.8)
+			half.ZIndex = 21
+			half.Parent = holder
+			circle(half)
+			local ring = Chunky.outline(half, 4)
+			local face = picture(half, entry.icon, 22)
+			face.AnchorPoint = Vector2.new(0, 0.5)
+			face.Position, face.Size = UDim2.fromScale(0.1, 0.5), UDim2.fromScale(0.26, 0.86)
+			square(face)
+			local words = Chunky.text(half, entry.words, Chunky.ink, 0)
+			words.Position, words.Size = UDim2.fromScale(0.4, 0.2), UDim2.fromScale(0.5, 0.6)
+			words.ZIndex = 22
+			table.insert(halves, { face = half, ring = ring, look = entry.look })
+			Chunky.press(half, function()
+				setLook(entry.look)
+			end)
+		end
+	end
+
+	--[[ Lays the whole screen out for the screen's shape now: the plate,
+	     then the panel under it (so the plate stands on its own, as the
+	     mock-up's does). ]]
 	local function draw()
 		canvas:ClearAllChildren()
 		local aspect = Instance.new("UIAspectRatioConstraint")
 		aspect.AspectType = Enum.AspectType.FitWithinMaxSize
 		aspect.Parent = canvas
 		table.clear(cards)
-		chooseButton = nil
 		local sheet = Chunky.sheet(canvas)
-		local count = #ClassCards
+		local count = #cardList
 		if sheet.upright then
-			local px, py, pw, ph = 40, 150, 1000, 1640
+			Chunky.ribbon(sheet, "CHOOSE YOUR CLASS", 40, 50, 1000, 130)
+			local px, py, pw, ph = 30, 205, 1020, 1675
 			Chunky.panel(sheet, px, py, pw, ph)
-			Chunky.ribbon(sheet, "CHOOSE YOUR CLASS", px, py, pw, 120)
-			local w, h, gap = 450, 640, 30
+			drawSwitch(sheet, px + pw - 470, py + 18, 440, 78)
+			local w, h, gap = 459, 690, 30
 			local left = px + (pw - 2 * w - gap) / 2
 			for index = 1, count do
 				local column, row = (index - 1) % 2, math.floor((index - 1) / 2)
-				drawCard(sheet, index, left + column * (w + gap), py + 150 + row * (h + gap), w, h)
+				drawCard(sheet, index, left + column * (w + gap), py + 122 + row * (h + gap), w, h)
 			end
-			chooseButton = Chunky.button(
+			Chunky.button(
 				sheet,
-				"TAP A CLASS",
-				Chunky.grey,
-				px + 120,
-				py + ph - 170,
-				pw - 240,
-				130,
+				"CHOOSE",
+				Chunky.green,
+				px + pw / 2 - 300,
+				py + ph - 140,
+				600,
+				112,
 				choose
 			)
 		else
-			local px, py, pw, ph = 130, 70, 1660, 950
+			Chunky.ribbon(sheet, "CHOOSE YOUR CLASS", 32, 20, 1856, 118)
+			local px, py, pw, ph = 30, 158, 1860, 900
 			Chunky.panel(sheet, px, py, pw, ph)
-			Chunky.ribbon(sheet, "CHOOSE YOUR CLASS", px, py, pw, 110)
-			local gap = 30
-			local w = (pw - 80 - (count - 1) * gap) / count
-			local h = 610
+			drawSwitch(sheet, 1340, py + 8, 530, 70)
+			local gap = 20
+			local w = (pw - 60 - (count - 1) * gap) / count
 			for index = 1, count do
-				drawCard(sheet, index, px + 40 + (index - 1) * (w + gap), py + 140, w, h)
+				drawCard(sheet, index, px + 30 + (index - 1) * (w + gap), 254, w, 668)
 			end
-			chooseButton = Chunky.button(
-				sheet,
-				"TAP A CLASS",
-				Chunky.grey,
-				px + pw / 2 - 330,
-				py + ph - 170,
-				660,
-				130,
-				choose
-			)
+			Chunky.button(sheet, "CHOOSE", Chunky.green, 657, 940, 606, 104, choose)
 		end
 		paint()
+		paintLook()
 	end
 
 	local function maybeOpen()
@@ -459,8 +560,25 @@ function ClassScreen.start()
 			Chunky.pop(canvas)
 		end
 	end
+	--[[ Every portrait and icon fetched before the screen is needed, so the
+	     switch swaps them at once. ]]
+	task.spawn(function()
+		local assets: { string } = { ClassSelect.lock, GearAssets.fx.glow }
+		for _, card in cardList do
+			for _, asset in card.portraits do
+				table.insert(assets, asset)
+			end
+		end
+		for _, entry in ClassSelect.looks do
+			table.insert(assets, entry.icon)
+		end
+		for _, stat in ClassSelect.stats do
+			table.insert(assets, stat.icon)
+		end
+		pcall(ContentProvider.PreloadAsync, ContentProvider, assets)
+	end)
 	--[[ Laid out again when the screen changes shape, as when a phone
-	     turns, or when the character it draws arrives. ]]
+	     turns. ]]
 	local wasUpright: boolean? = nil
 	connect(dim:GetPropertyChangedSignal("AbsoluteSize"), function()
 		local upright = dim.AbsoluteSize.Y > dim.AbsoluteSize.X
@@ -469,19 +587,15 @@ function ClassScreen.start()
 			draw()
 		end
 	end)
-	connect(player.CharacterAdded, function()
-		task.delay(1, function()
-			if shown and not closing and gui.Parent then
-				draw()
-			end
-		end)
-	end)
 	connect(Remotes.event(Remotes.ProfileChanged).OnClientEvent, function(profile)
 		if type(profile) ~= "table" then
 			return
 		end
 		hasProfile = true
 		hasLook = profile.look ~= nil
+		if not shown and table.find(SaveSchema.LOOKS, profile.look) then
+			look = profile.look
+		end
 		maybeOpen()
 	end)
 	connect(Workspace:GetAttributeChangedSignal("InLobby"), maybeOpen)

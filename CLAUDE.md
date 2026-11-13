@@ -578,6 +578,21 @@ angle (owner, 2026-10-26: "all at the same angle"; `Config/ShopAssets`,
 `Remotes.DebugWallet:FireServer(coins, gems, itemsEach)`. In Studio the shop opens by itself on
 reaching the lobby, wallet topped up (`Sandbox.openShop`; set it to nil to stop that).
 
+**Trails** (owner, 2026-11-13: "ANOTHER FOR CREATING THE TRAILS"; `Config/Trails`, `Util/TrailRules`,
+`Server/Data/Trails`, `Fx/PlayerTrails`): what the Gear sheet's TRAIL slot holds, **looks only**. Three an area,
+picked from Codex's sheets (`assets/concepts/blocky/ui/trails/`): Mossy Glade's Leaf Drift, Firefly Wake, Royal
+Goo; Thornwood's Bramble Pollen, Crow Feathers, Brood Silk; the Drowned Village's Bubble Stream, Splash Wake, Tide
+Bell; Bogheart's Bog Spores, Glowcap Path, Gulp's Bubbles; and one Mythic, **Starfall**. Rare and Epic are bought
+for gems on the TRAILS tab (the store's 180 and 450 times the area's number, on sale when the area's crates are);
+an area's Legendary is given the first time its boss falls (and on join to anyone who beat it before); Starfall
+for reaching Endless floor `Trails.endless.floor` (50) as **each** of the three classes (owner: "a reward for
+getting to a certain floor on endless with all 3 classes"; save v14 `endlessClassBest`, counted from the first
+run after trails came in). The server grants through `Wallet.grantTrail` / `settleTrails` only, and the worn one
+is the Player's `Trail` attribute; every client draws every player's trail itself (a ribbon flat on the ground
+and the trail's square particles, `DeviceTiers.trailShare` of them, a little while standing). Every Legendary and
+Mythic trail glows with a light (`tests/Trails.spec`). One picture a trail, `Trails.trails[key].icon` (Codex,
+cut by `assets/ui/trails/cutout.py`); a new trail needs its icon drawn from the same prompts.
+
 **Revive** (`Balance.Revive`): once per stage, automatically, after Second
 Wind — full health, 2.5 s untouchable behind a gold shield, and enemy shots
 within 12 studs cleared.

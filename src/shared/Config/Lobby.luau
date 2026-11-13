@@ -99,7 +99,36 @@ export type Building = {
 
 	A station standing on the middle line is left unturned.
 ]]
-local MIDDLE = Vector2.new(0, 6)
+--[[
+	How far the plan is spread out (owner, 2026-11-12: "i want the lobby to be
+	a little bigger and more spread out"). Every place on the courtyard below
+	is written in the plan's studs, as the layout sheet measured them, through
+	`plan`, which spreads it from the lobby's centre; the things themselves
+	(the buildings, the fountain, the arches, the circles) keep their size.
+	The terrace's front and its corners are worked out from the terrace rather
+	than spread, since its depth is the steps' and does not grow. Past the
+	balustrade the wood and the cliffs move out by what the clearing grew
+	(`OUTWARD`), so the forest round it keeps its depth.
+]]
+local SPREAD = 1.3
+local function plan(x: number, z: number): Vector2
+	return Vector2.new(x, z) * SPREAD
+end
+local OUTWARD = 110 * (SPREAD - 1)
+local function pushed(range: NumberRange): NumberRange
+	return NumberRange.new(range.Min + OUTWARD, range.Max + OUTWARD)
+end
+
+local MIDDLE = plan(0, 6)
+local SPAWN = plan(0, 54)
+local TERRACE = plan(0, -66)
+local ROW_DEPTH = 19.2
+local PER_ROW = 6
+local ARCH_SPACING = 18 * SPREAD
+--[[ The portal terraces' width, the arches and a margin either side, and the
+     line of its front, where the courtyard's floor meets it. ]]
+local TERRACE_ACROSS = PER_ROW * ARCH_SPACING + 24 * SPREAD
+local TERRACE_FRONT = TERRACE.Y + ROW_DEPTH / 2
 local TURN_IN = 0.25
 
 local function facingSouth(at: Vector2): number
@@ -130,32 +159,38 @@ local Lobby = {
 	     it lands once it is turned. See `facingSouth` above. ]]
 	facing = facingSouth,
 	turnedOffset = turnedOffset,
+	--[[ How far the plan is spread out. See `SPREAD` above. ]]
+	spread = SPREAD,
 
 	--[[ Where the lobby's centre stands in the world: well away from the
 	     arena at the origin. ]]
 	origin = Vector3.new(0, 0, 1000),
 	--[[ The walkable clearing, studs across (X) and deep (Z). ]]
-	size = Vector2.new(220, 192),
+	size = plan(220, 192),
 	--[[ The fountain, which all four buildings face, halfway between their
 	     rows. ]]
 	middle = MIDDLE,
 	--[[ Where a player appears: the middle of the arrival circle. ]]
-	spawn = Vector2.new(0, 54),
+	spawn = SPAWN,
 
 	--[[ The portal terraces across the north edge: two rows of arches
 	     (owner, 2026-10-25: "make sure there are 2 rows of portals"), each
 	     on a marble ledge with broad marble steps up its front. `terrace` is the front row's centre; the back row stands
 	     `rowDepth` studs behind it and `rowRise` higher. `ledge` is the
 	     front row's height above the lawn. ]]
-	terrace = Vector2.new(0, -66),
-	rowDepth = 19.2,
+	terrace = TERRACE,
+	rowDepth = ROW_DEPTH,
 	rowRise = 7,
 	ledge = 9,
 	--[[ Six to a row since 2026-10-27, so the eleventh arch (Endless) joins
 	     the areas without opening a third row — the owner's "make sure there
 	     are 2 rows of portals" stands. ]]
-	perRow = 6,
-	archSpacing = 18,
+	perRow = PER_ROW,
+	archSpacing = ARCH_SPACING,
+	--[[ The terraces' width, which the courtyard's corners at their front
+	     meet, and the front row's broad steps up the middle. ]]
+	terraceAcross = TERRACE_ACROSS,
+	terraceSteps = 52 * SPREAD,
 	--[[ The arches, front row west to east, then the back row: the two
 	     areas built so far, then eight locked, and Endless last. ]]
 	portals = {
@@ -356,21 +391,22 @@ local Lobby = {
 		and the portals beyond it.
 
 		The two northern ones stand clear of the portal terraces, whose
-		front ledge reaches z = -56.4: grown by `buildingScale` and turned in,
-		they reach about z = -51. The rows stand 68 studs apart, so a northern
-		building is not hidden behind a southern one's roof from the camera,
-		and x = 51 north and 56 south keeps their outer corners inside the
-		balustrade, whose northern corners are cut on the slant.
+		front ledge reaches z = -76.2: grown by `buildingScale` and turned in,
+		they reach about z = -59. The rows stand 68 plan studs apart (88 once
+		spread), so a northern building is not hidden behind a southern one's
+		roof from the camera, and x = 51 north and 56 south keeps their outer
+		corners inside the balustrade, whose northern corners are cut on the
+		slant.
 
 		The spawn's fountain keeps its old name `SpawnCampfire`, for the
 		screens that look it up. `Lobby.spec` keeps every footprint apart,
 		measured as each one is actually turned.
 	]]
 	stations = {
-		{ piece = "Blacksmith", at = Vector2.new(-51, -28) },
-		{ piece = "EggHatchery", at = Vector2.new(51, -28) },
-		{ piece = "GearStation", at = Vector2.new(-56, 40) },
-		{ piece = "DexHall", at = Vector2.new(56, 40) },
+		{ piece = "Blacksmith", at = plan(-51, -28) },
+		{ piece = "EggHatchery", at = plan(51, -28) },
+		{ piece = "GearStation", at = plan(-56, 40) },
+		{ piece = "DexHall", at = plan(56, 40) },
 		{ piece = "SpawnCampfire", at = MIDDLE },
 	} :: { Placed },
 
@@ -442,19 +478,20 @@ local Lobby = {
 		Lobby B's ground and ruins (`Run/LobbyCourtyard`), measured off the
 		sheet's plan: the outline the balustrade follows, clockwise from the
 		terrace's south-west corner, its corners cut as the plan cuts them.
+		The first and last points are the terrace's front corners.
 	]]
 	courtyard = {
 		outline = {
-			Vector2.new(-66, -56.4),
-			Vector2.new(-86, -36),
-			Vector2.new(-86, 58),
-			Vector2.new(-58, 88),
-			Vector2.new(-14, 88),
-			Vector2.new(14, 88),
-			Vector2.new(58, 88),
-			Vector2.new(86, 58),
-			Vector2.new(86, -36),
-			Vector2.new(66, -56.4),
+			Vector2.new(-TERRACE_ACROSS / 2, TERRACE_FRONT),
+			plan(-86, -36),
+			plan(-86, 58),
+			plan(-58, 88),
+			plan(-14, 88),
+			plan(14, 88),
+			plan(58, 88),
+			plan(86, 58),
+			plan(86, -36),
+			Vector2.new(TERRACE_ACROSS / 2, TERRACE_FRONT),
 		},
 		--[[ Which edges have no balustrade: the south stairs' top (5) and the
 		     terrace's foot (10, which also has no wall: players walk onto it). ]]
@@ -478,23 +515,25 @@ local Lobby = {
 		plazaInner = 33,
 		lilies = 9,
 		hedge = 22,
-		arrival = { at = Vector2.new(0, 54), across = 30, inner = 17, walk = 6 },
+		arrival = { at = SPAWN, across = 30, inner = 17, walk = 6 },
 		southGap = 14,
 		balustrade = { bay = 11, tall = 5.2, balusters = 3, broken = 0.2, rubble = 0.08 },
+		--[[ Each column stands about as far in from the balustrade as it
+		     did before the plan was spread, so it stays at the wall. ]]
 		columns = {
-			{ at = Vector2.new(-82, -34), tall = 18 },
-			{ at = Vector2.new(82, -34), tall = 15 },
-			{ at = Vector2.new(-83, 2), tall = 13 },
-			{ at = Vector2.new(83, 8), tall = 20 },
-			{ at = Vector2.new(-83, 44), tall = 21 },
-			{ at = Vector2.new(83, 42), tall = 14 },
-			{ at = Vector2.new(-56, 84), tall = 12 },
-			{ at = Vector2.new(56, 84), tall = 16 },
-			{ at = Vector2.new(-62, -53), tall = 11 },
-			{ at = Vector2.new(62, -53), tall = 10 },
+			{ at = plan(-86, -34) + Vector2.new(4, 0), tall = 18 },
+			{ at = plan(86, -34) - Vector2.new(4, 0), tall = 15 },
+			{ at = plan(-86, 2) + Vector2.new(3, 0), tall = 13 },
+			{ at = plan(86, 8) - Vector2.new(3, 0), tall = 20 },
+			{ at = plan(-86, 44) + Vector2.new(3, 0), tall = 21 },
+			{ at = plan(86, 42) - Vector2.new(3, 0), tall = 14 },
+			{ at = plan(-56, 88) - Vector2.new(0, 4), tall = 12 },
+			{ at = plan(56, 88) - Vector2.new(0, 4), tall = 16 },
+			{ at = Vector2.new(-TERRACE_ACROSS / 2 + 4, TERRACE_FRONT + 3.4), tall = 11 },
+			{ at = Vector2.new(TERRACE_ACROSS / 2 - 4, TERRACE_FRONT + 3.4), tall = 10 },
 		} :: { { at: Vector2, tall: number } },
 		ruinArch = {
-			at = { Vector2.new(-88, -70), Vector2.new(88, -70) },
+			at = { plan(-88, -70), plan(88, -70) },
 			across = 16,
 			tall = 30,
 		},
@@ -567,8 +606,14 @@ local Lobby = {
 
 	--[[ The life in the air (`Fx/LobbyMotes`), each scaled by the device's
 	     `ambienceShare`: gold motes drifting over the courtyard, and mist at
-	     the foot of each waterfall. ]]
-	motes = { rate = 26, lifetime = NumberRange.new(5, 9), size = 0.32, high = 22 },
+	     the foot of each waterfall. The motes' rate grows with the floor they
+	     drift over, so the air is as full as it was before the spread. ]]
+	motes = {
+		rate = 26 * SPREAD * SPREAD,
+		lifetime = NumberRange.new(5, 9),
+		size = 0.32,
+		high = 22,
+	},
 	mist = { rate = 5, lifetime = NumberRange.new(3, 5), size = 9 },
 
 	--[[ The FARTHEST ADVENTURERS board (`Run/StoryLeaderboard`), south of
@@ -586,7 +631,7 @@ local Lobby = {
 	     draws them (owner, 2026-11-05); they read north from 2026-11-01, which
 	     showed the camera their backs. ]]
 	leaderboard = {
-		at = Vector2.new(-22, 78),
+		at = plan(-22, 78),
 		turn = 0,
 		face = { centre = Vector3.new(0, 10, 0.9), size = Vector2.new(16.8, 11.4) },
 	},
@@ -595,7 +640,7 @@ local Lobby = {
 	     of the path south from the spawn, so the two still flank a walk and
 	     a player sees both at once. Same build, same face, same turn. ]]
 	endlessLeaderboard = {
-		at = Vector2.new(22, 78),
+		at = plan(22, 78),
 		turn = 0,
 		face = { centre = Vector3.new(0, 10, 0.9), size = Vector2.new(16.8, 11.4) },
 	},
@@ -612,21 +657,21 @@ local Lobby = {
 	     completely"). ]]
 	backdrop = {
 		cliffs = 18,
-		reach = NumberRange.new(235, 300),
+		reach = pushed(NumberRange.new(235, 300)),
 		tall = NumberRange.new(60, 105),
 		wide = NumberRange.new(90, 130),
 		--[[ A second ring past the first, bare and taller, that fills the
 		     horizon between the near cliffs. ]]
 		far = {
 			cliffs = 14,
-			reach = NumberRange.new(400, 470),
+			reach = pushed(NumberRange.new(400, 470)),
 			tall = NumberRange.new(90, 140),
 			wide = NumberRange.new(150, 210),
 		},
 		treesOnTop = 4,
 		falls = 4,
 		shrooms = 28,
-		shroomReach = NumberRange.new(110, 190),
+		shroomReach = pushed(NumberRange.new(110, 190)),
 		stone = Color3.fromRGB(112, 126, 128),
 		stoneDark = Color3.fromRGB(88, 100, 104),
 		grass = Color3.fromRGB(104, 160, 58),
@@ -701,10 +746,10 @@ local Lobby = {
 	     each kind as likely as its weight. ]]
 	ringSpacing = 16,
 	waterfalls = {
-		Vector2.new(-102, -40),
-		Vector2.new(102, -40),
-		Vector2.new(-90, 84),
-		Vector2.new(90, 84),
+		plan(-102, -40),
+		plan(102, -40),
+		plan(-90, 84),
+		plan(90, 84),
 	},
 	--[[ All of it past the balustrade now (the sheet's floor is open marble):
 	     chunky green trees and bushes, a few boulders. ]]

@@ -203,6 +203,44 @@ return function(t: TestRunner.Helper)
 		end
 	end)
 
+	--[[ The courtyard's floor ends where the terrace's ledge begins: a gap
+	     between them would be a hole down to the forest floor, and the
+	     ledge must be wide enough for its row of arches and their piers. ]]
+	t.test("the courtyard's floor meets the terrace's front", function()
+		local outline = LobbyConfig.courtyard.outline
+		local front = LobbyConfig.terrace.Y + LobbyConfig.rowDepth / 2
+		local edge = LobbyConfig.courtyard.terraceEdge
+		local a, b = outline[edge], outline[edge % #outline + 1]
+		for _, corner in { a, b } do
+			t.near(corner.Y, front, 1e-3, "a terrace corner is off the ledge's front")
+			t.near(
+				math.abs(corner.X),
+				LobbyConfig.terraceAcross / 2,
+				1e-3,
+				"a corner is off the ledge's end"
+			)
+		end
+		t.isTrue(
+			LobbyConfig.terraceAcross >= LobbyConfig.perRow * LobbyConfig.archSpacing + 3.4,
+			"the arcade overhangs its ledge"
+		)
+		t.isTrue(
+			LobbyConfig.terraceSteps < LobbyConfig.terraceAcross,
+			"the steps are wider than the ledge"
+		)
+	end)
+
+	--[[ The spread (owner, 2026-11-12: "a little bigger and more spread
+	     out"): the stations stand further from the fountain than the plan's
+	     first measure, and not so far that the walk between them is empty. ]]
+	t.test("the lobby is spread a little, not a lot", function()
+		t.isTrue(LobbyConfig.spread > 1 and LobbyConfig.spread <= 1.4, "the spread")
+		local blacksmith = LobbyConfig.stations[1]
+		t.equal(blacksmith.piece, "Blacksmith")
+		t.near(blacksmith.at.X, -51 * LobbyConfig.spread, 1e-3, "the Blacksmith is not spread")
+		t.near(LobbyConfig.spawn.Y, 54 * LobbyConfig.spread, 1e-3, "the spawn is not spread")
+	end)
+
 	t.test("at least ten portals, in two rows, every mouth on the lawn", function()
 		t.isTrue(#LobbyConfig.portals >= 10, "fewer than ten portals")
 		t.equal(Lobby.rowOf(#LobbyConfig.portals), 2)

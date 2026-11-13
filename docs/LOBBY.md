@@ -225,3 +225,17 @@ streaked water down each tier with a foam lip, streaming particles and spray, a 
 ledge, and a rock-ringed pool that mists), a taller bare ring behind them to close the horizon, and glowing cyan mushrooms on the
 forest floor (`Config/Lobby.backdrop`). The ruined tower and aqueduct that stood on the highest
 cliff were removed (owner: "get rid of the castle looking object completely"). The lobby is about 5,460 parts with it (the blocky trees are 8 parts each, 284 of them), not measured on a phone.
+
+**Spread out (2026-11-12).** The owner: "i want the lobby to be a little bigger and more spread
+out". Every place on the courtyard in `Config/Lobby` is now written in the plan's studs through
+`plan(x, z)`, which multiplies it by `spread` (1.3) from the lobby's centre: the clearing, the
+balustrade's outline, the four stations, the fountain, the spawn and arrival circle, the terrace,
+the leaderboards, the columns, the ruined arches and the waterfalls. The things themselves keep their
+size. The arches are `spread` further apart too (`archSpacing` 23.4), on a terrace as much wider
+(`terraceAcross` 171.6) with broader steps (`terraceSteps`). The terrace's front corners are worked
+out from the terrace, not spread, because its depth is the steps' and does not grow; `Lobby.spec`
+holds the floor to the ledge's front. Past the balustrade, the cliffs, the far ring and the
+mushrooms move out by what the clearing grew (33 studs), so the wood keeps its depth, and the motes'
+box and rate grow with the floor. The walk from the spawn to the portal steps is about 140 studs (110
+before). About 6,750 parts (5,350 before), most of the new ones trees in the wider wood; not measured
+on a phone. To make it bigger or smaller again, change `spread` alone.

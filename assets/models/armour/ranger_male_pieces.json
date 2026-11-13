@@ -1,0 +1,616 @@
+{
+	"class": "X",
+	"units": "studs",
+	"front": "-Z",
+	"source": "ranger_male_set.glb",
+	"fit": {
+		"scale": 3.4553,
+		"body_meshes": [
+			"avatar_head",
+			"avatar_torso_upper",
+			"avatar_torso_lower",
+			"avatar_upper_arm_L",
+			"avatar_lower_arm_L",
+			"avatar_hand_L",
+			"avatar_upper_leg_L",
+			"avatar_lower_leg_L",
+			"avatar_foot_L",
+			"avatar_upper_arm_R",
+			"avatar_lower_arm_R",
+			"avatar_hand_R",
+			"avatar_upper_leg_R",
+			"avatar_lower_leg_R",
+			"avatar_foot_R"
+		],
+		"region_stretch": {
+			"Head": [
+				1.198,
+				1.14,
+				1.2
+			],
+			"Torso": [
+				1.441,
+				1.236,
+				1.453
+			],
+			"RightArm": [
+				1.448,
+				1.033,
+				1.488
+			],
+			"LeftArm": [
+				1.448,
+				1.033,
+				1.488
+			],
+			"RightLeg": [
+				1.46,
+				0.806,
+				1.448
+			],
+			"LeftLeg": [
+				1.46,
+				0.806,
+				1.448
+			]
+		},
+		"front": "+z",
+		"miss": 0.0001,
+		"miss_other_way": 0.0001
+	},
+	"triangles": 13310,
+	"colours": {
+		"#5D9A2C": "#5D9A2C",
+		"#9CCF3E": "#9CCF3E",
+		"#4A7526": "#4A7526",
+		"#EAB23A": "#EAB23A",
+		"#7D4A26": "#7D4A26",
+		"#55321B": "#55321B"
+	},
+	"pieces": {
+		"Head": {
+			"part": "Head",
+			"size": [
+				3.8081,
+				2.5216,
+				1.8244
+			],
+			"at": [
+				0.0,
+				0.7486,
+				0.0
+			],
+			"triangles": 3202,
+			"open_edges": 0,
+			"glows": [],
+			"glow": [],
+			"plan_size": [
+				8.0,
+				6.182,
+				8.0
+			],
+			"from_plan": {
+				"min": [
+					2.096,
+					0.079,
+					3.088
+				],
+				"max": [
+					-2.096,
+					-3.582,
+					-3.088
+				]
+			},
+			"face_blocked": 0.0,
+			"face_clear": [
+				-0.44,
+				0.44,
+				-0.44,
+				0.3
+			]
+		},
+		"Chest": {
+			"part": "UpperTorso",
+			"size": [
+				5.1766,
+				1.8193,
+				1.6064
+			],
+			"at": [
+				0.0,
+				0.1101,
+				0.0
+			],
+			"triangles": 3282,
+			"open_edges": 0,
+			"glows": [],
+			"glow": [],
+			"plan_size": [
+				6.0,
+				3.049,
+				3.0
+			],
+			"from_plan": {
+				"min": [
+					0.412,
+					0.049,
+					0.797
+				],
+				"max": [
+					-0.412,
+					-1.18,
+					-0.597
+				]
+			}
+		},
+		"Back": {
+			"part": "UpperTorso",
+			"size": [
+				5.2895,
+				4.1008,
+				1.6424
+			],
+			"at": [
+				-0.0564,
+				0.1667,
+				0.7208
+			],
+			"triangles": 3480,
+			"open_edges": 0,
+			"glows": [],
+			"glow": [],
+			"plan_size": [
+				4.0,
+				4.349,
+				2.448
+			],
+			"from_plan": {
+				"min": [
+					-0.701,
+					0.017,
+					-0.652
+				],
+				"max": [
+					0.588,
+					-0.232,
+					-1.458
+				]
+			}
+		},
+		"Waist": {
+			"part": "LowerTorso",
+			"size": [
+				2.3892,
+				1.0842,
+				1.3552
+			],
+			"at": [
+				0.0,
+				-0.3416,
+				-0.1256
+			],
+			"triangles": 1004,
+			"open_edges": 0,
+			"glows": [],
+			"glow": [],
+			"plan_size": [
+				3.2,
+				1.5,
+				2.152
+			],
+			"from_plan": {
+				"min": [
+					0.405,
+					0.416,
+					0.797
+				],
+				"max": [
+					-0.405,
+					0.0,
+					0.0
+				]
+			}
+		},
+		"RightUpperArm": {
+			"part": "RightUpperArm",
+			"size": [
+				1.2012,
+				1.3558,
+				1.2336
+			],
+			"at": [
+				0.0,
+				0.0145,
+				0.0
+			],
+			"triangles": 198,
+			"open_edges": 0,
+			"glows": [],
+			"glow": [],
+			"plan_size": [
+				2.05,
+				1.242,
+				3.2
+			],
+			"from_plan": {
+				"min": [
+					-0.051,
+					-0.042,
+					0.983
+				],
+				"max": [
+					-0.899,
+					0.071,
+					-0.983
+				]
+			}
+		},
+		"RightForearm": {
+			"part": "RightLowerArm",
+			"size": [
+				1.3013,
+				0.6422,
+				1.2336
+			],
+			"at": [
+				0.05,
+				-0.0348,
+				0.0
+			],
+			"triangles": 246,
+			"open_edges": 0,
+			"glows": [],
+			"glow": [],
+			"plan_size": [
+				2.05,
+				1.343,
+				3.2
+			],
+			"from_plan": {
+				"min": [
+					-0.051,
+					0.428,
+					0.983
+				],
+				"max": [
+					-0.799,
+					-0.273,
+					-0.983
+				]
+			}
+		},
+		"RightThigh": {
+			"part": "RightUpperLeg",
+			"size": [
+				1.1054,
+				0.947,
+				1.2012
+			],
+			"at": [
+				0.0527,
+				-0.053,
+				0.0
+			],
+			"triangles": 66,
+			"open_edges": 0,
+			"glows": [],
+			"glow": [],
+			"plan_size": [
+				3.0,
+				1.102,
+				3.2
+			],
+			"from_plan": {
+				"min": [
+					0.0,
+					0.155,
+					0.999
+				],
+				"max": [
+					-1.895,
+					0.0,
+					-0.999
+				]
+			}
+		},
+		"RightShin": {
+			"part": "RightLowerLeg",
+			"size": [
+				1.2063,
+				0.8356,
+				1.4014
+			],
+			"at": [
+				0.1031,
+				-0.1644,
+				0.0
+			],
+			"triangles": 510,
+			"open_edges": 0,
+			"glows": [],
+			"glow": [],
+			"plan_size": [
+				3.0,
+				1.301,
+				3.2
+			],
+			"from_plan": {
+				"min": [
+					0.0,
+					0.068,
+					0.899
+				],
+				"max": [
+					-1.794,
+					-0.397,
+					-0.899
+				]
+			}
+		},
+		"RightFoot": {
+			"part": "RightFoot",
+			"size": [
+				1.1054,
+				0.2228,
+				1.4014
+			],
+			"at": [
+				0.0527,
+				-0.0446,
+				-0.1001
+			],
+			"triangles": 84,
+			"open_edges": 0,
+			"glows": [],
+			"glow": [],
+			"plan_size": [
+				3.0,
+				0.312,
+				3.2
+			],
+			"from_plan": {
+				"min": [
+					0.0,
+					-0.0,
+					0.799
+				],
+				"max": [
+					-1.895,
+					-0.089,
+					-0.999
+				]
+			}
+		},
+		"LeftUpperArm": {
+			"part": "LeftUpperArm",
+			"size": [
+				1.3013,
+				1.3558,
+				1.2336
+			],
+			"at": [
+				-0.05,
+				0.0145,
+				0.0
+			],
+			"triangles": 218,
+			"open_edges": 0,
+			"glows": [],
+			"glow": [],
+			"plan_size": [
+				2.05,
+				1.242,
+				3.2
+			],
+			"from_plan": {
+				"min": [
+					0.799,
+					-0.042,
+					0.983
+				],
+				"max": [
+					0.051,
+					0.071,
+					-0.983
+				]
+			}
+		},
+		"LeftForearm": {
+			"part": "LeftLowerArm",
+			"size": [
+				1.4014,
+				0.6422,
+				1.2336
+			],
+			"at": [
+				-0.1001,
+				-0.0348,
+				0.0
+			],
+			"triangles": 358,
+			"open_edges": 0,
+			"glows": [],
+			"glow": [],
+			"plan_size": [
+				2.05,
+				1.343,
+				3.2
+			],
+			"from_plan": {
+				"min": [
+					0.699,
+					0.428,
+					0.983
+				],
+				"max": [
+					0.051,
+					-0.273,
+					-0.983
+				]
+			}
+		},
+		"LeftThigh": {
+			"part": "LeftUpperLeg",
+			"size": [
+				1.1054,
+				0.947,
+				1.2012
+			],
+			"at": [
+				-0.0527,
+				-0.053,
+				0.0
+			],
+			"triangles": 66,
+			"open_edges": 0,
+			"glows": [],
+			"glow": [],
+			"plan_size": [
+				3.0,
+				1.102,
+				3.2
+			],
+			"from_plan": {
+				"min": [
+					1.895,
+					0.155,
+					0.999
+				],
+				"max": [
+					0.0,
+					0.0,
+					-0.999
+				]
+			}
+		},
+		"LeftShin": {
+			"part": "LeftLowerLeg",
+			"size": [
+				1.2063,
+				0.8356,
+				1.4014
+			],
+			"at": [
+				-0.1031,
+				-0.1644,
+				0.0
+			],
+			"triangles": 512,
+			"open_edges": 0,
+			"glows": [],
+			"glow": [],
+			"plan_size": [
+				3.0,
+				1.301,
+				3.2
+			],
+			"from_plan": {
+				"min": [
+					1.794,
+					0.068,
+					0.899
+				],
+				"max": [
+					0.0,
+					-0.397,
+					-0.899
+				]
+			}
+		},
+		"LeftFoot": {
+			"part": "LeftFoot",
+			"size": [
+				1.1054,
+				0.2228,
+				1.4014
+			],
+			"at": [
+				-0.0527,
+				-0.0446,
+				-0.1001
+			],
+			"triangles": 84,
+			"open_edges": 0,
+			"glows": [],
+			"glow": [],
+			"plan_size": [
+				3.0,
+				0.312,
+				3.2
+			],
+			"from_plan": {
+				"min": [
+					1.895,
+					-0.0,
+					0.799
+				],
+				"max": [
+					0.0,
+					-0.089,
+					-0.999
+				]
+			}
+		}
+	},
+	"meshes": {
+		"chest_tunic_mantle": [
+			"Back",
+			"Chest"
+		],
+		"waist_belt_skirt": [
+			"Back",
+			"Chest",
+			"Waist"
+		],
+		"sleeve_upper_arm_L": [
+			"Chest",
+			"LeftUpperArm"
+		],
+		"bracer_forearm_L": [
+			"Chest",
+			"LeftForearm",
+			"LeftUpperArm"
+		],
+		"trouser_thigh_L": [
+			"LeftThigh"
+		],
+		"boot_shin_L": [
+			"LeftShin"
+		],
+		"boot_foot_L": [
+			"LeftFoot"
+		],
+		"sleeve_upper_arm_R": [
+			"Chest",
+			"RightUpperArm"
+		],
+		"bracer_forearm_R": [
+			"Chest",
+			"RightForearm",
+			"RightUpperArm"
+		],
+		"trouser_thigh_R": [
+			"RightThigh"
+		],
+		"boot_shin_R": [
+			"RightShin"
+		],
+		"boot_foot_R": [
+			"RightFoot"
+		],
+		"hood": [
+			"Head"
+		],
+		"back_quiver": [
+			"Back"
+		]
+	},
+	"notes": [
+		"chest_tunic_mantle: one solid cut between Chest, Back",
+		"waist_belt_skirt: one solid cut between Chest, Back, Waist",
+		"sleeve_upper_arm_L: one solid cut between Chest, LeftUpperArm",
+		"bracer_forearm_L: one solid cut between Chest, LeftUpperArm, LeftForearm",
+		"sleeve_upper_arm_R: one solid cut between Chest, RightUpperArm",
+		"bracer_forearm_R: one solid cut between Chest, RightUpperArm, RightForearm"
+	]
+}

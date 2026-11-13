@@ -135,3 +135,26 @@ As in `class-armour-2026-11.md`, plus:
 - Wherever a set is drawn on a stand-in body rather than a player's avatar
   (a Studio look, a render for the owner), the body has skin, a face and
   clothes. Studio's default rig is all black.
+
+## Locked 2026-11-13: the three male sets
+
+Built on Opus 5.5 with the 3D object template, one chat a set, the sheet
+attached and these prompts with two lines added: "Every cube sits square to
+the body, none rotated or tilted" and "Name the body's own meshes avatar_*;
+the hair belongs to the head piece". Each version was cut by
+`split_set.py --regions` and drawn under its sheet before the next round.
+
+| Set | Design project | Locked | Fix rounds |
+|---|---|---|---|
+| Ranger | `claude.ai/design/p/c8f13ea4-61cd-495d-add4-b73c50ddc6a7` | v2 | one clean leaf hood, a short fringe, big mantle scales, a big quiver with arrows over one shoulder, every mesh closed |
+| Arcanist | `claude.ai/design/p/3df6d2f5-f121-4100-bdfd-0ffb495f2c82` | v2 | the hat crooked with a bigger leaf and a wider brim, the hair and the boot bands closed solids |
+| Warden | `claude.ai/design/p/5d231550-2263-4784-9e71-13865e43c2fa` | v2 | the cape two cubes thick, wider, flaring behind |
+
+Ask for these in the first prompt next time: every mesh a closed solid with
+all six sides (Design leaves the hair and the inner sides between the legs
+open otherwise); no sole under the avatar's foot (it would sink into the
+floor and is cut off); no hair hanging into the face below the brow.
+
+The Ranger needs `--snap 0.02` (its shrunk cubes left faces a hair off
+their axis) and `--max-triangles 15000`.
+

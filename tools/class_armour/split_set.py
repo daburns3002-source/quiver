@@ -7,6 +7,7 @@ closed mesh a piece, ready for the owner's Studio import.
         plan.json Ranger assets/models/armour \
         [--front +z|-z|auto] [--body REGEX] [--sheet <class>_views.png]
         [--keep-colours] [--regions] [--stem NAME] [--assign FILE.json]
+        [--snap VOXEL] [--max-triangles N]
 
 `--regions` is for a set built from its reference sheet rather than a block
 plan (the 2026-11-13 remake): the pieces are the body's own parts (Head,
@@ -14,7 +15,9 @@ Chest with its shoulders, Back, Waist, each UpperArm, Forearm, Thigh, Shin
 and Foot), Design's colours are kept, and every glowing block becomes a
 glow. `--stem` names the output files (`ranger_male`), and `--assign` is a
 JSON object of mesh-name patterns to pieces for a mesh that must go whole
-to a piece wherever it stands (`{"braid": "Head"}`).
+to a piece wherever it stands (`{"braid": "Head"}`). `--snap` puts every
+corner back on the model's voxel grid (its size in the GLB's units, e.g.
+0.02), for a model whose shrunk cubes left faces a hair off their axis.
 
 Writes `<class>_pieces.glb` (one mesh a piece, named as in the config, front
 at -Z, in studs, vertex colours in sRGB), `<class>_pieces.json` (each
@@ -845,7 +848,7 @@ def picture(pieces_glb, plan, sheet, out, title):
 def main(argv):
     flags = {
         "--front": "+z", "--body": r"^(avatar|body)", "--sheet": None, "--keep-colours": False,
-        "--regions": False, "--stem": None, "--assign": None,
+        "--regions": False, "--stem": None, "--assign": None, "--snap": None, "--max-triangles": "10000",
     }
     plain = []
     it = iter(argv)
@@ -860,6 +863,13 @@ def main(argv):
     plan = Plan(plan_path, cls, flags["--regions"])
     assign = list(json.load(open(flags["--assign"])).items()) if flags["--assign"] else []
     source = read_glb(set_glb)
+    if flags["--snap"]:
+        # Design shrinks each cube a hair to keep faces apart, and a face
+        # that spans cubes of different shrink comes out a hair off its
+        # axis: every corner back on the model's own voxel grid
+        step = float(flags["--snap"])
+        for mesh in source:
+            mesh["tris"] = np.round(mesh["tris"] / step) * step
     want = flags["--front"]
     fronts = ["+z", "-z"]
     tries = []
@@ -958,7 +968,7 @@ def main(argv):
         print("  note:", note)
     bad = [name for name, row in report.items() if row["open_edges"]]
     wanted = [name for name in plan.names if not (flags["--regions"] and name == "Back")]
-    if bad or any(name not in report for name in wanted) or total >= 10000:
+    if bad or any(name not in report for name in wanted) or total >= int(flags["--max-triangles"]):
         raise SystemExit(f"FAILED: open {bad}, pieces {len(meshes)}/{len(plan.names)}, triangles {total}")
 
 

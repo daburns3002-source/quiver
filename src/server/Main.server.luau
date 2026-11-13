@@ -30,6 +30,7 @@ local Arena = require(script.Parent.Arena.Arena)
 local Atmosphere = require(script.Parent.Arena.Atmosphere)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Burning = require(script.Parent.Combat.Burning)
+local ClassFigures = require(script.Parent.Run.ClassFigures)
 local ClassUpgrades = require(script.Parent.Combat.ClassUpgrades)
 local Classes = require(ReplicatedStorage.Shared.Config.Classes)
 local EndlessLeaderboard = require(script.Parent.Run.EndlessLeaderboard)
@@ -166,6 +167,8 @@ Arena.preload()
 -- The archer's bow.
 HeldWeapon.preload()
 HeldWeapon.buildPreviews()
+-- The class select cards' figures, loaded in the background for clients to draw.
+task.spawn(ClassFigures.build)
 -- The upgrade cards' effects, built in the background for clients to copy.
 UpgradeEffects.start()
 -- The lobby, where players arrive after BEGIN ADVENTURE.

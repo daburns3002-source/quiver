@@ -242,8 +242,15 @@ What exists and works, all verified in Studio rather than only by the gates:
   saved but changes nothing in game.
 - **No class armour either** (owner, 2026-11-13: "scrap the models on the player entirely"): the class armour sets
   (Outfit C, #555, #563, #564) were taken out the day after they shipped. Every player wears
-  their own avatar everywhere, in a run, on the class select cards and on the Gear portrait;
-  only the weapon in hand says the class. Their code, models and tools are in git history.
+  their own avatar everywhere, in the lobby, in a run and on the Gear portrait; only the
+  weapon in hand says the class. Their code, models and tools are in git history.
+- **Class select shows the class models** (owner, 2026-11-13: "keep the character select
+  screen with the class models"): each card draws its class's figure, the remade outfit on a
+  body with skin, a face and hair, one vertex-coloured mesh holding the class weapon
+  (`Config/ClassFigures`, loaded by `Run/ClassFigures` into `ReplicatedStorage.ClassFigures`,
+  drawn by `GearScreen.figure`; made from the locked Claude Design set by
+  `tools/class_figures/figure.py`). A figure with no mesh yet draws the player's own
+  character. Male figures only; the female sheets wait on the owner.
 - **Upgrades follow the owner's card design** (`design_handoff_upgrade_cards`,
   chosen 2026-10-22): 27 skills (Dual Bows added 2026-10-22), each with levels, a rarity and a stat line per
   level (`Config/Abilities`, `Config/Rarities`), dealt weighted by rarity with

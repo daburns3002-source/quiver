@@ -7,6 +7,7 @@ local TweenService = game:GetService("TweenService")
 local Workspace = game:GetService("Workspace")
 local Chunky = require(script.Parent.Chunky)
 local ClassCards = require(ReplicatedStorage.Shared.Config.ClassSelect)
+local ClassFigures = require(ReplicatedStorage.Shared.Config.ClassFigures)
 local ClassStats = require(ReplicatedStorage.Shared.Util.ClassStats)
 local Classes = require(ReplicatedStorage.Shared.Config.Classes)
 local GearScreen = require(script.Parent.GearScreen)
@@ -104,11 +105,14 @@ end
 	be fixed. it looks too ai right now", and the major UI reference of the
 	same day). It was four slanted panels of painted class art; now it is a
 	chunky panel (`UI/Chunky`) over the lobby with a card for each class
-	(`Config/ClassSelect`), and on every card the player's own character, as
-	it stands in the game, holding that class's weapon (`GearScreen.portrait`;
-	the class bodies were taken out on 2026-11-07 and the class armour sets on
-	2026-11-13, owner: "scrap the models on the player entirely", so the
-	character is the player's avatar). Under it the class's name, what it plays like, and
+	(`Config/ClassSelect`), and on every card the class's own model holding
+	its weapon (`GearScreen.figure`, `Config/ClassFigures`; owner,
+	2026-11-13: "scrap the models on the player entirely", then "keep the
+	character select screen with the class models": the remade figures,
+	outfit on a body with skin, a face and hair). The player is never dressed:
+	in the game every player is their own avatar. Until a figure's mesh is in,
+	its card draws the player's own character (`GearScreen.portrait`). Under it
+	the class's name, what it plays like, and
 	three bars read off `Config/Classes` (`Util/ClassStats`), so the card
 	says what the numbers say. Tap a card, then CHOOSE.
 
@@ -305,7 +309,8 @@ function ClassScreen.start()
 		ring.Enabled = false
 		Chunky.round(holder, 22)
 
-		--[[ The player's own character, holding this class's weapon. ]]
+		--[[ The class's model holding its weapon; the player's own
+		     character until the model's mesh is in. ]]
 		local stage = Instance.new("Frame")
 		stage.Name = "Stage"
 		stage.BackgroundTransparency = 1
@@ -322,7 +327,14 @@ function ClassScreen.start()
 			local square = Instance.new("UIAspectRatioConstraint")
 			square.Parent = lock
 		else
-			GearScreen.portrait(stage, Classes[card.class].weapon)
+			local class, weapon = card.class, Classes[card.class].weapon
+			task.spawn(function()
+				-- the server loads the figures at boot: give them a moment
+				ReplicatedStorage:WaitForChild(ClassFigures.folder, 5)
+				if stage.Parent and not GearScreen.figure(stage, class, weapon) then
+					GearScreen.portrait(stage, weapon)
+				end
+			end)
 		end
 
 		local name = Chunky.text(tile, string.upper(card.class), nil, 6, Chunky.shade(tone))

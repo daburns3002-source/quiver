@@ -11,8 +11,10 @@ re-mesh): every triangle keeps its material's colour as a vertex colour in
 sRGB (a glTF base colour is linear; Roblox reads vertex colours as sRGB and
 drops the materials), turned to face -Z, scaled so the body (meshes named
 `avatar_*`) is the standard blocky body's height, 5.183 studs, standing on
-y = 0 and centred on the body. Prints its size and triangle count; Roblox
-takes up to 20,000 triangles in a mesh.
+y = 0 and centred on the body. Writes `<out>.json` beside it: the mesh's
+size, its centre and where an R15 right hand would be (both from the feet,
+in studs, for `Config/ClassFigures`), and its triangle count; Roblox takes
+up to 20,000 triangles in a mesh.
 """
 import json
 import pathlib
@@ -199,6 +201,20 @@ def main(argv):
     rgba = np.concatenate([rgb, np.full((count, 1), 255)], axis=1)
     lo, hi = tris.reshape(-1, 3).min(0), tris.reshape(-1, 3).max(0)
     middle = (lo + hi) / 2
+    # where an R15 right hand would be, for the class weapon: the bottom of
+    # the body's right arm (the character's right is +X once it faces -Z)
+    arms = []
+    for mesh in body:
+        if re.search(r"arm", mesh["name"], re.I):
+            q = (mesh["tris"].reshape(-1, 3) - centre) * scale
+            q[:, 0] *= -1
+            q[:, 2] *= -1
+            if q[:, 0].mean() > 0:
+                arms.append(q)
+    if not arms:
+        raise SystemExit("no right arm among the body meshes (names with 'arm')")
+    arm = np.concatenate(arms)
+    hand = np.array([(arm[:, 0].min() + arm[:, 0].max()) / 2, arm[:, 1].min() + 0.16, (arm[:, 2].min() + arm[:, 2].max()) / 2])
     write_glb(out, [{
         "name": name,
         "centre": middle,
@@ -209,7 +225,8 @@ def main(argv):
     }])
     size = np.round(hi - lo, 4).tolist()
     info = {"name": name, "source": pathlib.Path(source).name, "triangles": count, "size": size,
-            "centre": np.round(middle, 4).tolist(), "colours": len(np.unique(rgb, axis=0))}
+            "centre": np.round(middle, 4).tolist(), "hand": np.round(hand, 4).tolist(),
+            "colours": len(np.unique(rgb, axis=0))}
     pathlib.Path(out).with_suffix(".json").write_text(json.dumps(info, indent=1) + "\n")
     print(json.dumps(info))
 

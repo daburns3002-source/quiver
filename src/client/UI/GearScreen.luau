@@ -14,6 +14,7 @@ local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Chunky = require(script.Parent.Chunky)
+local ClassFigures = require(ReplicatedStorage.Shared.Config.ClassFigures)
 local Classes = require(ReplicatedStorage.Shared.Config.Classes)
 local EggRules = require(ReplicatedStorage.Shared.Util.EggRules)
 local EggScreen = require(script.Parent.EggScreen)
@@ -59,6 +60,7 @@ local function equippedForClass(profile: SaveSchema.Profile?): string
 	local saved = profile and profile.equipped and ShopRules.find(profile.equipped)
 	return if saved and saved.class == name then saved.weapon else Classes[name].weapon
 end
+local turnAndFrame: (ViewportFrame, Camera, Model) -> ()
 local function portrait(
 	parent: Instance,
 	put: (GuiObject, number, number, number, number) -> (),
@@ -160,7 +162,12 @@ local function portrait(
 			pet.Parent = clone
 		end
 	end
-	local bounds, size = clone:GetBoundingBox()
+	turnAndFrame(viewport, camera, clone)
+end
+--[[ Frames `model` (its pivot at the origin, facing -Z) in `viewport`'s
+     camera and turns it gently, until the viewport goes. ]]
+function turnAndFrame(viewport: ViewportFrame, camera: Camera, model: Model)
+	local bounds, size = model:GetBoundingBox()
 	local center = bounds.Position
 	-- Fit the full body to 92% of the frame, allowing for depth and the gentle turn;
 	-- a held sword or an aura may reach a little past the sides.
@@ -180,7 +187,7 @@ local function portrait(
 	local resized = viewport:GetPropertyChangedSignal("AbsoluteSize"):Connect(frameCamera)
 	local began = os.clock()
 	local step = RunService.RenderStepped:Connect(function()
-		clone:PivotTo(CFrame.Angles(0, math.sin((os.clock() - began) * 0.18) * 0.35, 0))
+		model:PivotTo(CFrame.Angles(0, math.sin((os.clock() - began) * 0.18) * 0.35, 0))
 	end)
 	viewport.Destroying:Once(function()
 		step:Disconnect()
@@ -194,6 +201,55 @@ function GearScreen.portrait(parent: GuiObject, weaponName: string?)
 	portrait(parent, function(item)
 		item.Size = UDim2.fromScale(1, 1)
 	end, { 0, 0, 0, 0 }, weaponName, nil)
+end
+--[[ `class`'s figure (`Config/ClassFigures`: the class model, outfit on a
+     body with skin, a face and hair) holding `weaponName`, turning gently,
+     filling `parent`: class select's card (owner, 2026-11-13: "keep the
+     character select screen with the class models"). False, drawing
+     nothing, while the server has no mesh for it; the caller draws the
+     player's own character instead. ]]
+function GearScreen.figure(parent: GuiObject, class: string, weaponName: string?): boolean
+	local figure = ClassFigures.figures[class]
+	local folder = ReplicatedStorage:FindFirstChild(ClassFigures.folder)
+	local template = folder and folder:FindFirstChild(class)
+	if not figure or not template or not template:IsA("MeshPart") then
+		return false
+	end
+	local viewport = Instance.new("ViewportFrame")
+	viewport.BackgroundTransparency = 1
+	viewport.ZIndex = 2
+	viewport.Ambient = Color3.fromRGB(200, 200, 200)
+	viewport.LightColor = Color3.new(1, 0.94, 0.8)
+	viewport.Size = UDim2.fromScale(1, 1)
+	viewport.Parent = parent
+	local world = Instance.new("WorldModel")
+	world.Parent = viewport
+	local camera = Instance.new("Camera")
+	camera.FieldOfView = 36
+	camera.Parent = viewport
+	viewport.CurrentCamera = camera
+	local model = Instance.new("Model")
+	local body = template:Clone()
+	body.Anchored = true
+	body.CFrame = CFrame.new(figure.centre)
+	body.Parent = model
+	local weapons = ReplicatedStorage:FindFirstChild("WeaponPreview")
+	local held = weaponName and weapons and weapons:FindFirstChild(weaponName)
+	if held and held:IsA("Model") then
+		local copy = held:Clone()
+		copy:PivotTo(CFrame.new(figure.hand))
+		for _, part in copy:GetDescendants() do
+			if part:IsA("BasePart") then
+				part.Anchored = true
+			end
+		end
+		copy.Parent = model
+	end
+	-- the figure stands on its feet at the origin and turns about its middle
+	model.WorldPivot = CFrame.new()
+	model.Parent = world
+	turnAndFrame(viewport, camera, model)
+	return true
 end
 --[[ A weapon's 2D art, the same picture the Blacksmith shows (never a
      render: owner's standing rule). ]]

@@ -10,6 +10,7 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Economy = require(ReplicatedStorage.Shared.Config.Economy)
+local Lobby = require(ReplicatedStorage.Shared.Config.Lobby)
 local Shop = require(ReplicatedStorage.Shared.Config.Shop)
 local ShopAssets = require(ReplicatedStorage.Shared.Config.ShopAssets)
 local ShopRules = require(ReplicatedStorage.Shared.Util.ShopRules)
@@ -110,11 +111,53 @@ return function(t: TestRunner.Helper)
 		t.isNil(ShopRules.chest(7))
 	end)
 
-	t.test("areas with no weapons have an empty crate (a silhouette)", function()
-		for index = 2, #Shop.crates do
+	t.test("areas with no weapons for sale have an empty crate (a silhouette)", function()
+		for index, crate in Shop.crates do
 			local pool = ShopRules.cratePool(index)
-			t.isNil(ShopRules.roll(pool, 0.5, 0.5))
+			if crate.stocked then
+				t.isTrue(#pool > 0, `{crate.name} is stocked and sells nothing`)
+			else
+				t.isNil(ShopRules.roll(pool, 0.5, 0.5))
+			end
 		end
+	end)
+
+	--[[ The later areas' crates (owner, 2026-11-13): open while the game is
+	     in playtest, and at launch shut until the boss their area's portal
+	     waits on is beaten, so gear stronger than the glade's is not sold
+	     to a glade-only player. ]]
+	t.test("a later crate waits at launch on what its portal waits on", function()
+		local stocked = 0
+		for index, crate in Shop.crates do
+			if not crate.stocked or index == 1 then
+				continue
+			end
+			stocked += 1
+			t.isTrue(ShopRules.crateOpen(index, {}, false), `{crate.name} shut in playtest`)
+			t.notNil(crate.atLaunch, `{crate.name} is open to a new player at launch`)
+			t.isFalse(ShopRules.crateOpen(index, {}, true), `{crate.name} open at launch`)
+			t.isTrue(
+				ShopRules.crateOpen(index, { [crate.atLaunch :: string] = true }, true),
+				`{crate.name} stays shut after its boss`
+			)
+			t.isTrue(
+				string.find(ShopRules.crateWords(index, {}, true) or "", "BEAT", 1, true) ~= nil,
+				`{crate.name} does not say what opens it`
+			)
+			local portal: any = nil
+			for _, each in Lobby.portals do
+				if string.upper(each.name or "") == crate.name then
+					portal = each
+				end
+			end
+			t.notNil(portal, `{crate.name} has no portal`)
+			if portal then
+				t.equal(crate.atLaunch, portal.atLaunch and portal.atLaunch.boss, crate.name)
+			end
+		end
+		t.isTrue(stocked >= 2, "the Drowned Village's and Bogheart's crates are stocked")
+		t.isTrue(ShopRules.crateOpen(1, nil, true), "the first crate is always open")
+		t.isNil(ShopRules.crateWords(1, nil, true))
 	end)
 
 	t.test(
@@ -142,8 +185,7 @@ return function(t: TestRunner.Helper)
 		end
 		--[[ A boss item is drawn only once its area's crate is stocked (its
 		     Legendaries cost it); until then no screen shows one, and
-		     `ConfigConsistency.spec` holds a stocked area to having it. The
-		     Drowned Village's and Bogheart's are named but not drawn yet. ]]
+		     `ConfigConsistency.spec` holds a stocked area to having it. ]]
 		for _, crate in Shop.crates do
 			local area = Economy.areas[crate.area]
 			if crate.stocked and area then

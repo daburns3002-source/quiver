@@ -27,7 +27,11 @@ SHEETS = {
     "staffs": ["BranchStaff", "ToadstoolStaff", "LanternStaff", "HootmossStaff", "SlimeCrownStaff", "WorldrootStaff"],
     "blades": ["TimberBlade", "MossstoneBlade", "ThornBlade", "BroodsplitBlade", "EmberfangBlade", "GladeheartBlade"],
     "ui": ["CrateMossyGlade", "Coin", "Gem", "RoyalJelly", "BroodSilk", "Lock"],
+    # the Drowned Village's and Bogheart's boss items (2026-11-13), two across
+    "items34": ["TollBronze", "BogPearl"],
 }
+#: Columns and rows of a sheet that is not Codex's usual 3 x 2.
+GRID = {"items34": (2, 1)}
 
 
 def key_out(img: Image.Image) -> Image.Image:
@@ -79,9 +83,11 @@ def main() -> None:
     for sheet, names in SHEETS.items():
         img = key_out(Image.open(RAW / f"{sheet}_raw.png"))
         w, h = img.size
-        cw, ch = w // 3, h // 2
+        cols, rows = GRID.get(sheet, (3, 2))
+        cw, ch = w // cols, h // rows
         for i, name in enumerate(names):
-            cell = img.crop(((i % 3) * cw, (i // 3) * ch, (i % 3 + 1) * cw, (i // 3 + 1) * ch))
+            x, y = i % cols, i // cols
+            cell = img.crop((x * cw, y * ch, (x + 1) * cw, (y + 1) * ch))
             cell = main_shape(cell)
             box = cell.getchannel("A").point(lambda a: 255 if a > 40 else 0).getbbox()
             if box:

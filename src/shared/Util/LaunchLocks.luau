@@ -17,6 +17,7 @@
 local Eggs = require(script.Parent.Parent.Config.Eggs)
 local Launch = require(script.Parent.Parent.Config.Launch)
 local Lobby = require(script.Parent.Parent.Config.Lobby)
+local Shop = require(script.Parent.Parent.Config.Shop)
 
 local LaunchLocks = {}
 
@@ -82,6 +83,12 @@ end
      for one that is open to everybody. ]]
 function LaunchLocks.eggUnlock(egg: Eggs.Egg, locks: boolean?): string?
 	return egg.unlock or (if on(locks) then egg.atLaunch else nil)
+end
+
+--[[ The area whose boss must be beaten before `crate` (and its area's
+     store) can be bought from, or nil for one open to everybody. ]]
+function LaunchLocks.crateUnlock(crate: Shop.Crate, locks: boolean?): string?
+	return if on(locks) then crate.atLaunch else nil
 end
 
 return LaunchLocks

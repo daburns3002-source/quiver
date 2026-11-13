@@ -60,10 +60,10 @@ local Economy = {
 			firstClearEgg = "ThornwoodEgg",
 		},
 		--[[ Areas 3 and 4 (2026-11-07), so their kills, clears and bosses
-		     pay. A step up each, on Thornwood's curve. The two boss items'
-		     names are placeholders until the owner names them, and they have
-		     no icons yet: `ShopAssets.items` only has to carry one once the
-		     area's crate is stocked (`tests/ConfigConsistency.spec`). ]]
+		     pay. A step up each, on Thornwood's curve. Their boss items are
+		     drawn since their crates were stocked (2026-11-13,
+		     `ShopAssets.items`); the names are still the placeholders the
+		     owner has not changed. ]]
 		DrownedVillage = {
 			killCoins = 30,
 			clearCoins = 750,

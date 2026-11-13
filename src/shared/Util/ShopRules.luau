@@ -9,6 +9,7 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Economy = require(ReplicatedStorage.Shared.Config.Economy)
+local LaunchLocks = require(script.Parent.LaunchLocks)
 local Purse = require(script.Parent.Purse)
 local Sandbox = require(ReplicatedStorage.Shared.Config.Sandbox)
 local Shop = require(ReplicatedStorage.Shared.Config.Shop)
@@ -144,6 +145,36 @@ function ShopRules.chance(index: number, entry: Entry, class: string?): number
 		return 0
 	end
 	return (Shop.crateOdds[entry.rarity] or 0) / total / same
+end
+
+--[[ Whether a player who has beaten `bossesBeaten` may open crate `index`
+     and buy from its area's store: what it waits on at launch
+     (`Util/LaunchLocks.crateUnlock`) is beaten, or it waits on nothing. ]]
+function ShopRules.crateOpen(
+	index: number,
+	bossesBeaten: { [string]: boolean }?,
+	locks: boolean?
+): boolean
+	local crate = Shop.crates[index]
+	local unlock = if crate then LaunchLocks.crateUnlock(crate, locks) else nil
+	return unlock == nil or (bossesBeaten ~= nil and bossesBeaten[unlock] == true)
+end
+
+--[[ What a shut crate says opens it: "BEAT THE BROODMOTHER", nil for an
+     open one. ]]
+function ShopRules.crateWords(
+	index: number,
+	bossesBeaten: { [string]: boolean }?,
+	locks: boolean?
+): string?
+	if ShopRules.crateOpen(index, bossesBeaten, locks) then
+		return nil
+	end
+	local crate = Shop.crates[index]
+	local unlock = crate and LaunchLocks.crateUnlock(crate, locks)
+	local area = unlock and Economy.areas[unlock]
+	local item = area and Economy.items[area.bossItem]
+	return "BEAT " .. string.upper(if item then item.boss else tostring(unlock))
 end
 
 --[[ The store's price for a weapon, or nil when the store does not sell

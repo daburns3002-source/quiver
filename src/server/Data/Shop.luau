@@ -87,14 +87,19 @@ local function openCrate(player: Player, index: unknown, count: unknown, class: 
 	end
 	local crate = Shop.crates[index]
 	local pool = if crate then ShopRules.cratePool(index, chest.class) else {}
-	if not crate or #pool == 0 then
+	local profile = PlayerData.get(player)
+	if
+		not crate
+		or #pool == 0
+		or not profile
+		or not ShopRules.crateOpen(index :: number, profile.bossesBeaten)
+	then
 		return
 	end
 	local n = count :: number
 	if not Wallet.pay(player, { coins = crate.price * n }) then
 		return
 	end
-	local profile = PlayerData.get(player)
 	local mythics = Pity.mythics(pool)
 	local results = {}
 	for _ = 1, n do
@@ -130,7 +135,14 @@ local function buy(player: Player, weapon: unknown)
 	end
 	local entry = ShopRules.find(weapon)
 	local price = entry and ShopRules.price(entry)
-	if not entry or not price or Wallet.owns(player, weapon) then
+	local profile = PlayerData.get(player)
+	if
+		not entry
+		or not price
+		or Wallet.owns(player, weapon)
+		or not profile
+		or not ShopRules.crateOpen(entry.area, profile.bossesBeaten)
+	then
 		return
 	end
 	if Wallet.pay(player, price) then

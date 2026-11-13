@@ -307,6 +307,7 @@ function DexScreen.start()
 					size
 				)
 				local tile = Chunky.tile(slot, entry.rarity, entry.picture, nil, not entry.unlocked)
+				Chunky.tier(tile, entry.tier)
 				if not entry.unlocked then
 					local mark = Chunky.text(tile, "?", nil, 5)
 					mark.AnchorPoint = Vector2.new(1, 1)

@@ -340,6 +340,7 @@ local function details(
 	)
 	if entry.owned then
 		Chunky.gleam(tile)
+		Chunky.tier(tile, MergeRules.best(entry.tiers) or "C")
 	end
 	local lines: { string } = {}
 	if isPet then
@@ -467,7 +468,8 @@ local function slot(
 	rarity: string?,
 	icon: string?,
 	locked: boolean,
-	action: () -> ()
+	action: () -> (),
+	tier: string?
 ): Frame
 	local holder = Instance.new("Frame")
 	holder.Name = words:gsub(" ", "") .. "Slot"
@@ -486,6 +488,7 @@ local function slot(
 	local tile = Chunky.tile(box, if filled then rarity or "Common" else "Common", icon or "")
 	if filled then
 		Chunky.gleam(tile, x * 0.003 + y * 0.002)
+		Chunky.tier(tile, tier)
 	elseif locked then
 		local lock = Kit.image(tile, ShopAssets.lock)
 		lock.Position, lock.Size = UDim2.fromScale(0.25, 0.22), UDim2.fromScale(0.5, 0.5)
@@ -601,7 +604,8 @@ local function draw(s: StationScreen.Screen)
 		if weapon then weapon.rarity else "Common",
 		weaponArt(equipped),
 		false,
-		reopen("GEAR")
+		reopen("GEAR"),
+		held or "C"
 	)
 	slot(sheet, "TRAIL", L.left, L.rows[2], L.size, nil, nil, true, reopen("TRAILS"))
 	local petSlots: { GuiObject } = {}
@@ -621,7 +625,8 @@ local function draw(s: StationScreen.Screen)
 				preferredPetSlot = index
 				tab = "PETS"
 				s.open()
-			end
+			end,
+			if key then MergeRules.best(p and p.tiers.pets[key]) or "C" else nil
 		)
 	end
 
@@ -779,19 +784,18 @@ local function draw(s: StationScreen.Screen)
 			holder,
 			entry.rarity,
 			entry.icon,
-			-- the best merge tier and every copy held ("B x4")
-			if isEquipped and not isPet
-				then "EQUIPPED"
-				elseif entry.owned then (MergeRules.best(entry.tiers) or "C") .. " x" .. tostring(
-					entry.count
-				)
-				else nil,
+			--[[ Every copy held ("x4"). The best merge tier is the badge
+			     beside it and the tick marks the one in hand, which is why
+			     the chip no longer says EQUIPPED: beside the badge that
+			     word was too small to read. ]]
+			if entry.owned then "x" .. tostring(entry.count) else nil,
 			not entry.owned,
 			isEquipped,
 			if isPet and entry.icon == "" then entry.key else nil
 		)
 		if entry.owned then
 			Chunky.gleam(tile, i * 0.37)
+			Chunky.tier(tile, MergeRules.best(entry.tiers) or "C")
 		else
 			local lock = Kit.image(tile, ShopAssets.lock)
 			lock.Position, lock.Size = UDim2.fromScale(0.6, 0.56), UDim2.fromScale(0.34, 0.34)

@@ -34,6 +34,9 @@ export type Tile = {
 	key: string?,
 	chance: number,
 	owned: boolean,
+	--[[ The best merge tier held of it (`Util/MergeRules`), for the badge
+	     in the card's bottom left; nil for one not owned. ]]
+	tier: string?,
 	--[[ Drawn black on its rarity's card, as Codex's screens draw a Mythic
 	     nobody has pulled yet: the colour says how rare, the silhouette
 	     keeps what it is a surprise. ]]
@@ -370,7 +373,7 @@ function HatchStand.draw(
 			tile,
 			tile
 		)
-		Chunky.tile(
+		local card = Chunky.tile(
 			holder,
 			entry.rarity,
 			entry.icon,
@@ -379,6 +382,9 @@ function HatchStand.draw(
 			entry.owned,
 			entry.key
 		)
+		if entry.owned then
+			Chunky.tier(card, entry.tier)
+		end
 	end
 
 	if spec.locked then

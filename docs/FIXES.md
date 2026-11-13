@@ -16,6 +16,16 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## The picked class card swelled from its top-left corner over its neighbour (2026-11-13)
+
+Seen 2026-11-12 on a wide screen: tapping a class card grew it to the right and down, over the edge
+of the next card and the button under the row. **A `UIScale` grows a frame from its `AnchorPoint`**,
+and the card's tile had the default (0, 0). The tile is anchored at its middle now
+(`AnchorPoint` 0.5, 0.5 at `Position` 0.5, 0.5 in its holder), so it swells evenly on every side.
+Anything else scaled for a press or a pick wants the same.
+
+---
+
 ## The story's ding rang two seconds after King Bloblin's eyes went small (2026-11-12)
 
 Owner: "make sure the cutscene for bloblin plays the ding effect when his eyes get small and his

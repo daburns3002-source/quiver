@@ -75,7 +75,7 @@ return function(t: TestRunner.Helper)
 	end)
 
 	t.test("a colour deepens only as far as small white words need", function()
-		for _, card in ClassSelect do
+		for _, card in ClassSelect.cards do
 			local deep = UiContrast.deepFor(card.colour, 4.5)
 			t.isTrue(UiContrast.contrast(WHITE, deep) >= 4.5, card.class .. "'s pitch")
 		end

@@ -164,14 +164,17 @@ export type Weapon = {
 }
 
 local Weapons = {
-	--[[ The blocky Common skins (docs/PETS-FOREST.md, Claude Design,
-	     2026-10-23): `assets/models/weapons/blocky/*_roblox.glb`, from
-	     `optimise_weapon.py`, imported by the owner. Offsets are from each
-	     model's grip, measured from the import. Each plays its own kit
-	     (`Config/WeaponAnimations`), never the weapon it stands in for. ]]
+	--[[ The classes' Common weapons, Tripo models since 2026-11-13 (owner:
+	     all eighteen Mossy Glade weapons at 4,000 triangles and an 8K
+	     texture, `assets/models/weapons/blocky/forest/tripo8k/`): one
+	     textured mesh each, sized to the Claude Design models' length and
+	     held where they were (a bow at its middle, a staff 43% up, a blade
+	     25% up). The bow's string is baked into its mesh, so it has no live
+	     string. Each plays its own kit (`Config/WeaponAnimations`), never
+	     the weapon it stands in for. ]]
 	TwigBow = {
 		hand = "LeftHand",
-		scale = 3.6,
+		scale = 4.3351,
 		grip = Vector3.new(0, -0.15, 0),
 		clips = {
 			hold = "Hold",
@@ -181,33 +184,15 @@ local Weapons = {
 			legs = { idle = "Idle", walk = "Walk", walkSpeed = 5.197825 },
 		},
 		fireSound = "arrow_fire",
-		--[[ The string's ends and the nock as imported; the arrow rests on
-		     the grip block in front of it. ]]
-		bowString = {
-			top = Vector3.new(-0.004, 0.385, -0.195),
-			bottom = Vector3.new(-0.004, -0.385, -0.195),
-			nock = Vector3.new(0.04, 0.06, -0.195),
-			rest = Vector3.new(0.04, 0.06, 0.06),
-		},
 		parts = {
 			{
-				name = "Bow",
-				meshId = "rbxassetid://93880671560670",
-				size = Vector3.new(0.0850, 0.8850, 0.3237),
-				offset = Vector3.new(0, 0, -0.0606),
-			},
-			{
-				name = "Leaves",
-				meshId = "rbxassetid://118987931969181",
-				size = Vector3.new(0.0602, 1.1794, 0.1583),
-				offset = Vector3.new(0.0069, -0.0025, -0.1811),
-			},
-			{
-				name = "String",
-				meshId = "rbxassetid://97358352060456",
-				size = Vector3.new(0.0120, 0.7700, 0.0104),
-				offset = Vector3.new(-0.004, 0, -0.195),
-				liveString = true,
+				name = "Blade",
+				meshId = "rbxassetid://115355663156928",
+				size = Vector3.new(0.3051, 0.9799, 0.1562),
+				offset = Vector3.new(0, 0, 0),
+				turned = true,
+				yaw = math.pi / 2,
+				textureId = "rbxassetid://75072128835727",
 			},
 		},
 	} :: Weapon,
@@ -216,7 +201,7 @@ local Weapons = {
 	     branches is a stone, not an orb, so nothing swells as it charges. ]]
 	BranchStaff = {
 		hand = "RightHand",
-		scale = 3.3,
+		scale = 4.581,
 		grip = Vector3.new(0, -0.1, 0),
 		clips = {
 			hold = "Hold",
@@ -234,30 +219,12 @@ local Weapons = {
 		},
 		parts = {
 			{
-				name = "Staff",
-				meshId = "rbxassetid://87963343628479",
-				size = Vector3.new(0.4023, 1.3607, 0.1201),
-				offset = Vector3.new(-0.0077, 0.1003, 0),
-			},
-			{
-				name = "Leaves",
-				meshId = "rbxassetid://99768490004960",
-				size = Vector3.new(0.4457, 1.0763, 0.1027),
-				offset = Vector3.new(0.0239, 0.2859, 0),
-			},
-			{
-				name = "Gems",
-				meshId = "rbxassetid://71784006936035",
-				size = Vector3.new(0.0600, 0.0900, 0.1189),
-				offset = Vector3.new(0, -0.42, 0),
-				glow = true,
-				colour = Color3.fromRGB(107, 191, 73),
-			},
-			{
-				name = "Stone",
-				meshId = "rbxassetid://88728390994494",
-				size = Vector3.new(0.2459, 0.1850, 0.2459),
-				offset = Vector3.new(-0.01, 0.525, 0),
+				name = "Blade",
+				meshId = "rbxassetid://90264882058244",
+				size = Vector3.new(0.3193, 0.9797, 0.1633),
+				offset = Vector3.new(0, 0.0686, 0),
+				turned = true,
+				textureId = "rbxassetid://137035804059208",
 			},
 		},
 	} :: Weapon,
@@ -266,7 +233,7 @@ local Weapons = {
 	     blade along the hand's −Z with the edge down. ]]
 	TimberBlade = {
 		hand = "RightHand",
-		scale = 3.8,
+		scale = 4.8927,
 		grip = Vector3.new(0, -0.1, 0),
 		inHand = CFrame.Angles(-math.pi / 2, 0, 0) * CFrame.Angles(0, math.pi / 2, 0),
 		clips = {
@@ -280,8 +247,8 @@ local Weapons = {
 		fireSound = "sword_swing",
 		comboSounds = { "sword_swing", "sword_swing_2", "sword_slam" },
 		swingTrail = {
-			base = Vector3.new(0, 0.25, 0),
-			tip = Vector3.new(0, 0.92, 0),
+			base = Vector3.new(0, 0.194, 0),
+			tip = Vector3.new(0, 0.715, 0),
 			colour = { Color3.fromRGB(255, 214, 150), Color3.fromRGB(176, 112, 60) },
 		},
 		blade = {
@@ -296,29 +263,11 @@ local Weapons = {
 		parts = {
 			{
 				name = "Blade",
-				meshId = "rbxassetid://117873556639509",
-				size = Vector3.new(0.2000, 0.7700, 0.0830),
-				offset = Vector3.new(0, 0.555, 0),
-			},
-			{
-				name = "Guard",
-				meshId = "rbxassetid://74236461143698",
-				size = Vector3.new(0.4800, 0.1862, 0.1400),
-				offset = Vector3.new(0, 0.1231, 0),
-			},
-			{
-				name = "Grip",
-				meshId = "rbxassetid://137489111811923",
-				size = Vector3.new(0.2020, 0.3550, 0.1350),
-				offset = Vector3.new(0, -0.1425, 0),
-			},
-			{
-				name = "Gems",
-				meshId = "rbxassetid://135328357197599",
-				size = Vector3.new(0.0693, 0.4626, 0.1500),
-				offset = Vector3.new(0, -0.0443, 0),
-				glow = true,
-				colour = Color3.fromRGB(231, 0, 21),
+				meshId = "rbxassetid://87029386252426",
+				size = Vector3.new(0.3963, 0.9786, 0.1826),
+				offset = Vector3.new(0, 0.2407, 0),
+				turned = true,
+				textureId = "rbxassetid://78290948770256",
 			},
 		},
 	} :: Weapon,
@@ -335,21 +284,16 @@ local skins: { [string]: any } = {
 		-- `bow_1uncommon_acorn_bow`, held as the TwigBow is, playing its kit until it has its own
 		kit = "TwigBow",
 		skinOf = "TwigBow",
-		scale = 3.6156,
+		scale = 4.3343,
 		parts = {
 			{
-				name = "String",
-				meshId = "rbxassetid://138109999243771",
-				size = Vector3.new(0.012, 0.846, 0.012),
-				offset = Vector3.new(0, 0.0456, -0.1195),
-				turned = true,
-			},
-			{
-				name = "Bow",
-				meshId = "rbxassetid://93365548631697",
-				size = Vector3.new(0.165, 1.1749, 0.3739),
+				name = "Blade",
+				meshId = "rbxassetid://98160891208078",
+				size = Vector3.new(0.2851, 0.9801, 0.151),
 				offset = Vector3.new(0, 0, 0),
 				turned = true,
+				yaw = math.pi / 2,
+				textureId = "rbxassetid://124227247158148",
 			},
 		} :: { WeaponPart },
 		bolt = {
@@ -361,30 +305,16 @@ local skins: { [string]: any } = {
 		-- `bow_2rare_firefly_bow`, held as the TwigBow is, playing its kit until it has its own
 		kit = "TwigBow",
 		skinOf = "TwigBow",
-		scale = 3.6,
+		scale = 4.3184,
 		parts = {
 			{
-				name = "Gems",
-				meshId = "rbxassetid://100645457000997",
-				size = Vector3.new(0.1952, 1.18, 0.3688),
-				offset = Vector3.new(0, 0, -0.005),
+				name = "Blade",
+				meshId = "rbxassetid://132174073872730",
+				size = Vector3.new(0.2665, 0.9837, 0.1443),
+				offset = Vector3.new(0, 0, 0),
 				turned = true,
-				glow = true,
-				colour = Color3.fromRGB(249, 227, 109),
-			},
-			{
-				name = "String",
-				meshId = "rbxassetid://129479383120226",
-				size = Vector3.new(0.046, 0.754, 0.046),
-				offset = Vector3.new(0, 0, -0.1482),
-				turned = true,
-			},
-			{
-				name = "Bow",
-				meshId = "rbxassetid://112256096217624",
-				size = Vector3.new(0.2008, 1.0139, 0.3525),
-				offset = Vector3.new(0, 0, 0.0132),
-				turned = true,
+				yaw = math.pi / 2,
+				textureId = "rbxassetid://101595245702316",
 			},
 		} :: { WeaponPart },
 		bolt = {
@@ -400,11 +330,11 @@ local skins: { [string]: any } = {
 		parts = {
 			{
 				name = "Blade",
-				meshId = "rbxassetid://123078584150392",
+				meshId = "rbxassetid://87020699323064",
 				size = Vector3.new(0.1995, 0.9797, 0.4143),
 				offset = Vector3.new(0, 0, 0),
 				turned = true,
-				textureId = "rbxassetid://72029163051439",
+				textureId = "rbxassetid://77787222592510",
 			},
 		} :: { WeaponPart },
 		bolt = {
@@ -416,32 +346,19 @@ local skins: { [string]: any } = {
 		-- `bow_4legendary_ember_fang_bow`, held as the TwigBow is, playing its kit until it has its own
 		kit = "TwigBow",
 		skinOf = "TwigBow",
-		scale = 3.6,
+		scale = 4.3343,
 		parts = {
 			{
-				name = "Gems",
-				meshId = "rbxassetid://92244687159462",
-				size = Vector3.new(0.112, 1.1358, 0.333),
-				offset = Vector3.new(0, 0, -0.0303),
-				turned = true,
-				glow = true,
-				colour = Color3.fromRGB(254, 212, 61),
-			},
-			{
-				name = "String",
-				meshId = "rbxassetid://118883778404973",
-				size = Vector3.new(0.0075, 0.7815, 0.0087),
-				offset = Vector3.new(0, 0, -0.1507),
-				turned = true,
-			},
-			{
-				name = "Bow",
-				meshId = "rbxassetid://92588153985762",
-				size = Vector3.new(0.1138, 1.18, 0.4168),
+				name = "Blade",
+				meshId = "rbxassetid://98290765032317",
+				size = Vector3.new(0.3796, 0.9801, 0.2516),
 				offset = Vector3.new(0, 0, 0),
 				turned = true,
+				yaw = math.pi / 2,
+				textureId = "rbxassetid://72588131155252",
 			},
 		} :: { WeaponPart },
+		aura = Color3.fromRGB(254, 212, 61),
 		shotGlow = Color3.fromRGB(254, 212, 61),
 		bolt = {
 			meshId = "rbxassetid://133739624251092",
@@ -452,16 +369,16 @@ local skins: { [string]: any } = {
 		-- `bow_5mythic_glade_spirit_bow`, held as the TwigBow is, playing its kit until it has its own
 		kit = "TwigBow",
 		skinOf = "TwigBow",
-		scale = 4.332,
+		scale = 4.3316,
 		parts = {
 			{
 				name = "Blade",
-				meshId = "rbxassetid://116108041619051",
+				meshId = "rbxassetid://112167704420440",
 				size = Vector3.new(0.4068, 0.9807, 0.1446),
 				offset = Vector3.new(0, 0, 0),
 				turned = true,
 				yaw = math.pi / 2,
-				textureId = "rbxassetid://90085945857692",
+				textureId = "rbxassetid://123623386979421",
 			},
 		} :: { WeaponPart },
 		aura = Color3.fromRGB(150, 255, 170),
@@ -475,21 +392,15 @@ local skins: { [string]: any } = {
 		-- `staff_1uncommon_toadstool_staff`, held as the BranchStaff is, playing its kit until it has its own
 		kit = "BranchStaff",
 		skinOf = "BranchStaff",
-		scale = 3.1717,
+		scale = 4.5745,
 		parts = {
 			{
-				name = "Leaves",
-				meshId = "rbxassetid://129989536388759",
-				size = Vector3.new(0.3539, 0.9798, 0.241),
-				offset = Vector3.new(0.0179, -0.0208, 0.0343),
+				name = "Blade",
+				meshId = "rbxassetid://115022213751896",
+				size = Vector3.new(0.3378, 0.9811, 0.3678),
+				offset = Vector3.new(0, 0.0687, 0),
 				turned = true,
-			},
-			{
-				name = "Staff",
-				meshId = "rbxassetid://126695740347657",
-				size = Vector3.new(0.536, 1.415, 0.5442),
-				offset = Vector3.new(0, 0.099, 0),
-				turned = true,
+				textureId = "rbxassetid://123924429087867",
 			},
 		} :: { WeaponPart },
 		bolt = {
@@ -505,11 +416,11 @@ local skins: { [string]: any } = {
 		parts = {
 			{
 				name = "Blade",
-				meshId = "rbxassetid://128475334944041",
+				meshId = "rbxassetid://126250025996209",
 				size = Vector3.new(0.3909, 0.981, 0.2949),
 				offset = Vector3.new(0, 0.0687, 0),
 				turned = true,
-				textureId = "rbxassetid://78014053344554",
+				textureId = "rbxassetid://139189512630775",
 			},
 		} :: { WeaponPart },
 		bolt = {
@@ -521,30 +432,15 @@ local skins: { [string]: any } = {
 		-- `staff_3epic_hootmoss_staff`, held as the BranchStaff is, playing its kit until it has its own
 		kit = "BranchStaff",
 		skinOf = "BranchStaff",
-		scale = 3.2018,
+		scale = 4.5712,
 		parts = {
 			{
-				name = "Gems",
-				meshId = "rbxassetid://76098158499494",
-				size = Vector3.new(0.2438, 1.1083, 0.2),
-				offset = Vector3.new(-0.004, 0.0514, 0.0117),
+				name = "Blade",
+				meshId = "rbxassetid://92890876823206",
+				size = Vector3.new(0.3121, 0.9818, 0.2373),
+				offset = Vector3.new(0, 0.0687, 0),
 				turned = true,
-				glow = true,
-				colour = Color3.fromRGB(230, 173, 207),
-			},
-			{
-				name = "Leaves",
-				meshId = "rbxassetid://104814185219000",
-				size = Vector3.new(0.4173, 1.3106, 0.2596),
-				offset = Vector3.new(-0.004, 0.0991, -0.0264),
-				turned = true,
-			},
-			{
-				name = "Staff",
-				meshId = "rbxassetid://96482308261364",
-				size = Vector3.new(0.4525, 1.4017, 0.3124),
-				offset = Vector3.new(0, 0.0981, 0),
-				turned = true,
+				textureId = "rbxassetid://138885584824788",
 			},
 		} :: { WeaponPart },
 		bolt = {
@@ -560,11 +456,11 @@ local skins: { [string]: any } = {
 		parts = {
 			{
 				name = "Blade",
-				meshId = "rbxassetid://90681709116149",
+				meshId = "rbxassetid://96486923984022",
 				size = Vector3.new(0.3401, 0.981, 0.2009),
 				offset = Vector3.new(0, 0.0687, 0),
 				turned = true,
-				textureId = "rbxassetid://82718967449438",
+				textureId = "rbxassetid://128600877219470",
 			},
 		} :: { WeaponPart },
 		aura = Color3.fromRGB(230, 254, 205),
@@ -582,11 +478,11 @@ local skins: { [string]: any } = {
 		parts = {
 			{
 				name = "Blade",
-				meshId = "rbxassetid://138879581031714",
+				meshId = "rbxassetid://83012284503636",
 				size = Vector3.new(0.4786, 0.9811, 0.1749),
 				offset = Vector3.new(0, 0.0687, 0),
 				turned = true,
-				textureId = "rbxassetid://135389038587062",
+				textureId = "rbxassetid://116526913627410",
 			},
 		} :: { WeaponPart },
 		aura = Color3.fromRGB(33, 244, 254),
@@ -600,14 +496,15 @@ local skins: { [string]: any } = {
 		-- `blade_1uncommon_mossstone_blade`, held as the TimberBlade is, playing its kit until it has its own
 		kit = "TimberBlade",
 		skinOf = "TimberBlade",
-		scale = 3.8,
+		scale = 4.8947,
 		parts = {
 			{
 				name = "Blade",
-				meshId = "rbxassetid://87369709718225",
-				size = Vector3.new(0.51, 1.26, 0.144),
-				offset = Vector3.new(0, 0.31, 0),
+				meshId = "rbxassetid://91331600009717",
+				size = Vector3.new(0.3543, 0.9782, 0.1475),
+				offset = Vector3.new(0, 0.2406, 0),
 				turned = true,
+				textureId = "rbxassetid://80126801478340",
 			},
 		} :: { WeaponPart },
 	},
@@ -619,11 +516,11 @@ local skins: { [string]: any } = {
 		parts = {
 			{
 				name = "Blade",
-				meshId = "rbxassetid://109466895095405",
+				meshId = "rbxassetid://98353512616592",
 				size = Vector3.new(0.3786, 0.9786, 0.137),
 				offset = Vector3.new(0, 0.2407, 0),
 				turned = true,
-				textureId = "rbxassetid://129233397063330",
+				textureId = "rbxassetid://119530046707037",
 			},
 		} :: { WeaponPart },
 	},
@@ -631,23 +528,15 @@ local skins: { [string]: any } = {
 		-- `blade_3epic_broodsplit_blade`, held as the TimberBlade is, playing its kit until it has its own
 		kit = "TimberBlade",
 		skinOf = "TimberBlade",
-		scale = 3.8,
+		scale = 4.8822,
 		parts = {
 			{
-				name = "Gems",
-				meshId = "rbxassetid://96954538193459",
-				size = Vector3.new(0.486, 1.1955, 0.1034),
-				offset = Vector3.new(0, 0.3278, 0),
-				turned = true,
-				glow = true,
-				colour = Color3.fromRGB(123, 239, 73),
-			},
-			{
 				name = "Blade",
-				meshId = "rbxassetid://116958050912805",
-				size = Vector3.new(0.47, 1.26, 0.15),
-				offset = Vector3.new(0, 0.31, 0),
+				meshId = "rbxassetid://89920476970367",
+				size = Vector3.new(0.3677, 0.9807, 0.1729),
+				offset = Vector3.new(0, 0.2413, 0),
 				turned = true,
+				textureId = "rbxassetid://82024155193646",
 			},
 		} :: { WeaponPart },
 	},
@@ -655,25 +544,18 @@ local skins: { [string]: any } = {
 		-- `blade_4legendary_emberfang_blade`, held as the TimberBlade is, playing its kit until it has its own
 		kit = "TimberBlade",
 		skinOf = "TimberBlade",
-		scale = 3.8,
+		scale = 4.8782,
 		parts = {
 			{
-				name = "Gems",
-				meshId = "rbxassetid://81579522020297",
-				size = Vector3.new(0.172, 0.3955, 0.144),
-				offset = Vector3.new(0, -0.0878, 0),
-				turned = true,
-				glow = true,
-				colour = Color3.fromRGB(253, 127, 53),
-			},
-			{
 				name = "Blade",
-				meshId = "rbxassetid://107148867269470",
-				size = Vector3.new(0.48, 1.26, 0.15),
-				offset = Vector3.new(0, 0.31, 0),
+				meshId = "rbxassetid://95840917045164",
+				size = Vector3.new(0.3582, 0.9815, 0.2064),
+				offset = Vector3.new(0, 0.2414, 0),
 				turned = true,
+				textureId = "rbxassetid://97093702935925",
 			},
 		} :: { WeaponPart },
+		aura = Color3.fromRGB(253, 127, 53),
 		trailGlow = Color3.fromRGB(253, 127, 53),
 	},
 	GladeheartBlade = {
@@ -684,11 +566,11 @@ local skins: { [string]: any } = {
 		parts = {
 			{
 				name = "Blade",
-				meshId = "rbxassetid://88608703643261",
+				meshId = "rbxassetid://83136726794621",
 				size = Vector3.new(0.3764, 0.9789, 0.1502),
 				offset = Vector3.new(0, 0.2408, 0),
 				turned = true,
-				textureId = "rbxassetid://133327005691030",
+				textureId = "rbxassetid://100030809181174",
 			},
 		} :: { WeaponPart },
 		aura = Color3.fromRGB(222, 190, 243),

@@ -7,6 +7,7 @@
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local BadgeRules = require(ReplicatedStorage.Shared.Util.BadgeRules)
 local BossBadges = require(ReplicatedStorage.Shared.Config.BossBadges)
 local Dex = require(ReplicatedStorage.Shared.Config.Dex)
 local Economy = require(ReplicatedStorage.Shared.Config.Economy)
@@ -44,5 +45,32 @@ return function(t: TestRunner.Helper)
 			seenArea[badge.area] = true
 			seenImage[badge.image] = true
 		end
+	end)
+
+	t.test("a boss's first win earns its badge, once", function()
+		local area = BossBadges.order[1].area
+		local item = Economy.areas[area].bossItem
+		t.equal(BadgeRules.fromWin(true, item, {}, {}), area)
+		-- a loss, or a win with no boss in it, earns nothing
+		t.isNil(BadgeRules.fromWin(false, item, {}, {}))
+		t.isNil(BadgeRules.fromWin(true, nil, {}, {}))
+		-- beaten before this visit, or already shown since: no pop-up
+		t.isNil(BadgeRules.fromWin(true, item, { [area] = true }, {}))
+		t.isNil(BadgeRules.fromWin(true, item, {}, { [area] = true }))
+		-- an item that is not a boss's
+		t.isNil(BadgeRules.fromWin(true, "NotAnItem", {}, {}))
+	end)
+
+	t.test("every boss item earns its own area's badge", function()
+		for _, badge in BossBadges.order do
+			local item = Economy.areas[badge.area].bossItem
+			t.equal(BadgeRules.fromWin(true, item, {}, {}), badge.area)
+		end
+	end)
+
+	t.test("the count is the earned badges only", function()
+		local first = BossBadges.order[1].area
+		t.equal(BadgeRules.count({}), 0)
+		t.equal(BadgeRules.count({ [first] = true, Nowhere = true }), 1)
 	end)
 end

@@ -115,16 +115,18 @@ YAW = {
     "GlowcapLongbow": "math.pi / 2",
     "GulpstringBow": "math.pi / 2",
     "LumenveilBow": "math.pi / 2",
-    # the Tripo remake of the Glade Spirit Bow (2026-11-10) is too
+    # the Tripo remakes of the Glade Spirit Bow (2026-11-10) and of the
+    # Acorn, Firefly and Ember Fang Bows (2026-11-13) are too
     "GladeSpiritBow": "math.pi / 2",
+    "AcornBow": "math.pi / 2",
+    "FireflyBow": "math.pi / 2",
+    "EmberFangBow": "math.pi / 2",
 }
-# Mossy Glade skins remade in Tripo (2026-11-10, owner's fix list): one
+# Every Mossy Glade skin is a Tripo model (seven remade 2026-11-10, all
+# eighteen at 4,000 triangles and an 8K texture 2026-11-13, owner): one
 # textured mesh each, so a Legendary's or Mythic's glow is an `aura`, as
 # Bogheart's are, not a Neon gem group.
-TRIPO_FOREST = {
-    "GladeSpiritBow", "MossSlimeBow", "LanternStaff", "SlimeCrownStaff",
-    "WorldrootStaff", "ThornBlade", "GladeheartBlade",
-}
+TRIPO_FOREST = {k for k, *_ in SKINS}
 GLOWS = ("Gems", "Glow")
 # Epics and up always glow (owner, 2026-10-24); one with no colour of its own
 # glows white, and a Mythic cycles its glow through the rainbow (Fx/WeaponGlow).

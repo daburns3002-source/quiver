@@ -641,6 +641,11 @@ Remotes.event(Remotes.StorySeen).OnServerEvent:Connect(function(player, area)
 	Wallet.sawStory(player, area)
 end)
 
+--[[ A first-time tip shown (`Config/Tips`); kept once, for a tip only. ]]
+Remotes.event(Remotes.TipSeen).OnServerEvent:Connect(function(player, key)
+	Wallet.sawTip(player, key)
+end)
+
 --[[ The intro's BEGIN ADVENTURE: this player has left the title screen.
      It can only clear the hold, never set one, so a repeat changes nothing. ]]
 Remotes.event(Remotes.IntroBegin).OnServerEvent:Connect(function(player)

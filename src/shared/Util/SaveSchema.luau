@@ -77,6 +77,10 @@
 	`Config/Economy` area key. An older profile has watched none, so a boss
 	it has beaten before plays its beat the next time it is beaten.
 
+	Version 13 (2026-11-13, first-time tips -- `Config/Tips`): `tipsSeen`,
+	the tips ever shown, by tip key (`Util/TipRules`). An older profile has
+	seen none, so it sees each tip once, the next time it meets that thing.
+
 	Version 14 (2026-11-13, the trails -- `Config/Trails`): `trails`, the
 	trails held, by key; `equippedTrail`, the one worn, nil for none; and
 	`endlessClassBest`, the deepest Endless floor reached as each class
@@ -146,6 +150,8 @@ export type Profile = {
 	rewards: RewardState,
 	--[[ The areas whose story beat has been watched (version 12). ]]
 	storySeen: { [string]: boolean },
+	--[[ The first-time tips ever shown, by `Config/Tips` key (version 13). ]]
+	tipsSeen: { [string]: boolean },
 	--[[ The trails held and the one worn (version 14, `Config/Trails`). ]]
 	trails: { [string]: boolean },
 	equippedTrail: string?,
@@ -216,6 +222,7 @@ function SaveSchema.default(): Profile
 		settings = SettingsRules.default(),
 		tiers = { weapons = weaponTiers, pets = {} },
 		storySeen = {},
+		tipsSeen = {},
 		trails = {},
 		equippedTrail = nil,
 		endlessClassBest = {},
@@ -376,6 +383,9 @@ function SaveSchema.migrate(raw: unknown): Profile
 	--[[ 11 -> 12: no beat was ever shown, so an older profile has watched
 	     none; a stored copy keeps its yes flags. ]]
 	profile.storySeen = flags(data.storySeen)
+	--[[ 12 -> 13: no tip was ever shown, so an older profile has seen none;
+	     a stored copy keeps its yes flags. ]]
+	profile.tipsSeen = flags(data.tipsSeen)
 	--[[ 13 -> 14: no trail existed, so none is held or worn and no class
 	     has a floor; a stored copy keeps its own, and wears only one it
 	     holds. ]]

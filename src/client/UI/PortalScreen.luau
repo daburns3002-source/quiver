@@ -45,6 +45,7 @@ local ShopAssets = require(ReplicatedStorage.Shared.Config.ShopAssets)
 local SoulstoneShop = require(script.Parent.SoulstoneShop)
 
 local Chunky = require(script.Parent.Chunky)
+local FirstTips = require(script.Parent.FirstTips)
 local Kit = require(script.Parent.Kit)
 local SoundFx = require(script.Parent.Parent.Fx.SoundFx)
 
@@ -641,6 +642,7 @@ function PortalScreen.open(index: number)
 	if fresh and canvas then
 		Chunky.pop(canvas)
 	end
+	FirstTips.show("Portal")
 	if UserInputService.GamepadEnabled then
 		GuiService.SelectedObject = startButton
 	end

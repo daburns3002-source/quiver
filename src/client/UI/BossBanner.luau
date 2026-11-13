@@ -27,6 +27,7 @@ local RunService = game:GetService("RunService")
 local BossBanners = require(ReplicatedStorage.Shared.Config.BossBanners)
 
 local BossWatch = require(script.Parent.Parent.Fx.BossWatch)
+local FirstTips = require(script.Parent.FirstTips)
 local RunPaused = require(script.Parent.Parent.RunPaused)
 
 local BossBanner = {}
@@ -358,6 +359,8 @@ function BossBanner.start()
 			shown = nil
 			made.gui.Enabled = false
 			RunPaused.setIntro(false)
+			-- the first boss met: how to live through it (`Config/Tips`)
+			FirstTips.show("Boss")
 			return
 		end
 		pose(made, banner, t)

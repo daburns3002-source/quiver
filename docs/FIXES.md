@@ -38,6 +38,44 @@ polished, the ui looks good and is not blocking anything"), in Studio Play at 20
 Also measured, not changed (the owner's call, in TRACKER): on a desktop screen the bottom bars cover
 the room's south 5 studs (ground z 23.9 to 29, the spawn at 23), and the top bars the gate's upper
 part.
+## A blue trail came out white on the lobby floor, and a flat one was a thin line (2026-11-13)
+
+Seen in Studio Play before the trails shipped: Starfall, a deep-blue ribbon, drew as a white streak
+on the lobby's cream stone, and every ribbon, laid flat on the ground, read as a thin line from the
+lobby's low camera. **`LightEmission` 1 adds a colour to what is behind it**: blue added to near
+white is white. The ribbon now lays its colour over the ground (`LightEmission` 0; a glowing one is
+`LightInfluence` 0, lit by nothing but itself, so it still glows in a dark room), and a glowing
+particle adds only 0.4 of its light. A brighter fin stands upright along the ribbon's middle
+(`Trails.core.height`, 1.1 studs), which the low camera sees side on, and the ribbons are 1.4x as
+wide. Measured in the next Play: the same ribbon read blue with its white cross stars on it. The
+same holds for any Trail, Beam or particle meant to keep its colour on a bright floor.
+
+The star texture also failed its first load ("No asset content representation found") for some
+minutes after `upload_image`: a fresh upload is still processing. It loaded later in the same Play.
+
+---
+
+## The picked class card swelled from its top-left corner over its neighbour (2026-11-13)
+
+Seen 2026-11-12 on a wide screen: tapping a class card grew it to the right and down, over the edge
+of the next card and the button under the row. **A `UIScale` grows a frame from its `AnchorPoint`**,
+and the card's tile had the default (0, 0). The tile is anchored at its middle now
+(`AnchorPoint` 0.5, 0.5 at `Position` 0.5, 0.5 in its holder), so it swells evenly on every side.
+Anything else scaled for a press or a pick wants the same.
+
+---
+
+## A lone pet walked six studs from its player, off to one side (2026-11-13)
+
+Owner: "MAKE THE PETS FOLLOW THE PLAYER CLOSER".
+
+**The rows were always four pets wide.** `Fx/PetPreview` placed pet `i` in a column of a four-wide
+row centred on the player, so one pet stood in the leftmost column, 4.2 studs to the side, and every
+row stood 4 studs back: about 5.8 studs from the player. Now each row is centred on the pets
+actually in it (a lone pet walks straight behind, two at 1.4 studs either side), and the first row is
+2.5 studs back. `Combat/PetShots.HEEL`, where the server measures a pet's shots from, moved with it
+to `(0, 0, 2.5)`. Each pet's own pace (`Config/PetGaits`) is unchanged, so a slow pet still trails
+while the player runs.
 
 ## The story's ding rang two seconds after King Bloblin's eyes went small (2026-11-12)
 

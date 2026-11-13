@@ -186,6 +186,11 @@ Remotes.SwitchClass = "SwitchClass"
      the tier to merge from); the server checks there are three
      (`Data/Shop`, `Util/MergeRules`) and answers with `ProfileChanged`. ]]
 Remotes.MergeItem = "MergeItem"
+--[[ Client -> server: the gear sheet's TRAILS tab (`Server/Data/Trails`):
+     buy a trail (its key), or wear one held (its key, or nil for none).
+     The price and what is held are the server's. ]]
+Remotes.TrailBuy = "TrailBuy"
+Remotes.TrailEquip = "TrailEquip"
 --[[ Client → server, Studio only: coins, gems and boss items into the
      wallet (`Data/Shop`), to test the shop without playing for them. ]]
 Remotes.DebugWallet = "DebugWallet"

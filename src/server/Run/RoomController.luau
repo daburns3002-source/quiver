@@ -853,6 +853,8 @@ local function clearedFloor(floor: number)
 		for _, session in RunSession.all() do
 			local player = session.player
 			Wallet.recordEndlessFloor(player, floor)
+			-- each class's own deepest, for Starfall (`Config/Trails.endless`)
+			Wallet.recordClassFloor(player, session.loadout.class, floor)
 			EndlessLeaderboard.record(player, floor)
 			for _, milestone in Wallet.claimEndlessMilestones(player, floor) do
 				log.info(

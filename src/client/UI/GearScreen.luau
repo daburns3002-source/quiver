@@ -31,6 +31,8 @@ local ShopRules = require(ReplicatedStorage.Shared.Util.ShopRules)
 local ShopScreen = require(script.Parent.ShopScreen)
 local SoundFx = require(script.Parent.Parent.Fx.SoundFx)
 local StationScreen = require(script.Parent.StationScreen)
+local TrailRules = require(ReplicatedStorage.Shared.Util.TrailRules)
+local Trails = require(ReplicatedStorage.Shared.Config.Trails)
 local WeaponStats = require(ReplicatedStorage.Shared.Config.WeaponStats)
 local GearScreen = {}
 local screen: StationScreen.Screen? = nil
@@ -445,6 +447,129 @@ local function details(
 	SoundFx.play("new_item")
 end
 
+--[[ A trail's card (`Config/Trails`): its picture, what it is and how it
+     is had, and one button: EQUIP / UNEQUIP for one held, BUY with the
+     diamond and its price for one on sale, else LOCKED. Laid out as the
+     item card above, without its MERGE row (a trail has no copies). ]]
+local function trailDetails(sheet: Chunky.Sheet, key: string, profile: SaveSchema.Profile)
+	local trail = Trails.trails[key]
+	if not trail then
+		return
+	end
+	local owned = profile.trails[key] == true
+	local worn = profile.equippedTrail == key
+	local shade = Instance.new("TextButton")
+	shade.Name = "Details"
+	shade.Text = ""
+	shade.AutoButtonColor = false
+	shade.BackgroundColor3 = Color3.new(0, 0, 0)
+	shade.BackgroundTransparency = 0.35
+	shade.Size = UDim2.fromScale(1, 1)
+	shade.ZIndex = 100
+	shade.Parent = sheet.canvas
+	local function close()
+		shade:Destroy()
+	end
+	shade.Activated:Connect(close)
+	local pop = overlay(sheet, shade)
+	local L = if sheet.upright
+		then {
+			panel = { 90, 430, 900, 1050 },
+			ribbon = { 150, 354, 780, 150 },
+			x = { 920, 386, 104 },
+			rarity = { 380, 540, 320, 64 },
+			tile = { 370, 626, 340, 340 },
+			lines = { 150, 990, 780, 230 },
+			equip = { 150, 1250, 460, 116 },
+			shut = { 640, 1250, 290, 116 },
+		}
+		else {
+			panel = { 560, 140, 800, 780 },
+			ribbon = { 590, 68, 740, 144 },
+			x = { 1296, 100, 100 },
+			rarity = { 800, 230, 320, 60 },
+			tile = { 835, 300, 250, 250 },
+			lines = { 620, 562, 680, 180 },
+			equip = { 620, 770, 400, 104 },
+			shut = { 1040, 770, 260, 104 },
+		}
+	local panel = Chunky.panel(pop, table.unpack(L.panel))
+	local guard = Instance.new("TextButton")
+	guard.Text, guard.BackgroundTransparency, guard.AutoButtonColor = "", 1, false
+	guard.ZIndex = 3
+	Chunky.put(pop, guard, table.unpack(L.panel))
+	Chunky.pop(panel)
+	Chunky.ribbon(pop, trail.name, table.unpack(L.ribbon))
+	Chunky.close(pop, L.x[1], L.x[2], L.x[3], close)
+	local colour = Chunky.rarity[trail.rarity] or Chunky.grey
+	local badge = plate(pop, colour, table.unpack(L.rarity))
+	Chunky.textOn(badge, string.upper(trail.rarity), colour, 5).Position = UDim2.fromScale(0, 0)
+	local holder = Instance.new("Frame")
+	holder.BackgroundTransparency = 1
+	holder.ZIndex = 6
+	Chunky.put(pop, holder, table.unpack(L.tile))
+	local tile = Chunky.tile(holder, trail.rarity, trail.icon)
+	if owned then
+		Chunky.gleam(tile)
+	end
+	local lines = { "A TRAIL BEHIND YOU, LOOKS ONLY", TrailRules.from(key) }
+	local how = if owned then nil else TrailRules.howTo(key, profile)
+	if how then
+		table.insert(lines, how)
+	end
+	local card = Chunky.card(pop, table.unpack(L.lines))
+	local count = math.max(#lines, 1)
+	for i, words in lines do
+		local line = Chunky.text(card, words, Chunky.ink, 0)
+		line.Position = UDim2.fromScale(0.05, 0.08 + (i - 1) * 0.84 / count)
+		line.Size = UDim2.fromScale(0.9, 0.84 / math.max(count, 3) * 0.8)
+	end
+	local price = if owned then nil else TrailRules.price(key)
+	local onSale = price ~= nil and TrailRules.onSale(key, profile.bossesBeaten)
+	local canPay = onSale and price ~= nil and profile.gems >= price
+	local e = L.equip
+	if owned then
+		Chunky.button(
+			pop,
+			if worn then "UNEQUIP" else "EQUIP",
+			Chunky.green,
+			e[1],
+			e[2],
+			e[3],
+			e[4],
+			function()
+				close()
+				SoundFx.play("equip_weapon")
+				Remotes.event(Remotes.TrailEquip):FireServer(if worn then nil else key)
+			end
+		)
+	elseif onSale and price then
+		-- the diamond beside the number (rule 15)
+		Chunky.button(
+			pop,
+			Chunky.commas(price),
+			if canPay then Chunky.green else Chunky.grey,
+			e[1],
+			e[2],
+			e[3],
+			e[4],
+			function()
+				if canPay then
+					close()
+					SoundFx.play("new_item")
+					Remotes.event(Remotes.TrailBuy):FireServer(key)
+				end
+			end,
+			ShopAssets.gem
+		)
+	else
+		Chunky.button(pop, "LOCKED", Chunky.grey, e[1], e[2], e[3], e[4], function() end)
+	end
+	local c = L.shut
+	Chunky.button(pop, "CLOSE", Chunky.blue, c[1], c[2], c[3], c[4], close)
+	SoundFx.play("new_item")
+end
+
 --[[ One of the hero's slots: its name over a rarity tile, the equipped
      thing on it (gleaming), "+" when empty, a lock when there is nothing
      to put in it yet. Pressing it opens the matching tab. ]]
@@ -596,7 +721,19 @@ local function draw(s: StationScreen.Screen)
 		reopen("GEAR"),
 		held or "C"
 	)
-	slot(sheet, "TRAIL", L.left, L.rows[2], L.size, nil, nil, true, reopen("TRAILS"))
+	-- the trail worn (`Config/Trails`), "+" while none is
+	local worn = p and p.equippedTrail and Trails.trails[p.equippedTrail]
+	slot(
+		sheet,
+		"TRAIL",
+		L.left,
+		L.rows[2],
+		L.size,
+		if worn then worn.rarity else nil,
+		if worn then worn.icon else nil,
+		false,
+		reopen("TRAILS")
+	)
 	local petSlots: { GuiObject } = {}
 	for index = 1, 2 do
 		local key = p and p.equippedPets[index]
@@ -694,7 +831,7 @@ local function draw(s: StationScreen.Screen)
 	local cols = if up then 5 else 4
 	local pad, gap = 14, 16
 	local cell = (gw - 24 - pad * 2 - gap * (cols - 1)) / cols
-	local count = if tab == "CLASSES" then 3 else #entries
+	local count = if tab == "CLASSES" then 3 elseif tab == "TRAILS" then #Trails.order else #entries
 	local rows = math.max(math.ceil(count / cols), 1)
 	local contentH = math.max(gh, pad * 2 + rows * cell + (rows - 1) * gap)
 	local grid = Instance.new("ScrollingFrame")
@@ -756,11 +893,31 @@ local function draw(s: StationScreen.Screen)
 			end)
 		end
 	elseif tab == "TRAILS" then
-		local empty = Instance.new("Frame")
-		empty.BackgroundTransparency = 1
-		empty.ZIndex = 6
-		Chunky.put(sheet, empty, gx + 40, gy + gh * 0.4, gw - 80, 70)
-		Chunky.text(empty, "TRAILS ARE NOT AVAILABLE YET", Chunky.ink, 0)
+		--[[ Every trail, in `Trails.order`: held ones first-class, the
+		     rest under a lock but shown as they look, so a player sees
+		     what they are buying or earning. ]]
+		for i, key in Trails.order do
+			local trail = Trails.trails[key]
+			local owned = p ~= nil and p.trails[key] == true
+			local isWorn = p ~= nil and p.equippedTrail == key
+			local holder = cellAt(i)
+			local tile = Chunky.tile(holder, trail.rarity, trail.icon, nil, false, isWorn)
+			if owned then
+				Chunky.gleam(tile, i * 0.37)
+				if trail.glow then
+					Chunky.twinkle(tile)
+				end
+			else
+				local lock = Kit.image(tile, ShopAssets.lock)
+				lock.Position, lock.Size = UDim2.fromScale(0.6, 0.56), UDim2.fromScale(0.34, 0.34)
+				lock.ZIndex = 13
+			end
+			Chunky.press(holder, function()
+				if p and not Reveal.busy() then
+					trailDetails(sheet, key, p)
+				end
+			end)
+		end
 	end
 	for i, entry in entries do
 		local isPet = tab == "PETS"

@@ -62,7 +62,7 @@ return function(t: TestRunner.Helper)
 
 	t.test("a new profile has beaten no level", function()
 		local p = SaveSchema.migrate(nil)
-		t.equal(SaveSchema.VERSION, 12)
+		t.equal(SaveSchema.VERSION, 14)
 		t.isNil((next(p.levelsBeaten)))
 	end)
 
@@ -319,6 +319,30 @@ return function(t: TestRunner.Helper)
 			})
 			t.isTrue(p.storySeen.MossyGlade)
 			t.isNil(p.storySeen.Thornwood, "only a yes is kept")
+		end
+	)
+
+	t.test(
+		"version 14: an older profile holds and wears no trail; a stored one keeps its own",
+		function()
+			local old = SaveSchema.migrate({ version = 12, endlessBest = 60 })
+			t.isNil((next(old.trails)))
+			t.isNil(old.equippedTrail)
+			t.isNil((next(old.endlessClassBest)), "no class is credited with an old floor")
+			local p = SaveSchema.migrate({
+				version = 14,
+				trails = { LeafDrift = true, RoyalGoo = 1 },
+				equippedTrail = "LeafDrift",
+				endlessClassBest = { Ranger = 52, Arcanist = -3, Warden = 7.6 },
+			})
+			t.isTrue(p.trails.LeafDrift)
+			t.isNil(p.trails.RoyalGoo, "only a yes is kept")
+			t.equal(p.equippedTrail, "LeafDrift")
+			t.equal(p.endlessClassBest.Ranger, 52)
+			t.isNil(p.endlessClassBest.Arcanist, "a broken floor is dropped")
+			t.equal(p.endlessClassBest.Warden, 7)
+			local worn = SaveSchema.migrate({ version = 14, equippedTrail = "Starfall" })
+			t.isNil(worn.equippedTrail, "a trail not held is not worn")
 		end
 	)
 end

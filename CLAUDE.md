@@ -242,8 +242,8 @@ What exists and works, all verified in Studio rather than only by the gates:
   saved but changes nothing in game.
 - **No class armour either** (owner, 2026-11-13: "scrap the models on the player entirely"): the class armour sets
   (Outfit C, #555, #563, #564) were taken out the day after they shipped. Every player wears
-  their own avatar everywhere, in a run, on the class select cards and on the Gear portrait;
-  only the weapon in hand says the class. Their code, models and tools are in git history.
+  their own avatar everywhere, in a run and on the Gear portrait; only the weapon in hand says
+  the class (the class select cards show drawn heroes since 2026-11-13, pictures only). Their code, models and tools are in git history.
 - **Upgrades follow the owner's card design** (`design_handoff_upgrade_cards`,
   chosen 2026-10-22): 27 skills (Dual Bows added 2026-10-22), each with levels, a rarity and a stat line per
   level (`Config/Abilities`, `Config/Rarities`), dealt weighted by rarity with
@@ -525,10 +525,18 @@ settings, the Soulstone shop). **Not seen in Studio yet** (2026-11-11): the re-s
 screen at once and waits on a look.
 
 **Screens converted to the reference since** (2026-11-11, owner: "Yes, convert them"): **class select**
-(`UI/ClassScreen`, `Config/ClassSelect`, `Util/ClassStats`; owner: "it looks too ai right now") is a
-chunky panel of class cards, each drawing the player's own character holding the class's weapon
-(`GearScreen.portrait`) over three bars read off `Config/Classes`; the painted art, `ClassSelectAssets`
-and `ClassSelectHit` are gone and the look sent to the server is only saved. The **Endless checkpoint**
+(`UI/ClassScreen`, `Config/ClassSelect`, `Util/ClassStats`; owner: "it looks too ai right now") is
+**"option B"** since 2026-11-13 (owner: "I LIKE B BUT MAKE SURE THERE IS A CHOICE IN THERE TO SWITCH
+GENDER AND ALSO MAKE SURE THE ASSASSIN CLASS IS VISIBLE BUT BLACKE DOUT", then "MAKE THE SWORD A
+LITTLE BIGGER AND MAKE THE ASSASSIN MORE NOTICEABLE"; mock-ups and Codex art in
+`assets/concepts/blocky/ui/class_select_b/`, cut by its `cut.py`): the CHOOSE YOUR CLASS plate over a
+mint panel, four cards in a row (two by two on an upright phone), each a round medallion in the
+class's colour holding Codex's head-and-shoulders portrait of its hero, the name on a coloured tag, the
+pitch, and RANGE / POWER / SPEED bars with icons read off `Config/Classes` (`Util/ClassStats`: reach,
+damage a hit, attacks a second, each a share of the best open class). The picked card wears a yellow
+ring; a green CHOOSE is under the row. A BOY / GIRL switch at the panel's top right swaps every portrait
+(pictures only) and is saved as the profile's `look`. The Assassin is visible but blacked out: a
+silhouette with a violet rim and a padlock, empty bars, and it cannot be chosen. The **Endless checkpoint**
 is a chunky panel of coloured gift tiles. The **draft** keeps its cards and their dark stage (the
 owner's card design) and has chunky REROLL / CHOOSE! on every layout. The **end screens** keep their
 blocks and motion and take the kit's colours and rounded font (`Config/EndScreenTheme`, read from
@@ -577,6 +585,25 @@ angle (owner, 2026-10-26: "all at the same angle"; `Config/ShopAssets`,
 `assets/ui/shop/three_quarter.py`); a new weapon needs one (`Shop.spec`). Studio test remote:
 `Remotes.DebugWallet:FireServer(coins, gems, itemsEach)`. In Studio the shop opens by itself on
 reaching the lobby, wallet topped up (`Sandbox.openShop`; set it to nil to stop that).
+
+**Trails** (owner, 2026-11-13: "ANOTHER FOR CREATING THE TRAILS"; `Config/Trails`, `Util/TrailRules`,
+`Server/Data/Trails`, `Fx/PlayerTrails`): what the Gear sheet's TRAIL slot holds, **looks only**. Three an area,
+picked from Codex's sheets (`assets/concepts/blocky/ui/trails/`): Mossy Glade's Leaf Drift, Firefly Wake, Royal
+Goo; Thornwood's Bramble Pollen, Crow Feathers, Brood Silk; the Drowned Village's Bubble Stream, Splash Wake, Tide
+Bell; Bogheart's Bog Spores, Glowcap Path, Gulp's Bubbles; and one Mythic, **Starfall**. Rare and Epic are bought
+for gems on the TRAILS tab (the store's 180 and 450 times the area's number, on sale when the area's crates are);
+an area's Legendary is given the first time its boss falls (and on join to anyone who beat it before); Starfall
+for reaching Endless floor `Trails.endless.floor` (50) as **each** of the three classes (owner: "a reward for
+getting to a certain floor on endless with all 3 classes"; save v14 `endlessClassBest`, counted from the first
+run after trails came in). The server grants through `Wallet.grantTrail` / `settleTrails` only, and the worn one
+is the Player's `Trail` attribute; every client draws every player's trail itself (a ribbon flat on the ground
+with a brighter fin standing along its middle, and the trail's square particles, `DeviceTiers.trailShare` of them,
+a little while standing). Made "very cool" (owner, the same day): a dash or putting one on throws a burst, glowing
+particles twinkle, a glowing trail's light breathes, Starfall's ribbon shimmers and throws shooting stars. Colours
+are laid over the ground, never added (`LightEmission` 0: added, blue went white on the lobby floor;
+FIXES). Every Legendary and
+Mythic trail glows with a light (`tests/Trails.spec`). One picture a trail, `Trails.trails[key].icon` (Codex,
+cut by `assets/ui/trails/cutout.py`); a new trail needs its icon drawn from the same prompts.
 
 **Revive** (`Balance.Revive`): once per stage, automatically, after Second
 Wind — full health, 2.5 s untouchable behind a gold shield, and enemy shots

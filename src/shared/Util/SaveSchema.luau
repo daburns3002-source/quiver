@@ -76,6 +76,14 @@
 	`storySeen`, the areas whose story beat the player has watched, by
 	`Config/Economy` area key. An older profile has watched none, so a boss
 	it has beaten before plays its beat the next time it is beaten.
+
+	Version 14 (2026-11-13, the trails -- `Config/Trails`): `trails`, the
+	trails held, by key; `equippedTrail`, the one worn, nil for none; and
+	`endlessClassBest`, the deepest Endless floor reached as each class
+	(Starfall's). An older profile holds none and wears none; the trails
+	its beaten bosses earned are given on its next join
+	(`Wallet.settleTrails`). Nobody's class was written beside a floor
+	before, so every class counts from 0: nothing is invented.
 ]]
 
 local MergeRules = require(script.Parent.MergeRules)
@@ -83,7 +91,7 @@ local SettingsRules = require(script.Parent.SettingsRules)
 
 local SaveSchema = {}
 
-SaveSchema.VERSION = 12
+SaveSchema.VERSION = 14
 
 --[[ The classes' own weapons, owned from the start. ]]
 local STARTERS = { "TwigBow", "BranchStaff", "TimberBlade" }
@@ -138,6 +146,11 @@ export type Profile = {
 	rewards: RewardState,
 	--[[ The areas whose story beat has been watched (version 12). ]]
 	storySeen: { [string]: boolean },
+	--[[ The trails held and the one worn (version 14, `Config/Trails`). ]]
+	trails: { [string]: boolean },
+	equippedTrail: string?,
+	--[[ The deepest Endless floor reached as each class (version 14). ]]
+	endlessClassBest: { [string]: number },
 }
 
 export type RewardState = {
@@ -203,6 +216,9 @@ function SaveSchema.default(): Profile
 		settings = SettingsRules.default(),
 		tiers = { weapons = weaponTiers, pets = {} },
 		storySeen = {},
+		trails = {},
+		equippedTrail = nil,
+		endlessClassBest = {},
 	}
 end
 
@@ -360,6 +376,14 @@ function SaveSchema.migrate(raw: unknown): Profile
 	--[[ 11 -> 12: no beat was ever shown, so an older profile has watched
 	     none; a stored copy keeps its yes flags. ]]
 	profile.storySeen = flags(data.storySeen)
+	--[[ 13 -> 14: no trail existed, so none is held or worn and no class
+	     has a floor; a stored copy keeps its own, and wears only one it
+	     holds. ]]
+	profile.trails = flags(data.trails)
+	if type(data.equippedTrail) == "string" and profile.trails[data.equippedTrail] then
+		profile.equippedTrail = data.equippedTrail
+	end
+	profile.endlessClassBest = counts(data.endlessClassBest)
 	return profile
 end
 

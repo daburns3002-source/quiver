@@ -99,6 +99,8 @@ local function drawStore(s: StationScreen.Screen, area: HatchStand.Area)
 			table.insert(entries, entry)
 		end
 	end
+	-- an area shut at launch shows its weapons, with what opens them on each button
+	local shut = ShopRules.crateWords(selected, if p then p.bossesBeaten else nil)
 	local top = area.y + 104
 	local viewW, viewH = area.w, area.bottom - top
 	local cols = if up then 1 else 2
@@ -163,19 +165,22 @@ local function drawStore(s: StationScreen.Screen, area: HatchStand.Area)
 		buyHolder.Position, buyHolder.Size =
 			UDim2.fromScale((colW - 236) / colW, 30 / rowH), UDim2.fromScale(220 / colW, 96 / rowH)
 		buyHolder.Parent = row
-		local label = if owned then "OWNED" else priceText(price)
+		local label = if owned then "OWNED" elseif shut then shut else priceText(price)
 		--[[ The currency's own picture beside the price: the diamond for a
 		     gem price, the coin for a coin one (a Legendary's coins and boss
 		     item keep the coin, with the rest in words). ]]
 		local icon: string? = nil
-		if not owned then
+		if not owned and not shut then
 			icon = if price.gems and not price.coins then ShopAssets.gem else ShopAssets.coin
 		end
-		local colour = if owned then Chunky.grey elseif can then Chunky.green else Chunky.grey
+		local colour = if owned or shut
+			then Chunky.grey
+			elseif can then Chunky.green
+			else Chunky.grey
 		local miniSheet: Chunky.Sheet =
 			{ canvas = buyHolder :: any, w = 220, h = 96, upright = false }
 		Chunky.button(miniSheet, label, colour, 0, 0, 220, 96, function()
-			if owned or not can then
+			if owned or shut or not can then
 				return
 			end
 			Reveal.request(function()
@@ -316,7 +321,9 @@ function ShopScreen.start()
 			end,
 			tabs = tabs,
 			tiles = tiles,
-			locked = if #pool == 0 then "NO WEAPONS YET" else nil,
+			locked = if #pool == 0
+				then "NO WEAPONS YET"
+				else ShopRules.crateWords(selected, if p then p.bossesBeaten else nil),
 			pity = if p then p.pity.crates else 0,
 			picture = GearAssets.crates[crate.area].closed,
 			backdrop = GearAssets.backgrounds.blacksmith,

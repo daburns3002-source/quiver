@@ -563,7 +563,9 @@ A crate per area for coins (500, 1,000, 2,000, 4,000, 10,000, 20,000) rolls on t
 (Uncommon 60, Rare 28, Epic 11, Mythic 1) one of that area's weapons; a weapon already owned
 is one more C copy, saved: three of a merge tier make one of the next, C -> B -> A -> S, each
 1.2x the damage before and S 1.5x over A (owner, 2026-10-28; `Util/MergeRules`, MERGE on the
-gear screen's item card), and pets merge the same way; every tile of a held weapon or pet wears its best tier as a coloured letter in its bottom left (`Chunky.tier`, `UiPalette.tier`: C bronze, B steel, A gold, S ruby; owner, 2026-11-12); areas with no weapons yet are black silhouettes. The store sells an area's
+gear screen's item card), and pets merge the same way; the Drowned Village's and Bogheart's crates and stores are stocked
+(owner, 2026-11-13), each shut at launch until the boss its area's portal waits on (`Shop.crates[i].atLaunch`,
+`ShopRules.crateOpen`, checked on the server), and a Mythic keeps its 1% in a chest that lacks a rarity; every tile of a held weapon or pet wears its best tier as a coloured letter in its bottom left (`Chunky.tier`, `UiPalette.tier`: C bronze, B steel, A gold, S ruby; owner, 2026-11-12); areas with no weapons yet are black silhouettes. The store sells an area's
 weapons for gems by rarity, its Legendaries for coins and 3 of its boss's item; Mythics only
 come out of crates. EQUIP holds an owned weapon (its class with it), saved, in hand at once in
 the lobby. Every weapon picture is the THREE-QUARTER view of the reference sheet its 3D model was

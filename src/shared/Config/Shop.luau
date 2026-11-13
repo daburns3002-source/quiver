@@ -32,16 +32,23 @@ export type Crate = {
 	     store cannot cost. Unstocked areas' weapons are still held and
 	     fought with in the sandbox; they are simply not for sale.
 
-	     **The Drowned Village and Bogheart Caverns are unstocked**
-	     (2026-11-07): both have stages behind open portals and a
-	     `Config/Economy` entry now, but their boss items have placeholder
-	     names and no icons, and whether to sell gear a quarter or a half
-	     stronger than anything native (`WeaponStats.areaScale`) to a
-	     glade-only player is the owner's call.
+	     **The Drowned Village and Bogheart Caverns are stocked since
+	     2026-11-13** (owner, approving balance review item 5: after the
+	     glade there was nothing to buy). Their boss items are drawn
+	     (Codex, `assets/concepts/blocky/ui/shop/items34_raw.png`), and
+	     each crate waits at launch on what its area's portal waits on
+	     (`atLaunch`), so gear a quarter or a half stronger than the
+	     glade's (`WeaponStats.areaScale`) is not sold to a glade-only
+	     player.
 
 	     `Util/ShopRules.catalog` is the one gate, so the store, the
 	     crates and the gear screen all agree about what exists. ]]
 	stocked: boolean?,
+	--[[ The area whose boss must be beaten before this crate opens, and
+	     its area's store with it, once the game is locked for launch
+	     (`Config/Launch.locks`, read through `Util/LaunchLocks`): the boss
+	     its area's portal waits on. Not read while the switch is off. ]]
+	atLaunch: string?,
 }
 
 local Shop = {
@@ -49,8 +56,20 @@ local Shop = {
 	crates = {
 		{ area = "MossyGlade", name = "MOSSY GLADE", price = 500, stocked = true },
 		{ area = "Thornwood", name = "THORNWOOD", price = 1000 },
-		{ area = "DrownedVillage", name = "DROWNED VILLAGE", price = 2000 },
-		{ area = "BogheartCaverns", name = "BOGHEART CAVERNS", price = 4000 },
+		{
+			area = "DrownedVillage",
+			name = "DROWNED VILLAGE",
+			price = 2000,
+			stocked = true,
+			atLaunch = "Thornwood",
+		},
+		{
+			area = "BogheartCaverns",
+			name = "BOGHEART CAVERNS",
+			price = 4000,
+			stocked = true,
+			atLaunch = "DrownedVillage",
+		},
 		{ area = "WindsweptCliffs", name = "WINDSWEPT CLIFFS", price = 10000 },
 		{ area = "FrostpeakPass", name = "FROSTPEAK PASS", price = 20000 },
 	} :: { Crate },

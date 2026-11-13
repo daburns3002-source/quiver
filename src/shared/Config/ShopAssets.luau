@@ -31,6 +31,9 @@ local ShopAssets = {
 	items = {
 		RoyalJelly = "rbxassetid://123248195151113",
 		BroodSilk = "rbxassetid://91967702339012",
+		-- the Drowned Village's and Bogheart's (Codex, `items34_raw.png`, 2026-11-13)
+		TollBronze = "rbxassetid://98531169043073",
+		BogPearl = "rbxassetid://91760436326016",
 	} :: { [string]: string },
 	weapons = {
 		TwigBow = "rbxassetid://138984353895385",

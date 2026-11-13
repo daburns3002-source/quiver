@@ -299,6 +299,14 @@ local function land(swing: Pending, now: number)
 		if xp > 0 then
 			RunSession.creditKill(session.player, xp, fell)
 		end
+		--[[ Sunder: what was struck takes more from everything for a while. ]]
+		if landed and melee.sunder > 0 then
+			EnemyManager.sunder(
+				enemy.model,
+				melee.sunder,
+				os.clock() + Balance.Player.sunder.duration
+			)
+		end
 		if landed and lead then
 			Burning.ignite(enemy.model, blow * lead.burn, lead.burnDuration, session.player, now)
 			--[[ Soul Chain: the nearest others share the blow, as they would
@@ -306,6 +314,9 @@ local function land(swing: Pending, now: number)
 			SoulLink.apply(session.player, lead.link, enemy.model, enemy.position, damage, now)
 		end
 	end
+
+	--[[ Blade Storm: every few blows that land, the sword is thrown. ]]
+	ClassUpgrades.afterBlow(session, root.Position, swing.direction, now)
 end
 
 --[[ Lands every blow that is due. ]]

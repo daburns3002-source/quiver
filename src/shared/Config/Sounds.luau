@@ -648,6 +648,57 @@ local Sounds: { [string]: Sound } = {
 		pitchJitter = 0.05,
 		minGap = 0.3,
 	},
+	--[[ The class cards of 2026-11-13 (`Fx/Upgrades/ClassCardFx`): hooked up
+	     silent, waiting on the owner's picks and one sprite upload. ]]
+	-- the sniper arrow leaving the bow
+	fx_sniper = {
+		id = "",
+		volume = 0.7,
+		pitchJitter = 0.05,
+		minGap = 0.3,
+	},
+	-- an arrow splitting at a kill
+	fx_split_shot = {
+		id = "",
+		volume = 0.5,
+		pitchJitter = 0.05,
+		minGap = 0.12,
+	},
+	-- an enemy shot blown away
+	fx_wind_gust = {
+		id = "",
+		volume = 0.5,
+		pitchJitter = 0.05,
+		minGap = 0.15,
+	},
+	-- a kill charging the staff
+	fx_mana_surge = {
+		id = "",
+		volume = 0.6,
+		pitchJitter = 0.05,
+		minGap = 0.3,
+	},
+	-- the shield taking a hit and shattering
+	fx_arcane_shield = {
+		id = "",
+		volume = 0.75,
+		pitchJitter = 0.05,
+		minGap = 0.3,
+	},
+	-- the shield thrown
+	fx_shield_throw = {
+		id = "",
+		volume = 0.7,
+		pitchJitter = 0.05,
+		minGap = 0.3,
+	},
+	-- the sword thrown spinning
+	fx_blade_storm = {
+		id = "",
+		volume = 0.75,
+		pitchJitter = 0.05,
+		minGap = 0.3,
+	},
 }
 
 return table.freeze(Sounds)

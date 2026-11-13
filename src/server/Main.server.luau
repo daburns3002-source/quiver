@@ -559,15 +559,20 @@ end)
 
 --[[
 	Earthbreaker (the Warden's Mythic): a dash ends in a leap and a slam
-	where he comes down, and the ground there erupts for a while. Only for
-	a session holding the card, and no sooner than the dash's own cooldown
-	allows (less a little for the trip), so a client cannot fire slams at
-	will. Where he lands is his character's, as every position is.
+	where he comes down, and the ground there erupts for a while. Shield
+	Throw (his Rare): the dash throws a shield (`ClassUpgrades.onDash`).
+	Only for a session holding either card, and no sooner than the dash's
+	own cooldown allows (less a little for the trip), so a client cannot
+	fire slams or shields at will. Where he lands is his character's, as
+	every position is.
 ]]
 Remotes.event(Remotes.DashStarted).OnServerEvent:Connect(function(player)
 	local session = RunSession.get(player)
 	local root = session and session.root
-	if not session or not root or not session.alive or session.earthbreaker <= 0 then
+	if not session or not root or not session.alive then
+		return
+	end
+	if session.earthbreaker <= 0 and session.upgrades.shieldThrow <= 0 then
 		return
 	end
 	local now = os.clock()
@@ -576,6 +581,10 @@ Remotes.event(Remotes.DashStarted).OnServerEvent:Connect(function(player)
 		return
 	end
 	session.lastDashAt = now
+	ClassUpgrades.onDash(session, root, now)
+	if session.earthbreaker <= 0 then
+		return
+	end
 	local quake = Balance.Player.earthbreaker
 	local damage = session.damage
 	AreaStrikes.strike({

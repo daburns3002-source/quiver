@@ -23,6 +23,7 @@ local Log = require(ReplicatedStorage.Shared.Util.Log)
 local ProjectileFlight = require(ReplicatedStorage.Shared.Combat.ProjectileFlight)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local RunSession = require(script.Parent.Parent.Run.RunSession)
+local ShotPipeline = require(ReplicatedStorage.Shared.Combat.ShotPipeline)
 local SoulLink = require(script.Parent.SoulLink)
 local Targeting = require(script.Parent.Targeting)
 local Types = require(ReplicatedStorage.Shared.Types)
@@ -33,6 +34,7 @@ local log = Log.forTag("Projectiles")
 
 local shotFired = Remotes.event(Remotes.ShotFired)
 local explosion = Remotes.event(Remotes.Explosion)
+local upgradeFx = Remotes.event(Remotes.UpgradeFx)
 
 --[[ `os.clock()` for the step currently running. Chain shots are created deep
      inside the hit path, which has no reason to be handed the time. ]]
@@ -105,6 +107,11 @@ type Projectile = {
 	--[[ Studs a struck player is dragged back along this line. 0 for every
 	     shot but the Hollow Fisherman's hook. ]]
 	reel: number,
+	--[[ Split Shot: splinters sent on from an enemy this kills (0 none). ]]
+	split: number,
+	--[[ Wind Arrows: extra knockback on a hit, as a share of the hit's own,
+	     and enemy shots near it blown away (0 none). ]]
+	gust: number,
 }
 
 local ProjectileSystem = {}
@@ -201,9 +208,11 @@ function ProjectileSystem.clear()
 	lastWarnedAt = -math.huge
 end
 
---[[ Removes every enemy shot within `radius` of `centre`, measured flat.
-     For a revive: the volley that killed the player must not land again. ]]
-function ProjectileSystem.clearEnemyShotsNear(centre: Vector3, radius: number)
+--[[ Removes every enemy shot within `radius` of `centre`, measured flat,
+     and returns how many. For a revive: the volley that killed the player
+     must not land again. ]]
+function ProjectileSystem.clearEnemyShotsNear(centre: Vector3, radius: number): number
+	local cleared = 0
 	for index = #active, 1, -1 do
 		local projectile = active[index]
 		local offset = projectile.position - centre
@@ -213,8 +222,10 @@ function ProjectileSystem.clearEnemyShotsNear(centre: Vector3, radius: number)
 		then
 			active[index] = active[#active]
 			active[#active] = nil
+			cleared += 1
 		end
 	end
+	return cleared
 end
 
 --[[
@@ -262,6 +273,10 @@ export type SpawnParams = {
 	     line (`Balance.EnemyShot.reel`, the Hollow Fisherman's hook).
 	     Omitted means none, which is every other shot. ]]
 	reel: number?,
+	--[[ Split Shot's splinters and Wind Arrows' gust (`Combat/ClassUpgrades`
+	     `dress`). Omitted means none. ]]
+	split: number?,
+	gust: number?,
 }
 
 --[[
@@ -317,6 +332,8 @@ function ProjectileSystem.spawn(params: SpawnParams)
 		link = params.link or 0,
 		look = params.look,
 		reel = params.reel or 0,
+		split = params.split or 0,
+		gust = params.gust or 0,
 		startsAt = now + (params.delay or 0),
 		expiresAt = now + (params.delay or 0) + params.lifetime,
 		hitModels = if params.ignore then { [params.ignore] = true } else {},
@@ -427,6 +444,8 @@ local function fireOnward(projectile: Projectile, onward: Onward)
 			owner = projectile.owner,
 			now = currentNow,
 			ignore = onward.from,
+			split = projectile.split,
+			gust = projectile.gust,
 		})
 
 		table.insert(specs, {
@@ -523,6 +542,80 @@ local function fireRicochet(projectile: Projectile, hit: Model)
 	})
 end
 
+--[[
+	Split Shot: the arrow that killed sends splinters on from the kill, fanned
+	about its heading, short and weak, and never splitting again. Announced as
+	invented shots, so every client draws them (the "Splinter" look).
+]]
+local function fireSplinters(projectile: Projectile, from: Model)
+	local config = Balance.Player.splitShot
+	local count = projectile.split
+	local direction = Vector3.new(projectile.direction.X, 0, projectile.direction.Z)
+	if count <= 0 or direction.Magnitude < 1e-3 then
+		return
+	end
+	direction = direction.Unit
+	local origin = projectile.position
+	local lifetime = config.range / math.max(projectile.speed, 1)
+	local damage = projectile.damage * config.damage
+	local specs: { Types.ShotSpec } = {}
+	for index = 1, count do
+		local spec: Types.ShotSpec = {
+			angleOffset = (index - (count + 1) / 2) * config.spread,
+			lateralOffset = 0,
+			damageScale = config.damage,
+			speed = projectile.speed,
+			lifetime = lifetime,
+			pierce = 0,
+			critChance = projectile.critChance,
+			critMultiplier = projectile.critMultiplier,
+			splashRadius = 0,
+			splashScale = 0,
+			bounces = 0,
+			ricochet = 0,
+			homing = 0,
+			delay = 0,
+			burn = 0,
+			burnDuration = 0,
+			farBonus = 0,
+			link = 0,
+		}
+		table.insert(specs, spec)
+		ProjectileSystem.spawn({
+			faction = "Player" :: Faction,
+			origin = origin,
+			direction = ShotPipeline.aim(direction, spec),
+			speed = spec.speed,
+			lifetime = lifetime,
+			damage = damage,
+			pierce = 0,
+			critChance = spec.critChance,
+			critMultiplier = spec.critMultiplier,
+			splashRadius = 0,
+			splashScale = 0,
+			bounces = 0,
+			ricochet = 0,
+			homing = 0,
+			look = "Splinter",
+			owner = projectile.owner,
+			now = currentNow,
+			ignore = from,
+		})
+	end
+	local owner = projectile.owner
+	shotFired:FireAllClients({
+		faction = "Player" :: Faction,
+		shooterId = if owner then owner.UserId else 0,
+		origin = origin,
+		direction = direction,
+		specs = specs,
+		firedAt = currentNow,
+		predicted = false,
+		from = from,
+		look = "Splinter",
+	} :: Types.ShotEvent)
+end
+
 local function applyHit(projectile: Projectile, model: Model): boolean
 	if projectile.faction == "Player" then
 		--[[
@@ -578,6 +671,12 @@ local function applyHit(projectile: Projectile, model: Model): boolean
 
 		if xp > 0 then
 			RunSession.creditKill(projectile.owner, xp, fell)
+			fireSplinters(projectile, model)
+		end
+
+		--[[ Wind Arrows: the hit shoves harder. ]]
+		if landed and projectile.gust > 0 then
+			EnemyManager.knock(model, projectile.position - projectile.direction, projectile.gust)
 		end
 
 		if landed then
@@ -592,7 +691,12 @@ local function applyHit(projectile: Projectile, model: Model): boolean
 				currentNow
 			)
 			if projectile.slow < 1 then
-				EnemyManager.slow(model, projectile.slow, os.clock() + projectile.slowDuration)
+				EnemyManager.slow(
+					model,
+					projectile.slow,
+					os.clock() + projectile.slowDuration,
+					true
+				)
 			end
 			fireRicochet(projectile, model)
 		end
@@ -640,6 +744,11 @@ function ProjectileSystem.step(deltaTime: number, now: number)
 		return
 	end
 
+	--[[ Wind Arrows: where each gusting arrow is, its owner beside it, to
+	     blow the enemy shots there away after the loop (removing them inside
+	     it would move a shot already stepped back into the loop's way). ]]
+	local gusts: { { at: Vector3, owner: Player? } } = {}
+
 	-- Reverse iteration so removals do not skip entries.
 	for index = #active, 1, -1 do
 		local projectile = active[index]
@@ -667,10 +776,21 @@ function ProjectileSystem.step(deltaTime: number, now: number)
 			alive = ProjectileFlight.advance(projectile, deltaTime, params, overlap, contact)
 		end
 
+		if alive and projectile.gust > 0 then
+			table.insert(gusts, { at = projectile.position, owner = projectile.owner })
+		end
+
 		if not alive then
 			local last = #active
 			active[index] = active[last]
 			active[last] = nil
+		end
+	end
+
+	local radius = Balance.Player.wind.clearRadius
+	for _, gust in gusts do
+		if ProjectileSystem.clearEnemyShotsNear(gust.at, radius) > 0 then
+			upgradeFx:FireAllClients("Gust", gust.owner, gust.at, radius)
 		end
 	end
 end

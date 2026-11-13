@@ -71,6 +71,9 @@ export type MeleeStats = {
 	--[[ Damage multiplier on the first swing after being hit (0 none).
 	     Counter Strike. ]]
 	counterStrike: number,
+	--[[ Extra damage a struck enemy takes from everything for a while, as a
+	     fraction (0 none). Sunder. ]]
+	sunder: number,
 }
 
 --[[ The class upgrades of 2026-10-27 that act beside the shot rather than
@@ -81,6 +84,20 @@ export type UpgradeStats = {
 	blackHole: number,
 	elemental: number,
 	turret: number,
+	--[[ The class cards of 2026-11-13: 1 when held, but for these three,
+	     which are their card's level. ]]
+	sniper: number,
+	splitShot: number,
+	manaSurge: number,
+	shieldThrow: number,
+	bladeStorm: number,
+	--[[ Wind Arrows: extra knockback, as a share of a hit's own. ]]
+	wind: number,
+	--[[ Frost Orb: how much slower a chilled enemy moves (0 none). ]]
+	frost: number,
+	--[[ Arcane Shield: how fast a spent shield is back, in shields a second
+	     (0 none). ]]
+	arcaneShield: number,
 }
 
 --[[ What the server applies. ]]
@@ -427,6 +444,14 @@ function AbilityEffects.serverStats(drafted: Counts, class: string?, weapon: str
 			blackHole = at(counts, "BlackHole"),
 			elemental = at(counts, "ElementalOrbs"),
 			turret = at(counts, "ArcaneTurret"),
+			sniper = at(counts, "SniperShot"),
+			splitShot = at(counts, "SplitShot"),
+			manaSurge = at(counts, "ManaSurge"),
+			shieldThrow = at(counts, "ShieldThrow"),
+			bladeStorm = at(counts, "BladeStorm"),
+			wind = at(counts, "WindArrows"),
+			frost = at(counts, "FrostOrb"),
+			arcaneShield = at(counts, "ArcaneShield"),
 		},
 		melee = {
 			widthScale = 1 + at(counts, "Cleave"),
@@ -443,6 +468,7 @@ function AbilityEffects.serverStats(drafted: Counts, class: string?, weapon: str
 			parry = at(counts, "Parry"),
 			reachScale = math.max(at(counts, "TitansGrip"), 1),
 			counterStrike = at(counts, "CounterStrike"),
+			sunder = at(counts, "Sunder"),
 		},
 		healPerKill = at(counts, "Bloodthirst"),
 		regenPerSecond = at(counts, "Mending"),

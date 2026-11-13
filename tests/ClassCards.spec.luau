@@ -7,6 +7,7 @@
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ServerScriptService = game:GetService("ServerScriptService")
 
 local Abilities = require(ReplicatedStorage.Shared.Config.Abilities)
 local AbilityEffects = require(ReplicatedStorage.Shared.Combat.AbilityEffects)
@@ -185,6 +186,77 @@ return function(t: TestRunner.Helper)
 			AbilityEffects.serverStats(max("CounterStrike"), "Warden").melee.counterStrike > 1,
 			"Counter Strike"
 		)
+	end)
+
+	--[[ The class cards of 2026-11-13 (owner's pick C): each off without its
+	     card and on with it, for its own class only. ]]
+	t.test("the class cards of 2026-11-13 switch on with their cards", function()
+		local cases = {
+			{ "SniperShot", "Ranger", "sniper" },
+			{ "SplitShot", "Ranger", "splitShot" },
+			{ "WindArrows", "Ranger", "wind" },
+			{ "ManaSurge", "Arcanist", "manaSurge" },
+			{ "FrostOrb", "Arcanist", "frost" },
+			{ "ArcaneShield", "Arcanist", "arcaneShield" },
+			{ "ShieldThrow", "Warden", "shieldThrow" },
+			{ "BladeStorm", "Warden", "bladeStorm" },
+		}
+		for _, case in cases do
+			local id, class, field = case[1], case[2], case[3]
+			t.equal((AbilityEffects.serverStats({}, class).upgrades :: any)[field], 0, id)
+			t.isTrue((AbilityEffects.serverStats(max(id), class).upgrades :: any)[field] > 0, id)
+			t.equal(#(Abilities.byId[id].classes :: { string }), 1, id)
+			t.isTrue(table.find(Abilities.byId[id].classes :: { string }, class) ~= nil, id)
+		end
+		t.equal(AbilityEffects.serverStats({}, "Warden").melee.sunder, 0)
+		t.isTrue(AbilityEffects.serverStats(max("Sunder"), "Warden").melee.sunder > 0, "Sunder")
+		-- Sniper Shot took Overdraw's place (owner, 2026-11-13)
+		t.isTrue(Abilities.byId.Overdraw.benched == true, "Overdraw is benched")
+	end)
+
+	--[[ "A fuller, even set" (owner's pick C): no class drafts from a pool
+	     more than one card smaller than another's. ]]
+	t.test("the class pools are within a card of each other", function()
+		local sizes: { number } = {}
+		for _, class in { "Ranger", "Arcanist", "Warden" } do
+			local dealt = 0
+			for _, ability in pool(class) do
+				if not ability.benched then
+					dealt += 1
+				end
+			end
+			table.insert(sizes, dealt)
+		end
+		t.isTrue(
+			math.max(table.unpack(sizes)) - math.min(table.unpack(sizes)) <= 1,
+			`pools of {table.concat(sizes, ", ")}`
+		)
+	end)
+
+	--[[ What `ClassUpgrades.dress` puts on a projectile: Split Shot's
+	     splinters, Wind Arrows' gust, Frost Orb's chill, and the stronger
+	     chill when Elemental Orbs' ice is on it too. ]]
+	t.test("the cards dress a projectile, the stronger chill winning", function()
+		local ClassUpgrades = (require :: any)(ServerScriptService.Server.Combat.ClassUpgrades)
+		local function dressed(upgrades: { [string]: number }): { [string]: any }
+			local held = AbilityEffects.serverStats({}, "Ranger").upgrades :: any
+			for key, value in upgrades do
+				held[key] = value
+			end
+			local params = {}
+			ClassUpgrades.dress({ upgrades = held }, params)
+			return params
+		end
+		t.equal(dressed({}).split, nil)
+		t.equal(dressed({}).slow, nil)
+		t.equal(dressed({ splitShot = 1 }).split, Balance.Player.splitShot.count)
+		t.equal(dressed({ wind = 1 }).gust, 1)
+		local chilled = dressed({ frost = 0.25 })
+		t.near(chilled.slow, 0.75, 1e-9)
+		t.equal(chilled.slowDuration, Balance.Player.frost.duration)
+		local params = { slow = 0.75, slowDuration = 2 }
+		ClassUpgrades.dressAs("Ice", params)
+		t.isTrue(params.slow <= Balance.Player.elemental.slow, "the stronger chill wins")
 	end)
 
 	--[[ Titan's Grip grows the whole swing, and the client draws and aims by

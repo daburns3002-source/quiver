@@ -88,6 +88,11 @@ export type Session = {
 	--[[ The class upgrades beside the shot (`Combat/ClassUpgrades`, which
 	     keeps their counters and timers). ]]
 	upgrades: AbilityEffects.UpgradeStats,
+	--[[ Mana Surge: a kill has charged the next cast (spent by
+	     `ClassUpgrades.spendSurge`). Arcane Shield: when the shield is up
+	     again (os.clock); up now when it is past. ]]
+	surgeReady: boolean,
+	shieldUpAt: number,
 	casts: number,
 	lastDashAt: number,
 	--[[ Share of max health Second Wind revives with (0 without it), and
@@ -281,7 +286,23 @@ function RunSession.create(player: Player): Session
 		damageTaken = 1,
 		meteor = 0,
 		earthbreaker = 0,
-		upgrades = { phoenix = 0, arrowRain = 0, blackHole = 0, elemental = 0, turret = 0 },
+		upgrades = {
+			phoenix = 0,
+			arrowRain = 0,
+			blackHole = 0,
+			elemental = 0,
+			turret = 0,
+			sniper = 0,
+			splitShot = 0,
+			manaSurge = 0,
+			shieldThrow = 0,
+			bladeStorm = 0,
+			wind = 0,
+			frost = 0,
+			arcaneShield = 0,
+		},
+		surgeReady = false,
+		shieldUpAt = 0,
 		casts = 0,
 		lastDashAt = -math.huge,
 		melee = {
@@ -297,6 +318,7 @@ function RunSession.create(player: Player): Session
 			parry = 0,
 			reachScale = 1,
 			counterStrike = 0,
+			sunder = 0,
 		},
 		secondWind = 0,
 		secondWindUsed = false,
@@ -754,6 +776,12 @@ function RunSession.onEnemyKilled(session: Session, position: Vector3?)
 		session.battleCryUntil = now + config.duration
 		local cries = session.player:GetAttribute("BattleCry")
 		session.player:SetAttribute("BattleCry", (if type(cries) == "number" then cries else 0) + 1)
+	end
+	--[[ Mana Surge: the kill charges the next cast (`ClassUpgrades.spendSurge`);
+	     the attribute lights the staff and swells the orb the client draws. ]]
+	if session.alive and session.upgrades.manaSurge > 0 and not session.surgeReady then
+		session.surgeReady = true
+		session.player:SetAttribute("ManaSurge", true)
 	end
 	if not session.alive or session.healPerKill <= 0 then
 		return
@@ -1408,6 +1436,18 @@ function RunSession.applyDamage(session: Session, amount: number)
 	--[[ Agility: rolled on the session's own Random, by the server. ]]
 	if session.dodgeChance > 0 and session.random:NextNumber() < session.dodgeChance then
 		playerDodged:FireClient(session.player, "Agility")
+		return
+	end
+
+	--[[ Arcane Shield: up, it takes the whole hit and goes, back after the
+	     card's seconds (its level is shields a second). `ArcaneShieldAt` is
+	     when (server time), for every client to shatter the ring and raise
+	     it again (`Fx/Upgrades/ClassCardFx`). ]]
+	local shieldRate = session.upgrades.arcaneShield
+	if shieldRate > 0 and os.clock() >= session.shieldUpAt then
+		local shieldEvery = 1 / shieldRate
+		session.shieldUpAt = os.clock() + shieldEvery
+		session.player:SetAttribute("ArcaneShieldAt", Workspace:GetServerTimeNow() + shieldEvery)
 		return
 	end
 

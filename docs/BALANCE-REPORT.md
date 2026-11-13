@@ -480,3 +480,44 @@ NEW ENEMY! card, and picking a draft card. A `Sandbox` switch that auto-picks
 drafts and skips acknowledgements would make an overnight sweep of every
 level against a handful of representative builds possible. It would still not
 be 9,280 runs, but it would turn the numbers above into measured times.
+
+---
+
+## Changed, 2026-11-13: the play-through review
+
+A second pass, this time **played**: the Studio autopilot (`tools/studio/autoplay`, with a
+recorder kept outside the repo) ran 1-1, 1-10, Thornwood, the Drowned Village, Bogheart and
+Endless, logging each room's time, kills, the damage a never-dodging player takes and the coins
+paid. It stands still and shoots, so it says nothing about dodging. The proposals and the
+measurements behind them are in the session notes (`balance-review-2026-11-13.md`); the owner
+approved all seven ("Build 1, 2 and 3", then "AND 4,5,6,7"). Six are in this change; the fifth
+(stocking the Drowned Village's and Bogheart's crates) is its own PR.
+
+| # | What | Was | Now | Where |
+|---|---|---|---|---|
+| 1 | Enemy health after the glade | Thornwood 2.1, Drowned 2.3, Bogheart 2.5 | 1.65, 1.85, 2.1 (1-10's 1.46 times 1.125 an area, the weapons' step) | `Balance.Stages` |
+| 2 | Kill coins / clear bonus | 8 / 400, 11 / 600, 14 / 800 | 18 / 500, 30 / 750, 70 / 1,500 (Mossy Glade unchanged) | `Config/Economy` |
+| 3 | Every pet's damage | x1 | x1.5 (`PetCombat.damageScale`; blows, burns, bleeds, the wake, `PetPower` and the card text) | `Config/PetCombat` |
+| 4 | Weapon rarity bonus | +5 / +15 / +25 / +40 / +70% | +10 / +25 / +45 / +75 / +120% | `WeaponStats.bonus` |
+| 6 | 1-10's rooms, 1-6..1-9's waves | 1-10: 5 ... 7; waves 4-5 first | 1-10: 3,3,4,4,5,5,5,6 ... 7,7,8,8,8; each wave level's first fight one smaller, last two one bigger; same enemies in all | `tools/glade_levels.py`, `Balance.Stages` |
+| 7 | Bogheart's threat | Spore Puff 50, Glowcap 40, Shellback speed 3.3 | 62, 52, 4.2 | `Balance` enemies |
+
+**Found on the way:** a pet's burns, bleeds and wake took neither its merge tier nor any scale,
+so merging a Bramble Wilf or a Thornwake did less than the tier said. They take both now.
+
+**Measured after, same gear as before (an Epic C bow, Babacorn and Stumpy):**
+
+| Run | Time | Damage taken | Coins | Pets' share of the damage |
+|---|---|---|---|---|
+| Thornwood | 6.0 min (was 8.0) | 1,888 (was 3,052) | 2,534, about 420 a minute (was about 155) | 12% |
+| Bogheart | 11.5 min (was 11.9) | 754 (was 1,211) | 8,990, about 780 a minute (was about 200) | 13% |
+| Drowned Village | 4.9 min (was 4.9) | 3,120 (was 1,699) | 2,550, about 520 a minute (was about 255) | 20% |
+
+Each row is one run with random card picks, so the times and damage are noisy. The Drowned
+Village's nine rooms went 12% quicker, but the Old Tollcrab took 51 seconds where the first
+run killed him in 16, and that run's last three rooms hurt more; the coin rates are as aimed.
+**Bogheart is still long, and not because of health.** Its time barely moved with any change
+of power -- 11.9 minutes on an Epic C bow, 11.5 on a Mythic S, 11.5 again under these numbers
+-- and its rooms run 11 to 75 seconds for four to eight kills. Something else holds its rooms
+open (most likely a Glowcap the bot cannot reach from where it stands, or enemies behind cover);
+it wants a look by hand, and item 7 did not make a standing player hurt more there.

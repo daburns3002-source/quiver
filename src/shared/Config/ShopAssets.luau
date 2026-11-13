@@ -41,19 +41,19 @@ local ShopAssets = {
 		FireflyBow = "rbxassetid://123828841079142",
 		MossSlimeBow = "rbxassetid://126601435061582",
 		EmberFangBow = "rbxassetid://82494217234921",
-		GladeSpiritBow = "rbxassetid://105167572507879",
+		GladeSpiritBow = "rbxassetid://92824834667353",
 		BranchStaff = "rbxassetid://119564183560294",
 		ToadstoolStaff = "rbxassetid://104008117690219",
 		LanternStaff = "rbxassetid://93870761746567",
 		HootmossStaff = "rbxassetid://85808863931085",
 		SlimeCrownStaff = "rbxassetid://123948487950469",
-		WorldrootStaff = "rbxassetid://95895311884783",
+		WorldrootStaff = "rbxassetid://140570668455335",
 		TimberBlade = "rbxassetid://72977638132961",
 		MossstoneBlade = "rbxassetid://124173705228424",
-		ThornBlade = "rbxassetid://98582430776536",
+		ThornBlade = "rbxassetid://72253310337005",
 		BroodsplitBlade = "rbxassetid://130245213339331",
 		EmberfangBlade = "rbxassetid://71572756742642",
-		GladeheartBlade = "rbxassetid://116184146223044",
+		GladeheartBlade = "rbxassetid://77985274346082",
 		--[[ Drowned Village (area 3). Their sheets never reached `main` -- they
 		     were written on `phase-3/gear-and-shops` and lost when it did not
 		     merge, which is why all fourteen had no picture at all

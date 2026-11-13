@@ -218,6 +218,33 @@ ROUND_28 = [
     }),
 ]
 
+ROUND_29 = [
+    ("Round 29 · the four sent back, four new takes each", {
+        "fx_phoenix": ("Phoenix Arrow", "Every 8th shot a firebird flies through every enemy, leaving burning ground. Plays as it leaves the bow.", None),
+        "fx_sniper": ("Sniper Shot", "Stand still for 3 s and a gold sniper arrow flies through everything with your next shot.", None),
+        "fx_wind_gust": ("Wind Arrows", "An arrow blows an enemy shot out of the air in a puff of wind.", (0.4, 3)),
+        "fx_mana_surge": ("Mana Surge", "A kill charges your staff with a blue flare; the next orb is bigger.", (0.8, 3)),
+    }),
+]
+
+ROUND_30 = [
+    ("Round 30 · Phoenix Arrow, four more takes", {
+        "fx_phoenix": ("Phoenix Arrow", "Every 8th shot a firebird flies through every enemy, leaving burning ground. Plays as it leaves the bow. These lean towards what you kept: the laser pew, the fwip and the swell into a shing.", None),
+    }),
+]
+
+ROUND_31 = [
+    ("Round 31 · Phoenix Arrow, four new directions", {
+        "fx_phoenix": ("Phoenix Arrow", "Every 8th shot a firebird flies through every enemy, leaving burning ground. Plays as it leaves the bow. Four quite different ideas this time: magical, fierce, grand and retro.", None),
+    }),
+]
+
+ROUND_32 = [
+    ("Round 32 · Phoenix Arrow, after your reference", {
+        "fx_phoenix": ("Phoenix Arrow", "Every 8th shot a firebird flies through every enemy, leaving burning ground. Plays as it leaves the bow. Like your reference, a real bird of prey's cry over real fire, cut from public-domain recordings.", None),
+    }),
+]
+
 # page: (rounds, picks collection, sounds already chosen, shown for context)
 ROUND_18 = [
     ("Round 18 · King Bloblin's attacks, two big takes each", {
@@ -253,6 +280,10 @@ ROUND_18 = [
 ]
 
 PAGES = {
+    "32": (ROUND_32, "picks32cards", ["Rain of Arrows B", "Split Shot A", "Sniper Shot A (29)", "Wind Arrows A (29)", "Black Hole A", "Black Hole implode A", "Arcane Turret C", "Mana Surge B (29)", "Arcane Shield A", "Titan's Grip A", "Counter Strike A", "Shield Throw C", "Blade Storm A"]),
+    "31": (ROUND_31, "picks31cards", ["Rain of Arrows B", "Split Shot A", "Sniper Shot A (29)", "Wind Arrows A (29)", "Black Hole A", "Black Hole implode A", "Arcane Turret C", "Mana Surge B (29)", "Arcane Shield A", "Titan's Grip A", "Counter Strike A", "Shield Throw C", "Blade Storm A"]),
+    "30": (ROUND_30, "picks30cards", ["Rain of Arrows B", "Split Shot A", "Sniper Shot A (29)", "Wind Arrows A (29)", "Black Hole A", "Black Hole implode A", "Arcane Turret C", "Mana Surge B (29)", "Arcane Shield A", "Titan's Grip A", "Counter Strike A", "Shield Throw C", "Blade Storm A"]),
+    "29": (ROUND_29, "picks29cards", ["Rain of Arrows B", "Split Shot A", "Black Hole A", "Black Hole implode A", "Arcane Turret C", "Arcane Shield A", "Titan's Grip A", "Counter Strike A", "Shield Throw C", "Blade Storm A"]),
     "28": (ROUND_28, "picks28cards", []),
     "21": (ROUND_21, "picks21", []),
     "20": (ROUND_20, "picks20", []),

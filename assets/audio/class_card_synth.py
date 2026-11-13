@@ -1,6 +1,6 @@
 """Takes for the class upgrades' sounds (round 28), made with synth.py's tools.
 
-    python -I class_card_synth.py <out_dir>
+    python -I class_card_synth.py <out_dir> [29|30|31]
 
 The seven class upgrades of 2026-10-27 have been silent since they were built
 (docs/TRACKER.md: "sounds picked: seven hooks, one sprite, one audio upload"),
@@ -330,6 +330,232 @@ def storm_whip():
     return s.mix(*[(s.at(s.whoosh(0.1, 1200, 4000, q=2.4, attack=0.005, decay=5), i * 0.11), 0.6) for i in range(8)])
 
 
+# ---------- round 29: the four the owner sent back ("the rest need to be redone") ----------
+
+def fm(seconds, carrier, ratio, index, decay=4.0, attack=0.003):
+    """A simple FM tone: bright and synthetic, unlike round 28's sines."""
+    tt = s.t_of(seconds)
+    mod = np.sin(2 * np.pi * carrier * ratio * tt) * index * np.exp(-decay * tt)
+    return np.sin(2 * np.pi * carrier * tt + mod) * s.env_ad(len(tt), attack, decay)
+
+
+def phoenix_ignite():
+    """A short, punchy ignition: a fwoosh that catches and crackles."""
+    catch = s.sweep_filter(s.noise(0.45), 250, 2600, q=1.2) * env(0.45, 0.01, 4.5)
+    pop = thump(0.1, 300, 90, 12)
+    return s.room(s.mix((catch, 0.9), (pop, 0.6), (crackle(0.5, 0.08, 1200, 6000), 0.35)), 0.1, 0.15)
+
+
+def phoenix_screech():
+    """A firebird's screech (an FM squawk) over a burst of flame."""
+    tt = s.t_of(0.42)
+    pitch = 1400 * np.exp(-1.6 * tt) + 900
+    phase = 2 * np.pi * np.cumsum(pitch) / SR
+    screech = np.sin(phase + 3.5 * np.sin(phase * 1.5)) * env(0.42, 0.01, 3.5)
+    burst = s.whoosh(0.5, 500, 2200, q=1.1, attack=0.005, decay=4)
+    return s.room(s.mix((screech, 0.55), (burst, 0.8)), 0.12, 0.2)
+
+
+def phoenix_heroic():
+    """A heroic rising run in bright brass-like FM, carried on a flame whoosh."""
+    run = s.mix(*[(s.at(fm(0.35, f, 1.0, 2.2, 5), i * 0.06), 0.5) for i, f in enumerate((523, 659, 784, 1047))])
+    flame = s.whoosh(0.7, 350, 2400, q=1.0, attack=0.03, decay=3)
+    return s.room(s.mix((run, 0.6), (flame, 0.6)), 0.15, 0.22)
+
+
+def phoenix_jet():
+    """A deep whump, then a long jet of flame tearing past."""
+    whump = thump(0.25, 160, 50, 6)
+    jet = s.lowpass(s.noise(0.9), 3000) * np.sin(np.linspace(0, np.pi, int(SR * 0.9))) ** 0.6
+    jet = s.sweep_filter(jet, 600, 2000, q=0.9)
+    return s.room(s.mix((whump, 0.8), (jet, 0.7), (crackle(0.9, 0.05), 0.25)), 0.14, 0.2)
+
+
+def sniper_pew():
+    """A cartoony laser 'pew': a fast falling zap."""
+    zap = s.chirp(0.16, 3200, 500, wave="square") * env(0.16, 0.002, 5) * 0.5
+    tail = s.chirp(0.16, 1600, 250) * env(0.16, 0.002, 5)
+    return s.room(s.mix((zap, 0.7), (tail, 0.5)), 0.06, 0.12)
+
+
+def sniper_crossbow():
+    """A heavy crossbow: a hard thunk, a snap of the string, a rising whistle."""
+    thunk = s.mix((thump(0.09, 260, 110, 14), 1.0), (s.bandpass(s.noise(0.05), 500, 2500), 0.6))
+    snap = s.highpass(s.noise(0.02), 3500) * env(0.02, 0.001, 8)
+    whistle = s.chirp(0.3, 1500, 3400) * env(0.3, 0.03, 3) * 0.5
+    return s.room(s.mix((thunk, 0.8), (snap, 0.6), (s.at(whistle, 0.03), 0.5)), 0.08, 0.12)
+
+
+def sniper_glint():
+    """A tiny glint 'ting', then a supersonic crack."""
+    ting = s.tone(3520, 0.25, 12, s.GLASS) * 0.6
+    crack = s.mix((s.highpass(s.noise(0.06), 1800) * env(0.06, 0.0005, 7), 1.0), (thump(0.08, 900, 200, 12), 0.5))
+    return s.room(s.mix((ting, 0.5), (s.at(crack, 0.06), 0.9)), 0.1, 0.15)
+
+
+def sniper_charge():
+    """A short rising charge, then a sharp release."""
+    charge = s.chirp(0.22, 300, 2200, wave="tri") * env(0.22, 0.15, 0.5) * 0.5
+    release = s.mix((s.highpass(s.noise(0.04), 2500) * env(0.04, 0.001, 8), 1.0), (s.chirp(0.15, 2600, 900) * env(0.15, 0.002, 6), 0.4))
+    return s.room(s.mix((charge, 0.6), (s.at(release, 0.2), 0.9)), 0.08, 0.12)
+
+
+def gust_fwip():
+    """A quick airy 'fwip' that swishes down."""
+    return s.sweep_filter(s.noise(0.16), 3500, 900, q=2.0) * env(0.16, 0.005, 4)
+
+
+def gust_dissolve():
+    """A soft poof as the shot dissolves, a little sparkle in it."""
+    poof = s.lowpass(s.noise(0.25), 1500) * env(0.25, 0.01, 6)
+    return s.mix((poof, 0.7), (s.sparkle(0.25, [2637, 3136], 0.03, 14), 0.35))
+
+
+def gust_deflect():
+    """A small 'tink' as the shot is knocked away, then a whoosh."""
+    tink = s.tone(2093, 0.15, 18, METAL) * 0.6
+    whoosh = s.whoosh(0.2, 1200, 3200, q=2.0, attack=0.01, decay=5)
+    return s.mix((tink, 0.6), (s.at(whoosh, 0.02), 0.7))
+
+
+def gust_chime():
+    """A breath of wind with a wind-chime tinkle."""
+    breath = s.sweep_filter(s.noise(0.35), 700, 1800, q=1.0) * env(0.35, 0.05, 3) * 0.7
+    chimes = s.arp([1760, 2349, 1976], 0.05, 0.3, s.GLASS, 10)
+    return s.mix((breath, 0.6), (chimes, 0.35))
+
+
+def surge_powerup():
+    """A game power-up 'vwoom': a rising FM sweep with a bright top."""
+    tt = s.t_of(0.4)
+    pitch = 220 * np.exp(np.log(4) * tt / 0.4)
+    phase = 2 * np.pi * np.cumsum(pitch) / SR
+    vwoom = np.sin(phase + 1.8 * np.sin(phase * 2)) * env(0.4, 0.02, 1.5)
+    return s.room(s.mix((vwoom, 0.6), (s.at(s.tone(1760, 0.3, 8, s.GLASS), 0.32), 0.35)), 0.12, 0.2)
+
+
+def surge_swell():
+    """A reversed swell into a magical 'shing'."""
+    swell = s.tone(880, 0.35, 5, s.BELL)[::-1] * 0.7
+    shing = s.mix((s.tone(1319, 0.4, 7, METAL), 0.6), (s.highpass(s.noise(0.08), 4000) * env(0.08, 0.001, 6), 0.4))
+    return s.room(s.mix((swell, 0.6), (s.at(shing, 0.33), 0.8)), 0.14, 0.22)
+
+
+def surge_charged():
+    """Two notes up, 'charged!', with a sparkle tail."""
+    notes = s.mix((fm(0.25, 784, 2.0, 1.5, 7), 0.6), (s.at(fm(0.35, 1175, 2.0, 1.5, 5), 0.09), 0.6))
+    return s.room(s.mix((notes, 0.7), (s.at(s.sparkle(0.4, [2349, 2637, 3136], 0.04, 9), 0.15), 0.3)), 0.12, 0.2)
+
+
+def surge_arcane():
+    """A crackling pulse of arcane energy, low and alive."""
+    pulse = fm(0.45, 110, 3.0, 6, 3.5, 0.02)
+    trem = 1 + 0.5 * np.sin(np.linspace(0, 2 * np.pi * 12, len(pulse)))
+    return s.room(s.mix((pulse * trem, 0.6), (crackle(0.45, 0.07, 2000, 8000), 0.3), (s.tone(659, 0.4, 5, s.BELL), 0.2)), 0.12, 0.2)
+
+
+ROUND_29 = {
+    "fx_phoenix": [(phoenix_ignite, "A punchy ignition that crackles"), (phoenix_screech, "A firebird's screech over flame"), (phoenix_heroic, "A heroic rising run on a flame"), (phoenix_jet, "A whump and a long jet of flame")],
+    "fx_sniper": [(sniper_pew, "A cartoony laser pew"), (sniper_crossbow, "Crossbow thunk, snap, whistle"), (sniper_glint, "A glint ting, then a crack"), (sniper_charge, "A quick charge, then a snap")],
+    "fx_wind_gust": [(gust_fwip, "A quick airy fwip"), (gust_dissolve, "A soft poof with a sparkle"), (gust_deflect, "A tink, then a whoosh"), (gust_chime, "A breath of wind and chimes")],
+    "fx_mana_surge": [(surge_powerup, "A power-up vwoom"), (surge_swell, "A swell into a shing"), (surge_charged, "Two notes up, charged"), (surge_arcane, "A crackling arcane pulse")],
+}
+
+
+# ---------- round 30: Phoenix Arrow again, after the owner's round 29 picks ----------
+# The owner kept the cartoony laser pew (Sniper A), the quick fwip (Wind A) and the
+# swell into a shing (Mana Surge B), so these lean that way: clean, punchy, game-like.
+
+def phoenix_swell_shing():
+    """A flame swelling backwards into a bright fiery shing (like Mana Surge B, but fire)."""
+    swell = s.sweep_filter(s.noise(0.35), 400, 2400, q=1.2)[::-1] * np.linspace(0, 1, int(SR * 0.35)) ** 2
+    shing = s.mix((s.tone(1568, 0.45, 6, METAL), 0.5), (s.highpass(s.noise(0.1), 3500) * env(0.1, 0.001, 6), 0.5))
+    return s.room(s.mix((swell, 0.6), (s.at(shing, 0.33), 0.8), (s.at(crackle(0.4, 0.06), 0.33), 0.3)), 0.12, 0.2)
+
+
+def phoenix_fire_pew():
+    """A fuller, fiery 'pew' (like Sniper A, lower) with a flame tail."""
+    zap = s.chirp(0.22, 1800, 300, wave="square") * env(0.22, 0.002, 4.5) * 0.45
+    body = s.chirp(0.22, 900, 160) * env(0.22, 0.002, 4.5)
+    flame = s.whoosh(0.35, 1500, 500, q=1.1, attack=0.01, decay=4)
+    return s.room(s.mix((zap, 0.6), (body, 0.5), (s.at(flame, 0.05), 0.5)), 0.08, 0.14)
+
+
+def phoenix_chip_call():
+    """An 8-bit bird call, two quick chirps up, over a fwip."""
+    def chirp_note(f0, f1):
+        return s.chirp(0.08, f0, f1, wave="square") * env(0.08, 0.002, 4) * 0.4
+    call = s.mix((chirp_note(1200, 2000), 1.0), (s.at(chirp_note(1500, 2600), 0.1), 1.0))
+    fwip = s.sweep_filter(s.noise(0.2), 3000, 800, q=2.0) * env(0.2, 0.005, 4)
+    return s.room(s.mix((fwip, 0.7), (s.at(call, 0.03), 0.7)), 0.08, 0.14)
+
+
+def phoenix_power_shot():
+    """A big power shot: a deep FWOOM, a bright rising whoosh and a snap."""
+    fwoom = thump(0.4, 200, 45, 5)
+    rise = s.whoosh(0.3, 800, 4500, q=1.6, attack=0.01, decay=3)
+    snap = s.highpass(s.noise(0.03), 3000) * env(0.03, 0.001, 8)
+    return s.room(s.mix((fwoom, 0.8), (rise, 0.6), (snap, 0.6), (crackle(0.35, 0.05), 0.2)), 0.12, 0.18)
+
+
+ROUND_30 = {
+    "fx_phoenix": [(phoenix_swell_shing, "A flame swelling into a fiery shing"), (phoenix_fire_pew, "A fuller, fiery pew"), (phoenix_chip_call, "An 8-bit bird call over a fwip"), (phoenix_power_shot, "A deep fwoom, a rising whoosh, a snap")],
+}
+
+
+# ---------- round 31: Phoenix Arrow, four quite different directions ----------
+
+def saw(seconds, freq, detune=0.0):
+    tt = s.t_of(seconds)
+    f = freq * (1 + detune)
+    return 2 * ((tt * f) % 1) - 1
+
+
+def phoenix_mythic_harp():
+    """A Mythic moment: a fast harp run up two octaves, bell-bright, on a soft flame."""
+    notes = [523, 659, 784, 1047, 1319, 1568, 2093, 2637]
+    run = s.mix(*[(s.at(s.tone(f, 0.5, 7, s.BELL), i * 0.03), 0.45) for i, f in enumerate(notes)])
+    flame = s.whoosh(0.6, 400, 2000, q=1.0, attack=0.04, decay=3)
+    return s.room(s.mix((run, 0.7), (flame, 0.45)), 0.2, 0.28)
+
+
+def phoenix_whip():
+    """A fire-whip crack and a roaring tail."""
+    crack = s.mix((s.highpass(s.noise(0.025), 2500) * env(0.025, 0.0005, 6), 1.0), (thump(0.05, 1200, 300, 14), 0.5))
+    roar = s.sweep_filter(s.noise(0.5), 1800, 500, q=1.0) * env(0.5, 0.02, 3.5)
+    return s.room(s.mix((crack, 0.9), (s.at(roar, 0.02), 0.6), (s.at(crackle(0.45, 0.06), 0.02), 0.25)), 0.1, 0.16)
+
+
+def phoenix_choir():
+    """A choir 'ahh' swelling up with the flame (detuned saws through an 'a' vowel)."""
+    seconds = 0.7
+    voice = s.mix(*[(saw(seconds, 330, d), 0.3) for d in (-0.006, 0.0, 0.007)], *[(saw(seconds, 495, d), 0.2) for d in (-0.005, 0.006)])
+    vowel = s.mix((s.bandpass(voice, 650, 900), 1.0), (s.bandpass(voice, 1050, 1350), 0.6), (s.bandpass(voice, 2500, 2900), 0.25))
+    shape = np.sin(np.linspace(0, np.pi, len(vowel))) ** 1.5
+    flame = s.whoosh(seconds, 300, 1800, q=1.0, attack=0.1, decay=2)
+    return s.room(s.mix((vowel * shape, 0.9), (flame, 0.35)), 0.22, 0.3)
+
+
+def phoenix_arcade_fireball():
+    """A retro arcade fireball: stepped noise falling in pitch, with a square sweep."""
+    seconds = 0.4
+    n = int(SR * seconds)
+    out = np.zeros(n)
+    step = int(SR * 0.025)
+    for k, start in enumerate(range(0, n, step)):
+        hold = max(1, 2 + k)  # coarser noise as it goes: the pitch falls in steps
+        seg = np.repeat(s.rng.uniform(-1, 1, step // hold + 1), hold)[:min(step, n - start)]
+        out[start:start + len(seg)] = seg
+    out *= env(seconds, 0.003, 3)
+    sweep = s.chirp(0.25, 600, 1800, wave="square") * env(0.25, 0.003, 4) * 0.3
+    return s.mix((out, 0.6), (sweep, 0.6))
+
+
+ROUND_31 = {
+    "fx_phoenix": [(phoenix_mythic_harp, "A Mythic harp run up, on a flame"), (phoenix_whip, "A fire-whip crack and a roar"), (phoenix_choir, "A choir 'ahh' swelling with the flame"), (phoenix_arcade_fireball, "A retro arcade fireball")],
+}
+
+
 DESIGNED = {
     "fx_phoenix": [(phoenix_cry, "A cry rising out of fire"), (phoenix_whoosh, "A fire roar flying past"), (phoenix_bright, "Fire roar with a bright call")],
     "fx_arrow_rain": [(rain_volley, "One up, then a patter"), (rain_thuds, "A roll of thuds"), (rain_hiss, "Whistle, then a falling hiss")],
@@ -350,11 +576,14 @@ DESIGNED = {
 
 def main():
     out = sys.argv[1]
+    # "29", "30" or "31" renders that round's redos; nothing, round 28's fourteen
+    rounds = {"29": ROUND_29, "30": ROUND_30, "31": ROUND_31}
+    chosen = rounds.get(sys.argv[2], DESIGNED) if len(sys.argv) > 2 else DESIGNED
     os.makedirs(out, exist_ok=True)
     manifest = {}
-    for name, takes in DESIGNED.items():
+    for name, takes in chosen.items():
         manifest[name] = []
-        for letter, (fn, note) in zip("abc", takes):
+        for letter, (fn, note) in zip("abcd", takes):
             base = os.path.join(out, f"{name}_{letter}")
             x = s.finish(fn())
             x = x * (0.89 / max(np.abs(x).max(), 1e-9))

@@ -62,8 +62,11 @@ Storm's swords, and `dress` for Split Shot, Wind Arrows and Frost Orb), `Combat/
 (`sniper`, `splitShot`, `wind`, `manaSurge`, `frost`, `shieldThrow`, `bladeStorm`, `sunder`).
 Client: `Fx/Upgrades/ClassCardFx`, voxel cubes like the rest. Icons: Codex
 (`assets/concepts/blocky/ui/cards/class_upgrades_2026_11_13.sh`, the prompts beside them),
-composed by `compose_icon.py`. Sounds: seven new hooks beside the seven old ones, auditioned on
-page 28 (`assets/audio/class_card_synth.py`).
+composed by `compose_icon.py`. Sounds: all fourteen class upgrades (the seven of 2026-10-27, silent until now, and the seven new cards')
+picked by the owner over audition rounds 28-32 (https://claude.ai/artifact/VRaauboDkF7i5kY9gNwBHK) and
+joined into one sprite, one upload (`Config/Sounds` `CLASS_CARDS_SPRITE`). Phoenix Arrow took five rounds;
+the owner's reference was a stock firebird effect, so its take is a CC0 eagle screech over CC0 fire
+(`assets/audio/freesound.py` round 32); the other thirteen are synthesised (`class_card_synth.py`).
 
 
 From `docs/UPGRADES-BRAINSTORM.md` ("i like the phoenix arrow idea and rain of

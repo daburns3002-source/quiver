@@ -47,6 +47,10 @@ export type Tier = {
 	     fireflies, butterflies, birds; `Fx/ForestAmbience`). Zero turns it
 	     off: it is background, the first thing a phone can spare. ]]
 	ambienceShare: number,
+	--[[ The share of a trail's particles drawn (`Config/Trails`,
+	     `Fx/PlayerTrails`), every player's. Never zero: a trail is
+	     something a player chose and paid for; its ribbon is always whole. ]]
+	trailShare: number,
 	--[[ Most cubes of slime residue alive at once (`Fx/SlimeResidue`).
 	     The parts are built once at this count and reused, the oldest
 	     first, so a long fight never allocates more. ]]
@@ -98,6 +102,7 @@ local low: Tier = {
 	mythicFxShare = 0.5,
 	bossFxShare = 0.5,
 	ambienceShare = 0.4,
+	trailShare = 0.4,
 	maxSlimeResidue = 24,
 	maxUpgradeFx = 10,
 	warmCardImages = false,
@@ -120,6 +125,7 @@ local medium: Tier = {
 	mythicFxShare = 0.75,
 	bossFxShare = 0.75,
 	ambienceShare = 0.7,
+	trailShare = 0.7,
 	maxSlimeResidue = 64,
 	maxUpgradeFx = 20,
 	warmCardImages = true,
@@ -142,6 +148,7 @@ local high: Tier = {
 	mythicFxShare = 1,
 	bossFxShare = 1,
 	ambienceShare = 1,
+	trailShare = 1,
 	maxSlimeResidue = 128,
 	maxUpgradeFx = 32,
 	warmCardImages = true,

@@ -16,6 +16,23 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## A blue trail came out white on the lobby floor, and a flat one was a thin line (2026-11-13)
+
+Seen in Studio Play before the trails shipped: Starfall, a deep-blue ribbon, drew as a white streak
+on the lobby's cream stone, and every ribbon, laid flat on the ground, read as a thin line from the
+lobby's low camera. **`LightEmission` 1 adds a colour to what is behind it**: blue added to near
+white is white. The ribbon now lays its colour over the ground (`LightEmission` 0; a glowing one is
+`LightInfluence` 0, lit by nothing but itself, so it still glows in a dark room), and a glowing
+particle adds only 0.4 of its light. A brighter fin stands upright along the ribbon's middle
+(`Trails.core.height`, 1.1 studs), which the low camera sees side on, and the ribbons are 1.4x as
+wide. Measured in the next Play: the same ribbon read blue with its white cross stars on it. The
+same holds for any Trail, Beam or particle meant to keep its colour on a bright floor.
+
+The star texture also failed its first load ("No asset content representation found") for some
+minutes after `upload_image`: a fresh upload is still processing. It loaded later in the same Play.
+
+---
+
 ## The picked class card swelled from its top-left corner over its neighbour (2026-11-13)
 
 Seen 2026-11-12 on a wide screen: tapping a class card grew it to the right and down, over the edge

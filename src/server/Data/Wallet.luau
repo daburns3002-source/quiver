@@ -6,7 +6,9 @@
 
 	Each change marks the profile for saving (`Data/PlayerData`) and tells
 	its owner: `Coins` and `Gems` attributes on the Player for the HUD, and
-	the whole profile over `Remotes.ProfileChanged` for the shop.
+	the whole profile over `Remotes.ProfileChanged` for the shop. The trail
+	worn is the Player's `Trail` attribute, which every client draws
+	(`Fx/PlayerTrails`).
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -19,6 +21,7 @@ local Purse = require(ReplicatedStorage.Shared.Util.Purse)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local SaveSchema = require(ReplicatedStorage.Shared.Util.SaveSchema)
 local StoryBeatRules = require(ReplicatedStorage.Shared.Util.StoryBeatRules)
+local TrailRules = require(ReplicatedStorage.Shared.Util.TrailRules)
 local Tutorial = require(ReplicatedStorage.Shared.Config.Tutorial)
 
 local DexPay = require(script.Parent.DexPay)
@@ -34,6 +37,7 @@ local function changed(player: Player, profile: SaveSchema.Profile)
 	PlayerData.touch(player)
 	player:SetAttribute("Coins", profile.coins)
 	player:SetAttribute("Gems", profile.gems)
+	player:SetAttribute(TrailRules.ATTRIBUTE, profile.equippedTrail)
 	profileChanged:FireClient(player, profile)
 end
 
@@ -42,6 +46,7 @@ function Wallet.send(player: Player)
 	if profile then
 		player:SetAttribute("Coins", profile.coins)
 		player:SetAttribute("Gems", profile.gems)
+		player:SetAttribute(TrailRules.ATTRIBUTE, profile.equippedTrail)
 		profileChanged:FireClient(player, profile)
 	end
 end
@@ -155,6 +160,60 @@ function Wallet.equip(player: Player, weapon: string?)
 		profile.equipped = weapon
 		changed(player, profile)
 	end
+end
+
+--[[ Gives a trail (`Config/Trails`). Returns whether it is new. ]]
+function Wallet.grantTrail(player: Player, key: string): boolean
+	local profile = PlayerData.get(player)
+	if not profile or not TrailRules.get(key) or profile.trails[key] then
+		return false
+	end
+	profile.trails[key] = true
+	log.info("%s gets the %s trail", player.Name, key)
+	changed(player, profile)
+	return true
+end
+
+--[[ Gives every trail this player has earned and does not hold: a beaten
+     boss's, Starfall once every class has its floor. Called as a profile
+     loads (so a boss beaten before trails existed still pays), as a boss
+     falls and as a class reaches a floor. Returns what was given. ]]
+function Wallet.settleTrails(player: Player): { string }
+	local profile = PlayerData.get(player)
+	if not profile then
+		return {}
+	end
+	local due = TrailRules.due(profile)
+	for _, key in due do
+		Wallet.grantTrail(player, key)
+	end
+	return due
+end
+
+--[[ Wears a held trail, or none (nil). ]]
+function Wallet.equipTrail(player: Player, key: string?)
+	local profile = PlayerData.get(player)
+	if profile and (key == nil or profile.trails[key]) and profile.equippedTrail ~= key then
+		profile.equippedTrail = key
+		changed(player, profile)
+	end
+end
+
+--[[ This player has reached `floor` of Endless as `class`: kept if it is
+     that class's deepest, for Starfall (`Config/Trails.endless`).
+     Server-decided like the best floor (`Run/RoomController`). ]]
+function Wallet.recordClassFloor(player: Player, class: string, floor: number)
+	local profile = PlayerData.get(player)
+	if
+		not profile
+		or floor ~= math.floor(floor)
+		or floor <= (profile.endlessClassBest[class] or 0)
+	then
+		return
+	end
+	profile.endlessClassBest[class] = floor
+	changed(player, profile)
+	Wallet.settleTrails(player)
 end
 
 --[[ Saves the look picked on the class select screen. ]]
@@ -384,6 +443,8 @@ function Wallet.beatBoss(player: Player, area: string): (number, string?)
 	profile.items[config.bossItem] = (profile.items[config.bossItem] or 0) + 1
 	log.info("%s beat %s's boss: %d gems and a %s", player.Name, area, gems, config.bossItem)
 	changed(player, profile)
+	-- the area's Legendary trail, the first time (`Config/Trails`)
+	Wallet.settleTrails(player)
 	return gems, config.bossItem
 end
 

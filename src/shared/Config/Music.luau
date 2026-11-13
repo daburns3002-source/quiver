@@ -21,7 +21,15 @@
 
 --[[ `loopStart`/`loopEnd` (seconds): the track plays once from the top (a
 	boss's battle intro), then loops round that region (`Sound.LoopRegion`). ]]
-export type Track = { id: string, name: string, loopStart: number?, loopEnd: number? }
+export type Track = {
+	id: string,
+	name: string,
+	loopStart: number?,
+	loopEnd: number?,
+	--[[ A scored track's own beats, in seconds from its start. ]]
+	cues: { [string]: number }?,
+	ding: number?,
+}
 
 local Music = {
 	--[[ Loudness under the sound effects, which carry the fight. ]]
@@ -52,7 +60,8 @@ local Music = {
 	} :: Track,
 	--[[ The story cutscene's music (`UI/StoryCutscene`, owner 2026-10-25: "it
 	     needs some music"), scored to its frames by `story_theme.py` (cue times
-	     from `Config/Story`; re-render it whenever the frames' holds change), with
+	     from `Config/Story` as it was on 2026-10-25; the holds have since been
+	     kept on its cues instead, see `cues` below), with
 	     King Bloblin's yawn mixed in on f03b. From the top on the first frame,
 	     once, never paused (a frame still loading keeps the one before it up).
 	     `assets/audio/music/story.ogg`, 45.6 s (uploaded as
@@ -60,6 +69,35 @@ local Music = {
 	story = {
 		id = "rbxassetid://96540837394738",
 		name = "Story (King Bloblin)",
+		--[[ When the uploaded track lands each shot (its render's
+		     `story_manifest.json`), and its ding as the King's eyes go small
+		     (measured in the file). `Config/Story`'s holds keep the pictures
+		     on these (`tests/StoryTimeline.spec`): a new render, uploaded,
+		     brings new numbers here. Crumple, Rise and Breath are left out:
+		     the music only holds its strings under them, and they run short
+		     to pay for Steam's longer hold. ]]
+		cues = {
+			Sky = 0.9,
+			Glade = 2.9,
+			Chest = 5.9,
+			Lounge = 8.5,
+			Yawn = 10.2,
+			Bushes = 12.0,
+			Run = 14.0,
+			Skid = 15.2,
+			Offer = 16.9,
+			Take = 18.9,
+			Unroll = 20.1,
+			Eyes = 21.9,
+			Steam = 23.7,
+			Roar = 31.2,
+			Shockwave = 33.0,
+			Pan = 34.8,
+			Faces = 36.8,
+			Ready = 38.8,
+			Away = 40.3,
+		},
+		ding = 22.7,
 	} :: Track,
 	playlists = {
 		Rooms = {

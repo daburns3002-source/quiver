@@ -99,12 +99,26 @@ local Story = {
 	--[[ Game sounds (`Config/Sounds`), at seconds into a shot. ]]
 	sounds = {
 		{ shot = "Skid", at = 0, sound = "boss_king_goo" },
-		{ shot = "Rise", at = 0.8, sound = "boss_king_chest_bump" },
+		-- as the Rise's second picture comes in
+		{ shot = "Rise", at = 0.5, sound = "boss_king_chest_bump" },
 		{ shot = "Roar", at = 0, sound = "boss_king_bounce_slam" },
 		{ shot = "Shockwave", at = 0, sound = "boss_king_bounce_launch" },
 	},
 
-	--[[ The shots in order, each its frames in order, each frame shown once. ]]
+	--[[ The shots in order, each its frames in order, each frame shown once.
+
+	     **The holds keep every shot on the music's own cue** (`Music.story.cues`;
+	     owner, 2026-11-12: the ding as the King's eyes go small "doesnt match
+	     the visual ... just have the timing similar ... so it lines up like it
+	     did before", and no new upload). The music was scored before two
+	     pictures were cut and Steam was held longer (2026-11-06), which left
+	     it up to 1.9 s behind the pictures: its ding, at 22.7 s, rang well
+	     after the small eyes had come in at 20.8 s. So the two shots that lost
+	     a picture hold their one picture for the whole of their time (Chest,
+	     Yawn), and the three quiet shots after Steam (Crumple, Rise, Breath:
+	     held strings, nothing to land on) give back what Steam's longer hold
+	     takes, so the roar is on its swell again. `tests/StoryTimeline.spec`
+	     holds every shot to its cue; change a hold and it says which. ]]
 	shots = {
 		{ name = "Sky", frames = { { picture = "f01", hold = 2.0 } } },
 		{
@@ -113,14 +127,14 @@ local Story = {
 		},
 		{
 			name = "Chest",
-			-- f02c cut (owner, 2026-11-06)
-			frames = { { picture = "f02d", hold = 1.3 } },
+			-- f02c cut (owner, 2026-11-06); f02d holds for both, to the music's cue
+			frames = { { picture = "f02d", hold = 2.6 } },
 		},
 		{ name = "Lounge", frames = { { picture = "f03b", hold = 1.7 } } },
 		{
 			name = "Yawn",
-			-- f04b cut (owner, 2026-11-06)
-			frames = { { picture = "f04a", hold = 1.2 } },
+			-- f04b cut (owner, 2026-11-06); f04a holds for both, to the music's cue
+			frames = { { picture = "f04a", hold = 1.8 } },
 		},
 		{
 			name = "Bushes",
@@ -158,15 +172,18 @@ local Story = {
 		},
 		{
 			name = "Crumple",
-			frames = { { picture = "f14a", hold = 0.7 }, { picture = "f14b", hold = 1.0 } },
+			-- quicker (were 0.7 and 1.0): see the note above
+			frames = { { picture = "f14a", hold = 0.5 }, { picture = "f14b", hold = 0.7 } },
 		},
 		{
 			name = "Rise",
-			frames = { { picture = "f15a", hold = 0.8 }, { picture = "f15b", hold = 1.0 } },
+			-- quicker (were 0.8 and 1.0)
+			frames = { { picture = "f15a", hold = 0.5 }, { picture = "f15b", hold = 0.7 } },
 		},
 		{
 			name = "Breath",
-			frames = { { picture = "f16a", hold = 0.7 }, { picture = "f16b", hold = 0.9 } },
+			-- quicker (were 0.7 and 0.9)
+			frames = { { picture = "f16a", hold = 0.5 }, { picture = "f16b", hold = 0.6 } },
 		},
 		{
 			name = "Roar",

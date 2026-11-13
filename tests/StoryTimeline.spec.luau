@@ -10,6 +10,8 @@
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local Music = require(ReplicatedStorage.Shared.Config.Music)
+local Sounds = require(ReplicatedStorage.Shared.Config.Sounds)
 local Story = require(ReplicatedStorage.Shared.Config.Story)
 local StoryTimeline = require(ReplicatedStorage.Shared.Util.StoryTimeline)
 local TestRunner = require(script.Parent.TestRunner)
@@ -26,6 +28,64 @@ local function indexOf(name: string): number?
 end
 
 return function(t: TestRunner.Helper)
+	t.test("every shot comes in on the music's own cue", function()
+		--[[ The music is one uploaded track and cannot move, so the pictures
+		     keep to it (owner, 2026-11-12). A hold changed without the other
+		     holds giving the time back fails here, by shot. ]]
+		local cues: { [string]: number } = Music.story.cues or {}
+		local starts, ends = StoryTimeline.starts(c)
+		local checked = 0
+		for name, at in cues do
+			local index = indexOf(name)
+			t.notNil(index, `the music cues unknown shot {name}`)
+			if index then
+				checked += 1
+				t.isTrue(
+					math.abs(starts[index] - at) <= 0.05,
+					`{name} comes in at {starts[index]}, off its cue at {at}`
+				)
+			end
+		end
+		t.isTrue(checked >= 15, "most shots are held to a cue")
+		--[[ And the music (45.6 s) outlasts the pictures and their black. ]]
+		t.isTrue(ends + Story.blackHold <= 45.6, "the cutscene outlasts its music")
+	end)
+
+	t.test("the ding rings as the King's small eyes and raised brow come in", function()
+		--[[ The Eyes shot is two pictures: reading, then the small pupils and
+		     the lifted eyebrow (f12b, drawn with the ding's marks). The ding
+		     is in the music. ]]
+		local index = indexOf("Eyes")
+		t.notNil(index, "the story has no Eyes shot")
+		local ding = Music.story.ding
+		t.notNil(ding, "the story's music has no ding")
+		if index and ding then
+			local starts = StoryTimeline.starts(c)
+			local frames = Story.shots[index].frames
+			t.equal(#frames, 2, "the Eyes shot's pictures")
+			t.equal(frames[2].picture, "f12b")
+			t.isTrue(
+				math.abs(starts[index] + frames[1].hold - ding) <= 0.05,
+				"the small eyes come in off the ding"
+			)
+		end
+	end)
+
+	t.test("every sound cue is a real sound, on a real shot's own time", function()
+		for _, cue in Story.sounds do
+			t.notNil(Sounds[cue.sound], `the story plays unknown sound {cue.sound}`)
+			local index = indexOf(cue.shot)
+			t.notNil(index, `a sound is cued on unknown shot {cue.shot}`)
+			if index then
+				local length = 0
+				for _, frame in Story.shots[index].frames do
+					length += frame.hold
+				end
+				t.isTrue(cue.at >= 0 and cue.at < length, `{cue.sound} is cued outside {cue.shot}`)
+			end
+		end
+	end)
+
 	t.test("it opens black and ends black, held, before the run is let go", function()
 		t.isTrue(StoryTimeline.pose(c, 0).picture == nil)
 		local length = StoryTimeline.length(c)

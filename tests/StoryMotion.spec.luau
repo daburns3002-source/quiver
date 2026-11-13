@@ -43,7 +43,8 @@ return function(t: TestRunner.Helper)
 	end)
 
 	t.test("it runs the story's own length, so the sounds land as before", function()
-		t.near(cues.black, 41.1, 1e-6)
+		-- 41.4 s of pictures: the music's own length of them (`Music.story.cues`)
+		t.near(cues.black, 41.4, 1e-6)
 	end)
 
 	t.test("the camera never shows past a frame's edge", function()

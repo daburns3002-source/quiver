@@ -157,18 +157,17 @@ it anymore"). One system: the tips are data in `Config/Tips` (one short line eac
 `tipsSeen`), and **the shown-once rule is `Util/TipRules.due` and nowhere else** (`mark` on the server,
 `tests/Tips.spec`). A screen only calls `UI/FirstTips.show(key)`: each lobby station as it opens
 (`UI/StationScreen`, keyed by station), the portal, the Soulstone shop, a boss once its banner has gone,
-a draft with a REROLL, a lost run, an Endless checkpoint; `FirstTips` itself asks for what the profile
-says is new in the lobby (a first pet, a weapon past the starters, three of a tier to merge, the first
-gems, the first boss item) and for the first area past Mossy Glade. Once a tip is on screen the client
+a draft with a REROLL, a lost run, an Endless checkpoint; `FirstTips` itself asks for class select while
+it is up, for what the profile says is new in the lobby (a first pet, a weapon past the starters, three of
+a tier to merge, the first gems, the first boss item) and for the first area past Mossy Glade. Once a tip is on screen the client
 sends `Remotes.TipSeen` and the server keeps it (`Wallet.sawTip`). A tip is the loading tip's plate
 (`Util/TipPlate.fill`) under the top HUD, gone after `Tips.seconds` or a tap; **it never holds the run
 and takes no press**, so a probe never has to clear one. It waits while the title, the story, a story
 beat, an area's loading screen, a boss banner, NEW ENEMY!, MENU's panel (`RunPaused.covered`), a hatch,
-class select or the tutorial is up; one that cannot show within 12 s is let go, not marked, and asked
+the tutorial, or class select (for every tip but its own, drawn over it) is up; one that cannot show within 12 s is let go, not marked, and asked
 again next time. The tutorial, NEW ENEMY!, the story beats, a first badge's pop-up and the Hatchery pointer
 keep their own flags and are not repeated as tips. A new tip is a line in `Config/Tips` and a `show` call;
-never rename a key (it is saved). The class select tip (`ClassSelect`) is data only until the class select
-rebuild lands.
+never rename a key (it is saved).
 
 **The game is Mossy Glade's ten levels, then Thornwood** (`Balance.campaign = { 7, ..., 16, 4 }`,
 owner 2026-10-26): **Mossy Glade 1-1..1-10** (stages 7-16, `level = "1-n"`, the lobby portal's

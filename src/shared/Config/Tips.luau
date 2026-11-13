@@ -64,9 +64,9 @@ Tips.tips = {
 	SoulstoneShop = {
 		text = "Soulstones come from Endless runs. Spend them here on eggs and crates.",
 	},
-	-- the class select screen (`UI/ClassScreen`, hooked once its rebuild lands)
+	-- the class select screen (`UI/ClassScreen`), while it is up
 	ClassSelect = {
-		text = "Each class *fights its own way*. Tap a class to see it, then choose.",
+		text = "Each class *fights its own way*. Tap a card, pick [BOY] or [GIRL], then [CHOOSE].",
 	},
 	-- what the profile says is new, shown in the lobby
 	FirstPet = {

@@ -53,9 +53,10 @@ local FirstTips = {}
 local PATIENCE = 12
 --[[ Seconds between looks at what the profile and the stage say is new. ]]
 local LOOK_EVERY = 1
---[[ Above the station screens (115) and a hatch (180), under class
-     select and the title (200) and an area's loading screen. ]]
-local DISPLAY_ORDER = 195
+--[[ Above the station screens (115), a hatch (180) and class select
+     (200), for its own tip; under an area's loading screen (900). The
+     title and the story are as high, but no tip shows while they are up. ]]
+local DISPLAY_ORDER = 205
 
 --[[ Screens that own the whole view while they exist in PlayerGui. ]]
 local COVERS = { "IntroCutscene", "StoryCutscene", "StoryBeat", "AreaLoading" }
@@ -87,14 +88,15 @@ local function inTutorial(): boolean
 		and CurrentStage.index() == Balance.tutorialStage
 end
 
---[[ Whether something else owns the screen, so a tip waits. ]]
-local function covered(): boolean
+--[[ Whether something else owns the screen, so tip `key` waits. Class
+     select owns it for every tip but its own. ]]
+local function covered(key: string): boolean
 	local player = Players.LocalPlayer
 	local playerGui = player:FindFirstChild("PlayerGui")
 	if not playerGui or RunPaused.covered() or Reveal.busy() or inTutorial() then
 		return true
 	end
-	if player:GetAttribute("ClassSelecting") == true then
+	if (player:GetAttribute("ClassSelecting") == true) ~= (key == "ClassSelect") then
 		return true
 	end
 	for _, name in COVERS do
@@ -186,7 +188,14 @@ local function pump()
 			table.remove(queue, i)
 		end
 	end
-	if seen == nil or gui == nil or current ~= nil or now < nextAt or #queue == 0 or covered() then
+	if
+		seen == nil
+		or gui == nil
+		or current ~= nil
+		or now < nextAt
+		or #queue == 0
+		or covered(queue[1].key)
+	then
 		return
 	end
 	local waiting = table.remove(queue, 1) :: Waiting
@@ -212,10 +221,12 @@ function FirstTips.show(key: string)
 	pump()
 end
 
---[[ What the profile says is new, in the lobby; and a first area past
-     Mossy Glade in a run. ]]
+--[[ Class select while it is up; what the profile says is new, in the
+     lobby; and a first area past Mossy Glade in a run. ]]
 local function look()
-	if Workspace:GetAttribute("InLobby") == true then
+	if Players.LocalPlayer:GetAttribute("ClassSelecting") == true then
+		FirstTips.show("ClassSelect")
+	elseif Workspace:GetAttribute("InLobby") == true then
 		local profile = latest
 		if not profile then
 			return

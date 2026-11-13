@@ -16,9 +16,9 @@ local TipRules = require(ReplicatedStorage.Shared.Util.TipRules)
 local Tips = require(ReplicatedStorage.Shared.Config.Tips)
 local UiPalette = require(ReplicatedStorage.Shared.Config.UiPalette)
 
---[[ Every key the game asks `UI/FirstTips` for. `ClassSelect` waits on
-     the class select rebuild to be hooked in. ]]
+--[[ Every key the game asks `UI/FirstTips` for. ]]
 local ASKED = {
+	"ClassSelect",
 	"Blacksmith",
 	"EggHatchery",
 	"GearStation",

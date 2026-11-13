@@ -12,6 +12,7 @@
 
 local Balance = require(script.Parent.Parent.Config.Balance)
 local EndScreenTheme = require(script.Parent.Parent.Config.EndScreenTheme)
+local LobbyConfig = require(script.Parent.Parent.Config.Lobby)
 
 local EndScreenRules = {}
 
@@ -40,6 +41,29 @@ function EndScreenRules.buttonWords(won: boolean, stage: number): string
 		return EndScreenTheme.victory.lobbyText
 	end
 	return EndScreenTheme.victory.buttonText
+end
+
+--[[ The words on the end screen's tab: TUTORIAL, or the level as the
+     portal's screen names it (`UI/PortalScreen`): a level's own number
+     ("LEVEL 1-3"), else its place on its portal ("LEVEL 1"). A stage on no
+     portal (the sandbox's) keeps its index. Before 2026-11-13 a stage with
+     no number of its own showed its index, so the Drowned Village's one
+     level said "LEVEL 18" (the polish playthrough). ]]
+function EndScreenRules.levelTab(stage: number): string
+	if stage == Balance.tutorialStage then
+		return "TUTORIAL"
+	end
+	local config = Balance.Stages[stage]
+	if config and config.level then
+		return `LEVEL {config.level}`
+	end
+	for _, portal in LobbyConfig.portals do
+		local at = if portal.levels then table.find(portal.levels, stage) else nil
+		if at then
+			return `LEVEL {at}`
+		end
+	end
+	return `LEVEL {stage}`
 end
 
 return EndScreenRules

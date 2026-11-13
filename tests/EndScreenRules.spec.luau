@@ -11,6 +11,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local EndScreenRules = require(ReplicatedStorage.Shared.Util.EndScreenRules)
+local LobbyConfig = require(ReplicatedStorage.Shared.Config.Lobby)
 local TestRunner = require(script.Parent.TestRunner)
 
 return function(t: TestRunner.Helper)
@@ -40,5 +41,27 @@ return function(t: TestRunner.Helper)
 			EndScreenRules.buttonWords(false, Balance.tutorialStage) ~= tutorial,
 			"a Defeat in the tutorial still tries again"
 		)
+	end)
+
+	t.test("the end screen names a level as its portal does, never by its index", function()
+		t.equal(EndScreenRules.levelTab(Balance.tutorialStage), "TUTORIAL")
+		for _, portal in LobbyConfig.portals do
+			local levels: { number } = portal.levels or {}
+			for _, stage in levels do
+				local config = Balance.Stages[stage]
+				local tail = EndScreenRules.levelTab(stage):match("^LEVEL (.+)$")
+				local name = (portal.name or "?") .. " " .. stage
+				t.isTrue(tail ~= nil, name)
+				if config and config.level then
+					t.equal(tail, config.level, name)
+				else
+					local n = tonumber(tail)
+					t.isTrue(
+						n ~= nil and n >= 1 and n <= #levels,
+						name .. " shows " .. tostring(tail)
+					)
+				end
+			end
+		end
 	end)
 end

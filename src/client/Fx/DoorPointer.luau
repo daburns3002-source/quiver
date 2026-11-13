@@ -36,6 +36,10 @@ local IN_FROM_DOOR = 3
 local TIP_HEIGHT = 1.8
 -- the tiles ride just over the lawn, where the gate's own GO arrow lies
 local TILE_Y = 1
+--[[ Held still and leaned back, so its shape faces the room's steep camera
+     (`Balance.Camera.pitch`, 68 degrees down) rather than showing it the top
+     of its stem. ]]
+local LEAN = 40
 
 local player = Players.LocalPlayer
 
@@ -64,7 +68,13 @@ function DoorPointer.start()
 			return
 		end
 		local shown = pointer
-			or GoldPointer.new({ name = "DoorPointer", scale = SCALE, tileY = TILE_Y })
+			or GoldPointer.new({
+				name = "DoorPointer",
+				scale = SCALE,
+				tileY = TILE_Y,
+				spin = false,
+				lean = LEAN,
+			})
 		pointer = shown
 		shown:pose(tip, root, os.clock())
 	end)

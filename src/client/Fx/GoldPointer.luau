@@ -29,6 +29,13 @@ export type Options = {
 	--[[ the tiles' height: a fixed floor, or nil for under the player's
 	     root, as in the lobby ]]
 	tileY: number?,
+	--[[ false holds it still instead of turning it, and `lean` tips its top
+	     back this many degrees, away from the camera: the room's camera looks
+	     nearly straight down, where an upright arrow that turns reads as a
+	     gold blob (seen 2026-11-13); leaned back and still, its stepped shape
+	     faces the camera. ]]
+	spin: boolean?,
+	lean: number?,
 }
 
 export type Pointer = {
@@ -95,9 +102,11 @@ function GoldPointer.new(options: Options): Pointer
 
 	function pointer.pose(_self: Pointer, target: Vector3, root: BasePart?, now: number)
 		local tip = target + Vector3.new(0, math.sin(now * 3) * BOB * scale, 0)
-		local spin = CFrame.Angles(0, now * 1.2, 0)
+		local turn = if options.spin == false
+			then CFrame.Angles(-math.rad(options.lean or 0), 0, 0)
+			else CFrame.Angles(0, now * 1.2, 0)
 		for i, part in arrow do
-			part.CFrame = CFrame.new(tip + Vector3.new(0, rise[i], 0)) * spin
+			part.CFrame = CFrame.new(tip) * turn * CFrame.new(0, rise[i], 0)
 		end
 		local spots: { Vector3 } = if root then WayPointer.tiles(root.Position, target) else {}
 		for i, tile in tiles do

@@ -348,4 +348,13 @@ return function(t: TestRunner.Helper)
 			t.equal(entry.picture, entry.icon, entry.key)
 		end
 	end)
+
+	t.test("a page does not say its rarity twice: the pill under the name has it", function()
+		for _, book in { "Weapons", "Pets" } do
+			for _, entry in DexBook.entries(book, nil) do
+				local rarity = string.upper(entry.rarity)
+				t.isTrue(string.find(entry.description, rarity, 1, true) ~= 1, entry.key)
+			end
+		end
+	end)
 end

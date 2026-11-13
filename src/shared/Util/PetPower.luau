@@ -52,7 +52,8 @@ function PetPower.band(rarity: string, area: number): number?
 	if aimed == nil or scale == nil then
 		return nil
 	end
-	return aimed * scale
+	-- every pet's `damageScale` raises the bands with them (1.5 since 2026-11-13)
+	return aimed * scale * PetCombat.damageScale
 end
 
 --[[ How many enemies a beam or a ring is credited with. Both reach as far
@@ -145,7 +146,7 @@ function PetPower.dps(spec: PetCombat.Spec): number
 		out += PetWake.total(wake) / every
 	end
 
-	return out
+	return out * PetCombat.damageScale
 end
 
 return table.freeze(PetPower)

@@ -88,8 +88,19 @@ LEVELS = [
     ("1-7", "waves", 1, 5, 5, 5),
     ("1-8", "waves", 1, 5, 5, 5),
     ("1-9", "waves", 1, 5, 5, 5),
-    ("1-10", "boss", 25, 5, 7, 7),
+    ("1-10", "boss", 25, 3, 8, 8),
 ]
+
+#: Rooms whose counts are written out rather than drawn as a straight line
+#: from first to last, one per room before the last (an Angel room's is
+#: ignored). 1-10 starts gently and climbs further (owner, 2026-11-13,
+#: approving balance review item 6): with five in each of its first rooms
+#: and no cards drafted yet, two thirds of the damage a level took came in
+#: rooms 1 to 3 and none in the six before the King. The same 131 enemies
+#: before the King as the straight line's 5 to 7.
+COUNTS = {
+    "1-10": [3, 3, 4, 4, 5, 5, 5, 6, 0, 6, 6, 6, 6, 6, 7, 7, 7, 7, 0, 7, 7, 8, 8, 8],
+}
 
 #: Where an Angel room falls, mirroring `Balance.Waves.blockSize` and
 #: `Balance.Waves.angelAt`. Pinned against them by `tests/MossyLevels.spec`.
@@ -109,6 +120,8 @@ HEART = "broodSlime, broodSlime, meleeCharger, spreadShooter"
 def roster(level, n, rooms, first, last):
     """Who fights in room n (1 to rooms - 1) of a Rooms level."""
     count = first + round((last - first) * (n - 1) / max(1, rooms - 2))
+    if level in COUNTS:
+        count = COUNTS[level][n - 1]
     if level == "1-1":
         if n <= 3:
             return count, "meleeCharger"

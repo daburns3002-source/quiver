@@ -33,13 +33,18 @@ export type Stats = {
 }
 
 local WeaponStats = {
+	--[[ Raised from the owner's first ladder above (+5 / +15 / +25 / +40 /
+	     +70%) on 2026-11-13 (balance review item 4, approved): next to the
+	     merge tiers' x2.16 for C to S, rarity was flat -- an S-tier Acorn
+	     Bow (about 23,000 coins of crates) out-hit a fresh Mythic, a 1%
+	     pull. A Mythic is now x2.2 on its own. ]]
 	bonus = {
 		Common = 0,
-		Uncommon = 0.05,
-		Rare = 0.15,
-		Epic = 0.25,
-		Legendary = 0.4,
-		Mythic = 0.7,
+		Uncommon = 0.1,
+		Rare = 0.25,
+		Epic = 0.45,
+		Legendary = 0.75,
+		Mythic = 1.2,
 	} :: { [Rarity]: number },
 
 	--[[

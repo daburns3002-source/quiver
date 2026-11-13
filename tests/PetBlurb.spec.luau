@@ -49,12 +49,15 @@ return function(t: TestRunner.Helper)
 		t.equal(PetBlurb.text("NoSuchPet"), PetBlurb.NONE)
 	end)
 
+	--[[ The spec's own, times every pet's `damageScale` (owner, 2026-11-13):
+	     what the card says is what the pet deals. ]]
 	t.test("the numbers in a line are the spec's own", function()
+		local k = PetCombat.damageScale
 		for key, spec in PetCombat.pets do
 			local text = PetBlurb.text(key)
 			if spec.damage then
 				t.isTrue(
-					string.find(text, string.format("%g", spec.damage), 1, true) ~= nil,
+					string.find(text, string.format("%g", spec.damage * k), 1, true) ~= nil,
 					`{key} does not say its damage`
 				)
 			end
@@ -72,19 +75,20 @@ return function(t: TestRunner.Helper)
 	     without their own lines they would describe themselves as doing
 	     nothing (the Thistle Mole and Thornwake, owner 2026-10-31). ]]
 	t.test("a pet that hits without a `damage` number still says what it hits for", function()
+		local k = PetCombat.damageScale
 		for key, spec in PetCombat.pets do
 			local text = PetBlurb.text(key)
 			local reflect = spec.reflect
 			if reflect then
 				t.isTrue(
-					string.find(text, string.format("%g", reflect.damage), 1, true) ~= nil,
+					string.find(text, string.format("%g", reflect.damage * k), 1, true) ~= nil,
 					`{key} bursts thorns without saying for how much`
 				)
 			end
 			local aura = spec.aura
 			if aura then
 				t.isTrue(
-					string.find(text, string.format("%g", aura.damage), 1, true) ~= nil,
+					string.find(text, string.format("%g", aura.damage * k), 1, true) ~= nil,
 					`{key}'s ring does not say its damage`
 				)
 			end
@@ -110,7 +114,8 @@ return function(t: TestRunner.Helper)
 				continue
 			end
 			local text = PetBlurb.text(key)
-			for _, number in { bleed.stacks, bleed.rate, bleed.rate * bleed.stacks } do
+			local rate = bleed.rate * PetCombat.damageScale
+			for _, number in { bleed.stacks, rate, rate * bleed.stacks } do
 				t.isTrue(
 					string.find(text, string.format("%g", number), 1, true) ~= nil,
 					`{key}'s thorns do not say {number}`

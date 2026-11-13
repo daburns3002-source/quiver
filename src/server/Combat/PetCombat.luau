@@ -70,10 +70,12 @@ type State = {
 --[[ Each player's pets, by slot. ]]
 local states: { [Player]: { [number]: State } } = {}
 
---[[ A pet's damage multiplier from its merge tier (`Util/MergeRules`: the
-     best tier its owner holds, `Data/Wallet.petTier`). ]]
+--[[ A pet's damage multiplier: its merge tier (`Util/MergeRules`: the
+     best tier its owner holds, `Data/Wallet.petTier`) times every pet's
+     `damageScale` (`Config/PetCombat`). Every blow, burn, bleed and wake a
+     pet deals goes through it. ]]
 local function tierScale(player: Player, pet: string): number
-	return MergeRules.petScale[Wallet.petTier(player, pet)] or 1
+	return (MergeRules.petScale[Wallet.petTier(player, pet)] or 1) * PetCombatConfig.damageScale
 end
 
 --[[ The pets in a player's slots that can fight, by slot. ]]
@@ -185,11 +187,18 @@ local function afflict(
 	if spec.root then
 		EnemyManager.root(model, RootHold.seconds(spec.root, EnemyManager.isBoss(model)), pet)
 	end
+	--[[ Burns, bleeds and the wake are a pet's damage too, so they take its
+	     merge tier and `damageScale` as its blows do (before 2026-11-13 they
+	     took neither, so merging a Thornwake or a Bramble Wilf did less than
+	     the tier said). ]]
+	local scale = tierScale(session.player, pet)
 	if spec.burn then
-		Burning.ignite(model, spec.burn.rate, spec.burn.duration, session.player, now)
+		Burning.ignite(model, spec.burn.rate * scale, spec.burn.duration, session.player, now)
 	end
 	if spec.bleed then
-		Burning.bleed(model, spec.bleed, session.player, now)
+		local bleed = table.clone(spec.bleed)
+		bleed.rate *= scale
+		Burning.bleed(model, bleed, session.player, now)
 	end
 	if spec.mark then
 		EnemyManager.mark(model, spec.mark.scale, now + spec.mark.duration)
@@ -203,7 +212,9 @@ local function afflict(
 	if spec.wake then
 		--[[ Wake Chase: the foam goes on, and bites it for walking
 		     (`Enemies/EnemyManager`, `Shared/Util/PetWake`). ]]
-		EnemyManager.wake(model, spec.wake, session.player)
+		local wake = table.clone(spec.wake)
+		wake.damage *= scale
+		EnemyManager.wake(model, wake, session.player)
 	end
 	if spec.healPerHit and touched then
 		RunSession.heal(session, spec.healPerHit)

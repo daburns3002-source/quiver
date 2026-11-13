@@ -29,14 +29,55 @@ local function percent(n: number): string
 	return string.format("%g%%", n)
 end
 
+--[[ `spec` as it hits: every damage number in it times every pet's
+     `damageScale` (`Config/PetCombat`), so the card prints what the pet
+     deals. A soak, a heal or a percentage is not damage and stays. ]]
+local function hitting(spec: PetCombat.Spec): PetCombat.Spec
+	local k = PetCombat.damageScale
+	local out = table.clone(spec)
+	if spec.damage then
+		out.damage = spec.damage * k
+	end
+	if spec.bossDamage then
+		out.bossDamage = spec.bossDamage * k
+	end
+	if spec.aura then
+		local aura = table.clone(spec.aura)
+		aura.damage *= k
+		out.aura = aura
+	end
+	if spec.reflect then
+		local reflect = table.clone(spec.reflect)
+		reflect.damage *= k
+		out.reflect = reflect
+	end
+	if spec.wake then
+		local wake = table.clone(spec.wake)
+		wake.damage *= k
+		out.wake = wake
+	end
+	if spec.burn then
+		local burn = table.clone(spec.burn)
+		burn.rate *= k
+		out.burn = burn
+	end
+	if spec.bleed then
+		local bleed = table.clone(spec.bleed)
+		bleed.rate *= k
+		out.bleed = bleed
+	end
+	return out
+end
+
 --[[ The lines describing pet `key`, in the order they are shown: what it
      does on its clock first, then what it does to the enemy, then what it
      does for the player. Empty for a pet with no spec. ]]
 function PetBlurb.lines(key: string): { string }
-	local spec = PetCombat.pets[key]
-	if not spec then
+	local raw = PetCombat.pets[key]
+	if not raw then
 		return {}
 	end
+	local spec = hitting(raw)
 	local out: { string } = {}
 	local function add(line: string)
 		table.insert(out, line)

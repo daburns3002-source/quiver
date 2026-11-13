@@ -29,6 +29,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Eggs = require(ReplicatedStorage.Shared.Config.Eggs)
 local GearAssets = require(ReplicatedStorage.Shared.Config.GearAssets)
 local LoadingPick = require(ReplicatedStorage.Shared.Util.LoadingPick)
+local MergeRules = require(ReplicatedStorage.Shared.Util.MergeRules)
 local NewEnemies = require(ReplicatedStorage.Shared.Config.NewEnemies)
 local Pets = require(ReplicatedStorage.Shared.Config.Pets)
 local Sandbox = require(ReplicatedStorage.Shared.Config.Sandbox)
@@ -53,6 +54,10 @@ export type Entry = {
 	--[[ One short fact for the line under the name: where an enemy is met,
 	     or a weapon's or pet's rarity. ]]
 	detail: string,
+	--[[ The best merge tier held of a found weapon or pet (`Util/MergeRules`),
+	     for the letter in its tile's bottom left. Nil for an enemy, and for
+	     anything not found. ]]
+	tier: string?,
 }
 
 local DexBook = {}
@@ -155,6 +160,7 @@ function DexBook.entries(book: string, profile: SaveSchema.Profile?): { Entry }
 		end
 	elseif book == "Weapons" then
 		local owned = if saved then saved.weapons else {}
+		local tiers = if saved then saved.tiers.weapons else {}
 		for key, stats in WeaponStats.weapons do
 			local art = ShopAssets.weapons[key]
 			if art then
@@ -169,12 +175,16 @@ function DexBook.entries(book: string, profile: SaveSchema.Profile?): { Entry }
 						unlocked = owned[key] == true,
 						rarity = stats.rarity,
 						detail = stats.rarity,
+						tier = if owned[key] == true
+							then MergeRules.best(tiers[key]) or MergeRules.TIERS[1]
+							else nil,
 					},
 				})
 			end
 		end
 	elseif book == "Pets" then
 		local hatched = if saved then saved.pets else {}
+		local tiers = if saved then saved.tiers.pets else {}
 		for key, pet in Pets do
 			local icon = GearAssets.pets[key]
 			if icon then
@@ -189,6 +199,9 @@ function DexBook.entries(book: string, profile: SaveSchema.Profile?): { Entry }
 						unlocked = (hatched[key] or 0) > 0,
 						rarity = pet.rarity,
 						detail = pet.rarity,
+						tier = if (hatched[key] or 0) > 0
+							then MergeRules.best(tiers[key]) or MergeRules.TIERS[1]
+							else nil,
 					},
 				})
 			end

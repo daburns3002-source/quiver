@@ -14,6 +14,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local ClassSelect = require(ReplicatedStorage.Shared.Config.ClassSelect)
 local EndScreenTheme = require(ReplicatedStorage.Shared.Config.EndScreenTheme)
+local MergeRules = require(ReplicatedStorage.Shared.Util.MergeRules)
 local TestRunner = require(script.Parent.TestRunner)
 local UiContrast = require(ReplicatedStorage.Shared.Util.UiContrast)
 local UiPalette = require(ReplicatedStorage.Shared.Config.UiPalette)
@@ -80,6 +81,29 @@ return function(t: TestRunner.Helper)
 		end
 		local dark = Color3.fromRGB(20, 40, 60)
 		t.equal(UiContrast.deepFor(dark, 4.5), dark)
+	end)
+
+	--[[ The merge tier's letter (owner, 2026-11-12: "a letter at the bottom
+	     left that is colored as well"): a colour for every tier, no two
+	     alike, and none a rarity's frame, or the letter reads as the rarity. ]]
+	t.test("every merge tier has a badge colour of its own", function()
+		local seen: { Color3 } = {}
+		for _, tier in MergeRules.TIERS do
+			local look = UiPalette.tier[tier]
+			t.notNil(look, "tier " .. tier .. " has no badge colour")
+			for _, other in seen do
+				t.isTrue(other ~= look.top, "two tiers share a badge colour")
+			end
+			table.insert(seen, look.top)
+			for name, tile in UiPalette.rarity do
+				t.isTrue(tile.frame ~= look.top, tier .. " wears " .. name .. "'s colour")
+			end
+		end
+		local count = 0
+		for _ in UiPalette.tier do
+			count += 1
+		end
+		t.equal(count, #MergeRules.TIERS, "a badge colour for a tier that does not exist")
 	end)
 
 	t.test("the tips' two highlights differ by hue", function()

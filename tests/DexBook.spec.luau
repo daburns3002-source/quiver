@@ -131,6 +131,42 @@ return function(t: TestRunner.Helper)
 		t.isTrue(wasFound(DexBook.entries("Pets", profile), first.key), "a hatched pet is found")
 	end)
 
+	--[[ The letter on a found tile is the best merge tier held of it
+	     (`Util/MergeRules`); nothing not found, and no enemy, wears one. ]]
+	t.test("a found weapon or pet carries its best merge tier", function()
+		local profile = SaveSchema.default()
+		for _, book in DexBook.BOOKS do
+			for _, entry in DexBook.entries(book, profile) do
+				if book == "Enemies" or not entry.unlocked then
+					t.isNil(entry.tier, `{entry.key} has a tier`)
+				else
+					t.equal(entry.tier, "C", `{entry.key} starts at C`)
+				end
+			end
+		end
+		local pet = DexBook.entries("Pets", profile)[1].key
+		profile.pets[pet] = 4
+		profile.tiers.pets[pet] = { C = 1, B = 1 }
+		local weapon: string? = nil
+		for _, entry in DexBook.entries("Weapons", profile) do
+			if entry.unlocked then
+				weapon = entry.key
+				break
+			end
+		end
+		profile.tiers.weapons[weapon :: string] = { S = 1 }
+		for _, entry in DexBook.entries("Pets", profile) do
+			if entry.key == pet then
+				t.equal(entry.tier, "B")
+			end
+		end
+		for _, entry in DexBook.entries("Weapons", profile) do
+			if entry.key == weapon then
+				t.equal(entry.tier, "S")
+			end
+		end
+	end)
+
 	--[[ Zero of a pet is not one: the hatchery writes counts, and a pet
 	     released back down to none should go dark again. ]]
 	t.test("none of a pet is not found", function()

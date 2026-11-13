@@ -151,6 +151,15 @@ function UiContrast.pairs(): { Pair }
 			need = 3,
 		})
 	end
+	-- the merge tier's letter is small on a phone's tile, so it is held to 4.5
+	for name, look in p.tier do
+		table.insert(out, {
+			what = "Merge tier " .. name .. "'s letter",
+			text = look.text,
+			grounds = { look.top, look.bottom },
+			need = 4.5,
+		})
+	end
 	return out
 end
 

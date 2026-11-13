@@ -11,6 +11,7 @@ local Eggs = require(ReplicatedStorage.Shared.Config.Eggs)
 local GearAssets = require(ReplicatedStorage.Shared.Config.GearAssets)
 local HatchStand = require(script.Parent.HatchStand)
 local Kit = require(script.Parent.Kit)
+local MergeRules = require(ReplicatedStorage.Shared.Util.MergeRules)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local Reveal = require(script.Parent.Reveal)
 local StationScreen = require(script.Parent.StationScreen)
@@ -103,6 +104,7 @@ function EggScreen.start()
 				key = entry.pet,
 				chance = entry.chance,
 				owned = owned,
+				tier = if p and owned then MergeRules.best(p.tiers.pets[entry.pet]) or "C" else nil,
 				-- the Mythic stays a shape until somebody pulls it
 				silhouette = entry.rarity == "Mythic" and not owned,
 			})

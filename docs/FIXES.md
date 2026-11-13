@@ -16,6 +16,32 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## The story's ding rang two seconds after King Bloblin's eyes went small (2026-11-12)
+
+Owner: "make sure the cutscene for bloblin plays the ding effect when his eyes get small and his
+eyebrow raises", then "the ding in the cutscene is already good, it just doesnt match the visual".
+
+**The ding is in the music, and the music is one uploaded track.** `story_theme.py` scored it to
+the frames' holds as they were on 2026-10-25, with a bell 0.8 s into the Eyes shot, where the second
+picture (small pupils, the raised eyebrow, the yellow marks) comes in. On 2026-11-06 two pictures
+were cut and the two Steam pictures held longer (#495), and the music was not rendered again. Every
+shot from the Lounge on then came in early: 1.3 s by the yawn, 1.9 s from the Bushes to Steam, 0.3 s
+from Crumple to the end. Measured in the shipped file, the ding rings at 22.7 s; the small eyes came
+in at 20.8 s. (Not the animation of 2026-11-10: it draws each frame for its hold, as the still
+cutscene did.)
+
+**Fixed in the holds, not in the track** (the owner wanted no new upload). `Config/Story`: the two
+shots that lost a picture hold their one picture for the whole of their time (Chest f02d 1.3 to
+2.6 s, Yawn f04a 1.2 to 1.8 s), which puts everything up to Steam back on its cue and the small eyes
+at 22.7 s; Steam keeps the owner's 2.0 s a picture; and Crumple, Rise and Breath, where the music
+only holds its strings, run 3.5 s together instead of 5.1 s, so the roar is on its swell again. The
+chest bump moves with its picture (Rise, 0.8 to 0.5 s). The story is 0.3 s longer.
+
+**Kept by a spec.** `Music.story.cues` is when the uploaded track lands each shot and
+`Music.story.ding` its ding; `tests/StoryTimeline.spec` fails, naming the shot, if a shot comes in
+more than 0.05 s off its cue or the Eyes shot's second picture off the ding. All nineteen cued shots
+are now within 0.0 s. A new render of the music, uploaded, brings new numbers there.
+
 ## A station's `[E]` prompt was a harsher colour than the kit's; the loading tip was 8 points tall on a phone (2026-11-12)
 
 Found while putting the UI in Lagoon (`Config/UiPalette`, `Util/UiContrast`). Two things that had been wrong before it:

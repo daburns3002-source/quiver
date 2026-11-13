@@ -6,7 +6,15 @@ closed mesh a piece, ready for the owner's Studio import.
     python -I tools/class_armour/split_set.py assets/models/armour/ranger_set.glb \
         plan.json Ranger assets/models/armour \
         [--front +z|-z|auto] [--body REGEX] [--sheet <class>_views.png]
-        [--keep-colours]
+        [--keep-colours] [--regions] [--stem NAME] [--assign FILE.json]
+
+`--regions` is for a set built from its reference sheet rather than a block
+plan (the 2026-11-13 remake): the pieces are the body's own parts (Head,
+Chest with its shoulders, Back, Waist, each UpperArm, Forearm, Thigh, Shin
+and Foot), Design's colours are kept, and every glowing block becomes a
+glow. `--stem` names the output files (`ranger_male`), and `--assign` is a
+JSON object of mesh-name patterns to pieces for a mesh that must go whole
+to a piece wherever it stands (`{"braid": "Head"}`).
 
 Writes `<class>_pieces.glb` (one mesh a piece, named as in the config, front
 at -Z, in studs, vertex colours in sRGB), `<class>_pieces.json` (each
@@ -307,19 +315,63 @@ def box_distance(points, lo, hi):
     return np.max(np.maximum(lo - points, points - hi), axis=-1)
 
 
+def region_pieces(body):
+    """The pieces of a set cut by the body alone (`--regions`), for a model
+    richer than its block plan: one piece a body part, named for it, plus the
+    chest's shoulders (a shoulder guard is drawn over the arm and worn on the
+    chest, so a raised arm turns under it) and a back piece (a quiver, a
+    cape). Each as {name: (part, [boxes])}; a solid goes to the piece whose
+    boxes it is deepest inside."""
+    def box(x0, x1, y0, y1, z0, z1):
+        return np.array([x0, y0, z0], float), np.array([x1, y1, z1], float)
+
+    head, upper, lower = body["Head"], body["UpperTorso"], body["LowerTorso"]
+    shoulder = 0.86  # the first plan's line between a shoulder plate and a sleeve
+    back = upper[1][2] + 0.05
+    pieces = {
+        "Head": ("Head", [box(-4, 4, head[0][1], head[1][1] + 5, -4, 4)]),
+        "Chest": ("UpperTorso", [
+            box(-1.25, 1.25, upper[0][1], upper[1][1] + 0.4, -1.6, back),
+            box(1.0, 3.0, shoulder, 2.4, -1.4, 1.4),
+            box(-3.0, -1.0, shoulder, 2.4, -1.4, 1.4),
+        ]),
+        "Back": ("UpperTorso", [box(-2.0, 2.0, lower[0][1] - 0.7, upper[1][1] + 1.6, back, 3.0)]),
+        "Waist": ("LowerTorso", [box(-1.6, 1.6, -2.1, lower[1][1], -1.6, back)]),
+    }
+    for side, sign in (("Right", 1), ("Left", -1)):
+        def limb(part, top=None, bottom=None):
+            lo, hi = body[side + part]
+            xs = sorted([sign * 0.0 if "Leg" in part or "Foot" in part else sign * 0.95, sign * 3.0])
+            return box(xs[0], xs[1], lo[1] if bottom is None else bottom, hi[1] if top is None else top, -1.6, 1.6)
+
+        pieces[side + "UpperArm"] = (side + "UpperArm", [limb("UpperArm")])
+        pieces[side + "Forearm"] = (side + "LowerArm", [limb("LowerArm", bottom=body[side + "Hand"][0][1])])
+        pieces[side + "Thigh"] = (side + "UpperLeg", [limb("UpperLeg", top=lower[0][1])])
+        pieces[side + "Shin"] = (side + "LowerLeg", [limb("LowerLeg")])
+        pieces[side + "Foot"] = (side + "Foot", [limb("Foot")])
+    return pieces
+
+
 class Plan:
-    def __init__(self, path, cls):
+    def __init__(self, path, cls, regions=False):
         data = json.load(open(path))
         self.body = {b["part"]: (np.array(b["min"]), np.array(b["max"])) for b in data["body"]}
         self.floor = data["floor"]
         self.face = data.get("face", {"halfWidth": 0.45, "bottom": -0.45, "top": 0.3})
         self.pieces, self.part = {}, {}
-        for block in data["sets"][cls]:
-            self.pieces.setdefault(block["piece"], []).append((np.array(block["min"]), np.array(block["max"])))
-            self.part[block["piece"]] = block["part"]
+        if regions:
+            for name, (part, boxes) in region_pieces(self.body).items():
+                self.pieces[name], self.part[name] = boxes, part
+            # no block plan to take tuned colours from: Design's stay, and
+            # every glowing block is a glow
+            self.colours, self.glowing = [], None
+        else:
+            for block in data["sets"][cls]:
+                self.pieces.setdefault(block["piece"], []).append((np.array(block["min"]), np.array(block["max"])))
+                self.part[block["piece"]] = block["part"]
+            self.colours = sorted({tuple(int(round(v * 255)) for v in block["colour"]) for block in data["sets"][cls]})
+            self.glowing = {tuple(int(round(v * 255)) for v in block["colour"]) for block in data["sets"][cls] if block["glow"]}
         self.names = list(self.pieces)
-        self.colours = sorted({tuple(int(round(v * 255)) for v in block["colour"]) for block in data["sets"][cls]})
-        self.glowing = {tuple(int(round(v * 255)) for v in block["colour"]) for block in data["sets"][cls] if block["glow"]}
         self.region = {}
         for name, parts in REGIONS.items():
             lo = np.min([self.body[p][0] for p in parts], axis=0)
@@ -394,8 +446,11 @@ def fit_to_standard(meshes, plan, body_pattern, front):
 # -------------------------------------------------------------------- pieces
 
 
-def split(armour, plan):
-    """Every solid as cells, handed to plan pieces. Returns
+def split(armour, plan, assign=()):
+    """Every solid as cells, handed to plan pieces; a mesh whose name
+    matches one of `assign`'s (pattern, piece) goes to that piece whole,
+    wherever it stands (a braid that belongs to the head, a shoulder guard
+    to the chest). Returns
     {piece: [(grid, mask, tris, colour index, main colour)]}, the palette
     and report lines."""
     palette = []
@@ -418,6 +473,9 @@ def split(armour, plan):
         ids = np.array([colour_id(c, g) for c, g in zip(colours, glows)])
         # a solid only ever goes to pieces of the part of the body it is on
         allowed = [name for name in plan.names if plan.part[name] in WEARS[mesh["region"]]]
+        forced = next((piece for pattern, piece in assign if re.search(pattern, mesh["name"], re.I)), None)
+        if forced is not None and forced not in plan.names:
+            raise SystemExit(f"--assign sends {mesh['name']} to {forced}, which is not one of {plan.names}")
         label = solids(tris)
         for one in np.unique(label):
             t, c = tris[label == one], ids[label == one]
@@ -473,7 +531,9 @@ def split(armour, plan):
             # nearest to); a solid nearly all in one piece goes to it whole
             nearest = np.argmin(np.stack([plan.distance(centres, name) for name in allowed]), axis=0)
             share = {name: float(volume[nearest == i].sum() / volume.sum()) for i, name in enumerate(allowed)}
-            best = max(share, key=share.get)
+            best = forced or max(share, key=share.get)
+            if forced:
+                share = {forced: 1.0}
             areas = np.linalg.norm(np.cross(t[:, 1] - t[:, 0], t[:, 2] - t[:, 0]), axis=1)
             main = int(np.bincount(c, weights=areas).argmax())
             if share[best] >= WHOLE:
@@ -648,6 +708,7 @@ VIEWS = [("FRONT", 0, 8), ("THREE-QUARTER", 35, 14), ("SIDE", 90, 8), ("BACK", 1
 W, H, SCALE = 520, 720, 98.0
 LIGHT = np.array([-0.35, 0.85, -0.4]) / np.linalg.norm([-0.35, 0.85, -0.4])
 SKIN, CLOTH = (0.953, 0.776, 0.627), (0.62, 0.65, 0.70)
+SHIRT, TROUSERS, EYE, MOUTH = (0.36, 0.52, 0.72), (0.30, 0.32, 0.40), (0.2, 0.14, 0.1), (0.6, 0.35, 0.3)
 
 
 def view_matrix(yaw, pitch):
@@ -711,7 +772,18 @@ def picture(pieces_glb, plan, sheet, out, title):
     for part, (lo, hi) in plan.body.items():
         t = box_tris(lo, hi)
         tris.append(t)
-        colours.append(np.tile(SKIN if part == "Head" or part.endswith("Hand") else CLOTH, (len(t), 1)))
+        bare = part == "Head" or part.endswith("Hand") or part.endswith("Arm")
+        legs = "Leg" in part or "Foot" in part or part == "LowerTorso"
+        colours.append(np.tile(SKIN if bare else TROUSERS if legs else SHIRT, (len(t), 1)))
+        if part == "Head":
+            # a stand-in body is a person (owner, 2026-11-12): it has a face
+            cy, front = (lo[1] + hi[1]) / 2, lo[2]
+            features = [([s * 0.22 - 0.07, cy - 0.02, front - 0.012], [s * 0.22 + 0.07, cy + 0.2, front], EYE) for s in (-1, 1)]
+            features.append(([-0.12, cy - 0.3, front - 0.012], [0.12, cy - 0.25, front], MOUTH))
+            for f_lo, f_hi, colour in features:
+                t = box_tris(f_lo, f_hi)
+                tris.append(t)
+                colours.append(np.tile(colour, (len(t), 1)))
     gltf, binary = _chunks(pieces_glb)
     for node in gltf["nodes"]:
         prim = gltf["meshes"][node["mesh"]]["primitives"][0]
@@ -741,18 +813,22 @@ def picture(pieces_glb, plan, sheet, out, title):
 
 
 def main(argv):
-    flags = {"--front": "+z", "--body": r"^(avatar|body)", "--sheet": None, "--keep-colours": False}
+    flags = {
+        "--front": "+z", "--body": r"^(avatar|body)", "--sheet": None, "--keep-colours": False,
+        "--regions": False, "--stem": None, "--assign": None,
+    }
     plain = []
     it = iter(argv)
     for arg in it:
-        if arg == "--keep-colours":
+        if arg in ("--keep-colours", "--regions"):
             flags[arg] = True
         elif arg in flags:
             flags[arg] = next(it)
         else:
             plain.append(arg)
     set_glb, plan_path, cls, out_dir = plain
-    plan = Plan(plan_path, cls)
+    plan = Plan(plan_path, cls, flags["--regions"])
+    assign = list(json.load(open(flags["--assign"])).items()) if flags["--assign"] else []
     source = read_glb(set_glb)
     want = flags["--front"]
     fronts = ["+z", "-z"]
@@ -769,8 +845,8 @@ def main(argv):
     best = min(tries, key=lambda t: t[0])
     _, armour, fit = best if want == "auto" else next(t for t in tries if t[2]["front"] == want)
     fit["miss_other_way"] = next(round(t[0], 4) for t in tries if t[2] is not fit)
-    turned_note = None if best[2] is fit else f"the set fits the plan better facing {best[2]['front']} ({best[0]:.4f} against {fit['miss']}): check --front"
-    parts, palette, notes, went, glow = split(armour, plan)
+    turned_note = None if best[2] is fit or flags["--regions"] else f"the set fits the plan better facing {best[2]['front']} ({best[0]:.4f} against {fit['miss']}): check --front"
+    parts, palette, notes, went, glow = split(armour, plan, assign)
     if turned_note:
         notes.append(turned_note)
     # The plan's colours are the ones tuned in the game (the steel and the
@@ -780,19 +856,21 @@ def main(argv):
     # Two Design colours never share one plan colour (a white top edge and
     # the steel under it stay apart): the pairing is the cheapest one to one.
     made = [tuple(int(round(v * 255)) for v in to_srgb(entry[:3])) for entry in palette]
-    gap = np.array([[sum(abs(a - b) for a, b in zip(rgb, c)) for c in plan.colours] for rgb in made], float)
-    rows, cols = linear_sum_assignment(np.where(gap <= SNAP, gap, 1e4))
     shade, snapped = dict(enumerate(made)), {}
-    for row, col in zip(rows, cols):
-        if gap[row, col] <= SNAP and not flags["--keep-colours"]:
-            shade[row] = plan.colours[col]
+    if plan.colours and made:
+        gap = np.array([[sum(abs(a - b) for a, b in zip(rgb, c)) for c in plan.colours] for rgb in made], float)
+        rows, cols = linear_sum_assignment(np.where(gap <= SNAP, gap, 1e4))
+        for row, col in zip(rows, cols):
+            if gap[row, col] <= SNAP and not flags["--keep-colours"]:
+                shade[row] = plan.colours[col]
     for index, rgb in enumerate(made):
         snapped["#%02X%02X%02X" % rgb] = "#%02X%02X%02X" % shade[index]
     meshes, report, total = [], {}, 0
     for name in plan.names:
         built = build(parts[name])
         if built is None:
-            notes.append(f"{name}: NOTHING in the model fell to this piece")
+            if not flags["--regions"] or name != "Back":
+                notes.append(f"{name}: NOTHING in the model fell to this piece")
             continue
         corners, normals, colour_ids, faces = built
         lo, hi = corners.min(0), corners.max(0)
@@ -820,7 +898,7 @@ def main(argv):
                     "colour": "#%02X%02X%02X" % shade[colour],
                 }
                 for g_lo, g_hi, colour in glow.get(name, [])
-                if shade[colour] in plan.glowing
+                if plan.glowing is None or shade[colour] in plan.glowing
             ],
             "plan_size": np.round(p_hi - p_lo, 3).tolist(),
             "from_plan": {"min": np.round(lo - p_lo, 3).tolist(), "max": np.round(hi - p_hi, 3).tolist()},
@@ -832,14 +910,14 @@ def main(argv):
             if share > 0.02:
                 notes.append(f"{name}: stands in front of {share:.0%} of the face window; clear x {window and window[:2]}, y {window and window[2:]} of +-{plan.face['halfWidth']}, {plan.face['bottom']}..{plan.face['top']}")
     out = pathlib.Path(out_dir)
-    stem = cls.lower()
+    stem = flags["--stem"] or cls.lower()
     write_glb(out / f"{stem}_pieces.glb", meshes)
     json.dump(
         {"class": cls, "units": "studs", "front": "-Z", "source": pathlib.Path(set_glb).name, "fit": fit, "triangles": total, "colours": snapped, "pieces": report, "meshes": went, "notes": notes},
         open(out / f"{stem}_pieces.json", "w"), indent="\t",
     )
-    picture(out / f"{stem}_pieces.glb", plan, flags["--sheet"], out / f"{stem}_pieces.png", f"{cls.upper()} PIECES")
-    print(f"{cls}: {len(meshes)}/{len(plan.names)} pieces, {total} triangles")
+    picture(out / f"{stem}_pieces.glb", plan, flags["--sheet"], out / f"{stem}_pieces.png", f"{stem.upper().replace('_', ' ')} PIECES")
+    print(f"{stem}: {len(meshes)}/{len(plan.names)} pieces, {total} triangles")
     for name, row in report.items():
         print(f"  {name:14s} {row['part']:14s} tris {row['triangles']:5d} open {row['open_edges']} size {row['size']} plan {row['plan_size']} off min {row['from_plan']['min']} max {row['from_plan']['max']}")
     print("  colours:", ", ".join(f"{a}->{b}" if a != b else a for a, b in snapped.items()))
@@ -849,7 +927,8 @@ def main(argv):
     for note in notes:
         print("  note:", note)
     bad = [name for name, row in report.items() if row["open_edges"]]
-    if bad or len(meshes) != len(plan.names) or total >= 10000:
+    wanted = [name for name in plan.names if not (flags["--regions"] and name == "Back")]
+    if bad or any(name not in report for name in wanted) or total >= 10000:
         raise SystemExit(f"FAILED: open {bad}, pieces {len(meshes)}/{len(plan.names)}, triangles {total}")
 
 

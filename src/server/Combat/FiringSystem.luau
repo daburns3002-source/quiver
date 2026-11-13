@@ -91,6 +91,9 @@ local function fire(session: Session, root: BasePart, now: number, cooldown: num
 	end
 
 	local overdraw = overdrawScale(session, now)
+	--[[ Mana Surge: a kill's charge, spent on this whole cast. ]]
+	local surge, surgeSize = ClassUpgrades.spendSurge(session)
+	overdraw *= surge
 
 	local specs = session.pipeline:build({
 		damage = session.damage * overdraw,
@@ -116,7 +119,7 @@ local function fire(session: Session, root: BasePart, now: number, cooldown: num
 			pierce = spec.pierce,
 			critChance = spec.critChance,
 			critMultiplier = spec.critMultiplier,
-			splashRadius = spec.splashRadius,
+			splashRadius = spec.splashRadius * surgeSize,
 			splashScale = spec.splashScale,
 			bounces = spec.bounces,
 			ricochet = spec.ricochet,

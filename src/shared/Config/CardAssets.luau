@@ -79,6 +79,16 @@ local CardAssets = {
 		["arcane-turret"] = "rbxassetid://86210492796030",
 		["titans-grip"] = "rbxassetid://106382045408524",
 		["counter-strike"] = "rbxassetid://98666038274289",
+		-- the class cards of 2026-11-13, the same way
+		["sniper-shot"] = "rbxassetid://129367213129332",
+		["split-shot"] = "rbxassetid://108866279388920",
+		["wind-arrows"] = "rbxassetid://134274543245694",
+		["mana-surge"] = "rbxassetid://92034879814078",
+		["frost-orb"] = "rbxassetid://79255713310856",
+		["arcane-shield"] = "rbxassetid://138729156394154",
+		["shield-throw"] = "rbxassetid://111019992395887",
+		["blade-storm"] = "rbxassetid://106023560509222",
+		["sunder"] = "rbxassetid://129654171015164",
 	},
 	--[[ The name banner for each rarity, 984 x 558, its plate cleared
 	     (`assets/ui/glow_toy_cards/clear_plates.py`): the card writes its name

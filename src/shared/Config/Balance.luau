@@ -4512,6 +4512,68 @@ local Balance = {
 			offset = Vector3.new(3, 1.2, 1),
 		},
 
+		--[[ The class cards of 2026-11-13 (owner's pick C). Damage is times
+		     the player's own, as above. ]]
+		--[[ Sniper Shot: `charge` seconds standing still (and as long again
+		     after each one) readies a sniper arrow, fired with the next
+		     volley: `speedScale` times an arrow's speed, through every enemy
+		     to the wall, `damage` and always a crit (`critMultiplier`). ]]
+		sniper = {
+			charge = 3,
+			damage = 0.75,
+			speedScale = 1.4,
+		},
+		--[[ Split Shot: an arrow that kills sends `count` splinters on from
+		     the kill, `spread` radians apart about its heading, `damage`
+		     each, flying `range` studs. Splinters never split. ]]
+		splitShot = {
+			count = 3,
+			spread = math.rad(25),
+			damage = 0.4,
+			range = 14,
+		},
+		--[[ Wind Arrows: a hit's shove again on top (the card's level), and
+		     enemy shots within `clearRadius` of the arrow blown away. ]]
+		wind = {
+			clearRadius = 1.6,
+		},
+		--[[ Mana Surge: a kill makes the next cast `damage` times as strong,
+		     its blast `size` times as wide. ]]
+		manaSurge = {
+			damage = 1.5,
+			size = 1.5,
+		},
+		--[[ Frost Orb: how long a chill lasts; how slow is the card's. ]]
+		frost = {
+			duration = 2,
+		},
+		--[[ Shield Throw: the dash throws a shield at the nearest enemy
+		     within `range`, then on to the nearest not yet struck, `hits` in
+		     all, flying `speed` studs a second, `damage` each, and home. ]]
+		shieldThrow = {
+			hits = 3,
+			range = 22,
+			hopRange = 14,
+			speed = 55,
+			damage = 0.5,
+		},
+		--[[ Blade Storm: every `every`th blow that lands throws the sword
+		     `length` studs along the swing and back, `duration` seconds
+		     there and back, hitting everything within `radius` of it once
+		     going out and once coming back, `damage` a pass. ]]
+		bladeStorm = {
+			every = 5,
+			length = 12,
+			duration = 0.9,
+			radius = 2.4,
+			damage = 0.7,
+		},
+		--[[ Sunder: how long a struck enemy takes more; how much is the
+		     card's. ]]
+		sunder = {
+			duration = 3,
+		},
+
 		--[[
 			Momentum: "attack speed rises while moving". Nothing fires on the
 			move here, so the speed is banked by moving and spent after:

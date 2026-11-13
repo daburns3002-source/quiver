@@ -170,6 +170,10 @@ type Enemy = {
 	rootedUntil: number,
 	markScale: number?,
 	markUntil: number?,
+	--[[ Sunder (the Warden's card): takes `1 + sunder` times the damage
+	     until `sunderUntil` (os.clock), beside any pet's mark. ]]
+	sunder: number?,
+	sunderUntil: number?,
 	--[[ The Inkpot's Ink Blink: until `blindUntil` (os.clock) this enemy
 	     cannot pick a target further than `blindRange` studs away. It
 	     still walks and still swings at whatever is close. ]]
@@ -436,7 +440,10 @@ end
      anything that is not one. For damage that cares (Execute). ]]
 --[[ Slows a live enemy to `scale` of its speed (0 roots it) until
      `untilTime` (os.clock). The stronger and longer of two holds wins. ]]
-function EnemyManager.slow(model: Model, scale: number, untilTime: number)
+--[[ `frost` marks a chill (Frost Orb, Elemental Orbs' ice): `FrostUntil`
+     (server time) on the model, for the ice round its feet
+     (`Fx/Upgrades/ArcanistBuildFx`). ]]
+function EnemyManager.slow(model: Model, scale: number, untilTime: number, frost: boolean?)
 	local enemy = enemies[model]
 	if not enemy then
 		return
@@ -444,7 +451,54 @@ function EnemyManager.slow(model: Model, scale: number, untilTime: number)
 	local now = os.clock()
 	local held = (enemy.slowUntil or 0) > now
 	enemy.slowScale = if held then math.min(enemy.slowScale or 1, scale) else scale
-	enemy.slowUntil = math.max(enemy.slowUntil or 0, untilTime)
+	local slowUntil = math.max(enemy.slowUntil or 0, untilTime)
+	enemy.slowUntil = slowUntil
+	if frost then
+		model:SetAttribute("FrostUntil", Workspace:GetServerTimeNow() + (slowUntil - now))
+	end
+end
+
+--[[ Sunder: a live enemy takes `1 + extra` times the damage from
+     everything until `untilTime` (os.clock); the stronger of two holds
+     wins, the later end is kept. Published as `SunderedUntil` (server time)
+     for the cracks over it (`Fx/Upgrades/WardenBuildFx`). ]]
+function EnemyManager.sunder(model: Model, extra: number, untilTime: number)
+	local enemy = enemies[model]
+	if not enemy or extra <= 0 then
+		return
+	end
+	local now = os.clock()
+	local held = (enemy.sunderUntil or 0) > now
+	enemy.sunder = if held then math.max(enemy.sunder or 0, extra) else extra
+	local sunderUntil = math.max(enemy.sunderUntil or 0, untilTime)
+	enemy.sunderUntil = sunderUntil
+	model:SetAttribute("SunderedUntil", Workspace:GetServerTimeNow() + (sunderUntil - now))
+end
+
+--[[ Wind Arrows: a live enemy just hit from `from` is shoved `extra` times
+     its own knockback more, on top of the hit's, and the cap on a pile of
+     shoves is raised by as much. Nothing an enemy that takes no knockback
+     (a boss) would feel. ]]
+function EnemyManager.knock(model: Model, from: Vector3, extra: number)
+	local enemy = enemies[model]
+	if not enemy or extra <= 0 then
+		return
+	end
+	local away = Vector3.new(enemy.position.X - from.X, 0, enemy.position.Z - from.Z)
+	if away.Magnitude < 1e-3 then
+		return
+	end
+	local impulse = enemy.config.knockback * KNOCKBACK_SETTLE / Balance.Knockback.slideTime
+	if impulse <= 0 then
+		return
+	end
+	local combined = enemy.knockbackVelocity + away.Unit * impulse * extra
+	local most = impulse * (2 + extra)
+	if combined.Magnitude > most then
+		combined = combined.Unit * most
+	end
+	enemy.knockbackVelocity = combined
+	enemy.staggerUntil = os.clock() + Balance.Knockback.stagger
 end
 
 --[[ Holds a live enemy where it stands for `seconds` (a pet's root,
@@ -1393,6 +1447,9 @@ function EnemyManager.damage(
 
 	if (enemy.markUntil or 0) > os.clock() then
 		amount *= enemy.markScale or 1
+	end
+	if (enemy.sunderUntil or 0) > os.clock() then
+		amount *= 1 + (enemy.sunder or 0)
 	end
 	enemy.health -= amount
 	--[[ A training dummy shows the blow and keeps every point of health. ]]

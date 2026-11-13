@@ -646,6 +646,12 @@ Remotes.event(Remotes.RunLobby).OnServerEvent:Connect(function(player)
 	end
 end)
 
+--[[ A story beat watched or skipped (`Config/StoryBeats`); `Wallet.sawStory`
+     keeps it only for a boss this player has beaten. ]]
+Remotes.event(Remotes.StorySeen).OnServerEvent:Connect(function(player, area)
+	Wallet.sawStory(player, area)
+end)
+
 --[[ The intro's BEGIN ADVENTURE: this player has left the title screen.
      It can only clear the hold, never set one, so a repeat changes nothing. ]]
 Remotes.event(Remotes.IntroBegin).OnServerEvent:Connect(function(player)

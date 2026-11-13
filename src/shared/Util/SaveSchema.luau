@@ -71,6 +71,11 @@
 	crates count from its pity counter (a lower bound, nothing invented),
 	and everything it already owns or has met counts as a Dex entry paid,
 	so the update is no windfall.
+
+	Version 12 (2026-11-13, the story through the areas -- `Config/StoryBeats`):
+	`storySeen`, the areas whose story beat the player has watched, by
+	`Config/Economy` area key. An older profile has watched none, so a boss
+	it has beaten before plays its beat the next time it is beaten.
 ]]
 
 local MergeRules = require(script.Parent.MergeRules)
@@ -78,7 +83,7 @@ local SettingsRules = require(script.Parent.SettingsRules)
 
 local SaveSchema = {}
 
-SaveSchema.VERSION = 11
+SaveSchema.VERSION = 12
 
 --[[ The classes' own weapons, owned from the start. ]]
 local STARTERS = { "TwigBow", "BranchStaff", "TimberBlade" }
@@ -131,6 +136,8 @@ export type Profile = {
 	--[[ The login calendar, quests, starter list and Dex payouts
 	     (version 11, `Util/RewardRules`). Days are whole UTC days since 1970. ]]
 	rewards: RewardState,
+	--[[ The areas whose story beat has been watched (version 12). ]]
+	storySeen: { [string]: boolean },
 }
 
 export type RewardState = {
@@ -195,6 +202,7 @@ function SaveSchema.default(): Profile
 		},
 		settings = SettingsRules.default(),
 		tiers = { weapons = weaponTiers, pets = {} },
+		storySeen = {},
 	}
 end
 
@@ -349,6 +357,9 @@ function SaveSchema.migrate(raw: unknown): Profile
 			rewards.dexPaid["Pets:" .. pet] = true
 		end
 	end
+	--[[ 11 -> 12: no beat was ever shown, so an older profile has watched
+	     none; a stored copy keeps its yes flags. ]]
+	profile.storySeen = flags(data.storySeen)
 	return profile
 end
 

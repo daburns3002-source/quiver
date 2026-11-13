@@ -18,6 +18,7 @@ local MergeRules = require(ReplicatedStorage.Shared.Util.MergeRules)
 local Purse = require(ReplicatedStorage.Shared.Util.Purse)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local SaveSchema = require(ReplicatedStorage.Shared.Util.SaveSchema)
+local StoryBeatRules = require(ReplicatedStorage.Shared.Util.StoryBeatRules)
 local Tutorial = require(ReplicatedStorage.Shared.Config.Tutorial)
 
 local DexPay = require(script.Parent.DexPay)
@@ -350,6 +351,22 @@ function Wallet.markBeaten(player: Player, area: string)
 		profile.bossesBeaten[area] = true
 		changed(player, profile)
 	end
+end
+
+--[[ The story beat of `area` has been watched (`Remotes.StorySeen`): kept
+     only for an area with a beat whose boss this player has beaten. ]]
+function Wallet.sawStory(player: Player, area: unknown)
+	local profile = PlayerData.get(player)
+	if
+		not profile
+		or not StoryBeatRules.isArea(area)
+		or not profile.bossesBeaten[area :: string]
+		or profile.storySeen[area :: string]
+	then
+		return
+	end
+	profile.storySeen[area :: string] = true
+	changed(player, profile)
 end
 
 --[[ An area's boss is beaten: its item, and gems (more the first time).

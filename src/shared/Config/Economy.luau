@@ -62,8 +62,9 @@ local Economy = {
 		--[[ Areas 3 and 4 (2026-11-07), so their kills, clears and bosses
 		     pay. A step up each, on Thornwood's curve. Their boss items are
 		     drawn since their crates were stocked (2026-11-13,
-		     `ShopAssets.items`); the names are still the placeholders the
-		     owner has not changed. ]]
+		     `ShopAssets.items`) and named by the story (2026-11-13,
+		     `Config/StoryBeats`): the BELL SHARD and the BOGHEART PEARL. The
+		     keys keep their first names, because saves hold them. ]]
 		DrownedVillage = {
 			killCoins = 30,
 			clearCoins = 750,
@@ -84,8 +85,8 @@ local Economy = {
 	items = {
 		RoyalJelly = { name = "ROYAL JELLY", boss = "King Bloblin", area = "MossyGlade" },
 		BroodSilk = { name = "BROOD SILK", boss = "The Broodmother", area = "Thornwood" },
-		TollBronze = { name = "TOLL BRONZE", boss = "Old Tollcrab", area = "DrownedVillage" },
-		BogPearl = { name = "BOG PEARL", boss = "Grandmother Gulp", area = "BogheartCaverns" },
+		TollBronze = { name = "BELL SHARD", boss = "Old Tollcrab", area = "DrownedVillage" },
+		BogPearl = { name = "BOGHEART PEARL", boss = "Grandmother Gulp", area = "BogheartCaverns" },
 	} :: { [string]: Item },
 }
 

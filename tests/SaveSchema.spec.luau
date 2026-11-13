@@ -62,7 +62,7 @@ return function(t: TestRunner.Helper)
 
 	t.test("a new profile has beaten no level", function()
 		local p = SaveSchema.migrate(nil)
-		t.equal(SaveSchema.VERSION, 11)
+		t.equal(SaveSchema.VERSION, 12)
 		t.isNil((next(p.levelsBeaten)))
 	end)
 
@@ -306,4 +306,19 @@ return function(t: TestRunner.Helper)
 		t.isTrue(r.dexPaid["Pets:Bramble"])
 		t.isNil(r.dexPaid["Weapons:TwigBow"], "a stored copy is read as it is")
 	end)
+
+	t.test(
+		"version 12: an older profile has watched no story beat; a stored one keeps its own",
+		function()
+			local old = SaveSchema.migrate({ version = 11, bossesBeaten = { MossyGlade = true } })
+			t.isNil((next(old.storySeen)))
+			t.isNil((next(SaveSchema.migrate(nil).storySeen)))
+			local p = SaveSchema.migrate({
+				version = 12,
+				storySeen = { MossyGlade = true, Thornwood = 1 },
+			})
+			t.isTrue(p.storySeen.MossyGlade)
+			t.isNil(p.storySeen.Thornwood, "only a yes is kept")
+		end
+	)
 end

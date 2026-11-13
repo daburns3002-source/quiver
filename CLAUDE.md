@@ -21,6 +21,7 @@ and files. Every area gets a Wilf pet.
 
 Run loop: `docs/RESEARCH-archero.md`. Meta loop: `docs/PROGRESSION.md`.
 Phase plan: `docs/ROADMAP.md`. Lobby spec: `docs/LOBBY.md`. The dexes: `docs/DEX.md`.
+The story through the areas ("the bog is rising", owner-approved 2026-11-13): `docs/STORY.md`.
 **Classes and world: `docs/WORLD.md`** — since 2026-10-22 the game is three
 classes (Ranger, Arcanist, an unlockable melee class) across ten areas
 in five acts. The game is called Arrowborne (owner, 2026-11-04;

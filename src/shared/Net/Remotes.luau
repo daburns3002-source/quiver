@@ -208,6 +208,14 @@ Remotes.DebugDay = "DebugDay"
 Remotes.IntroBegin = "IntroBegin"
 
 --[[
+	Client → server. A story beat (`Config/StoryBeats`) has been watched or
+	skipped: the area key whose beat it was. The server writes it down
+	(`Wallet.sawStory`) only for an area with a beat whose boss this player
+	has beaten, so it can never mark one owed later.
+]]
+Remotes.StorySeen = "StorySeen"
+
+--[[
 	Server → one client. The player has stepped into a lit portal's mouth in
 	the lobby: open its screen (`UI/PortalScreen`) with that portal's index
 	in `Config/Lobby.portals`, or 0 to shut it as they step out.

@@ -72,6 +72,7 @@ local Rewards = require(script.Parent.Parent.Data.Rewards)
 local RunSession = require(script.Parent.RunSession)
 local Sandbox = require(ReplicatedStorage.Shared.Config.Sandbox)
 local SoulLink = require(script.Parent.Parent.Combat.SoulLink)
+local StoryBeatRules = require(ReplicatedStorage.Shared.Util.StoryBeatRules)
 local StoryLeaderboard = require(script.Parent.StoryLeaderboard)
 local StoryProgress = require(ReplicatedStorage.Shared.Util.StoryProgress)
 local Wallet = require(script.Parent.Parent.Data.Wallet)
@@ -614,6 +615,20 @@ end
 	through it they got. Sent at the moment the run ends, so the time and
 	health are the ones the player finished with.
 ]]
+--[[ The area key of the story beat a win owes this player, if any. ]]
+local function storyOwed(player: Player, beatBoss: boolean): string?
+	local profile = PlayerData.get(player)
+	local area = CurrentStage.config().area
+	if
+		beatBoss
+		and profile
+		and StoryBeatRules.due(area, profile.bossesBeaten, profile.storySeen)
+	then
+		return area
+	end
+	return nil
+end
+
 local function sendSummary(won: boolean, eggs: { [Player]: any }?)
 	local finished = if won then progress else progress - 1
 	local progressPercent =
@@ -637,6 +652,10 @@ local function sendSummary(won: boolean, eggs: { [Player]: any }?)
 			     pet and whether new, for the reveal), and the boss item. ]]
 			egg = eggs and eggs[session.player],
 			item = if won then session.stageItem else nil,
+			--[[ The area whose story beat this win owes (`Config/StoryBeats`):
+			     its boss fell in this run and the beat has not been watched.
+			     The client plays it as the player leaves Victory. ]]
+			story = storyOwed(session.player, won and session.stageItem ~= nil),
 			--[[ The end screen's nudge: Victory says so when the coins buy
 			     an egg. ]]
 			canHatch = Hatchery.canHatch(session.player),

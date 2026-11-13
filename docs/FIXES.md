@@ -26,6 +26,18 @@ Anything else scaled for a press or a pick wants the same.
 
 ---
 
+## A lone pet walked six studs from its player, off to one side (2026-11-13)
+
+Owner: "MAKE THE PETS FOLLOW THE PLAYER CLOSER".
+
+**The rows were always four pets wide.** `Fx/PetPreview` placed pet `i` in a column of a four-wide
+row centred on the player, so one pet stood in the leftmost column, 4.2 studs to the side, and every
+row stood 4 studs back: about 5.8 studs from the player. Now each row is centred on the pets
+actually in it (a lone pet walks straight behind, two at 1.4 studs either side), and the first row is
+2.5 studs back. `Combat/PetShots.HEEL`, where the server measures a pet's shots from, moved with it
+to `(0, 0, 2.5)`. Each pet's own pace (`Config/PetGaits`) is unchanged, so a slow pet still trails
+while the player runs.
+
 ## The story's ding rang two seconds after King Bloblin's eyes went small (2026-11-12)
 
 Owner: "make sure the cutscene for bloblin plays the ding effect when his eyes get small and his

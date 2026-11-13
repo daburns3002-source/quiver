@@ -42,10 +42,13 @@ local PetPreview = {}
 --[[ How tall a pet stands, in studs. ]]
 local PET_HEIGHT = 2.4
 --[[ Pets per row behind the player, the gap between them, and how far
-     behind the player the first row walks. ]]
+     behind the player the first row walks. A row is centred on its own
+     pets, so a lone pet walks straight behind (owner, 2026-11-13: "make the
+     pets follow the player closer"; it walked 4.2 studs to the side and 4
+     back). `Combat/PetShots.HEEL` is the lone pet's place. ]]
 local PER_ROW = 4
 local SPACING = 2.8
-local BEHIND = 4
+local BEHIND = 2.5
 --[[ Seconds a pet stands between fidgets (`Config/PetGaits`). ]]
 local FIDGET_MIN = 7
 local FIDGET_MAX = 15
@@ -331,7 +334,8 @@ local function step(dt: number)
 	local base = root.CFrame
 	for i, pet in pets do
 		local row = (i - 1) // PER_ROW
-		local column = (i - 1) % PER_ROW - (PER_ROW - 1) / 2
+		local inRow = math.min(PER_ROW, #pets - row * PER_ROW)
+		local column = (i - 1) % PER_ROW - (inRow - 1) / 2
 		local guarding = pet.guards and os.clock() < pet.actingUntil
 		local place = if guarding
 			then base * Vector3.new(0, 0, -GUARD_AHEAD)

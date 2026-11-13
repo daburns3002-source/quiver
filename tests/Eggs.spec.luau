@@ -132,6 +132,24 @@ return function(t: TestRunner.Helper)
 		t.isTrue(EggRules.open(gated :: any, { MossyGlade = true }))
 	end)
 
+	t.test("a shut egg names the boss it waits on, not always King Bloblin", function()
+		local after = {
+			key = "x",
+			name = "X",
+			area = "BogheartCaverns",
+			price = 1,
+			unlock = "DrownedVillage",
+		}
+		t.equal(EggRules.lockWords(after :: any, {}), "BEAT OLD TOLLCRAB")
+		t.isNil(EggRules.lockWords(after :: any, { DrownedVillage = true }), "beaten: open")
+		for _, egg in Eggs.list do
+			local words = EggRules.lockWords(egg, {}, true)
+			if egg.atLaunch then
+				t.isTrue(words ~= nil and string.find(words, "BEAT ", 1, true) == 1, egg.key)
+			end
+		end
+	end)
+
 	t.test("two pet slots, matching the save", function()
 		t.equal(#Eggs.slots, 2)
 	end)

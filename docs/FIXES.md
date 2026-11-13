@@ -16,6 +16,64 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## DEFEAT said "LEVEL 18"; the lobby's buttons peeked out beside a portal's panel; the run's bars showed under DEFEAT (2026-11-13)
+
+Found by the polish playthrough (owner: "play through everything and make sure everything is
+polished, the ui looks good and is not blocking anything"), in Studio Play at 2091 x 1113.
+
+- **"LEVEL 18" on DEFEAT after the Drowned Village.** The end screen's tab fell back to the stage's
+  index (`Balance.Stages[18]`) for any stage without a `level` of its own, which is every area past
+  Mossy Glade. The portal's screen calls the same level "LEVEL 1" (its place on the portal). Now
+  both name it the same way: `EndScreenRules.levelTab` (the level's own number, else its place on
+  its portal, else the index for a stage on no portal), pinned by `tests/EndScreenRules.spec`.
+- **REWARDS and BADGES beside a portal's level panel.** PLAY hid itself under a portal's screen
+  (`PortalScreen.isOpen()` in `UI/LobbyHud`); the two buttons above it did not, and their edges
+  showed past the panel's left side. Both now hide on the same test.
+- **The health number, DASH and the skill bar under DEFEAT's panel.** The end screen draws over the
+  run without a backdrop, and the three bottom bars stayed on, poking out under BACK TO LOBBY. They
+  now go while an end screen is up (`UI/LobbyHud` `UNDER_END`, `UI/DashBar`) and come back when
+  TRY AGAIN or NEXT LEVEL goes on.
+- **REWARDS' count dot covered the word's S.** Moved to the button's corner.
+- **The Dex's weapon grid showed different pictures from every other screen** (owner: "make sure the
+  icons for everything in the gear ui, weapon and egg ui, and dexes all match"). Gear, the
+  Blacksmith, the reveal and the Endless prize take `ShopAssets.weapons` (the 2D art) first; the
+  Dex grid took `GearAssets.weapons` (the old mini pixel icons, 18 of the first two areas' weapons)
+  first. It takes the 2D art now (`tests/DexBook.spec`).
+- **Three pets' pictures were their models before the 2026-11-11 remakes** (#541): Thornwake, the
+  Bramble Wilf and the Ember Wilf, all three from 2026-10-31. Cut again from the art each remake
+  was built from, the Bogheart pets' way (`assets/ui/pets/remake_icons.py`) and uploaded. The Cave
+  Cricket's was already its remake's reference.
+- **A shut egg always said BEAT KING BLOBLIN**, so at launch the Bogheart Egg (waiting on the
+  Drowned Village) would have named the wrong boss. `EggRules.lockWords` names the boss of the area
+  it waits on, as a shut crate does (`tests/Eggs.spec`).
+- **A Dex page said its rarity twice** ("COMMON." under the COMMON pill). The line under the pill
+  no longer repeats it.
+- **The new door arrow, turning upright over the plaque, read as a gold blob or was hidden.** The
+  desktop camera stops with the gate's top half under the run HUD's bars, and from 68 degrees down
+  an upright arrow shows only its top. It hangs low in front of the doorway, held still and leaned
+  back 40 degrees so its stepped shape faces the camera (`Fx/DoorPointer`, `GoldPointer` `lean`).
+
+Also measured, not changed (the owner's call, in TRACKER): on a desktop screen the bottom bars cover
+the room's south 5 studs (ground z 23.9 to 29, the spawn at 23), and the top bars the gate's upper
+part.
+
+## A blue trail came out white on the lobby floor, and a flat one was a thin line (2026-11-13)
+
+Seen in Studio Play before the trails shipped: Starfall, a deep-blue ribbon, drew as a white streak
+on the lobby's cream stone, and every ribbon, laid flat on the ground, read as a thin line from the
+lobby's low camera. **`LightEmission` 1 adds a colour to what is behind it**: blue added to near
+white is white. The ribbon now lays its colour over the ground (`LightEmission` 0; a glowing one is
+`LightInfluence` 0, lit by nothing but itself, so it still glows in a dark room), and a glowing
+particle adds only 0.4 of its light. A brighter fin stands upright along the ribbon's middle
+(`Trails.core.height`, 1.1 studs), which the low camera sees side on, and the ribbons are 1.4x as
+wide. Measured in the next Play: the same ribbon read blue with its white cross stars on it. The
+same holds for any Trail, Beam or particle meant to keep its colour on a bright floor.
+
+The star texture also failed its first load ("No asset content representation found") for some
+minutes after `upload_image`: a fresh upload is still processing. It loaded later in the same Play.
+
+---
+
 ## The picked class card swelled from its top-left corner over its neighbour (2026-11-13)
 
 Seen 2026-11-12 on a wide screen: tapping a class card grew it to the right and down, over the edge

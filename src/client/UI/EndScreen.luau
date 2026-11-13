@@ -618,11 +618,6 @@ export type Stats = {
 	rewardCounts: { Count },
 }
 
-local function levelOf(index: number): string?
-	local stage = Balance.Stages[index]
-	return stage and stage.level
-end
-
 local function buildStats(content: Instance, look: any, layout: any, summary: Summary): Stats
 	--[[ Everything on the stats panel in one group, so it can slide in as
 	     one piece. ]]
@@ -634,11 +629,8 @@ local function buildStats(content: Instance, look: any, layout: any, summary: Su
 		layout.tab,
 		40,
 		look.tab,
-		-- the tutorial is not a numbered level (`Config/Tutorial`); an area's
-		-- levels go by their own numbers ("LEVEL 1-3")
-		if summary.stage == Balance.tutorialStage
-			then "TUTORIAL"
-			else "LEVEL " .. (levelOf(summary.stage) or tostring(summary.stage)),
+		-- TUTORIAL, or the level as its portal names it (`Util/EndScreenRules`)
+		EndScreenRules.levelTab(summary.stage),
 		look.text.tab,
 		look.text.tabStroke,
 		look.tabStuds

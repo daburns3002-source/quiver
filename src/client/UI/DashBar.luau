@@ -134,8 +134,11 @@ function DashBar.start()
 			return
 		end
 
-		-- the lobby has no dash (`Input/MoveController`)
+		-- the lobby has no dash (`Input/MoveController`), and an end screen
+		-- covers the fight (`UI/LobbyHud` puts the other bottom bars away)
 		gui.Enabled = Workspace:GetAttribute("InLobby") ~= true
+			and gui.Parent ~= nil
+			and gui.Parent:FindFirstChild("EndScreen") == nil
 
 		local readiness = Dash.readiness(os.clock())
 		local ready = readiness >= 1

@@ -131,7 +131,9 @@ local GearAssets = {
 		GladeFox = "rbxassetid://94095091677547",
 		Hootmoss = "rbxassetid://133339489384185",
 		SlimePrince = "rbxassetid://105364611490161",
-		EmberWilfPet = "rbxassetid://84054404368414",
+		-- the three remade 2026-11-11, cut from the art each remake was built from
+		-- (assets/ui/pets/remake_icons.py), so the picture matches the model
+		EmberWilfPet = "rbxassetid://135750847822945",
 		Glimmerhorn = "rbxassetid://71541557210495",
 		-- Thornwood
 		BarkHoglet = "rbxassetid://85158712161429",
@@ -143,9 +145,9 @@ local GearAssets = {
 		BerryBat = "rbxassetid://101511303102569",
 		BrambleBear = "rbxassetid://70373537383448",
 		BriarLynx = "rbxassetid://123920723768844",
-		BrambleWilf = "rbxassetid://125517331149325",
+		BrambleWilf = "rbxassetid://121840326738596",
 		ThornPrincess = "rbxassetid://136102772247481",
-		Thornwake = "rbxassetid://91756301390532",
+		Thornwake = "rbxassetid://75237550354527",
 		-- Drowned Village. Rendered from the models rather than drawn, since
 		-- these five came out of Tripo with no art of their own
 		-- (assets/concepts/pets/drowned/README.md)

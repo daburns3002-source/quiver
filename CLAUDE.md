@@ -204,7 +204,7 @@ importer stores them, darker than the design (the owner's pick over the
 distracting"): `ArenaModels.outerShade` / `outerGlow` darken the forest and its glow, never the
 kit's room, and `Balance.Ambience` keeps its life sparse. As each room starts, a blocky ROOM <n> sign flies out of the top of the gate, hangs at the top of the screen and flies back (`UI/RoomSign`, `Config/RoomSign`, letters from `Config/PixelFont`; the last room's number is red). The exit is a gate in the north wall
 (`Arena/ExitGate`, `Balance.Run.gate`): dark purple haze until the room is
-cleared, then glowing white-gold with a GO arrow, after Archero 2. While it is open, players walk 1.5× faster (`Balance.Player.exitRush`, `ExitOpen` on Workspace, set by `RoomController`; owner 2026-10-25). **The next room is built while this one is played** (`Arena.prepare`, `Balance.Run.prepareDelay`, owner 2026-10-26), parked in `ReplicatedStorage.NextArena` and swapped in at the door; the client preloads it and its enemies (`Fx/RoomPreload`), and every card image from the story on (`UI/Cards/CardPreload`, `DeviceTiers.warmCardImages`); `tests/Preload.spec`, numbers in `docs/PERFORMANCE.md`. Moonlit
+cleared, then glowing white-gold with a GO arrow, after Archero 2. While it is open, players walk 1.5× faster (`Balance.Player.exitRush`, `ExitOpen` on Workspace, set by `RoomController`; owner 2026-10-25), and the lobby's gold arrow, half size, held still and leaned back to face the steep camera, bobs low in front of the doorway (the desktop's top bars cover the gate's upper half) with its row of gold tiles running from the player to it (`Fx/DoorPointer`, owner 2026-11-13: "the same way theres an arrow in the lobby pointing to eggs, there should be an arrow pointing to the open door"); it goes when that player reaches the door or the gate shuts. Both pointers are one drawing, `Fx/GoldPointer`, placed by `Util/WayPointer` (`tests/WayPointer.spec`). **The next room is built while this one is played** (`Arena.prepare`, `Balance.Run.prepareDelay`, owner 2026-10-26), parked in `ReplicatedStorage.NextArena` and swapped in at the door; the client preloads it and its enemies (`Fx/RoomPreload`), and every card image from the story on (`UI/Cards/CardPreload`, `DeviceTiers.warmCardImages`); `tests/Preload.spec`, numbers in `docs/PERFORMANCE.md`. Moonlit
 Arena's waves draw from the first
 `Balance.Waves.rooms` (10) rooms only.
 
@@ -585,6 +585,25 @@ angle (owner, 2026-10-26: "all at the same angle"; `Config/ShopAssets`,
 `assets/ui/shop/three_quarter.py`); a new weapon needs one (`Shop.spec`). Studio test remote:
 `Remotes.DebugWallet:FireServer(coins, gems, itemsEach)`. In Studio the shop opens by itself on
 reaching the lobby, wallet topped up (`Sandbox.openShop`; set it to nil to stop that).
+
+**Trails** (owner, 2026-11-13: "ANOTHER FOR CREATING THE TRAILS"; `Config/Trails`, `Util/TrailRules`,
+`Server/Data/Trails`, `Fx/PlayerTrails`): what the Gear sheet's TRAIL slot holds, **looks only**. Three an area,
+picked from Codex's sheets (`assets/concepts/blocky/ui/trails/`): Mossy Glade's Leaf Drift, Firefly Wake, Royal
+Goo; Thornwood's Bramble Pollen, Crow Feathers, Brood Silk; the Drowned Village's Bubble Stream, Splash Wake, Tide
+Bell; Bogheart's Bog Spores, Glowcap Path, Gulp's Bubbles; and one Mythic, **Starfall**. Rare and Epic are bought
+for gems on the TRAILS tab (the store's 180 and 450 times the area's number, on sale when the area's crates are);
+an area's Legendary is given the first time its boss falls (and on join to anyone who beat it before); Starfall
+for reaching Endless floor `Trails.endless.floor` (50) as **each** of the three classes (owner: "a reward for
+getting to a certain floor on endless with all 3 classes"; save v14 `endlessClassBest`, counted from the first
+run after trails came in). The server grants through `Wallet.grantTrail` / `settleTrails` only, and the worn one
+is the Player's `Trail` attribute; every client draws every player's trail itself (a ribbon flat on the ground
+with a brighter fin standing along its middle, and the trail's square particles, `DeviceTiers.trailShare` of them,
+a little while standing). Made "very cool" (owner, the same day): a dash or putting one on throws a burst, glowing
+particles twinkle, a glowing trail's light breathes, Starfall's ribbon shimmers and throws shooting stars. Colours
+are laid over the ground, never added (`LightEmission` 0: added, blue went white on the lobby floor;
+FIXES). Every Legendary and
+Mythic trail glows with a light (`tests/Trails.spec`). One picture a trail, `Trails.trails[key].icon` (Codex,
+cut by `assets/ui/trails/cutout.py`); a new trail needs its icon drawn from the same prompts.
 
 **Revive** (`Balance.Revive`): once per stage, automatically, after Second
 Wind — full health, 2.5 s untouchable behind a gold shield, and enemy shots

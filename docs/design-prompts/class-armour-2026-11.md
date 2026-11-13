@@ -1,5 +1,7 @@
 # Class armour sets: Claude Design prompts (2026-11-12)
 
+**Scrapped 2026-11-13** (owner, 2026-11-13: "scrap the models on the player entirely"). Kept as a record only.
+
 Outfit C, the blocky armour set (owner, 2026-11-12: "for the class choosing
 make it C"): a full chunky voxel set per class, worn over the player's own
 avatar so only the face shows. Three sets, one Design chat each. The game

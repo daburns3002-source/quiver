@@ -240,27 +240,10 @@ What exists and works, all verified in Studio rather than only by the gates:
 - **No class bodies** (owner, 2026-11-07): the Tripo class bodies (PR #499, #500) were
   removed; every player wears their own Roblox avatar. The class screen's look is still
   saved but changes nothing in game.
-- **Class armour sets** (Outfit C; owner, 2026-11-12: "make sure its not just that base male
-  model. add some clothing that resembles the class", then "for the class choosing make it C"):
-  over that avatar each class wears a full blocky set, only the face showing: the Ranger a leaf
-  hood, wooden shoulder guard, leaf cloak and big boots; the Arcanist a giant stepped star hat,
-  crystal shoulders and a wide robe; the Warden a horned helm, huge shoulder plates, a tabard
-  and a red cape. `Config/ClassOutfits` is the pieces (each a closed solid on one R15 body part,
-  measured on the standard blocky body; never a body cut into parts, which is what left holes
-  in the class bodies), `Util/ClassOutfit` dresses a character: it hides the avatar's own
-  accessories, sets its proportions to the standard ones in a run, welds every piece on
-  (massless, no collision, no raycast, like the weapon) and stretches it to a body part that
-  is larger than the standard one, never shrinking it, so a slim avatar still wears the chunky
-  set. Worn in a run (`Main` `refreshWeapon`, beside the weapon), on each class select
-  card and on the Gear portrait (`GearScreen.portrait`); the lobby keeps the player's own
-  avatar. **Every piece is its Claude Design model** (41 meshes, imported 2026-11-12; `MESHES`
-  in the config, written by `tools/class_armour/meshes_to_luau.py`), and its blocks are only
-  the fallback for a mesh that fails to load; a mesh cannot be Neon, so a model's glowing
-  blocks (the Arcanist's crystals) are worn over its mesh as Neon parts (`glows`)
-  (`docs/PIPELINES.md` 12, prompts in `docs/design-prompts/class-armour-2026-11.md`, sheets in
-  `assets/concepts/blocky/players/armour/`). `tests/ClassOutfits.spec` holds a set to its rules:
-  a full set per class, real body parts, the face open, nothing under the floor, no two faces
-  in one plane.
+- **No class armour either** (owner, 2026-11-13: "scrap the models on the player entirely"): the class armour sets
+  (Outfit C, #555, #563, #564) were taken out the day after they shipped. Every player wears
+  their own avatar everywhere, in a run, on the class select cards and on the Gear portrait;
+  only the weapon in hand says the class. Their code, models and tools are in git history.
 - **Upgrades follow the owner's card design** (`design_handoff_upgrade_cards`,
   chosen 2026-10-22): 27 skills (Dual Bows added 2026-10-22), each with levels, a rarity and a stat line per
   level (`Config/Abilities`, `Config/Rarities`), dealt weighted by rarity with
@@ -760,8 +743,7 @@ draft into its controller layout.
   draw 3D, and take a camera position) and delete it.
 - **This place's signals are deferred**: a `ChildAdded` or changed-signal
   listener runs a moment after the change, not inside the call that made it.
-  A spec that asserts what a listener did waits a step first (`task.wait()`),
-  as `ClassOutfits.spec` does for a late accessory.
+  A spec that asserts what a listener did waits a step first (`task.wait()`).
 - **Never call a client Fx module's `start()` in the Edit datamodel** to
   preview it. Its RenderStepped connection outlives the probe, keeps running
   against the Edit scene's stale `Balance` cache, and logs errors under

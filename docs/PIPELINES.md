@@ -20,7 +20,6 @@ What is in flight right now is in [TRACKER.md](TRACKER.md).
 | `python -I tools/glb_clips_to_luau.py` | The clips inside the Claude Design GLBs listed in `assets/models/model_clips.json` → one data module each in `Config/ModelClips/`. See 10. |
 | `tools/ship.sh "<title>" <body.md>` | Gates, push, PR, waits for CI, updates the branch if main moved, merges. |
 | `python -I tools/glb_stats.py <file.glb>…` | What a GLB costs: triangles, primitives (each a MeshPart once imported), materials, animated joints, clips, and how many parts would remain if those riding one joint were merged. See 11. |
-| `tools/class_armour/plan_views.py <plan.json> <out>` | Draws each class armour set's block plan (`Config/ClassOutfits`, dumped by `dump_plan.luau` beside it) as a sheet of five views. See 12. |
 | `tools/studio/perf_room.luau` | Run on the Client while playing, Studio focused: jumps to a room, then its triangles, draw calls, GPU and render-thread ms, visible parts and busiest client scripts. See 11. |
 
 ## Imports leave the world once dumped
@@ -180,19 +179,10 @@ Every model and room's numbers, and what was done about them: [PERFORMANCE.md](P
 
 **Pitfalls seen:** Studio renders nothing while its window is in the background, so frame counts read zero and captures come back black. A long execute_luau call on the Play client that never yields fails with "Target is not reachable". The script profiler's numbers compare two runs of one scene; they are not milliseconds.
 
-## 12. A class armour set (what a class wears)
+## 12. A class armour set (scrapped)
 
-Outfit C (owner, 2026-11-12): a full blocky set per class over the player's own avatar, only the face showing. `Config/ClassOutfits` is the data (pieces, each on one R15 body part, measured on the standard blocky body), `Util/ClassOutfit` dresses a character from it: the server for a run, the client for the class select cards and the Gear portrait. A piece is plain blocks (`blocks`) until its model is imported, then its mesh.
-
-**Claude:**
-1. Plan the pieces as `blocks` in `Config/ClassOutfits` (a new class needs a full set: `tests/ClassOutfits.spec` says what full means, and that no two faces share a plane). Each piece is a closed solid of its own on one body part; never cut a body into parts (docs/FIXES.md, "Holes in the player bodies").
-2. Draw the plan: `lune run tools/class_armour/dump_plan.luau . plan.json` (Lune by its full path, `~/.rokit/tool-storage/lune-org/lune/<version>/lune.exe`), then `python -I tools/class_armour/plan_views.py plan.json assets/concepts/blocky/players/armour` → `<class>_plan.png`, five views.
-3. Codex draws the reference sheet from the plan (8; prompts in `assets/concepts/blocky/players/armour/`) → `<class>_views.png`.
-4. Claude Design, one chat a set, with the `voxel-pet-design-prompts` skill: prompts in `docs/design-prompts/class-armour-2026-11.md`, both pictures attached. Lock when it matches the sheet and the plan from front, side and 3/4. GLB to `assets/models/armour/<class>_set.glb`.
-5. Cut the set into its pieces: `python -I tools/class_armour/split_set.py assets/models/armour/<class>_set.glb plan.json <Class> assets/models/armour --sheet assets/concepts/blocky/players/armour/<class>_views.png` → `<class>_pieces.glb` (one closed mesh a piece, named as in the config, front at -Z, in studs, sRGB vertex colours), `<class>_pieces.json` (each piece's size and its centre from its body part's centre) and `<class>_pieces.png` (the pieces file drawn under the sheet: look at it). The script drops the grey body, fits each of Design's body regions onto the standard body, hands every solid to the plan piece whose blocks hold it, cuts one that spans two (a shoulder plate drawn on the sleeve, a boot and sole made as one) and closes the cut. It fails on an open edge, a missing piece or 10k triangles, and its report says how far each piece stands from its plan box: use those numbers to write the fix rounds in 4.
-
-**Owner:** imports each class's pieces file (File → Import 3D), keeping the parts' names.
-
-**Claude:** the mesh ids, by part name from the three imported `<class>_pieces` models (`tools/studio/dump_imports.luau`, or a short probe: two classes share piece names, so key by model), into `assets/models/armour/armour_ids.json`; then `python -I tools/class_armour/meshes_to_luau.py` writes each piece's id, `size` and `at` into `Config/ClassOutfits` (`MESHES`), and `tools/check.sh` lets StyLua lay the lines out. The blocks stay as the fallback. A mesh is one material, so a model's glowing blocks (the plan's Neon colours only) go into the pieces JSON as boxes and are worn over the mesh as Neon parts (`glows`): no second import. Move the imports to `ServerStorage.Imports`. Then look in Studio: the class select cards, the Gear portrait and a fight, beside the sheet.
-
-**Pitfalls seen:** The importer turns a model half round (the file's -Z, its front, arrives as +Z, and right as left), so every piece is worn `turned`; sizes arrive exact, in studs. Design draws the avatar with its legs and arms a little apart and a shorter torso than R15's, names left and right from the viewer's side in some chats, and hangs shoulder plates on the sleeve mesh: `split_set.py` handles all three, so do not spend fix rounds on them. Its first models ran small in the head piece, short in the boots and narrow in the cloak, cape and skirt; the plan's numbers found that faster than the eye did. The Download GLB button sits in a cross-origin frame (click by coordinate) and a Design tab with a model open can stop answering screenshots: read the reply with the page's text instead. Once a set is on a character in the world, only its welds may move it: writing a piece's `CFrame` from the server moves the whole character back to where the server last saw it. Two pieces that overlap on one leg or across the knee flicker where their faces meet; they abut instead. A piece never shrinks to a slim avatar (`ClassOutfits.stretch`): shrunk, the owner's own avatar wore thin boots and sleeves. Near-white and Neon blocks glare under the lobby's light; judge colours in a run and on the cards, not only on the sheet.
+Scrapped on 2026-11-13 (owner, 2026-11-13: "scrap the models on the player entirely"): the sets, `Config/ClassOutfits`,
+`Util/ClassOutfit`, the models in `assets/models/armour/` and `tools/class_armour/` were
+removed, and every player wears their own avatar. The pipeline as it was (block plan, Codex
+sheet, Claude Design, `split_set.py`, the owner's import, mesh ids) is in git history at
+`8deec1f1`, if a class is ever dressed again.

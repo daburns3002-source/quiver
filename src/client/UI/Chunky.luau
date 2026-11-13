@@ -835,6 +835,7 @@ function Chunky.tile(
 		standing.ZIndex = 8
 	elseif art ~= "" then
 		local picture = Kit.image(t, art)
+		picture.Name = "Picture"
 		picture.Position, picture.Size = UDim2.fromScale(0.1, 0.06), UDim2.fromScale(0.8, 0.68)
 		picture.ZIndex = 8
 		if hidden then

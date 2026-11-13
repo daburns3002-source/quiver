@@ -227,6 +227,12 @@ ROUND_29 = [
     }),
 ]
 
+ROUND_30 = [
+    ("Round 30 · Phoenix Arrow, four more takes", {
+        "fx_phoenix": ("Phoenix Arrow", "Every 8th shot a firebird flies through every enemy, leaving burning ground. Plays as it leaves the bow. These lean towards what you kept: the laser pew, the fwip and the swell into a shing.", None),
+    }),
+]
+
 # page: (rounds, picks collection, sounds already chosen, shown for context)
 ROUND_18 = [
     ("Round 18 · King Bloblin's attacks, two big takes each", {
@@ -262,6 +268,7 @@ ROUND_18 = [
 ]
 
 PAGES = {
+    "30": (ROUND_30, "picks30cards", ["Rain of Arrows B", "Split Shot A", "Sniper Shot A (29)", "Wind Arrows A (29)", "Black Hole A", "Black Hole implode A", "Arcane Turret C", "Mana Surge B (29)", "Arcane Shield A", "Titan's Grip A", "Counter Strike A", "Shield Throw C", "Blade Storm A"]),
     "29": (ROUND_29, "picks29cards", ["Rain of Arrows B", "Split Shot A", "Black Hole A", "Black Hole implode A", "Arcane Turret C", "Arcane Shield A", "Titan's Grip A", "Counter Strike A", "Shield Throw C", "Blade Storm A"]),
     "28": (ROUND_28, "picks28cards", []),
     "21": (ROUND_21, "picks21", []),

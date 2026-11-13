@@ -1,6 +1,6 @@
 """Takes for the class upgrades' sounds (round 28), made with synth.py's tools.
 
-    python -I class_card_synth.py <out_dir> [29]
+    python -I class_card_synth.py <out_dir> [29|30]
 
 The seven class upgrades of 2026-10-27 have been silent since they were built
 (docs/TRACKER.md: "sounds picked: seven hooks, one sprite, one audio upload"),
@@ -462,6 +462,47 @@ ROUND_29 = {
 }
 
 
+# ---------- round 30: Phoenix Arrow again, after the owner's round 29 picks ----------
+# The owner kept the cartoony laser pew (Sniper A), the quick fwip (Wind A) and the
+# swell into a shing (Mana Surge B), so these lean that way: clean, punchy, game-like.
+
+def phoenix_swell_shing():
+    """A flame swelling backwards into a bright fiery shing (like Mana Surge B, but fire)."""
+    swell = s.sweep_filter(s.noise(0.35), 400, 2400, q=1.2)[::-1] * np.linspace(0, 1, int(SR * 0.35)) ** 2
+    shing = s.mix((s.tone(1568, 0.45, 6, METAL), 0.5), (s.highpass(s.noise(0.1), 3500) * env(0.1, 0.001, 6), 0.5))
+    return s.room(s.mix((swell, 0.6), (s.at(shing, 0.33), 0.8), (s.at(crackle(0.4, 0.06), 0.33), 0.3)), 0.12, 0.2)
+
+
+def phoenix_fire_pew():
+    """A fuller, fiery 'pew' (like Sniper A, lower) with a flame tail."""
+    zap = s.chirp(0.22, 1800, 300, wave="square") * env(0.22, 0.002, 4.5) * 0.45
+    body = s.chirp(0.22, 900, 160) * env(0.22, 0.002, 4.5)
+    flame = s.whoosh(0.35, 1500, 500, q=1.1, attack=0.01, decay=4)
+    return s.room(s.mix((zap, 0.6), (body, 0.5), (s.at(flame, 0.05), 0.5)), 0.08, 0.14)
+
+
+def phoenix_chip_call():
+    """An 8-bit bird call, two quick chirps up, over a fwip."""
+    def chirp_note(f0, f1):
+        return s.chirp(0.08, f0, f1, wave="square") * env(0.08, 0.002, 4) * 0.4
+    call = s.mix((chirp_note(1200, 2000), 1.0), (s.at(chirp_note(1500, 2600), 0.1), 1.0))
+    fwip = s.sweep_filter(s.noise(0.2), 3000, 800, q=2.0) * env(0.2, 0.005, 4)
+    return s.room(s.mix((fwip, 0.7), (s.at(call, 0.03), 0.7)), 0.08, 0.14)
+
+
+def phoenix_power_shot():
+    """A big power shot: a deep FWOOM, a bright rising whoosh and a snap."""
+    fwoom = thump(0.4, 200, 45, 5)
+    rise = s.whoosh(0.3, 800, 4500, q=1.6, attack=0.01, decay=3)
+    snap = s.highpass(s.noise(0.03), 3000) * env(0.03, 0.001, 8)
+    return s.room(s.mix((fwoom, 0.8), (rise, 0.6), (snap, 0.6), (crackle(0.35, 0.05), 0.2)), 0.12, 0.18)
+
+
+ROUND_30 = {
+    "fx_phoenix": [(phoenix_swell_shing, "A flame swelling into a fiery shing"), (phoenix_fire_pew, "A fuller, fiery pew"), (phoenix_chip_call, "An 8-bit bird call over a fwip"), (phoenix_power_shot, "A deep fwoom, a rising whoosh, a snap")],
+}
+
+
 DESIGNED = {
     "fx_phoenix": [(phoenix_cry, "A cry rising out of fire"), (phoenix_whoosh, "A fire roar flying past"), (phoenix_bright, "Fire roar with a bright call")],
     "fx_arrow_rain": [(rain_volley, "One up, then a patter"), (rain_thuds, "A roll of thuds"), (rain_hiss, "Whistle, then a falling hiss")],
@@ -482,8 +523,9 @@ DESIGNED = {
 
 def main():
     out = sys.argv[1]
-    # "29" renders round 29's redos; anything else round 28's fourteen
-    chosen = ROUND_29 if len(sys.argv) > 2 and sys.argv[2] == "29" else DESIGNED
+    # "29" or "30" renders that round's redos; nothing, round 28's fourteen
+    rounds = {"29": ROUND_29, "30": ROUND_30}
+    chosen = rounds.get(sys.argv[2], DESIGNED) if len(sys.argv) > 2 else DESIGNED
     os.makedirs(out, exist_ok=True)
     manifest = {}
     for name, takes in chosen.items():

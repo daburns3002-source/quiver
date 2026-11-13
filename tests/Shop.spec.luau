@@ -86,18 +86,29 @@ return function(t: TestRunner.Helper)
 	     class, so one Mythic, and choosing a class must not treble the
 	     chance of pulling one (owner, 2026-10-28: "make the odds of
 	     pulling a mythic 1%"). ]]
-	t.test("a Mythic is about 1% of an open, from any chest", function()
-		for _, chest in Shop.chests do
-			local pool = ShopRules.cratePool(1, chest.class)
-			local mythic = nil
-			for _, entry in pool do
-				if entry.rarity == "Mythic" then
-					mythic = entry
-				end
+	t.test("a Mythic is about 1% of an open, from any chest of any area", function()
+		for index, crate in Shop.crates do
+			if not crate.stocked then
+				continue
 			end
-			t.notNil(mythic, `{chest.name}: no Mythic in the chest`)
-			if mythic then
-				t.near(ShopRules.chance(1, mythic, chest.class), 0.01, 0.003, chest.name)
+			for _, chest in Shop.chests do
+				local pool = ShopRules.cratePool(index, chest.class)
+				local mythic = nil
+				local sum = 0
+				for _, entry in pool do
+					sum += ShopRules.chance(index, entry, chest.class)
+					if entry.rarity == "Mythic" then
+						mythic = entry
+					end
+				end
+				local name = `{crate.name} {chest.name}`
+				t.near(sum, 1, 1e-9, `{name}: the chances do not add up`)
+				t.notNil(mythic, `{name}: no Mythic in the chest`)
+				if mythic then
+					--[[ The Drowned Village has no Uncommon bow: its share goes
+					     to the Rare and the Epic, never to the Mythic. ]]
+					t.near(ShopRules.chance(index, mythic, chest.class), 0.01, 0.003, name)
+				end
 			end
 		end
 	end)

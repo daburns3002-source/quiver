@@ -91,32 +91,74 @@ function ShopRules.chest(class: unknown): Shop.Chest?
 	return nil
 end
 
---[[ Picks from a crate's pool: a rarity by `Shop.crateOdds` (only those
-     the pool has), then a weapon of it. `r1` and `r2` are uniform in
-     [0, 1), from the server's `Random`. ]]
+--[[ Each rarity's share (0..1) of an open from `pool`, by `Shop.crateOdds`.
+     A Mythic keeps its own share of the full odds whatever else the chest
+     holds (owner, 2026-10-28: "make the odds of pulling a mythic 1%"); a
+     rarity the chest lacks (the Drowned Village has no Uncommon bow) gives
+     its share to the other rarities, in proportion. For a chest with every
+     rarity that is exactly `crateOdds` over its total. ]]
+local FIXED = { Mythic = true }
+local function shares(pool: { Entry }): { [string]: number }
+	local full, present, fixed = 0, 0, 0
+	local has: { [string]: boolean } = {}
+	for _, odds in Shop.crateOdds do
+		full += odds
+	end
+	for _, entry in pool do
+		if not has[entry.rarity] then
+			has[entry.rarity] = true
+			local odds = Shop.crateOdds[entry.rarity] or 0
+			if FIXED[entry.rarity] then
+				fixed += odds
+			else
+				present += odds
+			end
+		end
+	end
+	local out: { [string]: number } = {}
+	if full <= 0 then
+		return out
+	end
+	-- a chest of only fixed rarities has nothing to give the rest to
+	local rest = if present > 0 then 1 - fixed / full else 0
+	for rarity in has do
+		local odds = Shop.crateOdds[rarity] or 0
+		if FIXED[rarity] then
+			out[rarity] = if present > 0 then odds / full else odds / math.max(fixed, 1e-9)
+		elseif present > 0 then
+			out[rarity] = odds / present * rest
+		end
+	end
+	return out
+end
+
+--[[ Picks from a crate's pool: a rarity by its share (`shares`), then a
+     weapon of it. `r1` and `r2` are uniform in [0, 1), from the server's
+     `Random`. ]]
 function ShopRules.roll(pool: { Entry }, r1: number, r2: number): Entry?
 	local byRarity: { [string]: { Entry } } = {}
-	local total = 0
 	for _, entry in pool do
-		if not byRarity[entry.rarity] then
-			byRarity[entry.rarity] = {}
-			total += Shop.crateOdds[entry.rarity] or 0
-		end
+		byRarity[entry.rarity] = byRarity[entry.rarity] or {}
 		table.insert(byRarity[entry.rarity], entry)
+	end
+	local share = shares(pool)
+	local rarities = {}
+	local total = 0
+	for rarity in byRarity do
+		if (share[rarity] or 0) > 0 then
+			table.insert(rarities, rarity)
+			total += share[rarity]
+		end
 	end
 	if total <= 0 then
 		return nil
-	end
-	local rarities = {}
-	for rarity in byRarity do
-		table.insert(rarities, rarity)
 	end
 	table.sort(rarities, function(a, b)
 		return ORDER[a] < ORDER[b]
 	end)
 	local pick = r1 * total
 	for _, rarity in rarities do
-		pick -= Shop.crateOdds[rarity]
+		pick -= share[rarity]
 		if pick < 0 then
 			local list = byRarity[rarity]
 			return list[math.clamp(math.floor(r2 * #list) + 1, 1, #list)]
@@ -127,24 +169,19 @@ function ShopRules.roll(pool: { Entry }, r1: number, r2: number): Entry?
 end
 
 --[[ A weapon's chance (0..1) from crate `index`, as `roll` picks it: its
-     rarity's share of the rarities the crate has, split evenly by the
-     weapons of that rarity. ]]
+     rarity's share, split evenly by the weapons of that rarity. ]]
 function ShopRules.chance(index: number, entry: Entry, class: string?): number
-	local total, same = 0, 0
-	local seen: { [string]: boolean } = {}
-	for _, other in ShopRules.cratePool(index, class) do
-		if not seen[other.rarity] then
-			seen[other.rarity] = true
-			total += Shop.crateOdds[other.rarity] or 0
-		end
+	local pool = ShopRules.cratePool(index, class)
+	local same = 0
+	for _, other in pool do
 		if other.rarity == entry.rarity then
 			same += 1
 		end
 	end
-	if total <= 0 or same == 0 then
+	if same == 0 then
 		return 0
 	end
-	return (Shop.crateOdds[entry.rarity] or 0) / total / same
+	return (shares(pool)[entry.rarity] or 0) / same
 end
 
 --[[ Whether a player who has beaten `bossesBeaten` may open crate `index`

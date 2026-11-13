@@ -155,16 +155,16 @@ local function ribbonBetween(
 	root: BasePart,
 	folder: Folder,
 	name: string,
-	half: number,
-	height: number
+	from: Vector3,
+	to: Vector3
 ): (Trail, Attachment, Attachment)
 	local left = Instance.new("Attachment")
-	left.Name = name .. "Left"
-	left.Position = Vector3.new(-half, height, 0)
+	left.Name = name .. "A"
+	left.Position = from
 	left.Parent = root
 	local right = Instance.new("Attachment")
-	right.Name = name .. "Right"
-	right.Position = Vector3.new(half, height, 0)
+	right.Name = name .. "B"
+	right.Position = to
 	right.Parent = root
 	local ribbon = Instance.new("Trail")
 	ribbon.Name = name
@@ -185,7 +185,9 @@ local function emitterFor(look: Trails.Emitter): ParticleEmitter
 	local emitter = Instance.new("ParticleEmitter")
 	emitter.Texture = if look.texture == "Star" then Trails.star else PetAuras.square
 	emitter.Color = colours(look.colours)
-	emitter.LightEmission = look.glow
+	-- some of a glowing particle's light is added, not all: added in full,
+	-- colours wash out to white on bright ground, as the ribbon's did
+	emitter.LightEmission = look.glow * 0.4
 	emitter.LightInfluence = 1 - look.glow
 	emitter.Lifetime = NumberRange.new(look.life * 0.7, look.life)
 	emitter.Speed = NumberRange.new(look.speed * 0.5, look.speed)
@@ -245,15 +247,24 @@ local function wear(player: Player, character: Model, key: unknown, fresh: boole
 	local folder = Instance.new("Folder")
 	folder.Name = "PlayerTrail"
 
-	-- the ribbon: two points either side of the feet, so it lies flat
-	local ribbon, left = ribbonBetween(root, folder, "TrailRibbon", trail.width / 2, -down)
+	--[[ The ribbon: two points either side of the feet, so it lies flat.
+	     Its colours are laid over the ground, never added to it: added,
+	     a blue ribbon on the lobby's cream stone came out white (seen in
+	     Play, 2026-11-13). A glowing one is lit by nothing but itself. ]]
+	local ribbon, left = ribbonBetween(
+		root,
+		folder,
+		"TrailRibbon",
+		Vector3.new(-trail.width / 2, -down, 0),
+		Vector3.new(trail.width / 2, -down, 0)
+	)
 	ribbon.Color = colours(trail.ribbon)
 	ribbon.Lifetime = trail.life
-	ribbon.LightEmission = if trail.glow then 1 else 0.25
-	ribbon.LightInfluence = if trail.glow then 0 else 0.6
+	ribbon.LightEmission = 0
+	ribbon.LightInfluence = if trail.glow then 0 else 0.5
 	ribbon.Transparency = NumberSequence.new({
-		NumberSequenceKeypoint.new(0, if trail.glow then 0.2 else 0.3),
-		NumberSequenceKeypoint.new(0.6, if trail.glow then 0.5 else 0.6),
+		NumberSequenceKeypoint.new(0, if trail.glow then 0.05 else 0.15),
+		NumberSequenceKeypoint.new(0.6, if trail.glow then 0.35 else 0.45),
 		NumberSequenceKeypoint.new(1, 1),
 	})
 	ribbon.WidthScale = NumberSequence.new({
@@ -261,13 +272,18 @@ local function wear(player: Player, character: Model, key: unknown, fresh: boole
 		NumberSequenceKeypoint.new(1, 0.35),
 	})
 
-	-- its core: narrower, brighter, a hair above it so the two never fight
+	-- its core: a brighter fin standing up along its middle
 	local white = if trail.glow then Trails.core.whiteGlow else Trails.core.white
-	local core =
-		ribbonBetween(root, folder, "TrailCore", trail.width * Trails.core.width / 2, -down + 0.03)
+	local core = ribbonBetween(
+		root,
+		folder,
+		"TrailCore",
+		Vector3.new(0, -down + 0.03, 0),
+		Vector3.new(0, -down + Trails.core.height, 0)
+	)
 	core.Color = colours(trail.ribbon, white)
 	core.Lifetime = trail.life * Trails.core.life
-	core.LightEmission = if trail.glow then 1 else 0.5
+	core.LightEmission = if trail.glow then 0.5 else 0.15
 	core.LightInfluence = if trail.glow then 0 else 0.4
 	core.Transparency = NumberSequence.new({
 		NumberSequenceKeypoint.new(0, if trail.glow then 0 else 0.1),

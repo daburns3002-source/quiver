@@ -110,7 +110,10 @@ return function(t: TestRunner.Helper)
 		local fastest = walk * math.max(Balance.Player.exitRush, Lobby.sprint)
 		t.isTrue(Trails.burst.speed > fastest * 1.1, "a burst is above every run")
 		t.isTrue(Trails.burst.count > 0 and Trails.burst.gap > 0)
-		t.isTrue(Trails.core.width > 0 and Trails.core.width < 1, "the core is inside the ribbon")
+		t.isTrue(
+			Trails.core.height > 0 and Trails.core.height < 3,
+			"the fin stands below the knees"
+		)
 		t.isTrue(Trails.pulse.depth > 0 and Trails.pulse.depth < 1, "a pulse never goes dark")
 	end)
 

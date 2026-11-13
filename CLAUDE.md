@@ -597,7 +597,11 @@ for reaching Endless floor `Trails.endless.floor` (50) as **each** of the three 
 getting to a certain floor on endless with all 3 classes"; save v14 `endlessClassBest`, counted from the first
 run after trails came in). The server grants through `Wallet.grantTrail` / `settleTrails` only, and the worn one
 is the Player's `Trail` attribute; every client draws every player's trail itself (a ribbon flat on the ground
-and the trail's square particles, `DeviceTiers.trailShare` of them, a little while standing). Every Legendary and
+with a brighter fin standing along its middle, and the trail's square particles, `DeviceTiers.trailShare` of them,
+a little while standing). Made "very cool" (owner, the same day): a dash or putting one on throws a burst, glowing
+particles twinkle, a glowing trail's light breathes, Starfall's ribbon shimmers and throws shooting stars. Colours
+are laid over the ground, never added (`LightEmission` 0: added, blue went white on the lobby floor;
+FIXES). Every Legendary and
 Mythic trail glows with a light (`tests/Trails.spec`). One picture a trail, `Trails.trails[key].icon` (Codex,
 cut by `assets/ui/trails/cutout.py`); a new trail needs its icon drawn from the same prompts.
 

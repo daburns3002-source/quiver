@@ -195,12 +195,6 @@ ROUND_21 = [
     }),
 ]
 
-ROUND_28 = [
-    ("Round 28 · King Bloblin's ding in the story", {
-        "story_king_ding": ("The ding", "In the story cutscene, as King Bloblin reads the WANTED scroll: his eyes go small and one eyebrow lifts, with the little yellow marks beside it. One ding, once, over the story's music.", None),
-    }),
-]
-
 # page: (rounds, picks collection, sounds already chosen, shown for context)
 ROUND_18 = [
     ("Round 18 · King Bloblin's attacks, two big takes each", {
@@ -236,7 +230,6 @@ ROUND_18 = [
 ]
 
 PAGES = {
-    "28": (ROUND_28, "picks28", []),
     "21": (ROUND_21, "picks21", []),
     "20": (ROUND_20, "picks20", []),
     "19": (ROUND_19, "picks19", []),

@@ -52,15 +52,7 @@ local WARDEN_SPRITE = "rbxassetid://123411253404004"
      not uploaded yet, so "" and silent. ]]
 local WATER_SPRITE = ""
 
---[[ The story's ding (`Config/Story.sounds`): not picked or uploaded yet, so
-     "" and silent. It rides in the water footsteps' upload when it is. ]]
-local STORY_DING = ""
-
 local Sounds: { [string]: Sound } = {
-	--[[ King Bloblin's ding in the story cutscene, as his eyes go small and
-	     his eyebrow lifts (owner, 2026-11-12). Takes from
-	     `assets/audio/story_ding_synth.py`. ]]
-	story_king_ding = { id = STORY_DING, volume = 0.7, pitchJitter = 0, minGap = 0.5 },
 	--[[ Footsteps in the Drowned Village's shallow water (`Fx/WaterSteps`;
 	     owner, 2026-11-05: "the footsteps in the shallow water need to be
 	     emphasized"): three takes from `assets/audio/water_step_synth.py`,

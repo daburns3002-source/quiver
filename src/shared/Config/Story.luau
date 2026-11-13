@@ -99,11 +99,6 @@ local Story = {
 	--[[ Game sounds (`Config/Sounds`), at seconds into a shot. ]]
 	sounds = {
 		{ shot = "Skid", at = 0, sound = "boss_king_goo" },
-		--[[ The ding as the King's eyes go small and his eyebrow lifts (owner,
-		     2026-11-12): the Eyes shot's second picture, which is drawn with
-		     the ding's own marks beside the brow. It lands as that picture
-		     comes in, with the camera's kick (`Config/StoryMotion`). ]]
-		{ shot = "Eyes", at = 0.8, sound = "story_king_ding" },
 		{ shot = "Rise", at = 0.8, sound = "boss_king_chest_bump" },
 		{ shot = "Roar", at = 0, sound = "boss_king_bounce_slam" },
 		{ shot = "Shockwave", at = 0, sound = "boss_king_bounce_launch" },

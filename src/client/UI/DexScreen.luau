@@ -85,8 +85,8 @@ type Layout = {
 	count: { number },
 	grid: { number }, -- the box the tiles are fitted into
 	gap: number,
-	--[[ The largest a tile is drawn: four enemies would otherwise be a
-	     quarter of the page each and crowd its edges. ]]
+	--[[ The largest a tile is drawn: three enemies would otherwise be a
+	     third of the page each and run off its foot. ]]
 	most: number,
 }
 
@@ -94,19 +94,19 @@ local WIDE: Layout = {
 	tab = { 190, 182, 290, 88 },
 	found = { 1330, 186, 400, 80 },
 	card = { 190, 296, 380, 716 },
-	scene = { 208, 314, 344, 236 },
-	picture = { 268, 320, 224, 224 },
-	name = { 204, 562, 352, 64 },
-	detail = { 228, 638, 304, 56 },
-	line = { 208, 708, 344, 286 },
+	scene = { 208, 314, 344, 300 },
+	picture = { 240, 324, 280, 280 },
+	name = { 204, 628, 352, 64 },
+	detail = { 228, 704, 304, 56 },
+	line = { 208, 774, 344, 224 },
 	leaf = { 588, 296, 1142, 716 },
 	back = { 604, 310, 84, 72 },
 	forward = { 1630, 310, 84, 72 },
-	title = { 700, 310, 700, 72 },
-	count = { 1414, 310, 204, 72 },
+	title = { 700, 310, 620, 72 },
+	count = { 1334, 310, 284, 72 },
 	grid = { 606, 396, 1106, 598 },
 	gap = 14,
-	most = 250,
+	most = 300,
 }
 
 local TALL: Layout = {
@@ -121,11 +121,11 @@ local TALL: Layout = {
 	leaf = { 70, 846, 940, 1004 },
 	back = { 86, 862, 100, 80 },
 	forward = { 894, 862, 100, 80 },
-	title = { 200, 862, 500, 80 },
-	count = { 712, 862, 170, 80 },
+	title = { 200, 862, 420, 80 },
+	count = { 632, 862, 250, 80 },
 	grid = { 82, 960, 916, 872 },
 	gap = 12,
-	most = 260,
+	most = 300,
 }
 
 --[[ Where an area's motes sit on its page, as shares of the page: along
@@ -363,7 +363,8 @@ function DexScreen.start()
 			end
 			plate(leafOn, title, L.title, theme.plate).Name = "Area"
 			local areaFound = DexBook.found(shown)
-			plate(leafOn, `{areaFound} / {#shown}`, L.count).Name = "AreaFound"
+			-- with the word, so it is not read as "page 2 of 4" beside the arrow
+			plate(leafOn, `{areaFound} / {#shown} FOUND`, L.count).Name = "AreaFound"
 			if page > 1 then
 				Chunky.button(
 					leafOn,
@@ -404,6 +405,9 @@ function DexScreen.start()
 			for index, entry in shown do
 				local across = (index - 1) % columns
 				local down = (index - 1) // columns
+				-- a short last row sits in the middle, not against the left
+				local inRow = if down == rows - 1 then #shown - down * columns else columns
+				local shift = (columns - inRow) * (size + L.gap) / 2
 				local slot = Instance.new("Frame")
 				slot.Name = `Slot{index}`
 				slot.BackgroundTransparency = 1
@@ -411,7 +415,7 @@ function DexScreen.start()
 				Chunky.put(
 					leafOn,
 					slot,
-					x0 + across * (size + L.gap),
+					x0 + shift + across * (size + L.gap),
 					y0 + down * (size + L.gap),
 					size,
 					size

@@ -478,7 +478,12 @@ mockups in `assets/concepts/ui_refs/mockups/`, top-game references and the audit
 is the kit (blue panel, gold ribbon title, red corner X, glossy lipped buttons, tabs, currency pills,
 rarity tiles, pop-in), laid out in sheet pixels on 1920 x 1080 or, held upright, 1080 x 1920
 (`Chunky.sheet`). `HatchStand.chrome` frames a station screen in it. Done: Hatchery, Blacksmith
-(crates and store), Gear. Next: Dex, the Mossy Glade level screen. Anything pressable bounces
+(crates and store), Gear, Dex. **A Dex book is a page an area** (owner, 2026-11-12: "1 page for
+each area with bigger icons on the right page ... themed to match the area"): `Util/DexBook`
+`areas` / `inArea` make the pages (every entry has an `area`; a pet's is in `Config/Pets`), the
+tiles are fitted as large as the page allows (at most `Dex.pageMost` an area), and
+`Config/Dex.areas` is each area's look, sampled off its NEW ENEMY! sheet, whose scenery stands
+behind the chosen entry. A new area needs an entry there. Anything pressable bounces
 (`Chunky.press`, or a `Chunky.button`) and anything equippable or equipped gleams (`Chunky.gleam`,
 owner, 2026-11-05: "the gleam on equippables, the bounce on click").
 

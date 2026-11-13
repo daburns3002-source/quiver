@@ -5,7 +5,7 @@ this in the same PR as the work it describes (CLAUDE.md): add a row when
 something starts or gets blocked, strike it when it lands. How each kind of
 thing gets made is in [PIPELINES.md](PIPELINES.md).
 
-Last brought up to date: 2026-11-12.
+Last brought up to date: 2026-11-13.
 
 **Scope:** Acts 1-3 only (areas 1-6) until the owner says otherwise (2026-10-24). Acts 4-5 work is on hold.
 
@@ -64,7 +64,7 @@ where you would be standing. Say what reads wrong and Claude retunes it.
 - **The Mossy Glade arch.** Does it face you the right way round, and does its swirl sit in its opening? Never seen - Studio's capture stopped answering.
 - **The trees.** Different enough heights, and enough of them? Do the seven black arches read as locked?
 - **The Dex Hall.** Porch columns flush to the grass on stone with no timber cutting through them, no daylight at the roof/wall join, chimneys gone.
-- **The dexes.** Press E: the page should curl the other way coming back, and the book must not shift. All three tabs, nine slots a spread.
+- **The dexes, a page an area (2026-11-13; "the dexes should be 1 page for each area with bigger icons on the right page. the page should also be themed to match the area").** Press E at the Dex Hall. Each book (ENEMIES, WEAPONS, PETS) is now one page for each area it has anything from, turned with the arrows: Mossy Glade green with a wood frame, Thornwood purple with bramble, the Drowned Village sea blue with copper wood, Bogheart teal with purple stone, each with its name on its own plate, its count ("2 / 8 FOUND"), slow glowing motes, and the area's scenery (cut from its NEW ENEMY! sheet) behind the chosen entry on the left. Tiles are as big as the page allows: four enemies are 292 wide where a tile was 166, eight pets 266, twelve pets 190, an area's eighteen weapons 172. **Your calls:** is colour, trim, scenery and motes enough of a theme, or do you want drawn page frames (vines, thorns, rope, mushrooms) from Codex? The Bogheart look is sampled from its NEW ENEMY! sheet, which you have not approved yet. The weapon book has no Thornwood page (the area has no weapons). Seen in Studio Play at desktop size: all four areas' pages across the three books. **Not seen:** the upright phone layout (laid out, not looked at).
 - **The merge tier letter (2026-11-13; "a letter at the bottom left that is colored as well that indicates which merge level the gear and pets are").** Every weapon and pet you hold wears its best tier as a letter on a small square in its tile's bottom left: C bronze, B steel, A gold, S ruby (`Chunky.tier`, colours in `Config/UiPalette.tier`). Look at GEAR (the grid, the WEAPON and PET slots, the item card), the Hatchery's PETS INSIDE, the Blacksmith's CRATES and STORE, and the Dex. Are the four colours right, and does the letter read **on a phone held upright** (it is 30% of the tile; not seen at phone size)? The Gear grid's chip now says only the count ("x3") and no longer EQUIPPED: the tick marks the weapon in hand. A hatch's or crate's reveal shows no letter (a new copy is always C). Seen in Studio Play at desktop size on all of those screens with a made-up profile holding every tier.
 - **Merge tiers (2026-11-11).** Open GEAR and tap a weapon or pet you hold three copies of: MERGE 3 C INTO B on its card, then the tile says "B x1" and ATK goes up 1.2x (A 1.44x, S 2.16x). Does the item card read on a phone held upright, and is 3 copies the right price for each step? A crate duplicate now says "+1 C COPY TO MERGE" and is saved.
 - **The hatchery and crate screens.** Four cards across for an egg's eight pets, three for a crate's six weapons, full rarity colour, the chance in the corner, an unowned Mythic a black silhouette.
@@ -171,7 +171,7 @@ a backlog. What is genuinely not built is the last three.
 - ~~**Blacksmith** for the weapons~~ - built, and rebuilt twice since.
 - ~~**Gear selection area**~~ - built: the Gear Station and `UI/GearScreen`.
 - ~~**Weapon crates and a weapon store**~~ - built: `Config/Shop`, crates by area and a store by rarity. Area 1 is the only area stocked; what each later area still needs is in `Config/Shop`'s `stocked` comment.
-- ~~**Dexes** for every weapon, pet and enemy, unowned as black silhouettes~~ - built: the Dex Hall and `UI/DexScreen`, three books. Waiting on the owner's eye, above.
+- ~~**Dexes** for every weapon, pet and enemy, unowned as black silhouettes~~ - built: the Dex Hall and `UI/DexScreen`, three books, a page an area since 2026-11-13. Waiting on the owner's eye, above.
 
 ## Designed, not built
 

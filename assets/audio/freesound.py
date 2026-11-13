@@ -48,6 +48,17 @@ SOURCES = {
     "531862": ("magnuswaker", "Seismic Slam"),
     "614063": ("magnuswaker", "Heavy Metal Impact 2"),
     "827570": ("AudioPapkin", "Sound Design Elements Impact SFX PS 111"),
+    # Round 32, Phoenix Arrow (owner, 2026-11-13, a firebird's cry over fire,
+    # after a reference short whose own audio is not used). CC0, checked
+    # 2026-11-13 on each sound's page.
+    "697363": ("GrayEpic", "Eagle s.mp3"),
+    "583615": ("Johnnie_Holiday", "Eagle.wav"),
+    "875513": ("loganzsound", "Red Tailed Hawk Cries"),
+    "823066": ("Filmscore", "Hawk squawk call"),
+    "260555": ("LookIMadeAThing", "Basic Fire Whoosh 2"),
+    "244926": ("hnhnh", "fire-whoosh.wav"),
+    "178886": ("martian", "red whoosh gladiator 04.wav"),
+    "186374": ("samararaine", "Bonfire Being Lit"),
 }
 
 # The slam's whoosh sits under its impact, as in the clip.
@@ -88,6 +99,17 @@ ROUNDS = {
             ("d", [("481954", 5.89, 6.33, 0, WHOOSH), ("531862", 0.00, 1.35, 0.5, IMPACT)], "The large whoosh into a deep seismic boom, the biggest (craigsmith + magnuswaker)."),
             ("e", [("481954", 17.74, 18.10, 0, WHOOSH), ("614063", 0.00, 0.71, 0.5, IMPACT)], "The large whoosh into a heavy metal clang (craigsmith + magnuswaker)."),
             ("f", [("481954", 17.74, 18.10, 0, WHOOSH), ("827570", 0.00, 1.33, 0.5, IMPACT)], "The large whoosh into a designed game impact with a tail (craigsmith + AudioPapkin)."),
+        ],
+    },
+    # Round 32 (owner, 2026-11-13): Phoenix Arrow, after eleven synthesised
+    # takes missed, "use this for reference" (a stock firebird sound): a real
+    # bird of prey's cry laid over a real fire whoosh.
+    "32": {
+        "fx_phoenix": [
+            ("a", [("260555", 0.10, 0.95, 0, 0.8), ("697363", 0.03, 1.25, 0.05, 1.0)], "An eagle's scream over a fire roar (GrayEpic + LookIMadeAThing)."),
+            ("b", [("178886", 0.45, 1.10, 0, 0.8), ("875513", 0.04, 0.55, 0.08, 1.0)], "A hawk's cry riding a fast fire whoosh (loganzsound + martian)."),
+            ("c", [("244926", 0.19, 1.30, 0, 0.75), ("583615", 2.35, 2.75, 0.10, 1.0)], "A short eagle screech on a long flame (Johnnie_Holiday + hnhnh)."),
+            ("d", [("186374", 1.30, 1.90, 0, 0.9), ("260555", 0.10, 0.95, 0.05, 0.6), ("823066", 30.52, 31.05, 0.15, 1.0)], "A flame catching, then a hawk's squawk over the roar (samararaine + LookIMadeAThing + Filmscore)."),
         ],
     },
 }
@@ -135,7 +157,7 @@ if __name__ == "__main__":
     for name, takes in ROUNDS[rnd].items():
         manifest[name] = []
         for letter, layers, note in takes:
-            x = finish(render(cache, layers), target_rms=LEVEL[name])
+            x = finish(render(cache, layers), target_rms=LEVEL.get(name, 0.14))
             base = os.path.join(out, f"{name}_{letter}")
             wavfile.write(base + ".wav", SR, (np.clip(x, -1, 1) * 32767).astype(np.int16))
             subprocess.run([FF, "-y", "-loglevel", "error", "-i", base + ".wav", "-b:a", "160k", base + ".mp3"], check=True)

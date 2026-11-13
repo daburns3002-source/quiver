@@ -239,6 +239,12 @@ ROUND_31 = [
     }),
 ]
 
+ROUND_32 = [
+    ("Round 32 · Phoenix Arrow, after your reference", {
+        "fx_phoenix": ("Phoenix Arrow", "Every 8th shot a firebird flies through every enemy, leaving burning ground. Plays as it leaves the bow. Like your reference, a real bird of prey's cry over real fire, cut from public-domain recordings.", None),
+    }),
+]
+
 # page: (rounds, picks collection, sounds already chosen, shown for context)
 ROUND_18 = [
     ("Round 18 · King Bloblin's attacks, two big takes each", {
@@ -274,6 +280,7 @@ ROUND_18 = [
 ]
 
 PAGES = {
+    "32": (ROUND_32, "picks32cards", ["Rain of Arrows B", "Split Shot A", "Sniper Shot A (29)", "Wind Arrows A (29)", "Black Hole A", "Black Hole implode A", "Arcane Turret C", "Mana Surge B (29)", "Arcane Shield A", "Titan's Grip A", "Counter Strike A", "Shield Throw C", "Blade Storm A"]),
     "31": (ROUND_31, "picks31cards", ["Rain of Arrows B", "Split Shot A", "Sniper Shot A (29)", "Wind Arrows A (29)", "Black Hole A", "Black Hole implode A", "Arcane Turret C", "Mana Surge B (29)", "Arcane Shield A", "Titan's Grip A", "Counter Strike A", "Shield Throw C", "Blade Storm A"]),
     "30": (ROUND_30, "picks30cards", ["Rain of Arrows B", "Split Shot A", "Sniper Shot A (29)", "Wind Arrows A (29)", "Black Hole A", "Black Hole implode A", "Arcane Turret C", "Mana Surge B (29)", "Arcane Shield A", "Titan's Grip A", "Counter Strike A", "Shield Throw C", "Blade Storm A"]),
     "29": (ROUND_29, "picks29cards", ["Rain of Arrows B", "Split Shot A", "Black Hole A", "Black Hole implode A", "Arcane Turret C", "Arcane Shield A", "Titan's Grip A", "Counter Strike A", "Shield Throw C", "Blade Storm A"]),

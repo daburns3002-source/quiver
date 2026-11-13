@@ -784,11 +784,11 @@ local function draw(s: StationScreen.Screen)
 			holder,
 			entry.rarity,
 			entry.icon,
-			-- every copy held ("x4"); the best merge tier is the badge beside it
-			if isEquipped and not isPet
-				then "EQUIPPED"
-				elseif entry.owned then "x" .. tostring(entry.count)
-				else nil,
+			--[[ Every copy held ("x4"). The best merge tier is the badge
+			     beside it and the tick marks the one in hand, which is why
+			     the chip no longer says EQUIPPED: beside the badge that
+			     word was too small to read. ]]
+			if entry.owned then "x" .. tostring(entry.count) else nil,
 			not entry.owned,
 			isEquipped,
 			if isPet and entry.icon == "" then entry.key else nil

@@ -73,7 +73,7 @@ end
 local function sniperArrow(part: BasePart)
 	part.Color = GOLD[1]
 	local start = part.Position
-	local streak = Voxel.cube(Vector3.new(0.35, 0.35, 0.1), GOLD[2], true)
+	local streak = Voxel.cube(Vector3.new(0.55, 0.55, 0.1), GOLD[2], true)
 	Voxel.light(streak, GOLD[1], 10, 2)
 	SoundFx.play("fx_sniper")
 	Voxel.flash(start, 2.6, GOLD[1], 0.2)
@@ -88,7 +88,7 @@ local function sniperArrow(part: BasePart)
 		head = last
 		local length = (head - start).Magnitude
 		if length > 0.2 then
-			streak.Size = Vector3.new(0.35, 0.35, length)
+			streak.Size = Vector3.new(0.55, 0.55, length)
 			streak.CFrame = CFrame.lookAt((start + head) / 2, head)
 		end
 		return nil
@@ -118,12 +118,12 @@ local function glintStep(time: number)
 			local model = Instance.new("Model")
 			model.Name = "SniperGlint"
 			model.Parent = Voxel.folder()
-			Voxel.cube(Vector3.new(1.3, 0.22, 0.22), GOLD[1], true, model)
-			Voxel.cube(Vector3.new(0.22, 1.3, 0.22), GOLD[1], true, model)
-			Voxel.cube(0.4, GOLD[2], true, model)
+			Voxel.cube(Vector3.new(2.2, 0.35, 0.35), GOLD[1], true, model)
+			Voxel.cube(Vector3.new(0.35, 2.2, 0.35), GOLD[1], true, model)
+			Voxel.cube(0.65, GOLD[2], true, model)
 			glint = { model = model, player = player }
 			glints[player] = glint
-			Voxel.flash(root.Position + Vector3.new(0, 3.4, 0), 1.6, GOLD[1], 0.2)
+			Voxel.flash(root.Position + Vector3.new(0, 4.2, 0), 2.4, GOLD[1], 0.2)
 		elseif (not ready or not root) and glint then
 			glint.model:Destroy()
 			glints[player] = nil
@@ -131,7 +131,7 @@ local function glintStep(time: number)
 		end
 		if glint and root then
 			local pulse = 1 + math.sin(time * 9) * 0.18
-			local frame = CFrame.new(root.Position + Vector3.new(0, 3.4, 0))
+			local frame = CFrame.new(root.Position + Vector3.new(0, 4.2, 0))
 				* CFrame.Angles(0, time * 2.5, math.rad(45))
 			for _, piece in glint.model:GetChildren() do
 				if piece:IsA("BasePart") then
@@ -230,7 +230,7 @@ local function flareStep(time: number)
 	if surged and root and not flare then
 		local bits: { Part } = {}
 		for index = 1, Voxel.share(5) do
-			table.insert(bits, Voxel.cube(0.35, MANA[(index % 2) + 1], true))
+			table.insert(bits, Voxel.cube(0.55, MANA[(index % 2) + 1], true))
 		end
 		flare = bits
 		SoundFx.play("fx_mana_surge")
@@ -283,7 +283,7 @@ local function shieldStep(time: number)
 	if up and root and not shieldRing then
 		local panels: { Part } = {}
 		for index = 1, Voxel.share(8) do
-			local panel = Voxel.cube(Vector3.new(0.9, 1.1, 0.15), VIOLET[(index % 2) + 1], true)
+			local panel = Voxel.cube(Vector3.new(1.3, 1.7, 0.2), VIOLET[(index % 2) + 1], true)
 			panel.Transparency = 0.35
 			table.insert(panels, panel)
 		end
@@ -302,9 +302,9 @@ local function shieldStep(time: number)
 			local angle = time * 1.6 + index / #panels * math.pi * 2
 			local at = centre
 				+ Vector3.new(
-					math.cos(angle) * 2.3,
+					math.cos(angle) * 2.7,
 					math.sin(time * 3 + index) * 0.15,
-					math.sin(angle) * 2.3
+					math.sin(angle) * 2.7
 				)
 			panel.CFrame = CFrame.lookAt(at, Vector3.new(centre.X, at.Y, centre.Z))
 		end
@@ -330,15 +330,15 @@ local function buildShield(): Model
 	local model = Instance.new("Model")
 	model.Name = "ThrownShield"
 	model.Parent = Voxel.folder()
-	local face = Voxel.cube(Vector3.new(1.8, 0.3, 1.8), SHIELD_FACE, false, model)
+	local face = Voxel.cube(Vector3.new(2.4, 0.35, 2.4), SHIELD_FACE, false, model)
 	face:SetAttribute("Offset", CFrame.new())
-	local boss = Voxel.cube(Vector3.new(0.6, 0.45, 0.6), SHIELD_RIM, true, model)
+	local boss = Voxel.cube(Vector3.new(0.8, 0.5, 0.8), SHIELD_RIM, true, model)
 	boss:SetAttribute("Offset", CFrame.new(0, 0.12, 0))
 	for side = 0, 3 do
-		local rim = Voxel.cube(Vector3.new(2.1, 0.38, 0.32), SHIELD_RIM, true, model)
+		local rim = Voxel.cube(Vector3.new(2.8, 0.42, 0.4), SHIELD_RIM, true, model)
 		rim:SetAttribute(
 			"Offset",
-			CFrame.Angles(0, side * math.pi / 2, 0) * CFrame.new(0, 0.02, 1.0)
+			CFrame.Angles(0, side * math.pi / 2, 0) * CFrame.new(0, 0.02, 1.3)
 		)
 	end
 	return model
@@ -410,15 +410,15 @@ local function buildBlade(): Model
 	local model = Instance.new("Model")
 	model.Name = "StormBlade"
 	model.Parent = Voxel.folder()
-	local blade = Voxel.cube(Vector3.new(0.55, 0.22, 4.2), STEEL, false, model)
-	blade:SetAttribute("Offset", CFrame.new(0, 0, -1.2))
+	local blade = Voxel.cube(Vector3.new(0.75, 0.3, 5.4), STEEL, false, model)
+	blade:SetAttribute("Offset", CFrame.new(0, 0, -1.6))
 	local edge =
-		Voxel.cube(Vector3.new(0.18, 0.24, 4.0), Color3.fromRGB(255, 255, 255), true, model)
-	edge:SetAttribute("Offset", CFrame.new(0.2, 0, -1.2))
-	local guard = Voxel.cube(Vector3.new(1.5, 0.3, 0.3), RED[1], true, model)
-	guard:SetAttribute("Offset", CFrame.new(0, 0, 1.0))
-	local grip = Voxel.cube(Vector3.new(0.3, 0.3, 1.0), Color3.fromRGB(110, 40, 30), false, model)
-	grip:SetAttribute("Offset", CFrame.new(0, 0, 1.6))
+		Voxel.cube(Vector3.new(0.24, 0.32, 5.2), Color3.fromRGB(255, 255, 255), true, model)
+	edge:SetAttribute("Offset", CFrame.new(0.27, 0, -1.6))
+	local guard = Voxel.cube(Vector3.new(2.0, 0.4, 0.4), RED[1], true, model)
+	guard:SetAttribute("Offset", CFrame.new(0, 0, 1.3))
+	local grip = Voxel.cube(Vector3.new(0.4, 0.4, 1.3), Color3.fromRGB(110, 40, 30), false, model)
+	grip:SetAttribute("Offset", CFrame.new(0, 0, 2.1))
 	return model
 end
 
@@ -436,10 +436,10 @@ local function onBladeStorm(origin: Vector3, direction: Vector3, length: number,
 		-- a red streak of cubes left behind, fading
 		if elapsed - lastDrop >= 0.03 then
 			lastDrop = elapsed
-			local bit = Voxel.cube(0.45, RED[(math.floor(elapsed * 30) % 2) + 1], true)
+			local bit = Voxel.cube(0.6, RED[(math.floor(elapsed * 30) % 2) + 1], true)
 			bit.CFrame = CFrame.new(at) * CFrame.Angles(0, elapsed * 10, 0)
 			Voxel.run(0.3, function(f)
-				bit.Size = Vector3.one * 0.45 * (1 - f)
+				bit.Size = Vector3.one * 0.6 * (1 - f)
 				bit.Transparency = f
 				return nil
 			end, function()
@@ -501,7 +501,7 @@ local function pollMarks()
 				mark.untilTime = frost
 			else
 				frosts[model] = {
-					parts = makeMark(6, ICE, Vector3.new(0.5, 0.7, 0.5)),
+					parts = makeMark(8, ICE, Vector3.new(0.8, 1.1, 0.8)),
 					untilTime = frost,
 				}
 			end
@@ -513,7 +513,7 @@ local function pollMarks()
 				mark.untilTime = sunder
 			else
 				sunders[model] = {
-					parts = makeMark(3, RED, Vector3.new(0.25, 0.9, 0.25)),
+					parts = makeMark(3, RED, Vector3.new(0.4, 1.5, 0.4)),
 					untilTime = sunder,
 				}
 			end
@@ -548,7 +548,7 @@ local function marksStep(time: number)
 		for index, part in mark.parts do
 			-- a jagged crack: three bars leaning alternately
 			local lean = if index % 2 == 0 then -0.6 else 0.6
-			part.CFrame = CFrame.new(top + Vector3.new((index - 2) * 0.32, (index % 2) * 0.15, 0))
+			part.CFrame = CFrame.new(top + Vector3.new((index - 2) * 0.5, (index % 2) * 0.25, 0))
 				* CFrame.Angles(0, 0, lean)
 			part.Transparency = 1 - pulse
 		end

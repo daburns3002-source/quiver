@@ -95,7 +95,8 @@ export type UpgradeStats = {
 	wind: number,
 	--[[ Frost Orb: how much slower a chilled enemy moves (0 none). ]]
 	frost: number,
-	--[[ Arcane Shield: seconds before a spent shield is back (0 none). ]]
+	--[[ Arcane Shield: how fast a spent shield is back, in shields a second
+	     (0 none). ]]
 	arcaneShield: number,
 }
 

@@ -919,8 +919,9 @@ local abilities: { Ability } = {
 		category = "Defensive",
 		group = "spell",
 		rarity = "Uncommon",
-		--[[ Seconds before a spent shield is back. ]]
-		levels = { 10, 7 },
+		--[[ How fast a spent shield comes back: shields a second, so a level
+		     up is a bigger number (10 s, then about 7). ]]
+		levels = { 0.1, 0.15 },
 		stats = { "Back every 10s", "Back every 7s" },
 		icon = "arcane-shield",
 		classes = ARCANIST,

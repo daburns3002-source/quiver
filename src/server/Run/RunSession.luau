@@ -1440,11 +1440,12 @@ function RunSession.applyDamage(session: Session, amount: number)
 	end
 
 	--[[ Arcane Shield: up, it takes the whole hit and goes, back after the
-	     card's seconds. `ArcaneShieldAt` is when (server time), for every
-	     client to shatter the bubble and raise it again
-	     (`Fx/Upgrades/ArcanistBuildFx`). ]]
-	local shieldEvery = session.upgrades.arcaneShield
-	if shieldEvery > 0 and os.clock() >= session.shieldUpAt then
+	     card's seconds (its level is shields a second). `ArcaneShieldAt` is
+	     when (server time), for every client to shatter the ring and raise
+	     it again (`Fx/Upgrades/ClassCardFx`). ]]
+	local shieldRate = session.upgrades.arcaneShield
+	if shieldRate > 0 and os.clock() >= session.shieldUpAt then
+		local shieldEvery = 1 / shieldRate
 		session.shieldUpAt = os.clock() + shieldEvery
 		session.player:SetAttribute("ArcaneShieldAt", Workspace:GetServerTimeNow() + shieldEvery)
 		return

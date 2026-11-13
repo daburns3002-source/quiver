@@ -11,6 +11,7 @@ local UserInputService = game:GetService("UserInputService")
 local Workspace = game:GetService("Workspace")
 local Chunky = require(script.Parent.Chunky)
 local Device = require(script.Parent.Parent.Device)
+local FirstTips = require(script.Parent.FirstTips)
 local GearAssets = require(ReplicatedStorage.Shared.Config.GearAssets)
 local Kit = require(script.Parent.Kit)
 local Lobby = require(ReplicatedStorage.Shared.Config.Lobby)
@@ -164,6 +165,8 @@ function StationScreen.new(name: string, stationName: string, promptWords: strin
 		-- the lobby music ducks while a station screen is open (`Fx/MusicFx`)
 		player:SetAttribute("InStation", true)
 		draw()
+		-- the first time each station opens, its tip (`Config/Tips`, keyed by station)
+		FirstTips.show(stationName)
 	end
 	--[[ The station button. On a touch layout there is no E key and the
 	     button is the way in: full width, 60 points tall, above the lobby's

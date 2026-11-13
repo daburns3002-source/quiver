@@ -26,6 +26,7 @@ local SaveSchema = require(ReplicatedStorage.Shared.Util.SaveSchema)
 local SoulstoneShopRules = require(ReplicatedStorage.Shared.Util.SoulstoneShopRules)
 
 local Chunky = require(script.Parent.Chunky)
+local FirstTips = require(script.Parent.FirstTips)
 
 local SoulstoneShop = {}
 
@@ -183,6 +184,7 @@ function SoulstoneShop.open()
 	if box then
 		Chunky.pop(box)
 	end
+	FirstTips.show("SoulstoneShop")
 end
 
 function SoulstoneShop.start()

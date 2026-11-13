@@ -11,7 +11,8 @@
 
 	Drawn by the join screen (`first/Loading`) and by an area's loading
 	screen (`UI/ClassScreen.loadingCover`, which `UI/AreaLoading` holds up),
-	each over a spotlight laid out in the picture's own pixels.
+	each over a spotlight laid out in the picture's own pixels; and, the
+	same plate, by every first-time tip (`UI/FirstTips`, `fill`).
 ]]
 
 local UiPalette = require(script.Parent.Parent.Config.UiPalette)
@@ -97,6 +98,14 @@ function TipPlate.draw(parent: GuiObject, size: Vector2, box: Box, text: string,
 	limit.MaxTextSize = MAX_TEXT
 	limit.Parent = tip
 	return plate
+end
+
+--[[ The plate filling `parent`, `size` points big, saying `text`: a
+     first-time tip (`UI/FirstTips`). Returns the tip's words. ]]
+function TipPlate.fill(parent: GuiObject, size: Vector2, text: string, z: number): TextLabel
+	local box = { x = PAD_X, y = PAD_Y, w = size.X - PAD_X * 2, h = size.Y - PAD_Y * 2 }
+	local plate = TipPlate.draw(parent, size, box, text, z)
+	return plate:FindFirstChild("Tip") :: TextLabel
 end
 
 return TipPlate

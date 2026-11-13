@@ -68,6 +68,8 @@ export type Summary = {
 	item: string?,
 	--[[ The player's coins buy an open egg (Victory's nudge). ]]
 	canHatch: boolean?,
+	--[[ The area whose story beat this win owes (`UI/StoryBeat`). ]]
+	story: string?,
 }
 
 type Box = { x: number, y: number, w: number, h: number }

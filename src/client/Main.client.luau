@@ -93,6 +93,7 @@ local SmoothMotion = require(script.Parent.Fx.SmoothMotion)
 local SoulFireFx = require(script.Parent.Fx.Upgrades.SoulFireFx)
 local SoulstoneShop = require(script.Parent.UI.SoulstoneShop)
 local SoundFx = require(script.Parent.Fx.SoundFx)
+local StoryBeat = require(script.Parent.UI.StoryBeat)
 local StoryCutscene = require(script.Parent.UI.StoryCutscene)
 local TelegraphRenderer = require(script.Parent.Fx.TelegraphRenderer)
 local TopDownCamera = require(script.Parent.Camera.TopDownCamera)
@@ -273,10 +274,15 @@ NameTags.start()
 CoopHud.start()
 HealthBar.start()
 DashBar.start()
+--[[ Leaving Victory plays the story beat the win owes first (`UI/StoryBeat`). ]]
 EndScreen.start(function()
-	Remotes.event(Remotes.RunRestart):FireServer()
+	StoryBeat.after(function()
+		Remotes.event(Remotes.RunRestart):FireServer()
+	end)
 end, function()
-	Remotes.event(Remotes.RunLobby):FireServer()
+	StoryBeat.after(function()
+		Remotes.event(Remotes.RunLobby):FireServer()
+	end)
 end)
 RunBanner.start()
 RoomSign.start()
@@ -486,7 +492,10 @@ Remotes.event(Remotes.RunStateChanged).OnClientEvent
 		end
 	end)
 
-Remotes.event(Remotes.RunSummary).OnClientEvent:Connect(EndScreen.show)
+Remotes.event(Remotes.RunSummary).OnClientEvent:Connect(function(summary)
+	StoryBeat.owe(summary.story)
+	EndScreen.show(summary)
+end)
 
 --[[ Prediction inputs only — move speed and dash cooldown. Nothing that
      decides an outcome arrives here. ]]

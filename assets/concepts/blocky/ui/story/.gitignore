@@ -1,3 +1,5 @@
 raw/*.png
 raw/*.log
 raw_portrait/
+beats_raw/*.png
+beats_raw/*.log

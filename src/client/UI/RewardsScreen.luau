@@ -23,6 +23,7 @@ local Workspace = game:GetService("Workspace")
 local Chunky = require(script.Parent.Chunky)
 local HatchStand = require(script.Parent.HatchStand)
 local Kit = require(script.Parent.Kit)
+local PortalScreen = require(script.Parent.PortalScreen)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local RewardRules = require(ReplicatedStorage.Shared.Util.RewardRules)
 local Rewards = require(ReplicatedStorage.Shared.Config.Rewards)
@@ -387,7 +388,8 @@ local function startButton(s: StationScreen.Screen)
 		dot.BorderSizePixel = 0
 		dot.BackgroundColor3 = Chunky.red
 		dot.ZIndex = 45
-		Chunky.put(sheet, dot, bx + bw - 30, by - 16, 52, 52)
+		-- on the corner, clear of the word's last letter (it covered the S)
+		Chunky.put(sheet, dot, bx + bw - 18, by - 24, 52, 52)
 		Chunky.round(dot, 26)
 		Chunky.outline(dot, 5)
 		local n = Chunky.textOn(dot, "1", Chunky.red, 3)
@@ -405,7 +407,11 @@ local function startButton(s: StationScreen.Screen)
 				and gui2 ~= nil
 				and gui2:FindFirstChild("IntroCutscene") == nil
 				and gui2:FindFirstChild("StoryCutscene") == nil
-			local free = inLobby and player:GetAttribute("InStation") ~= true
+			--[[ Put away under a portal's screen too, as PLAY is: it peeked
+			     out beside the level panel (polish playthrough, 2026-11-13). ]]
+			local free = inLobby
+				and player:GetAttribute("InStation") ~= true
+				and not PortalScreen.isOpen()
 			--[[ `InLobby` is also true under the title and in the moment
 			     between the story's end and the tutorial starting, so the
 			     screen opens by itself only once the server says this player

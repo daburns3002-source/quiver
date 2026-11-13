@@ -116,13 +116,14 @@ end
 --[[ A pet's line. It has no written description of its own anywhere, so
      this is made of what it does have: how rare it is, and which egg it
      comes out of. ]]
+--[[ The page's line under the rarity pill, which already names the rarity
+     (it said "COMMON." twice on the page until 2026-11-13). ]]
 local function describePet(pet: Pets.Pet): string
-	local rarity = string.upper(pet.rarity)
 	if not pet.egg then
-		return `{rarity}. Not in any egg yet.`
+		return "Not in any egg yet."
 	end
 	local egg = eggName(pet.egg)
-	return if egg then `{rarity}. Hatches from the {egg}.` else `{rarity}.`
+	return if egg then `Hatches from the {egg}.` else ""
 end
 
 --[[ Sort by a rank, then by name, so a book's order never depends on the
@@ -184,9 +185,14 @@ function DexBook.entries(book: string, profile: SaveSchema.Profile?): { Entry }
 					entry = {
 						key = key,
 						name = label(key),
-						icon = GearAssets.weapons[key] or art,
+						--[[ the same 2D art as every other screen's (the Blacksmith,
+						     Gear, the reveal); the grid showed the old mini pixel
+						     icons for the first two areas' weapons until
+						     2026-11-13 (owner: "make sure the icons ... all match") ]]
+						icon = art,
 						picture = art,
-						description = LoadingPick.describeWeapon(key),
+						-- without its leading rarity: the pill under the name says it
+						description = (string.gsub(LoadingPick.describeWeapon(key), "^%u+%. ", "")),
 						unlocked = owned[key] == true,
 						rarity = stats.rarity,
 						-- `WeaponStats.area` is the area's number, in the order played

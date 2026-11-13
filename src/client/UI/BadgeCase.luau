@@ -40,6 +40,7 @@ local Dex = require(ReplicatedStorage.Shared.Config.Dex)
 local Economy = require(ReplicatedStorage.Shared.Config.Economy)
 local HatchStand = require(script.Parent.HatchStand)
 local Kit = require(script.Parent.Kit)
+local PortalScreen = require(script.Parent.PortalScreen)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local RunPaused = require(script.Parent.Parent.RunPaused)
 local SoundFx = require(script.Parent.Parent.Fx.SoundFx)
@@ -424,6 +425,7 @@ local function startButton()
 				and playerGui:FindFirstChild("IntroCutscene") == nil
 				and playerGui:FindFirstChild("StoryCutscene") == nil
 				and player:GetAttribute("InStation") ~= true
+				and not PortalScreen.isOpen()
 			gui.Enabled = free
 			if free then
 				local upright = gui.AbsoluteSize.Y > gui.AbsoluteSize.X

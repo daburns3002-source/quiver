@@ -30,6 +30,10 @@ local LobbyHud = {}
 --[[ The fight HUD's screens, put away in the lobby and given back as it is
      left. Their own modules never hide them, so giving back is safe. ]]
 local FIGHT_HUD = { "HealthBar", "RunBanner", "SkillBar" }
+--[[ The fight's bottom bars, put away under VICTORY or DEFEAT as well: they
+     peeked out under the panel (polish playthrough, 2026-11-13). The dash
+     bar puts itself away (`UI/DashBar`). ]]
+local UNDER_END = { "HealthBar", "SkillBar" }
 
 local started = false
 
@@ -127,6 +131,7 @@ function LobbyHud.start()
 	end)
 
 	local wasLobby = false
+	local wasEnded = false
 	RunService.RenderStepped:Connect(function()
 		local inLobby = Workspace:GetAttribute("InLobby") == true
 		local cutscene = playerGui:FindFirstChild("IntroCutscene") ~= nil
@@ -158,6 +163,17 @@ function LobbyHud.start()
 			end
 		end
 		wasLobby = inLobby
+		local ended = not inLobby and playerGui:FindFirstChild("EndScreen") ~= nil
+		if ended or wasEnded then
+			for _, name in UNDER_END do
+				local screen = playerGui:FindFirstChild(name)
+				if screen and screen:IsA("ScreenGui") then
+					-- back on once, when TRY AGAIN or NEXT LEVEL goes on
+					screen.Enabled = not ended
+				end
+			end
+		end
+		wasEnded = ended
 	end)
 end
 

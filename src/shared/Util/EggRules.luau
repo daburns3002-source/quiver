@@ -8,6 +8,7 @@
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local Economy = require(ReplicatedStorage.Shared.Config.Economy)
 local Eggs = require(ReplicatedStorage.Shared.Config.Eggs)
 local LaunchLocks = require(ReplicatedStorage.Shared.Util.LaunchLocks)
 local Pets = require(ReplicatedStorage.Shared.Config.Pets)
@@ -81,6 +82,24 @@ end
 function EggRules.open(egg: Eggs.Egg, bossesBeaten: { [string]: boolean }): boolean
 	local unlock = LaunchLocks.eggUnlock(egg)
 	return unlock == nil or bossesBeaten[unlock] == true
+end
+
+--[[ What a shut egg says opens it, as a shut crate does
+     (`ShopRules.crateWords`): "BEAT OLD TOLLCRAB", the boss of the area it
+     waits on; nil for an open one. Every shut egg said "BEAT KING BLOBLIN"
+     before 2026-11-13, the Bogheart Egg's wait on the Drowned Village too. ]]
+function EggRules.lockWords(
+	egg: Eggs.Egg,
+	bossesBeaten: { [string]: boolean }?,
+	locks: boolean?
+): string?
+	local unlock = LaunchLocks.eggUnlock(egg, locks)
+	if unlock == nil or (bossesBeaten and bossesBeaten[unlock] == true) then
+		return nil
+	end
+	local area = Economy.areas[unlock]
+	local item = area and Economy.items[area.bossItem]
+	return "BEAT " .. string.upper(if item then item.boss else unlock)
 end
 
 --[[ A pet's rarity, Common for one not listed. ]]

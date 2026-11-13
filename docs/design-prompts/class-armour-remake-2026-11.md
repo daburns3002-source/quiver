@@ -28,10 +28,11 @@ as `assets/models/armour/<class>_<look>_set.glb`.
 - **The body looks like a person.** In Design the set is built on a blocky
   avatar with warm skin, a face and hair, as on the sheet. That body is cut
   away afterwards: in the game the set goes on the player's own avatar.
-- **Hair is part of the head piece** (decision made without the owner, to
-  keep the figure 1:1 with its sheet; say so when showing the result): the
-  fringe, braid or curls on the sheet are built with the hood, hat or helm.
-  The game still hides the player's own hair accessories under a set.
+- **Hair is part of the head piece** (owner, 2026-11-13, asked whether the
+  sheets' hair should be built: "Yes, build the hair"): the fringe, braid or
+  curls on the sheet are built with the hood, hat or helm. The game still
+  hides the player's own hair accessories under a set, so every player of a
+  class and look wears the same hair.
 - **Still true:** every piece is its own closed solid on one R15 body part
   (head, chest, back, waist, each upper arm, forearm, thigh, shin, foot);
   hands bare; face open; nothing hangs below the knee as one cloth; no

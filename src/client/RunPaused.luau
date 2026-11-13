@@ -44,6 +44,12 @@ function RunPaused.beforeArrival(): boolean
 	return title or story
 end
 
+--[[ Whether a screen that owns the view is up: the title, the story, a
+     boss's banner, NEW ENEMY! or MENU's panel. A first-time tip waits for
+     it (`UI/FirstTips`); a draft or a checkpoint it may stand over. ]]
+function RunPaused.covered(): boolean
+	return title or story or intro or meeting or menu
+end
 function RunPaused.get(): boolean
 	return paused or intro or title or meeting or story or checkpoint or menu or downed
 end

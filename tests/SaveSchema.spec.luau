@@ -322,6 +322,16 @@ return function(t: TestRunner.Helper)
 		end
 	)
 
+	t.test("version 13: an older profile has seen no tip; a stored one keeps its own", function()
+		local old = SaveSchema.migrate({ version = 12, storySeen = { MossyGlade = true } })
+		t.isNil((next(old.tipsSeen)))
+		t.isNil((next(SaveSchema.migrate(nil).tipsSeen)))
+		local p =
+			SaveSchema.migrate({ version = 13, tipsSeen = { Blacksmith = true, Merge = "yes" } })
+		t.isTrue(p.tipsSeen.Blacksmith)
+		t.isNil(p.tipsSeen.Merge, "only a yes is kept")
+	end)
+
 	t.test(
 		"version 14: an older profile holds and wears no trail; a stored one keeps its own",
 		function()

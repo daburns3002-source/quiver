@@ -221,6 +221,13 @@ Remotes.IntroBegin = "IntroBegin"
 Remotes.StorySeen = "StorySeen"
 
 --[[
+	Client → server. A first-time tip (`Config/Tips`) has been on screen:
+	its key. The server keeps it (`Wallet.sawTip`) only for a tip, once, so
+	it never shows again (`Util/TipRules`).
+]]
+Remotes.TipSeen = "TipSeen"
+
+--[[
 	Server → one client. The player has stepped into a lit portal's mouth in
 	the lobby: open its screen (`UI/PortalScreen`) with that portal's index
 	in `Config/Lobby.portals`, or 0 to shut it as they step out.

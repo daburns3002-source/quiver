@@ -21,6 +21,7 @@ local Purse = require(ReplicatedStorage.Shared.Util.Purse)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local SaveSchema = require(ReplicatedStorage.Shared.Util.SaveSchema)
 local StoryBeatRules = require(ReplicatedStorage.Shared.Util.StoryBeatRules)
+local TipRules = require(ReplicatedStorage.Shared.Util.TipRules)
 local TrailRules = require(ReplicatedStorage.Shared.Util.TrailRules)
 local Tutorial = require(ReplicatedStorage.Shared.Config.Tutorial)
 
@@ -426,6 +427,15 @@ function Wallet.sawStory(player: Player, area: unknown)
 	end
 	profile.storySeen[area :: string] = true
 	changed(player, profile)
+end
+
+--[[ A first-time tip has been on screen (`Remotes.TipSeen`): kept once,
+     only for a tip (`Util/TipRules.mark`), so it never shows again. ]]
+function Wallet.sawTip(player: Player, key: unknown)
+	local profile = PlayerData.get(player)
+	if profile and TipRules.mark(profile.tipsSeen, key) then
+		changed(player, profile)
+	end
 end
 
 --[[ An area's boss is beaten: its item, and gems (more the first time).

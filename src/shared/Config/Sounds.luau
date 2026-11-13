@@ -48,6 +48,12 @@ local BOSS_SPRITE = "rbxassetid://73447077207928"
      file per batch, for Roblox's audio upload limits). Uploaded 2026-10-25. ]]
 local WARDEN_SPRITE = "rbxassetid://123411253404004"
 
+--[[ The class upgrades' fourteen sounds (`Fx/Upgrades/*BuildFx`, `ClassCardFx`),
+     picked over audition rounds 28-32 and joined into one sprite
+     (`assets/audio/final/class_cards_sprite_r32.mp3`, regions in its .json).
+     Uploaded 2026-11-13. ]]
+local CLASS_CARDS_SPRITE = "rbxassetid://117855777207537"
+
 --[[ The Drowned Village's water footsteps (`final/water_step_sprite.mp3`):
      not uploaded yet, so "" and silent. ]]
 local WATER_SPRITE = ""
@@ -597,104 +603,118 @@ local Sounds: { [string]: Sound } = {
 		pitchJitter = 0.05,
 		minGap = 0.12,
 	},
-	--[[ The class upgrades of 2026-10-27 (`Fx/Upgrades/*BuildFx`): hooked up
-	     silent, waiting on the owner's picks and one sprite upload. ]]
+	--[[ The class upgrades of 2026-10-27 (`Fx/Upgrades/*BuildFx`): picked by the
+	     owner and joined into one sprite (`CLASS_CARDS_SPRITE`). ]]
 	-- the phoenix's cry as it leaves the bow
 	fx_phoenix = {
-		id = "",
+		id = CLASS_CARDS_SPRITE,
+		region = { 9.114, 1.069 },
 		volume = 0.7,
 		pitchJitter = 0.05,
 		minGap = 0.5,
 	},
 	-- the arrow going up, and the rain's patter
 	fx_arrow_rain = {
-		id = "",
+		id = CLASS_CARDS_SPRITE,
+		region = { 0.91, 1.078 },
 		volume = 0.6,
 		pitchJitter = 0.05,
 		minGap = 0.5,
 	},
 	-- the hole opening and its hum
 	fx_black_hole = {
-		id = "",
+		id = CLASS_CARDS_SPRITE,
+		region = { 2.428, 1.313 },
 		volume = 0.7,
 		pitchJitter = 0.05,
 		minGap = 0.6,
 	},
 	-- the implosion
 	fx_black_hole_implode = {
-		id = "",
+		id = CLASS_CARDS_SPRITE,
+		region = { 4.181, 0.859 },
 		volume = 0.8,
 		pitchJitter = 0.05,
 		minGap = 0.4,
 	},
 	-- the crystal appearing
 	fx_turret = {
-		id = "",
+		id = CLASS_CARDS_SPRITE,
+		region = { 14.144, 0.871 },
 		volume = 0.6,
 		pitchJitter = 0.05,
 		minGap = 0.5,
 	},
 	-- the giant sword's slam
 	fx_titan_slam = {
-		id = "",
+		id = CLASS_CARDS_SPRITE,
+		region = { 12.844, 0.86 },
 		volume = 0.85,
 		pitchJitter = 0.05,
 		minGap = 0.3,
 	},
 	-- the charged blow
 	fx_counter_strike = {
-		id = "",
+		id = CLASS_CARDS_SPRITE,
+		region = { 6.898, 0.57 },
 		volume = 0.8,
 		pitchJitter = 0.05,
 		minGap = 0.3,
 	},
-	--[[ The class cards of 2026-11-13 (`Fx/Upgrades/ClassCardFx`): hooked up
-	     silent, waiting on the owner's picks and one sprite upload. ]]
+	--[[ The class cards of 2026-11-13 (`Fx/Upgrades/ClassCardFx`): picked by the
+	     owner and joined into one sprite (`CLASS_CARDS_SPRITE`). ]]
 	-- the sniper arrow leaving the bow
 	fx_sniper = {
-		id = "",
+		id = CLASS_CARDS_SPRITE,
+		region = { 11.513, 0.23 },
 		volume = 0.7,
 		pitchJitter = 0.05,
 		minGap = 0.3,
 	},
 	-- an arrow splitting at a kill
 	fx_split_shot = {
-		id = "",
+		id = CLASS_CARDS_SPRITE,
+		region = { 12.183, 0.221 },
 		volume = 0.5,
 		pitchJitter = 0.05,
 		minGap = 0.12,
 	},
 	-- an enemy shot blown away
 	fx_wind_gust = {
-		id = "",
+		id = CLASS_CARDS_SPRITE,
+		region = { 15.455, 0.22 },
 		volume = 0.5,
 		pitchJitter = 0.05,
 		minGap = 0.15,
 	},
 	-- a kill charging the staff
 	fx_mana_surge = {
-		id = "",
+		id = CLASS_CARDS_SPRITE,
+		region = { 7.908, 0.766 },
 		volume = 0.6,
 		pitchJitter = 0.05,
 		minGap = 0.3,
 	},
 	-- the shield taking a hit and shattering
 	fx_arcane_shield = {
-		id = "",
+		id = CLASS_CARDS_SPRITE,
+		region = { 0.0, 0.47 },
 		volume = 0.75,
 		pitchJitter = 0.05,
 		minGap = 0.3,
 	},
 	-- the shield thrown
 	fx_shield_throw = {
-		id = "",
+		id = CLASS_CARDS_SPRITE,
+		region = { 10.623, 0.45 },
 		volume = 0.7,
 		pitchJitter = 0.05,
 		minGap = 0.3,
 	},
 	-- the sword thrown spinning
 	fx_blade_storm = {
-		id = "",
+		id = CLASS_CARDS_SPRITE,
+		region = { 5.48, 0.978 },
 		volume = 0.75,
 		pitchJitter = 0.05,
 		minGap = 0.3,

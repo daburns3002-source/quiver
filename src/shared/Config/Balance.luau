@@ -1388,7 +1388,9 @@ local sporePuff: EnemyConfig = {
 	health = 260,
 	moveSpeed = 6.6,
 	attackRange = 3.8,
-	attackDamage = 50,
+	--[[ Was 50: Bogheart hurt least of the three later areas, 61 a room
+	     against Thornwood's 153 (owner, 2026-11-13, balance review item 7). ]]
+	attackDamage = 62,
 	attackCooldown = 1.1,
 	knockback = 3,
 	--[[ Its model x2.7: 2.64 across, 2.63 tall, 2.25 deep, stood 0.04 low,
@@ -1423,7 +1425,8 @@ local glowcap: EnemyConfig = {
 	--[[ Stationary (docs/ENEMIES-AND-ARENAS.md: "New: stationary"). ]]
 	moveSpeed = 0,
 	attackRange = 13.3,
-	attackDamage = 40,
+	-- was 40 (owner, 2026-11-13, balance review item 7, with the Spore Puff's)
+	attackDamage = 52,
 	--[[ A ring every 1.1 s: the sweep has to be steady to be walkable. ]]
 	attackCooldown = 1.1,
 	--[[ Rooted, but a hit still shows: a short shove that it never walks
@@ -1463,7 +1466,9 @@ local shellback: EnemyConfig = {
 	--[[ The Bramble Sow's turn: it is smaller, so no slower (`Balance.spec`). ]]
 	turnRate = 220,
 	health = 900,
-	moveSpeed = 3.3,
+	--[[ Was 3.3, the Tank's: slow enough that a player who stood still
+	     never met it (owner, 2026-11-13, balance review item 7). ]]
+	moveSpeed = 4.2,
 	attackRange = 4.6,
 	attackDamage = 80,
 	attackCooldown = 1.6,
@@ -2668,7 +2673,7 @@ local gladeLevelRooms: { RoomConfig } = {
 			{ offset = Vector2.new(0, -8.24), size = Vector3.new(2.8, 3.2, 2.8) },
 			{ offset = Vector2.new(10, -8.24), size = Vector3.new(2.8, 3.2, 2.8) },
 		},
-		enemyCount = 5,
+		enemyCount = 3,
 		roster = { meleeCharger, broodSlime, spreadShooter },
 	},
 	{
@@ -2679,7 +2684,7 @@ local gladeLevelRooms: { RoomConfig } = {
 			{ offset = Vector2.new(-8.29, -2.29), size = Vector3.new(3.5, 2.8, 7) },
 			{ offset = Vector2.new(0, 6.71), size = Vector3.new(3.4, 0.4, 5.1) },
 		},
-		enemyCount = 5,
+		enemyCount = 3,
 		roster = { broodSlime, spreadShooter, meleeCharger },
 	},
 	{
@@ -2691,7 +2696,7 @@ local gladeLevelRooms: { RoomConfig } = {
 			{ offset = Vector2.new(11.5, -16), size = Vector3.new(3.5, 2.8, 9) },
 			{ offset = Vector2.new(-11.5, -16), size = Vector3.new(3.5, 2.8, 9) },
 		},
-		enemyCount = 5,
+		enemyCount = 4,
 		roster = { meleeCharger, meleeCharger, broodSlime },
 	},
 	{
@@ -2702,7 +2707,7 @@ local gladeLevelRooms: { RoomConfig } = {
 			{ offset = Vector2.new(0, 7.58), size = Vector3.new(6.8, 0.4, 3.4) },
 			{ offset = Vector2.new(10, 7.58), size = Vector3.new(3.4, 0.4, 3.4) },
 		},
-		enemyCount = 5,
+		enemyCount = 4,
 		roster = { meleeCharger, meleeCharger, broodSlime, spreadShooter },
 	},
 	{
@@ -2736,7 +2741,7 @@ local gladeLevelRooms: { RoomConfig } = {
 			{ offset = Vector2.new(9.76, 2.02), size = Vector3.new(7, 2.8, 3.5) },
 			{ offset = Vector2.new(-9.76, 2.02), size = Vector3.new(7, 2.8, 3.5) },
 		},
-		enemyCount = 6,
+		enemyCount = 5,
 		roster = { meleeCharger, meleeCharger, broodSlime },
 	},
 	{
@@ -2821,7 +2826,7 @@ local gladeLevelRooms: { RoomConfig } = {
 			{ offset = Vector2.new(-7, -15.55), size = Vector3.new(6.8, 0.4, 3.4) },
 			{ offset = Vector2.new(7, -15.55), size = Vector3.new(3.4, 0.4, 3.4) },
 		},
-		enemyCount = 6,
+		enemyCount = 7,
 		roster = { meleeCharger, meleeCharger, broodSlime },
 	},
 	{
@@ -2832,7 +2837,7 @@ local gladeLevelRooms: { RoomConfig } = {
 			{ offset = Vector2.new(8.94, -16.42), size = Vector3.new(2.8, 3.2, 2.8) },
 			{ offset = Vector2.new(-8.94, -16.42), size = Vector3.new(2.8, 3.2, 2.8) },
 		},
-		enemyCount = 6,
+		enemyCount = 7,
 		roster = { meleeCharger, meleeCharger, broodSlime, spreadShooter },
 	},
 	{
@@ -2844,7 +2849,7 @@ local gladeLevelRooms: { RoomConfig } = {
 			{ offset = Vector2.new(8.73, 2.95), size = Vector3.new(9, 2.8, 3.5) },
 			{ offset = Vector2.new(-8.73, 2.95), size = Vector3.new(9, 2.8, 3.5) },
 		},
-		enemyCount = 6,
+		enemyCount = 7,
 		roster = { meleeCharger, broodSlime, spreadShooter },
 	},
 	{
@@ -2854,7 +2859,7 @@ local gladeLevelRooms: { RoomConfig } = {
 			{ offset = Vector2.new(9.33, -1.8), size = Vector3.new(3.5, 2.8, 11) },
 			{ offset = Vector2.new(-9.33, -1.8), size = Vector3.new(3.5, 2.8, 11) },
 		},
-		enemyCount = 6,
+		enemyCount = 7,
 		roster = { broodSlime, spreadShooter, meleeCharger },
 	},
 	{
@@ -2899,7 +2904,7 @@ local gladeLevelRooms: { RoomConfig } = {
 			{ offset = Vector2.new(9.27, -15.27), size = Vector3.new(3, 1.5, 3) },
 			{ offset = Vector2.new(-9.27, -15.27), size = Vector3.new(3, 1.5, 3) },
 		},
-		enemyCount = 7,
+		enemyCount = 8,
 		roster = { broodSlime, spreadShooter, meleeCharger },
 	},
 	{
@@ -2910,7 +2915,7 @@ local gladeLevelRooms: { RoomConfig } = {
 			{ offset = Vector2.new(9.17, -17.87), size = Vector3.new(3.2, 3.2, 3.2) },
 			{ offset = Vector2.new(-9.17, -17.87), size = Vector3.new(3.2, 3.2, 3.2) },
 		},
-		enemyCount = 7,
+		enemyCount = 8,
 		roster = { meleeCharger, meleeCharger, broodSlime },
 	},
 	{
@@ -2922,7 +2927,7 @@ local gladeLevelRooms: { RoomConfig } = {
 			{ offset = Vector2.new(8.57, -12.5), size = Vector3.new(5.1, 0.4, 3.4) },
 			{ offset = Vector2.new(7.83, 11.39), size = Vector3.new(3.4, 0.4, 6.8) },
 		},
-		enemyCount = 7,
+		enemyCount = 8,
 		roster = { meleeCharger, meleeCharger, broodSlime, spreadShooter },
 	},
 	{
@@ -5138,9 +5143,17 @@ local Balance = {
 			--[[ One step past Mossy Glade 1-10 on the levels' curve (below),
 			     so the area after the glade is harder than all of it. Was 0.8
 			     and 0.9 before the owner's "the game is too easy currently"
-			     (2026-10-26). ]]
+			     (2026-10-26).
+
+			     **Health is 1-10's times 1.125** (1.46 x 1.125, rounded), the
+			     step an area's weapons and pets take (`WeaponStats.areaScale`,
+			     `Util/PetPower`); the Drowned Village and Bogheart are a step
+			     each past it. It was 2.1, 2.3 and 2.5: a 44% jump from 1-10
+			     with nothing new to buy, so every enemy took half again as
+			     many arrows (owner, 2026-11-13, approving balance review item
+			     1). Damage is untouched. ]]
 			enemyDamage = 1.05,
-			enemyHealth = 2.1,
+			enemyHealth = 1.65,
 			area = "Thornwood",
 		},
 		{
@@ -5277,6 +5290,11 @@ local Balance = {
 			enemyHealth = 1.26,
 			area = "MossyGlade",
 		},
+		--[[ 1-6..1-9's first fight is one smaller and their last two one bigger
+		     than they were, the same enemies in all (owner, 2026-11-13,
+		     approving balance review item 6, which shaped 1-10's rooms the
+		     same way): the waves before any card start gentler and the climb
+		     goes further. A wave fights entry ⌈w / 20 · 4⌉. ]]
 		{
 			name = "Mossy Glade 1-6",
 			level = "1-6",
@@ -5285,19 +5303,19 @@ local Balance = {
 			waves = 20,
 			fights = {
 				{
-					enemyCount = 4,
+					enemyCount = 3,
 					roster = { meleeCharger, broodSlime, spreadShooter },
 				},
 				{
-					enemyCount = 5,
+					enemyCount = 4,
 					roster = { meleeCharger, meleeCharger, broodSlime, spreadShooter },
 				},
 				{
-					enemyCount = 6,
+					enemyCount = 7,
 					roster = { meleeCharger, broodSlime, spreadShooter },
 				},
 				{
-					enemyCount = 6,
+					enemyCount = 7,
 					roster = { broodSlime, spreadShooter, meleeCharger },
 				},
 			},
@@ -5317,19 +5335,19 @@ local Balance = {
 			waves = 20,
 			fights = {
 				{
-					enemyCount = 5,
+					enemyCount = 4,
 					roster = { meleeCharger, broodSlime, spreadShooter },
 				},
 				{
-					enemyCount = 5,
+					enemyCount = 4,
 					roster = { meleeCharger, meleeCharger, broodSlime, spreadShooter },
 				},
 				{
-					enemyCount = 6,
+					enemyCount = 7,
 					roster = { broodSlime, spreadShooter, meleeCharger },
 				},
 				{
-					enemyCount = 7,
+					enemyCount = 8,
 					roster = { meleeCharger, broodSlime, spreadShooter },
 				},
 			},
@@ -5349,19 +5367,19 @@ local Balance = {
 			waves = 20,
 			fights = {
 				{
-					enemyCount = 5,
+					enemyCount = 4,
 					roster = { meleeCharger, meleeCharger, broodSlime, spreadShooter },
 				},
 				{
-					enemyCount = 6,
+					enemyCount = 5,
 					roster = { meleeCharger, broodSlime, spreadShooter },
 				},
 				{
-					enemyCount = 6,
+					enemyCount = 7,
 					roster = { broodSlime, spreadShooter, meleeCharger },
 				},
 				{
-					enemyCount = 7,
+					enemyCount = 8,
 					roster = { meleeCharger, meleeCharger, broodSlime, spreadShooter },
 				},
 			},
@@ -5381,19 +5399,19 @@ local Balance = {
 			waves = 20,
 			fights = {
 				{
-					enemyCount = 5,
+					enemyCount = 4,
 					roster = { broodSlime, spreadShooter, meleeCharger },
 				},
 				{
-					enemyCount = 6,
+					enemyCount = 5,
 					roster = { meleeCharger, meleeCharger, broodSlime, spreadShooter },
 				},
 				{
-					enemyCount = 7,
+					enemyCount = 8,
 					roster = { meleeCharger, broodSlime, spreadShooter },
 				},
 				{
-					enemyCount = 7,
+					enemyCount = 8,
 					roster = { broodSlime, spreadShooter, meleeCharger },
 				},
 			},
@@ -5450,7 +5468,8 @@ local Balance = {
 			mode = "Rooms",
 			rooms = roomsAfter(DROWNED_BASE, #drownedRooms),
 			enemyDamage = 1.1,
-			enemyHealth = 2.3,
+			-- Thornwood's times 1.125 (was 2.3; review item 1, with Thornwood's note)
+			enemyHealth = 1.85,
 			area = "DrownedVillage",
 		},
 		--[[ Bogheart Caverns (2026-11-06): its own enemies, twenty rooms
@@ -5461,7 +5480,8 @@ local Balance = {
 			mode = "Rooms",
 			rooms = roomsAfter(BOGHEART_BASE, #bogheartRooms),
 			enemyDamage = 1.15,
-			enemyHealth = 2.5,
+			-- the Drowned Village's times 1.125 (was 2.5; review item 1, with Thornwood's note)
+			enemyHealth = 2.1,
 			area = "BogheartCaverns",
 		},
 	} :: { StageConfig },

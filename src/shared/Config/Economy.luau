@@ -33,6 +33,14 @@ export type Item = {
 	area: string,
 }
 
+--[[ **A later area pays more a minute** (owner, 2026-11-13, approving
+     balance review item 2). Played in Studio, every area paid about 200
+     coins a minute while its egg and crate cost double the last area's, so
+     a Bogheart Egg was 20 minutes of Bogheart. Kill coins rose to aim at
+     about 200 / 300 / 520 / 800 a minute (measured kills a minute: 13, 12
+     and 10 in the three later areas), so each area's egg is about two to
+     five minutes of its own play, and old eggs come quicker with new coins
+     (CLAUDE.md rule 8). Was: kills 8 / 11 / 14, clears 400 / 600 / 800. ]]
 local Economy = {
 	areas = {
 		MossyGlade = {
@@ -44,8 +52,8 @@ local Economy = {
 			firstClearEgg = "MossyEgg",
 		},
 		Thornwood = {
-			killCoins = 8,
-			clearCoins = 400,
+			killCoins = 18,
+			clearCoins = 500,
 			bossItem = "BroodSilk",
 			firstBossGems = 80,
 			bossGems = 15,
@@ -57,15 +65,15 @@ local Economy = {
 		     no icons yet: `ShopAssets.items` only has to carry one once the
 		     area's crate is stocked (`tests/ConfigConsistency.spec`). ]]
 		DrownedVillage = {
-			killCoins = 11,
-			clearCoins = 600,
+			killCoins = 30,
+			clearCoins = 750,
 			bossItem = "TollBronze",
 			firstBossGems = 110,
 			bossGems = 20,
 		},
 		BogheartCaverns = {
-			killCoins = 14,
-			clearCoins = 800,
+			killCoins = 70,
+			clearCoins = 1500,
 			bossItem = "BogPearl",
 			firstBossGems = 140,
 			bossGems = 25,

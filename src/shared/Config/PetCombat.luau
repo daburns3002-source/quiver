@@ -177,7 +177,16 @@ export type Spec = {
 	split: PetCrowd.Split?,
 }
 
-local PetCombat: { pets: { [string]: Spec } } = {
+local PetCombat: { damageScale: number, pets: { [string]: Spec } } = {
+	--[[ Every pet's damage, all of it, times this: its blows, burns,
+	     bleeds and wake (`Combat/PetCombat`), what `Util/PetPower` credits
+	     it with, and the numbers its card prints (`Util/PetBlurb`). The
+	     numbers below stay as they were tuned against each other. Raised
+	     from 1 (owner, 2026-11-13, approving balance review item 3): a
+	     Common pet was 11% of the starting bow and a Mythic 37%, and the
+	     run's cards grow the bow and never a pet, so late in a level a pet
+	     was a few percent of the damage. ]]
+	damageScale = 1.5,
 	pets = {
 		-- Slime Glob: a blob that slows
 		Mosslet = { every = 2, range = 60, damage = 32, slow = { scale = 0.5, duration = 1.5 } },

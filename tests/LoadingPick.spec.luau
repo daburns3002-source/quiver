@@ -17,6 +17,7 @@ local LoadingTips = require(ReplicatedStorage.Shared.Config.LoadingTips)
 local NewEnemies = require(ReplicatedStorage.Shared.Config.NewEnemies)
 local SaveSchema = require(ReplicatedStorage.Shared.Util.SaveSchema)
 local TestRunner = require(script.Parent.TestRunner)
+local WeaponStats = require(ReplicatedStorage.Shared.Config.WeaponStats)
 
 local function has(pool: { LoadingPick.Entry }, name: string): boolean
 	for _, entry in pool do
@@ -137,6 +138,8 @@ return function(t: TestRunner.Helper)
 
 	t.test("a Legendary's description carries its effect", function()
 		local line = LoadingPick.describeWeapon("EmberFangBow")
-		t.isTrue(line:find("LEGENDARY") ~= nil and line:find("40%%") ~= nil, line)
+		-- the bonus is read off `WeaponStats`, so it follows the ladder (+75% since 2026-11-13)
+		local bonus = math.floor((WeaponStats.bonus :: any).Legendary * 100 + 0.5)
+		t.isTrue(line:find("LEGENDARY") ~= nil and line:find(`+{bonus}%`, 1, true) ~= nil, line)
 	end)
 end

@@ -7,9 +7,11 @@
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Classes = require(ReplicatedStorage.Shared.Config.Classes)
 local DeviceTiers = require(ReplicatedStorage.Shared.Config.DeviceTiers)
 local Economy = require(ReplicatedStorage.Shared.Config.Economy)
+local Lobby = require(ReplicatedStorage.Shared.Config.Lobby)
 local SaveSchema = require(ReplicatedStorage.Shared.Util.SaveSchema)
 local TestRunner = require(script.Parent.TestRunner)
 local TrailRules = require(ReplicatedStorage.Shared.Util.TrailRules)
@@ -101,6 +103,15 @@ return function(t: TestRunner.Helper)
 			end
 		end
 		t.isTrue(Trails.idle > 0 and Trails.idle < 1, "standing still leaves some, not all")
+	end)
+
+	t.test("only a dash throws a burst: walking, the exit rush and sprinting never do", function()
+		local walk = Balance.Player.moveSpeed
+		local fastest = walk * math.max(Balance.Player.exitRush, Lobby.sprint)
+		t.isTrue(Trails.burst.speed > fastest * 1.1, "a burst is above every run")
+		t.isTrue(Trails.burst.count > 0 and Trails.burst.gap > 0)
+		t.isTrue(Trails.core.width > 0 and Trails.core.width < 1, "the core is inside the ribbon")
+		t.isTrue(Trails.pulse.depth > 0 and Trails.pulse.depth < 1, "a pulse never goes dark")
 	end)
 
 	t.test("every device draws some of a trail's particles", function()

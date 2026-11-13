@@ -56,6 +56,8 @@ export type Trail = {
 	--[[ Glowing: the ribbon lights itself and a light rides with it. ]]
 	glow: boolean,
 	light: Color3?,
+	--[[ The ribbon's colours slide along it, slowly (the Mythic's). ]]
+	shimmer: boolean?,
 	emitters: { Emitter },
 	icon: string,
 }
@@ -100,6 +102,23 @@ local Trails = {
 	--[[ What standing still leaves of a trail's particles: a little, so a
 	     glowing trail still shines, not a heap at the player's feet. ]]
 	idle = 0.15,
+
+	--[[ The look that makes a trail more than a stripe (owner, 2026-11-13:
+	     "Make it very cool"), the same for every trail:
+	     - `core`: a narrower, brighter ribbon inside the ribbon, this share
+	       of its width, its colours this far towards white (a glowing
+	       trail's further), lingering `coreLife` as long.
+	     - `burst`: a dash (moving faster than `speed` studs a second) or
+	       putting the trail on throws `count` of its particles out all
+	       round, at most once in `gap` seconds.
+	     - `pulse`: a glowing trail's light breathes, `depth` either side,
+	       `rate` times a second.
+	     - `shimmerRate`: how many times a second a shimmering ribbon's
+	       colours slide one step along it. ]]
+	core = { width = 0.42, white = 0.3, whiteGlow = 0.6, life = 0.7 },
+	burst = { speed = 30, count = 16, gap = 0.5 },
+	pulse = { rate = 0.8, depth = 0.3 },
+	shimmerRate = 0.6,
 
 	--[[ Starfall's white cross, a particle (Codex's, `assets/ui/trails/star.png`). ]]
 	star = "rbxassetid://74384355268464",
@@ -456,6 +475,7 @@ local Trails = {
 			life = 0.9,
 			glow = true,
 			light = rgb(110, 158, 255),
+			shimmer = true,
 			emitters = {
 				{
 					texture = "Star",
@@ -477,6 +497,18 @@ local Trails = {
 					speed = 1,
 					lift = 0.4,
 					spin = 120,
+					glow = 1,
+				},
+				-- now and then a big star shoots off and falls
+				{
+					texture = "Star",
+					colours = { rgb(255, 246, 210), rgb(255, 214, 110) },
+					rate = 1.2,
+					life = 0.6,
+					size = 1.1,
+					speed = 9,
+					lift = -14,
+					spin = 0,
 					glow = 1,
 				},
 			},

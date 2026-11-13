@@ -2,10 +2,16 @@
 --[[
 	Every player's trail (`Config/Trails`), drawn on this client from the
 	Player's `Trail` attribute (`TrailRules.ATTRIBUTE`, set by the server):
-	a ribbon flat along the ground behind them and the trail's own square
-	particles, as Codex's sheets show (`assets/concepts/blocky/ui/trails/`).
-	A glowing one (every Legendary and the Mythic, rule 12) lights itself and
-	carries a light.
+	a ribbon flat along the ground behind them with a brighter core inside
+	it, and the trail's own square particles, as Codex's sheets show
+	(`assets/concepts/blocky/ui/trails/`). A glowing one (every Legendary
+	and the Mythic, rule 12) lights itself and carries a light that breathes.
+
+	What makes it more than a stripe (owner, 2026-11-13: "Make it very
+	cool"; the numbers are `Trails.core`, `burst`, `pulse`, `shimmerRate`):
+	a dash or putting the trail on throws a burst of its particles out all
+	round; glowing particles twinkle; a shimmering ribbon (Starfall) slides
+	its colours along itself.
 
 	Built here rather than on the server so each device draws its own share
 	of particles (`DeviceTiers.trailShare`) and no part is replicated. The
@@ -30,24 +36,54 @@ local MOVING = 1.5
      particles start, in studs. ]]
 local LIFT = 0.15
 local BEHIND = 0.6
+local WHITE = Color3.new(1, 1, 1)
 
 type Worn = {
+	trail: Trails.Trail,
 	root: BasePart,
 	folder: Folder,
+	ribbon: Trail,
+	core: Trail,
+	light: PointLight?,
 	emitters: { { emitter: ParticleEmitter, rate: number } },
+	bursts: { ParticleEmitter },
 	moving: boolean?,
+	lastBurst: number,
+	born: number,
 }
 
 local worn: { [Player]: Worn } = {}
 local stepping: RBXScriptConnection? = nil
 
-local function colours(list: { Color3 }): ColorSequence
+local function colours(list: { Color3 }, toward: number?): ColorSequence
+	local white = toward or 0
 	if #list == 1 then
-		return ColorSequence.new(list[1])
+		return ColorSequence.new(list[1]:Lerp(WHITE, white))
 	end
 	local points = {}
 	for i, colour in list do
-		table.insert(points, ColorSequenceKeypoint.new((i - 1) / (#list - 1), colour))
+		table.insert(
+			points,
+			ColorSequenceKeypoint.new((i - 1) / (#list - 1), colour:Lerp(WHITE, white))
+		)
+	end
+	return ColorSequence.new(points)
+end
+
+--[[ The ribbon's colours slid `phase` (0..1) of a step along it, wrapping
+     round, for a shimmering trail. ]]
+local function slid(list: { Color3 }, phase: number, toward: number): ColorSequence
+	local n = #list
+	if n < 2 then
+		return colours(list, toward)
+	end
+	local points = {}
+	for i = 0, 4 do
+		local at = i / 4
+		local x = (at * (n - 1) + phase * n) % n
+		local a = list[math.floor(x) % n + 1]
+		local b = list[(math.floor(x) + 1) % n + 1]
+		table.insert(points, ColorSequenceKeypoint.new(at, a:Lerp(b, x % 1):Lerp(WHITE, toward)))
 	end
 	return ColorSequence.new(points)
 end
@@ -67,19 +103,46 @@ local function clear(player: Player)
 	end
 end
 
+local function burst(w: Worn)
+	w.lastBurst = os.clock()
+	local each = math.max(1, math.round(Trails.burst.count / #w.bursts))
+	for _, emitter in w.bursts do
+		emitter:Emit(each)
+	end
+end
+
 local function step()
+	local now = os.clock()
 	for player, w in worn do
 		if not w.root.Parent then
 			clear(player)
 			continue
 		end
 		local v = w.root.AssemblyLinearVelocity
-		local moving = Vector3.new(v.X, 0, v.Z).Magnitude > MOVING
+		local speed = Vector3.new(v.X, 0, v.Z).Magnitude
+		local moving = speed > MOVING
 		if moving ~= w.moving then
 			w.moving = moving
 			for _, each in w.emitters do
 				each.emitter.Rate = if moving then each.rate else each.rate * Trails.idle
 			end
+		end
+		if speed > Trails.burst.speed and now - w.lastBurst > Trails.burst.gap then
+			burst(w)
+		end
+		local light = w.light
+		if light then
+			light.Brightness = 1.4
+				* (
+					1
+					+ Trails.pulse.depth
+						* math.sin((now - w.born) * Trails.pulse.rate * math.pi * 2)
+				)
+		end
+		if w.trail.shimmer then
+			local phase = ((now - w.born) * Trails.shimmerRate) % 1
+			w.ribbon.Color = slid(w.trail.ribbon, phase, 0)
+			w.core.Color = slid(w.trail.ribbon, phase, Trails.core.whiteGlow)
 		end
 	end
 	if next(worn) == nil and stepping then
@@ -88,11 +151,78 @@ local function step()
 	end
 end
 
---[[ Puts `key`'s trail on `character`, or nothing for nil or an unknown key. ]]
-local function wear(player: Player, character: Model, key: unknown)
-	clear(player)
+local function ribbonBetween(
+	root: BasePart,
+	folder: Folder,
+	name: string,
+	half: number,
+	height: number
+): (Trail, Attachment, Attachment)
+	local left = Instance.new("Attachment")
+	left.Name = name .. "Left"
+	left.Position = Vector3.new(-half, height, 0)
+	left.Parent = root
+	local right = Instance.new("Attachment")
+	right.Name = name .. "Right"
+	right.Position = Vector3.new(half, height, 0)
+	right.Parent = root
+	local ribbon = Instance.new("Trail")
+	ribbon.Name = name
+	ribbon.Attachment0 = left
+	ribbon.Attachment1 = right
+	ribbon.MinLength = 0.05
+	ribbon.FaceCamera = false
+	ribbon.Parent = folder
+	-- the attachments ride on the root; clearing the folder takes them too
+	folder.Destroying:Connect(function()
+		left:Destroy()
+		right:Destroy()
+	end)
+	return ribbon, left, right
+end
+
+local function emitterFor(look: Trails.Emitter): ParticleEmitter
+	local emitter = Instance.new("ParticleEmitter")
+	emitter.Texture = if look.texture == "Star" then Trails.star else PetAuras.square
+	emitter.Color = colours(look.colours)
+	emitter.LightEmission = look.glow
+	emitter.LightInfluence = 1 - look.glow
+	emitter.Lifetime = NumberRange.new(look.life * 0.7, look.life)
+	emitter.Speed = NumberRange.new(look.speed * 0.5, look.speed)
+	emitter.SpreadAngle = Vector2.new(70, 70)
+	emitter.EmissionDirection = Enum.NormalId.Top
+	emitter.Acceleration = Vector3.new(0, look.lift, 0)
+	emitter.Drag = 0.6
+	emitter.Rotation = NumberRange.new(0, 360)
+	emitter.RotSpeed = NumberRange.new(-look.spin, look.spin)
+	emitter.Size = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, look.size),
+		NumberSequenceKeypoint.new(1, look.size * 0.2),
+	})
+	-- a glowing particle twinkles on its way out; the rest just fade
+	emitter.Transparency = if look.glow >= 0.9
+		then NumberSequence.new({
+			NumberSequenceKeypoint.new(0, 0),
+			NumberSequenceKeypoint.new(0.2, 0.55),
+			NumberSequenceKeypoint.new(0.32, 0),
+			NumberSequenceKeypoint.new(0.5, 0.6),
+			NumberSequenceKeypoint.new(0.62, 0.05),
+			NumberSequenceKeypoint.new(1, 1),
+		})
+		else NumberSequence.new({
+			NumberSequenceKeypoint.new(0, 0),
+			NumberSequenceKeypoint.new(0.7, 0.2),
+			NumberSequenceKeypoint.new(1, 1),
+		})
+	return emitter
+end
+
+--[[ Puts `key`'s trail on `character`, or nothing for nil or an unknown
+     key; `fresh` (just put on, not a new character) throws a burst. ]]
+local function wear(player: Player, character: Model, key: unknown, fresh: boolean)
 	local trail = TrailRules.get(key)
 	if not trail then
+		clear(player)
 		return
 	end
 	local root = character:WaitForChild("HumanoidRootPart", 10) :: BasePart?
@@ -116,109 +246,118 @@ local function wear(player: Player, character: Model, key: unknown)
 	folder.Name = "PlayerTrail"
 
 	-- the ribbon: two points either side of the feet, so it lies flat
-	local left = Instance.new("Attachment")
-	left.Name = "TrailLeft"
-	left.Position = Vector3.new(-trail.width / 2, -down, 0)
-	left.Parent = root
-	local right = Instance.new("Attachment")
-	right.Name = "TrailRight"
-	right.Position = Vector3.new(trail.width / 2, -down, 0)
-	right.Parent = root
-	local ribbon = Instance.new("Trail")
-	ribbon.Name = "TrailRibbon"
-	ribbon.Attachment0 = left
-	ribbon.Attachment1 = right
+	local ribbon, left = ribbonBetween(root, folder, "TrailRibbon", trail.width / 2, -down)
 	ribbon.Color = colours(trail.ribbon)
 	ribbon.Lifetime = trail.life
-	ribbon.MinLength = 0.05
-	ribbon.FaceCamera = false
 	ribbon.LightEmission = if trail.glow then 1 else 0.25
 	ribbon.LightInfluence = if trail.glow then 0 else 0.6
 	ribbon.Transparency = NumberSequence.new({
-		NumberSequenceKeypoint.new(0, if trail.glow then 0.05 else 0.2),
-		NumberSequenceKeypoint.new(0.6, if trail.glow then 0.35 else 0.5),
+		NumberSequenceKeypoint.new(0, if trail.glow then 0.2 else 0.3),
+		NumberSequenceKeypoint.new(0.6, if trail.glow then 0.5 else 0.6),
 		NumberSequenceKeypoint.new(1, 1),
 	})
 	ribbon.WidthScale = NumberSequence.new({
 		NumberSequenceKeypoint.new(0, 1),
 		NumberSequenceKeypoint.new(1, 0.35),
 	})
-	ribbon.Parent = folder
 
+	-- its core: narrower, brighter, a hair above it so the two never fight
+	local white = if trail.glow then Trails.core.whiteGlow else Trails.core.white
+	local core =
+		ribbonBetween(root, folder, "TrailCore", trail.width * Trails.core.width / 2, -down + 0.03)
+	core.Color = colours(trail.ribbon, white)
+	core.Lifetime = trail.life * Trails.core.life
+	core.LightEmission = if trail.glow then 1 else 0.5
+	core.LightInfluence = if trail.glow then 0 else 0.4
+	core.Transparency = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, if trail.glow then 0 else 0.1),
+		NumberSequenceKeypoint.new(0.7, 0.45),
+		NumberSequenceKeypoint.new(1, 1),
+	})
+	core.WidthScale = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, 1),
+		NumberSequenceKeypoint.new(1, 0.2),
+	})
+
+	local light: PointLight? = nil
 	if trail.glow and trail.light then
-		local light = Instance.new("PointLight")
-		light.Name = "TrailLight"
-		light.Color = trail.light
-		light.Range = 9
-		light.Brightness = 1.4
-		light.Shadows = false
-		light.Parent = left
+		local made = Instance.new("PointLight")
+		made.Name = "TrailLight"
+		made.Color = trail.light
+		made.Range = 10
+		made.Brightness = 1.4
+		made.Shadows = false
+		made.Parent = left
+		light = made
 	end
 
-	-- the particles, from just behind the feet
+	-- the particles, from just behind the feet; and each one's burst,
+	-- which throws the same particles out all round, faster
 	local source = Instance.new("Attachment")
 	source.Name = "TrailParticles"
 	source.Position = Vector3.new(0, -down + 0.4, BEHIND)
 	source.Parent = root
+	folder.Destroying:Connect(function()
+		source:Destroy()
+	end)
 	local emitters = {}
+	local bursts = {}
 	for _, look in trail.emitters do
-		local emitter = Instance.new("ParticleEmitter")
-		emitter.Texture = if look.texture == "Star" then Trails.star else PetAuras.square
-		emitter.Color = colours(look.colours)
-		emitter.LightEmission = look.glow
-		emitter.LightInfluence = 1 - look.glow
-		emitter.Lifetime = NumberRange.new(look.life * 0.7, look.life)
-		emitter.Speed = NumberRange.new(look.speed * 0.5, look.speed)
-		emitter.SpreadAngle = Vector2.new(70, 70)
-		emitter.EmissionDirection = Enum.NormalId.Top
-		emitter.Acceleration = Vector3.new(0, look.lift, 0)
-		emitter.Drag = 0.6
-		emitter.Rotation = NumberRange.new(0, 360)
-		emitter.RotSpeed = NumberRange.new(-look.spin, look.spin)
-		emitter.Size = NumberSequence.new({
-			NumberSequenceKeypoint.new(0, look.size),
-			NumberSequenceKeypoint.new(1, look.size * 0.2),
-		})
-		emitter.Transparency = NumberSequence.new({
-			NumberSequenceKeypoint.new(0, 0),
-			NumberSequenceKeypoint.new(0.7, 0.2),
-			NumberSequenceKeypoint.new(1, 1),
-		})
+		local emitter = emitterFor(look)
 		local rate = look.rate * share
 		emitter.Rate = rate * Trails.idle
 		emitter.Parent = source
 		table.insert(emitters, { emitter = emitter, rate = rate })
+		local thrown = emitterFor(look)
+		thrown.Name = "TrailBurst"
+		thrown.Enabled = false
+		thrown.SpreadAngle = Vector2.new(180, 180)
+		thrown.Speed = NumberRange.new(math.max(look.speed, 2) * 2, math.max(look.speed, 2) * 4)
+		thrown.Parent = source
+		table.insert(bursts, thrown)
 	end
 
-	-- the attachments ride on the root; the folder holds the ribbon, and
-	-- clearing it takes them too
-	for _, part in { left, right, source } do
-		folder.Destroying:Connect(function()
-			part:Destroy()
-		end)
-	end
 	folder.Parent = root
-	worn[player] = { root = root, folder = folder, emitters = emitters }
+	local w: Worn = {
+		trail = trail,
+		root = root,
+		folder = folder,
+		ribbon = ribbon,
+		core = core,
+		light = light,
+		emitters = emitters,
+		bursts = bursts,
+		lastBurst = 0,
+		born = os.clock(),
+	}
+	worn[player] = w
+	if fresh then
+		burst(w)
+	end
 	if not stepping then
 		stepping = RunService.Heartbeat:Connect(step)
 	end
 end
 
 local function watch(player: Player)
-	local function refresh()
+	local function refresh(fresh: boolean)
 		local character = player.Character
 		if character then
-			task.spawn(wear, player, character, player:GetAttribute(TrailRules.ATTRIBUTE))
+			task.spawn(wear, player, character, player:GetAttribute(TrailRules.ATTRIBUTE), fresh)
 		else
 			clear(player)
 		end
 	end
-	player:GetAttributeChangedSignal(TrailRules.ATTRIBUTE):Connect(refresh)
-	player.CharacterAdded:Connect(refresh)
+	player:GetAttributeChangedSignal(TrailRules.ATTRIBUTE):Connect(function()
+		refresh(true)
+	end)
+	player.CharacterAdded:Connect(function()
+		refresh(false)
+	end)
 	player.CharacterRemoving:Connect(function()
 		clear(player)
 	end)
-	refresh()
+	refresh(false)
 end
 
 function PlayerTrails.start()

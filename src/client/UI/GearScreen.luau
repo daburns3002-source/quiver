@@ -904,6 +904,9 @@ local function draw(s: StationScreen.Screen)
 			local tile = Chunky.tile(holder, trail.rarity, trail.icon, nil, false, isWorn)
 			if owned then
 				Chunky.gleam(tile, i * 0.37)
+				if trail.glow then
+					Chunky.twinkle(tile)
+				end
 			else
 				local lock = Kit.image(tile, ShopAssets.lock)
 				lock.Position, lock.Size = UDim2.fromScale(0.6, 0.56), UDim2.fromScale(0.34, 0.34)

@@ -390,7 +390,24 @@ def nearest_region(centre, boxes):
     return min(boxes, key=lambda name: float(np.linalg.norm(np.maximum(0, np.maximum(boxes[name][0] - centre, centre - boxes[name][1])))))
 
 
-def fit_to_standard(meshes, plan, body_pattern, front):
+def hinted(name, centre):
+    """A body mesh's region from its name, when it says (`avatar_upperArm_L`):
+    a blocky body's arms touch its torso, so by place alone an arm's middle
+    can sit on the torso's edge. Right is +X here, the character's right."""
+    low = name.lower()
+    side = "Right" if centre[0] > 0 else "Left"
+    if re.search(r"arm|hand|wrist|elbow", low):
+        return side + "Arm"
+    if re.search(r"leg|thigh|shin|calf|knee|foot|feet", low):
+        return side + "Leg"
+    if re.search(r"head|face|eye|hair|mouth", low):
+        return "Head"
+    if re.search(r"torso|chest|waist|hip|belly|body", low):
+        return "Torso"
+    return None
+
+
+def fit_to_standard(meshes, plan, body_pattern, front, legs_to_middle=False):
     """Moves every armour mesh onto the standard body. Returns the armour
     meshes (body dropped) and a line of notes for the report."""
     body = [m for m in meshes if re.search(body_pattern, m["name"], re.I)]
@@ -421,9 +438,22 @@ def fit_to_standard(meshes, plan, body_pattern, front):
             a, b = p.min(0), p.max(0)
             if np.prod(b - a) < 0.05:  # an eye, a mouth
                 continue
-            name = nearest_region((a + b) / 2, plan.region)
+            name = hinted(mesh["name"], (a + b) / 2) or nearest_region((a + b) / 2, plan.region)
             old = made.get(name)
             made[name] = (a, b) if old is None else (np.minimum(old[0], a), np.maximum(old[1], b))
+    if legs_to_middle:
+        # a remade set's legs are drawn apart, its skirt and boots closed
+        # on the inner side in the gap: each leg's region runs to the
+        # body's middle, so that inner side lands at the standard leg's
+        # inner edge instead of past it, where the middle would cut it off
+        for name in ("RightLeg", "LeftLeg"):
+            if name in made:
+                leg_lo, leg_hi = made[name][0].copy(), made[name][1].copy()
+                if (leg_lo[0] + leg_hi[0]) > 0:
+                    leg_lo[0] = 0.0
+                else:
+                    leg_hi[0] = 0.0
+                made[name] = (leg_lo, leg_hi)
     missing = [name for name in REGIONS if name not in made]
     if missing:
         raise SystemExit(f"the body has no {missing}: found {sorted(made)}")
@@ -834,7 +864,7 @@ def main(argv):
     fronts = ["+z", "-z"]
     tries = []
     for front in fronts:
-        armour, fit = fit_to_standard(source, plan, flags["--body"], front)
+        armour, fit = fit_to_standard(source, plan, flags["--body"], front, flags["--regions"])
         # how far the armour's corners stand from the plan's blocks: the
         # plan has a back (a cloak, a drooping hat) and toes, so the
         # wrong way round fits worse

@@ -1,0 +1,614 @@
+{
+	"class": "X",
+	"units": "studs",
+	"front": "-Z",
+	"source": "warden_male_set.glb",
+	"fit": {
+		"scale": 3.325,
+		"body_meshes": [
+			"avatar_head",
+			"avatar_torso",
+			"avatar_waist",
+			"avatar_upper_arm_L",
+			"avatar_upper_arm_R",
+			"avatar_forearm_L",
+			"avatar_forearm_R",
+			"avatar_thigh_L",
+			"avatar_thigh_R",
+			"avatar_shin_L",
+			"avatar_shin_R",
+			"avatar_foot_L",
+			"avatar_foot_R"
+		],
+		"region_stretch": {
+			"Head": [
+				0.874,
+				0.991,
+				0.973
+			],
+			"Torso": [
+				0.937,
+				1.103,
+				1.083
+			],
+			"RightArm": [
+				1.261,
+				1.075,
+				1.295
+			],
+			"LeftArm": [
+				1.261,
+				1.075,
+				1.295
+			],
+			"RightLeg": [
+				1.014,
+				0.944,
+				1.261
+			],
+			"LeftLeg": [
+				1.014,
+				0.944,
+				1.261
+			]
+		},
+		"front": "+z",
+		"miss": 0.0005,
+		"miss_other_way": 0.0005
+	},
+	"triangles": 5994,
+	"colours": {
+		"#4B4E55": "#4B4E55",
+		"#D8812F": "#D8812F",
+		"#F2A552": "#F2A552",
+		"#6B3F22": "#6B3F22",
+		"#F2BB30": "#F2BB30",
+		"#C8231F": "#C8231F",
+		"#8E1514": "#8E1514",
+		"#A85A20": "#A85A20",
+		"#62832B": "#62832B",
+		"#4A6620": "#4A6620",
+		"#6A3A20": "#6A3A20",
+		"#34353A": "#34353A",
+		"#7A7E86": "#7A7E86"
+	},
+	"pieces": {
+		"Head": {
+			"part": "Head",
+			"size": [
+				1.5147,
+				2.7712,
+				1.6865
+			],
+			"at": [
+				0.0,
+				0.8565,
+				-0.0647
+			],
+			"triangles": 1374,
+			"open_edges": 0,
+			"glows": [],
+			"glow": [],
+			"plan_size": [
+				8.0,
+				6.182,
+				8.0
+			],
+			"from_plan": {
+				"min": [
+					3.243,
+					0.062,
+					3.092
+				],
+				"max": [
+					-3.243,
+					-3.349,
+					-3.221
+				]
+			},
+			"face_blocked": 0.0,
+			"face_clear": [
+				-0.44,
+				0.44,
+				-0.44,
+				0.3
+			]
+		},
+		"Chest": {
+			"part": "UpperTorso",
+			"size": [
+				4.6817,
+				1.9881,
+				1.5549
+			],
+			"at": [
+				0.0,
+				0.2293,
+				0.0
+			],
+			"triangles": 1526,
+			"open_edges": 0,
+			"glows": [],
+			"glow": [],
+			"plan_size": [
+				6.0,
+				3.049,
+				3.0
+			],
+			"from_plan": {
+				"min": [
+					0.659,
+					0.084,
+					0.823
+				],
+				"max": [
+					-0.659,
+					-0.977,
+					-0.623
+				]
+			}
+		},
+		"Back": {
+			"part": "UpperTorso",
+			"size": [
+				2.6218,
+				1.7649,
+				0.6525
+			],
+			"at": [
+				0.0,
+				-0.1024,
+				0.8283
+			],
+			"triangles": 504,
+			"open_edges": 0,
+			"glows": [],
+			"glow": [],
+			"plan_size": [
+				4.0,
+				4.349,
+				2.448
+			],
+			"from_plan": {
+				"min": [
+					0.689,
+					0.916,
+					-0.05
+				],
+				"max": [
+					-0.689,
+					-1.669,
+					-1.845
+				]
+			}
+		},
+		"Waist": {
+			"part": "LowerTorso",
+			"size": [
+				2.1232,
+				0.8113,
+				1.2287
+			],
+			"at": [
+				0.0,
+				-0.2394,
+				-0.036
+			],
+			"triangles": 94,
+			"open_edges": 0,
+			"glows": [],
+			"glow": [],
+			"plan_size": [
+				3.2,
+				1.5,
+				2.152
+			],
+			"from_plan": {
+				"min": [
+					0.538,
+					0.655,
+					0.95
+				],
+				"max": [
+					-0.538,
+					-0.034,
+					0.026
+				]
+			}
+		},
+		"RightUpperArm": {
+			"part": "RightUpperArm",
+			"size": [
+				1.4302,
+				1.0043,
+				1.5549
+			],
+			"at": [
+				0.1258,
+				0.1935,
+				0.0
+			],
+			"triangles": 474,
+			"open_edges": 0,
+			"glows": [],
+			"glow": [],
+			"plan_size": [
+				2.05,
+				1.242,
+				3.2
+			],
+			"from_plan": {
+				"min": [
+					-0.039,
+					0.312,
+					0.823
+				],
+				"max": [
+					-0.659,
+					0.075,
+					-0.823
+				]
+			}
+		},
+		"RightForearm": {
+			"part": "RightLowerArm",
+			"size": [
+				1.2626,
+				0.5764,
+				1.3827
+			],
+			"at": [
+				0.0419,
+				-0.1426,
+				-0.0
+			],
+			"triangles": 172,
+			"open_edges": 0,
+			"glows": [],
+			"glow": [],
+			"plan_size": [
+				2.05,
+				1.343,
+				3.2
+			],
+			"from_plan": {
+				"min": [
+					-0.039,
+					0.353,
+					0.909
+				],
+				"max": [
+					-0.827,
+					-0.413,
+					-0.909
+				]
+			}
+		},
+		"RightThigh": {
+			"part": "RightUpperLeg",
+			"size": [
+				1.0151,
+				0.6317,
+				1.3464
+			],
+			"at": [
+				0.1358,
+				0.0456,
+				-0.0
+			],
+			"triangles": 156,
+			"open_edges": 0,
+			"glows": [],
+			"glow": [],
+			"plan_size": [
+				3.0,
+				1.102,
+				3.2
+			],
+			"from_plan": {
+				"min": [
+					0.128,
+					0.411,
+					0.927
+				],
+				"max": [
+					-1.857,
+					-0.059,
+					-0.927
+				]
+			}
+		},
+		"RightShin": {
+			"part": "RightLowerLeg",
+			"size": [
+				1.0151,
+				1.0057,
+				1.3464
+			],
+			"at": [
+				0.1358,
+				-0.0521,
+				-0.0
+			],
+			"triangles": 378,
+			"open_edges": 0,
+			"glows": [],
+			"glow": [],
+			"plan_size": [
+				3.0,
+				1.301,
+				3.2
+			],
+			"from_plan": {
+				"min": [
+					0.128,
+					0.096,
+					0.927
+				],
+				"max": [
+					-1.857,
+					-0.2,
+					-0.927
+				]
+			}
+		},
+		"RightFoot": {
+			"part": "RightFoot",
+			"size": [
+				0.9477,
+				0.2501,
+				1.4302
+			],
+			"at": [
+				0.1021,
+				-0.031,
+				-0.1258
+			],
+			"triangles": 66,
+			"open_edges": 0,
+			"glows": [],
+			"glow": [],
+			"plan_size": [
+				3.0,
+				0.312,
+				3.2
+			],
+			"from_plan": {
+				"min": [
+					0.128,
+					-0.0,
+					0.759
+				],
+				"max": [
+					-1.924,
+					-0.062,
+					-1.011
+				]
+			}
+		},
+		"LeftUpperArm": {
+			"part": "LeftUpperArm",
+			"size": [
+				1.4302,
+				1.0043,
+				1.5549
+			],
+			"at": [
+				-0.1258,
+				0.1935,
+				0.0
+			],
+			"triangles": 480,
+			"open_edges": 0,
+			"glows": [],
+			"glow": [],
+			"plan_size": [
+				2.05,
+				1.242,
+				3.2
+			],
+			"from_plan": {
+				"min": [
+					0.659,
+					0.312,
+					0.823
+				],
+				"max": [
+					0.039,
+					0.075,
+					-0.823
+				]
+			}
+		},
+		"LeftForearm": {
+			"part": "LeftLowerArm",
+			"size": [
+				1.2626,
+				0.5764,
+				1.3827
+			],
+			"at": [
+				-0.0419,
+				-0.1426,
+				-0.0
+			],
+			"triangles": 172,
+			"open_edges": 0,
+			"glows": [],
+			"glow": [],
+			"plan_size": [
+				2.05,
+				1.343,
+				3.2
+			],
+			"from_plan": {
+				"min": [
+					0.827,
+					0.353,
+					0.909
+				],
+				"max": [
+					0.039,
+					-0.413,
+					-0.909
+				]
+			}
+		},
+		"LeftThigh": {
+			"part": "LeftUpperLeg",
+			"size": [
+				1.0151,
+				0.6317,
+				1.3464
+			],
+			"at": [
+				-0.1358,
+				0.0456,
+				-0.0
+			],
+			"triangles": 156,
+			"open_edges": 0,
+			"glows": [],
+			"glow": [],
+			"plan_size": [
+				3.0,
+				1.102,
+				3.2
+			],
+			"from_plan": {
+				"min": [
+					1.857,
+					0.411,
+					0.927
+				],
+				"max": [
+					-0.128,
+					-0.059,
+					-0.927
+				]
+			}
+		},
+		"LeftShin": {
+			"part": "LeftLowerLeg",
+			"size": [
+				1.0151,
+				1.0057,
+				1.3464
+			],
+			"at": [
+				-0.1358,
+				-0.0521,
+				-0.0
+			],
+			"triangles": 376,
+			"open_edges": 0,
+			"glows": [],
+			"glow": [],
+			"plan_size": [
+				3.0,
+				1.301,
+				3.2
+			],
+			"from_plan": {
+				"min": [
+					1.857,
+					0.096,
+					0.927
+				],
+				"max": [
+					-0.128,
+					-0.2,
+					-0.927
+				]
+			}
+		},
+		"LeftFoot": {
+			"part": "LeftFoot",
+			"size": [
+				0.9477,
+				0.2501,
+				1.4302
+			],
+			"at": [
+				-0.1021,
+				-0.031,
+				-0.1258
+			],
+			"triangles": 66,
+			"open_edges": 0,
+			"glows": [],
+			"glow": [],
+			"plan_size": [
+				3.0,
+				0.312,
+				3.2
+			],
+			"from_plan": {
+				"min": [
+					1.924,
+					-0.0,
+					0.759
+				],
+				"max": [
+					-0.128,
+					-0.062,
+					-1.011
+				]
+			}
+		}
+	},
+	"meshes": {
+		"helm": [
+			"Head"
+		],
+		"chest_breastplate": [
+			"Chest"
+		],
+		"back_cape": [
+			"Back"
+		],
+		"waist_belt": [
+			"Waist"
+		],
+		"upper_arm_pauldron_L": [
+			"Chest",
+			"LeftUpperArm"
+		],
+		"upper_arm_pauldron_R": [
+			"Chest",
+			"RightUpperArm"
+		],
+		"forearm_vambrace_L": [
+			"LeftForearm"
+		],
+		"forearm_vambrace_R": [
+			"RightForearm"
+		],
+		"thigh_guard_L": [
+			"LeftThigh"
+		],
+		"thigh_guard_R": [
+			"RightThigh"
+		],
+		"shin_greave_L": [
+			"LeftShin"
+		],
+		"shin_greave_R": [
+			"RightShin"
+		],
+		"foot_boot_L": [
+			"LeftFoot",
+			"LeftShin"
+		],
+		"foot_boot_R": [
+			"RightFoot",
+			"RightShin"
+		]
+	},
+	"notes": [
+		"upper_arm_pauldron_L: one solid cut between Chest, LeftUpperArm",
+		"upper_arm_pauldron_R: one solid cut between Chest, RightUpperArm",
+		"foot_boot_L: one solid cut between LeftShin, LeftFoot",
+		"foot_boot_R: one solid cut between RightShin, RightFoot"
+	]
+}

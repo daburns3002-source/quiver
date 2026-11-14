@@ -179,7 +179,10 @@ function DexBook.entries(book: string, profile: SaveSchema.Profile?): { Entry }
 		local tiers = if saved then saved.tiers.weapons else {}
 		for key, stats in WeaponStats.weapons do
 			local art = ShopAssets.weapons[key]
-			if art then
+			--[[ Not the golden weapons (`Config/ClassLevels`): a class's
+			     trophy belongs to no area, and an area's page is laid out
+			     for its own eighteen (`Dex.pageMost`). They show at Gear. ]]
+			if art and not stats.earned then
 				table.insert(ranked, {
 					rank = stats.area * 10 + (RANK[stats.rarity] or 9),
 					entry = {

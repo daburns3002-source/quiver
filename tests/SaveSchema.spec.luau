@@ -62,7 +62,7 @@ return function(t: TestRunner.Helper)
 
 	t.test("a new profile has beaten no level", function()
 		local p = SaveSchema.migrate(nil)
-		t.equal(SaveSchema.VERSION, 15)
+		t.equal(SaveSchema.VERSION, 16)
 		t.isNil((next(p.levelsBeaten)))
 	end)
 
@@ -388,6 +388,37 @@ return function(t: TestRunner.Helper)
 			t.equal(p.purchases.vipDay, 20400)
 			local again = SaveSchema.migrate(p)
 			t.equal(again.purchases.receipts[2], "p2", "a saved copy reads back the same")
+		end
+	)
+
+	t.test(
+		"version 16: an older profile's classes are all level 1; a stored one keeps its own",
+		function()
+			local old = SaveSchema.migrate({ version = 15, coins = 40 })
+			t.isNil((next(old.classLevels)), "no class is given a level it did not earn")
+			t.equal(old.coins, 40, "and nothing else is lost")
+			t.isNil((next(SaveSchema.migrate(nil).classLevels)))
+			local p = SaveSchema.migrate({
+				version = 16,
+				classLevels = {
+					Ranger = { level = 4, xp = 120 },
+					Arcanist = { level = 99, xp = 5 },
+					Warden = { level = 2.7, xp = 1e9 },
+					Wizard = { level = 3, xp = 0 },
+					Broken = "yes",
+				},
+			})
+			t.equal(p.classLevels.Ranger.level, 4)
+			t.equal(p.classLevels.Ranger.xp, 120)
+			t.equal(p.classLevels.Arcanist.level, 10, "never past the top")
+			t.equal(p.classLevels.Arcanist.xp, 0)
+			t.equal(p.classLevels.Warden.level, 2)
+			t.equal(p.classLevels.Warden.xp, 149, "XP stops short of the next level")
+			t.isNil(p.classLevels.Wizard, "only the classes that level")
+			t.isNil(p.classLevels.Broken)
+			local again = SaveSchema.migrate(p)
+			t.equal(again.classLevels.Ranger.level, 4, "a saved copy reads back the same")
+			t.equal(again.classLevels.Ranger.xp, 120)
 		end
 	)
 end

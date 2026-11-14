@@ -30,6 +30,14 @@ export type Stats = {
 	innate: { [string]: number }?,
 	--[[ What that effect says, for a card or a menu. ]]
 	effect: string?,
+	--[[ Earned, never sold and never rolled from a crate (`Util/ShopRules`):
+	     the golden weapons, a class's level 10 (`Config/ClassLevels`), and
+	     any weapon only Endless gives once one is built. There is only ever
+	     one copy, so it has no merge tier (owner, 2026-11-14: "for weapons
+	     with no duplicates such as these and the weapons that you get for
+	     endless, there should not be a merge tier"): no badge, no MERGE, no
+	     tier in its damage (`ShopRules.merges`). ]]
+	earned: boolean?,
 }
 
 local WeaponStats = {
@@ -74,6 +82,33 @@ local WeaponStats = {
 		TwigBow = { rarity = "Common", area = 1 },
 		BranchStaff = { rarity = "Common", area = 1 },
 		TimberBlade = { rarity = "Common", area = 1 },
+
+		--[[ The golden weapons (owner, 2026-11-14): a class's level 10
+		     (`Config/ClassLevels`). Legendary strength with a gold glow,
+		     `earned` only. Area 1's scale, the area a class is levelled
+		     from; each carries the one Legendary card of its class that no
+		     other weapon does. ]]
+		GoldenBow = {
+			rarity = "Legendary",
+			area = 1,
+			earned = true,
+			innate = { Multishot = 1 },
+			effect = "Golden volley: a second arrow follows every shot.",
+		},
+		GoldenStaff = {
+			rarity = "Legendary",
+			area = 1,
+			earned = true,
+			innate = { TrackingEye = 1 },
+			effect = "Golden sight: every orb curves toward the nearest enemy.",
+		},
+		GoldenBlade = {
+			rarity = "Legendary",
+			area = 1,
+			earned = true,
+			innate = { BattleCry = 1 },
+			effect = "Golden cry: each kill quickens your swings.",
+		},
 
 		-- Area 1, the Mossy Glade's skins (docs/PETS-FOREST.md).
 		AcornBow = { rarity = "Uncommon", area = 1 },

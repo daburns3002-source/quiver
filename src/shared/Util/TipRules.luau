@@ -110,7 +110,8 @@ function TipRules.place(w: number, h: number, insetY: number, arena: Box?): Plac
 	if room >= layout.sideMin then
 		local width = math.min(layout.sideMax, room)
 		local height = math.min(layout.sideHeight, h - top - g)
-		local x = if right >= left
+		-- the right one unless the left is clearly wider: MENU is on the left edge
+		local x = if right + layout.gutter >= left
 			then arena.x + arena.w + (right - width) / 2
 			else (left - width) / 2
 		local y = top + (h - top - g - height) / 2

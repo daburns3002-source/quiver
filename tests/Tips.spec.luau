@@ -171,6 +171,14 @@ return function(t: TestRunner.Helper)
 		end
 	end)
 
+	t.test("with the margins alike a tip takes the right one, away from MENU", function()
+		local arena = { x = 600, y = 0, w = 720, h = 1080 }
+		local placed = TipRules.place(1920, 1080, 58, arena)
+		t.isTrue(placed.box.x >= arena.x + arena.w, "on the left, over MENU")
+		local leftWide = TipRules.place(1920, 1080, 58, { x = 900, y = 0, w = 720, h = 1080 })
+		t.isTrue(leftWide.box.x + leftWide.box.w <= 900, "the left margin, clearly wider, is taken")
+	end)
+
 	t.test("with no margin wide enough a tip is still whole on the screen", function()
 		local placed = TipRules.place(390, 844, 47, { x = 0, y = 100, w = 390, h = 700 })
 		inside(placed.box, 390, 844, "an arena filling the screen")

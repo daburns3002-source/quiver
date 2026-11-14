@@ -73,6 +73,8 @@ local DISPLAY_ORDER = 205
 --[[ The OK button's size on the card, in points: a thumb's 48 tall. ]]
 local OK_WIDTH = 150
 local OK_HEIGHT = 48
+--[[ Seconds after a tip closes that its key press is still its own. ]]
+local KEY_GRACE = 0.3
 
 --[[ Screens that own the whole view while they exist in PlayerGui. ]]
 local COVERS = { "IntroCutscene", "StoryCutscene", "StoryBeat", "AreaLoading" }
@@ -85,6 +87,8 @@ local shown: { [string]: boolean } = {}
 type Waiting = { key: string, asked: number }
 local queue: { Waiting } = {}
 local current: GuiObject? = nil
+-- when the last tip was closed, for `takesKeys`
+local closedAt = -math.huge
 local nextAt = 0
 local gui: ScreenGui? = nil
 
@@ -168,7 +172,8 @@ local function close(item: GuiObject)
 		return
 	end
 	current = nil
-	nextAt = os.clock() + Tips.gap
+	closedAt = os.clock()
+	nextAt = closedAt + Tips.gap
 	RunPaused.setTip(false)
 	MusicFx.setTip(false)
 	Remotes.event(Remotes.TipClosed):FireServer()
@@ -286,6 +291,15 @@ local function pump()
 	shown[waiting.key] = true
 	draw(waiting.key)
 	Remotes.event(Remotes.TipSeen):FireServer(waiting.key)
+end
+
+--[[ Whether Return, Enter or A belongs to a tip: one is up, or one closed
+     a moment ago on that very press. A screen under a tip that also answers
+     those keys (NEW ENEMY!'s GOT IT!, the portal's START, the draft's
+     CHOOSE on A) asks this first, so one press closes the tip and nothing
+     else. ]]
+function FirstTips.takesKeys(): boolean
+	return current ~= nil or os.clock() - closedAt < KEY_GRACE
 end
 
 --[[ Asks for tip `key`: shown once ever, when the screen is free. ]]

@@ -679,6 +679,7 @@ function PortalScreen.start()
 			close()
 		elseif
 			not processed
+			and not FirstTips.takesKeys()
 			and (input.KeyCode == Enum.KeyCode.Return or input.KeyCode == Enum.KeyCode.KeypadEnter)
 		then
 			start()

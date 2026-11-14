@@ -126,6 +126,7 @@
 
 local ClassLevelRules = require(script.Parent.ClassLevelRules)
 local MergeRules = require(script.Parent.MergeRules)
+local RunBonus = require(script.Parent.RunBonus)
 local SettingsRules = require(script.Parent.SettingsRules)
 local StoreRules = require(script.Parent.StoreRules)
 
@@ -237,10 +238,6 @@ SaveSchema.LOOKS = { "male", "female" }
      A pet in the third without the pass is kept and simply not taken into
      a run. ]]
 SaveSchema.PET_SLOTS = 3
---[[ The longest win streak kept (`Util/RunBonus.LONGEST`, which a spec
-     holds this to: that module reads the rewards' config, which this one
-     must not). ]]
-local LONGEST_STREAK = 999
 --[[ The steps a goal has (`Config/Goals`: bronze, silver, gold). ]]
 local GOAL_STEPS = 3
 --[[ The slots a save before version 15 could hold. ]]
@@ -487,7 +484,7 @@ function SaveSchema.migrate(raw: unknown): Profile
 	end
 	--[[ 18 -> 19: nobody had a streak; a stored one is a whole number, no
 	     longer than the longest kept. ]]
-	profile.winStreak = math.min(count(data.winStreak), LONGEST_STREAK)
+	profile.winStreak = math.min(count(data.winStreak), RunBonus.LONGEST)
 	return profile
 end
 

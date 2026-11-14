@@ -432,11 +432,13 @@ end
 
 --[[ A first-time tip has been on screen (`Remotes.TipSeen`): kept once,
      only for a tip (`Util/TipRules.mark`), so it never shows again. ]]
-function Wallet.sawTip(player: Player, key: unknown)
+function Wallet.sawTip(player: Player, key: unknown): boolean
 	local profile = PlayerData.get(player)
 	if profile and TipRules.mark(profile.tipsSeen, key) then
 		changed(player, profile)
+		return true
 	end
+	return false
 end
 
 --[[ An area's boss is beaten: its item, and gems (more the first time).

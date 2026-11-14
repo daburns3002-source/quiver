@@ -634,8 +634,10 @@ the next run or the lobby; a saved level 10 without its weapon is given it on jo
 and beside the end screens' panel (under it on an upright screen, `EndScreenRules.levelPlate`), where the
 run's XP fills the bar and each level reached pops with its gift, as a LEVEL chip on each class at class
 select and on Gear's CLASSES tab, and a golden weapon earned opens its own card over Victory or Defeat.
-The models are Tripo's from Codex front views; the bow's string was rebuilt as a straight gold bar
-(`assets/models/weapons/blocky/golden/fix_glb.py`; owner: "the string on the tripo model is trash").
+The models are Tripo's from Codex front views (`assets/models/weapons/blocky/golden/`): the staff and
+blade at 2,000 triangles and 2K; the bow made again from a picture with a thick gold bar for a string
+(owner: "the string on the tripo model is trash"), at 4,000 triangles with an 8K texture whose stray
+colours `clean_bow_texture.py` repaints gold ("there are random colors on it").
 
 **The Robux store** (owner, 2026-11-13: "Yes, build them"; `Config/RobuxStore`, `Util/StoreRules`,
 `Server/Data/Purchases`, `Server/Data/Passes`, `UI/RobuxStore`, `UI/RobuxOffer`, `docs/ROBUX-STORE.md`):

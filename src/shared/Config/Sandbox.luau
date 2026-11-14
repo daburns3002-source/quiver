@@ -44,14 +44,35 @@ local Sandbox = {
 	     Glade for the playtest (owner, 2026-10-28: "the mossy glade areas
 	     and thornwood areas are unlocked"), because a level only opens once
 	     the one before it is beaten (`LevelUnlocks.isUnlocked`) — 1-10 alone
-	     left 1-2..1-9 shut. Thornwood's single level is open from the start
-	     whatever is beaten; its boss is in `bosses` so what that gates can
+	     left 1-2..1-9 shut. Thornwood's levels are all beaten too; its boss is in `bosses` so what that gates can
 	     be tried too. ]]
 	testUnlock = {
 		coins = 50000,
 		gems = 2000,
 		bosses = { "MossyGlade", "Thornwood" },
-		levels = { "1-1", "1-2", "1-3", "1-4", "1-5", "1-6", "1-7", "1-8", "1-9", "1-10" },
+		--[[ Thornwood's ten too, since it became 2-1..2-10 (2026-11-13). ]]
+		levels = {
+			"1-1",
+			"1-2",
+			"1-3",
+			"1-4",
+			"1-5",
+			"1-6",
+			"1-7",
+			"1-8",
+			"1-9",
+			"1-10",
+			"2-1",
+			"2-2",
+			"2-3",
+			"2-4",
+			"2-5",
+			"2-6",
+			"2-7",
+			"2-8",
+			"2-9",
+			"2-10",
+		},
 	} :: {
 		coins: number,
 		gems: number,

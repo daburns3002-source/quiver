@@ -10,6 +10,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Economy = require(ReplicatedStorage.Shared.Config.Economy)
 local EggRules = require(ReplicatedStorage.Shared.Util.EggRules)
+local Eggs = require(ReplicatedStorage.Shared.Config.Eggs)
 local EndScreenTheme = require(ReplicatedStorage.Shared.Config.EndScreenTheme)
 local GearAssets = require(ReplicatedStorage.Shared.Config.GearAssets)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
@@ -36,14 +37,19 @@ return function(t: TestRunner.Helper)
 	end)
 
 	--[[ A first clear is saved by the stage's `level`; a stage without one
-	     (Thornwood, until it is given one) has no first clear to pay. ]]
-	t.test("every campaign level with a level to save pays a first-clear egg", function()
+	     has no first clear to pay. An area with no egg of its own yet (the
+	     Drowned Village, whose pets are not made, 2026-11-13) pays none. ]]
+	t.test("every campaign level with a level to save pays its area's egg", function()
+		local hasEgg: { [string]: boolean } = {}
+		for _, egg in Eggs.list do
+			hasEgg[egg.area] = true
+		end
 		local levelled = 0
 		for _, index in Balance.campaign do
 			local stage = Balance.Stages[index]
-			if stage.level then
+			if stage.level and stage.area and hasEgg[stage.area] then
 				levelled += 1
-				local pay = stage.area and Economy.areas[stage.area]
+				local pay = Economy.areas[stage.area]
 				t.notNil(pay and pay.firstClearEgg, `stage {index}'s area gives an egg`)
 			end
 		end

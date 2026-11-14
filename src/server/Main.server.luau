@@ -48,6 +48,7 @@ local LobbyConfig = require(ReplicatedStorage.Shared.Config.Lobby)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
 local MeleeSystem = require(script.Parent.Combat.MeleeSystem)
 local Party = require(script.Parent.Run.Party)
+local Passes = require(script.Parent.Data.Passes)
 local PetCombat = require(script.Parent.Combat.PetCombat)
 local PetCombatConfig = require(ReplicatedStorage.Shared.Config.PetCombat)
 local PetPreview = require(script.Parent.Dev.PetPreview)
@@ -55,6 +56,7 @@ local PlayPortal = require(ReplicatedStorage.Shared.Util.PlayPortal)
 local PlayerData = require(script.Parent.Data.PlayerData)
 local PlayerSettings = require(script.Parent.Data.Settings)
 local ProjectileSystem = require(script.Parent.Combat.ProjectileSystem)
+local Purchases = require(script.Parent.Data.Purchases)
 local Remotes = require(game:GetService("ReplicatedStorage").Shared.Net.Remotes)
 local Rewards = require(script.Parent.Data.Rewards)
 local RoomController = require(script.Parent.Run.RoomController)
@@ -88,6 +90,16 @@ SoulstoneShop.start()
 PlayerSettings.start()
 Rewards.start()
 TrailsServer.start()
+--[[ Robux: passes checked as players join, receipts granted once
+     (`Config/RobuxStore`). The revive is the run's to apply. ]]
+Passes.start()
+Purchases.revive = {
+	can = RoomController.canRevive,
+	apply = RoomController.revive,
+	hold = RoomController.holdForRevive,
+	release = RoomController.releaseRevive,
+}
+Purchases.start()
 --[[ The pets' models, for every player's pets at heel (`Fx/PetPreview`). ]]
 task.spawn(PetPreview.build)
 

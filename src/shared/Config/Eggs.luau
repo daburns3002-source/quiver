@@ -72,9 +72,11 @@ local Eggs = {
 	--[[ How many eggs one press can hatch: HATCH 1 and HATCH 3. ]]
 	counts = { 1, 3 },
 
-	--[[ Pets a player can take into a run at once (the gear screen's PET 1
-	     and PET 2), and the Player attributes the server sets for them. ]]
-	slots = { "Pet", "Pet2" },
+	--[[ Pets a player can take into a run at once (the gear screen's PET 1,
+	     PET 2 and, with the Extra Pet Slot pass, PET 3), and the Player
+	     attributes the server sets for them; the third stays empty without
+	     the pass (`Data/Hatchery.apply`, `Util/StoreRules.petSlots`). ]]
+	slots = { "Pet", "Pet2", "Pet3" },
 }
 
 return table.freeze(Eggs)

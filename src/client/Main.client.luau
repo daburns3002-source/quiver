@@ -80,6 +80,8 @@ local Remotes = require(Shared.Net.Remotes)
 local Reveal = require(script.Parent.UI.Reveal)
 local ReviveFx = require(script.Parent.Fx.ReviveFx)
 local RewardsScreen = require(script.Parent.UI.RewardsScreen)
+local RobuxOffer = require(script.Parent.UI.RobuxOffer)
+local RobuxStore = require(script.Parent.UI.RobuxStore)
 local RoomPreload = require(script.Parent.Fx.RoomPreload)
 local RoomSign = require(script.Parent.UI.RoomSign)
 local RootHoldFx = require(script.Parent.Fx.RootHoldFx)
@@ -289,11 +291,16 @@ DashBar.start()
 --[[ Leaving Victory plays the story beat the win owes first (`UI/StoryBeat`). ]]
 EndScreen.start(function()
 	StoryBeat.after(function()
-		Remotes.event(Remotes.RunRestart):FireServer()
+		-- the starter pack's one offer, after the first 1-1 clear
+		RobuxOffer.after(function()
+			Remotes.event(Remotes.RunRestart):FireServer()
+		end)
 	end)
 end, function()
 	StoryBeat.after(function()
-		Remotes.event(Remotes.RunLobby):FireServer()
+		RobuxOffer.after(function()
+			Remotes.event(Remotes.RunLobby):FireServer()
+		end)
 	end)
 end)
 RunBanner.start()
@@ -346,6 +353,8 @@ NewEnemyScreen.start()
 EndlessCheckpoint.start()
 EndlessPrize.start()
 SoulstoneShop.start()
+RobuxStore.start()
+RobuxOffer.start()
 SettingsScreen.start()
 TutorialPrompts.start()
 TutorialSkip.start()
@@ -498,6 +507,7 @@ Remotes.event(Remotes.RunStateChanged).OnClientEvent
 		TutorialSkip.onRunStateChanged(state)
 		ControlMenu.onRunStateChanged(index, total, state)
 		EndlessPrize.onRunStateChanged(state)
+		RobuxOffer.onRunStateChanged(state)
 
 		--[[ The end screen belongs to the run that ended, so it clears the
 		     moment the next one starts fighting. ]]
@@ -513,7 +523,12 @@ Remotes.event(Remotes.RunStateChanged).OnClientEvent
 
 Remotes.event(Remotes.RunSummary).OnClientEvent:Connect(function(summary)
 	StoryBeat.owe(summary.story)
+	RobuxOffer.owe(summary.starter)
 	EndScreen.show(summary)
+	--[[ DEFEAT's revive, once the screen has landed (`Config/RobuxStore`). ]]
+	if not summary.won and summary.revive then
+		task.delay(1.2, RobuxOffer.revive, summary.revive)
+	end
 end)
 
 --[[ Prediction inputs only — move speed and dash cooldown. Nothing that

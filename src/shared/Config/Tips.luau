@@ -64,6 +64,10 @@ Tips.tips = {
 	SoulstoneShop = {
 		text = "Soulstones come from Endless runs. Spend them here on eggs and crates.",
 	},
+	-- the Robux store (`UI/RobuxStore`), opened by the + on the gem pill
+	Store = {
+		text = "Gems, passes and packs for Robux. Gems are also *earned by playing*.",
+	},
 	-- the class select screen (`UI/ClassScreen`), while it is up
 	ClassSelect = {
 		text = "Each class *fights its own way*. Tap a card, pick [BOY] or [GIRL], then [CHOOSE].",

@@ -88,14 +88,24 @@
 	its beaten bosses earned are given on its next join
 	(`Wallet.settleTrails`). Nobody's class was written beside a floor
 	before, so every class counts from 0: nothing is invented.
+
+	Version 15 (2026-11-13, the Robux store -- `Config/RobuxStore`):
+	`purchases`, the receipt ids already granted (newest last, so a receipt
+	Roblox retries is never granted twice), whether the starter pack has
+	been bought and offered, revives bought and not yet used, and the last
+	day VIP's gems were paid (`Util/StoreRules`). And a third pet slot, the
+	Extra Pet Slot pass's: `equippedPets[3]` is read from version 15 on. An
+	older profile has bought nothing, been offered nothing and holds two
+	slots, which is all an older game had.
 ]]
 
 local MergeRules = require(script.Parent.MergeRules)
 local SettingsRules = require(script.Parent.SettingsRules)
+local StoreRules = require(script.Parent.StoreRules)
 
 local SaveSchema = {}
 
-SaveSchema.VERSION = 14
+SaveSchema.VERSION = 15
 
 --[[ The classes' own weapons, owned from the start. ]]
 local STARTERS = { "TwigBow", "BranchStaff", "TimberBlade" }
@@ -113,7 +123,8 @@ export type Profile = {
 	levelsBeaten: { [string]: boolean },
 	--[[ Pets hatched, by `Config/Pets` key, and how many of each. ]]
 	pets: { [string]: number },
-	--[[ The pets in runs, by slot (1 and 2); a slot may be empty. ]]
+	--[[ The pets in runs, by slot (1 to 3, the third the Extra Pet Slot
+	     pass's); a slot may be empty. ]]
 	equippedPets: { [number]: string },
 	--[[ The model picked on the class select screen, nil until chosen. ]]
 	look: string?,
@@ -157,6 +168,8 @@ export type Profile = {
 	equippedTrail: string?,
 	--[[ The deepest Endless floor reached as each class (version 14). ]]
 	endlessClassBest: { [string]: number },
+	--[[ What Robux bought and what is still owed of it (version 15). ]]
+	purchases: StoreRules.Purchases,
 }
 
 export type RewardState = {
@@ -176,8 +189,13 @@ export type RewardState = {
 --[[ The looks the class select screen offers. ]]
 SaveSchema.LOOKS = { "male", "female" }
 
---[[ Pets a player can take into a run (`Config/Eggs.slots`). ]]
-SaveSchema.PET_SLOTS = 2
+--[[ Pet slots a save can hold (`Config/Eggs.slots`): two for everyone, the
+     third open with the Extra Pet Slot pass (`Util/StoreRules.petSlots`).
+     A pet in the third without the pass is kept and simply not taken into
+     a run. ]]
+SaveSchema.PET_SLOTS = 3
+--[[ The slots a save before version 15 could hold. ]]
+local OLD_PET_SLOTS = 2
 
 --[[ What the Endless currency is called on screen (owner, 2026-10-27:
      "Soulstones"), in caps as the HUD draws the others. Every screen that
@@ -226,6 +244,7 @@ function SaveSchema.default(): Profile
 		trails = {},
 		equippedTrail = nil,
 		endlessClassBest = {},
+		purchases = StoreRules.empty(),
 	}
 end
 
@@ -298,7 +317,8 @@ function SaveSchema.migrate(raw: unknown): Profile
 	end
 	profile.pets = counts(data.pets)
 	if type(data.equippedPets) == "table" then
-		for slot = 1, SaveSchema.PET_SLOTS do
+		local slots = if version >= 15 then SaveSchema.PET_SLOTS else OLD_PET_SLOTS
+		for slot = 1, slots do
 			local pet = data.equippedPets[slot]
 			if type(pet) == "string" and profile.pets[pet] then
 				profile.equippedPets[slot] = pet
@@ -394,6 +414,10 @@ function SaveSchema.migrate(raw: unknown): Profile
 		profile.equippedTrail = data.equippedTrail
 	end
 	profile.endlessClassBest = counts(data.endlessClassBest)
+	--[[ 14 -> 15: nothing was ever bought, so an older profile has no
+	     receipts, no starter pack, no revive held; a stored copy is read
+	     field by field (`StoreRules.read`). ]]
+	profile.purchases = StoreRules.read(data.purchases)
 	return profile
 end
 

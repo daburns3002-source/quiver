@@ -144,16 +144,20 @@ local function load(player: Player)
 end
 
 --[[ Writes the profile over the record this server holds; `release`
-     lets the lock go (the player left, the server is closing). ]]
-local function save(player: Player, release: boolean)
+     lets the lock go (the player left, the server is closing). Returns
+     whether the record now holds this profile. ]]
+local function save(player: Player, release: boolean): boolean
 	local entry = entries[player]
 	local current = store
 	if not entry or not entry.saving or not current then
-		return
+		return false
 	end
 	local profile = entry.profile
+	local written = false
 	local ok, problem = pcall(function()
 		current:UpdateAsync(key(player), function(old: any): any
+			-- the transform can run more than once; only its last answer stands
+			written = false
 			local lock = old and old.lock
 			if lock and lock.job ~= jobId and os.time() - (lock.time or 0) < LOCK_STALE then
 				return nil -- another server took it: never write over it
@@ -165,13 +169,38 @@ local function save(player: Player, release: boolean)
 				profile = profile,
 				lock = if release then nil else { job = jobId, time = os.time() },
 			}
+			written = true
 			return record
 		end)
 	end)
 	if not ok then
 		entry.dirty = true -- tried again on the next pass
 		log.warn("save of %s failed: %s", player.Name, tostring(problem))
+		return false
 	end
+	return written
+end
+
+--[[ Saves now and says whether the record holds the profile: what a Robux
+     receipt waits on before it is called granted (`Data/Purchases`). A
+     profile that is not saved at all (Studio without DataStores, a newer
+     game's record) says false, and the caller decides. ]]
+function PlayerData.saveNow(player: Player): boolean
+	local entry = entries[player]
+	if not entry then
+		return false
+	end
+	local ok = save(player, false)
+	if ok then
+		entry.dirty = false
+	end
+	return ok
+end
+
+--[[ Whether this player's profile is written to a DataStore at all. ]]
+function PlayerData.saves(player: Player): boolean
+	local entry = entries[player]
+	return entry ~= nil and entry.saving and store ~= nil
 end
 
 --[[ The player's profile, or nil until it has loaded. Read-only: change it

@@ -13,6 +13,8 @@
 	PLAY asks the server (`Remotes.LobbyPlay`), which picks the portal
 	(`Util/PlayPortal`) and walks the player into its mouth; its screen then
 	opens as any portal's does, and START is still checked there.
+
+	The green + beside the gem pill opens the STORE (`UI/RobuxStore`).
 ]]
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -22,6 +24,7 @@ local Chunky = require(script.Parent.Chunky)
 local Config = require(ReplicatedStorage.Shared.Config.LobbyHud)
 local PortalScreen = require(script.Parent.PortalScreen)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
+local RobuxStore = require(script.Parent.RobuxStore)
 local SaveSchema = require(ReplicatedStorage.Shared.Util.SaveSchema)
 local StationScreen = require(script.Parent.StationScreen)
 
@@ -77,7 +80,8 @@ function LobbyHud.start()
 	end
 	--[[ The pills: top right on a touch layout (the run HUD's MENU keeps the
 	     left), top left on a wide one, where Roblox's player list has the
-	     right and the station screens' own wallet stands. ]]
+	     right and the station screens' own wallet stands. The STORE's + sits
+	     just past the gem pill, inside the same corner. ]]
 	local function drawWallet()
 		wallet:ClearAllChildren()
 		local sheet = sheetOn(wallet)
@@ -85,9 +89,22 @@ function LobbyHud.start()
 		local h = (
 			if touch then Config.pillHeight else math.clamp(gui.AbsoluteSize.Y * 0.055, 44, 60)
 		) * k
-		local x = if touch then sheet.w - g * k - h * 6.4 else g * k
+		local x = if touch then sheet.w - g * k - h * 7.5 else g * k
 		local p = profile
 		Chunky.wallet(sheet, if p then p.coins else 0, if p then p.gems else 0, x, g * k / 2, h)
+		local plus = Chunky.button(
+			sheet,
+			"+",
+			Chunky.green,
+			x + h * 6.5,
+			g * k / 2 + h * 0.04,
+			h * 0.96,
+			h * 0.92,
+			function()
+				RobuxStore.open("GEMS")
+			end
+		)
+		plus.Name = "StorePlus"
 	end
 	local function draw()
 		drawn = gui.AbsoluteSize

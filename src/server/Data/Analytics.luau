@@ -30,6 +30,13 @@
 	  milestone's or the Soulstone shop's).
 	- **Area unlocks**: custom "AreaUnlock" as a boss falls the first time,
 	  how many bosses are now beaten as its value; field: the area.
+	- **Robux purchases** (`Data/Purchases`, `Data/Passes`): custom
+	  "Purchase", the price in Robux as its value; fields: what was bought
+	  (`Config/RobuxStore` key), "Product" or "Pass", and where it was
+	  offered (Store, Defeat, Starter, GearSlot). Sent once a receipt is
+	  granted or a pass is bought, never on a prompt. A revive reopens the
+	  run its DEFEAT closed (`runRevived`), so the run's real end is still
+	  logged.
 
 	In Studio each event is also written to the log ("[Analytics] ..."), so
 	a playtest can see what would be sent; Roblox records nothing from
@@ -184,6 +191,9 @@ type Run = {
 	place: string,
 }
 local runs: { [Player]: Run } = {}
+--[[ The run a death closed, kept until the next run starts, in case a
+     revive brings it back (`runRevived`). ]]
+local fallen: { [Player]: Run } = {}
 
 --[[ A run of stage `index` starts for `player`, playing `class`. ]]
 function Analytics.runStarted(player: Player, index: number, class: string?)
@@ -191,6 +201,7 @@ function Analytics.runStarted(player: Player, index: number, class: string?)
 	if not stage then
 		return
 	end
+	fallen[player] = nil
 	runs[player] = {
 		stage = stage,
 		index = index,
@@ -221,6 +232,11 @@ function Analytics.runEnded(player: Player, outcome: string)
 		return
 	end
 	runs[player] = nil
+	if outcome == "Died" then
+		fallen[player] = run
+	else
+		fallen[player] = nil
+	end
 	local path, level, name = Analytics.progression(run.stage, run.index, run.reached)
 	local method = if outcome == "Won"
 		then "LogProgressionCompleteEvent"
@@ -272,12 +288,35 @@ function Analytics.areaUnlocked(player: Player, area: string, beaten: number)
 	send("LogCustomEvent", player, "AreaUnlock", beaten, Analytics.fields(area))
 end
 
+--[[ A revive (`Data/Purchases`) puts `player` back into the run a death
+     ended: it is open again, so how it really ends is logged too. ]]
+function Analytics.runRevived(player: Player)
+	local run = fallen[player]
+	if run and not runs[player] then
+		runs[player] = run
+	end
+	fallen[player] = nil
+end
+
+--[[ A Robux purchase is granted: `key` from `Config/RobuxStore`, `kind`
+     "Product" or "Pass", for `robux`, offered `where`. ]]
+function Analytics.purchased(
+	player: Player,
+	key: string,
+	kind: string,
+	robux: number,
+	where: string?
+)
+	send("LogCustomEvent", player, "Purchase", robux, Analytics.fields(key, kind, where or "Store"))
+end
+
 function Analytics.start()
 	PlayerData.onLoaded(function(player)
 		Analytics.step(player, "Joined")
 	end)
 	Players.PlayerRemoving:Connect(function(player)
 		Analytics.runEnded(player, "Quit")
+		fallen[player] = nil
 	end)
 end
 

@@ -62,7 +62,7 @@ return function(t: TestRunner.Helper)
 
 	t.test("a new profile has beaten no level", function()
 		local p = SaveSchema.migrate(nil)
-		t.equal(SaveSchema.VERSION, 14)
+		t.equal(SaveSchema.VERSION, 15)
 		t.isNil((next(p.levelsBeaten)))
 	end)
 
@@ -353,6 +353,41 @@ return function(t: TestRunner.Helper)
 			t.equal(p.endlessClassBest.Warden, 7)
 			local worn = SaveSchema.migrate({ version = 14, equippedTrail = "Starfall" })
 			t.isNil(worn.equippedTrail, "a trail not held is not worn")
+		end
+	)
+
+	t.test(
+		"version 15: an older profile has bought nothing and holds two pet slots; a stored one keeps its own",
+		function()
+			local old = SaveSchema.migrate({
+				version = 14,
+				pets = { Mosslet = 1, GladeFox = 1, Stumpy = 1 },
+				equippedPets = { "Mosslet", "GladeFox", "Stumpy" },
+			})
+			t.equal(#old.purchases.receipts, 0)
+			t.isFalse(old.purchases.starterBought)
+			t.isFalse(old.purchases.starterOffered)
+			t.equal(old.purchases.reviveCredits, 0)
+			t.equal(old.purchases.vipDay, 0)
+			t.isNil(old.equippedPets[3], "no third slot before the pass existed")
+			local p = SaveSchema.migrate({
+				version = 15,
+				pets = { Mosslet = 1, GladeFox = 1, Stumpy = 1 },
+				equippedPets = { "Mosslet", "GladeFox", "Stumpy" },
+				purchases = {
+					receipts = { "p1", "p2" },
+					starterBought = true,
+					reviveCredits = 1,
+					vipDay = 20400,
+				},
+			})
+			t.equal(p.equippedPets[3], "Stumpy")
+			t.equal(#p.purchases.receipts, 2)
+			t.isTrue(p.purchases.starterBought)
+			t.equal(p.purchases.reviveCredits, 1)
+			t.equal(p.purchases.vipDay, 20400)
+			local again = SaveSchema.migrate(p)
+			t.equal(again.purchases.receipts[2], "p2", "a saved copy reads back the same")
 		end
 	)
 end

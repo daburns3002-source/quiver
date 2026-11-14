@@ -20,6 +20,7 @@ local MergeRules = require(ReplicatedStorage.Shared.Util.MergeRules)
 local Purse = require(ReplicatedStorage.Shared.Util.Purse)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local SaveSchema = require(ReplicatedStorage.Shared.Util.SaveSchema)
+local StoreRules = require(ReplicatedStorage.Shared.Util.StoreRules)
 local StoryBeatRules = require(ReplicatedStorage.Shared.Util.StoryBeatRules)
 local TipRules = require(ReplicatedStorage.Shared.Util.TipRules)
 local TrailRules = require(ReplicatedStorage.Shared.Util.TrailRules)
@@ -27,6 +28,7 @@ local Tutorial = require(ReplicatedStorage.Shared.Config.Tutorial)
 
 local Analytics = require(script.Parent.Analytics)
 local DexPay = require(script.Parent.DexPay)
+local Passes = require(script.Parent.Passes)
 local PlayerData = require(script.Parent.PlayerData)
 
 local log = Log.forTag("Wallet")
@@ -384,12 +386,17 @@ function Wallet.grantPet(player: Player, pet: string): boolean
 	return had == 0
 end
 
---[[ Puts an owned pet in a slot (1 or 2), or empties it for nil; a pet in
-     the other slot moves here. ]]
+--[[ Puts an owned pet in a slot (1 or 2, and 3 with the Extra Pet Slot
+     pass), or empties it for nil; a pet in another slot moves here. Emptying
+     is allowed in any slot the save holds, so a pass taken back never traps
+     a pet. ]]
 function Wallet.equipPet(player: Player, slot: number, pet: string?)
 	local profile = PlayerData.get(player)
 	-- a whole slot only: 1.5 would save a key DataStores refuse, and NaN passes < and >
 	if not profile or slot ~= math.floor(slot) or slot < 1 or slot > SaveSchema.PET_SLOTS then
+		return
+	end
+	if pet ~= nil and slot > StoreRules.petSlots(Passes.owned(player)) then
 		return
 	end
 	if pet ~= nil and not profile.pets[pet] then

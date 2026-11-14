@@ -39,6 +39,7 @@
 	as the mockup's at any screen size.
 ]]
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TextService = game:GetService("TextService")
 local TweenService = game:GetService("TweenService")
 local GearAssets = require(ReplicatedStorage.Shared.Config.GearAssets)
 local GearGlory = require(ReplicatedStorage.Shared.Util.GearGlory)
@@ -48,6 +49,9 @@ local ShopAssets = require(ReplicatedStorage.Shared.Config.ShopAssets)
 local SoundFx = require(script.Parent.Parent.Fx.SoundFx)
 local UiContrast = require(ReplicatedStorage.Shared.Util.UiContrast)
 local Chunky = {}
+
+--[[ One piece of what `Chunky.spell` says: words, or a merge tier's badge. ]]
+export type Part = string | { tier: string }
 
 --[[ The smallest a pressable's hit area may be, in screen points. ]]
 local MIN_TOUCH = 48
@@ -895,14 +899,30 @@ end
 	tier there is no colour for.
 ]]
 function Chunky.tier(tile: GuiObject, tier: string?): Frame?
+	local badge = Chunky.badge(tile, tier)
+	if not badge then
+		return nil
+	end
+	badge.AnchorPoint = Vector2.new(0, 1)
+	badge.Position, badge.Size = UDim2.fromScale(0.05, 0.95), UDim2.fromScale(0.3, 0.3)
+	local chip = tile:FindFirstChild("Caption")
+	if chip and chip:IsA("GuiObject") then
+		chip.Position, chip.Size = UDim2.fromScale(0.38, 0.75), UDim2.fromScale(0.56, 0.2)
+	end
+	return badge
+end
+
+--[[ A merge tier's badge by itself: the square with its letter, in the
+     tier's own colour, filling its box (`Chunky.tier` puts one on a tile's
+     corner; `Chunky.spell` sets one among a button's words). Nil for no
+     tier. ]]
+function Chunky.badge(parent: GuiObject, tier: string?): Frame?
 	local look = if tier then Palette.tier[tier] else nil
 	if not tier or not look then
 		return nil
 	end
-	local badge = fill(tile, Color3.new(1, 1, 1), 14)
+	local badge = fill(parent, Color3.new(1, 1, 1), 14)
 	badge.Name = "Tier"
-	badge.AnchorPoint = Vector2.new(0, 1)
-	badge.Position, badge.Size = UDim2.fromScale(0.05, 0.95), UDim2.fromScale(0.3, 0.3)
 	gradient(badge, look.top, look.bottom)
 	local square = Instance.new("UIAspectRatioConstraint")
 	square.Parent = badge
@@ -914,10 +934,6 @@ function Chunky.tier(tile: GuiObject, tier: string?): Frame?
 	letter.Name = "Letter"
 	letter.Position, letter.Size = UDim2.fromScale(0.12, 0.04), UDim2.fromScale(0.76, 0.92)
 	letter.ZIndex = 15
-	local chip = tile:FindFirstChild("Caption")
-	if chip and chip:IsA("GuiObject") then
-		chip.Position, chip.Size = UDim2.fromScale(0.38, 0.75), UDim2.fromScale(0.56, 0.2)
-	end
 	--[[ A high tier shows it (owner, 2026-11-14: "it should feel more grand
 	     to own a ... high merge tier"): A and S carry a shine that sweeps
 	     them, and S swells and settles like a heartbeat. ]]
@@ -932,6 +948,70 @@ function Chunky.tier(tile: GuiObject, tier: string?): Frame?
 		end)
 	end
 	return badge
+end
+
+--[[
+	Says something on a `Chunky.button` of `colour` with tier badges among
+	the words (owner, 2026-11-14, of Gear's MERGE button: "where it says
+	merge c to b it should have the actual letter icons for c and b"): each
+	part is words or `{ tier = "C" }`, set in one row in the middle of the
+	button's face, the words as wide as they measure and each badge a
+	square as tall as the row. Takes the place of the button's own words.
+]]
+function Chunky.spell(button: Frame, colour: Color3, parts: { Part })
+	local face = button:FindFirstChild("Face", true)
+	if not (face and face:IsA("GuiObject")) then
+		return
+	end
+	local own = face:FindFirstChild("Words")
+	if own and own:IsA("GuiObject") then
+		own.Visible = false
+	end
+	local look = Chunky.face(colour)
+	local GAP, TALL = 0.26, 0.9
+	-- every width in row heights
+	local widths: { number } = {}
+	local total = 0
+	for i, part in parts do
+		local wide = 1
+		if type(part) == "string" then
+			local size = TextService:GetTextSize(part, 100, Chunky.font, Vector2.new(10000, 1000))
+			wide = size.X / math.max(size.Y, 1) * TALL * 1.06
+		end
+		widths[i] = wide
+		total += wide + (if i > 1 then GAP else 0)
+	end
+	local row = Instance.new("Frame")
+	row.Name = "Spelled"
+	row.BackgroundTransparency = 1
+	row.AnchorPoint = Vector2.new(0.5, 0.5)
+	row.Position, row.Size = UDim2.fromScale(0.5, 0.5), UDim2.fromScale(0.9, 0.72)
+	row.ZIndex = 13
+	row.Parent = face
+	local shape = Instance.new("UIAspectRatioConstraint")
+	shape.AspectRatio = math.max(total, 0.1)
+	shape.Parent = row
+	local x = 0
+	for i, part in parts do
+		if i > 1 then
+			x += GAP
+		end
+		local wide = widths[i]
+		if type(part) == "string" then
+			local t = Chunky.text(row, part, look.text, if look.stroke then 5 else 0, look.stroke)
+			t.Position = UDim2.fromScale(x / total, (1 - TALL) / 2)
+			t.Size = UDim2.fromScale(wide / total, TALL)
+		else
+			local box = Instance.new("Frame")
+			box.Name = "Badge"
+			box.BackgroundTransparency = 1
+			box.Position, box.Size = UDim2.fromScale(x / total, 0), UDim2.fromScale(wide / total, 1)
+			box.ZIndex = 13
+			box.Parent = row
+			Chunky.badge(box, part.tier)
+		end
+		x += wide
+	end
 end
 
 --[[

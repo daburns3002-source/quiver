@@ -474,31 +474,31 @@ local function details(
 		local from = mergeable(entry.tiers)
 		local nextUp = from and MergeRules.nextTier(from)
 		local low = MergeRules.TIERS[1]
-		local words = if from and nextUp
-			then "MERGE " .. tostring(MergeRules.COST) .. " " .. from .. " INTO " .. nextUp
-			elseif MergeRules.best(entry.tiers) == "S" then "TOP TIER S"
-			else "MERGE: " .. tostring((entry.tiers and entry.tiers[low]) or 0) .. "/" .. tostring(
-				MergeRules.COST
-			) .. " " .. low .. " COPIES"
+		--[[ The tiers are their badges, not bare letters (owner, 2026-11-14:
+		     "where it says merge c to b it should have the actual letter
+		     icons for c and b"). ]]
+		local cost = tostring(MergeRules.COST)
+		local parts: { Chunky.Part }
+		if from and nextUp then
+			parts = { "MERGE " .. cost, { tier = from }, "INTO", { tier = nextUp } }
+		elseif MergeRules.best(entry.tiers) == "S" then
+			parts = { "TOP TIER", { tier = "S" } }
+		else
+			local have = tostring((entry.tiers and entry.tiers[low]) or 0)
+			parts = { "MERGE: " .. have .. "/" .. cost, { tier = low }, "COPIES" }
+		end
 		local m = L.merge
-		Chunky.button(
-			pop,
-			words,
-			if from then Chunky.gold else Chunky.grey,
-			m[1],
-			m[2],
-			m[3],
-			m[4],
-			function()
-				if from then
-					-- stays up: redrawn with the new tier when the save answers
-					afterMerge = { key = entry.key, pet = isPet, at = os.clock() }
-					Remotes.event(Remotes.MergeItem)
-						:FireServer(if isPet then "pet" else "weapon", entry.key, from)
-					SoundFx.play("new_item")
-				end
+		local tone = if from then Chunky.gold else Chunky.grey
+		local button = Chunky.button(pop, "", tone, m[1], m[2], m[3], m[4], function()
+			if from then
+				-- stays up: redrawn with the new tier when the save answers
+				afterMerge = { key = entry.key, pet = isPet, at = os.clock() }
+				Remotes.event(Remotes.MergeItem)
+					:FireServer(if isPet then "pet" else "weapon", entry.key, from)
+				SoundFx.play("new_item")
 			end
-		)
+		end)
+		Chunky.spell(button, tone, parts)
 	end
 	SoundFx.play("new_item")
 end

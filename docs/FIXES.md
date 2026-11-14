@@ -60,7 +60,10 @@ co-op caveat in `RunSession.anyChoosing`; BACK TO LOBBY from any party member ta
 are design questions, not holes. `ChooseClass` can be sent again later and keeps the pet slots
 (`SwitchClass` empties them); it pays nothing.
 
-Measured: `tools/check.sh` green; in-Roblox suite (see the PR). 
+Measured: `tools/check.sh` green; in-Roblox suite 1013 passed, 2 failed (the known Bogheart Egg ones),
+new `Throttle`, `MenuHold` and `Analytics` specs among the passes. In Play, 40 `RunMenu` asks at once
+were cut at the limit with one `[Inbound]` line; the tutorial, a death, a hatch, a crate and a 1-1
+left by BACK TO LOBBY each sent their analytics events, and Studio's `AnalyticsService` took every call.
 
 ---
 

@@ -66,7 +66,12 @@ local function allow(player: Player, name: string): boolean
 	end
 	entry.dropped += 1
 	if now - entry.reportedAt >= REPORT_EVERY then
-		log.warn("%s: %d asks on %s dropped (over the limit)", player.Name, entry.dropped, name)
+		log.warn(
+			"%s is over the limit on %s: %d dropped since this was last said",
+			player.Name,
+			name,
+			entry.dropped
+		)
 		entry.reportedAt = now
 		entry.dropped = 0
 	end

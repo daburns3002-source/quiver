@@ -616,6 +616,40 @@ leaves the item's card up with its new tier. **A won fight cannot hurt**: as a r
 cleared every enemy shot goes, on the server and on every screen (`RoomController.step`,
 `Remotes.ShotsParried` for the whole arena).
 
+**Class levels and the golden weapons** (owner, 2026-11-14: "class specific leveling ... when a player gets
+to level 10 on a certain class, they should unlock a golden weapon"; `Config/ClassLevels`,
+`Util/ClassLevelRules`, `UI/ClassLevelPlate`, `docs/WEAPONS-GOLDEN.md`, `tests/ClassLevels.spec`): each
+class has its own lasting level, apart from the run's level (`Config/Progression`), saved as
+`SaveSchema` v16 `classLevels` (level and the XP into it). **The server pays it as a run ends**, to the
+class played: 10 XP for each room, wave or Endless floor cleared and 50 more for a win
+(`RoomController` `noteClear` / `payClassXp`, `Wallet.addClassXp`); a loss or leaving still pays what was
+cleared, the tutorial pays nothing, each place counts once, and no client reports any of it. 10 is the
+top (3,750 XP, about 20 won runs); levels 2 to 9 give coins or gems (`ClassLevels.gifts`); **level 10
+gives the class's golden weapon** (Golden Bow, Golden Staff, Golden Blade): Legendary strength at area
+1's scale, the one Legendary card of its class
+no other weapon carries (Multishot, Homing Orbs, Battle Cry), and `WeaponStats.earned`, which keeps it
+out of every crate, the store, Endless prizes and the area Dex pages (`Util/ShopRules`, `Util/DexBook`).
+**A weapon that can never be had twice has no merge tier** (owner, 2026-11-14: "for weapons with no
+duplicates such as these and the weapons that you get for endless, there should not be a merge tier";
+`ShopRules.merges`, false for an `earned` weapon): no tier badge or copy count on its tile, no TIER or
+copies line and no MERGE on its Gear card, no tier in its damage (`Wallet.weaponTier`,
+`ShopRules.strength`), and the server refuses to merge it or to give a second copy. Endless gives
+ordinary crates today, whose weapons do merge; a weapon only Endless gives (the astral set,
+`docs/ENDLESS.md`) takes `earned = true` when it is built. It goes on by itself if stronger than the weapon worn (`ShopRules.upgrade`), in hand from
+the next run or the lobby; a saved level 10 without its weapon is given it on join
+(`Wallet.settleClassWeapons`). The level shows on a plate (round badge, bar) under Gear's power plate
+and beside the end screens' panel (under it on an upright screen, `EndScreenRules.levelPlate`), where the
+run's XP fills the bar and each level reached pops with its gift, as a LEVEL chip on each class at class
+select and on Gear's CLASSES tab, and a golden weapon earned opens its own card over Victory or Defeat.
+**The weapons are not in the game yet (2026-11-14):** their stats, pictures and rules are, but their
+models wait on the owner's Studio import (`docs/TRACKER.md`), so no golden weapon can be worn and a
+level 10 holds its weapon owed until then. Their `Config/Weapons` entries (gold aura, glow), grips and
+their shots and cleave (`Config/WeaponFx`) are the follow-up, branch `phase-4/golden-weapons`.
+The models are Tripo's from Codex front views (`assets/models/weapons/blocky/golden/`): the staff and
+blade at 2,000 triangles and 2K; the bow made again from a picture with a thick gold bar for a string
+(owner: "the string on the tripo model is trash"), at 4,000 triangles with an 8K texture whose stray
+colours `clean_bow_texture.py` repaints gold ("there are random colors on it").
+
 **The Robux store** (owner, 2026-11-13: "Yes, build them"; `Config/RobuxStore`, `Util/StoreRules`,
 `Server/Data/Purchases`, `Server/Data/Passes`, `UI/RobuxStore`, `UI/RobuxOffer`, `docs/ROBUX-STORE.md`):
 five gem packs, a starter pack (once a player, offered once as a Victory is left for the lobby with two

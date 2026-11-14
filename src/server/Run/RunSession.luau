@@ -142,6 +142,10 @@ export type Session = {
 	--[[ This stage's payouts so far, for the end screen's REWARDS box. ]]
 	stageCoins: number,
 	stageGems: number,
+	--[[ Rooms, waves or floors cleared that the class's own level has not
+	     been paid for yet (`Config/ClassLevels`; `Run/RoomController` pays
+	     as the run ends). ]]
+	classClears: number,
 	--[[ The boss item this stage paid (`payBoss`), shown on Victory. ]]
 	stageItem: string?,
 	stageStartedAt: number,
@@ -352,6 +356,7 @@ function RunSession.create(player: Player): Session
 		stageKills = 0,
 		stageCoins = 0,
 		stageGems = 0,
+		classClears = 0,
 		stageItem = nil,
 		stageStartedAt = os.clock(),
 		-- in Studio, `SkipIntro` on Workspace starts without the title (`Config/Intro`)
@@ -1347,6 +1352,7 @@ function RunSession.newStage(session: Session)
 	session.stageKills = 0
 	session.stageCoins = 0
 	session.stageGems = 0
+	session.classClears = 0
 	session.stageItem = nil
 	session.stageStartedAt = os.clock()
 	session.invulnerableUntil = 0

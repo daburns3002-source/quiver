@@ -50,6 +50,7 @@ local AreaStrikes = require(script.Parent.Parent.Combat.AreaStrikes)
 local Arena = require(script.Parent.Parent.Arena.Arena)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Burning = require(script.Parent.Parent.Combat.Burning)
+local ClassLevelRules = require(ReplicatedStorage.Shared.Util.ClassLevelRules)
 local ClassUpgrades = require(script.Parent.Parent.Combat.ClassUpgrades)
 local Coop = require(ReplicatedStorage.Shared.Util.Coop)
 local CurrentStage = require(ReplicatedStorage.Shared.Util.CurrentStage)
@@ -163,6 +164,9 @@ local extraDraftOwed = false
 --[[ Which pick each player has made at the checkpoint now open; a living
      player missing from it is still being waited on. ]]
 local picked: { [Player]: boolean } = {}
+--[[ The place (`progress`) whose clear was last counted towards the class
+     levels (`noteClear`), 0 at the start of a stage. ]]
+local clearCounted = 0
 
 local function total(): number
 	local current = stage()
@@ -518,6 +522,7 @@ end
 
 local function startStage()
 	local current = stage()
+	clearCounted = 0
 	workspace:SetAttribute("CombatEncounter", 0)
 	RunSession.holdOffers(false)
 	-- no Victory is up any more, so nothing is owed on one
@@ -655,6 +660,47 @@ local function storyOwed(player: Player, beatBoss: boolean): string?
 	return nil
 end
 
+--[[ A fight or an encounter is cleared: one more room, wave or floor each
+     player's class is owed XP for (`Config/ClassLevels`). Not the
+     tutorial's, whose class is the tutorial's own pick. Each place counts
+     once: a room whose arena was still loading when the run looked (a
+     Studio jump to an unprepared room) reads as cleared, then is entered
+     and cleared again (`clearCounted`). ]]
+local function noteClear()
+	if stage().tutorial or progress == clearCounted then
+		return
+	end
+	clearCounted = progress
+	for _, session in RunSession.all() do
+		session.classClears += 1
+	end
+end
+
+--[[ The run has ended for `session`: its class is paid for what it cleared
+     since it was last paid, and for the win (`ClassLevelRules.runXp`).
+     Decided here from the server's own count, never asked for. A revive
+     and a second death pays only the rooms cleared in between. ]]
+local function payClassXp(session: RunSession.Session, won: boolean): ClassLevelRules.Gain?
+	local cleared = session.classClears
+	session.classClears = 0
+	if stage().tutorial then
+		return nil
+	end
+	local xp = ClassLevelRules.runXp(cleared, won)
+	if xp <= 0 then
+		return nil
+	end
+	local gain = Wallet.addClassXp(session.player, session.loadout.class, xp)
+	--[[ A golden weapon that went on by itself (`Wallet.settleClassWeapons`)
+	     is in hand from the next run or the lobby: `RunSession.resetRun`
+	     carries the session's weapon over and applies it. ]]
+	local profile = if gain and gain.weapon then PlayerData.get(session.player) else nil
+	if gain and profile and profile.equipped == gain.weapon then
+		session.loadout.weapon = gain.weapon
+	end
+	return gain
+end
+
 local function sendSummary(won: boolean, eggs: { [Player]: any }?, starters: { [Player]: boolean }?)
 	local finished = if won then progress else progress - 1
 	local progressPercent =
@@ -666,6 +712,10 @@ local function sendSummary(won: boolean, eggs: { [Player]: any }?, starters: { [
 			else 0
 
 		runSummary:FireClient(session.player, {
+			--[[ The class's own level (`Config/ClassLevels`): the XP this
+			     run paid, the standing before and after, the levels reached
+			     with their gifts, and the golden weapon if it was given. ]]
+			classXp = payClassXp(session, won),
 			won = won,
 			stage = stageIndex,
 			kills = session.stageKills,
@@ -1171,6 +1221,9 @@ local function toLobby()
 	for _, session in RunSession.all() do
 		-- a run still under way is given up (nothing if it already ended)
 		Analytics.runEnded(session.player, "Left")
+		--[[ What was cleared before leaving still counts for the class's
+		     level (nothing if the run ended: it was paid with its summary). ]]
+		payClassXp(session, false)
 		RunSession.resetRun(session)
 	end
 	RunSession.setTutorial(false)
@@ -1396,6 +1449,11 @@ function RoomController.step(now: number)
 		end
 
 		state = "Cleared"
+		--[[ An encounter room or wave is one cleared; an Endless draft
+		     comes between floors and is not one. ]]
+		if stage().mode ~= "Endless" then
+			noteClear()
+		end
 		resumeAt = now + clearPause()
 		recordStory()
 		broadcast()
@@ -1408,6 +1466,7 @@ function RoomController.step(now: number)
 		end
 
 		state = "Cleared"
+		noteClear()
 		--[[ A won fight cannot hurt (2026-11-14, the kid playtest: dead half
 		     a second after CLEARED, from seeds already in the air): every
 		     enemy shot goes, here and on every client's screen. ]]

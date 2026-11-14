@@ -25,6 +25,7 @@ ROOT = HERE.parents[2]
 IMPORTS = HERE / "blocky" / "forest" / "skin_imports.json"
 DROWNED_IMPORTS = HERE / "blocky" / "drowned" / "skin_imports.json"
 BOGHEART_IMPORTS = HERE / "blocky" / "bogheart" / "skin_imports.json"
+GOLDEN_IMPORTS = HERE / "blocky" / "golden" / "skin_imports.json"
 WEAPONS = ROOT / "src" / "shared" / "Config" / "Weapons.luau"
 SANDBOX = ROOT / "src" / "shared" / "Config" / "Sandbox.luau"
 BEGIN = "-- SKINS BEGIN (assets/models/weapons/skins_to_luau.py; regenerate, never hand-edit)\n"
@@ -101,6 +102,16 @@ BOGHEART = [
     ("CaplightBlade", "CAPLIGHT BLADE", "Warden", "CaplightBlade", None, None, 3),
     ("GulpfangBlade", "GULPFANG BLADE", "Warden", "GulpfangBlade", None, (154, 205, 60), 4),
     ("DeepglowBlade", "DEEPGLOW BLADE", "Warden", "DeepglowBlade", None, (63, 230, 242), 5),
+]
+# The golden weapons (owner, 2026-11-14; Config/ClassLevels): a class's level
+# 10, Legendary strength. Tripo models from the Codex front views in
+# assets/concepts/blocky/weapons/skins/golden, one textured mesh each, so
+# the gold glow is an `aura`. Skipped until their imports are dumped.
+# key, label, class, import, projectile, glow colour, tier
+GOLDEN = [
+    ("GoldenBow", "GOLDEN BOW", "Ranger", "GoldenBow", None, (255, 205, 56), 4),
+    ("GoldenStaff", "GOLDEN STAFF", "Arcanist", "GoldenStaff", None, (255, 214, 84), 4),
+    ("GoldenBlade", "GOLDEN BLADE", "Warden", "GoldenBlade", None, (255, 198, 44), 4),
 ]
 # Radians of extra turn about Y for models that do not follow the base
 # weapon's convention. A bow's limbs should curve in YZ as the Twig Bow's do;
@@ -302,9 +313,14 @@ def main():
     rows += [(drowned, k, c, n, p, g, t) for k, _, c, n, p, g, t in DROWNED]
     bogheart = json.loads(BOGHEART_IMPORTS.read_text(encoding="utf-8"))
     rows += [(bogheart, k, c, n, p, g, t, True) for k, _, c, n, p, g, t in BOGHEART]
+    listed = SKINS + DROWNED + BOGHEART
+    if GOLDEN_IMPORTS.exists():
+        golden = json.loads(GOLDEN_IMPORTS.read_text(encoding="utf-8"))
+        rows += [(golden, k, c, n, p, g, t, True) for k, _, c, n, p, g, t in GOLDEN]
+        listed = listed + GOLDEN
     skins = chr(10).join(entry(*r) for r in rows) + chr(10)
     splice(WEAPONS, skins, "\t--[[ SKINS GO HERE ]]\n")
-    menu = "".join(f'\t\t{{ weapon = "{k}", class = "{c}", label = "{l}" }},\n' for k, l, c, *_ in SKINS + DROWNED + BOGHEART)
+    menu = "".join(f'\t\t{{ weapon = "{k}", class = "{c}", label = "{l}" }},\n' for k, l, c, *_ in listed)
     splice(SANDBOX, menu, "\t\t--[[ SKINS GO HERE ]]\n")
     print(f"wrote {len(rows)} skins")
 

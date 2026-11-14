@@ -34,6 +34,7 @@ local UserInputService = game:GetService("UserInputService")
 local Workspace = game:GetService("Workspace")
 
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
+local ClassLevelRules = require(ReplicatedStorage.Shared.Util.ClassLevelRules)
 local Economy = require(ReplicatedStorage.Shared.Config.Economy)
 local EndScreenAssets = require(ReplicatedStorage.Shared.Config.EndScreenAssets)
 local EndScreenLayout = require(ReplicatedStorage.Shared.Config.EndScreenLayout)
@@ -42,6 +43,7 @@ local EndScreenTheme = require(ReplicatedStorage.Shared.Config.EndScreenTheme)
 local GearAssets = require(ReplicatedStorage.Shared.Config.GearAssets)
 local ShopAssets = require(ReplicatedStorage.Shared.Config.ShopAssets)
 
+local ClassLevelPlate = require(script.Parent.ClassLevelPlate)
 local Device = require(script.Parent.Parent.Device)
 local EndScreenMotion = require(script.Parent.EndScreenMotion)
 local Reveal = require(script.Parent.Reveal)
@@ -70,6 +72,9 @@ export type Summary = {
 	canHatch: boolean?,
 	--[[ The area whose story beat this win owes (`UI/StoryBeat`). ]]
 	story: string?,
+	--[[ What the run paid the class's own level (`Config/ClassLevels`),
+	     nil when it paid nothing (the tutorial, nothing cleared). ]]
+	classXp: ClassLevelRules.Gain?,
 }
 
 type Box = { x: number, y: number, w: number, h: number }
@@ -921,6 +926,10 @@ local function buildLobbyButton(content: Instance, look: any, layout: any): (Fra
 	return group, press
 end
 
+--[[ The class level plate (`UI/ClassLevelPlate`) of the screen showing,
+     nil when the run paid the class nothing. ]]
+local levelPlate: Frame? = nil
+
 local function fit()
 	if not scaler then
 		return
@@ -934,6 +943,18 @@ local function fit()
 		view.Y * (if Device.isPhone() then PHONE_HEIGHT_SHARE else HEIGHT_SHARE) / CANVAS.Y,
 		view.X * (if Device.isPhone() then PHONE_WIDTH_SHARE else WIDTH_SHARE) / CANVAS.X
 	)
+	if levelPlate then
+		local x, y, w, h = EndScreenRules.levelPlate(
+			view.X,
+			view.Y,
+			CANVAS.X * scaler.Scale,
+			CANVAS.Y * scaler.Scale,
+			ClassLevelPlate.W,
+			ClassLevelPlate.H
+		)
+		levelPlate.Position = UDim2.fromOffset(x, y)
+		levelPlate.Size = UDim2.fromOffset(w, h)
+	end
 end
 
 function EndScreen.hide()
@@ -942,6 +963,7 @@ function EndScreen.hide()
 		gui = nil
 	end
 	scaler = nil
+	levelPlate = nil
 	if viewportConnection then
 		viewportConnection:Disconnect()
 		viewportConnection = nil
@@ -1172,6 +1194,42 @@ function EndScreen.show(summary: Summary)
 			onLobby()
 		end
 	end)
+
+	--[[ The class's own level (`Config/ClassLevels`): its plate beside the
+	     panel (under it on an upright screen), the bar filling with what
+	     the run paid once the entrance has played, each level reached
+	     popping with its gift, and the golden weapon's card at level 10. ]]
+	local gain = summary.classXp
+	levelPlate = nil
+	if gain then
+		local plateFrame = Instance.new("Frame")
+		plateFrame.Name = "ClassLevel"
+		plateFrame.BackgroundTransparency = 1
+		plateFrame.ZIndex = 90
+		plateFrame.Parent = screen
+		levelPlate = plateFrame
+		local plate = ClassLevelPlate.build(plateFrame, gain.class, gain.before)
+		task.spawn(function()
+			while gui == screen and not played.ready() do
+				task.wait(0.1)
+			end
+			if gui ~= screen then
+				return
+			end
+			plate.play(gain, function()
+				local weapon = gain.weapon
+				if not weapon then
+					return
+				end
+				while gui == screen and Reveal.busy() do
+					task.wait(0.1)
+				end
+				if gui == screen then
+					ClassLevelPlate.unlock(screen, weapon)
+				end
+			end)
+		end)
+	end
 
 	--[[ The first clear's free egg opens with the hatchery's reveal once
 	     the entrance has played (or been skipped), over this screen. ]]

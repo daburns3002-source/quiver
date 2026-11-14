@@ -97,15 +97,23 @@
 	Extra Pet Slot pass's: `equippedPets[3]` is read from version 15 on. An
 	older profile has bought nothing, been offered nothing and holds two
 	slots, which is all an older game had.
+
+	Version 16 (2026-11-14, class levels -- `Config/ClassLevels`):
+	`classLevels`, each class's own lasting level and the XP into it
+	(`Util/ClassLevelRules`). Nobody's runs were counted by class before,
+	so an older profile starts every class at level 1: nothing is
+	invented. A golden weapon a stored level has earned and the profile
+	does not hold is given on its next join (`Wallet.settleClassWeapons`).
 ]]
 
+local ClassLevelRules = require(script.Parent.ClassLevelRules)
 local MergeRules = require(script.Parent.MergeRules)
 local SettingsRules = require(script.Parent.SettingsRules)
 local StoreRules = require(script.Parent.StoreRules)
 
 local SaveSchema = {}
 
-SaveSchema.VERSION = 15
+SaveSchema.VERSION = 16
 
 --[[ The classes' own weapons, owned from the start. ]]
 local STARTERS = { "TwigBow", "BranchStaff", "TimberBlade" }
@@ -170,6 +178,11 @@ export type Profile = {
 	endlessClassBest: { [string]: number },
 	--[[ What Robux bought and what is still owed of it (version 15). ]]
 	purchases: StoreRules.Purchases,
+	--[[ Each class's own level and the XP into it (version 16,
+	     `Config/ClassLevels`); a class never played is not here and reads
+	     as level 1. Server-decided (`Run/RoomController`), never reported
+	     by a client. ]]
+	classLevels: ClassLevelRules.Levels,
 }
 
 export type RewardState = {
@@ -245,6 +258,7 @@ function SaveSchema.default(): Profile
 		equippedTrail = nil,
 		endlessClassBest = {},
 		purchases = StoreRules.empty(),
+		classLevels = {},
 	}
 end
 
@@ -418,6 +432,10 @@ function SaveSchema.migrate(raw: unknown): Profile
 	     receipts, no starter pack, no revive held; a stored copy is read
 	     field by field (`StoreRules.read`). ]]
 	profile.purchases = StoreRules.read(data.purchases)
+	--[[ 15 -> 16: no class had a level, so an older profile's classes are
+	     all level 1; a stored copy is read class by class
+	     (`ClassLevelRules.read`). ]]
+	profile.classLevels = ClassLevelRules.read(data.classLevels)
 	return profile
 end
 

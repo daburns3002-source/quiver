@@ -163,6 +163,8 @@ to build them.
 - **Astral Arc**, a bow — `assets/concepts/blocky/weapons/endless/astral_arc_views.png`.
   Front, side, back and three-quarter, a close-up of the centre star and its orbit ring, and
   four views of the star-tipped arrow that goes with it.
+  When it is built it is given once and so takes `earned = true` in `Config/WeaponStats`: no
+  merge tier, no MERGE, never in a crate (owner, 2026-11-14, `ShopRules.merges`).
 - **Orbit Manta**, a pet — `assets/concepts/blocky/pets/endless/orbit_manta_views.png`.
   Front, right, three-quarter, back and top, plus exploded wing layers, the ring on its own,
   and how the ring sits around the body.

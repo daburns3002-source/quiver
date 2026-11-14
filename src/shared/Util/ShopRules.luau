@@ -18,7 +18,15 @@ local WeaponStats = require(ReplicatedStorage.Shared.Config.WeaponStats)
 
 local ShopRules = {}
 
-export type Entry = { weapon: string, class: string, label: string, rarity: string, area: number }
+export type Entry = {
+	weapon: string,
+	class: string,
+	label: string,
+	rarity: string,
+	area: number,
+	--[[ Earned, not sold or rolled (`WeaponStats.earned`): a golden weapon. ]]
+	earned: boolean?,
+}
 
 local ORDER = { Common = 1, Uncommon = 2, Rare = 3, Epic = 4, Legendary = 5, Mythic = 6 }
 
@@ -42,6 +50,7 @@ function ShopRules.catalog(): { Entry }
 				label = entry.label,
 				rarity = stats.rarity :: string,
 				area = stats.area,
+				earned = stats.earned,
 			})
 		end
 	end
@@ -69,12 +78,12 @@ end
 --[[ What area `index`'s chest can give: its weapons of a rarity the chest
      rolls, and of `class` when one is named — an area's crate is three
      chests, one a class (`Shop.chests`). Empty for an area with no weapons
-     yet (a silhouette). ]]
+     yet (a silhouette). An earned weapon (a golden one) is in no chest. ]]
 function ShopRules.cratePool(index: number, class: string?): { Entry }
 	local out = {}
 	for _, entry in ShopRules.catalog() do
 		local wanted = class == nil or entry.class == class
-		if entry.area == index and wanted and Shop.crateOdds[entry.rarity] then
+		if entry.area == index and wanted and not entry.earned and Shop.crateOdds[entry.rarity] then
 			table.insert(out, entry)
 		end
 	end
@@ -216,10 +225,10 @@ function ShopRules.crateWords(
 end
 
 --[[ The store's price for a weapon, or nil when the store does not sell
-     it (the class weapons, Mythics). ]]
+     it (the class weapons, Mythics, the earned golden weapons). ]]
 function ShopRules.price(entry: Entry): Purse.Cost?
 	local crate = Shop.crates[entry.area]
-	if not crate then
+	if not crate or entry.earned then
 		return nil
 	end
 	if entry.rarity == "Legendary" then
@@ -240,17 +249,28 @@ function ShopRules.price(entry: Entry): Purse.Cost?
 	return { gems = gems * entry.area }
 end
 
+--[[ Whether a weapon has merge tiers (`Util/MergeRules`): every weapon but
+     one that can never be had twice (`WeaponStats.earned`; owner,
+     2026-11-14: "for weapons with no duplicates ... there should not be a
+     merge tier"). The server, the damage and the screens all ask this. ]]
+function ShopRules.merges(weapon: string?): boolean
+	local stats = if weapon then WeaponStats.weapons[weapon] else nil
+	return not (stats ~= nil and stats.earned == true)
+end
+
 --[[ A weapon's damage scale at merge tier `tier`: its rarity's bonus, its
      area's scale and the tier's (`Config/WeaponStats`, `Util/MergeRules`),
-     as `Run/RunSession` multiplies them. 0 for one with no stats. ]]
+     as `Run/RunSession` multiplies them; no tier's for a weapon that has
+     none (`merges`). 0 for one with no stats. ]]
 function ShopRules.strength(weapon: string?, tier: string?): number
 	local stats = if weapon then WeaponStats.weapons[weapon] else nil
 	if not stats then
 		return 0
 	end
+	local held = if ShopRules.merges(weapon) then tier or "C" else "C"
 	return (1 + WeaponStats.bonus[stats.rarity])
 		* (WeaponStats.areaScale[stats.area] or 1)
-		* (MergeRules.weaponScale[tier or "C"] or 1)
+		* (MergeRules.weaponScale[held] or 1)
 end
 
 --[[ Of the weapons just `gained`, the one that goes in hand by itself

@@ -14,6 +14,9 @@ local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Chunky = require(script.Parent.Chunky)
+local ClassLevelPlate = require(script.Parent.ClassLevelPlate)
+local ClassLevelRules = require(ReplicatedStorage.Shared.Util.ClassLevelRules)
+local ClassLevels = require(ReplicatedStorage.Shared.Config.ClassLevels)
 local Classes = require(ReplicatedStorage.Shared.Config.Classes)
 local EggRules = require(ReplicatedStorage.Shared.Util.EggRules)
 local EggScreen = require(script.Parent.EggScreen)
@@ -222,6 +225,11 @@ type Entry = {
 	--[[ Copies at each merge tier (`Util/MergeRules`), nil when none. ]]
 	tiers: MergeRules.Counts?,
 }
+--[[ Whether an item wears a merge tier: every pet, and every weapon but one
+     that can never be had twice (`ShopRules.merges`, the golden weapons). ]]
+local function tiered(key: string, isPet: boolean): boolean
+	return isPet or ShopRules.merges(key)
+end
 --[[ "C 2  B 1  A 0  S 0": the copies held at each merge tier. ]]
 local function tierLine(tiers: MergeRules.Counts?): string
 	local parts = {}
@@ -349,9 +357,12 @@ local function details(
 		false,
 		if isPet then entry.key else nil
 	)
+	local hasTier = tiered(entry.key, isPet)
 	if entry.owned then
 		Chunky.gleam(tile)
-		Chunky.tier(tile, MergeRules.best(entry.tiers) or "C")
+		if hasTier then
+			Chunky.tier(tile, MergeRules.best(entry.tiers) or "C")
+		end
 	end
 	local lines: { string } = {}
 	if isPet then
@@ -376,16 +387,18 @@ local function details(
 		if stats then
 			local boost = WeaponStats.bonus[stats.rarity] or 0
 			local scale = WeaponStats.areaScale[stats.area] or 1
-			local best = if entry.owned then MergeRules.best(entry.tiers) or "C" else "C"
+			local best = if entry.owned and hasTier
+				then MergeRules.best(entry.tiers) or "C"
+				else "C"
 			local tierScale = MergeRules.weaponScale[best]
 			table.insert(
 				lines,
-				(if entry.owned then "TIER " .. best .. "   " else "")
+				(if entry.owned and hasTier then "TIER " .. best .. "   " else "")
 					.. "DAMAGE x"
 					.. string.format("%.2f", (1 + boost) * scale * tierScale)
 			)
 		end
-		if entry.owned then
+		if entry.owned and hasTier then
 			table.insert(lines, tierLine(entry.tiers))
 		end
 		if shop then
@@ -395,10 +408,20 @@ local function details(
 			table.insert(lines, string.upper(stats.effect))
 		end
 	end
+	--[[ A golden weapon (`Config/ClassLevels`) is earned, not rolled: one
+	     copy ever, so it has no merge tier and no MERGE (`hasTier`). ]]
+	local shopEntry = if isPet then nil else ShopRules.find(entry.key)
+	local earned = shopEntry ~= nil and shopEntry.earned == true
 	if not entry.owned then
 		table.insert(
 			lines,
-			if isPet then "HATCH IT AT THE EGG HATCHERY" else "OPEN CRATES AT THE BLACKSMITH"
+			if isPet
+				then "HATCH IT AT THE EGG HATCHERY"
+				elseif earned and shopEntry then "REACH "
+					.. string.upper(shopEntry.class)
+					.. " LEVEL "
+					.. tostring(ClassLevels.weaponLevel)
+				else "OPEN CRATES AT THE BLACKSMITH"
 		)
 	end
 	local card = Chunky.card(pop, table.unpack(L.lines))
@@ -435,7 +458,7 @@ local function details(
 	--[[ MERGE (owner, 2026-10-28: "the player has to get 3 of 1 tier and then
 	     they can merge into the next tier. starting at C going to B, then A,
 	     then S"): three of the lowest tier that has them; the server checks. ]]
-	if entry.owned then
+	if entry.owned and hasTier then
 		local from = mergeable(entry.tiers)
 		local nextUp = from and MergeRules.nextTier(from)
 		local low = MergeRules.TIERS[1]
@@ -676,16 +699,18 @@ local function draw(s: StationScreen.Screen)
 			hero = { 290, 290, 500, 700 },
 			pedestal = { 320, 826, 440, 100 },
 			plate = { 330, 960, 420, 92 },
+			level = { 340, 1064, 400, 93 },
 			left = 90,
 			right = 800,
 			rows = { 310, 562, 814 },
 			size = 176,
-			card = { 60, 1086, 960, 784 },
+			card = { 60, 1176, 960, 694 },
 		}
 		else {
 			hero = { 360, 176, 400, 700 },
 			pedestal = { 400, 712, 320, 90 },
 			plate = { 380, 850, 360, 100 },
+			level = { 397, 958, 326, 76 },
 			left = 196,
 			right = 728,
 			rows = { 196, 476, 756 },
@@ -716,8 +741,11 @@ local function draw(s: StationScreen.Screen)
 		then (1 + WeaponStats.bonus[stats.rarity]) * (WeaponStats.areaScale[stats.area] or 1)
 		else 1
 	local chosenClass = if weapon then Classes[weapon.class] or class else class
-	-- the held weapon's merge tier is in its damage (`Util/MergeRules`)
-	local held = if p then MergeRules.best(p.tiers.weapons[equipped]) else nil
+	-- the held weapon's merge tier is in its damage (`Util/MergeRules`),
+	-- unless it is one with no tier
+	local held = if p and tiered(equipped, false)
+		then MergeRules.best(p.tiers.weapons[equipped])
+		else nil
 	local atk = math.round(
 		Balance.Player.baseDamage
 			* chosenClass.damageScale
@@ -753,6 +781,19 @@ local function draw(s: StationScreen.Screen)
 	lastPower = atk + pets
 	words.Position, words.Size = UDim2.fromScale(0.06, 0.16), UDim2.fromScale(0.88, 0.68)
 
+	--[[ The class's own level under the power plate (`Config/ClassLevels`):
+	     its badge, and the bar to the next. ]]
+	local levelFrame = Instance.new("Frame")
+	levelFrame.Name = "ClassLevel"
+	levelFrame.BackgroundTransparency = 1
+	levelFrame.ZIndex = 8
+	Chunky.put(sheet, levelFrame, table.unpack(L.level))
+	ClassLevelPlate.build(
+		levelFrame,
+		currentClass(),
+		ClassLevelRules.standing(p and p.classLevels, currentClass())
+	)
+
 	local weaponSlot = slot(
 		sheet,
 		"WEAPON",
@@ -763,7 +804,7 @@ local function draw(s: StationScreen.Screen)
 		weaponArt(equipped),
 		false,
 		reopen("GEAR"),
-		held or "C"
+		if tiered(equipped, false) then held or "C" else nil
 	)
 	-- the trail worn (`Config/Trails`), "+" while none is
 	local worn = p and p.equippedTrail and Trails.trails[p.equippedTrail]
@@ -930,6 +971,17 @@ local function draw(s: StationScreen.Screen)
 				selected
 			)
 			Chunky.gleam(tile, i * 0.37)
+			--[[ The class's own level (`Config/ClassLevels`), on its tile. ]]
+			local chip = Instance.new("Frame")
+			chip.Name = "Level"
+			chip.Position, chip.Size = UDim2.fromScale(0.06, 0.05), UDim2.fromScale(0.7, 0.19)
+			chip.ZIndex = 14
+			chip.Parent = holder
+			ClassLevelPlate.chip(
+				chip,
+				className,
+				ClassLevelRules.standing(p and p.classLevels, className).level
+			)
 			Chunky.press(holder, function()
 				if
 					not selected
@@ -983,14 +1035,16 @@ local function draw(s: StationScreen.Screen)
 			     beside it and the tick marks the one in hand, which is why
 			     the chip no longer says EQUIPPED: beside the badge that
 			     word was too small to read. ]]
-			if entry.owned then "x" .. tostring(entry.count) else nil,
+			if entry.owned and tiered(entry.key, isPet) then "x" .. tostring(entry.count) else nil,
 			not entry.owned,
 			isEquipped,
 			if isPet and entry.icon == "" then entry.key else nil
 		)
 		if entry.owned then
 			Chunky.gleam(tile, i * 0.37)
-			Chunky.tier(tile, MergeRules.best(entry.tiers) or "C")
+			if tiered(entry.key, isPet) then
+				Chunky.tier(tile, MergeRules.best(entry.tiers) or "C")
+			end
 		else
 			local lock = Kit.image(tile, ShopAssets.lock)
 			lock.Position, lock.Size = UDim2.fromScale(0.6, 0.56), UDim2.fromScale(0.34, 0.34)

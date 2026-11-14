@@ -84,6 +84,10 @@ log.info("%s v%s booting", Game.Name, Game.Version)
 --[[ Saved data first, so a profile is loading while everything else boots;
      each player is told their wallet once it is in. ]]
 PlayerData.onLoaded(Wallet.send)
+-- a golden weapon a saved class level has earned and the profile lacks
+PlayerData.onLoaded(function(player)
+	Wallet.settleClassWeapons(player)
+end)
 PlayerData.start()
 Analytics.start()
 WeaponShop.start()

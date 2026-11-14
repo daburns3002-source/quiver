@@ -1,0 +1,7 @@
+Generate ONE square image at the highest resolution available and save it in the current directory as golden_bow_v2.png
+
+Image 1 is our game's GOLDEN BOW, a blocky voxel golden bow. Redraw the SAME bow in exactly the same style, colours, finish and details (polished yellow gold block limbs, the carved gold leaf at each limb tip, the brown leather-wrapped grip, the square emerald-green gem above it), with only this one change:
+The bowstring is much thicker: a solid, chunky, straight square gold bar, about as thick as a quarter of the grip's width, running straight from the small gold block under the top leaf to the small gold block above the bottom leaf. It is the same polished yellow gold as the limbs, with clean hard edges, perfectly straight and the same thickness all the way along, firmly joined to both tip blocks. No thin line, no thread.
+Keep the whole bow upright, centred, filling about 88 percent of the image height.
+View: flat side-on, straight-on camera, no perspective. No hands, no character. This image is the weapon's in-game picture and will be turned into a 3D model.
+Plain flat light-grey background, no scenery, no ground, no shadow, no text, no labels, no particles. Even soft lighting.

@@ -37,6 +37,10 @@ local ShopAssets = {
 	} :: { [string]: string },
 	weapons = {
 		TwigBow = "rbxassetid://138984353895385",
+		-- the golden weapons (`Config/ClassLevels`), cut by assets/ui/shop/golden_icons.py
+		GoldenBow = "rbxassetid://80794736211561",
+		GoldenStaff = "rbxassetid://95611427152413",
+		GoldenBlade = "rbxassetid://83209827468568",
 		AcornBow = "rbxassetid://122135876273149",
 		FireflyBow = "rbxassetid://123828841079142",
 		MossSlimeBow = "rbxassetid://126601435061582",

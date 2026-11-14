@@ -35,6 +35,8 @@ export type Fit = {
 export type Star = { x: number, y: number, size: number, alpha: number }
 export type Mote = { x: number, y: number, size: number, delay: number, loop: number }
 export type Piece = { x: number, y: number, long: number, turn: number }
+--[[ A fleck of leaf on the crown, in tree units: lit or shaded. ]]
+export type Fleck = { x: number, y: number, side: number, lit: boolean }
 export type Logo = {
 	left: number,
 	top: number,
@@ -162,6 +164,71 @@ function TitleLayout.motes(design: Design): { Mote }
 	return motes
 end
 
+--[[ The flecks of leaf on the crown: the same every time, each inside its
+     own square, under its lit strip and over its shaded foot. ]]
+function TitleLayout.flecks(): { Fleck }
+	local tree = Scene.tree
+	local spec = tree.flecks
+	local next = TitleLayout.random(spec.seed)
+	local flecks: { Fleck } = {}
+	for _, square in tree.crown do
+		local top = square[2] + square[3] * tree.crownStrip
+		local room = square[3] * (1 - tree.crownStrip - tree.crownShadeStrip)
+		for index = 1, spec.each do
+			local side = round(spec.small + next() * (spec.large - spec.small))
+			table.insert(flecks, {
+				x = math.floor(square[1] + next() * (square[3] - side)),
+				y = math.floor(top + next() * (room - side)),
+				side = side,
+				lit = index % 2 == 1,
+			})
+		end
+	end
+	return flecks
+end
+
+--[[ The top edges of `blocks` (left, top, width, height) that show, each as
+     left, right, top: a block's top is cut away wherever another block
+     stands across it, and where two tops meet at one height it is kept
+     once. Light is drawn along these, so no line crosses a shape. ]]
+function TitleLayout.topEdges(blocks: { Scene.Block }): { { number } }
+	local edges: { { number } } = {}
+	for index, block in blocks do
+		local y = block[2]
+		local spans = { { block[1], block[1] + block[3] } }
+		for other, cover in blocks do
+			local across = other ~= index
+				and (
+					(cover[2] < y and cover[2] + cover[4] > y)
+					or (cover[2] == y and other < index)
+				)
+			if across then
+				local from, to = cover[1], cover[1] + cover[3]
+				local kept = {}
+				for _, span in spans do
+					if to <= span[1] or from >= span[2] then
+						table.insert(kept, span)
+					else
+						if from > span[1] then
+							table.insert(kept, { span[1], from })
+						end
+						if to < span[2] then
+							table.insert(kept, { to, span[2] })
+						end
+					end
+				end
+				spans = kept
+			end
+		end
+		for _, span in spans do
+			if span[2] - span[1] > 0.5 then
+				table.insert(edges, { span[1], span[2], y })
+			end
+		end
+	end
+	return edges
+end
+
 --[[ How solid a mote is `share` of the way through its loop: up to its
      peak, easing off, gone at the end. ]]
 function TitleLayout.moteAlpha(share: number): number
@@ -202,6 +269,23 @@ function TitleLayout.logo(design: Design): Logo
 		streakWide = wide,
 		bottom = streakTop + streak.thick / 2 + streak.head.tall / 2,
 	}
+end
+
+--[[ The sparkles about the logo's words, in layout points. ]]
+function TitleLayout.sparkles(design: Design): { Star }
+	local at = TitleLayout.logo(design)
+	local last = at.lines[#at.lines]
+	local tall = last.top + last.tall - at.top
+	local sparks: { Star } = {}
+	for _, spark in Scene.logo.sparkles do
+		table.insert(sparks, {
+			x = round(design.width / 2 + spark[1] * at.wordsWide),
+			y = round(at.top + spark[2] * tall),
+			size = spark[3],
+			alpha = Scene.logo.sparkleAlpha,
+		})
+	end
+	return sparks
 end
 
 --[[ Fast at first, settling at the end: 0 to 1. ]]

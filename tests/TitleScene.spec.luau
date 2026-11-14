@@ -83,6 +83,9 @@ return function(t: TestRunner.Helper)
 			Scene.mote.colour,
 			Scene.farHill.colour,
 			Scene.cloud.colour,
+			tree.barkColour,
+			tree.crownShade,
+			Scene.mist.colour,
 		}
 		for index, colour in cool do
 			local h = hue(colour)
@@ -477,6 +480,204 @@ return function(t: TestRunner.Helper)
 		t.isTrue(
 			Scene.twinkle.depth > 0 and Scene.twinkle.depth < 1,
 			"a twinkling star never goes out"
+		)
+	end)
+
+	--[[ Owner, 2026-11-14: "it needs to be more detailed still". The fourth
+	     pass is more small things, and a small thing in the wrong place is a
+	     house in the air or a line of light across the hero. ]]
+	t.test("the fourth pass of detail stands where it belongs", function()
+		local tree = Scene.tree
+		-- bark is on the trunk, under the crown, and never across a window
+		for index, strip in tree.bark do
+			local on = false
+			for _, part in tree.trunk do
+				on = on
+					or (
+						strip[1] >= part[1]
+						and strip[1] + 2 <= part[1] + part[3]
+						and strip[2] >= part[2]
+						and strip[2] + strip[3] <= part[2] + part[4]
+					)
+			end
+			t.isTrue(on, `bark {index} is inside a trunk block`)
+			t.isTrue(strip[2] >= -200, `bark {index} is below the crown`)
+			for _, window in tree.windows do
+				local apart = strip[1] + 2 <= window[1] - 1
+					or strip[1] >= window[1] + 9
+					or strip[2] + strip[3] <= window[2] - 1
+					or strip[2] >= window[2] + 13
+				t.isTrue(apart, `bark {index} is clear of the windows`)
+			end
+		end
+		-- a sill stays on the trunk; the doorstep is under the door, on the trunk's foot
+		for index, window in tree.windows do
+			local on = false
+			for _, part in tree.trunk do
+				on = on
+					or (
+						window[1] - tree.sill.over >= part[1]
+						and window[1] + 8 + tree.sill.over <= part[1] + part[3]
+						and window[2] + 10 + tree.sill.tall <= part[2] + part[4]
+						and window[2] + 10 >= part[2]
+					)
+			end
+			t.isTrue(on, `window {index}'s sill is on the trunk`)
+		end
+		local step, frame = tree.doorStep, tree.door.frame
+		t.isTrue(
+			step[1] <= frame[1] and step[1] + step[3] >= frame[1] + frame[3],
+			"a step as wide as the door"
+		)
+		t.near(step[2] + step[4], 0, 1e-9, "the step is on the ground")
+
+		-- the flecks: the same every time, lit and shaded in turn, each in its own square
+		local flecks = TitleLayout.flecks()
+		t.equal(#flecks, #tree.crown * tree.flecks.each)
+		local again = TitleLayout.flecks()
+		local lit = 0
+		for index, fleck in flecks do
+			local square = tree.crown[(index - 1) // tree.flecks.each + 1]
+			t.isTrue(fleck.x == again[index].x and fleck.y == again[index].y, `fleck {index} again`)
+			t.isTrue(
+				fleck.x >= square[1] and fleck.x + fleck.side <= square[1] + square[3],
+				`fleck {index} across`
+			)
+			t.isTrue(
+				fleck.y >= square[2] and fleck.y + fleck.side <= square[2] + square[3],
+				`fleck {index} down`
+			)
+			t.isTrue(fleck.side >= tree.flecks.small and fleck.side <= tree.flecks.large)
+			lit += if fleck.lit then 1 else 0
+		end
+		t.equal(lit * 2, #flecks, "half lit, half shaded")
+		t.isTrue(tree.flecks.lit < 0.6 and tree.flecks.dark < 0.8, "flecks, not new squares")
+
+		-- light is drawn only along a top that shows
+		local edges = TitleLayout.topEdges({ { 0, 10, 10, 10 }, { 5, 5, 10, 10 } })
+		t.equal(#edges, 2)
+		t.near(edges[1][1], 0, 1e-9)
+		t.near(edges[1][2], 5, 1e-9, "cut where the taller block stands")
+		t.near(edges[1][3], 10, 1e-9)
+		t.near(edges[2][1], 5, 1e-9)
+		t.near(edges[2][2], 15, 1e-9)
+		local level = TitleLayout.topEdges({ { 0, 0, 10, 5 }, { 5, 0, 10, 5 } })
+		t.equal(#level, 2)
+		t.near(level[1][2], 10, 1e-9)
+		t.near(level[2][1], 10, 1e-9, "two tops at one height are lit once")
+		t.equal(
+			#TitleLayout.topEdges({ { 0, 10, 10, 10 }, { -5, 5, 20, 10 } }),
+			1,
+			"a covered top is not lit"
+		)
+
+		for key, design in LAYOUTS do
+			-- the ridge's lit edge never crosses the ridge itself
+			local steps = {}
+			for index, part in design.ridge do
+				table.insert(
+					steps,
+					{ part[1], part[2], part[3], if index == 1 then 400 else part[4] }
+				)
+			end
+			for index, edge in TitleLayout.topEdges(steps) do
+				for at, part in steps do
+					local inside = edge[3] > part[2]
+						and edge[3] < part[2] + part[4]
+						and edge[2] > part[1] + 0.01
+						and edge[1] < part[1] + part[3] - 0.01
+					t.isFalse(inside, `{key} ridge edge {index} crosses step {at}`)
+				end
+			end
+			for index, house in design.houses do
+				local on = false
+				for _, hill in design.hills do
+					on = on
+						or (
+							house[2] == hill[2]
+							and house[1] >= hill[1]
+							and house[1] + house[3] <= hill[1] + hill[3]
+						)
+				end
+				t.isTrue(on, `{key} house {index} stands on a hill's top`)
+				for at, pine in design.pines do
+					local apart = pine[2] ~= house[2]
+						or pine[1] + pine[3] * 0.42 <= house[1] - house[3] * 0.1
+						or pine[1] - pine[3] * 0.42 >= house[1] + house[3] * 1.1
+					t.isTrue(apart, `{key} house {index} is clear of pine {at}`)
+				end
+			end
+			local tower, standing = design.tower, false
+			for _, hill in design.farHills do
+				standing = standing
+					or (
+						tower.y == hill[2]
+						and tower.x - 1.5 >= hill[1]
+						and tower.x + Scene.tower.wide + 1.5 <= hill[1] + hill[3]
+					)
+			end
+			t.isTrue(standing, `{key}: the watchtower stands on a far hill's top`)
+			t.isTrue(
+				tower.x + Scene.tower.wide + 1.5 <= design.width,
+				`{key}: the tower is on the layout`
+			)
+			for index, band in design.mist do
+				t.isTrue(band[2] > design.stars.below, `{key} mist {index} is under the stars`)
+				t.isTrue(
+					band[2] + 2 * Scene.mist.tall <= design.tree.y - Scene.ground.above,
+					`{key} mist {index} is over the ground`
+				)
+			end
+			local function onRidge(what: string, index: number, x: number, foot: number, w: number)
+				local on = false
+				for _, part in design.ridge do
+					on = on or (foot == part[2] and x >= part[1] and x + w <= part[1] + part[3])
+				end
+				t.isTrue(on, `{key} {what} {index} stands on a ridge step`)
+				-- and it is not buried in a higher step
+				for at, part in design.ridge do
+					local buried = part[2] < foot and x + w > part[1] and x < part[1] + part[3]
+					t.isFalse(buried, `{key} {what} {index} is in step {at}`)
+				end
+				local clear = foot ~= design.hero.y
+					or x + w < design.hero.x - 30 * design.hero.unit
+					or x > design.pet.x + 24 * design.pet.unit
+				t.isTrue(clear, `{key} {what} {index} is clear of the hero and pet`)
+			end
+			for index, stone in design.stones do
+				onRidge("stone", index, stone[1], stone[2], stone[3])
+			end
+			for index, run in design.fences do
+				onRidge("fence", index, run[1], run[2], (run[3] - 1) * Scene.fence.every + 2)
+			end
+
+			-- the sparkles are beside the words, never on them, on every screen
+			local at = TitleLayout.logo(design)
+			for index, spark in TitleLayout.sparkles(design) do
+				local reach = spark.size * Scene.cross.long / 2 + 1
+				for _, screen in SCREENS do
+					if TitleLayout.design(screen[1], screen[2]) == design then
+						local fit = TitleLayout.fit(design, screen[1], screen[2])
+						t.isTrue(
+							spark.x - reach >= fit.left and spark.x + reach <= fit.right,
+							`{key} sparkle {index} is on a {screen[1]} x {screen[2]} screen`
+						)
+						t.isTrue(
+							spark.y - reach >= fit.top,
+							`{key} sparkle {index} is under the top`
+						)
+					end
+				end
+				t.isTrue(
+					spark.y >= at.top and spark.y <= at.streakTop,
+					`{key} sparkle {index} down`
+				)
+			end
+		end
+		t.isTrue(Scene.logo.sparkleAlpha <= 1 and #Scene.logo.sparkles <= 5, "a few, not a field")
+		t.isTrue(
+			Scene.ridgeRim.alpha < 0.4 and Scene.hillRim.near < 0.5,
+			"a line of light, not an outline"
 		)
 	end)
 

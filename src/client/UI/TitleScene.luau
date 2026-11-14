@@ -431,13 +431,20 @@ function TitleScene.build(parent: Instance, view: Vector2): Scene
 		image.Size = UDim2.fromScale(across / wide, across / tall)
 	end
 	--[[ A star: a perfect cross on whole pixels (`TitleLayout.cross`). ]]
-	local function cross(name: string, x: number, y: number, size: number, alpha: number): { Frame }
+	local function cross(
+		name: string,
+		x: number,
+		y: number,
+		size: number,
+		alpha: number,
+		colour: Color3?
+	): { Frame }
 		local bars = {}
 		for _, bar in TitleLayout.cross(x, y, size, k) do
 			local frame = Instance.new("Frame")
 			frame.Name = name
 			frame.BorderSizePixel = 0
-			frame.BackgroundColor3 = Config.star
+			frame.BackgroundColor3 = colour or Config.star
 			frame.BackgroundTransparency = 1 - alpha
 			frame.Position = UDim2.fromOffset(bar[1], bar[2])
 			frame.Size = UDim2.fromOffset(bar[3], bar[4])
@@ -553,24 +560,86 @@ function TitleScene.build(parent: Instance, view: Vector2): Scene
 	glow.Size =
 		UDim2.fromScale(2 * Config.glow.radius * u / wide, 2 * Config.glow.radius * u / tall)
 
-	--[[ The hills, again to either side on a screen wider than the layout:
-	     a farther, paler row, the near ones with small stepped pines on
-	     them, and a few lit windows. ]]
-	for shift = -1, 1 do
-		for _, hill in design.farHills do
-			local x = hill[1] + shift * wide
-			if x + hill[3] > left and x < right then
-				block("FarHill", x, hill[2], hill[3], Config.farHill.tall, Config.farHill.colour)
-			end
+	--[[ A line of light along the tops of `blocks` that show. ]]
+	local function litTops(
+		name: string,
+		blocks: { Config.Block },
+		thick: number,
+		colour: Color3,
+		alpha: number
+	)
+		for _, edge in TitleLayout.topEdges(blocks) do
+			local line = block(name, edge[1], edge[3], edge[2] - edge[1], thick, colour)
+			line.BackgroundTransparency = 1 - alpha
 		end
 	end
-	for shift = -1, 1 do
-		for _, hill in design.hills do
-			local x = hill[1] + shift * wide
-			if x + hill[3] > left and x < right then
-				block("Hill", x, hill[2], hill[3], Config.hill.tall, Config.hill.colour)
+	--[[ The hills, again to either side on a screen wider than the layout:
+	     a farther, paler row with a watchtower on it, mist at its feet,
+	     then the near ones with small stepped pines and houses on them and
+	     a few lit windows. The tree's light lies along every hill's top. ]]
+	local hillRim = Config.hillRim
+	local function row(
+		name: string,
+		hills: { Config.Block },
+		look: { colour: Color3, tall: number },
+		alpha: number
+	)
+		local drawn: { Config.Block } = {}
+		for shift = -1, 1 do
+			for _, hill in hills do
+				local x = hill[1] + shift * wide
+				if x + hill[3] > left and x < right then
+					block(name, x, hill[2], hill[3], look.tall, look.colour)
+					table.insert(drawn, { x, hill[2], hill[3], look.tall })
+				end
 			end
 		end
+		litTops(`{name}Rim`, drawn, hillRim.tall, Config.tree.crownLit, alpha)
+	end
+	row("FarHill", design.farHills, Config.farHill, hillRim.far)
+	local lit = Config.villageLight
+	-- the far watchtower: a body under a wider toothed top, one window lit
+	local tower, towerAt = Config.tower, design.tower
+	local far = Config.farHill.colour
+	block("Tower", towerAt.x, towerAt.y - tower.tall, tower.wide, tower.tall + 0.5, far)
+	block("Tower", towerAt.x - 1.5, towerAt.y - tower.tall - 3, tower.wide + 3, 3.5, far)
+	for tooth = 0, 2 do
+		block(
+			"Tower",
+			towerAt.x - 1.5 + tooth * (tower.wide + 1) / 2,
+			towerAt.y - tower.tall - 5,
+			2,
+			2.5,
+			far
+		)
+	end
+	light(
+		"TowerWindow",
+		towerAt.x + tower.wide / 2 - 1,
+		towerAt.y - tower.tall + 5,
+		2,
+		3,
+		lit.colour,
+		tower.alpha
+	)
+	-- mist: a thin pale band with a shorter step under it and one above
+	local mist = Config.mist
+	for _, band in design.mist do
+		local x, y, w = band[1], band[2], band[3]
+		light("Mist", x, y, w, mist.tall, mist.colour, mist.alpha)
+		light("Mist", x + w * 0.2, y + mist.tall, w * 0.5, mist.tall * 0.7, mist.colour, mist.alpha)
+		light(
+			"Mist",
+			x + w * 0.56,
+			y - mist.tall * 0.7,
+			w * 0.3,
+			mist.tall * 0.7,
+			mist.colour,
+			mist.alpha
+		)
+	end
+	row("Hill", design.hills, Config.hill, hillRim.near)
+	for shift = -1, 1 do
 		for _, pine in design.pines do
 			local x, foot, high = pine[1] + shift * wide, pine[2], pine[3]
 			if x + high > left and x - high < right then
@@ -591,7 +660,35 @@ function TitleScene.build(parent: Instance, view: Vector2): Scene
 			end
 		end
 	end
-	local lit = Config.villageLight
+	-- houses: a body, a roof in three steps, a chimney and one lit window
+	local home = Config.house
+	for _, at in design.houses do
+		local x, foot, w = at[1], at[2], at[3]
+		local eaves = foot - w * 0.6
+		local dark = Config.hill.colour
+		block("House", x, eaves, w, w * 0.6 + 0.5, dark)
+		block("House", x - w * 0.1, eaves - w * 0.2, w * 1.2, w * 0.2 + 0.5, dark)
+		block("House", x + w * 0.12, eaves - w * 0.4, w * 0.76, w * 0.2 + 0.5, dark)
+		block("House", x + w * 0.34, eaves - w * 0.55, w * 0.32, w * 0.15 + 0.5, dark)
+		block("House", x + w * 0.72, eaves - w * 0.75, w * 0.14, w * 0.4, dark)
+		glowAt(
+			"HouseGlow",
+			x + w * 0.4,
+			foot - w * 0.3,
+			w * home.glow,
+			Config.tree.windowHalo,
+			home.glowAlpha
+		)
+		light(
+			"HouseWindow",
+			x + w * 0.27,
+			foot - w * 0.43,
+			w * 0.26,
+			w * 0.26,
+			lit.colour,
+			lit.alpha
+		)
+	end
 	for _, at in design.village do
 		light("Village", at[1], at[2], lit.size, lit.size, lit.colour, lit.alpha)
 	end
@@ -616,16 +713,29 @@ function TitleScene.build(parent: Instance, view: Vector2): Scene
 	for _, part in shape.roots do
 		onTree("Root", part, shape.trunkColour)
 	end
+	for _, strip in shape.bark do
+		onTree("Bark", { strip[1], strip[2], 2, strip[3] }, shape.barkColour)
+	end
 	-- leaf blocks round the crown's edge, behind it
 	for index, square in shape.leaves do
 		local x, y, side = square[1], square[2], square[3]
 		onTree("Leaves", { x, y, side, side }, shape.crownColours[index % 2 + 1])
 		onTree("LeavesLit", { x, y, side, side * shape.crownStrip }, shape.crownLit)
+		onTree(
+			"LeavesShade",
+			{ x, y + side * (1 - shape.crownShadeStrip), side, side * shape.crownShadeStrip },
+			shape.crownShade
+		)
 	end
 	for index, square in shape.crown do
 		local x, y, side = square[1], square[2], square[3]
 		onTree("Crown", { x, y, side, side }, shape.crownColours[(index - 1) % 2 + 1])
 		onTree("CrownLit", { x, y, side, side * shape.crownStrip }, shape.crownLit)
+		onTree(
+			"CrownShade",
+			{ x, y + side * (1 - shape.crownShadeStrip), side, side * shape.crownShadeStrip },
+			shape.crownShade
+		)
 		local patch = shape.crownPatch
 		light(
 			"CrownPatch",
@@ -635,6 +745,18 @@ function TitleScene.build(parent: Instance, view: Vector2): Scene
 			side * patch.h * u,
 			shape.crownLit,
 			patch.alpha
+		)
+	end
+	-- flecks of leaf over the whole crown, lit and shaded in turn
+	for _, fleck in TitleLayout.flecks() do
+		light(
+			"Fleck",
+			tree.x + fleck.x * u,
+			tree.y + fleck.y * u,
+			fleck.side * u,
+			fleck.side * u,
+			if fleck.lit then shape.crownLit else shape.crownShade,
+			if fleck.lit then shape.flecks.lit else shape.flecks.dark
 		)
 	end
 	for index, lantern in shape.lanterns do
@@ -671,6 +793,18 @@ function TitleScene.build(parent: Instance, view: Vector2): Scene
 			shape.windowHaloAlpha
 		)
 		light("Window", x, y, 8 * u, 10 * u, shape.window)
+		-- four panes and a sill
+		local bar = shape.windowBar * u
+		light("WindowBar", x + 4 * u - bar / 2, y, bar, 10 * u, shape.doorFrame)
+		light("WindowBar", x, y + 5 * u - bar / 2, 8 * u, bar, shape.doorFrame)
+		light(
+			"WindowSill",
+			x - shape.sill.over * u,
+			y + 10 * u,
+			(8 + 2 * shape.sill.over) * u,
+			shape.sill.tall * u,
+			shape.doorFrame
+		)
 	end
 	-- vines under the crown, and a few small warm windows up in it
 	for _, vine in shape.vines do
@@ -707,15 +841,22 @@ function TitleScene.build(parent: Instance, view: Vector2): Scene
 		door.light[4] * u,
 		shape.window
 	)
+	onTree("DoorStep", shape.doorStep, shape.doorFrame)
 
 	--[[ The near ridge: its base runs to the bottom of the screen, and a
 	     step that touches the layout's side runs on to the screen's. ]]
+	local steps: { Config.Block } = {}
 	for index, step in design.ridge do
 		local x, y, w, h = step[1], step[2], step[3], step[4]
 		local x1 = if x + w >= wide then right else x + w
 		local x0 = if x <= 0 then left else x
-		block("Ridge", x0, y, x1 - x0, if index == 1 then bottom - y else h, Config.ridge)
+		local deep = if index == 1 then bottom - y else h
+		block("Ridge", x0, y, x1 - x0, deep, Config.ridge)
+		table.insert(steps, { x0, y, x1 - x0, deep })
 	end
+	-- the tree's light along the ridge's top
+	local ridgeRim = Config.ridgeRim
+	litTops("RidgeRim", steps, ridgeRim.tall, Config.rim, ridgeRim.alpha)
 	-- grass on the ridge, and a lantern post with a mint light
 	for _, tuft in design.tufts do
 		for _, blade in Config.tuft do
@@ -775,6 +916,36 @@ function TitleScene.build(parent: Instance, view: Vector2): Scene
 		Config.figure
 	)
 	light("SignRim", signAt.x - 2, signAt.y - sign.tall, sign.wide, 1, Config.rim, 0.5)
+	-- stones: a block with a smaller one on it, its top catching the light
+	for _, stone in design.stones do
+		local x, foot, w = stone[1], stone[2], stone[3]
+		block("Stone", x, foot - w * 0.5, w, w * 0.5 + 0.5, Config.ridge)
+		block("Stone", x + w * 0.2, foot - w * 0.85, w * 0.55, w * 0.35 + 0.5, Config.ridge)
+		light(
+			"StoneRim",
+			x + w * 0.2,
+			foot - w * 0.85,
+			w * 0.55,
+			1,
+			Config.rim,
+			ridgeRim.alpha + 0.1
+		)
+		light("StoneRim", x, foot - w * 0.5, w * 0.2, 1, Config.rim, ridgeRim.alpha)
+		light("StoneRim", x + w * 0.75, foot - w * 0.5, w * 0.25, 1, Config.rim, ridgeRim.alpha)
+	end
+	-- fences: posts and two rails
+	local fence = Config.fence
+	for _, run in design.fences do
+		local x, foot, count = run[1], run[2], run[3]
+		for _, rail in fence.rails do
+			block("Fence", x, foot - rail, (count - 1) * fence.every + 2, 1.2, Config.figure)
+		end
+		for n = 0, count - 1 do
+			local across = x + n * fence.every
+			block("Fence", across, foot - fence.tall, 2, fence.tall + 0.5, Config.figure)
+			light("FenceRim", across, foot - fence.tall, 2, 1, Config.rim, fence.rim)
+		end
+	end
 
 	-- the hero from behind, bow across the back, and the pet at their heel
 	local function figure(
@@ -938,6 +1109,21 @@ function TitleScene.build(parent: Instance, view: Vector2): Scene
 	size.Scale = k / LOGO_INNER
 	size.Parent = logo
 	local logoParts = buildLogo(logo, design, logoAt, size)
+	-- a few small gold sparkles about the words, twinkling as the stars do
+	for index, spark in TitleLayout.sparkles(design) do
+		table.insert(twinkles, {
+			frames = cross(
+				"Twinkle",
+				spark.x,
+				spark.y,
+				spark.size,
+				spark.alpha,
+				Config.logo.sparkle
+			),
+			base = spark.alpha,
+			phase = 40 + index * 2.1,
+		})
+	end
 
 	collect(root, fading)
 	-- the motes and the twinkling stars fade on their own loops (`step`)

@@ -110,6 +110,16 @@ export type Building = {
 	balustrade the wood and the cliffs move out by what the clearing grew
 	(`OUTWARD`), so the forest round it keeps its depth.
 ]]
+--[[ `count` stages from `first` on, in order: an area's levels
+     (`Balance.Stages`, `tools/area_levels.py`). ]]
+local function stageRun(first: number, count: number): { number }
+	local list = {}
+	for index = first, first + count - 1 do
+		table.insert(list, index)
+	end
+	return list
+end
+
 local SPREAD = 1.3
 local function plan(x: number, z: number): Vector2
 	return Vector2.new(x, z) * SPREAD
@@ -201,20 +211,30 @@ local Lobby = {
 			levels = { 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 },
 			tint = GREEN,
 		},
-		{ name = "Thornwood", levels = { 4 }, tint = PURPLE, atLaunch = { requires = "1-10" } },
+		--[[ Thornwood 2-1..2-10 (owner, 2026-11-13: "there is 10 levels for
+		     area 1, there should also be 10 for area 2, 15 for 3, 15 for 4"),
+		     the Broodmother only at the end of 2-10. Each area's levels are
+		     `Balance.Stages` in a run (`tools/area_levels.py`). ]]
+		{
+			name = "Thornwood",
+			levels = stageRun(20, 10),
+			tint = PURPLE,
+			atLaunch = { requires = "1-10" },
+		},
 		--[[ The Drowned Village (2026-11-07, owner: "MAKE SURE ARENA 3 AND 4
-		     ARE PLAYABLE"): one level, ten rooms ending in the Old Tollcrab. ]]
+		     ARE PLAYABLE"): 3-1..3-15 since 2026-11-13, the Old Tollcrab only
+		     at the end of 3-15. ]]
 		{
 			name = "Drowned Village",
-			levels = { 18 },
+			levels = stageRun(30, 15),
 			tint = BLUE,
 			atLaunch = { boss = "Thornwood" },
 		},
-		--[[ Bogheart Caverns (2026-11-06): one level, twenty rooms ending in
-		     Grandmother Gulp, as Thornwood's is. ]]
+		--[[ Bogheart Caverns (2026-11-06): 4-1..4-15 since 2026-11-13,
+		     Grandmother Gulp only at the end of 4-15. ]]
 		{
 			name = "Bogheart Caverns",
-			levels = { 19 },
+			levels = stageRun(45, 15),
 			tint = CYAN,
 			atLaunch = { boss = "DrownedVillage" },
 		},

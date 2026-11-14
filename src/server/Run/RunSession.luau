@@ -15,6 +15,7 @@ local Workspace = game:GetService("Workspace")
 
 local Abilities = require(ReplicatedStorage.Shared.Config.Abilities)
 local AbilityEffects = require(ReplicatedStorage.Shared.Combat.AbilityEffects)
+local Analytics = require(script.Parent.Parent.Data.Analytics)
 local Arena = require(script.Parent.Parent.Arena.Arena)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Classes = require(ReplicatedStorage.Shared.Config.Classes)
@@ -28,6 +29,7 @@ local HeldWeaponChoice = require(ReplicatedStorage.Shared.Combat.HeldWeaponChoic
 local Loadout = require(script.Parent.Loadout)
 local LobbyConfig = require(ReplicatedStorage.Shared.Config.Lobby)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
+local MenuHold = require(ReplicatedStorage.Shared.Util.MenuHold)
 local MergeRules = require(ReplicatedStorage.Shared.Util.MergeRules)
 local MudCoat = require(ReplicatedStorage.Shared.Util.MudCoat)
 local NewEnemies = require(ReplicatedStorage.Shared.Config.NewEnemies)
@@ -145,8 +147,8 @@ export type Session = {
 	     2026-10-25). ]]
 	seenEnemies: { [string]: boolean },
 	meeting: { string },
-	--[[ When (os.clock) MENU's panel stops holding the world; 0 when shut. ]]
-	menuUntil: number,
+	--[[ MENU's panel's hold on the world (`Util/MenuHold`), on os.clock. ]]
+	menu: MenuHold.State,
 	--[[ The tutorial's fixed hands dealt to this player so far this stage
 	     (`Util/TutorialHands`). ]]
 	tutorialProgress: TutorialHands.Progress,
@@ -346,7 +348,7 @@ function RunSession.create(player: Player): Session
 			and not RunSession.arrivedByTeleport(player),
 		seenEnemies = {},
 		meeting = {},
-		menuUntil = 0,
+		menu = MenuHold.new(CombatTuning.menuHold),
 		tutorialProgress = TutorialHands.newProgress(),
 		healthSentAt = 0,
 		xpArriving = {},
@@ -543,10 +545,18 @@ function RunSession.anyMeeting(): boolean
 end
 
 --[[ MENU's panel opened or shut (`Remotes.RunMenu`). A client's say-so, so
-     it can only ever hold the run for `CombatTuning.menuHold` at a time. ]]
+     it holds the run only within a budget (`Util/MenuHold`): at most
+     `CombatTuning.menuHold` at a time, earned back while the run plays, and
+     sending "open" again does not stretch it. ]]
 function RunSession.setInMenu(session: Session, open: unknown)
-	if type(open) == "boolean" then
-		session.menuUntil = if open then os.clock() + CombatTuning.menuHold else 0
+	if type(open) ~= "boolean" then
+		return
+	end
+	local now = os.clock()
+	if open then
+		MenuHold.open(session.menu, now, CombatTuning.menuHold, CombatTuning.menuRefill)
+	else
+		MenuHold.close(session.menu, now, CombatTuning.menuHold, CombatTuning.menuRefill)
 	end
 end
 
@@ -554,7 +564,7 @@ end
 function RunSession.anyInMenu(): boolean
 	local now = os.clock()
 	for _, session in sessions do
-		if session.menuUntil > now then
+		if MenuHold.holding(session.menu, now) then
 			return true
 		end
 	end
@@ -1025,9 +1035,20 @@ end
 	itself sent, and an invalid one changes nothing at all.
 ]]
 function RunSession.chooseAbility(session: Session, index: number): boolean
+	local source = session.loadout.offerSource or "Level"
 	local ability = Loadout.choose(session.loadout, index)
 	if not ability then
 		return false
+	end
+	-- the tutorial's hands are fixed: its picks say nothing about the cards
+	if not tutorial then
+		Analytics.cardPicked(
+			session.player,
+			ability.id,
+			ability.rarity,
+			source,
+			session.loadout.level
+		)
 	end
 
 	RunSession.applyLoadout(session)
@@ -1068,7 +1089,7 @@ function RunSession.resetRun(session: Session)
 	session.petReviveUsed = false
 	-- a screen left open when the run ended holds nothing now
 	table.clear(session.meeting)
-	session.menuUntil = 0
+	MenuHold.close(session.menu, os.clock(), CombatTuning.menuHold, CombatTuning.menuRefill)
 	-- nor do crystals still flying in from it
 	table.clear(session.xpArriving)
 	RunSession.newStage(session)

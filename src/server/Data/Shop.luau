@@ -22,12 +22,14 @@ local RunService = game:GetService("RunService")
 
 local Classes = require(ReplicatedStorage.Shared.Config.Classes)
 local Economy = require(ReplicatedStorage.Shared.Config.Economy)
+local Inbound = require(script.Parent.Parent.Net.Inbound)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local SaveSchema = require(ReplicatedStorage.Shared.Util.SaveSchema)
 local Shop = require(ReplicatedStorage.Shared.Config.Shop)
 local ShopRules = require(ReplicatedStorage.Shared.Util.ShopRules)
 
+local Analytics = require(script.Parent.Analytics)
 local Hatchery = require(script.Parent.Hatchery)
 local Lobby = require(script.Parent.Parent.Run.Lobby)
 local Pity = require(ReplicatedStorage.Shared.Util.Pity)
@@ -126,6 +128,9 @@ local function openCrate(player: Player, index: unknown, count: unknown, class: 
 		end
 	end
 	Rewards.note(player, "crates", #results)
+	if #results > 0 then
+		Analytics.step(player, "FirstCrate")
+	end
 	crateOpened:FireClient(player, index, results, chest.class)
 end
 
@@ -210,6 +215,7 @@ local function chooseClass(player: Player, class: unknown, look: unknown)
 			Lobby.place(player.Character)
 		end
 	end
+	Analytics.step(player, "ClassSelect")
 	log.info("%s chose the %s (%s)", player.Name, class, look)
 end
 
@@ -259,14 +265,14 @@ local function merge(player: Player, kind: unknown, key: unknown, tier: unknown)
 end
 
 function ShopServer.start()
-	Remotes.event(Remotes.ChooseClass).OnServerEvent:Connect(chooseClass)
-	Remotes.event(Remotes.SwitchClass).OnServerEvent:Connect(switchClass)
-	Remotes.event(Remotes.ShopOpenCrate).OnServerEvent:Connect(openCrate)
-	Remotes.event(Remotes.ShopBuy).OnServerEvent:Connect(buy)
-	Remotes.event(Remotes.ShopEquip).OnServerEvent:Connect(equip)
-	Remotes.event(Remotes.MergeItem).OnServerEvent:Connect(merge)
+	Inbound.on(Remotes.ChooseClass, chooseClass)
+	Inbound.on(Remotes.SwitchClass, switchClass)
+	Inbound.on(Remotes.ShopOpenCrate, openCrate)
+	Inbound.on(Remotes.ShopBuy, buy)
+	Inbound.on(Remotes.ShopEquip, equip)
+	Inbound.on(Remotes.MergeItem, merge)
 	-- Studio only: fill the wallet to test the shop
-	Remotes.event(Remotes.DebugWallet).OnServerEvent:Connect(function(player, coins, gems, items)
+	Inbound.debug(Remotes.DebugWallet, function(player, coins, gems, items)
 		if not RunService:IsStudio() then
 			return
 		end

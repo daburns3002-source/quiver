@@ -16,6 +16,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = require(ReplicatedStorage.Shared.Config.Settings)
+local Inbound = require(script.Parent.Parent.Net.Inbound)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local SettingsRules = require(ReplicatedStorage.Shared.Util.SettingsRules)
 
@@ -55,7 +56,7 @@ end
 
 function Settings.start()
 	PlayerData.onLoaded(Settings.apply)
-	Remotes.event(Remotes.SettingSet).OnServerEvent:Connect(set)
+	Inbound.on(Remotes.SettingSet, set)
 	Players.PlayerRemoving:Connect(function(player)
 		lastAsk[player] = nil
 	end)

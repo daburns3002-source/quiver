@@ -188,6 +188,8 @@ local function beginRun()
 	Remotes.event(Remotes.IntroBegin):FireServer()
 end
 local function playStory()
+	-- for the onboarding funnel (`Data/Analytics`)
+	Remotes.event(Remotes.FunnelStep):FireServer("Story")
 	-- the cards' images, once the title has given the story's frames their turn
 	CardPreload.start()
 	local ok, problem = pcall(function()
@@ -245,6 +247,10 @@ local function startIntro(story: boolean)
 				beginRun()
 			end)
 	end)
+	if ok then
+		-- the title is up, for the onboarding funnel (`Data/Analytics`)
+		Remotes.event(Remotes.FunnelStep):FireServer("Title")
+	end
 	if not ok then
 		log.warn("intro cutscene failed to start: %s", tostring(problem))
 		IntroCutscene.stop()

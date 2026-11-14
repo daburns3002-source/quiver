@@ -31,6 +31,7 @@ local Workspace = game:GetService("Workspace")
 
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Coop = require(ReplicatedStorage.Shared.Util.Coop)
+local Inbound = require(script.Parent.Parent.Net.Inbound)
 local Lobby = require(script.Parent.Lobby)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
 local PlayerData = require(script.Parent.Parent.Data.PlayerData)
@@ -92,7 +93,7 @@ local function loadArea(stage: number)
 	for _, player in Players:GetPlayers() do
 		waiting[player] = true
 	end
-	local connection = Remotes.event(Remotes.AreaLoaded).OnServerEvent:Connect(function(player)
+	local connection = Inbound.on(Remotes.AreaLoaded, function(player)
 		waiting[player] = nil
 	end)
 	Remotes.event(Remotes.AreaLoading):FireAllClients()

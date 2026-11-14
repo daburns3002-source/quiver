@@ -25,6 +25,7 @@ local TipRules = require(ReplicatedStorage.Shared.Util.TipRules)
 local TrailRules = require(ReplicatedStorage.Shared.Util.TrailRules)
 local Tutorial = require(ReplicatedStorage.Shared.Config.Tutorial)
 
+local Analytics = require(script.Parent.Analytics)
 local DexPay = require(script.Parent.DexPay)
 local PlayerData = require(script.Parent.PlayerData)
 
@@ -448,6 +449,13 @@ function Wallet.beatBoss(player: Player, area: string): (number, string?)
 	end
 	local first = not profile.bossesBeaten[area]
 	profile.bossesBeaten[area] = true
+	if first then
+		local beaten = 0
+		for _ in profile.bossesBeaten do
+			beaten += 1
+		end
+		Analytics.areaUnlocked(player, area, beaten)
+	end
 	local gems = if first then config.firstBossGems else config.bossGems
 	profile.gems += gems
 	profile.items[config.bossItem] = (profile.items[config.bossItem] or 0) + 1

@@ -16,6 +16,57 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## The launch anti-exploit audit: a run held for ever by re-sending MENU, and thirteen remotes with no rate limit (2026-11-13)
+
+Phase 10's audit (`docs/ROADMAP.md`) read every remote a client can fire at the server: 40 handlers
+in `Main`, `Data/Hatchery`, `Shop`, `SoulstoneShop`, `Trails`, `Rewards`, `Settings` and `Run/Party`.
+
+**What holds.** The server decides every outcome. No remote carries a hit, a damage number, a coin
+total, a hatch or crate result, a merge, a trail, a reward or an unlock: shots, hits and deaths are
+server→client only; `AbilityChosen` is an index into the hand the server dealt (`Loadout.choose`);
+eggs, crates and their pity are rolled on the server and paid through `Wallet.pay`; merges, equips,
+trails and the Soulstone shop check what the profile holds; rewards are judged from the profile and
+the server's clock (`RewardRules`); a level, a boss and an area are only ever marked beaten by
+`RoomController`; `PortalStart` checks the level is open and the player stands at that portal, and a
+party's run server checks the leader's level again, since the teleport data passes through the
+client. Every handler checks its arguments' types, and the number ones refuse NaN and fractions.
+All 13 `Debug*` remotes (`DebugWallet`, `DebugGrant`, `DebugRoom`, `DebugSpawnEnemy`, `DebugDay`,
+`DebugSoulstones`, `DebugForceMythic`, `DebugNextClass`, `DebugDown`, `DebugPetPreview`,
+`DebugSandbox`, `DebugPet`, `DebugWeapon`) returned at once outside Studio.
+
+**What was open, and is fixed.**
+- *A run held for ever.* MENU's panel holds the world (`RunMenu`), capped at 60 s from the latest
+  "open". A client that sent "open" once a minute held every player's run for ever, in co-op too,
+  though the code said one player could not. Now a hold is a budget (`Util/MenuHold`): 60 s at most,
+  spent while held and earned back at a quarter of a second a second while not, and a repeated
+  "open" does not stretch it. Measured by `tests/MenuHold.spec`: a client sending "open" every second
+  for ten minutes holds the run about a fifth of the time; ten seconds in the menu every 70 s is
+  always held.
+- *No rate limit on thirteen remotes* (`AbilityChosen`, `AbilityReroll`, `RunRestart`, `RunLobby`,
+  `StorySeen`, `TipSeen`, `IntroBegin`, `PortalStart`, `EndlessPick`, `NewEnemySeen`, `RunMenu`,
+  `RewardClaim`, `AreaLoaded` and the Debug ones). None paid anything twice, but a script could fire
+  them as fast as the network allowed. Every client→server remote is now listened to in
+  `Net/Inbound` only: a token bucket per player per remote (10 at once, then 5 a second; the settings
+  20 and 10), drops logged once a minute per player and remote. `tools/check.sh` fails on an
+  `OnServerEvent` anywhere else.
+- *Debug remotes listened to on live servers.* Each one checked `RunService:IsStudio()` itself, so a
+  new one that forgot would have been open. `Inbound.debug` now connects nothing outside Studio, and
+  `Inbound.on` refuses a `Debug*` name (as does `check.sh`); the handlers' own checks stay.
+
+**Left as it is, on purpose.** Positions are the client's, as Roblox makes them: a teleporting
+client can dodge or reach a door sooner, but every door, portal and pickup is still checked on the
+server. A co-op partner who never picks a card or never closes NEW ENEMY! holds the run, the known
+co-op caveat in `RunSession.anyChoosing`; BACK TO LOBBY from any party member takes the party. Both
+are design questions, not holes. `ChooseClass` can be sent again later and keeps the pet slots
+(`SwitchClass` empties them); it pays nothing.
+
+Measured: `tools/check.sh` green; in-Roblox suite 1013 passed, 2 failed (the known Bogheart Egg ones),
+new `Throttle`, `MenuHold` and `Analytics` specs among the passes. In Play, 40 `RunMenu` asks at once
+were cut at the limit with one `[Inbound]` line; the tutorial, a death, a hatch, a crate and a 1-1
+left by BACK TO LOBBY each sent their analytics events, and Studio's `AnalyticsService` took every call.
+
+---
+
 ## "ArcaneShield level 2 is no better than level 1" (2026-11-13, caught by the suite before shipping)
 
 The in-Roblox suite failed `AbilityEffects › every card's level count matches its stat lines` on the new

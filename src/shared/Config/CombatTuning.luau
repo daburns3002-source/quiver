@@ -31,6 +31,9 @@ return table.freeze({
 	     (`Run/Waves.damageRamp`) ]]
 	roomDamageStart = 0.7,
 	roomDamagePerEncounter = 0.016,
-	--[[ How long MENU's LEAVE THE RUN? panel can hold the run, in seconds. ]]
+	--[[ How long MENU's LEAVE THE RUN? panel can hold the run, in seconds:
+	     a budget spent while held (`Util/MenuHold`), earned back at
+	     `menuRefill` seconds a second while not. ]]
 	menuHold = 60,
+	menuRefill = 0.25,
 })

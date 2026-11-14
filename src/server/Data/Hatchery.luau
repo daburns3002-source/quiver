@@ -22,10 +22,12 @@ local RunService = game:GetService("RunService")
 
 local EggRules = require(ReplicatedStorage.Shared.Util.EggRules)
 local Eggs = require(ReplicatedStorage.Shared.Config.Eggs)
+local Inbound = require(script.Parent.Parent.Net.Inbound)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local Sandbox = require(ReplicatedStorage.Shared.Config.Sandbox)
 
+local Analytics = require(script.Parent.Analytics)
 local Pity = require(ReplicatedStorage.Shared.Util.Pity)
 local PlayerData = require(script.Parent.PlayerData)
 local PrizeRules = require(ReplicatedStorage.Shared.Util.PrizeRules)
@@ -102,6 +104,7 @@ function Hatchery.grantFree(player: Player, key: string): Result?
 		return nil
 	end
 	local results = rollEggs(player, profile, pool, 1)
+	Analytics.hatched(player, key, results, "Free")
 	log.info("%s was given a free %s", player.Name, key)
 	return results[1]
 end
@@ -128,6 +131,7 @@ function Hatchery.grantMany(player: Player, key: string, n: number, least: strin
 	for _, result in rollEggs(player, profile, pool, left) do
 		table.insert(results, result)
 	end
+	Analytics.hatched(player, key, results, "Prize")
 	log.info("%s was given %d free %s", player.Name, n, key)
 	return results
 end
@@ -167,6 +171,7 @@ local function hatch(player: Player, key: unknown, count: unknown)
 	end
 	local results = rollEggs(player, profile, pool, n)
 	Rewards.note(player, "hatches", #results)
+	Analytics.hatched(player, key, results, "Bought")
 	log.info("%s hatched %d %s", player.Name, n, egg.name)
 	eggHatched:FireClient(player, key, results)
 end
@@ -180,8 +185,8 @@ local function equip(player: Player, slot: unknown, pet: unknown)
 end
 
 function Hatchery.start()
-	Remotes.event(Remotes.HatchEgg).OnServerEvent:Connect(hatch)
-	Remotes.event(Remotes.EquipPet).OnServerEvent:Connect(equip)
+	Inbound.on(Remotes.HatchEgg, hatch)
+	Inbound.on(Remotes.EquipPet, equip)
 	PlayerData.onLoaded(Hatchery.apply)
 	--[[ Studio only: a full wallet, the areas opened to try every egg, and
 	     the levels beaten that other things wait on (1-10 opens the Endless
@@ -199,7 +204,7 @@ function Hatchery.start()
 			end
 		end)
 	end
-	Remotes.event(Remotes.ProfileRequest).OnServerEvent:Connect(function(player)
+	Inbound.on(Remotes.ProfileRequest, function(player)
 		if allowed(player) then
 			Wallet.send(player)
 		end

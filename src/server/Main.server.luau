@@ -25,6 +25,7 @@ local RunService = game:GetService("RunService")
 require(ReplicatedStorage.Shared.Net.Remotes).createAll()
 
 local Abilities = require(ReplicatedStorage.Shared.Config.Abilities)
+local Analytics = require(script.Parent.Data.Analytics)
 local AreaStrikes = require(script.Parent.Combat.AreaStrikes)
 local Arena = require(script.Parent.Arena.Arena)
 local Atmosphere = require(script.Parent.Arena.Atmosphere)
@@ -40,6 +41,7 @@ local FiringSystem = require(script.Parent.Combat.FiringSystem)
 local Game = require(ReplicatedStorage.Shared.Config.Game)
 local Hatchery = require(script.Parent.Data.Hatchery)
 local HeldWeapon = require(script.Parent.Combat.HeldWeapon)
+local Inbound = require(script.Parent.Net.Inbound)
 local LevelUnlocks = require(ReplicatedStorage.Shared.Util.LevelUnlocks)
 local Lobby = require(script.Parent.Run.Lobby)
 local LobbyConfig = require(ReplicatedStorage.Shared.Config.Lobby)
@@ -79,6 +81,7 @@ log.info("%s v%s booting", Game.Name, Game.Version)
      each player is told their wallet once it is in. ]]
 PlayerData.onLoaded(Wallet.send)
 PlayerData.start()
+Analytics.start()
 WeaponShop.start()
 Hatchery.start()
 SoulstoneShop.start()
@@ -382,7 +385,7 @@ end)
 	arriving here — a string, a float, an index out of range, a choice with no
 	offer open — changes nothing.
 ]]
-Remotes.event(Remotes.AbilityChosen).OnServerEvent:Connect(function(player, index)
+Inbound.on(Remotes.AbilityChosen, function(player, index)
 	if typeof(index) ~= "number" then
 		return
 	end
@@ -401,7 +404,7 @@ end)
      game is running in Studio, so nothing a live client sends can use it. ]]
 local FORCEABLE = { Mythic = true, Legendary = true }
 
-Remotes.event(Remotes.DebugForceMythic).OnServerEvent:Connect(function(player, rarity)
+Inbound.debug(Remotes.DebugForceMythic, function(player, rarity)
 	if not RunService:IsStudio() then
 		return
 	end
@@ -418,7 +421,7 @@ end)
      skill the new class cannot be dealt keeps working if already held. ]]
 local CLASS_ORDER = { "Ranger", "Arcanist", "Warden" }
 
-Remotes.event(Remotes.DebugNextClass).OnServerEvent:Connect(function(player)
+Inbound.debug(Remotes.DebugNextClass, function(player)
 	if not RunService:IsStudio() then
 		return
 	end
@@ -437,7 +440,7 @@ end)
 
 --[[ Testing only: one more level of a named card, within its levels.
      Honoured only in Studio, like the keys above. ]]
-Remotes.event(Remotes.DebugGrant).OnServerEvent:Connect(function(player, id)
+Inbound.debug(Remotes.DebugGrant, function(player, id)
 	if not RunService:IsStudio() or typeof(id) ~= "string" then
 		return
 	end
@@ -453,7 +456,7 @@ Remotes.event(Remotes.DebugGrant).OnServerEvent:Connect(function(player, id)
 end)
 
 --[[ Testing only: straight into a room. Honoured only in Studio. ]]
-Remotes.event(Remotes.DebugRoom).OnServerEvent:Connect(function(player, position)
+Inbound.debug(Remotes.DebugRoom, function(player, position)
 	if not RunService:IsStudio() or type(position) ~= "number" or not RunSession.get(player) then
 		return
 	end
@@ -463,7 +466,7 @@ end)
 
 --[[ Testing only: a killing blow past every save (Second Wind, a pet's
      revive, a shield), for co-op's downed and revive. Studio only. ]]
-Remotes.event(Remotes.DebugDown).OnServerEvent:Connect(function(player)
+Inbound.debug(Remotes.DebugDown, function(player)
 	local session = RunSession.get(player)
 	if not RunService:IsStudio() or not session then
 		return
@@ -481,7 +484,7 @@ Remotes.event(Remotes.DebugDown).OnServerEvent:Connect(function(player)
 	log.info("%s took a killing blow (Studio)", player.Name)
 end)
 
-Remotes.event(Remotes.DebugSpawnEnemy).OnServerEvent:Connect(function(_player, name)
+Inbound.debug(Remotes.DebugSpawnEnemy, function(_player, name)
 	if not RunService:IsStudio() or type(name) ~= "string" then
 		return
 	end
@@ -495,7 +498,7 @@ end)
 
 --[[ Testing only: build the imported pets so the client can preview them
      following the player. Honoured only in Studio. ]]
-Remotes.event(Remotes.DebugPetPreview).OnServerEvent:Connect(function(player)
+Inbound.debug(Remotes.DebugPetPreview, function(player)
 	if not RunService:IsStudio() then
 		return
 	end
@@ -506,7 +509,7 @@ end)
 --[[ Testing only: the playtest sandbox (`Config/Sandbox`). In, the room
      becomes training dummies; out, the stage starts again. Honoured only in
      Studio. ]]
-Remotes.event(Remotes.DebugSandbox).OnServerEvent:Connect(function(player, on)
+Inbound.debug(Remotes.DebugSandbox, function(player, on)
 	if not RunService:IsStudio() or type(on) ~= "boolean" or not RunSession.get(player) then
 		return
 	end
@@ -528,7 +531,7 @@ end)
 --[[ Testing only: the pet at heel in a run (`Config/PetCombat`), as the
      sandbox picks it, until Phase 6 brings equipping. Honoured only in
      Studio. ]]
-Remotes.event(Remotes.DebugPet).OnServerEvent:Connect(function(player, key)
+Inbound.debug(Remotes.DebugPet, function(player, key)
 	if not RunService:IsStudio() then
 		return
 	end
@@ -538,7 +541,7 @@ Remotes.event(Remotes.DebugPet).OnServerEvent:Connect(function(player, key)
 	end
 end)
 
-Remotes.event(Remotes.DebugWeapon).OnServerEvent:Connect(function(player, name)
+Inbound.debug(Remotes.DebugWeapon, function(player, name)
 	if not RunService:IsStudio() or type(name) ~= "string" then
 		return
 	end
@@ -566,7 +569,7 @@ end)
 	fire slams or shields at will. Where he lands is his character's, as
 	every position is.
 ]]
-Remotes.event(Remotes.DashStarted).OnServerEvent:Connect(function(player)
+Inbound.on(Remotes.DashStarted, function(player)
 	local session = RunSession.get(player)
 	local root = session and session.root
 	if not session or not root or not session.alive then
@@ -611,7 +614,7 @@ Remotes.event(Remotes.DashStarted).OnServerEvent:Connect(function(player)
 	})
 end)
 
-Remotes.event(Remotes.AbilityReroll).OnServerEvent:Connect(function(player)
+Inbound.on(Remotes.AbilityReroll, function(player)
 	local session = RunSession.get(player)
 	if session then
 		RunSession.reroll(session)
@@ -620,7 +623,7 @@ end)
 
 --[[ The end screen's button. Only a player in the run may ask, and
      `requestRestart` ignores the request unless the run is over. ]]
-Remotes.event(Remotes.RunRestart).OnServerEvent:Connect(function(player)
+Inbound.on(Remotes.RunRestart, function(player)
 	if RunSession.get(player) then
 		RoomController.requestRestart()
 	end
@@ -629,7 +632,7 @@ end)
 --[[ BACK TO LOBBY, from the HUD mid-room or an end screen. Only a player in
      the run may ask, and `requestLobby` refuses unless there is a run to
      leave. Nothing is credited: leaving is giving up, not winning. ]]
-Remotes.event(Remotes.RunLobby).OnServerEvent:Connect(function(player)
+Inbound.on(Remotes.RunLobby, function(player)
 	if RunSession.get(player) then
 		RoomController.requestLobby()
 	end
@@ -637,18 +640,28 @@ end)
 
 --[[ A story beat watched or skipped (`Config/StoryBeats`); `Wallet.sawStory`
      keeps it only for a boss this player has beaten. ]]
-Remotes.event(Remotes.StorySeen).OnServerEvent:Connect(function(player, area)
+Inbound.on(Remotes.StorySeen, function(player, area)
 	Wallet.sawStory(player, area)
 end)
 
+--[[ The title or the story on this player's screen, for the onboarding
+     funnel (`Data/Analytics`): only from a player still on the title, and
+     only a step a client can see (`Analytics.clientStep`). ]]
+Inbound.on(Remotes.FunnelStep, function(player, step)
+	local session = RunSession.get(player)
+	if session and session.atTitle then
+		Analytics.clientStep(player, step)
+	end
+end)
+
 --[[ A first-time tip shown (`Config/Tips`); kept once, for a tip only. ]]
-Remotes.event(Remotes.TipSeen).OnServerEvent:Connect(function(player, key)
+Inbound.on(Remotes.TipSeen, function(player, key)
 	Wallet.sawTip(player, key)
 end)
 
 --[[ The intro's BEGIN ADVENTURE: this player has left the title screen.
      It can only clear the hold, never set one, so a repeat changes nothing. ]]
-Remotes.event(Remotes.IntroBegin).OnServerEvent:Connect(function(player)
+Inbound.on(Remotes.IntroBegin, function(player)
 	local session = RunSession.get(player)
 	--[[ Off the title and the story cutscene and into the tutorial
 	     (`Config/Tutorial`), which is won into the lobby. Only a player who
@@ -688,7 +701,7 @@ end)
 --[[ START on a portal's screen (`UI/PortalScreen`): which portal and which
      of its levels. The server decides: only in the lobby, off the title, and
      only for the portal the player stands at (`Lobby.startFor`). ]]
-Remotes.event(Remotes.PortalStart).OnServerEvent:Connect(function(player, index, level)
+Inbound.on(Remotes.PortalStart, function(player, index, level)
 	local session = RunSession.get(player)
 	local root = session and session.root
 	if not session or session.atTitle or not root or not RoomController.inLobby() then
@@ -712,7 +725,7 @@ local lastPlay: { [Player]: number } = {}
 Players.PlayerRemoving:Connect(function(player)
 	lastPlay[player] = nil
 end)
-Remotes.event(Remotes.LobbyPlay).OnServerEvent:Connect(function(player)
+Inbound.on(Remotes.LobbyPlay, function(player)
 	local session = RunSession.get(player)
 	local root = session and session.root
 	local character = player.Character
@@ -746,7 +759,7 @@ end)
 --[[ A pick at an Endless checkpoint, or 0 to bank and leave. Everything
      about it is checked by `RoomController.endlessPick`, which only
      honours a checkpoint it opened itself (`docs/ENDLESS.md`). ]]
-Remotes.event(Remotes.EndlessPick).OnServerEvent:Connect(function(player, choice)
+Inbound.on(Remotes.EndlessPick, function(player, choice)
 	RoomController.endlessPick(player, choice)
 end)
 
@@ -758,7 +771,7 @@ Players.PlayerRemoving:Connect(function(player)
 end)
 
 --[[ GOT IT! on a NEW ENEMY! screen. Only clears a screen the server opened. ]]
-Remotes.event(Remotes.NewEnemySeen).OnServerEvent:Connect(function(player, kind)
+Inbound.on(Remotes.NewEnemySeen, function(player, kind)
 	local session = RunSession.get(player)
 	if session then
 		RunSession.metEnemy(session, kind)
@@ -766,7 +779,7 @@ Remotes.event(Remotes.NewEnemySeen).OnServerEvent:Connect(function(player, kind)
 end)
 
 --[[ MENU's LEAVE THE RUN? panel opened or shut. ]]
-Remotes.event(Remotes.RunMenu).OnServerEvent:Connect(function(player, open)
+Inbound.on(Remotes.RunMenu, function(player, open)
 	local session = RunSession.get(player)
 	if session then
 		RunSession.setInMenu(session, open)

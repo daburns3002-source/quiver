@@ -6,8 +6,10 @@
 	them through this module so a typo is a missing key rather than a silent
 	`WaitForChild` that hangs forever.
 
-	Nothing here grants authority. Every remote listed below is server→client
-	except RequestRespawn, and that one carries no payload the server trusts.
+	Nothing here grants authority. The ones marked client → server are
+	listened to in `Net/Inbound` only, rate limited, with the `Debug*` ones
+	connected in Studio alone; what they carry is a request the server
+	checks, never a result it takes.
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -211,6 +213,11 @@ Remotes.DebugDay = "DebugDay"
 	only clears its own hold for this player (`RunSession.leaveTitle`).
 ]]
 Remotes.IntroBegin = "IntroBegin"
+--[[ Client → server: the title ("Title") or the story ("Story") is on
+     this player's screen, for the onboarding funnel (`Data/Analytics`).
+     Only a step of `Analytics.CLIENT_STEPS`, only from a player still on
+     the title; it changes nothing but what is logged. ]]
+Remotes.FunnelStep = "FunnelStep"
 
 --[[
 	Client → server. A story beat (`Config/StoryBeats`) has been watched or

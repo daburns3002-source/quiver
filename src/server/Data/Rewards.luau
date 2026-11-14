@@ -22,6 +22,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
+local Inbound = require(script.Parent.Parent.Net.Inbound)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local RewardRules = require(ReplicatedStorage.Shared.Util.RewardRules)
@@ -97,7 +98,7 @@ local function claim(player: Player, kind: unknown, key: unknown)
 end
 
 function Rewards.start()
-	Remotes.event(Remotes.RewardClaim).OnServerEvent:Connect(claim)
+	Inbound.on(Remotes.RewardClaim, claim)
 	PlayerData.onLoaded(publish)
 	for _, player in Players:GetPlayers() do
 		publish(player)
@@ -115,7 +116,7 @@ function Rewards.start()
 		end
 	end)
 	if RunService:IsStudio() then
-		Remotes.event(Remotes.DebugDay).OnServerEvent:Connect(function(player, days)
+		Inbound.debug(Remotes.DebugDay, function(player, days)
 			local n = if type(days) == "number" and days == days then math.floor(days) else 1
 			offsets[player] = (offsets[player] or 0) + math.clamp(n, 1, 30)
 			publish(player)

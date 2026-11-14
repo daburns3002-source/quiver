@@ -23,5 +23,13 @@ echo "== currency icons"
 bad=$(grep -rnEi "^\s*[A-Za-z]*(coin|gem|diamond)[A-Za-z]*\s*=\s*\"rbxassetid" src | grep -v "src/shared/Config/ShopAssets.luau" || true)
 if [ -n "$bad" ]; then echo "$bad"; echo "Use ShopAssets.coin / ShopAssets.gem: CLAUDE.md rule 15."; exit 1; fi
 echo "one of each"
+echo "== remotes"
+# Every client-to-server remote is listened to in Net/Inbound: rate limited,
+# the Debug ones in Studio only (the anti-exploit audit, docs/FIXES.md).
+bad=$(grep -rnE "OnServerEvent|OnServerInvoke" src | grep -v "^src/server/Net/Inbound.luau:" || true)
+if [ -n "$bad" ]; then echo "$bad"; echo "Listen through Net/Inbound: Inbound.on, or Inbound.debug for a Debug remote."; exit 1; fi
+bad=$(grep -rnE "Inbound\.on\(Remotes\.Debug" src || true)
+if [ -n "$bad" ]; then echo "$bad"; echo "A Debug remote is Studio's: Inbound.debug."; exit 1; fi
+echo "all through Inbound"
 echo "== rojo build"; rojo build -o "${TMPDIR:-/tmp}/check.rbxl" | tail -1
 echo "All gates pass."

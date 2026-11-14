@@ -44,6 +44,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
+local Analytics = require(script.Parent.Parent.Data.Analytics)
 local AngelProp = require(script.Parent.AngelProp)
 local AreaStrikes = require(script.Parent.Parent.Combat.AreaStrikes)
 local Arena = require(script.Parent.Parent.Arena.Arena)
@@ -75,6 +76,7 @@ local SoulLink = require(script.Parent.Parent.Combat.SoulLink)
 local StoryBeatRules = require(ReplicatedStorage.Shared.Util.StoryBeatRules)
 local StoryLeaderboard = require(script.Parent.StoryLeaderboard)
 local StoryProgress = require(ReplicatedStorage.Shared.Util.StoryProgress)
+local Tutorial = require(ReplicatedStorage.Shared.Config.Tutorial)
 local Wallet = require(script.Parent.Parent.Data.Wallet)
 local Waves = require(script.Parent.Waves)
 
@@ -360,10 +362,19 @@ local function setCombatEncounter(position: number)
 	workspace:SetAttribute("CombatEncounter", ordinal)
 end
 
+--[[ Where the run has got, for a death's or a quit's event (`Data/Analytics`). ]]
+local function noteReach()
+	local place = `{unit()} {progress}`
+	for _, session in RunSession.all() do
+		Analytics.reach(session.player, progress, place)
+	end
+end
+
 local function enterRoom(position: number)
 	-- co-op: whoever is down or out comes back into the next fight
 	RunSession.returnTheDowned()
 	progress = position
+	noteReach()
 	state = "Fighting"
 	resumeAt = nil
 
@@ -422,6 +433,7 @@ local function startWave(wave: number)
 	-- co-op: whoever is down or out comes back into the next fight
 	RunSession.returnTheDowned()
 	progress = wave
+	noteReach()
 	resumeAt = nil
 
 	local description = Waves.describe(wave, total(), stage())
@@ -466,6 +478,7 @@ local function startFloor(floor: number)
 	-- co-op: whoever is down or out comes back into the next fight
 	RunSession.returnTheDowned()
 	progress = floor
+	noteReach()
 	resumeAt = nil
 	state = "Fighting"
 	workspace:SetAttribute(CurrentStage.FLOOR_ATTRIBUTE, floor)
@@ -506,6 +519,10 @@ local function startStage()
 	end
 	-- the tutorial's fixed hands, class and pool (`Config/Tutorial`)
 	RunSession.setTutorial(current.tutorial == true)
+	for _, session in RunSession.all() do
+		Analytics.runStarted(session.player, stageIndex, session.loadout.class)
+		Analytics.step(session.player, if current.tutorial then "Tutorial" else "FirstRun")
+	end
 
 	if current.mode == "Endless" then
 		jumped = false
@@ -673,6 +690,9 @@ function RoomController.onPlayerDied()
 	state = "Dead"
 	resumeAt = os.clock() + Balance.Run.deathPause
 	setDoorOpen(false)
+	for _, session in RunSession.all() do
+		Analytics.runEnded(session.player, "Died")
+	end
 
 	log.info("run ended at %s %d/%d", unit():lower(), progress, total())
 	broadcast()
@@ -760,7 +780,12 @@ local function complete(now: number)
 			-- every win counts for the daily quests, not only the first
 			Rewards.note(session.player, "levels", 1)
 		end
-		if level and Wallet.beatLevel(session.player, level) and eggKey then
+		local firstClear = level ~= nil and Wallet.beatLevel(session.player, level)
+		if firstClear and level == Tutorial.untilBeaten then
+			Analytics.step(session.player, "Cleared1-1")
+		end
+		Analytics.runEnded(session.player, "Won")
+		if firstClear and eggKey then
 			local pet = Hatchery.grantFree(session.player, eggKey)
 			if pet then
 				eggs[session.player] = { key = eggKey, pet = pet.pet, new = pet.new }
@@ -1126,6 +1151,8 @@ local function toLobby()
 	end
 	workspace:SetAttribute(Coop.ATTRIBUTE, nil)
 	for _, session in RunSession.all() do
+		-- a run still under way is given up (nothing if it already ended)
+		Analytics.runEnded(session.player, "Left")
 		RunSession.resetRun(session)
 	end
 	RunSession.setTutorial(false)

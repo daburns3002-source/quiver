@@ -13,6 +13,7 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local Inbound = require(script.Parent.Parent.Net.Inbound)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local TrailRules = require(ReplicatedStorage.Shared.Util.TrailRules)
@@ -65,8 +66,8 @@ local function equip(player: Player, key: unknown)
 end
 
 function TrailsServer.start()
-	Remotes.event(Remotes.TrailBuy).OnServerEvent:Connect(buy)
-	Remotes.event(Remotes.TrailEquip).OnServerEvent:Connect(equip)
+	Inbound.on(Remotes.TrailBuy, buy)
+	Inbound.on(Remotes.TrailEquip, equip)
 	PlayerData.onLoaded(function(player)
 		Wallet.settleTrails(player)
 	end)

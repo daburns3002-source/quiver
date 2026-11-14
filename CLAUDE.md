@@ -648,10 +648,9 @@ the next run or the lobby; a saved level 10 without its weapon is given it on jo
 and beside the end screens' panel (under it on an upright screen, `EndScreenRules.levelPlate`), where the
 run's XP fills the bar and each level reached pops with its gift, as a LEVEL chip on each class at class
 select and on Gear's CLASSES tab, and a golden weapon earned opens its own card over Victory or Defeat.
-**The weapons are not in the game yet (2026-11-14):** their stats, pictures and rules are, but their
-models wait on the owner's Studio import (`docs/TRACKER.md`), so no golden weapon can be worn and a
-level 10 holds its weapon owed until then. Their `Config/Weapons` entries (gold aura, glow), grips and
-their shots and cleave (`Config/WeaponFx`) are the follow-up, branch `phase-4/golden-weapons`.
+**In the game since 2026-11-14** (the owner imported the three models): `Config/Weapons` (one textured
+mesh each, a gold `aura`, `shotGlow` or `trailGlow`), grips and the bow's yaw measured into
+`skins_to_luau.py` (`GOLDEN`, `GRIPS`, `YAW`), each with its own shot or cleave in `Config/WeaponFx`.
 The models are Tripo's from Codex front views (`assets/models/weapons/blocky/golden/`): the staff and
 blade at 2,000 triangles and 2K; the bow made again from a picture with a thick gold bar for a string
 (owner: "the string on the tripo model is trash"), at 4,000 triangles with an 8K texture whose stray

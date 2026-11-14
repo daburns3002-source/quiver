@@ -42,6 +42,22 @@ type Mote = {
 	loop: number,
 }
 
+--[[ The logo's moving pieces (`step`): its size, the streak's bar, light
+     and arrowhead (each with where it rests, as a share of the logo's
+     box), and the bands of light on the gold. ]]
+type LogoParts = {
+	scale: UIScale,
+	base: number,
+	bar: Frame,
+	barWide: number,
+	glow: ImageLabel,
+	glowWide: number,
+	tipFrom: number,
+	travel: number,
+	head: Frame,
+	shines: { UIGradient },
+}
+
 type Twinkle = { frames: { Frame }, base: number, phase: number }
 type Sway = { frame: Frame, x: number, y: number, reach: number, phase: number }
 
@@ -50,6 +66,7 @@ export type Scene = {
 	twinkles: { Twinkle },
 	sways: { Sway },
 	shooting: Frame,
+	logo: LogoParts,
 	view: Vector2,
 	design: Config.Design,
 	motes: { Mote },
@@ -128,21 +145,43 @@ local LOGO_INNER = 0.5
      is the logo's box at `LOGO_INNER` of its size, under a UIScale): a faint
      gold haze, then for each word soft rings, a hard shadow, the near-black
      outline and the gold face, then the streak of light and its arrowhead. ]]
-local function buildLogo(holder: Frame, design: Config.Design, at: TitleLayout.Logo)
+local function buildLogo(
+	holder: Frame,
+	design: Config.Design,
+	at: TitleLayout.Logo,
+	scale: UIScale
+): LogoParts
 	local look = Config.logo
 	local unit = design.logo.unit
 	local wide, tall = at.width, at.bottom - at.top
 	local z = 0
 	--[[ Places `item` in the logo's own points, measured from its top-left. ]]
-	local function place(item: GuiObject, x: number, y: number, w: number, h: number)
+	local function place(
+		item: GuiObject,
+		x: number,
+		y: number,
+		w: number,
+		h: number,
+		into: Instance?
+	)
 		z += 1
 		item.ZIndex = z
 		item.Position = UDim2.fromScale(x / wide, y / tall)
 		item.Size = UDim2.fromScale(w / wide, h / tall)
-		item.Parent = holder
+		item.Parent = into or holder
 	end
 	local wordsTall = at.lines[#at.lines].top + at.lines[#at.lines].tall - at.top
 
+	-- the night's own dark, softly, so the crown does not show between letters
+	local backing = glowImage("Backing", look.backing.colour, look.backing.alpha)
+	local wordsWide = at.wordsWide
+	place(
+		backing,
+		wide / 2,
+		wordsTall / 2,
+		wordsWide * look.backing.wide,
+		wordsTall * look.backing.tall
+	)
 	local haze = glowImage("Haze", look.glow, look.haze.alpha)
 	place(haze, wide / 2, wordsTall / 2, wide * look.haze.wide, wordsTall * look.haze.tall)
 
@@ -196,6 +235,23 @@ local function buildLogo(holder: Frame, design: Config.Design, at: TitleLayout.L
 		gold.Color = ColorSequence.new(stops)
 		gold.Parent = face
 	end
+	-- a band of light that crosses the gold now and then (`step`)
+	local shine = look.motion.shine
+	local shines: { UIGradient } = {}
+	for index in look.words do
+		local band = Instance.new("UIGradient")
+		band.Rotation = shine.tilt
+		band.Transparency = NumberSequence.new({
+			NumberSequenceKeypoint.new(0, 1),
+			NumberSequenceKeypoint.new(0.5 - shine.wide, 1),
+			NumberSequenceKeypoint.new(0.5, 1 - shine.alpha),
+			NumberSequenceKeypoint.new(0.5 + shine.wide, 1),
+			NumberSequenceKeypoint.new(1, 1),
+		})
+		band.Offset = Vector2.new(-1, 0)
+		band.Parent = word(index, "Shine", Color3.new(1, 1, 1), 0)
+		table.insert(shines, band)
+	end
 
 	-- the streak: clear at its left end, brightest at its right
 	local streak = look.streak
@@ -219,8 +275,16 @@ local function buildLogo(holder: Frame, design: Config.Design, at: TitleLayout.L
 		fadeIn.Parent = frame
 		return frame
 	end
-	bar("StreakGlow", streak.glow, 6, 0.9)
-	bar("StreakGlow", streak.glow, 3, 0.8)
+	-- its light: the round glow picture, stretched along the bright end
+	local soft = glowImage("StreakGlow", streak.glow, streak.soft.alpha)
+	local softWide = at.streakWide * (1 - streak.soft.from)
+	place(
+		soft,
+		left + at.streakWide - softWide / 2,
+		top + streak.thick / 2,
+		softWide,
+		streak.thick * streak.soft.tall
+	)
 	local light = bar("Streak", Color3.new(1, 1, 1), 0, 0)
 	local colours = light:FindFirstChildOfClass("UIGradient") :: UIGradient
 	colours.Color = ColorSequence.new({
@@ -229,28 +293,45 @@ local function buildLogo(holder: Frame, design: Config.Design, at: TitleLayout.L
 		ColorSequenceKeypoint.new(1, streak.to),
 	})
 
-	-- the arrowhead: a small triangle of thin columns, pointing right
+	--[[ The arrowhead: a small triangle of thin columns, pointing right, in
+	     a holder the size of the logo so `step` can move it as one. ]]
+	local arrowhead = Instance.new("Frame")
+	arrowhead.Name = "Arrowhead"
+	arrowhead.BackgroundTransparency = 1
+	place(arrowhead, 0, 0, wide, tall)
 	local head = streak.head
 	local tip = left + at.streakWide + head.overhang
 	local middle = top + streak.thick / 2
-	local halo = Instance.new("Frame")
-	halo.Name = "HeadGlow"
-	halo.BorderSizePixel = 0
-	halo.BackgroundColor3 = streak.glow
-	halo.BackgroundTransparency = 0.84
-	halo.AnchorPoint = Vector2.new(0.5, 0.5)
-	place(halo, tip - head.long / 2, middle, head.long + 8, head.tall + 6)
-	local soft = Instance.new("UICorner")
-	soft.CornerRadius = UDim.new(0.5, 0)
-	soft.Parent = halo
+	local halo = glowImage("HeadGlow", streak.glow, streak.headGlow.alpha)
+	local across = head.tall * streak.headGlow.across
+	place(halo, tip - head.long / 2, middle, across, across, arrowhead)
 	for column = 0, head.long - 1 do
 		local half = head.tall / 2 * (1 - column / head.long)
 		local piece = Instance.new("Frame")
 		piece.Name = "Head"
 		piece.BorderSizePixel = 0
 		piece.BackgroundColor3 = streak.to
-		place(piece, tip - head.long + column, middle - half, 1.6, math.max(0.6, 2 * half))
+		place(
+			piece,
+			tip - head.long + column,
+			middle - half,
+			1.6,
+			math.max(0.6, 2 * half),
+			arrowhead
+		)
 	end
+	return {
+		scale = scale,
+		base = scale.Scale,
+		bar = light,
+		barWide = at.streakWide / wide,
+		glow = soft,
+		glowWide = softWide / wide,
+		tipFrom = left / wide,
+		travel = at.streakWide / wide,
+		head = arrowhead,
+		shines = shines,
+	}
 end
 
 --[[ Builds the picture into `parent`, which is `view` points in size (the
@@ -350,13 +431,20 @@ function TitleScene.build(parent: Instance, view: Vector2): Scene
 		image.Size = UDim2.fromScale(across / wide, across / tall)
 	end
 	--[[ A star: a perfect cross on whole pixels (`TitleLayout.cross`). ]]
-	local function cross(name: string, x: number, y: number, size: number, alpha: number): { Frame }
+	local function cross(
+		name: string,
+		x: number,
+		y: number,
+		size: number,
+		alpha: number,
+		colour: Color3?
+	): { Frame }
 		local bars = {}
 		for _, bar in TitleLayout.cross(x, y, size, k) do
 			local frame = Instance.new("Frame")
 			frame.Name = name
 			frame.BorderSizePixel = 0
-			frame.BackgroundColor3 = Config.star
+			frame.BackgroundColor3 = colour or Config.star
 			frame.BackgroundTransparency = 1 - alpha
 			frame.Position = UDim2.fromOffset(bar[1], bar[2])
 			frame.Size = UDim2.fromOffset(bar[3], bar[4])
@@ -364,6 +452,10 @@ function TitleScene.build(parent: Instance, view: Vector2): Scene
 			table.insert(bars, frame)
 		end
 		return bars
+	end
+	-- star dust: tiny faint crosses, under the stars
+	for _, speck in TitleLayout.dust(design, fit) do
+		cross("Dust", speck.x, speck.y, speck.size, speck.alpha)
 	end
 	-- the stars, each a cross; one in a few twinkles (`step`), and a few are large
 	local twinkles: { Twinkle } = {}
@@ -472,45 +564,193 @@ function TitleScene.build(parent: Instance, view: Vector2): Scene
 	glow.Size =
 		UDim2.fromScale(2 * Config.glow.radius * u / wide, 2 * Config.glow.radius * u / tall)
 
-	--[[ The hills, again to either side on a screen wider than the layout:
-	     a farther, paler row, the near ones with small stepped pines on
-	     them, and a few lit windows. ]]
+	--[[ A see-through band between two heights, on whole pixel rows, so
+	     bands stacked on each other neither overlap nor leave a gap. ]]
+	local function slab(
+		name: string,
+		x: number,
+		from: number,
+		to: number,
+		w: number,
+		colour: Color3,
+		alpha: number
+	)
+		local x0, y0 = math.floor(x * k), round(from * k)
+		local frame = Instance.new("Frame")
+		frame.Name = name
+		frame.BorderSizePixel = 0
+		frame.BackgroundColor3 = colour
+		frame.BackgroundTransparency = 1 - alpha
+		frame.Position = UDim2.fromOffset(x0, y0)
+		frame.Size = UDim2.fromOffset(math.ceil((x + w) * k) - x0, round(to * k) - y0)
+		layer(frame)
+	end
+	-- far mountains: pale see-through steps narrowing to a snowy top
+	local peak = Config.peak
 	for shift = -1, 1 do
-		for _, hill in design.farHills do
-			local x = hill[1] + shift * wide
-			if x + hill[3] > left and x < right then
-				block("FarHill", x, hill[2], hill[3], Config.farHill.tall, Config.farHill.colour)
+		for _, at in design.peaks do
+			local mid, foot, w, h = at[1] + shift * wide, at[2], at[3], at[4]
+			if mid + w / 2 > left and mid - w / 2 < right then
+				local rise = h / peak.steps
+				for step = 0, peak.steps - 1 do
+					local across = w * (1 - step / peak.steps)
+					local x = mid - across / 2 + at[5] * w * step / peak.steps
+					local snowy = step >= peak.steps - peak.snow
+					slab(
+						"Peak",
+						x,
+						foot - (step + 1) * rise,
+						foot - step * rise,
+						across,
+						peak.colour,
+						if snowy then peak.alpha + peak.snowAlpha else peak.alpha
+					)
+					if step == peak.steps - peak.snow - 1 then
+						-- a little snow lying on the step under the top
+						local under = mid + at[5] * w * (step + 1) / peak.steps
+						slab(
+							"PeakSnow",
+							under - across * 0.2,
+							foot - (step + 1) * rise,
+							foot - (step + 0.5) * rise,
+							across * 0.4,
+							peak.colour,
+							peak.snowAlpha
+						)
+					end
+				end
 			end
 		end
 	end
-	for shift = -1, 1 do
-		for _, hill in design.hills do
-			local x = hill[1] + shift * wide
-			if x + hill[3] > left and x < right then
-				block("Hill", x, hill[2], hill[3], Config.hill.tall, Config.hill.colour)
+
+	--[[ A line of light along the tops of `blocks` that show. ]]
+	local function litTops(
+		name: string,
+		blocks: { Config.Block },
+		thick: number,
+		colour: Color3,
+		alpha: number
+	)
+		for _, edge in TitleLayout.topEdges(blocks) do
+			local line = block(name, edge[1], edge[3], edge[2] - edge[1], thick, colour)
+			line.BackgroundTransparency = 1 - alpha
+		end
+	end
+	--[[ The hills, again to either side on a screen wider than the layout:
+	     a farther, paler row with a watchtower on it, mist at its feet,
+	     then the near ones with small stepped pines and houses on them and
+	     a few lit windows. The tree's light lies along every hill's top. ]]
+	local hillRim = Config.hillRim
+	local function row(
+		name: string,
+		hills: { Config.Block },
+		look: { colour: Color3, tall: number },
+		alpha: number
+	)
+		local drawn: { Config.Block } = {}
+		for shift = -1, 1 do
+			for _, hill in hills do
+				local x = hill[1] + shift * wide
+				if x + hill[3] > left and x < right then
+					block(name, x, hill[2], hill[3], look.tall, look.colour)
+					table.insert(drawn, { x, hill[2], hill[3], look.tall })
+				end
 			end
 		end
+		litTops(`{name}Rim`, drawn, hillRim.tall, Config.tree.crownLit, alpha)
+	end
+	--[[ A pine: three steps narrowing to the top, on a short stem. ]]
+	local function drawPine(name: string, x: number, foot: number, high: number, colour: Color3)
+		for step = 0, 2 do
+			local half = high * (0.42 - 0.13 * step)
+			local rung = foot - high * (0.5 + 0.25 * step)
+			block(name, x - half, rung, 2 * half, high * 0.27, colour)
+		end
+		block(name, x - high * 0.08, foot - high * 0.26, high * 0.16, high * 0.28, colour)
+	end
+	row("FarHill", design.farHills, Config.farHill, hillRim.far)
+	for _, at in design.farPines do
+		drawPine("FarPine", at[1], at[2], at[3], Config.farHill.colour)
+	end
+	local lit = Config.villageLight
+	-- the far watchtower: a body under a wider toothed top, one window lit
+	local tower, towerAt = Config.tower, design.tower
+	local far = Config.farHill.colour
+	block("Tower", towerAt.x, towerAt.y - tower.tall, tower.wide, tower.tall + 0.5, far)
+	block("Tower", towerAt.x - 1.5, towerAt.y - tower.tall - 3, tower.wide + 3, 3.5, far)
+	for tooth = 0, 2 do
+		block(
+			"Tower",
+			towerAt.x - 1.5 + tooth * (tower.wide + 1) / 2,
+			towerAt.y - tower.tall - 5,
+			2,
+			2.5,
+			far
+		)
+	end
+	light(
+		"TowerWindow",
+		towerAt.x + tower.wide / 2 - 1,
+		towerAt.y - tower.tall + 5,
+		2,
+		3,
+		lit.colour,
+		tower.alpha
+	)
+	-- mist: a thin pale band with a shorter step under it and one above
+	local mist = Config.mist
+	for _, band in design.mist do
+		local x, y, w = band[1], band[2], band[3]
+		light("Mist", x, y, w, mist.tall, mist.colour, mist.alpha)
+		light("Mist", x + w * 0.2, y + mist.tall, w * 0.5, mist.tall * 0.7, mist.colour, mist.alpha)
+		light(
+			"Mist",
+			x + w * 0.56,
+			y - mist.tall * 0.7,
+			w * 0.3,
+			mist.tall * 0.7,
+			mist.colour,
+			mist.alpha
+		)
+	end
+	row("Hill", design.hills, Config.hill, hillRim.near)
+	for shift = -1, 1 do
 		for _, pine in design.pines do
 			local x, foot, high = pine[1] + shift * wide, pine[2], pine[3]
 			if x + high > left and x - high < right then
-				-- three steps narrowing to the top, on a short stem
-				for step = 0, 2 do
-					local half = high * (0.42 - 0.13 * step)
-					local rung = foot - high * (0.5 + 0.25 * step)
-					block("Pine", x - half, rung, 2 * half, high * 0.27, Config.hill.colour)
-				end
-				block(
-					"Pine",
-					x - high * 0.08,
-					foot - high * 0.26,
-					high * 0.16,
-					high * 0.28,
-					Config.hill.colour
-				)
+				drawPine("Pine", x, foot, high, Config.hill.colour)
 			end
 		end
 	end
-	local lit = Config.villageLight
+	-- houses: a body, a roof in three steps, a chimney and one lit window
+	local home = Config.house
+	for _, at in design.houses do
+		local x, foot, w = at[1], at[2], at[3]
+		local eaves = foot - w * 0.6
+		local dark = Config.hill.colour
+		block("House", x, eaves, w, w * 0.6 + 0.5, dark)
+		block("House", x - w * 0.1, eaves - w * 0.2, w * 1.2, w * 0.2 + 0.5, dark)
+		block("House", x + w * 0.12, eaves - w * 0.4, w * 0.76, w * 0.2 + 0.5, dark)
+		block("House", x + w * 0.34, eaves - w * 0.55, w * 0.32, w * 0.15 + 0.5, dark)
+		block("House", x + w * 0.72, eaves - w * 0.75, w * 0.14, w * 0.4, dark)
+		glowAt(
+			"HouseGlow",
+			x + w * 0.4,
+			foot - w * 0.3,
+			w * home.glow,
+			Config.tree.windowHalo,
+			home.glowAlpha
+		)
+		light(
+			"HouseWindow",
+			x + w * 0.27,
+			foot - w * 0.43,
+			w * 0.26,
+			w * 0.26,
+			lit.colour,
+			lit.alpha
+		)
+	end
 	for _, at in design.village do
 		light("Village", at[1], at[2], lit.size, lit.size, lit.colour, lit.alpha)
 	end
@@ -535,16 +775,112 @@ function TitleScene.build(parent: Instance, view: Vector2): Scene
 	for _, part in shape.roots do
 		onTree("Root", part, shape.trunkColour)
 	end
+	for _, strip in shape.bark do
+		onTree("Bark", { strip[1], strip[2], 2, strip[3] }, shape.barkColour)
+	end
+	-- balconies: a floor, a rail on posts, and a lantern hung from the outer end
+	local deck = shape.balcony
+	for _, at in shape.balconies do
+		local x, y, w = at[1], at[2], at[3]
+		onTree("Balcony", { x, y, w, deck.floor }, shape.trunkColour)
+		onTree("Balcony", { x, y - deck.rail, w, deck.post }, shape.trunkColour)
+		local count = math.floor(w / deck.every)
+		for n = 0, count do
+			local px = x + n * (w - deck.post) / count
+			onTree("Balcony", { px, y - deck.rail, deck.post, deck.rail }, shape.trunkColour)
+		end
+		light(
+			"BalconyRim",
+			tree.x + x * u,
+			tree.y + (y - deck.rail) * u,
+			w * u,
+			deck.post * u * 0.5,
+			shape.crownLit,
+			deck.rim
+		)
+		local hx = if x < 0 then x + 1 else x + w - 1 - deck.lantern
+		local hy = y + deck.floor + deck.string
+		light(
+			"BalconyString",
+			tree.x + (hx + deck.lantern / 2 - 0.5) * u,
+			tree.y + (y + deck.floor) * u,
+			u,
+			deck.string * u,
+			shape.trunkColour
+		)
+		glowAt(
+			"BalconyGlow",
+			tree.x + (hx + deck.lantern / 2) * u,
+			tree.y + (hy + deck.lantern / 2) * u,
+			deck.lantern * shape.lanternGlow * u,
+			shape.lanternHalo,
+			shape.lanternHaloAlpha
+		)
+		light(
+			"BalconyLantern",
+			tree.x + hx * u,
+			tree.y + hy * u,
+			deck.lantern * u,
+			deck.lantern * u,
+			shape.lantern
+		)
+	end
+	-- shelf mushrooms on the trunk's sides, each in a small round glow
+	local shelf = shape.shelf
+	for _, at in shape.shelves do
+		local x, y, w = at[1], at[2], at[3]
+		glowAt(
+			"ShelfGlow",
+			tree.x + (x + w / 2) * u,
+			tree.y + (y + shelf.tall / 2) * u,
+			w * shelf.glow * u,
+			shape.lanternHalo,
+			shelf.glowAlpha
+		)
+		light("Shelf", tree.x + x * u, tree.y + y * u, w * u, shelf.tall * u, shape.lantern)
+		-- its paler underside, narrower, against the trunk
+		local under = w * shelf.under
+		light(
+			"ShelfUnder",
+			tree.x + (if x < 0 then x + w - under else x) * u,
+			tree.y + (y + shelf.tall) * u,
+			under * u,
+			shelf.tall * 0.8 * u,
+			Config.glowcap.stem,
+			0.7
+		)
+	end
+	-- sprigs of leaf standing out of the crown, behind it
+	for _, sprig in TitleLayout.sprigs() do
+		local x, y, side = sprig.x, sprig.y, sprig.side
+		onTree("Sprig", { x, y, side, side }, shape.crownColours[sprig.colour])
+		onTree("SprigLit", { x, y, side, side * shape.crownStrip }, shape.crownLit)
+		onTree(
+			"SprigShade",
+			{ x, y + side * (1 - shape.crownShadeStrip), side, side * shape.crownShadeStrip },
+			shape.crownShade
+		)
+	end
 	-- leaf blocks round the crown's edge, behind it
 	for index, square in shape.leaves do
 		local x, y, side = square[1], square[2], square[3]
 		onTree("Leaves", { x, y, side, side }, shape.crownColours[index % 2 + 1])
 		onTree("LeavesLit", { x, y, side, side * shape.crownStrip }, shape.crownLit)
+		onTree(
+			"LeavesShade",
+			{ x, y + side * (1 - shape.crownShadeStrip), side, side * shape.crownShadeStrip },
+			shape.crownShade
+		)
 	end
 	for index, square in shape.crown do
 		local x, y, side = square[1], square[2], square[3]
 		onTree("Crown", { x, y, side, side }, shape.crownColours[(index - 1) % 2 + 1])
 		onTree("CrownLit", { x, y, side, side * shape.crownStrip }, shape.crownLit)
+		onTree(
+			"CrownShade",
+			{ x, y + side * (1 - shape.crownShadeStrip), side, side * shape.crownShadeStrip },
+			shape.crownShade
+		)
 		local patch = shape.crownPatch
 		light(
 			"CrownPatch",
@@ -554,6 +890,33 @@ function TitleScene.build(parent: Instance, view: Vector2): Scene
 			side * patch.h * u,
 			shape.crownLit,
 			patch.alpha
+		)
+	end
+	-- flecks of leaf over the whole crown, lit and shaded in turn
+	for _, fleck in TitleLayout.flecks() do
+		light(
+			"Fleck",
+			tree.x + fleck.x * u,
+			tree.y + fleck.y * u,
+			fleck.side * u,
+			fleck.side * u,
+			if fleck.lit then shape.crownLit else shape.crownShade,
+			if fleck.lit then shape.flecks.lit else shape.flecks.dark
+		)
+	end
+	-- leaf tiers: a lit edge with its shadow under it
+	local tiers = shape.tiers
+	for _, tier in TitleLayout.tiers() do
+		local x, y = tree.x + tier.x * u, tree.y + tier.y * u
+		light("Tier", x, y, tier.long * u, tiers.thick * u, shape.crownLit, tiers.lit)
+		light(
+			"TierShade",
+			x,
+			y + tiers.thick * u,
+			tier.long * u,
+			tiers.thick * u,
+			shape.crownShade,
+			tiers.dark
 		)
 	end
 	for index, lantern in shape.lanterns do
@@ -590,6 +953,18 @@ function TitleScene.build(parent: Instance, view: Vector2): Scene
 			shape.windowHaloAlpha
 		)
 		light("Window", x, y, 8 * u, 10 * u, shape.window)
+		-- four panes and a sill
+		local bar = shape.windowBar * u
+		light("WindowBar", x + 4 * u - bar / 2, y, bar, 10 * u, shape.doorFrame)
+		light("WindowBar", x, y + 5 * u - bar / 2, 8 * u, bar, shape.doorFrame)
+		light(
+			"WindowSill",
+			x - shape.sill.over * u,
+			y + 10 * u,
+			(8 + 2 * shape.sill.over) * u,
+			shape.sill.tall * u,
+			shape.doorFrame
+		)
 	end
 	-- vines under the crown, and a few small warm windows up in it
 	for _, vine in shape.vines do
@@ -626,14 +1001,56 @@ function TitleScene.build(parent: Instance, view: Vector2): Scene
 		door.light[4] * u,
 		shape.window
 	)
+	onTree("DoorStep", shape.doorStep, shape.doorFrame)
+	local awning = shape.awning
+	onTree("Awning", awning, shape.doorFrame)
+	light(
+		"AwningRim",
+		tree.x + awning[1] * u,
+		tree.y + awning[2] * u,
+		awning[3] * u,
+		1,
+		shape.crownLit,
+		0.5
+	)
 
 	--[[ The near ridge: its base runs to the bottom of the screen, and a
 	     step that touches the layout's side runs on to the screen's. ]]
+	local steps: { Config.Block } = {}
 	for index, step in design.ridge do
 		local x, y, w, h = step[1], step[2], step[3], step[4]
 		local x1 = if x + w >= wide then right else x + w
 		local x0 = if x <= 0 then left else x
-		block("Ridge", x0, y, x1 - x0, if index == 1 then bottom - y else h, Config.ridge)
+		local deep = if index == 1 then bottom - y else h
+		block("Ridge", x0, y, x1 - x0, deep, Config.ridge)
+		table.insert(steps, { x0, y, x1 - x0, deep })
+	end
+	-- the tree's light along the ridge's top
+	local ridgeRim = Config.ridgeRim
+	litTops("RidgeRim", steps, ridgeRim.tall, Config.rim, ridgeRim.alpha)
+	-- grass along every top of the ridge that shows
+	local fringe = Config.fringe
+	for _, blade in TitleLayout.blades(steps) do
+		block(
+			"Blade",
+			blade.x,
+			blade.foot - blade.tall,
+			fringe.wide,
+			blade.tall + 0.5,
+			Config.ridge
+		)
+		if blade.flower then
+			local bloom = Config.flower
+			light(
+				"Flower",
+				blade.x + (fringe.wide - bloom.size) / 2,
+				blade.foot - blade.tall - bloom.size * 0.7,
+				bloom.size,
+				bloom.size,
+				Config.rim,
+				bloom.alpha
+			)
+		end
 	end
 	-- grass on the ridge, and a lantern post with a mint light
 	for _, tuft in design.tufts do
@@ -694,6 +1111,36 @@ function TitleScene.build(parent: Instance, view: Vector2): Scene
 		Config.figure
 	)
 	light("SignRim", signAt.x - 2, signAt.y - sign.tall, sign.wide, 1, Config.rim, 0.5)
+	-- stones: a block with a smaller one on it, its top catching the light
+	for _, stone in design.stones do
+		local x, foot, w = stone[1], stone[2], stone[3]
+		block("Stone", x, foot - w * 0.5, w, w * 0.5 + 0.5, Config.ridge)
+		block("Stone", x + w * 0.2, foot - w * 0.85, w * 0.55, w * 0.35 + 0.5, Config.ridge)
+		light(
+			"StoneRim",
+			x + w * 0.2,
+			foot - w * 0.85,
+			w * 0.55,
+			1,
+			Config.rim,
+			ridgeRim.alpha + 0.1
+		)
+		light("StoneRim", x, foot - w * 0.5, w * 0.2, 1, Config.rim, ridgeRim.alpha)
+		light("StoneRim", x + w * 0.75, foot - w * 0.5, w * 0.25, 1, Config.rim, ridgeRim.alpha)
+	end
+	-- fences: posts and two rails
+	local fence = Config.fence
+	for _, run in design.fences do
+		local x, foot, count = run[1], run[2], run[3]
+		for _, rail in fence.rails do
+			block("Fence", x, foot - rail, (count - 1) * fence.every + 2, 1.2, Config.figure)
+		end
+		for n = 0, count - 1 do
+			local across = x + n * fence.every
+			block("Fence", across, foot - fence.tall, 2, fence.tall + 0.5, Config.figure)
+			light("FenceRim", across, foot - fence.tall, 2, 1, Config.rim, fence.rim)
+		end
+	end
 
 	-- the hero from behind, bow across the back, and the pet at their heel
 	local function figure(
@@ -849,11 +1296,29 @@ function TitleScene.build(parent: Instance, view: Vector2): Scene
 		round(logoAt.width * LOGO_INNER),
 		round((logoAt.bottom - logoAt.top) * LOGO_INNER)
 	)
+	-- held by its middle, so it lands (`step`) about its own centre
+	logo.AnchorPoint = Vector2.new(0.5, 0.5)
+	logo.Position = UDim2.fromScale(0.5, 0.5)
 	logo.Parent = logoHolder
 	local size = Instance.new("UIScale")
 	size.Scale = k / LOGO_INNER
 	size.Parent = logo
-	buildLogo(logo, design, logoAt)
+	local logoParts = buildLogo(logo, design, logoAt, size)
+	-- a few small gold sparkles about the words, twinkling as the stars do
+	for index, spark in TitleLayout.sparkles(design) do
+		table.insert(twinkles, {
+			frames = cross(
+				"Twinkle",
+				spark.x,
+				spark.y,
+				spark.size,
+				spark.alpha,
+				Config.logo.sparkle
+			),
+			base = spark.alpha,
+			phase = 40 + index * 2.1,
+		})
+	end
 
 	collect(root, fading)
 	-- the motes and the twinkling stars fade on their own loops (`step`)
@@ -873,6 +1338,7 @@ function TitleScene.build(parent: Instance, view: Vector2): Scene
 		twinkles = twinkles,
 		sways = sways,
 		shooting = shooting,
+		logo = logoParts,
 		fading = fading,
 		shown = 1,
 		still = reducedMotion(),
@@ -888,6 +1354,22 @@ function TitleScene.step(scene: Scene, t: number, shown: number)
 		scene.shown = shown
 		fade(scene.fading, shown)
 	end
+	--[[ The logo lands on the cut, its streak shoots in arrowhead first, and
+	     a band of light crosses the gold now and then. ]]
+	local logo = scene.logo
+	logo.scale.Scale = logo.base * (if scene.still then 1 else TitleLayout.logoPop(t))
+	local grow = if scene.still then 1 else TitleLayout.streakGrow(t)
+	logo.bar.Size = UDim2.fromScale(logo.barWide * grow, logo.bar.Size.Y.Scale)
+	local tip = logo.tipFrom + logo.travel * grow
+	logo.glow.Position = UDim2.fromScale(tip - logo.glowWide * grow / 2, logo.glow.Position.Y.Scale)
+	logo.glow.Size = UDim2.fromScale(logo.glowWide * grow, logo.glow.Size.Y.Scale)
+	logo.head.Position = UDim2.fromScale(-logo.travel * (1 - grow), 0)
+	logo.head.Visible = grow > 0
+	local across = if scene.still then nil else TitleLayout.shine(t)
+	for _, band in logo.shines do
+		band.Offset = Vector2.new(if across then across * 1.2 - 0.6 else -1, 0)
+	end
+
 	local look = Config.mote
 	local wide, tall = scene.design.width, scene.design.height
 	for _, mote in scene.motes do

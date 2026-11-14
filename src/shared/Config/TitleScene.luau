@@ -57,6 +57,22 @@ export type Design = {
 	glowcaps: { Block },
 	sign: { x: number, y: number },
 	shooting: { from: { number }, to: { number } },
+	--[[ The fourth pass (owner, 2026-11-14: "it needs to be more detailed
+	     still"): small houses on the near hills (left, foot, width), a far
+	     watchtower (its left and foot), mist lying at the hills' feet (left,
+	     top, width), and stones (left, foot, width) and fences (left, foot,
+	     posts) on the ridge. ]]
+	houses: { Block },
+	tower: { x: number, y: number },
+	mist: { Block },
+	stones: { Block },
+	fences: { Block },
+	--[[ The fifth pass (owner, 2026-11-14, of the fourth: "More detail"):
+	     far mountains behind the hills (middle, foot, width, height, and
+	     which way its top leans, a share of its width) and small pines on
+	     the far hills (middle, foot, height). ]]
+	peaks: { Block },
+	farPines: { Block },
 	--[[ The trunk's foot (`x`, `y`) and how many points a tree unit is. ]]
 	tree: { x: number, y: number, unit: number },
 	hills: { Block },
@@ -148,6 +164,48 @@ local TitleScene = {
 	--[[ The lantern post on the ridge: a post, an arm and a mint lantern
 	     hanging from it. ]]
 	post = { tall = 24, arm = 9, lantern = 5 },
+	--[[ The fourth pass. A house is the near hills' colour: a body under a
+	     stepped roof with a chimney, and one lit window in a small round
+	     glow (this many times the house's width, this solid). The watchtower
+	     is the far hills' colour: this wide and tall under a wider toothed
+	     top, with one lit window this solid. ]]
+	house = { glow = 1.5, glowAlpha = 0.28 },
+	tower = { wide = 7, tall = 18, alpha = 0.7 },
+	--[[ Mist: thin pale bands, this tall and this solid, lying between the
+	     far hills and the near ones. ]]
+	mist = { colour = Color3.fromHex("#4FA79C"), alpha = 0.11, tall = 3 },
+	--[[ A line of the tree's light along the tops of the hills (this tall;
+	     how solid on the near ones and on the far) and, in the hero's rim
+	     colour, along the top of the ridge. Only the edges that show are
+	     lit (`TitleLayout.topEdges`). ]]
+	hillRim = { tall = 1.5, near = 0.4, far = 0.28 },
+	ridgeRim = { tall = 1, alpha = 0.3 },
+	--[[ A fence: posts this far apart and this tall, with two rails this
+	     far up; each post's top catches the light. ]]
+	fence = { every = 8, tall = 7, rails = { 5.5, 2.5 }, rim = 0.4 },
+	--[[ The fifth pass. Far mountains: pale and see-through, so each is a
+	     little lighter than whatever sky is behind it and the hills stand
+	     dark in front. Each is this many steps narrowing to its top, the
+	     top ones (this many) paler again, as snow, with a little snow lying
+	     on the step below. ]]
+	peak = {
+		colour = Color3.fromHex("#6FBFB2"),
+		alpha = 0.13,
+		steps = 6,
+		snow = 1,
+		snowAlpha = 0.16,
+	},
+	--[[ Star dust: tiny faint crosses between the stars, this many to a
+	     square point of sky and never more than `most`, smaller than any
+	     star and no brighter than a faint one. ]]
+	dust = { each = 0.0005, seed = 23, size = 1, faint = 0.12, bright = 0.4, most = 200 },
+	--[[ Grass along every top of the ridge that shows: a blade about every
+	     so many points, between these heights, this wide
+	     (`TitleLayout.blades`). ]]
+	fringe = { every = 5, seed = 31, short = 1.5, long = 4.5, wide = 1.2 },
+	--[[ A blade taller than this carries a small flower: a pale dot this
+	     size on its tip, in the hero's rim colour, this solid. ]]
+	flower = { over = 3.9, size = 1.6, alpha = 0.75 },
 
 	--[[ The World Tree, in tree units from the trunk's foot (x right, y down,
 	     so every y is negative). ]]
@@ -200,6 +258,61 @@ local TitleScene = {
 			{ -140, -214, 26 },
 			{ 120, -206, 28 },
 		},
+		--[[ The fourth pass, on the tree. Bark: strips two units wide, a shade
+		     lighter than the trunk (left, top, length), on the trunk below
+		     the crown. Each trunk window has a cross of bars this thick and
+		     a sill under it, this far past its sides and this tall; the door
+		     stands on a step. Each crown square is shaded along its foot,
+		     this share of its side deep, and carries this many small flecks
+		     of leaf, lit and shaded in turn, between these sizes
+		     (`TitleLayout.flecks`). ]]
+		bark = {
+			{ -22, -140, 34 },
+			{ -4, -140, 12 },
+			{ 20, -128, 30 },
+			{ -20, -92, 26 },
+			{ 18, -74, 24 },
+			{ 0, -62, 14 },
+			{ -30, -38, 22 },
+			{ 28, -34, 20 },
+			{ -14, -196, 26 },
+			{ 12, -192, 30 },
+		},
+		barkColour = Color3.fromHex("#0A2A31"),
+		windowBar = 1,
+		sill = { over = 2, tall = 2 },
+		doorStep = { -11, -3, 22, 3 },
+		crownShade = Color3.fromHex("#082329"),
+		crownShadeStrip = 0.1,
+		flecks = { each = 8, seed = 11, small = 3, large = 9, lit = 0.5, dark = 0.55 },
+		--[[ The fifth pass, on the tree. Sprigs: small leaf blocks standing
+		     out of each crown square, this many from its top and one from
+		     each side and its foot, between these sizes; they are drawn
+		     behind the crown, so only what stands clear of it shows
+		     (`TitleLayout.sprigs`). Balconies on the trunk's sides (left,
+		     top, width): a floor, a rail on posts, and a lantern hung under
+		     the outer end. Shelf mushrooms on the trunk's sides (left, top,
+		     width): a mint cap this tall with a narrower pale piece under
+		     it against the trunk, in a small round glow. Tiers: on each
+		     crown square, this many lit edges with their shadow under
+		     them, one in each part of its height, between these shares of
+		     its side long, so the crown reads as layers of leaf
+		     (`TitleLayout.tiers`). An awning over the door. ]]
+		sprigs = { top = 3, seed = 5, small = 12, large = 22 },
+		balconies = { { -42, -106, 16 }, { 26, -64, 16 } },
+		balcony = { floor = 2, rail = 6, post = 1.2, every = 5, lantern = 3, string = 4, rim = 0.6 },
+		shelves = { { -32, -134, 6 }, { 26, -112, 6 }, { -42, -26, 6 }, { 36, -18, 5 } },
+		shelf = { tall = 2, under = 0.55, glow = 3.5, glowAlpha = 0.3 },
+		tiers = {
+			each = 3,
+			seed = 17,
+			short = 0.25,
+			long = 0.55,
+			thick = 2,
+			lit = 0.45,
+			dark = 0.55,
+		},
+		awning = { -12, -34, 24, 3 },
 		--[[ Vines hanging under the crown (left, top, length), two units wide,
 		     and a few small warm windows up in it (left, top), 5 by 6. ]]
 		vines = {
@@ -374,6 +487,9 @@ local TitleScene = {
 	logo = {
 		words = { "ARROW", "BORNE" },
 		sizes = { 46, 82 },
+		--[[ How wide each word is, in its letters' size (measured in Fredoka
+		     One; the layout is pure and cannot ask Roblox). ]]
+		widths = { 3.8, 3.41 },
 		--[[ A line is this share of its letters' size tall. ]]
 		line = 0.92,
 		--[[ The gold runs over the letters' own box (`letterLine`), with
@@ -389,13 +505,40 @@ local TitleScene = {
 		shadowDrop = 5,
 		--[[ The glow: soft rings round the letters (how far past the outline
 		     each reaches; each is this see-through, so they add up towards
-		     the letters) over a wide faint haze (the round glow picture, this
-		     many times the logo's width and the words' height, this solid at
-		     its middle; faint, so the tree under it stays teal). ]]
+		     the letters; many thin ones, closer together near the letters,
+		     so the light falls away smoothly and no ring shows as a band)
+		     over a wide faint haze (the round glow picture, this many times
+		     the logo's width and the words' height, this solid at its middle;
+		     faint, so the tree under it stays teal). ]]
 		glow = Color3.fromHex("#FFCE6E"),
-		glowRings = { 5, 10, 16 },
-		glowRingClear = 0.9,
+		glowRings = { 1.5, 3, 4.5, 6.5, 8.5, 11, 13.5, 16 },
+		glowRingClear = 0.96,
 		haze = { wide = 1.15, tall = 2, alpha = 0.22 },
+		--[[ A few small sparkles about the words: crosses like the stars, in
+		     the logo's own pale gold, twinkling as the stars do. Each is how
+		     far from the words' middle (a share of their width), how far
+		     down them (a share of their height) and its size. ]]
+		sparkles = { { -0.4, 0.06, 3 }, { 0.55, 0.78, 4 }, { -0.56, 0.3, 3 }, { 0.43, 0.02, 2.5 } },
+		sparkle = Color3.fromHex("#FFE9A8"),
+		sparkleAlpha = 0.9,
+		--[[ A soft round shade of the night sky behind the words (the round
+		     glow picture again, this many times the words' width and height,
+		     this solid at its middle): sideways the logo stands in front of
+		     the crown, and its leaf blocks would show between the letters. ]]
+		backing = { colour = Color3.fromHex("#040B16"), wide = 1.7, tall = 2.1, alpha = 0.8 },
+		--[[ How the logo moves (owner, 2026-11-14, "more polished and
+		     professional looking"; seconds from the cut to the picture). It
+		     lands: a little large on the cut, easing down to its size while
+		     the flash fades. The streak then shoots in from its left end,
+		     arrowhead first, and has landed before the button rises. After
+		     that a pale band of light crosses the gold now and then (this
+		     share of the logo's width wide, this solid, tilted this much).
+		     None of it plays for a player who has asked for less motion. ]]
+		motion = {
+			pop = { from = 1.12, lasts = 0.7 },
+			streak = { at = 0.2, lasts = 0.5 },
+			shine = { first = 1.6, every = 7, lasts = 0.9, wide = 0.1, alpha = 0.6, tilt = 14 },
+		},
 		--[[ The streak of light under the words: this share of the logo's
 		     width, this far under them, fading in from the left and ending
 		     in a small arrowhead that overhangs its right end. ]]
@@ -409,6 +552,13 @@ local TitleScene = {
 			midAt = 0.55,
 			glow = Color3.fromHex("#FFD678"),
 			head = { long = 14, tall = 15, overhang = 10 },
+			--[[ Its light is the round glow picture, never a flat bar or
+			     pill (owner, 2026-11-12, of every light here): one stretched
+			     along the bright end of the streak (this share of its length
+			     from this far along, this many times its thickness tall) and
+			     one round the arrowhead (this many times its height). ]]
+			soft = { from = 0.3, tall = 9, alpha = 0.5 },
+			headGlow = { across = 2.6, alpha = 0.6 },
 		},
 	},
 
@@ -430,7 +580,7 @@ local TitleScene = {
 		horizon = 0.71,
 		stars = { count = 70, seed = 7, below = 450 },
 		moon = { x = 312, y = 262 },
-		clouds = { { 236, 36, 150 }, { -24, 268, 120 }, { 290, 500, 120 } },
+		clouds = { { 236, 36, 150 }, { -24, 268, 120 }, { 290, 500, 120 }, { 292, 278, 76 } },
 		bigStars = { { 34, 52 }, { 350, 150 }, { 22, 330 }, { 368, 420 } },
 		farHills = {
 			{ -6, 548, 52 },
@@ -473,6 +623,24 @@ local TitleScene = {
 		},
 		sign = { x = 36, y = 616 },
 		shooting = { from = { 330, 14 }, to = { 262, 52 } },
+		houses = { { 24, 566, 9 }, { 276, 576, 9 }, { 344, 562, 10 } },
+		tower = { x = 372, y = 540 },
+		mist = { { 140, 590, 130 }, { 228, 566, 70 }, { 84, 565, 56 } },
+		stones = { { 3, 636, 8 }, { 278, 660, 10 } },
+		fences = {},
+		peaks = { { 48, 580, 130, 58, -0.1 }, { 322, 580, 140, 80, 0.1 } },
+		farPines = {
+			{ 4, 548, 7 },
+			{ 34, 548, 6 },
+			{ 58, 556, 6 },
+			{ 106, 560, 7 },
+			{ 120, 560, 6 },
+			{ 246, 558, 7 },
+			{ 260, 558, 6 },
+			{ 306, 548, 7 },
+			{ 318, 548, 6 },
+			{ 360, 540, 7 },
+		},
 		tree = { x = 195, y = 612, unit = 0.9 },
 		hills = {
 			{ 0, 566, 70 },
@@ -503,7 +671,7 @@ local TitleScene = {
 		horizon = 0.76,
 		stars = { count = 80, seed = 7, below = 230 },
 		moon = { x = 704, y = 52 },
-		clouds = { { 40, 70, 170 }, { 590, 120, 190 }, { 150, 190, 120 } },
+		clouds = { { 40, 70, 170 }, { 590, 120, 190 }, { 150, 190, 120 }, { 686, 68, 64 } },
 		bigStars = { { 120, 36 }, { 300, 96 }, { 566, 44 }, { 800, 150 } },
 		farHills = {
 			{ -10, 272, 70 },
@@ -553,6 +721,34 @@ local TitleScene = {
 		},
 		sign = { x = 86, y = 318 },
 		shooting = { from = { 760, 40 }, to = { 690, 84 } },
+		houses = { { 32, 290, 10 }, { 604, 298, 9 }, { 680, 288, 11 }, { 786, 300, 9 } },
+		tower = { x = 612, y = 272 },
+		mist = { { 268, 314, 250 }, { 330, 304, 170 }, { 500, 292, 90 }, { 140, 286, 80 } },
+		stones = { { 222, 300, 7 }, { 302, 318, 8 }, { 624, 330, 9 } },
+		fences = { { 676, 330, 5 } },
+		peaks = {
+			{ 64, 300, 170, 68, -0.1 },
+			{ 200, 300, 100, 44, 0.1 },
+			{ 606, 300, 92, 40, -0.1 },
+			{ 736, 300, 196, 68, 0.1 },
+		},
+		farPines = {
+			{ 8, 272, 8 },
+			{ 46, 272, 6 },
+			{ 96, 282, 7 },
+			{ 162, 280, 8 },
+			{ 176, 280, 6 },
+			{ 200, 280, 7 },
+			{ 248, 290, 6 },
+			{ 534, 288, 7 },
+			{ 548, 288, 6 },
+			{ 640, 272, 8 },
+			{ 652, 272, 6 },
+			{ 718, 278, 7 },
+			{ 730, 278, 8 },
+			{ 744, 278, 6 },
+			{ 796, 284, 7 },
+		},
 		tree = { x = 422, y = 334, unit = 0.78 },
 		hills = {
 			{ 0, 290, 90 },

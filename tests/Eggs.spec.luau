@@ -14,6 +14,8 @@ local EggRules = require(ReplicatedStorage.Shared.Util.EggRules)
 local Eggs = require(ReplicatedStorage.Shared.Config.Eggs)
 local PetAuras = require(ReplicatedStorage.Shared.Config.PetAuras)
 local Pets = require(ReplicatedStorage.Shared.Config.Pets)
+local SaveSchema = require(ReplicatedStorage.Shared.Util.SaveSchema)
+local StoreRules = require(ReplicatedStorage.Shared.Util.StoreRules)
 local TestRunner = require(script.Parent.TestRunner)
 
 return function(t: TestRunner.Helper)
@@ -150,7 +152,9 @@ return function(t: TestRunner.Helper)
 		end
 	end)
 
-	t.test("two pet slots, matching the save", function()
-		t.equal(#Eggs.slots, 2)
+	t.test("two pet slots, a third with the pass, matching the save", function()
+		t.equal(#Eggs.slots, SaveSchema.PET_SLOTS)
+		t.equal(StoreRules.petSlots({}), 2)
+		t.equal(StoreRules.petSlots({ PetSlot = true }), #Eggs.slots)
 	end)
 end

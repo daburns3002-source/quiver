@@ -287,9 +287,27 @@ Remotes.EndlessCheckpoint = "EndlessCheckpoint"
 	crates opened (`Server/Data/EndlessPrizes`): the floor, what the
 	milestone is called, and what came out, `{ pet, new }` and
 	`{ weapon, new }` lists. Already granted; this is only to show it.
-	Floor 0 is a Soulstone shop purchase, shown the same way.
+	Floor 0 is a Soulstone shop purchase, shown the same way; floor -1 the
+	eggs a Robux product hatched (the starter pack, `Server/Data/Purchases`).
 ]]
 Remotes.EndlessPrize = "EndlessPrize"
+
+--[[
+	Client → server. "I pressed BUY on this": a `Config/RobuxStore` key and
+	where it was offered ("Store", "Defeat", "Starter", "GearSlot"). A
+	request: the server checks it may be sold to this player and opens
+	Roblox's own prompt (`Server/Data/Purchases`), or spends a revive held.
+	Nothing is granted until Roblox's receipt arrives.
+]]
+Remotes.StoreBuy = "StoreBuy"
+--[[ Server → one client: a Robux grant landed (a product's key and its
+     gems, or "VIPDaily" and the day's gems), for the STORE's thank-you. ]]
+Remotes.StoreGranted = "StoreGranted"
+--[[ Client → server, Studio only: a made-up receipt for a product key and a
+     purchase id (`Server/Data/Purchases`), and a pass on or off
+     (`Server/Data/Passes`), to test the store without Robux. ]]
+Remotes.DebugReceipt = "DebugReceipt"
+Remotes.DebugPass = "DebugPass"
 
 --[[
 	Client → server. "Buy `count` of this from the Soulstone shop": the

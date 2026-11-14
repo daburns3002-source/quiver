@@ -68,11 +68,13 @@ local PetCombat = require(script.Parent.Parent.Combat.PetCombat)
 local Pickups = require(script.Parent.Pickups)
 local PlayerData = require(script.Parent.Parent.Data.PlayerData)
 local ProjectileSystem = require(script.Parent.Parent.Combat.ProjectileSystem)
+local Purchases = require(script.Parent.Parent.Data.Purchases)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local Rewards = require(script.Parent.Parent.Data.Rewards)
 local RunSession = require(script.Parent.RunSession)
 local Sandbox = require(ReplicatedStorage.Shared.Config.Sandbox)
 local SoulLink = require(script.Parent.Parent.Combat.SoulLink)
+local StoreRules = require(ReplicatedStorage.Shared.Util.StoreRules)
 local StoryBeatRules = require(ReplicatedStorage.Shared.Util.StoryBeatRules)
 local StoryLeaderboard = require(script.Parent.StoryLeaderboard)
 local StoryProgress = require(ReplicatedStorage.Shared.Util.StoryProgress)
@@ -140,6 +142,9 @@ local collectAt: number? = nil
      so it is rebuilt when the rotation moves on and not every floor. 0
      before the first floor of a run. ]]
 local endlessArea = 0
+--[[ `os.clock()` until which TRY AGAIN waits on a revive's prompt
+     (`RoomController.holdForRevive`), 0 for no wait. ]]
+local reviveHeldUntil = 0
 --[[ Soulstones this run has paid each player, for the per-run cap. Per
      player rather than one number, because the cap is each player's
      (co-op-shaped from day one, non-negotiable 3). ]]
@@ -646,7 +651,7 @@ local function storyOwed(player: Player, beatBoss: boolean): string?
 	return nil
 end
 
-local function sendSummary(won: boolean, eggs: { [Player]: any }?)
+local function sendSummary(won: boolean, eggs: { [Player]: any }?, starters: { [Player]: boolean }?)
 	local finished = if won then progress else progress - 1
 	local progressPercent =
 		math.clamp(math.floor(finished / math.max(total(), 1) * 100 + 0.5), 0, 100)
@@ -676,6 +681,12 @@ local function sendSummary(won: boolean, eggs: { [Player]: any }?)
 			--[[ The end screen's nudge: Victory says so when the coins buy
 			     an egg. ]]
 			canHatch = Hatchery.canHatch(session.player),
+			--[[ DEFEAT's revive (`Config/RobuxStore`): "buy" for 15 Robux,
+			     "use" for one already held, nil for none. ]]
+			revive = if won then nil else Purchases.reviveOffer(session.player),
+			--[[ The starter pack's one offer, after the first 1-1 clear: the
+			     client shows it as the player leaves Victory. ]]
+			starter = if starters and starters[session.player] then true else nil,
 		})
 	end
 end
@@ -756,9 +767,10 @@ local function complete(now: number)
 	local level = stage().level
 	local eggKey = RunSession.areaPay().firstClearEgg
 	local eggs: { [Player]: any } = {}
+	local starters: { [Player]: boolean } = {}
 	-- the area's clear bonus, before the summary that shows it
 	for _, session in RunSession.all() do
-		RunSession.payCoins(session, RunSession.areaPay().clearCoins)
+		RunSession.payEarned(session, RunSession.areaPay().clearCoins)
 		--[[ The tutorial's first win pays for the first egg
 		     (`Util/FirstEgg`): what the player is still short of it, so the
 		     lobby opens on a hatch. Once only (`tutorialDone`): the tutorial
@@ -784,6 +796,7 @@ local function complete(now: number)
 		if firstClear and level == Tutorial.untilBeaten then
 			Analytics.step(session.player, "Cleared1-1")
 		end
+		starters[session.player] = Purchases.offerStarter(session.player, level, firstClear)
 		Analytics.runEnded(session.player, "Won")
 		if firstClear and eggKey then
 			local pet = Hatchery.grantFree(session.player, eggKey)
@@ -797,7 +810,7 @@ local function complete(now: number)
 	recordStory()
 	log.info("run complete")
 	broadcast()
-	sendSummary(true, eggs)
+	sendSummary(true, eggs, starters)
 end
 
 --[[ Rooms: hold the pause after a clear, light the door, wait for a player
@@ -1213,6 +1226,10 @@ function RoomController.requestRestart(): boolean
 	if resumeAt and os.clock() < resumeAt then
 		return false
 	end
+	-- a teammate's revive prompt is open (co-op): the run waits on it
+	if state == "Dead" and os.clock() < reviveHeldUntil then
+		return false
+	end
 
 	--[[ The tutorial won: on to the lobby, where the portals start the
 	     campaign's runs (`Config/Tutorial`). ]]
@@ -1249,6 +1266,90 @@ function RoomController.requestRestart(): boolean
 
 	resumeAt = nil
 	startStage()
+	return true
+end
+
+--[[ Whether `player` may be revived now (`Config/RobuxStore`): the run is
+     lost, it is not the tutorial or the sandbox, and their one revive this
+     run is not spent (`Util/StoreRules.reviveAllowed`). ]]
+function RoomController.canRevive(player: Player): boolean
+	local session = RunSession.get(player)
+	return session ~= nil
+		and not sandbox
+		and not session.atTitle
+		and StoreRules.reviveAllowed(state, stage().tutorial == true, session.paidReviveUsed)
+end
+
+--[[ A revive's prompt is open: TRY AGAIN waits `seconds` for it, or until
+     it is answered (`releaseRevive`), so a teammate cannot restart the run
+     from under it. BACK TO LOBBY is anyone's to press. ]]
+function RoomController.holdForRevive(seconds: number)
+	if state == "Dead" then
+		reviveHeldUntil = math.max(reviveHeldUntil, os.clock() + seconds)
+	end
+end
+
+function RoomController.releaseRevive()
+	reviveHeldUntil = 0
+end
+
+--[[
+	The Robux revive (`Data/Purchases`): `player` goes back into the room,
+	wave or floor they fell in, which starts over, with their level and
+	cards kept and full health behind the revive's shield. In co-op only the
+	buyer comes back: everyone else sits that room out and returns for the
+	next, as a teammate who bled out does (`RunSession.sitOut`). Returns
+	false, spending nothing, when the run can no longer take it.
+]]
+function RoomController.revive(player: Player): boolean
+	local session = RunSession.get(player)
+	if not session or not RoomController.canRevive(player) then
+		return false
+	end
+	-- claimed before anything yields, so a second ask cannot slip in
+	session.paidReviveUsed = true
+	--[[ A death takes the body (`humanoid.Health = 0`) until Roblox brings
+	     a new one; bring it now and wait for it to be bound. ]]
+	local humanoid = session.humanoid
+	if session.character ~= player.Character or not humanoid or humanoid.Health <= 0 then
+		local loaded = pcall(function()
+			player:LoadCharacterAsync()
+		end)
+		local deadline = os.clock() + 5
+		while
+			loaded
+			and player.Parent
+			and (session.character == nil or session.character ~= player.Character)
+			and os.clock() < deadline
+		do
+			task.wait()
+		end
+	end
+	if state ~= "Dead" or not player.Parent or session.character == nil then
+		session.paidReviveUsed = false
+		log.warn("revive for %s could not be applied: the run moved on", player.Name)
+		return false
+	end
+	reviveHeldUntil = 0
+	local current = stage()
+	if current.mode == "Endless" then
+		-- the floor's arena is built afresh, as a Studio jump does
+		endlessArea = 0
+		startFloor(progress)
+	elseif current.mode == "Waves" then
+		buildArena(Balance.Rooms[current.arena or 1])
+		startWave(progress)
+	else
+		enterRoom(progress)
+	end
+	for _, other in RunSession.all() do
+		if other ~= session and not other.atTitle then
+			RunSession.sitOut(other)
+		end
+	end
+	RunSession.paidRevive(session)
+	Analytics.runRevived(player)
+	log.info("%s revived into %s %d", player.Name, unit():lower(), progress)
 	return true
 end
 

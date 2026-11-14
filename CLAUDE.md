@@ -592,6 +592,18 @@ dash and a level gained. The SETTINGS button is on the lobby's left edge.
 after the first, its egg, and Endless wait on the boss before it (`atLaunch` in `Config/Lobby` and
 `Config/Eggs`). Off, the playtest is as open as the owner asked. `tests/LaunchLocks.spec` holds both.
 
+**The Robux store** (owner, 2026-11-13: "Yes, build them"; `Config/RobuxStore`, `Util/StoreRules`,
+`Server/Data/Purchases`, `Server/Data/Passes`, `UI/RobuxStore`, `UI/RobuxOffer`, `docs/ROBUX-STORE.md`):
+five gem packs, a starter pack (once a player, offered once as the first 1-1 Victory is left) and a
+**15 Robux revive, Robux only, never gems** (owner) as developer products; 2x Coins, Extra Pet Slot (PET 3 on
+the Gear sheet) and VIP (gold name tag, +10% coins, 25 gems a day) as passes. Never sold: Mythics, boss items,
+Starfall, boss badges; no energy, no timers. **Every receipt is granted once**: `ProcessReceipt` looks its
+`PurchaseId` up in the save (`SaveSchema` v15 `purchases`), grants and writes it down together, and answers
+`PurchaseGranted` only after `PlayerData.saveNow` lands. Prompts are the server's (`Remotes.StoreBuy`). The
+revive puts the buyer back into the room they fell in, which starts over with their build (`RoomController.revive`);
+in co-op only the buyer, the others sit that room out. Ids are 0 until the owner creates the products on the
+Creator Dashboard (a 0 shows SOON). Studio: `Remotes.DebugReceipt(key, id)` and `DebugPass(key, on)`.
+
 **Endless pays in eggs and crates** (owner, 2026-11-11: "MAKE IT MORE LIKE 5 EGGS AND 5 CRATES ... I WANT
 IT TO FEEL NECESSARY TO BEAT THESE ROOMS"): each milestone (`Balance.Endless.milestones`) hatches its
 eggs and opens its crates for the player on the spot, free, one of each batch sure to be at least its

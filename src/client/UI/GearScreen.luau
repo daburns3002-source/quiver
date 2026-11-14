@@ -25,12 +25,14 @@ local Pets = require(ReplicatedStorage.Shared.Config.Pets)
 local Rarities = require(ReplicatedStorage.Shared.Config.Rarities)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local Reveal = require(script.Parent.Reveal)
+local RobuxStore = require(script.Parent.RobuxStore)
 local SaveSchema = require(ReplicatedStorage.Shared.Util.SaveSchema)
 local ShopAssets = require(ReplicatedStorage.Shared.Config.ShopAssets)
 local ShopRules = require(ReplicatedStorage.Shared.Util.ShopRules)
 local ShopScreen = require(script.Parent.ShopScreen)
 local SoundFx = require(script.Parent.Parent.Fx.SoundFx)
 local StationScreen = require(script.Parent.StationScreen)
+local StoreRules = require(ReplicatedStorage.Shared.Util.StoreRules)
 local TrailRules = require(ReplicatedStorage.Shared.Util.TrailRules)
 local Trails = require(ReplicatedStorage.Shared.Config.Trails)
 local WeaponStats = require(ReplicatedStorage.Shared.Config.WeaponStats)
@@ -150,9 +152,15 @@ local function portrait(
 			end
 			local box, scaled = pet:GetBoundingBox()
 			local lift = pet:GetPivot().Position.Y - (box.Position.Y - scaled.Y / 2)
-			local side = if index == 1 then -1 else 1
+			local side = if index == 2 then 1 else -1
+			-- the third (the Extra Pet Slot pass's) a step further out, behind
+			local out = if index == 3 then scaled.X + 0.4 else 0
 			pet:PivotTo(
-				CFrame.new(side * (bodySize.X / 2 + scaled.X / 2 + 0.6), floor + lift, -0.4)
+				CFrame.new(
+					side * (bodySize.X / 2 + scaled.X / 2 + 0.6 + out),
+					floor + lift,
+					if index == 3 then -1.4 else -0.4
+				)
 			)
 			for _, part in pet:GetDescendants() do
 				if part:IsA("BasePart") then
@@ -632,8 +640,11 @@ local function draw(s: StationScreen.Screen)
 	local class = Classes[currentClass()] or Classes.Ranger
 	local equipped = equippedForClass(p)
 	local weapon = ShopRules.find(equipped)
+	--[[ PET 3 is the Extra Pet Slot pass's: locked without it, and pressing
+	     it then opens the STORE on its pass (`UI/RobuxStore`). ]]
+	local openSlots = StoreRules.petSlots(RobuxStore.owned())
 	local petKeys: { string } = {}
-	for index = 1, 2 do
+	for index = 1, openSlots do
 		local key = p and p.equippedPets[index]
 		if key then
 			table.insert(petKeys, key)
@@ -654,8 +665,8 @@ local function draw(s: StationScreen.Screen)
 			plate = { 330, 960, 420, 92 },
 			left = 90,
 			right = 800,
-			rows = { 330, 640 },
-			size = 190,
+			rows = { 310, 562, 814 },
+			size = 176,
 			card = { 60, 1086, 960, 784 },
 		}
 		else {
@@ -664,8 +675,8 @@ local function draw(s: StationScreen.Screen)
 			plate = { 380, 850, 360, 100 },
 			left = 196,
 			right = 728,
-			rows = { 250, 610 },
-			size = 196,
+			rows = { 196, 476, 756 },
+			size = 180,
 			card = { 950, 190, 780, 830 },
 		}
 	local pedestal = Instance.new("Frame")
@@ -735,8 +746,9 @@ local function draw(s: StationScreen.Screen)
 		reopen("TRAILS")
 	)
 	local petSlots: { GuiObject } = {}
-	for index = 1, 2 do
-		local key = p and p.equippedPets[index]
+	for index = 1, SaveSchema.PET_SLOTS do
+		local open = index <= openSlots
+		local key = if open then p and p.equippedPets[index] else nil
 		local info = key and Pets[key]
 		petSlots[index] = slot(
 			sheet,
@@ -746,8 +758,12 @@ local function draw(s: StationScreen.Screen)
 			L.size,
 			if info then info.rarity else nil,
 			if key then GearAssets.pets[key] else nil,
-			false,
+			not open,
 			function()
+				if not open then
+					RobuxStore.open("PASSES")
+					return
+				end
 				preferredPetSlot = index
 				tab = "PETS"
 				s.open()
@@ -922,7 +938,7 @@ local function draw(s: StationScreen.Screen)
 	for i, entry in entries do
 		local isPet = tab == "PETS"
 		local isEquipped = if isPet
-			then p ~= nil and (p.equippedPets[1] == entry.key or p.equippedPets[2] == entry.key)
+			then p ~= nil and table.find(petKeys, entry.key) ~= nil
 			else equipped == entry.key
 		local holder = cellAt(i)
 		-- a weapon is always its 2D art (owner's standing rule); a pet stands
@@ -953,17 +969,23 @@ local function draw(s: StationScreen.Screen)
 			end
 			details(sheet, entry, isPet, isEquipped, function()
 				if isPet and isEquipped then
-					for index = 1, 2 do
+					for index = 1, openSlots do
 						if p.equippedPets[index] == entry.key then
 							Remotes.event(Remotes.EquipPet):FireServer(index, nil)
 						end
 					end
 				elseif isPet then
-					local index = if preferredPetSlot
-						then preferredPetSlot
-						elseif not p.equippedPets[1] then 1
-						elseif not p.equippedPets[2] then 2
-						else 1
+					local index = 1
+					if preferredPetSlot and preferredPetSlot <= openSlots then
+						index = preferredPetSlot
+					else
+						for free = 1, openSlots do
+							if not p.equippedPets[free] then
+								index = free
+								break
+							end
+						end
+					end
 					Reveal.equip(holder, petSlots[index], entry.icon, true)
 					Remotes.event(Remotes.EquipPet):FireServer(index, entry.key)
 				else

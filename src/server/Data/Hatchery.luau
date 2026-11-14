@@ -28,10 +28,12 @@ local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local Sandbox = require(ReplicatedStorage.Shared.Config.Sandbox)
 
 local Analytics = require(script.Parent.Analytics)
+local Passes = require(script.Parent.Passes)
 local Pity = require(ReplicatedStorage.Shared.Util.Pity)
 local PlayerData = require(script.Parent.PlayerData)
 local PrizeRules = require(ReplicatedStorage.Shared.Util.PrizeRules)
 local Rewards = require(script.Parent.Rewards)
+local StoreRules = require(ReplicatedStorage.Shared.Util.StoreRules)
 local Wallet = require(script.Parent.Wallet)
 
 local log = Log.forTag("Hatchery")
@@ -53,11 +55,18 @@ local function allowed(player: Player): boolean
 	return PlayerData.get(player) ~= nil
 end
 
---[[ The saved slots onto the Player's attributes. ]]
+--[[ The saved slots onto the Player's attributes: the ones open to this
+     player (the third with the Extra Pet Slot pass), which is what
+     `Combat/PetCombat` and the pets at heel read. Called again when a pass
+     is bought (`Data/Purchases`). ]]
 function Hatchery.apply(player: Player)
 	local profile = PlayerData.get(player)
+	local open = StoreRules.petSlots(Passes.owned(player))
 	for slot, attribute in Eggs.slots do
-		player:SetAttribute(attribute, if profile then profile.equippedPets[slot] else nil)
+		player:SetAttribute(
+			attribute,
+			if profile and slot <= open then profile.equippedPets[slot] else nil
+		)
 	end
 end
 

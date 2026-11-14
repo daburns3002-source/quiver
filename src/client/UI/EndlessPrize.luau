@@ -126,8 +126,12 @@ local function show(floor: number, name: string, list: { Prize })
 	box.Parent = screen
 	local sheet = Chunky.pointSheet(box, WIDTH, h / 2)
 	Chunky.panel(sheet, 0, 0, w, h - 12)
-	-- floor 0 is a Soulstone shop purchase (`Remotes.EndlessPrize`)
-	local title = if floor > 0 then `FLOOR {floor} REWARD!` else "SOULSTONE SHOP"
+	-- floor 0 is a Soulstone shop purchase, -1 a Robux product's eggs
+	-- (`Remotes.EndlessPrize`)
+	local title = if floor > 0
+		then `FLOOR {floor} REWARD!`
+		elseif floor < 0 then "THANK YOU!"
+		else "SOULSTONE SHOP"
 	Chunky.ribbon(sheet, title, 0, 0, w, header)
 	Chunky.close(sheet, 0, 0, 0, close)
 	local line = Chunky.text(box, name, Chunky.ink, 0)

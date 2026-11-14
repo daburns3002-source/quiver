@@ -5,15 +5,36 @@
 	over their head in its own typeface; this turns that off and puts the
 	name up in the game's font (CLAUDE.md rule 11) instead, for every player
 	this client sees.
+
+	A VIP's tag is gold, "VIP" before the name (`Config/RobuxStore`), from the
+	`PassVIP` attribute the server sets (`Server/Data/Passes`), and turns gold
+	the moment the pass is bought.
 ]]
 
 local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local RobuxStore = require(ReplicatedStorage.Shared.Config.RobuxStore)
 
 local NameTags = {}
 
 --[[ Studs above the head, and how far away a tag still shows. ]]
 local LIFT = 2.6
 local RANGE = 100
+local VIP = RobuxStore.passAttribute .. "VIP"
+
+--[[ Paints a tag plain or gold, as the player's VIP pass says. ]]
+local function paint(player: Player, label: TextLabel)
+	if player:GetAttribute(VIP) == true then
+		label.Text = "VIP " .. player.DisplayName
+		label.TextColor3 = RobuxStore.vipGold
+		label.TextStrokeColor3 = Color3.fromRGB(70, 40, 0)
+	else
+		label.Text = player.DisplayName
+		label.TextColor3 = Color3.new(1, 1, 1)
+		label.TextStrokeColor3 = Color3.new(0, 0, 0)
+	end
+end
 
 local function tag(player: Player, character: Model)
 	local humanoid = character:WaitForChild("Humanoid", 10)
@@ -47,6 +68,7 @@ local function tag(player: Player, character: Model)
 	label.TextStrokeTransparency = 0.2
 	label.TextScaled = true
 	label.Parent = gui
+	paint(player, label)
 
 	gui.Parent = head
 end
@@ -54,6 +76,15 @@ end
 local function watch(player: Player)
 	player.CharacterAdded:Connect(function(character)
 		tag(player, character)
+	end)
+	player:GetAttributeChangedSignal(VIP):Connect(function()
+		local character = player.Character
+		local head = character and character:FindFirstChild("Head")
+		local gui = head and head:FindFirstChild("NameTag")
+		local label = gui and gui:FindFirstChild("Name")
+		if label and label:IsA("TextLabel") then
+			paint(player, label)
+		end
 	end)
 	local character = player.Character
 	if character then

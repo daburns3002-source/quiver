@@ -33,12 +33,14 @@ local MenuHold = require(ReplicatedStorage.Shared.Util.MenuHold)
 local MergeRules = require(ReplicatedStorage.Shared.Util.MergeRules)
 local MudCoat = require(ReplicatedStorage.Shared.Util.MudCoat)
 local NewEnemies = require(ReplicatedStorage.Shared.Config.NewEnemies)
+local Passes = require(script.Parent.Parent.Data.Passes)
 local PetCombat = require(ReplicatedStorage.Shared.Config.PetCombat)
 local Pickups = require(script.Parent.Pickups)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local Rewards = require(script.Parent.Parent.Data.Rewards)
 local Shelter = require(ReplicatedStorage.Shared.Util.Shelter)
 local ShotPipeline = require(ReplicatedStorage.Shared.Combat.ShotPipeline)
+local StoreRules = require(ReplicatedStorage.Shared.Util.StoreRules)
 local Tips = require(ReplicatedStorage.Shared.Config.Tips)
 local Tutorial = require(ReplicatedStorage.Shared.Config.Tutorial)
 local TutorialHands = require(ReplicatedStorage.Shared.Util.TutorialHands)
@@ -108,6 +110,11 @@ export type Session = {
 	     attacking `petHaste` faster until `petHasteUntil` (os.clock). ]]
 	petGuard: boolean,
 	petReviveUsed: boolean,
+	--[[ The run's one Robux revive (`Data/Purchases`) is spent. ]]
+	paidReviveUsed: boolean,
+	--[[ What the passes' coin bonus has left over, under a whole coin, carried
+	     to the next kill or clear (`Util/StoreRules.scaleCoins`). ]]
+	coinCarry: number,
 	petHaste: number,
 	petHasteUntil: number,
 	--[[ The Slate Turtle's Roof Huddle (`Shared/Util/Shelter`): while
@@ -330,6 +337,8 @@ function RunSession.create(player: Player): Session
 		secondWindUsed = false,
 		petGuard = false,
 		petReviveUsed = false,
+		paidReviveUsed = false,
+		coinCarry = 0,
 		petHaste = 0,
 		petHasteUntil = 0,
 		petShelterCut = 0,
@@ -803,7 +812,7 @@ end
 function RunSession.onEnemyKilled(session: Session, position: Vector3?)
 	session.stageKills += 1
 	Rewards.note(session.player, "kills", 1)
-	RunSession.payCoins(session, RunSession.areaPay().killCoins, position)
+	RunSession.payEarned(session, RunSession.areaPay().killCoins, position)
 	--[[ Battle Cry: a stack per kill, up to the cap; they lapse together
 	     `duration` seconds after the last kill. The attribute tells the
 	     client to play its cry. ]]
@@ -884,6 +893,17 @@ function RunSession.payCoins(session: Session, amount: number, position: Vector3
 	coinsGained:FireClient(session.player, amount, position)
 end
 
+--[[ Coins a run earns, a kill's or a clear's: `base` at the player's passes'
+     scale (2x Coins, VIP; `Util/StoreRules.coinScale`), the part under a
+     whole coin carried to the next. Anything else paid in a run (the
+     tutorial's top-up to the first egg) goes through `payCoins` as it is. ]]
+function RunSession.payEarned(session: Session, base: number, position: Vector3?)
+	local scale = StoreRules.coinScale(Passes.owned(session.player))
+	local whole, carry = StoreRules.scaleCoins(base, scale, session.coinCarry)
+	session.coinCarry = carry
+	RunSession.payCoins(session, whole, position)
+end
+
 --[[ This stage's boss is beaten: every player in the run gets its item and
      its gems (`Wallet.beatBoss`). ]]
 function RunSession.payBoss()
@@ -927,7 +947,7 @@ function RunSession.creditKill(owner: Player?, xp: number, position: Vector3?)
 	if Coop.partySize() > 1 then
 		for _, other in sessions do
 			if other ~= session then
-				RunSession.payCoins(other, RunSession.areaPay().killCoins)
+				RunSession.payEarned(other, RunSession.areaPay().killCoins)
 			end
 		end
 	end
@@ -1118,6 +1138,8 @@ function RunSession.resetRun(session: Session)
 	session.loadout.weapon = weapon
 	session.secondWindUsed = false
 	session.petReviveUsed = false
+	-- a new run may be revived once again (`Data/Purchases`)
+	session.paidReviveUsed = false
 	-- a screen left open when the run ended holds nothing now
 	table.clear(session.meeting)
 	session.tipUntil = nil
@@ -1275,6 +1297,34 @@ function RunSession.returnTheDowned()
 	end
 end
 
+--[[ The Robux revive (`Data/Purchases`, through `RoomController.revive`):
+     back up at full health behind the revive's shield, with the run's one
+     paid revive spent. Called once the room has been entered again, so the
+     shield and the call-out are where the player now stands. ]]
+function RunSession.paidRevive(session: Session)
+	session.paidReviveUsed = true
+	session.downed = false
+	session.out = false
+	session.reviveProgress = 0
+	session.alive = session.character ~= nil
+	publishDowned(session)
+	revive(session, session.maxHealth, "Revive")
+	healthChanged:FireClient(session.player, session.health, session.maxHealth)
+end
+
+--[[ Co-op, a revive bought by someone else: this player sits the room out,
+     as one who bled out does, and is back for the next room
+     (`returnTheDowned`). ]]
+function RunSession.sitOut(session: Session)
+	session.alive = false
+	session.downed = false
+	session.out = true
+	session.reviveProgress = 0
+	session.stationarySince = nil
+	publishDowned(session)
+	healthChanged:FireClient(session.player, 0, session.maxHealth)
+end
+
 --[[ Clears down and out without a revive: a run reset. ]]
 local function clearDowned(session: Session)
 	if session.downed or session.out then
@@ -1390,7 +1440,9 @@ function RunSession.bindCharacter(session: Session, character: Model)
 	session.humanoid = humanoid
 	session.root = root
 	session.health = session.maxHealth
-	session.alive = true
+	--[[ A body back while sitting a room out (a teammate's revive,
+	     `sitOut`) stays out until the next room stands it up. ]]
+	session.alive = not session.out
 	session.lastFiredAt = 0
 	session.swingIndex = 0
 	session.player:SetAttribute("Combo", nil)

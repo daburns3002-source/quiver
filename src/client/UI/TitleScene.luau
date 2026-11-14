@@ -143,6 +143,16 @@ local function buildLogo(holder: Frame, design: Config.Design, at: TitleLayout.L
 	end
 	local wordsTall = at.lines[#at.lines].top + at.lines[#at.lines].tall - at.top
 
+	-- the night's own dark, softly, so the crown does not show between letters
+	local backing = glowImage("Backing", look.backing.colour, look.backing.alpha)
+	local wordsWide = at.wordsWide
+	place(
+		backing,
+		wide / 2,
+		wordsTall / 2,
+		wordsWide * look.backing.wide,
+		wordsTall * look.backing.tall
+	)
 	local haze = glowImage("Haze", look.glow, look.haze.alpha)
 	place(haze, wide / 2, wordsTall / 2, wide * look.haze.wide, wordsTall * look.haze.tall)
 
@@ -219,8 +229,16 @@ local function buildLogo(holder: Frame, design: Config.Design, at: TitleLayout.L
 		fadeIn.Parent = frame
 		return frame
 	end
-	bar("StreakGlow", streak.glow, 6, 0.9)
-	bar("StreakGlow", streak.glow, 3, 0.8)
+	-- its light: the round glow picture, stretched along the bright end
+	local soft = glowImage("StreakGlow", streak.glow, streak.soft.alpha)
+	local softWide = at.streakWide * (1 - streak.soft.from)
+	place(
+		soft,
+		left + at.streakWide - softWide / 2,
+		top + streak.thick / 2,
+		softWide,
+		streak.thick * streak.soft.tall
+	)
 	local light = bar("Streak", Color3.new(1, 1, 1), 0, 0)
 	local colours = light:FindFirstChildOfClass("UIGradient") :: UIGradient
 	colours.Color = ColorSequence.new({
@@ -233,16 +251,9 @@ local function buildLogo(holder: Frame, design: Config.Design, at: TitleLayout.L
 	local head = streak.head
 	local tip = left + at.streakWide + head.overhang
 	local middle = top + streak.thick / 2
-	local halo = Instance.new("Frame")
-	halo.Name = "HeadGlow"
-	halo.BorderSizePixel = 0
-	halo.BackgroundColor3 = streak.glow
-	halo.BackgroundTransparency = 0.84
-	halo.AnchorPoint = Vector2.new(0.5, 0.5)
-	place(halo, tip - head.long / 2, middle, head.long + 8, head.tall + 6)
-	local soft = Instance.new("UICorner")
-	soft.CornerRadius = UDim.new(0.5, 0)
-	soft.Parent = halo
+	local halo = glowImage("HeadGlow", streak.glow, streak.headGlow.alpha)
+	local across = head.tall * streak.headGlow.across
+	place(halo, tip - head.long / 2, middle, across, across)
 	for column = 0, head.long - 1 do
 		local half = head.tall / 2 * (1 - column / head.long)
 		local piece = Instance.new("Frame")

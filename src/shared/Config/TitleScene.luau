@@ -374,6 +374,9 @@ local TitleScene = {
 	logo = {
 		words = { "ARROW", "BORNE" },
 		sizes = { 46, 82 },
+		--[[ How wide each word is, in its letters' size (measured in Fredoka
+		     One; the layout is pure and cannot ask Roblox). ]]
+		widths = { 3.8, 3.41 },
 		--[[ A line is this share of its letters' size tall. ]]
 		line = 0.92,
 		--[[ The gold runs over the letters' own box (`letterLine`), with
@@ -389,13 +392,20 @@ local TitleScene = {
 		shadowDrop = 5,
 		--[[ The glow: soft rings round the letters (how far past the outline
 		     each reaches; each is this see-through, so they add up towards
-		     the letters) over a wide faint haze (the round glow picture, this
-		     many times the logo's width and the words' height, this solid at
-		     its middle; faint, so the tree under it stays teal). ]]
+		     the letters; many thin ones, closer together near the letters,
+		     so the light falls away smoothly and no ring shows as a band)
+		     over a wide faint haze (the round glow picture, this many times
+		     the logo's width and the words' height, this solid at its middle;
+		     faint, so the tree under it stays teal). ]]
 		glow = Color3.fromHex("#FFCE6E"),
-		glowRings = { 5, 10, 16 },
-		glowRingClear = 0.9,
+		glowRings = { 1.5, 3, 4.5, 6.5, 8.5, 11, 13.5, 16 },
+		glowRingClear = 0.96,
 		haze = { wide = 1.15, tall = 2, alpha = 0.22 },
+		--[[ A soft round shade of the night sky behind the words (the round
+		     glow picture again, this many times the words' width and height,
+		     this solid at its middle): sideways the logo stands in front of
+		     the crown, and its leaf blocks would show between the letters. ]]
+		backing = { colour = Color3.fromHex("#040B16"), wide = 1.7, tall = 2.1, alpha = 0.8 },
 		--[[ The streak of light under the words: this share of the logo's
 		     width, this far under them, fading in from the left and ending
 		     in a small arrowhead that overhangs its right end. ]]
@@ -409,6 +419,13 @@ local TitleScene = {
 			midAt = 0.55,
 			glow = Color3.fromHex("#FFD678"),
 			head = { long = 14, tall = 15, overhang = 10 },
+			--[[ Its light is the round glow picture, never a flat bar or
+			     pill (owner, 2026-11-12, of every light here): one stretched
+			     along the bright end of the streak (this share of its length
+			     from this far along, this many times its thickness tall) and
+			     one round the arrowhead (this many times its height). ]]
+			soft = { from = 0.3, tall = 9, alpha = 0.5 },
+			headGlow = { across = 2.6, alpha = 0.6 },
 		},
 	},
 

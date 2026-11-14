@@ -282,6 +282,48 @@ return function(t: TestRunner.Helper)
 		end
 	)
 
+	--[[ The polish pass (owner, 2026-11-14: "a little bit more polished and
+	     professional looking"): the logo's light is a smooth falloff, not
+	     three bands; the arrow's light is the round glow like every other
+	     light here; and none of it is cut off by a screen's edge. ]]
+	t.test("the logo's glow falls away smoothly and is never cut by the screen", function()
+		local look = Scene.logo
+		t.isTrue(#look.glowRings >= 6, "many thin rings, not a few bands")
+		local last = 0
+		for index, reach in look.glowRings do
+			t.isTrue(reach > last, `ring {index} reaches further than the one before`)
+			t.isTrue(reach - last <= 3, `ring {index} is a thin step`)
+			last = reach
+		end
+		t.isTrue(look.glowRingClear >= 0.94, "a ring alone is nearly clear")
+		local core = 1 - look.glowRingClear ^ #look.glowRings
+		t.isTrue(core > 0.2 and core < 0.4, `together they are a soft glow, {core}`)
+		-- the arrow's light and the shade behind the words are the round picture
+		local streak = look.streak
+		t.isTrue(streak.headGlow.across > 1 and streak.headGlow.alpha > 0)
+		t.isTrue(streak.soft.tall > 1 and streak.soft.from >= 0 and streak.soft.from < 1)
+		t.isTrue(look.backing.wide > 1 and look.backing.tall > 1, "wider than the words")
+		t.isTrue(look.backing.alpha > 0 and look.backing.alpha < 1, "soft, never a solid block")
+		t.equal(look.backing.colour, Scene.sky[1], "the shade is the night sky's own dark")
+		t.equal(#look.widths, #look.words)
+
+		for _, screen in SCREENS do
+			local w, h = screen[1], screen[2]
+			local name = `{w}x{h}`
+			local design = TitleLayout.design(w, h)
+			local fit = TitleLayout.fit(design, w, h)
+			local logo = TitleLayout.logo(design)
+			local reach = (look.outlineThick + look.glowRings[#look.glowRings]) * design.logo.unit
+			t.isTrue(logo.wordsWide <= logo.width, `{name}: the words fit the logo's box`)
+			local left = fit.x + (design.width / 2 - logo.wordsWide / 2 - reach) * fit.scale
+			t.isTrue(left >= 0, `{name}: the glow's side is on screen, {left}`)
+			-- Fredoka One's capitals stand 0.37 of their size above the line's middle
+			local line = logo.lines[1]
+			local top = fit.y + (line.top + line.tall / 2 - 0.371 * line.size - reach) * fit.scale
+			t.isTrue(top >= 0, `{name}: the glow's top is on screen, {top}`)
+		end
+	end)
+
 	t.test(
 		"BEGIN ADVENTURE is the drawing's button: 358 by 84 upright, 380 by 72 sideways",
 		function()

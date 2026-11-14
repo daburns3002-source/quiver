@@ -39,6 +39,8 @@ export type Logo = {
 	left: number,
 	top: number,
 	width: number,
+	--[[ How wide the widest word is. ]]
+	wordsWide: number,
 	--[[ Each line's top, how tall it is and its letters' size. ]]
 	lines: { { top: number, tall: number, size: number } },
 	streakTop: number,
@@ -179,8 +181,10 @@ function TitleLayout.logo(design: Design): Logo
 	local spec, look = design.logo, Scene.logo
 	local lines = {}
 	local top = spec.y
-	for _, size in look.sizes do
+	local wordsWide = 0
+	for index, size in look.sizes do
 		local letters = size * spec.unit
+		wordsWide = math.max(wordsWide, letters * look.widths[index])
 		table.insert(lines, { top = top, tall = letters * look.line, size = letters })
 		top += letters * look.line
 	end
@@ -191,6 +195,7 @@ function TitleLayout.logo(design: Design): Logo
 		left = (design.width - spec.width) / 2,
 		top = spec.y,
 		width = spec.width,
+		wordsWide = wordsWide,
 		lines = lines,
 		streakTop = streakTop,
 		streakLeft = (design.width - wide) / 2,

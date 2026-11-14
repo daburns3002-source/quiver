@@ -49,6 +49,10 @@ export type Quest = {
 
 export type Starter = {
 	key: string,
+	--[[ What it is about, for its picture, and where it is done, for its
+	     GO (`UI/RewardsScreen`): a lobby piece, or "Portal". ]]
+	kind: string,
+	place: string,
 	words: string,
 	gems: number,
 	coins: number,
@@ -165,10 +169,38 @@ local Rewards = {
 	     profile (`RewardRules.starterDone`), never from anything a client
 	     says. ]]
 	starter = {
-		{ key = "beat11", words = "BEAT MOSSY GLADE 1-1", gems = 30, coins = 500 },
-		{ key = "hatch", words = "HATCH AN EGG", gems = 30, coins = 0 },
-		{ key = "equipPet", words = "EQUIP A PET", gems = 30, coins = 0 },
-		{ key = "crate", words = "OPEN A WEAPON CRATE", gems = 30, coins = 0 },
+		{
+			key = "beat11",
+			kind = "levels",
+			place = "Portal",
+			words = "BEAT MOSSY GLADE 1-1",
+			gems = 30,
+			coins = 500,
+		},
+		{
+			key = "hatch",
+			kind = "hatches",
+			place = "EggHatchery",
+			words = "HATCH AN EGG",
+			gems = 30,
+			coins = 0,
+		},
+		{
+			key = "equipPet",
+			kind = "hatches",
+			place = "GearStation",
+			words = "EQUIP A PET",
+			gems = 30,
+			coins = 0,
+		},
+		{
+			key = "crate",
+			kind = "crates",
+			place = "Blacksmith",
+			words = "OPEN A WEAPON CRATE",
+			gems = 30,
+			coins = 0,
+		},
 	} :: { Starter },
 
 	--[[ Gems for each new entry in any of the Dex Hall's books (item 13),

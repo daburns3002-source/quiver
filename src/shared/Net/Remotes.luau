@@ -196,10 +196,15 @@ Remotes.TrailEquip = "TrailEquip"
 --[[ Client → server, Studio only: coins, gems and boss items into the
      wallet (`Data/Shop`), to test the shop without playing for them. ]]
 Remotes.DebugWallet = "DebugWallet"
---[[ Client → server: claim a reward (`Data/Rewards`): "login", or "quest" /
-     "starter" with its key. Carries no progress and no day; the server
-     judges the claim from the saved profile and its own clock. ]]
+--[[ Client → server: claim a reward (`Data/Rewards`): "login", "quest" or
+     "starter" with its key, "all" for every one owed, or "bonus" for the
+     quests' chest. Carries no progress and no day; the server judges the
+     claim from the saved profile and its own clock. ]]
 Remotes.RewardClaim = "RewardClaim"
+--[[ Server → client: the quests' bonus chest was opened (`Data/QuestChest`):
+     "Egg" with the egg's key, or "Crate" with the crate's index, and what
+     came out, for the reveal (`UI/RewardsScreen`). Already in the profile. ]]
+Remotes.QuestChest = "QuestChest"
 --[[ Server → client: a reward just landed by itself (a new Dex entry):
      its words, gems and coins, for the toast (`UI/RewardsScreen`). ]]
 Remotes.RewardToast = "RewardToast"

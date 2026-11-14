@@ -91,7 +91,8 @@ local Rewards = {
 		coins800 = {
 			kind = "coins",
 			goal = 800,
-			words = "EARN %d COINS IN RUNS",
+			-- was "EARN %d COINS IN RUNS", which read as a wallet total
+			words = "PICK UP %d COINS",
 			group = "fight",
 			gems = 15,
 			coins = 200,
@@ -132,6 +133,33 @@ local Rewards = {
 
 	--[[ The groups, in the order the screen lists them. ]]
 	groups = { "fight", "win", "spend" },
+
+	--[[ Where each kind of quest is done, for the row's GO button: the
+	     lobby piece it points the player to (`Config/Lobby.stations`), or
+	     "Portal" for a run. ]]
+	places = {
+		kills = "Portal",
+		coins = "Portal",
+		levels = "Portal",
+		bosses = "Portal",
+		hatches = "EggHatchery",
+		crates = "Blacksmith",
+	} :: { [string]: string },
+
+	--[[ The daily bonus chest (owner, 2026-11-14: "there should be more
+	     rewards for players"): claim all three of the day's quests and it
+	     opens, free: an egg one day and a weapon crate the next
+	     (`RewardRules.bonusKind`), the best open to the player, as an
+	     Endless milestone's are. `gems` is what it pays a player with
+	     neither an egg nor a crate to open. ]]
+	bonus = { words = "FINISH ALL 3 FOR A CHEST", gems = 25 },
+
+	--[[ A quest tells the player how it is going as they play: a line when
+	     it passes each of these shares of its goal (`RewardRules.note`),
+	     the last being done. Only a quest with a goal of `stepGoal` or more
+	     says the half; a short one only says done. ]]
+	steps = { 0.5, 1 },
+	stepGoal = 10,
 
 	--[[ Once per account, in this order. Each is judged from the saved
 	     profile (`RewardRules.starterDone`), never from anything a client

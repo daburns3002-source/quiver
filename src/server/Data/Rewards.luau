@@ -25,6 +25,7 @@ local RunService = game:GetService("RunService")
 local Inbound = require(script.Parent.Parent.Net.Inbound)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
+local RewardConfig = require(ReplicatedStorage.Shared.Config.Rewards)
 local RewardRules = require(ReplicatedStorage.Shared.Util.RewardRules)
 
 local PlayerData = require(script.Parent.PlayerData)
@@ -33,6 +34,14 @@ local Wallet = require(script.Parent.Wallet)
 local log = Log.forTag("Rewards")
 
 local Rewards = {}
+
+local toast = Remotes.event(Remotes.RewardToast)
+
+--[[ Gives what the quests' bonus chest holds ("Egg" or "Crate") once the
+     rules have marked it opened. Set by `Data/QuestChest`, which may
+     require the hatchery and the crates; this module may not, since both
+     of those call `note` here. ]]
+Rewards.openChest = nil :: ((player: Player, kind: string) -> ())?
 
 --[[ Studio's day offsets, by player; never set on a live server. ]]
 local offsets: { [Player]: number } = {}
@@ -55,7 +64,21 @@ function Rewards.note(player: Player, kind: string, amount: number)
 	if not profile then
 		return
 	end
-	local changed = RewardRules.note(profile.rewards, Rewards.today(player), kind, amount)
+	local changed, steps = RewardRules.note(profile.rewards, Rewards.today(player), kind, amount)
+	--[[ How a quest is going, said as it happens: half way, and done
+	     (owner, 2026-11-14: "the quests need to be clearer"). ]]
+	for _, step in steps do
+		local quest = RewardConfig.quests[step.key]
+		local words = string.format(quest.words, quest.goal)
+		toast:FireClient(
+			player,
+			if step.done
+				then "QUEST DONE! " .. words
+				else string.format("QUEST: %s  %d/%d", words, step.have, step.goal),
+			0,
+			0
+		)
+	end
 	if kind == "crates" and amount > 0 then
 		profile.rewards.cratesOpened += math.floor(amount)
 		changed = true
@@ -72,7 +95,23 @@ local function claim(player: Player, kind: unknown, key: unknown)
 	end
 	local day = Rewards.today(player)
 	local gift: RewardRules.Gift? = nil
-	if kind == "login" then
+	if kind == "bonus" then
+		--[[ The chest for all three quests: marked opened here, in one
+		     step, then given (`Data/QuestChest`), so a claim sent twice
+		     opens one chest. ]]
+		local what = RewardRules.claimBonus(profile.rewards, day)
+		local open = Rewards.openChest
+		if what and open then
+			PlayerData.touch(player)
+			log.info("%s opens the quests' chest: %s", player.Name, what)
+			open(player, what)
+			Wallet.send(player)
+		end
+		return
+	elseif kind == "all" then
+		local total, n = RewardRules.claimAll(profile, day)
+		gift = if n > 0 then total else nil
+	elseif kind == "login" then
 		gift = RewardRules.claimLogin(profile.rewards, day)
 	elseif kind == "quest" and type(key) == "string" then
 		gift = RewardRules.claimQuest(profile.rewards, day, key)

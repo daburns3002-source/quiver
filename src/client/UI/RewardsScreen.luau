@@ -8,8 +8,9 @@
 	Three tabs since 2026-11-14 (owner: "the quests tab is too cluttered",
 	"the quests need to be clearer"): DAILY, the calendar; QUESTS, today's
 	three with the chest for claiming them all; GOALS, the starter steps
-	and then the lifetime goals (`Config/Goals`), each in three medals, in
-	a list that scrolls. Each tab wears the count of what waits on it. A row is a picture of
+	and then the lifetime goals (`Config/Goals`), each in three medals, and
+	a chest for each finished Dex page (`Util/PageRules`), in a list that
+	scrolls; DAILY also holds the gift box (`Util/GiftRules`). Each tab wears the count of what waits on it. A row is a picture of
 	what to do, the words, the bar with its numbers on it, what it pays, and
 	one button: CLAIM, GO (a gold arrow to where it is done,
 	`Fx/QuestPointer`) or DONE. CLAIM ALL takes everything owed at once.
@@ -33,10 +34,12 @@ local Chunky = require(script.Parent.Chunky)
 local EggRules = require(ReplicatedStorage.Shared.Util.EggRules)
 local EndScreenAssets = require(ReplicatedStorage.Shared.Config.EndScreenAssets)
 local GearAssets = require(ReplicatedStorage.Shared.Config.GearAssets)
+local GiftRules = require(ReplicatedStorage.Shared.Util.GiftRules)
 local GoalRules = require(ReplicatedStorage.Shared.Util.GoalRules)
 local Goals = require(ReplicatedStorage.Shared.Config.Goals)
 local HatchStand = require(script.Parent.HatchStand)
 local Kit = require(script.Parent.Kit)
+local PageRules = require(ReplicatedStorage.Shared.Util.PageRules)
 local PortalScreen = require(script.Parent.PortalScreen)
 local PrizeRules = require(ReplicatedStorage.Shared.Util.PrizeRules)
 local QuestPointer = require(script.Parent.Parent.Fx.QuestPointer)
@@ -137,18 +140,29 @@ local function giftPay(gift: Rewards.Gift): { Pay }
 	return pay
 end
 
---[[ A goal step's prize (`Config/Goals`): the egg and the crate drawn are
-     the ones the server will give this player (`Util/PrizeRules`). ]]
-local function prizePay(profile: SaveSchema.Profile, prize: Goals.Prize): { Pay }
-	local pay: { Pay } = {}
-	local eggs, chests = GearAssets.areaPictures.eggs, GearAssets.areaPictures.chests
+--[[ The free egg the server gives this player, drawn: the best one open
+     to them (`Util/PrizeRules`). ]]
+local function eggArt(profile: SaveSchema.Profile): string
+	local eggs = GearAssets.areaPictures.eggs
 	local key = PrizeRules.eggKey(profile.bossesBeaten)
 	local egg = if key then EggRules.find(key) else nil
-	plus(pay, (if egg then eggs[egg.area] else nil) or eggs.MossyGlade, prize.eggs)
+	return (if egg then eggs[egg.area] else nil) or eggs.MossyGlade
+end
+
+--[[ And the free crate: the best with a weapon for the class they play. ]]
+local function crateArt(): string
+	local chests = GearAssets.areaPictures.chests
 	local class = player:GetAttribute("Class")
 	local index = PrizeRules.crateIndex(if type(class) == "string" then class else nil)
 	local crate = if index then Shop.crates[index] else nil
-	plus(pay, (if crate then chests[crate.area] else nil) or chests.MossyGlade, prize.crates)
+	return (if crate then chests[crate.area] else nil) or chests.MossyGlade
+end
+
+--[[ A goal step's or a Dex page's prize (`Config/Goals`, `Util/PageRules`). ]]
+local function prizePay(profile: SaveSchema.Profile, prize: Goals.Prize): { Pay }
+	local pay: { Pay } = {}
+	plus(pay, eggArt(profile), prize.eggs)
+	plus(pay, crateArt(), prize.crates)
 	plus(pay, ShopAssets.gem, prize.gems)
 	plus(pay, ShopAssets.coin, prize.coins)
 	return pay
@@ -166,7 +180,10 @@ local PICTURES: { [string]: string } = {
 	crates = GearAssets.areaPictures.chests.MossyGlade,
 }
 
---[[ One quest or starter step. ]]
+--[[ The picture of a Dex page's chest, by its book. ]]
+local PAGE_KINDS: { [string]: string } = { Enemies = "kills", Pets = "hatches", Weapons = "crates" }
+
+--[[ One quest, starter step, goal or Dex page. ]]
 type Row = {
 	--[[ The kind it is, for its picture (`PICTURES`). ]]
 	kind: string,
@@ -426,36 +443,34 @@ local function calendar(
 	return y + ch
 end
 
---[[ The chest for claiming all three quests (`Rewards.bonus`): its picture,
-     what it asks, a pip for each quest claimed, and CLAIM once it is owed. ]]
-local function bonusBar(
-	sheet: Chunky.Sheet,
-	r: SaveSchema.RewardState,
-	day: number,
-	x: number,
-	y: number,
-	w: number,
-	h: number
-)
+--[[ A chest that fills as the player plays: its picture, what it asks, a
+     pip for each step done, and OPEN once it is owed. The quests' chest
+     (`Rewards.bonus`) and the gift box (`Rewards.gift`) are both one. ]]
+type Bar = {
+	art: string,
+	title: string,
+	sub: string,
+	pips: number,
+	done: number,
+	owed: boolean,
+	--[[ Opened and done with for now: drawn pale. ]]
+	faded: boolean,
+	onOpen: () -> (),
+}
+local function chestBar(sheet: Chunky.Sheet, x: number, y: number, w: number, h: number, spec: Bar)
 	local up = sheet.upright
 	local card = Chunky.card(sheet, x, y, w, h)
-	local opened = RewardRules.bonusClaimed(r, day)
-	local owed = RewardRules.bonusReady(r, day)
-	local kind = RewardRules.bonusKind(day)
-	local art = if kind == "Egg"
-		then GearAssets.areaPictures.eggs.MossyGlade
-		else GearAssets.areaPictures.chests.MossyGlade
 	local size = if up then 150 else h - 24
-	icon(sheet, art, x + 16, y + (if up then 16 else 12), size)
+	icon(sheet, spec.art, x + 16, y + (if up then 16 else 12), size)
 	local tx = x + 16 + size + 20
 	local buttonW = 190
 	local textW = if up then w - (tx - x) - 20 else w - (tx - x) - buttonW - 330
-	if opened then
+	if spec.faded then
 		card.BackgroundColor3 = Chunky.pale
 	end
 	words(
 		sheet,
-		if opened then "CHEST OPENED!" else Rewards.bonus.words,
+		spec.title,
 		tx,
 		y + (if up then 22 else h * 0.14),
 		textW,
@@ -463,24 +478,21 @@ local function bonusBar(
 	)
 	words(
 		sheet,
-		"NEW QUESTS IN " .. untilReset(),
+		spec.sub,
 		tx,
 		y + (if up then 86 else h * 0.58),
 		textW,
 		if up then 36 else h * 0.26
 	).TextColor3 =
 		Chunky.inkSoft
-	-- a pip for each quest claimed today
-	local total = #RewardRules.questsFor(day)
-	local done = RewardRules.questsClaimed(r, day)
 	local pip = if up then 58 else 62
-	local px = if up then tx else x + w - buttonW - 40 - total * (pip + 14)
+	local px = if up then tx else x + w - buttonW - 40 - spec.pips * (pip + 14)
 	local py = if up then y + h - pip - 22 else y + (h - pip) / 2
-	for index = 1, total do
+	for index = 1, spec.pips do
 		local dot = Instance.new("Frame")
 		dot.Name = "Pip"
 		dot.BorderSizePixel = 0
-		dot.BackgroundColor3 = if index <= done then Chunky.lime else Chunky.trough
+		dot.BackgroundColor3 = if index <= spec.done then Chunky.lime else Chunky.trough
 		dot.ZIndex = 30
 		Chunky.put(sheet, dot, px + (index - 1) * (pip + 14), py, pip, pip)
 		Chunky.round(dot, pip)
@@ -489,10 +501,8 @@ local function bonusBar(
 	local bh = if up then 84 else math.min(84, h - 36)
 	local bx = x + w - buttonW - 18
 	local by = if up then y + h - bh - 18 else y + (h - bh) / 2
-	if owed then
-		Chunky.gleam(Chunky.button(sheet, "OPEN", Chunky.gold, bx, by, buttonW, bh, function()
-			claim("bonus")
-		end))
+	if spec.owed then
+		Chunky.gleam(Chunky.button(sheet, "OPEN", Chunky.gold, bx, by, buttonW, bh, spec.onOpen))
 	end
 end
 
@@ -559,10 +569,7 @@ local function draw(s: StationScreen.Screen)
 	--[[ CLAIM ALL shows once two or more wait: the calendar, the quests and
 	     the starter steps in one press. The chest and a goal's step are
 	     claimed by themselves, for what comes out of them. ]]
-	local owed = waiting.daily + waiting.quests + waiting.goals - (GoalRules.tally(p))
-	if RewardRules.bonusReady(r, day) then
-		owed -= 1
-	end
+	local owed = RewardRules.owedAll(p, day)
 
 	local rowH, rowGap = if up then 170 else 140, 14
 	local function list(rows: { Row }, from: number)
@@ -584,9 +591,40 @@ local function draw(s: StationScreen.Screen)
 			Enum.TextXAlignment.Center
 		).TextColor3 =
 			Chunky.inkSoft
+		--[[ The gift box (`Util/GiftRules`): a pip for each level won
+		     towards the next gift, and OPEN while one waits. ]]
+		local have, need = GiftRules.progress(p.gift)
+		local gifts = GiftRules.ready(p.gift)
+		chestBar(sheet, x, below + 66, w, if up then 240 else 140, {
+			art = if GiftRules.kind(p.gift) == "Egg" then eggArt(p) else crateArt(),
+			title = if gifts > 1
+				then `{gifts} GIFTS READY!`
+				elseif gifts == 1 then "GIFT READY!"
+				else Rewards.gift.words,
+			sub = "A FREE EGG OR WEAPON CRATE, NO WAITING",
+			pips = need,
+			done = have,
+			owed = gifts > 0,
+			faded = false,
+			onOpen = function()
+				claim("gift")
+			end,
+		})
 	elseif showing == "QUESTS" then
 		local barH = if up then 240 else 150
-		bonusBar(sheet, r, day, x, y, w, barH)
+		local opened = RewardRules.bonusClaimed(r, day)
+		chestBar(sheet, x, y, w, barH, {
+			art = if RewardRules.bonusKind(day) == "Egg" then eggArt(p) else crateArt(),
+			title = if opened then "CHEST OPENED!" else Rewards.bonus.words,
+			sub = "NEW QUESTS IN " .. untilReset(),
+			pips = #RewardRules.questsFor(day),
+			done = RewardRules.questsClaimed(r, day),
+			owed = RewardRules.bonusReady(r, day),
+			faded = opened,
+			onOpen = function()
+				claim("bonus")
+			end,
+		})
 		local rows: { Row } = {}
 		for _, key in RewardRules.questsFor(day) do
 			local quest = Rewards.quests[key]
@@ -641,6 +679,24 @@ local function draw(s: StationScreen.Screen)
 					end,
 					place = goal.place,
 					medals = GoalRules.claimed(p, goal),
+				})
+			end
+		end
+		--[[ And a chest for each Dex page not opened yet (`Util/PageRules`):
+		     an area's enemies, or its set of pets or weapons. ]]
+		for _, page in PageRules.pages(p) do
+			if not page.claimed then
+				table.insert(rows, {
+					kind = PAGE_KINDS[page.book] or "kills",
+					title = page.words,
+					have = page.found,
+					goal = page.total,
+					pay = prizePay(p, page.prize),
+					claimed = false,
+					onClaim = function()
+						claim("page", page.key)
+					end,
+					place = "DexHall",
 				})
 			end
 		end

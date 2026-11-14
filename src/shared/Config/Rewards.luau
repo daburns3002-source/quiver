@@ -33,6 +33,10 @@
 
 export type Gift = { gems: number, coins: number }
 
+--[[ A prize that can hold free eggs and crates too (a Dex page's chest;
+     `Config/Goals.Prize` is the same shape). ]]
+export type Prize = { coins: number?, gems: number?, eggs: number?, crates: number? }
+
 export type Quest = {
 	--[[ What counts towards it (`Data/Rewards.note`): "kills", "coins",
 	     "levels", "bosses", "hatches", "crates". ]]
@@ -157,6 +161,26 @@ local Rewards = {
 	     Endless milestone's are. `gems` is what it pays a player with
 	     neither an egg nor a crate to open. ]]
 	bonus = { words = "FINISH ALL 3 FOR A CHEST", gems = 25 },
+
+	--[[ The gift box (`Util/GiftRules`; owner, 2026-11-14): every `wins`
+	     campaign levels won fills a gift, an egg one time and a weapon
+	     crate the next, free, the best open to the player. The box holds
+	     `hold` gifts; wins past a full box are not counted. No timer. At
+	     about a gift every ten minutes of winning it is one more egg or
+	     crate on top of the three or so those coins already buy. ]]
+	gift = { wins = 3, hold = 3, words = "WIN 3 LEVELS FOR A GIFT" },
+
+	--[[ A chest for each finished Dex page (`Util/PageRules`; owner,
+	     2026-11-14), by book: every enemy of an area met, or the collection
+	     sets, all of an area's pets or all of its weapons, which pay the
+	     big gifts. Once each. With four areas the gems come to 600 in all,
+	     for collecting everything there is, Mythics included: years, not
+	     days, so the store keeps its price. ]]
+	pages = {
+		Enemies = { eggs = 1, crates = 1 },
+		Pets = { eggs = 5, gems = 75 },
+		Weapons = { crates = 5, gems = 75 },
+	} :: { [string]: Prize },
 
 	--[[ A win streak (`Util/RunBonus`; owner, 2026-11-14): each level won
 	     in a row adds `step` to the next level's kill and clear coins, up

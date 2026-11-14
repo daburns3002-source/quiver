@@ -732,61 +732,35 @@ Inbound.on(Remotes.IntroBegin, function(player)
 	end
 end)
 
---[[ START on a portal's screen (`UI/PortalScreen`): which portal and which
-     of its levels. The server decides: only in the lobby, off the title, and
-     only for the portal the player stands at (`Lobby.startFor`). ]]
+--[[ PLAY on an area's level screen (`UI/PortalScreen`), reached by walking
+     into that area's portal or from the lobby's PLAY button
+     (`UI/AreaScreen`): which portal and which of its levels. The server
+     decides: only in the lobby, off the title, and only an area and a level
+     this player's saved profile has open (`Lobby.levelOpen`). Where the
+     player stands no longer gates the start (owner, 2026-11-14: PLAY's
+     screen starts the run itself); it decides only who comes along
+     (`PlayPortal.alone`). ]]
 Inbound.on(Remotes.PortalStart, function(player, index, level)
 	local session = RunSession.get(player)
 	local root = session and session.root
 	if not session or session.atTitle or not root or not RoomController.inLobby() then
 		return
 	end
-	-- only a level this player has opened (`Util/LevelUnlocks`)
 	local profile = PlayerData.get(player)
 	local beaten = if profile then profile.levelsBeaten else nil
 	local bosses = if profile then profile.bossesBeaten else nil
-	local stage = Lobby.startFor(root.Position, index, level, beaten, bosses)
+	local stage = Lobby.levelOpen(index, level, beaten, bosses)
 	if stage then
-		-- with whoever else stands at the portal (`Run/Party`)
-		Party.start(player, index :: number, level :: number, stage)
-	end
-end)
-
---[[ PLAY in the lobby (`UI/LobbyHud`): to the player's frontier portal
-     (`Util/PlayPortal`), whose screen then opens by the heartbeat below as
-     if they had walked in. Asks nothing of the client but the press. ]]
-local lastPlay: { [Player]: number } = {}
-Players.PlayerRemoving:Connect(function(player)
-	lastPlay[player] = nil
-end)
-Inbound.on(Remotes.LobbyPlay, function(player)
-	local session = RunSession.get(player)
-	local root = session and session.root
-	local character = player.Character
-	if
-		not session
-		or session.atTitle
-		or not root
-		or not character
-		or not RoomController.inLobby()
-	then
-		return
-	end
-	local now = os.clock()
-	if now - (lastPlay[player] or -math.huge) < 0.5 then
-		return
-	end
-	lastPlay[player] = now
-	local profile = PlayerData.get(player)
-	local index = PlayPortal.pick(
-		LobbyConfig.portals,
-		Balance.Stages,
-		if profile then profile.levelsBeaten else nil,
-		if profile then profile.bossesBeaten else nil,
-		Balance.endlessStage
-	)
-	if index then
-		character:PivotTo(Lobby.mouthAt(index))
+		--[[ Standing in that portal: with whoever else stands there
+		     (`Run/Party`). From PLAY's screen: alone. ]]
+		local standing = Lobby.portalAt(root.Position, LobbyConfig.startSlack)
+		Party.start(
+			player,
+			index :: number,
+			level :: number,
+			stage,
+			PlayPortal.alone(standing, index :: number)
+		)
 	end
 end)
 

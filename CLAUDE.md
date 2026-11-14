@@ -507,17 +507,29 @@ camera, reads the config, so `spread` alone resizes the lobby. `docs/LOBBY.md`, 
 **Portals open a screen; the lobby sprints and jumps** (owner, 2026-10-26): walking into a lit
 portal opens `UI/PortalScreen` (the area, its levels from `Config/Lobby.portals[i].levels`, START;
 Mossy Glade's ten as numbered buttons in two rows of five, locked ones dimmed under a lock, beaten
-ones CLEARED), and only START starts the run, validated by the server against the portal the player
-stands at and the levels they have opened (`Remotes.PortalStart`, `Run/Lobby.startFor`,
-`Util/LevelUnlocks`, `tests/Lobby.spec`). In the lobby there is no dash:
+ones CLEARED), and only its PLAY starts the run, validated by the server against the area and the
+levels the player has opened (`Remotes.PortalStart`, `Run/Lobby.levelOpen`, `Util/LaunchLocks`,
+`Util/LevelUnlocks`, `tests/Lobby.spec`). Where the player stands does not gate the start; it decides
+who comes along: a start in the portal's mouth takes whoever else stands there (`Lobby.startFor`,
+`Run/Party`), one from the lobby's PLAY screen takes the starter only (`Util/PlayPortal.alone`).
+The level buttons are drawn in one place, `PortalScreen`'s `levelButtons` (one `node` each, which
+returns the button's frame): a badge on a level goes there. In the lobby there is no dash:
 Shift / gamepad X / the phone's SPRINT runs (`Config/Lobby.sprint`) and Space / A / JUMP jumps
 (`RunSession.allowJump`, `Input/LobbyButtons`); a run still dashes and never jumps.
 
 **The lobby HUD** (Fable's loop review item 3, owner 2026-11-11; `UI/LobbyHud`, `Config/LobbyHud`):
 coin and gem pills pinned to the top, a PLAY button, and the fight HUD (health, skill tray, XP bar,
-level) put away while `InLobby`. PLAY asks the server (`Remotes.LobbyPlay`), which walks the player
-into their frontier portal's mouth (`Util/PlayPortal`: the first open portal with a level not beaten,
-never Endless, never one still locked), where its screen opens as usual; START is still checked there. On a touch layout
+level) put away while `InLobby`. **PLAY opens a choice of area, then level** (owner, 2026-11-14: "when
+the player clicks play it shouldnt just tp them instantly to the last portal they went to, there should
+be a screen where they can choose the area and then the level"): `UI/AreaScreen` lists every area with a
+portal (`Util/PlayPortal.areas`: the built areas, then Endless), each a card with its portal's vortex,
+name, act, levels beaten and PLAY; the one to play next (`PlayPortal.pick`: the first open area with a
+level not beaten, never Endless, never one still locked) is ringed in gold under NEXT UP, and a locked
+one is grey under a padlock with what opens it and only shakes when pressed. An open card goes on to
+that area's `UI/PortalScreen` (the same screen its portal opens, here with `< AREAS` to go back), whose
+PLAY asks the server. The character is never moved, and nothing is asked of the server until then
+(`tests/PlayPortal.spec`). `PortalScreen.isOpen()` is true through both steps, which is what the lobby's
+HUD, REWARDS and BADGES wait on. On a touch layout
 (upright, or a phone) PLAY and the station button are laid out in points, full width, 64 and 60 tall,
 under the phone's JUMP (`tests/LobbyHud.spec`); a wide screen keeps the `[E]` prompt on the sheet.
 Both stand on a `Chunky.pointSheet`. The chunky X takes presses over at least 48 points however
@@ -869,7 +881,8 @@ any card (Studio only), to test a card's effect without drafting it.
 such as "MossSlime", spawns nothing). `Remotes.RunRestart` does nothing mid-run (only once the run is over), so a
 probe's granted cards and spawned enemies pile up in one run. To start a level from a probe, put the character at
 its portal's mouth from the Server VM (`Workspace.Lobby.Portal_<i>`, about 7 studs toward the courtyard) and fire
-`PortalStart(i, level)`; `LobbyPlay` walks to the frontier portal, which with every Mossy level beaten is not 1.
+`PortalStart(i, level)` (since 2026-11-14 the start no longer needs the character there: firing
+`PortalStart(i, level)` from the Client anywhere in the lobby starts an open level, alone).
 **P** — the pets the owner imported follow you, playing their own clips
 (`Fx/PetPreview`, built by `Server/Dev/PetPreview` from `Config/PetModels`); P again
 puts them away. Each moves as itself (`Config/PetGaits`, `Util/PetGait`: its pace, tilts, hover and fidget, one per pet, pinned by `tests/PetGaits.spec`). A look only, until Phase 6's pet system.

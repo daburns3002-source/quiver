@@ -15,8 +15,10 @@
 	  Round things are ellipsoids (a block with a sphere `SpecialMesh`).
 	- `place` puts a character at the spawn.
 	- `portalAt` says which active portal a player is standing in, if any,
-	  for its screen to open (`UI/PortalScreen`); `startFor` checks a START
-	  from that screen and names the stage it may start.
+	  for its screen to open (`UI/PortalScreen`); `levelOpen` checks a start
+	  (from that screen, or from the lobby's PLAY screen, `UI/AreaScreen`)
+	  and names the stage it may start; `startFor` says who stands at the
+	  portal to go along.
 
 	Seeded, so the lobby is the same every time.
 ]]
@@ -1508,24 +1510,14 @@ function Lobby.portalAt(position: Vector3, slack: number?): number?
 	return best
 end
 
---[[ Where a player stands to be in portal `index`'s mouth, facing the
-     arch: where PLAY puts them (`Remotes.LobbyPlay`). ]]
-function Lobby.mouthAt(index: number): CFrame
-	local arch = world(Lobby.archAt(index), 3)
-	local at = world(Lobby.archAt(index) + Vector2.new(0, LobbyConfig.mouthAhead), 3)
-	return CFrame.lookAt(at, Vector3.new(arch.X, at.Y, arch.Z))
-end
-
 --[[
-	START on a portal's screen: the stage level `level` of portal `index`
-	plays, or nil when the request is not one this player may make. Both
-	numbers come from the client, so each is checked: a whole number, an
-	active portal, the portal itself open to this player (`requires`:
-	Endless waits on 1-10), one of its levels, that level open to this
-	player (the levels they have beaten, `beaten`, from their saved profile:
-	`Util/LevelUnlocks`), and the player standing at that portal (within
-	`startSlack` more than its screen opens at, for the press's trip), so
-	nobody starts an area from across the lobby.
+	Whether a player at `position` joins a start of portal `index`'s level
+	`level`: `levelOpen` for them, and standing at that portal (within
+	`startSlack` more than its screen opens at, for the press's trip). A
+	party is gathered with it (`Run/Party`): only those in the portal's
+	mouth go along. The starter's own request is checked by `levelOpen`
+	alone since 2026-11-14, when the lobby's PLAY screen began starting runs
+	from anywhere in the lobby (`Main`, `Remotes.PortalStart`).
 ]]
 function Lobby.startFor(
 	position: Vector3,
@@ -1541,16 +1533,25 @@ function Lobby.startFor(
 	return stage
 end
 
---[[ `startFor` without the standing-at-the-portal check: the stage level
-     `level` of portal `index` plays for a player who has beaten `beaten`,
-     or nil. A party's run server checks its leader's request again with
-     this (`Run/Party`), since what a teleport carries passes through the
-     client. ]]
+--[[
+	PLAY on an area's level screen: the stage level `level` of portal
+	`index` plays for a player who has beaten `beaten`, or nil when the
+	request is not one this player may make. Both numbers come from the
+	client, so each is checked: a whole number, an active portal, the portal
+	itself open to this player (`Util/LaunchLocks`: at launch each area
+	waits on the one before it), one of its levels, and that level open to
+	this player (`Util/LevelUnlocks`). This is the whole of what a start
+	needs (`Main`, `Remotes.PortalStart`), and a party's run server checks
+	its leader's request again with it (`Run/Party`), since what a teleport
+	carries passes through the client. `locks` is the launch switch, for a
+	spec; left out, it is `Config/Launch.locks`.
+]]
 function Lobby.levelOpen(
 	index: unknown,
 	level: unknown,
 	beaten: LevelUnlocks.Beaten?,
-	bosses: { [string]: boolean }?
+	bosses: { [string]: boolean }?,
+	locks: boolean?
 ): number?
 	if type(index) ~= "number" or type(level) ~= "number" then
 		return nil
@@ -1568,7 +1569,7 @@ function Lobby.levelOpen(
 	     one before it, `Util/LaunchLocks`), then the level's. Both are
 	     checked here because both come from the client. `bosses` is the
 	     player's beaten bosses, for a gate that waits on one. ]]
-	if not LaunchLocks.portalOpen(portal, beaten, bosses) then
+	if not LaunchLocks.portalOpen(portal, beaten, bosses, locks) then
 		return nil
 	end
 	if not LevelUnlocks.isUnlocked(levels, Balance.Stages, beaten, level) then

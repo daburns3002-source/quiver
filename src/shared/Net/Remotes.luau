@@ -248,19 +248,14 @@ Remotes.TipClosed = "TipClosed"
 Remotes.PortalOpen = "PortalOpen"
 
 --[[
-	Client → server. START on a portal's screen: the portal's index and the
-	level picked. The server checks both and that the player stands at that
-	portal (`Run/Lobby.startFor`) before starting the run.
+	Client → server. PLAY on an area's level screen (`UI/PortalScreen`,
+	reached by walking into the portal or from the lobby's PLAY button,
+	`UI/AreaScreen`): the portal's index and the level picked. The server
+	checks both against the player's saved profile (`Run/Lobby.levelOpen`)
+	before starting the run; where they stand decides only who comes along
+	(`Util/PlayPortal.alone`).
 ]]
 Remotes.PortalStart = "PortalStart"
-
---[[
-	Client → server. The lobby's PLAY button (`UI/LobbyHud`), no payload. The
-	server picks the player's frontier portal (`Util/PlayPortal`) and walks
-	them to its mouth, where its screen opens as any portal's does; START is
-	still checked by `Run/Lobby.startFor` there.
-]]
-Remotes.LobbyPlay = "LobbyPlay"
 
 --[[
 	Server → one client. A party portal's word on the run it is starting

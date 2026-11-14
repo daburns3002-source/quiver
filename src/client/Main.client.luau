@@ -19,6 +19,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local ArcanistBuildFx = require(script.Parent.Fx.Upgrades.ArcanistBuildFx)
 local ArcanistFx = require(script.Parent.Fx.Upgrades.ArcanistFx)
 local AreaLoading = require(script.Parent.UI.AreaLoading)
+local AreaScreen = require(script.Parent.UI.AreaScreen)
 local BadgeCase = require(script.Parent.UI.BadgeCase)
 local Balance = require(Shared.Config.Balance)
 local BoardYou = require(script.Parent.UI.BoardYou)
@@ -581,6 +582,7 @@ BoardYou.start()
 PetPreview.follow()
 -- a lit portal's screen and its level selector, in the lobby
 PortalScreen.start()
+AreaScreen.start()
 -- the lobby's pills, PLAY, and the fight HUD put away there
 LobbyHud.start()
 

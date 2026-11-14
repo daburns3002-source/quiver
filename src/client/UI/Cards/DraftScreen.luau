@@ -825,7 +825,8 @@ local function layoutPanel(count: number)
 		+ 70
 		+ CROWN_ROOM
 		+ CARD.Y
-		+ (if column or stack or not buttons then 40 else 50 + 76 + 30)
+		-- with no button under the hand, room for the cards' hanging crystals
+		+ (if column or stack then 40 elseif not buttons then 76 else 50 + 76 + 30)
 	p.Size = UDim2.fromOffset(panelWidth, height)
 	row.Size = UDim2.fromOffset(width, CARD.Y)
 	row.Position =

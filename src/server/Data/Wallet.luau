@@ -14,12 +14,14 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
+local ClassLevelRules = require(ReplicatedStorage.Shared.Util.ClassLevelRules)
 local Economy = require(ReplicatedStorage.Shared.Config.Economy)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
 local MergeRules = require(ReplicatedStorage.Shared.Util.MergeRules)
 local Purse = require(ReplicatedStorage.Shared.Util.Purse)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local SaveSchema = require(ReplicatedStorage.Shared.Util.SaveSchema)
+local ShopRules = require(ReplicatedStorage.Shared.Util.ShopRules)
 local StoreRules = require(ReplicatedStorage.Shared.Util.StoreRules)
 local StoryBeatRules = require(ReplicatedStorage.Shared.Util.StoryBeatRules)
 local TipRules = require(ReplicatedStorage.Shared.Util.TipRules)
@@ -218,6 +220,48 @@ function Wallet.recordClassFloor(player: Player, class: string, floor: number)
 	profile.endlessClassBest[class] = floor
 	changed(player, profile)
 	Wallet.settleTrails(player)
+end
+
+--[[ Gives every golden weapon this player's class levels have earned and
+     they do not hold (`ClassLevelRules.owed`): as a level 10 is reached,
+     and as a profile loads, so a level reached before the weapon could be
+     held is still paid. Only a weapon that can be worn (`ShopRules.find`).
+     Returns what was given. ]]
+function Wallet.settleClassWeapons(player: Player): { string }
+	local profile = PlayerData.get(player)
+	local given = {}
+	if not profile then
+		return given
+	end
+	for _, weapon in ClassLevelRules.owed(profile.classLevels) do
+		if not profile.weapons[weapon] and ShopRules.find(weapon) then
+			Wallet.grantWeapon(player, weapon)
+			table.insert(given, weapon)
+		end
+	end
+	return given
+end
+
+--[[ A run has ended and pays `xp` to `class`'s own level
+     (`Config/ClassLevels`): the levels it reaches, their gifts into the
+     wallet, and the class's golden weapon at level 10. Server-decided
+     (`Run/RoomController`), never asked for by a client. Returns what
+     happened for the end screen, its `weapon` only if it was given now. ]]
+function Wallet.addClassXp(player: Player, class: string, xp: number): ClassLevelRules.Gain?
+	local profile = PlayerData.get(player)
+	local gain = if profile then ClassLevelRules.add(profile.classLevels, class, xp) else nil
+	if not profile or not gain then
+		return nil
+	end
+	profile.coins += gain.coins
+	profile.gems += gain.gems
+	changed(player, profile)
+	if #gain.reached > 0 then
+		log.info("%s's %s reaches level %d", player.Name, class, gain.after.level)
+	end
+	local given = Wallet.settleClassWeapons(player)
+	gain.weapon = if gain.weapon and table.find(given, gain.weapon) then gain.weapon else nil
+	return gain
 end
 
 --[[ Saves the look picked on the class select screen. ]]

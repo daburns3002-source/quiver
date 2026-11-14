@@ -7,6 +7,8 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
 local Workspace = game:GetService("Workspace")
 local Chunky = require(script.Parent.Chunky)
+local ClassLevelPlate = require(script.Parent.ClassLevelPlate)
+local ClassLevelRules = require(ReplicatedStorage.Shared.Util.ClassLevelRules)
 local ClassSelect = require(ReplicatedStorage.Shared.Config.ClassSelect)
 local ClassStats = require(ReplicatedStorage.Shared.Util.ClassStats)
 local GearAssets = require(ReplicatedStorage.Shared.Config.GearAssets)
@@ -195,6 +197,8 @@ function ClassScreen.start()
 	local shown = false
 	local hasProfile = false
 	local hasLook = false
+	--[[ Each class's own level (`Config/ClassLevels`), from the profile. ]]
+	local classLevels: ClassLevelRules.Levels = {}
 	local cards: { { holder: Frame, ring: Frame, scale: UIScale, portrait: ImageLabel } } = {}
 	local halves: { { face: Frame, ring: UIStroke, look: string } } = {}
 
@@ -397,6 +401,20 @@ function ClassScreen.start()
 		name.Position, name.Size = UDim2.fromScale(0.06, 0.12), UDim2.fromScale(0.88, 0.76)
 		name.ZIndex = 11
 
+		--[[ The class's own level, a chip over the card's top corner. ]]
+		if not card.locked then
+			local chip = Instance.new("Frame")
+			chip.Name = "Level"
+			chip.Position, chip.Size = UDim2.fromScale(0.035, 0.018), UDim2.fromScale(0.44, 0.062)
+			chip.ZIndex = 12
+			chip.Parent = tile
+			ClassLevelPlate.chip(
+				chip,
+				card.class,
+				ClassLevelRules.standing(classLevels, card.class).level
+			)
+		end
+
 		--[[ What it plays like: every line the same height on every card. ]]
 		local tall = 0.052 * lines(card.pitch)
 		local pitch = Chunky.text(tile, card.pitch, Chunky.ink, 0)
@@ -593,6 +611,9 @@ function ClassScreen.start()
 		end
 		hasProfile = true
 		hasLook = profile.look ~= nil
+		if type(profile.classLevels) == "table" then
+			classLevels = profile.classLevels
+		end
 		if not shown and table.find(SaveSchema.LOOKS, profile.look) then
 			look = profile.look
 		end

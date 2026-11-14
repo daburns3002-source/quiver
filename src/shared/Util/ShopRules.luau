@@ -18,7 +18,15 @@ local WeaponStats = require(ReplicatedStorage.Shared.Config.WeaponStats)
 
 local ShopRules = {}
 
-export type Entry = { weapon: string, class: string, label: string, rarity: string, area: number }
+export type Entry = {
+	weapon: string,
+	class: string,
+	label: string,
+	rarity: string,
+	area: number,
+	--[[ Earned, not sold or rolled (`WeaponStats.earned`): a golden weapon. ]]
+	earned: boolean?,
+}
 
 local ORDER = { Common = 1, Uncommon = 2, Rare = 3, Epic = 4, Legendary = 5, Mythic = 6 }
 
@@ -42,6 +50,7 @@ function ShopRules.catalog(): { Entry }
 				label = entry.label,
 				rarity = stats.rarity :: string,
 				area = stats.area,
+				earned = stats.earned,
 			})
 		end
 	end
@@ -69,12 +78,12 @@ end
 --[[ What area `index`'s chest can give: its weapons of a rarity the chest
      rolls, and of `class` when one is named — an area's crate is three
      chests, one a class (`Shop.chests`). Empty for an area with no weapons
-     yet (a silhouette). ]]
+     yet (a silhouette). An earned weapon (a golden one) is in no chest. ]]
 function ShopRules.cratePool(index: number, class: string?): { Entry }
 	local out = {}
 	for _, entry in ShopRules.catalog() do
 		local wanted = class == nil or entry.class == class
-		if entry.area == index and wanted and Shop.crateOdds[entry.rarity] then
+		if entry.area == index and wanted and not entry.earned and Shop.crateOdds[entry.rarity] then
 			table.insert(out, entry)
 		end
 	end
@@ -216,10 +225,10 @@ function ShopRules.crateWords(
 end
 
 --[[ The store's price for a weapon, or nil when the store does not sell
-     it (the class weapons, Mythics). ]]
+     it (the class weapons, Mythics, the earned golden weapons). ]]
 function ShopRules.price(entry: Entry): Purse.Cost?
 	local crate = Shop.crates[entry.area]
-	if not crate then
+	if not crate or entry.earned then
 		return nil
 	end
 	if entry.rarity == "Legendary" then

@@ -177,6 +177,11 @@ GRIPS = {
     "ShellbackCleaver": (0.0301, 0.2188, -0.0004),
     "SporestringBow": (0.0892, 0.5, -0.001),
     "VentstoneStaff": (0.0, 0.43, -0.004),
+    # measured in Studio from the imported meshes (no local GLB matched them)
+    "EventideBow": (0.057, 0.5, -0.006),
+    "BuoyStaff": (-0.001, 0.43, 0.0),
+    "MaelstromStaff": (0.012, 0.43, -0.005),
+    "StormglassBlade": (0.0, 0.181, 0.0),
 }
 # Every Mossy Glade skin is a Tripo model (seven remade 2026-11-10, all
 # eighteen at 4,000 triangles and an 8K texture 2026-11-13, owner): one

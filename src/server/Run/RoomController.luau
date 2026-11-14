@@ -51,6 +51,7 @@ local Arena = require(script.Parent.Parent.Arena.Arena)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Burning = require(script.Parent.Parent.Combat.Burning)
 local ClassLevelRules = require(ReplicatedStorage.Shared.Util.ClassLevelRules)
+local ClassLevels = require(ReplicatedStorage.Shared.Config.ClassLevels)
 local ClassUpgrades = require(script.Parent.Parent.Combat.ClassUpgrades)
 local Coop = require(ReplicatedStorage.Shared.Util.Coop)
 local CurrentStage = require(ReplicatedStorage.Shared.Util.CurrentStage)
@@ -68,6 +69,7 @@ local MeleeSystem = require(script.Parent.Parent.Combat.MeleeSystem)
 local PetCombat = require(script.Parent.Parent.Combat.PetCombat)
 local Pickups = require(script.Parent.Pickups)
 local PlayerData = require(script.Parent.Parent.Data.PlayerData)
+local PrizeRules = require(ReplicatedStorage.Shared.Util.PrizeRules)
 local ProjectileSystem = require(script.Parent.Parent.Combat.ProjectileSystem)
 local Purchases = require(script.Parent.Parent.Data.Purchases)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
@@ -700,6 +702,41 @@ end
      since it was last paid, and for the win (`ClassLevelRules.runXp`).
      Decided here from the server's own count, never asked for. A revive
      and a second death pays only the rooms cleared in between. ]]
+--[[ Opens the free eggs and weapon crates a class's new levels gave
+     (`Config/ClassLevels.gifts`): the best egg open to the player and the
+     best crate with a weapon for the class that levelled, as an Endless
+     milestone's are (`Util/PrizeRules`). Granted here; what came out is
+     returned for the end screen to reveal. What cannot be given is paid in
+     gems. ]]
+local function openClassGifts(session: RunSession.Session, eggs: number, crates: number): { any }
+	local player = session.player
+	local prizes: { any } = {}
+	local missed = 0
+	if eggs > 0 then
+		local profile = PlayerData.get(player)
+		local key = if profile then PrizeRules.eggKey(profile.bossesBeaten) else nil
+		local pets = if key then Hatchery.grantMany(player, key, eggs) else {}
+		if key and #pets > 0 then
+			table.insert(prizes, { kind = "Egg", key = key, results = pets })
+		else
+			missed += eggs
+		end
+	end
+	if crates > 0 then
+		local index = PrizeRules.crateIndex(session.loadout.class)
+		local weapons = if index then EndlessPrizes.crates(player, index, crates) else {}
+		if index and #weapons > 0 then
+			table.insert(prizes, { kind = "Crate", key = index, results = weapons })
+		else
+			missed += crates
+		end
+	end
+	if missed > 0 then
+		Wallet.addGems(player, missed * ClassLevels.insteadGems)
+	end
+	return prizes
+end
+
 local function payClassXp(session: RunSession.Session, won: boolean): ClassLevelRules.Gain?
 	local cleared = session.classClears
 	session.classClears = 0
@@ -711,6 +748,9 @@ local function payClassXp(session: RunSession.Session, won: boolean): ClassLevel
 		return nil
 	end
 	local gain = Wallet.addClassXp(session.player, session.loadout.class, xp)
+	if gain and gain.eggs + gain.crates > 0 then
+		gain.prizes = openClassGifts(session, gain.eggs, gain.crates)
+	end
 	--[[ A golden weapon that went on by itself (`Wallet.settleClassWeapons`)
 	     is in hand from the next run or the lobby: `RunSession.resetRun`
 	     carries the session's weapon over and applies it. ]]

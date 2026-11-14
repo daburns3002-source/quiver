@@ -113,8 +113,14 @@ return function(t: TestRunner.Helper)
 		for level = 2, ClassLevels.cap - 1 do
 			local gift = ClassLevels.gifts[level]
 			t.notNil(gift, "level " .. level .. " gives something")
-			t.isTrue((gift.coins or 0) + (gift.gems or 0) > 0)
+			local worth = (gift.coins or 0)
+				+ (gift.gems or 0)
+				+ (gift.eggs or 0)
+				+ (gift.crates or 0)
+			t.isTrue(worth > 0)
 		end
+		t.equal(ClassLevels.gifts[3].crates, 1, "level 3 opens a weapon crate")
+		t.equal(ClassLevels.gifts[5].eggs, 1, "level 5 hatches an egg")
 		t.isNil(ClassLevels.gifts[1])
 		local levels: ClassLevelRules.Levels = {}
 		local gain = ClassLevelRules.add(
@@ -124,6 +130,12 @@ return function(t: TestRunner.Helper)
 		) :: any
 		t.equal(gain.coins, ClassLevels.gifts[2].coins or 0)
 		t.equal(gain.gems, ClassLevels.gifts[3].gems or 0)
+		t.equal(gain.crates, 1, "level 3's crate is counted for the server to open")
+		t.equal(gain.eggs, 0)
+		local far = ClassLevelRules.add({}, "Ranger", 1150) :: any
+		t.equal(far.after.level, 5 + 1, "1,150 XP is level 6")
+		t.equal(far.crates, 1)
+		t.equal(far.eggs, 1)
 		t.isNil(gain.weapon, "no golden weapon before level 10")
 	end)
 

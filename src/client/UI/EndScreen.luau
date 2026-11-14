@@ -1234,13 +1234,34 @@ function EndScreen.show(summary: Summary)
 				return
 			end
 			plate.play(gain, function()
+				local function clear()
+					while gui == screen and (Reveal.busy() or chestsOwed or VictoryChests.busy()) do
+						task.wait(0.1)
+					end
+				end
+				--[[ A level's free crate or egg (`Config/ClassLevels.gifts`),
+				     opened by the server already: each with its own reveal,
+				     one after the other, once nothing else is up. ]]
+				local prizes: { any } = gain.prizes or {}
+				for _, prize in prizes do
+					clear()
+					if gui ~= screen then
+						return
+					end
+					if type(prize) == "table" and type(prize.results) == "table" then
+						if prize.kind == "Egg" and type(prize.key) == "string" then
+							Reveal.eggs(prize.key, prize.results)
+						elseif prize.kind == "Crate" and type(prize.key) == "number" then
+							Reveal.crates(prize.key, prize.results)
+						end
+						task.wait(0.2)
+					end
+				end
 				local weapon = gain.weapon
 				if not weapon then
 					return
 				end
-				while gui == screen and (Reveal.busy() or chestsOwed or VictoryChests.busy()) do
-					task.wait(0.1)
-				end
+				clear()
 				if gui == screen then
 					ClassLevelPlate.unlock(screen, weapon)
 				end

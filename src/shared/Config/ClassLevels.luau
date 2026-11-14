@@ -20,7 +20,10 @@
 	ClassLevels.spec` pins them.
 ]]
 
-export type Gift = { coins: number?, gems: number? }
+--[[ `crates` are free opens of the best weapon crate for the class that
+     levelled, and `eggs` free hatches of the best egg open to the player
+     (`Util/PrizeRules`), each with its usual reveal on the end screen. ]]
+export type Gift = { coins: number?, gems: number?, eggs: number?, crates: number? }
 
 local ClassLevels = {
 	--[[ The top level. ]]
@@ -38,17 +41,25 @@ local ClassLevels = {
 	winXp = 50,
 
 	--[[ What reaching each level gives, on top of the number. Level 10's
-	     gift is the golden weapon (`weapons`). ]]
+	     gift is the golden weapon (`weapons`). Level 3 opens a weapon crate
+	     for the class and level 5 hatches an egg (owner, 2026-11-14:
+	     "there should be more rewards for players"; they were 10 and 20
+	     gems). Level 7 stays gems until the class trails are designed and
+	     approved. ]]
 	gifts = {
 		[2] = { coins = 200 },
-		[3] = { gems = 10 },
+		[3] = { crates = 1 },
 		[4] = { coins = 400 },
-		[5] = { gems = 20 },
+		[5] = { eggs = 1 },
 		[6] = { coins = 600 },
 		[7] = { gems = 30 },
 		[8] = { coins = 800 },
 		[9] = { gems = 40 },
 	} :: { [number]: Gift },
+
+	--[[ Gems paid in place of a crate or an egg there is none of to give
+	     (no crate with a weapon for the class, no egg open). ]]
+	insteadGems = 15,
 
 	--[[ The level a class's golden weapon is given at, and which it is
 	     (`Config/Weapons`, `Config/WeaponStats`). ]]

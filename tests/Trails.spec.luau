@@ -70,11 +70,16 @@ return function(t: TestRunner.Helper)
 			if trail.rarity == "Legendary" or trail.rarity == "Mythic" then
 				t.isTrue(trail.glow, key .. " glows")
 				t.notNil(trail.light, key .. " has a light")
-				local brightest = 0
-				for _, look in trail.emitters do
-					brightest = math.max(brightest, look.glow)
+				local neon = false
+				for _, column in trail.ribbon.columns do
+					neon = neon or column.neon == true
 				end
-				t.equal(brightest, 1, key .. " has a particle that glows fully")
+				for _, piece in trail.pieces do
+					for _, block in piece.blocks do
+						neon = neon or block.neon == true
+					end
+				end
+				t.isTrue(neon, key .. " has something Neon")
 			end
 		end
 	end)
@@ -89,17 +94,26 @@ return function(t: TestRunner.Helper)
 			)
 			pictures[trail.icon] = key
 			t.isTrue(
-				#trail.ribbon >= 1 and trail.width > 0 and trail.life > 0,
+				string.match(trail.design, "^https://claude%.ai/design/p/") ~= nil,
+				key .. " names its Design build"
+			)
+			local ribbon = trail.ribbon
+			t.isTrue(
+				#ribbon.columns >= 1 and ribbon.fade[2] > ribbon.fade[1],
 				key .. " has a ribbon"
 			)
-			t.isTrue(#trail.emitters >= 1, key .. " has particles")
-			for _, look in trail.emitters do
-				t.isTrue(look.texture == "Square" or look.texture == "Star", key .. " texture")
+			t.isTrue(ribbon.alpha > 0 and ribbon.alpha <= 1, key .. " ribbon shows")
+			for _, column in ribbon.columns do
+				t.isTrue(column.height > 0 and column.height <= 1.5, key .. " ribbon lies low")
+			end
+			t.isTrue(#trail.pieces >= 1, key .. " throws pieces")
+			for _, piece in trail.pieces do
+				t.isTrue(#piece.blocks >= 1 and #piece.colours >= 1, key .. " pieces have blocks")
 				t.isTrue(
-					look.rate > 0 and look.life > 0 and look.size > 0,
-					key .. " particles show"
+					piece.rate > 0 and piece.life[1] > 0 and piece.size[1] > 0,
+					key .. " pieces show"
 				)
-				t.isTrue(look.glow >= 0 and look.glow <= 1, key .. " glow is a share")
+				t.isTrue(#piece.blocks <= 6, key .. " pieces stay cheap")
 			end
 		end
 		t.isTrue(Trails.idle > 0 and Trails.idle < 1, "standing still leaves some, not all")
@@ -110,10 +124,6 @@ return function(t: TestRunner.Helper)
 		local fastest = walk * math.max(Balance.Player.exitRush, Lobby.sprint)
 		t.isTrue(Trails.burst.speed > fastest * 1.1, "a burst is above every run")
 		t.isTrue(Trails.burst.count > 0 and Trails.burst.gap > 0)
-		t.isTrue(
-			Trails.core.height > 0 and Trails.core.height < 3,
-			"the fin stands below the knees"
-		)
 		t.isTrue(Trails.pulse.depth > 0 and Trails.pulse.depth < 1, "a pulse never goes dark")
 	end)
 

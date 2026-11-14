@@ -113,6 +113,36 @@ return function(t: TestRunner.Helper)
 		end
 	end)
 
+	t.test("a stronger weapon for the class goes in hand by itself, never a weaker", function()
+		-- a class's starter and something rarer it can hold, from the catalog
+		local starter: string?, better: string?, other: string? = nil, nil, nil
+		for _, entry in ShopRules.catalog() do
+			if entry.class == "Ranger" and entry.rarity == "Common" then
+				starter = starter or entry.weapon
+			elseif entry.class == "Ranger" and not better then
+				better = entry.weapon
+			elseif entry.class ~= "Ranger" and entry.rarity ~= "Common" then
+				other = other or entry.weapon
+			end
+		end
+		t.notNil(starter)
+		t.notNil(better)
+		t.notNil(other)
+		local function atC(_weapon: string): string?
+			return "C"
+		end
+		local s, b, o = starter :: string, better :: string, other :: string
+		t.isTrue(ShopRules.strength(b, "C") > ShopRules.strength(s, "C"))
+		t.equal(ShopRules.upgrade({ b }, "Ranger", s, atC), b)
+		-- not a weaker one, not the same one, not another class's
+		t.isNil(ShopRules.upgrade({ s }, "Ranger", b, atC))
+		t.isNil(ShopRules.upgrade({ b }, "Ranger", b, atC))
+		t.isNil(ShopRules.upgrade({ o }, "Ranger", s, atC))
+		-- a merge tier counts: the same weapon merged up is stronger
+		t.isTrue(ShopRules.strength(s, "B") > ShopRules.strength(s, "C"))
+		t.isNil(ShopRules.upgrade({}, "Ranger", s, atC))
+	end)
+
 	t.test("only the three chests can be opened", function()
 		for _, chest in Shop.chests do
 			t.notNil(ShopRules.chest(chest.class), chest.class)

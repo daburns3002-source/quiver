@@ -10,6 +10,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Economy = require(ReplicatedStorage.Shared.Config.Economy)
 local LaunchLocks = require(script.Parent.LaunchLocks)
+local MergeRules = require(script.Parent.MergeRules)
 local Purse = require(script.Parent.Purse)
 local Sandbox = require(ReplicatedStorage.Shared.Config.Sandbox)
 local Shop = require(ReplicatedStorage.Shared.Config.Shop)
@@ -237,6 +238,45 @@ function ShopRules.price(entry: Entry): Purse.Cost?
 		return nil
 	end
 	return { gems = gems * entry.area }
+end
+
+--[[ A weapon's damage scale at merge tier `tier`: its rarity's bonus, its
+     area's scale and the tier's (`Config/WeaponStats`, `Util/MergeRules`),
+     as `Run/RunSession` multiplies them. 0 for one with no stats. ]]
+function ShopRules.strength(weapon: string?, tier: string?): number
+	local stats = if weapon then WeaponStats.weapons[weapon] else nil
+	if not stats then
+		return 0
+	end
+	return (1 + WeaponStats.bonus[stats.rarity])
+		* (WeaponStats.areaScale[stats.area] or 1)
+		* (MergeRules.weaponScale[tier or "C"] or 1)
+end
+
+--[[ Of the weapons just `gained`, the one that goes in hand by itself
+     (owner, 2026-11-14, after the kid playtest: the crate's bow stayed in
+     the bag; "Build top 5"): one `class` holds that is strictly stronger
+     than `equipped` (`strength`, each at the tier `tierOf` says is held),
+     the strongest of them. Nil for none, so a weapon the player chose is
+     never swapped for a weaker or an equal one. ]]
+function ShopRules.upgrade(
+	gained: { string },
+	class: string?,
+	equipped: string?,
+	tierOf: (string) -> string?
+): string?
+	local best: string? = nil
+	local bestStrength = ShopRules.strength(equipped, if equipped then tierOf(equipped) else nil)
+	for _, weapon in gained do
+		local entry = ShopRules.find(weapon)
+		if entry and entry.class == class then
+			local strength = ShopRules.strength(weapon, tierOf(weapon))
+			if strength > bestStrength then
+				best, bestStrength = weapon, strength
+			end
+		end
+	end
+	return best
 end
 
 return ShopRules

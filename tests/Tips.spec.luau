@@ -76,6 +76,27 @@ return function(t: TestRunner.Helper)
 		t.isFalse(TipRules.due("Merge", again.tipsSeen, {}), "not after a rejoin either")
 	end)
 
+	t.test("a tip goes by itself; only one marked to hold waits for OK", function()
+		t.isTrue(Tips.showFor > 0)
+		-- a tip that goes by itself must be gone before a held one would be let go
+		t.isTrue(Tips.showFor < Tips.holdMax)
+		local holding = 0
+		for key, tip in Tips.tips do
+			t.equal(TipRules.holds(key), tip.hold == true)
+			if tip.hold then
+				holding += 1
+			end
+		end
+		-- most tips must not stop the game (the kid playtest, 2026-11-14)
+		local all = 0
+		for _ in Tips.tips do
+			all += 1
+		end
+		t.isTrue(holding * 4 <= all)
+		t.isTrue(not TipRules.holds("NotATip"))
+		t.isTrue(not TipRules.holds(nil))
+	end)
+
 	t.test("every tip the game asks for exists", function()
 		for _, key in ASKED do
 			t.isTrue(TipRules.isTip(key), `no tip {key}`)

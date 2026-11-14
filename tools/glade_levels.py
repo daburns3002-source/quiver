@@ -127,6 +127,15 @@ def roster(level, n, rooms, first, last):
             return count, "meleeCharger"
         if n <= 6:
             return count, "meleeCharger, meleeCharger, broodSlime"
+    # 1-2 opens gently (owner, 2026-11-14, the kid playtest: its first room,
+    # four with a Spitter against a bare bow, killed a standing player in 11
+    # seconds straight after their first win). Slimes only for two rooms; the
+    # Spitter is back from room 3, by when a card or two is drafted.
+    if level == "1-2":
+        if n == 1:
+            return 3, "meleeCharger"
+        if n == 2:
+            return count, "meleeCharger, meleeCharger, broodSlime"
     return count, MIXES[n % len(MIXES)]
 
 

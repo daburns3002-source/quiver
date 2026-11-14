@@ -21,6 +21,8 @@ local GearAssets = require(ReplicatedStorage.Shared.Config.GearAssets)
 local HatchStand = require(script.Parent.HatchStand)
 local Kit = require(script.Parent.Kit)
 local MergeRules = require(ReplicatedStorage.Shared.Util.MergeRules)
+local PetCombat = require(ReplicatedStorage.Shared.Config.PetCombat)
+local PetPower = require(ReplicatedStorage.Shared.Util.PetPower)
 local Pets = require(ReplicatedStorage.Shared.Config.Pets)
 local Rarities = require(ReplicatedStorage.Shared.Config.Rarities)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
@@ -259,6 +261,16 @@ local function plate(
 	Chunky.outline(f, 6)
 	return f
 end
+--[[ The item MERGE was just pressed on, so its card comes back up with
+     the new tier when the save answers (2026-11-14, the kid playtest:
+     MERGE shut the card, and equipping the merged pet was two more taps).
+     Only for `MERGE_WAIT` seconds: a merge the server refused changes
+     nothing and must not open a card later. ]]
+local MERGE_WAIT = 3
+local afterMerge: { key: string, pet: boolean, at: number }? = nil
+--[[ The plate's ATK and PETS the last time it was drawn, so a rise pops. ]]
+local lastPower: number? = nil
+
 --[[ An item's details over the screen (owner, 2026-10-27, with a video of
      the reference game: tapping an item opens its card first), in the
      chunky style: a blue panel, the name on the gold ribbon, the rarity on
@@ -444,7 +456,8 @@ local function details(
 			m[4],
 			function()
 				if from then
-					close()
+					-- stays up: redrawn with the new tier when the save answers
+					afterMerge = { key = entry.key, pet = isPet, at = os.clock() }
 					Remotes.event(Remotes.MergeItem)
 						:FireServer(if isPet then "pet" else "weapon", entry.key, from)
 					SoundFx.play("new_item")
@@ -711,13 +724,36 @@ local function draw(s: StationScreen.Screen)
 			* scale
 			* (MergeRules.weaponScale[held or "C"] or 1)
 	)
+	--[[ What the pets in the slots add, so the plate moves when a pet goes
+	     in or is merged up (2026-11-14, the kid playtest: it read ATK 100
+	     HP 225 before and after both): their damage a second against a room
+	     (`Util/PetPower`) at their merge tier, shown once a pet is in. ]]
+	local pets = 0
+	for _, key in petKeys do
+		local spec = PetCombat.pets[key]
+		local tier = if p then MergeRules.best(p.tiers.pets[key]) else nil
+		if spec then
+			pets += PetPower.dps(spec) * (MergeRules.petScale[tier or "C"] or 1)
+		end
+	end
+	pets = math.round(pets)
 	local power = plate(sheet, Chunky.gold, table.unpack(L.plate))
 	local words = Chunky.textOn(
 		power,
-		"ATK " .. Chunky.commas(atk) .. "   HP " .. Chunky.commas(Balance.Player.maxHealth),
+		"ATK "
+			.. Chunky.commas(atk)
+			.. (if #petKeys > 0 then "   PETS " .. Chunky.commas(pets) else "")
+			.. "   HP "
+			.. Chunky.commas(Balance.Player.maxHealth),
 		Chunky.gold,
 		6
 	)
+	-- a rise since it was last drawn pops the plate
+	if lastPower and atk + pets > lastPower then
+		Chunky.pop(power)
+		SoundFx.play("new_item")
+	end
+	lastPower = atk + pets
 	words.Position, words.Size = UDim2.fromScale(0.06, 0.16), UDim2.fromScale(0.88, 0.68)
 
 	local weaponSlot = slot(
@@ -963,8 +999,8 @@ local function draw(s: StationScreen.Screen)
 			lock.Position, lock.Size = UDim2.fromScale(0.6, 0.56), UDim2.fromScale(0.34, 0.34)
 			lock.ZIndex = 13
 		end
-		Chunky.press(holder, function()
-			if Reveal.busy() or not p then
+		local function openDetails()
+			if not p then
 				return
 			end
 			details(sheet, entry, isPet, isEquipped, function()
@@ -993,7 +1029,20 @@ local function draw(s: StationScreen.Screen)
 					Remotes.event(Remotes.ShopEquip):FireServer(entry.key)
 				end
 			end)
+		end
+		Chunky.press(holder, function()
+			if not Reveal.busy() then
+				openDetails()
+			end
 		end)
+		-- just merged: its card again, with the new tier
+		local merged = afterMerge
+		if merged and merged.key == entry.key and merged.pet == isPet then
+			afterMerge = nil
+			if os.clock() - merged.at < MERGE_WAIT then
+				openDetails()
+			end
+		end
 	end
 
 	layout()

@@ -9,9 +9,10 @@
 	  grants and puts the player back into the room (`Server/Data/Purchases`),
 	  and the room's fight starting clears DEFEAT and this with it. NO THANKS
 	  leaves DEFEAT as it was. Robux only, never gems (owner).
-	- **STARTER PACK** once, as the player leaves the Victory of their first
-	  1-1 clear (`RunSummary.starter`; `owe`, then `after` runs what leaving
-	  was going to do once the offer is answered). Bought, its eggs are shown
+	- **STARTER PACK** once, as the player leaves a Victory for the lobby
+	  with `RobuxStore.starterAfterWins` levels won, never over NEXT LEVEL
+	  (`RunSummary.starter`; `owe`, then `after` runs what leaving was going
+	  to do once the offer is answered). Bought, its eggs are shown
 	  as a prize and the button says CONTINUE.
 
 	Chunky panels (`UI/Chunky`), every word in Fredoka One, the numbers beside
@@ -236,8 +237,8 @@ function RobuxOffer.owe(starter: unknown)
 	starterOwed = starter == true
 end
 
---[[ Leaving Victory: the starter pack's one offer first if it is owed,
-     then `proceed`. ]]
+--[[ Leaving Victory for the lobby: the starter pack's one offer first if
+     it is owed, then `proceed`. ]]
 function RobuxOffer.after(proceed: () -> ())
 	local product = StoreRules.product("StarterPack")
 	if not starterOwed or not product then

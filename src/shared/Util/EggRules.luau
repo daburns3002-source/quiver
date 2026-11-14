@@ -108,4 +108,47 @@ function EggRules.rarity(pet: string): string
 	return if info then info.rarity else "Common"
 end
 
+--[[ Which hatched pets go into empty slots by themselves, as slot to pet
+     (owner, 2026-11-14, after the kid playtest: three eggs hatched and PET 2
+     stayed empty; "Build top 5"). Only empty slots of the first `open`
+     are filled, never one the player has filled; a pet already in a slot
+     is not put in a second; the rarest of `hatched` goes first, and of two
+     alike the one hatched first. ]]
+function EggRules.fill(
+	equipped: { [number]: string? },
+	open: number,
+	hatched: { string }
+): { [number]: string }
+	local taken: { [string]: boolean } = {}
+	for _, pet in equipped do
+		if pet then
+			taken[pet] = true
+		end
+	end
+	local waiting: { { pet: string, at: number } } = {}
+	for at, pet in hatched do
+		if not taken[pet] then
+			taken[pet] = true
+			table.insert(waiting, { pet = pet, at = at })
+		end
+	end
+	table.sort(waiting, function(a, b)
+		local ra, rb = ORDER[EggRules.rarity(a.pet)] or 0, ORDER[EggRules.rarity(b.pet)] or 0
+		if ra ~= rb then
+			return ra > rb
+		end
+		return a.at < b.at
+	end)
+	local out: { [number]: string } = {}
+	local nextUp = 1
+	for slot = 1, open do
+		local pick = waiting[nextUp]
+		if equipped[slot] == nil and pick then
+			out[slot] = pick.pet
+			nextUp += 1
+		end
+	end
+	return out
+end
+
 return EggRules

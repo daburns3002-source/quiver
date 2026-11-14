@@ -129,6 +129,21 @@ return function(t: TestRunner.Helper)
 		t.equal(#hand, 3)
 	end)
 
+	t.test("the tutorial cannot be lost: health stops above nothing", function()
+		t.isTrue(Tutorial.healthFloor > 0)
+		t.isTrue(Tutorial.healthFloor < Balance.Player.maxHealth)
+	end)
+
+	t.test("the Spitter's first room leaves the lane from the spawn open", function()
+		-- a new player walks straight in and stands still: no log may sit
+		-- between them and the room (2026-11-14: 40 arrows into one, none landed)
+		local room = Balance.Rooms[stageRooms[2]]
+		local lane = 4
+		for _, obstacle in room.obstacles do
+			t.isTrue(math.abs(obstacle.offset.X) - obstacle.size.X / 2 >= lane)
+		end
+	end)
+
 	t.test("the rooms' XP levels the player up in rooms 1, 2 and 3", function()
 		local xp, level, cost = 0, 1, Progression.baseLevelCost
 		local levelledIn = {}

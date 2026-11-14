@@ -152,6 +152,28 @@ return function(t: TestRunner.Helper)
 		end
 	end)
 
+	t.test("a hatched pet goes into an empty slot by itself, rarest first", function()
+		-- the Mossy Egg's rarest and commonest, whatever they are
+		local pool = EggRules.pool("MossyEgg")
+		local common, rare = pool[1].pet, pool[#pool].pet
+		t.isTrue(EggRules.ORDER[pool[#pool].rarity] > EggRules.ORDER[pool[1].rarity])
+
+		-- nothing in the slots: the rarest takes slot 1, the next slot 2
+		local filled = EggRules.fill({}, 2, { common, rare })
+		t.equal(filled[1], rare)
+		t.equal(filled[2], common)
+
+		-- a slot the player filled is never changed, and a pet is in one slot only
+		local kept = EggRules.fill({ [1] = common }, 2, { common, common, rare })
+		t.isNil(kept[1])
+		t.equal(kept[2], rare)
+		t.isNil(next(EggRules.fill({ [1] = common }, 2, { common })))
+
+		-- only the slots open to the player, and nothing when both are full
+		t.isNil(EggRules.fill({}, 1, { common, rare })[2])
+		t.isNil(next(EggRules.fill({ [1] = common, [2] = rare }, 2, { rare })))
+	end)
+
 	t.test("two pet slots, a third with the pass, matching the save", function()
 		t.equal(#Eggs.slots, SaveSchema.PET_SLOTS)
 		t.equal(StoreRules.petSlots({}), 2)

@@ -115,6 +115,7 @@ local WardenFx = require(script.Parent.Fx.Upgrades.WardenFx)
 local WaterSteps = require(script.Parent.Fx.WaterSteps)
 local WeaponGlow = require(script.Parent.Fx.WeaponGlow)
 local WeaponPose = require(script.Parent.Fx.WeaponPose)
+local WeaponPreload = require(script.Parent.Fx.WeaponPreload)
 local Weapons = require(Shared.Config.Weapons)
 
 type ShotEvent = Types.ShotEvent
@@ -343,6 +344,8 @@ HatcheryPointer.start()
 DoorPointer.start()
 PortalVortex.start()
 RoomPreload.start()
+-- the texture of the weapon each player holds or will hold, always ready
+WeaponPreload.start()
 BurnFx.start()
 RootHoldFx.start()
 EnemyHealthBars.start()

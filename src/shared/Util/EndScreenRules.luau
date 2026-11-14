@@ -30,6 +30,42 @@ function EndScreenRules.chestRow(paid: Paid): boolean
 	return paid.egg ~= nil or paid.item ~= nil or (paid.chests or 0) > 0
 end
 
+--[[ Where the class level plate (`UI/ClassLevelPlate`) stands on a screen
+     `viewW` by `viewH` whose end panel, centred, is `panelW` by `panelH`:
+     its left, top, width and height in pixels, for a plate drawn `w` by
+     `h`. Beside the panel on a wide screen, where the room is; under it on
+     an upright one, as tall as the room there. Never over the panel's
+     buttons, and never at the top, where Roblox's own buttons sit. ]]
+local PLATE_GAP = 8
+local PLATE_SMALLEST = 0.6
+function EndScreenRules.levelPlate(
+	viewW: number,
+	viewH: number,
+	panelW: number,
+	panelH: number,
+	w: number,
+	h: number
+): (number, number, number, number)
+	local shape = h / w
+	local side = (viewW - panelW) / 2 - 2 * PLATE_GAP
+	local under = (viewH - panelH) / 2 - 2 * PLATE_GAP
+	if viewW > viewH and side >= w * PLATE_SMALLEST then
+		local width = math.min(w * 1.25, side)
+		return (viewW + panelW) / 2 + PLATE_GAP,
+			(viewH - panelH) / 2 + panelH * 0.18,
+			width,
+			width * shape
+	end
+	local height = math.clamp(under, h * PLATE_SMALLEST, h)
+	local width = math.min(height / shape, viewW - 2 * PLATE_GAP)
+	height = width * shape
+	--[[ Under the panel when it fits there; on a screen with room nowhere
+	     (nearly square, the panel filling it) it stands at the top
+	     instead, over the ribbon's edge rather than over a button. ]]
+	local top = if height <= under + PLATE_GAP then (viewH + panelH) / 2 + PLATE_GAP else PLATE_GAP
+	return (viewW - width) / 2, top, width, height
+end
+
 --[[ What the main button says. Victory's goes on to the next level, except
      the tutorial's, which is won into the lobby
      (`RoomController.requestRestart`): that one says so. ]]

@@ -41,6 +41,7 @@ local CardTheme = require(ReplicatedStorage.Shared.Config.CardTheme)
 local Chunky = require(script.Parent.Parent.Chunky)
 local DetailPanel = require(script.Parent.DetailPanel)
 local Device = require(script.Parent.Parent.Parent.Device)
+local FirstTips = require(script.Parent.Parent.FirstTips)
 local FxEvents = require(script.Parent.Parent.Parent.Fx.Upgrades.FxEvents)
 local Hud = require(ReplicatedStorage.Shared.Config.Hud)
 local Motion = require(script.Parent.Motion)
@@ -2000,7 +2001,8 @@ local function bindGamepad()
 	ContextActionService:BindActionAtPriority(
 		"DraftChoose",
 		function(_name: string, state: Enum.UserInputState): Enum.ContextActionResult
-			if state == Enum.UserInputState.Begin then
+			-- an A that closes a first-time tip over the draft picks nothing
+			if state == Enum.UserInputState.Begin and not FirstTips.takesKeys() then
 				confirm()
 			end
 			return Enum.ContextActionResult.Sink

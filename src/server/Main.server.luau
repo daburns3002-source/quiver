@@ -18,6 +18,7 @@ local PhysicsService = game:GetService("PhysicsService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
+local Workspace = game:GetService("Workspace")
 
 --[[ Every remote, before anything else loads or builds: a client waits only
      so long for one, and the lobby's meshes keep a fresh live server busy
@@ -654,9 +655,22 @@ Inbound.on(Remotes.FunnelStep, function(player, step)
 	end
 end)
 
---[[ A first-time tip shown (`Config/Tips`); kept once, for a tip only. ]]
+--[[ A first-time tip shown (`Config/Tips`); kept once, for a tip only.
+     In a run, a tip never seen before holds it until OK (`TipClosed`). ]]
 Inbound.on(Remotes.TipSeen, function(player, key)
-	Wallet.sawTip(player, key)
+	local fresh = Wallet.sawTip(player, key)
+	local session = RunSession.get(player)
+	if fresh and session and Workspace:GetAttribute("InLobby") ~= true then
+		RunSession.holdForTip(session)
+	end
+end)
+
+--[[ OK on a first-time tip: the run goes on. ]]
+Inbound.on(Remotes.TipClosed, function(player)
+	local session = RunSession.get(player)
+	if session then
+		RunSession.tipClosed(session)
+	end
 end)
 
 --[[ The intro's BEGIN ADVENTURE: this player has left the title screen.
@@ -851,6 +865,12 @@ RunService.Heartbeat:Connect(function(deltaTime: number)
 	--[[ And while anyone reads a NEW ENEMY! screen, until GOT IT!
 	     (`Config/NewEnemies`). ]]
 	if RunSession.anyMeeting() then
+		wasHeld = true
+		return
+	end
+
+	--[[ And while anyone reads a first-time tip, until OK (`Config/Tips`). ]]
+	if RunSession.anyReadingTip() then
 		wasHeld = true
 		return
 	end

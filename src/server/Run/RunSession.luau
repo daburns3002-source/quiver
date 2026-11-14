@@ -39,6 +39,7 @@ local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local Rewards = require(script.Parent.Parent.Data.Rewards)
 local Shelter = require(ReplicatedStorage.Shared.Util.Shelter)
 local ShotPipeline = require(ReplicatedStorage.Shared.Combat.ShotPipeline)
+local Tips = require(ReplicatedStorage.Shared.Config.Tips)
 local Tutorial = require(ReplicatedStorage.Shared.Config.Tutorial)
 local TutorialHands = require(ReplicatedStorage.Shared.Util.TutorialHands)
 local Wallet = require(script.Parent.Parent.Data.Wallet)
@@ -147,6 +148,9 @@ export type Session = {
 	     2026-10-25). ]]
 	seenEnemies: { [string]: boolean },
 	meeting: { string },
+	--[[ Until when a first-time tip holds the run for this player
+	     (`anyReadingTip`), nil when none is up. ]]
+	tipUntil: number?,
 	--[[ MENU's panel's hold on the world (`Util/MenuHold`), on os.clock. ]]
 	menu: MenuHold.State,
 	--[[ The tutorial's fixed hands dealt to this player so far this stage
@@ -348,6 +352,7 @@ function RunSession.create(player: Player): Session
 			and not RunSession.arrivedByTeleport(player),
 		seenEnemies = {},
 		meeting = {},
+		tipUntil = nil,
 		menu = MenuHold.new(CombatTuning.menuHold),
 		tutorialProgress = TutorialHands.newProgress(),
 		healthSentAt = 0,
@@ -565,6 +570,32 @@ function RunSession.anyInMenu(): boolean
 	local now = os.clock()
 	for _, session in sessions do
 		if MenuHold.holding(session.menu, now) then
+			return true
+		end
+	end
+
+	return false
+end
+
+--[[ A first-time tip came up for this player in a run (owner, 2026-11-13:
+     "pause the game and have an ok button to dismiss the tip and resume the
+     game"): the run holds until OK, `Tips.holdMax` at most. Only a tip the
+     save had never seen holds (`Main` asks `Wallet.sawTip` first), so a
+     client can hold a run at most once per tip, ever. ]]
+function RunSession.holdForTip(session: Session)
+	session.tipUntil = os.clock() + Tips.holdMax
+end
+
+--[[ OK on the tip: the hold is let go. ]]
+function RunSession.tipClosed(session: Session)
+	session.tipUntil = nil
+end
+
+--[[ Whether anyone is reading a first-time tip, as `anyMeeting`. ]]
+function RunSession.anyReadingTip(): boolean
+	local now = os.clock()
+	for _, session in sessions do
+		if session.tipUntil and now < session.tipUntil then
 			return true
 		end
 	end
@@ -1089,6 +1120,7 @@ function RunSession.resetRun(session: Session)
 	session.petReviveUsed = false
 	-- a screen left open when the run ended holds nothing now
 	table.clear(session.meeting)
+	session.tipUntil = nil
 	MenuHold.close(session.menu, os.clock(), CombatTuning.menuHold, CombatTuning.menuRefill)
 	-- nor do crystals still flying in from it
 	table.clear(session.xpArriving)

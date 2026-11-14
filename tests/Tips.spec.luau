@@ -104,16 +104,83 @@ return function(t: TestRunner.Helper)
 		end
 	end)
 
-	t.test("a tip stands on screen at every shape, a phone's gutters clear", function()
+	local function inside(box: TipRules.Box, w: number, h: number, where: string)
+		local g = TipRules.layout.gutter
+		t.isTrue(box.x >= g - 1e-6, `{where}: off the left`)
+		t.isTrue(box.x + box.w <= w - g + 1e-6, `{where}: off the right`)
+		t.isTrue(box.y >= 0 and box.y + box.h <= h + 1e-6, `{where}: off the top or bottom`)
+	end
+
+	local function apart(a: TipRules.Box, b: TipRules.Box): boolean
+		return a.x + a.w <= b.x + 1e-6
+			or b.x + b.w <= a.x + 1e-6
+			or a.y + a.h <= b.y + 1e-6
+			or b.y + b.h <= a.y + 1e-6
+	end
+
+	t.test("with no arena (the lobby) a tip stands centred under the top HUD", function()
 		for _, shape in { { 390, 844, 47 }, { 844, 390, 0 }, { 1920, 1080, 58 }, { 320, 568, 20 } } do
 			local w, h, inset = shape[1], shape[2], shape[3]
-			local box = TipRules.place(w, h, inset)
-			local where = `{w} x {h}`
-			t.isTrue(box.x >= TipRules.layout.gutter, `{where}: off the left`)
-			t.isTrue(box.x + box.w <= w - TipRules.layout.gutter, `{where}: off the right`)
-			t.isTrue(box.y >= inset, `{where}: under the top bar`)
-			t.isTrue(box.y + box.h <= h, `{where}: off the bottom`)
-			t.isTrue(box.w <= TipRules.layout.maxWidth, `{where}: too wide`)
+			local placed = TipRules.place(w, h, inset, nil)
+			inside(placed.box, w, h, `{w} x {h}`)
+			t.isFalse(placed.side)
+			t.isTrue(placed.box.y >= inset, `{w} x {h}: under the top bar`)
 		end
+	end)
+
+	t.test("in a run a tip stands beside the arena, never on it", function()
+		local shapes = {
+			-- a computer: the room in the middle, forest either side
+			{
+				w = 1920,
+				h = 1080,
+				inset = 58,
+				arena = { x = 600, y = 0, w = 720, h = 1080 },
+				side = true,
+			},
+			-- a phone on its side
+			{
+				w = 844,
+				h = 390,
+				inset = 0,
+				arena = { x = 260, y = 0, w = 324, h = 390 },
+				side = true,
+			},
+			-- an upright phone: the room across the width, forest above and below
+			{
+				w = 390,
+				h = 844,
+				inset = 47,
+				arena = { x = 0, y = 210, w = 390, h = 440 },
+				side = false,
+			},
+			{
+				w = 390,
+				h = 844,
+				inset = 47,
+				arena = { x = 0, y = 380, w = 390, h = 280 },
+				side = false,
+			},
+		}
+		for _, shape in shapes do
+			local where = `{shape.w} x {shape.h}`
+			local placed = TipRules.place(shape.w, shape.h, shape.inset, shape.arena)
+			inside(placed.box, shape.w, shape.h, where)
+			t.equal(placed.side, shape.side, `{where}: which margin`)
+			t.isTrue(apart(placed.box, shape.arena), `{where}: on the arena`)
+		end
+	end)
+
+	t.test("with the margins alike a tip takes the right one, away from MENU", function()
+		local arena = { x = 600, y = 0, w = 720, h = 1080 }
+		local placed = TipRules.place(1920, 1080, 58, arena)
+		t.isTrue(placed.box.x >= arena.x + arena.w, "on the left, over MENU")
+		local leftWide = TipRules.place(1920, 1080, 58, { x = 900, y = 0, w = 720, h = 1080 })
+		t.isTrue(leftWide.box.x + leftWide.box.w <= 900, "the left margin, clearly wider, is taken")
+	end)
+
+	t.test("with no margin wide enough a tip is still whole on the screen", function()
+		local placed = TipRules.place(390, 844, 47, { x = 0, y = 100, w = 390, h = 700 })
+		inside(placed.box, 390, 844, "an arena filling the screen")
 	end)
 end

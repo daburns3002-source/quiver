@@ -52,23 +52,82 @@ end
 
 export type Box = { x: number, y: number, w: number, h: number }
 
---[[ Where a tip stands on a screen `w` x `h` points with `insetY` of
-     Roblox's top bar: centred, under the run's top HUD, `gutter` clear of
-     each side on a phone, no wider than `maxWidth`. ]]
+--[[ Where a tip's card goes, in screen points (owner, 2026-11-13: "they
+     should be in the outer arena area so it doesnt block the arena"). ]]
 TipRules.layout = {
 	gutter = 16,
-	maxWidth = 560,
-	height = 84,
-	-- under the top bar, clear of the run's XP bar and the lobby's pills
+	-- under Roblox's top bar, clear of the run's XP bar and the lobby's pills
 	below = 76,
+	-- an upright card in a margin beside the arena, as wide as it allows
+	sideMin = 190,
+	sideMax = 300,
+	sideHeight = 250,
+	-- a wide card above or below the arena, or on a screen with no arena
+	wideWidth = 520,
+	wideHeight = 160,
 }
 
-function TipRules.place(w: number, h: number, insetY: number): Box
+export type Placement = {
+	box: Box,
+	--[[ Beside the arena: the upright card. ]]
+	side: boolean,
+}
+
+--[[ Where a tip's card stands on a screen `w` x `h` points with `insetY` of
+     Roblox's top bar, given the arena's box on that screen (nil in the
+     lobby, or on a screen with nothing behind it to keep clear). Beside the
+     arena in the wider side margin if a card fits there, which a landscape
+     screen has; else in the space above or below it, which an upright phone
+     has; else where the most of it shows, overlapping its edge. With no
+     arena, centred under the top HUD. Always whole on the screen. ]]
+function TipRules.place(w: number, h: number, insetY: number, arena: Box?): Placement
 	local layout = TipRules.layout
-	local width = math.min(layout.maxWidth, w - layout.gutter * 2)
-	local height = layout.height
-	local y = math.min(insetY + layout.below, math.max(0, h - height - layout.gutter))
-	return { x = math.floor((w - width) / 2), y = y, w = width, h = height }
+	local g = layout.gutter
+	local top = insetY + layout.below
+	local function onScreenY(y: number, height: number): number
+		local lowest = math.max(0, h - height - g)
+		return math.clamp(y, math.min(top, lowest), lowest)
+	end
+	local function wide(y: number): Placement
+		local width = math.min(layout.wideWidth, w - g * 2)
+		local height = layout.wideHeight
+		return {
+			box = {
+				x = math.floor((w - width) / 2),
+				y = math.floor(onScreenY(y, height)),
+				w = width,
+				h = height,
+			},
+			side = false,
+		}
+	end
+	if not arena then
+		return wide(top)
+	end
+	local left = arena.x
+	local right = w - (arena.x + arena.w)
+	local room = math.max(left, right) - g * 2
+	if room >= layout.sideMin then
+		local width = math.min(layout.sideMax, room)
+		local height = math.min(layout.sideHeight, h - top - g)
+		-- the right one unless the left is clearly wider: MENU is on the left edge
+		local x = if right + layout.gutter >= left
+			then arena.x + arena.w + (right - width) / 2
+			else (left - width) / 2
+		local y = top + (h - top - g - height) / 2
+		return {
+			box = { x = math.floor(x), y = math.floor(onScreenY(y, height)), w = width, h = height },
+			side = true,
+		}
+	end
+	local above = arena.y - top
+	local under = h - g - (arena.y + arena.h)
+	local height = layout.wideHeight
+	if under >= height or (under >= above and above < height) then
+		-- below the arena, centred in its space, or at the foot of the screen
+		return wide(arena.y + arena.h + math.max(0, (under - height) / 2))
+	end
+	return wide(top + math.max(0, (above - height) / 2))
 end
 
 return TipRules

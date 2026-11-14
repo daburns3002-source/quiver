@@ -168,7 +168,10 @@ margin a landscape screen has, or above or below it on an upright phone (`TipRul
 corners projected by the camera; centred under the top HUD in the lobby). While it is up the client is paused
 (`RunPaused.setTip`), the server holds the run (`RunSession.anyReadingTip`, only for a tip the save had never
 seen, `Tips.holdMax` 60 s at most, let go by `Remotes.TipClosed`) and the music is down (`MusicFx.setTip`).
-OK, Return, Enter or a gamepad's A closes it, **so a probe clears one with a synthetic Return**. It waits
+OK, Return, Enter or a gamepad's A closes it, **so a probe clears one with a synthetic Return**; that press is the
+tip's alone (`FirstTips.takesKeys`, asked by NEW ENEMY!, the portal's START and the draft's A; the tip also keeps
+gamepad selection on its OK while up). A phone on its side shows the room edge to edge, so there the card
+stands over its foot; an upright phone gets it above or below the room when the camera shows forest there. It waits
 while the title, the story, a story beat, an area's loading screen, a boss banner, NEW ENEMY!, MENU's panel
 (`RunPaused.covered`), a hatch, the tutorial, or class select (for every tip but its own, drawn over it) is
 up; one that cannot show within 12 s is let go, not marked, and asked again next time. The tutorial, NEW ENEMY!, the story beats, a first badge's pop-up and the Hatchery pointer

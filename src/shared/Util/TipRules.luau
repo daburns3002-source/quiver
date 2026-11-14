@@ -27,6 +27,17 @@ function TipRules.holds(key: unknown): boolean
 	return TipRules.isTip(key) and Tips.tips[key :: string].hold == true
 end
 
+--[[ Whether tip `key` may come up `since` seconds after the last tip went
+     (`math.huge` when none has shown this visit): `Tips.gap` of quiet
+     between tips, so they do not come one after another; only `holdGap`
+     before a `hold` tip, whose screen is stopped and waiting for it. ]]
+function TipRules.spaced(key: unknown, since: number): boolean
+	if since ~= since then
+		return false
+	end
+	return since >= (if TipRules.holds(key) then Tips.holdGap else Tips.gap)
+end
+
 --[[ Whether tip `key` may show now: a tip, never seen, not shown yet. ]]
 function TipRules.due(
 	key: unknown,

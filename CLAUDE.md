@@ -168,6 +168,13 @@ counted 13 tips that each stopped the game for an OK: `docs/PLAYTEST-KID.md`); i
 sooner. Only a tip marked `hold` in `Config/Tips` still waits for OK (`TipRules.holds`): class select's and
 REROLL's, each over a screen that is already stopped, and each goes with its screen if the class is chosen
 or a card taken under it (`FirstTips` `passed`). One line (`hold = true`) puts a tip back to pausing.
+**Tips are spaced** (owner, 2026-11-14: "there needs to be spacing between them, so everything isnt just
+popping up one after another"): after a tip has gone the next waits `Tips.gap` (10 s) of quiet, where it
+was 0.6 s; a `hold` tip, whose screen is stopped and waiting, only `Tips.holdGap` (`TipRules.spaced`,
+`tests/Tips.spec`). A tip a screen asks for (`FirstTips.show`: a station, the portal, a boss) goes before
+the ambient ones `look` asks for from the profile (a first pet, gems), which are asked again every second
+and lose nothing by waiting. A tip that cannot get its turn within `Tips.patience` (20 s, longer than a
+tip's turn and the quiet after it) is let go and asked again the next time its thing happens.
 **A `hold` tip pauses everything until OK**
 (owner, 2026-11-13: "they should be in the outer arena area so it doesnt block the arena, and also pause the
 game and have an ok button to dismiss the tip and resume the game. make sure the music quiets as well while

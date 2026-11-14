@@ -97,6 +97,33 @@ return function(t: TestRunner.Helper)
 		t.isTrue(not TipRules.holds(nil))
 	end)
 
+	--[[ Owner, 2026-11-14: "there needs to be spacing between them, so
+	     everything isnt just popping up one after another". ]]
+	t.test("tips are spaced: quiet after one before the next, but not for a held one", function()
+		t.isTrue(Tips.gap >= Tips.showFor, "the screen is clear at least as long as a tip is up")
+		t.isTrue(
+			Tips.showFor + Tips.gap < Tips.patience,
+			"a tip asked for as another comes up still gets its turn"
+		)
+		t.isTrue(Tips.holdGap < 1)
+		t.isTrue(TipRules.spaced("Gems", math.huge), "the first tip of a visit waits for nothing")
+		t.isFalse(TipRules.spaced("Gems", 0), "not straight after another")
+		t.isFalse(TipRules.spaced("Gems", Tips.gap - 0.1))
+		t.isTrue(TipRules.spaced("Gems", Tips.gap))
+		t.isFalse(TipRules.spaced("Gems", 0 / 0))
+		for key, tip in Tips.tips do
+			if tip.hold then
+				t.isTrue(
+					TipRules.spaced(key, Tips.holdGap),
+					key .. " explains a screen that is waiting"
+				)
+				t.isFalse(TipRules.spaced(key, 0))
+			else
+				t.isFalse(TipRules.spaced(key, Tips.holdGap), key .. " waits out the quiet")
+			end
+		end
+	end)
+
 	t.test("every tip the game asks for exists", function()
 		for _, key in ASKED do
 			t.isTrue(TipRules.isTip(key), `no tip {key}`)

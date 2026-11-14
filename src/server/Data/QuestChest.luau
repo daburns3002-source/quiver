@@ -65,8 +65,39 @@ local function open(player: Player, kind: string)
 	end
 end
 
+--[[ A goal's eggs and crates (`Config/Goals`): the best egg open to the
+     player and the best crate for their class, free. What cannot be given
+     (no egg open, no crate for the class) is paid in gems instead. ]]
+local function give(player: Player, eggs: number, crates: number)
+	local missed = 0
+	if eggs > 0 then
+		local profile = PlayerData.get(player)
+		local key = if profile then PrizeRules.eggKey(profile.bossesBeaten) else nil
+		local pets = if key then Hatchery.grantMany(player, key, eggs) else {}
+		if key and #pets > 0 then
+			opened:FireClient(player, "Egg", key, pets)
+		else
+			missed += eggs
+		end
+	end
+	if crates > 0 then
+		local session = RunSession.get(player)
+		local index = PrizeRules.crateIndex(if session then session.loadout.class else nil)
+		local weapons = if index then EndlessPrizes.crates(player, index, crates) else {}
+		if index and #weapons > 0 then
+			opened:FireClient(player, "Crate", index, weapons)
+		else
+			missed += crates
+		end
+	end
+	if missed > 0 then
+		Wallet.addGems(player, missed * RewardConfig.bonus.gems)
+	end
+end
+
 function QuestChest.start()
 	Rewards.openChest = open
+	Rewards.givePrize = give
 end
 
 return QuestChest

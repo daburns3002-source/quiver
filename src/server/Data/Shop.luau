@@ -286,6 +286,8 @@ local function merge(player: Player, kind: unknown, key: unknown, tier: unknown)
 		return
 	end
 	if Wallet.merge(player, kind, key, tier) then
+		-- for the merge goal (`Config/Goals`)
+		Rewards.note(player, "merges", 1)
 		local session = RunSession.get(player)
 		if session and RoomController.inLobby() then
 			RunSession.applyLoadout(session)

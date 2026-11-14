@@ -62,7 +62,7 @@ return function(t: TestRunner.Helper)
 
 	t.test("a new profile has beaten no level", function()
 		local p = SaveSchema.migrate(nil)
-		t.equal(SaveSchema.VERSION, 17)
+		t.equal(SaveSchema.VERSION, 18)
 		t.isNil((next(p.levelsBeaten)))
 	end)
 
@@ -438,6 +438,30 @@ return function(t: TestRunner.Helper)
 				20400,
 				"a saved copy reads back the same"
 			)
+		end
+	)
+
+	t.test(
+		"version 18: an older profile has counted nothing and claimed no goal; a stored one keeps its own",
+		function()
+			local old = SaveSchema.migrate({ version = 17, coins = 9 })
+			t.isNil((next(old.stats)), "no kill or win is invented")
+			t.isNil((next(old.goalsClaimed)))
+			t.equal(old.coins, 9, "and nothing else is lost")
+			local p = SaveSchema.migrate({
+				version = 18,
+				stats = { kills = 1200.9, levels = -4, hatches = "many" },
+				goalsClaimed = { kills = 2, levels = 9, pets = 0 },
+			})
+			t.equal(p.stats.kills, 1200)
+			t.isNil(p.stats.levels, "a broken count is dropped")
+			t.isNil(p.stats.hatches)
+			t.equal(p.goalsClaimed.kills, 2)
+			t.equal(p.goalsClaimed.levels, 3, "never more steps than a goal has")
+			t.isNil(p.goalsClaimed.pets)
+			local again = SaveSchema.migrate(p)
+			t.equal(again.stats.kills, 1200, "a saved copy reads back the same")
+			t.equal(again.goalsClaimed.kills, 2)
 		end
 	)
 end

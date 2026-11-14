@@ -22,6 +22,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
+local GoalRules = require(ReplicatedStorage.Shared.Util.GoalRules)
 local Inbound = require(script.Parent.Parent.Net.Inbound)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
@@ -42,6 +43,9 @@ local toast = Remotes.event(Remotes.RewardToast)
      require the hatchery and the crates; this module may not, since both
      of those call `note` here. ]]
 Rewards.openChest = nil :: ((player: Player, kind: string) -> ())?
+--[[ Gives a goal's eggs and crates (`Config/Goals`), by the same module
+     and for the same reason. ]]
+Rewards.givePrize = nil :: ((player: Player, eggs: number, crates: number) -> ())?
 
 --[[ Studio's day offsets, by player; never set on a live server. ]]
 local offsets: { [Player]: number } = {}
@@ -83,6 +87,11 @@ function Rewards.note(player: Player, kind: string, amount: number)
 		profile.rewards.cratesOpened += math.floor(amount)
 		changed = true
 	end
+	--[[ And for good: the Goals' lifetime counters (`Config/Goals.counted`),
+	     kept here because everything that should count already tells this. ]]
+	if GoalRules.count(profile.stats, kind, amount) then
+		changed = true
+	end
 	if changed then
 		PlayerData.touch(player)
 	end
@@ -108,13 +117,34 @@ local function claim(player: Player, kind: unknown, key: unknown)
 			Wallet.send(player)
 		end
 		return
+	elseif kind == "goal" then
+		--[[ A goal's next step (`Config/Goals`): marked here in one step,
+		     then paid; its eggs and crates are given by `Data/QuestChest`. ]]
+		local prize = GoalRules.claim(profile, key)
+		if prize then
+			log.info("%s claims a step of goal %s", player.Name, tostring(key))
+			Wallet.addCoins(player, prize.coins or 0)
+			Wallet.addGems(player, prize.gems or 0)
+			local eggs, crates = prize.eggs or 0, prize.crates or 0
+			local give = Rewards.givePrize
+			if give and eggs + crates > 0 then
+				give(player, eggs, crates)
+			end
+			PlayerData.touch(player)
+			Wallet.send(player)
+		end
+		return
 	elseif kind == "all" then
-		local total, n = RewardRules.claimAll(profile, day)
+		local total, n, quests = RewardRules.claimAll(profile, day)
 		gift = if n > 0 then total else nil
+		GoalRules.count(profile.stats, "quests", quests)
 	elseif kind == "login" then
 		gift = RewardRules.claimLogin(profile.rewards, day)
 	elseif kind == "quest" and type(key) == "string" then
 		gift = RewardRules.claimQuest(profile.rewards, day, key)
+		if gift then
+			GoalRules.count(profile.stats, "quests", 1)
+		end
 	elseif kind == "starter" and type(key) == "string" then
 		gift = RewardRules.claimStarter(profile, key)
 	end

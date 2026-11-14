@@ -93,6 +93,7 @@ local queue: { Waiting } = {}
 local current: GuiObject? = nil
 --[[ Whether the tip showing is a `hold` one: the run held, the keys its. ]]
 local currentHolds = false
+local currentKey: string? = nil
 -- when the last tip was closed, for `takesKeys`
 local closedAt = -math.huge
 --[[ Gamepad and Enter navigation: what was selected before the tip took
@@ -288,6 +289,7 @@ local function draw(key: string)
 			:Play()
 	end
 	current = holder
+	currentKey = key
 	currentHolds = TipRules.holds(key)
 	if not currentHolds then
 		task.delay(Tips.showFor, function()
@@ -322,6 +324,22 @@ local function draw(key: string)
 				end)
 		end)
 	end
+end
+
+--[[ Whether the screen a `hold` tip explains has gone from under it: the
+     class is chosen, the card is taken. The tip goes with it (seen in
+     Studio, 2026-11-14: a card taken under REROLL's tip left the tip up
+     and the run held for it). ]]
+local function passed(key: string?): boolean
+	local player = Players.LocalPlayer
+	if key == "ClassSelect" then
+		return player:GetAttribute("ClassSelecting") ~= true
+	elseif key == "Reroll" then
+		local playerGui = player:FindFirstChild("PlayerGui")
+		local draft = playerGui and playerGui:FindFirstChild("DraftScreen")
+		return not (draft and draft:IsA("ScreenGui") and draft.Enabled)
+	end
+	return false
 end
 
 --[[ Puts up the next tip waiting, if one may show now. ]]
@@ -482,6 +500,10 @@ function FirstTips.start()
 		if since >= LOOK_EVERY then
 			since = 0
 			look()
+		end
+		local item = current
+		if item and currentHolds and passed(currentKey) then
+			close(item, true)
 		end
 		pump()
 	end)

@@ -393,6 +393,7 @@ function Purchases.start()
 	end)
 	Players.PlayerRemoving:Connect(function(player)
 		askedFrom[player] = nil
+		starterOwed[player] = nil
 	end)
 	task.spawn(function()
 		while true do

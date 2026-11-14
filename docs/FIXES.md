@@ -16,6 +16,36 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## "I did what it said and lost": two deaths in the tutorial, one half a second after ROOM CLEAR (2026-11-14)
+
+**Seen** in the kid playtest (`docs/PLAYTEST-KID.md`), on a brand-new profile. Tutorial room 2: the
+player walked straight in, stopped behind the log across the middle at (0, 7) and stood still, as the
+prompt says. 40 arrows in 22 s, the Spitter at (-10, -1) still on 112 of 112, 14 hits taken, DEFEAT.
+Tutorial room 5: CLEARED at 399.1 s, dead at 399.6 s from two seeds already in the air. TRY AGAIN there
+starts the tutorial over from room 1.
+
+**Wrong:** (1) room 2's one log, 11 studs wide on the centre line, stood between the spawn and the
+room; a ray from the player to the Spitter hit `Arena.Blockers.Obstacle1`, so every arrow stopped on it
+while its lobbed seeds did not. (2) `RoomController.step` went to Cleared with enemy shots still live
+in `ProjectileSystem`; nothing removed them until the next room was built. (3) The tutorial could be
+lost at all.
+
+**Done:** room 2's logs are two, at x = +-10.5, the lane from the spawn open (`tests/Tutorial.spec`
+keeps 4 studs clear either side of the centre line). As a fight is won, every enemy shot is dropped on
+the server and `Remotes.ShotsParried` clears them on every client, in every level. In the tutorial a
+hit never takes health under `Tutorial.healthFloor` (1).
+
+**Measured** in Studio Play: walked into room 2's enemies without shooting; health fell to 1 of 225
+and stayed there through 18 s of further hits, with no DEFEAT; then stood on the centre line and cleared
+the room. Each clear sent `ShotsParried` and the recorder logged no `PlayerDamaged` after it (room 2 of
+the tutorial, rooms 2 and 10 of 1-2, room 15 of 1-3).
+
+**Also here**, from the same playtest: 1-2's first room killed a standing player in 11 s (four enemies
+with a Spitter, against a bare bow) and DEFEAT then offered a 15 Robux revive 1.3 s later. 1-2's first
+two rooms are slimes only now (`tools/glade_levels.py`), and no revive is sold in a run's first three
+rooms (`RobuxStore.reviveFromRoom`; seen: none on a death in room 3, "buy" in room 4). A card taken
+under REROLL's tip left the tip up and the run held for it: a `hold` tip now goes with its screen.
+
 ## The launch anti-exploit audit: a run held for ever by re-sending MENU, and thirteen remotes with no rate limit (2026-11-13)
 
 Phase 10's audit (`docs/ROADMAP.md`) read every remote a client can fire at the server: 40 handlers

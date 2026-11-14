@@ -129,8 +129,8 @@ def roster(level, n, rooms, first, last):
             return count, "meleeCharger, meleeCharger, broodSlime"
     # 1-2 opens gently (owner, 2026-11-14, the kid playtest: its first room,
     # four with a Spitter against a bare bow, killed a standing player in 11
-    # seconds straight after their first win). Slimes only for two rooms; the
-    # Spitter is back from room 3, by when a card or two is drafted.
+    # seconds straight after their first win). Slimes only for two rooms (and
+    # room 3's mix has none); the Spitter is back in room 4, cards drafted.
     if level == "1-2":
         if n == 1:
             return 3, "meleeCharger"

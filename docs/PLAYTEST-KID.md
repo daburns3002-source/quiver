@@ -1,7 +1,9 @@
 # Playtest as a 10 to 13 year old with a short attention span (2026-11-14)
 
-Played in Studio on `main` at 47bab46c (#591, the Robux store). **No game code was changed.**
-These are notes and proposed fixes; tell me which numbers to build.
+Played in Studio on `main` at 47bab46c (#591, the Robux store). **No game code was changed** by the
+playtest itself. **The five listed under "The five I would build first" were built the same day**
+(owner: "Build top 5"; `docs/TRACKER.md`, `docs/FIXES.md`); items 4, 7, 8, 9 and 10 below are still
+open and wait on the owner's say.
 
 ## How it was played
 

@@ -738,16 +738,13 @@ local function draw(s: StationScreen.Screen)
 	end
 	pets = math.round(pets)
 	local power = plate(sheet, Chunky.gold, table.unpack(L.plate))
-	local words = Chunky.textOn(
-		power,
-		"ATK "
-			.. Chunky.commas(atk)
-			.. (if #petKeys > 0 then "   PETS " .. Chunky.commas(pets) else "")
-			.. "   HP "
-			.. Chunky.commas(Balance.Player.maxHealth),
-		Chunky.gold,
-		6
-	)
+	local line = "ATK "
+		.. Chunky.commas(atk)
+		.. (if #petKeys > 0 then "   PETS " .. Chunky.commas(pets) else "")
+		.. "   HP "
+		.. Chunky.commas(Balance.Player.maxHealth)
+	-- spaces that cannot break: scaled words otherwise wrap HP's number under it
+	local words = Chunky.textOn(power, (string.gsub(line, " ", "\u{A0}")), Chunky.gold, 6)
 	-- a rise since it was last drawn pops the plate
 	if lastPower and atk + pets > lastPower then
 		Chunky.pop(power)

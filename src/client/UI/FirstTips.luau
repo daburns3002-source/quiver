@@ -135,7 +135,10 @@ end
 
 --[[ The arena's box on the screen, clipped to it: what a tip keeps clear
      of. Nil in the lobby, or with no room built. The room is centred on
-     the world's origin (`TopDownCamera`), walls included. ]]
+     the world's origin (`TopDownCamera`), walls included. A phone on its
+     side shows the room edge to edge, so there the card stands over its
+     foot; an upright phone's camera shows forest above or below it as it
+     follows, and the card goes there when it fits (`TipRules.place`). ]]
 local function arenaBox(w: number, h: number): TipRules.Box?
 	if Workspace:GetAttribute("InLobby") == true or not Workspace:FindFirstChild("Arena") then
 		return nil
@@ -148,20 +151,20 @@ local function arenaBox(w: number, h: number): TipRules.Box?
 	local hx = arena.size.X / 2 + arena.wallThickness
 	local hz = arena.size.Z / 2 + arena.wallThickness
 	local minX, minY, maxX, maxY = math.huge, math.huge, -math.huge, -math.huge
-	for _, y in { 0, arena.wallHeight } do
-		for _, corner in
-			{
-				Vector3.new(-hx, y, -hz),
-				Vector3.new(hx, y, -hz),
-				Vector3.new(-hx, y, hz),
-				Vector3.new(hx, y, hz),
-			}
-		do
-			local point, inFront = camera:WorldToViewportPoint(corner)
-			if inFront then
-				minX, maxX = math.min(minX, point.X), math.max(maxX, point.X)
-				minY, maxY = math.min(minY, point.Y), math.max(maxY, point.Y)
-			end
+	-- the floor and its walls where they stand: a wall's top leans out in
+	-- the view and would make the room look bigger than what is played on
+	for _, corner in
+		{
+			Vector3.new(-hx, 0, -hz),
+			Vector3.new(hx, 0, -hz),
+			Vector3.new(-hx, 0, hz),
+			Vector3.new(hx, 0, hz),
+		}
+	do
+		local point, inFront = camera:WorldToViewportPoint(corner)
+		if inFront then
+			minX, maxX = math.min(minX, point.X), math.max(maxX, point.X)
+			minY, maxY = math.min(minY, point.Y), math.max(maxY, point.Y)
 		end
 	end
 	if minX > maxX then

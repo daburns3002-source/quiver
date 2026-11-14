@@ -89,6 +89,12 @@ local queue: { Waiting } = {}
 local current: GuiObject? = nil
 -- when the last tip was closed, for `takesKeys`
 local closedAt = -math.huge
+--[[ Gamepad and Enter navigation: what was selected before the tip took
+     the selection for its OK, given back after; and the watch that keeps
+     it on OK while the tip is up (a screen under it, the portal's START,
+     selects its own button just after asking for the tip). ]]
+local restoreSelection: GuiObject? = nil
+local selectionWatch: RBXScriptConnection? = nil
 local nextAt = 0
 local gui: ScreenGui? = nil
 
@@ -178,8 +184,22 @@ local function close(item: GuiObject)
 	MusicFx.setTip(false)
 	Remotes.event(Remotes.TipClosed):FireServer()
 	SoundFx.play("card_click")
+	if selectionWatch then
+		selectionWatch:Disconnect()
+		selectionWatch = nil
+	end
 	if GuiService.SelectedObject and GuiService.SelectedObject:IsDescendantOf(item) then
 		GuiService.SelectedObject = nil
+	end
+	-- given back once this press is done, so it cannot press that too
+	local restore = restoreSelection
+	restoreSelection = nil
+	if restore then
+		task.delay(KEY_GRACE, function()
+			if current == nil and restore:IsDescendantOf(game) and restore.Visible then
+				GuiService.SelectedObject = restore
+			end
+		end)
 	end
 	local scale = item:FindFirstChild("PopScale") :: UIScale?
 	if scale and not reducedMotion() then
@@ -253,11 +273,30 @@ local function draw(key: string)
 	current = holder
 	RunPaused.setTip(true)
 	MusicFx.setTip(true)
-	if UserInputService.GamepadEnabled then
-		local face = ok:FindFirstChildWhichIsA("GuiButton", true)
-		if face then
+	--[[ Enter and a gamepad's A press whatever is selected: while the tip
+	     is up that is its OK, never a button under it. Taken after the
+	     caller has finished, since a screen that asks for a tip as it opens
+	     may then select its own. ]]
+	local face = ok:FindFirstChildWhichIsA("GuiButton", true)
+	if face and (UserInputService.GamepadEnabled or GuiService.SelectedObject ~= nil) then
+		task.defer(function()
+			if current ~= holder then
+				return
+			end
+			local before = GuiService.SelectedObject
+			restoreSelection = if before and not before:IsDescendantOf(holder) then before else nil
 			GuiService.SelectedObject = face
-		end
+			selectionWatch = GuiService:GetPropertyChangedSignal("SelectedObject")
+				:Connect(function()
+					local now = GuiService.SelectedObject
+					if current == holder and now ~= face then
+						if now and not now:IsDescendantOf(holder) then
+							restoreSelection = now
+						end
+						GuiService.SelectedObject = face
+					end
+				end)
+		end)
 	end
 end
 

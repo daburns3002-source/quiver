@@ -319,6 +319,10 @@ What exists and works, all verified in Studio rather than only by the gates:
   the main button on both (owner, 2026-11-08; `Remotes.RunLobby`). Since 2026-11-12 the chest
   row is only built when the run paid a chest, an egg or a boss item, and the tutorial's
   Victory says CONTINUE, since it leads to the lobby (`Util/EndScreenRules`).
+  **Neither panel is white** (owner, 2026-11-14: "the victory and defeat screens also shouldnt
+  have a white background"): Victory's is sea blue, Defeat's slate, as on the sheets, in Lagoon's
+  colours (`Config/EndScreenTheme`; `tests/UiPalette.spec` fails a pale panel). No word sits on a
+  panel's own fill, so a new line of text there needs a plate under it.
 - **Phase 3, mostly:** the shot pipeline with its abilities as data, XP and a
   choose-one-of-three draft that pauses the world, crit, splash, Ricochet
   (enemy to enemy), Bouncy Wall, Tracking Eye (homing), Double Shot

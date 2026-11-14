@@ -5,10 +5,15 @@
 	end_victory.jpg`, `end_defeat.jpg`; owner's yes 2026-10-25); the font is
 	the owner's UI reference of 2026-11-11 and **the colours are Lagoon**
 	(owner, 2026-11-12; `Config/UiPalette`, which every colour here is read
-	from): a mint-white panel inked in deep sea, sea-blue plates for the
-	titles, teal rows under white words, a green or sunny main button (the
-	sunny one with dark words, `buttonWords`) and a red way out. Flat colour
-	only: every block is a fill with a lighter strip along its top and a
+	from): a sea-blue Victory panel and a slate-sea Defeat panel inked in
+	deep sea, teal rows under white words, a green or sunny main button (the
+	sunny one with dark words, `buttonWords`) and a red way out. **Neither
+	panel is white** (owner, 2026-11-14: "the victory and defeat screens also
+	shouldnt have a white background"): the sheets' panels are a bright blue
+	and a rainy slate, and Lagoon's mint-white, right for a station's panel,
+	washed both out. No word sits on a panel's own fill: each is on a plate,
+	a tab, a row or a button, and `tests/UiPalette.spec` holds those. Flat
+	colour only: every block is a fill with a lighter strip along its top and a
 	darker band along its bottom, inside an ink outline.
 
 	A block's look: `ink` outline `inkW` thick, then an optional `rim`
@@ -36,7 +41,19 @@ export type Block = {
 local INK = P.edge
 --[[ The palette's colours a step lighter (a block's top strip, its studs)
      and a step deeper (its bottom band). Words sit on the fill between. ]]
-local MINT_LOW = P.panelBottom:Lerp(P.edge, 0.14)
+--[[ Victory's panel: the header's sea blue a step deeper, so the blue tab
+     and the gold picture stand off it; its stats box deeper again. ]]
+local SEA = P.header.bottom:Lerp(P.edge, 0.3)
+local SEA_LOW = SEA:Lerp(BLACK, 0.3)
+local SEA_DEEP = P.edge:Lerp(P.header.bottom, 0.25)
+local SEA_DEEP_LOW = P.edge:Lerp(BLACK, 0.25)
+--[[ Defeat's: the deep sea greyed with the palette's "cannot press" slate,
+     darker round the edge (the gloom) and in the stats box. ]]
+local SLATE = P.edge:Lerp(P.off.bottom, 0.3)
+local SLATE_LOW = SLATE:Lerp(BLACK, 0.4)
+local SLATE_GLOOM = SLATE:Lerp(BLACK, 0.28)
+local SLATE_DEEP = P.edge:Lerp(BLACK, 0.3)
+local SLATE_DEEP_LOW = P.edge:Lerp(BLACK, 0.5)
 local HEADER_HIGH = P.header.top:Lerp(WHITE, 0.45)
 local HEADER_LOW = P.header.bottom:Lerp(BLACK, 0.25)
 local TEAL_HIGH = P.secondary.top:Lerp(WHITE, 0.3)
@@ -95,22 +112,24 @@ local EndScreenTheme = {
 		panel = {
 			ink = INK,
 			inkW = 7,
-			rim = rgb(255, 255, 255),
+			rim = P.header.top,
 			rimW = 8,
-			fill = P.panelTop,
-			bottom = MINT_LOW,
+			fill = SEA,
+			bottom = SEA_LOW,
 			bottomH = 16,
 		} :: Block,
+		--[[ LEVEL COMPLETE: green, as on the sheet, since a blue plate is
+		     lost on the blue panel. ]]
 		sub = {
 			ink = INK,
 			inkW = 8,
-			fill = P.header.bottom,
-			top = P.header.top,
+			fill = P.go.top,
+			top = GO_HIGH,
 			topH = 10,
-			bottom = HEADER_LOW,
+			bottom = GO_LOW,
 			bottomH = 12,
 		} :: Block,
-		studs = HEADER_HIGH,
+		studs = GO_HIGH,
 		tab = {
 			ink = INK,
 			inkW = 7,
@@ -124,10 +143,10 @@ local EndScreenTheme = {
 		stats = {
 			ink = INK,
 			inkW = 8,
-			rim = P.white,
+			rim = P.header.bottom,
 			rimW = 8,
-			fill = P.panelBottom,
-			bottom = MINT_LOW,
+			fill = SEA_DEEP,
+			bottom = SEA_DEEP_LOW,
 			bottomH = 11,
 		} :: Block,
 		row = {
@@ -225,14 +244,14 @@ local EndScreenTheme = {
 		panel = {
 			ink = INK,
 			inkW = 7,
-			rim = rgb(255, 255, 255),
+			rim = P.off.top,
 			rimW = 9,
-			fill = P.panelTop,
-			bottom = MINT_LOW,
+			fill = SLATE,
+			bottom = SLATE_LOW,
 			bottomH = 18,
 		} :: Block,
 		--[[ The darker band just inside the panel's edge: the gloom. ]]
-		vignette = P.panelBottom,
+		vignette = SLATE_GLOOM,
 		vignetteW = 34,
 		sub = {
 			ink = INK,
@@ -255,10 +274,10 @@ local EndScreenTheme = {
 		stats = {
 			ink = INK,
 			inkW = 7,
-			rim = P.white,
+			rim = P.off.bottom,
 			rimW = 7,
-			fill = P.panelBottom,
-			bottom = MINT_LOW,
+			fill = SLATE_DEEP,
+			bottom = SLATE_DEEP_LOW,
 			bottomH = 10,
 		} :: Block,
 		row = {

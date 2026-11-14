@@ -406,6 +406,19 @@ local TitleScene = {
 		     this solid at its middle): sideways the logo stands in front of
 		     the crown, and its leaf blocks would show between the letters. ]]
 		backing = { colour = Color3.fromHex("#040B16"), wide = 1.7, tall = 2.1, alpha = 0.8 },
+		--[[ How the logo moves (owner, 2026-11-14, "more polished and
+		     professional looking"; seconds from the cut to the picture). It
+		     lands: a little large on the cut, easing down to its size while
+		     the flash fades. The streak then shoots in from its left end,
+		     arrowhead first, and has landed before the button rises. After
+		     that a pale band of light crosses the gold now and then (this
+		     share of the logo's width wide, this solid, tilted this much).
+		     None of it plays for a player who has asked for less motion. ]]
+		motion = {
+			pop = { from = 1.12, lasts = 0.7 },
+			streak = { at = 0.2, lasts = 0.5 },
+			shine = { first = 1.6, every = 7, lasts = 0.9, wide = 0.1, alpha = 0.6, tilt = 14 },
+		},
 		--[[ The streak of light under the words: this share of the logo's
 		     width, this far under them, fading in from the left and ending
 		     in a small arrowhead that overhangs its right end. ]]

@@ -325,6 +325,62 @@ return function(t: TestRunner.Helper)
 	end)
 
 	t.test(
+		"the logo lands on the cut, its arrow shoots in, and a shine crosses now and then",
+		function()
+			local motion = Scene.logo.motion
+			-- it lands: a little large on the cut, never under its size, exactly 1 after
+			t.near(TitleLayout.logoPop(0), motion.pop.from, 1e-9)
+			t.near(TitleLayout.logoPop(-3), motion.pop.from, 1e-9, "before the cut too")
+			t.isTrue(motion.pop.from > 1 and motion.pop.from <= 1.2, "a little large, not a zoom")
+			local last = TitleLayout.logoPop(0)
+			for step = 1, 40 do
+				local now = TitleLayout.logoPop(step * motion.pop.lasts / 40)
+				t.isTrue(now <= last + 1e-9 and now >= 1 - 1e-9, `settling at step {step}`)
+				last = now
+			end
+			t.near(TitleLayout.logoPop(motion.pop.lasts), 1, 1e-9)
+			t.near(TitleLayout.logoPop(60), 1, 1e-9, "and it stays its size")
+
+			-- the streak: nothing, then out to all of it, and never back
+			t.near(TitleLayout.streakGrow(0), 0, 1e-9)
+			t.near(TitleLayout.streakGrow(motion.streak.at), 0, 1e-9)
+			local out = 0
+			for step = 1, 40 do
+				local now =
+					TitleLayout.streakGrow(motion.streak.at + step * motion.streak.lasts / 40)
+				t.isTrue(now >= out - 1e-9 and now <= 1 + 1e-9, `shooting out at step {step}`)
+				out = now
+			end
+			t.near(TitleLayout.streakGrow(motion.streak.at + motion.streak.lasts), 1, 1e-9)
+			t.near(TitleLayout.streakGrow(60), 1, 1e-9)
+
+			-- both have finished before BEGIN ADVENTURE rises, so only one thing moves at a time
+			local buttonAt = Intro.buttonAt - Intro.revealAt
+			t.isTrue(motion.pop.lasts <= buttonAt, "landed before the button")
+			t.isTrue(
+				motion.streak.at + motion.streak.lasts <= buttonAt,
+				"arrow in before the button"
+			)
+
+			-- the shine: none at first, a quick crossing, then a long rest
+			local shine = motion.shine
+			t.isNil(TitleLayout.shine(0))
+			t.isNil(TitleLayout.shine(shine.first - 0.01))
+			t.isTrue(shine.first >= buttonAt + Intro.buttonIn, "the first one waits for the button")
+			t.near(TitleLayout.shine(shine.first) :: number, 0, 1e-9)
+			t.near(TitleLayout.shine(shine.first + shine.lasts / 2) :: number, 0.5, 1e-9)
+			t.isNil(TitleLayout.shine(shine.first + shine.lasts + 0.01))
+			t.near(
+				TitleLayout.shine(shine.first + 3 * shine.every + shine.lasts / 4) :: number,
+				0.25,
+				1e-9
+			)
+			t.isTrue(shine.every >= 5 * shine.lasts, "mostly at rest")
+			t.isTrue(shine.alpha > 0 and shine.alpha < 1 and shine.wide > 0 and shine.wide < 0.5)
+		end
+	)
+
+	t.test(
 		"BEGIN ADVENTURE is the drawing's button: 358 by 84 upright, 380 by 72 sideways",
 		function()
 			t.equal(Intro.button, "BEGIN ADVENTURE")

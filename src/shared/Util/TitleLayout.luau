@@ -204,6 +204,37 @@ function TitleLayout.logo(design: Design): Logo
 	}
 end
 
+--[[ Fast at first, settling at the end: 0 to 1. ]]
+local function easeOut(share: number): number
+	local left = 1 - math.clamp(share, 0, 1)
+	return 1 - left * left * left
+end
+
+--[[ The logo's size `t` seconds after the cut, as a share of its own: a
+     little large as it lands, exactly 1 once it has. ]]
+function TitleLayout.logoPop(t: number): number
+	local pop = Scene.logo.motion.pop
+	return pop.from + (1 - pop.from) * easeOut(t / pop.lasts)
+end
+
+--[[ How much of the streak is out `t` seconds after the cut: none, then
+     shooting out to all of it. ]]
+function TitleLayout.streakGrow(t: number): number
+	local streak = Scene.logo.motion.streak
+	return easeOut((t - streak.at) / streak.lasts)
+end
+
+--[[ Where the band of light is on the gold `t` seconds after the cut, 0 at
+     the logo's left to 1 at its right, or nil while there is none. ]]
+function TitleLayout.shine(t: number): number?
+	local shine = Scene.logo.motion.shine
+	if t < shine.first then
+		return nil
+	end
+	local since = (t - shine.first) % shine.every
+	return if since < shine.lasts then since / shine.lasts else nil
+end
+
 --[[ BEGIN ADVENTURE on a screen, in screen points: it grows with the
      picture up to `Scene.button.most`, sits `gap` above the bottom (of the
      safe area, in the game) and is centred. ]]

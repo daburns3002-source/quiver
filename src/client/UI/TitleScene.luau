@@ -42,6 +42,22 @@ type Mote = {
 	loop: number,
 }
 
+--[[ The logo's moving pieces (`step`): its size, the streak's bar, light
+     and arrowhead (each with where it rests, as a share of the logo's
+     box), and the bands of light on the gold. ]]
+type LogoParts = {
+	scale: UIScale,
+	base: number,
+	bar: Frame,
+	barWide: number,
+	glow: ImageLabel,
+	glowWide: number,
+	tipFrom: number,
+	travel: number,
+	head: Frame,
+	shines: { UIGradient },
+}
+
 type Twinkle = { frames: { Frame }, base: number, phase: number }
 type Sway = { frame: Frame, x: number, y: number, reach: number, phase: number }
 
@@ -50,6 +66,7 @@ export type Scene = {
 	twinkles: { Twinkle },
 	sways: { Sway },
 	shooting: Frame,
+	logo: LogoParts,
 	view: Vector2,
 	design: Config.Design,
 	motes: { Mote },
@@ -128,18 +145,30 @@ local LOGO_INNER = 0.5
      is the logo's box at `LOGO_INNER` of its size, under a UIScale): a faint
      gold haze, then for each word soft rings, a hard shadow, the near-black
      outline and the gold face, then the streak of light and its arrowhead. ]]
-local function buildLogo(holder: Frame, design: Config.Design, at: TitleLayout.Logo)
+local function buildLogo(
+	holder: Frame,
+	design: Config.Design,
+	at: TitleLayout.Logo,
+	scale: UIScale
+): LogoParts
 	local look = Config.logo
 	local unit = design.logo.unit
 	local wide, tall = at.width, at.bottom - at.top
 	local z = 0
 	--[[ Places `item` in the logo's own points, measured from its top-left. ]]
-	local function place(item: GuiObject, x: number, y: number, w: number, h: number)
+	local function place(
+		item: GuiObject,
+		x: number,
+		y: number,
+		w: number,
+		h: number,
+		into: Instance?
+	)
 		z += 1
 		item.ZIndex = z
 		item.Position = UDim2.fromScale(x / wide, y / tall)
 		item.Size = UDim2.fromScale(w / wide, h / tall)
-		item.Parent = holder
+		item.Parent = into or holder
 	end
 	local wordsTall = at.lines[#at.lines].top + at.lines[#at.lines].tall - at.top
 
@@ -206,6 +235,23 @@ local function buildLogo(holder: Frame, design: Config.Design, at: TitleLayout.L
 		gold.Color = ColorSequence.new(stops)
 		gold.Parent = face
 	end
+	-- a band of light that crosses the gold now and then (`step`)
+	local shine = look.motion.shine
+	local shines: { UIGradient } = {}
+	for index in look.words do
+		local band = Instance.new("UIGradient")
+		band.Rotation = shine.tilt
+		band.Transparency = NumberSequence.new({
+			NumberSequenceKeypoint.new(0, 1),
+			NumberSequenceKeypoint.new(0.5 - shine.wide, 1),
+			NumberSequenceKeypoint.new(0.5, 1 - shine.alpha),
+			NumberSequenceKeypoint.new(0.5 + shine.wide, 1),
+			NumberSequenceKeypoint.new(1, 1),
+		})
+		band.Offset = Vector2.new(-1, 0)
+		band.Parent = word(index, "Shine", Color3.new(1, 1, 1), 0)
+		table.insert(shines, band)
+	end
 
 	-- the streak: clear at its left end, brightest at its right
 	local streak = look.streak
@@ -247,21 +293,45 @@ local function buildLogo(holder: Frame, design: Config.Design, at: TitleLayout.L
 		ColorSequenceKeypoint.new(1, streak.to),
 	})
 
-	-- the arrowhead: a small triangle of thin columns, pointing right
+	--[[ The arrowhead: a small triangle of thin columns, pointing right, in
+	     a holder the size of the logo so `step` can move it as one. ]]
+	local arrowhead = Instance.new("Frame")
+	arrowhead.Name = "Arrowhead"
+	arrowhead.BackgroundTransparency = 1
+	place(arrowhead, 0, 0, wide, tall)
 	local head = streak.head
 	local tip = left + at.streakWide + head.overhang
 	local middle = top + streak.thick / 2
 	local halo = glowImage("HeadGlow", streak.glow, streak.headGlow.alpha)
 	local across = head.tall * streak.headGlow.across
-	place(halo, tip - head.long / 2, middle, across, across)
+	place(halo, tip - head.long / 2, middle, across, across, arrowhead)
 	for column = 0, head.long - 1 do
 		local half = head.tall / 2 * (1 - column / head.long)
 		local piece = Instance.new("Frame")
 		piece.Name = "Head"
 		piece.BorderSizePixel = 0
 		piece.BackgroundColor3 = streak.to
-		place(piece, tip - head.long + column, middle - half, 1.6, math.max(0.6, 2 * half))
+		place(
+			piece,
+			tip - head.long + column,
+			middle - half,
+			1.6,
+			math.max(0.6, 2 * half),
+			arrowhead
+		)
 	end
+	return {
+		scale = scale,
+		base = scale.Scale,
+		bar = light,
+		barWide = at.streakWide / wide,
+		glow = soft,
+		glowWide = softWide / wide,
+		tipFrom = left / wide,
+		travel = at.streakWide / wide,
+		head = arrowhead,
+		shines = shines,
+	}
 end
 
 --[[ Builds the picture into `parent`, which is `view` points in size (the
@@ -860,11 +930,14 @@ function TitleScene.build(parent: Instance, view: Vector2): Scene
 		round(logoAt.width * LOGO_INNER),
 		round((logoAt.bottom - logoAt.top) * LOGO_INNER)
 	)
+	-- held by its middle, so it lands (`step`) about its own centre
+	logo.AnchorPoint = Vector2.new(0.5, 0.5)
+	logo.Position = UDim2.fromScale(0.5, 0.5)
 	logo.Parent = logoHolder
 	local size = Instance.new("UIScale")
 	size.Scale = k / LOGO_INNER
 	size.Parent = logo
-	buildLogo(logo, design, logoAt)
+	local logoParts = buildLogo(logo, design, logoAt, size)
 
 	collect(root, fading)
 	-- the motes and the twinkling stars fade on their own loops (`step`)
@@ -884,6 +957,7 @@ function TitleScene.build(parent: Instance, view: Vector2): Scene
 		twinkles = twinkles,
 		sways = sways,
 		shooting = shooting,
+		logo = logoParts,
 		fading = fading,
 		shown = 1,
 		still = reducedMotion(),
@@ -899,6 +973,22 @@ function TitleScene.step(scene: Scene, t: number, shown: number)
 		scene.shown = shown
 		fade(scene.fading, shown)
 	end
+	--[[ The logo lands on the cut, its streak shoots in arrowhead first, and
+	     a band of light crosses the gold now and then. ]]
+	local logo = scene.logo
+	logo.scale.Scale = logo.base * (if scene.still then 1 else TitleLayout.logoPop(t))
+	local grow = if scene.still then 1 else TitleLayout.streakGrow(t)
+	logo.bar.Size = UDim2.fromScale(logo.barWide * grow, logo.bar.Size.Y.Scale)
+	local tip = logo.tipFrom + logo.travel * grow
+	logo.glow.Position = UDim2.fromScale(tip - logo.glowWide * grow / 2, logo.glow.Position.Y.Scale)
+	logo.glow.Size = UDim2.fromScale(logo.glowWide * grow, logo.glow.Size.Y.Scale)
+	logo.head.Position = UDim2.fromScale(-logo.travel * (1 - grow), 0)
+	logo.head.Visible = grow > 0
+	local across = if scene.still then nil else TitleLayout.shine(t)
+	for _, band in logo.shines do
+		band.Offset = Vector2.new(if across then across * 1.2 - 0.6 else -1, 0)
+	end
+
 	local look = Config.mote
 	local wide, tall = scene.design.width, scene.design.height
 	for _, mote in scene.motes do

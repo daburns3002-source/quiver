@@ -4,29 +4,31 @@ What the game sells for Robux (owner, 2026-11-13: "Yes, build them"). Prices are
 
 **Never sold:** Mythics, boss items, Starfall, boss badges. No energy and no timers.
 
-## For the owner: what to create on the Creator Dashboard
+## On the Creator Dashboard
 
-Creator Dashboard → the experience → **Monetization**. Every icon is a 512 x 512 PNG in `assets/ui/robux/dashboard/`, centred with room for Roblox's circle crop. Send Claude each id once it is made; nothing can be bought until its id is in `Config/RobuxStore`.
+**Created 2026-11-14** in "Archer Legends [TEST]" (universe 10772468005), all on sale, **managed pricing off** so these prices hold (turn it on per item to let Roblox tune them). Every icon is a 512 x 512 PNG in `assets/ui/robux/dashboard/`, centred with room for Roblox's circle crop. The ids are in `Config/RobuxStore`. A new item: create it there, then put its id in the config.
+
+If the game is ever published to another universe, these ten must be made there too and the ids changed: an id belongs to one universe.
 
 ### Developer products (Monetization → Developer Products → Create)
 
-| Name | Price (R$) | Description | Icon |
-|---|---|---|---|
-| Handful of Gems | 49 | 120 gems. | `Gems.png` |
-| Pouch of Gems | 99 | 325 gems. | `Gems.png` |
-| Bag of Gems | 199 | 750 gems. | `Gems.png` |
-| Chest of Gems | 499 | 2,300 gems. | `Gems.png` |
-| Vault of Gems | 999 | 5,500 gems. | `Gems.png` |
-| Starter Pack | 99 | 500 gems, 3 Mossy Eggs and 2,000 coins. Once per player. | `StarterPack.png` |
-| Revive | 15 | Back into the room you fell in, with your build. Once per run. | `Revive.png` |
+| Name | Id | Price (R$) | Description | Icon |
+|---|---|---|---|---|
+| Handful of Gems | 3731091948 | 49 | 120 gems. | `Gems.png` |
+| Pouch of Gems | 3731092230 | 99 | 325 gems. | `Gems.png` |
+| Bag of Gems | 3731092299 | 199 | 750 gems. | `Gems.png` |
+| Chest of Gems | 3731092363 | 499 | 2,300 gems. | `Gems.png` |
+| Vault of Gems | 3731092429 | 999 | 5,500 gems. | `Gems.png` |
+| Starter Pack | 3731092480 | 99 | 500 gems, 3 Mossy Eggs and 2,000 coins. Once per player. | `StarterPack.png` |
+| Revive | 3731092534 | 15 | Back into the room you fell in, with your build. Once per run. | `Revive.png` |
 
 ### Game passes (Monetization → Passes → Create a Pass, then put it on sale)
 
-| Name | Price (R$) | Description | Icon |
-|---|---|---|---|
-| 2x Coins | 199 | Double the coins from every kill and every clear. | `DoubleCoins.png` |
-| Extra Pet Slot | 249 | A third pet slot: take three pets into every run. | `PetSlot.png` |
-| VIP | 399 | A gold name tag, 10% more coins and 25 gems every day. | `VIP.png` |
+| Name | Id | Price (R$) | Description | Icon |
+|---|---|---|---|---|
+| 2x Coins | 2089910820 | 199 | Double the coins from every kill and every clear. | `DoubleCoins.png` |
+| Extra Pet Slot | 2089742794 | 249 | A third pet slot: take three pets into every run. | `PetSlot.png` |
+| VIP | 2089826773 | 399 | A gold name tag, 10% more coins and 25 gems every day. | `VIP.png` |
 
 ## How it works
 
@@ -43,5 +45,5 @@ Creator Dashboard → the experience → **Monetization**. Every icon is a 512 x
 
 ## Testing in Studio
 
-- **Test purchases**: with the ids in, Studio's prompts are test purchases (no Robux charged) and `ProcessReceipt` runs for real. Without DataStore access in Studio the grant lives in memory only.
+- **Test purchases**: Studio's prompts are test purchases (no Robux charged) and `ProcessReceipt` runs for real. Without DataStore access in Studio the grant lives in memory only. Seen 2026-11-14: Handful of Gems, Revive (from DEFEAT, back into the room) and Starter Pack. **The owner's account owns every pass as its creator**, so the STORE shows them OWNED for that account and a pass cannot be test-bought with it; use `Remotes.DebugPass` or a second account.
 - **Without ids**: from a client probe, `Remotes.DebugReceipt:FireServer(key, id)` sends a made-up receipt (send the same id twice: granted once), and `Remotes.DebugPass:FireServer(key, true/false)` gives or takes a pass. Both are Studio only (`Inbound.debug`).

@@ -601,8 +601,9 @@ Starfall, boss badges; no energy, no timers. **Every receipt is granted once**: 
 `PurchaseId` up in the save (`SaveSchema` v15 `purchases`), grants and writes it down together, and answers
 `PurchaseGranted` only after `PlayerData.saveNow` lands. Prompts are the server's (`Remotes.StoreBuy`). The
 revive puts the buyer back into the room they fell in, which starts over with their build (`RoomController.revive`);
-in co-op only the buyer, the others sit that room out. Ids are 0 until the owner creates the products on the
-Creator Dashboard (a 0 shows SOON). Studio: `Remotes.DebugReceipt(key, id)` and `DebugPass(key, on)`.
+in co-op only the buyer, the others sit that room out. The ten ids are the dashboard's (universe 10772468005,
+created 2026-11-14, managed pricing off); an id at 0 shows SOON. The creator's account owns every pass.
+Studio: `Remotes.DebugReceipt(key, id)` and `DebugPass(key, on)`.
 
 **Endless pays in eggs and crates** (owner, 2026-11-11: "MAKE IT MORE LIKE 5 EGGS AND 5 CRATES ... I WANT
 IT TO FEEL NECESSARY TO BEAT THESE ROOMS"): each milestone (`Balance.Endless.milestones`) hatches its

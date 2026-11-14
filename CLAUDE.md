@@ -624,6 +624,10 @@ breathing glow behind the picture, sparkles), rank 2 for a Mythic or tier S (bri
 rising, the picture breathing; a Mythic's rays run round the rainbow). The greater of rarity and tier
 counts, so a Common merged to S is as grand as a Mythic. `Chunky.tier`'s A and S badges shine and S
 beats, wherever a tier badge is drawn. A grand item's card opens with a burst of sparks.
+**A tier named on a button is its badge, not a bare letter** (owner, 2026-11-14: "where it says merge c
+to b it should have the actual letter icons for c and b"): `Chunky.spell(button, colour, parts)` sets
+words and `{ tier = "C" }` badges (`Chunky.badge`) in one row on a `Chunky.button`, as the item card's
+MERGE button does in all three of its states.
 
 **What goes on by itself** (2026-11-14, the kid playtest): a hatched pet goes into any empty slot open
 to the player, rarest first, and never into one they filled (`EggRules.fill`, `Data/Hatchery`); a weapon

@@ -628,14 +628,19 @@ an area's Legendary is given the first time its boss falls (and on join to anyon
 for reaching Endless floor `Trails.endless.floor` (50) as **each** of the three classes (owner: "a reward for
 getting to a certain floor on endless with all 3 classes"; save v14 `endlessClassBest`, counted from the first
 run after trails came in). The server grants through `Wallet.grantTrail` / `settleTrails` only, and the worn one
-is the Player's `Trail` attribute; every client draws every player's trail itself (a ribbon flat on the ground
-with a brighter fin standing along its middle, and the trail's square particles, `DeviceTiers.trailShare` of them,
-a little while standing). Made "very cool" (owner, the same day): a dash or putting one on throws a burst, glowing
-particles twinkle, a glowing trail's light breathes, Starfall's ribbon shimmers and throws shooting stars. Colours
-are laid over the ground, never added (`LightEmission` 0: added, blue went white on the lobby floor;
-FIXES). Every Legendary and
-Mythic trail glows with a light (`tests/Trails.spec`). One picture a trail, `Trails.trails[key].icon` (Codex,
-cut by `assets/ui/trails/cutout.py`); a new trail needs its icon drawn from the same prompts.
+is the Player's `Trail` attribute; every client draws every player's trail itself. **Each look is its Claude Design
+build's** (owner, 2026-11-13: "start making the trails in design that were agreed upon earlier"; one Design project
+a trail, named on its entry as `design`, every number ported from the build's own code): a ribbon of voxel tiles
+laid on a world grid as the player runs (`Trails.tile` studs a tile, ageing a row every `1 / Trails.pace` s), each
+tile coloured and sized by its column across the ribbon (edges, bands, heaped foam, gold rails, lumps), fading,
+narrowing and dissolving as the build's rows do (Brood Silk's is five silk threads at their own heights instead);
+and pieces built of a few blocks (leaves, fireflies, crowns, feathers, bubbles, spray, shards, glowcaps, plus
+stars) moved by the build's motion: out, up to a peak and down to settle, sway, tumble, blink and flash. Ribbon
+timings in rows, piece timings in the build's seconds. Tiles and blocks are pools (`DeviceTiers.trailShare` of
+them), moved in one `BulkMoveTo`; a player beyond 160 studs of the camera lays nothing new. A dash or putting one
+on throws a burst; a glowing trail's light breathes. Every Legendary and Mythic trail glows with a light and Neon
+(`tests/Trails.spec`). One picture a trail, `Trails.trails[key].icon` (Codex, cut by
+`assets/ui/trails/cutout.py`); a new trail needs its icon drawn from the same prompts, and its Design build.
 
 **Revive** (`Balance.Revive`): once per stage, automatically, after Second
 Wind — full health, 2.5 s untouchable behind a gold shield, and enemy shots

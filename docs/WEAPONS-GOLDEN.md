@@ -17,8 +17,11 @@ Legendary card of its class that no other weapon carries.
 | **Golden Blade** | Warden | a broad gold greatsword with a pale edge and a groove, a winged guard with a ruby, a short brown hilt | Battle Cry 1: each kill quickens the swings | a wide gold-to-cream streak throwing red stars upward |
 
 Stats: `Config/WeaponStats` (`rarity = "Legendary"`, `area = 1`, `earned = true`). `earned`
-keeps them out of every crate, the store, Endless prizes and the area Dex pages, and off MERGE
-(there is only ever one copy); `tests/ClassLevels.spec` holds that.
+keeps them out of every crate, the store, Endless prizes and the area Dex pages. There is only
+ever one copy of each, so **they have no merge tier** (owner, 2026-11-14: "for weapons with no
+duplicates such as these and the weapons that you get for endless, there should not be a merge
+tier"; `ShopRules.merges`): no tier badge or copy count on the tile, no TIER or copies line and
+no MERGE on the Gear card, and no tier in the damage. `tests/ClassLevels.spec` holds all of it.
 
 ## How they were made
 

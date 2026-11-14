@@ -14,6 +14,7 @@ local ClassLevelRules = require(ReplicatedStorage.Shared.Util.ClassLevelRules)
 local ClassLevels = require(ReplicatedStorage.Shared.Config.ClassLevels)
 local Classes = require(ReplicatedStorage.Shared.Config.Classes)
 local DexBook = require(ReplicatedStorage.Shared.Util.DexBook)
+local MergeRules = require(ReplicatedStorage.Shared.Util.MergeRules)
 local SaveSchema = require(ReplicatedStorage.Shared.Util.SaveSchema)
 local Shop = require(ReplicatedStorage.Shared.Config.Shop)
 local ShopRules = require(ReplicatedStorage.Shared.Util.ShopRules)
@@ -216,6 +217,29 @@ return function(t: TestRunner.Helper)
 				t.isTrue(entry.key ~= weapon, weapon .. " is in the Dex")
 			end
 		end
+	end)
+
+	--[[ Owner, 2026-11-14: "for weapons with no duplicates such as these and
+	     the weapons that you get for endless, there should not be a merge
+	     tier". ]]
+	t.test("a weapon that can never be had twice has no merge tier", function()
+		for _, weapon in ClassLevels.weapons do
+			t.isFalse(ShopRules.merges(weapon), weapon .. " merges")
+			local plain = ShopRules.strength(weapon, "C")
+			for _, tier in MergeRules.TIERS do
+				t.equal(
+					ShopRules.strength(weapon, tier),
+					plain,
+					weapon .. " hits harder at " .. tier
+				)
+			end
+		end
+		for weapon, stats in WeaponStats.weapons do
+			t.equal(ShopRules.merges(weapon), stats.earned ~= true, weapon)
+		end
+		t.isTrue(ShopRules.merges("TwigBow"))
+		t.isTrue(ShopRules.strength("TwigBow", "S") > ShopRules.strength("TwigBow", "C"))
+		t.isTrue(ShopRules.merges(nil), "no weapon is the class's own, which merges")
 	end)
 
 	t.test("only the golden weapons are marked earned", function()

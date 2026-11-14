@@ -31,7 +31,12 @@ export type Stats = {
 	--[[ What that effect says, for a card or a menu. ]]
 	effect: string?,
 	--[[ Earned, never sold and never rolled from a crate (`Util/ShopRules`):
-	     the golden weapons, a class's level 10 (`Config/ClassLevels`). ]]
+	     the golden weapons, a class's level 10 (`Config/ClassLevels`), and
+	     any weapon only Endless gives once one is built. There is only ever
+	     one copy, so it has no merge tier (owner, 2026-11-14: "for weapons
+	     with no duplicates such as these and the weapons that you get for
+	     endless, there should not be a merge tier"): no badge, no MERGE, no
+	     tier in its damage (`ShopRules.merges`). ]]
 	earned: boolean?,
 }
 

@@ -627,8 +627,14 @@ top (3,750 XP, about 20 won runs); levels 2 to 9 give coins or gems (`ClassLevel
 gives the class's golden weapon** (Golden Bow, Golden Staff, Golden Blade): Legendary strength at area
 1's scale, a gold aura, its own shot or cleave (`Config/WeaponFx`), the one Legendary card of its class
 no other weapon carries (Multishot, Homing Orbs, Battle Cry), and `WeaponStats.earned`, which keeps it
-out of every crate, the store, Endless prizes and the area Dex pages (`Util/ShopRules`, `Util/DexBook`)
-and off MERGE. It goes on by itself if stronger than the weapon worn (`ShopRules.upgrade`), in hand from
+out of every crate, the store, Endless prizes and the area Dex pages (`Util/ShopRules`, `Util/DexBook`).
+**A weapon that can never be had twice has no merge tier** (owner, 2026-11-14: "for weapons with no
+duplicates such as these and the weapons that you get for endless, there should not be a merge tier";
+`ShopRules.merges`, false for an `earned` weapon): no tier badge or copy count on its tile, no TIER or
+copies line and no MERGE on its Gear card, no tier in its damage (`Wallet.weaponTier`,
+`ShopRules.strength`), and the server refuses to merge it or to give a second copy. Endless gives
+ordinary crates today, whose weapons do merge; a weapon only Endless gives (the astral set,
+`docs/ENDLESS.md`) takes `earned = true` when it is built. It goes on by itself if stronger than the weapon worn (`ShopRules.upgrade`), in hand from
 the next run or the lobby; a saved level 10 without its weapon is given it on join
 (`Wallet.settleClassWeapons`). The level shows on a plate (round badge, bar) under Gear's power plate
 and beside the end screens' panel (under it on an upright screen, `EndScreenRules.levelPlate`), where the

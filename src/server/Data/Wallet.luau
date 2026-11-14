@@ -112,6 +112,11 @@ function Wallet.grantWeapon(player: Player, weapon: string): boolean
 		return false
 	end
 	local new = not profile.weapons[weapon]
+	--[[ A weapon with no merge tier is held once (`ShopRules.merges`): a
+	     second grant of it gives nothing. ]]
+	if not new and not ShopRules.merges(weapon) then
+		return false
+	end
 	profile.weapons[weapon] = true
 	addCopy(profile.tiers.weapons, weapon)
 	DexPay.pay(player, profile, "Weapons", weapon)
@@ -125,6 +130,10 @@ end
 function Wallet.weaponTier(player: Player, weapon: string?): string
 	local profile = PlayerData.get(player)
 	local held = profile and weapon and profile.tiers.weapons[weapon]
+	if not ShopRules.merges(weapon) then
+		-- no merge tier, so none in its damage
+		return "C"
+	end
 	return MergeRules.best(held) or "C"
 end
 
@@ -142,6 +151,10 @@ end
 function Wallet.merge(player: Player, kind: string, key: string, tier: string): boolean
 	local profile = PlayerData.get(player)
 	if not profile then
+		return false
+	end
+	-- a weapon with no merge tier never merges (`ShopRules.merges`)
+	if kind == "weapon" and not ShopRules.merges(key) then
 		return false
 	end
 	local store = if kind == "weapon"

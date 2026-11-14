@@ -453,6 +453,10 @@ function TitleScene.build(parent: Instance, view: Vector2): Scene
 		end
 		return bars
 	end
+	-- star dust: tiny faint crosses, under the stars
+	for _, speck in TitleLayout.dust(design, fit) do
+		cross("Dust", speck.x, speck.y, speck.size, speck.alpha)
+	end
 	-- the stars, each a cross; one in a few twinkles (`step`), and a few are large
 	local twinkles: { Twinkle } = {}
 	for index, star in TitleLayout.stars(design, fit) do
@@ -560,6 +564,65 @@ function TitleScene.build(parent: Instance, view: Vector2): Scene
 	glow.Size =
 		UDim2.fromScale(2 * Config.glow.radius * u / wide, 2 * Config.glow.radius * u / tall)
 
+	--[[ A see-through band between two heights, on whole pixel rows, so
+	     bands stacked on each other neither overlap nor leave a gap. ]]
+	local function slab(
+		name: string,
+		x: number,
+		from: number,
+		to: number,
+		w: number,
+		colour: Color3,
+		alpha: number
+	)
+		local x0, y0 = math.floor(x * k), round(from * k)
+		local frame = Instance.new("Frame")
+		frame.Name = name
+		frame.BorderSizePixel = 0
+		frame.BackgroundColor3 = colour
+		frame.BackgroundTransparency = 1 - alpha
+		frame.Position = UDim2.fromOffset(x0, y0)
+		frame.Size = UDim2.fromOffset(math.ceil((x + w) * k) - x0, round(to * k) - y0)
+		layer(frame)
+	end
+	-- far mountains: pale see-through steps narrowing to a snowy top
+	local peak = Config.peak
+	for shift = -1, 1 do
+		for _, at in design.peaks do
+			local mid, foot, w, h = at[1] + shift * wide, at[2], at[3], at[4]
+			if mid + w / 2 > left and mid - w / 2 < right then
+				local rise = h / peak.steps
+				for step = 0, peak.steps - 1 do
+					local across = w * (1 - step / peak.steps)
+					local x = mid - across / 2 + at[5] * w * step / peak.steps
+					local snowy = step >= peak.steps - peak.snow
+					slab(
+						"Peak",
+						x,
+						foot - (step + 1) * rise,
+						foot - step * rise,
+						across,
+						peak.colour,
+						if snowy then peak.alpha + peak.snowAlpha else peak.alpha
+					)
+					if step == peak.steps - peak.snow - 1 then
+						-- a little snow lying on the step under the top
+						local under = mid + at[5] * w * (step + 1) / peak.steps
+						slab(
+							"PeakSnow",
+							under - across * 0.2,
+							foot - (step + 1) * rise,
+							foot - (step + 0.5) * rise,
+							across * 0.4,
+							peak.colour,
+							peak.snowAlpha
+						)
+					end
+				end
+			end
+		end
+	end
+
 	--[[ A line of light along the tops of `blocks` that show. ]]
 	local function litTops(
 		name: string,
@@ -596,7 +659,19 @@ function TitleScene.build(parent: Instance, view: Vector2): Scene
 		end
 		litTops(`{name}Rim`, drawn, hillRim.tall, Config.tree.crownLit, alpha)
 	end
+	--[[ A pine: three steps narrowing to the top, on a short stem. ]]
+	local function drawPine(name: string, x: number, foot: number, high: number, colour: Color3)
+		for step = 0, 2 do
+			local half = high * (0.42 - 0.13 * step)
+			local rung = foot - high * (0.5 + 0.25 * step)
+			block(name, x - half, rung, 2 * half, high * 0.27, colour)
+		end
+		block(name, x - high * 0.08, foot - high * 0.26, high * 0.16, high * 0.28, colour)
+	end
 	row("FarHill", design.farHills, Config.farHill, hillRim.far)
+	for _, at in design.farPines do
+		drawPine("FarPine", at[1], at[2], at[3], Config.farHill.colour)
+	end
 	local lit = Config.villageLight
 	-- the far watchtower: a body under a wider toothed top, one window lit
 	local tower, towerAt = Config.tower, design.tower
@@ -643,20 +718,7 @@ function TitleScene.build(parent: Instance, view: Vector2): Scene
 		for _, pine in design.pines do
 			local x, foot, high = pine[1] + shift * wide, pine[2], pine[3]
 			if x + high > left and x - high < right then
-				-- three steps narrowing to the top, on a short stem
-				for step = 0, 2 do
-					local half = high * (0.42 - 0.13 * step)
-					local rung = foot - high * (0.5 + 0.25 * step)
-					block("Pine", x - half, rung, 2 * half, high * 0.27, Config.hill.colour)
-				end
-				block(
-					"Pine",
-					x - high * 0.08,
-					foot - high * 0.26,
-					high * 0.16,
-					high * 0.28,
-					Config.hill.colour
-				)
+				drawPine("Pine", x, foot, high, Config.hill.colour)
 			end
 		end
 	end
@@ -716,6 +778,89 @@ function TitleScene.build(parent: Instance, view: Vector2): Scene
 	for _, strip in shape.bark do
 		onTree("Bark", { strip[1], strip[2], 2, strip[3] }, shape.barkColour)
 	end
+	-- balconies: a floor, a rail on posts, and a lantern hung from the outer end
+	local deck = shape.balcony
+	for _, at in shape.balconies do
+		local x, y, w = at[1], at[2], at[3]
+		onTree("Balcony", { x, y, w, deck.floor }, shape.trunkColour)
+		onTree("Balcony", { x, y - deck.rail, w, deck.post }, shape.trunkColour)
+		local count = math.floor(w / deck.every)
+		for n = 0, count do
+			local px = x + n * (w - deck.post) / count
+			onTree("Balcony", { px, y - deck.rail, deck.post, deck.rail }, shape.trunkColour)
+		end
+		light(
+			"BalconyRim",
+			tree.x + x * u,
+			tree.y + (y - deck.rail) * u,
+			w * u,
+			deck.post * u * 0.5,
+			shape.crownLit,
+			deck.rim
+		)
+		local hx = if x < 0 then x + 1 else x + w - 1 - deck.lantern
+		local hy = y + deck.floor + deck.string
+		light(
+			"BalconyString",
+			tree.x + (hx + deck.lantern / 2 - 0.5) * u,
+			tree.y + (y + deck.floor) * u,
+			u,
+			deck.string * u,
+			shape.trunkColour
+		)
+		glowAt(
+			"BalconyGlow",
+			tree.x + (hx + deck.lantern / 2) * u,
+			tree.y + (hy + deck.lantern / 2) * u,
+			deck.lantern * shape.lanternGlow * u,
+			shape.lanternHalo,
+			shape.lanternHaloAlpha
+		)
+		light(
+			"BalconyLantern",
+			tree.x + hx * u,
+			tree.y + hy * u,
+			deck.lantern * u,
+			deck.lantern * u,
+			shape.lantern
+		)
+	end
+	-- shelf mushrooms on the trunk's sides, each in a small round glow
+	local shelf = shape.shelf
+	for _, at in shape.shelves do
+		local x, y, w = at[1], at[2], at[3]
+		glowAt(
+			"ShelfGlow",
+			tree.x + (x + w / 2) * u,
+			tree.y + (y + shelf.tall / 2) * u,
+			w * shelf.glow * u,
+			shape.lanternHalo,
+			shelf.glowAlpha
+		)
+		light("Shelf", tree.x + x * u, tree.y + y * u, w * u, shelf.tall * u, shape.lantern)
+		-- its paler underside, narrower, against the trunk
+		local under = w * shelf.under
+		light(
+			"ShelfUnder",
+			tree.x + (if x < 0 then x + w - under else x) * u,
+			tree.y + (y + shelf.tall) * u,
+			under * u,
+			shelf.tall * 0.8 * u,
+			Config.glowcap.stem,
+			0.7
+		)
+	end
+	-- sprigs of leaf standing out of the crown, behind it
+	for _, sprig in TitleLayout.sprigs() do
+		local x, y, side = sprig.x, sprig.y, sprig.side
+		onTree("Sprig", { x, y, side, side }, shape.crownColours[sprig.colour])
+		onTree("SprigLit", { x, y, side, side * shape.crownStrip }, shape.crownLit)
+		onTree(
+			"SprigShade",
+			{ x, y + side * (1 - shape.crownShadeStrip), side, side * shape.crownShadeStrip },
+			shape.crownShade
+		)
+	end
 	-- leaf blocks round the crown's edge, behind it
 	for index, square in shape.leaves do
 		local x, y, side = square[1], square[2], square[3]
@@ -757,6 +902,21 @@ function TitleScene.build(parent: Instance, view: Vector2): Scene
 			fleck.side * u,
 			if fleck.lit then shape.crownLit else shape.crownShade,
 			if fleck.lit then shape.flecks.lit else shape.flecks.dark
+		)
+	end
+	-- leaf tiers: a lit edge with its shadow under it
+	local tiers = shape.tiers
+	for _, tier in TitleLayout.tiers() do
+		local x, y = tree.x + tier.x * u, tree.y + tier.y * u
+		light("Tier", x, y, tier.long * u, tiers.thick * u, shape.crownLit, tiers.lit)
+		light(
+			"TierShade",
+			x,
+			y + tiers.thick * u,
+			tier.long * u,
+			tiers.thick * u,
+			shape.crownShade,
+			tiers.dark
 		)
 	end
 	for index, lantern in shape.lanterns do
@@ -842,6 +1002,17 @@ function TitleScene.build(parent: Instance, view: Vector2): Scene
 		shape.window
 	)
 	onTree("DoorStep", shape.doorStep, shape.doorFrame)
+	local awning = shape.awning
+	onTree("Awning", awning, shape.doorFrame)
+	light(
+		"AwningRim",
+		tree.x + awning[1] * u,
+		tree.y + awning[2] * u,
+		awning[3] * u,
+		1,
+		shape.crownLit,
+		0.5
+	)
 
 	--[[ The near ridge: its base runs to the bottom of the screen, and a
 	     step that touches the layout's side runs on to the screen's. ]]
@@ -857,6 +1028,30 @@ function TitleScene.build(parent: Instance, view: Vector2): Scene
 	-- the tree's light along the ridge's top
 	local ridgeRim = Config.ridgeRim
 	litTops("RidgeRim", steps, ridgeRim.tall, Config.rim, ridgeRim.alpha)
+	-- grass along every top of the ridge that shows
+	local fringe = Config.fringe
+	for _, blade in TitleLayout.blades(steps) do
+		block(
+			"Blade",
+			blade.x,
+			blade.foot - blade.tall,
+			fringe.wide,
+			blade.tall + 0.5,
+			Config.ridge
+		)
+		if blade.flower then
+			local bloom = Config.flower
+			light(
+				"Flower",
+				blade.x + (fringe.wide - bloom.size) / 2,
+				blade.foot - blade.tall - bloom.size * 0.7,
+				bloom.size,
+				bloom.size,
+				Config.rim,
+				bloom.alpha
+			)
+		end
+	end
 	-- grass on the ridge, and a lantern post with a mint light
 	for _, tuft in design.tufts do
 		for _, blade in Config.tuft do

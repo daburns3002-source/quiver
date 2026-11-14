@@ -67,6 +67,12 @@ export type Design = {
 	mist: { Block },
 	stones: { Block },
 	fences: { Block },
+	--[[ The fifth pass (owner, 2026-11-14, of the fourth: "More detail"):
+	     far mountains behind the hills (middle, foot, width, height, and
+	     which way its top leans, a share of its width) and small pines on
+	     the far hills (middle, foot, height). ]]
+	peaks: { Block },
+	farPines: { Block },
 	--[[ The trunk's foot (`x`, `y`) and how many points a tree unit is. ]]
 	tree: { x: number, y: number, unit: number },
 	hills: { Block },
@@ -177,6 +183,29 @@ local TitleScene = {
 	--[[ A fence: posts this far apart and this tall, with two rails this
 	     far up; each post's top catches the light. ]]
 	fence = { every = 8, tall = 7, rails = { 5.5, 2.5 }, rim = 0.4 },
+	--[[ The fifth pass. Far mountains: pale and see-through, so each is a
+	     little lighter than whatever sky is behind it and the hills stand
+	     dark in front. Each is this many steps narrowing to its top, the
+	     top ones (this many) paler again, as snow, with a little snow lying
+	     on the step below. ]]
+	peak = {
+		colour = Color3.fromHex("#6FBFB2"),
+		alpha = 0.13,
+		steps = 6,
+		snow = 1,
+		snowAlpha = 0.16,
+	},
+	--[[ Star dust: tiny faint crosses between the stars, this many to a
+	     square point of sky and never more than `most`, smaller than any
+	     star and no brighter than a faint one. ]]
+	dust = { each = 0.0005, seed = 23, size = 1, faint = 0.12, bright = 0.4, most = 200 },
+	--[[ Grass along every top of the ridge that shows: a blade about every
+	     so many points, between these heights, this wide
+	     (`TitleLayout.blades`). ]]
+	fringe = { every = 5, seed = 31, short = 1.5, long = 4.5, wide = 1.2 },
+	--[[ A blade taller than this carries a small flower: a pale dot this
+	     size on its tip, in the hero's rim colour, this solid. ]]
+	flower = { over = 3.9, size = 1.6, alpha = 0.75 },
 
 	--[[ The World Tree, in tree units from the trunk's foot (x right, y down,
 	     so every y is negative). ]]
@@ -256,6 +285,34 @@ local TitleScene = {
 		crownShade = Color3.fromHex("#082329"),
 		crownShadeStrip = 0.1,
 		flecks = { each = 8, seed = 11, small = 3, large = 9, lit = 0.5, dark = 0.55 },
+		--[[ The fifth pass, on the tree. Sprigs: small leaf blocks standing
+		     out of each crown square, this many from its top and one from
+		     each side and its foot, between these sizes; they are drawn
+		     behind the crown, so only what stands clear of it shows
+		     (`TitleLayout.sprigs`). Balconies on the trunk's sides (left,
+		     top, width): a floor, a rail on posts, and a lantern hung under
+		     the outer end. Shelf mushrooms on the trunk's sides (left, top,
+		     width): a mint cap this tall with a narrower pale piece under
+		     it against the trunk, in a small round glow. Tiers: on each
+		     crown square, this many lit edges with their shadow under
+		     them, one in each part of its height, between these shares of
+		     its side long, so the crown reads as layers of leaf
+		     (`TitleLayout.tiers`). An awning over the door. ]]
+		sprigs = { top = 3, seed = 5, small = 12, large = 22 },
+		balconies = { { -42, -106, 16 }, { 26, -64, 16 } },
+		balcony = { floor = 2, rail = 6, post = 1.2, every = 5, lantern = 3, string = 4, rim = 0.6 },
+		shelves = { { -32, -134, 6 }, { 26, -112, 6 }, { -42, -26, 6 }, { 36, -18, 5 } },
+		shelf = { tall = 2, under = 0.55, glow = 3.5, glowAlpha = 0.3 },
+		tiers = {
+			each = 3,
+			seed = 17,
+			short = 0.25,
+			long = 0.55,
+			thick = 2,
+			lit = 0.45,
+			dark = 0.55,
+		},
+		awning = { -12, -34, 24, 3 },
 		--[[ Vines hanging under the crown (left, top, length), two units wide,
 		     and a few small warm windows up in it (left, top), 5 by 6. ]]
 		vines = {
@@ -571,6 +628,19 @@ local TitleScene = {
 		mist = { { 140, 590, 130 }, { 228, 566, 70 }, { 84, 565, 56 } },
 		stones = { { 3, 636, 8 }, { 278, 660, 10 } },
 		fences = {},
+		peaks = { { 48, 580, 130, 58, -0.1 }, { 322, 580, 140, 80, 0.1 } },
+		farPines = {
+			{ 4, 548, 7 },
+			{ 34, 548, 6 },
+			{ 58, 556, 6 },
+			{ 106, 560, 7 },
+			{ 120, 560, 6 },
+			{ 246, 558, 7 },
+			{ 260, 558, 6 },
+			{ 306, 548, 7 },
+			{ 318, 548, 6 },
+			{ 360, 540, 7 },
+		},
 		tree = { x = 195, y = 612, unit = 0.9 },
 		hills = {
 			{ 0, 566, 70 },
@@ -656,6 +726,29 @@ local TitleScene = {
 		mist = { { 268, 314, 250 }, { 330, 304, 170 }, { 500, 292, 90 }, { 140, 286, 80 } },
 		stones = { { 222, 300, 7 }, { 302, 318, 8 }, { 624, 330, 9 } },
 		fences = { { 676, 330, 5 } },
+		peaks = {
+			{ 64, 300, 170, 68, -0.1 },
+			{ 200, 300, 100, 44, 0.1 },
+			{ 606, 300, 92, 40, -0.1 },
+			{ 736, 300, 196, 68, 0.1 },
+		},
+		farPines = {
+			{ 8, 272, 8 },
+			{ 46, 272, 6 },
+			{ 96, 282, 7 },
+			{ 162, 280, 8 },
+			{ 176, 280, 6 },
+			{ 200, 280, 7 },
+			{ 248, 290, 6 },
+			{ 534, 288, 7 },
+			{ 548, 288, 6 },
+			{ 640, 272, 8 },
+			{ 652, 272, 6 },
+			{ 718, 278, 7 },
+			{ 730, 278, 8 },
+			{ 744, 278, 6 },
+			{ 796, 284, 7 },
+		},
 		tree = { x = 422, y = 334, unit = 0.78 },
 		hills = {
 			{ 0, 290, 90 },

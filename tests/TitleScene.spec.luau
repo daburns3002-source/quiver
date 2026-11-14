@@ -86,6 +86,7 @@ return function(t: TestRunner.Helper)
 			tree.barkColour,
 			tree.crownShade,
 			Scene.mist.colour,
+			Scene.peak.colour,
 		}
 		for index, colour in cool do
 			local h = hue(colour)
@@ -678,6 +679,197 @@ return function(t: TestRunner.Helper)
 		t.isTrue(
 			Scene.ridgeRim.alpha < 0.4 and Scene.hillRim.near < 0.5,
 			"a line of light, not an outline"
+		)
+	end)
+
+	--[[ Owner, 2026-11-14, of the fourth pass: "More detail". The fifth is
+	     larger things as well as small ones: mountains, leaf round the
+	     crown, grass along the ridge, balconies. Each can still go wrong the
+	     same way: a mountain whose foot shows, a sprig of leaf in the air. ]]
+	t.test("the fifth pass of detail stands where it belongs", function()
+		local tree = Scene.tree
+		-- sprigs: the same every time, each standing out of its square and touching it
+		local sprigs = TitleLayout.sprigs()
+		local each = tree.sprigs.top + 3
+		t.equal(#sprigs, #tree.crown * each)
+		local again = TitleLayout.sprigs()
+		for index, sprig in sprigs do
+			local square = tree.crown[(index - 1) // each + 1]
+			local far, low = square[1] + square[3], square[2] + square[3]
+			t.isTrue(sprig.x == again[index].x and sprig.y == again[index].y, `sprig {index} again`)
+			t.isTrue(
+				sprig.side >= tree.sprigs.small and sprig.side <= tree.sprigs.large,
+				`sprig {index}'s size`
+			)
+			local touches = sprig.x < far
+				and sprig.x + sprig.side > square[1]
+				and sprig.y < low
+				and sprig.y + sprig.side > square[2]
+			t.isTrue(touches, `sprig {index} grows from its square`)
+			local inside = sprig.x >= square[1]
+				and sprig.x + sprig.side <= far
+				and sprig.y >= square[2]
+				and sprig.y + sprig.side <= low
+			t.isFalse(inside, `sprig {index} stands out of its square`)
+		end
+
+		-- a balcony or a shelf mushroom is against the trunk's side, clear of the windows
+		local function onSide(
+			what: string,
+			index: number,
+			x: number,
+			y: number,
+			w: number,
+			h: number
+		)
+			local held = false
+			for _, part in tree.trunk do
+				local level = y >= part[2] and y + h <= part[2] + part[4]
+				held = held or (level and (x + w == part[1] or x == part[1] + part[3]))
+			end
+			t.isTrue(held, `{what} {index} is against the trunk's side`)
+			for at, window in tree.windows do
+				local apart = x + w <= window[1] or x >= window[1] + 8
+				t.isTrue(apart, `{what} {index} is clear of window {at}`)
+			end
+		end
+		for index, at in tree.balconies do
+			onSide("balcony", index, at[1], at[2], at[3], tree.balcony.floor)
+			for _, vine in tree.vines do
+				t.isTrue(
+					at[2] - tree.balcony.rail > vine[2] + vine[3],
+					`balcony {index} is under the vines`
+				)
+			end
+			local hung = at[2] + tree.balcony.floor + tree.balcony.string + tree.balcony.lantern
+			t.isTrue(hung < -44, `balcony {index}'s lantern hangs clear of the trunk's foot`)
+		end
+		for index, at in tree.shelves do
+			onSide("shelf", index, at[1], at[2], at[3], tree.shelf.tall)
+		end
+		t.isTrue(#tree.balconies <= 3 and #tree.shelves <= 6, "a few, the trunk is not a ladder")
+
+		-- leaf tiers: the same every time, each inside its square, one in each part of its height
+		local tiers = TitleLayout.tiers()
+		t.equal(#tiers, #tree.crown * tree.tiers.each)
+		local same = TitleLayout.tiers()
+		for index, tier in tiers do
+			local square = tree.crown[(index - 1) // tree.tiers.each + 1]
+			t.isTrue(tier.x == same[index].x and tier.y == same[index].y, `tier {index} again`)
+			t.isTrue(
+				tier.x >= square[1] and tier.x + tier.long <= square[1] + square[3],
+				`tier {index} across`
+			)
+			t.isTrue(
+				tier.y >= square[2] and tier.y + 2 * tree.tiers.thick <= square[2] + square[3],
+				`tier {index} down`
+			)
+			if (index - 1) % tree.tiers.each > 0 then
+				t.isTrue(tier.y > tiers[index - 1].y, `tier {index} is under the one before`)
+			end
+		end
+		t.isTrue(tree.tiers.long < 0.7 and tree.tiers.lit < 0.6, "edges of leaf, not stripes")
+
+		-- the awning: over the door, wider than it, on the trunk
+		local awning, frame = tree.awning, tree.door.frame
+		t.isTrue(
+			awning[1] < frame[1] and awning[1] + awning[3] > frame[1] + frame[3],
+			"wider than the door"
+		)
+		t.isTrue(awning[2] + awning[4] <= frame[2], "over the door")
+		local base = tree.trunk[2]
+		t.isTrue(
+			awning[1] >= base[1]
+				and awning[1] + awning[3] <= base[1] + base[3]
+				and awning[2] >= base[2],
+			"on the trunk"
+		)
+
+		for key, design in LAYOUTS do
+			-- a far mountain: under the stars, its foot behind the near hills, its lean slight
+			for index, at in design.peaks do
+				local mid, foot, w, h = at[1], at[2], at[3], at[4]
+				t.isTrue(foot - h >= design.stars.below, `{key} peak {index} is under the stars`)
+				for step = 0, 4 do
+					local x = math.clamp(mid - w / 2 + w * step / 4, 0, design.width)
+					local hidden = false
+					for _, hill in design.hills do
+						hidden = hidden
+							or (x >= hill[1] and x <= hill[1] + hill[3] and hill[2] <= foot)
+					end
+					t.isTrue(hidden, `{key} peak {index}'s foot is behind a hill at {x}`)
+				end
+				t.isTrue(math.abs(at[5]) <= 0.2, `{key} peak {index} leans a little`)
+			end
+			-- a far pine: on a far hill's top, smaller than the near ones, clear of the tower
+			local smallest = math.huge
+			for _, pine in design.pines do
+				smallest = math.min(smallest, pine[3])
+			end
+			for index, pine in design.farPines do
+				local half = pine[3] * 0.42
+				local on = false
+				for _, hill in design.farHills do
+					on = on
+						or (
+							pine[2] == hill[2]
+							and pine[1] - half >= hill[1]
+							and pine[1] + half <= hill[1] + hill[3]
+						)
+				end
+				t.isTrue(on, `{key} far pine {index} stands on a far hill's top`)
+				t.isTrue(pine[3] <= smallest, `{key} far pine {index} is no larger than a near one`)
+				local tower = design.tower
+				local apart = pine[1] + half <= tower.x - 1.5
+					or pine[1] - half >= tower.x + Scene.tower.wide + 1.5
+				t.isTrue(apart, `{key} far pine {index} is clear of the watchtower`)
+			end
+			-- grass: on a ridge top that shows, wholly on its edge
+			local steps = {}
+			for index, part in design.ridge do
+				table.insert(
+					steps,
+					{ part[1], part[2], part[3], if index == 1 then 400 else part[4] }
+				)
+			end
+			local edges = TitleLayout.topEdges(steps)
+			local blades = TitleLayout.blades(steps)
+			t.isTrue(#blades > 20, `{key}: grass all along the ridge`)
+			for index, blade in blades do
+				local on = false
+				for _, edge in edges do
+					on = on
+						or (
+							blade.foot == edge[3]
+							and blade.x >= edge[1]
+							and blade.x + Scene.fringe.wide <= edge[2]
+						)
+				end
+				t.isTrue(on, `{key} blade {index} is on a ridge top that shows`)
+				t.isTrue(blade.tall >= Scene.fringe.short and blade.tall <= Scene.fringe.long)
+				t.equal(blade.flower, blade.tall > Scene.flower.over)
+			end
+			-- star dust: over the sky only, fainter and smaller than a star
+			for _, screen in SCREENS do
+				if TitleLayout.design(screen[1], screen[2]) == design then
+					local fit = TitleLayout.fit(design, screen[1], screen[2])
+					local dust = TitleLayout.dust(design, fit)
+					t.isTrue(#dust >= 40 and #dust <= Scene.dust.most, `{key}: dust at {screen[1]}`)
+					for _, speck in dust do
+						t.isTrue(speck.y <= design.stars.below and speck.alpha <= Scene.dust.bright)
+					end
+				end
+			end
+		end
+		t.isTrue(
+			Scene.dust.size < 2 and Scene.dust.bright < Scene.starBright,
+			"dust, not more stars"
+		)
+		t.isTrue(Scene.peak.alpha + Scene.peak.snowAlpha < 0.4, "mountains are far: pale and faint")
+		t.isTrue(Scene.fringe.long < 6, "grass, not reeds")
+		t.isTrue(
+			Scene.flower.over > (Scene.fringe.short + Scene.fringe.long) / 2,
+			"a flower on the tallest blades only"
 		)
 	end)
 

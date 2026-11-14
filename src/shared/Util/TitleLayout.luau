@@ -37,6 +37,9 @@ export type Mote = { x: number, y: number, size: number, delay: number, loop: nu
 export type Piece = { x: number, y: number, long: number, turn: number }
 --[[ A fleck of leaf on the crown, in tree units: lit or shaded. ]]
 export type Fleck = { x: number, y: number, side: number, lit: boolean }
+export type Sprig = { x: number, y: number, side: number, colour: number }
+export type Blade = { x: number, foot: number, tall: number, flower: boolean }
+export type Tier = { x: number, y: number, long: number }
 export type Logo = {
 	left: number,
 	top: number,
@@ -227,6 +230,106 @@ function TitleLayout.topEdges(blocks: { Scene.Block }): { { number } }
 		end
 	end
 	return edges
+end
+
+--[[ The sprigs of leaf round the crown: the same every time, each standing
+     out of its own square (from its top, its two sides and its foot) and
+     still touching it, so none floats. `colour` is which of the crown's two
+     teals it is. ]]
+function TitleLayout.sprigs(): { Sprig }
+	local tree = Scene.tree
+	local spec = tree.sprigs
+	local next = TitleLayout.random(spec.seed)
+	local sprigs: { Sprig } = {}
+	for index, square in tree.crown do
+		local x, y, side = square[1], square[2], square[3]
+		--[[ `along` is which way the sprig slides freely (0 across, 1 down);
+		     `out` is how far it stands out of that edge, as a share of
+		     itself, from the square's near edge (`near`) or its far one. ]]
+		local function add(along: number, near: boolean, least: number)
+			local size = round(spec.small + next() * (spec.large - spec.small))
+			local slide = next() * (side - size)
+			local out = size * (least + 0.3 * next())
+			local off = if near then -out else side - size + out
+			table.insert(sprigs, {
+				x = math.floor(x + (if along == 0 then slide else off)),
+				y = math.floor(y + (if along == 0 then off else slide)),
+				side = size,
+				colour = (index + #sprigs) % 2 + 1,
+			})
+		end
+		for _ = 1, spec.top do
+			add(0, true, 0.3)
+		end
+		add(1, true, 0.3)
+		add(1, false, 0.3)
+		add(0, false, 0.3)
+	end
+	return sprigs
+end
+
+--[[ The crown's leaf tiers: the same every time, each inside its own
+     square, one in each part of the square's height. ]]
+function TitleLayout.tiers(): { Tier }
+	local tree = Scene.tree
+	local spec = tree.tiers
+	local next = TitleLayout.random(spec.seed)
+	local tiers: { Tier } = {}
+	for _, square in tree.crown do
+		local side = square[3]
+		local top = square[2] + side * tree.crownStrip
+		local room = side * (1 - tree.crownStrip - tree.crownShadeStrip) - 2 * spec.thick
+		local part = room / spec.each
+		for index = 1, spec.each do
+			local long = round(side * (spec.short + next() * (spec.long - spec.short)))
+			local across = next() * (side - long)
+			local down = (index - 1 + 0.2 + 0.6 * next()) * part
+			table.insert(tiers, {
+				x = math.floor(square[1] + across),
+				y = math.floor(top + down),
+				long = long,
+			})
+		end
+	end
+	return tiers
+end
+
+--[[ Grass along the tops of `steps` that show (`topEdges`): blades at an
+     uneven spacing, each wholly on its own edge. ]]
+function TitleLayout.blades(steps: { Scene.Block }): { Blade }
+	local spec = Scene.fringe
+	local blades: { Blade } = {}
+	for index, edge in TitleLayout.topEdges(steps) do
+		local next = TitleLayout.random(spec.seed + index)
+		local x = edge[1] + next() * spec.every
+		while x + spec.wide <= edge[2] do
+			local tall = spec.short + next() * (spec.long - spec.short)
+			table.insert(
+				blades,
+				{ x = x, foot = edge[3], tall = tall, flower = tall > Scene.flower.over }
+			)
+			x += spec.every * (0.5 + next())
+		end
+	end
+	return blades
+end
+
+--[[ Star dust: tiny faint stars over all the sky the screen shows, down to
+     where the stars stop. ]]
+function TitleLayout.dust(design: Design, fit: Fit): { Star }
+	local spec = Scene.dust
+	local left, top = math.min(fit.left, 0), math.min(fit.top, 0)
+	local right = math.max(fit.right, design.width)
+	local wide, tall = right - left, design.stars.below - top
+	local next = TitleLayout.random(spec.seed)
+	local dust: { Star } = {}
+	for _ = 1, math.min(spec.most, round(spec.each * wide * tall)) do
+		local x = round(left + next() * wide)
+		local y = round(top + next() * tall)
+		local alpha = spec.faint + next() * (spec.bright - spec.faint)
+		table.insert(dust, { x = x, y = y, size = spec.size, alpha = alpha })
+	end
+	return dust
 end
 
 --[[ How solid a mote is `share` of the way through its loop: up to its

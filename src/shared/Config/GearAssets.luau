@@ -102,6 +102,10 @@ local GearAssets = {
 	-- have a border around them"; `assets/ui/gear/outlined/`)
 	weapons = {
 		TwigBow = "rbxassetid://114978753383149",
+		-- the golden weapons (`Config/ClassLevels`): their one picture, `ShopAssets.weapons`'
+		GoldenBow = "rbxassetid://80794736211561",
+		GoldenStaff = "rbxassetid://95611427152413",
+		GoldenBlade = "rbxassetid://83209827468568",
 		AcornBow = "rbxassetid://103578254824601",
 		FireflyBow = "rbxassetid://80208319043638",
 		MossSlimeBow = "rbxassetid://120077348741310",

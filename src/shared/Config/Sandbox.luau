@@ -129,6 +129,9 @@ local Sandbox = {
 		{ weapon = "CaplightBlade", class = "Warden", label = "CAPLIGHT BLADE" },
 		{ weapon = "GulpfangBlade", class = "Warden", label = "GULPFANG BLADE" },
 		{ weapon = "DeepglowBlade", class = "Warden", label = "DEEPGLOW BLADE" },
+		{ weapon = "GoldenBow", class = "Ranger", label = "GOLDEN BOW" },
+		{ weapon = "GoldenStaff", class = "Arcanist", label = "GOLDEN STAFF" },
+		{ weapon = "GoldenBlade", class = "Warden", label = "GOLDEN BLADE" },
 		-- SKINS END
 	} :: { Entry },
 

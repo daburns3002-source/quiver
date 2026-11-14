@@ -250,7 +250,8 @@ end
 
 --[[ A golden weapon has just been earned: its card over `layer`, with its
      2D picture (rule 14) in its Legendary frame, its name, what it does and
-     where to put it on. A press anywhere closes it; `closed` is then called. ]]
+     where it is kept (it goes on by itself when it is the stronger weapon,
+     so the card does not say to put it on). A press anywhere closes it; `closed` is then called. ]]
 function ClassLevelPlate.unlock(layer: ScreenGui, weapon: string, closed: (() -> ())?)
 	local entry = ShopRules.find(weapon)
 	local stats = WeaponStats.weapons[weapon]
@@ -300,8 +301,12 @@ function ClassLevelPlate.unlock(layer: ScreenGui, weapon: string, closed: (() ->
 		Chunky.text(box(sheet, 70, 740, 700, 110, 205), stats.effect or "", Chunky.ink, 0)
 	effect.TextWrapped = true
 	effect.ZIndex = 205
-	local hint =
-		Chunky.text(box(sheet, 70, 868, 700, 56, 205), "PUT IT ON AT GEAR", Chunky.inkSoft, 0)
+	local hint = Chunky.text(
+		box(sheet, 70, 868, 700, 56, 205),
+		"YOURS TO KEEP. FIND IT AT GEAR",
+		Chunky.inkSoft,
+		0
+	)
 	hint.ZIndex = 205
 
 	SoundFx.play("level_up")

@@ -5,17 +5,22 @@ the bow strong thicker", its string now a thick gold bar), the Golden Staff, the
 little smaller and the blade a little longer"). Pictures and prompts in
 `assets/concepts/blocky/weapons/skins/golden/` (earlier takes in `options/`).
 
-**Not in the game yet:** the stats, pictures and rules are (class levels shipped first, owner
-2026-11-14: "Ship levels first"); the models wait on the owner's import (step 5 below), and
-their `Config/Weapons` entries, grips and `Config/WeaponFx` looks are on branch
-`phase-4/golden-weapons`. Until then a level 10 holds its weapon owed.
+**In the game since 2026-11-14.** Class levels shipped first (owner: "Ship levels first");
+the owner then imported the three models and they were wired the same day. Seen in Studio
+Play: each in hand against its picture (the bow's hand on its brown grip, limbs forward, the
+gold bar string behind; the staff held on its wrap, crown and sapphire up; the blade held on
+its handle between pommel and guard), each with its gold light and motes; a run with the level
+numbers lowered in Studio only took the Ranger to level 10, gave the Golden Bow with its card,
+put it on, and the next run held it and fired gold glowing shots with pale fins; Gear's card
+for it reads DAMAGE x1.75 with no tier, copies or MERGE. Not seen: the staff's orbs and the
+blade's cleave in a fight, and any of it on a phone.
 
 A class's own lasting level (`Config/ClassLevels`, CLAUDE.md "Class levels and the golden
 weapons") reaches 10 and gives that class its golden weapon. The owner's calls: Legendary
 strength, a gold glow, earned only (never sold, never rolled from a crate), each with the one
 Legendary card of its class that no other weapon carries.
 
-| Weapon | Class | Looks like | Built-in card | Shot or cleave (`Config/WeaponFx`, with the models) |
+| Weapon | Class | Looks like | Built-in card | Shot or cleave (`Config/WeaponFx`) |
 |---|---|---|---|---|
 | **Golden Bow** | Ranger | gold block limbs, a carved leaf at each tip, brown grip, a square emerald, a thick straight gold string | Multishot 1: a second arrow follows every shot | a spinning gold wedge with pale fins, green sparkles, a long pale-gold tail |
 | **Golden Staff** | Arcanist | a gold shaft banded by rings, brown grip, a three-pronged crown holding a square sapphire | Homing Orbs: every orb curves to the nearest enemy | a tumbling gold block ringed by three blue blades, blue sparkles |
@@ -48,8 +53,10 @@ no MERGE on the Gear card, and no tier in the damage. `tests/ClassLevels.spec` h
    the mesh is untouched. 210 credits in all.
 4. `python -I assets/models/weapons/blocky/golden/name_glb.py <exports> <out>` names each
    GLB's scene, root node and mesh for the Import Queue.
-5. The owner imports the three GLBs in Studio; their mesh and texture ids are dumped to
-   `assets/models/weapons/blocky/golden/skin_imports.json` and `skins_to_luau.py` (its `GOLDEN`
-   list) writes them into `Config/Weapons` and the sandbox menu, each with a gold `aura`,
-   `shotGlow` or `trailGlow` (rule 12). Grips and the bow's yaw are measured into `GRIPS` /
-   `YAW` like every Tripo weapon.
+5. The owner imported the three GLBs in Studio (2026-11-14, as `gold_golden_bow_8k_clean`,
+   `gold_golden_staff`, `gold_golden_blade`; moved to `ServerStorage.Imports` once read). Their
+   mesh and texture ids are in `assets/models/weapons/blocky/golden/skin_imports.json` and
+   `skins_to_luau.py` (its `GOLDEN` list) writes them into `Config/Weapons` and the sandbox
+   menu, each with a gold `aura`, `shotGlow` or `trailGlow` (rule 12). Grips, measured from the
+   GLBs: the bow's riser is on +X (yaw a quarter turn), gripped at its middle; the staff 43% up,
+   on its wrap; the blade 17.5% up, its handle running from 10% to 25% under the guard.

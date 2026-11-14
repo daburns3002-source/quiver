@@ -106,7 +106,9 @@ BOGHEART = [
 # The golden weapons (owner, 2026-11-14; Config/ClassLevels): a class's level
 # 10, Legendary strength. Tripo models from the Codex front views in
 # assets/concepts/blocky/weapons/skins/golden, one textured mesh each, so
-# the gold glow is an `aura`. Skipped until their imports are dumped.
+# the gold glow is an `aura`. Imported by the owner 2026-11-14 as
+# `gold_golden_bow_8k_clean`, `gold_golden_staff` and `gold_golden_blade`
+# (Workspace), dumped to blocky/golden/skin_imports.json under their keys.
 # key, label, class, import, projectile, glow colour, tier
 GOLDEN = [
     ("GoldenBow", "GOLDEN BOW", "Ranger", "GoldenBow", None, (255, 205, 56), 4),
@@ -139,6 +141,7 @@ YAW = {
     "GlowcapLongbow": "math.pi / 2",
     "GulpstringBow": "math.pi / 2",
     "LumenveilBow": "math.pi / 2",
+    "GoldenBow": "math.pi / 2",
 }
 YAW_RADIANS = {"math.pi / 2": math.pi / 2, "-math.pi / 2": -math.pi / 2, "math.pi": math.pi}
 # Where the hand closes on each one-mesh model, measured from its mesh's cross
@@ -193,6 +196,12 @@ GRIPS = {
     "BuoyStaff": (-0.001, 0.43, 0.0),
     "MaelstromStaff": (0.012, 0.43, -0.005),
     "StormglassBlade": (0.0, 0.181, 0.0),
+    # the golden weapons, measured from their GLBs (2026-11-14): the bow's
+    # riser is on +X; the blade's handle runs from 10% to 25% up, under a
+    # guard that starts at 26%
+    "GoldenBow": (0.0806, 0.5, -0.0004),
+    "GoldenStaff": (0.0, 0.43, 0.0),
+    "GoldenBlade": (0.0, 0.175, 0.0),
 }
 # Every Mossy Glade skin is a Tripo model (seven remade 2026-11-10, all
 # eighteen at 4,000 triangles and an 8K texture 2026-11-13, owner): one

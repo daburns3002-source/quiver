@@ -1075,6 +1075,61 @@ local skins: { [string]: any } = {
 		aura = Color3.fromRGB(63, 230, 242),
 		trailGlow = Color3.fromRGB(63, 230, 242),
 	},
+	GoldenBow = {
+		-- `GoldenBow`, held as the TwigBow is, playing its kit until it has its own
+		kit = "TwigBow",
+		skinOf = "TwigBow",
+		scale = 4.3391,
+		parts = {
+			{
+				name = "Bow",
+				meshId = "rbxassetid://116283939534173",
+				size = Vector3.new(0.387, 0.979, 0.168),
+				offset = Vector3.new(-0.0004, 0, -0.0789),
+				turned = true,
+				yaw = math.pi / 2,
+				textureId = "rbxassetid://125471324775660",
+			},
+		} :: { WeaponPart },
+		aura = Color3.fromRGB(255, 205, 56),
+		shotGlow = Color3.fromRGB(255, 205, 56),
+	},
+	GoldenStaff = {
+		-- `GoldenStaff`, held as the BranchStaff is, playing its kit until it has its own
+		kit = "BranchStaff",
+		skinOf = "BranchStaff",
+		scale = 4.5843,
+		parts = {
+			{
+				name = "Staff",
+				meshId = "rbxassetid://109558549444590",
+				size = Vector3.new(0.267, 0.979, 0.214),
+				offset = Vector3.new(0, 0.0685, 0),
+				turned = true,
+				textureId = "rbxassetid://108480906774057",
+			},
+		} :: { WeaponPart },
+		aura = Color3.fromRGB(255, 214, 84),
+		shotGlow = Color3.fromRGB(255, 214, 84),
+	},
+	GoldenBlade = {
+		-- `GoldenBlade`, held as the TimberBlade is, playing its kit until it has its own
+		kit = "TimberBlade",
+		skinOf = "TimberBlade",
+		scale = 4.8857,
+		parts = {
+			{
+				name = "Blade",
+				meshId = "rbxassetid://134626899771970",
+				size = Vector3.new(0.367, 0.98, 0.148),
+				offset = Vector3.new(0, 0.3185, 0),
+				turned = true,
+				textureId = "rbxassetid://75986189772116",
+			},
+		} :: { WeaponPart },
+		aura = Color3.fromRGB(255, 198, 44),
+		trailGlow = Color3.fromRGB(255, 198, 44),
+	},
 	-- SKINS END
 }
 for key, skin in skins do

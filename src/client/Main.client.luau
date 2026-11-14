@@ -290,14 +290,13 @@ HealthBar.start()
 DashBar.start()
 --[[ Leaving Victory plays the story beat the win owes first (`UI/StoryBeat`). ]]
 EndScreen.start(function()
+	-- NEXT LEVEL and TRY AGAIN are never answered with an offer
 	StoryBeat.after(function()
-		-- the starter pack's one offer, after the first 1-1 clear
-		RobuxOffer.after(function()
-			Remotes.event(Remotes.RunRestart):FireServer()
-		end)
+		Remotes.event(Remotes.RunRestart):FireServer()
 	end)
 end, function()
 	StoryBeat.after(function()
+		-- the starter pack's one offer, on the way back to the lobby
 		RobuxOffer.after(function()
 			Remotes.event(Remotes.RunLobby):FireServer()
 		end)

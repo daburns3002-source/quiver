@@ -116,7 +116,9 @@ play until they have beaten the first level of mossy glade"; `Tutorial.untilBeat
 `LevelUnlocks.tutorialOwed`, decided by the server from the saved profile at IntroBegin)
 (`Config/Tutorial`, owner 2026-10-25): `Balance.Stages[Balance.tutorialStage]`, five
 Mossy Glade rooms (81-85, kept apart from the generated rooms) of Moss Slimes and
-Sprout Spitters only, played as a Ranger, won into the lobby. Its upgrades are
+Sprout Spitters only, played as a Ranger, won into the lobby. **It cannot be lost** (2026-11-14): a hit
+never takes health under `Tutorial.healthFloor` (1; `RunSession`), and room 2's logs stand to the sides so
+the lane from the spawn is open (`tests/Tutorial.spec`). Its upgrades are
 fixed, the same for everyone (`Util/TutorialHands`, `tests/Tutorial.spec`): a
 Common, an Uncommon and a Rare first; on room 3's level-up Multishot (Legendary)
 in the middle; Legendaries and Mythics banned from its pool (`Loadout.State.banned`,
@@ -160,7 +162,13 @@ it anymore"). One system: the tips are data in `Config/Tips` (one short line eac
 a draft with a REROLL, a lost run, an Endless checkpoint; `FirstTips` itself asks for class select while
 it is up, for what the profile says is new in the lobby (a first pet, a weapon past the starters, three of
 a tier to merge, the first gems, the first boss item) and for the first area past Mossy Glade. Once a tip is on screen the client
-sends `Remotes.TipSeen` and the server keeps it (`Wallet.sawTip`). **A tip pauses everything until OK**
+sends `Remotes.TipSeen` and the server keeps it (`Wallet.sawTip`). **Since 2026-11-14 a tip goes by itself
+after `Tips.showFor` (6 s), holds nothing and takes no keys** (owner, "Build top 5", after the kid playtest
+counted 13 tips that each stopped the game for an OK: `docs/PLAYTEST-KID.md`); its OK only sends it away
+sooner. Only a tip marked `hold` in `Config/Tips` still waits for OK (`TipRules.holds`): class select's and
+REROLL's, each over a screen that is already stopped, and each goes with its screen if the class is chosen
+or a card taken under it (`FirstTips` `passed`). One line (`hold = true`) puts a tip back to pausing.
+**A `hold` tip pauses everything until OK**
 (owner, 2026-11-13: "they should be in the outer arena area so it doesnt block the arena, and also pause the
 game and have an ok button to dismiss the tip and resume the game. make sure the music quiets as well while
 its paused"): its card (`Util/TipPlate.card`, TIP tag, words, a green OK) stands beside the arena, in the side
@@ -319,6 +327,10 @@ What exists and works, all verified in Studio rather than only by the gates:
   the main button on both (owner, 2026-11-08; `Remotes.RunLobby`). Since 2026-11-12 the chest
   row is only built when the run paid a chest, an egg or a boss item, and the tutorial's
   Victory says CONTINUE, since it leads to the lobby (`Util/EndScreenRules`).
+  **Neither panel is white** (owner, 2026-11-14: "the victory and defeat screens also shouldnt
+  have a white background"): Victory's is sea blue, Defeat's slate, as on the sheets, in Lagoon's
+  colours (`Config/EndScreenTheme`; `tests/UiPalette.spec` fails a pale panel). No word sits on a
+  panel's own fill, so a new line of text there needs a plate under it.
 - **Phase 3, mostly:** the shot pipeline with its abilities as data, XP and a
   choose-one-of-three draft that pauses the world, crit, splash, Ricochet
   (enemy to enemy), Bouncy Wall, Tracking Eye (homing), Double Shot
@@ -581,7 +593,9 @@ bar with the hero's level on a gold badge, the coin counter (`Fx/CoinDrops` flie
 (up to `maxPips`; more keep the counter and name the room), and a status line. On a phone the MENU is a
 48-point pause icon at the top left (`UI/ControlMenu`) and the draft, held upright, gets a tray under
 its panel with the selected card read out and REROLL / CHOOSE! 56 points tall (`Config/Hud`
-`draftUpright`). All in screen points.
+`draftUpright`). All in screen points. **One tap or click takes a card** (2026-11-14, `CardTheme.timing.tapGuard`
+0.35 s after it is dealt); under the upright tray the first tap reads it and a second takes it; CHOOSE! is
+the gamepad's (and the tray's).
 
 **Settings** (`Config/Settings`, `Util/SettingsRules`, `Server/Data/Settings`, `client/Options`,
 `UI/SettingsScreen`, save version 9): music and sound volume in steps and vibration on or off, kept in
@@ -592,10 +606,22 @@ dash and a level gained. The SETTINGS button is on the lobby's left edge.
 after the first, its egg, and Endless wait on the boss before it (`atLaunch` in `Config/Lobby` and
 `Config/Eggs`). Off, the playtest is as open as the owner asked. `tests/LaunchLocks.spec` holds both.
 
+**What goes on by itself** (2026-11-14, the kid playtest): a hatched pet goes into any empty slot open
+to the player, rarest first, and never into one they filled (`EggRules.fill`, `Data/Hatchery`); a weapon
+from a crate or the store that is strictly stronger than the one held, for the class played, goes in hand
+(`ShopRules.upgrade`, `Data/Shop` `takeUp`). Gear's plate reads ATK, PETS (the slotted pets' damage a
+second, `Util/PetPower`, at their merge tier) and HP on one line and pops when ATK + PETS rises; MERGE
+leaves the item's card up with its new tier. **A won fight cannot hurt**: as a room, wave or floor is
+cleared every enemy shot goes, on the server and on every screen (`RoomController.step`,
+`Remotes.ShotsParried` for the whole arena).
+
 **The Robux store** (owner, 2026-11-13: "Yes, build them"; `Config/RobuxStore`, `Util/StoreRules`,
 `Server/Data/Purchases`, `Server/Data/Passes`, `UI/RobuxStore`, `UI/RobuxOffer`, `docs/ROBUX-STORE.md`):
-five gem packs, a starter pack (once a player, offered once as the first 1-1 Victory is left) and a
-**15 Robux revive, Robux only, never gems** (owner) as developer products; 2x Coins, Extra Pet Slot (PET 3 on
+five gem packs, a starter pack (once a player, offered once as a Victory is left for the lobby with two
+levels won, never over NEXT LEVEL: `RobuxStore.starterAfterWins`, marked offered when `RunLobby` answers
+it, since 2026-11-14) and a
+**15 Robux revive, Robux only, never gems** (owner; not sold in a run's first three rooms,
+`RobuxStore.reviveFromRoom`, where a held one can still be used) as developer products; 2x Coins, Extra Pet Slot (PET 3 on
 the Gear sheet) and VIP (gold name tag, +10% coins, 25 gems a day) as passes. Never sold: Mythics, boss items,
 Starfall, boss badges; no energy, no timers. **Every receipt is granted once**: `ProcessReceipt` looks its
 `PurchaseId` up in the save (`SaveSchema` v15 `purchases`), grants and writes it down together, and answers
@@ -700,7 +726,10 @@ the boss's arrival (`EnemyManager.introHolding`, beside the card screen's
 pause) and the client stops input on `RunPaused.setIntro`, a flag apart from
 the draft's.
 **The NEW ENEMY! screen** (`UI/NewEnemyScreen`, `Config/NewEnemies`, owner
-2026-10-25): the first time a player meets a kind of non-boss enemy (once per
+2026-10-25). **Since 2026-11-14 the card is off (`NewEnemies.card = false`)**: a first meeting is a NEW!
+name tag over the enemy for `tagFor` (2.6 s) and nothing holds (owner, "Build top 5", after the kid
+playtest: four cards stopped the first ten minutes, two inside one fight). The sheets stay for the screen's
+`Preview` and the Dex; `card = true` brings back what follows: the first time a player meets a kind of non-boss enemy (once per
 server visit until there is a save), its picture, name and description come up
 on its area's banner, and **the run holds until GOT IT!** (`RunSession.meetEnemy`
 as an enemy lands, `anyMeeting` in the server loop, `RunPaused.setMeeting`,

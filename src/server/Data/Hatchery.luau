@@ -73,7 +73,9 @@ end
 type Result = { pet: string, new: boolean }
 
 --[[ Rolls `n` of an egg's pool for a player and keeps every pet, the
-     pity counted; a player's very first pet goes straight into slot 1. ]]
+     pity counted; what hatched goes straight into any empty slot open to
+     them, rarest first (`EggRules.fill`; until 2026-11-14 only a player's
+     very first pet did). A slot the player filled is never changed. ]]
 local function rollEggs(
 	player: Player,
 	profile: any,
@@ -81,7 +83,7 @@ local function rollEggs(
 	n: number
 ): { Result }
 	local results: { Result } = {}
-	local firstFree = profile.equippedPets[1] == nil
+	local hatched: { string } = {}
 	local mythics = Pity.mythics(pool)
 	for _ = 1, n do
 		-- the 100th egg since the last Mythic hatches one (`Util/Pity`)
@@ -93,10 +95,15 @@ local function rollEggs(
 			profile.pity.eggs = Pity.after(since, entry.rarity == "Mythic")
 			local new = Wallet.grantPet(player, entry.pet)
 			table.insert(results, { pet = entry.pet, new = new })
+			table.insert(hatched, entry.pet)
 		end
 	end
-	if firstFree and next(profile.equippedPets) == nil and results[1] then
-		Wallet.equipPet(player, 1, results[1].pet)
+	local open = StoreRules.petSlots(Passes.owned(player))
+	local filled = EggRules.fill(profile.equippedPets, open, hatched)
+	for slot, pet in filled do
+		Wallet.equipPet(player, slot, pet)
+	end
+	if next(filled) ~= nil then
 		Hatchery.apply(player)
 	end
 	return results

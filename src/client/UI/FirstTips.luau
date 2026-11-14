@@ -16,7 +16,11 @@
 	the save, not shown yet this visit. Once a tip is on screen the server
 	is told (`Remotes.TipSeen`) and keeps it, so it never shows again.
 
-	A tip holds everything until OK (owner, 2026-11-13: "they should be in
+	Since 2026-11-14 a tip is up for `Tips.showFor` seconds and goes by
+	itself, holding nothing and taking no keys (owner, after the kid
+	playtest: "Build top 5"); its OK only sends it away sooner. What follows
+	is a `hold` tip (`TipRules.holds`: class select's and REROLL's), which
+	still holds everything until OK (owner, 2026-11-13: "they should be in
 	the outer arena area so it doesnt block the arena, and also pause the
 	game and have an ok button to dismiss the tip and resume the game. make
 	sure the music quiets as well while its paused"): its card stands
@@ -87,6 +91,9 @@ local shown: { [string]: boolean } = {}
 type Waiting = { key: string, asked: number }
 local queue: { Waiting } = {}
 local current: GuiObject? = nil
+--[[ Whether the tip showing is a `hold` one: the run held, the keys its. ]]
+local currentHolds = false
+local currentKey: string? = nil
 -- when the last tip was closed, for `takesKeys`
 local closedAt = -math.huge
 --[[ Gamepad and Enter navigation: what was selected before the tip took
@@ -175,18 +182,25 @@ local function arenaBox(w: number, h: number): TipRules.Box?
 	return { x = minX, y = minY, w = maxX - minX, h = maxY - minY }
 end
 
---[[ OK: the tip goes, the run and the music come back. ]]
-local function close(item: GuiObject)
+--[[ OK, or its time is up (`quiet`): the tip goes, and for a `hold` tip the
+     run and the music come back. ]]
+local function close(item: GuiObject, quiet: boolean?)
 	if current ~= item then
 		return
 	end
 	current = nil
-	closedAt = os.clock()
-	nextAt = closedAt + Tips.gap
-	RunPaused.setTip(false)
-	MusicFx.setTip(false)
-	Remotes.event(Remotes.TipClosed):FireServer()
-	SoundFx.play("card_click")
+	local held = currentHolds
+	currentHolds = false
+	nextAt = os.clock() + Tips.gap
+	if held then
+		closedAt = os.clock()
+		RunPaused.setTip(false)
+		MusicFx.setTip(false)
+		Remotes.event(Remotes.TipClosed):FireServer()
+	end
+	if not quiet then
+		SoundFx.play("card_click")
+	end
 	if selectionWatch then
 		selectionWatch:Disconnect()
 		selectionWatch = nil
@@ -220,8 +234,9 @@ local function close(item: GuiObject)
 	end
 end
 
---[[ The tip's card beside the arena with its OK, the run held and the
-     music down until OK. ]]
+--[[ The tip's card beside the arena with its OK. A `hold` tip: the run
+     held and the music down until OK. Any other: gone by itself after
+     `Tips.showFor`. ]]
 local function draw(key: string)
 	local screen = gui
 	local tip = Tips.tips[key]
@@ -274,6 +289,14 @@ local function draw(key: string)
 			:Play()
 	end
 	current = holder
+	currentKey = key
+	currentHolds = TipRules.holds(key)
+	if not currentHolds then
+		task.delay(Tips.showFor, function()
+			close(holder, true)
+		end)
+		return
+	end
 	RunPaused.setTip(true)
 	MusicFx.setTip(true)
 	--[[ Enter and a gamepad's A press whatever is selected: while the tip
@@ -301,6 +324,22 @@ local function draw(key: string)
 				end)
 		end)
 	end
+end
+
+--[[ Whether the screen a `hold` tip explains has gone from under it: the
+     class is chosen, the card is taken. The tip goes with it (seen in
+     Studio, 2026-11-14: a card taken under REROLL's tip left the tip up
+     and the run held for it). ]]
+local function passed(key: string?): boolean
+	local player = Players.LocalPlayer
+	if key == "ClassSelect" then
+		return player:GetAttribute("ClassSelecting") ~= true
+	elseif key == "Reroll" then
+		local playerGui = player:FindFirstChild("PlayerGui")
+		local draft = playerGui and playerGui:FindFirstChild("DraftScreen")
+		return not (draft and draft:IsA("ScreenGui") and draft.Enabled)
+	end
+	return false
 end
 
 --[[ Puts up the next tip waiting, if one may show now. ]]
@@ -335,13 +374,13 @@ local function pump()
 	Remotes.event(Remotes.TipSeen):FireServer(waiting.key)
 end
 
---[[ Whether Return, Enter or A belongs to a tip: one is up, or one closed
-     a moment ago on that very press. A screen under a tip that also answers
+--[[ Whether Return, Enter or A belongs to a tip: a `hold` one is up, or one
+     closed a moment ago on that very press. A screen under a tip that also answers
      those keys (NEW ENEMY!'s GOT IT!, the portal's START, the draft's
      CHOOSE on A) asks this first, so one press closes the tip and nothing
      else. ]]
 function FirstTips.takesKeys(): boolean
-	return current ~= nil or os.clock() - closedAt < KEY_GRACE
+	return (current ~= nil and currentHolds) or os.clock() - closedAt < KEY_GRACE
 end
 
 --[[ Asks for tip `key`: shown once ever, when the screen is free. ]]
@@ -444,6 +483,7 @@ function FirstTips.start()
 		local key = input.KeyCode
 		if
 			item
+			and currentHolds
 			and (
 				key == Enum.KeyCode.Return
 				or key == Enum.KeyCode.KeypadEnter
@@ -460,6 +500,10 @@ function FirstTips.start()
 		if since >= LOOK_EVERY then
 			since = 0
 			look()
+		end
+		local item = current
+		if item and currentHolds and passed(currentKey) then
+			close(item, true)
 		end
 		pump()
 	end)

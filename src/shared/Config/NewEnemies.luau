@@ -58,6 +58,21 @@ export type Enemy = {
 local WHITE = Color3.fromRGB(248, 248, 240)
 
 local NewEnemies = {
+	--[[ How a first meeting is shown. True: this screen, the run held until
+	     GOT IT! (the owner's pick of 2026-10-25). False (owner, 2026-11-14,
+	     after the kid playtest: four of these stopped the first ten minutes,
+	     two inside one fight; "Build top 5"): a NEW! name tag over the enemy
+	     for `tagFor` seconds and nothing held. The sheets stay for the
+	     screen's `Preview` and for turning this back on. ]]
+	card = false,
+	tagFor = 2.6,
+	--[[ The tag's size in points, its letters' sizes, and how high over the
+	     enemy's middle it floats, in studs. ]]
+	tagSize = Vector2.new(260, 64),
+	tagNewSize = 22,
+	tagNameSize = 30,
+	tagLift = 4.2,
+	tagNew = Color3.fromRGB(255, 214, 64),
 	canvas = Vector2.new(1024, 1536),
 	--[[ Share of the screen's height the sheet fills (the end screens' 97%,
 	     less, so the room's edge still frames it), and how dark the room is

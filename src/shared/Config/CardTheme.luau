@@ -113,6 +113,11 @@ local CardTheme = {
 		dealDuration = 0.56,
 		rerollDuration = 0.4,
 		holdToOpen = 0.48,
+		--[[ One tap or click takes a card (owner, 2026-11-14, after the kid
+		     playtest: card then CHOOSE! was 16 presses in 1-1, "Build top
+		     5"). Not before the card has been dealt for this long, so a
+		     press meant for the fight cannot take one unseen. ]]
+		tapGuard = 0.35,
 		tooltipTime = 1.3,
 		pickApplyAt = 1.56,
 		slotPop = 0.65,

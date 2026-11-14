@@ -381,7 +381,8 @@ Remotes.PlayerRevived = "PlayerRevived"
 Remotes.SoulLink = "SoulLink"
 
 --[[ Server → all clients. A Warden's Parry knocked the enemy shots within
-     `radius` of `centre` out of the air: stop drawing them. ]]
+     `radius` of `centre` out of the air: stop drawing them. Also sent for
+     the whole arena as a fight is won (`Run/RoomController`). ]]
 Remotes.ShotsParried = "ShotsParried"
 
 --[[ Server → all clients. A class upgrade's moment to draw

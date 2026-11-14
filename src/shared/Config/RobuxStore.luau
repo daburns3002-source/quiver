@@ -8,8 +8,9 @@
 	on the lobby's gem pill.
 
 	**Developer products** can be bought again and again: the gem packs, the
-	starter pack (once a player, offered once after the first 1-1 clear) and
-	the revive (DEFEAT only). **Game passes** are permanent.
+	starter pack (once a player, offered once on the way back to the lobby
+	from a win, `starterAfterWins`) and the revive (DEFEAT only, from
+	`reviveFromRoom`). **Game passes** are permanent.
 
 	**The revive is Robux only, never gems** (owner: "the revive should only be
 	robux not diamonds and it should be 15"). The free revive is gone
@@ -185,6 +186,17 @@ return table.freeze({
 	--[[ Seconds the run holds TRY AGAIN for a revive's prompt to be answered
 	     (co-op: a teammate's press must not restart the run under it). ]]
 	reviveHold = 30,
+	--[[ The first room, wave or floor of a run a revive is sold in (owner,
+	     2026-11-14, after the kid playtest: dead 11 seconds into 1-2 with a
+	     price over DEFEAT, "Build top 5"). Before it there is nothing to
+	     save yet and TRY AGAIN costs seconds; a revive already held can
+	     still be used. ]]
+	reviveFromRoom = 4,
+	--[[ Levels a player has won before the starter pack's one offer, made
+	     as they go back to the lobby from a win and never over NEXT LEVEL
+	     (same day: it came 36 seconds before that death, answering the
+	     first win's NEXT LEVEL with a price). ]]
+	starterAfterWins = 2,
 	--[[ The receipts a save keeps, newest last: a retry of anything older is
 	     long past (Roblox retries a receipt until it is granted). ]]
 	receiptsKept = 100,

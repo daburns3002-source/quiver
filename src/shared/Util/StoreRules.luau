@@ -198,29 +198,35 @@ function StoreRules.nameTag(owned: Owned): boolean
 	return false
 end
 
---[[ Whether this clear is the one the starter pack is offered after: the
-     first win of `level` where `level` is 1-1, never offered, never bought. ]]
-function StoreRules.starterDue(
-	purchases: Purchases,
-	level: string?,
-	firstClear: boolean,
-	offerAfter: string
-): boolean
-	return firstClear
-		and level == offerAfter
-		and not purchases.starterOffered
-		and not purchases.starterBought
+--[[ Whether the starter pack's one offer is owed after a win: `wins`
+     levels won by now, at least `after`, never offered, never bought. ]]
+function StoreRules.starterDue(purchases: Purchases, wins: number, after: number): boolean
+	return wins >= after and not purchases.starterOffered and not purchases.starterBought
+end
+
+--[[ Whether room (wave, floor) `room` of a run is too early to sell a
+     revive in: before `from` (`RobuxStore.reviveFromRoom`). ]]
+function StoreRules.reviveEarly(room: number, from: number): boolean
+	return room < from
 end
 
 --[[ What DEFEAT offers: "use" for a revive already held, "buy" for one to
      pay for, nil for none (the run has spent its revive, or the stage has
-     none to give). ]]
-function StoreRules.reviveOffer(purchases: Purchases?, allowed: boolean): ("use" | "buy")?
+     none to give). `early` (`reviveEarly`): nothing is sold, a held one
+     can still be used. ]]
+function StoreRules.reviveOffer(
+	purchases: Purchases?,
+	allowed: boolean,
+	early: boolean?
+): ("use" | "buy")?
 	if not allowed then
 		return nil
 	end
 	if purchases and purchases.reviveCredits > 0 then
 		return "use"
+	end
+	if early then
+		return nil
 	end
 	local revive = StoreRules.product("Revive")
 	if revive and StoreRules.live(revive) then

@@ -66,6 +66,7 @@ local Sandbox = require(ReplicatedStorage.Shared.Config.Sandbox)
 local SoulLink = require(script.Parent.Combat.SoulLink)
 local SoulstoneShop = require(script.Parent.Data.SoulstoneShop)
 local StoryLeaderboard = require(script.Parent.Run.StoryLeaderboard)
+local TipRules = require(ReplicatedStorage.Shared.Util.TipRules)
 local TrailsServer = require(script.Parent.Data.Trails)
 local Tutorial = require(ReplicatedStorage.Shared.Config.Tutorial)
 local UpgradeEffects = require(script.Parent.Fx.UpgradeEffects)
@@ -96,6 +97,7 @@ TrailsServer.start()
 Passes.start()
 Purchases.revive = {
 	can = RoomController.canRevive,
+	early = RoomController.reviveEarly,
 	apply = RoomController.revive,
 	hold = RoomController.holdForRevive,
 	release = RoomController.releaseRevive,
@@ -646,8 +648,9 @@ end)
      the run may ask, and `requestLobby` refuses unless there is a run to
      leave. Nothing is credited: leaving is giving up, not winning. ]]
 Inbound.on(Remotes.RunLobby, function(player)
-	if RunSession.get(player) then
-		RoomController.requestLobby()
+	if RunSession.get(player) and RoomController.requestLobby() then
+		-- a starter offer owed on their Victory was shown on the way out
+		Purchases.starterAnswered(player)
 	end
 end)
 
@@ -668,11 +671,12 @@ Inbound.on(Remotes.FunnelStep, function(player, step)
 end)
 
 --[[ A first-time tip shown (`Config/Tips`); kept once, for a tip only.
-     In a run, a tip never seen before holds it until OK (`TipClosed`). ]]
+     In a run, a `hold` tip never seen before holds it until OK
+     (`TipClosed`); every other tip holds nothing (`TipRules.holds`). ]]
 Inbound.on(Remotes.TipSeen, function(player, key)
 	local fresh = Wallet.sawTip(player, key)
 	local session = RunSession.get(player)
-	if fresh and session and Workspace:GetAttribute("InLobby") ~= true then
+	if fresh and session and TipRules.holds(key) and Workspace:GetAttribute("InLobby") ~= true then
 		RunSession.holdForTip(session)
 	end
 end)

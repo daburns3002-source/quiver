@@ -21,6 +21,12 @@ function TipRules.isTip(key: unknown): boolean
 	return type(key) == "string" and Tips.tips[key] ~= nil
 end
 
+--[[ Whether tip `key` stays until OK and holds the run while it is up
+     (`Tip.hold`). Every other tip goes by itself and holds nothing. ]]
+function TipRules.holds(key: unknown): boolean
+	return TipRules.isTip(key) and Tips.tips[key :: string].hold == true
+end
+
 --[[ Whether tip `key` may show now: a tip, never seen, not shown yet. ]]
 function TipRules.due(
 	key: unknown,

@@ -206,15 +206,13 @@ return function(t: TestRunner.Helper)
 		function()
 			for _, entry in ShopRules.catalog() do
 				local price = ShopRules.price(entry)
-				if entry.earned then
-					-- a golden weapon is earned, never sold (`Config/ClassLevels`)
-					t.isNil(price, entry.weapon)
-				elseif entry.rarity == "Legendary" then
+				if entry.rarity == "Legendary" and not entry.earned then
 					t.notNil(price, entry.weapon)
 					local item = Economy.areas[Shop.crates[entry.area].area].bossItem
 					t.isTrue(price ~= nil and (price.coins or 0) > 0, entry.weapon)
 					t.equal(price and price.items and price.items[item], Shop.legendaryItems)
-				elseif entry.rarity == "Mythic" or entry.rarity == "Common" then
+				elseif entry.earned or entry.rarity == "Mythic" or entry.rarity == "Common" then
+					-- a golden weapon is earned, never sold (`Config/ClassLevels`)
 					t.isNil(price, entry.weapon)
 				else
 					t.isTrue(price ~= nil and (price.gems or 0) > 0, entry.weapon)

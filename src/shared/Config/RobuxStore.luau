@@ -24,8 +24,9 @@
 	timers. A product gives only gems, coins, eggs or a revive
 	(`tests/RobuxStore.spec` holds that).
 
-	`id` is the Creator Dashboard's number, 0 until the owner creates it; a
-	product or pass at 0 is shown but cannot be bought. What to create there:
+	`id` is the Creator Dashboard's number (universe 10772468005, "Archer Legends
+	[TEST]", created 2026-11-14 with managed pricing off so these prices hold);
+	a product or pass at 0 is shown but cannot be bought. What to create there:
 	`docs/ROBUX-STORE.md`.
 ]]
 
@@ -73,7 +74,7 @@ export type Pass = {
 local products: { Product } = {
 	{
 		key = "Gems120",
-		id = 0,
+		id = 3731091948,
 		name = "Handful of Gems",
 		robux = 49,
 		description = "120 gems.",
@@ -82,7 +83,7 @@ local products: { Product } = {
 	},
 	{
 		key = "Gems325",
-		id = 0,
+		id = 3731092230,
 		name = "Pouch of Gems",
 		robux = 99,
 		description = "325 gems.",
@@ -91,7 +92,7 @@ local products: { Product } = {
 	},
 	{
 		key = "Gems750",
-		id = 0,
+		id = 3731092299,
 		name = "Bag of Gems",
 		robux = 199,
 		description = "750 gems.",
@@ -101,7 +102,7 @@ local products: { Product } = {
 	},
 	{
 		key = "Gems2300",
-		id = 0,
+		id = 3731092363,
 		name = "Chest of Gems",
 		robux = 499,
 		description = "2,300 gems.",
@@ -110,7 +111,7 @@ local products: { Product } = {
 	},
 	{
 		key = "Gems5500",
-		id = 0,
+		id = 3731092429,
 		name = "Vault of Gems",
 		robux = 999,
 		description = "5,500 gems.",
@@ -120,7 +121,7 @@ local products: { Product } = {
 	},
 	{
 		key = "StarterPack",
-		id = 0,
+		id = 3731092480,
 		name = "Starter Pack",
 		robux = 99,
 		description = "500 gems, 3 Mossy Eggs and 2,000 coins. Once per player.",
@@ -133,7 +134,7 @@ local products: { Product } = {
 	},
 	{
 		key = "Revive",
-		id = 0,
+		id = 3731092534,
 		name = "Revive",
 		robux = 15,
 		description = "Back into the room you fell in, with your build. Once per run.",
@@ -146,7 +147,7 @@ local products: { Product } = {
 local passes: { Pass } = {
 	{
 		key = "DoubleCoins",
-		id = 0,
+		id = 2089910820,
 		name = "2x Coins",
 		robux = 199,
 		description = "Double the coins from every kill and every clear.",
@@ -155,7 +156,7 @@ local passes: { Pass } = {
 	},
 	{
 		key = "PetSlot",
-		id = 0,
+		id = 2089742794,
 		name = "Extra Pet Slot",
 		robux = 249,
 		description = "A third pet slot: take three pets into every run.",
@@ -164,7 +165,7 @@ local passes: { Pass } = {
 	},
 	{
 		key = "VIP",
-		id = 0,
+		id = 2089826773,
 		name = "VIP",
 		robux = 399,
 		description = "A gold name tag, 10% more coins and 25 gems every day.",

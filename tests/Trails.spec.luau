@@ -99,7 +99,8 @@ return function(t: TestRunner.Helper)
 			)
 			local ribbon = trail.ribbon
 			t.isTrue(
-				#ribbon.columns >= 1 and ribbon.fade[2] > ribbon.fade[1],
+				(#ribbon.columns >= 1 or (ribbon.threads ~= nil and #ribbon.threads >= 1))
+					and ribbon.fade[2] > ribbon.fade[1],
 				key .. " has a ribbon"
 			)
 			t.isTrue(ribbon.alpha > 0 and ribbon.alpha <= 1, key .. " ribbon shows")

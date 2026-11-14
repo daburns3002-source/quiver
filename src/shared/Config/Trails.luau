@@ -332,7 +332,9 @@ local Trails = {
 			pieces = {
 				-- small fireflies all along it, and a few big ones near the
 				-- front: a yellow core in three glows, blinking, rising and
-				-- drifting out while they keep up with the player
+				-- drifting out while they keep up with the player (cores
+				-- about twice the build's, whose tiny ones read through its
+				-- bloom and close camera but vanished in Play)
 				{
 					blocks = {
 						{
@@ -364,7 +366,7 @@ local Trails = {
 						},
 					},
 					colours = { hex("ffda36") },
-					size = { 0.09, 0.16 },
+					size = { 0.22, 0.32 },
 					rate = 4.8,
 					life = { 2, 3 },
 					follow = true,
@@ -414,7 +416,7 @@ local Trails = {
 						},
 					},
 					colours = { hex("ffda36") },
-					size = { 0.26, 0.4 },
+					size = { 0.45, 0.6 },
 					rate = 1.6,
 					life = { 2, 3 },
 					follow = true,
@@ -451,7 +453,6 @@ local Trails = {
 					{
 						colour = hex("5fbf15"),
 						height = 1,
-						neon = true,
 						chance = 0.38,
 						from = 4.8,
 						dissolve = { 27.85, 29.05 },
@@ -459,7 +460,6 @@ local Trails = {
 					{
 						colour = hex("78d81e"),
 						height = 1,
-						neon = true,
 						chance = 0.82,
 						from = 4.45,
 						dissolve = { 29.35, 30.55 },
@@ -467,12 +467,11 @@ local Trails = {
 					{
 						colour = hex("a8f536"),
 						height = 1,
-						neon = true,
 						from = 4.1,
 						dissolve = { 30.85, 32.05 },
 					},
 					{
-						colour = hex("dcff74"),
+						colour = hex("7fd424"),
 						height = 1,
 						neon = true,
 						from = 3.75,
@@ -481,14 +480,12 @@ local Trails = {
 					{
 						colour = hex("a8f536"),
 						height = 1,
-						neon = true,
 						from = 4.1,
 						dissolve = { 30.85, 32.05 },
 					},
 					{
 						colour = hex("78d81e"),
 						height = 1,
-						neon = true,
 						chance = 0.82,
 						from = 4.45,
 						dissolve = { 29.35, 30.55 },
@@ -496,7 +493,6 @@ local Trails = {
 					{
 						colour = hex("5fbf15"),
 						height = 1,
-						neon = true,
 						chance = 0.38,
 						from = 4.8,
 						dissolve = { 27.85, 29.05 },
@@ -614,9 +610,9 @@ local Trails = {
 			-- sides thin away towards its end
 			ribbon = {
 				columns = {
-					{ colour = hex("ff0cf7"), height = 0.18, neon = true, gone = { 12, 34 } },
-					{ colour = hex("ff9fff"), height = 0.18, neon = true },
-					{ colour = hex("ff0cf7"), height = 0.18, neon = true, gone = { 12, 34 } },
+					{ colour = hex("d60acf"), height = 0.18, neon = true, gone = { 12, 34 } },
+					{ colour = hex("e070e0"), height = 0.18, neon = true },
+					{ colour = hex("d60acf"), height = 0.18, neon = true, gone = { 12, 34 } },
 				},
 				fade = { 9.4, 36 },
 				alpha = 0.85,
@@ -773,7 +769,7 @@ local Trails = {
 				columns = {},
 				threads = {
 					{
-						colour = hex("b973ff"),
+						colour = hex("8a4fe0"),
 						height = 0.06,
 						neon = true,
 						amp = 1.15,
@@ -784,7 +780,7 @@ local Trails = {
 						width = 0.5,
 					},
 					{
-						colour = hex("aa63ff"),
+						colour = hex("7e43d8"),
 						height = 0.06,
 						neon = true,
 						amp = 0.75,
@@ -795,7 +791,7 @@ local Trails = {
 						width = 0.5,
 					},
 					{
-						colour = hex("b96aff"),
+						colour = hex("8a4adf"),
 						height = 0.06,
 						neon = true,
 						amp = 1.25,
@@ -806,7 +802,7 @@ local Trails = {
 						width = 0.5,
 					},
 					{
-						colour = hex("a36aff"),
+						colour = hex("7647d6"),
 						height = 0.06,
 						neon = true,
 						amp = 0.8,
@@ -817,7 +813,7 @@ local Trails = {
 						width = 0.5,
 					},
 					{
-						colour = hex("b965ff"),
+						colour = hex("8a45dc"),
 						height = 0.06,
 						neon = true,
 						amp = 1.1,

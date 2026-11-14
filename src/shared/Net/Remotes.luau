@@ -205,6 +205,12 @@ Remotes.RewardClaim = "RewardClaim"
      "Egg" with the egg's key, or "Crate" with the crate's index, and what
      came out, for the reveal (`UI/RewardsScreen`). Already in the profile. ]]
 Remotes.QuestChest = "QuestChest"
+--[[ Victory's three chests (`Run/VictoryChests`). Client → server: which
+     chest to open, 1 to 3, and nothing else; the server rolled them as the
+     level was won and holds them. Server → client: the chest opened, what
+     was in all three, and for an egg or a crate what came out of it, for
+     the reveal (`UI/VictoryChests`). Already in the profile. ]]
+Remotes.VictoryChest = "VictoryChest"
 --[[ Server → client: a reward just landed by itself (a new Dex entry):
      its words, gems and coins, for the toast (`UI/RewardsScreen`). ]]
 Remotes.RewardToast = "RewardToast"

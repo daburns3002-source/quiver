@@ -158,6 +158,33 @@ local Rewards = {
 	     neither an egg nor a crate to open. ]]
 	bonus = { words = "FINISH ALL 3 FOR A CHEST", gems = 25 },
 
+	--[[ A win streak (`Util/RunBonus`; owner, 2026-11-14): each level won
+	     in a row adds `step` to the next level's kill and clear coins, up
+	     to `cap`. Coins only: they already come from play, and a half more
+	     of them moves no gem price. ]]
+	streak = { step = 0.1, cap = 0.5 },
+	--[[ Co-op: a run in a party pays this much more coins to each player. ]]
+	friendCoins = 0.2,
+
+	--[[ Victory's chests (`Util/VictoryChestRules`; owner, 2026-11-14): a
+	     level won offers `chests` shut ones and the player opens one. Each
+	     is rolled by itself from `prizes` by `weight` (they add to 100).
+	     Coins are a share of the area's clear bonus, `low` to `high`; gems
+	     are `low` to `high` of them; an egg or a crate is the area's own,
+	     free. About 0.6 gems a win, so 20 wins a day add 12 to the 77 the
+	     daily rewards pay: the store keeps its price. An egg or crate is
+	     about one win in five and a half, each worth about a level's
+	     coins (`Config/Economy`). ]]
+	victory = {
+		chests = 3,
+		prizes = {
+			{ kind = "coins", weight = 62, low = 0.5, high = 1.5 },
+			{ kind = "gems", weight = 20, low = 2, high = 4 },
+			{ kind = "egg", weight = 9, low = 1, high = 1 },
+			{ kind = "crate", weight = 9, low = 1, high = 1 },
+		},
+	},
+
 	--[[ A quest tells the player how it is going as they play: a line when
 	     it passes each of these shares of its goal (`RewardRules.note`),
 	     the last being done. Only a quest with a goal of `stepGoal` or more

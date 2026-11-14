@@ -38,6 +38,7 @@ local PetCombat = require(ReplicatedStorage.Shared.Config.PetCombat)
 local Pickups = require(script.Parent.Pickups)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local Rewards = require(script.Parent.Parent.Data.Rewards)
+local RunBonus = require(ReplicatedStorage.Shared.Util.RunBonus)
 local Shelter = require(ReplicatedStorage.Shared.Util.Shelter)
 local ShotPipeline = require(ReplicatedStorage.Shared.Combat.ShotPipeline)
 local StoreRules = require(ReplicatedStorage.Shared.Util.StoreRules)
@@ -115,6 +116,9 @@ export type Session = {
 	--[[ What the passes' coin bonus has left over, under a whole coin, carried
 	     to the next kill or clear (`Util/StoreRules.scaleCoins`). ]]
 	coinCarry: number,
+	--[[ The win streak this run began with (`Util/RunBonus`): 0 outside a
+	     campaign level. Set by `RoomController` as the level starts. ]]
+	streak: number,
 	petHaste: number,
 	petHasteUntil: number,
 	--[[ The Slate Turtle's Roof Huddle (`Shared/Util/Shelter`): while
@@ -343,6 +347,7 @@ function RunSession.create(player: Player): Session
 		petReviveUsed = false,
 		paidReviveUsed = false,
 		coinCarry = 0,
+		streak = 0,
 		petHaste = 0,
 		petHasteUntil = 0,
 		petShelterCut = 0,
@@ -903,11 +908,16 @@ function RunSession.payCoins(session: Session, amount: number, position: Vector3
 end
 
 --[[ Coins a run earns, a kill's or a clear's: `base` at the player's passes'
-     scale (2x Coins, VIP; `Util/StoreRules.coinScale`), the part under a
-     whole coin carried to the next. Anything else paid in a run (the
+     scale (2x Coins, VIP; `Util/StoreRules.coinScale`) with the run's win
+     streak and its party's friend bonus added (`Util/RunBonus`), the part
+     under a whole coin carried to the next. Anything else paid in a run (the
      tutorial's top-up to the first egg) goes through `payCoins` as it is. ]]
 function RunSession.payEarned(session: Session, base: number, position: Vector3?)
-	local scale = StoreRules.coinScale(Passes.owned(session.player))
+	local scale = RunBonus.scale(
+		StoreRules.coinScale(Passes.owned(session.player)),
+		session.streak,
+		Coop.partySize()
+	)
 	local whole, carry = StoreRules.scaleCoins(base, scale, session.coinCarry)
 	session.coinCarry = carry
 	RunSession.payCoins(session, whole, position)
@@ -1356,6 +1366,8 @@ function RunSession.newStage(session: Session)
 	session.stageItem = nil
 	session.stageStartedAt = os.clock()
 	session.invulnerableUntil = 0
+	-- no streak rides on a stage until `RoomController` says one does
+	session.streak = 0
 end
 
 --[[ Whether nothing can hurt this player right now: a revive's shield, or

@@ -47,6 +47,7 @@ local ClassLevelPlate = require(script.Parent.ClassLevelPlate)
 local Device = require(script.Parent.Parent.Device)
 local EndScreenMotion = require(script.Parent.EndScreenMotion)
 local Reveal = require(script.Parent.Reveal)
+local VictoryChests = require(script.Parent.VictoryChests)
 
 local EndScreen = {}
 
@@ -70,6 +71,10 @@ export type Summary = {
 	item: string?,
 	--[[ The player's coins buy an open egg (Victory's nudge). ]]
 	canHatch: boolean?,
+	--[[ A campaign level won: the win streak as it now stands
+	     (`Util/RunBonus`), and three chests wait for a pick
+	     (`UI/VictoryChests`). ]]
+	streak: number?,
 	--[[ The area whose story beat this win owes (`UI/StoryBeat`). ]]
 	story: string?,
 	--[[ What the run paid the class's own level (`Config/ClassLevels`),
@@ -958,6 +963,7 @@ local function fit()
 end
 
 function EndScreen.hide()
+	VictoryChests.close()
 	if gui then
 		gui:Destroy()
 		gui = nil
@@ -1166,9 +1172,15 @@ function EndScreen.show(summary: Summary)
 
 	local shownAt = os.clock()
 	local pressed = false
+	--[[ Victory's three chests are still to be picked (`UI/VictoryChests`):
+	     the buttons wait for them, as they wait for a reveal. ]]
+	local chestsOwed = won and summary.streak ~= nil
+	local function held(): boolean
+		return Reveal.busy() or chestsOwed or VictoryChests.busy()
+	end
 	button.Activated:Connect(function()
 		-- never under the free egg's reveal (a gamepad's A reaches both)
-		if pressed or not readyAtTap or Reveal.busy() then
+		if pressed or not readyAtTap or held() then
 			return
 		end
 		pressed = true
@@ -1186,7 +1198,7 @@ function EndScreen.show(summary: Summary)
 	--[[ Straight away, unlike the main button: the server has no wait on
 	     leaving. Coins and a beaten level were banked as the run ended. ]]
 	lobbyPress.Activated:Connect(function()
-		if pressed or not readyAtTap or Reveal.busy() then
+		if pressed or not readyAtTap or held() then
 			return
 		end
 		pressed = true
@@ -1221,7 +1233,7 @@ function EndScreen.show(summary: Summary)
 				if not weapon then
 					return
 				end
-				while gui == screen and Reveal.busy() do
+				while gui == screen and (Reveal.busy() or chestsOwed or VictoryChests.busy()) do
 					task.wait(0.1)
 				end
 				if gui == screen then
@@ -1232,15 +1244,25 @@ function EndScreen.show(summary: Summary)
 	end
 
 	--[[ The first clear's free egg opens with the hatchery's reveal once
-	     the entrance has played (or been skipped), over this screen. ]]
+	     the entrance has played (or been skipped), over this screen; then
+	     the three chests of a level won come up to be picked. ]]
 	local egg = summary.egg
-	if won and egg then
+	if won and (egg or chestsOwed) then
 		task.spawn(function()
 			while gui == screen and not played.ready() do
 				task.wait(0.1)
 			end
-			if gui == screen then
+			if gui == screen and egg then
 				Reveal.eggs(egg.key, { { pet = egg.pet, new = egg.new } })
+				task.wait(0.2)
+				while gui == screen and Reveal.busy() do
+					task.wait(0.1)
+				end
+			end
+			if gui == screen and chestsOwed then
+				VictoryChests.open(summary.streak, function()
+					chestsOwed = false
+				end)
 			end
 		end)
 	end
@@ -1267,6 +1289,7 @@ end
 function EndScreen.start(restart: () -> (), lobby: () -> ())
 	onRestart = restart
 	onLobby = lobby
+	VictoryChests.start()
 	--[[ Load the screens' images now, in the background: a run can end at
 	     any moment, and art fetched only then pops in after the screen
 	     (seen in Studio: the icons and the retry arrow came in late). ]]

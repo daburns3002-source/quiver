@@ -118,6 +118,10 @@
 	counters start at 0: nothing is invented. Goals read from what a save
 	already holds (pets owned, the deepest Endless floor, the Dex) count
 	what is there.
+
+	Version 19 (2026-11-14, the win streak -- `Util/RunBonus`): `winStreak`,
+	the campaign levels won in a row, 0 for none. Nobody had one, so an
+	older profile starts at 0.
 ]]
 
 local ClassLevelRules = require(script.Parent.ClassLevelRules)
@@ -127,7 +131,7 @@ local StoreRules = require(script.Parent.StoreRules)
 
 local SaveSchema = {}
 
-SaveSchema.VERSION = 18
+SaveSchema.VERSION = 19
 
 --[[ The classes' own weapons, owned from the start. ]]
 local STARTERS = { "TwigBow", "BranchStaff", "TimberBlade" }
@@ -203,6 +207,9 @@ export type Profile = {
 	--[[ How many steps of each goal have been paid, by `Config/Goals` key
 	     (version 18): 0 to 3. ]]
 	goalsClaimed: { [string]: number },
+	--[[ Campaign levels won in a row (version 19, `Util/RunBonus`): taken
+	     out as a level starts and written back, one longer, on the win. ]]
+	winStreak: number,
 }
 
 export type RewardState = {
@@ -230,6 +237,10 @@ SaveSchema.LOOKS = { "male", "female" }
      A pet in the third without the pass is kept and simply not taken into
      a run. ]]
 SaveSchema.PET_SLOTS = 3
+--[[ The longest win streak kept (`Util/RunBonus.LONGEST`, which a spec
+     holds this to: that module reads the rewards' config, which this one
+     must not). ]]
+local LONGEST_STREAK = 999
 --[[ The steps a goal has (`Config/Goals`: bronze, silver, gold). ]]
 local GOAL_STEPS = 3
 --[[ The slots a save before version 15 could hold. ]]
@@ -287,6 +298,7 @@ function SaveSchema.default(): Profile
 		classLevels = {},
 		stats = {},
 		goalsClaimed = {},
+		winStreak = 0,
 	}
 end
 
@@ -473,6 +485,9 @@ function SaveSchema.migrate(raw: unknown): Profile
 	for key, steps in counts(data.goalsClaimed) do
 		profile.goalsClaimed[key] = math.min(steps, GOAL_STEPS)
 	end
+	--[[ 18 -> 19: nobody had a streak; a stored one is a whole number, no
+	     longer than the longest kept. ]]
+	profile.winStreak = math.min(count(data.winStreak), LONGEST_STREAK)
 	return profile
 end
 

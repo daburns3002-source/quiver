@@ -20,6 +20,7 @@ local Log = require(ReplicatedStorage.Shared.Util.Log)
 local MergeRules = require(ReplicatedStorage.Shared.Util.MergeRules)
 local Purse = require(ReplicatedStorage.Shared.Util.Purse)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
+local RunBonus = require(ReplicatedStorage.Shared.Util.RunBonus)
 local SaveSchema = require(ReplicatedStorage.Shared.Util.SaveSchema)
 local ShopRules = require(ReplicatedStorage.Shared.Util.ShopRules)
 local StoreRules = require(ReplicatedStorage.Shared.Util.StoreRules)
@@ -329,6 +330,35 @@ function Wallet.beatLevel(player: Player, level: string): boolean
 	changed(player, profile)
 	-- true the first time, which pays the level's free egg
 	return true
+end
+
+--[[ A campaign level starts: the player's win streak is on the line
+     (`Util/RunBonus`). Taken out of the save, so losing, leaving the run
+     and leaving the game all end it, and returned for the run to hold. ]]
+function Wallet.riskStreak(player: Player): number
+	local profile = PlayerData.get(player)
+	if not profile then
+		return 0
+	end
+	local streak = profile.winStreak
+	if streak > 0 then
+		profile.winStreak = 0
+		changed(player, profile)
+	end
+	return streak
+end
+
+--[[ The level is won: the streak the run began with (`riskStreak`) goes
+     back one longer. Returns the new streak. Only `RoomController` calls
+     these two. ]]
+function Wallet.bankStreak(player: Player, before: number): number
+	local profile = PlayerData.get(player)
+	if not profile then
+		return 0
+	end
+	profile.winStreak = RunBonus.won(before)
+	changed(player, profile)
+	return profile.winStreak
 end
 
 --[[ The tutorial is won (`SaveSchema` version 8): saved, so later joins

@@ -5,12 +5,17 @@ the bow strong thicker", its string now a thick gold bar), the Golden Staff, the
 little smaller and the blade a little longer"). Pictures and prompts in
 `assets/concepts/blocky/weapons/skins/golden/` (earlier takes in `options/`).
 
+**Not in the game yet:** the stats, pictures and rules are (class levels shipped first, owner
+2026-11-14: "Ship levels first"); the models wait on the owner's import (step 5 below), and
+their `Config/Weapons` entries, grips and `Config/WeaponFx` looks are on branch
+`phase-4/golden-weapons`. Until then a level 10 holds its weapon owed.
+
 A class's own lasting level (`Config/ClassLevels`, CLAUDE.md "Class levels and the golden
 weapons") reaches 10 and gives that class its golden weapon. The owner's calls: Legendary
 strength, a gold glow, earned only (never sold, never rolled from a crate), each with the one
 Legendary card of its class that no other weapon carries.
 
-| Weapon | Class | Looks like | Built-in card | Shot or cleave (`Config/WeaponFx`) |
+| Weapon | Class | Looks like | Built-in card | Shot or cleave (`Config/WeaponFx`, with the models) |
 |---|---|---|---|---|
 | **Golden Bow** | Ranger | gold block limbs, a carved leaf at each tip, brown grip, a square emerald, a thick straight gold string | Multishot 1: a second arrow follows every shot | a spinning gold wedge with pale fins, green sparkles, a long pale-gold tail |
 | **Golden Staff** | Arcanist | a gold shaft banded by rings, brown grip, a three-pronged crown holding a square sapphire | Homing Orbs: every orb curves to the nearest enemy | a tumbling gold block ringed by three blue blades, blue sparkles |

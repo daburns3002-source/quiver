@@ -614,6 +614,17 @@ dash and a level gained. The SETTINGS button is on the lobby's left edge.
 after the first, its egg, and Endless wait on the boss before it (`atLaunch` in `Config/Lobby` and
 `Config/Eggs`). Off, the playtest is as open as the owner asked. `tests/LaunchLocks.spec` holds both.
 
+**Gear shows what is chosen, and what is grand** (owner, 2026-11-14: "when you click on the box in the
+gear screen it should highlight so the player knows which box they are clicking. also it should feel
+more grand to own a mythic, legendary or high merge tier"; the look approved in Studio the same day).
+`Chunky.select` rings in gold the slot being chosen for (WEAPON on the weapons tab, TRAIL on trails, the
+PET slot a pick goes into on pets) and the grid box last pressed. `Chunky.grand` draws an owned item by
+`Util/GearGlory.rank` (`tests/GearGlory.spec`): rank 1 for a Legendary or tier A (turning rays and a
+breathing glow behind the picture, sparkles), rank 2 for a Mythic or tier S (brighter and faster, stars
+rising, the picture breathing; a Mythic's rays run round the rainbow). The greater of rarity and tier
+counts, so a Common merged to S is as grand as a Mythic. `Chunky.tier`'s A and S badges shine and S
+beats, wherever a tier badge is drawn. A grand item's card opens with a burst of sparks.
+
 **What goes on by itself** (2026-11-14, the kid playtest): a hatched pet goes into any empty slot open
 to the player, rarest first, and never into one they filled (`EggRules.fill`, `Data/Hatchery`); a weapon
 from a crate or the store that is strictly stronger than the one held, for the class played, goes in hand

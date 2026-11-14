@@ -16,14 +16,23 @@
 	the save, not shown yet this visit. Once a tip is on screen the server
 	is told (`Remotes.TipSeen`) and keeps it, so it never shows again.
 
-	A tip never holds the run and never takes a press: it stands on the
-	loading tip's plate (`Util/TipPlate`) under the top HUD for
-	`Tips.seconds`, a tap puts it away, and the screen under it plays on. One
-	shows at a time. It waits while the title, the story, a story beat, an
-	area's loading screen, a boss banner, NEW ENEMY!, MENU's panel, a hatch
-	or class select is up, and in the tutorial, which teaches by its own
-	prompts; one asked for in a moment that cannot show it is let go after
-	`PATIENCE` and asked again the next time that thing happens.
+	A tip holds everything until OK (owner, 2026-11-13: "they should be in
+	the outer arena area so it doesnt block the arena, and also pause the
+	game and have an ok button to dismiss the tip and resume the game. make
+	sure the music quiets as well while its paused"): its card stands
+	beside the arena, in the side margin a landscape screen has or above or
+	below it on an upright phone (`TipRules.place`), on the loading tip's
+	plate (`TipPlate.card`) with a green OK. While it is up the client is
+	paused (`RunPaused.setTip`), the server holds the run
+	(`RunSession.anyReadingTip`, `Tips.holdMax` at most) and the music is
+	down (`MusicFx.setTip`). OK, Return, Enter or a gamepad's A closes it,
+	so a probe clears it with a synthetic Return. One shows at a time. It
+	waits while the title, the story, a story beat, an area's loading
+	screen, a boss banner, NEW ENEMY!, MENU's panel, a hatch or class
+	select (for every tip but its own) is up, and in the tutorial, which
+	teaches by its own prompts; one asked for in a moment that cannot show
+	it is let go after `PATIENCE` and asked again the next time that thing
+	happens.
 ]]
 
 local GuiService = game:GetService("GuiService")
@@ -31,6 +40,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
 local Workspace = game:GetService("Workspace")
 
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
@@ -44,8 +54,11 @@ local TipRules = require(ReplicatedStorage.Shared.Util.TipRules)
 local Tips = require(ReplicatedStorage.Shared.Config.Tips)
 local UiPalette = require(ReplicatedStorage.Shared.Config.UiPalette)
 
+local Chunky = require(script.Parent.Chunky)
+local MusicFx = require(script.Parent.Parent.Fx.MusicFx)
 local Reveal = require(script.Parent.Reveal)
 local RunPaused = require(script.Parent.Parent.RunPaused)
+local SoundFx = require(script.Parent.Parent.Fx.SoundFx)
 
 local FirstTips = {}
 
@@ -57,6 +70,9 @@ local LOOK_EVERY = 1
      (200), for its own tip; under an area's loading screen (900). The
      title and the story are as high, but no tip shows while they are up. ]]
 local DISPLAY_ORDER = 205
+--[[ The OK button's size on the card, in points: a thumb's 48 tall. ]]
+local OK_WIDTH = 150
+local OK_HEIGHT = 48
 
 --[[ Screens that own the whole view while they exist in PlayerGui. ]]
 local COVERS = { "IntroCutscene", "StoryCutscene", "StoryBeat", "AreaLoading" }
@@ -107,17 +123,61 @@ local function covered(key: string): boolean
 	return false
 end
 
-local function hide(item: GuiObject)
-	if current == item then
-		current = nil
-		nextAt = os.clock() + Tips.gap
+--[[ The arena's box on the screen, clipped to it: what a tip keeps clear
+     of. Nil in the lobby, or with no room built. The room is centred on
+     the world's origin (`TopDownCamera`), walls included. ]]
+local function arenaBox(w: number, h: number): TipRules.Box?
+	if Workspace:GetAttribute("InLobby") == true or not Workspace:FindFirstChild("Arena") then
+		return nil
 	end
-	if reducedMotion() then
-		item:Destroy()
+	local camera = Workspace.CurrentCamera
+	if not camera then
+		return nil
+	end
+	local arena = Balance.Arena
+	local hx = arena.size.X / 2 + arena.wallThickness
+	local hz = arena.size.Z / 2 + arena.wallThickness
+	local minX, minY, maxX, maxY = math.huge, math.huge, -math.huge, -math.huge
+	for _, y in { 0, arena.wallHeight } do
+		for _, corner in
+			{
+				Vector3.new(-hx, y, -hz),
+				Vector3.new(hx, y, -hz),
+				Vector3.new(-hx, y, hz),
+				Vector3.new(hx, y, hz),
+			}
+		do
+			local point, inFront = camera:WorldToViewportPoint(corner)
+			if inFront then
+				minX, maxX = math.min(minX, point.X), math.max(maxX, point.X)
+				minY, maxY = math.min(minY, point.Y), math.max(maxY, point.Y)
+			end
+		end
+	end
+	if minX > maxX then
+		return nil
+	end
+	minX, maxX = math.clamp(minX, 0, w), math.clamp(maxX, 0, w)
+	minY, maxY = math.clamp(minY, 0, h), math.clamp(maxY, 0, h)
+	return { x = minX, y = minY, w = maxX - minX, h = maxY - minY }
+end
+
+--[[ OK: the tip goes, the run and the music come back. ]]
+local function close(item: GuiObject)
+	if current ~= item then
 		return
 	end
+	current = nil
+	nextAt = os.clock() + Tips.gap
+	RunPaused.setTip(false)
+	MusicFx.setTip(false)
+	Remotes.event(Remotes.TipClosed):FireServer()
+	SoundFx.play("card_click")
+	if GuiService.SelectedObject and GuiService.SelectedObject:IsDescendantOf(item) then
+		GuiService.SelectedObject = nil
+	end
 	local scale = item:FindFirstChild("PopScale") :: UIScale?
-	if scale then
+	if scale and not reducedMotion() then
 		local tween = TweenService:Create(
 			scale,
 			TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.In),
@@ -132,6 +192,8 @@ local function hide(item: GuiObject)
 	end
 end
 
+--[[ The tip's card beside the arena with its OK, the run held and the
+     music down until OK. ]]
 local function draw(key: string)
 	local screen = gui
 	local tip = Tips.tips[key]
@@ -139,20 +201,39 @@ local function draw(key: string)
 		return
 	end
 	local size = screen.AbsoluteSize
-	local box = TipRules.place(size.X, size.Y, GuiService:GetGuiInset().Y)
-	-- the whole tip is one button: a tap puts it away
-	local holder = Instance.new("TextButton")
+	local placed =
+		TipRules.place(size.X, size.Y, GuiService:GetGuiInset().Y, arenaBox(size.X, size.Y))
+	local box = placed.box
+	-- the card takes every press that lands on it, and only those
+	local holder = Instance.new("Frame")
 	holder.Name = "Tip_" .. key
-	holder.Text = ""
-	holder.AutoButtonColor = false
+	holder.Active = true
 	holder.BackgroundTransparency = 1
 	holder.Position = UDim2.fromOffset(box.x + box.w / 2, box.y + box.h / 2)
 	holder.AnchorPoint = Vector2.new(0.5, 0.5)
 	holder.Size = UDim2.fromOffset(box.w, box.h)
+	holder:SetAttribute("Side", placed.side)
 	holder.Parent = screen
-	local words = TipPlate.fill(holder, Vector2.new(box.w, box.h), PromptText.plain(tip.text), 2)
+	local words =
+		TipPlate.card(holder, Vector2.new(box.w, box.h), PromptText.plain(tip.text), 2, OK_HEIGHT)
 	words.RichText = true
 	words.Text = PromptText.rich(tip.text, PromptText.palette(UiPalette.card))
+	local sheet = Chunky.pointSheet(holder, box.w, box.h)
+	local pad = TipPlate.CARD_PAD
+	local okWidth = math.min(OK_WIDTH, box.w - pad * 2)
+	local ok = Chunky.button(
+		sheet,
+		"OK",
+		Chunky.green,
+		(box.w - okWidth),
+		(box.h - pad - OK_HEIGHT) * 2,
+		okWidth * 2,
+		OK_HEIGHT * 2,
+		function()
+			close(holder)
+		end
+	)
+	ok.Name = "Ok"
 	if not reducedMotion() then
 		local scale = Instance.new("UIScale")
 		scale.Name = "PopScale"
@@ -165,14 +246,14 @@ local function draw(key: string)
 			:Play()
 	end
 	current = holder
-	holder.Activated:Connect(function()
-		hide(holder)
-	end)
-	task.delay(Tips.seconds, function()
-		if holder.Parent then
-			hide(holder)
+	RunPaused.setTip(true)
+	MusicFx.setTip(true)
+	if UserInputService.GamepadEnabled then
+		local face = ok:FindFirstChildWhichIsA("GuiButton", true)
+		if face then
+			GuiService.SelectedObject = face
 		end
-	end)
+	end
 end
 
 --[[ Puts up the next tip waiting, if one may show now. ]]
@@ -278,7 +359,8 @@ function FirstTips.start()
 	made.Name = "FirstTips"
 	made.ResetOnSpawn = false
 	made.IgnoreGuiInset = true
-	made.ScreenInsets = Enum.ScreenInsets.DeviceSafeInsets
+	-- in the viewport's own points, as the arena is projected (`arenaBox`)
+	made.ScreenInsets = Enum.ScreenInsets.None
 	made.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 	made.DisplayOrder = DISPLAY_ORDER
 	made.Parent = playerGui
@@ -297,6 +379,23 @@ function FirstTips.start()
 	end)
 	Remotes.event(Remotes.EndlessCheckpoint).OnClientEvent:Connect(function()
 		FirstTips.show("EndlessCheckpoint")
+	end)
+
+	--[[ OK by key too: Return or Enter, or A on a gamepad. A probe's
+	     synthetic Return clears it, as it does NEW ENEMY!. ]]
+	UserInputService.InputBegan:Connect(function(input: InputObject)
+		local item = current
+		local key = input.KeyCode
+		if
+			item
+			and (
+				key == Enum.KeyCode.Return
+				or key == Enum.KeyCode.KeypadEnter
+				or key == Enum.KeyCode.ButtonA
+			)
+		then
+			close(item)
+		end
 	end)
 
 	local since = 0

@@ -34,6 +34,8 @@ local story = false
 local checkpoint = false
 --[[ And again: MENU's LEAVE THE RUN? panel (`UI/ControlMenu`), until it shuts. ]]
 local menu = false
+--[[ And again: a first-time tip (`UI/FirstTips`), until OK. ]]
+local tip = false
 --[[ And again: this player is downed in co-op (`Shared/Util/Coop`), until a
      teammate stands them up or the next room brings them back. ]]
 local downed = false
@@ -51,7 +53,7 @@ function RunPaused.covered(): boolean
 	return title or story or intro or meeting or menu
 end
 function RunPaused.get(): boolean
-	return paused or intro or title or meeting or story or checkpoint or menu or downed
+	return paused or intro or title or meeting or story or checkpoint or menu or downed or tip
 end
 
 --[[ Idempotent, so callers can set it from several places without having to
@@ -93,6 +95,22 @@ function RunPaused.setTitle(value: boolean)
 
 	local was = RunPaused.get()
 	title = value
+	if RunPaused.get() ~= was then
+		changed:Fire(RunPaused.get())
+	end
+end
+
+--[[ While a first-time tip is up, until OK (owner, 2026-11-13: "pause
+     the game and have an ok button to dismiss the tip and resume the
+     game"). The server holds the world for it too
+     (`RunSession.anyReadingTip`). ]]
+function RunPaused.setTip(value: boolean)
+	if tip == value then
+		return
+	end
+
+	local was = RunPaused.get()
+	tip = value
 	if RunPaused.get() ~= was then
 		changed:Fire(RunPaused.get())
 	end

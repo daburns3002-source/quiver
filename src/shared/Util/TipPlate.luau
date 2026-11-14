@@ -12,7 +12,7 @@
 	Drawn by the join screen (`first/Loading`) and by an area's loading
 	screen (`UI/ClassScreen.loadingCover`, which `UI/AreaLoading` holds up),
 	each over a spotlight laid out in the picture's own pixels; and, the
-	same plate, by every first-time tip (`UI/FirstTips`, `fill`).
+	same plate, by every first-time tip's card (`UI/FirstTips`, `card`).
 ]]
 
 local UiPalette = require(script.Parent.Parent.Config.UiPalette)
@@ -100,12 +100,55 @@ function TipPlate.draw(parent: GuiObject, size: Vector2, box: Box, text: string,
 	return plate
 end
 
---[[ The plate filling `parent`, `size` points big, saying `text`: a
-     first-time tip (`UI/FirstTips`). Returns the tip's words. ]]
-function TipPlate.fill(parent: GuiObject, size: Vector2, text: string, z: number): TextLabel
-	local box = { x = PAD_X, y = PAD_Y, w = size.X - PAD_X * 2, h = size.Y - PAD_Y * 2 }
-	local plate = TipPlate.draw(parent, size, box, text, z)
-	return plate:FindFirstChild("Tip") :: TextLabel
+--[[ A first-time tip's card (`UI/FirstTips`), filling `parent`, `size`
+     points big: the white plate with the TIP tag at its top, the words
+     under it, and `okHeight` points kept clear at its foot for the OK
+     button, which the caller puts in that space. Returns the words. ]]
+TipPlate.CARD_PAD = 14
+function TipPlate.card(
+	parent: GuiObject,
+	size: Vector2,
+	text: string,
+	z: number,
+	okHeight: number
+): TextLabel
+	local pad = TipPlate.CARD_PAD
+	local plate = Instance.new("Frame")
+	plate.Name = "TipPlate"
+	plate.BorderSizePixel = 0
+	plate.BackgroundColor3 = UiPalette.card
+	plate.Size = UDim2.fromScale(1, 1)
+	plate.ZIndex = z
+	plate.Parent = parent
+	rounded(plate, 0.12)
+	outlined(plate, 3)
+
+	local tagH = 34
+	local tag = Instance.new("Frame")
+	tag.Name = "Tag"
+	tag.BorderSizePixel = 0
+	tag.BackgroundColor3 = UiPalette.tag
+	tag.Position = UDim2.fromOffset(pad, pad)
+	tag.Size = UDim2.fromOffset(tagH * 1.9, tagH)
+	tag.ZIndex = z + 1
+	tag.Parent = plate
+	rounded(tag, 0.28)
+	outlined(tag, 2)
+	local name = words(tag, "TIP", UiPalette.tagText, z + 2)
+	name.Position, name.Size = UDim2.fromScale(0.12, 0.12), UDim2.fromScale(0.76, 0.76)
+
+	local top = pad + tagH + 8
+	local tip = words(plate, text, UiPalette.ink, z + 1)
+	tip.Name = "Tip"
+	tip.Position = UDim2.fromOffset(pad, top)
+	tip.Size = UDim2.fromOffset(size.X - pad * 2, math.max(20, size.Y - top - okHeight - pad - 10))
+	tip.TextWrapped = true
+	tip.TextXAlignment = Enum.TextXAlignment.Left
+	tip.TextYAlignment = Enum.TextYAlignment.Center
+	local limit = Instance.new("UITextSizeConstraint")
+	limit.MaxTextSize = MAX_TEXT
+	limit.Parent = tip
+	return tip
 end
 
 return TipPlate

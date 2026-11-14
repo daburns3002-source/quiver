@@ -32,9 +32,11 @@ export type Tip = {
      on an upright phone. ]]
 Tips.maxLength = 84
 
---[[ Seconds a tip stays up unless tapped away, and the pause before the
-     next one waiting. ]]
-Tips.seconds = 7
+--[[ A tip stays until OK and holds the run meanwhile (owner, 2026-11-13:
+     "pause the game and have an ok button to dismiss the tip and resume
+     the game"); the server lets the run go after `holdMax` seconds even
+     without OK. `gap` is the pause before the next tip waiting. ]]
+Tips.holdMax = 60
 Tips.gap = 0.6
 
 Tips.tips = {

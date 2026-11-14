@@ -88,7 +88,10 @@ local seen: { [string]: boolean }? = nil
 local latest: SaveSchema.Profile? = nil
 --[[ Shown this visit, ahead of the server's answer. ]]
 local shown: { [string]: boolean } = {}
-type Waiting = { key: string, asked: number }
+--[[ `ambient`: asked for by `look` from what the profile says is new,
+     again every second until it shows, so it gives way to a tip a screen
+     has just asked for and loses nothing by it. ]]
+type Waiting = { key: string, asked: number, ambient: boolean }
 local queue: { Waiting } = {}
 local current: GuiObject? = nil
 --[[ Whether the tip showing is a `hold` one: the run held, the keys its. ]]
@@ -361,12 +364,22 @@ local function pump()
 	end
 	--[[ The first one waiting that may come up now: the quiet since the
 	     last tip is over for it (`TipRules.spaced`, at once for a `hold`
-	     tip) and nothing else owns the screen. ]]
+	     tip) and nothing else owns the screen. One a screen asked for goes
+	     before the ambient ones, which are asked again anyway. ]]
 	local since = now - lastGone
 	local index: number? = nil
-	for i, each in queue do
-		if TipRules.spaced(each.key, since) and not covered(each.key) then
-			index = i
+	for _, ambient in { false, true } do
+		for i, each in queue do
+			if
+				each.ambient == ambient
+				and TipRules.spaced(each.key, since)
+				and not covered(each.key)
+			then
+				index = i
+				break
+			end
+		end
+		if index then
 			break
 		end
 	end
@@ -391,8 +404,7 @@ function FirstTips.takesKeys(): boolean
 	return (current ~= nil and currentHolds) or os.clock() - closedAt < KEY_GRACE
 end
 
---[[ Asks for tip `key`: shown once ever, when the screen is free. ]]
-function FirstTips.show(key: string)
+local function ask(key: string, ambient: boolean)
 	if not TipRules.due(key, seen, shown) then
 		return
 	end
@@ -401,26 +413,33 @@ function FirstTips.show(key: string)
 			return
 		end
 	end
-	table.insert(queue, { key = key, asked = os.clock() })
+	table.insert(queue, { key = key, asked = os.clock(), ambient = ambient })
 	pump()
+end
+
+--[[ Asks for tip `key`, for the screen or the moment that is up now: shown
+     once ever, when the screen is free and the quiet since the last tip is
+     over. ]]
+function FirstTips.show(key: string)
+	ask(key, false)
 end
 
 --[[ Class select while it is up; what the profile says is new, in the
      lobby; and a first area past Mossy Glade in a run. ]]
 local function look()
-	if Players.LocalPlayer:GetAttribute("ClassSelecting") == true then
-		FirstTips.show("ClassSelect")
-	elseif Workspace:GetAttribute("InLobby") == true then
+	if Players.LocalPlayer:GetAttribute("ClassSelecting", true) == true then
+		ask("ClassSelect", false)
+	elseif Workspace:GetAttribute("InLobby", true) == true then
 		local profile = latest
 		if not profile then
 			return
 		end
 		if next(profile.pets) ~= nil then
-			FirstTips.show("FirstPet")
+			ask("FirstPet", true)
 		end
 		for weapon in profile.weapons do
 			if not starters[weapon] then
-				FirstTips.show("NewWeapon")
+				ask("NewWeapon", true)
 				break
 			end
 		end
@@ -432,16 +451,16 @@ local function look()
 			for _, counts in book do
 				for _, tier in MergeRules.TIERS do
 					if MergeRules.canMerge(counts, tier) then
-						FirstTips.show("Merge")
+						ask("Merge", true)
 					end
 				end
 			end
 		end
 		if profile.gems > 0 then
-			FirstTips.show("Gems")
+			ask("Gems", true)
 		end
 		if next(profile.items) ~= nil then
-			FirstTips.show("BossItem")
+			ask("BossItem", true)
 		end
 	else
 		local stage = CurrentStage.config()
@@ -451,7 +470,7 @@ local function look()
 			and stage.area ~= firstArea
 			and not inTutorial()
 		then
-			FirstTips.show("NewArea")
+			ask("NewArea", true)
 		end
 	end
 end

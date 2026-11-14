@@ -101,7 +101,10 @@ return function(t: TestRunner.Helper)
 	     everything isnt just popping up one after another". ]]
 	t.test("tips are spaced: quiet after one before the next, but not for a held one", function()
 		t.isTrue(Tips.gap >= Tips.showFor, "the screen is clear at least as long as a tip is up")
-		t.isTrue(Tips.gap < Tips.patience, "a tip asked for as another goes still gets its turn")
+		t.isTrue(
+			Tips.showFor + Tips.gap < Tips.patience,
+			"a tip asked for as another comes up still gets its turn"
+		)
 		t.isTrue(Tips.holdGap < 1)
 		t.isTrue(TipRules.spaced("Gems", math.huge), "the first tip of a visit waits for nothing")
 		t.isFalse(TipRules.spaced("Gems", 0), "not straight after another")

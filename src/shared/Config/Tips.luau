@@ -58,9 +58,12 @@ Tips.holdMax = 60
 Tips.gap = 10
 Tips.holdGap = 0.6
 --[[ Seconds a tip asked for may wait to be shown before it is let go, to
-     be asked again the next time its thing happens. Longer than `gap`, so
-     a tip asked for as another goes still shows when the quiet ends. ]]
-Tips.patience = 12
+     be asked again the next time its thing happens. Longer than a tip's
+     turn and the quiet after it (`showFor` + `gap`), so one asked for as
+     another comes up still shows when the quiet ends (seen in Studio,
+     2026-11-14: at 12 s the REWARDS tip gave up while the screen it
+     explains was still open). ]]
+Tips.patience = 20
 
 Tips.tips = {
 	-- the lobby's stations, the first time each screen opens (`UI/StationScreen`)

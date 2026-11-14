@@ -8,7 +8,12 @@
 	once ever: the moment it is on screen the server writes it down
 	(`Remotes.TipSeen`, `SaveSchema` v13 `tipsSeen`) and `Util/TipRules.due`
 	never lets it show again. `UI/FirstTips` draws them on the loading tip's
-	plate (`Util/TipPlate`), one at a time, never holding the run.
+	plate (`Util/TipPlate`), one at a time. Since 2026-11-14 a tip is up for
+	`showFor` seconds and goes by itself, holding nothing (owner, after the
+	kid playtest counted 13 tips that each stopped the game for an OK:
+	"Build top 5"); only a tip marked `hold` still waits for OK and holds
+	the run, and those are the two that explain a choice already on a
+	stopped screen (class select, the draft's REROLL).
 
 	A key is saved, so never rename one; drop a tip by removing it. `[..]`
 	marks a button or control and `*..*` an action, as in the tutorial's
@@ -26,16 +31,23 @@ local Tips = {}
 export type Tip = {
 	--[[ The words, at most `Tips.maxLength` read. ]]
 	text: string,
+	--[[ Stays until OK and holds the run meanwhile (`TipRules.holds`).
+	     Nil: it goes by itself after `Tips.showFor`. ]]
+	hold: boolean?,
 }
 
 --[[ The longest a tip may read (its marks dropped), so it fits two lines
      on an upright phone. ]]
 Tips.maxLength = 84
 
---[[ A tip stays until OK and holds the run meanwhile (owner, 2026-11-13:
-     "pause the game and have an ok button to dismiss the tip and resume
-     the game"); the server lets the run go after `holdMax` seconds even
-     without OK. `gap` is the pause before the next tip waiting. ]]
+--[[ Seconds a tip is on screen before it goes by itself; OK sends it
+     away sooner. Long enough to read `maxLength` letters once. ]]
+Tips.showFor = 6
+--[[ A `hold` tip stays until OK and holds the run meanwhile (owner,
+     2026-11-13: "pause the game and have an ok button to dismiss the tip
+     and resume the game"); the server lets the run go after `holdMax`
+     seconds even without OK. `gap` is the pause before the next tip
+     waiting. ]]
 Tips.holdMax = 60
 Tips.gap = 0.6
 
@@ -73,6 +85,7 @@ Tips.tips = {
 	-- the class select screen (`UI/ClassScreen`), while it is up
 	ClassSelect = {
 		text = "Each class *fights its own way*. Tap a card, pick [BOY] or [GIRL], then [CHOOSE].",
+		hold = true,
 	},
 	-- what the profile says is new, shown in the lobby
 	FirstPet = {
@@ -96,6 +109,7 @@ Tips.tips = {
 	},
 	Reroll = {
 		text = "Not keen on these cards? [REROLL] deals a new hand, a few times a run.",
+		hold = true,
 	},
 	NewArea = {
 		text = "A new area! New enemies, a new boss, and *new pets and weapons* to find.",

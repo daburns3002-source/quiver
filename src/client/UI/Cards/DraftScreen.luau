@@ -3,9 +3,12 @@
 	The level-up draft, as the owner's card design has it
 	(design_handoff_upgrade_cards; README "Draft", "Touch", "Motion spec").
 
-	Three cards dealt in on a blue panel. Pick one: a click or tap selects
-	it, and Choose! — or, with a mouse, clicking the selected card again —
-	confirms. Reroll redeals the hand while the run has rerolls left.
+	Three cards dealt in on a blue panel. Pick one: a click or tap takes it
+	(since 2026-11-14; before, it selected and Choose! confirmed). Where the
+	tray reads the cards out (a phone held upright, below), the first tap
+	selects and reads, and a second tap on the card, or Choose!, takes it.
+	A gamepad selects with the stick and confirms with A, on Choose! as
+	before. Reroll redeals the hand while the run has rerolls left.
 
 	It decides nothing. The server dealt the hand; this sends back an index
 	into it, or asks for a redeal, and the server checks both. See CLAUDE.md,
@@ -1082,10 +1085,17 @@ local function buildSlot(index: number, id: string, count: number, now: number):
 			heldOpen = false
 			return
 		end
-		--[[ With a mouse, clicking the selected card again confirms it. On
-		     a touch screen only Choose! confirms: a tap is too easy to
-		     land twice by accident. ]]
-		if selected == index and mode == "Mouse" then
+		--[[ A press takes the card, once it has lain dealt for a moment
+		     (`tapGuard`): a tap is too easy to land by accident as the hand
+		     arrives. Where the tray reads cards out (a phone held upright:
+		     the cards are too small to read there), the first press selects
+		     and reads it, and a second takes it. ]]
+		local reading = tray ~= nil and tray.Visible
+		local settled = os.clock() >= slot.dealAt + TIMING.dealDuration + TIMING.tapGuard
+		if selected == index or (settled and not reading) then
+			if selected ~= index then
+				pick(index)
+			end
 			confirm()
 		else
 			if selected ~= index then

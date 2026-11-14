@@ -12,6 +12,12 @@
 	measured off it. The whole thing is laid out in the sheet's pixels and
 	scaled to the screen. The sheet drops in, and leaves upward.
 
+	Since 2026-11-14 that screen is off (`NewEnemies.card`; the kid playtest
+	counted four of them stopping the first ten minutes): a first meeting is
+	a NEW! name tag over the enemy for `NewEnemies.tagFor` seconds (`tag`),
+	and nothing holds. The screen is still here for `Preview` and for
+	turning the card back on.
+
 	For a Studio capture, set the ScreenGui's `Preview` attribute to a kind
 	(an `EnemyConfig.displayName`) to show its screen without the server.
 	Presentation only.
@@ -21,7 +27,9 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local TextService = game:GetService("TextService")
+local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
+local Workspace = game:GetService("Workspace")
 
 local CurrentStage = require(ReplicatedStorage.Shared.Util.CurrentStage)
 local NewEnemies = require(ReplicatedStorage.Shared.Config.NewEnemies)
@@ -299,6 +307,59 @@ local function pose(p: Parts, now: number)
 	end
 end
 
+--[[ A first meeting without the card: NEW! and the kind's name over the
+     first of its kind in the room, popped in, gone after `tagFor`. ]]
+local function tag(kind: string)
+	local enemy = NewEnemies.enemies[kind]
+	local folder = Workspace:FindFirstChild("Enemies")
+	local model = if folder then folder:FindFirstChild(kind) else nil
+	local root = if model and model:IsA("Model") then model.PrimaryPart else nil
+	if not enemy or not root then
+		return
+	end
+	local board = Instance.new("BillboardGui")
+	board.Name = "NewEnemyTag"
+	board.Size = UDim2.fromOffset(NewEnemies.tagSize.X, NewEnemies.tagSize.Y)
+	board.StudsOffsetWorldSpace = Vector3.new(0, NewEnemies.tagLift, 0)
+	board.AlwaysOnTop = true
+	board.LightInfluence = 0
+	board.ResetOnSpawn = false
+	local function line(words: string, letters: number, colour: Color3, y: number, h: number)
+		local label = text("Line", board)
+		label.Text = words
+		label.TextSize = letters
+		label.TextColor3 = colour
+		label.Position = UDim2.fromScale(0, y)
+		label.Size = UDim2.fromScale(1, h)
+		local stroke = Instance.new("UIStroke")
+		stroke.Color = NewEnemies.ink
+		stroke.Thickness = 3
+		stroke.Parent = label
+	end
+	line("NEW!", NewEnemies.tagNewSize, NewEnemies.tagNew, 0, 0.42)
+	line(string.upper(enemy.name), NewEnemies.tagNameSize, Color3.new(1, 1, 1), 0.42, 0.58)
+	local scale = Instance.new("UIScale")
+	scale.Scale = 0.4
+	scale.Parent = board
+	board.Parent = root
+	TweenService
+		:Create(scale, TweenInfo.new(0.25, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+			Scale = 1,
+		})
+		:Play()
+	task.delay(NewEnemies.tagFor, function()
+		local out = TweenService:Create(
+			scale,
+			TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.In),
+			{ Scale = 0 }
+		)
+		out.Completed:Once(function()
+			board:Destroy()
+		end)
+		out:Play()
+	end)
+end
+
 function NewEnemyScreen.start()
 	local playerGui = Players.LocalPlayer:WaitForChild("PlayerGui") :: PlayerGui
 	local existing = playerGui:FindFirstChild("NewEnemyScreen")
@@ -328,8 +389,13 @@ function NewEnemyScreen.start()
 	end)
 
 	Remotes.event(Remotes.NewEnemy).OnClientEvent:Connect(function(kind: unknown)
-		if type(kind) == "string" then
+		if type(kind) ~= "string" then
+			return
+		end
+		if NewEnemies.card then
 			enqueue(kind, true)
+		else
+			tag(kind)
 		end
 	end)
 	made.gui:GetAttributeChangedSignal("Preview"):Connect(function()

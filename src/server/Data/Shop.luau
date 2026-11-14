@@ -71,6 +71,11 @@ local function hold(player: Player, weapon: string?)
 	RunSession.applyLoadout(session)
 end
 
+--[[ Weapons just gained: one stronger than what the player holds, for the
+     class they play, goes in hand by itself (`ShopRules.upgrade`). Set
+     below, once `classOf` is. ]]
+local takeUp: (player: Player, gained: { string }) -> ()
+
 local function openCrate(player: Player, index: unknown, count: unknown, class: unknown)
 	if
 		type(index) ~= "number"
@@ -127,6 +132,11 @@ local function openCrate(player: Player, index: unknown, count: unknown, class: 
 			table.insert(results, { weapon = entry.weapon, new = new })
 		end
 	end
+	local gained: { string } = {}
+	for _, result in results do
+		table.insert(gained, result.weapon)
+	end
+	takeUp(player, gained)
 	Rewards.note(player, "crates", #results)
 	if #results > 0 then
 		Analytics.step(player, "FirstCrate")
@@ -152,6 +162,7 @@ local function buy(player: Player, weapon: unknown)
 	end
 	if Wallet.pay(player, price) then
 		Wallet.grantWeapon(player, weapon)
+		takeUp(player, { weapon })
 	end
 end
 
@@ -171,6 +182,24 @@ local function classOf(player: Player): string?
 	local profile = PlayerData.get(player)
 	local entry = profile and profile.equipped and ShopRules.find(profile.equipped)
 	return entry and entry.class
+end
+
+function takeUp(player: Player, gained: { string })
+	local profile = PlayerData.get(player)
+	if not profile then
+		return
+	end
+	local best = ShopRules.upgrade(gained, classOf(player), profile.equipped, function(weapon)
+		return Wallet.weaponTier(player, weapon)
+	end)
+	if not best then
+		return
+	end
+	Wallet.equip(player, best)
+	if RoomController.inLobby() then
+		hold(player, best)
+	end
+	log.info("%s takes up the %s", player.Name, best)
 end
 
 local function equip(player: Player, weapon: unknown)

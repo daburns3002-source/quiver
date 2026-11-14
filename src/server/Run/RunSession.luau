@@ -523,8 +523,10 @@ function RunSession.arrive(session: Session)
 end
 
 --[[ A kind of enemy has landed (`EnemyManager`): everyone who has not met
-     it yet this visit is shown its NEW ENEMY! screen, and the run holds
-     until they close it (owner, 2026-10-25: pause until GOT IT!). Kinds
+     it yet this visit is told (`Remotes.NewEnemy`). With
+     `NewEnemies.card` on, that is the NEW ENEMY! screen and the run holds
+     until they close it (owner, 2026-10-25: pause until GOT IT!); off
+     (2026-11-14), it is a name tag over the enemy and nothing holds. Kinds
      without a screen (bosses, summons, the old archetypes) pass. ]]
 function RunSession.meetEnemy(kind: string)
 	if not NewEnemies.enemies[kind] then
@@ -533,7 +535,9 @@ function RunSession.meetEnemy(kind: string)
 	for _, session in sessions do
 		if not session.seenEnemies[kind] then
 			session.seenEnemies[kind] = true
-			table.insert(session.meeting, kind)
+			if NewEnemies.card then
+				table.insert(session.meeting, kind)
+			end
 			newEnemy:FireClient(session.player, kind)
 			--[[ `seenEnemies` is this visit's; the dex wants a lasting
 			     record, so the profile is written here and not when the
@@ -586,7 +590,7 @@ function RunSession.anyInMenu(): boolean
 	return false
 end
 
---[[ A first-time tip came up for this player in a run (owner, 2026-11-13:
+--[[ A `hold` first-time tip came up for this player in a run (owner, 2026-11-13:
      "pause the game and have an ok button to dismiss the tip and resume the
      game"): the run holds until OK, `Tips.holdMax` at most. Only a tip the
      save had never seen holds (`Main` asks `Wallet.sawTip` first), so a
@@ -1590,7 +1594,11 @@ function RunSession.applyDamage(session: Session, amount: number)
 	if amount <= 0 then
 		return
 	end
-	session.health = math.max(0, session.health - amount)
+	--[[ The tutorial cannot be lost (owner, 2026-11-14, the kid playtest:
+	     two deaths in it lost the player before the lobby): health stops at
+	     `Tutorial.healthFloor` there. ]]
+	local floor = if tutorial then Tutorial.healthFloor else 0
+	session.health = math.max(math.min(floor, session.health), session.health - amount)
 	--[[ Arms the Buoy Puffer: it answers damage that landed, nothing else. ]]
 	session.lastHurtAt = os.clock()
 	playerDamaged:FireClient(session.player, amount)

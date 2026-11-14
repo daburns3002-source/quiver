@@ -71,6 +71,7 @@ local ProjectileSystem = require(script.Parent.Parent.Combat.ProjectileSystem)
 local Purchases = require(script.Parent.Parent.Data.Purchases)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local Rewards = require(script.Parent.Parent.Data.Rewards)
+local RobuxStore = require(ReplicatedStorage.Shared.Config.RobuxStore)
 local RunSession = require(script.Parent.RunSession)
 local Sandbox = require(ReplicatedStorage.Shared.Config.Sandbox)
 local SoulLink = require(script.Parent.Parent.Combat.SoulLink)
@@ -106,6 +107,7 @@ export type State =
 local runStateChanged = Remotes.event(Remotes.RunStateChanged)
 local runSummary = Remotes.event(Remotes.RunSummary)
 local endlessCheckpoint = Remotes.event(Remotes.EndlessCheckpoint)
+local shotsParried = Remotes.event(Remotes.ShotsParried)
 
 --[[ The stage being played, published for the clients and the enemies
      (`Util/CurrentStage`). ]]
@@ -518,6 +520,8 @@ local function startStage()
 	local current = stage()
 	workspace:SetAttribute("CombatEncounter", 0)
 	RunSession.holdOffers(false)
+	-- no Victory is up any more, so nothing is owed on one
+	Purchases.forgetStarter()
 
 	for _, session in RunSession.all() do
 		RunSession.newStage(session)
@@ -684,8 +688,9 @@ local function sendSummary(won: boolean, eggs: { [Player]: any }?, starters: { [
 			--[[ DEFEAT's revive (`Config/RobuxStore`): "buy" for 15 Robux,
 			     "use" for one already held, nil for none. ]]
 			revive = if won then nil else Purchases.reviveOffer(session.player),
-			--[[ The starter pack's one offer, after the first 1-1 clear: the
-			     client shows it as the player leaves Victory. ]]
+			--[[ The starter pack's one offer is owed (`Purchases.offerStarter`):
+			     the client shows it if the player leaves Victory for the
+			     lobby. ]]
 			starter = if starters and starters[session.player] then true else nil,
 		})
 	end
@@ -796,7 +801,7 @@ local function complete(now: number)
 		if firstClear and level == Tutorial.untilBeaten then
 			Analytics.step(session.player, "Cleared1-1")
 		end
-		starters[session.player] = Purchases.offerStarter(session.player, level, firstClear)
+		starters[session.player] = Purchases.offerStarter(session.player)
 		Analytics.runEnded(session.player, "Won")
 		if firstClear and eggKey then
 			local pet = Hatchery.grantFree(session.player, eggKey)
@@ -1269,6 +1274,12 @@ function RoomController.requestRestart(): boolean
 	return true
 end
 
+--[[ Whether the run is still in the rooms (waves, floors) a revive is not
+     sold in (`RobuxStore.reviveFromRoom`). ]]
+function RoomController.reviveEarly(): boolean
+	return StoreRules.reviveEarly(progress, RobuxStore.reviveFromRoom)
+end
+
 --[[ Whether `player` may be revived now (`Config/RobuxStore`): the run is
      lost, it is not the tutorial or the sandbox, and their one revive this
      run is not spent (`Util/StoreRules.reviveAllowed`). ]]
@@ -1397,6 +1408,12 @@ function RoomController.step(now: number)
 		end
 
 		state = "Cleared"
+		--[[ A won fight cannot hurt (2026-11-14, the kid playtest: dead half
+		     a second after CLEARED, from seeds already in the air): every
+		     enemy shot goes, here and on every client's screen. ]]
+		local everywhere = Balance.Arena.size.Magnitude
+		ProjectileSystem.clearEnemyShotsNear(Vector3.zero, everywhere)
+		shotsParried:FireAllClients(Vector3.zero, everywhere)
 		recordStory()
 		--[[ Endless: the floor's best, what it owes, and a boss floor's
 		     rewards, before anything moves the run on. ]]

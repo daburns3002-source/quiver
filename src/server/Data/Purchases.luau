@@ -49,7 +49,6 @@ local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local RobuxStore = require(ReplicatedStorage.Shared.Config.RobuxStore)
 local SaveSchema = require(ReplicatedStorage.Shared.Util.SaveSchema)
 local StoreRules = require(ReplicatedStorage.Shared.Util.StoreRules)
-local Tutorial = require(ReplicatedStorage.Shared.Config.Tutorial)
 
 local Analytics = require(script.Parent.Analytics)
 local Hatchery = require(script.Parent.Hatchery)
@@ -66,6 +65,8 @@ local Purchases = {}
      `Run/RoomController`, which requires it). ]]
 export type ReviveHooks = {
 	can: (Player) -> boolean,
+	--[[ Whether the run is still in the rooms a revive is not sold in. ]]
+	early: () -> boolean,
 	apply: (Player) -> boolean,
 	hold: (number) -> (),
 	release: () -> (),
@@ -82,6 +83,9 @@ local DAILY_EVERY = 300
 local granted = Remotes.event(Remotes.StoreGranted)
 local prize = Remotes.event(Remotes.EndlessPrize)
 
+--[[ Players whose last Victory owes them the starter pack's offer, until
+     they leave it (`offerStarter`, `starterAnswered`). ]]
+local starterOwed: { [Player]: boolean } = {}
 --[[ Where each player's last product prompt was opened from. ]]
 local askedFrom: { [Player]: string } = {}
 --[[ Receipts whose grant has been shown this session (a retry of one is
@@ -96,7 +100,7 @@ function Purchases.reviveOffer(player: Player): ("use" | "buy")?
 	if not hooks or not profile then
 		return nil
 	end
-	return StoreRules.reviveOffer(profile.purchases, hooks.can(player))
+	return StoreRules.reviveOffer(profile.purchases, hooks.can(player), hooks.early())
 end
 
 --[[ Spends a revive the save holds on the run that is waiting. Returns
@@ -286,21 +290,46 @@ function Purchases.ask(player: Player, key: unknown, from: unknown)
 	end
 end
 
---[[ The run's level `level` was just won (`firstClear` the first time):
-     whether this is when the starter pack is offered, its one time. Marks
-     it offered. ]]
-function Purchases.offerStarter(player: Player, level: string?, firstClear: boolean): boolean
+--[[ A level was just won: whether the starter pack's one offer is owed
+     this player now (`StoreRules.starterDue`, `RobuxStore.starterAfterWins`).
+     Their Victory shows it only on the way to the lobby, so it is not
+     marked offered here but when they go (`starterAnswered`); pressing
+     NEXT LEVEL leaves it owed for the next win. ]]
+function Purchases.offerStarter(player: Player): boolean
+	starterOwed[player] = nil
 	local profile = PlayerData.get(player)
 	local product = StoreRules.product("StarterPack")
 	if not profile or not product or not StoreRules.live(product) then
 		return false
 	end
-	if not StoreRules.starterDue(profile.purchases, level, firstClear, Tutorial.untilBeaten) then
+	local wins = 0
+	for _ in profile.levelsBeaten do
+		wins += 1
+	end
+	if not StoreRules.starterDue(profile.purchases, wins, RobuxStore.starterAfterWins) then
 		return false
 	end
-	profile.purchases.starterOffered = true
-	PlayerData.touch(player)
+	starterOwed[player] = true
 	return true
+end
+
+--[[ The player left a Victory for the lobby: an offer owed them was shown
+     on the way (`UI/RobuxOffer.after`), its one time. ]]
+function Purchases.starterAnswered(player: Player)
+	if not starterOwed[player] then
+		return
+	end
+	starterOwed[player] = nil
+	local profile = PlayerData.get(player)
+	if profile and not profile.purchases.starterOffered then
+		profile.purchases.starterOffered = true
+		PlayerData.touch(player)
+	end
+end
+
+--[[ A stage is starting: no Victory is up, so no offer is owed on it. ]]
+function Purchases.forgetStarter()
+	table.clear(starterOwed)
 end
 
 --[[ VIP's gems for today, if owed. ]]
@@ -364,6 +393,7 @@ function Purchases.start()
 	end)
 	Players.PlayerRemoving:Connect(function(player)
 		askedFrom[player] = nil
+		starterOwed[player] = nil
 	end)
 	task.spawn(function()
 		while true do

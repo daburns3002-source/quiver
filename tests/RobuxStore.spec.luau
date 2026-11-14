@@ -159,20 +159,31 @@ return function(t: TestRunner.Helper)
 		t.isFalse(StoreRules.nameTag({ DoubleCoins = true }))
 	end)
 
-	t.test("the starter pack is offered once, after the first 1-1 clear", function()
+	t.test("the starter pack is offered once, and not on the first win", function()
 		local purchases = StoreRules.empty()
-		t.isTrue(StoreRules.starterDue(purchases, "1-1", true, "1-1"))
-		t.isFalse(
-			StoreRules.starterDue(purchases, "1-1", false, "1-1"),
-			"a replay is not the moment"
-		)
-		t.isFalse(StoreRules.starterDue(purchases, "1-2", true, "1-1"), "another level is not")
-		t.isFalse(StoreRules.starterDue(purchases, nil, true, "1-1"))
+		local after = RobuxStore.starterAfterWins
+		t.isTrue(after >= 2, "the first win is never answered with a price")
+		t.isFalse(StoreRules.starterDue(purchases, 0, after))
+		t.isFalse(StoreRules.starterDue(purchases, after - 1, after))
+		t.isTrue(StoreRules.starterDue(purchases, after, after))
+		t.isTrue(StoreRules.starterDue(purchases, after + 5, after), "still owed later")
 		purchases.starterOffered = true
-		t.isFalse(StoreRules.starterDue(purchases, "1-1", true, "1-1"), "offered once")
+		t.isFalse(StoreRules.starterDue(purchases, after, after), "offered once")
 		local bought = StoreRules.empty()
 		bought.starterBought = true
-		t.isFalse(StoreRules.starterDue(bought, "1-1", true, "1-1"), "never after buying it")
+		t.isFalse(StoreRules.starterDue(bought, after, after), "never after buying it")
+	end)
+
+	t.test("no revive is sold in a run's first rooms; a held one still works", function()
+		local from = RobuxStore.reviveFromRoom
+		t.isTrue(from > 1)
+		t.isTrue(StoreRules.reviveEarly(1, from))
+		t.isTrue(StoreRules.reviveEarly(from - 1, from))
+		t.isFalse(StoreRules.reviveEarly(from, from))
+		local purchases = StoreRules.empty()
+		t.isNil(StoreRules.reviveOffer(purchases, true, true))
+		purchases.reviveCredits = 1
+		t.equal(StoreRules.reviveOffer(purchases, true, true), "use")
 	end)
 
 	t.test("the starter pack leaves the shelf once bought, and cannot be prompted again", function()

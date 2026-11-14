@@ -2008,11 +2008,16 @@ local tutorialRooms: { RoomConfig } = {
 		roster = { meleeCharger },
 	},
 	{
-		-- the Sprout Spitter's debut, beside two slimes
+		--[[ the Sprout Spitter's debut, beside two slimes. Its logs sit to
+		     the sides (2026-11-14): one log across the middle stopped a
+		     player who walked straight in, and every arrow they fired, while
+		     the Spitter's seeds still reached them (40 arrows, none landed;
+		     `tests/Tutorial.spec` keeps the centre lane open). ]]
 		name = "Tutorial 2",
 		arena = "GladeLogs",
 		obstacles = {
-			{ offset = Vector2.new(0, 3.84), size = Vector3.new(11, 2.8, 3.5) },
+			{ offset = Vector2.new(10.5, 3.84), size = Vector3.new(7, 2.8, 3.5) },
+			{ offset = Vector2.new(-10.5, 3.84), size = Vector3.new(7, 2.8, 3.5) },
 			{ offset = Vector2.new(8.13, -12.58), size = Vector3.new(3.75, 1.5, 3.75) },
 			{ offset = Vector2.new(-8.13, -12.58), size = Vector3.new(3.75, 1.5, 3.75) },
 		},
@@ -2179,8 +2184,8 @@ local gladeLevelRooms: { RoomConfig } = {
 			{ offset = Vector2.new(10.24, -4.45), size = Vector3.new(3.75, 1.5, 3.75) },
 			{ offset = Vector2.new(-10.24, -4.45), size = Vector3.new(3.75, 1.5, 3.75) },
 		},
-		enemyCount = 4,
-		roster = { meleeCharger, broodSlime, spreadShooter },
+		enemyCount = 3,
+		roster = { meleeCharger },
 	},
 	{
 		name = "Mossy Glade 1-2",
@@ -2190,7 +2195,7 @@ local gladeLevelRooms: { RoomConfig } = {
 			{ offset = Vector2.new(7, -2.88), size = Vector3.new(3.4, 0.4, 3.4) },
 		},
 		enemyCount = 4,
-		roster = { broodSlime, spreadShooter, meleeCharger },
+		roster = { meleeCharger, meleeCharger, broodSlime },
 	},
 	{
 		name = "Mossy Glade 1-2",

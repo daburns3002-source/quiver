@@ -46,10 +46,21 @@ Tips.showFor = 6
 --[[ A `hold` tip stays until OK and holds the run meanwhile (owner,
      2026-11-13: "pause the game and have an ok button to dismiss the tip
      and resume the game"); the server lets the run go after `holdMax`
-     seconds even without OK. `gap` is the pause before the next tip
-     waiting. ]]
+     seconds even without OK. ]]
 Tips.holdMax = 60
-Tips.gap = 0.6
+--[[ Seconds of quiet after a tip has gone before the next may come up
+     (owner, 2026-11-14: "there needs to be spacing between them, so
+     everything isnt just popping up one after another"; it was 0.6, which
+     read as one tip turning into the next). Longer than a tip is up, so
+     the screen is clear more than it is covered. A `hold` tip explains a
+     screen that is stopped and waiting, so it only waits `holdGap`
+     (`TipRules.spaced`). ]]
+Tips.gap = 10
+Tips.holdGap = 0.6
+--[[ Seconds a tip asked for may wait to be shown before it is let go, to
+     be asked again the next time its thing happens. Longer than `gap`, so
+     a tip asked for as another goes still shows when the quiet ends. ]]
+Tips.patience = 12
 
 Tips.tips = {
 	-- the lobby's stations, the first time each screen opens (`UI/StationScreen`)

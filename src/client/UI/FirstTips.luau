@@ -35,8 +35,10 @@
 	screen, a boss banner, NEW ENEMY!, MENU's panel, a hatch or class
 	select (for every tip but its own) is up, and in the tutorial, which
 	teaches by its own prompts; one asked for in a moment that cannot show
-	it is let go after `PATIENCE` and asked again the next time that thing
-	happens.
+	it is let go after `Tips.patience` and asked again the next time that
+	thing happens. After a tip has gone the next waits `Tips.gap` seconds of
+	quiet (`TipRules.spaced`; owner, 2026-11-14: "there needs to be spacing
+	between them"), except a `hold` tip, whose screen is waiting for it.
 ]]
 
 local GuiService = game:GetService("GuiService")
@@ -66,8 +68,6 @@ local SoundFx = require(script.Parent.Parent.Fx.SoundFx)
 
 local FirstTips = {}
 
---[[ Seconds a tip asked for may wait to be shown before it is let go. ]]
-local PATIENCE = 12
 --[[ Seconds between looks at what the profile and the stage say is new. ]]
 local LOOK_EVERY = 1
 --[[ Above the station screens (115), a hatch (180) and class select
@@ -102,7 +102,8 @@ local closedAt = -math.huge
      selects its own button just after asking for the tip). ]]
 local restoreSelection: GuiObject? = nil
 local selectionWatch: RBXScriptConnection? = nil
-local nextAt = 0
+--[[ When the last tip went (`os.clock`), for the quiet between tips. ]]
+local lastGone = -math.huge
 local gui: ScreenGui? = nil
 
 --[[ The starters every profile holds, so a weapon beyond them is new. ]]
@@ -191,7 +192,7 @@ local function close(item: GuiObject, quiet: boolean?)
 	current = nil
 	local held = currentHolds
 	currentHolds = false
-	nextAt = os.clock() + Tips.gap
+	lastGone = os.clock()
 	if held then
 		closedAt = os.clock()
 		RunPaused.setTip(false)
@@ -349,23 +350,30 @@ local function pump()
 	for i = #queue, 1, -1 do
 		local waiting = queue[i]
 		if
-			now - waiting.asked > PATIENCE
+			now - waiting.asked > Tips.patience
 			or (seen ~= nil and not TipRules.due(waiting.key, seen, shown))
 		then
 			table.remove(queue, i)
 		end
 	end
-	if
-		seen == nil
-		or gui == nil
-		or current ~= nil
-		or now < nextAt
-		or #queue == 0
-		or covered(queue[1].key)
-	then
+	if seen == nil or gui == nil or current ~= nil then
 		return
 	end
-	local waiting = table.remove(queue, 1) :: Waiting
+	--[[ The first one waiting that may come up now: the quiet since the
+	     last tip is over for it (`TipRules.spaced`, at once for a `hold`
+	     tip) and nothing else owns the screen. ]]
+	local since = now - lastGone
+	local index: number? = nil
+	for i, each in queue do
+		if TipRules.spaced(each.key, since) and not covered(each.key) then
+			index = i
+			break
+		end
+	end
+	if not index then
+		return
+	end
+	local waiting = table.remove(queue, index) :: Waiting
 	if not TipRules.due(waiting.key, seen, shown) then
 		return
 	end

@@ -602,7 +602,8 @@ bar with the hero's level on a gold badge, the coin counter (`Fx/CoinDrops` flie
 its panel with the selected card read out and REROLL / CHOOSE! 56 points tall (`Config/Hud`
 `draftUpright`). All in screen points. **One tap or click takes a card** (2026-11-14, `CardTheme.timing.tapGuard`
 0.35 s after it is dealt); under the upright tray the first tap reads it and a second takes it; CHOOSE! is
-the gamepad's (and the tray's).
+the gamepad's (and the tray's): the panel draws it for a gamepad only (owner, 2026-11-14: "Hide it";
+`RunHudRules.draftChoose`), REROLL takes the middle when it is alone, and with neither the panel closes up.
 
 **Settings** (`Config/Settings`, `Util/SettingsRules`, `Server/Data/Settings`, `client/Options`,
 `UI/SettingsScreen`, save version 9): music and sound volume in steps and vibration on or off, kept in

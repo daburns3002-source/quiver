@@ -13,6 +13,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ClassLevelRules = require(ReplicatedStorage.Shared.Util.ClassLevelRules)
 local ClassLevels = require(ReplicatedStorage.Shared.Config.ClassLevels)
 local Classes = require(ReplicatedStorage.Shared.Config.Classes)
+local DexBook = require(ReplicatedStorage.Shared.Util.DexBook)
 local SaveSchema = require(ReplicatedStorage.Shared.Util.SaveSchema)
 local Shop = require(ReplicatedStorage.Shared.Config.Shop)
 local ShopRules = require(ReplicatedStorage.Shared.Util.ShopRules)
@@ -205,6 +206,14 @@ return function(t: TestRunner.Helper)
 				for _, other in ShopRules.cratePool(index) do
 					t.isTrue(other.weapon ~= weapon, weapon .. " is in crate " .. index)
 				end
+			end
+		end
+	end)
+
+	t.test("a golden weapon is in no area's Dex page", function()
+		for _, entry in DexBook.entries("Weapons", nil) do
+			for _, weapon in ClassLevels.weapons do
+				t.isTrue(entry.key ~= weapon, weapon .. " is in the Dex")
 			end
 		end
 	end)

@@ -226,8 +226,13 @@ end
      they do not hold (`ClassLevelRules.owed`): as a level 10 is reached,
      and as a profile loads, so a level reached before the weapon could be
      held is still paid. Only a weapon that can be worn (`ShopRules.find`).
-     Returns what was given. ]]
-function Wallet.settleClassWeapons(player: Player): { string }
+     Returns what was given.
+
+     With `class`, the class being played: one of them that is stronger
+     than the weapon worn is put on by itself, as a crate's is
+     (`ShopRules.upgrade`; the kid playtest, 2026-11-14). It is in hand
+     from the lobby on, like any weapon chosen during a run. ]]
+function Wallet.settleClassWeapons(player: Player, class: string?): { string }
 	local profile = PlayerData.get(player)
 	local given = {}
 	if not profile then
@@ -238,6 +243,15 @@ function Wallet.settleClassWeapons(player: Player): { string }
 			Wallet.grantWeapon(player, weapon)
 			table.insert(given, weapon)
 		end
+	end
+	local best = if class
+		then ShopRules.upgrade(given, class, profile.equipped, function(weapon)
+			return Wallet.weaponTier(player, weapon)
+		end)
+		else nil
+	if best then
+		Wallet.equip(player, best)
+		log.info("%s takes up the %s", player.Name, best)
 	end
 	return given
 end
@@ -259,7 +273,7 @@ function Wallet.addClassXp(player: Player, class: string, xp: number): ClassLeve
 	if #gain.reached > 0 then
 		log.info("%s's %s reaches level %d", player.Name, class, gain.after.level)
 	end
-	local given = Wallet.settleClassWeapons(player)
+	local given = Wallet.settleClassWeapons(player, class)
 	gain.weapon = if gain.weapon and table.find(given, gain.weapon) then gain.weapon else nil
 	return gain
 end

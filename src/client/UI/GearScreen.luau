@@ -14,6 +14,9 @@ local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Chunky = require(script.Parent.Chunky)
+local ClassLevelPlate = require(script.Parent.ClassLevelPlate)
+local ClassLevelRules = require(ReplicatedStorage.Shared.Util.ClassLevelRules)
+local ClassLevels = require(ReplicatedStorage.Shared.Config.ClassLevels)
 local Classes = require(ReplicatedStorage.Shared.Config.Classes)
 local EggRules = require(ReplicatedStorage.Shared.Util.EggRules)
 local EggScreen = require(script.Parent.EggScreen)
@@ -395,10 +398,20 @@ local function details(
 			table.insert(lines, string.upper(stats.effect))
 		end
 	end
+	--[[ A golden weapon (`Config/ClassLevels`) is earned, not rolled: one
+	     copy ever, so it has no MERGE. ]]
+	local shopEntry = if isPet then nil else ShopRules.find(entry.key)
+	local earned = shopEntry ~= nil and shopEntry.earned == true
 	if not entry.owned then
 		table.insert(
 			lines,
-			if isPet then "HATCH IT AT THE EGG HATCHERY" else "OPEN CRATES AT THE BLACKSMITH"
+			if isPet
+				then "HATCH IT AT THE EGG HATCHERY"
+				elseif earned and shopEntry then "REACH "
+					.. string.upper(shopEntry.class)
+					.. " LEVEL "
+					.. tostring(ClassLevels.weaponLevel)
+				else "OPEN CRATES AT THE BLACKSMITH"
 		)
 	end
 	local card = Chunky.card(pop, table.unpack(L.lines))
@@ -435,7 +448,7 @@ local function details(
 	--[[ MERGE (owner, 2026-10-28: "the player has to get 3 of 1 tier and then
 	     they can merge into the next tier. starting at C going to B, then A,
 	     then S"): three of the lowest tier that has them; the server checks. ]]
-	if entry.owned then
+	if entry.owned and not earned then
 		local from = mergeable(entry.tiers)
 		local nextUp = from and MergeRules.nextTier(from)
 		local low = MergeRules.TIERS[1]
@@ -676,16 +689,18 @@ local function draw(s: StationScreen.Screen)
 			hero = { 290, 290, 500, 700 },
 			pedestal = { 320, 826, 440, 100 },
 			plate = { 330, 960, 420, 92 },
+			level = { 340, 1064, 400, 93 },
 			left = 90,
 			right = 800,
 			rows = { 310, 562, 814 },
 			size = 176,
-			card = { 60, 1086, 960, 784 },
+			card = { 60, 1176, 960, 694 },
 		}
 		else {
 			hero = { 360, 176, 400, 700 },
 			pedestal = { 400, 712, 320, 90 },
 			plate = { 380, 850, 360, 100 },
+			level = { 397, 958, 326, 76 },
 			left = 196,
 			right = 728,
 			rows = { 196, 476, 756 },
@@ -752,6 +767,19 @@ local function draw(s: StationScreen.Screen)
 	end
 	lastPower = atk + pets
 	words.Position, words.Size = UDim2.fromScale(0.06, 0.16), UDim2.fromScale(0.88, 0.68)
+
+	--[[ The class's own level under the power plate (`Config/ClassLevels`):
+	     its badge, and the bar to the next. ]]
+	local levelFrame = Instance.new("Frame")
+	levelFrame.Name = "ClassLevel"
+	levelFrame.BackgroundTransparency = 1
+	levelFrame.ZIndex = 8
+	Chunky.put(sheet, levelFrame, table.unpack(L.level))
+	ClassLevelPlate.build(
+		levelFrame,
+		currentClass(),
+		ClassLevelRules.standing(p and p.classLevels, currentClass())
+	)
 
 	local weaponSlot = slot(
 		sheet,
@@ -930,6 +958,17 @@ local function draw(s: StationScreen.Screen)
 				selected
 			)
 			Chunky.gleam(tile, i * 0.37)
+			--[[ The class's own level (`Config/ClassLevels`), on its tile. ]]
+			local chip = Instance.new("Frame")
+			chip.Name = "Level"
+			chip.Position, chip.Size = UDim2.fromScale(0.06, 0.05), UDim2.fromScale(0.7, 0.19)
+			chip.ZIndex = 14
+			chip.Parent = holder
+			ClassLevelPlate.chip(
+				chip,
+				className,
+				ClassLevelRules.standing(p and p.classLevels, className).level
+			)
 			Chunky.press(holder, function()
 				if
 					not selected

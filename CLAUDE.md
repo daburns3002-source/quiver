@@ -615,6 +615,28 @@ leaves the item's card up with its new tier. **A won fight cannot hurt**: as a r
 cleared every enemy shot goes, on the server and on every screen (`RoomController.step`,
 `Remotes.ShotsParried` for the whole arena).
 
+**Class levels and the golden weapons** (owner, 2026-11-14: "class specific leveling ... when a player gets
+to level 10 on a certain class, they should unlock a golden weapon"; `Config/ClassLevels`,
+`Util/ClassLevelRules`, `UI/ClassLevelPlate`, `docs/WEAPONS-GOLDEN.md`, `tests/ClassLevels.spec`): each
+class has its own lasting level, apart from the run's level (`Config/Progression`), saved as
+`SaveSchema` v16 `classLevels` (level and the XP into it). **The server pays it as a run ends**, to the
+class played: 10 XP for each room, wave or Endless floor cleared and 50 more for a win
+(`RoomController` `noteClear` / `payClassXp`, `Wallet.addClassXp`); a loss or leaving still pays what was
+cleared, the tutorial pays nothing, each place counts once, and no client reports any of it. 10 is the
+top (3,750 XP, about 20 won runs); levels 2 to 9 give coins or gems (`ClassLevels.gifts`); **level 10
+gives the class's golden weapon** (Golden Bow, Golden Staff, Golden Blade): Legendary strength at area
+1's scale, a gold aura, its own shot or cleave (`Config/WeaponFx`), the one Legendary card of its class
+no other weapon carries (Multishot, Homing Orbs, Battle Cry), and `WeaponStats.earned`, which keeps it
+out of every crate, the store, Endless prizes and the area Dex pages (`Util/ShopRules`, `Util/DexBook`)
+and off MERGE. It goes on by itself if stronger than the weapon worn (`ShopRules.upgrade`), in hand from
+the next run or the lobby; a saved level 10 without its weapon is given it on join
+(`Wallet.settleClassWeapons`). The level shows on a plate (round badge, bar) under Gear's power plate
+and beside the end screens' panel (under it on an upright screen, `EndScreenRules.levelPlate`), where the
+run's XP fills the bar and each level reached pops with its gift, as a LEVEL chip on each class at class
+select and on Gear's CLASSES tab, and a golden weapon earned opens its own card over Victory or Defeat.
+The models are Tripo's from Codex front views; the bow's string was rebuilt as a straight gold bar
+(`assets/models/weapons/blocky/golden/fix_glb.py`; owner: "the string on the tripo model is trash").
+
 **The Robux store** (owner, 2026-11-13: "Yes, build them"; `Config/RobuxStore`, `Util/StoreRules`,
 `Server/Data/Purchases`, `Server/Data/Passes`, `UI/RobuxStore`, `UI/RobuxOffer`, `docs/ROBUX-STORE.md`):
 five gem packs, a starter pack (once a player, offered once as a Victory is left for the lobby with two

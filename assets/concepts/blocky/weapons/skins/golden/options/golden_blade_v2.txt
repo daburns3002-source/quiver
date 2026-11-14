@@ -1,0 +1,8 @@
+Generate ONE square image at the highest resolution available and save it in the current directory as golden_blade_v2.png
+
+Image 1 is our game's GOLDEN BLADE, a blocky voxel golden greatsword. Redraw the SAME sword in exactly the same style, colours, finish and details (polished yellow gold blade with a brighter white-gold edge and a centre groove, the stepped notches down both edges, the chunky winged gold crossguard with one square ruby-red gem, the brown leather-wrapped hilt, the gold block pommel), with only these two changes to its proportions:
+1. The handle is a little smaller: the brown wrapped hilt about a quarter shorter and slightly thinner, and the pommel a touch smaller.
+2. The blade is a little longer: about a fifth longer from the crossguard to the tip, keeping its width.
+Keep the whole sword upright, centred, filling about 88 percent of the image height.
+View: flat side-on, straight-on camera, no perspective. No hands, no character. This image is the weapon's in-game picture and will be turned into a 3D model.
+Plain flat light-grey background, no scenery, no ground, no shadow, no text, no labels, no particles. Even soft lighting.

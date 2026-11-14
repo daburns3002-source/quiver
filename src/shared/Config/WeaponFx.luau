@@ -109,6 +109,19 @@ local BLADES = {
 local shots: { [string]: Look } = {
 	-- Bows
 	TwigBow = shot({ colour = rgb(255, 244, 196) }),
+	--[[ The golden weapons (`Config/ClassLevels`): gold, with the class
+	     gem's colour in what they shed. ]]
+	GoldenBow = shot({
+		colour = rgb(255, 205, 56),
+		shape = "Wedge",
+		scale = Vector3.new(1.1, 1.1, 1.9),
+		arms = FINS,
+		armColour = rgb(255, 240, 170),
+		spin = Vector3.new(0, 0, 12),
+		sparkle = sparkle(rgb(96, 230, 120), 0.28, 1.5),
+		trail = 1.5,
+		trailColour = rgb(255, 232, 140),
+	}),
 	AcornBow = shot({ colour = rgb(226, 170, 96), spin = Vector3.new(0, 0, 9) }),
 	PeatwoodBow = shot({
 		colour = rgb(196, 136, 78),
@@ -190,6 +203,18 @@ local shots: { [string]: Look } = {
 	}),
 	-- Staves
 	BranchStaff = shot({ colour = rgb(90, 200, 255) }),
+	GoldenStaff = shot({
+		colour = rgb(255, 214, 84),
+		shape = "Block",
+		scale = Vector3.new(1.3, 1.3, 1.3),
+		arms = BLADES,
+		armColour = rgb(96, 168, 255),
+		spin = Vector3.new(5, 7, 0),
+		bob = { amount = 0.25, rate = 9 },
+		sparkle = sparkle(rgb(120, 180, 255), 0.3, 2),
+		trail = 1.3,
+		trailColour = rgb(255, 236, 150),
+	}),
 	ToadstoolStaff = shot({
 		colour = rgb(236, 92, 84),
 		sparkle = sparkle(rgb(250, 210, 200), 0.3, 3),
@@ -284,6 +309,19 @@ local shots: { [string]: Look } = {
 
 local cleaves: { [string]: Cleave } = {
 	TimberBlade = { colour = { rgb(255, 80, 60), rgb(150, 25, 20) }, tail = 0.16, taper = 0.25 },
+	GoldenBlade = {
+		colour = { rgb(255, 198, 44), rgb(255, 247, 196) },
+		tail = 0.44,
+		taper = 0.62,
+		motes = {
+			form = "Star",
+			colour = rgb(255, 92, 84),
+			rate = 34,
+			size = 0.55,
+			rise = 2.4,
+			life = 0.55,
+		},
+	},
 	MossstoneBlade = {
 		colour = { rgb(124, 186, 92), rgb(58, 104, 48) },
 		tail = 0.2,

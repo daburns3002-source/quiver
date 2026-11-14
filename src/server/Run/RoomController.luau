@@ -164,6 +164,9 @@ local extraDraftOwed = false
 --[[ Which pick each player has made at the checkpoint now open; a living
      player missing from it is still being waited on. ]]
 local picked: { [Player]: boolean } = {}
+--[[ The place (`progress`) whose clear was last counted towards the class
+     levels (`noteClear`), 0 at the start of a stage. ]]
+local clearCounted = 0
 
 local function total(): number
 	local current = stage()
@@ -519,6 +522,7 @@ end
 
 local function startStage()
 	local current = stage()
+	clearCounted = 0
 	workspace:SetAttribute("CombatEncounter", 0)
 	RunSession.holdOffers(false)
 	-- no Victory is up any more, so nothing is owed on one
@@ -658,11 +662,15 @@ end
 
 --[[ A fight or an encounter is cleared: one more room, wave or floor each
      player's class is owed XP for (`Config/ClassLevels`). Not the
-     tutorial's, whose class is the tutorial's own pick. ]]
+     tutorial's, whose class is the tutorial's own pick. Each place counts
+     once: a room whose arena was still loading when the run looked (a
+     Studio jump to an unprepared room) reads as cleared, then is entered
+     and cleared again (`clearCounted`). ]]
 local function noteClear()
-	if stage().tutorial then
+	if stage().tutorial or progress == clearCounted then
 		return
 	end
+	clearCounted = progress
 	for _, session in RunSession.all() do
 		session.classClears += 1
 	end
@@ -682,7 +690,15 @@ local function payClassXp(session: RunSession.Session, won: boolean): ClassLevel
 	if xp <= 0 then
 		return nil
 	end
-	return Wallet.addClassXp(session.player, session.loadout.class, xp)
+	local gain = Wallet.addClassXp(session.player, session.loadout.class, xp)
+	--[[ A golden weapon that went on by itself (`Wallet.settleClassWeapons`)
+	     is in hand from the next run or the lobby: `RunSession.resetRun`
+	     carries the session's weapon over and applies it. ]]
+	local profile = if gain and gain.weapon then PlayerData.get(session.player) else nil
+	if gain and profile and profile.equipped == gain.weapon then
+		session.loadout.weapon = gain.weapon
+	end
+	return gain
 end
 
 local function sendSummary(won: boolean, eggs: { [Player]: any }?, starters: { [Player]: boolean }?)

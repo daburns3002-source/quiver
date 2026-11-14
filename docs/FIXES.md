@@ -16,6 +16,21 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## A weapon is pale (or dark) for a few seconds when first held (2026-11-14)
+
+**Symptom:** a textured weapon (every Tripo one) shows as a bare mesh, pale in light and near black in
+shade, for a few seconds after it is put in a hand, then its colours arrive. Seen in Studio on the
+Golden Staff.
+
+**Cause:** its texture was not in video memory. `Fx/LobbyPreload` fetched every weapon's in the
+background and drew each for three frames, but dropped its warm set as a run began, which is when the
+weapon is first held; nothing kept the held weapon's texture drawn.
+
+**Fix:** `Fx/WeaponPreload` keeps warm the textures of every player's `Weapon` attribute and of this
+player's saved `equipped`, lobby and run alike, and fetches every owned weapon's from the profile
+(`Util/WeaponContent`). Checked in Studio by switching mid-run: a weapon kept warm was textured in the
+capture taken straight after the switch, one that was not was still bare.
+
 ## "I did what it said and lost": two deaths in the tutorial, one half a second after ROOM CLEAR (2026-11-14)
 
 **Seen** in the kid playtest (`docs/PLAYTEST-KID.md`), on a brand-new profile. Tutorial room 2: the

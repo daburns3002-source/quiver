@@ -656,6 +656,14 @@ blade at 2,000 triangles and 2K; the bow made again from a picture with a thick 
 (owner: "the string on the tripo model is trash"), at 4,000 triangles with an 8K texture whose stray
 colours `clean_bow_texture.py` repaints gold ("there are random colors on it").
 
+**Weapon textures are kept ready** (owner, 2026-11-14: "preload the weapon textures so they dont show up
+pale"; `Fx/WeaponPreload`, `Util/WeaponContent`, `tests/WeaponContent.spec`): a one-mesh weapon carries
+its colours in a texture, and one not in video memory is drawn bare for a few seconds when first held.
+The client keeps warm (`Preload.warm`, in the lobby and in a run) the textures of every player's `Weapon`
+attribute and of its own saved `equipped`, and fetches every owned weapon's as the profile comes or
+changes. `Fx/LobbyPreload` still fetches every weapon's in the background, and drops its own warm set
+as a run begins.
+
 **The Robux store** (owner, 2026-11-13: "Yes, build them"; `Config/RobuxStore`, `Util/StoreRules`,
 `Server/Data/Purchases`, `Server/Data/Passes`, `UI/RobuxStore`, `UI/RobuxOffer`, `docs/ROBUX-STORE.md`):
 five gem packs, a starter pack (once a player, offered once as a Victory is left for the lobby with two

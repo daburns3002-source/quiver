@@ -163,6 +163,17 @@ function RunHudRules.draftReroll(source: string?, rerolls: number?): boolean
 	return source ~= "Angel" and (rerolls or 0) > 0
 end
 
+--[[ Whether CHOOSE! is drawn in the draft's panel, by how the player is
+     playing ("Mouse", "Touch" or "Gamepad", `UI/Cards/DraftScreen`). Only
+     for a gamepad (owner, 2026-11-14: "Hide it"): a click or a tap takes a
+     card by itself since the kid playtest's fixes, so for those CHOOSE! sat
+     there grey and unpressable, which read as broken. A gamepad still picks
+     with the stick and confirms on it. The upright phone's tray keeps its
+     own CHOOSE!, where the first tap only reads a card out. ]]
+function RunHudRules.draftChoose(mode: string): boolean
+	return mode == "Gamepad"
+end
+
 export type DraftPlace = {
 	--[[ The panel's scale, and where its top edge is. ]]
 	scale: number,

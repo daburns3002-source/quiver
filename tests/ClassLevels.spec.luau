@@ -19,7 +19,9 @@ local SaveSchema = require(ReplicatedStorage.Shared.Util.SaveSchema)
 local Shop = require(ReplicatedStorage.Shared.Config.Shop)
 local ShopRules = require(ReplicatedStorage.Shared.Util.ShopRules)
 local TestRunner = require(script.Parent.TestRunner)
+local WeaponFx = require(ReplicatedStorage.Shared.Config.WeaponFx)
 local WeaponStats = require(ReplicatedStorage.Shared.Config.WeaponStats)
+local Weapons = require(ReplicatedStorage.Shared.Config.Weapons)
 
 local function total(): number
 	local sum = 0
@@ -188,22 +190,27 @@ return function(t: TestRunner.Helper)
 			t.isTrue(stats.earned == true, weapon .. " is marked earned")
 			t.notNil(stats.innate, weapon .. " has a Legendary's extra effect")
 			t.notNil(stats.effect, weapon .. " says what it does")
-			--[[ Worn at Gear once its model is in (`Config/Weapons`, its
-			     entry in `Config/Sandbox`): until then a level 10 holds it
-			     owed (`Wallet.settleClassWeapons`). ]]
 			local entry = ShopRules.find(weapon)
-			if entry then
-				t.equal(entry.class, class)
+			t.notNil(entry, weapon .. " can be worn at Gear")
+			t.equal((entry :: ShopRules.Entry).class, class)
+			-- rule 12: it glows, in hand and in its shot or cleave
+			local model = Weapons[weapon]
+			t.notNil(model, weapon .. " has a model")
+			t.notNil(model.aura, weapon .. " glows in hand")
+			if class == "Warden" then
+				t.notNil(model.trailGlow, weapon .. "'s cleave glows")
+				t.notNil(WeaponFx.cleaves[weapon], weapon .. " has its own cleave")
+			else
+				t.notNil(model.shotGlow, weapon .. "'s shots glow")
+				t.notNil(WeaponFx.shots[weapon], weapon .. " has its own shot")
 			end
 		end
 	end)
 
 	t.test("a golden weapon is never sold and never rolled from a crate", function()
 		for _, weapon in ClassLevels.weapons do
-			local entry = ShopRules.find(weapon)
-			if entry then
-				t.isNil(ShopRules.price(entry), weapon .. " has no price")
-			end
+			local entry = ShopRules.find(weapon) :: ShopRules.Entry
+			t.isNil(ShopRules.price(entry), weapon .. " has no price")
 			for index in Shop.crates do
 				for _, chest in Shop.chests do
 					for _, other in ShopRules.cratePool(index, chest.class) do

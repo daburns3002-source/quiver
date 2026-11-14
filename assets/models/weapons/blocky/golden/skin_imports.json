@@ -1,0 +1,38 @@
+{
+ "GoldenBow": {
+  "parts": [
+   {
+    "at": [0, 0, 0],
+    "meshId": "rbxassetid://116283939534173",
+    "name": "Bow",
+    "size": [0.387, 0.979, 0.168],
+    "textureId": "rbxassetid://125471324775660"
+   }
+  ],
+  "size": [0.387, 0.979, 0.168]
+ },
+ "GoldenStaff": {
+  "parts": [
+   {
+    "at": [0, 0, 0],
+    "meshId": "rbxassetid://109558549444590",
+    "name": "Staff",
+    "size": [0.267, 0.979, 0.214],
+    "textureId": "rbxassetid://108480906774057"
+   }
+  ],
+  "size": [0.267, 0.979, 0.214]
+ },
+ "GoldenBlade": {
+  "parts": [
+   {
+    "at": [0, 0, 0],
+    "meshId": "rbxassetid://134626899771970",
+    "name": "Blade",
+    "size": [0.367, 0.98, 0.148],
+    "textureId": "rbxassetid://75986189772116"
+   }
+  ],
+  "size": [0.367, 0.98, 0.148]
+ }
+}

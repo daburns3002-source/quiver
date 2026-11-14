@@ -160,12 +160,21 @@ it anymore"). One system: the tips are data in `Config/Tips` (one short line eac
 a draft with a REROLL, a lost run, an Endless checkpoint; `FirstTips` itself asks for class select while
 it is up, for what the profile says is new in the lobby (a first pet, a weapon past the starters, three of
 a tier to merge, the first gems, the first boss item) and for the first area past Mossy Glade. Once a tip is on screen the client
-sends `Remotes.TipSeen` and the server keeps it (`Wallet.sawTip`). A tip is the loading tip's plate
-(`Util/TipPlate.fill`) under the top HUD, gone after `Tips.seconds` or a tap; **it never holds the run
-and takes no press**, so a probe never has to clear one. It waits while the title, the story, a story
-beat, an area's loading screen, a boss banner, NEW ENEMY!, MENU's panel (`RunPaused.covered`), a hatch,
-the tutorial, or class select (for every tip but its own, drawn over it) is up; one that cannot show within 12 s is let go, not marked, and asked
-again next time. The tutorial, NEW ENEMY!, the story beats, a first badge's pop-up and the Hatchery pointer
+sends `Remotes.TipSeen` and the server keeps it (`Wallet.sawTip`). **A tip pauses everything until OK**
+(owner, 2026-11-13: "they should be in the outer arena area so it doesnt block the arena, and also pause the
+game and have an ok button to dismiss the tip and resume the game. make sure the music quiets as well while
+its paused"): its card (`Util/TipPlate.card`, TIP tag, words, a green OK) stands beside the arena, in the side
+margin a landscape screen has, or above or below it on an upright phone (`TipRules.place`, from the room's
+corners projected by the camera; centred under the top HUD in the lobby). While it is up the client is paused
+(`RunPaused.setTip`), the server holds the run (`RunSession.anyReadingTip`, only for a tip the save had never
+seen, `Tips.holdMax` 60 s at most, let go by `Remotes.TipClosed`) and the music is down (`MusicFx.setTip`).
+OK, Return, Enter or a gamepad's A closes it, **so a probe clears one with a synthetic Return**; that press is the
+tip's alone (`FirstTips.takesKeys`, asked by NEW ENEMY!, the portal's START and the draft's A; the tip also keeps
+gamepad selection on its OK while up). A phone on its side shows the room edge to edge, so there the card
+stands over its foot; an upright phone gets it above or below the room when the camera shows forest there. It waits
+while the title, the story, a story beat, an area's loading screen, a boss banner, NEW ENEMY!, MENU's panel
+(`RunPaused.covered`), a hatch, the tutorial, or class select (for every tip but its own, drawn over it) is
+up; one that cannot show within 12 s is let go, not marked, and asked again next time. The tutorial, NEW ENEMY!, the story beats, a first badge's pop-up and the Hatchery pointer
 keep their own flags and are not repeated as tips. A new tip is a line in `Config/Tips` and a `show` call;
 never rename a key (it is saved).
 
@@ -631,14 +640,19 @@ an area's Legendary is given the first time its boss falls (and on join to anyon
 for reaching Endless floor `Trails.endless.floor` (50) as **each** of the three classes (owner: "a reward for
 getting to a certain floor on endless with all 3 classes"; save v14 `endlessClassBest`, counted from the first
 run after trails came in). The server grants through `Wallet.grantTrail` / `settleTrails` only, and the worn one
-is the Player's `Trail` attribute; every client draws every player's trail itself (a ribbon flat on the ground
-with a brighter fin standing along its middle, and the trail's square particles, `DeviceTiers.trailShare` of them,
-a little while standing). Made "very cool" (owner, the same day): a dash or putting one on throws a burst, glowing
-particles twinkle, a glowing trail's light breathes, Starfall's ribbon shimmers and throws shooting stars. Colours
-are laid over the ground, never added (`LightEmission` 0: added, blue went white on the lobby floor;
-FIXES). Every Legendary and
-Mythic trail glows with a light (`tests/Trails.spec`). One picture a trail, `Trails.trails[key].icon` (Codex,
-cut by `assets/ui/trails/cutout.py`); a new trail needs its icon drawn from the same prompts.
+is the Player's `Trail` attribute; every client draws every player's trail itself. **Each look is its Claude Design
+build's** (owner, 2026-11-13: "start making the trails in design that were agreed upon earlier"; one Design project
+a trail, named on its entry as `design`, every number ported from the build's own code): a ribbon of voxel tiles
+laid on a world grid as the player runs (`Trails.tile` studs a tile, ageing a row every `1 / Trails.pace` s), each
+tile coloured and sized by its column across the ribbon (edges, bands, heaped foam, gold rails, lumps), fading,
+narrowing and dissolving as the build's rows do (Brood Silk's is five silk threads at their own heights instead);
+and pieces built of a few blocks (leaves, fireflies, crowns, feathers, bubbles, spray, shards, glowcaps, plus
+stars) moved by the build's motion: out, up to a peak and down to settle, sway, tumble, blink and flash. Ribbon
+timings in rows, piece timings in the build's seconds. Tiles and blocks are pools (`DeviceTiers.trailShare` of
+them), moved in one `BulkMoveTo`; a player beyond 160 studs of the camera lays nothing new. A dash or putting one
+on throws a burst; a glowing trail's light breathes. Every Legendary and Mythic trail glows with a light and Neon
+(`tests/Trails.spec`). One picture a trail, `Trails.trails[key].icon` (Codex, cut by
+`assets/ui/trails/cutout.py`); a new trail needs its icon drawn from the same prompts, and its Design build.
 
 **Revive** (`Balance.Revive`): once per stage, automatically, after Second
 Wind — full health, 2.5 s untouchable behind a gold shield, and enemy shots

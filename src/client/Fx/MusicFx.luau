@@ -36,6 +36,8 @@ local quiet = false
 --[[ Something is on screen to read (a tutorial prompt): the music drops to
      `Music.readDuck` of itself and comes back after, on the duck's own fade. ]]
 local reading = false
+-- a first-time tip is up (`UI/FirstTips`): as quiet as reading, whatever else
+local tipUp = false
 
 local function load(p: Player, index: number)
 	local track = p.list[index]
@@ -103,6 +105,9 @@ local function step(dt: number)
 		elseif ducked then DUCK
 		elseif reading then Music.readDuck
 		else 1
+	if tipUp then
+		duckTo = math.min(duckTo, Music.readDuck)
+	end
 	duck += (duckTo - duck) * math.min(1, dt * 6)
 	for name: string in Music.playlists :: { [string]: any } do
 		local p = playerFor(name)
@@ -137,6 +142,13 @@ end
      silent, and back up when it goes. ]]
 function MusicFx.setReading(value: boolean)
 	reading = value
+end
+
+--[[ While a first-time tip is up (owner, 2026-11-13: "make sure the music
+     quiets as well while its paused"): down to the reading level at most,
+     back up after OK. Its own flag, so the tutorial's never clears it. ]]
+function MusicFx.setTip(value: boolean)
+	tipUp = value
 end
 
 function MusicFx.start()

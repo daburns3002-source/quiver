@@ -38,6 +38,13 @@ local SHAPE: { { mode: string, size: number } } = {
 	{ mode = "Rooms", size = 25 },
 }
 
+--[[ Thornwood's last level, 2-10, the Broodmother's (2026-11-13: the area
+     became ten levels, `tools/area_levels.py`), and its first, 2-1. ]]
+local function thornwood(position: number?): Balance.StageConfig
+	local list = LobbyConfig.portals[2].levels :: { number }
+	return Balance.Stages[list[position or #list]]
+end
+
 local function levels(): { Balance.StageConfig }
 	local out = {}
 	for _, index in LobbyConfig.portals[1].levels :: { number } do
@@ -105,7 +112,7 @@ return function(t: TestRunner.Helper)
 	--[[ Owner, 2026-11-05: "the levels should scale difficulty per room". ]]
 	t.test("every fight of every level hits at least as hard as the one before", function()
 		local all = levels()
-		table.insert(all, Balance.Stages[Balance.campaign[#Balance.campaign]])
+		table.insert(all, thornwood())
 		for _, stage in all do
 			local list = fights(stage)
 			local before = 0
@@ -128,15 +135,16 @@ return function(t: TestRunner.Helper)
 	end)
 
 	t.test("Thornwood's rooms never bring less health than the room before", function()
-		local stage = Balance.Stages[Balance.campaign[#Balance.campaign]]
+		local stage = thornwood()
 		local before = 0
 		for n, fight in fights(stage) do
 			local total = 0
 			for member = 1, fight.count do
 				total += fight.roster[(member - 1) % #fight.roster + 1].health
 			end
-			--[[ The Broodmother alone closes it, on her own terms. ]]
-			if fight.roster[1].boss == nil then
+			--[[ The Broodmother alone closes it, on her own terms; an Angel
+			     room (2-10 has two since 2026-11-13) holds nobody. ]]
+			if fight.count > 0 and fight.roster[1].boss == nil then
 				t.isTrue(total >= before, `Thornwood room {n} brings {total}, under {before}`)
 				before = total
 			end
@@ -306,10 +314,10 @@ return function(t: TestRunner.Helper)
 
 	t.test("Thornwood, after the glade, is harder than all of it", function()
 		local last = levels()[10]
-		local thornwood = Balance.Stages[Balance.campaign[#Balance.campaign]]
-		t.equal(thornwood.area, "Thornwood")
-		t.isTrue((thornwood.enemyHealth or 1) > (last.enemyHealth or 1))
-		t.isTrue((thornwood.enemyDamage or 1) >= (last.enemyDamage or 1))
+		local first = thornwood(1)
+		t.equal(first.area, "Thornwood")
+		t.isTrue((first.enemyHealth or 1) > (last.enemyHealth or 1))
+		t.isTrue((first.enemyDamage or 1) >= (last.enemyDamage or 1))
 	end)
 
 	--[[ He closes the area as the Broodmother closes Thornwood: the last

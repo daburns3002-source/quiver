@@ -27,6 +27,7 @@ local CurrentStage = require(ReplicatedStorage.Shared.Util.CurrentStage)
 local NewEnemies = require(ReplicatedStorage.Shared.Config.NewEnemies)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 
+local FirstTips = require(script.Parent.FirstTips)
 local RunPaused = require(script.Parent.Parent.RunPaused)
 local SoundFx = require(script.Parent.Parent.Fx.SoundFx)
 
@@ -313,6 +314,10 @@ function NewEnemyScreen.start()
 			return
 		end
 		local key = input.KeyCode
+		-- a first-time tip over the card takes the press (`FirstTips.takesKeys`)
+		if FirstTips.takesKeys() then
+			return
+		end
 		if
 			key == Enum.KeyCode.ButtonA
 			or key == Enum.KeyCode.Return

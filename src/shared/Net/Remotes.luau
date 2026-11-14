@@ -235,6 +235,12 @@ Remotes.StorySeen = "StorySeen"
 Remotes.TipSeen = "TipSeen"
 
 --[[
+	Client → server. OK on a first-time tip: a run it held goes on
+	(`RunSession.tipClosed`). Carries nothing.
+]]
+Remotes.TipClosed = "TipClosed"
+
+--[[
 	Server → one client. The player has stepped into a lit portal's mouth in
 	the lobby: open its screen (`UI/PortalScreen`) with that portal's index
 	in `Config/Lobby.portals`, or 0 to shut it as they step out.

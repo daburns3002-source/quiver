@@ -16,6 +16,7 @@ bow at its middle, a staff 43% up, a blade at its hilt, 25% up), and played
 with the base weapon's animations (`kit`) until it has its own kit.
 """
 import json
+import math
 import pathlib
 import re
 
@@ -105,22 +106,82 @@ BOGHEART = [
 # weapon's convention. A bow's limbs should curve in YZ as the Twig Bow's do;
 # these three are modelled curving in XY, so they face sideways without it.
 # Verified against each import's bounding box: X wider than Z means XY.
+# Radians of extra turn about Y, on top of `turned`, for models that do not
+# face the base weapon's way. A bow is held with its riser in the hand and its
+# string behind it (+Z out of the riser, as the Twig Bow's arrow flies). Which
+# turn does that depends on which side of each mesh its riser is, measured
+# from the meshes (2026-11-13, owner: "make sure the player is holding the
+# weapons correctly"): riser on +X a quarter turn, on -X a quarter the other
+# way, on +Z half a turn, on -Z none. Five were held back to front before.
 YAW = {
+    "AcornBow": "math.pi / 2",
+    "GladeSpiritBow": "math.pi / 2",
+    "FireflyBow": "-math.pi / 2",
+    "EmberFangBow": "-math.pi / 2",
+    "MossSlimeBow": "math.pi",
+    "SlatefinBow": "math.pi",
     "EelcrestBow": "math.pi / 2",
     "TollstringBow": "math.pi / 2",
     "EventideBow": "math.pi / 2",
-    # every Bogheart bow is wider in X than Z
     "PeatwoodBow": "math.pi / 2",
     "SporestringBow": "math.pi / 2",
     "GlowcapLongbow": "math.pi / 2",
     "GulpstringBow": "math.pi / 2",
     "LumenveilBow": "math.pi / 2",
-    # the Tripo remakes of the Glade Spirit Bow (2026-11-10) and of the
-    # Acorn, Firefly and Ember Fang Bows (2026-11-13) are too
-    "GladeSpiritBow": "math.pi / 2",
-    "AcornBow": "math.pi / 2",
-    "FireflyBow": "math.pi / 2",
-    "EmberFangBow": "math.pi / 2",
+}
+YAW_RADIANS = {"math.pi / 2": math.pi / 2, "-math.pi / 2": -math.pi / 2, "math.pi": math.pi}
+# Where the hand closes on each one-mesh model, measured from its mesh's cross
+# sections (2026-11-13): (x, how far up its length, z), x and z as fractions
+# of its length from its centre in Studio's mesh axes. A bow's riser at its
+# middle; a blade's handle between pommel and guard, which sits anywhere from
+# 16% to 26% up (one grip for all put some hands on the guard); a staff's shaft
+# 43% up. A model not listed is gripped at its class's `grip`, centred.
+GRIPS = {
+    "AcornBow": (0.0377, 0.5, 0.0),
+    "FireflyBow": (-0.066, 0.5, -0.0003),
+    "MossSlimeBow": (-0.0258, 0.5, 0.1123),
+    "EmberFangBow": (-0.0718, 0.5, 0.0313),
+    "GladeSpiritBow": (0.109, 0.5, -0.0007),
+    "ToadstoolStaff": (0.006, 0.43, -0.001),
+    "LanternStaff": (-0.003, 0.43, 0.001),
+    "HootmossStaff": (-0.001, 0.43, -0.002),
+    "SlimeCrownStaff": (-0.0, 0.43, 0.001),
+    "WorldrootStaff": (-0.005, 0.43, 0.002),
+    "MossstoneBlade": (-0.0001, 0.2313, 0.0),
+    "ThornBlade": (-0.0008, 0.25, -0.0002),
+    "BroodsplitBlade": (0.0001, 0.2562, -0.0003),
+    "EmberfangBlade": (0.0003, 0.1812, 0.0002),
+    "GladeheartBlade": (-0.0005, 0.2375, -0.0006),
+    "ReedStaff": (0.001, 0.43, 0.004),
+    "TidewoodBlade": (0.0, 0.1875, 0.0),
+    "SlatefinBow": (0.002, 0.5, 0.0917),
+    "TidehookBlade": (0.0, 0.175, 0.0),
+    "EelcrestBow": (0.0355, 0.5, 0.0014),
+    "WellpearlStaff": (-0.001, 0.43, 0.001),
+    "CausewayBlade": (0.0006, 0.1625, 0.0),
+    "TollstringBow": (0.1075, 0.5, 0.0126),
+    "TollkeeperStaff": (-0.0, 0.43, -0.0),
+    "TollguardBlade": (0.0003, 0.2125, 0.0),
+    "BogironBlade": (-0.0008, 0.1938, -0.0008),
+    "CaplightBlade": (-0.0001, 0.1938, -0.0001),
+    "DeepglowBlade": (0.0001, 0.2375, 0.0009),
+    "GlowcapLongbow": (0.075, 0.5, -0.001),
+    "GrandmothersStaff": (-0.023, 0.43, -0.036),
+    "GulpfangBlade": (-0.002, 0.2188, 0.0007),
+    "GulpstringBow": (0.079, 0.5, -0.0077),
+    "LichenStaff": (-0.011, 0.43, -0.011),
+    "LumenveilBow": (0.017, 0.5, -0.0007),
+    "MyceliadStaff": (-0.01, 0.43, -0.001),
+    "PeatwoodBow": (0.0582, 0.5, 0.0),
+    "PuffballStaff": (-0.008, 0.43, 0.001),
+    "ShellbackCleaver": (0.0301, 0.2188, -0.0004),
+    "SporestringBow": (0.0892, 0.5, -0.001),
+    "VentstoneStaff": (0.0, 0.43, -0.004),
+    # measured in Studio from the imported meshes (no local GLB matched them)
+    "EventideBow": (0.057, 0.5, -0.006),
+    "BuoyStaff": (-0.001, 0.43, 0.0),
+    "MaelstromStaff": (0.012, 0.43, -0.005),
+    "StormglassBlade": (0.0, 0.181, 0.0),
 }
 # Every Mossy Glade skin is a Tripo model (seven remade 2026-11-10, all
 # eighteen at 4,000 triangles and an 8K texture 2026-11-13, owner): one
@@ -158,8 +219,13 @@ def entry(imports, key, cls, name, projectile, glow, tier=None, aura=False) -> s
     if tier >= 3 and not glow:
         glow = WHITE
     length = model["size"][1]
-    # the grip, up the length from the bottom, in the model's centred frame
-    grip_y = -length / 2 + length * base["grip"]
+    # the grip in the model's centred frame: measured, or up the length from
+    # the bottom at the class's fraction
+    gx, frac, gz = GRIPS.get(key, (0, base["grip"], 0))
+    grip = (gx * length, -length / 2 + length * frac, gz * length)
+    # the part's full turn about Y: half round (`turned`) and any `yaw`
+    theta = math.pi + YAW_RADIANS.get(YAW.get(key, ""), 0)
+    c, s = math.cos(theta), math.sin(theta)
     scale = base["scale"] * base["length"] / length
     out = [f"\t{key} = {{"]
     out.append(f"\t\t-- `{name}`, held as the {base['base']} is, playing its kit until it has its own")
@@ -169,8 +235,9 @@ def entry(imports, key, cls, name, projectile, glow, tier=None, aura=False) -> s
     out.append("\t\tparts = {")
     for part in model["parts"]:
         at = part["at"]
-        # turned 180 degrees about Y to the base weapons' frame
-        offset = (-at[0], at[1] - grip_y, -at[2])
+        # the part's centre from the grip, turned as the part is
+        d = (at[0] - grip[0], at[1] - grip[1], at[2] - grip[2])
+        offset = (d[0] * c + d[2] * s, d[1], -d[0] * s + d[2] * c)
         out.append("\t\t\t{")
         out.append(f'\t\t\t\tname = "{part["name"]}",')
         out.append(f'\t\t\t\tmeshId = "{part["meshId"]}",')

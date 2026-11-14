@@ -128,6 +128,10 @@ return function(t: TestRunner.Helper)
 		t.isFalse(RunHudRules.draftReroll("Level", 0), "the tutorial's hands have none")
 		t.isFalse(RunHudRules.draftReroll("Level", nil), "none sent is none")
 		t.isFalse(RunHudRules.draftReroll("Angel", 2), "an Angel's gift is never redealt")
+		-- CHOOSE! is the gamepad's: a click or a tap takes a card by itself
+		t.isTrue(RunHudRules.draftChoose("Gamepad"))
+		t.isFalse(RunHudRules.draftChoose("Mouse"))
+		t.isFalse(RunHudRules.draftChoose("Touch"))
 	end)
 
 	t.test("the draft makes room for what stands in for its heading", function()

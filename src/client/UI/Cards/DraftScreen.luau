@@ -4,7 +4,8 @@
 	(design_handoff_upgrade_cards; README "Draft", "Touch", "Motion spec").
 
 	Three cards dealt in on a blue panel. Pick one: a click or tap takes it
-	(since 2026-11-14; before, it selected and Choose! confirmed). Where the
+	(since 2026-11-14; before, it selected and Choose! confirmed), so the
+	panel's Choose! is drawn for a gamepad only (`RunHudRules.draftChoose`). Where the
 	tray reads the cards out (a phone held upright, below), the first tap
 	selects and reads, and a second tap on the card, or Choose!, takes it.
 	A gamepad selects with the stick and confirms with A, on Choose! as
@@ -803,27 +804,39 @@ local function layoutPanel(count: number)
 	local column = phone and viewport.X >= viewport.Y
 	--[[ Held upright the buttons leave the panel for the tray under it. ]]
 	local stack = phone and not column and tray ~= nil
+	--[[ REROLL is drawn only when the hand has a redeal to give
+	     (`RunHudRules.draftReroll`), and CHOOSE! only for a gamepad
+	     (`RunHudRules.draftChoose`: a click or a tap takes a card by
+	     itself). Whichever is alone takes the middle; with neither, the
+	     panel gives their room back. ]]
+	local hand = shown
+	local offered = hand ~= nil and RunHudRules.draftReroll(hand.source, hand.rerolls)
+	local choosing = RunHudRules.draftChoose(mode)
+	local buttons = offered or choosing
+	--[[ The sideways phone's column of buttons, only while it holds one. ]]
+	local beside = column and buttons
 	-- A phone keeps little padding at the panel's sides (room for the NEW
 	-- sticker over the last card); a computer 70.
 	local sidePad = if phone then 36 else 70
 	local width = count * CARD.X + (count - 1) * gap() + 2 * sidePad
 	local panelWidth = math.max(width, if phone then 400 else 460)
-		+ (if column then PHONE_BUTTON_COLUMN else 0)
-	local height = 40 + 70 + CROWN_ROOM + CARD.Y + (if column or stack then 40 else 50 + 76 + 30)
+		+ (if beside then PHONE_BUTTON_COLUMN else 0)
+	local height = 40
+		+ 70
+		+ CROWN_ROOM
+		+ CARD.Y
+		+ (if column or stack or not buttons then 40 else 50 + 76 + 30)
 	p.Size = UDim2.fromOffset(panelWidth, height)
 	row.Size = UDim2.fromOffset(width, CARD.Y)
 	row.Position =
-		UDim2.new(0.5, if column then -PHONE_BUTTON_COLUMN / 2 else 0, 0, 40 + 70 + CROWN_ROOM)
+		UDim2.new(0.5, if beside then -PHONE_BUTTON_COLUMN / 2 else 0, 0, 40 + 70 + CROWN_ROOM)
 	rowWidth = width
 
-	--[[ REROLL is drawn only when the hand has a redeal to give
-	     (`RunHudRules.draftReroll`); without it CHOOSE! takes the middle. ]]
-	local hand = shown
-	local offered = hand ~= nil and RunHudRules.draftReroll(hand.source, hand.rerolls)
 	local pair, pairReroll, pairChoose = panelButtons, panelReroll, panelChoose
 	if pair and pairReroll and pairChoose then
-		pair.Visible = not stack
+		pair.Visible = not stack and buttons
 		pairReroll.Visible = offered
+		pairChoose.Visible = choosing
 		if column then
 			-- beside the hand, one over the other
 			pair.AnchorPoint = Vector2.new(1, 0.5)
@@ -833,14 +846,15 @@ local function layoutPanel(count: number)
 			pairChoose.Position, pairChoose.Size =
 				UDim2.fromScale(0, if offered then 0 else 0.27), UDim2.fromScale(1, 0.46)
 			pairReroll.Position, pairReroll.Size =
-				UDim2.fromScale(0, 0.54), UDim2.fromScale(1, 0.46)
+				UDim2.fromScale(0, if choosing then 0.54 else 0.27), UDim2.fromScale(1, 0.46)
 		else
 			-- under the hand, side by side
 			pair.AnchorPoint = Vector2.new(0.5, 1)
 			pair.Position = UDim2.new(0.5, 0, 1, -40)
 			pair.Size = UDim2.fromOffset(440, 62)
 			pair:SetAttribute("SheetW", 880)
-			pairReroll.Position, pairReroll.Size = UDim2.fromScale(0, 0), UDim2.fromScale(0.4, 1)
+			pairReroll.Position, pairReroll.Size =
+				UDim2.fromScale(if choosing then 0 else 0.3, 0), UDim2.fromScale(0.4, 1)
 			pairChoose.Position, pairChoose.Size =
 				UDim2.fromScale(if offered then 0.44 else 0.22, 0), UDim2.fromScale(0.56, 1)
 		end

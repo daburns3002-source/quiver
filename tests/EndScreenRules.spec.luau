@@ -64,4 +64,52 @@ return function(t: TestRunner.Helper)
 			end
 		end
 	end)
+
+	--[[ The class level plate (`UI/ClassLevelPlate`, 360 by 84) stands clear
+	     of the end panel and on the screen, at the shapes the game is
+	     played at. The panel is the end screen's own: 1024 by 1684, at 85%
+	     of a desktop's height and 97% of a phone's, 98% of an upright
+	     phone's width. ]]
+	t.test("the class level plate stands beside or under the end panel, never over it", function()
+		local W, H = 360, 84
+		local shapes = {
+			{ name = "desktop", view = Vector2.new(1920, 1080), share = 0.85, beside = true },
+			{ name = "small window", view = Vector2.new(1280, 720), share = 0.85, beside = true },
+			{
+				name = "phone on its side",
+				view = Vector2.new(844, 390),
+				share = 0.97,
+				beside = true,
+			},
+			{
+				name = "tablet on its side",
+				view = Vector2.new(1180, 820),
+				share = 0.85,
+				beside = true,
+			},
+			{ name = "phone upright", view = Vector2.new(390, 844), share = 0.97, beside = false },
+			{
+				name = "tablet upright",
+				view = Vector2.new(820, 1180),
+				share = 0.85,
+				beside = false,
+			},
+		}
+		for _, shape in shapes do
+			local view = shape.view
+			local scale = math.min(view.Y * shape.share / 1684, view.X * 0.98 / 1024)
+			local panelW, panelH = 1024 * scale, 1684 * scale
+			local x, y, w, h = EndScreenRules.levelPlate(view.X, view.Y, panelW, panelH, W, H)
+			t.near(h / w, H / W, 1e-6, shape.name .. " keeps the plate's shape")
+			t.isTrue(w >= W * 0.6 - 1e-6, shape.name .. ": the plate is " .. w .. " wide")
+			t.isTrue(x >= 0 and x + w <= view.X + 1e-6, shape.name .. " is on screen across")
+			t.isTrue(y >= 0 and y + h <= view.Y + 1e-6, shape.name .. " is on screen down")
+			local right, bottom = (view.X + panelW) / 2, (view.Y + panelH) / 2
+			if shape.beside then
+				t.isTrue(x >= right, shape.name .. ": beside the panel")
+			else
+				t.isTrue(y >= bottom, shape.name .. ": under the panel")
+			end
+		end
+	end)
 end

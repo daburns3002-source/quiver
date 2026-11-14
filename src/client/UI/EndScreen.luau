@@ -963,6 +963,7 @@ function EndScreen.hide()
 		gui = nil
 	end
 	scaler = nil
+	levelPlate = nil
 	if viewportConnection then
 		viewportConnection:Disconnect()
 		viewportConnection = nil

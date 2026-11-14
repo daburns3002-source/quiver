@@ -123,4 +123,24 @@ return function(t: TestRunner.Helper)
 			t.isTrue(got >= 3, string.format("%s button: %.2f", name, got))
 		end
 	end)
+
+	--[[ Owner, 2026-11-14: "the victory and defeat screens also shouldnt
+	     have a white background". A coloured panel, never Lagoon's
+	     mint-white, with the plate under the title standing off it. ]]
+	t.test("neither end screen's panel is white", function()
+		for _, name in { "victory", "defeat" } do
+			local look = (EndScreenTheme :: any)[name]
+			for _, block in { "panel", "stats" } do
+				local fill = UiContrast.luminance(look[block].fill)
+				t.isTrue(fill <= 0.25, string.format("%s %s is pale: %.2f", name, block, fill))
+				local rim = UiContrast.luminance(look[block].rim)
+				t.isTrue(rim <= 0.4, string.format("%s %s has a pale rim: %.2f", name, block, rim))
+			end
+			local apart = UiContrast.contrast(look.sub.fill, look.panel.fill)
+			t.isTrue(
+				apart >= 1.5,
+				string.format("%s plate is lost on its panel: %.2f", name, apart)
+			)
+		end
+	end)
 end

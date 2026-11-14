@@ -60,8 +60,8 @@ export type Pass = {
 	name: string,
 	robux: number,
 	description: string,
-	--[[ The 2D icon (Codex, `assets/concepts/blocky/ui/robux/`), "" until
-	     the owner has seen it and it is uploaded. ]]
+	--[[ The 2D icon (Codex, `assets/concepts/blocky/ui/robux/`, cut by
+	     `assets/ui/robux/cutout.py`; owner-approved 2026-11-13). ]]
 	icon: string,
 	--[[ What owning it does, as numbers the rules read. ]]
 	coinBonus: number?,
@@ -129,7 +129,7 @@ local products: { Product } = {
 		eggs = { { key = "MossyEgg", count = 3 } },
 		once = true,
 		art = "starter",
-		icon = "",
+		icon = "rbxassetid://127186255327342",
 	},
 	{
 		key = "Revive",
@@ -139,7 +139,7 @@ local products: { Product } = {
 		description = "Back into the room you fell in, with your build. Once per run.",
 		revive = true,
 		art = "revive",
-		icon = "",
+		icon = "rbxassetid://79041273355190",
 	},
 }
 
@@ -150,7 +150,7 @@ local passes: { Pass } = {
 		name = "2x Coins",
 		robux = 199,
 		description = "Double the coins from every kill and every clear.",
-		icon = "",
+		icon = "rbxassetid://71089485757551",
 		coinBonus = 1,
 	},
 	{
@@ -159,7 +159,7 @@ local passes: { Pass } = {
 		name = "Extra Pet Slot",
 		robux = 249,
 		description = "A third pet slot: take three pets into every run.",
-		icon = "",
+		icon = "rbxassetid://86275051898179",
 		petSlots = 1,
 	},
 	{
@@ -168,7 +168,7 @@ local passes: { Pass } = {
 		name = "VIP",
 		robux = 399,
 		description = "A gold name tag, 10% more coins and 25 gems every day.",
-		icon = "",
+		icon = "rbxassetid://81851812963940",
 		coinBonus = 0.1,
 		dailyGems = 25,
 		nameTag = true,

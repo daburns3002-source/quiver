@@ -105,6 +105,11 @@ function LobbyHud.start()
 			end
 		)
 		plus.Name = "StorePlus"
+		-- one short glyph: its box grows so it reads as large as the amounts
+		local words = plus:FindFirstChild("Words", true)
+		if words and words:IsA("TextLabel") then
+			words.Position, words.Size = UDim2.fromScale(0, -0.2), UDim2.fromScale(1, 1.3)
+		end
 	end
 	local function draw()
 		drawn = gui.AbsoluteSize

@@ -18,6 +18,7 @@ local ClassLevelRules = require(ReplicatedStorage.Shared.Util.ClassLevelRules)
 local Economy = require(ReplicatedStorage.Shared.Config.Economy)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
 local MergeRules = require(ReplicatedStorage.Shared.Util.MergeRules)
+local PurchaseRules = require(ReplicatedStorage.Shared.Util.PurchaseRules)
 local Purse = require(ReplicatedStorage.Shared.Util.Purse)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local RunBonus = require(ReplicatedStorage.Shared.Util.RunBonus)
@@ -37,6 +38,7 @@ local PlayerData = require(script.Parent.PlayerData)
 
 local log = Log.forTag("Wallet")
 local profileChanged = Remotes.event(Remotes.ProfileChanged)
+local purchased = Remotes.event(Remotes.Purchased)
 
 local Wallet = {}
 
@@ -88,13 +90,25 @@ function Wallet.owns(player: Player, weapon: string): boolean
 	return profile ~= nil and profile.weapons[weapon] == true
 end
 
---[[ Pays `cost` whole, or nothing and false. ]]
-function Wallet.pay(player: Player, cost: Purse.Cost): boolean
+--[[ Pays `cost` whole, or nothing and false.
+
+     Every purchase with coins, gems or Soulstones is paid here and
+     nowhere else, so this is also where its buyer is told it went
+     through (`Remotes.Purchased`, the burst of `UI/PurchaseFx`): once,
+     after the price is taken, and never for a price that was refused.
+     `rarity` is the rarity of a thing bought outright (a store weapon, a
+     trail), which sizes the burst; a hatch or a crate passes none, since
+     the burst plays before their reveal (`Config/PurchaseFx`). ]]
+function Wallet.pay(player: Player, cost: Purse.Cost, rarity: string?): boolean
 	local profile = PlayerData.get(player)
 	if not profile or not Purse.pay(profile, cost) then
 		return false
 	end
 	changed(player, profile)
+	local receipt = PurchaseRules.fromCost(cost, rarity)
+	if receipt then
+		purchased:FireClient(player, receipt)
+	end
 	return true
 end
 

@@ -310,6 +310,12 @@ Remotes.StoreBuy = "StoreBuy"
 --[[ Server → one client: a Robux grant landed (a product's key and its
      gems, or "VIPDaily" and the day's gems), for the STORE's thank-you. ]]
 Remotes.StoreGranted = "StoreGranted"
+--[[ Server → one client: a purchase of theirs went through, for the burst
+     (`UI/PurchaseFx`). Carries a `Util/PurchaseRules.Receipt`: what it was
+     paid in, how much, and the rarity of a thing bought outright. Sent by
+     `Data/Wallet.pay` as it takes a price and by the Robux grants, never
+     for a gift and never for a purchase that was refused. ]]
+Remotes.Purchased = "Purchased"
 --[[ Client → server, Studio only: a made-up receipt for a product key and a
      purchase id (`Server/Data/Purchases`), and a pass on or off
      (`Server/Data/Passes`), to test the store without Robux. ]]

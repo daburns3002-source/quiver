@@ -66,6 +66,7 @@ where you would be standing. Say what reads wrong and Claude retunes it.
 
 ### In the lobby
 
+- **The purchase burst (2026-11-14; "i also want a big ui effect to play whenever someone purchases something").** Hatch an egg, open a crate, buy a store weapon and a trail, buy in the Soulstone shop: rings, coins or diamonds, a word (KA-CHING!, BIG BUY!, MEGA BUY!) and the price under it (out of the wallet pill when the lobby's is showing). Is it big enough, too much over the egg dropping in, and are the three words the ones you want? Its sound is the shops' new-item chime played faster (no upload): say if it should have its own. **Not seen on a phone or on a real Robux purchase** (Studio's made-up receipt only).
 - **The circuit.** Four buildings on four corners, each turned to face you from the fountain; is the walk the right length?
 - **The Mossy Glade arch.** Does it face you the right way round, and does its swirl sit in its opening? Never seen - Studio's capture stopped answering.
 - **The trees.** Different enough heights, and enough of them? Do the seven black arches read as locked?

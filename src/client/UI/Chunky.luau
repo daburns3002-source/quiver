@@ -758,10 +758,14 @@ function Chunky.pill(
 	return holder
 end
 
---[[ The player's coins and gems. ]]
+--[[ The player's coins and gems. Each pill says what it `Holds`, so a
+     purchase's price can be seen leaving it (`UI/PurchaseFx`); a price
+     pill, drawn with `Chunky.pill` alone, does not. ]]
 function Chunky.wallet(sheet: Sheet, coins: number, gems: number, x: number, y: number, h: number)
-	Chunky.pill(sheet, ShopAssets.coin, Chunky.commas(coins), x, y, h * 3.4, h)
-	Chunky.pill(sheet, ShopAssets.gem, Chunky.commas(gems), x + h * 3.6, y, h * 2.8, h)
+	local coin = Chunky.pill(sheet, ShopAssets.coin, Chunky.commas(coins), x, y, h * 3.4, h)
+	coin:SetAttribute("Holds", "coins")
+	local gem = Chunky.pill(sheet, ShopAssets.gem, Chunky.commas(gems), x + h * 3.6, y, h * 2.8, h)
+	gem:SetAttribute("Holds", "gems")
 end
 
 function Chunky.commas(n: number): string

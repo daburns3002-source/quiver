@@ -52,7 +52,8 @@ local function buy(player: Player, key: unknown)
 	then
 		return
 	end
-	if Wallet.pay(player, { gems = price }) then
+	local trail = TrailRules.get(key)
+	if Wallet.pay(player, { gems = price }, trail and trail.rarity) then
 		Wallet.grantTrail(player, key)
 		log.info("%s bought the %s trail for %d gems", player.Name, key, price)
 	end

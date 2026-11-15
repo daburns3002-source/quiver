@@ -609,6 +609,27 @@ rather than on the station canvas draws on `Chunky.pointSheet` (the run's MENU, 
 settings, the Soulstone shop). **Not seen in Studio yet** (2026-11-11): the re-skin changes every chunky
 screen at once and waits on a look.
 
+**Every purchase plays a burst** (owner, 2026-11-14: "i also want a big ui effect to play whenever someone
+purchases something"; `Config/PurchaseFx`, `Util/PurchaseRules`, `UI/PurchaseFx`, `tests/PurchaseRules.spec`).
+The server says when, over `Remotes.Purchased`: `Data/Wallet.pay` sends it as it takes a price, and it is the
+only place coins, gems and Soulstones are ever taken (a hatch, a crate, a store weapon, a bought trail, the
+Soulstone shop), so **a new thing to buy gets the burst by paying through `Wallet.pay`** and a refused
+purchase or a gift (a chest's free egg, a goal's crate) plays nothing. The Robux side sends its own: a
+product's receipt once it is granted and saved (`Data/Purchases.afterGrant`, once per receipt) and a pass as
+Roblox confirms it (`Data/Passes`). The burst is about a second: rings spread from the button pressed (the
+last mouse or finger press, or the middle of the screen for Robux and a gamepad), the one coin or diamond
+picture bursts out with sparks, a word pops over it, the price shows under the word, or drops out of the
+wallet pill when one is on screen (`Chunky.wallet` marks its pills with `Holds`; the Hatchery and the
+Blacksmith hide their own while a reveal is pending, so there it is under the word), and the `purchase`
+sound and a shake. **Three sizes**: KA-CHING!, BIG BUY! at
+2,500 coins, 400 gems or 400 Soulstones, MEGA BUY! for Robux and a Legendary bought outright. **What an egg or
+a crate rolled never sizes it**: the burst plays before the reveal and would give the surprise away. Its
+layer is over the reveal (185) and takes no input, so it holds nothing up. There is no reduced-effects
+setting to follow; its sound follows the sound volume and its shake the vibration switch. **Seen in Studio
+Play** (2026-11-14): a hatch, a crate, store weapons, a trail, the Soulstone shop and a made-up Robux
+receipt each play it once; a Legendary without its boss items, a trail already held, a Soulstone egg with no
+Soulstones and a receipt sent twice play nothing more. Not seen on a phone.
+
 **Screens converted to the reference since** (2026-11-11, owner: "Yes, convert them"): **class select**
 (`UI/ClassScreen`, `Config/ClassSelect`, `Util/ClassStats`; owner: "it looks too ai right now") is
 **"option B"** since 2026-11-13 (owner: "I LIKE B BUT MAKE SURE THERE IS A CHOICE IN THERE TO SWITCH

@@ -219,6 +219,17 @@ local Sounds: { [string]: Sound } = {
 		minGap = 0.2,
 		region = { 14.215, 1.05 },
 	},
+	--[[ A purchase going through (`UI/PurchaseFx`; owner, 2026-11-14): no
+	     new upload, the shops' new_item chime played a little faster and
+	     higher so it reads as its own sound. ]]
+	purchase = {
+		id = SHOP_SPRITE,
+		volume = 0.75,
+		speed = 1.18,
+		pitchJitter = 0.02,
+		minGap = 0.25,
+		region = { 14.215, 1.05 },
+	},
 	--[[ A Mythic pulled from a crate or egg, as it appears, in place of
 	     reveal_rare (owner, 2026-10-26: "super over the top"; round 26).
 	     `assets/audio/final/mythic_reveal_r26.mp3`, uploaded 2026-10-26. ]]

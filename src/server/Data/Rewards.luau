@@ -63,6 +63,11 @@ end
      owner hears of it with the next profile sent, which each of these
      events already causes (coins, a pet, a weapon), and the screen asks
      for a fresh one as it opens. ]]
+--[[ Says `line` to `player` on the rewards' toast, with no gems on it. ]]
+function Rewards.say(player: Player, line: string)
+	toast:FireClient(player, line, 0, 0)
+end
+
 function Rewards.note(player: Player, kind: string, amount: number)
 	local profile = PlayerData.get(player)
 	if not profile then

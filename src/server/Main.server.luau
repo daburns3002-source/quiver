@@ -71,6 +71,7 @@ local TipRules = require(ReplicatedStorage.Shared.Util.TipRules)
 local TrailsServer = require(script.Parent.Data.Trails)
 local Tutorial = require(ReplicatedStorage.Shared.Config.Tutorial)
 local UpgradeEffects = require(script.Parent.Fx.UpgradeEffects)
+local VictoryChests = require(script.Parent.Run.VictoryChests)
 local Wallet = require(script.Parent.Data.Wallet)
 local WeaponShop = require(script.Parent.Data.Shop)
 
@@ -97,6 +98,7 @@ SoulstoneShop.start()
 PlayerSettings.start()
 Rewards.start()
 QuestChest.start()
+VictoryChests.start()
 TrailsServer.start()
 --[[ Robux: passes checked as players join, receipts granted once
      (`Config/RobuxStore`). The revive is the run's to apply. ]]

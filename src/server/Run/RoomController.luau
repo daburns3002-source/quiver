@@ -73,6 +73,7 @@ local Purchases = require(script.Parent.Parent.Data.Purchases)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local Rewards = require(script.Parent.Parent.Data.Rewards)
 local RobuxStore = require(ReplicatedStorage.Shared.Config.RobuxStore)
+local RunBonus = require(ReplicatedStorage.Shared.Util.RunBonus)
 local RunSession = require(script.Parent.RunSession)
 local Sandbox = require(ReplicatedStorage.Shared.Config.Sandbox)
 local SoulLink = require(script.Parent.Parent.Combat.SoulLink)
@@ -81,8 +82,13 @@ local StoryBeatRules = require(ReplicatedStorage.Shared.Util.StoryBeatRules)
 local StoryLeaderboard = require(script.Parent.StoryLeaderboard)
 local StoryProgress = require(ReplicatedStorage.Shared.Util.StoryProgress)
 local Tutorial = require(ReplicatedStorage.Shared.Config.Tutorial)
+local VictoryChests = require(script.Parent.VictoryChests)
 local Wallet = require(script.Parent.Parent.Data.Wallet)
 local Waves = require(script.Parent.Waves)
+
+--[[ Seconds into a level before its coin bonuses are said (`Util/RunBonus`):
+     past the loading screen. ]]
+local BONUS_SAID_AFTER = 3
 
 local log = Log.forTag("Run")
 
@@ -531,6 +537,20 @@ local function startStage()
 	for _, session in RunSession.all() do
 		RunSession.newStage(session)
 	end
+	--[[ A campaign level: each player's win streak goes on the line, out
+	     of the save and into the run, which pays more coins for it and
+	     writes it back one longer only on the win (`Util/RunBonus`). ]]
+	local counts = current.level ~= nil and not current.tutorial
+	for _, session in RunSession.all() do
+		session.streak = if counts then Wallet.riskStreak(session.player) else 0
+		local lines = RunBonus.lines(session.streak, Coop.partySize())
+		-- said once the room is up, not under the loading screen
+		task.delay(BONUS_SAID_AFTER, function()
+			for _, line in lines do
+				Rewards.say(session.player, line)
+			end
+		end)
+	end
 	-- the tutorial's fixed hands, class and pool (`Config/Tutorial`)
 	RunSession.setTutorial(current.tutorial == true)
 	for _, session in RunSession.all() do
@@ -701,7 +721,12 @@ local function payClassXp(session: RunSession.Session, won: boolean): ClassLevel
 	return gain
 end
 
-local function sendSummary(won: boolean, eggs: { [Player]: any }?, starters: { [Player]: boolean }?)
+local function sendSummary(
+	won: boolean,
+	eggs: { [Player]: any }?,
+	starters: { [Player]: boolean }?,
+	streaks: { [Player]: number }?
+)
 	local finished = if won then progress else progress - 1
 	local progressPercent =
 		math.clamp(math.floor(finished / math.max(total(), 1) * 100 + 0.5), 0, 100)
@@ -742,6 +767,10 @@ local function sendSummary(won: boolean, eggs: { [Player]: any }?, starters: { [
 			     the client shows it if the player leaves Victory for the
 			     lobby. ]]
 			starter = if starters and starters[session.player] then true else nil,
+			--[[ A campaign level won: three chests wait for a pick
+			     (`Run/VictoryChests`; nothing of what is in them is sent),
+			     and the win streak as it now stands (`Util/RunBonus`). ]]
+			streak = streaks and streaks[session.player],
 		})
 	end
 end
@@ -823,6 +852,7 @@ local function complete(now: number)
 	local eggKey = RunSession.areaPay().firstClearEgg
 	local eggs: { [Player]: any } = {}
 	local starters: { [Player]: boolean } = {}
+	local streaks: { [Player]: number } = {}
 	-- the area's clear bonus, before the summary that shows it
 	for _, session in RunSession.all() do
 		RunSession.payEarned(session, RunSession.areaPay().clearCoins)
@@ -849,6 +879,16 @@ local function complete(now: number)
 			-- and for the class's own goal (`Config/Goals`)
 			Rewards.note(session.player, "levels" .. session.loadout.class, 1)
 		end
+		if level and not stage().tutorial then
+			-- the streak comes back one longer, and three chests are rolled
+			streaks[session.player] = Wallet.bankStreak(session.player, session.streak)
+			VictoryChests.offer(
+				session.player,
+				stage().area,
+				eggKey,
+				RunSession.areaPay().clearCoins
+			)
+		end
 		local firstClear = level ~= nil and Wallet.beatLevel(session.player, level)
 		if firstClear and level == Tutorial.untilBeaten then
 			Analytics.step(session.player, "Cleared1-1")
@@ -867,7 +907,7 @@ local function complete(now: number)
 	recordStory()
 	log.info("run complete")
 	broadcast()
-	sendSummary(true, eggs, starters)
+	sendSummary(true, eggs, starters, streaks)
 end
 
 --[[ Rooms: hold the pause after a clear, light the door, wait for a player

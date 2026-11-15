@@ -846,6 +846,8 @@ local function complete(now: number)
 		if level then
 			-- every win counts for the daily quests, not only the first
 			Rewards.note(session.player, "levels", 1)
+			-- and for the class's own goal (`Config/Goals`)
+			Rewards.note(session.player, "levels" .. session.loadout.class, 1)
 		end
 		local firstClear = level ~= nil and Wallet.beatLevel(session.player, level)
 		if firstClear and level == Tutorial.untilBeaten then

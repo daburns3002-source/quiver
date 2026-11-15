@@ -11,6 +11,7 @@
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local GoalRules = require(script.Parent.GoalRules)
 local Rewards = require(ReplicatedStorage.Shared.Config.Rewards)
 local SaveSchema = require(ReplicatedStorage.Shared.Util.SaveSchema)
 
@@ -266,6 +267,7 @@ function RewardRules.readyBy(
 			out.goals += 1
 		end
 	end
+	out.goals += (GoalRules.tally(profile))
 	return out
 end
 
@@ -276,12 +278,14 @@ function RewardRules.ready(profile: SaveSchema.Profile, day: number): number
 end
 
 --[[ CLAIM ALL: every reward owed that pays coins or gems (the calendar,
-     the quests, the starter steps), marked and summed; and how many it
-     was. The bonus chest is opened by itself, for its reveal. ]]
-function RewardRules.claimAll(profile: SaveSchema.Profile, day: number): (Gift, number)
+     the quests, the starter steps), marked and summed; how many it was,
+     and how many of those were quests. The bonus chest and the goals are
+     claimed by themselves, for their reveals. ]]
+function RewardRules.claimAll(profile: SaveSchema.Profile, day: number): (Gift, number, number)
 	local r = profile.rewards
 	local total: Gift = { gems = 0, coins = 0 }
 	local n = 0
+	local quests = 0
 	local function take(gift: Gift?)
 		if gift then
 			total.gems += gift.gems
@@ -291,12 +295,16 @@ function RewardRules.claimAll(profile: SaveSchema.Profile, day: number): (Gift, 
 	end
 	take(RewardRules.claimLogin(r, day))
 	for _, key in RewardRules.questsFor(day) do
-		take(RewardRules.claimQuest(r, day, key))
+		local gift = RewardRules.claimQuest(r, day, key)
+		if gift then
+			quests += 1
+		end
+		take(gift)
 	end
 	for _, entry in Rewards.starter do
 		take(RewardRules.claimStarter(profile, entry.key))
 	end
-	return total, n
+	return total, n, quests
 end
 
 --[[ Whether every starter step has been claimed (the list then hides). ]]

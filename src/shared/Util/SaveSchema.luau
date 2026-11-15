@@ -109,6 +109,15 @@
 	`bonus`): `rewards.bonusDay`, the day the chest for finishing all
 	three quests was last opened, 0 never. An older profile has opened
 	none.
+
+	Version 18 (2026-11-14, Goals -- `Config/Goals`): `stats`, lifetime
+	counters the server keeps from then on (enemies defeated, levels won
+	and by which class, eggs hatched, crates opened, merges, quests
+	claimed), and `goalsClaimed`, how many steps of each goal have been
+	paid. Nobody's kills or wins were counted before, so an older profile's
+	counters start at 0: nothing is invented. Goals read from what a save
+	already holds (pets owned, the deepest Endless floor, the Dex) count
+	what is there.
 ]]
 
 local ClassLevelRules = require(script.Parent.ClassLevelRules)
@@ -118,7 +127,7 @@ local StoreRules = require(script.Parent.StoreRules)
 
 local SaveSchema = {}
 
-SaveSchema.VERSION = 17
+SaveSchema.VERSION = 18
 
 --[[ The classes' own weapons, owned from the start. ]]
 local STARTERS = { "TwigBow", "BranchStaff", "TimberBlade" }
@@ -188,6 +197,12 @@ export type Profile = {
 	     as level 1. Server-decided (`Run/RoomController`), never reported
 	     by a client. ]]
 	classLevels: ClassLevelRules.Levels,
+	--[[ Lifetime counters, by `Config/Goals.counted` key (version 18):
+	     server-kept (`Data/Rewards.note`), never reported by a client. ]]
+	stats: { [string]: number },
+	--[[ How many steps of each goal have been paid, by `Config/Goals` key
+	     (version 18): 0 to 3. ]]
+	goalsClaimed: { [string]: number },
 }
 
 export type RewardState = {
@@ -215,6 +230,8 @@ SaveSchema.LOOKS = { "male", "female" }
      A pet in the third without the pass is kept and simply not taken into
      a run. ]]
 SaveSchema.PET_SLOTS = 3
+--[[ The steps a goal has (`Config/Goals`: bronze, silver, gold). ]]
+local GOAL_STEPS = 3
 --[[ The slots a save before version 15 could hold. ]]
 local OLD_PET_SLOTS = 2
 
@@ -268,6 +285,8 @@ function SaveSchema.default(): Profile
 		endlessClassBest = {},
 		purchases = StoreRules.empty(),
 		classLevels = {},
+		stats = {},
+		goalsClaimed = {},
 	}
 end
 
@@ -447,6 +466,13 @@ function SaveSchema.migrate(raw: unknown): Profile
 	     all level 1; a stored copy is read class by class
 	     (`ClassLevelRules.read`). ]]
 	profile.classLevels = ClassLevelRules.read(data.classLevels)
+	--[[ 17 -> 18: nothing was counted and no goal was paid, so an older
+	     profile starts both empty; a stored copy keeps whole counts, and
+	     never more steps than a goal has. ]]
+	profile.stats = counts(data.stats)
+	for key, steps in counts(data.goalsClaimed) do
+		profile.goalsClaimed[key] = math.min(steps, GOAL_STEPS)
+	end
 	return profile
 end
 

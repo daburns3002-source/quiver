@@ -219,11 +219,17 @@ return function(t: TestRunner.Helper)
 		coins += Rewards.starter[1].coins
 		owed += 1
 		t.equal(RewardRules.ready(profile, day), owed)
-		local gift, n = RewardRules.claimAll(profile, day)
+		-- a goal's step waits too, and is left for its own claim
+		profile.stats.kills = 1e6
+		t.equal(RewardRules.ready(profile, day), owed + 1)
+		local gift, n, quests = RewardRules.claimAll(profile, day)
 		t.equal(n, owed)
+		t.equal(quests, #RewardRules.questsFor(day), "the quests among them, for the goal")
 		t.equal(gift.gems, gems)
 		t.equal(gift.coins, coins)
 		t.isTrue(RewardRules.bonusReady(r, day), "the chest is left for its own opening")
+		t.isNil(profile.goalsClaimed.kills, "and so is the goal")
+		t.equal(RewardRules.readyBy(profile, day).goals, 1)
 		local again, none = RewardRules.claimAll(profile, day)
 		t.equal(none, 0)
 		t.equal(again.gems + again.coins, 0)
@@ -243,6 +249,9 @@ return function(t: TestRunner.Helper)
 		t.equal(by.quests, 1)
 		t.equal(by.goals, 1)
 		t.equal(RewardRules.ready(profile, day), 3)
+		-- a goal with a step reached counts on the GOALS tab
+		profile.stats.hatches = 10
+		t.equal(RewardRules.readyBy(profile, day).goals, 2)
 	end)
 
 	t.test("every kind of quest has a place to go and do it", function()

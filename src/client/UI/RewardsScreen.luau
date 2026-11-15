@@ -7,8 +7,9 @@
 
 	Three tabs since 2026-11-14 (owner: "the quests tab is too cluttered",
 	"the quests need to be clearer"): DAILY, the calendar; QUESTS, today's
-	three with the chest for claiming them all; GOALS, the starter steps.
-	Each tab wears the count of what waits on it. A row is a picture of
+	three with the chest for claiming them all; GOALS, the starter steps
+	and then the lifetime goals (`Config/Goals`), each in three medals, in
+	a list that scrolls. Each tab wears the count of what waits on it. A row is a picture of
 	what to do, the words, the bar with its numbers on it, what it pays, and
 	one button: CLAIM, GO (a gold arrow to where it is done,
 	`Fx/QuestPointer`) or DONE. CLAIM ALL takes everything owed at once.
@@ -29,11 +30,15 @@ local TweenService = game:GetService("TweenService")
 local Workspace = game:GetService("Workspace")
 
 local Chunky = require(script.Parent.Chunky)
+local EggRules = require(ReplicatedStorage.Shared.Util.EggRules)
 local EndScreenAssets = require(ReplicatedStorage.Shared.Config.EndScreenAssets)
 local GearAssets = require(ReplicatedStorage.Shared.Config.GearAssets)
+local GoalRules = require(ReplicatedStorage.Shared.Util.GoalRules)
+local Goals = require(ReplicatedStorage.Shared.Config.Goals)
 local HatchStand = require(script.Parent.HatchStand)
 local Kit = require(script.Parent.Kit)
 local PortalScreen = require(script.Parent.PortalScreen)
+local PrizeRules = require(ReplicatedStorage.Shared.Util.PrizeRules)
 local QuestPointer = require(script.Parent.Parent.Fx.QuestPointer)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local Reveal = require(script.Parent.Reveal)
@@ -41,6 +46,7 @@ local RewardRules = require(ReplicatedStorage.Shared.Util.RewardRules)
 local Rewards = require(ReplicatedStorage.Shared.Config.Rewards)
 local RunPaused = require(script.Parent.Parent.RunPaused)
 local SaveSchema = require(ReplicatedStorage.Shared.Util.SaveSchema)
+local Shop = require(ReplicatedStorage.Shared.Config.Shop)
 local ShopAssets = require(ReplicatedStorage.Shared.Config.ShopAssets)
 local StationScreen = require(script.Parent.StationScreen)
 
@@ -101,35 +107,51 @@ local function icon(sheet: Chunky.Sheet, asset: string, x: number, y: number, si
 	Chunky.put(sheet, picture, x, y, size, size)
 end
 
---[[ A gift's gems, and its coins under them when it has any, in a box
-     `w` x `h` at (x, y). ]]
-local function giftAt(
-	sheet: Chunky.Sheet,
-	gift: Rewards.Gift,
-	x: number,
-	y: number,
-	w: number,
-	h: number
-)
-	local lines = if gift.coins > 0 then 2 else 1
+--[[ One thing a reward pays: its picture and how many. ]]
+type Pay = { asset: string, words: string }
+
+--[[ What a reward pays, a line for each thing, in a box `w` x `h` at
+     (x, y). ]]
+local function payAt(sheet: Chunky.Sheet, pay: { Pay }, x: number, y: number, w: number, h: number)
+	local lines = math.max(#pay, 1)
 	local line = math.min(h / lines, 46)
 	local top = y + (h - line * lines) / 2
-	for index, entry in
-		{ { ShopAssets.gem, gift.gems }, { ShopAssets.coin, gift.coins } } :: { { any } }
-	do
-		if entry[2] > 0 then
-			local ly = top + (index - 1) * line
-			icon(sheet, entry[1], x, ly, line)
-			words(
-				sheet,
-				"+" .. Chunky.commas(entry[2]),
-				x + line + 6,
-				ly + line * 0.1,
-				w - line - 6,
-				line * 0.8
-			)
-		end
+	for index, entry in pay do
+		local ly = top + (index - 1) * line
+		icon(sheet, entry.asset, x, ly, line)
+		words(sheet, entry.words, x + line + 6, ly + line * 0.1, w - line - 6, line * 0.8)
 	end
+end
+
+local function plus(pay: { Pay }, asset: string, amount: number?)
+	if amount and amount > 0 then
+		table.insert(pay, { asset = asset, words = "+" .. Chunky.commas(amount) })
+	end
+end
+
+--[[ A gift's gems, and its coins under them when it has any. ]]
+local function giftPay(gift: Rewards.Gift): { Pay }
+	local pay: { Pay } = {}
+	plus(pay, ShopAssets.gem, gift.gems)
+	plus(pay, ShopAssets.coin, gift.coins)
+	return pay
+end
+
+--[[ A goal step's prize (`Config/Goals`): the egg and the crate drawn are
+     the ones the server will give this player (`Util/PrizeRules`). ]]
+local function prizePay(profile: SaveSchema.Profile, prize: Goals.Prize): { Pay }
+	local pay: { Pay } = {}
+	local eggs, chests = GearAssets.areaPictures.eggs, GearAssets.areaPictures.chests
+	local key = PrizeRules.eggKey(profile.bossesBeaten)
+	local egg = if key then EggRules.find(key) else nil
+	plus(pay, (if egg then eggs[egg.area] else nil) or eggs.MossyGlade, prize.eggs)
+	local class = player:GetAttribute("Class")
+	local index = PrizeRules.crateIndex(if type(class) == "string" then class else nil)
+	local crate = if index then Shop.crates[index] else nil
+	plus(pay, (if crate then chests[crate.area] else nil) or chests.MossyGlade, prize.crates)
+	plus(pay, ShopAssets.gem, prize.gems)
+	plus(pay, ShopAssets.coin, prize.coins)
+	return pay
 end
 
 --[[ The picture beside each kind of quest and starter step: what it asks
@@ -151,11 +173,14 @@ type Row = {
 	title: string,
 	have: number,
 	goal: number,
-	gift: Rewards.Gift,
+	pay: { Pay },
 	claimed: boolean,
 	onClaim: () -> (),
 	--[[ Where it is done, for GO (`Fx/QuestPointer`); nil for no GO. ]]
 	place: string?,
+	--[[ A goal's medals won so far (0 to 3, `Config/Goals.medals`); nil for
+	     a row with no medals. ]]
+	medals: number?,
 }
 
 --[[ Rows in the order they matter: what can be claimed, what is still to
@@ -191,7 +216,27 @@ local function row(
 	local ready = spec.have >= spec.goal and not spec.claimed
 	local buttonW, giftW = 190, 150
 	local size = h - 28
-	icon(sheet, PICTURES[spec.kind] or ShopAssets.gem, x + 16, y + 14, size)
+	local art = PICTURES[spec.kind] or ShopAssets.gem
+	if spec.medals then
+		--[[ A goal: its picture a little smaller, and bronze, silver and
+		     gold in a row under it, each lit once it is won. ]]
+		local disc, gap = math.floor(size * 0.24), 6
+		local small = size - disc - 6
+		icon(sheet, art, x + 16 + (size - small) / 2, y + 12, small)
+		local mx = x + 16 + (size - (disc + gap) * #Goals.medals + gap) / 2
+		for index, colour in Goals.medalColours do
+			local medal = Instance.new("Frame")
+			medal.Name = "Medal"
+			medal.BorderSizePixel = 0
+			medal.BackgroundColor3 = if index <= spec.medals then colour else Chunky.pale
+			medal.ZIndex = 32
+			Chunky.put(sheet, medal, mx + (index - 1) * (disc + gap), y + 18 + small, disc, disc)
+			Chunky.round(medal, disc)
+			Chunky.outline(medal, 3)
+		end
+	else
+		icon(sheet, art, x + 16, y + 14, size)
+	end
 	local tx = x + 16 + size + 18
 	local left = w - (tx - x) - buttonW - giftW - 48
 	words(sheet, spec.title, tx, y + h * 0.1, left, h * 0.36)
@@ -211,7 +256,7 @@ local function row(
 		4
 	)
 	count.Position, count.Size = UDim2.fromScale(0.1, 0.08), UDim2.fromScale(0.8, 0.84)
-	giftAt(sheet, spec.gift, x + w - buttonW - giftW - 30, y + 8, giftW, h - 16)
+	payAt(sheet, spec.pay, x + w - buttonW - giftW - 30, y + 8, giftW, h - 16)
 	local bh = math.min(84, h - 36)
 	local bx, by = x + w - buttonW - 18, y + (h - bh) / 2
 	if spec.claimed then
@@ -230,6 +275,32 @@ local function row(
 			end
 		end)
 	end
+end
+
+--[[ A list that scrolls, `w` x `h` at (x, y) with `content` sheet pixels
+     of rows in it: returned as a sheet of its own, so a row is put in it as
+     it is on the screen's. ]]
+local function scroller(
+	sheet: Chunky.Sheet,
+	x: number,
+	y: number,
+	w: number,
+	h: number,
+	content: number
+): Chunky.Sheet
+	local tall = math.max(content, h)
+	local list = Instance.new("ScrollingFrame")
+	list.Name = "GoalList"
+	list.BackgroundTransparency = 1
+	list.BorderSizePixel = 0
+	list.ScrollBarThickness = 10
+	list.ScrollBarImageColor3 = Chunky.navy
+	-- a canvas is sized against the frame's parent, the sheet, not the frame
+	list.CanvasSize = UDim2.fromScale(0, tall / sheet.h)
+	list.ScrollingDirection = Enum.ScrollingDirection.Y
+	list.ZIndex = 6
+	Chunky.put(sheet, list, x, y, w, h)
+	return { canvas = list :: any, w = w, h = tall, upright = sheet.upright }
 end
 
 --[[ One square of the calendar. ]]
@@ -485,11 +556,18 @@ local function draw(s: StationScreen.Screen)
 		end
 	end
 
+	--[[ CLAIM ALL shows once two or more wait: the calendar, the quests and
+	     the starter steps in one press. The chest and a goal's step are
+	     claimed by themselves, for what comes out of them. ]]
+	local owed = waiting.daily + waiting.quests + waiting.goals - (GoalRules.tally(p))
+	if RewardRules.bonusReady(r, day) then
+		owed -= 1
+	end
+
 	local rowH, rowGap = if up then 170 else 140, 14
-	local function list(rows: { Row }, from: number, height: number?)
-		local tall = height or rowH
+	local function list(rows: { Row }, from: number)
 		for index, spec in sorted(rows) do
-			row(s, sheet, x, from + (index - 1) * (tall + rowGap), w, tall, spec)
+			row(s, sheet, x, from + (index - 1) * (rowH + rowGap), w, rowH, spec)
 		end
 	end
 
@@ -517,7 +595,7 @@ local function draw(s: StationScreen.Screen)
 				title = string.format(quest.words, quest.goal),
 				have = RewardRules.progress(r, day, key),
 				goal = quest.goal,
-				gift = { gems = quest.gems, coins = quest.coins },
+				pay = giftPay({ gems = quest.gems, coins = quest.coins }),
 				claimed = RewardRules.questClaimed(r, day, key),
 				onClaim = function()
 					claim("quest", key)
@@ -527,26 +605,19 @@ local function draw(s: StationScreen.Screen)
 		end
 		list(rows, y + barH + 16)
 	else
-		if RewardRules.starterFinished(p) then
-			words(
-				sheet,
-				"ALL DONE! MORE GOALS ARE ON THE WAY",
-				x,
-				y + 120,
-				w,
-				64,
-				Enum.TextXAlignment.Center
-			)
-		else
-			words(sheet, "GETTING STARTED", x, y, w, 44)
-			local rows: { Row } = {}
+		--[[ The starter steps first, while any is left, then every goal
+		     not finished yet (`Config/Goals`): what can be claimed on top.
+		     A finished goal leaves the list and is counted in the line
+		     above it. ]]
+		local rows: { Row } = {}
+		if not RewardRules.starterFinished(p) then
 			for _, entry in Rewards.starter do
 				table.insert(rows, {
 					kind = entry.kind,
 					title = entry.words,
 					have = if RewardRules.starterDone(p, entry.key) then 1 else 0,
 					goal = 1,
-					gift = { gems = entry.gems, coins = entry.coins },
+					pay = giftPay({ gems = entry.gems, coins = entry.coins }),
 					claimed = r.starterClaimed[entry.key] == true,
 					onClaim = function()
 						claim("starter", entry.key)
@@ -554,17 +625,39 @@ local function draw(s: StationScreen.Screen)
 					place = entry.place,
 				})
 			end
-			-- four rows, a little shorter on a wide screen, clear of CLAIM ALL
-			list(rows, y + 56, if up then 170 else 124)
+		end
+		for _, goal in Goals.goals do
+			local _, wanted, prize = GoalRules.step(p, goal)
+			if wanted and prize then
+				table.insert(rows, {
+					kind = goal.kind,
+					title = (string.gsub(goal.words, "%%d", Chunky.commas(wanted))),
+					have = GoalRules.value(p, goal.stat),
+					goal = wanted,
+					pay = prizePay(p, prize),
+					claimed = false,
+					onClaim = function()
+						claim("goal", goal.key)
+					end,
+					place = goal.place,
+					medals = GoalRules.claimed(p, goal),
+				})
+			end
+		end
+		local _, finished = GoalRules.tally(p)
+		words(sheet, `{finished} / {#Goals.goals} GOALS DONE`, x, y, w, 44)
+		if #rows == 0 then
+			words(sheet, "EVERY GOAL DONE!", x, y + 120, w, 64, Enum.TextXAlignment.Center)
+		else
+			local top = y + 56
+			local viewH = area.bottom - top - (if owed >= 2 then 100 else 0)
+			local inner = scroller(sheet, x, top, w, viewH, #rows * (rowH + rowGap) + 10)
+			for index, spec in sorted(rows) do
+				row(s, inner, 8, 8 + (index - 1) * (rowH + rowGap), w - 40, rowH, spec)
+			end
 		end
 	end
 
-	--[[ CLAIM ALL, once two or more wait: the calendar, the quests and the
-	     starter steps in one press. The chest is opened by itself. ]]
-	local owed = waiting.daily + waiting.quests + waiting.goals
-	if RewardRules.bonusReady(r, day) then
-		owed -= 1
-	end
 	if owed >= 2 then
 		local bw, bh = 360, 84
 		Chunky.gleam(
@@ -767,6 +860,32 @@ local function startToasts()
 	end)
 end
 
+--[[ Reveals wait their turn: a goal's step can pay eggs and crates
+     together, and a reveal asked for while another plays is dropped
+     (`Reveal`). ]]
+local reveals: { () -> () } = {}
+local revealing = false
+local function reveal(show: () -> ())
+	table.insert(reveals, show)
+	if revealing then
+		return
+	end
+	revealing = true
+	task.spawn(function()
+		while #reveals > 0 do
+			while Reveal.busy() do
+				task.wait(0.2)
+			end
+			local nextOne = table.remove(reveals, 1)
+			if nextOne then
+				nextOne()
+			end
+			task.wait(0.2)
+		end
+		revealing = false
+	end)
+end
+
 function RewardsScreen.start()
 	if screen then
 		return
@@ -793,9 +912,13 @@ function RewardsScreen.start()
 			return
 		end
 		if kind == "Egg" and type(key) == "string" then
-			Reveal.eggs(key, results)
+			reveal(function()
+				Reveal.eggs(key, results)
+			end)
 		elseif kind == "Crate" and type(key) == "number" then
-			Reveal.crates(key, results)
+			reveal(function()
+				Reveal.crates(key, results)
+			end)
 		end
 	end)
 end

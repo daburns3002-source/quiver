@@ -527,7 +527,7 @@ local function levelButtons(
 			for at, bit in StarRules.ALL do
 				local star = Kit.image(button, EndScreenAssets.star)
 				star.Name = "Star"
-				star.Position = UDim2.fromScale(0.14 + (at - 1) * 0.25, 0.95)
+				star.Position = UDim2.fromScale(0.14 + (at - 1) * 0.25, 0.99)
 				star.Size = UDim2.fromScale(0.22, 0.22)
 				star.ZIndex = 12
 				if not StarRules.has(held, bit) then

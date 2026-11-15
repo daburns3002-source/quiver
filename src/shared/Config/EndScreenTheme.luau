@@ -213,6 +213,9 @@ local EndScreenTheme = {
 		--[[ One line on getting stronger (review item 9; was "SO CLOSE!
 		     TRY AGAIN"). ]]
 		subText = "HATCH PETS TO GET STRONGER",
+		--[[ In its place when every pet slot is full (the run-through,
+		     2026-11-14). ]]
+		fullText = "MERGE PETS TO GET STRONGER",
 		buttonText = "TRY AGAIN",
 		--[[ Dark on the sunny button, where white words are lost. ]]
 		buttonWords = P.primary.text,

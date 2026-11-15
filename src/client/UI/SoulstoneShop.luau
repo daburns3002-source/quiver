@@ -184,7 +184,14 @@ function SoulstoneShop.open()
 	if box then
 		Chunky.pop(box)
 	end
-	FirstTips.show("SoulstoneShop")
+	FirstTips.show(
+		"SoulstoneShop",
+		FirstTips.header(function()
+			return gui
+		end, function()
+			return isOpen
+		end)
+	)
 end
 
 function SoulstoneShop.start()

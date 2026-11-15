@@ -381,9 +381,11 @@ end
 
 --[[
 	An Angel's offer, as Archero 2 has it: a minor stat boost or a heal. The
-	stat is any Stats ability still under its cap and not excluded; the heal
-	is the Heal card. The stat may be missing late in a run — the heal is
-	still offered alone rather than nothing at all.
+	stat is any Stats ability the draft itself could deal (`candidates`:
+	under its cap, not excluded, not benched, and the player's own class's:
+	a Ranger was offered the Warden's HEAVY BLADE, 2026-11-14); the heal is
+	the Heal card. The stat may be missing late in a run — the heal is still
+	offered alone rather than nothing at all.
 ]]
 function Loadout.openAngel(state: State, random: Random): { string }?
 	if state.offer then
@@ -391,11 +393,9 @@ function Loadout.openAngel(state: State, random: Random): { string }?
 	end
 
 	local stats: { string } = {}
-	for _, ability in Abilities.all do
-		if ability.category == "Stats" and Loadout.remaining(state, ability) > 0 then
-			if not Loadout.excluded(state, ability) then
-				table.insert(stats, ability.id)
-			end
+	for _, ability in candidates(state) do
+		if ability.category == "Stats" then
+			table.insert(stats, ability.id)
 		end
 	end
 

@@ -49,8 +49,13 @@ return function(t: TestRunner.Helper)
 			local levels: { number } = portal.levels or {}
 			for _, stage in levels do
 				local config = Balance.Stages[stage]
-				local tail = EndScreenRules.levelTab(stage):match("^LEVEL (.+)$")
 				local name = (portal.name or "?") .. " " .. stage
+				if config and config.mode == "Endless" then
+					-- no levels to name: the mode itself
+					t.equal(EndScreenRules.levelTab(stage), "ENDLESS", name)
+					continue
+				end
+				local tail = EndScreenRules.levelTab(stage):match("^LEVEL (.+)$")
 				t.isTrue(tail ~= nil, name)
 				if config and config.level then
 					t.equal(tail, config.level, name)
@@ -111,5 +116,44 @@ return function(t: TestRunner.Helper)
 				t.isTrue(y >= bottom, shape.name .. ": under the panel")
 			end
 		end
+	end)
+
+	t.test("an Endless run's end screen names the mode, the floor and what was kept", function()
+		local endless: number? = nil
+		for index, stage in Balance.Stages do
+			if stage.mode == "Endless" then
+				endless = index
+			end
+		end
+		t.notNil(endless, "there is an Endless stage")
+		t.equal(EndScreenRules.levelTab(endless :: number), "ENDLESS")
+
+		local first = { floor = 6, best = 5, newBest = true, soulstones = 0 }
+		t.isTrue(string.find(EndScreenRules.floorLabel(first), "NEW BEST", 1, true) ~= nil)
+		local every = Balance.Endless.bossEvery
+		t.isTrue(
+			string.find(EndScreenRules.defeatLine(first, nil), tostring(every), 1, true) ~= nil,
+			"with nothing banked it names the first boss floor"
+		)
+		local later = { floor = every + 3, best = 40, newBest = false, soulstones = 25 }
+		t.isTrue(string.find(EndScreenRules.floorLabel(later), "BEST 40", 1, true) ~= nil)
+		t.isTrue(
+			string.find(EndScreenRules.defeatLine(later, nil), "25", 1, true) ~= nil,
+			"what the run banked is said"
+		)
+		local never = { floor = 1, best = 0, newBest = false, soulstones = 0 }
+		t.equal(EndScreenRules.floorLabel(never), "FLOOR REACHED")
+		t.isTrue(
+			string.find(EndScreenRules.defeatLine(never, nil), tostring(every), 1, true) ~= nil,
+			"floor 1 points at the first boss floor, not floor 0"
+		)
+	end)
+
+	t.test("DEFEAT says to hatch, or to merge when every pet slot is full", function()
+		local hatch = EndScreenRules.defeatLine(nil, false)
+		local merge = EndScreenRules.defeatLine(nil, true)
+		t.isTrue(string.find(hatch, "HATCH", 1, true) ~= nil)
+		t.isTrue(string.find(merge, "HATCH", 1, true) == nil, "no hatch with the slots full")
+		t.equal(EndScreenRules.defeatLine(nil, nil), hatch)
 	end)
 end

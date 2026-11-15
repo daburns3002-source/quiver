@@ -63,6 +63,10 @@ export type Summary = {
 	coins: number?,
 	gems: number?,
 	chests: number?,
+	--[[ DEFEAT: every pet slot is full, so its line says to merge. ]]
+	petsFull: boolean?,
+	--[[ An Endless run's floor, best and Soulstones (`EndScreenRules`). ]]
+	endless: EndScreenRules.Endless?,
 	--[[ The first clear's free egg (`Config/Economy.firstClearEgg`), rolled
 	     by the server: its key, the pet and whether it was new. It fills
 	     the chest slot and is opened with the hatchery's reveal. ]]
@@ -685,6 +689,22 @@ local function buildStats(content: Instance, look: any, layout: any, summary: Su
 			"Percent",
 			summary.healthPercent
 		)
+	elseif summary.endless then
+		-- Endless has no last floor to measure against: the floor itself
+		local endless = summary.endless
+		add(
+			row(
+				group,
+				look,
+				layout,
+				3,
+				EndScreenAssets.chart,
+				EndScreenRules.floorLabel(endless),
+				tostring(endless.floor)
+			),
+			"Count",
+			endless.floor
+		)
 	else
 		local r = row(
 			group,
@@ -725,7 +745,19 @@ local function buildStats(content: Instance, look: any, layout: any, summary: Su
 		local first: Box = layout.slots[1]
 		drop = math.floor((cs.y + cs.h - first.y - first.h) / 2)
 	end
+	--[[ A run that paid no gems shows the coins alone, in the middle of
+	     the two slots (the run-through, 2026-11-14: "a +0 diamond slot on
+	     every end screen"). A win with chests to pick keeps the diamond:
+	     a chest's gems are counted there. ]]
+	local gemless = (summary.gems or 0) == 0 and not (summary.won and summary.streak ~= nil)
 	for i, sb in layout.slots do
+		if gemless and i == 2 then
+			break
+		end
+		if gemless then
+			local other: Box = layout.slots[2]
+			sb = { x = (sb.x + other.x) / 2, y = (sb.y + other.y) / 2, w = sb.w, h = sb.h }
+		end
 		local slot = block(
 			rewards,
 			"Slot" .. i,
@@ -1117,10 +1149,8 @@ function EndScreen.show(summary: Summary)
 	--[[ The nudge (review item 9): Victory names an egg the coins buy;
 	     Defeat's line is how to come back stronger. ]]
 	local subText = if won
-			and summary.canHatch
-			and look.hatchText
-		then look.hatchText
-		else look.subText
+		then (if summary.canHatch and look.hatchText then look.hatchText else look.subText)
+		else EndScreenRules.defeatLine(summary.endless, summary.petsFull)
 	local ribbon, sub = buildRibbon(content, look, layout, won, subText)
 	local hero = buildHero(content, layout, won)
 	local stats = buildStats(content, look, layout, summary)

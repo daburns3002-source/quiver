@@ -14206,6 +14206,13 @@ local Balance = {
 		]]
 		blockPay = 25,
 		runCap = 525,
+		--[[ Coins for every floor cleared, at the player's passes' scale as
+		     any run's coins (`RunSession.payEarned`): a little, so a first
+		     visit that dies before floor 10 does not end with nothing (the
+		     run-through, 2026-11-14: 13 kills and +0). Ten floors pay about
+		     half a campaign level's coins. Soulstones still vest only at
+		     boss floors. ]]
+		floorCoins = 30,
 
 		--[[
 			The one-time milestones, each hitting a different system on

@@ -44,25 +44,54 @@ function ShopScreen.close()
 	end
 end
 local function priceText(cost: Purse.Cost): string
-	-- coins or gems alone read as the number beside their picture on the button
-	if next(cost.items or {}) == nil then
-		if cost.coins and not cost.gems then
-			return Chunky.commas(cost.coins)
-		elseif cost.gems and not cost.coins then
-			return Chunky.commas(cost.gems)
-		end
+	--[[ Coins or gems read as the number beside their picture on the
+	     button. A boss item in the price is drawn as its own picture beside
+	     the button (`itemPrice`), never spelled out: it read "3000 COINS +
+	     3 ROYALJELLY", the save's key (the run-through, 2026-11-14). ]]
+	if cost.coins and not cost.gems then
+		return Chunky.commas(cost.coins)
+	elseif cost.gems and not cost.coins then
+		return Chunky.commas(cost.gems)
 	end
 	local parts = {}
 	if cost.coins then
-		table.insert(parts, tostring(cost.coins) .. " COINS")
+		table.insert(parts, Chunky.commas(cost.coins) .. " COINS")
 	end
 	if cost.gems then
-		table.insert(parts, tostring(cost.gems) .. " GEMS")
+		table.insert(parts, Chunky.commas(cost.gems) .. " GEMS")
 	end
-	for item, count in cost.items or ({} :: { [string]: number }) do
-		table.insert(parts, tostring(count) .. " " .. string.upper(item))
-	end
-	return table.concat(parts, " + ")
+	return if #parts > 0 then table.concat(parts, " + ") else "BUY"
+end
+--[[ A boss item a price asks for: its picture with how many, `size` sheet
+     pixels square, its right edge at `right`. ]]
+local function itemPrice(
+	row: GuiObject,
+	item: string,
+	count: number,
+	right: number,
+	y: number,
+	size: number,
+	colW: number,
+	rowH: number
+)
+	local holder = Instance.new("Frame")
+	holder.Name = "Item_" .. item
+	holder.BackgroundTransparency = 1
+	holder.ZIndex = 8
+	holder.Position, holder.Size =
+		UDim2.fromScale((right - size) / colW, y / rowH), UDim2.fromScale(size / colW, size / rowH)
+	holder.Parent = row
+	local art = Instance.new("ImageLabel")
+	art.BackgroundTransparency = 1
+	art.Image = ShopAssets.items[item] or ""
+	art.ScaleType = Enum.ScaleType.Fit
+	art.Size = UDim2.fromScale(1, 1)
+	art.ZIndex = 8
+	art.Parent = holder
+	local n = Chunky.text(holder, "x" .. tostring(count), nil, 5)
+	n.TextXAlignment = Enum.TextXAlignment.Right
+	n.Position, n.Size = UDim2.fromScale(0.3, 0.58), UDim2.fromScale(0.74, 0.44)
+	n.ZIndex = 9
 end
 local function picture(weapon: string): string
 	return ShopAssets.weapons[weapon] or GearAssets.weapons[weapon] or ""
@@ -148,16 +177,24 @@ local function drawStore(s: StationScreen.Screen, area: HatchStand.Area)
 		if p and owned then
 			Chunky.tier(tile, MergeRules.best(p.tiers.weapons[entry.weapon]) or "C")
 		end
+		--[[ The boss items the price asks for, as pictures left of the
+		     button; the words give way to them. ]]
+		local asked = 0
+		if not owned and not shut then
+			for item, count in price.items or ({} :: { [string]: number }) do
+				itemPrice(row, item, count, colW - 250 - asked * 96, 30, 92, colW, rowH)
+				asked += 1
+			end
+		end
+		local wordsW = colW - 156 - 250 - asked * 96
 		local nameText = Chunky.text(row, entry.label, Chunky.navy, 0)
 		nameText.TextXAlignment = Enum.TextXAlignment.Left
 		nameText.Position, nameText.Size =
-			UDim2.fromScale(156 / colW, 18 / rowH),
-			UDim2.fromScale((colW - 156 - 250) / colW, 56 / rowH)
+			UDim2.fromScale(156 / colW, 18 / rowH), UDim2.fromScale(wordsW / colW, 56 / rowH)
 		local rarityText = Chunky.text(row, string.upper(entry.rarity), Chunky.inkSoft, 0)
 		rarityText.TextXAlignment = Enum.TextXAlignment.Left
 		rarityText.Position, rarityText.Size =
-			UDim2.fromScale(156 / colW, 80 / rowH),
-			UDim2.fromScale((colW - 156 - 250) / colW, 40 / rowH)
+			UDim2.fromScale(156 / colW, 80 / rowH), UDim2.fromScale(wordsW / colW, 40 / rowH)
 		-- the price on its button; BUY when it can be paid
 		local buyHolder = Instance.new("Frame")
 		buyHolder.BackgroundTransparency = 1

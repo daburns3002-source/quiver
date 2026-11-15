@@ -166,7 +166,12 @@ function StationScreen.new(name: string, stationName: string, promptWords: strin
 		player:SetAttribute("InStation", true)
 		draw()
 		-- the first time each station opens, its tip (`Config/Tips`, keyed by station)
-		FirstTips.show(stationName)
+		FirstTips.show(
+			stationName,
+			FirstTips.header(function()
+				return canvas
+			end, self.isOpen)
+		)
 	end
 	--[[ The station button. On a touch layout there is no E key and the
 	     button is the way in: full width, 60 points tall, above the lobby's

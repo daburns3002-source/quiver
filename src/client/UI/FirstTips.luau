@@ -39,6 +39,12 @@
 	thing happens. After a tip has gone the next waits `Tips.gap` seconds of
 	quiet (`TipRules.spaced`; owner, 2026-11-14: "there needs to be spacing
 	between them"), except a `hold` tip, whose screen is waiting for it.
+
+	A lobby screen asks with its `Spot` (`FirstTips.header`): the tip then
+	stands over that screen's title bar (`TipRules.over`), clear of its tabs
+	and buttons, and is let go the moment the screen shuts, waiting or
+	showing (seen 2026-11-14: the portal's tip came up after its level had
+	started). What the profile says is new waits while a station is open.
 ]]
 
 local GuiService = game:GetService("GuiService")
@@ -68,6 +74,10 @@ local SoundFx = require(script.Parent.Parent.Fx.SoundFx)
 
 local FirstTips = {}
 
+--[[ The screen a tip explains: whether it is still open, and its title bar
+     to stand over (nil: no bar, the tip stands under the top HUD). ]]
+export type Spot = () -> (boolean, GuiObject?)
+
 --[[ Seconds between looks at what the profile and the stage say is new. ]]
 local LOOK_EVERY = 1
 --[[ Above the station screens (115), a hatch (180) and class select
@@ -91,9 +101,10 @@ local shown: { [string]: boolean } = {}
 --[[ `ambient`: asked for by `look` from what the profile says is new,
      again every second until it shows, so it gives way to a tip a screen
      has just asked for and loses nothing by it. ]]
-type Waiting = { key: string, asked: number, ambient: boolean }
+type Waiting = { key: string, asked: number, ambient: boolean, spot: Spot? }
 local queue: { Waiting } = {}
 local current: GuiObject? = nil
+local currentSpot: Spot? = nil
 --[[ Whether the tip showing is a `hold` one: the run held, the keys its. ]]
 local currentHolds = false
 local currentKey: string? = nil
@@ -241,15 +252,31 @@ end
 --[[ The tip's card beside the arena with its OK. A `hold` tip: the run
      held and the music down until OK. Any other: gone by itself after
      `Tips.showFor`. ]]
-local function draw(key: string)
+local function draw(key: string, spot: Spot?)
 	local screen = gui
 	local tip = Tips.tips[key]
 	if not screen or not tip then
 		return
 	end
 	local size = screen.AbsoluteSize
-	local placed =
-		TipRules.place(size.X, size.Y, GuiService:GetGuiInset().Y, arenaBox(size.X, size.Y))
+	local header: GuiObject? = nil
+	if spot then
+		local _, bar = spot()
+		header = bar
+	end
+	local placed
+	if header then
+		local at = header.AbsolutePosition - screen.AbsolutePosition
+		placed = TipRules.over(size.X, size.Y, {
+			x = at.X,
+			y = at.Y,
+			w = header.AbsoluteSize.X,
+			h = header.AbsoluteSize.Y,
+		})
+	else
+		placed =
+			TipRules.place(size.X, size.Y, GuiService:GetGuiInset().Y, arenaBox(size.X, size.Y))
+	end
 	local box = placed.box
 	-- the card takes every press that lands on it, and only those
 	local holder = Instance.new("Frame")
@@ -294,6 +321,7 @@ local function draw(key: string)
 	end
 	current = holder
 	currentKey = key
+	currentSpot = spot
 	currentHolds = TipRules.holds(key)
 	if not currentHolds then
 		task.delay(Tips.showFor, function()
@@ -352,9 +380,12 @@ local function pump()
 	-- let go of tips that waited too long; they are asked again next time
 	for i = #queue, 1, -1 do
 		local waiting = queue[i]
+		local spot = waiting.spot
 		if
 			now - waiting.asked > Tips.patience
 			or (seen ~= nil and not TipRules.due(waiting.key, seen, shown))
+			-- its screen has shut: asked again the next time it opens
+			or (spot ~= nil and not spot())
 		then
 			table.remove(queue, i)
 		end
@@ -368,10 +399,13 @@ local function pump()
 	     before the ambient ones, which are asked again anyway. ]]
 	local since = now - lastGone
 	local index: number? = nil
+	-- a station's screen is open: what the profile says is new waits for the lobby
+	local inStation = Players.LocalPlayer:GetAttribute("InStation") == true
 	for _, ambient in { false, true } do
 		for i, each in queue do
 			if
 				each.ambient == ambient
+				and not (ambient and inStation)
 				and TipRules.spaced(each.key, since)
 				and not covered(each.key)
 			then
@@ -391,7 +425,7 @@ local function pump()
 		return
 	end
 	shown[waiting.key] = true
-	draw(waiting.key)
+	draw(waiting.key, waiting.spot)
 	Remotes.event(Remotes.TipSeen):FireServer(waiting.key)
 end
 
@@ -404,24 +438,38 @@ function FirstTips.takesKeys(): boolean
 	return (current ~= nil and currentHolds) or os.clock() - closedAt < KEY_GRACE
 end
 
-local function ask(key: string, ambient: boolean)
+local function ask(key: string, ambient: boolean, spot: Spot?)
 	if not TipRules.due(key, seen, shown) then
 		return
 	end
 	for _, waiting in queue do
 		if waiting.key == key then
+			waiting.spot = spot
 			return
 		end
 	end
-	table.insert(queue, { key = key, asked = os.clock(), ambient = ambient })
+	table.insert(queue, { key = key, asked = os.clock(), ambient = ambient, spot = spot })
 	pump()
 end
 
 --[[ Asks for tip `key`, for the screen or the moment that is up now: shown
      once ever, when the screen is free and the quiet since the last tip is
-     over. ]]
-function FirstTips.show(key: string)
-	ask(key, false)
+     over. A lobby screen gives its `spot` (`FirstTips.header`). ]]
+function FirstTips.show(key: string, spot: Spot?)
+	ask(key, false, spot)
+end
+
+--[[ The `Spot` of a screen drawn with the kit's header (`Chunky.ribbon`)
+     somewhere under `root`, open while `open()` says so. ]]
+function FirstTips.header(root: () -> Instance?, open: () -> boolean): Spot
+	return function()
+		if not open() then
+			return false, nil
+		end
+		local from = root()
+		local bar = from and from:FindFirstChild("Header", true)
+		return true, if bar and bar:IsA("GuiObject") then bar else nil
+	end
 end
 
 --[[ Class select while it is up; what the profile says is new, in the
@@ -530,6 +578,11 @@ function FirstTips.start()
 		end
 		local item = current
 		if item and currentHolds and passed(currentKey) then
+			close(item, true)
+		end
+		-- the screen it explains has shut under it
+		local spot = currentSpot
+		if item and current == item and spot and not spot() then
 			close(item, true)
 		end
 		pump()

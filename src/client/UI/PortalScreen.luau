@@ -757,7 +757,14 @@ function PortalScreen.open(index: number, back: (() -> ())?)
 	if fresh and canvas then
 		Chunky.pop(canvas)
 	end
-	FirstTips.show("Portal")
+	FirstTips.show(
+		"Portal",
+		FirstTips.header(function()
+			return canvas
+		end, function()
+			return screen.Enabled
+		end)
+	)
 	if UserInputService.GamepadEnabled then
 		GuiService.SelectedObject = startButton
 	end

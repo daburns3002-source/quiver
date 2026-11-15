@@ -285,6 +285,26 @@ return function(t: TestRunner.Helper)
 		t.isTrue(stat, "an Angel offered no stat")
 	end)
 
+	t.test("an Angel's stat is one the player's class can use, and never a benched card", function()
+		for _, class in { "Ranger", "Arcanist", "Warden" } do
+			-- every roll of the dice, so every stat it could offer is met
+			for _ = 1, 200 do
+				local state = Loadout.new()
+				state.class = class
+				local offer = Loadout.openAngel(state, Random.new()) :: { string }
+				for _, id in offer do
+					local ability = Abilities.byId[id]
+					t.isTrue(not ability.benched, `{id} is benched`)
+					local classes = ability.classes
+					t.isTrue(
+						classes == nil or table.find(classes, class) ~= nil,
+						`a {class} was offered {id}`
+					)
+				end
+			end
+		end
+	end)
+
 	t.test("an encounter cannot open over an open card screen", function()
 		local state = Loadout.new()
 		levelUp(state)

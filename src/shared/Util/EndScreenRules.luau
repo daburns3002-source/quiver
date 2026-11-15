@@ -90,6 +90,9 @@ function EndScreenRules.levelTab(stage: number): string
 		return "TUTORIAL"
 	end
 	local config = Balance.Stages[stage]
+	if config and config.mode == "Endless" then
+		return "ENDLESS"
+	end
 	if config and config.level then
 		return `LEVEL {config.level}`
 	end
@@ -100,6 +103,39 @@ function EndScreenRules.levelTab(stage: number): string
 		end
 	end
 	return `LEVEL {stage}`
+end
+
+--[[ An Endless run as its end screen is told it (`Run/RoomController`):
+     the floor it ended on, the best floor (this run's cleared floors
+     counted), whether this run made that best, and the Soulstones banked. ]]
+export type Endless = { floor: number, best: number, newBest: boolean, soulstones: number }
+
+--[[ The third row's label on an Endless DEFEAT, where the campaign's says
+     PROGRESS: the floor reached, with the best beside it. ]]
+function EndScreenRules.floorLabel(endless: Endless): string
+	if endless.newBest then
+		return "FLOOR REACHED (NEW BEST!)"
+	elseif endless.best > 0 then
+		return `FLOOR REACHED (BEST {endless.best})`
+	end
+	return "FLOOR REACHED"
+end
+
+--[[ DEFEAT's one line under the title. An Endless run says what it kept,
+     or the floor whose boss pays the first Soulstones; a campaign run says
+     how to come back stronger, which with every pet slot full is merging,
+     not one more hatch. ]]
+function EndScreenRules.defeatLine(endless: Endless?, petsFull: boolean?): string
+	local look = EndScreenTheme.defeat
+	if endless then
+		if endless.soulstones > 0 then
+			return `YOU KEPT {endless.soulstones} SOULSTONES`
+		end
+		local every = Balance.Endless.bossEvery
+		local boss = math.max(1, math.ceil(endless.floor / every)) * every
+		return `BEAT FLOOR {boss} FOR SOULSTONES`
+	end
+	return if petsFull then look.fullText else look.subText
 end
 
 return EndScreenRules

@@ -169,8 +169,9 @@ local function within(box: { number }, w: number, h: number): { number }
 end
 
 --[[ A pale pill with dark words (the act, what opens a locked area); in a
-     `colour` of the kit's it takes that colour's own words. ]]
-local function pill(sheet: Chunky.Sheet, words: string, box: { number }, colour: Color3?)
+     `colour` of the kit's it takes that colour's own words. Returns the
+     words, for a pill tall enough to wrap them. ]]
+local function pill(sheet: Chunky.Sheet, words: string, box: { number }, colour: Color3?): TextLabel
 	local p = Instance.new("Frame")
 	p.Name = "Pill"
 	p.BorderSizePixel = 0
@@ -182,6 +183,7 @@ local function pill(sheet: Chunky.Sheet, words: string, box: { number }, colour:
 	local t = Chunky.textOn(p, words, ground, 4)
 	t.Position, t.Size = UDim2.fromScale(0.06, 0.16), UDim2.fromScale(0.88, 0.68)
 	t.ZIndex = 7
+	return t
 end
 
 --[[ The area's portal in a dark window: its own vortex (`Config/Lobby`'s
@@ -303,7 +305,13 @@ local function card(
 	end
 
 	if not area.open then
-		pill(on, area.words, within(L.progress, w, h), Chunky.grey)
+		--[[ What opens it takes the room of the count and the bar together,
+		     on two lines, so it can be read on a phone. ]]
+		local top, bar = within(L.progress, w, h), within(L.bar, w, h)
+		local words =
+			pill(on, area.words, { top[1], top[2], top[3], bar[2] + bar[4] - top[2] }, Chunky.grey)
+		words.TextWrapped = true
+		words.Position, words.Size = UDim2.fromScale(0.06, 0.1), UDim2.fromScale(0.88, 0.8)
 	elseif not area.mode and area.levels > 0 then
 		local complete = area.beaten >= area.levels
 		local words = Chunky.text(

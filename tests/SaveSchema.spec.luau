@@ -62,7 +62,7 @@ return function(t: TestRunner.Helper)
 
 	t.test("a new profile has beaten no level", function()
 		local p = SaveSchema.migrate(nil)
-		t.equal(SaveSchema.VERSION, 21)
+		t.equal(SaveSchema.VERSION, 22)
 		t.isNil((next(p.levelsBeaten)))
 	end)
 
@@ -464,4 +464,14 @@ return function(t: TestRunner.Helper)
 			t.equal(again.goalsClaimed.kills, 2)
 		end
 	)
+
+	t.test("version 22: whether a boss has been met is read from the bosses beaten", function()
+		t.isFalse(SaveSchema.default().rewards.bossMet)
+		t.isFalse(SaveSchema.migrate({ version = 21, coins = 2 }).rewards.bossMet)
+		local old = SaveSchema.migrate({ version = 21, bossesBeaten = { MossyGlade = true } })
+		t.isTrue(old.rewards.bossMet, "an older profile that beat a boss has it right")
+		local lied = SaveSchema.migrate({ version = 22, rewards = { bossMet = true } })
+		t.isFalse(lied.rewards.bossMet, "a stored yes with no boss beaten is not believed")
+		t.isTrue(SaveSchema.migrate(old).rewards.bossMet, "a saved copy reads back the same")
+	end)
 end

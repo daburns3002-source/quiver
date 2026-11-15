@@ -568,9 +568,9 @@ local function draw(s: StationScreen.Screen)
 		end
 	end
 
-	--[[ CLAIM ALL shows once two or more wait: the calendar, the quests and
-	     the starter steps in one press. The chest and a goal's step are
-	     claimed by themselves, for what comes out of them. ]]
+	--[[ CLAIM ALL shows once two or more wait, and takes every one of them
+	     in one press: its number is the tabs' numbers added up. The eggs
+	     and crates among them open together, one reveal after the other. ]]
 	local owed = RewardRules.owedAll(p, day)
 
 	local rowH, rowGap = if up then 170 else 140, 14
@@ -619,7 +619,7 @@ local function draw(s: StationScreen.Screen)
 			art = if RewardRules.bonusKind(day) == "Egg" then eggArt(p) else crateArt(),
 			title = if opened then "CHEST OPENED!" else Rewards.bonus.words,
 			sub = "NEW QUESTS IN " .. untilReset(),
-			pips = #RewardRules.questsFor(day),
+			pips = #RewardRules.questsFor(day, r),
 			done = RewardRules.questsClaimed(r, day),
 			owed = RewardRules.bonusReady(r, day),
 			faded = opened,
@@ -628,7 +628,7 @@ local function draw(s: StationScreen.Screen)
 			end,
 		})
 		local rows: { Row } = {}
-		for _, key in RewardRules.questsFor(day) do
+		for _, key in RewardRules.questsFor(day, r) do
 			local quest = Rewards.quests[key]
 			table.insert(rows, {
 				kind = quest.kind,

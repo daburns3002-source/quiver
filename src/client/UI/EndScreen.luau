@@ -1289,8 +1289,20 @@ function EndScreen.show(summary: Summary)
 				end
 			end
 			if gui == screen and chestsOwed then
-				VictoryChests.open(summary.streak, summary.stars, function()
+				VictoryChests.open(summary.streak, summary.stars, function(prize)
 					chestsOwed = false
+					--[[ The chest's coins or gems join what the run paid, so
+					     the panel remembers them (the run-through,
+					     2026-11-14: "Victory forgets the chest"). ]]
+					local at = if prize and prize.kind == "coins"
+						then 1
+						elseif prize and prize.kind == "gems" then 2
+						else nil
+					local count = if at then stats.rewardCounts[at] else nil
+					if prize and count and gui == screen then
+						count.target += prize.amount
+						count.label.Text = "+" .. tostring(count.target)
+					end
 				end)
 			end
 		end)

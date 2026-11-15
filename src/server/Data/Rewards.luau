@@ -190,9 +190,15 @@ local function claim(player: Player, kind: unknown, key: unknown)
 		end
 		return
 	elseif kind == "all" then
-		local total, n, quests = RewardRules.claimAll(profile, day)
+		--[[ Everything that waits, marked in one step; its eggs and crates
+		     are opened together and shown by `Data/QuestChest`. ]]
+		local total, n, quests, items = RewardRules.claimAll(profile, day)
 		gift = if n > 0 then total else nil
 		GoalRules.count(profile.stats, "quests", quests)
+		local give = Rewards.givePrize
+		if give and items.eggs + items.crates > 0 then
+			give(player, items.eggs, items.crates)
+		end
 	elseif kind == "login" then
 		gift = RewardRules.claimLogin(profile.rewards, day)
 	elseif kind == "quest" and type(key) == "string" then

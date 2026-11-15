@@ -13,6 +13,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local DexBook = require(ReplicatedStorage.Shared.Util.DexBook)
 local Economy = require(ReplicatedStorage.Shared.Config.Economy)
 local GiftRules = require(ReplicatedStorage.Shared.Util.GiftRules)
+local GoalRules = require(ReplicatedStorage.Shared.Util.GoalRules)
 local RewardRules = require(ReplicatedStorage.Shared.Util.RewardRules)
 local Rewards = require(ReplicatedStorage.Shared.Config.Rewards)
 local SaveSchema = require(ReplicatedStorage.Shared.Util.SaveSchema)
@@ -113,7 +114,7 @@ return function(t: TestRunner.Helper)
 
 	t.test("a quest not dealt today cannot be claimed, whatever its progress says", function()
 		local r = SaveSchema.default().rewards
-		local today = RewardRules.questsFor(DAY)
+		local today = RewardRules.questsFor(DAY, r)
 		for key, quest in Rewards.quests do
 			if not table.find(today, key) then
 				r.questDay = DAY
@@ -170,6 +171,8 @@ return function(t: TestRunner.Helper)
 		local quest = Rewards.quests[key]
 		t.isTrue(quest.goal < Rewards.stepGoal)
 		local r = SaveSchema.default().rewards
+		-- a player who has met a boss: only they are dealt this quest
+		r.bossMet = true
 		local _, steps = RewardRules.note(r, day, "bosses", quest.goal)
 		t.equal(#steps, 1)
 		t.isTrue(steps[1].done)
@@ -178,7 +181,7 @@ return function(t: TestRunner.Helper)
 	t.test("the bonus chest opens once all three quests are claimed, once a day", function()
 		local day = DAY
 		local r = SaveSchema.default().rewards
-		local keys = RewardRules.questsFor(day)
+		local keys = RewardRules.questsFor(day, r)
 		t.equal(#keys, 3)
 		t.isFalse(RewardRules.bonusReady(r, day), "nothing done")
 		t.isNil(RewardRules.claimBonus(r, day))
@@ -205,12 +208,12 @@ return function(t: TestRunner.Helper)
 		t.isTrue(Rewards.bonus.gems > 0, "a player with nothing to open is still paid")
 	end)
 
-	t.test("CLAIM ALL pays everything owed once, and not the chest", function()
+	t.test("CLAIM ALL claims everything that waits, once", function()
 		local day = DAY
 		local profile = SaveSchema.default()
 		local r = profile.rewards
 		local gems, coins, owed = Rewards.calendar[1].gems, Rewards.calendar[1].coins, 1
-		for _, key in RewardRules.questsFor(day) do
+		for _, key in RewardRules.questsFor(day, r) do
 			local quest = Rewards.quests[key]
 			RewardRules.note(r, day, quest.kind, quest.goal)
 			gems += quest.gems
@@ -222,20 +225,89 @@ return function(t: TestRunner.Helper)
 		coins += Rewards.starter[1].coins
 		owed += 1
 		t.equal(RewardRules.ready(profile, day), owed)
-		-- a goal's step waits too, and is left for its own claim
+		-- a goal with all three steps reached waits too, and a gift
 		profile.stats.kills = 1e6
-		t.equal(RewardRules.ready(profile, day), owed + 1)
-		local gift, n, quests = RewardRules.claimAll(profile, day)
-		t.equal(n, owed)
-		t.equal(quests, #RewardRules.questsFor(day), "the quests among them, for the goal")
+		for _ = 1, 3 do
+			GiftRules.won(profile.gift)
+		end
+		t.equal(RewardRules.ready(profile, day), owed + 2)
+		t.equal(
+			RewardRules.owedAll(profile, day),
+			owed + 2,
+			"the button counts what the tabs count"
+		)
+		local goal = GoalRules.find("kills") :: GoalRules.Goal
+		local eggs, crates = 1, 0
+		for _, step in goal.steps do
+			gems += step.prize.gems or 0
+			coins += step.prize.coins or 0
+			eggs += step.prize.eggs or 0
+			crates += step.prize.crates or 0
+		end
+		-- the quests' chest, earned by the claims of this same press
+		if RewardRules.bonusKind(day) == "Egg" then
+			eggs += 1
+		else
+			crates += 1
+		end
+		local gift, n, quests, items = RewardRules.claimAll(profile, day)
+		t.equal(
+			n,
+			owed + 3,
+			"the calendar, the quests and their chest, the starter step, the gift, the goal"
+		)
+		t.equal(quests, #RewardRules.questsFor(day, r), "the quests among them, for the goal")
 		t.equal(gift.gems, gems)
 		t.equal(gift.coins, coins)
-		t.isTrue(RewardRules.bonusReady(r, day), "the chest is left for its own opening")
-		t.isNil(profile.goalsClaimed.kills, "and so is the goal")
-		t.equal(RewardRules.readyBy(profile, day).goals, 1)
-		local again, none = RewardRules.claimAll(profile, day)
+		t.equal(items.eggs, eggs)
+		t.equal(items.crates, crates)
+		t.isTrue(RewardRules.bonusClaimed(r, day), "the chest is opened in the same press")
+		t.equal(profile.goalsClaimed.kills, #goal.steps, "every step the goal had reached")
+		t.equal(GiftRules.ready(profile.gift), 0)
+		t.equal(RewardRules.ready(profile, day), 0, "nothing is left waiting")
+		local again, none, _, nothing = RewardRules.claimAll(profile, day)
 		t.equal(none, 0)
 		t.equal(again.gems + again.coins, 0)
+		t.equal(nothing.eggs + nothing.crates, 0)
+	end)
+
+	t.test("a player who has beaten no boss is not asked to beat one", function()
+		local day = dayWith("bosses", DAY)
+		local r = SaveSchema.default().rewards
+		local dealt = RewardRules.questsFor(day)
+		local theirs = RewardRules.questsFor(day, r)
+		t.equal(#theirs, #dealt)
+		for index, key in theirs do
+			t.isTrue(Rewards.quests[key].kind ~= "bosses", "no boss quest for them")
+			t.equal(Rewards.quests[key].group, Rewards.groups[index], "still one a group")
+		end
+		-- so all three can be done, and the chest opened
+		for _, key in theirs do
+			local quest = Rewards.quests[key]
+			RewardRules.note(r, day, quest.kind, quest.goal)
+			t.notNil(RewardRules.claimQuest(r, day, key))
+		end
+		t.isTrue(RewardRules.bonusReady(r, day))
+		-- once a boss has fallen they are dealt what everyone is
+		local met = SaveSchema.default().rewards
+		met.bossMet = true
+		for index, key in RewardRules.questsFor(day, met) do
+			t.equal(key, dealt[index])
+		end
+		-- and a day with no boss quest is the same for both
+		for other = DAY, DAY + 30 do
+			local plain = RewardRules.questsFor(other)
+			local boss = false
+			for _, key in plain do
+				boss = boss or Rewards.quests[key].kind == "bosses"
+			end
+			if not boss then
+				for index, key in RewardRules.questsFor(other, r) do
+					t.equal(key, plain[index])
+				end
+				break
+			end
+		end
 	end)
 
 	t.test("each tab counts its own rewards, and the badge is their sum", function()
@@ -256,8 +328,8 @@ return function(t: TestRunner.Helper)
 		profile.stats.hatches = 10
 		t.equal(RewardRules.readyBy(profile, day).goals, 2)
 		--[[ A gift ready counts on DAILY and a finished Dex page with the
-		     goals; CLAIM ALL takes neither, nor a goal's step. ]]
-		t.equal(RewardRules.owedAll(profile, day), 3)
+		     goals; CLAIM ALL's number is always the badge's. ]]
+		t.equal(RewardRules.owedAll(profile, day), RewardRules.ready(profile, day))
 		for _ = 1, 3 do
 			GiftRules.won(profile.gift)
 		end
@@ -267,14 +339,13 @@ return function(t: TestRunner.Helper)
 			profile.enemiesSeen[entry.key] = true
 		end
 		t.isTrue(RewardRules.readyBy(profile, day).goals > 2)
-		t.equal(RewardRules.owedAll(profile, day), 3)
-		-- an area's star chest reached counts with the goals too, and is not in CLAIM ALL
+		-- an area's star chest reached counts with the goals too
 		local before = RewardRules.readyBy(profile, day).goals
 		for _, level in StarRules.levels("MossyGlade") do
 			profile.levelStars[level] = 1
 		end
 		t.equal(RewardRules.readyBy(profile, day).goals, before + 1)
-		t.equal(RewardRules.owedAll(profile, day), 3)
+		t.equal(RewardRules.owedAll(profile, day), RewardRules.ready(profile, day))
 	end)
 
 	t.test("every kind of quest has a place to go and do it", function()

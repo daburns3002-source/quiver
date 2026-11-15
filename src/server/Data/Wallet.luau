@@ -548,6 +548,7 @@ function Wallet.markBeaten(player: Player, area: string)
 	local profile = PlayerData.get(player)
 	if profile and not profile.bossesBeaten[area] then
 		profile.bossesBeaten[area] = true
+		profile.rewards.bossMet = true
 		changed(player, profile)
 	end
 end
@@ -589,6 +590,8 @@ function Wallet.beatBoss(player: Player, area: string): (number, string?)
 	end
 	local first = not profile.bossesBeaten[area]
 	profile.bossesBeaten[area] = true
+	-- from now on the daily quests may ask for a boss (`RewardRules.questsFor`)
+	profile.rewards.bossMet = true
 	if first then
 		local beaten = 0
 		for _ in profile.bossesBeaten do

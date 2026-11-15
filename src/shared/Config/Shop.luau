@@ -84,7 +84,8 @@ local Shop = {
 	     button. Each costs its area's price, whichever is chosen. ]]
 	chests = {
 		{ class = "Ranger", name = "BOW", tab = "BOWS" },
-		{ class = "Arcanist", name = "WAND", tab = "WANDS" },
+		-- the Arcanist's weapons are all staffs (it read WANDS over a list of STAFFS)
+		{ class = "Arcanist", name = "STAFF", tab = "STAFFS" },
 		{ class = "Warden", name = "SWORD", tab = "SWORDS" },
 	} :: { Chest },
 

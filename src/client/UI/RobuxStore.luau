@@ -160,7 +160,7 @@ local function offers(): { Offer }
 			key = product.key,
 			title = if starter then "STARTER PACK" else Chunky.commas(product.gems or 0),
 			chips = if starter then RobuxStore.chips(product) else {},
-			line = if starter then "Once per player" else product.name,
+			line = string.upper(if starter then "Once per player" else product.name),
 			icon = RobuxStore.art(product),
 			robux = product.robux,
 			state = if StoreRules.live(product) then "buy" else "soon",

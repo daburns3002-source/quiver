@@ -283,6 +283,15 @@ function DexScreen.start()
 					pick = entry
 				end
 			end
+			-- one already found if the page has any: it opened on "???"
+			if not pick then
+				for _, entry in shown do
+					if entry.unlocked then
+						pick = entry
+						break
+					end
+				end
+			end
 			pick = pick or shown[1]
 
 			-- the left card: the area's scenery, and the chosen entry in front of it

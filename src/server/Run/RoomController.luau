@@ -838,6 +838,10 @@ local function sendSummary(
 		local healthPercent = if session.maxHealth > 0
 			then math.clamp(math.floor(session.health / session.maxHealth * 100 + 0.5), 0, 100)
 			else 0
+		-- alive with a sliver (the tutorial's floor of 1) is 1%, never 0%
+		if session.alive and session.health > 0 then
+			healthPercent = math.max(healthPercent, 1)
+		end
 
 		runSummary:FireClient(session.player, {
 			--[[ The class's own level (`Config/ClassLevels`): the XP this

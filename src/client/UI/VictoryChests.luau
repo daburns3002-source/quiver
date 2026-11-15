@@ -5,6 +5,9 @@
 	once it has played, three shut chests of the level's area. The player
 	opens one; the other two then show what they held.
 
+	Under the chests it says the win streak and shows the level's three
+	stars (`Util/StarRules`), the ones this win earned popping in.
+
 	It only draws and asks. The server rolled the three as the level was
 	won and has sent nothing about them (`Run/VictoryChests`): a tap sends
 	which chest, 1 to 3 (`Remotes.VictoryChest`), and the answer says what
@@ -29,6 +32,7 @@ local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local Reveal = require(script.Parent.Reveal)
 local RunBonus = require(ReplicatedStorage.Shared.Util.RunBonus)
 local ShopAssets = require(ReplicatedStorage.Shared.Config.ShopAssets)
+local StarRules = require(ReplicatedStorage.Shared.Util.StarRules)
 local VictoryChestRules = require(ReplicatedStorage.Shared.Util.VictoryChestRules)
 
 local VictoryChests = {}
@@ -176,9 +180,14 @@ local function answer(chosen: unknown, prizes: unknown, reveal: unknown)
 	end)
 end
 
+--[[ What the server said of the level's stars (`Util/StarRules`): the
+     bits it held before this win and holds now, and its time. ]]
+export type Stars = { had: number, now: number, par: number }
+
 --[[ Shows the three chests. `streak` is the win streak as it now stands,
-     said under them; `done` is called when they have gone. ]]
-function VictoryChests.open(streak: number?, done: (() -> ())?)
+     said under them, and `stars` the level's stars, shown under that;
+     `done` is called when they have gone. ]]
+function VictoryChests.open(streak: number?, stars: Stars?, done: (() -> ())?)
 	VictoryChests.close()
 	local screen = Instance.new("ScreenGui")
 	screen.Name = "VictoryChests"
@@ -209,6 +218,15 @@ function VictoryChests.open(streak: number?, done: (() -> ())?)
 	if up then
 		px, py, pw, ph = 60, 560, 960, 760
 		size, gap = 270, 30
+	end
+	-- room for the level's stars under the streak
+	local starry = stars ~= nil
+		and type(stars.now) == "number"
+		and type(stars.had) == "number"
+		and type(stars.par) == "number"
+	if starry then
+		py -= 45
+		ph += 90
 	end
 	local panel = Chunky.panel(sheet, px, py, pw, ph)
 	Chunky.ribbon(
@@ -254,6 +272,34 @@ function VictoryChests.open(streak: number?, done: (() -> ())?)
 		)
 		said.Name = "Streak"
 		Chunky.put(sheet, said, px + 40, top + size + 110, pw - 80, 46)
+	end
+
+	--[[ The level's three stars and what each asks: gold if the level
+	     holds it, popping if this win earned it. ]]
+	if stars and starry then
+		local asks = StarRules.words(stars.par)
+		local slot = (pw - 80) / #StarRules.ALL
+		local sy = top + size + 176
+		for at, bit in StarRules.ALL do
+			local sx = px + 40 + (at - 1) * slot
+			local lit = StarRules.has(stars.now, bit)
+			local star = Kit.image(sheet.canvas, EndScreenAssets.star)
+			star.Name = "Star" .. at
+			star.ZIndex = 30
+			Chunky.put(sheet, star, sx, sy, 54, 54)
+			if not lit then
+				star.ImageColor3 = Color3.new(0, 0, 0)
+				star.ImageTransparency = 0.72
+			elseif not StarRules.has(stars.had, bit) then
+				Chunky.pop(star)
+				Chunky.twinkle(star)
+			end
+			local ask =
+				Chunky.text(sheet.canvas, asks[at], if lit then Chunky.ink else Chunky.inkSoft, 0)
+			ask.Name = "Ask" .. at
+			ask.TextXAlignment = Enum.TextXAlignment.Left
+			Chunky.put(sheet, ask, sx + 64, sy + 9, slot - 74, 36)
+		end
 	end
 
 	local v: View = {

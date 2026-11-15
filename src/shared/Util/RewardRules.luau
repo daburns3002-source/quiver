@@ -16,6 +16,7 @@ local GoalRules = require(script.Parent.GoalRules)
 local PageRules = require(script.Parent.PageRules)
 local Rewards = require(ReplicatedStorage.Shared.Config.Rewards)
 local SaveSchema = require(ReplicatedStorage.Shared.Util.SaveSchema)
+local StarRules = require(script.Parent.StarRules)
 
 local RewardRules = {}
 
@@ -273,6 +274,7 @@ function RewardRules.readyBy(
 	-- the gift box is on the DAILY tab, the Dex pages' chests with the goals
 	out.daily += GiftRules.ready(profile.gift)
 	out.goals += PageRules.tally(profile)
+	out.goals += StarRules.tally(profile)
 	return out
 end
 

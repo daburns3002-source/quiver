@@ -79,6 +79,7 @@ local RunBonus = require(ReplicatedStorage.Shared.Util.RunBonus)
 local RunSession = require(script.Parent.RunSession)
 local Sandbox = require(ReplicatedStorage.Shared.Config.Sandbox)
 local SoulLink = require(script.Parent.Parent.Combat.SoulLink)
+local StarRules = require(ReplicatedStorage.Shared.Util.StarRules)
 local StoreRules = require(ReplicatedStorage.Shared.Util.StoreRules)
 local StoryBeatRules = require(ReplicatedStorage.Shared.Util.StoryBeatRules)
 local StoryLeaderboard = require(script.Parent.StoryLeaderboard)
@@ -765,7 +766,8 @@ local function sendSummary(
 	won: boolean,
 	eggs: { [Player]: any }?,
 	starters: { [Player]: boolean }?,
-	streaks: { [Player]: number }?
+	streaks: { [Player]: number }?,
+	stars: { [Player]: any }?
 )
 	local finished = if won then progress else progress - 1
 	local progressPercent =
@@ -811,6 +813,9 @@ local function sendSummary(
 			     (`Run/VictoryChests`; nothing of what is in them is sent),
 			     and the win streak as it now stands (`Util/RunBonus`). ]]
 			streak = streaks and streaks[session.player],
+			--[[ The level's stars (`Util/StarRules`): what it held before
+			     this win and holds now, one bit a star, and its time. ]]
+			stars = stars and stars[session.player],
 		})
 	end
 end
@@ -893,6 +898,7 @@ local function complete(now: number)
 	local eggs: { [Player]: any } = {}
 	local starters: { [Player]: boolean } = {}
 	local streaks: { [Player]: number } = {}
+	local stars: { [Player]: any } = {}
 	-- the area's clear bonus, before the summary that shows it
 	for _, session in RunSession.all() do
 		RunSession.payEarned(session, RunSession.areaPay().clearCoins)
@@ -920,6 +926,15 @@ local function complete(now: number)
 			Rewards.note(session.player, "levels" .. session.loadout.class, 1)
 		end
 		if level and not stage().tutorial then
+			--[[ The level's stars (`Util/StarRules`): from the health this
+			     server holds and the time it measured, never from a client. ]]
+			local health = if session.maxHealth > 0
+				then session.health / session.maxHealth * 100
+				else 0
+			local seconds = os.clock() - session.stageStartedAt
+			local had, held =
+				Wallet.addStars(session.player, level, StarRules.earned(stage(), health, seconds))
+			stars[session.player] = { had = had, now = held, par = StarRules.par(stage()) }
 			-- the streak comes back one longer, and three chests are rolled
 			streaks[session.player] = Wallet.bankStreak(session.player, session.streak)
 			VictoryChests.offer(
@@ -947,7 +962,7 @@ local function complete(now: number)
 	recordStory()
 	log.info("run complete")
 	broadcast()
-	sendSummary(true, eggs, starters, streaks)
+	sendSummary(true, eggs, starters, streaks, stars)
 end
 
 --[[ Rooms: hold the pause after a clear, light the door, wait for a player

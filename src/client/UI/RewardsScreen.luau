@@ -9,7 +9,8 @@
 	"the quests need to be clearer"): DAILY, the calendar; QUESTS, today's
 	three with the chest for claiming them all; GOALS, the starter steps
 	and then the lifetime goals (`Config/Goals`), each in three medals, and
-	a chest for each finished Dex page (`Util/PageRules`), in a list that
+	a chest for an area's stars (`Util/StarRules`) and for each finished
+	Dex page (`Util/PageRules`), in a list that
 	scrolls; DAILY also holds the gift box (`Util/GiftRules`). Each tab wears the count of what waits on it. A row is a picture of
 	what to do, the words, the bar with its numbers on it, what it pays, and
 	one button: CLAIM, GO (a gold arrow to where it is done,
@@ -51,6 +52,7 @@ local RunPaused = require(script.Parent.Parent.RunPaused)
 local SaveSchema = require(ReplicatedStorage.Shared.Util.SaveSchema)
 local Shop = require(ReplicatedStorage.Shared.Config.Shop)
 local ShopAssets = require(ReplicatedStorage.Shared.Config.ShopAssets)
+local StarRules = require(ReplicatedStorage.Shared.Util.StarRules)
 local StationScreen = require(script.Parent.StationScreen)
 
 local RewardsScreen = {}
@@ -679,6 +681,24 @@ local function draw(s: StationScreen.Screen)
 					end,
 					place = goal.place,
 					medals = GoalRules.claimed(p, goal),
+				})
+			end
+		end
+		--[[ An area's star chests not opened yet (`Util/StarRules`): its
+		     levels' stars against 10, 20 and 30. ]]
+		for _, chest in StarRules.chests(p) do
+			if not chest.claimed then
+				table.insert(rows, {
+					kind = "levels",
+					title = chest.words,
+					have = chest.have,
+					goal = chest.need,
+					pay = prizePay(p, chest.prize),
+					claimed = false,
+					onClaim = function()
+						claim("stars", chest.key)
+					end,
+					place = "Portal",
 				})
 			end
 		end

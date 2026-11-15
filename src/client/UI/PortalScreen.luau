@@ -42,6 +42,7 @@ local Workspace = game:GetService("Workspace")
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local BossBanners = require(ReplicatedStorage.Shared.Config.BossBanners)
 local Economy = require(ReplicatedStorage.Shared.Config.Economy)
+local EndScreenAssets = require(ReplicatedStorage.Shared.Config.EndScreenAssets)
 local GearAssets = require(ReplicatedStorage.Shared.Config.GearAssets)
 local LaunchLocks = require(ReplicatedStorage.Shared.Util.LaunchLocks)
 local LevelUnlocks = require(ReplicatedStorage.Shared.Util.LevelUnlocks)
@@ -50,6 +51,7 @@ local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local SaveSchema = require(ReplicatedStorage.Shared.Util.SaveSchema)
 local ShopAssets = require(ReplicatedStorage.Shared.Config.ShopAssets)
 local SoulstoneShop = require(script.Parent.SoulstoneShop)
+local StarRules = require(ReplicatedStorage.Shared.Util.StarRules)
 
 local Chunky = require(script.Parent.Chunky)
 local FirstTips = require(script.Parent.FirstTips)
@@ -498,7 +500,7 @@ local function levelButtons(
 		local open = portalOpen and LevelUnlocks.isUnlocked(levels, Balance.Stages, done, position)
 		local cleared = stage ~= nil and LevelUnlocks.isBeaten(stage, done)
 		local icon = if stage and bossOf(stage) and banner then banner.icon else nil
-		node(
+		local button = node(
 			sheet,
 			if stage then stage.level or tostring(position) else tostring(position),
 			open,
@@ -516,6 +518,24 @@ local function levelButtons(
 				end
 			end
 		)
+		--[[ The level's three stars under its button (`Util/StarRules`):
+		     gold once earned, a dark shape until then. ]]
+		local name = if stage then stage.level else nil
+		if open and name then
+			local p = profile
+			local held = if p and p.levelStars then p.levelStars[name] else nil
+			for at, bit in StarRules.ALL do
+				local star = Kit.image(button, EndScreenAssets.star)
+				star.Name = "Star"
+				star.Position = UDim2.fromScale(0.14 + (at - 1) * 0.25, 0.95)
+				star.Size = UDim2.fromScale(0.22, 0.22)
+				star.ZIndex = 12
+				if not StarRules.has(held, bit) then
+					star.ImageColor3 = Color3.new(0, 0, 0)
+					star.ImageTransparency = 0.72
+				end
+			end
+		end
 	end
 end
 

@@ -28,6 +28,12 @@ export type Gain = {
 	reached: { number },
 	coins: number,
 	gems: number,
+	--[[ Free eggs and weapon crates the levels reached give: how many, for
+	     the server to open (`Run/RoomController`), which then puts what
+	     came out in `prizes` for the end screen's reveals. ]]
+	eggs: number,
+	crates: number,
+	prizes: { any }?,
 	weapon: string?,
 }
 
@@ -117,6 +123,9 @@ function ClassLevelRules.add(levels: Levels, class: string, xp: number): Gain?
 		reached = {},
 		coins = 0,
 		gems = 0,
+		eggs = 0,
+		crates = 0,
+		prizes = nil,
 		weapon = nil,
 	}
 	standing.xp += gain.xp
@@ -136,6 +145,8 @@ function ClassLevelRules.add(levels: Levels, class: string, xp: number): Gain?
 		if gift then
 			gain.coins += gift.coins or 0
 			gain.gems += gift.gems or 0
+			gain.eggs += gift.eggs or 0
+			gain.crates += gift.crates or 0
 		end
 		if standing.level == ClassLevels.weaponLevel then
 			gain.weapon = ClassLevels.weapons[class]

@@ -678,7 +678,7 @@ class has its own lasting level, apart from the run's level (`Config/Progression
 class played: 10 XP for each room, wave or Endless floor cleared and 50 more for a win
 (`RoomController` `noteClear` / `payClassXp`, `Wallet.addClassXp`); a loss or leaving still pays what was
 cleared, the tutorial pays nothing, each place counts once, and no client reports any of it. 10 is the
-top (3,750 XP, about 20 won runs); levels 2 to 9 give coins or gems (`ClassLevels.gifts`); **level 10
+top (3,750 XP, about 20 won runs); levels 2 to 9 give coins or gems, a free weapon crate for the class at 3 and a free egg at 5 (`ClassLevels.gifts`; opened by `RoomController`'s `openClassGifts` as the XP is paid and revealed on the end screen from `gain.prizes`, gems instead where there is none to give; level 7 waits for the class trails' designs); **level 10
 gives the class's golden weapon** (Golden Bow, Golden Staff, Golden Blade): Legendary strength at area
 1's scale, the one Legendary card of its class
 no other weapon carries (Multishot, Homing Orbs, Battle Cry), and `WeaponStats.earned`, which keeps it

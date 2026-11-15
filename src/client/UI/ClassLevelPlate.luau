@@ -208,6 +208,11 @@ function ClassLevelPlate.build(
 					showGift(ShopAssets.coin, present.coins or 0)
 				elseif present and (present.gems or 0) > 0 then
 					showGift(ShopAssets.gem, present.gems or 0)
+				elseif present and (present.crates or 0) > 0 then
+					-- opened with its own reveal once the bar has played
+					showGift(GearAssets.areaPictures.chests.MossyGlade, present.crates or 0)
+				elseif present and (present.eggs or 0) > 0 then
+					showGift(GearAssets.areaPictures.eggs.MossyGlade, present.eggs or 0)
 				else
 					task.wait(0.6)
 				end

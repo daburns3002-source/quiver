@@ -135,6 +135,11 @@
 	opened. No win before this was timed or had its health written down,
 	but a level beaten was won, so an older profile holds the first star of
 	every level it has beaten and nothing more is invented.
+
+	Version 22 (2026-11-14, the run-through): `rewards.bossMet`, whether
+	any boss has been beaten, so the daily quests can leave BEAT A BOSS
+	out for a player who has met none (`RewardRules.questsFor`). Read from
+	`bossesBeaten` on every load, so an older profile has it right.
 ]]
 
 local ClassLevelRules = require(script.Parent.ClassLevelRules)
@@ -146,7 +151,7 @@ local StoreRules = require(script.Parent.StoreRules)
 
 local SaveSchema = {}
 
-SaveSchema.VERSION = 21
+SaveSchema.VERSION = 22
 
 --[[ The classes' own weapons, owned from the start. ]]
 local STARTERS = { "TwigBow", "BranchStaff", "TimberBlade" }
@@ -238,6 +243,9 @@ export type Profile = {
 }
 
 export type RewardState = {
+	--[[ Whether any boss has been beaten (version 22): `bossesBeaten` has
+	     an entry. Kept here because the quests' rules read this table. ]]
+	bossMet: boolean,
 	--[[ The last day the calendar paid, 0 never; and how many times. ]]
 	loginDay: number,
 	loginCount: number,
@@ -307,6 +315,7 @@ function SaveSchema.default(): Profile
 			cratesOpened = 0,
 			dexPaid = {},
 			bonusDay = 0,
+			bossMet = false,
 		},
 		settings = SettingsRules.default(),
 		tiers = { weapons = weaponTiers, pets = {} },
@@ -527,6 +536,8 @@ function SaveSchema.migrate(raw: unknown): Profile
 		profile.levelStars[level] = bit32.bor(profile.levelStars[level] or 0, 1)
 	end
 	profile.starChests = flags(data.starChests)
+	--[[ 21 -> 22: read from the bosses beaten, whatever was stored. ]]
+	profile.rewards.bossMet = next(profile.bossesBeaten) ~= nil
 	return profile
 end
 

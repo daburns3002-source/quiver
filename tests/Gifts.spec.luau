@@ -10,6 +10,7 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local DexBook = require(ReplicatedStorage.Shared.Util.DexBook)
+local EggRules = require(ReplicatedStorage.Shared.Util.EggRules)
 local GiftRules = require(ReplicatedStorage.Shared.Util.GiftRules)
 local PageRules = require(ReplicatedStorage.Shared.Util.PageRules)
 local Rewards = require(ReplicatedStorage.Shared.Config.Rewards)
@@ -127,10 +128,29 @@ return function(t: TestRunner.Helper)
 	t.test("one pet short is not a set", function()
 		local profile = SaveSchema.default()
 		finish(profile, "Pets", "MossyGlade")
-		local page = DexBook.inArea(DexBook.entries("Pets", profile), "MossyGlade")
-		profile.pets[page[#page].key] = nil
+		profile.pets[EggRules.pool("MossyEgg")[1].pet] = nil
 		t.equal(PageRules.tally(profile), 0)
 		t.isNil(PageRules.claim(profile, "Pets:MossyGlade"))
+	end)
+
+	t.test("a pets page asks only for the pets an egg holds, so it can be finished", function()
+		local profile = SaveSchema.default()
+		local dex = #DexBook.inArea(DexBook.entries("Pets", profile), "MossyGlade")
+		local pool = EggRules.pool("MossyEgg")
+		t.isTrue(#pool > 0 and #pool <= dex)
+		for _, page in PageRules.pages(profile) do
+			if page.key == "Pets:MossyGlade" then
+				t.equal(page.total, #pool, "the egg's pets, not every pet the Dex lists")
+			end
+			if page.book == "Pets" then
+				t.isTrue(page.total > 0, page.key .. " has nothing to hatch")
+			end
+		end
+		-- hatching the egg's pets alone opens the chest
+		for _, entry in pool do
+			profile.pets[entry.pet] = 1
+		end
+		t.notNil(PageRules.claim(profile, "Pets:MossyGlade"))
 	end)
 
 	t.test("version 20: an older profile has an empty box and has opened no chest", function()

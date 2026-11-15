@@ -13,6 +13,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local GiftRules = require(script.Parent.GiftRules)
 local GoalRules = require(script.Parent.GoalRules)
+local Goals = require(ReplicatedStorage.Shared.Config.Goals)
 local PageRules = require(script.Parent.PageRules)
 local Rewards = require(ReplicatedStorage.Shared.Config.Rewards)
 local SaveSchema = require(ReplicatedStorage.Shared.Util.SaveSchema)
@@ -40,14 +41,31 @@ end
 
 --[[ Today's three, one per group in `Rewards.groups` order; the same for
      everyone on a day, different from one day to the next more often than
-     not. ]]
-function RewardRules.questsFor(day: number): { string }
+     not.
+
+     With `r`, they are that player's: **a player who has beaten no boss is
+     not asked to beat one** (the first is at the end of an area's last
+     level, so the quest, and the chest for finishing all three, would be
+     out of reach that day; the run-through, 2026-11-14). They get their
+     group's next quest instead. The day a first boss falls the boss quest
+     comes back, done: one quest more that once, and no more. ]]
+function RewardRules.questsFor(day: number, r: SaveSchema.RewardState?): { string }
 	local random = Random.new(day * 7919 + 17)
 	local out = {}
 	for _, group in Rewards.groups do
 		local keys = byGroup[group]
 		if keys and #keys > 0 then
-			table.insert(out, keys[random:NextInteger(1, #keys)])
+			local at = random:NextInteger(1, #keys)
+			if r and not r.bossMet then
+				for step = 0, #keys - 1 do
+					local other = (at - 1 + step) % #keys + 1
+					if Rewards.quests[keys[other]].kind ~= "bosses" then
+						at = other
+						break
+					end
+				end
+			end
+			table.insert(out, keys[at])
 		end
 	end
 	return out
@@ -82,7 +100,7 @@ function RewardRules.note(
 		return false, steps
 	end
 	local changed = RewardRules.roll(r, day)
-	for _, key in RewardRules.questsFor(day) do
+	for _, key in RewardRules.questsFor(day, r) do
 		local quest = Rewards.quests[key]
 		local had = r.questProgress[key] or 0
 		if quest.kind == kind and had < quest.goal then
@@ -122,7 +140,7 @@ end
 function RewardRules.questReady(r: SaveSchema.RewardState, day: number, key: string): boolean
 	local quest = Rewards.quests[key]
 	return quest ~= nil
-		and table.find(RewardRules.questsFor(day), key) ~= nil
+		and table.find(RewardRules.questsFor(day, r), key) ~= nil
 		and RewardRules.progress(r, day, key) >= quest.goal
 		and not RewardRules.questClaimed(r, day, key)
 end
@@ -139,7 +157,7 @@ end
 --[[ How many of today's quests have been claimed. ]]
 function RewardRules.questsClaimed(r: SaveSchema.RewardState, day: number): number
 	local n = 0
-	for _, key in RewardRules.questsFor(day) do
+	for _, key in RewardRules.questsFor(day, r) do
 		if RewardRules.questClaimed(r, day, key) then
 			n += 1
 		end
@@ -160,7 +178,7 @@ end
 --[[ Whether the bonus chest is owed: every one of today's quests claimed,
      and the chest not opened today. ]]
 function RewardRules.bonusReady(r: SaveSchema.RewardState, day: number): boolean
-	local quests = RewardRules.questsFor(day)
+	local quests = RewardRules.questsFor(day, r)
 	return #quests > 0
 		and RewardRules.questsClaimed(r, day) >= #quests
 		and not RewardRules.bonusClaimed(r, day)
@@ -257,7 +275,7 @@ function RewardRules.readyBy(
 ): { daily: number, quests: number, goals: number }
 	local r = profile.rewards
 	local out = { daily = if RewardRules.loginReady(r, day) then 1 else 0, quests = 0, goals = 0 }
-	for _, key in RewardRules.questsFor(day) do
+	for _, key in RewardRules.questsFor(day, r) do
 		if RewardRules.questReady(r, day, key) then
 			out.quests += 1
 		end
@@ -278,41 +296,55 @@ function RewardRules.readyBy(
 	return out
 end
 
---[[ How many rewards CLAIM ALL would take (`claimAll`): the calendar, the
-     quests and the starter steps. What opens with a reveal of its own (the
-     quests' chest, a gift, a goal's step, a Dex page's chest) is not among
-     them. ]]
-function RewardRules.owedAll(profile: SaveSchema.Profile, day: number): number
-	local r = profile.rewards
-	local n = if RewardRules.loginReady(r, day) then 1 else 0
-	for _, key in RewardRules.questsFor(day) do
-		if RewardRules.questReady(r, day, key) then
-			n += 1
-		end
-	end
-	for _, entry in Rewards.starter do
-		if RewardRules.starterReady(profile, entry.key) then
-			n += 1
-		end
-	end
-	return n
-end
-
 --[[ How many rewards wait to be claimed: the lobby button's badge. ]]
 function RewardRules.ready(profile: SaveSchema.Profile, day: number): number
 	local by = RewardRules.readyBy(profile, day)
 	return by.daily + by.quests + by.goals
 end
 
---[[ CLAIM ALL: every reward owed that pays coins or gems (the calendar,
-     the quests, the starter steps), marked and summed; how many it was,
-     and how many of those were quests. The bonus chest and the goals are
-     claimed by themselves, for their reveals. ]]
-function RewardRules.claimAll(profile: SaveSchema.Profile, day: number): (Gift, number, number)
+--[[ How many rewards CLAIM ALL would take (`claimAll`): every one that
+     waits, the same number the lobby button and the tabs show (the
+     run-through, 2026-11-14: "CLAIM ALL does not claim all, and the counts
+     disagree"). ]]
+function RewardRules.owedAll(profile: SaveSchema.Profile, day: number): number
+	return RewardRules.ready(profile, day)
+end
+
+--[[ What CLAIM ALL's free eggs and crates come to, for the server to
+     open together (`Data/QuestChest`). ]]
+export type Items = { eggs: number, crates: number }
+
+--[[ CLAIM ALL: **every** reward that waits, marked: the calendar, the
+     quests and then their chest, the starter steps, the gift box, every
+     goal's steps reached, the star chests and the Dex pages' chests. Their
+     coins and gems are summed, their eggs and crates counted; returned
+     with how many rewards it was and how many of those were quests. ]]
+function RewardRules.claimAll(
+	profile: SaveSchema.Profile,
+	day: number
+): (Gift, number, number, Items)
 	local r = profile.rewards
 	local total: Gift = { gems = 0, coins = 0 }
+	local items: Items = { eggs = 0, crates = 0 }
 	local n = 0
 	local quests = 0
+	local function open(kind: string?)
+		if kind == "Egg" then
+			items.eggs += 1
+		elseif kind then
+			items.crates += 1
+		end
+	end
+	local function win(prize: Goals.Prize?): boolean
+		if not prize then
+			return false
+		end
+		total.gems += prize.gems or 0
+		total.coins += prize.coins or 0
+		items.eggs += prize.eggs or 0
+		items.crates += prize.crates or 0
+		return true
+	end
 	local function take(gift: Gift?)
 		if gift then
 			total.gems += gift.gems
@@ -321,7 +353,7 @@ function RewardRules.claimAll(profile: SaveSchema.Profile, day: number): (Gift, 
 		end
 	end
 	take(RewardRules.claimLogin(r, day))
-	for _, key in RewardRules.questsFor(day) do
+	for _, key in RewardRules.questsFor(day, r) do
 		local gift = RewardRules.claimQuest(r, day, key)
 		if gift then
 			quests += 1
@@ -331,7 +363,41 @@ function RewardRules.claimAll(profile: SaveSchema.Profile, day: number): (Gift, 
 	for _, entry in Rewards.starter do
 		take(RewardRules.claimStarter(profile, entry.key))
 	end
-	return total, n, quests
+	-- the quests' chest, which the claims above may just have earned
+	local chest = RewardRules.claimBonus(r, day)
+	if chest then
+		open(chest)
+		n += 1
+	end
+	while true do
+		local gift = GiftRules.claim(profile.gift)
+		if not gift then
+			break
+		end
+		open(gift)
+		n += 1
+	end
+	-- every step a goal has reached, counted as one reward a goal
+	for _, goal in Goals.goals do
+		local any = false
+		while win(GoalRules.claim(profile, goal.key)) do
+			any = true
+		end
+		if any then
+			n += 1
+		end
+	end
+	for _, chestOf in StarRules.chests(profile) do
+		if win(StarRules.claim(profile, chestOf.key)) then
+			n += 1
+		end
+	end
+	for _, page in PageRules.pages(profile) do
+		if win(PageRules.claim(profile, page.key)) then
+			n += 1
+		end
+	end
+	return total, n, quests, items
 end
 
 --[[ Whether every starter step has been claimed (the list then hides). ]]

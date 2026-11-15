@@ -42,6 +42,7 @@ local player = Players.LocalPlayer
 --[[ Seconds a chest cannot be picked after they appear, so the tap that
      hurried Victory along is not also a pick; seconds the opened chests
      stay up; and seconds to wait for the server's answer before giving up. ]]
+local HEADER = "PICK A CHEST!"
 local GUARD = 0.5
 local SHOWN = 2.2
 local ANSWER = 6
@@ -55,7 +56,11 @@ type View = {
 	asked: boolean,
 	answered: boolean,
 	input: RBXScriptConnection?,
-	done: (() -> ())?,
+	--[[ The header's words, and what the picked chest gave, for the end
+	     screen to add to what the run paid. ]]
+	header: TextLabel?,
+	given: VictoryChestRules.Prize?,
+	done: ((VictoryChestRules.Prize?) -> ())?,
 }
 
 local view: View? = nil
@@ -76,7 +81,7 @@ function VictoryChests.close()
 	end
 	v.gui:Destroy()
 	if v.done then
-		v.done()
+		v.done(v.given)
 	end
 end
 
@@ -153,6 +158,10 @@ local function answer(chosen: unknown, prizes: unknown, reveal: unknown)
 			local asset, words, said = look(prize, v.area)
 			fill(card, asset, words, at ~= index)
 			if at == index then
+				v.given = { kind = prize.kind, amount = prize.amount }
+				if v.header then
+					v.header.Text = "CHEST OPENED!"
+				end
 				v.line.Text = said
 				Chunky.outline(card, 9, Chunky.gold)
 				Chunky.pop(card)
@@ -187,7 +196,11 @@ export type Stars = { had: number, now: number, par: number }
 --[[ Shows the three chests. `streak` is the win streak as it now stands,
      said under them, and `stars` the level's stars, shown under that;
      `done` is called when they have gone. ]]
-function VictoryChests.open(streak: number?, stars: Stars?, done: (() -> ())?)
+function VictoryChests.open(
+	streak: number?,
+	stars: Stars?,
+	done: ((VictoryChestRules.Prize?) -> ())?
+)
 	VictoryChests.close()
 	local screen = Instance.new("ScreenGui")
 	screen.Name = "VictoryChests"
@@ -231,7 +244,7 @@ function VictoryChests.open(streak: number?, stars: Stars?, done: (() -> ())?)
 	local panel = Chunky.panel(sheet, px, py, pw, ph)
 	Chunky.ribbon(
 		sheet,
-		"PICK A CHEST!",
+		HEADER,
 		if up then 170 else 630,
 		py - (if up then 80 else 82),
 		if up then 740 else 660,
@@ -311,8 +324,16 @@ function VictoryChests.open(streak: number?, stars: Stars?, done: (() -> ())?)
 		asked = false,
 		answered = false,
 		input = nil,
+		header = nil,
+		given = nil,
 		done = done,
 	}
+	for _, label in screen:GetDescendants() do
+		if label:IsA("TextLabel") and label.Text == HEADER then
+			v.header = label
+			break
+		end
+	end
 	view = v
 	local keys: { [Enum.KeyCode]: number } = {
 		[Enum.KeyCode.One] = 1,

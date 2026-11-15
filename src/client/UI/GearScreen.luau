@@ -21,6 +21,7 @@ local Classes = require(ReplicatedStorage.Shared.Config.Classes)
 local EggRules = require(ReplicatedStorage.Shared.Util.EggRules)
 local EggScreen = require(script.Parent.EggScreen)
 local GearAssets = require(ReplicatedStorage.Shared.Config.GearAssets)
+local GearGlory = require(ReplicatedStorage.Shared.Util.GearGlory)
 local HatchStand = require(script.Parent.HatchStand)
 local Kit = require(script.Parent.Kit)
 local MergeRules = require(ReplicatedStorage.Shared.Util.MergeRules)
@@ -46,6 +47,9 @@ local screen: StationScreen.Screen? = nil
 local tab = "GEAR"
 local byName = false
 local preferredPetSlot: number? = nil
+--[[ The item whose box was last pressed in the grid ("pet:Key" or
+     "weapon:Key"), ringed in gold so the player sees which they chose. ]]
+local picked: string? = nil
 function GearScreen.open()
 	if screen then
 		screen.open()
@@ -360,8 +364,16 @@ local function details(
 	local hasTier = tiered(entry.key, isPet)
 	if entry.owned then
 		Chunky.gleam(tile)
-		if hasTier then
-			Chunky.tier(tile, MergeRules.best(entry.tiers) or "C")
+		local best = if hasTier then MergeRules.best(entry.tiers) or "C" else nil
+		Chunky.tier(tile, best)
+		-- a Legendary, a Mythic or a high tier opens with a flourish
+		Chunky.grand(tile, entry.rarity, best)
+		if GearGlory.rank(entry.rarity, best) >= 1 then
+			task.delay(0.15, function()
+				if tile.Parent then
+					Chunky.burst(tile)
+				end
+			end)
 		end
 	end
 	local lines: { string } = {}
@@ -462,31 +474,31 @@ local function details(
 		local from = mergeable(entry.tiers)
 		local nextUp = from and MergeRules.nextTier(from)
 		local low = MergeRules.TIERS[1]
-		local words = if from and nextUp
-			then "MERGE " .. tostring(MergeRules.COST) .. " " .. from .. " INTO " .. nextUp
-			elseif MergeRules.best(entry.tiers) == "S" then "TOP TIER S"
-			else "MERGE: " .. tostring((entry.tiers and entry.tiers[low]) or 0) .. "/" .. tostring(
-				MergeRules.COST
-			) .. " " .. low .. " COPIES"
+		--[[ The tiers are their badges, not bare letters (owner, 2026-11-14:
+		     "where it says merge c to b it should have the actual letter
+		     icons for c and b"). ]]
+		local cost = tostring(MergeRules.COST)
+		local parts: { Chunky.Part }
+		if from and nextUp then
+			parts = { "MERGE " .. cost, { tier = from }, "INTO", { tier = nextUp } }
+		elseif MergeRules.best(entry.tiers) == "S" then
+			parts = { "TOP TIER", { tier = "S" } }
+		else
+			local have = tostring((entry.tiers and entry.tiers[low]) or 0)
+			parts = { "MERGE: " .. have .. "/" .. cost, { tier = low }, "COPIES" }
+		end
 		local m = L.merge
-		Chunky.button(
-			pop,
-			words,
-			if from then Chunky.gold else Chunky.grey,
-			m[1],
-			m[2],
-			m[3],
-			m[4],
-			function()
-				if from then
-					-- stays up: redrawn with the new tier when the save answers
-					afterMerge = { key = entry.key, pet = isPet, at = os.clock() }
-					Remotes.event(Remotes.MergeItem)
-						:FireServer(if isPet then "pet" else "weapon", entry.key, from)
-					SoundFx.play("new_item")
-				end
+		local tone = if from then Chunky.gold else Chunky.grey
+		local button = Chunky.button(pop, "", tone, m[1], m[2], m[3], m[4], function()
+			if from then
+				-- stays up: redrawn with the new tier when the save answers
+				afterMerge = { key = entry.key, pet = isPet, at = os.clock() }
+				Remotes.event(Remotes.MergeItem)
+					:FireServer(if isPet then "pet" else "weapon", entry.key, from)
+				SoundFx.play("new_item")
 			end
-		)
+		end)
+		Chunky.spell(button, tone, parts)
 	end
 	SoundFx.play("new_item")
 end
@@ -627,7 +639,9 @@ local function slot(
 	icon: string?,
 	locked: boolean,
 	action: () -> (),
-	tier: string?
+	tier: string?,
+	--[[ The slot being chosen for: ringed in gold. ]]
+	selected: boolean?
 ): Frame
 	local holder = Instance.new("Frame")
 	holder.Name = words:gsub(" ", "") .. "Slot"
@@ -647,6 +661,7 @@ local function slot(
 	if filled then
 		Chunky.gleam(tile, x * 0.003 + y * 0.002)
 		Chunky.tier(tile, tier)
+		Chunky.grand(tile, rarity, tier)
 	elseif locked then
 		local lock = Kit.image(tile, ShopAssets.lock)
 		lock.Position, lock.Size = UDim2.fromScale(0.25, 0.22), UDim2.fromScale(0.5, 0.5)
@@ -654,6 +669,9 @@ local function slot(
 	else
 		local plus = Chunky.text(tile, "+", Chunky.inkSoft, 0)
 		plus.Position, plus.Size = UDim2.fromScale(0.25, 0.18), UDim2.fromScale(0.5, 0.56)
+	end
+	if selected then
+		Chunky.select(tile)
 	end
 	Chunky.press(holder, function()
 		if not Reveal.busy() then
@@ -804,7 +822,8 @@ local function draw(s: StationScreen.Screen)
 		weaponArt(equipped),
 		false,
 		reopen("GEAR"),
-		if tiered(equipped, false) then held or "C" else nil
+		if tiered(equipped, false) then held or "C" else nil,
+		tab == "GEAR"
 	)
 	-- the trail worn (`Config/Trails`), "+" while none is
 	local worn = p and p.equippedTrail and Trails.trails[p.equippedTrail]
@@ -817,8 +836,23 @@ local function draw(s: StationScreen.Screen)
 		if worn then worn.rarity else nil,
 		if worn then worn.icon else nil,
 		false,
-		reopen("TRAILS")
+		reopen("TRAILS"),
+		nil,
+		tab == "TRAILS"
 	)
+	--[[ The pet slot a pick from the grid goes into: the one pressed, else
+	     the first empty one, else the first (as the grid's EQUIP does). ]]
+	local petTarget = 1
+	if preferredPetSlot and preferredPetSlot <= openSlots then
+		petTarget = preferredPetSlot
+	else
+		for free = 1, openSlots do
+			if not (p and p.equippedPets[free]) then
+				petTarget = free
+				break
+			end
+		end
+	end
 	local petSlots: { GuiObject } = {}
 	for index = 1, SaveSchema.PET_SLOTS do
 		local open = index <= openSlots
@@ -842,7 +876,8 @@ local function draw(s: StationScreen.Screen)
 				tab = "PETS"
 				s.open()
 			end,
-			if key then MergeRules.best(p and p.tiers.pets[key]) or "C" else nil
+			if key then MergeRules.best(p and p.tiers.pets[key]) or "C" else nil,
+			tab == "PETS" and open and index == petTarget
 		)
 	end
 
@@ -946,6 +981,16 @@ local function draw(s: StationScreen.Screen)
 		end
 	end
 	grid:GetPropertyChangedSignal("AbsoluteSize"):Connect(layout)
+	--[[ The gold ring on the box last pressed (`picked`): put on at once,
+	     with no redraw, and taken off the one before. ]]
+	local pickedRing: Frame? = nil
+	local function pick(id: string, tile: GuiObject)
+		if pickedRing then
+			pickedRing:Destroy()
+		end
+		picked = id
+		pickedRing = Chunky.select(tile)
+	end
 	local function cellAt(n: number): Frame
 		local holder = Instance.new("Frame")
 		holder.BackgroundTransparency = 1
@@ -1005,7 +1050,8 @@ local function draw(s: StationScreen.Screen)
 			local tile = Chunky.tile(holder, trail.rarity, trail.icon, nil, false, isWorn)
 			if owned then
 				Chunky.gleam(tile, i * 0.37)
-				if trail.glow then
+				Chunky.grand(tile, trail.rarity, nil)
+				if trail.glow and GearGlory.rank(trail.rarity, nil) < 1 then
 					Chunky.twinkle(tile)
 				end
 			else
@@ -1013,8 +1059,12 @@ local function draw(s: StationScreen.Screen)
 				lock.Position, lock.Size = UDim2.fromScale(0.6, 0.56), UDim2.fromScale(0.34, 0.34)
 				lock.ZIndex = 13
 			end
+			if picked == "trail:" .. key then
+				pickedRing = Chunky.select(tile)
+			end
 			Chunky.press(holder, function()
 				if p and not Reveal.busy() then
+					pick("trail:" .. key, tile)
 					trailDetails(sheet, key, p)
 				end
 			end)
@@ -1040,11 +1090,15 @@ local function draw(s: StationScreen.Screen)
 			isEquipped,
 			if isPet and entry.icon == "" then entry.key else nil
 		)
+		local id = (if isPet then "pet:" else "weapon:") .. entry.key
 		if entry.owned then
 			Chunky.gleam(tile, i * 0.37)
-			if tiered(entry.key, isPet) then
-				Chunky.tier(tile, MergeRules.best(entry.tiers) or "C")
-			end
+			local best = if tiered(entry.key, isPet)
+				then MergeRules.best(entry.tiers) or "C"
+				else nil
+			Chunky.tier(tile, best)
+			-- a Legendary, a Mythic or a high tier is drawn grand
+			Chunky.grand(tile, entry.rarity, best)
 		else
 			local lock = Kit.image(tile, ShopAssets.lock)
 			lock.Position, lock.Size = UDim2.fromScale(0.6, 0.56), UDim2.fromScale(0.34, 0.34)
@@ -1081,8 +1135,12 @@ local function draw(s: StationScreen.Screen)
 				end
 			end)
 		end
+		if picked == id then
+			pickedRing = Chunky.select(tile)
+		end
 		Chunky.press(holder, function()
 			if not Reveal.busy() then
+				pick(id, tile)
 				openDetails()
 			end
 		end)

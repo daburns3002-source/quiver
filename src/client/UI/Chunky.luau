@@ -39,13 +39,19 @@
 	as the mockup's at any screen size.
 ]]
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TextService = game:GetService("TextService")
 local TweenService = game:GetService("TweenService")
+local GearAssets = require(ReplicatedStorage.Shared.Config.GearAssets)
+local GearGlory = require(ReplicatedStorage.Shared.Util.GearGlory)
 local Kit = require(script.Parent.Kit)
 local Palette = require(ReplicatedStorage.Shared.Config.UiPalette)
 local ShopAssets = require(ReplicatedStorage.Shared.Config.ShopAssets)
 local SoundFx = require(script.Parent.Parent.Fx.SoundFx)
 local UiContrast = require(ReplicatedStorage.Shared.Util.UiContrast)
 local Chunky = {}
+
+--[[ One piece of what `Chunky.spell` says: words, or a merge tier's badge. ]]
+export type Part = string | { tier: string }
 
 --[[ The smallest a pressable's hit area may be, in screen points. ]]
 local MIN_TOUCH = 48
@@ -893,14 +899,30 @@ end
 	tier there is no colour for.
 ]]
 function Chunky.tier(tile: GuiObject, tier: string?): Frame?
+	local badge = Chunky.badge(tile, tier)
+	if not badge then
+		return nil
+	end
+	badge.AnchorPoint = Vector2.new(0, 1)
+	badge.Position, badge.Size = UDim2.fromScale(0.05, 0.95), UDim2.fromScale(0.3, 0.3)
+	local chip = tile:FindFirstChild("Caption")
+	if chip and chip:IsA("GuiObject") then
+		chip.Position, chip.Size = UDim2.fromScale(0.38, 0.75), UDim2.fromScale(0.56, 0.2)
+	end
+	return badge
+end
+
+--[[ A merge tier's badge by itself: the square with its letter, in the
+     tier's own colour, filling its box (`Chunky.tier` puts one on a tile's
+     corner; `Chunky.spell` sets one among a button's words). Nil for no
+     tier. ]]
+function Chunky.badge(parent: GuiObject, tier: string?): Frame?
 	local look = if tier then Palette.tier[tier] else nil
 	if not tier or not look then
 		return nil
 	end
-	local badge = fill(tile, Color3.new(1, 1, 1), 14)
+	local badge = fill(parent, Color3.new(1, 1, 1), 14)
 	badge.Name = "Tier"
-	badge.AnchorPoint = Vector2.new(0, 1)
-	badge.Position, badge.Size = UDim2.fromScale(0.05, 0.95), UDim2.fromScale(0.3, 0.3)
 	gradient(badge, look.top, look.bottom)
 	local square = Instance.new("UIAspectRatioConstraint")
 	square.Parent = badge
@@ -912,11 +934,211 @@ function Chunky.tier(tile: GuiObject, tier: string?): Frame?
 	letter.Name = "Letter"
 	letter.Position, letter.Size = UDim2.fromScale(0.12, 0.04), UDim2.fromScale(0.76, 0.92)
 	letter.ZIndex = 15
-	local chip = tile:FindFirstChild("Caption")
-	if chip and chip:IsA("GuiObject") then
-		chip.Position, chip.Size = UDim2.fromScale(0.38, 0.75), UDim2.fromScale(0.56, 0.2)
+	--[[ A high tier shows it (owner, 2026-11-14: "it should feel more grand
+	     to own a ... high merge tier"): A and S carry a shine that sweeps
+	     them, and S swells and settles like a heartbeat. ]]
+	if GearGlory.rank(nil, tier) >= 1 then
+		Chunky.gleam(badge, 0.7)
+	end
+	if GearGlory.rank(nil, tier) >= 2 then
+		local beat = Instance.new("UIScale")
+		beat.Parent = badge
+		Kit.animate(badge, function(t)
+			beat.Scale = 1 + 0.1 * math.max(0, math.sin(t * 4)) ^ 3
+		end)
 	end
 	return badge
+end
+
+--[[
+	Says something on a `Chunky.button` of `colour` with tier badges among
+	the words (owner, 2026-11-14, of Gear's MERGE button: "where it says
+	merge c to b it should have the actual letter icons for c and b"): each
+	part is words or `{ tier = "C" }`, set in one row in the middle of the
+	button's face, the words as wide as they measure and each badge a
+	square as tall as the row. Takes the place of the button's own words.
+]]
+function Chunky.spell(button: Frame, colour: Color3, parts: { Part })
+	local face = button:FindFirstChild("Face", true)
+	if not (face and face:IsA("GuiObject")) then
+		return
+	end
+	local own = face:FindFirstChild("Words")
+	if own and own:IsA("GuiObject") then
+		own.Visible = false
+	end
+	local look = Chunky.face(colour)
+	local GAP, TALL = 0.26, 0.9
+	-- every width in row heights
+	local widths: { number } = {}
+	local total = 0
+	for i, part in parts do
+		local wide = 1
+		if type(part) == "string" then
+			local size = TextService:GetTextSize(part, 100, Chunky.font, Vector2.new(10000, 1000))
+			wide = size.X / math.max(size.Y, 1) * TALL * 1.06
+		end
+		widths[i] = wide
+		total += wide + (if i > 1 then GAP else 0)
+	end
+	local row = Instance.new("Frame")
+	row.Name = "Spelled"
+	row.BackgroundTransparency = 1
+	row.AnchorPoint = Vector2.new(0.5, 0.5)
+	row.Position, row.Size = UDim2.fromScale(0.5, 0.5), UDim2.fromScale(0.9, 0.72)
+	row.ZIndex = 13
+	row.Parent = face
+	local shape = Instance.new("UIAspectRatioConstraint")
+	shape.AspectRatio = math.max(total, 0.1)
+	shape.Parent = row
+	local x = 0
+	for i, part in parts do
+		if i > 1 then
+			x += GAP
+		end
+		local wide = widths[i]
+		if type(part) == "string" then
+			local t = Chunky.text(row, part, look.text, if look.stroke then 5 else 0, look.stroke)
+			t.Position = UDim2.fromScale(x / total, (1 - TALL) / 2)
+			t.Size = UDim2.fromScale(wide / total, TALL)
+		else
+			local box = Instance.new("Frame")
+			box.Name = "Badge"
+			box.BackgroundTransparency = 1
+			box.Position, box.Size = UDim2.fromScale(x / total, 0), UDim2.fromScale(wide / total, 1)
+			box.ZIndex = 13
+			box.Parent = row
+			Chunky.badge(box, part.tier)
+		end
+		x += wide
+	end
+end
+
+--[[
+	The grand look of an owned Legendary, Mythic or high merge tier (owner,
+	2026-11-14: "it should feel more grand to own a mythic, legendary or
+	high merge tier"), by `Util/GearGlory.rank`: behind the picture, rays
+	that turn and a glow that breathes, clipped to the tile's own shape;
+	sparkles on its corners; and at the top rank, brighter and faster, with
+	stars rising off it and the picture itself breathing. A Mythic's rays
+	run round the rainbow; anything else takes its rarity's colour, or its
+	tier's when the tier is what makes it grand. Does nothing for a plain
+	item, so every tile may call it.
+]]
+function Chunky.grand(tile: GuiObject, rarity: string?, tier: string?)
+	local rank = GearGlory.rank(rarity, tier)
+	if rank < 1 then
+		return
+	end
+	local strong = rank >= 2
+	local byTier = GearGlory.rank(nil, tier) > GearGlory.rank(rarity, nil)
+	local wash = Chunky.rarityTile[rarity or "Common"] or Chunky.rarityTile.Common
+	local tierLook = if tier then Palette.tier[tier] else nil
+	local tone = if byTier and tierLook then tierLook.top else wash.frame
+	local bright = tone:Lerp(Color3.new(1, 1, 1), 0.4)
+	local rainbow = rarity == "Mythic" and not byTier
+
+	local back = Instance.new("CanvasGroup")
+	back.Name = "Grand"
+	back.BackgroundTransparency = 1
+	back.Position, back.Size = UDim2.fromScale(0.03, 0.03), UDim2.fromScale(0.94, 0.94)
+	back.ZIndex = 7
+	back.Parent = tile
+	Chunky.round(back, 14)
+	local rays = Kit.image(back, GearAssets.fx.rays)
+	rays.Name = "Rays"
+	rays.AnchorPoint = Vector2.new(0.5, 0.5)
+	rays.Position, rays.Size = UDim2.fromScale(0.5, 0.42), UDim2.fromScale(1.8, 1.8)
+	rays.ScaleType = Enum.ScaleType.Stretch
+	rays.ImageColor3 = bright
+	rays.ImageTransparency = if strong then 0.3 else 0.5
+	local glow = Kit.image(back, GearAssets.fx.glow)
+	glow.Name = "Glow"
+	glow.AnchorPoint = Vector2.new(0.5, 0.5)
+	glow.Position, glow.Size = UDim2.fromScale(0.5, 0.42), UDim2.fromScale(0.9, 0.9)
+	glow.ScaleType = Enum.ScaleType.Stretch
+	glow.ImageColor3 = bright
+
+	Chunky.twinkle(tile)
+
+	local stars: { ImageLabel } = {}
+	if strong then
+		for n = 1, 4 do
+			local star = Kit.image(tile, GearAssets.fx.star)
+			star.Name = "RisingStar"
+			star.AnchorPoint = Vector2.new(0.5, 0.5)
+			star.Size = UDim2.fromScale(0.16, 0.16)
+			star.ImageColor3 = bright
+			star.ZIndex = 16
+			stars[n] = star
+		end
+	end
+	--[[ The picture breathes from its middle, not from its corner. ]]
+	local breath: UIScale? = nil
+	local picture = tile:FindFirstChild("Picture")
+	if strong and picture and picture:IsA("GuiObject") then
+		local size = picture.Size
+		local at = picture.Position
+		picture.AnchorPoint = Vector2.new(0.5, 0.5)
+		picture.Position =
+			UDim2.fromScale(at.X.Scale + size.X.Scale / 2, at.Y.Scale + size.Y.Scale / 2)
+		local scale = Instance.new("UIScale")
+		scale.Parent = picture
+		breath = scale
+	end
+
+	-- out of step with its neighbours
+	local phase = math.random() * 6.28
+	local turn = if strong then 34 else 16
+	local quick = if strong then 3.2 else 2
+	Kit.animate(back, function(t)
+		rays.Rotation = (t * turn + phase * 57) % 360
+		local pulse = 0.5 + 0.5 * math.sin(t * quick + phase)
+		glow.ImageTransparency = (if strong then 0.2 else 0.4) + 0.3 * (1 - pulse)
+		local wide = 0.82 + 0.22 * pulse
+		glow.Size = UDim2.fromScale(wide, wide)
+		if rainbow then
+			local hue = Color3.fromHSV((t * 0.15 + phase) % 1, 0.45, 1)
+			rays.ImageColor3 = hue
+			glow.ImageColor3 = hue
+		end
+		if breath then
+			breath.Scale = 1 + 0.05 * pulse
+		end
+		for n, star in stars do
+			local life = (t * 0.55 + n * 0.25 + phase) % 1
+			star.Position =
+				UDim2.fromScale(0.18 + 0.21 * n + 0.04 * math.sin(t * 2 + n), 0.86 - 0.8 * life)
+			star.ImageTransparency = math.clamp(math.abs(life - 0.5) * 2, 0, 1) ^ 2
+			star.Rotation = t * 60 + n * 40
+		end
+	end)
+end
+
+--[[ A gold ring round the piece the player has just pressed or is choosing
+     for (owner, 2026-11-14: "when you click on the box in the gear screen
+     it should highlight so the player knows which box they are
+     clicking"): thick, and gently pulsing so it reads as live. ]]
+function Chunky.select(item: GuiObject): Frame
+	local ring = Instance.new("Frame")
+	ring.Name = "Selected"
+	ring.BackgroundTransparency = 1
+	ring.Size = UDim2.fromScale(1, 1)
+	ring.ZIndex = item.ZIndex + 25
+	ring.Parent = item
+	Chunky.round(ring, 18)
+	local stroke = Chunky.outline(ring, 11, Chunky.gold)
+	local inner = Instance.new("Frame")
+	inner.BackgroundTransparency = 1
+	inner.Position, inner.Size = UDim2.fromScale(0.03, 0.03), UDim2.fromScale(0.94, 0.94)
+	inner.ZIndex = ring.ZIndex
+	inner.Parent = ring
+	Chunky.round(inner, 14)
+	Chunky.outline(inner, 4, Color3.new(1, 1, 1))
+	Kit.animate(ring, function(t)
+		stroke.Transparency = 0.3 * (0.5 + 0.5 * math.sin(t * 5))
+	end)
+	return ring
 end
 
 --[[ Makes any piece pressable the way the kit's buttons are: it swells a

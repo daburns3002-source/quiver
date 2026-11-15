@@ -1158,6 +1158,10 @@ function EndScreen.show(summary: Summary)
 	     ready is read before the jump, so the tap that skips is never also
 	     taken as a press. ]]
 	local readyAtTap = false
+	--[[ And whether a reveal or the three chests were up as the tap began:
+	     the tap that hurries a reveal along is never also a press, even if
+	     the reveal is gone by the time the tap ends. ]]
+	local busyAtTap = false
 	inputConnection = UserInputService.InputBegan:Connect(function(input: InputObject)
 		local kind = input.UserInputType
 		if
@@ -1166,6 +1170,7 @@ function EndScreen.show(summary: Summary)
 			or input.KeyCode == Enum.KeyCode.ButtonA
 		then
 			readyAtTap = played.ready()
+			busyAtTap = Reveal.busy() or VictoryChests.busy()
 			played.skip()
 		end
 	end)
@@ -1180,7 +1185,7 @@ function EndScreen.show(summary: Summary)
 	end
 	button.Activated:Connect(function()
 		-- never under the free egg's reveal (a gamepad's A reaches both)
-		if pressed or not readyAtTap or held() then
+		if pressed or not readyAtTap or busyAtTap or held() then
 			return
 		end
 		pressed = true
@@ -1198,7 +1203,7 @@ function EndScreen.show(summary: Summary)
 	--[[ Straight away, unlike the main button: the server has no wait on
 	     leaving. Coins and a beaten level were banked as the run ended. ]]
 	lobbyPress.Activated:Connect(function()
-		if pressed or not readyAtTap or held() then
+		if pressed or not readyAtTap or busyAtTap or held() then
 			return
 		end
 		pressed = true

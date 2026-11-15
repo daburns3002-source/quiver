@@ -5,6 +5,14 @@
 	list (`Config/Rewards`), in the chunky kit, opened from a REWARDS button
 	in the lobby and by itself once a day when the calendar has a gift.
 
+	Three tabs since 2026-11-14 (owner: "the quests tab is too cluttered",
+	"the quests need to be clearer"): DAILY, the calendar; QUESTS, today's
+	three with the chest for claiming them all; GOALS, the starter steps.
+	Each tab wears the count of what waits on it. A row is a picture of
+	what to do, the words, the bar with its numbers on it, what it pays, and
+	one button: CLAIM, GO (a gold arrow to where it is done,
+	`Fx/QuestPointer`) or DONE. CLAIM ALL takes everything owed at once.
+
 	It only draws and asks. What is owed is worked out with the same pure
 	rules the server uses (`Util/RewardRules`) from the profile the server
 	sent and the day the server published (`RewardDay` on the Player); a
@@ -21,10 +29,14 @@ local TweenService = game:GetService("TweenService")
 local Workspace = game:GetService("Workspace")
 
 local Chunky = require(script.Parent.Chunky)
+local EndScreenAssets = require(ReplicatedStorage.Shared.Config.EndScreenAssets)
+local GearAssets = require(ReplicatedStorage.Shared.Config.GearAssets)
 local HatchStand = require(script.Parent.HatchStand)
 local Kit = require(script.Parent.Kit)
 local PortalScreen = require(script.Parent.PortalScreen)
+local QuestPointer = require(script.Parent.Parent.Fx.QuestPointer)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
+local Reveal = require(script.Parent.Reveal)
 local RewardRules = require(ReplicatedStorage.Shared.Util.RewardRules)
 local Rewards = require(ReplicatedStorage.Shared.Config.Rewards)
 local RunPaused = require(script.Parent.Parent.RunPaused)
@@ -38,6 +50,11 @@ local player = Players.LocalPlayer
 local screen: StationScreen.Screen? = nil
 --[[ The day the screen last opened by itself, so it does so once a day. ]]
 local shownFor = 0
+--[[ The tabs, and the one showing: nil until the screen picks one as it
+     opens from its button (`draw`). ]]
+type Tab = string
+local TABS: { Tab } = { "DAILY", "QUESTS", "GOALS" }
+local tab: Tab? = nil
 
 local function today(): number
 	local day = player:GetAttribute("RewardDay")
@@ -47,6 +64,7 @@ end
 function RewardsScreen.open()
 	local s = screen
 	if s then
+		tab = nil
 		Remotes.event(Remotes.ProfileRequest):FireServer()
 		StationScreen.openShortcut(s.open)
 	end
@@ -114,52 +132,103 @@ local function giftAt(
 	end
 end
 
---[[ One quest or starter step: what to do, how far along, what it pays,
-     and CLAIM once it is owed. ]]
-local function row(
-	sheet: Chunky.Sheet,
-	x: number,
-	y: number,
-	w: number,
-	h: number,
+--[[ The picture beside each kind of quest and starter step: what it asks
+     for, drawn rather than read (owner, 2026-11-14: "the quests need to be
+     clearer"). Existing 2D art only. ]]
+local PICTURES: { [string]: string } = {
+	kills = EndScreenAssets.skull,
+	coins = ShopAssets.coin,
+	levels = EndScreenAssets.heroVictory,
+	bosses = ShopAssets.items.RoyalJelly,
+	hatches = GearAssets.areaPictures.eggs.MossyGlade,
+	crates = GearAssets.areaPictures.chests.MossyGlade,
+}
+
+--[[ One quest or starter step. ]]
+type Row = {
+	--[[ The kind it is, for its picture (`PICTURES`). ]]
+	kind: string,
 	title: string,
 	have: number,
 	goal: number,
 	gift: Rewards.Gift,
 	claimed: boolean,
-	onClaim: () -> ()
+	onClaim: () -> (),
+	--[[ Where it is done, for GO (`Fx/QuestPointer`); nil for no GO. ]]
+	place: string?,
+}
+
+--[[ Rows in the order they matter: what can be claimed, what is still to
+     do, and what is done, each group in the order given. ]]
+local function sorted(rows: { Row }): { Row }
+	local function rank(r: Row): number
+		return if r.claimed then 3 elseif r.have >= r.goal then 1 else 2
+	end
+	local out: { Row } = {}
+	for wanted = 1, 3 do
+		for _, r in rows do
+			if rank(r) == wanted then
+				table.insert(out, r)
+			end
+		end
+	end
+	return out
+end
+
+--[[ One quest or starter step: its picture, what to do, how far along on
+     the bar itself, what it pays, and one button: CLAIM once it is owed, GO
+     to be shown where it is done, DONE once it is claimed. ]]
+local function row(
+	s: StationScreen.Screen,
+	sheet: Chunky.Sheet,
+	x: number,
+	y: number,
+	w: number,
+	h: number,
+	spec: Row
 )
 	local card = Chunky.card(sheet, x, y, w, h)
-	local ready = have >= goal and not claimed
-	local buttonW, giftW = 176, 150
-	local left = w - buttonW - giftW - 60
-	words(sheet, title, x + 22, y + h * 0.1, left, h * 0.38)
-	local barW = left - 130
-	Chunky.bar(
+	local ready = spec.have >= spec.goal and not spec.claimed
+	local buttonW, giftW = 190, 150
+	local size = h - 28
+	icon(sheet, PICTURES[spec.kind] or ShopAssets.gem, x + 16, y + 14, size)
+	local tx = x + 16 + size + 18
+	local left = w - (tx - x) - buttonW - giftW - 48
+	words(sheet, spec.title, tx, y + h * 0.1, left, h * 0.36)
+	local trough = Chunky.bar(
 		sheet,
-		if claimed then 1 else have / goal,
-		if claimed then Chunky.grey else Chunky.green,
-		x + 22,
-		y + h * 0.58,
-		barW,
-		h * 0.26
-	)
-	words(
-		sheet,
-		`{Chunky.commas(math.min(have, goal))}/{Chunky.commas(goal)}`,
-		x + 22 + barW + 12,
+		if spec.claimed then 1 else spec.have / spec.goal,
+		if spec.claimed then Chunky.grey else Chunky.green,
+		tx,
 		y + h * 0.54,
-		118,
-		h * 0.34
+		left,
+		h * 0.32
 	)
-	giftAt(sheet, gift, x + w - buttonW - giftW - 30, y + 8, giftW, h - 16)
-	local bx, by, bh = x + w - buttonW - 18, y + (h - 76) / 2, 76
-	if claimed then
+	local count = Chunky.text(
+		trough,
+		`{Chunky.commas(math.min(spec.have, spec.goal))} / {Chunky.commas(spec.goal)}`,
+		Chunky.white,
+		4
+	)
+	count.Position, count.Size = UDim2.fromScale(0.1, 0.08), UDim2.fromScale(0.8, 0.84)
+	giftAt(sheet, spec.gift, x + w - buttonW - giftW - 30, y + 8, giftW, h - 16)
+	local bh = math.min(84, h - 36)
+	local bx, by = x + w - buttonW - 18, y + (h - bh) / 2
+	if spec.claimed then
 		card.BackgroundColor3 = Chunky.pale
-		words(sheet, "DONE", bx, by + 16, buttonW, bh - 32, Enum.TextXAlignment.Center).TextColor3 =
+		words(sheet, "DONE", bx, by + bh * 0.2, buttonW, bh * 0.6, Enum.TextXAlignment.Center).TextColor3 =
 			Chunky.inkSoft
 	elseif ready then
-		Chunky.gleam(Chunky.button(sheet, "CLAIM", Chunky.green, bx, by, buttonW, bh, onClaim))
+		Chunky.gleam(Chunky.button(sheet, "CLAIM", Chunky.green, bx, by, buttonW, bh, spec.onClaim))
+	elseif spec.place then
+		local place = spec.place
+		Chunky.button(sheet, "GO", Chunky.blue, bx, by, buttonW, bh, function()
+			--[[ The screen goes and a gold arrow shows where: nothing is
+			     started for the player. ]]
+			if QuestPointer.show(place, spec.title) then
+				s.close()
+			end
+		end)
 	end
 end
 
@@ -232,22 +301,17 @@ local function untilReset(): string
 	return `{left // 3600}H {left % 3600 // 60}M`
 end
 
-local function draw(s: StationScreen.Screen)
-	local area = HatchStand.chrome(s, "REWARDS")
-	local sheet = area.sheet
-	local profile = s.profile
-	if not profile or not (profile :: any).rewards then
-		words(sheet, "LOADING...", area.x, area.y + 200, area.w, 80, Enum.TextXAlignment.Center)
-		return
-	end
-	local p = profile :: SaveSchema.Profile
-	local r = p.rewards
-	local day = today()
+--[[ The seven squares of the calendar, from (x, y) down; returns where
+     they end. ]]
+local function calendar(
+	sheet: Chunky.Sheet,
+	r: SaveSchema.RewardState,
+	day: number,
+	x: number,
+	y: number,
+	w: number
+): number
 	local up = sheet.upright
-	local x, y, w = area.x, area.y, area.w
-
-	-- the calendar
-	words(sheet, "DAILY LOGIN", x, y, 520, 44)
 	local ready = RewardRules.loginReady(r, day)
 	local slot = RewardRules.loginSlot(r)
 	-- day 7 taken today: the whole week stays filled in until tomorrow
@@ -264,11 +328,9 @@ local function draw(s: StationScreen.Screen)
 		end
 		return "later"
 	end
-	local cy = y + 52
-	local below: number
 	if up then
 		local gap = 14
-		local cw, ch = (w - 3 * gap) / 4, 222
+		local cw, ch = (w - 3 * gap) / 4, 300
 		for index = 1, #Rewards.calendar do
 			local col, line = (index - 1) % 4, (index - 1) // 4
 			-- day 7, the big one, takes the last two places of its line
@@ -276,74 +338,248 @@ local function draw(s: StationScreen.Screen)
 			dayCard(
 				sheet,
 				x + col * (cw + gap),
-				cy + line * (ch + gap),
+				y + line * (ch + gap),
 				wide,
 				ch,
 				index,
 				stateOf(index)
 			)
 		end
-		below = cy + 2 * ch + gap + 22
-	else
-		local gap = 16
-		local cw, ch = (w - 6 * gap) / 7, 250
-		for index = 1, #Rewards.calendar do
-			dayCard(sheet, x + (index - 1) * (cw + gap), cy, cw, ch, index, stateOf(index))
-		end
-		below = cy + ch + 20
+		return y + 2 * ch + gap
 	end
+	local gap = 16
+	local cw, ch = (w - 6 * gap) / 7, 330
+	for index = 1, #Rewards.calendar do
+		dayCard(sheet, x + (index - 1) * (cw + gap), y, cw, ch, index, stateOf(index))
+	end
+	return y + ch
+end
 
-	-- today's quests, and the starter list beside (or under) them
-	local colW = if up then w else (w - 18) / 2
-	local rowH, rowGap = if up then 108 else 104, 12
-	words(sheet, "DAILY QUESTS", x, below, 420, 44)
+--[[ The chest for claiming all three quests (`Rewards.bonus`): its picture,
+     what it asks, a pip for each quest claimed, and CLAIM once it is owed. ]]
+local function bonusBar(
+	sheet: Chunky.Sheet,
+	r: SaveSchema.RewardState,
+	day: number,
+	x: number,
+	y: number,
+	w: number,
+	h: number
+)
+	local up = sheet.upright
+	local card = Chunky.card(sheet, x, y, w, h)
+	local opened = RewardRules.bonusClaimed(r, day)
+	local owed = RewardRules.bonusReady(r, day)
+	local kind = RewardRules.bonusKind(day)
+	local art = if kind == "Egg"
+		then GearAssets.areaPictures.eggs.MossyGlade
+		else GearAssets.areaPictures.chests.MossyGlade
+	local size = if up then 150 else h - 24
+	icon(sheet, art, x + 16, y + (if up then 16 else 12), size)
+	local tx = x + 16 + size + 20
+	local buttonW = 190
+	local textW = if up then w - (tx - x) - 20 else w - (tx - x) - buttonW - 330
+	if opened then
+		card.BackgroundColor3 = Chunky.pale
+	end
 	words(
 		sheet,
-		"NEW IN " .. untilReset(),
-		x + colW - 330,
-		below + 8,
-		330,
-		32,
-		Enum.TextXAlignment.Right
+		if opened then "CHEST OPENED!" else Rewards.bonus.words,
+		tx,
+		y + (if up then 22 else h * 0.14),
+		textW,
+		if up then 56 else h * 0.4
 	)
-	local qy = below + 52
-	for index, key in RewardRules.questsFor(day) do
-		local quest = Rewards.quests[key]
-		row(
-			sheet,
-			x,
-			qy + (index - 1) * (rowH + rowGap),
-			colW,
-			rowH,
-			string.format(quest.words, quest.goal),
-			RewardRules.progress(r, day, key),
-			quest.goal,
-			{ gems = quest.gems, coins = quest.coins },
-			RewardRules.questClaimed(r, day, key),
-			function()
-				claim("quest", key)
-			end
+	words(
+		sheet,
+		"NEW QUESTS IN " .. untilReset(),
+		tx,
+		y + (if up then 86 else h * 0.58),
+		textW,
+		if up then 36 else h * 0.26
+	).TextColor3 =
+		Chunky.inkSoft
+	-- a pip for each quest claimed today
+	local total = #RewardRules.questsFor(day)
+	local done = RewardRules.questsClaimed(r, day)
+	local pip = if up then 58 else 62
+	local px = if up then tx else x + w - buttonW - 40 - total * (pip + 14)
+	local py = if up then y + h - pip - 22 else y + (h - pip) / 2
+	for index = 1, total do
+		local dot = Instance.new("Frame")
+		dot.Name = "Pip"
+		dot.BorderSizePixel = 0
+		dot.BackgroundColor3 = if index <= done then Chunky.lime else Chunky.trough
+		dot.ZIndex = 30
+		Chunky.put(sheet, dot, px + (index - 1) * (pip + 14), py, pip, pip)
+		Chunky.round(dot, pip)
+		Chunky.outline(dot, 5)
+	end
+	local bh = if up then 84 else math.min(84, h - 36)
+	local bx = x + w - buttonW - 18
+	local by = if up then y + h - bh - 18 else y + (h - bh) / 2
+	if owed then
+		Chunky.gleam(Chunky.button(sheet, "OPEN", Chunky.gold, bx, by, buttonW, bh, function()
+			claim("bonus")
+		end))
+	end
+end
+
+local function draw(s: StationScreen.Screen)
+	local profile = s.profile
+	local loaded = profile ~= nil and (profile :: any).rewards ~= nil
+	local day = today()
+	--[[ The tab the screen opens on: the calendar when it has a gift, the
+	     quests otherwise. It stays where the player put it until the
+	     screen is opened again from its button. ]]
+	local showing: Tab = tab
+		or (
+			if loaded
+					and RewardRules.loginReady((profile :: SaveSchema.Profile).rewards, day)
+				then "DAILY"
+				else "QUESTS"
 		)
+	tab = showing
+	local modes = {}
+	for _, name in TABS do
+		table.insert(modes, {
+			words = name,
+			on = showing == name,
+			pick = function()
+				if tab ~= name then
+					tab = name
+					s.open()
+				end
+			end,
+		})
+	end
+	local area = HatchStand.chrome(s, "REWARDS", modes)
+	local sheet = area.sheet
+	if not loaded then
+		words(sheet, "LOADING...", area.x, area.y + 200, area.w, 80, Enum.TextXAlignment.Center)
+		return
+	end
+	local p = profile :: SaveSchema.Profile
+	local r = p.rewards
+	local up = sheet.upright
+	local x, y, w = area.x, area.y, area.w
+
+	-- how many rewards wait on each tab, on its corner
+	local waiting = RewardRules.readyBy(p, day)
+	local counts: { [Tab]: number } =
+		{ DAILY = waiting.daily, QUESTS = waiting.quests, GOALS = waiting.goals }
+	local tabW, tabX, tabY = if up then 300 else 250, if up then 70 else 190, y - 108
+	for index, name in TABS do
+		if counts[name] > 0 then
+			local dot = Instance.new("Frame")
+			dot.Name = "TabBadge"
+			dot.BorderSizePixel = 0
+			dot.BackgroundColor3 = Chunky.red
+			dot.ZIndex = 45
+			Chunky.put(sheet, dot, tabX + (index - 1) * (tabW + 18) + tabW - 34, tabY - 14, 48, 48)
+			Chunky.round(dot, 24)
+			Chunky.outline(dot, 5)
+			local n = Chunky.textOn(dot, tostring(counts[name]), Chunky.red, 3)
+			n.Position, n.Size = UDim2.fromScale(0.15, 0.12), UDim2.fromScale(0.7, 0.76)
+			n.ZIndex = 46
+		end
 	end
 
-	local sx = if up then x else x + colW + 18
-	local sy = if up then qy + 3 * (rowH + rowGap) + 12 else below
-	words(sheet, "GETTING STARTED", sx, sy, 520, 44)
-	for index, entry in Rewards.starter do
-		row(
+	local rowH, rowGap = if up then 170 else 140, 14
+	local function list(rows: { Row }, from: number, height: number?)
+		local tall = height or rowH
+		for index, spec in sorted(rows) do
+			row(s, sheet, x, from + (index - 1) * (tall + rowGap), w, tall, spec)
+		end
+	end
+
+	if showing == "DAILY" then
+		words(sheet, "A GIFT EVERY DAY YOU PLAY", x, y, w, 44)
+		local below = calendar(sheet, r, day, x, y + 56, w)
+		words(
 			sheet,
-			sx,
-			sy + 52 + (index - 1) * (rowH + rowGap),
-			colW,
-			rowH,
-			entry.words,
-			if RewardRules.starterDone(p, entry.key) then 1 else 0,
-			1,
-			{ gems = entry.gems, coins = entry.coins },
-			r.starterClaimed[entry.key] == true,
-			function()
-				claim("starter", entry.key)
+			"MISS A DAY AND YOU KEEP YOUR PLACE",
+			x,
+			below + 18,
+			w,
+			36,
+			Enum.TextXAlignment.Center
+		).TextColor3 =
+			Chunky.inkSoft
+	elseif showing == "QUESTS" then
+		local barH = if up then 240 else 150
+		bonusBar(sheet, r, day, x, y, w, barH)
+		local rows: { Row } = {}
+		for _, key in RewardRules.questsFor(day) do
+			local quest = Rewards.quests[key]
+			table.insert(rows, {
+				kind = quest.kind,
+				title = string.format(quest.words, quest.goal),
+				have = RewardRules.progress(r, day, key),
+				goal = quest.goal,
+				gift = { gems = quest.gems, coins = quest.coins },
+				claimed = RewardRules.questClaimed(r, day, key),
+				onClaim = function()
+					claim("quest", key)
+				end,
+				place = Rewards.places[quest.kind],
+			})
+		end
+		list(rows, y + barH + 16)
+	else
+		if RewardRules.starterFinished(p) then
+			words(
+				sheet,
+				"ALL DONE! MORE GOALS ARE ON THE WAY",
+				x,
+				y + 120,
+				w,
+				64,
+				Enum.TextXAlignment.Center
+			)
+		else
+			words(sheet, "GETTING STARTED", x, y, w, 44)
+			local rows: { Row } = {}
+			for _, entry in Rewards.starter do
+				table.insert(rows, {
+					kind = entry.kind,
+					title = entry.words,
+					have = if RewardRules.starterDone(p, entry.key) then 1 else 0,
+					goal = 1,
+					gift = { gems = entry.gems, coins = entry.coins },
+					claimed = r.starterClaimed[entry.key] == true,
+					onClaim = function()
+						claim("starter", entry.key)
+					end,
+					place = entry.place,
+				})
 			end
+			-- four rows, a little shorter on a wide screen, clear of CLAIM ALL
+			list(rows, y + 56, if up then 170 else 124)
+		end
+	end
+
+	--[[ CLAIM ALL, once two or more wait: the calendar, the quests and the
+	     starter steps in one press. The chest is opened by itself. ]]
+	local owed = waiting.daily + waiting.quests + waiting.goals
+	if RewardRules.bonusReady(r, day) then
+		owed -= 1
+	end
+	if owed >= 2 then
+		local bw, bh = 360, 84
+		Chunky.gleam(
+			Chunky.button(
+				sheet,
+				`CLAIM ALL ({owed})`,
+				Chunky.green,
+				x + w - bw,
+				area.bottom - bh - 4,
+				bw,
+				bh,
+				function()
+					claim("all")
+				end
+			)
 		)
 	end
 end
@@ -463,6 +699,8 @@ local function startToasts()
 	gui.Parent = player:WaitForChild("PlayerGui")
 	local canvas = Kit.canvas(gui)
 	local waiting: { { words: string, gems: number } } = {}
+	--[[ A line that pays nothing by itself (how a quest is going) is said
+	     alone, with no diamond and no "+0". ]]
 	local showing = false
 
 	local function show()
@@ -477,6 +715,10 @@ local function startToasts()
 				gems += entry.gems
 			end
 			local line = if #batch == 1 then batch[1].words else `{#batch} NEW DEX ENTRIES`
+			if gems == 0 then
+				-- quest lines: the last said is the latest
+				line = batch[#batch].words
+			end
 			local sheet = Chunky.sheet(canvas)
 			local w, h = if sheet.upright then 980 else 1000, 96
 			local x, y = (sheet.w - w) / 2, if sheet.upright then 330 else 150
@@ -489,14 +731,19 @@ local function startToasts()
 			Chunky.round(pill, h / 2)
 			Chunky.outline(pill, 6, Chunky.gold)
 			local t = Chunky.text(pill, line, nil, 4)
-			t.Position, t.Size = UDim2.fromScale(0.04, 0.2), UDim2.fromScale(0.68, 0.6)
-			t.TextXAlignment = Enum.TextXAlignment.Left
-			local gem = Kit.image(pill, ShopAssets.gem)
-			gem.Position, gem.Size = UDim2.fromScale(0.75, 0.12), UDim2.fromScale(0.08, 0.76)
-			gem.ZIndex = 30
-			local amount = Chunky.text(pill, "+" .. gems, Chunky.gold, 4)
-			amount.Position, amount.Size = UDim2.fromScale(0.84, 0.2), UDim2.fromScale(0.13, 0.6)
-			amount.TextXAlignment = Enum.TextXAlignment.Left
+			if gems > 0 then
+				t.Position, t.Size = UDim2.fromScale(0.04, 0.2), UDim2.fromScale(0.68, 0.6)
+				t.TextXAlignment = Enum.TextXAlignment.Left
+				local gem = Kit.image(pill, ShopAssets.gem)
+				gem.Position, gem.Size = UDim2.fromScale(0.75, 0.12), UDim2.fromScale(0.08, 0.76)
+				gem.ZIndex = 30
+				local amount = Chunky.text(pill, "+" .. gems, Chunky.gold, 4)
+				amount.Position, amount.Size =
+					UDim2.fromScale(0.84, 0.2), UDim2.fromScale(0.13, 0.6)
+				amount.TextXAlignment = Enum.TextXAlignment.Left
+			else
+				t.Position, t.Size = UDim2.fromScale(0.05, 0.2), UDim2.fromScale(0.9, 0.6)
+			end
 			Chunky.pop(pill)
 			task.wait(2.2)
 			local scale = pill:FindFirstChild("PopScale")
@@ -537,6 +784,20 @@ function RewardsScreen.start()
 	end)
 	startButton(s)
 	startToasts()
+	QuestPointer.start()
+	--[[ The quests' chest was opened (`Data/QuestChest`): what came out is
+	     already in the profile; this is its reveal, the hatchery's or the
+	     Blacksmith's own. ]]
+	Remotes.event(Remotes.QuestChest).OnClientEvent:Connect(function(kind, key, results)
+		if type(results) ~= "table" then
+			return
+		end
+		if kind == "Egg" and type(key) == "string" then
+			Reveal.eggs(key, results)
+		elseif kind == "Crate" and type(key) == "number" then
+			Reveal.crates(key, results)
+		end
+	end)
 end
 
 return RewardsScreen

@@ -104,6 +104,11 @@
 	so an older profile starts every class at level 1: nothing is
 	invented. A golden weapon a stored level has earned and the profile
 	does not hold is given on its next join (`Wallet.settleClassWeapons`).
+
+	Version 17 (2026-11-14, the quests' bonus chest -- `Config/Rewards`
+	`bonus`): `rewards.bonusDay`, the day the chest for finishing all
+	three quests was last opened, 0 never. An older profile has opened
+	none.
 ]]
 
 local ClassLevelRules = require(script.Parent.ClassLevelRules)
@@ -113,7 +118,7 @@ local StoreRules = require(script.Parent.StoreRules)
 
 local SaveSchema = {}
 
-SaveSchema.VERSION = 16
+SaveSchema.VERSION = 17
 
 --[[ The classes' own weapons, owned from the start. ]]
 local STARTERS = { "TwigBow", "BranchStaff", "TimberBlade" }
@@ -197,6 +202,9 @@ export type RewardState = {
 	cratesOpened: number,
 	--[[ Dex entries paid for, "Enemies:MossSlime", "Pets:EmberWilf". ]]
 	dexPaid: { [string]: boolean },
+	--[[ The day the quests' bonus chest was last opened, 0 never
+	     (version 17). ]]
+	bonusDay: number,
 }
 
 --[[ The looks the class select screen offers. ]]
@@ -249,6 +257,7 @@ function SaveSchema.default(): Profile
 			starterClaimed = {},
 			cratesOpened = 0,
 			dexPaid = {},
+			bonusDay = 0,
 		},
 		settings = SettingsRules.default(),
 		tiers = { weapons = weaponTiers, pets = {} },
@@ -402,6 +411,8 @@ function SaveSchema.migrate(raw: unknown): Profile
 		rewards.starterClaimed = flags(storedRewards.starterClaimed)
 		rewards.cratesOpened = count(storedRewards.cratesOpened)
 		rewards.dexPaid = flags(storedRewards.dexPaid)
+		-- 16 -> 17: no bonus chest was ever opened
+		rewards.bonusDay = count(storedRewards.bonusDay)
 	else
 		rewards.cratesOpened = profile.pity.crates
 		for kind in profile.enemiesSeen do

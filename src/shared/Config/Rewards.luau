@@ -49,6 +49,10 @@ export type Quest = {
 
 export type Starter = {
 	key: string,
+	--[[ What it is about, for its picture, and where it is done, for its
+	     GO (`UI/RewardsScreen`): a lobby piece, or "Portal". ]]
+	kind: string,
+	place: string,
 	words: string,
 	gems: number,
 	coins: number,
@@ -91,7 +95,8 @@ local Rewards = {
 		coins800 = {
 			kind = "coins",
 			goal = 800,
-			words = "EARN %d COINS IN RUNS",
+			-- was "EARN %d COINS IN RUNS", which read as a wallet total
+			words = "PICK UP %d COINS",
 			group = "fight",
 			gems = 15,
 			coins = 200,
@@ -133,14 +138,69 @@ local Rewards = {
 	--[[ The groups, in the order the screen lists them. ]]
 	groups = { "fight", "win", "spend" },
 
+	--[[ Where each kind of quest is done, for the row's GO button: the
+	     lobby piece it points the player to (`Config/Lobby.stations`), or
+	     "Portal" for a run. ]]
+	places = {
+		kills = "Portal",
+		coins = "Portal",
+		levels = "Portal",
+		bosses = "Portal",
+		hatches = "EggHatchery",
+		crates = "Blacksmith",
+	} :: { [string]: string },
+
+	--[[ The daily bonus chest (owner, 2026-11-14: "there should be more
+	     rewards for players"): claim all three of the day's quests and it
+	     opens, free: an egg one day and a weapon crate the next
+	     (`RewardRules.bonusKind`), the best open to the player, as an
+	     Endless milestone's are. `gems` is what it pays a player with
+	     neither an egg nor a crate to open. ]]
+	bonus = { words = "FINISH ALL 3 FOR A CHEST", gems = 25 },
+
+	--[[ A quest tells the player how it is going as they play: a line when
+	     it passes each of these shares of its goal (`RewardRules.note`),
+	     the last being done. Only a quest with a goal of `stepGoal` or more
+	     says the half; a short one only says done. ]]
+	steps = { 0.5, 1 },
+	stepGoal = 10,
+
 	--[[ Once per account, in this order. Each is judged from the saved
 	     profile (`RewardRules.starterDone`), never from anything a client
 	     says. ]]
 	starter = {
-		{ key = "beat11", words = "BEAT MOSSY GLADE 1-1", gems = 30, coins = 500 },
-		{ key = "hatch", words = "HATCH AN EGG", gems = 30, coins = 0 },
-		{ key = "equipPet", words = "EQUIP A PET", gems = 30, coins = 0 },
-		{ key = "crate", words = "OPEN A WEAPON CRATE", gems = 30, coins = 0 },
+		{
+			key = "beat11",
+			kind = "levels",
+			place = "Portal",
+			words = "BEAT MOSSY GLADE 1-1",
+			gems = 30,
+			coins = 500,
+		},
+		{
+			key = "hatch",
+			kind = "hatches",
+			place = "EggHatchery",
+			words = "HATCH AN EGG",
+			gems = 30,
+			coins = 0,
+		},
+		{
+			key = "equipPet",
+			kind = "hatches",
+			place = "GearStation",
+			words = "EQUIP A PET",
+			gems = 30,
+			coins = 0,
+		},
+		{
+			key = "crate",
+			kind = "crates",
+			place = "Blacksmith",
+			words = "OPEN A WEAPON CRATE",
+			gems = 30,
+			coins = 0,
+		},
 	} :: { Starter },
 
 	--[[ Gems for each new entry in any of the Dex Hall's books (item 13),

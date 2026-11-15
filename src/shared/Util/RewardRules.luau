@@ -60,27 +60,47 @@ function RewardRules.roll(r: SaveSchema.RewardState, day: number): boolean
 	return true
 end
 
+--[[ A quest that has just passed a point worth saying (`Rewards.steps`):
+     half way, or done. ]]
+export type Step = { key: string, have: number, goal: number, done: boolean }
+
 --[[ `amount` of `kind` happened today: each of today's quests of that kind
-     moves on, up to its goal. Returns whether anything changed. ]]
+     moves on, up to its goal. Returns whether anything changed, and the
+     quests that passed a step with it, for the player to be told. ]]
 function RewardRules.note(
 	r: SaveSchema.RewardState,
 	day: number,
 	kind: string,
 	amount: number
-): boolean
+): (boolean, { Step })
+	local steps: { Step } = {}
 	if amount <= 0 or amount ~= amount then
-		return false
+		return false, steps
 	end
 	local changed = RewardRules.roll(r, day)
 	for _, key in RewardRules.questsFor(day) do
 		local quest = Rewards.quests[key]
 		local had = r.questProgress[key] or 0
 		if quest.kind == kind and had < quest.goal then
-			r.questProgress[key] = math.min(quest.goal, had + math.floor(amount))
+			local have = math.min(quest.goal, had + math.floor(amount))
+			r.questProgress[key] = have
 			changed = true
+			for _, share in Rewards.steps do
+				local at = math.ceil(quest.goal * share)
+				local said = share >= 1 or quest.goal >= Rewards.stepGoal
+				if said and had < at and have >= at then
+					table.insert(steps, {
+						key = key,
+						have = have,
+						goal = quest.goal,
+						done = have >= quest.goal,
+					})
+					break
+				end
+			end
 		end
 	end
-	return changed
+	return changed, steps
 end
 
 --[[ How far today's quest `key` has come (0 if it is not today's). ]]
@@ -110,6 +130,46 @@ function RewardRules.claimQuest(r: SaveSchema.RewardState, day: number, key: str
 	r.questClaimed[key] = true
 	local quest = Rewards.quests[key]
 	return { gems = quest.gems, coins = quest.coins }
+end
+
+--[[ How many of today's quests have been claimed. ]]
+function RewardRules.questsClaimed(r: SaveSchema.RewardState, day: number): number
+	local n = 0
+	for _, key in RewardRules.questsFor(day) do
+		if RewardRules.questClaimed(r, day, key) then
+			n += 1
+		end
+	end
+	return n
+end
+
+--[[ What the day's bonus chest holds (`Rewards.bonus`): an egg one day, a
+     weapon crate the next, the same for everyone. ]]
+function RewardRules.bonusKind(day: number): "Egg" | "Crate"
+	return if day % 2 == 0 then "Egg" else "Crate"
+end
+
+function RewardRules.bonusClaimed(r: SaveSchema.RewardState, day: number): boolean
+	return r.bonusDay == day
+end
+
+--[[ Whether the bonus chest is owed: every one of today's quests claimed,
+     and the chest not opened today. ]]
+function RewardRules.bonusReady(r: SaveSchema.RewardState, day: number): boolean
+	local quests = RewardRules.questsFor(day)
+	return #quests > 0
+		and RewardRules.questsClaimed(r, day) >= #quests
+		and not RewardRules.bonusClaimed(r, day)
+end
+
+--[[ Opens the bonus chest: marked, and what it holds returned for the
+     server to give (`Data/QuestChest`). Nil when it is not owed. ]]
+function RewardRules.claimBonus(r: SaveSchema.RewardState, day: number): ("Egg" | "Crate")?
+	if not RewardRules.bonusReady(r, day) then
+		return nil
+	end
+	r.bonusDay = day
+	return RewardRules.bonusKind(day)
 end
 
 --[[ The calendar's next square (1..7): the one a claim today pays, or the
@@ -186,21 +246,57 @@ function RewardRules.payDex(r: SaveSchema.RewardState, book: string, key: string
 	return true
 end
 
---[[ How many rewards wait to be claimed: the lobby button's badge. ]]
-function RewardRules.ready(profile: SaveSchema.Profile, day: number): number
+--[[ How many rewards wait to be claimed on each of the screen's tabs. ]]
+function RewardRules.readyBy(
+	profile: SaveSchema.Profile,
+	day: number
+): { daily: number, quests: number, goals: number }
 	local r = profile.rewards
-	local n = if RewardRules.loginReady(r, day) then 1 else 0
+	local out = { daily = if RewardRules.loginReady(r, day) then 1 else 0, quests = 0, goals = 0 }
 	for _, key in RewardRules.questsFor(day) do
 		if RewardRules.questReady(r, day, key) then
-			n += 1
+			out.quests += 1
 		end
+	end
+	if RewardRules.bonusReady(r, day) then
+		out.quests += 1
 	end
 	for _, entry in Rewards.starter do
 		if RewardRules.starterReady(profile, entry.key) then
+			out.goals += 1
+		end
+	end
+	return out
+end
+
+--[[ How many rewards wait to be claimed: the lobby button's badge. ]]
+function RewardRules.ready(profile: SaveSchema.Profile, day: number): number
+	local by = RewardRules.readyBy(profile, day)
+	return by.daily + by.quests + by.goals
+end
+
+--[[ CLAIM ALL: every reward owed that pays coins or gems (the calendar,
+     the quests, the starter steps), marked and summed; and how many it
+     was. The bonus chest is opened by itself, for its reveal. ]]
+function RewardRules.claimAll(profile: SaveSchema.Profile, day: number): (Gift, number)
+	local r = profile.rewards
+	local total: Gift = { gems = 0, coins = 0 }
+	local n = 0
+	local function take(gift: Gift?)
+		if gift then
+			total.gems += gift.gems
+			total.coins += gift.coins
 			n += 1
 		end
 	end
-	return n
+	take(RewardRules.claimLogin(r, day))
+	for _, key in RewardRules.questsFor(day) do
+		take(RewardRules.claimQuest(r, day, key))
+	end
+	for _, entry in Rewards.starter do
+		take(RewardRules.claimStarter(profile, entry.key))
+	end
+	return total, n
 end
 
 --[[ Whether every starter step has been claimed (the list then hides). ]]

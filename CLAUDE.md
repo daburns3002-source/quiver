@@ -484,6 +484,20 @@ Save version 11 holds it (`rewards`). Each new Dex entry pays `Rewards.dexGems` 
 called by `Wallet.grantWeapon`, `grantPet` and `meetEnemy`), with a toast. Each lobby leaderboard has a
 "YOU: #N" row (`Run/BoardYou`, `Util/BoardRank`, `UI/BoardYou`; `docs/LEADERBOARD.md`). Studio:
 `Remotes.DebugDay:FireServer(n)` moves the player's reward day on.
+**The screen has three tabs since 2026-11-14** (owner: "the quests tab is too cluttered", "the quests need
+to be clearer", "there should be more rewards"): DAILY (the calendar), QUESTS (today's three and the bonus
+chest) and GOALS (the starter steps), each wearing the count of what waits on it (`RewardRules.readyBy`).
+A row is a picture of what to do, the words, the bar with its numbers on it, the pay, and one button:
+CLAIM, GO or DONE. **GO** closes the screen and stands a gold arrow over where the quest is done
+(`Fx/QuestPointer`, `Rewards.places`: a station, or the first portal); it starts nothing for the player.
+**CLAIM ALL** (`RewardClaim` "all", `RewardRules.claimAll`) takes the calendar, quests and starter steps
+owed in one press. **The bonus chest** (`Rewards.bonus`, `RewardClaim` "bonus"): claim all three of the
+day's quests and it opens, free, an egg one day and a weapon crate the next (`RewardRules.bonusKind`), the
+best open to the player, given by `Data/QuestChest` and revealed as a hatch or a crate is
+(`Remotes.QuestChest`); save version 17 keeps the day it was opened (`rewards.bonusDay`). **A quest says
+how it is going as it happens**: `RewardRules.note` returns the quests that just passed half or reached
+their goal, and `Data/Rewards` sends a line for each ("QUEST: DEFEAT 50 ENEMIES 25/50", "QUEST DONE! ...")
+on the reward toast, which draws no diamond for a line that pays nothing.
 
 **Boss badges** (owner, 2026-11-12: "a blocky circular icon ... for each boss ... like how they do in pokemon
 with gym badges"; `Config/BossBadges`, `UI/BadgeCase`): one badge per area boss, the boss's face on a gold-rimmed

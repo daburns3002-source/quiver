@@ -62,7 +62,7 @@ return function(t: TestRunner.Helper)
 
 	t.test("a new profile has beaten no level", function()
 		local p = SaveSchema.migrate(nil)
-		t.equal(SaveSchema.VERSION, 16)
+		t.equal(SaveSchema.VERSION, 17)
 		t.isNil((next(p.levelsBeaten)))
 	end)
 
@@ -419,6 +419,25 @@ return function(t: TestRunner.Helper)
 			local again = SaveSchema.migrate(p)
 			t.equal(again.classLevels.Ranger.level, 4, "a saved copy reads back the same")
 			t.equal(again.classLevels.Ranger.xp, 120)
+		end
+	)
+
+	t.test(
+		"version 17: an older profile has opened no bonus chest; a stored day is kept",
+		function()
+			local old = SaveSchema.migrate({ version = 16, rewards = { loginCount = 3 } })
+			t.equal(old.rewards.bonusDay, 0)
+			t.equal(old.rewards.loginCount, 3, "and nothing else is lost")
+			t.equal(SaveSchema.migrate(nil).rewards.bonusDay, 0)
+			local p = SaveSchema.migrate({ version = 17, rewards = { bonusDay = 20400.7 } })
+			t.equal(p.rewards.bonusDay, 20400)
+			local bad = SaveSchema.migrate({ version = 17, rewards = { bonusDay = "today" } })
+			t.equal(bad.rewards.bonusDay, 0)
+			t.equal(
+				SaveSchema.migrate(p).rewards.bonusDay,
+				20400,
+				"a saved copy reads back the same"
+			)
 		end
 	)
 end

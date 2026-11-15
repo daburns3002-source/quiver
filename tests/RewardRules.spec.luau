@@ -134,6 +134,124 @@ return function(t: TestRunner.Helper)
 		t.isNil((next(r.questClaimed)))
 	end)
 
+	--[[ Owner, 2026-11-14: "there should be more rewards for players and
+	     the quests need to be clearer". ]]
+	t.test("a quest says so when it is half done and when it is done, once each", function()
+		local day, key = dayWith("kills", DAY)
+		local quest = Rewards.quests[key]
+		local r = SaveSchema.default().rewards
+		local half = math.ceil(quest.goal / 2)
+		local _, none = RewardRules.note(r, day, "kills", half - 1)
+		t.equal(#none, 0, "nothing to say before half")
+		local _, atHalf = RewardRules.note(r, day, "kills", 1)
+		t.equal(#atHalf, 1)
+		t.equal(atHalf[1].key, key)
+		t.equal(atHalf[1].have, half)
+		t.isFalse(atHalf[1].done)
+		local _, quiet = RewardRules.note(r, day, "kills", 1)
+		t.equal(#quiet, 0, "half is said once")
+		local _, atEnd = RewardRules.note(r, day, "kills", quest.goal)
+		t.equal(#atEnd, 1)
+		t.isTrue(atEnd[1].done)
+		local _, after = RewardRules.note(r, day, "kills", 5)
+		t.equal(#after, 0, "done is said once")
+		-- a jump straight past both says only that it is done
+		local fresh = SaveSchema.default().rewards
+		local _, jump = RewardRules.note(fresh, day, "kills", quest.goal * 2)
+		t.equal(#jump, 1)
+		t.isTrue(jump[1].done)
+	end)
+
+	t.test("a short quest only says that it is done", function()
+		local day, key = dayWith("bosses", DAY)
+		local quest = Rewards.quests[key]
+		t.isTrue(quest.goal < Rewards.stepGoal)
+		local r = SaveSchema.default().rewards
+		local _, steps = RewardRules.note(r, day, "bosses", quest.goal)
+		t.equal(#steps, 1)
+		t.isTrue(steps[1].done)
+	end)
+
+	t.test("the bonus chest opens once all three quests are claimed, once a day", function()
+		local day = DAY
+		local r = SaveSchema.default().rewards
+		local keys = RewardRules.questsFor(day)
+		t.equal(#keys, 3)
+		t.isFalse(RewardRules.bonusReady(r, day), "nothing done")
+		t.isNil(RewardRules.claimBonus(r, day))
+		for index, key in keys do
+			local quest = Rewards.quests[key]
+			RewardRules.note(r, day, quest.kind, quest.goal)
+			t.isFalse(RewardRules.bonusReady(r, day), "done is not claimed")
+			t.notNil(RewardRules.claimQuest(r, day, key))
+			t.equal(RewardRules.questsClaimed(r, day), index)
+			t.equal(RewardRules.bonusReady(r, day), index == #keys)
+		end
+		t.equal(RewardRules.claimBonus(r, day), RewardRules.bonusKind(day))
+		t.isTrue(RewardRules.bonusClaimed(r, day))
+		t.isNil(RewardRules.claimBonus(r, day), "one chest a day")
+		t.isFalse(RewardRules.bonusReady(r, day))
+		-- the next day starts again
+		t.isFalse(RewardRules.bonusClaimed(r, day + 1))
+		t.isFalse(RewardRules.bonusReady(r, day + 1), "tomorrow's quests are not done")
+	end)
+
+	t.test("the bonus chest holds an egg one day and a crate the next", function()
+		t.isTrue(RewardRules.bonusKind(DAY) ~= RewardRules.bonusKind(DAY + 1))
+		t.equal(RewardRules.bonusKind(DAY), RewardRules.bonusKind(DAY + 2))
+		t.isTrue(Rewards.bonus.gems > 0, "a player with nothing to open is still paid")
+	end)
+
+	t.test("CLAIM ALL pays everything owed once, and not the chest", function()
+		local day = DAY
+		local profile = SaveSchema.default()
+		local r = profile.rewards
+		local gems, coins, owed = Rewards.calendar[1].gems, Rewards.calendar[1].coins, 1
+		for _, key in RewardRules.questsFor(day) do
+			local quest = Rewards.quests[key]
+			RewardRules.note(r, day, quest.kind, quest.goal)
+			gems += quest.gems
+			coins += quest.coins
+			owed += 1
+		end
+		profile.levelsBeaten["1-1"] = true
+		gems += Rewards.starter[1].gems
+		coins += Rewards.starter[1].coins
+		owed += 1
+		t.equal(RewardRules.ready(profile, day), owed)
+		local gift, n = RewardRules.claimAll(profile, day)
+		t.equal(n, owed)
+		t.equal(gift.gems, gems)
+		t.equal(gift.coins, coins)
+		t.isTrue(RewardRules.bonusReady(r, day), "the chest is left for its own opening")
+		local again, none = RewardRules.claimAll(profile, day)
+		t.equal(none, 0)
+		t.equal(again.gems + again.coins, 0)
+	end)
+
+	t.test("each tab counts its own rewards, and the badge is their sum", function()
+		local day = DAY
+		local profile = SaveSchema.default()
+		local by = RewardRules.readyBy(profile, day)
+		t.equal(by.daily, 1)
+		t.equal(by.quests, 0)
+		t.equal(by.goals, 0)
+		local key = RewardRules.questsFor(day)[1]
+		RewardRules.note(profile.rewards, day, Rewards.quests[key].kind, Rewards.quests[key].goal)
+		profile.levelsBeaten["1-1"] = true
+		by = RewardRules.readyBy(profile, day)
+		t.equal(by.quests, 1)
+		t.equal(by.goals, 1)
+		t.equal(RewardRules.ready(profile, day), 3)
+	end)
+
+	t.test("every kind of quest has a place to go and do it", function()
+		for key, quest in Rewards.quests do
+			t.notNil(Rewards.places[quest.kind], key .. " has nowhere to GO")
+			t.isTrue(#string.format(quest.words, quest.goal) <= 22, key .. " reads long")
+		end
+	end)
+
 	t.test("the starter list is read from the profile and pays each step once", function()
 		local p = SaveSchema.default()
 		for _, entry in Rewards.starter do

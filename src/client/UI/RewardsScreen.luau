@@ -561,7 +561,8 @@ local function draw(s: StationScreen.Screen)
 			dot.BorderSizePixel = 0
 			dot.BackgroundColor3 = Chunky.red
 			dot.ZIndex = 45
-			Chunky.put(sheet, dot, tabX + (index - 1) * (tabW + 18) + tabW - 34, tabY - 14, 48, 48)
+			-- on the tab's corner, clear of its word (it sat on the S of QUESTS)
+			Chunky.put(sheet, dot, tabX + (index - 1) * (tabW + 18) + tabW - 20, tabY - 26, 48, 48)
 			Chunky.round(dot, 24)
 			Chunky.outline(dot, 5)
 			local n = Chunky.textOn(dot, tostring(counts[name]), Chunky.red, 3)
@@ -725,8 +726,15 @@ local function draw(s: StationScreen.Screen)
 				})
 			end
 		end
-		local _, finished = GoalRules.tally(p)
-		words(sheet, `{finished} / {#Goals.goals} GOALS DONE`, x, y, w, 44)
+		--[[ Medals won of all there are, three a goal: it counted whole
+		     goals, so it read 0 / 20 after a dozen claims (the run-through,
+		     2026-11-14). ]]
+		local won, all = 0, 0
+		for _, goal in Goals.goals do
+			won += GoalRules.claimed(p, goal)
+			all += #goal.steps
+		end
+		words(sheet, `{won} / {all} MEDALS WON`, x, y, w, 44)
 		if #rows == 0 then
 			words(sheet, "EVERY GOAL DONE!", x, y + 120, w, 64, Enum.TextXAlignment.Center)
 		else

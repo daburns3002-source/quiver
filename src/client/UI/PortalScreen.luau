@@ -232,6 +232,24 @@ local function bossLine(stage: Balance.StageConfig): string
 	return `BOSS: {string.upper(if banner then banner.name else boss.title)}`
 end
 
+--[[ Endless's own two lines on the card, where a level has CLEARED and
+     its pay: the player's best floor, and the next one-time prize with its
+     floor (`Balance.Endless.milestones`; it was one round "1" in an empty
+     panel, the run-through, 2026-11-14). Nil for a line with nothing to
+     say. ]]
+local function endlessLines(): (string?, string?)
+	local p = profile
+	local best = if p then p.endlessBest else 0
+	local prize: string? = nil
+	for _, milestone in Balance.Endless.milestones do
+		if not (p and p.endlessMilestones[tostring(milestone.floor)]) then
+			prize = `FLOOR {milestone.floor}: {milestone.name}`
+			break
+		end
+	end
+	return if best > 0 then `BEST FLOOR {best}` else nil, prize
+end
+
 --[[ What winning a level pays (review item 10, owner 2026-11-11), as the
      server pays it (`Config/Economy`, `RoomController.complete`,
      `Wallet.beatBoss`): the area's free egg on the level's first clear,
@@ -620,6 +638,7 @@ fill = function(index: number)
 		c,
 		if not portalOpen
 			then "LOCKED"
+			elseif stage and stage.mode == "Endless" then "ENDLESS"
 			elseif stage then `LEVEL {stage.level or picked}`
 			else "COMING SOON",
 		Chunky.ink,
@@ -632,7 +651,15 @@ fill = function(index: number)
 	elseif stage then
 		pill(sheet, sizeOf(stage), L.size)
 		pill(sheet, bossLine(stage), L.boss)
-		if LevelUnlocks.isBeaten(stage, done) then
+		if stage.mode == "Endless" then
+			local best, prize = endlessLines()
+			if best then
+				pill(sheet, best, L.status, Chunky.gold)
+			end
+			if prize then
+				pill(sheet, prize, L.rewards)
+			end
+		elseif LevelUnlocks.isBeaten(stage, done) then
 			pill(sheet, "CLEARED", L.status, Chunky.gold)
 		elseif not pickedOpen then
 			pill(sheet, "LOCKED", L.status, Chunky.grey)

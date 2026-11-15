@@ -618,12 +618,17 @@ purchase or a gift (a chest's free egg, a goal's crate) plays nothing. The Robux
 product's receipt once it is granted and saved (`Data/Purchases.afterGrant`, once per receipt) and a pass as
 Roblox confirms it (`Data/Passes`). The burst is about a second: rings spread from the button pressed (the
 last mouse or finger press, or the middle of the screen for Robux and a gamepad), the one coin or diamond
-picture bursts out with sparks, a word pops over it, the price drops out of the wallet pill (`Chunky.wallet`
-marks its pills with `Holds`), and the `purchase` sound and a shake. **Three sizes**: KA-CHING!, BIG BUY! at
+picture bursts out with sparks, a word pops over it, the price shows under the word, or drops out of the
+wallet pill when one is on screen (`Chunky.wallet` marks its pills with `Holds`; the Hatchery and the
+Blacksmith hide their own while a reveal is pending, so there it is under the word), and the `purchase`
+sound and a shake. **Three sizes**: KA-CHING!, BIG BUY! at
 2,500 coins, 400 gems or 400 Soulstones, MEGA BUY! for Robux and a Legendary bought outright. **What an egg or
 a crate rolled never sizes it**: the burst plays before the reveal and would give the surprise away. Its
 layer is over the reveal (185) and takes no input, so it holds nothing up. There is no reduced-effects
-setting to follow; its sound follows the sound volume and its shake the vibration switch.
+setting to follow; its sound follows the sound volume and its shake the vibration switch. **Seen in Studio
+Play** (2026-11-14): a hatch, a crate, store weapons, a trail, the Soulstone shop and a made-up Robux
+receipt each play it once; a Legendary without its boss items, a trail already held, a Soulstone egg with no
+Soulstones and a receipt sent twice play nothing more. Not seen on a phone.
 
 **Screens converted to the reference since** (2026-11-11, owner: "Yes, convert them"): **class select**
 (`UI/ClassScreen`, `Config/ClassSelect`, `Util/ClassStats`; owner: "it looks too ai right now") is

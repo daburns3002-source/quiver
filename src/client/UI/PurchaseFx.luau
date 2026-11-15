@@ -13,9 +13,11 @@
 	**What plays**, for about a second (`Config/PurchaseFx`, sized by
 	`Util/PurchaseRules`): rings spread from the button that was pressed,
 	the one coin or diamond picture bursts out of it with sparks and falls
-	away, a punchy word pops over it, the price drops out of the wallet
-	pill, the screen is washed for a moment on a big one, and the purchase
-	sound and a shake of the phone. Bigger for a bigger price, biggest for
+	away, a punchy word pops over it with the price under it (or dropping
+	out of the wallet pill, when one is on screen: the Hatchery and the
+	Blacksmith hide theirs while a reveal is pending), the screen is washed
+	for a moment on a big one, and the purchase sound and a shake of the
+	phone. Bigger for a bigger price, biggest for
 	Robux and a Legendary bought outright.
 
 	**It is in nobody's way.** Its layer sits over everything a purchase

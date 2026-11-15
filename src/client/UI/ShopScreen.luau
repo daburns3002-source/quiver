@@ -182,11 +182,11 @@ local function drawStore(s: StationScreen.Screen, area: HatchStand.Area)
 		local asked = 0
 		if not owned and not shut then
 			for item, count in price.items or ({} :: { [string]: number }) do
-				itemPrice(row, item, count, colW - 250 - asked * 96, 30, 92, colW, rowH)
+				itemPrice(row, item, count, colW - 264 - asked * 96, 30, 92, colW, rowH)
 				asked += 1
 			end
 		end
-		local wordsW = colW - 156 - 250 - asked * 96
+		local wordsW = colW - 156 - 264 - asked * 96
 		local nameText = Chunky.text(row, entry.label, Chunky.navy, 0)
 		nameText.TextXAlignment = Enum.TextXAlignment.Left
 		nameText.Position, nameText.Size =

@@ -419,13 +419,31 @@ local function enterRoom(position: number)
 	local encounter = room.encounter
 	if encounter then
 		state = "Choosing"
-		--[[ The Angel itself, in the middle of the room facing whoever walked
-		     in. Into the arena folder, so the next room tears it down with
-		     everything else. ]]
+		--[[ The Angel itself, beside the line from the spawn to the door
+		     (she stood on it, and the way out ran through her) and facing
+		     whoever walked in: on the side with no cover near her spot, or
+		     in the middle if both have. Into the arena folder, so the next
+		     room tears it down with everything else. ]]
 		local arena = workspace:FindFirstChild("Arena")
 		if arena and encounter == "Angel" then
-			local middle = Vector3.new(0, 0, 0)
-			AngelProp.build(arena, middle, Balance.Arena.spawnPosition - middle)
+			local aside = Balance.encounterLane + 3
+			local at = Vector3.new(0, 0, 0)
+			for _, x in { aside, -aside } do
+				local free = true
+				for _, obstacle in room.obstacles do
+					if
+						math.abs(obstacle.offset.X - x) < obstacle.size.X / 2 + 3
+						and math.abs(obstacle.offset.Y) < obstacle.size.Z / 2 + 3
+					then
+						free = false
+					end
+				end
+				if free then
+					at = Vector3.new(x, 0, 0)
+					break
+				end
+			end
+			AngelProp.build(arena, at, Balance.Arena.spawnPosition - at)
 		end
 		for _, session in RunSession.all() do
 			RunSession.offerEncounter(session, encounter :: any)

@@ -744,8 +744,9 @@ local function draw(s: StationScreen.Screen)
 		else {
 			hero = { 360, 176, 400, 700 },
 			pedestal = { 400, 712, 320, 90 },
-			plate = { 380, 850, 360, 100 },
-			level = { 397, 958, 326, 76 },
+			-- clear of PET 3's tile, which starts at 728 (they ran under it)
+			plate = { 392, 850, 320, 100 },
+			level = { 397, 958, 310, 76 },
 			left = 196,
 			right = 728,
 			rows = { 196, 476, 756 },

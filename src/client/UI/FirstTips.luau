@@ -89,6 +89,13 @@ local OK_WIDTH = 150
 local OK_HEIGHT = 48
 --[[ Seconds after a tip closes that its key press is still its own. ]]
 local KEY_GRACE = 0.3
+--[[ Seconds a tip with a `Spot` waits after it is asked for: its screen
+     pops in over 0.28 s (`Chunky.pop`), and a header measured in the
+     middle of that is not where it comes to rest (seen in Studio,
+     2026-11-15: Gear's tip stood 65 px low, over the tabs). ]]
+local SETTLE = 0.4
+--[[ Seconds between looks at whether a tip's screen is still open. ]]
+local SPOT_EVERY = 0.25
 
 --[[ Screens that own the whole view while they exist in PlayerGui. ]]
 local COVERS = { "IntroCutscene", "StoryCutscene", "StoryBeat", "AreaLoading" }
@@ -119,6 +126,11 @@ local selectionWatch: RBXScriptConnection? = nil
 --[[ When the last tip went (`os.clock`), for the quiet between tips. ]]
 local lastGone = -math.huge
 local gui: ScreenGui? = nil
+--[[ Whether this pass looks at the screens the tips explain (every
+     `SPOT_EVERY`, not every frame: a look searches the screen for its
+     header). ]]
+local spotCheck = false
+local sinceSpot = 0
 
 --[[ The starters every profile holds, so a weapon beyond them is new. ]]
 local starters = SaveSchema.default().weapons
@@ -385,7 +397,7 @@ local function pump()
 			now - waiting.asked > Tips.patience
 			or (seen ~= nil and not TipRules.due(waiting.key, seen, shown))
 			-- its screen has shut: asked again the next time it opens
-			or (spot ~= nil and not spot())
+			or (spot ~= nil and spotCheck and not spot())
 		then
 			table.remove(queue, i)
 		end
@@ -406,6 +418,7 @@ local function pump()
 			if
 				each.ambient == ambient
 				and not (ambient and inStation)
+				and not (each.spot ~= nil and now - each.asked < SETTLE)
 				and TipRules.spaced(each.key, since)
 				and not covered(each.key)
 			then
@@ -422,6 +435,11 @@ local function pump()
 	end
 	local waiting = table.remove(queue, index) :: Waiting
 	if not TipRules.due(waiting.key, seen, shown) then
+		return
+	end
+	-- its screen shut since the last look: asked again the next time it opens
+	local theirs = waiting.spot
+	if theirs and not theirs() then
 		return
 	end
 	shown[waiting.key] = true
@@ -444,7 +462,9 @@ local function ask(key: string, ambient: boolean, spot: Spot?)
 	end
 	for _, waiting in queue do
 		if waiting.key == key then
+			-- its screen has opened again: from this opening, as a new ask
 			waiting.spot = spot
+			waiting.asked = os.clock()
 			return
 		end
 	end
@@ -581,11 +601,17 @@ function FirstTips.start()
 			close(item, true)
 		end
 		-- the screen it explains has shut under it
+		sinceSpot += dt
+		spotCheck = sinceSpot >= SPOT_EVERY
+		if spotCheck then
+			sinceSpot = 0
+		end
 		local spot = currentSpot
-		if item and current == item and spot and not spot() then
+		if item and current == item and spot and spotCheck and not spot() then
 			close(item, true)
 		end
 		pump()
+		spotCheck = false
 	end)
 end
 

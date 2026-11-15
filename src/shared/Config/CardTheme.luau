@@ -119,7 +119,13 @@ local CardTheme = {
 		     press meant for the fight cannot take one unseen. ]]
 		tapGuard = 0.35,
 		tooltipTime = 1.3,
-		pickApplyAt = 1.56,
+		--[[ Seconds from a card being taken to the fight going on. The
+		     celebration was drawn 1.56 s long (`celebrateLength`) and a
+		     level asks for about eight picks (the run-through, 2026-11-14:
+		     "every card costs 1.7 s"), so it now plays at twice the pace
+		     and a bit. A Mythic keeps its full length. ]]
+		pickApplyAt = 0.7,
+		celebrateLength = 1.56,
 		slotPop = 0.65,
 		mythicShake = 1.0,
 		mythicFlip = 0.6,

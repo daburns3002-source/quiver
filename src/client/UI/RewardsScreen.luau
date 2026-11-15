@@ -59,6 +59,8 @@ local RewardsScreen = {}
 
 local player = Players.LocalPlayer
 local screen: StationScreen.Screen? = nil
+--[[ Seconds between the lobby badge's hops while a reward waits. ]]
+local BADGE_HOP = 3
 --[[ The day the screen last opened by itself, so it does so once a day. ]]
 local shownFor = 0
 --[[ The tabs, and the one showing: nil until the screen picks one as it
@@ -770,6 +772,7 @@ local function startButton(s: StationScreen.Screen)
 	local built: boolean? = nil
 	local badge: Frame? = nil
 	local count: TextLabel? = nil
+	local hoppedAt = 0
 
 	local function build()
 		for _, child in canvas:GetChildren() do
@@ -845,12 +848,23 @@ local function startButton(s: StationScreen.Screen)
 						and RewardRules.loginReady(profile.rewards, day)
 					then
 						shownFor = day
-						RewardsScreen.open()
+						--[[ Not over a player who has yet to win a level:
+						     they have not seen PLAY, and the screen came up
+						     0.4 s into their first look at the lobby (the
+						     run-through, 2026-11-14). The badge calls them. ]]
+						if next(profile.levelsBeaten) ~= nil then
+							RewardsScreen.open()
+						end
 					end
 				end
 				if badge and count then
 					badge.Visible = waiting > 0
 					count.Text = tostring(waiting)
+					-- with something waiting the badge hops, every few seconds
+					if waiting > 0 and os.clock() - hoppedAt >= BADGE_HOP then
+						hoppedAt = os.clock()
+						Chunky.pop(badge)
+					end
 				end
 			end
 			task.wait(0.5)

@@ -39,6 +39,7 @@ local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local BossBanners = require(ReplicatedStorage.Shared.Config.BossBanners)
 local LobbyConfig = require(ReplicatedStorage.Shared.Config.Lobby)
 local PlayPortal = require(ReplicatedStorage.Shared.Util.PlayPortal)
+local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local SaveSchema = require(ReplicatedStorage.Shared.Util.SaveSchema)
 local ShopAssets = require(ReplicatedStorage.Shared.Config.ShopAssets)
 
@@ -65,6 +66,8 @@ type Layout = {
 	panel: { number },
 	ribbon: { number },
 	close: { number },
+	--[[ CONTINUE, over the cards: the next level in one press. ]]
+	continue: { number },
 	cards: { number },
 	most: number,
 	gap: number,
@@ -80,7 +83,8 @@ local WIDE: Layout = {
 	panel = { 150, 104, 1620, 940 },
 	ribbon = { 520, 22, 880, 150 },
 	close = { 1688, 66, 108 },
-	cards = { 184, 200, 1552, 816 },
+	continue = { 610, 190, 700, 112 },
+	cards = { 184, 318, 1552, 698 },
 	most = 5,
 	gap = 20,
 	art = { 0.07, 0.025, 0.86, 0.4 },
@@ -95,7 +99,8 @@ local TALL: Layout = {
 	panel = { 30, 196, 1020, 1694 },
 	ribbon = { 120, 116, 840, 150 },
 	close = { 956, 150, 110 },
-	cards = { 60, 296, 960, 1570 },
+	continue = { 140, 290, 800, 124 },
+	cards = { 60, 430, 960, 1436 },
 	most = 1,
 	gap = 20,
 	art = { 0.02, 0.06, 0.25, 0.88 },
@@ -146,6 +151,27 @@ local function enter(index: number)
 	end
 	close()
 	PortalScreen.open(index, AreaScreen.open)
+end
+
+--[[ CONTINUE: straight into the next level of the area next up, with no
+     second screen (the run-through, 2026-11-14: "PLAY is three taps now, it
+     was two"). The server checks the area and the level as for any start
+     (`Run/Lobby.levelOpen`). ]]
+local starting = false
+local function continueOn()
+	local p = profile
+	local beaten = if p then p.levelsBeaten else nil
+	local to = PlayPortal.next(areas(), LobbyConfig.portals, Balance.Stages, beaten)
+	if not to or starting then
+		return
+	end
+	starting = true
+	task.delay(2, function()
+		starting = false
+	end)
+	SoundFx.play("card_click")
+	Remotes.event(Remotes.PortalStart):FireServer(to.index, to.level)
+	close()
 end
 
 --[[ A locked card says no: a quick shake from side to side. ]]
@@ -382,6 +408,27 @@ local function fill()
 	Chunky.close(sheet, L.close[1], L.close[2], L.close[3], close)
 
 	local list = areas()
+	local p = profile
+	local to = PlayPortal.next(
+		list,
+		LobbyConfig.portals,
+		Balance.Stages,
+		if p then p.levelsBeaten else nil
+	)
+	if to then
+		local at = L.continue
+		local go = Chunky.button(
+			sheet,
+			if to.words ~= "" then `CONTINUE {to.words}` else "CONTINUE",
+			Chunky.green,
+			at[1],
+			at[2],
+			at[3],
+			at[4],
+			continueOn
+		)
+		go.Name = "Continue"
+	end
 	local count = math.max(#list, 1)
 	local columns = math.min(count, L.most)
 	local lines = math.ceil(count / columns)

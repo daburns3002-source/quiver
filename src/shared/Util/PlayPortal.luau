@@ -162,6 +162,38 @@ function PlayPortal.enter(areas: { Area }, index: number): Area?
 	return nil
 end
 
+export type Next = {
+	--[[ The portal and the level's place in it: what a start asks for. ]]
+	index: number,
+	level: number,
+	--[[ The level as it is printed ("1-2"), "" for one with no name. ]]
+	words: string,
+}
+
+--[[ The level PLAY's screen offers in one press (CONTINUE): in the area
+     marked next to play, the level its own screen would pick first. Nil
+     when no campaign area is open, so never a mode (Endless). ]]
+function PlayPortal.next(
+	areas: { Area },
+	portals: { Portal },
+	stages: { [number]: LevelUnlocks.Stage },
+	beaten: LevelUnlocks.Beaten?
+): Next?
+	for _, area in areas do
+		local levels = portals[area.index] and portals[area.index].levels
+		if area.suggested and area.open and not area.mode and levels then
+			local level = LevelUnlocks.suggested(levels, stages, beaten)
+			local stage = stages[levels[level]]
+			return {
+				index = area.index,
+				level = level,
+				words = if stage and stage.level then stage.level else "",
+			}
+		end
+	end
+	return nil
+end
+
 --[[ Whether a start of portal `index` takes only the starter. A player who
      stands in that portal's mouth (`standing`, the portal they stand at, if
      any) starts it with whoever stands there too, as ever (`Run/Party`);

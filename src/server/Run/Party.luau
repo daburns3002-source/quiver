@@ -3,7 +3,9 @@
 	Co-op parties (`docs/COOP.md`): one party per server.
 
 	The lobby is the public server. START at a portal takes the starter and
-	whoever else stands in that portal (up to `Coop.maxParty`), reserves a
+	whoever else stands in that portal (up to `Coop.maxParty`; a start from
+	the lobby's PLAY screen, away from the portal, takes the starter only:
+	`Util/PlayPortal.alone`), reserves a
 	private server of this same place (`TeleportService:ReserveServer`) and
 	sends them there together. Solo runs go the same way, so a run never
 	pulls in a stranger who happens to share the lobby.
@@ -164,10 +166,12 @@ end
 
 --[[
 	START at portal `index`, level `level`, from `starter` (already checked
-	by `Lobby.startFor`, which gave `stage`). The party is the starter and
-	whoever else stands at that portal and has the level open too.
+	by `Lobby.levelOpen`, which gave `stage`). The party is the starter and
+	whoever else stands at that portal and has the level open too; with
+	`alone` (a start from the lobby's PLAY screen, away from the portal:
+	`Util/PlayPortal.alone`) it is the starter only.
 ]]
-function Party.start(starter: Player, index: number, level: number, stage: number)
+function Party.start(starter: Player, index: number, level: number, stage: number, alone: boolean?)
 	if busy[starter] then
 		return
 	end
@@ -179,7 +183,13 @@ function Party.start(starter: Player, index: number, level: number, stage: numbe
 	local byId: { [number]: Player } = {}
 	for player, session in RunSession.all() do
 		local root = session.root
-		if player ~= starter and root and not session.atTitle and not busy[player] then
+		if
+			not alone
+			and player ~= starter
+			and root
+			and not session.atTitle
+			and not busy[player]
+		then
 			local profile = PlayerData.get(player)
 			local beaten = if profile then profile.levelsBeaten else nil
 			local bosses = if profile then profile.bossesBeaten else nil

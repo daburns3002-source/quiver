@@ -2,7 +2,7 @@
 --[[
 	The lobby's own HUD (Fable's loop review item 3, owner-approved
 	2026-11-11): the coin and gem pills pinned to the top, a PLAY button that
-	goes to the player's frontier portal, and the fight HUD (health, skill
+	opens the choice of area and then level, and the fight HUD (health, skill
 	tray, XP bar and level) put away while in the lobby.
 
 	Laid out in points, not on the 16:9 sheet, so an upright phone (the game
@@ -10,9 +10,10 @@
 	the bottom, the station button just above it (`UI/StationScreen`'s
 	prompt). Sizes in `Config/LobbyHud`.
 
-	PLAY asks the server (`Remotes.LobbyPlay`), which picks the portal
-	(`Util/PlayPortal`) and walks the player into its mouth; its screen then
-	opens as any portal's does, and START is still checked there.
+	PLAY opens the area list (`UI/AreaScreen`; owner, 2026-11-14: "there
+	should be a screen where they can choose the area and then the level"),
+	which leads to that area's level screen (`UI/PortalScreen`), whose PLAY
+	asks the server for the run. The character is not moved.
 
 	The green + beside the gem pill opens the STORE (`UI/RobuxStore`).
 ]]
@@ -20,10 +21,10 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
+local AreaScreen = require(script.Parent.AreaScreen)
 local Chunky = require(script.Parent.Chunky)
 local Config = require(ReplicatedStorage.Shared.Config.LobbyHud)
 local PortalScreen = require(script.Parent.PortalScreen)
-local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local RobuxStore = require(script.Parent.RobuxStore)
 local SaveSchema = require(ReplicatedStorage.Shared.Util.SaveSchema)
 local StationScreen = require(script.Parent.StationScreen)
@@ -138,9 +139,7 @@ function LobbyHud.start()
 			sheet.h - g * k - h,
 			w,
 			h,
-			function()
-				Remotes.event(Remotes.LobbyPlay):FireServer()
-			end
+			AreaScreen.open
 		)
 		play.Name = "Play"
 		drawWallet()
@@ -169,7 +168,7 @@ function LobbyHud.start()
 		end
 		local playButton = canvas:FindFirstChild("Play") :: GuiObject?
 		if playButton then
-			-- already standing in a portal: its own screen is the way on
+			-- already standing in a portal: its own level screen is the way on
 			playButton.Visible = player:GetAttribute("Portal") == nil
 		end
 		if inLobby or wasLobby then

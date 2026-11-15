@@ -87,7 +87,7 @@ Tips.tips = {
 	},
 	-- the lobby's other screens
 	Portal = {
-		text = "Pick a level and press [START]. *Win it* to open the next one.",
+		text = "Pick a level and press [PLAY]. *Win it* to open the next one.",
 	},
 	SoulstoneShop = {
 		text = "Soulstones come from Endless runs. Spend them here on eggs and crates.",

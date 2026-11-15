@@ -4,15 +4,17 @@
 	working portals lead to Mossy Glade's and Thornwood's runs, the rest are
 	locked, ten or more in two rows; the campfire spawn stands in the clearing clear of the stations;
 	the stations stand apart (2026-10-26: the gear station "almost overlaps with the blacksmith");
-	only a portal's mouth opens its screen, never the spawn or the lawn; and START on it is
-	the server's to grant (`Lobby.startFor`): only that portal, only its levels, only while
-	the player stands there.
+	only a portal's mouth opens its screen, never the spawn or the lawn; a start is the
+	server's to grant (`Lobby.levelOpen`): only an area and a level the player has opened,
+	from the portal or from the lobby's PLAY screen; and a party is only those standing in
+	that portal (`Lobby.startFor`).
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
+local LaunchLocks = require(ReplicatedStorage.Shared.Util.LaunchLocks)
 local Lobby = require(ServerScriptService.Server.Run.Lobby)
 local LobbyConfig = require(ReplicatedStorage.Shared.Config.Lobby)
 local LobbyCourtyard = require(ServerScriptService.Server.Run.LobbyCourtyard)
@@ -529,5 +531,62 @@ return function(t: TestRunner.Helper)
 				t.isTrue(Lobby.startFor(mouthOf(index), index, 1) == nil, `started locked {index}`)
 			end
 		end
+	end)
+
+	--[[ The lobby's PLAY screen starts a run from anywhere in the lobby
+	     (owner, 2026-11-14), so the start itself is granted by
+	     `Lobby.levelOpen`, with no place in it: only the saved profile
+	     decides. A forged area or level gets nothing. ]]
+	t.test("PLAY's screen starts only an area and a level the player has opened", function()
+		local glade = LobbyConfig.portals[1].levels :: { number }
+		-- nothing beaten: 1-1 and no further
+		t.equal(Lobby.levelOpen(1, 1, {}, {}), glade[1])
+		t.equal(Lobby.levelOpen(1, 1, nil, nil), glade[1])
+		t.isTrue(Lobby.levelOpen(1, 2, {}, {}) == nil, "started 1-2 with 1-1 unbeaten")
+		t.isTrue(Lobby.levelOpen(1, #glade, nil, nil) == nil, "started the boss level unbeaten")
+		t.equal(Lobby.levelOpen(1, 2, { ["1-1"] = true }, {}), glade[2])
+		-- not numbers, not whole, not there
+		t.isTrue(Lobby.levelOpen(1, #glade + 1, {}, {}) == nil, "started a level past the last")
+		t.isTrue(Lobby.levelOpen(1, 0, {}, {}) == nil, "started level 0")
+		t.isTrue(Lobby.levelOpen(1, 1.5, {}, {}) == nil, "started level 1.5")
+		t.isTrue(Lobby.levelOpen(1, 0 / 0, {}, {}) == nil, "started a NaN level")
+		t.isTrue(Lobby.levelOpen("1", 1, {}, {}) == nil, "started a string portal")
+		t.isTrue(Lobby.levelOpen(1, "1", {}, {}) == nil, "started a string level")
+		t.isTrue(Lobby.levelOpen(nil, nil, {}, {}) == nil, "started nothing")
+		t.isTrue(Lobby.levelOpen(0, 1, {}, {}) == nil, "started portal 0")
+		t.isTrue(Lobby.levelOpen(99, 1, {}, {}) == nil, "started a portal that does not exist")
+		for index, portal in LobbyConfig.portals do
+			if not portal.levels then
+				t.isTrue(
+					Lobby.levelOpen(index, 1, {}, {}) == nil,
+					`started the unbuilt area {index}`
+				)
+			end
+		end
+	end)
+
+	t.test("at launch a locked area cannot be started, whatever the client asks", function()
+		for index, portal in LobbyConfig.portals do
+			local levels = portal.levels
+			local gate = LaunchLocks.portalGate(portal, true)
+			if levels and (gate.requires or gate.boss) then
+				local name = portal.name or tostring(index)
+				t.isTrue(
+					Lobby.levelOpen(index, 1, {}, {}, true) == nil,
+					`{name} started while locked`
+				)
+				t.isTrue(
+					Lobby.levelOpen(index, 1, nil, nil, true) == nil,
+					`{name} started with no profile`
+				)
+				-- what it waits on beaten, its first level opens
+				local beaten = if gate.requires then { [gate.requires] = true } else {}
+				local bosses = if gate.boss then { [gate.boss] = true } else {}
+				t.equal(Lobby.levelOpen(index, 1, beaten, bosses, true), levels[1])
+			end
+		end
+		-- and the first area waits on nothing
+		local glade = LobbyConfig.portals[1].levels :: { number }
+		t.equal(Lobby.levelOpen(1, 1, {}, {}, true), glade[1])
 	end)
 end

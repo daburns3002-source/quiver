@@ -1,12 +1,17 @@
 --!strict
 --[[
-	A portal's screen (owner, 2026-10-26: "need screen for portal entry with
-	the level selector"). Walking into a lit portal's mouth no longer starts
-	the run: the server sees the player there and sends the portal's index
-	(`Remotes.PortalOpen`, 0 as they step out), and this shows the area and
-	its levels to pick from. START asks the server (`Remotes.PortalStart`),
-	which checks the player still stands at that portal and has that level
-	open, and starts the run; X, Escape or walking away closes it.
+	An area's level screen (owner, 2026-10-26: "need screen for portal entry
+	with the level selector"). Two ways lead to it. Walking into a lit
+	portal's mouth: the server sees the player there and sends the portal's
+	index (`Remotes.PortalOpen`, 0 as they step out). Or the lobby's PLAY
+	button, by way of the area list (`UI/AreaScreen`; owner, 2026-11-14:
+	"there should be a screen where they can choose the area and then the
+	level"), which opens it with a way back (`PortalScreen.open(index,
+	back)`): a `< AREAS` button, and Escape or B, go back to that list.
+	Either way this shows the area and its levels to pick from, and PLAY
+	asks the server (`Remotes.PortalStart`), which checks the player has
+	that area and that level open and starts the run; X, or walking out of
+	the portal, closes it.
 
 	Drawn in the chunky style (owner, 2026-11-05, approving
 	`assets/concepts/ui_refs/mockups/portal.jpg`): the blue panel with the
@@ -22,7 +27,9 @@
 
 	The whole panel is redrawn by `fill` whenever anything on it changes (a
 	pick, the profile, the phone turning), on a 1920 x 1080 sheet, or
-	1080 x 1920 when the phone is held upright.
+	1080 x 1920 when the phone is held upright. The level buttons are all
+	drawn by `levelButtons`, one `node` each: anything a level carries on
+	its button (a star count, say) is added there.
 ]]
 
 local GuiService = game:GetService("GuiService")
@@ -60,6 +67,12 @@ local profile: SaveSchema.Profile? = nil
 local portalIndex: number? = nil
 local picked = 1
 local starting = false
+--[[ Set while the screen was opened from the lobby's PLAY button: the way
+     back to the area list (`UI/AreaScreen`). Nil for a portal walked into. ]]
+local backTo: (() -> ())? = nil
+--[[ Whether the area list is up, as `UI/AreaScreen` tells it: the lobby's
+     other screens ask this one whether a level is being chosen (`isOpen`). ]]
+local areaStep: (() -> boolean)? = nil
 
 --[[ Where the panel's pieces sit, in sheet pixels. `nodes` is the box the
      level buttons share; `card` the white card and the rows down it. ]]
@@ -78,6 +91,11 @@ type Layout = {
 	     (review item 10, as the mockup's coin and gem row). ]]
 	rewards: { number },
 	play: { number },
+	--[[ With a way back to the area list (`backTo`): the `< AREAS` button,
+	     and the boxes that make room for it. ]]
+	back: { number },
+	nodesBack: { number },
+	playBack: { number },
 }
 
 local WIDE: Layout = {
@@ -93,6 +111,10 @@ local WIDE: Layout = {
 	status = { 1342, 672, 336, 64 },
 	rewards = { 1314, 748, 392, 86 },
 	play = { 1314, 846, 392, 136 },
+	-- under the level buttons, which close up a little
+	back = { 214, 912, 330, 110 },
+	nodesBack = { 200, 256, 1060, 644 },
+	playBack = { 1314, 846, 392, 136 },
 }
 
 local TALL: Layout = {
@@ -108,6 +130,10 @@ local TALL: Layout = {
 	status = { 250, 1480, 580, 58 },
 	rewards = { 110, 1546, 860, 88 },
 	play = { 230, 1648, 620, 160 },
+	-- beside PLAY, which gives it room
+	back = { 110, 1648, 290, 160 },
+	nodesBack = { 70, 350, 940, 800 },
+	playBack = { 424, 1648, 546, 160 },
 }
 
 --[[ The boss banner (`Config/BossBanners`) of the area named `area`. ]]
@@ -141,6 +167,17 @@ local function close()
 	end
 	portalIndex = nil
 	starting = false
+	backTo = nil
+end
+
+--[[ Back to the area list, for a screen opened from it. ]]
+local function goBack()
+	local back = backTo
+	if not back or starting then
+		return
+	end
+	close()
+	back()
 end
 
 --[[ How big a stage is, in its own unit: rooms, waves, or — for Endless,
@@ -302,7 +339,7 @@ local function node(
 	y: number,
 	size: number,
 	action: () -> ()
-)
+): Frame
 	local holder = Instance.new("Frame")
 	holder.Name = "Node"
 	holder.BackgroundTransparency = 1
@@ -389,6 +426,7 @@ local function node(
 		tick.ZIndex = 11
 	end
 	Chunky.press(holder, action)
+	return holder
 end
 
 local fill: (index: number) -> ()
@@ -401,8 +439,8 @@ local function start()
 		return
 	end
 	--[[ The portal's own gate (Endless waits on 1-10), then the level's.
-	     The server checks both again on START, and its answer is the one
-	     that decides (`Run/Lobby.startFor`). ]]
+	     The server checks both again, and its answer is the one that
+	     decides (`Run/Lobby.levelOpen`). ]]
 	if not portal or not LaunchLocks.portalOpen(portal, beaten(), bosses()) then
 		return
 	end
@@ -413,6 +451,72 @@ local function start()
 	SoundFx.play("card_click")
 	Remotes.event(Remotes.PortalStart):FireServer(index, picked)
 	fill(index)
+end
+
+--[[
+	Every level button of portal `index`, `levelColumns` to a row, as big as
+	fits `box`, with a dotted path from each to the next along its row. This
+	is the one place a level's button is drawn: `node` returns the button's
+	frame (`size` sheet pixels square, its ball at ZIndex 6 to 11), so a
+	badge on a level, such as its stars, is made here from `stage` and
+	parented to that frame.
+]]
+local function levelButtons(
+	sheet: Chunky.Sheet,
+	box: { number },
+	index: number,
+	levels: { number },
+	done: LevelUnlocks.Beaten?,
+	portalOpen: boolean,
+	banner: BossBanners.Banner?
+)
+	local columns = math.min(math.max(LobbyConfig.levelColumns, 1), math.max(#levels, 1))
+	local lines = math.max(math.ceil(#levels / columns), 1)
+	local bx, by, bw, bh = box[1], box[2], box[3], box[4]
+	local cell = math.min(bw / columns, bh / lines, 300)
+	local size = cell * 0.76
+	local left = bx + (bw - cell * columns) / 2
+	local top = by + (bh - cell * lines) / 2
+	for position, stageIndex in levels do
+		local stage = Balance.Stages[stageIndex]
+		local column = (position - 1) % columns
+		local line = (position - 1) // columns
+		local cx = left + column * cell + cell / 2
+		local cy = top + line * cell + cell / 2
+		if column < columns - 1 and position < #levels then
+			for dot = 1, 3 do
+				local d = Instance.new("Frame")
+				d.BorderSizePixel = 0
+				d.BackgroundColor3 = Chunky.inkSoft
+				d.ZIndex = 5
+				local step = (cell - size) / 4
+				Chunky.put(sheet, d, cx + size / 2 + step * dot - 5, cy - 5, 10, 10)
+				Chunky.round(d, 10)
+				Chunky.outline(d, 2)
+			end
+		end
+		local open = portalOpen and LevelUnlocks.isUnlocked(levels, Balance.Stages, done, position)
+		local cleared = stage ~= nil and LevelUnlocks.isBeaten(stage, done)
+		local icon = if stage and bossOf(stage) and banner then banner.icon else nil
+		node(
+			sheet,
+			if stage then stage.level or tostring(position) else tostring(position),
+			open,
+			cleared,
+			position == picked,
+			icon,
+			cx - size / 2,
+			cy - size / 2,
+			size,
+			function()
+				if open and not starting and picked ~= position then
+					picked = position
+					SoundFx.play("card_click")
+					fill(index)
+				end
+			end
+		)
+	end
 end
 
 --[[ Draws the whole panel for portal `index`. ]]
@@ -465,54 +569,27 @@ fill = function(index: number)
 			30
 	end
 
-	--[[ The level buttons, `levelColumns` to a row, as big as fits, with a
-	     dotted path from each to the next along its row. ]]
-	local columns = math.min(math.max(LobbyConfig.levelColumns, 1), math.max(#levels, 1))
-	local lines = math.max(math.ceil(#levels / columns), 1)
-	local bx, by, bw, bh = L.nodes[1], L.nodes[2], L.nodes[3], L.nodes[4]
-	local cell = math.min(bw / columns, bh / lines, 300)
-	local size = cell * 0.76
-	local left = bx + (bw - cell * columns) / 2
-	local top = by + (bh - cell * lines) / 2
-	for position, stageIndex in levels do
-		local stage = Balance.Stages[stageIndex]
-		local column = (position - 1) % columns
-		local line = (position - 1) // columns
-		local cx = left + column * cell + cell / 2
-		local cy = top + line * cell + cell / 2
-		if column < columns - 1 and position < #levels then
-			for dot = 1, 3 do
-				local d = Instance.new("Frame")
-				d.BorderSizePixel = 0
-				d.BackgroundColor3 = Chunky.inkSoft
-				d.ZIndex = 5
-				local step = (cell - size) / 4
-				Chunky.put(sheet, d, cx + size / 2 + step * dot - 5, cy - 5, 10, 10)
-				Chunky.round(d, 10)
-				Chunky.outline(d, 2)
-			end
-		end
-		local open = portalOpen and LevelUnlocks.isUnlocked(levels, Balance.Stages, done, position)
-		local cleared = stage ~= nil and LevelUnlocks.isBeaten(stage, done)
-		local icon = if stage and bossOf(stage) and banner then banner.icon else nil
-		node(
+	levelButtons(
+		sheet,
+		if backTo then L.nodesBack else L.nodes,
+		index,
+		levels,
+		done,
+		portalOpen,
+		banner
+	)
+	if backTo then
+		local back = Chunky.button(
 			sheet,
-			if stage then stage.level or tostring(position) else tostring(position),
-			open,
-			cleared,
-			position == picked,
-			icon,
-			cx - size / 2,
-			cy - size / 2,
-			size,
-			function()
-				if open and not starting and picked ~= position then
-					picked = position
-					SoundFx.play("card_click")
-					fill(index)
-				end
-			end
+			"< AREAS",
+			Chunky.blue,
+			L.back[1],
+			L.back[2],
+			L.back[3],
+			L.back[4],
+			goBack
 		)
+		back.Name = "Back"
 	end
 
 	-- the picked level's card
@@ -543,22 +620,38 @@ fill = function(index: number)
 		rewardRow(sheet, rewardsOf(stage, done), L.rewards)
 	end
 	local idle = starting or not pickedOpen or stage == nil
+	local playBox = if backTo then L.playBack else L.play
 	local play = Chunky.button(
 		sheet,
 		if starting then "STARTING..." elseif idle then "LOCKED" else "PLAY",
 		if idle then Chunky.grey else Chunky.gold,
-		L.play[1],
-		L.play[2],
-		L.play[3],
-		L.play[4],
+		playBox[1],
+		playBox[2],
+		playBox[3],
+		playBox[4],
 		start
 	)
+	play.Name = "Play"
 	startButton = play:FindFirstChildWhichIsA("TextButton", true)
 end
 
-function PortalScreen.isOpen(): boolean
+--[[ Whether this screen itself is up. ]]
+local function shown(): boolean
 	local screen = gui
 	return screen ~= nil and screen.Enabled
+end
+PortalScreen.levelsOpen = shown
+
+--[[ Whether the player is choosing where to play: this screen, or the area
+     list before it. The lobby's HUD and its other pop-ups wait on this. ]]
+function PortalScreen.isOpen(): boolean
+	local areas = areaStep
+	return shown() or (areas ~= nil and areas())
+end
+
+--[[ `UI/AreaScreen` says how to ask whether its list is up. ]]
+function PortalScreen.setAreaStep(isUp: () -> boolean)
+	areaStep = isUp
 end
 
 local function build(playerGui: PlayerGui)
@@ -612,16 +705,17 @@ local function build(playerGui: PlayerGui)
 		local index = portalIndex
 		if now ~= upright then
 			upright = now
-			if index and PortalScreen.isOpen() then
+			if index and shown() then
 				fill(index)
 			end
 		end
 	end)
 end
 
---[[ Opens portal `index`'s screen, as if the server had sent it: for the
-     server's message, and for a Studio capture. ]]
-function PortalScreen.open(index: number)
+--[[ Opens portal `index`'s screen: for the server's message as a portal is
+     walked into (no `back`), for the area list (`back` returns to it), and
+     for a Studio capture. ]]
+function PortalScreen.open(index: number, back: (() -> ())?)
 	if Players.LocalPlayer:GetAttribute("ClassSelecting") == true then
 		return
 	end
@@ -637,6 +731,7 @@ function PortalScreen.open(index: number)
 	end
 	portalIndex = index
 	starting = false
+	backTo = back
 	screen.Enabled = true
 	fill(index)
 	if fresh and canvas then
@@ -657,7 +752,8 @@ function PortalScreen.start()
 	Remotes.event(Remotes.PortalOpen).OnClientEvent:Connect(function(index)
 		if type(index) == "number" and index > 0 then
 			PortalScreen.open(index)
-		else
+		elseif not backTo then
+			-- stepped out of the portal (a screen from PLAY's list is not at one)
 			close()
 		end
 	end)
@@ -667,16 +763,21 @@ function PortalScreen.start()
 		end
 		profile = next
 		local index = portalIndex
-		if index and PortalScreen.isOpen() then
+		if index and shown() then
 			fill(index)
 		end
 	end)
 	UserInputService.InputBegan:Connect(function(input, processed)
-		if not PortalScreen.isOpen() then
+		if not shown() then
 			return
 		end
 		if input.KeyCode == Enum.KeyCode.Escape or input.KeyCode == Enum.KeyCode.ButtonB then
-			close()
+			-- a step back: to the area list it came from, or shut
+			if backTo then
+				goBack()
+			else
+				close()
+			end
 		elseif
 			not processed
 			and not FirstTips.takesKeys()
@@ -687,7 +788,7 @@ function PortalScreen.start()
 	end)
 	RunService.RenderStepped:Connect(function()
 		-- the run has begun (or the lobby is gone): nothing to choose
-		if PortalScreen.isOpen() and Workspace:GetAttribute("InLobby") ~= true then
+		if shown() and Workspace:GetAttribute("InLobby") ~= true then
 			close()
 		end
 	end)

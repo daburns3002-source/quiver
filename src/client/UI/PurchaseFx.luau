@@ -339,14 +339,30 @@ function PurchaseFx.play(receipt: PurchaseRules.Receipt)
 	if words then
 		local tagH = 68 * unit
 		local tagW = tagH * 4.6
-		local pill = walletPill(receipt.paid)
-		local tagX, tagY, drop = wordX, wordY + wordH * 0.95, 0
-		if pill then
-			tagX = pill.AbsolutePosition.X - corner.X + pill.AbsoluteSize.X / 2
-			tagY = pill.AbsolutePosition.Y - corner.Y + pill.AbsoluteSize.Y + tagH * 0.5
+		local tagX, tagY =
+			PurchaseRules.keepIn(wordX, wordY + wordH * 0.95, tagW, tagH, view.X, view.Y, 12 * unit)
+		local drop = 0
+		--[[ The pill is looked for a frame late: the price paid has just
+		     redrawn the open screen's wallet (`Remotes.ProfileChanged`
+		     arrives first), and a pill made this frame has no place yet. ]]
+		local looked = false
+		local function fromPill()
+			looked = true
+			local pill = walletPill(receipt.paid)
+			if not pill then
+				return
+			end
+			tagX, tagY = PurchaseRules.keepIn(
+				pill.AbsolutePosition.X - corner.X + pill.AbsoluteSize.X / 2,
+				pill.AbsolutePosition.Y - corner.Y + pill.AbsoluteSize.Y + tagH * 0.5,
+				tagW,
+				tagH,
+				view.X,
+				view.Y,
+				12 * unit
+			)
 			drop = 90 * unit
 		end
-		tagX, tagY = PurchaseRules.keepIn(tagX, tagY, tagW, tagH, view.X, view.Y, 12 * unit)
 		local tag = Instance.new("Frame")
 		tag.Name = "Price"
 		tag.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -380,6 +396,9 @@ function PurchaseFx.play(receipt: PurchaseRules.Receipt)
 		local amountStroke = amount:FindFirstChildOfClass("UIStroke")
 		local image = if icon:IsA("ImageLabel") then icon :: ImageLabel else nil
 		table.insert(parts, function(t)
+			if not looked and t > 0 then
+				fromPill()
+			end
 			local share = t / length
 			local fade = math.clamp((share - FADE_FROM) / (1 - FADE_FROM), 0, 1)
 			tagScale.Scale = 0.2 + 0.8 * outBack(t / 0.2)

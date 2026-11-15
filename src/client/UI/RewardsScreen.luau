@@ -290,7 +290,8 @@ local function scroller(
 	list.BorderSizePixel = 0
 	list.ScrollBarThickness = 10
 	list.ScrollBarImageColor3 = Chunky.navy
-	list.CanvasSize = UDim2.fromScale(0, tall / h)
+	-- a canvas is sized against the frame's parent, the sheet, not the frame
+	list.CanvasSize = UDim2.fromScale(0, tall / sheet.h)
 	list.ScrollingDirection = Enum.ScrollingDirection.Y
 	list.ZIndex = 6
 	Chunky.put(sheet, list, x, y, w, h)

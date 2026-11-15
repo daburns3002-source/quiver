@@ -186,8 +186,8 @@ local Rewards = {
 	     level has three stars, for winning it, for finishing with more
 	     than `health` percent of health, and for finishing inside its time
 	     (so many seconds a room, or a wave). An area's stars open `chests`,
-	     once each. Two areas have ten levels today, so every chest there is
-	     comes to 150 gems: the store keeps its price. The times are a first
+	     once each. Four areas have ten levels or more today, so every chest
+	     there is comes to 300 gems: the store keeps its price. The times are a first
 	     guess, generous on purpose; tune them once real clears are timed. ]]
 	stars = {
 		health = 50,

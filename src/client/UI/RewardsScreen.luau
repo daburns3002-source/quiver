@@ -684,10 +684,13 @@ local function draw(s: StationScreen.Screen)
 				})
 			end
 		end
-		--[[ An area's star chests not opened yet (`Util/StarRules`): its
-		     levels' stars against 10, 20 and 30. ]]
+		--[[ Each area's next star chest (`Util/StarRules`): its levels'
+		     stars against 10, then 20, then 30. One row an area, so the
+		     list stays short. ]]
+		local nextOf: { [string]: boolean } = {}
 		for _, chest in StarRules.chests(p) do
-			if not chest.claimed then
+			if not chest.claimed and not nextOf[chest.area] then
+				nextOf[chest.area] = true
 				table.insert(rows, {
 					kind = "levels",
 					title = chest.words,

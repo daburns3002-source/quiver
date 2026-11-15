@@ -216,21 +216,26 @@ local function row(
 	local ready = spec.have >= spec.goal and not spec.claimed
 	local buttonW, giftW = 190, 150
 	local size = h - 28
-	icon(sheet, PICTURES[spec.kind] or ShopAssets.gem, x + 16, y + 14, size)
+	local art = PICTURES[spec.kind] or ShopAssets.gem
 	if spec.medals then
-		-- bronze, silver, gold along the picture's foot, lit as each is won
-		local disc, gap = math.floor(size * 0.27), 6
+		--[[ A goal: its picture a little smaller, and bronze, silver and
+		     gold in a row under it, each lit once it is won. ]]
+		local disc, gap = math.floor(size * 0.24), 6
+		local small = size - disc - 6
+		icon(sheet, art, x + 16 + (size - small) / 2, y + 12, small)
 		local mx = x + 16 + (size - (disc + gap) * #Goals.medals + gap) / 2
 		for index, colour in Goals.medalColours do
 			local medal = Instance.new("Frame")
 			medal.Name = "Medal"
 			medal.BorderSizePixel = 0
-			medal.BackgroundColor3 = if index <= spec.medals then colour else Chunky.trough
+			medal.BackgroundColor3 = if index <= spec.medals then colour else Chunky.pale
 			medal.ZIndex = 32
-			Chunky.put(sheet, medal, mx + (index - 1) * (disc + gap), y + h - disc - 8, disc, disc)
+			Chunky.put(sheet, medal, mx + (index - 1) * (disc + gap), y + 18 + small, disc, disc)
 			Chunky.round(medal, disc)
-			Chunky.outline(medal, 4)
+			Chunky.outline(medal, 3)
 		end
+	else
+		icon(sheet, art, x + 16, y + 14, size)
 	end
 	local tx = x + 16 + size + 18
 	local left = w - (tx - x) - buttonW - giftW - 48

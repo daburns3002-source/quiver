@@ -150,11 +150,11 @@ local Goals = {
 		},
 		{
 			key = "areas",
-			words = "BEAT %d AREAS' BOSSES",
+			words = "BEAT THE BOSSES OF %d AREAS",
 			stat = "areas",
 			kind = "bosses",
 			place = "Portal",
-			steps = steps(1, 2, 4, MIXED),
+			steps = steps(2, 3, 4, MIXED),
 		},
 		{
 			key = "coins",
@@ -226,7 +226,7 @@ local Goals = {
 			stat = "topTier",
 			kind = "crates",
 			place = "GearStation",
-			steps = steps(1, 3, 8, MIXED),
+			steps = steps(2, 4, 8, MIXED),
 		},
 		{
 			key = "rare",

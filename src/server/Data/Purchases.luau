@@ -45,6 +45,7 @@ local RunService = game:GetService("RunService")
 
 local Inbound = require(script.Parent.Parent.Net.Inbound)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
+local PurchaseRules = require(ReplicatedStorage.Shared.Util.PurchaseRules)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local RobuxStore = require(ReplicatedStorage.Shared.Config.RobuxStore)
 local SaveSchema = require(ReplicatedStorage.Shared.Util.SaveSchema)
@@ -82,6 +83,7 @@ local DAILY_EVERY = 300
 
 local granted = Remotes.event(Remotes.StoreGranted)
 local prize = Remotes.event(Remotes.EndlessPrize)
+local bought = Remotes.event(Remotes.Purchased)
 
 --[[ Players whose last Victory owes them the starter pack's offer, until
      they leave it (`offerStarter`, `starterAnswered`). ]]
@@ -162,8 +164,10 @@ local function give(
 end
 
 --[[ What follows a grant once it is saved: the client is told (the STORE
-     says thank you), the eggs are shown, a revive is spent. ]]
+     says thank you, the purchase burst plays), the eggs are shown, a
+     revive is spent. ]]
 local function afterGrant(player: Player, product: RobuxStore.Product, pets: { any })
+	bought:FireClient(player, PurchaseRules.robux(product.robux))
 	granted:FireClient(player, product.key, product.gems or 0)
 	if #pets > 0 then
 		prize:FireClient(player, -1, string.upper(product.name), pets, {})

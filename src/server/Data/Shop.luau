@@ -160,7 +160,7 @@ local function buy(player: Player, weapon: unknown)
 	then
 		return
 	end
-	if Wallet.pay(player, price) then
+	if Wallet.pay(player, price, entry.rarity) then
 		Wallet.grantWeapon(player, weapon)
 		takeUp(player, { weapon })
 	end

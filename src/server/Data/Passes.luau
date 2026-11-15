@@ -20,6 +20,8 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Log = require(ReplicatedStorage.Shared.Util.Log)
+local PurchaseRules = require(ReplicatedStorage.Shared.Util.PurchaseRules)
+local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local RobuxStore = require(ReplicatedStorage.Shared.Config.RobuxStore)
 local StoreRules = require(ReplicatedStorage.Shared.Util.StoreRules)
 
@@ -144,6 +146,8 @@ function Passes.start()
 		log.info("%s bought %s", player.Name, pass.key)
 		Analytics.purchased(player, pass.key, "Pass", pass.robux, askedFrom[player])
 		askedFrom[player] = nil
+		-- the purchase burst (`UI/PurchaseFx`), as every purchase gets
+		Remotes.event(Remotes.Purchased):FireClient(player, PurchaseRules.robux(pass.robux))
 		publish(player)
 	end)
 end

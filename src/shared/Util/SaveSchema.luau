@@ -128,6 +128,13 @@
 	gifts and how many have been opened, and `dexChests`, the Dex pages
 	whose chest has been opened. An older profile has an empty box and has
 	opened none: a page it had already finished can be claimed at once.
+
+	Version 21 (2026-11-14, level stars -- `Util/StarRules`): `levelStars`,
+	the stars held on each campaign level, one bit a star (1 the win, 2
+	the health, 4 the time), and `starChests`, the area star chests
+	opened. No win before this was timed or had its health written down,
+	but a level beaten was won, so an older profile holds the first star of
+	every level it has beaten and nothing more is invented.
 ]]
 
 local ClassLevelRules = require(script.Parent.ClassLevelRules)
@@ -139,7 +146,7 @@ local StoreRules = require(script.Parent.StoreRules)
 
 local SaveSchema = {}
 
-SaveSchema.VERSION = 20
+SaveSchema.VERSION = 21
 
 --[[ The classes' own weapons, owned from the start. ]]
 local STARTERS = { "TwigBow", "BranchStaff", "TimberBlade" }
@@ -223,6 +230,11 @@ export type Profile = {
 	--[[ Dex pages whose chest has been opened, by "Book:Area" (version 20,
 	     `Util/PageRules`). ]]
 	dexChests: { [string]: boolean },
+	--[[ The stars held on each level, by its name ("1-3"), one bit a star
+	     (version 21, `Util/StarRules`): 1 to 7. ]]
+	levelStars: { [string]: number },
+	--[[ Area star chests opened, by "Area:Stars" (version 21). ]]
+	starChests: { [string]: boolean },
 }
 
 export type RewardState = {
@@ -310,6 +322,8 @@ function SaveSchema.default(): Profile
 		winStreak = 0,
 		gift = { wins = 0, opened = 0 },
 		dexChests = {},
+		levelStars = {},
+		starChests = {},
 	}
 end
 
@@ -503,6 +517,16 @@ function SaveSchema.migrate(raw: unknown): Profile
 	     stored box is read field by field (`GiftRules.read`). ]]
 	profile.gift = GiftRules.read(data.gift)
 	profile.dexChests = flags(data.dexChests)
+	--[[ 20 -> 21: a stored level's stars are a whole number of at most
+	     three bits. A level beaten was won, whenever that was, so it holds
+	     the first star: which also gives an older profile its due. ]]
+	for level, mask in counts(data.levelStars) do
+		profile.levelStars[level] = math.min(mask, 7)
+	end
+	for level in profile.levelsBeaten do
+		profile.levelStars[level] = bit32.bor(profile.levelStars[level] or 0, 1)
+	end
+	profile.starChests = flags(data.starChests)
 	return profile
 end
 

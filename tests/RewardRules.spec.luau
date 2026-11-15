@@ -17,6 +17,7 @@ local RewardRules = require(ReplicatedStorage.Shared.Util.RewardRules)
 local Rewards = require(ReplicatedStorage.Shared.Config.Rewards)
 local SaveSchema = require(ReplicatedStorage.Shared.Util.SaveSchema)
 local Shop = require(ReplicatedStorage.Shared.Config.Shop)
+local StarRules = require(ReplicatedStorage.Shared.Util.StarRules)
 local TestRunner = require(script.Parent.TestRunner)
 
 local DAY = 20000
@@ -266,6 +267,13 @@ return function(t: TestRunner.Helper)
 			profile.enemiesSeen[entry.key] = true
 		end
 		t.isTrue(RewardRules.readyBy(profile, day).goals > 2)
+		t.equal(RewardRules.owedAll(profile, day), 3)
+		-- an area's star chest reached counts with the goals too, and is not in CLAIM ALL
+		local before = RewardRules.readyBy(profile, day).goals
+		for _, level in StarRules.levels("MossyGlade") do
+			profile.levelStars[level] = 1
+		end
+		t.equal(RewardRules.readyBy(profile, day).goals, before + 1)
 		t.equal(RewardRules.owedAll(profile, day), 3)
 	end)
 

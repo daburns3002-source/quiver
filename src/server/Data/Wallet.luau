@@ -23,6 +23,7 @@ local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local RunBonus = require(ReplicatedStorage.Shared.Util.RunBonus)
 local SaveSchema = require(ReplicatedStorage.Shared.Util.SaveSchema)
 local ShopRules = require(ReplicatedStorage.Shared.Util.ShopRules)
+local StarRules = require(ReplicatedStorage.Shared.Util.StarRules)
 local StoreRules = require(ReplicatedStorage.Shared.Util.StoreRules)
 local StoryBeatRules = require(ReplicatedStorage.Shared.Util.StoryBeatRules)
 local TipRules = require(ReplicatedStorage.Shared.Util.TipRules)
@@ -359,6 +360,21 @@ function Wallet.bankStreak(player: Player, before: number): number
 	profile.winStreak = RunBonus.won(before)
 	changed(player, profile)
 	return profile.winStreak
+end
+
+--[[ A level is won with these stars (`Util/StarRules`, decided by
+     `RoomController` from the health and time it measured): added to the
+     ones the level holds. Returns what it held before and holds now. ]]
+function Wallet.addStars(player: Player, level: string, mask: number): (number, number)
+	local profile = PlayerData.get(player)
+	if not profile then
+		return 0, 0
+	end
+	local had, now = StarRules.add(profile.levelStars, level, mask)
+	if now ~= had then
+		changed(player, profile)
+	end
+	return had, now
 end
 
 --[[ The tutorial is won (`SaveSchema` version 8): saved, so later joins

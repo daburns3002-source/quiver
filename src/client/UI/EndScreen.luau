@@ -75,6 +75,9 @@ export type Summary = {
 	     (`Util/RunBonus`), and three chests wait for a pick
 	     (`UI/VictoryChests`). ]]
 	streak: number?,
+	--[[ The level's stars, before this win and now, and its time
+	     (`Util/StarRules`), shown with the chests. ]]
+	stars: VictoryChests.Stars?,
 	--[[ The area whose story beat this win owes (`UI/StoryBeat`). ]]
 	story: string?,
 	--[[ What the run paid the class's own level (`Config/ClassLevels`),
@@ -1286,7 +1289,7 @@ function EndScreen.show(summary: Summary)
 				end
 			end
 			if gui == screen and chestsOwed then
-				VictoryChests.open(summary.streak, function()
+				VictoryChests.open(summary.streak, summary.stars, function()
 					chestsOwed = false
 				end)
 			end

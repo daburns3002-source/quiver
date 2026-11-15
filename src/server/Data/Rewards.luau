@@ -31,6 +31,7 @@ local PageRules = require(ReplicatedStorage.Shared.Util.PageRules)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local RewardConfig = require(ReplicatedStorage.Shared.Config.Rewards)
 local RewardRules = require(ReplicatedStorage.Shared.Util.RewardRules)
+local StarRules = require(ReplicatedStorage.Shared.Util.StarRules)
 
 local PlayerData = require(script.Parent.PlayerData)
 local Wallet = require(script.Parent.Wallet)
@@ -165,6 +166,14 @@ local function claim(player: Player, kind: unknown, key: unknown)
 		local prize = PageRules.claim(profile, key)
 		if prize then
 			log.info("%s opens the chest of Dex page %s", player.Name, tostring(key))
+			pay(player, prize)
+		end
+		return
+	elseif kind == "stars" then
+		--[[ An area's star chest (`Util/StarRules`), the same way. ]]
+		local prize = StarRules.claim(profile, key)
+		if prize then
+			log.info("%s opens star chest %s", player.Name, tostring(key))
 			pay(player, prize)
 		end
 		return

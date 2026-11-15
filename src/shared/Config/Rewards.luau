@@ -182,6 +182,24 @@ local Rewards = {
 		Weapons = { crates = 5, gems = 75 },
 	} :: { [string]: Prize },
 
+	--[[ Level stars (`Util/StarRules`; owner, 2026-11-14): a campaign
+	     level has three stars, for winning it, for finishing with more
+	     than `health` percent of health, and for finishing inside its time
+	     (so many seconds a room, or a wave). An area's stars open `chests`,
+	     once each. Four areas have ten levels or more today, so every chest
+	     there is comes to 300 gems: the store keeps its price. The times are a first
+	     guess, generous on purpose; tune them once real clears are timed. ]]
+	stars = {
+		health = 50,
+		secondsPerRoom = 25,
+		secondsPerWave = 20,
+		chests = {
+			{ stars = 10, prize = { eggs = 1, crates = 1 } },
+			{ stars = 20, prize = { eggs = 2, crates = 2, gems = 25 } },
+			{ stars = 30, prize = { eggs = 3, crates = 3, gems = 50 } },
+		} :: { { stars: number, prize: Prize } },
+	},
+
 	--[[ A win streak (`Util/RunBonus`; owner, 2026-11-14): each level won
 	     in a row adds `step` to the next level's kill and clear coins, up
 	     to `cap`. Coins only: they already come from play, and a half more

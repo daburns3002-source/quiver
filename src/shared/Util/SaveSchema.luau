@@ -122,9 +122,16 @@
 	Version 19 (2026-11-14, the win streak -- `Util/RunBonus`): `winStreak`,
 	the campaign levels won in a row, 0 for none. Nobody had one, so an
 	older profile starts at 0.
+
+	Version 20 (2026-11-14, the gift box and the Dex pages' chests --
+	`Util/GiftRules`, `Util/PageRules`): `gift`, the wins counted towards
+	gifts and how many have been opened, and `dexChests`, the Dex pages
+	whose chest has been opened. An older profile has an empty box and has
+	opened none: a page it had already finished can be claimed at once.
 ]]
 
 local ClassLevelRules = require(script.Parent.ClassLevelRules)
+local GiftRules = require(script.Parent.GiftRules)
 local MergeRules = require(script.Parent.MergeRules)
 local RunBonus = require(script.Parent.RunBonus)
 local SettingsRules = require(script.Parent.SettingsRules)
@@ -132,7 +139,7 @@ local StoreRules = require(script.Parent.StoreRules)
 
 local SaveSchema = {}
 
-SaveSchema.VERSION = 19
+SaveSchema.VERSION = 20
 
 --[[ The classes' own weapons, owned from the start. ]]
 local STARTERS = { "TwigBow", "BranchStaff", "TimberBlade" }
@@ -211,6 +218,11 @@ export type Profile = {
 	--[[ Campaign levels won in a row (version 19, `Util/RunBonus`): taken
 	     out as a level starts and written back, one longer, on the win. ]]
 	winStreak: number,
+	--[[ The gift box (version 20, `Util/GiftRules`). ]]
+	gift: GiftRules.Gift,
+	--[[ Dex pages whose chest has been opened, by "Book:Area" (version 20,
+	     `Util/PageRules`). ]]
+	dexChests: { [string]: boolean },
 }
 
 export type RewardState = {
@@ -296,6 +308,8 @@ function SaveSchema.default(): Profile
 		stats = {},
 		goalsClaimed = {},
 		winStreak = 0,
+		gift = { wins = 0, opened = 0 },
+		dexChests = {},
 	}
 end
 
@@ -485,6 +499,10 @@ function SaveSchema.migrate(raw: unknown): Profile
 	--[[ 18 -> 19: nobody had a streak; a stored one is a whole number, no
 	     longer than the longest kept. ]]
 	profile.winStreak = math.min(count(data.winStreak), RunBonus.LONGEST)
+	--[[ 19 -> 20: no gift was ever earned and no page's chest opened; a
+	     stored box is read field by field (`GiftRules.read`). ]]
+	profile.gift = GiftRules.read(data.gift)
+	profile.dexChests = flags(data.dexChests)
 	return profile
 end
 

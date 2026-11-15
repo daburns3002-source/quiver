@@ -197,8 +197,9 @@ Remotes.TrailEquip = "TrailEquip"
      wallet (`Data/Shop`), to test the shop without playing for them. ]]
 Remotes.DebugWallet = "DebugWallet"
 --[[ Client → server: claim a reward (`Data/Rewards`): "login", "quest",
-     "starter" or "goal" with its key, "all" for every one owed, or "bonus"
-     for the quests' chest. Carries no progress and no day; the server judges the
+     "starter", "goal" or "page" (a Dex page's chest) with its key, "all"
+     for every one owed, "bonus" for the quests' chest, or "gift" for the
+     gift box. Carries no progress and no day; the server judges the
      claim from the saved profile and its own clock. ]]
 Remotes.RewardClaim = "RewardClaim"
 --[[ Server → client: the quests' bonus chest was opened (`Data/QuestChest`):

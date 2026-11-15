@@ -10,7 +10,9 @@
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local DexBook = require(ReplicatedStorage.Shared.Util.DexBook)
 local Economy = require(ReplicatedStorage.Shared.Config.Economy)
+local GiftRules = require(ReplicatedStorage.Shared.Util.GiftRules)
 local RewardRules = require(ReplicatedStorage.Shared.Util.RewardRules)
 local Rewards = require(ReplicatedStorage.Shared.Config.Rewards)
 local SaveSchema = require(ReplicatedStorage.Shared.Util.SaveSchema)
@@ -252,6 +254,19 @@ return function(t: TestRunner.Helper)
 		-- a goal with a step reached counts on the GOALS tab
 		profile.stats.hatches = 10
 		t.equal(RewardRules.readyBy(profile, day).goals, 2)
+		--[[ A gift ready counts on DAILY and a finished Dex page with the
+		     goals; CLAIM ALL takes neither, nor a goal's step. ]]
+		t.equal(RewardRules.owedAll(profile, day), 3)
+		for _ = 1, 3 do
+			GiftRules.won(profile.gift)
+		end
+		t.equal(RewardRules.readyBy(profile, day).daily, 2)
+		profile.enemiesSeen = {}
+		for _, entry in DexBook.entries("Enemies", profile) do
+			profile.enemiesSeen[entry.key] = true
+		end
+		t.isTrue(RewardRules.readyBy(profile, day).goals > 2)
+		t.equal(RewardRules.owedAll(profile, day), 3)
 	end)
 
 	t.test("every kind of quest has a place to go and do it", function()

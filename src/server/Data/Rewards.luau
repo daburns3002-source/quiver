@@ -22,9 +22,12 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
+local GiftRules = require(ReplicatedStorage.Shared.Util.GiftRules)
 local GoalRules = require(ReplicatedStorage.Shared.Util.GoalRules)
+local Goals = require(ReplicatedStorage.Shared.Config.Goals)
 local Inbound = require(script.Parent.Parent.Net.Inbound)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
+local PageRules = require(ReplicatedStorage.Shared.Util.PageRules)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local RewardConfig = require(ReplicatedStorage.Shared.Config.Rewards)
 local RewardRules = require(ReplicatedStorage.Shared.Util.RewardRules)
@@ -97,9 +100,35 @@ function Rewards.note(player: Player, kind: string, amount: number)
 	if GoalRules.count(profile.stats, kind, amount) then
 		changed = true
 	end
+	--[[ A level won fills the gift box (`Util/GiftRules`), and says so the
+	     moment a gift is ready. ]]
+	if kind == "levels" and amount > 0 then
+		local before = GiftRules.ready(profile.gift)
+		if GiftRules.won(profile.gift) then
+			changed = true
+		end
+		if GiftRules.ready(profile.gift) > before then
+			toast:FireClient(player, "GIFT READY! OPEN IT IN REWARDS", 0, 0)
+		end
+	end
 	if changed then
 		PlayerData.touch(player)
 	end
+end
+
+--[[ Pays a prize already marked claimed (a goal's step, a Dex page's
+     chest): its coins and gems here, its eggs and crates by
+     `Data/QuestChest`, which shows what came out. ]]
+local function pay(player: Player, prize: Goals.Prize)
+	Wallet.addCoins(player, prize.coins or 0)
+	Wallet.addGems(player, prize.gems or 0)
+	local eggs, crates = prize.eggs or 0, prize.crates or 0
+	local give = Rewards.givePrize
+	if give and eggs + crates > 0 then
+		give(player, eggs, crates)
+	end
+	PlayerData.touch(player)
+	Wallet.send(player)
 end
 
 local function claim(player: Player, kind: unknown, key: unknown)
@@ -128,14 +157,26 @@ local function claim(player: Player, kind: unknown, key: unknown)
 		local prize = GoalRules.claim(profile, key)
 		if prize then
 			log.info("%s claims a step of goal %s", player.Name, tostring(key))
-			Wallet.addCoins(player, prize.coins or 0)
-			Wallet.addGems(player, prize.gems or 0)
-			local eggs, crates = prize.eggs or 0, prize.crates or 0
-			local give = Rewards.givePrize
-			if give and eggs + crates > 0 then
-				give(player, eggs, crates)
-			end
+			pay(player, prize)
+		end
+		return
+	elseif kind == "page" then
+		--[[ A finished Dex page's chest (`Util/PageRules`), the same way. ]]
+		local prize = PageRules.claim(profile, key)
+		if prize then
+			log.info("%s opens the chest of Dex page %s", player.Name, tostring(key))
+			pay(player, prize)
+		end
+		return
+	elseif kind == "gift" then
+		--[[ The gift box (`Util/GiftRules`): one gift a claim, marked
+		     opened here and given as the quests' chest is. ]]
+		local what = GiftRules.claim(profile.gift)
+		local open = Rewards.openChest
+		if what and open then
 			PlayerData.touch(player)
+			log.info("%s opens a gift: %s", player.Name, what)
+			open(player, what)
 			Wallet.send(player)
 		end
 		return

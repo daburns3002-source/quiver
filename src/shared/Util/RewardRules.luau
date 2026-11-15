@@ -11,7 +11,9 @@
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local GiftRules = require(script.Parent.GiftRules)
 local GoalRules = require(script.Parent.GoalRules)
+local PageRules = require(script.Parent.PageRules)
 local Rewards = require(ReplicatedStorage.Shared.Config.Rewards)
 local SaveSchema = require(ReplicatedStorage.Shared.Util.SaveSchema)
 
@@ -268,7 +270,30 @@ function RewardRules.readyBy(
 		end
 	end
 	out.goals += (GoalRules.tally(profile))
+	-- the gift box is on the DAILY tab, the Dex pages' chests with the goals
+	out.daily += GiftRules.ready(profile.gift)
+	out.goals += PageRules.tally(profile)
 	return out
+end
+
+--[[ How many rewards CLAIM ALL would take (`claimAll`): the calendar, the
+     quests and the starter steps. What opens with a reveal of its own (the
+     quests' chest, a gift, a goal's step, a Dex page's chest) is not among
+     them. ]]
+function RewardRules.owedAll(profile: SaveSchema.Profile, day: number): number
+	local r = profile.rewards
+	local n = if RewardRules.loginReady(r, day) then 1 else 0
+	for _, key in RewardRules.questsFor(day) do
+		if RewardRules.questReady(r, day, key) then
+			n += 1
+		end
+	end
+	for _, entry in Rewards.starter do
+		if RewardRules.starterReady(profile, entry.key) then
+			n += 1
+		end
+	end
+	return n
 end
 
 --[[ How many rewards wait to be claimed: the lobby button's badge. ]]

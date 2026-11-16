@@ -184,7 +184,8 @@ local function strike(
 	blow: number,
 	from: Vector3,
 	now: number,
-	standing: Vector3?
+	standing: Vector3?,
+	knock: number?
 )
 	local melee = session.melee
 	local assassin = Balance.Player.assassin
@@ -211,7 +212,8 @@ local function strike(
 		kind = "Crit"
 	end
 
-	local landed, xp, fell = EnemyManager.damage(enemy.model, damage, from, kind, session.player)
+	local landed, xp, fell =
+		EnemyManager.damage(enemy.model, damage, from, kind, session.player, knock)
 	--[[ Bloodletting: a share of the blow comes back as health. ]]
 	if landed and melee.lifesteal > 0 then
 		RunSession.heal(session, damage * melee.lifesteal)
@@ -367,7 +369,17 @@ local function land(swing: Pending, now: number)
 			continue
 		end
 
-		strike(session, lead, enemy, blow, root.Position, now)
+		strike(
+			session,
+			lead,
+			enemy,
+			blow,
+			root.Position,
+			now,
+			nil,
+			--[[ A spin shoves all the way, whatever the blow it replaced. ]]
+			if config.knock and not swing.spin then config.knock[swing.index] else nil
+		)
 	end
 
 	--[[ Blade Storm: every few blows that land, the sword is thrown. ]]

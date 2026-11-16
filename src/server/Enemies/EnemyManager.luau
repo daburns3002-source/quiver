@@ -1381,6 +1381,8 @@ end
 	third is where the enemy fell, on the killing blow only: it is where the
 	kill's crystals drop, and the model is gone by the time anyone asks.
 ]]
+--[[ `knock`, when given, is the share of the enemy's knockback this blow
+     gives (0 to 1; all of it when omitted). ]]
 --[[ `fromPosition` is where the blow came from, for knockback; nil for
      damage that does not push, like a burn ticking. `kind` is how the
      number is drawn; omitted is a plain hit. ]]
@@ -1389,7 +1391,8 @@ function EnemyManager.damage(
 	amount: number,
 	fromPosition: Vector3?,
 	kind: Types.HitKind?,
-	by: Player?
+	by: Player?,
+	knock: number?
 ): (boolean, number, Vector3?)
 	local enemy = enemies[model]
 	if not enemy or amount <= 0 then
@@ -1484,11 +1487,15 @@ function EnemyManager.damage(
 	if knockbackDirection.Magnitude > 1e-3 then
 		local flat = knockbackDirection.Unit
 		local rate = KNOCKBACK_SETTLE / Balance.Knockback.slideTime
-		local impulse = enemy.config.knockback * rate
+		local whole = enemy.config.knockback * rate
+		--[[ `knock` is this blow's share of the shove (a dagger's slash,
+		     `Config/Classes.swing.knock`); the cap on a pile of shoves is
+		     a whole hit's, whatever this one gives. ]]
+		local impulse = whole * math.clamp(knock or 1, 0, 1)
 		local combined = enemy.knockbackVelocity + flat * impulse
 
-		if combined.Magnitude > impulse * 2 then
-			combined = combined.Unit * impulse * 2
+		if combined.Magnitude > whole * 2 then
+			combined = combined.Unit * whole * 2
 		end
 
 		enemy.knockbackVelocity = combined

@@ -9,11 +9,14 @@
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local ClassLevelRules = require(ReplicatedStorage.Shared.Util.ClassLevelRules)
+local ClassList = require(ReplicatedStorage.Shared.Util.ClassList)
 local ClassSelect = require(ReplicatedStorage.Shared.Config.ClassSelect)
 local ClassStats = require(ReplicatedStorage.Shared.Util.ClassStats)
 local Classes = require(ReplicatedStorage.Shared.Config.Classes)
 local SaveSchema = require(ReplicatedStorage.Shared.Util.SaveSchema)
 local ShopAssets = require(ReplicatedStorage.Shared.Config.ShopAssets)
+local ShopRules = require(ReplicatedStorage.Shared.Util.ShopRules)
 local TestRunner = require(script.Parent.TestRunner)
 local Weapons = require(ReplicatedStorage.Shared.Config.Weapons)
 
@@ -35,11 +38,42 @@ return function(t: TestRunner.Helper)
 		end
 	end)
 
-	t.test("a locked card is a class the game cannot play", function()
+	--[[ A locked card's class may be built already (it is played in Studio
+	     while it is made), but no player can choose it, level it or own
+	     its weapons (`Util/ClassList`, which the server's CHOOSE reads). ]]
+	t.test("a locked card is a class no player can choose, level or arm", function()
 		for _, card in ClassCards do
 			if card.locked then
-				t.isNil(Classes[card.class], `{card.class} is locked but playable`)
+				t.isFalse(ClassList.isOpen(card.class), `{card.class} is locked but open`)
+				t.isNil(table.find(ClassList.open(), card.class), `{card.class} is listed open`)
+				t.isFalse(ClassLevelRules.levels(card.class), `{card.class} is locked but levels`)
+				for _, entry in ShopRules.catalog() do
+					t.isTrue(entry.class ~= card.class, `{entry.weapon} can be owned`)
+				end
+			else
+				t.isTrue(ClassList.isOpen(card.class), `{card.class} is not open`)
 			end
+		end
+		t.isFalse(ClassList.isOpen("Wizard"))
+		t.isFalse(ClassList.isOpen(nil))
+	end)
+
+	t.test("the class list is every class there is, in the cards' order", function()
+		local all = ClassList.all()
+		local count = 0
+		for _ in Classes do
+			count += 1
+		end
+		t.equal(#all, count)
+		local at = 0
+		for _, card in ClassCards do
+			if Classes[card.class] then
+				at += 1
+				t.equal(all[at], card.class)
+			end
+		end
+		for _, class in ClassList.open() do
+			t.notNil(table.find(all, class), class)
 		end
 	end)
 

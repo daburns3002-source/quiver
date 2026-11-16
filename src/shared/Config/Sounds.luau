@@ -114,6 +114,31 @@ local Sounds: { [string]: Sound } = {
 		pitchJitter = 0.02,
 		minGap = 0.05,
 	},
+	--[[ The Assassin's three strikes (`Config/Weapons.SplinterDaggers.comboSounds`).
+	     STAND-INS (2026-11-15): the Warden's swings played faster and
+	     quieter, until the daggers' own sounds are picked and uploaded as
+	     one sprite (`docs/PIPELINES.md` section 7). ]]
+	dagger_slash = {
+		id = "rbxassetid://87235506154920",
+		volume = 0.5,
+		speed = 1.7,
+		pitchJitter = 0.06,
+		minGap = 0.05,
+	},
+	dagger_slash_2 = {
+		id = "rbxassetid://83559699463378",
+		volume = 0.5,
+		speed = 1.8,
+		pitchJitter = 0.06,
+		minGap = 0.05,
+	},
+	dagger_stab = {
+		id = "rbxassetid://83559699463378",
+		volume = 0.65,
+		speed = 1.35,
+		pitchJitter = 0.04,
+		minGap = 0.05,
+	},
 	--[[ The Arcanist's every bolt (`Config/Weapons.BranchStaff.fireSound`). ]]
 	staff_cast = {
 		id = "rbxassetid://94842415130560",

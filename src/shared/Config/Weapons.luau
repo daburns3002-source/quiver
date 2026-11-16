@@ -275,6 +275,57 @@ local Weapons = {
 			},
 		},
 	} :: Weapon,
+
+	--[[ The Assassin's (owner, 2026-11-15): the Claude Design Splinter
+	     Dagger of `docs/PETS-FOREST.md`'s sheet, one model held in each hand
+	     (`offhand`), its own colours on its vertices. Gripped at the middle
+	     of the wrapped handle, 37% up from the pommel (measured from the
+	     GLB, `assets/models/weapons/blocky/forest/splinter_daggers_roblox.glb`),
+	     blade out of the thumb side of the fist, as the bow and staff sit.
+	     Its kit is written as numbers, not keyed in Claude Design
+	     (`assets/models/weapons/splinter_daggers_r15/make_kit.py`): a
+	     stance, a run with both blades trailing, a slash from each hand, a
+	     double stab, and the dash's sweep. ]]
+	SplinterDaggers = {
+		hand = "RightHand",
+		scale = 3.5,
+		grip = Vector3.new(0, -0.1, 0),
+		offhand = { hand = "LeftHand", grip = Vector3.new(0, -0.1, 0) },
+		clips = {
+			hold = "Hold",
+			move = "Run",
+			--[[ Made for the character's own pace (`Balance.Player.moveSpeed`). ]]
+			moveSpeed = 13.5,
+			fire = { "Slash_R", "Slash_L", "Stab" },
+			special = { dash = "Dash" },
+		},
+		fireSound = "dagger_slash",
+		comboSounds = { "dagger_slash", "dagger_slash_2", "dagger_stab" },
+		swingTrail = {
+			base = Vector3.new(0, -0.05, 0),
+			tip = Vector3.new(0, 0.47, 0),
+			colour = { Color3.fromRGB(236, 226, 255), Color3.fromRGB(146, 62, 224) },
+		},
+		--[[ Light sparks and the faintest shake, on the stab alone: the
+		     daggers are quick, not heavy. ]]
+		blade = {
+			sparkColour = Color3.fromRGB(226, 196, 255),
+			dragRate = 0,
+			burst = 5,
+			heavyBurst = 12,
+			reach = 3,
+			shake = 0.12,
+			shakeTime = 0.12,
+		},
+		parts = {
+			{
+				name = "Dagger",
+				meshId = "rbxassetid://104630130049272",
+				size = Vector3.new(0.18, 0.5444, 0.112),
+				offset = Vector3.new(0, 0.2, 0),
+			},
+		},
+	} :: Weapon,
 }
 
 --[[ The area 1 weapon skins (docs/PETS-FOREST.md; the owner's imports,

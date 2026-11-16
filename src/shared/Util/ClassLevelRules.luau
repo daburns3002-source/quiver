@@ -11,6 +11,7 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local ClassLevels = require(ReplicatedStorage.Shared.Config.ClassLevels)
+local ClassList = require(ReplicatedStorage.Shared.Util.ClassList)
 
 local ClassLevelRules = {}
 
@@ -37,11 +38,10 @@ export type Gain = {
 	weapon: string?,
 }
 
-local CLASSES = { Ranger = true, Arcanist = true, Warden = true }
-
---[[ Whether `class` is one that levels. ]]
+--[[ Whether `class` is one that levels: every class a player can choose
+     (`Util/ClassList`). ]]
 function ClassLevelRules.levels(class: unknown): boolean
-	return type(class) == "string" and CLASSES[class] == true
+	return ClassList.isOpen(class)
 end
 
 --[[ XP level `level` needs to become the next, nil at the top. ]]

@@ -309,6 +309,21 @@ local shots: { [string]: Look } = {
 
 local cleaves: { [string]: Cleave } = {
 	TimberBlade = { colour = { rgb(255, 80, 60), rgb(150, 25, 20) }, tail = 0.16, taper = 0.25 },
+	--[[ The Assassin's daggers cut quick and thin, in their wraps' violet,
+	     with the chips of wood Codex's sheet draws flying off the slash. ]]
+	SplinterDaggers = {
+		colour = { rgb(236, 226, 255), rgb(146, 62, 224) },
+		tail = 0.1,
+		taper = 0.08,
+		motes = {
+			form = "Chip",
+			colour = rgb(214, 148, 84),
+			rate = 26,
+			size = 0.28,
+			rise = 0.6,
+			life = 0.3,
+		},
+	},
 	GoldenBlade = {
 		colour = { rgb(255, 198, 44), rgb(255, 247, 196) },
 		tail = 0.44,

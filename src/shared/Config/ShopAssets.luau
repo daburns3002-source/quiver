@@ -53,6 +53,8 @@ local ShopAssets = {
 		SlimeCrownStaff = "rbxassetid://123948487950469",
 		WorldrootStaff = "rbxassetid://140570668455335",
 		TimberBlade = "rbxassetid://72977638132961",
+		-- the Assassin's daggers, each pair cut from Codex's sheet by assets/ui/shop/dagger_icons.py
+		SplinterDaggers = "rbxassetid://127404573236617",
 		MossstoneBlade = "rbxassetid://124173705228424",
 		ThornBlade = "rbxassetid://72253310337005",
 		BroodsplitBlade = "rbxassetid://130245213339331",

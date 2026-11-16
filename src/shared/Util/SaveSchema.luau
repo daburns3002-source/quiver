@@ -143,6 +143,8 @@
 ]]
 
 local ClassLevelRules = require(script.Parent.ClassLevelRules)
+local ClassList = require(script.Parent.ClassList)
+local Classes = require(script.Parent.Parent.Config.Classes)
 local GiftRules = require(script.Parent.GiftRules)
 local MergeRules = require(script.Parent.MergeRules)
 local RunBonus = require(script.Parent.RunBonus)
@@ -153,8 +155,14 @@ local SaveSchema = {}
 
 SaveSchema.VERSION = 22
 
---[[ The classes' own weapons, owned from the start. ]]
-local STARTERS = { "TwigBow", "BranchStaff", "TimberBlade" }
+--[[ The classes' own weapons, owned from the start: one for every class a
+     player can choose (`Util/ClassList`). Given on every load (`migrate`
+     starts from `default`), so the day a class opens every older profile
+     holds its weapon too. ]]
+local STARTERS: { string } = {}
+for _, class in ClassList.open() do
+	table.insert(STARTERS, Classes[class].weapon)
+end
 
 export type Profile = {
 	version: number,

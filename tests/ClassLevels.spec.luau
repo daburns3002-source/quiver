@@ -12,6 +12,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local ClassLevelRules = require(ReplicatedStorage.Shared.Util.ClassLevelRules)
 local ClassLevels = require(ReplicatedStorage.Shared.Config.ClassLevels)
+local ClassList = require(ReplicatedStorage.Shared.Util.ClassList)
 local Classes = require(ReplicatedStorage.Shared.Config.Classes)
 local DexBook = require(ReplicatedStorage.Shared.Util.DexBook)
 local MergeRules = require(ReplicatedStorage.Shared.Util.MergeRules)
@@ -64,8 +65,8 @@ return function(t: TestRunner.Helper)
 		t.isTrue(runs >= 12 and runs <= 30, "about 20 won runs, not " .. runs)
 	end)
 
-	t.test("every class in the game levels, and no other name does", function()
-		for class in Classes do
+	t.test("every class a player can choose levels, and no other name does", function()
+		for _, class in ClassList.open() do
 			t.isTrue(ClassLevelRules.levels(class), class)
 			t.notNil(ClassLevels.weapons[class], class .. " has a golden weapon")
 		end

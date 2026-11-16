@@ -10,8 +10,10 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Abilities = require(ReplicatedStorage.Shared.Config.Abilities)
 local AbilityEffects = require(ReplicatedStorage.Shared.Combat.AbilityEffects)
+local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Classes = require(ReplicatedStorage.Shared.Config.Classes)
 local TestRunner = require(script.Parent.TestRunner)
+local WeaponTiming = require(ReplicatedStorage.Shared.Combat.WeaponTiming)
 local Weapons = require(ReplicatedStorage.Shared.Config.Weapons)
 
 return function(t: TestRunner.Helper)
@@ -100,17 +102,62 @@ return function(t: TestRunner.Helper)
 		end
 	end)
 
-	t.test("every class has a health scale, and a melee class outlasts the Ranger", function()
-		local ranger = AbilityEffects.serverStats({}, "Ranger")
+	--[[ A class that stands and trades blows (its swing guards it) needs
+	     the health to; one that does not guard (the Assassin) is as fragile
+	     as the Ranger and no more so. ]]
+	t.test(
+		"every class has a health scale, and a guarded melee class outlasts the Ranger",
+		function()
+			local ranger = AbilityEffects.serverStats({}, "Ranger")
+			for name, class in Classes do
+				t.isTrue(class.healthScale > 0, `{name}'s health scale is not positive`)
+				if class.swing then
+					local stats = AbilityEffects.serverStats({}, name)
+					t.isTrue(
+						stats.maxHealth >= ranger.maxHealth,
+						`{name} has less health than the Ranger`
+					)
+					if class.swing.guard then
+						t.isTrue(
+							stats.maxHealth > ranger.maxHealth,
+							`{name} trades blows with no more health`
+						)
+					end
+				end
+			end
+		end
+	)
+
+	--[[ The Assassin (owner, 2026-11-15, option A): quicker and lighter
+	     than every other class, closer in than the Warden, and its three
+	     blows fit inside its own cooldown at the speed they were made. ]]
+	t.test("the Assassin strikes fastest, lightest and closest", function()
+		local assassin = AbilityEffects.serverStats({}, "Assassin")
 		for name, class in Classes do
-			t.isTrue(class.healthScale > 0, `{name}'s health scale is not positive`)
-			if class.swing then
-				local stats = AbilityEffects.serverStats({}, name)
+			if name ~= "Assassin" then
+				local other = AbilityEffects.serverStats({}, name)
+				t.isTrue(assassin.attackCooldown < other.attackCooldown, `no quicker than {name}`)
+				t.isTrue(assassin.damage < other.damage, `hits no lighter than {name}`)
 				t.isTrue(
-					stats.maxHealth > ranger.maxHealth,
-					`{name} fights up close with no more health`
+					(Classes.Assassin.reach :: number) < (class.reach or Balance.Player.attackRange),
+					`reaches no closer than {name}`
 				)
 			end
+		end
+		local blows = Classes.Assassin.swing :: Classes.Swing
+		t.isTrue(blows.arc < (Classes.Warden.swing :: Classes.Swing).arc, "its arc is no narrower")
+		t.isNil(blows.guard, "the Assassin does not guard")
+		for index = 1, #blows.damage do
+			t.near(
+				WeaponTiming.cycleSpeed(Classes.Assassin.weapon, index, assassin.attackCooldown),
+				1,
+				1e-9
+			)
+			t.isTrue(
+				WeaponTiming.hitDelay(Classes.Assassin.weapon, index, assassin.attackCooldown)
+					< assassin.attackCooldown / 2,
+				`blow {index} lands late in its cooldown`
+			)
 		end
 	end)
 end

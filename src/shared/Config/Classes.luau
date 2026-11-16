@@ -109,6 +109,33 @@ local Classes: { [string]: Class } = {
 			guard = true,
 		},
 	},
+	--[[ Twin daggers (owner, 2026-11-15: "we need to create the assassin
+	     class now", and yes to option A, "twin daggers up close"): about two
+	     strikes a second, each lighter than an arrow, on what is right in
+	     front of it: a slash from each hand, a narrow arc, then both daggers
+	     driven in together, 1.5x in a small circle. The Ranger's health and
+	     no guard: it lives by its dash, not by trading blows. Numbers to
+	     tune at playtest. ]]
+	Assassin = {
+		weapon = "SplinterDaggers",
+		damageScale = 0.75,
+		cooldownScale = 0.7,
+		healthScale = 1,
+		speedScale = 1,
+		innate = {},
+		look = "Arrow",
+		--[[ Closer than the Warden's 10: a dagger is short. ]]
+		reach = 8,
+		--[[ An arc 8.5 out and 70 degrees wide for the slashes; the stab a
+		     circle 7 across, from just in front of the feet out to `reach`. ]]
+		swing = {
+			reach = 8.5,
+			arc = 70,
+			slamRadius = 3.5,
+			slamAhead = 4.5,
+			damage = { 1, 1, 1.5 },
+		},
+	},
 }
 
 return table.freeze(Classes)

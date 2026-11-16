@@ -20,6 +20,7 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
+local ClassList = require(ReplicatedStorage.Shared.Util.ClassList)
 local Classes = require(ReplicatedStorage.Shared.Config.Classes)
 local Economy = require(ReplicatedStorage.Shared.Config.Economy)
 local Inbound = require(script.Parent.Parent.Net.Inbound)
@@ -217,12 +218,12 @@ local function equip(player: Player, weapon: unknown)
 end
 
 --[[ The class select screen's CHOOSE: the class's own weapon in hand (the
-     class with it), and the look saved. Only the playable classes. ]]
-local PLAYABLE = { Ranger = true, Arcanist = true, Warden = true }
+     class with it), and the look saved. Only a class that is open
+     (`Util/ClassList`): never one still locked on its card. ]]
 local function chooseClass(player: Player, class: unknown, look: unknown)
 	if
 		type(class) ~= "string"
-		or not PLAYABLE[class]
+		or not ClassList.isOpen(class)
 		or type(look) ~= "string"
 		or not allowed(player)
 	then
@@ -254,7 +255,7 @@ end
      class's own weapon in hand, the class with it, and both pet slots
      emptied. In the lobby only. ]]
 local function switchClass(player: Player, class: unknown)
-	if type(class) ~= "string" or not PLAYABLE[class] or not allowed(player) then
+	if type(class) ~= "string" or not ClassList.isOpen(class) or not allowed(player) then
 		return
 	end
 	local starter = Classes[class] and Classes[class].weapon

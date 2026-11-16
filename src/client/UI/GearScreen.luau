@@ -17,6 +17,7 @@ local Chunky = require(script.Parent.Chunky)
 local ClassLevelPlate = require(script.Parent.ClassLevelPlate)
 local ClassLevelRules = require(ReplicatedStorage.Shared.Util.ClassLevelRules)
 local ClassLevels = require(ReplicatedStorage.Shared.Config.ClassLevels)
+local ClassList = require(ReplicatedStorage.Shared.Util.ClassList)
 local Classes = require(ReplicatedStorage.Shared.Config.Classes)
 local EggRules = require(ReplicatedStorage.Shared.Util.EggRules)
 local EggScreen = require(script.Parent.EggScreen)
@@ -1022,7 +1023,7 @@ local function draw(s: StationScreen.Screen)
 		return holder
 	end
 	if tab == "CLASSES" then
-		for i, className in { "Ranger", "Arcanist", "Warden" } do
+		for i, className in ClassList.open() do
 			local selected = className == currentClass()
 			local holder = cellAt(i)
 			local tile = Chunky.tile(

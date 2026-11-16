@@ -27,7 +27,9 @@ local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local Workspace = game:GetService("Workspace")
 
+local AssassinFx = require(script.Parent.Parent.Fx.Upgrades.AssassinFx)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
+local Classes = require(ReplicatedStorage.Shared.Config.Classes)
 local Dash = require(script.Parent.Dash)
 local DashButton = require(script.Parent.DashButton)
 local Haptics = require(script.Parent.Parent.Fx.Haptics)
@@ -188,6 +190,14 @@ local function requestDash()
 			     ends; its arc is in the animation, and the server's slam lands
 			     on its Impact marker. ]]
 			task.delay(Balance.Player.dash.duration, WeaponPose.playSpecial, "earthbreaker")
+		end
+		--[[ A class whose dash cuts (the Assassin's Shadow Dash): both
+		     blades swept out as it goes, and a streak left behind. The
+		     server decides what it cut. ]]
+		local class = Classes[PlayerStats.get().class]
+		if class and class.dash then
+			WeaponPose.playSpecial("dash")
+			AssassinFx.dashed()
 		end
 	end
 end

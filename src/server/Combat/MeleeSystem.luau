@@ -27,6 +27,7 @@ local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Burning = require(script.Parent.Burning)
 local ClassUpgrades = require(script.Parent.ClassUpgrades)
 local Classes = require(ReplicatedStorage.Shared.Config.Classes)
+local DashCut = require(ReplicatedStorage.Shared.Combat.DashCut)
 local EnemyManager = require(script.Parent.Parent.Enemies.EnemyManager)
 local FireRhythm = require(ReplicatedStorage.Shared.Combat.FireRhythm)
 local ProjectileSystem = require(script.Parent.ProjectileSystem)
@@ -45,6 +46,12 @@ type Session = RunSession.Session
 local MeleeSystem = {}
 
 local shotsParried = Remotes.event(Remotes.ShotsParried)
+local upgradeFx = Remotes.event(Remotes.UpgradeFx)
+
+--[[ Seconds after a dash's own time that its cut is measured: the
+     character's last steps reach the server a little after the client took
+     them. ]]
+local DASH_SETTLE = 0.08
 
 --[[ A swing whose blow has not landed yet. ]]
 type Pending = {
@@ -150,6 +157,62 @@ function MeleeSystem.swing(session: Session, root: BasePart, now: number, cooldo
 	return true
 end
 
+--[[ The lead shot of the volley the player's draft would build, which a
+     blow takes its crit, Blaze and Soul Chain from. ]]
+local function leadShot(session: Session, origin: Vector3, direction: Vector3): Types.ShotSpec?
+	return session.pipeline:build({
+		damage = session.damage,
+		speed = session.projectileSpeed,
+		lifetime = session.projectileLifetime,
+		origin = origin,
+		direction = direction,
+	})[1]
+end
+
+--[[ One enemy struck for `blow`, pushed away from `from`: Execute, a crit,
+     Bloodletting, Sunder, Blaze and Soul Chain, as the player's draft has
+     them. A swing's blow and a dash's cut land the same way. ]]
+local function strike(
+	session: Session,
+	lead: Types.ShotSpec?,
+	enemy: Aim.Candidate,
+	blow: number,
+	from: Vector3,
+	now: number
+)
+	local melee = session.melee
+	local damage = blow
+	--[[ Execute: more against an enemy already badly hurt. ]]
+	local left = EnemyManager.healthFraction(enemy.model)
+	if melee.executeBonus > 0 and left and left < Balance.Player.executeBelow then
+		damage *= 1 + melee.executeBonus
+	end
+	local kind: Types.HitKind = "Hit"
+	if lead and lead.critChance > 0 and math.random() < lead.critChance then
+		damage *= lead.critMultiplier
+		kind = "Crit"
+	end
+
+	local landed, xp, fell = EnemyManager.damage(enemy.model, damage, from, kind, session.player)
+	--[[ Bloodletting: a share of the blow comes back as health. ]]
+	if landed and melee.lifesteal > 0 then
+		RunSession.heal(session, damage * melee.lifesteal)
+	end
+	if xp > 0 then
+		RunSession.creditKill(session.player, xp, fell)
+	end
+	--[[ Sunder: what was struck takes more from everything for a while. ]]
+	if landed and melee.sunder > 0 then
+		EnemyManager.sunder(enemy.model, melee.sunder, os.clock() + Balance.Player.sunder.duration)
+	end
+	if landed and lead then
+		Burning.ignite(enemy.model, blow * lead.burn, lead.burnDuration, session.player, now)
+		--[[ Soul Chain: the nearest others share the blow, as they would
+		     an arrow's. ]]
+		SoulLink.apply(session.player, lead.link, enemy.model, enemy.position, damage, now)
+	end
+end
+
 --[[ Lands one blow: everything in the box takes it. ]]
 local function land(swing: Pending, now: number)
 	local session = swing.session
@@ -187,13 +250,7 @@ local function land(swing: Pending, now: number)
 	session.player:SetAttribute("ComboBlow", swing.index)
 	publishCombo(session)
 
-	local lead = session.pipeline:build({
-		damage = session.damage,
-		speed = session.projectileSpeed,
-		lifetime = session.projectileLifetime,
-		origin = root.Position,
-		direction = swing.direction,
-	})[1]
+	local lead = leadShot(session, root.Position, swing.direction)
 	local melee = session.melee
 	local blow = session.damage * (config.damage[swing.index] or 1)
 	--[[ Heavy Blade: the combo's last blow, the slam, hits harder. ]]
@@ -278,45 +335,50 @@ local function land(swing: Pending, now: number)
 			continue
 		end
 
-		local damage = blow
-		--[[ Execute: more against an enemy already badly hurt. ]]
-		local left = EnemyManager.healthFraction(enemy.model)
-		if melee.executeBonus > 0 and left and left < Balance.Player.executeBelow then
-			damage *= 1 + melee.executeBonus
-		end
-		local kind: Types.HitKind = "Hit"
-		if lead and lead.critChance > 0 and math.random() < lead.critChance then
-			damage *= lead.critMultiplier
-			kind = "Crit"
-		end
-
-		local landed, xp, fell =
-			EnemyManager.damage(enemy.model, damage, root.Position, kind, session.player)
-		--[[ Bloodletting: a share of the blow comes back as health. ]]
-		if landed and melee.lifesteal > 0 then
-			RunSession.heal(session, damage * melee.lifesteal)
-		end
-		if xp > 0 then
-			RunSession.creditKill(session.player, xp, fell)
-		end
-		--[[ Sunder: what was struck takes more from everything for a while. ]]
-		if landed and melee.sunder > 0 then
-			EnemyManager.sunder(
-				enemy.model,
-				melee.sunder,
-				os.clock() + Balance.Player.sunder.duration
-			)
-		end
-		if landed and lead then
-			Burning.ignite(enemy.model, blow * lead.burn, lead.burnDuration, session.player, now)
-			--[[ Soul Chain: the nearest others share the blow, as they would
-			     an arrow's. ]]
-			SoulLink.apply(session.player, lead.link, enemy.model, enemy.position, damage, now)
-		end
+		strike(session, lead, enemy, blow, root.Position, now)
 	end
 
 	--[[ Blade Storm: every few blows that land, the sword is thrown. ]]
 	ClassUpgrades.afterBlow(session, root.Position, swing.direction, now)
+end
+
+--[[ A dash the server accepted (`Main`'s `DashStarted`), for a class whose
+     dash cuts (`Classes.dash`; the Assassin's Shadow Dash). Nothing can
+     hurt the dasher until a moment after it ends; then every enemy within
+     the cut along the ground it covered is struck once, pushed out to the
+     side it stood on (`Shared/Combat/DashCut`). Returns whether it cut. ]]
+function MeleeSystem.dash(session: Session, root: BasePart, now: number): boolean
+	local class = Classes[session.loadout.class]
+	local config = class and class.dash
+	if not config then
+		return false
+	end
+	local travel = Balance.Player.dash
+	local from = root.Position
+	session.guardFrom = now
+	session.guardUntil = math.max(session.guardUntil, now + travel.duration + config.guard)
+
+	task.delay(travel.duration + DASH_SETTLE, function()
+		if not (session.alive and session.root == root and root.Parent) then
+			return
+		end
+		--[[ No further than a dash can go, wherever the character is now. ]]
+		local a, b = DashCut.path(from, root.Position, travel.distance * 1.25)
+		local span = b - a
+		local direction = if span.Magnitude > 1e-3 then span.Unit else root.CFrame.LookVector
+		local landedAt = os.clock()
+		local lead = leadShot(session, root.Position, direction)
+		local blow = session.damage * config.damage
+		local struck: { Vector3 } = {}
+		for _, enemy in candidates() do
+			if DashCut.hits(a, b, config.width, enemy.position, enemy.halfWidth) then
+				strike(session, lead, enemy, blow, DashCut.nearest(a, b, enemy.position), landedAt)
+				table.insert(struck, enemy.position)
+			end
+		end
+		upgradeFx:FireAllClients("ShadowDash", session.player, a, b, struck)
+	end)
+	return true
 end
 
 --[[ Lands every blow that is due. ]]

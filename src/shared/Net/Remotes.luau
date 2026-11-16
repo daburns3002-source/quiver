@@ -401,7 +401,10 @@ Remotes.ShotsParried = "ShotsParried"
 --[[ Server → all clients. A class upgrade's moment to draw
      (`Combat/ClassUpgrades`, `Fx/Upgrades/*BuildFx`): its kind
      ("ArrowRain", "BlackHole", "BlackHoleImplode", "TitanSlam"), the player
-     it is theirs, then that kind's own values. ]]
+     it is theirs, then that kind's own values. Also a class's own skill:
+     "ShadowDash" (`Combat/MeleeSystem.dash`, `Fx/Upgrades/AssassinFx`), the
+     two ends of the ground the dash cut and where each enemy it struck
+     stood. ]]
 Remotes.UpgradeFx = "UpgradeFx"
 
 --[[ Server → one client. A hit on this player missed, and why: "Agility"
@@ -426,8 +429,9 @@ Remotes.PlayerGrabbed = "PlayerGrabbed"
 Remotes.PlayerDragged = "PlayerDragged"
 
 --[[ Client → server. This player's dash began (the dash itself is the
-     client's movement). Only Earthbreaker cares; the server ignores it for
-     anyone without the card and any sooner than the dash's cooldown. ]]
+     client's movement). Earthbreaker, Shield Throw and a class whose dash
+     cuts (the Assassin) care; the server ignores it for anyone else and
+     any sooner than the dash's cooldown. ]]
 Remotes.DashStarted = "DashStarted"
 
 --[[ Client → server. Redeal the open hand. The server checks there is a

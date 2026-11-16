@@ -310,6 +310,22 @@ return function(t: TestRunner.Helper)
 				end
 			end
 		end
+		--[[ And in every area: nothing stands on the straight line from
+		     the spawn to the door, where a player walking up would stop
+		     dead on it. ]]
+		local rooms = 0
+		for _, room in Balance.Rooms do
+			if room.encounter then
+				rooms += 1
+				for _, obstacle in room.obstacles do
+					t.isTrue(
+						math.abs(obstacle.offset.X) - obstacle.size.X / 2 >= Balance.encounterLane,
+						`{room.name} has cover on its door line`
+					)
+				end
+			end
+		end
+		t.isTrue(rooms > 0)
 	end)
 
 	t.test("Thornwood, after the glade, is harder than all of it", function()

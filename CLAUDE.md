@@ -175,6 +175,12 @@ was 0.6 s; a `hold` tip, whose screen is stopped and waiting, only `Tips.holdGap
 the ambient ones `look` asks for from the profile (a first pet, gems), which are asked again every second
 and lose nothing by waiting. A tip that cannot get its turn within `Tips.patience` (20 s, longer than a
 tip's turn and the quiet after it) is let go and asked again the next time its thing happens.
+**A lobby screen's tip stands on that screen's title bar** (the run-through, 2026-11-14: under the top HUD
+it covered every screen's tabs): the screen asks with its `Spot` (`FirstTips.show(key, FirstTips.header(root,
+open))`), the card is placed by `TipRules.over` (centred on the bar, its foot on the bar's foot, so it
+reaches up off the panel and never down), it waits `SETTLE` (0.4 s) for the screen's pop to finish before
+it is measured, and it is let go, waiting or showing, the moment the screen shuts. What the profile says
+is new waits while a station is open (`InStation`).
 **A `hold` tip pauses everything until OK**
 (owner, 2026-11-13: "they should be in the outer arena area so it doesnt block the arena, and also pause the
 game and have an ok button to dismiss the tip and resume the game. make sure the music quiets as well while
@@ -498,6 +504,17 @@ chest) and GOALS (the starter steps), each wearing the count of what waits on it
 A row is a picture of what to do, the words, the bar with its numbers on it, the pay, and one button:
 CLAIM, GO or DONE. **GO** closes the screen and stands a gold arrow over where the quest is done
 (`Fx/QuestPointer`, `Rewards.places`: a station, or the first portal); it starts nothing for the player.
+**An encounter room keeps its door line clear** (`Balance.Rooms`, `Balance.encounterLane`, 4 studs; the
+run-through, 2026-11-14: a log behind the Angel stopped a player walking straight up): cover within the
+lane of the line from the spawn to the door is left out of an Angel room, with its scenery, where
+`Balance.Rooms` is put together, so the room tools need no change (`tests/MossyLevels.spec`). The Angel
+stands beside the line (`RoomController`), on the side with no cover near her. **Her stat is the draft's
+own** (`Loadout.openAngel`): from `candidates` (the player's class, not benched, not banned), drawn by
+rarity's weight. **Endless pays `Balance.Endless.floorCoins` (30) a floor cleared** through
+`RunSession.payEarned`, and its end screen is its own (`summary.endless`: floor, best, new best,
+Soulstones banked; `EndScreenRules.levelTab`, `floorLabel`, `defeatLine`, `tests/EndScreenRules.spec`).
+DEFEAT's line is `EndScreenRules.defeatLine`: merge, not hatch, when `summary.petsFull`.
+
 **CLAIM ALL** (`RewardClaim` "all", `RewardRules.claimAll`) takes **everything that waits** in one press (since the 2026-11-14 run-through: "CLAIM ALL does not claim all, and the counts disagree"): the calendar, the quests and then their chest, the starter steps, the gift box, every step a goal has reached, the star chests and the Dex pages' chests. Its number is the lobby badge's (`RewardRules.owedAll` is `ready`). Their eggs and crates are opened together by `Data/QuestChest` and revealed one after the other. **A player who has beaten no boss is not dealt BEAT A BOSS** (`RewardRules.questsFor(day, r)`, `rewards.bossMet`, save version 22): they get that group's next quest, so the chest for all three is always in reach. **The bonus chest** (`Rewards.bonus`, `RewardClaim` "bonus"): claim all three of the
 day's quests and it opens, free, an egg one day and a weapon crate the next (`RewardRules.bonusKind`), the
 best open to the player, given by `Data/QuestChest` and revealed as a hatch or a crate is

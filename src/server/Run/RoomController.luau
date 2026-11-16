@@ -66,6 +66,7 @@ local Lobby = require(script.Parent.Lobby)
 local LobbyConfig = require(ReplicatedStorage.Shared.Config.Lobby)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
 local MeleeSystem = require(script.Parent.Parent.Combat.MeleeSystem)
+local Passes = require(script.Parent.Parent.Data.Passes)
 local PetCombat = require(script.Parent.Parent.Combat.PetCombat)
 local Pickups = require(script.Parent.Pickups)
 local PlayerData = require(script.Parent.Parent.Data.PlayerData)
@@ -161,6 +162,9 @@ local reviveHeldUntil = 0
      player rather than one number, because the cap is each player's
      (co-op-shaped from day one, non-negotiable 3). ]]
 local endlessBanked: { [Player]: number } = {}
+--[[ Each player's best floor as this Endless run began, so its DEFEAT can
+     say whether the run beat it. ]]
+local endlessBestBefore: { [Player]: number } = {}
 --[[ The cleared floor owes a draft (every third floor). Kept apart from
      `checkpointOwed` because the two are orthogonal: floor 30 owes both,
      and the draft is never displaced by the checkpoint or deferred past
@@ -415,13 +419,31 @@ local function enterRoom(position: number)
 	local encounter = room.encounter
 	if encounter then
 		state = "Choosing"
-		--[[ The Angel itself, in the middle of the room facing whoever walked
-		     in. Into the arena folder, so the next room tears it down with
-		     everything else. ]]
+		--[[ The Angel itself, beside the line from the spawn to the door
+		     (she stood on it, and the way out ran through her) and facing
+		     whoever walked in: on the side with no cover near her spot, or
+		     in the middle if both have. Into the arena folder, so the next
+		     room tears it down with everything else. ]]
 		local arena = workspace:FindFirstChild("Arena")
 		if arena and encounter == "Angel" then
-			local middle = Vector3.new(0, 0, 0)
-			AngelProp.build(arena, middle, Balance.Arena.spawnPosition - middle)
+			local aside = Balance.encounterLane + 3
+			local at = Vector3.new(0, 0, 0)
+			for _, x in { aside, -aside } do
+				local free = true
+				for _, obstacle in room.obstacles do
+					if
+						math.abs(obstacle.offset.X - x) < obstacle.size.X / 2 + 3
+						and math.abs(obstacle.offset.Y) < obstacle.size.Z / 2 + 3
+					then
+						free = false
+					end
+				end
+				if free then
+					at = Vector3.new(x, 0, 0)
+					break
+				end
+			end
+			AngelProp.build(arena, at, Balance.Arena.spawnPosition - at)
 		end
 		for _, session in RunSession.all() do
 			RunSession.offerEncounter(session, encounter :: any)
@@ -565,6 +587,11 @@ local function startStage()
 		jumped = false
 		endlessArea = 0
 		table.clear(endlessBanked)
+		table.clear(endlessBestBefore)
+		for _, session in RunSession.all() do
+			local profile = PlayerData.get(session.player)
+			endlessBestBefore[session.player] = if profile then profile.endlessBest else 0
+		end
 		table.clear(picked)
 		draftOwed = false
 		checkpointOwed = false
@@ -762,6 +789,40 @@ local function payClassXp(session: RunSession.Session, won: boolean): ClassLevel
 	return gain
 end
 
+--[[ What an Endless run's end screen says: the floor it died on, the best
+     floor before this run and whether the floors it cleared beat it, and
+     the Soulstones it banked. Nil in any other mode. ]]
+local function endlessSummary(player: Player): any?
+	if stage().mode ~= "Endless" then
+		return nil
+	end
+	local profile = PlayerData.get(player)
+	local before = endlessBestBefore[player] or (if profile then profile.endlessBest else 0)
+	local cleared = math.max(progress - 1, 0)
+	return {
+		floor = progress,
+		best = math.max(before, cleared),
+		newBest = cleared > before,
+		soulstones = endlessBanked[player] or 0,
+	}
+end
+
+--[[ Whether every pet slot the player has open holds a pet, so DEFEAT does
+     not tell them to hatch one more. ]]
+local function petsFull(player: Player): boolean
+	local profile = PlayerData.get(player)
+	if not profile then
+		return false
+	end
+	for slot = 1, StoreRules.petSlots(Passes.owned(player)) do
+		local pet = profile.equippedPets[slot]
+		if pet == nil or pet == "" then
+			return false
+		end
+	end
+	return true
+end
+
 local function sendSummary(
 	won: boolean,
 	eggs: { [Player]: any }?,
@@ -802,6 +863,12 @@ local function sendSummary(
 			--[[ The end screen's nudge: Victory says so when the coins buy
 			     an egg. ]]
 			canHatch = Hatchery.canHatch(session.player),
+			--[[ DEFEAT's line: with every pet slot full it says to merge,
+			     not to hatch. ]]
+			petsFull = if won then nil else petsFull(session.player),
+			--[[ An Endless run: its floor, best and Soulstones, in place
+			     of the campaign's level and progress. ]]
+			endless = endlessSummary(session.player),
 			--[[ DEFEAT's revive (`Config/RobuxStore`): "buy" for 15 Robux,
 			     "use" for one already held, nil for none. ]]
 			revive = if won then nil else Purchases.reviveOffer(session.player),
@@ -1042,6 +1109,8 @@ local function clearedFloor(floor: number)
 	if not jumped and not sandbox then
 		for _, session in RunSession.all() do
 			local player = session.player
+			-- a little for every floor (`Balance.Endless.floorCoins`)
+			RunSession.payEarned(session, Balance.Endless.floorCoins)
 			Wallet.recordEndlessFloor(player, floor)
 			-- each class's own deepest, for Starfall (`Config/Trails.endless`)
 			Wallet.recordClassFloor(player, session.loadout.class, floor)

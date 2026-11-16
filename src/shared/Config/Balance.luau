@@ -11369,6 +11369,11 @@ local bogheartLevelRooms: { RoomConfig } = {
 }
 -- END areaLevelRooms
 
+--[[ Studs either side of an encounter room's door line that stay clear of
+     cover (`Balance.Rooms`), and where its Angel stands beside that line
+     (`Run/RoomController`). ]]
+local ENCOUNTER_LANE = 4
+
 local rooms: { RoomConfig } = {
 	{
 		name = "Open Ground",
@@ -13118,6 +13123,8 @@ local Balance = {
 
 	--[[ The rooms, then the tutorial's five (81-85), then Mossy Glade
 	     1-1..1-10's (86 on, `levelRoom`). ]]
+	encounterLane = ENCOUNTER_LANE,
+
 	Rooms = (function(): { RoomConfig }
 		local all = table.clone(rooms)
 		for _, room in tutorialRooms do
@@ -13131,6 +13138,25 @@ local Balance = {
 		do
 			for _, room in list do
 				table.insert(all, room)
+			end
+		end
+		--[[ An encounter room (an Angel's) keeps the straight line from the
+		     spawn to the door clear: nothing fights there, so cover on that
+		     line is only something to walk into (the run-through,
+		     2026-11-14: "walking straight up stops dead on the Angel"; it
+		     was a log behind her). Cover within `ENCOUNTER_LANE` studs of
+		     the line is left out, with its scenery. ]]
+		for index, room in all do
+			if room.encounter then
+				local kept: { Obstacle } = {}
+				for _, obstacle in room.obstacles do
+					if math.abs(obstacle.offset.X) - obstacle.size.X / 2 >= ENCOUNTER_LANE then
+						table.insert(kept, obstacle)
+					end
+				end
+				local clear = table.clone(room)
+				clear.obstacles = kept
+				all[index] = clear
 			end
 		end
 		return all
@@ -14206,6 +14232,13 @@ local Balance = {
 		]]
 		blockPay = 25,
 		runCap = 525,
+		--[[ Coins for every floor cleared, at the player's passes' scale as
+		     any run's coins (`RunSession.payEarned`): a little, so a first
+		     visit that dies before floor 10 does not end with nothing (the
+		     run-through, 2026-11-14: 13 kills and +0). Ten floors pay about
+		     half a campaign level's coins. Soulstones still vest only at
+		     boss floors. ]]
+		floorCoins = 30,
 
 		--[[
 			The one-time milestones, each hitting a different system on

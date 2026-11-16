@@ -147,4 +147,24 @@ function TipRules.place(w: number, h: number, insetY: number, arena: Box?): Plac
 	return wide(top + math.max(0, (above - height) / 2))
 end
 
+--[[ Where a tip's card stands over a lobby screen's header (`spot`, the
+     panel's title bar in screen points), on a screen `w` x `h`: centred on
+     it with its foot on the header's foot, so it reaches up off the panel
+     and never down over the tabs and buttons it explains (seen 2026-11-14:
+     under the top HUD it covered every screen's tabs). Always whole on the
+     screen. ]]
+function TipRules.over(w: number, h: number, spot: Box): Placement
+	local layout = TipRules.layout
+	local g = layout.gutter
+	local width = math.min(layout.wideWidth, w - g * 2)
+	local height = layout.wideHeight
+	local x = math.clamp(spot.x + (spot.w - width) / 2, g, math.max(g, w - g - width))
+	local lowest = math.max(0, h - height - g)
+	local y = math.clamp(spot.y + spot.h - height, math.min(g, lowest), lowest)
+	return {
+		box = { x = math.floor(x), y = math.floor(y), w = width, h = height },
+		side = false,
+	}
+end
+
 return TipRules

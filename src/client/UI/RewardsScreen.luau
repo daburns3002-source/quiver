@@ -882,11 +882,20 @@ local function startToasts()
 		while #waiting > 0 do
 			local batch = waiting
 			waiting = {}
-			local gems = 0
+			--[[ A quest's line can arrive in the same burst and pays
+			     nothing: only the entries that paid are counted (it read
+			     "4 NEW DEX ENTRIES +15", 2026-11-14). ]]
+			local gems, paid, first = 0, 0, batch[1].words
 			for _, entry in batch do
 				gems += entry.gems
+				if entry.gems > 0 then
+					paid += 1
+					if paid == 1 then
+						first = entry.words
+					end
+				end
 			end
-			local line = if #batch == 1 then batch[1].words else `{#batch} NEW DEX ENTRIES`
+			local line = if paid <= 1 then first else `{paid} NEW DEX ENTRIES`
 			if gems == 0 then
 				-- quest lines: the last said is the latest
 				line = batch[#batch].words

@@ -256,6 +256,21 @@ end
 local function overlay(sheet: Chunky.Sheet, over: GuiObject): Chunky.Sheet
 	return { canvas = over :: any, w = sheet.w, h = sheet.h, upright = sheet.upright }
 end
+--[[ The dark behind a pop-up: `shade` covers the 16:9 sheet, which is not
+     the whole window on a wider or taller screen, so the dark itself is a
+     piece three sheets wide and tall behind it (the run-through,
+     2026-11-14: "bright strips left, right and above"). ]]
+local function darken(shade: GuiObject)
+	shade.BackgroundTransparency = 1
+	local dark = Instance.new("Frame")
+	dark.Name = "Dark"
+	dark.BorderSizePixel = 0
+	dark.BackgroundColor3 = Color3.new(0, 0, 0)
+	dark.BackgroundTransparency = 0.35
+	dark.Position, dark.Size = UDim2.fromScale(-1, -1), UDim2.fromScale(3, 3)
+	dark.ZIndex = shade.ZIndex
+	dark.Parent = shade
+end
 local function plate(
 	sheet: Chunky.Sheet,
 	colour: Color3,
@@ -305,6 +320,7 @@ local function details(
 	shade.Size = UDim2.fromScale(1, 1)
 	shade.ZIndex = 100
 	shade.Parent = sheet.canvas
+	darken(shade)
 	local function close()
 		shade:Destroy()
 	end
@@ -523,6 +539,7 @@ local function trailDetails(sheet: Chunky.Sheet, key: string, profile: SaveSchem
 	shade.Size = UDim2.fromScale(1, 1)
 	shade.ZIndex = 100
 	shade.Parent = sheet.canvas
+	darken(shade)
 	local function close()
 		shade:Destroy()
 	end
@@ -727,8 +744,9 @@ local function draw(s: StationScreen.Screen)
 		else {
 			hero = { 360, 176, 400, 700 },
 			pedestal = { 400, 712, 320, 90 },
-			plate = { 380, 850, 360, 100 },
-			level = { 397, 958, 326, 76 },
+			-- clear of PET 3's tile, which starts at 728 (they ran under it)
+			plate = { 392, 850, 320, 100 },
+			level = { 397, 958, 310, 76 },
 			left = 196,
 			right = 728,
 			rows = { 196, 476, 756 },

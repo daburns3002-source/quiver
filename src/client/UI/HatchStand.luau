@@ -25,6 +25,11 @@ local ShopAssets = require(ReplicatedStorage.Shared.Config.ShopAssets)
 local StationScreen = require(script.Parent.StationScreen)
 local HatchStand = {}
 
+--[[ Seconds after a stand opens before E, R or T spend anything. E is also
+     the key that opened it, and at 0.3 s a second press bought an egg (the
+     run-through, 2026-11-14). ]]
+local KEY_WAIT = 1
+
 export type Tile = {
 	rarity: string,
 	icon: string,
@@ -322,10 +327,19 @@ function HatchStand.draw(
 	local slots = #spec.counts + 1
 	local gap = 16
 	local bw = (cw - (slots - 1) * gap) / slots
+	--[[ With a keyboard each button names its key, since the key spends
+	     coins: E the first, R the last, T for AUTO (the run-through,
+	     2026-11-14: "E spends coins with no sign of it"). ]]
+	local keys = UserInputService.KeyboardEnabled and not UserInputService.TouchEnabled
 	for i, count in spec.counts do
+		local key = if not keys
+			then ""
+			elseif i == 1 then " [E]"
+			elseif i == #spec.counts then " [R]"
+			else ""
 		Chunky.button(
 			sheet,
-			`{spec.verb} {count}`,
+			`{spec.verb} {count}{key}`,
 			if not affordable(count)
 				then Chunky.grey
 				elseif i == 1 then Chunky.green
@@ -341,7 +355,7 @@ function HatchStand.draw(
 	end
 	Chunky.button(
 		sheet,
-		if control.auto then "AUTO ON" else "AUTO",
+		(if control.auto then "AUTO ON" else "AUTO") .. (if keys then " [T]" else ""),
 		if control.auto then Chunky.green else Chunky.blue,
 		cx + #spec.counts * (bw + gap),
 		y,
@@ -481,7 +495,7 @@ function HatchStand.controller(
 			processed
 			or not s.isOpen()
 			or not active()
-			or os.clock() - openedAt < 0.3
+			or os.clock() - openedAt < KEY_WAIT
 			or Reveal.busy()
 		then
 			return

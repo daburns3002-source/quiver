@@ -227,6 +227,31 @@ return function(t: TestRunner.Helper)
 		t.isTrue(leftWide.box.x + leftWide.box.w <= 900, "the left margin, clearly wider, is taken")
 	end)
 
+	t.test("over a lobby screen a tip stands on its header, never under it", function()
+		-- the station panel's title bar, desktop and a phone each way
+		local shapes = {
+			{ w = 2091, h = 1113, spot = { x = 211, y = 89, w = 1669, h = 82 } },
+			{ w = 844, h = 390, spot = { x = 130, y = 31, w = 584, h = 29 } },
+			{ w = 390, h = 844, spot = { x = 11, y = 136, w = 368, h = 40 } },
+		}
+		for _, shape in shapes do
+			local placed = TipRules.over(shape.w, shape.h, shape.spot)
+			local where = `{shape.w} x {shape.h}`
+			inside(placed.box, shape.w, shape.h, where)
+			t.isFalse(placed.side)
+			t.isTrue(
+				placed.box.y + placed.box.h <= shape.spot.y + shape.spot.h + 1e-6
+					or placed.box.y <= TipRules.layout.gutter,
+				where .. ": it reaches under the header"
+			)
+			local middle = placed.box.x + placed.box.w / 2
+			t.isTrue(
+				math.abs(middle - (shape.spot.x + shape.spot.w / 2)) <= 1,
+				where .. ": off the header's middle"
+			)
+		end
+	end)
+
 	t.test("with no margin wide enough a tip is still whole on the screen", function()
 		local placed = TipRules.place(390, 844, 47, { x = 0, y = 100, w = 390, h = 700 })
 		inside(placed.box, 390, 844, "an arena filling the screen")

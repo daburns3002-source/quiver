@@ -373,7 +373,14 @@ function RobuxStore.open(which: string?)
 	if box then
 		Chunky.pop(box)
 	end
-	FirstTips.show("Store")
+	FirstTips.show(
+		"Store",
+		FirstTips.header(function()
+			return gui
+		end, function()
+			return isOpen
+		end)
+	)
 end
 
 function RobuxStore.isOpen(): boolean

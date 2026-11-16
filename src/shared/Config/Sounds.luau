@@ -755,6 +755,14 @@ local Sounds: { [string]: Sound } = {
 		pitchJitter = 0.05,
 		minGap = 0.3,
 	},
+	--[[ The Assassin's cards (`Fx/Upgrades/AssassinFx`): silent hooks until
+	     their sounds are picked and uploaded as one sprite with the daggers'
+	     own (`docs/PIPELINES.md` section 7). ]]
+	fx_backstab = { id = "", volume = 0.6, pitchJitter = 0.06, minGap = 0.15 },
+	fx_poison_trail = { id = "", volume = 0.6, pitchJitter = 0.04, minGap = 0.3 },
+	fx_fan_of_knives = { id = "", volume = 0.6, pitchJitter = 0.05, minGap = 0.2 },
+	fx_death_mark = { id = "", volume = 0.7, pitchJitter = 0.03, minGap = 0.3 },
+	fx_thousand_cuts = { id = "", volume = 0.8, pitchJitter = 0.02, minGap = 0.5 },
 }
 
 return table.freeze(Sounds)

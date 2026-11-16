@@ -109,6 +109,23 @@ return function(t: TestRunner.Helper)
 		t.near(Dash.readiness(now + config.cooldown * 2), 1, 1e-6, "never reached ready")
 	end)
 
+	--[[ Quickstep: a kill takes time off the wait, never more than is left. ]]
+	t.test("a refund brings the next dash sooner, and never before now", function()
+		local now = fresh()
+		t.isTrue(Dash.request(now, EAST, NORTH))
+		local wait = Dash.readiness(now + 1)
+		Dash.refund(now + 1, 1)
+		t.isTrue(Dash.readiness(now + 1) > wait, "a refund changed nothing")
+		t.isFalse(Dash.request(now + 1, EAST, NORTH), "one refund made the dash free")
+		Dash.refund(now + 1, 1000)
+		t.near(Dash.readiness(now + 1), 1, 1e-9)
+		t.isTrue(Dash.request(now + 1, EAST, NORTH), "a dash fully refunded was refused")
+		-- nothing to refund on a dash that is ready
+		now = fresh()
+		Dash.refund(now, 5)
+		t.isTrue(Dash.request(now, EAST, NORTH))
+	end)
+
 	t.test("a reset clears a dash in flight and its cooldown", function()
 		local now = fresh()
 		Dash.request(now, EAST, EAST)

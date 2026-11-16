@@ -29,6 +29,11 @@ export type Swing = {
 	     ends (owner, 2026-10-23: "if the warden is mid swing of his sword
 	     he should be invulnerable", then "keep it to the whole swing"). ]]
 	guard: boolean?,
+	--[[ The share of an enemy's own knockback each blow of the combo gives,
+	     when not all of it. Every hit still shoves (owner, 2026-10-25), but
+	     a class that strikes twice a second at arm's length would shove
+	     everything out of its own reach. ]]
+	knock: { number }?,
 }
 
 --[[ A dash of the class's own (`Shared/Combat/DashCut`, `Combat/MeleeSystem`;
@@ -150,6 +155,11 @@ local Classes: { [string]: Class } = {
 			slamRadius = 3.5,
 			slamAhead = 4.5,
 			damage = { 1, 1, 1.5 },
+			--[[ A slash shoves a third as far as a hit usually does, the
+			     stab all the way: seen in Studio (2026-11-16), full shoves
+			     put a 3 stud gap between every strike and the next, and
+			     four strikes cleared the dummies out of reach. ]]
+			knock = { 0.35, 0.35, 1 },
 		},
 		--[[ Shadow Dash, the class's skill (owner, 2026-11-15): the dash
 		     cuts what it passes through, 1.5x a strike, and is back in 2.5 s

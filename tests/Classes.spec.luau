@@ -102,6 +102,22 @@ return function(t: TestRunner.Helper)
 		end
 	end)
 
+	--[[ Every hit shoves its enemy (owner, 2026-10-25). A class may shove
+	     less with a blow, never not at all, and its combo's last blow
+	     shoves all the way. ]]
+	t.test("a blow that shoves less still shoves, and the last blow shoves whole", function()
+		for name, class in Classes do
+			local knock = class.swing and class.swing.knock
+			if class.swing and knock then
+				t.equal(#knock, #class.swing.damage, `{name} has a shove for every blow`)
+				for index, share in knock do
+					t.isTrue(share >= 0.25 and share <= 1, `{name}'s blow {index} shoves {share}`)
+				end
+				t.near(knock[#knock], 1, 1e-9)
+			end
+		end
+	end)
+
 	--[[ A class that stands and trades blows (its swing guards it) needs
 	     the health to; one that does not guard (the Assassin) is as fragile
 	     as the Ranger and no more so. ]]

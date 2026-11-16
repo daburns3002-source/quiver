@@ -224,6 +224,10 @@ local function invent(
 	} :: Types.ShotEvent)
 end
 
+--[[ For the cards kept in a module of their own (`Combat/AssassinUpgrades`). ]]
+ClassUpgrades.plainSpec = plainSpec
+ClassUpgrades.invent = invent
+
 --[[ Everything within `radius` of `at` (to the edge of each body) takes
      `damage`, knocked away from `from` when given. ]]
 local function hitWithin(
@@ -271,6 +275,9 @@ local function flightLength(origin: Vector3, direction: Vector3, most: number): 
 	end
 	return length
 end
+
+--[[ For a dash that cuts (`Combat/MeleeSystem.dash`): how far it got. ]]
+ClassUpgrades.flightLength = flightLength
 
 --[[ Phoenix Arrow: the phoenix itself, and its fire dropped along its
      path as it passes. ]]

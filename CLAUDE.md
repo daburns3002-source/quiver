@@ -425,7 +425,9 @@ when the server counts one on the player (`Meteors` attribute).
 "twin daggers up close"; `Config/Classes.Assassin`): the fourth class, a second melee class on the
 Warden's machinery. About two strikes a second, 0.75x a hit, the Ranger's health and no guard: a
 slash from each hand in a 70 degree arc 8.5 out, then both daggers driven in for 1.5x in a small
-circle. It holds the Splinter Daggers (`Config/Weapons.SplinterDaggers`: the Claude Design dagger of
+circle. A slash shoves an enemy a third as far as a hit usually does (`swing.knock`, a share
+`EnemyManager.damage` takes), the stab all the way: full shoves put everything out of the daggers'
+own reach, and its phantom blades and shadows shove as lightly for the same reason. It holds the Splinter Daggers (`Config/Weapons.SplinterDaggers`: the Claude Design dagger of
 `docs/PETS-FOREST.md`, one model in each hand through `offhand`), whose kit is **written as numbers**,
 not keyed in Claude Design (`assets/models/weapons/splinter_daggers_r15/make_kit.py` draws every key
 as a stick figure to look the poses over outside Studio; a Design kit can replace its JSON whole).
@@ -433,13 +435,26 @@ Its sounds are stand-ins (the Warden's swings, faster) until the daggers' own ar
 **Its skill is Shadow Dash** (`Classes.dash`, a class's own dash): back in 2.5 s where every other
 class waits 4 (`DashCut.cooldown`, the same number for the client's bar and the server's check), it
 cuts every enemy within 2.5 studs of the ground it covered for 1.5x a strike, and nothing can hurt
-the Assassin from its start until 0.2 s after it ends. The dash is still the client's movement:
-the server notes where the character stood as `DashStarted` arrived and where it stands when the
-dash is over, never trusts that line to be longer than a dash and a quarter
-(`Shared/Combat/DashCut`, `tests/DashCut.spec`), and lands each cut exactly as a swing's blow
+the Assassin from its start until 0.2 s after it ends. The dash is still the client's movement,
+and over in an eighth of a second, so the server never sees most of it in time (3.2 studs of 6,
+measured): the client sends which way it dashed with `DashStarted` and the server draws the line
+itself, a dash long from where the character stands, or as far as a wall or cover lets it
+(`Shared/Combat/DashCut`, `tests/DashCut.spec`; the way is all a client says, `DashCut.heading`
+makes it a flat direction or nothing), and lands each cut exactly as a swing's blow
 lands (`MeleeSystem.strike`: crit, Blaze, Soul Chain, Execute, Sunder), pushing each enemy out from
 the line. Drawn by `Fx/Upgrades/AssassinFx`: violet blocks left behind the dasher, a bright slash
 along the cut and a cross of cuts on each enemy struck; the kit's `Dash` clip sweeps both blades.
+**Its cards** (`docs/CLASS-CARDS.md`; `Config/Abilities`, group `dagger`; numbers in
+`Balance.Player.assassin`): ten of its own, Twin Fangs, Backstab, Quickstep, Serrated Edge, Bleed,
+Poison Trail, Fan of Knives, Death Mark, Phantom Blades and its Mythic Thousand Cuts, and five
+blade cards that are true of any swing, shared with the Warden (Quick Hands, Cleave, Long Reach,
+Execute, Sunder), so its pool is 24 like the others'. Backstab (the enemy's own facing,
+`EnemyManager.facing`), Serrated Edge and Bleed land in the strike itself; Poison Trail, Fan of
+Knives, Death Mark, Phantom Blades and Thousand Cuts are `Combat/AssassinUpgrades`, beside
+`ClassUpgrades`; Quickstep moves the server's dash clock back on a kill and tells the client's
+(`DashRefund`, `Dash.refund`). Their arithmetic is `Shared/Combat/AssassinRules`
+(`tests/AssassinCards.spec`, which also weighs each against the daggers' own damage); the phantom
+blades are placed from the server's clock, so every client draws them where the server cuts.
 **`Util/ClassList` is the one list of classes**, read off the class select cards: `all()` is every
 class there is, `open()` those a player can choose (a card that is not `locked`). The server's
 CHOOSE and class switch, class levels, the starter weapons in a new save, what can be owned

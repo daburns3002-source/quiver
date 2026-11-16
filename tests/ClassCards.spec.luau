@@ -65,25 +65,53 @@ return function(t: TestRunner.Helper)
 	end)
 
 	--[[ Arrow cards shape a volley of arrows, blade cards a swing, spell
-	     cards an orb: each belongs to the one class that has that attack. ]]
-	t.test("weapon cards are dealt to one class only", function()
-		local owner = { arrow = "Ranger", blade = "Warden", spell = "Arcanist" }
+	     cards an orb, dagger cards the Assassin's strikes and dash: each
+	     belongs to the one class that has that attack. A blade card that is
+	     true of any swing (faster, wider, further) is the Assassin's too,
+	     and no other class's. ]]
+	t.test("weapon cards are dealt to the class that has the weapon", function()
+		local owner =
+			{ arrow = "Ranger", blade = "Warden", spell = "Arcanist", dagger = "Assassin" }
 		for _, ability in Abilities.all do
 			local class = owner[ability.group]
 			if class then
 				local classes: { string } = ability.classes or {}
-				t.isTrue(
-					#classes == 1 and classes[1] == class,
-					`{ability.id} is a {ability.group} card but is not {class}'s alone`
-				)
+				t.notNil(table.find(classes, class), `{ability.id} is not {class}'s`)
+				for _, other in classes do
+					local swings = Classes[other].swing ~= nil
+					t.isTrue(
+						other == class or (ability.group == "blade" and swings),
+						`{ability.id} is a {ability.group} card dealt to the {other}`
+					)
+				end
 			end
 		end
 	end)
 
-	--[[ Of the classes a player can choose (`Util/ClassList`): a class
-	     still locked on its card gets its cards before it opens. ]]
+	--[[ What a card says must be true of every class that draws it: a
+	     blade card shared with the Assassin changes a number its swing
+	     reads, never the Warden's guard, slam wave or thrown sword. ]]
+	t.test("a blade card the Assassin draws changes the Assassin's swing", function()
+		local plain = AbilityEffects.serverStats({}, "Assassin")
+		local shared = 0
+		for _, ability in Abilities.all do
+			local classes: { string } = ability.classes or {}
+			if ability.group == "blade" and table.find(classes, "Assassin") then
+				shared += 1
+				local with = AbilityEffects.serverStats(max(ability.id), "Assassin")
+				local changed = with.attackCooldown ~= plain.attackCooldown
+					or with.melee.widthScale ~= plain.melee.widthScale
+					or with.melee.reachBonus ~= plain.melee.reachBonus
+					or with.melee.executeBonus ~= plain.melee.executeBonus
+					or with.melee.sunder ~= plain.melee.sunder
+				t.isTrue(changed, `{ability.id} does nothing for the Assassin`)
+			end
+		end
+		t.isTrue(shared >= 3, "the melee classes share almost nothing")
+	end)
+
 	t.test("every class can be dealt a full hand at every rarity mix", function()
-		for _, name in ClassList.open() do
+		for _, name in ClassList.all() do
 			t.isTrue(#pool(name) >= HAND * 3, `{name} has only {#pool(name)} cards`)
 		end
 	end)
@@ -151,7 +179,7 @@ return function(t: TestRunner.Helper)
 	     Titan's Grip), and a class Mythic is never shared between classes
 	     (Second Wind, for every class, names none). ]]
 	t.test("every class has a Mythic, and every class Mythic is one class's", function()
-		for _, name in ClassList.open() do
+		for _, name in ClassList.all() do
 			local mythics = {}
 			for _, ability in Abilities.all do
 				local classes: { string } = ability.classes or {}
@@ -221,7 +249,7 @@ return function(t: TestRunner.Helper)
 	     more than one card smaller than another's. ]]
 	t.test("the class pools are within a card of each other", function()
 		local sizes: { number } = {}
-		for _, class in ClassList.open() do
+		for _, class in ClassList.all() do
 			local dealt = 0
 			for _, ability in pool(class) do
 				if not ability.benched then

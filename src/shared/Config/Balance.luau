@@ -12615,6 +12615,56 @@ local Balance = {
 		sunder = {
 			duration = 3,
 		},
+		--[[ The Assassin's cards (owner, 2026-11-15; docs/CLASS-CARDS.md).
+		     What each level is worth is the card's (`Config/Abilities`);
+		     these are the rest.
+		     - Backstab counts a strike from within `backstabArc` degrees
+		       round the enemy's back.
+		     - Serrated Edge's opening lasts `serratedDuration` seconds.
+		     - Bleed holds up to `stacks` cuts and lapses `duration` after
+		       the last one.
+		     - Poison Trail's cloud is `radius` wide round the middle of the
+		       dash, hurting every `every` seconds for `damage` times a
+		       strike.
+		     - Fan of Knives: every `every`th strike that lands throws the
+		       fan, `spread` degrees wide, each knife `damage` times a
+		       strike, flying `range` studs at `speed` times an arrow's.
+		     - Death Mark looks for its next enemy within `reach` studs of
+		       where the last one fell.
+		     - Phantom Blades circle `radius` out, `turn` radians a second,
+		       cutting what comes within `reach` of one for `damage` times a
+		       strike, the same enemy no sooner than every `again` seconds.
+		     - Thousand Cuts: every `every` seconds of fighting, up to `most`
+		       enemies within `range` are struck `gap` seconds apart, each
+		       for `damage` times a strike.
+		     A phantom blade's cut and a shadow's strike shove `knock` of an
+		     enemy's knockback, as a dagger's slash does: seen in Studio
+		     (2026-11-16), full shoves kept everything out of the daggers'
+		     own reach. ]]
+		assassin = {
+			backstabArc = 150,
+			serratedDuration = 3,
+			bleed = { stacks = 5, duration = 4 },
+			poison = { radius = 4.5, every = 0.5, damage = 0.15 },
+			knives = { every = 4, spread = 70, damage = 0.35, range = 18, speed = 1.2 },
+			deathMark = { reach = 60 },
+			phantom = {
+				radius = 5.5,
+				turn = 2.6,
+				reach = 1.4,
+				again = 0.7,
+				damage = 0.3,
+				knock = 0.35,
+			},
+			thousandCuts = {
+				every = 10,
+				most = 8,
+				range = 45,
+				gap = 0.09,
+				damage = 1.2,
+				knock = 0.35,
+			},
+		},
 
 		--[[
 			Momentum: "attack speed rises while moving". Nothing fires on the

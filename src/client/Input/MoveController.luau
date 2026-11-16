@@ -184,7 +184,7 @@ local function requestDash()
 		Haptics.play("dash")
 		--[[ The server's Earthbreaker slams where this dash ends; it is told
 		     the dash began, and decides for itself whether it counts. ]]
-		dashStarted:FireServer()
+		dashStarted:FireServer((Dash.current(os.clock())))
 		if (PlayerStats.get().abilities.Earthbreaker or 0) > 0 then
 			--[[ The leap and slam (the owner's RubySword kit), as the dash
 			     ends; its arc is in the animation, and the server's slam lands
@@ -340,6 +340,15 @@ local function releaseAll()
 	stick = Vector2.zero
 	sprintToggled = false
 end
+
+--[[ Quickstep: the server took time off the dash's wait for a kill
+     (`RunSession.onEnemyKilled`); the dash here comes back as much sooner. ]]
+player:GetAttributeChangedSignal("DashRefunds"):Connect(function()
+	local seconds = player:GetAttribute("DashRefund")
+	if type(seconds) == "number" then
+		Dash.refund(os.clock(), seconds)
+	end
+end)
 
 function MoveController.start()
 	MoveController.stop()

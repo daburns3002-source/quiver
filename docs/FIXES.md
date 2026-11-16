@@ -16,6 +16,160 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## The every-class run-through's fifteen (2026-11-16)
+
+Found by `docs/RUN-THROUGH-2026-11.md` (three classes through Mossy Glade, the three later areas, Endless);
+the owner: "Fix all 15". Numbered as the report numbers them. Each was looked at in Studio on the branch
+unless it says otherwise.
+
+### 1. A new player's free crate is Bogheart's (a Ranger with an Epic bow at damage x1.99 after ten wins)
+
+**Symptom:** class level 3's free crate gave a Ranger who had beaten nothing a Peatwood Bow; level 5's
+free egg was a Bogheart egg; REWARDS' gift box drew Bogheart's picture.
+**Cause:** `PrizeRules.crateIndex` took the furthest area with weapons for the class and never asked what
+the player had reached; it was written when only Mossy Glade was stocked. `eggKey` asked `EggRules.open`,
+which reads the launch switch, so in playtest every egg was open too.
+**Fix:** both read the launch's gates as if the switch were on (`LaunchLocks.eggUnlock(egg, true)`,
+`ShopRules.crateOpen(index, bossesBeaten, true)`): a shop may sell everything in playtest, a gift follows
+progress. `crateIndex` takes the player's `bossesBeaten`; the server's one caller is
+`EndlessPrizes.bestCrate`.
+**Measured:** `tests/EndlessPrizes.spec`: a new player gets `MossyEgg` and crate 1 for every class, and no
+area's prize comes before the boss it waits on, stepping through the areas. In Studio the gift box of a
+profile with King Bloblin and the Broodmother beaten drew Thornwood's egg, not Bogheart's.
+
+### 2. A weapon from a free crate stays in the bag
+
+**Symptom:** after ten wins the Ranger still held the Twig Bow with an Epic, a Rare and an Uncommon bow owned.
+**Cause:** the rule that puts a stronger weapon in hand (`Data/Shop` `takeUp`, 2026-11-14) was called for a
+bought crate and the store only. Every free crate is rolled by `EndlessPrizes.crates`, which did not call it.
+**Fix:** `EndlessPrizes.crates` hands what came out to `EndlessPrizes.takeUp` (set by `Data/Shop`, which
+may require the room controller; this module may not). Outside the lobby `takeUp` now also sets the
+session's weapon, so it is in hand from the next card or the next run rather than from the next join.
+**Measured:** five Bogheart crates from the Soulstone shop during Thornwood 2-1: saved `equipped` went
+Twig Bow to Sporestring Bow at once, the hand still held the Twig Bow in that run, and held the Sporestring
+Bow on arriving in the lobby.
+
+### 3. NEXT LEVEL on 1-10 puts you in the lobby
+
+**Symptom:** VICTORY on an area's last level shows NEXT LEVEL; pressing it played the story beat and stood
+the player in the lobby.
+**Cause:** `RoomController.requestRestart` went to the lobby after a portal's last level, by a rule from
+when Thornwood was one level.
+**Fix:** `LevelUnlocks.nextArea`: the first level of the area after it, if everybody in the run may enter
+that area (`LaunchLocks.portalOpen`). Only the last level of the last area built is won into the lobby,
+and there the button says CONTINUE (`EndScreenRules.goesOn`).
+**Measured:** 1-10 won in Studio, NEXT LEVEL, story beat skipped: `[Run] on to stage 20, Thornwood 2-1`,
+4 s after the skip. Specs pin each built area leading to the next and Bogheart's 4-15 to the lobby.
+
+### 4. "No asset content representation found" for four Bogheart textures: nothing is missing
+
+**Symptom:** `ContentId: rbxassetid://86786943496634 failed ...` on entering Bogheart 4-1, and three more
+in later levels, in two Plays.
+**What it is:** the four ids are the colour textures of Spore Puff, Glowcap, Shellback and Grandmother
+Gulp (`Config/EnemyDesigns`), 2048 x 2048 images from the Tripo imports. Roblox lists all four as approved
+and active. In a third Play the lines did not come, `ContentProvider:PreloadAsync` answered Success for
+each, and all three enemies drew fully textured (capture, 2026-11-16). So a first fetch sometimes fails
+and a later one lands; **no code was changed.** If an enemy is ever seen white for more than a moment,
+the answer is to upload the four maps again at 1024 (they are in the `low/*.glb` files of
+`assets/concepts/blocky/enemies/tripo`).
+**Also:** `rbxassetid://203785492 ... Asset type does not match requested type` on every join is a sound
+by another creator that nothing in the place or the code refers to (every Sound, image, mesh, particle,
+attribute and script searched, server and client): Roblox's own, not ours.
+
+### 5. A first-time tip covers what it explains (class select, the STORE, the Hatchery)
+
+**Symptom:** class select's tip lay over the Arcanist's and the Warden's LEVEL chips with its words in two
+tiny lines; the STORE's lay over GEMS and PASSES; the Hatchery's stayed up over a hatch and the NEW DEX
+ENTRY toast after it.
+**Cause:** three things. A tip with no `Spot` stands under the top HUD, which on class select is the
+cards. `TipRules.over` puts a card's foot on its screen's header, and where the panel is too near the top
+of the screen the card is pushed down over the tabs instead. And a wide card's words stood under the TIP
+tag, in the 32 points left over the OK.
+**Fix:** class select asks with its CHOOSE YOUR CLASS plate as its `Spot`; `over` is given the panel's box
+and goes round the panel (beside it, else under it) when it cannot reach up off it; `TipPlate.card` stands
+a wide card's words beside the tag; a tip that holds nothing goes when a reveal starts (`Reveal.busy`).
+A tip also waits until its header has stood still from one look to the next (`settled`): the profile
+arriving redraws class select, and a card measured against the half-built title stood 645 points off.
+**Measured:** class select, 2091 x 1113: tip y -42..118, cards from 203, the tip's middle on the plate's
+(1045). STORE: the card at x 1607..1907 beside the panel (499..1591), tabs untouched. Words 22 points
+where they were 13.
+
+### 6. An egg's reveal plays with REWARDS still drawn under it
+
+**Symptom:** "YOU HATCHED SOMETHING SPECIAL.." ran across CLAIM ALL's words.
+**Fix:** `RewardsScreen` hides its canvas while its queue of reveals plays (`revealing or Reveal.busy()`),
+as the Hatchery's stand is hidden for its own.
+**Measured:** canvas `Visible` false through an egg reveal and a crate reveal one after the other, true
+6 s later.
+
+### 7. CHOOSE AN AREA: the NEXT UP card is bigger than the others and hangs out of the panel, with a white box round it
+
+**Cause:** one cause for both. The screen put the gamepad selection on the NEXT UP card whenever a gamepad
+was plugged in (`GamepadEnabled`), mouse or not; Roblox draws its white box round a selected button, and a
+selected button's `GuiState` is Hover, which the kit answers by drawing it 8% bigger: 56 points on a card.
+**Fix:** `Kit.gamepadInUse()` (the last input was a gamepad) decides, on this screen and the level
+screen's PLAY. A card lifts 2% under the pointer, not 8% (`Chunky.press`'s `swell`).
+**Measured:** gamepad enabled, last input the mouse: nothing selected, the card at scale 1, its ring's
+foot at 995 with the panel's at 1007.
+
+### 8. PICK A CHEST: the stars row is uneven, and Victory pokes out from behind
+
+**Fix:** each star and its words are one group as wide as the words, the three groups centred with equal
+gaps (they were three slots of one width); the dimmer under the panel is 0.14 see-through, not 0.4.
+**Measured:** groups at x 586..722, 788..1175, 1241..1504: gaps of 66 and 66.
+
+### 9. Gear: the pets run under PET 2's tile and the hero floats over the pedestal
+
+**Cause:** the camera framed the box round hero and pets 15% wider than the frame, on the box's middle.
+**Fix:** `portrait`'s `stand`: the camera aims down the hero's own middle line, keeps the group inside the
+gap between the slot columns, and puts the soles on the pedestal. The pets stand beside the legs, the
+third in front, at 0.36 of the hero's height.
+**Measured:** by eye, with three pets: soles on the stone, nothing under a tile. The hero is smaller than
+a hero with no pets, as before.
+
+### 10. OPEN 1 WEAPON CRATE does not count a free crate
+
+**Fix:** `EndlessPrizes.crates` tells `Rewards.note` ("crates"), as a bought crate does.
+**Measured:** five crates: `questProgress.crate1` 0 to 1, `stats.crates` 0 to 5, `cratesOpened` 5.
+
+### 11. The level card does not say what a missing star asks; Victory's trophy always has three stars
+
+**Fix:** a beaten level short of a star shows its three stars and what the first dark one asks, where it
+said CLEARED (`PortalScreen.starLine`). Victory's picture was cut into the trophy and its three stars
+(`assets/ui/end_screens/split_victory_stars.py`, four pictures uploaded); `EndScreen.buildHero` draws the
+stars, gold for as many as the level holds: the middle one, then left, then right.
+**Measured:** by eye: with all three the trophy is the old picture exactly; with one or two the rest are
+dark shapes.
+
+### 12. The STORE's panel jumps between its tabs; the passes' lines are in small letters
+
+**Fix:** the panel is as tall as its taller tab and a shorter tab stands in the middle; `PASS_LINES` in
+capitals.
+
+### 13. "[ModelAnimator] Boarlet's parts do not line up with BrambleSow (fit error 0.088)"
+
+**Cause:** a model reaches a client over several frames. A node of several primitives is several parts of
+one name, the fit reads only names that came in once, and with one of two here that name counts, at one
+primitive's place. Fitted whole the same Boarlet's error is 0.0000 (measured at 60 frames a second, and
+offline); the run-through's Studio ran at 15.
+**Fix:** the server says how many parts ride the clips (`ModelClipParts`, `EnemyManager.clipParts`) and
+`ModelAnimator.attach` leaves a model alone until that many are here, or 3 s have gone.
+**Measured:** King Bloblin 72 of 72 parts driven, a Bramble Sow 37 of 37.
+
+### 14. The Blacksmith's CRATES opens on BOWS for a Warden
+
+**Fix:** each time the screen is opened afresh its chest is the played class's. **Measured:** a Warden's
+opened on SWORDS.
+
+### 15. At the exit the player is under the run HUD
+
+**Fix:** `Balance.Camera.gateHud` (8 studs): following the player, the view goes that much further past
+the north wall than the gate's own margin. Not added where the view is longer than the room.
+**Measured:** at the gate (z -25) the player's head is at y 297 and the gatehouse's top at 202; the HUD's
+lowest piece over the middle ends at 175.
+
+---
+
 ## A weapon is pale (or dark) for a few seconds when first held (2026-11-14)
 
 **Symptom:** a textured weapon (every Tripo one) shows as a bare mesh, pale in light and near black in

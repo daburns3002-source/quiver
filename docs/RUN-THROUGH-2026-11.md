@@ -1,5 +1,9 @@
 # Run-through with every class, 2026-11-15 and 16
 
+> **All fifteen bugs below were fixed on 2026-11-16** (the owner: "Fix all 15"): what each was and what was
+> measured after is in `docs/FIXES.md`, "The every-class run-through's fifteen". Bug 4 turned out to be a
+> log line with nothing missing on screen, so no code changed for it. The balance list is still to decide.
+
 Played in Studio on `main` at #612 (feac538d). **No game code changed, no PR.** This is the
 tracker's "big one": every class through Mossy Glade, every open area and its boss with one class,
 and Endless.

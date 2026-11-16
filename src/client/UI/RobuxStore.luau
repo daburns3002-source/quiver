@@ -126,10 +126,11 @@ local function passChips(pass: RobuxConfig.Pass): { Chip }
 	return out
 end
 
+-- in capitals, as every other word on the screen is
 local PASS_LINES: { [string]: string } = {
-	DoubleCoins = "Every kill and clear",
-	PetSlot = "Take 3 pets into every run",
-	VIP = "Gold name tag",
+	DoubleCoins = "EVERY KILL AND CLEAR",
+	PetSlot = "TAKE 3 PETS INTO EVERY RUN",
+	VIP = "GOLD NAME TAG",
 }
 
 local function offers(): { Offer }
@@ -294,6 +295,15 @@ local function draw(): Frame?
 	local columns = if upright then 2 else 3
 	local list = offers()
 	local rows = math.ceil(#list / columns)
+	--[[ The panel is as tall as its taller tab needs, so it does not jump
+	     when the tab changes (PASSES is one line of cards where GEMS is
+	     two); a tab with fewer lines stands in the middle of the room. ]]
+	local p = profile
+	local most = math.max(
+		rows,
+		math.ceil(#StoreRules.shelf(if p then p.purchases else nil) / columns),
+		math.ceil(#RobuxConfig.passes / columns)
+	)
 	-- laid out in sheet pixels, two to a point
 	local w = width * 2
 	local pad, gap = 30, 22
@@ -302,7 +312,8 @@ local function draw(): Frame?
 	local gridTop = tabsTop + tabsH + 26
 	local cardW = (w - 2 * pad - (columns - 1) * gap) / columns
 	local cardH = math.floor(cardW * 1.22)
-	local h = gridTop + rows * (cardH + gap) + 24 + 12
+	local h = gridTop + most * (cardH + gap) + 24 + 12
+	local gridDown = (most - rows) * (cardH + gap) / 2
 	local fit = RunHudRules.fit(view, width, h / 2, MARGIN)
 
 	local shade = Instance.new("TextButton")
@@ -354,7 +365,7 @@ local function draw(): Frame?
 			sheet,
 			offer,
 			pad + column * (cardW + gap),
-			gridTop + row * (cardH + gap),
+			gridTop + gridDown + row * (cardH + gap),
 			cardW,
 			cardH
 		)

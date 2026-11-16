@@ -84,6 +84,50 @@ return function(t: TestRunner.Helper)
 		t.isFalse(found)
 	end)
 
+	t.test("NEXT LEVEL after an area's last level is the next area's first", function()
+		local all: { [number]: LevelUnlocks.Stage } = table.clone(stages)
+		all[31], all[32] = stage("2-1"), stage("2-2")
+		all[40] = { name = "Endless", mode = "Endless", rooms = { 1 } }
+		local portals: { any } = {
+			{ levels = levels },
+			{ levels = { 31, 32 } },
+			{},
+			{ levels = { 40 } },
+		}
+		local first, at = LevelUnlocks.nextArea(portals, all, 13)
+		t.equal(first, 31)
+		t.equal(at, 2)
+		t.isNil((LevelUnlocks.nextArea(portals, all, 12)), "not an area's last level")
+		t.isNil((LevelUnlocks.nextArea(portals, all, 32)), "the arch after it has no levels")
+		t.isNil((LevelUnlocks.nextArea(portals, all, 40)), "Endless leads nowhere")
+		t.isNil(
+			(LevelUnlocks.nextArea({ { levels = levels }, { levels = { 40 } } }, all, 13)),
+			"an area never leads into Endless"
+		)
+	end)
+
+	t.test("the game's areas lead on, one to the next, and the last to the lobby", function()
+		local built = {}
+		for at, portal in LobbyConfig.portals do
+			local list = portal.levels
+			if list and Balance.Stages[list[1]].level then
+				table.insert(built, at)
+			end
+		end
+		for n, at in built do
+			local list = LobbyConfig.portals[at].levels :: { number }
+			local first, into =
+				LevelUnlocks.nextArea(LobbyConfig.portals, Balance.Stages, list[#list])
+			if n < #built then
+				local after = LobbyConfig.portals[built[n + 1]].levels :: { number }
+				t.equal(first, after[1], `after {LobbyConfig.portals[at].name}`)
+				t.equal(into, built[n + 1])
+			else
+				t.isNil(first, "the last area built is won into the lobby")
+			end
+		end
+	end)
+
 	t.test("the tutorial is owed until its level is beaten", function()
 		t.isTrue(LevelUnlocks.tutorialOwed(nil, "1-1"), "a profile not loaded")
 		t.isTrue(LevelUnlocks.tutorialOwed({}, "1-1"))

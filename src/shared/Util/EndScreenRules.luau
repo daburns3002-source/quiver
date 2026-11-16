@@ -12,6 +12,7 @@
 
 local Balance = require(script.Parent.Parent.Config.Balance)
 local EndScreenTheme = require(script.Parent.Parent.Config.EndScreenTheme)
+local LevelUnlocks = require(script.Parent.LevelUnlocks)
 local LobbyConfig = require(script.Parent.Parent.Config.Lobby)
 
 local EndScreenRules = {}
@@ -66,14 +67,36 @@ function EndScreenRules.levelPlate(
 	return (viewW - width) / 2, top, width, height
 end
 
+--[[ Whether winning `stage` leads on to another level
+     (`RoomController.requestRestart`): the next of its area, or after its
+     area's last the first of the area after it (`LevelUnlocks.nextArea`).
+     Not the tutorial, and not the last level of the last area built: those
+     are won into the lobby. A stage behind no portal goes on along the
+     campaign. ]]
+function EndScreenRules.goesOn(stage: number): boolean
+	if stage == Balance.tutorialStage then
+		return false
+	end
+	for _, portal in LobbyConfig.portals do
+		local levels = portal.levels
+		if levels then
+			local after, found = LevelUnlocks.nextAfter(levels, stage)
+			if found then
+				return after ~= nil
+					or LevelUnlocks.nextArea(LobbyConfig.portals, Balance.Stages, stage) ~= nil
+			end
+		end
+	end
+	return true
+end
+
 --[[ What the main button says. Victory's goes on to the next level, except
-     the tutorial's, which is won into the lobby
-     (`RoomController.requestRestart`): that one says so. ]]
+     where it is won into the lobby (`goesOn`): that one says so. ]]
 function EndScreenRules.buttonWords(won: boolean, stage: number): string
 	if not won then
 		return EndScreenTheme.defeat.buttonText
 	end
-	if stage == Balance.tutorialStage then
+	if not EndScreenRules.goesOn(stage) then
 		return EndScreenTheme.victory.lobbyText
 	end
 	return EndScreenTheme.victory.buttonText

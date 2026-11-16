@@ -28,6 +28,7 @@
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 local Workspace = game:GetService("Workspace")
 
@@ -153,11 +154,13 @@ local function eggArt(profile: SaveSchema.Profile): string
 	return (if egg then eggs[egg.area] else nil) or eggs.MossyGlade
 end
 
---[[ And the free crate: the best with a weapon for the class they play. ]]
-local function crateArt(): string
+--[[ And the free crate: the best they have reached with a weapon for the
+     class they play. ]]
+local function crateArt(profile: SaveSchema.Profile): string
 	local chests = GearAssets.areaPictures.chests
 	local class = player:GetAttribute("Class")
-	local index = PrizeRules.crateIndex(if type(class) == "string" then class else nil)
+	local index =
+		PrizeRules.crateIndex(if type(class) == "string" then class else nil, profile.bossesBeaten)
 	local crate = if index then Shop.crates[index] else nil
 	return (if crate then chests[crate.area] else nil) or chests.MossyGlade
 end
@@ -166,7 +169,7 @@ end
 local function prizePay(profile: SaveSchema.Profile, prize: Goals.Prize): { Pay }
 	local pay: { Pay } = {}
 	plus(pay, eggArt(profile), prize.eggs)
-	plus(pay, crateArt(), prize.crates)
+	plus(pay, crateArt(profile), prize.crates)
 	plus(pay, ShopAssets.gem, prize.gems)
 	plus(pay, ShopAssets.coin, prize.coins)
 	return pay
@@ -601,7 +604,7 @@ local function draw(s: StationScreen.Screen)
 		local have, need = GiftRules.progress(p.gift)
 		local gifts = GiftRules.ready(p.gift)
 		chestBar(sheet, x, below + 66, w, if up then 240 else 140, {
-			art = if GiftRules.kind(p.gift) == "Egg" then eggArt(p) else crateArt(),
+			art = if GiftRules.kind(p.gift) == "Egg" then eggArt(p) else crateArt(p),
 			title = if gifts > 1
 				then `{gifts} GIFTS READY!`
 				elseif gifts == 1 then "GIFT READY!"
@@ -619,7 +622,7 @@ local function draw(s: StationScreen.Screen)
 		local barH = if up then 240 else 150
 		local opened = RewardRules.bonusClaimed(r, day)
 		chestBar(sheet, x, y, w, barH, {
-			art = if RewardRules.bonusKind(day) == "Egg" then eggArt(p) else crateArt(),
+			art = if RewardRules.bonusKind(day) == "Egg" then eggArt(p) else crateArt(p),
 			title = if opened then "CHEST OPENED!" else Rewards.bonus.words,
 			sub = "NEW QUESTS IN " .. untilReset(),
 			pips = #RewardRules.questsFor(day, r),
@@ -1009,6 +1012,16 @@ function RewardsScreen.start()
 	s.connect(player:GetAttributeChangedSignal("RewardDay"), function()
 		if s.isOpen() then
 			s.open()
+		end
+	end)
+	--[[ A reveal plays over the dimmed lobby with this screen out of the
+	     way, as the Hatchery's stand is for its own (`UI/HatchStand`): left
+	     drawn, the reveal's words ran across CLAIM ALL's (the every-class
+	     run-through, 2026-11-16). Out for the whole queue, so the screen
+	     does not blink back between an egg and a crate. ]]
+	s.connect(RunService.RenderStepped, function()
+		if s.isOpen() then
+			s.canvas.Visible = not (revealing or Reveal.busy())
 		end
 	end)
 	startButton(s)

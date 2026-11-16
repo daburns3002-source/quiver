@@ -279,12 +279,21 @@ local function draw(key: string, spot: Spot?)
 	local placed
 	if header then
 		local at = header.AbsolutePosition - screen.AbsolutePosition
+		--[[ A panel's header bar is the panel's child (`Chunky.ribbon`):
+		     the panel is what the card goes round when it cannot reach up
+		     off it (`TipRules.over`). ]]
+		local panel: TipRules.Box? = nil
+		local on = header.Parent
+		if header.Name == "Header" and on and on:IsA("GuiObject") then
+			local corner = on.AbsolutePosition - screen.AbsolutePosition
+			panel = { x = corner.X, y = corner.Y, w = on.AbsoluteSize.X, h = on.AbsoluteSize.Y }
+		end
 		placed = TipRules.over(size.X, size.Y, {
 			x = at.X,
 			y = at.Y,
 			w = header.AbsoluteSize.X,
 			h = header.AbsoluteSize.Y,
-		})
+		}, panel)
 	else
 		placed =
 			TipRules.place(size.X, size.Y, GuiService:GetGuiInset().Y, arenaBox(size.X, size.Y))
@@ -492,11 +501,33 @@ function FirstTips.header(root: () -> Instance?, open: () -> boolean): Spot
 	end
 end
 
+--[[ Class select's `Spot`: its CHOOSE YOUR CLASS plate, which stands by
+     itself over the panel (`UI/ClassScreen`). The panel fills the screen,
+     so the tip stands on the title: under the top HUD it covered the LEVEL
+     chips of two cards (the every-class run-through, 2026-11-16). ]]
+local function classSpot(): (boolean, GuiObject?)
+	local player = Players.LocalPlayer
+	if player:GetAttribute("ClassSelecting") ~= true then
+		return false, nil
+	end
+	local playerGui = player:FindFirstChild("PlayerGui")
+	local screen = playerGui and playerGui:FindFirstChild("ClassScreen")
+	local plate = screen and screen:FindFirstChild("Ribbon", true)
+	return true, if plate and plate:IsA("GuiObject") then plate else nil
+end
+
 --[[ Class select while it is up; what the profile says is new, in the
      lobby; and a first area past Mossy Glade in a run. ]]
 local function look()
 	if Players.LocalPlayer:GetAttribute("ClassSelecting", true) == true then
-		ask("ClassSelect", false)
+		-- asked once: asking again would start its wait to settle again
+		local waits = false
+		for _, waiting in queue do
+			waits = waits or waiting.key == "ClassSelect"
+		end
+		if not waits then
+			ask("ClassSelect", false, classSpot)
+		end
 	elseif Workspace:GetAttribute("InLobby", true) == true then
 		local profile = latest
 		if not profile then
@@ -598,6 +629,13 @@ function FirstTips.start()
 		end
 		local item = current
 		if item and currentHolds and passed(currentKey) then
+			close(item, true)
+		end
+		--[[ A tip that holds nothing gives way to a hatch or a crate opened
+		     under it: it stayed up over the reveal and over the NEW DEX
+		     ENTRY toast after it (the Hatchery, the every-class run-through,
+		     2026-11-16). ]]
+		if item and current == item and not currentHolds and Reveal.busy() then
 			close(item, true)
 		end
 		-- the screen it explains has shut under it

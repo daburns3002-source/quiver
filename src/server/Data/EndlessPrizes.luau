@@ -33,6 +33,7 @@ local ShopRules = require(ReplicatedStorage.Shared.Util.ShopRules)
 
 local Hatchery = require(script.Parent.Hatchery)
 local PlayerData = require(script.Parent.PlayerData)
+local Rewards = require(script.Parent.Rewards)
 local RunSession = require(script.Parent.Parent.Run.RunSession)
 local Wallet = require(script.Parent.Wallet)
 
@@ -43,6 +44,12 @@ local EndlessPrizes = {}
 local random = Random.new()
 
 type Weapon = { weapon: string, new: boolean }
+
+--[[ Puts the strongest of weapons just gained in hand, if it beats the one
+     held. Set by `Data/Shop`, which owns that rule and requires the room
+     controller; this module may not, since the room controller requires
+     it. ]]
+EndlessPrizes.takeUp = nil :: ((player: Player, gained: { string }) -> ())?
 
 --[[ Opens `n` of area `index`'s crate for the class the player is
      playing, unpaid (a milestone's, or the Soulstone shop's once it has
@@ -78,13 +85,33 @@ function EndlessPrizes.crates(player: Player, index: number, n: number, least: s
 		end
 	end
 	log.info("%s opened %d crates of area %d", player.Name, n, index)
+	--[[ A free crate is a crate opened: it counts for OPEN A WEAPON CRATE
+	     (the daily quest, the starter list and the goal), and a weapon in it
+	     stronger than the one held goes in hand by itself, as a bought
+	     crate's does (the every-class run-through, 2026-11-16: seven free
+	     crates left the quest at 0 / 1, and a Ranger with an Epic bow in the
+	     bag still held the Twig Bow after ten wins). ]]
+	local gained: { string } = {}
+	for _, result in results do
+		table.insert(gained, result.weapon)
+	end
+	local takeUp = EndlessPrizes.takeUp
+	if takeUp and #gained > 0 then
+		takeUp(player, gained)
+	end
+	Rewards.note(player, "crates", #results)
 	return results
 end
 
---[[ The best crate that has weapons for the class the player is playing. ]]
-local function bestCrate(player: Player): number?
+--[[ The best crate the player has reached that has weapons for the class
+     they are playing. ]]
+function EndlessPrizes.bestCrate(player: Player): number?
 	local session = RunSession.get(player)
-	return PrizeRules.crateIndex(if session then session.loadout.class else nil)
+	local profile = PlayerData.get(player)
+	return PrizeRules.crateIndex(
+		if session then session.loadout.class else nil,
+		if profile then profile.bossesBeaten else nil
+	)
 end
 
 --[[ Hatches and opens what `milestone` gives `player`, and tells their
@@ -104,7 +131,7 @@ function EndlessPrizes.grant(player: Player, milestone: Balance.EndlessMilestone
 	end
 	local weapons: { Weapon } = {}
 	local crates = milestone.crates or 0
-	local index = if crates > 0 then bestCrate(player) else nil
+	local index = if crates > 0 then EndlessPrizes.bestCrate(player) else nil
 	if index then
 		weapons = EndlessPrizes.crates(player, index, crates, milestone.rarity)
 	end

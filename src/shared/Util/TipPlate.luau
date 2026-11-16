@@ -137,11 +137,20 @@ function TipPlate.card(
 	local name = words(tag, "TIP", UiPalette.tagText, z + 2)
 	name.Position, name.Size = UDim2.fromScale(0.12, 0.12), UDim2.fromScale(0.76, 0.76)
 
-	local top = pad + tagH + 8
+	--[[ An upright card has its words under the tag. A wide one is too
+	     shallow for that: under the tag and over the OK its words had 32
+	     points, two lines of 13 (the every-class run-through, 2026-11-16:
+	     "its words in two tiny lines"). There they stand beside the tag,
+	     from the card's top down to the OK. ]]
+	local tagW = tagH * 1.9
+	local wide = size.X >= size.Y * 2
+	local top = if wide then pad else pad + tagH + 8
+	local left = if wide then pad + tagW + 12 else pad
 	local tip = words(plate, text, UiPalette.ink, z + 1)
 	tip.Name = "Tip"
-	tip.Position = UDim2.fromOffset(pad, top)
-	tip.Size = UDim2.fromOffset(size.X - pad * 2, math.max(20, size.Y - top - okHeight - pad - 10))
+	tip.Position = UDim2.fromOffset(left, top)
+	tip.Size =
+		UDim2.fromOffset(size.X - left - pad, math.max(20, size.Y - top - okHeight - pad - 10))
 	tip.TextWrapped = true
 	tip.TextXAlignment = Enum.TextXAlignment.Left
 	tip.TextYAlignment = Enum.TextYAlignment.Center

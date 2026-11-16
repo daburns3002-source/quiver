@@ -10,6 +10,7 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
 local Device = require(script.Parent.Parent.Device)
 local GearAssets = require(ReplicatedStorage.Shared.Config.GearAssets)
 local OptcAssets = require(ReplicatedStorage.Shared.Config.OptcAssets)
@@ -842,11 +843,17 @@ end
 	and settles back on a Back ease, so the button answers before the
 	server does. `burst` throws his ring of coins out of the press itself —
 	twelve, on the clock, fading as they fly.
+
+	`swell` is how much it lifts under the pointer, 0.08 of its size if not
+	given. Something big (a whole card) gives less, or it grows out of its
+	panel: an area's card, 8% bigger, hung out of CHOOSE AN AREA's foot (the
+	every-class run-through, 2026-11-16).
 ]]
-function Kit.pressFx(hit: GuiButton, visual: GuiObject, burst: boolean)
+function Kit.pressFx(hit: GuiButton, visual: GuiObject, burst: boolean, swell: number?)
 	local scale = visual:FindFirstChildOfClass("UIScale") or Instance.new("UIScale")
 	scale.Parent = visual
 	local base = scale.Scale
+	local lift = 1 + (swell or 0.08)
 	local showing: number? = nil
 	local playing: Tween? = nil
 	local function settle()
@@ -854,7 +861,7 @@ function Kit.pressFx(hit: GuiButton, visual: GuiObject, burst: boolean)
 		if hit.GuiState == Enum.GuiState.Press then
 			want = base * 0.9
 		elseif hit.GuiState == Enum.GuiState.Hover then
-			want = base * 1.08
+			want = base * lift
 		end
 		if showing == want then
 			return
@@ -1221,6 +1228,17 @@ function Kit.rarityCard(
 		Kit.owned(card)
 	end
 	return card
+end
+
+--[[ Whether the player is steering with a gamepad right now: the last
+     thing they touched was one. A screen that puts the selection on its main
+     button for a gamepad asks this, not `GamepadEnabled`: with a controller
+     only plugged in, a mouse player got the white selection box round PLAY,
+     and the selected card drawn bigger, as if hovered (the every-class
+     run-through, 2026-11-16). ]]
+function Kit.gamepadInUse(): boolean
+	local last = UserInputService:GetLastInputType()
+	return string.sub(last.Name, 1, 7) == "Gamepad"
 end
 
 function Kit.canvas(parent: Instance): Frame

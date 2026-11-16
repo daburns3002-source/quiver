@@ -379,13 +379,15 @@ local function card(
 	if own then
 		own:Destroy()
 	end
+	--[[ A card is big: it lifts 3% under the pointer, which with its gold
+	     ring still stands inside the panel. ]]
 	Chunky.press(frame, function()
 		if area.open then
 			enter(area.index)
 		else
 			shake(frame)
 		end
-	end)
+	end, 0.03)
 	return frame:FindFirstChildWhichIsA("TextButton") :: TextButton
 end
 
@@ -469,7 +471,7 @@ function AreaScreen.open()
 	if fresh and canvas then
 		Chunky.pop(canvas)
 	end
-	if UserInputService.GamepadEnabled then
+	if Kit.gamepadInUse() then
 		GuiService.SelectedObject = nextButton
 	end
 end

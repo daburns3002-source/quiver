@@ -15089,6 +15089,14 @@ local Balance = {
 		     to show the whole gatehouse as the player nears it. At 3 the
 		     camera stopped at the wall and the gate never came into view. ]]
 		gateMargin = 12,
+		--[[ Studs further still the view goes past the north wall as the
+		     player walks up to the gate, on a screen where the camera
+		     follows (the view shorter than the room): the run HUD's bars
+		     lie across the top of the screen, and at `gateMargin` alone the
+		     gate and the player leaving through it were under them (the
+		     every-class run-through, 2026-11-16). Not added where the view
+		     is longer than the room (an upright phone), which centres. ]]
+		gateHud = 8,
 		--[[ Studs the focus may follow the player either side of the room's
 		     middle when the view is longer than the room (an upright
 		     phone), rather than sitting still. ]]

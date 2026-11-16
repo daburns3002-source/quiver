@@ -62,6 +62,7 @@ local EnemyManager = require(script.Parent.Parent.Enemies.EnemyManager)
 local EnemyModel = require(script.Parent.Parent.Enemies.EnemyModel)
 local FirstEgg = require(ReplicatedStorage.Shared.Util.FirstEgg)
 local Hatchery = require(script.Parent.Parent.Data.Hatchery)
+local LaunchLocks = require(ReplicatedStorage.Shared.Util.LaunchLocks)
 local LevelUnlocks = require(ReplicatedStorage.Shared.Util.LevelUnlocks)
 local Lobby = require(script.Parent.Lobby)
 local LobbyConfig = require(ReplicatedStorage.Shared.Config.Lobby)
@@ -753,7 +754,7 @@ local function openClassGifts(session: RunSession.Session, eggs: number, crates:
 		end
 	end
 	if crates > 0 then
-		local index = PrizeRules.crateIndex(session.loadout.class)
+		local index = EndlessPrizes.bestCrate(player)
 		local weapons = if index then EndlessPrizes.crates(player, index, crates) else {}
 		if index and #weapons > 0 then
 			table.insert(prizes, { kind = "Crate", key = index, results = weapons })
@@ -1435,6 +1436,29 @@ local function nextLevel(index: number): (number?, boolean)
 	return nil, false
 end
 
+--[[ The first level of the area after the one whose last level is stage
+     `index` (`LevelUnlocks.nextArea`), if everybody in the run may enter
+     that area: its portal's own gate, as the lobby asks before it starts a
+     level there (`Util/LaunchLocks`). The win that ends an area is what
+     opens the next, so this is nil only after the last area built. ]]
+local function nextAreaLevel(index: number): number?
+	local first, at = LevelUnlocks.nextArea(LobbyConfig.portals, Balance.Stages, index)
+	local portal = if at then LobbyConfig.portals[at] else nil
+	if not first or not portal then
+		return nil
+	end
+	for _, session in RunSession.all() do
+		local profile = PlayerData.get(session.player)
+		if
+			not profile
+			or not LaunchLocks.portalOpen(portal, profile.levelsBeaten, profile.bossesBeaten)
+		then
+			return nil
+		end
+	end
+	return first
+end
+
 --[[ Leave the run for the lobby (`Remotes.RunLobby`). Unlike `toLobby`'s
      other callers -- the tutorial ending, an area's last level -- this one
      is the player giving up, so nothing is credited: no `beatLevel`, no
@@ -1470,13 +1494,20 @@ function RoomController.requestRestart(): boolean
 	end
 
 	if state == "Complete" then
-		--[[ NEXT LEVEL: the portal's next level, or the lobby after its
-		     last (owner, 2026-10-26: Mossy Glade 1-1 to 1-10). ]]
+		--[[ NEXT LEVEL: the portal's next level (owner, 2026-10-26: Mossy
+		     Glade 1-1 to 1-10); after its last, the first level of the area
+		     that win opened (the every-class run-through, 2026-11-16: the
+		     button said NEXT LEVEL and led to the lobby); the lobby after
+		     the last area built, where the button says CONTINUE
+		     (`EndScreenRules.goesOn`). ]]
 		local nextIndex, behindPortal = nextLevel(stageIndex)
 		if behindPortal and not nextIndex then
-			toLobby()
-			log.info("%s won, its area's last level: to the lobby", stage().name)
-			return true
+			nextIndex = nextAreaLevel(stageIndex)
+			if not nextIndex then
+				toLobby()
+				log.info("%s won, the last level there is: to the lobby", stage().name)
+				return true
+			end
 		end
 		stageIndex = nextIndex or CurrentStage.nextAfter(Balance.campaign, stageIndex)
 		workspace:SetAttribute(CurrentStage.ATTRIBUTE, stageIndex)

@@ -42,6 +42,7 @@ local EndScreenRules = require(ReplicatedStorage.Shared.Util.EndScreenRules)
 local EndScreenTheme = require(ReplicatedStorage.Shared.Config.EndScreenTheme)
 local GearAssets = require(ReplicatedStorage.Shared.Config.GearAssets)
 local ShopAssets = require(ReplicatedStorage.Shared.Config.ShopAssets)
+local StarRules = require(ReplicatedStorage.Shared.Util.StarRules)
 
 local ClassLevelPlate = require(script.Parent.ClassLevelPlate)
 local Device = require(script.Parent.Parent.Device)
@@ -413,15 +414,37 @@ local function buildRibbon(
 	return ribbon, sub
 end
 
-local function buildHero(parent: Instance, layout: any, won: boolean): ImageLabel
+--[[ `stars` is how many stars the level won now holds (`Util/StarRules`):
+     that many of the trophy's three are gold, the rest dark shapes. Nil for
+     a win with no stars to count (the tutorial): all three, as the picture
+     always had. ]]
+local function buildHero(parent: Instance, layout: any, won: boolean, stars: number?): ImageLabel
 	local hero = image(
 		parent,
 		"Hero",
 		layout.hero,
 		8,
-		if won then EndScreenAssets.heroVictory else EndScreenAssets.heroDefeat
+		if won then EndScreenAssets.heroTrophy else EndScreenAssets.heroDefeat
 	)
 	hero.ScaleType = Enum.ScaleType.Stretch
+	if won then
+		for at, piece in EndScreenAssets.heroStars do
+			local star = Instance.new("ImageLabel")
+			star.Name = "Star" .. at
+			star.BackgroundTransparency = 1
+			star.Image = piece.image
+			star.ScaleType = Enum.ScaleType.Stretch
+			star.ResampleMode = Enum.ResamplerMode.Pixelated
+			star.Position = UDim2.fromScale(piece.box[1], piece.box[2])
+			star.Size = UDim2.fromScale(piece.box[3], piece.box[4])
+			star.ZIndex = hero.ZIndex
+			if stars and at > stars then
+				star.ImageColor3 = Color3.new(0, 0, 0)
+				star.ImageTransparency = 0.62
+			end
+			star.Parent = hero
+		end
+	end
 	pivot(hero)
 	return hero
 end
@@ -1152,7 +1175,15 @@ function EndScreen.show(summary: Summary)
 		then (if summary.canHatch and look.hatchText then look.hatchText else look.subText)
 		else EndScreenRules.defeatLine(summary.endless, summary.petsFull)
 	local ribbon, sub = buildRibbon(content, look, layout, won, subText)
-	local hero = buildHero(content, layout, won)
+	local levelStars = summary.stars
+	local hero = buildHero(
+		content,
+		layout,
+		won,
+		if levelStars and type(levelStars.now) == "number"
+			then StarRules.count(levelStars.now)
+			else nil
+	)
 	local stats = buildStats(content, look, layout, summary)
 	-- NEXT LEVEL, or CONTINUE where it leads to the lobby (`EndScreenRules`)
 	local buttonParts =

@@ -346,6 +346,52 @@ local function pill(sheet: Chunky.Sheet, words: string, box: { number }, colour:
 	t.ZIndex = 7
 end
 
+--[[ A beaten level's line on its card when a star is still to be won: the
+     three stars, gold for the ones held, and beside them what the first
+     dark one asks ("OVER HALF HEALTH", "UNDER 4:10"). The card said
+     CLEARED and nothing of what the missing star wanted (the every-class
+     run-through, 2026-11-16). ]]
+local function starLine(
+	sheet: Chunky.Sheet,
+	box: { number },
+	held: number?,
+	stage: Balance.StageConfig
+)
+	local p = Instance.new("Frame")
+	p.Name = "StarLine"
+	p.BorderSizePixel = 0
+	p.BackgroundColor3 = Chunky.pale
+	p.ZIndex = 6
+	Chunky.put(sheet, p, box[1], box[2], box[3], box[4])
+	Chunky.round(p, math.min(box[4], 60))
+	local asks = StarRules.words(StarRules.par(stage))
+	local missing: string? = nil
+	-- each star a square as tall as the line allows, from its left end
+	local side = box[4] * 0.74
+	local step = side * 1.04
+	local left = box[4] * 0.3
+	for at, bit in StarRules.ALL do
+		local star = Kit.image(p, EndScreenAssets.star)
+		star.Name = "Star" .. at
+		star.AnchorPoint = Vector2.new(0, 0.5)
+		star.Position = UDim2.fromScale((left + (at - 1) * step) / box[3], 0.5)
+		star.Size = UDim2.fromScale(side / box[3], side / box[4])
+		star.ZIndex = 7
+		if not StarRules.has(held, bit) then
+			star.ImageColor3 = Color3.new(0, 0, 0)
+			star.ImageTransparency = 0.72
+			missing = missing or asks[at]
+		end
+	end
+	local from = left + #StarRules.ALL * step + box[4] * 0.1
+	local t = Chunky.textOn(p, missing or "CLEARED", Chunky.pale, 4)
+	t.Name = "Ask"
+	t.TextXAlignment = Enum.TextXAlignment.Left
+	t.Position = UDim2.fromScale(from / box[3], 0.18)
+	t.Size = UDim2.fromScale((box[3] - from - box[4] * 0.3) / box[3], 0.64)
+	t.ZIndex = 7
+end
+
 --[[ A round level button: its number, a lock if shut, the boss's icon if
      it ends in one, a gold ring if picked. ]]
 local function node(
@@ -660,7 +706,18 @@ fill = function(index: number)
 				pill(sheet, prize, L.rewards)
 			end
 		elseif LevelUnlocks.isBeaten(stage, done) then
-			pill(sheet, "CLEARED", L.status, Chunky.gold)
+			-- every star held: CLEARED in gold; else the stars and what is still asked
+			local p = profile
+			local held = if p
+					and p.levelStars
+					and stage.level
+				then p.levelStars[stage.level]
+				else nil
+			if StarRules.count(held) >= #StarRules.ALL then
+				pill(sheet, "CLEARED", L.status, Chunky.gold)
+			else
+				starLine(sheet, L.status, held, stage)
+			end
 		elseif not pickedOpen then
 			pill(sheet, "LOCKED", L.status, Chunky.grey)
 		end
@@ -792,7 +849,7 @@ function PortalScreen.open(index: number, back: (() -> ())?)
 			return screen.Enabled
 		end)
 	)
-	if UserInputService.GamepadEnabled then
+	if Kit.gamepadInUse() then
 		GuiService.SelectedObject = startButton
 	end
 end

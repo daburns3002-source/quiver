@@ -101,12 +101,14 @@ def clip(length, loop, joints, keys):
     return {"length": length, "loop": loop, "joints": joints, "keys": keys}
 
 
-# The stance: elbows folded, both blades forward and up, the left held a
-# little lower and closer than the right.
-GUARD_R = arm(pitch=28, heading=-12, twist=25, elbow=78, wrist=-52)
-GUARD_L = mirror(arm(pitch=16, heading=-16, twist=30, elbow=92, wrist=-58))
-GUARD_R2 = arm(pitch=31, heading=-10, twist=25, elbow=74, wrist=-50)
-GUARD_L2 = mirror(arm(pitch=19, heading=-14, twist=30, elbow=88, wrist=-56))
+# The stance: elbows folded, both blades laid forward (seen in Studio,
+# 2026-11-16: at a wrist of -52 the blades pointed up at the top-down camera
+# and read as two dots), the left held a little lower and closer than the
+# right.
+GUARD_R = arm(pitch=28, heading=-12, twist=25, elbow=70, wrist=-84)
+GUARD_L = mirror(arm(pitch=16, heading=-16, twist=30, elbow=84, wrist=-88))
+GUARD_R2 = arm(pitch=31, heading=-10, twist=25, elbow=66, wrist=-82)
+GUARD_L2 = mirror(arm(pitch=19, heading=-14, twist=30, elbow=80, wrist=-86))
 SQUARE = body()
 
 # Running: leaning in, both arms trailing behind with the blades laid back.

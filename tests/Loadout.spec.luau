@@ -285,6 +285,21 @@ return function(t: TestRunner.Helper)
 		t.isTrue(stat, "an Angel offered no stat")
 	end)
 
+	t.test("an Angel's stat is drawn by rarity, so a Mythic is a rare one", function()
+		local random = Random.new(7)
+		local mythic, draws = 0, 2000
+		for _ = 1, draws do
+			local state = Loadout.new()
+			state.class = "Ranger"
+			local offer = Loadout.openAngel(state, random) :: { string }
+			if Abilities.byId[offer[1]].rarity == "Mythic" then
+				mythic += 1
+			end
+		end
+		-- drawn evenly it was one in eight; by weight it is a few in a hundred at most
+		t.isTrue(mythic < draws * 0.06, `{mythic} Mythics in {draws} Angels`)
+	end)
+
 	t.test("an Angel's stat is one the player's class can use, and never a benched card", function()
 		for _, class in { "Ranger", "Arcanist", "Warden" } do
 			-- every roll of the dice, so every stat it could offer is met

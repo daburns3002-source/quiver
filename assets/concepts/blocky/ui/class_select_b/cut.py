@@ -32,6 +32,10 @@ FIT = {
 }
 
 
+#: Heroes drawn in violet, cut by `key_outside`.
+VIOLET = {"assassin_male", "assassin_female"}
+
+
 def key(im, colour):
     """RGBA with the flat key colour taken out and its spill off the edges."""
     im = im.convert("RGB")
@@ -55,6 +59,33 @@ def key(im, colour):
                     if spill > 0:
                         g = g - spill
             o[x, y] = (r, g, b, int(a * 255 + 0.5))
+    return out
+
+
+def key_outside(im):
+    """RGBA with only the magenta that reaches the picture's edge taken out.
+
+    For a hero who is violet or lilac (the Assassin): `key` works by how far
+    a colour is from the key colour, and takes a share of every violet with
+    the magenta. Here the background is the magenta joined to the border,
+    and nothing inside the hero's outline is touched.
+    """
+    import numpy as np
+    from scipy import ndimage
+
+    rgb = np.asarray(im.convert("RGB")).astype(np.float32)
+    dist = np.linalg.norm(rgb - np.array([255.0, 0.0, 255.0]), axis=-1)
+    labels, _ = ndimage.label(dist < 90)
+    edge = np.unique(np.concatenate([labels[0], labels[-1], labels[:, 0], labels[:, -1]]))
+    outside = np.isin(labels, edge[edge > 0])
+    # and the pockets of pure magenta shut in between hood and dagger
+    outside |= dist < 45
+    # one pixel of the outline's magenta fringe goes with it
+    outside = ndimage.binary_dilation(outside, iterations=1)
+    alpha = np.where(outside, 0, 255).astype(np.uint8)
+    out = Image.fromarray(np.dstack([rgb.astype(np.uint8), alpha]), "RGBA")
+    soft = out.getchannel("A").filter(ImageFilter.GaussianBlur(0.8))
+    out.putalpha(ImageChops.darker(out.getchannel("A"), soft))
     return out
 
 
@@ -103,6 +134,8 @@ def main():
         src = Image.open(os.path.join(HERE, name))
         if base == "assassin":
             cut = rim(key(src, (0, 255, 0)))
+        elif base in VIOLET:
+            cut = key_outside(src)
         else:
             cut = key(src, (255, 0, 255))
         place(cut, FIT.get(base, (1.0, 0.0, 0.0))).save(os.path.join(OUT, base + ".png"))

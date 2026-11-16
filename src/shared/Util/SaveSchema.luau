@@ -140,6 +140,14 @@
 	any boss has been beaten, so the daily quests can leave BEAT A BOSS
 	out for a player who has met none (`RewardRules.questsFor`). Read from
 	`bossesBeaten` on every load, so an older profile has it right.
+
+	Version 23 (2026-11-15, the Assassin opens): a fourth class weapon owned
+	from the start, the Splinter Daggers. Nothing new is stored: the
+	starters are the weapon of every class that can be chosen
+	(`Util/ClassList`), given on every load, so an older profile holds the
+	daggers the first time it is read. The number moved so that a server
+	still on the build before the Assassin never reads a profile with
+	daggers in hand.
 ]]
 
 local ClassLevelRules = require(script.Parent.ClassLevelRules)
@@ -153,7 +161,7 @@ local StoreRules = require(script.Parent.StoreRules)
 
 local SaveSchema = {}
 
-SaveSchema.VERSION = 22
+SaveSchema.VERSION = 23
 
 --[[ The classes' own weapons, owned from the start: one for every class a
      player can choose (`Util/ClassList`). Given on every load (`migrate`

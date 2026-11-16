@@ -129,7 +129,8 @@ moving in its own manner. Never the base weapon's clips reused. **Epic and
 above also get their own projectile and projectile trail.** Every weapon
 is made with its own projectile model, except the swords (melee).
 
-The Duelist's daggers (the open alternative to the Warden, `docs/WORLD.md`)
+The Assassin's daggers (the class opened 2026-11-15 holding the Splinter Daggers; the other
+five wait to be imported, `docs/TRACKER.md`). They were first drawn as the Duelist's daggers (the open alternative to the Warden, `docs/WORLD.md`)
 have their Mossy Glade ladder too: blocky sheet
 `assets/concepts/blocky/weapons/skins/forest/w4_dagger_skins.png` (Codex,
 2026-10-23), each pair drawn with its projectile, an **arcing slash** (a

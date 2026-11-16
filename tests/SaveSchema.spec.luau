@@ -41,6 +41,31 @@ return function(t: TestRunner.Helper)
 		t.isNil(p.equipped)
 	end)
 
+	--[[ Version 23: the day a class opens, every older save holds its
+	     weapon, and nothing it had is touched. ]]
+	t.test("an older save is given the Assassin's daggers, and keeps what it had", function()
+		local p = SaveSchema.migrate({
+			version = 22,
+			coins = 40,
+			weapons = { TwigBow = true, AcornBow = true },
+			equipped = "AcornBow",
+			classLevels = { Warden = { level = 4, xp = 20 } },
+		})
+		t.equal(p.version, 23)
+		t.isTrue(p.weapons.SplinterDaggers, "no daggers")
+		t.isTrue(p.weapons.AcornBow and p.weapons.TimberBlade)
+		t.equal(p.equipped, "AcornBow")
+		t.equal(p.coins, 40)
+		t.equal(p.classLevels.Warden.level, 4)
+		t.isNil(p.classLevels.Assassin, "a class never played has no level saved")
+		-- its tier is a first copy's, like every starter's
+		t.equal(p.tiers.weapons.SplinterDaggers.C, 1)
+		-- and a save already at 23 reads the same
+		local again = SaveSchema.migrate(p)
+		t.isTrue(again.weapons.SplinterDaggers)
+		t.equal(again.equipped, "AcornBow")
+	end)
+
 	t.test("a stored profile keeps everything valid", function()
 		local p = SaveSchema.migrate({
 			version = 1,
@@ -78,7 +103,7 @@ return function(t: TestRunner.Helper)
 
 	t.test("a new profile has beaten no level", function()
 		local p = SaveSchema.migrate(nil)
-		t.equal(SaveSchema.VERSION, 22)
+		t.equal(SaveSchema.VERSION, 23)
 		t.isNil((next(p.levelsBeaten)))
 	end)
 

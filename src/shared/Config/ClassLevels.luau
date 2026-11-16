@@ -69,6 +69,12 @@ local ClassLevels = {
 		Arcanist = "GoldenStaff",
 		Warden = "GoldenBlade",
 	} :: { [string]: string },
+	--[[ Classes whose golden weapon is not made yet (the Assassin's Golden
+	     Daggers wait on the owner's art). Such a class levels like any
+	     other and its level 10 simply gives nothing more; the day the
+	     weapon is added here it is given to everyone already there
+	     (`ClassLevelRules.owed`, `Wallet.settleClassWeapons`). ]]
+	waiting = { "Assassin" } :: { string },
 }
 
 return table.freeze(ClassLevels)

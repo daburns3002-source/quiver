@@ -119,8 +119,9 @@ return function(t: TestRunner.Helper)
 	end)
 
 	--[[ A class that stands and trades blows (its swing guards it) needs
-	     the health to; one that does not guard (the Assassin) is as fragile
-	     as the Ranger and no more so. ]]
+	     the health to. The Assassin guards as it strikes too (without that
+	     it did not get through 1-1 in Studio, 2026-11-16), on 1.5x the
+	     Ranger's health (owner, 2026-11-16), well under the Warden's. ]]
 	t.test(
 		"every class has a health scale, and a guarded melee class outlasts the Ranger",
 		function()
@@ -141,6 +142,10 @@ return function(t: TestRunner.Helper)
 					end
 				end
 			end
+			local assassin = AbilityEffects.serverStats({}, "Assassin")
+			local warden = AbilityEffects.serverStats({}, "Warden")
+			t.near(assassin.maxHealth, ranger.maxHealth * 1.5, 1e-6)
+			t.isTrue(assassin.maxHealth < warden.maxHealth, "the Assassin outlasts the Warden")
 		end
 	)
 
@@ -162,7 +167,7 @@ return function(t: TestRunner.Helper)
 		end
 		local blows = Classes.Assassin.swing :: Classes.Swing
 		t.isTrue(blows.arc < (Classes.Warden.swing :: Classes.Swing).arc, "its arc is no narrower")
-		t.isNil(blows.guard, "the Assassin does not guard")
+		t.isTrue(blows.guard == true, "nothing guards the Assassin as it strikes")
 		for index = 1, #blows.damage do
 			t.near(
 				WeaponTiming.cycleSpeed(Classes.Assassin.weapon, index, assassin.attackCooldown),

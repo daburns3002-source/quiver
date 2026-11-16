@@ -68,7 +68,16 @@ return function(t: TestRunner.Helper)
 	t.test("every class a player can choose levels, and no other name does", function()
 		for _, class in ClassList.open() do
 			t.isTrue(ClassLevelRules.levels(class), class)
-			t.notNil(ClassLevels.weapons[class], class .. " has a golden weapon")
+			--[[ A golden weapon, or said plainly to be waiting for one:
+			     never neither, never both. ]]
+			local waits = table.find(ClassLevels.waiting, class) ~= nil
+			t.isTrue(
+				(ClassLevels.weapons[class] ~= nil) ~= waits,
+				class .. " has no golden weapon and is not waiting for one, or both"
+			)
+		end
+		for _, class in ClassLevels.waiting do
+			t.notNil(Classes[class], class .. " is a class")
 		end
 		for class in ClassLevels.weapons do
 			t.notNil(Classes[class], class .. " is a class")

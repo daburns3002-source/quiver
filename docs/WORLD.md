@@ -47,7 +47,9 @@ and both melee options while the class is open — `warden_greatsword` red
 (no shield) and `duelist_daggers` purple.
 
 **Alternative to the Warden:** a **Duelist** — fast dagger strikes, crits,
-evasion — if the unlockable melee class should play faster. *Open.*
+evasion — if the unlockable melee class should play faster. *Settled 2026-11-15: both. The
+daggers' class is the **Assassin**, the fourth class (twin Splinter Daggers, quick strikes up
+close, a dash that cuts; CLAUDE.md, "The Assassin").*
 
 What exists today is the Ranger: move-or-shoot, the shot pipeline and every
 ability are built for it. How the others fit the pipeline:

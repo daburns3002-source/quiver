@@ -125,7 +125,11 @@ return function(t: TestRunner.Helper)
 		t.equal(GoalRules.value(profile, "classLevel"), 7)
 		t.equal(GoalRules.value(profile, "logins"), 9)
 		t.equal(GoalRules.value(profile, "dex"), 2)
-		t.equal(GoalRules.value(profile, "weapons"), 5)
+		t.equal(
+			GoalRules.value(profile, "weapons"),
+			#ClassList.open() + 2,
+			"the starters and two bows"
+		)
 		t.equal(GoalRules.value(profile, "rare"), 2, "a Legendary and a Mythic bow")
 	end)
 

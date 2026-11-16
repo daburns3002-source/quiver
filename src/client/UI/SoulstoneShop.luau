@@ -189,7 +189,7 @@ local function draw(): Frame?
 			     of what: the words keep to the left of the stone. ]]
 			local button = Chunky.button(
 				sheet,
-				`{count} FOR {Chunky.commas(cost)}     `,
+				`{count} FOR {Chunky.commas(cost)}`,
 				if held >= cost then Chunky.purple else Chunky.grey,
 				x,
 				y + 22,
@@ -209,6 +209,17 @@ local function draw(): Frame?
 			stone.ZIndex = 60
 			stone.Parent = button
 			gem(stone, 60)
+			-- the words give the stone its room: the left four fifths less a bit
+			for _, piece in button:GetDescendants() do
+				if piece:IsA("TextLabel") then
+					piece.Size = UDim2.new(
+						piece.Size.X.Scale * 0.76,
+						piece.Size.X.Offset,
+						piece.Size.Y.Scale,
+						piece.Size.Y.Offset
+					)
+				end
+			end
 		end
 	end
 	screen.Enabled = true

@@ -147,8 +147,9 @@ repeatable currency keeps the mode worth replaying once the milestones are claim
 
 **Built 2026-11-11, at the owner's word** ("MAKE IT MORE LIKE 5 EGGS AND 5 CRATES. ROBLOX GAMES HAVE
 THAT EXTREME REWARD. I WANT IT TO FEEL NECESSARY TO BEAT THESE ROOMS"): each is hatched and opened for
-the player the moment its floor is cleared, free, the best egg open to them and the best stocked crate
-for their class, on top of its Soulstones (`Server/Data/EndlessPrizes`). The cosmetic and the title the
+the player the moment its floor is cleared, free, the furthest egg and the furthest stocked crate
+for their class that they have reached (by the launch's gates, whichever way the launch switch is:
+`Util/PrizeRules`, 2026-11-16), on top of its Soulstones (`Server/Data/EndlessPrizes`). The cosmetic and the title the
 first table had at 30 and 100 do not exist, so those floors pay in eggs and crates too.
 
 Soulstones themselves now buy eggs and crates at the Soulstone shop on the Endless portal's screen

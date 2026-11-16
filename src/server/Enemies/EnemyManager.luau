@@ -948,6 +948,19 @@ local function clipData(key: string): ModelClip.Model?
 	return data
 end
 
+--[[ How many of `model`'s parts ride `data`'s clips, told to the clients
+     (`ModelClipParts`) so none fits the model while only half of it has
+     reached them (`Fx/ModelAnimator`). Counted here, where it is whole. ]]
+local function clipParts(model: Model, data: ModelClip.Model): number
+	local n = 0
+	for _, d in model:GetDescendants() do
+		if d:IsA("BasePart") and data.parts[d.Name] then
+			n += 1
+		end
+	end
+	return n
+end
+
 --[[ Shows `clip` on an enemy that plays its own, from the start, if its
      model has it and it is not already showing. ]]
 local function play(enemy: Enemy, clip: string)
@@ -1092,6 +1105,7 @@ function EnemyManager.spawn(
 	local own = (EnemyDesigns.Imported :: any)[config.displayName] :: EnemyDesigns.ImportedDesign?
 	local ownClips = if own and not config.boss then clipData(own.clips) else nil
 	if own and ownClips then
+		model:SetAttribute("ModelClipParts", clipParts(model, ownClips))
 		model:SetAttribute("ModelClips", own.clips)
 		CollectionService:AddTag(model, "ModelClips")
 		enemies[model].clips = ownClips
@@ -1121,6 +1135,10 @@ function EnemyManager.spawn(
 		local imported = (EnemyDesigns.Imported :: any)[config.displayName] :: EnemyDesigns.ImportedDesign?
 		local clipped = config.boss.clips ~= nil and imported ~= nil
 		if clipped and imported then
+			local data = clipData(imported.clips)
+			if data then
+				model:SetAttribute("ModelClipParts", clipParts(model, data))
+			end
 			model:SetAttribute("ModelClips", imported.clips)
 			local stretch = imported.stretch
 			if stretch then

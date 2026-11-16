@@ -23,7 +23,6 @@ local EndlessPrizes = require(script.Parent.EndlessPrizes)
 local Hatchery = require(script.Parent.Hatchery)
 local PlayerData = require(script.Parent.PlayerData)
 local Rewards = require(script.Parent.Rewards)
-local RunSession = require(script.Parent.Parent.Run.RunSession)
 local Wallet = require(script.Parent.Wallet)
 
 local log = Log.forTag("QuestChest")
@@ -43,8 +42,7 @@ local function egg(player: Player): boolean
 end
 
 local function crate(player: Player): boolean
-	local session = RunSession.get(player)
-	local index = PrizeRules.crateIndex(if session then session.loadout.class else nil)
+	local index = EndlessPrizes.bestCrate(player)
 	local weapons = if index then EndlessPrizes.crates(player, index, 1) else {}
 	if not index or #weapons == 0 then
 		return false
@@ -81,8 +79,7 @@ local function give(player: Player, eggs: number, crates: number)
 		end
 	end
 	if crates > 0 then
-		local session = RunSession.get(player)
-		local index = PrizeRules.crateIndex(if session then session.loadout.class else nil)
+		local index = EndlessPrizes.bestCrate(player)
 		local weapons = if index then EndlessPrizes.crates(player, index, crates) else {}
 		if index and #weapons > 0 then
 			opened:FireClient(player, "Crate", index, weapons)

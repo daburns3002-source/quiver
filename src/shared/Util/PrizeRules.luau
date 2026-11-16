@@ -7,10 +7,19 @@
 	The rules only: which egg, which crate, and what a guaranteed rarity may
 	be. `Server/Data/EndlessPrizes` rolls and grants with them; the server
 	alone decides what a player gets.
+
+	**A prize follows the player's progress, whichever way the launch switch
+	is** (the every-class run-through, 2026-11-16: a Ranger who had beaten
+	nothing got Bogheart's crate at class level 3 and held an Epic bow at
+	damage x1.99 after ten wins). A shop may sell everything while the game
+	is in playtest (`Config/Launch.locks` off); a gift may not, or the first
+	hour of a playtest is nothing like the first hour of the launch. So both
+	rules below read the launch gates as if the switch were on.
 ]]
 
 local EggRules = require(script.Parent.EggRules)
 local Eggs = require(script.Parent.Parent.Config.Eggs)
+local LaunchLocks = require(script.Parent.LaunchLocks)
 local Shop = require(script.Parent.Parent.Config.Shop)
 local ShopRules = require(script.Parent.ShopRules)
 
@@ -18,26 +27,33 @@ local PrizeRules = {}
 
 local ORDER = EggRules.ORDER
 
---[[ The egg a prize hatches: the last one in `Config/Eggs` that is open to
-     a player who has beaten these bosses and has pets in it. Nil if there
-     is none. ]]
-function PrizeRules.eggKey(bossesBeaten: { [string]: boolean }): string?
+--[[ The egg a prize hatches: the last one in `Config/Eggs` that has pets
+     in it and that a player who has beaten these bosses has reached, by
+     the launch's gates (`LaunchLocks.eggUnlock`). Nil if there is none. ]]
+function PrizeRules.eggKey(bossesBeaten: { [string]: boolean }?): string?
 	local best: string? = nil
 	for _, egg in Eggs.list do
-		if EggRules.open(egg, bossesBeaten) and #EggRules.pool(egg.key) > 0 then
+		local unlock = LaunchLocks.eggUnlock(egg, true)
+		local reached = unlock == nil or (bossesBeaten ~= nil and bossesBeaten[unlock] == true)
+		if reached and #EggRules.pool(egg.key) > 0 then
 			best = egg.key
 		end
 	end
 	return best
 end
 
---[[ The crate a prize opens for a player of `class`: the furthest area's
-     that has weapons for them (`Config/Shop`'s `stocked`). Nil if no crate
-     has any. ]]
-function PrizeRules.crateIndex(class: string?): number?
+--[[ The crate a prize opens for a player of `class` who has beaten these
+     bosses: the furthest area's that has weapons for them (`Config/Shop`'s
+     `stocked`) and that they have reached, by the launch's gates
+     (`ShopRules.crateOpen`). Nil if no such crate has any. ]]
+function PrizeRules.crateIndex(class: string?, bossesBeaten: { [string]: boolean }?): number?
 	local best: number? = nil
 	for index in Shop.crates do
-		if #ShopRules.cratePool(index, class) > 0 and (best == nil or index > best) then
+		if
+			ShopRules.crateOpen(index, bossesBeaten, true)
+			and #ShopRules.cratePool(index, class) > 0
+			and (best == nil or index > best)
+		then
 			best = index
 		end
 	end

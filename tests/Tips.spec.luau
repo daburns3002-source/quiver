@@ -252,6 +252,54 @@ return function(t: TestRunner.Helper)
 		end
 	end)
 
+	--[[ The every-class run-through, 2026-11-16: the STORE's panel stands
+	     too near the top for the card to reach up off it, and the card came
+	     down over GEMS and PASSES. ]]
+	t.test("a tip with no room over the header goes round the panel", function()
+		local shapes = {
+			-- the STORE on a computer: room either side
+			{
+				w = 2091,
+				h = 1113,
+				spot = { x = 640, y = 60, w = 810, h = 52 },
+				panel = { x = 640, y = 60, w = 810, h = 990 },
+				side = true,
+			},
+			-- an upright phone, a short panel: room under it
+			{
+				w = 390,
+				h = 844,
+				spot = { x = 11, y = 40, w = 368, h = 40 },
+				panel = { x = 11, y = 40, w = 368, h = 520 },
+				side = false,
+			},
+		}
+		for _, shape in shapes do
+			local where = `{shape.w} x {shape.h}`
+			local placed = TipRules.over(shape.w, shape.h, shape.spot, shape.panel)
+			inside(placed.box, shape.w, shape.h, where)
+			t.equal(placed.side, shape.side, `{where}: which card`)
+			t.isTrue(apart(placed.box, shape.panel), `{where}: on the panel`)
+		end
+		-- with room over the header the panel changes nothing
+		local spot = { x = 211, y = 189, w = 1669, h = 82 }
+		local panel = { x = 211, y = 189, w = 1669, h = 800 }
+		local with, without =
+			TipRules.over(2091, 1113, spot, panel), TipRules.over(2091, 1113, spot)
+		t.equal(with.box.y, without.box.y)
+		t.equal(with.box.x, without.box.x)
+		t.isFalse(with.side)
+		-- and with no room anywhere it is whole on the screen, at the top
+		local phone = TipRules.over(
+			844,
+			390,
+			{ x = 130, y = 11, w = 584, h = 29 },
+			{ x = 130, y = 11, w = 584, h = 368 }
+		)
+		inside(phone.box, 844, 390, "a phone on its side")
+		t.isTrue(phone.box.y <= TipRules.layout.gutter)
+	end)
+
 	t.test("with no margin wide enough a tip is still whole on the screen", function()
 		local placed = TipRules.place(390, 844, 47, { x = 0, y = 100, w = 390, h = 700 })
 		inside(placed.box, 390, 844, "an arena filling the screen")

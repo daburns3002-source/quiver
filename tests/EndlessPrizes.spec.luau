@@ -65,10 +65,64 @@ return function(t: TestRunner.Helper)
 		end
 	end)
 
-	t.test("the prize egg is the furthest one open", function()
+	--[[ The every-class run-through, 2026-11-16: a prize follows progress
+	     whichever way the launch switch is. A Ranger who had beaten nothing
+	     was given Bogheart's crate and egg in a playtest. ]]
+	t.test("a new player's prizes are the first area's", function()
+		t.equal(PrizeRules.eggKey({}), Eggs.list[1].key)
+		t.equal(PrizeRules.eggKey(nil), Eggs.list[1].key)
+		for _, chest in Shop.chests do
+			if #ShopRules.cratePool(1, chest.class) > 0 then
+				t.equal(PrizeRules.crateIndex(chest.class, {}), 1, chest.class)
+				t.equal(PrizeRules.crateIndex(chest.class, nil), 1, chest.class)
+			end
+		end
+	end)
+
+	t.test("a prize crate or egg is never from an area not reached", function()
+		local order = {}
+		for _, crate in Shop.crates do
+			table.insert(order, crate.area)
+		end
+		local beaten: { [string]: boolean } = {}
+		-- with nothing beaten, then as each area's boss falls in turn
+		local function check()
+			local key = PrizeRules.eggKey(beaten)
+			local egg = if key then EggRules.find(key) else nil
+			if egg and egg.atLaunch then
+				t.isTrue(beaten[egg.atLaunch] == true, `{egg.key} given before {egg.atLaunch}`)
+			end
+			for _, chest in Shop.chests do
+				local index = PrizeRules.crateIndex(chest.class, beaten)
+				local crate = if index then Shop.crates[index] else nil
+				if crate and crate.atLaunch then
+					t.isTrue(
+						beaten[crate.atLaunch] == true,
+						`{crate.area}'s crate given before {crate.atLaunch}`
+					)
+				end
+			end
+		end
+		check()
+		for _, area in order do
+			beaten[area] = true
+			check()
+		end
+	end)
+
+	t.test("with every boss beaten the prizes are the furthest stocked", function()
 		local everything = {}
-		for _, egg in Eggs.list do
-			everything[egg.area] = true
+		for _, crate in Shop.crates do
+			everything[crate.area] = true
+		end
+		for _, chest in Shop.chests do
+			local furthest: number? = nil
+			for index in Shop.crates do
+				if #ShopRules.cratePool(index, chest.class) > 0 then
+					furthest = math.max(furthest or 0, index)
+				end
+			end
+			t.equal(PrizeRules.crateIndex(chest.class, everything), furthest, chest.class)
 		end
 		local best = PrizeRules.eggKey(everything)
 		local expected: string? = nil

@@ -510,7 +510,12 @@ end
 
 --[[ Squash on press, swell a touch on hover; the click, its sound and its
      sparks. ]]
-local function pressable(holder: GuiObject, visual: GuiObject, action: () -> ()): TextButton
+local function pressable(
+	holder: GuiObject,
+	visual: GuiObject,
+	action: () -> (),
+	swell: number?
+): TextButton
 	local hit = Instance.new("TextButton")
 	hit.BackgroundTransparency = 1
 	hit.Text = ""
@@ -522,7 +527,7 @@ local function pressable(holder: GuiObject, visual: GuiObject, action: () -> ())
 		Chunky.burst(visual)
 		action()
 	end)
-	Kit.pressFx(hit, visual, false)
+	Kit.pressFx(hit, visual, false, swell)
 	return hit
 end
 
@@ -1147,9 +1152,10 @@ end
 
 --[[ Makes any piece pressable the way the kit's buttons are: it swells a
      touch under the pointer, squashes when pressed and springs back past
-     full size on release (owner, 2026-11-05: "the bounce on click"). ]]
-function Chunky.press(holder: GuiObject, action: () -> ())
-	pressable(holder, holder, action)
+     full size on release (owner, 2026-11-05: "the bounce on click").
+     `swell` for something big, which lifts less (`Kit.pressFx`). ]]
+function Chunky.press(holder: GuiObject, action: () -> (), swell: number?)
+	pressable(holder, holder, action, swell)
 end
 
 --[[ A bright slanted streak that sweeps across `item` every few seconds,

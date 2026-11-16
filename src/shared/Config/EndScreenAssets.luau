@@ -16,6 +16,21 @@ local EndScreenAssets = {
 	ribbonVictory = "rbxassetid://104233184250779",
 	ribbonDefeat = "rbxassetid://121514637917026",
 	heroVictory = "rbxassetid://131261335765461",
+	--[[ `heroVictory` with its three stars taken out, and the three stars
+	     by themselves (uploaded 2026-11-16, cut by
+	     `assets/ui/end_screens/split_victory_stars.py`): Victory draws the
+	     stars itself, gold only for the ones the level holds. The whole
+	     picture showed three gold stars whatever was won (the every-class
+	     run-through, 2026-11-16). ]]
+	heroTrophy = "rbxassetid://132912726945912",
+	--[[ Where each star sits on `heroTrophy`, as shares of the picture's
+	     width and height (left, top, width, height), in the order they
+	     light: the big middle one for the win, then left, then right. ]]
+	heroStars = {
+		{ image = "rbxassetid://106888506086829", box = { 0.3888, 0.0014, 0.2225, 0.2707 } },
+		{ image = "rbxassetid://124836431068661", box = { 0.2246, 0.0994, 0.1555, 0.2003 } },
+		{ image = "rbxassetid://133464795806322", box = { 0.621, 0.0994, 0.1555, 0.2003 } },
+	},
 	heroDefeat = "rbxassetid://91611465071192",
 	rays = "rbxassetid://110500527798364",
 

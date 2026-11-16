@@ -21,6 +21,7 @@
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TextService = game:GetService("TextService")
 local UserInputService = game:GetService("UserInputService")
 
 local Chunky = require(script.Parent.Chunky)
@@ -219,7 +220,10 @@ function VictoryChests.open(
 	dim.AutoButtonColor = false
 	dim.BorderSizePixel = 0
 	dim.BackgroundColor3 = Color3.new(0, 0, 0)
-	dim.BackgroundTransparency = 0.4
+	--[[ Dark enough that Victory under it is a backdrop: at 0.4 its banner,
+	     the class plate and BACK TO LOBBY read as pieces poking out from
+	     behind this panel (the polish run-throughs, 2026-11-14 and 16). ]]
+	dim.BackgroundTransparency = 0.14
 	dim.Size = UDim2.fromScale(1, 1)
 	dim.ZIndex = 0
 	dim.Parent = screen
@@ -291,10 +295,28 @@ function VictoryChests.open(
 	     holds it, popping if this win earned it. ]]
 	if stars and starry then
 		local asks = StarRules.words(stars.par)
-		local slot = (pw - 80) / #StarRules.ALL
+		--[[ Each star stands with its words as one group, as wide as the
+		     words are, and the three groups stand in the middle of the panel
+		     with the same gap between them. In three slots of one width WIN
+		     stood alone at the far left and OVER HALF HEALTH ran into the
+		     third star (the every-class run-through, 2026-11-16). ]]
+		local STAR, PAD, HIGH, GAP = 54, 10, 36, 64
+		local room = pw - 80
+		local widths: { number } = {}
+		local worded = 0
+		for at, words in asks do
+			local measured =
+				TextService:GetTextSize(words, 100, Chunky.font, Vector2.new(10000, 1000))
+			widths[at] = math.ceil(measured.X / measured.Y * HIGH) + 8
+			worded += widths[at]
+		end
+		local fixed = #asks * (STAR + PAD) + (#asks - 1) * GAP
+		-- too long for the panel (a long clock): the words give way, not the gaps
+		local shrink = math.min(1, (room - fixed) / math.max(worded, 1))
 		local sy = top + size + 176
+		local sx = px + 40 + (room - fixed - worded * shrink) / 2
 		for at, bit in StarRules.ALL do
-			local sx = px + 40 + (at - 1) * slot
+			local wide = widths[at] * shrink
 			local lit = StarRules.has(stars.now, bit)
 			local star = Kit.image(sheet.canvas, EndScreenAssets.star)
 			star.Name = "Star" .. at
@@ -311,7 +333,8 @@ function VictoryChests.open(
 				Chunky.text(sheet.canvas, asks[at], if lit then Chunky.ink else Chunky.inkSoft, 0)
 			ask.Name = "Ask" .. at
 			ask.TextXAlignment = Enum.TextXAlignment.Left
-			Chunky.put(sheet, ask, sx + 64, sy + 9, slot - 74, 36)
+			Chunky.put(sheet, ask, sx + STAR + PAD, sy + 9, wide, HIGH)
+			sx += STAR + PAD + wide + GAP
 		end
 	end
 

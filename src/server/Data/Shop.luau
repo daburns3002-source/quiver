@@ -31,6 +31,7 @@ local Shop = require(ReplicatedStorage.Shared.Config.Shop)
 local ShopRules = require(ReplicatedStorage.Shared.Util.ShopRules)
 
 local Analytics = require(script.Parent.Analytics)
+local EndlessPrizes = require(script.Parent.EndlessPrizes)
 local Hatchery = require(script.Parent.Hatchery)
 local Lobby = require(script.Parent.Parent.Run.Lobby)
 local Pity = require(ReplicatedStorage.Shared.Util.Pity)
@@ -199,6 +200,16 @@ function takeUp(player: Player, gained: { string })
 	Wallet.equip(player, best)
 	if RoomController.inLobby() then
 		hold(player, best)
+	else
+		--[[ Won during a run (an Endless milestone's crate, Victory's chest,
+		     a class level's): in hand from the next card or the next run,
+		     whichever comes first, since both apply the loadout
+		     (`RunSession.applyLoadout`, `resetRun`). Not applied here: that
+		     would give a fallen player health. ]]
+		local session = RunSession.get(player)
+		if session then
+			session.loadout.weapon = best
+		end
 	end
 	log.info("%s takes up the %s", player.Name, best)
 end
@@ -297,6 +308,8 @@ local function merge(player: Player, kind: unknown, key: unknown, tier: unknown)
 end
 
 function ShopServer.start()
+	-- a free crate's weapon goes in hand as a bought one's does
+	EndlessPrizes.takeUp = takeUp
 	Inbound.on(Remotes.ChooseClass, chooseClass)
 	Inbound.on(Remotes.SwitchClass, switchClass)
 	Inbound.on(Remotes.ShopOpenCrate, openCrate)

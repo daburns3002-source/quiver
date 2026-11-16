@@ -194,9 +194,16 @@ local function step(deltaTime: number, getRoot: () -> BasePart?)
 	local lowest = -(half + Balance.Camera.gateMargin) - far
 	local highest = half + Balance.Camera.wallMargin - near
 	local reach = Balance.Camera.longViewFollow
+	--[[ Following, the view may go `gateHud` further north than the gate's
+	     own margin: enough to bring the gate out from under the HUD's bars
+	     at the top of the screen. ]]
 	local target = if lowest > highest
 		then Vector3.new(0, 0, (lowest + highest) / 2 + math.clamp(root.Position.Z, -reach, reach))
-		else Vector3.new(0, 0, math.clamp(root.Position.Z, lowest, highest))
+		else Vector3.new(
+			0,
+			0,
+			math.clamp(root.Position.Z, lowest - Balance.Camera.gateHud, highest)
+		)
 	if currentFocus and (currentFocus - target).Magnitude > 200 then
 		-- a jump from the lobby back to the room is a cut, not a pan
 		currentFocus = target

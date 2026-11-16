@@ -295,8 +295,16 @@ function ShopScreen.start()
 	veil.ZIndex = 50
 	veil.Parent = layer
 	local dim = s.canvas.Parent :: GuiObject
+	--[[ Each time the Blacksmith is opened afresh its CRATES start on the
+	     chest of the class being played, as its STORE lists that class
+	     first: a Warden's opened on BOWS (the every-class run-through,
+	     2026-11-16). A tab picked stays picked until the screen is shut. ]]
+	local fresh = true
 	local function follow()
 		layer.Enabled = dim.Visible and GearAssets.backgrounds.blacksmith ~= ""
+		if not dim.Visible then
+			fresh = true
+		end
 	end
 	s.connect(dim:GetPropertyChangedSignal("Visible"), follow)
 	follow()
@@ -323,6 +331,15 @@ function ShopScreen.start()
 	end)
 	s.draw = function()
 		local p = s.profile
+		if fresh then
+			fresh = false
+			local mine = Players.LocalPlayer:GetAttribute("Class")
+			for index, each in Shop.chests do
+				if each.class == mine then
+					chest = index
+				end
+			end
+		end
 		-- the Blacksmith's two modes, as tabs along the panel's head
 		local modes = {}
 		for index, words in { "CRATES", "STORE" } do

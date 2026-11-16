@@ -29,12 +29,25 @@ return function(t: TestRunner.Helper)
 	t.test("the tutorial's Victory does not promise a next level", function()
 		local tutorial = EndScreenRules.buttonWords(true, Balance.tutorialStage)
 		t.isTrue(tutorial ~= "", "the button says something")
+		--[[ Every level's Victory goes on to a level, but the last level of
+		     the last area built: that one is won into the lobby and says so
+		     too (the every-class run-through, 2026-11-16). ]]
+		local last: number? = nil
+		for _, portal in LobbyConfig.portals do
+			local levels = portal.levels
+			if levels and Balance.Stages[levels[1]].level then
+				last = levels[#levels]
+			end
+		end
+		t.notNil(last, "an area is built")
 		for index, stage in Balance.Stages do
 			if index ~= Balance.tutorialStage and stage.level then
-				t.isTrue(
+				t.equal(
 					EndScreenRules.buttonWords(true, index) ~= tutorial,
-					`{stage.name}: a level's Victory goes on to a level`
+					index ~= last,
+					`{stage.name}: the button says where it leads`
 				)
+				t.equal(EndScreenRules.goesOn(index), index ~= last, stage.name)
 			end
 		end
 		t.isTrue(

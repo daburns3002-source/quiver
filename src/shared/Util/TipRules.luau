@@ -152,15 +152,53 @@ end
      it with its foot on the header's foot, so it reaches up off the panel
      and never down over the tabs and buttons it explains (seen 2026-11-14:
      under the top HUD it covered every screen's tabs). Always whole on the
-     screen. ]]
-function TipRules.over(w: number, h: number, spot: Box): Placement
+     screen.
+
+     A panel that stands too near the top of the screen leaves no room to
+     reach up, and the card came down over its tabs after all (the STORE's
+     GEMS and PASSES, the every-class run-through, 2026-11-16). Given the
+     `panel`'s box, the card then stands clear of the whole panel: beside it
+     in the wider margin as the upright card, or under it. With no room
+     there either (a phone, or a screen with no panel to go round) it stays
+     at the top of the screen, over the title. ]]
+function TipRules.over(w: number, h: number, spot: Box, panel: Box?): Placement
 	local layout = TipRules.layout
 	local g = layout.gutter
 	local width = math.min(layout.wideWidth, w - g * 2)
 	local height = layout.wideHeight
 	local x = math.clamp(spot.x + (spot.w - width) / 2, g, math.max(g, w - g - width))
 	local lowest = math.max(0, h - height - g)
-	local y = math.clamp(spot.y + spot.h - height, math.min(g, lowest), lowest)
+	local y = spot.y + spot.h - height
+	if y < g and panel then
+		local left = panel.x
+		local right = w - (panel.x + panel.w)
+		local room = math.max(left, right) - g * 2
+		if room >= layout.sideMin then
+			local sideW = math.min(layout.sideMax, room)
+			local sideH = math.min(layout.sideHeight, h - g * 2)
+			-- against the panel's edge, level with its top; the right unless
+			-- the left is clearly wider, as beside the arena (`place`)
+			local sideX = if right + g >= left then panel.x + panel.w + g else panel.x - g - sideW
+			local sideY = math.clamp(panel.y, g, math.max(g, h - g - sideH))
+			return {
+				box = { x = math.floor(sideX), y = math.floor(sideY), w = sideW, h = sideH },
+				side = true,
+			}
+		end
+		local under = h - g - (panel.y + panel.h)
+		if under >= height + g then
+			return {
+				box = {
+					x = math.floor(x),
+					y = math.floor(panel.y + panel.h + g),
+					w = width,
+					h = height,
+				},
+				side = false,
+			}
+		end
+	end
+	y = math.clamp(y, math.min(g, lowest), lowest)
 	return {
 		box = { x = math.floor(x), y = math.floor(y), w = width, h = height },
 		side = false,

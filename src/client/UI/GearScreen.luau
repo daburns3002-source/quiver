@@ -73,12 +73,19 @@ local function equippedForClass(profile: SaveSchema.Profile?): string
 	local saved = profile and profile.equipped and ShopRules.find(profile.equipped)
 	return if saved and saved.class == name then saved.weapon else Classes[name].weapon
 end
+--[[ `stand`, for the hero on Gear's pedestal: `feet` is where the soles
+     go, as a share of the frame's height from its top (the pedestal's
+     middle), and `clear` the share of the frame's width, about its middle,
+     that nothing must leave (the gap between the slot tiles). Without it the
+     body simply fills the frame (class select's portraits). ]]
+type Stand = { feet: number, clear: number }
 local function portrait(
 	parent: Instance,
 	put: (GuiObject, number, number, number, number) -> (),
 	rect: { number },
 	weaponName: string?,
-	pets: { string }?
+	pets: { string }?,
+	stand: Stand?
 )
 	local viewport = Instance.new("ViewportFrame")
 	viewport.BackgroundTransparency = 1
@@ -158,20 +165,27 @@ local function portrait(
 			local pet = template:Clone()
 			local _, petSize = pet:GetBoundingBox()
 			if petSize.Y > 0 then
-				pet:ScaleTo(pet:GetScale() * (bodySize.Y * 0.42) / petSize.Y)
+				pet:ScaleTo(pet:GetScale() * (bodySize.Y * 0.36) / petSize.Y)
 			end
 			local box, scaled = pet:GetBoundingBox()
 			local lift = pet:GetPivot().Position.Y - (box.Position.Y - scaled.Y / 2)
 			local side = if index == 2 then 1 else -1
-			-- the third (the Extra Pet Slot pass's) a step further out, behind
-			local out = if index == 3 then scaled.X + 0.4 else 0
-			pet:PivotTo(
-				CFrame.new(
-					side * (bodySize.X / 2 + scaled.X / 2 + 0.6 + out),
-					floor + lift,
-					if index == 3 then -1.4 else -0.4
-				)
-			)
+			--[[ One at each side, close in; the third (the Extra Pet Slot
+			     pass's) in front of the hero's feet rather than a step
+			     further out, where it made the group half as wide again and
+			     the hero that much smaller. Towards the camera is -Z. ]]
+			--[[ Beside the legs, not beside the whole body: a wide avatar (a
+			     sword across its back, wings) pushed them out to its widest
+			     point and shrank itself to fit them in. A step forward, so
+			     they stand in front of whatever hangs there. ]]
+			local legs = math.min(bodySize.X, bodySize.Y * 0.5)
+			local x = side * (legs / 2 + scaled.X / 2 + 0.1)
+			local z = -0.9
+			if index == 3 then
+				x = -legs * 0.25
+				z = -(bodySize.Z / 2 + scaled.Z / 2 + 0.25)
+			end
+			pet:PivotTo(CFrame.new(x, floor + lift, z))
 			for _, part in pet:GetDescendants() do
 				if part:IsA("BasePart") then
 					part.Anchored = true
@@ -182,9 +196,42 @@ local function portrait(
 	end
 	local bounds, size = clone:GetBoundingBox()
 	local center = bounds.Position
+	--[[ On Gear's pedestal (`stand`): the hero is at the origin, so the
+	     camera aims down its own middle line whichever side the pets are on
+	     (framed on the whole group's box, a hero with one pet stood off the
+	     pedestal's middle), far enough back that the group's widest reach
+	     stays inside the clear part of the frame (it was framed 15% wider
+	     than the frame, and the pets ran under the PET tiles) and that the
+	     head stays in it, and at the height that puts the soles on the
+	     pedestal (framed on the box's middle, a hero made small by its pets
+	     floated above the stone). Seen in the run-throughs of 2026-11-14
+	     and 16. ]]
+	local reach = math.max(
+		math.abs(bounds.Position.X - size.X / 2),
+		math.abs(bounds.Position.X + size.X / 2),
+		0.5
+	)
+	local tall = math.max(bounds.Position.Y + size.Y / 2 - floor, 0.5)
+	local function standCamera(on: Stand)
+		local aspect = viewport.AbsoluteSize.X / math.max(1, viewport.AbsoluteSize.Y)
+		local halfFov = math.tan(math.rad(camera.FieldOfView / 2))
+		-- the head no nearer the frame's top than 4% of it
+		local span = math.max(on.feet - 0.04, 0.1)
+		local distance = math.max(
+			tall / (2 * span * halfFov),
+			-- 0.94: room for the gentle turn
+			reach / (on.clear * 0.94 * halfFov * math.max(aspect, 0.1))
+		)
+		local aim = Vector3.new(0, floor + (on.feet - 0.5) * 2 * distance * halfFov, 0)
+		camera.CFrame = CFrame.lookAt(aim - Vector3.new(0, 0, distance), aim)
+	end
 	-- Fit the full body to 92% of the frame, allowing for depth and the gentle turn;
 	-- a held sword or an aura may reach a little past the sides.
 	local function frameCamera()
+		if stand then
+			standCamera(stand)
+			return
+		end
 		local aspect = viewport.AbsoluteSize.X / math.max(1, viewport.AbsoluteSize.Y)
 		local halfFov = math.tan(math.rad(camera.FieldOfView / 2))
 		local chest = center
@@ -767,10 +814,26 @@ local function draw(s: StationScreen.Screen)
 	oval.CornerRadius = UDim.new(0.5, 0)
 	oval.Parent = pedestal
 	Chunky.outline(pedestal, 6)
-	portrait(c, function(item, x, y, w, h)
-		Chunky.put(sheet, item, x, y, w, h)
-		item.ZIndex = 6
-	end, L.hero, equipped, petKeys)
+	--[[ The soles on the pedestal's middle; nothing past the nearer of the
+	     two slot columns, measured from the frame's middle. ]]
+	local middle = L.hero[1] + L.hero[3] / 2
+	portrait(
+		c,
+		function(item, x, y, w, h)
+			Chunky.put(sheet, item, x, y, w, h)
+			item.ZIndex = 6
+		end,
+		L.hero,
+		equipped,
+		petKeys,
+		{
+			feet = (L.pedestal[2] + L.pedestal[4] * 0.45 - L.hero[2]) / L.hero[4],
+			clear = math.min(
+				1,
+				2 * math.min(middle - (L.left + L.size), L.right - middle) / L.hero[3]
+			),
+		}
+	)
 
 	-- ATK and HP on the gold plate under the hero (the mockup's POWER plate)
 	local stats = WeaponStats.weapons[equipped]

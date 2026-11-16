@@ -718,8 +718,8 @@ class's colour holding Codex's head-and-shoulders portrait of its hero, the name
 pitch, and RANGE / POWER / SPEED bars with icons read off `Config/Classes` (`Util/ClassStats`: reach,
 damage a hit, attacks a second, each a share of the best open class). The picked card wears a yellow
 ring; a green CHOOSE is under the row. A BOY / GIRL switch at the panel's top right swaps every portrait
-(pictures only) and is saved as the profile's `look`. The Assassin is visible but blacked out: a
-silhouette with a violet rim and a padlock, empty bars, and it cannot be chosen (until 2026-11-15, when it
+(pictures only) and is saved as the profile's `look`. The Assassin was visible but blacked out: a
+silhouette with a violet rim and a padlock, empty bars, and it could not be chosen (until 2026-11-16, when it
 opened: see The Assassin; the locked card's drawing stays for the next class shown before it is playable). The **Endless checkpoint**
 is a chunky panel of coloured gift tiles. The **draft** keeps its cards and their dark stage (the
 owner's card design) and has chunky REROLL / CHOOSE! on every layout. The **end screens** keep their

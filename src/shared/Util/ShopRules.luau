@@ -8,6 +8,7 @@
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local ClassList = require(script.Parent.ClassList)
 local Economy = require(ReplicatedStorage.Shared.Config.Economy)
 local LaunchLocks = require(script.Parent.LaunchLocks)
 local MergeRules = require(script.Parent.MergeRules)
@@ -30,9 +31,11 @@ export type Entry = {
 
 local ORDER = { Common = 1, Uncommon = 2, Rare = 3, Epic = 4, Legendary = 5, Mythic = 6 }
 
---[[ Every weapon a player can own: one with stats and a class to hold it,
-     not a pair the Dual Bows card swaps in, and from an area that is
-     stocked (`Config/Shop`'s `stocked`). In rarity order.
+--[[ Every weapon a player can own: one with stats and an open class to
+     hold it (`Util/ClassList`: a class still locked on its card has no
+     weapons for sale, in a crate or at Gear), not a pair the Dual Bows card
+     swaps in, and from an area that is stocked (`Config/Shop`'s `stocked`).
+     In rarity order.
 
      An unstocked area's weapons exist -- they are modelled, held and
      fought with in the sandbox -- but they are not for sale, so they are
@@ -43,7 +46,7 @@ function ShopRules.catalog(): { Entry }
 	for _, entry in Sandbox.weapons do
 		local stats = WeaponStats.weapons[entry.weapon]
 		local crate = stats and Shop.crates[stats.area]
-		if stats and crate and crate.stocked then
+		if stats and crate and crate.stocked and ClassList.isOpen(entry.class) then
 			table.insert(out, {
 				weapon = entry.weapon,
 				class = entry.class,
@@ -64,6 +67,18 @@ function ShopRules.catalog(): { Entry }
 		return ORDER[a.rarity] < ORDER[b.rarity]
 	end)
 	return out
+end
+
+--[[ Whether `weapon` is one a player may be shown, in the Dex or as a
+     loading tip: the class that holds it can be chosen. A class still
+     locked on its card keeps its weapons to itself until it opens. ]]
+function ShopRules.shown(weapon: string): boolean
+	for _, entry in Sandbox.weapons do
+		if entry.weapon == weapon then
+			return ClassList.isOpen(entry.class)
+		end
+	end
+	return true
 end
 
 function ShopRules.find(weapon: string): Entry?

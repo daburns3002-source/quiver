@@ -42,6 +42,7 @@ local Pets = require(ReplicatedStorage.Shared.Config.Pets)
 local Sandbox = require(ReplicatedStorage.Shared.Config.Sandbox)
 local SaveSchema = require(ReplicatedStorage.Shared.Util.SaveSchema)
 local ShopAssets = require(ReplicatedStorage.Shared.Config.ShopAssets)
+local ShopRules = require(ReplicatedStorage.Shared.Util.ShopRules)
 local WeaponStats = require(ReplicatedStorage.Shared.Config.WeaponStats)
 
 --[[ `icon` goes in the grid slot and `picture` on the left page. They are
@@ -181,8 +182,9 @@ function DexBook.entries(book: string, profile: SaveSchema.Profile?): { Entry }
 			local art = ShopAssets.weapons[key]
 			--[[ Not the golden weapons (`Config/ClassLevels`): a class's
 			     trophy belongs to no area, and an area's page is laid out
-			     for its own eighteen (`Dex.pageMost`). They show at Gear. ]]
-			if art and not stats.earned then
+			     for its own eighteen (`Dex.pageMost`). They show at Gear.
+			     Nor a weapon of a class still locked on its card. ]]
+			if art and not stats.earned and ShopRules.shown(key) then
 				table.insert(ranked, {
 					rank = stats.area * 10 + (RANK[stats.rarity] or 9),
 					entry = {

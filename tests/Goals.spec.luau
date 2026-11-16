@@ -8,6 +8,7 @@
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local ClassList = require(ReplicatedStorage.Shared.Util.ClassList)
 local GoalRules = require(ReplicatedStorage.Shared.Util.GoalRules)
 local Goals = require(ReplicatedStorage.Shared.Config.Goals)
 local Rewards = require(ReplicatedStorage.Shared.Config.Rewards)
@@ -105,7 +106,7 @@ return function(t: TestRunner.Helper)
 
 	t.test("what the save already holds is counted for an old player", function()
 		local profile = SaveSchema.default()
-		t.equal(GoalRules.value(profile, "weapons"), 3, "the three starters")
+		t.equal(GoalRules.value(profile, "weapons"), #ClassList.open(), "the starters")
 		t.equal(GoalRules.value(profile, "pets"), 0)
 		t.equal(GoalRules.value(profile, "classLevel"), 1)
 		profile.pets = { Mosslet = 2, Babacorn = 1, Gone = 0 }

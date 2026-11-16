@@ -421,6 +421,23 @@ owner's mythic-fx.js draws them (`Fx/MythicFx`, `Balance.MythicFx`, budgeted
 by `DeviceTiers.mythicFxShare`), and the staff plays the kit's Meteor cast
 when the server counts one on the player (`Meteors` attribute).
 
+**The Assassin** (owner, 2026-11-15: "we need to create the assassin class now", yes to option A,
+"twin daggers up close"; `Config/Classes.Assassin`): the fourth class, a second melee class on the
+Warden's machinery. About two strikes a second, 0.75x a hit, the Ranger's health and no guard: a
+slash from each hand in a 70 degree arc 8.5 out, then both daggers driven in for 1.5x in a small
+circle. It holds the Splinter Daggers (`Config/Weapons.SplinterDaggers`: the Claude Design dagger of
+`docs/PETS-FOREST.md`, one model in each hand through `offhand`), whose kit is **written as numbers**,
+not keyed in Claude Design (`assets/models/weapons/splinter_daggers_r15/make_kit.py` draws every key
+as a stick figure to look the poses over outside Studio; a Design kit can replace its JSON whole).
+Its sounds are stand-ins (the Warden's swings, faster) until the daggers' own are uploaded.
+**`Util/ClassList` is the one list of classes**, read off the class select cards: `all()` is every
+class there is, `open()` those a player can choose (a card that is not `locked`). The server's
+CHOOSE and class switch, class levels, the starter weapons in a new save, what can be owned
+(`ShopRules.catalog`), the Dex and the loading tips (`ShopRules.shown`) and Gear's CLASSES tab all
+read it, so opening a class is one word on its card. **While its card is locked the Assassin is
+played in Studio only** (the C key cycles `ClassList.all()`); no player can choose it, level it or
+own its weapons, and nothing about it shows on a screen.
+
 **XP crystals and hearts** (`Run/Pickups`, `Fx/PickupFx`): a kill's XP
 drops as cyan crystals; walk over your own to take them mid-fight, and any
 left are drawn in when the wave or room clears. Hearts drop on 5% of kills and on every

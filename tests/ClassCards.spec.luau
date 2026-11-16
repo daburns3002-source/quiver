@@ -12,6 +12,7 @@ local ServerScriptService = game:GetService("ServerScriptService")
 local Abilities = require(ReplicatedStorage.Shared.Config.Abilities)
 local AbilityEffects = require(ReplicatedStorage.Shared.Combat.AbilityEffects)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
+local ClassList = require(ReplicatedStorage.Shared.Util.ClassList)
 local Classes = require(ReplicatedStorage.Shared.Config.Classes)
 local ShotPipeline = require(ReplicatedStorage.Shared.Combat.ShotPipeline)
 local SwingBox = require(ReplicatedStorage.Shared.Combat.SwingBox)
@@ -79,8 +80,10 @@ return function(t: TestRunner.Helper)
 		end
 	end)
 
+	--[[ Of the classes a player can choose (`Util/ClassList`): a class
+	     still locked on its card gets its cards before it opens. ]]
 	t.test("every class can be dealt a full hand at every rarity mix", function()
-		for name in Classes do
+		for _, name in ClassList.open() do
 			t.isTrue(#pool(name) >= HAND * 3, `{name} has only {#pool(name)} cards`)
 		end
 	end)
@@ -148,7 +151,7 @@ return function(t: TestRunner.Helper)
 	     Titan's Grip), and a class Mythic is never shared between classes
 	     (Second Wind, for every class, names none). ]]
 	t.test("every class has a Mythic, and every class Mythic is one class's", function()
-		for name in Classes do
+		for _, name in ClassList.open() do
 			local mythics = {}
 			for _, ability in Abilities.all do
 				local classes: { string } = ability.classes or {}
@@ -218,7 +221,7 @@ return function(t: TestRunner.Helper)
 	     more than one card smaller than another's. ]]
 	t.test("the class pools are within a card of each other", function()
 		local sizes: { number } = {}
-		for _, class in { "Ranger", "Arcanist", "Warden" } do
+		for _, class in ClassList.open() do
 			local dealt = 0
 			for _, ability in pool(class) do
 				if not ability.benched then

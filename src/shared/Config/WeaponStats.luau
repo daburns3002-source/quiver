@@ -18,7 +18,7 @@
 	A Legendary's or a Mythic's extra effect is `innate`: cards it carries
 	built in, at these levels, added to any drafted copy as a class's own
 	innate skills are (`Combat/AbilityEffects`). The class weapons (Twig
-	Bow, Branch Staff, Timber Blade) are Common.
+	Bow, Branch Staff, Timber Blade, Splinter Daggers) are Common.
 ]]
 
 export type Rarity = "Common" | "Uncommon" | "Rare" | "Epic" | "Legendary" | "Mythic"
@@ -82,6 +82,7 @@ local WeaponStats = {
 		TwigBow = { rarity = "Common", area = 1 },
 		BranchStaff = { rarity = "Common", area = 1 },
 		TimberBlade = { rarity = "Common", area = 1 },
+		SplinterDaggers = { rarity = "Common", area = 1 },
 
 		--[[ The golden weapons (owner, 2026-11-14): a class's level 10
 		     (`Config/ClassLevels`). Legendary strength with a gold glow,

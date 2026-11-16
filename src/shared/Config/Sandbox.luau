@@ -84,6 +84,7 @@ local Sandbox = {
 		{ weapon = "TwigBowDual", class = "Ranger", label = "DUAL TWIG BOWS" },
 		{ weapon = "BranchStaff", class = "Arcanist", label = "BRANCH STAFF" },
 		{ weapon = "TimberBlade", class = "Warden", label = "TIMBER BLADE" },
+		{ weapon = "SplinterDaggers", class = "Assassin", label = "SPLINTER DAGGERS" },
 		-- SKINS BEGIN (assets/models/weapons/skins_to_luau.py; regenerate, never hand-edit)
 		{ weapon = "AcornBow", class = "Ranger", label = "ACORN BOW" },
 		{ weapon = "FireflyBow", class = "Ranger", label = "FIREFLY BOW" },

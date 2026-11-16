@@ -11,17 +11,33 @@
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local ClassList = require(ReplicatedStorage.Shared.Util.ClassList)
+local Classes = require(ReplicatedStorage.Shared.Config.Classes)
 local Purse = require(ReplicatedStorage.Shared.Util.Purse)
 local SaveSchema = require(ReplicatedStorage.Shared.Util.SaveSchema)
 local TestRunner = require(script.Parent.TestRunner)
 
 return function(t: TestRunner.Helper)
-	t.test("a new player owns the three class weapons and nothing else", function()
+	t.test("a new player owns the classes' own weapons and nothing else", function()
 		local p = SaveSchema.migrate(nil)
 		t.equal(p.version, SaveSchema.VERSION)
 		t.equal(p.coins, 0)
 		t.equal(p.gems, 0)
 		t.isTrue(p.weapons.TwigBow and p.weapons.BranchStaff and p.weapons.TimberBlade)
+		--[[ One for each class that can be chosen, and none for a class
+		     still locked on its card. ]]
+		local owned = 0
+		for _ in p.weapons do
+			owned += 1
+		end
+		t.equal(owned, #ClassList.open())
+		for _, class in ClassList.all() do
+			t.equal(
+				p.weapons[Classes[class].weapon] == true,
+				ClassList.isOpen(class),
+				class .. "'s own weapon"
+			)
+		end
 		t.isNil(p.equipped)
 	end)
 

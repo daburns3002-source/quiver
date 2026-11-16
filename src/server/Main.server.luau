@@ -32,6 +32,7 @@ local Arena = require(script.Parent.Arena.Arena)
 local Atmosphere = require(script.Parent.Arena.Atmosphere)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Burning = require(script.Parent.Combat.Burning)
+local ClassList = require(ReplicatedStorage.Shared.Util.ClassList)
 local ClassUpgrades = require(script.Parent.Combat.ClassUpgrades)
 local Classes = require(ReplicatedStorage.Shared.Config.Classes)
 local EndlessLeaderboard = require(script.Parent.Run.EndlessLeaderboard)
@@ -441,8 +442,10 @@ end)
 
 --[[ Testing only: switch class, the order fixed so the key cycles. Honoured
      only in Studio, like the Mythic key. The run's drafted skills stay; a
-     skill the new class cannot be dealt keeps working if already held. ]]
-local CLASS_ORDER = { "Ranger", "Arcanist", "Warden" }
+     skill the new class cannot be dealt keeps working if already held.
+     Every class there is, one still locked on class select too: this key
+     is how a class is played while it is being built. ]]
+local CLASS_ORDER = ClassList.all()
 
 Inbound.debug(Remotes.DebugNextClass, function(player)
 	if not RunService:IsStudio() then

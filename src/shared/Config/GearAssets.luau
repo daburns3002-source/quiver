@@ -118,6 +118,7 @@ local GearAssets = {
 		SlimeCrownStaff = "rbxassetid://114801576848868",
 		WorldrootStaff = "rbxassetid://123099731244621",
 		TimberBlade = "rbxassetid://130185177403371",
+		SplinterDaggers = "rbxassetid://88943772730817",
 		MossstoneBlade = "rbxassetid://98674732227468",
 		ThornBlade = "rbxassetid://103195463695789",
 		BroodsplitBlade = "rbxassetid://104383311597642",

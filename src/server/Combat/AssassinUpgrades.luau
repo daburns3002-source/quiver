@@ -226,7 +226,8 @@ local function phantomBlades(session: Session, own: State, now: number, moving: 
 					session.damage * config.damage,
 					blade,
 					"Hit",
-					session.player
+					session.player,
+					config.knock
 				)
 				RunSession.creditKill(session.player, xp, fell)
 				break
@@ -315,7 +316,8 @@ function AssassinUpgrades.step(deltaTime: number, now: number)
 					session.damage * config.damage,
 					cut.from,
 					"Hit",
-					session.player
+					session.player,
+					config.knock
 				)
 				RunSession.creditKill(session.player, xp, fell)
 			end

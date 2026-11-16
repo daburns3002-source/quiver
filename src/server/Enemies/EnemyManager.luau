@@ -520,14 +520,15 @@ function EnemyManager.root(model: Model, seconds: number, by: string): boolean
 end
 
 --[[ The way a live enemy faces, flat and unit length; nil for one that is
-     gone or has not turned to anyone yet. Backstab asks it
+     gone. One that has not turned to anyone yet (a training dummy never
+     does) faces the way it is drawn, down -Z. Backstab asks it
      (`Combat/MeleeSystem`). ]]
 function EnemyManager.facing(model: Model): Vector3?
 	local enemy = enemies[model]
-	local yaw = enemy and enemy.yaw
-	if not yaw then
+	if not enemy then
 		return nil
 	end
+	local yaw = enemy.yaw or 0
 	return Vector3.new(-math.sin(yaw), 0, -math.cos(yaw))
 end
 

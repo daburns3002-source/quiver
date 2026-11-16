@@ -504,6 +504,14 @@ chest) and GOALS (the starter steps), each wearing the count of what waits on it
 A row is a picture of what to do, the words, the bar with its numbers on it, the pay, and one button:
 CLAIM, GO or DONE. **GO** closes the screen and stands a gold arrow over where the quest is done
 (`Fx/QuestPointer`, `Rewards.places`: a station, or the first portal); it starts nothing for the player.
+**Short-attention fixes from the run-through** (2026-11-15). A card is applied `CardTheme.timing.pickApplyAt`
+(0.7 s) after it is taken and its celebration, drawn `celebrateLength` (1.56 s) long, plays at that pace
+(`leaving.speed` in `UI/Cards/DraftScreen`); a Mythic keeps the full length. `Util/PlayPortal.next` is the
+level PLAY's screen starts in one press (CONTINUE, `UI/AreaScreen`): the level its own screen would pick in
+the area next up, never a mode (`tests/PlayPortal.spec`). REWARDS opens by itself only for a player with a
+level won (`UI/RewardsScreen`). `StageConfig.hitGrace` (0.6 s on the tutorial and 1-1 to 1-3) is the time
+after a hit lands in which no other can (`RunSession.applyDamage`, off `lastHurtAt`).
+
 **An encounter room keeps its door line clear** (`Balance.Rooms`, `Balance.encounterLane`, 4 studs; the
 run-through, 2026-11-14: a log behind the Angel stopped a player walking straight up): cover within the
 lane of the line from the spawn to the door is left out of an Angel room, with its scenery, where

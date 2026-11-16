@@ -17,7 +17,8 @@
 	avatar in game (class armour was scrapped, PR #572).
 	`locked` is a class that is not playable yet: its card shows a blacked-out
 	figure with a padlock and empty bars and cannot be chosen, on the screen or
-	on the server (`Data/Shop`'s own list of playable classes decides there).
+	on the server (`Util/ClassList` decides there, from this very word). No
+	card is locked today: the Assassin's was until 2026-11-15.
 ]]
 
 export type Card = {
@@ -34,7 +35,9 @@ export type Stat = { key: string, words: string, icon: string }
 
 local UiPalette = require(script.Parent.UiPalette)
 
-local ASSASSIN = "rbxassetid://108317335485104"
+--[[ The blacked-out figure a locked card shows (the Assassin's, until it
+     opened; kept for the next class that is seen before it can be played). ]]
+local SILHOUETTE = "rbxassetid://108317335485104"
 
 local ClassSelect = {
 	cards = {
@@ -68,12 +71,19 @@ local ClassSelect = {
 				female = "rbxassetid://101494182702223",
 			},
 		},
+		--[[ Open since 2026-11-15 (owner: "we need to create the assassin
+		     class now"): the hooded figure of its blacked-out card in colour,
+		     in the violet the daggers have always been drawn in
+		     (`docs/WORLD.md`). Codex's, by `class_select_b/assassin.sh`. ]]
 		{
 			class = "Assassin",
-			locked = true,
-			colour = UiPalette.off.top,
-			pitch = "NOT HERE YET",
-			portraits = { male = ASSASSIN, female = ASSASSIN },
+			locked = false,
+			colour = UiPalette.gems.top,
+			pitch = "FAST DAGGERS,\nA DASH THAT CUTS",
+			portraits = {
+				male = "rbxassetid://97559924668383",
+				female = "rbxassetid://109546732830373",
+			},
 		},
 	} :: { Card },
 	--[[ The switch's two halves, left to right; `look` is what is saved. ]]
@@ -89,6 +99,7 @@ local ClassSelect = {
 	} :: { Stat },
 	--[[ The padlock over a locked class's figure. ]]
 	lock = "rbxassetid://128665050319850",
+	silhouette = SILHOUETTE,
 	portraitTop = 96 / 640,
 }
 

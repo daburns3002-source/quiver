@@ -216,7 +216,9 @@ local Trails = {
 	},
 
 	--[[ Starfall's: this floor of Endless, reached as each of these
-	     classes (counted from the first run after trails came in). ]]
+	     classes (counted from the first run after trails came in). The
+	     three the trail was promised for: the Assassin, opened 2026-11-15,
+	     is not asked for, so nobody's progress towards it moved. ]]
 	endless = {
 		floor = 50,
 		classes = { "Ranger", "Arcanist", "Warden" },

@@ -23,7 +23,7 @@ Run loop: `docs/RESEARCH-archero.md`. Meta loop: `docs/PROGRESSION.md`.
 Phase plan: `docs/ROADMAP.md`. Lobby spec: `docs/LOBBY.md`. The dexes: `docs/DEX.md`.
 The story through the areas ("the bog is rising", owner-approved 2026-11-13): `docs/STORY.md`.
 **Classes and world: `docs/WORLD.md`** — since 2026-10-22 the game is three
-classes (Ranger, Arcanist, an unlockable melee class) across ten areas
+classes (Ranger, Arcanist, an unlockable melee class; a fourth, the Assassin, since 2026-11-15) across ten areas
 in five acts. The game is called Arrowborne (owner, 2026-11-04;
 before that Arrow Legends, and Archer Legends on screen). The repo, the
 checkout folder and the DataStores keep their old names on purpose. Nothing of it is built yet, and its open decisions are the
@@ -459,9 +459,19 @@ blades are placed from the server's clock, so every client draws them where the 
 class there is, `open()` those a player can choose (a card that is not `locked`). The server's
 CHOOSE and class switch, class levels, the starter weapons in a new save, what can be owned
 (`ShopRules.catalog`), the Dex and the loading tips (`ShopRules.shown`) and Gear's CLASSES tab all
-read it, so opening a class is one word on its card. **While its card is locked the Assassin is
-played in Studio only** (the C key cycles `ClassList.all()`); no player can choose it, level it or
-own its weapons, and nothing about it shows on a screen.
+read it, so opening a class is one word on its card. A class whose card is `locked` is played in
+Studio only (the C key cycles `ClassList.all()`): no player can choose it, level it or own its
+weapons, and nothing about it shows on a screen. **The Assassin's card opened 2026-11-15**: its
+hooded hero in colour (Codex, `class_select_b/assassin.sh`; violet, cut by `cut.py`'s
+`key_outside`, which takes only the magenta joined to the picture's edge), FAST DAGGERS, A DASH
+THAT CUTS, and its bars, which shrank the others' SPEED bars since each is a share of the best.
+`SaveSchema` v23 gives every save the Splinter Daggers; a goal WIN AS THE ASSASSIN joined the three;
+it levels like the others but has no golden weapon yet (`ClassLevels.waiting`: level 10 gives it
+the day one is added); Starfall still asks for floor 50 as the first three classes only. **It has
+no DAGGER chest and no skins yet**: the only daggers in the game are its own (the five Mossy Glade
+skins are modelled and pictured but not imported; Thornwood and the Drowned Village have none
+designed), so its level 3 crate pays gems instead. The Dex's weapon pages are laid out for 24
+(`Dex.pageMost`).
 
 **XP crystals and hearts** (`Run/Pickups`, `Fx/PickupFx`): a kill's XP
 drops as cyan crystals; walk over your own to take them mid-fight, and any
@@ -708,7 +718,8 @@ pitch, and RANGE / POWER / SPEED bars with icons read off `Config/Classes` (`Uti
 damage a hit, attacks a second, each a share of the best open class). The picked card wears a yellow
 ring; a green CHOOSE is under the row. A BOY / GIRL switch at the panel's top right swaps every portrait
 (pictures only) and is saved as the profile's `look`. The Assassin is visible but blacked out: a
-silhouette with a violet rim and a padlock, empty bars, and it cannot be chosen. The **Endless checkpoint**
+silhouette with a violet rim and a padlock, empty bars, and it cannot be chosen (until 2026-11-15, when it
+opened: see The Assassin; the locked card's drawing stays for the next class shown before it is playable). The **Endless checkpoint**
 is a chunky panel of coloured gift tiles. The **draft** keeps its cards and their dark stage (the
 owner's card design) and has chunky REROLL / CHOOSE! on every layout. The **end screens** keep their
 blocks and motion and take the kit's colours and rounded font (`Config/EndScreenTheme`, read from

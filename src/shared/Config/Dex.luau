@@ -117,11 +117,13 @@ local Dex = {
 	     enough to read as paper. ]]
 	turnFrame = 0.04,
 
-	--[[ The most entries one area's page is laid out for: the eighteen
-	     weapons of an area (three classes, six rarities). More than this
-	     and the tiles are smaller than the pages of nine they replaced,
-	     which is the opposite of what the owner asked for. ]]
-	pageMost = 18,
+	--[[ The most entries one area's page is laid out for: the twenty-four
+	     weapons of an area (four classes, six rarities; eighteen until the
+	     Assassin opened, 2026-11-15). The grid fits itself to the count
+	     (`HatchStand.grid`), so a fuller page draws its tiles a little
+	     smaller: the owner asked for bigger icons, so this is theirs to
+	     look at (docs/TRACKER.md). ]]
+	pageMost = 24,
 	--[[ The NEW ENEMY! sheet's top half, which `scene` is measured on. ]]
 	sceneCanvas = Vector2.new(1024, 768),
 	areas = {

@@ -299,6 +299,20 @@ return function(t: TestRunner.Helper)
 	--[[ Nothing is in one, and nothing can be: an encounter room that
 	     spawned anything would freeze the run, since `RoomController` opens
 	     the offer instead of a fight and the door waits on the choice. ]]
+	--[[ The breath after a hit (`StageConfig.hitGrace`) is the first
+	     levels' alone: later ones are tuned without it. ]]
+	t.test("only the tutorial and 1-1 to 1-3 give a breath after a hit", function()
+		local early = { ["1-1"] = true, ["1-2"] = true, ["1-3"] = true }
+		for index, stage in Balance.Stages do
+			if index == Balance.tutorialStage or (stage.level and early[stage.level]) then
+				t.isTrue((stage.hitGrace or 0) > 0, `{stage.name} gives no breath`)
+				t.isTrue((stage.hitGrace or 0) <= 1, `{stage.name}'s breath is over a second`)
+			else
+				t.isNil(stage.hitGrace, `{stage.name} gives a breath`)
+			end
+		end
+	end)
+
 	t.test("an Angel room is empty, and still a room a player can walk", function()
 		for _, stage in levels() do
 			for _, index in stage.rooms or ({} :: { number }) do

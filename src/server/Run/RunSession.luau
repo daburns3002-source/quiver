@@ -1560,6 +1560,13 @@ function RunSession.applyDamage(session: Session, amount: number)
 		return
 	end
 
+	--[[ The first levels' breath after a hit (`StageConfig.hitGrace`): the
+	     one that just landed is the only one for that long. ]]
+	local grace = CurrentStage.config().hitGrace
+	if grace and os.clock() - session.lastHurtAt < grace then
+		return
+	end
+
 	--[[ Agility: rolled on the session's own Random, by the server. ]]
 	if session.dodgeChance > 0 and session.random:NextNumber() < session.dodgeChance then
 		playerDodged:FireClient(session.player, "Agility")

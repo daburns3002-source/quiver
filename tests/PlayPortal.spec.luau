@@ -134,6 +134,33 @@ return function(t: TestRunner.Helper)
 		t.isTrue(list[1].open and not list[2].open, "a gate opened with no profile")
 		t.equal(list[2].words, "BEAT 1-2")
 	end)
+	t.test("CONTINUE is the next level of the area next up, never Endless", function()
+		local function next(beaten: LevelUnlocks.Beaten?): PlayPortal.Next?
+			return PlayPortal.next(
+				PlayPortal.areas(portals, stages, beaten, nil, 9, false),
+				portals,
+				stages,
+				beaten
+			)
+		end
+		local first = next({}) :: PlayPortal.Next
+		t.equal(first.index, 1)
+		t.equal(first.level, 1)
+		t.equal(first.words, "1-1")
+		local second = next({ ["1-1"] = true }) :: PlayPortal.Next
+		t.equal(second.index, 1)
+		t.equal(second.level, 2)
+		t.equal(second.words, "1-2")
+		local onward = next({ ["1-1"] = true, ["1-2"] = true }) :: PlayPortal.Next
+		t.equal(onward.index, 2)
+		t.equal(onward.words, "2-1")
+		-- all beaten: the last area's last level again, still not the mode
+		local all = next({ ["1-1"] = true, ["1-2"] = true, ["2-1"] = true }) :: PlayPortal.Next
+		t.equal(all.index, 2)
+		t.equal(all.words, "2-1")
+		t.isNil(PlayPortal.next({}, portals, stages, {}), "nothing listed, nothing offered")
+	end)
+
 	t.test("a start from the screen goes alone; one at the portal takes the portal", function()
 		t.isTrue(PlayPortal.alone(nil, 2), "a start from across the lobby took a party")
 		t.isTrue(PlayPortal.alone(1, 2), "a start took the players of another portal")

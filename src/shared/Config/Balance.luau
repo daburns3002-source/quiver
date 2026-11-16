@@ -1934,6 +1934,11 @@ export type StageConfig = {
 	     Nil is 1. ]]
 	enemyDamage: number?,
 	enemyHealth: number?,
+	--[[ Seconds after a hit lands in which no other can: the first levels'
+	     breath, so a new player who walks into a crowd is not dead before
+	     they have turned round (the run-through, 2026-11-14: full health
+	     to dead in 5.8 s in 1-1's second room). Nil: none. ]]
+	hitGrace: number?,
 	--[[ Which area of the world the stage is in (`docs/WORLD.md`), as
 	     `EndScreenAssets.chests` keys it: the chest Victory shows. Nil is
 	     the Mossy Glade. ]]
@@ -13304,6 +13309,7 @@ local Balance = {
 			rooms = { 81, 82, 83, 84, 85 },
 			enemyDamage = 0.5,
 			enemyHealth = 0.6,
+			hitGrace = 0.6,
 			area = "MossyGlade",
 			tutorial = true,
 		},
@@ -13360,6 +13366,7 @@ local Balance = {
 			rooms = levelRooms(1, 10),
 			enemyDamage = 0.75,
 			enemyHealth = 1.1,
+			hitGrace = 0.6,
 			area = "MossyGlade",
 		},
 		{
@@ -13369,6 +13376,7 @@ local Balance = {
 			rooms = levelRooms(11, 10),
 			enemyDamage = 0.78,
 			enemyHealth = 1.14,
+			hitGrace = 0.6,
 			area = "MossyGlade",
 		},
 		{
@@ -13378,6 +13386,7 @@ local Balance = {
 			rooms = levelRooms(21, 15),
 			enemyDamage = 0.81,
 			enemyHealth = 1.18,
+			hitGrace = 0.6,
 			area = "MossyGlade",
 		},
 		{

@@ -20,10 +20,14 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 
 local Config = require(ReplicatedStorage.Shared.Config.SoulstoneShop)
+local EggRules = require(ReplicatedStorage.Shared.Util.EggRules)
+local GearAssets = require(ReplicatedStorage.Shared.Config.GearAssets)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local RunHudRules = require(ReplicatedStorage.Shared.Util.RunHudRules)
 local SaveSchema = require(ReplicatedStorage.Shared.Util.SaveSchema)
 local SoulstoneShopRules = require(ReplicatedStorage.Shared.Util.SoulstoneShopRules)
+
+local Shop = require(ReplicatedStorage.Shared.Config.Shop)
 
 local Chunky = require(script.Parent.Chunky)
 local FirstTips = require(script.Parent.FirstTips)
@@ -68,6 +72,18 @@ local function close()
 		screen.Enabled = false
 		screen:ClearAllChildren()
 	end
+end
+
+--[[ An offer's picture: its area's egg or crate, as the lobby's stands
+     show them (`GearAssets.areaPictures`). ]]
+local function artOf(offer: SoulstoneShopRules.Offer): string
+	local pictures = GearAssets.areaPictures
+	if offer.kind == "Egg" then
+		local egg = EggRules.find(offer.key)
+		return (if egg then pictures.eggs[egg.area] else nil) or pictures.eggs.MossyGlade
+	end
+	local crate = Shop.crates[tonumber(offer.key) or 1]
+	return (if crate then pictures.chests[crate.area] else nil) or pictures.chests.MossyGlade
 end
 
 local function draw(): Frame?
@@ -144,8 +160,18 @@ local function draw(): Frame?
 	for n, offer in offers do
 		local y = rowsTop + (n - 1) * (rowH + rowGap)
 		local card = Chunky.card(sheet, pad, y, w - 2 * pad, rowH)
+		--[[ What the row sells, as its area's own picture (it was words
+		     only; the run-through, 2026-11-14). ]]
+		local picture = Instance.new("ImageLabel")
+		picture.Name = "Picture"
+		picture.BackgroundTransparency = 1
+		picture.Image = artOf(offer)
+		picture.ScaleType = Enum.ScaleType.Fit
+		picture.Position, picture.Size = UDim2.fromScale(0.015, 0.08), UDim2.fromScale(0.1, 0.84)
+		picture.ZIndex = 8
+		picture.Parent = card
 		local name = Chunky.text(card, offer.name, Chunky.ink, 0)
-		name.Position, name.Size = UDim2.fromScale(0.03, 0.14), UDim2.fromScale(0.42, 0.72)
+		name.Position, name.Size = UDim2.fromScale(0.125, 0.14), UDim2.fromScale(0.35, 0.72)
 		name.TextXAlignment = Enum.TextXAlignment.Left
 		name.TextWrapped = true
 		--[[ One size down the list, however long a name is. ]]
@@ -159,7 +185,9 @@ local function draw(): Frame?
 			local cost = offer.price * count
 			local x = right - buttonW
 			right = x - buttonGap
-			Chunky.button(
+			--[[ The price with a Soulstone beside it, so "1 FOR 100" says
+			     of what: the words keep to the left of the stone. ]]
+			local button = Chunky.button(
 				sheet,
 				`{count} FOR {Chunky.commas(cost)}`,
 				if held >= cost then Chunky.purple else Chunky.grey,
@@ -171,6 +199,27 @@ local function draw(): Frame?
 					Remotes.event(Remotes.SoulstoneBuy):FireServer(offer.kind, offer.key, count)
 				end
 			)
+			local stone = Instance.new("Frame")
+			stone.Name = "Stone"
+			stone.BackgroundTransparency = 1
+			stone.AnchorPoint = Vector2.new(1, 0.5)
+			stone.Position = UDim2.fromScale(0.95, 0.46)
+			stone.Size = UDim2.fromScale(0.5, 0.5)
+			stone.SizeConstraint = Enum.SizeConstraint.RelativeYY
+			stone.ZIndex = 60
+			stone.Parent = button
+			gem(stone, 60)
+			-- the words give the stone its room: the left four fifths less a bit
+			for _, piece in button:GetDescendants() do
+				if piece:IsA("TextLabel") then
+					piece.Size = UDim2.new(
+						piece.Size.X.Scale * 0.76,
+						piece.Size.X.Offset,
+						piece.Size.Y.Scale,
+						piece.Size.Y.Offset
+					)
+				end
+			end
 		end
 	end
 	screen.Enabled = true

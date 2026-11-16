@@ -154,7 +154,9 @@ local dealToken = 0
 local slots: { Slot } = {}
 local selected: number? = nil
 --[[ While cards are flying off, nothing else may be pressed. ]]
-local leaving: { kind: "Reroll" | "Celebrate", at: number, picked: number? }? = nil
+--[[ `speed`: how fast a celebration's clock runs against the 1.56 s it
+     was drawn at (`TIMING.celebrateLength`). ]]
+local leaving: { kind: "Reroll" | "Celebrate", at: number, picked: number?, speed: number? }? = nil
 local locked = false
 local mode: Mode = "Mouse"
 --[[ With a gamepad, the card the stick is on. ]]
@@ -706,7 +708,15 @@ local function confirm()
 	--[[ Every pick is a celebration: the card takes the stage, and its icon
 	     flies into the skill bar before the pick is applied. The design drew
 	     this for phones; the owner asked for it on every device. ]]
-	leaving = { kind = "Celebrate", at = os.clock(), picked = index }
+	local taken = slots[index]
+	local mythic = taken ~= nil and Abilities.byId[taken.id].rarity == "Mythic"
+	local length = if mythic then TIMING.celebrateLength else TIMING.pickApplyAt
+	leaving = {
+		kind = "Celebrate",
+		at = os.clock(),
+		picked = index,
+		speed = TIMING.celebrateLength / length,
+	}
 	-- A phone's bar was kept off the draft; it comes up now for the icon.
 	if Device.isPhone() then
 		SkillBar.toCombat()
@@ -736,7 +746,7 @@ local function confirm()
 
 	--[[ The pick is applied as the cards finish leaving, as the design
 	     times it, so the screen never closes on a frame still moving. ]]
-	task.delay(TIMING.pickApplyAt, function()
+	task.delay(length, function()
 		local handler = onChosen
 		if handler then
 			handler(index)
@@ -1166,7 +1176,7 @@ stepOverlay = function(now: number)
 	local centre: Vector2? = nil
 
 	if away and away.kind == "Celebrate" and away.picked then
-		local t = now - away.at
+		local t = (now - away.at) * (away.speed or 1)
 		local slot = slots[away.picked]
 		if slot then
 			centre = slot.group.AbsolutePosition + slot.group.AbsoluteSize / 2 - origin
@@ -1426,7 +1436,7 @@ local function step(deltaTime: number)
 
 		if away then
 			if away.kind == "Celebrate" then
-				local t = now - away.at
+				local t = (now - away.at) * (away.speed or 1)
 				if away.picked == i then
 					-- To the middle, bigger, then into its icon.
 					local e = Motion.backOut(math.clamp(t / 0.38, 0, 1))

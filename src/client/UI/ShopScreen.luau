@@ -6,10 +6,13 @@
 	AUTO, the crate picker, every weapon inside with its odds. STORE sells
 	the selected area's weapons.
 ]]
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
+local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Chunky = require(script.Parent.Chunky)
+local Classes = require(ReplicatedStorage.Shared.Config.Classes)
 local GearAssets = require(ReplicatedStorage.Shared.Config.GearAssets)
 local HatchStand = require(script.Parent.HatchStand)
 local Kit = require(script.Parent.Kit)
@@ -128,6 +131,16 @@ local function drawStore(s: StationScreen.Screen, area: HatchStand.Area)
 			table.insert(entries, entry)
 		end
 	end
+	--[[ The class being played first: a Ranger saw the staffs before the
+	     bows (the run-through, 2026-11-14). The catalog's order otherwise. ]]
+	local mine = Players.LocalPlayer:GetAttribute("Class")
+	local order: { [any]: number } = {}
+	for index, entry in entries do
+		order[entry] = if entry.class == mine then index - #entries else index
+	end
+	table.sort(entries, function(a, b)
+		return order[a] < order[b]
+	end)
 	-- an area shut at launch shows its weapons, with what opens them on each button
 	local shut = ShopRules.crateWords(selected, if p then p.bossesBeaten else nil)
 	local top = area.y + 104
@@ -141,7 +154,8 @@ local function drawStore(s: StationScreen.Screen, area: HatchStand.Area)
 	list.BorderSizePixel = 0
 	list.ScrollBarThickness = 10
 	list.ScrollBarImageColor3 = Chunky.navy
-	list.CanvasSize = UDim2.fromScale(0, contentH / viewH)
+	-- a canvas's scale is against the frame's parent, the sheet
+	list.CanvasSize = UDim2.fromScale(0, contentH / sheet.h)
 	list.ScrollingDirection = Enum.ScrollingDirection.Y
 	list.ZIndex = 6
 	Chunky.put(sheet, list, area.x, top, viewW, viewH)
@@ -190,11 +204,25 @@ local function drawStore(s: StationScreen.Screen, area: HatchStand.Area)
 		local nameText = Chunky.text(row, entry.label, Chunky.navy, 0)
 		nameText.TextXAlignment = Enum.TextXAlignment.Left
 		nameText.Position, nameText.Size =
-			UDim2.fromScale(156 / colW, 18 / rowH), UDim2.fromScale(wordsW / colW, 56 / rowH)
-		local rarityText = Chunky.text(row, string.upper(entry.rarity), Chunky.inkSoft, 0)
+			UDim2.fromScale(156 / colW, 14 / rowH), UDim2.fromScale(wordsW / colW, 64 / rowH)
+		--[[ Under the name, smaller than it: the rarity and what the
+		     weapon hits for in its class's hands, as Gear's plate counts
+		     it, so it can be held against the one in hand. ]]
+		local class = Classes[entry.class]
+		local atk = math.round(
+			Balance.Player.baseDamage
+				* (if class then class.damageScale else 1)
+				* ShopRules.strength(entry.weapon, nil)
+		)
+		local rarityText = Chunky.text(
+			row,
+			string.upper(entry.rarity) .. "   ATK " .. Chunky.commas(atk),
+			Chunky.inkSoft,
+			0
+		)
 		rarityText.TextXAlignment = Enum.TextXAlignment.Left
 		rarityText.Position, rarityText.Size =
-			UDim2.fromScale(156 / colW, 80 / rowH), UDim2.fromScale(wordsW / colW, 40 / rowH)
+			UDim2.fromScale(156 / colW, 86 / rowH), UDim2.fromScale(wordsW / colW, 34 / rowH)
 		-- the price on its button; BUY when it can be paid
 		local buyHolder = Instance.new("Frame")
 		buyHolder.BackgroundTransparency = 1

@@ -59,6 +59,8 @@ local RewardsScreen = {}
 
 local player = Players.LocalPlayer
 local screen: StationScreen.Screen? = nil
+--[[ Seconds between the lobby badge's hops while a reward waits. ]]
+local BADGE_HOP = 3
 --[[ The day the screen last opened by itself, so it does so once a day. ]]
 local shownFor = 0
 --[[ The tabs, and the one showing: nil until the screen picks one as it
@@ -559,7 +561,8 @@ local function draw(s: StationScreen.Screen)
 			dot.BorderSizePixel = 0
 			dot.BackgroundColor3 = Chunky.red
 			dot.ZIndex = 45
-			Chunky.put(sheet, dot, tabX + (index - 1) * (tabW + 18) + tabW - 34, tabY - 14, 48, 48)
+			-- on the tab's corner, clear of its word (it sat on the S of QUESTS)
+			Chunky.put(sheet, dot, tabX + (index - 1) * (tabW + 18) + tabW - 20, tabY - 26, 48, 48)
 			Chunky.round(dot, 24)
 			Chunky.outline(dot, 5)
 			local n = Chunky.textOn(dot, tostring(counts[name]), Chunky.red, 3)
@@ -723,8 +726,15 @@ local function draw(s: StationScreen.Screen)
 				})
 			end
 		end
-		local _, finished = GoalRules.tally(p)
-		words(sheet, `{finished} / {#Goals.goals} GOALS DONE`, x, y, w, 44)
+		--[[ Medals won of all there are, three a goal: it counted whole
+		     goals, so it read 0 / 20 after a dozen claims (the run-through,
+		     2026-11-14). ]]
+		local won, all = 0, 0
+		for _, goal in Goals.goals do
+			won += GoalRules.claimed(p, goal)
+			all += #goal.steps
+		end
+		words(sheet, `{won} / {all} MEDALS WON`, x, y, w, 44)
 		if #rows == 0 then
 			words(sheet, "EVERY GOAL DONE!", x, y + 120, w, 64, Enum.TextXAlignment.Center)
 		else
@@ -770,6 +780,7 @@ local function startButton(s: StationScreen.Screen)
 	local built: boolean? = nil
 	local badge: Frame? = nil
 	local count: TextLabel? = nil
+	local hoppedAt = 0
 
 	local function build()
 		for _, child in canvas:GetChildren() do
@@ -845,12 +856,23 @@ local function startButton(s: StationScreen.Screen)
 						and RewardRules.loginReady(profile.rewards, day)
 					then
 						shownFor = day
-						RewardsScreen.open()
+						--[[ Not over a player who has yet to win a level:
+						     they have not seen PLAY, and the screen came up
+						     0.4 s into their first look at the lobby (the
+						     run-through, 2026-11-14). The badge calls them. ]]
+						if next(profile.levelsBeaten) ~= nil then
+							RewardsScreen.open()
+						end
 					end
 				end
 				if badge and count then
 					badge.Visible = waiting > 0
 					count.Text = tostring(waiting)
+					-- with something waiting the badge hops, every few seconds
+					if waiting > 0 and os.clock() - hoppedAt >= BADGE_HOP then
+						hoppedAt = os.clock()
+						Chunky.pop(badge)
+					end
 				end
 			end
 			task.wait(0.5)

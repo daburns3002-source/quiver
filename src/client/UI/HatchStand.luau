@@ -183,9 +183,12 @@ function HatchStand.chrome(s: StationScreen.Screen, title: string, modes: { Mode
 	}
 end
 
---[[ The odds as the cards print them: "2.5%". ]]
+--[[ The odds as the cards print them: "2.5%", to one place (it read
+     59.18%, 28.57%, 11.22%, 1.02%), and two for a chance under 1%, which
+     one place would round to nothing. ]]
 local function odds(chance: number): string
-	return string.format("%g%%", math.round(chance * 10000) / 100)
+	local places = if chance < 0.01 then 10000 else 1000
+	return string.format("%g%%", math.round(chance * places) / (places / 100))
 end
 
 --[[ The columns that make the largest square tiles for `count` in a w x h

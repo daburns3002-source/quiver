@@ -587,9 +587,11 @@ local Lobby = {
 		gradeTint = Color3.fromRGB(255, 238, 226),
 		--[[ On top of the bloom and grade above, in the lobby only. ]]
 		glow = { intensity = 1, size = 56, threshold = 2 },
+		--[[ 0.5 and 0.5 until 2026-11-15: the floor was nearly white and the
+		     colours shouted (the run-through, 2026-11-14). ]]
 		colour = {
-			saturation = 0.5,
-			contrast = 0.5,
+			saturation = 0.2,
+			contrast = 0.15,
 			brightness = 0,
 			tint = Color3.fromRGB(243, 234, 255),
 		},

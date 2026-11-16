@@ -174,10 +174,15 @@ local function portrait(
 			     pass's) in front of the hero's feet rather than a step
 			     further out, where it made the group half as wide again and
 			     the hero that much smaller. Towards the camera is -Z. ]]
-			local x = side * (bodySize.X / 2 + scaled.X / 2 + 0.15)
-			local z = -0.4
+			--[[ Beside the legs, not beside the whole body: a wide avatar (a
+			     sword across its back, wings) pushed them out to its widest
+			     point and shrank itself to fit them in. A step forward, so
+			     they stand in front of whatever hangs there. ]]
+			local legs = math.min(bodySize.X, bodySize.Y * 0.5)
+			local x = side * (legs / 2 + scaled.X / 2 + 0.1)
+			local z = -0.9
 			if index == 3 then
-				x = -bodySize.X * 0.2
+				x = -legs * 0.25
 				z = -(bodySize.Z / 2 + scaled.Z / 2 + 0.25)
 			end
 			pet:PivotTo(CFrame.new(x, floor + lift, z))

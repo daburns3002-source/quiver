@@ -108,7 +108,18 @@ local shown: { [string]: boolean } = {}
 --[[ `ambient`: asked for by `look` from what the profile says is new,
      again every second until it shows, so it gives way to a tip a screen
      has just asked for and loses nothing by it. ]]
-type Waiting = { key: string, asked: number, ambient: boolean, spot: Spot? }
+type Waiting = {
+	key: string,
+	asked: number,
+	ambient: boolean,
+	spot: Spot?,
+	--[[ Where its screen's header stood at the last look, and whether that
+	     was where it stood the look before (`settled`). ]]
+	looked: boolean?,
+	barAt: Vector2?,
+	barSize: Vector2?,
+	still: boolean?,
+}
 local queue: { Waiting } = {}
 local current: GuiObject? = nil
 local currentSpot: Spot? = nil
@@ -395,6 +406,28 @@ local function passed(key: string?): boolean
 	return false
 end
 
+--[[ Whether a waiting tip's header has stood still from one look to the
+     next (`SPOT_EVERY` apart): a screen drawn again as the tip comes up (the
+     profile arriving redraws class select) has a header that is not laid
+     out yet, and a card measured against it stood 645 points off its
+     middle (seen in Studio, 2026-11-16). A tip with no header to stand on
+     has nothing to wait for. ]]
+local function settled(waiting: Waiting): boolean
+	local spot = waiting.spot
+	if not spot then
+		return true
+	end
+	if spotCheck then
+		local _, bar = spot()
+		local at = if bar then bar.AbsolutePosition else nil
+		local size = if bar then bar.AbsoluteSize else nil
+		waiting.still = waiting.looked == true and waiting.barAt == at and waiting.barSize == size
+		waiting.looked = true
+		waiting.barAt, waiting.barSize = at, size
+	end
+	return waiting.still == true
+end
+
 --[[ Puts up the next tip waiting, if one may show now. ]]
 local function pump()
 	local now = os.clock()
@@ -428,6 +461,7 @@ local function pump()
 				each.ambient == ambient
 				and not (ambient and inStation)
 				and not (each.spot ~= nil and now - each.asked < SETTLE)
+				and settled(each)
 				and TipRules.spaced(each.key, since)
 				and not covered(each.key)
 			then

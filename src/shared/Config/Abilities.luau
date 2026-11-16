@@ -34,7 +34,15 @@
 local Rarities = require(script.Parent.Rarities)
 
 export type Category = "Count" | "Pattern" | "Flight" | "OnHit" | "OnKill" | "Stats" | "Defensive"
-export type Group = "arrow" | "power" | "element" | "mobility" | "vital" | "blade" | "spell"
+export type Group =
+	"arrow"
+	| "power"
+	| "element"
+	| "mobility"
+	| "vital"
+	| "blade"
+	| "spell"
+	| "dagger"
 
 export type Ability = {
 	id: string,
@@ -67,6 +75,12 @@ export type Ability = {
 local RANGER = { "Ranger" }
 local WARDEN = { "Warden" }
 local ARCANIST = { "Arcanist" }
+local ASSASSIN = { "Assassin" }
+--[[ The blade cards that are true of any swing (faster, wider, further,
+     harder on the badly hurt, and opening what it strikes): both melee
+     classes draw them. The rest of the blade cards speak of the Warden's
+     sword, slam or guard and stay his. ]]
+local MELEE = { "Warden", "Assassin" }
 
 local abilities: { Ability } = {
 	--[[ Arrow skills: how many arrows, where they go, how they fly. ]]
@@ -308,7 +322,7 @@ local abilities: { Ability } = {
 		stats = { "+8% ATK", "+16% ATK", "+24% ATK", "+32% ATK", "+40% ATK" },
 		icon = "strength",
 		--[[ The Arcanist draws Intellect, the same card under its own name. ]]
-		classes = { "Ranger", "Warden" },
+		classes = { "Ranger", "Warden", "Assassin" },
 	},
 	{
 		--[[ The Arcanist's Strength (owner, 2026-10-25: "make the arcanist
@@ -503,7 +517,7 @@ local abilities: { Ability } = {
 		levels = { 0.08, 0.16, 0.24 },
 		stats = { "+8% atk spd", "+16% atk spd", "+24% atk spd" },
 		icon = "quick-hands",
-		classes = WARDEN,
+		classes = MELEE,
 	},
 	{
 		id = "IronSkin",
@@ -529,7 +543,7 @@ local abilities: { Ability } = {
 		levels = { 0.12, 0.24, 0.36 },
 		stats = { "+12% width", "+24% width", "+36% width" },
 		icon = "cleave",
-		classes = WARDEN,
+		classes = MELEE,
 	},
 	{
 		id = "LongReach",
@@ -541,7 +555,7 @@ local abilities: { Ability } = {
 		levels = { 1.2, 2.4, 3.6 },
 		stats = { "+1.2 reach", "+2.4 reach", "+3.6 reach" },
 		icon = "long-reach",
-		classes = WARDEN,
+		classes = MELEE,
 	},
 	{
 		id = "Steadfast",
@@ -593,7 +607,7 @@ local abilities: { Ability } = {
 		levels = { 0.4, 0.8 },
 		stats = { "+40% under 30% HP", "+80% under 30% HP" },
 		icon = "execute",
-		classes = WARDEN,
+		classes = MELEE,
 	},
 	--[[ The Warden's new cards (owner, 2026-10-25, from the ideas offered
 	     after Iron Skin, Steadfast and Bloodletting were benched). ]]
@@ -960,7 +974,135 @@ local abilities: { Ability } = {
 		levels = { 0.1, 0.2 },
 		stats = { "+10% damage taken", "+20% damage taken" },
 		icon = "sunder",
-		classes = WARDEN,
+		classes = MELEE,
+	},
+	--[[ The Assassin's own (owner, 2026-11-15: yes to the ten of
+	     docs/CARD-IDEAS.md as put to them; docs/CLASS-CARDS.md). Dagger
+	     cards: they speak of the double stab, the dash that cuts and the
+	     strikes of a class that fights at arm's length. Numbers in
+	     `Balance.Player.assassin`. ]]
+	{
+		id = "TwinFangs",
+		name = "Twin Fangs",
+		description = "Your double stab hits harder.",
+		category = "Stats",
+		group = "dagger",
+		rarity = "Common",
+		levels = { 0.3, 0.6, 0.9 },
+		stats = { "+30% stab", "+60% stab", "+90% stab" },
+		icon = "twin-fangs",
+		classes = ASSASSIN,
+	},
+	{
+		id = "Backstab",
+		name = "Backstab",
+		description = "Hit harder from behind an enemy.",
+		category = "OnHit",
+		group = "dagger",
+		rarity = "Uncommon",
+		levels = { 0.3, 0.55, 0.8 },
+		stats = { "+30% from behind", "+55% from behind", "+80% from behind" },
+		icon = "backstab",
+		classes = ASSASSIN,
+	},
+	{
+		id = "Quickstep",
+		name = "Quickstep",
+		description = "A kill brings your dash back sooner.",
+		category = "OnKill",
+		group = "dagger",
+		rarity = "Uncommon",
+		--[[ Seconds off the wait, a kill. ]]
+		levels = { 0.5, 1 },
+		stats = { "-0.5s a kill", "-1s a kill" },
+		icon = "quickstep",
+		classes = ASSASSIN,
+	},
+	{
+		id = "SerratedEdge",
+		name = "Serrated Edge",
+		description = "A crit makes the enemy take more damage for 3s.",
+		category = "OnHit",
+		group = "dagger",
+		rarity = "Rare",
+		levels = { 0.15, 0.25 },
+		stats = { "+15% damage taken", "+25% damage taken" },
+		icon = "serrated-edge",
+		classes = ASSASSIN,
+	},
+	{
+		id = "Bleed",
+		name = "Bleed",
+		description = "Your strikes stack a bleed, up to 5 deep.",
+		category = "OnHit",
+		group = "dagger",
+		rarity = "Rare",
+		--[[ A strike's share dealt each second, for each cut held. ]]
+		levels = { 0.03, 0.05, 0.07 },
+		stats = { "3% a second", "5% a second", "7% a second" },
+		icon = "bleed",
+		classes = ASSASSIN,
+	},
+	{
+		id = "PoisonTrail",
+		name = "Poison Trail",
+		description = "Your dash leaves a cloud of poison behind.",
+		category = "Pattern",
+		group = "dagger",
+		rarity = "Rare",
+		--[[ Seconds the cloud stays. ]]
+		levels = { 1.5, 2.5 },
+		stats = { "1.5s cloud", "2.5s cloud" },
+		icon = "poison-trail",
+		classes = ASSASSIN,
+	},
+	{
+		id = "FanOfKnives",
+		name = "Fan of Knives",
+		description = "Every 4th strike throws a fan of knives (35%).",
+		category = "Pattern",
+		group = "dagger",
+		rarity = "Epic",
+		levels = { 5, 7 },
+		stats = { "5 knives", "7 knives" },
+		icon = "fan-of-knives",
+		classes = ASSASSIN,
+	},
+	{
+		id = "DeathMark",
+		name = "Death Mark",
+		description = "One enemy is marked and takes more. Kill it and the mark jumps.",
+		category = "OnHit",
+		group = "dagger",
+		rarity = "Legendary",
+		levels = { 0.35 },
+		stats = { "+35% to the marked" },
+		icon = "death-mark",
+		classes = ASSASSIN,
+	},
+	{
+		id = "PhantomBlades",
+		name = "Phantom Blades",
+		description = "Ghost daggers circle you and cut what they touch (30%).",
+		category = "Pattern",
+		group = "dagger",
+		rarity = "Legendary",
+		levels = { 2, 3 },
+		stats = { "2 blades", "3 blades" },
+		icon = "phantom-blades",
+		classes = ASSASSIN,
+	},
+	{
+		id = "ThousandCuts",
+		name = "Thousand Cuts",
+		description = "Every 10s shadows strike up to 8 enemies in turn (120%).",
+		category = "Pattern",
+		group = "dagger",
+		rarity = "Mythic",
+		levels = { 1 },
+		stats = { "Shadows every 10s" },
+		icon = "thousand-cuts",
+		classes = ASSASSIN,
 	},
 }
 

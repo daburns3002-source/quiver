@@ -341,6 +341,15 @@ local function releaseAll()
 	sprintToggled = false
 end
 
+--[[ Quickstep: the server took time off the dash's wait for a kill
+     (`RunSession.onEnemyKilled`); the dash here comes back as much sooner. ]]
+player:GetAttributeChangedSignal("DashRefunds"):Connect(function()
+	local seconds = player:GetAttribute("DashRefund")
+	if type(seconds) == "number" then
+		Dash.refund(os.clock(), seconds)
+	end
+end)
+
 function MoveController.start()
 	MoveController.stop()
 

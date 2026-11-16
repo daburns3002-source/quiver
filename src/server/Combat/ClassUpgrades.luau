@@ -224,6 +224,10 @@ local function invent(
 	} :: Types.ShotEvent)
 end
 
+--[[ For the cards kept in a module of their own (`Combat/AssassinUpgrades`). ]]
+ClassUpgrades.plainSpec = plainSpec
+ClassUpgrades.invent = invent
+
 --[[ Everything within `radius` of `at` (to the edge of each body) takes
      `damage`, knocked away from `from` when given. ]]
 local function hitWithin(

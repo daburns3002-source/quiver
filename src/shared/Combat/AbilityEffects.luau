@@ -75,6 +75,14 @@ export type MeleeStats = {
 	--[[ Extra damage a struck enemy takes from everything for a while, as a
 	     fraction (0 none). Sunder. ]]
 	sunder: number,
+	--[[ Extra damage on a strike from behind, as a fraction. Backstab. ]]
+	backstab: number,
+	--[[ Extra damage an enemy takes from everything after a crit on it, as
+	     a fraction (0 none). Serrated Edge. ]]
+	serrated: number,
+	--[[ A strike's share dealt each second by every cut an enemy carries
+	     (0 none). Bleed. ]]
+	bleed: number,
 }
 
 --[[ The class upgrades of 2026-10-27 that act beside the shot rather than
@@ -99,6 +107,16 @@ export type UpgradeStats = {
 	--[[ Arcane Shield: how fast a spent shield is back, in shields a second
 	     (0 none). ]]
 	arcaneShield: number,
+	--[[ The Assassin's (`Combat/AssassinUpgrades`): Quickstep, seconds off
+	     the dash's wait a kill; Poison Trail, seconds its cloud stays; Fan
+	     of Knives, how many knives; Death Mark, the extra the marked enemy
+	     takes; Phantom Blades, how many circle; Thousand Cuts, 1 when held. ]]
+	quickstep: number,
+	poisonTrail: number,
+	fanOfKnives: number,
+	deathMark: number,
+	phantomBlades: number,
+	thousandCuts: number,
 }
 
 --[[ What the server applies. ]]
@@ -453,12 +471,20 @@ function AbilityEffects.serverStats(drafted: Counts, class: string?, weapon: str
 			wind = at(counts, "WindArrows"),
 			frost = at(counts, "FrostOrb"),
 			arcaneShield = at(counts, "ArcaneShield"),
+			quickstep = at(counts, "Quickstep"),
+			poisonTrail = at(counts, "PoisonTrail"),
+			fanOfKnives = at(counts, "FanOfKnives"),
+			deathMark = at(counts, "DeathMark"),
+			phantomBlades = at(counts, "PhantomBlades"),
+			thousandCuts = at(counts, "ThousandCuts"),
 		},
 		melee = {
 			widthScale = 1 + at(counts, "Cleave"),
 			reachBonus = at(counts, "LongReach"),
 			guardLinger = at(counts, "Steadfast"),
-			slamBonus = at(counts, "HeavyBlade"),
+			--[[ Twin Fangs is the Assassin's Heavy Blade: its combo's last
+			     blow, the double stab. ]]
+			slamBonus = at(counts, "HeavyBlade") + at(counts, "TwinFangs"),
 			lifesteal = at(counts, "Bloodletting"),
 			executeBonus = at(counts, "Execute"),
 			whirlwindEvery = if at(counts, "Whirlwind") > 0
@@ -470,6 +496,9 @@ function AbilityEffects.serverStats(drafted: Counts, class: string?, weapon: str
 			reachScale = math.max(at(counts, "TitansGrip"), 1),
 			counterStrike = at(counts, "CounterStrike"),
 			sunder = at(counts, "Sunder"),
+			backstab = at(counts, "Backstab"),
+			serrated = at(counts, "SerratedEdge"),
+			bleed = at(counts, "Bleed"),
 		},
 		healPerKill = at(counts, "Bloodthirst"),
 		regenPerSecond = at(counts, "Mending"),

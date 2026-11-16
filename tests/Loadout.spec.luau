@@ -16,6 +16,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 
 local Abilities = require(ReplicatedStorage.Shared.Config.Abilities)
+local ClassList = require(ReplicatedStorage.Shared.Util.ClassList)
 local Loadout = require(ServerScriptService.Server.Run.Loadout)
 local Progression = require(ReplicatedStorage.Shared.Config.Progression)
 local TestRunner = require(script.Parent.TestRunner)
@@ -301,7 +302,7 @@ return function(t: TestRunner.Helper)
 	end)
 
 	t.test("an Angel's stat is one the player's class can use, and never a benched card", function()
-		for _, class in { "Ranger", "Arcanist", "Warden" } do
+		for _, class in ClassList.all() do
 			-- every roll of the dice, so every stat it could offer is met
 			for _ = 1, 200 do
 				local state = Loadout.new()

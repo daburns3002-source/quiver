@@ -117,6 +117,15 @@ function Dash.readiness(now: number): number
 	return math.clamp(1 - remaining / cooldown, 0, 1)
 end
 
+--[[ Brings the next dash `seconds` sooner (Quickstep: a kill takes time off
+     the wait, and the server has moved its own clock back as far). Never
+     sooner than now, and nothing for a dash that is already ready. ]]
+function Dash.refund(now: number, seconds: number)
+	if seconds > 0 and readyAt > now then
+		readyAt = math.max(now, readyAt - seconds)
+	end
+end
+
 --[[ Clears every window. Called when a character dies or respawns, so a dash
      in flight cannot survive into the next life and a cooldown cannot be
      carried across a death the player did not choose. ]]

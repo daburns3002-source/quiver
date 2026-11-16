@@ -321,6 +321,12 @@ function RunSession.create(player: Player): Session
 			wind = 0,
 			frost = 0,
 			arcaneShield = 0,
+			quickstep = 0,
+			poisonTrail = 0,
+			fanOfKnives = 0,
+			deathMark = 0,
+			phantomBlades = 0,
+			thousandCuts = 0,
 		},
 		surgeReady = false,
 		shieldUpAt = 0,
@@ -340,6 +346,9 @@ function RunSession.create(player: Player): Session
 			reachScale = 1,
 			counterStrike = 0,
 			sunder = 0,
+			backstab = 0,
+			serrated = 0,
+			bleed = 0,
 		},
 		secondWind = 0,
 		secondWindUsed = false,
@@ -846,6 +855,19 @@ function RunSession.onEnemyKilled(session: Session, position: Vector3?)
 	if session.alive and session.upgrades.manaSurge > 0 and not session.surgeReady then
 		session.surgeReady = true
 		session.player:SetAttribute("ManaSurge", true)
+	end
+	--[[ Quickstep: the kill takes time off the dash's wait. The server
+	     holds a dash to its cooldown from `lastDashAt`, so that moves back;
+	     the attribute (a count, and the seconds) tells the client's own
+	     dash to come back as much sooner (`Input/Dash.refund`). ]]
+	if session.alive and session.upgrades.quickstep > 0 then
+		session.lastDashAt -= session.upgrades.quickstep
+		session.player:SetAttribute("DashRefund", session.upgrades.quickstep)
+		local refunds = session.player:GetAttribute("DashRefunds")
+		session.player:SetAttribute(
+			"DashRefunds",
+			(if type(refunds) == "number" then refunds else 0) + 1
+		)
 	end
 	if not session.alive or session.healPerKill <= 0 then
 		return

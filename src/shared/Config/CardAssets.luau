@@ -89,6 +89,17 @@ local CardAssets = {
 		["shield-throw"] = "rbxassetid://111019992395887",
 		["blade-storm"] = "rbxassetid://106023560509222",
 		["sunder"] = "rbxassetid://129654171015164",
+		-- the Assassin's ten (Codex, 2026-11-15; assassin_cards_2026_11_15.sh)
+		["twin-fangs"] = "rbxassetid://81377613756035",
+		["backstab"] = "rbxassetid://108203732763760",
+		["quickstep"] = "rbxassetid://129751250001790",
+		["serrated-edge"] = "rbxassetid://109295872984581",
+		["bleed"] = "rbxassetid://109318110379622",
+		["poison-trail"] = "rbxassetid://77915439868921",
+		["fan-of-knives"] = "rbxassetid://112048313735456",
+		["death-mark"] = "rbxassetid://127593517696959",
+		["phantom-blades"] = "rbxassetid://81658600065127",
+		["thousand-cuts"] = "rbxassetid://120243122334089",
 	},
 	--[[ The name banner for each rarity, 984 x 558, its plate cleared
 	     (`assets/ui/glow_toy_cards/clear_plates.py`): the card writes its name

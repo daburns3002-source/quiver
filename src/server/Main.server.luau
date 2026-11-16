@@ -29,6 +29,7 @@ local Abilities = require(ReplicatedStorage.Shared.Config.Abilities)
 local Analytics = require(script.Parent.Data.Analytics)
 local AreaStrikes = require(script.Parent.Combat.AreaStrikes)
 local Arena = require(script.Parent.Arena.Arena)
+local AssassinUpgrades = require(script.Parent.Combat.AssassinUpgrades)
 local Atmosphere = require(script.Parent.Arena.Atmosphere)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Burning = require(script.Parent.Combat.Burning)
@@ -930,6 +931,7 @@ RunService.Heartbeat:Connect(function(deltaTime: number)
 	--[[ The class upgrades: black holes dragging, the phoenix's fire, the
 	     Arcane Turret's crystal. ]]
 	ClassUpgrades.step(deltaTime, now)
+	AssassinUpgrades.step(deltaTime, now)
 	--[[ After projectiles, because a hit's knockback moves its enemy and can
 	     push it into another. Overlaps are resolved once everything that can
 	     move a body this frame has done so. ]]

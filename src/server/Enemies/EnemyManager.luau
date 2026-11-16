@@ -519,6 +519,18 @@ function EnemyManager.root(model: Model, seconds: number, by: string): boolean
 	return true
 end
 
+--[[ The way a live enemy faces, flat and unit length; nil for one that is
+     gone or has not turned to anyone yet. Backstab asks it
+     (`Combat/MeleeSystem`). ]]
+function EnemyManager.facing(model: Model): Vector3?
+	local enemy = enemies[model]
+	local yaw = enemy and enemy.yaw
+	if not yaw then
+		return nil
+	end
+	return Vector3.new(-math.sin(yaw), 0, -math.cos(yaw))
+end
+
 --[[ A live enemy takes `scale` times the damage until `untilTime`. ]]
 function EnemyManager.mark(model: Model, scale: number, untilTime: number)
 	local enemy = enemies[model]

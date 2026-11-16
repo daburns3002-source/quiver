@@ -23,6 +23,8 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Aim = require(ReplicatedStorage.Shared.Combat.Aim)
 local Arena = require(script.Parent.Parent.Arena.Arena)
+local AssassinRules = require(ReplicatedStorage.Shared.Combat.AssassinRules)
+local AssassinUpgrades = require(script.Parent.AssassinUpgrades)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Burning = require(script.Parent.Burning)
 local ClassUpgrades = require(script.Parent.ClassUpgrades)
@@ -170,18 +172,34 @@ local function leadShot(session: Session, origin: Vector3, direction: Vector3): 
 end
 
 --[[ One enemy struck for `blow`, pushed away from `from`: Execute, a crit,
-     Bloodletting, Sunder, Blaze and Soul Chain, as the player's draft has
-     them. A swing's blow and a dash's cut land the same way. ]]
+     Bloodletting, Sunder, Blaze and Soul Chain, and the Assassin's Backstab,
+     Serrated Edge and Bleed, as the player's draft has them. A swing's blow
+     and a dash's cut land the same way. `standing` is where the striker is,
+     when not `from` (a dash is pushed out from its line, but struck from
+     where it ended). ]]
 local function strike(
 	session: Session,
 	lead: Types.ShotSpec?,
 	enemy: Aim.Candidate,
 	blow: number,
 	from: Vector3,
-	now: number
+	now: number,
+	standing: Vector3?
 )
 	local melee = session.melee
+	local assassin = Balance.Player.assassin
 	local damage = blow
+	--[[ Backstab: more from behind the enemy. ]]
+	if melee.backstab > 0 then
+		local facing = EnemyManager.facing(enemy.model)
+		if
+			facing
+			and AssassinRules.behind(facing, enemy.position, standing or from, assassin.backstabArc)
+		then
+			damage *= 1 + melee.backstab
+			upgradeFx:FireAllClients("Backstab", session.player, enemy.position)
+		end
+	end
 	--[[ Execute: more against an enemy already badly hurt. ]]
 	local left = EnemyManager.healthFraction(enemy.model)
 	if melee.executeBonus > 0 and left and left < Balance.Player.executeBelow then
@@ -204,6 +222,20 @@ local function strike(
 	--[[ Sunder: what was struck takes more from everything for a while. ]]
 	if landed and melee.sunder > 0 then
 		EnemyManager.sunder(enemy.model, melee.sunder, os.clock() + Balance.Player.sunder.duration)
+	end
+	--[[ Serrated Edge: a crit opens the enemy the same way, for its own
+	     while. ]]
+	if landed and kind == "Crit" and melee.serrated > 0 then
+		EnemyManager.sunder(enemy.model, melee.serrated, os.clock() + assassin.serratedDuration)
+	end
+	--[[ Bleed: another cut, each worth a share of this strike a second
+	     (`Shared/Combat/Bleed`, ticked by `Combat/Burning`). ]]
+	if landed and melee.bleed > 0 then
+		Burning.bleed(enemy.model, {
+			rate = blow * melee.bleed,
+			stacks = assassin.bleed.stacks,
+			duration = assassin.bleed.duration,
+		}, session.player, now)
 	end
 	if landed and lead then
 		Burning.ignite(enemy.model, blow * lead.burn, lead.burnDuration, session.player, now)
@@ -340,6 +372,8 @@ local function land(swing: Pending, now: number)
 
 	--[[ Blade Storm: every few blows that land, the sword is thrown. ]]
 	ClassUpgrades.afterBlow(session, root.Position, swing.direction, now)
+	--[[ Fan of Knives: and every few of the Assassin's, a fan of knives. ]]
+	AssassinUpgrades.afterBlow(session, root.Position, swing.direction, now)
 end
 
 --[[ A dash the server accepted (`Main`'s `DashStarted`), for a class whose
@@ -372,11 +406,21 @@ function MeleeSystem.dash(session: Session, root: BasePart, now: number): boolea
 		local struck: { Vector3 } = {}
 		for _, enemy in candidates() do
 			if DashCut.hits(a, b, config.width, enemy.position, enemy.halfWidth) then
-				strike(session, lead, enemy, blow, DashCut.nearest(a, b, enemy.position), landedAt)
+				strike(
+					session,
+					lead,
+					enemy,
+					blow,
+					DashCut.nearest(a, b, enemy.position),
+					landedAt,
+					b
+				)
 				table.insert(struck, enemy.position)
 			end
 		end
 		upgradeFx:FireAllClients("ShadowDash", session.player, a, b, struck)
+		--[[ Poison Trail: the cloud the dash leaves. ]]
+		AssassinUpgrades.dashed(session, a, b, landedAt)
 	end)
 	return true
 end

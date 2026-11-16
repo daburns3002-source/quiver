@@ -423,7 +423,7 @@ when the server counts one on the player (`Meteors` attribute).
 
 **The Assassin** (owner, 2026-11-15: "we need to create the assassin class now", yes to option A,
 "twin daggers up close"; `Config/Classes.Assassin`): the fourth class, a second melee class on the
-Warden's machinery. About two strikes a second, 0.75x a hit, the Ranger's health and no guard: a
+Warden's machinery. About two strikes a second, 0.75x a hit, 1.5x the Ranger's health (338) and no guard: a
 slash from each hand in a 70 degree arc 8.5 out, then both daggers driven in for 1.5x in a small
 circle. A slash shoves an enemy a third as far as a hit usually does (`swing.knock`, a share
 `EnemyManager.damage` takes), the stab all the way: full shoves put everything out of the daggers'

@@ -119,8 +119,9 @@ return function(t: TestRunner.Helper)
 	end)
 
 	--[[ A class that stands and trades blows (its swing guards it) needs
-	     the health to; one that does not guard (the Assassin) is as fragile
-	     as the Ranger and no more so. ]]
+	     the health to; one that does not guard (the Assassin) has more than
+	     the Ranger, since it fights up close, and less than one that guards
+	     (owner, 2026-11-16: 1.5x). ]]
 	t.test(
 		"every class has a health scale, and a guarded melee class outlasts the Ranger",
 		function()
@@ -141,6 +142,10 @@ return function(t: TestRunner.Helper)
 					end
 				end
 			end
+			local assassin = AbilityEffects.serverStats({}, "Assassin")
+			local warden = AbilityEffects.serverStats({}, "Warden")
+			t.near(assassin.maxHealth, ranger.maxHealth * 1.5, 1e-6)
+			t.isTrue(assassin.maxHealth < warden.maxHealth, "the Assassin outlasts the Warden")
 		end
 	)
 

@@ -134,14 +134,17 @@ local Classes: { [string]: Class } = {
 	     class now", and yes to option A, "twin daggers up close"): about two
 	     strikes a second, each lighter than an arrow, on what is right in
 	     front of it: a slash from each hand, a narrow arc, then both daggers
-	     driven in together, 1.5x in a small circle. The Ranger's health and
-	     no guard: it lives by its dash (`dash`), not by trading blows.
-	     Numbers to tune at playtest. ]]
+	     driven in together, 1.5x in a small circle. No guard: it lives by
+	     its dash (`dash`), not by trading blows. Half as much health again
+	     as the Ranger (338; owner, 2026-11-16, "Yes, 1.5x health"): with the
+	     Ranger's 225 a bot that never dashed died in room 4, 5 and 5 of
+	     Mossy Glade 1-1, since it has to stand 8 studs from what it hits.
+	     Still well under the Warden's 495, which trades blows. ]]
 	Assassin = {
 		weapon = "SplinterDaggers",
 		damageScale = 0.75,
 		cooldownScale = 0.7,
-		healthScale = 1,
+		healthScale = 1.5,
 		speedScale = 1,
 		innate = {},
 		look = "Arrow",

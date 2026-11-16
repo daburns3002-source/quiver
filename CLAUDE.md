@@ -430,6 +430,16 @@ circle. It holds the Splinter Daggers (`Config/Weapons.SplinterDaggers`: the Cla
 not keyed in Claude Design (`assets/models/weapons/splinter_daggers_r15/make_kit.py` draws every key
 as a stick figure to look the poses over outside Studio; a Design kit can replace its JSON whole).
 Its sounds are stand-ins (the Warden's swings, faster) until the daggers' own are uploaded.
+**Its skill is Shadow Dash** (`Classes.dash`, a class's own dash): back in 2.5 s where every other
+class waits 4 (`DashCut.cooldown`, the same number for the client's bar and the server's check), it
+cuts every enemy within 2.5 studs of the ground it covered for 1.5x a strike, and nothing can hurt
+the Assassin from its start until 0.2 s after it ends. The dash is still the client's movement:
+the server notes where the character stood as `DashStarted` arrived and where it stands when the
+dash is over, never trusts that line to be longer than a dash and a quarter
+(`Shared/Combat/DashCut`, `tests/DashCut.spec`), and lands each cut exactly as a swing's blow
+lands (`MeleeSystem.strike`: crit, Blaze, Soul Chain, Execute, Sunder), pushing each enemy out from
+the line. Drawn by `Fx/Upgrades/AssassinFx`: violet blocks left behind the dasher, a bright slash
+along the cut and a cross of cuts on each enemy struck; the kit's `Dash` clip sweeps both blades.
 **`Util/ClassList` is the one list of classes**, read off the class select cards: `all()` is every
 class there is, `open()` those a player can choose (a card that is not `locked`). The server's
 CHOOSE and class switch, class levels, the starter weapons in a new save, what can be owned

@@ -28,6 +28,7 @@ local Abilities = require(ReplicatedStorage.Shared.Config.Abilities)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Classes = require(ReplicatedStorage.Shared.Config.Classes)
 local CombatTuning = require(ReplicatedStorage.Shared.Config.CombatTuning)
+local DashCut = require(ReplicatedStorage.Shared.Combat.DashCut)
 local ShotPipeline = require(ReplicatedStorage.Shared.Combat.ShotPipeline)
 local Stages = require(ReplicatedStorage.Shared.Combat.Stages)
 local Types = require(ReplicatedStorage.Shared.Types)
@@ -515,7 +516,7 @@ function AbilityEffects.clientStats(counts: Counts, class: string?, weapon: stri
 
 	return {
 		moveSpeed = player.moveSpeed * (1 + at(merged, "Lightfoot")),
-		dashCooldown = player.dash.cooldown,
+		dashCooldown = DashCut.cooldown(class),
 		attackCooldown = player.attackCooldown * kind.cooldownScale / (1 + attackSpeed(merged)),
 		momentumBonus = at(merged, "Momentum"),
 		projectileSpeed = Balance.Projectile.speed * kind.speedScale,

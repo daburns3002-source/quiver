@@ -35,6 +35,7 @@ local Burning = require(script.Parent.Combat.Burning)
 local ClassList = require(ReplicatedStorage.Shared.Util.ClassList)
 local ClassUpgrades = require(script.Parent.Combat.ClassUpgrades)
 local Classes = require(ReplicatedStorage.Shared.Config.Classes)
+local DashCut = require(ReplicatedStorage.Shared.Combat.DashCut)
 local EndlessLeaderboard = require(script.Parent.Run.EndlessLeaderboard)
 local EnemyFiring = require(script.Parent.Combat.EnemyFiring)
 local EnemyManager = require(script.Parent.Enemies.EnemyManager)
@@ -590,9 +591,11 @@ end)
 	Earthbreaker (the Warden's Mythic): a dash ends in a leap and a slam
 	where he comes down, and the ground there erupts for a while. Shield
 	Throw (his Rare): the dash throws a shield (`ClassUpgrades.onDash`).
-	Only for a session holding either card, and no sooner than the dash's
-	own cooldown allows (less a little for the trip), so a client cannot
-	fire slams or shields at will. Where he lands is his character's, as
+	Shadow Dash (the Assassin's own): the dash cuts what it passes through
+	(`MeleeSystem.dash`). Only for a session holding either card or playing
+	such a class, and no sooner than the dash's own cooldown allows (less a
+	little for the trip), so a client cannot fire slams, shields or cuts at
+	will. Where he lands is his character's, as
 	every position is.
 ]]
 Inbound.on(Remotes.DashStarted, function(player)
@@ -601,16 +604,20 @@ Inbound.on(Remotes.DashStarted, function(player)
 	if not session or not root or not session.alive then
 		return
 	end
-	if session.earthbreaker <= 0 and session.upgrades.shieldThrow <= 0 then
+	local class = Classes[session.loadout.class]
+	local cuts = class ~= nil and class.dash ~= nil
+	if session.earthbreaker <= 0 and session.upgrades.shieldThrow <= 0 and not cuts then
 		return
 	end
 	local now = os.clock()
 	local dash = Balance.Player.dash
-	if now - session.lastDashAt < dash.cooldown * 0.8 then
+	if now - session.lastDashAt < DashCut.cooldown(session.loadout.class) * 0.8 then
 		return
 	end
 	session.lastDashAt = now
 	ClassUpgrades.onDash(session, root, now)
+	--[[ A class whose dash cuts (the Assassin's Shadow Dash). ]]
+	MeleeSystem.dash(session, root, now)
 	if session.earthbreaker <= 0 then
 		return
 	end

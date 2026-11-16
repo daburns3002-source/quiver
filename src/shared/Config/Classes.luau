@@ -31,6 +31,20 @@ export type Swing = {
 	guard: boolean?,
 }
 
+--[[ A dash of the class's own (`Shared/Combat/DashCut`, `Combat/MeleeSystem`;
+     the Assassin's Shadow Dash): it comes back in `cooldown` seconds in
+     place of `Balance.Player.dash.cooldown`, strikes every enemy within a
+     cut `width` studs across along the ground it covered for `damage`
+     times a strike, and nothing can hurt the dasher from its start until
+     `guard` seconds after it ends: it goes through enemies, so it must get
+     out the other side. ]]
+export type Dash = {
+	cooldown: number,
+	damage: number,
+	width: number,
+	guard: number,
+}
+
 export type Class = {
 	--[[ The `Config/Weapons` entry held in hand. ]]
 	weapon: string,
@@ -51,6 +65,8 @@ export type Class = {
 	reach: number?,
 	--[[ Present for a melee class: it swings instead of shooting. ]]
 	swing: Swing?,
+	--[[ Present for a class whose dash cuts. ]]
+	dash: Dash?,
 }
 
 local Classes: { [string]: Class } = {
@@ -114,8 +130,8 @@ local Classes: { [string]: Class } = {
 	     strikes a second, each lighter than an arrow, on what is right in
 	     front of it: a slash from each hand, a narrow arc, then both daggers
 	     driven in together, 1.5x in a small circle. The Ranger's health and
-	     no guard: it lives by its dash, not by trading blows. Numbers to
-	     tune at playtest. ]]
+	     no guard: it lives by its dash (`dash`), not by trading blows.
+	     Numbers to tune at playtest. ]]
 	Assassin = {
 		weapon = "SplinterDaggers",
 		damageScale = 0.75,
@@ -134,6 +150,15 @@ local Classes: { [string]: Class } = {
 			slamRadius = 3.5,
 			slamAhead = 4.5,
 			damage = { 1, 1, 1.5 },
+		},
+		--[[ Shadow Dash, the class's skill (owner, 2026-11-15): the dash
+		     cuts what it passes through, 1.5x a strike, and is back in 2.5 s
+		     where every other class waits 4. ]]
+		dash = {
+			cooldown = 2.5,
+			damage = 1.5,
+			width = 5,
+			guard = 0.2,
 		},
 	},
 }

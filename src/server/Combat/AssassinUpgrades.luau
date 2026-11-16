@@ -218,10 +218,13 @@ local function phantomBlades(session: Session, own: State, now: number, moving: 
 			local away = Vector3.new(position.X - blade.X, 0, position.Z - blade.Z).Magnitude
 			if away <= config.reach + half then
 				own.cutAgain[model] = now + config.again
+				--[[ Pushed away from the blade that cut it, not from the
+				     Assassin: a ring of blades must not sweep the room clear
+				     of everything the daggers are trying to reach. ]]
 				local _, xp, fell = EnemyManager.damage(
 					model,
 					session.damage * config.damage,
-					root.Position,
+					blade,
 					"Hit",
 					session.player
 				)

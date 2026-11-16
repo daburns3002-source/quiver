@@ -34,6 +34,42 @@ codex." This picks option C of `docs/WARDEN-CARDS.md` (a card set per class).
   Whirlwind, Shockwave and Battle Cry have sounds waiting on the owner's picks
   (audition round 19).
 
+## The Assassin's cards (2026-11-15)
+
+Owner, 2026-11-15: "we need to create the assassin class now", then yes to the design put to them
+(option A, twin daggers up close, with these ten cards). They are the ten of
+[CARD-IDEAS.md](CARD-IDEAS.md), with three changed in the building: Shadowstep became **Poison
+Trail** (the dash already passes through enemies and cuts them: that is the class's own Shadow
+Dash), Vanish became **Quickstep** (standing still is when this game attacks, so a card about
+standing still to disappear fought the class), and Thousand Cuts sends shadows where the idea had
+the Assassin blink (the camera never jumps on a phone).
+
+| Card | Rarity | Levels | What it does |
+|---|---|---|---|
+| Twin Fangs | Common | 3 | The double stab, the combo's third blow, deals +30% / +60% / +90% (the Assassin's Heavy Blade). |
+| Backstab | Uncommon | 3 | A strike from behind an enemy (within 75 degrees either side of straight behind, by the way the enemy faces) deals +30% / +55% / +80%. A Shadow Dash that ends past an enemy cuts it from behind. |
+| Quickstep | Uncommon | 2 | A kill takes 0.5 s / 1 s off the dash's wait. |
+| Serrated Edge | Rare | 2 | A crit makes the enemy take +15% / +25% from everything for 3 s (Sunder's cracks show it). |
+| Bleed | Rare | 3 | Each strike adds a cut, up to 5; every cut deals 3% / 5% / 7% of that strike a second; the whole stack lapses 4 s after the last strike (`Shared/Combat/Bleed`, the Bramble Wilf's). |
+| Poison Trail | Rare | 2 | A dash leaves a cloud 4.5 studs wide round its middle for 1.5 s / 2.5 s, 0.15x a strike every half second. |
+| Fan of Knives | Epic | 2 | Every 4th strike that lands throws 5 / 7 knives in a 70 degree fan along it, 0.35x each, 18 studs. |
+| Death Mark | Legendary | 1 | One enemy takes +35% from everything. When it falls the mark jumps to the enemy nearest where it fell. |
+| Phantom Blades | Legendary | 2 | 2 / 3 ghost daggers circle 5.5 studs out; an enemy one touches takes 0.3x a strike, no sooner than every 0.7 s. |
+| **Thousand Cuts** | **Mythic** | 1 | Every 10 s of fighting, shadows strike the 8 nearest enemies within 45 studs in turn, 1.2x each. |
+
+**Shared with the Warden** (`classes = MELEE`): Quick Hands, Cleave, Long Reach, Execute and Sunder,
+the blade cards that are true of any swing. `tests/ClassCards.spec` holds a shared blade card to
+changing a number the Assassin's swing reads. With Strength and the eight cards every class draws,
+the pool is 24 (Ranger 25, Arcanist 24, Warden 24).
+
+Server: `Combat/MeleeSystem` (`strike`: Backstab, Serrated Edge, Bleed), `Combat/AssassinUpgrades`
+(the cloud, the knives, the mark, the blades, the shadows), `Run/RunSession` (Quickstep). Client:
+`Fx/Upgrades/AssassinFx`, voxel cubes like the rest. Icons: Codex
+(`assets/concepts/blocky/ui/cards/assassin_cards_2026_11_15.sh`, the prompts written by
+`assassin_cards_prompts.py`), composed by `compose_icon.py` and uploaded. Sounds: five silent hooks
+in `Config/Sounds` (`fx_backstab`, `fx_poison_trail`, `fx_fan_of_knives`, `fx_death_mark`,
+`fx_thousand_cuts`) until they are picked and uploaded with the daggers' own as one sprite.
+
 ## Every class a ladder of four (owner's pick C, 2026-11-13)
 
 Owner: "ALSO OPEN A SESSION ABOUT UPGRADES FOR EACH CLASS"; three options were drawn up

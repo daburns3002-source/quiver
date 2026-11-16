@@ -440,6 +440,17 @@ dash is over, never trusts that line to be longer than a dash and a quarter
 lands (`MeleeSystem.strike`: crit, Blaze, Soul Chain, Execute, Sunder), pushing each enemy out from
 the line. Drawn by `Fx/Upgrades/AssassinFx`: violet blocks left behind the dasher, a bright slash
 along the cut and a cross of cuts on each enemy struck; the kit's `Dash` clip sweeps both blades.
+**Its cards** (`docs/CLASS-CARDS.md`; `Config/Abilities`, group `dagger`; numbers in
+`Balance.Player.assassin`): ten of its own, Twin Fangs, Backstab, Quickstep, Serrated Edge, Bleed,
+Poison Trail, Fan of Knives, Death Mark, Phantom Blades and its Mythic Thousand Cuts, and five
+blade cards that are true of any swing, shared with the Warden (Quick Hands, Cleave, Long Reach,
+Execute, Sunder), so its pool is 24 like the others'. Backstab (the enemy's own facing,
+`EnemyManager.facing`), Serrated Edge and Bleed land in the strike itself; Poison Trail, Fan of
+Knives, Death Mark, Phantom Blades and Thousand Cuts are `Combat/AssassinUpgrades`, beside
+`ClassUpgrades`; Quickstep moves the server's dash clock back on a kill and tells the client's
+(`DashRefund`, `Dash.refund`). Their arithmetic is `Shared/Combat/AssassinRules`
+(`tests/AssassinCards.spec`, which also weighs each against the daggers' own damage); the phantom
+blades are placed from the server's clock, so every client draws them where the server cuts.
 **`Util/ClassList` is the one list of classes**, read off the class select cards: `all()` is every
 class there is, `open()` those a player can choose (a card that is not `locked`). The server's
 CHOOSE and class switch, class levels, the starter weapons in a new save, what can be owned

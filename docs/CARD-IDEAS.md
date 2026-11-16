@@ -101,7 +101,9 @@ the 42 are a flat percentage on a stat.
 
 ## The Assassin — twin daggers, fast and fragile
 
-**The class does not exist yet.** These assume a `Config/Classes.Assassin`
+**Built 2026-11-15** (the class and ten cards: [CLASS-CARDS.md](CLASS-CARDS.md), "The Assassin's
+cards"; Shadowstep became Poison Trail and Vanish became Quickstep). What follows is the menu as
+it was written, when **the class did not exist yet.** These assume a `Config/Classes.Assassin`
 with a fast, short, two-hit strike off a variant of `Combat/MeleeSystem`, and
 the dagger models from `phase-3/splinter-daggers-redo`. Picking any of these
 means building the class first — that is its own piece of work, bigger than

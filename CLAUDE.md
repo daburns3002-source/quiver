@@ -179,7 +179,14 @@ tip's turn and the quiet after it) is let go and asked again the next time its t
 it covered every screen's tabs): the screen asks with its `Spot` (`FirstTips.show(key, FirstTips.header(root,
 open))`), the card is placed by `TipRules.over` (centred on the bar, its foot on the bar's foot, so it
 reaches up off the panel and never down), it waits `SETTLE` (0.4 s) for the screen's pop to finish before
-it is measured, and it is let go, waiting or showing, the moment the screen shuts. What the profile says
+it is measured, and it is let go, waiting or showing, the moment the screen shuts. **Where a panel stands
+too near the top for the card to reach up off it** (the STORE: the card came down over GEMS and PASSES,
+the every-class run-through, 2026-11-16) `over` is given the panel's box too and the card goes round the
+whole panel: beside it in the wider margin as the upright card, or under it; with no room there either it
+stays at the top of the screen. Class select's panel fills the screen, so its tip asks with its CHOOSE YOUR
+CLASS plate as its `Spot` and stands on the title, clear of the cards. A wide card's words stand beside its
+TIP tag, not under it (`TipPlate.card`: under it they had 32 points, two lines of 13). A tip that holds
+nothing goes the moment a hatch or a crate reveal starts under it (`Reveal.busy`). What the profile says
 is new waits while a station is open (`InStation`).
 **A `hold` tip pauses everything until OK**
 (owner, 2026-11-13: "they should be in the outer arena area so it doesnt block the arena, and also pause the
@@ -210,8 +217,11 @@ enemy health and damage rise every fight (`CombatTuning`, `Run/Waves.damageRamp`
 0.8) up 0.1 a level to 2.0, damage 0.75 up 0.03 to 1.02 (owner: "enemy health needs to be scaled
 up as well, the game is too easy currently"); Thornwood one step past, 2.1 / 1.05. A won level is
 saved (`SaveSchema` v2 `levelsBeaten`, `Wallet.beatLevel`, server-decided in `RoomController`) and
-opens the next (`Util/LevelUnlocks`); NEXT LEVEL goes to the portal's next level, the lobby after
-its last; TRY AGAIN replays. **Level 2, Thornwood** (stage 4): twenty rooms, the first nineteen
+opens the next (`Util/LevelUnlocks`); NEXT LEVEL goes to the portal's next level, and after an area's
+last to the first level of the area that win opened (`LevelUnlocks.nextArea`, asked of
+`LaunchLocks.portalOpen` for everybody in the run; since 2026-11-16, when the every-class run-through
+pressed NEXT LEVEL on 1-10 and stood in the lobby). Only the last level of the last area built is won
+into the lobby, and there the button says CONTINUE (`EndScreenRules.goesOn`); TRY AGAIN replays. **Level 2, Thornwood** (stage 4): twenty rooms, the first nineteen
 `tools/thornwood_rooms.py` wrote and the Broodmother alone in the Brood Heart (rooms 21-39, 60).
 The old twenty-room Mossy Glade run (stage 5, rooms 61-80, `tools/glade_rooms.py`) and Level 1
 (stage 3) stay as data behind no portal, King Bloblin taken out of both. The server keeps
@@ -765,7 +775,12 @@ MERGE button does in all three of its states.
 **What goes on by itself** (2026-11-14, the kid playtest): a hatched pet goes into any empty slot open
 to the player, rarest first, and never into one they filled (`EggRules.fill`, `Data/Hatchery`); a weapon
 from a crate or the store that is strictly stronger than the one held, for the class played, goes in hand
-(`ShopRules.upgrade`, `Data/Shop` `takeUp`). Gear's plate reads ATK, PETS (the slotted pets' damage a
+(`ShopRules.upgrade`, `Data/Shop` `takeUp`). **A free crate is a crate** (2026-11-16, the every-class
+run-through): every prize crate is rolled by `EndlessPrizes.crates` (a class level's, the quests' chest,
+the gift box, a goal's, a star chest's, a Dex page's, Victory's, an Endless milestone's, the Soulstone
+shop's), which counts it for OPEN A WEAPON CRATE (`Rewards.note`) and hands what came out to the same
+`takeUp` (`EndlessPrizes.takeUp`, set by `Data/Shop`): in the lobby it is in hand at once, during a run
+from the next card or the next run. Gear's plate reads ATK, PETS (the slotted pets' damage a
 second, `Util/PetPower`, at their merge tier) and HP on one line and pops when ATK + PETS rises; MERGE
 leaves the item's card up with its new tier. **A won fight cannot hurt**: as a room, wave or floor is
 cleared every enemy shot goes, on the server and on every screen (`RoomController.step`,
@@ -831,7 +846,11 @@ Studio: `Remotes.DebugReceipt(key, id)` and `DebugPass(key, on)`.
 **Endless pays in eggs and crates** (owner, 2026-11-11: "MAKE IT MORE LIKE 5 EGGS AND 5 CRATES ... I WANT
 IT TO FEEL NECESSARY TO BEAT THESE ROOMS"): each milestone (`Balance.Endless.milestones`) hatches its
 eggs and opens its crates for the player on the spot, free, one of each batch sure to be at least its
-`rarity` (`Server/Data/EndlessPrizes`, `Util/PrizeRules`, shown by `UI/EndlessPrize`). **Soulstones buy
+`rarity` (`Server/Data/EndlessPrizes`, `Util/PrizeRules`, shown by `UI/EndlessPrize`). **A prize egg or
+crate is the furthest one the player has reached, by the launch's gates, whichever way the launch switch
+is** (`PrizeRules.eggKey`, `PrizeRules.crateIndex(class, bossesBeaten)`; 2026-11-16): a shop may sell
+everything in playtest, a gift may not. Before, a new Ranger's class level 3 opened Bogheart's crate, and
+with the launch locks on the crates would still have been Bogheart's. **Soulstones buy
 eggs and crates** at the Soulstone shop (`Config/SoulstoneShop`, `Util/SoulstoneShopRules`,
 `Server/Data/SoulstoneShop`, `UI/SoulstoneShop`), opened from the Endless portal's screen: 100 for the
 first area's, doubling an area, 1 or 5 a press.

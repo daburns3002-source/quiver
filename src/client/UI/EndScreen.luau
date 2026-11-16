@@ -1405,6 +1405,9 @@ function EndScreen.start(restart: () -> (), lobby: () -> ())
 	for _, id in chests do
 		table.insert(images, id)
 	end
+	for _, star in EndScreenAssets.heroStars do
+		table.insert(images, star.image)
+	end
 	task.spawn(function()
 		ContentProvider:PreloadAsync(images)
 	end)

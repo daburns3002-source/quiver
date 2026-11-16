@@ -23,9 +23,14 @@ local EndScreenAssets = {
 	     picture showed three gold stars whatever was won (the every-class
 	     run-through, 2026-11-16). ]]
 	heroTrophy = "rbxassetid://132912726945912",
-	heroStarLeft = "rbxassetid://124836431068661",
-	heroStarMid = "rbxassetid://106888506086829",
-	heroStarRight = "rbxassetid://133464795806322",
+	--[[ Where each star sits on `heroTrophy`, as shares of the picture's
+	     width and height (left, top, width, height), in the order they
+	     light: the big middle one for the win, then left, then right. ]]
+	heroStars = {
+		{ image = "rbxassetid://106888506086829", box = { 0.3888, 0.0014, 0.2225, 0.2707 } },
+		{ image = "rbxassetid://124836431068661", box = { 0.2246, 0.0994, 0.1555, 0.2003 } },
+		{ image = "rbxassetid://133464795806322", box = { 0.621, 0.0994, 0.1555, 0.2003 } },
+	},
 	heroDefeat = "rbxassetid://91611465071192",
 	rays = "rbxassetid://110500527798364",
 
@@ -53,15 +58,6 @@ local EndScreenAssets = {
 		WindsweptCliffs = "rbxassetid://93546563759704",
 		FrostpeakPass = "rbxassetid://125278204199154",
 	},
-}
-
---[[ Where each of the hero's stars sits on `heroTrophy`, as shares of the
-     picture's width and height (left, top, width, height), in the order they
-     light: the big middle one for the win, then left, then right. ]]
-EndScreenAssets.heroStars = {
-	{ image = EndScreenAssets.heroStarMid, box = { 0.3888, 0.0014, 0.2225, 0.2707 } },
-	{ image = EndScreenAssets.heroStarLeft, box = { 0.2246, 0.0994, 0.1555, 0.2003 } },
-	{ image = EndScreenAssets.heroStarRight, box = { 0.621, 0.0994, 0.1555, 0.2003 } },
 }
 
 return table.freeze(EndScreenAssets)

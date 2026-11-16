@@ -28,7 +28,8 @@ its levels, and a level that player has opened (`Run/Lobby.startFor`, `Util/Leve
 `SaveSchema` v2 `levelsBeaten`), locked ones dimmed under a lock, beaten ones CLEARED in gold, the
 picked one's rooms or waves on the line under them. Thornwood keeps its single card (its level, its
 boss, two COMING SOON slots up to `levelSlots`). From a run the end screen's NEXT LEVEL goes on to
-the portal's next level, and back here after its last (1-10, Thornwood); TRY AGAIN replays. Data in `Config/Lobby`, built by
+the portal's next level, and after an area's last to the next area's first (2-1 after 1-10; back here
+only after the last area built, where the button says CONTINUE; since 2026-11-16); TRY AGAIN replays. Data in `Config/Lobby`, built by
 `Run/Lobby`, the run's state `Lobby` in `Run/RoomController` (`beginStage`, `inLobby`), the stage
 a portal picked published as the Workspace's `Stage` (`Util/CurrentStage`). The camera follows
 the player across the clearing, the lobby plays its Mossy Glade music, and the banner reads

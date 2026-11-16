@@ -433,10 +433,12 @@ Its sounds are stand-ins (the Warden's swings, faster) until the daggers' own ar
 **Its skill is Shadow Dash** (`Classes.dash`, a class's own dash): back in 2.5 s where every other
 class waits 4 (`DashCut.cooldown`, the same number for the client's bar and the server's check), it
 cuts every enemy within 2.5 studs of the ground it covered for 1.5x a strike, and nothing can hurt
-the Assassin from its start until 0.2 s after it ends. The dash is still the client's movement:
-the server notes where the character stood as `DashStarted` arrived and where it stands when the
-dash is over, never trusts that line to be longer than a dash and a quarter
-(`Shared/Combat/DashCut`, `tests/DashCut.spec`), and lands each cut exactly as a swing's blow
+the Assassin from its start until 0.2 s after it ends. The dash is still the client's movement,
+and over in an eighth of a second, so the server never sees most of it in time (3.2 studs of 6,
+measured): the client sends which way it dashed with `DashStarted` and the server draws the line
+itself, a dash long from where the character stands, or as far as a wall or cover lets it
+(`Shared/Combat/DashCut`, `tests/DashCut.spec`; the way is all a client says, `DashCut.heading`
+makes it a flat direction or nothing), and lands each cut exactly as a swing's blow
 lands (`MeleeSystem.strike`: crit, Blaze, Soul Chain, Execute, Sunder), pushing each enemy out from
 the line. Drawn by `Fx/Upgrades/AssassinFx`: violet blocks left behind the dasher, a bright slash
 along the cut and a cross of cuts on each enemy struck; the kit's `Dash` clip sweeps both blades.

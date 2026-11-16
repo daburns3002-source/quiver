@@ -50,11 +50,6 @@ local MeleeSystem = {}
 local shotsParried = Remotes.event(Remotes.ShotsParried)
 local upgradeFx = Remotes.event(Remotes.UpgradeFx)
 
---[[ Seconds after a dash's own time that its cut is measured: the
-     character's last steps reach the server a little after the client took
-     them. ]]
-local DASH_SETTLE = 0.08
-
 --[[ A swing whose blow has not landed yet. ]]
 type Pending = {
 	session: Session,
@@ -389,29 +384,33 @@ local function land(swing: Pending, now: number)
 end
 
 --[[ A dash the server accepted (`Main`'s `DashStarted`), for a class whose
-     dash cuts (`Classes.dash`; the Assassin's Shadow Dash). Nothing can
-     hurt the dasher until a moment after it ends; then every enemy within
-     the cut along the ground it covered is struck once, pushed out to the
-     side it stood on (`Shared/Combat/DashCut`). Returns whether it cut. ]]
-function MeleeSystem.dash(session: Session, root: BasePart, now: number): boolean
+     dash cuts (`Classes.dash`; the Assassin's Shadow Dash), going `heading`
+     (what the client sent, made a flat direction; the way the character
+     faces when it sent none). Nothing can hurt the dasher until a moment
+     after it ends. As it ends, every enemy within the cut along the line it
+     ran is struck once, pushed out to the side it stood on
+     (`Shared/Combat/DashCut`): a dash's length from where the character
+     stands now, or as far as a wall or cover lets a dash go. Returns
+     whether it cut. ]]
+function MeleeSystem.dash(session: Session, root: BasePart, now: number, heading: Vector3?): boolean
 	local class = Classes[session.loadout.class]
 	local config = class and class.dash
 	if not config then
 		return false
 	end
 	local travel = Balance.Player.dash
-	local from = root.Position
+	local facing = Vector3.new(root.CFrame.LookVector.X, 0, root.CFrame.LookVector.Z)
+	local direction = heading or (if facing.Magnitude > 1e-3 then facing.Unit else Vector3.zAxis)
+	local length =
+		ClassUpgrades.flightLength(Aim.shotOrigin(root.Position), direction, travel.distance)
+	local a, b = DashCut.line(root.Position, direction, length)
 	session.guardFrom = now
 	session.guardUntil = math.max(session.guardUntil, now + travel.duration + config.guard)
 
-	task.delay(travel.duration + DASH_SETTLE, function()
+	task.delay(travel.duration, function()
 		if not (session.alive and session.root == root and root.Parent) then
 			return
 		end
-		--[[ No further than a dash can go, wherever the character is now. ]]
-		local a, b = DashCut.path(from, root.Position, travel.distance * 1.25)
-		local span = b - a
-		local direction = if span.Magnitude > 1e-3 then span.Unit else root.CFrame.LookVector
 		local landedAt = os.clock()
 		local lead = leadShot(session, root.Position, direction)
 		local blow = session.damage * config.damage

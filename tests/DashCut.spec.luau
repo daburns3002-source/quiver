@@ -38,16 +38,34 @@ return function(t: TestRunner.Helper)
 		t.isFalse(DashCut.hits(A, A, 5, Vector3.new(4, 0, 0), 0))
 	end)
 
-	t.test("the cut is never longer than a dash, wherever the character ends up", function()
-		local a, b = DashCut.path(A, Vector3.new(0, 3, -400), 7.5)
-		t.near((b - a).Magnitude, 7.5, 1e-6)
+	t.test("the line is a dash long, the way the dash went, and flat", function()
+		local a, b = DashCut.line(A, Vector3.new(0, 0, -1), 6)
+		t.near((b - a).Magnitude, 6, 1e-6)
 		t.near(a.Y, 0, 1e-9)
 		t.near(b.Y, 0, 1e-9)
-		-- an honest dash is left as it was
-		local c, d = DashCut.path(A, B, 7.5)
-		t.near((d - c).Magnitude, 6, 1e-6)
-		-- a far-off enemy is not cut by a character that jumped across the room
-		t.isFalse(DashCut.hits(a, b, 5, Vector3.new(0, 0, -200), 1.5))
+		t.near(b.Z, -6, 1e-6)
+		-- a dash a wall stopped at once is a point, and never runs backwards
+		local c, d = DashCut.line(A, Vector3.new(1, 0, 0), 0)
+		t.near((d - c).Magnitude, 0, 1e-9)
+		local e, f = DashCut.line(A, Vector3.new(1, 0, 0), -4)
+		t.near((f - e).Magnitude, 0, 1e-9)
+	end)
+
+	--[[ The way is the one thing the client says. Whatever it sends, the
+	     server gets a flat unit direction or nothing: never a longer dash. ]]
+	t.test("what a client sends is made a flat direction, or nothing", function()
+		local way = DashCut.heading(Vector3.new(3, 9, -4)) :: Vector3
+		t.near(way.Magnitude, 1, 1e-6)
+		t.near(way.Y, 0, 1e-9)
+		t.near(way.X, 0.6, 1e-6)
+		t.near((DashCut.heading(Vector3.new(0, 0, -5000)) :: Vector3).Magnitude, 1, 1e-6)
+		t.isNil(DashCut.heading(nil))
+		t.isNil(DashCut.heading(7))
+		t.isNil(DashCut.heading("north"))
+		t.isNil(DashCut.heading(Vector3.new(0, 1, 0)), "straight up is no way to dash")
+		t.isNil(DashCut.heading(Vector3.zero))
+		t.isNil(DashCut.heading(Vector3.new(0 / 0, 0, 1)), "not a number")
+		t.isNil(DashCut.heading(Vector3.new(math.huge, 0, 0)))
 	end)
 
 	t.test("an enemy is pushed out from the nearest point of the line", function()

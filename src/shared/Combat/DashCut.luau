@@ -4,12 +4,15 @@
 	ground a dash covered, and who stood in it.
 
 	The dash itself is the client's movement, as every position is
-	(`Input/Dash`). The server only notes where the character was when the
-	dash began and where it is when the dash is over, and strikes every
-	enemy within `width` of the line between (`Combat/MeleeSystem.dash`).
-	`path` never trusts that line to be longer than a dash can be, so a
-	client that moves its character somewhere else mid-dash cuts no more
-	ground than an honest one.
+	(`Input/Dash`), and it is over in an eighth of a second: by the time
+	the server sees the character move, half the dash is done (measured in
+	Studio, 2026-11-16: 3.2 studs seen of 6). So the client says which way
+	it dashed and the server draws the line itself: from where the
+	character stands as the word arrives, along that way, a dash's length
+	or as far as a wall lets it (`Combat/MeleeSystem.dash`). Every enemy
+	within `width` of that line is struck. The way is the only thing the
+	client says; a dash may go any way, so a client that lies about it has
+	only dashed somewhere else.
 
 	Pure geometry, flat on the floor, so `tests/DashCut.spec` can pin its
 	edges. Height never decides a hit.
@@ -32,15 +35,25 @@ function DashCut.cooldown(class: string?): number
 	return if own then own.cooldown else Balance.Player.dash.cooldown
 end
 
---[[ The line a dash cut, flat: from where it began to where it ended, and
-     no longer than `most` studs however far apart the two are. ]]
-function DashCut.path(from: Vector3, to: Vector3, most: number): (Vector3, Vector3)
-	local a, b = flat(from), flat(to)
-	local span = b - a
-	if span.Magnitude > most and most >= 0 then
-		b = a + span.Unit * most
+--[[ The way a dash went, flat and unit length, from what a client sent:
+     nil for anything that is not a direction (not a vector, not a number,
+     straight up). ]]
+function DashCut.heading(sent: unknown): Vector3?
+	if typeof(sent) ~= "Vector3" then
+		return nil
 	end
-	return a, b
+	local way = flat(sent :: Vector3)
+	if way.X ~= way.X or way.Z ~= way.Z or way.Magnitude < 1e-3 or way.Magnitude > 1e6 then
+		return nil
+	end
+	return way.Unit
+end
+
+--[[ The line a dash cut, flat: `length` studs from `from` along `heading`
+     (unit length). ]]
+function DashCut.line(from: Vector3, heading: Vector3, length: number): (Vector3, Vector3)
+	local a = flat(from)
+	return a, a + flat(heading) * math.max(length, 0)
 end
 
 --[[ The point of the line from `a` to `b` nearest `at`, flat. ]]

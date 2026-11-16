@@ -428,10 +428,11 @@ Remotes.PlayerGrabbed = "PlayerGrabbed"
      character against the cone and adds the pull to its walking. ]]
 Remotes.PlayerDragged = "PlayerDragged"
 
---[[ Client → server. This player's dash began (the dash itself is the
-     client's movement). Earthbreaker, Shield Throw and a class whose dash
-     cuts (the Assassin) care; the server ignores it for anyone else and
-     any sooner than the dash's cooldown. ]]
+--[[ Client → server. This player's dash began, and which way it goes (a
+     Vector3; the dash itself is the client's movement). Earthbreaker,
+     Shield Throw and a class whose dash cuts (the Assassin, the only one
+     that reads the way: `DashCut.heading`) care; the server ignores it for
+     anyone else and any sooner than the dash's cooldown. ]]
 Remotes.DashStarted = "DashStarted"
 
 --[[ Client → server. Redeal the open hand. The server checks there is a

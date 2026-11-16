@@ -599,7 +599,7 @@ end)
 	will. Where he lands is his character's, as
 	every position is.
 ]]
-Inbound.on(Remotes.DashStarted, function(player)
+Inbound.on(Remotes.DashStarted, function(player, heading)
 	local session = RunSession.get(player)
 	local root = session and session.root
 	if not session or not root or not session.alive then
@@ -618,7 +618,7 @@ Inbound.on(Remotes.DashStarted, function(player)
 	session.lastDashAt = now
 	ClassUpgrades.onDash(session, root, now)
 	--[[ A class whose dash cuts (the Assassin's Shadow Dash). ]]
-	MeleeSystem.dash(session, root, now)
+	MeleeSystem.dash(session, root, now, DashCut.heading(heading))
 	if session.earthbreaker <= 0 then
 		return
 	end

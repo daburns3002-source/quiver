@@ -276,6 +276,9 @@ local function flightLength(origin: Vector3, direction: Vector3, most: number): 
 	return length
 end
 
+--[[ For a dash that cuts (`Combat/MeleeSystem.dash`): how far it got. ]]
+ClassUpgrades.flightLength = flightLength
+
 --[[ Phoenix Arrow: the phoenix itself, and its fire dropped along its
      path as it passes. ]]
 local function phoenix(session: Session, origin: Vector3, direction: Vector3, now: number)

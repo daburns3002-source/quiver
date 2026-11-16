@@ -134,12 +134,19 @@ local Classes: { [string]: Class } = {
 	     class now", and yes to option A, "twin daggers up close"): about two
 	     strikes a second, each lighter than an arrow, on what is right in
 	     front of it: a slash from each hand, a narrow arc, then both daggers
-	     driven in together, 1.5x in a small circle. No guard: it lives by
-	     its dash (`dash`), not by trading blows. Half as much health again
-	     as the Ranger (338; owner, 2026-11-16, "Yes, 1.5x health"): with the
-	     Ranger's 225 a bot that never dashed died in room 4, 5 and 5 of
-	     Mossy Glade 1-1, since it has to stand 8 studs from what it hits.
-	     Still well under the Warden's 495, which trades blows. ]]
+	     driven in together, 1.5x in a small circle.
+
+	     What keeps it alive (Studio, 2026-11-16, a bot through Mossy Glade
+	     1-1's ten rooms): with the Ranger's 225 health and no guard it died
+	     in room 4, 5 and 5; with half as much health again (338; owner,
+	     2026-11-16, "Yes, 1.5x health") it still died in room 5, and in
+	     room 7 dashing every time the dash was back, about a hit for every
+	     two kills: a class that stands 8 studs from what it hits is in
+	     reach of all of it. So its strikes guard it as the Warden's do
+	     (`swing.guard`: nothing lands mid-strike), and it keeps the 1.5x:
+	     the same bot then won twice, on 34% and 93% health, the second
+	     time never dashing. Still well under the Warden's 495, with a
+	     shorter, narrower swing. ]]
 	Assassin = {
 		weapon = "SplinterDaggers",
 		damageScale = 0.75,
@@ -163,6 +170,7 @@ local Classes: { [string]: Class } = {
 			     put a 3 stud gap between every strike and the next, and
 			     four strikes cleared the dummies out of reach. ]]
 			knock = { 0.35, 0.35, 1 },
+			guard = true,
 		},
 		--[[ Shadow Dash, the class's skill (owner, 2026-11-15): the dash
 		     cuts what it passes through, 1.5x a strike, and is back in 2.5 s

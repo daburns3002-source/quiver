@@ -60,3 +60,11 @@ no MERGE on the Gear card, and no tier in the damage. `tests/ClassLevels.spec` h
    menu, each with a gold `aura`, `shotGlow` or `trailGlow` (rule 12). Grips, measured from the
    GLBs: the bow's riser is on +X (yaw a quarter turn), gripped at its middle; the staff 43% up,
    on its wrap; the blade 17.5% up, its handle running from 10% to 25% under the guard.
+
+## Golden Daggers (the Assassin), drawn 2026-11-16
+
+The Assassin's class level 10 gives no weapon yet (`Config/ClassLevels.waiting`). Codex's front
+view, after the Golden Blade: `assets/concepts/blocky/weapons/skins/golden/golden_daggers.png`, a
+gold dagger with a white-gold edge, a winged guard with a square ruby, a leather hilt and a gold
+block pommel. Each picture is **one** dagger, not the pair: the game holds a copy in each hand (`Config/Weapons` `offhand`). Prompts: `assets/concepts/blocky/weapons/skins/dagger_prompts.py`; all eleven on one sheet: `daggers_contact_2026_11_16.jpg`. **Design only: the owner has not seen them yet, and no Tripo credits are spent before the go-ahead** (45 a model with Polycount 2,000 and a 2K texture). Once modelled and imported it joins `skins_to_luau.py`'s `GOLDEN` list and
+`ClassLevels.weapons`, and the Assassin leaves `waiting`.

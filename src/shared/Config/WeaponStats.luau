@@ -110,6 +110,13 @@ local WeaponStats = {
 			innate = { BattleCry = 1 },
 			effect = "Golden cry: each kill quickens your swings.",
 		},
+		GoldenDaggers = {
+			rarity = "Legendary",
+			area = 1,
+			earned = true,
+			innate = { DeathMark = 1 },
+			effect = "Golden mark: the toughest enemy takes more from you.",
+		},
 
 		-- Area 1, the Mossy Glade's skins (docs/PETS-FOREST.md).
 		AcornBow = { rarity = "Uncommon", area = 1 },
@@ -158,6 +165,46 @@ local WeaponStats = {
 			area = 1,
 			innate = { Whirlwind = 1 },
 			effect = "Heartwood whirl: every fourth swing spins all around you.",
+		},
+
+		--[[ The Assassin's (owner, 2026-11-16 and 17: every pair remade or
+		     made in Tripo as one dagger, imported 2026-11-17). Each effect
+		     is a card the Assassin draws, and no two of its weapons carry
+		     the same one. ]]
+		BrambleShivs = { rarity = "Uncommon", area = 1 },
+		FireflyFangs = { rarity = "Rare", area = 1 },
+		GladeFoxClaws = { rarity = "Epic", area = 1 },
+		EmberWilfFangs = {
+			rarity = "Legendary",
+			area = 1,
+			innate = { Blaze = 1 },
+			effect = "Ember fangs: every strike sets the enemy burning.",
+		},
+		GlimmerhornDaggers = {
+			rarity = "Mythic",
+			area = 1,
+			innate = { ThousandCuts = 1 },
+			effect = "Glimmer shadows: every ten seconds, shadows cut every enemy.",
+		},
+
+		--[[ Area 2, Thornwood: the Assassin's daggers only (docs/WEAPONS-THORNWOOD.md;
+		     the other classes' Thornwood weapons are designed, not built).
+		     The area is not stocked (`Config/Shop`), so these are held and
+		     fought with in the sandbox and not for sale. ]]
+		HedgePrickers = { rarity = "Uncommon", area = 2 },
+		TuskKnives = { rarity = "Rare", area = 2 },
+		BurrfangDaggers = { rarity = "Epic", area = 2 },
+		SilkfangDaggers = {
+			rarity = "Legendary",
+			area = 2,
+			innate = { PoisonTrail = 1 },
+			effect = "Silk venom: your dash leaves a cloud of poison behind.",
+		},
+		LurkerClaws = {
+			rarity = "Mythic",
+			area = 2,
+			innate = { FanOfKnives = 1 },
+			effect = "Lurker's thorns: a fan of thorns flies with your strikes.",
 		},
 
 		--[[ Area 3, the Drowned Village (docs/WEAPONS-DROWNED.md). Tiers read
@@ -221,11 +268,29 @@ local WeaponStats = {
 			effect = "Stormglass: a wounded enemy is sheared clean through.",
 		},
 
+		--[[ The Assassin's (2026-11-17), the Drowned Village's first daggers. ]]
+		DriftwoodDirks = { rarity = "Uncommon", area = 3 },
+		BarnacleKnives = { rarity = "Rare", area = 3 },
+		EeltoothDaggers = { rarity = "Epic", area = 3 },
+		TollbellDaggers = {
+			rarity = "Legendary",
+			area = 3,
+			innate = { SerratedEdge = 1 },
+			effect = "Toll's edge: a critical strike leaves its mark taking more.",
+		},
+		RiptideFangs = {
+			rarity = "Mythic",
+			area = 3,
+			innate = { Bleed = 1 },
+			effect = "Riptide: every strike leaves the enemy bleeding.",
+		},
+
 		--[[ Area 4, Bogheart Caverns (docs/WEAPONS-BOGHEART.md), the low-poly
 		     Tripo set imported 2026-11-06. Not stocked yet, like area 3
 		     (`Config/Shop`): held and fought with in the sandbox until the
 		     area has its enemies, its stages behind a portal and an
-		     `Config/Economy` entry. The five daggers wait for the Assassin.
+		     `Config/Economy` entry. The five daggers were remade as one
+		     dagger each and wired 2026-11-17.
 		     Each effect is a card its own class can draw. ]]
 		PeatwoodBow = { rarity = "Uncommon", area = 4 },
 		SporestringBow = { rarity = "Rare", area = 4 },
@@ -273,6 +338,22 @@ local WeaponStats = {
 			area = 4,
 			innate = { Earthbreaker = 1 },
 			effect = "Deepglow: the lake crystal splits the cavern floor.",
+		},
+
+		MossShivs = { rarity = "Uncommon", area = 4 },
+		SporeFangs = { rarity = "Rare", area = 4 },
+		GlowcapKris = { rarity = "Epic", area = 4 },
+		ToadtongueDaggers = {
+			rarity = "Legendary",
+			area = 4,
+			innate = { Backstab = 1 },
+			effect = "Toad's ambush: a strike from behind lands harder.",
+		},
+		PrismStingers = {
+			rarity = "Mythic",
+			area = 4,
+			innate = { PhantomBlades = 1 },
+			effect = "Prism shards: two ghost daggers circle you and cut what they touch.",
 		},
 	} :: { [string]: Stats },
 }

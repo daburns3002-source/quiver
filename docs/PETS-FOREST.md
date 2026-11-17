@@ -134,7 +134,8 @@ five wait to be imported, `docs/TRACKER.md`). **All six were remade in Tripo on 
 (owner: "Yes, remake them"; one dagger each, 4,000 triangles, 8K texture, as the other eighteen
 Mossy Glade weapons are), from Codex's redrawing of each design sheet's front view alone
 (`forest/<name>_single.png`, `single_dagger_prompts.py`); the October Claude Design models are
-superseded, the Splinter Daggers' included once the new one is imported. They were first drawn as the Duelist's daggers (the open alternative to the Warden, `docs/WORLD.md`)
+superseded: all six were imported and wired 2026-11-17 (the Splinter Daggers' own model too; the Ember Wilf
+Fangs carry Blaze, the Glimmerhorn Daggers Thousand Cuts), sold from the Mossy Glade's DAGGER chest. They were first drawn as the Duelist's daggers (the open alternative to the Warden, `docs/WORLD.md`)
 have their Mossy Glade ladder too: blocky sheet
 `assets/concepts/blocky/weapons/skins/forest/w4_dagger_skins.png` (Codex,
 2026-10-23), each pair drawn with its projectile, an **arcing slash** (a

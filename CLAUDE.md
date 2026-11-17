@@ -438,8 +438,12 @@ did not get through 1-1 in Studio, 2026-11-16): a
 slash from each hand in a 70 degree arc 8.5 out, then both daggers driven in for 1.5x in a small
 circle. A slash shoves an enemy a third as far as a hit usually does (`swing.knock`, a share
 `EnemyManager.damage` takes), the stab all the way: full shoves put everything out of the daggers'
-own reach, and its phantom blades and shadows shove as lightly for the same reason. It holds the Splinter Daggers (`Config/Weapons.SplinterDaggers`: the Claude Design dagger of
-`docs/PETS-FOREST.md`, one model in each hand through `offhand`), whose kit is **written as numbers**,
+own reach, and its phantom blades and shadows shove as lightly for the same reason. It holds the Splinter Daggers (`Config/Weapons.SplinterDaggers`, one model in each hand through `offhand`)
+and 21 skins of them (2026-11-17: every pair a Tripo model of ONE dagger at 4,000 triangles and an 8K
+texture, `assets/models/weapons/blocky/daggers`; Mossy Glade's five, Thornwood's five, the Drowned
+Village's five, Bogheart's five and the Golden Daggers of class level 10), each with its own cleave and,
+Legendary and Mythic, an effect no other of its weapons carries (`tests/WeaponFx.spec`); they come from a
+DAGGER chest (`Config/Shop.chests`, four now), Thornwood's excepted (not stocked). The Splinter Daggers, whose kit is **written as numbers**,
 not keyed in Claude Design (`assets/models/weapons/splinter_daggers_r15/make_kit.py` draws every key
 as a stick figure to look the poses over outside Studio; a Design kit can replace its JSON whole).
 Its nine sounds (three strikes, the dash's cut, five cards) are one sprite, the owner's picks of round 33 (`assassin_sprite_r33.mp3`, 2026-11-17).

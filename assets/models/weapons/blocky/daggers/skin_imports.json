@@ -1,0 +1,530 @@
+{
+ "SplinterDaggers": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://109981035122608",
+    "name": "Blade",
+    "size": [
+     0.2712,
+     0.9795,
+     0.2567
+    ],
+    "textureId": "rbxassetid://123337694391679"
+   }
+  ],
+  "size": [
+   0.2712,
+   0.9795,
+   0.2567
+  ]
+ },
+ "BrambleShivs": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://112072754755619",
+    "name": "Blade",
+    "size": [
+     0.3071,
+     0.9807,
+     0.2278
+    ],
+    "textureId": "rbxassetid://135404268248545"
+   }
+  ],
+  "size": [
+   0.3071,
+   0.9807,
+   0.2278
+  ]
+ },
+ "FireflyFangs": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://125647619952354",
+    "name": "Blade",
+    "size": [
+     0.2414,
+     0.9797,
+     0.1993
+    ],
+    "textureId": "rbxassetid://137655955437413"
+   }
+  ],
+  "size": [
+   0.2414,
+   0.9797,
+   0.1993
+  ]
+ },
+ "GladeFoxClaws": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://117405917457037",
+    "name": "Blade",
+    "size": [
+     0.2993,
+     0.9832,
+     0.2731
+    ],
+    "textureId": "rbxassetid://79019869679128"
+   }
+  ],
+  "size": [
+   0.2993,
+   0.9832,
+   0.2731
+  ]
+ },
+ "EmberWilfFangs": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://92784496611629",
+    "name": "Blade",
+    "size": [
+     0.2823,
+     0.9831,
+     0.3052
+    ],
+    "textureId": "rbxassetid://109622119484117"
+   }
+  ],
+  "size": [
+   0.2823,
+   0.9831,
+   0.3052
+  ]
+ },
+ "GlimmerhornDaggers": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://96513730674225",
+    "name": "Blade",
+    "size": [
+     0.5442,
+     0.9823,
+     0.2134
+    ],
+    "textureId": "rbxassetid://135921372690096"
+   }
+  ],
+  "size": [
+   0.5442,
+   0.9823,
+   0.2134
+  ]
+ },
+ "HedgePrickers": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://121273305347098",
+    "name": "Blade",
+    "size": [
+     0.3088,
+     0.9774,
+     0.2126
+    ],
+    "textureId": "rbxassetid://118644019151961"
+   }
+  ],
+  "size": [
+   0.3088,
+   0.9774,
+   0.2126
+  ]
+ },
+ "TuskKnives": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://136473741539690",
+    "name": "Blade",
+    "size": [
+     0.3128,
+     0.9783,
+     0.175
+    ],
+    "textureId": "rbxassetid://112310444935977"
+   }
+  ],
+  "size": [
+   0.3128,
+   0.9783,
+   0.175
+  ]
+ },
+ "BurrfangDaggers": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://109246360782906",
+    "name": "Blade",
+    "size": [
+     0.3173,
+     0.9811,
+     0.2153
+    ],
+    "textureId": "rbxassetid://96564476510507"
+   }
+  ],
+  "size": [
+   0.3173,
+   0.9811,
+   0.2153
+  ]
+ },
+ "SilkfangDaggers": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://117721840855836",
+    "name": "Blade",
+    "size": [
+     0.3508,
+     0.9782,
+     0.2156
+    ],
+    "textureId": "rbxassetid://99600975463545"
+   }
+  ],
+  "size": [
+   0.3508,
+   0.9782,
+   0.2156
+  ]
+ },
+ "LurkerClaws": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://76588552074579",
+    "name": "Blade",
+    "size": [
+     0.4077,
+     0.9833,
+     0.1795
+    ],
+    "textureId": "rbxassetid://138528147342659"
+   }
+  ],
+  "size": [
+   0.4077,
+   0.9833,
+   0.1795
+  ]
+ },
+ "DriftwoodDirks": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://108529956253947",
+    "name": "Blade",
+    "size": [
+     0.3639,
+     0.981,
+     0.1681
+    ],
+    "textureId": "rbxassetid://120432794917352"
+   }
+  ],
+  "size": [
+   0.3639,
+   0.981,
+   0.1681
+  ]
+ },
+ "BarnacleKnives": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://140173091377064",
+    "name": "Blade",
+    "size": [
+     0.3198,
+     0.9789,
+     0.22
+    ],
+    "textureId": "rbxassetid://120141022136704"
+   }
+  ],
+  "size": [
+   0.3198,
+   0.9789,
+   0.22
+  ]
+ },
+ "EeltoothDaggers": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://88277814709938",
+    "name": "Blade",
+    "size": [
+     0.36,
+     0.9796,
+     0.1511
+    ],
+    "textureId": "rbxassetid://134472793818377"
+   }
+  ],
+  "size": [
+   0.36,
+   0.9796,
+   0.1511
+  ]
+ },
+ "TollbellDaggers": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://90065675724031",
+    "name": "Blade",
+    "size": [
+     0.3316,
+     0.9791,
+     0.2352
+    ],
+    "textureId": "rbxassetid://80272304011974"
+   }
+  ],
+  "size": [
+   0.3316,
+   0.9791,
+   0.2352
+  ]
+ },
+ "RiptideFangs": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://72842948577032",
+    "name": "Blade",
+    "size": [
+     0.3829,
+     0.9821,
+     0.1961
+    ],
+    "textureId": "rbxassetid://119440703225958"
+   }
+  ],
+  "size": [
+   0.3829,
+   0.9821,
+   0.1961
+  ]
+ },
+ "MossShivs": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://137107027765402",
+    "name": "Blade",
+    "size": [
+     0.2998,
+     0.9803,
+     0.2154
+    ],
+    "textureId": "rbxassetid://104305608141564"
+   }
+  ],
+  "size": [
+   0.2998,
+   0.9803,
+   0.2154
+  ]
+ },
+ "SporeFangs": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://112465728947288",
+    "name": "Blade",
+    "size": [
+     0.3186,
+     0.9805,
+     0.2274
+    ],
+    "textureId": "rbxassetid://96548517342191"
+   }
+  ],
+  "size": [
+   0.3186,
+   0.9805,
+   0.2274
+  ]
+ },
+ "GlowcapKris": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://74062370504959",
+    "name": "Blade",
+    "size": [
+     0.303,
+     0.9793,
+     0.1823
+    ],
+    "textureId": "rbxassetid://72682821735921"
+   }
+  ],
+  "size": [
+   0.303,
+   0.9793,
+   0.1823
+  ]
+ },
+ "ToadtongueDaggers": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://86671544277404",
+    "name": "Blade",
+    "size": [
+     0.335,
+     0.9799,
+     0.2064
+    ],
+    "textureId": "rbxassetid://85495479463592"
+   }
+  ],
+  "size": [
+   0.335,
+   0.9799,
+   0.2064
+  ]
+ },
+ "PrismStingers": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://132291881011733",
+    "name": "Blade",
+    "size": [
+     0.3698,
+     0.9864,
+     0.2304
+    ],
+    "textureId": "rbxassetid://70588723273817"
+   }
+  ],
+  "size": [
+   0.3698,
+   0.9864,
+   0.2304
+  ]
+ },
+ "GoldenDaggers": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://138098743412792",
+    "name": "Blade",
+    "size": [
+     0.4029,
+     0.9796,
+     0.1951
+    ],
+    "textureId": "rbxassetid://126966074841057"
+   }
+  ],
+  "size": [
+   0.4029,
+   0.9796,
+   0.1951
+  ]
+ }
+}

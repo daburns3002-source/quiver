@@ -317,12 +317,16 @@ local Weapons = {
 			shake = 0.12,
 			shakeTime = 0.12,
 		},
+		--[[ The Tripo remake of 2026-11-16 (one dagger, 4,000 triangles, an
+		     8K texture; `assets/models/weapons/blocky/daggers`), at the
+		     October dagger's length, gripped 18% up it, on its wrap. ]]
 		parts = {
 			{
 				name = "Dagger",
-				meshId = "rbxassetid://104630130049272",
-				size = Vector3.new(0.18, 0.5444, 0.112),
-				offset = Vector3.new(0, 0.2, 0),
+				meshId = "rbxassetid://109981035122608",
+				textureId = "rbxassetid://123337694391679",
+				size = Vector3.new(0.1507, 0.5444, 0.1427),
+				offset = Vector3.new(0.0001, 0.1742, -0.0006),
 			},
 		},
 	} :: Weapon,
@@ -1181,6 +1185,360 @@ local skins: { [string]: any } = {
 		aura = Color3.fromRGB(255, 198, 44),
 		trailGlow = Color3.fromRGB(255, 198, 44),
 	},
+	BrambleShivs = {
+		-- `BrambleShivs`, held as the SplinterDaggers is, playing its kit until it has its own
+		kit = "SplinterDaggers",
+		skinOf = "SplinterDaggers",
+		scale = 1.9429,
+		parts = {
+			{
+				name = "Blade",
+				meshId = "rbxassetid://112072754755619",
+				size = Vector3.new(0.3071, 0.9807, 0.2278),
+				offset = Vector3.new(0, 0.3138, 0),
+				turned = true,
+				textureId = "rbxassetid://135404268248545",
+			},
+		} :: { WeaponPart },
+	},
+	FireflyFangs = {
+		-- `FireflyFangs`, held as the SplinterDaggers is, playing its kit until it has its own
+		kit = "SplinterDaggers",
+		skinOf = "SplinterDaggers",
+		scale = 1.9449,
+		parts = {
+			{
+				name = "Blade",
+				meshId = "rbxassetid://125647619952354",
+				size = Vector3.new(0.2414, 0.9797, 0.1993),
+				offset = Vector3.new(-0.0028, 0.3135, 0),
+				turned = true,
+				textureId = "rbxassetid://137655955437413",
+			},
+		} :: { WeaponPart },
+	},
+	GladeFoxClaws = {
+		-- `GladeFoxClaws`, held as the SplinterDaggers is, playing its kit until it has its own
+		kit = "SplinterDaggers",
+		skinOf = "SplinterDaggers",
+		scale = 1.938,
+		parts = {
+			{
+				name = "Blade",
+				meshId = "rbxassetid://117405917457037",
+				size = Vector3.new(0.2993, 0.9832, 0.2731),
+				offset = Vector3.new(-0.0129, 0.3048, 0.0005),
+				turned = true,
+				textureId = "rbxassetid://79019869679128",
+			},
+		} :: { WeaponPart },
+	},
+	EmberWilfFangs = {
+		-- `EmberWilfFangs`, held as the SplinterDaggers is, playing its kit until it has its own
+		kit = "SplinterDaggers",
+		skinOf = "SplinterDaggers",
+		scale = 1.9382,
+		parts = {
+			{
+				name = "Blade",
+				meshId = "rbxassetid://92784496611629",
+				size = Vector3.new(0.2823, 0.9831, 0.3052),
+				offset = Vector3.new(-0.0021, 0.2851, 0.0004),
+				turned = true,
+				textureId = "rbxassetid://109622119484117",
+			},
+		} :: { WeaponPart },
+		aura = Color3.fromRGB(255, 140, 40),
+		trailGlow = Color3.fromRGB(255, 140, 40),
+	},
+	GlimmerhornDaggers = {
+		-- `GlimmerhornDaggers`, held as the SplinterDaggers is, playing its kit until it has its own
+		kit = "SplinterDaggers",
+		skinOf = "SplinterDaggers",
+		scale = 1.9397,
+		parts = {
+			{
+				name = "Blade",
+				meshId = "rbxassetid://96513730674225",
+				size = Vector3.new(0.5442, 0.9823, 0.2134),
+				offset = Vector3.new(0.0003, 0.3536, 0.0008),
+				turned = true,
+				textureId = "rbxassetid://135921372690096",
+			},
+		} :: { WeaponPart },
+		aura = Color3.fromRGB(235, 170, 255),
+		trailGlow = Color3.fromRGB(235, 170, 255),
+	},
+	HedgePrickers = {
+		-- `HedgePrickers`, held as the SplinterDaggers is, playing its kit until it has its own
+		kit = "SplinterDaggers",
+		skinOf = "SplinterDaggers",
+		scale = 1.9495,
+		parts = {
+			{
+				name = "Blade",
+				meshId = "rbxassetid://121273305347098",
+				size = Vector3.new(0.3088, 0.9774, 0.2126),
+				offset = Vector3.new(-0.0002, 0.3323, 0.0001),
+				turned = true,
+				textureId = "rbxassetid://118644019151961",
+			},
+		} :: { WeaponPart },
+	},
+	TuskKnives = {
+		-- `TuskKnives`, held as the SplinterDaggers is, playing its kit until it has its own
+		kit = "SplinterDaggers",
+		skinOf = "SplinterDaggers",
+		scale = 1.9477,
+		parts = {
+			{
+				name = "Blade",
+				meshId = "rbxassetid://136473741539690",
+				size = Vector3.new(0.3128, 0.9783, 0.175),
+				offset = Vector3.new(-0.0009, 0.2935, 0.0084),
+				turned = true,
+				textureId = "rbxassetid://112310444935977",
+			},
+		} :: { WeaponPart },
+	},
+	BurrfangDaggers = {
+		-- `BurrfangDaggers`, held as the SplinterDaggers is, playing its kit until it has its own
+		kit = "SplinterDaggers",
+		skinOf = "SplinterDaggers",
+		scale = 1.9421,
+		parts = {
+			{
+				name = "Blade",
+				meshId = "rbxassetid://109246360782906",
+				size = Vector3.new(0.3173, 0.9811, 0.2153),
+				offset = Vector3.new(0.0011, 0.2355, 0.0002),
+				turned = true,
+				textureId = "rbxassetid://96564476510507",
+			},
+		} :: { WeaponPart },
+	},
+	SilkfangDaggers = {
+		-- `SilkfangDaggers`, held as the SplinterDaggers is, playing its kit until it has its own
+		kit = "SplinterDaggers",
+		skinOf = "SplinterDaggers",
+		scale = 1.9479,
+		parts = {
+			{
+				name = "Blade",
+				meshId = "rbxassetid://117721840855836",
+				size = Vector3.new(0.3508, 0.9782, 0.2156),
+				offset = Vector3.new(0.0003, 0.2739, 0.0002),
+				turned = true,
+				textureId = "rbxassetid://99600975463545",
+			},
+		} :: { WeaponPart },
+		aura = Color3.fromRGB(230, 60, 200),
+		trailGlow = Color3.fromRGB(230, 60, 200),
+	},
+	LurkerClaws = {
+		-- `LurkerClaws`, held as the SplinterDaggers is, playing its kit until it has its own
+		kit = "SplinterDaggers",
+		skinOf = "SplinterDaggers",
+		scale = 1.9378,
+		parts = {
+			{
+				name = "Blade",
+				meshId = "rbxassetid://76588552074579",
+				size = Vector3.new(0.4077, 0.9833, 0.1795),
+				offset = Vector3.new(-0.0002, 0.2852, -0.0004),
+				turned = true,
+				textureId = "rbxassetid://138528147342659",
+			},
+		} :: { WeaponPart },
+		aura = Color3.fromRGB(255, 70, 210),
+		trailGlow = Color3.fromRGB(255, 70, 210),
+	},
+	DriftwoodDirks = {
+		-- `DriftwoodDirks`, held as the SplinterDaggers is, playing its kit until it has its own
+		kit = "SplinterDaggers",
+		skinOf = "SplinterDaggers",
+		scale = 1.9423,
+		parts = {
+			{
+				name = "Blade",
+				meshId = "rbxassetid://108529956253947",
+				size = Vector3.new(0.3639, 0.981, 0.1681),
+				offset = Vector3.new(0.0015, 0.2649, 0.0013),
+				turned = true,
+				textureId = "rbxassetid://120432794917352",
+			},
+		} :: { WeaponPart },
+	},
+	BarnacleKnives = {
+		-- `BarnacleKnives`, held as the SplinterDaggers is, playing its kit until it has its own
+		kit = "SplinterDaggers",
+		skinOf = "SplinterDaggers",
+		scale = 1.9465,
+		parts = {
+			{
+				name = "Blade",
+				meshId = "rbxassetid://140173091377064",
+				size = Vector3.new(0.3198, 0.9789, 0.22),
+				offset = Vector3.new(-0.0006, 0.2643, -0.0008),
+				turned = true,
+				textureId = "rbxassetid://120141022136704",
+			},
+		} :: { WeaponPart },
+	},
+	EeltoothDaggers = {
+		-- `EeltoothDaggers`, held as the SplinterDaggers is, playing its kit until it has its own
+		kit = "SplinterDaggers",
+		skinOf = "SplinterDaggers",
+		scale = 1.9451,
+		parts = {
+			{
+				name = "Blade",
+				meshId = "rbxassetid://88277814709938",
+				size = Vector3.new(0.36, 0.9796, 0.1511),
+				offset = Vector3.new(-0.0002, 0.3331, -0.0006),
+				turned = true,
+				textureId = "rbxassetid://134472793818377",
+			},
+		} :: { WeaponPart },
+	},
+	TollbellDaggers = {
+		-- `TollbellDaggers`, held as the SplinterDaggers is, playing its kit until it has its own
+		kit = "SplinterDaggers",
+		skinOf = "SplinterDaggers",
+		scale = 1.9461,
+		parts = {
+			{
+				name = "Blade",
+				meshId = "rbxassetid://90065675724031",
+				size = Vector3.new(0.3316, 0.9791, 0.2352),
+				offset = Vector3.new(0.0006, 0.2448, 0.0026),
+				turned = true,
+				textureId = "rbxassetid://80272304011974",
+			},
+		} :: { WeaponPart },
+		aura = Color3.fromRGB(70, 220, 200),
+		trailGlow = Color3.fromRGB(70, 220, 200),
+	},
+	RiptideFangs = {
+		-- `RiptideFangs`, held as the SplinterDaggers is, playing its kit until it has its own
+		kit = "SplinterDaggers",
+		skinOf = "SplinterDaggers",
+		scale = 1.9401,
+		parts = {
+			{
+				name = "Blade",
+				meshId = "rbxassetid://72842948577032",
+				size = Vector3.new(0.3829, 0.9821, 0.1961),
+				offset = Vector3.new(-0.0023, 0.2652, 0.0006),
+				turned = true,
+				textureId = "rbxassetid://119440703225958",
+			},
+		} :: { WeaponPart },
+		aura = Color3.fromRGB(90, 240, 225),
+		trailGlow = Color3.fromRGB(90, 240, 225),
+	},
+	MossShivs = {
+		-- `MossShivs`, held as the SplinterDaggers is, playing its kit until it has its own
+		kit = "SplinterDaggers",
+		skinOf = "SplinterDaggers",
+		scale = 1.9437,
+		parts = {
+			{
+				name = "Blade",
+				meshId = "rbxassetid://137107027765402",
+				size = Vector3.new(0.2998, 0.9803, 0.2154),
+				offset = Vector3.new(0.0001, 0.3137, 0.0006),
+				turned = true,
+				textureId = "rbxassetid://104305608141564",
+			},
+		} :: { WeaponPart },
+	},
+	SporeFangs = {
+		-- `SporeFangs`, held as the SplinterDaggers is, playing its kit until it has its own
+		kit = "SplinterDaggers",
+		skinOf = "SplinterDaggers",
+		scale = 1.9433,
+		parts = {
+			{
+				name = "Blade",
+				meshId = "rbxassetid://112465728947288",
+				size = Vector3.new(0.3186, 0.9805, 0.2274),
+				offset = Vector3.new(0.0058, 0.3236, -0.0009),
+				turned = true,
+				textureId = "rbxassetid://96548517342191",
+			},
+		} :: { WeaponPart },
+	},
+	GlowcapKris = {
+		-- `GlowcapKris`, held as the SplinterDaggers is, playing its kit until it has its own
+		kit = "SplinterDaggers",
+		skinOf = "SplinterDaggers",
+		scale = 1.9457,
+		parts = {
+			{
+				name = "Blade",
+				meshId = "rbxassetid://74062370504959",
+				size = Vector3.new(0.303, 0.9793, 0.1823),
+				offset = Vector3.new(0.0018, 0.3134, -0.0007),
+				turned = true,
+				textureId = "rbxassetid://72682821735921",
+			},
+		} :: { WeaponPart },
+	},
+	ToadtongueDaggers = {
+		-- `ToadtongueDaggers`, held as the SplinterDaggers is, playing its kit until it has its own
+		kit = "SplinterDaggers",
+		skinOf = "SplinterDaggers",
+		scale = 1.9445,
+		parts = {
+			{
+				name = "Blade",
+				meshId = "rbxassetid://86671544277404",
+				size = Vector3.new(0.335, 0.9799, 0.2064),
+				offset = Vector3.new(-0.0015, 0.2744, 0),
+				turned = true,
+				textureId = "rbxassetid://85495479463592",
+			},
+		} :: { WeaponPart },
+		aura = Color3.fromRGB(245, 120, 160),
+		trailGlow = Color3.fromRGB(245, 120, 160),
+	},
+	PrismStingers = {
+		-- `PrismStingers`, held as the SplinterDaggers is, playing its kit until it has its own
+		kit = "SplinterDaggers",
+		skinOf = "SplinterDaggers",
+		scale = 1.9317,
+		parts = {
+			{
+				name = "Blade",
+				meshId = "rbxassetid://132291881011733",
+				size = Vector3.new(0.3698, 0.9864, 0.2304),
+				offset = Vector3.new(-0.0023, 0.2269, 0.0179),
+				turned = true,
+				textureId = "rbxassetid://70588723273817",
+			},
+		} :: { WeaponPart },
+		aura = Color3.fromRGB(63, 230, 242),
+		trailGlow = Color3.fromRGB(63, 230, 242),
+	},
+	GoldenDaggers = {
+		-- `GoldenDaggers`, held as the SplinterDaggers is, playing its kit until it has its own
+		kit = "SplinterDaggers",
+		skinOf = "SplinterDaggers",
+		scale = 1.9451,
+		parts = {
+			{
+				name = "Blade",
+				meshId = "rbxassetid://138098743412792",
+				size = Vector3.new(0.4029, 0.9796, 0.1951),
+				offset = Vector3.new(0.002, 0.2645, 0.0005),
+				turned = true,
+				textureId = "rbxassetid://126966074841057",
+			},
+		} :: { WeaponPart },
+		aura = Color3.fromRGB(255, 205, 56),
+		trailGlow = Color3.fromRGB(255, 205, 56),
+	},
 	-- SKINS END
 }
 for key, skin in skins do
@@ -1190,6 +1548,8 @@ for key, skin in skins do
 		scale = skin.scale,
 		grip = base.grip,
 		inHand = base.inHand,
+		--[[ A dagger skin is held in both hands, as the Splinter Daggers are. ]]
+		offhand = base.offhand,
 		clips = base.clips,
 		fireSound = base.fireSound,
 		comboSounds = base.comboSounds,

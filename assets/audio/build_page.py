@@ -245,6 +245,22 @@ ROUND_32 = [
     }),
 ]
 
+ROUND_33 = [
+    ("Round 33 · the Assassin's daggers", {
+        "dagger_slash": ("Slash, right hand", "The first strike of three. With the next one it plays about twice a second, so it has to be light. Today it is the Warden's swing sped up.", (0.5, 4)),
+        "dagger_slash_2": ("Slash, left hand", "The second strike, from the other hand. Pick one that sits well after your first.", (0.5, 4)),
+        "dagger_stab": ("Stab", "The third strike: both daggers driven in, 1.5x damage. A little weight.", None),
+        "fx_shadow_dash": ("Shadow Dash", "The dash cutting through whatever it passed, every 2.5 seconds. Today it borrows the stab.", None),
+    }),
+    ("Round 33 · the Assassin's cards (all silent today)", {
+        "fx_backstab": ("Backstab", "A strike from behind lands harder. Short: it can play several times a second.", (0.4, 3)),
+        "fx_poison_trail": ("Poison Trail", "The dash leaves a cloud of poison behind.", None),
+        "fx_fan_of_knives": ("Fan of Knives", "Three knives thrown in a fan, every four seconds of fighting.", None),
+        "fx_death_mark": ("Death Mark", "The toughest enemy in the room is marked. Rare, so it can be fuller.", None),
+        "fx_thousand_cuts": ("Thousand Cuts", "The Mythic: every ten seconds shadows cut every enemy at once.", None),
+    }),
+]
+
 # page: (rounds, picks collection, sounds already chosen, shown for context)
 ROUND_18 = [
     ("Round 18 · King Bloblin's attacks, two big takes each", {
@@ -280,6 +296,7 @@ ROUND_18 = [
 ]
 
 PAGES = {
+    "33": (ROUND_33, "picks33assassin", []),
     "32": (ROUND_32, "picks32cards", ["Rain of Arrows B", "Split Shot A", "Sniper Shot A (29)", "Wind Arrows A (29)", "Black Hole A", "Black Hole implode A", "Arcane Turret C", "Mana Surge B (29)", "Arcane Shield A", "Titan's Grip A", "Counter Strike A", "Shield Throw C", "Blade Storm A"]),
     "31": (ROUND_31, "picks31cards", ["Rain of Arrows B", "Split Shot A", "Sniper Shot A (29)", "Wind Arrows A (29)", "Black Hole A", "Black Hole implode A", "Arcane Turret C", "Mana Surge B (29)", "Arcane Shield A", "Titan's Grip A", "Counter Strike A", "Shield Throw C", "Blade Storm A"]),
     "30": (ROUND_30, "picks30cards", ["Rain of Arrows B", "Split Shot A", "Sniper Shot A (29)", "Wind Arrows A (29)", "Black Hole A", "Black Hole implode A", "Arcane Turret C", "Mana Surge B (29)", "Arcane Shield A", "Titan's Grip A", "Counter Strike A", "Shield Throw C", "Blade Storm A"]),

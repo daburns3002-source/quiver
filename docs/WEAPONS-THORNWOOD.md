@@ -211,3 +211,18 @@ keeps its effect whichever take is picked:
 2. The six effects and their numbers (each a new card except Root Hold).
 3. Whether the Epic blades get anything beyond their glow, as the Epic bows
    and staffs get projectiles.
+
+## Daggers (the Assassin), drawn 2026-11-16
+
+The Assassin opened on 2026-11-16 with no Thornwood daggers; the owner, told so, said "Ok take care
+of this". Codex's front views, in `assets/concepts/blocky/weapons/skins/thornwood/`. Each picture is **one** dagger, not the pair: the game holds a copy in each hand (`Config/Weapons` `offhand`). Prompts: `assets/concepts/blocky/weapons/skins/dagger_prompts.py`; all eleven on one sheet: `daggers_contact_2026_11_16.jpg`. **Design only: the owner has not seen them yet, and no Tripo credits are spent before the go-ahead** (45 a model with Polycount 2,000 and a 2K texture).
+
+| Tier | Daggers | Picture |
+|---|---|---|
+| Uncommon | **Hedge Prickers**: a long cream thorn for a blade, hedge-green handle bound in brown cord, a leaf at the guard | `hedge_prickers.png` |
+| Rare | **Tusk Knives**: a curved ivory boar tusk, brown leather grip, dark iron guard, a tuft of bristle at the pommel | `tusk_knives.png` |
+| Epic | **Burrfang Daggers**: a plum bramble blade with cream thorn barbs, maroon grip, a spiky burr pommel, a magenta glow in the groove | `burrfang_daggers.png` |
+| Legendary | **Silkfang Daggers**: a dark spider fang with an olive-gold edge, bound in white brood silk, a magenta gem; glows magenta | `silkfang_daggers.png` |
+| Mythic | **Lurker Claws**: a hooked black-green claw wrapped in living vine, a glowing magenta eye in the guard; glows magenta and green | `lurker_claws.png` |
+
+Effects for the Legendary and the Mythic are not chosen.

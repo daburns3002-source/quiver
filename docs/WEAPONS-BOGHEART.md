@@ -31,4 +31,10 @@ from the 2D art by `assets/ui/shop/bogheart_icons.py`. A Legendary's or Mythic's
 stocked: the area has no portal or `Config/Economy` entry yet.
 
 **Not wired:** the five daggers (Moss Shivs, Spore Fangs, Glowcap Kris, Toadtongue Daggers,
-Prism Stingers). Their meshes are imported, but the game has no Assassin class to hold them.
+Prism Stingers). The Assassin exists now (2026-11-16), but **each was modelled as the pair in one
+mesh** (`Workspace/TripoImports/Weapons`, 0.63 to 0.79 wide by 0.98 tall), and the game holds one
+dagger in each hand (`Config/Weapons` `offhand`), so a pair mesh cannot be held. The low-poly files
+are only in Studio; the repo's checkout has the 1.9 million triangle originals
+(`assets/concepts/blocky/weapons/skins/bogheart/*.glb`, untracked). They need redoing as single
+daggers in Tripo (45 credits each), or the originals split and reduced, which the owner's
+no-decimating rule is against: the owner's call.

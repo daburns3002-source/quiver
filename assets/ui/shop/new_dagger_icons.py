@@ -1,6 +1,6 @@
 """Icons for the Assassin's daggers drawn on 2026-11-16 (Thornwood, the
-Drowned Village and the Golden Daggers): the shop picture and the gear
-screen's outlined icon.
+Drowned Village and the Golden Daggers) and for Bogheart's five: the shop
+picture and the gear screen's outlined icon.
 
     python -I assets/ui/shop/new_dagger_icons.py
 
@@ -65,9 +65,16 @@ def crossed(dagger: Image.Image) -> Image.Image:
 def main() -> None:
     shop = HERE / "icons"
     gear = REPO / "assets/ui/gear/outlined"
-    jobs = json.loads(JOBS.read_text(encoding="utf-8"))["jobs"]
-    for stem, job in jobs.items():
-        icon = fit(crossed(single(SKINS / job["area"] / f"{stem}.png")))
+    listed = json.loads(JOBS.read_text(encoding="utf-8"))
+    pictures = {stem: (job, SKINS / job["area"] / f"{stem}.png") for stem, job in listed["jobs"].items()}
+    # Bogheart's five, remade as one dagger each: the left dagger of each
+    # pair's picture (single_dagger_prompts.py). Mossy Glade's six keep the
+    # pictures dagger_icons.py cut from their own sheet.
+    for stem, job in listed.get("remake", {}).items():
+        if job["area"] == "bogheart":
+            pictures[stem] = (job, SKINS / "bogheart" / f"{stem}_single.png")
+    for stem, (job, picture) in pictures.items():
+        icon = fit(crossed(single(picture)))
         icon.save(shop / f"{job['key']}.png")
         outlined(icon).save(gear / f"{job['key']}.png")
         print(job["key"])

@@ -35,6 +35,9 @@ Prism Stingers). The Assassin exists now (2026-11-16), but **each was modelled a
 mesh** (`Workspace/TripoImports/Weapons`, 0.63 to 0.79 wide by 0.98 tall), and the game holds one
 dagger in each hand (`Config/Weapons` `offhand`), so a pair mesh cannot be held. The low-poly files
 are only in Studio; the repo's checkout has the 1.9 million triangle originals
-(`assets/concepts/blocky/weapons/skins/bogheart/*.glb`, untracked). They need redoing as single
-daggers in Tripo (45 credits each), or the originals split and reduced, which the owner's
-no-decimating rule is against: the owner's call.
+(`assets/concepts/blocky/weapons/skins/bogheart/*.glb`, untracked). **Remade as single daggers in Tripo on 2026-11-16** (owner: "Yes, remake them"; 4,000
+triangles, 8K texture, 65 credits each): each from the left dagger of its own picture, cut out
+(`assets/concepts/blocky/weapons/skins/bogheart/<name>_single.png`, `single_dagger_prompts.py`),
+so the design is unchanged. Jobs in `assets/models/weapons/blocky/daggers_tripo_2026_11_16.json`
+(`remake`); shop and gear pictures by `assets/ui/shop/new_dagger_icons.py`. Not imported yet, so
+still not wired; the old pair imports in `Workspace/TripoImports/Weapons` can go once they are.

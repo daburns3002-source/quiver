@@ -66,9 +66,10 @@ Server: `Combat/MeleeSystem` (`strike`: Backstab, Serrated Edge, Bleed), `Combat
 (the cloud, the knives, the mark, the blades, the shadows), `Run/RunSession` (Quickstep). Client:
 `Fx/Upgrades/AssassinFx`, voxel cubes like the rest. Icons: Codex
 (`assets/concepts/blocky/ui/cards/assassin_cards_2026_11_15.sh`, the prompts written by
-`assassin_cards_prompts.py`), composed by `compose_icon.py` and uploaded. Sounds: five silent hooks
-in `Config/Sounds` (`fx_backstab`, `fx_poison_trail`, `fx_fan_of_knives`, `fx_death_mark`,
-`fx_thousand_cuts`) until they are picked and uploaded with the daggers' own as one sprite.
+`assassin_cards_prompts.py`), composed by `compose_icon.py` and uploaded. Sounds: five in
+`Config/Sounds` (`fx_backstab`, `fx_poison_trail`, `fx_fan_of_knives`, `fx_death_mark`,
+`fx_thousand_cuts`), the owner's picks of audition round 33, in one sprite with the daggers' own
+strikes and the Shadow Dash's cut (`assets/audio/final/assassin_sprite_r33.mp3`, 2026-11-17).
 
 ## Every class a ladder of four (owner's pick C, 2026-11-13)
 

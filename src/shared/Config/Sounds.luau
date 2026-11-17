@@ -57,8 +57,8 @@ local CLASS_CARDS_SPRITE = "rbxassetid://117855777207537"
 --[[ The Assassin's nine sounds (its three strikes, the Shadow Dash's cut and
      its cards' five), the owner's picks of audition round 33 (2026-11-17)
      joined into one sprite (`assets/audio/final/assassin_sprite_r33.mp3`,
-     regions in its .json). ]]
-local ASSASSIN_SPRITE = ""
+     regions in its .json). Uploaded 2026-11-17. ]]
+local ASSASSIN_SPRITE = "rbxassetid://113750353487297"
 
 --[[ The Drowned Village's water footsteps (`final/water_step_sprite.mp3`):
      not uploaded yet, so "" and silent. ]]

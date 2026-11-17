@@ -215,7 +215,7 @@ keeps its effect whichever take is picked:
 ## Daggers (the Assassin), drawn 2026-11-16
 
 The Assassin opened on 2026-11-16 with no Thornwood daggers; the owner, told so, said "Ok take care
-of this". Codex's front views, in `assets/concepts/blocky/weapons/skins/thornwood/`. Each picture is **one** dagger, not the pair: the game holds a copy in each hand (`Config/Weapons` `offhand`). Prompts: `assets/concepts/blocky/weapons/skins/dagger_prompts.py`; all eleven on one sheet: `daggers_contact_2026_11_16.jpg`. **Design only: the owner has not seen them yet, and no Tripo credits are spent before the go-ahead** (45 a model with Polycount 2,000 and a 2K texture).
+of this". Codex's front views, in `assets/concepts/blocky/weapons/skins/thornwood/`. Each picture is **one** dagger, not the pair: the game holds a copy in each hand (`Config/Weapons` `offhand`). Prompts: `assets/concepts/blocky/weapons/skins/dagger_prompts.py`; all eleven on one sheet: `daggers_contact_2026_11_16.jpg`. **Modelled in Tripo on 2026-11-16** (owner: "Yes, model them", then "8k textures"): HD model, 4,000 triangles, 8K texture, 65 credits each, 715 for the eleven. The jobs are in `assets/models/weapons/blocky/daggers_tripo_2026_11_16.json`; the GLBs are not in git, as no Tripo export is: `name_daggers_glb.py` names them for the Import Queue in `Downloads\assassin_daggers_import`, each one textured mesh with UVs. Shop and gear pictures (two copies crossed in a V): `assets/ui/shop/new_dagger_icons.py`. **Not imported, so not wired.**
 
 | Tier | Daggers | Picture |
 |---|---|---|

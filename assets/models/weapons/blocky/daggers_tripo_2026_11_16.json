@@ -1,0 +1,16 @@
+{
+  "note": "Tripo web studio jobs for the Assassin's daggers (owner: 'Yes, model them', then '8k textures'; 2026-11-16). HD model, H3.1, Polycount 4000, triangles, 8K texture, 65 credits each (715 in all; 7385 before, 6670 after). One dagger a model: the game holds a copy in each hand. Open a job at https://studio.tripo3d.ai/workspace/generate/<id>.",
+  "jobs": {
+    "golden_daggers": { "area": "golden", "key": "GoldenDaggers", "id": "4d81b9c5-2800-4d78-91c0-c271500ad4c3" },
+    "hedge_prickers": { "area": "thornwood", "key": "HedgePrickers", "id": "efc88445-f1e5-418e-9d91-9352900c2efc" },
+    "tusk_knives": { "area": "thornwood", "key": "TuskKnives", "id": "1728d868-6270-4a99-98a2-a3f3c83c7577" },
+    "burrfang_daggers": { "area": "thornwood", "key": "BurrfangDaggers", "id": "8fea8196-9dd9-45fe-9628-ebcd0c7dcbb2" },
+    "silkfang_daggers": { "area": "thornwood", "key": "SilkfangDaggers", "id": "792dc019-8263-4161-a367-a10cb2ad84a4" },
+    "lurker_claws": { "area": "thornwood", "key": "LurkerClaws", "id": "7448c83c-2bec-42b9-9d04-06539f33897a" },
+    "driftwood_dirks": { "area": "drowned", "key": "DriftwoodDirks", "id": "12ce9d97-1c3d-4111-a8b3-9f6c6fc183e4" },
+    "barnacle_knives": { "area": "drowned", "key": "BarnacleKnives", "id": "14d79079-c49b-49df-ac42-b184130ce405" },
+    "eeltooth_daggers": { "area": "drowned", "key": "EeltoothDaggers", "id": "62788175-8331-46fb-827c-b54f75aabb80" },
+    "tollbell_daggers": { "area": "drowned", "key": "TollbellDaggers", "id": "24cc4d58-adab-4b10-803a-fee282c42760" },
+    "riptide_fangs": { "area": "drowned", "key": "RiptideFangs", "id": "db98be4c-b658-466a-b35b-582e4107a578" }
+  }
+}

@@ -143,7 +143,8 @@ local Classes: { [string]: Class } = {
 	     room 7 dashing every time the dash was back, about a hit for every
 	     two kills: a class that stands 8 studs from what it hits is in
 	     reach of all of it. So its strikes guard it as the Warden's do
-	     (`swing.guard`: nothing lands mid-strike), and it keeps the 1.5x:
+	     (`swing.guard`: nothing lands mid-strike; owner, 2026-11-16, "Keep
+	     the guard"), and it keeps the 1.5x:
 	     the same bot then won twice, on 34% and 93% health, the second
 	     time never dashing. Still well under the Warden's 495, with a
 	     shorter, narrower swing. ]]

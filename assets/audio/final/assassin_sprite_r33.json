@@ -1,0 +1,38 @@
+{
+ "dagger_slash": [
+  0.0,
+  0.17
+ ],
+ "dagger_slash_2": [
+  0.61,
+  0.17
+ ],
+ "dagger_stab": [
+  1.22,
+  0.21
+ ],
+ "fx_shadow_dash": [
+  1.87,
+  0.28
+ ],
+ "fx_backstab": [
+  2.59,
+  0.164
+ ],
+ "fx_poison_trail": [
+  3.193,
+  0.56
+ ],
+ "fx_fan_of_knives": [
+  4.193,
+  0.22
+ ],
+ "fx_death_mark": [
+  4.853,
+  0.86
+ ],
+ "fx_thousand_cuts": [
+  6.153,
+  0.78
+ ]
+}

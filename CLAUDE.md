@@ -442,7 +442,7 @@ own reach, and its phantom blades and shadows shove as lightly for the same reas
 `docs/PETS-FOREST.md`, one model in each hand through `offhand`), whose kit is **written as numbers**,
 not keyed in Claude Design (`assets/models/weapons/splinter_daggers_r15/make_kit.py` draws every key
 as a stick figure to look the poses over outside Studio; a Design kit can replace its JSON whole).
-Its sounds are stand-ins (the Warden's swings, faster) until the daggers' own are uploaded.
+Its nine sounds (three strikes, the dash's cut, five cards) are one sprite, the owner's picks of round 33 (`assassin_sprite_r33.mp3`, 2026-11-17).
 **Its skill is Shadow Dash** (`Classes.dash`, a class's own dash): back in 2.5 s where every other
 class waits 4 (`DashCut.cooldown`, the same number for the client's bar and the server's check), it
 cuts every enemy within 2.5 studs of the ground it covered for 1.5x a strike, and nothing can hurt

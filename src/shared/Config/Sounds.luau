@@ -54,6 +54,12 @@ local WARDEN_SPRITE = "rbxassetid://123411253404004"
      Uploaded 2026-11-13. ]]
 local CLASS_CARDS_SPRITE = "rbxassetid://117855777207537"
 
+--[[ The Assassin's nine sounds (its three strikes, the Shadow Dash's cut and
+     its cards' five), the owner's picks of audition round 33 (2026-11-17)
+     joined into one sprite (`assets/audio/final/assassin_sprite_r33.mp3`,
+     regions in its .json). Uploaded 2026-11-17. ]]
+local ASSASSIN_SPRITE = "rbxassetid://113750353487297"
+
 --[[ The Drowned Village's water footsteps (`final/water_step_sprite.mp3`):
      not uploaded yet, so "" and silent. ]]
 local WATER_SPRITE = ""
@@ -114,28 +120,27 @@ local Sounds: { [string]: Sound } = {
 		pitchJitter = 0.02,
 		minGap = 0.05,
 	},
-	--[[ The Assassin's three strikes (`Config/Weapons.SplinterDaggers.comboSounds`).
-	     STAND-INS (2026-11-15): the Warden's swings played faster and
-	     quieter, until the daggers' own sounds are picked and uploaded as
-	     one sprite (`docs/PIPELINES.md` section 7). ]]
+	--[[ The Assassin's three strikes (`Config/Weapons.SplinterDaggers.comboSounds`):
+	     about two a second, so thin and quiet, a little steel on each; the
+	     stab is two thrusts and a small thud. ]]
 	dagger_slash = {
-		id = "rbxassetid://87235506154920",
+		id = ASSASSIN_SPRITE,
+		region = { 0, 0.17 },
 		volume = 0.5,
-		speed = 1.7,
 		pitchJitter = 0.06,
 		minGap = 0.05,
 	},
 	dagger_slash_2 = {
-		id = "rbxassetid://83559699463378",
+		id = ASSASSIN_SPRITE,
+		region = { 0.61, 0.17 },
 		volume = 0.5,
-		speed = 1.8,
 		pitchJitter = 0.06,
 		minGap = 0.05,
 	},
 	dagger_stab = {
-		id = "rbxassetid://83559699463378",
+		id = ASSASSIN_SPRITE,
+		region = { 1.22, 0.21 },
 		volume = 0.65,
-		speed = 1.35,
 		pitchJitter = 0.04,
 		minGap = 0.05,
 	},
@@ -758,11 +763,49 @@ local Sounds: { [string]: Sound } = {
 	--[[ The Assassin's cards (`Fx/Upgrades/AssassinFx`): silent hooks until
 	     their sounds are picked and uploaded as one sprite with the daggers'
 	     own (`docs/PIPELINES.md` section 7). ]]
-	fx_backstab = { id = "", volume = 0.6, pitchJitter = 0.06, minGap = 0.15 },
-	fx_poison_trail = { id = "", volume = 0.6, pitchJitter = 0.04, minGap = 0.3 },
-	fx_fan_of_knives = { id = "", volume = 0.6, pitchJitter = 0.05, minGap = 0.2 },
-	fx_death_mark = { id = "", volume = 0.7, pitchJitter = 0.03, minGap = 0.3 },
-	fx_thousand_cuts = { id = "", volume = 0.8, pitchJitter = 0.02, minGap = 0.5 },
+	--[[ The Shadow Dash's cut through whatever it passed (`AssassinFx`). ]]
+	fx_shadow_dash = {
+		id = ASSASSIN_SPRITE,
+		region = { 1.87, 0.28 },
+		volume = 0.6,
+		pitchJitter = 0.04,
+		minGap = 0.2,
+	},
+	fx_backstab = {
+		id = ASSASSIN_SPRITE,
+		region = { 2.59, 0.164 },
+		volume = 0.6,
+		pitchJitter = 0.06,
+		minGap = 0.15,
+	},
+	fx_poison_trail = {
+		id = ASSASSIN_SPRITE,
+		region = { 3.193, 0.56 },
+		volume = 0.6,
+		pitchJitter = 0.04,
+		minGap = 0.3,
+	},
+	fx_fan_of_knives = {
+		id = ASSASSIN_SPRITE,
+		region = { 4.193, 0.22 },
+		volume = 0.6,
+		pitchJitter = 0.05,
+		minGap = 0.2,
+	},
+	fx_death_mark = {
+		id = ASSASSIN_SPRITE,
+		region = { 4.853, 0.86 },
+		volume = 0.7,
+		pitchJitter = 0.03,
+		minGap = 0.3,
+	},
+	fx_thousand_cuts = {
+		id = ASSASSIN_SPRITE,
+		region = { 6.153, 0.78 },
+		volume = 0.8,
+		pitchJitter = 0.02,
+		minGap = 0.5,
+	},
 }
 
 return table.freeze(Sounds)

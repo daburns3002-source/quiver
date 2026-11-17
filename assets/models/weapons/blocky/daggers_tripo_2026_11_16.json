@@ -1,16 +1,117 @@
 {
-  "note": "Tripo web studio jobs for the Assassin's daggers (owner: 'Yes, model them', then '8k textures'; 2026-11-16). HD model, H3.1, Polycount 4000, triangles, 8K texture, 65 credits each (715 in all; 7385 before, 6670 after). One dagger a model: the game holds a copy in each hand. Open a job at https://studio.tripo3d.ai/workspace/generate/<id>.",
+  "note": "Tripo web studio jobs for the Assassin's daggers (owner: 'Yes, model them', then '8k textures'; 2026-11-16). HD model, H3.1, Polycount 4000, triangles, 8K texture, 65 credits each (715 in all; 7385 before, 6670 after). One dagger a model: the game holds a copy in each hand. Open a job at https://studio.tripo3d.ai/workspace/generate/<id>. The remake of the older daggers as ONE dagger each (owner, 2026-11-16: 'Yes, remake them') is in `remake`: Bogheart's five (their pictures' left dagger, cut out) and Mossy Glade's six (Codex's redrawing of each design sheet's front view), same settings, 65 credits each. The remake cost 715 too (6670 before, 5955 after).",
   "jobs": {
-    "golden_daggers": { "area": "golden", "key": "GoldenDaggers", "id": "4d81b9c5-2800-4d78-91c0-c271500ad4c3" },
-    "hedge_prickers": { "area": "thornwood", "key": "HedgePrickers", "id": "efc88445-f1e5-418e-9d91-9352900c2efc" },
-    "tusk_knives": { "area": "thornwood", "key": "TuskKnives", "id": "1728d868-6270-4a99-98a2-a3f3c83c7577" },
-    "burrfang_daggers": { "area": "thornwood", "key": "BurrfangDaggers", "id": "8fea8196-9dd9-45fe-9628-ebcd0c7dcbb2" },
-    "silkfang_daggers": { "area": "thornwood", "key": "SilkfangDaggers", "id": "792dc019-8263-4161-a367-a10cb2ad84a4" },
-    "lurker_claws": { "area": "thornwood", "key": "LurkerClaws", "id": "7448c83c-2bec-42b9-9d04-06539f33897a" },
-    "driftwood_dirks": { "area": "drowned", "key": "DriftwoodDirks", "id": "12ce9d97-1c3d-4111-a8b3-9f6c6fc183e4" },
-    "barnacle_knives": { "area": "drowned", "key": "BarnacleKnives", "id": "14d79079-c49b-49df-ac42-b184130ce405" },
-    "eeltooth_daggers": { "area": "drowned", "key": "EeltoothDaggers", "id": "62788175-8331-46fb-827c-b54f75aabb80" },
-    "tollbell_daggers": { "area": "drowned", "key": "TollbellDaggers", "id": "24cc4d58-adab-4b10-803a-fee282c42760" },
-    "riptide_fangs": { "area": "drowned", "key": "RiptideFangs", "id": "db98be4c-b658-466a-b35b-582e4107a578" }
+    "golden_daggers": {
+      "area": "golden",
+      "key": "GoldenDaggers",
+      "id": "4d81b9c5-2800-4d78-91c0-c271500ad4c3"
+    },
+    "hedge_prickers": {
+      "area": "thornwood",
+      "key": "HedgePrickers",
+      "id": "efc88445-f1e5-418e-9d91-9352900c2efc"
+    },
+    "tusk_knives": {
+      "area": "thornwood",
+      "key": "TuskKnives",
+      "id": "1728d868-6270-4a99-98a2-a3f3c83c7577"
+    },
+    "burrfang_daggers": {
+      "area": "thornwood",
+      "key": "BurrfangDaggers",
+      "id": "8fea8196-9dd9-45fe-9628-ebcd0c7dcbb2"
+    },
+    "silkfang_daggers": {
+      "area": "thornwood",
+      "key": "SilkfangDaggers",
+      "id": "792dc019-8263-4161-a367-a10cb2ad84a4"
+    },
+    "lurker_claws": {
+      "area": "thornwood",
+      "key": "LurkerClaws",
+      "id": "7448c83c-2bec-42b9-9d04-06539f33897a"
+    },
+    "driftwood_dirks": {
+      "area": "drowned",
+      "key": "DriftwoodDirks",
+      "id": "12ce9d97-1c3d-4111-a8b3-9f6c6fc183e4"
+    },
+    "barnacle_knives": {
+      "area": "drowned",
+      "key": "BarnacleKnives",
+      "id": "14d79079-c49b-49df-ac42-b184130ce405"
+    },
+    "eeltooth_daggers": {
+      "area": "drowned",
+      "key": "EeltoothDaggers",
+      "id": "62788175-8331-46fb-827c-b54f75aabb80"
+    },
+    "tollbell_daggers": {
+      "area": "drowned",
+      "key": "TollbellDaggers",
+      "id": "24cc4d58-adab-4b10-803a-fee282c42760"
+    },
+    "riptide_fangs": {
+      "area": "drowned",
+      "key": "RiptideFangs",
+      "id": "db98be4c-b658-466a-b35b-582e4107a578"
+    }
+  },
+  "remake": {
+    "moss_shivs": {
+      "area": "bogheart",
+      "key": "MossShivs",
+      "id": "0bb0b648-c226-4249-b02a-b2f33860a660"
+    },
+    "spore_fangs": {
+      "area": "bogheart",
+      "key": "SporeFangs",
+      "id": "aab0882b-25d3-4fb0-8080-7e95e63e6776"
+    },
+    "glowcap_kris": {
+      "area": "bogheart",
+      "key": "GlowcapKris",
+      "id": "7483757f-5c2c-4df2-b614-39b9109cf839"
+    },
+    "toadtongue_daggers": {
+      "area": "bogheart",
+      "key": "ToadtongueDaggers",
+      "id": "6fbc80aa-749a-4991-99c5-28723d8ae316"
+    },
+    "prism_stingers": {
+      "area": "bogheart",
+      "key": "PrismStingers",
+      "id": "3d84bac5-d1d1-410d-91f0-8c739bce110e"
+    },
+    "splinter_daggers": {
+      "area": "forest",
+      "key": "SplinterDaggers",
+      "id": "67710701-f216-421d-94c0-40cadaac800b"
+    },
+    "bramble_shivs": {
+      "area": "forest",
+      "key": "BrambleShivs",
+      "id": "a7adb3d3-a4ab-4138-bd34-b77181123f7b"
+    },
+    "firefly_fangs": {
+      "area": "forest",
+      "key": "FireflyFangs",
+      "id": "8a6f2d59-c617-441e-8fb8-76c3b8f076ce"
+    },
+    "glade_fox_claws": {
+      "area": "forest",
+      "key": "GladeFoxClaws",
+      "id": "aa032fb0-ca9c-44a4-a83f-ff5bf464e8f8"
+    },
+    "ember_wilf_fangs": {
+      "area": "forest",
+      "key": "EmberWilfFangs",
+      "id": "079b4be2-5b1c-4940-842f-ca3cd907175e"
+    },
+    "glimmerhorn_daggers": {
+      "area": "forest",
+      "key": "GlimmerhornDaggers",
+      "id": "7bc13b1f-a4ad-4f0f-8a7c-11a9812c0d3d"
+    }
   }
 }

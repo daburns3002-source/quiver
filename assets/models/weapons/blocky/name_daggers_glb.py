@@ -2,13 +2,13 @@
 
     python -I assets/models/weapons/blocky/name_daggers_glb.py <exports dir> <out dir>
 
-Reads Tripo's exports of 2026-11-16 (`ad16_<name>.glb`, the jobs in
-`daggers_tripo_2026_11_16.json`) and four of the Mossy Glade Claude Design
-daggers already in the repo, and writes one GLB each under its `Config`
-key (`GoldenDaggers.glb`, `FireflyFangs.glb`, ...), with its scene and root
-node named, so Studio's Import Queue shows the weapon's name and the whole
-folder goes through one Start Import. A Tripo mesh is named too; the Design
-models keep their part names (`Gems`, `Glow`: the glow groups).
+Reads Tripo's exports of 2026-11-16 (`ad16_<name>.glb`; the jobs in
+`daggers_tripo_2026_11_16.json`: the eleven new daggers under `jobs`, and
+Mossy Glade's six and Bogheart's five, remade as one dagger each, under
+`remake`) and writes one GLB each under its `Config` key
+(`GoldenDaggers.glb`, `FireflyFangs.glb`, ...), with its scene, root node
+and mesh named, so Studio's Import Queue shows the weapon's name and the
+whole folder goes through one Start Import.
 
 Says for each what an import needs to be textured: UVs and an image
 (memory: an export with no UVs can never be textured).
@@ -20,17 +20,6 @@ import struct
 import sys
 
 HERE = pathlib.Path(__file__).parent
-# Mossy Glade's Claude Design models (October): file, key. Four of the five:
-# `uncommon/BrambleShivs.glb` is 41 unmerged parts with neither UVs nor
-# vertex colours, so it is not ready to import as it is.
-FOREST = [
-    ("forest/firefly_fangs_roblox.glb", "FireflyFangs"),
-    ("forest/glade_fox_claws_roblox.glb", "GladeFoxClaws"),
-    ("forest/ember_wilf_fangs_roblox.glb", "EmberWilfFangs"),
-    ("forest/glimmerhorn_daggers_roblox.glb", "GlimmerhornDaggers"),
-]
-
-
 def read(path):
     raw = path.read_bytes()
     size = struct.unpack("<I", raw[12:16])[0]
@@ -73,17 +62,12 @@ def report(key, doc):
 def main():
     source, target = pathlib.Path(sys.argv[1]), pathlib.Path(sys.argv[2])
     target.mkdir(parents=True, exist_ok=True)
-    jobs = json.loads((HERE / "daggers_tripo_2026_11_16.json").read_text(encoding="utf-8"))["jobs"]
-    for stem, job in jobs.items():
+    listed = json.loads((HERE / "daggers_tripo_2026_11_16.json").read_text(encoding="utf-8"))
+    for stem, job in {**listed["jobs"], **listed.get("remake", {})}.items():
         doc, rest = read(source / f"ad16_{stem}.glb")
         name(doc, job["key"], True)
         write(target / f"{job['key']}.glb", doc, rest)
         report(job["key"], doc)
-    for file, key in FOREST:
-        doc, rest = read(HERE / file)
-        name(doc, key, False)
-        write(target / f"{key}.glb", doc, rest)
-        report(key, doc)
 
 
 if __name__ == "__main__":

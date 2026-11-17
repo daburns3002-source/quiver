@@ -16,6 +16,25 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## Two in-Roblox tests fail on the Bogheart Egg: "holds 0 guards", "has no area to scale its pets by" (2026-11-16)
+
+**Symptom:** `PetGuard › exactly one pet in each egg guards: BogheartEgg holds 0 guards` and `PetPower ›
+every hatchable pet that fights is near its rarity's band: BogheartEgg has no area to scale its pets by`,
+on main since the egg opened (2026-11-06).
+
+**Cause:** the tests, not the egg. The egg's pet that keeps its owner from harm is the Bog Beaver, whose
+Mud Plaster is a coat that soaks damage and deliberately not a shell (`docs/PETS-BOGHEART.md`); the guard
+test counted shells only. And the power test's table of which area each egg's pets are scaled by stopped
+at Thornwood; the pets themselves were already on area 4's bands, held by name in the same file.
+
+**Fix:** `tests/PetGuard.spec` asks for exactly one pet in each egg that protects, by a shell, a shelter
+or a coat, and that it is the egg's Uncommon, and that no pet protects in two ways. `tests/PetPower.spec`
+knows `BogheartEgg = 4`. No game code changed.
+
+**Measured:** in Studio, 1179 passed and 0 failed (it was 1175 and 2).
+
+---
+
 ## The every-class run-through's fifteen (2026-11-16)
 
 Found by `docs/RUN-THROUGH-2026-11.md` (three classes through Mossy Glade, the three later areas, Endless);

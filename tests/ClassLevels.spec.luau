@@ -219,7 +219,7 @@ return function(t: TestRunner.Helper)
 			local model = Weapons[weapon]
 			t.notNil(model, weapon .. " has a model")
 			t.notNil(model.aura, weapon .. " glows in hand")
-			if class == "Warden" then
+			if Classes[class].swing then
 				t.notNil(model.trailGlow, weapon .. "'s cleave glows")
 				t.notNil(WeaponFx.cleaves[weapon], weapon .. " has its own cleave")
 			else

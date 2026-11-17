@@ -7,6 +7,7 @@
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local Abilities = require(ReplicatedStorage.Shared.Config.Abilities)
 local Sandbox = require(ReplicatedStorage.Shared.Config.Sandbox)
 local TestRunner = require(script.Parent.TestRunner)
 local WeaponFx = require(ReplicatedStorage.Shared.Config.WeaponFx)
@@ -77,28 +78,61 @@ return function(t: TestRunner.Helper)
 		end)
 	end
 
-	t.test("every blade cuts its own cleave", function()
-		local colours: { [string]: string } = {}
-		local cuts: { [string]: string } = {}
-		local blades = ofClass("Warden")
-		t.isTrue(#blades >= 16, `only {#blades} blades`)
-		for _, key in blades do
-			local cleave = WeaponFx.cleaves[key]
-			t.notNil(cleave, `{key} has no cleave`)
-			local hue = colourKey(cleave.colour[1])
-			t.isNil(colours[hue], `{key} is the colour of {colours[hue] or "?"}`)
-			colours[hue] = key
-			local motes = cleave.motes
-			local mark = `{cleave.tail}|{cleave.taper}|{motes and motes.form or "none"}`
-			t.isNil(cuts[mark], `{key} cuts as {cuts[mark] or "?"} does`)
-			cuts[mark] = key
-		end
-	end)
+	--[[ A class that swings: the Warden's blades, and the Assassin's
+	     daggers (22 since 2026-11-17). Within a class no two cut alike. ]]
+	for class: string, least: number in { Warden = 16, Assassin = 22 } :: { [string]: number } do
+		t.test(`every {class} weapon cuts its own cleave`, function()
+			local colours: { [string]: string } = {}
+			local cuts: { [string]: string } = {}
+			local blades = ofClass(class)
+			t.isTrue(#blades >= least, `only {#blades} of the {class}'s`)
+			for _, key in blades do
+				local cleave = WeaponFx.cleaves[key]
+				t.notNil(cleave, `{key} has no cleave`)
+				local hue = colourKey(cleave.colour[1])
+				t.isNil(colours[hue], `{key} is the colour of {colours[hue] or "?"}`)
+				colours[hue] = key
+				local motes = cleave.motes
+				local mark = `{cleave.tail}|{cleave.taper}|{motes and motes.form or "none"}`
+				t.isNil(cuts[mark], `{key} cuts as {cuts[mark] or "?"} does`)
+				cuts[mark] = key
+			end
+		end)
 
-	t.test("every Legendary and Mythic blade's cleave glows", function()
-		for _, key in ofClass("Warden") do
+		t.test(`every Legendary and Mythic {class} weapon's cleave glows`, function()
+			for _, key in ofClass(class) do
+				if glows(key) then
+					t.notNil(Weapons[key].trailGlow, `{key}'s cleave does not glow`)
+					t.isTrue(
+						Weapons[key].aura ~= nil or Weapons[key].rainbow == true,
+						`{key} does not glow in hand`
+					)
+				end
+			end
+		end)
+	end
+
+	--[[ A dagger is held in both hands, whichever pair it is, and a
+	     Legendary's or Mythic's effect is a card the Assassin draws that no
+	     other of its weapons carries. ]]
+	t.test("every dagger is a pair, and no two carry the same effect", function()
+		local carried: { [string]: string } = {}
+		for _, key in ofClass("Assassin") do
+			t.notNil(Weapons[key].offhand, `{key} is held in one hand only`)
+			local stats = (WeaponStats.weapons :: any)[key]
 			if glows(key) then
-				t.notNil(Weapons[key].trailGlow, `{key}'s cleave does not glow`)
+				t.notNil(stats.innate, `{key} has no effect`)
+				for card in stats.innate do
+					local ability = Abilities.byId[card]
+					t.notNil(ability, `{key} carries {card}, which is no card`)
+					local classes = ability and ability.classes
+					t.isTrue(
+						classes == nil or table.find(classes, "Assassin") ~= nil,
+						`{key} carries {card}, which the Assassin cannot draw`
+					)
+					t.isNil(carried[card], `{key} carries {card}, as {carried[card] or "?"} does`)
+					carried[card] = key
+				end
 			end
 		end
 	end)

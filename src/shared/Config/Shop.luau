@@ -87,6 +87,8 @@ local Shop = {
 		-- the Arcanist's weapons are all staffs (it read WANDS over a list of STAFFS)
 		{ class = "Arcanist", name = "STAFF", tab = "STAFFS" },
 		{ class = "Warden", name = "SWORD", tab = "SWORDS" },
+		-- the Assassin's, since its daggers were modelled (2026-11-17)
+		{ class = "Assassin", name = "DAGGER", tab = "DAGGERS" },
 	} :: { Chest },
 
 	--[[ A chest's odds, by rarity (weights, not percentages). A chest

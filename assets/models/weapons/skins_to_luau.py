@@ -26,6 +26,8 @@ IMPORTS = HERE / "blocky" / "forest" / "skin_imports.json"
 DROWNED_IMPORTS = HERE / "blocky" / "drowned" / "skin_imports.json"
 BOGHEART_IMPORTS = HERE / "blocky" / "bogheart" / "skin_imports.json"
 GOLDEN_IMPORTS = HERE / "blocky" / "golden" / "skin_imports.json"
+DAGGER_IMPORTS = HERE / "blocky" / "daggers" / "skin_imports.json"
+DAGGER_GRIPS = HERE / "blocky" / "daggers" / "grips.json"
 WEAPONS = ROOT / "src" / "shared" / "Config" / "Weapons.luau"
 SANDBOX = ROOT / "src" / "shared" / "Config" / "Sandbox.luau"
 BEGIN = "-- SKINS BEGIN (assets/models/weapons/skins_to_luau.py; regenerate, never hand-edit)\n"
@@ -37,7 +39,12 @@ BASES = {
     "Ranger": {"base": "TwigBow", "scale": 3.6, "length": 1.18, "grip": 0.5},
     "Arcanist": {"base": "BranchStaff", "scale": 3.3, "length": 1.36, "grip": 0.43},
     "Warden": {"base": "TimberBlade", "scale": 3.8, "length": 1.26, "grip": 0.254},
+    # the Splinter Daggers: a dagger 0.5444 long at scale 3.5, about 1.9 studs
+    "Assassin": {"base": "SplinterDaggers", "scale": 3.5, "length": 0.5444, "grip": 0.2},
 }
+# classes whose weapon swings: a Legendary's or Mythic's glow goes on the
+# swing's trail, not on a shot
+MELEE = ("Warden", "Assassin")
 # key, label, class, import, projectile import (or None), glow colour (or None)
 SKINS = [
     ("AcornBow", "ACORN BOW", "Ranger", "bow_1uncommon_acorn_bow", "bow_1uncommon_acorn_arrow", None),
@@ -114,6 +121,41 @@ GOLDEN = [
     ("GoldenBow", "GOLDEN BOW", "Ranger", "GoldenBow", None, (255, 205, 56), 4),
     ("GoldenStaff", "GOLDEN STAFF", "Arcanist", "GoldenStaff", None, (255, 214, 84), 4),
     ("GoldenBlade", "GOLDEN BLADE", "Warden", "GoldenBlade", None, (255, 198, 44), 4),
+]
+# The Assassin's daggers (owner, 2026-11-16 and 17): 21 skins of the Splinter
+# Daggers, every one a Tripo model of ONE dagger (4,000 triangles, 8K
+# texture), held in each hand (`Config/Weapons` copies the base's
+# `offhand`). Imported by the owner 2026-11-17 from
+# `Downloads\\assassin_daggers_import`, read in Studio into
+# blocky/daggers/skin_imports.json (write_skin_imports.py) under their keys;
+# grips measured from the GLBs into blocky/daggers/grips.json
+# (measure_grips.py). One textured mesh each, so a Legendary's or Mythic's
+# glow is an `aura`, and none is rainbow. Areas: Mossy Glade (1), Thornwood
+# (2), the Drowned Village (3), Bogheart Caverns (4), and the Golden Daggers
+# of class level 10.
+# key, label, class, import, projectile, glow colour, tier
+DAGGERS = [
+    ("BrambleShivs", "BRAMBLE SHIVS", "Assassin", "BrambleShivs", None, None, 1),
+    ("FireflyFangs", "FIREFLY FANGS", "Assassin", "FireflyFangs", None, None, 2),
+    ("GladeFoxClaws", "GLADE FOX CLAWS", "Assassin", "GladeFoxClaws", None, None, 3),
+    ("EmberWilfFangs", "EMBER WILF FANGS", "Assassin", "EmberWilfFangs", None, (255, 140, 40), 4),
+    ("GlimmerhornDaggers", "GLIMMERHORN DAGGERS", "Assassin", "GlimmerhornDaggers", None, (235, 170, 255), 5),
+    ("HedgePrickers", "HEDGE PRICKERS", "Assassin", "HedgePrickers", None, None, 1),
+    ("TuskKnives", "TUSK KNIVES", "Assassin", "TuskKnives", None, None, 2),
+    ("BurrfangDaggers", "BURRFANG DAGGERS", "Assassin", "BurrfangDaggers", None, None, 3),
+    ("SilkfangDaggers", "SILKFANG DAGGERS", "Assassin", "SilkfangDaggers", None, (230, 60, 200), 4),
+    ("LurkerClaws", "LURKER CLAWS", "Assassin", "LurkerClaws", None, (255, 70, 210), 5),
+    ("DriftwoodDirks", "DRIFTWOOD DIRKS", "Assassin", "DriftwoodDirks", None, None, 1),
+    ("BarnacleKnives", "BARNACLE KNIVES", "Assassin", "BarnacleKnives", None, None, 2),
+    ("EeltoothDaggers", "EELTOOTH DAGGERS", "Assassin", "EeltoothDaggers", None, None, 3),
+    ("TollbellDaggers", "TOLLBELL DAGGERS", "Assassin", "TollbellDaggers", None, (70, 220, 200), 4),
+    ("RiptideFangs", "RIPTIDE FANGS", "Assassin", "RiptideFangs", None, (90, 240, 225), 5),
+    ("MossShivs", "MOSS SHIVS", "Assassin", "MossShivs", None, None, 1),
+    ("SporeFangs", "SPORE FANGS", "Assassin", "SporeFangs", None, None, 2),
+    ("GlowcapKris", "GLOWCAP KRIS", "Assassin", "GlowcapKris", None, None, 3),
+    ("ToadtongueDaggers", "TOADTONGUE DAGGERS", "Assassin", "ToadtongueDaggers", None, (245, 120, 160), 4),
+    ("PrismStingers", "PRISM STINGERS", "Assassin", "PrismStingers", None, (63, 230, 242), 5),
+    ("GoldenDaggers", "GOLDEN DAGGERS", "Assassin", "GoldenDaggers", None, (255, 205, 56), 4),
 ]
 # Radians of extra turn about Y for models that do not follow the base
 # weapon's convention. A bow's limbs should curve in YZ as the Twig Bow's do;
@@ -285,10 +327,10 @@ def entry(imports, key, cls, name, projectile, glow, tier=None, aura=False) -> s
     # brought a bolt of its own. A bow with no arrow of its own fires the
     # plain arrow, and that glows too (owner, 2026-11-08). A Warden's blade
     # has no shot: it takes `trailGlow` below instead.
-    if tier >= 4 and cls != "Warden":
+    if tier >= 4 and cls not in MELEE:
         out.append(f"\t\tshotGlow = {rgb(glow)},")
     # and a Legendary or Mythic blade's swing glows the same way
-    if tier >= 4 and cls == "Warden":
+    if tier >= 4 and cls in MELEE:
         out.append(f"\t\ttrailGlow = {rgb(glow)},")
     if projectile:
         shot = imports[projectile]
@@ -327,6 +369,11 @@ def main():
         golden = json.loads(GOLDEN_IMPORTS.read_text(encoding="utf-8"))
         rows += [(golden, k, c, n, p, g, t, True) for k, _, c, n, p, g, t in GOLDEN]
         listed = listed + GOLDEN
+    if DAGGER_IMPORTS.exists():
+        daggers = json.loads(DAGGER_IMPORTS.read_text(encoding="utf-8"))
+        GRIPS.update({k: tuple(v) for k, v in json.loads(DAGGER_GRIPS.read_text(encoding="utf-8")).items()})
+        rows += [(daggers, k, c, n, p, g, t, True) for k, _, c, n, p, g, t in DAGGERS]
+        listed = listed + DAGGERS
     skins = chr(10).join(entry(*r) for r in rows) + chr(10)
     splice(WEAPONS, skins, "\t--[[ SKINS GO HERE ]]\n")
     menu = "".join(f'\t\t{{ weapon = "{k}", class = "{c}", label = "{l}" }},\n' for k, l, c, *_ in listed)

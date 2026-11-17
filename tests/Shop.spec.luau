@@ -143,11 +143,12 @@ return function(t: TestRunner.Helper)
 		t.isNil(ShopRules.upgrade({}, "Ranger", s, atC))
 	end)
 
-	t.test("only the three chests can be opened", function()
+	t.test("only a class's own chest can be opened", function()
+		t.equal(#Shop.chests, 4, "a chest a class: bow, staff, sword, dagger")
 		for _, chest in Shop.chests do
 			t.notNil(ShopRules.chest(chest.class), chest.class)
 		end
-		t.isNil(ShopRules.chest("Assassin"), "a class with no weapons is no chest")
+		t.isNil(ShopRules.chest("Duelist"), "a class there is not is no chest")
 		t.isNil(ShopRules.chest(nil))
 		t.isNil(ShopRules.chest(7))
 	end)

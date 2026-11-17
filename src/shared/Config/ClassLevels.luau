@@ -68,13 +68,14 @@ local ClassLevels = {
 		Ranger = "GoldenBow",
 		Arcanist = "GoldenStaff",
 		Warden = "GoldenBlade",
+		Assassin = "GoldenDaggers",
 	} :: { [string]: string },
-	--[[ Classes whose golden weapon is not made yet (the Assassin's Golden
-	     Daggers wait on the owner's art). Such a class levels like any
-	     other and its level 10 simply gives nothing more; the day the
-	     weapon is added here it is given to everyone already there
-	     (`ClassLevelRules.owed`, `Wallet.settleClassWeapons`). ]]
-	waiting = { "Assassin" } :: { string },
+	--[[ Classes whose golden weapon is not made yet: none (the Assassin's
+	     Golden Daggers were modelled and imported 2026-11-17). Such a class
+	     levels like any other and its level 10 simply gives nothing more;
+	     the day the weapon is added above it is given to everyone already
+	     there (`ClassLevelRules.owed`, `Wallet.settleClassWeapons`). ]]
+	waiting = {} :: { string },
 }
 
 return table.freeze(ClassLevels)

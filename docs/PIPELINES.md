@@ -133,7 +133,7 @@ As an enemy model (1), with its moves: a `boss` block in its `EnemyConfig`, each
 
 Codex image generation, always (owner's rule): `codex exec` with the prompt on stdin and `-i` for reference images, signed in with the owner's account. Sheets go in `assets/concepts/`. The look is the **blocky** style (owner, 2026-10-23) for everything new.
 
-**The Assassin's sounds are owed** (2026-11-15): three strikes (stand-ins play: the Warden's swings, faster), the dash's cut, and five cards (`fx_backstab`, `fx_poison_trail`, `fx_fan_of_knives`, `fx_death_mark`, `fx_thousand_cuts`, silent). One sprite, one upload: 17 left after it.
+**The Assassin's sounds** were picked on 2026-11-17 (round 33) and are one sprite, `assassin_sprite_r33.mp3`: nothing is owed.
 
 **Uploading images needs no owner step** (2026-10-24): serve the PNGs from localhost (`python -m http.server <port> --bind 127.0.0.1` in their folder) and call Studio MCP's `upload_image` with `http://localhost:<port>/<file>.png` paths; it returns the `rbxassetid://` ids. Codex's own sandbox cannot write into a worktree: its image lands in `~/.codex/generated_images/<id>/exec-*.png`, named in its log. Animated icons are 2x2 sheets of 512 px frames (1024 px, Roblox's largest), played with `ImageRectOffset` (`UI/BossBanner`).
 

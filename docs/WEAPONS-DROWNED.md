@@ -72,7 +72,7 @@ the tier explicitly. The table above is the source either way.
 
 The Drowned Village had no daggers (`WEAPONS-BOGHEART.md` says so); the owner, told so on
 2026-11-16, said "Ok take care of this". Codex's front views, in
-`assets/concepts/blocky/weapons/skins/drowned/`. Each picture is **one** dagger, not the pair: the game holds a copy in each hand (`Config/Weapons` `offhand`). Prompts: `assets/concepts/blocky/weapons/skins/dagger_prompts.py`; all eleven on one sheet: `daggers_contact_2026_11_16.jpg`. **Modelled in Tripo on 2026-11-16** (owner: "Yes, model them", then "8k textures"): HD model, 4,000 triangles, 8K texture, 65 credits each, 715 for the eleven. The jobs are in `assets/models/weapons/blocky/daggers_tripo_2026_11_16.json`; the GLBs are not in git, as no Tripo export is: `name_daggers_glb.py` names them for the Import Queue in `Downloads\assassin_daggers_import`, each one textured mesh with UVs. Shop and gear pictures (two copies crossed in a V): `assets/ui/shop/new_dagger_icons.py`. **Not imported, so not wired.**
+`assets/concepts/blocky/weapons/skins/drowned/`. Each picture is **one** dagger, not the pair: the game holds a copy in each hand (`Config/Weapons` `offhand`). Prompts: `assets/concepts/blocky/weapons/skins/dagger_prompts.py`; all eleven on one sheet: `daggers_contact_2026_11_16.jpg`. **Modelled in Tripo on 2026-11-16** (owner: "Yes, model them", then "8k textures"): HD model, 4,000 triangles, 8K texture, 65 credits each, 715 for the eleven. The jobs are in `assets/models/weapons/blocky/daggers_tripo_2026_11_16.json`; the GLBs are not in git, as no Tripo export is: `name_daggers_glb.py` names them for the Import Queue in `Downloads\assassin_daggers_import`, each one textured mesh with UVs. Shop and gear pictures (two copies crossed in a V): `assets/ui/shop/new_dagger_icons.py`. **Imported and wired 2026-11-17** (owner: "models are in"): mesh and texture ids in `assets/models/weapons/blocky/daggers/skin_imports.json`, grips measured from the GLBs (`measure_grips.py`), written into `Config/Weapons` by `skins_to_luau.py` (its `DAGGERS` list), each held in both hands; stats and effects in `Config/WeaponStats`, a cleave each in `Config/WeaponFx`, pictures uploaded (`Config/ShopAssets`, `Config/GearAssets`).
 
 | Tier | Daggers | Picture |
 |---|---|---|
@@ -82,4 +82,4 @@ The Drowned Village had no daggers (`WEAPONS-BOGHEART.md` says so); the owner, t
 | Legendary | **Tollbell Daggers**: a bronze bell-metal blade green with verdigris, a small bell for a pommel; glows teal | `tollbell_daggers.png` |
 | Mythic | **Riptide Fangs**: a glowing sea-glass crystal blade rising out of a curling wave guard, a pearl pommel; glows teal and white | `riptide_fangs.png` |
 
-Effects for the Legendary and the Mythic are not chosen.
+Effects: the Tollbell Daggers carry Serrated Edge, the Riptide Fangs Bleed. Sold from the Drowned Village's DAGGER chest.

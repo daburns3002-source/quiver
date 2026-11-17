@@ -39,5 +39,7 @@ are only in Studio; the repo's checkout has the 1.9 million triangle originals
 triangles, 8K texture, 65 credits each): each from the left dagger of its own picture, cut out
 (`assets/concepts/blocky/weapons/skins/bogheart/<name>_single.png`, `single_dagger_prompts.py`),
 so the design is unchanged. Jobs in `assets/models/weapons/blocky/daggers_tripo_2026_11_16.json`
-(`remake`); shop and gear pictures by `assets/ui/shop/new_dagger_icons.py`. Not imported yet, so
-still not wired; the old pair imports in `Workspace/TripoImports/Weapons` can go once they are.
+(`remake`); shop and gear pictures by `assets/ui/shop/new_dagger_icons.py`. **Imported and wired
+2026-11-17**, as the other areas' daggers are (`assets/models/weapons/blocky/daggers`): the Toadtongue
+Daggers carry Backstab, the Prism Stingers Phantom Blades, sold from Bogheart's DAGGER chest. The old
+pair imports are still in `Workspace/TripoImports/Weapons`; nothing reads them and they can be deleted.

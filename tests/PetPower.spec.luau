@@ -34,6 +34,8 @@ local TestRunner = require(script.Parent.TestRunner)
 local AREA: { [string]: number } = {
 	MossyEgg = 1,
 	ThornwoodEgg = 2,
+	-- Bogheart Caverns is area 4 (the egg opened 2026-11-06; this line was missing until 2026-11-16)
+	BogheartEgg = 4,
 }
 
 --[[ How far off its band a pet may sit. A fifth either way: enough room for
@@ -96,9 +98,10 @@ return function(t: TestRunner.Helper)
 		end
 	end)
 
-	--[[ Bogheart Caverns has no egg yet (`Config/Eggs`), so the two tests
-	     above cannot see its pets. They are held to area 4's bands here by
-	     name, so the egg can open on a ladder that already climbs. ]]
+	--[[ Written while Bogheart Caverns had no egg, so the two tests above
+	     could not see its pets. It has one now and they do; this stays as
+	     the check by name, so taking a pet out of the egg cannot take it
+	     off the ladder unseen. ]]
 	t.test("the Bogheart Caverns pets sit on area 4's bands and climb", function()
 		local bogheart = {
 			"CaveCricket",

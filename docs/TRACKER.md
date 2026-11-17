@@ -212,7 +212,7 @@ a backlog. What is genuinely not built is the last three.
 - The blocky Mossy Glade has no blocky forest or boulder yet: the trees past the walls are still the round models, and boulders are drawn as mossy stone pillars, whose moss tops read as lawn from above. A blocky tree and boulder in the kit would fix both.
 
 - After SKIP on the story, a save that has beaten 1-1 landed in the lobby with a NEW ENEMY! card (Moss Slime) up under the REWARDS calendar (seen once in Studio, 2026-11-12, on main at #552 plus the Lagoon colours; not seen on a join that skips the title).
-- Two in-Roblox tests fail on main, in files the UI restyle does not touch (2026-11-05): CardText finds Earthbreaker's description 8 lines long and Black Hole's "Black hole every 7th cast" pill too wide for its card. **Since 2026-11-16 the two that fail are others:** `PetGuard` (BogheartEgg holds 0 guards) and `PetPower` (BogheartEgg has no area to scale its pets by); 1175 pass.
+- ~~Two in-Roblox tests fail on main.~~ None does since 2026-11-16 (1179 pass): the last two, `PetGuard` and `PetPower` on the Bogheart Egg, were the tests behind the egg, not the egg (`docs/FIXES.md`).
 - Enemy overlap with cover is measured clean in rooms 1–4 only; rooms 5–10 and the arena art itself are unmeasured (CLAUDE.md, "Known rough edges").
 - A Wilf lunge stopped short by cover still plays its leap for the full time.
 - The Slime King's moves have no sounds yet.

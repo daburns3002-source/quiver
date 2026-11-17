@@ -17,6 +17,17 @@
 	test below, because the way this went wrong was a rule nothing checked
 	against the eggs themselves.
 
+	**Since the Bogheart Egg (2026-11-06) the rule is one pet that keeps its
+	owner from harm, of whichever kind.** That egg's is the Bog Beaver, and
+	its Mud Plaster is a coat that soaks damage (`Util/MudCoat`), kept apart
+	from the Snail's shell on purpose (`docs/PETS-BOGHEART.md`: "None
+	repeats areas 1-3"). The test below still counted shells only, so it
+	failed on main from the day the egg opened ("BogheartEgg holds 0
+	guards", seen 2026-11-16). There are three kinds: a shell (`guard`), a
+	shelter that takes a share off every hit (`shelter`, the Slate Turtle's)
+	and a coat (`coat`). An egg holds exactly one pet with any of them, and
+	it is the egg's Uncommon.
+
 	Driven on a session of the test's own, as `Revive.spec` is; the player's
 	`Pet` attribute is put back afterwards.
 ]]
@@ -32,17 +43,39 @@ local PetCombatConfig = require(ReplicatedStorage.Shared.Config.PetCombat)
 local RunSession = require(ServerScriptService.Server.Run.RunSession)
 local TestRunner = require(script.Parent.TestRunner)
 
+--[[ Whether a pet's whole job is keeping its owner from harm: a shell, a
+     shelter or a coat. ]]
+local function protects(spec: any): boolean
+	return spec ~= nil and (spec.guard == true or spec.shelter ~= nil or spec.coat ~= nil)
+end
+
 return function(t: TestRunner.Helper)
-	t.test("exactly one pet in each egg guards", function()
+	t.test("exactly one pet in each egg keeps its owner from harm", function()
 		for _, egg in Eggs.list do
-			local guards = {}
+			local keepers = {}
 			for _, entry in EggRules.pool(egg.key) do
-				local spec = PetCombatConfig.pets[entry.pet]
-				if spec and spec.guard then
-					table.insert(guards, entry.pet)
+				if protects(PetCombatConfig.pets[entry.pet]) then
+					table.insert(keepers, entry.pet)
+					t.equal(entry.rarity, "Uncommon", `{entry.pet} is its egg's keeper`)
 				end
 			end
-			t.equal(#guards, 1, `{egg.key} holds {#guards} guards: {table.concat(guards, ", ")}`)
+			t.equal(
+				#keepers,
+				1,
+				`{egg.key} holds {#keepers} pets that protect: {table.concat(keepers, ", ")}`
+			)
+		end
+	end)
+
+	t.test("a pet protects in one way only", function()
+		for key, spec in PetCombatConfig.pets do
+			local ways = 0
+			for _, has in { spec.guard == true, spec.shelter ~= nil, spec.coat ~= nil } do
+				if has then
+					ways += 1
+				end
+			end
+			t.isTrue(ways <= 1, `{key} protects in {ways} ways`)
 		end
 	end)
 

@@ -130,7 +130,7 @@ local function onShadowDash(a: Vector3, b: Vector3, struck: { Vector3 })
 		end)
 	end
 	if #struck > 0 then
-		SoundFx.play("dagger_stab")
+		SoundFx.play("fx_shadow_dash")
 	end
 	local turn = if length > 0.5 then math.atan2(-span.X, -span.Z) else 0
 	for index, at in struck do

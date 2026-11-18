@@ -247,5 +247,6 @@ Blackspine Staff, Briarbreaker Blade) are **modelled in Tripo**: HD model, 4,000
   `Config/WeaponFx`, the pictures' upload, and `stocked = true` on Thornwood's crate. No projectiles were
   modelled, so an Epic and up fires its base's arrow or orb, glowing, as the Drowned Village's and
   Bogheart's do.
-- **Effects.** The six above were each a new card. Unless the owner asks for them, each Legendary and
-  Mythic will carry an existing card of its class that no other of its weapons carries, as the daggers do.
+- **Effects.** The owner (2026-11-18): "Build the six new". Built as cards (`docs/CLASS-CARDS.md`,
+  "Thornwood's six cards"): Web Snare, Thorn Burst, Root Hold, Burr Blight, Boar Rush, Ruin Cracks, each to
+  be carried by its Legendary or Mythic above once the models are imported.

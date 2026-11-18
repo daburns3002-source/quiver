@@ -431,6 +431,13 @@ owner's mythic-fx.js draws them (`Fx/MythicFx`, `Balance.MythicFx`, budgeted
 by `DeviceTiers.mythicFxShare`), and the staff plays the kit's Meteor cast
 when the server counts one on the player (`Meteors` attribute).
 
+**Thornwood's six cards** (owner, 2026-11-18: "Build the six new"; `docs/CLASS-CARDS.md`): Web Snare and
+Thorn Burst (Ranger), Root Hold and Burr Blight (Arcanist), Boar Rush and Ruin Cracks (both melee classes,
+on the combo's last blow). Data like any card; four ride a shot through `ClassUpgrades.dress` and
+`ProjectileSystem` (`web`, `thorn`, `root`, `blight`), two land in `MeleeSystem.land`; numbers in
+`Balance.Player.thornwood`, looks in `Fx/Upgrades/ThornwoodFx`, rules in `tests/ThornwoodCards.spec`.
+Each will be a Thornwood Legendary's or Mythic's `innate`.
+
 **The Assassin** (owner, 2026-11-15: "we need to create the assassin class now", yes to option A,
 "twin daggers up close"; `Config/Classes.Assassin`): the fourth class, a second melee class on the
 Warden's machinery. About two strikes a second, 0.75x a hit, 1.5x the Ranger's health (338), guarded mid-strike as the Warden is (without both it

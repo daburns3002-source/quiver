@@ -95,6 +95,8 @@ for index, area in DexBook.AREAS do
 	AREAS[area] = index
 end
 local LAST_AREA = 99
+--[[ A themed set's weapons rank after every area's (`pageRank`). ]]
+local SET_RANK = LAST_AREA
 
 local function label(weapon: string): string
 	for _, entry in Sandbox.weapons do
@@ -183,10 +185,16 @@ function DexBook.entries(book: string, profile: SaveSchema.Profile?): { Entry }
 			--[[ Not the golden weapons (`Config/ClassLevels`): a class's
 			     trophy belongs to no area, and an area's page is laid out
 			     for its own eighteen (`Dex.pageMost`). They show at Gear.
-			     Nor a weapon of a class still locked on its card. ]]
-			if art and not stats.earned and ShopRules.shown(key) then
+			     Nor a weapon of a class still locked on its card, nor one
+			     of a themed set that is not for sale yet: a set's page
+			     comes with its shelf (`Config/Shop.sets`). A set's weapons
+			     have a page of their own, after the areas'. ]]
+			local hidden = stats.set ~= nil and not ShopRules.stocked(stats)
+			if art and not stats.earned and not hidden and ShopRules.shown(key) then
 				table.insert(ranked, {
-					rank = stats.area * 10 + (RANK[stats.rarity] or 9),
+					rank = (if stats.set
+						then SET_RANK + ShopRules.setIndex(stats.set)
+						else stats.area) * 10 + (RANK[stats.rarity] or 9),
 					entry = {
 						key = key,
 						name = label(key),
@@ -201,7 +209,8 @@ function DexBook.entries(book: string, profile: SaveSchema.Profile?): { Entry }
 						unlocked = owned[key] == true,
 						rarity = stats.rarity,
 						-- `WeaponStats.area` is the area's number, in the order played
-						area = DexBook.AREAS[stats.area] or `Area{stats.area}`,
+						-- a themed set's page is its set's (`pageRank`)
+						area = stats.set or DexBook.AREAS[stats.area] or `Area{stats.area}`,
 						detail = stats.rarity,
 						tier = if owned[key] == true
 							then MergeRules.best(tiers[key]) or MergeRules.TIERS[1]
@@ -251,10 +260,23 @@ function DexBook.found(entries: { Entry }): (number, number)
 	return found, #entries
 end
 
+--[[ Where a page stands in its book: an area by the order played, an
+     area the order does not know after those, and a themed set's page
+     (the weapon book's, `Config/Shop.sets`) after every area's, in the
+     shelf's order. ]]
+local function pageRank(page: string): number
+	if AREAS[page] then
+		return AREAS[page]
+	elseif ShopRules.set(page) then
+		return LAST_AREA + ShopRules.setIndex(page)
+	end
+	return LAST_AREA
+end
+
 --[[ The areas `entries` has anything from, in the order the game plays
      them: a book's pages. An area the order does not know yet comes after
      the ones it does, by name, so a new area's page shows up rather than
-     going missing. ]]
+     going missing; a themed set's page comes last (`pageRank`). ]]
 function DexBook.areas(entries: { Entry }): { string }
 	local seen: { [string]: boolean } = {}
 	local out: { string } = {}
@@ -265,7 +287,7 @@ function DexBook.areas(entries: { Entry }): { string }
 		end
 	end
 	table.sort(out, function(a, b)
-		local ra, rb = AREAS[a] or LAST_AREA, AREAS[b] or LAST_AREA
+		local ra, rb = pageRank(a), pageRank(b)
 		if ra ~= rb then
 			return ra < rb
 		end

@@ -38,6 +38,11 @@ export type Stats = {
 	     endless, there should not be a merge tier"): no badge, no MERGE, no
 	     tier in its damage (`ShopRules.merges`). ]]
 	earned: boolean?,
+	--[[ The themed set it belongs to (`Config/Shop.sets`, docs/WEAPONS-THEMED.md):
+	     a weapon of no area, sold from the store's SETS shelf and in no
+	     crate. Its `area` is then only its scale's, and always 1 (owner,
+	     2026-11-18: the Mossy Glade's scale, as the golden weapons have). ]]
+	set: string?,
 }
 
 local WeaponStats = {

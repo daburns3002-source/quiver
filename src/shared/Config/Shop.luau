@@ -51,6 +51,24 @@ export type Crate = {
 	atLaunch: string?,
 }
 
+--[[ A themed set (owner, 2026-11-18: "weapons ... that are not area
+     specific", in themed lines): one theme across one weapon for every
+     class, all of one rarity, belonging to no area. Its weapons name it in
+     `Config/WeaponStats` (`set`). docs/WEAPONS-THEMED.md. ]]
+export type Set = {
+	key: string,
+	--[[ Its name on the shelf and on its Dex page. ]]
+	name: string,
+	--[[ What each of its weapons costs at the store: coins and gems, since
+	     a set has no boss whose item a Legendary could ask for. ]]
+	coins: number,
+	gems: number,
+	--[[ Whether it is for sale: its four models are in and its pictures
+	     drawn. An unstocked set's weapons are held in the sandbox only, as
+	     an unstocked area's are. ]]
+	stocked: boolean?,
+}
+
 local Shop = {
 	--[[ Areas in order: area 1 is the Mossy Glade (`WeaponStats.area`). ]]
 	crates = {
@@ -73,6 +91,19 @@ local Shop = {
 		{ area = "WindsweptCliffs", name = "WINDSWEPT CLIFFS", price = 10000 },
 		{ area = "FrostpeakPass", name = "FROSTPEAK PASS", price = 20000 },
 	} :: { Crate },
+
+	--[[ The themed sets, in the order the SETS shelf and the Dex show them.
+	     A set waits on no boss: it is open from the start, whatever the
+	     launch switch says. Never in a crate, an Endless prize or a free
+	     crate (`ShopRules.cratePool`). Prices are starting numbers (owner's
+	     yes, 2026-11-18): gems buy nothing above Epic anywhere else, so a
+	     set's Legendary is the one place they do. ]]
+	sets = {
+		--[[ Chunky toy electronics: graphite blocks, cyan and magenta light
+		     strips, a green circuit chip. Legendary. Not stocked until its
+		     four Tripo models are imported and wired. ]]
+		{ key = "NeonCircuit", name = "NEON CIRCUIT", coins = 5000, gems = 300 },
+	} :: { Set },
 
 	counts = { 1, 3 },
 

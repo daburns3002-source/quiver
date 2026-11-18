@@ -16,7 +16,9 @@ local Eggs = require(ReplicatedStorage.Shared.Config.Eggs)
 local NewEnemies = require(ReplicatedStorage.Shared.Config.NewEnemies)
 local Pets = require(ReplicatedStorage.Shared.Config.Pets)
 local SaveSchema = require(ReplicatedStorage.Shared.Util.SaveSchema)
+local Shop = require(ReplicatedStorage.Shared.Config.Shop)
 local ShopAssets = require(ReplicatedStorage.Shared.Config.ShopAssets)
+local ShopRules = require(ReplicatedStorage.Shared.Util.ShopRules)
 local TestRunner = require(script.Parent.TestRunner)
 local UiContrast = require(ReplicatedStorage.Shared.Util.UiContrast)
 
@@ -201,6 +203,12 @@ return function(t: TestRunner.Helper)
 			local seen, last = 0, 0
 			for _, area in areas do
 				local at = table.find(DexBook.AREAS, area)
+				--[[ the weapon book's themed sets have a page each, after
+				     every area's, in the shelf's order (`tests/WeaponSets.spec`) ]]
+				local set = if book == "Weapons" then ShopRules.setIndex(area) else 0
+				if at == nil and set > 0 and set <= #Shop.sets then
+					at = #DexBook.AREAS + set
+				end
 				t.notNil(at, `{book} has a page for {area}, which is not an area`)
 				t.isTrue((at or 0) > last, `{book}'s pages are out of order at {area}`)
 				last = at or last

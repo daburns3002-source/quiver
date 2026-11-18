@@ -27,15 +27,55 @@ export type Entry = {
 	area: number,
 	--[[ Earned, not sold or rolled (`WeaponStats.earned`): a golden weapon. ]]
 	earned: boolean?,
+	--[[ The themed set it is of (`WeaponStats.set`, `Shop.sets`): a weapon
+	     of no area. `area` is then only its scale's. ]]
+	set: string?,
 }
 
 local ORDER = { Common = 1, Uncommon = 2, Rare = 3, Epic = 4, Legendary = 5, Mythic = 6 }
 
+--[[ A themed set by its key (`Shop.sets`), and where it stands on the
+     shelf: 0 for a weapon of an area (no key), so the areas sort first. A
+     key that names no set sorts last. ]]
+function ShopRules.set(key: string?): Shop.Set?
+	for _, set in Shop.sets do
+		if set.key == key then
+			return set
+		end
+	end
+	return nil
+end
+
+function ShopRules.setIndex(key: string?): number
+	if key == nil then
+		return 0
+	end
+	for index, set in Shop.sets do
+		if set.key == key then
+			return index
+		end
+	end
+	return #Shop.sets + 1
+end
+
+--[[ Whether a weapon with these stats is for sale at all: its set is
+     stocked, or, for a weapon of an area, its area's crate is. A set's
+     weapon never asks its `area`, which is only its scale's. ]]
+function ShopRules.stocked(stats: WeaponStats.Stats): boolean
+	if stats.set then
+		local set = ShopRules.set(stats.set)
+		return set ~= nil and set.stocked == true
+	end
+	local crate = Shop.crates[stats.area]
+	return crate ~= nil and crate.stocked == true
+end
+
 --[[ Every weapon a player can own: one with stats and an open class to
      hold it (`Util/ClassList`: a class still locked on its card has no
      weapons for sale, in a crate or at Gear), not a pair the Dual Bows card
-     swaps in, and from an area that is stocked (`Config/Shop`'s `stocked`).
-     In rarity order.
+     swaps in, and from an area that is stocked (`Config/Shop`'s `stocked`)
+     or of a themed set that is (`stocked` above). In rarity order, the
+     areas' first and then the sets'.
 
      An unstocked area's weapons exist -- they are modelled, held and
      fought with in the sandbox -- but they are not for sale, so they are
@@ -45,8 +85,7 @@ function ShopRules.catalog(): { Entry }
 	local out = {}
 	for _, entry in Sandbox.weapons do
 		local stats = WeaponStats.weapons[entry.weapon]
-		local crate = stats and Shop.crates[stats.area]
-		if stats and crate and crate.stocked and ClassList.isOpen(entry.class) then
+		if stats and ShopRules.stocked(stats) and ClassList.isOpen(entry.class) then
 			table.insert(out, {
 				weapon = entry.weapon,
 				class = entry.class,
@@ -54,10 +93,16 @@ function ShopRules.catalog(): { Entry }
 				rarity = stats.rarity :: string,
 				area = stats.area,
 				earned = stats.earned,
+				set = stats.set,
 			})
 		end
 	end
 	table.sort(out, function(a, b)
+		-- the areas' weapons first, then the sets' in the shelf's order
+		local setA, setB = ShopRules.setIndex(a.set), ShopRules.setIndex(b.set)
+		if setA ~= setB then
+			return setA < setB
+		end
 		if a.area ~= b.area then
 			return a.area < b.area
 		end
@@ -93,12 +138,15 @@ end
 --[[ What area `index`'s chest can give: its weapons of a rarity the chest
      rolls, and of `class` when one is named — an area's crate is three
      chests, one a class (`Shop.chests`). Empty for an area with no weapons
-     yet (a silhouette). An earned weapon (a golden one) is in no chest. ]]
+     yet (a silhouette). An earned weapon (a golden one) is in no chest,
+     and nor is a themed set's: it has no area, so no crate, Endless prize
+     or free crate ever gives one (they all ask here). ]]
 function ShopRules.cratePool(index: number, class: string?): { Entry }
 	local out = {}
 	for _, entry in ShopRules.catalog() do
 		local wanted = class == nil or entry.class == class
-		if entry.area == index and wanted and not entry.earned and Shop.crateOdds[entry.rarity] then
+		local inCrate = entry.area == index and not entry.earned and not entry.set
+		if inCrate and wanted and Shop.crateOdds[entry.rarity] then
 			table.insert(out, entry)
 		end
 	end
@@ -222,6 +270,33 @@ function ShopRules.crateOpen(
 	return unlock == nil or (bossesBeaten ~= nil and bossesBeaten[unlock] == true)
 end
 
+--[[ The weapons of themed set `key` that are for sale, of `class` when
+     one is named: the SETS shelf (`UI/ShopScreen`). Empty for a set that
+     is not stocked. ]]
+function ShopRules.setPool(key: string, class: string?): { Entry }
+	local out = {}
+	for _, entry in ShopRules.catalog() do
+		if entry.set == key and (class == nil or entry.class == class) then
+			table.insert(out, entry)
+		end
+	end
+	return out
+end
+
+--[[ Whether a player who has beaten `bossesBeaten` may buy `entry` at the
+     store: its area's crate is open to them (`crateOpen`). A themed set's
+     weapon waits on no boss, whatever the launch switch says. ]]
+function ShopRules.buyable(
+	entry: Entry,
+	bossesBeaten: { [string]: boolean }?,
+	locks: boolean?
+): boolean
+	if entry.set then
+		return true
+	end
+	return ShopRules.crateOpen(entry.area, bossesBeaten, locks)
+end
+
 --[[ What a shut crate says opens it: "BEAT THE BROODMOTHER", nil for an
      open one. ]]
 function ShopRules.crateWords(
@@ -240,8 +315,18 @@ function ShopRules.crateWords(
 end
 
 --[[ The store's price for a weapon, or nil when the store does not sell
-     it (the class weapons, Mythics, the earned golden weapons). ]]
+     it (the class weapons, Mythics, the earned golden weapons). A themed
+     set's weapon costs its set's coins and gems (`Shop.sets`): no area, so
+     no boss item and no area number to multiply by; a Mythic set would be
+     earned, as every Mythic is never sold. ]]
 function ShopRules.price(entry: Entry): Purse.Cost?
+	if entry.set then
+		local set = ShopRules.set(entry.set)
+		if not set or entry.earned or entry.rarity == "Mythic" then
+			return nil
+		end
+		return { coins = set.coins, gems = set.gems }
+	end
 	local crate = Shop.crates[entry.area]
 	if not crate or entry.earned then
 		return nil

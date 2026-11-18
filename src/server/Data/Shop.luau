@@ -158,7 +158,7 @@ local function buy(player: Player, weapon: unknown)
 		or not price
 		or Wallet.owns(player, weapon)
 		or not profile
-		or not ShopRules.crateOpen(entry.area, profile.bossesBeaten)
+		or not ShopRules.buyable(entry, profile.bossesBeaten)
 	then
 		return
 	end

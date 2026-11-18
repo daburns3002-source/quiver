@@ -479,7 +479,9 @@ function ClassUpgrades.dress(session: Session, params: ProjectileSystem.SpawnPar
 	--[[ Thornwood's four on a shot. `afterVolley` counts a volley once it
 	     has left, so the one being dressed now is the next. ]]
 	local thornwood = Balance.Player.thornwood
-	local volley = state(session).volleys + 1
+	local volley = if held.thornBurst > 0 or held.rootHold > 0
+		then state(session).volleys + 1
+		else 0
 	if held.webSnare > 0 then
 		params.slow = math.min(params.slow or 1, 1 - held.webSnare)
 		params.slowDuration = math.max(params.slowDuration or 0, thornwood.web.duration)

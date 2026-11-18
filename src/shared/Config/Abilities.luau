@@ -1040,27 +1040,30 @@ local abilities: { Ability } = {
 	{
 		id = "BoarRush",
 		name = "Boar Rush",
-		description = "Your slam shoves everything it hits far back.",
+		description = "Your combo's last blow shoves everything it hits far back.",
 		category = "OnHit",
 		group = "blade",
 		rarity = "Uncommon",
-		--[[ Extra shove, in shares of a hit's own knockback. ]]
+		--[[ Extra shove, in shares of a hit's own knockback. Both melee
+		     classes': the Warden's slam and the Assassin's double stab,
+		     which also keeps the four classes' pools level
+		     (`tests/ClassCards.spec`). ]]
 		levels = { 1.5, 2.5 },
 		stats = { "+150% shove", "+250% shove" },
 		icon = "boar-rush",
-		classes = WARDEN,
+		classes = MELEE,
 	},
 	{
 		id = "RuinCracks",
 		name = "Ruin Cracks",
-		description = "Your slam cracks what it hits: it takes more damage from everything for 4s.",
+		description = "Your combo's last blow cracks what it hits: it takes more damage for 4s.",
 		category = "OnHit",
 		group = "blade",
 		rarity = "Epic",
 		levels = { 0.3, 0.4 },
 		stats = { "+30% damage taken", "+40% damage taken" },
 		icon = "ruin-cracks",
-		classes = WARDEN,
+		classes = MELEE,
 	},
 	--[[ The Assassin's own (owner, 2026-11-15: yes to the ten of
 	     docs/CARD-IDEAS.md as put to them; docs/CLASS-CARDS.md). Dagger

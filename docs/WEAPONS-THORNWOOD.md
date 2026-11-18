@@ -1,6 +1,6 @@
 # Weapons — Thornwood (Act 1, area 2)
 
-**Design only; nothing here is built; the owner picks.** Ideas written by
+**Modelled 2026-11-18, waiting on the owner's import** (see "Status" at the foot; the Assassin's five daggers are already in the game). What follows is the October design. Ideas written by
 Codex (2026-10-26) from the owner's ask: "i need codex to create ideas and
 reference sheets for pets and weapons for area 2 now", then reviewed for
 name clashes with the Mossy Glade, class silhouettes and tone (two effect
@@ -226,3 +226,26 @@ of this". Codex's front views, in `assets/concepts/blocky/weapons/skins/thornwoo
 | Mythic | **Lurker Claws**: a hooked black-green claw wrapped in living vine, a glowing magenta eye in the guard; glows magenta and green | `lurker_claws.png` |
 
 Effects: the Silkfang Daggers carry Poison Trail, the Lurker Claws Fan of Knives. Thornwood is not stocked (`Config/Shop`) and no other class has Thornwood weapons built, so these are held in the sandbox and not for sale.
+
+## Status (2026-11-18)
+
+The owner, asking why Thornwood sold no daggers and told that no Thornwood weapon had ever been built:
+"Yes, all fifteen". The five bows, five staffs and five blades above (the picked Mythics: Nightbarb Bow,
+Blackspine Staff, Briarbreaker Blade) are **modelled in Tripo**: HD model, 4,000 triangles, 8K texture,
+65 credits each, 975 in all (4,980 left).
+
+- Each model was made from Codex's redrawing of its sheet's FRONT view alone
+  (`assets/concepts/blocky/weapons/skins/thornwood/<name>_single.png`, `thornwood_single_prompts.py`);
+  nothing was redesigned. A bow's string is drawn as a thick bar, and all five came out of Tripo whole.
+  Three bow pictures were first refused by the image generator's filter and went through described as a
+  toy prop.
+- Jobs: `assets/models/weapons/blocky/thornwood_tripo_2026_11_18.json`. The GLBs are not in git:
+  `name_tripo_glb.py` names them for the Import Queue in `Downloads\thornwood_weapons_import`, each one
+  textured mesh with UVs.
+- Shop and gear pictures: `assets/ui/shop/thornwood_icons.py` (cut, not uploaded yet).
+- **Not done:** the import (the owner's), then `skins_to_luau.py`, `Config/WeaponStats` (area 2),
+  `Config/WeaponFx`, the pictures' upload, and `stocked = true` on Thornwood's crate. No projectiles were
+  modelled, so an Epic and up fires its base's arrow or orb, glowing, as the Drowned Village's and
+  Bogheart's do.
+- **Effects.** The six above were each a new card. Unless the owner asks for them, each Legendary and
+  Mythic will carry an existing card of its class that no other of its weapons carries, as the daggers do.

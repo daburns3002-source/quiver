@@ -806,6 +806,10 @@ local Sounds: { [string]: Sound } = {
 		pitchJitter = 0.02,
 		minGap = 0.5,
 	},
+	--[[ Thornwood's cards (2026-11-18): hooks, silent until their sounds are
+	     picked and uploaded as one sprite (`docs/PIPELINES.md` section 7). ]]
+	fx_thorn_burst = { id = "", volume = 0.6, pitchJitter = 0.05, minGap = 0.15 },
+	fx_boar_rush = { id = "", volume = 0.7, pitchJitter = 0.04, minGap = 0.2 },
 }
 
 return table.freeze(Sounds)

@@ -976,6 +976,92 @@ local abilities: { Ability } = {
 		icon = "sunder",
 		classes = MELEE,
 	},
+	--[[ Thornwood's six (owner, 2026-11-18: "Build the six new"; the effects
+	     Codex wrote for Thornwood's Legendaries and Mythics in October,
+	     docs/WEAPONS-THORNWOOD.md). Cards like any other: drafted by their
+	     class, and carried by a Thornwood weapon as its `innate`. Each rides
+	     machinery that was already there (`Combat/ClassUpgrades.dress`,
+	     `Combat/ProjectileSystem`, `Combat/MeleeSystem`); numbers in
+	     `Balance.Player.thornwood`. ]]
+	{
+		id = "WebSnare",
+		name = "Web Snare",
+		description = "Arrows tangle what they hit in web, slowing it for 2s.",
+		category = "OnHit",
+		group = "arrow",
+		rarity = "Uncommon",
+		--[[ How much slower a webbed enemy moves. ]]
+		levels = { 0.3, 0.4 },
+		stats = { "30% slow", "40% slow" },
+		icon = "web-snare",
+		classes = RANGER,
+	},
+	{
+		id = "ThornBurst",
+		name = "Thorn Burst",
+		description = "Every 3rd shot bursts into thorns where it lands, hitting all nearby.",
+		category = "OnHit",
+		group = "arrow",
+		rarity = "Epic",
+		--[[ The burst's damage to everything round the mark, as a share of
+		     the hit. ]]
+		levels = { 0.6, 0.8 },
+		stats = { "60% burst", "80% burst" },
+		icon = "thorn-burst",
+		classes = RANGER,
+	},
+	{
+		id = "RootHold",
+		name = "Root Hold",
+		description = "Every 4th cast roots what its orbs hit in place.",
+		category = "OnHit",
+		group = "spell",
+		rarity = "Rare",
+		--[[ Seconds held. ]]
+		levels = { 1, 1.5 },
+		stats = { "Root 1s", "Root 1.5s" },
+		icon = "root-hold",
+		classes = ARCANIST,
+	},
+	{
+		id = "BurrBlight",
+		name = "Burr Blight",
+		description = "Orbs poison what they hit. The poison stacks, up to 5 deep.",
+		category = "OnHit",
+		group = "spell",
+		rarity = "Epic",
+		--[[ One stack's damage over its three seconds, as a share of the
+		     hit. ]]
+		levels = { 0.3, 0.4 },
+		stats = { "30% poison a stack", "40% poison a stack" },
+		icon = "burr-blight",
+		classes = ARCANIST,
+	},
+	{
+		id = "BoarRush",
+		name = "Boar Rush",
+		description = "Your slam shoves everything it hits far back.",
+		category = "OnHit",
+		group = "blade",
+		rarity = "Uncommon",
+		--[[ Extra shove, in shares of a hit's own knockback. ]]
+		levels = { 1.5, 2.5 },
+		stats = { "+150% shove", "+250% shove" },
+		icon = "boar-rush",
+		classes = WARDEN,
+	},
+	{
+		id = "RuinCracks",
+		name = "Ruin Cracks",
+		description = "Your slam cracks what it hits: it takes more damage from everything for 4s.",
+		category = "OnHit",
+		group = "blade",
+		rarity = "Epic",
+		levels = { 0.3, 0.4 },
+		stats = { "+30% damage taken", "+40% damage taken" },
+		icon = "ruin-cracks",
+		classes = WARDEN,
+	},
 	--[[ The Assassin's own (owner, 2026-11-15: yes to the ten of
 	     docs/CARD-IDEAS.md as put to them; docs/CLASS-CARDS.md). Dagger
 	     cards: they speak of the double stab, the dash that cuts and the

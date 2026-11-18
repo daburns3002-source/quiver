@@ -100,6 +100,13 @@ local CardAssets = {
 		["death-mark"] = "rbxassetid://127593517696959",
 		["phantom-blades"] = "rbxassetid://81658600065127",
 		["thousand-cuts"] = "rbxassetid://120243122334089",
+		-- Thornwood's six (Codex, 2026-11-18; thornwood_cards_2026_11_18.sh)
+		["web-snare"] = "rbxassetid://109546856097028",
+		["thorn-burst"] = "rbxassetid://132356564537786",
+		["root-hold"] = "rbxassetid://113442679427540",
+		["burr-blight"] = "rbxassetid://99608010792054",
+		["boar-rush"] = "rbxassetid://91694443828146",
+		["ruin-cracks"] = "rbxassetid://80397573386163",
 	},
 	--[[ The name banner for each rarity, 984 x 558, its plate cleared
 	     (`assets/ui/glow_toy_cards/clear_plates.py`): the card writes its name

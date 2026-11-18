@@ -351,6 +351,7 @@ local function land(swing: Pending, now: number)
 		end
 	end
 
+	local rushed = 0
 	for _, enemy in candidates() do
 		if
 			not SwingBox.hits(
@@ -374,6 +375,31 @@ local function land(swing: Pending, now: number)
 			nil,
 			--[[ A spin shoves all the way, whatever the blow it replaced. ]]
 			if config.knock and not swing.spin then config.knock[swing.index] else nil
+		)
+		--[[ Thornwood's two, on the slam alone. Boar Rush: what it hit is
+		     shoved much further (a boss takes no shove at all). Ruin
+		     Cracks: and takes more from everything for a while, as Sunder's
+		     mark does, the stronger of the two holding. ]]
+		if slam and not swing.spin then
+			if melee.boarRush > 0 then
+				EnemyManager.knock(enemy.model, root.Position, melee.boarRush)
+				rushed += 1
+			end
+			if melee.ruinCracks > 0 then
+				EnemyManager.sunder(
+					enemy.model,
+					melee.ruinCracks,
+					os.clock() + Balance.Player.thornwood.ruin.duration
+				)
+			end
+		end
+	end
+	if rushed > 0 then
+		upgradeFx:FireAllClients(
+			"BoarRush",
+			session.player,
+			root.Position + swing.direction * shape.ahead,
+			if shape.kind == "Circle" then shape.radius else shape.reach
 		)
 	end
 

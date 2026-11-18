@@ -75,6 +75,10 @@ export type MeleeStats = {
 	--[[ Extra damage a struck enemy takes from everything for a while, as a
 	     fraction (0 none). Sunder. ]]
 	sunder: number,
+	--[[ Thornwood's, on the slam alone: Boar Rush, extra shove in shares of
+	     a hit's own; Ruin Cracks, extra damage taken, as Sunder's. ]]
+	boarRush: number,
+	ruinCracks: number,
 	--[[ Extra damage on a strike from behind, as a fraction. Backstab. ]]
 	backstab: number,
 	--[[ Extra damage an enemy takes from everything after a crit on it, as
@@ -104,6 +108,14 @@ export type UpgradeStats = {
 	wind: number,
 	--[[ Frost Orb: how much slower a chilled enemy moves (0 none). ]]
 	frost: number,
+	--[[ Thornwood's (`Balance.Player.thornwood`): Web Snare, how much
+	     slower a webbed enemy moves; Thorn Burst, the burst's share of the
+	     hit; Root Hold, seconds held; Burr Blight, a stack's share of the
+	     hit. 0 without the card. ]]
+	webSnare: number,
+	thornBurst: number,
+	rootHold: number,
+	burrBlight: number,
 	--[[ Arcane Shield: how fast a spent shield is back, in shields a second
 	     (0 none). ]]
 	arcaneShield: number,
@@ -470,6 +482,10 @@ function AbilityEffects.serverStats(drafted: Counts, class: string?, weapon: str
 			bladeStorm = at(counts, "BladeStorm"),
 			wind = at(counts, "WindArrows"),
 			frost = at(counts, "FrostOrb"),
+			webSnare = at(counts, "WebSnare"),
+			thornBurst = at(counts, "ThornBurst"),
+			rootHold = at(counts, "RootHold"),
+			burrBlight = at(counts, "BurrBlight"),
 			arcaneShield = at(counts, "ArcaneShield"),
 			quickstep = at(counts, "Quickstep"),
 			poisonTrail = at(counts, "PoisonTrail"),
@@ -496,6 +512,8 @@ function AbilityEffects.serverStats(drafted: Counts, class: string?, weapon: str
 			reachScale = math.max(at(counts, "TitansGrip"), 1),
 			counterStrike = at(counts, "CounterStrike"),
 			sunder = at(counts, "Sunder"),
+			boarRush = at(counts, "BoarRush"),
+			ruinCracks = at(counts, "RuinCracks"),
 			backstab = at(counts, "Backstab"),
 			serrated = at(counts, "SerratedEdge"),
 			bleed = at(counts, "Bleed"),

@@ -34,6 +34,39 @@ codex." This picks option C of `docs/WARDEN-CARDS.md` (a card set per class).
   Whirlwind, Shockwave and Battle Cry have sounds waiting on the owner's picks
   (audition round 19).
 
+## Thornwood's six cards (2026-11-18)
+
+The owner, asked whether Thornwood's three Legendaries and three Mythics should carry existing cards
+or the six effects Codex wrote for them in October (`docs/WEAPONS-THORNWOOD.md`): **"Build the six
+new"**. They are cards like any other, drafted by their class and carried by a Thornwood weapon as its
+`innate`. Each rides machinery that was already there; numbers in `Balance.Player.thornwood`, rules in
+`tests/ThornwoodCards.spec`.
+
+| Card | Class | Rarity | What it does | How |
+|---|---|---|---|---|
+| **Web Snare** | Ranger | Uncommon | Arrows slow what they hit by 30 / 40% for 2 s | a shot's `slow`, flagged `web` so it is silk and not a chill (`ClassUpgrades.dress`) |
+| **Thorn Burst** | Ranger | Epic | Every 3rd volley's arrows burst 6 studs round what they hit, for 60 / 80% | the shot's own splash, as Blast Arrows', the bigger of the two winning |
+| **Root Hold** | Arcanist | Rare | Every 4th cast's orbs hold what they hit for 1 / 1.5 s; a boss is slowed to 60% instead | `EnemyManager.root`, as a pet's root holds |
+| **Burr Blight** | Arcanist | Epic | Orbs poison what they hit: a stack is 30 / 40% of the hit over 3 s, up to 5 deep | `Burning.bleed`, as the Assassin's Bleed |
+| **Boar Rush** | Warden, Assassin | Uncommon | The combo's last blow shoves what it hits 150 / 250% further | `EnemyManager.knock`, as Wind Arrows' gust |
+| **Ruin Cracks** | Warden, Assassin | Epic | The combo's last blow makes what it hits take 30 / 40% more for 4 s | `EnemyManager.sunder`, as Sunder's mark, the stronger holding |
+
+- **Changed from the October words**, to fit how the game counts: Thorn Burst is every 3rd *volley*
+  (as Rain of Arrows and Phoenix Arrow count), not every 3rd hit, and Root Hold every 4th *cast*.
+  Web Snare slows a boss as it slows anything (Frost Orb does the same).
+- **Boar Rush and Ruin Cracks are both melee classes'**: the Warden's slam and the Assassin's double
+  stab. That keeps the four classes' pools within a card of each other (27, 26, 26, 26;
+  `tests/ClassCards.spec`); as the Warden's alone the Assassin would have been three behind.
+- **Looks** (`Fx/Upgrades/ThornwoodFx`): thorns thrown out in a ring, a ring of dust under the slam,
+  strands of silk across a webbed enemy, burrs of poison bobbing over a blighted one. Root Hold wears
+  Stumpy's roots (`Fx/RootHoldFx`) and Ruin Cracks Sunder's cracks, being the same states.
+- **Icons**: Codex, in the set's style (`assets/concepts/blocky/ui/cards/thornwood_cards_prompts.py`),
+  composed by `compose_icon.py` and uploaded. **Sounds**: two silent hooks (`fx_thorn_burst`,
+  `fx_boar_rush`) until they are picked.
+- **Which weapon carries which** (once the fifteen are imported): Silkweaver Bow Web Snare, Nightbarb
+  Bow Thorn Burst, Silk Diadem Staff Root Hold, Blackspine Staff Burr Blight, Silkbound Blade Boar
+  Rush, Briarbreaker Blade Ruin Cracks.
+
 ## The Assassin's cards (2026-11-15)
 
 Owner, 2026-11-15: "we need to create the assassin class now", then yes to the design put to them

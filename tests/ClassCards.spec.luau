@@ -104,6 +104,9 @@ return function(t: TestRunner.Helper)
 					or with.melee.reachBonus ~= plain.melee.reachBonus
 					or with.melee.executeBonus ~= plain.melee.executeBonus
 					or with.melee.sunder ~= plain.melee.sunder
+					-- Thornwood's two, on the combo's last blow (its double stab)
+					or with.melee.boarRush ~= plain.melee.boarRush
+					or with.melee.ruinCracks ~= plain.melee.ruinCracks
 				t.isTrue(changed, `{ability.id} does nothing for the Assassin`)
 			end
 		end

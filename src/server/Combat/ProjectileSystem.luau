@@ -36,6 +36,10 @@ local shotFired = Remotes.event(Remotes.ShotFired)
 local explosion = Remotes.event(Remotes.Explosion)
 local upgradeFx = Remotes.event(Remotes.UpgradeFx)
 
+--[[ Root Hold's roots are drawn as Stumpy's Root Snare is: the pet whose
+     `Hold` piece `Fx/RootHoldFx` plays round a held enemy's feet. ]]
+local ROOT_LOOK = "Stumpy"
+
 --[[ `os.clock()` for the step currently running. Chain shots are created deep
      inside the hit path, which has no reason to be handed the time. ]]
 local currentNow = 0
@@ -91,6 +95,13 @@ type Projectile = {
 	     Orbs' ice. ]]
 	slow: number,
 	slowDuration: number,
+	--[[ Thornwood's cards: whether its slow is Web Snare's silk and its
+	     splash a Thorn Burst, Root Hold's seconds and Burr Blight's stack
+	     (0 none). ]]
+	web: boolean,
+	thorn: boolean,
+	root: number,
+	blight: number,
 	--[[ Long Shot's extra damage at full range, and where the flight began,
 	     which is what "range" is measured from. ]]
 	farBonus: number,
@@ -277,6 +288,14 @@ export type SpawnParams = {
 	     `dress`). Omitted means none. ]]
 	split: number?,
 	gust: number?,
+	--[[ Thornwood's cards (`dress` again). `web`: the slow on it is Web
+	     Snare's silk, not a chill. `thorn`: its splash is a Thorn Burst, to
+	     draw as one. `root`: Root Hold's seconds on what it hits. `blight`:
+	     Burr Blight's stack, as a share of its damage. Omitted means none. ]]
+	web: boolean?,
+	thorn: boolean?,
+	root: number?,
+	blight: number?,
 }
 
 --[[
@@ -327,6 +346,10 @@ function ProjectileSystem.spawn(params: SpawnParams)
 		burnDuration = params.burnDuration or 0,
 		slow = params.slow or 1,
 		slowDuration = params.slowDuration or 0,
+		web = params.web == true,
+		thorn = params.thorn == true,
+		root = params.root or 0,
+		blight = params.blight or 0,
 		farBonus = params.farBonus or 0,
 		origin = params.origin,
 		link = params.link or 0,
@@ -369,6 +392,10 @@ local function applySplash(projectile: Projectile, centre: Vector3, damage: numb
 	     the same frame as the damage numbers it caused rather than after
 	     them. ]]
 	explosion:FireAllClients(centre, projectile.splashRadius)
+	--[[ Thorn Burst: the same blast, drawn as thorns. ]]
+	if projectile.thorn then
+		upgradeFx:FireAllClients("ThornBurst", projectile.owner, centre, projectile.splashRadius)
+	end
 
 	local nearby: { { model: Model, position: Vector3 } } = {}
 	for model, position in EnemyManager.positions() do
@@ -438,6 +465,8 @@ local function fireOnward(projectile: Projectile, onward: Onward)
 			burnDuration = projectile.burnDuration,
 			slow = projectile.slow,
 			slowDuration = projectile.slowDuration,
+			web = projectile.web,
+			blight = projectile.blight,
 			farBonus = projectile.farBonus,
 			link = projectile.link,
 			look = projectile.look,
@@ -691,12 +720,43 @@ local function applyHit(projectile: Projectile, model: Model): boolean
 				currentNow
 			)
 			if projectile.slow < 1 then
+				--[[ Web Snare's slow is silk, not ice: `WebbedUntil` for the
+				     strands (`Fx/Upgrades/ThornwoodFx`), no chill. ]]
 				EnemyManager.slow(
 					model,
 					projectile.slow,
 					os.clock() + projectile.slowDuration,
-					true
+					not projectile.web
 				)
+				if projectile.web then
+					model:SetAttribute(
+						"WebbedUntil",
+						workspace:GetServerTimeNow() + projectile.slowDuration
+					)
+				end
+			end
+			--[[ Root Hold: held where it stands; a boss is slowed instead. ]]
+			if projectile.root > 0 then
+				if EnemyManager.isBoss(model) then
+					EnemyManager.slow(
+						model,
+						Balance.Player.thornwood.root.boss,
+						os.clock() + projectile.root
+					)
+				else
+					EnemyManager.root(model, projectile.root, ROOT_LOOK)
+				end
+			end
+			--[[ Burr Blight: another stack of poison, from the orb's base
+			     damage as Blaze's burn is, spread over the stack's time. ]]
+			if projectile.blight > 0 then
+				local blight = Balance.Player.thornwood.blight
+				Burning.bleed(model, {
+					rate = projectile.damage * projectile.blight / blight.duration,
+					stacks = blight.stacks,
+					duration = blight.duration,
+				}, projectile.owner, currentNow)
+				model:SetAttribute("BlightedUntil", workspace:GetServerTimeNow() + blight.duration)
 			end
 			fireRicochet(projectile, model)
 		end

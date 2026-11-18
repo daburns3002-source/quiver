@@ -415,6 +415,8 @@ function ClassUpgrades.afterVolley(
 		and held.blackHole <= 0
 		and held.elemental <= 0
 		and held.sniper <= 0
+		and held.thornBurst <= 0
+		and held.rootHold <= 0
 	then
 		return
 	end
@@ -460,7 +462,8 @@ end
 
 --[[ What the cards put on each projectile of a volley before it is
      spawned: Split Shot's splinters, Wind Arrows' gust, Frost Orb's chill,
-     then Elemental Orbs' element. Nothing without the cards. ]]
+     Thornwood's Web Snare, Thorn Burst, Root Hold and Burr Blight, then
+     Elemental Orbs' element. Nothing without the cards. ]]
 function ClassUpgrades.dress(session: Session, params: ProjectileSystem.SpawnParams)
 	local held = session.upgrades
 	if held.splitShot > 0 then
@@ -472,6 +475,28 @@ function ClassUpgrades.dress(session: Session, params: ProjectileSystem.SpawnPar
 	if held.frost > 0 then
 		params.slow = math.min(params.slow or 1, 1 - held.frost)
 		params.slowDuration = math.max(params.slowDuration or 0, Balance.Player.frost.duration)
+	end
+	--[[ Thornwood's four on a shot. `afterVolley` counts a volley once it
+	     has left, so the one being dressed now is the next. ]]
+	local thornwood = Balance.Player.thornwood
+	local volley = if held.thornBurst > 0 or held.rootHold > 0
+		then state(session).volleys + 1
+		else 0
+	if held.webSnare > 0 then
+		params.slow = math.min(params.slow or 1, 1 - held.webSnare)
+		params.slowDuration = math.max(params.slowDuration or 0, thornwood.web.duration)
+		params.web = true
+	end
+	if held.thornBurst > 0 and volley % thornwood.thorn.every == 0 then
+		params.splashRadius = math.max(params.splashRadius or 0, thornwood.thorn.radius)
+		params.splashScale = math.max(params.splashScale or 0, held.thornBurst)
+		params.thorn = true
+	end
+	if held.rootHold > 0 and volley % thornwood.root.every == 0 then
+		params.root = held.rootHold
+	end
+	if held.burrBlight > 0 then
+		params.blight = held.burrBlight
 	end
 	if held.elemental > 0 then
 		ClassUpgrades.dressAs(ELEMENTS[state(session).element], params)

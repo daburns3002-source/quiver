@@ -12589,6 +12589,23 @@ local Balance = {
 		frost = {
 			duration = 2,
 		},
+		--[[ Thornwood's six cards (`Config/Abilities`, 2026-11-18). How
+		     strong each is, is its card's level.
+		     - Web Snare: a webbed enemy is slowed for `web.duration`.
+		     - Thorn Burst: every `thorn.every`th volley's arrows burst
+		       `thorn.radius` studs round what they hit.
+		     - Root Hold: every `root.every`th cast's orbs hold what they
+		       hit; a boss is slowed to `root.boss` of its speed instead.
+		     - Burr Blight: a stack runs `blight.duration` seconds, at most
+		       `blight.stacks` deep.
+		     - Ruin Cracks: the slam's mark lasts `ruin.duration`. ]]
+		thornwood = {
+			web = { duration = 2 },
+			thorn = { every = 3, radius = 6 },
+			root = { every = 4, boss = 0.6 },
+			blight = { stacks = 5, duration = 3 },
+			ruin = { duration = 4 },
+		},
 		--[[ Shield Throw: the dash throws a shield at the nearest enemy
 		     within `range`, then on to the nearest not yet struck, `hits` in
 		     all, flying `speed` studs a second, `damage` each, and home. ]]

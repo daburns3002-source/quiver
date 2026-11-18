@@ -30,6 +30,20 @@ local ShopScreen = {}
 local screen: StationScreen.Screen? = nil
 local selected = 1
 local store = false
+--[[ The SETS shelf (`Config/Shop.sets`, docs/WEAPONS-THEMED.md): the themed
+     sets' weapons, which belong to no area. `setAt` is the one shown, an
+     index into the sets that are for sale. ]]
+local sets = false
+local setAt = 1
+local function stockedSets(): { Shop.Set }
+	local out = {}
+	for _, set in Shop.sets do
+		if set.stocked then
+			table.insert(out, set)
+		end
+	end
+	return out
+end
 --[[ Which of the area's three chests is open (owner, 2026-11-01: "It
      should be 3 separate chests"), as an index into `Shop.chests`. ]]
 local chest = 1
@@ -70,7 +84,8 @@ end
 local function itemPrice(
 	row: GuiObject,
 	item: string,
-	count: number,
+	image: string,
+	words: string,
 	right: number,
 	y: number,
 	size: number,
@@ -86,12 +101,12 @@ local function itemPrice(
 	holder.Parent = row
 	local art = Instance.new("ImageLabel")
 	art.BackgroundTransparency = 1
-	art.Image = ShopAssets.items[item] or ""
+	art.Image = image
 	art.ScaleType = Enum.ScaleType.Fit
 	art.Size = UDim2.fromScale(1, 1)
 	art.ZIndex = 8
 	art.Parent = holder
-	local n = Chunky.text(holder, "x" .. tostring(count), nil, 5)
+	local n = Chunky.text(holder, words, nil, 5)
 	n.TextXAlignment = Enum.TextXAlignment.Right
 	n.Position, n.Size = UDim2.fromScale(0.3, 0.58), UDim2.fromScale(0.74, 0.44)
 	n.ZIndex = 9
@@ -104,30 +119,44 @@ end
      2D art in its rarity's frame, its name and rarity, its price and a fat
      BUY. Two columns across a landscape screen, one upright; the list
      scrolls when the area sells more than fit. ]]
-local function drawStore(s: StationScreen.Screen, area: HatchStand.Area)
+local function drawStore(s: StationScreen.Screen, area: HatchStand.Area, set: Shop.Set?)
 	local p = s.profile
 	local sheet = area.sheet
 	local up = sheet.upright
+	local shelves = stockedSets()
 	local function step(direction: number): () -> ()
 		return function()
 			if not Reveal.busy() then
-				selected = (selected - 1 + direction) % #Shop.crates + 1
+				if set then
+					setAt = (setAt - 1 + direction) % #shelves + 1
+				else
+					selected = (selected - 1 + direction) % #Shop.crates + 1
+				end
 				s.open()
 			end
 		end
 	end
-	-- the area picker across the head of the list
-	Chunky.button(sheet, "<", Chunky.blue, area.x, area.y, 100, 84, step(-1))
-	Chunky.button(sheet, ">", Chunky.blue, area.x + area.w - 100, area.y, 100, 84, step(1))
+	-- the area picker across the head of the list; a lone set has nothing to step to
+	if not set or #shelves > 1 then
+		Chunky.button(sheet, "<", Chunky.blue, area.x, area.y, 100, 84, step(-1))
+		Chunky.button(sheet, ">", Chunky.blue, area.x + area.w - 100, area.y, 100, 84, step(1))
+	end
 	local nameBox = Instance.new("Frame")
 	nameBox.BackgroundTransparency = 1
 	nameBox.ZIndex = 6
 	Chunky.put(sheet, nameBox, area.x + 120, area.y + 4, area.w - 240, 76)
-	Chunky.text(nameBox, Shop.crates[selected].name .. " STORE", Chunky.ink, 0)
+	Chunky.text(
+		nameBox,
+		if set then set.name .. " SET" else Shop.crates[selected].name .. " STORE",
+		Chunky.ink,
+		0
+	)
 
 	local entries = {}
 	for _, entry in ShopRules.catalog() do
-		if entry.area == selected and ShopRules.price(entry) then
+		-- a set's weapon is on its set's shelf, never in an area's store
+		local here = if set then entry.set == set.key else entry.area == selected and not entry.set
+		if here and ShopRules.price(entry) then
 			table.insert(entries, entry)
 		end
 	end
@@ -142,7 +171,10 @@ local function drawStore(s: StationScreen.Screen, area: HatchStand.Area)
 		return order[a] < order[b]
 	end)
 	-- an area shut at launch shows its weapons, with what opens them on each button
-	local shut = ShopRules.crateWords(selected, if p then p.bossesBeaten else nil)
+	-- (a set waits on no boss)
+	local shut = if set
+		then nil
+		else ShopRules.crateWords(selected, if p then p.bossesBeaten else nil)
 	local top = area.y + 104
 	local viewW, viewH = area.w, area.bottom - top
 	local cols = if up then 1 else 2
@@ -196,7 +228,17 @@ local function drawStore(s: StationScreen.Screen, area: HatchStand.Area)
 		local asked = 0
 		if not owned and not shut then
 			for item, count in price.items or ({} :: { [string]: number }) do
-				itemPrice(row, item, count, colW - 264 - asked * 96, 30, 92, colW, rowH)
+				local art = ShopAssets.items[item] or ""
+				local words = "x" .. tostring(count)
+				itemPrice(row, item, art, words, colW - 264 - asked * 96, 30, 92, colW, rowH)
+				asked += 1
+			end
+			--[[ A set's price is coins and gems: the coins on the button
+			     and the gems as the diamond with their number beside it,
+			     as a boss item is, never "5,000 COINS + 300 GEMS" in words. ]]
+			if price.coins and price.gems then
+				local words = Chunky.commas(price.gems)
+				itemPrice(row, "Gems", ShopAssets.gem, words, colW - 264, 30, 92, colW, rowH)
 				asked += 1
 			end
 		end
@@ -230,7 +272,12 @@ local function drawStore(s: StationScreen.Screen, area: HatchStand.Area)
 		buyHolder.Position, buyHolder.Size =
 			UDim2.fromScale((colW - 236) / colW, 30 / rowH), UDim2.fromScale(220 / colW, 96 / rowH)
 		buyHolder.Parent = row
-		local label = if owned then "OWNED" elseif shut then shut else priceText(price)
+		local both = price.coins ~= nil and price.gems ~= nil
+		local label = if owned
+			then "OWNED"
+			elseif shut then shut
+			elseif both then Chunky.commas(price.coins or 0)
+			else priceText(price)
 		--[[ The currency's own picture beside the price: the diamond for a
 		     gem price, the coin for a coin one (a Legendary's coins and boss
 		     item keep the coin, with the rest in words). ]]
@@ -327,7 +374,7 @@ function ShopScreen.start()
 		end
 	end
 	local control = HatchStand.controller(s, Shop.counts, press, affordable, function()
-		return not store
+		return not store and not sets
 	end)
 	s.draw = function()
 		local p = s.profile
@@ -342,18 +389,33 @@ function ShopScreen.start()
 		end
 		-- the Blacksmith's two modes, as tabs along the panel's head
 		local modes = {}
-		for index, words in { "CRATES", "STORE" } do
+		--[[ SETS is a third tab once a themed set is for sale; with none
+		     the Blacksmith is the two tabs it always was. ]]
+		local shelves = stockedSets()
+		if #shelves == 0 then
+			sets = false
+		end
+		setAt = math.clamp(setAt, 1, math.max(#shelves, 1))
+		local names: { string } = { "CRATES", "STORE" }
+		if #shelves > 0 then
+			table.insert(names, "SETS")
+		end
+		local at = if sets then 3 elseif store then 2 else 1
+		for index, words in names do
 			table.insert(modes, {
 				words = words,
-				on = store == (index == 2),
+				on = at == index,
 				pick = function()
-					store = index == 2
+					store, sets = index == 2, index == 3
 					control.auto = false
 					s.open()
 				end,
 			})
 		end
-		if store then
+		if sets then
+			drawStore(s, HatchStand.chrome(s, "BLACKSMITH", modes), shelves[setAt])
+			return
+		elseif store then
 			drawStore(s, HatchStand.chrome(s, "BLACKSMITH", modes))
 			return
 		end

@@ -163,6 +163,19 @@ local Dex = {
 			accent = Color3.fromRGB(124, 243, 255),
 			scene = { x = 150, y = 372, w = 730, h = 388 },
 		},
+		--[[ A themed weapon set's page in the weapon book (`Config/Shop.sets`,
+		     docs/WEAPONS-THEMED.md), keyed by its set: its own colours, and
+		     no scenery, since a set belongs to no area and has no NEW
+		     ENEMY! sheet to cut one from. Graphite, cyan and magenta. ]]
+		NeonCircuit = {
+			name = "NEON CIRCUIT",
+			groundTop = Color3.fromRGB(40, 44, 78),
+			groundBottom = Color3.fromRGB(14, 16, 34),
+			trim = Color3.fromRGB(255, 62, 196),
+			plate = Color3.fromRGB(16, 150, 214),
+			accent = Color3.fromRGB(120, 245, 255),
+			scene = { x = 0, y = 0, w = 0, h = 0 },
+		},
 	} :: { [string]: AreaTheme },
 	--[[ An area with no look of its own yet: the kit's own deep sea. ]]
 	plainArea = {

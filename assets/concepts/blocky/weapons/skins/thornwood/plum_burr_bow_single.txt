@@ -1,0 +1,6 @@
+Generate ONE square image at the highest resolution available and save it in the current directory as plum_burr_bow_single.png
+
+Image 1 is the design sheet of a toy prop from our children's blocky voxel game, an archery bow made of chunky blocks: the same bow drawn from the front, side, back, top and three-quarter, with labels and colour swatches under it.
+Redraw its FRONT view only, alone and large: exactly the same bow, the same shapes, block sizes, colours, materials, wraps, gems and glow, the same proportions. Add nothing and leave nothing out. Keep its blocky voxel toy style.
+View: ONE single bow only, shown flat side-on, upright, its limbs up and down and its string on the right, drawn as ONE thick straight bar from tip to tip (as thick as the grip, never a thin line), with nothing on the string, straight-on camera, no perspective, centred, filling about 85 percent of the image. No hands, no character. This image will be turned into a 3D model of the toy.
+Plain flat light-grey background, no scenery, no ground, no shadow, no text, no labels, no swatches, no other views, no loose particles or sparkles round it. Even soft lighting.

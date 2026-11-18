@@ -1,0 +1,6 @@
+Generate ONE square image at the highest resolution available and save it in the current directory as briarbreaker_blade_single.png
+
+Image 1 is the design sheet of one of our game's weapons, a greatsword: the same greatsword drawn from the front, side, back, top and three-quarter, with labels, a projectile and colour swatches under it.
+Redraw its FRONT view only, alone and large: exactly the same greatsword, the same shapes, block sizes, colours, materials, wraps, gems and glow, the same proportions. Add nothing and leave nothing out. Keep its blocky voxel style.
+View: ONE single greatsword only, shown flat side-on, upright with the blade pointing up, straight-on camera, no perspective, centred, filling about 85 percent of the image. No hands, no character. This image will be turned into a 3D model.
+Plain flat light-grey background, no scenery, no ground, no shadow, no text, no labels, no swatches, no projectile, no other views, no loose particles or sparkles round it. Even soft lighting.

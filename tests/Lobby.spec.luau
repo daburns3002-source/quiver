@@ -245,7 +245,7 @@ return function(t: TestRunner.Helper)
 
 	t.test("at least ten portals, in two rows, every mouth on the lawn", function()
 		t.isTrue(#LobbyConfig.portals >= 10, "fewer than ten portals")
-		t.equal(Lobby.rowOf(#LobbyConfig.portals), 2)
+		t.equal(LobbyConfig.rows(), 2)
 		local half = LobbyConfig.size / 2
 		for index in LobbyConfig.portals do
 			local at = Lobby.archAt(index)
@@ -263,6 +263,92 @@ return function(t: TestRunner.Helper)
 			end
 		end
 	end)
+
+	--[[ The owner's layout (2026-11-19): "make the first 5 areas on the
+	     bottom row, then the next 5 in the next row. endless should be off
+	     to the side". Endless keeps index 11, which `PortalStart` carries. ]]
+	t.test("areas 1-5 stand in the front row, 6-10 in the back, Endless in neither", function()
+		local rows: { { string } } = { {}, {} }
+		local aside: { string } = {}
+		for index, portal in LobbyConfig.portals do
+			local row = Lobby.rowOf(index)
+			table.insert(if row == 0 then aside else rows[row], portal.name or "?")
+			if index > 1 and row ~= 0 and row == Lobby.rowOf(index - 1) then
+				t.isTrue(
+					Lobby.archAt(index).X > Lobby.archAt(index - 1).X,
+					`portal {index} is out of order`
+				)
+			end
+		end
+		t.equal(
+			table.concat(rows[1], ","),
+			"Mossy Glade,Thornwood,Drowned Village,Bogheart Caverns,Windswept Cliffs"
+		)
+		t.equal(
+			table.concat(rows[2], ","),
+			"Frostpeak Pass,Ember Mines,Obsidian Forge,Shattered Kingdom,Void Rift"
+		)
+		t.equal(table.concat(aside, ","), "Endless")
+		t.equal(LobbyConfig.portals[11].name, "Endless")
+	end)
+
+	--[[ "the second 5 area portals should be raised so they are all
+	     visible": the back row's ledge stands over the front row's wall,
+	     its gold cornice and the leaves along it, and its stairs fit the
+	     front ledge with treads a player can stand on. ]]
+	t.test(
+		"the back row stands clear above the front row's wall, its stairs on the front ledge",
+		function()
+			local _, front = LobbyConfig.rowCentre(1)
+			local _, back = LobbyConfig.rowCentre(2)
+			t.isTrue(
+				back > front + LobbyConfig.archWall + 2.5,
+				"the back row is hidden behind the front's wall"
+			)
+			local count = math.ceil((back - front) / LobbyConfig.backStep)
+			t.isTrue(
+				(LobbyConfig.rowDepth - 0.5) / count >= 0.9,
+				"the back stairs' treads are too narrow"
+			)
+		end
+	)
+
+	t.test(
+		"Endless stands aside on the courtyard floor, clear of the terrace and the buildings",
+		function()
+			local reach = 10 -- half the widest portal model, and a margin
+			for index, portal in LobbyConfig.portals do
+				if portal.aside then
+					local at = Lobby.archAt(index)
+					t.equal(LobbyConfig.archFoot(index), 0)
+					t.isTrue(
+						LobbyCourtyard.inside(at, reach),
+						`{portal.name} reaches the balustrade or the terrace`
+					)
+					for _, station in LobbyConfig.stations do
+						local spec = LobbyConfig.buildings[station.piece]
+						if spec then
+							local yaw = LobbyConfig.facing(station.at)
+							local s, c = math.sin(yaw), math.cos(yaw)
+							local d = at - station.at
+							local size = spec.size * LobbyConfig.buildingScale
+							local out = math.max(
+								math.abs(d.X * c - d.Y * s) - size.X / 2,
+								math.abs(d.X * s + d.Y * c) - size.Z / 2
+							)
+							t.isTrue(out > reach, `{portal.name} stands in {station.piece}`)
+						end
+					end
+					for _, spec in LobbyConfig.portalModels do
+						t.isTrue(
+							spec.size.X / 2 < reach,
+							"a portal model is wider than Endless's room"
+						)
+					end
+				end
+			end
+		end
+	)
 
 	t.test("the spawn is in the clearing, clear of every station", function()
 		local half = LobbyConfig.size / 2
@@ -388,7 +474,7 @@ return function(t: TestRunner.Helper)
 	end)
 
 	t.test("each row of arches is centred on the carpet", function()
-		for row = 1, Lobby.rowOf(#LobbyConfig.portals) do
+		for row = 1, LobbyConfig.rows() do
 			local sum = 0
 			for index in LobbyConfig.portals do
 				if Lobby.rowOf(index) == row then
@@ -420,8 +506,10 @@ return function(t: TestRunner.Helper)
 
 	local origin = LobbyConfig.origin
 	local function mouthOf(index: number, ahead: number?): Vector3
-		local at = Lobby.archAt(index)
-		return origin + Vector3.new(at.X, 3, at.Y + LobbyConfig.mouthAhead + (ahead or 0))
+		local turn = LobbyConfig.archTurn(index)
+		local at = LobbyConfig.mouthAt(index)
+			+ Vector2.new(math.sin(turn), math.cos(turn)) * (ahead or 0)
+		return origin + Vector3.new(at.X, 3, at.Y)
 	end
 
 	t.test("only a portal's mouth opens its screen", function()

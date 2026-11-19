@@ -76,17 +76,22 @@ before it (260 credits for the four).
 
 ## The sets still to make
 
-Each is four weapons, 260 Tripo credits and one Import Queue batch. Names and looks are
-proposals until the owner picks one.
+Drawn by Codex on 2026-11-18 (owner: "make the designs for all first"), each in
+`sets/<set>/` with its `contact_sheet.jpg`; prompts in `sets/set_prompts.py`. Each is four
+weapons, 260 Tripo credits and one Import Queue batch, and nothing goes to Tripo before the
+owner's yes on its pictures. Names and looks are proposals until then.
 
-| Set | Look |
-|---|---|
-| **Tumbleweed** | worn leather, brass rivets, rope wraps, a tin star |
-| **Splash Day** | pool-noodle limbs, inflatable rings, water-blaster yellow and aqua |
-| **Coin-Op** | chunky pixels, a joystick grip, 8-bit hearts and coins |
-| **Voidglass** | dark purple glass with stars swirling inside, a ringed black orb |
-| **Lantern Bloom** | pale wood, paper lanterns, pink blossoms, small bells |
-| **Cinderforge** | cracked black rock with lava glowing through the seams |
+| Set | Look | Bow, staff, blade, daggers |
+|---|---|---|
+| **Tumbleweed** | toy cowboy gear: tan leather, honey wood, brass rivets, thick rope, a tin star, a turquoise stone | Saddlehorn Bow (horn limbs), Wagonwheel Staff, Trailboss Blade (horseshoe guard), Spur Daggers (spur-rowel guard) |
+| **Splash Day** | summer water toys: pool noodles, striped swim rings, water-blaster yellow and aqua, solid blue water | Noodle Bow, Splashring Staff, Breaker Blade (a surfboard blade), Squirt Daggers (a frozen water jet) |
+| **Coin-Op** | toy arcade: glossy red and blue, big 8-bit pixels, arcade buttons, yellow game coins, pixel hearts | Highscore Bow, Joystick Staff, Pixel Blade, Token Daggers (a direction-pad guard) |
+| **Voidglass** | toy space crystal: purple see-through glass with stars inside, silver trim, ringed black orbs | Orbit Bow, Starwell Staff, Nebula Blade, Comet Daggers |
+| **Lantern Bloom** | spring festival: pale wood, red paper lanterns, pink blossoms, gold bells, red cord and tassels | Blossom Bow, Paperglow Staff, Petalfall Blade, Bellchime Daggers |
+| **Cinderforge** | volcano forge: cracked black rock with lava seams, iron bands and rivets, molten cubes | Cinderstring Bow, Forgeheart Staff, Molten Blade (an anvil guard), Embershard Daggers |
+
+Each prompt names what the set must not have (faces, skulls, characters and the like) so it
+stays a toy of this game's own and never reads as another game's line.
 
 Once several sets of different rarities exist, a themed crate becomes worth building (one
 weapon a class leaves a single set nothing to roll). That is the owner's call when it comes.

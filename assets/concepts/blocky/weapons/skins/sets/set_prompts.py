@@ -162,6 +162,277 @@ SETS = {
             ),
         ],
     ),
+    # The other six themes (owner, 2026-11-18: "make the designs for all first"). Each takes
+    # only a broad genre; nothing here copies any other game's line, item or character.
+    "tumbleweed": (
+        "TUMBLEWEED, a set of friendly toy cowboy gear: warm tan leather with stitched edges, "
+        "polished honey-brown wood, shiny brass rivets and buckles, chunky coiled rope (thick, "
+        "never thin string), a small tin star badge, a red bandana cloth knot and one turquoise "
+        "stone as an accent. Sunny and playful, like a kid's toy ranch set; no skulls, no faces, "
+        "no guns, no fire. Each prop has a bold, unusual silhouette that reads at a glance, with "
+        "big simple shapes rather than a plain stick or blade.",
+        [
+            (
+                "saddlehorn_bow", "SADDLEHORN BOW", "bow", "golden_bow.png",
+                "a bow whose two limbs are big curving cattle horns of cream and honey-brown blocks, "
+                "curving out and back like a pair of horns, each tip capped in brass; the grip in the "
+                "middle is wrapped in tan stitched leather with two brass rivets, a small tin star "
+                "badge on its front and a thick coil of rope tied round it; the string is one thick "
+                "straight bar of braided tan rope",
+            ),
+            (
+                "wagonwheel_staff", "WAGONWHEEL STAFF", "staff", "golden_staff.png",
+                "its head is a big wooden wagon wheel stood upright, as wide as five shaft widths, "
+                "with a thick honey-brown rim bound in a brass band, eight chunky wooden spokes, and "
+                "a round brass hub set with a glowing turquoise stone; the shaft is polished wood "
+                "with two thick rope wraps and a tan leather grip with brass rivets a little below "
+                "the middle; a red bandana knot is tied just under the wheel; the foot is a brass "
+                "horseshoe-shaped cap",
+            ),
+            (
+                "trailboss_blade", "TRAILBOSS BLADE", "greatsword", "golden_blade.png",
+                "a big heroic two-edged greatsword, symmetrical left to right, NOT a cleaver: a long "
+                "broad blade of pale polished steel blocks ending in a pointed tip built of three "
+                "centred steps, with a brass stripe down its middle set with a row of round brass "
+                "rivets; the guard is two chunky brass horseshoes, one each side, their open ends "
+                "pointing up, with a tin star badge in the middle; a grip long enough for two hands, "
+                "wrapped in tan stitched leather with a red bandana knot tied below the guard; the "
+                "pommel is a turquoise stone in a brass cap; the blade is about three times as long "
+                "as the grip",
+            ),
+            (
+                "spur_daggers", "SPUR DAGGERS", "dagger", "golden_daggers.png",
+                "a straight dagger with a pale polished steel blade, wide and chunky, with a thin "
+                "turquoise inlay down its middle and a pointed tip; the guard is a big brass spur "
+                "rowel, a chunky round wheel of eight blunt block points, set flat behind the blade "
+                "so it sticks out on both sides; a grip wrapped in tan stitched leather with a thick "
+                "rope wrap; the pommel is a small brass cap with a tin star on it; all parts touch, "
+                "nothing floats",
+            ),
+        ],
+    ),
+    "splash_day": (
+        "SPLASH DAY, a set of chunky summer water toys: bright foam pool noodles with ridged "
+        "stripes, glossy inflatable rings in coral and white stripes, sunny yellow and aqua "
+        "plastic like a water blaster, and clear light-blue water shaped into solid chunky "
+        "blocks. Bright, wet and fun, like a kid's backyard splash party; no animals, no faces, "
+        "no characters. Each prop has a bold, unusual silhouette that reads at a glance, with big "
+        "simple shapes rather than a plain stick or blade.",
+        [
+            (
+                "noodle_bow", "NOODLE BOW", "bow", "golden_bow.png",
+                "a bow whose two limbs are thick bent foam pool noodles, one coral and one aqua, each "
+                "with ridged stripes, curving out and back; each limb tip is capped with a small "
+                "glossy yellow inflatable ring; the grip in the middle is a chunky yellow water "
+                "blaster handle with a round aqua water tank on its front; the string is one thick "
+                "straight bar of clear light-blue water",
+            ),
+            (
+                "splashring_staff", "SPLASHRING STAFF", "staff", "golden_staff.png",
+                "its head is a big glossy inflatable swim ring with coral and white stripes, stood "
+                "upright, as wide as five shaft widths, holding a round ball of clear glowing "
+                "light-blue water in its hole; the shaft is a sunny yellow plastic water pipe with "
+                "an aqua water tank clipped to it and an aqua foam grip a little below the middle; "
+                "the foot is a chunky aqua spray nozzle",
+            ),
+            (
+                "breaker_blade", "BREAKER BLADE", "greatsword", "golden_blade.png",
+                "a big heroic two-edged greatsword, symmetrical left to right, NOT a cleaver: its "
+                "broad blade is shaped like a glossy surfboard with rounded stepped edges, white "
+                "with a coral stripe and an aqua stripe running up its middle, ending in a rounded "
+                "point; the guard is a short fat inflatable tube of sunny yellow, sticking out "
+                "both sides; a grip long enough for two hands wrapped in aqua ridged foam; the "
+                "pommel is a small striped beach ball; the blade is about three times as long as "
+                "the grip",
+            ),
+            (
+                "squirt_daggers", "SQUIRT DAGGERS", "dagger", "golden_daggers.png",
+                "a dagger whose blade is a jet of clear light-blue water frozen into a chunky solid "
+                "pointed blade, with white foam blocks along its edges; the guard is a sunny yellow "
+                "water blaster trigger block with a small round aqua tank on top; a coral ridged "
+                "foam grip; the pommel is a small striped beach ball; all parts touch, nothing "
+                "floats",
+            ),
+        ],
+    ),
+    "coin_op": (
+        "COIN-OP, a set of chunky toy arcade gear: glossy cherry-red and royal-blue plastic, big "
+        "square pixels like an 8-bit game, round arcade buttons, shiny yellow game coins, small "
+        "red pixel hearts and white pixel sparkles built into the blocks, and black panels. "
+        "Bright and cheerful like a kid's arcade night; no characters, no faces, no text, no "
+        "neon tubes. Each prop has a bold, unusual silhouette that reads at a glance, with big "
+        "simple shapes rather than a plain stick or blade.",
+        [
+            (
+                "highscore_bow", "HIGHSCORE BOW", "bow", "golden_bow.png",
+                "a bow drawn as big square 8-bit pixels: each limb is a staircase of chunky "
+                "cherry-red pixel blocks with white pixel highlights, curving out and back; each "
+                "tip carries a big shiny yellow game coin; the grip in the middle is a black block "
+                "with a glossy red arcade joystick ball sticking out of its front and a small red "
+                "pixel heart above it; the string is one thick straight bar of white pixels",
+            ),
+            (
+                "joystick_staff", "JOYSTICK STAFF", "staff", "golden_staff.png",
+                "the whole staff is a giant arcade joystick: its head is a big glossy cherry-red "
+                "ball, as wide as four shaft widths, on top of the shaft; just below it sits a "
+                "royal-blue control-panel block with two round arcade buttons, one yellow and one "
+                "red; the shaft is black with a stack of three red pixel hearts on its front and a "
+                "blue grip a little below the middle; the foot is a black coin-slot block with a "
+                "yellow game coin half pushed into it",
+            ),
+            (
+                "pixel_blade", "PIXEL BLADE", "greatsword", "golden_blade.png",
+                "a big heroic two-edged greatsword built entirely of big square 8-bit pixels, "
+                "symmetrical left to right, NOT a cleaver: a long broad royal-blue pixel blade with "
+                "a stripe of white pixel highlights up its middle, ending in a stepped pixel "
+                "point; the guard is a wide bar of yellow pixels with a red pixel heart in its "
+                "middle; a black pixel grip long enough for two hands with red pixel bands; the "
+                "pommel is a yellow game coin; the blade is about three times as long as the grip",
+            ),
+            (
+                "token_daggers", "TOKEN DAGGERS", "dagger", "golden_daggers.png",
+                "a dagger whose blade is a chunky stepped stack of cherry-red 8-bit pixels with "
+                "white pixel highlights and a pointed pixel tip; the guard is a royal-blue "
+                "plus-shaped direction pad block; a black grip with yellow pixel bands; the "
+                "pommel is a shiny yellow game coin stood on its edge; all parts touch, nothing "
+                "floats",
+            ),
+        ],
+    ),
+    "voidglass": (
+        "VOIDGLASS, a set of chunky toy space crystals: deep purple and midnight-blue "
+        "see-through glass blocks with tiny white and pink stars and soft swirls floating "
+        "inside them, polished silver-violet trim, and small black orbs circled by glowing "
+        "violet rings like tiny ringed planets. Calm and magical, like a kid's glow-in-the-dark "
+        "space toy; no skulls, no faces, no eyes, no tentacles, no black holes. Each prop has a "
+        "bold, unusual silhouette that reads at a glance, with big simple shapes rather than a "
+        "plain stick or blade.",
+        [
+            (
+                "orbit_bow", "ORBIT BOW", "bow", "golden_bow.png",
+                "a bow whose two limbs are thick curved bars of deep purple see-through glass with "
+                "tiny stars inside, curving out and back; each limb tip carries a small black orb "
+                "with a glowing violet ring round it; the grip in the middle is polished silver "
+                "with a bigger black orb set in its front, circled by a tilted glowing violet "
+                "ring; the string is one thick straight bar of pale violet light",
+            ),
+            (
+                "starwell_staff", "STARWELL STAFF", "staff", "golden_staff.png",
+                "its head is a big black orb, as wide as four shaft widths, circled by a wide "
+                "tilted glowing violet ring like a ringed planet, held in a silver cradle on top "
+                "of the shaft; two small purple glass moons sit on short silver rods either side "
+                "of it; the shaft is deep purple see-through glass with tiny stars inside, with a "
+                "silver grip a little below the middle; the foot is a silver point",
+            ),
+            (
+                "nebula_blade", "NEBULA BLADE", "greatsword", "golden_blade.png",
+                "a big heroic two-edged greatsword, symmetrical left to right, NOT a cleaver: a long "
+                "broad blade of deep purple and midnight-blue see-through glass with a swirl of "
+                "pink and violet mist and tiny white stars inside, edged in polished silver, ending "
+                "in a pointed tip built of three centred steps; the guard is a wide silver bar with "
+                "a black orb in its middle circled by a glowing violet ring; a grip long enough for "
+                "two hands wrapped in dark violet with silver bands; the pommel is a small purple "
+                "glass moon; the blade is about three times as long as the grip",
+            ),
+            (
+                "comet_daggers", "COMET DAGGERS", "dagger", "golden_daggers.png",
+                "a dagger whose blade is a long pointed teardrop of deep purple see-through glass "
+                "like a comet, with a glowing white star at its tip and a trail of tiny stars "
+                "inside running down to the guard; the guard is a polished silver ring set flat "
+                "round the base of the blade; a dark violet grip with silver bands; the pommel is a "
+                "small black orb with a glowing violet ring; all parts touch, nothing floats",
+            ),
+        ],
+    ),
+    "lantern_bloom": (
+        "LANTERN BLOOM, a set of chunky toy festival props: pale cream wood, round red paper "
+        "lanterns with gold caps glowing warm yellow inside, clusters of pink blossom flowers "
+        "built of blocks, small fresh green leaves, little round gold bells and thick red cord "
+        "wraps with chunky tassels. Warm and gentle, like a kid's spring festival night; no "
+        "masks, no animals, no faces, no spirits, no blue flames. Each prop has a bold, unusual "
+        "silhouette that reads at a glance, with big simple shapes rather than a plain stick or "
+        "blade.",
+        [
+            (
+                "blossom_bow", "BLOSSOM BOW", "bow", "golden_bow.png",
+                "a bow whose two limbs are pale cream wooden branches curving out and back, with "
+                "chunky clusters of pink blossom flowers and green leaves along them; each limb tip "
+                "hangs a small round red paper lantern with gold caps glowing warm yellow; the grip "
+                "in the middle is wrapped in thick red cord with a small round gold bell on its "
+                "front; the string is one thick straight bar of soft warm yellow light",
+            ),
+            (
+                "paperglow_staff", "PAPERGLOW STAFF", "staff", "golden_staff.png",
+                "the top of the pale cream wooden shaft curls over into a chunky hook, and from the "
+                "hook hangs a big round red paper lantern, as wide as four shaft widths, with gold "
+                "caps top and bottom and a warm yellow glow inside; pink blossom flowers and green "
+                "leaves grow along the hook; two small gold bells hang under the lantern; the "
+                "shaft has a thick red cord grip a little below the middle; the foot is a gold cap",
+            ),
+            (
+                "petalfall_blade", "PETALFALL BLADE", "greatsword", "golden_blade.png",
+                "a big heroic two-edged greatsword, symmetrical left to right, NOT a cleaver: a long "
+                "broad blade of pale cream-white steel blocks with a chunky pink blossom branch "
+                "running up its middle and soft pink edges, ending in a pointed tip built of three "
+                "centred steps; the guard is a round gold disc like a lantern frame, with a pink "
+                "blossom in its centre, and a small gold bell hanging at each side; a grip long "
+                "enough for two hands wrapped in thick red cord; the pommel is a small gold cap with "
+                "a chunky red tassel; the blade is about three times as long as the grip",
+            ),
+            (
+                "bellchime_daggers", "BELLCHIME DAGGERS", "dagger", "golden_daggers.png",
+                "a dagger whose blade is a slim chunky pale-pink petal shape with a cream-white "
+                "edge and a pointed tip; the guard is two round gold bells, one sticking out each "
+                "side; a pale cream wooden grip wrapped in thick red cord; the pommel is a small "
+                "round red paper lantern with gold caps glowing warm yellow; all parts touch, "
+                "nothing floats",
+            ),
+        ],
+    ),
+    "cinderforge": (
+        "CINDERFORGE, a set of chunky toy volcano-forge gear: cracked matte black rock blocks "
+        "with bright orange-yellow lava glowing through the cracks, dark iron bands with round "
+        "rivets, and glowing molten cubes. Bold and warm like a kid's lava adventure toy; no "
+        "skulls, no horns, no faces, no demons, no flames floating loose. Each prop has a bold, "
+        "unusual silhouette that reads at a glance, with big simple shapes rather than a plain "
+        "stick or blade.",
+        [
+            (
+                "cinderstring_bow", "CINDERSTRING BOW", "bow", "golden_bow.png",
+                "a bow whose two limbs are thick chunky bars of cracked black rock with glowing "
+                "orange lava seams, curving out and back in big blocky steps; each limb tip is a "
+                "glowing molten orange cube in an iron cap; the grip in the middle is a dark iron "
+                "band with round rivets wrapped round a glowing lava core that shows through a "
+                "square window; the string is one thick straight bar of molten orange light",
+            ),
+            (
+                "forgeheart_staff", "FORGEHEART STAFF", "staff", "golden_staff.png",
+                "its head is a big square dark iron cage, as wide as four shaft widths, with "
+                "chunky bars, holding a glowing molten orange rock heart inside; the shaft is "
+                "cracked black rock with glowing lava seams and two dark iron bands with rivets, "
+                "and an iron-banded grip a little below the middle; the foot is a small chunky "
+                "dark iron anvil shape",
+            ),
+            (
+                "molten_blade", "MOLTEN BLADE", "greatsword", "golden_blade.png",
+                "a big heroic two-edged greatsword, symmetrical left to right, NOT a cleaver: a long "
+                "broad blade of cracked matte black rock with bright orange-yellow lava glowing "
+                "through a web of chunky cracks, both cutting edges glowing orange-hot, ending in a "
+                "pointed tip built of three centred steps; the guard is a wide dark iron anvil "
+                "shape with round rivets; a grip long enough for two hands wrapped in dark leather "
+                "with iron rings; the pommel is a glowing molten orange cube in an iron cap; the "
+                "blade is about three times as long as the grip",
+            ),
+            (
+                "embershard_daggers", "EMBERSHARD DAGGERS", "dagger", "golden_daggers.png",
+                "a dagger whose blade is a jagged chunky shard of black rock, wide at the guard and "
+                "pointed, with one bright orange lava seam glowing up its middle; the guard is a "
+                "thick dark iron band with two round rivets sticking out both sides; a dark "
+                "leather grip with iron rings; the pommel is a glowing molten orange cube; all "
+                "parts touch, nothing floats",
+            ),
+        ],
+    ),
 }
 
 

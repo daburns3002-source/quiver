@@ -16,10 +16,10 @@
 	player's. Pure, so `tests/LoadingPick.spec` pins it.
 ]]
 
+local ItemIcons = require(script.Parent.ItemIcons)
 local NewEnemies = require(script.Parent.Parent.Config.NewEnemies)
 local Sandbox = require(script.Parent.Parent.Config.Sandbox)
 local SaveSchema = require(script.Parent.SaveSchema)
-local ShopAssets = require(script.Parent.Parent.Config.ShopAssets)
 local ShopRules = require(script.Parent.ShopRules)
 local WeaponStats = require(script.Parent.Parent.Config.WeaponStats)
 
@@ -95,8 +95,8 @@ function LoadingPick.pool(profile: SaveSchema.Profile?): { Entry }
 		end
 	end
 	for weapon, stats in WeaponStats.weapons do
-		local picture = ShopAssets.weapons[weapon]
-		if picture and stats.area <= area and ShopRules.shown(weapon) then
+		local picture = ItemIcons.weapon(weapon)
+		if picture ~= "" and stats.area <= area and ShopRules.shown(weapon) then
 			table.insert(pool, {
 				name = weaponName(weapon),
 				picture = picture,

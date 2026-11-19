@@ -23,6 +23,12 @@ echo "== currency icons"
 bad=$(grep -rnEi "^\s*[A-Za-z]*(coin|gem|diamond)[A-Za-z]*\s*=\s*\"rbxassetid" src | grep -v "src/shared/Config/ShopAssets.luau" || true)
 if [ -n "$bad" ]; then echo "$bad"; echo "Use ShopAssets.coin / ShopAssets.gem: CLAUDE.md rule 15."; exit 1; fi
 echo "one of each"
+echo "== item pictures"
+# One picture per weapon and pet, asked of Util/ItemIcons by every screen
+# (owner, 2026-11-19: "MAKE SURE THE ICONS ... ARE ALL THE SAME"; CLAUDE.md rule 16).
+bad=$(grep -rnE "(ShopAssets|GearAssets)\.(weapons|pets)|GearAssets\.crateTiles|HatchUiAssets\.pieces\.Pet" src | grep -vE "^src/shared/(Util/ItemIcons|Config/(ShopAssets|GearAssets))\.luau:" || true)
+if [ -n "$bad" ]; then echo "$bad"; echo "Ask Util/ItemIcons (ItemIcons.weapon / .pet / .of): CLAUDE.md rule 16."; exit 1; fi
+echo "one each"
 echo "== remotes"
 # Every client-to-server remote is listened to in Net/Inbound: rate limited,
 # the Debug ones in Studio only (the anti-exploit audit, docs/FIXES.md).

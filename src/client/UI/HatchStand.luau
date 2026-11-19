@@ -447,8 +447,7 @@ function HatchStand.draw(
 			entry.icon,
 			odds(entry.chance),
 			entry.silhouette == true or spec.locked ~= nil,
-			entry.owned,
-			entry.key
+			entry.owned
 		)
 		if entry.owned then
 			Chunky.tier(card, entry.tier)

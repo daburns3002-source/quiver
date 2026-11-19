@@ -17,6 +17,7 @@ local ClassLevelRules = require(ReplicatedStorage.Shared.Util.ClassLevelRules)
 local ClassLevels = require(ReplicatedStorage.Shared.Config.ClassLevels)
 local ClassSelect = require(ReplicatedStorage.Shared.Config.ClassSelect)
 local GearAssets = require(ReplicatedStorage.Shared.Config.GearAssets)
+local ItemIcons = require(ReplicatedStorage.Shared.Util.ItemIcons)
 local ShopAssets = require(ReplicatedStorage.Shared.Config.ShopAssets)
 local ShopRules = require(ReplicatedStorage.Shared.Util.ShopRules)
 local WeaponStats = require(ReplicatedStorage.Shared.Config.WeaponStats)
@@ -299,7 +300,7 @@ function ClassLevelPlate.unlock(layer: ScreenGui, weapon: string, closed: (() ->
 	glow.ImageColor3 = Chunky.gold:Lerp(Chunky.white, 0.3)
 	glow.ZIndex = 203
 	local tile = box(sheet, 240, 250, 360, 360, 204)
-	Chunky.tile(tile, stats.rarity, ShopAssets.weapons[weapon] or GearAssets.weapons[weapon] or "")
+	Chunky.tile(tile, stats.rarity, ItemIcons.weapon(weapon))
 	local name = Chunky.textOn(box(sheet, 60, 640, 720, 86, 205), entry.label, Chunky.gold, 6)
 	name.ZIndex = 205
 	local effect =

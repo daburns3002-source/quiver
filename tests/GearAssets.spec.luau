@@ -1,26 +1,15 @@
 --!strict
 --[[
-	The pixel art contract (owner, 2026-10-26: "every weapon ... and every pet").
+	The pixel art contract (owner, 2026-10-26: "every weapon ... and every pet");
+	a weapon's and a pet's one picture is held by `tests/ItemIcons.spec`.
 	New content brings its icons and all the reveal stages with it.
 ]]
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Eggs = require(ReplicatedStorage.Shared.Config.Eggs)
 local GearAssets = require(ReplicatedStorage.Shared.Config.GearAssets)
 local Shop = require(ReplicatedStorage.Shared.Config.Shop)
-local ShopRules = require(ReplicatedStorage.Shared.Util.ShopRules)
 local TestRunner = require(script.Parent.TestRunner)
 return function(t: TestRunner.Helper)
-	t.test("area one weapons have pixel icons", function()
-		for _, entry in ShopRules.catalog() do
-			if entry.area == 1 then
-				t.isTrue(
-					type(GearAssets.weapons[entry.weapon]) == "string"
-						and GearAssets.weapons[entry.weapon] ~= "",
-					entry.weapon
-				)
-			end
-		end
-	end)
 	t.test("built pets have pixel icons", function()
 		for _, model in ReplicatedStorage.Shared.Config.PetModels:GetChildren() do
 			t.isTrue(

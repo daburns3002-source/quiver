@@ -15,6 +15,7 @@ local Chunky = require(script.Parent.Chunky)
 local Classes = require(ReplicatedStorage.Shared.Config.Classes)
 local GearAssets = require(ReplicatedStorage.Shared.Config.GearAssets)
 local HatchStand = require(script.Parent.HatchStand)
+local ItemIcons = require(ReplicatedStorage.Shared.Util.ItemIcons)
 local Kit = require(script.Parent.Kit)
 local LiveBoosts = require(ReplicatedStorage.Shared.Util.LiveBoosts)
 local LiveState = require(ReplicatedStorage.Shared.Util.LiveState)
@@ -118,7 +119,7 @@ local function itemPrice(
 	n.ZIndex = 9
 end
 local function picture(weapon: string): string
-	return ShopAssets.weapons[weapon] or GearAssets.weapons[weapon] or ""
+	return ItemIcons.weapon(weapon)
 end
 --[[ The store: the selected area's weapons for sale, as the approved style
      sheet's SHOP rows (owner, 2026-11-05): a white card per weapon with its

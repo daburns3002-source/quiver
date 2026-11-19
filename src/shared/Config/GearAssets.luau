@@ -4,10 +4,11 @@
 	`assets/ui/gear/` (cut by `assets/ui/gear/cutout.py` from Codex's sheets in
 	`assets/concepts/blocky/ui/pixel/` and `reveal/`).
 
-	- `weapons` and `pets`: the mini pixel icons ("i like the mini pixel
-	  versions of the weapons and pets"), keyed by `Config/WeaponStats` and
-	  `Config/Pets` names. A weapon or pet with none falls back to its shop
-	  picture or a silhouette; `tests/GearAssets.spec` wants one for each.
+	- `pets`: each pet's one picture, keyed by `Config/Pets` name. Screens
+	  read it through `Util/ItemIcons`, never here (`tests/ItemIcons.spec`).
+	  A weapon's one picture is `ShopAssets.weapons`; the outlined copies
+	  that used to sit here were dropped on 2026-11-19 (owner: "MAKE SURE
+	  THE ICONS IN THE CHESTS, EGGS, GEAR SCREEN, AND DEX ARE ALL THE SAME").
 	- `crates` (pixel art: `closed` with its two padlocks for the shop, `bare`
 	  without them for the reveal, which draws its own to pop off, and `open`,
 	  per `Config/Shop` area) and `eggs` (whole,
@@ -48,29 +49,14 @@ export type RevealModel = {
 }
 
 local GearAssets = {
-	--[[ The crate's INSIDE tiles cut whole from the chosen mockup (owner,
+	--[[ The back and arrow buttons, cut from the chosen mockup (owner,
 	     2026-10-26: "make the icons actually from the option C";
-	     `assets/ui/gear/optc/`), its chance band cleared for the game's own. ]]
-	--[[ The back and arrow buttons, cut from the same mockup. ]]
+	     `assets/ui/gear/optc/`). ]]
 	buttons = {
 		back = "rbxassetid://108896071664277",
 		left = "rbxassetid://83943438986636",
 		right = "rbxassetid://118687850481288",
 	},
-	crateTiles = {
-		HootmossStaff = "rbxassetid://80030543863014",
-		ThornBlade = "rbxassetid://123784490682545",
-		AcornBow = "rbxassetid://95876371507095",
-		FireflyBow = "rbxassetid://133209449661927",
-		MossSlimeBow = "rbxassetid://118564451999252",
-		WorldrootStaff = "rbxassetid://140600630838336",
-		BroodsplitBlade = "rbxassetid://80045144092728",
-		GladeSpiritBow = "rbxassetid://122509292380004",
-		LanternStaff = "rbxassetid://136857707110473",
-		ToadstoolStaff = "rbxassetid://138209734091526",
-		GladeheartBlade = "rbxassetid://82640059295910",
-		MossstoneBlade = "rbxassetid://83971051827860",
-	} :: { [string]: string },
 	--[[ Full-screen backdrops behind the screens (Codex, 2026-10-26). ]]
 	--[[ Small pixel icons for the gear screen's tabs and stats (drawn by
 	     Claude, `assets/ui/gear/icons/`; owner, 2026-10-27: "the icon next
@@ -98,89 +84,6 @@ local GearAssets = {
 		sheet = "rbxassetid://94508718061923",
 		holds = { 0.45, 0.08, 0.16, 0.14 },
 	},
-	-- with a bold dark outline round each (owner, 2026-10-26: "they need to
-	-- have a border around them"; `assets/ui/gear/outlined/`)
-	weapons = {
-		TwigBow = "rbxassetid://114978753383149",
-		-- the golden weapons (`Config/ClassLevels`): their one picture, `ShopAssets.weapons`'
-		GoldenBow = "rbxassetid://80794736211561",
-		GoldenStaff = "rbxassetid://95611427152413",
-		GoldenBlade = "rbxassetid://83209827468568",
-		AcornBow = "rbxassetid://103578254824601",
-		FireflyBow = "rbxassetid://80208319043638",
-		MossSlimeBow = "rbxassetid://120077348741310",
-		EmberFangBow = "rbxassetid://75293205204691",
-		GladeSpiritBow = "rbxassetid://104958001215416",
-		BranchStaff = "rbxassetid://133371993333327",
-		ToadstoolStaff = "rbxassetid://120537771734800",
-		LanternStaff = "rbxassetid://94214474044559",
-		HootmossStaff = "rbxassetid://79444290362807",
-		SlimeCrownStaff = "rbxassetid://114801576848868",
-		WorldrootStaff = "rbxassetid://123099731244621",
-		TimberBlade = "rbxassetid://130185177403371",
-		SplinterDaggers = "rbxassetid://88943772730817",
-		--[[ The Assassin's other daggers (2026-11-17), the same pictures outlined. ]]
-		BrambleShivs = "rbxassetid://90977341436279",
-		FireflyFangs = "rbxassetid://110050238996982",
-		GladeFoxClaws = "rbxassetid://95760149531127",
-		EmberWilfFangs = "rbxassetid://109333248285831",
-		GlimmerhornDaggers = "rbxassetid://88223857153651",
-		HedgePrickers = "rbxassetid://124613957199629",
-		TuskKnives = "rbxassetid://79407861992060",
-		BurrfangDaggers = "rbxassetid://93573963338375",
-		SilkfangDaggers = "rbxassetid://72579555909787",
-		LurkerClaws = "rbxassetid://72670317553992",
-		DriftwoodDirks = "rbxassetid://121924886568217",
-		BarnacleKnives = "rbxassetid://127010827063439",
-		EeltoothDaggers = "rbxassetid://82120397394959",
-		TollbellDaggers = "rbxassetid://75460226783809",
-		RiptideFangs = "rbxassetid://107870553376479",
-		MossShivs = "rbxassetid://72266371749114",
-		SporeFangs = "rbxassetid://139735481848386",
-		GlowcapKris = "rbxassetid://87301338712070",
-		ToadtongueDaggers = "rbxassetid://129166344618647",
-		PrismStingers = "rbxassetid://77117545150699",
-		GoldenDaggers = "rbxassetid://105180464465859",
-		-- Neon Circuit, a themed set (assets/ui/shop/set_icons.py)
-		LivewireBow = "rbxassetid://101924448285957",
-		MainframeStaff = "rbxassetid://120337827602917",
-		OverclockBlade = "rbxassetid://77387340338540",
-		GlitchDaggers = "rbxassetid://119487571601466",
-		-- the seven themed sets after it (assets/ui/shop/set_icons.py)
-		WishbrightBow = "rbxassetid://111356263284773",
-		DreamdropStaff = "rbxassetid://89774552783859",
-		WishcutterBlade = "rbxassetid://108509888260013",
-		TwinkleDaggers = "rbxassetid://80288563599243",
-		SaddlehornBow = "rbxassetid://140601939060345",
-		WagonwheelStaff = "rbxassetid://86628059464922",
-		TrailbossBlade = "rbxassetid://130264771468851",
-		SpurDaggers = "rbxassetid://107521442255944",
-		NoodleBow = "rbxassetid://111241896654328",
-		SplashringStaff = "rbxassetid://94783434442541",
-		BreakerBlade = "rbxassetid://98864908863840",
-		SquirtDaggers = "rbxassetid://107997782868551",
-		HighscoreBow = "rbxassetid://74509085758062",
-		JoystickStaff = "rbxassetid://115711473060148",
-		PixelBlade = "rbxassetid://77386099713821",
-		TokenDaggers = "rbxassetid://102493325427758",
-		OrbitBow = "rbxassetid://129189162314787",
-		StarwellStaff = "rbxassetid://124037354215832",
-		NebulaBlade = "rbxassetid://125593914112148",
-		CometDaggers = "rbxassetid://79449600025925",
-		BlossomBow = "rbxassetid://80695621150632",
-		PaperglowStaff = "rbxassetid://108483002598413",
-		PetalfallBlade = "rbxassetid://132867913731122",
-		BellchimeDaggers = "rbxassetid://79612586919761",
-		CinderstringBow = "rbxassetid://116521737619243",
-		ForgeheartStaff = "rbxassetid://106100535218171",
-		MoltenBlade = "rbxassetid://137279596736476",
-		EmbershardDaggers = "rbxassetid://109191063659895",
-		MossstoneBlade = "rbxassetid://98674732227468",
-		ThornBlade = "rbxassetid://103195463695789",
-		BroodsplitBlade = "rbxassetid://104383311597642",
-		EmberfangBlade = "rbxassetid://138986950232809",
-		GladeheartBlade = "rbxassetid://89578890449592",
-	} :: { [string]: string },
 	pets = {
 		Mosslet = "rbxassetid://90863911704588",
 		Babacorn = "rbxassetid://76501430507544",

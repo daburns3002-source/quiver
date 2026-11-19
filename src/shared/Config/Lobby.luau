@@ -42,14 +42,29 @@ export type DexPiece = {
 	across: number,
 }
 
+--[[ One mesh of a portal built from a Claude Design bundle: its size in studs,
+     and its middle from the middle of the portal's foot, as the bundle
+     prints them. A `neon` one is drawn Neon, its colours in the mesh. ]]
+export type PortalPart = {
+	mesh: string,
+	size: Vector3,
+	middle: Vector3,
+	neon: boolean?,
+}
+
 --[[ An area's portal as its doorway is built from the area itself: the frame's
-     import, and its vortex's sheet (`portalVortex`). ]]
+     import, and its vortex's sheet (`portalVortex`). A Claude Design build
+     comes as `parts` in its own vertex colours (no `texture`): `mesh` is then
+     its first part's, and `size` the whole portal's. `vortexFoot` stands its
+     vortex at another height than `portalVortex.foot`, for a taller doorway. ]]
 export type PortalModel = {
 	mesh: string,
 	texture: string,
 	size: Vector3,
 	vortex: string,
 	glow: Color3,
+	parts: { PortalPart }?,
+	vortexFoot: number?,
 }
 
 export type Portal = {
@@ -375,6 +390,32 @@ local Lobby = {
 			size = Vector3.new(14, 15.9, 4),
 			vortex = "rbxassetid://89240563088907",
 			glow = Color3.fromRGB(154, 223, 255),
+		},
+		--[[ The Endless Rift Gate (owner, 2026-11-19: "make the portal for
+		     endless look cooler"), Claude Design v2 bundled by
+		     `assets/models/lobby/gate_bundle.py`: its stone, and its runes,
+		     crystals and Soulstone glowing. Its vortex is Design's colours on
+		     the shared sheet, its heart 5.5 studs up as in the build. ]]
+		["Endless"] = {
+			mesh = "ENDLESS_GATE_MESH",
+			texture = "",
+			size = Vector3.new(18.087, 20, 5.024),
+			vortex = "rbxassetid://71023668996508",
+			glow = Color3.fromRGB(154, 77, 255),
+			parts = {
+				{
+					mesh = "ENDLESS_GATE_MESH",
+					size = Vector3.new(18.087, 16.077, 5.024),
+					middle = Vector3.new(0, 8.039, 0),
+				},
+				{
+					mesh = "ENDLESS_GLOW_MESH",
+					size = Vector3.new(18.087, 19.498, 5.024),
+					middle = Vector3.new(0, 10.251, 0),
+					neon = true,
+				},
+			},
+			vortexFoot = 1.4,
 		},
 	} :: { [string]: PortalModel },
 	--[[ Every portal's vortex is Bogheart Caverns's, cell for cell, recoloured

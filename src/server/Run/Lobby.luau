@@ -771,24 +771,39 @@ local function meshPortal(
 )
 	local vortex = LobbyConfig.portalVortex
 	local middle = base * CFrame.new(0, 0, 1 + spec.size.Z / 2)
-	local frame = template:Clone()
-	frame.Name = "Frame"
-	frame.Anchored = true
-	frame.CanCollide = false
-	frame.CanQuery = false
-	frame.CanTouch = false
-	frame.Material = Enum.Material.SmoothPlastic
-	frame.Size = spec.size
-	frame.TextureID = spec.texture
-	frame.Color = Color3.new(1, 1, 1)
 	-- an import's front is its -Z, and the portals face south
-	frame.CFrame = middle * CFrame.new(0, spec.size.Y / 2, 0) * CFrame.Angles(0, math.pi, 0)
-	frame.Parent = model
+	local turned = middle * CFrame.Angles(0, math.pi, 0)
+	local function frame(from: MeshPart, size: Vector3, at: Vector3, neon: boolean?)
+		local mesh = from:Clone()
+		mesh.Name = "Frame"
+		mesh.Anchored = true
+		mesh.CanCollide = false
+		mesh.CanQuery = false
+		mesh.CanTouch = false
+		mesh.Material = if neon then Enum.Material.Neon else Enum.Material.SmoothPlastic
+		mesh.Size = size
+		mesh.TextureID = spec.texture
+		mesh.Color = Color3.new(1, 1, 1)
+		mesh.CFrame = turned * CFrame.new(at)
+		mesh.Parent = model
+	end
+	if spec.parts then
+		-- a Claude Design bundle: each mesh in its own colours, glow apart
+		for _, piece in spec.parts do
+			local from = lobbyTemplates[piece.mesh]
+			if from then
+				frame(from, piece.size, piece.middle, piece.neon)
+			end
+		end
+	else
+		frame(template, spec.size, Vector3.new(0, spec.size.Y / 2, 0))
+	end
 
+	local foot = spec.vortexFoot or vortex.foot
 	local plane = part(
 		"Vortex",
 		Vector3.new(vortex.size.X, vortex.size.Y, 0.2),
-		middle * CFrame.new(0, vortex.foot + vortex.size.Y / 2, vortex.forward),
+		middle * CFrame.new(0, foot + vortex.size.Y / 2, vortex.forward),
 		spec.glow,
 		model
 	)
@@ -832,7 +847,7 @@ local function meshPortal(
 	light.Parent = plane
 
 	if not active then
-		padlock(middle * CFrame.new(0, vortex.foot + vortex.size.Y / 2, 1.2), model)
+		padlock(middle * CFrame.new(0, foot + vortex.size.Y / 2, 1.2), model)
 	end
 end
 
@@ -852,6 +867,33 @@ local function portalArch(index: number, portal: LobbyConfig.Portal, parent: Ins
 	local template = if spec then lobbyTemplates[spec.mesh] else nil
 	if spec and template then
 		meshPortal(spec, template, base, active, model)
+		-- one set aside stands free: its jambs and its dark veil are solid
+		if portal.aside then
+			local door = LobbyConfig.portalVortex.size.X
+			local tall = if spec.parts then spec.parts[1].size.Y else spec.size.Y
+			local jamb = (spec.size.X - door) / 2
+			local middle = base * CFrame.new(0, 0, 1 + spec.size.Z / 2)
+			for _, side in { -1, 1 } do
+				local block = part(
+					"Jamb",
+					Vector3.new(jamb, tall, spec.size.Z),
+					middle * CFrame.new(side * (door + jamb) / 2, tall / 2, 0),
+					COLOURS.stone,
+					model
+				)
+				block.Transparency = 1
+				block.CanCollide = true
+			end
+			local veil = part(
+				"Veil",
+				Vector3.new(door, tall, 0.4),
+				middle * CFrame.new(0, tall / 2, 0),
+				COLOURS.stone,
+				model
+			)
+			veil.Transparency = 1
+			veil.CanCollide = true
+		end
 		signboard(
 			string.upper(portal.name :: string),
 			base * CFrame.new(0, spec.size.Y + 1.8, 1.6),
@@ -1088,6 +1130,11 @@ function Lobby.build(parent: Instance)
 		end
 		for _, spec in LobbyConfig.portalModels do
 			table.insert(ids, spec.mesh)
+			if spec.parts then
+				for _, piece in spec.parts do
+					table.insert(ids, piece.mesh)
+				end
+			end
 		end
 		dexTemplates = MeshTemplates.load(ids)
 		lobbyTemplates = dexTemplates

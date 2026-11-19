@@ -316,39 +316,70 @@ return function(t: TestRunner.Helper)
 	t.test(
 		"Endless stands aside on the courtyard floor, clear of the terrace and the buildings",
 		function()
-			local reach = 10 -- half the widest portal model, and a margin
 			for index, portal in LobbyConfig.portals do
 				if portal.aside then
-					local at = Lobby.archAt(index)
 					t.equal(LobbyConfig.archFoot(index), 0)
-					t.isTrue(
-						LobbyCourtyard.inside(at, reach),
-						`{portal.name} reaches the balustrade or the terrace`
-					)
-					for _, station in LobbyConfig.stations do
-						local spec = LobbyConfig.buildings[station.piece]
-						if spec then
-							local yaw = LobbyConfig.facing(station.at)
-							local s, c = math.sin(yaw), math.cos(yaw)
-							local d = at - station.at
-							local size = spec.size * LobbyConfig.buildingScale
-							local out = math.max(
-								math.abs(d.X * c - d.Y * s) - size.X / 2,
-								math.abs(d.X * s + d.Y * c) - size.Z / 2
+					-- its footprint, a stud spare all round: the gate from its
+					-- line out to its front, or the stone arch's backing
+					local spec = LobbyConfig.portalModels[portal.name :: string]
+					local across = if spec then spec.size.X else LobbyConfig.archWidth + 6
+					local deep = if spec then 1 + spec.size.Z else 0.8
+					local at, turn = Lobby.archAt(index), LobbyConfig.archTurn(index)
+					local right = Vector2.new(math.cos(turn), -math.sin(turn))
+					local ahead = Vector2.new(math.sin(turn), math.cos(turn))
+					for x = -across / 2 - 1, across / 2 + 1, 0.5 do
+						for z = -1, deep + 1, 0.5 do
+							local spot = at + right * x + ahead * z
+							t.isTrue(
+								LobbyCourtyard.inside(spot, 0),
+								`{portal.name} reaches the balustrade or the terrace`
 							)
-							t.isTrue(out > reach, `{portal.name} stands in {station.piece}`)
+							for _, station in LobbyConfig.stations do
+								local building = LobbyConfig.buildings[station.piece]
+								if building then
+									local yaw = LobbyConfig.facing(station.at)
+									local s, c = math.sin(yaw), math.cos(yaw)
+									local d = spot - station.at
+									local size = building.size * LobbyConfig.buildingScale
+									local out = math.max(
+										math.abs(d.X * c - d.Y * s) - size.X / 2,
+										math.abs(d.X * s + d.Y * c) - size.Z / 2
+									)
+									t.isTrue(out > 0, `{portal.name} stands in {station.piece}`)
+								end
+							end
 						end
-					end
-					for _, spec in LobbyConfig.portalModels do
-						t.isTrue(
-							spec.size.X / 2 < reach,
-							"a portal model is wider than Endless's room"
-						)
 					end
 				end
 			end
 		end
 	)
+
+	--[[ A mesh id that is wrong (or a stand-in left from before an import)
+	     leaves the stone arch where a portal's model should be. ]]
+	t.test("every portal model names real meshes and pictures", function()
+		local function real(id: string): boolean
+			return id:match("^rbxassetid://%d+$") ~= nil
+		end
+		for name, spec in LobbyConfig.portalModels do
+			t.isTrue(real(spec.mesh), `{name}'s mesh {spec.mesh}`)
+			t.isTrue(real(spec.vortex), `{name}'s vortex {spec.vortex}`)
+			if spec.parts then
+				t.equal(spec.texture, "", `{name} is in its own colours`)
+				t.equal(spec.parts[1].mesh, spec.mesh, `{name}'s mesh is its first part's`)
+				for _, piece in spec.parts do
+					t.isTrue(real(piece.mesh), `{name}'s part {piece.mesh}`)
+					t.isTrue(
+						piece.middle.Y + piece.size.Y / 2 <= spec.size.Y + 1e-3,
+						`{name}'s part pokes out`
+					)
+				end
+			else
+				t.isTrue(real(spec.texture), `{name}'s texture {spec.texture}`)
+			end
+		end
+		t.notNil(LobbyConfig.portalModels["Endless"], "Endless has its own gate")
+	end)
 
 	t.test("the spawn is in the clearing, clear of every station", function()
 		local half = LobbyConfig.size / 2

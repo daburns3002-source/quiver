@@ -24,6 +24,12 @@
 	motes turning round the hue wheel at its weapon's pace (`Fx/WeaponGlow`).
 	The Gladeheart's motes are the little cross-shaped stars the owner asked
 	for on 2026-10-25.
+
+	A blade whose cleave is ported from the Blade Cleaves page (owner,
+	2026-11-19: "unique cleave animations", the streak each blow leaves,
+	not the swing) has no ribbon: each blow is handed to `Fx/Cleaves/Play`
+	as it starts, with the same box, sweep and window, and drawn as its
+	card draws it.
 ]]
 
 local Players = game:GetService("Players")
@@ -32,6 +38,7 @@ local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
 
 local Classes = require(ReplicatedStorage.Shared.Config.Classes)
+local CleavePlay = require(script.Parent.Cleaves.Play)
 local Device = require(script.Parent.Parent.Device)
 local PlayerStats = require(script.Parent.Parent.PlayerStats)
 local SwingBox = require(ReplicatedStorage.Shared.Combat.SwingBox)
@@ -53,6 +60,8 @@ type Active = {
 	sweep: SwingSweep.Sweep,
 	--[[ Whether the far edge has been held for its frame. ]]
 	finished: boolean,
+	--[[ Drawn by `Fx/Cleaves/Play` instead of the ribbon. ]]
+	own: boolean,
 }
 
 --[[ The thin side of a mote's bars and the most alive at once. ]]
@@ -131,11 +140,20 @@ end
 local RAINBOW_SPEED = 0.25
 local RAINBOW_SATURATION = 0.7
 
---[[ The held blade's cleave, a pair being drawn as the blade it pairs. ]]
-local function cleaveOf(weapon: any): WeaponFx.Cleave?
+--[[ The held blade's cleave and its key, a pair being drawn as the blade
+     it pairs. ]]
+local function cleaveKey(weapon: any): string?
 	local held = Players.LocalPlayer:GetAttribute("Weapon")
-	return (if type(held) == "string" then WeaponFx.cleaves[held] else nil)
-		or WeaponFx.cleaves[weapon.dualOf or ""]
+	if type(held) == "string" and WeaponFx.cleaves[held] then
+		return held
+	end
+	local paired = weapon.dualOf
+	return if type(paired) == "string" and WeaponFx.cleaves[paired] then paired else nil
+end
+
+local function cleaveOf(weapon: any): WeaponFx.Cleave?
+	local key = cleaveKey(weapon)
+	return if key then WeaponFx.cleaves[key] else nil
 end
 
 --[[ The streak's look for the blade in hand: its own colours and shape,
@@ -299,7 +317,7 @@ end
 	Called every frame by `Fx/WeaponPose`. `progress` is how far through
 	the slash's `TrailOn`–`TrailOff` window it is, or nil outside it;
 	`blow` is which blow of `blows`. (`_seconds`, the window's length, is
-	unused since the streak has a fixed tail.)
+	the blade's sweep, times a cleave drawn by `Fx/Cleaves/Play`.)
 ]]
 function SwingTrail.step(
 	character: Model,
@@ -307,7 +325,7 @@ function SwingTrail.step(
 	progress: number?,
 	blow: number,
 	blows: number,
-	_seconds: number
+	seconds: number
 )
 	local config = weapon.swingTrail
 	local class = Classes[PlayerStats.get().class]
@@ -319,7 +337,9 @@ function SwingTrail.step(
 		local ending = active
 		if ending and not ending.finished then
 			ending.finished = true
-			place(ending, 1)
+			if not ending.own then
+				place(ending, 1)
+			end
 			return
 		end
 		if ribbon then
@@ -328,13 +348,17 @@ function SwingTrail.step(
 		active = nil
 		return
 	end
+	local current = active
+	if current and current.own and not current.finished then
+		-- its cleave plays on its own clock
+		return
+	end
 	if not (holder and holder.Parent) then
 		build(config.colour)
 	end
 	local cleave = cleaveOf(weapon)
 	tint(weapon, cleave)
 
-	local current = active
 	if current and not current.finished then
 		place(current, progress)
 		-- its motes over the ground the slash is sweeping
@@ -371,8 +395,26 @@ function SwingTrail.step(
 		),
 		sweep = SwingSweep.forBlow(blow, blows),
 		finished = false,
+		own = false,
 	}
 	active = fresh
+
+	local key = cleaveKey(weapon)
+	if key and CleavePlay.has(key) then
+		fresh.own = true
+		if ribbon then
+			ribbon.Enabled = false
+		end
+		CleavePlay.start(
+			key,
+			fresh.shape,
+			fresh.sweep,
+			fresh.origin,
+			seconds,
+			weapon.trailGlow ~= nil
+		)
+		return
+	end
 
 	local trail = ribbon :: Trail
 	trail.Enabled = false

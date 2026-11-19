@@ -23,6 +23,13 @@
 	flat `Leaf`; `rise` is the studs it climbs (below 0 it falls). A
 	Legendary's or Mythic's cleave glows (`Config/Weapons.trailGlow`).
 
+	A blade with a `look` cuts its own cleave from the owner-approved Blade
+	Cleaves page (2026-11-19, direction A): its card's number (which seeds
+	where its motes fall), sword or dagger geometry, its three colours
+	(streak, tail, motes) and, for a cleave that stays longer, its
+	`linger`. Its drawing is in `Fx/Cleaves` (`tests/BladeCleaves.spec`).
+	Ported area by area; until its batch, a blade keeps the ribbon above.
+
 	`tests/WeaponFx.spec` asks that no two share a look.
 ]]
 
@@ -38,11 +45,18 @@ export type Motes = {
 	rise: number,
 	life: number,
 }
+export type CleaveLook = {
+	card: number,
+	kind: "sword" | "dagger",
+	colours: { Color3 },
+	linger: number?,
+}
 export type Cleave = {
 	colour: { Color3 },
 	tail: number,
 	taper: number,
 	motes: Motes?,
+	look: CleaveLook?,
 }
 
 local function rgb(r: number, g: number, b: number): Color3
@@ -1139,6 +1153,44 @@ local cleaves: { [string]: Cleave } = {
 	},
 	-- THEMED SETS SWINGS END
 }
+
+--[[ The Blade Cleaves page's cards, by number. ]]
+local function card(
+	number: number,
+	kind: "sword" | "dagger",
+	streak: string,
+	tail: string,
+	motes: string,
+	linger: number?
+): CleaveLook
+	return table.freeze({
+		card = number,
+		kind = kind,
+		colours = { Color3.fromHex(streak), Color3.fromHex(tail), Color3.fromHex(motes) },
+		linger = linger,
+	})
+end
+
+local looks: { [string]: CleaveLook } = {
+	-- Mossy Glade
+	TimberBlade = card(1, "sword", "#ff503c", "#961914", "#d6a46a"),
+	MossstoneBlade = card(2, "sword", "#7cba5c", "#3a6830", "#74965c"),
+	ThornBlade = card(3, "sword", "#46963e", "#1c4622", "#a0d25a"),
+	BroodsplitBlade = card(4, "sword", "#845caa", "#2e1c42", "#ebe6f5"),
+	EmberfangBlade = card(5, "sword", "#ff8232", "#ffd65a", "#ff9628"),
+	GladeheartBlade = card(6, "sword", "#debef3", "#ffffff", "#ffffff"),
+	SplinterDaggers = card(7, "dagger", "#ece2ff", "#923ee0", "#d69454"),
+	BrambleShivs = card(8, "dagger", "#aad66e", "#568c3c", "#78be50"),
+	FireflyFangs = card(9, "dagger", "#faec78", "#46823c", "#fff082"),
+	GladeFoxClaws = card(10, "dagger", "#bef05a", "#783cbe", "#c8fa6e"),
+	EmberWilfFangs = card(11, "dagger", "#ff9632", "#c83214", "#ffc85a"),
+	GlimmerhornDaggers = card(12, "dagger", "#f0beff", "#8cdcff", "#ffaadc"),
+}
+for key, look in looks do
+	local cleave = cleaves[key]
+	assert(cleave, `{key} has a card and no cleave`)
+	cleave.look = look
+end
 
 return table.freeze({
 	shots = table.freeze(shots),

@@ -157,6 +157,20 @@ DAGGERS = [
     ("PrismStingers", "PRISM STINGERS", "Assassin", "PrismStingers", None, (63, 230, 242), 5),
     ("GoldenDaggers", "GOLDEN DAGGERS", "Assassin", "GoldenDaggers", None, (255, 205, 56), 4),
 ]
+# Themed sets (docs/WEAPONS-THEMED.md): a weapon for every class, of no area.
+# Neon Circuit (owner, 2026-11-18): Tripo models of the Codex front views in
+# assets/concepts/blocky/weapons/skins/sets/neon_circuit, imported by the
+# owner from `Downloads\\neon_circuit_import` and read in Studio into
+# blocky/neon_circuit/skin_imports.json. One textured mesh each, so the
+# Legendary glow is an `aura`, cyan or magenta as the weapon's strips are.
+NEON_CIRCUIT_IMPORTS = HERE / "blocky" / "neon_circuit" / "skin_imports.json"
+# key, label, class, import, projectile, glow colour, tier
+NEON_CIRCUIT = [
+    ("LivewireBow", "LIVEWIRE BOW", "Ranger", "LivewireBow", None, (70, 232, 255), 4),
+    ("MainframeStaff", "MAINFRAME STAFF", "Arcanist", "MainframeStaff", None, (255, 62, 196), 4),
+    ("OverclockBlade", "OVERCLOCK BLADE", "Warden", "OverclockBlade", None, (70, 232, 255), 4),
+    ("GlitchDaggers", "GLITCH DAGGERS", "Assassin", "GlitchDaggers", None, (255, 62, 196), 4),
+]
 # Radians of extra turn about Y for models that do not follow the base
 # weapon's convention. A bow's limbs should curve in YZ as the Twig Bow's do;
 # these three are modelled curving in XY, so they face sideways without it.
@@ -184,6 +198,7 @@ YAW = {
     "GulpstringBow": "math.pi / 2",
     "LumenveilBow": "math.pi / 2",
     "GoldenBow": "math.pi / 2",
+    "LivewireBow": "-math.pi / 2",
 }
 YAW_RADIANS = {"math.pi / 2": math.pi / 2, "-math.pi / 2": -math.pi / 2, "math.pi": math.pi}
 # Where the hand closes on each one-mesh model, measured from its mesh's cross
@@ -244,6 +259,13 @@ GRIPS = {
     "GoldenBow": (0.0806, 0.5, -0.0004),
     "GoldenStaff": (0.0, 0.43, 0.0),
     "GoldenBlade": (0.0, 0.175, 0.0),
+    # Neon Circuit, measured from its GLBs (neon_circuit/measure_grips.py,
+    # 2026-11-18): the bow's riser is on -X; the blade's handle runs 12% to
+    # 30% up, the dagger's 12% to 28% (its pommel cube below)
+    "LivewireBow": (-0.0994, 0.5, -0.0014),
+    "MainframeStaff": (-0.0007, 0.43, -0.0018),
+    "OverclockBlade": (0.0004, 0.21, 0.0004),
+    "GlitchDaggers": (0.0011, 0.2, 0.0),
 }
 # Every Mossy Glade skin is a Tripo model (seven remade 2026-11-10, all
 # eighteen at 4,000 triangles and an 8K texture 2026-11-13, owner): one
@@ -374,6 +396,10 @@ def main():
         GRIPS.update({k: tuple(v) for k, v in json.loads(DAGGER_GRIPS.read_text(encoding="utf-8")).items()})
         rows += [(daggers, k, c, n, p, g, t, True) for k, _, c, n, p, g, t in DAGGERS]
         listed = listed + DAGGERS
+    if NEON_CIRCUIT_IMPORTS.exists():
+        neon = json.loads(NEON_CIRCUIT_IMPORTS.read_text(encoding="utf-8"))
+        rows += [(neon, k, c, n, p, g, t, True) for k, _, c, n, p, g, t in NEON_CIRCUIT]
+        listed = listed + NEON_CIRCUIT
     skins = chr(10).join(entry(*r) for r in rows) + chr(10)
     splice(WEAPONS, skins, "\t--[[ SKINS GO HERE ]]\n")
     menu = "".join(f'\t\t{{ weapon = "{k}", class = "{c}", label = "{l}" }},\n' for k, l, c, *_ in listed)

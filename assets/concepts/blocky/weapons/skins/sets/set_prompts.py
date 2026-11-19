@@ -111,6 +111,57 @@ SETS = {
             ),
         ],
     ),
+    "starwish": (
+        "STARWISH, a set of chunky toy wishing-star charms: soft pastel pink and mint-green blocks, "
+        "cream-white blocks, shiny gold star charms, flat chunky ribbon wraps (wide flat block "
+        "strips, never thin strings), and glowing pale-yellow star gems. Sweet and toy-like, like "
+        "a kid's sparkly birthday present; no faces, no characters, no wings, no hearts, no moons. "
+        "Each prop has a bold, unusual silhouette that reads at a glance, with big simple shapes "
+        "rather than a plain stick or blade.",
+        [
+            (
+                "wishbright_bow", "WISHBRIGHT BOW", "bow", "golden_bow.png",
+                "a bow whose two limbs are smooth curved arcs of pastel pink blocks, each wrapped "
+                "near its middle by a wide flat mint ribbon band; each limb tip carries a big chunky "
+                "gold five-pointed star, as wide as three limb widths; the grip in the middle is "
+                "cream white wrapped in a wide flat mint ribbon tied in a chunky block bow knot on "
+                "its front, with a round glowing pale-yellow star gem set above the knot; the string "
+                "is one thick straight bar of soft pink light; glowing softly pink and gold",
+            ),
+            (
+                "dreamdrop_staff", "DREAMDROP STAFF", "staff", "golden_staff.png",
+                "its head is a big chunky five-pointed star of pastel pink blocks with a thick gold "
+                "rim, as wide as five shaft widths, with a large glowing pale-yellow star gem in its "
+                "centre; two short wide flat mint ribbon tails hang from under the star on either "
+                "side, each ending in a small gold star charm; the shaft is cream white with a wide "
+                "flat mint ribbon spiralling round it in chunky steps; a pastel pink grip a little "
+                "below the middle; the foot is a small gold star pointing down; glowing softly pink "
+                "and gold",
+            ),
+            (
+                "wishcutter_blade", "WISHCUTTER BLADE", "greatsword", "golden_blade.png",
+                "a big heroic two-edged greatsword, symmetrical left to right, NOT a cleaver: a long "
+                "broad blade of pale mint-green blocks with pastel pink edges on both sides, ending in "
+                "a pointed tip built of three centred steps; up the centre of the blade run three "
+                "gold five-pointed stars in a line, small, medium and large, the largest just above "
+                "the guard; the guard is a wide gold bar ending in a chunky gold star on each side, "
+                "with a round glowing pale-yellow star gem in its middle; a cream-white grip long "
+                "enough for two hands, wrapped in a wide flat pink ribbon; the pommel is a small gold "
+                "star; the blade is about three times as long as the grip; glowing softly pink and "
+                "gold",
+            ),
+            (
+                "twinkle_daggers", "TWINKLE DAGGERS", "dagger", "golden_daggers.png",
+                "a dagger whose blade is one long pointed ray of a star: a tall chunky pastel pink "
+                "crystal blade, wide at the guard and narrowing in even block steps to a sharp "
+                "point, with a cream-white stripe up its middle; the guard is a big chunky mint "
+                "ribbon bow knot of flat block loops, one loop out each side, with a gold star in "
+                "its knot; a cream-white grip wrapped in a wide flat pink ribbon; the pommel is a "
+                "round glowing pale-yellow star gem; all parts touch, nothing floats; glowing softly "
+                "pink and gold",
+            ),
+        ],
+    ),
 }
 
 

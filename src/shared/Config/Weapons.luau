@@ -1539,6 +1539,79 @@ local skins: { [string]: any } = {
 		aura = Color3.fromRGB(255, 205, 56),
 		trailGlow = Color3.fromRGB(255, 205, 56),
 	},
+	LivewireBow = {
+		-- `LivewireBow`, held as the TwigBow is, playing its kit until it has its own
+		kit = "TwigBow",
+		skinOf = "TwigBow",
+		scale = 4.3449,
+		parts = {
+			{
+				name = "Bow",
+				meshId = "rbxassetid://86158872034339",
+				size = Vector3.new(0.4318, 0.9777, 0.2269),
+				offset = Vector3.new(0.0014, 0, -0.0972),
+				turned = true,
+				yaw = -math.pi / 2,
+				textureId = "rbxassetid://82793880626680",
+			},
+		} :: { WeaponPart },
+		aura = Color3.fromRGB(70, 232, 255),
+		shotGlow = Color3.fromRGB(70, 232, 255),
+	},
+	MainframeStaff = {
+		-- `MainframeStaff`, held as the BranchStaff is, playing its kit until it has its own
+		kit = "BranchStaff",
+		skinOf = "BranchStaff",
+		scale = 4.5815,
+		parts = {
+			{
+				name = "Staff",
+				meshId = "rbxassetid://83056830126785",
+				size = Vector3.new(0.3022, 0.9796, 0.1781),
+				offset = Vector3.new(-0.0007, 0.0686, -0.0018),
+				turned = true,
+				textureId = "rbxassetid://133089754290097",
+			},
+		} :: { WeaponPart },
+		aura = Color3.fromRGB(255, 62, 196),
+		shotGlow = Color3.fromRGB(255, 62, 196),
+	},
+	OverclockBlade = {
+		-- `OverclockBlade`, held as the TimberBlade is, playing its kit until it has its own
+		kit = "TimberBlade",
+		skinOf = "TimberBlade",
+		scale = 4.8842,
+		parts = {
+			{
+				name = "Blade",
+				meshId = "rbxassetid://128389524938791",
+				size = Vector3.new(0.5, 0.9803, 0.1616),
+				offset = Vector3.new(0.0004, 0.2843, 0.0004),
+				turned = true,
+				textureId = "rbxassetid://81200535668982",
+			},
+		} :: { WeaponPart },
+		aura = Color3.fromRGB(70, 232, 255),
+		trailGlow = Color3.fromRGB(70, 232, 255),
+	},
+	GlitchDaggers = {
+		-- `GlitchDaggers`, held as the SplinterDaggers is, playing its kit until it has its own
+		kit = "SplinterDaggers",
+		skinOf = "SplinterDaggers",
+		scale = 1.9469,
+		parts = {
+			{
+				name = "Blade",
+				meshId = "rbxassetid://80951157053007",
+				size = Vector3.new(0.3714, 0.9787, 0.1751),
+				offset = Vector3.new(0.0011, 0.2936, 0),
+				turned = true,
+				textureId = "rbxassetid://125935879673176",
+			},
+		} :: { WeaponPart },
+		aura = Color3.fromRGB(255, 62, 196),
+		trailGlow = Color3.fromRGB(255, 62, 196),
+	},
 	-- SKINS END
 }
 for key, skin in skins do

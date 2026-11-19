@@ -805,7 +805,7 @@ prize, victory chest or free crate gives one: they all ask `ShopRules.cratePool`
 coins and gems (`ShopRules.price`), waits on no boss (`ShopRules.buyable`), and has a Dex page of its own
 after every area's once its set is `stocked`. **Every set is an original design for this game**: only a
 theme's broad genre, never another game's names, logos, characters or item looks, and no other game is
-named in any player-facing text. Neon Circuit is the first (drawn, unstocked).
+named in any player-facing text. Neon Circuit is the first (in the game since 2026-11-18, four Legendaries on the Blacksmith's SETS tab); Starwish is drawn and waits on the owner.
 
 **Class levels and the golden weapons** (owner, 2026-11-14: "class specific leveling ... when a player gets
 to level 10 on a certain class, they should unlock a golden weapon"; `Config/ClassLevels`,

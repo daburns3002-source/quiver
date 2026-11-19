@@ -38,6 +38,10 @@ export type Stats = {
 	     endless, there should not be a merge tier"): no badge, no MERGE, no
 	     tier in its damage (`ShopRules.merges`). ]]
 	earned: boolean?,
+	--[[ For an earned weapon that is not a golden one: what its Gear card
+	     says gets it while it is not held ("CLEAR ENDLESS ROOM 100"). A
+	     golden one says its class level instead. ]]
+	howEarned: string?,
 	--[[ The themed set it belongs to (`Config/Shop.sets`, docs/WEAPONS-THEMED.md):
 	     a weapon of no area, sold from the store's SETS shelf and in no
 	     crate. Its `area` is then only its scale's, and always 1 (owner,
@@ -407,10 +411,15 @@ local WeaponStats = {
 			innate = { ElementalOrbs = 1 },
 			effect = "Dreamdrop: each wish flies out as fire, ice or lightning in turn.",
 		},
+		--[[ Season 1's free reward (owner, 2026-11-19: "the wishcutter blade
+		     should be the legendary that goes in the free battle pass for
+		     tier 30"): earned, so off the SETS shelf (`Config/Season`). ]]
 		WishcutterBlade = {
 			rarity = "Legendary",
 			area = 1,
 			set = "Starwish",
+			earned = true,
+			howEarned = "SEASON 1 PASS, TIER 30",
 			innate = { Whirlwind = 1 },
 			effect = "Wishcutter: every few swings you spin in a ring of stars.",
 		},
@@ -519,10 +528,15 @@ local WeaponStats = {
 			innate = { TrackingEye = 1 },
 			effect = "Starwell: orbs fall into orbit round the nearest enemy.",
 		},
+		--[[ Mythic, Endless room 100's (owner, 2026-11-19: "nebula blade and
+		     petalfall blade should be mythics", "Nebula: Endless 100"):
+		     earned there once, never sold (`Balance.endless.milestones`). ]]
 		NebulaBlade = {
-			rarity = "Legendary",
+			rarity = "Mythic",
 			area = 1,
 			set = "Voidglass",
+			earned = true,
+			howEarned = "CLEAR ENDLESS ROOM 100",
 			innate = { Parry = 1 },
 			effect = "Nebula: your swings knock enemy shots out of the air.",
 		},
@@ -547,10 +561,15 @@ local WeaponStats = {
 			innate = { ArcaneTurret = 1 },
 			effect = "Paperglow: every ten seconds a paper lantern floats up beside you and casts orbs.",
 		},
+		--[[ Mythic, Season 1's premium reward at tier 30 (owner, 2026-11-19:
+		     the end of the battle pass, "Premium"): earned, never sold
+		     (`Config/Season`). ]]
 		PetalfallBlade = {
-			rarity = "Legendary",
+			rarity = "Mythic",
 			area = 1,
 			set = "LanternBloom",
+			earned = true,
+			howEarned = "SEASON 1 PREMIUM PASS, TIER 30",
 			innate = { Sunder = 1 },
 			effect = "Petalfall: petals settle on what you strike, and it takes more damage from everything for 3s.",
 		},

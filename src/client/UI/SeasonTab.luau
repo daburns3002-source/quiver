@@ -20,6 +20,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 
 local Chunky = require(script.Parent.Chunky)
+local ItemIcons = require(ReplicatedStorage.Shared.Util.ItemIcons)
 local Kit = require(script.Parent.Kit)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local RobuxStore = require(script.Parent.RobuxStore)
@@ -118,12 +119,27 @@ end
 --[[ One line of what a tier gives: a picture and words, or a title. ]]
 type Line = { asset: string?, words: string, title: string? }
 
-local function lines(prize: Season.Prize, def: Season.SeasonDef, area: Area): { Line }
+local function lines(
+	prize: Season.Prize,
+	def: Season.SeasonDef,
+	area: Area,
+	track: SeasonRules.Track
+): { Line }
 	local out: { Line } = {}
 	local function add(asset: string, n: number?)
 		if n and n > 0 then
 			table.insert(out, { asset = asset, words = "+" .. Chunky.commas(n) })
 		end
+	end
+	--[[ Tier 30's earned weapon, first: its 2D picture and its name. ]]
+	local weapon = if prize.weapon then SeasonRules.weapon(def, track) else nil
+	if weapon then
+		local picture = ItemIcons.weapon(weapon)
+		local spaced = string.gsub(weapon, "(%l)(%u)", "%1 %2")
+		table.insert(
+			out,
+			{ asset = if picture ~= "" then picture else nil, words = string.upper(spaced) }
+		)
 	end
 	if prize.title then
 		table.insert(out, { words = "", title = def.title })
@@ -169,7 +185,7 @@ local function cell(
 		card.BackgroundColor3 = Chunky.lit(Chunky.gold)
 	end
 	local buttonW = math.min(170, w * 0.36)
-	local list = lines(prize, def, area)
+	local list = lines(prize, def, area, track)
 	local line = math.min((h - 16) / math.max(#list, 1), 56)
 	local top = y + (h - line * #list) / 2
 	local left = w - buttonW - 36

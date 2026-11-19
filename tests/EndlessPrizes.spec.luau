@@ -16,6 +16,7 @@ local PrizeRules = require(ReplicatedStorage.Shared.Util.PrizeRules)
 local Shop = require(ReplicatedStorage.Shared.Config.Shop)
 local ShopRules = require(ReplicatedStorage.Shared.Util.ShopRules)
 local TestRunner = require(script.Parent.TestRunner)
+local WeaponStats = require(ReplicatedStorage.Shared.Config.WeaponStats)
 
 return function(t: TestRunner.Helper)
 	t.test("every milestone gives at least five of something real", function()
@@ -45,6 +46,30 @@ return function(t: TestRunner.Helper)
 				t.notNil(
 					string.find(name, tostring(crates), 1, true),
 					`{name} hides its {crates} crates`
+				)
+			end
+		end
+	end)
+
+	--[[ Room 100 gives the Nebula Blade (owner, 2026-11-19): an earned
+	     Mythic, never sold, and the milestone's name says so. ]]
+	t.test("a milestone's weapon is an earned one its name names", function()
+		local last = Balance.Endless.milestones[#Balance.Endless.milestones]
+		t.equal(last.floor, 100)
+		t.equal(last.weapon, "NebulaBlade")
+		for _, milestone in Balance.Endless.milestones do
+			local weapon = milestone.weapon
+			if weapon then
+				local stats = WeaponStats.weapons[weapon]
+				t.isTrue(stats ~= nil and stats.earned == true, `{weapon} is not an earned weapon`)
+				t.isNil(
+					ShopRules.price((assert(ShopRules.find(weapon), weapon))),
+					`{weapon} is sold`
+				)
+				local spaced = string.gsub(weapon, "(%l)(%u)", "%1 %2")
+				t.notNil(
+					string.find(milestone.name, string.upper(spaced), 1, true),
+					`{milestone.name} does not name the {weapon}`
 				)
 			end
 		end

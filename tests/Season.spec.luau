@@ -13,10 +13,12 @@ local RobuxStore = require(ReplicatedStorage.Shared.Config.RobuxStore)
 local Season = require(ReplicatedStorage.Shared.Config.Season)
 local SeasonRules = require(ReplicatedStorage.Shared.Util.SeasonRules)
 local Shop = require(ReplicatedStorage.Shared.Config.Shop)
+local ShopRules = require(ReplicatedStorage.Shared.Util.ShopRules)
 local StoreRules = require(ReplicatedStorage.Shared.Util.StoreRules)
 local TestRunner = require(script.Parent.TestRunner)
 local TrailRules = require(ReplicatedStorage.Shared.Util.TrailRules)
 local Trails = require(ReplicatedStorage.Shared.Config.Trails)
+local WeaponStats = require(ReplicatedStorage.Shared.Config.WeaponStats)
 
 -- 2026-12-01 00:00 UTC, the first season's start, and 2027-01-01
 local DEC = 1796083200
@@ -156,7 +158,12 @@ return function(t: TestRunner.Helper)
 			{ track = "premium", tier = 2 },
 		}
 		for _, entry in paid do
-			SeasonRules.add(expect, SeasonRules.prize(entry.track, entry.tier) :: Season.Prize)
+			SeasonRules.add(
+				expect,
+				SeasonRules.prize(entry.track, entry.tier) :: Season.Prize,
+				nil,
+				entry.track
+			)
 		end
 		t.equal(total.gems, expect.gems)
 		t.equal(total.coins, expect.coins)
@@ -171,6 +178,37 @@ return function(t: TestRunner.Helper)
 		t.equal(total.trail, def.trail)
 		t.equal(total.title, def.title)
 		t.isTrue(total.eggs > 0 and total.crates > 0)
+	end)
+
+	--[[ Owner, 2026-11-19: tier 30 free is the Wishcutter Blade, tier 30
+	     premium the Petalfall Blade (a Mythic); both earned, never sold. ]]
+	t.test("tier 30 gives the season's weapon on each track", function()
+		local def = Season.seasons["2026-12"]
+		local last = #Season.tiers
+		t.isTrue(
+			Season.tiers[last].free.weapon == true and Season.tiers[last].premium.weapon == true
+		)
+		for tier = 1, last - 1 do
+			local each = Season.tiers[tier]
+			t.isTrue(not each.free.weapon and not each.premium.weapon, `tier {tier} gives a weapon`)
+		end
+		t.equal(SeasonRules.weapon(def, "free"), "WishcutterBlade")
+		t.equal(SeasonRules.weapon(def, "premium"), "PetalfallBlade")
+		for _, key in { "WishcutterBlade", "PetalfallBlade" } do
+			local stats = WeaponStats.weapons[key]
+			t.isTrue(stats ~= nil and stats.earned == true, `{key} is not earned`)
+			t.isNil(ShopRules.price((assert(ShopRules.find(key), key))), `{key} is sold`)
+		end
+		t.equal(WeaponStats.weapons.PetalfallBlade.rarity, "Mythic")
+		t.equal(WeaponStats.weapons.WishcutterBlade.rarity, "Legendary")
+		-- free alone gets only the free weapon; with premium, both
+		local plain = started(SeasonRules.maxXp())
+		t.equal(table.concat(SeasonRules.claimAll(plain).weapons or {}, ","), "WishcutterBlade")
+		local paid = started(SeasonRules.maxXp())
+		paid.premium = true
+		local both = SeasonRules.claimAll(paid).weapons or {}
+		table.sort(both)
+		t.equal(table.concat(both, ","), "PetalfallBlade,WishcutterBlade")
 	end)
 
 	t.test("at the month's end everything reached is claimed for the player", function()
@@ -193,7 +231,7 @@ return function(t: TestRunner.Helper)
 		local got = SeasonRules.rollover(plain, JAN + 60)
 		local expect = SeasonRules.zero()
 		for tier = 1, 3 do
-			SeasonRules.add(expect, Season.tiers[tier].free)
+			SeasonRules.add(expect, Season.tiers[tier].free, nil, "free")
 		end
 		t.isTrue(got ~= nil and got.coins == expect.coins and got.gems == expect.gems)
 	end)

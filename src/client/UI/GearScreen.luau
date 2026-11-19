@@ -486,6 +486,7 @@ local function details(
 			lines,
 			if isPet
 				then "HATCH IT AT THE EGG HATCHERY"
+				elseif earned and shopEntry and shopEntry.howEarned then shopEntry.howEarned
 				elseif earned and shopEntry then "REACH "
 					.. string.upper(shopEntry.class)
 					.. " LEVEL "

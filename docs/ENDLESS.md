@@ -143,7 +143,7 @@ repeatable currency keeps the mode worth replaying once the milestones are claim
 | 30 | 5 eggs and 5 crates |
 | 50 | 5 eggs, one guaranteed Legendary or better |
 | 75 | 5 crates, one guaranteed Legendary |
-| 100 | 10 eggs and 10 crates, a Mythic in each |
+| 100 | **the Nebula Blade** (Mythic, earned only), 10 eggs and 10 crates, a Mythic in each |
 
 **Built 2026-11-11, at the owner's word** ("MAKE IT MORE LIKE 5 EGGS AND 5 CRATES. ROBLOX GAMES HAVE
 THAT EXTREME REWARD. I WANT IT TO FEEL NECESSARY TO BEAT THESE ROOMS"): each is hatched and opened for

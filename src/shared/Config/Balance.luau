@@ -1903,6 +1903,9 @@ export type EndlessMilestone = {
 	crates: number?,
 	--[[ A rarity one of each batch is sure to be at least, nil for none. ]]
 	rarity: string?,
+	--[[ An earned weapon given with it (`WeaponStats.earned`), once: room
+	     100's Nebula Blade (owner, 2026-11-19). ]]
+	weapon: string?,
 	--[[ Soulstones paid with it. ]]
 	soulstones: number,
 }
@@ -14422,10 +14425,11 @@ local Balance = {
 			{
 				floor = 100,
 				kind = "Both",
-				name = "10 EGGS AND 10 CRATES, A MYTHIC IN EACH",
+				name = "THE NEBULA BLADE, 10 EGGS AND 10 CRATES",
 				eggs = 10,
 				crates = 10,
 				rarity = "Mythic",
+				weapon = "NebulaBlade",
 				soulstones = 1200,
 			},
 		} :: { EndlessMilestone },

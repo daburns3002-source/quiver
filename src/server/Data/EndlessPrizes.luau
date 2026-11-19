@@ -135,6 +135,13 @@ function EndlessPrizes.grant(player: Player, milestone: Balance.EndlessMilestone
 	if index then
 		weapons = EndlessPrizes.crates(player, index, crates, milestone.rarity)
 	end
+	--[[ The milestone's own earned weapon (room 100's Nebula Blade), shown
+	     first. The milestone is claimed once a profile, and an earned weapon
+	     is held once (`Wallet.grantWeapon`). ]]
+	local own = milestone.weapon
+	if own then
+		table.insert(weapons, 1, { weapon = own, new = Wallet.grantWeapon(player, own) })
+	end
 	if #pets + #weapons > 0 then
 		Remotes.event(Remotes.EndlessPrize)
 			:FireClient(player, milestone.floor, milestone.name, pets, weapons)

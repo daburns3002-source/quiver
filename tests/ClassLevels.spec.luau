@@ -277,13 +277,18 @@ return function(t: TestRunner.Helper)
 		t.isTrue(ShopRules.merges(nil), "no weapon is the class's own, which merges")
 	end)
 
-	t.test("only the golden weapons are marked earned", function()
+	--[[ Earned weapons are the golden ones, plus the rewards that say where
+	     they come from (`howEarned`: Endless room 100, the season pass;
+	     owner, 2026-11-19). A golden one says its class level instead. ]]
+	t.test("only the golden weapons and the named rewards are marked earned", function()
 		local golden: { [string]: boolean } = {}
 		for _, weapon in ClassLevels.weapons do
 			golden[weapon] = true
 		end
 		for weapon, stats in WeaponStats.weapons do
-			t.equal(stats.earned == true, golden[weapon] == true, weapon)
+			local reward = stats.howEarned ~= nil
+			t.equal(stats.earned == true, golden[weapon] == true or reward, weapon)
+			t.isFalse(golden[weapon] == true and reward, `{weapon} is golden and a reward`)
 		end
 	end)
 end

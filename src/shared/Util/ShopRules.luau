@@ -26,8 +26,10 @@ export type Entry = {
 	label: string,
 	rarity: string,
 	area: number,
-	--[[ Earned, not sold or rolled (`WeaponStats.earned`): a golden weapon. ]]
+	--[[ Earned, not sold or rolled (`WeaponStats.earned`): a golden weapon,
+	     or a reward (Endless, the season pass) that says so in `howEarned`. ]]
 	earned: boolean?,
+	howEarned: string?,
 	--[[ The themed set it is of (`WeaponStats.set`, `Shop.sets`): a weapon
 	     of no area. `area` is then only its scale's. ]]
 	set: string?,
@@ -94,6 +96,7 @@ function ShopRules.catalog(): { Entry }
 				rarity = stats.rarity :: string,
 				area = stats.area,
 				earned = stats.earned,
+				howEarned = stats.howEarned,
 				set = stats.set,
 			})
 		end

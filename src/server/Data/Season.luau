@@ -84,6 +84,11 @@ local function pay(player: Player, total: SeasonRules.Total)
 	if trail then
 		Wallet.grantTrail(player, trail)
 	end
+	--[[ Tier 30's earned weapons (`SeasonDef.weapons`): held once each. ]]
+	local weapons: { string } = total.weapons or {}
+	for _, weapon in weapons do
+		Wallet.grantWeapon(player, weapon)
+	end
 	local title = total.title
 	if title and SeasonConfig.titles[title] then
 		profile.titles[title] = true
@@ -183,7 +188,8 @@ local function claim(player: Player, track: unknown, tier: unknown)
 		if not prize then
 			return
 		end
-		SeasonRules.add(total, prize, def)
+		-- `claim` paid it, so `track` is one of the two
+		SeasonRules.add(total, prize, def, track :: SeasonRules.Track)
 		log.info("%s claims season tier %s %s", player.Name, tostring(track), tostring(tier))
 	end
 	-- marked above, before anything is paid

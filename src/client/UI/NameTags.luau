@@ -194,9 +194,8 @@ local function mark(player: Player, label: TextLabel)
 		made.Size = UDim2.fromOffset(MARK, MARK)
 		made.Parent = label
 		picture = made
-	end
-	-- outside the frame's plate and its padding, when it has one
-	;(picture :: ImageLabel).Position =
+	end -- outside the frame's plate and its padding, when it has one
+	(picture :: ImageLabel).Position =
 		UDim2.new(0, -(MARK_GAP + (if framed then FRAME_PAD else 0)), 0.5, 0)
 end
 

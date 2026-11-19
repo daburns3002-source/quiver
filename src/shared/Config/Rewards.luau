@@ -181,6 +181,11 @@ local Rewards = {
 		Pets = { eggs = 5, gems = 75 },
 		Weapons = { crates = 5, gems = 75 },
 	} :: { [string]: Prize },
+	--[[ A themed set's weapons page (`Config/Shop.sets`; 2026-11-18): its
+	     crates and no gems. A set's weapons are bought with gems already,
+	     and eight sets paying 75 each would break the cap on what every page
+	     pays in gems (`tests/Gifts.spec`). ]]
+	setPage = { crates = 5 } :: Prize,
 
 	--[[ Level stars (`Util/StarRules`; owner, 2026-11-14): a campaign
 	     level has three stars, for winning it, for finishing with more

@@ -1,0 +1,25 @@
+{
+  "note": "Tripo web studio jobs for the Starwish themed set (owner, 2026-11-18: 'make the next one', then 'Yes, model them'). HD model, H3.1, Polycount 4000, triangles, 8K texture, 65 credits each (260 in all; 4720 before, 4460 after). Each from Codex's front view in `assets/concepts/blocky/weapons/skins/sets/starwish/<name>.png` (`sets/set_prompts.py`). A dagger is ONE dagger, held as a copy in each hand. Open a job at https://studio.tripo3d.ai/workspace/generate/<id>. Import folder: `Downloads\\starwish_import`.",
+  "jobs": {
+    "wishbright_bow": {
+      "class": "Ranger",
+      "key": "WishbrightBow",
+      "id": "faa1f9e7-d385-4844-a1e5-5319208abf4f"
+    },
+    "dreamdrop_staff": {
+      "class": "Arcanist",
+      "key": "DreamdropStaff",
+      "id": "0aa44a5a-fd39-4977-8f34-01501aaab73a"
+    },
+    "wishcutter_blade": {
+      "class": "Warden",
+      "key": "WishcutterBlade",
+      "id": "81d0c87f-0cfb-4d6a-bc8a-fcd026c4c444"
+    },
+    "twinkle_daggers": {
+      "class": "Assassin",
+      "key": "TwinkleDaggers",
+      "id": "e6962ed8-2584-4cb1-b0c4-d02959ecbc15"
+    }
+  }
+}

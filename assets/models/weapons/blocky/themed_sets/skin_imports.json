@@ -1,0 +1,674 @@
+{
+ "WishbrightBow": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://135592328813188",
+    "name": "Blade",
+    "size": [
+     0.5098,
+     0.9798,
+     0.2758
+    ],
+    "textureId": "rbxassetid://91614727945119"
+   }
+  ],
+  "size": [
+   0.5098,
+   0.9798,
+   0.2758
+  ]
+ },
+ "DreamdropStaff": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://126746338301669",
+    "name": "Blade",
+    "size": [
+     0.3956,
+     0.9805,
+     0.1936
+    ],
+    "textureId": "rbxassetid://113073061248661"
+   }
+  ],
+  "size": [
+   0.3956,
+   0.9805,
+   0.1936
+  ]
+ },
+ "WishcutterBlade": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://77646162067586",
+    "name": "Blade",
+    "size": [
+     0.4563,
+     0.9816,
+     0.1478
+    ],
+    "textureId": "rbxassetid://83650970339437"
+   }
+  ],
+  "size": [
+   0.4563,
+   0.9816,
+   0.1478
+  ]
+ },
+ "TwinkleDaggers": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://133381353315585",
+    "name": "Blade",
+    "size": [
+     0.463,
+     0.9814,
+     0.2238
+    ],
+    "textureId": "rbxassetid://116194704763654"
+   }
+  ],
+  "size": [
+   0.463,
+   0.9814,
+   0.2238
+  ]
+ },
+ "SaddlehornBow": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://93712261068900",
+    "name": "Blade",
+    "size": [
+     0.5317,
+     0.9789,
+     0.1665
+    ],
+    "textureId": "rbxassetid://101987197506919"
+   }
+  ],
+  "size": [
+   0.5317,
+   0.9789,
+   0.1665
+  ]
+ },
+ "WagonwheelStaff": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://120857626319400",
+    "name": "Blade",
+    "size": [
+     0.3876,
+     0.9793,
+     0.1374
+    ],
+    "textureId": "rbxassetid://137006257922329"
+   }
+  ],
+  "size": [
+   0.3876,
+   0.9793,
+   0.1374
+  ]
+ },
+ "TrailbossBlade": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://80154596704715",
+    "name": "Blade",
+    "size": [
+     0.3825,
+     0.9797,
+     0.1315
+    ],
+    "textureId": "rbxassetid://137119121556911"
+   }
+  ],
+  "size": [
+   0.3825,
+   0.9797,
+   0.1315
+  ]
+ },
+ "SpurDaggers": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://140311721087454",
+    "name": "Blade",
+    "size": [
+     0.3321,
+     0.9806,
+     0.2418
+    ],
+    "textureId": "rbxassetid://129615841966613"
+   }
+  ],
+  "size": [
+   0.3321,
+   0.9806,
+   0.2418
+  ]
+ },
+ "NoodleBow": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://87062589115071",
+    "name": "Blade",
+    "size": [
+     0.4973,
+     0.9803,
+     0.219
+    ],
+    "textureId": "rbxassetid://115404089914100"
+   }
+  ],
+  "size": [
+   0.4973,
+   0.9803,
+   0.219
+  ]
+ },
+ "SplashringStaff": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://104899557257644",
+    "name": "Blade",
+    "size": [
+     0.3876,
+     0.9792,
+     0.1751
+    ],
+    "textureId": "rbxassetid://126649089229975"
+   }
+  ],
+  "size": [
+   0.3876,
+   0.9792,
+   0.1751
+  ]
+ },
+ "BreakerBlade": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://74329406799333",
+    "name": "Blade",
+    "size": [
+     0.4168,
+     0.9817,
+     0.2386
+    ],
+    "textureId": "rbxassetid://85506869167256"
+   }
+  ],
+  "size": [
+   0.4168,
+   0.9817,
+   0.2386
+  ]
+ },
+ "SquirtDaggers": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://127929929640360",
+    "name": "Blade",
+    "size": [
+     0.3907,
+     0.9818,
+     0.1768
+    ],
+    "textureId": "rbxassetid://70441792722031"
+   }
+  ],
+  "size": [
+   0.3907,
+   0.9818,
+   0.1768
+  ]
+ },
+ "HighscoreBow": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://70497883513598",
+    "name": "Blade",
+    "size": [
+     0.4011,
+     0.9783,
+     0.2702
+    ],
+    "textureId": "rbxassetid://90791410773927"
+   }
+  ],
+  "size": [
+   0.4011,
+   0.9783,
+   0.2702
+  ]
+ },
+ "JoystickStaff": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://114774082160561",
+    "name": "Blade",
+    "size": [
+     0.2625,
+     0.979,
+     0.2285
+    ],
+    "textureId": "rbxassetid://103519652395887"
+   }
+  ],
+  "size": [
+   0.2625,
+   0.979,
+   0.2285
+  ]
+ },
+ "PixelBlade": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://81036173680464",
+    "name": "Blade",
+    "size": [
+     0.3695,
+     0.9819,
+     0.1222
+    ],
+    "textureId": "rbxassetid://138716240575470"
+   }
+  ],
+  "size": [
+   0.3695,
+   0.9819,
+   0.1222
+  ]
+ },
+ "TokenDaggers": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://109593487073132",
+    "name": "Blade",
+    "size": [
+     0.3631,
+     0.9796,
+     0.2385
+    ],
+    "textureId": "rbxassetid://105499947744136"
+   }
+  ],
+  "size": [
+   0.3631,
+   0.9796,
+   0.2385
+  ]
+ },
+ "OrbitBow": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://94734081999341",
+    "name": "Blade",
+    "size": [
+     0.434,
+     0.9781,
+     0.2836
+    ],
+    "textureId": "rbxassetid://102202300078466"
+   }
+  ],
+  "size": [
+   0.434,
+   0.9781,
+   0.2836
+  ]
+ },
+ "StarwellStaff": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://121785432247384",
+    "name": "Blade",
+    "size": [
+     0.4724,
+     0.9789,
+     0.3388
+    ],
+    "textureId": "rbxassetid://83876518973798"
+   }
+  ],
+  "size": [
+   0.4724,
+   0.9789,
+   0.3388
+  ]
+ },
+ "NebulaBlade": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://102228735402808",
+    "name": "Blade",
+    "size": [
+     0.3761,
+     0.9779,
+     0.3302
+    ],
+    "textureId": "rbxassetid://93712729804632"
+   }
+  ],
+  "size": [
+   0.3761,
+   0.9779,
+   0.3302
+  ]
+ },
+ "CometDaggers": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://131831047658815",
+    "name": "Blade",
+    "size": [
+     0.3542,
+     0.9779,
+     0.3375
+    ],
+    "textureId": "rbxassetid://90966274072915"
+   }
+  ],
+  "size": [
+   0.3542,
+   0.9779,
+   0.3375
+  ]
+ },
+ "BlossomBow": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://98079111026738",
+    "name": "Blade",
+    "size": [
+     0.4471,
+     0.9795,
+     0.2216
+    ],
+    "textureId": "rbxassetid://105431348845860"
+   }
+  ],
+  "size": [
+   0.4471,
+   0.9795,
+   0.2216
+  ]
+ },
+ "PaperglowStaff": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://123203878806120",
+    "name": "Blade",
+    "size": [
+     0.469,
+     0.981,
+     0.2741
+    ],
+    "textureId": "rbxassetid://83121551068534"
+   }
+  ],
+  "size": [
+   0.469,
+   0.981,
+   0.2741
+  ]
+ },
+ "PetalfallBlade": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://78703893865338",
+    "name": "Blade",
+    "size": [
+     0.3361,
+     0.9821,
+     0.1321
+    ],
+    "textureId": "rbxassetid://139263431899652"
+   }
+  ],
+  "size": [
+   0.3361,
+   0.9821,
+   0.1321
+  ]
+ },
+ "BellchimeDaggers": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://92988602774925",
+    "name": "Blade",
+    "size": [
+     0.4413,
+     0.9802,
+     0.1777
+    ],
+    "textureId": "rbxassetid://89087637842542"
+   }
+  ],
+  "size": [
+   0.4413,
+   0.9802,
+   0.1777
+  ]
+ },
+ "CinderstringBow": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://93048340998656",
+    "name": "Blade",
+    "size": [
+     0.4797,
+     0.9798,
+     0.2292
+    ],
+    "textureId": "rbxassetid://90939717773223"
+   }
+  ],
+  "size": [
+   0.4797,
+   0.9798,
+   0.2292
+  ]
+ },
+ "ForgeheartStaff": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://109248491458154",
+    "name": "Blade",
+    "size": [
+     0.3451,
+     0.978,
+     0.2911
+    ],
+    "textureId": "rbxassetid://101093659277750"
+   }
+  ],
+  "size": [
+   0.3451,
+   0.978,
+   0.2911
+  ]
+ },
+ "MoltenBlade": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://96189184685974",
+    "name": "Blade",
+    "size": [
+     0.4137,
+     0.9806,
+     0.2146
+    ],
+    "textureId": "rbxassetid://90975304299716"
+   }
+  ],
+  "size": [
+   0.4137,
+   0.9806,
+   0.2146
+  ]
+ },
+ "EmbershardDaggers": {
+  "parts": [
+   {
+    "at": [
+     0,
+     0,
+     0
+    ],
+    "meshId": "rbxassetid://134222445690465",
+    "name": "Blade",
+    "size": [
+     0.4547,
+     0.9785,
+     0.2438
+    ],
+    "textureId": "rbxassetid://133070494226928"
+   }
+  ],
+  "size": [
+   0.4547,
+   0.9785,
+   0.2438
+  ]
+ }
+}

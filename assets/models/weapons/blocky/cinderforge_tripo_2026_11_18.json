@@ -1,0 +1,29 @@
+{
+  "note": "Tripo web studio jobs for the Cinderforge themed set (owner, 2026-11-18: 'Yes, model Cinderforge', after the Molten Blade was redrawn broader). HD model, H3.1, Polycount 4000, triangles, 8K texture, 65 credits each (260 in all; 3160 before, 2900 after). Each from Codex's front view in `assets/concepts/blocky/weapons/skins/sets/cinderforge/<name>.png`. Open a job at https://studio.tripo3d.ai/workspace/generate/<id>. Import folder: `Downloads\themed_sets_import`, with the other five sets.",
+  "jobs": {
+    "cinderstring_bow": {
+      "set": "cinderforge",
+      "class": "Ranger",
+      "key": "CinderstringBow",
+      "id": "9e34be02-ffac-4139-a5ec-112b2a169702"
+    },
+    "forgeheart_staff": {
+      "set": "cinderforge",
+      "class": "Arcanist",
+      "key": "ForgeheartStaff",
+      "id": "7d4e5d80-31ae-4a2d-b4d7-16b6f71ec3f8"
+    },
+    "molten_blade": {
+      "set": "cinderforge",
+      "class": "Warden",
+      "key": "MoltenBlade",
+      "id": "3998a669-91da-46e4-b5f8-c7bb46a4aa54"
+    },
+    "embershard_daggers": {
+      "set": "cinderforge",
+      "class": "Assassin",
+      "key": "EmbershardDaggers",
+      "id": "9a831acf-b4a1-4596-933d-f99183560465"
+    }
+  }
+}

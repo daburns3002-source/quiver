@@ -171,6 +171,21 @@ NEON_CIRCUIT = [
     ("OverclockBlade", "OVERCLOCK BLADE", "Warden", "OverclockBlade", None, (70, 232, 255), 4),
     ("GlitchDaggers", "GLITCH DAGGERS", "Assassin", "GlitchDaggers", None, (255, 62, 196), 4),
 ]
+# The seven sets after it (owner, 2026-11-18: "make the designs for all first"):
+# Starwish, Tumbleweed, Splash Day, Coin-Op, Voidglass, Lantern Bloom and
+# Cinderforge, 28 Legendaries listed in blocky/themed_sets/sets.py with their
+# Studio ids (its skin_imports.json), cards and glow colours.
+THEMED_IMPORTS = HERE / "blocky" / "themed_sets" / "skin_imports.json"
+
+
+def themed_rows():
+    """(key, label, class, import, projectile, glow colour, tier) for every set weapon in sets.py."""
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("sets", HERE / "blocky" / "themed_sets" / "sets.py")
+    sets = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(sets)
+    return [(key, label, cls, key, None, sets.colours(s)[glow], 4) for s, key, label, cls, _, _, glow, *_ in sets.WEAPONS]
 # Radians of extra turn about Y for models that do not follow the base
 # weapon's convention. A bow's limbs should curve in YZ as the Twig Bow's do;
 # these three are modelled curving in XY, so they face sideways without it.
@@ -199,6 +214,14 @@ YAW = {
     "LumenveilBow": "math.pi / 2",
     "GoldenBow": "math.pi / 2",
     "LivewireBow": "-math.pi / 2",
+    # the seven themed sets' bows, every riser on -X (themed_sets/measure_grips.py)
+    "WishbrightBow": "-math.pi / 2",
+    "SaddlehornBow": "-math.pi / 2",
+    "NoodleBow": "-math.pi / 2",
+    "HighscoreBow": "-math.pi / 2",
+    "OrbitBow": "-math.pi / 2",
+    "BlossomBow": "-math.pi / 2",
+    "CinderstringBow": "-math.pi / 2",
 }
 YAW_RADIANS = {"math.pi / 2": math.pi / 2, "-math.pi / 2": -math.pi / 2, "math.pi": math.pi}
 # Where the hand closes on each one-mesh model, measured from its mesh's cross
@@ -266,6 +289,40 @@ GRIPS = {
     "MainframeStaff": (-0.0007, 0.43, -0.0018),
     "OverclockBlade": (0.0004, 0.21, 0.0004),
     "GlitchDaggers": (0.0011, 0.2, 0.0),
+    # the seven themed sets, measured from their GLBs (themed_sets/measure_grips.py,
+    # 2026-11-18). Two staffs are held lower than 43%, on their own grips under
+    # what hangs off the shaft there: the Splashring Staff's water tank and the
+    # Paperglow Staff's lantern (x from the bare shaft below). The Spur
+    # Daggers' handle runs 9% to 34% up, between the star pommel and the
+    # bandana under the spur (the rule took the pommel in).
+    "WishbrightBow": (-0.1421, 0.5, -0.0002),
+    "DreamdropStaff": (-0.0012, 0.43, -0.0016),
+    "WishcutterBlade": (-0.0009, 0.2, 0.0005),
+    "TwinkleDaggers": (-0.0001, 0.21, 0.0001),
+    "SaddlehornBow": (-0.1135, 0.5, 0.0055),
+    "WagonwheelStaff": (-0.0001, 0.43, -0.0007),
+    "TrailbossBlade": (-0.0013, 0.15, 0.0),
+    "SpurDaggers": (-0.002, 0.2, 0.0009),
+    "NoodleBow": (-0.1126, 0.5, 0.0129),
+    "SplashringStaff": (0.0012, 0.3, -0.0005),
+    "BreakerBlade": (0.0007, 0.21, 0.0051),
+    "SquirtDaggers": (0.0, 0.22, -0.0004),
+    "HighscoreBow": (-0.1, 0.5, 0.0009),
+    "JoystickStaff": (-0.0004, 0.43, -0.0004),
+    "PixelBlade": (-0.0005, 0.25, 0.0006),
+    "TokenDaggers": (-0.0006, 0.27, 0.0004),
+    "OrbitBow": (-0.0961, 0.5, 0.0004),
+    "StarwellStaff": (0.0007, 0.43, -0.0012),
+    "NebulaBlade": (0.0001, 0.22, -0.0004),
+    "CometDaggers": (0.0001, 0.22, -0.0048),
+    "BlossomBow": (-0.1165, 0.5, 0.0009),
+    "PaperglowStaff": (-0.1169, 0.23, 0.0006),
+    "PetalfallBlade": (0.0, 0.23, 0.0006),
+    "BellchimeDaggers": (0.0006, 0.25, 0.0),
+    "CinderstringBow": (-0.114, 0.5, 0.0),
+    "ForgeheartStaff": (0.0008, 0.43, 0.0019),
+    "MoltenBlade": (0.0007, 0.24, -0.0002),
+    "EmbershardDaggers": (0.0001, 0.22, 0.0026),
 }
 # Every Mossy Glade skin is a Tripo model (seven remade 2026-11-10, all
 # eighteen at 4,000 triangles and an 8K texture 2026-11-13, owner): one
@@ -400,6 +457,11 @@ def main():
         neon = json.loads(NEON_CIRCUIT_IMPORTS.read_text(encoding="utf-8"))
         rows += [(neon, k, c, n, p, g, t, True) for k, _, c, n, p, g, t in NEON_CIRCUIT]
         listed = listed + NEON_CIRCUIT
+    if THEMED_IMPORTS.exists():
+        themed = json.loads(THEMED_IMPORTS.read_text(encoding="utf-8"))
+        extra = themed_rows()
+        rows += [(themed, k, c, n, p, g, t, True) for k, _, c, n, p, g, t in extra]
+        listed = listed + extra
     skins = chr(10).join(entry(*r) for r in rows) + chr(10)
     splice(WEAPONS, skins, "\t--[[ SKINS GO HERE ]]\n")
     menu = "".join(f'\t\t{{ weapon = "{k}", class = "{c}", label = "{l}" }},\n' for k, l, c, *_ in listed)

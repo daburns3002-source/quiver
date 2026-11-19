@@ -24,6 +24,7 @@ local Eggs = require(script.Parent.Parent.Config.Eggs)
 local Goals = require(script.Parent.Parent.Config.Goals)
 local Rewards = require(script.Parent.Parent.Config.Rewards)
 local SaveSchema = require(script.Parent.SaveSchema)
+local Shop = require(script.Parent.Parent.Config.Shop)
 
 local PageRules = {}
 
@@ -54,6 +55,11 @@ for _, egg in Eggs.list do
 	end
 end
 local PRIZES: { [string]: Goals.Prize } = Rewards.pages
+--[[ A themed set's page (`Config/Shop.sets`) pays `Rewards.setPage`. ]]
+local SETS: { [string]: boolean } = {}
+for _, set in Shop.sets do
+	SETS[set.key] = true
+end
 
 function PageRules.key(book: string, area: string): string
 	return book .. ":" .. area
@@ -64,9 +70,9 @@ end
 function PageRules.pages(profile: SaveSchema.Profile): { Page }
 	local out: { Page } = {}
 	for _, book in DexBook.BOOKS do
-		local prize = PRIZES[book]
 		local entries = DexBook.entries(book, profile)
 		for _, area in DexBook.areas(entries) do
+			local prize = if book == "Weapons" and SETS[area] then Rewards.setPage else PRIZES[book]
 			local theme = Dex.areas[area]
 			local page = DexBook.inArea(entries, area)
 			if book == "Pets" then

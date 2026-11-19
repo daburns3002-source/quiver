@@ -48,6 +48,9 @@ export type Prize = {
 	--[[ The season's trail, and its title (premium only). ]]
 	trail: boolean?,
 	title: boolean?,
+	--[[ The season's weapon for this track (`SeasonDef.weapons`), if it
+	     has one: tier 30's. ]]
+	weapon: boolean?,
 }
 
 export type Tier = { free: Prize, premium: Prize }
@@ -61,6 +64,9 @@ export type SeasonDef = {
 	--[[ Its trail (`Config/Trails`, earn "Season") and title (`titles`). ]]
 	trail: string,
 	title: string,
+	--[[ The earned weapon each track gives at tier 30 (`WeaponStats.earned`),
+	     nil for none. ]]
+	weapons: { free: string?, premium: string? }?,
 	--[[ The tab's colours: its band, and the line under its words. ]]
 	colour: Color3,
 	accent: Color3,
@@ -105,6 +111,10 @@ local Season = {
 			set = "Starwish",
 			trail = "WishRibbon",
 			title = "Wishkeeper",
+			--[[ Owner, 2026-11-19: the Wishcutter Blade "should be the
+			     legendary that goes in the free battle pass for tier 30",
+			     and the Petalfall Blade, a Mythic, is premium's end. ]]
+			weapons = { free = "WishcutterBlade", premium = "PetalfallBlade" },
 			colour = hex("#FF9EC7"),
 			accent = hex("#8FE3C4"),
 		},
@@ -151,7 +161,10 @@ local Season = {
 		{ free = { gems = 20 }, premium = { gems = 75 } },
 		{ free = { eggs = 1 }, premium = { gems = 75 } },
 		{ free = { coins = 3500 }, premium = { gems = 100 } },
-		{ free = { eggs = 3, crates = 3 }, premium = { title = true, gems = 150 } },
+		{
+			free = { eggs = 3, crates = 3, weapon = true },
+			premium = { title = true, gems = 150, weapon = true },
+		},
 	} :: { Tier },
 }
 

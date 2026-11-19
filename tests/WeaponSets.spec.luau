@@ -74,7 +74,10 @@ return function(t: TestRunner.Helper)
 	end)
 
 	--[[ One theme across one weapon for every class, all of one rarity.
-	     Held to a stocked set: one being built may be short a class. ]]
+	     Held to a stocked set: one being built may be short a class. A set
+	     weapon given as a reward (`earned`, never sold) may stand above it:
+	     the Nebula Blade and the Petalfall Blade are Mythics (owner,
+	     2026-11-19), Endless room 100's and the season pass's. ]]
 	t.test("a stocked set is one weapon for every open class, all of one rarity", function()
 		for _, set in Shop.sets do
 			if not set.stocked then
@@ -87,8 +90,10 @@ return function(t: TestRunner.Helper)
 				t.notNil(weapon, `{set.key} has no weapon for the {class}`)
 				if weapon then
 					local stats = WeaponStats.weapons[weapon]
-					rarity = rarity or stats.rarity
-					t.equal(stats.rarity, rarity, `{weapon}'s rarity`)
+					if not stats.earned then
+						rarity = rarity or stats.rarity
+						t.equal(stats.rarity, rarity, `{weapon}'s rarity`)
+					end
 				end
 			end
 			local count = 0

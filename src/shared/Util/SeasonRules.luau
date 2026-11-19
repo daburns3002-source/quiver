@@ -51,6 +51,8 @@ export type Total = {
 	crates: number,
 	trail: string?,
 	title: string?,
+	--[[ The season's earned weapons won (`SeasonDef.weapons`), nil for none. ]]
+	weapons: { string }?,
 }
 
 local TRACKS: { Track } = { "free", "premium" }
@@ -257,9 +259,19 @@ function SeasonRules.zero(): Total
 	return { coins = 0, gems = 0, eggs = 0, crates = 0 }
 end
 
---[[ Adds a tier's prize to `total`, its trail and title as the season
-     `def` names them. ]]
-function SeasonRules.add(total: Total, prize: Season.Prize, def: Season.SeasonDef?)
+--[[ The earned weapon `track` gives at its weapon tier this season, nil for
+     none. ]]
+function SeasonRules.weapon(def: Season.SeasonDef?, track: Track): string?
+	local weapons = def and def.weapons
+	if not weapons then
+		return nil
+	end
+	return if track == "free" then weapons.free else weapons.premium
+end
+
+--[[ Adds a tier's prize on `track` to `total`, its trail, title and weapon
+     as the season `def` names them. ]]
+function SeasonRules.add(total: Total, prize: Season.Prize, def: Season.SeasonDef?, track: Track)
 	total.coins += prize.coins or 0
 	total.gems += prize.gems or 0
 	total.eggs += prize.eggs or 0
@@ -269,6 +281,12 @@ function SeasonRules.add(total: Total, prize: Season.Prize, def: Season.SeasonDe
 	end
 	if prize.title and def then
 		total.title = def.title
+	end
+	local weapon = if prize.weapon then SeasonRules.weapon(def, track) else nil
+	if weapon then
+		local list = total.weapons or {}
+		table.insert(list, weapon)
+		total.weapons = list
 	end
 end
 
@@ -281,7 +299,7 @@ function SeasonRules.claimAll(state: State): (Total, number)
 	for _, entry in owed do
 		local prize = SeasonRules.claim(state, entry.track, entry.tier)
 		if prize then
-			SeasonRules.add(total, prize, def)
+			SeasonRules.add(total, prize, def, entry.track)
 		end
 	end
 	return total, #owed

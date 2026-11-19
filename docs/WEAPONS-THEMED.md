@@ -27,6 +27,12 @@ mistaken for another game's art is a redo.
 
 - A set's rarity is the whole set's. A Legendary or Mythic set glows and each weapon carries a
   card its own class can draw (rule 12; `innate` and `effect` in `Config/WeaponStats`).
+- **Rewards, not for sale** (owner, 2026-11-19): three set blades are earned (`earned`,
+  `howEarned` on their Gear card), so the SETS shelf sells their sets' other three weapons.
+  The **Nebula Blade** (Voidglass) is a Mythic, Endless room 100's; the **Petalfall Blade**
+  (Lantern Bloom) is a Mythic, the season pass's premium tier 30 in Season 1; the
+  **Wishcutter Blade** (Starwish) stays Legendary, the free tier 30 in Season 1. Only such an
+  earned reward may stand above its set's rarity (`WeaponSets.spec`).
 - **Robux:** nothing here is sold for Robux. Gems can be bought, and everywhere else gems buy
   nothing above Epic, so a Legendary set's price in coins and gems is the one place they do
   (owner's yes, 2026-11-18). A Mythic set would be earned, never sold (`docs/ROBUX-STORE.md`).

@@ -78,7 +78,13 @@ eggs and crates are the best open to the player, as the quests' are.
 | 27 | 20 gems | 75 gems |
 | 28 | 1 egg | 75 gems |
 | 29 | 3,500 coins | 100 gems |
-| 30 | 3 eggs and 3 crates | **the season's title** and 150 gems |
+| 30 | **the season's free weapon**, 3 eggs and 3 crates | **the season's premium weapon**, **the season's title** and 150 gems |
+
+Tier 30's weapons are the season's own (`SeasonDef.weapons`; owner, 2026-11-19). Season 1:
+the **Wishcutter Blade** (Legendary) free and the **Petalfall Blade** (Mythic) premium. Both are
+earned only (`WeaponStats.earned`, off the SETS shelf), held once, paid by `Data/Season`
+through `Wallet.grantWeapon`, and drawn in the tab with their 2D art. A season with no
+`weapons` gives none at tier 30.
 
 Totals: free 90 gems, 11 eggs, 8 crates, 22,750 coins; premium 1,530 gems (about what
 the gem packs give for the price), 28,000 coins, the trail and the title.

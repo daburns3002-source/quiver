@@ -66,7 +66,10 @@ local function step(dt: number)
 	local share = detail()
 	Painter.begin(share)
 	local keep: { Live } = {}
-	for _, cleave in live do
+	--[[ Newest first, so a crowded moment drops the old cleave's last
+	     motes and never the fresh swing; it is drawn over the older. ]]
+	for index = #live, 1, -1 do
+		local cleave = live[index]
 		if cleave.t > cleave.life then
 			continue
 		end
@@ -80,8 +83,8 @@ local function step(dt: number)
 			log.warn("%s's cleave failed: %s", cleave.W.key, tostring(err))
 			continue
 		end
-		Painter.paint(c.items, cleave.origin, Canvas.PX, Canvas.PY, cleave.s)
-		table.insert(keep, cleave)
+		Painter.paint(c.items, cleave.origin, Canvas.PX, Canvas.PY, cleave.s, index * 0.06)
+		table.insert(keep, 1, cleave)
 	end
 	Painter.finish()
 	live = keep

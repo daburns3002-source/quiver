@@ -55,7 +55,7 @@ type Slot = {
 local holder: Part? = nil
 local slots: { Slot } = {}
 local used = 0
-local budget = 600
+local budget = 900
 
 local function ensureHolder(): Part
 	local part = holder
@@ -125,7 +125,7 @@ end
 
 --[[ Beams a device draws at most, all live cleaves together. ]]
 function Painter.budgetFor(detail: number): number
-	return math.floor(600 * detail)
+	return math.floor(900 * detail)
 end
 
 --[[ Makes `count` beams ahead of the first swing, so it does not hitch. ]]
@@ -160,8 +160,16 @@ end
 
 --[[ Draws one cleave's items. `origin` is the swinger's spot (at the
      streak's height, facing the swing); `(px, py)` is the swinger on the
-     page and `s` its pixels to a stud. ]]
-function Painter.paint(items: { Canvas.Item }, origin: CFrame, px: number, py: number, s: number)
+     page and `s` its pixels to a stud; `zBase` lifts a newer cleave's
+     drawing over an older one's. ]]
+function Painter.paint(
+	items: { Canvas.Item },
+	origin: CFrame,
+	px: number,
+	py: number,
+	s: number,
+	zBase: number
+)
 	local base = origin.Position
 	local right = origin.RightVector
 	local back = -origin.LookVector
@@ -259,7 +267,7 @@ function Painter.paint(items: { Canvas.Item }, origin: CFrame, px: number, py: n
 				slot.tex = tex
 			end
 			--[[ Drawn in the page's order: what comes later sits on top. ]]
-			local z = order * 0.0005
+			local z = zBase + order * 0.0003
 			if z ~= slot.z then
 				beam.ZOffset = z
 				slot.z = z

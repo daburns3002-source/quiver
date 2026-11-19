@@ -99,7 +99,7 @@ return function(t: TestRunner.Helper)
 		end
 	end)
 
-	t.test("no two cards share a number or colours, and each is its class's kind", function()
+	t.test("no two cards share a number, nor two of a class their colours", function()
 		local numbers: { [number]: string } = {}
 		local colours: { [string]: string } = {}
 		for _, entry in carded() do
@@ -109,8 +109,10 @@ return function(t: TestRunner.Helper)
 				`{entry.key} is card {look.card}, as {numbers[look.card] or "?"} is`
 			)
 			numbers[look.card] = entry.key
-			local mark =
+			-- a set's sword and daggers share their colours: a class apart
+			local hex =
 				`{look.colours[1]:ToHex()}{look.colours[2]:ToHex()}{look.colours[3]:ToHex()}`
+			local mark = `{entry.class}{hex}`
 			t.isNil(colours[mark], `{entry.key} has {colours[mark] or "?"}'s colours`)
 			colours[mark] = entry.key
 			t.equal(look.kind, KIND[entry.class], `{entry.key} is drawn as the wrong kind`)

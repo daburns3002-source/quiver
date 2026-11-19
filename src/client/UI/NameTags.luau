@@ -15,6 +15,12 @@
 	that area's colour (its portal's tint) with the kit's outline (`UiPalette.edge`), the
 	furthest such area's, from the `HardFrame` attribute the server sets
 	(`Data/Wallet`). VIP's gold words sit on it as on the bare tag.
+
+	A weekly tournament winner's tag carries ENDLESS CHAMPION over the name
+	(`Config/Tournament.title`, "x2" and on for more wins), from the
+	`TournamentWins` attribute the server sets from the save
+	(`Run/WeeklyTournament`). The name sits in its own row under it, so the
+	frame above and the title never fight over the name's size.
 ]]
 
 local Players = game:GetService("Players")
@@ -24,6 +30,8 @@ local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local HardRules = require(ReplicatedStorage.Shared.Util.HardRules)
 local LobbyConfig = require(ReplicatedStorage.Shared.Config.Lobby)
 local RobuxStore = require(ReplicatedStorage.Shared.Config.RobuxStore)
+local Tournament = require(ReplicatedStorage.Shared.Config.Tournament)
+local TournamentRules = require(ReplicatedStorage.Shared.Util.TournamentRules)
 local UiPalette = require(ReplicatedStorage.Shared.Config.UiPalette)
 
 local NameTags = {}
@@ -35,6 +43,52 @@ local VIP = RobuxStore.passAttribute .. "VIP"
 --[[ The frame's words, in points, and its padding beside them. ]]
 local FRAME_TEXT = 19
 local FRAME_PAD = 10
+local WINS = Tournament.winsAttribute
+--[[ Points: the tag's width, the name's row, and the title's over it. ]]
+local WIDE = 220
+local NAME = 26
+local TITLE = 17
+
+--[[ The champion's title over the name's row, or none: the tag grows to
+     hold it and the row keeps its own height. ]]
+local function crown(player: Player, gui: BillboardGui)
+	local row = gui:FindFirstChild("Row")
+	if not row or not row:IsA("Frame") then
+		return
+	end
+	local wins = player:GetAttribute(WINS)
+	local words = TournamentRules.title(if type(wins) == "number" then wins else 0)
+	local title = gui:FindFirstChild("Title")
+	if not words then
+		if title then
+			title:Destroy()
+		end
+		gui.Size = UDim2.fromOffset(WIDE, NAME)
+		row.Position = UDim2.fromOffset(0, 0)
+		row.Size = UDim2.fromScale(1, 1)
+		return
+	end
+	local text: TextLabel
+	if title and title:IsA("TextLabel") then
+		text = title
+	else
+		text = Instance.new("TextLabel")
+		text.Name = "Title"
+		text.BackgroundTransparency = 1
+		text.Font = Enum.Font.FredokaOne
+		text.TextColor3 = Tournament.colors.champion
+		text.TextStrokeColor3 = Color3.fromRGB(70, 40, 0)
+		text.TextStrokeTransparency = 0.2
+		text.TextScaled = true
+		text.Parent = gui
+	end
+	text.Text = words
+	gui.Size = UDim2.fromOffset(WIDE, TITLE + 1 + NAME)
+	text.Position = UDim2.fromOffset(0, 0)
+	text.Size = UDim2.new(1, 0, 0, TITLE)
+	row.Position = UDim2.fromOffset(0, TITLE + 1)
+	row.Size = UDim2.new(1, 0, 0, NAME)
+end
 
 --[[ Puts the hard-mode frame behind a tag, or takes it away. ]]
 local function frame(player: Player, label: TextLabel)
@@ -120,12 +174,19 @@ local function tag(player: Player, character: Model)
 	end
 	local gui = Instance.new("BillboardGui")
 	gui.Name = "NameTag"
-	gui.Size = UDim2.fromOffset(220, 26)
+	gui.Size = UDim2.fromOffset(WIDE, NAME)
 	gui.StudsOffsetWorldSpace = Vector3.new(0, LIFT, 0)
 	gui.MaxDistance = RANGE
 	gui.AlwaysOnTop = false
 	gui.LightInfluence = 0
 	gui.ResetOnSpawn = false
+
+	-- the name's own row, under the title when there is one (`crown`)
+	local row = Instance.new("Frame")
+	row.Name = "Row"
+	row.BackgroundTransparency = 1
+	row.Size = UDim2.fromScale(1, 1)
+	row.Parent = gui
 
 	local label = Instance.new("TextLabel")
 	label.Name = "Name"
@@ -137,9 +198,10 @@ local function tag(player: Player, character: Model)
 	label.TextStrokeColor3 = Color3.new(0, 0, 0)
 	label.TextStrokeTransparency = 0.2
 	label.TextScaled = true
-	label.Parent = gui
+	label.Parent = row
 	paint(player, label)
 	frame(player, label)
+	crown(player, gui)
 
 	gui.Parent = head
 end
@@ -152,14 +214,19 @@ local function watch(player: Player)
 		local character = player.Character
 		local head = character and character:FindFirstChild("Head")
 		local gui = head and head:FindFirstChild("NameTag")
-		local label = gui and gui:FindFirstChild("Name")
+		local row = gui and gui:FindFirstChild("Row")
+		local label = row and row:FindFirstChild("Name")
 		if label and label:IsA("TextLabel") then
 			paint(player, label)
 			frame(player, label)
 		end
+		if gui and gui:IsA("BillboardGui") then
+			crown(player, gui)
+		end
 	end
 	player:GetAttributeChangedSignal(VIP):Connect(repaint)
 	player:GetAttributeChangedSignal(HardRules.FRAME):Connect(repaint)
+	player:GetAttributeChangedSignal(WINS):Connect(repaint)
 	local character = player.Character
 	if character then
 		task.spawn(tag, player, character)

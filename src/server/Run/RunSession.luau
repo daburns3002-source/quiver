@@ -944,14 +944,15 @@ end
 
 --[[ Coins a run earns, a kill's or a clear's: `base` at the player's passes'
      scale (2x Coins, VIP; `Util/StoreRules.coinScale`) with the run's win
-     streak and its party's friend bonus added (`Util/RunBonus`), the part
+     streak, its party's friend bonus and hard mode added (`Util/RunBonus`), the part
      under a whole coin carried to the next. Anything else paid in a run (the
      tutorial's top-up to the first egg) goes through `payCoins` as it is. ]]
 function RunSession.payEarned(session: Session, base: number, position: Vector3?)
 	local scale = RunBonus.scale(
 		StoreRules.coinScale(Passes.owned(session.player)),
 		session.streak,
-		Coop.partySize()
+		Coop.partySize(),
+		CurrentStage.hard()
 	)
 	local whole, carry = StoreRules.scaleCoins(base, scale, session.coinCarry)
 	session.coinCarry = carry

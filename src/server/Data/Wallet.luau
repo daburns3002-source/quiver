@@ -16,6 +16,8 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local ClassLevelRules = require(ReplicatedStorage.Shared.Util.ClassLevelRules)
 local Economy = require(ReplicatedStorage.Shared.Config.Economy)
+local HardRules = require(ReplicatedStorage.Shared.Util.HardRules)
+local LobbyConfig = require(ReplicatedStorage.Shared.Config.Lobby)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
 local MergeRules = require(ReplicatedStorage.Shared.Util.MergeRules)
 local PurchaseRules = require(ReplicatedStorage.Shared.Util.PurchaseRules)
@@ -42,12 +44,22 @@ local purchased = Remotes.event(Remotes.Purchased)
 
 local Wallet = {}
 
+--[[ The area whose name-tag frame this profile wears (`Util/HardRules`),
+     as the Player's `HardFrame`, which every client draws (`UI/NameTags`). ]]
+local function showFrame(player: Player, profile: SaveSchema.Profile)
+	player:SetAttribute(
+		HardRules.FRAME,
+		HardRules.frame(LobbyConfig.portals, Balance.Stages, profile.hardBeaten)
+	)
+end
+
 --[[ Tells the owner, and marks the profile for saving. ]]
 local function changed(player: Player, profile: SaveSchema.Profile)
 	PlayerData.touch(player)
 	player:SetAttribute("Coins", profile.coins)
 	player:SetAttribute("Gems", profile.gems)
 	player:SetAttribute(TrailRules.ATTRIBUTE, profile.equippedTrail)
+	showFrame(player, profile)
 	profileChanged:FireClient(player, profile)
 end
 
@@ -57,6 +69,7 @@ function Wallet.send(player: Player)
 		player:SetAttribute("Coins", profile.coins)
 		player:SetAttribute("Gems", profile.gems)
 		player:SetAttribute(TrailRules.ATTRIBUTE, profile.equippedTrail)
+		showFrame(player, profile)
 		profileChanged:FireClient(player, profile)
 	end
 end
@@ -344,6 +357,21 @@ function Wallet.beatLevel(player: Player, level: string): boolean
 	log.info("%s beat level %s", player.Name, level)
 	changed(player, profile)
 	-- true the first time, which pays the level's free egg
+	return true
+end
+
+--[[ `level` is won on hard (`Util/HardRules`): saved, which opens the next
+     hard level, and for an area's last level wears its frame. True the
+     first time, which pays its gems (`Run/RoomController`). Decided by the
+     server as the level is won, never asked for. ]]
+function Wallet.beatHard(player: Player, level: string): boolean
+	local profile = PlayerData.get(player)
+	if not profile or profile.hardBeaten[level] then
+		return false
+	end
+	profile.hardBeaten[level] = true
+	log.info("%s beat level %s on hard", player.Name, level)
+	changed(player, profile)
 	return true
 end
 

@@ -112,8 +112,8 @@ local function loadArea(stage: number)
 end
 
 --[[ Starts `stage` here, with the party size locked first so the first
-     fight is built for it. ]]
-local function startHere(stage: number, size: number)
+     fight is built for it; on hard with `hard` (`Util/HardRules`). ]]
+local function startHere(stage: number, size: number, hard: boolean?)
 	if areaLoading then
 		return
 	end
@@ -126,14 +126,20 @@ local function startHere(stage: number, size: number)
 		log.warn("area load failed: %s", tostring(problem))
 	end
 	areaLoading = false
-	RoomController.beginStage(stage)
+	RoomController.beginStage(stage, hard)
 end
 
 local busy: { [Player]: boolean } = {}
 
 --[[ Sends `members` to a fresh reserved server to play portal `index`'s
      level `level`. Retried once; a failure is told to each member. ]]
-local function send(members: { Player }, index: number, level: number, leader: Player)
+local function send(
+	members: { Player },
+	index: number,
+	level: number,
+	leader: Player,
+	hard: boolean
+)
 	local ids = {}
 	for _, member in members do
 		busy[member] = true
@@ -150,6 +156,7 @@ local function send(members: { Player }, index: number, level: number, leader: P
 			arrowborne = true,
 			portal = index,
 			level = level,
+			hard = hard,
 			leader = leader.UserId,
 			party = ids,
 		})
@@ -169,14 +176,23 @@ end
 	by `Lobby.levelOpen`, which gave `stage`). The party is the starter and
 	whoever else stands at that portal and has the level open too; with
 	`alone` (a start from the lobby's PLAY screen, away from the portal:
-	`Util/PlayPortal.alone`) it is the starter only.
+	`Util/PlayPortal.alone`) it is the starter only. On `hard` (already
+	checked by `Lobby.hardOpen`) only those with it open on hard go along.
 ]]
-function Party.start(starter: Player, index: number, level: number, stage: number, alone: boolean?)
+function Party.start(
+	starter: Player,
+	index: number,
+	level: number,
+	stage: number,
+	alone: boolean?,
+	hard: boolean?
+)
 	if busy[starter] then
 		return
 	end
+	local onHard = hard == true
 	if not teleports() then
-		startHere(stage, inPlace())
+		startHere(stage, inPlace(), onHard)
 		return
 	end
 	local standing: { number } = {}
@@ -193,7 +209,11 @@ function Party.start(starter: Player, index: number, level: number, stage: numbe
 			local profile = PlayerData.get(player)
 			local beaten = if profile then profile.levelsBeaten else nil
 			local bosses = if profile then profile.bossesBeaten else nil
-			if Lobby.startFor(root.Position, index, level, beaten, bosses) == stage then
+			local hardBeaten = if profile then profile.hardBeaten else nil
+			if
+				Lobby.startFor(root.Position, index, level, beaten, bosses, onHard, hardBeaten)
+				== stage
+			then
 				table.insert(standing, player.UserId)
 				byId[player.UserId] = player
 			end
@@ -205,7 +225,7 @@ function Party.start(starter: Player, index: number, level: number, stage: numbe
 		table.insert(members, byId[id])
 	end
 	log.info("%s starts portal %d level %d with %d", starter.Name, index, level, #members)
-	task.spawn(send, members, index, level, starter)
+	task.spawn(send, members, index, level, starter, onHard)
 end
 
 --[[ The tutorial: always solo. On BEGIN ADVENTURE's end, or with `story` on
@@ -363,9 +383,18 @@ local function runServer()
 			local profile = leader and PlayerData.get(leader)
 			local beaten = if profile then profile.levelsBeaten else nil
 			local bosses = if profile then profile.bossesBeaten else nil
-			-- only ever the tutorial: the number came through the client
+			--[[ Only ever the tutorial: the number came through the client.
+			     Hard is asked of the leader's own save again, as the level is. ]]
+			local hard = data.hard == true and data.tutorial == nil
 			local stage = if data.tutorial ~= nil
 				then (if data.tutorial == Balance.tutorialStage then Balance.tutorialStage else nil)
+				elseif hard then Lobby.hardOpen(
+					data.portal,
+					data.level,
+					beaten,
+					bosses,
+					if profile then profile.hardBeaten else nil
+				)
 				else Lobby.levelOpen(data.portal, data.level, beaten, bosses)
 			started = true
 			if not stage then
@@ -374,7 +403,7 @@ local function runServer()
 				return
 			end
 			log.info("run server: %d of the party here, stage %d", #Players:GetPlayers(), stage)
-			startHere(stage, #Players:GetPlayers())
+			startHere(stage, #Players:GetPlayers(), hard)
 		end
 	end)
 end

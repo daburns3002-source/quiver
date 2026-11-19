@@ -758,8 +758,10 @@ end)
      this player's saved profile has open (`Lobby.levelOpen`). Where the
      player stands no longer gates the start (owner, 2026-11-14: PLAY's
      screen starts the run itself); it decides only who comes along
-     (`PlayPortal.alone`). ]]
-Inbound.on(Remotes.PortalStart, function(player, index, level)
+     (`PlayPortal.alone`). With `hard` true, the level on hard: refused
+     unless its area's boss is beaten and the hard level before it won on
+     hard (`Lobby.hardOpen`, `Util/HardRules`). ]]
+Inbound.on(Remotes.PortalStart, function(player, index, level, hard)
 	local session = RunSession.get(player)
 	local root = session and session.root
 	if not session or session.atTitle or not root or not RoomController.inLobby() then
@@ -768,7 +770,16 @@ Inbound.on(Remotes.PortalStart, function(player, index, level)
 	local profile = PlayerData.get(player)
 	local beaten = if profile then profile.levelsBeaten else nil
 	local bosses = if profile then profile.bossesBeaten else nil
-	local stage = Lobby.levelOpen(index, level, beaten, bosses)
+	local onHard = hard == true
+	local stage = if onHard
+		then Lobby.hardOpen(
+			index,
+			level,
+			beaten,
+			bosses,
+			if profile then profile.hardBeaten else nil
+		)
+		else Lobby.levelOpen(index, level, beaten, bosses)
 	if stage then
 		--[[ Standing in that portal: with whoever else stands there
 		     (`Run/Party`). From PLAY's screen: alone. ]]
@@ -778,7 +789,8 @@ Inbound.on(Remotes.PortalStart, function(player, index, level)
 			index :: number,
 			level :: number,
 			stage,
-			PlayPortal.alone(standing, index :: number)
+			PlayPortal.alone(standing, index :: number),
+			onHard
 		)
 	end
 end)

@@ -148,6 +148,10 @@
 	daggers the first time it is read. The number moved so that a server
 	still on the build before the Assassin never reads a profile with
 	daggers in hand.
+
+	Version 24 (2026-11-18, hard mode -- `Util/HardRules`): `hardBeaten`,
+	the levels won on hard, by name. Nothing was ever played on hard, so an
+	older profile has won none.
 ]]
 
 local ClassLevelRules = require(script.Parent.ClassLevelRules)
@@ -161,7 +165,7 @@ local StoreRules = require(script.Parent.StoreRules)
 
 local SaveSchema = {}
 
-SaveSchema.VERSION = 23
+SaveSchema.VERSION = 24
 
 --[[ The classes' own weapons, owned from the start: one for every class a
      player can choose (`Util/ClassList`). Given on every load (`migrate`
@@ -256,6 +260,9 @@ export type Profile = {
 	levelStars: { [string]: number },
 	--[[ Area star chests opened, by "Area:Stars" (version 21). ]]
 	starChests: { [string]: boolean },
+	--[[ The levels won on hard, by name ("1-3"; version 24,
+	     `Util/HardRules`). ]]
+	hardBeaten: { [string]: boolean },
 }
 
 export type RewardState = {
@@ -349,6 +356,7 @@ function SaveSchema.default(): Profile
 		dexChests = {},
 		levelStars = {},
 		starChests = {},
+		hardBeaten = {},
 	}
 end
 
@@ -554,6 +562,9 @@ function SaveSchema.migrate(raw: unknown): Profile
 	profile.starChests = flags(data.starChests)
 	--[[ 21 -> 22: read from the bosses beaten, whatever was stored. ]]
 	profile.rewards.bossMet = next(profile.bossesBeaten) ~= nil
+	--[[ 23 -> 24: nothing was played on hard; a stored copy keeps its
+	     true flags. ]]
+	profile.hardBeaten = flags(data.hardBeaten)
 	return profile
 end
 

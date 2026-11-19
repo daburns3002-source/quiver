@@ -14166,6 +14166,22 @@ local Balance = {
 		`Config/Economy`'s coins and gems so depth can never inflate the
 		story economy. What the screens print is `SaveSchema.SOULSTONES`.
 	]]
+	--[[
+		Hard mode (owner, 2026-11-18: "yes all of these create them"; the
+		owner picked these as starting numbers). Once an area's boss is
+		beaten its levels can be played on HARD (`Util/HardRules`): every
+		enemy's health and damage, bosses included, multiplied by these on
+		top of the level's own numbers and its within-level ramp, with co-op's
+		scaling on top as on normal (`Enemies/EnemyManager.difficulty`). Every
+		fight without a boss also has one elite, `eliteHealth` times as
+		tough, marked in gold (`EnemyManager.spawnWave`).
+	]]
+	Hard = {
+		health = 2.5,
+		damage = 1.8,
+		eliteHealth = 2.5,
+	},
+
 	Endless = {
 		--[[ A floor is one wave: a Waves stage is 20 waves at 8-12 minutes
 		     (`docs/PROGRESSION.md`), so a floor is about 30 seconds and

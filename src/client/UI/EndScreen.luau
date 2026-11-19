@@ -55,6 +55,9 @@ local EndScreen = {}
 export type Summary = {
 	won: boolean,
 	stage: number,
+	--[[ Played on hard (`Util/HardRules`): the tab says HARD, and an area's
+	     last level is won into the lobby. ]]
+	hard: boolean?,
 	kills: number,
 	seconds: number,
 	healthPercent: number,
@@ -670,7 +673,7 @@ local function buildStats(content: Instance, look: any, layout: any, summary: Su
 		40,
 		look.tab,
 		-- TUTORIAL, or the level as its portal names it (`Util/EndScreenRules`)
-		EndScreenRules.levelTab(summary.stage),
+		EndScreenRules.levelTab(summary.stage, summary.hard),
 		look.text.tab,
 		look.text.tabStroke,
 		look.tabStuds
@@ -1186,8 +1189,13 @@ function EndScreen.show(summary: Summary)
 	)
 	local stats = buildStats(content, look, layout, summary)
 	-- NEXT LEVEL, or CONTINUE where it leads to the lobby (`EndScreenRules`)
-	local buttonParts =
-		buildButton(content, look, layout, won, EndScreenRules.buttonWords(won, summary.stage))
+	local buttonParts = buildButton(
+		content,
+		look,
+		layout,
+		won,
+		EndScreenRules.buttonWords(won, summary.stage, summary.hard)
+	)
 	local button = buttonParts.button
 	local lobbyGroup, lobbyPress = buildLobbyButton(content, look, layout)
 

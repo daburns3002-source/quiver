@@ -281,6 +281,15 @@ local Rewards = {
 	     once per entry ever, so losing and regaining a thing pays nothing. ]]
 	dexGems = 5,
 
+	--[[ Hard mode (`Util/HardRules`; owner, 2026-11-18, starting
+	     numbers): a hard level's kill and clear coins have `coins` added to
+	     their scale, as the streak and the friend bonus are (nothing
+	     multiplies), and its first hard clear pays `gems`, or `lastGems` for
+	     an area's last level. Fifty hard levels today come to about 560
+	     gems once ever. Hard has no stars of its own: a hard win fills the
+	     level's normal stars. ]]
+	hard = { coins = 1.0, gems = 10, lastGems = 30 },
+
 	--[[ Seconds in a reward day, and where it starts: midnight UTC. ]]
 	dayLength = 86400,
 }

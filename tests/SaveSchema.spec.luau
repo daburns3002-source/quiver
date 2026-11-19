@@ -51,7 +51,7 @@ return function(t: TestRunner.Helper)
 			equipped = "AcornBow",
 			classLevels = { Warden = { level = 4, xp = 20 } },
 		})
-		t.equal(p.version, 23)
+		t.equal(p.version, SaveSchema.VERSION)
 		t.isTrue(p.weapons.SplinterDaggers, "no daggers")
 		t.isTrue(p.weapons.AcornBow and p.weapons.TimberBlade)
 		t.equal(p.equipped, "AcornBow")
@@ -64,6 +64,35 @@ return function(t: TestRunner.Helper)
 		local again = SaveSchema.migrate(p)
 		t.isTrue(again.weapons.SplinterDaggers)
 		t.equal(again.equipped, "AcornBow")
+	end)
+
+	--[[ Version 24: hard mode (`Util/HardRules`). Nothing was ever played
+	     on hard, so an older save has won no hard level; a stored copy
+	     keeps its true flags and drops the rest. ]]
+	t.test("an older save has won nothing on hard, and a stored one keeps its wins", function()
+		local p = SaveSchema.migrate({
+			version = 23,
+			coins = 75,
+			levelsBeaten = { ["1-1"] = true, ["1-2"] = true },
+			bossesBeaten = { MossyGlade = true },
+		})
+		t.equal(p.version, 24)
+		t.isNil((next(p.hardBeaten)), "hard wins invented")
+		t.equal(p.coins, 75)
+		t.isTrue(p.levelsBeaten["1-2"])
+		local stored = SaveSchema.migrate({
+			version = 24,
+			hardBeaten = { ["1-1"] = true, ["1-2"] = "yes", [3] = true },
+		})
+		t.isTrue(stored.hardBeaten["1-1"])
+		t.isNil(stored.hardBeaten["1-2"], "a flag that is not true")
+		local count = 0
+		for _ in stored.hardBeaten do
+			count += 1
+		end
+		t.equal(count, 1)
+		-- and reads the same again
+		t.isTrue(SaveSchema.migrate(stored).hardBeaten["1-1"])
 	end)
 
 	t.test("a stored profile keeps everything valid", function()
@@ -103,7 +132,7 @@ return function(t: TestRunner.Helper)
 
 	t.test("a new profile has beaten no level", function()
 		local p = SaveSchema.migrate(nil)
-		t.equal(SaveSchema.VERSION, 23)
+		t.equal(SaveSchema.VERSION, 24)
 		t.isNil((next(p.levelsBeaten)))
 	end)
 

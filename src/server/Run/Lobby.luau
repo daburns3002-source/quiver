@@ -30,6 +30,7 @@ local Workspace = game:GetService("Workspace")
 
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Eggs = require(ReplicatedStorage.Shared.Config.Eggs)
+local HardRules = require(ReplicatedStorage.Shared.Util.HardRules)
 local LaunchLocks = require(ReplicatedStorage.Shared.Util.LaunchLocks)
 local LevelUnlocks = require(ReplicatedStorage.Shared.Util.LevelUnlocks)
 local LobbyBackdrop = require(script.Parent.LobbyBackdrop)
@@ -1517,16 +1518,22 @@ end
 	party is gathered with it (`Run/Party`): only those in the portal's
 	mouth go along. The starter's own request is checked by `levelOpen`
 	alone since 2026-11-14, when the lobby's PLAY screen began starting runs
-	from anywhere in the lobby (`Main`, `Remotes.PortalStart`).
+	from anywhere in the lobby (`Main`, `Remotes.PortalStart`). A `hard`
+	start takes only those with it open on hard (`hardOpen`, their own
+	`hardBeaten`).
 ]]
 function Lobby.startFor(
 	position: Vector3,
 	index: unknown,
 	level: unknown,
 	beaten: LevelUnlocks.Beaten?,
-	bosses: { [string]: boolean }?
+	bosses: { [string]: boolean }?,
+	hard: boolean?,
+	hardBeaten: LevelUnlocks.Beaten?
 ): number?
-	local stage = Lobby.levelOpen(index, level, beaten, bosses)
+	local stage = if hard
+		then Lobby.hardOpen(index, level, beaten, bosses, hardBeaten)
+		else Lobby.levelOpen(index, level, beaten, bosses)
 	if not stage or Lobby.portalAt(position, LobbyConfig.startSlack) ~= index then
 		return nil
 	end
@@ -1573,6 +1580,32 @@ function Lobby.levelOpen(
 		return nil
 	end
 	if not LevelUnlocks.isUnlocked(levels, Balance.Stages, beaten, level) then
+		return nil
+	end
+	return stage
+end
+
+--[[
+	PLAY on an area's level screen with HARD on (`Util/HardRules`): the
+	stage, as `levelOpen` gives it, only when that level is also open on
+	hard for this player: their area's boss beaten (`bosses`) and the hard
+	level before it won on hard (`hardBeaten`). Nil otherwise, so a hard
+	level whose area boss stands is refused whatever the client sends.
+]]
+function Lobby.hardOpen(
+	index: unknown,
+	level: unknown,
+	beaten: LevelUnlocks.Beaten?,
+	bosses: { [string]: boolean }?,
+	hardBeaten: LevelUnlocks.Beaten?,
+	locks: boolean?
+): number?
+	local stage = Lobby.levelOpen(index, level, beaten, bosses, locks)
+	if not stage then
+		return nil
+	end
+	local portal = LobbyConfig.portals[index :: number]
+	if not HardRules.isOpen(portal.levels, Balance.Stages, bosses, hardBeaten, level :: number) then
 		return nil
 	end
 	return stage

@@ -19,6 +19,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
+local HardRules = require(ReplicatedStorage.Shared.Util.HardRules)
 
 local CurrentStage = {}
 
@@ -55,6 +56,12 @@ function CurrentStage.endlessFloor(): number?
 		return nil
 	end
 	return floor
+end
+
+--[[ Whether the run being played is on hard (`Util/HardRules`): the
+     server's own published attribute, never a client's word. ]]
+function CurrentStage.hard(): boolean
+	return Workspace:GetAttribute(HardRules.ATTRIBUTE) == true
 end
 
 --[[ The stage after `current` is won: the next one in `campaign`, or the

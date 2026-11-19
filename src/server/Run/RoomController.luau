@@ -61,6 +61,7 @@ local EndlessPrizes = require(script.Parent.Parent.Data.EndlessPrizes)
 local EnemyManager = require(script.Parent.Parent.Enemies.EnemyManager)
 local EnemyModel = require(script.Parent.Parent.Enemies.EnemyModel)
 local FirstEgg = require(ReplicatedStorage.Shared.Util.FirstEgg)
+local HardRules = require(ReplicatedStorage.Shared.Util.HardRules)
 local Hatchery = require(script.Parent.Parent.Data.Hatchery)
 local LaunchLocks = require(ReplicatedStorage.Shared.Util.LaunchLocks)
 local LevelUnlocks = require(ReplicatedStorage.Shared.Util.LevelUnlocks)
@@ -125,6 +126,16 @@ local shotsParried = Remotes.event(Remotes.ShotsParried)
 --[[ The stage being played, published for the clients and the enemies
      (`Util/CurrentStage`). ]]
 local stageIndex = Balance.stage
+--[[ Whether the stage is being played on hard (`Util/HardRules`), published
+     as the Workspace's `Hard` (`CurrentStage.hard`) for the enemies, the
+     coins and the clients. Set by `beginStage`, kept by TRY AGAIN and NEXT
+     LEVEL, and dropped in the lobby. ]]
+local hard = false
+
+local function setHard(on: boolean)
+	hard = on
+	workspace:SetAttribute(HardRules.ATTRIBUTE, if on then true else nil)
+end
 
 local function stage(): Balance.StageConfig
 	return Balance.Stages[stageIndex]
@@ -571,7 +582,7 @@ local function startStage()
 	local counts = current.level ~= nil and not current.tutorial
 	for _, session in RunSession.all() do
 		session.streak = if counts then Wallet.riskStreak(session.player) else 0
-		local lines = RunBonus.lines(session.streak, Coop.partySize())
+		local lines = RunBonus.lines(session.streak, Coop.partySize(), hard)
 		-- said once the room is up, not under the loading screen
 		task.delay(BONUS_SAID_AFTER, function()
 			for _, line in lines do
@@ -624,13 +635,15 @@ function RoomController.start()
 end
 
 --[[ A portal: run stage `index` (a `Balance.Stages` entry), published as
-     the Workspace's `Stage` so both sides read it (`Util/CurrentStage`).
-     From there NEXT LEVEL follows `Balance.campaign` as before. ]]
-function RoomController.beginStage(index: number)
+     the Workspace's `Stage` so both sides read it (`Util/CurrentStage`),
+     on hard with `onHard` (already checked by `Run/Lobby.hardOpen`). From
+     there NEXT LEVEL follows `Balance.campaign` as before. ]]
+function RoomController.beginStage(index: number, onHard: boolean?)
 	if state ~= "Lobby" or not Balance.Stages[index] then
 		return
 	end
 	stageIndex = index
+	setHard(onHard == true and Balance.Stages[index].level ~= nil)
 	workspace:SetAttribute(CurrentStage.ATTRIBUTE, stageIndex)
 	for _, session in RunSession.all() do
 		RunSession.resetRun(session)
@@ -853,6 +866,9 @@ local function sendSummary(
 			classXp = payClassXp(session, won),
 			won = won,
 			stage = stageIndex,
+			--[[ Played on hard (`Util/HardRules`): the tab says HARD, and an
+			     area's last level is won into the lobby. ]]
+			hard = if hard then true else nil,
 			kills = session.stageKills,
 			seconds = math.floor(os.clock() - session.stageStartedAt),
 			healthPercent = healthPercent,
@@ -1006,8 +1022,13 @@ local function complete(now: number)
 				then session.health / session.maxHealth * 100
 				else 0
 			local seconds = os.clock() - session.stageStartedAt
-			local had, held =
-				Wallet.addStars(session.player, level, StarRules.earned(stage(), health, seconds))
+			--[[ A hard win fills the level's own stars: hard has none of
+			     its own (`HardRules.starLevel`). ]]
+			local had, held = Wallet.addStars(
+				session.player,
+				HardRules.starLevel(stage()) or level,
+				StarRules.earned(stage(), health, seconds)
+			)
 			stars[session.player] = { had = had, now = held, par = StarRules.par(stage()) }
 			-- the streak comes back one longer, and three chests are rolled
 			streaks[session.player] = Wallet.bankStreak(session.player, session.streak)
@@ -1018,7 +1039,21 @@ local function complete(now: number)
 				RunSession.areaPay().clearCoins
 			)
 		end
-		local firstClear = level ~= nil and Wallet.beatLevel(session.player, level)
+		--[[ On hard the level was beaten long since: its first hard clear
+		     is saved instead and pays gems, more for an area's last level,
+		     whose hard win also earns the area's name-tag frame
+		     (`Util/HardRules`, `Wallet.beatHard`). The free egg stays the
+		     normal first clear's. ]]
+		local firstClear = level ~= nil and not hard and Wallet.beatLevel(session.player, level)
+		if hard and level and not stage().tutorial then
+			local levels, at = HardRules.find(LobbyConfig.portals, stageIndex)
+			if levels and at and Wallet.beatHard(session.player, level) then
+				local gems = HardRules.gems(levels, at)
+				Wallet.addGems(session.player, gems)
+				session.stageGems += gems
+				Rewards.say(session.player, `FIRST HARD CLEAR: +{gems} GEMS`)
+			end
+		end
 		if firstClear and level == Tutorial.untilBeaten then
 			Analytics.step(session.player, "Cleared1-1")
 		end
@@ -1391,6 +1426,7 @@ local function toLobby()
 		leave()
 	end
 	workspace:SetAttribute(Coop.ATTRIBUTE, nil)
+	setHard(false)
 	for _, session in RunSession.all() do
 		-- a run still under way is given up (nothing if it already ended)
 		Analytics.runEnded(session.player, "Left")
@@ -1501,6 +1537,17 @@ function RoomController.requestRestart(): boolean
 		     the last area built, where the button says CONTINUE
 		     (`EndScreenRules.goesOn`). ]]
 		local nextIndex, behindPortal = nextLevel(stageIndex)
+		--[[ On hard: the area's next level, still on hard (everyone here
+		     just won this one on hard, which opens it); after the area's
+		     last, the lobby, never the next area (`HardRules.nextIndex`). ]]
+		if hard then
+			nextIndex = HardRules.nextIndex(LobbyConfig.portals, stageIndex)
+			if not nextIndex then
+				toLobby()
+				log.info("%s won on hard, the area's last level: to the lobby", stage().name)
+				return true
+			end
+		end
 		if behindPortal and not nextIndex then
 			nextIndex = nextAreaLevel(stageIndex)
 			if not nextIndex then

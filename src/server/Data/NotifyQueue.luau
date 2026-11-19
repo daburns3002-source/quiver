@@ -156,6 +156,8 @@ function Queue.poll(self: Queue, now: number): number
 					return plan, plan.items[1].at
 				end)
 			else
+				-- spent. A player who left again in the second this send
+				-- took would lose their new plan here: rare, and harmless.
 				self.store.remove(row.key)
 			end
 		end

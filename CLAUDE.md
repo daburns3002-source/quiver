@@ -408,7 +408,21 @@ the Warden (Timber Blade, melee: `Combat/MeleeSystem` lands each blow of
 a three-hit combo on the server, in `Shared/Combat/SwingBox`): an arc in
 front for the first two blows, a circle in front for the slam, both grown by
 Cleave and Long Reach. The red of his swing sweeps exactly that shape
-(`Fx/SwingTrail`, `Shared/Combat/SwingSweep`). Each weapon
+(`Fx/SwingTrail`, `Shared/Combat/SwingSweep`). **Blade cleaves** (owner,
+2026-11-19, direction A: "the slash that it leaves behind"): a blade with a
+`look` in `Config/WeaponFx.cleaves` draws its own card from the owner-approved
+Blade Cleaves page instead of the ribbon. `Fx/Cleaves/Canvas` is the page's
+canvas code ported (same maths, same seeded hash, page pixels, `GEO.s` to a
+stud) writing a draw list; each area's module (`Glade`, ...) is its cards'
+`ST` code line for line; `Fx/Cleaves/Painter` lays the list flat over the
+ground as pooled Beams (built-in textures for glows, sparkles, rings; 900
+beams at most on a strong device, a share on weaker); `Fx/Cleaves/Play` runs
+each blow on its own clock from the real `SwingBox` shape, so the cards
+still grow the cleave. Presentation only, local. `tests/BladeCleaves.spec`
+pins the hash to the page's, each cleave to the ground it hits, the glow of
+a Legendary or Mythic, and its end. Offline check without Studio:
+`cleave-tools/dump.luau` + `draw.py` in the notes folder draw any area's
+cards from the ported code. Each weapon
 is the owner's Claude Design kit, its animations generated into
 `Config/WeaponAnimations` and played in code by `Fx/WeaponPose`. The
 first weapons (Leaf Bow, Arcane Staff, Ruby Greatsword) were deleted on

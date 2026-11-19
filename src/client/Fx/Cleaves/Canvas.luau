@@ -1223,6 +1223,22 @@ function Canvas.strip(
 	push(c, ax, ay, bx, by, cols, as)
 end
 
+--[[ The page's underGlow: a soft glow under the swept stretch, whatever
+     the blade, gone as the cleave goes. ]]
+function Canvas.underGlow(c: Ctx, I: Inst, t: number, w: number, colour: RGB, a: number)
+	local h = Canvas.headU(I, t)
+	local e = sm(Canvas.dis(I, t))
+	local F = Canvas.frame(I, 0, h, { w = w })
+	if not F.ok or e >= 1 then
+		return
+	end
+	local saved = Canvas.save(c)
+	c.glowCol = colour
+	c.glowBlur = 18
+	Canvas.fillBand(c, F, colour, colour, a * (1 - e), 0, 1, 0.6)
+	Canvas.restore(c, saved)
+end
+
 ---------------------------------------------------------------- motes
 
 export type MoteOpts = {

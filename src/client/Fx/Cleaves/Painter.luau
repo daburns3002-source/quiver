@@ -47,6 +47,9 @@ type Slot = {
 	b1: number,
 	t0: number,
 	t1: number,
+	--[[ The attachments' last places. ]]
+	p0: CFrame,
+	p1: CFrame,
 }
 
 local holder: Part? = nil
@@ -115,6 +118,8 @@ local function newSlot(part: Part): Slot
 		b1 = -1,
 		t0 = -1,
 		t1 = -1,
+		p0 = CFrame.identity,
+		p1 = CFrame.identity,
 	}
 end
 
@@ -205,8 +210,16 @@ function Painter.paint(items: { Canvas.Item }, origin: CFrame, px: number, py: n
 				return
 			end
 			local beam = slot.beam
-			slot.a0.CFrame = frames[i]
-			slot.a1.CFrame = frames[i + 1]
+			--[[ What stays still (a held cleave) costs no writes. ]]
+			local f0, f1 = frames[i], frames[i + 1]
+			if f0 ~= slot.p0 then
+				slot.a0.CFrame = f0
+				slot.p0 = f0
+			end
+			if f1 ~= slot.p1 then
+				slot.a1.CFrame = f1
+				slot.p1 = f1
+			end
 			local w0, w1 = widths[i], widths[i + 1]
 			if w0 ~= slot.w0 then
 				beam.Width0 = w0

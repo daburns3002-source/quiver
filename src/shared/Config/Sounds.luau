@@ -59,6 +59,11 @@ local CLASS_CARDS_SPRITE = "rbxassetid://117855777207537"
      joined into one sprite (`assets/audio/final/assassin_sprite_r33.mp3`,
      regions in its .json). Uploaded 2026-11-17. ]]
 local ASSASSIN_SPRITE = "rbxassetid://113750353487297"
+--[[ The themed daggers' eight sounds and Thornwood's two, the owner's picks
+     of audition round 34 (2026-11-19) joined into one sprite
+     (`assets/audio/final/dagger_sprite_r34.mp3`, regions in its .json;
+     made by `assets/audio/daggers_synth.py`). Uploaded 2026-11-19. ]]
+local DAGGER_SPRITE = "rbxassetid://110974097332957"
 
 --[[ The Drowned Village's water footsteps (`final/water_step_sprite.mp3`):
      not uploaded yet, so "" and silent. ]]
@@ -806,21 +811,88 @@ local Sounds: { [string]: Sound } = {
 		pitchJitter = 0.02,
 		minGap = 0.5,
 	},
-	--[[ Thornwood's cards (2026-11-18): hooks, silent until their sounds are
-	     picked and uploaded as one sprite (`docs/PIPELINES.md` section 7). ]]
-	fx_thorn_burst = { id = "", volume = 0.6, pitchJitter = 0.05, minGap = 0.15 },
-	fx_boar_rush = { id = "", volume = 0.7, pitchJitter = 0.04, minGap = 0.2 },
-	--[[ The themed daggers' own effects (2026-11-18, `Fx/Upgrades/DaggerFx`):
-	     hooks, silent until their sounds are picked and uploaded as one
-	     sprite. ]]
-	fx_wishing_star = { id = "", volume = 0.7, pitchJitter = 0.05, minGap = 0.2 },
-	fx_spur_rowel = { id = "", volume = 0.6, pitchJitter = 0.05, minGap = 0.2 },
-	fx_splash_wave = { id = "", volume = 0.6, pitchJitter = 0.06, minGap = 0.2 },
-	fx_combo_counter = { id = "", volume = 0.4, pitchJitter = 0.03, minGap = 0.08 },
-	fx_combo_break = { id = "", volume = 0.6, pitchJitter = 0.03, minGap = 0.3 },
-	fx_comet_crash = { id = "", volume = 0.7, pitchJitter = 0.05, minGap = 0.2 },
-	fx_bell_chime = { id = "", volume = 0.7, pitchJitter = 0.03, minGap = 0.3 },
-	fx_lava_burst = { id = "", volume = 0.6, pitchJitter = 0.05, minGap = 0.2 },
+	--[[ Thornwood's cards (2026-11-18), the owner's picks of round 34: a
+	     woody crack with thorns flying out; a snort and a heavy shove. ]]
+	fx_thorn_burst = {
+		id = DAGGER_SPRITE,
+		region = { 10.2, 0.28 },
+		volume = 0.6,
+		pitchJitter = 0.05,
+		minGap = 0.15,
+	},
+	fx_boar_rush = {
+		id = DAGGER_SPRITE,
+		region = { 10.92, 0.49 },
+		volume = 0.7,
+		pitchJitter = 0.04,
+		minGap = 0.2,
+	},
+	--[[ The themed daggers' own effects (2026-11-18, `Fx/Upgrades/DaggerFx`),
+	     the owner's picks of round 34. Wishing Star: two soft pings, then a
+	     magic "pom" as the star lands (0.35 s in). Spur Rowel: three bright
+	     "ching"s. Splash Wave: a splash and droplets. Combo Counter: a tiny
+	     two-note blip on every strike, and four 8-bit notes falling when a
+	     hit empties it. Comet Crash: a hum swelling to a deep "thoom" as the
+	     comet lands (1.5 s in); one at a time at most every half second, as
+	     a room full of comets would drown everything else. Bell Chime: a
+	     bright hand bell, "ding-ding". Lava Burst: a rumble, five blorps
+	     along the line and a sizzle. ]]
+	fx_wishing_star = {
+		id = DAGGER_SPRITE,
+		region = { 0, 1.06 },
+		volume = 0.7,
+		pitchJitter = 0.05,
+		minGap = 0.2,
+	},
+	fx_spur_rowel = {
+		id = DAGGER_SPRITE,
+		region = { 1.5, 0.551 },
+		volume = 0.6,
+		pitchJitter = 0.05,
+		minGap = 0.2,
+	},
+	fx_splash_wave = {
+		id = DAGGER_SPRITE,
+		region = { 2.49, 0.5 },
+		volume = 0.6,
+		pitchJitter = 0.06,
+		minGap = 0.2,
+	},
+	fx_combo_counter = {
+		id = DAGGER_SPRITE,
+		region = { 3.431, 0.136 },
+		volume = 0.4,
+		pitchJitter = 0.03,
+		minGap = 0.08,
+	},
+	fx_combo_break = {
+		id = DAGGER_SPRITE,
+		region = { 4.006, 0.325 },
+		volume = 0.6,
+		pitchJitter = 0.03,
+		minGap = 0.3,
+	},
+	fx_comet_crash = {
+		id = DAGGER_SPRITE,
+		region = { 4.771, 2.475 },
+		volume = 0.7,
+		pitchJitter = 0.03,
+		minGap = 0.5,
+	},
+	fx_bell_chime = {
+		id = DAGGER_SPRITE,
+		region = { 7.687, 0.923 },
+		volume = 0.7,
+		pitchJitter = 0.03,
+		minGap = 0.3,
+	},
+	fx_lava_burst = {
+		id = DAGGER_SPRITE,
+		region = { 9.05, 0.71 },
+		volume = 0.6,
+		pitchJitter = 0.05,
+		minGap = 0.2,
+	},
 }
 
 return table.freeze(Sounds)

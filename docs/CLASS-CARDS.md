@@ -61,8 +61,8 @@ new"**. They are cards like any other, drafted by their class and carried by a T
   strands of silk across a webbed enemy, burrs of poison bobbing over a blighted one. Root Hold wears
   Stumpy's roots (`Fx/RootHoldFx`) and Ruin Cracks Sunder's cracks, being the same states.
 - **Icons**: Codex, in the set's style (`assets/concepts/blocky/ui/cards/thornwood_cards_prompts.py`),
-  composed by `compose_icon.py` and uploaded. **Sounds**: two silent hooks (`fx_thorn_burst`,
-  `fx_boar_rush`) until they are picked.
+  composed by `compose_icon.py` and uploaded. **Sounds** (`fx_thorn_burst`, `fx_boar_rush`): the
+  owner's picks of audition round 34, in the themed daggers' sprite (2026-11-19).
 - **Which weapon carries which** (once the fifteen are imported): Silkweaver Bow Web Snare, Nightbarb
   Bow Thorn Burst, Silk Diadem Staff Root Hold, Blackspine Staff Burr Blight, Silkbound Blade Boar
   Rush, Briarbreaker Blade Ruin Cracks.
@@ -138,9 +138,10 @@ cards; each now carries an effect of its own. **Each is a card only its dagger c
   composed on the Legendary tile by `compose_icon.py` and uploaded (`Config/CardAssets`). The
   cards are not shown in a run (the Gear screen shows the dagger's effect line); the icons are
   there for when they are.
-- **Sounds**: eight silent hooks (`fx_wishing_star`, `fx_spur_rowel`, `fx_splash_wave`,
-  `fx_combo_counter`, `fx_combo_break`, `fx_comet_crash`, `fx_bell_chime`, `fx_lava_burst`)
-  until they are picked, as one sprite.
+- **Sounds**: eight in `Config/Sounds` (`fx_wishing_star`, `fx_spur_rowel`, `fx_splash_wave`,
+  `fx_combo_counter`, `fx_combo_break`, `fx_comet_crash`, `fx_bell_chime`, `fx_lava_burst`), the
+  owner's picks of audition round 34 (`assets/audio/daggers_synth.py`), in one sprite with
+  Thornwood's two (`assets/audio/final/dagger_sprite_r34.mp3`, uploaded 2026-11-19).
 - **Specs**: `tests/ThemedDaggers.spec` (each dagger its card, never dealt, on with its dagger
   only, the numbers, the count driven through `AssassinUpgrades`, the lava's lane, and no effect
   worth more than the strikes it rides on).

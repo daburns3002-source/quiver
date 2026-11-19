@@ -615,7 +615,8 @@ is live: never in a first session, only after a daily reward is claimed (`Reward
 lobby is quiet with REWARDS put away; Roblox's own prompt only behind YES; NOT NOW waits 3 days, three of them
 and never again. As a YES player leaves (`PlayerData.onLeaving`), `Data/Notify` plans at most three messages
 (daily reward ready, gift box full, and the event, season and set rotation through `Notify.upcoming(kind,
-provider)`, the hook those systems call), one per 20 hours, in the player's evening, none after 14 days away;
+provider)`: the weekend and the rotation are hooked from `Util/LiveBoosts` and `Util/SetRotation`, the season
+hooks itself), one per 20 hours, in the player's evening, none after 14 days away;
 the plan waits in a MemoryStore sorted map every server polls (`Data/NotifyQueue`, claimed before it is sent),
 and the one Open Cloud call is `Data/NotifySender`, its API key the experience secret `NotifyApiKey`, never in
 the repo. `tests/NotifyRules.spec`, `NotifySender.spec` (a stub), `NotifyQueue.spec` (a table for MemoryStore).

@@ -83,6 +83,14 @@ means) and `tests/NotifyQueue.spec` (the queue end to end on a table standing
 in for MemoryStore: each message once and on time, two servers, a player who
 comes back, a refused key, a retry).
 
+**Seen in Studio (2026-11-19):** the question on a desktop screen, NOT NOW
+pressed and saved, an answer the server never asked for ignored, 1,285
+in-Roblox tests passing. **Not seen:** a phone-sized screen (needs the owner's
+device emulator), Roblox's own prompt behind YES, and any real send (both need
+a live server and the steps below). Do not press YES in Studio:
+`CanPromptOptInAsync` is true there, so it would show Roblox's real prompt and
+spend your account's once-in-30-days opt-in before a live test.
+
 **What it cannot do.** Messages are sent by game servers, so while no server
 of the game is running nothing goes out; they wait for the next one. The game
 cannot tell whether a player who said YES then accepted Roblox's prompt, so it

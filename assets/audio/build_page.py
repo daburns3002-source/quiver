@@ -261,6 +261,23 @@ ROUND_33 = [
     }),
 ]
 
+ROUND_34 = [
+    ("Round 34 · the themed daggers' own effects (all silent today)", {
+        "fx_wishing_star": ("Wishing Star (Twinkle Daggers)", "Every 5th strike a star falls on the enemy and bursts 0.35 s later. Plays as it starts to fall, so the burst in each take is timed to land with it.", None),
+        "fx_spur_rowel": ("Spur Rowel (Spur Daggers)", "The double stab flings a spinning spur that hops between three enemies over about half a second.", None),
+        "fx_splash_wave": ("Splash Wave (Squirt Daggers)", "Every 3rd strike a splash round the enemy that slows what it soaks.", (1.5, 3)),
+        "fx_combo_counter": ("Combo Counter, one more (Token Daggers)", "Ticks on EVERY strike that lands, about twice a second, as the pixel digits count up. Has to be tiny and never wear on you.", (0.5, 8)),
+        "fx_combo_break": ("Combo Counter, lost (Token Daggers)", "You took a hit and the count is gone: the digits shatter.", None),
+        "fx_comet_crash": ("Comet Crash (Comet Daggers)", "A strike calls a comet that crashes on the enemy 1.5 s later; each take's crash is timed to land with it. Plays about once a second in a fight, so the wait should stay quiet.", None),
+        "fx_bell_chime": ("Bell Chime (Bellchime Daggers)", "Every 6th strike a bell rings and holds the enemies near you still for a moment.", None),
+        "fx_lava_burst": ("Lava Burst (Embershard Daggers)", "The double stab sends lava bursting along the ground, one burst after another for about 0.4 s.", None),
+    }),
+    ("Round 34 · Thornwood's two (also silent; same upload if you pick them, skip if not)", {
+        "fx_thorn_burst": ("Thorn Burst", "Every 3rd volley's arrows burst into thorns where they land.", None),
+        "fx_boar_rush": ("Boar Rush", "The combo's last blow shoves what it hits far back, with a ring of dust.", None),
+    }),
+]
+
 # page: (rounds, picks collection, sounds already chosen, shown for context)
 ROUND_18 = [
     ("Round 18 · King Bloblin's attacks, two big takes each", {
@@ -296,6 +313,7 @@ ROUND_18 = [
 ]
 
 PAGES = {
+    "34": (ROUND_34, "picks34daggers", []),
     "33": (ROUND_33, "picks33assassin", []),
     "32": (ROUND_32, "picks32cards", ["Rain of Arrows B", "Split Shot A", "Sniper Shot A (29)", "Wind Arrows A (29)", "Black Hole A", "Black Hole implode A", "Arcane Turret C", "Mana Surge B (29)", "Arcane Shield A", "Titan's Grip A", "Counter Strike A", "Shield Throw C", "Blade Storm A"]),
     "31": (ROUND_31, "picks31cards", ["Rain of Arrows B", "Split Shot A", "Sniper Shot A (29)", "Wind Arrows A (29)", "Black Hole A", "Black Hole implode A", "Arcane Turret C", "Mana Surge B (29)", "Arcane Shield A", "Titan's Grip A", "Counter Strike A", "Shield Throw C", "Blade Storm A"]),

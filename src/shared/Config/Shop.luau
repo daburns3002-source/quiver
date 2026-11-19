@@ -103,6 +103,15 @@ local Shop = {
 		     strips, a green circuit chip. Legendary. Stocked since its four
 		     Tripo models were imported and wired (2026-11-18). ]]
 		{ key = "NeonCircuit", name = "NEON CIRCUIT", coins = 5000, gems = 300, stocked = true },
+		-- THEMED SETS BEGIN (assets/models/weapons/blocky/themed_sets/sets.py; regenerate, never hand-edit)
+		{ key = "Starwish", name = "STARWISH", coins = 5000, gems = 300, stocked = true },
+		{ key = "Tumbleweed", name = "TUMBLEWEED", coins = 5000, gems = 300, stocked = true },
+		{ key = "SplashDay", name = "SPLASH DAY", coins = 5000, gems = 300, stocked = true },
+		{ key = "CoinOp", name = "COIN-OP", coins = 5000, gems = 300, stocked = true },
+		{ key = "Voidglass", name = "VOIDGLASS", coins = 5000, gems = 300, stocked = true },
+		{ key = "LanternBloom", name = "LANTERN BLOOM", coins = 5000, gems = 300, stocked = true },
+		{ key = "Cinderforge", name = "CINDERFORGE", coins = 5000, gems = 300, stocked = true },
+		-- THEMED SETS END
 	} :: { Set },
 
 	counts = { 1, 3 },

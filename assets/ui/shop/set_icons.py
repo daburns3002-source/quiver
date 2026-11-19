@@ -37,6 +37,14 @@ WEAPONS = {
         "GlitchDaggers": ("glitch_daggers", True),
     },
 }
+# the seven sets after it (2026-11-18): each folder's four pictures, keyed by
+# their names in CamelCase (`wishbright_bow.png` is the WishbrightBow)
+for _folder in ("starwish", "tumbleweed", "splash_day", "coin_op", "voidglass", "lantern_bloom", "cinderforge"):
+    WEAPONS[_folder] = {
+        "".join(w.capitalize() for w in p.stem.split("_")): (p.stem, p.stem.endswith("daggers"))
+        for p in sorted((SETS / _folder).glob("*.png"))
+        if p.stem != "contact_sheet"
+    }
 
 
 def main() -> None:

@@ -65,38 +65,45 @@ eon_circuit_import`; ids in `neon_circuit/skin_imports.json`.
 - **Not seen yet:** the SETS shelf, the Dex page and the glow on screen (Studio's 3D view was
   not drawing in that Play), and phone size. Each weapon uses its class's kit and sounds.
 
-## Starwish (drawn, waiting on the owner)
+## The seven other sets — in the game
 
-Sweet toy wishing-star charms: pastel pink and mint blocks, cream white, gold star charms,
-flat chunky ribbon wraps and glowing pale-yellow star gems (owner, 2026-11-18: "make the
-next one"). Front views by Codex in `sets/starwish/`, all four on `contact_sheet.jpg`:
-**Wishbright Bow**, **Dreamdrop Staff**, **Wishcutter Blade**, **Twinkle Daggers**. Its
-rarity, its cards and its `Shop.sets` row wait on the owner's yes; nothing goes to Tripo
-before it (260 credits for the four).
+Starwish (owner, 2026-11-18: "make the next one"), then Tumbleweed, Splash Day, Coin-Op,
+Voidglass, Lantern Bloom and Cinderforge ("make the designs for all first"; the Molten Blade
+redrawn broader). Pictures by Codex in `sets/<set>/` (each with its `contact_sheet.jpg`,
+prompts in `sets/set_prompts.py`); 28 Tripo models, 4,000 triangles and 8K each (1,820
+credits, 2,900 left; jobs in `assets/models/weapons/blocky/{starwish,themed_sets,cinderforge}_tripo_2026_11_18.json`),
+every one rendered from four sides first. The Starwell Staff came with a loose moon floating
+behind its head, cut out by `blocky/themed_sets/drop_loose_parts.py`.
 
-## The sets still to make
+All Legendary, 5,000 coins and 300 gems each on the SETS tab, a Dex page a set. Everything a
+set weapon is lives in one table, `assets/models/weapons/blocky/themed_sets/sets.py` (ids,
+card, effect line, glow, look), which writes the marked blocks in `Config/WeaponStats`,
+`WeaponFx`, `Dex` and `Shop`; `skins_to_luau.py` reads it for `Config/Weapons`. Grips are
+measured by `blocky/themed_sets/measure_grips.py`: every bow's riser is on -X; the Splashring
+and Paperglow Staffs are held lower, on their own grips under the tank and the lantern. A set's
+Dex page pays `Rewards.setPage` (crates, no gems), so the gems every page pays stay under the cap.
 
-Drawn by Codex on 2026-11-18 (owner: "make the designs for all first"), each in
-`sets/<set>/` with its `contact_sheet.jpg`; prompts in `sets/set_prompts.py`. Each is four
-weapons, 260 Tripo credits and one Import Queue batch, and nothing goes to Tripo before the
-owner's yes on its pictures. Names and looks are proposals until then.
-
-| Set | Look | Bow, staff, blade, daggers |
+| Set | Look | Weapons (card) |
 |---|---|---|
-| **Tumbleweed** | toy cowboy gear: tan leather, honey wood, brass rivets, thick rope, a tin star, a turquoise stone | Saddlehorn Bow (horn limbs), Wagonwheel Staff, Trailboss Blade (horseshoe guard), Spur Daggers (spur-rowel guard) |
-| **Splash Day** | summer water toys: pool noodles, striped swim rings, water-blaster yellow and aqua, solid blue water | Noodle Bow, Splashring Staff, Breaker Blade (a surfboard blade), Squirt Daggers (a frozen water jet) |
-| **Coin-Op** | toy arcade: glossy red and blue, big 8-bit pixels, arcade buttons, yellow game coins, pixel hearts | Highscore Bow, Joystick Staff, Pixel Blade, Token Daggers (a direction-pad guard) |
-| **Voidglass** | toy space crystal: purple see-through glass with stars inside, silver trim, ringed black orbs | Orbit Bow, Starwell Staff, Nebula Blade, Comet Daggers |
-| **Lantern Bloom** | spring festival: pale wood, red paper lanterns, pink blossoms, gold bells, red cord and tassels | Blossom Bow, Paperglow Staff, Petalfall Blade, Bellchime Daggers |
-| **Cinderforge** | volcano forge: cracked black rock with lava seams, iron bands and rivets, molten cubes | Cinderstring Bow, Forgeheart Staff, Molten Blade (an anvil guard), Embershard Daggers |
+| **Starwish** | toy wishing-star charms: pastel pink and mint, cream white, gold stars, flat ribbon wraps, glowing star gems | Wishbright Bow (Blast Arrows), Dreamdrop Staff (Elemental Orbs), Wishcutter Blade (Whirlwind), Twinkle Daggers (Soul Chain) |
+| **Tumbleweed** | toy cowboy gear: tan leather, honey wood, brass rivets, thick rope, a tin star, a turquoise stone | Saddlehorn Bow (Ricochet), Wagonwheel Staff (Chain Lightning), Trailboss Blade (Battle Cry), Spur Daggers (Quickstep) |
+| **Splash Day** | summer water toys: pool noodles, striped swim rings, water-blaster yellow and aqua, solid blue water | Noodle Bow (Piercing Shot), Splashring Staff (Spell Pierce), Breaker Blade (Shockwave), Squirt Daggers (Sunder) |
+| **Coin-Op** | toy arcade: glossy red and blue, big 8-bit pixels, arcade buttons, yellow game coins, pixel hearts | Highscore Bow (Front Arrow), Joystick Staff (Twin Cast), Pixel Blade (Counter Strike), Token Daggers (Precision) |
+| **Voidglass** | toy space crystal: purple see-through glass with stars inside, silver trim, ringed black orbs | Orbit Bow (Rain Of Arrows), Starwell Staff (Tracking Eye), Nebula Blade (Parry), Comet Daggers (Ruin Cracks) |
+| **Lantern Bloom** | spring festival: pale wood, red paper lanterns, pink blossoms, gold bells, red cord and tassels | Blossom Bow (Multishot), Paperglow Staff (Arcane Turret), Petalfall Blade (Sunder), Bellchime Daggers (Boar Rush) |
+| **Cinderforge** | volcano forge: cracked black rock with lava seams, iron bands and rivets, molten cubes | Cinderstring Bow (Sniper Shot), Forgeheart Staff (Mana Surge), Molten Blade (Heavy Blade), Embershard Daggers (Deadly Strike) |
 
-**Modelled (2026-11-18, owner: "the last one should be redrawn, the rest are good"):** Tumbleweed, Splash Day, Coin-Op, Voidglass and Lantern Bloom, 20 Tripo models (1,300 credits, 3,160 left; jobs in `assets/models/weapons/blocky/themed_sets_tripo_2026_11_18.json`), named in `Downloads	hemed_sets_import` for the owner's import. Every model was rendered from four sides; the Starwell Staff came with a loose moon floating behind its head, cut out by `assets/models/weapons/blocky/themed_sets/drop_loose_parts.py`. Cinderforge followed once its Molten Blade was redrawn broader ("Yes, model Cinderforge"; earlier takes in `cinderforge/options/`): four more, 260 credits, 2,900 left, jobs in `cinderforge_tripo_2026_11_18.json`, in the same import folder.
+Cards: a set weapon carries a card its class draws and that is not benched (Momentum,
+Bloodletting and Overdraw were, and were swapped out); no two daggers carry the same one. The
+daggers' cards are stand-ins: the owner asked for effects of their own (2026-11-18, "make
+unique effects for the daggers now"), built next.
+
+**Not seen yet:** the sets' shelves, Dex pages and glows on screen, and phone size. The hold
+was checked by numbers in Studio against the Golden Bow.
 
 Each prompt names what the set must not have (faces, skulls, characters and the like) so it
-stays a toy of this game's own and never reads as another game's line.
-
-Once several sets of different rarities exist, a themed crate becomes worth building (one
-weapon a class leaves a single set nothing to roll). That is the owner's call when it comes.
+stays a toy of this game's own and never reads as another game's line. Once sets of
+different rarities exist, a themed crate becomes worth building; that is the owner's call.
 
 ## Adding a set
 

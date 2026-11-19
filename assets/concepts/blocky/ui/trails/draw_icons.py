@@ -12,6 +12,7 @@ JOBS = {
     "icons_a": ("PURE MAGENTA (#FF00FF)", "magenta or pink", ["glade_raw.png", "drowned_raw.png", "bog_raw.png"]),
     "icons_b": ("PURE GREEN (#00FF00)", "bright pure green", ["thorn_raw.png", "mythic_raw.png"]),
     "star": (None, None, []),
+    "icons_season": ("PURE BLUE (#0000FF)", "blue", ["season_raw.png"]),
 }
 
 

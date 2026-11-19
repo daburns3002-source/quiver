@@ -58,6 +58,7 @@ local Passes = require(script.Parent.Passes)
 local PlayerData = require(script.Parent.PlayerData)
 local Policy = require(script.Parent.Policy)
 local Rewards = require(script.Parent.Rewards)
+local Season = require(script.Parent.Season)
 local Wallet = require(script.Parent.Wallet)
 
 local log = Log.forTag("Purchases")
@@ -77,7 +78,8 @@ export type ReviveHooks = {
 Purchases.revive = nil :: ReviveHooks?
 
 --[[ Where a prompt may say it was opened from, for analytics. ]]
-local WHERE = { Store = true, Defeat = true, Starter = true, GearSlot = true, Eggs = true }
+local WHERE =
+	{ Store = true, Defeat = true, Starter = true, GearSlot = true, Eggs = true, Season = true }
 --[[ Seconds a receipt waits for a joining player's profile. ]]
 local PROFILE_WAIT = 15
 --[[ Seconds between checks for VIP's next day. ]]
@@ -165,6 +167,10 @@ local function give(
 	if product.serverLuck then
 		-- the whole server's, not the save's (`Data/Boosts`)
 		Boosts.addServerLuck(player, product.serverLuck)
+	end
+	if product.season then
+		-- the season's premium track (`Data/Season`)
+		Season.grantPremium(player)
 	end
 	return pets
 end
@@ -288,6 +294,14 @@ function Purchases.ask(player: Player, key: unknown, from: unknown)
 				hooks.hold(RobuxStore.reviveHold)
 			end
 			promptProduct(player, product, "Defeat")
+		end
+		return
+	end
+	if product and product.season then
+		--[[ The Season Pass: only while a season runs and premium is not
+		     bought for it yet (`Data/Season`), from the SEASON tab. ]]
+		if StoreRules.live(product) and Season.canBuy(player) then
+			promptProduct(player, product, "Season")
 		end
 		return
 	end

@@ -27,6 +27,11 @@
 	server sets (`Server/Data/Premium`): Roblox's picture from its own
 	content, so no upload and never redrawn. The name is then sized to its
 	words, as the frame's is, so the mark sits beside them.
+
+	A season title (`Config/Season.titles`, tier 30 of a season's premium
+	track) stands over the name on a line of its own, in its own colours,
+	above the champion's when both are held, from the `SeasonTitle`
+	attribute the server sets (`Server/Data/Season`).
 ]]
 
 local Players = game:GetService("Players")
@@ -37,6 +42,7 @@ local HardRules = require(ReplicatedStorage.Shared.Util.HardRules)
 local LobbyConfig = require(ReplicatedStorage.Shared.Config.Lobby)
 local PremiumRules = require(ReplicatedStorage.Shared.Util.PremiumRules)
 local RobuxStore = require(ReplicatedStorage.Shared.Config.RobuxStore)
+local Season = require(ReplicatedStorage.Shared.Config.Season)
 local Tournament = require(ReplicatedStorage.Shared.Config.Tournament)
 local TournamentRules = require(ReplicatedStorage.Shared.Util.TournamentRules)
 local UiPalette = require(ReplicatedStorage.Shared.Config.UiPalette)
@@ -51,49 +57,88 @@ local VIP = RobuxStore.passAttribute .. "VIP"
 local FRAME_TEXT = 19
 local FRAME_PAD = 10
 local WINS = Tournament.winsAttribute
+--[[ The season title worn (`Data/Season`). ]]
+local SEASON_TITLE = "SeasonTitle"
 --[[ Points: the tag's width, the name's row, and the title's over it. ]]
 local WIDE = 220
 local NAME = 26
 local TITLE = 17
 
---[[ The champion's title over the name's row, or none: the tag grows to
-     hold it and the row keeps its own height. ]]
+--[[ One line over the name's row: its words and colours. ]]
+type Line = { name: string, words: string, colour: Color3, stroke: Color3, see: number }
+
+--[[ The titles over the name's row, or none: the season's title, then the
+     champion's, each on a line of its own. The tag grows to hold them and
+     the row keeps its own height. ]]
 local function crown(player: Player, gui: BillboardGui)
 	local row = gui:FindFirstChild("Row")
 	if not row or not row:IsA("Frame") then
 		return
 	end
+	local lines: { Line } = {}
+	local key = player:GetAttribute(SEASON_TITLE)
+	local season = if type(key) == "string" then Season.titles[key] else nil
+	if season then
+		-- its stars are plus-shaped, as every star in the game
+		table.insert(lines, {
+			name = "SeasonTitle",
+			words = "+ " .. season.text .. " +",
+			colour = season.colour,
+			stroke = season.stroke,
+			see = 0,
+		})
+	end
 	local wins = player:GetAttribute(WINS)
 	local words = TournamentRules.title(if type(wins) == "number" then wins else 0)
-	local title = gui:FindFirstChild("Title")
-	if not words then
-		if title then
-			title:Destroy()
+	if words then
+		table.insert(lines, {
+			name = "Title",
+			words = words,
+			colour = Tournament.colors.champion,
+			stroke = Color3.fromRGB(70, 40, 0),
+			see = 0.2,
+		})
+	end
+	for _, name in { "SeasonTitle", "Title" } do
+		local shown = false
+		for _, line in lines do
+			shown = shown or line.name == name
 		end
+		local old = gui:FindFirstChild(name)
+		if old and not shown then
+			old:Destroy()
+		end
+	end
+	local y = 0
+	for _, line in lines do
+		local found = gui:FindFirstChild(line.name)
+		local text: TextLabel
+		if found and found:IsA("TextLabel") then
+			text = found
+		else
+			text = Instance.new("TextLabel")
+			text.Name = line.name
+			text.BackgroundTransparency = 1
+			text.Font = Enum.Font.FredokaOne
+			text.TextScaled = true
+			text.Parent = gui
+		end
+		text.Text = line.words
+		text.TextColor3 = line.colour
+		text.TextStrokeColor3 = line.stroke
+		text.TextStrokeTransparency = line.see
+		text.Position = UDim2.fromOffset(0, y)
+		text.Size = UDim2.new(1, 0, 0, TITLE)
+		y += TITLE + 1
+	end
+	if y == 0 then
 		gui.Size = UDim2.fromOffset(WIDE, NAME)
 		row.Position = UDim2.fromOffset(0, 0)
 		row.Size = UDim2.fromScale(1, 1)
 		return
 	end
-	local text: TextLabel
-	if title and title:IsA("TextLabel") then
-		text = title
-	else
-		text = Instance.new("TextLabel")
-		text.Name = "Title"
-		text.BackgroundTransparency = 1
-		text.Font = Enum.Font.FredokaOne
-		text.TextColor3 = Tournament.colors.champion
-		text.TextStrokeColor3 = Color3.fromRGB(70, 40, 0)
-		text.TextStrokeTransparency = 0.2
-		text.TextScaled = true
-		text.Parent = gui
-	end
-	text.Text = words
-	gui.Size = UDim2.fromOffset(WIDE, TITLE + 1 + NAME)
-	text.Position = UDim2.fromOffset(0, 0)
-	text.Size = UDim2.new(1, 0, 0, TITLE)
-	row.Position = UDim2.fromOffset(0, TITLE + 1)
+	gui.Size = UDim2.fromOffset(WIDE, y + NAME)
+	row.Position = UDim2.fromOffset(0, y)
 	row.Size = UDim2.new(1, 0, 0, NAME)
 end
 
@@ -280,6 +325,7 @@ local function watch(player: Player)
 	player:GetAttributeChangedSignal(VIP):Connect(repaint)
 	player:GetAttributeChangedSignal(HardRules.FRAME):Connect(repaint)
 	player:GetAttributeChangedSignal(WINS):Connect(repaint)
+	player:GetAttributeChangedSignal(SEASON_TITLE):Connect(repaint)
 	player:GetAttributeChangedSignal(PremiumRules.ATTRIBUTE):Connect(repaint)
 	local character = player.Character
 	if character then

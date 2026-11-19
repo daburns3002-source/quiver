@@ -22,6 +22,7 @@ If the game is ever published to another universe, these eleven must be made the
 | Starter Pack | 3731092480 | 99 | 500 gems, 3 Mossy Eggs and 2,000 coins. Once per player. | `StarterPack.png` |
 | Revive | 3731092534 | 15 | Back into the room you fell in, with your build. Once per run. | `Revive.png` |
 | Server Luck | 3733414190 | 49 | 2x egg luck for everyone in the server for 15 minutes. Buy again to add time. | `ServerLuck.png` |
+| Season Pass | 3733524465 | 299 | This season's premium track: gems, coins, its trail and its title. This season only. | `SeasonPass.png` (the Wish Ribbon's picture) |
 
 ### Game passes (Monetization → Passes → Create a Pass, then put it on sale)
 
@@ -30,6 +31,8 @@ If the game is ever published to another universe, these eleven must be made the
 | 2x Coins | 2089910820 | 199 | Double the coins from every kill and every clear. | `DoubleCoins.png` |
 | Extra Pet Slot | 2089742794 | 249 | A third pet slot: take three pets into every run. | `PetSlot.png` |
 | VIP | 2089826773 | 399 | A gold name tag, 10% more coins and 25 gems every day. | `VIP.png` |
+
+The Season Pass (owner, 2026-11-18: 299 Robux) was created on 2026-11-19 at the owner's word, on sale, managed pricing off. How it works: `docs/SEASON.md`.
 
 ## How it works
 

@@ -5,7 +5,9 @@
 Reads assets/concepts/blocky/ui/trails/icons_a_raw.png (3 x 3 on flat
 magenta: rows Mossy Glade, Drowned Village, Bogheart Caverns; columns Rare,
 Epic, Legendary), icons_b_raw.png (2 x 2 on flat green: Thornwood's three and
-Starfall; green because Bramble Pollen is magenta) and star_raw.png (a white
+Starfall; green because Bramble Pollen is magenta), icons_season_raw.png
+(Season 1's Wish Ribbon alone on flat blue, since it is pink and mint) and
+star_raw.png (a white
 cross on black), and writes icons/<Trail>.png (512 px) and star.png (256 px,
 white, its alpha from the light). The keying is the boss banner's
 (assets/ui/boss_banner/cutout.py), turned for either key colour.
@@ -29,6 +31,8 @@ SHEETS = [
         "BogSpores", "GlowcapPath", "GulpsBubbles",
     ]),
     ("icons_b_raw.png", "green", 2, ["BramblePollen", "CrowFeathers", "BroodSilk", "Starfall"]),
+    # Season 1's Wish Ribbon, alone on flat blue: it is pink and mint
+    ("icons_season_raw.png", "blue", 1, ["WishRibbon"]),
 ]
 
 
@@ -36,7 +40,12 @@ def key_out(img: Image.Image, colour: str) -> Image.Image:
     rgb = np.asarray(img.convert("RGB")).astype(np.float32)
     r, g, b = rgb[..., 0], rgb[..., 1], rgb[..., 2]
     # how much of the key a pixel is
-    key = np.minimum(r, b) - g if colour == "magenta" else g - np.maximum(r, b)
+    if colour == "magenta":
+        key = np.minimum(r, b) - g
+    elif colour == "blue":
+        key = b - np.maximum(r, g)
+    else:
+        key = g - np.maximum(r, b)
     near = key > 110
     labels, _ = ndimage.label(near)
     border = np.unique(np.concatenate([labels[0], labels[-1], labels[:, 0], labels[:, -1]]))
@@ -48,6 +57,8 @@ def key_out(img: Image.Image, colour: str) -> Image.Image:
     if colour == "magenta":
         rgb[..., 0][spill] = np.minimum(r[spill], g[spill] + 30)
         rgb[..., 2][spill] = np.minimum(b[spill], g[spill] + 30)
+    elif colour == "blue":
+        rgb[..., 2][spill] = np.minimum(b[spill], np.maximum(r[spill], g[spill]) + 30)
     else:
         rgb[..., 1][spill] = np.minimum(g[spill], np.maximum(r[spill], b[spill]) + 30)
     return Image.fromarray(np.dstack([rgb, alpha * 255]).astype(np.uint8), "RGBA")

@@ -447,7 +447,8 @@ local function onGranted(key: unknown, gems: unknown)
 		return
 	end
 	local product = StoreRules.product(key)
-	if not product or product.revive then
+	-- the revive says nothing; the Season Pass is thanked by its tab's toast
+	if not product or product.revive or product.season then
 		return
 	end
 	RobuxStore.toast("THANK YOU!", RobuxStore.chips(product))

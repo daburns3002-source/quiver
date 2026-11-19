@@ -1,0 +1,7 @@
+Use case: 2D game UI icons for the lobby of a blocky voxel archery game, shown on round buttons as small as 64 pixels. Generate ONE wide 1536x1024 image: a grid of 3 columns by 2 rows of cells on a FLAT, PURE MAGENTA (#FF00FF) background everywhere, no borders, no panels, no frames, no text, no letters, no numbers, no labels, wide gaps of plain background between the icons.
+Style: the chunky blocky voxel style of the attached pictures: small cubes with soft bevels, saturated colours, a soft polished render, and a thin dark outline round every piece so it reads on any background. Keep each glow tight to the shapes: no wide soft haze and no glow spilling onto the background. Every icon whole and centred in its cell, filling about 80% of it, bold and simple, seen from slightly above and in front. No magenta or pink anywhere inside an icon.
+Use the attached pictures exactly for what they show: the first is the game's gold coin with an arrow minted on it, the second is the game's blue diamond.
+Row 1, left: "Free Gift": a chunky blocky gift box, teal-blue with a bright gold ribbon crossing it and a big gold bow of blocks on top, the lid lifted a little with a few small gold sparkle crosses round it.
+Row 1, middle: "Invite a Friend": two small chunky blocky hero heads side by side, one wearing a green hood and one an orange hood, smiling, with a bold glowing lime-green PLUS sign made of blocks floating above them between their heads.
+Row 1, right: leave this cell completely empty, plain magenta.
+Row 2: leave all three cells completely empty, plain magenta.

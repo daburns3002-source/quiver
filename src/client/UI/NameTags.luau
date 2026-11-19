@@ -21,6 +21,12 @@
 	`TournamentWins` attribute the server sets from the save
 	(`Run/WeeklyTournament`). The name sits in its own row under it, so the
 	frame above and the title never fight over the name's size.
+
+	A Roblox Premium member's tag carries Roblox's own Premium mark just
+	before the name (owner, 2026-11-18), from the `Premium` attribute the
+	server sets (`Server/Data/Premium`): Roblox's picture from its own
+	content, so no upload and never redrawn. The name is then sized to its
+	words, as the frame's is, so the mark sits beside them.
 ]]
 
 local Players = game:GetService("Players")
@@ -29,6 +35,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local HardRules = require(ReplicatedStorage.Shared.Util.HardRules)
 local LobbyConfig = require(ReplicatedStorage.Shared.Config.Lobby)
+local PremiumRules = require(ReplicatedStorage.Shared.Util.PremiumRules)
 local RobuxStore = require(ReplicatedStorage.Shared.Config.RobuxStore)
 local Tournament = require(ReplicatedStorage.Shared.Config.Tournament)
 local TournamentRules = require(ReplicatedStorage.Shared.Util.TournamentRules)
@@ -148,6 +155,50 @@ local function frame(player: Player, label: TextLabel)
 end
 
 --[[ Paints a tag plain or gold, as the player's VIP pass says. ]]
+--[[ Roblox's Premium mark (its own content), its size and gap in points,
+     and the bare tag's words when a mark stands beside them. ]]
+local PREMIUM_MARK = "rbxasset://textures/ui/PlayerList/PremiumIcon.png"
+local MARK = 20
+local MARK_GAP = 4
+local MARK_TEXT = 22
+
+--[[ Puts Roblox's Premium mark before a Premium member's name, or takes
+     it away. After `frame`, which lays the label out: a bare tag is then
+     sized to its words too, so the mark sits just before them, and the
+     two are centred together. ]]
+local function mark(player: Player, label: TextLabel)
+	local existing = label:FindFirstChild("PremiumMark")
+	if player:GetAttribute(PremiumRules.ATTRIBUTE) ~= true then
+		if existing then
+			existing:Destroy()
+		end
+		return
+	end
+	local framed = label:FindFirstChild("Pad") ~= nil
+	if not framed then
+		label.TextScaled = false
+		label.TextSize = MARK_TEXT
+		label.AutomaticSize = Enum.AutomaticSize.X
+		label.AnchorPoint = Vector2.new(0.5, 0)
+		label.Size = UDim2.fromScale(0, 1)
+	end
+	label.Position = UDim2.new(0.5, (MARK + MARK_GAP) / 2, 0, 0)
+	local picture = existing :: ImageLabel?
+	if not picture then
+		local made = Instance.new("ImageLabel")
+		made.Name = "PremiumMark"
+		made.BackgroundTransparency = 1
+		made.Image = PREMIUM_MARK
+		made.ScaleType = Enum.ScaleType.Fit
+		made.AnchorPoint = Vector2.new(1, 0.5)
+		made.Size = UDim2.fromOffset(MARK, MARK)
+		made.Parent = label
+		picture = made
+	end -- outside the frame's plate and its padding, when it has one
+	(picture :: ImageLabel).Position =
+		UDim2.new(0, -(MARK_GAP + (if framed then FRAME_PAD else 0)), 0.5, 0)
+end
+
 local function paint(player: Player, label: TextLabel)
 	if player:GetAttribute(VIP) == true then
 		label.Text = "VIP " .. player.DisplayName
@@ -201,6 +252,7 @@ local function tag(player: Player, character: Model)
 	label.Parent = row
 	paint(player, label)
 	frame(player, label)
+	mark(player, label)
 	crown(player, gui)
 
 	gui.Parent = head
@@ -219,6 +271,7 @@ local function watch(player: Player)
 		if label and label:IsA("TextLabel") then
 			paint(player, label)
 			frame(player, label)
+			mark(player, label)
 		end
 		if gui and gui:IsA("BillboardGui") then
 			crown(player, gui)
@@ -227,6 +280,7 @@ local function watch(player: Player)
 	player:GetAttributeChangedSignal(VIP):Connect(repaint)
 	player:GetAttributeChangedSignal(HardRules.FRAME):Connect(repaint)
 	player:GetAttributeChangedSignal(WINS):Connect(repaint)
+	player:GetAttributeChangedSignal(PremiumRules.ATTRIBUTE):Connect(repaint)
 	local character = player.Character
 	if character then
 		task.spawn(tag, player, character)

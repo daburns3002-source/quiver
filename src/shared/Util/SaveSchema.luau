@@ -165,14 +165,26 @@
 	`tournamentWins`, the weeks won, for the ENDLESS CHAMPION title; and
 	`tournamentPicks`, the themed set weapons a top-ten finish still lets
 	the player pick. An older profile has played no week and won none.
+
+	Version 27 (2026-11-18, the retention hooks): `playtime`, this session's
+	playtime clock (`Util/PlaytimeRules`): saved because every run is played
+	on a server of its own, so the session crosses servers; `premiumDay`, the
+	last reward day Premium's free egg was paid (`Util/PremiumRules`); and
+	`invites`, who invited this player and whether that is settled, and the
+	friends they were paid for inviting (`Util/InviteRules`). An older
+	profile starts a new session, was never paid an egg, and was invited by
+	nobody: a player who already had a save is not new, so nothing is owed.
 ]]
 
 local ClassLevelRules = require(script.Parent.ClassLevelRules)
 local ClassList = require(script.Parent.ClassList)
 local Classes = require(script.Parent.Parent.Config.Classes)
 local GiftRules = require(script.Parent.GiftRules)
+local InviteRules = require(script.Parent.InviteRules)
 local MergeRules = require(script.Parent.MergeRules)
 local NotifyRules = require(script.Parent.NotifyRules)
+local PlaytimeRules = require(script.Parent.PlaytimeRules)
+local PremiumRules = require(script.Parent.PremiumRules)
 local RunBonus = require(script.Parent.RunBonus)
 local SettingsRules = require(script.Parent.SettingsRules)
 local StoreRules = require(script.Parent.StoreRules)
@@ -180,7 +192,7 @@ local TournamentRules = require(script.Parent.TournamentRules)
 
 local SaveSchema = {}
 
-SaveSchema.VERSION = 26
+SaveSchema.VERSION = 27
 
 --[[ The classes' own weapons, owned from the start: one for every class a
      player can choose (`Util/ClassList`). Given on every load (`migrate`
@@ -289,6 +301,13 @@ export type Profile = {
 	--[[ Themed set weapons still to pick from a top-ten week (version 26,
 	     `Wallet.pickTournamentWeapon`). ]]
 	tournamentPicks: number,
+	--[[ This session's playtime gifts (version 27, `Util/PlaytimeRules`). ]]
+	playtime: PlaytimeRules.Clock,
+	--[[ The last reward day Premium's egg was paid, 0 never (version 27). ]]
+	premiumDay: number,
+	--[[ Who invited this player, and who they invited (version 27,
+	     `Util/InviteRules`). ]]
+	invites: InviteRules.Invites,
 }
 
 export type RewardState = {
@@ -387,6 +406,9 @@ function SaveSchema.default(): Profile
 		tournamentWeeks = {},
 		tournamentWins = 0,
 		tournamentPicks = 0,
+		playtime = { start = 0, seen = 0, claimed = 0 },
+		premiumDay = 0,
+		invites = InviteRules.empty(),
 	}
 end
 
@@ -611,6 +633,12 @@ function SaveSchema.migrate(raw: unknown): Profile
 	end
 	profile.tournamentWins = count(data.tournamentWins)
 	profile.tournamentPicks = count(data.tournamentPicks)
+	--[[ 26 -> 27: no clock was kept, so an older profile's next join starts
+	     a session; no egg was paid; nobody was invited. A stored copy is
+	     read field by field. ]]
+	profile.playtime = PlaytimeRules.read(data.playtime)
+	profile.premiumDay = PremiumRules.read(data.premiumDay)
+	profile.invites = InviteRules.read(data.invites)
 	return profile
 end
 

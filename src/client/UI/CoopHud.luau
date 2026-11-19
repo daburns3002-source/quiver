@@ -5,7 +5,7 @@
 	- **The party line** under an open portal screen: who is standing at
 	  this portal with you and so goes with you on START (the server sets
 	  each player's `Portal` attribute), an INVITE A FRIEND button
-	  (`SocialService:PromptGameInvite`), and the server's word on the
+	  (`SocialService:PromptGameInvite`, through `UI/InvitePrompt`), and the server's word on the
 	  teleport (`Remotes.PartyNotice`).
 	- **Downed players**: DOWN! over their heads with the revive filling and
 	  the seconds left (`Downed`, `ReviveProgress`, `DownedEndsAt`), or OUT
@@ -20,10 +20,10 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
-local SocialService = game:GetService("SocialService")
 local Workspace = game:GetService("Workspace")
 
 local Coop = require(ReplicatedStorage.Shared.Util.Coop)
+local InvitePrompt = require(script.Parent.InvitePrompt)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local RunPaused = require(script.Parent.Parent.RunPaused)
 
@@ -105,13 +105,8 @@ local function buildPartyLine(gui: ScreenGui)
 	padding.PaddingTop = UDim.new(0.15, 0)
 	padding.PaddingBottom = UDim.new(0.15, 0)
 	padding.Parent = invite
-	invite.Activated:Connect(function()
-		pcall(function()
-			if SocialService:CanSendGameInviteAsync(localPlayer) then
-				SocialService:PromptGameInvite(localPlayer)
-			end
-		end)
-	end)
+	-- with launch data naming the sender: both get a gift (`Data/Invites`)
+	invite.Activated:Connect(InvitePrompt.open)
 
 	local noticeText: string? = nil
 	local noticeUntil = 0

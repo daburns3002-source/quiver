@@ -37,6 +37,7 @@ local NewEnemies = require(ReplicatedStorage.Shared.Config.NewEnemies)
 local Passes = require(script.Parent.Parent.Data.Passes)
 local PetCombat = require(ReplicatedStorage.Shared.Config.PetCombat)
 local Pickups = require(script.Parent.Pickups)
+local Premium = require(script.Parent.Parent.Data.Premium)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local Rewards = require(script.Parent.Parent.Data.Rewards)
 local RunBonus = require(ReplicatedStorage.Shared.Util.RunBonus)
@@ -946,15 +947,17 @@ end
 --[[ Coins a run earns, a kill's or a clear's: `base` at the player's passes'
      scale (2x Coins, VIP; `Util/StoreRules.coinScale`) with a coin event's
      share (a 2x Coins weekend or live event, `Data/Boosts`), the run's win
-     streak, its party's friend bonus and hard mode added (`Util/RunBonus`), the part
-     under a whole coin carried to the next. Anything else paid in a run (the
-     tutorial's top-up to the first egg) goes through `payCoins` as it is. ]]
+     streak, its party's friend bonus, hard mode and Roblox Premium's tenth
+     added (`Util/RunBonus`, `Data/Premium`), the part under a whole coin
+     carried to the next. Anything else paid in a run (the tutorial's top-up
+     to the first egg) goes through `payCoins` as it is. ]]
 function RunSession.payEarned(session: Session, base: number, position: Vector3?)
 	local scale = RunBonus.scale(
 		StoreRules.coinScale(Passes.owned(session.player)) + Boosts.coinShare(),
 		session.streak,
 		Coop.partySize(),
-		CurrentStage.hard()
+		CurrentStage.hard(),
+		Premium.has(session.player)
 	)
 	local whole, carry = StoreRules.scaleCoins(base, scale, session.coinCarry)
 	session.coinCarry = carry

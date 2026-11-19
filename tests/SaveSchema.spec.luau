@@ -161,8 +161,48 @@ return function(t: TestRunner.Helper)
 
 	t.test("a new profile has beaten no level", function()
 		local p = SaveSchema.migrate(nil)
-		t.equal(SaveSchema.VERSION, 26)
+		t.equal(SaveSchema.VERSION, 27)
 		t.isNil((next(p.levelsBeaten)))
+	end)
+
+	--[[ Version 27: the retention hooks. An older save starts a new
+	     playtime session, was never paid Premium's egg, and was invited by
+	     nobody, so nothing is owed for having a save already. ]]
+	t.test("an older save has a fresh playtime clock and owes no invite", function()
+		local p = SaveSchema.migrate({ version = 26, coins = 7 })
+		t.equal(p.version, SaveSchema.VERSION)
+		t.equal(p.coins, 7)
+		t.equal(p.playtime.start, 0, "the next join starts a session")
+		t.equal(p.playtime.claimed, 0)
+		t.equal(p.premiumDay, 0)
+		t.equal(p.invites.by, 0)
+		t.isFalse(p.invites.owed)
+		t.isNil((next(p.invites.counted)))
+		-- a stored copy reads back as it was, broken parts dropped
+		local stored = SaveSchema.migrate({
+			version = 27,
+			playtime = { start = 1000, seen = 1200, claimed = 3 },
+			premiumDay = 20400,
+			invites = {
+				by = 42,
+				owed = true,
+				counted = { ["7"] = true, nope = true },
+				day = 20400,
+				paid = 99,
+			},
+		})
+		t.equal(stored.playtime.start, 1000)
+		t.equal(stored.playtime.seen, 1200)
+		t.equal(stored.playtime.claimed, 3)
+		t.equal(stored.premiumDay, 20400)
+		t.equal(stored.invites.by, 42)
+		t.isTrue(stored.invites.owed)
+		t.isTrue(stored.invites.counted["7"])
+		t.isNil(stored.invites.counted.nope)
+		t.isTrue(stored.invites.paid < 99, "never more paid than a day allows")
+		local again = SaveSchema.migrate(stored)
+		t.equal(again.playtime.claimed, 3)
+		t.equal(again.invites.by, 42)
 	end)
 
 	t.test("version 1 migrates up: nothing lost, no levels beaten", function()

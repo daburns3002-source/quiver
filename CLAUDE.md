@@ -607,6 +607,21 @@ how it is going as it happens**: `RewardRules.note` returns the quests that just
 their goal, and `Data/Rewards` sends a line for each ("QUEST: DEFEAT 50 ENEMIES 25/50", "QUEST DONE! ...")
 on the reward toast, which draws no diamond for a line that pays nothing.
 
+**Experience notifications** (owner, 2026-11-18: "yes all of these create them"; `docs/NOTIFICATIONS.md`,
+`Config/Notifications`, rules in `Util/NotifyRules`, save version 25 `notify`): Roblox's opt-in pings. **Built
+and switched off: nothing is sent until the owner's steps in that doc are done and they say yes** (`send`,
+and each kind's `messageId`, the notification string's Asset ID). The question, GET A PING? (`UI/NotifyPrompt`),
+is live: never in a first session, only after a daily reward is claimed (`Rewards.dailyClaimed`) and once the
+lobby is quiet with REWARDS put away; Roblox's own prompt only behind YES; NOT NOW waits 3 days, three of them
+and never again. As a YES player leaves (`PlayerData.onLeaving`), `Data/Notify` plans at most three messages
+(daily reward ready, gift box full, and the event, season and set rotation through `Notify.upcoming(kind,
+provider)`: the weekend and the rotation are hooked from `Util/LiveBoosts` and `Util/SetRotation`, the season
+hooks itself), one per 20 hours, in the player's evening, none after 14 days away;
+the plan waits in a MemoryStore sorted map every server polls (`Data/NotifyQueue`, claimed before it is sent),
+and the one Open Cloud call is `Data/NotifySender`, its API key the experience secret `NotifyApiKey`, never in
+the repo. `tests/NotifyRules.spec`, `NotifySender.spec` (a stub), `NotifyQueue.spec` (a table for MemoryStore).
+Studio never sends (no secrets in a local playtest); `Remotes.DebugNotifyAsk` shows the question there.
+
 **Boss badges** (owner, 2026-11-12: "a blocky circular icon ... for each boss ... like how they do in pokemon
 with gym badges"; `Config/BossBadges`, `UI/BadgeCase`): one badge per area boss, the boss's face on a gold-rimmed
 medal in the area's colour (Codex's version A, which the owner picked; `assets/concepts/blocky/ui/badges/`, cut by

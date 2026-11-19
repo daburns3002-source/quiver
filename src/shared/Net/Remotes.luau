@@ -215,6 +215,18 @@ Remotes.VictoryChest = "VictoryChest"
 --[[ Server → client: a reward just landed by itself (a new Dex entry):
      its words, gems and coins, for the toast (`UI/RewardsScreen`). ]]
 Remotes.RewardToast = "RewardToast"
+
+--[[ Server -> client: ask this player about notifications now
+     (`Data/Notify`, `UI/NotifyPrompt`), carrying whether it is Studio's
+     look (show the question even where Roblox says it cannot ask). ]]
+Remotes.NotifyAsk = "NotifyAsk"
+--[[ Client -> server: the answer, "yes", "no" or "cannot" (Roblox could
+     not ask), and the device's offset from UTC in minutes. Taken only
+     while the server waits for one. ]]
+Remotes.NotifyAnswer = "NotifyAnswer"
+--[[ Client -> server, Studio only: ask this player about notifications
+     at once. ]]
+Remotes.DebugNotifyAsk = "DebugNotifyAsk"
 --[[ Client → server, Studio only: move this player's reward day on by a
      number of days (1 if none), to see a day roll (`Data/Rewards`). ]]
 Remotes.DebugDay = "DebugDay"

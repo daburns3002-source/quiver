@@ -76,7 +76,7 @@ return function(t: TestRunner.Helper)
 			levelsBeaten = { ["1-1"] = true, ["1-2"] = true },
 			bossesBeaten = { MossyGlade = true },
 		})
-		t.equal(p.version, 24)
+		t.equal(p.version, SaveSchema.VERSION)
 		t.isNil((next(p.hardBeaten)), "hard wins invented")
 		t.equal(p.coins, 75)
 		t.isTrue(p.levelsBeaten["1-2"])
@@ -132,7 +132,7 @@ return function(t: TestRunner.Helper)
 
 	t.test("a new profile has beaten no level", function()
 		local p = SaveSchema.migrate(nil)
-		t.equal(SaveSchema.VERSION, 24)
+		t.equal(SaveSchema.VERSION, 25)
 		t.isNil((next(p.levelsBeaten)))
 	end)
 
@@ -544,4 +544,37 @@ return function(t: TestRunner.Helper)
 		t.isFalse(lied.rewards.bossMet, "a stored yes with no boss beaten is not believed")
 		t.isTrue(SaveSchema.migrate(old).rewards.bossMet, "a saved copy reads back the same")
 	end)
+
+	t.test(
+		"version 25: nobody was asked to opt in; a player who has played counts a session",
+		function()
+			local fresh = SaveSchema.default().notify
+			t.equal(fresh.joins, 0)
+			t.equal(fresh.answer, "", "a new profile was never asked")
+			t.equal(SaveSchema.migrate({ version = 24, coins = 3 }).notify.joins, 0)
+			local played =
+				SaveSchema.migrate({ version = 24, rewards = { loginDay = 9, loginCount = 4 } })
+			t.equal(played.notify.joins, 1, "a profile that claimed a day has had a session")
+			t.equal(played.notify.answer, "")
+			local won = SaveSchema.migrate({ version = 24, levelsBeaten = { ["1-1"] = true } })
+			t.equal(won.notify.joins, 1, "so has one that won a level")
+			local stored = SaveSchema.migrate({
+				version = 25,
+				notify = { joins = 7.5, asked = 20400, noes = 99, answer = "maybe", zone = 9000 },
+			})
+			t.equal(stored.notify.joins, 7)
+			t.equal(stored.notify.asked, 20400)
+			t.isTrue(stored.notify.noes <= 3, "never more NOT NOWs than are allowed")
+			t.equal(stored.notify.answer, "", "an answer that is not one is dropped")
+			t.equal(stored.notify.zone, 14 * 60, "an offset is one a zone can have")
+			local yes = SaveSchema.migrate({
+				version = 25,
+				notify = { joins = 3, answer = "yes", zone = -300 },
+			})
+			local again = SaveSchema.migrate(yes)
+			t.equal(again.notify.answer, "yes", "a saved copy reads back the same")
+			t.equal(again.notify.zone, -300)
+			t.equal(again.notify.joins, 3)
+		end
+	)
 end

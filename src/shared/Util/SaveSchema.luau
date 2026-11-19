@@ -152,6 +152,12 @@
 	Version 24 (2026-11-18, hard mode -- `Util/HardRules`): `hardBeaten`,
 	the levels won on hard, by name. Nothing was ever played on hard, so an
 	older profile has won none.
+	Version 25 (2026-11-18, experience notifications -- `Util/NotifyRules`):
+	`notify`, the sessions begun, whether and when the player was asked to
+	opt in and what they answered, and their device's offset from UTC. An
+	older profile was never asked; one that has claimed a daily reward or
+	won a level has had a session, so it counts one and may be asked in
+	its next.
 ]]
 
 local ClassLevelRules = require(script.Parent.ClassLevelRules)
@@ -159,13 +165,14 @@ local ClassList = require(script.Parent.ClassList)
 local Classes = require(script.Parent.Parent.Config.Classes)
 local GiftRules = require(script.Parent.GiftRules)
 local MergeRules = require(script.Parent.MergeRules)
+local NotifyRules = require(script.Parent.NotifyRules)
 local RunBonus = require(script.Parent.RunBonus)
 local SettingsRules = require(script.Parent.SettingsRules)
 local StoreRules = require(script.Parent.StoreRules)
 
 local SaveSchema = {}
 
-SaveSchema.VERSION = 24
+SaveSchema.VERSION = 25
 
 --[[ The classes' own weapons, owned from the start: one for every class a
      player can choose (`Util/ClassList`). Given on every load (`migrate`
@@ -263,6 +270,8 @@ export type Profile = {
 	--[[ The levels won on hard, by name ("1-3"; version 24,
 	     `Util/HardRules`). ]]
 	hardBeaten: { [string]: boolean },
+	--[[ The notifications' opt-in (version 25, `Util/NotifyRules`). ]]
+	notify: NotifyRules.State,
 }
 
 export type RewardState = {
@@ -357,6 +366,7 @@ function SaveSchema.default(): Profile
 		levelStars = {},
 		starChests = {},
 		hardBeaten = {},
+		notify = NotifyRules.default(),
 	}
 end
 
@@ -565,6 +575,13 @@ function SaveSchema.migrate(raw: unknown): Profile
 	--[[ 23 -> 24: nothing was played on hard; a stored copy keeps its
 	     true flags. ]]
 	profile.hardBeaten = flags(data.hardBeaten)
+	--[[ 24 -> 25: nobody was asked; a profile that has claimed a day or
+	     won a level has had a session already. A stored state is read
+	     field by field (`NotifyRules.read`). ]]
+	profile.notify = NotifyRules.read(data.notify)
+	if version < 25 and (profile.rewards.loginCount > 0 or next(profile.levelsBeaten) ~= nil) then
+		profile.notify.joins = math.max(profile.notify.joins, 1)
+	end
 	return profile
 end
 

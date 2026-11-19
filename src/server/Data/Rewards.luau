@@ -50,6 +50,10 @@ Rewards.openChest = nil :: ((player: Player, kind: string) -> ())?
 --[[ Gives a goal's eggs and crates (`Config/Goals`), by the same module
      and for the same reason. ]]
 Rewards.givePrize = nil :: ((player: Player, eggs: number, crates: number) -> ())?
+--[[ Told when the day's login reward has just been claimed, alone or in
+     CLAIM ALL: the moment `Data/Notify` may ask about notifications. Set
+     by that module, which requires this one. ]]
+Rewards.dailyClaimed = nil :: ((player: Player) -> ())?
 
 --[[ Studio's day offsets, by player; never set on a live server. ]]
 local offsets: { [Player]: number } = {}
@@ -138,6 +142,7 @@ local function claim(player: Player, kind: unknown, key: unknown)
 		return
 	end
 	local day = Rewards.today(player)
+	local loginBefore = profile.rewards.loginDay
 	local gift: RewardRules.Gift? = nil
 	if kind == "bonus" then
 		--[[ The chest for all three quests: marked opened here, in one
@@ -225,6 +230,10 @@ local function claim(player: Player, kind: unknown, key: unknown)
 	Wallet.addGems(player, gift.gems)
 	PlayerData.touch(player)
 	Wallet.send(player)
+	local told = Rewards.dailyClaimed
+	if told and profile.rewards.loginDay ~= loginBefore then
+		told(player)
+	end
 end
 
 function Rewards.start()

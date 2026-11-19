@@ -60,6 +60,7 @@ type Entry = {
 
 local entries: { [Player]: Entry } = {}
 local loaded = Instance.new("BindableEvent")
+local leaving: { (Player, SaveSchema.Profile) -> () } = {}
 local store: DataStore? = nil
 local jobId = if game.JobId ~= "" then game.JobId else "studio-" .. tostring(math.random(1e9))
 
@@ -226,6 +227,13 @@ function PlayerData.onLoaded(callback: (Player) -> ())
 	end
 end
 
+--[[ Calls back as the player leaves, with the profile as it is saved:
+     before it is let go, so the callback need not race the save. Called in
+     its own thread; it must not change the profile. ]]
+function PlayerData.onLeaving(callback: (Player, SaveSchema.Profile) -> ())
+	table.insert(leaving, callback)
+end
+
 function PlayerData.start()
 	openStore()
 	for _, player in Players:GetPlayers() do
@@ -233,6 +241,12 @@ function PlayerData.start()
 	end
 	Players.PlayerAdded:Connect(load)
 	Players.PlayerRemoving:Connect(function(player)
+		local entry = entries[player]
+		if entry then
+			for _, callback in leaving do
+				task.spawn(callback, player, entry.profile)
+			end
+		end
 		save(player, true)
 		entries[player] = nil
 	end)

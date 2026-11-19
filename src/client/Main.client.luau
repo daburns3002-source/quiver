@@ -71,6 +71,7 @@ local MoveController = require(script.Parent.Input.MoveController)
 local MusicFx = require(script.Parent.Fx.MusicFx)
 local NameTags = require(script.Parent.UI.NameTags)
 local NewEnemyScreen = require(script.Parent.UI.NewEnemyScreen)
+local NotifyPrompt = require(script.Parent.UI.NotifyPrompt)
 local PetPreview = require(script.Parent.Fx.PetPreview)
 local PickupFx = require(script.Parent.Fx.PickupFx)
 local PlayerStats = require(script.Parent.PlayerStats)
@@ -586,6 +587,8 @@ GearScreen.start()
 DexScreen.start()
 -- the login calendar, quests and starter list, and each board's YOU row
 RewardsScreen.start()
+-- the notifications' opt-in, asked once the REWARDS screen is put away
+NotifyPrompt.start()
 -- the BADGES case: a badge for each boss beaten, under REWARDS
 BadgeCase.start()
 BoardYou.start()

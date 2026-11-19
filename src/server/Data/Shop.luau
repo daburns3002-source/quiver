@@ -24,6 +24,7 @@ local ClassList = require(ReplicatedStorage.Shared.Util.ClassList)
 local Classes = require(ReplicatedStorage.Shared.Config.Classes)
 local Economy = require(ReplicatedStorage.Shared.Config.Economy)
 local Inbound = require(script.Parent.Parent.Net.Inbound)
+local LiveState = require(ReplicatedStorage.Shared.Util.LiveState)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local SaveSchema = require(ReplicatedStorage.Shared.Util.SaveSchema)
@@ -158,7 +159,7 @@ local function buy(player: Player, weapon: unknown)
 		or not price
 		or Wallet.owns(player, weapon)
 		or not profile
-		or not ShopRules.buyable(entry, profile.bossesBeaten)
+		or not ShopRules.buyable(entry, profile.bossesBeaten, nil, LiveState.now())
 	then
 		return
 	end

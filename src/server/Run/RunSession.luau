@@ -18,6 +18,7 @@ local AbilityEffects = require(ReplicatedStorage.Shared.Combat.AbilityEffects)
 local Analytics = require(script.Parent.Parent.Data.Analytics)
 local Arena = require(script.Parent.Parent.Arena.Arena)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
+local Boosts = require(script.Parent.Parent.Data.Boosts)
 local Classes = require(ReplicatedStorage.Shared.Config.Classes)
 local CombatTuning = require(ReplicatedStorage.Shared.Config.CombatTuning)
 local Coop = require(ReplicatedStorage.Shared.Util.Coop)
@@ -943,13 +944,14 @@ function RunSession.payCoins(session: Session, amount: number, position: Vector3
 end
 
 --[[ Coins a run earns, a kill's or a clear's: `base` at the player's passes'
-     scale (2x Coins, VIP; `Util/StoreRules.coinScale`) with the run's win
+     scale (2x Coins, VIP; `Util/StoreRules.coinScale`) with a coin event's
+     share (a 2x Coins weekend or live event, `Data/Boosts`), the run's win
      streak, its party's friend bonus and hard mode added (`Util/RunBonus`), the part
      under a whole coin carried to the next. Anything else paid in a run (the
      tutorial's top-up to the first egg) goes through `payCoins` as it is. ]]
 function RunSession.payEarned(session: Session, base: number, position: Vector3?)
 	local scale = RunBonus.scale(
-		StoreRules.coinScale(Passes.owned(session.player)),
+		StoreRules.coinScale(Passes.owned(session.player)) + Boosts.coinShare(),
 		session.streak,
 		Coop.partySize(),
 		CurrentStage.hard()

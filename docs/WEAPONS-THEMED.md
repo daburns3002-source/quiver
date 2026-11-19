@@ -31,6 +31,10 @@ mistaken for another game's art is a redo.
   nothing above Epic, so a Legendary set's price in coins and gems is the one place they do
   (owner's yes, 2026-11-18). A Mythic set would be earned, never sold (`docs/ROBUX-STORE.md`).
 - Prices are starting numbers: 5,000 coins and 300 gems a weapon.
+- **Two sets a week** (since 2026-11-18, [LIVE-EVENTS.md](LIVE-EVENTS.md)): the SETS tab sells
+  only the week's two, by the server's clock (Monday 00:00 UTC), with a NEW SETS IN countdown; the
+  others are off the shelf until their week comes back, and the server refuses them
+  (`Util/SetRotation`). Owned weapons are kept.
 
 ## Neon Circuit (Legendary) — in the game
 

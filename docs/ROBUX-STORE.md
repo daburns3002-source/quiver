@@ -6,9 +6,9 @@ What the game sells for Robux (owner, 2026-11-13: "Yes, build them"). Prices are
 
 ## On the Creator Dashboard
 
-**Created 2026-11-14** in "Archer Legends [TEST]" (universe 10772468005), all on sale, **managed pricing off** so these prices hold (turn it on per item to let Roblox tune them). Every icon is a 512 x 512 PNG in `assets/ui/robux/dashboard/`, centred with room for Roblox's circle crop. The ids are in `Config/RobuxStore`. A new item: create it there, then put its id in the config.
+**Created 2026-11-14** (the Server Luck 2026-11-19) in "Archer Legends [TEST]" (universe 10772468005), all on sale, **managed pricing off** so these prices hold (turn it on per item to let Roblox tune them). Every icon is a 512 x 512 PNG in `assets/ui/robux/dashboard/`, centred with room for Roblox's circle crop. The ids are in `Config/RobuxStore`. A new item: create it there, then put its id in the config.
 
-If the game is ever published to another universe, these ten must be made there too and the ids changed: an id belongs to one universe.
+If the game is ever published to another universe, these eleven must be made there too and the ids changed: an id belongs to one universe.
 
 ### Developer products (Monetization → Developer Products → Create)
 
@@ -21,6 +21,7 @@ If the game is ever published to another universe, these ten must be made there 
 | Vault of Gems | 3731092429 | 999 | 5,500 gems. | `Gems.png` |
 | Starter Pack | 3731092480 | 99 | 500 gems, 3 Mossy Eggs and 2,000 coins. Once per player. | `StarterPack.png` |
 | Revive | 3731092534 | 15 | Back into the room you fell in, with your build. Once per run. | `Revive.png` |
+| Server Luck | 3733414190 | 49 | 2x egg luck for everyone in the server for 15 minutes. Buy again to add time. | `ServerLuck.png` |
 
 ### Game passes (Monetization → Passes → Create a Pass, then put it on sale)
 
@@ -41,6 +42,7 @@ If the game is ever published to another universe, these ten must be made there 
 - **Starter pack**: offered once, as the player leaves a Victory for the lobby with two levels won (`RobuxStore.starterAfterWins`; never over NEXT LEVEL, since 2026-11-14) (`RunSummary.starter`, `UI/RobuxOffer`); always on the STORE's GEMS tab until bought. Its eggs hatch on the spot and show as a prize.
 - **Revive, Robux only** (owner: "the revive should only be robux not diamonds and it should be 15"): offered over DEFEAT once a run (not in the tutorial, and not for sale in a run's first three rooms, `RobuxStore.reviveFromRoom`, since 2026-11-14). The room, wave or floor the player fell in starts over with their level and cards kept, full health behind the revive's shield. While its prompt is open, TRY AGAIN waits up to 30 s. A revive bought when the run has already moved on is kept in the save (`purchases.reviveCredits`) and DEFEAT offers it free next time.
 - **Revive in co-op**: it stands up only the buyer. Everyone else sits that room out, as a teammate who bled out does, and is back for the next room (`RunSession.sitOut`, `returnTheDowned`).
+- **Server Luck** (owner, 2026-11-18; [LIVE-EVENTS.md](LIVE-EVENTS.md)): 15 minutes of 2x egg luck for the whole server, more time for each one bought, thanked on every player's lobby banner. Sold from the Hatchery's odds card, never the STORE's shelves. It touches random rewards (`paidRandom`), so a player PolicyService restricts paid random items for, or whose answer is not in, is never offered it and the server refuses it (`Data/Policy`, `StoreRules.offered`).
 - **Analytics**: every grant is a custom "Purchase" event (value: Robux; fields: key, Product or Pass, where it was offered). A revive reopens the run's progression record so its real end is still logged.
 
 ## Testing in Studio

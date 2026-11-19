@@ -14,6 +14,7 @@ local LaunchLocks = require(script.Parent.LaunchLocks)
 local MergeRules = require(script.Parent.MergeRules)
 local Purse = require(script.Parent.Purse)
 local Sandbox = require(ReplicatedStorage.Shared.Config.Sandbox)
+local SetRotation = require(script.Parent.SetRotation)
 local Shop = require(ReplicatedStorage.Shared.Config.Shop)
 local WeaponStats = require(ReplicatedStorage.Shared.Config.WeaponStats)
 
@@ -285,14 +286,17 @@ end
 
 --[[ Whether a player who has beaten `bossesBeaten` may buy `entry` at the
      store: its area's crate is open to them (`crateOpen`). A themed set's
-     weapon waits on no boss, whatever the launch switch says. ]]
+     weapon waits on no boss, whatever the launch switch says, but only
+     sells in its set's week (`Util/SetRotation`, at the server's `now`;
+     never without one). ]]
 function ShopRules.buyable(
 	entry: Entry,
 	bossesBeaten: { [string]: boolean }?,
-	locks: boolean?
+	locks: boolean?,
+	now: number?
 ): boolean
 	if entry.set then
-		return true
+		return now ~= nil and SetRotation.onSale(entry.set, now)
 	end
 	return ShopRules.crateOpen(entry.area, bossesBeaten, locks)
 end

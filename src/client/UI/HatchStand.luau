@@ -76,6 +76,12 @@ export type Spec = {
 	--[[ The screen's own modes, as tabs along the panel's head (the
 	     Blacksmith's CRATES and STORE). ]]
 	modes: { Mode }?,
+	--[[ A luck boost the odds are drawn at, in gold beside the card's head
+	     ("2x LUCK!"; docs/LIVE-EVENTS.md); nil with none. ]]
+	luck: string?,
+	--[[ Buys the Server Luck, a button at the card's head; nil when it is
+	     not offered. ]]
+	boost: (() -> ())?,
 }
 export type Mode = { words: string, on: boolean, pick: () -> () }
 export type Controller = {
@@ -369,7 +375,44 @@ function HatchStand.draw(
 
 	-- what is inside, on the white card
 	Chunky.card(sheet, kx, ky, kw, kh)
-	words(sheet, `{spec.noun} INSIDE`, kx + 24, ky + 14, kw - 48, 62, Chunky.navy, 0)
+	if spec.luck or spec.boost then
+		-- the head shared: what is inside on the left, the luck on the right
+		local head =
+			words(sheet, `{spec.noun} INSIDE`, kx + 24, ky + 14, kw * 0.4 - 24, 62, Chunky.navy, 0)
+		head.TextXAlignment = Enum.TextXAlignment.Left
+		local right = kx + kw - 24
+		if spec.boost then
+			local luckW = kw * 0.32
+			Chunky.button(
+				sheet,
+				"2x LUCK ALL",
+				Chunky.green,
+				right - luckW,
+				ky + 12,
+				luckW,
+				66,
+				guard(spec.boost)
+			).Name =
+				"ServerLuck"
+			right -= luckW + 12
+		end
+		if spec.luck then
+			local tag = words(
+				sheet,
+				spec.luck,
+				kx + kw * 0.4,
+				ky + 14,
+				right - kx - kw * 0.4,
+				62,
+				Chunky.gold,
+				4
+			)
+			tag.Name = "LuckOn"
+			tag.TextXAlignment = Enum.TextXAlignment.Right
+		end
+	else
+		words(sheet, `{spec.noun} INSIDE`, kx + 24, ky + 14, kw - 48, 62, Chunky.navy, 0)
+	end
 	local held = #spec.tiles
 	local gx, gy, gw, gh = kx + 28, ky + 88, kw - 56, kh - 88 - 120
 	local tileGap = 16

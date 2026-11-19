@@ -22,8 +22,8 @@
 	the prompt) is kept in the save and spent on the next DEFEAT for free.
 
 	**Never sold:** Mythics, boss items, Starfall, boss badges. No energy and no
-	timers. A product gives only gems, coins, eggs or a revive
-	(`tests/RobuxStore.spec` holds that).
+	timers. A product gives only gems, coins, eggs, a revive or the Server
+	Luck's time (`tests/RobuxStore.spec` holds that).
 
 	`id` is the Creator Dashboard's number (universe 10772468005, "Archer Legends
 	[TEST]", created 2026-11-14 with managed pricing off so these prices hold);
@@ -54,6 +54,14 @@ export type Product = {
 	icon: string?,
 	--[[ A word over the tile, for the packs worth the most. ]]
 	flag: string?,
+	--[[ Seconds of 2x egg luck for everyone in the server (the Server Luck,
+	     `docs/LIVE-EVENTS.md`); another one adds the time. Never on the
+	     STORE's shelves: the egg screen offers it. ]]
+	serverLuck: number?,
+	--[[ It touches random rewards (luck): never offered to, and refused for,
+	     a player PolicyService restricts paid random items for
+	     (`Server/Data/Policy`, `StoreRules.canPrompt`). ]]
+	paidRandom: boolean?,
 }
 
 export type Pass = {
@@ -143,6 +151,17 @@ local products: { Product } = {
 		art = "revive",
 		icon = "rbxassetid://79041273355190",
 	},
+	{
+		key = "ServerLuck",
+		id = 3733414190,
+		name = "Server Luck",
+		robux = 49,
+		description = "2x egg luck for everyone in the server for 15 minutes. Buy again to add time.",
+		serverLuck = 15 * 60,
+		paidRandom = true,
+		art = "luck",
+		icon = "",
+	},
 }
 
 local passes: { Pass } = {
@@ -203,6 +222,10 @@ return table.freeze({
 	--[[ The Player attribute a pass's ownership is shown on, for the screens
 	     (`"Pass" .. key`); the server reads its own table, never this. ]]
 	passAttribute = "Pass",
+	--[[ The Player attribute that says PolicyService restricts paid random
+	     items for this player (`Server/Data/Policy`): true until the answer
+	     is in, false once it says they are not. ]]
+	paidRandomAttribute = "PaidRandomRestricted",
 	--[[ The VIP name tag's gold. ]]
 	vipGold = Color3.fromRGB(255, 205, 64),
 })

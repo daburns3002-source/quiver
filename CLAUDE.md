@@ -862,9 +862,24 @@ Starfall, boss badges; no energy, no timers. **Every receipt is granted once**: 
 `PurchaseId` up in the save (`SaveSchema` v15 `purchases`), grants and writes it down together, and answers
 `PurchaseGranted` only after `PlayerData.saveNow` lands. Prompts are the server's (`Remotes.StoreBuy`). The
 revive puts the buyer back into the room they fell in, which starts over with their build (`RoomController.revive`);
-in co-op only the buyer, the others sit that room out. The ten ids are the dashboard's (universe 10772468005,
+in co-op only the buyer, the others sit that room out. The ids are the dashboard's (universe 10772468005,
 created 2026-11-14, managed pricing off); an id at 0 shows SOON. The creator's account owns every pass.
 Studio: `Remotes.DebugReceipt(key, id)` and `DebugPass(key, on)`.
+
+**Live events** (owner, 2026-11-18: "yes all of these create them"; `docs/LIVE-EVENTS.md`, `Config/LiveEvents`,
+`Util/SetRotation`, `Util/LiveBoosts`, `Util/LiveState`, `Server/Data/Boosts`, `Server/Data/Policy`,
+`UI/BoostBanner`): all on the server's clock, UTC, a week from Monday 00:00. **Two themed sets a week** on
+the SETS tab (with NEW SETS IN ...), the others off the shelf and refused by the server (`ShopRules.buyable`
+takes the server's `now`). **Weekend boosts**, Friday 00:00 to Monday 00:00, 2x Luck and 2x Coins weekend
+about; the **owner's live event** (the LIVE switch under the lobby banner, user id checked on the server,
+MessagingService to every server, MemoryStore for new ones), 30 minutes of either; the **Server Luck**, a 49
+Robux product, 15 minutes of 2x luck for the whole server, more time a buy, thanked on the banner, sold on
+the Hatchery's odds card and never offered to a player PolicyService restricts paid random items for
+(`paidRandom`, `StoreRules.offered`; unknown counts as restricted). **Boosts add and stop at
+`LiveEvents.caps`**: luck at most 3x, events at most +1 coin scale (2x), beside the passes, streak and
+friend; VIP brings no luck. Luck multiplies the Legendary and Mythic odds and the other rarities pay for it
+(`LiveBoosts.odds`, `EggRules.pool(key, luck)`); the egg screen draws the odds at the luck running. Studio:
+`Remotes.DebugClock(seconds)` moves the clock for the server and every screen.
 
 **Endless pays in eggs and crates** (owner, 2026-11-11: "MAKE IT MORE LIKE 5 EGGS AND 5 CRATES ... I WANT
 IT TO FEEL NECESSARY TO BEAT THESE ROOMS"): each milestone (`Balance.Endless.milestones`) hatches its

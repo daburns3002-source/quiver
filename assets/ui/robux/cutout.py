@@ -1,14 +1,18 @@
 """Cut the Robux store's icons out of Codex's sheet.
 
     python -I assets/ui/robux/cutout.py
+    python -I assets/ui/robux/cutout.py luck
 
 Reads assets/concepts/blocky/ui/robux/icons_raw.png (3 x 2 on flat magenta:
 2x Coins, Extra Pet Slot, VIP; Starter Pack, Revive) and writes
 icons/<Key>.png at 512 px, the size the Creator Dashboard asks for. The keying
-is the trail icons' (assets/ui/trails/cutout.py).
+is the trail icons' (assets/ui/trails/cutout.py). With a name, one icon drawn
+alone (`luck_raw.png`, the Server Luck) is cut to icons/<Key>.png and, smaller
+for Roblox's circle crop, dashboard/<Key>.png.
 """
 
 import pathlib
+import sys
 
 import numpy as np
 from PIL import Image
@@ -20,6 +24,10 @@ RAW = ROOT / "assets/concepts/blocky/ui/robux/icons_raw.png"
 SIZE = 512
 PAD = 0.04
 KEYS = ["DoubleCoins", "PetSlot", "VIP", "StarterPack", "Revive"]
+# one icon drawn alone: its raw picture's name and its key
+SINGLES = {"luck": "ServerLuck"}
+# a dashboard icon's share of its square, clear of the circle crop
+DASHBOARD = 0.7
 
 
 def key_out(img: Image.Image, colour: str) -> Image.Image:
@@ -76,5 +84,21 @@ def main() -> None:
         print("wrote", f"icons/{key}.png")
 
 
+def single(name: str) -> None:
+    key = SINGLES[name]
+    raw = RAW.with_name(f"{name}_raw.png")
+    icon = fit(drop_strays(key_out(Image.open(raw), "magenta")))
+    (HERE / "icons").mkdir(exist_ok=True)
+    icon.save(HERE / "icons" / f"{key}.png", optimize=True)
+    small = icon.resize((round(SIZE * DASHBOARD), round(SIZE * DASHBOARD)), Image.LANCZOS)
+    board = Image.new("RGBA", (SIZE, SIZE), (0, 0, 0, 0))
+    board.paste(small, ((SIZE - small.width) // 2, (SIZE - small.height) // 2), small)
+    board.save(HERE / "dashboard" / f"{key}.png", optimize=True)
+    print("wrote", f"icons/{key}.png", f"dashboard/{key}.png")
+
+
 if __name__ == "__main__":
-    main()
+    if len(sys.argv) > 1:
+        single(sys.argv[1])
+    else:
+        main()

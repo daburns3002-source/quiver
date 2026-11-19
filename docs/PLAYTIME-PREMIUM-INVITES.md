@@ -38,7 +38,7 @@ session starts with all six shut. Quitting and rejoining soon after goes on
 with the same session, so it cannot be farmed by rejoining; a break of more
 than ten minutes starts over, which is the intended "each session".
 
-**On screen.** A round gold gift button under REWARDS in the lobby
+**On screen.** A round gold gift button under REWARDS and BADGES in the lobby
 (`UI/PlaytimeButton`): a ring of 20 blocks fills towards the next gift with
 the time left under it; once one is open the ring turns gold, it says GIFT READY!
 and the button pulses and sways. It opens REWARDS on the new GIFTS tab, where
@@ -97,10 +97,26 @@ Studio: `Remotes.DebugInvite:FireServer(userId)` plays a first join invited
 by `userId` with the friendship check skipped; the player's own id pays both
 sides to them.
 
-## Not verified
+## Seen, and not verified
+
+**Seen in Studio Play** (2026-11-19, a 2091 x 1113 window), by probe and three
+captures: the gift button under REWARDS and BADGES with its ring counting down
+and then gold with GIFT READY!; REWARDS' four tabs, GIFTS wearing its count
+and CLAIM ALL counting the open gifts; the GIFTS tab's six cards (two CLAIMs,
+four clocks ticking), the Premium and Invite panels. A clicked CLAIM paid 250
+coins once; a repeat and a gift not yet open paid nothing; CLAIM ALL took the
+other five (both eggs hatched). `DebugPremium` paid the day's egg once
+(`premiumDay` set) and put Roblox's mark on the name tag, 4 points before the
+name and centred with it. `DebugInvite` with the player's own id paid the
+welcome (500 coins, 25 gems), then the inviter's side (500 coins, an egg)
+once; a second go paid the inviter nothing. In-Roblox tests: 1,299 pass.
+
+**Not verified:**
 
 - A real Premium account and a real invite from a second account: Studio
   has neither, so both are proved with the Studio stand-ins only.
 - That `ReferredByPlayerId` is filled for an invite in the live game (the
   launch data covers it if not).
+- A session carried across a real teleport (Studio plays runs in place); the
+  rule is pinned by `tests/Playtime.spec`.
 - Phone size: the gift button, the GIFTS tab upright, the name tag's mark.

@@ -550,7 +550,12 @@ local function premiumPanel(sheet: Chunky.Sheet, x: number, y: number, w: number
 	local up = sheet.upright
 	Chunky.card(sheet, x, y, w, h)
 	local size = math.min(h - 50, 100)
-	icon(sheet, HookAssets.premium, x + 24, y + (h - size) / 2, size)
+	--[[ Roblox's mark is white (it is drawn for the dark player list), so it
+	     is inked here to read on the cream card. ]]
+	local mark = Kit.image(sheet.canvas, HookAssets.premium)
+	mark.ZIndex = 30
+	mark.ImageColor3 = Chunky.ink
+	Chunky.put(sheet, mark, x + 24, y + (h - size) / 2, size, size)
 	local tx = x + 24 + size + 22
 	local buttonW = if up then 300 else 250
 	local textW = w - (tx - x) - buttonW - 36

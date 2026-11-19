@@ -9,7 +9,7 @@
 ]]
 
 return table.freeze({
-	gift = "rbxassetid://0",
-	invite = "rbxassetid://0",
+	gift = "rbxassetid://104745037611407",
+	invite = "rbxassetid://74638811536438",
 	premium = "rbxasset://textures/ui/PlayerList/PremiumIcon.png",
 })

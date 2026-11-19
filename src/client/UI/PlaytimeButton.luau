@@ -1,7 +1,7 @@
 --!strict
 --[[
 	The lobby's gift button (owner, 2026-11-18): the playtime gifts
-	(`Util/PlaytimeRules`) at a glance, under the REWARDS button. A round
+	(`Util/PlaytimeRules`) at a glance, under REWARDS and BADGES. A round
 	gold button with the gift on it, a ring of blocks round it that fills as
 	the next gift comes nearer, and under it the time left; once a gift has
 	opened the ring is gold, the words say GIFT READY! and the whole button
@@ -37,8 +37,11 @@ local DISC = 130
 local PIP = 16
 local RING = DISC / 2 + 18
 local LABEL_W, LABEL_H = 230, 54
---[[ The REWARDS button it sits under (`UI/RewardsScreen` `startButton`). ]]
+--[[ The REWARDS and BADGES buttons it sits under (`UI/RewardsScreen`
+     `startButton`, `UI/BadgeCase`): REWARDS at 24, 230 (150 on a wide
+     screen), 250 x 92, BADGES 24 below it, as tall. ]]
 local REWARDS_X, REWARDS_W, REWARDS_H = 24, 250, 92
+local BADGES_GAP, BADGES_H = 24, 92
 
 local started = false
 
@@ -82,7 +85,7 @@ function PlaytimeButton.start()
 		local sheet = Chunky.sheet(canvas)
 		built = sheet.upright
 		local cx = REWARDS_X + REWARDS_W / 2
-		local top = (if sheet.upright then 230 else 150) + REWARDS_H + 44
+		local top = (if sheet.upright then 230 else 150) + REWARDS_H + BADGES_GAP + BADGES_H + 36
 		local cy = top + RING + PIP / 2
 		local bw, bh = LABEL_W, (RING + PIP / 2) * 2 + 8 + LABEL_H
 		local bx, by = cx - LABEL_W / 2, top

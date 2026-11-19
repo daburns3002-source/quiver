@@ -1107,6 +1107,122 @@ function Canvas.outline(
 	Canvas.polyline(c, cx, cy, width, colour, alpha)
 end
 
+--[[ A convex polygon filled (a fan from its first corner). Glowing, it
+     sits on a soft glow as wide as it is. ]]
+function Canvas.fill(c: Ctx, xs: { number }, ys: { number }, colour: RGB, alpha: number)
+	local n = #xs
+	if n < 3 or alpha <= 0 then
+		return
+	end
+	local glowCol = c.glowCol
+	if c.glowBlur > 0 and glowCol then
+		local mx, my = 0, 0
+		for i = 1, n do
+			mx += xs[i] / n
+			my += ys[i] / n
+		end
+		local far = 0
+		for i = 1, n do
+			far = math.max(far, math.sqrt((xs[i] - mx) ^ 2 + (ys[i] - my) ^ 2))
+		end
+		local light = c.light
+		c.light = true
+		Canvas.glowDot(c, mx, my, far + c.glowBlur * 0.6, glowCol, alpha * 0.45)
+		c.light = light
+	end
+	for i = 2, n - 1 do
+		Canvas.tri(c, xs[i], ys[i], xs[i + 1], ys[i + 1], xs[1], ys[1], colour, alpha)
+	end
+end
+
+--[[ The page's blob: a lumpy nine-sided splat, squashed a fifth across. ]]
+function Canvas.blob(
+	c: Ctx,
+	p: number,
+	q: number,
+	r: number,
+	seed: number,
+	colour: RGB,
+	alpha: number
+)
+	if r <= 0.1 or alpha <= 0 then
+		return
+	end
+	local xs, ys = {}, {}
+	for i = 0, 8 do
+		local an = i / 9 * TAU
+		local rr = r * (0.7 + 0.5 * Canvas.rnd(seed, i, 7))
+		xs[i + 1], ys[i + 1] = p + math.cos(an) * rr, q + math.sin(an) * rr * 0.8
+	end
+	for i = 1, 9 do
+		local j = i % 9 + 1
+		Canvas.tri(c, xs[i], ys[i], xs[j], ys[j], p, q, colour, alpha)
+	end
+end
+
+--[[ A line drawn as dashes `dash` long with `gap` between (the page's
+     setLineDash), along a band's edge `f`. ]]
+function Canvas.dashLine(
+	c: Ctx,
+	F: Frame,
+	f: number,
+	dash: number,
+	gap: number,
+	width: number,
+	colour: RGB,
+	alpha: number
+)
+	if not F.ok or alpha <= 0 then
+		return
+	end
+	local n = 60
+	local px, py = F.p(0, f)
+	local walked, nextAt = 0, 0
+	for i = 1, n do
+		local x, y = F.p(i / n, f)
+		local step = math.sqrt((x - px) ^ 2 + (y - py) ^ 2)
+		while step > 0 and nextAt <= walked + step do
+			local k = (nextAt - walked) / step
+			local sx, sy = px + (x - px) * k, py + (y - py) * k
+			local ux, uy = (x - px) / step, (y - py) / step
+			Canvas.rect(
+				c,
+				sx + ux * dash / 2,
+				sy + uy * dash / 2,
+				dash,
+				width,
+				math.atan2(uy, ux),
+				colour,
+				alpha
+			)
+			nextAt += dash + gap
+		end
+		walked += step
+		px, py = x, y
+	end
+end
+
+--[[ A strip given both edges (in order along it), one colour. ]]
+function Canvas.strip(
+	c: Ctx,
+	ax: { number },
+	ay: { number },
+	bx: { number },
+	by: { number },
+	colour: RGB,
+	alpha: number
+)
+	if #ax < 2 or alpha <= 0 then
+		return
+	end
+	local cols, as = {}, {}
+	for i = 1, #ax do
+		cols[i] = colour
+		as[i] = alpha
+	end
+	push(c, ax, ay, bx, by, cols, as)
+end
+
 ---------------------------------------------------------------- motes
 
 export type MoteOpts = {

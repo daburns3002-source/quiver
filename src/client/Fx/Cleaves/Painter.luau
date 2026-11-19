@@ -23,10 +23,10 @@ local Canvas = require(script.Parent.Canvas)
 
 local Painter = {}
 
---[[ Which attachment axis a flat beam takes its width along. Beams with
-     FaceCamera off lie in the plane their attachments' orientation sets;
-     both attachments are turned so this axis runs across the strip and
-     the beam faces up. ]]
+--[[ A beam with FaceCamera off takes its width along its attachments'
+     Y axis (seen in Studio, 2026-11-19: with Y up the bands stood on edge
+     as walls). Both attachments are turned so Y runs across the strip,
+     flat over the floor. ]]
 local UP = Vector3.yAxis
 
 type Slot = {
@@ -209,7 +209,7 @@ function Painter.paint(
 			end
 			lastAcross = across
 			local centre = base + lift + (a + b) * 0.5
-			frames[i] = CFrame.fromMatrix(centre, UP:Cross(across), UP)
+			frames[i] = CFrame.fromMatrix(centre, UP:Cross(across), across)
 			widths[i] = width
 		end
 		for i = 1, n - 1 do

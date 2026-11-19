@@ -81,25 +81,33 @@ SETS = {
             ),
             (
                 "overclock_blade", "OVERCLOCK BLADE", "greatsword", "golden_blade.png",
-                "a huge wide cleaver-like blade of graphite-black blocks with a slanted stepped tip; "
-                "its back edge is a row of five big square cooling fins like a heat sink, and its "
-                "cutting edge is one thick glowing cyan light bar from guard to tip; set into the "
-                "middle of the blade is a big round cooling fan, a glowing magenta ring with four "
-                "chunky graphite fan blades and a yellow hub; the guard is two fat bright yellow "
-                "block capacitors, one each side, joined by a graphite bar holding the square green "
-                "circuit chip; a short grey ribbed rubber grip; the pommel is a graphite battery block "
-                "with three glowing cyan charge bars; glowing strongly cyan and magenta",
+                "a big heroic two-edged greatsword, symmetrical left to right, NOT a cleaver or a "
+                "knife: a long broad blade of graphite-black blocks, a little wider near the top than "
+                "at the guard, ending in a pointed tip built of three centred steps; a thick glowing "
+                "cyan light bar runs up BOTH cutting edges from guard to tip; down the centre of the "
+                "blade runs a glowing magenta light strip, and set into the blade just above the "
+                "guard is a round cooling fan, a glowing magenta ring with four chunky graphite fan "
+                "blades and a yellow hub; the guard is a wide heat sink, three square graphite fins "
+                "stepping upward on each side like wings, each side ending in a fat bright yellow "
+                "block capacitor, with the square green circuit chip in the guard's middle; a grey "
+                "ribbed rubber grip long enough for two hands; the pommel is a graphite battery block "
+                "with three glowing cyan charge bars; the blade is about three times as long as the "
+                "grip; glowing strongly cyan and magenta",
             ),
             (
                 "glitch_daggers", "GLITCH DAGGERS", "dagger", "golden_daggers.png",
-                "its blade is cut into five thick horizontal slices of graphite-black block, each "
-                "slice shifted a little left or right of the one below it, alternating, as if the "
-                "picture had glitched, the slices getting narrower toward a single square block tip; "
-                "the left edge of every slice glows cyan and the right edge glows magenta; all the "
-                "slices touch, nothing floats; the guard is a wide bright yellow block shaped like a "
-                "chunky game cartridge with the square green circuit chip in its middle; a grey "
-                "ribbed rubber grip; the pommel is a glowing magenta cube; glowing strongly cyan and "
-                "magenta",
+                "a straight, slim dagger blade with a pointed tip that looks torn sideways by a screen "
+                "glitch: the blade is one tall narrow graphite-black bar, all the same width, cut "
+                "across into five equal slices, and the second and fourth slices are slid half a "
+                "block to the RIGHT while the first, third and fifth stay in line, so the two edges "
+                "run in a square-wave zigzag up the blade; the fifth slice is topped by a small "
+                "pointed block tip. It must NOT be a pyramid, a tower or a stack that narrows in "
+                "steps: every slice is the same width. The left face of each slice has a glowing cyan "
+                "edge strip and the right face a glowing magenta one, like a picture whose colours "
+                "have split apart; all the slices touch, nothing floats; the guard is a wide bright "
+                "yellow block shaped like a chunky game cartridge with the square green circuit chip "
+                "in its middle; a grey ribbed rubber grip; the pommel is a glowing magenta cube; "
+                "glowing strongly cyan and magenta",
             ),
         ],
     ),

@@ -1202,6 +1202,17 @@ local looks: { [string]: CleaveLook } = {
 	EeltoothDaggers = card(25, "dagger", "#46aac8", "#fadc50", "#fae15a"),
 	TollbellDaggers = card(26, "dagger", "#5ae1cd", "#be823c", "#6eebd7"),
 	RiptideFangs = card(27, "dagger", "#78f5e6", "#f0ffff", "#befaf5"),
+	-- Bogheart
+	BogironBlade = card(28, "sword", "#929484", "#42463e", "#ffaa46"),
+	ShellbackCleaver = card(29, "sword", "#78aaa0", "#365458", "#aabaaa"),
+	CaplightBlade = card(30, "sword", "#e2ec6e", "#788c28", "#f0faa0"),
+	GulpfangBlade = card(31, "sword", "#9ad63c", "#dcf06e", "#aae646"),
+	DeepglowBlade = card(32, "sword", "#3fe6f2", "#befaff", "#96f5ff"),
+	MossShivs = card(33, "dagger", "#96be50", "#6e6e73", "#8cb446"),
+	SporeFangs = card(34, "dagger", "#f582be", "#ebdcc8", "#fa96c8"),
+	GlowcapKris = card(35, "dagger", "#3cc8b4", "#aaf096", "#5ae6c8"),
+	ToadtongueDaggers = card(36, "dagger", "#f56e96", "#ebb92e", "#f5c850"),
+	PrismStingers = card(37, "dagger", "#3fe6f2", "#ebb43c", "#aaf5fa"),
 }
 for key, look in looks do
 	local cleave = cleaves[key]

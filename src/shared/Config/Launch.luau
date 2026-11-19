@@ -10,8 +10,12 @@
 	first visit (the 2026-11-11 loop and UI review): each should wait on the
 	boss before it and say so.
 
-	`locks` is that one switch. **It is off**, so playtesting is exactly as
-	it was. Turning it on is the whole of locking the game for launch: what
+	`locks` is that one switch. **It is on** since 2026-11-19, the week
+	before release (owner: "make it playable as it will be when it is
+	released so i can playtest with a friend", then "Yes, locks on").
+	Studio's own unlocks (`Config/Sandbox.testUnlock`) still open areas for
+	a Studio playtest; a live server never honours them. It is the whole of
+	locking the game for launch: what
 	each portal and each egg then waits on is written beside it, as
 	`atLaunch` in `Config/Lobby` and `Config/Eggs`, and read through
 	`Util/LaunchLocks`, on the server and on the screens alike.
@@ -19,5 +23,5 @@
 ]]
 
 return table.freeze({
-	locks = false,
+	locks = true,
 })

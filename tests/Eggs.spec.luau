@@ -12,6 +12,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local EggRules = require(ReplicatedStorage.Shared.Util.EggRules)
 local Eggs = require(ReplicatedStorage.Shared.Config.Eggs)
+local Launch = require(ReplicatedStorage.Shared.Config.Launch)
 local PetAuras = require(ReplicatedStorage.Shared.Config.PetAuras)
 local Pets = require(ReplicatedStorage.Shared.Config.Pets)
 local SaveSchema = require(ReplicatedStorage.Shared.Util.SaveSchema)
@@ -112,17 +113,21 @@ return function(t: TestRunner.Helper)
 		end
 	end)
 
-	--[[ Both eggs are open from the start for now (owner, 2026-10-27: "the
-	     mossy glade egg and thornwood egg should be unlocked for now"), so
-	     what is pinned here is that neither asks for a boss, and that the
-	     gate still works for the egg that takes one up when `unlock` comes
-	     back. ]]
-	t.test("the eggs are open from the start", function()
+	--[[ The Mossy Egg is open from the start. Every later egg is open from
+	     the start only while the launch switch is off (playtest), and opens
+	     with the boss it waits on once it is on (`Config/Launch.locks`, on
+	     since 2026-11-19). ]]
+	t.test("the first egg is open from the start, the others as the switch says", function()
 		for _, key in { "MossyEgg", "ThornwoodEgg", "BogheartEgg" } do
 			local egg = EggRules.find(key)
 			t.notNil(egg, key)
 			if egg then
-				t.isTrue(EggRules.open(egg, {}), key)
+				local waits = egg.atLaunch ~= nil or egg.unlock ~= nil
+				t.equal(EggRules.open(egg, {}), not (waits and Launch.locks), key)
+				local boss = egg.unlock or egg.atLaunch
+				if boss then
+					t.isTrue(EggRules.open(egg, { [boss] = true }), `{key} opens with {boss}`)
+				end
 			end
 		end
 	end)

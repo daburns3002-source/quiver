@@ -455,27 +455,41 @@ return function(t: TestRunner.Helper)
 	     no cards and no gear it is a death at floor 6). The server is the
 	     one that decides, so this goes through `Lobby.startFor` rather
 	     than the screen. ]]
-	t.test("Endless is open in playtest, and only from its own mouth", function()
-		local index, portal = nil, nil
-		for i, p in LobbyConfig.portals do
-			if p.name == "Endless" then
-				index, portal = i, p
+	t.test(
+		"Endless is open in playtest, after 1-10 at launch, and only from its own mouth",
+		function()
+			local index, portal = nil, nil
+			for i, p in LobbyConfig.portals do
+				if p.name == "Endless" then
+					index, portal = i, p
+				end
 			end
-		end
-		assert(index and portal, "no Endless portal")
-		t.equal(portal.requires, nil)
-		local levels = portal.levels :: { number }
-		t.equal(#levels, 1)
-		t.equal(Balance.Stages[levels[1]].mode, "Endless")
+			assert(index and portal, "no Endless portal")
+			t.equal(portal.requires, nil)
+			local levels = portal.levels :: { number }
+			t.equal(#levels, 1)
+			t.equal(Balance.Stages[levels[1]].mode, "Endless")
 
-		local at = mouthOf(index)
-		t.equal(Lobby.startFor(at, index, 1, nil), levels[1])
-		t.equal(Lobby.startFor(at, index, 1, { ["1-1"] = true }), levels[1])
-		t.equal(Lobby.startFor(at, index, 1, { ["1-10"] = true }), levels[1])
-		-- and still only from its own mouth
-		local spawn = origin + Vector3.new(LobbyConfig.spawn.X, 3, LobbyConfig.spawn.Y)
-		t.isTrue(Lobby.startFor(spawn, index, 1, nil) == nil, "Endless started from the campfire")
-	end)
+			local at = mouthOf(index)
+			-- the launch switch off (playtest): open to anyone
+			t.equal(Lobby.levelOpen(index, 1, nil, nil, false), levels[1])
+			t.equal(Lobby.levelOpen(index, 1, { ["1-1"] = true }, nil, false), levels[1])
+			-- on (as released, since 2026-11-19): only once 1-10 is beaten
+			t.isTrue(
+				Lobby.levelOpen(index, 1, { ["1-1"] = true }, nil, true) == nil,
+				"Endless before 1-10"
+			)
+			t.equal(Lobby.levelOpen(index, 1, { ["1-10"] = true }, nil, true), levels[1])
+			-- started from its mouth with 1-10 beaten, whichever way the switch is
+			t.equal(Lobby.startFor(at, index, 1, { ["1-10"] = true }), levels[1])
+			-- and only from its own mouth
+			local spawn = origin + Vector3.new(LobbyConfig.spawn.X, 3, LobbyConfig.spawn.Y)
+			t.isTrue(
+				Lobby.startFor(spawn, index, 1, { ["1-10"] = true }) == nil,
+				"Endless started from the campfire"
+			)
+		end
+	)
 
 	t.test("START is granted only for a level the player has opened", function()
 		local glade = LobbyConfig.portals[1]

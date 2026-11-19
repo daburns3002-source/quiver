@@ -789,9 +789,11 @@ the gamepad's (and the tray's): the panel draws it for a gamepad only (owner, 20
 the save, read on the client from Player attributes. `Fx/Haptics` shakes the device on a hit taken, a
 dash and a level gained. The SETTINGS button is on the lobby's left edge.
 
-**Launch locks** (`Config/Launch.locks`, **off**; `Util/LaunchLocks`): one switch that makes every area
-after the first, its egg, and Endless wait on the boss before it (`atLaunch` in `Config/Lobby` and
-`Config/Eggs`). Off, the playtest is as open as the owner asked. `tests/LaunchLocks.spec` holds both.
+**Launch locks** (`Config/Launch.locks`, **on** since 2026-11-19, the week before release: owner,
+"make it playable as it will be when it is released", then "Yes, locks on"; `Util/LaunchLocks`): one
+switch that makes every area after the first, its egg, and Endless wait on the boss before it
+(`atLaunch` in `Config/Lobby` and `Config/Eggs`). Studio's `Config/Sandbox.testUnlock` still opens
+areas for a Studio playtest; a live server never honours it. `tests/LaunchLocks.spec` holds both.
 
 **Gear shows what is chosen, and what is grand** (owner, 2026-11-14: "when you click on the box in the
 gear screen it should highlight so the player knows which box they are clicking. also it should feel

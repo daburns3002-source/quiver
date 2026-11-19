@@ -1216,6 +1216,23 @@ local looks: { [string]: CleaveLook } = {
 	-- The golden pair
 	GoldenBlade = card(38, "sword", "#ffc62c", "#fff7c4", "#ff5c54"),
 	GoldenDaggers = card(39, "dagger", "#ffcd38", "#fff7c4", "#ff5c54", 2.6),
+	-- The themed sets
+	OverclockBlade = card(40, "sword", "#46e8ff", "#ff3ec4", "#78f5ff"),
+	GlitchDaggers = card(41, "dagger", "#ff3ec4", "#46e8ff", "#ff78dc"),
+	WishcutterBlade = card(42, "sword", "#ffd65c", "#ff8cc8", "#ffe28c"),
+	TwinkleDaggers = card(43, "dagger", "#ff8cc8", "#ffd65c", "#ffaed8"),
+	TrailbossBlade = card(44, "sword", "#f0be50", "#40e0d0", "#f4d184"),
+	SpurDaggers = card(45, "dagger", "#f0be50", "#40e0d0", "#f4d184"),
+	BreakerBlade = card(46, "sword", "#50dcff", "#ff786e", "#84e6ff"),
+	SquirtDaggers = card(47, "dagger", "#50dcff", "#ff786e", "#84e6ff"),
+	PixelBlade = card(48, "sword", "#4682ff", "#ff4646", "#7da7ff"),
+	TokenDaggers = card(49, "dagger", "#ff4646", "#4682ff", "#ff7d7d"),
+	NebulaBlade = card(50, "sword", "#b46eff", "#ff8ce6", "#ca99ff"),
+	CometDaggers = card(51, "dagger", "#ff8ce6", "#b46eff", "#ffaeed"),
+	PetalfallBlade = card(52, "sword", "#ff96be", "#ffbe5a", "#ffb5d1"),
+	BellchimeDaggers = card(53, "dagger", "#ffbe5a", "#ff96be", "#ffd18b"),
+	MoltenBlade = card(54, "sword", "#ff781e", "#ffc83c", "#ffa061"),
+	EmbershardDaggers = card(55, "dagger", "#ffc83c", "#ff781e", "#ffd876"),
 }
 for key, look in looks do
 	local cleave = cleaves[key]

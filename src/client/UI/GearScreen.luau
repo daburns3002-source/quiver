@@ -416,16 +416,8 @@ local function details(
 	holder.BackgroundTransparency = 1
 	holder.ZIndex = 6
 	Chunky.put(pop, holder, table.unpack(L.tile))
-	-- a weapon is always its 2D art; a pet stands as its model
-	local tile = Chunky.tile(
-		holder,
-		entry.rarity,
-		entry.icon,
-		nil,
-		not entry.owned,
-		false,
-		if isPet then entry.key else nil
-	)
+	-- one 2D picture, a weapon's or a pet's (`Util/ItemIcons`)
+	local tile = Chunky.tile(holder, entry.rarity, entry.icon, nil, not entry.owned, false)
 	local hasTier = tiered(entry.key, isPet)
 	if entry.owned then
 		Chunky.gleam(tile)
@@ -1170,8 +1162,7 @@ local function draw(s: StationScreen.Screen)
 			     word was too small to read. ]]
 			if entry.owned and tiered(entry.key, isPet) then "x" .. tostring(entry.count) else nil,
 			not entry.owned,
-			isEquipped,
-			if isPet and entry.icon == "" then entry.key else nil
+			isEquipped
 		)
 		local id = (if isPet then "pet:" else "weapon:") .. entry.key
 		if entry.owned then

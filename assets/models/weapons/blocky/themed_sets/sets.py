@@ -35,6 +35,8 @@ SETS = [
      ((255, 120, 30), (255, 200, 60))),
 ]
 
+# The daggers' cards are their own (`weaponOnly`, owner 2026-11-18; docs/CLASS-CARDS.md
+# "The themed daggers' seven"); the other weapons carry a card any of their class may draw.
 # set, key, LABEL, class, card, effect line, glow (0 primary, 1 second), import folder,
 # Studio mesh id, colour map id, size, look (a shot's or a swing's)
 WEAPONS = [
@@ -51,8 +53,8 @@ WEAPONS = [
      "Wishcutter: every few swings you spin in a ring of stars.", 0,
      77646162067586, 83650970339437, (0.4563, 0.9816, 0.1478),
      {"form": "Star", "tail": 0.341, "taper": 0.4}),
-    ("Starwish", "TwinkleDaggers", "TWINKLE DAGGERS", "Assassin", "SoulChain",
-     "Twinkle: hits link nearby enemies like a string of stars, sharing the hurt.", 1,
+    ("Starwish", "TwinkleDaggers", "TWINKLE DAGGERS", "Assassin", "WishingStar",
+     "Twinkle: every fifth strike drops a wishing star that bursts round the enemy.", 1,
      133381353315585, 116194704763654, (0.4630, 0.9814, 0.2238),
      {"form": "Star", "tail": 0.121, "taper": 0.1}),
     # Tumbleweed
@@ -68,8 +70,8 @@ WEAPONS = [
      "Trailboss: each kill quickens your swings, stacking.", 1,
      80154596704715, 137119121556911, (0.3825, 0.9797, 0.1315),
      {"form": "Chip", "tail": 0.342, "taper": 0.4}),
-    ("Tumbleweed", "SpurDaggers", "SPUR DAGGERS", "Assassin", "Quickstep",
-     "Spur: a kill spurs you on, and your dash comes back sooner.", 1,
+    ("Tumbleweed", "SpurDaggers", "SPUR DAGGERS", "Assassin", "SpurRowel",
+     "Spur: the double stab flings a spinning spur that bounces between three enemies.", 1,
      140311721087454, 129615841966613, (0.3321, 0.9806, 0.2418),
      {"form": "Star", "tail": 0.122, "taper": 0.1}),
     # Splash Day
@@ -85,8 +87,8 @@ WEAPONS = [
      "Breaker: your slam sends a wave rolling forward along the ground.", 0,
      74329406799333, 85506869167256, (0.4168, 0.9817, 0.2386),
      {"form": "Ball", "tail": 0.343, "taper": 0.45}),
-    ("SplashDay", "SquirtDaggers", "SQUIRT DAGGERS", "Assassin", "Sunder",
-     "Squirt: a soaked enemy takes more damage from everything for 3s.", 0,
+    ("SplashDay", "SquirtDaggers", "SQUIRT DAGGERS", "Assassin", "SplashWave",
+     "Squirt: every third strike splashes the enemies round it and slows them down.", 0,
      127929929640360, 70441792722031, (0.3907, 0.9818, 0.1768),
      {"form": "Ball", "tail": 0.123, "taper": 0.1}),
     # Coin-Op
@@ -102,8 +104,8 @@ WEAPONS = [
      "Pixel: getting hit powers up your next swing to triple damage.", 1,
      81036173680464, 138716240575470, (0.3695, 0.9819, 0.1222),
      {"form": "Chip", "tail": 0.344, "taper": 0.4}),
-    ("CoinOp", "TokenDaggers", "TOKEN DAGGERS", "Assassin", "Precision",
-     "Token: a lucky coin, for more critical hits.", 0,
+    ("CoinOp", "TokenDaggers", "TOKEN DAGGERS", "Assassin", "ComboCounter",
+     "Token: every strike that lands adds to your combo, up to +30% damage, until you are hit.", 0,
      109593487073132, 105499947744136, (0.3631, 0.9796, 0.2385),
      {"form": "Chip", "tail": 0.124, "taper": 0.1}),
     # Voidglass
@@ -119,8 +121,8 @@ WEAPONS = [
      "Nebula: your swings knock enemy shots out of the air.", 0,
      102228735402808, 93712729804632, (0.3761, 0.9779, 0.3302),
      {"form": "Star", "tail": 0.345, "taper": 0.4}),
-    ("Voidglass", "CometDaggers", "COMET DAGGERS", "Assassin", "RuinCracks",
-     "Comet: your combo's last blow cracks what it hits, and it takes more damage for 4s.", 1,
+    ("Voidglass", "CometDaggers", "COMET DAGGERS", "Assassin", "CometCrash",
+     "Comet: a strike calls down a comet that crashes onto the enemy a moment later.", 1,
      131831047658815, 90966274072915, (0.3542, 0.9779, 0.3375),
      {"form": "Shard", "tail": 0.125, "taper": 0.1}),
     # Lantern Bloom
@@ -136,8 +138,8 @@ WEAPONS = [
      "Petalfall: petals settle on what you strike, and it takes more damage from everything for 3s.", 1,
      78703893865338, 139263431899652, (0.3361, 0.9821, 0.1321),
      {"form": "Leaf", "tail": 0.346, "taper": 0.4}),
-    ("LanternBloom", "BellchimeDaggers", "BELLCHIME DAGGERS", "Assassin", "BoarRush",
-     "Bellchime: your combo's last blow rings out and shoves everything it hits far back.", 0,
+    ("LanternBloom", "BellchimeDaggers", "BELLCHIME DAGGERS", "Assassin", "BellChime",
+     "Bellchime: every sixth strike rings a bell that holds the enemies near you still.", 0,
      92988602774925, 89087637842542, (0.4413, 0.9802, 0.1777),
      {"form": "Leaf", "tail": 0.126, "taper": 0.1}),
     # Cinderforge
@@ -153,8 +155,8 @@ WEAPONS = [
      "Molten: your third blow lands like a hammer on an anvil.", 0,
      96189184685974, 90975304299716, (0.4137, 0.9806, 0.2146),
      {"form": "Chip", "tail": 0.347, "taper": 0.45}),
-    ("Cinderforge", "EmbershardDaggers", "EMBERSHARD DAGGERS", "Assassin", "DeadlyStrike",
-     "Embershard: a critical hit lands red-hot and deals more damage.", 1,
+    ("Cinderforge", "EmbershardDaggers", "EMBERSHARD DAGGERS", "Assassin", "LavaBurst",
+     "Embershard: the double stab sends lava bursting along the ground, setting enemies burning.", 1,
      134222445690465, 133070494226928, (0.4547, 0.9785, 0.2438),
      {"form": "Shard", "tail": 0.127, "taper": 0.1}),
 ]

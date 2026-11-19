@@ -85,18 +85,21 @@ Dex page pays `Rewards.setPage` (crates, no gems), so the gems every page pays s
 
 | Set | Look | Weapons (card) |
 |---|---|---|
-| **Starwish** | toy wishing-star charms: pastel pink and mint, cream white, gold stars, flat ribbon wraps, glowing star gems | Wishbright Bow (Blast Arrows), Dreamdrop Staff (Elemental Orbs), Wishcutter Blade (Whirlwind), Twinkle Daggers (Soul Chain) |
-| **Tumbleweed** | toy cowboy gear: tan leather, honey wood, brass rivets, thick rope, a tin star, a turquoise stone | Saddlehorn Bow (Ricochet), Wagonwheel Staff (Chain Lightning), Trailboss Blade (Battle Cry), Spur Daggers (Quickstep) |
-| **Splash Day** | summer water toys: pool noodles, striped swim rings, water-blaster yellow and aqua, solid blue water | Noodle Bow (Piercing Shot), Splashring Staff (Spell Pierce), Breaker Blade (Shockwave), Squirt Daggers (Sunder) |
-| **Coin-Op** | toy arcade: glossy red and blue, big 8-bit pixels, arcade buttons, yellow game coins, pixel hearts | Highscore Bow (Front Arrow), Joystick Staff (Twin Cast), Pixel Blade (Counter Strike), Token Daggers (Precision) |
-| **Voidglass** | toy space crystal: purple see-through glass with stars inside, silver trim, ringed black orbs | Orbit Bow (Rain Of Arrows), Starwell Staff (Tracking Eye), Nebula Blade (Parry), Comet Daggers (Ruin Cracks) |
-| **Lantern Bloom** | spring festival: pale wood, red paper lanterns, pink blossoms, gold bells, red cord and tassels | Blossom Bow (Multishot), Paperglow Staff (Arcane Turret), Petalfall Blade (Sunder), Bellchime Daggers (Boar Rush) |
-| **Cinderforge** | volcano forge: cracked black rock with lava seams, iron bands and rivets, molten cubes | Cinderstring Bow (Sniper Shot), Forgeheart Staff (Mana Surge), Molten Blade (Heavy Blade), Embershard Daggers (Deadly Strike) |
+| **Starwish** | toy wishing-star charms: pastel pink and mint, cream white, gold stars, flat ribbon wraps, glowing star gems | Wishbright Bow (Blast Arrows), Dreamdrop Staff (Elemental Orbs), Wishcutter Blade (Whirlwind), Twinkle Daggers (*Wishing Star*) |
+| **Tumbleweed** | toy cowboy gear: tan leather, honey wood, brass rivets, thick rope, a tin star, a turquoise stone | Saddlehorn Bow (Ricochet), Wagonwheel Staff (Chain Lightning), Trailboss Blade (Battle Cry), Spur Daggers (*Spur Rowel*) |
+| **Splash Day** | summer water toys: pool noodles, striped swim rings, water-blaster yellow and aqua, solid blue water | Noodle Bow (Piercing Shot), Splashring Staff (Spell Pierce), Breaker Blade (Shockwave), Squirt Daggers (*Splash Wave*) |
+| **Coin-Op** | toy arcade: glossy red and blue, big 8-bit pixels, arcade buttons, yellow game coins, pixel hearts | Highscore Bow (Front Arrow), Joystick Staff (Twin Cast), Pixel Blade (Counter Strike), Token Daggers (*Combo Counter*) |
+| **Voidglass** | toy space crystal: purple see-through glass with stars inside, silver trim, ringed black orbs | Orbit Bow (Rain Of Arrows), Starwell Staff (Tracking Eye), Nebula Blade (Parry), Comet Daggers (*Comet Crash*) |
+| **Lantern Bloom** | spring festival: pale wood, red paper lanterns, pink blossoms, gold bells, red cord and tassels | Blossom Bow (Multishot), Paperglow Staff (Arcane Turret), Petalfall Blade (Sunder), Bellchime Daggers (*Bell Chime*) |
+| **Cinderforge** | volcano forge: cracked black rock with lava seams, iron bands and rivets, molten cubes | Cinderstring Bow (Sniper Shot), Forgeheart Staff (Mana Surge), Molten Blade (Heavy Blade), Embershard Daggers (*Lava Burst*) |
 
-Cards: a set weapon carries a card its class draws and that is not benched (Momentum,
-Bloodletting and Overdraw were, and were swapped out); no two daggers carry the same one. The
-daggers' cards are stand-ins: the owner asked for effects of their own (2026-11-18, "make
-unique effects for the daggers now"), built next.
+Cards: a set bow, staff or blade carries a card its class draws and that is not benched
+(Momentum, Bloodletting and Overdraw were, and were swapped out). **The seven daggers carry
+effects of their own** (in italics above; owner, 2026-11-18, "make unique effects for the
+daggers now", then yes to the seven put to them): cards only that dagger carries
+(`weaponOnly`), never dealt by a draft or an Angel. What each does, its numbers and its look are
+in [CLASS-CARDS.md](CLASS-CARDS.md), "The themed daggers' seven". Neon Circuit's Glitch Daggers
+keep Execute.
 
 **Not seen yet:** the sets' shelves, Dex pages and glows on screen, and phone size. The hold
 was checked by numbers in Studio against the Golden Bow.

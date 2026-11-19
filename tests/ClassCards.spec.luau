@@ -3,7 +3,9 @@
 	Each class's card pool (`Ability.classes`; docs/CLASS-CARDS.md). A card
 	that only means something for one weapon must be dealt to that class
 	alone, or a Warden drafts Multishot and wastes the pick; and each class
-	needs enough cards that a draft can always deal a full hand.
+	needs enough cards that a draft can always deal a full hand. A weapon's
+	own card (`weaponOnly`, the themed daggers') is in no pool: only its
+	weapon carries it.
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -25,7 +27,7 @@ local HAND = 3
 local function pool(class: string): { Abilities.Ability }
 	local out = {}
 	for _, ability in Abilities.all do
-		if ability.filler then
+		if ability.filler or ability.weaponOnly then
 			continue
 		end
 		if not ability.classes or table.find(ability.classes, class) then

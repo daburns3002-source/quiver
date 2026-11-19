@@ -107,6 +107,14 @@ local CardAssets = {
 		["burr-blight"] = "rbxassetid://99608010792054",
 		["boar-rush"] = "rbxassetid://91694443828146",
 		["ruin-cracks"] = "rbxassetid://80397573386163",
+		-- The themed daggers' seven (Codex, 2026-11-18; themed_daggers_2026_11_18.sh)
+		["wishing-star"] = "rbxassetid://139241169175642",
+		["spur-rowel"] = "rbxassetid://125363665141363",
+		["splash-wave"] = "rbxassetid://137041704554034",
+		["combo-counter"] = "rbxassetid://101123560395553",
+		["comet-crash"] = "rbxassetid://72842362613678",
+		["bell-chime"] = "rbxassetid://115195188335152",
+		["lava-burst"] = "rbxassetid://107430460320723",
 	},
 	--[[ The name banner for each rarity, 984 x 558, its plate cleared
 	     (`assets/ui/glow_toy_cards/clear_plates.py`): the card writes its name

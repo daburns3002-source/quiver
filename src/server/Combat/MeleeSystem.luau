@@ -209,6 +209,10 @@ local function strike(
 
 	local landed, xp, fell =
 		EnemyManager.damage(enemy.model, damage, from, kind, session.player, knock)
+	--[[ Comet Crash (the Comet Daggers): a comet comes down on it. ]]
+	if landed then
+		AssassinUpgrades.struck(session, enemy.model, enemy.position, damage, now)
+	end
 	--[[ Bloodletting: a share of the blow comes back as health. ]]
 	if landed and melee.lifesteal > 0 then
 		RunSession.heal(session, damage * melee.lifesteal)
@@ -289,6 +293,9 @@ local function land(swing: Pending, now: number)
 	--[[ Counter Strike: the first blow after being hit, charged
 	     (`Combat/ClassUpgrades`). ]]
 	blow *= ClassUpgrades.spendCounter(session)
+	--[[ Combo Counter (the Token Daggers): every strike landed since the
+	     last hit taken adds a little (`Combat/AssassinUpgrades`). ]]
+	blow *= AssassinUpgrades.comboScale(session)
 
 	--[[ An arc for the side-to-side blows, a circle for the slam, grown by
 	     Cleave and Long Reach (`Shared/Combat/SwingBox`). ]]
@@ -352,6 +359,7 @@ local function land(swing: Pending, now: number)
 	end
 
 	local rushed = 0
+	local struck: { Aim.Candidate } = {}
 	for _, enemy in candidates() do
 		if
 			not SwingBox.hits(
@@ -376,6 +384,7 @@ local function land(swing: Pending, now: number)
 			--[[ A spin shoves all the way, whatever the blow it replaced. ]]
 			if config.knock and not swing.spin then config.knock[swing.index] else nil
 		)
+		table.insert(struck, enemy)
 		--[[ Thornwood's two, on the slam alone. Boar Rush: what it hit is
 		     shoved much further (a boss takes no shove at all). Ruin
 		     Cracks: and takes more from everything for a while, as Sunder's
@@ -405,8 +414,14 @@ local function land(swing: Pending, now: number)
 
 	--[[ Blade Storm: every few blows that land, the sword is thrown. ]]
 	ClassUpgrades.afterBlow(session, root.Position, swing.direction, now)
-	--[[ Fan of Knives: and every few of the Assassin's, a fan of knives. ]]
-	AssassinUpgrades.afterBlow(session, root.Position, swing.direction, now)
+	--[[ Fan of Knives: and every few of the Assassin's, a fan of knives;
+	     and the themed daggers' own, from what the blow struck. ]]
+	AssassinUpgrades.afterBlow(session, root.Position, swing.direction, now, {
+		struck = struck,
+		blow = blow,
+		stab = slam and not swing.spin,
+		ahead = shape.ahead,
+	})
 end
 
 --[[ A dash the server accepted (`Main`'s `DashStarted`), for a class whose
@@ -439,7 +454,7 @@ function MeleeSystem.dash(session: Session, root: BasePart, now: number, heading
 		end
 		local landedAt = os.clock()
 		local lead = leadShot(session, root.Position, direction)
-		local blow = session.damage * config.damage
+		local blow = session.damage * config.damage * AssassinUpgrades.comboScale(session)
 		local struck: { Vector3 } = {}
 		for _, enemy in candidates() do
 			if DashCut.hits(a, b, config.width, enemy.position, enemy.halfWidth) then

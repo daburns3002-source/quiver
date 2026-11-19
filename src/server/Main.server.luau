@@ -174,8 +174,12 @@ for _, player in Players:GetPlayers() do
 	watchArrival(player)
 end
 
---[[ Counter Strike charges on a hit taken (`Combat/ClassUpgrades`). ]]
-RunSession.onHurt = ClassUpgrades.onHurt
+--[[ A hit taken charges Counter Strike (`Combat/ClassUpgrades`) and
+     empties the Token Daggers' Combo Counter (`Combat/AssassinUpgrades`). ]]
+RunSession.onHurt = function(session)
+	ClassUpgrades.onHurt(session)
+	AssassinUpgrades.onHurt(session)
+end
 
 --[[ The run controller owns the arena now: it builds a room on entry, so
      there is nothing to build here. ]]

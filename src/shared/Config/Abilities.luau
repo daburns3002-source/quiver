@@ -29,6 +29,12 @@
 
 	`benched` takes a card out of rotation: never dealt, its effect left in
 	place so un-benching brings it back whole.
+
+	`weaponOnly` marks a weapon's own effect: a card no draft or Angel ever
+	deals, carried only by the weapon whose `innate` names it
+	(`Config/WeaponStats`; the themed sets' daggers, owner 2026-11-18). It is
+	in no class's pool, so it never tips the pools out of step
+	(`tests/ClassCards.spec`).
 ]]
 
 local Rarities = require(script.Parent.Rarities)
@@ -60,6 +66,7 @@ export type Ability = {
 	instant: boolean?,
 	filler: boolean?,
 	benched: boolean?,
+	weaponOnly: boolean?,
 	excludes: { string }?,
 	--[[ The classes that can be dealt it; every class when absent. Each
 	     class has its own Mythic (owner, 2026-10-22): the Ranger's is Dual
@@ -1192,6 +1199,101 @@ local abilities: { Ability } = {
 		stats = { "Shadows every 10s" },
 		icon = "thousand-cuts",
 		classes = ASSASSIN,
+	},
+	--[[ The themed sets' daggers' own effects (owner, 2026-11-18;
+	     docs/CLASS-CARDS.md "The themed daggers' seven"): each carried by
+	     its dagger alone and never dealt. Numbers past the card's are in
+	     `Balance.Player.daggers`. ]]
+	{
+		id = "WishingStar",
+		name = "Wishing Star",
+		description = "Every 5th strike drops a wishing star that bursts round the enemy (80%).",
+		category = "OnHit",
+		group = "dagger",
+		rarity = "Legendary",
+		levels = { 0.8 },
+		stats = { "80% star burst" },
+		icon = "wishing-star",
+		classes = ASSASSIN,
+		weaponOnly = true,
+	},
+	{
+		id = "SpurRowel",
+		name = "Spur Rowel",
+		description = "The double stab flings a spur that bounces between 3 enemies (50%).",
+		category = "OnHit",
+		group = "dagger",
+		rarity = "Legendary",
+		levels = { 3 },
+		stats = { "3 bounces" },
+		icon = "spur-rowel",
+		classes = ASSASSIN,
+		weaponOnly = true,
+	},
+	{
+		id = "SplashWave",
+		name = "Splash Wave",
+		description = "Every 3rd strike splashes the enemies round it (40%) and slows them.",
+		category = "OnHit",
+		group = "dagger",
+		rarity = "Legendary",
+		levels = { 0.4 },
+		stats = { "40% splash, slows" },
+		icon = "splash-wave",
+		classes = ASSASSIN,
+		weaponOnly = true,
+	},
+	{
+		id = "ComboCounter",
+		name = "Combo Counter",
+		description = "Each strike that lands adds +3% damage, up to +30%. Getting hit resets it.",
+		category = "OnHit",
+		group = "dagger",
+		rarity = "Legendary",
+		levels = { 0.3 },
+		stats = { "Up to +30% ATK" },
+		icon = "combo-counter",
+		classes = ASSASSIN,
+		weaponOnly = true,
+	},
+	{
+		id = "CometCrash",
+		name = "Comet Crash",
+		description = "A strike calls a comet that crashes on the enemy 1.5s later (60%).",
+		category = "OnHit",
+		group = "dagger",
+		rarity = "Legendary",
+		levels = { 0.6 },
+		stats = { "60% comet" },
+		icon = "comet-crash",
+		classes = ASSASSIN,
+		weaponOnly = true,
+	},
+	{
+		id = "BellChime",
+		name = "Bell Chime",
+		description = "Every 6th strike rings a bell that holds the enemies near you (40%).",
+		category = "OnHit",
+		group = "dagger",
+		rarity = "Legendary",
+		levels = { 0.8 },
+		stats = { "Holds 0.8s" },
+		icon = "bell-chime",
+		classes = ASSASSIN,
+		weaponOnly = true,
+	},
+	{
+		id = "LavaBurst",
+		name = "Lava Burst",
+		description = "The double stab sends lava bursting along the ground, burning enemies (50%).",
+		category = "OnHit",
+		group = "dagger",
+		rarity = "Legendary",
+		levels = { 0.5 },
+		stats = { "50% lava, burns" },
+		icon = "lava-burst",
+		classes = ASSASSIN,
+		weaponOnly = true,
 	},
 }
 

@@ -109,7 +109,8 @@ other five (both eggs hatched). `DebugPremium` paid the day's egg once
 (`premiumDay` set) and put Roblox's mark on the name tag, 4 points before the
 name and centred with it. `DebugInvite` with the player's own id paid the
 welcome (500 coins, 25 gems), then the inviter's side (500 coins, an egg)
-once; a second go paid the inviter nothing. In-Roblox tests: 1,299 pass.
+once; a second go paid the inviter nothing. In-Roblox tests: 1,301 pass
+(after the rebase on main at #634).
 
 **Not verified:**
 

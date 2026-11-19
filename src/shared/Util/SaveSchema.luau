@@ -158,6 +158,13 @@
 	older profile was never asked; one that has claimed a daily reward or
 	won a level has had a session, so it counts one and may be asked in
 	its next.
+
+	Version 26 (2026-11-19, the weekly Endless tournament,
+	`Util/TournamentRules`): `tournamentWeeks`, each week played and not yet
+	paid, by week number, holding that week's best score; and
+	`tournamentWins`, the weeks won, for the ENDLESS CHAMPION title; and
+	`tournamentPicks`, the themed set weapons a top-ten finish still lets
+	the player pick. An older profile has played no week and won none.
 ]]
 
 local ClassLevelRules = require(script.Parent.ClassLevelRules)
@@ -169,10 +176,11 @@ local NotifyRules = require(script.Parent.NotifyRules)
 local RunBonus = require(script.Parent.RunBonus)
 local SettingsRules = require(script.Parent.SettingsRules)
 local StoreRules = require(script.Parent.StoreRules)
+local TournamentRules = require(script.Parent.TournamentRules)
 
 local SaveSchema = {}
 
-SaveSchema.VERSION = 25
+SaveSchema.VERSION = 26
 
 --[[ The classes' own weapons, owned from the start: one for every class a
      player can choose (`Util/ClassList`). Given on every load (`migrate`
@@ -272,6 +280,15 @@ export type Profile = {
 	hardBeaten: { [string]: boolean },
 	--[[ The notifications' opt-in (version 25, `Util/NotifyRules`). ]]
 	notify: NotifyRules.State,
+	--[[ The tournament weeks played and still to be paid, by week number
+	     ("2967"), each holding that week's best score (version 26,
+	     `Util/TournamentRules`). Paying a week takes it out. ]]
+	tournamentWeeks: { [string]: number },
+	--[[ Weeks won (version 26): the ENDLESS CHAMPION title. ]]
+	tournamentWins: number,
+	--[[ Themed set weapons still to pick from a top-ten week (version 26,
+	     `Wallet.pickTournamentWeapon`). ]]
+	tournamentPicks: number,
 }
 
 export type RewardState = {
@@ -367,6 +384,9 @@ function SaveSchema.default(): Profile
 		starChests = {},
 		hardBeaten = {},
 		notify = NotifyRules.default(),
+		tournamentWeeks = {},
+		tournamentWins = 0,
+		tournamentPicks = 0,
 	}
 end
 
@@ -582,6 +602,15 @@ function SaveSchema.migrate(raw: unknown): Profile
 	if version < 25 and (profile.rewards.loginCount > 0 or next(profile.levelsBeaten) ~= nil) then
 		profile.notify.joins = math.max(profile.notify.joins, 1)
 	end
+	--[[ 25 -> 26: no week was played. A stored week is a week number with
+	     a real score; at most `Tournament.keep` of them, the newest. ]]
+	for week, score in counts(data.tournamentWeeks) do
+		if tonumber(week) and TournamentRules.valid(score) then
+			TournamentRules.note(profile.tournamentWeeks, tonumber(week) :: number, score)
+		end
+	end
+	profile.tournamentWins = count(data.tournamentWins)
+	profile.tournamentPicks = count(data.tournamentPicks)
 	return profile
 end
 

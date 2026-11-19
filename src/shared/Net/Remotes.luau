@@ -312,6 +312,22 @@ Remotes.EndlessCheckpoint = "EndlessCheckpoint"
 	eggs a Robux product hatched (the starter pack, `Server/Data/Purchases`).
 ]]
 Remotes.EndlessPrize = "EndlessPrize"
+--[[ Server → client: a weekly tournament week just paid
+     (`Run/WeeklyTournament`): the week's Monday ("2026-11-16") and a table
+     of the place, floor, time and what it paid, for the panel
+     (`UI/TournamentPrize`). Already in the profile. ]]
+Remotes.TournamentPrize = "TournamentPrize"
+--[[ Client → server: take one of this player's tournament picks for a
+     themed set weapon (its key). The server checks the pick is owed and the
+     weapon is a set's and not owned (`Wallet.pickTournamentWeapon`); the
+     profile it sends back is the answer. ]]
+Remotes.TournamentPick = "TournamentPick"
+--[[ Client → server, Studio only: the weekly tournament's checks.
+     ("shift", seconds) moves the tournament's clock on (to just past the
+     next reset and its grace with no seconds); ("floor", floor, seconds)
+     records a floor for this player as a run would; ("rival", n) adds n
+     made-up players to this week's board. ]]
+Remotes.DebugTournament = "DebugTournament"
 
 --[[
 	Client → server. "I pressed BUY on this": a `Config/RobuxStore` key and

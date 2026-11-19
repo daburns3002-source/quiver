@@ -243,6 +243,11 @@ that the mode is worth opening.
 A board on `endlessBest`, following `Run/StoryLeaderboard`'s pattern and
 `docs/LEADERBOARD.md`.
 
+**And a weekly one** (2026-11-18): THIS WEEK'S DELVERS, each player's best
+floor this week (Monday 00:00 UTC reset), the faster run breaking a tie, with
+prizes for the top 1, 10 and 100 and a band for every floor reached, paid on
+the next join (`Run/WeeklyTournament`, `docs/LEADERBOARD.md`).
+
 ---
 
 ## Co-op

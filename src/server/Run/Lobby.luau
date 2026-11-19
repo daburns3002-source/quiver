@@ -48,6 +48,7 @@ local COLOURS = LobbyConfig.colours
 local folder: Folder? = nil
 local leaderboardFace: Part? = nil
 local endlessLeaderboardFace: Part? = nil
+local weeklyLeaderboardFace: Part? = nil
 
 --[[ The courtyard's floor, which the buildings and the terrace stand on, and
      the ground past the balustrade, below it. ]]
@@ -1239,9 +1240,10 @@ function Lobby.build(parent: Instance)
 	end
 
 	--[[ A leaderboard: a stone board on two posts, the names on its dark face.
-	     Built twice — FARTHEST ADVENTURERS and DEEPEST DELVERS
-	     (`LobbyConfig.leaderboard`, `LobbyConfig.endlessLeaderboard`) — so
-	     the two boards are the same board, drawn on by different modules.
+	     Built three times — FARTHEST ADVENTURERS, DEEPEST DELVERS and THIS
+	     WEEK'S DELVERS (`LobbyConfig.leaderboard`, `.endlessLeaderboard`,
+	     `.weeklyLeaderboard`) — so the boards are the same board, drawn on
+	     by different modules.
 
 	     Everything is placed off `base`, which carries the board's `turn`.
 	     It used to be built straight onto world axes, which only read the
@@ -1321,6 +1323,7 @@ function Lobby.build(parent: Instance)
 
 	leaderboardFace = buildBoard("Leaderboard", LobbyConfig.leaderboard)
 	endlessLeaderboardFace = buildBoard("EndlessLeaderboard", LobbyConfig.endlessLeaderboard)
+	weeklyLeaderboardFace = buildBoard("WeeklyLeaderboard", LobbyConfig.weeklyLeaderboard)
 
 	-- waterfalls down the corner cliffs into round pools
 	for _, at in LobbyConfig.waterfalls do
@@ -1623,6 +1626,11 @@ end
 --[[ The DEEPEST DELVERS board's face (`Run/EndlessLeaderboard`). ]]
 function Lobby.endlessLeaderboardFace(): Part?
 	return endlessLeaderboardFace
+end
+
+--[[ The THIS WEEK'S DELVERS board's face (`Run/WeeklyTournament`). ]]
+function Lobby.weeklyLeaderboardFace(): Part?
+	return weeklyLeaderboardFace
 end
 
 function Lobby.folder(): Folder?

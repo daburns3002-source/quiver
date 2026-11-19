@@ -92,6 +92,7 @@ local Tutorial = require(ReplicatedStorage.Shared.Config.Tutorial)
 local VictoryChests = require(script.Parent.VictoryChests)
 local Wallet = require(script.Parent.Parent.Data.Wallet)
 local Waves = require(script.Parent.Waves)
+local WeeklyTournament = require(script.Parent.WeeklyTournament)
 
 --[[ Seconds into a level before its coin bonuses are said (`Util/RunBonus`):
      past the loading screen. ]]
@@ -1157,6 +1158,8 @@ local function clearedFloor(floor: number)
 			-- each class's own deepest, for Starfall (`Config/Trails.endless`)
 			Wallet.recordClassFloor(player, session.loadout.class, floor)
 			EndlessLeaderboard.record(player, floor)
+			-- this week's board, the time since the run began breaking ties
+			WeeklyTournament.record(player, floor, os.clock() - session.stageStartedAt)
 			for _, milestone in Wallet.claimEndlessMilestones(player, floor) do
 				log.info(
 					"floor %d milestone for %s: %s",

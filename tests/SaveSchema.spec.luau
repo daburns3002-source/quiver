@@ -16,6 +16,7 @@ local Classes = require(ReplicatedStorage.Shared.Config.Classes)
 local Purse = require(ReplicatedStorage.Shared.Util.Purse)
 local SaveSchema = require(ReplicatedStorage.Shared.Util.SaveSchema)
 local TestRunner = require(script.Parent.TestRunner)
+local TournamentRules = require(ReplicatedStorage.Shared.Util.TournamentRules)
 
 return function(t: TestRunner.Helper)
 	t.test("a new player owns the classes' own weapons and nothing else", function()
@@ -130,9 +131,37 @@ return function(t: TestRunner.Helper)
 		t.isNil(p.equipped, "a weapon not owned is not equipped")
 	end)
 
+	--[[ Version 26: the weekly Endless tournament. An older save has played
+	     no week; a stored week is kept only as a week number with a real
+	     score. ]]
+	t.test("an older save has no tournament weeks, and a stored one is read with care", function()
+		local old =
+			SaveSchema.migrate({ version = 25, coins = 12, hardBeaten = { ["1-1"] = true } })
+		t.equal(old.version, SaveSchema.VERSION)
+		t.isNil((next(old.tournamentWeeks)))
+		t.equal(old.tournamentWins, 0)
+		t.equal(old.tournamentPicks, 0)
+		t.equal(old.coins, 12)
+		t.isTrue(old.hardBeaten["1-1"], "version 24's hard wins kept")
+
+		local score = TournamentRules.score(30, 600)
+		local p = SaveSchema.migrate({
+			version = 26,
+			tournamentWeeks = { ["2967"] = score, junk = score, ["2968"] = 12.5, ["2969"] = -4 },
+			tournamentWins = 2,
+			tournamentPicks = 1,
+		})
+		t.equal(p.tournamentWeeks["2967"], score)
+		t.isNil(p.tournamentWeeks.junk, "not a week number")
+		t.isNil(p.tournamentWeeks["2968"], "not a whole score")
+		t.isNil(p.tournamentWeeks["2969"])
+		t.equal(p.tournamentWins, 2)
+		t.equal(p.tournamentPicks, 1)
+	end)
+
 	t.test("a new profile has beaten no level", function()
 		local p = SaveSchema.migrate(nil)
-		t.equal(SaveSchema.VERSION, 25)
+		t.equal(SaveSchema.VERSION, 26)
 		t.isNil((next(p.levelsBeaten)))
 	end)
 

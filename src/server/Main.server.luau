@@ -80,6 +80,7 @@ local UpgradeEffects = require(script.Parent.Fx.UpgradeEffects)
 local VictoryChests = require(script.Parent.Run.VictoryChests)
 local Wallet = require(script.Parent.Data.Wallet)
 local WeaponShop = require(script.Parent.Data.Shop)
+local WeeklyTournament = require(script.Parent.Run.WeeklyTournament)
 
 local log = Log.forTag("Server")
 
@@ -243,6 +244,14 @@ do
 	local face = Lobby.endlessLeaderboardFace()
 	if face then
 		EndlessLeaderboard.attach(face)
+	end
+end
+-- The weekly tournament's board and prizes (`Run/WeeklyTournament`).
+WeeklyTournament.start()
+do
+	local face = Lobby.weeklyLeaderboardFace()
+	if face then
+		WeeklyTournament.attach(face)
 	end
 end
 

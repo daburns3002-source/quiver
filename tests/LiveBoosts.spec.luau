@@ -99,14 +99,11 @@ return function(t: TestRunner.Helper)
 		for _, pass in RobuxStore.passes do
 			passes += pass.coinBonus or 0
 		end
-		-- 2x Coins and VIP, a full streak, a friend and a 2x Coins weekend
-		local most = RunBonus.scale(passes + LiveEvents.caps.coins, 99, 2)
-		t.near(
-			most,
-			passes + LiveEvents.caps.coins + RunBonus.streak(99) + RunBonus.friend(2),
-			1e-9
-		)
-		t.isTrue(most < 4, "every coin bonus at once stays under 4x")
+		-- 2x Coins and VIP, a full streak, a friend, hard mode and a 2x Coins weekend
+		local most = RunBonus.scale(passes + LiveEvents.caps.coins, 99, 2, true)
+		local others = passes + LiveEvents.caps.coins + RunBonus.streak(99) + RunBonus.friend(2)
+		t.near(most, others + RunBonus.hard(true), 1e-9)
+		t.isTrue(most < 5, "every coin bonus at once stays under 5x")
 		for _, pass in RobuxStore.passes do
 			t.isNil((pass :: any).luck, pass.key .. " brings no luck")
 		end

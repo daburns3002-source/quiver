@@ -52,8 +52,9 @@ In Studio, `Remotes.DebugClock(seconds)` moves the clock for the server and ever
     3x; the owner's event on top is still 3x). The lucky share of an egg never passes half
     (`luckShareCap`), whatever the numbers become.
   - Coins: the events add **at most one** to the scale (a Coins weekend and a coins live event are
-    still 2x), beside the passes, the win streak and the friend bonus, which add too. Everything at
-    once: 1 + 1 (2x Coins pass) + 0.1 (VIP) + 1 (event) + 0.5 (streak) + 0.2 (friend) = **3.8x**.
+    still 2x), beside the passes, the win streak, the friend bonus and hard mode, which add too.
+    Everything at once: 1 + 1 (2x Coins pass) + 0.1 (VIP) + 1 (event) + 0.5 (streak) + 0.2
+    (friend) + 1 (hard) = **4.8x**, held under 5x by `tests/LiveBoosts.spec`.
   - **VIP brings no luck**: its tenth of coins and daily gems are as before.
 
 ### The owner's live event switch

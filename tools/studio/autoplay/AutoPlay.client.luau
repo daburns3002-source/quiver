@@ -104,14 +104,10 @@ local function lobbyTurn()
 		return
 	end
 	local index, level = at[1], at[2]
-	-- the arch's mouth, by the same sums as Run/Lobby.archAt
-	local perRow = LobbyConfig.perRow
-	local row = math.ceil(index / perRow)
-	local count = math.clamp(#LobbyConfig.portals - (row - 1) * perRow, 0, perRow)
-	local x = (((index - 1) % perRow + 1) - (count + 1) / 2) * LobbyConfig.archSpacing
-	local z = LobbyConfig.terrace.Y - (row - 1) * LobbyConfig.rowDepth + LobbyConfig.mouthAhead
-	local y = 4 + LobbyConfig.ledge + (row - 1) * LobbyConfig.rowRise
-	player.Character:PivotTo(CFrame.new(LobbyConfig.origin + Vector3.new(x, y, z)))
+	-- the arch's mouth, by Config/Lobby's own sums (Run/Lobby builds by them)
+	local mouth = LobbyConfig.mouthAt(index)
+	local y = 4 + LobbyConfig.archFoot(index)
+	player.Character:PivotTo(CFrame.new(LobbyConfig.origin + Vector3.new(mouth.X, y, mouth.Y)))
 	task.wait(1)
 	say(string.format("starting portal %d level %d", index, level))
 	Remotes.event(Remotes.PortalStart):FireServer(index, level)

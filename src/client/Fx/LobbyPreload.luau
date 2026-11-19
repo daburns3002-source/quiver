@@ -65,7 +65,9 @@ local function pictures(): { string }
 	end
 	local portals: { string } = {}
 	for _, spec in LobbyConfig.portalModels do
-		table.insert(portals, spec.texture)
+		if spec.texture ~= "" then
+			table.insert(portals, spec.texture)
+		end
 		table.insert(portals, spec.vortex)
 	end
 	local all: { any } = {

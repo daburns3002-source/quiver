@@ -107,30 +107,20 @@ local function world(at: Vector2, y: number?): Vector3
 	return ORIGIN + Vector3.new(at.X, y or 0, at.Y)
 end
 
---[[ Which row arch `index` stands in: 1 the front, 2 the back. ]]
+--[[ Which row arch `index` stands in: 1 the front, 2 the back, 0 for one
+     set aside (Endless). The sums are `Config/Lobby`'s, shared with the
+     Studio bots. ]]
 function Lobby.rowOf(index: number): number
-	return math.ceil(index / LobbyConfig.perRow)
+	return (LobbyConfig.slotOf(index))
 end
 
---[[ How many arches stand in row `row`. ]]
-local function rowCount(row: number): number
-	return math.clamp(#LobbyConfig.portals - (row - 1) * LobbyConfig.perRow, 0, LobbyConfig.perRow)
-end
-
---[[ The centre of row `row`'s ledge, and how high its top stands. ]]
-local function rowCentre(row: number): (Vector2, number)
-	return LobbyConfig.terrace - Vector2.new(0, (row - 1) * LobbyConfig.rowDepth),
-		LobbyConfig.ledge + (row - 1) * LobbyConfig.rowRise
-end
+local rowCount = LobbyConfig.rowCount
+local rowCentre = LobbyConfig.rowCentre
 
 --[[ Where arch `index` stands: front row west to east, then the back, each
-     row centred on the carpet however many arches it has. ]]
+     row centred on the carpet however many arches it has; Endless apart. ]]
 function Lobby.archAt(index: number): Vector2
-	local perRow = LobbyConfig.perRow
-	local column = (index - 1) % perRow + 1
-	local row = Lobby.rowOf(index)
-	local offset = (column - (rowCount(row) + 1) / 2) * LobbyConfig.archSpacing
-	return rowCentre(row) + Vector2.new(offset, 0)
+	return LobbyConfig.archAt(index)
 end
 
 local part = LobbyCourtyard.part
@@ -781,24 +771,39 @@ local function meshPortal(
 )
 	local vortex = LobbyConfig.portalVortex
 	local middle = base * CFrame.new(0, 0, 1 + spec.size.Z / 2)
-	local frame = template:Clone()
-	frame.Name = "Frame"
-	frame.Anchored = true
-	frame.CanCollide = false
-	frame.CanQuery = false
-	frame.CanTouch = false
-	frame.Material = Enum.Material.SmoothPlastic
-	frame.Size = spec.size
-	frame.TextureID = spec.texture
-	frame.Color = Color3.new(1, 1, 1)
 	-- an import's front is its -Z, and the portals face south
-	frame.CFrame = middle * CFrame.new(0, spec.size.Y / 2, 0) * CFrame.Angles(0, math.pi, 0)
-	frame.Parent = model
+	local turned = middle * CFrame.Angles(0, math.pi, 0)
+	local function frame(from: MeshPart, size: Vector3, at: Vector3, neon: boolean?)
+		local mesh = from:Clone()
+		mesh.Name = "Frame"
+		mesh.Anchored = true
+		mesh.CanCollide = false
+		mesh.CanQuery = false
+		mesh.CanTouch = false
+		mesh.Material = if neon then Enum.Material.Neon else Enum.Material.SmoothPlastic
+		mesh.Size = size
+		mesh.TextureID = spec.texture
+		mesh.Color = Color3.new(1, 1, 1)
+		mesh.CFrame = turned * CFrame.new(at)
+		mesh.Parent = model
+	end
+	if spec.parts then
+		-- a Claude Design bundle: each mesh in its own colours, glow apart
+		for _, piece in spec.parts do
+			local from = lobbyTemplates[piece.mesh]
+			if from then
+				frame(from, piece.size, piece.middle, piece.neon)
+			end
+		end
+	else
+		frame(template, spec.size, Vector3.new(0, spec.size.Y / 2, 0))
+	end
 
+	local foot = spec.vortexFoot or vortex.foot
 	local plane = part(
 		"Vortex",
 		Vector3.new(vortex.size.X, vortex.size.Y, 0.2),
-		middle * CFrame.new(0, vortex.foot + vortex.size.Y / 2, vortex.forward),
+		middle * CFrame.new(0, foot + vortex.size.Y / 2, spec.vortexForward or vortex.forward),
 		spec.glow,
 		model
 	)
@@ -842,7 +847,7 @@ local function meshPortal(
 	light.Parent = plane
 
 	if not active then
-		padlock(middle * CFrame.new(0, vortex.foot + vortex.size.Y / 2, 1.2), model)
+		padlock(middle * CFrame.new(0, foot + vortex.size.Y / 2, 1.2), model)
 	end
 end
 
@@ -853,8 +858,8 @@ end
 local function portalArch(index: number, portal: LobbyConfig.Portal, parent: Instance)
 	local model = Instance.new("Model")
 	model.Name = "Portal_" .. index
-	local _, ledge = rowCentre(Lobby.rowOf(index))
-	local base = CFrame.new(world(Lobby.archAt(index), LAWN + ledge))
+	local base = CFrame.new(world(Lobby.archAt(index), LAWN + LobbyConfig.archFoot(index)))
+		* CFrame.Angles(0, LobbyConfig.archTurn(index), 0)
 	local across = LobbyConfig.archWidth
 	local sides = LobbyConfig.archSides
 	local active = portal.levels ~= nil
@@ -862,9 +867,36 @@ local function portalArch(index: number, portal: LobbyConfig.Portal, parent: Ins
 	local template = if spec then lobbyTemplates[spec.mesh] else nil
 	if spec and template then
 		meshPortal(spec, template, base, active, model)
+		-- one set aside stands free: its jambs and its dark veil are solid
+		if portal.aside then
+			local door = LobbyConfig.portalVortex.size.X
+			local tall = if spec.parts then spec.parts[1].size.Y else spec.size.Y
+			local jamb = (spec.size.X - door) / 2
+			local middle = base * CFrame.new(0, 0, 1 + spec.size.Z / 2)
+			for _, side in { -1, 1 } do
+				local block = part(
+					"Jamb",
+					Vector3.new(jamb, tall, spec.size.Z),
+					middle * CFrame.new(side * (door + jamb) / 2, tall / 2, 0),
+					COLOURS.stone,
+					model
+				)
+				block.Transparency = 1
+				block.CanCollide = true
+			end
+			local veil = part(
+				"Veil",
+				Vector3.new(door, tall, 0.4),
+				middle * CFrame.new(0, tall / 2, 0),
+				COLOURS.stone,
+				model
+			)
+			veil.Transparency = 1
+			veil.CanCollide = true
+		end
 		signboard(
 			string.upper(portal.name :: string),
-			base * CFrame.new(0, spec.size.Y + 1.8, 1.6),
+			base * CFrame.new(0, spec.size.Y + 1.8 + (spec.signLift or 0), 1.6),
 			LobbyConfig.archSpacing - 5.5,
 			3.4,
 			LobbyConfig.plaques[portal.name :: string] or COLOURS.woodDark,
@@ -876,6 +908,26 @@ local function portalArch(index: number, portal: LobbyConfig.Portal, parent: Ins
 	local fill = if active
 		then (portal.tint or COLOURS.gold):Lerp(Color3.new(0, 0, 0), 0.35)
 		else LobbyConfig.archDark
+
+	-- one set aside has no row's wall behind it, so it stands in its own
+	if portal.aside then
+		local tall = LobbyConfig.archWall
+		part(
+			"Backing",
+			Vector3.new(across + 6, tall, 1.6),
+			base * CFrame.new(0, tall / 2, 0),
+			COLOURS.stone,
+			model
+		).CanCollide =
+			true
+		part(
+			"Cornice",
+			Vector3.new(across + 7, 0.8, 2.6),
+			base * CFrame.new(0, tall + 0.4, 0),
+			COLOURS.gold,
+			model
+		)
+	end
 
 	-- the opening: straight sides and a round top, laid on the wall
 	local mouth = part(
@@ -966,7 +1018,9 @@ end
 
 --[[ Broad marble steps up a ledge's front edge: from `low` to `high`, starting
      at `edge` (z) and coming south, `width` across at `x`. `carpet` is how wide
-     a red carpet runs up their middle, if one does. Returns the foot's z. ]]
+     a red carpet runs up their middle, if one does. A flight that must fit
+     `run` studs instead rises up to `steep` a step, its treads shared out
+     over the run. Returns the foot's z. ]]
 local function steps(
 	x: number,
 	edge: number,
@@ -974,14 +1028,16 @@ local function steps(
 	high: number,
 	width: number,
 	parent: Instance,
-	carpet: number?
+	carpet: number?,
+	steep: number?,
+	run: number?
 ): number
-	local count = math.max(1, math.ceil((high - low) / 0.6))
+	local count = math.max(1, math.ceil((high - low) / (steep or 0.6)))
 	local rise = (high - low) / count
+	local depth = if run then run / count else 1.4
 	for k = 1, count do
 		-- step k's top stands k rises above the lower floor, k steps back
 		local topY = low + k * rise
-		local depth = 1.4
 		local z = edge + (count - k + 0.5) * depth
 		local step = part(
 			"Step",
@@ -1013,7 +1069,7 @@ local function steps(
 				false
 		end
 	end
-	return edge + count * 1.4
+	return edge + count * depth
 end
 
 --[[ A stone pier between two arches: a gold band at its foot and head, and a
@@ -1074,6 +1130,11 @@ function Lobby.build(parent: Instance)
 		end
 		for _, spec in LobbyConfig.portalModels do
 			table.insert(ids, spec.mesh)
+			if spec.parts then
+				for _, piece in spec.parts do
+					table.insert(ids, piece.mesh)
+				end
+			end
 		end
 		dexTemplates = MeshTemplates.load(ids)
 		lobbyTemplates = dexTemplates
@@ -1123,7 +1184,7 @@ function Lobby.build(parent: Instance)
 	end
 
 	-- the portal ledges, back row first, each with its wall of arches
-	local rows = Lobby.rowOf(#LobbyConfig.portals)
+	local rows = LobbyConfig.rows()
 	local across = LobbyConfig.terraceAcross
 	local drop = LobbyConfig.courtyard.drop
 	local walkWidth = LobbyConfig.courtyard.walkWidth
@@ -1158,7 +1219,18 @@ function Lobby.build(parent: Instance)
 			carpetFoot = steps(0, front, low, height, LobbyConfig.terraceSteps, root, walkWidth)
 		else
 			for _, side in { -1, 1 } do
-				steps(side * (across / 2 - 5), front, low, height, 9, root)
+				-- down to the front ledge's edge, so steeper than the front's
+				steps(
+					side * (across / 2 - 5),
+					front,
+					low,
+					height,
+					9,
+					root,
+					nil,
+					LobbyConfig.backStep,
+					LobbyConfig.rowDepth - 0.5
+				)
 			end
 		end
 
@@ -1222,19 +1294,21 @@ function Lobby.build(parent: Instance)
 	for index, portal in LobbyConfig.portals do
 		portalArch(index, portal, root)
 	end
-	local back = rowCentre(rows)
+	-- the unseen walls round the terrace, 30 studs over its highest ledge
+	local back, top = rowCentre(rows)
+	local fence = top + 30
 	wall(
 		"TerraceWall",
-		Vector3.new(across, 30, 4),
-		CFrame.new(world(back + Vector2.new(0, -10), 15)),
+		Vector3.new(across, fence, 4),
+		CFrame.new(world(back + Vector2.new(0, -10), fence / 2)),
 		root
 	)
 	for _, side in { -1, 1 } do
 		local z = LobbyConfig.terrace.Y - LobbyConfig.rowDepth
 		wall(
 			"TerraceSide",
-			Vector3.new(4, 30, 60),
-			CFrame.new(world(Vector2.new(side * (across / 2 + 2), z), 15)),
+			Vector3.new(4, fence, 60),
+			CFrame.new(world(Vector2.new(side * (across / 2 + 2), z), fence / 2)),
 			root
 		)
 	end
@@ -1504,7 +1578,7 @@ function Lobby.portalAt(position: Vector3, slack: number?): number?
 	local best, bestDistance = nil, LobbyConfig.portalReach + (slack or 0)
 	for index, portal in LobbyConfig.portals do
 		if portal.levels then
-			local mouth = world(Lobby.archAt(index) + Vector2.new(0, LobbyConfig.mouthAhead))
+			local mouth = world(LobbyConfig.mouthAt(index))
 			local distance = Vector3.new(position.X - mouth.X, 0, position.Z - mouth.Z).Magnitude
 			if distance <= bestDistance then
 				best, bestDistance = index, distance

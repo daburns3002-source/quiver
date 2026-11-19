@@ -397,19 +397,19 @@ local Lobby = {
 		     crystals and Soulstone glowing. Its vortex is Design's colours on
 		     the shared sheet, its heart 5.5 studs up as in the build. ]]
 		["Endless"] = {
-			mesh = "ENDLESS_GATE_MESH",
+			mesh = "rbxassetid://103147511344651",
 			texture = "",
 			size = Vector3.new(18.087, 20, 5.024),
 			vortex = "rbxassetid://71023668996508",
 			glow = Color3.fromRGB(154, 77, 255),
 			parts = {
 				{
-					mesh = "ENDLESS_GATE_MESH",
+					mesh = "rbxassetid://103147511344651",
 					size = Vector3.new(18.087, 16.077, 5.024),
 					middle = Vector3.new(0, 8.039, 0),
 				},
 				{
-					mesh = "ENDLESS_GLOW_MESH",
+					mesh = "rbxassetid://96749309649070",
 					size = Vector3.new(18.087, 19.498, 5.024),
 					middle = Vector3.new(0, 10.251, 0),
 					neon = true,

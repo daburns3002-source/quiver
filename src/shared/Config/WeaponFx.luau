@@ -1213,6 +1213,9 @@ local looks: { [string]: CleaveLook } = {
 	GlowcapKris = card(35, "dagger", "#3cc8b4", "#aaf096", "#5ae6c8"),
 	ToadtongueDaggers = card(36, "dagger", "#f56e96", "#ebb92e", "#f5c850"),
 	PrismStingers = card(37, "dagger", "#3fe6f2", "#ebb43c", "#aaf5fa"),
+	-- The golden pair
+	GoldenBlade = card(38, "sword", "#ffc62c", "#fff7c4", "#ff5c54"),
+	GoldenDaggers = card(39, "dagger", "#ffcd38", "#fff7c4", "#ff5c54", 2.6),
 }
 for key, look in looks do
 	local cleave = cleaves[key]

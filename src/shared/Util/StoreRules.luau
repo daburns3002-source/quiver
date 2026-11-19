@@ -90,11 +90,12 @@ function StoreRules.live(item: { id: number }): boolean
 end
 
 --[[ What the STORE's shelves sell: every product but the revive, which is
-     the DEFEAT screen's. The starter pack goes once bought. ]]
+     the DEFEAT screen's, and the Server Luck, the egg screen's. The starter
+     pack goes once bought. ]]
 function StoreRules.shelf(purchases: Purchases?): { RobuxStore.Product }
 	local out = {}
 	for _, product in RobuxStore.products do
-		if product.revive then
+		if product.revive or product.serverLuck then
 			continue
 		end
 		if product.once and purchases and purchases.starterBought then
@@ -105,13 +106,28 @@ function StoreRules.shelf(purchases: Purchases?): { RobuxStore.Product }
 	return out
 end
 
+--[[ Whether `product` may be offered to a player PolicyService restricts
+     paid random items for (`restricted`; unknown counts as restricted): a
+     product that touches random rewards never is (`paidRandom`). ]]
+function StoreRules.offered(product: RobuxStore.Product, restricted: boolean?): boolean
+	return not (product.paidRandom and restricted ~= false)
+end
+
 --[[ Whether this player may be prompted for `key` now: a product or a pass
      that exists and is live, the starter pack not yet bought, a pass not yet
      owned. The revive has its own question (`reviveOffer`). ]]
-function StoreRules.canPrompt(key: unknown, purchases: Purchases?, owned: Owned): boolean
+function StoreRules.canPrompt(
+	key: unknown,
+	purchases: Purchases?,
+	owned: Owned,
+	restricted: boolean?
+): boolean
 	local product = StoreRules.product(key)
 	if product then
 		if product.revive or not StoreRules.live(product) then
+			return false
+		end
+		if not StoreRules.offered(product, restricted) then
 			return false
 		end
 		return not (product.once and purchases ~= nil and purchases.starterBought)

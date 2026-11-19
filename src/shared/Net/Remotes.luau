@@ -303,7 +303,7 @@ Remotes.EndlessPrize = "EndlessPrize"
 
 --[[
 	Client → server. "I pressed BUY on this": a `Config/RobuxStore` key and
-	where it was offered ("Store", "Defeat", "Starter", "GearSlot"). A
+	where it was offered ("Store", "Defeat", "Starter", "GearSlot", "Eggs"). A
 	request: the server checks it may be sold to this player and opens
 	Roblox's own prompt (`Server/Data/Purchases`), or spends a revive held.
 	Nothing is granted until Roblox's receipt arrives.
@@ -323,6 +323,14 @@ Remotes.Purchased = "Purchased"
      (`Server/Data/Passes`), to test the store without Robux. ]]
 Remotes.DebugReceipt = "DebugReceipt"
 Remotes.DebugPass = "DebugPass"
+
+--[[ Client → server. The owner's live event switch: "Luck" or "Coins" for
+     30 minutes in every server, or "End" (`Server/Data/Boosts`). The server
+     checks the sender's user id; anyone else is turned away. ]]
+Remotes.LiveEventStart = "LiveEventStart"
+--[[ Client → server, Studio only: moves the live clock by some seconds (0
+     puts it back), to see a weekend's boost or a new week's sets. ]]
+Remotes.DebugClock = "DebugClock"
 
 --[[
 	Client → server. "Buy `count` of this from the Soulstone shop": the

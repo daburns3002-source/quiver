@@ -16,12 +16,15 @@ local Classes = require(ReplicatedStorage.Shared.Config.Classes)
 local GearAssets = require(ReplicatedStorage.Shared.Config.GearAssets)
 local HatchStand = require(script.Parent.HatchStand)
 local Kit = require(script.Parent.Kit)
+local LiveBoosts = require(ReplicatedStorage.Shared.Util.LiveBoosts)
+local LiveState = require(ReplicatedStorage.Shared.Util.LiveState)
 local MergeRules = require(ReplicatedStorage.Shared.Util.MergeRules)
 local Purse = require(ReplicatedStorage.Shared.Util.Purse)
 local Rarities = require(ReplicatedStorage.Shared.Config.Rarities)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local Reveal = require(script.Parent.Reveal)
 local Sandbox = require(ReplicatedStorage.Shared.Config.Sandbox)
+local SetRotation = require(ReplicatedStorage.Shared.Util.SetRotation)
 local Shop = require(ReplicatedStorage.Shared.Config.Shop)
 local ShopAssets = require(ReplicatedStorage.Shared.Config.ShopAssets)
 local ShopRules = require(ReplicatedStorage.Shared.Util.ShopRules)
@@ -32,13 +35,16 @@ local selected = 1
 local store = false
 --[[ The SETS shelf (`Config/Shop.sets`, docs/WEAPONS-THEMED.md): the themed
      sets' weapons, which belong to no area. `setAt` is the one shown, an
-     index into the sets that are for sale. ]]
+     index into the sets that are for sale: this week's two, by the server's
+     clock (`Util/SetRotation`, docs/LIVE-EVENTS.md); the server sells no
+     other. ]]
 local sets = false
 local setAt = 1
 local function stockedSets(): { Shop.Set }
 	local out = {}
-	for _, set in Shop.sets do
-		if set.stocked then
+	for _, key in SetRotation.featured(LiveState.now()) do
+		local set = ShopRules.set(key)
+		if set then
 			table.insert(out, set)
 		end
 	end
@@ -144,13 +150,37 @@ local function drawStore(s: StationScreen.Screen, area: HatchStand.Area, set: Sh
 	local nameBox = Instance.new("Frame")
 	nameBox.BackgroundTransparency = 1
 	nameBox.ZIndex = 6
-	Chunky.put(sheet, nameBox, area.x + 120, area.y + 4, area.w - 240, 76)
+	Chunky.put(sheet, nameBox, area.x + 120, area.y + 4, area.w - 240, if set then 54 else 76)
 	Chunky.text(
 		nameBox,
 		if set then set.name .. " SET" else Shop.crates[selected].name .. " STORE",
 		Chunky.ink,
 		0
 	)
+	if set then
+		-- the week's sets change on Monday 00:00 UTC; the shelf redraws then
+		local soon = Instance.new("Frame")
+		soon.BackgroundTransparency = 1
+		soon.ZIndex = 6
+		Chunky.put(sheet, soon, area.x + 120, area.y + 58, area.w - 240, 36)
+		local label = Chunky.text(soon, "", Chunky.inkSoft, 0)
+		label.Name = "NewSets"
+		local week = SetRotation.week(LiveState.now())
+		task.spawn(function()
+			while label.Parent do
+				local now = LiveState.now()
+				if SetRotation.week(now) ~= week then
+					-- a shut Blacksmith is left shut; it draws the new week when opened
+					if s.isOpen() then
+						s.open()
+					end
+					return
+				end
+				label.Text = "NEW SETS IN " .. LiveBoosts.clock(SetRotation.left(now))
+				task.wait(1)
+			end
+		end)
+	end
 
 	local entries = {}
 	for _, entry in ShopRules.catalog() do

@@ -34,6 +34,7 @@ local EggRules = require(ReplicatedStorage.Shared.Util.EggRules)
 local EndScreenAssets = require(ReplicatedStorage.Shared.Config.EndScreenAssets)
 local GearAssets = require(ReplicatedStorage.Shared.Config.GearAssets)
 local Kit = require(script.Parent.Kit)
+local LiveState = require(ReplicatedStorage.Shared.Util.LiveState)
 local PetGait = require(ReplicatedStorage.Shared.Util.PetGait)
 local PetGaits = require(ReplicatedStorage.Shared.Config.PetGaits)
 local Pets = require(ReplicatedStorage.Shared.Config.Pets)
@@ -1462,7 +1463,7 @@ function Reveal.eggs(
 		end
 	end
 	present(eggLook(key), prizes, function(prize)
-		for _, entry in EggRules.pool(key) do
+		for _, entry in EggRules.pool(key, LiveState.luck()) do
 			if entry.name == prize.name then
 				return entry.chance
 			end

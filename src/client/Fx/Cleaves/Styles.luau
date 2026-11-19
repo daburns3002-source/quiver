@@ -7,6 +7,7 @@
 ]]
 
 local Canvas = require(script.Parent.Canvas)
+local Drowned = require(script.Parent.Drowned)
 local Glade = require(script.Parent.Glade)
 local Thorn = require(script.Parent.Thorn)
 
@@ -14,7 +15,7 @@ export type Style = (c: Canvas.Ctx, I: Canvas.Inst, t: number, W: Canvas.Look) -
 
 local Styles: { [string]: Style } = {}
 
-for _, area in { Glade :: any, Thorn } do
+for _, area in { Glade :: any, Thorn, Drowned } do
 	for key, style in area do
 		Styles[key] = style
 	end

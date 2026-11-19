@@ -26,8 +26,9 @@ local function built(): { Lobby.Portal }
 end
 
 return function(t: TestRunner.Helper)
-	t.test("the switch is off: the playtest stays open", function()
-		t.isFalse(Launch.locks, "locking the game is the owner's call, on launch day")
+	t.test("the switch is on: the game is locked as it will be at release", function()
+		-- owner, 2026-11-19: "Yes, locks on"
+		t.isTrue(Launch.locks, "a new player starts at Mossy Glade")
 	end)
 
 	t.test("unlocked, a new player may walk into every built portal", function()

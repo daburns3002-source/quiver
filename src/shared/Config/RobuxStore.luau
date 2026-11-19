@@ -68,9 +68,10 @@ export type Product = {
 	     `docs/LIVE-EVENTS.md`); another one adds the time. Never on the
 	     STORE's shelves: the egg screen offers it. ]]
 	serverLuck: number?,
-	--[[ It touches random rewards (luck): never offered to, and refused for,
-	     a player PolicyService restricts paid random items for
-	     (`Server/Data/Policy`, `StoreRules.canPrompt`). ]]
+	--[[ It touches random rewards (luck, or eggs): never offered to, and
+	     refused for, a player PolicyService restricts paid random items for
+	     (`Server/Data/Policy`, `StoreRules.canPrompt`, `StoreRules.shelf`,
+	     `Purchases.offerStarter`). ]]
 	paidRandom: boolean?,
 }
 
@@ -148,6 +149,11 @@ local products: { Product } = {
 		coins = 2000,
 		eggs = { { key = "MossyEgg", count = 3 } },
 		once = true,
+		--[[ Its eggs are random and bought with Robux: never offered to, and
+		     refused for, a player PolicyService restricts paid random items
+		     for, and their odds are on ODDS before it is bought (owner,
+		     2026-11-19: "Yes to all three"; `UI/EggOdds`). ]]
+		paidRandom = true,
 		art = "starter",
 		icon = "rbxassetid://127186255327342",
 	},

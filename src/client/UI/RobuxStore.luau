@@ -31,6 +31,7 @@ local ShopAssets = require(ReplicatedStorage.Shared.Config.ShopAssets)
 local StoreRules = require(ReplicatedStorage.Shared.Util.StoreRules)
 
 local Chunky = require(script.Parent.Chunky)
+local EggOdds = require(script.Parent.EggOdds)
 local FirstTips = require(script.Parent.FirstTips)
 local Kit = require(script.Parent.Kit)
 
@@ -53,6 +54,9 @@ type Offer = {
 	robux: number,
 	state: "buy" | "owned" | "soon",
 	flag: string?,
+	--[[ The egg it gives, whose odds its ODDS button shows before it is
+	     bought (`UI/EggOdds`; Roblox's paid random items policy). ]]
+	odds: string?,
 }
 
 local gui: ScreenGui? = nil
@@ -155,8 +159,10 @@ local function offers(): { Offer }
 		return out
 	end
 	local p = profile
-	for _, product in StoreRules.shelf(if p then p.purchases else nil) do
+	local restricted = Players.LocalPlayer:GetAttribute(RobuxConfig.paidRandomAttribute)
+	for _, product in StoreRules.shelf(if p then p.purchases else nil, restricted) do
 		local starter = product.art == "starter"
+		local eggs: { RobuxConfig.Egg } = product.eggs or {}
 		table.insert(out, {
 			key = product.key,
 			title = if starter then "STARTER PACK" else Chunky.commas(product.gems or 0),
@@ -166,6 +172,7 @@ local function offers(): { Offer }
 			robux = product.robux,
 			state = if StoreRules.live(product) then "buy" else "soon",
 			flag = if starter then "BEST DEAL" else product.flag,
+			odds = if eggs[1] then eggs[1].key else nil,
 		})
 	end
 	return out
@@ -209,6 +216,7 @@ end
 
 local function close()
 	isOpen = false
+	EggOdds.close()
 	local screen = gui
 	if screen then
 		screen.Enabled = false
@@ -257,6 +265,23 @@ local function card(sheet: Chunky.Sheet, offer: Offer, x: number, y: number, w: 
 		line.Position, line.Size = UDim2.fromScale(0.06, nextY), UDim2.fromScale(0.88, 0.07)
 		line.ZIndex = 6
 	end
+	local eggKey = offer.odds
+	if eggKey then
+		-- what the egg can give, before it is bought (Roblox's paid random items policy)
+		Chunky.button(
+			sheet,
+			"ODDS",
+			Chunky.blue,
+			x + w * 0.62,
+			y + h * 0.09,
+			w * 0.32,
+			h * 0.1,
+			function()
+				EggOdds.open(eggKey, if profile then profile.pets else nil)
+			end
+		).Name =
+			"Odds"
+	end
 	local bh = h * 0.18
 	local words = if offer.state == "owned"
 		then "OWNED"
@@ -301,7 +326,12 @@ local function draw(): Frame?
 	local p = profile
 	local most = math.max(
 		rows,
-		math.ceil(#StoreRules.shelf(if p then p.purchases else nil) / columns),
+		math.ceil(
+			#StoreRules.shelf(
+					if p then p.purchases else nil,
+					Players.LocalPlayer:GetAttribute(RobuxConfig.paidRandomAttribute)
+				) / columns
+		),
 		math.ceil(#RobuxConfig.passes / columns)
 	)
 	-- laid out in sheet pixels, two to a point
@@ -489,6 +519,12 @@ function RobuxStore.start()
 		end
 	end)
 	Remotes.event(Remotes.StoreGranted).OnClientEvent:Connect(onGranted)
+	-- PolicyService's answer can change what is on the shelf (`Server/Data/Policy`)
+	player:GetAttributeChangedSignal(RobuxConfig.paidRandomAttribute):Connect(function()
+		if isOpen then
+			draw()
+		end
+	end)
 	for _, pass in RobuxConfig.passes do
 		local attribute = RobuxConfig.passAttribute .. pass.key
 		player:GetAttributeChangedSignal(attribute):Connect(function()

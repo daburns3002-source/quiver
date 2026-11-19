@@ -25,10 +25,12 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
+local RobuxConfig = require(ReplicatedStorage.Shared.Config.RobuxStore)
 local RunHudRules = require(ReplicatedStorage.Shared.Util.RunHudRules)
 local StoreRules = require(ReplicatedStorage.Shared.Util.StoreRules)
 
 local Chunky = require(script.Parent.Chunky)
+local EggOdds = require(script.Parent.EggOdds)
 local Kit = require(script.Parent.Kit)
 local RobuxStore = require(script.Parent.RobuxStore)
 
@@ -47,6 +49,7 @@ local promptWatch: RBXScriptConnection? = nil
 local starterOwed = false
 
 local function close()
+	EggOdds.close()
 	current = nil
 	primary = nil
 	onGrant = nil
@@ -64,7 +67,9 @@ end
 type Button = { words: string, colour: Color3, action: () -> () }
 
 --[[ The panel: a title, a picture, what it gives, a line, then the main
-     button and NO THANKS under it. Returns the main button. ]]
+     button and NO THANKS under it. Returns the main button. `odds`, for an
+     offer that gives eggs, puts ODDS beside the picture: what they can give,
+     before buying (`UI/EggOdds`; Roblox's paid random items policy). ]]
 local function show(
 	name: string,
 	title: string,
@@ -72,7 +77,8 @@ local function show(
 	chips: { RobuxStore.Chip },
 	line: string,
 	main: Button,
-	other: Button
+	other: Button,
+	odds: (() -> ())?
 ): Frame?
 	local screen = gui
 	if not screen then
@@ -124,6 +130,10 @@ local function show(
 	picture.Position = UDim2.fromScale(0.5, iconTop / h)
 	picture.Size = UDim2.fromScale(0.5, iconH / h)
 	picture.ZIndex = 6
+	if odds then
+		Chunky.button(sheet, "ODDS", Chunky.blue, w - pad - 170, iconTop, 170, 72, odds).Name =
+			"Odds"
+	end
 	if #chips > 0 then
 		local strip = Instance.new("Frame")
 		strip.BackgroundTransparency = 1
@@ -247,6 +257,8 @@ function RobuxOffer.after(proceed: () -> ())
 	end
 	starterOwed = false
 	local bought = false
+	local eggs: { RobuxConfig.Egg } = product.eggs or {}
+	local eggKey = if eggs[1] then eggs[1].key else nil
 	local function leave()
 		close()
 		proceed()
@@ -272,7 +284,12 @@ function RobuxOffer.after(proceed: () -> ())
 			words = "NO THANKS",
 			colour = Chunky.grey,
 			action = leave,
-		}
+		},
+		if eggKey
+			then function()
+				EggOdds.open(eggKey :: string)
+			end
+			else nil
 	)
 	onGrant = function(key: string)
 		if key == product.key then

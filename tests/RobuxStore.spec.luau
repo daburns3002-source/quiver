@@ -199,7 +199,7 @@ return function(t: TestRunner.Helper)
 	t.test("the starter pack leaves the shelf once bought, and cannot be prompted again", function()
 		local purchases = StoreRules.empty()
 		local function onShelf(p: StoreRules.Purchases): boolean
-			for _, product in StoreRules.shelf(p) do
+			for _, product in StoreRules.shelf(p, false) do
 				if product.once then
 					return true
 				end
@@ -297,4 +297,31 @@ return function(t: TestRunner.Helper)
 			end
 		end
 	)
+
+	t.test("the starter pack's eggs are paid random items: never for the restricted", function()
+		local starter = StoreRules.product("StarterPack")
+		t.notNil(starter, "it is sold")
+		if not starter then
+			return
+		end
+		t.isTrue(#(starter.eggs or {}) > 0, "it gives eggs")
+		t.isTrue(starter.paidRandom == true, "so it touches random rewards")
+		local function onShelf(restricted: boolean?): boolean
+			return table.find(StoreRules.shelf(StoreRules.empty(), restricted), starter) ~= nil
+		end
+		t.isTrue(onShelf(false), "on the shelf for everyone else")
+		t.isFalse(onShelf(true), "not for a restricted player")
+		t.isFalse(onShelf(nil), "nor one whose answer is not in yet")
+		t.isFalse(StoreRules.canPrompt("StarterPack", StoreRules.empty(), {}, true))
+		t.equal(
+			StoreRules.canPrompt("StarterPack", StoreRules.empty(), {}, false),
+			StoreRules.live(starter)
+		)
+		-- every product that gives eggs, or luck, is marked so
+		for _, product in RobuxStore.products do
+			if #(product.eggs or {}) > 0 or product.serverLuck then
+				t.isTrue(product.paidRandom == true, `{product.key} is a paid random item`)
+			end
+		end
+	end)
 end

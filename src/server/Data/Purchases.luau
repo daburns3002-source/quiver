@@ -334,6 +334,10 @@ function Purchases.offerStarter(player: Player): boolean
 	if not profile or not product or not StoreRules.live(product) then
 		return false
 	end
+	-- its eggs are paid random items: not for a restricted player (`Data/Policy`)
+	if not StoreRules.offered(product, Policy.restricted(player)) then
+		return false
+	end
 	local wins = 0
 	for _ in profile.levelsBeaten do
 		wins += 1

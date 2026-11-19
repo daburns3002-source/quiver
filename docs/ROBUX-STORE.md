@@ -19,7 +19,7 @@ If the game is ever published to another universe, these eleven must be made the
 | Bag of Gems | 3731092299 | 199 | 750 gems. | `Gems.png` |
 | Chest of Gems | 3731092363 | 499 | 2,300 gems. | `Gems.png` |
 | Vault of Gems | 3731092429 | 999 | 5,500 gems. | `Gems.png` |
-| Starter Pack | 3731092480 | 99 | 500 gems, 3 Mossy Eggs and 2,000 coins. Once per player. | `StarterPack.png` |
+| Starter Pack | 3731092480 | 99 | 500 gems, 3 Mossy Eggs and 2,000 coins. Once per player. Its eggs are paid random items: `paidRandom`, never offered to a player PolicyService restricts, and ODDS on its tile and offer shows the Mossy Egg's pets and chances (`UI/EggOdds`, 2026-11-19). | `StarterPack.png` |
 | Revive | 3731092534 | 15 | Back into the room you fell in, with your build. Once per run. | `Revive.png` |
 | Server Luck | 3733414190 | 49 | 2x egg luck for everyone in the server for 15 minutes. Buy again to add time. | `ServerLuck.png` |
 | Season Pass | 3733524465 | 299 | This season's premium track: gems, coins, its trail and its title. This season only. | `SeasonPass.png` (the Wish Ribbon's picture) |

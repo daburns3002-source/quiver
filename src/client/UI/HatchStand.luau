@@ -19,6 +19,7 @@ local UserInputService = game:GetService("UserInputService")
 local Chunky = require(script.Parent.Chunky)
 local GearAssets = require(ReplicatedStorage.Shared.Config.GearAssets)
 local Kit = require(script.Parent.Kit)
+local OddsText = require(ReplicatedStorage.Shared.Util.OddsText)
 local Pity = require(ReplicatedStorage.Shared.Util.Pity)
 local Reveal = require(script.Parent.Reveal)
 local ShopAssets = require(ReplicatedStorage.Shared.Config.ShopAssets)
@@ -29,6 +30,8 @@ local HatchStand = {}
      the key that opened it, and at 0.3 s a second press bought an egg (the
      run-through, 2026-11-14). ]]
 local KEY_WAIT = 1
+--[[ The height of the line under the odds that says they are rounded. ]]
+local ROUNDED_H = 40
 
 export type Tile = {
 	rarity: string,
@@ -197,12 +200,11 @@ function HatchStand.chrome(s: StationScreen.Screen, title: string, modes: { Mode
 	}
 end
 
---[[ The odds as the cards print them: "2.5%", to one place (it read
-     59.18%, 28.57%, 11.22%, 1.02%), and two for a chance under 1%, which
-     one place would round to nothing. ]]
+--[[ The odds as the cards print them: four figures, "59.18%"
+     (`Util/OddsText`, Roblox's paid random items policy; owner, 2026-11-19),
+     with the line that they are rounded under the grid. ]]
 local function odds(chance: number): string
-	local places = if chance < 0.01 then 10000 else 1000
-	return string.format("%g%%", math.round(chance * places) / (places / 100))
+	return OddsText.percent(chance)
 end
 
 --[[ The columns that make the largest square tiles for `count` in a w x h
@@ -422,7 +424,7 @@ function HatchStand.draw(
 		words(sheet, `{spec.noun} INSIDE`, kx + 24, ky + 14, kw - 48, 62, Chunky.navy, 0)
 	end
 	local held = #spec.tiles
-	local gx, gy, gw, gh = kx + 28, ky + 88, kw - 56, kh - 88 - 120
+	local gx, gy, gw, gh = kx + 28, ky + 88, kw - 56, kh - 88 - 120 - ROUNDED_H
 	local tileGap = 16
 	local cols, tile = HatchStand.grid(held, gw, gh, tileGap)
 	local rows = math.max(math.ceil(held / cols), 1)
@@ -468,6 +470,19 @@ function HatchStand.draw(
 		words(sheet, spec.locked, kx + 40, gy + gh / 2 + 10, kw - 80, 70, Chunky.gold, 5).ZIndex =
 			23
 	end
+
+	-- the odds are rounded: said under them (Roblox's paid random items policy)
+	local rounded = words(
+		sheet,
+		OddsText.ROUNDED,
+		kx + 30,
+		ky + kh - 120 - ROUNDED_H,
+		kw - 60,
+		ROUNDED_H - 6,
+		Chunky.inkSoft,
+		0
+	)
+	rounded.Name = "OddsRounded"
 
 	-- the tally and the guaranteed Mythic along the card's foot
 	local left2 = math.max(1, Pity.EVERY - spec.pity)

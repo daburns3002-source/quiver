@@ -92,10 +92,13 @@ end
 --[[ What the STORE's shelves sell: every product but the revive, which is
      the DEFEAT screen's, and the Server Luck, the egg screen's. The starter
      pack goes once bought. ]]
-function StoreRules.shelf(purchases: Purchases?): { RobuxStore.Product }
+function StoreRules.shelf(purchases: Purchases?, restricted: boolean?): { RobuxStore.Product }
 	local out = {}
 	for _, product in RobuxStore.products do
 		if product.revive or product.serverLuck or product.season then
+			continue
+		end
+		if not StoreRules.offered(product, restricted) then
 			continue
 		end
 		if product.once and purchases and purchases.starterBought then

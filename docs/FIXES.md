@@ -16,6 +16,35 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## The Starter Pack sold eggs to players Roblox restricts, and showed no odds (2026-11-19)
+
+**Symptom:** found in the release check, not by a player. Roblox's paid random items policy
+(create.roblox.com/docs/production/monetization/paid-random-items, read 2026-11-19) counts an egg
+bought with Robux, or with a currency Robux can buy, as a paid random item: its outcomes and their
+odds must be shown before the purchase, adding up to 100% or rounded with a line that says so, and a
+player whose `ArePaidRandomItemsRestricted` is true must not be able to buy one.
+**What was wrong:** the Starter Pack (99 Robux: 500 gems, 3 Mossy Eggs, 2,000 coins) was not
+`paidRandom`, so a restricted player was offered it on the STORE and after their second win, and the
+server would prompt it. Neither the STORE tile nor the offer showed the Mossy Egg's odds. The
+hatchery's and blacksmith's odds were rounded to one place ("59.2%") with no rounding line, so the
+printed numbers did not always add to 100%.
+**What was done** (owner, 2026-11-19: "Yes to all three"): the Starter Pack is `paidRandom`, so
+`StoreRules.shelf` leaves it off a restricted (or not yet answered) player's shelf, `canPrompt`
+refuses it and `Purchases.offerStarter` never owes it to them, as the Server Luck already was. ODDS
+on its STORE tile and its after-win offer opens `UI/EggOdds`: every pet, its rarity and chance,
+the luck running now included. Every printed chance is four significant figures (`Util/OddsText`)
+with "ODDS ARE ROUNDED, SO THEY MAY NOT ADD UP TO EXACTLY 100%" under the hatchery's and the
+blacksmith's grid and the odds panel. 2X COINS and VIP stay on sale to everyone (they sell no coins).
+**Measured:** `tests/OddsText.spec` (every egg at luck 1 to 3 and every crate for every class:
+printed odds within rounding of 100%) and `tests/RobuxStore.spec` (the pack off the shelf and
+unpromptable for restricted and unknown, on it otherwise; every product with eggs or luck is
+`paidRandom`); 1,315 in-Roblox tests pass. Seen in Studio: the ODDS button on the STORE tile and the
+offer, and the Mossy Egg's panel (eight pets, 26.75% + 26.75% + 24.00% + 12.00% + 6.000% + 1.750% +
+1.750% + 1.000% = 100%). **Not seen:** the rounding line on the hatchery card (the station would not
+open by probe), phone size.
+
+---
+
 ## The same pet looks different on the egg screen, the Gear screen and the Dex (2026-11-19)
 
 **Symptom:** owner: "MAKE SURE THE ICONS IN THE CHESTS, EGGS, GEAR SCREEN, AND DEX ARE ALL THE SAME".

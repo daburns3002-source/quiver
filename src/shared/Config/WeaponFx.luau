@@ -1191,6 +1191,17 @@ local looks: { [string]: CleaveLook } = {
 	BurrfangDaggers = card(15, "dagger", "#c84696", "#6e1e50", "#f0e1be"),
 	SilkfangDaggers = card(16, "dagger", "#ec50d2", "#78641e", "#f5f5f5"),
 	LurkerClaws = card(17, "dagger", "#ff5ad7", "#3c6e28", "#78c85a"),
+	-- Drowned Village
+	TidewoodBlade = card(18, "sword", "#5cbebe", "#28606e", "#96e1eb"),
+	TidehookBlade = card(19, "sword", "#3c82e6", "#183882", "#c8ebff"),
+	CausewayBlade = card(20, "sword", "#d6c296", "#786446", "#c4b496"),
+	TollguardBlade = card(21, "sword", "#ffd05c", "#fff0b4", "#ffd660"),
+	StormglassBlade = card(22, "sword", "#c8e1ff", "#ffffff", "#ebf5ff"),
+	DriftwoodDirks = card(23, "dagger", "#96aab9", "#5a646e", "#beb4a0"),
+	BarnacleKnives = card(24, "dagger", "#5ac8be", "#324650", "#e6e1cd"),
+	EeltoothDaggers = card(25, "dagger", "#46aac8", "#fadc50", "#fae15a"),
+	TollbellDaggers = card(26, "dagger", "#5ae1cd", "#be823c", "#6eebd7"),
+	RiptideFangs = card(27, "dagger", "#78f5e6", "#f0ffff", "#befaf5"),
 }
 for key, look in looks do
 	local cleave = cleaves[key]

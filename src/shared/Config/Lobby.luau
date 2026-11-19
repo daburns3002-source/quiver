@@ -44,12 +44,15 @@ export type DexPiece = {
 
 --[[ One mesh of a portal built from a Claude Design bundle: its size in studs,
      and its middle from the middle of the portal's foot, as the bundle
-     prints them. A `neon` one is drawn Neon, its colours in the mesh. ]]
+     prints them. A `neon` one is drawn Neon, its colours in the mesh. `tint`
+     multiplies the mesh's colours (white leaves them be): Neon draws a pale
+     lilac white and a purple pink, so a tint pulls them back to the build's. ]]
 export type PortalPart = {
 	mesh: string,
 	size: Vector3,
 	middle: Vector3,
 	neon: boolean?,
+	tint: Color3?,
 }
 
 --[[ An area's portal as its doorway is built from the area itself: the frame's
@@ -415,11 +418,24 @@ local Lobby = {
 					size = Vector3.new(18.087, 16.077, 5.024),
 					middle = Vector3.new(0, 8.039, 0),
 				},
+				-- runes, the infinity sign, the crystals
 				{
-					mesh = "rbxassetid://96749309649070",
-					size = Vector3.new(18.087, 19.498, 5.024),
-					middle = Vector3.new(0, 10.251, 0),
+					mesh = "rbxassetid://97862318394495",
+					size = Vector3.new(18.087, 15.072, 5.024),
+					middle = Vector3.new(0, 8.039, 0),
 					neon = true,
+				},
+				--[[ The floating Soulstone, apart: Neon drew its lilac white
+				     and its purple pink (seen in Studio, 2026-11-19), and plain
+				     plastic drew the lilac grey. Neon under this tint reads as
+				     the build's lilac top and violet middle (four tints laid
+				     side by side in Studio, this one closest). ]]
+				{
+					mesh = "rbxassetid://92473744736948",
+					size = Vector3.new(7.536, 3.768, 5.024),
+					middle = Vector3.new(0, 18.116, 0),
+					neon = true,
+					tint = Color3.fromRGB(105, 100, 235),
 				},
 			},
 			vortexFoot = 1.4,

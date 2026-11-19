@@ -55,9 +55,20 @@ function RunBonus.hard(on: boolean?): number
 end
 
 --[[ What a run's kill and clear coins are multiplied by: the passes'
-     scale with the streak's, the friend's and hard mode's shares added. ]]
-function RunBonus.scale(passes: number, wins: number, size: number, hard: boolean?): number
-	return passes + RunBonus.streak(wins) + RunBonus.friend(size) + RunBonus.hard(hard)
+     scale with the streak's, the friend's, hard mode's and Roblox Premium's
+     shares added (`Config/Rewards.premium`; nothing multiplies). ]]
+function RunBonus.scale(
+	passes: number,
+	wins: number,
+	size: number,
+	hard: boolean?,
+	premium: boolean?
+): number
+	return passes
+		+ RunBonus.streak(wins)
+		+ RunBonus.friend(size)
+		+ RunBonus.hard(hard)
+		+ (if premium == true then Rewards.premium.coins else 0)
 end
 
 --[[ The streak after a win that began with `wins` in a row. ]]

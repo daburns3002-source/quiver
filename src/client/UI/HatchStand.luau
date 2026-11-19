@@ -106,6 +106,14 @@ end
 	head. Returns the room left inside the panel. Laid out for the screen as
 	it is held: 1920 x 1080, or 1080 x 1920 on a phone held upright.
 ]]
+--[[ A tab's width in sheet pixels: the kit's, or narrower when that many
+     would run past the panel (REWARDS' four on an upright phone). ]]
+function HatchStand.tabWidth(upright: boolean, count: number): number
+	local most = if upright then 300 else 250
+	local room = if upright then 940 else 1540
+	return math.min(most, math.floor((room + 18) / math.max(count, 1) - 18))
+end
+
 function HatchStand.chrome(s: StationScreen.Screen, title: string, modes: { Mode }?): Area
 	local c = s.canvas
 	local dim = c.Parent :: GuiObject
@@ -157,7 +165,7 @@ function HatchStand.chrome(s: StationScreen.Screen, title: string, modes: { Mode
 	)
 	local top = if up then 290 else 182
 	if modes then
-		local w = if up then 300 else 250
+		local w = HatchStand.tabWidth(up, #modes)
 		for i, mode in modes do
 			Chunky.tab(
 				sheet,

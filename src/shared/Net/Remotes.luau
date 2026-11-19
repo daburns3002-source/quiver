@@ -199,7 +199,8 @@ Remotes.DebugWallet = "DebugWallet"
 --[[ Client → server: claim a reward (`Data/Rewards`): "login", "quest",
      "starter", "goal", "page" (a Dex page's chest) or "stars" (an area's
      star chest) with its key, "all" for every one owed, "bonus" for the
-     quests' chest, or "gift" for the gift box. Carries no progress and no day; the server judges the
+     quests' chest, "gift" for the gift box, or "playtime" with a playtime
+     gift's number. Carries no progress and no day; the server judges the
      claim from the saved profile and its own clock. ]]
 Remotes.RewardClaim = "RewardClaim"
 --[[ Server → client: the quests' bonus chest was opened (`Data/QuestChest`):
@@ -230,6 +231,14 @@ Remotes.DebugNotifyAsk = "DebugNotifyAsk"
 --[[ Client → server, Studio only: move this player's reward day on by a
      number of days (1 if none), to see a day roll (`Data/Rewards`). ]]
 Remotes.DebugDay = "DebugDay"
+--[[ Client → server, Studio only: the retention hooks (2026-11-18). Move
+     this player's playtime session a number of minutes on (`Data/Rewards`);
+     treat them as having Roblox Premium or not (`Data/Premium`); and play
+     this player's first join as invited by a user id, with the friendship
+     check skipped (`Data/Invites`). ]]
+Remotes.DebugPlaytime = "DebugPlaytime"
+Remotes.DebugPremium = "DebugPremium"
+Remotes.DebugInvite = "DebugInvite"
 
 --[[
 	Client → server. The intro's BEGIN ADVENTURE button: this player has

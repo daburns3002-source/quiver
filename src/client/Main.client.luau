@@ -76,6 +76,7 @@ local PetPreview = require(script.Parent.Fx.PetPreview)
 local PickupFx = require(script.Parent.Fx.PickupFx)
 local PlayerStats = require(script.Parent.PlayerStats)
 local PlayerTrails = require(script.Parent.Fx.PlayerTrails)
+local PlaytimeButton = require(script.Parent.UI.PlaytimeButton)
 local PortalScreen = require(script.Parent.UI.PortalScreen)
 local PortalVortex = require(script.Parent.Fx.PortalVortex)
 local ProjectileRenderer = require(script.Parent.Fx.ProjectileRenderer)
@@ -589,6 +590,7 @@ GearScreen.start()
 DexScreen.start()
 -- the login calendar, quests and starter list, and each board's YOU row
 RewardsScreen.start()
+PlaytimeButton.start()
 -- the notifications' opt-in, asked once the REWARDS screen is put away
 NotifyPrompt.start()
 -- the BADGES case: a badge for each boss beaten, under REWARDS

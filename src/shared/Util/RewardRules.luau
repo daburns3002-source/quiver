@@ -15,6 +15,7 @@ local GiftRules = require(script.Parent.GiftRules)
 local GoalRules = require(script.Parent.GoalRules)
 local Goals = require(ReplicatedStorage.Shared.Config.Goals)
 local PageRules = require(script.Parent.PageRules)
+local PlaytimeRules = require(script.Parent.PlaytimeRules)
 local Rewards = require(ReplicatedStorage.Shared.Config.Rewards)
 local SaveSchema = require(ReplicatedStorage.Shared.Util.SaveSchema)
 local StarRules = require(script.Parent.StarRules)
@@ -271,10 +272,18 @@ end
 --[[ How many rewards wait to be claimed on each of the screen's tabs. ]]
 function RewardRules.readyBy(
 	profile: SaveSchema.Profile,
-	day: number
-): { daily: number, quests: number, goals: number }
+	day: number,
+	now: number?
+): { daily: number, quests: number, goals: number, gifts: number }
 	local r = profile.rewards
-	local out = { daily = if RewardRules.loginReady(r, day) then 1 else 0, quests = 0, goals = 0 }
+	local out = {
+		daily = if RewardRules.loginReady(r, day) then 1 else 0,
+		quests = 0,
+		goals = 0,
+		--[[ The playtime gifts (`Util/PlaytimeRules`), on the GIFTS tab:
+		     counted only when the server's time is given. ]]
+		gifts = if now then PlaytimeRules.ready(profile.playtime, now) else 0,
+	}
 	for _, key in RewardRules.questsFor(day, r) do
 		if RewardRules.questReady(r, day, key) then
 			out.quests += 1
@@ -296,18 +305,19 @@ function RewardRules.readyBy(
 	return out
 end
 
---[[ How many rewards wait to be claimed: the lobby button's badge. ]]
-function RewardRules.ready(profile: SaveSchema.Profile, day: number): number
-	local by = RewardRules.readyBy(profile, day)
-	return by.daily + by.quests + by.goals
+--[[ How many rewards wait to be claimed: the lobby button's badge. With
+     `now`, the server's time, the playtime gifts count too. ]]
+function RewardRules.ready(profile: SaveSchema.Profile, day: number, now: number?): number
+	local by = RewardRules.readyBy(profile, day, now)
+	return by.daily + by.quests + by.goals + by.gifts
 end
 
 --[[ How many rewards CLAIM ALL would take (`claimAll`): every one that
      waits, the same number the lobby button and the tabs show (the
      run-through, 2026-11-14: "CLAIM ALL does not claim all, and the counts
      disagree"). ]]
-function RewardRules.owedAll(profile: SaveSchema.Profile, day: number): number
-	return RewardRules.ready(profile, day)
+function RewardRules.owedAll(profile: SaveSchema.Profile, day: number, now: number?): number
+	return RewardRules.ready(profile, day, now)
 end
 
 --[[ What CLAIM ALL's free eggs and crates come to, for the server to
@@ -316,12 +326,14 @@ export type Items = { eggs: number, crates: number }
 
 --[[ CLAIM ALL: **every** reward that waits, marked: the calendar, the
      quests and then their chest, the starter steps, the gift box, every
-     goal's steps reached, the star chests and the Dex pages' chests. Their
-     coins and gems are summed, their eggs and crates counted; returned
-     with how many rewards it was and how many of those were quests. ]]
+     goal's steps reached, the star chests and the Dex pages' chests, and
+     with `now` (the server's time) the playtime gifts. Their coins and
+     gems are summed, their eggs and crates counted; returned with how many
+     rewards it was and how many of those were quests. ]]
 function RewardRules.claimAll(
 	profile: SaveSchema.Profile,
-	day: number
+	day: number,
+	now: number?
 ): (Gift, number, number, Items)
 	local r = profile.rewards
 	local total: Gift = { gems = 0, coins = 0 }
@@ -394,6 +406,12 @@ function RewardRules.claimAll(
 	end
 	for _, page in PageRules.pages(profile) do
 		if win(PageRules.claim(profile, page.key)) then
+			n += 1
+		end
+	end
+	if now then
+		for _, prize in PlaytimeRules.claimAll(profile.playtime, now) do
+			win(prize)
 			n += 1
 		end
 	end

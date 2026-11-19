@@ -90,6 +90,8 @@ owner's yes on its pictures. Names and looks are proposals until then.
 | **Lantern Bloom** | spring festival: pale wood, red paper lanterns, pink blossoms, gold bells, red cord and tassels | Blossom Bow, Paperglow Staff, Petalfall Blade, Bellchime Daggers |
 | **Cinderforge** | volcano forge: cracked black rock with lava seams, iron bands and rivets, molten cubes | Cinderstring Bow, Forgeheart Staff, Molten Blade (an anvil guard), Embershard Daggers |
 
+**Modelled (2026-11-18, owner: "the last one should be redrawn, the rest are good"):** Tumbleweed, Splash Day, Coin-Op, Voidglass and Lantern Bloom, 20 Tripo models (1,300 credits, 3,160 left; jobs in `assets/models/weapons/blocky/themed_sets_tripo_2026_11_18.json`), named in `Downloads	hemed_sets_import` for the owner's import. Every model was rendered from four sides; the Starwell Staff came with a loose moon floating behind its head, cut out by `assets/models/weapons/blocky/themed_sets/drop_loose_parts.py`. Cinderforge waits for the owner's look at its redrawn Molten Blade (broader; earlier takes in `cinderforge/options/`).
+
 Each prompt names what the set must not have (faces, skulls, characters and the like) so it
 stays a toy of this game's own and never reads as another game's line.
 

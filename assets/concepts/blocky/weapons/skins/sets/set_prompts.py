@@ -415,13 +415,19 @@ SETS = {
             ),
             (
                 "molten_blade", "MOLTEN BLADE", "greatsword", "golden_blade.png",
-                "a big heroic two-edged greatsword, symmetrical left to right, NOT a cleaver: a long "
-                "broad blade of cracked matte black rock with bright orange-yellow lava glowing "
-                "through a web of chunky cracks, both cutting edges glowing orange-hot, ending in a "
-                "pointed tip built of three centred steps; the guard is a wide dark iron anvil "
-                "shape with round rivets; a grip long enough for two hands wrapped in dark leather "
-                "with iron rings; the pommel is a glowing molten orange cube in an iron cap; the "
-                "blade is about three times as long as the grip",
+                # redrawn (owner, 2026-11-18: "the last one should be redrawn"): the first
+                # take was a narrow blade, not a greatsword
+                "a big heroic two-edged greatsword, symmetrical left to right, NOT a cleaver and "
+                "NOT a narrow sword: a huge, very BROAD, heavy slab of a blade, nearly as wide as the "
+                "guard and about five grip widths wide all the way up, so the whole prop looks "
+                "twice as chunky as an ordinary sword, then ending in a wide pointed tip built of "
+                "three centred steps; the blade is about four times as long as the grip; the blade is cracked matte black "
+                "rock with bright orange-yellow lava glowing through a few big chunky cracks, and a "
+                "thick glowing orange-hot band runs up both cutting edges; set in the blade just "
+                "above the guard is a big square glowing molten core in an iron frame; the guard is "
+                "a wide dark iron anvil shape, wider than the blade, with round rivets; a grip long "
+                "enough for two hands wrapped in dark leather with iron rings; the pommel is a "
+                "glowing molten orange cube in an iron cap",
             ),
             (
                 "embershard_daggers", "EMBERSHARD DAGGERS", "dagger", "golden_daggers.png",

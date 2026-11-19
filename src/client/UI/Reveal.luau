@@ -33,6 +33,7 @@ local Beats = require(ReplicatedStorage.Shared.Config.Reveal)
 local EggRules = require(ReplicatedStorage.Shared.Util.EggRules)
 local EndScreenAssets = require(ReplicatedStorage.Shared.Config.EndScreenAssets)
 local GearAssets = require(ReplicatedStorage.Shared.Config.GearAssets)
+local ItemIcons = require(ReplicatedStorage.Shared.Util.ItemIcons)
 local Kit = require(script.Parent.Kit)
 local LiveState = require(ReplicatedStorage.Shared.Util.LiveState)
 local PetGait = require(ReplicatedStorage.Shared.Util.PetGait)
@@ -1423,8 +1424,8 @@ function Reveal.crates(index: number, results: { { weapon: string, new: boolean 
 		local entry = ShopRules.find(result.weapon)
 		if entry then
 			table.insert(prizes, {
-				-- the full 2D drawing (owner, 2026-10-26), the mini icon if none
-				icon = ShopAssets.weapons[result.weapon] or GearAssets.weapons[result.weapon] or "",
+				-- its one picture, the same on every screen (`Util/ItemIcons`)
+				icon = ItemIcons.weapon(result.weapon),
 				name = entry.label,
 				rarity = entry.rarity,
 				fresh = result.new,
@@ -1451,7 +1452,7 @@ function Reveal.eggs(
 		local info = Pets[result.pet]
 		if info then
 			table.insert(prizes, {
-				icon = GearAssets.pets[result.pet] or "",
+				icon = ItemIcons.pet(result.pet),
 				key = result.pet,
 				name = info.name,
 				rarity = info.rarity,

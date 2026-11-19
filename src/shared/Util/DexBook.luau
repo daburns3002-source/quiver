@@ -34,14 +34,13 @@
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Eggs = require(ReplicatedStorage.Shared.Config.Eggs)
-local GearAssets = require(ReplicatedStorage.Shared.Config.GearAssets)
+local ItemIcons = require(ReplicatedStorage.Shared.Util.ItemIcons)
 local LoadingPick = require(ReplicatedStorage.Shared.Util.LoadingPick)
 local MergeRules = require(ReplicatedStorage.Shared.Util.MergeRules)
 local NewEnemies = require(ReplicatedStorage.Shared.Config.NewEnemies)
 local Pets = require(ReplicatedStorage.Shared.Config.Pets)
 local Sandbox = require(ReplicatedStorage.Shared.Config.Sandbox)
 local SaveSchema = require(ReplicatedStorage.Shared.Util.SaveSchema)
-local ShopAssets = require(ReplicatedStorage.Shared.Config.ShopAssets)
 local ShopRules = require(ReplicatedStorage.Shared.Util.ShopRules)
 local WeaponStats = require(ReplicatedStorage.Shared.Config.WeaponStats)
 
@@ -181,7 +180,7 @@ function DexBook.entries(book: string, profile: SaveSchema.Profile?): { Entry }
 		local owned = if saved then saved.weapons else {}
 		local tiers = if saved then saved.tiers.weapons else {}
 		for key, stats in WeaponStats.weapons do
-			local art = ShopAssets.weapons[key]
+			local art = ItemIcons.weapon(key)
 			--[[ Not the golden weapons (`Config/ClassLevels`): a class's
 			     trophy belongs to no area, and an area's page is laid out
 			     for its own eighteen (`Dex.pageMost`). They show at Gear.
@@ -190,7 +189,7 @@ function DexBook.entries(book: string, profile: SaveSchema.Profile?): { Entry }
 			     comes with its shelf (`Config/Shop.sets`). A set's weapons
 			     have a page of their own, after the areas'. ]]
 			local hidden = stats.set ~= nil and not ShopRules.stocked(stats)
-			if art and not stats.earned and not hidden and ShopRules.shown(key) then
+			if art ~= "" and not stats.earned and not hidden and ShopRules.shown(key) then
 				table.insert(ranked, {
 					rank = (if stats.set
 						then SET_RANK + ShopRules.setIndex(stats.set)
@@ -223,8 +222,8 @@ function DexBook.entries(book: string, profile: SaveSchema.Profile?): { Entry }
 		local hatched = if saved then saved.pets else {}
 		local tiers = if saved then saved.tiers.pets else {}
 		for key, pet in Pets do
-			local icon = GearAssets.pets[key]
-			if icon then
+			local icon = ItemIcons.pet(key)
+			if icon ~= "" then
 				table.insert(ranked, {
 					rank = (AREAS[pet.area] or LAST_AREA) * 10 + (RANK[pet.rarity] or 9),
 					entry = {

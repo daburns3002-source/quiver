@@ -11,6 +11,7 @@ local EggRules = require(ReplicatedStorage.Shared.Util.EggRules)
 local Eggs = require(ReplicatedStorage.Shared.Config.Eggs)
 local GearAssets = require(ReplicatedStorage.Shared.Config.GearAssets)
 local HatchStand = require(script.Parent.HatchStand)
+local ItemIcons = require(ReplicatedStorage.Shared.Util.ItemIcons)
 local Kit = require(script.Parent.Kit)
 local LiveBoosts = require(ReplicatedStorage.Shared.Util.LiveBoosts)
 local LiveState = require(ReplicatedStorage.Shared.Util.LiveState)
@@ -121,7 +122,7 @@ function EggScreen.start()
 			local owned = p ~= nil and (p.pets[entry.pet] or 0) > 0
 			table.insert(tiles, {
 				rarity = entry.rarity,
-				icon = GearAssets.pets[entry.pet] or "",
+				icon = ItemIcons.pet(entry.pet),
 				key = entry.pet,
 				chance = entry.chance,
 				owned = owned,

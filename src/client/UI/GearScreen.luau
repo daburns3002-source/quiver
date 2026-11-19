@@ -24,6 +24,7 @@ local EggScreen = require(script.Parent.EggScreen)
 local GearAssets = require(ReplicatedStorage.Shared.Config.GearAssets)
 local GearGlory = require(ReplicatedStorage.Shared.Util.GearGlory)
 local HatchStand = require(script.Parent.HatchStand)
+local ItemIcons = require(ReplicatedStorage.Shared.Util.ItemIcons)
 local Kit = require(script.Parent.Kit)
 local MergeRules = require(ReplicatedStorage.Shared.Util.MergeRules)
 local PetCombat = require(ReplicatedStorage.Shared.Config.PetCombat)
@@ -265,7 +266,7 @@ end
 --[[ A weapon's 2D art, the same picture the Blacksmith shows (never a
      render: owner's standing rule). ]]
 local function weaponArt(weapon: string): string
-	return ShopAssets.weapons[weapon] or GearAssets.weapons[weapon] or ""
+	return ItemIcons.weapon(weapon)
 end
 type Entry = {
 	key: string,
@@ -947,7 +948,7 @@ local function draw(s: StationScreen.Screen)
 			L.rows[index],
 			L.size,
 			if info then info.rarity else nil,
-			if key then GearAssets.pets[key] else nil,
+			if key then ItemIcons.pet(key) else nil,
 			not open,
 			function()
 				if not open then
@@ -1017,7 +1018,7 @@ local function draw(s: StationScreen.Screen)
 				key = key,
 				name = info.name,
 				rarity = info.rarity,
-				icon = GearAssets.pets[key] or "",
+				icon = ItemIcons.pet(key),
 				owned = p ~= nil and (p.pets[key] or 0) > 0,
 				count = if p then p.pets[key] or 0 else 0,
 				tiers = if p then p.tiers.pets[key] else nil,

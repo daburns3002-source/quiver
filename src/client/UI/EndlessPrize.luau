@@ -19,10 +19,9 @@ local TweenService = game:GetService("TweenService")
 local Workspace = game:GetService("Workspace")
 
 local EggRules = require(ReplicatedStorage.Shared.Util.EggRules)
-local GearAssets = require(ReplicatedStorage.Shared.Config.GearAssets)
+local ItemIcons = require(ReplicatedStorage.Shared.Util.ItemIcons)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local RunHudRules = require(ReplicatedStorage.Shared.Util.RunHudRules)
-local ShopAssets = require(ReplicatedStorage.Shared.Config.ShopAssets)
 local ShopRules = require(ReplicatedStorage.Shared.Util.ShopRules)
 
 local Chunky = require(script.Parent.Chunky)
@@ -64,7 +63,7 @@ local function prizes(pets: unknown, weapons: unknown): { Prize }
 			if type(key) == "string" then
 				table.insert(out, {
 					rarity = EggRules.rarity(key),
-					picture = (GearAssets.pets :: { [string]: string })[key] or "",
+					picture = ItemIcons.pet(key),
 					new = entry.new == true,
 				})
 			end
@@ -77,7 +76,7 @@ local function prizes(pets: unknown, weapons: unknown): { Prize }
 			if found then
 				table.insert(out, {
 					rarity = found.rarity,
-					picture = (ShopAssets.weapons :: { [string]: string })[found.weapon] or "",
+					picture = ItemIcons.weapon(found.weapon),
 					new = entry.new == true,
 				})
 			end

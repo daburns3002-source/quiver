@@ -27,6 +27,10 @@ In Studio, `Remotes.DebugClock(seconds)` moves the clock for the server and ever
 - **The SETS tab** at the Blacksmith shows only the week's two (its arrows step between them), with
   **NEW SETS IN 3D 4H** ticking under the set's name; it redraws itself when Monday comes.
 - The Dex's set pages, the Gear sheet and owned weapons are untouched.
+- **Only the shop's buy path checks the week.** `ShopRules.stocked`, `ShopRules.catalog` and
+  `Wallet.grantWeapon` know nothing of the rotation, so a prize (the Endless tournament's top-10
+  pick of a set weapon) grants any set's weapon in any week. Keep the check out of any shared
+  ownership or grant function.
 
 ## The boosts
 

@@ -26,9 +26,10 @@
 ]]
 
 local HttpService = game:GetService("HttpService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local Log = require(game:GetService("ReplicatedStorage").Shared.Util.Log)
-local Notifications = require(game:GetService("ReplicatedStorage").Shared.Config.Notifications)
+local Log = require(ReplicatedStorage.Shared.Util.Log)
+local Notifications = require(ReplicatedStorage.Shared.Config.Notifications)
 
 local log = Log.forTag("Notify")
 

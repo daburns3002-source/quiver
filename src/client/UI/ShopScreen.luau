@@ -170,7 +170,10 @@ local function drawStore(s: StationScreen.Screen, area: HatchStand.Area, set: Sh
 			while label.Parent do
 				local now = LiveState.now()
 				if SetRotation.week(now) ~= week then
-					s.open()
+					-- a shut Blacksmith is left shut; it draws the new week when opened
+					if s.isOpen() then
+						s.open()
+					end
 					return
 				end
 				label.Text = "NEW SETS IN " .. LiveBoosts.clock(SetRotation.left(now))

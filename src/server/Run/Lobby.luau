@@ -773,7 +773,7 @@ local function meshPortal(
 	local middle = base * CFrame.new(0, 0, 1 + spec.size.Z / 2)
 	-- an import's front is its -Z, and the portals face south
 	local turned = middle * CFrame.Angles(0, math.pi, 0)
-	local function frame(from: MeshPart, size: Vector3, at: Vector3, neon: boolean?, tint: Color3?)
+	local function frame(from: MeshPart, size: Vector3, at: Vector3, neon: boolean?)
 		local mesh = from:Clone()
 		mesh.Name = "Frame"
 		mesh.Anchored = true
@@ -783,7 +783,7 @@ local function meshPortal(
 		mesh.Material = if neon then Enum.Material.Neon else Enum.Material.SmoothPlastic
 		mesh.Size = size
 		mesh.TextureID = spec.texture
-		mesh.Color = tint or Color3.new(1, 1, 1)
+		mesh.Color = Color3.new(1, 1, 1)
 		mesh.CFrame = turned * CFrame.new(at)
 		mesh.Parent = model
 	end
@@ -792,7 +792,7 @@ local function meshPortal(
 		for _, piece in spec.parts do
 			local from = lobbyTemplates[piece.mesh]
 			if from then
-				frame(from, piece.size, piece.middle, piece.neon, piece.tint)
+				frame(from, piece.size, piece.middle, piece.neon)
 			end
 		end
 	else

@@ -24,8 +24,9 @@ east balustrade, in the open gap between the Hatch Eggs and the Dex Hall, turned
 (`portals[11].aside`), with a clear walk up to its door (`tests/Lobby.spec`). Its index stays 11, which `Remotes.PortalStart`
 carries. Its arch is its own: the **Endless Rift Gate**, built in Claude Design and approved by the
 owner as v2 ("Yes, lock v2", 2026-11-19), with a cracked obsidian frame in violet trim, cyan runes, an infinity
-sign over the door, crystals and a floating Soulstone on top. In game it is two meshes
-(`portalModels["Endless"].parts`: the stone, and its glowing parts drawn Neon, bundled by
+sign over the door, crystals and a floating Soulstone on top. In game it is three meshes
+(`portalModels["Endless"].parts`: the stone; its runes, infinity sign and crystals drawn Neon;
+and the Soulstone, plain, since Neon turned its lilac white and its purple pink; bundled by
 `assets/models/lobby/gate_bundle.py`), with its own vortex sheet in the gate's violet and cyan
 (`assets/ui/portals/vortex_endless.png`), which stands just in front of the dark slab the build
 fills its door with (`vortexForward`). Since it stands alone and not in a row's wall, it gets

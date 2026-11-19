@@ -53,42 +53,112 @@ SETS = {
         "shading on the block sides, glowing light strips in bright cyan and hot magenta, grey "
         "ribbed rubber grips, one bright yellow block as an accent, and one small square green "
         "circuit chip with a few gold pixel traces. Friendly and toy-like, like a kid's light-up "
-        "gadget; not sleek, not sharp, not military.",
+        "gadget; not sleek, not military. Each prop has a bold, unusual silhouette that reads at a "
+        "glance, with big simple shapes rather than a plain stick or blade.",
         [
             (
                 "livewire_bow", "LIVEWIRE BOW", "bow", "golden_bow.png",
-                "a recurve bow built of chunky graphite-black blocks; a glowing cyan light strip runs "
-                "down the front of the upper limb and a glowing magenta light strip down the front of "
-                "the lower limb; a bright yellow block caps each limb tip; the grip in the middle is a "
-                "grey ribbed rubber block with the square green circuit chip set just above it; the "
-                "string is one thick straight bar of white-cyan light; glowing softly cyan and magenta",
+                "a bow whose two limbs are big zigzag lightning bolts built of thick stepped "
+                "graphite-black blocks, each limb bending in three sharp right-angle steps; the upper "
+                "bolt carries a wide glowing cyan light strip down its middle and the lower bolt a "
+                "wide glowing magenta one; each limb tip ends in a big bright yellow two-pronged plug "
+                "head, prongs pointing outward; the grip in the middle is a fat graphite power cell "
+                "wrapped in grey ribbed rubber, with a round glowing cyan dial on its front and the "
+                "square green circuit chip above it; the string is one thick straight bar of "
+                "white-cyan light; glowing strongly cyan and magenta",
             ),
             (
                 "mainframe_staff", "MAINFRAME STAFF", "staff", "golden_staff.png",
-                "a square graphite-black shaft with a glowing magenta light strip running up its "
-                "front, a grey ribbed rubber grip a little below the middle and a bright yellow block "
-                "foot; its head is an open square frame of graphite-black blocks, like a chunky "
-                "monitor bezel, holding one glowing cyan cube that floats in the middle of the frame; "
-                "two short block prongs stand on top of the frame, one tipped cyan and one tipped "
-                "magenta; the square green circuit chip sits where the shaft meets the frame; glowing "
-                "softly cyan and magenta",
+                "its head is a big boxy retro computer monitor of graphite-black blocks, as wide as "
+                "four shaft widths, with a large glowing cyan screen crossed by one chunky magenta "
+                "zigzag pulse line, a row of three bright yellow square keys under the screen, and two "
+                "thick block antennae on top leaning outward in a V, one tipped with a glowing cyan "
+                "cube and one with a glowing magenta cube; the monitor sits on a short neck holding "
+                "the square green circuit chip; the shaft is a thick graphite conduit with a glowing "
+                "magenta light strip up its front and a grey ribbed rubber grip a little below the "
+                "middle; the foot is a big bright yellow plug with two prongs pointing down; glowing "
+                "strongly cyan and magenta",
             ),
             (
                 "overclock_blade", "OVERCLOCK BLADE", "greatsword", "golden_blade.png",
-                "a broad blade of graphite-black blocks with a squared-off stepped tip, a wide "
-                "glowing cyan light strip along both cutting edges and one glowing magenta line down "
-                "the centre groove; the guard is a chunky block like a heat sink, three square fins "
-                "each side, with the square green circuit chip in its middle; a short grey ribbed "
-                "rubber grip; the pommel is a bright yellow battery block with three small glowing "
-                "cyan charge bars; glowing softly cyan and magenta",
+                "a big heroic two-edged greatsword, symmetrical left to right, NOT a cleaver or a "
+                "knife: a long broad blade of graphite-black blocks, a little wider near the top than "
+                "at the guard, ending in a pointed tip built of three centred steps; a thick glowing "
+                "cyan light bar runs up BOTH cutting edges from guard to tip; down the centre of the "
+                "blade runs a glowing magenta light strip, and set into the blade just above the "
+                "guard is a round cooling fan, a glowing magenta ring with four chunky graphite fan "
+                "blades and a yellow hub; the guard is a wide heat sink, three square graphite fins "
+                "stepping upward on each side like wings, each side ending in a fat bright yellow "
+                "block capacitor, with the square green circuit chip in the guard's middle; a grey "
+                "ribbed rubber grip long enough for two hands; the pommel is a graphite battery block "
+                "with three glowing cyan charge bars; the blade is about three times as long as the "
+                "grip; glowing strongly cyan and magenta",
             ),
             (
                 "glitch_daggers", "GLITCH DAGGERS", "dagger", "golden_daggers.png",
-                "a short graphite-black block blade with a glowing cyan edge, whose top third is "
-                "broken into three stair-step blocks shifted sideways, as if the picture had glitched, "
-                "the topmost block glowing magenta; a small square block guard with the square green "
-                "circuit chip in it; a grey ribbed rubber grip; a bright yellow block pommel; glowing "
-                "softly cyan and magenta",
+                "a straight, slim dagger blade with a pointed tip that looks torn sideways by a screen "
+                "glitch: the blade is one tall narrow graphite-black bar, all the same width, cut "
+                "across into five equal slices, and the second and fourth slices are slid half a "
+                "block to the RIGHT while the first, third and fifth stay in line, so the two edges "
+                "run in a square-wave zigzag up the blade; the fifth slice is topped by a small "
+                "pointed block tip. It must NOT be a pyramid, a tower or a stack that narrows in "
+                "steps: every slice is the same width. The left face of each slice has a glowing cyan "
+                "edge strip and the right face a glowing magenta one, like a picture whose colours "
+                "have split apart; all the slices touch, nothing floats; the guard is a wide bright "
+                "yellow block shaped like a chunky game cartridge with the square green circuit chip "
+                "in its middle; a grey ribbed rubber grip; the pommel is a glowing magenta cube; "
+                "glowing strongly cyan and magenta",
+            ),
+        ],
+    ),
+    "starwish": (
+        "STARWISH, a set of chunky toy wishing-star charms: soft pastel pink and mint-green blocks, "
+        "cream-white blocks, shiny gold star charms, flat chunky ribbon wraps (wide flat block "
+        "strips, never thin strings), and glowing pale-yellow star gems. Sweet and toy-like, like "
+        "a kid's sparkly birthday present; no faces, no characters, no wings, no hearts, no moons. "
+        "Each prop has a bold, unusual silhouette that reads at a glance, with big simple shapes "
+        "rather than a plain stick or blade.",
+        [
+            (
+                "wishbright_bow", "WISHBRIGHT BOW", "bow", "golden_bow.png",
+                "a bow whose two limbs are smooth curved arcs of pastel pink blocks, each wrapped "
+                "near its middle by a wide flat mint ribbon band; each limb tip carries a big chunky "
+                "gold five-pointed star, as wide as three limb widths; the grip in the middle is "
+                "cream white wrapped in a wide flat mint ribbon tied in a chunky block bow knot on "
+                "its front, with a round glowing pale-yellow star gem set above the knot; the string "
+                "is one thick straight bar of soft pink light; glowing softly pink and gold",
+            ),
+            (
+                "dreamdrop_staff", "DREAMDROP STAFF", "staff", "golden_staff.png",
+                "its head is a big chunky five-pointed star of pastel pink blocks with a thick gold "
+                "rim, as wide as five shaft widths, with a large glowing pale-yellow star gem in its "
+                "centre; two short wide flat mint ribbon tails hang from under the star on either "
+                "side, each ending in a small gold star charm; the shaft is cream white with a wide "
+                "flat mint ribbon spiralling round it in chunky steps; a pastel pink grip a little "
+                "below the middle; the foot is a small gold star pointing down; glowing softly pink "
+                "and gold",
+            ),
+            (
+                "wishcutter_blade", "WISHCUTTER BLADE", "greatsword", "golden_blade.png",
+                "a big heroic two-edged greatsword, symmetrical left to right, NOT a cleaver: a long "
+                "broad blade of pale mint-green blocks with pastel pink edges on both sides, ending in "
+                "a pointed tip built of three centred steps; up the centre of the blade run three "
+                "gold five-pointed stars in a line, small, medium and large, the largest just above "
+                "the guard; the guard is a wide gold bar ending in a chunky gold star on each side, "
+                "with a round glowing pale-yellow star gem in its middle; a cream-white grip long "
+                "enough for two hands, wrapped in a wide flat pink ribbon; the pommel is a small gold "
+                "star; the blade is about three times as long as the grip; glowing softly pink and "
+                "gold",
+            ),
+            (
+                "twinkle_daggers", "TWINKLE DAGGERS", "dagger", "golden_daggers.png",
+                "a dagger whose blade is one long pointed ray of a star: a tall chunky pastel pink "
+                "crystal blade, wide at the guard and narrowing in even block steps to a sharp "
+                "point, with a cream-white stripe up its middle; the guard is a big chunky mint "
+                "ribbon bow knot of flat block loops, one loop out each side, with a gold star in "
+                "its knot; a cream-white grip wrapped in a wide flat pink ribbon; the pommel is a "
+                "round glowing pale-yellow star gem; all parts touch, nothing floats; glowing softly "
+                "pink and gold",
             ),
         ],
     ),

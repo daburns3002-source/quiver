@@ -207,7 +207,11 @@ return function(t: TestRunner.Helper)
 		function()
 			for _, entry in ShopRules.catalog() do
 				local price = ShopRules.price(entry)
-				if entry.rarity == "Legendary" and not entry.earned then
+				if entry.set then
+					-- a themed set's weapon is priced by its set, coins and gems
+					-- (`WeaponSets.spec`)
+					continue
+				elseif entry.rarity == "Legendary" and not entry.earned then
 					t.notNil(price, entry.weapon)
 					local item = Economy.areas[Shop.crates[entry.area].area].bossItem
 					t.isTrue(price ~= nil and (price.coins or 0) > 0, entry.weapon)

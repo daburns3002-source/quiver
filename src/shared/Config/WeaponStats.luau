@@ -360,6 +360,38 @@ local WeaponStats = {
 			innate = { PhantomBlades = 1 },
 			effect = "Prism shards: two ghost daggers circle you and cut what they touch.",
 		},
+
+		--[[ Neon Circuit (owner, 2026-11-18; docs/WEAPONS-THEMED.md): a themed
+		     set, one Legendary for every class, of no area (`set`), sold on
+		     the shop's SETS shelf for coins and gems and in no crate. ]]
+		LivewireBow = {
+			rarity = "Legendary",
+			area = 1,
+			set = "NeonCircuit",
+			innate = { SplitShot = 1 },
+			effect = "Livewire: a shot that kills sparks off into three more.",
+		},
+		MainframeStaff = {
+			rarity = "Legendary",
+			area = 1,
+			set = "NeonCircuit",
+			innate = { ArcaneTurret = 1 },
+			effect = "Mainframe: every ten seconds a crystal boots up beside you and casts orbs.",
+		},
+		OverclockBlade = {
+			rarity = "Legendary",
+			area = 1,
+			set = "NeonCircuit",
+			innate = { BladeStorm = 1 },
+			effect = "Overclock: every fifth swing throws a spinning blade out and back.",
+		},
+		GlitchDaggers = {
+			rarity = "Legendary",
+			area = 1,
+			set = "NeonCircuit",
+			innate = { Execute = 1 },
+			effect = "Glitch: blows hit harder on a badly hurt enemy.",
+		},
 	} :: { [string]: Stats },
 }
 

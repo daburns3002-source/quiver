@@ -100,9 +100,9 @@ local Shop = {
 	     set's Legendary is the one place they do. ]]
 	sets = {
 		--[[ Chunky toy electronics: graphite blocks, cyan and magenta light
-		     strips, a green circuit chip. Legendary. Not stocked until its
-		     four Tripo models are imported and wired. ]]
-		{ key = "NeonCircuit", name = "NEON CIRCUIT", coins = 5000, gems = 300 },
+		     strips, a green circuit chip. Legendary. Stocked since its four
+		     Tripo models were imported and wired (2026-11-18). ]]
+		{ key = "NeonCircuit", name = "NEON CIRCUIT", coins = 5000, gems = 300, stocked = true },
 	} :: { Set },
 
 	counts = { 1, 3 },

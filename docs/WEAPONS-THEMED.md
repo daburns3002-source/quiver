@@ -32,41 +32,47 @@ mistaken for another game's art is a redo.
   (owner's yes, 2026-11-18). A Mythic set would be earned, never sold (`docs/ROBUX-STORE.md`).
 - Prices are starting numbers: 5,000 coins and 300 gems a weapon.
 
-## Neon Circuit (Legendary) — drawn, not modelled
+## Neon Circuit (Legendary) — in the game
 
 Chunky toy electronics: matte graphite blocks, cyan and magenta light strips, grey ribbed
 grips, a yellow block accent and a small green circuit chip. Front views by Codex
-(2026-11-18), in `assets/concepts/blocky/weapons/skins/sets/neon_circuit/`; all four on
-`contact_sheet.jpg`. Prompts: `sets/set_prompts.py` (it says "toy prop", never "weapon":
-Codex's image filter refused plain bow prompts that day).
+(2026-11-18; the second take bolder, the dagger and sword redrawn on the owner's word) in
+`assets/concepts/blocky/weapons/skins/sets/neon_circuit/`, earlier takes in `options/`.
+Prompts: `sets/set_prompts.py` (it says "toy prop", never "weapon": Codex's image filter
+refused plain bow prompts that day).
 
-| Weapon | Class | Looks like | Card planned |
+| Weapon | Class | Looks like | Card |
 |---|---|---|---|
-| **Livewire Bow** | Ranger | graphite limbs, a cyan strip above and a magenta strip below, yellow tip caps, a thick bar of white-cyan light for a string | Split Shot |
-| **Mainframe Staff** | Arcanist | a square shaft with a magenta strip, a monitor-bezel frame holding a floating cyan cube, a cyan and a magenta prong | Arcane Turret |
-| **Overclock Blade** | Warden | a broad graphite blade with stepped cyan edges and a magenta groove, a heat-sink guard, a yellow battery pommel with three charge bars | Blade Storm |
-| **Glitch Daggers** | Assassin | a short graphite blade whose top steps sideways as if glitched, the top block magenta | Execute |
+| **Livewire Bow** | Ranger | zigzag lightning limbs, cyan above and magenta below, yellow plug tips, a cyan dial on the grip, a light-bar string | Split Shot |
+| **Mainframe Staff** | Arcanist | a boxy retro monitor head, a cyan screen with a magenta pulse line, three yellow keys, cyan and magenta antennae, a yellow plug foot | Arcane Turret |
+| **Overclock Blade** | Warden | a two-edged greatsword, cyan edges, a magenta centre strip and fan, a heat-sink guard with yellow capacitors, a battery pommel | Blade Storm |
+| **Glitch Daggers** | Assassin | a slim blade cut in five equal slices, the 2nd and 4th slid sideways, cyan left edges and magenta right, a yellow cartridge guard | Execute |
 
-No weapon carries any of those four cards today, and no other dagger carries Execute
-(`tests/WeaponFx.spec`: no two of the Assassin's weapons share an effect).
+- **Models:** Tripo, 4,000 triangles and an 8K texture each, 260 credits (4,720 left);
+  jobs in `assets/models/weapons/blocky/neon_circuit_tripo_2026_11_18.json`. The dagger's
+  right-hand strips came out blue and were repainted magenta from the export
+  (`neon_circuit/fix_dagger_magenta.py`). Imported by the owner from
+  `Downloads
+eon_circuit_import`; ids in `neon_circuit/skin_imports.json`.
+- **Held:** grips measured from the GLBs (`neon_circuit/measure_grips.py`): the bow's riser
+  is on -X (yaw a quarter turn back), the staff 43% up, the blade's handle 21% and the
+  dagger's 20% up. In Studio the bow's string side and hands matched the Golden Bow's.
+- **Glow:** an `aura` and a shot or swing glow, cyan for the bow and blade, magenta for the
+  staff and daggers; square cyan and magenta bolts and pixel-chip swings (`Config/WeaponFx`).
+- **Shop:** the SETS tab at the Blacksmith, 5,000 coins and 300 gems each; pictures cut by
+  `assets/ui/shop/set_icons.py` (the dagger pair crossed in a V). The Dex has a NEON
+  CIRCUIT page after the areas' (`Config/Dex.areas.NeonCircuit`).
+- **Not seen yet:** the SETS shelf, the Dex page and the glow on screen (Studio's 3D view was
+  not drawing in that Play), and phone size. Each weapon uses its class's kit and sounds.
 
-**Status:** the rules and the set's row are in (`stocked` off, so nothing shows in the game).
-Waiting on the owner's look at the four pictures before any Tripo credits are spent.
+## Starwish (drawn, waiting on the owner)
 
-### Still to do for the set
-
-1. Owner approves the pictures (or says what to redraw).
-2. Tripo, image to 3D: Polycount 4,000, 8K texture, 65 credits each, 260 for the four (4,980
-   web credits were left on 2026-11-18). GLBs named for the Import Queue; the owner imports.
-3. Grips and bow yaw measured per import (`skins_to_luau.py` `GRIPS`, `YAW`), a list for the
-   sets in the generator, each with a cyan-and-magenta `aura`; rows in `Config/Sandbox`,
-   `Config/WeaponStats` (`set = "NeonCircuit"`, `area = 1`), `Config/WeaponFx`.
-4. Shop and gear pictures cut from the front views (two daggers crossed in a V), uploaded,
-   ids in `Config/ShopAssets` and `Config/GearAssets`.
-5. The SETS shelf at the Blacksmith (`UI/ShopScreen`) and the set's page look in
-   `Config/Dex.areas`; `stocked = true`; a Studio check of each weapon in hand.
-
-No new sounds or animations: each weapon uses its class's kit and sounds.
+Sweet toy wishing-star charms: pastel pink and mint blocks, cream white, gold star charms,
+flat chunky ribbon wraps and glowing pale-yellow star gems (owner, 2026-11-18: "make the
+next one"). Front views by Codex in `sets/starwish/`, all four on `contact_sheet.jpg`:
+**Wishbright Bow**, **Dreamdrop Staff**, **Wishcutter Blade**, **Twinkle Daggers**. Its
+rarity, its cards and its `Shop.sets` row wait on the owner's yes; nothing goes to Tripo
+before it (260 credits for the four).
 
 ## The sets still to make
 
@@ -75,7 +81,6 @@ proposals until the owner picks one.
 
 | Set | Look |
 |---|---|
-| **Starwish** | pastel pink and mint, gold star charms, ribbon wraps, a glowing star gem |
 | **Tumbleweed** | worn leather, brass rivets, rope wraps, a tin star |
 | **Splash Day** | pool-noodle limbs, inflatable rings, water-blaster yellow and aqua |
 | **Coin-Op** | chunky pixels, a joystick grip, 8-bit hearts and coins |
@@ -91,5 +96,9 @@ weapon a class leaves a single set nothing to roll). That is the owner's call wh
 1. A row in `Config/Shop.sets` (key, name, coins, gems), left unstocked.
 2. Its four pictures: a block in `sets/set_prompts.py`, run, `contact_sheet.py`, shown to the
    owner before Tripo.
-3. Steps 2 to 5 above. `tests/WeaponSets.spec` holds a stocked set to one weapon for every
+3. Tripo (4,000 triangles, 8K, 65 credits each), the owner's import, then as Neon Circuit:
+   grips (`neon_circuit/measure_grips.py`), a list in `skins_to_luau.py`, rows in
+   `Config/WeaponStats` (`set`, `area = 1`), `Config/WeaponFx`, pictures
+   (`assets/ui/shop/set_icons.py`) uploaded into `ShopAssets` and `GearAssets`, a page look
+   in `Config/Dex.areas`, then `stocked = true`. `tests/WeaponSets.spec` holds a stocked set to one weapon for every
    open class, one rarity, a card each for a Legendary or Mythic, and a page look.

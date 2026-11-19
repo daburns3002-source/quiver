@@ -305,6 +305,24 @@ local shots: { [string]: Look } = {
 		sparkle = sparkle(rgb(120, 235, 245), 0.35, 3),
 		trail = 2,
 	}),
+	--[[ Neon Circuit (docs/WEAPONS-THEMED.md): square bolts of cyan and
+	     magenta light, like pixels shot off a screen. ]]
+	LivewireBow = shot({
+		colour = rgb(70, 232, 255),
+		shape = "Block",
+		scale = Vector3.new(0.7, 0.7, 2),
+		wobble = { amount = 0.25, rate = 22 },
+		sparkle = sparkle(rgb(255, 62, 196), 0.3, 0),
+		trail = 1.8,
+	}),
+	MainframeStaff = shot({
+		colour = rgb(255, 62, 196),
+		shape = "Block",
+		scale = Vector3.one * 1.2,
+		spin = Vector3.new(0, 0, 10),
+		sparkle = sparkle(rgb(70, 232, 255), 0.32, 1),
+		trail = 1.4,
+	}),
 }
 
 local cleaves: { [string]: Cleave } = {
@@ -806,6 +824,33 @@ local cleaves: { [string]: Cleave } = {
 			size = 0.42,
 			rise = 1.9,
 			life = 0.7,
+		},
+	},
+	-- Neon Circuit: cyan edges and magenta, shedding square pixel chips
+	OverclockBlade = {
+		colour = { rgb(70, 232, 255), rgb(255, 62, 196) },
+		tail = 0.36,
+		taper = 0.4,
+		motes = {
+			form = "Chip",
+			colour = rgb(120, 245, 255),
+			rate = 34,
+			size = 0.45,
+			rise = 1.6,
+			life = 0.5,
+		},
+	},
+	GlitchDaggers = {
+		colour = { rgb(255, 62, 196), rgb(70, 232, 255) },
+		tail = 0.12,
+		taper = 0.1,
+		motes = {
+			form = "Chip",
+			colour = rgb(255, 120, 220),
+			rate = 32,
+			size = 0.36,
+			rise = 2,
+			life = 0.45,
 		},
 	},
 }

@@ -1,0 +1,25 @@
+{
+  "note": "Tripo web studio jobs for the Neon Circuit themed set (owner, 2026-11-18: 'Yes, model them', after two redraws). HD model, H3.1, Polycount 4000, triangles, 8K texture, 65 credits each (260 in all; 4980 before, 4720 after). Each from Codex's front view in `assets/concepts/blocky/weapons/skins/sets/neon_circuit/<name>.png` (`sets/set_prompts.py`). A dagger is ONE dagger, held as a copy in each hand. Open a job at https://studio.tripo3d.ai/workspace/generate/<id>. The dagger's right-hand strips came out blue (hue 240), not magenta: `neon_circuit/fix_dagger_magenta.py` repaints them from the export; the mesh is untouched. Import folder: `Downloads\neon_circuit_import`.",
+  "jobs": {
+    "livewire_bow": {
+      "class": "Ranger",
+      "key": "LivewireBow",
+      "id": "e839d967-9fcc-4f8c-ba5e-65d02d6ad5a2"
+    },
+    "mainframe_staff": {
+      "class": "Arcanist",
+      "key": "MainframeStaff",
+      "id": "b88093d6-c6b4-4955-80c3-a1db6125caeb"
+    },
+    "overclock_blade": {
+      "class": "Warden",
+      "key": "OverclockBlade",
+      "id": "92118405-300f-4977-8398-7c8e22381e02"
+    },
+    "glitch_daggers": {
+      "class": "Assassin",
+      "key": "GlitchDaggers",
+      "id": "d185d697-a913-4005-bd19-d74c205b4d06"
+    }
+  }
+}

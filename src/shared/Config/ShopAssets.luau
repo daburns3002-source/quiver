@@ -79,6 +79,11 @@ local ShopAssets = {
 		ToadtongueDaggers = "rbxassetid://73760706810501",
 		PrismStingers = "rbxassetid://123924061366032",
 		GoldenDaggers = "rbxassetid://116862874509970",
+		-- Neon Circuit, a themed set (assets/ui/shop/set_icons.py)
+		LivewireBow = "rbxassetid://93937739769238",
+		MainframeStaff = "rbxassetid://96190862776548",
+		OverclockBlade = "rbxassetid://138038264342277",
+		GlitchDaggers = "rbxassetid://88706242657450",
 		MossstoneBlade = "rbxassetid://124173705228424",
 		ThornBlade = "rbxassetid://72253310337005",
 		BroodsplitBlade = "rbxassetid://130245213339331",

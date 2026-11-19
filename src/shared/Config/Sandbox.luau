@@ -154,6 +154,10 @@ local Sandbox = {
 		{ weapon = "ToadtongueDaggers", class = "Assassin", label = "TOADTONGUE DAGGERS" },
 		{ weapon = "PrismStingers", class = "Assassin", label = "PRISM STINGERS" },
 		{ weapon = "GoldenDaggers", class = "Assassin", label = "GOLDEN DAGGERS" },
+		{ weapon = "LivewireBow", class = "Ranger", label = "LIVEWIRE BOW" },
+		{ weapon = "MainframeStaff", class = "Arcanist", label = "MAINFRAME STAFF" },
+		{ weapon = "OverclockBlade", class = "Warden", label = "OVERCLOCK BLADE" },
+		{ weapon = "GlitchDaggers", class = "Assassin", label = "GLITCH DAGGERS" },
 		-- SKINS END
 	} :: { Entry },
 

@@ -66,7 +66,14 @@ local function draw(
 	local look = (WeaponFx.cleaves[key] :: any).look
 	local I, life = Canvas.inst(kind, blow.shape, blow.sweep, nil, look.card, look.linger)
 	local c = Canvas.new(Canvas.GEO[kind].s, detail or 1)
-	Styles[key](c, I, t, Canvas.look(key, look.colours, Weapons[key].trailGlow ~= nil))
+	Canvas.run(
+		Styles[key],
+		c,
+		I,
+		t,
+		Canvas.look(key, look.colours, Weapons[key].trailGlow ~= nil),
+		life
+	)
 	return c, life
 end
 
@@ -171,18 +178,24 @@ return function(t: TestRunner.Helper)
 		end
 	end)
 
+	--[[ A cleave of a few fixed shapes (a row of needles) draws them all
+	     everywhere; the rest thin out on a weak device. ]]
 	t.test("a weaker device draws less, and two blows at their fullest fit a strong one", function()
+		local fullTotal, weakTotal = 0, 0
 		for _, entry in carded() do
 			local kind = KIND[entry.class]
 			local g = Canvas.GEO[kind]
 			local most = 0
 			for _, blow in blows(entry.class) do
-				local full = draw(entry.key, kind, blow, g.T + g.H * 0.6)
-				local weak = draw(entry.key, kind, blow, g.T + g.H * 0.6, 0.45)
-				t.isTrue(quads(weak) < quads(full), `{entry.key} draws as much on a weak device`)
-				most = math.max(most, quads(full))
+				local full = quads((draw(entry.key, kind, blow, g.T + g.H * 0.6)))
+				local weak = quads((draw(entry.key, kind, blow, g.T + g.H * 0.6, 0.45)))
+				t.isTrue(weak <= full, `{entry.key} draws more on a weak device`)
+				fullTotal += full
+				weakTotal += weak
+				most = math.max(most, full)
 			end
 			t.isTrue(most * 2 <= Painter.budgetFor(1), `{entry.key} draws {most} beams in a blow`)
 		end
+		t.isTrue(weakTotal < fullTotal * 0.75, `a weak device draws {weakTotal} of {fullTotal}`)
 	end)
 end

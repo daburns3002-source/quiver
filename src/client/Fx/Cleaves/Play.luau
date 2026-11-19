@@ -75,7 +75,7 @@ local function step(dt: number)
 		end
 		local c = Canvas.new(cleave.s, share)
 		local ok, err = pcall(function()
-			cleave.style(c, cleave.I, cleave.t, cleave.W)
+			Canvas.run(cleave.style, c, cleave.I, cleave.t, cleave.W, cleave.life)
 		end)
 		if not ok then
 			-- one broken drawing never stops the rest: it falls back to the ribbon

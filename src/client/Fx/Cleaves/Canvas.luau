@@ -388,6 +388,10 @@ function Canvas.look(key: string, colours: { Color3 }, glow: boolean): Look
 	}
 end
 
+--[[ Seconds over which whatever a cleave still shows fades at the end of
+     its card's life (the page simply stops drawing it). ]]
+local END_FADE = 0.15
+
 ---------------------------------------------------------------- the list
 
 function Canvas.new(s: number, detail: number): Ctx
@@ -403,6 +407,20 @@ function Canvas.new(s: number, detail: number): Ctx
 		detail = detail,
 		s = s,
 	}
+end
+
+--[[ Draws `style` `t` seconds into a blow that lasts `life`: all of it
+     fading over the last moments, so nothing still drifting pops out. ]]
+function Canvas.run(
+	style: (c: Ctx, I: Inst, t: number, W: Look) -> (),
+	c: Ctx,
+	I: Inst,
+	t: number,
+	W: Look,
+	life: number
+)
+	c.alpha = clamp((life - t) / END_FADE)
+	style(c, I, t, W)
 end
 
 --[[ The page's save() and restore(). ]]

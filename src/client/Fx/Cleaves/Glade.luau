@@ -76,7 +76,7 @@ function Glade.MossstoneBlade(c: Ctx, I: Inst, t: number, W: Look)
 			continue
 		end
 		local saved = C.save(c)
-		c.alpha = 1 - k
+		c.alpha *= 1 - k
 		c.lift -= k * k * 16 / c.s
 		local F = C.frame(I, g0 + 0.004, math.min((i + 1) / n, h) - 0.004, {
 			w = 0.78,

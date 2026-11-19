@@ -115,8 +115,9 @@ return function(t: TestRunner.Helper)
 	end
 
 	--[[ A dagger is held in both hands, whichever pair it is, and a
-	     Legendary's or Mythic's effect is a card the Assassin draws that no
-	     other of its weapons carries. ]]
+	     Legendary's or Mythic's effect is an Assassin's card that no other
+	     of its weapons carries: one it draws, or one only that dagger
+	     carries (`weaponOnly`, the themed sets'; `tests/ThemedDaggers.spec`). ]]
 	t.test("every dagger is a pair, and no two carry the same effect", function()
 		local carried: { [string]: string } = {}
 		for _, key in ofClass("Assassin") do

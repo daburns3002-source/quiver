@@ -810,6 +810,17 @@ local Sounds: { [string]: Sound } = {
 	     picked and uploaded as one sprite (`docs/PIPELINES.md` section 7). ]]
 	fx_thorn_burst = { id = "", volume = 0.6, pitchJitter = 0.05, minGap = 0.15 },
 	fx_boar_rush = { id = "", volume = 0.7, pitchJitter = 0.04, minGap = 0.2 },
+	--[[ The themed daggers' own effects (2026-11-18, `Fx/Upgrades/DaggerFx`):
+	     hooks, silent until their sounds are picked and uploaded as one
+	     sprite. ]]
+	fx_wishing_star = { id = "", volume = 0.7, pitchJitter = 0.05, minGap = 0.2 },
+	fx_spur_rowel = { id = "", volume = 0.6, pitchJitter = 0.05, minGap = 0.2 },
+	fx_splash_wave = { id = "", volume = 0.6, pitchJitter = 0.06, minGap = 0.2 },
+	fx_combo_counter = { id = "", volume = 0.4, pitchJitter = 0.03, minGap = 0.08 },
+	fx_combo_break = { id = "", volume = 0.6, pitchJitter = 0.03, minGap = 0.3 },
+	fx_comet_crash = { id = "", volume = 0.7, pitchJitter = 0.05, minGap = 0.2 },
+	fx_bell_chime = { id = "", volume = 0.7, pitchJitter = 0.03, minGap = 0.3 },
+	fx_lava_burst = { id = "", volume = 0.6, pitchJitter = 0.05, minGap = 0.2 },
 }
 
 return table.freeze(Sounds)

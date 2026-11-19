@@ -114,6 +114,8 @@ type Hop = {
 	model: Model,
 	from: Vector3,
 	hitAt: number,
+	--[[ What the hop deals as it lands. ]]
+	damage: number,
 }
 local hops: { Hop } = {}
 
@@ -518,6 +520,68 @@ function ClassUpgrades.spendSurge(session: Session): (number, number)
 	return config.damage, config.size
 end
 
+--[[ Something thrown from `start` that hops between enemies: to the
+     nearest within `range`, then on to the nearest not yet struck within
+     `hopRange`, `hits` in all, flying `speed` studs a second, each hop
+     dealing `damage` as it lands. Every client draws the whole flight from
+     one `look` event: the start, each point, when it gets there and the
+     speed. Shield Throw's shield, and the Spur Daggers' rowel
+     (`Combat/AssassinUpgrades`). Returns how many it will strike. ]]
+export type HopThrow = {
+	hits: number,
+	range: number,
+	hopRange: number,
+	speed: number,
+	damage: number,
+}
+
+local function throwHops(
+	session: Session,
+	start: Vector3,
+	now: number,
+	throw: HopThrow,
+	look: string
+): number
+	local from = Vector3.new(start.X, 0, start.Z)
+	local origin = from
+	local struck: { [Model]: boolean } = {}
+	local points: { Vector3 } = {}
+	local times: { number } = {}
+	local elapsed = 0
+	for index = 1, throw.hits do
+		local candidates: { [Model]: Vector3 } = {}
+		for model, position in EnemyManager.positions() do
+			if not struck[model] then
+				candidates[model] = position
+			end
+		end
+		local reach = if index == 1 then throw.range else throw.hopRange
+		local target = Targeting.nearest(from, candidates, reach)
+		if not target then
+			break
+		end
+		local at = Vector3.new(target.position.X, 0, target.position.Z)
+		elapsed += (at - from).Magnitude / throw.speed
+		struck[target.model] = true
+		table.insert(hops, {
+			session = session,
+			model = target.model,
+			from = from,
+			hitAt = now + elapsed,
+			damage = throw.damage,
+		})
+		table.insert(points, at)
+		table.insert(times, elapsed)
+		from = at
+	end
+	if #points > 0 then
+		upgradeFx:FireAllClients(look, session.player, origin, points, times, throw.speed)
+	end
+	return #points
+end
+
+ClassUpgrades.throwHops = throwHops
+
 --[[ Shield Throw: a dash the server accepted (`Main`'s `DashStarted`).
      The shield goes to the nearest enemy in range, then on to the nearest
      not yet struck, each hop landing as it arrives; every client draws the
@@ -527,41 +591,13 @@ function ClassUpgrades.onDash(session: Session, root: BasePart, now: number)
 		return
 	end
 	local config = Balance.Player.shieldThrow
-	local start = Vector3.new(root.Position.X, 0, root.Position.Z)
-	local from = start
-	local struck: { [Model]: boolean } = {}
-	local points: { Vector3 } = {}
-	local times: { number } = {}
-	local elapsed = 0
-	for index = 1, config.hits do
-		local candidates: { [Model]: Vector3 } = {}
-		for model, position in EnemyManager.positions() do
-			if not struck[model] then
-				candidates[model] = position
-			end
-		end
-		local reach = if index == 1 then config.range else config.hopRange
-		local target = Targeting.nearest(from, candidates, reach)
-		if not target then
-			break
-		end
-		local at = Vector3.new(target.position.X, 0, target.position.Z)
-		elapsed += (at - from).Magnitude / config.speed
-		struck[target.model] = true
-		table.insert(hops, {
-			session = session,
-			model = target.model,
-			from = from,
-			hitAt = now + elapsed,
-		})
-		table.insert(points, at)
-		table.insert(times, elapsed)
-		from = at
-	end
-	if #points == 0 then
-		return
-	end
-	upgradeFx:FireAllClients("ShieldThrow", session.player, start, points, times, config.speed)
+	throwHops(session, root.Position, now, {
+		hits = config.hits,
+		range = config.range,
+		hopRange = config.hopRange,
+		speed = config.speed,
+		damage = session.damage * config.damage,
+	}, "ShieldThrow")
 end
 
 --[[ Blade Storm: a blow landed (`Combat/MeleeSystem`); every `every`th
@@ -712,21 +748,16 @@ function ClassUpgrades.step(deltaTime: number, now: number)
 		end
 	end
 
-	--[[ Shield Throw: each hop lands as the shield arrives. ]]
-	local throw = Balance.Player.shieldThrow
+	--[[ Shield Throw: each hop lands as the shield arrives (and the Spur
+	     Daggers' rowel). ]]
 	for index = #hops, 1, -1 do
 		local hop = hops[index]
 		if now >= hop.hitAt then
 			table.remove(hops, index)
 			local session = hop.session
 			if session.alive and EnemyManager.healthFraction(hop.model) then
-				local _, xp, fell = EnemyManager.damage(
-					hop.model,
-					session.damage * throw.damage,
-					hop.from,
-					"Hit",
-					session.player
-				)
+				local _, xp, fell =
+					EnemyManager.damage(hop.model, hop.damage, hop.from, "Hit", session.player)
 				RunSession.creditKill(session.player, xp, fell)
 			end
 		end

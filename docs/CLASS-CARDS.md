@@ -104,6 +104,50 @@ Server: `Combat/MeleeSystem` (`strike`: Backstab, Serrated Edge, Bleed), `Combat
 `fx_thousand_cuts`), the owner's picks of audition round 33, in one sprite with the daggers' own
 strikes and the Shadow Dash's cut (`assets/audio/final/assassin_sprite_r33.mp3`, 2026-11-17).
 
+## The themed daggers' seven (2026-11-18)
+
+The owner: "make unique effects for the daggers now", then yes to the seven put to them, and to
+icons for them. The seven themed sets' daggers (`docs/WEAPONS-THEMED.md`) had carried stand-in
+cards; each now carries an effect of its own. **Each is a card only its dagger carries**
+(`weaponOnly = true` in `Config/Abilities`): no draft and no Angel deals it (`Run/Loadout`'s
+`candidates`), and it is in no class's pool, so the four pools stay within a card of each other
+(`tests/ClassCards.spec`). A weapon-only card is carried by exactly one weapon
+(`tests/ConfigConsistency.spec`). All Legendary, one level, the Assassin's, group "dagger".
+
+| Dagger (set) | Card | What it does | How |
+|---|---|---|---|
+| Twinkle (Starwish) | **Wishing Star** | Every 5th strike that lands drops a star on the first enemy struck: 0.35 s later it bursts 6 studs round it for 0.8x a strike | an `AreaStrikes` strike that follows the enemy |
+| Spur (Tumbleweed) | **Spur Rowel** | The double stab flings a spur rowel that hops between 3 enemies (12 studs to the first, 14 a hop), 0.5x a strike each | Shield Throw's flight, shared as `ClassUpgrades.throwHops` |
+| Squirt (Splash Day) | **Splash Wave** | Every 3rd strike that lands splashes 5 studs round the first enemy struck: 0.4x a strike, and what it soaks moves 30% slower for 2 s | `EnemyManager.slow`; `SoakedUntil` on the enemy |
+| Token (Coin-Op) | **Combo Counter** | Each strike that lands adds +3% to every blow (the dash's cut too), up to +30% at 10; a hit taken empties it | `AssassinUpgrades.comboScale`, `onHurt`; `ComboCount` on the player |
+| Comet (Voidglass) | **Comet Crash** | A strike calls a comet onto the enemy: 1.5 s later it crashes 5 studs round it for 0.6x that strike; one comet an enemy at a time | an `AreaStrikes` strike that follows the enemy, from `MeleeSystem`'s `strike` (swings and the dash's cut) |
+| Bellchime (Lantern Bloom) | **Bell Chime** | Every 6th strike that lands rings a bell: everything within 8 studs is held 0.8 s (a boss slowed to 60% instead) and takes 0.4x a strike, unshoved | `EnemyManager.root`, as Root Hold |
+| Embershard (Cinderforge) | **Lava Burst** | The double stab sends lava 10 studs on from the stab, 4 wide: 0.5x the stab to each enemy as it arrives, and it burns 3 s at Blaze's rate | Shockwave's lane (`SwingBox.waveAlong`), `Combat/Burning` |
+
+- **A strike that lands** is a swing that struck something (Fan of Knives counts every swing).
+  Numbers in `Balance.Player.daggers`, each card's own in its level; the splash and the lava
+  shove a third as far as a hit (as a dagger's slash), the bell not at all.
+- **Looks** (`Fx/Upgrades/DaggerFx`), voxel cubes in each set's two glow colours: a gold star
+  falling with a sparkle tail and a ring of gold and pink; a turquoise-and-gold spiked wheel
+  rolling from enemy to enemy with a dust puff at each; a ring of water and droplets, and drips
+  off the soaked; red arcade pixel digits over the head ("x7"), gold when full, shattering on a
+  hit; a violet comet glinting high over the enemy, then crashing with a pink tail; a gold bell
+  swinging over the head, a ring of light, a ring of gold round each held enemy's feet; lava
+  bursting out of the floor one after another along the line.
+- **Icons**: Codex in the set's style (`assets/concepts/blocky/ui/cards/themed_daggers_prompts.py`),
+  composed on the Legendary tile by `compose_icon.py` and uploaded (`Config/CardAssets`). The
+  cards are not shown in a run (the Gear screen shows the dagger's effect line); the icons are
+  there for when they are.
+- **Sounds**: eight silent hooks (`fx_wishing_star`, `fx_spur_rowel`, `fx_splash_wave`,
+  `fx_combo_counter`, `fx_combo_break`, `fx_comet_crash`, `fx_bell_chime`, `fx_lava_burst`)
+  until they are picked, as one sprite.
+- **Specs**: `tests/ThemedDaggers.spec` (each dagger its card, never dealt, on with its dagger
+  only, the numbers, the count driven through `AssassinUpgrades`, the lava's lane, and no effect
+  worth more than the strikes it rides on).
+- **Seen** (2026-11-18, Studio sandbox Play, by probe): all seven fire with their own dagger in
+  hand; enemies soaked, held and burning; the count rises to 10 and a real hit empties it.
+  **Not seen:** the looks on screen (captures drew no 3D that night) and phone size.
+
 ## Every class a ladder of four (owner's pick C, 2026-11-13)
 
 Owner: "ALSO OPEN A SESSION ABOUT UPGRADES FOR EACH CLASS"; three options were drawn up

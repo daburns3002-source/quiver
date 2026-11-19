@@ -23,6 +23,27 @@
 	(`Combat/MeleeSystem`), Twin Fangs in its numbers, Quickstep in
 	`RunSession.onEnemyKilled`.
 
+	The themed sets' seven daggers' own effects (owner, 2026-11-18), cards
+	carried only by their dagger (`weaponOnly`), numbers in
+	`Balance.Player.daggers`. A strike that lands is a swing that struck
+	something (`afterBlow`'s `Landed`):
+
+	- Wishing Star (Twinkle): every 5th, a star falls on the first enemy
+	  struck and bursts round it (an `AreaStrikes` strike).
+	- Spur Rowel (Spur): the double stab flings a rowel that hops between
+	  enemies (`ClassUpgrades.throwHops`, Shield Throw's flight).
+	- Splash Wave (Squirt): every 3rd, a splash round the first enemy
+	  struck that slows what it soaks (`SoakedUntil` on the enemy).
+	- Combo Counter (Token): each strike that lands adds to every blow
+	  until the Assassin is hit (`comboScale`, `onHurt`; `ComboCount` on the
+	  player).
+	- Comet Crash (Comet): a strike calls a comet onto the enemy, one at a
+	  time (`struck`).
+	- Bell Chime (Bellchime): every 6th, everything near the Assassin is
+	  held (`EnemyManager.root`; a boss slowed).
+	- Lava Burst (Embershard): the double stab sends lava along the ground
+	  that sets what it meets burning (Shockwave's lane, `Combat/Burning`).
+
 	The numbers are `Balance.Player.assassin`. Clients only draw:
 	`Remotes.UpgradeFx` and the attributes `DeathMarked` (on the enemy) and
 	`PhantomBlades` (on the player).
@@ -35,10 +56,12 @@ local Aim = require(ReplicatedStorage.Shared.Combat.Aim)
 local AreaStrikes = require(script.Parent.AreaStrikes)
 local AssassinRules = require(ReplicatedStorage.Shared.Combat.AssassinRules)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
+local Burning = require(script.Parent.Burning)
 local ClassUpgrades = require(script.Parent.ClassUpgrades)
 local EnemyManager = require(script.Parent.Parent.Enemies.EnemyManager)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local RunSession = require(script.Parent.Parent.Run.RunSession)
+local SwingBox = require(ReplicatedStorage.Shared.Combat.SwingBox)
 
 type Session = RunSession.Session
 
@@ -63,6 +86,24 @@ type State = {
 	--[[ Thousand Cuts: when the next round starts (os.clock); nil before
 	     the first fight. ]]
 	cutsNextAt: number?,
+	--[[ The themed daggers': the run these counts are of (its loadout,
+	     new each run), strikes landed that struck something, the Combo
+	     Counter's count, and the enemies a comet is falling on. ]]
+	run: unknown,
+	landed: number,
+	combo: number,
+	comets: { [Model]: boolean },
+}
+
+--[[ A swing's blow that landed (`Combat/MeleeSystem`): the enemies it
+     struck, in turn; what the blow dealt each before anything of theirs;
+     whether it was the combo's last blow (the Assassin's double stab); and
+     how far in front of the swinger that blow's shape stands. ]]
+export type Landed = {
+	struck: { Aim.Candidate },
+	blow: number,
+	stab: boolean,
+	ahead: number,
 }
 
 local states: { [Session]: State } = setmetatable({}, { __mode = "k" }) :: any
@@ -76,10 +117,33 @@ local lastStep: number? = nil
 local function state(session: Session): State
 	local own = states[session]
 	if not own then
-		own = { blows = 0, cutAgain = {}, shownBlades = 0 }
+		own = {
+			blows = 0,
+			cutAgain = {},
+			shownBlades = 0,
+			run = session.loadout,
+			landed = 0,
+			combo = 0,
+			comets = {},
+		}
 		states[session] = own
 	end
+	--[[ A new run (`RunSession.resetRun` hands the session a new
+	     loadout): the daggers' counts start again. ]]
+	if own.run ~= session.loadout then
+		own.run = session.loadout
+		own.landed = 0
+		table.clear(own.comets)
+		if own.combo ~= 0 then
+			own.combo = 0
+			session.player:SetAttribute("ComboCount", nil)
+		end
+	end
 	return own
+end
+
+local function ground(v: Vector3): Vector3
+	return Vector3.new(v.X, 0, v.Z)
 end
 
 local function halfWidth(model: Model): number
@@ -116,14 +180,9 @@ function AssassinUpgrades.dashed(session: Session, a: Vector3, b: Vector3, now: 
 	)
 end
 
---[[ Fan of Knives: a strike landed along `direction`
-     (`Combat/MeleeSystem`); every `every`th throws the fan. ]]
-function AssassinUpgrades.afterBlow(
-	session: Session,
-	origin: Vector3,
-	direction: Vector3,
-	now: number
-)
+--[[ Fan of Knives: a strike landed along `direction`; every `every`th
+     throws the fan. ]]
+local function fanOfKnives(session: Session, origin: Vector3, direction: Vector3, now: number)
 	local count = session.upgrades.fanOfKnives
 	if count <= 0 then
 		return
@@ -152,6 +211,274 @@ function AssassinUpgrades.afterBlow(
 			now
 		)
 	end
+end
+
+--[[ Splash Wave: a splash `radius` round `at`, everything in it struck,
+     for `share` of a strike, and soaked. ]]
+local function splash(session: Session, at: Vector3, share: number)
+	local config = Balance.Player.daggers
+	local wave = config.splash
+	local untilServer = Workspace:GetServerTimeNow() + wave.duration
+	local soaked: { Vector3 } = {}
+	for model, position in EnemyManager.positions() do
+		if (ground(position) - ground(at)).Magnitude > wave.radius + halfWidth(model) then
+			continue
+		end
+		local _, xp, fell = EnemyManager.damage(
+			model,
+			session.damage * share,
+			at,
+			"Hit",
+			session.player,
+			config.knock
+		)
+		RunSession.creditKill(session.player, xp, fell)
+		EnemyManager.slow(model, 1 - wave.slow, os.clock() + wave.duration)
+		model:SetAttribute("SoakedUntil", untilServer)
+		table.insert(soaked, ground(position))
+	end
+	upgradeFx:FireAllClients("SplashWave", session.player, ground(at), wave.radius, soaked)
+end
+
+--[[ Bell Chime: everything within the ring round `at` is held for `hold`
+     seconds (a boss slowed) and struck, but not shoved: it is held. ]]
+local function bell(session: Session, at: Vector3, hold: number)
+	local ring = Balance.Player.daggers.bell
+	local held: { Vector3 } = {}
+	for model, position in EnemyManager.positions() do
+		if (ground(position) - ground(at)).Magnitude > ring.radius + halfWidth(model) then
+			continue
+		end
+		if EnemyManager.isBoss(model) then
+			EnemyManager.slow(model, ring.boss, os.clock() + hold)
+		else
+			EnemyManager.root(model, hold, "BellChime")
+		end
+		local _, xp, fell =
+			EnemyManager.damage(model, session.damage * ring.damage, at, "Hit", session.player, 0)
+		RunSession.creditKill(session.player, xp, fell)
+		table.insert(held, ground(position))
+	end
+	upgradeFx:FireAllClients("BellChime", session.player, ground(at), ring.radius, hold, held)
+end
+
+--[[ Lava Burst: lava runs on from the stab along `direction`, striking
+     each enemy in its lane as it gets there, for `share` of the stab, and
+     setting it burning. ]]
+local function lava(
+	session: Session,
+	origin: Vector3,
+	direction: Vector3,
+	landed: Landed,
+	share: number
+)
+	local config = Balance.Player.daggers
+	local run = config.lava
+	local forward = ground(direction)
+	if forward.Magnitude < 1e-3 then
+		return
+	end
+	forward = forward.Unit
+	--[[ Stopped by a wall or cover, as a thrown blade is. ]]
+	local length = ClassUpgrades.flightLength(
+		Aim.shotOrigin(origin),
+		forward,
+		landed.ahead + run.length
+	) - landed.ahead
+	if length < 1 then
+		return
+	end
+	local damage = landed.blow * share
+	local burn = landed.blow * Balance.Burn.rate
+	for model, position in EnemyManager.positions() do
+		local along = SwingBox.waveAlong(
+			origin,
+			forward,
+			landed.ahead,
+			length,
+			run.width,
+			position,
+			halfWidth(model)
+		)
+		if along then
+			task.delay(along / run.speed, function()
+				if not (session.alive and EnemyManager.healthFraction(model)) then
+					return
+				end
+				local _, xp, fell =
+					EnemyManager.damage(model, damage, origin, "Hit", session.player, config.knock)
+				RunSession.creditKill(session.player, xp, fell)
+				Burning.ignite(model, burn, run.burn, session.player, os.clock())
+			end)
+		end
+	end
+	upgradeFx:FireAllClients(
+		"LavaBurst",
+		session.player,
+		ground(origin) + forward * landed.ahead,
+		forward,
+		length,
+		run.speed
+	)
+end
+
+--[[ The themed daggers' own, after a blow that struck something. ]]
+local function daggers(
+	session: Session,
+	origin: Vector3,
+	direction: Vector3,
+	now: number,
+	landed: Landed
+)
+	local upgrades = session.upgrades
+	local held = upgrades.wishingStar > 0
+		or upgrades.spurRowel > 0
+		or upgrades.splashWave > 0
+		or upgrades.comboCounter > 0
+		or upgrades.bellChime > 0
+		or upgrades.lavaBurst > 0
+	local first = landed.struck[1]
+	if not held or not first then
+		return
+	end
+	local config = Balance.Player.daggers
+	local own = state(session)
+	own.landed += 1
+
+	--[[ Combo Counter: one more, up to where it stops adding. ]]
+	if upgrades.comboCounter > 0 then
+		local full = AssassinRules.comboFull(config.combo.step, upgrades.comboCounter)
+		if own.combo < full then
+			own.combo += 1
+			session.player:SetAttribute("ComboCount", own.combo)
+		end
+	end
+
+	--[[ Wishing Star: a star falls on the first enemy struck, wherever it
+	     has got to when the star lands. ]]
+	if upgrades.wishingStar > 0 and own.landed % config.star.every == 0 then
+		local star = config.star
+		AreaStrikes.strike({
+			owner = session.player,
+			at = first.position,
+			follow = first.model.PrimaryPart,
+			radius = star.radius,
+			damage = session.damage * upgrades.wishingStar,
+			delay = star.delay,
+			now = now,
+		})
+		upgradeFx:FireAllClients(
+			"WishingStar",
+			session.player,
+			first.model,
+			ground(first.position),
+			star.delay,
+			star.radius
+		)
+	end
+
+	if upgrades.splashWave > 0 and own.landed % config.splash.every == 0 then
+		splash(session, first.position, upgrades.splashWave)
+	end
+
+	if upgrades.bellChime > 0 and own.landed % config.bell.every == 0 then
+		bell(session, origin, upgrades.bellChime)
+	end
+
+	if landed.stab then
+		--[[ Spur Rowel: flung from the Assassin, hopping on. ]]
+		if upgrades.spurRowel > 0 then
+			local spur = config.spur
+			ClassUpgrades.throwHops(session, origin, now, {
+				hits = upgrades.spurRowel,
+				range = spur.range,
+				hopRange = spur.hopRange,
+				speed = spur.speed,
+				damage = session.damage * spur.damage,
+			}, "SpurRowel")
+		end
+		if upgrades.lavaBurst > 0 then
+			lava(session, origin, direction, landed, upgrades.lavaBurst)
+		end
+	end
+end
+
+--[[ A swing's blow landed along `direction` (`Combat/MeleeSystem`): Fan of
+     Knives counts every one; the themed daggers' own count those that
+     struck something (`landed`). ]]
+function AssassinUpgrades.afterBlow(
+	session: Session,
+	origin: Vector3,
+	direction: Vector3,
+	now: number,
+	landed: Landed?
+)
+	fanOfKnives(session, origin, direction, now)
+	if landed then
+		daggers(session, origin, direction, now, landed)
+	end
+end
+
+--[[ Comet Crash: a strike that dealt `damage` landed on `model` at
+     `position`; a comet comes down on it, unless one already is. ]]
+function AssassinUpgrades.struck(
+	session: Session,
+	model: Model,
+	position: Vector3,
+	damage: number,
+	now: number
+)
+	local share = session.upgrades.cometCrash
+	if share <= 0 then
+		return
+	end
+	local own = state(session)
+	if own.comets[model] then
+		return
+	end
+	own.comets[model] = true
+	local comet = Balance.Player.daggers.comet
+	AreaStrikes.strike({
+		owner = session.player,
+		at = position,
+		follow = model.PrimaryPart,
+		radius = comet.radius,
+		damage = damage * share,
+		delay = comet.delay,
+		now = now,
+		landed = function()
+			own.comets[model] = nil
+		end,
+	})
+	upgradeFx:FireAllClients(
+		"CometCrash",
+		session.player,
+		model,
+		ground(position),
+		comet.delay,
+		comet.radius
+	)
+end
+
+--[[ Combo Counter: what every blow is multiplied by now (1 without it). ]]
+function AssassinUpgrades.comboScale(session: Session): number
+	local most = session.upgrades.comboCounter
+	local own = states[session]
+	if most <= 0 or not own or own.run ~= session.loadout then
+		return 1
+	end
+	return 1 + AssassinRules.comboBonus(own.combo, Balance.Player.daggers.combo.step, most)
+end
+
+--[[ Combo Counter: a hit really landed on the Assassin
+     (`RunSession.onHurt`); the count is gone. ]]
+function AssassinUpgrades.onHurt(session: Session)
+	local own = states[session]
+	if not own or own.combo <= 0 then
+		return
+	end
+	own.combo = 0
+	session.player:SetAttribute("ComboCount", 0)
 end
 
 --[[ Death Mark: keeps one enemy marked, moving the mark on when its
@@ -329,11 +656,20 @@ function AssassinUpgrades.step(deltaTime: number, now: number)
 		local held = upgrades.deathMark > 0
 			or upgrades.phantomBlades > 0
 			or upgrades.thousandCuts > 0
+			or upgrades.comboCounter > 0
 		--[[ A session that never held one of these has nothing to keep. ]]
 		if not (held or states[session]) or not session.alive then
 			continue
 		end
+		--[[ `state` starts the daggers' counts again on a new run, and
+		     takes a count left from the last run off the player. ]]
 		local own = state(session)
+		--[[ The Token Daggers put down mid-run (the sandbox's weapon list):
+		     their count goes with them. ]]
+		if upgrades.comboCounter <= 0 and own.combo ~= 0 then
+			own.combo = 0
+			session.player:SetAttribute("ComboCount", nil)
+		end
 		deathMark(session, own, now)
 		phantomBlades(session, own, now, moving)
 		thousandCuts(session, own, now, if moving then deltaTime else 0)
@@ -349,6 +685,7 @@ function AssassinUpgrades.clear()
 		own.marked = nil
 		own.markedAt = nil
 		table.clear(own.cutAgain)
+		table.clear(own.comets)
 		if own.shownBlades ~= 0 and session.upgrades.phantomBlades <= 0 then
 			own.shownBlades = 0
 			session.player:SetAttribute("PhantomBlades", nil)

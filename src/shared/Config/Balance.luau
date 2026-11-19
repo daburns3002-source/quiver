@@ -12682,6 +12682,45 @@ local Balance = {
 				knock = 0.35,
 			},
 		},
+		--[[ The themed sets' seven daggers' own effects (owner, 2026-11-18;
+		     docs/CLASS-CARDS.md "The themed daggers' seven"), each a card
+		     only its dagger carries (`weaponOnly`). What each level is worth
+		     is the card's (`Config/Abilities`); these are the rest. A
+		     "strike that lands" is a swing that struck something.
+		     - Wishing Star (Twinkle): every `every`th strike that lands
+		       drops a star on the first enemy struck, landing `delay` later
+		       and bursting `radius` round it.
+		     - Spur Rowel (Spur): the double stab flings a rowel at the
+		       nearest enemy within `range`, then on to the nearest not yet
+		       struck within `hopRange`, flying `speed` studs a second,
+		       `damage` times a strike a hop (Shield Throw's flight).
+		     - Splash Wave (Squirt): every `every`th strike that lands
+		       splashes `radius` round the first enemy struck, and what it
+		       soaks moves `slow` slower for `duration` seconds.
+		     - Combo Counter (Token): each strike that lands adds `step`,
+		       up to the card's; a hit on the Assassin empties it.
+		     - Comet Crash (Comet): a strike's comet crashes `delay` after
+		       it, `radius` round the enemy, one comet an enemy at a time.
+		     - Bell Chime (Bellchime): every `every`th strike that lands
+		       holds everything within `radius` of the Assassin (a boss is
+		       slowed to `boss` of its speed instead), `damage` times a
+		       strike.
+		     - Lava Burst (Embershard): the double stab's lava runs
+		       `length` studs on from the stab, `width` wide, at `speed`
+		       studs a second, and sets what it meets burning for `burn`
+		       seconds (Blaze's rate).
+		     The splash and the lava shove `knock` of an enemy's knockback,
+		     as a dagger's slash does; the bell holds, so shoves nothing. ]]
+		daggers = {
+			knock = 0.35,
+			star = { every = 5, delay = 0.35, radius = 6 },
+			spur = { range = 12, hopRange = 14, speed = 45, damage = 0.5 },
+			splash = { every = 3, radius = 5, slow = 0.3, duration = 2 },
+			combo = { step = 0.03 },
+			comet = { delay = 1.5, radius = 5 },
+			bell = { every = 6, radius = 8, damage = 0.4, boss = 0.6 },
+			lava = { length = 10, width = 4, speed = 28, burn = 3 },
+		},
 
 		--[[
 			Momentum: "attack speed rises while moving". Nothing fires on the

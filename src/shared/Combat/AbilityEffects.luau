@@ -129,6 +129,19 @@ export type UpgradeStats = {
 	deathMark: number,
 	phantomBlades: number,
 	thousandCuts: number,
+	--[[ The themed daggers' own (`Balance.Player.daggers`), each its card's
+	     level's worth, 0 without it: Wishing Star, the star's share of a
+	     strike; Spur Rowel, how many enemies the rowel strikes; Splash Wave,
+	     the splash's share; Combo Counter, the most the count adds; Comet
+	     Crash, the comet's share of the strike; Bell Chime, seconds held;
+	     Lava Burst, the lava's share of the stab. ]]
+	wishingStar: number,
+	spurRowel: number,
+	splashWave: number,
+	comboCounter: number,
+	cometCrash: number,
+	bellChime: number,
+	lavaBurst: number,
 }
 
 --[[ What the server applies. ]]
@@ -493,6 +506,13 @@ function AbilityEffects.serverStats(drafted: Counts, class: string?, weapon: str
 			deathMark = at(counts, "DeathMark"),
 			phantomBlades = at(counts, "PhantomBlades"),
 			thousandCuts = at(counts, "ThousandCuts"),
+			wishingStar = at(counts, "WishingStar"),
+			spurRowel = at(counts, "SpurRowel"),
+			splashWave = at(counts, "SplashWave"),
+			comboCounter = at(counts, "ComboCounter"),
+			cometCrash = at(counts, "CometCrash"),
+			bellChime = at(counts, "BellChime"),
+			lavaBurst = at(counts, "LavaBurst"),
 		},
 		melee = {
 			widthScale = 1 + at(counts, "Cleave"),

@@ -104,4 +104,21 @@ function AssassinRules.nearest<T>(from: Vector3, enemies: { [T]: Vector3 }, reac
 	return AssassinRules.round(from, enemies, reach, 1)[1]
 end
 
+--[[ Combo Counter (the Token Daggers): what `count` strikes landed
+     without a hit taken add, `step` each, no more than `most`. ]]
+function AssassinRules.comboBonus(count: number, step: number, most: number): number
+	if count <= 0 or step <= 0 then
+		return 0
+	end
+	return math.min(count * step, most)
+end
+
+--[[ The count at which the bonus stops growing: no point counting past it. ]]
+function AssassinRules.comboFull(step: number, most: number): number
+	if step <= 0 then
+		return 0
+	end
+	return math.ceil(most / step - 1e-9)
+end
+
 return AssassinRules

@@ -36,10 +36,12 @@ local function max(id: string): { [string]: number }
 end
 
 return function(t: TestRunner.Helper)
+	--[[ The ten it drafts; the themed daggers' own seven (`weaponOnly`) are
+	     `tests/ThemedDaggers.spec`'s. ]]
 	t.test("the Assassin has its ten cards, each its own and with its icon", function()
 		local own = 0
 		for _, ability in Abilities.all do
-			if ability.group == "dagger" then
+			if ability.group == "dagger" and not ability.weaponOnly then
 				own += 1
 				t.notNil(table.find(CARDS, ability.id), `{ability.id} is not one of the ten`)
 				local classes: { string } = ability.classes or {}

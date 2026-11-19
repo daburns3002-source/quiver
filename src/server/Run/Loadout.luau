@@ -147,7 +147,8 @@ end
 
 --[[
 	The skills that may legally be dealt right now: under their cap, not
-	excluded by something held, and not a filler card. `chosen` is a hand
+	excluded by something held, and not a filler card, a benched one or a
+	weapon's own (`weaponOnly`, carried only by its weapon). `chosen` is a hand
 	dealt on purpose (the tutorial's fixed hands), which may hold a rarity the
 	run's rolls are banned from: Multishot on the tutorial's room 3.
 ]]
@@ -155,7 +156,7 @@ local function candidates(state: State, chosen: boolean?): { Ability }
 	local out: { Ability } = {}
 
 	for _, ability in Abilities.all do
-		if ability.filler or ability.benched then
+		if ability.filler or ability.benched or ability.weaponOnly then
 			continue
 		end
 

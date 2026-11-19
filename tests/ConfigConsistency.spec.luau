@@ -116,6 +116,30 @@ return function(t: TestRunner.Helper)
 		end
 	end)
 
+	--[[ A weapon's own card (`weaponOnly`) is never dealt, so a weapon
+	     must carry it or it is dead; and only one may, or it is not that
+	     weapon's own. ]]
+	t.test("a weapon-only card is carried by exactly one weapon", function()
+		local carriers: { [string]: { string } } = {}
+		for key, stats in WeaponStats.weapons do
+			local innate: { [string]: number } = stats.innate or {}
+			for id in innate do
+				carriers[id] = carriers[id] or {}
+				table.insert(carriers[id], key)
+			end
+		end
+		for _, card in Abilities.all do
+			if card.weaponOnly then
+				local by = carriers[card.id] or {}
+				t.equal(#by, 1, `{card.id} is carried by {#by} weapons ({table.concat(by, ", ")})`)
+				t.isFalse(
+					card.benched == true or card.filler == true,
+					`{card.id} is benched or filler`
+				)
+			end
+		end
+	end)
+
 	t.test("a card excludes only real cards, and says as much as it has", function()
 		local byId = cards()
 		for _, card in Abilities.all do

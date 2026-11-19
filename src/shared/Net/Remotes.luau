@@ -239,6 +239,16 @@ Remotes.DebugDay = "DebugDay"
 Remotes.DebugPlaytime = "DebugPlaytime"
 Remotes.DebugPremium = "DebugPremium"
 Remotes.DebugInvite = "DebugInvite"
+--[[ Client → server: the REWARDS screen's SEASON tab (`Server/Data/Season`):
+     claim a tier ("free" or "premium" and its number, or "all" for every
+     one owed), and wear a season title held (its key, or nil for none).
+     Carries no XP and no time: both are the server's. ]]
+Remotes.SeasonClaim = "SeasonClaim"
+Remotes.SeasonTitle = "SeasonTitle"
+--[[ Client → server, Studio only: move this player's season clock on by a
+     number of days (1 if none, 0 for none) and add season XP, to see a
+     season start, fill and end (`Data/Season`). ]]
+Remotes.DebugSeason = "DebugSeason"
 
 --[[
 	Client → server. The intro's BEGIN ADVENTURE button: this player has

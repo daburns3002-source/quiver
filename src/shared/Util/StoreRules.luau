@@ -95,7 +95,7 @@ end
 function StoreRules.shelf(purchases: Purchases?): { RobuxStore.Product }
 	local out = {}
 	for _, product in RobuxStore.products do
-		if product.revive or product.serverLuck then
+		if product.revive or product.serverLuck or product.season then
 			continue
 		end
 		if product.once and purchases and purchases.starterBought then
@@ -115,7 +115,8 @@ end
 
 --[[ Whether this player may be prompted for `key` now: a product or a pass
      that exists and is live, the starter pack not yet bought, a pass not yet
-     owned. The revive has its own question (`reviveOffer`). ]]
+     owned. The revive has its own question (`reviveOffer`), and so has the
+     Season Pass (`Server/Data/Season`). ]]
 function StoreRules.canPrompt(
 	key: unknown,
 	purchases: Purchases?,
@@ -124,7 +125,7 @@ function StoreRules.canPrompt(
 ): boolean
 	local product = StoreRules.product(key)
 	if product then
-		if product.revive or not StoreRules.live(product) then
+		if product.revive or product.season or not StoreRules.live(product) then
 			return false
 		end
 		if not StoreRules.offered(product, restricted) then

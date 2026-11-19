@@ -152,6 +152,7 @@
 	Version 24 (2026-11-18, hard mode -- `Util/HardRules`): `hardBeaten`,
 	the levels won on hard, by name. Nothing was ever played on hard, so an
 	older profile has won none.
+
 	Version 25 (2026-11-18, experience notifications -- `Util/NotifyRules`):
 	`notify`, the sessions begun, whether and when the player was asked to
 	opt in and what they answered, and their device's offset from UTC. An
@@ -174,6 +175,12 @@
 	friends they were paid for inviting (`Util/InviteRules`). An older
 	profile starts a new session, was never paid an egg, and was invited by
 	nobody: a player who already had a save is not new, so nothing is owed.
+
+	Version 28 (2026-11-18, the season pass -- `Config/Season`): `season`,
+	this month's season XP, the tiers claimed on each track and whether
+	premium was bought (`Util/SeasonRules`), and `titles` and `title`, the
+	season-only titles held and the one worn over the name tag. No season
+	existed, so an older profile has no XP, nothing claimed and no title.
 ]]
 
 local ClassLevelRules = require(script.Parent.ClassLevelRules)
@@ -186,13 +193,14 @@ local NotifyRules = require(script.Parent.NotifyRules)
 local PlaytimeRules = require(script.Parent.PlaytimeRules)
 local PremiumRules = require(script.Parent.PremiumRules)
 local RunBonus = require(script.Parent.RunBonus)
+local SeasonRules = require(script.Parent.SeasonRules)
 local SettingsRules = require(script.Parent.SettingsRules)
 local StoreRules = require(script.Parent.StoreRules)
 local TournamentRules = require(script.Parent.TournamentRules)
 
 local SaveSchema = {}
 
-SaveSchema.VERSION = 27
+SaveSchema.VERSION = 28
 
 --[[ The classes' own weapons, owned from the start: one for every class a
      player can choose (`Util/ClassList`). Given on every load (`migrate`
@@ -308,6 +316,13 @@ export type Profile = {
 	--[[ Who invited this player, and who they invited (version 27,
 	     `Util/InviteRules`). ]]
 	invites: InviteRules.Invites,
+	--[[ This month's season (version 28, `Util/SeasonRules`): server-kept
+	     XP, tiers claimed, premium bought. ]]
+	season: SeasonRules.State,
+	--[[ Season titles held, by `Config/Season.titles` key, and the one worn
+	     over the name tag (version 28). ]]
+	titles: { [string]: boolean },
+	title: string?,
 }
 
 export type RewardState = {
@@ -409,6 +424,9 @@ function SaveSchema.default(): Profile
 		playtime = { start = 0, seen = 0, claimed = 0 },
 		premiumDay = 0,
 		invites = InviteRules.empty(),
+		season = SeasonRules.empty(),
+		titles = {},
+		title = nil,
 	}
 end
 
@@ -639,6 +657,13 @@ function SaveSchema.migrate(raw: unknown): Profile
 	profile.playtime = PlaytimeRules.read(data.playtime)
 	profile.premiumDay = PremiumRules.read(data.premiumDay)
 	profile.invites = InviteRules.read(data.invites)
+	--[[ 27 -> 28: no season existed; a stored one is read field by field
+	     (`SeasonRules.read`), and a title is worn only if held. ]]
+	profile.season = SeasonRules.read(data.season)
+	profile.titles = flags(data.titles)
+	if type(data.title) == "string" and profile.titles[data.title] then
+		profile.title = data.title
+	end
 	return profile
 end
 

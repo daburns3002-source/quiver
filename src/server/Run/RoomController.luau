@@ -738,8 +738,13 @@ local function noteClear()
 		return
 	end
 	clearCounted = progress
+	-- a campaign room's season XP; an Endless floor's is `clearedFloor`'s
+	local room = stage().mode ~= "Endless" and not sandbox
 	for _, session in RunSession.all() do
 		session.classClears += 1
+		if room then
+			Rewards.note(session.player, "rooms", 1)
+		end
 	end
 end
 
@@ -1155,6 +1160,8 @@ local function clearedFloor(floor: number)
 			-- a little for every floor (`Balance.Endless.floorCoins`)
 			RunSession.payEarned(session, Balance.Endless.floorCoins)
 			Wallet.recordEndlessFloor(player, floor)
+			-- the floor's season XP (`Config/Season.xp`)
+			Rewards.note(player, "floors", 1)
 			-- each class's own deepest, for Starfall (`Config/Trails.endless`)
 			Wallet.recordClassFloor(player, session.loadout.class, floor)
 			EndlessLeaderboard.record(player, floor)

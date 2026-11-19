@@ -11,7 +11,8 @@
 	and then the lifetime goals (`Config/Goals`), each in three medals, and
 	a chest for an area's stars (`Util/StarRules`) and for each finished
 	Dex page (`Util/PageRules`), in a list that
-	scrolls; DAILY also holds the gift box (`Util/GiftRules`). Each tab wears the count of what waits on it. A row is a picture of
+	scrolls; SEASON, the season pass (`UI/SeasonTab`, `Config/Season`,
+	since 2026-11-18); DAILY also holds the gift box (`Util/GiftRules`). Each tab wears the count of what waits on it. A row is a picture of
 	what to do, the words, the bar with its numbers on it, what it pays, and
 	one button: CLAIM, GO (a gold arrow to where it is done,
 	`Fx/QuestPointer`) or DONE. CLAIM ALL takes everything owed at once.
@@ -64,6 +65,7 @@ local RewardRules = require(ReplicatedStorage.Shared.Util.RewardRules)
 local Rewards = require(ReplicatedStorage.Shared.Config.Rewards)
 local RunPaused = require(script.Parent.Parent.RunPaused)
 local SaveSchema = require(ReplicatedStorage.Shared.Util.SaveSchema)
+local SeasonTab = require(script.Parent.SeasonTab)
 local Shop = require(ReplicatedStorage.Shared.Config.Shop)
 local ShopAssets = require(ReplicatedStorage.Shared.Config.ShopAssets)
 local StarRules = require(ReplicatedStorage.Shared.Util.StarRules)
@@ -80,7 +82,7 @@ local shownFor = 0
 --[[ The tabs, and the one showing: nil until the screen picks one as it
      opens from its button (`draw`). ]]
 type Tab = string
-local TABS: { Tab } = { "DAILY", "QUESTS", "GOALS", "GIFTS" }
+local TABS: { Tab } = { "DAILY", "QUESTS", "GOALS", "GIFTS", "SEASON" }
 local tab: Tab? = nil
 --[[ The GIFTS tab's clocks, kept up to the second while it shows: each
      waiting gift's time left, and the time played. ]]
@@ -784,6 +786,7 @@ local function draw(s: StationScreen.Screen)
 		QUESTS = waiting.quests,
 		GOALS = waiting.goals,
 		GIFTS = waiting.gifts,
+		SEASON = SeasonTab.owed(p),
 	}
 	local tabW, tabX, tabY = HatchStand.tabWidth(up, #TABS), if up then 70 else 190, y - 108
 	for index, name in TABS do
@@ -883,7 +886,7 @@ local function draw(s: StationScreen.Screen)
 			})
 		end
 		list(rows, y + barH + 16)
-	else
+	elseif showing == "GOALS" then
 		--[[ The starter steps first, while any is left, then every goal
 		     not finished yet (`Config/Goals`): what can be claimed on top.
 		     A finished goal leaves the list and is counted in the line
@@ -983,7 +986,21 @@ local function draw(s: StationScreen.Screen)
 		end
 	end
 
-	if owed >= 2 then
+	if showing == "SEASON" then
+		--[[ The season pass (`UI/SeasonTab`), which has its own CLAIM ALL
+		     for the tiers owed. ]]
+		SeasonTab.draw(p, {
+			titles = p.titles or {},
+			title = p.title,
+			sheet = sheet,
+			x = x,
+			y = y,
+			w = w,
+			bottom = area.bottom,
+			egg = eggArt(p),
+			crate = crateArt(p),
+		})
+	elseif owed >= 2 then
 		local bw, bh = 360, 84
 		Chunky.gleam(
 			Chunky.button(
@@ -1085,6 +1102,7 @@ local function startButton(s: StationScreen.Screen)
 				local waiting = 0
 				if profile and (profile :: any).rewards then
 					waiting = RewardRules.ready(profile, day, RewardsScreen.now())
+						+ SeasonTab.owed(profile)
 					-- once a day, the calendar's gift opens the screen by itself
 					if
 						arrived

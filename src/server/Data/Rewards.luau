@@ -63,6 +63,9 @@ Rewards.givePrize = nil :: ((player: Player, eggs: number, crates: number) -> ()
      CLAIM ALL: the moment `Data/Notify` may ask about notifications. Set
      by that module, which requires this one. ]]
 Rewards.dailyClaimed = nil :: ((player: Player) -> ())?
+--[[ Hears everything `note` hears, and the quests claimed: the season's
+     XP (`Data/Season`, which requires this module, so it sets the hook). ]]
+Rewards.onNote = nil :: ((player: Player, kind: string, amount: number) -> ())?
 
 --[[ Studio's day offsets, by player; never set on a live server. ]]
 local offsets: { [Player]: number } = {}
@@ -131,6 +134,10 @@ function Rewards.note(player: Player, kind: string, amount: number)
 	end
 	if changed then
 		PlayerData.touch(player)
+	end
+	local hook = Rewards.onNote
+	if hook then
+		hook(player, kind, amount)
 	end
 end
 
@@ -224,6 +231,10 @@ local function claim(player: Player, kind: unknown, key: unknown)
 		giftsSaid[player] = 0
 		gift = if n > 0 then total else nil
 		GoalRules.count(profile.stats, "quests", quests)
+		local hook = Rewards.onNote
+		if hook and quests > 0 then
+			hook(player, "quests", quests)
+		end
 		local give = Rewards.givePrize
 		if give and items.eggs + items.crates > 0 then
 			give(player, items.eggs, items.crates)
@@ -234,6 +245,10 @@ local function claim(player: Player, kind: unknown, key: unknown)
 		gift = RewardRules.claimQuest(profile.rewards, day, key)
 		if gift then
 			GoalRules.count(profile.stats, "quests", 1)
+			local hook = Rewards.onNote
+			if hook then
+				hook(player, "quests", 1)
+			end
 		end
 	elseif kind == "starter" and type(key) == "string" then
 		gift = RewardRules.claimStarter(profile, key)

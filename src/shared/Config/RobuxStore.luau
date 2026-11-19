@@ -22,8 +22,15 @@
 	the prompt) is kept in the save and spent on the next DEFEAT for free.
 
 	**Never sold:** Mythics, boss items, Starfall, boss badges. No energy and no
-	timers. A product gives only gems, coins, eggs, a revive or the Server
-	Luck's time (`tests/RobuxStore.spec` holds that).
+	timers. A product gives only gems, coins, eggs, a revive, the Server
+	Luck's time or a season's premium track (`tests/RobuxStore.spec` holds that).
+
+	**The Season Pass** (owner, 2026-11-18: 299 Robux) opens the premium
+	track of the season running (`Config/Season`), saved for that season
+	only, so it is a developer product, not a pass. Bought from the REWARDS
+	screen's SEASON tab, never on the STORE's shelves; the server prompts it
+	only while a season runs and the player has not bought it for that one
+	(`Server/Data/Season`). It gives fixed things only, never random ones.
 
 	`id` is the Creator Dashboard's number (universe 10772468005, "Archer Legends
 	[TEST]", created 2026-11-14 with managed pricing off so these prices hold);
@@ -47,6 +54,9 @@ export type Product = {
 	once: boolean?,
 	--[[ The DEFEAT screen's revive: never on the STORE's shelves. ]]
 	revive: boolean?,
+	--[[ The season's premium track (`Config/Season`): never on the
+	     STORE's shelves either, bought from the SEASON tab. ]]
+	season: boolean?,
 	--[[ What the STORE draws on its tile: "gem", "starter" or "revive". ]]
 	art: string,
 	--[[ Its own 2D icon (Codex), "" until uploaded; a gem pack is always the
@@ -162,6 +172,18 @@ local products: { Product } = {
 		art = "luck",
 		-- Codex's lucky egg (`assets/ui/robux/icons/ServerLuck.png`), also the banner's luck picture
 		icon = "rbxassetid://86009941468388",
+	},
+	{
+		key = "SeasonPass",
+		-- created 2026-11-19 at the owner's word, managed pricing off
+		id = 3733524465,
+		name = "Season Pass",
+		robux = 299,
+		description = "This season's premium track: gems, coins, its trail and its title. This season only.",
+		season = true,
+		art = "season",
+		-- the Wish Ribbon's picture (`assets/ui/robux/dashboard/SeasonPass.png`)
+		icon = "rbxassetid://81835227744691",
 	},
 }
 

@@ -67,6 +67,7 @@ return function(t: TestRunner.Helper)
 				revive = true,
 				serverLuck = true,
 				paidRandom = true,
+				season = true,
 				art = true,
 				icon = true,
 				flag = true,
@@ -98,6 +99,7 @@ return function(t: TestRunner.Helper)
 		t.isNil(revive.eggs)
 		for _, product in StoreRules.shelf(nil) do
 			t.isFalse(product.revive == true, "the STORE sells no revive")
+			t.isFalse(product.season == true, "nor the Season Pass: the SEASON tab does")
 		end
 		t.isFalse(StoreRules.canPrompt("Revive", nil, {}), "only DEFEAT offers it")
 	end)
@@ -214,7 +216,7 @@ return function(t: TestRunner.Helper)
 		t.isFalse(StoreRules.canPrompt("NotAThing", nil, {}))
 		t.isFalse(StoreRules.canPrompt(42, nil, {}))
 		for _, product in RobuxStore.products do
-			if not product.revive and not product.once then
+			if not product.revive and not product.once and not product.season then
 				t.equal(
 					StoreRules.canPrompt(product.key, nil, {}, false),
 					StoreRules.live(product),

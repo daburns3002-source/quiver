@@ -16,6 +16,7 @@ SHEETS = {
     "drowned": UI / "new_enemy" / "sheet_drowned_village_a.png",
     "bog": UI / "new_enemy" / "sheet_bogheart_caverns_a.png",
     "mythic": None,
+    "season": UI.parent / "weapons" / "skins" / "sets" / "starwish" / "contact_sheet.jpg",
 }
 
 

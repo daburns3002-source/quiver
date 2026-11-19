@@ -161,7 +161,7 @@ return function(t: TestRunner.Helper)
 
 	t.test("a new profile has beaten no level", function()
 		local p = SaveSchema.migrate(nil)
-		t.equal(SaveSchema.VERSION, 27)
+		t.equal(SaveSchema.VERSION, 28)
 		t.isNil((next(p.levelsBeaten)))
 	end)
 
@@ -646,4 +646,39 @@ return function(t: TestRunner.Helper)
 			t.equal(again.notify.joins, 3)
 		end
 	)
+
+	--[[ Version 28: the season pass. An older save has no season XP, nothing
+	     claimed, no premium and no title; a stored one reads back, and a
+	     title is worn only if held. ]]
+	t.test("version 28 adds the season, empty, and reads a stored one back", function()
+		local p = SaveSchema.migrate({ version = 27, coins = 5 })
+		t.equal(p.season.key, "")
+		t.equal(p.season.xp, 0)
+		t.equal(p.season.free + p.season.paid, 0)
+		t.isFalse(p.season.premium)
+		t.isNil((next(p.titles)))
+		t.isNil(p.title)
+		t.equal(p.coins, 5)
+		local stored = SaveSchema.migrate({
+			version = 28,
+			season = { key = "2026-12", xp = 1200, free = 3, paid = 1, premium = true },
+			titles = { Wishkeeper = true },
+			title = "Wishkeeper",
+		})
+		t.equal(stored.season.key, "2026-12")
+		t.equal(stored.season.xp, 1200)
+		t.equal(stored.season.free, 3)
+		t.isTrue(stored.season.premium)
+		t.equal(stored.title, "Wishkeeper")
+		local again = SaveSchema.migrate(stored)
+		t.equal(again.season.paid, 1)
+		local stray = SaveSchema.migrate({
+			version = 28,
+			title = "Wishkeeper",
+			season = { key = "nope", xp = -4 },
+		})
+		t.isNil(stray.title, "a title not held is not worn")
+		t.equal(stray.season.key, "")
+		t.equal(stray.season.xp, 0)
+	end)
 end

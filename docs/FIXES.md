@@ -16,6 +16,29 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## The same pet looks different on the egg screen, the Gear screen and the Dex (2026-11-19)
+
+**Symptom:** owner: "MAKE SURE THE ICONS IN THE CHESTS, EGGS, GEAR SCREEN, AND DEX ARE ALL THE SAME".
+A pet stood as its 3D model on the egg screen's odds, in the hatch reveal and on the Gear screen's
+item card, but was a flat picture in the Dex, the Gear grid, the pet slots and the Endless prizes.
+
+**Cause:** each screen chose its own picture. `Chunky.tile`, `Kit.rarityCard` and `UI/Reveal` drew
+`Kit.petModel` whenever a caller passed a pet's key, and only some callers did. Weapons had two
+sets as well: every screen asked `ShopAssets.weapons` first and fell back to the outlined
+`GearAssets.weapons`, which lacked the 29 Drowned Village and Bogheart weapons, so the same lookup
+was copied into eight modules waiting to drift.
+
+**Fix:** `Util/ItemIcons` is the one place a screen asks (`weapon`, `pet`, `of`); the 3D pet path,
+the outlined weapon set and the unused option C crate tiles are gone. `tests/ItemIcons.spec` wants
+one uploaded picture for each of the 104 weapons and 37 pets and the Dex to agree; the `item
+pictures` gate in `tools/check.sh` fails on a screen that reads the configs itself.
+
+**Measured:** in Studio by probe, Mosslet is `rbxassetid://90863911704588` on the egg odds, the hatch
+reveal, the Gear slot, grid and card, and the Dex; the egg screen, Gear PETS tab and Dex hold no pet
+viewport. 1,316 in-Roblox tests pass.
+
+---
+
 ## Two in-Roblox tests fail on the Bogheart Egg: "holds 0 guards", "has no area to scale its pets by" (2026-11-16)
 
 **Symptom:** `PetGuard › exactly one pet in each egg guards: BogheartEgg holds 0 guards` and `PetPower ›

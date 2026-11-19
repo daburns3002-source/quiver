@@ -1437,6 +1437,20 @@ arrow coin ("can you make a coin that has an arrow on it?", then "B gold"), Code
 `assets/ui/shop/coin_arrow_cutout.py`. Soulstones are their own currency and keep their own drawn
 purple stone (`UI/SoulstoneShop`).
 
+**16. One picture per item, the same on every screen.**
+Every weapon and pet has exactly one picture, and every screen that shows it (the crates' and
+chests' odds and reveals, Victory's chests, the gift box, the egg screen and its hatch reveal, the
+Gear screen, the Dex, the Blacksmith's store and SETS, prize panels) asks `Util/ItemIcons` for it
+(owner, 2026-11-19: "MAKE SURE THE ICONS IN THE CHESTS, EGGS, GEAR SCREEN, AND DEX ARE ALL THE
+SAME"). A weapon's is its 2D shop art (`ShopAssets.weapons`, rule 14); a pet's is its 2D picture
+(`GearAssets.pets`). **Pets are 2D everywhere, the hatch reveal included** (owner's pick A,
+2026-11-19), which replaces the 2026-10-31 wish to see them standing at an angle on the egg screen;
+the only 3D pets on a screen are the ones beside the hero in the Gear screen's portrait, which is the
+player's loadout and not an item's picture. No screen reads `ShopAssets.weapons` or
+`GearAssets.pets` itself (`tools/check.sh` fails on one), and `tests/ItemIcons.spec` wants an
+uploaded picture for every weapon and pet. A new weapon or pet brings its one picture; the outlined
+weapon copies and the option C crate tiles were dropped and must not come back as a second set.
+
 ## Code conventions
 
 - `--!strict` at the top of every Luau file. No exceptions.

@@ -6,8 +6,11 @@ Studio import, as two meshes:
 
 - `Gate`: the stone, its border and the dark veil, drawn as it is.
 - `Gate_Glow`: what glows in the build (runes, the infinity sign, the
-  crystals, the Soulstone and its shards), drawn Neon. The build bobs the
-  Soulstone 0.035 studs, too little to see, so the game holds it still.
+  crystals), drawn Neon.
+- `Gate_Soulstone`: the floating Soulstone and its shards, apart, because Neon
+  drew its lilac and purple white and pink (seen in Studio, 2026-11-19); the
+  game picks its material. The build bobs it 0.035 studs, too little to see,
+  so the game holds it still.
 
 The build's `Vortex` (its turning funnel) is left out: the game draws every
 portal's vortex from a sheet (`Config/Lobby.portalVortex`). Each part's
@@ -27,7 +30,6 @@ import trimesh
 SRC, OUT = pathlib.Path(sys.argv[1]), pathlib.Path(sys.argv[2])
 HEIGHT = 20  # studs, the build's own size
 GLOW = {"RiftGlow", "Crystal", "CrystalShade", "CrystalTip"}
-GLOW |= {"Soulstone", "SoulstoneGlint", "SoulstoneDeep"}
 
 
 def to_srgb(c: np.ndarray) -> np.ndarray:
@@ -67,7 +69,7 @@ def lineage(node: str) -> list[str]:
     return names
 
 
-groups: dict[str, list] = {"Gate": [], "Gate_Glow": []}
+groups: dict[str, list] = {"Gate": [], "Gate_Glow": [], "Gate_Soulstone": []}
 dropped = 0
 for node in scene.graph.nodes_geometry:
     transform, name = scene.graph[node]
@@ -80,7 +82,9 @@ for node in scene.graph.nodes_geometry:
     g = source.copy()
     g.apply_transform(transform)
     g.visual = trimesh.visual.ColorVisuals(g, vertex_colors=np.tile(to_srgb(colour_of(source)), (len(g.vertices), 1)))
-    if any(n == "Soulstone" for n in line) or material in GLOW:
+    if any(n == "Soulstone" for n in line) or material.startswith("Soulstone"):
+        groups["Gate_Soulstone"].append(g)
+    elif material in GLOW:
         groups["Gate_Glow"].append(g)
     else:
         groups["Gate"].append(g)
@@ -102,5 +106,8 @@ for label, parts in groups.items():
     size = np.round((b - a) * scale, 3).tolist()
     middle = np.round((a + b) / 2 * scale, 3).tolist()
     print(f"{label}: {len(mesh.faces)} triangles, size {size}, middle {middle}")
+    if label == "Gate_Soulstone":
+        for part in parts:
+            print("   colour", part.visual.vertex_colors[0][:3].tolist())
 bundle.export(OUT)
 print("wrote", OUT)

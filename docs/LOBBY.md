@@ -22,7 +22,13 @@ they are all visible"; `Config/Lobby` `perRow`, `rowRise`, `backStep`). Endless 
 neither row (owner, same day: "endless should be off to the side"): on the courtyard floor in the
 north-east corner between the terrace's end and the Hatch Eggs, on its leaderboards' side, turned
 toward the fountain (`portals[11].aside`). Its index stays 11, which `Remotes.PortalStart`
-carries. Where every arch stands is worked out once, in `Config/Lobby` (`archAt`, `archFoot`,
+carries. Its arch is its own: the **Endless Rift Gate**, built in Claude Design and approved by the
+owner as v2 ("Yes, lock v2", 2026-11-19), with a cracked obsidian frame, violet runes, an infinity
+sign over the door, crystals and a floating Soulstone on top. In game it is two meshes
+(`portalModels["Endless"].parts`: the stone, and its glowing parts drawn Neon, bundled by
+`assets/models/lobby/gate_bundle.py`), with its own vortex sheet in the gate's violet and cyan
+(`assets/ui/portals/vortex_endless.png`). Since it stands alone and not in a row's wall, it gets
+invisible jambs and a veil so nobody walks through its sides. Where every arch stands is worked out once, in `Config/Lobby` (`archAt`, `archFoot`,
 `archTurn`, `mouthAt`), for the builder, the specs and the Studio bots. Trees, cliffs and waterfalls
 round the edge.
 

@@ -18,6 +18,7 @@ local AbilityEffects = require(ReplicatedStorage.Shared.Combat.AbilityEffects)
 local Analytics = require(script.Parent.Parent.Data.Analytics)
 local Arena = require(script.Parent.Parent.Arena.Arena)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
+local Boosts = require(script.Parent.Parent.Data.Boosts)
 local Classes = require(ReplicatedStorage.Shared.Config.Classes)
 local CombatTuning = require(ReplicatedStorage.Shared.Config.CombatTuning)
 local Coop = require(ReplicatedStorage.Shared.Util.Coop)
@@ -36,6 +37,7 @@ local NewEnemies = require(ReplicatedStorage.Shared.Config.NewEnemies)
 local Passes = require(script.Parent.Parent.Data.Passes)
 local PetCombat = require(ReplicatedStorage.Shared.Config.PetCombat)
 local Pickups = require(script.Parent.Pickups)
+local Premium = require(script.Parent.Parent.Data.Premium)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local Rewards = require(script.Parent.Parent.Data.Rewards)
 local RunBonus = require(ReplicatedStorage.Shared.Util.RunBonus)
@@ -943,15 +945,19 @@ function RunSession.payCoins(session: Session, amount: number, position: Vector3
 end
 
 --[[ Coins a run earns, a kill's or a clear's: `base` at the player's passes'
-     scale (2x Coins, VIP; `Util/StoreRules.coinScale`) with the run's win
-     streak and its party's friend bonus added (`Util/RunBonus`), the part
-     under a whole coin carried to the next. Anything else paid in a run (the
-     tutorial's top-up to the first egg) goes through `payCoins` as it is. ]]
+     scale (2x Coins, VIP; `Util/StoreRules.coinScale`) with a coin event's
+     share (a 2x Coins weekend or live event, `Data/Boosts`), the run's win
+     streak, its party's friend bonus, hard mode and Roblox Premium's tenth
+     added (`Util/RunBonus`, `Data/Premium`), the part under a whole coin
+     carried to the next. Anything else paid in a run (the tutorial's top-up
+     to the first egg) goes through `payCoins` as it is. ]]
 function RunSession.payEarned(session: Session, base: number, position: Vector3?)
 	local scale = RunBonus.scale(
-		StoreRules.coinScale(Passes.owned(session.player)),
+		StoreRules.coinScale(Passes.owned(session.player)) + Boosts.coinShare(),
 		session.streak,
-		Coop.partySize()
+		Coop.partySize(),
+		CurrentStage.hard(),
+		Premium.has(session.player)
 	)
 	local whole, carry = StoreRules.scaleCoins(base, scale, session.coinCarry)
 	session.coinCarry = carry

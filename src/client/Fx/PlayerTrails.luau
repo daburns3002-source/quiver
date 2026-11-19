@@ -434,8 +434,10 @@ local function layThreads(w: Worn, at: Vector3, heading: Vector3, now: number)
 	end
 	local right = heading:Cross(Vector3.yAxis)
 	for _, thread in threads do
-		local across = thread.amp * math.sin(TAU * w.run / thread.wave + thread.phase)
-		across = math.round(math.clamp(across, -thread.limit, thread.limit) * 8) / 8
+		local weave = thread.amp * math.sin(TAU * w.run / thread.wave + thread.phase)
+		-- its own place across, if it has one (the Wish Ribbon's cream edges)
+		local across = (thread.offset or 0)
+			+ math.round(math.clamp(weave, -thread.limit, thread.limit) * 8) / 8
 		local tile = tiles[nextTile]
 		nextTile = nextTile % #tiles + 1
 		if tile.owner then

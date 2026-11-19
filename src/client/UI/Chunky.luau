@@ -821,8 +821,8 @@ end
 
 --[[
 	One item in its rarity's frame, as the style sheet's tiles: a pale wash
-	of the rarity's colour under the picture (or the pet standing as its
-	model), a thick frame in the colour, a small caption (the odds, a level)
+	of the rarity's colour under the picture (a pet's is 2D like a weapon's,
+	owner 2026-11-19), a thick frame in the colour, a small caption (the odds, a level)
 	in dark ink on a white chip along the bottom, since small words do not
 	stand 4.5:1 on a tile's wash. Legendary glows gold and Mythic's frame
 	turns rainbow with a glow (owner's standing rule). `hidden` draws it
@@ -834,8 +834,7 @@ function Chunky.tile(
 	art: string,
 	caption: string?,
 	hidden: boolean?,
-	owned: boolean?,
-	key: string?
+	owned: boolean?
 ): Frame
 	local wash = Chunky.rarityTile[rarity] or Chunky.rarityTile.Common
 	local tone = wash.frame
@@ -844,11 +843,7 @@ function Chunky.tile(
 	gradient(t, wash.top, wash.bottom)
 	Chunky.round(t, 16)
 	local edge = Chunky.outline(t, 6, tone)
-	local standing = if key then Kit.petModel(t, key, hidden == true) else nil
-	if standing then
-		standing.Position, standing.Size = UDim2.fromScale(0.04, 0.02), UDim2.fromScale(0.92, 0.8)
-		standing.ZIndex = 8
-	elseif art ~= "" then
+	if art ~= "" then
 		local picture = Kit.image(t, art)
 		picture.Name = "Picture"
 		picture.Position, picture.Size = UDim2.fromScale(0.1, 0.06), UDim2.fromScale(0.8, 0.68)

@@ -12,6 +12,7 @@
 
 local Balance = require(script.Parent.Parent.Config.Balance)
 local EndScreenTheme = require(script.Parent.Parent.Config.EndScreenTheme)
+local HardRules = require(script.Parent.HardRules)
 local LevelUnlocks = require(script.Parent.LevelUnlocks)
 local LobbyConfig = require(script.Parent.Parent.Config.Lobby)
 
@@ -72,10 +73,14 @@ end
      area's last the first of the area after it (`LevelUnlocks.nextArea`).
      Not the tutorial, and not the last level of the last area built: those
      are won into the lobby. A stage behind no portal goes on along the
-     campaign. ]]
-function EndScreenRules.goesOn(stage: number): boolean
+     campaign. On `hard` only the area's next level follows: an area's last
+     is won into the lobby (`Util/HardRules.nextIndex`). ]]
+function EndScreenRules.goesOn(stage: number, hard: boolean?): boolean
 	if stage == Balance.tutorialStage then
 		return false
+	end
+	if hard then
+		return HardRules.nextIndex(LobbyConfig.portals, stage) ~= nil
 	end
 	for _, portal in LobbyConfig.portals do
 		local levels = portal.levels
@@ -92,11 +97,11 @@ end
 
 --[[ What the main button says. Victory's goes on to the next level, except
      where it is won into the lobby (`goesOn`): that one says so. ]]
-function EndScreenRules.buttonWords(won: boolean, stage: number): string
+function EndScreenRules.buttonWords(won: boolean, stage: number, hard: boolean?): string
 	if not won then
 		return EndScreenTheme.defeat.buttonText
 	end
-	if not EndScreenRules.goesOn(stage) then
+	if not EndScreenRules.goesOn(stage, hard) then
 		return EndScreenTheme.victory.lobbyText
 	end
 	return EndScreenTheme.victory.buttonText
@@ -108,7 +113,7 @@ end
      portal (the sandbox's) keeps its index. Before 2026-11-13 a stage with
      no number of its own showed its index, so the Drowned Village's one
      level said "LEVEL 18" (the polish playthrough). ]]
-function EndScreenRules.levelTab(stage: number): string
+function EndScreenRules.levelTab(stage: number, hard: boolean?): string
 	if stage == Balance.tutorialStage then
 		return "TUTORIAL"
 	end
@@ -117,7 +122,8 @@ function EndScreenRules.levelTab(stage: number): string
 		return "ENDLESS"
 	end
 	if config and config.level then
-		return `LEVEL {config.level}`
+		-- a hard level says so on its tab ("HARD 1-3")
+		return if hard then `HARD {config.level}` else `LEVEL {config.level}`
 	end
 	for _, portal in LobbyConfig.portals do
 		local at = if portal.levels then table.find(portal.levels, stage) else nil

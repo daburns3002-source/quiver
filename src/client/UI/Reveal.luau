@@ -33,9 +33,9 @@ local Beats = require(ReplicatedStorage.Shared.Config.Reveal)
 local EggRules = require(ReplicatedStorage.Shared.Util.EggRules)
 local EndScreenAssets = require(ReplicatedStorage.Shared.Config.EndScreenAssets)
 local GearAssets = require(ReplicatedStorage.Shared.Config.GearAssets)
+local ItemIcons = require(ReplicatedStorage.Shared.Util.ItemIcons)
 local Kit = require(script.Parent.Kit)
-local PetGait = require(ReplicatedStorage.Shared.Util.PetGait)
-local PetGaits = require(ReplicatedStorage.Shared.Config.PetGaits)
+local LiveState = require(ReplicatedStorage.Shared.Util.LiveState)
 local Pets = require(ReplicatedStorage.Shared.Config.Pets)
 local RevealTimeline = require(ReplicatedStorage.Shared.Util.RevealTimeline)
 local Shop = require(ReplicatedStorage.Shared.Config.Shop)
@@ -43,17 +43,15 @@ local ShopAssets = require(ReplicatedStorage.Shared.Config.ShopAssets)
 local ShopRules = require(ReplicatedStorage.Shared.Util.ShopRules)
 local SoundFx = require(script.Parent.Parent.Fx.SoundFx)
 local Reveal = {}
---[[ `key` is a pet's `Config/PetModels` name: the prize stands up as the same
-     3D model the egg screen shows (`Kit.petModel`), and `icon` is only used if
-     that model is not built. A weapon has none: the chest screen shows it as
-     2D art, so its reveal does too (CLAUDE.md rule 14). ]]
+--[[ `icon` is the prize's one picture (`Util/ItemIcons`), the same as
+     the chest's or egg's odds show: a weapon's 2D art (CLAUDE.md rule 14)
+     or a pet's 2D picture (owner, 2026-11-19, rule 16). ]]
 export type Prize = {
 	icon: string,
 	name: string,
 	rarity: string,
 	note: string,
 	fresh: boolean,
-	key: string?,
 }
 --[[ What is opened. The pictures are "" where it has none: `whole` alone
      is a single picture (cracks are drawn over it), `crack1`/`crack2` an
@@ -148,11 +146,6 @@ type Part = {
 	glow: ImageLabel,
 	sparkles: { ImageLabel },
 	icon: ImageLabel,
-	petView: ViewportFrame?,
-	petModel: Model?,
-	petGait: PetGaits.Gait?,
-	petSize: number?,
-	petBase: CFrame?,
 	name: TextLabel,
 	banner: ImageLabel,
 	rarity: TextLabel,
@@ -321,9 +314,6 @@ local MODEL_SWAY_SPEED = 1.1
 --[[ An egg's spin while it wobbles and cracks, in radians a second (owner,
      2026-11-08: "make sure the egg spins"). ]]
 local EGG_SPIN = 1.4
---[[ The same rock for a pet standing out of its egg, a little less. ]]
-local PET_SWAY = math.rad(10)
-local PET_SWAY_SPEED = 1.3
 
 --[[ The reveals' models, loaded once and cloned per reveal.
 
@@ -615,21 +605,6 @@ local function play(look: Look, prizes: { Prize }, chanceOf: (Prize) -> number, 
 		elseif template then
 			local view, made = shellModel(root, template)
 			part.view, part.block, part.native = view, made, made.Size
-		end
-		local petView = if prize.key then Kit.petModel(root, prize.key, false) else nil
-		if petView then
-			petView.AnchorPoint = Vector2.new(0.5, 0.5)
-			petView.ZIndex = 7
-			petView.Visible = false
-			local world = petView:FindFirstChildOfClass("WorldModel")
-			local petModel = if world then world:FindFirstChildOfClass("Model") else nil
-			part.petView, part.petModel = petView, petModel
-			part.petBase = if petModel then petModel:GetPivot() else nil
-			if petModel and prize.key then
-				part.petGait = PetGait.of(prize.key)
-				-- a gait is in the studs of a pet at heel, 2.4 tall
-				part.petSize = petModel:GetExtentsSize().Y / 2.4
-			end
 		end
 		if drawCracks and not juicy then
 			local pattern: { { { number } } } = if chest then CHEST_CRACKS else EGG_CRACKS
@@ -1140,38 +1115,13 @@ local function play(look: Look, prizes: { Prize }, chanceOf: (Prize) -> number, 
 			if landed >= 0 then
 				local squash = 0.24 * decay(landed, 8, 28)
 				psx, psy = 1 + squash, 1 - squash
-				-- a model stands as that pet stands (below); only a picture bobs
-				if not part.petView then
-					petY += math.sin(t * 3.9) * 8
-				end
+				-- landed, the picture bobs
+				petY += math.sin(t * 3.9) * 8
 			end
 			local grown = popIn(since / 0.25) * (1 - gone)
 			local petSize = size * 0.9 * grown
-			local petView, petModel, petBase = part.petView, part.petModel, part.petBase
-			part.icon.Visible = pet and petView == nil
+			part.icon.Visible = pet
 			put(part.icon, x, petY, petSize * psx, petSize * psy)
-			if petView then
-				petView.Visible = pet
-				-- a viewport draws to its height, so its squash is one number
-				put(petView, x, petY, petSize, petSize * psy)
-				if pet and petModel and petBase then
-					-- shown turning, and moving as it stands at the player's heel
-					local gait = part.petGait
-					local petScale = part.petSize or 1
-					local stands = if gait
-						then PetGait.pose(gait, t, 0, 0, 1, 0, petScale) * CFrame.new(
-							0,
-							-(gait.float or 0) * size,
-							0
-						)
-						else CFrame.identity
-					petModel:PivotTo(
-						CFrame.Angles(0, math.sin(t * PET_SWAY_SPEED) * PET_SWAY, 0)
-							* petBase
-							* stands
-					)
-				end
-			end
 			-- its colour bursts behind it
 			local spread = clamp01(since / 0.45)
 			part.ring.Visible = burst and spread < 1
@@ -1422,8 +1372,8 @@ function Reveal.crates(index: number, results: { { weapon: string, new: boolean 
 		local entry = ShopRules.find(result.weapon)
 		if entry then
 			table.insert(prizes, {
-				-- the full 2D drawing (owner, 2026-10-26), the mini icon if none
-				icon = ShopAssets.weapons[result.weapon] or GearAssets.weapons[result.weapon] or "",
+				-- its one picture, the same on every screen (`Util/ItemIcons`)
+				icon = ItemIcons.weapon(result.weapon),
 				name = entry.label,
 				rarity = entry.rarity,
 				fresh = result.new,
@@ -1450,8 +1400,7 @@ function Reveal.eggs(
 		local info = Pets[result.pet]
 		if info then
 			table.insert(prizes, {
-				icon = GearAssets.pets[result.pet] or "",
-				key = result.pet,
+				icon = ItemIcons.pet(result.pet),
 				name = info.name,
 				rarity = info.rarity,
 				fresh = result.new,
@@ -1462,7 +1411,7 @@ function Reveal.eggs(
 		end
 	end
 	present(eggLook(key), prizes, function(prize)
-		for _, entry in EggRules.pool(key) do
+		for _, entry in EggRules.pool(key, LiveState.luck()) do
 			if entry.name == prize.name then
 				return entry.chance
 			end

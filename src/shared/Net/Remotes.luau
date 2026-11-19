@@ -199,7 +199,8 @@ Remotes.DebugWallet = "DebugWallet"
 --[[ Client → server: claim a reward (`Data/Rewards`): "login", "quest",
      "starter", "goal", "page" (a Dex page's chest) or "stars" (an area's
      star chest) with its key, "all" for every one owed, "bonus" for the
-     quests' chest, or "gift" for the gift box. Carries no progress and no day; the server judges the
+     quests' chest, "gift" for the gift box, or "playtime" with a playtime
+     gift's number. Carries no progress and no day; the server judges the
      claim from the saved profile and its own clock. ]]
 Remotes.RewardClaim = "RewardClaim"
 --[[ Server → client: the quests' bonus chest was opened (`Data/QuestChest`):
@@ -215,9 +216,39 @@ Remotes.VictoryChest = "VictoryChest"
 --[[ Server → client: a reward just landed by itself (a new Dex entry):
      its words, gems and coins, for the toast (`UI/RewardsScreen`). ]]
 Remotes.RewardToast = "RewardToast"
+
+--[[ Server -> client: ask this player about notifications now
+     (`Data/Notify`, `UI/NotifyPrompt`), carrying whether it is Studio's
+     look (show the question even where Roblox says it cannot ask). ]]
+Remotes.NotifyAsk = "NotifyAsk"
+--[[ Client -> server: the answer, "yes", "no" or "cannot" (Roblox could
+     not ask), and the device's offset from UTC in minutes. Taken only
+     while the server waits for one. ]]
+Remotes.NotifyAnswer = "NotifyAnswer"
+--[[ Client -> server, Studio only: ask this player about notifications
+     at once. ]]
+Remotes.DebugNotifyAsk = "DebugNotifyAsk"
 --[[ Client → server, Studio only: move this player's reward day on by a
      number of days (1 if none), to see a day roll (`Data/Rewards`). ]]
 Remotes.DebugDay = "DebugDay"
+--[[ Client → server, Studio only: the retention hooks (2026-11-18). Move
+     this player's playtime session a number of minutes on (`Data/Rewards`);
+     treat them as having Roblox Premium or not (`Data/Premium`); and play
+     this player's first join as invited by a user id, with the friendship
+     check skipped (`Data/Invites`). ]]
+Remotes.DebugPlaytime = "DebugPlaytime"
+Remotes.DebugPremium = "DebugPremium"
+Remotes.DebugInvite = "DebugInvite"
+--[[ Client → server: the REWARDS screen's SEASON tab (`Server/Data/Season`):
+     claim a tier ("free" or "premium" and its number, or "all" for every
+     one owed), and wear a season title held (its key, or nil for none).
+     Carries no XP and no time: both are the server's. ]]
+Remotes.SeasonClaim = "SeasonClaim"
+Remotes.SeasonTitle = "SeasonTitle"
+--[[ Client → server, Studio only: move this player's season clock on by a
+     number of days (1 if none, 0 for none) and add season XP, to see a
+     season start, fill and end (`Data/Season`). ]]
+Remotes.DebugSeason = "DebugSeason"
 
 --[[
 	Client → server. The intro's BEGIN ADVENTURE button: this player has
@@ -265,7 +296,9 @@ Remotes.PortalOpen = "PortalOpen"
 	`UI/AreaScreen`): the portal's index and the level picked. The server
 	checks both against the player's saved profile (`Run/Lobby.levelOpen`)
 	before starting the run; where they stand decides only who comes along
-	(`Util/PlayPortal.alone`).
+	(`Util/PlayPortal.alone`). A third argument, true, asks for the level on
+	hard (`Util/HardRules`), which the server grants only when the area's
+	boss is beaten and the hard level before it won (`Run/Lobby.hardOpen`).
 ]]
 Remotes.PortalStart = "PortalStart"
 
@@ -298,10 +331,26 @@ Remotes.EndlessCheckpoint = "EndlessCheckpoint"
 	eggs a Robux product hatched (the starter pack, `Server/Data/Purchases`).
 ]]
 Remotes.EndlessPrize = "EndlessPrize"
+--[[ Server → client: a weekly tournament week just paid
+     (`Run/WeeklyTournament`): the week's Monday ("2026-11-16") and a table
+     of the place, floor, time and what it paid, for the panel
+     (`UI/TournamentPrize`). Already in the profile. ]]
+Remotes.TournamentPrize = "TournamentPrize"
+--[[ Client → server: take one of this player's tournament picks for a
+     themed set weapon (its key). The server checks the pick is owed and the
+     weapon is a set's and not owned (`Wallet.pickTournamentWeapon`); the
+     profile it sends back is the answer. ]]
+Remotes.TournamentPick = "TournamentPick"
+--[[ Client → server, Studio only: the weekly tournament's checks.
+     ("shift", seconds) moves the tournament's clock on (to just past the
+     next reset and its grace with no seconds); ("floor", floor, seconds)
+     records a floor for this player as a run would; ("rival", n) adds n
+     made-up players to this week's board. ]]
+Remotes.DebugTournament = "DebugTournament"
 
 --[[
 	Client → server. "I pressed BUY on this": a `Config/RobuxStore` key and
-	where it was offered ("Store", "Defeat", "Starter", "GearSlot"). A
+	where it was offered ("Store", "Defeat", "Starter", "GearSlot", "Eggs"). A
 	request: the server checks it may be sold to this player and opens
 	Roblox's own prompt (`Server/Data/Purchases`), or spends a revive held.
 	Nothing is granted until Roblox's receipt arrives.
@@ -321,6 +370,14 @@ Remotes.Purchased = "Purchased"
      (`Server/Data/Passes`), to test the store without Robux. ]]
 Remotes.DebugReceipt = "DebugReceipt"
 Remotes.DebugPass = "DebugPass"
+
+--[[ Client → server. The owner's live event switch: "Luck" or "Coins" for
+     30 minutes in every server, or "End" (`Server/Data/Boosts`). The server
+     checks the sender's user id; anyone else is turned away. ]]
+Remotes.LiveEventStart = "LiveEventStart"
+--[[ Client → server, Studio only: moves the live clock by some seconds (0
+     puts it back), to see a weekend's boost or a new week's sets. ]]
+Remotes.DebugClock = "DebugClock"
 
 --[[
 	Client → server. "Buy `count` of this from the Soulstone shop": the

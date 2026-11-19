@@ -11,6 +11,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Economy = require(ReplicatedStorage.Shared.Config.Economy)
 local Eggs = require(ReplicatedStorage.Shared.Config.Eggs)
 local LaunchLocks = require(ReplicatedStorage.Shared.Util.LaunchLocks)
+local LiveBoosts = require(ReplicatedStorage.Shared.Util.LiveBoosts)
 local Pets = require(ReplicatedStorage.Shared.Config.Pets)
 
 local EggRules = {}
@@ -37,8 +38,10 @@ function EggRules.find(key: string): (Eggs.Egg?, number?)
 end
 
 --[[ An egg's pets, rarest last, each with its chance (0..1). Empty while
-     none of them is in the game yet (the egg is a silhouette). ]]
-function EggRules.pool(key: string): { Entry }
+     none of them is in the game yet (the egg is a silhouette). Under `luck`
+     (a live boost, `Util/LiveBoosts.odds`; 1 by default) the Legendary and
+     Mythic chances are that many times larger and the others pay for it. ]]
+function EggRules.pool(key: string, luck: number?): { Entry }
 	local byRarity: { [string]: number } = {}
 	local out: { Entry } = {}
 	for pet, info in Pets do
@@ -47,12 +50,17 @@ function EggRules.pool(key: string): { Entry }
 			table.insert(out, { pet = pet, name = info.name, rarity = info.rarity, chance = 0 })
 		end
 	end
-	local total = 0
+	local held: { [string]: number } = {}
 	for rarity in byRarity do
-		total += Eggs.odds[rarity]
+		held[rarity] = Eggs.odds[rarity]
+	end
+	local odds = LiveBoosts.odds(held, luck or 1)
+	local total = 0
+	for _, weight in odds do
+		total += weight
 	end
 	for _, entry in out do
-		entry.chance = Eggs.odds[entry.rarity] / total / byRarity[entry.rarity]
+		entry.chance = odds[entry.rarity] / total / byRarity[entry.rarity]
 	end
 	table.sort(out, function(a, b)
 		if a.rarity ~= b.rarity then

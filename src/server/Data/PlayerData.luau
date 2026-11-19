@@ -56,10 +56,13 @@ type Entry = {
 	--[[ False for a record from a newer game version: played, never saved. ]]
 	saving: boolean,
 	dirty: boolean,
+	--[[ No record existed: this player's very first join (`isNew`). ]]
+	fresh: boolean,
 }
 
 local entries: { [Player]: Entry } = {}
 local loaded = Instance.new("BindableEvent")
+local leaving: { (Player, SaveSchema.Profile) -> () } = {}
 local store: DataStore? = nil
 local jobId = if game.JobId ~= "" then game.JobId else "studio-" .. tostring(math.random(1e9))
 
@@ -88,13 +91,14 @@ end
 
 --[[ Takes the lock and reads the record in one write. Returns the profile,
      whether it may be saved, and false when another live server holds it. ]]
-local function tryLoad(player: Player): (SaveSchema.Profile?, boolean)
+local function tryLoad(player: Player): (SaveSchema.Profile?, boolean, boolean)
 	local current = store
 	if not current then
-		return SaveSchema.default(), false
+		return SaveSchema.default(), false, true
 	end
 	local profile: SaveSchema.Profile? = nil
 	local saving = true
+	local fresh = false
 	local ok, problem = pcall(function()
 		current:UpdateAsync(key(player), function(old: any): any
 			local lock = old and old.lock
@@ -103,6 +107,7 @@ local function tryLoad(player: Player): (SaveSchema.Profile?, boolean)
 				return nil -- held elsewhere: write nothing
 			end
 			local raw = old and old.profile
+			fresh = raw == nil
 			saving = SaveSchema.readable(raw)
 			profile = SaveSchema.migrate(raw)
 			if not saving then
@@ -113,24 +118,25 @@ local function tryLoad(player: Player): (SaveSchema.Profile?, boolean)
 	end)
 	if not ok then
 		log.warn("load of %s failed: %s", player.Name, tostring(problem))
-		return nil, false
+		return nil, false, false
 	end
-	return profile, saving
+	return profile, saving, fresh
 end
 
 local function load(player: Player)
 	if not store then
-		entries[player] = { profile = SaveSchema.default(), saving = false, dirty = false }
+		entries[player] =
+			{ profile = SaveSchema.default(), saving = false, dirty = false, fresh = true }
 		loaded:Fire(player)
 		return
 	end
 	for _ = 1, LOAD_TRIES do
-		local profile, saving = tryLoad(player)
+		local profile, saving, fresh = tryLoad(player)
 		if not player.Parent then
 			return
 		end
 		if profile then
-			entries[player] = { profile = profile, saving = saving, dirty = false }
+			entries[player] = { profile = profile, saving = saving, dirty = false, fresh = fresh }
 			if not saving then
 				log.warn("%s's save is from a newer version: playing without saving", player.Name)
 			end
@@ -210,6 +216,19 @@ function PlayerData.get(player: Player): SaveSchema.Profile?
 	return entry and entry.profile
 end
 
+--[[ Whether DataStores can be reached at all (decided as `start` runs). ]]
+function PlayerData.storeReady(): boolean
+	return store ~= nil
+end
+
+--[[ Whether this is the player's very first join ever: no record was
+     stored for them (`Data/Invites`). In Studio without DataStores every
+     join is a first. ]]
+function PlayerData.isNew(player: Player): boolean
+	local entry = entries[player]
+	return entry ~= nil and entry.fresh
+end
+
 --[[ Marks the profile changed, for the next save. ]]
 function PlayerData.touch(player: Player)
 	local entry = entries[player]
@@ -226,6 +245,13 @@ function PlayerData.onLoaded(callback: (Player) -> ())
 	end
 end
 
+--[[ Calls back as the player leaves, with the profile as it is saved:
+     before it is let go, so the callback need not race the save. Called in
+     its own thread; it must not change the profile. ]]
+function PlayerData.onLeaving(callback: (Player, SaveSchema.Profile) -> ())
+	table.insert(leaving, callback)
+end
+
 function PlayerData.start()
 	openStore()
 	for _, player in Players:GetPlayers() do
@@ -233,6 +259,12 @@ function PlayerData.start()
 	end
 	Players.PlayerAdded:Connect(load)
 	Players.PlayerRemoving:Connect(function(player)
+		local entry = entries[player]
+		if entry then
+			for _, callback in leaving do
+				task.spawn(callback, player, entry.profile)
+			end
+		end
 		save(player, true)
 		entries[player] = nil
 	end)

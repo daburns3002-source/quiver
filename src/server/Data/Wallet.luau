@@ -16,6 +16,8 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local ClassLevelRules = require(ReplicatedStorage.Shared.Util.ClassLevelRules)
 local Economy = require(ReplicatedStorage.Shared.Config.Economy)
+local HardRules = require(ReplicatedStorage.Shared.Util.HardRules)
+local LobbyConfig = require(ReplicatedStorage.Shared.Config.Lobby)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
 local MergeRules = require(ReplicatedStorage.Shared.Util.MergeRules)
 local PurchaseRules = require(ReplicatedStorage.Shared.Util.PurchaseRules)
@@ -28,6 +30,8 @@ local StarRules = require(ReplicatedStorage.Shared.Util.StarRules)
 local StoreRules = require(ReplicatedStorage.Shared.Util.StoreRules)
 local StoryBeatRules = require(ReplicatedStorage.Shared.Util.StoryBeatRules)
 local TipRules = require(ReplicatedStorage.Shared.Util.TipRules)
+local Tournament = require(ReplicatedStorage.Shared.Config.Tournament)
+local TournamentRules = require(ReplicatedStorage.Shared.Util.TournamentRules)
 local TrailRules = require(ReplicatedStorage.Shared.Util.TrailRules)
 local Tutorial = require(ReplicatedStorage.Shared.Config.Tutorial)
 
@@ -42,12 +46,22 @@ local purchased = Remotes.event(Remotes.Purchased)
 
 local Wallet = {}
 
+--[[ The area whose name-tag frame this profile wears (`Util/HardRules`),
+     as the Player's `HardFrame`, which every client draws (`UI/NameTags`). ]]
+local function showFrame(player: Player, profile: SaveSchema.Profile)
+	player:SetAttribute(
+		HardRules.FRAME,
+		HardRules.frame(LobbyConfig.portals, Balance.Stages, profile.hardBeaten)
+	)
+end
+
 --[[ Tells the owner, and marks the profile for saving. ]]
 local function changed(player: Player, profile: SaveSchema.Profile)
 	PlayerData.touch(player)
 	player:SetAttribute("Coins", profile.coins)
 	player:SetAttribute("Gems", profile.gems)
 	player:SetAttribute(TrailRules.ATTRIBUTE, profile.equippedTrail)
+	showFrame(player, profile)
 	profileChanged:FireClient(player, profile)
 end
 
@@ -57,6 +71,7 @@ function Wallet.send(player: Player)
 		player:SetAttribute("Coins", profile.coins)
 		player:SetAttribute("Gems", profile.gems)
 		player:SetAttribute(TrailRules.ATTRIBUTE, profile.equippedTrail)
+		showFrame(player, profile)
 		profileChanged:FireClient(player, profile)
 	end
 end
@@ -347,6 +362,21 @@ function Wallet.beatLevel(player: Player, level: string): boolean
 	return true
 end
 
+--[[ `level` is won on hard (`Util/HardRules`): saved, which opens the next
+     hard level, and for an area's last level wears its frame. True the
+     first time, which pays its gems (`Run/RoomController`). Decided by the
+     server as the level is won, never asked for. ]]
+function Wallet.beatHard(player: Player, level: string): boolean
+	local profile = PlayerData.get(player)
+	if not profile or profile.hardBeaten[level] then
+		return false
+	end
+	profile.hardBeaten[level] = true
+	log.info("%s beat level %s on hard", player.Name, level)
+	changed(player, profile)
+	return true
+end
+
 --[[ A campaign level starts: the player's win streak is on the line
      (`Util/RunBonus`). Taken out of the save, so losing, leaving the run
      and leaving the game all end it, and returned for the run to hold. ]]
@@ -607,6 +637,98 @@ function Wallet.beatBoss(player: Player, area: string): (number, string?)
 	-- the area's Legendary trail, the first time (`Config/Trails`)
 	Wallet.settleTrails(player)
 	return gems, config.bossItem
+end
+
+--[[ The store's catalog as the tournament's picks read it: every stocked
+     weapon, the themed sets' named. ]]
+local function catalogItems(): { TournamentRules.Item }
+	local out: { TournamentRules.Item } = {}
+	for _, entry in ShopRules.catalog() do
+		table.insert(out, { weapon = entry.weapon, set = entry.set })
+	end
+	return out
+end
+
+--[[ The weekly tournament (`Run/WeeklyTournament`): `score` is this
+     player's new best for `week` (`TournamentRules.score`), noted in the
+     save so the week pays even if the board's store never heard of it.
+     Server-decided, never a client's. Returns whether it beat the old
+     one. Only marked for saving: the client is told nothing new. ]]
+function Wallet.noteTournament(player: Player, week: number, score: number): boolean
+	local profile = PlayerData.get(player)
+	if not profile then
+		return false
+	end
+	local raised = TournamentRules.note(profile.tournamentWeeks, week, score)
+	if raised then
+		PlayerData.touch(player)
+	end
+	return raised
+end
+
+--[[ Pays a week that is over and takes it out of the save, in one step
+     with nothing yielding between, so a week pays once (`prize` from
+     `TournamentRules.prize`). False if it was paid already, or the
+     profile is gone. A win counts toward the ENDLESS CHAMPION title. Its
+     Soulstones are not under the run cap: the cap is a run's, and this is
+     a week's. Its set weapon picks are kept to be chosen
+     (`pickTournamentWeapon`); one with no set weapon left to take is
+     `Tournament.pickGems` gems now. ]]
+function Wallet.payTournament(player: Player, week: number, prize: TournamentRules.Prize): boolean
+	local profile = PlayerData.get(player)
+	local key = tostring(week)
+	if not profile or profile.tournamentWeeks[key] == nil then
+		return false
+	end
+	profile.tournamentWeeks[key] = nil
+	-- set weapons to pick, and gems for any with nothing left to pick
+	local left = #TournamentRules.pickable(catalogItems(), profile.weapons)
+	local picks, pickGems = TournamentRules.settlePicks(profile.tournamentPicks + prize.picks, left)
+	profile.tournamentPicks = picks
+	profile.gems += pickGems
+	profile.gems += math.max(math.floor(prize.gems), 0)
+	profile.coins += math.max(math.floor(prize.coins), 0)
+	profile.soulstones += math.max(math.floor(prize.soulstones), 0)
+	if prize.champion then
+		profile.tournamentWins += 1
+	end
+	player:SetAttribute(Tournament.winsAttribute, profile.tournamentWins)
+	changed(player, profile)
+	return true
+end
+
+--[[ Takes one of the player's tournament picks for `weapon`, a themed set
+     weapon they do not own (`TournamentRules.pickable`, every stocked set
+     whether or not it is on sale this week). Anything else is refused:
+     it is a client's ask. True if it was granted. ]]
+function Wallet.pickTournamentWeapon(player: Player, weapon: unknown): boolean
+	local profile = PlayerData.get(player)
+	if not profile or profile.tournamentPicks < 1 or type(weapon) ~= "string" then
+		return false
+	end
+	if not table.find(TournamentRules.pickable(catalogItems(), profile.weapons), weapon) then
+		return false
+	end
+	profile.tournamentPicks -= 1
+	log.info("%s picks the %s (tournament)", player.Name, weapon)
+	Wallet.grantWeapon(player, weapon)
+	return true
+end
+
+--[[ Picks owed with no set weapon left to take (bought meanwhile) are
+     paid in gems, `Tournament.pickGems` each. On every join. ]]
+function Wallet.settleTournamentPicks(player: Player)
+	local profile = PlayerData.get(player)
+	if not profile or profile.tournamentPicks < 1 then
+		return
+	end
+	local left = #TournamentRules.pickable(catalogItems(), profile.weapons)
+	local picks, gems = TournamentRules.settlePicks(profile.tournamentPicks, left)
+	if gems > 0 then
+		profile.tournamentPicks = picks
+		profile.gems += gems
+		changed(player, profile)
+	end
 end
 
 return Wallet

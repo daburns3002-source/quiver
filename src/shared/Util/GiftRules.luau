@@ -54,6 +54,12 @@ function GiftRules.ready(gift: Gift): number
 	return gift.wins // NEED
 end
 
+--[[ Whether the box is full: every gift it holds waits, and wins are no
+     longer counted (`Data/Notify` says so to a player who is away). ]]
+function GiftRules.full(gift: Gift): boolean
+	return gift.wins >= FULL
+end
+
 --[[ Wins towards the gift being filled, and how many it takes: all of
      them while one waits. ]]
 function GiftRules.progress(gift: Gift): (number, number)

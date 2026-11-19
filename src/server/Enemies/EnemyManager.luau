@@ -29,6 +29,7 @@ local CurrentStage = require(ReplicatedStorage.Shared.Util.CurrentStage)
 local DeepAccord = require(ReplicatedStorage.Shared.Util.DeepAccord)
 local EnemyDesigns = require(ReplicatedStorage.Shared.Config.EnemyDesigns)
 local EnemyModel = require(script.Parent.EnemyModel)
+local HardRules = require(ReplicatedStorage.Shared.Util.HardRules)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
 local ModelClip = require(ReplicatedStorage.Shared.Util.ModelClip)
 local Pathing = require(script.Parent.Pathing)
@@ -340,11 +341,30 @@ local function difficulty(): { damage: number, health: number, fireRate: number 
 		end
 		damageScale = Waves.damageRamp(stage, ordinal)
 	end
+	--[[ Hard mode on top (`Util/HardRules`), bosses too; co-op's health
+	     comes on top of this as on normal (`partyHealth`). ]]
+	local tough = HardRules.scale(CurrentStage.hard())
 	return {
-		damage = (stage and stage.enemyDamage or 1) * damageScale,
-		health = (stage and stage.enemyHealth or 1) * healthScale,
+		damage = (stage and stage.enemyDamage or 1) * damageScale * tough.damage,
+		health = (stage and stage.enemyHealth or 1) * healthScale * tough.health,
 		fireRate = 1,
 	}
+end
+
+--[[ Makes `model` its fight's elite on hard (`Util/HardRules.eliteSlot`):
+     `Balance.Hard.eliteHealth` times its health, and marked for the
+     clients, which draw a gold ELITE plate over it (`Fx/EnemyHealthBars`). ]]
+local function makeElite(model: Model)
+	local enemy = enemies[model]
+	if not enemy then
+		return
+	end
+	local scale = Balance.Hard.eliteHealth
+	enemy.health *= scale
+	enemy.maxHealth *= scale
+	model:SetAttribute("MaxHealth", enemy.maxHealth)
+	model:SetAttribute("Health", enemy.health)
+	model:SetAttribute(HardRules.ELITE, true)
 end
 
 --[[ Co-op's health on top (`Shared/Util/Coop`): a boss takes the party's
@@ -1259,6 +1279,8 @@ function EnemyManager.spawnWave(count: number, roster: { EnemyConfig })
 
 	local clusterSize = math.max(Balance.Spawning.clusterSize, 1)
 	local index = 0
+	--[[ On hard, one of a fight without a boss is its elite. ]]
+	local eliteAt = HardRules.eliteSlot(count, hasBoss, CurrentStage.hard())
 
 	--[[ In triangles, as the footage shows. Members are spawned one at a
 	     time, so each later spot is checked against the bodies already
@@ -1284,6 +1306,9 @@ function EnemyManager.spawnWave(count: number, roster: { EnemyConfig })
 			local spot = spots[offset - 1]
 			local at = if spot then clusterSpot(config, spot) else nil
 			local model = EnemyManager.spawn(config, delay, at)
+			if model and index + offset == eliteAt then
+				makeElite(model)
+			end
 
 			if offset == 1 and model then
 				spots = arrange(members, enemies[model].position, widest)

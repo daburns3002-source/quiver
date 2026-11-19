@@ -76,6 +76,12 @@ export type Spec = {
 	--[[ The screen's own modes, as tabs along the panel's head (the
 	     Blacksmith's CRATES and STORE). ]]
 	modes: { Mode }?,
+	--[[ A luck boost the odds are drawn at, in gold beside the card's head
+	     ("2x LUCK!"; docs/LIVE-EVENTS.md); nil with none. ]]
+	luck: string?,
+	--[[ Buys the Server Luck, a button at the card's head; nil when it is
+	     not offered. ]]
+	boost: (() -> ())?,
 }
 export type Mode = { words: string, on: boolean, pick: () -> () }
 export type Controller = {
@@ -100,6 +106,14 @@ end
 	head. Returns the room left inside the panel. Laid out for the screen as
 	it is held: 1920 x 1080, or 1080 x 1920 on a phone held upright.
 ]]
+--[[ A tab's width in sheet pixels: the kit's, or narrower when that many
+     would run past the panel (REWARDS' four on an upright phone). ]]
+function HatchStand.tabWidth(upright: boolean, count: number): number
+	local most = if upright then 300 else 250
+	local room = if upright then 940 else 1540
+	return math.min(most, math.floor((room + 18) / math.max(count, 1) - 18))
+end
+
 function HatchStand.chrome(s: StationScreen.Screen, title: string, modes: { Mode }?): Area
 	local c = s.canvas
 	local dim = c.Parent :: GuiObject
@@ -151,7 +165,7 @@ function HatchStand.chrome(s: StationScreen.Screen, title: string, modes: { Mode
 	)
 	local top = if up then 290 else 182
 	if modes then
-		local w = if up then 300 else 250
+		local w = HatchStand.tabWidth(up, #modes)
 		for i, mode in modes do
 			Chunky.tab(
 				sheet,
@@ -369,7 +383,44 @@ function HatchStand.draw(
 
 	-- what is inside, on the white card
 	Chunky.card(sheet, kx, ky, kw, kh)
-	words(sheet, `{spec.noun} INSIDE`, kx + 24, ky + 14, kw - 48, 62, Chunky.navy, 0)
+	if spec.luck or spec.boost then
+		-- the head shared: what is inside on the left, the luck on the right
+		local head =
+			words(sheet, `{spec.noun} INSIDE`, kx + 24, ky + 14, kw * 0.4 - 24, 62, Chunky.navy, 0)
+		head.TextXAlignment = Enum.TextXAlignment.Left
+		local right = kx + kw - 24
+		if spec.boost then
+			local luckW = kw * 0.32
+			Chunky.button(
+				sheet,
+				"2x LUCK ALL",
+				Chunky.green,
+				right - luckW,
+				ky + 12,
+				luckW,
+				66,
+				guard(spec.boost)
+			).Name =
+				"ServerLuck"
+			right -= luckW + 12
+		end
+		if spec.luck then
+			local tag = words(
+				sheet,
+				spec.luck,
+				kx + kw * 0.4,
+				ky + 14,
+				right - kx - kw * 0.4,
+				62,
+				Chunky.gold,
+				4
+			)
+			tag.Name = "LuckOn"
+			tag.TextXAlignment = Enum.TextXAlignment.Right
+		end
+	else
+		words(sheet, `{spec.noun} INSIDE`, kx + 24, ky + 14, kw - 48, 62, Chunky.navy, 0)
+	end
 	local held = #spec.tiles
 	local gx, gy, gw, gh = kx + 28, ky + 88, kw - 56, kh - 88 - 120
 	local tileGap = 16
@@ -396,8 +447,7 @@ function HatchStand.draw(
 			entry.icon,
 			odds(entry.chance),
 			entry.silhouette == true or spec.locked ~= nil,
-			entry.owned,
-			entry.key
+			entry.owned
 		)
 		if entry.owned then
 			Chunky.tier(card, entry.tier)

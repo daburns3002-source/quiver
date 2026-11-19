@@ -281,8 +281,57 @@ local Rewards = {
 	     once per entry ever, so losing and regaining a thing pays nothing. ]]
 	dexGems = 5,
 
+	--[[ Hard mode (`Util/HardRules`; owner, 2026-11-18, starting
+	     numbers): a hard level's kill and clear coins have `coins` added to
+	     their scale, as the streak and the friend bonus are (nothing
+	     multiplies), and its first hard clear pays `gems`, or `lastGems` for
+	     an area's last level. Fifty hard levels today come to about 560
+	     gems once ever. Hard has no stars of its own: a hard win fills the
+	     level's normal stars. ]]
+	hard = { coins = 1.0, gems = 10, lastGems = 30 },
+
 	--[[ Seconds in a reward day, and where it starts: midnight UTC. ]]
 	dayLength = 86400,
+
+	--[[ Playtime gifts (`Util/PlaytimeRules`; owner, 2026-11-18): six
+	     gifts open as a session goes on, each bigger than the last, the
+	     hour's the best; claimed on REWARDS > GIFTS or by CLAIM ALL. The
+	     server's clock decides. A session is play with no break longer
+	     than `gap` seconds: runs are played on servers of their own, so
+	     the clock rides in the save across the teleports
+	     (`SaveSchema.playtime`), and a player away longer than `gap`
+	     starts again from the first gift. An egg or a crate is the best
+	     open to the player, as the gift box's are. About 30 gems for a
+	     whole hour, so the store keeps its price. ]]
+	playtime = {
+		gap = 600,
+		gifts = {
+			{ minutes = 5, prize = { coins = 250 } },
+			{ minutes = 10, prize = { coins = 500 } },
+			{ minutes = 20, prize = { gems = 5, coins = 250 } },
+			{ minutes = 30, prize = { gems = 10, coins = 500 } },
+			{ minutes = 45, prize = { eggs = 1 } },
+			{ minutes = 60, prize = { eggs = 1, crates = 1, gems = 15 } },
+		} :: { { minutes: number, prize: Prize } },
+	},
+
+	--[[ Roblox Premium (`Util/PremiumRules`; owner, 2026-11-18): `coins`
+	     more on a run's kill and clear coins, added to the passes' scale as
+	     VIP's tenth is (nothing multiplies), and a free egg once a reward
+	     day, the best open to the player, paid as they reach the lobby. ]]
+	premium = { coins = 0.1, eggs = 1 },
+
+	--[[ Invite rewards (`Util/InviteRules`; owner, 2026-11-18): a friend
+	     who joins by an invite for the first time ever gets `welcome` once
+	     they reach the lobby, and the one who invited them gets `inviter`,
+	     at most `cap` friends a reward day (more wait for the next day).
+	     `keep` is how many invited friends a player's waiting list holds. ]]
+	invite = {
+		cap = 3,
+		keep = 50,
+		welcome = { coins = 500, gems = 25 } :: Prize,
+		inviter = { coins = 500, eggs = 1 } :: Prize,
+	},
 }
 
 return table.freeze(Rewards)

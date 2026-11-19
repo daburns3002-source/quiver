@@ -16,6 +16,14 @@
 
 	Studio only: `Remotes.DebugDay:FireServer(n)` moves this player's clock
 	on by `n` days (1 if not given), to see a day roll without waiting.
+
+	**Playtime gifts** (`Util/PlaytimeRules`, 2026-11-18) are kept here too:
+	the session's clock is taken up as the profile loads (`join`: a new
+	session after `Config/Rewards.playtime.gap` away), stamped every few
+	seconds so the next server can tell the player was here, and a gift
+	that opens is said on the toast. `RewardClaim("playtime", index)` claims
+	one; CLAIM ALL takes every one that waits. `Remotes.DebugPlaytime(n)`
+	(Studio) moves the session `n` minutes on.
 ]]
 
 local Players = game:GetService("Players")
@@ -28,6 +36,7 @@ local Goals = require(ReplicatedStorage.Shared.Config.Goals)
 local Inbound = require(script.Parent.Parent.Net.Inbound)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
 local PageRules = require(ReplicatedStorage.Shared.Util.PageRules)
+local PlaytimeRules = require(ReplicatedStorage.Shared.Util.PlaytimeRules)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local RewardConfig = require(ReplicatedStorage.Shared.Config.Rewards)
 local RewardRules = require(ReplicatedStorage.Shared.Util.RewardRules)
@@ -50,9 +59,20 @@ Rewards.openChest = nil :: ((player: Player, kind: string) -> ())?
 --[[ Gives a goal's eggs and crates (`Config/Goals`), by the same module
      and for the same reason. ]]
 Rewards.givePrize = nil :: ((player: Player, eggs: number, crates: number) -> ())?
+--[[ Told when the day's login reward has just been claimed, alone or in
+     CLAIM ALL: the moment `Data/Notify` may ask about notifications. Set
+     by that module, which requires this one. ]]
+Rewards.dailyClaimed = nil :: ((player: Player) -> ())?
+--[[ Hears everything `note` hears, and the quests claimed: the season's
+     XP (`Data/Season`, which requires this module, so it sets the hook). ]]
+Rewards.onNote = nil :: ((player: Player, kind: string, amount: number) -> ())?
 
 --[[ Studio's day offsets, by player; never set on a live server. ]]
 local offsets: { [Player]: number } = {}
+--[[ Playtime gifts ready when last looked, to say each once it opens. ]]
+local giftsSaid: { [Player]: number } = {}
+--[[ Seconds between looks at the playtime clocks. ]]
+local PLAYTIME_EVERY = 5
 
 function Rewards.today(player: Player): number
 	return RewardRules.day(os.time()) + (offsets[player] or 0)
@@ -115,12 +135,16 @@ function Rewards.note(player: Player, kind: string, amount: number)
 	if changed then
 		PlayerData.touch(player)
 	end
+	local hook = Rewards.onNote
+	if hook then
+		hook(player, kind, amount)
+	end
 end
 
 --[[ Pays a prize already marked claimed (a goal's step, a Dex page's
-     chest): its coins and gems here, its eggs and crates by
-     `Data/QuestChest`, which shows what came out. ]]
-local function pay(player: Player, prize: Goals.Prize)
+     chest, a playtime gift, an invite's reward): its coins and gems here,
+     its eggs and crates by `Data/QuestChest`, which shows what came out. ]]
+function Rewards.pay(player: Player, prize: Goals.Prize)
 	Wallet.addCoins(player, prize.coins or 0)
 	Wallet.addGems(player, prize.gems or 0)
 	local eggs, crates = prize.eggs or 0, prize.crates or 0
@@ -138,6 +162,7 @@ local function claim(player: Player, kind: unknown, key: unknown)
 		return
 	end
 	local day = Rewards.today(player)
+	local loginBefore = profile.rewards.loginDay
 	local gift: RewardRules.Gift? = nil
 	if kind == "bonus" then
 		--[[ The chest for all three quests: marked opened here, in one
@@ -158,7 +183,7 @@ local function claim(player: Player, kind: unknown, key: unknown)
 		local prize = GoalRules.claim(profile, key)
 		if prize then
 			log.info("%s claims a step of goal %s", player.Name, tostring(key))
-			pay(player, prize)
+			Rewards.pay(player, prize)
 		end
 		return
 	elseif kind == "page" then
@@ -166,7 +191,7 @@ local function claim(player: Player, kind: unknown, key: unknown)
 		local prize = PageRules.claim(profile, key)
 		if prize then
 			log.info("%s opens the chest of Dex page %s", player.Name, tostring(key))
-			pay(player, prize)
+			Rewards.pay(player, prize)
 		end
 		return
 	elseif kind == "stars" then
@@ -174,7 +199,17 @@ local function claim(player: Player, kind: unknown, key: unknown)
 		local prize = StarRules.claim(profile, key)
 		if prize then
 			log.info("%s opens star chest %s", player.Name, tostring(key))
-			pay(player, prize)
+			Rewards.pay(player, prize)
+		end
+		return
+	elseif kind == "playtime" then
+		--[[ A playtime gift (`Util/PlaytimeRules`): the one asked for if
+		     the server's clock has opened it, marked and paid. ]]
+		local prize = PlaytimeRules.claim(profile.playtime, os.time(), key)
+		if prize then
+			log.info("%s claims playtime gift %s", player.Name, tostring(key))
+			giftsSaid[player] = PlaytimeRules.ready(profile.playtime, os.time())
+			Rewards.pay(player, prize)
 		end
 		return
 	elseif kind == "gift" then
@@ -192,9 +227,14 @@ local function claim(player: Player, kind: unknown, key: unknown)
 	elseif kind == "all" then
 		--[[ Everything that waits, marked in one step; its eggs and crates
 		     are opened together and shown by `Data/QuestChest`. ]]
-		local total, n, quests, items = RewardRules.claimAll(profile, day)
+		local total, n, quests, items = RewardRules.claimAll(profile, day, os.time())
+		giftsSaid[player] = 0
 		gift = if n > 0 then total else nil
 		GoalRules.count(profile.stats, "quests", quests)
+		local hook = Rewards.onNote
+		if hook and quests > 0 then
+			hook(player, "quests", quests)
+		end
 		local give = Rewards.givePrize
 		if give and items.eggs + items.crates > 0 then
 			give(player, items.eggs, items.crates)
@@ -205,6 +245,10 @@ local function claim(player: Player, kind: unknown, key: unknown)
 		gift = RewardRules.claimQuest(profile.rewards, day, key)
 		if gift then
 			GoalRules.count(profile.stats, "quests", 1)
+			local hook = Rewards.onNote
+			if hook then
+				hook(player, "quests", 1)
+			end
 		end
 	elseif kind == "starter" and type(key) == "string" then
 		gift = RewardRules.claimStarter(profile, key)
@@ -225,16 +269,62 @@ local function claim(player: Player, kind: unknown, key: unknown)
 	Wallet.addGems(player, gift.gems)
 	PlayerData.touch(player)
 	Wallet.send(player)
+	local told = Rewards.dailyClaimed
+	if told and profile.rewards.loginDay ~= loginBefore then
+		told(player)
+	end
+end
+
+--[[ The profile is in: its playtime session goes on, or a new one
+     starts (`PlaytimeRules.join`). ]]
+local function takeClock(player: Player)
+	local profile = PlayerData.get(player)
+	if not profile then
+		return
+	end
+	if PlaytimeRules.join(profile.playtime, os.time()) then
+		log.info("%s starts a playtime session", player.Name)
+	end
+	giftsSaid[player] = PlaytimeRules.ready(profile.playtime, os.time())
+	PlayerData.touch(player)
+	Wallet.send(player)
+end
+
+--[[ Every few seconds: each clock stamped (saved with the profile, so the
+     next server goes on with the session), and a gift that has opened
+     said on the toast. ]]
+local function watchClocks()
+	local now = os.time()
+	for _, player in Players:GetPlayers() do
+		local profile = PlayerData.get(player)
+		if not profile then
+			continue
+		end
+		PlaytimeRules.stamp(profile.playtime, now)
+		local ready = PlaytimeRules.ready(profile.playtime, now)
+		if ready > (giftsSaid[player] or 0) then
+			toast:FireClient(player, "PLAYTIME GIFT READY! OPEN IT IN REWARDS", 0, 0)
+		end
+		giftsSaid[player] = ready
+	end
 end
 
 function Rewards.start()
 	Inbound.on(Remotes.RewardClaim, claim)
 	PlayerData.onLoaded(publish)
+	PlayerData.onLoaded(takeClock)
 	for _, player in Players:GetPlayers() do
 		publish(player)
 	end
 	Players.PlayerRemoving:Connect(function(player)
 		offsets[player] = nil
+		giftsSaid[player] = nil
+	end)
+	task.spawn(function()
+		while true do
+			task.wait(PLAYTIME_EVERY)
+			watchClocks()
+		end
 	end)
 	-- midnight UTC passes while people play
 	task.spawn(function()
@@ -252,6 +342,25 @@ function Rewards.start()
 			publish(player)
 			Wallet.send(player)
 			log.info("%s is now on day %d", player.Name, Rewards.today(player))
+		end)
+		--[[ The playtime session `n` minutes on (1 if not given): its start
+		     moved back, as if they had played that long. ]]
+		Inbound.debug(Remotes.DebugPlaytime, function(player, minutes)
+			local profile = PlayerData.get(player)
+			if not profile then
+				return
+			end
+			local n = if type(minutes) == "number" and minutes == minutes
+				then math.floor(minutes)
+				else 1
+			profile.playtime.start -= math.clamp(n, 1, 120) * 60
+			watchClocks()
+			Wallet.send(player)
+			log.info(
+				"%s has played %d s this session",
+				player.Name,
+				PlaytimeRules.played(profile.playtime, os.time())
+			)
 		end)
 	end
 end

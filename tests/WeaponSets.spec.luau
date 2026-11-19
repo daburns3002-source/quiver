@@ -16,6 +16,7 @@ local ClassList = require(ReplicatedStorage.Shared.Util.ClassList)
 local Dex = require(ReplicatedStorage.Shared.Config.Dex)
 local DexBook = require(ReplicatedStorage.Shared.Util.DexBook)
 local Sandbox = require(ReplicatedStorage.Shared.Config.Sandbox)
+local SetRotation = require(ReplicatedStorage.Shared.Util.SetRotation)
 local Shop = require(ReplicatedStorage.Shared.Config.Shop)
 local ShopRules = require(ReplicatedStorage.Shared.Util.ShopRules)
 local TestRunner = require(script.Parent.TestRunner)
@@ -153,10 +154,29 @@ return function(t: TestRunner.Helper)
 
 	t.test("a set's weapon waits on no boss, with the launch locks on or off", function()
 		for _, set in Shop.sets do
-			for _, locks in { true, false } do
-				t.isTrue(ShopRules.buyable(entry(set.key, "Legendary", 1), nil, locks), set.key)
-				t.isTrue(ShopRules.buyable(entry(set.key, "Legendary", 1), {}, locks), set.key)
+			if not set.stocked then
+				continue
 			end
+			-- in its own week of the rotation (`Util/SetRotation`)
+			local now: number? = nil
+			local weeks = #Shop.sets
+			for week = 0, weeks do
+				local at = SetRotation.weekStart(week) + 60
+				if SetRotation.onSale(set.key, at) then
+					now = at
+					break
+				end
+			end
+			t.isTrue(now ~= nil, set.key .. " has a week of its own")
+			for _, locks in { true, false } do
+				t.isTrue(
+					ShopRules.buyable(entry(set.key, "Legendary", 1), nil, locks, now),
+					set.key
+				)
+				t.isTrue(ShopRules.buyable(entry(set.key, "Legendary", 1), {}, locks, now), set.key)
+			end
+			-- never without the server's clock
+			t.isFalse(ShopRules.buyable(entry(set.key, "Legendary", 1), {}, false), set.key)
 		end
 		-- an area's weapon still waits on its crate
 		t.isFalse(ShopRules.buyable(entry(nil, "Epic", 3), {}, true))

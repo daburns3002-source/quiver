@@ -667,6 +667,16 @@ local Lobby = {
 		face = { centre = Vector3.new(0, 10, 0.9), size = Vector2.new(16.8, 11.4) },
 	},
 
+	--[[ The THIS WEEK'S DELVERS board (`Run/WeeklyTournament`, the weekly
+	     Endless tournament, 2026-11-18) past DEEPEST DELVERS on the same
+	     side, so the two Endless boards stand together: all time, then this
+	     week. Same build, same face, same turn. ]]
+	weeklyLeaderboard = {
+		at = plan(52, 78),
+		turn = 0,
+		face = { centre = Vector3.new(0, 10, 0.9), size = Vector2.new(16.8, 11.4) },
+	},
+
 	--[[ The look, off the layout sheet's swatches: flat, warm, smooth. ]]
 	--[[ The far scenery (`Run/LobbyBackdrop`), after the enemy spotlight
 	     loading screens: `cliffs` stepped stone cliffs in a ring `reach` studs

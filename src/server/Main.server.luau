@@ -32,6 +32,7 @@ local Arena = require(script.Parent.Arena.Arena)
 local AssassinUpgrades = require(script.Parent.Combat.AssassinUpgrades)
 local Atmosphere = require(script.Parent.Arena.Atmosphere)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
+local Boosts = require(script.Parent.Data.Boosts)
 local Burning = require(script.Parent.Combat.Burning)
 local ClassList = require(ReplicatedStorage.Shared.Util.ClassList)
 local ClassUpgrades = require(script.Parent.Combat.ClassUpgrades)
@@ -46,11 +47,13 @@ local Game = require(ReplicatedStorage.Shared.Config.Game)
 local Hatchery = require(script.Parent.Data.Hatchery)
 local HeldWeapon = require(script.Parent.Combat.HeldWeapon)
 local Inbound = require(script.Parent.Net.Inbound)
+local Invites = require(script.Parent.Data.Invites)
 local LevelUnlocks = require(ReplicatedStorage.Shared.Util.LevelUnlocks)
 local Lobby = require(script.Parent.Run.Lobby)
 local LobbyConfig = require(ReplicatedStorage.Shared.Config.Lobby)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
 local MeleeSystem = require(script.Parent.Combat.MeleeSystem)
+local Notify = require(script.Parent.Data.Notify)
 local Party = require(script.Parent.Run.Party)
 local Passes = require(script.Parent.Data.Passes)
 local PetCombat = require(script.Parent.Combat.PetCombat)
@@ -59,6 +62,8 @@ local PetPreview = require(script.Parent.Dev.PetPreview)
 local PlayPortal = require(ReplicatedStorage.Shared.Util.PlayPortal)
 local PlayerData = require(script.Parent.Data.PlayerData)
 local PlayerSettings = require(script.Parent.Data.Settings)
+local Policy = require(script.Parent.Data.Policy)
+local Premium = require(script.Parent.Data.Premium)
 local ProjectileSystem = require(script.Parent.Combat.ProjectileSystem)
 local Purchases = require(script.Parent.Data.Purchases)
 local QuestChest = require(script.Parent.Data.QuestChest)
@@ -67,6 +72,7 @@ local Rewards = require(script.Parent.Data.Rewards)
 local RoomController = require(script.Parent.Run.RoomController)
 local RunSession = require(script.Parent.Run.RunSession)
 local Sandbox = require(ReplicatedStorage.Shared.Config.Sandbox)
+local Season = require(script.Parent.Data.Season)
 local SoulLink = require(script.Parent.Combat.SoulLink)
 local SoulstoneShop = require(script.Parent.Data.SoulstoneShop)
 local StoryLeaderboard = require(script.Parent.Run.StoryLeaderboard)
@@ -77,6 +83,7 @@ local UpgradeEffects = require(script.Parent.Fx.UpgradeEffects)
 local VictoryChests = require(script.Parent.Run.VictoryChests)
 local Wallet = require(script.Parent.Data.Wallet)
 local WeaponShop = require(script.Parent.Data.Shop)
+local WeeklyTournament = require(script.Parent.Run.WeeklyTournament)
 
 local log = Log.forTag("Server")
 
@@ -95,12 +102,20 @@ PlayerData.onLoaded(function(player)
 end)
 PlayerData.start()
 Analytics.start()
+Policy.start()
+Boosts.start()
 WeaponShop.start()
 Hatchery.start()
 SoulstoneShop.start()
 PlayerSettings.start()
 Rewards.start()
+-- the experience notifications: the opt-in question, and the queue
+Notify.start()
 QuestChest.start()
+Premium.start()
+Invites.start()
+-- the season pass: its XP hears Rewards.note (`Config/Season`)
+Season.start()
 VictoryChests.start()
 TrailsServer.start()
 --[[ Robux: passes checked as players join, receipts granted once
@@ -236,6 +251,14 @@ do
 	local face = Lobby.endlessLeaderboardFace()
 	if face then
 		EndlessLeaderboard.attach(face)
+	end
+end
+-- The weekly tournament's board and prizes (`Run/WeeklyTournament`).
+WeeklyTournament.start()
+do
+	local face = Lobby.weeklyLeaderboardFace()
+	if face then
+		WeeklyTournament.attach(face)
 	end
 end
 
@@ -758,8 +781,10 @@ end)
      this player's saved profile has open (`Lobby.levelOpen`). Where the
      player stands no longer gates the start (owner, 2026-11-14: PLAY's
      screen starts the run itself); it decides only who comes along
-     (`PlayPortal.alone`). ]]
-Inbound.on(Remotes.PortalStart, function(player, index, level)
+     (`PlayPortal.alone`). With `hard` true, the level on hard: refused
+     unless its area's boss is beaten and the hard level before it won on
+     hard (`Lobby.hardOpen`, `Util/HardRules`). ]]
+Inbound.on(Remotes.PortalStart, function(player, index, level, hard)
 	local session = RunSession.get(player)
 	local root = session and session.root
 	if not session or session.atTitle or not root or not RoomController.inLobby() then
@@ -768,7 +793,16 @@ Inbound.on(Remotes.PortalStart, function(player, index, level)
 	local profile = PlayerData.get(player)
 	local beaten = if profile then profile.levelsBeaten else nil
 	local bosses = if profile then profile.bossesBeaten else nil
-	local stage = Lobby.levelOpen(index, level, beaten, bosses)
+	local onHard = hard == true
+	local stage = if onHard
+		then Lobby.hardOpen(
+			index,
+			level,
+			beaten,
+			bosses,
+			if profile then profile.hardBeaten else nil
+		)
+		else Lobby.levelOpen(index, level, beaten, bosses)
 	if stage then
 		--[[ Standing in that portal: with whoever else stands there
 		     (`Run/Party`). From PLAY's screen: alone. ]]
@@ -778,7 +812,8 @@ Inbound.on(Remotes.PortalStart, function(player, index, level)
 			index :: number,
 			level :: number,
 			stage,
-			PlayPortal.alone(standing, index :: number)
+			PlayPortal.alone(standing, index :: number),
+			onHard
 		)
 	end
 end)

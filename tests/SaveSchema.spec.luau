@@ -16,6 +16,7 @@ local Classes = require(ReplicatedStorage.Shared.Config.Classes)
 local Purse = require(ReplicatedStorage.Shared.Util.Purse)
 local SaveSchema = require(ReplicatedStorage.Shared.Util.SaveSchema)
 local TestRunner = require(script.Parent.TestRunner)
+local TournamentRules = require(ReplicatedStorage.Shared.Util.TournamentRules)
 
 return function(t: TestRunner.Helper)
 	t.test("a new player owns the classes' own weapons and nothing else", function()
@@ -51,7 +52,7 @@ return function(t: TestRunner.Helper)
 			equipped = "AcornBow",
 			classLevels = { Warden = { level = 4, xp = 20 } },
 		})
-		t.equal(p.version, 23)
+		t.equal(p.version, SaveSchema.VERSION)
 		t.isTrue(p.weapons.SplinterDaggers, "no daggers")
 		t.isTrue(p.weapons.AcornBow and p.weapons.TimberBlade)
 		t.equal(p.equipped, "AcornBow")
@@ -64,6 +65,35 @@ return function(t: TestRunner.Helper)
 		local again = SaveSchema.migrate(p)
 		t.isTrue(again.weapons.SplinterDaggers)
 		t.equal(again.equipped, "AcornBow")
+	end)
+
+	--[[ Version 24: hard mode (`Util/HardRules`). Nothing was ever played
+	     on hard, so an older save has won no hard level; a stored copy
+	     keeps its true flags and drops the rest. ]]
+	t.test("an older save has won nothing on hard, and a stored one keeps its wins", function()
+		local p = SaveSchema.migrate({
+			version = 23,
+			coins = 75,
+			levelsBeaten = { ["1-1"] = true, ["1-2"] = true },
+			bossesBeaten = { MossyGlade = true },
+		})
+		t.equal(p.version, SaveSchema.VERSION)
+		t.isNil((next(p.hardBeaten)), "hard wins invented")
+		t.equal(p.coins, 75)
+		t.isTrue(p.levelsBeaten["1-2"])
+		local stored = SaveSchema.migrate({
+			version = 24,
+			hardBeaten = { ["1-1"] = true, ["1-2"] = "yes", [3] = true },
+		})
+		t.isTrue(stored.hardBeaten["1-1"])
+		t.isNil(stored.hardBeaten["1-2"], "a flag that is not true")
+		local count = 0
+		for _ in stored.hardBeaten do
+			count += 1
+		end
+		t.equal(count, 1)
+		-- and reads the same again
+		t.isTrue(SaveSchema.migrate(stored).hardBeaten["1-1"])
 	end)
 
 	t.test("a stored profile keeps everything valid", function()
@@ -101,10 +131,78 @@ return function(t: TestRunner.Helper)
 		t.isNil(p.equipped, "a weapon not owned is not equipped")
 	end)
 
+	--[[ Version 26: the weekly Endless tournament. An older save has played
+	     no week; a stored week is kept only as a week number with a real
+	     score. ]]
+	t.test("an older save has no tournament weeks, and a stored one is read with care", function()
+		local old =
+			SaveSchema.migrate({ version = 25, coins = 12, hardBeaten = { ["1-1"] = true } })
+		t.equal(old.version, SaveSchema.VERSION)
+		t.isNil((next(old.tournamentWeeks)))
+		t.equal(old.tournamentWins, 0)
+		t.equal(old.tournamentPicks, 0)
+		t.equal(old.coins, 12)
+		t.isTrue(old.hardBeaten["1-1"], "version 24's hard wins kept")
+
+		local score = TournamentRules.score(30, 600)
+		local p = SaveSchema.migrate({
+			version = 26,
+			tournamentWeeks = { ["2967"] = score, junk = score, ["2968"] = 12.5, ["2969"] = -4 },
+			tournamentWins = 2,
+			tournamentPicks = 1,
+		})
+		t.equal(p.tournamentWeeks["2967"], score)
+		t.isNil(p.tournamentWeeks.junk, "not a week number")
+		t.isNil(p.tournamentWeeks["2968"], "not a whole score")
+		t.isNil(p.tournamentWeeks["2969"])
+		t.equal(p.tournamentWins, 2)
+		t.equal(p.tournamentPicks, 1)
+	end)
+
 	t.test("a new profile has beaten no level", function()
 		local p = SaveSchema.migrate(nil)
-		t.equal(SaveSchema.VERSION, 23)
+		t.equal(SaveSchema.VERSION, 28)
 		t.isNil((next(p.levelsBeaten)))
+	end)
+
+	--[[ Version 27: the retention hooks. An older save starts a new
+	     playtime session, was never paid Premium's egg, and was invited by
+	     nobody, so nothing is owed for having a save already. ]]
+	t.test("an older save has a fresh playtime clock and owes no invite", function()
+		local p = SaveSchema.migrate({ version = 26, coins = 7 })
+		t.equal(p.version, SaveSchema.VERSION)
+		t.equal(p.coins, 7)
+		t.equal(p.playtime.start, 0, "the next join starts a session")
+		t.equal(p.playtime.claimed, 0)
+		t.equal(p.premiumDay, 0)
+		t.equal(p.invites.by, 0)
+		t.isFalse(p.invites.owed)
+		t.isNil((next(p.invites.counted)))
+		-- a stored copy reads back as it was, broken parts dropped
+		local stored = SaveSchema.migrate({
+			version = 27,
+			playtime = { start = 1000, seen = 1200, claimed = 3 },
+			premiumDay = 20400,
+			invites = {
+				by = 42,
+				owed = true,
+				counted = { ["7"] = true, nope = true },
+				day = 20400,
+				paid = 99,
+			},
+		})
+		t.equal(stored.playtime.start, 1000)
+		t.equal(stored.playtime.seen, 1200)
+		t.equal(stored.playtime.claimed, 3)
+		t.equal(stored.premiumDay, 20400)
+		t.equal(stored.invites.by, 42)
+		t.isTrue(stored.invites.owed)
+		t.isTrue(stored.invites.counted["7"])
+		t.isNil(stored.invites.counted.nope)
+		t.isTrue(stored.invites.paid < 99, "never more paid than a day allows")
+		local again = SaveSchema.migrate(stored)
+		t.equal(again.playtime.claimed, 3)
+		t.equal(again.invites.by, 42)
 	end)
 
 	t.test("version 1 migrates up: nothing lost, no levels beaten", function()
@@ -514,5 +612,73 @@ return function(t: TestRunner.Helper)
 		local lied = SaveSchema.migrate({ version = 22, rewards = { bossMet = true } })
 		t.isFalse(lied.rewards.bossMet, "a stored yes with no boss beaten is not believed")
 		t.isTrue(SaveSchema.migrate(old).rewards.bossMet, "a saved copy reads back the same")
+	end)
+
+	t.test(
+		"version 25: nobody was asked to opt in; a player who has played counts a session",
+		function()
+			local fresh = SaveSchema.default().notify
+			t.equal(fresh.joins, 0)
+			t.equal(fresh.answer, "", "a new profile was never asked")
+			t.equal(SaveSchema.migrate({ version = 24, coins = 3 }).notify.joins, 0)
+			local played =
+				SaveSchema.migrate({ version = 24, rewards = { loginDay = 9, loginCount = 4 } })
+			t.equal(played.notify.joins, 1, "a profile that claimed a day has had a session")
+			t.equal(played.notify.answer, "")
+			local won = SaveSchema.migrate({ version = 24, levelsBeaten = { ["1-1"] = true } })
+			t.equal(won.notify.joins, 1, "so has one that won a level")
+			local stored = SaveSchema.migrate({
+				version = 25,
+				notify = { joins = 7.5, asked = 20400, noes = 99, answer = "maybe", zone = 9000 },
+			})
+			t.equal(stored.notify.joins, 7)
+			t.equal(stored.notify.asked, 20400)
+			t.isTrue(stored.notify.noes <= 3, "never more NOT NOWs than are allowed")
+			t.equal(stored.notify.answer, "", "an answer that is not one is dropped")
+			t.equal(stored.notify.zone, 14 * 60, "an offset is one a zone can have")
+			local yes = SaveSchema.migrate({
+				version = 25,
+				notify = { joins = 3, answer = "yes", zone = -300 },
+			})
+			local again = SaveSchema.migrate(yes)
+			t.equal(again.notify.answer, "yes", "a saved copy reads back the same")
+			t.equal(again.notify.zone, -300)
+			t.equal(again.notify.joins, 3)
+		end
+	)
+
+	--[[ Version 28: the season pass. An older save has no season XP, nothing
+	     claimed, no premium and no title; a stored one reads back, and a
+	     title is worn only if held. ]]
+	t.test("version 28 adds the season, empty, and reads a stored one back", function()
+		local p = SaveSchema.migrate({ version = 27, coins = 5 })
+		t.equal(p.season.key, "")
+		t.equal(p.season.xp, 0)
+		t.equal(p.season.free + p.season.paid, 0)
+		t.isFalse(p.season.premium)
+		t.isNil((next(p.titles)))
+		t.isNil(p.title)
+		t.equal(p.coins, 5)
+		local stored = SaveSchema.migrate({
+			version = 28,
+			season = { key = "2026-12", xp = 1200, free = 3, paid = 1, premium = true },
+			titles = { Wishkeeper = true },
+			title = "Wishkeeper",
+		})
+		t.equal(stored.season.key, "2026-12")
+		t.equal(stored.season.xp, 1200)
+		t.equal(stored.season.free, 3)
+		t.isTrue(stored.season.premium)
+		t.equal(stored.title, "Wishkeeper")
+		local again = SaveSchema.migrate(stored)
+		t.equal(again.season.paid, 1)
+		local stray = SaveSchema.migrate({
+			version = 28,
+			title = "Wishkeeper",
+			season = { key = "nope", xp = -4 },
+		})
+		t.isNil(stray.title, "a title not held is not worn")
+		t.equal(stray.season.key, "")
+		t.equal(stray.season.xp, 0)
 	end)
 end

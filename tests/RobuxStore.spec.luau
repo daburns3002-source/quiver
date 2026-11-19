@@ -51,32 +51,41 @@ return function(t: TestRunner.Helper)
 		t.isTrue(last > 0, "there are gem packs")
 	end)
 
-	t.test("a product gives only gems, coins, eggs or a revive: nothing never sold", function()
-		local allowed = {
-			key = true,
-			id = true,
-			name = true,
-			robux = true,
-			description = true,
-			gems = true,
-			coins = true,
-			eggs = true,
-			once = true,
-			revive = true,
-			art = true,
-			icon = true,
-			flag = true,
-		}
-		for _, product in RobuxStore.products do
-			for field in product :: any do
-				t.isTrue(allowed[field] == true, `{product.key} gives {field}, which is not sold`)
-			end
-			for _, egg in product.eggs or ({} :: { RobuxStore.Egg }) do
-				t.notNil(EggRules.find(egg.key), `{product.key}'s {egg.key} is an egg`)
-				t.isTrue(egg.count > 0, `{product.key} gives eggs`)
+	t.test(
+		"a product gives only gems, coins, eggs, a revive or luck: nothing never sold",
+		function()
+			local allowed = {
+				key = true,
+				id = true,
+				name = true,
+				robux = true,
+				description = true,
+				gems = true,
+				coins = true,
+				eggs = true,
+				once = true,
+				revive = true,
+				serverLuck = true,
+				paidRandom = true,
+				season = true,
+				art = true,
+				icon = true,
+				flag = true,
+			}
+			for _, product in RobuxStore.products do
+				for field in product :: any do
+					t.isTrue(
+						allowed[field] == true,
+						`{product.key} gives {field}, which is not sold`
+					)
+				end
+				for _, egg in product.eggs or ({} :: { RobuxStore.Egg }) do
+					t.notNil(EggRules.find(egg.key), `{product.key}'s {egg.key} is an egg`)
+					t.isTrue(egg.count > 0, `{product.key} gives eggs`)
+				end
 			end
 		end
-	end)
+	)
 
 	t.test("the revive is Robux only: 15, no gems, never on the shelves", function()
 		local revive = StoreRules.product("Revive")
@@ -90,6 +99,7 @@ return function(t: TestRunner.Helper)
 		t.isNil(revive.eggs)
 		for _, product in StoreRules.shelf(nil) do
 			t.isFalse(product.revive == true, "the STORE sells no revive")
+			t.isFalse(product.season == true, "nor the Season Pass: the SEASON tab does")
 		end
 		t.isFalse(StoreRules.canPrompt("Revive", nil, {}), "only DEFEAT offers it")
 	end)
@@ -206,9 +216,9 @@ return function(t: TestRunner.Helper)
 		t.isFalse(StoreRules.canPrompt("NotAThing", nil, {}))
 		t.isFalse(StoreRules.canPrompt(42, nil, {}))
 		for _, product in RobuxStore.products do
-			if not product.revive and not product.once then
+			if not product.revive and not product.once and not product.season then
 				t.equal(
-					StoreRules.canPrompt(product.key, nil, {}),
+					StoreRules.canPrompt(product.key, nil, {}, false),
 					StoreRules.live(product),
 					`{product.key} is promptable when it is live`
 				)
@@ -257,4 +267,34 @@ return function(t: TestRunner.Helper)
 		t.equal(p.vipDay, 0)
 		t.equal(StoreRules.read({ reviveCredits = 0 / 0 }).reviveCredits, 0, "NaN is none")
 	end)
+
+	t.test(
+		"the Server Luck: time of luck for all, off the shelves, never for the restricted",
+		function()
+			local luck = StoreRules.product("ServerLuck")
+			t.notNil(luck, "it is sold")
+			if not luck then
+				return
+			end
+			t.isTrue((luck.serverLuck or 0) > 0, "it gives time")
+			t.isTrue(luck.paidRandom == true, "it touches random rewards")
+			t.isNil(luck.gems, "nothing but luck")
+			t.isNil(luck.eggs)
+			t.isFalse(luck.once == true, "bought again and again")
+			local shelf = StoreRules.shelf(nil)
+			t.isNil(table.find(shelf, luck), "the egg screen offers it, not the STORE")
+			-- a restricted player, or one whose answer is not in yet, is never asked
+			t.isFalse(StoreRules.offered(luck, true))
+			t.isFalse(StoreRules.offered(luck, nil), "unknown counts as restricted")
+			t.isTrue(StoreRules.offered(luck, false))
+			t.isFalse(StoreRules.canPrompt("ServerLuck", nil, {}, true))
+			t.isFalse(StoreRules.canPrompt("ServerLuck", nil, {}))
+			t.equal(StoreRules.canPrompt("ServerLuck", nil, {}, false), StoreRules.live(luck))
+			-- what touches no random reward is offered to everyone
+			local gems = StoreRules.product("Gems120")
+			if gems then
+				t.isTrue(StoreRules.offered(gems, true))
+			end
+		end
+	)
 end

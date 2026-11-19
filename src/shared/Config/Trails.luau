@@ -20,6 +20,8 @@
 	  times the area's number (the weapon store's numbers, `Config/Shop`).
 	- `Boss`: given the first time the area's boss falls, and to anyone
 	  who had already beaten it before trails existed.
+	- `Season`: a season's trail (`Config/Season`), given on its premium
+	  track's tier and never sold or given again (`Server/Data/Season`).
 	- `Endless`: Starfall, the one Mythic (owner: "should be a reward for
 	  getting to a certain floor on endless with all 3 classes"), given once
 	  `endless.floor` has been reached in Endless as each of
@@ -61,9 +63,11 @@ export type Column = {
 
 --[[ A silk thread: a strip a tile long laid every tile run, `width`
      tiles across and `lift` tiles up, weaving `amp` tiles either side
-     once every `wave` tiles (never past `limit`). ]]
+     once every `wave` tiles (never past `limit`), `offset` tiles to the
+     right of the middle (a straight edge strip, amp 0). ]]
 export type Thread = {
 	colour: Color3,
+	offset: number?,
 	height: number,
 	neon: boolean?,
 	alpha: number?,
@@ -213,6 +217,7 @@ local Trails = {
 		"GlowcapPath",
 		"GulpsBubbles",
 		"Starfall",
+		"WishRibbon",
 	},
 
 	--[[ Starfall's: this floor of Endless, reached as each of these
@@ -1861,6 +1866,155 @@ local Trails = {
 			light = hex("2f6bff"),
 			lightBrightness = 2,
 			icon = "rbxassetid://116548860955448",
+		},
+		-- Season 1 (Starwish)'s, its premium track's tier 15 (`Config/Season`)
+		WishRibbon = {
+			name = "WISH RIBBON",
+			rarity = "Legendary",
+			area = "Season",
+			earn = "Season",
+			design = "https://claude.ai/design/p/9a182eb6-ec0a-477a-8c19-1f55f36d4e46",
+			-- a gift ribbon: two bands, pastel pink on the left and mint on
+			-- the right, two tiles each (the build's tile is 0.8 studs, its
+			-- row 0.05 s, so 32 rows a life); the outer tiles dissolve first
+			-- (rank 1 from 60% of the life, the inner from 78%, each up to
+			-- 16% later), shrinking away; it fades from 35% of its life
+			ribbon = {
+				columns = {
+					{ colour = hex("f7a7ca"), height = 0.175, dissolve = { 19.2, 24.3 } },
+					{ colour = hex("f7a7ca"), height = 0.175, dissolve = { 25, 30.1 } },
+					{ colour = hex("a6e6c6"), height = 0.175, dissolve = { 25, 30.1 } },
+					{ colour = hex("a6e6c6"), height = 0.175, dissolve = { 19.2, 24.3 } },
+				},
+				-- the cream edges, 0.3 studs wide in the build: a thin glowing
+				-- strip down each side, gone first (from 40% of the life)
+				threads = {
+					{
+						colour = hex("fff2d6"),
+						offset = -2.19,
+						height = 0.175,
+						neon = true,
+						gone = { 12.8, 21.5 },
+						amp = 0,
+						wave = 1,
+						phase = 0,
+						limit = 0,
+						lift = 0,
+						width = 0.375,
+					},
+					{
+						colour = hex("fff2d6"),
+						offset = 2.19,
+						height = 0.175,
+						neon = true,
+						gone = { 12.8, 21.5 },
+						amp = 0,
+						wave = 1,
+						phase = 0,
+						limit = 0,
+						lift = 0,
+						width = 0.375,
+					},
+				},
+				-- to a fifth by row 32: linear from 11.2 to 37.2
+				fade = { 11.2, 37.2 },
+				curve = 1,
+				alpha = 1,
+				jitter = { 1, 1 },
+				-- a new row unrolls in 0.07 s; a tile shrinks away in 0.18 s
+				grow = 1.4,
+				shrink = 3.6,
+			},
+			pieces = {
+				-- a gold plus of five cubes standing up (0.7 studs a cube,
+				-- 0.8 to 1.15 times), one each 0.5 s, either side of the
+				-- middle: it pops up in 0.3 s, holds and bobs 0.85 s, then
+				-- settles and shrinks away in 0.4 s, turning 70 degrees a
+				-- second and twinkling brighter 1.4 times a second
+				{
+					blocks = {
+						{ size = V(1, 1, 1), colour = hex("ffe08a"), dim = hex("f8cb5c") },
+						{
+							size = V(1, 1, 1),
+							at = V(1, 0, 0),
+							colour = hex("ffe08a"),
+							dim = hex("f8cb5c"),
+						},
+						{
+							size = V(1, 1, 1),
+							at = V(-1, 0, 0),
+							colour = hex("ffe08a"),
+							dim = hex("f8cb5c"),
+						},
+						{
+							size = V(1, 1, 1),
+							at = V(0, 1, 0),
+							colour = hex("ffe08a"),
+							dim = hex("f8cb5c"),
+						},
+						{
+							size = V(1, 1, 1),
+							at = V(0, -1, 0),
+							colour = hex("ffe08a"),
+							dim = hex("f8cb5c"),
+						},
+					},
+					colours = { hex("f8cb5c") },
+					size = { 0.7, 1 },
+					rate = 2,
+					life = { 1.55, 1.55 },
+					back = { 3.5, 3.5 },
+					side = { 0.19, 0.75 },
+					height = { 0.5, 0.5 },
+					peak = { 2.74, 2.74 },
+					peakAt = { 0.19, 0.19 },
+					settle = { 0.5, 0.5 },
+					settleFrom = 0.74,
+					settleAt = { 1, 1 },
+					bob = 0.1,
+					bobPeriod = 0.83,
+					spin = 70,
+					grow = 0.19,
+					shrink = 0.26,
+					fadeFrom = 0.74,
+					blink = { 0.71 },
+					duty = 0.2,
+					pulse = 0.06,
+				},
+				-- tiny glowing pink, mint and cream cubes, eight a second,
+				-- off alternate sides just past the edge, drifting out and up
+				-- and tumbling as they go
+				{
+					blocks = {
+						{ size = V(1, 1, 1), neon = true },
+					},
+					colours = { hex("f7a7ca"), hex("a6e6c6"), hex("fff2d6") },
+					size = { 0.475, 0.475 },
+					rate = 8,
+					life = { 1.1, 1.1 },
+					back = { 3, 6.25 },
+					side = { 3.04, 3.04 },
+					out = { 0.625, 2.25 },
+					outAt = { 0, 1 },
+					height = { 0.5, 0.5 },
+					peak = { 0.91, 1.19 },
+					peakAt = { 0.5, 0.5 },
+					settle = { 0.5, 0.5 },
+					settleAt = { 1, 1 },
+					-- whole tumbles only: one over its life (the build's 160 a second)
+					turns = { 1, 1 },
+					turnEnd = 1,
+					grow = 0.11,
+					shrink = 0.4,
+					fadeFrom = 0.6,
+				},
+			},
+			glow = true,
+			-- the floor's glow, pink mixed half with cream
+			light = hex("fbd0d1"),
+			lightBrightness = 1,
+			-- `assets/ui/trails/icons/WishRibbon.png`
+			icon = "rbxassetid://81835227744691",
 		},
 	} :: { [string]: Trail },
 }

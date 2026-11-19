@@ -20,7 +20,10 @@
 	(`Util/Coop`), so it is not lost when a friend leaves part-way, and the
 	fight was made bigger for two all the same.
 
-	Both add to the passes' scale, as the passes add to each other
+	**Hard mode.** A level played on hard (`Util/HardRules`) pays
+	`Config/Rewards.hard.coins` more (owner, 2026-11-18).
+
+	All three add to the passes' scale, as the passes add to each other
 	(`StoreRules.coinScale`): nothing multiplies.
 ]]
 
@@ -46,10 +49,26 @@ function RunBonus.friend(size: number): number
 	return if whole(size) >= 2 then Rewards.friendCoins else 0
 end
 
+--[[ The share of coins hard mode adds: 0 on normal. ]]
+function RunBonus.hard(on: boolean?): number
+	return if on == true then Rewards.hard.coins else 0
+end
+
 --[[ What a run's kill and clear coins are multiplied by: the passes'
-     scale with the streak's and the friend's shares added. ]]
-function RunBonus.scale(passes: number, wins: number, size: number): number
-	return passes + RunBonus.streak(wins) + RunBonus.friend(size)
+     scale with the streak's, the friend's, hard mode's and Roblox Premium's
+     shares added (`Config/Rewards.premium`; nothing multiplies). ]]
+function RunBonus.scale(
+	passes: number,
+	wins: number,
+	size: number,
+	hard: boolean?,
+	premium: boolean?
+): number
+	return passes
+		+ RunBonus.streak(wins)
+		+ RunBonus.friend(size)
+		+ RunBonus.hard(hard)
+		+ (if premium == true then Rewards.premium.coins else 0)
 end
 
 --[[ The streak after a win that began with `wins` in a row. ]]
@@ -64,8 +83,12 @@ end
 
 --[[ What to tell a player as a level starts, a line for each bonus they
      have; none with neither. ]]
-function RunBonus.lines(wins: number, size: number): { string }
+function RunBonus.lines(wins: number, size: number, hard: boolean?): { string }
 	local out = {}
+	local tough = RunBonus.hard(hard)
+	if tough > 0 then
+		table.insert(out, string.format("HARD MODE: %s COINS", RunBonus.percent(tough)))
+	end
 	local streak = RunBonus.streak(wins)
 	if streak > 0 then
 		table.insert(

@@ -11,7 +11,8 @@
 	and then the lifetime goals (`Config/Goals`), each in three medals, and
 	a chest for an area's stars (`Util/StarRules`) and for each finished
 	Dex page (`Util/PageRules`), in a list that
-	scrolls; DAILY also holds the gift box (`Util/GiftRules`). Each tab wears the count of what waits on it. A row is a picture of
+	scrolls; SEASON, the season pass (`UI/SeasonTab`, `Config/Season`,
+	since 2026-11-18); DAILY also holds the gift box (`Util/GiftRules`). Each tab wears the count of what waits on it. A row is a picture of
 	what to do, the words, the bar with its numbers on it, what it pays, and
 	one button: CLAIM, GO (a gold arrow to where it is done,
 	`Fx/QuestPointer`) or DONE. CLAIM ALL takes everything owed at once.
@@ -24,8 +25,16 @@
 
 	Also the toast for a reward that lands by itself: a new Dex entry's gems
 	(`Remotes.RewardToast`, `Data/DexPay`).
+
+	A fourth tab since 2026-11-18, GIFTS (the retention hooks): the six
+	playtime gifts (`Util/PlaytimeRules`), each with its CLAIM or the time
+	left on the server's clock (`Workspace:GetServerTimeNow`); Roblox
+	Premium's perk, with Roblox's own GET PREMIUM prompt for a player
+	without it; and INVITE A FRIEND (`UI/InvitePrompt`). The lobby's gift
+	button (`UI/PlaytimeButton`) opens it here.
 ]]
 
+local MarketplaceService = game:GetService("MarketplaceService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -40,9 +49,14 @@ local GiftRules = require(ReplicatedStorage.Shared.Util.GiftRules)
 local GoalRules = require(ReplicatedStorage.Shared.Util.GoalRules)
 local Goals = require(ReplicatedStorage.Shared.Config.Goals)
 local HatchStand = require(script.Parent.HatchStand)
+local HookAssets = require(ReplicatedStorage.Shared.Config.HookAssets)
+local InvitePrompt = require(script.Parent.InvitePrompt)
+local InviteRules = require(ReplicatedStorage.Shared.Util.InviteRules)
 local Kit = require(script.Parent.Kit)
 local PageRules = require(ReplicatedStorage.Shared.Util.PageRules)
+local PlaytimeRules = require(ReplicatedStorage.Shared.Util.PlaytimeRules)
 local PortalScreen = require(script.Parent.PortalScreen)
+local PremiumRules = require(ReplicatedStorage.Shared.Util.PremiumRules)
 local PrizeRules = require(ReplicatedStorage.Shared.Util.PrizeRules)
 local QuestPointer = require(script.Parent.Parent.Fx.QuestPointer)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
@@ -51,6 +65,7 @@ local RewardRules = require(ReplicatedStorage.Shared.Util.RewardRules)
 local Rewards = require(ReplicatedStorage.Shared.Config.Rewards)
 local RunPaused = require(script.Parent.Parent.RunPaused)
 local SaveSchema = require(ReplicatedStorage.Shared.Util.SaveSchema)
+local SeasonTab = require(script.Parent.SeasonTab)
 local Shop = require(ReplicatedStorage.Shared.Config.Shop)
 local ShopAssets = require(ReplicatedStorage.Shared.Config.ShopAssets)
 local StarRules = require(ReplicatedStorage.Shared.Util.StarRules)
@@ -67,18 +82,28 @@ local shownFor = 0
 --[[ The tabs, and the one showing: nil until the screen picks one as it
      opens from its button (`draw`). ]]
 type Tab = string
-local TABS: { Tab } = { "DAILY", "QUESTS", "GOALS" }
+local TABS: { Tab } = { "DAILY", "QUESTS", "GOALS", "GIFTS", "SEASON" }
 local tab: Tab? = nil
+--[[ The GIFTS tab's clocks, kept up to the second while it shows: each
+     waiting gift's time left, and the time played. ]]
+local ticking: { { label: TextLabel, index: number } } = {}
+local playedLabel: TextLabel? = nil
 
 local function today(): number
 	local day = player:GetAttribute("RewardDay")
 	return if type(day) == "number" then day else RewardRules.day(os.time())
 end
 
-function RewardsScreen.open()
+--[[ The server's clock, which the playtime gifts are judged by. ]]
+function RewardsScreen.now(): number
+	return Workspace:GetServerTimeNow()
+end
+
+--[[ Opens the screen, on tab `which` ("GIFTS"), or on the one it picks. ]]
+function RewardsScreen.open(which: string?)
 	local s = screen
 	if s then
-		tab = nil
+		tab = if which and table.find(TABS, which) then which else nil
 		Remotes.event(Remotes.ProfileRequest):FireServer()
 		StationScreen.openShortcut(s.open)
 	end
@@ -88,7 +113,7 @@ function RewardsScreen.isOpen(): boolean
 	return screen ~= nil and screen.isOpen()
 end
 
-local function claim(kind: string, key: string?)
+local function claim(kind: string, key: (string | number)?)
 	Remotes.event(Remotes.RewardClaim):FireServer(kind, key)
 end
 
@@ -120,9 +145,17 @@ type Pay = { asset: string, words: string }
 
 --[[ What a reward pays, a line for each thing, in a box `w` x `h` at
      (x, y). ]]
-local function payAt(sheet: Chunky.Sheet, pay: { Pay }, x: number, y: number, w: number, h: number)
+local function payAt(
+	sheet: Chunky.Sheet,
+	pay: { Pay },
+	x: number,
+	y: number,
+	w: number,
+	h: number,
+	most: number?
+)
 	local lines = math.max(#pay, 1)
-	local line = math.min(h / lines, 46)
+	local line = math.min(h / lines, most or 46)
 	local top = y + (h - line * lines) / 2
 	for index, entry in pay do
 		local ly = top + (index - 1) * line
@@ -513,6 +546,199 @@ local function chestBar(sheet: Chunky.Sheet, x: number, y: number, w: number, h:
 	end
 end
 
+--[[ Roblox Premium's perk (`Util/PremiumRules`): Roblox's own mark, what it
+     gives, and GET PREMIUM (Roblox's prompt) for a player without it. ]]
+local function premiumPanel(sheet: Chunky.Sheet, x: number, y: number, w: number, h: number)
+	local up = sheet.upright
+	Chunky.card(sheet, x, y, w, h)
+	local size = math.min(h - 50, 100)
+	--[[ Roblox's mark is white (it is drawn for the dark player list), so it
+	     is inked here to read on the cream card. ]]
+	local mark = Kit.image(sheet.canvas, HookAssets.premium)
+	mark.ZIndex = 30
+	mark.ImageColor3 = Chunky.ink
+	Chunky.put(sheet, mark, x + 24, y + (h - size) / 2, size, size)
+	local tx = x + 24 + size + 22
+	local buttonW = if up then 300 else 250
+	local textW = w - (tx - x) - buttonW - 36
+	words(sheet, "ROBLOX PREMIUM", tx, y + h * 0.14, textW, h * 0.3)
+	words(
+		sheet,
+		string.format(
+			"+%d%% COINS IN RUNS AND A FREE EGG EVERY DAY",
+			math.floor(Rewards.premium.coins * 100 + 0.5)
+		),
+		tx,
+		y + h * 0.5,
+		textW,
+		h * 0.34
+	).TextColor3 =
+		Chunky.inkSoft
+	local bh = math.min(84, h - 40)
+	local bx, by = x + w - buttonW - 18, y + (h - bh) / 2
+	if player:GetAttribute(PremiumRules.ATTRIBUTE) == true then
+		words(
+			sheet,
+			"YOU HAVE IT!",
+			bx,
+			by + bh * 0.18,
+			buttonW,
+			bh * 0.64,
+			Enum.TextXAlignment.Center
+		).TextColor3 =
+			Chunky.green
+	else
+		Chunky.button(sheet, "GET PREMIUM", Chunky.blue, bx, by, buttonW, bh, function()
+			pcall(function()
+				MarketplaceService:PromptPremiumPurchase(player)
+			end)
+		end)
+	end
+end
+
+--[[ INVITE A FRIEND (`UI/InvitePrompt`): what it pays and how many more
+     friends pay today (`Util/InviteRules`). ]]
+local function invitePanel(
+	sheet: Chunky.Sheet,
+	p: SaveSchema.Profile,
+	x: number,
+	y: number,
+	w: number,
+	h: number
+)
+	local up = sheet.upright
+	Chunky.card(sheet, x, y, w, h)
+	local size = math.min(h - 50, 100)
+	icon(sheet, HookAssets.invite, x + 24, y + (h - size) / 2, size)
+	local tx = x + 24 + size + 22
+	local buttonW = if up then 300 else 250
+	local textW = w - (tx - x) - buttonW - 36
+	words(sheet, "INVITE A FRIEND", tx, y + h * 0.14, textW, h * 0.3)
+	local left = InviteRules.left(p.invites, today())
+	words(
+		sheet,
+		if left > 0
+			then `YOU BOTH GET A GIFT WHEN THEY FIRST JOIN ({left} MORE TODAY)`
+			else "YOU BOTH GET A GIFT WHEN THEY FIRST JOIN (MORE TOMORROW)",
+		tx,
+		y + h * 0.5,
+		textW,
+		h * 0.34
+	).TextColor3 =
+		Chunky.inkSoft
+	local bh = math.min(84, h - 40)
+	Chunky.button(
+		sheet,
+		"INVITE",
+		Chunky.green,
+		x + w - buttonW - 18,
+		y + (h - bh) / 2,
+		buttonW,
+		bh,
+		InvitePrompt.open
+	)
+end
+
+--[[ One playtime gift: when it opens, what it holds, and CLAIM, the time
+     left, or DONE. ]]
+local function giftCard(
+	sheet: Chunky.Sheet,
+	p: SaveSchema.Profile,
+	now: number,
+	index: number,
+	x: number,
+	y: number,
+	w: number,
+	h: number
+)
+	local state = PlaytimeRules.state(p.playtime, now, index)
+	local card = Chunky.card(sheet, x, y, w, h)
+	if state == "claimed" then
+		card.BackgroundColor3 = Chunky.pale
+	end
+	local minutes = PlaytimeRules.opensAt(index) // 60
+	words(sheet, `{minutes} MIN`, x + 10, y + 12, w - 20, 40, Enum.TextXAlignment.Center)
+	local bh = 72
+	local top = y + 60
+	payAt(
+		sheet,
+		prizePay(p, PlaytimeRules.prize(index)),
+		x + 18,
+		top,
+		w - 30,
+		h - (top - y) - bh - 26,
+		72
+	)
+	local bx, by, bw = x + 14, y + h - bh - 14, w - 28
+	if state == "ready" then
+		Chunky.gleam(Chunky.button(sheet, "CLAIM", Chunky.green, bx, by, bw, bh, function()
+			claim("playtime", index)
+		end))
+	elseif state == "waiting" then
+		local left = PlaytimeRules.opensAt(index) - PlaytimeRules.played(p.playtime, now)
+		local label = words(
+			sheet,
+			PlaytimeRules.clockText(left),
+			bx,
+			by + bh * 0.14,
+			bw,
+			bh * 0.72,
+			Enum.TextXAlignment.Center
+		)
+		label.TextColor3 = Chunky.inkSoft
+		table.insert(ticking, { label = label, index = index })
+	else
+		words(sheet, "DONE", bx, by + bh * 0.18, bw, bh * 0.64, Enum.TextXAlignment.Center).TextColor3 =
+			Chunky.inkSoft
+	end
+end
+
+--[[ The GIFTS tab: the six playtime gifts, then Premium's perk and inviting
+     a friend, side by side on a wide screen and one over the other on an
+     upright one. ]]
+local function giftsTab(
+	sheet: Chunky.Sheet,
+	p: SaveSchema.Profile,
+	now: number,
+	x: number,
+	y: number,
+	w: number
+)
+	local up = sheet.upright
+	words(sheet, "FREE GIFTS FOR PLAYING", x, y, w * 0.6, 44)
+	local played = words(
+		sheet,
+		"PLAYED " .. PlaytimeRules.clockText(PlaytimeRules.played(p.playtime, now)),
+		x + w * 0.6,
+		y,
+		w * 0.4,
+		44,
+		Enum.TextXAlignment.Right
+	)
+	played.TextColor3 = Chunky.inkSoft
+	playedLabel = played
+	local count = PlaytimeRules.COUNT
+	local across = if up then 3 else count
+	local gap = if up then 14 else 16
+	local cw = (w - (across - 1) * gap) / across
+	local ch = if up then 300 else 320
+	local top = y + 56
+	for index = 1, count do
+		local col, line = (index - 1) % across, (index - 1) // across
+		giftCard(sheet, p, now, index, x + col * (cw + gap), top + line * (ch + gap), cw, ch)
+	end
+	local lines = math.ceil(count / across)
+	local below = top + lines * ch + (lines - 1) * gap + 20
+	if up then
+		premiumPanel(sheet, x, below, w, 200)
+		invitePanel(sheet, p, x, below + 214, w, 200)
+	else
+		local half = (w - 16) / 2
+		premiumPanel(sheet, x, below, half, 160)
+		invitePanel(sheet, p, x + half + 16, below, half, 160)
+	end
+end
+
 local function draw(s: StationScreen.Screen)
 	local profile = s.profile
 	local loaded = profile ~= nil and (profile :: any).rewards ~= nil
@@ -553,10 +779,16 @@ local function draw(s: StationScreen.Screen)
 	local x, y, w = area.x, area.y, area.w
 
 	-- how many rewards wait on each tab, on its corner
-	local waiting = RewardRules.readyBy(p, day)
-	local counts: { [Tab]: number } =
-		{ DAILY = waiting.daily, QUESTS = waiting.quests, GOALS = waiting.goals }
-	local tabW, tabX, tabY = if up then 300 else 250, if up then 70 else 190, y - 108
+	local now = RewardsScreen.now()
+	local waiting = RewardRules.readyBy(p, day, now)
+	local counts: { [Tab]: number } = {
+		DAILY = waiting.daily,
+		QUESTS = waiting.quests,
+		GOALS = waiting.goals,
+		GIFTS = waiting.gifts,
+		SEASON = SeasonTab.owed(p),
+	}
+	local tabW, tabX, tabY = HatchStand.tabWidth(up, #TABS), if up then 70 else 190, y - 108
 	for index, name in TABS do
 		if counts[name] > 0 then
 			local dot = Instance.new("Frame")
@@ -577,7 +809,9 @@ local function draw(s: StationScreen.Screen)
 	--[[ CLAIM ALL shows once two or more wait, and takes every one of them
 	     in one press: its number is the tabs' numbers added up. The eggs
 	     and crates among them open together, one reveal after the other. ]]
-	local owed = RewardRules.owedAll(p, day)
+	local owed = RewardRules.owedAll(p, day, now)
+	table.clear(ticking)
+	playedLabel = nil
 
 	local rowH, rowGap = if up then 170 else 140, 14
 	local function list(rows: { Row }, from: number)
@@ -618,6 +852,8 @@ local function draw(s: StationScreen.Screen)
 				claim("gift")
 			end,
 		})
+	elseif showing == "GIFTS" then
+		giftsTab(sheet, p, now, x, y, w)
 	elseif showing == "QUESTS" then
 		local barH = if up then 240 else 150
 		local opened = RewardRules.bonusClaimed(r, day)
@@ -650,7 +886,7 @@ local function draw(s: StationScreen.Screen)
 			})
 		end
 		list(rows, y + barH + 16)
-	else
+	elseif showing == "GOALS" then
 		--[[ The starter steps first, while any is left, then every goal
 		     not finished yet (`Config/Goals`): what can be claimed on top.
 		     A finished goal leaves the list and is counted in the line
@@ -750,7 +986,21 @@ local function draw(s: StationScreen.Screen)
 		end
 	end
 
-	if owed >= 2 then
+	if showing == "SEASON" then
+		--[[ The season pass (`UI/SeasonTab`), which has its own CLAIM ALL
+		     for the tiers owed. ]]
+		SeasonTab.draw(p, {
+			titles = p.titles or {},
+			title = p.title,
+			sheet = sheet,
+			x = x,
+			y = y,
+			w = w,
+			bottom = area.bottom,
+			egg = eggArt(p),
+			crate = crateArt(p),
+		})
+	elseif owed >= 2 then
 		local bw, bh = 360, 84
 		Chunky.gleam(
 			Chunky.button(
@@ -851,7 +1101,8 @@ local function startButton(s: StationScreen.Screen)
 				local day = today()
 				local waiting = 0
 				if profile and (profile :: any).rewards then
-					waiting = RewardRules.ready(profile, day)
+					waiting = RewardRules.ready(profile, day, RewardsScreen.now())
+						+ SeasonTab.owed(profile)
 					-- once a day, the calendar's gift opens the screen by itself
 					if
 						arrived
@@ -1022,6 +1273,39 @@ function RewardsScreen.start()
 	s.connect(RunService.RenderStepped, function()
 		if s.isOpen() then
 			s.canvas.Visible = not (revealing or Reveal.busy())
+		end
+	end)
+	--[[ The GIFTS tab's clocks, to the second; a gift that opens draws the
+	     tab again, with its CLAIM. ]]
+	local lastSecond = 0
+	s.connect(RunService.Heartbeat, function()
+		local profile = s.profile
+		if not s.isOpen() or tab ~= "GIFTS" or not profile or not (profile :: any).playtime then
+			return
+		end
+		local now = RewardsScreen.now()
+		if math.floor(now) == lastSecond then
+			return
+		end
+		lastSecond = math.floor(now)
+		local clock = profile.playtime
+		local label = playedLabel
+		if label then
+			label.Text = "PLAYED " .. PlaytimeRules.clockText(PlaytimeRules.played(clock, now))
+		end
+		for _, entry in ticking do
+			if PlaytimeRules.state(clock, now, entry.index) ~= "waiting" then
+				s.open()
+				return
+			end
+			local left = PlaytimeRules.opensAt(entry.index) - PlaytimeRules.played(clock, now)
+			entry.label.Text = PlaytimeRules.clockText(left)
+		end
+	end)
+	-- Premium bought (or a Studio stand-in): the GIFTS tab's panel says so
+	s.connect(player:GetAttributeChangedSignal(PremiumRules.ATTRIBUTE), function()
+		if s.isOpen() and tab == "GIFTS" then
+			s.open()
 		end
 	end)
 	startButton(s)

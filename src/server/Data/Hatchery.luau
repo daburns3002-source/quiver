@@ -28,6 +28,7 @@ local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local Sandbox = require(ReplicatedStorage.Shared.Config.Sandbox)
 
 local Analytics = require(script.Parent.Analytics)
+local Boosts = require(script.Parent.Boosts)
 local Passes = require(script.Parent.Passes)
 local Pity = require(ReplicatedStorage.Shared.Util.Pity)
 local PlayerData = require(script.Parent.PlayerData)
@@ -115,7 +116,7 @@ end
      screen to reveal; nil if there is nothing to give. ]]
 function Hatchery.grantFree(player: Player, key: string): Result?
 	local profile = PlayerData.get(player)
-	local pool = EggRules.pool(key)
+	local pool = EggRules.pool(key, Boosts.luck())
 	if not profile or not EggRules.find(key) or #pool == 0 then
 		return nil
 	end
@@ -131,7 +132,7 @@ end
      (`Util/PrizeRules.guaranteed`). Returns the pets, to show. ]]
 function Hatchery.grantMany(player: Player, key: string, n: number, least: string?): { Result }
 	local profile = PlayerData.get(player)
-	local pool = EggRules.pool(key)
+	local pool = EggRules.pool(key, Boosts.luck())
 	if not profile or not EggRules.find(key) or #pool == 0 or n < 1 then
 		return {}
 	end
@@ -178,7 +179,7 @@ local function hatch(player: Player, key: unknown, count: unknown)
 	local n = count :: number
 	local profile = PlayerData.get(player)
 	local egg = EggRules.find(key)
-	local pool = EggRules.pool(key)
+	local pool = EggRules.pool(key, Boosts.luck())
 	if not profile or not egg or #pool == 0 or not EggRules.open(egg, profile.bossesBeaten) then
 		return
 	end

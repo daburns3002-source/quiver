@@ -266,6 +266,30 @@ Not folded into this change, deliberately — two difficulty levers moving in on
 told apart in playtest. Ramp first, measure, then decide whether the opening still needs a free
 card.
 
+## Hard mode (2026-11-18)
+
+Archero's hero mode, this game's own way (owner: "yes all of these create
+them"; the owner picked every number below as a starting number). Once an
+area's boss is beaten, its levels can be played again on HARD from the
+area's level screen, in order, each opened by winning the one before on
+hard. The rules are `Util/HardRules`, pinned by `tests/HardRules.spec`.
+
+| | Normal | Hard |
+|---|---|---|
+| Enemy health | the level's `enemyHealth` x the room ramp | x 2.5 (`Balance.Hard.health`), bosses too |
+| Enemy damage | the level's `enemyDamage` x `Waves.damageRamp` | x 1.8 (`Balance.Hard.damage`), bosses too |
+| Co-op | `Coop.scale` | the same, on top |
+| Elite | none | one a fight without a boss, 2.5x health, gold ELITE plate |
+| Kill and clear coins | passes + streak + friend | + 100% more, added (`Rewards.hard.coins`) |
+| First clear | the area's egg | 10 gems, 30 on the area's last level |
+| Area reward | the boss's badge and Legendary trail | a name-tag frame in the area's colour |
+| Stars | three a level | none of its own: a hard win fills the normal stars |
+
+So 1-10 on hard is enemy health 2.0 x 2.5 = 5.0 and damage 1.02 x 1.8 =
+1.84 before the room ramp, and Bogheart's last level harder again. These are
+first guesses, set high on the owner's word ("Archero-hard": a wall for
+players who have not gone back to upgrade). Tune from timed hard clears.
+
 ## Open
 
 Once this is in, the per-level baselines in the table above are worth a second look. The

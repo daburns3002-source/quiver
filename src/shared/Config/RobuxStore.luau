@@ -22,8 +22,15 @@
 	the prompt) is kept in the save and spent on the next DEFEAT for free.
 
 	**Never sold:** Mythics, boss items, Starfall, boss badges. No energy and no
-	timers. A product gives only gems, coins, eggs or a revive
-	(`tests/RobuxStore.spec` holds that).
+	timers. A product gives only gems, coins, eggs, a revive, the Server
+	Luck's time or a season's premium track (`tests/RobuxStore.spec` holds that).
+
+	**The Season Pass** (owner, 2026-11-18: 299 Robux) opens the premium
+	track of the season running (`Config/Season`), saved for that season
+	only, so it is a developer product, not a pass. Bought from the REWARDS
+	screen's SEASON tab, never on the STORE's shelves; the server prompts it
+	only while a season runs and the player has not bought it for that one
+	(`Server/Data/Season`). It gives fixed things only, never random ones.
 
 	`id` is the Creator Dashboard's number (universe 10772468005, "Archer Legends
 	[TEST]", created 2026-11-14 with managed pricing off so these prices hold);
@@ -47,6 +54,9 @@ export type Product = {
 	once: boolean?,
 	--[[ The DEFEAT screen's revive: never on the STORE's shelves. ]]
 	revive: boolean?,
+	--[[ The season's premium track (`Config/Season`): never on the
+	     STORE's shelves either, bought from the SEASON tab. ]]
+	season: boolean?,
 	--[[ What the STORE draws on its tile: "gem", "starter" or "revive". ]]
 	art: string,
 	--[[ Its own 2D icon (Codex), "" until uploaded; a gem pack is always the
@@ -54,6 +64,14 @@ export type Product = {
 	icon: string?,
 	--[[ A word over the tile, for the packs worth the most. ]]
 	flag: string?,
+	--[[ Seconds of 2x egg luck for everyone in the server (the Server Luck,
+	     `docs/LIVE-EVENTS.md`); another one adds the time. Never on the
+	     STORE's shelves: the egg screen offers it. ]]
+	serverLuck: number?,
+	--[[ It touches random rewards (luck): never offered to, and refused for,
+	     a player PolicyService restricts paid random items for
+	     (`Server/Data/Policy`, `StoreRules.canPrompt`). ]]
+	paidRandom: boolean?,
 }
 
 export type Pass = {
@@ -143,6 +161,30 @@ local products: { Product } = {
 		art = "revive",
 		icon = "rbxassetid://79041273355190",
 	},
+	{
+		key = "ServerLuck",
+		id = 3733414190,
+		name = "Server Luck",
+		robux = 49,
+		description = "2x egg luck for everyone in the server for 15 minutes. Buy again to add time.",
+		serverLuck = 15 * 60,
+		paidRandom = true,
+		art = "luck",
+		-- Codex's lucky egg (`assets/ui/robux/icons/ServerLuck.png`), also the banner's luck picture
+		icon = "rbxassetid://86009941468388",
+	},
+	{
+		key = "SeasonPass",
+		-- created 2026-11-19 at the owner's word, managed pricing off
+		id = 3733524465,
+		name = "Season Pass",
+		robux = 299,
+		description = "This season's premium track: gems, coins, its trail and its title. This season only.",
+		season = true,
+		art = "season",
+		-- the Wish Ribbon's picture (`assets/ui/robux/dashboard/SeasonPass.png`)
+		icon = "rbxassetid://81835227744691",
+	},
 }
 
 local passes: { Pass } = {
@@ -203,6 +245,10 @@ return table.freeze({
 	--[[ The Player attribute a pass's ownership is shown on, for the screens
 	     (`"Pass" .. key`); the server reads its own table, never this. ]]
 	passAttribute = "Pass",
+	--[[ The Player attribute that says PolicyService restricts paid random
+	     items for this player (`Server/Data/Policy`): true until the answer
+	     is in, false once it says they are not. ]]
+	paidRandomAttribute = "PaidRandomRestricted",
 	--[[ The VIP name tag's gold. ]]
 	vipGold = Color3.fromRGB(255, 205, 64),
 })

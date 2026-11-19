@@ -6,6 +6,7 @@
 	and `tests/Trails.spec` pins it.
 ]]
 local Economy = require(script.Parent.Parent.Config.Economy)
+local SeasonRules = require(script.Parent.SeasonRules)
 local Shop = require(script.Parent.Parent.Config.Shop)
 local ShopRules = require(script.Parent.ShopRules)
 local Trails = require(script.Parent.Parent.Config.Trails)
@@ -32,11 +33,26 @@ function TrailRules.areaNumber(area: string): number?
 	return table.find(Trails.areas, area)
 end
 
---[[ Where a trail is from, for its card: "FROM MOSSY GLADE", "FROM ENDLESS". ]]
+--[[ A season's trail (`Config/Season`): "SEASON 1 PREMIUM, TIER 15". ]]
+local function seasonWords(key: string): string
+	local def = SeasonRules.ofTrail(key)
+	local tier = SeasonRules.tierOf("trail")
+	if not def then
+		return "A SEASON'S PREMIUM TRACK"
+	end
+	return string.format("SEASON %d PREMIUM, TIER %d", def.number, tier or 0)
+end
+
+--[[ Where a trail is from, for its card: "FROM MOSSY GLADE", "FROM ENDLESS",
+     "FROM SEASON 1". ]]
 function TrailRules.from(key: string): string
 	local trail = Trails.trails[key]
 	if not trail then
 		return ""
+	end
+	if trail.earn == "Season" then
+		local def = SeasonRules.ofTrail(key)
+		return if def then string.format("FROM SEASON %d", def.number) else "FROM A SEASON"
 	end
 	for _, crate in Shop.crates do
 		if crate.area == trail.area then
@@ -94,7 +110,7 @@ end
 
 --[[ Whether a trail has been earned, owned or not: a boss trail once its
      boss is beaten, Starfall once every class has its floor. Bought ones
-     never are. ]]
+     never are, and nor is a season's: its tier gives it (`Data/Season`). ]]
 function TrailRules.earned(key: string, held: Held): boolean
 	local trail = Trails.trails[key]
 	if not trail then
@@ -131,6 +147,8 @@ function TrailRules.howTo(key: string, held: Held, locks: boolean?): string?
 		local area = Economy.areas[trail.area]
 		local item = area and Economy.items[area.bossItem]
 		return "BEAT " .. string.upper(if item then item.boss else trail.area)
+	elseif trail.earn == "Season" then
+		return seasonWords(key)
 	elseif trail.earn == "Endless" then
 		return string.format(
 			"REACH FLOOR %d IN ENDLESS WITH EVERY CLASS (%d/%d)",

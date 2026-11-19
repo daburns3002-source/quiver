@@ -52,10 +52,13 @@ local SaveSchema = require(ReplicatedStorage.Shared.Util.SaveSchema)
 local StoreRules = require(ReplicatedStorage.Shared.Util.StoreRules)
 
 local Analytics = require(script.Parent.Analytics)
+local Boosts = require(script.Parent.Boosts)
 local Hatchery = require(script.Parent.Hatchery)
 local Passes = require(script.Parent.Passes)
 local PlayerData = require(script.Parent.PlayerData)
+local Policy = require(script.Parent.Policy)
 local Rewards = require(script.Parent.Rewards)
+local Season = require(script.Parent.Season)
 local Wallet = require(script.Parent.Wallet)
 
 local log = Log.forTag("Purchases")
@@ -75,7 +78,8 @@ export type ReviveHooks = {
 Purchases.revive = nil :: ReviveHooks?
 
 --[[ Where a prompt may say it was opened from, for analytics. ]]
-local WHERE = { Store = true, Defeat = true, Starter = true, GearSlot = true }
+local WHERE =
+	{ Store = true, Defeat = true, Starter = true, GearSlot = true, Eggs = true, Season = true }
 --[[ Seconds a receipt waits for a joining player's profile. ]]
 local PROFILE_WAIT = 15
 --[[ Seconds between checks for VIP's next day. ]]
@@ -159,6 +163,14 @@ local function give(
 	end
 	if product.revive then
 		profile.purchases.reviveCredits += 1
+	end
+	if product.serverLuck then
+		-- the whole server's, not the save's (`Data/Boosts`)
+		Boosts.addServerLuck(player, product.serverLuck)
+	end
+	if product.season then
+		-- the season's premium track (`Data/Season`)
+		Season.grantPremium(player)
 	end
 	return pets
 end
@@ -285,11 +297,27 @@ function Purchases.ask(player: Player, key: unknown, from: unknown)
 		end
 		return
 	end
+	if product and product.season then
+		--[[ The Season Pass: only while a season runs and premium is not
+		     bought for it yet (`Data/Season`), from the SEASON tab. ]]
+		if StoreRules.live(product) and Season.canBuy(player) then
+			promptProduct(player, product, "Season")
+		end
+		return
+	end
 	if StoreRules.pass(key) then
 		Passes.prompt(player, key, where)
 		return
 	end
-	if product and StoreRules.canPrompt(key, profile.purchases, Passes.owned(player)) then
+	if
+		product
+		and StoreRules.canPrompt(
+			key,
+			profile.purchases,
+			Passes.owned(player),
+			Policy.restricted(player)
+		)
+	then
 		promptProduct(player, product, where)
 	end
 end

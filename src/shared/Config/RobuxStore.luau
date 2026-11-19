@@ -160,7 +160,8 @@ local products: { Product } = {
 		serverLuck = 15 * 60,
 		paidRandom = true,
 		art = "luck",
-		icon = "",
+		-- Codex's lucky egg (`assets/ui/robux/icons/ServerLuck.png`), also the banner's luck picture
+		icon = "rbxassetid://86009941468388",
 	},
 }
 

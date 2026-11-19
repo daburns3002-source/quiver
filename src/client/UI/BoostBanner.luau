@@ -4,7 +4,8 @@
 	boost running, top centre (under the coin and gem pills on a touch
 	layout, whose top right they hold), its countdown ticking: "2x LUCK
 	WEEKEND 2D 5H", "LIVE EVENT! 2x COINS 29:59", "THANKS NAME! 2x LUCK
-	14:59". A luck pill carries the egg, a coin pill the one coin (rule 15).
+	14:59". A luck pill carries the Server Luck's lucky egg, a coin pill the
+	one coin (rule 15).
 	A new Server Luck pops its pill. It shows when the lobby HUD does.
 
 	The owner (the `LiveEventOwner` attribute, set by the server from their
@@ -22,11 +23,11 @@ local Workspace = game:GetService("Workspace")
 
 local Chunky = require(script.Parent.Chunky)
 local Config = require(ReplicatedStorage.Shared.Config.LobbyHud)
-local GearAssets = require(ReplicatedStorage.Shared.Config.GearAssets)
 local LiveBoosts = require(ReplicatedStorage.Shared.Util.LiveBoosts)
 local LiveEvents = require(ReplicatedStorage.Shared.Config.LiveEvents)
 local LiveState = require(ReplicatedStorage.Shared.Util.LiveState)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
+local RobuxStore = require(ReplicatedStorage.Shared.Config.RobuxStore)
 local ShopAssets = require(ReplicatedStorage.Shared.Config.ShopAssets)
 local StationScreen = require(script.Parent.StationScreen)
 
@@ -38,6 +39,16 @@ local ROW_W = 440
 local ROW_GAP = 6
 
 local started = false
+
+--[[ The lucky egg: the Server Luck's own picture. ]]
+local function luckPicture(): string
+	for _, product in RobuxStore.products do
+		if product.serverLuck and product.icon then
+			return product.icon
+		end
+	end
+	return ""
+end
 
 local function line(boost: LiveBoosts.Boost, now: number): string
 	return LiveBoosts.words(boost) .. "  " .. LiveBoosts.clock(boost.endsAt - now)
@@ -85,11 +96,14 @@ function BoostBanner.start()
 		local x = (sheet.w - w) / 2
 		local y = if touch then (g / 2 + Config.pillHeight + 8) * k else g * k / 2
 		for _, boost in boosts do
-			local icon = if boost.kind == "Coins" then ShopAssets.coin else GearAssets.uiIcons.egg
+			local icon = if boost.kind == "Coins" then ShopAssets.coin else luckPicture()
 			local pill = Chunky.pill(sheet, icon, line(boost, now), x, y, w, ROW_H * k)
 			pill.Name = "Boost" .. boost.source
 			local label = pill:FindFirstChildWhichIsA("TextLabel", true)
 			if label then
+				-- a line of words, not an amount: the whole pill past the picture
+				label.Position, label.Size = UDim2.fromScale(0.07, 0.1), UDim2.fromScale(0.9, 0.8)
+				label.TextXAlignment = Enum.TextXAlignment.Center
 				table.insert(labels, { label = label, boost = boost })
 			end
 			y += (ROW_H + ROW_GAP) * k

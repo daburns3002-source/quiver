@@ -24,6 +24,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 
+local ItemIcons = require(ReplicatedStorage.Shared.Util.ItemIcons)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local RunHudRules = require(ReplicatedStorage.Shared.Util.RunHudRules)
 local SaveSchema = require(ReplicatedStorage.Shared.Util.SaveSchema)
@@ -242,7 +243,7 @@ local function showPaid(screen: ScreenGui, paid: Paid)
 end
 
 local function picture(weapon: string): string
-	return (ShopAssets.weapons :: { [string]: string })[weapon] or ""
+	return ItemIcons.weapon(weapon)
 end
 
 local function showPicks(screen: ScreenGui)

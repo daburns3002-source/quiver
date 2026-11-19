@@ -420,6 +420,11 @@ function Canvas.glow(c: Ctx, W: Look, colour: RGB, blur: number?)
 		c.glowBlur = blur or 12
 	end
 end
+--[[ A glow whatever the blade (the page's glow(x, {glow: true}, ...)). ]]
+function Canvas.glowAlways(c: Ctx, colour: RGB, blur: number?)
+	c.glowCol = colour
+	c.glowBlur = blur or 12
+end
 function Canvas.noGlow(c: Ctx)
 	c.glowBlur = 0
 end
@@ -538,12 +543,19 @@ end
 export type Stop = { u: number, c: RGB, a: number }
 
 --[[ fillBand with a gradient of many stops, in u order. ]]
-function Canvas.fillBandStops(c: Ctx, F: Frame, stops: { Stop }, f0: number?, f1: number?): boolean
+function Canvas.fillBandStops(
+	c: Ctx,
+	F: Frame,
+	stops: { Stop },
+	f0: number?,
+	f1: number?,
+	count: number?
+): boolean
 	if not F.ok or #stops == 0 then
 		return false
 	end
 	local e0, e1 = f0 or 0, f1 or 1
-	local n = samples(c, F.arc, 1.5)
+	local n = count or samples(c, F.arc, 1.5)
 	local ax, ay, bx, by, cols, as = {}, {}, {}, {}, {}, {}
 	for i = 0, n do
 		local v = i / n
@@ -601,7 +613,35 @@ function Canvas.polyline(
 		cols[i] = colour
 		as[i] = alpha
 	end
+	-- a glowing stroke glows round its line too
+	halo(c, table.clone(ax), table.clone(ay), table.clone(bx), table.clone(by), as)
 	push(c, ax, ay, bx, by, cols, as)
+end
+
+--[[ The page's arc(cx, cy, r, from, to) stroked: an open circle's arc,
+     squashed across by `squash` (an ellipse's, as the page's whirlpool). ]]
+function Canvas.arcLine(
+	c: Ctx,
+	cx: number,
+	cy: number,
+	r: number,
+	from: number,
+	to: number,
+	width: number,
+	colour: RGB,
+	alpha: number,
+	squash: number?
+)
+	if r <= 0.05 or alpha <= 0 then
+		return
+	end
+	local n = segs(c, math.clamp(math.ceil(math.abs(to - from) / 0.35), 4, MOST_SEGS))
+	local xs, ys = {}, {}
+	for i = 0, n do
+		local an = lerp(from, to, i / n)
+		xs[i + 1], ys[i + 1] = cx + math.cos(an) * r, cy + math.sin(an) * r * (squash or 1)
+	end
+	Canvas.polyline(c, xs, ys, width, colour, alpha)
 end
 
 --[[ The page's F.line(f, v0, v1, wob) and a stroke. ]]
@@ -640,7 +680,8 @@ function Canvas.strokePath(
 	wob: Wob?,
 	width: number,
 	colour: RGB,
-	alpha: number
+	alpha: number,
+	n: number?
 )
 	if not F.ok then
 		return
@@ -659,7 +700,8 @@ function Canvas.strokePath(
 				else nil,
 			width,
 			colour,
-			alpha
+			alpha,
+			n
 		)
 	end
 	for _, v in { 0, 1 } do
@@ -991,6 +1033,78 @@ function Canvas.flower(
 		Canvas.dot(c, p + math.cos(a) * s, q + math.sin(a) * s, s * 0.7, colour, alpha)
 	end
 	Canvas.dot(c, p, q, s * 0.55, centre, alpha)
+end
+
+--[[ The page's spiky: an n-point burr, its waist `inner` of its points. ]]
+function Canvas.spiky(
+	c: Ctx,
+	p: number,
+	q: number,
+	s: number,
+	r: number,
+	colour: RGB,
+	alpha: number,
+	n: number,
+	inner: number
+)
+	if s <= 0.2 or alpha <= 0 then
+		return
+	end
+	local waist = s * inner
+	Canvas.dot(c, p, q, waist, colour, alpha)
+	for i = 0, n - 1 do
+		local an = r + i / n * TAU
+		local b0, b1 = an - math.pi / n, an + math.pi / n
+		Canvas.tri(
+			c,
+			p + math.cos(b0) * waist,
+			q + math.sin(b0) * waist,
+			p + math.cos(b1) * waist,
+			q + math.sin(b1) * waist,
+			p + math.cos(an) * s,
+			q + math.sin(an) * s,
+			colour,
+			alpha
+		)
+	end
+end
+
+--[[ A filled ellipse, `rx` along angle `rot` and `ry` across it. ]]
+function Canvas.ellipse(
+	c: Ctx,
+	p: number,
+	q: number,
+	rx: number,
+	ry: number,
+	rot: number,
+	colour: RGB,
+	alpha: number
+)
+	if rx <= 0.1 or ry <= 0.1 or alpha <= 0 then
+		return
+	end
+	local along, halfs = {}, {}
+	for i = 0, 8 do
+		local phi = math.pi - i / 8 * math.pi
+		along[i + 1] = rx * math.cos(phi)
+		halfs[i + 1] = ry * math.sin(phi)
+	end
+	spindle(c, p, q, rot, along, halfs, colour, alpha)
+end
+
+--[[ A closed outline through points. ]]
+function Canvas.outline(
+	c: Ctx,
+	xs: { number },
+	ys: { number },
+	width: number,
+	colour: RGB,
+	alpha: number
+)
+	local cx, cy = table.clone(xs), table.clone(ys)
+	table.insert(cx, xs[1])
+	table.insert(cy, ys[1])
+	Canvas.polyline(c, cx, cy, width, colour, alpha)
 end
 
 ---------------------------------------------------------------- motes

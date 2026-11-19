@@ -19,15 +19,16 @@ back row, which stands high over the front row's wall so every arch shows from t
 with steep stairs at either end of the front ledge (owner, 2026-11-19: "make the first 5 areas on
 the bottom row, then the next 5 in the next row ... the second 5 area portals should be raised so
 they are all visible"; `Config/Lobby` `perRow`, `rowRise`, `backStep`). Endless stands apart, in
-neither row (owner, same day: "endless should be off to the side"): on the courtyard floor in the
-north-east corner between the terrace's end and the Hatch Eggs, on its leaderboards' side, turned
-toward the fountain (`portals[11].aside`). Its index stays 11, which `Remotes.PortalStart`
+neither row (owner, same day: "endless should be off to the side"): on the courtyard floor by the
+east balustrade, in the open gap between the Hatch Eggs and the Dex Hall, turned toward the fountain
+(`portals[11].aside`), with a clear walk up to its door (`tests/Lobby.spec`). Its index stays 11, which `Remotes.PortalStart`
 carries. Its arch is its own: the **Endless Rift Gate**, built in Claude Design and approved by the
-owner as v2 ("Yes, lock v2", 2026-11-19), with a cracked obsidian frame, violet runes, an infinity
+owner as v2 ("Yes, lock v2", 2026-11-19), with a cracked obsidian frame in violet trim, cyan runes, an infinity
 sign over the door, crystals and a floating Soulstone on top. In game it is two meshes
 (`portalModels["Endless"].parts`: the stone, and its glowing parts drawn Neon, bundled by
 `assets/models/lobby/gate_bundle.py`), with its own vortex sheet in the gate's violet and cyan
-(`assets/ui/portals/vortex_endless.png`). Since it stands alone and not in a row's wall, it gets
+(`assets/ui/portals/vortex_endless.png`), which stands just in front of the dark slab the build
+fills its door with (`vortexForward`). Since it stands alone and not in a row's wall, it gets
 invisible jambs and a veil so nobody walks through its sides. Where every arch stands is worked out once, in `Config/Lobby` (`archAt`, `archFoot`,
 `archTurn`, `mouthAt`), for the builder, the specs and the Studio bots. Trees, cliffs and waterfalls
 round the edge.

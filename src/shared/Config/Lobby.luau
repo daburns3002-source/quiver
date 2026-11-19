@@ -56,7 +56,10 @@ export type PortalPart = {
      import, and its vortex's sheet (`portalVortex`). A Claude Design build
      comes as `parts` in its own vertex colours (no `texture`): `mesh` is then
      its first part's, and `size` the whole portal's. `vortexFoot` stands its
-     vortex at another height than `portalVortex.foot`, for a taller doorway. ]]
+     vortex at another height than `portalVortex.foot`, for a taller doorway,
+     and `vortexForward` further forward than `portalVortex.forward`, in front
+     of a dark slab the build fills its door with. `signLift` raises the name
+     sign over something that stands on the doorway's top. ]]
 export type PortalModel = {
 	mesh: string,
 	texture: string,
@@ -65,6 +68,8 @@ export type PortalModel = {
 	glow: Color3,
 	parts: { PortalPart }?,
 	vortexFoot: number?,
+	vortexForward: number?,
+	signLift: number?,
 }
 
 export type Portal = {
@@ -279,9 +284,11 @@ local Lobby = {
 		     "level", opened by beating Mossy Glade 1-10 (`requires`). Last
 		     of the arches so the ten areas keep their order in the rows.
 		     It stands apart (owner, 2026-11-19: "endless should be off to
-		     the side"): on the courtyard floor in the north-east corner,
-		     between the terrace's end and the Hatch Eggs, on the side of
-		     its two leaderboards, turned toward the fountain. ]]
+		     the side"): on the courtyard floor by the east balustrade, in
+		     the open gap between the Hatch Eggs and the Dex Hall, turned
+		     toward the fountain, so it shows from the spawn when a player
+		     turns east. (Tucked behind the Hatch Eggs at first, its door
+		     faced that building's back wall and only its sign showed.) ]]
 		--[[ Open to everyone while the game is in playtest (owner,
 		     2026-10-28: "since its still in playtest phase, that should
 		     just be unlocked for now"). At launch (`Config/Launch.locks`)
@@ -292,7 +299,7 @@ local Lobby = {
 			levels = { 17 },
 			tint = CYAN,
 			atLaunch = { requires = "1-10" },
-			aside = { at = plan(61.5, -49.6), turn = -0.8 },
+			aside = { at = plan(61.5, 4.6), turn = -1.65 },
 		},
 	} :: { Portal },
 	--[[
@@ -416,6 +423,12 @@ local Lobby = {
 				},
 			},
 			vortexFoot = 1.4,
+			--[[ The build's door is a near-black slab (`Abyss`) a stud thick
+			     through the middle, which its 3D vortex reached through; the
+			     sheet stands just in front of it. ]]
+			vortexForward = 0.75,
+			--[[ Clear of the floating Soulstone, which reaches the top. ]]
+			signLift = 1.5,
 		},
 	} :: { [string]: PortalModel },
 	--[[ Every portal's vortex is Bogheart Caverns's, cell for cell, recoloured

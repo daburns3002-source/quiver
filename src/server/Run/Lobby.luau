@@ -803,7 +803,7 @@ local function meshPortal(
 	local plane = part(
 		"Vortex",
 		Vector3.new(vortex.size.X, vortex.size.Y, 0.2),
-		middle * CFrame.new(0, foot + vortex.size.Y / 2, vortex.forward),
+		middle * CFrame.new(0, foot + vortex.size.Y / 2, spec.vortexForward or vortex.forward),
 		spec.glow,
 		model
 	)
@@ -896,7 +896,7 @@ local function portalArch(index: number, portal: LobbyConfig.Portal, parent: Ins
 		end
 		signboard(
 			string.upper(portal.name :: string),
-			base * CFrame.new(0, spec.size.Y + 1.8, 1.6),
+			base * CFrame.new(0, spec.size.Y + 1.8 + (spec.signLift or 0), 1.6),
 			LobbyConfig.archSpacing - 5.5,
 			3.4,
 			LobbyConfig.plaques[portal.name :: string] or COLOURS.woodDark,

@@ -327,26 +327,38 @@ return function(t: TestRunner.Helper)
 					local at, turn = Lobby.archAt(index), LobbyConfig.archTurn(index)
 					local right = Vector2.new(math.cos(turn), -math.sin(turn))
 					local ahead = Vector2.new(math.sin(turn), math.cos(turn))
+					-- the gate, then a walk up to its door 10 studs wide and
+					-- 16 out, so its front faces open floor, not a wall (it
+					-- stood first behind the Hatch Eggs, its door to that
+					-- building's back wall)
+					local spots = {}
 					for x = -across / 2 - 1, across / 2 + 1, 0.5 do
 						for z = -1, deep + 1, 0.5 do
-							local spot = at + right * x + ahead * z
-							t.isTrue(
-								LobbyCourtyard.inside(spot, 0),
-								`{portal.name} reaches the balustrade or the terrace`
-							)
-							for _, station in LobbyConfig.stations do
-								local building = LobbyConfig.buildings[station.piece]
-								if building then
-									local yaw = LobbyConfig.facing(station.at)
-									local s, c = math.sin(yaw), math.cos(yaw)
-									local d = spot - station.at
-									local size = building.size * LobbyConfig.buildingScale
-									local out = math.max(
-										math.abs(d.X * c - d.Y * s) - size.X / 2,
-										math.abs(d.X * s + d.Y * c) - size.Z / 2
-									)
-									t.isTrue(out > 0, `{portal.name} stands in {station.piece}`)
-								end
+							table.insert(spots, at + right * x + ahead * z)
+						end
+					end
+					for x = -5, 5, 0.5 do
+						for z = deep + 1, deep + 16, 0.5 do
+							table.insert(spots, at + right * x + ahead * z)
+						end
+					end
+					for _, spot in spots do
+						t.isTrue(
+							LobbyCourtyard.inside(spot, 0),
+							`{portal.name} reaches the balustrade or the terrace`
+						)
+						for _, station in LobbyConfig.stations do
+							local building = LobbyConfig.buildings[station.piece]
+							if building then
+								local yaw = LobbyConfig.facing(station.at)
+								local s, c = math.sin(yaw), math.cos(yaw)
+								local d = spot - station.at
+								local size = building.size * LobbyConfig.buildingScale
+								local out = math.max(
+									math.abs(d.X * c - d.Y * s) - size.X / 2,
+									math.abs(d.X * s + d.Y * c) - size.Z / 2
+								)
+								t.isTrue(out > 0, `{portal.name} stands in {station.piece}`)
 							end
 						end
 					end

@@ -82,8 +82,8 @@ In Studio, `Remotes.DebugClock(seconds)` moves the clock for the server and ever
 - **PolicyService:** it touches random rewards, so it is `paidRandom`: never offered to, and refused
   on the server for, a player whose `ArePaidRandomItemsRestricted` is true, or whose answer is not
   in yet (`Server/Data/Policy`, `StoreRules.offered`; unknown counts as restricted). The
-  `PaidRandomRestricted` Player attribute tells the screens. Another product that touches random
-  rewards (the starter pack's eggs) can be marked `paidRandom` to get the same gate.
+  `PaidRandomRestricted` Player attribute tells the screens. The Starter Pack's eggs have the same
+  gate since 2026-11-19 (owner: "Yes to all three").
 - Everyone in the server sees the thanks on the banner, its pill popping as it is bought.
 
 ## Testing in Studio

@@ -34,6 +34,7 @@ local Pity = require(ReplicatedStorage.Shared.Util.Pity)
 local PlayerData = require(script.Parent.PlayerData)
 local PrizeRules = require(ReplicatedStorage.Shared.Util.PrizeRules)
 local Rewards = require(script.Parent.Rewards)
+local Shoutouts = require(script.Parent.Shoutouts)
 local StoreRules = require(ReplicatedStorage.Shared.Util.StoreRules)
 local Wallet = require(script.Parent.Wallet)
 
@@ -97,6 +98,7 @@ local function rollEggs(
 			local new = Wallet.grantPet(player, entry.pet)
 			table.insert(results, { pet = entry.pet, new = new })
 			table.insert(hatched, entry.pet)
+			Shoutouts.rolled(player, "Pet", entry.pet)
 		end
 	end
 	local open = StoreRules.petSlots(Passes.owned(player))
@@ -143,6 +145,7 @@ function Hatchery.grantMany(player: Player, key: string, n: number, least: strin
 		local entry = sure[random:NextInteger(1, #sure)]
 		profile.pity.eggs = Pity.after(profile.pity.eggs, entry.rarity == "Mythic")
 		table.insert(results, { pet = entry.pet, new = Wallet.grantPet(player, entry.pet) })
+		Shoutouts.rolled(player, "Pet", entry.pet)
 		left -= 1
 	end
 	for _, result in rollEggs(player, profile, pool, left) do

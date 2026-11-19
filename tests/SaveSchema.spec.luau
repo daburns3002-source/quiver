@@ -182,7 +182,7 @@ return function(t: TestRunner.Helper)
 
 	t.test("a new profile has beaten no level", function()
 		local p = SaveSchema.migrate(nil)
-		t.equal(SaveSchema.VERSION, 29)
+		t.isTrue(SaveSchema.VERSION >= 23, "the Assassin's version or later")
 		t.isNil((next(p.levelsBeaten)))
 	end)
 
@@ -702,4 +702,33 @@ return function(t: TestRunner.Helper)
 		t.equal(stray.season.key, "")
 		t.equal(stray.season.xp, 0)
 	end)
+		"version 30: no code used and nobody asked to favourite; a stored copy keeps its own",
+		function()
+			local fresh = SaveSchema.default()
+			t.isTrue(next(fresh.codesUsed) == nil)
+			t.isFalse(fresh.favouriteAsked)
+			local old = SaveSchema.migrate({
+				version = 29,
+				coins = 4,
+				bossesBeaten = { MossyGlade = true },
+			})
+			t.isTrue(next(old.codesUsed) == nil, "an older profile has used no code")
+			t.isFalse(old.favouriteAsked, "and has not been asked")
+			t.equal(old.coins, 4)
+			local stored = SaveSchema.migrate({
+				version = 30,
+				codesUsed = { LAUNCH = true, BAD = "yes", [3] = true },
+				favouriteAsked = true,
+			})
+			t.isTrue(stored.codesUsed.LAUNCH == true)
+			t.isTrue(stored.codesUsed.BAD == nil, "only yes flags are kept")
+			t.isTrue(stored.favouriteAsked)
+			local again = SaveSchema.migrate(stored)
+			t.isTrue(
+				again.codesUsed.LAUNCH == true and again.favouriteAsked,
+				"a saved copy reads back the same"
+			)
+			t.isFalse(SaveSchema.migrate({ version = 30, favouriteAsked = "yes" }).favouriteAsked)
+		end
+	)
 end

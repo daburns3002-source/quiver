@@ -38,6 +38,7 @@ local Tutorial = require(ReplicatedStorage.Shared.Config.Tutorial)
 
 local Analytics = require(script.Parent.Analytics)
 local DexPay = require(script.Parent.DexPay)
+local Favourite = require(script.Parent.Favourite)
 local Passes = require(script.Parent.Passes)
 local PlayerData = require(script.Parent.PlayerData)
 
@@ -637,6 +638,8 @@ function Wallet.beatBoss(player: Player, area: string): (number, string?)
 	changed(player, profile)
 	-- the area's Legendary trail, the first time (`Config/Trails`)
 	Wallet.settleTrails(player)
+	-- Roblox's favourite prompt, once ever, after a boss win (`Data/Favourite`)
+	Favourite.bossWon(player)
 	return gems, config.bossItem
 end
 

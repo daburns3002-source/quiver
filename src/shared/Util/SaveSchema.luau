@@ -186,6 +186,11 @@
 	`rewardPicks`, the themed set picks owed and not yet taken, by the
 	reward's id ("Endless:100"), each holding its set's key. No pick existed,
 	so an older profile owes none.
+	Version 30 (2026-11-18, codes and the favourite prompt -- `Data/Codes`,
+	`Data/Favourite`): `codesUsed`, the code words this player has redeemed
+	(each works once a player), and `favouriteAsked`, whether Roblox's
+	favourite prompt has been shown (it is shown once ever). Nobody had used
+	a code or been asked, so an older profile has neither.
 ]]
 
 local ClassLevelRules = require(script.Parent.ClassLevelRules)
@@ -206,7 +211,7 @@ local TournamentRules = require(script.Parent.TournamentRules)
 
 local SaveSchema = {}
 
-SaveSchema.VERSION = 29
+SaveSchema.VERSION = 30
 
 --[[ The classes' own weapons, owned from the start: one for every class a
      player can choose (`Util/ClassList`). Given on every load (`migrate`
@@ -333,6 +338,11 @@ export type Profile = {
 	     `Util/RewardPickRules`): reward id to set key, taken out when picked
 	     (`Wallet.pickReward`). ]]
 	rewardPicks: { [string]: string },
+	--[[ Code words redeemed, by word as `Util/CodeRules.normalise` reads it
+	     (version 30); each pays once. ]]
+	codesUsed: { [string]: boolean },
+	--[[ Roblox's favourite prompt has been shown (version 30, once ever). ]]
+	favouriteAsked: boolean,
 }
 
 export type RewardState = {
@@ -438,6 +448,8 @@ function SaveSchema.default(): Profile
 		titles = {},
 		title = nil,
 		rewardPicks = {},
+		codesUsed = {},
+		favouriteAsked = false,
 	}
 end
 
@@ -707,6 +719,10 @@ function SaveSchema.migrate(raw: unknown): Profile
 	end
 	--[[ 28 -> 29: no pick was owed; a stored table is read entry by entry. ]]
 	profile.rewardPicks = rewardPicks(data.rewardPicks)
+	--[[ 29 -> 30: no code was used and nobody was asked to favourite; a
+	     stored copy keeps its yes flags. ]]
+	profile.codesUsed = flags(data.codesUsed)
+	profile.favouriteAsked = data.favouriteAsked == true
 	return profile
 end
 

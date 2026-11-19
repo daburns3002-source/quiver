@@ -36,6 +36,7 @@ local Hatchery = require(script.Parent.Hatchery)
 local PlayerData = require(script.Parent.PlayerData)
 local Rewards = require(script.Parent.Rewards)
 local RunSession = require(script.Parent.Parent.Run.RunSession)
+local Shoutouts = require(script.Parent.Shoutouts)
 local Wallet = require(script.Parent.Wallet)
 
 local log = Log.forTag("EndlessPrizes")
@@ -83,6 +84,7 @@ function EndlessPrizes.crates(player: Player, index: number, n: number, least: s
 				weapon = entry.weapon,
 				new = Wallet.grantWeapon(player, entry.weapon),
 			})
+			Shoutouts.rolled(player, "Weapon", entry.weapon)
 		end
 	end
 	log.info("%s opened %d crates of area %d", player.Name, n, index)

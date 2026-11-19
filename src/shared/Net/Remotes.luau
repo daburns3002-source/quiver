@@ -265,7 +265,9 @@ Remotes.PortalOpen = "PortalOpen"
 	`UI/AreaScreen`): the portal's index and the level picked. The server
 	checks both against the player's saved profile (`Run/Lobby.levelOpen`)
 	before starting the run; where they stand decides only who comes along
-	(`Util/PlayPortal.alone`).
+	(`Util/PlayPortal.alone`). A third argument, true, asks for the level on
+	hard (`Util/HardRules`), which the server grants only when the area's
+	boss is beaten and the hard level before it won (`Run/Lobby.hardOpen`).
 ]]
 Remotes.PortalStart = "PortalStart"
 

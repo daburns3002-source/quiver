@@ -7,8 +7,12 @@
 	phone's motor or a gamepad's and do nothing on a device with neither.
 	Off when the player has turned vibration off (`Options.haptics`,
 	`UI/SettingsScreen`). Presentation only.
+
+	Never in Studio (owner, 2026-11-19: "take off the vibration on studio",
+	"controller vibration"): a Play there shakes the owner's controller.
 ]]
 
+local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
 
 local Options = require(script.Parent.Parent.Options)
@@ -27,7 +31,7 @@ local TYPES: { [string]: Enum.HapticEffectType } = {
 local effects: { [string]: HapticEffect } = {}
 
 function Haptics.play(kind: Kind)
-	if not Options.haptics() then
+	if RunService:IsStudio() or not Options.haptics() then
 		return
 	end
 	local effect = effects[kind]

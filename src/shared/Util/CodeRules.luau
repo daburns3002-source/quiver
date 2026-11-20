@@ -8,6 +8,10 @@
 
 	Days are whole UTC days since 1970, as the rewards count them
 	(`RewardRules.day`).
+
+	A like-goal code (`likes`) does not exist until the game has that many
+	likes (the count the owner sets, `Data/LikeGoal`): until then it answers
+	as an unknown code, so a future word cannot be found out by trying it.
 ]]
 
 local Config = require(script.Parent.Parent.Config.Codes)
@@ -15,7 +19,8 @@ local Config = require(script.Parent.Parent.Config.Codes)
 local CodeRules = {}
 
 export type Prize = { coins: number?, gems: number?, eggs: number?, crates: number? }
-export type Code = { prize: Prize, expires: string? }
+--[[ `likes`: the game's likes before it works, for a like-goal code. ]]
+export type Code = { prize: Prize, expires: string?, likes: number? }
 export type Result = "Ok" | "Unknown" | "Expired" | "Used"
 
 --[[ The prize's parts in the order they are said. ]]
@@ -79,6 +84,10 @@ function CodeRules.valid(code: unknown): boolean
 	if entry.expires ~= nil and CodeRules.day(entry.expires) == nil then
 		return false
 	end
+	local likes = entry.likes
+	if likes ~= nil and (type(likes) ~= "number" or likes < 1 or likes % 1 ~= 0) then
+		return false
+	end
 	local known: { [string]: boolean } = {}
 	for _, part in PARTS do
 		known[part.key] = true
@@ -94,17 +103,19 @@ function CodeRules.valid(code: unknown): boolean
 end
 
 --[[ Whether `word` (already normalised) may be used by a player who has
-     used `used`, today: Unknown if no such code (or a broken entry), Used
-     if this player has had it, Expired if its last day is past, else Ok
-     with the code. ]]
+     used `used`, today, with the game at `likes` likes: Unknown if no such
+     code (or a broken entry, or a like goal not reached yet), Used if this
+     player has had it, Expired if its last day is past, else Ok with the
+     code. ]]
 function CodeRules.check(
 	list: { [string]: Code },
 	used: { [string]: boolean },
 	word: string,
-	today: number
+	today: number,
+	likes: number
 ): (Result, Code?)
 	local code = list[word]
-	if not code or not CodeRules.valid(code) then
+	if not code or not CodeRules.valid(code) or (code.likes and likes < code.likes) then
 		return "Unknown", nil
 	end
 	if used[word] then
@@ -117,13 +128,61 @@ function CodeRules.check(
 	return "Ok", code
 end
 
+--[[ The like goal as it stands at `likes`: the next goal not reached yet,
+     and the word of the highest one reached, leaving out expired codes and
+     broken entries. Either may be nil. ]]
+function CodeRules.likeGoal(
+	list: { [string]: Code },
+	likes: number,
+	today: number
+): (number?, string?)
+	local nextGoal: number? = nil
+	local newest: string? = nil
+	local newestAt = 0
+	for word, code in list do
+		local goal = code.likes
+		local last = if code.expires then CodeRules.day(code.expires) else nil
+		if goal and CodeRules.valid(code) and not (last and today > last) then
+			if likes >= goal then
+				if goal > newestAt then
+					newest, newestAt = word, goal
+				end
+			elseif not nextGoal or goal < nextGoal then
+				nextGoal = goal
+			end
+		end
+	end
+	return nextGoal, newest
+end
+
+--[[ A whole number with commas, "10,000". ]]
+function CodeRules.commas(n: number): string
+	local digits = tostring(math.floor(n))
+	local out = string.reverse((string.gsub(string.reverse(digits), "(%d%d%d)", "%1,")))
+	return (string.gsub(out, "^,", ""))
+end
+
+--[[ The like goal's line (`Config/Codes.likeGoal`), "" when there is no
+     goal at all. ]]
+function CodeRules.likeLine(nextGoal: number?, newest: string?): string
+	local words = Config.likeGoal
+	if newest and nextGoal then
+		return string.format(words.both, newest, CodeRules.commas(nextGoal))
+	elseif newest then
+		return string.format(words.reached, newest)
+	elseif nextGoal then
+		return string.format(words.next, CodeRules.commas(nextGoal))
+	end
+	return ""
+end
+
 --[[ A prize in words, "500 COINS + 25 GEMS + 1 EGG". ]]
 function CodeRules.prizeWords(prize: Prize): string
 	local words = {}
 	for _, part in PARTS do
 		local n = (prize :: any)[part.key]
 		if type(n) == "number" and n > 0 then
-			table.insert(words, `{n} {if n == 1 then part.one else part.many}`)
+			table.insert(words, `{CodeRules.commas(n)} {if n == 1 then part.one else part.many}`)
 		end
 	end
 	return table.concat(words, " + ")

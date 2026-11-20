@@ -27,4 +27,18 @@ return table.freeze({
 	}),
 	--[[ The box's grey words before anything is typed. ]]
 	hint = "TYPE A CODE",
+	--[[ The like goal (`Data/LikeGoal`, owner 2026-11-20): a code in the
+	     server's list with `likes` works once the game has that many. A game
+	     server cannot read its own like count (Roblox's votes endpoint needs a
+	     signed-in user), so the owner sets it: the ConfigService key `key` on
+	     the Creator Hub (Configs), live within minutes, no republish. Missing
+	     or not a number reads as 0. The words under the CODES box, and the
+	     toast to everyone in the lobby when a goal is reached. ]]
+	likeGoal = table.freeze({
+		key = "likes",
+		next = "LIKE GOAL: %s LIKES = A NEW CODE!",
+		reached = "LIKE GOAL HIT! NEW CODE: %s",
+		both = "NEW CODE: %s   NEXT GOAL: %s LIKES",
+		toast = "LIKE GOAL HIT! NEW CODE: %s",
+	}),
 })

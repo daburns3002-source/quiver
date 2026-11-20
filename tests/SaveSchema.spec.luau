@@ -702,6 +702,8 @@ return function(t: TestRunner.Helper)
 		t.equal(stray.season.key, "")
 		t.equal(stray.season.xp, 0)
 	end)
+
+	t.test(
 		"version 30: no code used and nobody asked to favourite; a stored copy keeps its own",
 		function()
 			local fresh = SaveSchema.default()

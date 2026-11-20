@@ -1,7 +1,9 @@
 # Codes, the favourite prompt and hatch shout-outs
 
 Three of the twelve retention ideas (owner, 2026-11-18: "yes all of these create them").
-Branch `phase-4/codes-fav-shoutouts`, save version 24.
+Branch `phase-4/codes-fav-shoutouts`, save version 30 (written as 24, renumbered on rebase).
+The like goal and the code words were added on 2026-11-20 (owner: "come up with some ideas, also
+there should be a like goal for new codes as well").
 
 ## Codes
 
@@ -17,18 +19,60 @@ is already three full tabs and other work is adding to it.
   and crates are given as a quest chest's are (`Rewards.givePrize`), with the reveal; what
   cannot be given is paid in gems.
 - Typed text is read in capitals with spaces dropped, letters and digits only, 24 at most
-  (`Util/CodeRules.normalise`), so "la unch" is LAUNCH.
+  (`Util/CodeRules.normalise`), so "arrow borne" is ARROWBORNE.
 - Once per player: `profile.codesUsed`, marked and saved before anything is paid.
 - Answers: CODE REDEEMED! 500 COINS + 25 GEMS / THAT CODE DOES NOT EXIST / THAT CODE HAS
   EXPIRED / YOU ALREADY USED THAT CODE / TYPE A CODE FIRST / TOO MANY TRIES! WAIT A MOMENT.
   The typed text is never said back or logged.
 - Rate limit: four tries at once, then one every 15 seconds (`Config/Codes.tries`), on top of
   `Net/Inbound`'s floor; a guessing script gets four a minute.
-- **Placeholder:** one code, `LAUNCH`, 500 coins and 25 gems, until 2027-01-31. The real words
-  and prizes are the owner's.
-
 Adding a code: one line in `Data/CodeList.luau`, the word in capitals and digits. No save
 change is needed.
+
+### The codes (Claude's ideas, starting numbers)
+
+A day of quests pays about 45 gems and 500 coins; a Mossy Egg costs 500 coins.
+
+| Code | Prize | When |
+|---|---|---|
+| ARROWBORNE | 1,000 coins + 50 gems | launch, until 2027-02-28 |
+| BULLSEYE | 1 crate + 25 gems | launch, until 2027-02-28 |
+| WILFPACK | 1 egg + 25 gems | launch, until 2027-02-28 |
+| WANTED | 40 gems | no end date (the King Bloblin poster) |
+| MOSSYGLADE | 500 coins + 25 gems | like goal 100 |
+| SLIMEKING | 1 egg + 50 gems | like goal 250 |
+| THORNWOOD | 1 crate + 1 egg + 75 gems | like goal 500 |
+| DROWNEDVILLAGE | 2 eggs + 100 gems | like goal 1,000 |
+| BOGHEART | 2 crates + 150 gems | like goal 2,500 |
+| WORLDTREE | 3 eggs + 1 crate + 200 gems | like goal 5,000 |
+| BOGRISING | 3 eggs + 3 crates + 300 gems | like goal 10,000 |
+
+Other ideas kept for later: a code per update named after what it adds (a new area's name the
+day it opens), a holiday code with a two-week end date, a code for each milestone of
+visits (1M VISITS) set the same way as the like goal, and a code only in the group's
+description or a video, to grow those.
+
+### The like goal
+
+A code with `likes = N` in the list **does not exist until the game has N likes**: before that
+it answers THAT CODE DOES NOT EXIST, so nobody finds a future word by trying it. Under the
+CODES box, in gold: LIKE GOAL: 100 LIKES = A NEW CODE!, then NEW CODE: SLIMEKING   NEXT GOAL:
+500 LIKES once one is reached. When a goal is reached on a running server, everyone there gets
+LIKE GOAL HIT! NEW CODE: ... on the rewards' toast.
+
+- **The like count is set by the owner.** A game server cannot read its own likes: Roblox's
+  votes endpoint (`games.roblox.com/v1/games/votes`, the Interactions API) takes only a
+  signed-in user's cookie, and HttpService may not call roblox.com; only third-party proxies
+  can, and we send nothing through those. So the count is the ConfigService key **`likes`**
+  (a number) on the experience's **Configs** page in the Creator Hub: set it to the like count
+  the game page shows and publish the config; running servers pick it up within minutes, no
+  place publish. Until the key exists the count is 0 and the first goal is shown.
+- `Data/LikeGoal` reads it (`GetConfigAsync`, refreshed on `UpdateAvailable`) and puts the goal
+  on Workspace's `LikeGoalNext` and `LikeGoalCode`; a reached code's word is public by design.
+- **Rules:** a like goal pays everyone once the game reaches it, not a player for liking, and
+  the game cannot tell who liked. It is common on Roblox; the DevForum calls milestone rewards a
+  grey area, since the Community Rules forbid prizes in exchange for actions. Words on screen
+  ask for nothing more than the goal.
 
 ## The favourite prompt
 
@@ -79,8 +123,11 @@ system line, `TextChannel:DisplaySystemMessage`).
 
 ## Checked
 
-- Gates; in-Roblox tests (`CodeRules.spec`, `ShoutoutRules.spec`, `SaveSchema.spec`
-  version 24).
+- Gates; in-Roblox tests, 1,377 passing on 2026-11-20 (`CodeRules.spec` with the like goal,
+  `ShoutoutRules.spec`, `SaveSchema.spec` version 30).
+- The like goal live in Studio Play: `ConfigService:SetTestingValue("likes", 300)` moved the
+  box to SLIMEKING / next 500 and toasted it; SLIMEKING redeemed (1 egg + 50 gems), THORNWOOD
+  still unknown, ARROWBORNE and WANTED redeemed.
 - Studio Play by probe (2091 x 1113): the codes' six answers (coins went 50,000 to 50,500);
   99 real Mossy Egg hatches gave a Mythic Glimmerhorn and three Legendaries, each shouted to
   the client, three banners drawn and three chat lines; the banner and the CODES row seen in

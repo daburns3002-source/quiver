@@ -24,6 +24,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 
 local CodeConfig = require(ReplicatedStorage.Shared.Config.Codes)
+local CodeRules = require(ReplicatedStorage.Shared.Util.CodeRules)
 local Config = require(ReplicatedStorage.Shared.Config.Settings)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local RunHudRules = require(ReplicatedStorage.Shared.Util.RunHudRules)
@@ -35,7 +36,7 @@ local SettingsScreen = {}
 
 --[[ The panel, in points, and how clear of the screen's edges it stays. ]]
 local WIDTH = 440
-local HEIGHT = 372
+local HEIGHT = 400
 local MARGIN = 12
 --[[ The rail button: a tile this many points square with its word under
      it, this far from the left edge and above the screen's middle (the
@@ -200,8 +201,20 @@ local function draw()
 	end)
 	if answer ~= "" then
 		local said = Chunky.text(box, answer, if answerOk then Chunky.green else Chunky.red, 3)
-		said.Position = UDim2.fromScale(40 / w, (codeY + 124) / h)
-		said.Size = UDim2.fromScale((w - 80) / w, 46 / h)
+		said.Position = UDim2.fromScale(40 / w, (codeY + 120) / h)
+		said.Size = UDim2.fromScale((w - 80) / w, 44 / h)
+	end
+	-- the like goal (`Data/LikeGoal`): the next goal and the newest code
+	local goal = Workspace:GetAttribute("LikeGoalNext")
+	local newest = Workspace:GetAttribute("LikeGoalCode")
+	local line = CodeRules.likeLine(
+		if type(goal) == "number" then goal else nil,
+		if type(newest) == "string" then newest else nil
+	)
+	if line ~= "" then
+		local said = Chunky.text(box, line, Chunky.gold, 3)
+		said.Position = UDim2.fromScale(40 / w, (codeY + 176) / h)
+		said.Size = UDim2.fromScale((w - 80) / w, 44 / h)
 	end
 	box.Visible = true
 end
@@ -281,6 +294,14 @@ function SettingsScreen.start()
 	end
 	Workspace:GetAttributeChangedSignal("InLobby"):Connect(inLobby)
 	inLobby()
+
+	for _, name in { "LikeGoalNext", "LikeGoalCode" } do
+		Workspace:GetAttributeChangedSignal(name):Connect(function()
+			if isOpen then
+				draw()
+			end
+		end)
+	end
 
 	Remotes.event(Remotes.CodeAnswer).OnClientEvent:Connect(function(ok: unknown, words: unknown)
 		if type(words) ~= "string" then

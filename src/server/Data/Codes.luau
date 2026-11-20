@@ -25,6 +25,7 @@ local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local Throttle = require(ReplicatedStorage.Shared.Util.Throttle)
 
 local CodeList = require(script.Parent.CodeList)
+local LikeGoal = require(script.Parent.LikeGoal)
 local PlayerData = require(script.Parent.PlayerData)
 local Rewards = require(script.Parent.Rewards)
 local Wallet = require(script.Parent.Wallet)
@@ -65,8 +66,13 @@ function Codes.redeem(
 			else "Unknown"
 		return result, CodeRules.answer(result)
 	end
-	local result, code =
-		CodeRules.check(list or CodeList, profile.codesUsed, word, Rewards.today(player))
+	local result, code = CodeRules.check(
+		list or CodeList,
+		profile.codesUsed,
+		word,
+		Rewards.today(player),
+		LikeGoal.count()
+	)
 	if result ~= "Ok" or not code then
 		log.info("%s tried a code: %s", player.Name, result)
 		return result, CodeRules.answer(result)

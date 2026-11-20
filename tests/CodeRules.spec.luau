@@ -49,21 +49,21 @@ return function(t: TestRunner.Helper)
 
 	t.test("a code works once, and not after its last day", function()
 		local today = CodeRules.day("2026-11-18") :: number
-		local result, code = CodeRules.check(LIST, {}, "HELLO", today)
+		local result, code = CodeRules.check(LIST, {}, "HELLO", today, 0)
 		t.equal(result, "Ok")
 		t.isTrue(code ~= nil and code.prize.coins == 100)
-		t.equal((CodeRules.check(LIST, { HELLO = true }, "HELLO", today)), "Used")
-		t.equal((CodeRules.check(LIST, {}, "NOPE", today)), "Unknown")
+		t.equal((CodeRules.check(LIST, { HELLO = true }, "HELLO", today, 0)), "Used")
+		t.equal((CodeRules.check(LIST, {}, "NOPE", today, 0)), "Unknown")
 		t.equal(
-			(CodeRules.check(LIST, {}, "BROKEN", today)),
+			(CodeRules.check(LIST, {}, "BROKEN", today, 0)),
 			"Unknown",
 			"a broken entry pays nothing"
 		)
 		local last = CodeRules.day("2026-11-01") :: number
-		t.equal((CodeRules.check(LIST, {}, "OLD", last)), "Ok", "its last day still works")
-		t.equal((CodeRules.check(LIST, {}, "OLD", last + 1)), "Expired")
+		t.equal((CodeRules.check(LIST, {}, "OLD", last, 0)), "Ok", "its last day still works")
+		t.equal((CodeRules.check(LIST, {}, "OLD", last + 1, 0)), "Expired")
 		t.equal(
-			(CodeRules.check(LIST, { OLD = true }, "OLD", last + 1)),
+			(CodeRules.check(LIST, { OLD = true }, "OLD", last + 1, 0)),
 			"Used",
 			"used says more than expired"
 		)
@@ -80,6 +80,7 @@ return function(t: TestRunner.Helper)
 			CodeRules.prizeWords({ coins = 500, gems = 25, eggs = 1 }),
 			"500 COINS + 25 GEMS + 1 EGG"
 		)
+		t.equal(CodeRules.prizeWords({ coins = 1000 }), "1,000 COINS")
 		t.isTrue(string.find(CodeRules.answer("Ok", { crates = 2 }), "2 CRATES", 1, true) ~= nil)
 	end)
 
@@ -103,5 +104,44 @@ return function(t: TestRunner.Helper)
 			t.isTrue(CodeRules.valid(code), `{word} has a prize and a real date`)
 		end
 		t.isTrue(n > 0, "at least one code")
+		-- every like goal is its own number, so the box never has two at once
+		local goals: { [number]: string } = {}
+		for word, code in list do
+			if code.likes then
+				t.isTrue(goals[code.likes] == nil, `{word} shares a like goal`)
+				goals[code.likes] = word
+			end
+		end
+	end)
+
+	t.test("a like-goal code does not exist until its goal is reached", function()
+		local goals: { [string]: CodeRules.Code } = {
+			FIRST = { prize = { gems = 1 }, likes = 100 },
+			SECOND = { prize = { gems = 2 }, likes = 500 },
+			GONE = { prize = { gems = 3 }, likes = 50, expires = "2026-01-01" },
+		}
+		local today = CodeRules.day("2026-11-20") :: number
+		t.equal((CodeRules.check(goals, {}, "FIRST", today, 99)), "Unknown", "not yet: unknown")
+		t.equal((CodeRules.check(goals, {}, "FIRST", today, 100)), "Ok")
+		t.equal((CodeRules.check(goals, { FIRST = true }, "FIRST", today, 900)), "Used")
+		t.isFalse(CodeRules.valid({ prize = { gems = 1 }, likes = 0 }))
+		t.isFalse(CodeRules.valid({ prize = { gems = 1 }, likes = 2.5 }))
+
+		local nextGoal, newest = CodeRules.likeGoal(goals, 0, today)
+		t.equal(nextGoal, 100, "the expired one is left out")
+		t.equal(newest, nil)
+		nextGoal, newest = CodeRules.likeGoal(goals, 120, today)
+		t.equal(nextGoal, 500)
+		t.equal(newest, "FIRST")
+		nextGoal, newest = CodeRules.likeGoal(goals, 9000, today)
+		t.equal(nextGoal, nil)
+		t.equal(newest, "SECOND", "the highest reached is the newest")
+
+		t.equal(CodeRules.commas(10000), "10,000")
+		t.equal(CodeRules.commas(250), "250")
+		t.equal(CodeRules.likeLine(nil, nil), "")
+		t.isTrue(string.find(CodeRules.likeLine(1000, nil), "1,000", 1, true) ~= nil)
+		t.isTrue(string.find(CodeRules.likeLine(1000, "FIRST"), "FIRST", 1, true) ~= nil)
+		t.isTrue(string.find(CodeRules.likeLine(nil, "SECOND"), "SECOND", 1, true) ~= nil)
 	end)
 end

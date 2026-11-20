@@ -6,6 +6,7 @@
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local ShopRules = require(ReplicatedStorage.Shared.Util.ShopRules)
 local TestRunner = require(script.Parent.TestRunner)
 local Tournament = require(ReplicatedStorage.Shared.Config.Tournament)
 local TournamentRules = require(ReplicatedStorage.Shared.Util.TournamentRules)
@@ -224,6 +225,26 @@ return function(t: TestRunner.Helper)
 		t.equal(left[1], "GlitchDaggers")
 		t.equal(left[2], "WishBow")
 		t.equal(#TournamentRules.pickable(catalog, {}), 3, "an area's weapon is never a pick")
+	end)
+
+	t.test("a pick never takes a reward weapon (Endless 100, the season pass)", function()
+		local catalog = {
+			{ weapon = "OrbitBow", set = "Voidglass" },
+			{ weapon = "NebulaBlade", set = "Voidglass", earned = true },
+		}
+		local left = TournamentRules.pickable(catalog, {})
+		t.equal(#left, 1)
+		t.equal(left[1], "OrbitBow")
+		-- the real catalog: none of the three reward blades is ever a pick
+		local real: { TournamentRules.Item } = {}
+		for _, entry in ShopRules.catalog() do
+			table.insert(real, { weapon = entry.weapon, set = entry.set, earned = entry.earned })
+		end
+		local picks = TournamentRules.pickable(real, {})
+		for _, weapon in { "NebulaBlade", "PetalfallBlade", "WishcutterBlade" } do
+			t.isNil(table.find(picks, weapon), weapon)
+		end
+		t.isTrue(table.find(picks, "OrbitBow") ~= nil, "the set's others still are")
 	end)
 
 	t.test("picks with too few weapons left are paid in gems", function()

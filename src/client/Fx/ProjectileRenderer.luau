@@ -31,6 +31,7 @@ local FxEvents = require(script.Parent.Upgrades.FxEvents)
 local HitFeedback = require(script.Parent.HitFeedback)
 local ProjectileFlight = require(ReplicatedStorage.Shared.Combat.ProjectileFlight)
 local ShotPipeline = require(ReplicatedStorage.Shared.Combat.ShotPipeline)
+local ShotPlay = require(script.Parent.Shots.Play)
 local Types = require(ReplicatedStorage.Shared.Types)
 local WeaponFx = require(ReplicatedStorage.Shared.Config.WeaponFx)
 local Weapons = require(ReplicatedStorage.Shared.Config.Weapons)
@@ -77,6 +78,10 @@ local shotGlow: Color3? = nil
      pools are emptied when it changes, so a pooled part always has this. ]]
 local weaponLook: WeaponFx.Look? = nil
 local shotRainbow = false
+--[[ The held weapon's key when it flies its own shot from the Projectile
+     Shots page (`Fx/Shots/Play`), drawn there: its parts here are only
+     flights, never seen. Nil for a weapon still on today's look. ]]
+local shotKey: string? = nil
 local RAINBOW_SPEED = 0.25
 local RAINBOW_SATURATION = 0.7
 
@@ -138,6 +143,8 @@ local pools: { [Pool]: { BasePart } } = { Player = {}, PlayerOrb = {} }
 local armsOf: { [BasePart]: { ArmPart } } = setmetatable({} :: any, { __mode = "k" })
 --[[ The weapon look each player part was built as. ]]
 local builtAs: { [BasePart]: Look } = setmetatable({} :: any, { __mode = "k" })
+--[[ Player parts built unseen, for a shot `Fx/Shots/Play` draws. ]]
+local unseen: { [BasePart]: boolean } = setmetatable({} :: any, { __mode = "k" })
 local live: { Visual } = {}
 --[[ Arrows queued behind their volley (Double Shot), launched when due. ]]
 type Pending = {
@@ -191,6 +198,24 @@ local function createPart(pool: Pool): BasePart
 		then look.scale * ProjectileFlight.size("Enemy")
 		elseif pool == "PlayerOrb" then PLAYER_ORB_SIZE
 		else ProjectileFlight.size(faction)
+
+	--[[ A shot drawn by `Fx/Shots/Play`: only the flight, nothing to see. ]]
+	if not look and shotKey then
+		local flight = Instance.new("Part")
+		flight.Name = "Projectile"
+		flight.Size = partSize
+		flight.Anchored = true
+		flight.CanCollide = false
+		flight.CanQuery = false
+		flight.CanTouch = false
+		flight.CastShadow = false
+		flight.Transparency = 1
+		unseen[flight] = true
+		if shown then
+			builtAs[flight] = shown
+		end
+		return flight
+	end
 
 	local part: BasePart
 	if shown and shown.shape == "Wedge" then
@@ -420,6 +445,12 @@ local function release(part: BasePart, pool: Pool)
 	     it, and it is the old weapon's shape. ]]
 	local built = builtAs[part]
 	if built and built ~= weaponLook then
+		part:Destroy()
+		return
+	end
+	--[[ Built for the other kind of drawing: the shot's card was broken off
+	     (`Fx/Shots/Play`) while it flew. ]]
+	if (pool == "Player" or pool == "PlayerOrb") and (unseen[part] == true) ~= (shotKey ~= nil) then
 		part:Destroy()
 		return
 	end
@@ -689,7 +720,12 @@ local contact: ProjectileFlight.Contact = {
 		--[[ An arrow striking a body throws sparks where it lands. Enemy
 		     orbs reaching the player have their own hit feedback. ]]
 		if flight.faction == "Player" then
-			HitFeedback.onArrowContact(flight.position, flight.direction)
+			if ShotPlay.tracks(flight) then
+				-- its own hit; it goes on through while it has pierce left
+				ShotPlay.onModel(flight, flight.pierce > 0)
+			else
+				HitFeedback.onArrowContact(flight.position, flight.direction)
+			end
 			FxEvents.contact:fire(
 				flight.position,
 				flight.direction,
@@ -708,7 +744,11 @@ local contact: ProjectileFlight.Contact = {
 		--[[ An orb bursts like an enemy orb; only an arrow sticks in the wall. ]]
 		local pool = (flight :: any).pool
 		local style: Faction = if pool == "PlayerOrb" then "Enemy" else flight.faction
-		spawnImpact(position, normal, flight.direction, style, bounced, (flight :: any).look)
+		if ShotPlay.tracks(flight) then
+			ShotPlay.onWall(flight, position, bounced)
+		else
+			spawnImpact(position, normal, flight.direction, style, bounced, (flight :: any).look)
+		end
 		if flight.faction == "Player" then
 			FxEvents.wall:fire(position, normal, flight.direction, pool, bounced)
 		end
@@ -731,6 +771,9 @@ local contact: ProjectileFlight.Contact = {
 	end,
 }
 
+-- emptied below; a launch empties them when a shot's card breaks
+local dropPlayerPools: () -> ()
+
 --[[ One arrow onto the screen, at `headStart` seconds into its flight. ]]
 local function launch(
 	faction: Faction,
@@ -751,6 +794,11 @@ local function launch(
 		else "Player"
 	local drawn = if enemyLook then EnemyShots.looks[enemyLook] else nil
 	local weapon = if enemyLook then nil else weaponLook
+	--[[ A card that broke while drawing: back to today's look. ]]
+	if shotKey and not ShotPlay.has(shotKey) then
+		shotKey = nil
+		dropPlayerPools()
+	end
 	local colour = if drawn
 		then drawn.colour
 		elseif weapon then weapon.colour
@@ -781,7 +829,7 @@ local function launch(
 		trail.Enabled = true
 	end
 
-	table.insert(live, {
+	local visual: Visual = {
 		part = part,
 		pool = pool,
 		look = drawn or weapon,
@@ -797,12 +845,17 @@ local function launch(
 		hitModels = if from then { [from] = true } else {},
 		expiresAt = os.clock() + (spec.lifetime - headStart),
 		stopped = false,
-	})
+	}
+	table.insert(live, visual)
+	if not enemyLook and shotKey then
+		ShotPlay.launch(visual, shotKey, headStart)
+	end
 	FxEvents.launched:fire(part, if drawn then "Enemy" else pool, aim, from, look)
 end
 
 local function step(deltaTime: number)
 	local now = os.clock()
+	ShotPlay.tick(deltaTime)
 	local rainbow = if shotRainbow
 		then Color3.fromHSV((now * RAINBOW_SPEED) % 1, RAINBOW_SATURATION, 1)
 		else nil
@@ -864,6 +917,9 @@ local function step(deltaTime: number)
 			end
 		end
 		visual.stopped = not alive
+		if not alive then
+			ShotPlay.stop(visual)
+		end
 	end
 
 	if #moveParts > 0 then
@@ -871,6 +927,8 @@ local function step(deltaTime: number)
 		table.clear(moveParts)
 		table.clear(moveFrames)
 	end
+
+	ShotPlay.draw()
 end
 
 --[[ Drops every drawn enemy shot within `radius` of `centre`: the server
@@ -931,7 +989,7 @@ function ProjectileRenderer.spawnVolley(
 end
 
 --[[ Pooled player shots are drawn in the old weapon's look: drop them. ]]
-local function dropPlayerPools()
+function dropPlayerPools()
 	for _, pooled in { pools["Player" :: Pool], pools["PlayerOrb" :: Pool] } do
 		for _, part in pooled do
 			part:Destroy()
@@ -948,8 +1006,13 @@ local function loadBolt()
 	local weapon = (Weapons :: any)[name]
 	-- a pair of bows fires as the bow it pairs
 	local looks = WeaponFx.shots[name] or WeaponFx.shots[weapon and weapon.dualOf or ""]
-	if looks ~= weaponLook then
+	local carded = if ShotPlay.has(name)
+		then name
+		elseif weapon and weapon.dualOf and ShotPlay.has(weapon.dualOf) then weapon.dualOf
+		else nil
+	if looks ~= weaponLook or carded ~= shotKey then
 		weaponLook = looks
+		shotKey = carded
 		dropPlayerPools()
 	end
 	local bolt = (weapon and weapon.bolt) :: { meshId: string, size: Vector3 }?

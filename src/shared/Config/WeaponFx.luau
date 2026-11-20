@@ -1291,6 +1291,17 @@ local shotCards: { [string]: ShotCard } = {
 	WellpearlStaff = shotCard(19, "staff", "#f4f0ff", "#7ac8ff", "#ffc8e8"),
 	TollkeeperStaff = shotCard(20, "staff", "#ffda70", "#b07a3a", "#fffbe8"),
 	MaelstromStaff = shotCard(21, "staff", "#3a5aff", "#ffd84a", "#c8f0ff"),
+	-- Bogheart
+	PeatwoodBow = shotCard(22, "bow", "#c4884e", "#4a3220", "#7a8a4a"),
+	SporestringBow = shotCard(23, "bow", "#ee9cc4", "#ffe0ee", "#7a4a3a"),
+	GlowcapLongbow = shotCard(24, "bow", "#b0ffd6", "#2f9a7a", "#e8fff4"),
+	GulpstringBow = shotCard(25, "bow", "#f56e96", "#e9b92e", "#a8325a"),
+	LumenveilBow = shotCard(26, "bow", "#3fe6f2", "#befaff", "#ffffff"),
+	LichenStaff = shotCard(27, "staff", "#c6e078", "#7a9a3a", "#e8f0b0"),
+	PuffballStaff = shotCard(28, "staff", "#d6baf0", "#f0dcff", "#b08ad0"),
+	VentstoneStaff = shotCard(29, "staff", "#e2e6f0", "#5a4a72", "#9af08a"),
+	GrandmothersStaff = shotCard(30, "staff", "#4de8c8", "#eafff8", "#2a8a7a"),
+	MyceliadStaff = shotCard(31, "staff", "#3fe6f2", "#ffffff", "#d4caff"),
 }
 for key in shotCards do
 	assert(shots[key], `{key} has a shot card and no shot`)

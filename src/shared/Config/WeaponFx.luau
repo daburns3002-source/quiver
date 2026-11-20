@@ -1302,6 +1302,9 @@ local shotCards: { [string]: ShotCard } = {
 	VentstoneStaff = shotCard(29, "staff", "#e2e6f0", "#5a4a72", "#9af08a"),
 	GrandmothersStaff = shotCard(30, "staff", "#4de8c8", "#eafff8", "#2a8a7a"),
 	MyceliadStaff = shotCard(31, "staff", "#3fe6f2", "#ffffff", "#d4caff"),
+	-- The golden pair
+	GoldenBow = shotCard(32, "bow", "#ffcd38", "#fff7c4", "#60e678"),
+	GoldenStaff = shotCard(33, "staff", "#ffd654", "#60a8ff", "#fff3c0"),
 }
 for key in shotCards do
 	assert(shots[key], `{key} has a shot card and no shot`)

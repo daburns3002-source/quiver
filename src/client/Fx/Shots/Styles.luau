@@ -8,11 +8,12 @@
 local Bog = require(script.Parent.Bog)
 local Drowned = require(script.Parent.Drowned)
 local Glade = require(script.Parent.Glade)
+local Golden = require(script.Parent.Golden)
 local Kit = require(script.Parent.Kit)
 
 local Styles: { [string]: Kit.Drawer } = {}
 
-for _, area in { Glade, Drowned, Bog } do
+for _, area in { Glade, Drowned, Bog, Golden } do
 	for key, drawer in area do
 		Styles[key] = drawer
 	end

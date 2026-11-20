@@ -6,7 +6,6 @@ something starts or gets blocked, strike it when it lands. How each kind of
 thing gets made is in [PIPELINES.md](PIPELINES.md).
 
 Last brought up to date: 2026-11-20.
-Last brought up to date: 2026-11-18.
 
 **Scope:** Acts 1-3 only (areas 1-6) until the owner says otherwise (2026-10-24). Acts 4-5 work is on hold.
 
@@ -181,6 +180,8 @@ where you would be standing. Say what reads wrong and Claude retunes it.
 
 ### Co-op (2026-11-06)
 
+- **Playable today (2026-11-20, main #663, Studio Play by probe and bot):** title, story, tutorial (5 rooms), class select, Mossy 1-1 to 1-10 and King Bloblin, Thornwood 2-1 and the PLAY screen's CONTINUE 2-2, Endless to its floor-10 checkpoint, a Mossy Egg, a bow crate, a STORE weapon, SETTINGS and the code ARROWBORNE: all worked, no script error, no stuck room; 1,386 in-Roblox tests pass. The favourite prompt came up once, in the lobby after the first boss win, as built. **Not played:** two players (computer use to start Studio's local server was declined), so the party and co-op rows here are still yours. Published place: version 1132 (07:05 UTC 2026-11-20), before #663 (codes) and probably before #662 (parties): publish main first, or your friend will not see PARTY.
+- **Two players in Studio, before the live test (10 minutes):** Test tab, Clients and Servers, set 2 players, Start. Three windows open (a server and Player1, Player2). In each player window: BEGIN ADVENTURE (or SKIP), finish class select. In Player1's: PARTY (teal, right side), INVITE Player2; in Player2's: ACCEPT. Both should show the party card under PARTY. Player1: PLAY, any open level. In Studio both play the run in place (no teleport): both in the arena, enemies 1.65x, the teammate arrow at the screen edge, shared XP. Let one go down (DOWN! over the head), stand the other next to them 2.5 s: back at 40%. Win: each player gets their own Victory chests. Then close Player2's window mid-run: Player1's run should go on. Stop with Cleanup in the Test tab.
 - **Two players, live.** Studio cannot teleport, so the run servers have only been tested in place. In the published game, with a friend: stand in the same portal (the bar under the screen should read PARTY 2/2), START, and both of you should land together on a private server and start the level. LOBBY should bring both of you back to a lobby together, past the title screen. Solo runs and the tutorial now travel to a private server too: is the extra loading screen acceptable? Max Players in Game Settings must be above 1.
 - **Down and revive.** At zero health with a teammate up, you go down (DOWN! over your head, a bar and a countdown). Your teammate stands close for 2.5 s to bring you back at 40%; after 20 s you are OUT until the next room, which you start at 30%. The run ends only when nobody is standing. Are the numbers right?
 - **Scaling.** Two players get 1.65x the enemies, enemy health x1.10, boss health x1.7. Too easy, too hard? The arena does not grow (the art is 1:1 with its sheets).
@@ -194,9 +195,10 @@ where you would be standing. Say what reads wrong and Claude retunes it.
 
 | PR | What | Waiting on |
 |---|---|---|
+| #484 | Reference sheets for areas 3 and 4, approved (docs only, last touched 2026-11-06) | The owner: merge or close |
+| #462 | The owner's eleven upgrade cards, with their effects, sounds and icons (last touched 2026-11-12) | The owner: merge, close or bring up to date |
 
-Checked against GitHub 2026-11-03: #449 is the only PR open. The two that sat
-here before it, #173 and #174, were closed long ago.
+Checked against GitHub 2026-11-20: these two are the only PRs open.
 
 ## Planned by the owner (not to build yet)
 

@@ -236,9 +236,8 @@ function Kit.ribbon(
 end
 
 --[[ A stroke through points. Glowing (the page's shadowBlur on a line),
-     it sits on a fainter, wider line of the glow's colour, lit: softer
-     than the cleaves' halo strip, which reads as a block round a short
-     line. ]]
+     it sits on soft lit glows of the glow's colour strung along it: the
+     cleaves' halo strip reads as a block round a short line. ]]
 function Kit.stroke(c: Ctx, xs: { number }, ys: { number }, w: number, colour: RGB, alpha: number)
 	local glowCol = c.glowCol
 	local blur = c.glowBlur
@@ -246,7 +245,16 @@ function Kit.stroke(c: Ctx, xs: { number }, ys: { number }, w: number, colour: R
 		c.glowBlur = 0
 		local light = c.light
 		c.light = true
-		Canvas.polyline(c, xs, ys, w + blur * 0.4, glowCol, alpha * 0.35)
+		-- soft glows along the line, one a radius apart
+		local r = (w + blur) * 0.55
+		for i = 1, #xs - 1 do
+			local dx, dy = xs[i + 1] - xs[i], ys[i + 1] - ys[i]
+			local n = math.max(1, math.ceil(math.sqrt(dx * dx + dy * dy) / r))
+			for step = if i == 1 then 0 else 1, n do
+				local u = step / n
+				Canvas.glowDot(c, xs[i] + dx * u, ys[i] + dy * u, r, glowCol, alpha * 0.3)
+			end
+		end
 		c.light = light
 		Canvas.polyline(c, xs, ys, w, colour, alpha)
 		c.glowBlur = blur

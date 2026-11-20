@@ -19,6 +19,8 @@ local RewardRules = require(ReplicatedStorage.Shared.Util.RewardRules)
 local Rewards = require(ReplicatedStorage.Shared.Config.Rewards)
 local SaveSchema = require(ReplicatedStorage.Shared.Util.SaveSchema)
 
+local Analytics = require(script.Parent.Analytics)
+
 local DexPay = {}
 
 local toast = Remotes.event(Remotes.RewardToast)
@@ -48,6 +50,7 @@ function DexPay.pay(player: Player, profile: SaveSchema.Profile, book: string, k
 		return 0
 	end
 	profile.gems += Rewards.dexGems
+	Analytics.earned(player, "Dex", book, { gems = Rewards.dexGems })
 	toast:FireClient(player, `NEW DEX ENTRY: {string.upper(name)}`, Rewards.dexGems, 0)
 	return Rewards.dexGems
 end

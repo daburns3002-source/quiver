@@ -30,6 +30,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
+local AnalyticsRules = require(ReplicatedStorage.Shared.Util.AnalyticsRules)
 local GiftRules = require(ReplicatedStorage.Shared.Util.GiftRules)
 local GoalRules = require(ReplicatedStorage.Shared.Util.GoalRules)
 local Goals = require(ReplicatedStorage.Shared.Config.Goals)
@@ -144,9 +145,9 @@ end
 --[[ Pays a prize already marked claimed (a goal's step, a Dex page's
      chest, a playtime gift, an invite's reward): its coins and gems here,
      its eggs and crates by `Data/QuestChest`, which shows what came out. ]]
-function Rewards.pay(player: Player, prize: Goals.Prize)
-	Wallet.addCoins(player, prize.coins or 0)
-	Wallet.addGems(player, prize.gems or 0)
+function Rewards.pay(player: Player, prize: Goals.Prize, why: string?, sku: string?)
+	Wallet.addCoins(player, prize.coins or 0, why, sku)
+	Wallet.addGems(player, prize.gems or 0, why, sku)
 	local eggs, crates = prize.eggs or 0, prize.crates or 0
 	local give = Rewards.givePrize
 	if give and eggs + crates > 0 then
@@ -183,7 +184,7 @@ local function claim(player: Player, kind: unknown, key: unknown)
 		local prize = GoalRules.claim(profile, key)
 		if prize then
 			log.info("%s claims a step of goal %s", player.Name, tostring(key))
-			Rewards.pay(player, prize)
+			Rewards.pay(player, prize, AnalyticsRules.CLAIMS.goal, tostring(key))
 		end
 		return
 	elseif kind == "page" then
@@ -191,7 +192,7 @@ local function claim(player: Player, kind: unknown, key: unknown)
 		local prize = PageRules.claim(profile, key)
 		if prize then
 			log.info("%s opens the chest of Dex page %s", player.Name, tostring(key))
-			Rewards.pay(player, prize)
+			Rewards.pay(player, prize, AnalyticsRules.CLAIMS.page, tostring(key))
 		end
 		return
 	elseif kind == "stars" then
@@ -199,7 +200,7 @@ local function claim(player: Player, kind: unknown, key: unknown)
 		local prize = StarRules.claim(profile, key)
 		if prize then
 			log.info("%s opens star chest %s", player.Name, tostring(key))
-			Rewards.pay(player, prize)
+			Rewards.pay(player, prize, AnalyticsRules.CLAIMS.stars, tostring(key))
 		end
 		return
 	elseif kind == "playtime" then
@@ -209,7 +210,7 @@ local function claim(player: Player, kind: unknown, key: unknown)
 		if prize then
 			log.info("%s claims playtime gift %s", player.Name, tostring(key))
 			giftsSaid[player] = PlaytimeRules.ready(profile.playtime, os.time())
-			Rewards.pay(player, prize)
+			Rewards.pay(player, prize, AnalyticsRules.CLAIMS.playtime, tostring(key))
 		end
 		return
 	elseif kind == "gift" then
@@ -265,8 +266,10 @@ local function claim(player: Player, kind: unknown, key: unknown)
 		gift.coins
 	)
 	-- the claim is marked above; `Wallet` pays, saves and tells the owner
-	Wallet.addCoins(player, gift.coins)
-	Wallet.addGems(player, gift.gems)
+	local why = (AnalyticsRules.CLAIMS :: any)[kind]
+	local sku = if type(key) == "string" then key else kind
+	Wallet.addCoins(player, gift.coins, why, sku)
+	Wallet.addGems(player, gift.gems, why, sku)
 	PlayerData.touch(player)
 	Wallet.send(player)
 	local told = Rewards.dailyClaimed

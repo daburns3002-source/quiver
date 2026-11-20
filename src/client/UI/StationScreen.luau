@@ -161,6 +161,10 @@ function StationScreen.new(name: string, stationName: string, promptWords: strin
 		end
 		fromShortcut = openingShortcut or (active == self and fromShortcut)
 		active = self
+		-- a visit, for the server's funnels (`Data/Analytics.opened`)
+		if not dim.Visible then
+			Remotes.event(Remotes.ScreenOpened):FireServer(stationName)
+		end
 		dim.Visible = true
 		-- the lobby music ducks while a station screen is open (`Fx/MusicFx`)
 		player:SetAttribute("InStation", true)

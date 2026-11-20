@@ -782,7 +782,7 @@ local function openClassGifts(session: RunSession.Session, eggs: number, crates:
 		end
 	end
 	if missed > 0 then
-		Wallet.addGems(player, missed * ClassLevels.insteadGems)
+		Wallet.addGems(player, missed * ClassLevels.insteadGems, "Swap", "ClassLevel")
 	end
 	return prizes
 end
@@ -1055,7 +1055,7 @@ local function complete(now: number)
 			local levels, at = HardRules.find(LobbyConfig.portals, stageIndex)
 			if levels and at and Wallet.beatHard(session.player, level) then
 				local gems = HardRules.gems(levels, at)
-				Wallet.addGems(session.player, gems)
+				Wallet.addGems(session.player, gems, "HardClear", level)
 				session.stageGems += gems
 				Rewards.say(session.player, `FIRST HARD CLEAR: +{gems} GEMS`)
 			end
@@ -1125,7 +1125,7 @@ local function vestFloor(floor: number)
 	for _, session in RunSession.all() do
 		local player = session.player
 		local banked = endlessBanked[player] or 0
-		endlessBanked[player] = banked + Wallet.addSoulstones(player, pay, banked)
+		endlessBanked[player] = banked + Wallet.addSoulstones(player, pay, banked, "Endless")
 	end
 	log.info(
 		"floor %d vested: %d Soulstones each (capped at %d a run)",
@@ -1350,7 +1350,13 @@ function RoomController.endlessPick(player: Player, choice: unknown): boolean
 		     this pays its stand-in bundle, still under the run's cap, and is
 		     the one place to swap when the shop lands. ]]
 		local banked = endlessBanked[player] or 0
-		local paid = Wallet.addSoulstones(player, Balance.Endless.checkpoint.shopBundle, banked)
+		local paid = Wallet.addSoulstones(
+			player,
+			Balance.Endless.checkpoint.shopBundle,
+			banked,
+			"Endless",
+			"Checkpoint"
+		)
 		endlessBanked[player] = banked + paid
 	end
 	log.info("%s takes %s at floor %d", player.Name, pick.name, progress)

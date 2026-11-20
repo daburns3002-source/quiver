@@ -38,17 +38,37 @@
 	  run its DEFEAT closed (`runRevived`), so the run's real end is still
 	  logged.
 
+	- **Recurring funnels** (`LogFunnelStepEvent`, `Util/AnalyticsRules.
+	  FUNNELS`), each visit its own traversal with a fresh GUID for its
+	  `funnelSessionId`: RobuxStore (Opened, Prompted, Bought), RobuxOffer
+	  (Prompted, Bought: a prompt offered anywhere but the STORE), EggHatch
+	  (Opened, Hatched, HatchedAgain) and CratePull (Opened, Pulled,
+	  PulledAgain). A screen's opening is the client's to say
+	  (`Remotes.ScreenOpened`, `opened`), checked against
+	  `AnalyticsRules.SCREENS`; every later step is the server's. Other
+	  screens (the gear sheet, rewards, the Dex, badges, settings) are a
+	  custom "ScreenOpen", the screen as field 1.
+	- **Economy** (`LogEconomyEvent`, `earned`, `spent`): every coin, gem
+	  and Soulstone given or taken through `Data/Wallet` with a why
+	  (`AnalyticsRules.SOURCES`, `SINKS`), with the balance after it. A
+	  run's picked-up coins and Endless's Soulstones are summed and sent
+	  once as the run ends (`AnalyticsRules.BATCHED`).
+	- **Codes**: custom "CodeTry" on every try; fields: the result (Ok,
+	  Unknown, Used, ...) and, once redeemed, the code.
+
 	In Studio each event is also written to the log ("[Analytics] ..."), so
 	a playtest can see what would be sent; Roblox records nothing from
 	Studio. A failed call is logged once per kind and never stops the game.
 ]]
 
+local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
 local AnalyticsService = game:GetService("AnalyticsService")
 
+local AnalyticsRules = require(ReplicatedStorage.Shared.Util.AnalyticsRules)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
 local PlayerData = require(script.Parent.PlayerData)
@@ -57,6 +77,9 @@ local Tutorial = require(ReplicatedStorage.Shared.Config.Tutorial)
 local log = Log.forTag("Analytics")
 
 local Analytics = {}
+
+--[[ Coins, gems and Soulstones moved (`earned`, `spent`). ]]
+export type Amounts = AnalyticsRules.Amounts
 
 --[[ The onboarding funnel's steps, in order: a step's number is its place. ]]
 Analytics.FUNNEL = table.freeze({
@@ -182,6 +205,109 @@ function Analytics.clientStep(player: Player, name: unknown)
 	end
 end
 
+--[[ A recurring funnel's traversal: its `funnelSessionId` and the steps
+     sent in it (Roblox counts each once per traversal, so a repeat is not
+     sent at all). ]]
+type Traversal = { id: string, done: { [number]: boolean } }
+local traversals: { [Player]: { [string]: Traversal } } = {}
+--[[ The Robux prompt last opened for a player: its funnel and key, for
+     the Bought step when it is granted. ]]
+local prompts: { [Player]: { funnel: string, key: string } } = {}
+
+--[[ A new traversal of `funnel` for `player`, replacing any open one. ]]
+local function begin(player: Player, funnel: string): Traversal
+	local mine = traversals[player] or {}
+	traversals[player] = mine
+	local traversal = { id = HttpService:GenerateGUID(false), done = {} }
+	mine[funnel] = traversal
+	return traversal
+end
+
+--[[ Step `name` of `funnel` in `player`'s open traversal (a new one if
+     none is open, which counts the steps before it as Roblox does). ]]
+local function funnelStep(
+	player: Player,
+	funnel: string,
+	name: string,
+	fields: { [string]: string }?
+)
+	local step = AnalyticsRules.stepOf(funnel, name)
+	if not step then
+		return
+	end
+	local mine = traversals[player]
+	local traversal = (mine and mine[funnel]) or begin(player, funnel)
+	if traversal.done[step] then
+		return
+	end
+	traversal.done[step] = true
+	send("LogFunnelStepEvent", player, funnel, traversal.id, step, name, fields or {})
+end
+
+--[[ A step that repeats (a hatch, a crate): `first` the first time in the
+     traversal, `again` after. ]]
+local function repeatStep(
+	player: Player,
+	funnel: string,
+	first: string,
+	again: string,
+	fields: { [string]: string }
+)
+	local mine = traversals[player]
+	local traversal = mine and mine[funnel]
+	funnelStep(
+		player,
+		funnel,
+		AnalyticsRules.repeatStep(traversal and traversal.done, funnel, first, again),
+		fields
+	)
+end
+
+--[[ `Remotes.ScreenOpened`: the client says `screen` is now open. Only an
+     `AnalyticsRules.SCREENS` one: a funnel's starts a new traversal, any
+     other is a "ScreenOpen" custom event. ]]
+function Analytics.opened(player: Player, screen: unknown)
+	local known, funnel = AnalyticsRules.screen(screen)
+	if not known then
+		return
+	end
+	if funnel then
+		begin(player, funnel)
+		funnelStep(player, funnel, AnalyticsRules.FUNNELS[funnel][1])
+	else
+		send("LogCustomEvent", player, "ScreenOpen", 1, Analytics.fields(screen))
+	end
+end
+
+--[[ Roblox's prompt for `key` (`Config/RobuxStore`) is open for `player`,
+     offered `where`: the STORE's traversal's Prompted step, or a
+     RobuxOffer traversal of its own. ]]
+function Analytics.prompted(player: Player, key: string, where: string?)
+	local funnel = AnalyticsRules.promptFunnel(where)
+	if funnel ~= "RobuxStore" then
+		begin(player, funnel)
+	end
+	prompts[player] = { funnel = funnel, key = key }
+	funnelStep(player, funnel, "Prompted", Analytics.fields(key, where or "Store"))
+end
+
+--[[ Crates pulled at the Blacksmith: `n` of `crate`'s `class` chest. ]]
+function Analytics.cratePulled(player: Player, crate: string, class: string, n: number)
+	repeatStep(player, "CratePull", "Pulled", "PulledAgain", Analytics.fields(crate, class, n))
+	Analytics.step(player, "FirstCrate")
+end
+
+--[[ A code tried: its result (`Util/CodeRules`) and, if redeemed, it. ]]
+function Analytics.codeTried(player: Player, result: string, word: string?)
+	send(
+		"LogCustomEvent",
+		player,
+		"CodeTry",
+		1,
+		Analytics.fields(result, AnalyticsRules.codeWord(result, word))
+	)
+end
+
 type Run = {
 	stage: Balance.StageConfig,
 	index: number,
@@ -195,12 +321,96 @@ local runs: { [Player]: Run } = {}
      revive brings it back (`runRevived`). ]]
 local fallen: { [Player]: Run } = {}
 
+--[[ The batched sources (`AnalyticsRules.BATCHED`) waiting to be sent,
+     per player, by why and sku. ]]
+type Batch = { why: string, sku: string?, amounts: AnalyticsRules.Amounts }
+local batches: { [Player]: { [string]: Batch } } = {}
+
+--[[ Each economy event of `amounts` moved for `why`, the balance read
+     after the change (so the caller calls this once it is made). ]]
+local function economy(
+	player: Player,
+	flow: string,
+	why: string,
+	sku: string?,
+	amounts: AnalyticsRules.Amounts
+)
+	local whys: { [string]: string } = if flow == "Source"
+		then AnalyticsRules.SOURCES :: any
+		else AnalyticsRules.SINKS :: any
+	if not whys[why] then
+		-- a why the rules do not know is a typo: said once, never sent
+		if not warned[why] then
+			warned[why] = true
+			log.warn("no %s called %s in AnalyticsRules", flow, why)
+		end
+		return
+	end
+	local profile = PlayerData.get(player)
+	if not profile then
+		return
+	end
+	for _, entry in AnalyticsRules.economy(flow, why, sku, amounts, profile) do
+		send(
+			"LogEconomyEvent",
+			player,
+			(Enum.AnalyticsEconomyFlowType :: any)[entry.flow],
+			entry.currency,
+			entry.amount,
+			entry.balance,
+			entry.transaction,
+			entry.sku
+		)
+	end
+end
+
+--[[ Currency given to `player` for `why` (`AnalyticsRules.SOURCES`),
+     `sku` saying which. A batched why waits for the run's end; a run's
+     coins are known by its level. ]]
+function Analytics.earned(
+	player: Player,
+	why: string,
+	sku: string?,
+	amounts: AnalyticsRules.Amounts
+)
+	if not AnalyticsRules.BATCHED[why] then
+		economy(player, "Source", why, sku, amounts)
+		return
+	end
+	local run = runs[player]
+	local name = sku or (run and (run.stage.level or run.stage.name)) or nil
+	local mine = batches[player] or {}
+	batches[player] = mine
+	local key = `{why}:{name or ""}`
+	local batch = mine[key] or { why = why, sku = name, amounts = {} }
+	mine[key] = batch
+	AnalyticsRules.add(batch.amounts, amounts)
+end
+
+--[[ Currency taken from `player` for `why` (`AnalyticsRules.SINKS`). ]]
+function Analytics.spent(player: Player, why: string, sku: string?, amounts: AnalyticsRules.Amounts)
+	economy(player, "Sink", why, sku, amounts)
+end
+
+--[[ Sends what is batched for `player`, each why and sku as one event. ]]
+function Analytics.flush(player: Player)
+	local mine = batches[player]
+	batches[player] = nil
+	if not mine then
+		return
+	end
+	for _, batch in mine do
+		economy(player, "Source", batch.why, batch.sku, batch.amounts)
+	end
+end
+
 --[[ A run of stage `index` starts for `player`, playing `class`. ]]
 function Analytics.runStarted(player: Player, index: number, class: string?)
 	local stage = Balance.Stages[index]
 	if not stage then
 		return
 	end
+	Analytics.flush(player)
 	fallen[player] = nil
 	runs[player] = {
 		stage = stage,
@@ -227,6 +437,8 @@ end
 --[[ `player`'s run ends: "Won", "Died", "Left" or "Quit". Nothing if no
      run is open, so every way out can call it. ]]
 function Analytics.runEnded(player: Player, outcome: string)
+	-- the run's picked-up coins and Soulstones, one event each
+	Analytics.flush(player)
 	local run = runs[player]
 	if not run then
 		return
@@ -279,6 +491,7 @@ function Analytics.hatched(player: Player, egg: string, results: { any }, how: s
 		send("LogCustomEvent", player, "Hatch", 1, Analytics.fields(egg, result.pet, how))
 	end
 	if how == "Bought" and #results > 0 then
+		repeatStep(player, "EggHatch", "Hatched", "HatchedAgain", Analytics.fields(egg, #results))
 		Analytics.step(player, "FirstHatch")
 	end
 end
@@ -308,6 +521,12 @@ function Analytics.purchased(
 	where: string?
 )
 	send("LogCustomEvent", player, "Purchase", robux, Analytics.fields(key, kind, where or "Store"))
+	-- the Bought step of the prompt that sold it, if this server opened it
+	local prompt = prompts[player]
+	if prompt and prompt.key == key then
+		prompts[player] = nil
+		funnelStep(player, prompt.funnel, "Bought", Analytics.fields(key, where or "Store"))
+	end
 end
 
 function Analytics.start()
@@ -316,7 +535,10 @@ function Analytics.start()
 	end)
 	Players.PlayerRemoving:Connect(function(player)
 		Analytics.runEnded(player, "Quit")
+		Analytics.flush(player)
 		fallen[player] = nil
+		traversals[player] = nil
+		prompts[player] = nil
 	end)
 end
 

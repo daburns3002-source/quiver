@@ -108,7 +108,7 @@ local function openCrate(player: Player, index: unknown, count: unknown, class: 
 		return
 	end
 	local n = count :: number
-	if not Wallet.pay(player, { coins = crate.price * n }) then
+	if not Wallet.pay(player, { coins = crate.price * n }, nil, "Crate", crate.name) then
 		return
 	end
 	local mythics = Pity.mythics(pool)
@@ -144,7 +144,7 @@ local function openCrate(player: Player, index: unknown, count: unknown, class: 
 	takeUp(player, gained)
 	Rewards.note(player, "crates", #results)
 	if #results > 0 then
-		Analytics.step(player, "FirstCrate")
+		Analytics.cratePulled(player, crate.name, chest.class, #results)
 	end
 	crateOpened:FireClient(player, index, results, chest.class)
 end
@@ -165,7 +165,7 @@ local function buy(player: Player, weapon: unknown)
 	then
 		return
 	end
-	if Wallet.pay(player, price, entry.rarity) then
+	if Wallet.pay(player, price, entry.rarity, "Weapon", entry.weapon) then
 		Wallet.grantWeapon(player, weapon)
 		takeUp(player, { weapon })
 	end

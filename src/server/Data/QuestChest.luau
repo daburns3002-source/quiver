@@ -58,7 +58,7 @@ local function open(player: Player, kind: string)
 		then egg(player) or crate(player)
 		else crate(player) or egg(player)
 	if not given then
-		Wallet.addGems(player, RewardConfig.bonus.gems)
+		Wallet.addGems(player, RewardConfig.bonus.gems, "Swap", kind)
 		log.info("%s has no egg or crate to open: %d gems", player.Name, RewardConfig.bonus.gems)
 	end
 end
@@ -88,7 +88,7 @@ local function give(player: Player, eggs: number, crates: number)
 		end
 	end
 	if missed > 0 then
-		Wallet.addGems(player, missed * RewardConfig.bonus.gems)
+		Wallet.addGems(player, missed * RewardConfig.bonus.gems, "Swap", "Prize")
 	end
 end
 

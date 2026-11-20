@@ -85,9 +85,9 @@ local function give(
 		prize = VictoryChestRules.instead(offer.clearCoins)
 	end
 	if prize.kind == "coins" then
-		Wallet.addCoins(player, prize.amount)
+		Wallet.addCoins(player, prize.amount, "Chest", offer.area)
 	elseif prize.kind == "gems" then
-		Wallet.addGems(player, prize.amount)
+		Wallet.addGems(player, prize.amount, "Chest", offer.area)
 	end
 	return prize, nil
 end

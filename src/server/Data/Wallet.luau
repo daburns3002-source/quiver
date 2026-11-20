@@ -9,6 +9,11 @@
 	the whole profile over `Remotes.ProfileChanged` for the shop. The trail
 	worn is the Player's `Trail` attribute, which every client draws
 	(`Fx/PlayerTrails`).
+
+	Every coin, gem and Soulstone given or taken here says why (`why`,
+	`Util/AnalyticsRules.SOURCES` and `SINKS`) and which (`sku`), and is
+	logged as an economy event (`Data/Analytics`) once it is made. A change
+	with no why is a Studio test wallet's and is not logged.
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -78,19 +83,28 @@ function Wallet.send(player: Player)
 	end
 end
 
-function Wallet.addCoins(player: Player, amount: number)
+--[[ The economy event for what was just given, if it says why. ]]
+local function earned(player: Player, why: string?, sku: string?, amounts: Analytics.Amounts)
+	if why then
+		Analytics.earned(player, why, sku, amounts)
+	end
+end
+
+function Wallet.addCoins(player: Player, amount: number, why: string?, sku: string?)
 	local profile = PlayerData.get(player)
 	if profile and amount > 0 then
 		profile.coins += math.floor(amount)
 		changed(player, profile)
+		earned(player, why, sku, { coins = amount })
 	end
 end
 
-function Wallet.addGems(player: Player, amount: number)
+function Wallet.addGems(player: Player, amount: number, why: string?, sku: string?)
 	local profile = PlayerData.get(player)
 	if profile and amount > 0 then
 		profile.gems += math.floor(amount)
 		changed(player, profile)
+		earned(player, why, sku, { gems = amount })
 	end
 end
 
@@ -115,13 +129,23 @@ end
      after the price is taken, and never for a price that was refused.
      `rarity` is the rarity of a thing bought outright (a store weapon, a
      trail), which sizes the burst; a hatch or a crate passes none, since
-     the burst plays before their reveal (`Config/PurchaseFx`). ]]
-function Wallet.pay(player: Player, cost: Purse.Cost, rarity: string?): boolean
+     the burst plays before their reveal (`Config/PurchaseFx`). `why` and
+     `sku` are its economy event's (`Util/AnalyticsRules.SINKS`). ]]
+function Wallet.pay(
+	player: Player,
+	cost: Purse.Cost,
+	rarity: string?,
+	why: string?,
+	sku: string?
+): boolean
 	local profile = PlayerData.get(player)
 	if not profile or not Purse.pay(profile, cost) then
 		return false
 	end
 	changed(player, profile)
+	if why then
+		Analytics.spent(player, why, sku, cost)
+	end
 	local receipt = PurchaseRules.fromCost(cost, rarity)
 	if receipt then
 		purchased:FireClient(player, receipt)
@@ -316,6 +340,7 @@ function Wallet.addClassXp(player: Player, class: string, xp: number): ClassLeve
 	profile.coins += gain.coins
 	profile.gems += gain.gems
 	changed(player, profile)
+	earned(player, "ClassLevel", class, { coins = gain.coins, gems = gain.gems })
 	if #gain.reached > 0 then
 		log.info("%s's %s reaches level %d", player.Name, class, gain.after.level)
 	end
@@ -481,7 +506,13 @@ end
      the caller can keep its own running total. The cap is
      `Balance.Endless.runCap`, about the floor-60 total — without it,
      Endless is a gold firehose the moment one build outruns the curve. ]]
-function Wallet.addSoulstones(player: Player, amount: number, banked: number): number
+function Wallet.addSoulstones(
+	player: Player,
+	amount: number,
+	banked: number,
+	why: string?,
+	sku: string?
+): number
 	local profile = PlayerData.get(player)
 	local room = math.max(Balance.Endless.runCap - math.max(banked, 0), 0)
 	local pay = math.floor(math.min(math.max(amount, 0), room))
@@ -490,6 +521,7 @@ function Wallet.addSoulstones(player: Player, amount: number, banked: number): n
 	end
 	profile.soulstones += pay
 	changed(player, profile)
+	earned(player, why, sku, { soulstones = pay })
 	return pay
 end
 
@@ -519,6 +551,7 @@ function Wallet.claimEndlessMilestones(player: Player, floor: number): { Balance
 		if milestone.floor <= floor and not profile.endlessMilestones[key] then
 			profile.endlessMilestones[key] = true
 			profile.soulstones += milestone.soulstones
+			earned(player, "Milestone", key, { soulstones = milestone.soulstones })
 			table.insert(claimed, milestone)
 			log.info(
 				"%s claims the floor %d milestone: %s",
@@ -636,6 +669,7 @@ function Wallet.beatBoss(player: Player, area: string): (number, string?)
 	profile.items[config.bossItem] = (profile.items[config.bossItem] or 0) + 1
 	log.info("%s beat %s's boss: %d gems and a %s", player.Name, area, gems, config.bossItem)
 	changed(player, profile)
+	earned(player, "Boss", area, { gems = gems })
 	-- the area's Legendary trail, the first time (`Config/Trails`)
 	Wallet.settleTrails(player)
 	-- Roblox's favourite prompt, once ever, after a boss win (`Data/Favourite`)
@@ -693,6 +727,11 @@ function Wallet.payTournament(player: Player, week: number, prize: TournamentRul
 	profile.gems += math.max(math.floor(prize.gems), 0)
 	profile.coins += math.max(math.floor(prize.coins), 0)
 	profile.soulstones += math.max(math.floor(prize.soulstones), 0)
+	earned(player, "Tournament", key, {
+		coins = prize.coins,
+		gems = prize.gems + pickGems,
+		soulstones = prize.soulstones,
+	})
 	if prize.champion then
 		profile.tournamentWins += 1
 	end
@@ -732,6 +771,7 @@ function Wallet.settleTournamentPicks(player: Player)
 		profile.tournamentPicks = picks
 		profile.gems += gems
 		changed(player, profile)
+		earned(player, "Pick", "Tournament", { gems = gems })
 	end
 end
 
@@ -748,6 +788,7 @@ function Wallet.owePick(player: Player, id: string, set: string): boolean
 	end
 	if #RewardPickRules.pickable(set, profile.weapons) == 0 then
 		profile.gems += Tournament.pickGems
+		earned(player, "Pick", id, { gems = Tournament.pickGems })
 		log.info(
 			"%s has every %s weapon: %d gems for %s",
 			player.Name,

@@ -11,6 +11,10 @@
 	it in the save. The button shows only in the lobby; in a run the pause
 	menu is the one button on screen.
 
+	Under them, the CODES box (`Config/Codes`, 2026-11-18): the player types
+	a code and presses REDEEM; the server checks it against its own list
+	(`Data/Codes`) and the answer shows under the box, green or red.
+
 	Sized in screen points, so a phone held upright gets buttons a thumb can
 	press: the panel is `WIDTH` points wide at most and fitted to the screen.
 ]]
@@ -19,7 +23,10 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 
+local CodeConfig = require(ReplicatedStorage.Shared.Config.Codes)
+local CodeRules = require(ReplicatedStorage.Shared.Util.CodeRules)
 local Config = require(ReplicatedStorage.Shared.Config.Settings)
+local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local RunHudRules = require(ReplicatedStorage.Shared.Util.RunHudRules)
 
 local Chunky = require(script.Parent.Chunky)
@@ -29,7 +36,7 @@ local SettingsScreen = {}
 
 --[[ The panel, in points, and how clear of the screen's edges it stays. ]]
 local WIDTH = 440
-local HEIGHT = 300
+local HEIGHT = 400
 local MARGIN = 12
 --[[ The rail button: a tile this many points square with its word under
      it, this far from the left edge and above the screen's middle (the
@@ -40,6 +47,14 @@ local RISE = 112
 
 local panel: Frame? = nil
 local isOpen = false
+--[[ The CODES box: what is typed (kept across a redraw), the last answer
+     and whether it was a yes, and when REDEEM last sent. ]]
+local typed = ""
+local answer = ""
+local answerOk = false
+local sentAt = -math.huge
+--[[ Seconds between two REDEEM presses; the server has its own limit. ]]
+local PRESS_GAP = 1
 
 --[[ A cog, drawn: four bars through a disc, a hole in its middle. ]]
 local function cog(parent: GuiObject)
@@ -149,6 +164,58 @@ local function draw()
 			Options.set("haptics", not shake)
 		end
 	)
+
+	local codeY = 128 + 3 * rowH
+	label("CODES", codeY)
+	local field = Instance.new("TextBox")
+	field.Name = "CodeBox"
+	field.BackgroundColor3 = Chunky.white
+	field.BorderSizePixel = 0
+	field.ClearTextOnFocus = false
+	field.Font = Chunky.font
+	field.PlaceholderText = CodeConfig.hint
+	field.PlaceholderColor3 = Chunky.grey
+	field.Text = typed
+	field.TextColor3 = Chunky.ink
+	field.TextScaled = true
+	field.ZIndex = 30
+	Chunky.put(sheet, field, 330, codeY + 14, 316, 100)
+	Chunky.round(field, 14)
+	Chunky.outline(field, 4)
+	local inset = Instance.new("UIPadding")
+	inset.PaddingLeft, inset.PaddingRight = UDim.new(0.06, 0), UDim.new(0.06, 0)
+	inset.PaddingTop, inset.PaddingBottom = UDim.new(0.2, 0), UDim.new(0.2, 0)
+	inset.Parent = field
+	field:GetPropertyChangedSignal("Text"):Connect(function()
+		if #field.Text > CodeConfig.maxLength then
+			field.Text = string.sub(field.Text, 1, CodeConfig.maxLength)
+		end
+		typed = field.Text
+	end)
+	Chunky.button(sheet, "REDEEM", Chunky.green, 660, codeY + 14, 176, 100, function()
+		if os.clock() - sentAt < PRESS_GAP then
+			return
+		end
+		sentAt = os.clock()
+		Remotes.event(Remotes.CodeRedeem):FireServer(typed)
+	end)
+	if answer ~= "" then
+		local said = Chunky.text(box, answer, if answerOk then Chunky.green else Chunky.red, 3)
+		said.Position = UDim2.fromScale(40 / w, (codeY + 120) / h)
+		said.Size = UDim2.fromScale((w - 80) / w, 44 / h)
+	end
+	-- the like goal (`Data/LikeGoal`): the next goal and the newest code
+	local goal = Workspace:GetAttribute("LikeGoalNext")
+	local newest = Workspace:GetAttribute("LikeGoalCode")
+	local line = CodeRules.likeLine(
+		if type(goal) == "number" then goal else nil,
+		if type(newest) == "string" then newest else nil
+	)
+	if line ~= "" then
+		local said = Chunky.text(box, line, Chunky.gold, 3)
+		said.Position = UDim2.fromScale(40 / w, (codeY + 176) / h)
+		said.Size = UDim2.fromScale((w - 80) / w, 44 / h)
+	end
 	box.Visible = true
 end
 
@@ -162,6 +229,14 @@ local function open()
 	local box = panel
 	if box then
 		Chunky.pop(box)
+	end
+end
+
+--[[ Opens the panel, for a look from Studio (a probe cannot press the
+     rail button). ]]
+function SettingsScreen.preview()
+	if not isOpen then
+		open()
 	end
 end
 
@@ -219,6 +294,27 @@ function SettingsScreen.start()
 	end
 	Workspace:GetAttributeChangedSignal("InLobby"):Connect(inLobby)
 	inLobby()
+
+	for _, name in { "LikeGoalNext", "LikeGoalCode" } do
+		Workspace:GetAttributeChangedSignal(name):Connect(function()
+			if isOpen then
+				draw()
+			end
+		end)
+	end
+
+	Remotes.event(Remotes.CodeAnswer).OnClientEvent:Connect(function(ok: unknown, words: unknown)
+		if type(words) ~= "string" then
+			return
+		end
+		answer, answerOk = words, ok == true
+		if answerOk then
+			typed = ""
+		end
+		if isOpen then
+			draw()
+		end
+	end)
 
 	for _, name in { "music", "sound", "haptics" } do
 		Options.watch(name, function()

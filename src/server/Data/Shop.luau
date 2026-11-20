@@ -40,6 +40,7 @@ local PlayerData = require(script.Parent.PlayerData)
 local Rewards = require(script.Parent.Rewards)
 local RoomController = require(script.Parent.Parent.Run.RoomController)
 local RunSession = require(script.Parent.Parent.Run.RunSession)
+local Shoutouts = require(script.Parent.Shoutouts)
 local Wallet = require(script.Parent.Wallet)
 
 local log = Log.forTag("Shop")
@@ -124,6 +125,7 @@ local function openCrate(player: Player, index: unknown, count: unknown, class: 
 			end
 			-- a duplicate is a saved C copy to merge (owner, 2026-10-28), so no refund
 			local new = Wallet.grantWeapon(player, entry.weapon)
+			Shoutouts.rolled(player, "Weapon", entry.weapon)
 			log.info(
 				"%s opened the %s %s chest: %s%s",
 				player.Name,

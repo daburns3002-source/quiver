@@ -228,6 +228,17 @@ Remotes.NotifyAnswer = "NotifyAnswer"
 --[[ Client -> server, Studio only: ask this player about notifications
      at once. ]]
 Remotes.DebugNotifyAsk = "DebugNotifyAsk"
+--[[ Client → server: the CODES box's text (`Data/Codes`), checked there
+     against the server's own list. Answered by `CodeAnswer(ok, words)`. ]]
+Remotes.CodeRedeem = "CodeRedeem"
+Remotes.CodeAnswer = "CodeAnswer"
+--[[ Client → server: Roblox's favourite prompt has been shown
+     (`UI/FavouritePrompt`), saved so it never shows again. ]]
+Remotes.FavouriteAsked = "FavouriteAsked"
+--[[ Server → every client: a Legendary or Mythic was rolled (`Data/Shoutouts`):
+     who, "Pet" or "Weapon", the item's key, its rarity, and whether it came
+     from another server. ]]
+Remotes.Shoutout = "Shoutout"
 --[[ Client → server, Studio only: move this player's reward day on by a
      number of days (1 if none), to see a day roll (`Data/Rewards`). ]]
 Remotes.DebugDay = "DebugDay"

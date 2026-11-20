@@ -1305,6 +1305,23 @@ local shotCards: { [string]: ShotCard } = {
 	-- The golden pair
 	GoldenBow = shotCard(32, "bow", "#ffcd38", "#fff7c4", "#60e678"),
 	GoldenStaff = shotCard(33, "staff", "#ffd654", "#60a8ff", "#fff3c0"),
+	-- The themed sets
+	LivewireBow = shotCard(34, "bow", "#46e8ff", "#ff3ec4", "#c8faff"),
+	MainframeStaff = shotCard(35, "staff", "#ff3ec4", "#46e8ff", "#ffd0f0"),
+	WishbrightBow = shotCard(36, "bow", "#ffd65c", "#ff8cc8", "#fff3c0"),
+	DreamdropStaff = shotCard(37, "staff", "#ff8cc8", "#ffd65c", "#ffe6f2"),
+	SaddlehornBow = shotCard(38, "bow", "#40e0d0", "#f0be50", "#c8a070"),
+	WagonwheelStaff = shotCard(39, "staff", "#40e0d0", "#c88a3a", "#f0be50"),
+	NoodleBow = shotCard(40, "bow", "#50dcff", "#ffffff", "#ff786e"),
+	SplashringStaff = shotCard(41, "staff", "#ff786e", "#ffffff", "#50dcff"),
+	HighscoreBow = shotCard(42, "bow", "#ff4646", "#4682ff", "#ffffff"),
+	JoystickStaff = shotCard(43, "staff", "#ff4646", "#4682ff", "#99baff"),
+	OrbitBow = shotCard(44, "bow", "#b46eff", "#ff8ce6", "#2a1050"),
+	StarwellStaff = shotCard(45, "staff", "#b46eff", "#ff8ce6", "#ffffff"),
+	BlossomBow = shotCard(46, "bow", "#ff96be", "#ffbe5a", "#fff0f6"),
+	PaperglowStaff = shotCard(47, "staff", "#ff6a4a", "#ffbe5a", "#ff96be"),
+	CinderstringBow = shotCard(48, "bow", "#ff781e", "#ffc83c", "#3a1a10"),
+	ForgeheartStaff = shotCard(49, "staff", "#ff781e", "#ffc83c", "#2a1a14"),
 }
 for key in shotCards do
 	assert(shots[key], `{key} has a shot card and no shot`)

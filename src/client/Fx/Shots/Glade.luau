@@ -598,7 +598,7 @@ Glade.WorldrootStaff = {
 		for j = 0, 2 do
 			K.ribbon(
 				c,
-				tr(I, t, 0.11, 14, function(J, tt)
+				tr(I, t, 0.11, 10, function(J, tt)
 					return math.sin(tt * 30 + j * 2.1 + J.ph) * 3.4
 				end),
 				2.2,

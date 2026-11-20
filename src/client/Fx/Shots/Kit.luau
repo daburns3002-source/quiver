@@ -236,9 +236,8 @@ function Kit.ribbon(
 end
 
 --[[ A stroke through points. Glowing (the page's shadowBlur on a line),
-     it sits on a fainter, wider line of the glow's colour, lit: softer
-     than the cleaves' halo strip, which reads as a block round a short
-     line. ]]
+     it sits on soft lit glows of the glow's colour strung along it: the
+     cleaves' halo strip reads as a block round a short line. ]]
 function Kit.stroke(c: Ctx, xs: { number }, ys: { number }, w: number, colour: RGB, alpha: number)
 	local glowCol = c.glowCol
 	local blur = c.glowBlur
@@ -246,7 +245,16 @@ function Kit.stroke(c: Ctx, xs: { number }, ys: { number }, w: number, colour: R
 		c.glowBlur = 0
 		local light = c.light
 		c.light = true
-		Canvas.polyline(c, xs, ys, w + blur * 0.4, glowCol, alpha * 0.35)
+		-- soft glows along the line, one a radius apart
+		local r = (w + blur) * 0.55
+		for i = 1, #xs - 1 do
+			local dx, dy = xs[i + 1] - xs[i], ys[i + 1] - ys[i]
+			local n = math.max(1, math.ceil(math.sqrt(dx * dx + dy * dy) / r))
+			for step = if i == 1 then 0 else 1, n do
+				local u = step / n
+				Canvas.glowDot(c, xs[i] + dx * u, ys[i] + dy * u, r, glowCol, alpha * 0.2)
+			end
+		end
 		c.light = light
 		Canvas.polyline(c, xs, ys, w, colour, alpha)
 		c.glowBlur = blur
@@ -334,8 +342,26 @@ function Kit.orb(c: Ctx, p: number, q: number, r: number, cIn: RGB, cOut: RGB, a
 		Canvas.glowDot(c, p, q, r + c.glowBlur * 0.6, glowCol, alpha * 0.45)
 		c.light = light
 	end
-	Canvas.dot(c, p, q, r, cOut, alpha)
+	Kit.disc(c, p, q, r, cOut, alpha)
 	Canvas.glowDot(c, p - r * 0.3, q - r * 0.3, r * 0.95, cIn, alpha)
+end
+
+--[[ A filled circle: the cleaves' octagon when small, twelve-sided past
+     8 pixels across the middle, where an octagon's corners show. ]]
+function Kit.disc(c: Ctx, p: number, q: number, r: number, colour: RGB, alpha: number)
+	if r <= 8 then
+		Canvas.dot(c, p, q, r, colour, alpha)
+		return
+	end
+	local xs, ys = {}, {}
+	for i = 0, 11 do
+		local an = i / 12 * TAU
+		xs[i + 1], ys[i + 1] = p + math.cos(an) * r, q + math.sin(an) * r
+	end
+	local glowBlur = c.glowBlur
+	c.glowBlur = 0
+	Kit.fan(c, p, q, xs, ys, colour, alpha)
+	c.glowBlur = glowBlur
 end
 
 --[[ A filled slice of a circle, `from` to `to` radians. ]]
@@ -533,6 +559,48 @@ function Kit.strokeRect(
 	alpha: number
 )
 	Canvas.outline(c, { x, x + w, x + w, x }, { y, y, y + h, y + h }, width, colour, alpha)
+end
+
+--[[ The page's shadowBlur under a filled shape r across the middle at
+     (x, y), when glowing: one soft lit glow. ]]
+function Kit.halo(c: Ctx, x: number, y: number, r: number)
+	local glowCol = c.glowCol
+	if c.glowBlur <= 0 or not glowCol then
+		return
+	end
+	local light = c.light
+	c.light = true
+	Canvas.glowDot(c, x, y, r + c.glowBlur * 0.6, glowCol, 0.45)
+	c.light = light
+end
+
+--[[ A stroked ellipse, rx along `rot` and ry across, `from` to `to`
+     radians round it (a circle when rx is ry); glowing, softly. ]]
+function Kit.oval(
+	c: Ctx,
+	x: number,
+	y: number,
+	rx: number,
+	ry: number,
+	rot: number,
+	from: number,
+	to: number,
+	w: number,
+	colour: RGB,
+	alpha: number
+)
+	if rx <= 0.05 or alpha <= 0 then
+		return
+	end
+	local n = math.clamp(math.ceil(math.abs(to - from) / 0.4), 4, 18)
+	local cs, sn = math.cos(rot), math.sin(rot)
+	local xs, ys = {}, {}
+	for i = 0, n do
+		local an = lerp(from, to, i / n)
+		local ex, ey = math.cos(an) * rx, math.sin(an) * ry
+		xs[i + 1], ys[i + 1] = x + ex * cs - ey * sn, y + ex * sn + ey * cs
+	end
+	Kit.stroke(c, xs, ys, w, colour, alpha)
 end
 
 --[[ The page's jag: a lightning line from a to b. ]]
@@ -833,16 +901,61 @@ function Kit.roots(
 	end
 end
 
---[[ A seed of fluff: a dot with three hairs. ]]
+--[[ A seed of fluff: a dot with its hairs, the hairs one sparkle quad
+     (two beams where three strokes took six). ]]
 function Kit.fluff(c: Ctx, p: number, q: number, a: number, colour: RGB, h: number)
 	if a <= 0 then
 		return
 	end
-	Canvas.dot(c, p, q, 1, colour, a)
-	for j = 0, 2 do
-		local an = h * TAU + j * 2.1
-		Kit.seg(c, p, q, p + math.cos(an) * 2.4, q + math.sin(an) * 2.4, 0.5, colour, a * 0.8)
+	Kit.rect(c, p - 0.9, q - 0.9, 1.8, 1.8, colour, a)
+	local r = 2.4
+	local an = h * TAU
+	local ux, uy = math.cos(an) * r, math.sin(an) * r
+	Canvas.quad(
+		c,
+		p - ux - uy,
+		q - uy + ux,
+		p - ux + uy,
+		q - uy - ux,
+		p + ux + uy,
+		q + uy - ux,
+		p + ux - uy,
+		q + uy + ux,
+		colour,
+		a * 0.8,
+		Canvas.SPARKLE
+	)
+end
+
+--[[ A star too small to count its points (under half a stud): one
+     sparkle quad, not a drawn star's six to ten beams. ]]
+function Kit.twinkle(c: Ctx, p: number, q: number, s: number, r: number, colour: RGB, alpha: number)
+	if s <= 0.1 or alpha <= 0 then
+		return
 	end
+	local ux, uy = math.cos(r) * s, math.sin(r) * s
+	Canvas.quad(
+		c,
+		p - ux - uy,
+		q - uy + ux,
+		p - ux + uy,
+		q - uy - ux,
+		p + ux + uy,
+		q + uy - ux,
+		p + ux - uy,
+		q + uy + ux,
+		colour,
+		alpha,
+		Canvas.SPARKLE
+	)
+end
+
+--[[ A speck too small to see as round: one beam, not a dot's three. ]]
+function Kit.speck(c: Ctx, p: number, q: number, r: number, colour: RGB, alpha: number)
+	if r <= 0.05 or alpha <= 0 then
+		return
+	end
+	Kit.rect(c, p - r * 0.9, q - r * 0.9, r * 1.8, r * 1.8, colour, alpha)
 end
 
 --[[ The coin-op shots' pixel grid. ]]

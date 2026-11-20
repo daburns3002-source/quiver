@@ -5,13 +5,14 @@
 	yet keeps today's shot (`Config/WeaponFx.shots`, `Fx/ProjectileRenderer`).
 ]]
 
+local Bog = require(script.Parent.Bog)
 local Drowned = require(script.Parent.Drowned)
 local Glade = require(script.Parent.Glade)
 local Kit = require(script.Parent.Kit)
 
 local Styles: { [string]: Kit.Drawer } = {}
 
-for _, area in { Glade, Drowned } do
+for _, area in { Glade, Drowned, Bog } do
 	for key, drawer in area do
 		Styles[key] = drawer
 	end

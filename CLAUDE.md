@@ -134,7 +134,15 @@ prompt `[..]` marks a control and `*..*` an action, each drawn in its own strong
 ground (`Util/PromptText`); the panel is built from `UI/Chunky`'s palette. The music ducks to `Music.readDuck`
 while one is up, and under a NEW ENEMY! screen in the tutorial (`MusicFx.setReading`).
 `tests/TutorialPrompts.spec` holds every prompt to the rules; `TutorialPrompts.preview` builds one in a
-phone-sized frame for a Studio look.
+phone-sized frame for a Studio look. **The room prompt stands outside the arena** (owner, 2026-11-19: "the
+tutorial tips need to be on the outer arena so they do not block the arena"), placed every frame by
+`Util/ArenaMargin` from the room's corners as the camera shows them (`UI/RunMargin`) and the run HUD's pieces
+(`RunHudRules.pieces`): in the right margin on a computer (left only if the right will not hold it), sized to
+the margin (words about 13 letters' worth across, up to 36 points); on an upright phone, whose floor fills the
+width and whose forest is mostly under the HUD, a compact card above or below the room on its end wall, off
+the HUD, never on the player when the other end will do, then off the exit gate, keeping its end until the
+other is clearly better. There it usually still covers a strip of floor: nothing else fits.
+`tests/ArenaMargin.spec` holds it with the real camera maths for five computer sizes and three phones.
 The run holds still until the story's black has held: the server skips
 its step while any player is still on the title (`RunSession.anyAtTitle`,
 cleared by `Remotes.IntroBegin`, fired at the story's end), the client holds on
@@ -192,8 +200,9 @@ is new waits while a station is open (`InStation`).
 (owner, 2026-11-13: "they should be in the outer arena area so it doesnt block the arena, and also pause the
 game and have an ok button to dismiss the tip and resume the game. make sure the music quiets as well while
 its paused"): its card (`Util/TipPlate.card`, TIP tag, words, a green OK) stands beside the arena, in the side
-margin a landscape screen has, or above or below it on an upright phone (`TipRules.place`, from the room's
-corners projected by the camera; centred under the top HUD in the lobby). While it is up the client is paused
+margin a landscape screen has, or above or below it on an upright phone, clear of the run HUD
+(`Util/ArenaMargin`, as the tutorial's room prompt; riding on the end wall as the camera follows; centred
+under the top HUD in the lobby, `TipRules.place`). While it is up the client is paused
 (`RunPaused.setTip`), the server holds the run (`RunSession.anyReadingTip`, only for a tip the save had never
 seen, `Tips.holdMax` 60 s at most, let go by `Remotes.TipClosed`) and the music is down (`MusicFx.setTip`).
 OK, Return, Enter or a gamepad's A closes it, **so a probe clears one with a synthetic Return**; that press is the

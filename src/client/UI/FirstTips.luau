@@ -25,7 +25,8 @@
 	game and have an ok button to dismiss the tip and resume the game. make
 	sure the music quiets as well while its paused"): its card stands
 	beside the arena, in the side margin a landscape screen has or above or
-	below it on an upright phone (`TipRules.place`), on the loading tip's
+	below it on an upright phone, clear of the run HUD (`Util/ArenaMargin`,
+	since 2026-11-19), on the loading tip's
 	plate (`TipPlate.card`) with a green OK. While it is up the client is
 	paused (`RunPaused.setTip`), the server holds the run
 	(`RunSession.anyReadingTip`, `Tips.holdMax` at most) and the music is
@@ -55,6 +56,7 @@ local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local Workspace = game:GetService("Workspace")
 
+local ArenaMargin = require(ReplicatedStorage.Shared.Util.ArenaMargin)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local CurrentStage = require(ReplicatedStorage.Shared.Util.CurrentStage)
 local MergeRules = require(ReplicatedStorage.Shared.Util.MergeRules)
@@ -69,6 +71,7 @@ local UiPalette = require(ReplicatedStorage.Shared.Config.UiPalette)
 local Chunky = require(script.Parent.Chunky)
 local MusicFx = require(script.Parent.Parent.Fx.MusicFx)
 local Reveal = require(script.Parent.Reveal)
+local RunMargin = require(script.Parent.RunMargin)
 local RunPaused = require(script.Parent.Parent.RunPaused)
 local SoundFx = require(script.Parent.Parent.Fx.SoundFx)
 
@@ -123,6 +126,9 @@ type Waiting = {
 local queue: { Waiting } = {}
 local current: GuiObject? = nil
 local currentSpot: Spot? = nil
+--[[ Where the tip showing stands round the arena in a run, nil elsewhere:
+     one above or below it rides on its end wall as the camera follows. ]]
+local currentForm: ArenaMargin.Form? = nil
 --[[ Whether the tip showing is a `hold` one: the run held, the keys its. ]]
 local currentHolds = false
 local currentKey: string? = nil
@@ -178,46 +184,29 @@ local function covered(key: string): boolean
 	return false
 end
 
---[[ The arena's box on the screen, clipped to it: what a tip keeps clear
-     of. Nil in the lobby, or with no room built. The room is centred on
-     the world's origin (`TopDownCamera`), walls included. A phone on its
-     side shows the room edge to edge, so there the card stands over its
-     foot; an upright phone's camera shows forest above or below it as it
-     follows, and the card goes there when it fits (`TipRules.place`). ]]
-local function arenaBox(w: number, h: number): TipRules.Box?
-	if Workspace:GetAttribute("InLobby") == true or not Workspace:FindFirstChild("Arena") then
+--[[ Where a tip's card stands during a run: outside the arena, beside it
+     in a landscape screen's margin or above or below it on an upright phone
+     (`Util/ArenaMargin`; owner, 2026-11-19: "the tutorial tips need to be
+     on the outer arena so they do not block the arena"), at the card's
+     upright or wide size (`TipRules.layout`). Nil in the lobby, or with no
+     room built. `last`: where it stood a moment ago, so a card above or
+     below the arena keeps its end as the camera follows. ]]
+local function runSpot(size: Vector2, last: ArenaMargin.Form?): ArenaMargin.Spot?
+	local run, arena = RunMargin.read(Vector2.zero, size)
+	if not run or not arena then
 		return nil
 	end
-	local camera = Workspace.CurrentCamera
-	if not camera then
-		return nil
-	end
-	local arena = Balance.Arena
-	local hx = arena.size.X / 2 + arena.wallThickness
-	local hz = arena.size.Z / 2 + arena.wallThickness
-	local minX, minY, maxX, maxY = math.huge, math.huge, -math.huge, -math.huge
-	-- the floor and its walls where they stand: a wall's top leans out in
-	-- the view and would make the room look bigger than what is played on
-	for _, corner in
-		{
-			Vector3.new(-hx, 0, -hz),
-			Vector3.new(hx, 0, -hz),
-			Vector3.new(-hx, 0, hz),
-			Vector3.new(hx, 0, hz),
-		}
-	do
-		local point, inFront = camera:WorldToViewportPoint(corner)
-		if inFront then
-			minX, maxX = math.min(minX, point.X), math.max(maxX, point.X)
-			minY, maxY = math.min(minY, point.Y), math.max(maxY, point.Y)
-		end
-	end
-	if minX > maxX then
-		return nil
-	end
-	minX, maxX = math.clamp(minX, 0, w), math.clamp(maxX, 0, w)
-	minY, maxY = math.clamp(minY, 0, h), math.clamp(maxY, 0, h)
-	return { x = minX, y = minY, w = maxX - minX, h = maxY - minY }
+	local layout = TipRules.layout
+	return ArenaMargin.place(run, arena, {
+		sideMin = layout.sideMin,
+		sideMax = layout.sideMax,
+		bandMax = layout.wideWidth,
+		height = function(_width: number, form: ArenaMargin.Form): number
+			return if form == "Right" or form == "Left"
+				then layout.sideHeight
+				else layout.wideHeight
+		end,
+	}, last)
 end
 
 --[[ OK, or its time is up (`quiet`): the tip goes, and for a `hold` tip the
@@ -227,6 +216,7 @@ local function close(item: GuiObject, quiet: boolean?)
 		return
 	end
 	current = nil
+	currentForm = nil
 	local held = currentHolds
 	currentHolds = false
 	lastGone = os.clock()
@@ -282,6 +272,7 @@ local function draw(key: string, spot: Spot?)
 		return
 	end
 	local size = screen.AbsoluteSize
+	currentForm = nil
 	local header: GuiObject? = nil
 	if spot then
 		local _, bar = spot()
@@ -306,8 +297,13 @@ local function draw(key: string, spot: Spot?)
 			h = header.AbsoluteSize.Y,
 		}, panel)
 	else
-		placed =
-			TipRules.place(size.X, size.Y, GuiService:GetGuiInset().Y, arenaBox(size.X, size.Y))
+		local around = runSpot(size, nil)
+		if around then
+			placed = { box = around.box, side = around.form == "Right" or around.form == "Left" }
+			currentForm = around.form
+		else
+			placed = TipRules.place(size.X, size.Y, GuiService:GetGuiInset().Y)
+		end
 	end
 	local box = placed.box
 	-- the card takes every press that lands on it, and only those
@@ -614,7 +610,7 @@ function FirstTips.start()
 	made.Name = "FirstTips"
 	made.ResetOnSpawn = false
 	made.IgnoreGuiInset = true
-	-- in the viewport's own points, as the arena is projected (`arenaBox`)
+	-- in the viewport's own points, as the arena is projected (`RunMargin`)
 	made.ScreenInsets = Enum.ScreenInsets.None
 	made.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 	made.DisplayOrder = DISPLAY_ORDER
@@ -664,6 +660,17 @@ function FirstTips.start()
 		local item = current
 		if item and currentHolds and passed(currentKey) then
 			close(item, true)
+		end
+		-- above or below the arena it rides on the end wall as the camera follows
+		local form = currentForm
+		local screen = gui
+		if item and current == item and screen and (form == "Above" or form == "Below") then
+			local spot = runSpot(screen.AbsoluteSize, form)
+			if spot and (spot.form == "Above" or spot.form == "Below") then
+				currentForm = spot.form
+				item.Position =
+					UDim2.fromOffset(spot.box.x + spot.box.w / 2, spot.box.y + spot.box.h / 2)
+			end
 		end
 		--[[ A tip that holds nothing gives way to a hatch or a crate opened
 		     under it: it stayed up over the reveal and over the NEW DEX

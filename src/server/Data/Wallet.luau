@@ -23,6 +23,7 @@ local MergeRules = require(ReplicatedStorage.Shared.Util.MergeRules)
 local PurchaseRules = require(ReplicatedStorage.Shared.Util.PurchaseRules)
 local Purse = require(ReplicatedStorage.Shared.Util.Purse)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
+local RewardPickRules = require(ReplicatedStorage.Shared.Util.RewardPickRules)
 local RunBonus = require(ReplicatedStorage.Shared.Util.RunBonus)
 local SaveSchema = require(ReplicatedStorage.Shared.Util.SaveSchema)
 local ShopRules = require(ReplicatedStorage.Shared.Util.ShopRules)
@@ -729,6 +730,52 @@ function Wallet.settleTournamentPicks(player: Player)
 		profile.gems += gems
 		changed(player, profile)
 	end
+end
+
+--[[ Owes the player a pick of themed set `set`'s weapons, one for each
+     class, for reward `id` (`Util/RewardPickRules`: Endless room 100, the
+     season pass's premium tier 30), saved until taken (`pickReward`). The
+     rewards that call this pay once, and an id already owed is not owed
+     twice. A set with nothing left the player can take pays
+     `Tournament.pickGems` gems instead. False if the profile is gone. ]]
+function Wallet.owePick(player: Player, id: string, set: string): boolean
+	local profile = PlayerData.get(player)
+	if not profile or profile.rewardPicks[id] then
+		return false
+	end
+	if #RewardPickRules.pickable(set, profile.weapons) == 0 then
+		profile.gems += Tournament.pickGems
+		log.info(
+			"%s has every %s weapon: %d gems for %s",
+			player.Name,
+			set,
+			Tournament.pickGems,
+			id
+		)
+	else
+		profile.rewardPicks[id] = set
+		log.info("%s may pick a %s weapon (%s)", player.Name, set, id)
+	end
+	changed(player, profile)
+	return true
+end
+
+--[[ Takes the owed reward pick `weapon` belongs to and gives it
+     (`RewardPickRules.find`). It is a client's ask, so a weapon of no owed
+     set, or one held once and held already, is refused. True if given. ]]
+function Wallet.pickReward(player: Player, weapon: unknown): boolean
+	local profile = PlayerData.get(player)
+	if not profile or type(weapon) ~= "string" then
+		return false
+	end
+	local id = RewardPickRules.find(profile.rewardPicks, weapon, profile.weapons)
+	if not id then
+		return false
+	end
+	profile.rewardPicks[id] = nil
+	log.info("%s picks the %s (%s)", player.Name, weapon, id)
+	Wallet.grantWeapon(player, weapon)
+	return true
 end
 
 return Wallet

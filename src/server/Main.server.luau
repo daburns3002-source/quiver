@@ -825,6 +825,13 @@ Inbound.on(Remotes.EndlessPick, function(player, choice)
 	RoomController.endlessPick(player, choice)
 end)
 
+--[[ TAKE IT on the reward pick panel: only the weapon is sent, and only a
+     weapon of a set the server owes this player a pick of is given
+     (`Wallet.pickReward`, `Util/RewardPickRules`). ]]
+Inbound.on(Remotes.RewardPick, function(player, weapon)
+	Wallet.pickReward(player, weapon)
+end)
+
 --[[ Which portal's screen each player has open (`Remotes.PortalOpen`), so
      it is sent only as they step in or out. ]]
 local portalShown: { [Player]: number } = {}

@@ -143,7 +143,16 @@ repeatable currency keeps the mode worth replaying once the milestones are claim
 | 30 | 5 eggs and 5 crates |
 | 50 | 5 eggs, one guaranteed Legendary or better |
 | 75 | 5 crates, one guaranteed Legendary |
-| 100 | **the Nebula Blade** (Mythic, earned only), 10 eggs and 10 crates, a Mythic in each |
+| 100 | **any one Voidglass weapon, the player's pick** (the Nebula Blade, a Mythic, or the Orbit Bow, Starwell Staff or Comet Daggers, Legendaries), 10 eggs and 10 crates, a Mythic in each |
+
+**Room 100's pick** (owner, 2026-11-19: "make sure that the player has a choice BETWEEN THE MYTHICS
+AND LEGENDARIES FOR ALL CLASSES for the endless rewards and the battlepass", "the space and sakura
+ones"): the milestone owes a pick of the Voidglass set (`Balance.Endless.milestones` `pick`,
+`Util/RewardPickRules`), saved (`rewardPicks`, save v29) and taken on the lobby's pick panel
+(`UI/RewardPick`) once the run is over: four tiles, one for each class. The client sends only the
+weapon (`Remotes.RewardPick`); the server gives it only if it is of an owed set and can be taken
+(`Wallet.pickReward`). The Nebula Blade is held once; a bow, staff or daggers already held comes as
+another copy to merge.
 
 **Built 2026-11-11, at the owner's word** ("MAKE IT MORE LIKE 5 EGGS AND 5 CRATES. ROBLOX GAMES HAVE
 THAT EXTREME REWARD. I WANT IT TO FEEL NECESSARY TO BEAT THESE ROOMS"): each is hatched and opened for

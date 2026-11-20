@@ -53,7 +53,13 @@ export type Total = {
 	title: string?,
 	--[[ The season's earned weapons won (`SeasonDef.weapons`), nil for none. ]]
 	weapons: { string }?,
+	--[[ The set picks won (`SeasonDef.picks`), nil for none. ]]
+	picks: { Pick }?,
 }
+
+--[[ A set pick won: the set's key, and the season and track that gave it
+     (its reward id, `RewardPickRules.seasonId`). ]]
+export type Pick = { set: string, season: number, track: Track }
 
 local TRACKS: { Track } = { "free", "premium" }
 SeasonRules.TRACKS = TRACKS
@@ -269,6 +275,16 @@ function SeasonRules.weapon(def: Season.SeasonDef?, track: Track): string?
 	return if track == "free" then weapons.free else weapons.premium
 end
 
+--[[ The themed set `track` gives a pick of at its weapon tier this season,
+     nil for none. ]]
+function SeasonRules.pick(def: Season.SeasonDef?, track: Track): string?
+	local picks = def and def.picks
+	if not picks then
+		return nil
+	end
+	return if track == "free" then picks.free else picks.premium
+end
+
 --[[ Adds a tier's prize on `track` to `total`, its trail, title and weapon
      as the season `def` names them. ]]
 function SeasonRules.add(total: Total, prize: Season.Prize, def: Season.SeasonDef?, track: Track)
@@ -287,6 +303,12 @@ function SeasonRules.add(total: Total, prize: Season.Prize, def: Season.SeasonDe
 		local list = total.weapons or {}
 		table.insert(list, weapon)
 		total.weapons = list
+	end
+	local pick = if prize.weapon and def then SeasonRules.pick(def, track) else nil
+	if def and pick then
+		local list = total.picks or {}
+		table.insert(list, { set = pick, season = def.number, track = track })
+		total.picks = list
 	end
 end
 

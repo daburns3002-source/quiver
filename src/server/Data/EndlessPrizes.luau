@@ -29,6 +29,7 @@ local Log = require(ReplicatedStorage.Shared.Util.Log)
 local Pity = require(ReplicatedStorage.Shared.Util.Pity)
 local PrizeRules = require(ReplicatedStorage.Shared.Util.PrizeRules)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
+local RewardPickRules = require(ReplicatedStorage.Shared.Util.RewardPickRules)
 local ShopRules = require(ReplicatedStorage.Shared.Util.ShopRules)
 
 local Hatchery = require(script.Parent.Hatchery)
@@ -135,12 +136,12 @@ function EndlessPrizes.grant(player: Player, milestone: Balance.EndlessMilestone
 	if index then
 		weapons = EndlessPrizes.crates(player, index, crates, milestone.rarity)
 	end
-	--[[ The milestone's own earned weapon (room 100's Nebula Blade), shown
-	     first. The milestone is claimed once a profile, and an earned weapon
-	     is held once (`Wallet.grantWeapon`). ]]
-	local own = milestone.weapon
-	if own then
-		table.insert(weapons, 1, { weapon = own, new = Wallet.grantWeapon(player, own) })
+	--[[ The milestone's set pick (room 100's Voidglass: any one of its four,
+	     one for each class), owed until taken on the lobby's pick panel
+	     (`Util/RewardPickRules`). The milestone is claimed once a profile. ]]
+	local pick = milestone.pick
+	if pick then
+		Wallet.owePick(player, RewardPickRules.endlessId(milestone.floor), pick)
 	end
 	if #pets + #weapons > 0 then
 		Remotes.event(Remotes.EndlessPrize)

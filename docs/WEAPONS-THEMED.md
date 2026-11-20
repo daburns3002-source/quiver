@@ -33,6 +33,11 @@ mistaken for another game's art is a redo.
   (Lantern Bloom) is a Mythic, the season pass's premium tier 30 in Season 1; the
   **Wishcutter Blade** (Starwish) stays Legendary, the free tier 30 in Season 1. Only such an
   earned reward may stand above its set's rarity (`WeaponSets.spec`).
+- **Every class can take the reward** (owner, 2026-11-19: "a choice BETWEEN THE MYTHICS AND
+  LEGENDARIES FOR ALL CLASSES", "the space and sakura ones"): Endless room 100 and the premium
+  tier 30 owe a **pick** of the whole set, Voidglass and Lantern Bloom, any one of its four
+  (`Util/RewardPickRules`, `UI/RewardPick`): the Mythic blade or the Legendary bow, staff or
+  daggers, which stay on the SETS shelf too. The free tier 30 still gives the Wishcutter alone.
 - **Robux:** nothing here is sold for Robux. Gems can be bought, and everywhere else gems buy
   nothing above Epic, so a Legendary set's price in coins and gems is the one place they do
   (owner's yes, 2026-11-18). A Mythic set would be earned, never sold (`docs/ROBUX-STORE.md`).

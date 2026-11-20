@@ -193,22 +193,35 @@ return function(t: TestRunner.Helper)
 			t.isTrue(not each.free.weapon and not each.premium.weapon, `tier {tier} gives a weapon`)
 		end
 		t.equal(SeasonRules.weapon(def, "free"), "WishcutterBlade")
-		t.equal(SeasonRules.weapon(def, "premium"), "PetalfallBlade")
-		for _, key in { "WishcutterBlade", "PetalfallBlade" } do
-			local stats = WeaponStats.weapons[key]
-			t.isTrue(stats ~= nil and stats.earned == true, `{key} is not earned`)
-			t.isNil(ShopRules.price((assert(ShopRules.find(key), key))), `{key} is sold`)
-		end
+		t.isNil(SeasonRules.pick(def, "free"), "free names a weapon, not a pick")
+		--[[ Owner, 2026-11-19: "a choice BETWEEN THE MYTHICS AND LEGENDARIES
+		     FOR ALL CLASSES", "the space and sakura ones": premium's end is a
+		     pick of Lantern Bloom, the Petalfall Blade or its bow, staff or
+		     daggers. ]]
+		t.isNil(SeasonRules.weapon(def, "premium"), "premium is a pick")
+		t.equal(SeasonRules.pick(def, "premium"), "LanternBloom")
+		local stats = WeaponStats.weapons.WishcutterBlade
+		t.isTrue(stats ~= nil and stats.earned == true, "the Wishcutter is not earned")
+		t.isNil(
+			ShopRules.price((assert(ShopRules.find("WishcutterBlade"), "WishcutterBlade"))),
+			"the Wishcutter is sold"
+		)
 		t.equal(WeaponStats.weapons.PetalfallBlade.rarity, "Mythic")
 		t.equal(WeaponStats.weapons.WishcutterBlade.rarity, "Legendary")
-		-- free alone gets only the free weapon; with premium, both
+		-- free alone gets only the free weapon; with premium, the pick too
 		local plain = started(SeasonRules.maxXp())
-		t.equal(table.concat(SeasonRules.claimAll(plain).weapons or {}, ","), "WishcutterBlade")
+		local free = SeasonRules.claimAll(plain)
+		t.equal(table.concat(free.weapons or {}, ","), "WishcutterBlade")
+		t.isNil(free.picks)
 		local paid = started(SeasonRules.maxXp())
 		paid.premium = true
-		local both = SeasonRules.claimAll(paid).weapons or {}
-		table.sort(both)
-		t.equal(table.concat(both, ","), "PetalfallBlade,WishcutterBlade")
+		local both = SeasonRules.claimAll(paid)
+		t.equal(table.concat(both.weapons or {}, ","), "WishcutterBlade")
+		local picks = both.picks or {}
+		t.equal(#picks, 1)
+		t.equal(picks[1] and picks[1].set, "LanternBloom")
+		t.equal(picks[1] and picks[1].season, def.number)
+		t.equal(picks[1] and picks[1].track, "premium")
 	end)
 
 	t.test("at the month's end everything reached is claimed for the player", function()

@@ -48,8 +48,8 @@ export type Prize = {
 	--[[ The season's trail, and its title (premium only). ]]
 	trail: boolean?,
 	title: boolean?,
-	--[[ The season's weapon for this track (`SeasonDef.weapons`), if it
-	     has one: tier 30's. ]]
+	--[[ The season's weapon for this track (`SeasonDef.weapons`), or its
+	     set pick (`SeasonDef.picks`), if it has one: tier 30's. ]]
 	weapon: boolean?,
 }
 
@@ -67,6 +67,10 @@ export type SeasonDef = {
 	--[[ The earned weapon each track gives at tier 30 (`WeaponStats.earned`),
 	     nil for none. ]]
 	weapons: { free: string?, premium: string? }?,
+	--[[ Or the themed set (`Config/Shop.sets`) each track's tier 30 gives a
+	     pick of, any one of its four, one for each class
+	     (`Util/RewardPickRules`). A track names a weapon or a pick, not both. ]]
+	picks: { free: string?, premium: string? }?,
 	--[[ The tab's colours: its band, and the line under its words. ]]
 	colour: Color3,
 	accent: Color3,
@@ -113,8 +117,13 @@ local Season = {
 			title = "Wishkeeper",
 			--[[ Owner, 2026-11-19: the Wishcutter Blade "should be the
 			     legendary that goes in the free battle pass for tier 30",
-			     and the Petalfall Blade, a Mythic, is premium's end. ]]
-			weapons = { free = "WishcutterBlade", premium = "PetalfallBlade" },
+			     and the Petalfall Blade, a Mythic, is premium's end; then
+			     "a choice BETWEEN THE MYTHICS AND LEGENDARIES FOR ALL
+			     CLASSES", "the space and sakura ones": premium's end is a
+			     pick of the Lantern Bloom set, the Petalfall Blade or its
+			     bow, staff or daggers. ]]
+			weapons = { free = "WishcutterBlade" },
+			picks = { premium = "LanternBloom" },
 			colour = hex("#FF9EC7"),
 			accent = hex("#8FE3C4"),
 		},

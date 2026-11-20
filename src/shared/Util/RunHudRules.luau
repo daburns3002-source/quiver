@@ -89,6 +89,83 @@ function RunHudRules.top(view: Vector2, phone: boolean, topBar: number): Top
 	}
 end
 
+--[[ A phone's stack at the foot of the screen (`Config/Hud` `phone`), in
+     points up from the bottom: the skill bar's scale, the bars' width and
+     where each stands, where the stack ends, its half width, and where the
+     dash button sits: in its corner, or just above the stack when the
+     stack, centred, would reach under it. ]]
+export type PhoneStack = {
+	scale: number,
+	barsWidth: number,
+	healthBottom: number,
+	dashBottom: number,
+	stackTop: number,
+	stackHalf: number,
+	buttonBottom: number,
+}
+
+function RunHudRules.phoneStack(view: Vector2): PhoneStack
+	local u = Hud.phone
+	local room = view.X - u.edge * 2
+	local scale = math.min(u.skillBarScale, room / Hud.touchTray.X)
+	local barsWidth = math.min(u.barsWidth, room)
+	local healthBottom = u.skillBarBottom + Hud.touchTray.Y * scale + u.barsGap
+	local dashBottom = healthBottom + u.healthHeight + u.barsGap
+	local stackTop = dashBottom + u.dashHeight
+	local stackHalf = math.max(barsWidth, Hud.touchTray.X * scale) / 2
+	local buttonLeft = view.X - u.dashButtonMargin - u.dashButtonSize
+	local buttonBottom = if view.X / 2 + stackHalf > buttonLeft - 6
+		then stackTop + u.dashButtonAboveStack
+		else u.dashButtonMargin
+	return {
+		scale = scale,
+		barsWidth = barsWidth,
+		healthBottom = healthBottom,
+		dashBottom = dashBottom,
+		stackTop = stackTop,
+		stackHalf = stackHalf,
+		buttonBottom = buttonBottom,
+	}
+end
+
+--[[ The run HUD's pieces on a screen `view` points in size, whose Roblox
+     top bar ends `topBar` points down, as boxes: what a tip in the margin
+     must not cover (`Util/ArenaMargin`). The top HUD and a phone's MENU
+     icon; a computer's MENU button and its bars and skill bar; a phone's
+     stack and its dash button. ]]
+function RunHudRules.pieces(view: Vector2, phone: boolean, topBar: number): { Box }
+	local top = RunHudRules.top(view, phone, topBar)
+	local boxes: { Box } = { top.banner }
+	if top.menu then
+		table.insert(boxes, top.menu)
+	end
+	if not phone then
+		local d = Hud.desktop
+		local stackTop = d.dashBottom + d.dashHeight
+		local w = view.X * d.barsWidthShare
+		table.insert(boxes, { x = (view.X - w) / 2, y = view.Y - stackTop, w = w, h = stackTop })
+		--[[ MENU, off the left edge just under mid-height (`UI/ControlMenu`),
+		     with room above and below it. ]]
+		table.insert(boxes, { x = 0, y = view.Y / 2 - 40, w = 160, h = 160 })
+		return boxes
+	end
+	local u = Hud.phone
+	local p = RunHudRules.phoneStack(view)
+	table.insert(boxes, {
+		x = view.X / 2 - p.stackHalf,
+		y = view.Y - p.stackTop,
+		w = p.stackHalf * 2,
+		h = p.stackTop,
+	})
+	table.insert(boxes, {
+		x = view.X - u.dashButtonMargin - u.dashButtonSize,
+		y = view.Y - p.buttonBottom - u.dashButtonSize,
+		w = u.dashButtonSize,
+		h = u.dashButtonSize,
+	})
+	return boxes
+end
+
 export type Pips = {
 	count: number,
 	--[[ Rooms behind the player. ]]

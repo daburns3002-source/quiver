@@ -169,62 +169,11 @@ return function(t: TestRunner.Helper)
 	t.test("with no arena (the lobby) a tip stands centred under the top HUD", function()
 		for _, shape in { { 390, 844, 47 }, { 844, 390, 0 }, { 1920, 1080, 58 }, { 320, 568, 20 } } do
 			local w, h, inset = shape[1], shape[2], shape[3]
-			local placed = TipRules.place(w, h, inset, nil)
+			local placed = TipRules.place(w, h, inset)
 			inside(placed.box, w, h, `{w} x {h}`)
 			t.isFalse(placed.side)
 			t.isTrue(placed.box.y >= inset, `{w} x {h}: under the top bar`)
 		end
-	end)
-
-	t.test("in a run a tip stands beside the arena, never on it", function()
-		local shapes = {
-			-- a computer: the room in the middle, forest either side
-			{
-				w = 1920,
-				h = 1080,
-				inset = 58,
-				arena = { x = 600, y = 0, w = 720, h = 1080 },
-				side = true,
-			},
-			-- a phone on its side
-			{
-				w = 844,
-				h = 390,
-				inset = 0,
-				arena = { x = 260, y = 0, w = 324, h = 390 },
-				side = true,
-			},
-			-- an upright phone: the room across the width, forest above and below
-			{
-				w = 390,
-				h = 844,
-				inset = 47,
-				arena = { x = 0, y = 210, w = 390, h = 440 },
-				side = false,
-			},
-			{
-				w = 390,
-				h = 844,
-				inset = 47,
-				arena = { x = 0, y = 380, w = 390, h = 280 },
-				side = false,
-			},
-		}
-		for _, shape in shapes do
-			local where = `{shape.w} x {shape.h}`
-			local placed = TipRules.place(shape.w, shape.h, shape.inset, shape.arena)
-			inside(placed.box, shape.w, shape.h, where)
-			t.equal(placed.side, shape.side, `{where}: which margin`)
-			t.isTrue(apart(placed.box, shape.arena), `{where}: on the arena`)
-		end
-	end)
-
-	t.test("with the margins alike a tip takes the right one, away from MENU", function()
-		local arena = { x = 600, y = 0, w = 720, h = 1080 }
-		local placed = TipRules.place(1920, 1080, 58, arena)
-		t.isTrue(placed.box.x >= arena.x + arena.w, "on the left, over MENU")
-		local leftWide = TipRules.place(1920, 1080, 58, { x = 900, y = 0, w = 720, h = 1080 })
-		t.isTrue(leftWide.box.x + leftWide.box.w <= 900, "the left margin, clearly wider, is taken")
 	end)
 
 	t.test("over a lobby screen a tip stands on its header, never under it", function()
@@ -298,10 +247,5 @@ return function(t: TestRunner.Helper)
 		)
 		inside(phone.box, 844, 390, "a phone on its side")
 		t.isTrue(phone.box.y <= TipRules.layout.gutter)
-	end)
-
-	t.test("with no margin wide enough a tip is still whole on the screen", function()
-		local placed = TipRules.place(390, 844, 47, { x = 0, y = 100, w = 390, h = 700 })
-		inside(placed.box, 390, 844, "an arena filling the screen")
 	end)
 end

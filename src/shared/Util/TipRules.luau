@@ -91,60 +91,27 @@ export type Placement = {
 }
 
 --[[ Where a tip's card stands on a screen `w` x `h` points with `insetY` of
-     Roblox's top bar, given the arena's box on that screen (nil in the
-     lobby, or on a screen with nothing behind it to keep clear). Beside the
-     arena in the wider side margin if a card fits there, which a landscape
-     screen has; else in the space above or below it, which an upright phone
-     has; else where the most of it shows, overlapping its edge. With no
-     arena, centred under the top HUD. Always whole on the screen. ]]
-function TipRules.place(w: number, h: number, insetY: number, arena: Box?): Placement
+     Roblox's top bar when there is no arena behind it to keep clear of (the
+     lobby): the wide card, centred under the top HUD, whole on the screen.
+     In a run the card goes round the arena instead (`Util/ArenaMargin`, at
+     `sideMin`..`sideMax` by `sideHeight` beside it, `wideWidth` by
+     `wideHeight` above or below it). ]]
+function TipRules.place(w: number, h: number, insetY: number): Placement
 	local layout = TipRules.layout
 	local g = layout.gutter
 	local top = insetY + layout.below
-	local function onScreenY(y: number, height: number): number
-		local lowest = math.max(0, h - height - g)
-		return math.clamp(y, math.min(top, lowest), lowest)
-	end
-	local function wide(y: number): Placement
-		local width = math.min(layout.wideWidth, w - g * 2)
-		local height = layout.wideHeight
-		return {
-			box = {
-				x = math.floor((w - width) / 2),
-				y = math.floor(onScreenY(y, height)),
-				w = width,
-				h = height,
-			},
-			side = false,
-		}
-	end
-	if not arena then
-		return wide(top)
-	end
-	local left = arena.x
-	local right = w - (arena.x + arena.w)
-	local room = math.max(left, right) - g * 2
-	if room >= layout.sideMin then
-		local width = math.min(layout.sideMax, room)
-		local height = math.min(layout.sideHeight, h - top - g)
-		-- the right one unless the left is clearly wider: MENU is on the left edge
-		local x = if right + layout.gutter >= left
-			then arena.x + arena.w + (right - width) / 2
-			else (left - width) / 2
-		local y = top + (h - top - g - height) / 2
-		return {
-			box = { x = math.floor(x), y = math.floor(onScreenY(y, height)), w = width, h = height },
-			side = true,
-		}
-	end
-	local above = arena.y - top
-	local under = h - g - (arena.y + arena.h)
+	local width = math.min(layout.wideWidth, w - g * 2)
 	local height = layout.wideHeight
-	if under >= height or (under >= above and above < height) then
-		-- below the arena, centred in its space, or at the foot of the screen
-		return wide(arena.y + arena.h + math.max(0, (under - height) / 2))
-	end
-	return wide(top + math.max(0, (above - height) / 2))
+	local lowest = math.max(0, h - height - g)
+	return {
+		box = {
+			x = math.floor((w - width) / 2),
+			y = math.floor(math.clamp(top, math.min(top, lowest), lowest)),
+			w = width,
+			h = height,
+		},
+		side = false,
+	}
 end
 
 --[[ Where a tip's card stands over a lobby screen's header (`spot`, the

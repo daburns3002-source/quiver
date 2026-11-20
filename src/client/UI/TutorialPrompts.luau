@@ -27,9 +27,11 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
+local TextService = game:GetService("TextService")
 local UserInputService = game:GetService("UserInputService")
 local Workspace = game:GetService("Workspace")
 
+local ArenaMargin = require(ReplicatedStorage.Shared.Util.ArenaMargin)
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
 local CurrentStage = require(ReplicatedStorage.Shared.Util.CurrentStage)
 local PromptText = require(ReplicatedStorage.Shared.Util.PromptText)
@@ -42,6 +44,7 @@ local Dash = require(script.Parent.Parent.Input.Dash)
 local Device = require(script.Parent.Parent.Device)
 local DraftScreen = require(script.Parent.Cards.DraftScreen)
 local MusicFx = require(script.Parent.Parent.Fx.MusicFx)
+local RunMargin = require(script.Parent.RunMargin)
 local RunPaused = require(script.Parent.Parent.RunPaused)
 
 local TutorialPrompts = {}
@@ -77,12 +80,30 @@ type Panel = {
 	bandCorner: UICorner,
 	padding: UIPadding,
 	gap: UIListLayout,
-	--[[ What it is showing, so the same prompt does not pop in every frame. ]]
+	--[[ What it is showing, so the same prompt does not pop in every frame,
+	     and its words as read, to measure. ]]
 	showing: string?,
+	plain: string,
+	--[[ The width and text sizes it was last fitted to, so it is laid out
+	     again only when they change. ]]
+	fitted: string?,
 }
 
 local roomPanel: Panel? = nil
 local cardPanel: Panel? = nil
+--[[ An empty full-screen ScreenGui (no inset, no safe area): where the
+     viewport's top-left is in GUI points, so the prompts' own ScreenGui,
+     inside the safe area, knows where it stands on the viewport. ]]
+local fullScreen: ScreenGui? = nil
+--[[ Where the room prompt stood last frame beside, above or below the
+     arena (`Util/ArenaMargin`), so a prompt above or below it keeps its end. ]]
+local roomForm: ArenaMargin.Form? = nil
+--[[ A room prompt's width beside the arena, in points: as wide as a
+     margin allows up to `ROOM_SIDE_MAX`, never under `ROOM_SIDE_MIN` (it
+     goes above or below the arena then); and above or below it. ]]
+local ROOM_SIDE_MIN = 160
+local ROOM_SIDE_MAX = 460
+local ROOM_BAND_MAX = 520
 
 --[[ Where the run is, and what the player has done so far
      (`Util/TutorialSteps`). ]]
@@ -248,19 +269,84 @@ local function panel(gui: Instance, name: string, y: number): Panel
 		padding = padding,
 		gap = gap,
 		showing = nil,
+		plain = "",
+		fitted = nil,
 	}
 end
 
---[[ Sizes a panel and its words for this screen: big enough to read at a
-     glance on a computer, and on a phone held either way. ]]
-local function fit(p: Panel?, maxWidth: number, view: Vector2, phone: boolean)
-	if not p then
+--[[ The words' and heading's sizes for a panel `width` points wide on
+     this screen. Beside the arena as big as the screen suits and the width
+     holds, about 13 letters' worth across; above or below it on an upright
+     phone smaller, so the panel takes as little of the forest's height as
+     it can; else big enough to read at a glance on a computer and on a
+     phone held either way. ]]
+local function sizes(
+	form: ArenaMargin.Form?,
+	width: number,
+	view: Vector2,
+	phone: boolean
+): (number, number)
+	local short = math.min(view.X, view.Y)
+	local screenBody = short * (if phone then 0.052 else 0.042)
+	local screenTitle = short * 0.06
+	if form == "Right" or form == "Left" then
+		local body = math.floor(math.clamp(math.min(screenBody, width / 13), 16, 36))
+		return body, math.floor(math.clamp(math.min(screenTitle, body * 1.4), 20, 50))
+	elseif form == "Above" or form == "Below" then
+		local body = math.floor(math.clamp(short * 0.046, 16, 20))
+		return body, math.floor(body * 1.25)
+	end
+	return math.floor(math.clamp(screenBody, 20, 36)), math.floor(math.clamp(screenTitle, 26, 50))
+end
+
+--[[ The panel's outline for this screen, in points. ]]
+local function edgeFor(view: Vector2): number
+	return math.max(3, math.floor(math.min(view.X, view.Y) * 0.006))
+end
+
+--[[ How tall a panel `width` points wide comes out with words `plain` at
+     these sizes: its padding, header band, gap and wrapped words, and its
+     outline round it. Kept, so a screen that does not change is measured
+     once. ]]
+local measured: { [string]: number } = {}
+local function tallness(
+	plain: string,
+	width: number,
+	body: number,
+	title: number,
+	edge: number
+): number
+	local key = `{plain}|{width}|{body}|{title}|{edge}`
+	local known = measured[key]
+	if known then
+		return known
+	end
+	local inner = width - edge * 2
+	local pad = math.floor(body * 0.6)
+	local words = TextService:GetTextSize(
+		plain,
+		body,
+		Chunky.font,
+		Vector2.new(math.max(1, inner - pad * 2), 10000)
+	)
+	local tall = pad
+		+ math.floor(title * 1.5)
+		+ math.floor(body * 0.45)
+		+ math.ceil(words.Y)
+		+ math.floor(pad * 1.1)
+		+ edge * 2
+	measured[key] = tall
+	return tall
+end
+
+--[[ Lays a panel out `width` points wide with its words at `bodySize` and
+     its heading at `titleSize`. ]]
+local function fitTo(p: Panel, width: number, bodySize: number, titleSize: number, edge: number)
+	local key = `{width}|{bodySize}|{titleSize}|{edge}`
+	if p.fitted == key then
 		return
 	end
-	local short = math.min(view.X, view.Y)
-	local bodySize = math.floor(math.clamp(short * (if phone then 0.052 else 0.042), 20, 36))
-	local titleSize = math.floor(math.clamp(short * 0.06, 26, 50))
-	local width = math.min(view.X * (if phone then 0.94 else 0.62), maxWidth)
+	p.fitted = key
 	p.group.Size = UDim2.fromOffset(width, 0)
 	p.title.TextSize = titleSize
 	p.body.TextSize = bodySize
@@ -269,7 +355,6 @@ local function fit(p: Panel?, maxWidth: number, view: Vector2, phone: boolean)
 	p.bodyStroke.Thickness = if PromptText.isLight(Chunky.panelBottom)
 		then 0
 		else math.max(2, bodySize * 0.11)
-	local edge = math.max(3, math.floor(short * 0.006))
 	p.outline.Thickness = edge
 	p.headerOutline.Thickness = math.max(2, edge - 1)
 	p.corner.CornerRadius = UDim.new(0, edge * 4)
@@ -284,6 +369,17 @@ local function fit(p: Panel?, maxWidth: number, view: Vector2, phone: boolean)
 	p.padding.PaddingTop = UDim.new(0, pad)
 	p.padding.PaddingBottom = UDim.new(0, math.floor(pad * 1.1))
 	p.gap.Padding = UDim.new(0, math.floor(bodySize * 0.45))
+end
+
+--[[ Sizes a panel and its words for this screen: big enough to read at a
+     glance on a computer, and on a phone held either way. ]]
+local function fit(p: Panel?, maxWidth: number, view: Vector2, phone: boolean)
+	if not p then
+		return
+	end
+	local width = math.floor(math.min(view.X * (if phone then 0.94 else 0.62), maxWidth))
+	local body, title = sizes(nil, width, view, phone)
+	fitTo(p, width, body, title, edgeFor(view))
 end
 
 --[[ A prompt's words for this device's own controls. ]]
@@ -308,10 +404,11 @@ local function show(p: Panel?, id: string, device: string?)
 		return
 	end
 	local colours = palette()
+	local said = if device then (words :: any)[device] else forDevice(words)
 	p.title.Text = words.title
 	p.body.TextColor3 = colours.words
-	p.body.Text =
-		PromptText.rich(if device then (words :: any)[device] else forDevice(words), colours)
+	p.body.Text = PromptText.rich(said, colours)
+	p.plain = PromptText.plain(said)
 	p.group.Visible = true
 	if p.showing ~= id then
 		p.showing = id
@@ -386,6 +483,51 @@ local function placeCard()
 	end
 end
 
+--[[ The room prompt outside the arena (owner, 2026-11-19: "the tutorial
+     tips need to be on the outer arena so they do not block the arena"):
+     in the margin beside it on a computer or a phone on its side, else in
+     the forest above or below it on an upright phone, riding on the end
+     wall as the camera follows (`Util/ArenaMargin`). With no room on the
+     screen it keeps its old place, centred near the top. ]]
+local function placeRoom()
+	local p = roomPanel
+	local screen = if p then p.group:FindFirstAncestorOfClass("ScreenGui") else nil
+	local full = fullScreen
+	if not p or not screen or not full or not p.group.Visible then
+		roomForm = nil
+		return
+	end
+	local view = viewport()
+	local phone = Device.isPhone()
+	local edge = edgeFor(view)
+	local origin = screen.AbsolutePosition - full.AbsolutePosition
+	local run, arena = RunMargin.read(origin, screen.AbsoluteSize)
+	if not run or not arena then
+		roomForm = nil
+		fit(p, 900, view, phone)
+		p.group.AnchorPoint = Vector2.new(0.5, 0)
+		p.group.Position = UDim2.fromScale(0.5, 0.16)
+		return
+	end
+	local plain = p.plain
+	local spot = ArenaMargin.place(run, arena, {
+		sideMin = ROOM_SIDE_MIN,
+		sideMax = ROOM_SIDE_MAX,
+		bandMax = ROOM_BAND_MAX,
+		height = function(width: number, form: ArenaMargin.Form): number
+			local body, title = sizes(form, width, view, phone)
+			return tallness(plain, width, body, title, edge)
+		end,
+	}, roomForm)
+	roomForm = spot.form
+	local box = spot.box
+	local body, title = sizes(spot.form, box.w, view, phone)
+	-- the outline is drawn round the panel, inside the box it was given
+	fitTo(p, box.w - edge * 2, body, title, edge)
+	p.group.AnchorPoint = Vector2.new(0, 0)
+	p.group.Position = UDim2.fromOffset(box.x + edge, box.y + edge)
+end
+
 local function step(dt: number)
 	if not inTutorial() then
 		hide(roomPanel)
@@ -414,6 +556,7 @@ local function step(dt: number)
 	else
 		hide(roomPanel)
 	end
+	placeRoom()
 	MusicFx.setReading(id ~= nil or cardShowing or meeting())
 end
 
@@ -476,11 +619,18 @@ function TutorialPrompts.start()
 	-- NEW ENEMY! screen (103), which the room prompts wait behind anyway
 	gui.DisplayOrder = 102
 	gui.Parent = playerGui
+	local full = Instance.new("ScreenGui")
+	full.Name = "TutorialPromptsOrigin"
+	full.ResetOnSpawn = false
+	full.IgnoreGuiInset = true
+	full.ScreenInsets = Enum.ScreenInsets.None
+	full.Parent = playerGui
+	fullScreen = full
 	roomPanel = panel(gui, "RoomPrompt", 0.16)
 	-- in place of the draft's own heading, clear of its cards (`placeCard`)
 	cardPanel = panel(gui, "CardPrompt", CARD_TOP)
 	local function refit()
-		fit(roomPanel, 900, viewport(), Device.isPhone())
+		-- the room prompt is fitted where it is placed, each frame (`placeRoom`)
 		fit(cardPanel, 1000, viewport(), Device.isPhone())
 		-- measured again at its new size
 		cardTall = 0

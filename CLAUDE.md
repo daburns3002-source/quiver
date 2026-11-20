@@ -138,11 +138,16 @@ phone-sized frame for a Studio look. **The room prompt stands outside the arena*
 tutorial tips need to be on the outer arena so they do not block the arena"), placed every frame by
 `Util/ArenaMargin` from the room's corners as the camera shows them (`UI/RunMargin`) and the run HUD's pieces
 (`RunHudRules.pieces`): in the right margin on a computer (left only if the right will not hold it), sized to
-the margin (words about 13 letters' worth across, up to 36 points); on an upright phone, whose floor fills the
-width and whose forest is mostly under the HUD, a compact card above or below the room on its end wall, off
-the HUD, never on the player when the other end will do, then off the exit gate, keeping its end until the
-other is clearly better. There it usually still covers a strip of floor: nothing else fits.
-`tests/ArenaMargin.spec` holds it with the real camera maths for five computer sizes and three phones.
+the margin (words about 13 letters' worth across, up to 36 points). On a phone held upright, whose floor
+fills the width and whose forest is mostly under the HUD, a compact card docks against the HUD at the end of
+the room the player is nearer (`ArenaMargin.docked`, moving end `Camera.phone.promptSwitch` studs past the
+middle) and **the camera pulls back while it is up** (owner, 2026-11-19: "Pull camera back";
+`TopDownCamera.keepClear`): eased out to `Camera.phone.promptFitWidth` (48, 1.33x) and moved along the room
+just far enough that the end wall stands past the card (`CameraFit.clearFocus`), the player kept
+`promptPlayerRoom` points off the card and the HUD (the player wins if both cannot be had). Mid-room the far
+end then slides under the top HUD while a prompt is up. First-time tips on an upright phone still ride the
+end wall and can cover a strip of floor: their 160-point card does not fit mid-room even pulled back.
+`tests/ArenaMargin.spec` holds both with the real camera maths for five computer sizes and three phones.
 The run holds still until the story's black has held: the server skips
 its step while any player is still on the title (`RunSession.anyAtTitle`,
 cleared by `Remotes.IntroBegin`, fired at the story's end), the client holds on

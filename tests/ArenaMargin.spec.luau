@@ -26,19 +26,25 @@ local TOP_BAR = 58
 
 --[[ The run camera on a screen `w` x `h`, its focus `z` down the room: a
      world point on the screen (`TopDownCamera`'s offset and lens). ]]
+local function offsetFor(w: number, h: number, phone: boolean, fitWidth: number?): Vector3
+	local camera = Balance.Camera
+	return CameraFit.offset(Vector2.new(w, h), {
+		pitch = camera.pitch,
+		fieldOfView = camera.fieldOfView,
+		fitWidth = fitWidth or (if phone then camera.phone.fitWidth else camera.fitWidth),
+		minVisibleDepth = if phone then camera.phone.minVisibleDepth else camera.minVisibleDepth,
+	})
+end
+
 local function projector(
 	w: number,
 	h: number,
 	phone: boolean,
-	z: number
+	z: number,
+	fitWidth: number?
 ): (number, number, number) -> Point
 	local camera = Balance.Camera
-	local offset = CameraFit.offset(Vector2.new(w, h), {
-		pitch = camera.pitch,
-		fieldOfView = camera.fieldOfView,
-		fitWidth = if phone then camera.phone.fitWidth else camera.fitWidth,
-		minVisibleDepth = if phone then camera.phone.minVisibleDepth else camera.minVisibleDepth,
-	})
+	local offset = offsetFor(w, h, phone, fitWidth)
 	local at = Vector3.new(0, 0, z) + offset
 	local look = CFrame.lookAt(at, Vector3.new(0, 0, z))
 	local tanV = math.tan(math.rad(camera.fieldOfView) / 2)
@@ -56,14 +62,9 @@ end
 --[[ Where an upright phone's camera looks with the player at `z`: the view
      is longer than the room, so it centres on it and follows no further
      than `longViewFollow` either way (`TopDownCamera`). ]]
-local function phoneFocus(w: number, h: number, z: number): number
+local function phoneFocus(w: number, h: number, z: number, fitWidth: number?): number
 	local camera = Balance.Camera
-	local offset = CameraFit.offset(Vector2.new(w, h), {
-		pitch = camera.pitch,
-		fieldOfView = camera.fieldOfView,
-		fitWidth = camera.phone.fitWidth,
-		minVisibleDepth = camera.phone.minVisibleDepth,
-	})
+	local offset = offsetFor(w, h, true, fitWidth)
 	local pitch = math.atan2(offset.Y, offset.Z)
 	local half = math.rad(camera.fieldOfView) / 2
 	local near = offset.Z - offset.Y / math.tan(pitch + half)
@@ -77,8 +78,15 @@ end
 
 --[[ The run's screen with the camera's focus at `z` and the player at
      `playerZ`. ]]
-local function scene(w: number, h: number, phone: boolean, z: number, playerZ: number)
-	local project = projector(w, h, phone, z)
+local function scene(
+	w: number,
+	h: number,
+	phone: boolean,
+	z: number,
+	playerZ: number,
+	fitWidth: number?
+)
+	local project = projector(w, h, phone, z, fitWidth)
 	local arena = Balance.Arena
 	local quad = ArenaMargin.quad(
 		arena.size.X / 2 + arena.wallThickness,
@@ -238,7 +246,7 @@ return function(t: TestRunner.Helper)
 	end)
 
 	t.test(
-		"on an upright phone a prompt stands above or below the arena, on the screen and off the HUD",
+		"a card round the arena on an upright phone stays on the screen, off the HUD and the player",
 		function()
 			for _, size in PHONES do
 				local w, h = size[1], size[2]
@@ -304,6 +312,92 @@ return function(t: TestRunner.Helper)
 		screen.player = player
 		t.equal(ArenaMargin.place(screen, quad, want, "Above").form, "Below")
 	end)
+
+	t.test("the focus that puts a floor point on a screen row puts it there", function()
+		for _, size in PHONES do
+			local w, h = size[1], size[2]
+			local offset = offsetFor(w, h, true, nil)
+			for _, row in { 120, h / 2, h - 150 } do
+				for _, z in { -31, 0, 31 } do
+					local focus =
+						CameraFit.focusPutting(z, row, h, offset, Balance.Camera.fieldOfView)
+					local seen = projector(w, h, true, focus)(0, 0, z)
+					t.near(seen.y, row, 0.01, `{w} x {h}: z {z} on row {row}`)
+				end
+			end
+		end
+	end)
+
+	t.test(
+		"on an upright phone the camera pulls back and a prompt stands past the end wall, off the floor",
+		function()
+			--[[ As `UI/TutorialPrompts` and `TopDownCamera.keepClear` do it: the
+		     prompt docked against the HUD at the end the player is nearer
+		     (moving end `promptSwitch` past the middle), the camera at
+		     `promptFitWidth`, following as it does and then moved by
+		     `CameraFit.clearFocus`. Steady state, the easing done. ]]
+			local pulled = Balance.Camera.phone.promptFitWidth
+			local wall = Balance.Arena.size.Z / 2 + Balance.Arena.wallThickness
+			local g = ArenaMargin.GUTTER
+			for _, size in PHONES do
+				local w, h = size[1], size[2]
+				local offset = offsetFor(w, h, true, pulled)
+				for id, words in Tutorial.prompts do
+					local want = prompt(words.touch, w, h)
+					local form: ArenaMargin.Form = "Below"
+					local room = Balance.Camera.phone.promptPlayerRoom
+					for playerZ = 27, -27, -1 do
+						if form == "Below" and playerZ < -Balance.Camera.phone.promptSwitch then
+							form = "Above"
+						end
+						local base = scene(w, h, true, 0, playerZ, pulled)
+						local box = ArenaMargin.docked(base, want, form)
+						local hudTop, hudBottom = base.top, h
+						for _, piece in base.hud do
+							if piece.y + piece.h / 2 < h / 2 then
+								hudTop = math.max(hudTop, piece.y + piece.h)
+							else
+								hudBottom = math.min(hudBottom, piece.y)
+							end
+						end
+						local clear: CameraFit.Clear = if form == "Above"
+							then {
+								side = "Above",
+								wallRow = box.y + box.h + g,
+								playerTop = box.y + box.h + room,
+								playerBottom = hudBottom - room,
+							}
+							else {
+								side = "Below",
+								wallRow = box.y - g,
+								playerTop = hudTop + room,
+								playerBottom = box.y - room,
+							}
+						local focus = CameraFit.clearFocus(
+							phoneFocus(w, h, playerZ, pulled),
+							clear,
+							if form == "Below" then wall else -wall,
+							playerZ,
+							h,
+							offset,
+							Balance.Camera.fieldOfView
+						)
+						local screen, quad = scene(w, h, true, focus, playerZ, pulled)
+						local where = `{w} x {h}, {id}, player at {playerZ}, {form}`
+						t.equal(ArenaMargin.covers(box, quad), 0, `{where}: on the floor`)
+						t.isTrue(offHud(box, screen), `{where}: on the HUD`)
+						t.isTrue(onScreen(box, screen), `{where}: off the screen`)
+						-- where the player stands, as the camera bounds them
+						local player = projector(w, h, true, focus, pulled)(0, 0, playerZ)
+						t.isTrue(
+							player.y >= clear.playerTop - 1 and player.y <= clear.playerBottom + 1,
+							`{where}: player at {player.y}`
+						)
+					end
+				end
+			end
+		end
+	)
 
 	t.test(
 		"the floor covered is measured between the end walls, or the side walls alone",

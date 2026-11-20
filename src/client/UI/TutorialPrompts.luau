@@ -46,6 +46,7 @@ local DraftScreen = require(script.Parent.Cards.DraftScreen)
 local MusicFx = require(script.Parent.Parent.Fx.MusicFx)
 local RunMargin = require(script.Parent.RunMargin)
 local RunPaused = require(script.Parent.Parent.RunPaused)
+local TopDownCamera = require(script.Parent.Parent.Camera.TopDownCamera)
 
 local TutorialPrompts = {}
 
@@ -495,6 +496,7 @@ local function placeRoom()
 	local full = fullScreen
 	if not p or not screen or not full or not p.group.Visible then
 		roomForm = nil
+		TopDownCamera.keepClear(nil)
 		return
 	end
 	local view = viewport()
@@ -504,13 +506,14 @@ local function placeRoom()
 	local run, arena = RunMargin.read(origin, screen.AbsoluteSize)
 	if not run or not arena then
 		roomForm = nil
+		TopDownCamera.keepClear(nil)
 		fit(p, 900, view, phone)
 		p.group.AnchorPoint = Vector2.new(0.5, 0)
 		p.group.Position = UDim2.fromScale(0.5, 0.16)
 		return
 	end
 	local plain = p.plain
-	local spot = ArenaMargin.place(run, arena, {
+	local want: ArenaMargin.Want = {
 		sideMin = ROOM_SIDE_MIN,
 		sideMax = ROOM_SIDE_MAX,
 		bandMax = ROOM_BAND_MAX,
@@ -518,10 +521,58 @@ local function placeRoom()
 			local body, title = sizes(form, width, view, phone)
 			return tallness(plain, width, body, title, edge)
 		end,
-	}, roomForm)
-	roomForm = spot.form
-	local box = spot.box
-	local body, title = sizes(spot.form, box.w, view, phone)
+	}
+	local at = rootPosition()
+	local form: ArenaMargin.Form
+	local box: ArenaMargin.Box
+	if phone and view.Y > view.X and at then
+		--[[ A phone held upright: the floor fills the width and the HUD the
+		     forest under it, so the prompt stands against the HUD at the end
+		     of the room the player is nearer, and the camera pulls back a
+		     little and keeps that end's forest under it (owner, 2026-11-19:
+		     "Pull camera back"). ]]
+		form = if roomForm == "Above" or roomForm == "Below"
+			then roomForm
+			else if at.Z < 0 then "Above" else "Below"
+		local switch = Balance.Camera.phone.promptSwitch
+		if form == "Below" and at.Z < -switch then
+			form = "Above"
+		elseif form == "Above" and at.Z > switch then
+			form = "Below"
+		end
+		box = ArenaMargin.docked(run, want, form)
+		local g = ArenaMargin.GUTTER
+		-- the HUD's edges over the player's column, from what the card was docked against
+		local hudTop, hudBottom = run.top, run.h
+		for _, piece in run.hud do
+			if piece.y + piece.h / 2 < run.h / 2 then
+				hudTop = math.max(hudTop, piece.y + piece.h)
+			else
+				hudBottom = math.min(hudBottom, piece.y)
+			end
+		end
+		local y0 = origin.Y
+		local keep = Balance.Camera.phone.promptPlayerRoom
+		TopDownCamera.keepClear(if form == "Above"
+			then {
+				side = "Above",
+				wallRow = y0 + box.y + box.h + g,
+				playerTop = y0 + box.y + box.h + keep,
+				playerBottom = y0 + hudBottom - keep,
+			}
+			else {
+				side = "Below",
+				wallRow = y0 + box.y - g,
+				playerTop = y0 + hudTop + keep,
+				playerBottom = y0 + box.y - keep,
+			})
+	else
+		TopDownCamera.keepClear(nil)
+		local spot = ArenaMargin.place(run, arena, want, roomForm)
+		form, box = spot.form, spot.box
+	end
+	roomForm = form
+	local body, title = sizes(form, box.w, view, phone)
 	-- the outline is drawn round the panel, inside the box it was given
 	fitTo(p, box.w - edge * 2, body, title, edge)
 	p.group.AnchorPoint = Vector2.new(0, 0)
@@ -532,6 +583,7 @@ local function step(dt: number)
 	if not inTutorial() then
 		hide(roomPanel)
 		hide(cardPanel)
+		TopDownCamera.keepClear(nil)
 		cardShowing = false
 		placeCard()
 		MusicFx.setReading(false)

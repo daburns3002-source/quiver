@@ -194,12 +194,13 @@ function PlayPortal.next(
 	return nil
 end
 
---[[ Whether a start of portal `index` takes only the starter. A player who
-     stands in that portal's mouth (`standing`, the portal they stand at, if
-     any) starts it with whoever stands there too, as ever (`Run/Party`);
-     one who started it from PLAY's screen, anywhere else in the lobby, goes
-     alone, so nobody waiting at a portal is taken on a run by a stranger
-     across the lobby. ]]
+--[[ Whether a start of portal `index` takes nobody from the portal's mouth.
+     A player who stands in that mouth (`standing`, the portal they stand
+     at, if any) starts it with whoever stands there too, as ever
+     (`Run/Party`); one who started it from PLAY's screen, anywhere else in
+     the lobby, takes nobody from it, so nobody waiting at a portal is taken
+     on a run by a stranger across the lobby. Either way a party's leader
+     takes their lobby party (`Util/PartyRules.plan`). ]]
 function PlayPortal.alone(standing: number?, index: number): boolean
 	return standing ~= index
 end

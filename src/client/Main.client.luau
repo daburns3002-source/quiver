@@ -72,6 +72,8 @@ local MusicFx = require(script.Parent.Fx.MusicFx)
 local NameTags = require(script.Parent.UI.NameTags)
 local NewEnemyScreen = require(script.Parent.UI.NewEnemyScreen)
 local NotifyPrompt = require(script.Parent.UI.NotifyPrompt)
+local PartyAsk = require(script.Parent.UI.PartyAsk)
+local PartyScreen = require(script.Parent.UI.PartyScreen)
 local PetPreview = require(script.Parent.Fx.PetPreview)
 local PickupFx = require(script.Parent.Fx.PickupFx)
 local PlayerStats = require(script.Parent.PlayerStats)
@@ -595,6 +597,9 @@ RewardsScreen.start()
 PlaytimeButton.start()
 -- the notifications' opt-in, asked once the REWARDS screen is put away
 NotifyPrompt.start()
+-- the lobby party: PARTY, its panel and news line, and the invite prompt
+PartyScreen.start()
+PartyAsk.start()
 -- the BADGES case: a badge for each boss beaten, under REWARDS
 BadgeCase.start()
 BoardYou.start()

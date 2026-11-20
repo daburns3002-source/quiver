@@ -702,7 +702,20 @@ ones CLEARED), and only its PLAY starts the run, validated by the server against
 levels the player has opened (`Remotes.PortalStart`, `Run/Lobby.levelOpen`, `Util/LaunchLocks`,
 `Util/LevelUnlocks`, `tests/Lobby.spec`). Where the player stands does not gate the start; it decides
 who comes along: a start in the portal's mouth takes whoever else stands there (`Lobby.startFor`,
-`Run/Party`), one from the lobby's PLAY screen takes the starter only (`Util/PlayPortal.alone`).
+`Run/Party`), one from the lobby's PLAY screen nobody from a portal (`Util/PlayPortal.alone`).
+**Lobby parties** (owner, 2026-11-19: "make co-op work from the PLAY button too", "have there be a party
+system where you can invite someone in the server"; `Util/PartyRules`, `Run/Parties`, `UI/PartyScreen`,
+`UI/PartyAsk`, `tests/PartyRules.spec`, `docs/COOP.md` "Parties"): the teal PARTY button in the lobby's
+right column opens a panel of the other players in the server, each with INVITE; the invited player gets
+PARTY INVITE with ACCEPT and DECLINE (30 s; one invite out and one in at a time; the same pair waits 20 s
+after a NO). A party is a leader and members up to `Coop.maxParty`, shown as a card of names under PARTY
+and as `PartyLeader` on each Player; LEAVE is on the panel. **The leader's start, from PLAY or a portal,
+takes every member** free in the lobby with the level open (on hard, open on hard), then the portal's mouth
+as before (a player in another party never); a member who cannot come is told why
+(`Remotes.PartyNews`), and **a member who starts a run without the whole party leaves it**. A party that
+went whole is carried in the teleport's data (`groups`) to the run server and back, and forms again where
+it lands only when every member is there and each one's data names the same party (data passes through
+the client). The server owns all of it: the client sends only user ids and yes or no.
 The level buttons are drawn in one place, `PortalScreen`'s `levelButtons` (one `node` each, which
 returns the button's frame): a badge on a level goes there. In the lobby there is no dash:
 Shift / gamepad X / the phone's SPRINT runs (`Config/Lobby.sprint`) and Space / A / JUMP jumps

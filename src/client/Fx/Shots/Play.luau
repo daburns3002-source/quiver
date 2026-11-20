@@ -18,8 +18,11 @@
 	shots there (`Kit.lite`); weaker devices draw fewer segments and stop
 	at a smaller share of the pool. A crowded moment (a late run's volleys)
 	draws the newest shots whole and, once `CROWDED` of the pool is used,
-	the older ones as their heads and hits only, so every shot still shows
-	and the frame's cost stays near flat. Presentation only, local.
+	the older ones as their heads and hits only. Past the whole pool (a
+	late run can fly 400 at once), a shot is not drawn at all: its flight
+	part shows instead, a small block lit in the weapon's main colour, so
+	every shot still shows and the frame's cost stays flat. Presentation
+	only, local.
 ]]
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -51,6 +54,10 @@ type Hit = { t: number, P: Kit.P, k: string }
 
 type Live = {
 	flight: Flight,
+	--[[ The renderer's unseen part for this flight, shown when the pool
+	     is full; nil once it has stopped. ]]
+	part: BasePart?,
+	shown: boolean,
 	key: string,
 	I: Kit.Shot,
 	W: Kit.Look,
@@ -128,10 +135,19 @@ function Play.launch(flight: Flight, key: string, headStart: number)
 		drawer = drawer,
 		t = math.max(headStart, 0),
 		y = flight.position.Y,
+		part = nil,
+		shown = false,
 		passes = {},
 		ending = nil,
 	}
 	sample(L)
+	local part = (flight :: any).part :: BasePart?
+	if part then
+		part.Transparency = 1
+		part.Material = Enum.Material.Neon
+		part.Color = card.colours[1]
+	end
+	L.part = part
 	if #live == 0 then
 		Painter.warmIn(pool, math.floor(120 * detail()))
 	end
@@ -176,6 +192,13 @@ function Play.stop(flight: Flight)
 	end
 	byFlight[flight] = nil
 	sample(L)
+	-- its part goes back to the renderer's pool unseen
+	local part = L.part
+	if part and L.shown then
+		part.Transparency = 1
+	end
+	L.part = nil
+	L.shown = false
 	L.I.tEnd = L.t
 	local I = L.I
 	local n = #I.ts
@@ -226,6 +249,7 @@ function Play.draw()
 	local share = detail()
 	local lowest = not Device.tier().projectileTrails
 	local crowded = Play.CAP * share * CROWDED
+	local full = math.floor(Play.CAP * share) - 4
 	Painter.beginIn(pool, share)
 	local keep: { Live } = {}
 	--[[ Newest first, so a crowded moment drops the old shots' last
@@ -237,6 +261,19 @@ function Play.draw()
 		end
 		if L.I.tEnd == math.huge then
 			sample(L)
+		end
+		local part = L.part
+		if Painter.countIn(pool) >= full then
+			-- no beams left: the flight's own part shows it, and nothing is drawn
+			if part and not L.shown then
+				part.Transparency = 0
+				L.shown = true
+			end
+			table.insert(keep, 1, L)
+			continue
+		elseif part and L.shown then
+			part.Transparency = 1
+			L.shown = false
 		end
 		Kit.lite = lowest or Painter.countIn(pool) > crowded
 		local c = Canvas.new(Kit.S, share)

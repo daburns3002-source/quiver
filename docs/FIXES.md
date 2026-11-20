@@ -16,6 +16,16 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## Late in a run, most arrows and orbs are invisible (2026-11-19)
+
+**Seen:** a playtest stacking arrow cards on the Glade Spirit Bow (Multishot x2, Diagonal x2, Front x2, Side, Rear, Ricochet, Piercing, Bouncy Wall, Double Shot) put 400 shots in flight at once, the strong device's `maxRenderedProjectiles`. The shots' beam pool sat at its cap of 700.
+
+**Cause:** since the projectile shots (#651 to #656) a carded weapon's flight part is built unseen and `Fx/Shots/Play` draws it with pooled beams, newest first. Once the 700 beams were spent, `Painter` drew nothing more, so the older shots, about 360 of the 400, were not drawn at all, and every one of them was still drawn in Lua first.
+
+**Fix:** once the pool is full, `Play.draw` stops drawing and shows the shot's own flight part instead, a small block lit in the weapon's main colour, hidden again when there are beams to spare or when the shot stops (its part goes back to the renderer's pool unseen). Nothing past the pool is drawn in Lua.
+
+**Measured:** the same stress in Studio: 400 shots in flight, 700 beams in use, up to 366 shots shown by their flight parts and none unseen; no errors logged. Every one of the 49 bows and staves and 55 blades was fired or swung in the sandbox the same day with its own drawing and no fallback.
+
 ## The Starter Pack sold eggs to players Roblox restricts, and showed no odds (2026-11-19)
 
 **Symptom:** found in the release check, not by a player. Roblox's paid random items policy

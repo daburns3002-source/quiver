@@ -15194,6 +15194,23 @@ local Balance = {
 			     depth. ]]
 			fitWidth = 36,
 			minVisibleDepth = 30,
+			--[[ While a tutorial prompt is up on a phone held upright, the
+			     camera pulls back to this (owner, 2026-11-19: "Pull camera
+			     back", so the prompt stands outside the arena): 1.33x
+			     further out, the floor about 81% of the width. The view is
+			     then long enough that the camera can put the forest past the
+			     wall at the player's end under the prompt
+			     (`CameraFit.clearFocus`); 44 and 46 left a few rows of floor
+			     under it mid-room on a 360 x 780 phone
+			     (`tests/ArenaMargin.spec`). ]]
+			promptFitWidth = 48,
+			--[[ How fast it eases out and back, as a per-second lerp factor. ]]
+			promptEase = 6,
+			--[[ Studs past the room's middle the player walks before the
+			     prompt moves to the other end, and screen points the camera
+			     keeps between the player's feet and the prompt or a HUD. ]]
+			promptSwitch = 1,
+			promptPlayerRoom = 48,
 		},
 	},
 	--[[ The upgrade cards' effects (`Fx/Upgrades`, docs/effects/). Phones

@@ -249,6 +249,37 @@ local function band(screen: Screen, arena: Quad, want: Want, form: Form): Spot
 	return { box = box, form = form, covers = covers }
 end
 
+--[[ A card above or below the arena held against the run HUD instead of
+     the end wall: as high as the top HUD lets it stand (`Above`), or as low
+     as the bars and the dash button do (`Below`). On a phone held upright
+     the camera then keeps the room's end wall past it
+     (`CameraFit.clearFocus`; owner, 2026-11-19: "Pull camera back"). ]]
+function ArenaMargin.docked(screen: Screen, want: Want, form: Form): Box
+	local g = ArenaMargin.GUTTER
+	local width = math.floor(math.min(want.bandMax, screen.w - g * 2))
+	local height = want.height(width, form)
+	local x = math.floor((screen.w - width) / 2)
+	local y
+	if form == "Above" then
+		y = screen.top
+		for _, piece in screen.hud do
+			local over = piece.x < x + width and x < piece.x + piece.w
+			if over and piece.y + piece.h / 2 < screen.h / 2 then
+				y = math.max(y, piece.y + piece.h + g)
+			end
+		end
+	else
+		y = screen.h - g - height
+		for _, piece in screen.hud do
+			local over = piece.x < x + width and x < piece.x + piece.w
+			if over and piece.y + piece.h / 2 >= screen.h / 2 then
+				y = math.min(y, piece.y - g - height)
+			end
+		end
+	end
+	return { x = x, y = math.floor(y), w = width, h = height }
+end
+
 --[[ Where a card stands on `screen` with the arena at `arena`: beside it if
      it fits there, else above or below it. `last` is the form it had a
      moment ago, so a card above or below keeps its end while the other is

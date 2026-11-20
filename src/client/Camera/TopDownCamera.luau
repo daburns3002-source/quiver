@@ -31,6 +31,11 @@ local LOBBY_ZOOM = 45
 
 local shakeMagnitude = 0
 local shakeDecay = 0
+--[[ What a tutorial prompt above or below the room asks of the camera on a
+     phone held upright (`keepClear`), and how far the camera has pulled back
+     for it: 0 at the phone's own framing, 1 at `Camera.phone.promptFitWidth`. ]]
+local clearing: CameraFit.Clear? = nil
+local pull = 0
 
 --[[ How far above the ground the player last stood the lobby camera must
      stay, studs (owner, 2026-11-05: "make sure that the player cant look
@@ -91,10 +96,12 @@ local function cameraOffset(camera: Camera): Vector3
 	local config = Balance.Camera
 	local viewport = camera.ViewportSize
 	local phone = Device.isPhone()
+	local phoneWidth = config.phone.fitWidth
+		+ (config.phone.promptFitWidth - config.phone.fitWidth) * pull
 	return CameraFit.offset(viewport, {
 		pitch = config.pitch,
 		fieldOfView = config.fieldOfView,
-		fitWidth = if phone then config.phone.fitWidth else config.fitWidth,
+		fitWidth = if phone then phoneWidth else config.fitWidth,
 		minVisibleDepth = if phone then config.phone.minVisibleDepth else config.minVisibleDepth,
 	})
 end
@@ -187,6 +194,17 @@ local function step(deltaTime: number, getRoot: () -> BasePart?)
 	     `Camera.longViewFollow` either way, showing the forest past the end
 	     the player is not at (owner, 2026-10-22: "the camera should move to
 	     follow the player just like it does on the desktop version"). ]]
+	--[[ Out a little, and back, while a prompt asks it to keep an end of the
+	     room clear (owner, 2026-11-19: "Pull camera back"): only on a phone
+	     held upright, whose floor fills the width. ]]
+	local viewport = camera.ViewportSize
+	local upright = Device.isPhone() and viewport.Y > viewport.X
+	local want = clearing
+	local pulled = if want and upright then 1 else 0
+	pull += (pulled - pull) * (1 - math.exp(-Balance.Camera.phone.promptEase * deltaTime))
+	if math.abs(pulled - pull) < 1e-3 then
+		pull = pulled
+	end
 	local offset = cameraOffset(camera)
 	local far, near = viewSpan(camera, offset)
 	local half = Balance.Arena.size.Z / 2
@@ -204,6 +222,25 @@ local function step(deltaTime: number, getRoot: () -> BasePart?)
 			0,
 			math.clamp(root.Position.Z, lowest - Balance.Camera.gateHud, highest)
 		)
+	--[[ The forest past the end wall the prompt stands by, and the player
+	     well on screen (`CameraFit.clearFocus`). ]]
+	if want and upright then
+		local wallZ = (half + Balance.Arena.wallThickness)
+			* (if want.side == "Below" then 1 else -1)
+		target = Vector3.new(
+			0,
+			0,
+			CameraFit.clearFocus(
+				target.Z,
+				want,
+				wallZ,
+				root.Position.Z,
+				viewport.Y,
+				offset,
+				camera.FieldOfView
+			)
+		)
+	end
 	if currentFocus and (currentFocus - target).Magnitude > 200 then
 		-- a jump from the lobby back to the room is a cut, not a pan
 		currentFocus = target
@@ -262,10 +299,19 @@ function TopDownCamera.stop()
 	end
 	RunService:UnbindFromRenderStep(FLOOR_GUARD)
 	lastGround = nil
+	pull = 0
 
 	currentFocus = nil
 	shakeMagnitude = 0
 	shakeDecay = 0
+end
+
+--[[ Asks the camera, on a phone held upright, to pull back a little and keep
+     an end of the room clear for a card past its wall (`CameraFit.Clear`,
+     screen rows), or, with nil, to go back to its own framing. Eased both
+     ways. ]]
+function TopDownCamera.keepClear(clear: CameraFit.Clear?)
+	clearing = clear
 end
 
 --[[ Snaps the camera to the character, for respawns. ]]

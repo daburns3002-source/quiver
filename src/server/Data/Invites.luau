@@ -88,7 +88,7 @@ end
 
 local function pay(player: Player, prize: RewardConfig.Prize, line: string)
 	Rewards.say(player, line)
-	Rewards.pay(player, prize)
+	Rewards.pay(player, prize, "Invite")
 end
 
 --[[ The inviter's side: friends on their list not paid for yet, paid while

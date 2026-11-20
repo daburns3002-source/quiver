@@ -1413,7 +1413,9 @@ clear — it asks, and the server decides.
 Every client→server remote is listened to in `Net/Inbound` (`Inbound.on`; a `Debug*` one with
 `Inbound.debug`, which connects nothing outside Studio): a rate limit per player per remote under
 the handler's own checks. `tools/check.sh` fails on an `OnServerEvent` anywhere else. Every
-`AnalyticsService` event is sent from `Data/Analytics` (the 2026-11-13 audit, `docs/FIXES.md`).
+`AnalyticsService` event is sent from `Data/Analytics` (the 2026-11-13 audit, `docs/FIXES.md`). Every coin, gem
+and Soulstone given or taken through `Data/Wallet` names why (`Util/AnalyticsRules.SOURCES`, `SINKS`), which
+is its economy event: a new grant or price passes one (`docs/ANALYTICS.md`).
 
 **3. Co-op-shaped from day one.**
 Run state, ability stacks and enemy aggro are per-player-aware even while only one player

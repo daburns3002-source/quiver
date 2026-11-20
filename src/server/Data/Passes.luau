@@ -105,7 +105,9 @@ function Passes.prompt(player: Player, key: string, from: string)
 	local ok, problem = pcall(function()
 		MarketplaceService:PromptGamePassPurchase(player, pass.id)
 	end)
-	if not ok then
+	if ok then
+		Analytics.prompted(player, pass.key, from)
+	else
 		log.warn("prompt for %s failed: %s", key, tostring(problem))
 	end
 end

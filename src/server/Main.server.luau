@@ -725,6 +725,10 @@ Inbound.on(Remotes.FunnelStep, function(player, step)
 	end
 end)
 
+--[[ A screen opened on this player's screen, for the recurring funnels
+     (`Analytics.opened` takes only an `AnalyticsRules.SCREENS` name). ]]
+Inbound.on(Remotes.ScreenOpened, Analytics.opened)
+
 --[[ A first-time tip shown (`Config/Tips`); kept once, for a tip only.
      In a run, a `hold` tip never seen before holds it until OK
      (`TipClosed`); every other tip holds nothing (`TipRules.holds`). ]]

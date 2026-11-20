@@ -409,6 +409,10 @@ function RobuxStore.open(which: string?)
 	if which == "GEMS" or which == "PASSES" then
 		tab = which
 	end
+	-- a visit, for the server's funnels (`Data/Analytics.opened`)
+	if not isOpen then
+		Remotes.event(Remotes.ScreenOpened):FireServer("Store")
+	end
 	isOpen = true
 	local box = draw()
 	if box then

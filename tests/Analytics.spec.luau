@@ -18,6 +18,17 @@ local function fakePlayer(name: string): Player
 	return { Name = name, UserId = 0, Parent = nil } :: any
 end
 
+-- the recurring funnels' steps among `calls`, in order
+local function funnelCalls(calls: { any }): { any }
+	local out = {}
+	for _, call in calls do
+		if call.method == "LogFunnelStepEvent" then
+			table.insert(out, call)
+		end
+	end
+	return out
+end
+
 local function stageWhere(test: (Balance.StageConfig) -> boolean): number?
 	for index, stage in Balance.Stages do
 		if test(stage) then
@@ -160,11 +171,14 @@ return function(t: TestRunner.Helper)
 		Analytics.capture(nil)
 		t.equal(calls[1].args[3].CustomField02, "Mosslet")
 		t.equal(calls[1].args[3].CustomField03, "Free")
-		-- the profile of a stand-in is never in, so only the step past the
-		-- newcomer's steps is sent: FirstHatch, step 8
-		t.equal(#calls, 4)
-		t.equal(calls[4].method, "LogOnboardingFunnelStepEvent")
-		t.equal(calls[4].args[1], Analytics.stepOf("FirstHatch"))
+		-- the egg funnel's hatch, then the onboarding step: the profile of a
+		-- stand-in is never in, so only the step past the newcomer's steps
+		-- is sent, FirstHatch, step 8
+		t.equal(#calls, 5)
+		t.equal(calls[4].method, "LogFunnelStepEvent")
+		t.equal(calls[4].args[1], "EggHatch")
+		t.equal(calls[5].method, "LogOnboardingFunnelStepEvent")
+		t.equal(calls[5].args[1], Analytics.stepOf("FirstHatch"))
 	end)
 	t.test("a card pick carries the card, its rarity and what dealt it", function()
 		local calls: { any } = {}
@@ -177,5 +191,112 @@ return function(t: TestRunner.Helper)
 		t.equal(args[3].CustomField01, "Multishot")
 		t.equal(args[3].CustomField02, "Epic")
 		t.equal(args[3].CustomField03, "Level")
+	end)
+	t.test("a STORE visit is one traversal: opened, prompted once, bought", function()
+		local calls: { any } = {}
+		Analytics.capture(calls)
+		local player = fakePlayer("Shops")
+		Analytics.opened(player, "Store")
+		Analytics.prompted(player, "Gems500", "Store")
+		Analytics.prompted(player, "Gems500", "Store")
+		Analytics.purchased(player, "Gems500", "Product", 99, "Store")
+		Analytics.capture(nil)
+		local steps = funnelCalls(calls)
+		t.equal(#steps, 3, "the second prompt is not sent again")
+		for index, name in { "Opened", "Prompted", "Bought" } do
+			t.equal(steps[index].args[1], "RobuxStore")
+			t.equal(steps[index].args[2], steps[1].args[2], "one funnelSessionId")
+			t.equal(steps[index].args[3], index)
+			t.equal(steps[index].args[4], name)
+		end
+		t.equal(steps[3].args[5].CustomField01, "Gems500")
+	end)
+	t.test("each STORE visit and each offer elsewhere is a traversal of its own", function()
+		local calls: { any } = {}
+		Analytics.capture(calls)
+		local player = fakePlayer("Visits")
+		Analytics.opened(player, "Store")
+		Analytics.opened(player, "Store")
+		Analytics.prompted(player, "Revive", "Defeat")
+		Analytics.prompted(player, "Revive", "Defeat")
+		Analytics.capture(nil)
+		local steps = funnelCalls(calls)
+		t.equal(#steps, 4)
+		t.isTrue(steps[1].args[2] ~= steps[2].args[2], "two visits, two ids")
+		t.equal(steps[3].args[1], "RobuxOffer")
+		t.equal(steps[3].args[4], "Prompted")
+		t.equal(steps[3].args[5].CustomField02, "Defeat")
+		t.isTrue(steps[3].args[2] ~= steps[4].args[2], "two offers, two ids")
+	end)
+	t.test("a purchase this server never prompted sends no Bought step", function()
+		local calls: { any } = {}
+		Analytics.capture(calls)
+		local player = fakePlayer("Elsewhere")
+		Analytics.prompted(player, "Gems500", "Store")
+		Analytics.purchased(player, "Starter", "Product", 49, "Starter")
+		Analytics.capture(nil)
+		t.equal(#funnelCalls(calls), 1, "only the prompt")
+	end)
+	t.test("a second hatch or crate in one visit is the again step", function()
+		local calls: { any } = {}
+		Analytics.capture(calls)
+		local player = fakePlayer("Again")
+		Analytics.opened(player, "EggHatchery")
+		Analytics.hatched(player, "MossyEgg", { { pet = "Mosslet" } }, "Bought")
+		Analytics.hatched(player, "MossyEgg", { { pet = "Mosslet" } }, "Bought")
+		Analytics.hatched(player, "MossyEgg", { { pet = "Mosslet" } }, "Free")
+		Analytics.opened(player, "Blacksmith")
+		Analytics.cratePulled(player, "Mossy Crate", "Ranger", 3)
+		Analytics.cratePulled(player, "Mossy Crate", "Ranger", 1)
+		Analytics.capture(nil)
+		local names: { string } = {}
+		for _, call in funnelCalls(calls) do
+			table.insert(names, `{call.args[1]}:{call.args[4]}`)
+		end
+		t.equal(
+			table.concat(names, " "),
+			"EggHatch:Opened EggHatch:Hatched EggHatch:HatchedAgain CratePull:Opened CratePull:Pulled CratePull:PulledAgain"
+		)
+		local pulled = funnelCalls(calls)[5].args[5]
+		t.equal(pulled.CustomField01, "Mossy Crate")
+		t.equal(pulled.CustomField03, "3")
+	end)
+	t.test("other screens are a ScreenOpen; unknown ones send nothing", function()
+		local calls: { any } = {}
+		Analytics.capture(calls)
+		local player = fakePlayer("Looks")
+		Analytics.opened(player, "GearStation")
+		Analytics.opened(player, "Settings")
+		for _, name in { "Nope", 4, {} } :: { any } do
+			Analytics.opened(player, name)
+		end
+		Analytics.capture(nil)
+		t.equal(#calls, 2)
+		t.equal(calls[1].args[1], "ScreenOpen")
+		t.equal(calls[2].args[3].CustomField01, "Settings")
+	end)
+	t.test("a code try sends its result, the code only once redeemed", function()
+		local calls: { any } = {}
+		Analytics.capture(calls)
+		local player = fakePlayer("Codes")
+		Analytics.codeTried(player, "Unknown", "WHAT I TYPED")
+		Analytics.codeTried(player, "Ok", "LAUNCH")
+		Analytics.capture(nil)
+		t.equal(calls[1].args[1], "CodeTry")
+		t.equal(calls[1].args[3].CustomField01, "Unknown")
+		t.isNil(calls[1].args[3].CustomField02)
+		t.equal(calls[2].args[3].CustomField02, "LAUNCH")
+	end)
+	t.test("an economy event needs a profile and a why the rules know", function()
+		local calls: { any } = {}
+		Analytics.capture(calls)
+		local player = fakePlayer("Purse")
+		Analytics.earned(player, "Code", "LAUNCH", { coins = 100 })
+		Analytics.spent(player, "Egg", "MossyEgg", { coins = 100 })
+		Analytics.earned(player, "Run", nil, { coins = 5 })
+		Analytics.flush(player)
+		Analytics.capture(nil)
+		-- a stand-in's profile is never in: nothing, batched or not
+		t.equal(#calls, 0)
 	end)
 end

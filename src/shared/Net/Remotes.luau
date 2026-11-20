@@ -272,6 +272,12 @@ Remotes.IntroBegin = "IntroBegin"
      Only a step of `Analytics.CLIENT_STEPS`, only from a player still on
      the title; it changes nothing but what is logged. ]]
 Remotes.FunnelStep = "FunnelStep"
+--[[ Client -> server: a screen just opened on this player's screen (a
+     station's name from `UI/StationScreen`, "Store" or "Settings"), for
+     the recurring funnels (`Data/Analytics.opened`). Only an
+     `Util/AnalyticsRules.SCREENS` name counts; it changes nothing but
+     what is logged. ]]
+Remotes.ScreenOpened = "ScreenOpened"
 
 --[[
 	Client → server. A story beat (`Config/StoryBeats`) has been watched or

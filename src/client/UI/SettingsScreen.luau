@@ -225,6 +225,8 @@ local function open()
 		return
 	end
 	isOpen = true
+	-- which screens are used (`Data/Analytics.opened`)
+	Remotes.event(Remotes.ScreenOpened):FireServer("Settings")
 	draw()
 	local box = panel
 	if box then

@@ -24,6 +24,7 @@ local Log = require(ReplicatedStorage.Shared.Util.Log)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local Throttle = require(ReplicatedStorage.Shared.Util.Throttle)
 
+local Analytics = require(script.Parent.Analytics)
 local CodeList = require(script.Parent.CodeList)
 local LikeGoal = require(script.Parent.LikeGoal)
 local PlayerData = require(script.Parent.PlayerData)
@@ -81,8 +82,8 @@ function Codes.redeem(
 	profile.codesUsed[word] = true
 	PlayerData.touch(player)
 	local prize = code.prize
-	Wallet.addCoins(player, prize.coins or 0)
-	Wallet.addGems(player, prize.gems or 0)
+	Wallet.addCoins(player, prize.coins or 0, "Code", word)
+	Wallet.addGems(player, prize.gems or 0, "Code", word)
 	local eggs, crates = prize.eggs or 0, prize.crates or 0
 	local give = Rewards.givePrize
 	if give and eggs + crates > 0 then
@@ -99,6 +100,7 @@ local function onRedeem(player: Player, text: unknown)
 		return
 	end
 	local result, words = Codes.redeem(player, text)
+	Analytics.codeTried(player, result, CodeRules.normalise(text))
 	answer:FireClient(player, result == "Ok", words)
 end
 

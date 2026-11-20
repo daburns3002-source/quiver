@@ -51,7 +51,16 @@ local function buy(player: Player, kind: unknown, key: unknown, count: unknown)
 	local session = RunSession.get(player)
 	local class = if session then session.loadout.class else nil
 	local offer = SoulstoneShopRules.find(profile.bossesBeaten, class, kind, key)
-	if not offer or not Wallet.pay(player, { soulstones = offer.price * n }) then
+	if
+		not offer
+		or not Wallet.pay(
+			player,
+			{ soulstones = offer.price * n },
+			nil,
+			"SoulstoneShop",
+			offer.name
+		)
+	then
 		return
 	end
 	local pets, weapons = {}, {}

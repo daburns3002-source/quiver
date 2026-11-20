@@ -146,10 +146,10 @@ local function give(
 ): { any }
 	local pets: { any } = {}
 	if product.gems then
-		Wallet.addGems(player, product.gems)
+		Wallet.addGems(player, product.gems, "Robux", product.key)
 	end
 	if product.coins then
-		Wallet.addCoins(player, product.coins)
+		Wallet.addCoins(player, product.coins, "Robux", product.key)
 	end
 	local eggs: { RobuxStore.Egg } = product.eggs or {}
 	for _, egg in eggs do
@@ -267,7 +267,9 @@ local function promptProduct(player: Player, product: RobuxStore.Product, from: 
 	local ok, problem = pcall(function()
 		MarketplaceService:PromptProductPurchase(player, product.id)
 	end)
-	if not ok then
+	if ok then
+		Analytics.prompted(player, product.key, from)
+	else
 		log.warn("prompt for %s failed: %s", product.key, tostring(problem))
 	end
 end
@@ -381,7 +383,7 @@ local function payDaily(player: Player)
 	end
 	local gems = StoreRules.dailyGems(owned)
 	profile.purchases.vipDay = today
-	Wallet.addGems(player, gems)
+	Wallet.addGems(player, gems, "VIP", "VIPDaily")
 	granted:FireClient(player, "VIPDaily", gems)
 	log.info("%s was paid VIP's %d gems for day %d", player.Name, gems, today)
 end

@@ -186,7 +186,7 @@ local function hatch(player: Player, key: unknown, count: unknown)
 	if not profile or not egg or #pool == 0 or not EggRules.open(egg, profile.bossesBeaten) then
 		return
 	end
-	if not Wallet.pay(player, { coins = egg.price * n }) then
+	if not Wallet.pay(player, { coins = egg.price * n }, nil, "Egg", key :: string) then
 		return
 	end
 	local results = rollEggs(player, profile, pool, n)

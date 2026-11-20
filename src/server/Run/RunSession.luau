@@ -940,7 +940,7 @@ function RunSession.payCoins(session: Session, amount: number, position: Vector3
 	end
 	session.stageCoins += amount
 	Rewards.note(session.player, "coins", amount)
-	Wallet.addCoins(session.player, amount)
+	Wallet.addCoins(session.player, amount, "Run")
 	coinsGained:FireClient(session.player, amount, position)
 end
 

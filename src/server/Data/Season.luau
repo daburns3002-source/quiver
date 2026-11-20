@@ -79,8 +79,8 @@ local function pay(player: Player, total: SeasonRules.Total)
 	if not profile then
 		return
 	end
-	Wallet.addCoins(player, total.coins)
-	Wallet.addGems(player, total.gems)
+	Wallet.addCoins(player, total.coins, "Season")
+	Wallet.addGems(player, total.gems, "Season")
 	local trail = total.trail
 	if trail then
 		Wallet.grantTrail(player, trail)

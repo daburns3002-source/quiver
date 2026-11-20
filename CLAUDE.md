@@ -422,7 +422,24 @@ still grow the cleave. Presentation only, local. `tests/BladeCleaves.spec`
 pins the hash to the page's, each cleave to the ground it hits, the glow of
 a Legendary or Mythic, and its end. Offline check without Studio:
 `cleave-tools/dump.luau` + `draw.py` in the notes folder draw any area's
-cards from the ported code. Each weapon
+cards from the ported code. **Projectile shots** (owner, 2026-11-19, "build
+all 49"): a bow or staff with a card in `Config/WeaponFx.shotCards` flies
+its own shot from the owner-approved Projectile Shots page
+(https://claude.ai/artifact/T2EwHuQhKJosJ95wZSU14n) instead of its `shots`
+look. `Fx/ProjectileRenderer` still flies the shot (the server's flight,
+its pierce, bounces and homing) but builds it unseen and hands it to
+`Fx/Shots/Play`, which samples where it is each frame and runs its card's
+code (`Fx/Shots/<Area>`, line for line on `Fx/Shots/Kit`, the page's flight
+helpers on the cleaves' `Canvas`): `f` the flight, `h` each hit (through an
+enemy, stopped in one or a wall, or out of reach), all laid flat in the
+flight plane by `Fx/Cleaves/Painter` in a pool of its own (`Painter.pool`,
+700 beams on a strong device). The lowest tier draws no tails and sheds
+nothing; past 60% of the pool older shots draw head and hits only. Page x
+is world X and page y world Z (the camera looks toward -Z), so the cards'
+up is the screen's up. `tests/ProjectileShots.spec` holds every shot to its
+flight and hits, the glow of a Legendary or Mythic and the beam budget.
+Offline check: `projectile-page/compare.py` in the notes folder draws the
+page's frames beside the ported code's, card by card. Each weapon
 is the owner's Claude Design kit, its animations generated into
 `Config/WeaponAnimations` and played in code by `Fx/WeaponPose`. The
 first weapons (Leaf Bow, Arcane Staff, Ruby Greatsword) were deleted on

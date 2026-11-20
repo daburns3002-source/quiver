@@ -308,7 +308,11 @@ end
 --[[ The dark behind a pop-up: `shade` covers the 16:9 sheet, which is not
      the whole window on a wider or taller screen, so the dark itself is a
      piece three sheets wide and tall behind it (the run-through,
-     2026-11-14: "bright strips left, right and above"). ]]
+     2026-11-14: "bright strips left, right and above"). It is the
+     lowest of the pop-up's pieces (the screen is Sibling-ordered, and the
+     card's pieces are its siblings), so it darkens only what is behind
+     the card: at the shade's own ZIndex it lay over the card too (owner,
+     2026-11-19: "it makes the screen tinted"). ]]
 local function darken(shade: GuiObject)
 	shade.BackgroundTransparency = 1
 	local dark = Instance.new("Frame")
@@ -317,7 +321,7 @@ local function darken(shade: GuiObject)
 	dark.BackgroundColor3 = Color3.new(0, 0, 0)
 	dark.BackgroundTransparency = 0.35
 	dark.Position, dark.Size = UDim2.fromScale(-1, -1), UDim2.fromScale(3, 3)
-	dark.ZIndex = shade.ZIndex
+	dark.ZIndex = 0
 	dark.Parent = shade
 end
 local function plate(

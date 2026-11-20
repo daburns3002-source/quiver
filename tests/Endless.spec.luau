@@ -77,14 +77,16 @@ return function(t: TestRunner.Helper)
 		t.near(Balance.Endless.health, 1.0872, 1e-9)
 		t.near(Balance.Endless.damage, 1.03, 1e-9)
 		t.near(Balance.Endless.healthStart, 0.7, 1e-9)
-		t.near(Balance.Endless.damageStart, 0.7, 1e-9)
+		-- lower than health's start (owner's playtest, 2026-11-19: "2 shot" in the teens)
+		t.near(Balance.Endless.damageStart, 0.5, 1e-9)
 
 		--[[ Floor 1 sits below the area's own difficulty on purpose (owner,
 		     2026-10-31): five enemies and 2,040 health against a level 1 Ranger
 		     with no cards measured far too steep. ]]
 		local first = Waves.floorCurve(1)
 		t.near(first.health, 0.7, 1e-9, "floor 1 is not easier than the area's own")
-		t.near(first.damage, 0.7, 1e-9)
+		t.near(first.damage, 0.5, 1e-9)
+		t.near(Waves.floorCurve(15).damage, 0.5 * 1.03 ^ 14, 1e-9, "floor 15 hits about 0.76x")
 
 		--[[ **Floor 10 is the fixed point** (owner, 2026-10-31: "room 10 should
 		     keep the old difficulty and then scale up from there"). The rate

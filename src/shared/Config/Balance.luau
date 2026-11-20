@@ -14251,13 +14251,24 @@ local Balance = {
 		     runs end too soon; floor 10 holding its old value is the fixed
 		     point, not the depth of the wall.
 
-		     Damage starts at the same 0.7 and keeps its gentler 1.03, so an
-		     opening floor hits softer as well as dying faster, and health
+		     Damage starts lower still, at 0.5, and keeps its gentler 1.03, so
+		     an opening floor hits softer as well as dying faster, and health
 		     still outgrows damage at every depth. Starting health below damage
 		     would invert that — enemies that delete you without warning are a
-		     worse game than enemies that take a while. ]]
+		     worse game than enemies that take a while.
+
+		     It was 0.7 until the owner's playtest (2026-11-19: "in endless i
+		     only died in the teens and i got 2 shot, the enemies do way too
+		     much damage"). Floors 11-20 are Thornwood's, whose Lurker fires
+		     five 56s and Burr Thistle three 45s, met by a player who has
+		     only Mossy Glade's gear (Endless opens after 1-10): at 0.7 a
+		     floor-15 volley was up to 1.06 x 280 against the Ranger's 225.
+		     0.5 cuts every floor's damage by 29%:
+
+		       floor      1    10    15    20    30
+		       damage  0.50  0.65  0.76  0.88  1.18   (was 0.70 0.91 1.06 1.23 1.65) ]]
 		healthStart = 0.7,
-		damageStart = 0.7,
+		damageStart = 0.5,
 		health = 1.0872,
 		damage = 1.03,
 

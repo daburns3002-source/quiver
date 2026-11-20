@@ -310,6 +310,37 @@ Remotes.PortalStart = "PortalStart"
 Remotes.PartyNotice = "PartyNotice"
 
 --[[
+	Client → server. INVITE on the party panel (`UI/PartyScreen`): the user
+	id of a player in this server to ask into a party. The server checks
+	everything (`Run/Parties`, `Util/PartyRules`): both free in this lobby,
+	the sender in no party or its leader with room, one invite out at a time,
+	the same pair not asked again too soon.
+]]
+Remotes.PartyInvite = "PartyInvite"
+
+--[[
+	Server → one client. Someone asks this player into their party: the
+	sender's user id and the seconds the invite stays open, shown with ACCEPT
+	and DECLINE (`UI/PartyAsk`). Seconds 0 takes an open one away.
+]]
+Remotes.PartyAsked = "PartyAsked"
+
+--[[
+	Client → server. ACCEPT (true) or DECLINE on that prompt: the sender's
+	user id. Counts only for the invite the server has open to this player.
+]]
+Remotes.PartyAnswer = "PartyAnswer"
+
+--[[ Client → server. LEAVE on the party panel. ]]
+Remotes.PartyLeave = "PartyLeave"
+
+--[[
+	Server → one client. A line about the party to show for a moment
+	(`Util/PartyRules.say`): joined, left, declined, left behind and why.
+]]
+Remotes.PartyNews = "PartyNews"
+
+--[[
 	Server → one client. A kind of enemy this player has not met before has
 	landed (its `EnemyConfig.displayName`): show its NEW ENEMY! screen
 	(`Config/NewEnemies`). The server holds the run until it is closed.

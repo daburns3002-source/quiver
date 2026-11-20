@@ -2,9 +2,10 @@
 --[[
 	Co-op on screen (`docs/COOP.md`, `Shared/Util/Coop`):
 
-	- **The party line** under an open portal screen: who is standing at
-	  this portal with you and so goes with you on START (the server sets
-	  each player's `Portal` attribute), an INVITE A FRIEND button
+	- **The party line** under an open portal screen: who goes with you on
+	  START, your lobby party (`PartyLeader`, `Run/Parties`) and then whoever
+	  stands at this portal with you (the server sets each player's `Portal`
+	  attribute), an INVITE A FRIEND button
 	  (`SocialService:PromptGameInvite`, through `UI/InvitePrompt`), and the server's word on the
 	  teleport (`Remotes.PartyNotice`).
 	- **Downed players**: DOWN! over their heads with the revive filling and
@@ -24,6 +25,7 @@ local Workspace = game:GetService("Workspace")
 
 local Coop = require(ReplicatedStorage.Shared.Util.Coop)
 local InvitePrompt = require(script.Parent.InvitePrompt)
+local PortalScreen = require(script.Parent.PortalScreen)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local RunPaused = require(script.Parent.Parent.RunPaused)
 
@@ -58,11 +60,24 @@ local function label(
 	return l
 end
 
---[[ The names at portal `index`, the local player first. ]]
-local function partyAt(index: number): { string }
+--[[ Who a START would take, the local player first: their lobby party,
+     then the others at portal `index` in no party (none from PLAY's
+     screen, `index` nil). The server decides; this is only what to expect. ]]
+local function partyAt(index: number?): { string }
 	local names = { localPlayer.DisplayName:upper() }
+	local mine = localPlayer:GetAttribute("PartyLeader")
 	for _, other in Players:GetPlayers() do
-		if other ~= localPlayer and other:GetAttribute("Portal") == index then
+		if other ~= localPlayer and mine ~= nil and other:GetAttribute("PartyLeader") == mine then
+			table.insert(names, other.DisplayName:upper())
+		end
+	end
+	for _, other in Players:GetPlayers() do
+		if
+			other ~= localPlayer
+			and index ~= nil
+			and other:GetAttribute("Portal") == index
+			and other:GetAttribute("PartyLeader") == nil
+		then
 			table.insert(names, other.DisplayName:upper())
 		end
 	end
@@ -119,7 +134,11 @@ local function buildPartyLine(gui: ScreenGui)
 
 	RunService.RenderStepped:Connect(function()
 		local index = localPlayer:GetAttribute("Portal")
+		--[[ At a portal, or on a level screen from PLAY while in a party,
+		     whose leader's start takes it along. ]]
+		local inParty = localPlayer:GetAttribute("PartyLeader") ~= nil
 		local open = type(index) == "number"
+			or (inParty and Workspace:GetAttribute("InLobby") == true and PortalScreen.isOpen())
 		frame.Visible = open or os.clock() < noticeUntil
 		if not frame.Visible then
 			return
@@ -131,7 +150,7 @@ local function buildPartyLine(gui: ScreenGui)
 		if not open then
 			return
 		end
-		local names = partyAt(index :: number)
+		local names = partyAt(if type(index) == "number" then index else nil)
 		if #names <= 1 then
 			line.Text = "SOLO. A FRIEND CAN STAND HERE TOO"
 		else

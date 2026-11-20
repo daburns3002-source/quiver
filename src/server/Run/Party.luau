@@ -2,10 +2,13 @@
 --[[
 	Co-op parties (`docs/COOP.md`): one party per server.
 
-	The lobby is the public server. START at a portal takes the starter and
-	whoever else stands in that portal (up to `Coop.maxParty`; a start from
-	the lobby's PLAY screen, away from the portal, takes the starter only:
-	`Util/PlayPortal.alone`), reserves a
+	The lobby is the public server. START at a portal takes the starter, the
+	starter's lobby party if they lead one (`Run/Parties`, `Util/PartyRules`:
+	every member free in the lobby with the level open; one who cannot come
+	is told why), and whoever else stands in that portal and is in no other
+	party (up to `Coop.maxParty`; a start from the lobby's PLAY screen, away
+	from the portal, takes no one from the portal: `Util/PlayPortal.alone`).
+	A party member who starts without the whole party leaves it. It reserves a
 	private server of this same place (`TeleportService:ReserveServer`) and
 	sends them there together. Solo runs go the same way, so a run never
 	pulls in a stranger who happens to share the lobby.
@@ -14,7 +17,9 @@
 	`Coop.arrivalWait`, then starts the stage they asked for, with the
 	party's size locked at the players present (`Coop.ATTRIBUTE`). Nobody
 	joins once it has started. LOBBY, or the end of an area, sends the whole
-	party back to a public lobby together.
+	party back to a public lobby together. A lobby party that went whole is
+	carried both ways in the teleport's data (`groups`) and forms again where
+	it lands (`Parties`).
 
 	What a teleport carries passes through the client, so the run server
 	checks the level again against the leader's own saved profile
@@ -36,6 +41,8 @@ local Coop = require(ReplicatedStorage.Shared.Util.Coop)
 local Inbound = require(script.Parent.Parent.Net.Inbound)
 local Lobby = require(script.Parent.Lobby)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
+local Parties = require(script.Parent.Parties)
+local PartyRules = require(ReplicatedStorage.Shared.Util.PartyRules)
 local PlayerData = require(script.Parent.Parent.Data.PlayerData)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local RoomController = require(script.Parent.RoomController)
@@ -132,13 +139,15 @@ end
 local busy: { [Player]: boolean } = {}
 
 --[[ Sends `members` to a fresh reserved server to play portal `index`'s
-     level `level`. Retried once; a failure is told to each member. ]]
+     level `level`, with the lobby party that goes whole (`carry`). A
+     failure is told to each member. ]]
 local function send(
 	members: { Player },
 	index: number,
 	level: number,
 	leader: Player,
-	hard: boolean
+	hard: boolean,
+	carry: PartyRules.Party?
 )
 	local ids = {}
 	for _, member in members do
@@ -159,11 +168,13 @@ local function send(
 			hard = hard,
 			leader = leader.UserId,
 			party = ids,
+			groups = if carry then { carry } else nil,
 		})
 		TeleportService:TeleportAsync(game.PlaceId, members, options)
 	end)
 	if not ok then
 		log.warn("party teleport failed: %s", tostring(err))
+		Parties.stay(members)
 		for _, member in members do
 			busy[member] = nil
 			notice:FireClient(member, "COULD NOT START. TRY AGAIN")
@@ -173,11 +184,13 @@ end
 
 --[[
 	START at portal `index`, level `level`, from `starter` (already checked
-	by `Lobby.levelOpen`, which gave `stage`). The party is the starter and
-	whoever else stands at that portal and has the level open too; with
-	`alone` (a start from the lobby's PLAY screen, away from the portal:
-	`Util/PlayPortal.alone`) it is the starter only. On `hard` (already
-	checked by `Lobby.hardOpen`) only those with it open on hard go along.
+	by `Lobby.levelOpen`, which gave `stage`). The run takes the starter,
+	the lobby party they lead (`Parties.plan`: each member free in the lobby
+	with the level open, wherever they stand), and whoever else stands at
+	that portal and has the level open too; with `alone` (a start from the
+	lobby's PLAY screen, away from the portal: `Util/PlayPortal.alone`) no
+	one from the portal. On `hard` (already checked by `Lobby.hardOpen`)
+	only those with it open on hard go along.
 ]]
 function Party.start(
 	starter: Player,
@@ -197,6 +210,41 @@ function Party.start(
 	end
 	local standing: { number } = {}
 	local byId: { [number]: Player } = {}
+	for player in RunSession.all() do
+		byId[player.UserId] = player
+	end
+	--[[ Why a member of the starter's party cannot come, or nil. ]]
+	local function why(id: number): string?
+		local player = byId[id]
+		local session = player and RunSession.get(player)
+		if not player or not session or session.atTitle then
+			return "TITLE"
+		end
+		if
+			busy[player]
+			or not session.root
+			or player:GetAttribute(RunSession.ARRIVED) ~= true
+			or player:GetAttribute("ClassSelecting") == true
+		then
+			return "BUSY"
+		end
+		local profile = PlayerData.get(player)
+		local beaten = if profile then profile.levelsBeaten else nil
+		local bosses = if profile then profile.bossesBeaten else nil
+		local open = if onHard
+			then Lobby.hardOpen(
+				index,
+				level,
+				beaten,
+				bosses,
+				if profile then profile.hardBeaten else nil
+			)
+			else Lobby.levelOpen(index, level, beaten, bosses)
+		if open ~= stage then
+			return if onHard then "LOCKED_HARD" else "LOCKED"
+		end
+		return nil
+	end
 	for player, session in RunSession.all() do
 		local root = session.root
 		if
@@ -215,17 +263,18 @@ function Party.start(
 				== stage
 			then
 				table.insert(standing, player.UserId)
-				byId[player.UserId] = player
 			end
 		end
 	end
 	byId[starter.UserId] = starter
+	local plan = Parties.plan(starter, standing, why)
 	local members: { Player } = {}
-	for _, id in Coop.pickParty(starter.UserId, standing) do
+	for _, id in plan.going do
 		table.insert(members, byId[id])
 	end
 	log.info("%s starts portal %d level %d with %d", starter.Name, index, level, #members)
-	task.spawn(send, members, index, level, starter, onHard)
+	Parties.depart(starter, plan)
+	task.spawn(send, members, index, level, starter, onHard, plan.carry)
 end
 
 --[[ The tutorial: always solo. On BEGIN ADVENTURE's end, or with `story` on
@@ -290,7 +339,8 @@ local function sendToLobby(): boolean
 	end
 	local ok, err = pcall(function()
 		local options = Instance.new("TeleportOptions")
-		options:SetTeleportData({ arrowborne = true })
+		-- the lobby parties here, to form again in the lobby (`Parties`)
+		options:SetTeleportData({ arrowborne = true, groups = Parties.groups() })
 		TeleportService:TeleportAsync(game.PlaceId, everyone, options)
 	end)
 	if not ok then
@@ -409,6 +459,7 @@ local function runServer()
 end
 
 function Party.init()
+	Parties.init(Party.isRunServer())
 	if Party.isRunServer() then
 		RoomController.leaveServer = sendToLobby
 		runServer()
@@ -421,6 +472,7 @@ function Party.init()
 	     the story here instead, whose end tries again. ]]
 	TeleportService.TeleportInitFailed:Connect(function(player, result, message)
 		busy[player] = nil
+		Parties.stay({ player })
 		if player:GetAttribute(Party.ROUTE) == "Tutorial" then
 			log.warn(
 				"tutorial teleport on join failed (%s), story here: %s",

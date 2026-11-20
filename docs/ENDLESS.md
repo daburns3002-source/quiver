@@ -65,6 +65,10 @@ enemyHealth = 1.045 ^ (floor - 1)
 enemyDamage = 1.030 ^ (floor - 1)
 ```
 
+Since 2026-10-31 both start below the area's own (health ×0.7, damage ×0.7) and health climbs at
+1.0872 (`Balance.Endless`). Damage starts at ×0.5 since the owner's playtest of 2026-11-19 ("i got
+2 shot" in the teens): floors 11–20 are Thornwood's volley shooters, met in Mossy Glade gear.
+
 **Health grows faster than damage on purpose.** Spongy enemies are a worse run; enemies that
 delete you without warning are a worse *game*. The player should always see the wall coming.
 

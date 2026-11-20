@@ -16,6 +16,26 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## Endless kills in two hits in the teens (2026-11-19)
+
+**Seen:** the owner's playtest: "in endless i only died in the teens and i got 2 shot, the enemies do way too much damage".
+
+**Cause:** Endless's damage curve started at 0.7x and rose 3% a floor, so floor 15 hit at 1.06x. Floors 11 to 20 use Thornwood's roster, whose Bramble Lurker fires five 56s and Burr Thistle three 45s, and Endless opens straight after 1-10, so the player has only Mossy Glade gear: one close Lurker volley was up to about 300 damage against the Ranger's 225 health.
+
+**Fix:** `Balance.Endless.damageStart` 0.7 to 0.5, which cuts every floor's damage by 29% (floor 15 now 0.76x, floor 20 0.88x). Health and the rate are unchanged, so health still outgrows damage at every depth.
+
+**Measured:** `tests/Endless.spec` pins the new start and floor 15's value, and still holds health at or above damage on all 200 floors. Not yet replayed by the owner.
+
+## Tapping an item in the gear screen tints the whole screen, its card too (2026-11-19)
+
+**Seen:** the owner: clicking an item in the gear screen "makes the screen tinted".
+
+**Cause:** the dark behind the item card (`GearScreen.darken`, #611) was a child of the card's shade at the shade's ZIndex, 100. The gear screen is Sibling-ordered and the card's pieces are its siblings at ZIndex 3 to 14, so the dark was drawn over the card as well as behind it.
+
+**Fix:** the dark's ZIndex is 0, under every piece of the card, as the end screen's dim already is.
+
+**Measured:** gates and the in-Roblox suite pass. The card was not seen on screen: the gear station would not open by probe in Studio.
+
 ## Late in a run, most arrows and orbs are invisible (2026-11-19)
 
 **Seen:** a playtest stacking arrow cards on the Glade Spirit Bow (Multishot x2, Diagonal x2, Front x2, Side, Rear, Ricochet, Piercing, Bouncy Wall, Double Shot) put 400 shots in flight at once, the strong device's `maxRenderedProjectiles`. The shots' beam pool sat at its cap of 700.

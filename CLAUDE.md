@@ -448,7 +448,8 @@ helpers on the cleaves' `Canvas`): `f` the flight, `h` each hit (through an
 enemy, stopped in one or a wall, or out of reach), all laid flat in the
 flight plane by `Fx/Cleaves/Painter` in a pool of its own (`Painter.pool`,
 700 beams on a strong device). The lowest tier draws no tails and sheds
-nothing; past 60% of the pool older shots draw head and hits only. Page x
+nothing; past 60% of the pool older shots draw head and hits only, and past
+the whole pool a shot shows its flight part, lit in its weapon's colour. Page x
 is world X and page y world Z (the camera looks toward -Z), so the cards'
 up is the screen's up. `tests/ProjectileShots.spec` holds every shot to its
 flight and hits, the glow of a Legendary or Mythic and the beam budget.

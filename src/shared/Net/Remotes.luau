@@ -341,6 +341,12 @@ Remotes.TournamentPrize = "TournamentPrize"
      weapon is a set's and not owned (`Wallet.pickTournamentWeapon`); the
      profile it sends back is the answer. ]]
 Remotes.TournamentPick = "TournamentPick"
+--[[ Client → server: take an owed reward pick (Endless room 100, the season
+     pass's premium tier 30) as this weapon (its key). The server checks a
+     pick of that weapon's set is owed and the weapon can be taken
+     (`Wallet.pickReward`, `Util/RewardPickRules`); the profile it sends
+     back is the answer. ]]
+Remotes.RewardPick = "RewardPick"
 --[[ Client → server, Studio only: the weekly tournament's checks.
      ("shift", seconds) moves the tournament's clock on (to just past the
      next reset and its grace with no seconds); ("floor", floor, seconds)

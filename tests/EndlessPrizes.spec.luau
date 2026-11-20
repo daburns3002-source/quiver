@@ -10,13 +10,14 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
+local ClassList = require(ReplicatedStorage.Shared.Util.ClassList)
 local EggRules = require(ReplicatedStorage.Shared.Util.EggRules)
 local Eggs = require(ReplicatedStorage.Shared.Config.Eggs)
 local PrizeRules = require(ReplicatedStorage.Shared.Util.PrizeRules)
+local RewardPickRules = require(ReplicatedStorage.Shared.Util.RewardPickRules)
 local Shop = require(ReplicatedStorage.Shared.Config.Shop)
 local ShopRules = require(ReplicatedStorage.Shared.Util.ShopRules)
 local TestRunner = require(script.Parent.TestRunner)
-local WeaponStats = require(ReplicatedStorage.Shared.Config.WeaponStats)
 
 return function(t: TestRunner.Helper)
 	t.test("every milestone gives at least five of something real", function()
@@ -51,25 +52,29 @@ return function(t: TestRunner.Helper)
 		end
 	end)
 
-	--[[ Room 100 gives the Nebula Blade (owner, 2026-11-19): an earned
-	     Mythic, never sold, and the milestone's name says so. ]]
-	t.test("a milestone's weapon is an earned one its name names", function()
+	--[[ Room 100 gives a pick of the Voidglass set (owner, 2026-11-19: "a
+	     choice BETWEEN THE MYTHICS AND LEGENDARIES FOR ALL CLASSES", "the
+	     space and sakura ones"): the Nebula Blade, a Mythic, or its bow,
+	     staff or daggers, one for every class. Its name says so. ]]
+	t.test("a milestone's set pick has a weapon for every class, and its name names it", function()
 		local last = Balance.Endless.milestones[#Balance.Endless.milestones]
 		t.equal(last.floor, 100)
-		t.equal(last.weapon, "NebulaBlade")
+		t.equal(last.pick, "Voidglass")
 		for _, milestone in Balance.Endless.milestones do
-			local weapon = milestone.weapon
-			if weapon then
-				local stats = WeaponStats.weapons[weapon]
-				t.isTrue(stats ~= nil and stats.earned == true, `{weapon} is not an earned weapon`)
-				t.isNil(
-					ShopRules.price((assert(ShopRules.find(weapon), weapon))),
-					`{weapon} is sold`
-				)
-				local spaced = string.gsub(weapon, "(%l)(%u)", "%1 %2")
+			local pick = milestone.pick
+			if pick then
+				local set = ShopRules.set(pick)
+				t.isTrue(set ~= nil and set.stocked == true, `{pick} is not a stocked set`)
+				local classes: { [string]: boolean } = {}
+				for _, entry in RewardPickRules.options(pick) do
+					classes[entry.class] = true
+				end
+				for _, class in ClassList.open() do
+					t.isTrue(classes[class] == true, `{pick} has nothing for the {class}`)
+				end
 				t.notNil(
-					string.find(milestone.name, string.upper(spaced), 1, true),
-					`{milestone.name} does not name the {weapon}`
+					string.find(milestone.name, if set then set.name else pick, 1, true),
+					`{milestone.name} does not name the {pick} set`
 				)
 			end
 		end

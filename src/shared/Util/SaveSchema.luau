@@ -181,6 +181,11 @@
 	premium was bought (`Util/SeasonRules`), and `titles` and `title`, the
 	season-only titles held and the one worn over the name tag. No season
 	existed, so an older profile has no XP, nothing claimed and no title.
+
+	Version 29 (2026-11-19, the reward picks -- `Util/RewardPickRules`):
+	`rewardPicks`, the themed set picks owed and not yet taken, by the
+	reward's id ("Endless:100"), each holding its set's key. No pick existed,
+	so an older profile owes none.
 ]]
 
 local ClassLevelRules = require(script.Parent.ClassLevelRules)
@@ -195,12 +200,13 @@ local PremiumRules = require(script.Parent.PremiumRules)
 local RunBonus = require(script.Parent.RunBonus)
 local SeasonRules = require(script.Parent.SeasonRules)
 local SettingsRules = require(script.Parent.SettingsRules)
+local Shop = require(script.Parent.Parent.Config.Shop)
 local StoreRules = require(script.Parent.StoreRules)
 local TournamentRules = require(script.Parent.TournamentRules)
 
 local SaveSchema = {}
 
-SaveSchema.VERSION = 28
+SaveSchema.VERSION = 29
 
 --[[ The classes' own weapons, owned from the start: one for every class a
      player can choose (`Util/ClassList`). Given on every load (`migrate`
@@ -323,6 +329,10 @@ export type Profile = {
 	     over the name tag (version 28). ]]
 	titles: { [string]: boolean },
 	title: string?,
+	--[[ Themed set picks owed by Endless and the season pass (version 29,
+	     `Util/RewardPickRules`): reward id to set key, taken out when picked
+	     (`Wallet.pickReward`). ]]
+	rewardPicks: { [string]: string },
 }
 
 export type RewardState = {
@@ -427,6 +437,7 @@ function SaveSchema.default(): Profile
 		season = SeasonRules.empty(),
 		titles = {},
 		title = nil,
+		rewardPicks = {},
 	}
 end
 
@@ -469,6 +480,36 @@ function SaveSchema.readable(raw: unknown): boolean
 	end
 	local version = (raw :: any).version
 	return type(version) ~= "number" or version <= SaveSchema.VERSION
+end
+
+--[[ A stored `rewardPicks` (version 29, `Util/RewardPickRules`) as one to
+     trust: string ids holding the key of a stocked themed set
+     (`Config/Shop.sets`), at most `MAX_PICKS`. Read here, not by
+     `RewardPickRules`, whose `ShopRules` needs this module. ]]
+local MAX_PICKS = 8
+local function rewardPicks(raw: unknown): { [string]: string }
+	local out: { [string]: string } = {}
+	if type(raw) ~= "table" then
+		return out
+	end
+	local sets: { [string]: boolean } = {}
+	for _, set in Shop.sets do
+		sets[set.key] = set.stocked == true
+	end
+	local kept = 0
+	for id, set in raw :: { [unknown]: unknown } do
+		if
+			kept < MAX_PICKS
+			and type(id) == "string"
+			and #id <= 40
+			and type(set) == "string"
+			and sets[set] == true
+		then
+			out[id] = set
+			kept += 1
+		end
+	end
+	return out
 end
 
 --[[ Any stored copy (nothing for a new player) as a current profile.
@@ -664,6 +705,8 @@ function SaveSchema.migrate(raw: unknown): Profile
 	if type(data.title) == "string" and profile.titles[data.title] then
 		profile.title = data.title
 	end
+	--[[ 28 -> 29: no pick was owed; a stored table is read entry by entry. ]]
+	profile.rewardPicks = rewardPicks(data.rewardPicks)
 	return profile
 end
 

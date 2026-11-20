@@ -80,11 +80,16 @@ eggs and crates are the best open to the player, as the quests' are.
 | 29 | 3,500 coins | 100 gems |
 | 30 | **the season's free weapon**, 3 eggs and 3 crates | **the season's premium weapon**, **the season's title** and 150 gems |
 
-Tier 30's weapons are the season's own (`SeasonDef.weapons`; owner, 2026-11-19). Season 1:
-the **Wishcutter Blade** (Legendary) free and the **Petalfall Blade** (Mythic) premium. Both are
-earned only (`WeaponStats.earned`, off the SETS shelf), held once, paid by `Data/Season`
-through `Wallet.grantWeapon`, and drawn in the tab with their 2D art. A season with no
-`weapons` gives none at tier 30.
+Tier 30's weapons are the season's own (`SeasonDef.weapons`, or a set pick in `SeasonDef.picks`;
+owner, 2026-11-19). Season 1: the **Wishcutter Blade** (Legendary, earned only) free, and premium a
+**pick of the Lantern Bloom set**, any one of four, one for each class: the **Petalfall Blade**
+(Mythic, earned only) or the Blossom Bow, Paperglow Staff or Bellchime Daggers (Legendaries; owner:
+"a choice BETWEEN THE MYTHICS AND LEGENDARIES FOR ALL CLASSES", "the space and sakura ones"). The
+weapon is paid by `Data/Season` through `Wallet.grantWeapon`; the pick is owed through
+`Wallet.owePick` (`Util/RewardPickRules`, save v29 `rewardPicks`) and taken on the lobby's pick
+panel (`UI/RewardPick`), which comes up over the tab as soon as it is claimed and again on every
+return to the lobby until taken. The tab draws the Wishcutter's 2D picture and ANY LANTERN BLOOM
+WEAPON with the Petalfall's. A season with neither gives none at tier 30.
 
 Totals: free 90 gems, 11 eggs, 8 crates, 22,750 coins; premium 1,530 gems (about what
 the gem packs give for the price), 28,000 coins, the trail and the title.

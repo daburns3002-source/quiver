@@ -23,11 +23,13 @@ local Chunky = require(script.Parent.Chunky)
 local ItemIcons = require(ReplicatedStorage.Shared.Util.ItemIcons)
 local Kit = require(script.Parent.Kit)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
+local RewardPickRules = require(ReplicatedStorage.Shared.Util.RewardPickRules)
 local RobuxStore = require(script.Parent.RobuxStore)
 local SaveSchema = require(ReplicatedStorage.Shared.Util.SaveSchema)
 local Season = require(ReplicatedStorage.Shared.Config.Season)
 local SeasonRules = require(ReplicatedStorage.Shared.Util.SeasonRules)
 local ShopAssets = require(ReplicatedStorage.Shared.Config.ShopAssets)
+local ShopRules = require(ReplicatedStorage.Shared.Util.ShopRules)
 local StoreRules = require(ReplicatedStorage.Shared.Util.StoreRules)
 local Trails = require(ReplicatedStorage.Shared.Config.Trails)
 
@@ -131,8 +133,11 @@ local function lines(
 			table.insert(out, { asset = asset, words = "+" .. Chunky.commas(n) })
 		end
 	end
-	--[[ Tier 30's earned weapon, first: its 2D picture and its name. ]]
+	--[[ Tier 30's earned weapon, first: its 2D picture and its name. Or its
+	     set pick (`Util/RewardPickRules`): the set's star's picture, and
+	     ANY LANTERN BLOOM WEAPON. ]]
 	local weapon = if prize.weapon then SeasonRules.weapon(def, track) else nil
+	local pick = if prize.weapon then SeasonRules.pick(def, track) else nil
 	if weapon then
 		local picture = ItemIcons.weapon(weapon)
 		local spaced = string.gsub(weapon, "(%l)(%u)", "%1 %2")
@@ -140,6 +145,14 @@ local function lines(
 			out,
 			{ asset = if picture ~= "" then picture else nil, words = string.upper(spaced) }
 		)
+	elseif pick then
+		local star = RewardPickRules.headline(pick)
+		local picture = if star then ItemIcons.weapon(star) else ""
+		local set = ShopRules.set(pick)
+		table.insert(out, {
+			asset = if picture ~= "" then picture else nil,
+			words = `ANY {if set then set.name else string.upper(pick)} WEAPON`,
+		})
 	end
 	if prize.title then
 		table.insert(out, { words = "", title = def.title })

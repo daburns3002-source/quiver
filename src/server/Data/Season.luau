@@ -41,6 +41,7 @@ local Workspace = game:GetService("Workspace")
 local Inbound = require(script.Parent.Parent.Net.Inbound)
 local Log = require(ReplicatedStorage.Shared.Util.Log)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
+local RewardPickRules = require(ReplicatedStorage.Shared.Util.RewardPickRules)
 local SeasonConfig = require(ReplicatedStorage.Shared.Config.Season)
 local SeasonRules = require(ReplicatedStorage.Shared.Util.SeasonRules)
 
@@ -71,8 +72,8 @@ local function publish(player: Player)
 end
 
 --[[ Pays what tiers came to: coins and gems here, eggs and crates by
-     `Data/QuestChest` (with their reveals), the trail through the wallet,
-     the title into the profile. ]]
+     `Data/QuestChest` (with their reveals), the trail, weapons and set
+     picks through the wallet, the title into the profile. ]]
 local function pay(player: Player, total: SeasonRules.Total)
 	local profile = PlayerData.get(player)
 	if not profile then
@@ -88,6 +89,12 @@ local function pay(player: Player, total: SeasonRules.Total)
 	local weapons: { string } = total.weapons or {}
 	for _, weapon in weapons do
 		Wallet.grantWeapon(player, weapon)
+	end
+	--[[ Tier 30's set picks (`SeasonDef.picks`): owed until taken on the
+	     lobby's pick panel (`Util/RewardPickRules`). ]]
+	local picks: { SeasonRules.Pick } = total.picks or {}
+	for _, pick in picks do
+		Wallet.owePick(player, RewardPickRules.seasonId(pick.season, pick.track), pick.set)
 	end
 	local title = total.title
 	if title and SeasonConfig.titles[title] then

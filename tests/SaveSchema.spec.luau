@@ -159,9 +159,30 @@ return function(t: TestRunner.Helper)
 		t.equal(p.tournamentPicks, 1)
 	end)
 
+	--[[ Version 29: the reward picks. An older save owes none; a stored
+	     one keeps only ids holding a real themed set. ]]
+	t.test("an older save owes no reward pick, a stored one is checked", function()
+		t.isNil((next(SaveSchema.migrate({ version = 28, coins = 3 }).rewardPicks)))
+		local p = SaveSchema.migrate({
+			version = 29,
+			rewardPicks = {
+				["Endless:100"] = "Voidglass",
+				["Season:1:premium"] = "Nowhere",
+				[7] = "Voidglass",
+			},
+		})
+		t.equal(p.rewardPicks["Endless:100"], "Voidglass")
+		t.isNil(p.rewardPicks["Season:1:premium"], "no such set")
+		local count = 0
+		for _ in p.rewardPicks do
+			count += 1
+		end
+		t.equal(count, 1)
+	end)
+
 	t.test("a new profile has beaten no level", function()
 		local p = SaveSchema.migrate(nil)
-		t.equal(SaveSchema.VERSION, 28)
+		t.equal(SaveSchema.VERSION, 29)
 		t.isNil((next(p.levelsBeaten)))
 	end)
 

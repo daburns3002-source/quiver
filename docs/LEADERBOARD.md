@@ -155,7 +155,12 @@ and, on top, for everyone who played that week, by the deepest floor:
 **The set weapon picks.** "Skins" in the owner's words are the themed sets'
 weapons (`docs/WEAPONS-THEMED.md`, `Config/Shop.sets`): one Legendary a
 class in each set. A pick is **any one of them the player does not own, of
-any set and any class**, chosen on the prize panel (PICK!, then TAKE IT)
+any set and any class**, but never a reward weapon (`WeaponStats.earned`:
+the Nebula Blade, the Petalfall Blade and the Wishcutter Blade are Endless
+room 100's and the season pass's; owner, 2026-11-19, "yes, close it"). On
+the panel those three keep their place in their set's row, captioned
+REWARD and not pressable, and a tap names where they are earned. A pick is
+chosen on the prize panel (PICK!, then TAKE IT)
 and granted by the server (`Remotes.TournamentPick`,
 `Wallet.pickTournamentWeapon`, which refuses anything owned, not a set's,
 or with no pick owed). Every stocked set counts, whether or not its shelf

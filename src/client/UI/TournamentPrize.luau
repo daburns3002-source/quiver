@@ -375,16 +375,31 @@ local function showPicks(screen: ScreenGui)
 			slot.Parent = row
 			slots[entry.weapon] = slot
 			local owned = mine.weapons[entry.weapon] == true
+			-- a reward weapon (Endless room 100, the season pass) stays in its
+			-- set's row but is never a pick: a tap says where it is earned
+			local reward = entry.earned == true and not owned
 			slot:SetAttribute("Owned", owned)
 			local made = Chunky.tile(
 				slot,
 				entry.rarity,
 				picture(entry.weapon),
-				if owned then "OWNED" else nil,
+				if owned then "OWNED" elseif reward then "REWARD" else nil,
 				false,
 				owned
 			)
 			if owned then
+				continue
+			end
+			if reward then
+				Chunky.press(slot, function()
+					chosen = nil
+					if ring then
+						ring:Destroy()
+						ring = nil
+					end
+					chosenName.Text = entry.howEarned or "A REWARD, NOT A PICK"
+					paintTake()
+				end)
 				continue
 			end
 			if entry.rarity == "Legendary" or entry.rarity == "Mythic" then

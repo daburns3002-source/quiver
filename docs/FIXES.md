@@ -26,6 +26,26 @@ start from the cause recorded here rather than from the code.
 
 **Measured:** the same stress in Studio: 400 shots in flight, 700 beams in use, up to 366 shots shown by their flight parts and none unseen; no errors logged. Every one of the 49 bows and staves and 55 blades was fired or swung in the sandbox the same day with its own drawing and no fallback.
 
+---
+
+## A tournament pick could take the Nebula, Petalfall or Wishcutter Blade (2026-11-19)
+
+**Symptom:** found in review of PR #658, not by a player. The weekly tournament's PICK A SET WEAPON
+panel offered every themed set weapon not owned, so a top-ten player could take the Nebula Blade,
+the Petalfall Blade or the Wishcutter Blade, which are Endless room 100's and the season pass's
+rewards (PR #650, #658) and are never sold.
+**What was wrong:** `TournamentRules.pickable` kept any catalog entry with a `set`; it never looked at
+`earned`, and the server's `catalogItems` did not pass it. The panel (`UI/TournamentPrize`) listed
+every set entry the same way.
+**What was done:** `pickable` skips an entry that is `earned`, and `Wallet`'s `catalogItems` copies
+`earned`, so both the pick and the "nothing left to pick, pay gems" count leave the three blades out.
+On the panel they keep their place in their set's row, captioned REWARD and not pressable; a tap
+names where they are earned (`howEarned`).
+**Measured:** `tests/TournamentRules.spec` "a pick never takes a reward weapon": none of the three is
+in the real catalog's picks, the Orbit Bow still is. See the PR for the Studio check.
+
+---
+
 ## The Starter Pack sold eggs to players Roblox restricts, and showed no odds (2026-11-19)
 
 **Symptom:** found in the release check, not by a player. Roblox's paid random items policy

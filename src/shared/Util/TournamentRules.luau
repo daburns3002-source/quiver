@@ -45,7 +45,7 @@ export type Prize = {
 }
 
 --[[ What `pickable` needs of a catalog entry (`ShopRules.Entry`). ]]
-export type Item = { weapon: string, set: string? }
+export type Item = { weapon: string, set: string?, earned: boolean? }
 
 --[[ The week `now` falls in. ]]
 function TournamentRules.week(now: number): number
@@ -272,11 +272,14 @@ end
 
 --[[ The weapons a pick may take: the themed sets' (`set`) in `catalog`
      (`ShopRules.catalog`: every stocked set, on sale this week or not) that
-     `owned` does not hold, in the catalog's order. ]]
+     `owned` does not hold, in the catalog's order. Never an earned one
+     (`WeaponStats.earned`: the Nebula Blade, the Petalfall Blade, the
+     Wishcutter Blade): those are Endless room 100's and the season pass's
+     to give (owner, 2026-11-19, "yes, close it"). ]]
 function TournamentRules.pickable(catalog: { Item }, owned: { [string]: boolean }): { string }
 	local out: { string } = {}
 	for _, entry in catalog do
-		if entry.set ~= nil and not owned[entry.weapon] then
+		if entry.set ~= nil and not entry.earned and not owned[entry.weapon] then
 			table.insert(out, entry.weapon)
 		end
 	end

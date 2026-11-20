@@ -645,7 +645,7 @@ end
 local function catalogItems(): { TournamentRules.Item }
 	local out: { TournamentRules.Item } = {}
 	for _, entry in ShopRules.catalog() do
-		table.insert(out, { weapon = entry.weapon, set = entry.set })
+		table.insert(out, { weapon = entry.weapon, set = entry.set, earned = entry.earned })
 	end
 	return out
 end

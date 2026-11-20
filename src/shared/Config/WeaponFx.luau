@@ -1281,6 +1281,16 @@ local shotCards: { [string]: ShotCard } = {
 	HootmossStaff = shotCard(10, "staff", "#9a6ad0", "#aecc70", "#f0e0ff"),
 	SlimeCrownStaff = shotCard(11, "staff", "#9aea4a", "#ffd84a", "#e6fecd"),
 	WorldrootStaff = shotCard(12, "staff", "#21f4fe", "#7ad04a", "#ffffff"),
+	-- Drowned Village
+	SlatefinBow = shotCard(13, "bow", "#92c4de", "#3a6a8a", "#e8f6ff"),
+	EelcrestBow = shotCard(14, "bow", "#40e0ba", "#fadc50", "#1a6a5a"),
+	TollstringBow = shotCard(15, "bow", "#ffd680", "#c88a3a", "#fff6dc"),
+	EventideBow = shotCard(16, "bow", "#ff88c4", "#8a5ad8", "#5ab4ff"),
+	ReedStaff = shotCard(17, "staff", "#9cd684", "#7a5230", "#f4f0dc"),
+	BuoyStaff = shotCard(18, "staff", "#ff8e60", "#ffffff", "#5ab4d8"),
+	WellpearlStaff = shotCard(19, "staff", "#f4f0ff", "#7ac8ff", "#ffc8e8"),
+	TollkeeperStaff = shotCard(20, "staff", "#ffda70", "#b07a3a", "#fffbe8"),
+	MaelstromStaff = shotCard(21, "staff", "#3a5aff", "#ffd84a", "#c8f0ff"),
 }
 for key in shotCards do
 	assert(shots[key], `{key} has a shot card and no shot`)

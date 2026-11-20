@@ -334,8 +334,26 @@ function Kit.orb(c: Ctx, p: number, q: number, r: number, cIn: RGB, cOut: RGB, a
 		Canvas.glowDot(c, p, q, r + c.glowBlur * 0.6, glowCol, alpha * 0.45)
 		c.light = light
 	end
-	Canvas.dot(c, p, q, r, cOut, alpha)
+	Kit.disc(c, p, q, r, cOut, alpha)
 	Canvas.glowDot(c, p - r * 0.3, q - r * 0.3, r * 0.95, cIn, alpha)
+end
+
+--[[ A filled circle: the cleaves' octagon when small, twelve-sided past
+     8 pixels across the middle, where an octagon's corners show. ]]
+function Kit.disc(c: Ctx, p: number, q: number, r: number, colour: RGB, alpha: number)
+	if r <= 8 then
+		Canvas.dot(c, p, q, r, colour, alpha)
+		return
+	end
+	local xs, ys = {}, {}
+	for i = 0, 11 do
+		local an = i / 12 * TAU
+		xs[i + 1], ys[i + 1] = p + math.cos(an) * r, q + math.sin(an) * r
+	end
+	local glowBlur = c.glowBlur
+	c.glowBlur = 0
+	Kit.fan(c, p, q, xs, ys, colour, alpha)
+	c.glowBlur = glowBlur
 end
 
 --[[ A filled slice of a circle, `from` to `to` radians. ]]
@@ -833,16 +851,38 @@ function Kit.roots(
 	end
 end
 
---[[ A seed of fluff: a dot with three hairs. ]]
+--[[ A seed of fluff: a dot with its hairs, the hairs one sparkle quad
+     (two beams where three strokes took six). ]]
 function Kit.fluff(c: Ctx, p: number, q: number, a: number, colour: RGB, h: number)
 	if a <= 0 then
 		return
 	end
-	Canvas.dot(c, p, q, 1, colour, a)
-	for j = 0, 2 do
-		local an = h * TAU + j * 2.1
-		Kit.seg(c, p, q, p + math.cos(an) * 2.4, q + math.sin(an) * 2.4, 0.5, colour, a * 0.8)
+	Kit.rect(c, p - 0.9, q - 0.9, 1.8, 1.8, colour, a)
+	local r = 2.4
+	local an = h * TAU
+	local ux, uy = math.cos(an) * r, math.sin(an) * r
+	Canvas.quad(
+		c,
+		p - ux - uy,
+		q - uy + ux,
+		p - ux + uy,
+		q - uy - ux,
+		p + ux + uy,
+		q + uy - ux,
+		p + ux - uy,
+		q + uy + ux,
+		colour,
+		a * 0.8,
+		Canvas.SPARKLE
+	)
+end
+
+--[[ A speck too small to see as round: one beam, not a dot's three. ]]
+function Kit.speck(c: Ctx, p: number, q: number, r: number, colour: RGB, alpha: number)
+	if r <= 0.05 or alpha <= 0 then
+		return
 	end
+	Kit.rect(c, p - r * 0.9, q - r * 0.9, r * 1.8, r * 1.8, colour, alpha)
 end
 
 --[[ The coin-op shots' pixel grid. ]]

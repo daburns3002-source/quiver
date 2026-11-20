@@ -252,7 +252,7 @@ function Kit.stroke(c: Ctx, xs: { number }, ys: { number }, w: number, colour: R
 			local n = math.max(1, math.ceil(math.sqrt(dx * dx + dy * dy) / r))
 			for step = if i == 1 then 0 else 1, n do
 				local u = step / n
-				Canvas.glowDot(c, xs[i] + dx * u, ys[i] + dy * u, r, glowCol, alpha * 0.3)
+				Canvas.glowDot(c, xs[i] + dx * u, ys[i] + dy * u, r, glowCol, alpha * 0.2)
 			end
 		end
 		c.light = light
@@ -559,6 +559,48 @@ function Kit.strokeRect(
 	alpha: number
 )
 	Canvas.outline(c, { x, x + w, x + w, x }, { y, y, y + h, y + h }, width, colour, alpha)
+end
+
+--[[ The page's shadowBlur under a filled shape r across the middle at
+     (x, y), when glowing: one soft lit glow. ]]
+function Kit.halo(c: Ctx, x: number, y: number, r: number)
+	local glowCol = c.glowCol
+	if c.glowBlur <= 0 or not glowCol then
+		return
+	end
+	local light = c.light
+	c.light = true
+	Canvas.glowDot(c, x, y, r + c.glowBlur * 0.6, glowCol, 0.45)
+	c.light = light
+end
+
+--[[ A stroked ellipse, rx along `rot` and ry across, `from` to `to`
+     radians round it (a circle when rx is ry); glowing, softly. ]]
+function Kit.oval(
+	c: Ctx,
+	x: number,
+	y: number,
+	rx: number,
+	ry: number,
+	rot: number,
+	from: number,
+	to: number,
+	w: number,
+	colour: RGB,
+	alpha: number
+)
+	if rx <= 0.05 or alpha <= 0 then
+		return
+	end
+	local n = math.clamp(math.ceil(math.abs(to - from) / 0.4), 4, 18)
+	local cs, sn = math.cos(rot), math.sin(rot)
+	local xs, ys = {}, {}
+	for i = 0, n do
+		local an = lerp(from, to, i / n)
+		local ex, ey = math.cos(an) * rx, math.sin(an) * ry
+		xs[i + 1], ys[i + 1] = x + ex * cs - ey * sn, y + ex * sn + ey * cs
+	end
+	Kit.stroke(c, xs, ys, w, colour, alpha)
 end
 
 --[[ The page's jag: a lightning line from a to b. ]]
@@ -881,6 +923,29 @@ function Kit.fluff(c: Ctx, p: number, q: number, a: number, colour: RGB, h: numb
 		q + uy + ux,
 		colour,
 		a * 0.8,
+		Canvas.SPARKLE
+	)
+end
+
+--[[ A star too small to count its points (under half a stud): one
+     sparkle quad, not a drawn star's six to ten beams. ]]
+function Kit.twinkle(c: Ctx, p: number, q: number, s: number, r: number, colour: RGB, alpha: number)
+	if s <= 0.1 or alpha <= 0 then
+		return
+	end
+	local ux, uy = math.cos(r) * s, math.sin(r) * s
+	Canvas.quad(
+		c,
+		p - ux - uy,
+		q - uy + ux,
+		p - ux + uy,
+		q - uy - ux,
+		p + ux + uy,
+		q + uy - ux,
+		p + ux - uy,
+		q + uy + ux,
+		colour,
+		alpha,
 		Canvas.SPARKLE
 	)
 end

@@ -52,18 +52,32 @@ type Slot = {
 	p1: CFrame,
 }
 
-local holder: Part? = nil
-local slots: { Slot } = {}
-local used = 0
-local budget = 900
+--[[ A set of beams drawn together, begun and finished each frame by one
+     driver: the cleaves' (`Painter`'s own functions) or another's from
+     `Painter.pool` (the projectile shots', `Fx/Shots/Play`), so neither
+     switches off the other's beams. `cap` is its beams on a strong device. ]]
+export type Pool = {
+	name: string,
+	cap: number,
+	holder: Part?,
+	slots: { Slot },
+	used: number,
+	budget: number,
+}
 
-local function ensureHolder(): Part
-	local part = holder
+local function newPool(name: string, cap: number): Pool
+	return { name = name, cap = cap, holder = nil, slots = {}, used = 0, budget = cap }
+end
+
+local default = newPool("BladeCleaves", 900)
+
+local function ensureHolder(pool: Pool): Part
+	local part = pool.holder
 	if part and part.Parent then
 		return part
 	end
 	local made = Instance.new("Part")
-	made.Name = "BladeCleaves"
+	made.Name = pool.name
 	made.Anchored = true
 	made.CanCollide = false
 	made.CanQuery = false
@@ -73,9 +87,9 @@ local function ensureHolder(): Part
 	made.Size = Vector3.new(0.1, 0.1, 0.1)
 	made.CFrame = CFrame.identity
 	made.Parent = Workspace.CurrentCamera
-	holder = made
+	pool.holder = made
 	-- the old pool lived in the old part
-	slots = {}
+	pool.slots = {}
 	return made
 end
 
@@ -125,31 +139,42 @@ end
 
 --[[ Beams a device draws at most, all live cleaves together. ]]
 function Painter.budgetFor(detail: number): number
-	return math.floor(900 * detail)
+	return math.floor(default.cap * detail)
+end
+
+--[[ Another driver's own beams, under their own part named `name`. ]]
+function Painter.pool(name: string, cap: number): Pool
+	return newPool(name, cap)
 end
 
 --[[ Makes `count` beams ahead of the first swing, so it does not hitch. ]]
-function Painter.warm(count: number)
-	local part = ensureHolder()
-	while #slots < count do
-		table.insert(slots, newSlot(part))
+function Painter.warmIn(pool: Pool, count: number)
+	local part = ensureHolder(pool)
+	while #pool.slots < count do
+		table.insert(pool.slots, newSlot(part))
 	end
 end
-
-function Painter.begin(detail: number)
-	used = 0
-	budget = Painter.budgetFor(detail)
+function Painter.warm(count: number)
+	Painter.warmIn(default, count)
 end
 
-local function take(): Slot?
-	if used >= budget then
+function Painter.beginIn(pool: Pool, detail: number)
+	pool.used = 0
+	pool.budget = math.floor(pool.cap * detail)
+end
+function Painter.begin(detail: number)
+	Painter.beginIn(default, detail)
+end
+
+local function take(pool: Pool): Slot?
+	if pool.used >= pool.budget then
 		return nil
 	end
-	used += 1
-	local slot = slots[used]
+	pool.used += 1
+	local slot = pool.slots[pool.used]
 	if not slot then
-		slot = newSlot(ensureHolder())
-		slots[used] = slot
+		slot = newSlot(ensureHolder(pool))
+		pool.slots[pool.used] = slot
 	end
 	return slot
 end
@@ -162,7 +187,8 @@ end
      streak's height, facing the swing); `(px, py)` is the swinger on the
      page and `s` its pixels to a stud; `zBase` lifts a newer cleave's
      drawing over an older one's. ]]
-function Painter.paint(
+function Painter.paintIn(
+	pool: Pool,
 	items: { Canvas.Item },
 	origin: CFrame,
 	px: number,
@@ -213,7 +239,7 @@ function Painter.paint(
 			widths[i] = width
 		end
 		for i = 1, n - 1 do
-			local slot = take()
+			local slot = take(pool)
 			if not slot then
 				return
 			end
@@ -280,9 +306,21 @@ function Painter.paint(
 	end
 end
 
+function Painter.paint(
+	items: { Canvas.Item },
+	origin: CFrame,
+	px: number,
+	py: number,
+	s: number,
+	zBase: number
+)
+	Painter.paintIn(default, items, origin, px, py, s, zBase)
+end
+
 --[[ Switches off the beams this frame did not use. ]]
-function Painter.finish()
-	for i = used + 1, #slots do
+function Painter.finishIn(pool: Pool)
+	local slots = pool.slots
+	for i = pool.used + 1, #slots do
 		local slot = slots[i]
 		if not slot.on then
 			break
@@ -291,10 +329,16 @@ function Painter.finish()
 		slot.on = false
 	end
 end
+function Painter.finish()
+	Painter.finishIn(default)
+end
 
 --[[ Beams in use this frame (for a probe). ]]
+function Painter.countIn(pool: Pool): number
+	return pool.used
+end
 function Painter.count(): number
-	return used
+	return default.used
 end
 
 return Painter

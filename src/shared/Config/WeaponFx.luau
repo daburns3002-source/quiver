@@ -30,6 +30,13 @@
 	`linger`. Its drawing is in `Fx/Cleaves` (`tests/BladeCleaves.spec`).
 	Ported area by area; until its batch, a blade keeps the ribbon above.
 
+	A bow or staff with a card in `shotCards` flies its own shot from the
+	owner-approved Projectile Shots page (2026-11-19, "build all 49"): its
+	card's number (which seeds what it sheds), bow or staff, and its three
+	colours (main, second, accent). Its drawing is in `Fx/Shots`
+	(`tests/ProjectileShots.spec`) and replaces its `shots` look, which is
+	kept for a weapon until its batch is ported.
+
 	`tests/WeaponFx.spec` asks that no two share a look.
 ]]
 
@@ -50,6 +57,11 @@ export type CleaveLook = {
 	kind: "sword" | "dagger",
 	colours: { Color3 },
 	linger: number?,
+}
+export type ShotCard = {
+	card: number,
+	kind: "bow" | "staff",
+	colours: { Color3 },
 }
 export type Cleave = {
 	colour: { Color3 },
@@ -1240,7 +1252,42 @@ for key, look in looks do
 	cleave.look = look
 end
 
+--[[ The Projectile Shots page's cards, by number, area by area. ]]
+local function shotCard(
+	number: number,
+	kind: "bow" | "staff",
+	main: string,
+	second: string,
+	accent: string
+): ShotCard
+	return table.freeze({
+		card = number,
+		kind = kind,
+		colours = { Color3.fromHex(main), Color3.fromHex(second), Color3.fromHex(accent) },
+	})
+end
+
+local shotCards: { [string]: ShotCard } = {
+	-- Mossy Glade
+	TwigBow = shotCard(1, "bow", "#9a6a3c", "#fff4c4", "#6cbf4a"),
+	AcornBow = shotCard(2, "bow", "#e2aa60", "#7a4a22", "#7cc44a"),
+	FireflyBow = shotCard(3, "bow", "#faee78", "#2a3a8a", "#fff6b0"),
+	MossSlimeBow = shotCard(4, "bow", "#96ec5c", "#3d8a2a", "#c8ff8a"),
+	EmberFangBow = shotCard(5, "bow", "#ff922c", "#ffe07a", "#ff5a1e"),
+	GladeSpiritBow = shotCard(6, "bow", "#d8ffe2", "#96ffaa", "#ffffff"),
+	BranchStaff = shotCard(7, "staff", "#5ac8ff", "#2a7ad0", "#e8f8ff"),
+	ToadstoolStaff = shotCard(8, "staff", "#ec5c54", "#fff2e6", "#f0d2b4"),
+	LanternStaff = shotCard(9, "staff", "#ffc054", "#ff8a2a", "#fff2b0"),
+	HootmossStaff = shotCard(10, "staff", "#9a6ad0", "#aecc70", "#f0e0ff"),
+	SlimeCrownStaff = shotCard(11, "staff", "#9aea4a", "#ffd84a", "#e6fecd"),
+	WorldrootStaff = shotCard(12, "staff", "#21f4fe", "#7ad04a", "#ffffff"),
+}
+for key in shotCards do
+	assert(shots[key], `{key} has a shot card and no shot`)
+end
+
 return table.freeze({
 	shots = table.freeze(shots),
+	shotCards = table.freeze(shotCards),
 	cleaves = table.freeze(cleaves),
 })

@@ -82,6 +82,20 @@ note.Position = UDim2.fromScale(0.5, 0.97)
 note.Size = UDim2.fromScale(0.8, 0.03)
 note.ZIndex = 5
 
+--[[ Every trip between servers (a run starting, a run back to the lobby)
+     shows this cover rather than Roblox's own teleport screen, which looked
+     like the game starting over (owner, 2026-11-20: "the game keeps
+     restarting"). The far side's loading screen is the same cover, so the
+     trip reads as one loading screen. A copy, kept for as long as this
+     client is here: the loading screen itself is destroyed once it lifts.
+     The trip to the tutorial carries the whole loading screen instead
+     (`carryAlong`, below). ]]
+local travel = gui:Clone()
+travel.Name = "TravelScreen"
+pcall(function()
+	TeleportService:SetTeleportGui(travel)
+end)
+
 gui.Parent = player:WaitForChild("PlayerGui")
 ReplicatedFirst:RemoveDefaultLoadingScreen()
 

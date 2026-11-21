@@ -16,6 +16,23 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## A big web and random models in the middle of the live game's levels (2026-11-20)
+
+**Seen:** the owner's live playtest (published version 1132): "there is a big web in the middle",
+"there are also random models in the level".
+**Cause:** the place published from Studio carried about 105 instances other sessions had left in
+the Edit Workspace: `TripoImports`, render rigs (`Scene`, `AuxScene`), weapon previews, 27 pet-effect
+previews (`fx_pet_*`, among them a 28-stud `fx_pet_crown_shockwave` ring and a 27-stud
+`fx_pet_prism_beam`) and both Endless gates, 71 of them posed around the origin, which is where every
+arena is built. Nothing in the repo puts anything in Workspace, so no gate could see them.
+**Fix:** `Server/Util/WorldSweep` runs first in `Main.server`, before anything builds, and destroys every
+child of Workspace but the Terrain, the Camera and a player's character, on the server's copy only
+(the saved place is untouched), with a `[WorldSweep]` warning naming what went. Studio's Play does the
+same, so a Studio playtest is what a live player sees. `tests/WorldSweep.spec`.
+**Measured:** Studio Play on the dirty place: "[WorldSweep] removed 105 saved Workspace instances";
+the client's Workspace holds only the game's own folders, and the tutorial arena shows nothing in
+the middle. The live game changes only once main is published again.
+
 ## Endless kills in two hits in the teens (2026-11-19)
 
 **Seen:** the owner's playtest: "in endless i only died in the teens and i got 2 shot, the enemies do way too much damage".

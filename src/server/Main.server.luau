@@ -20,6 +20,22 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
 
+--[[ Whatever a publish from Studio left saved in Workspace goes before the
+     game builds its own world (`Util/WorldSweep`): previews and imports
+     posed at the origin stood in the middle of every arena (2026-11-20). ]]
+do
+	local removed = require(script.Parent.Util.WorldSweep).sweep(Workspace)
+	if #removed > 0 then
+		warn(
+			string.format(
+				"[WorldSweep] removed %d saved Workspace instances: %s",
+				#removed,
+				table.concat(removed, ", ", 1, math.min(#removed, 12))
+			)
+		)
+	end
+end
+
 --[[ Every remote, before anything else loads or builds: a client waits only
      so long for one, and the lobby's meshes keep a fresh live server busy
      for longer than that (`Net/Remotes.createAll`). ]]

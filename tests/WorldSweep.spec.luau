@@ -35,6 +35,31 @@ return function(t: TestRunner.Helper)
 		world:Destroy()
 	end)
 
+	t.test("only the repo's own scripts stay in a script container", function()
+		local server = Instance.new("Folder")
+		server.Name = "ServerScriptService"
+		local own = Instance.new("Folder")
+		own.Name = "Server"
+		own.Parent = server
+		local bot = Instance.new("Folder")
+		bot.Name = "RunBotServer"
+		bot.Parent = server
+		local gui = Instance.new("Folder")
+		gui.Name = "StarterGui"
+		local stray = Instance.new("Folder")
+		stray.Name = "OldScreen"
+		stray.Parent = gui
+
+		local removed = WorldSweep.only({ [server] = { Server = true }, [gui] = {} })
+
+		t.equal(#removed, 2, "the bot and the stray screen removed")
+		t.notNil(server:FindFirstChild("Server"), "the game's own code stays")
+		t.isNil(server:FindFirstChild("RunBotServer"))
+		t.isNil(gui:FindFirstChild("OldScreen"))
+		server:Destroy()
+		gui:Destroy()
+	end)
+
 	t.test("an empty world has nothing to take", function()
 		local world = Instance.new("Folder")
 		t.equal(#WorldSweep.sweep(world), 0)

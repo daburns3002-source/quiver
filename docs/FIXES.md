@@ -32,6 +32,11 @@ same, so a Studio playtest is what a live player sees. `tests/WorldSweep.spec`.
 **Measured:** Studio Play on the dirty place: "[WorldSweep] removed 105 saved Workspace instances";
 the client's Workspace holds only the game's own folders, and the tutorial arena shows nothing in
 the middle. The live game changes only once main is published again.
+**Then (the same day):** the owner also saw the live game "keep restarting". Version 1132 cannot be opened
+to see whether a test autopilot (`RunBot`, `AutoPlay`) was in Studio when it was published, so a live
+server now also keeps only the repo's own scripts (`WorldSweep.only`: `ServerScriptService.Server`,
+`StarterPlayerScripts.Client`, `ReplicatedFirst.Loading`; StarterGui and StarterCharacterScripts empty),
+before any player joins. Studio keeps its test scripts.
 
 ## Endless kills in two hits in the teens (2026-11-19)
 

@@ -41,4 +41,21 @@ function WorldSweep.sweep(container: Instance): { string }
 	return removed
 end
 
+--[[ Destroys every child of each container that is not in its `keep` set,
+     and returns their full names. For the script containers of a live
+     server (`Main.server`): only the repo's own code may run there, never a
+     test autopilot or an old script left in Studio when it was published. ]]
+function WorldSweep.only(containers: { [Instance]: { [string]: boolean } }): { string }
+	local removed = {}
+	for container, keep in containers do
+		for _, child in container:GetChildren() do
+			if not keep[child.Name] then
+				table.insert(removed, container.Name .. "." .. child.Name)
+				child:Destroy()
+			end
+		end
+	end
+	return removed
+end
+
 return WorldSweep

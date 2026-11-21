@@ -24,7 +24,8 @@ local Workspace = game:GetService("Workspace")
      game builds its own world (`Util/WorldSweep`): previews and imports
      posed at the origin stood in the middle of every arena (2026-11-20). ]]
 do
-	local removed = require(script.Parent.Util.WorldSweep).sweep(Workspace)
+	local WorldSweep = require(script.Parent.Util.WorldSweep)
+	local removed = WorldSweep.sweep(Workspace)
 	if #removed > 0 then
 		warn(
 			string.format(
@@ -33,6 +34,22 @@ do
 				table.concat(removed, ", ", 1, math.min(#removed, 12))
 			)
 		)
+	end
+	--[[ In a live server only the repo's own scripts run: a test autopilot
+	     or any other script left in Studio when it was published goes before
+	     a player joins. Studio keeps its test scripts. ]]
+	if not RunService:IsStudio() then
+		local StarterPlayer = game:GetService("StarterPlayer")
+		local scripts = WorldSweep.only({
+			[game:GetService("ServerScriptService")] = { Server = true, ServerPackages = true },
+			[StarterPlayer:WaitForChild("StarterPlayerScripts")] = { Client = true },
+			[StarterPlayer:WaitForChild("StarterCharacterScripts")] = {},
+			[game:GetService("StarterGui")] = {},
+			[game:GetService("ReplicatedFirst")] = { Loading = true },
+		})
+		if #scripts > 0 then
+			warn("[WorldSweep] removed scripts left in the place: " .. table.concat(scripts, ", "))
+		end
 	end
 end
 

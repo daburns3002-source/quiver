@@ -132,9 +132,19 @@ end
      run's server), and that fade stays on once this camera takes over: the
      player ran a whole room as a ring with no body (owner, 2026-11-25:
      "where is the player model"). Taken off each time the top-down camera
-     takes over. A part that hides itself on purpose (the bow's live string,
+     takes over, and again on any frame the head is found faded: Roblox's
+     camera hears of the switch to Scriptable a moment late (deferred
+     signals), so it can run one more frame after the switch and fade the
+     body again, which is what live servers still showed after a one-time
+     unfade (version 1151, 2026-11-25). Roblox fades every part of the
+     character by the same amount, so the head stands for all of them. A
+     part that hides itself on purpose (the bow's live string,
      `Fx/BowString`) is left alone. ]]
 local unfadePending = true
+local function faded(character: Instance): boolean
+	local head = character:FindFirstChild("Head")
+	return head ~= nil and head:IsA("BasePart") and head.LocalTransparencyModifier > 0
+end
 local function unfade(character: Instance)
 	for _, item in character:GetDescendants() do
 		if item:GetAttribute("LiveString") then
@@ -196,9 +206,10 @@ local function step(deltaTime: number, getRoot: () -> BasePart?)
 	if not root then
 		return
 	end
-	if unfadePending and root.Parent then
+	local character = root.Parent
+	if character and (unfadePending or faded(character)) then
 		unfadePending = false
-		unfade(root.Parent)
+		unfade(character)
 	end
 
 	--[[

@@ -16,6 +16,22 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## Back from a run, the lobby sent the player away: "still saving from your last server" (2026-11-25)
+
+**Seen:** Claude's live playtest of version 1154: 1-2 lost, TRY AGAIN, MENU, BACK TO LOBBY. The lobby came up with
+0 coins, 0 gems and no pet, and about 25 s later Roblox said "You have been kicked ... Your progress is still saving
+from your last server. Please rejoin in a minute. (Error Code: 267)". The same trip had worked in version 1151.
+**Cause:** a race in the session lock (`Data/PlayerData`). The run server lets the lock go with its last save as the
+player leaves, but until that save returns the player's entry is still there, and the 6 s autosave could queue one
+more save behind it. Saves wrote whenever the lock was empty or their own, so that late autosave took the lock
+back, with nobody left to let it go. The lobby could not load the record for `STALE` (10 minutes), waited its six
+tries (about 24 s) and kicked the player.
+**Fix:** `Data/SaveLock` holds the rule: a save writes only over a record this server holds, never over an empty
+lock (it let it go) or another server's. A leaving player's entry is marked, so no autosave follows the release.
+The lobby now waits about 40 s for a last server still letting go. `tests/SaveLock.spec`.
+**Not measured:** Studio has no DataStores (profiles live in memory), so the race cannot be played there; it needs a
+live trip back after the next publish. A lock left by the old code clears itself within 10 minutes.
+
 ## The player is a ring with no body in a run's first room (2026-11-25)
 
 **Seen:** the owner's live playtest after publishing: "where is the player model" (a screenshot of room 1:

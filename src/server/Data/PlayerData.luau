@@ -7,8 +7,9 @@
 
 	- **Session locked.** The stored record carries the server that holds
 	  it. A server only loads a record no other live server holds (a lock
-	  goes stale after `LOCK_STALE` seconds without a save, for a server
-	  that died), and only saves over a record it holds. A player who
+	  goes stale after `SaveLock.STALE` seconds without a save, for a server
+	  that died), and only saves over a record it holds (`Data/SaveLock`),
+	  never over one it let go. A player who
 	  rejoins faster than their last server saved waits for the lock; if it
 	  never comes free they are asked to rejoin rather than handed an empty
 	  profile that would overwrite their real one.
@@ -31,6 +32,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
 local Log = require(ReplicatedStorage.Shared.Util.Log)
+local SaveLock = require(script.Parent.SaveLock)
 local SaveSchema = require(ReplicatedStorage.Shared.Util.SaveSchema)
 
 local log = Log.forTag("Data")
@@ -42,14 +44,12 @@ local STORE_NAME = if RunService:IsStudio() then "PlayerData_Studio" else "Playe
 local AUTOSAVE = 60
 --[[ Seconds within which a changed profile is saved. ]]
 local SOON = 6
---[[ Seconds after a lock's last save that another server may take it. ]]
-local LOCK_STALE = 600
---[[ Tries at taking the lock before the player is asked to rejoin. ]]
-local LOAD_TRIES = 6
+--[[ Tries at taking the lock before the player is asked to rejoin: about
+     40 s, for a last server still letting go behind a queue of saves. ]]
+local LOAD_TRIES = 10
 local LOAD_WAIT = 4
 
-type Lock = { job: string, time: number }
-type Record = { profile: SaveSchema.Profile, lock: Lock? }
+type Record = { profile: SaveSchema.Profile, lock: SaveLock.Lock? }
 
 type Entry = {
 	profile: SaveSchema.Profile,
@@ -58,6 +58,9 @@ type Entry = {
 	dirty: boolean,
 	--[[ No record existed: this player's very first join (`isNew`). ]]
 	fresh: boolean,
+	--[[ The player is leaving: their last save lets the lock go, and no
+	     autosave may follow it. ]]
+	leaving: boolean?,
 }
 
 local entries: { [Player]: Entry } = {}
@@ -101,8 +104,7 @@ local function tryLoad(player: Player): (SaveSchema.Profile?, boolean, boolean)
 	local fresh = false
 	local ok, problem = pcall(function()
 		current:UpdateAsync(key(player), function(old: any): any
-			local lock = old and old.lock
-			if lock and lock.job ~= jobId and os.time() - (lock.time or 0) < LOCK_STALE then
+			if not SaveLock.mayTake(old and old.lock, jobId, os.time()) then
 				profile = nil
 				return nil -- held elsewhere: write nothing
 			end
@@ -158,15 +160,18 @@ local function save(player: Player, release: boolean): boolean
 	if not entry or not entry.saving or not current then
 		return false
 	end
+	if entry.leaving and not release then
+		return false -- only the leaving save, which lets the lock go
+	end
 	local profile = entry.profile
 	local written = false
 	local ok, problem = pcall(function()
 		current:UpdateAsync(key(player), function(old: any): any
 			-- the transform can run more than once; only its last answer stands
 			written = false
-			local lock = old and old.lock
-			if lock and lock.job ~= jobId and os.time() - (lock.time or 0) < LOCK_STALE then
-				return nil -- another server took it: never write over it
+			if not SaveLock.mayWrite(old and old.lock, jobId) then
+				-- not ours: let go already, or taken by another server
+				return nil
 			end
 			if old and not SaveSchema.readable(old.profile) then
 				return nil
@@ -261,6 +266,7 @@ function PlayerData.start()
 	Players.PlayerRemoving:Connect(function(player)
 		local entry = entries[player]
 		if entry then
+			entry.leaving = true
 			for _, callback in leaving do
 				task.spawn(callback, player, entry.profile)
 			end
@@ -294,7 +300,7 @@ function PlayerData.start()
 				lastAll = os.clock()
 			end
 			for player, entry in entries do
-				if all or entry.dirty then
+				if not entry.leaving and (all or entry.dirty) then
 					entry.dirty = false
 					task.spawn(save, player, false)
 				end

@@ -16,6 +16,20 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## Twenty seconds on a bare green plane after a level starts (2026-11-25)
+
+**Seen:** Claude's live playtest of version 1146 (the owner's account, CONTINUE 1-2): TRAVELLING..., the
+trip, then about 20 s of flat green ground under the run's HUD before the level drew. Part of the owner's
+"the game keeps restarting".
+**Cause:** on arrival at a run's own server the client skips the title (`IntroCutscene.skipped`) and
+lifted the loading screen at once, while the server was still loading the save, waiting for the party
+(`Coop.arrivalWait`) and building the first room. Only an area's first level had a cover of its own
+(`AreaLoading`). Studio plays runs in place, so it never showed.
+**Fix:** `Main.client`: sent to a run (teleport data with `portal` or `tutorial`), the loading screen holds
+until `Workspace.InLobby` turns false (the run is under way), 40 s at most, short of its own "TAKING A
+WHILE" line. A trip back to the lobby lifts at once, as before.
+**Measured:** live only (Studio cannot teleport): the owner's next playtest after publishing.
+
 ## A big web and random models in the middle of the live game's levels (2026-11-20)
 
 **Seen:** the owner's live playtest (published version 1132): "there is a big web in the middle",

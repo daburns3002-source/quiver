@@ -279,10 +279,35 @@ end
 -- before the join screen lifts, so a run server's cover follows it at once
 AreaLoading.start()
 
+--[[ Sent to a run's own server (a level started from the lobby, or the
+     tutorial after the title): the server still has to load this save and
+     build the first room, about 20 s live, and until then this player stood
+     on a bare green plane under the run's HUD (the owner's live playtest,
+     2026-11-25). The loading screen holds until the run is under way, or
+     `RUN_ARRIVAL_WAIT` at most, short of the screen's own "TAKING A WHILE"
+     line. A trip back to the lobby carries no level and lifts at once. ]]
+local RUN_ARRIVAL_WAIT = 40
+local function sentToRun(): boolean
+	local ok, data = pcall(function()
+		return TeleportService:GetLocalPlayerTeleportData()
+	end)
+	return ok
+		and type(data) == "table"
+		and ((data :: any).portal ~= nil or (data :: any).tutorial ~= nil)
+end
+
 if IntroCutscene.skipped() then
 	CardPreload.start()
-	-- the loading screen can lift (`first/Loading`)
-	player:SetAttribute("ClientReady", true)
+	task.spawn(function()
+		if sentToRun() then
+			local deadline = os.clock() + RUN_ARRIVAL_WAIT
+			while Workspace:GetAttribute("InLobby") ~= false and os.clock() < deadline do
+				task.wait(0.2)
+			end
+		end
+		-- the loading screen can lift (`first/Loading`)
+		player:SetAttribute("ClientReady", true)
+	end)
 else
 	MusicFx.setQuiet(true)
 	RoomSign.setWaiting(true)

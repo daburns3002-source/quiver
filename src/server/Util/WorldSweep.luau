@@ -41,15 +41,34 @@ function WorldSweep.sweep(container: Instance): { string }
 	return removed
 end
 
---[[ Destroys every child of each container that is not in its `keep` set,
-     and returns their full names. For the script containers of a live
-     server (`Main.server`): only the repo's own code may run there, never a
-     test autopilot or an old script left in Studio when it was published. ]]
+--[[ The scripts Roblox itself puts into a live server's script containers
+     before the game's code runs: they are the engine's, not leftovers. The
+     first live sweep took `RbxCharacterSounds` out of StarterPlayerScripts,
+     and players lost their footsteps, jumps and landings (2026-11-25). The
+     rest are the camera and controls (`PlayerModule`, `PlayerScriptsLoader`),
+     the character's walk animations and healing (`Animate`, `Health`) and
+     the legacy chat (`ChatScript`, `BubbleChat`, `ChatServiceRunner`). ]]
+WorldSweep.ROBLOX_OWN = table.freeze({
+	RbxCharacterSounds = true,
+	PlayerModule = true,
+	PlayerScriptsLoader = true,
+	Animate = true,
+	Health = true,
+	ChatScript = true,
+	BubbleChat = true,
+	ChatServiceRunner = true,
+} :: { [string]: boolean })
+
+--[[ Destroys every child of each container that is neither in its `keep`
+     set nor one of Roblox's own scripts (`ROBLOX_OWN`), and returns their
+     full names. For the script containers of a live server (`Main.server`):
+     only the repo's own code and the engine's may run there, never a test
+     autopilot or an old script left in Studio when it was published. ]]
 function WorldSweep.only(containers: { [Instance]: { [string]: boolean } }): { string }
 	local removed = {}
 	for container, keep in containers do
 		for _, child in container:GetChildren() do
-			if not keep[child.Name] then
+			if not keep[child.Name] and not WorldSweep.ROBLOX_OWN[child.Name] then
 				table.insert(removed, container.Name .. "." .. child.Name)
 				child:Destroy()
 			end

@@ -127,6 +127,25 @@ local function viewSpan(camera: Camera, offset: Vector3): (number, number)
 	return far, near
 end
 
+--[[ Roblox's own camera fades the player's character when it comes close to
+     the head (zoomed to first person in the lobby, or just spawned on a
+     run's server), and that fade stays on once this camera takes over: the
+     player ran a whole room as a ring with no body (owner, 2026-11-25:
+     "where is the player model"). Taken off each time the top-down camera
+     takes over. A part that hides itself on purpose (the bow's live string,
+     `Fx/BowString`) is left alone. ]]
+local unfadePending = true
+local function unfade(character: Instance)
+	for _, item in character:GetDescendants() do
+		if item:GetAttribute("LiveString") then
+			continue
+		end
+		if item:IsA("BasePart") or item:IsA("Decal") then
+			(item :: any).LocalTransparencyModifier = 0
+		end
+	end
+end
+
 local function step(deltaTime: number, getRoot: () -> BasePart?)
 	local camera = Workspace.CurrentCamera
 	if not camera then
@@ -170,11 +189,16 @@ local function step(deltaTime: number, getRoot: () -> BasePart?)
 	if camera.CameraType ~= Enum.CameraType.Scriptable then
 		camera.CameraType = Enum.CameraType.Scriptable
 		camera.FieldOfView = Balance.Camera.fieldOfView
+		unfadePending = true
 	end
 
 	local root = getRoot()
 	if not root then
 		return
+	end
+	if unfadePending and root.Parent then
+		unfadePending = false
+		unfade(root.Parent)
 	end
 
 	--[[

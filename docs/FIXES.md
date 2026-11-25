@@ -29,6 +29,11 @@ stops updating that fade, so it stayed on.
 part and decal of the character, except a part that hides itself on purpose (`LiveString`, `Fx/BowString`).
 **Measured:** Studio Play: zoomed to first person in the lobby, the body parts read 1.00; started 1-1 from
 there: 1.00 before the fix, 0.00 after.
+**Then (live version 1151, the same day):** still a ring with no body in room 1, so the one-time unfade was
+not enough. Roblox's camera learns of the switch to Scriptable through a deferred signal, so it can run
+one more frame after the unfade and fade the body again, and nothing then took it off. The top-down camera
+now also unfades on any frame it finds the head faded (Roblox fades every part by the same amount).
+Not yet seen live: needs the owner's next publish.
 
 ## Twenty seconds on a bare green plane after a level starts (2026-11-25)
 
@@ -66,6 +71,10 @@ to see whether a test autopilot (`RunBot`, `AutoPlay`) was in Studio when it was
 server now also keeps only the repo's own scripts (`WorldSweep.only`: `ServerScriptService.Server`,
 `StarterPlayerScripts.Client`, `ReplicatedFirst.Loading`; StarterGui and StarterCharacterScripts empty),
 before any player joins. Studio keeps its test scripts.
+**Then (live version 1151):** that sweep also took Roblox's own `RbxCharacterSounds` (footsteps, jumps,
+landings) out of StarterPlayerScripts, as its server log showed. `WorldSweep.ROBLOX_OWN` now names the
+engine's own scripts (`RbxCharacterSounds`, `PlayerModule`, `PlayerScriptsLoader`, `Animate`, `Health`,
+the legacy chat's three) and `only` always keeps them. `tests/WorldSweep.spec`.
 
 ## Endless kills in two hits in the teens (2026-11-19)
 

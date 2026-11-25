@@ -35,9 +35,10 @@ do
 			)
 		)
 	end
-	--[[ In a live server only the repo's own scripts run: a test autopilot
-	     or any other script left in Studio when it was published goes before
-	     a player joins. Studio keeps its test scripts. ]]
+	--[[ In a live server only the repo's own scripts and Roblox's
+	     (`WorldSweep.ROBLOX_OWN`: footsteps, camera, animations) run: a test
+	     autopilot or any other script left in Studio when it was published
+	     goes before a player joins. Studio keeps its test scripts. ]]
 	if not RunService:IsStudio() then
 		local StarterPlayer = game:GetService("StarterPlayer")
 		local scripts = WorldSweep.only({

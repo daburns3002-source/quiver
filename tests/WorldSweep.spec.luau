@@ -60,6 +60,37 @@ return function(t: TestRunner.Helper)
 		gui:Destroy()
 	end)
 
+	t.test("Roblox's own scripts stay: footsteps, camera, animations", function()
+		local scripts = Instance.new("Folder")
+		scripts.Name = "StarterPlayerScripts"
+		for _, name in
+			{ "Client", "RbxCharacterSounds", "PlayerModule", "PlayerScriptsLoader", "RunBot" }
+		do
+			local child = Instance.new("Folder")
+			child.Name = name
+			child.Parent = scripts
+		end
+		local character = Instance.new("Folder")
+		character.Name = "StarterCharacterScripts"
+		for _, name in { "Animate", "Health" } do
+			local child = Instance.new("Folder")
+			child.Name = name
+			child.Parent = character
+		end
+
+		local removed = WorldSweep.only({ [scripts] = { Client = true }, [character] = {} })
+
+		t.equal(#removed, 1, "only the bot removed")
+		t.equal(removed[1], "StarterPlayerScripts.RunBot")
+		for _, name in { "Client", "RbxCharacterSounds", "PlayerModule", "PlayerScriptsLoader" } do
+			t.notNil(scripts:FindFirstChild(name), name .. " stays")
+		end
+		t.notNil(character:FindFirstChild("Animate"), "Animate stays")
+		t.notNil(character:FindFirstChild("Health"), "Health stays")
+		scripts:Destroy()
+		character:Destroy()
+	end)
+
 	t.test("an empty world has nothing to take", function()
 		local world = Instance.new("Folder")
 		t.equal(#WorldSweep.sweep(world), 0)

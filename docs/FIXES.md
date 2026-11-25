@@ -16,6 +16,20 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## The player is a ring with no body in a run's first room (2026-11-25)
+
+**Seen:** the owner's live playtest after publishing: "where is the player model" (a screenshot of room 1:
+the cyan ring, the lit path to the exit, no character). Claude's live run the same day: invisible in room 1
+on the run's server, visible by room 2.
+**Cause:** Roblox's own camera fades the local character (`LocalTransparencyModifier` 1) when it comes
+close to the head: zoomed to first person in the lobby, or just spawned on a run's server, where the lobby
+camera is Roblox's until the stage begins. `Camera/TopDownCamera` then switches to Scriptable, and Roblox
+stops updating that fade, so it stayed on.
+**Fix:** each time the top-down camera takes over, it sets `LocalTransparencyModifier` back to 0 on every
+part and decal of the character, except a part that hides itself on purpose (`LiveString`, `Fx/BowString`).
+**Measured:** Studio Play: zoomed to first person in the lobby, the body parts read 1.00; started 1-1 from
+there: 1.00 before the fix, 0.00 after.
+
 ## Twenty seconds on a bare green plane after a level starts (2026-11-25)
 
 **Seen:** Claude's live playtest of version 1146 (the owner's account, CONTINUE 1-2): TRAVELLING..., the

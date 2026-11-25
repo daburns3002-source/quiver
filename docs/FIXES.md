@@ -27,7 +27,8 @@ lifted the loading screen at once, while the server was still loading the save, 
 (`AreaLoading`). Studio plays runs in place, so it never showed.
 **Fix:** `Main.client`: sent to a run (teleport data with `portal` or `tutorial`), the loading screen holds
 until `Workspace.InLobby` turns false (the run is under way), 40 s at most, short of its own "TAKING A
-WHILE" line. A trip back to the lobby lifts at once, as before.
+WHILE" line. A trip back to the lobby lifted at once and stood about 8 s on the same green plane, so it
+now holds until the server has put the player in the lobby (`RunSession.ARRIVED`), 40 s at most (#671).
 **Measured:** live only (Studio cannot teleport): the owner's next playtest after publishing.
 
 ## A big web and random models in the middle of the live game's levels (2026-11-20)

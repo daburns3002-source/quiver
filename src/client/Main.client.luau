@@ -285,7 +285,9 @@ AreaLoading.start()
      on a bare green plane under the run's HUD (the owner's live playtest,
      2026-11-25). The loading screen holds until the run is under way, or
      `RUN_ARRIVAL_WAIT` at most, short of the screen's own "TAKING A WHILE"
-     line. A trip back to the lobby carries no level and lifts at once. ]]
+     line. A trip back to the lobby holds the same way until the server has
+     put this player in the lobby (`RunSession.ARRIVED`): it stood about 8 s
+     on that green plane too, under the run's HUD (the same playtest). ]]
 local RUN_ARRIVAL_WAIT = 40
 local function sentToRun(): boolean
 	local ok, data = pcall(function()
@@ -299,11 +301,16 @@ end
 if IntroCutscene.skipped() then
 	CardPreload.start()
 	task.spawn(function()
-		if sentToRun() then
-			local deadline = os.clock() + RUN_ARRIVAL_WAIT
-			while Workspace:GetAttribute("InLobby") ~= false and os.clock() < deadline do
-				task.wait(0.2)
+		local toRun = sentToRun()
+		local deadline = os.clock() + RUN_ARRIVAL_WAIT
+		while os.clock() < deadline do
+			if toRun and Workspace:GetAttribute("InLobby") == false then
+				break
 			end
+			if not toRun and player:GetAttribute("Arrived") == true then
+				break
+			end
+			task.wait(0.2)
 		end
 		-- the loading screen can lift (`first/Loading`)
 		player:SetAttribute("ClientReady", true)

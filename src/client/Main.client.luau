@@ -512,6 +512,7 @@ Remotes.event(Remotes.ShotFired).OnClientEvent:Connect(function(event: ShotEvent
 end)
 
 Remotes.event(Remotes.EnemyTelegraph).OnClientEvent:Connect(TelegraphRenderer.onTelegraph)
+Remotes.event(Remotes.EnemyTelegraph).OnClientEvent:Connect(EnemySounds.onTelegraph)
 Remotes.event(Remotes.EnemyHit).OnClientEvent:Connect(HitFeedback.onEnemyHit)
 Remotes.event(Remotes.EnemyDied).OnClientEvent:Connect(HitFeedback.onEnemyDied)
 Remotes.event(Remotes.EnemyHit).OnClientEvent:Connect(SlimeResidue.onEnemyHit)

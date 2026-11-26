@@ -278,6 +278,67 @@ ROUND_34 = [
     }),
 ]
 
+ROUND_35 = [
+    ("Round 35 · Thornwood's pets (all silent today)", {
+        "pet_bark_hoglet": ("Bark Hoglet · Bark Charge", "A short, hard ram, every 3 s.", (3.0, 3)),
+        "pet_burrball": ("Burrball · Burr Toss", "Three burrs flicked off its back, every 2.5 s.", (2.5, 3)),
+        "pet_budbulb": ("Budbulb · Spore Puff", "A cloud of spores that slows, every 2 s.", (2.0, 3)),
+        "pet_berry_mouse": ("Berry Mouse · Berry Cache", "Drops a berry patch that heals you, every 18 s.", None),
+        "pet_thistle_mole": ("Thistle Mole · Thorn Shell", "Its shell blocks a hit and thorns burst off it.", None),
+        "pet_briar_beetle": ("Briar Beetle · Chain Snare", "Roots grab one enemy, then jump to the one beside it.", None),
+        "pet_berry_bat": ("Berry Bat · Blood Berry", "A bite that heals you a little, every 2.5 s.", (2.5, 3)),
+        "pet_bramble_bear": ("Bramble Bear · Bramble Swipe", "One big swipe across three enemies, every 3 s.", (3.0, 3)),
+        "pet_briar_lynx": ("Briar Lynx · Thorn Darts", "Four homing thorns, every 3 s.", (3.0, 3)),
+        "pet_bramble_wilf_bolt": ("Bramble Wilf · thorn bolt (Legendary)", "The first half: a bolt of stacking thorns.", None),
+        "pet_bramble_wilf_howl": ("Bramble Wilf · howl (Legendary)", "The second half, 0.35 s later: a howl that speeds your attacks.", None),
+        "pet_thorn_princess": ("Thorn Princess · Briar Cage (Legendary)", "Two spirits fly out and a thorn cage holds an enemy, even a boss.", None),
+        "pet_thornwake": ("Thornwake · The Wake (Mythic)", "A ring of thorns turns round you, shredding what comes near.", None),
+    }),
+    ("Round 35 · the Drowned Village's pets", {
+        "pet_slate_turtle": ("Slate Turtle · Roof Huddle", "Tucks in beside you: everything hurts less for 3 s.", None),
+        "pet_buoy_puffer": ("Buoy Puffer · Payback Puff", "Only when you are hurt: it puffs up and fires one big spine.", None),
+        "pet_inkpot": ("Inkpot · Ink Blink", "Squirts ink in an enemy's face so it cannot aim.", None),
+        "pet_tide_wilf": ("Tide Wilf · Wake Chase (Legendary)", "Foam that bites whatever wears it for moving.", None),
+        "pet_abyss_jelly": ("Abyss Jelly · Deep Accord (Mythic)", "A curtain of stinging tentacles over three enemies.", None),
+    }),
+    ("Round 35 · Bogheart Caverns' pets", {
+        "pet_cave_cricket": ("Cave Cricket · Long Chirp", "A dart at the enemy furthest away, every 2.5 s.", (2.5, 3)),
+        "pet_lichen_gecko": ("Lichen Gecko · Fourth Lick", "Quick tongue nips, every 2 s. Small: it plays often.", (2.0, 4)),
+        "pet_bog_beaver": ("Bog Beaver · Mud Plaster", "Plasters you in mud that soaks hits, every 15 s.", None),
+        "pet_lanternfin_mote": ("Lanternfin · Glow Mote sticks", "The first half: a light sticks to an enemy.", None),
+        "pet_lanternfin_burst": ("Lanternfin · Glow Mote bursts", "The second half, 1.5 s later: it bursts on the enemy and those near it.", None),
+        "pet_olm": ("Olm · Tremor Snap", "A blind snap that hits harder in a crowd, every 3 s.", (3.0, 3)),
+        "pet_glowcap_wilf": ("Glowcap Wilf · Spore Sneeze (Legendary)", "Sneezes a wedge of spores at the nearest enemy.", None),
+        "pet_gulpling": ("Gulpling · Little Belly Flop (Legendary)", "A small leap that lands on the crowd.", None),
+        "pet_prism_leviathan": ("Prism Leviathan · Prism Split (Mythic)", "A crystal bolt that breaks into three shards as it lands.", None),
+    }),
+    ("Round 35 · enemies with no attack sound", {
+        "enemy_charger_bite": ("Charger (Mossy Glade) · bite", "Its bump when it reaches you, about once a second.", (1.0, 4)),
+        "enemy_bulwark_bash": ("Bulwark (Mossy Glade) · bash", "Its heavy blow, every 1.6 s.", (1.6, 3)),
+        "enemy_spitter_spit": ("Spitter (Mossy Glade) · spit", "Two orbs fired together, every 3 s.", (3.0, 3)),
+        "enemy_baby_slime_bite": ("Baby Slime · nip", "The little slimes a Brood Slime splits into. Four can bite at once, so it has to be tiny.", (0.25, 4)),
+        "enemy_brood_slime_bite": ("Brood Slime · bite", "The big slime's bite, every 1.3 s.", (1.3, 3)),
+        "enemy_burrower_clods": ("Lurker (Mossy Glade) · clods", "It surfaces beside you and flings five clods.", None),
+        "enemy_lancer_lance": ("Lancer · lance", "One fast lance down a lane. Benched today (no room has it), but ready when it returns.", None),
+        "enemy_glowcap_spores": ("Glowcap (Bogheart) · spores", "Four glowing spores fired in a fan.", None),
+        "enemy_spore_puff_bite": ("Spore Puff (Bogheart) · bite", "Its bite, about once a second.", (1.1, 4)),
+        "enemy_shellback_bash": ("Shellback (Bogheart) · bash", "Its heavy shell bash, every 1.6 s.", (1.6, 3)),
+        "enemy_fisherman_cast": ("Hollow Fisherman (Drowned) · cast", "Casts its bobber at you.", None),
+    }),
+    ("Round 35 · the Old Tollcrab's moves", {
+        "boss_toll_raise": ("Toll · wind-up", "He raises the bell before planting it.", None),
+        "boss_toll_ring": ("Toll · ring", "The bell planted and rung: a ring rolls out with one gap to step through.", None),
+        "boss_toll_rap": ("Echo · rap", "He raps at you, three times; each drops a glowing ring under you.", (0.75, 3)),
+        "boss_toll_echo": ("Echo · strike", "Each ring strikes a beat after its rap.", (0.75, 3)),
+        "boss_toll_scuttle": ("Scuttle · dash", "Three short sideways dashes, about half a second apart.", (0.55, 3)),
+    }),
+    ("Round 35 · Grandmother Gulp's moves", {
+        "boss_gulp_spit": ("Spore Spit", "Three globs lobbed together, landing 0.75 s later (the splat is in the take).", None),
+        "boss_gulp_slide": ("Belly Slide", "She slides across the room, leaving a slime trail.", None),
+        "boss_gulp_inhale": ("Big Gulp", "A 2.2 s inhale that drags you toward her mouth.", None),
+    }),
+]
+
 # page: (rounds, picks collection, sounds already chosen, shown for context)
 ROUND_18 = [
     ("Round 18 · King Bloblin's attacks, two big takes each", {
@@ -313,7 +374,8 @@ ROUND_18 = [
 ]
 
 PAGES = {
-    "34": (ROUND_34, "picks34daggers", []),
+    "35": (ROUND_35, "picks35attacks", []),
+    "34":(ROUND_34, "picks34daggers", []),
     "33": (ROUND_33, "picks33assassin", []),
     "32": (ROUND_32, "picks32cards", ["Rain of Arrows B", "Split Shot A", "Sniper Shot A (29)", "Wind Arrows A (29)", "Black Hole A", "Black Hole implode A", "Arcane Turret C", "Mana Surge B (29)", "Arcane Shield A", "Titan's Grip A", "Counter Strike A", "Shield Throw C", "Blade Storm A"]),
     "31": (ROUND_31, "picks31cards", ["Rain of Arrows B", "Split Shot A", "Sniper Shot A (29)", "Wind Arrows A (29)", "Black Hole A", "Black Hole implode A", "Arcane Turret C", "Mana Surge B (29)", "Arcane Shield A", "Titan's Grip A", "Counter Strike A", "Shield Throw C", "Blade Storm A"]),

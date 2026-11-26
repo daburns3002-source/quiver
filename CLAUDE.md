@@ -568,7 +568,11 @@ game's ripped audio is never used, only measured against), auditioned on a page 
 database (`assets/audio/build_page.py`; since round 20 artifact M81L9gr5Wiows6H6G5nGyQ, which pauses long takes, before it E53Pu8d5UbwLKnyKYEDo2K,
 read with `ArtifactData` `picks`), uploaded to Roblox by the owner, and the
 ids go in `Config/Sounds`. A sound with an empty id is silent, so every hook
-is wired before its audio exists.
+is wired before its audio exists. Who makes which attack sound: pets in `Config/PetSounds`
+(seconds into the Attack clip), enemies and the clip-less bosses in
+`Config/EnemySounds`, keyed by model name, which is the enemy's
+`displayName` (the Charger, not `MeleeCharger`); `tests/AttackSounds.spec`
+fails if any pet or enemy in the game has none.
 
 **Saved data and payouts** (2026-10-25, the first persistence): `Server/Data/PlayerData`
 loads each player's profile (`Util/SaveSchema`: coins, gems, boss items, weapons owned, the one

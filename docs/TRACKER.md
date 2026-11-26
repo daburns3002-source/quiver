@@ -142,6 +142,8 @@ where you would be standing. Say what reads wrong and Claude retunes it.
 - **The outer wood** against `area02_thornwood_ambience.jpg`: thorn trees, bramble banks, bone spikes, snags with crows, magenta pollen.
 - **Thornwood's pet attacks.** The effects are Mossy Glade pieces standing in - which look wrong enough to need Thornwood art of their own?
 
+- **Every pet's and enemy's attack sound** (round 35, 2026-11-26, one sprite): areas 2-4's 25 pets, the Mossy Glade's Charger, Spitter, Lurker and slimes, Bogheart's three, the Hollow Fisherman, and the Old Tollcrab's and Grandmother Gulp's moves. Loud enough against the fight? The Spitter had no pick, so it has take A ("ptoo-ptoo"); the Bulwark has none (not in the game).
+
 ### The Drowned Village
 
 - **The outer flood** (`Config/DrownedForest`, built 2026-11-05 after `area03_drowned_village_ambience_v2.png`): sunken houses, the leaning bell tower, the toll gate, dead trees with nets, boats, reeds and lantern posts in turquoise water, with gulls, glints, mist and warm shafts. Are the outer roofs too dark a blue?

@@ -103,6 +103,23 @@ local RESTING_TRANSPARENCY = "RestingTransparency"
      CreateMeshPartAsync yields and fetches, which a spawn must not wait on. ]]
 local meshTemplates: { [string]: MeshPart } = {}
 
+--[[
+	A texture Studio's 3D importer uploaded as a SurfaceAppearance's colour
+	map has no picture Roblox can draw as a mesh's `TextureID` ("No asset
+	content representation found"): Spore Puff, Glowcap, Shellback and
+	Grandmother Gulp were drawn bare (the content sweep, 2026-11-26). Their
+	imports' SurfaceAppearances are kept in the place, under
+	`ReplicatedStorage.EnemySurfaces`, each named by its colour map's id, and
+	a part with that texture wears a copy instead. A place without the
+	folder (a fresh `rojo build`) falls back to the `TextureID`.
+]]
+local function surfaceFor(textureId: string): SurfaceAppearance?
+	local surfaces = ReplicatedStorage:FindFirstChild("EnemySurfaces")
+	local digits = string.match(textureId, "%d+")
+	local stored = if surfaces and digits then surfaces:FindFirstChild(digits) else nil
+	return if stored and stored:IsA("SurfaceAppearance") then stored else nil
+end
+
 --[[ Roblox's smallest part size. ]]
 local SMALLEST = 0.001
 --[[ A part this much smaller than the biggest is tucked away, not body. ]]
@@ -343,7 +360,12 @@ local function buildPart(spec: BuiltPart, config: EnemyConfig): BasePart
 	if template then
 		part = template:Clone()
 		if spec.textureId then
-			(part :: MeshPart).TextureID = spec.textureId
+			local surface = surfaceFor(spec.textureId)
+			if surface then
+				surface:Clone().Parent = part
+			else
+				(part :: MeshPart).TextureID = spec.textureId
+			end
 		end
 		if spec.rig then
 			addBones(part, spec.rig)

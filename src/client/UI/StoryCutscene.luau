@@ -36,6 +36,7 @@ local StoryMotionConfig = require(ReplicatedStorage.Shared.Config.StoryMotion)
 local StoryTimeline = require(ReplicatedStorage.Shared.Util.StoryTimeline)
 
 local Device = require(script.Parent.Parent.Device)
+local Kit = require(script.Parent.Kit)
 local Preload = require(script.Parent.Parent.Preload)
 local RunPaused = require(script.Parent.Parent.RunPaused)
 local SoundFx = require(script.Parent.Parent.Fx.SoundFx)
@@ -350,6 +351,7 @@ local function buildSkip(safe: ScreenGui): (Frame, TextButton, Frame)
 	button.AutoButtonColor = false
 	button.ZIndex = 5
 	button.Parent = group
+	Kit.answer(button, group)
 	return group, button, face
 end
 

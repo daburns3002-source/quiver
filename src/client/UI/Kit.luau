@@ -425,7 +425,7 @@ function Kit.button(parent: Instance, words: string, colour: Color3, action: () 
 			or input.UserInputType == Enum.UserInputType.Touch
 		then
 			pressed = true
-			grow(0.96)
+			grow(0.9)
 		end
 	end)
 	connect(b.InputEnded, function()
@@ -456,9 +456,24 @@ function Kit.button(parent: Instance, words: string, colour: Color3, action: () 
 			sweep.Position = UDim2.fromScale(0.05 + math.min(phase / 1.2, 1) * 0.78, 0.1)
 		end)
 	end
+	--[[ Let go: a click, a ring off its edge (`Kit.ring`), and the face
+	     jumps past its size and wobbles back, as every other button does
+	     (owner, 2026-11-26: "make it more lively to click on buttons"). A
+	     click the action plays too is dropped by the sound's `minGap`. ]]
 	connect(b.Activated, function()
-		scale.Scale = 0.94
-		grow(if hovered then 1.025 else 1)
+		SoundFx.play("card_click")
+		Kit.ring(f)
+		if motion then
+			motion:Cancel()
+		end
+		scale.Scale = 1.1
+		local settle = TweenService:Create(
+			scale,
+			TweenInfo.new(0.5, Enum.EasingStyle.Elastic, Enum.EasingDirection.Out),
+			{ Scale = if hovered then 1.025 else 1 }
+		)
+		motion = settle
+		settle:Play()
 		action()
 	end)
 	return f
@@ -849,6 +864,51 @@ end
 	panel: an area's card, 8% bigger, hung out of CHOOSE AN AREA's foot (the
 	every-class run-through, 2026-11-16).
 ]]
+--[[ A ring out of a pressed button's edge (owner, 2026-11-26: "make it more
+     lively to click on buttons too with effects"): its own outline in white,
+     growing out and fading in about a third of a second, over everything
+     on its screen. Not for something filling most of the screen (a
+     tap-anywhere layer), where a ring the size of the screen means nothing. ]]
+function Kit.ring(visual: GuiObject)
+	local layer = visual:FindFirstAncestorWhichIsA("ScreenGui")
+	if not layer then
+		return
+	end
+	local size = visual.AbsoluteSize
+	local screen = layer.AbsoluteSize
+	if size.X <= 4 or size.Y <= 4 or size.X > screen.X * 0.6 or size.Y > screen.Y * 0.6 then
+		return
+	end
+	local middle = visual.AbsolutePosition + size / 2 - layer.AbsolutePosition
+	local ring = Instance.new("Frame")
+	ring.Name = "PressRing"
+	ring.AnchorPoint = Vector2.new(0.5, 0.5)
+	ring.BackgroundTransparency = 1
+	ring.Position = UDim2.fromOffset(middle.X, middle.Y)
+	ring.Size = UDim2.fromOffset(size.X, size.Y)
+	ring.ZIndex = 58
+	ring.Parent = layer
+	local corner = Instance.new("UICorner")
+	local own = visual:FindFirstChildWhichIsA("UICorner", true)
+	corner.CornerRadius = if own then own.CornerRadius else UDim.new(0.3, 0)
+	corner.Parent = ring
+	local stroke = Instance.new("UIStroke")
+	stroke.Color = Color3.new(1, 1, 1)
+	stroke.Thickness = 5
+	stroke.Transparency = 0.1
+	stroke.Parent = ring
+	local grow = math.clamp(math.min(size.X, size.Y) * 0.45, 14, 40)
+	local info = TweenInfo.new(0.36, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+	TweenService
+		:Create(ring, info, { Size = UDim2.fromOffset(size.X + grow * 2, size.Y + grow * 2) })
+		:Play()
+	local fade = TweenService:Create(stroke, info, { Transparency = 1, Thickness = 1 })
+	fade:Play()
+	fade.Completed:Once(function()
+		ring:Destroy()
+	end)
+end
+
 function Kit.pressFx(hit: GuiButton, visual: GuiObject, burst: boolean, swell: number?)
 	local scale = visual:FindFirstChildOfClass("UIScale") or Instance.new("UIScale")
 	scale.Parent = visual
@@ -856,10 +916,16 @@ function Kit.pressFx(hit: GuiButton, visual: GuiObject, burst: boolean, swell: n
 	local lift = 1 + (swell or 0.08)
 	local showing: number? = nil
 	local playing: Tween? = nil
-	local function settle()
+	--[[ While the release's pop plays, the pointer leaving or hovering
+	     does not cut it short; it settles from there. ]]
+	local poppingUntil = 0
+	local function settle(style: Enum.EasingStyle?)
+		if os.clock() < poppingUntil and hit.GuiState ~= Enum.GuiState.Press then
+			return
+		end
 		local want = base
 		if hit.GuiState == Enum.GuiState.Press then
-			want = base * 0.9
+			want = base * 0.86
 		elseif hit.GuiState == Enum.GuiState.Hover then
 			want = base * lift
 		end
@@ -872,12 +938,42 @@ function Kit.pressFx(hit: GuiButton, visual: GuiObject, burst: boolean, swell: n
 		end
 		playing = TweenService:Create(
 			scale,
-			TweenInfo.new(0.16, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
+			if style
+				then TweenInfo.new(0.5, style, Enum.EasingDirection.Out)
+				else TweenInfo.new(0.16, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
 			{ Scale = want }
 		)
 		assert(playing, "a tween"):Play()
 	end
-	hit:GetPropertyChangedSignal("GuiState"):Connect(settle)
+	hit:GetPropertyChangedSignal("GuiState"):Connect(function()
+		settle()
+	end)
+	--[[ Let go: the face jumps past its size and wobbles back (Elastic), and
+	     a ring leaves its edge (`Kit.ring`). ]]
+	hit.Activated:Connect(function()
+		if playing then
+			playing:Cancel()
+		end
+		showing = nil
+		poppingUntil = os.clock() + 0.09
+		local up = TweenService:Create(
+			scale,
+			TweenInfo.new(0.08, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+			{
+				Scale = base * 1.14,
+			}
+		)
+		playing = up
+		up:Play()
+		up.Completed:Once(function(state)
+			if state ~= Enum.PlaybackState.Completed or playing ~= up then
+				return
+			end
+			poppingUntil = 0
+			settle(Enum.EasingStyle.Elastic)
+		end)
+		Kit.ring(visual)
+	end)
 	if not burst then
 		return
 	end
@@ -919,6 +1015,55 @@ function Kit.pressFx(hit: GuiButton, visual: GuiObject, burst: boolean, swell: n
 				coin:Destroy()
 			end)
 		end
+	end)
+end
+
+--[[ The press feel for a button built by hand rather than through `Chunky`
+     or a `Kit` maker (2026-11-26): `pressFx` on its face (the button itself
+     unless `visual` is given) and the click every other button makes. ]]
+function Kit.juice(hit: GuiButton, visual: GuiObject?, sound: string?)
+	Kit.pressFx(hit, visual or hit, false)
+	hit.Activated:Connect(function()
+		SoundFx.play(sound or "card_click")
+	end)
+end
+
+--[[ A click and a ring for a button whose face something else already
+     moves (an entrance, a bob): nothing on it is scaled. ]]
+function Kit.answer(hit: GuiButton, face: GuiObject?, sound: string?)
+	hit.Activated:Connect(function()
+		SoundFx.play(sound or "card_click")
+		Kit.ring(face or hit)
+	end)
+end
+
+--[[ A refused press (a LOCKED button): the face shakes its head, a quick
+     tilt each way, rather than doing nothing at all. ]]
+function Kit.shake(item: GuiObject)
+	if item:GetAttribute("Shaking") then
+		return
+	end
+	item:SetAttribute("Shaking", true)
+	local start = item.Rotation
+	task.spawn(function()
+		for _, tilt in { 7, -7, 5, -5, 2, 0 } do
+			local turn = TweenService:Create(
+				item,
+				TweenInfo.new(0.045, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut),
+				{ Rotation = start + tilt }
+			)
+			turn:Play()
+			turn.Completed:Wait()
+		end
+		item:SetAttribute("Shaking", nil)
+	end)
+end
+
+--[[ Only the click, for a tap-anywhere layer whose face is the whole screen
+     and must not squash. ]]
+function Kit.click(hit: GuiButton, sound: string?)
+	hit.Activated:Connect(function()
+		SoundFx.play(sound or "card_click")
 	end)
 end
 

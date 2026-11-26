@@ -356,7 +356,8 @@ function HatchStand.draw(
 			elseif i == 1 then " [E]"
 			elseif i == #spec.counts then " [R]"
 			else ""
-		Chunky.button(
+		local open: Frame? = nil
+		open = Chunky.button(
 			sheet,
 			`{spec.verb} {count}{key}`,
 			if not affordable(count)
@@ -368,6 +369,10 @@ function HatchStand.draw(
 			bw,
 			116,
 			function()
+				-- a grey one shakes its head rather than doing nothing
+				if not affordable(count) and open then
+					Kit.shake(open)
+				end
 				press(count)
 			end
 		)

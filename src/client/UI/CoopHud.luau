@@ -25,6 +25,7 @@ local Workspace = game:GetService("Workspace")
 
 local Coop = require(ReplicatedStorage.Shared.Util.Coop)
 local InvitePrompt = require(script.Parent.InvitePrompt)
+local Kit = require(script.Parent.Kit)
 local PortalScreen = require(script.Parent.PortalScreen)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 local RunPaused = require(script.Parent.Parent.RunPaused)
@@ -122,6 +123,7 @@ local function buildPartyLine(gui: ScreenGui)
 	padding.Parent = invite
 	-- with launch data naming the sender: both get a gift (`Data/Invites`)
 	invite.Activated:Connect(InvitePrompt.open)
+	Kit.juice(invite)
 
 	local noticeText: string? = nil
 	local noticeUntil = 0

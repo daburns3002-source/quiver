@@ -26,6 +26,7 @@ local StoryBeatRules = require(ReplicatedStorage.Shared.Util.StoryBeatRules)
 local StoryBeats = require(ReplicatedStorage.Shared.Config.StoryBeats)
 local UiPalette = require(ReplicatedStorage.Shared.Config.UiPalette)
 
+local Kit = require(script.Parent.Kit)
 local SoundFx = require(script.Parent.Parent.Fx.SoundFx)
 
 local StoryBeat = {}
@@ -240,6 +241,7 @@ local function build(): Parts
 	skip.TextSize = 22
 	skip.AutoButtonColor = false
 	skip.Parent = skipGroup
+	Kit.answer(skip, skipGroup)
 	local skipWords = Instance.new("UIStroke")
 	skipWords.Color = UiPalette.off.stroke or UiPalette.edge
 	skipWords.Thickness = 2

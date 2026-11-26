@@ -18,6 +18,7 @@ local Workspace = game:GetService("Workspace")
 local Abilities = require(ReplicatedStorage.Shared.Config.Abilities)
 local CardAssets = require(ReplicatedStorage.Shared.Config.CardAssets)
 local CardTheme = require(ReplicatedStorage.Shared.Config.CardTheme)
+local Kit = require(script.Parent.Parent.Kit)
 local Rarities = require(ReplicatedStorage.Shared.Config.Rarities)
 
 local DetailPanel = {}
@@ -229,6 +230,7 @@ function DetailPanel.show(abilityId: string, level: number, sheet: boolean?)
 	scrim.BackgroundTransparency = 0.45
 	scrim.Parent = created
 	scrim.Activated:Connect(DetailPanel.close)
+	Kit.click(scrim)
 
 	local height = 300 + top * 42
 	local panel = Instance.new("Frame")
@@ -326,6 +328,7 @@ function DetailPanel.show(abilityId: string, level: number, sheet: boolean?)
 		stroke(button, INK, 4)
 		stroke(button, INK, 4, Enum.ApplyStrokeMode.Contextual)
 		button.Activated:Connect(DetailPanel.close)
+		Kit.juice(button)
 		panel.Size = UDim2.fromOffset(WIDTH, height + 70)
 
 		TweenService

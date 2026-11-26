@@ -26,6 +26,7 @@ local CardTheme = require(ReplicatedStorage.Shared.Config.CardTheme)
 local DetailPanel = require(script.Parent.DetailPanel)
 local Device = require(script.Parent.Parent.Parent.Device)
 local HudLayout = require(script.Parent.Parent.HudLayout)
+local Kit = require(script.Parent.Parent.Kit)
 local PlayerStats = require(script.Parent.Parent.Parent.PlayerStats)
 
 local SkillBar = {}
@@ -181,6 +182,7 @@ local function heldSlot(
 	hit.Size = UDim2.fromScale(1, 1)
 	hit.ZIndex = 10
 	hit.Parent = slot
+	Kit.answer(hit, slot)
 
 	local holdStarted: number? = nil
 	local opened = false

@@ -36,6 +36,7 @@ local NewEnemies = require(ReplicatedStorage.Shared.Config.NewEnemies)
 local Remotes = require(ReplicatedStorage.Shared.Net.Remotes)
 
 local FirstTips = require(script.Parent.FirstTips)
+local Kit = require(script.Parent.Kit)
 local RunPaused = require(script.Parent.Parent.RunPaused)
 local SoundFx = require(script.Parent.Parent.Fx.SoundFx)
 
@@ -370,6 +371,10 @@ function NewEnemyScreen.start()
 	parts = made
 
 	made.button.Activated:Connect(gotIt)
+	-- its click is gotIt's; the ring is the press's (`Kit.ring`)
+	made.button.Activated:Connect(function()
+		Kit.ring(made.button)
+	end)
 	UserInputService.InputBegan:Connect(function(input: InputObject)
 		if not made.gui.Enabled then
 			return

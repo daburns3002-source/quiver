@@ -70,6 +70,7 @@ end
 
 --[[ Rays down onto the room's floor and cover boxes (`Workspace.Arena`;
      its drawn art is not queryable, and the boxes are sized to it). ]]
+local RAY_TOP = 100
 local rayParams = RaycastParams.new()
 rayParams.FilterType = Enum.RaycastFilterType.Include
 
@@ -87,7 +88,10 @@ local function restOf(at: Vector3, velocity: Vector3, half: number): (number, nu
 		return base, nil
 	end
 	rayParams.FilterDescendantsInstances = { arena }
-	local from = ResidueSpray.peak(at, velocity, settings.gravity) + 0.5
+	--[[ From above any cover, not the cube's own peak: a ray starting
+	     inside cover taller than the throw misses it and finds the floor
+	     under it. Cover too tall to land on is met by its side instead. ]]
+	local from = RAY_TOP
 	local function topAt(point: Vector3): number
 		local hit = Workspace:Raycast(
 			Vector3.new(point.X, from, point.Z),

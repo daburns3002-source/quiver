@@ -62,9 +62,17 @@ function RoomPreload.enemyContent(
 ): { string }
 	local list: { string } = {}
 	local seen: { [string]: boolean } = {}
+	--[[ A texture worn as a stored SurfaceAppearance (`Enemies/EnemyModel`)
+	     is no picture `PreloadAsync` can fetch: it only logged "No asset
+	     content representation found". The part wearing it loads it. ]]
+	local surfaces = ReplicatedStorage:FindFirstChild("EnemySurfaces")
 	local function put(id: any)
 		if type(id) == "string" and id ~= "" and not seen[id] then
 			seen[id] = true
+			local digits = string.match(id, "%d+")
+			if surfaces and digits and surfaces:FindFirstChild(digits) then
+				return
+			end
 			table.insert(list, id)
 		end
 	end

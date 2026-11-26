@@ -16,6 +16,26 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## Four Bogheart enemies drawn bare, six Drowned weapons with no glow, Blaze's "Arrows" on melee cards (2026-11-26)
+
+**Seen:** the content sweep (Studio, every upgrade per class, every weapon, pet and enemy, a window each, its
+errors, sounds and effects recorded). Grandmother Gulp's window logged `ContentId: rbxassetid://124939475424728
+failed ... No asset content representation found`; Spore Puff, Glowcap and Shellback share the fault (the
+2026-11 run-through's item 4). The Drowned Village's three Legendaries and three Mythics showed no aura in hand.
+The Assassin was offered Blaze reading "Arrows set enemies on fire."
+**Cause:** the four textures are the colour maps Studio's 3D importer uploaded for SurfaceAppearances
+(`tripo_material_...`); Roblox has no picture of them it can draw as a mesh's `TextureID`. Ordinary uploads
+(Old Tollcrab's `base_color_texture`) work. The Drowned rows were the only textured set the weapon generator
+wrote without `aura`, and a Mythic's `rainbow` lights a Gems part a single textured mesh does not have.
+**Fix:** the imports' SurfaceAppearances are kept in the place under `ReplicatedStorage.EnemySurfaces`, named by
+colour-map id; `EnemyModel` puts a copy on the part instead of the `TextureID`, and `RoomPreload` stops fetching
+those ids. Studio: Spore Puff, Glowcap and Shellback wear theirs (captured). The Drowned rows pass `aura`, teal as
+the area's daggers (Legendary 70,220,200; Mythic 90,240,225). Blaze reads "Your hits set enemies on fire."
+Not bugs, though the sweep first flagged them: Soul Chain on arrows, the melee swing sounds, Wind Arrows' gust
+(it needs an enemy shot to blow away). Each was the harness, checked again the way a player plays.
+
+---
+
 ## Room 1 showed the player's ring but no body, again: the body was under the floor (2026-11-26)
 
 **Seen:** Claude's live playtest of version 1155: 1-2 from the lobby, a card draft, and the room cleared with only

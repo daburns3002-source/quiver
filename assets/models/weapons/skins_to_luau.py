@@ -76,15 +76,15 @@ DROWNED = [
     ("EelcrestBow", "EELCREST BOW", "Ranger", "eelcrest bow arena 3", None, None, 3),
     ("WellpearlStaff", "WELLPEARL STAFF", "Arcanist", "wellpearl staff arena 3", None, None, 3),
     ("CausewayBlade", "CAUSEWAY BLADE", "Warden", "causeway blade arena 3", None, None, 3),
-    ("TollstringBow", "TOLLSTRING BOW", "Ranger", "tollstring bow arena 3", None, None, 4),
-    ("TollkeeperStaff", "TOLLKEEPER STAFF", "Arcanist", "tollkeeper staff arena 3", None, None, 4),
+    ("TollstringBow", "TOLLSTRING BOW", "Ranger", "tollstring bow arena 3", None, (70, 220, 200), 4),
+    ("TollkeeperStaff", "TOLLKEEPER STAFF", "Arcanist", "tollkeeper staff arena 3", None, (70, 220, 200), 4),
     # `sunken bell sword arena 3` is the Tollguard Blade under its working
     # name (owner, 2026-10-30).
-    ("TollguardBlade", "TOLLGUARD BLADE", "Warden", "sunken bell sword arena 3", None, None, 4),
+    ("TollguardBlade", "TOLLGUARD BLADE", "Warden", "sunken bell sword arena 3", None, (70, 220, 200), 4),
     ("BuoyStaff", "BUOY STAFF", "Arcanist", "buoy staff arena 3", None, None, 2),
-    ("EventideBow", "EVENTIDE BOW", "Ranger", "eventide bow arena 3", None, None, 5),
-    ("MaelstromStaff", "MAELSTROM STAFF", "Arcanist", "maelstrom staff arena 3", None, None, 5),
-    ("StormglassBlade", "STORMGLASS BLADE", "Warden", "stormglass blade arena 3", None, None, 5),
+    ("EventideBow", "EVENTIDE BOW", "Ranger", "eventide bow arena 3", None, (90, 240, 225), 5),
+    ("MaelstromStaff", "MAELSTROM STAFF", "Arcanist", "maelstrom staff arena 3", None, (90, 240, 225), 5),
+    ("StormglassBlade", "STORMGLASS BLADE", "Warden", "stormglass blade arena 3", None, (90, 240, 225), 5),
 ]
 # Area 4, Bogheart Caverns (docs/WEAPONS-BOGHEART.md): the low-poly Tripo
 # set imported 2026-11-06 (Workspace/TripoImports/Weapons, each one MeshPart
@@ -440,7 +440,10 @@ def main():
     imports = json.loads(IMPORTS.read_text(encoding="utf-8"))
     drowned = json.loads(DROWNED_IMPORTS.read_text(encoding="utf-8"))
     rows = [(imports, k, c, n, p, g, None, k in TRIPO_FOREST) for k, _, c, n, p, g in SKINS]
-    rows += [(drowned, k, c, n, p, g, t) for k, _, c, n, p, g, t in DROWNED]
+    # Textured Tripo meshes, so a Legendary's or Mythic's glow is an `aura`,
+    # teal as the area's daggers' (2026-11-26: the sweep found these six
+    # with no glow in hand, against the every-Legendary-glows rule).
+    rows += [(drowned, k, c, n, p, g, t, True) for k, _, c, n, p, g, t in DROWNED]
     bogheart = json.loads(BOGHEART_IMPORTS.read_text(encoding="utf-8"))
     rows += [(bogheart, k, c, n, p, g, t, True) for k, _, c, n, p, g, t in BOGHEART]
     listed = SKINS + DROWNED + BOGHEART

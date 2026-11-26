@@ -425,7 +425,7 @@ function Kit.button(parent: Instance, words: string, colour: Color3, action: () 
 			or input.UserInputType == Enum.UserInputType.Touch
 		then
 			pressed = true
-			grow(0.96)
+			grow(0.9)
 		end
 	end)
 	connect(b.InputEnded, function()
@@ -456,9 +456,24 @@ function Kit.button(parent: Instance, words: string, colour: Color3, action: () 
 			sweep.Position = UDim2.fromScale(0.05 + math.min(phase / 1.2, 1) * 0.78, 0.1)
 		end)
 	end
+	--[[ Let go: a click, a ring off its edge (`Kit.ring`), and the face
+	     jumps past its size and wobbles back, as every other button does
+	     (owner, 2026-11-26: "make it more lively to click on buttons"). A
+	     click the action plays too is dropped by the sound's `minGap`. ]]
 	connect(b.Activated, function()
-		scale.Scale = 0.94
-		grow(if hovered then 1.025 else 1)
+		SoundFx.play("card_click")
+		Kit.ring(f)
+		if motion then
+			motion:Cancel()
+		end
+		scale.Scale = 1.1
+		local settle = TweenService:Create(
+			scale,
+			TweenInfo.new(0.5, Enum.EasingStyle.Elastic, Enum.EasingDirection.Out),
+			{ Scale = if hovered then 1.025 else 1 }
+		)
+		motion = settle
+		settle:Play()
 		action()
 	end)
 	return f

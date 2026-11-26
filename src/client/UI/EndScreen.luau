@@ -47,7 +47,9 @@ local StarRules = require(ReplicatedStorage.Shared.Util.StarRules)
 local ClassLevelPlate = require(script.Parent.ClassLevelPlate)
 local Device = require(script.Parent.Parent.Device)
 local EndScreenMotion = require(script.Parent.EndScreenMotion)
+local Kit = require(script.Parent.Kit)
 local Reveal = require(script.Parent.Reveal)
+local SoundFx = require(script.Parent.Parent.Fx.SoundFx)
 local VictoryChests = require(script.Parent.VictoryChests)
 
 local EndScreen = {}
@@ -1261,6 +1263,9 @@ function EndScreen.show(summary: Summary)
 			return
 		end
 		pressed = true
+		-- the press answers at once: a click and a ring (`Kit.ring`)
+		SoundFx.play("card_click")
+		Kit.ring(button.Parent :: GuiObject)
 		--[[ The server takes the request only once the run has been over for
 		     `deathPause`; after a skip the button can be ready sooner, so the
 		     request waits out the difference rather than being refused. ]]
@@ -1279,6 +1284,8 @@ function EndScreen.show(summary: Summary)
 			return
 		end
 		pressed = true
+		SoundFx.play("card_click")
+		Kit.ring(lobbyPress.Parent :: GuiObject)
 		if onLobby and gui == screen then
 			onLobby()
 		end

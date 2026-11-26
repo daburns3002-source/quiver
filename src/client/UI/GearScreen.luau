@@ -682,7 +682,12 @@ local function trailDetails(sheet: Chunky.Sheet, key: string, profile: SaveSchem
 			ShopAssets.gem
 		)
 	else
-		Chunky.button(pop, "LOCKED", Chunky.grey, e[1], e[2], e[3], e[4], function() end)
+		local locked: Frame? = nil
+		locked = Chunky.button(pop, "LOCKED", Chunky.grey, e[1], e[2], e[3], e[4], function()
+			if locked then
+				Kit.shake(locked)
+			end
+		end)
 	end
 	local c = L.shut
 	Chunky.button(pop, "CLOSE", Chunky.blue, c[1], c[2], c[3], c[4], close)

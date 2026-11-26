@@ -2488,3 +2488,36 @@ in words ("58 GEMS") beside coin prices drawn with the coin. Owner: "make sure t
 diamond icons are universal across the game". `ShopAssets.coin` and `ShopAssets.gem` are now the
 only two (CLAUDE.md rule 15), a gem price is the diamond and the number, and `tools/check.sh` fails
 on a coin or gem picture defined anywhere else.
+
+## A NEW ENEMY! card could show over the lobby (2026-11-26)
+
+Seen once in Studio (2026-11-12): after SKIP on the story, a save that had beaten 1-1 reached the lobby
+with the Moss Slime's card up under the REWARDS calendar. Nothing stopped an enemy that landed as the
+lobby came up (a straggler of a run) from being "met", nor the screen from showing a card sent or still
+up then. Now `RunSession.meetEnemy` meets nothing while `InLobby` is set, and `UI/NewEnemyScreen` drops
+any card the lobby would show (sent, queued, a `Preview`, or up as `InLobby` turns on), answering the
+server's so no run is held.
+
+## A lunge stopped short still played its whole leap (2026-11-26)
+
+`Fx/EnemyRig` fitted the Dash's leap to the bolt's full `LungeTravel`, so a bolt that cover (or a root)
+stopped after a stud went on leaping on the spot. The server now sets `LungeStopped` when a bolt ends
+short, and `RigClip.dashTime` lands the leap then, running the rest of it over `RigClip.SETTLE`'s share
+before the skid (`tests/RigClip.spec`). No enemy has a rig today (the Ember Wilf went on 2026-11-01);
+the flag is set on every lunger, the Bramble Boar included.
+
+## The Meteor cast and the staff's casts hid each other (2026-11-26)
+
+The Meteor clip is 1.6 s and the Arcanist casts every 1.4 s, so each next cast cut the Meteor short,
+and the Meteor took the cast it came with. `WeaponTiming.specialSpeed` plays it fast enough to end
+inside one attack (`CYCLE_SHARE` of the cooldown, as fire clips are), haste included; Point still comes
+before the meteor lands (`tests/ClassCards.spec`). The Earthbreaker's slam is timed by the server, so
+only the Meteor is fitted (`WeaponTiming.FITTED`).
+
+## Slime residue sank into cover (2026-11-26)
+
+Every cube landed at y = 0, so one thrown over a log, a boulder or the pond sank into it. At the throw,
+`Fx/SlimeResidue` now works out where the cube would land on the floor (`ResidueSpray.landing`), rays down
+there onto the room's floor and cover boxes (`Workspace.Arena`; the drawn art is not queryable and is
+sized to its box), and if it finds a top works out the landing on that, twice; the cube rests on what it
+found (`tests/ResidueSpray.spec`).

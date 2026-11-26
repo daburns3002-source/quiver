@@ -475,7 +475,8 @@ drawn by `Fx/Upgrades/ClassCardFx`; the pools stay within a card of each other (
 and erupting cracks), both resolved by `Combat/AreaStrikes`. They look as the
 owner's mythic-fx.js draws them (`Fx/MythicFx`, `Balance.MythicFx`, budgeted
 by `DeviceTiers.mythicFxShare`), and the staff plays the kit's Meteor cast
-when the server counts one on the player (`Meteors` attribute).
+when the server counts one on the player (`Meteors` attribute), fast enough to end
+inside one attack so the next cast shows (`WeaponTiming.specialSpeed`).
 
 **Thornwood's six cards** (owner, 2026-11-18: "Build the six new"; `docs/CLASS-CARDS.md`): Web Snare and
 Thorn Burst (Ranger), Root Hold and Burr Blight (Arcanist), Boar Rush and Ruin Cracks (both melee classes,

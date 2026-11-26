@@ -16,6 +16,21 @@ start from the cause recorded here rather than from the code.
 
 ---
 
+## Room 1 showed the player's ring but no body, again: the body was under the floor (2026-11-26)
+
+**Seen:** Claude's live playtest of version 1155: 1-2 from the lobby, a card draft, and the room cleared with only
+the cyan ring where the player stood. The server console: the character was whole (21 parts, none hidden) at
+y -14, standing on `Lobby.Lawn` (y -17.9) straight under `ArenaSpawn` (0, 4, 23). Version 1154 had shown the body.
+**Cause:** a race, not the camera fade of #673. The run server puts the body on the start as room 1 is built, but
+a body is moved by its own player's client, and that client can drop it through a floor it has not been sent yet.
+The run server's lobby lawn caught it 18 studs down, under the arena, where the floor hid it; nothing put it back,
+and its arrows still cleared the room from below.
+**Fix:** `RoomController.step` puts any root below `FallRescue.BELOW` (y -6; a standing root is at about 3, the
+floor's top at 0) back on the start. Studio: a root moved to y -14 in a run was standing at y 3.9 within 0.25 s.
+`tests/FallRescue.spec`.
+
+---
+
 ## Back from a run, the lobby sent the player away: "still saving from your last server" (2026-11-25)
 
 **Seen:** Claude's live playtest of version 1154: 1-2 lost, TRY AGAIN, MENU, BACK TO LOBBY. The lobby came up with

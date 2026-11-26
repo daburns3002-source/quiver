@@ -60,6 +60,7 @@ local EndlessLeaderboard = require(script.Parent.EndlessLeaderboard)
 local EndlessPrizes = require(script.Parent.Parent.Data.EndlessPrizes)
 local EnemyManager = require(script.Parent.Parent.Enemies.EnemyManager)
 local EnemyModel = require(script.Parent.Parent.Enemies.EnemyModel)
+local FallRescue = require(script.Parent.FallRescue)
 local FirstEgg = require(ReplicatedStorage.Shared.Util.FirstEgg)
 local HardRules = require(ReplicatedStorage.Shared.Util.HardRules)
 local Hatchery = require(script.Parent.Parent.Data.Hatchery)
@@ -1691,6 +1692,22 @@ function RoomController.step(now: number)
 	--[[ Nothing runs in the lobby. ]]
 	if state == "Lobby" then
 		return
+	end
+
+	--[[ A body that went through the floor goes back on the start
+	     (`Run/FallRescue`): its own client moves it, and can drop it
+	     through a floor it has not been sent yet. ]]
+	for _, session in RunSession.all() do
+		local root = session.root
+		if root and root.Parent and FallRescue.fallen(root.Position.Y) then
+			log.info(
+				"%s was under the floor (y %.1f): back on the start",
+				session.player.Name,
+				root.Position.Y
+			)
+			root.AssemblyLinearVelocity = Vector3.zero
+			root.CFrame = CFrame.new(Balance.Arena.spawnPosition)
+		end
 	end
 
 	--[[ Over: the end screen is up, and the next run starts when a player

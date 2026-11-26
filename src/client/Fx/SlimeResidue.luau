@@ -125,8 +125,12 @@ local function step(dt: number)
 		local part = cube.part
 
 		if not cube.landed then
+			--[[ On the exact arc, so it comes down where `restOf` worked out
+			     it would: a stepped fall dropped ~0.2 studs low and landed
+			     short, inside cover at its edge. ]]
+			local before = cube.position
+			cube.position += cube.velocity * dt - Vector3.yAxis * (0.5 * settings.gravity * dt * dt)
 			cube.velocity -= Vector3.yAxis * settings.gravity * dt
-			cube.position += cube.velocity * dt
 			--[[ Met the side of cover it cannot clear: it drops there. ]]
 			local wall = cube.wall
 			if wall then
@@ -143,11 +147,16 @@ local function step(dt: number)
 			cube.rotation = CFrame.fromAxisAngle(cube.spinAxis, cube.spinRate * dt) * cube.rotation
 			if cube.position.Y - cube.size / 2 <= cube.floor and cube.velocity.Y < 0 then
 				--[[ Lands: flat on the floor, square to it, turned only
-				     about the vertical so splats do not all line up. ]]
+				     about the vertical so splats do not all line up; where
+				     during this frame it reached the floor, not where the
+				     frame left it. ]]
+				local above = before.Y - cube.size / 2 - cube.floor
+				local fell = before.Y - cube.position.Y
+				local share = if fell > 1e-6 then math.clamp(above / fell, 0, 1) else 1
+				local at = before:Lerp(cube.position, share)
 				cube.landed = true
 				cube.landedAt = now
-				cube.position =
-					Vector3.new(cube.position.X, cube.floor + cube.splat.Y / 2, cube.position.Z)
+				cube.position = Vector3.new(at.X, cube.floor + cube.splat.Y / 2, at.Z)
 				cube.rotation = CFrame.Angles(0, rng:NextNumber() * math.pi, 0)
 				part.Size = cube.splat
 			end

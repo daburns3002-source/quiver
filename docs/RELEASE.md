@@ -4,6 +4,8 @@ Main at #641. A bug-fix-only pass: what is verified, what was fixed, what only t
 and what nobody has checked yet. Working notes and raw bot logs:
 `side-session-notes/local_ce32ec60-.../release-check-notes.md`.
 
+**Since the check (to 2026-11-26):** #666-#678 fixed what the live playtests and a full Studio sweep found (leftover models, loading screens, the lobby kick, falling through a floor, Bogheart textures, Drowned glow, Blaze wording), and made every button livelier. All of it is live in version 1166. The owner's boxes below are still open, apart from the Studio save. The same list, tickable: https://claude.ai/artifact/WTdpxewhuSmYyYkuHh2bZt.
+
 ## Verified
 
 - **Gates:** `tools/check.sh` green on main. **In-Roblox suite:** 1,315 tests pass with the launch
@@ -63,7 +65,7 @@ Glade's; hard levels open in order (1-1 on hard first).
 - [ ] **Notifications:** the six steps in `docs/NOTIFICATIONS.md` (built, switched off).
 - [ ] **A real Robux purchase** of one product and one pass on the published game (only Studio test
       purchases and debug receipts have been made).
-- [ ] **Save the place from the open Studio before the next publish.** Studio was closed during this
+- [x] **Save the place from the open Studio before the next publish.** Done 2026-11-26: Claude published version 1166 from the clean Studio, which saves it too. Studio was closed during this
       check and its saved version kept the run bot. The open Studio is clean (exactly main), and the
       published game was published before the bot went back in.
 - [ ] Decide the **balance questions** below.

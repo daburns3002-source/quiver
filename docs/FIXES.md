@@ -2517,7 +2517,25 @@ only the Meteor is fitted (`WeaponTiming.FITTED`).
 ## Slime residue sank into cover (2026-11-26)
 
 Every cube landed at y = 0, so one thrown over a log, a boulder or the pond sank into it. At the throw,
-`Fx/SlimeResidue` now works out where the cube would land on the floor (`ResidueSpray.landing`), rays down
-there onto the room's floor and cover boxes (`Workspace.Arena`; the drawn art is not queryable and is
-sized to its box), and if it finds a top works out the landing on that, twice; the cube rests on what it
-found (`tests/ResidueSpray.spec`).
+`Fx/SlimeResidue` now works out where the cube comes to rest (`ResidueSpray.rest`, `tests/ResidueSpray.spec`):
+where it would land on the floor, and, if a ray from above finds a top there (the room's floor and cover
+boxes in `Workspace.Arena`; the drawn art is not queryable and is sized to its box), whether it is over that
+top when it comes down to it. If so it rests on the top; if not it met the cover's side, so it drops there,
+beside it. Three things the first Studio check caught: most cubes are thrown at cover taller than they fly
+(a 2.8 log, a 3.2 pillar), so the downward ray must start above all cover, not at the cube's peak; a slime
+pressed against cover and struck from across it throws from inside the cover, so the throw starts outside
+any cover taller than it; and the stepped fall dropped about 0.2 studs below the worked-out arc, landing
+short, so cubes now fly the exact arc and land where they reach the floor within the frame. After: 0 of
+114 cubes thrown at a 2.8 log sank, 1 of 123 at a 1.5 stump.
+
+## A hopping slime's body reached into cover (2026-11-26)
+
+Measured in Mossy Glade 1-10's rooms 5–10 (the rooms 1–4 sweep of 2026-10-23 had found none): every
+hitbox stayed clear of cover, 0.5 to 0.66 studs off, but a slime's drawn body reached up to 0.76 studs in
+(Brood Slime, Moss Slime, Baby Slime). `Fx/SlimeHop` draws the body up to a third of a hop ahead of its
+hitbox in the lurch, squashed up to 4.55 wide on landing, and a slime pressed against cover faces into it.
+The body is now pushed out of every cover box by its own footprint at its turn and squash
+(`Util/CoverPush`, `tests/CoverPush.spec`). Second sweep: 10 of about 330,000 body corners touched cover,
+by 0.03 studs at most. The art: logs, pillars and stumps are drawn inside their boxes by `KitLayout`;
+thicket ferns, packed on a 2.4-stud grid at up to 3.3 studs, reach up to 0.66 studs past theirs (bounding
+corners of soft leaves), left as drawn.

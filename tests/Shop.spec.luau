@@ -194,10 +194,19 @@ return function(t: TestRunner.Helper)
 			end
 			t.notNil(portal, `{crate.name} has no portal`)
 			if portal then
-				t.equal(crate.atLaunch, portal.atLaunch and portal.atLaunch.boss, crate.name)
+				--[[ A portal waits on a boss, or on a level ("1-10"): the
+				     last level of an area, whose crate is that area's. ]]
+				local gate = portal.atLaunch or {}
+				local level = gate.requires and tonumber(string.match(gate.requires, "^(%d+)%-"))
+				local waits = gate.boss
+					or (level and Shop.crates[level] and Shop.crates[level].area)
+				t.equal(crate.atLaunch, waits, crate.name)
 			end
 		end
-		t.isTrue(stocked >= 2, "the Drowned Village's and Bogheart's crates are stocked")
+		t.isTrue(
+			stocked >= 3,
+			"Thornwood's, the Drowned Village's and Bogheart's crates are stocked"
+		)
 		t.isTrue(ShopRules.crateOpen(1, nil, true), "the first crate is always open")
 		t.isNil(ShopRules.crateWords(1, nil, true))
 	end)

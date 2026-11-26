@@ -73,7 +73,16 @@ local Shop = {
 	--[[ Areas in order: area 1 is the Mossy Glade (`WeaponStats.area`). ]]
 	crates = {
 		{ area = "MossyGlade", name = "MOSSY GLADE", price = 500, stocked = true },
-		{ area = "Thornwood", name = "THORNWOOD", price = 1000 },
+		--[[ Stocked since 2026-11-26, once its fifteen bows, staffs and
+		     blades were imported (its five daggers were in already). At
+		     launch it waits on King Bloblin, as its portal waits on 1-10. ]]
+		{
+			area = "Thornwood",
+			name = "THORNWOOD",
+			price = 1000,
+			stocked = true,
+			atLaunch = "MossyGlade",
+		},
 		{
 			area = "DrownedVillage",
 			name = "DROWNED VILLAGE",

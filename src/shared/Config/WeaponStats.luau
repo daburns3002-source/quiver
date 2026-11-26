@@ -196,10 +196,11 @@ local WeaponStats = {
 			effect = "Glimmer shadows: every ten seconds, shadows cut every enemy.",
 		},
 
-		--[[ Area 2, Thornwood: the Assassin's daggers only (docs/WEAPONS-THORNWOOD.md;
-		     the other classes' Thornwood weapons are designed, not built).
-		     The area is not stocked (`Config/Shop`), so these are held and
-		     fought with in the sandbox and not for sale. ]]
+		--[[ Area 2, Thornwood (docs/WEAPONS-THORNWOOD.md): the Assassin's
+		     daggers (2026-11-17) and the bows, staffs and blades, Tripo models
+		     imported 2026-11-26. Its Legendaries and Mythics carry the six
+		     cards built for them ("Build the six new", owner 2026-11-18;
+		     docs/CLASS-CARDS.md). Stocked since 2026-11-26 (`Config/Shop`). ]]
 		HedgePrickers = { rarity = "Uncommon", area = 2 },
 		TuskKnives = { rarity = "Rare", area = 2 },
 		BurrfangDaggers = { rarity = "Epic", area = 2 },
@@ -214,6 +215,54 @@ local WeaponStats = {
 			area = 2,
 			innate = { FanOfKnives = 1 },
 			effect = "Lurker's thorns: a fan of thorns flies with your strikes.",
+		},
+
+		BoarTuskBow = { rarity = "Uncommon", area = 2 },
+		PlumBurrBow = { rarity = "Rare", area = 2 },
+		LurkerVineBow = { rarity = "Epic", area = 2 },
+		SilkweaverBow = {
+			rarity = "Legendary",
+			area = 2,
+			innate = { WebSnare = 1 },
+			effect = "Silk arrows: every hit tangles the enemy in slowing webs.",
+		},
+		NightbarbBow = {
+			rarity = "Mythic",
+			area = 2,
+			innate = { ThornBurst = 1 },
+			effect = "Thistle arrows: every third volley erupts in thorns round its marks.",
+		},
+
+		HedgeBulbStaff = { rarity = "Uncommon", area = 2 },
+		BurrTotemStaff = { rarity = "Rare", area = 2 },
+		LurkerCrestStaff = { rarity = "Epic", area = 2 },
+		SilkDiademStaff = {
+			rarity = "Legendary",
+			area = 2,
+			innate = { RootHold = 1 },
+			effect = "Diadem roots: every fourth cast roots what it hits in place.",
+		},
+		BlackspineStaff = {
+			rarity = "Mythic",
+			area = 2,
+			innate = { BurrBlight = 1 },
+			effect = "Burr blight: every orb poisons its target, stacking with repeated hits.",
+		},
+
+		BoarbackBlade = { rarity = "Uncommon", area = 2 },
+		PlumguardBlade = { rarity = "Rare", area = 2 },
+		BurrcrestBlade = { rarity = "Epic", area = 2 },
+		SilkboundBlade = {
+			rarity = "Legendary",
+			area = 2,
+			innate = { BoarRush = 1 },
+			effect = "Boar rush: the slam shoves what it hits far away from you.",
+		},
+		BriarbreakerBlade = {
+			rarity = "Mythic",
+			area = 2,
+			innate = { RuinCracks = 1 },
+			effect = "Ruin cracks: the slam makes struck enemies take more damage.",
 		},
 
 		--[[ Area 3, the Drowned Village (docs/WEAPONS-DROWNED.md). Tiers read

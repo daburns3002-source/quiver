@@ -22,6 +22,7 @@ local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
 
 local Balance = require(ReplicatedStorage.Shared.Config.Balance)
+local CoverPush = require(ReplicatedStorage.Shared.Util.CoverPush)
 local Device = require(script.Parent.Parent.Device)
 local ResidueSpray = require(ReplicatedStorage.Shared.Util.ResidueSpray)
 
@@ -196,6 +197,30 @@ local function burst(
 	local cap = #pool
 	if cap == 0 then
 		return
+	end
+	--[[ A slime pressed against cover and struck from across it throws
+	     from its struck face, inside that cover: the throw starts outside
+	     any cover taller than it, or no ray could find that cover's side
+	     and the cubes sank into it (`rg-slime`). ]]
+	local arena = Workspace:FindFirstChild("Arena")
+	local blockers = arena and arena:FindFirstChild("Blockers")
+	if blockers then
+		local taller: { CoverPush.Box } = {}
+		for _, part in blockers:GetChildren() do
+			if
+				part:IsA("BasePart")
+				and string.sub(part.Name, 1, 8) == "Obstacle"
+				and part.Position.Y + part.Size.Y / 2 > at.Y - kind.size
+			then
+				table.insert(taller, {
+					centre = Vector2.new(part.Position.X, part.Position.Z),
+					half = Vector2.new(part.Size.X / 2, part.Size.Z / 2),
+				})
+			end
+		end
+		local reach = Vector2.one * (kind.size * (1 + settings.sizeJitter) / 2 + 0.05)
+		local out = CoverPush.out(Vector2.new(at.X, at.Z), reach, taller)
+		at = Vector3.new(out.X, at.Y, out.Y)
 	end
 	local velocities = ResidueSpray.velocities(back, count, arc, settings, rng)
 	for index, velocity in velocities do

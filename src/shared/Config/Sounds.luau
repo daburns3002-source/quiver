@@ -69,6 +69,11 @@ local DAGGER_SPRITE = "rbxassetid://110974097332957"
      not uploaded yet, so "" and silent. ]]
 local WATER_SPRITE = ""
 
+--[[ Round 35's attack sounds for the pets and enemies that had none, the
+     owner's picks joined into one sprite: not uploaded yet, so "" and
+     silent. ]]
+local ATTACK_SPRITE = ""
+
 local Sounds: { [string]: Sound } = {
 	--[[ Footsteps in the Drowned Village's shallow water (`Fx/WaterSteps`;
 	     owner, 2026-11-05: "the footsteps in the shallow water need to be
@@ -892,6 +897,286 @@ local Sounds: { [string]: Sound } = {
 		volume = 0.6,
 		pitchJitter = 0.05,
 		minGap = 0.2,
+	},
+	--[[ Round 35 (2026-11-26): an attack sound for every pet and enemy that
+	     had none, `assets/audio/attack_synth.py`. Pets cue from
+	     `Config/PetSounds`, enemies and the two new bosses from
+	     `Config/EnemySounds`. ]]
+	pet_bark_hoglet = {
+		id = ATTACK_SPRITE,
+		volume = 0.5,
+		pitchJitter = 0.06,
+		minGap = 0.1,
+	},
+	pet_burrball = {
+		id = ATTACK_SPRITE,
+		volume = 0.5,
+		pitchJitter = 0.06,
+		minGap = 0.1,
+	},
+	pet_budbulb = {
+		id = ATTACK_SPRITE,
+		volume = 0.5,
+		pitchJitter = 0.06,
+		minGap = 0.1,
+	},
+	pet_berry_mouse = {
+		id = ATTACK_SPRITE,
+		volume = 0.5,
+		pitchJitter = 0.06,
+		minGap = 0.1,
+	},
+	pet_thistle_mole = {
+		id = ATTACK_SPRITE,
+		volume = 0.5,
+		pitchJitter = 0.06,
+		minGap = 0.1,
+	},
+	pet_briar_beetle = {
+		id = ATTACK_SPRITE,
+		volume = 0.5,
+		pitchJitter = 0.06,
+		minGap = 0.1,
+	},
+	pet_berry_bat = {
+		id = ATTACK_SPRITE,
+		volume = 0.5,
+		pitchJitter = 0.06,
+		minGap = 0.1,
+	},
+	pet_bramble_bear = {
+		id = ATTACK_SPRITE,
+		volume = 0.5,
+		pitchJitter = 0.06,
+		minGap = 0.1,
+	},
+	pet_briar_lynx = {
+		id = ATTACK_SPRITE,
+		volume = 0.5,
+		pitchJitter = 0.06,
+		minGap = 0.1,
+	},
+	pet_bramble_wilf_bolt = {
+		id = ATTACK_SPRITE,
+		volume = 0.5,
+		pitchJitter = 0.06,
+		minGap = 0.1,
+	},
+	pet_bramble_wilf_howl = {
+		id = ATTACK_SPRITE,
+		volume = 0.5,
+		pitchJitter = 0.06,
+		minGap = 0.1,
+	},
+	pet_thorn_princess = {
+		id = ATTACK_SPRITE,
+		volume = 0.5,
+		pitchJitter = 0.06,
+		minGap = 0.1,
+	},
+	pet_thornwake = {
+		id = ATTACK_SPRITE,
+		volume = 0.5,
+		pitchJitter = 0.06,
+		minGap = 0.1,
+	},
+	pet_slate_turtle = {
+		id = ATTACK_SPRITE,
+		volume = 0.5,
+		pitchJitter = 0.06,
+		minGap = 0.1,
+	},
+	pet_buoy_puffer = {
+		id = ATTACK_SPRITE,
+		volume = 0.5,
+		pitchJitter = 0.06,
+		minGap = 0.1,
+	},
+	pet_inkpot = {
+		id = ATTACK_SPRITE,
+		volume = 0.5,
+		pitchJitter = 0.06,
+		minGap = 0.1,
+	},
+	pet_tide_wilf = {
+		id = ATTACK_SPRITE,
+		volume = 0.5,
+		pitchJitter = 0.06,
+		minGap = 0.1,
+	},
+	pet_abyss_jelly = {
+		id = ATTACK_SPRITE,
+		volume = 0.5,
+		pitchJitter = 0.06,
+		minGap = 0.1,
+	},
+	pet_cave_cricket = {
+		id = ATTACK_SPRITE,
+		volume = 0.5,
+		pitchJitter = 0.06,
+		minGap = 0.1,
+	},
+	pet_lichen_gecko = {
+		id = ATTACK_SPRITE,
+		volume = 0.45,
+		pitchJitter = 0.06,
+		minGap = 0.1,
+	},
+	pet_bog_beaver = {
+		id = ATTACK_SPRITE,
+		volume = 0.5,
+		pitchJitter = 0.06,
+		minGap = 0.1,
+	},
+	pet_lanternfin_mote = {
+		id = ATTACK_SPRITE,
+		volume = 0.5,
+		pitchJitter = 0.06,
+		minGap = 0.1,
+	},
+	pet_lanternfin_burst = {
+		id = ATTACK_SPRITE,
+		volume = 0.5,
+		pitchJitter = 0.06,
+		minGap = 0.1,
+	},
+	pet_olm = {
+		id = ATTACK_SPRITE,
+		volume = 0.5,
+		pitchJitter = 0.06,
+		minGap = 0.1,
+	},
+	pet_glowcap_wilf = {
+		id = ATTACK_SPRITE,
+		volume = 0.5,
+		pitchJitter = 0.06,
+		minGap = 0.1,
+	},
+	pet_gulpling = {
+		id = ATTACK_SPRITE,
+		volume = 0.5,
+		pitchJitter = 0.06,
+		minGap = 0.1,
+	},
+	pet_prism_leviathan = {
+		id = ATTACK_SPRITE,
+		volume = 0.5,
+		pitchJitter = 0.06,
+		minGap = 0.1,
+	},
+	enemy_charger_bite = {
+		id = ATTACK_SPRITE,
+		volume = 0.5,
+		pitchJitter = 0.05,
+		minGap = 0.12,
+	},
+	enemy_bulwark_bash = {
+		id = ATTACK_SPRITE,
+		volume = 0.6,
+		pitchJitter = 0.05,
+		minGap = 0.15,
+	},
+	enemy_spitter_spit = {
+		id = ATTACK_SPRITE,
+		volume = 0.5,
+		pitchJitter = 0.05,
+		minGap = 0.2,
+	},
+	enemy_baby_slime_bite = {
+		id = ATTACK_SPRITE,
+		volume = 0.4,
+		pitchJitter = 0.06,
+		minGap = 0.15,
+	},
+	enemy_brood_slime_bite = {
+		id = ATTACK_SPRITE,
+		volume = 0.5,
+		pitchJitter = 0.05,
+		minGap = 0.12,
+	},
+	enemy_burrower_clods = {
+		id = ATTACK_SPRITE,
+		volume = 0.55,
+		pitchJitter = 0.05,
+		minGap = 0.2,
+	},
+	enemy_lancer_lance = {
+		id = ATTACK_SPRITE,
+		volume = 0.55,
+		pitchJitter = 0.05,
+		minGap = 0.2,
+	},
+	enemy_glowcap_spores = {
+		id = ATTACK_SPRITE,
+		volume = 0.5,
+		pitchJitter = 0.05,
+		minGap = 0.2,
+	},
+	enemy_spore_puff_bite = {
+		id = ATTACK_SPRITE,
+		volume = 0.5,
+		pitchJitter = 0.05,
+		minGap = 0.12,
+	},
+	enemy_shellback_bash = {
+		id = ATTACK_SPRITE,
+		volume = 0.6,
+		pitchJitter = 0.05,
+		minGap = 0.15,
+	},
+	enemy_fisherman_cast = {
+		id = ATTACK_SPRITE,
+		volume = 0.55,
+		pitchJitter = 0.05,
+		minGap = 0.2,
+	},
+	boss_toll_raise = {
+		id = ATTACK_SPRITE,
+		volume = 0.7,
+		pitchJitter = 0.03,
+		minGap = 0.3,
+	},
+	boss_toll_ring = {
+		id = ATTACK_SPRITE,
+		volume = 0.85,
+		pitchJitter = 0.03,
+		minGap = 0.4,
+	},
+	boss_toll_rap = {
+		id = ATTACK_SPRITE,
+		volume = 0.7,
+		pitchJitter = 0.04,
+		minGap = 0.2,
+	},
+	boss_toll_echo = {
+		id = ATTACK_SPRITE,
+		volume = 0.75,
+		pitchJitter = 0.04,
+		minGap = 0.2,
+	},
+	boss_toll_scuttle = {
+		id = ATTACK_SPRITE,
+		volume = 0.75,
+		pitchJitter = 0.05,
+		minGap = 0.2,
+	},
+	boss_gulp_spit = {
+		id = ATTACK_SPRITE,
+		volume = 0.8,
+		pitchJitter = 0.04,
+		minGap = 0.3,
+	},
+	boss_gulp_slide = {
+		id = ATTACK_SPRITE,
+		volume = 0.8,
+		pitchJitter = 0.03,
+		minGap = 0.5,
+	},
+	boss_gulp_inhale = {
+		id = ATTACK_SPRITE,
+		volume = 0.8,
+		pitchJitter = 0.02,
+		minGap = 1.0,
 	},
 }
 

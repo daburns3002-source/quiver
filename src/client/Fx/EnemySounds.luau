@@ -1,8 +1,8 @@
 --!strict
 --[[
-	The bosses' and Thornwood's enemies' sounds (round 18 of the audition,
-	the owner's picks 2026-10-25; `Config/Sounds`), played from what this
-	client already sees of each body:
+	The enemies' and bosses' sounds (`Config/EnemySounds` says which, by
+	model name; `Config/Sounds` holds them), played from what this client
+	already sees of each body:
 
 	- the clip it is playing (`ModelClip`, set by the server: a boss's
 	  beats, an enemy's wind-up, a Lurker's Emerge);
@@ -10,74 +10,30 @@
 	- a volley leaving (`ShotAt`, the Burr Thistle's spit);
 	- arriving and diving (`Targetable`: a Thornling landing, a Lurker
 	  going under);
-	- a fallen body playing Death (a Sow's Boarlets bursting out).
+	- a fallen body playing Death (a Sow's Boarlets bursting out);
+	- and, for the bosses that play no clips (the Old Tollcrab, Grandmother
+	  Gulp), the telegraphs their moves show (`onTelegraph`), while that
+	  boss is in the room.
 
 	The Web Walker's spin sound is two seconds long and repeats for as long
 	as the web turns. Presentation only.
 ]]
 
 local CollectionService = game:GetService("CollectionService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local Config = require(ReplicatedStorage.Shared.Config.EnemySounds)
 local SoundFx = require(script.Parent.SoundFx)
 
 local EnemySounds = {}
-
---[[ Model name → the clip that starts each sound. ]]
-local CLIPS: { [string]: { [string]: string } } = {
-	SlimeKing = {
-		Bounce_Windup = "boss_king_bounce_windup",
-		Bounce_Launch = "boss_king_bounce_launch",
-		Bounce_Land = "boss_king_bounce_slam",
-		Lash_Strike = "boss_king_lash",
-		Lash_Strike_L = "boss_king_lash",
-		Lash_Pull = "boss_king_grab",
-		Lash_Pull_L = "boss_king_grab",
-		Lash_ChestBump = "boss_king_chest_bump",
-		Lash_ChestBump_L = "boss_king_chest_bump",
-		-- a missed lash holds its fist on the floor, spattering goo
-		Lash_Hold = "boss_king_goo",
-		Lash_Hold_L = "boss_king_goo",
-	},
-	Broodmother = {
-		WebSpin_Windup = "boss_brood_web_windup",
-		WebSpin_Hold = "boss_brood_web_spin",
-		WebSpin_End = "boss_brood_web_break",
-		ShootWeb = "boss_brood_web_shot",
-		-- she only moves while her web drags someone in
-		Move = "boss_brood_web_pull",
-		Summon = "boss_brood_summon",
-	},
-	BrambleBoar = {
-		["Attack wind-up"] = "enemy_boar_gore",
-		Charge = "enemy_boar_charge",
-	},
-	BrambleLurker = {
-		["Attack wind-up"] = "enemy_lurker_spray",
-		Emerge = "enemy_lurker_emerge",
-	},
-	--[[ A fallen Sow plays Death as its Boarlets tumble out. ]]
-	BrambleSowFallen = { Death = "enemy_sow_drop" },
-}
-
---[[ Model name → the sound of a blow with no wind-up. ]]
-local ATTACKS: { [string]: string } = {
-	BrambleSow = "enemy_sow_attack",
-	Boarlet = "enemy_boarlet_bite",
-	Thornling = "enemy_thornling_bite",
-}
-
---[[ Model name → the sound of its volley leaving (`ShotAt`), timed to the
-     shots: the Burr Thistle's three "ptoo"s are its three burrs. ]]
-local SHOTS: { [string]: string } = { BurrThistle = "enemy_thistle_spit" }
-
---[[ Model name → sounds for arriving (Targetable true) and diving (false). ]]
-local ARRIVE: { [string]: string } = { Thornling = "enemy_thornling_hatch" }
-local DIVE: { [string]: string } = { BrambleLurker = "enemy_lurker_dive" }
 
 --[[ The spin loop: seconds between its plays, and the clip it lasts for. ]]
 local SPIN_SOUND, SPIN_CLIP, SPIN_EVERY = "boss_brood_web_spin", "WebSpin_Hold", 2
 
 local watched: { [Model]: boolean } = {}
+--[[ How many bodies of each name are being watched: whether a boss is in
+     the room, for the telegraphs only its moves sound on. ]]
+local present: { [string]: number } = {}
 
 local function watch(model: Instance)
 	if not model:IsA("Model") or watched[model] then
@@ -85,7 +41,8 @@ local function watch(model: Instance)
 	end
 	watched[model] = true
 	local name = model.Name
-	local clips = CLIPS[name]
+	present[name] = (present[name] or 0) + 1
+	local clips = Config.clips[name]
 	if clips then
 		model:GetAttributeChangedSignal("ModelClip"):Connect(function()
 			local clip = model:GetAttribute("ModelClip")
@@ -113,33 +70,56 @@ local function watch(model: Instance)
 			SoundFx.play(sound)
 		end
 	end
-	local attack = ATTACKS[name]
+	local attack = Config.attacks[name]
 	if attack then
 		model:GetAttributeChangedSignal("AttackAt"):Connect(function()
 			SoundFx.play(attack)
 		end)
 	end
-	local shot = SHOTS[name]
+	local shot = Config.shots[name]
 	if shot then
 		model:GetAttributeChangedSignal("ShotAt"):Connect(function()
 			SoundFx.play(shot)
 		end)
 	end
-	if ARRIVE[name] or DIVE[name] then
+	if Config.arrive[name] or Config.dive[name] then
 		model:GetAttributeChangedSignal("Targetable"):Connect(function()
 			local sound = if model:GetAttribute("Targetable") == true
-				then ARRIVE[name]
-				else DIVE[name]
+				then Config.arrive[name]
+				else Config.dive[name]
 			if sound then
 				SoundFx.play(sound)
 			end
 		end)
 	end
 	model.AncestryChanged:Connect(function()
-		if not model.Parent then
+		if not model.Parent and watched[model] then
 			watched[model] = nil
+			present[name] = math.max(0, (present[name] or 1) - 1)
 		end
 	end)
+end
+
+--[[ `Remotes.EnemyTelegraph`'s arguments (`TelegraphRenderer.onTelegraph`
+     draws the same): a boss move's telegraph plays its sound, a dash's
+     once its lane's warning is out. ]]
+function EnemySounds.onTelegraph(
+	_origin: Vector3,
+	_direction: Vector3,
+	duration: number,
+	kind: string,
+	a: number?
+)
+	local tell = Config.tells[kind]
+	if not tell or (present[tell.boss] or 0) == 0 then
+		return
+	end
+	local delay = Config.tellDelay(tell, duration, a)
+	if delay > 0 then
+		task.delay(delay, SoundFx.play, tell.sound)
+	else
+		SoundFx.play(tell.sound)
+	end
 end
 
 function EnemySounds.start(root: Instance)

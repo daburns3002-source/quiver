@@ -766,7 +766,8 @@ local skins: { [string]: any } = {
 				textureId = "rbxassetid://87111981155450",
 			},
 		} :: { WeaponPart },
-		shotGlow = Color3.fromRGB(255, 255, 255),
+		aura = Color3.fromRGB(70, 220, 200),
+		shotGlow = Color3.fromRGB(70, 220, 200),
 	},
 	TollkeeperStaff = {
 		-- `tollkeeper staff arena 3`, held as the BranchStaff is, playing its kit until it has its own
@@ -783,7 +784,8 @@ local skins: { [string]: any } = {
 				textureId = "rbxassetid://131973326076494",
 			},
 		} :: { WeaponPart },
-		shotGlow = Color3.fromRGB(255, 255, 255),
+		aura = Color3.fromRGB(70, 220, 200),
+		shotGlow = Color3.fromRGB(70, 220, 200),
 	},
 	TollguardBlade = {
 		-- `sunken bell sword arena 3`, held as the TimberBlade is, playing its kit until it has its own
@@ -800,7 +802,8 @@ local skins: { [string]: any } = {
 				textureId = "rbxassetid://78360244322797",
 			},
 		} :: { WeaponPart },
-		trailGlow = Color3.fromRGB(255, 255, 255),
+		aura = Color3.fromRGB(70, 220, 200),
+		trailGlow = Color3.fromRGB(70, 220, 200),
 	},
 	BuoyStaff = {
 		-- `buoy staff arena 3`, held as the BranchStaff is, playing its kit until it has its own
@@ -834,8 +837,8 @@ local skins: { [string]: any } = {
 				textureId = "rbxassetid://134441330446964",
 			},
 		} :: { WeaponPart },
-		rainbow = true,
-		shotGlow = Color3.fromRGB(255, 255, 255),
+		aura = Color3.fromRGB(90, 240, 225),
+		shotGlow = Color3.fromRGB(90, 240, 225),
 	},
 	MaelstromStaff = {
 		-- `maelstrom staff arena 3`, held as the BranchStaff is, playing its kit until it has its own
@@ -852,8 +855,8 @@ local skins: { [string]: any } = {
 				textureId = "rbxassetid://80653594323518",
 			},
 		} :: { WeaponPart },
-		rainbow = true,
-		shotGlow = Color3.fromRGB(255, 255, 255),
+		aura = Color3.fromRGB(90, 240, 225),
+		shotGlow = Color3.fromRGB(90, 240, 225),
 	},
 	StormglassBlade = {
 		-- `stormglass blade arena 3`, held as the TimberBlade is, playing its kit until it has its own
@@ -870,8 +873,8 @@ local skins: { [string]: any } = {
 				textureId = "rbxassetid://91354810095787",
 			},
 		} :: { WeaponPart },
-		rainbow = true,
-		trailGlow = Color3.fromRGB(255, 255, 255),
+		aura = Color3.fromRGB(90, 240, 225),
+		trailGlow = Color3.fromRGB(90, 240, 225),
 	},
 	PeatwoodBow = {
 		-- `PeatwoodBow`, held as the TwigBow is, playing its kit until it has its own

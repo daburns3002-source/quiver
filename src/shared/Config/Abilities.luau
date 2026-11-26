@@ -363,7 +363,7 @@ local abilities: { Ability } = {
 	{
 		id = "Blaze",
 		name = "Blaze",
-		description = "Arrows set enemies on fire.",
+		description = "Your hits set enemies on fire.",
 		category = "OnHit",
 		group = "element",
 		rarity = "Rare",

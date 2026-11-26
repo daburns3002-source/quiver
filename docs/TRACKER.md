@@ -240,9 +240,9 @@ a backlog. What is genuinely not built is the last three.
 - ~~Two in-Roblox tests fail on main.~~ None does since 2026-11-16 (1179 pass): the last two, `PetGuard` and `PetPower` on the Bogheart Egg, were the tests behind the egg, not the egg (`docs/FIXES.md`).
 - Enemy overlap with cover is measured clean in rooms 1–4 only; rooms 5–10 and the arena art itself are unmeasured (CLAUDE.md, "Known rough edges").
 - A Wilf lunge stopped short by cover still plays its leap for the full time.
-- The Slime King's moves have no sounds yet.
-- The Drowned Village's three Legendaries (Tollstring Bow, Tollkeeper Staff, Tollguard Blade) have a glowing shot or cleave but no glow in hand: their generator rows carry no `aura` (seen 2026-11-17 while wiring the daggers; the rule is that every Legendary and Mythic glows).
-- Blaze's card says "Arrows set enemies on fire" to the Warden and the Assassin, who have no arrows.
+- ~~The Slime King's moves have no sounds yet.~~ They have (bounce windup, launch, slam; heard in the 2026-11-26 sweep).
+- ~~The Drowned Village's Legendaries and Mythics have no glow in hand.~~ All six have a teal `aura` since 2026-11-26 (`docs/FIXES.md`).
+- ~~Blaze's card says "Arrows set enemies on fire" to melee classes.~~ "Your hits set enemies on fire." since 2026-11-26.
 - The Meteor cast (1.6 s) hides the staff's cast animation while it plays; shorten it if it feels long.
 - Slime residue (`Fx/SlimeResidue`, `Balance.SlimeResidue`) lands on the floor plane, y = 0: a cube thrown over a log, a boulder or the pond sinks into it instead of resting on top. Its colours are taken from the blocky models' vertex colours; the owner may want them tuned.
 

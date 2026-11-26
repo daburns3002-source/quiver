@@ -10,7 +10,7 @@
 	out when it stops. The Dash starts with the server's wind-up flag
 	(`WindingUp`) and fits itself to the lunge: the crouch over the
 	wind-up, the leap over the bolt (`LungeWindup`, `LungeTravel`), then
-	the skid.
+	the skid; a bolt stopped short (`LungeStopped`) lands where it stops.
 
 	The body is claimed from `Fx/HitSquash` and squashed here, bones and
 	all: a skinned mesh scaled without its bones crushes its head into its
@@ -58,6 +58,8 @@ type Body = {
 	launchAt: number?,
 	windup: number,
 	travel: number,
+	--[[ Seconds after the launch the bolt was stopped short, if it was. ]]
+	stoppedAfter: number?,
 }
 
 local bodies: { [Model]: Body } = {}
@@ -118,6 +120,7 @@ local function setup(model: Model)
 		launchAt = nil,
 		windup = 0,
 		travel = 0,
+		stoppedAfter = nil,
 	}
 	for _, child in model:GetChildren() do
 		local boneName = child:GetAttribute(EnemyDesigns.BoneTag)
@@ -159,8 +162,15 @@ local function step(dt: number)
 			body.launchAt = nil
 			body.windup = (model:GetAttribute("LungeWindup") :: number?) or 0.5
 			body.travel = (model:GetAttribute("LungeTravel") :: number?) or 0.3
+			body.stoppedAfter = nil
 		elseif body.dashAt and not winding and not body.launchAt then
 			body.launchAt = now
+		end
+		--[[ Stopped short by cover, or by a root (`LungeStopped`): the leap
+		     lands now, not at the bolt's full time. ]]
+		local launchedAt = body.launchAt
+		if launchedAt and not body.stoppedAfter and model:GetAttribute("LungeStopped") == true then
+			body.stoppedAfter = now - launchedAt
 		end
 
 		local poses: { [string]: CFrame }
@@ -173,7 +183,8 @@ local function step(dt: number)
 				body.windup,
 				body.travel,
 				now - dashAt,
-				if launchAt then now - launchAt else nil
+				if launchAt then now - launchAt else nil,
+				body.stoppedAfter
 			)
 			poses = RigClip.sample(dash, time, rig.scale)
 			body.runWeight = 0

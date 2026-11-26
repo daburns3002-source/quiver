@@ -2488,3 +2488,54 @@ in words ("58 GEMS") beside coin prices drawn with the coin. Owner: "make sure t
 diamond icons are universal across the game". `ShopAssets.coin` and `ShopAssets.gem` are now the
 only two (CLAUDE.md rule 15), a gem price is the diamond and the number, and `tools/check.sh` fails
 on a coin or gem picture defined anywhere else.
+
+## A NEW ENEMY! card could show over the lobby (2026-11-26)
+
+Seen once in Studio (2026-11-12): after SKIP on the story, a save that had beaten 1-1 reached the lobby
+with the Moss Slime's card up under the REWARDS calendar. Nothing stopped an enemy that landed as the
+lobby came up (a straggler of a run) from being "met", nor the screen from showing a card sent or still
+up then. Now `RunSession.meetEnemy` meets nothing while `InLobby` is set, and `UI/NewEnemyScreen` drops
+any card the lobby would show (sent, queued, a `Preview`, or up as `InLobby` turns on), answering the
+server's so no run is held.
+
+## A lunge stopped short still played its whole leap (2026-11-26)
+
+`Fx/EnemyRig` fitted the Dash's leap to the bolt's full `LungeTravel`, so a bolt that cover (or a root)
+stopped after a stud went on leaping on the spot. The server now sets `LungeStopped` when a bolt ends
+short, and `RigClip.dashTime` lands the leap then, running the rest of it over `RigClip.SETTLE`'s share
+before the skid (`tests/RigClip.spec`). No enemy has a rig today (the Ember Wilf went on 2026-11-01);
+the flag is set on every lunger, the Bramble Boar included.
+
+## The Meteor cast and the staff's casts hid each other (2026-11-26)
+
+The Meteor clip is 1.6 s and the Arcanist casts every 1.4 s, so each next cast cut the Meteor short,
+and the Meteor took the cast it came with. `WeaponTiming.specialSpeed` plays it fast enough to end
+inside one attack (`CYCLE_SHARE` of the cooldown, as fire clips are), haste included; Point still comes
+before the meteor lands (`tests/ClassCards.spec`). The Earthbreaker's slam is timed by the server, so
+only the Meteor is fitted (`WeaponTiming.FITTED`).
+
+## Slime residue sank into cover (2026-11-26)
+
+Every cube landed at y = 0, so one thrown over a log, a boulder or the pond sank into it. At the throw,
+`Fx/SlimeResidue` now works out where the cube comes to rest (`ResidueSpray.rest`, `tests/ResidueSpray.spec`):
+where it would land on the floor, and, if a ray from above finds a top there (the room's floor and cover
+boxes in `Workspace.Arena`; the drawn art is not queryable and is sized to its box), whether it is over that
+top when it comes down to it. If so it rests on the top; if not it met the cover's side, so it drops there,
+beside it. Three things the first Studio check caught: most cubes are thrown at cover taller than they fly
+(a 2.8 log, a 3.2 pillar), so the downward ray must start above all cover, not at the cube's peak; a slime
+pressed against cover and struck from across it throws from inside the cover, so the throw starts outside
+any cover taller than it; and the stepped fall dropped about 0.2 studs below the worked-out arc, landing
+short, so cubes now fly the exact arc and land where they reach the floor within the frame. After: 0 of
+114 cubes thrown at a 2.8 log sank, 1 of 123 at a 1.5 stump.
+
+## A hopping slime's body reached into cover (2026-11-26)
+
+Measured in Mossy Glade 1-10's rooms 5–10 (the rooms 1–4 sweep of 2026-10-23 had found none): every
+hitbox stayed clear of cover, 0.5 to 0.66 studs off, but a slime's drawn body reached up to 0.76 studs in
+(Brood Slime, Moss Slime, Baby Slime). `Fx/SlimeHop` draws the body up to a third of a hop ahead of its
+hitbox in the lurch, squashed up to 4.55 wide on landing, and a slime pressed against cover faces into it.
+The body is now pushed out of every cover box by its own footprint at its turn and squash
+(`Util/CoverPush`, `tests/CoverPush.spec`). Second sweep: 10 of about 330,000 body corners touched cover,
+by 0.03 studs at most. The art: logs, pillars and stumps are drawn inside their boxes by `KitLayout`;
+thicket ferns, packed on a 2.4-stud grid at up to 3.3 studs, reach up to 0.66 studs past theirs (bounding
+corners of soft leaves), left as drawn.

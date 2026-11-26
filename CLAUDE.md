@@ -475,7 +475,8 @@ drawn by `Fx/Upgrades/ClassCardFx`; the pools stay within a card of each other (
 and erupting cracks), both resolved by `Combat/AreaStrikes`. They look as the
 owner's mythic-fx.js draws them (`Fx/MythicFx`, `Balance.MythicFx`, budgeted
 by `DeviceTiers.mythicFxShare`), and the staff plays the kit's Meteor cast
-when the server counts one on the player (`Meteors` attribute).
+when the server counts one on the player (`Meteors` attribute), fast enough to end
+inside one attack so the next cast shows (`WeaponTiming.specialSpeed`).
 
 **Thornwood's six cards** (owner, 2026-11-18: "Build the six new"; `docs/CLASS-CARDS.md`): Web Snare and
 Thorn Burst (Ranger), Root Hold and Burr Blight (Arcanist), Boar Rush and Ruin Cracks (both melee classes,
@@ -1150,6 +1151,12 @@ The face-slide below is now only the fallback when walking straight.
   and counted ground rings. Not measured: rooms 5–10, and the arena art
   itself, which can be larger or smaller than its obstacle box. Measure
   per part, client-side, answering the card screen, before fixing.
+  **Rooms 5–10 measured 2026-11-26** (Mossy Glade 1-10, about 330,000 body
+  corners): hitboxes always clear; a hopping slime's drawn body (`Fx/SlimeHop`,
+  drawn ahead of its hitbox in the lurch and squashed wider) reached 0.76 studs
+  in, and is now pushed out of cover by its own footprint (`Util/CoverPush`):
+  0.03 studs at most after. The art: logs, pillars and stumps are drawn inside
+  their boxes (`KitLayout`); thicket ferns reach up to 0.66 studs past theirs.
 
 **Studio test keys** (`client/DevKeys`, honoured by the server only in
 Studio): **M** — the next card hand includes a Mythic; **L** — a Legendary;

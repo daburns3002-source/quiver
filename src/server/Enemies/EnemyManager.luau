@@ -1047,7 +1047,7 @@ local function fall(enemy: Enemy)
 	end
 	local body = enemy.model:Clone()
 	body.Name = `{enemy.model.Name}Fallen`
-	for _, name in { "Health", "MaxHealth", "Boss", "WindingUp", "LungeWindup" } do
+	for _, name in { "Health", "MaxHealth", "Boss", "WindingUp", "LungeWindup", "LungeStopped" } do
 		body:SetAttribute(name, nil)
 	end
 	for _, part in body:GetDescendants() do
@@ -2479,6 +2479,7 @@ local function stepLunge(
 			     wind-up flag that starts it. ]]
 			enemy.model:SetAttribute("LungeWindup", lunge.telegraph)
 			enemy.model:SetAttribute("LungeTravel", lunge.distance / lunge.speed)
+			enemy.model:SetAttribute("LungeStopped", nil)
 			enemy.model:SetAttribute(WINDING_UP, true)
 			enemyTelegraph:FireAllClients(
 				enemy.position,
@@ -2505,6 +2506,8 @@ local function stepLunge(
 			EnemyModel.restore(enemy.skin, config)
 			enemy.model:SetAttribute(WINDING_UP, nil)
 		end
+		-- its rig lands the leap here (`Fx/EnemyRig`)
+		enemy.model:SetAttribute("LungeStopped", true)
 		enemy.lungeIndex = nil
 		enemy.lungeMoving = false
 		enemy.lastAttackAt = now
@@ -2547,6 +2550,11 @@ local function stepLunge(
 	end
 
 	if enemy.lungeTravelled >= lunge.distance - 1e-3 or moved < step * 0.3 then
+		--[[ Stopped short by cover: the rig lands its leap now instead of
+		     playing it for the bolt's full time (`Fx/EnemyRig`). ]]
+		if enemy.lungeTravelled < lunge.distance - 1e-3 then
+			enemy.model:SetAttribute("LungeStopped", true)
+		end
 		enemy.lungeIndex = nil
 		enemy.lungeMoving = false
 		-- The cooldown runs from the end of the lunge, not its wind-up.

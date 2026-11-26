@@ -119,6 +119,78 @@ function ResidueSpray.colour(kind: Kind, index: number, settings: Settings, rng:
 	return if index % 2 == 0 then kind.dark else kind.light
 end
 
+--[[ Where a cube thrown from `at` at `velocity`, falling at `gravity`,
+     comes down onto a surface at `height` (its underside, `half` below its
+     centre, touching it): the point on that surface under it then. nil
+     when it never gets down there, thrown from below it and not rising
+     over it. `Fx/SlimeResidue` asks this of the floor, then of whatever
+     top a ray finds under the answer (a log, a boulder, the pond). ]]
+function ResidueSpray.landing(
+	at: Vector3,
+	velocity: Vector3,
+	gravity: number,
+	height: number,
+	half: number
+): Vector3?
+	local drop = at.Y - (height + half)
+	local rise = velocity.Y
+	local reach = rise * rise + 2 * gravity * drop
+	if gravity <= 0 or reach < 0 then
+		return nil
+	end
+	local t = (rise + math.sqrt(reach)) / gravity
+	return Vector3.new(at.X + velocity.X * t, height, at.Z + velocity.Z * t)
+end
+
+--[[
+	Where a cube thrown from `at` at `velocity` comes to rest: the height of
+	the surface it rests on, and, when it meets the side of cover it cannot
+	clear, how far it flies over the floor before it drops beside it.
+
+	`topAt(point)` is the height of the top under a flat point (0 for the
+	floor); `sideAt(from, along)` how far along the flat `along` from `from`
+	the first side of cover is, or nil. It lands on a top only if it is over
+	that top when it comes down to it; else it met the side on the way.
+]]
+function ResidueSpray.rest(
+	at: Vector3,
+	velocity: Vector3,
+	gravity: number,
+	half: number,
+	topAt: (Vector3) -> number,
+	sideAt: (Vector3, Vector3) -> number?
+): (number, number?)
+	local spot = ResidueSpray.landing(at, velocity, gravity, 0, half)
+	if not spot then
+		return 0, nil
+	end
+	local top = topAt(spot)
+	if top <= 1e-3 then
+		return 0, nil
+	end
+	local high = ResidueSpray.landing(at, velocity, gravity, top, half)
+	if high and math.abs(topAt(high) - top) < 1e-3 then
+		return top, nil
+	end
+	local flat = Vector3.new(spot.X - at.X, 0, spot.Z - at.Z)
+	if flat.Magnitude < 1e-3 then
+		return top, nil
+	end
+	local side = sideAt(Vector3.new(at.X, math.min(at.Y, top - 0.05), at.Z), flat)
+	if not side then
+		return 0, nil
+	end
+	local wall = math.max(0, side - half)
+	local stop = at + flat.Unit * wall
+	return topAt(Vector3.new(stop.X, 0, stop.Z)), wall
+end
+
+--[[ How high a cube thrown from `at` at `velocity` climbs, at its peak. ]]
+function ResidueSpray.peak(at: Vector3, velocity: Vector3, gravity: number): number
+	local rise = math.max(velocity.Y, 0)
+	return at.Y + if gravity > 0 then rise * rise / (2 * gravity) else 0
+end
+
 --[[ The pooled cube after `last`, of `cap`: round and round, so a burst
      beyond the cap takes the oldest cubes back rather than making more. ]]
 function ResidueSpray.slot(last: number, cap: number): number

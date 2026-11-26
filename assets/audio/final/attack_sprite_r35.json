@@ -1,0 +1,182 @@
+{
+ "pet_bark_hoglet_a": [
+  0.0,
+  0.224
+ ],
+ "pet_burrball_b": [
+  0.664,
+  0.241
+ ],
+ "pet_budbulb_c": [
+  1.345,
+  0.33
+ ],
+ "pet_berry_mouse_b": [
+  2.115,
+  0.59
+ ],
+ "pet_thistle_mole_a": [
+  3.145,
+  0.242
+ ],
+ "pet_briar_beetle_c": [
+  3.827,
+  0.42
+ ],
+ "pet_berry_bat_b": [
+  4.687,
+  0.36
+ ],
+ "pet_bramble_bear_c": [
+  5.487,
+  0.275
+ ],
+ "pet_briar_lynx_c": [
+  6.201,
+  0.331
+ ],
+ "pet_bramble_wilf_bolt_b": [
+  6.972,
+  0.55
+ ],
+ "pet_bramble_wilf_howl_a": [
+  7.962,
+  0.59
+ ],
+ "pet_thorn_princess_b": [
+  8.992,
+  0.69
+ ],
+ "pet_thornwake_b": [
+  10.122,
+  0.69
+ ],
+ "pet_slate_turtle_b": [
+  11.252,
+  0.36
+ ],
+ "pet_buoy_puffer_b": [
+  12.052,
+  0.34
+ ],
+ "pet_inkpot_b": [
+  12.832,
+  0.268
+ ],
+ "pet_tide_wilf_c": [
+  13.54,
+  0.59
+ ],
+ "pet_abyss_jelly_b": [
+  14.57,
+  0.82
+ ],
+ "pet_cave_cricket_a": [
+  15.83,
+  0.22
+ ],
+ "pet_lichen_gecko_a": [
+  16.49,
+  0.17
+ ],
+ "pet_bog_beaver_b": [
+  17.099,
+  0.39
+ ],
+ "pet_lanternfin_mote_b": [
+  17.929,
+  0.397
+ ],
+ "pet_lanternfin_burst_a": [
+  18.766,
+  0.46
+ ],
+ "pet_olm_b": [
+  19.666,
+  0.27
+ ],
+ "pet_glowcap_wilf_a": [
+  20.376,
+  0.63
+ ],
+ "pet_gulpling_c": [
+  21.446,
+  0.575
+ ],
+ "pet_prism_leviathan_a": [
+  22.461,
+  0.632
+ ],
+ "enemy_charger_bite_b": [
+  23.533,
+  0.24
+ ],
+ "enemy_spitter_spit_a": [
+  24.213,
+  0.204
+ ],
+ "enemy_baby_slime_bite_b": [
+  24.857,
+  0.136
+ ],
+ "enemy_brood_slime_bite_c": [
+  25.433,
+  0.229
+ ],
+ "enemy_burrower_clods_b": [
+  26.102,
+  0.269
+ ],
+ "enemy_lancer_lance_a": [
+  26.811,
+  0.21
+ ],
+ "enemy_glowcap_spores_a": [
+  27.461,
+  0.272
+ ],
+ "enemy_spore_puff_bite_b": [
+  28.172,
+  0.22
+ ],
+ "enemy_shellback_bash_c": [
+  28.832,
+  0.39
+ ],
+ "enemy_fisherman_cast_a": [
+  29.662,
+  0.44
+ ],
+ "boss_toll_raise_b": [
+  30.542,
+  0.86
+ ],
+ "boss_toll_ring_c": [
+  31.842,
+  2.06
+ ],
+ "boss_toll_rap_c": [
+  34.342,
+  0.46
+ ],
+ "boss_toll_echo_c": [
+  35.242,
+  0.339
+ ],
+ "boss_toll_scuttle_c": [
+  36.022,
+  0.387
+ ],
+ "boss_gulp_spit_b": [
+  36.849,
+  0.976
+ ],
+ "boss_gulp_slide_b": [
+  38.265,
+  1.134
+ ],
+ "boss_gulp_inhale_a": [
+  39.839,
+  2.06
+ ]
+}

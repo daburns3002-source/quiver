@@ -18,6 +18,11 @@ local Pets = require(ReplicatedStorage.Shared.Config.Pets)
 local Sounds = require(ReplicatedStorage.Shared.Config.Sounds)
 local TestRunner = require(script.Parent.TestRunner)
 
+--[[ Enemies that are not in the game, so need no sound: the Bulwark
+     (`Tank`) stands in no room (owner, 2026-11-26: "bulwark isnt in the
+     game"). ]]
+local NOT_IN_GAME: { [string]: boolean } = { Tank = true }
+
 --[[ An enemy by model name, from the roster or the bench. A fallen body is
      its enemy's name with "Fallen" after it. ]]
 local function enemy(name: string): Balance.EnemyConfig?
@@ -77,7 +82,10 @@ return function(t: TestRunner.Helper)
 			check(tell.boss, tell.sound)
 		end
 		for name in Balance.Enemies :: { [string]: any } do
-			t.isTrue(heard[name] == true, `{name} makes no sound when it attacks`)
+			t.isTrue(
+				heard[name] == true or NOT_IN_GAME[name] == true,
+				`{name} makes no sound when it attacks`
+			)
 		end
 		for name in Balance.Benched :: { [string]: any } do
 			t.isTrue(heard[name] == true, `benched {name} makes no sound when it attacks`)

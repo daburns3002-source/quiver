@@ -70,7 +70,6 @@ EnemySounds.attacks = {
 	Boarlet = "enemy_boarlet_bite",
 	Thornling = "enemy_thornling_bite",
 	MeleeCharger = "enemy_charger_bite",
-	Tank = "enemy_bulwark_bash",
 	BabySlime = "enemy_baby_slime_bite",
 	BroodSlime = "enemy_brood_slime_bite",
 	SporePuff = "enemy_spore_puff_bite",

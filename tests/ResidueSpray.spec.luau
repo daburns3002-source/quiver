@@ -149,4 +149,38 @@ return function(t: TestRunner.Helper)
 		t.isTrue(life >= 1 and life <= 2.5, "splats last " .. life .. " s")
 		t.isTrue(settings.splatFlat < 1 and settings.splatWide > 1, "a splat is not flat")
 	end)
+
+	--[[ A cube comes down on what it falls onto, not through it to y = 0
+	     (`rg-slime`): the landing on a raised top is nearer, and higher,
+	     than the floor's, and lies on the cube's own path. ]]
+	t.test("a cube lands on a raised top before the floor", function()
+		local g = settings.gravity
+		local at = Vector3.new(0, 1.1, 0)
+		local velocity = Vector3.new(8, 10, 0)
+		local half = 0.2
+		local floor = ResidueSpray.landing(at, velocity, g, 0, half)
+		local log = ResidueSpray.landing(at, velocity, g, 1.5, half)
+		t.notNil(floor, "a cube thrown up never comes down")
+		t.notNil(log, "a cube rising over a 1.5-stud log never lands on it")
+		if not floor or not log then
+			return
+		end
+		t.near(floor.Y, 0, 1e-9)
+		t.near(log.Y, 1.5, 1e-9)
+		t.isTrue(
+			log.X < floor.X and log.X > 0,
+			"the log's landing is not on the way to the floor's"
+		)
+		-- where it lands, its underside touches the top
+		local tFall = log.X / velocity.X
+		local y = at.Y + velocity.Y * tFall - g * tFall * tFall / 2
+		t.near(y - half, 1.5, 1e-6)
+		-- a top above the cube's peak is never landed on
+		local peak = ResidueSpray.peak(at, velocity, g)
+		t.isTrue(peak > at.Y, "the peak is not above the throw")
+		t.isTrue(
+			ResidueSpray.landing(at, velocity, g, peak, half) == nil,
+			"landed above its own peak"
+		)
+	end)
 end

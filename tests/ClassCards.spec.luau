@@ -21,6 +21,8 @@ local SwingBox = require(ReplicatedStorage.Shared.Combat.SwingBox)
 local TestRunner = require(script.Parent.TestRunner)
 local Types = require(ReplicatedStorage.Shared.Types)
 local WeaponAnimations = require(ReplicatedStorage.Shared.Config.WeaponAnimations)
+local WeaponTiming = require(ReplicatedStorage.Shared.Combat.WeaponTiming)
+local Weapons = require(ReplicatedStorage.Shared.Config.Weapons)
 
 local HAND = 3
 
@@ -351,5 +353,30 @@ return function(t: TestRunner.Helper)
 		local summon, point = clip.markers.Summon, clip.markers.Point
 		t.isTrue(summon ~= nil and point ~= nil and summon < point, "the cast lacks its markers")
 		t.isTrue(point <= Balance.Player.meteor.delay, "the staff points after the meteor lands")
+	end)
+
+	--[[ The Meteor cast fits inside one of the staff's attacks, even with
+	     the most haste the draft gives, so the next cast is never cut into
+	     it and the staff's own cast shows between Meteors (`rg-meteor`). The
+	     Earthbreaker's is never fitted: its slam is timed by the server. ]]
+	t.test("the Meteor cast ends before the staff's next cast", function()
+		local staff = Classes.Arcanist.weapon
+		local clip = WeaponTiming.clips(staff)[(Weapons :: any)[staff].clips.special.meteor]
+		t.notNil(clip, "the staff has no Meteor clip")
+		local base = Balance.Player.attackCooldown * Classes.Arcanist.cooldownScale
+		for _, cooldown in { base, base * 0.75, base * 0.5, 0.3 } do
+			local speed = WeaponTiming.specialSpeed(staff, "meteor", cooldown)
+			t.isTrue(speed >= 1, "the Meteor cast plays slower than written")
+			t.isTrue(
+				clip.length / speed <= cooldown,
+				`the Meteor cast outlasts a {cooldown} s attack`
+			)
+			t.isTrue(
+				clip.markers.Point / speed <= Balance.Player.meteor.delay,
+				"the staff points after the meteor lands"
+			)
+		end
+		t.near(WeaponTiming.specialSpeed(staff, "meteor", 100), 1, 1e-9)
+		t.near(WeaponTiming.specialSpeed(Classes.Warden.weapon, "earthbreaker", 0.1), 1, 1e-9)
 	end)
 end

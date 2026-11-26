@@ -563,7 +563,10 @@ end
      (2026-11-14), it is a name tag over the enemy and nothing holds. Kinds
      without a screen (bosses, summons, the old archetypes) pass. ]]
 function RunSession.meetEnemy(kind: string)
-	if not NewEnemies.enemies[kind] then
+	--[[ Never in the lobby (`InLobby`, `RoomController.broadcast`): an enemy
+	     landing there is a run's straggler, and its card or tag would show
+	     over the lobby (owner's checklist, `rg-newenemy`). ]]
+	if not NewEnemies.enemies[kind] or workspace:GetAttribute("InLobby") == true then
 		return
 	end
 	for _, session in sessions do

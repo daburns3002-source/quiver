@@ -2,7 +2,8 @@
 --[[
 	Slime residue (owner, 2026-10-23): every hit on a slime throws a few
 	little cubes of its jelly out of the face the shot struck. They tumble,
-	land on the floor as flat splats, sit a moment and shrink away. A crit
+	land as flat splats on the floor or on the cover they come down on (a
+	log, a boulder, the pond), sit a moment and shrink away. A crit
 	throws more; a kill more again, all the way round. King Bloblin's are
 	chunks. Which slimes, their colours, sizes and counts: `Balance.
 	SlimeResidue`; the arithmetic: `Shared/Util/ResidueSpray`.
@@ -40,6 +41,9 @@ type Cube = {
 	--[[ The splat's size once landed. ]]
 	splat: Vector3,
 	landedAt: number,
+	--[[ The height it rests at: the floor, or the top of the cover it
+	     comes down on (`groundUnder`). ]]
+	floor: number,
 }
 
 --[[ Where an unused cube waits, out of sight under the world. ]]
@@ -59,6 +63,44 @@ local function floorY(): number
 	return settings.floorLift
 end
 
+--[[ Rays down onto the room's floor and cover boxes (`Workspace.Arena`;
+     its drawn art is not queryable, and the boxes are sized to it). ]]
+local rayParams = RaycastParams.new()
+rayParams.FilterType = Enum.RaycastFilterType.Include
+
+--[[ The height a cube thrown from `at` at `velocity` comes to rest at: it
+     lands where the floor would take it, and if a ray down there finds a
+     top (a log, a boulder, the pond), where that top takes it instead
+     (owner's checklist, `rg-slime`: they sank into cover at y = 0). Twice,
+     since landing higher lands nearer. ]]
+local function groundUnder(at: Vector3, velocity: Vector3, half: number): number
+	local base = floorY()
+	local arena = Workspace:FindFirstChild("Arena")
+	if not arena then
+		return base
+	end
+	rayParams.FilterDescendantsInstances = { arena }
+	local from = ResidueSpray.peak(at, velocity, settings.gravity) + 0.5
+	local height = 0
+	for _ = 1, 2 do
+		local spot = ResidueSpray.landing(at, velocity, settings.gravity, height, half)
+		if not spot then
+			break
+		end
+		local hit = Workspace:Raycast(
+			Vector3.new(spot.X, from, spot.Z),
+			Vector3.new(0, -(from + 1), 0),
+			rayParams
+		)
+		local top = if hit and hit.Normal.Y > 0.5 then math.max(hit.Position.Y, 0) else 0
+		if math.abs(top - height) < 1e-3 then
+			break
+		end
+		height = top
+	end
+	return height + base
+end
+
 local function step(dt: number)
 	local now = os.clock()
 	local any = false
@@ -76,13 +118,13 @@ local function step(dt: number)
 			cube.velocity -= Vector3.yAxis * settings.gravity * dt
 			cube.position += cube.velocity * dt
 			cube.rotation = CFrame.fromAxisAngle(cube.spinAxis, cube.spinRate * dt) * cube.rotation
-			if cube.position.Y - cube.size / 2 <= floorY() and cube.velocity.Y < 0 then
+			if cube.position.Y - cube.size / 2 <= cube.floor and cube.velocity.Y < 0 then
 				--[[ Lands: flat on the floor, square to it, turned only
 				     about the vertical so splats do not all line up. ]]
 				cube.landed = true
 				cube.landedAt = now
 				cube.position =
-					Vector3.new(cube.position.X, floorY() + cube.splat.Y / 2, cube.position.Z)
+					Vector3.new(cube.position.X, cube.floor + cube.splat.Y / 2, cube.position.Z)
 				cube.rotation = CFrame.Angles(0, rng:NextNumber() * math.pi, 0)
 				part.Size = cube.splat
 			end
@@ -110,7 +152,7 @@ local function step(dt: number)
 		table.insert(moveParts, part)
 		table.insert(
 			moveFrames,
-			CFrame.new(cube.position.X, floorY() + size.Y / 2, cube.position.Z) * cube.rotation
+			CFrame.new(cube.position.X, cube.floor + size.Y / 2, cube.position.Z) * cube.rotation
 		)
 	end
 
@@ -154,6 +196,7 @@ local function burst(
 		cube.spinAxis = rng:NextUnitVector()
 		cube.spinRate = (0.4 + rng:NextNumber() * 0.6) * settings.spin
 		cube.size = edge
+		cube.floor = groundUnder(at, velocity, edge / 2)
 		cube.splat = Vector3.new(
 			edge * settings.splatWide,
 			edge * settings.splatFlat,
@@ -280,6 +323,7 @@ function SlimeResidue.start(parent: Instance)
 			size = 0,
 			splat = Vector3.zero,
 			landedAt = 0,
+			floor = 0,
 		})
 	end
 end

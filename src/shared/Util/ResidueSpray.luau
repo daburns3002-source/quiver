@@ -119,6 +119,35 @@ function ResidueSpray.colour(kind: Kind, index: number, settings: Settings, rng:
 	return if index % 2 == 0 then kind.dark else kind.light
 end
 
+--[[ Where a cube thrown from `at` at `velocity`, falling at `gravity`,
+     comes down onto a surface at `height` (its underside, `half` below its
+     centre, touching it): the point on that surface under it then. nil
+     when it never gets down there, thrown from below it and not rising
+     over it. `Fx/SlimeResidue` asks this of the floor, then of whatever
+     top a ray finds under the answer (a log, a boulder, the pond). ]]
+function ResidueSpray.landing(
+	at: Vector3,
+	velocity: Vector3,
+	gravity: number,
+	height: number,
+	half: number
+): Vector3?
+	local drop = at.Y - (height + half)
+	local rise = velocity.Y
+	local reach = rise * rise + 2 * gravity * drop
+	if gravity <= 0 or reach < 0 then
+		return nil
+	end
+	local t = (rise + math.sqrt(reach)) / gravity
+	return Vector3.new(at.X + velocity.X * t, height, at.Z + velocity.Z * t)
+end
+
+--[[ How high a cube thrown from `at` at `velocity` climbs, at its peak. ]]
+function ResidueSpray.peak(at: Vector3, velocity: Vector3, gravity: number): number
+	local rise = math.max(velocity.Y, 0)
+	return at.Y + if gravity > 0 then rise * rise / (2 * gravity) else 0
+end
+
 --[[ The pooled cube after `last`, of `cap`: round and round, so a burst
      beyond the cap takes the oldest cubes back rather than making more. ]]
 function ResidueSpray.slot(last: number, cap: number): number

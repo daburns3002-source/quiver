@@ -18,6 +18,9 @@
 	and nothing holds. The screen is still here for `Preview` and for
 	turning the card back on.
 
+	It never shows in the lobby (`InLobby`): one sent or queued there is
+	dropped, and the server's is answered (owner's checklist, 2026-11-26).
+
 	For a Studio capture, set the ScreenGui's `Preview` attribute to a kind
 	(an `EnemyConfig.displayName`) to show its screen without the server.
 	Presentation only.
@@ -220,8 +223,35 @@ local function fill(p: Parts, kind: string)
 	place(p.button, sheet.button)
 end
 
+--[[ Never in the lobby (owner's checklist, `rg-newenemy`): a card the
+     lobby would show is dropped, and the server's is answered so it holds
+     nothing. ]]
+local function inLobby(): boolean
+	return Workspace:GetAttribute("InLobby") == true
+end
+
+local function flush()
+	for _, kind in queue do
+		if fromServer[kind] then
+			Remotes.event(Remotes.NewEnemySeen):FireServer(kind)
+		end
+	end
+	table.clear(queue)
+	table.clear(fromServer)
+	leavingAt = nil
+	local p = parts
+	if p then
+		p.gui.Enabled = false
+	end
+	RunPaused.setMeeting(false)
+end
+
 --[[ Shows the next kind waiting, or puts the screen away. ]]
 local function showNext(p: Parts)
+	if inLobby() then
+		flush()
+		return
+	end
 	local kind = queue[1]
 	if not kind then
 		p.gui.Enabled = false
@@ -397,6 +427,12 @@ function NewEnemyScreen.start()
 		if type(kind) ~= "string" then
 			return
 		end
+		if inLobby() then
+			if NewEnemies.card then
+				Remotes.event(Remotes.NewEnemySeen):FireServer(kind)
+			end
+			return
+		end
 		if NewEnemies.card then
 			enqueue(kind, true)
 		else
@@ -410,8 +446,16 @@ function NewEnemyScreen.start()
 		end
 	end)
 
+	Workspace:GetAttributeChangedSignal("InLobby"):Connect(function()
+		if inLobby() and (made.gui.Enabled or #queue > 0) then
+			flush()
+		end
+	end)
+
 	RunService.RenderStepped:Connect(function()
-		if made.gui.Enabled then
+		if made.gui.Enabled and inLobby() then
+			flush()
+		elseif made.gui.Enabled then
 			pose(made, os.clock())
 		end
 	end)

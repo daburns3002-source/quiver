@@ -431,16 +431,21 @@ end
      anything that follows the combo, such as each blow's sound. ]]
 --[[ Plays a weapon's one-off clip (`Config/Weapons.clips.special`) once,
      through to its end, then back to Hold: the Earthbreaker Mythic's leap
-     and slam as a dash ends, the Meteor Mythic's cast as one is called. Nothing for a weapon without it. ]]
+     and slam as a dash ends, the Meteor Mythic's cast as one is called,
+     played fast enough to end inside one attack. Nothing for a weapon
+     without it. ]]
 function WeaponPose.playSpecial(key: string)
-	local _, weapon = currentWeapon()
+	local held, weapon = currentWeapon()
 	local special = weapon.clips.special
 	local name = special and special[key]
 	if not name then
 		return
 	end
 	specialClip = name
-	play("special", 1, os.clock())
+	--[[ Fitted inside one attack, so it ends before the next cast and the
+	     staff's own cast shows again (`WeaponTiming.specialSpeed`). ]]
+	local cooldown = attackCooldown or PlayerStats.get().attackCooldown
+	play("special", WeaponTiming.specialSpeed(held, key, cooldown), os.clock())
 end
 
 function WeaponPose.comboIndex(): number

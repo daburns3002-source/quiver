@@ -42,18 +42,35 @@ end
 	`sinceStart` have passed); once launched (`sinceLaunch`, nil until the
 	server clears the wind-up) the leap runs to `Land` over the bolt's
 	`travel` seconds, and the skid after it at the clip's own pace.
+
+	A bolt stopped short by cover (`stoppedAfter` seconds after the launch,
+	the server's `LungeStopped`) lands then: the rest of the leap is run
+	over `SETTLE` seconds (its share of them), and the skid follows, so the
+	body is not seen leaping against the cover for the bolt's full time.
 ]]
+RigClip.SETTLE = 0.12
+
 function RigClip.dashTime(
 	clip: EnemyRigs.Clip,
 	windup: number,
 	travel: number,
 	sinceStart: number,
-	sinceLaunch: number?
+	sinceLaunch: number?,
+	stoppedAfter: number?
 ): number
 	local launch = clip.markers.Launch or 0
 	local land = clip.markers.Land or clip.length
 	if sinceLaunch == nil then
 		return launch * math.clamp(sinceStart / math.max(windup, 1e-3), 0, 1)
+	end
+	if stoppedAfter and stoppedAfter < travel and sinceLaunch >= stoppedAfter then
+		local share = math.max(stoppedAfter, 0) / math.max(travel, 1e-3)
+		local settle = RigClip.SETTLE * (1 - share)
+		local after = sinceLaunch - math.max(stoppedAfter, 0)
+		if after < settle then
+			return launch + (land - launch) * (share + (1 - share) * after / settle)
+		end
+		return math.min(clip.length, land + (after - settle))
 	end
 	if sinceLaunch < travel then
 		return launch + (land - launch) * (sinceLaunch / math.max(travel, 1e-3))

@@ -42,8 +42,12 @@ type Cube = {
 	splat: Vector3,
 	landedAt: number,
 	--[[ The height it rests at: the floor, or the top of the cover it
-	     comes down on (`groundUnder`). ]]
+	     comes down on, or the floor beside cover it meets (`restOf`). ]]
 	floor: number,
+	--[[ Studs over the floor it flies before it meets cover's side and
+	     drops, from `start`, where it was thrown; nil when it meets none. ]]
+	wall: number?,
+	start: Vector3,
 }
 
 --[[ Where an unused cube waits, out of sight under the world. ]]
@@ -68,37 +72,38 @@ end
 local rayParams = RaycastParams.new()
 rayParams.FilterType = Enum.RaycastFilterType.Include
 
---[[ The height a cube thrown from `at` at `velocity` comes to rest at: it
-     lands where the floor would take it, and if a ray down there finds a
-     top (a log, a boulder, the pond), where that top takes it instead
-     (owner's checklist, `rg-slime`: they sank into cover at y = 0). Twice,
-     since landing higher lands nearer. ]]
-local function groundUnder(at: Vector3, velocity: Vector3, half: number): number
+--[[ Where a cube thrown from `at` at `velocity` comes to rest
+     (`ResidueSpray.rest`, owner's checklist `rg-slime`: they sank into
+     cover at y = 0): on the top of the cover it comes down on, or, if it
+     meets the side of cover it cannot clear, on the floor beside it,
+     dropping after `wall` studs. Rays onto the room's floor and cover boxes
+     (`Workspace.Arena`; the drawn art is not queryable, and is sized to its
+     box). ]]
+local function restOf(at: Vector3, velocity: Vector3, half: number): (number, number?)
 	local base = floorY()
 	local arena = Workspace:FindFirstChild("Arena")
 	if not arena then
-		return base
+		return base, nil
 	end
 	rayParams.FilterDescendantsInstances = { arena }
 	local from = ResidueSpray.peak(at, velocity, settings.gravity) + 0.5
-	local height = 0
-	for _ = 1, 2 do
-		local spot = ResidueSpray.landing(at, velocity, settings.gravity, height, half)
-		if not spot then
-			break
-		end
+	local function topAt(point: Vector3): number
 		local hit = Workspace:Raycast(
-			Vector3.new(spot.X, from, spot.Z),
+			Vector3.new(point.X, from, point.Z),
 			Vector3.new(0, -(from + 1), 0),
 			rayParams
 		)
-		local top = if hit and hit.Normal.Y > 0.5 then math.max(hit.Position.Y, 0) else 0
-		if math.abs(top - height) < 1e-3 then
-			break
-		end
-		height = top
+		return if hit and hit.Normal.Y > 0.5 then math.max(hit.Position.Y, 0) else 0
 	end
-	return height + base
+	local function sideAt(origin: Vector3, along: Vector3): number?
+		local hit = Workspace:Raycast(origin, along.Unit * (along.Magnitude + 1), rayParams)
+		if not hit or math.abs(hit.Normal.Y) > 0.5 then
+			return nil
+		end
+		return Vector3.new(hit.Position.X - origin.X, 0, hit.Position.Z - origin.Z).Magnitude
+	end
+	local height, wall = ResidueSpray.rest(at, velocity, settings.gravity, half, topAt, sideAt)
+	return height + base, wall
 end
 
 local function step(dt: number)
@@ -117,6 +122,19 @@ local function step(dt: number)
 		if not cube.landed then
 			cube.velocity -= Vector3.yAxis * settings.gravity * dt
 			cube.position += cube.velocity * dt
+			--[[ Met the side of cover it cannot clear: it drops there. ]]
+			local wall = cube.wall
+			if wall then
+				local flat =
+					Vector3.new(cube.position.X - cube.start.X, 0, cube.position.Z - cube.start.Z)
+				if flat.Magnitude >= wall then
+					local back = if flat.Magnitude > 1e-6 then flat.Unit * wall else Vector3.zero
+					cube.position =
+						Vector3.new(cube.start.X + back.X, cube.position.Y, cube.start.Z + back.Z)
+					cube.velocity = Vector3.new(0, math.min(cube.velocity.Y, 0), 0)
+					cube.wall = nil
+				end
+			end
 			cube.rotation = CFrame.fromAxisAngle(cube.spinAxis, cube.spinRate * dt) * cube.rotation
 			if cube.position.Y - cube.size / 2 <= cube.floor and cube.velocity.Y < 0 then
 				--[[ Lands: flat on the floor, square to it, turned only
@@ -196,7 +214,10 @@ local function burst(
 		cube.spinAxis = rng:NextUnitVector()
 		cube.spinRate = (0.4 + rng:NextNumber() * 0.6) * settings.spin
 		cube.size = edge
-		cube.floor = groundUnder(at, velocity, edge / 2)
+		local floor, wall = restOf(at, velocity, edge / 2)
+		cube.floor = floor
+		cube.wall = wall
+		cube.start = at
 		cube.splat = Vector3.new(
 			edge * settings.splatWide,
 			edge * settings.splatFlat,
@@ -324,6 +345,8 @@ function SlimeResidue.start(parent: Instance)
 			splat = Vector3.zero,
 			landedAt = 0,
 			floor = 0,
+			wall = nil,
+			start = Vector3.zero,
 		})
 	end
 end

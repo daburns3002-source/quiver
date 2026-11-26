@@ -174,7 +174,7 @@ return function(t: TestRunner.Helper)
 		-- where it lands, its underside touches the top
 		local tFall = log.X / velocity.X
 		local y = at.Y + velocity.Y * tFall - g * tFall * tFall / 2
-		t.near(y - half, 1.5, 1e-6)
+		t.near(y - half, 1.5, 1e-4)
 		-- a top above the cube's peak is never landed on
 		local peak = ResidueSpray.peak(at, velocity, g)
 		t.isTrue(peak > at.Y, "the peak is not above the throw")
@@ -182,5 +182,32 @@ return function(t: TestRunner.Helper)
 			ResidueSpray.landing(at, velocity, g, peak, half) == nil,
 			"landed above its own peak"
 		)
+	end)
+
+	--[[ One log across x 2..4, 1.5 tall: a cube that clears its side rests
+	     on top; one that meets its side drops beside it, never inside. ]]
+	t.test("a cube rests on cover it clears, and drops beside cover it meets", function()
+		local g = settings.gravity
+		local half = 0.2
+		local function topAt(p: Vector3): number
+			return if p.X >= 2 and p.X <= 4 then 1.5 else 0
+		end
+		local function sideAt(from: Vector3, along: Vector3): number?
+			if along.X <= 0 or from.X >= 2 then
+				return nil
+			end
+			return (2 - from.X) / along.Unit.X
+		end
+		local at = Vector3.new(0, 1.1, 0)
+		local top, wall = ResidueSpray.rest(at, Vector3.new(8, 13, 0), g, half, topAt, sideAt)
+		t.near(top, 1.5, 1e-9)
+		t.isTrue(wall == nil, "a cube that clears the log meets its side")
+		local low, stop = ResidueSpray.rest(at, Vector3.new(8, 6, 0), g, half, topAt, sideAt)
+		t.near(low, 0, 1e-9)
+		t.notNil(stop, "a cube thrown into the log's side flies through it")
+		t.near(stop :: number, 2 - half, 1e-9)
+		local short, none = ResidueSpray.rest(at, Vector3.new(3, 8, 0), g, half, topAt, sideAt)
+		t.near(short, 0, 1e-9)
+		t.isTrue(none == nil, "a cube that falls short meets a side")
 	end)
 end

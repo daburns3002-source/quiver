@@ -142,6 +142,49 @@ function ResidueSpray.landing(
 	return Vector3.new(at.X + velocity.X * t, height, at.Z + velocity.Z * t)
 end
 
+--[[
+	Where a cube thrown from `at` at `velocity` comes to rest: the height of
+	the surface it rests on, and, when it meets the side of cover it cannot
+	clear, how far it flies over the floor before it drops beside it.
+
+	`topAt(point)` is the height of the top under a flat point (0 for the
+	floor); `sideAt(from, along)` how far along the flat `along` from `from`
+	the first side of cover is, or nil. It lands on a top only if it is over
+	that top when it comes down to it; else it met the side on the way.
+]]
+function ResidueSpray.rest(
+	at: Vector3,
+	velocity: Vector3,
+	gravity: number,
+	half: number,
+	topAt: (Vector3) -> number,
+	sideAt: (Vector3, Vector3) -> number?
+): (number, number?)
+	local spot = ResidueSpray.landing(at, velocity, gravity, 0, half)
+	if not spot then
+		return 0, nil
+	end
+	local top = topAt(spot)
+	if top <= 1e-3 then
+		return 0, nil
+	end
+	local high = ResidueSpray.landing(at, velocity, gravity, top, half)
+	if high and math.abs(topAt(high) - top) < 1e-3 then
+		return top, nil
+	end
+	local flat = Vector3.new(spot.X - at.X, 0, spot.Z - at.Z)
+	if flat.Magnitude < 1e-3 then
+		return top, nil
+	end
+	local side = sideAt(Vector3.new(at.X, math.min(at.Y, top - 0.05), at.Z), flat)
+	if not side then
+		return 0, nil
+	end
+	local wall = math.max(0, side - half)
+	local stop = at + flat.Unit * wall
+	return topAt(Vector3.new(stop.X, 0, stop.Z)), wall
+end
+
 --[[ How high a cube thrown from `at` at `velocity` climbs, at its peak. ]]
 function ResidueSpray.peak(at: Vector3, velocity: Vector3, gravity: number): number
 	local rise = math.max(velocity.Y, 0)

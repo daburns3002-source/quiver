@@ -23,11 +23,19 @@ local TestRunner = require(script.Parent.TestRunner)
      game"). ]]
 local NOT_IN_GAME: { [string]: boolean } = { Tank = true }
 
---[[ An enemy by model name, from the roster or the bench. A fallen body is
-     its enemy's name with "Fallen" after it. ]]
-local function enemy(name: string): Balance.EnemyConfig?
+--[[ An enemy by model name (its `displayName`, `Enemies/EnemyModel`), from
+     the roster or the bench, with its `Balance` key. A fallen body is its
+     enemy's name with "Fallen" after it. ]]
+local function enemy(name: string): (Balance.EnemyConfig?, string?)
 	local base = string.gsub(name, "Fallen$", "")
-	return Balance.Enemies[base] or Balance.Benched[base]
+	for _, list in { Balance.Enemies, Balance.Benched } :: { { [string]: Balance.EnemyConfig } } do
+		for key, config in list do
+			if config.displayName == base then
+				return config, key
+			end
+		end
+	end
+	return nil, nil
 end
 
 return function(t: TestRunner.Helper)
@@ -57,9 +65,12 @@ return function(t: TestRunner.Helper)
 	t.test("every enemy and boss has a sound, and each one exists", function()
 		local heard: { [string]: boolean } = {}
 		local function check(model: string, sound: string)
-			t.notNil(enemy(model), `EnemySounds names {model}, which is not an enemy`)
+			local config, key = enemy(model)
+			t.notNil(config, `EnemySounds names {model}, which is no enemy's model name`)
 			t.notNil(Sounds[sound], `{model} plays unknown sound {sound}`)
-			heard[string.gsub(model, "Fallen$", "")] = true
+			if key then
+				heard[key] = true
+			end
 		end
 		for model, clips in EnemySounds.clips do
 			for _, sound in clips do

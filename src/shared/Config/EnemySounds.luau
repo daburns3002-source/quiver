@@ -2,8 +2,9 @@
 --[[
 	Which sound each enemy makes, and when (`Config/Sounds` names), as
 	`Fx/EnemySounds` plays them from what the client already sees of a
-	body. Keyed by model name, which is the enemy's `Balance.Enemies` (or
-	`Balance.Benched`) name.
+	body. Keyed by model name, which is the enemy's `displayName`
+	(`Enemies/EnemyModel`): the Mossy Glade's Charger, Spitter and Lurker
+	are `MeleeCharger`, `SpreadShooter` and `Burrower` in `Balance`.
 
 	The bosses and Thornwood came first (round 18 of the audition, the
 	owner's picks 2026-10-25); round 35 (2026-11-26) gave a sound to every
@@ -69,7 +70,7 @@ EnemySounds.attacks = {
 	BrambleSow = "enemy_sow_attack",
 	Boarlet = "enemy_boarlet_bite",
 	Thornling = "enemy_thornling_bite",
-	MeleeCharger = "enemy_charger_bite",
+	Charger = "enemy_charger_bite",
 	BabySlime = "enemy_baby_slime_bite",
 	BroodSlime = "enemy_brood_slime_bite",
 	SporePuff = "enemy_spore_puff_bite",
@@ -80,8 +81,8 @@ EnemySounds.attacks = {
      three "ptoo"s are its three burrs. ]]
 EnemySounds.shots = {
 	BurrThistle = "enemy_thistle_spit",
-	SpreadShooter = "enemy_spitter_spit",
-	Burrower = "enemy_burrower_clods",
+	Spitter = "enemy_spitter_spit",
+	Lurker = "enemy_burrower_clods",
 	Lancer = "enemy_lancer_lance",
 	Glowcap = "enemy_glowcap_spores",
 	HollowFisherman = "enemy_fisherman_cast",

@@ -72,9 +72,8 @@ local WATER_SPRITE = ""
 --[[ Round 35's attack sounds for the pets and enemies that had none, the
      owner's picks of 2026-11-26 joined into one sprite
      (`assets/audio/final/attack_sprite_r35.mp3`, regions in its .json;
-     made by `assets/audio/attack_synth.py`): not uploaded yet, so "" and
-     silent. ]]
-local ATTACK_SPRITE = ""
+     made by `assets/audio/attack_synth.py`). Uploaded 2026-11-26. ]]
+local ATTACK_SPRITE = "rbxassetid://132901474260509"
 
 local Sounds: { [string]: Sound } = {
 	--[[ Footsteps in the Drowned Village's shallow water (`Fx/WaterSteps`;

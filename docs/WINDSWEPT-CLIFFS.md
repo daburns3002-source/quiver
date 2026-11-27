@@ -56,9 +56,9 @@ Area 5's numbers sit a step past Bogheart's. Stage multipliers climb from
 
 | Enemy | Made from | Health | Hit | What it does |
 |---|---|---|---|---|
-| **Harpy** | New: flyer | 280 | 60 | A purple-and-navy owl-faced harpy with a bone-white mask. Flies at 9 studs high, **over walls and gaps**, so cover does not stop it. Every 2.6 s it marks a ring (3 studs) on the player's spot, hangs 0.7 s, then dives on it and climbs back. Hittable all the time (arrows and orbs aim at its body). |
+| **Harpy** | New: flyer | 280 | 60 | A purple-and-navy owl-faced harpy with a bone-white mask. Hovers over its shadow, **over walls and gaps**, so cover does not stop it. Every 2.6 s it marks a ring (3 studs) on the player's spot, hangs 0.7 s, then dives on it and climbs back. Hittable all the time (arrows and orbs aim at its body). |
 | **Gust Shaman** | Lancer, twist | 380 | 50 | A hooded ram-horned shaman with a crook topped by a pale-blue wind spiral. Draws a line (0.8 s), then fires one fast gust down it; the gust **pushes the player 7 studs** along the line as well as hurting. Keeps 18 studs off. |
-| **Cliff Goat** | Charger, twist | 700 | 78 | A cream woolly goat with big curled brown horns, a red collar and a bell. Paws the ground (0.6 s, a lane drawn ahead), then charges down the lane; a hit **knocks the player 10 studs**. Stops at cover and shakes its head (1 s, its punish window). |
+| **Cliff Goat** | Charger, twist | 700 | 78 | A cream woolly goat with big curled dark-brown horns. Paws the ground (0.6 s, a lane drawn ahead), then charges down the lane; a hit **knocks the player 10 studs**. Stops at cover and shakes its head (1 s, its punish window). |
 | *Elite:* **Storm Roc** | Harpy, big | 2,400 | 70 | A navy storm bird with glowing blue wing edges. Dives as the Harpy does, and as it climbs drops a **fan of five feathers** (spread 70°) that fly outward. The last room of every fifth level (5-5, 5-10) and the boss's summons. |
 
 All four flash white and are knocked back when hit (the flyers drift back
@@ -73,28 +73,29 @@ Ember Mines' Ember Bat.
 
 *A giant storm bird with lightning on its wingtips* (`BOSSES.md` §5). Navy
 and cream feathers, gold crest, gold talons, yellow-lightning wingtips.
-Alone in the last room of 5-15. **Health 8,200** (Gulp's 6,800, a step up),
+Alone in the last room of 5-15, 16 studs across the wings. **Health 8,200** (Gulp's 6,800, a step up),
 and the owner's kept last-room ramp applies as it does to the others.
 
 **Phase 1 — Dive (100% to 50%).** Its loop:
-- **Dive Line** (`dive`): rises, a lane as wide as its wings (7 studs) is
-  drawn across the whole room through the player, 1.1 s, then it crosses the
-  room down it and lands at the far end. 160 on a hit, and a 6-stud shove
-  sideways out of the lane. It stands 2 s where it lands: the punish window.
+- **Dive Line** (`dive`): rises, a 9-stud lane is drawn through the player
+  to the wall, 1.1 s, then it crosses the room down it and lands at the far
+  end. 56 on a hit (before the stage's multiplier, as every boss's numbers),
+  and a 6-stud shove sideways out of the lane. It stands 2 s where it lands:
+  the punish window.
 - **Wing Gust** (`gust`): plants its feet and beats its wings: a 70° cone,
   22 studs long, marked 0.9 s, then pushes everyone in it **12 studs** away
   from it for 1.2 s (walking against it is slowed, not stopped). No damage of
   its own: the edge does the damage. Used right after a dive, when it is
   nearest a wall.
 - **Talon Swipe** (`swipe`): if the player is within 8 studs, a short 120°
-  arc in front of it, 0.6 s tell, 120.
+  arc in front of it, 0.6 s tell, 46.
 
 **Phase 2 — Storm (below 50%).** It screams, climbs and circles overhead:
-**out of reach** (no hits land) for 6 s at a time. While up there,
-**Lightning** (`storm`) strikes marked circles (4 studs, 1 s warning, 140)
-in a pattern: a line of five towards the player, then a ring of six round
-them, then three on them in a row. Then it dives (a Dive Line) and lands for
-3 s, the only time it can be hit in this phase, then gusts and goes up again.
+**out of reach** (no hits land) while the storm falls. **Lightning**
+(`storm`) strikes marked circles (4 studs, 1 s warning, 50) in a pattern: a
+line of five across the player, then a ring of six round them, then three
+that chase them. Then it drops back down, winded, for 3 s: the phase's
+punish window. Its loop below half is Dive, Gust, Swipe, Dive, Storm.
 At half and at a quarter it calls **two Harpies**.
 
 *Teaches:* knockback near edges. *Class notes:* the Ranger hits it between
@@ -121,23 +122,24 @@ slam, densest leap or split shards).
 
 | # | Pet | Rarity | Look | Attack |
 |---|---|---|---|---|
-| 1 | **Whistle Marmot** | Common | a chunky golden-brown cube marmot standing up on its back legs, cream belly, two square buck teeth, a little red prayer-flag scarf | **Alarm Whistle**: every 3 s whistles at the enemy **nearest its owner** (not nearest itself) for 72. 24/s |
-| 2 | **Cliff Puffin** | Common | a round black-and-white cube puffin with a big striped orange-red-yellow beak and orange feet | **Pebble Drop**: every 2.5 s flies up and drops a pebble on the nearest enemy for 48; **double on an enemy in the air** (Harpies, the Storm Roc, and anything knocked back that moment). 24/s on the ground |
-| 3 | **Woolly Alpaca** | Uncommon | a cloud-white fluffy cube alpaca with a long neck, a woven blanket in prayer-flag stripes and a tuft of wool on its head | **Wool Wall**: every 12 s plants itself between its owner and the nearest enemy and puffs up for 3 s: enemy shots that reach it are stopped. No damage of its own (the egg's shelter pet: a wall, not a coat) |
-| 4 | **Gale Glider** | Rare | a pale-grey and sky-blue flying squirrel with square gliding flaps between its legs and big round eyes | **Updraft**: every 4 s glides through the enemy nearest it and on for 10 studs, hitting each enemy it passes for 108 and **lifting** it (0.6 s, it cannot move or attack). 36/s on one |
-| 5 | **Flagtail Panda** | Epic | a ginger-and-cream red panda with a long ringed tail, white cheek patches and a string of tiny prayer flags round its neck | **Flag Spin**: every 3 s whirls its tail and flings three little flags in a **spiral** out from itself (one each 120°, turning as they go) for 52 each to whatever they cross. 51/s |
-| 6 | **Gale Wilf** | Legendary | the Glowcap Wilf's shape in sky blue and cloud white, little white feather wings, a wind-swirl tail, flight goggles on its head; golden glow | **Glide** (`PETS-WILFS.md` #5): every 4 s spreads its wings and glides in a straight line through up to 3 enemies toward the nearest, 132 each, and lands where the last stood. 66/s on two |
+| 1 | **Whistle Marmot** | Common | a chunky golden-brown cube marmot standing up on its back legs, cream belly, two square buck teeth, a little red prayer-flag scarf | **Alarm Whistle**: every 3 s whistles at the nearest enemy for 72; one **winding up an attack has it cut short** and takes double (bosses are never cut short). 24/s |
+| 2 | **Cliff Puffin** | Common | a round black-and-white cube puffin with a big striped orange-red-yellow beak and orange feet | **Pebble Drop**: every 2.5 s flies up and drops a pebble on the nearest enemy for 60; **double on an enemy in the air** (Harpies, the Storm Roc, and anything sliding from a knockback). 24/s on the ground |
+| 3 | **Woolly Alpaca** | Uncommon | a cloud-white fluffy cube alpaca with a long neck, a woven blanket in prayer-flag stripes and a tuft of wool on its head | **Wool Wall**: every 12 s, for 3 s, enemy shots coming at its owner from the nearest enemy's side (a 120° front) stop at the wool. No damage of its own (the egg's shelter pet: a wall, not a coat) |
+| 4 | **Gale Glider** | Rare | a pale-grey and sky-blue flying squirrel with square gliding flaps between its legs and big round eyes | **Updraft**: every 4 s glides down a 3-stud line through the nearest enemy and 10 studs on, hitting each enemy on it for 72 and **lifting** it (0.6 s, no moving, no attacking; bosses stand). 36/s credited on two |
+| 5 | **Flagtail Panda** | Epic | a ginger-and-cream red panda with a long ringed tail, white cheek patches and a string of tiny prayer flags round its neck | **Flag Spin**: every 3 s whirls its tail and flings three little flags spiralling out to the three nearest enemies within 14 studs, 52 each. 52/s |
+| 6 | **Gale Wilf** | Legendary | the Glowcap Wilf's shape in sky blue and cloud white, little white feather wings, a wind-swirl tail, flight goggles on its head; golden glow | **Glide** (`PETS-WILFS.md` #5): every 4 s spreads its wings and glides down a 4-stud line toward the nearest enemy, 132 to each of the first three on it. 66/s credited on two |
 | 7 | **Rocling** | Legendary | a round baby Tempest Roc: navy and cream fluff, a small gold crest, tiny gold-tipped wings, big yellow eyes and a crackle of yellow spark; golden glow | **Little Thunder** (heir to the Roc's storm): every 5 s marks the enemy with the most health and strikes it with lightning 0.6 s later for 330. 66/s |
-| 8 | **Zephyr Whale** | Mythic | a majestic cloud-white and sky-blue whale floating in the air, long pectoral fins like wings, glowing pale-cyan rune stripes, ribbons of wind trailing from its tail, a little cloud halo; glows `MythicSky` (pale cyan, not rainbow) | **Tailwind**: every 3 s a broad gust from its tail **pushes every enemy within 12 studs of its owner 6 studs away** and hits each for 84. 84/s on one, more on a crowd |
+| 8 | **Zephyr Whale** | Mythic | a majestic cloud-white and sky-blue whale floating in the air, long pectoral fins like wings, glowing pale-cyan rune stripes, ribbons of wind trailing from its tail, a little cloud halo; glows `MythicSky` (pale cyan, not rainbow) | **Tailwind**: every 3 s a broad gust from its tail hits **every enemy within 12 studs of its owner** for 126 and **blows each back**. 84/s credited on two |
 
 The two Legendaries glow gold, the Mythic `MythicSky`. Every pet but the
 Gale Wilf is a Claude Design model (one GLB each, Merge Meshes off, clips in
 the GLB); the Wilf is one Tripo mesh moved by `pet_motions.json`.
 
-**The Windswept Egg**: a slate-grey egg banded with prayer-flag colours, a
-cloud-white wisp curling round it, its top two pieces turning opposite ways
-(the egg rule). 10,000 coins, as the area's crate; at launch it waits on
-Bogheart's boss.
+**The Windswept Egg**: already modelled (the eggs-and-chests Design pass,
+`assets/ui/reveal/design/egg_WindsweptCliffs.png`): a cream egg wrapped in a
+slate band with white feathers, two blue crystals leaning apart on top (the
+egg rule), blue crystals at its foot. 10,000 coins, as the area's crate; at
+launch it waits on Bogheart's boss.
 
 ## The weapons (20)
 

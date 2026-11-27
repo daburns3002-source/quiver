@@ -212,17 +212,17 @@ Checked against GitHub 2026-11-26: these two are still the only PRs open.
 
 The owner's plans, noted 2026-10-25 so they aren't forgotten: "dont implement these changes now just keep notes of them so i dont forget when i want to build all of these". Build one only when the owner says to.
 
-**Checked against the code 2026-11-03: all but three of these are built.** The
+**Checked against the code 2026-11-03: all but three of these are built.** **2026-11-27, the owner on those three: keep all three as they are**, so nothing on this list is left to build. The
 list had not been struck since it was written, which is most of why it reads as
 a backlog. What is genuinely not built is the last three.
 
-- **Lobby** in the same top-down style as the gameplay - **not built** (its music is ready: `Config/Music` Lobby, Mossy Glade take B).
+- ~~**Lobby** in the same top-down style as the gameplay~~ - not wanted: the owner asked on 2026-11-01 for "the normal roblox camera angle" in the lobby (`docs/LOBBY.md`) and kept it on 2026-11-27.
 - ~~**Eggs for pet hatching**~~ - built: `Config/Eggs`, two eggs of eight pets, rolled on the server.
 - ~~**2D animated intro cutscene** when the player opens the game~~ — built 2026-10-25 (owner asked): see the intro row above. Its own sounds beyond the music are not made.
 - ~~**Story cutscene** after BEGIN ADVENTURE~~ — built 2026-10-25 (owner asked): see the story row above. Animated as the owner's approved Claude Design clip 2026-11-10 (`Config/StoryMotion`); the portrait stage is not yet seen on a phone.
 - ~~**Tutorial** after the story cutscene~~ — built 2026-10-25 (owner's design): see the tutorial row above.
-- **Character creation screen** right after that cutscene - **not built** as such; `UI/ClassScreen` picks a class and a look, which may be as far as this needs to go.
-- **Egg breeder** for the eggs - **not built**, and nothing in the game points at it.
+- ~~**Character creation screen** right after that cutscene~~ - `UI/ClassScreen` picks a class and a look; the owner said on 2026-11-27 that is enough.
+- ~~**Egg breeder** for the eggs~~ - dropped (2026-10-25, "just make it a hatchery"; kept dropped 2026-11-27).
 - ~~**Blacksmith** for the weapons~~ - built, and rebuilt twice since.
 - ~~**Gear selection area**~~ - built: the Gear Station and `UI/GearScreen`.
 - ~~**Weapon crates and a weapon store**~~ - built: `Config/Shop`, crates by area and a store by rarity. Area 1 is the only area stocked; what each later area still needs is in `Config/Shop`'s `stocked` comment.

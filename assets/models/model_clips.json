@@ -589,5 +589,55 @@
    "Move"
   ],
   "moving": []
+ },
+ "WhistleMarmot": {
+  "glb": "assets/models/pets/windswept/whistle_marmot.glb",
+  "loops": [
+   "Idle",
+   "Follow"
+  ],
+  "moving": [
+   "Attack"
+  ]
+ },
+ "CliffPuffin": {
+  "glb": "assets/models/pets/windswept/cliff_puffin.glb",
+  "loops": [
+   "Idle",
+   "Follow"
+  ],
+  "moving": [
+   "Attack"
+  ]
+ },
+ "WoollyAlpaca": {
+  "glb": "assets/models/pets/windswept/woolly_alpaca.glb",
+  "loops": [
+   "Idle",
+   "Follow"
+  ],
+  "moving": [
+   "Attack"
+  ]
+ },
+ "FlagtailPanda": {
+  "glb": "assets/models/pets/windswept/flagtail_panda.glb",
+  "loops": [
+   "Idle",
+   "Follow"
+  ],
+  "moving": [
+   "Attack"
+  ]
+ },
+ "ZephyrWhale": {
+  "glb": "assets/models/pets/windswept/zephyr_whale.glb",
+  "loops": [
+   "Idle",
+   "Follow"
+  ],
+  "moving": [
+   "Attack"
+  ]
  }
 }

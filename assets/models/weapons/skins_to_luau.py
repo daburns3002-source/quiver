@@ -159,10 +159,11 @@ DAGGERS = [
 ]
 # Area 2, Thornwood (docs/WEAPONS-THORNWOOD.md): the five bows, staffs and
 # blades, Tripo models (4,000 triangles, 8K texture, PR #625) of the Codex
-# front views, one textured mesh each. Uploaded 2026-11-26 through Open
+# front views, one textured mesh each. Uploaded 2026-11-27 through Open
 # Cloud from `Downloads\\thornwood_weapons_import` and read in Studio into
 # blocky/thornwood/skin_imports.json (write_skin_imports.py); grips and the
-# bows' risers measured from the GLBs (themed_sets/measure_grips.py). A
+# bows' risers measured from the GLBs (themed_sets/measure_grips.py) and
+# turned into the meshes' axes (GLB x and z negated). A
 # Legendary's or Mythic's glow is an `aura`: silk magenta for the three
 # Legendaries, and each Mythic its own (none rainbow).
 THORNWOOD_IMPORTS = HERE / "blocky" / "thornwood" / "skin_imports.json"
@@ -241,12 +242,13 @@ YAW = {
     "LumenveilBow": "math.pi / 2",
     "GoldenBow": "math.pi / 2",
     "LivewireBow": "-math.pi / 2",
-    # Thornwood's bows, every riser on -X (measured from the GLBs, 2026-11-26)
-    "BoarTuskBow": "-math.pi / 2",
-    "PlumBurrBow": "-math.pi / 2",
-    "LurkerVineBow": "-math.pi / 2",
-    "SilkweaverBow": "-math.pi / 2",
-    "NightbarbBow": "-math.pi / 2",
+    # Thornwood's bows, every riser on +X of its uploaded mesh (on -X of its
+    # GLB, whose x and z the upload negates; read in Studio 2026-11-27)
+    "BoarTuskBow": "math.pi / 2",
+    "PlumBurrBow": "math.pi / 2",
+    "LurkerVineBow": "math.pi / 2",
+    "SilkweaverBow": "math.pi / 2",
+    "NightbarbBow": "math.pi / 2",
     # the seven themed sets' bows, every riser on -X (themed_sets/measure_grips.py)
     "WishbrightBow": "-math.pi / 2",
     "SaddlehornBow": "-math.pi / 2",
@@ -316,24 +318,25 @@ GRIPS = {
     "GoldenStaff": (0.0, 0.43, 0.0),
     "GoldenBlade": (0.0, 0.175, 0.0),
     # Thornwood, measured from its GLBs (themed_sets/measure_grips.py,
-    # 2026-11-26). The Briarbreaker Blade's narrow handle runs 12% to 28%
-    # up under its guard (a wrap band at 20% split the rule's run), so it
-    # is held at the middle of the whole run.
-    "BoarTuskBow": (-0.0674, 0.5, 0.0),
-    "PlumBurrBow": (-0.1069, 0.5, 0.0002),
-    "LurkerVineBow": (-0.1004, 0.5, 0.0008),
-    "SilkweaverBow": (-0.0714, 0.5, -0.0001),
-    "NightbarbBow": (-0.049, 0.5, 0.0001),
-    "HedgeBulbStaff": (-0.0001, 0.43, -0.0001),
-    "BurrTotemStaff": (-0.0002, 0.43, 0.0003),
-    "LurkerCrestStaff": (-0.0001, 0.43, 0.0003),
-    "SilkDiademStaff": (0.0004, 0.43, 0.0005),
-    "BlackspineStaff": (0.0021, 0.43, 0.003),
-    "BoarbackBlade": (-0.0002, 0.18, 0.0007),
-    "PlumguardBlade": (0.0004, 0.19, -0.0001),
-    "BurrcrestBlade": (-0.0002, 0.22, 0.0001),
-    "SilkboundBlade": (0.0001, 0.18, -0.0001),
-    "BriarbreakerBlade": (-0.0003, 0.2, 0.0017),
+    # 2026-11-26) and turned into its uploaded meshes' axes (x and z negated,
+    # checked in Studio 2026-11-27). The Briarbreaker Blade's narrow handle
+    # runs 12% to 28% up under its guard (a wrap band at 20% split the rule's
+    # run), so it is held at the middle of the whole run.
+    "BoarTuskBow": (0.0674, 0.5, 0.0),
+    "PlumBurrBow": (0.1069, 0.5, -0.0002),
+    "LurkerVineBow": (0.1004, 0.5, -0.0008),
+    "SilkweaverBow": (0.0714, 0.5, 0.0001),
+    "NightbarbBow": (0.049, 0.5, -0.0001),
+    "HedgeBulbStaff": (0.0001, 0.43, 0.0001),
+    "BurrTotemStaff": (0.0002, 0.43, -0.0003),
+    "LurkerCrestStaff": (0.0001, 0.43, -0.0003),
+    "SilkDiademStaff": (-0.0004, 0.43, -0.0005),
+    "BlackspineStaff": (-0.0021, 0.43, -0.003),
+    "BoarbackBlade": (0.0002, 0.18, -0.0007),
+    "PlumguardBlade": (-0.0004, 0.19, 0.0001),
+    "BurrcrestBlade": (0.0002, 0.22, -0.0001),
+    "SilkboundBlade": (-0.0001, 0.18, 0.0001),
+    "BriarbreakerBlade": (0.0003, 0.2, -0.0017),
     # Neon Circuit, measured from its GLBs (neon_circuit/measure_grips.py,
     # 2026-11-18): the bow's riser is on -X; the blade's handle runs 12% to
     # 30% up, the dagger's 12% to 28% (its pommel cube below)

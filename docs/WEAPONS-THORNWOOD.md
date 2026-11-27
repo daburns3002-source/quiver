@@ -243,11 +243,13 @@ Blackspine Staff, Briarbreaker Blade) are **modelled in Tripo**: HD model, 4,000
   `name_tripo_glb.py` names them for the Import Queue in `Downloads\thornwood_weapons_import`, each one
   textured mesh with UVs.
 - Shop and gear pictures: `assets/ui/shop/thornwood_icons.py` (cut, not uploaded yet).
-- **In the game (2026-11-26).** Imported into Studio and read into
-  `assets/models/weapons/blocky/thornwood/skin_imports.json` (`write_skin_imports.py`); held by
-  `skins_to_luau.py` (`THORNWOOD`) at grips measured from the GLBs (`themed_sets/measure_grips.py`: every
-  bow's riser on -X, so a quarter turn back; staffs 43% up; blades at their handles, the Briarbreaker
-  Blade at the middle of its whole handle). Stats in `Config/WeaponStats` (area 2), pictures uploaded
+- **In the game (2026-11-27).** Uploaded as Model assets through Open Cloud (no owner import; the ids
+  are in `write_skin_imports.py`) and read in Studio into
+  `assets/models/weapons/blocky/thornwood/skin_imports.json`; held by `skins_to_luau.py` (`THORNWOOD`) at
+  grips measured from the GLBs (`themed_sets/measure_grips.py`) and turned into the uploaded meshes' axes,
+  which are the GLB's with x and z negated (checked in Studio from the meshes' own vertices): every bow's
+  riser is on +X of its mesh, a quarter turn; staffs 43% up; blades at their handles, the Briarbreaker
+  Blade at the middle of its whole handle. Stats in `Config/WeaponStats` (area 2), pictures uploaded
   into `Config/ShopAssets`, and Thornwood's crate is stocked (`Config/Shop`; at launch it waits on King
   Bloblin, as the portal waits on 1-10). The Legendaries glow silk magenta and each Mythic its own colour
   (an `aura`; none rainbow, owner 2026-11-06): Nightbarb red, Blackspine violet, Briarbreaker amber.

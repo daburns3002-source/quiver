@@ -61,7 +61,8 @@ to Mossy Glade's; hard levels open in order (1-1 on hard first).
       once the owner approved `Downloads`): Thornwood's store and crates sell them.
 - [ ] **Rename the experience** ("Archer Legends [TEST]", universe 10772468005). Keep this universe:
       all ten Robux product and pass ids belong to it.
-- [ ] **Maturity questionnaire**, and the store page's **icon, thumbnails and trailer**.
+- [ ] **Maturity questionnaire**, and the store page's **icon, thumbnails and trailer**. Icon and
+      thumbnail pictures to pick from are ready: `docs/STORE-PAGE.md`, `assets/store/contact-sheet.jpg`.
 - [ ] **Notifications:** the six steps in `docs/NOTIFICATIONS.md` (built, switched off).
 - [ ] **A real Robux purchase** of one product and one pass on the published game (only Studio test
       purchases and debug receipts have been made).

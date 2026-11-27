@@ -212,30 +212,25 @@ return table.freeze({
 			cframe = { 0.2898, 0.83, 0.4847, 0, 0, 0, 1 },
 			size = { 0.0422, 0.045, 0.0284 },
 		},
+		["M_BrambleLurker_Thorn"] = {
+			joint = "BrambleLurker",
+			cframe = { -0.0012, 0.9494, 0.0346, 0, 0, 0, 1 },
+			size = { 2.1096, 2.052, 1.5756 },
+		},
+		["M_BrambleLurker_Vine"] = {
+			joint = "BrambleLurker",
+			cframe = { -0.0012, 0.9494, 0.0346, 0, 0, 0, 1 },
+			size = { 2.1096, 2.052, 1.5756 },
+		},
+		["M_BrambleLurker_VineShade"] = {
+			joint = "BrambleLurker",
+			cframe = { -0.0012, 0.9494, 0.0346, 0, 0, 0, 1 },
+			size = { 2.1096, 2.052, 1.5756 },
+		},
 		["Thorns"] = {
 			joint = "Bulb",
 			cframe = { 0, 0.897, -0.1796, 0, 0, 0, 1 },
 			size = { 1.4422, 0.7763, 1.0766 },
-		},
-		["Vine1"] = {
-			joint = "BrambleLurker",
-			cframe = { -0.7015, 0.4307, 0.582, 0, 0, 0, 1 },
-			size = { 0.7089, 1.0148, 0.4699 },
-		},
-		["Vine2"] = {
-			joint = "BrambleLurker",
-			cframe = { 0.7004, 0.4269, 0.5847, 0, 0, 0, 1 },
-			size = { 0.7066, 1.0071, 0.4753 },
-		},
-		["Vine3"] = {
-			joint = "BrambleLurker",
-			cframe = { -0.6769, 0.9521, -0.5356, 0, 0, 0, 1 },
-			size = { 0.7178, 2.0466, 0.4352 },
-		},
-		["Vine4"] = {
-			joint = "BrambleLurker",
-			cframe = { 0.6769, 0.9497, -0.5348, 0, 0, 0, 1 },
-			size = { 0.7178, 2.0419, 0.4337 },
 		},
 	},
 	clips = {

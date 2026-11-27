@@ -133,15 +133,105 @@ return table.freeze({
 		},
 	},
 	parts = {
-		["ankle_back_L"] = {
-			joint = "foot_back_L_jnt",
-			cframe = { 0.84, 0.155, -1.18, 0, 0, 0, 1 },
-			size = { 0.24, 0.12, 0.24 },
+		["M_body_jnt_bellylime"] = {
+			joint = "body_jnt",
+			cframe = { 0, 0.3551, -0.1972, -0.0056, 0, 0, 1 },
+			size = { 0.84, 0.268, 1.3 },
 		},
-		["ankle_back_R"] = {
+		["M_body_jnt_stonegrey"] = {
+			joint = "body_jnt",
+			cframe = { 0, 0.8823, -0.3656, -0.0056, 0, 0, 1 },
+			size = { 0.98, 0.82, 1.015 },
+		},
+		["M_foot_back_L_jnt_stonegrey"] = {
+			joint = "foot_back_L_jnt",
+			cframe = { 0.842, 0.1075, -1.1652, 0, 0, 0, 1 },
+			size = { 0.4146, 0.215, 0.3969 },
+		},
+		["M_foot_back_R_jnt_stonegrey"] = {
 			joint = "foot_back_R_jnt",
-			cframe = { -0.84, 0.155, -1.18, 0, 0, 0, 1 },
-			size = { 0.24, 0.12, 0.24 },
+			cframe = { -0.842, 0.1075, -1.1652, 0, 0, 0, 1 },
+			size = { 0.4146, 0.215, 0.3969 },
+		},
+		["M_foot_front_L_jnt_stonegrey"] = {
+			joint = "foot_front_L_jnt",
+			cframe = { 0.9235, 0.055, 0.6344, 0, 0, 0, 1 },
+			size = { 0.4294, 0.11, 0.4144 },
+		},
+		["M_foot_front_R_jnt_stonegrey"] = {
+			joint = "foot_front_R_jnt",
+			cframe = { -0.9235, 0.055, 0.6344, 0, 0, 0, 1 },
+			size = { 0.4294, 0.11, 0.4144 },
+		},
+		["M_foot_mid_L_jnt_stonegrey"] = {
+			joint = "foot_mid_L_jnt",
+			cframe = { 0.9298, 0.055, -0.3685, 0, 0, 0, 1 },
+			size = { 0.4552, 0.11, 0.4529 },
+		},
+		["M_foot_mid_R_jnt_stonegrey"] = {
+			joint = "foot_mid_R_jnt",
+			cframe = { -0.9298, 0.055, -0.3685, 0, 0, 0, 1 },
+			size = { 0.4552, 0.11, 0.4529 },
+		},
+		["M_head_jnt_eyeamber"] = {
+			joint = "head_jnt",
+			cframe = { 0.0013, 1.0022, 0.9576, -0.0056, 0, -0.0027, 1 },
+			size = { 0.8218, 0.3418, 0.03 },
+		},
+		["M_head_jnt_eyebrown"] = {
+			joint = "head_jnt",
+			cframe = { 0.0013, 1.0072, 0.9625, -0.0056, 0, -0.0027, 1 },
+			size = { 0.8588, 0.3788, 0.042 },
+		},
+		["M_head_jnt_highlightwhite"] = {
+			joint = "head_jnt",
+			cframe = { 0.0006, 1.0143, 0.9875, -0.0056, 0, -0.0027, 1 },
+			size = { 0.6265, 0.1615, 0.01 },
+		},
+		["M_head_jnt_stonegrey"] = {
+			joint = "head_jnt",
+			cframe = { 0.0013, 1.0122, 0.5605, -0.0056, 0, -0.0027, 1 },
+			size = { 1.284, 0.919, 0.83 },
+		},
+		["M_lower_leg_front_L_jnt_stonegrey"] = {
+			joint = "lower_leg_front_L_jnt",
+			cframe = { 0.8124, 0.2845, 0.5097, 0.0042, 0.0009, -0.0082, 1 },
+			size = { 0.3692, 0.4565, 0.3659 },
+		},
+		["M_lower_leg_front_R_jnt_stonegrey"] = {
+			joint = "lower_leg_front_R_jnt",
+			cframe = { -0.8124, 0.2845, 0.5097, 0.0042, -0.0009, 0.0082, 1 },
+			size = { 0.3692, 0.4565, 0.3659 },
+		},
+		["M_lower_leg_mid_L_jnt_stonegrey"] = {
+			joint = "lower_leg_mid_L_jnt",
+			cframe = { 0.8073, 0.2878, -0.3222, -0.0029, 0.0021, -0.0018, 1 },
+			size = { 0.3627, 0.4459, 0.3132 },
+		},
+		["M_lower_leg_mid_R_jnt_stonegrey"] = {
+			joint = "lower_leg_mid_R_jnt",
+			cframe = { -0.8073, 0.2878, -0.3222, -0.0029, -0.0021, 0.0018, 1 },
+			size = { 0.3627, 0.4459, 0.3132 },
+		},
+		["M_upper_leg_front_L_jnt_stonegrey"] = {
+			joint = "upper_leg_front_L_jnt",
+			cframe = { 0.5693, 0.2874, 0.3215, -0.0009, 0.0025, -0.0084, 1 },
+			size = { 0.4747, 0.361, 0.4154 },
+		},
+		["M_upper_leg_front_R_jnt_stonegrey"] = {
+			joint = "upper_leg_front_R_jnt",
+			cframe = { -0.5693, 0.2874, 0.3215, -0.0009, -0.0025, 0.0084, 1 },
+			size = { 0.4747, 0.361, 0.4154 },
+		},
+		["M_upper_leg_mid_L_jnt_stonegrey"] = {
+			joint = "upper_leg_mid_L_jnt",
+			cframe = { 0.5579, 0.2725, -0.3133, -0.0079, 0.0041, -0.0032, 1 },
+			size = { 0.4546, 0.3408, 0.2285 },
+		},
+		["M_upper_leg_mid_R_jnt_stonegrey"] = {
+			joint = "upper_leg_mid_R_jnt",
+			cframe = { -0.5579, 0.2725, -0.3133, -0.0079, -0.0041, 0.0032, 1 },
+			size = { 0.4546, 0.3408, 0.2285 },
 		},
 		["antenna_rod_L"] = {
 			joint = "antenna_L_jnt",
@@ -152,286 +242,6 @@ return table.freeze({
 			joint = "antenna_R_jnt",
 			cframe = { -0.475, 1.9136, 0.364, -0.1324, 0.037, 0.2101, 0.968 },
 			size = { 0.22, 1.05, 0.12 },
-		},
-		["antenna_stub_L"] = {
-			joint = "head_jnt",
-			cframe = { 0.2636, 1.4195, 0.4909, -0.0056, 0, -0.0027, 1 },
-			size = { 0.28, 0.1, 0.22 },
-		},
-		["antenna_stub_R"] = {
-			joint = "head_jnt",
-			cframe = { -0.2564, 1.4224, 0.4908, -0.0056, 0, -0.0027, 1 },
-			size = { 0.28, 0.1, 0.22 },
-		},
-		["belly_lower"] = {
-			joint = "body_jnt",
-			cframe = { 0, 0.2562, -0.1961, -0.0056, 0, 0, 1 },
-			size = { 0.64, 0.07, 1.15 },
-		},
-		["belly_upper"] = {
-			joint = "body_jnt",
-			cframe = { 0, 0.3891, -0.1976, -0.0056, 0, 0, 1 },
-			size = { 0.84, 0.2, 1.3 },
-		},
-		["body_plate_1"] = {
-			joint = "body_jnt",
-			cframe = { 0, 0.886, -0.0332, -0.0056, 0, 0, 1 },
-			size = { 0.98, 0.82, 0.35 },
-		},
-		["body_plate_2"] = {
-			joint = "body_jnt",
-			cframe = { 0, 0.8723, -0.363, -0.0056, 0, 0, 1 },
-			size = { 0.94, 0.78, 0.38 },
-		},
-		["body_plate_3"] = {
-			joint = "body_jnt",
-			cframe = { 0, 0.8387, -0.6827, -0.0056, 0, 0, 1 },
-			size = { 0.86, 0.7, 0.38 },
-		},
-		["cheek_L"] = {
-			joint = "head_jnt",
-			cframe = { 0.5719, 0.7523, 0.7984, -0.0056, 0, -0.0027, 1 },
-			size = { 0.14, 0.3, 0.36 },
-		},
-		["cheek_R"] = {
-			joint = "head_jnt",
-			cframe = { -0.572, 0.7585, 0.7983, -0.0056, 0, -0.0027, 1 },
-			size = { 0.14, 0.3, 0.36 },
-		},
-		["eye_glint_big_L"] = {
-			joint = "head_jnt",
-			cframe = { 0.2866, 1.066, 0.9869, -0.0056, 0, -0.0027, 1 },
-			size = { 0.055, 0.055, 0.01 },
-		},
-		["eye_glint_big_R"] = {
-			joint = "head_jnt",
-			cframe = { -0.1934, 1.0686, 0.9868, -0.0056, 0, -0.0027, 1 },
-			size = { 0.055, 0.055, 0.01 },
-		},
-		["eye_glint_small_L"] = {
-			joint = "head_jnt",
-			cframe = { 0.181, 0.9465, 0.9882, -0.0056, 0, -0.0027, 1 },
-			size = { 0.028, 0.028, 0.01 },
-		},
-		["eye_glint_small_R"] = {
-			joint = "head_jnt",
-			cframe = { -0.299, 0.9491, 0.9882, -0.0056, 0, -0.0027, 1 },
-			size = { 0.028, 0.028, 0.01 },
-		},
-		["eye_iris_L"] = {
-			joint = "head_jnt",
-			cframe = { 0.2413, 1.0009, 0.9576, -0.0056, 0, -0.0027, 1 },
-			size = { 0.3418, 0.3418, 0.03 },
-		},
-		["eye_iris_R"] = {
-			joint = "head_jnt",
-			cframe = { -0.2387, 1.0035, 0.9576, -0.0056, 0, -0.0027, 1 },
-			size = { 0.3418, 0.3418, 0.03 },
-		},
-		["eye_pupil_L"] = {
-			joint = "head_jnt",
-			cframe = { 0.2413, 1.0161, 0.9774, -0.0056, 0, -0.0027, 1 },
-			size = { 0.1806, 0.2337, 0.012 },
-		},
-		["eye_pupil_R"] = {
-			joint = "head_jnt",
-			cframe = { -0.2386, 1.0187, 0.9774, -0.0056, 0, -0.0027, 1 },
-			size = { 0.1806, 0.2337, 0.012 },
-		},
-		["eye_rim_L"] = {
-			joint = "head_jnt",
-			cframe = { 0.2413, 1.0058, 0.9515, -0.0056, 0, -0.0027, 1 },
-			size = { 0.3788, 0.3788, 0.02 },
-		},
-		["eye_rim_R"] = {
-			joint = "head_jnt",
-			cframe = { -0.2387, 1.0084, 0.9515, -0.0056, 0, -0.0027, 1 },
-			size = { 0.3788, 0.3788, 0.02 },
-		},
-		["foot_back_L_heel"] = {
-			joint = "foot_back_L_jnt",
-			cframe = { 0.8276, 0.055, -1.2284, 0, 0.1247, 0, 0.9922 },
-			size = { 0.36, 0.11, 0.2 },
-		},
-		["foot_back_L_toe0"] = {
-			joint = "foot_back_L_jnt",
-			cframe = { 0.7523, 0.045, -1.0384, 0, 0.1247, 0, 0.9922 },
-			size = { 0.11, 0.09, 0.13 },
-		},
-		["foot_back_L_toe1"] = {
-			joint = "foot_back_L_jnt",
-			cframe = { 0.8686, 0.045, -1.0681, 0, 0.1247, 0, 0.9922 },
-			size = { 0.11, 0.09, 0.13 },
-		},
-		["foot_back_L_toe2"] = {
-			joint = "foot_back_L_jnt",
-			cframe = { 0.9848, 0.045, -1.0978, 0, 0.1247, 0, 0.9922 },
-			size = { 0.11, 0.09, 0.13 },
-		},
-		["foot_back_R_heel"] = {
-			joint = "foot_back_R_jnt",
-			cframe = { -0.8276, 0.055, -1.2284, 0, -0.1247, 0, 0.9922 },
-			size = { 0.36, 0.11, 0.2 },
-		},
-		["foot_back_R_toe0"] = {
-			joint = "foot_back_R_jnt",
-			cframe = { -0.9848, 0.045, -1.0978, 0, -0.1247, 0, 0.9922 },
-			size = { 0.11, 0.09, 0.13 },
-		},
-		["foot_back_R_toe1"] = {
-			joint = "foot_back_R_jnt",
-			cframe = { -0.8686, 0.045, -1.0681, 0, -0.1247, 0, 0.9922 },
-			size = { 0.11, 0.09, 0.13 },
-		},
-		["foot_back_R_toe2"] = {
-			joint = "foot_back_R_jnt",
-			cframe = { -0.7523, 0.045, -1.0384, 0, -0.1247, 0, 0.9922 },
-			size = { 0.11, 0.09, 0.13 },
-		},
-		["foot_front_L_heel"] = {
-			joint = "foot_front_L_jnt",
-			cframe = { 0.9035, 0.055, 0.5728, 0, 0.1675, 0, 0.9859 },
-			size = { 0.36, 0.11, 0.2 },
-		},
-		["foot_front_L_toe0"] = {
-			joint = "foot_front_L_jnt",
-			cframe = { 0.8449, 0.045, 0.7687, 0, 0.1675, 0, 0.9859 },
-			size = { 0.11, 0.09, 0.13 },
-		},
-		["foot_front_L_toe1"] = {
-			joint = "foot_front_L_jnt",
-			cframe = { 0.9582, 0.045, 0.729, 0, 0.1675, 0, 0.9859 },
-			size = { 0.11, 0.09, 0.13 },
-		},
-		["foot_front_L_toe2"] = {
-			joint = "foot_front_L_jnt",
-			cframe = { 1.0714, 0.045, 0.6894, 0, 0.1675, 0, 0.9859 },
-			size = { 0.11, 0.09, 0.13 },
-		},
-		["foot_front_R_heel"] = {
-			joint = "foot_front_R_jnt",
-			cframe = { -0.9035, 0.055, 0.5728, 0, -0.1675, 0, 0.9859 },
-			size = { 0.36, 0.11, 0.2 },
-		},
-		["foot_front_R_toe0"] = {
-			joint = "foot_front_R_jnt",
-			cframe = { -1.0714, 0.045, 0.6894, 0, -0.1675, 0, 0.9859 },
-			size = { 0.11, 0.09, 0.13 },
-		},
-		["foot_front_R_toe1"] = {
-			joint = "foot_front_R_jnt",
-			cframe = { -0.9582, 0.045, 0.729, 0, -0.1675, 0, 0.9859 },
-			size = { 0.11, 0.09, 0.13 },
-		},
-		["foot_front_R_toe2"] = {
-			joint = "foot_front_R_jnt",
-			cframe = { -0.8449, 0.045, 0.7687, 0, -0.1675, 0, 0.9859 },
-			size = { 0.11, 0.09, 0.13 },
-		},
-		["foot_mid_L_heel"] = {
-			joint = "foot_mid_L_jnt",
-			cframe = { 0.8871, 0.055, -0.4176, 0, 0.3517, 0, 0.9361 },
-			size = { 0.36, 0.11, 0.2 },
-		},
-		["foot_mid_L_toe0"] = {
-			joint = "foot_mid_L_jnt",
-			cframe = { 0.9057, 0.045, -0.2141, 0, 0.3517, 0, 0.9361 },
-			size = { 0.11, 0.09, 0.13 },
-		},
-		["foot_mid_L_toe1"] = {
-			joint = "foot_mid_L_jnt",
-			cframe = { 0.9961, 0.045, -0.2931, 0, 0.3517, 0, 0.9361 },
-			size = { 0.11, 0.09, 0.13 },
-		},
-		["foot_mid_L_toe2"] = {
-			joint = "foot_mid_L_jnt",
-			cframe = { 1.0864, 0.045, -0.3721, 0, 0.3517, 0, 0.9361 },
-			size = { 0.11, 0.09, 0.13 },
-		},
-		["foot_mid_R_heel"] = {
-			joint = "foot_mid_R_jnt",
-			cframe = { -0.8871, 0.055, -0.4176, 0, -0.3517, 0, 0.9361 },
-			size = { 0.36, 0.11, 0.2 },
-		},
-		["foot_mid_R_toe0"] = {
-			joint = "foot_mid_R_jnt",
-			cframe = { -1.0864, 0.045, -0.3721, 0, -0.3517, 0, 0.9361 },
-			size = { 0.11, 0.09, 0.13 },
-		},
-		["foot_mid_R_toe1"] = {
-			joint = "foot_mid_R_jnt",
-			cframe = { -0.9961, 0.045, -0.2931, 0, -0.3517, 0, 0.9361 },
-			size = { 0.11, 0.09, 0.13 },
-		},
-		["foot_mid_R_toe2"] = {
-			joint = "foot_mid_R_jnt",
-			cframe = { -0.9057, 0.045, -0.2141, 0, -0.3517, 0, 0.9361 },
-			size = { 0.11, 0.09, 0.13 },
-		},
-		["head"] = {
-			joint = "head_jnt",
-			cframe = { 0.0011, 0.9625, 0.546, -0.0056, 0, -0.0027, 1 },
-			size = { 1, 0.82, 0.8 },
-		},
-		["hip_front_L"] = {
-			joint = "upper_leg_front_L_jnt",
-			cframe = { 0.44, 0.1989, 0.2246, -0.0009, 0.0025, -0.0084, 1 },
-			size = { 0.22, 0.18, 0.22 },
-		},
-		["hip_front_R"] = {
-			joint = "upper_leg_front_R_jnt",
-			cframe = { -0.44, 0.1989, 0.2246, -0.0009, -0.0025, 0.0084, 1 },
-			size = { 0.22, 0.18, 0.22 },
-		},
-		["hip_mid_L"] = {
-			joint = "upper_leg_mid_L_jnt",
-			cframe = { 0.44, 0.1928, -0.3154, -0.0079, 0.0041, -0.0032, 1 },
-			size = { 0.22, 0.18, 0.22 },
-		},
-		["hip_mid_R"] = {
-			joint = "upper_leg_mid_R_jnt",
-			cframe = { -0.44, 0.1928, -0.3154, -0.0079, -0.0041, 0.0032, 1 },
-			size = { 0.22, 0.18, 0.22 },
-		},
-		["knee_front_L"] = {
-			joint = "lower_leg_front_L_jnt",
-			cframe = { 0.7643, 0.3839, 0.4626, 0.0042, 0.0009, -0.0082, 1 },
-			size = { 0.27, 0.26, 0.27 },
-		},
-		["knee_front_R"] = {
-			joint = "lower_leg_front_R_jnt",
-			cframe = { -0.7643, 0.3839, 0.4626, 0.0042, -0.0009, 0.0082, 1 },
-			size = { 0.27, 0.26, 0.27 },
-		},
-		["knee_mid_L"] = {
-			joint = "lower_leg_mid_L_jnt",
-			cframe = { 0.7613, 0.381, -0.301, -0.0029, 0.0021, -0.0018, 1 },
-			size = { 0.27, 0.26, 0.27 },
-		},
-		["knee_mid_R"] = {
-			joint = "lower_leg_mid_R_jnt",
-			cframe = { -0.7613, 0.381, -0.301, -0.0029, -0.0021, 0.0018, 1 },
-			size = { 0.27, 0.26, 0.27 },
-		},
-		["lower_leg_front_L"] = {
-			joint = "lower_leg_front_L_jnt",
-			cframe = { 0.8422, 0.242, 0.5413, 0.6674, -0.0024, -0.67, 0.3251 },
-			size = { 0.2, 0.36, 0.2 },
-		},
-		["lower_leg_front_R"] = {
-			joint = "lower_leg_front_R_jnt",
-			cframe = { -0.8422, 0.242, 0.5413, 0.6674, 0.0024, 0.67, 0.3251 },
-			size = { 0.2, 0.36, 0.2 },
-		},
-		["lower_leg_mid_L"] = {
-			joint = "lower_leg_mid_L_jnt",
-			cframe = { 0.8407, 0.2405, -0.3405, -0.4318, -0.0011, -0.8582, 0.2776 },
-			size = { 0.2, 0.3323, 0.2 },
-		},
-		["lower_leg_mid_R"] = {
-			joint = "lower_leg_mid_R_jnt",
-			cframe = { -0.8407, 0.2405, -0.3405, -0.4318, 0.0011, 0.8582, 0.2776 },
-			size = { 0.2, 0.3323, 0.2 },
 		},
 		["mouth_open"] = {
 			joint = "mouth_jnt",
@@ -448,16 +258,6 @@ return table.freeze({
 			cframe = { -0.7648, 0.5106, -0.9814, -0.91, 0.001, 0.3405, 0.2364 },
 			size = { 0.22, 0.9246, 0.22 },
 		},
-		["smile_corner_L"] = {
-			joint = "head_jnt",
-			cframe = { 0.0654, 0.8387, 0.9504, -0.0056, 0, -0.0027, 1 },
-			size = { 0.03, 0.035, 0.012 },
-		},
-		["smile_corner_R"] = {
-			joint = "head_jnt",
-			cframe = { -0.0646, 0.8394, 0.9504, -0.0056, 0, -0.0027, 1 },
-			size = { 0.03, 0.035, 0.012 },
-		},
 		["smile_mid"] = {
 			joint = "jaw_jnt",
 			cframe = { 0.0002, 0.8121, 0.9507, -0.0056, 0, -0.0027, 1 },
@@ -472,26 +272,6 @@ return table.freeze({
 			joint = "thigh_R_jnt",
 			cframe = { -0.6647, 0.9021, -0.5627, 0.1476, -0.0004, -0.0002, 0.989 },
 			size = { 0.36, 0.44, 0.62 },
-		},
-		["upper_leg_front_L"] = {
-			joint = "upper_leg_front_L_jnt",
-			cframe = { 0.6022, 0.2914, 0.3436, 0.3188, -0.0009, -0.4353, 0.842 },
-			size = { 0.2, 0.4428, 0.2 },
-		},
-		["upper_leg_front_R"] = {
-			joint = "upper_leg_front_R_jnt",
-			cframe = { -0.6022, 0.2914, 0.3436, 0.3188, 0.0009, 0.4353, 0.842 },
-			size = { 0.2, 0.4428, 0.2 },
-		},
-		["upper_leg_mid_L"] = {
-			joint = "upper_leg_mid_L_jnt",
-			cframe = { 0.6007, 0.2869, -0.3082, 0.022, -0.0004, -0.497, 0.8675 },
-			size = { 0.2, 0.3727, 0.2 },
-		},
-		["upper_leg_mid_R"] = {
-			joint = "upper_leg_mid_R_jnt",
-			cframe = { -0.6007, 0.2869, -0.3082, 0.022, 0.0004, 0.497, 0.8675 },
-			size = { 0.2, 0.3727, 0.2 },
 		},
 	},
 	clips = {
